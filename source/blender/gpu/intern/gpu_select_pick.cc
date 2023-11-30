@@ -227,8 +227,7 @@ static int depth_cmp(const void *v1, const void *v2)
 /** Depth sorting. */
 struct GPUPickState {
   /** Cache on initialization. */
-  GPUSelectResult *buffer;
-  uint buffer_len;
+  GPUSelectBuffer *buffer;
   /** Mode of this operation. */
   eGPUSelectMode mode;
 
@@ -294,10 +293,7 @@ struct GPUPickState {
 
 static GPUPickState g_pick_state{};
 
-void gpu_select_pick_begin(GPUSelectResult *buffer,
-                           const uint buffer_len,
-                           const rcti *input,
-                           eGPUSelectMode mode)
+void gpu_select_pick_begin(GPUSelectBuffer *buffer, const rcti *input, eGPUSelectMode mode)
 {
   GPUPickState *ps = &g_pick_state;
 
@@ -312,7 +308,6 @@ void gpu_select_pick_begin(GPUSelectResult *buffer,
   GPU_debug_group_begin("Selection Pick");
 
   ps->buffer = buffer;
-  ps->buffer_len = buffer_len;
   ps->mode = mode;
 
   const uint rect_len = uint(BLI_rcti_size_x(input) * BLI_rcti_size_y(input));
@@ -577,7 +572,6 @@ uint gpu_select_pick_end()
     rect_depth_final = ps->gpu.rect_depth;
   }
 
-  uint maxhits = g_pick_state.buffer_len;
   DepthID *depth_data;
   uint depth_data_len = 0;
 
@@ -662,22 +656,16 @@ uint gpu_select_pick_end()
    * so the final hit-list is sorted by depth (nearest first). */
   uint hits = 0;
 
-  if (depth_data_len > maxhits) {
-    hits = uint(-1);
-  }
-  else {
-    /* Leave sorting up to the caller. */
-    qsort(depth_data, depth_data_len, sizeof(DepthID), depth_cmp);
+  /* Leave sorting up to the caller. */
+  qsort(depth_data, depth_data_len, sizeof(DepthID), depth_cmp);
 
-    for (uint i = 0; i < depth_data_len; i++) {
+  g_pick_state.buffer->storage.reserve(g_pick_state.buffer->storage.size() + depth_data_len);
+  for (uint i = 0; i < depth_data_len; i++) {
 #ifdef DEBUG_PRINT
-      printf("  hit: %u: depth %u\n", depth_data[i].id, depth_data[i].depth);
+    printf("  hit: %u: depth %u\n", depth_data[i].id, depth_data[i].depth);
 #endif
-      g_pick_state.buffer[hits].depth = depth_data[i].depth;
-      g_pick_state.buffer[hits].id = depth_data[i].id;
-      hits++;
-    }
-    BLI_assert(hits < maxhits);
+    g_pick_state.buffer->storage.append_unchecked({depth_data[i].id, depth_data[i].depth});
+    hits++;
   }
 
   MEM_freeN(depth_data);

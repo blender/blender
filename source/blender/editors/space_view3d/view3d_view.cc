@@ -479,8 +479,7 @@ void view3d_opengl_select_cache_end()
 struct DrawSelectLoopUserData {
   uint pass;
   uint hits;
-  GPUSelectResult *buffer;
-  uint buffer_len;
+  GPUSelectBuffer *buffer;
   const rcti *rect;
   eGPUSelectMode gpu_select_mode;
 };
@@ -490,8 +489,7 @@ static bool drw_select_loop_pass(eDRWSelectStage stage, void *user_data)
   bool continue_pass = false;
   DrawSelectLoopUserData *data = static_cast<DrawSelectLoopUserData *>(user_data);
   if (stage == DRW_SELECT_PASS_PRE) {
-    GPU_select_begin_next(
-        data->buffer, data->buffer_len, data->rect, data->gpu_select_mode, data->hits);
+    GPU_select_begin_next(data->buffer, data->rect, data->gpu_select_mode, data->hits);
     /* always run POST after PRE. */
     continue_pass = true;
   }
@@ -544,8 +542,7 @@ static bool drw_select_filter_object_mode_lock_for_weight_paint(Object *ob, void
 }
 
 int view3d_opengl_select_ex(ViewContext *vc,
-                            GPUSelectResult *buffer,
-                            uint buffer_len,
+                            GPUSelectBuffer *buffer,
                             const rcti *input,
                             eV3DSelectMode select_mode,
                             eV3DSelectObjectFilter select_filter,
@@ -610,7 +607,7 @@ int view3d_opengl_select_ex(ViewContext *vc,
   /* Re-use cache (rect must be smaller than the cached)
    * other context is assumed to be unchanged */
   if (GPU_select_is_cached()) {
-    GPU_select_begin_next(buffer, buffer_len, &rect, gpu_select_mode, 0);
+    GPU_select_begin_next(buffer, &rect, gpu_select_mode, 0);
     GPU_select_cache_load_id();
     hits = GPU_select_end();
     goto finally;
@@ -691,7 +688,6 @@ int view3d_opengl_select_ex(ViewContext *vc,
     drw_select_loop_user_data.pass = 0;
     drw_select_loop_user_data.hits = 0;
     drw_select_loop_user_data.buffer = buffer;
-    drw_select_loop_user_data.buffer_len = buffer_len;
     drw_select_loop_user_data.rect = &rect;
     drw_select_loop_user_data.gpu_select_mode = gpu_select_mode;
 
@@ -721,7 +717,6 @@ int view3d_opengl_select_ex(ViewContext *vc,
     drw_select_loop_user_data.pass = 0;
     drw_select_loop_user_data.hits = 0;
     drw_select_loop_user_data.buffer = buffer;
-    drw_select_loop_user_data.buffer_len = buffer_len;
     drw_select_loop_user_data.rect = &rect;
     drw_select_loop_user_data.gpu_select_mode = gpu_select_mode;
 
@@ -755,38 +750,36 @@ int view3d_opengl_select_ex(ViewContext *vc,
   UI_Theme_Restore(&theme_state);
 
 finally:
-
-  if (hits < 0) {
-    printf("Too many objects in select buffer\n"); /* XXX make error message */
-  }
-
   return hits;
 }
 
 int view3d_opengl_select(ViewContext *vc,
-                         GPUSelectResult *buffer,
-                         uint buffer_len,
+                         GPUSelectBuffer *buffer,
                          const rcti *input,
                          eV3DSelectMode select_mode,
                          eV3DSelectObjectFilter select_filter)
 {
-  return view3d_opengl_select_ex(vc, buffer, buffer_len, input, select_mode, select_filter, false);
+  return view3d_opengl_select_ex(vc, buffer, input, select_mode, select_filter, false);
 }
 
 int view3d_opengl_select_with_id_filter(ViewContext *vc,
-                                        GPUSelectResult *buffer,
-                                        const uint buffer_len,
+                                        GPUSelectBuffer *buffer,
                                         const rcti *input,
                                         eV3DSelectMode select_mode,
                                         eV3DSelectObjectFilter select_filter,
                                         uint select_id)
 {
-  int hits = view3d_opengl_select(vc, buffer, buffer_len, input, select_mode, select_filter);
+  const int64_t start = buffer->storage.size();
+  int hits = view3d_opengl_select(vc, buffer, input, select_mode, select_filter);
 
   /* Selection sometimes uses -1 for an invalid selection ID, remove these as they
    * interfere with detection of actual number of hits in the selection. */
   if (hits > 0) {
-    hits = GPU_select_buffer_remove_by_id(buffer, hits, select_id);
+    hits = GPU_select_buffer_remove_by_id(buffer->storage.as_mutable_span().slice(start, hits),
+                                          select_id);
+
+    /* Trim buffer to the exact size in case selections were removed. */
+    buffer->storage.resize(start + hits);
   }
   return hits;
 }

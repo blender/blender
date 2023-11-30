@@ -39,9 +39,7 @@ struct GPUSelectQueryState {
   /** Array holding the id corresponding id to each query. */
   Vector<uint, QUERY_MIN_LEN> *ids;
   /** Cache on initialization. */
-  GPUSelectResult *buffer;
-  /** The capacity of the `buffer` array. */
-  uint buffer_len;
+  GPUSelectBuffer *buffer;
   /** Mode of operation. */
   eGPUSelectMode mode;
   uint index;
@@ -56,8 +54,7 @@ struct GPUSelectQueryState {
 
 static GPUSelectQueryState g_query_state = {false};
 
-void gpu_select_query_begin(GPUSelectResult *buffer,
-                            uint buffer_len,
+void gpu_select_query_begin(GPUSelectBuffer *buffer,
                             const rcti *input,
                             const eGPUSelectMode mode,
                             int oldhits)
@@ -66,7 +63,6 @@ void gpu_select_query_begin(GPUSelectResult *buffer,
 
   g_query_state.query_issued = false;
   g_query_state.buffer = buffer;
-  g_query_state.buffer_len = buffer_len;
   g_query_state.mode = mode;
   g_query_state.index = 0;
   g_query_state.oldhits = oldhits;
@@ -129,7 +125,7 @@ bool gpu_select_query_load_id(uint id)
      * can read past `buffer_len` in this case. */
     BLI_assert(g_query_state.oldhits != -1);
     if (g_query_state.index < g_query_state.oldhits) {
-      if (g_query_state.buffer[g_query_state.index].id == id) {
+      if (g_query_state.buffer->storage[g_query_state.index].id == id) {
         g_query_state.index++;
         return true;
       }
@@ -142,7 +138,6 @@ bool gpu_select_query_load_id(uint id)
 uint gpu_select_query_end()
 {
   uint hits = 0;
-  const uint maxhits = g_query_state.buffer_len;
 
   if (g_query_state.query_issued) {
     g_query_state.queries->end_query();
@@ -155,22 +150,15 @@ uint gpu_select_query_end()
   for (int i = 0; i < result.size(); i++) {
     if (result[i] != 0) {
       if (g_query_state.mode != GPU_SELECT_NEAREST_SECOND_PASS) {
-        if (hits < maxhits) {
-          g_query_state.buffer[hits].depth = 0xFFFF;
-          g_query_state.buffer[hits].id = ids[i];
-          hits++;
-        }
-        else {
-          hits = -1;
-          break;
-        }
+        g_query_state.buffer->storage.append({ids[i], 0xFFFF});
+        hits++;
       }
       else {
         int j;
         /* search in buffer and make selected object first */
         for (j = 0; j < g_query_state.oldhits; j++) {
-          if (g_query_state.buffer[j].id == ids[i]) {
-            g_query_state.buffer[j].depth = 0;
+          if (g_query_state.buffer->storage[j].id == ids[i]) {
+            g_query_state.buffer->storage[j].depth = 0;
           }
         }
         break;

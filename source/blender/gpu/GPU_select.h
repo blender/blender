@@ -8,11 +8,9 @@
 
 #pragma once
 
+#include "BLI_span.hh"
 #include "BLI_sys_types.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "BLI_vector.hh"
 
 struct rcti;
 
@@ -43,11 +41,15 @@ typedef struct GPUSelectResult {
   unsigned int depth;
 } GPUSelectResult;
 
+using GPUSelectStorage = blender::Vector<GPUSelectResult, 2500>;
+struct GPUSelectBuffer {
+  GPUSelectStorage storage;
+};
+
 /**
  * Initialize and provide buffer for results.
  */
-void GPU_select_begin(GPUSelectResult *buffer,
-                      unsigned int buffer_len,
+void GPU_select_begin(GPUSelectBuffer *buffer,
                       const struct rcti *input,
                       eGPUSelectMode mode,
                       int oldhits);
@@ -55,8 +57,7 @@ void GPU_select_begin(GPUSelectResult *buffer,
  * Initialize and provide buffer for results.
  * Uses the new Select-Next engine if enabled.
  */
-void GPU_select_begin_next(GPUSelectResult *buffer,
-                           const uint buffer_len,
+void GPU_select_begin_next(GPUSelectBuffer *buffer,
                            const struct rcti *input,
                            eGPUSelectMode mode,
                            int oldhits);
@@ -92,13 +93,10 @@ void GPU_select_cache_end(void);
  *
  * Note that comparing depth as uint is fine.
  */
-const GPUSelectResult *GPU_select_buffer_near(const GPUSelectResult *buffer, int hits);
-uint GPU_select_buffer_remove_by_id(GPUSelectResult *buffer, int hits, uint select_id);
+const GPUSelectResult *GPU_select_buffer_near(const blender::Span<GPUSelectResult> hit_results);
+uint GPU_select_buffer_remove_by_id(blender::MutableSpan<GPUSelectResult> hit_results,
+                                    uint select_id);
 /**
  * Part of the solution copied from `rect_subregion_stride_calc`.
  */
 void GPU_select_buffer_stride_realign(const struct rcti *src, const struct rcti *dst, uint *r_buf);
-
-#ifdef __cplusplus
-}
-#endif
