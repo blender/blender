@@ -4177,6 +4177,8 @@ static bool xkb_compose_state_feed_and_get_utf8(
         break;
       }
       case XKB_COMPOSE_COMPOSING: {
+        r_utf8_buf[0] = '\0';
+        handled = true;
         break;
       }
       case XKB_COMPOSE_COMPOSED: {
@@ -4190,6 +4192,13 @@ static bool xkb_compose_state_feed_and_get_utf8(
         break;
       }
       case XKB_COMPOSE_CANCELLED: {
+        /* NOTE(@ideasman42): QT & GTK ignore these events as well as not inputting any text
+         * so `<Compose><Backspace>` for e.g. causes a cancel and *not* back-space.
+         * This isn't supported under GHOST at the moment.
+         * The key-event could also be ignored but this means tracking held state of
+         * keys wont work properly, so don't do any input and pass in the key-symbol. */
+        r_utf8_buf[0] = '\0';
+        handled = true;
         break;
       }
     }
