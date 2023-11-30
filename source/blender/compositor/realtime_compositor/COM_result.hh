@@ -15,8 +15,7 @@
 
 namespace blender::realtime_compositor {
 
-/* To add a new type, update the get_texture_format() and change_texture_format_precision()
- * functions. */
+/* To add a new type, update the format related static methods in the Result class. */
 enum class ResultType : uint8_t {
   /* The following types are user facing and can be used as inputs and outputs of operations. They
    * either represent the base type of the result texture or a single value result. The color type
@@ -141,6 +140,15 @@ class Result {
 
   /* Returns the appropriate texture format based on the given result type and precision. */
   static eGPUTextureFormat texture_format(ResultType type, ResultPrecision precision);
+
+  /* Returns the texture format that corresponds to the give one, but with the given precision. */
+  static eGPUTextureFormat texture_format(eGPUTextureFormat format, ResultPrecision precision);
+
+  /* Returns the precision of the given format. */
+  static ResultPrecision precision(eGPUTextureFormat format);
+
+  /* Returns the type of the given format. */
+  static ResultType type(eGPUTextureFormat format);
 
   /* Returns the appropriate texture format based on the result's type and precision. */
   eGPUTextureFormat get_texture_format() const;

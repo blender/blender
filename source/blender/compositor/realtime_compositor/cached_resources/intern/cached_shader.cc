@@ -41,65 +41,6 @@ bool operator==(const CachedShaderKey &a, const CachedShaderKey &b)
  * Cached Shader.
  */
 
-/* Given a texture format, return a corresponding texture format with the target precision. */
-static eGPUTextureFormat change_texture_format_precision(eGPUTextureFormat format,
-                                                         ResultPrecision target_precision)
-{
-  switch (target_precision) {
-    case ResultPrecision::Half:
-      switch (format) {
-        /* Already half precision, return the input format. */
-        case GPU_R16F:
-        case GPU_RG16F:
-        case GPU_RGB16F:
-        case GPU_RGBA16F:
-        case GPU_RG16I:
-          return format;
-
-        case GPU_R32F:
-          return GPU_R16F;
-        case GPU_RG32F:
-          return GPU_RG16F;
-        case GPU_RGB32F:
-          return GPU_RGB16F;
-        case GPU_RGBA32F:
-          return GPU_RGBA16F;
-        case GPU_RG32I:
-          return GPU_RG16I;
-        default:
-          break;
-      }
-      break;
-    case ResultPrecision::Full:
-      switch (format) {
-        /* Already full precision, return the input format. */
-        case GPU_R32F:
-        case GPU_RG32F:
-        case GPU_RGB32F:
-        case GPU_RGBA32F:
-        case GPU_RG32I:
-          return format;
-
-        case GPU_R16F:
-          return GPU_R32F;
-        case GPU_RG16F:
-          return GPU_RG32F;
-        case GPU_RGB16F:
-          return GPU_RGB32F;
-        case GPU_RGBA16F:
-          return GPU_RGBA32F;
-        case GPU_RG16I:
-          return GPU_RG32I;
-        default:
-          break;
-      }
-      break;
-  }
-
-  BLI_assert_unreachable();
-  return format;
-}
-
 CachedShader::CachedShader(const char *info_name, ResultPrecision precision)
 {
   using namespace gpu::shader;
@@ -114,7 +55,7 @@ CachedShader::CachedShader(const char *info_name, ResultPrecision precision)
     if (resource.bind_type != ShaderCreateInfo::Resource::BindType::IMAGE) {
       continue;
     }
-    resource.image.format = change_texture_format_precision(resource.image.format, precision);
+    resource.image.format = Result::texture_format(resource.image.format, precision);
   }
 
   shader_ = GPU_shader_create_from_info(reinterpret_cast<const GPUShaderCreateInfo *>(&info));
