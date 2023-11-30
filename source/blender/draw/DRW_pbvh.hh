@@ -38,7 +38,6 @@ struct PBVH_GPU_Args {
   BMesh *bm;
   const Mesh *me;
   blender::MutableSpan<blender::float3> vert_positions;
-  blender::OffsetIndices<int> faces;
   blender::Span<int> corner_verts;
   blender::Span<int> corner_edges;
   const CustomData *vert_data;

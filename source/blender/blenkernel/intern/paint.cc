@@ -1750,7 +1750,6 @@ static void sculpt_update_object(
   UNUSED_VARS_NDEBUG(pbvh);
 
   BKE_pbvh_subdiv_cgg_set(ss->pbvh, ss->subdiv_ccg);
-  BKE_pbvh_update_hide_attributes_from_mesh(ss->pbvh);
 
   sculpt_attribute_update_refs(ob);
   sculpt_update_persistent_base(ob);

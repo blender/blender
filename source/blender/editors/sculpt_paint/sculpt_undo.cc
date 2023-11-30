@@ -494,6 +494,7 @@ static bool sculpt_undo_restore_coords(bContext *C, Depsgraph *depsgraph, Sculpt
 
 static bool sculpt_undo_restore_hidden(bContext *C, SculptUndoNode *unode, bool *modified_vertices)
 {
+  using namespace blender;
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   BKE_view_layer_synced_ensure(scene, view_layer);
@@ -501,17 +502,20 @@ static bool sculpt_undo_restore_hidden(bContext *C, SculptUndoNode *unode, bool 
   SculptSession *ss = ob->sculpt;
   SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
 
-  bool *hide_vert = BKE_pbvh_get_vert_hide_for_write(ss->pbvh);
-
   if (unode->maxvert) {
-    for (int i = 0; i < unode->totvert; i++) {
-      const int vert_index = unode->index[i];
-      if (unode->vert_hidden[i].test() != hide_vert[vert_index]) {
+    Mesh &mesh = *static_cast<Mesh *>(ob->data);
+    bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
+    bke::SpanAttributeWriter<bool> hide_vert = attributes.lookup_or_add_for_write_span<bool>(
+        ".hide_vert", ATTR_DOMAIN_POINT);
+    for (const int i : unode->index.index_range()) {
+      const int vert = unode->index[i];
+      if (unode->vert_hidden[i].test() != hide_vert.span[vert]) {
         unode->vert_hidden[i].set(!unode->vert_hidden[i].test());
-        hide_vert[vert_index] = !hide_vert[vert_index];
-        modified_vertices[vert_index] = true;
+        hide_vert.span[vert] = !hide_vert.span[vert];
+        modified_vertices[vert] = true;
       }
     }
+    hide_vert.finish();
   }
   else if (unode->maxgrid && subdiv_ccg != nullptr) {
     blender::MutableSpan<BLI_bitmap *> grid_hidden = subdiv_ccg->grid_hidden;
@@ -1366,22 +1370,23 @@ static void sculpt_undo_store_coords(Object *ob, SculptUndoNode *unode)
 
 static void sculpt_undo_store_hidden(Object *ob, SculptUndoNode *unode)
 {
-  PBVH *pbvh = ob->sculpt->pbvh;
-  PBVHNode *node = static_cast<PBVHNode *>(unode->node);
-
-  const bool *hide_vert = BKE_pbvh_get_vert_hide(pbvh);
-  if (hide_vert == nullptr) {
-    return;
-  }
-
+  using namespace blender;
+  using namespace blender::bke;
   if (!unode->grids.is_empty()) {
     /* Already stored during allocation. */
   }
-  else {
-    const blender::Span<int> verts = BKE_pbvh_node_get_vert_indices(node);
-    for (const int i : verts.index_range())
-      unode->vert_hidden[i].set(hide_vert[verts[i]]);
+
+  const Mesh &mesh = *static_cast<const Mesh *>(ob->data);
+  const AttributeAccessor attributes = mesh.attributes();
+  const VArraySpan<bool> hide_vert = *attributes.lookup<bool>(".hide_vert", ATTR_DOMAIN_POINT);
+  if (hide_vert.is_empty()) {
+    return;
   }
+
+  PBVHNode *node = static_cast<PBVHNode *>(unode->node);
+  const blender::Span<int> verts = BKE_pbvh_node_get_vert_indices(node);
+  for (const int i : verts.index_range())
+    unode->vert_hidden[i].set(hide_vert[verts[i]]);
 }
 
 static void sculpt_undo_store_mask(Object *ob, SculptUndoNode *unode)
@@ -1563,8 +1568,7 @@ SculptUndoNode *SCULPT_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType
       const int *loop_indices;
       int allloop;
       BKE_pbvh_node_num_loops(ss->pbvh, static_cast<PBVHNode *>(unode->node), &allloop);
-      BKE_pbvh_node_get_loops(
-          ss->pbvh, static_cast<PBVHNode *>(unode->node), &loop_indices, nullptr);
+      BKE_pbvh_node_get_loops(static_cast<PBVHNode *>(unode->node), &loop_indices);
 
       if (allloop) {
         unode->loop_index.as_mutable_span().copy_from({loop_indices, allloop});

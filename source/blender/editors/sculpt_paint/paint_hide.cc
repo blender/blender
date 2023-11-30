@@ -211,7 +211,6 @@ static void partialvis_update_mesh(Object &object,
   }
 
   BKE_mesh_flush_hidden_from_verts(&mesh);
-  BKE_pbvh_update_hide_attributes_from_mesh(&pbvh);
 }
 
 /* Hide or show elements in multires grids with a special GridFlags

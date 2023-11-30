@@ -1325,15 +1325,6 @@ static int sculpt_reveal_all_exec(bContext *C, wmOperator *op)
   }
 
   SCULPT_visibility_sync_all_from_faces(ob);
-
-  /* NOTE: #SCULPT_visibility_sync_all_from_faces may have deleted
-   * `pbvh->hide_vert` if hide_poly did not exist, which is why
-   * we call #BKE_pbvh_update_hide_attributes_from_mesh here instead of
-   * after #CustomData_free_layer_named above. */
-  if (!with_bmesh) {
-    BKE_pbvh_update_hide_attributes_from_mesh(ss->pbvh);
-  }
-
   BKE_pbvh_update_visibility(ss->pbvh);
 
   SCULPT_undo_push_end(ob);

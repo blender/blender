@@ -164,17 +164,12 @@ struct PBVH {
   blender::Span<blender::float3> vert_normals;
   blender::Span<blender::float3> face_normals;
 
-  blender::OffsetIndices<int> faces;
-  bool *hide_vert;
-  bool *hide_poly;
   /** Only valid for polygon meshes. */
+  blender::OffsetIndices<int> faces;
   blender::Span<int> corner_verts;
   /* Owned by the #PBVH, because after deformations they have to be recomputed. */
   blender::Array<MLoopTri> looptri;
   blender::Span<int> looptri_faces;
-  CustomData *vert_data;
-  CustomData *loop_data;
-  CustomData *face_data;
 
   /* Grid Data */
   CCGKey gridkey;
