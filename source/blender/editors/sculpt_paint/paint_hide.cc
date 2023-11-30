@@ -52,6 +52,8 @@
 using blender::Span;
 using blender::Vector;
 
+namespace blender::ed::sculpt_paint::hide {
+
 enum PartialVisAction {
   PARTIALVIS_HIDE,
   PARTIALVIS_SHOW,
@@ -88,13 +90,12 @@ static void partialvis_update_mesh(Object *ob,
                                    float planes[4][4],
                                    const Span<PBVHNode *> nodes)
 {
-  using namespace blender;
   for (PBVHNode *node : nodes) {
     Mesh *mesh = static_cast<Mesh *>(ob->data);
-    const blender::Span<blender::float3> positions = BKE_pbvh_get_vert_positions(pbvh);
+    const Span<float3> positions = BKE_pbvh_get_vert_positions(pbvh);
     bool any_changed = false, any_visible = false;
 
-    const blender::Span<int> verts = BKE_pbvh_node_get_vert_indices(node);
+    const Span<int> verts = BKE_pbvh_node_get_vert_indices(node);
 
     bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
     const VArray<float> mask = *attributes.lookup_or_default<float>(
@@ -147,7 +148,7 @@ static void partialvis_update_grids(Depsgraph *depsgraph,
 
     SculptSession *ss = ob->sculpt;
     SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
-    blender::MutableSpan<BLI_bitmap *> grid_hidden = subdiv_ccg->grid_hidden;
+    MutableSpan<BLI_bitmap *> grid_hidden = subdiv_ccg->grid_hidden;
     CCGKey key = *BKE_pbvh_get_grid_key(pbvh);
 
     SCULPT_undo_push_node(ob, node, SCULPT_UNDO_HIDDEN);
@@ -218,7 +219,7 @@ static void partialvis_update_grids(Depsgraph *depsgraph,
 }
 
 static void partialvis_update_bmesh_verts(BMesh *bm,
-                                          const blender::Set<BMVert *, 0> &verts,
+                                          const Set<BMVert *, 0> &verts,
                                           PartialVisAction action,
                                           PartialVisArea area,
                                           float planes[4][4],
@@ -246,7 +247,7 @@ static void partialvis_update_bmesh_verts(BMesh *bm,
   }
 }
 
-static void partialvis_update_bmesh_faces(const blender::Set<BMFace *, 0> &faces)
+static void partialvis_update_bmesh_faces(const Set<BMFace *, 0> &faces)
 {
   for (BMFace *f : faces) {
     if (paint_is_bmesh_face_hidden(f)) {
@@ -471,3 +472,5 @@ void PAINT_OT_hide_show(wmOperatorType *ot)
 
   WM_operator_properties_border(ot);
 }
+
+}  // namespace blender::ed::sculpt_paint::hide

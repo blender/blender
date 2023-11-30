@@ -454,7 +454,9 @@ enum BrushStrokeMode {
 
 /* paint_hide.cc */
 
+namespace blender::ed::sculpt_paint::hide {
 void PAINT_OT_hide_show(wmOperatorType *ot);
+}
 
 /* `paint_mask.cc` */
 
