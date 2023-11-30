@@ -52,18 +52,36 @@ int BLI_copy(const char *path_src, const char *path_dst) ATTR_NONNULL();
 int BLI_path_move(const char *path_src, const char *path_dst) ATTR_NONNULL();
 
 /**
- * Rename a file or directory.
+ * Rename a file or directory, unless `to` already exists.
  *
+ * \note This matches Windows `rename` logic, _not_ Unix one. It does not allow to replace an
+ * existing target. Use #BLI_rename_overwrite instead if existing file should be replaced.
+ *
+ * \param from: The path to rename from (return failure if it does not exist).
+ * \param to: The destination path.
  * \return zero on success (matching 'rename' behavior).
  */
-int BLI_rename(const char *from, const char *to);
+int BLI_rename(const char *from, const char *to) ATTR_NONNULL();
 
 /**
- * Rename a file or directory.
+ * Rename a file or directory, replacing target `to` path if it exists.
  *
- * \warning It's up to the caller to ensure `from` & `to` don't point to the same file
- * as this will result in `to` being deleted to make room for `from`
- * (which will then also be deleted).
+ * \note This matches Unix `rename` logic. It does allow to replace an existing target. Use
+ * #BLI_rename instead if existing file should never be replaced. However, if `to` is an existing,
+ * non-empty directory, the operation will fail.
+ *
+ * \note There is still no feature-parity between behaviors on Windows and Unix, in case the target
+ * `to` exists and is opened by some process in the system:
+ *   - On Unix, it will typically succeed
+ *     (see https://man7.org/linux/man-pages/man2/rename.2.html for details).
+ *   - On Windows, it will always fail
+ *     (see https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-movefileexw for
+ *      details).
+ *
+ * \warning Due to internal limitation/implementation, on Windows, in case paths point to
+ * directories, it's up to the caller to ensure that `from` and `to` are not the same directory.
+ * Since `to` is being deleted to make room for `from`, this will result in `from` being deleted as
+ * well.
  *
  * See #BLI_path_move to move directories.
  *

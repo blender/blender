@@ -436,15 +436,6 @@ bool BLI_file_ensure_parent_dir_exists(const char *filepath)
 
 int BLI_rename(const char *from, const char *to)
 {
-#ifdef WIN32
-  return urename(from, to);
-#else
-  return rename(from, to);
-#endif
-}
-
-int BLI_rename_overwrite(const char *from, const char *to)
-{
   if (!BLI_exists(from)) {
     return 1;
   }
@@ -462,13 +453,60 @@ int BLI_rename_overwrite(const char *from, const char *to)
    * In this particular case we would not want to follow symbolic-links as well.
    * Since this functionality isn't required at the moment, leave this as-is.
    * Noting it as a potential improvement. */
+
+  /* NOTE: To avoid the concurrency 'time of check/time of use' (TOC/TOU) issue, this code attemps
+   * to use available solutions for an 'atomic' (file-system wise) rename operation, instead of
+   * first checking for an existing `to` target path, and then doing the rename operation if it
+   * does not exists at the time of check.
+   *
+   * Windows (through `MoveFileExW`) by default does not allow replacing an existing path. It is
+   * however not clear whether its API is exposed to the TOC/TOU issue or not.
+   *
+   * On Linux or OSX, to keep operations atomic, special non-standardized variants of `rename` must
+   * be used, depending on the OS. Note that there may also be failure due to file system not
+   * supporting this operation, although in practice this should not be a problem in modern
+   * systems.
+   *   - https://man7.org/linux/man-pages/man2/rename.2.html
+   *   - https://www.unix.com/man-page/mojave/2/renameatx_np/
+   *
+   * BSD systems do not have any such thing currently, and are therefore exposed to the TOC/TOU
+   * issue. */
+
+#ifdef WIN32
+  return urename(from, to, false);
+#elif defined(__APPLE__)
+  return renamex_np(from, to, RENAME_EXCL);
+#elif defined(__GLIBC_PREREQ) && __GLIBC_PREREQ(2, 28)
+  /* Most common Linux cases. */
+  return renameat2(AT_FDCWD, from, AT_FDCWD, to, RENAME_NOREPLACE);
+#else
+  /* At least all BSD's currently. */
   if (BLI_exists(to)) {
-    if (BLI_delete(to, false, false)) {
+    return 1;
+  }
+  return rename(from, to);
+#endif
+}
+
+int BLI_rename_overwrite(const char *from, const char *to)
+{
+  if (!BLI_exists(from)) {
+    return 1;
+  }
+
+#ifdef WIN32
+  /* `urename` from `utfconv` intern utils uses `MoveFileExW`, which allows to replace an existing
+   * file, but not an existing directory, even if empty. This will only delete empty directories.
+   */
+  if (BLI_is_dir(to)) {
+    if (BLI_delete(to, true, false)) {
       return 1;
     }
   }
-
-  return BLI_rename(from, to);
+  return urename(from, to, true);
+#else
+  return rename(from, to);
+#endif
 }
 
 #ifdef WIN32
