@@ -188,7 +188,7 @@ static Mesh *subdiv_as_ccg(SubsurfModifierData *smd,
   if (ccg_settings.resolution < 3) {
     return result;
   }
-  result = BKE_subdiv_to_ccg_mesh(subdiv, &ccg_settings, mesh);
+  result = BKE_subdiv_to_ccg_mesh(*subdiv, ccg_settings, *mesh);
   return result;
 }
 

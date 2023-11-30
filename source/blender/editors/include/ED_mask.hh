@@ -55,23 +55,23 @@ void ED_operatormacros_mask();
 
 /* `mask_query.cc` */
 
-void ED_mask_get_size(ScrArea *area, int *width, int *height);
-void ED_mask_zoom(ScrArea *area, ARegion *region, float *zoomx, float *zoomy);
-void ED_mask_get_aspect(ScrArea *area, ARegion *region, float *aspx, float *aspy);
+void ED_mask_get_size(ScrArea *area, int *r_width, int *r_height);
+void ED_mask_zoom(ScrArea *area, ARegion *region, float *r_zoomx, float *r_zoomy);
+void ED_mask_get_aspect(ScrArea *area, ARegion *region, float *r_aspx, float *r_aspy);
 
-void ED_mask_pixelspace_factor(ScrArea *area, ARegion *region, float *scalex, float *scaley);
+void ED_mask_pixelspace_factor(ScrArea *area, ARegion *region, float *r_scalex, float *r_scaley);
 /**
  * Takes `event->mval`.
  */
-void ED_mask_mouse_pos(ScrArea *area, ARegion *region, const int mval[2], float co[2]);
+void ED_mask_mouse_pos(ScrArea *area, ARegion *region, const int mval[2], float r_co[2]);
 
 /**
  * \param x/y: input, mval space.
  * \param xr/yr: output, mask point space.
  */
-void ED_mask_point_pos(ScrArea *area, ARegion *region, float x, float y, float *xr, float *yr);
+void ED_mask_point_pos(ScrArea *area, ARegion *region, float x, float y, float *r_x, float *r_y);
 void ED_mask_point_pos__reverse(
-    ScrArea *area, ARegion *region, float x, float y, float *xr, float *yr);
+    ScrArea *area, ARegion *region, float x, float y, float *r_x, float *r_y);
 
 void ED_mask_cursor_location_get(ScrArea *area, float cursor[2]);
 bool ED_mask_selected_minmax(const bContext *C,

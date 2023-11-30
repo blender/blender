@@ -6396,28 +6396,33 @@ void PAINT_OT_image_from_view(wmOperatorType *ot)
  * Data generation for projective texturing  *
  * *******************************************/
 
-void ED_paint_data_warning(ReportList *reports, bool uvs, bool mat, bool tex, bool stencil)
+void ED_paint_data_warning(
+    ReportList *reports, bool has_uvs, bool has_mat, bool has_tex, bool has_stencil)
 {
   BKE_reportf(reports,
               RPT_WARNING,
               "Missing%s%s%s%s detected!",
-              !uvs ? TIP_(" UVs,") : "",
-              !mat ? TIP_(" Materials,") : "",
-              !tex ? TIP_(" Textures (or linked),") : "",
-              !stencil ? TIP_(" Stencil,") : "");
+              !has_uvs ? TIP_(" UVs,") : "",
+              !has_mat ? TIP_(" Materials,") : "",
+              !has_tex ? TIP_(" Textures (or linked),") : "",
+              !has_stencil ? TIP_(" Stencil,") : "");
 }
 
-bool ED_paint_proj_mesh_data_check(
-    Scene *scene, Object *ob, bool *uvs, bool *mat, bool *tex, bool *stencil)
+bool ED_paint_proj_mesh_data_check(Scene *scene,
+                                   Object *ob,
+                                   bool *r_has_uvs,
+                                   bool *r_has_mat,
+                                   bool *r_has_tex,
+                                   bool *r_has_stencil)
 {
   Mesh *me;
   int layernum;
   ImagePaintSettings *imapaint = &scene->toolsettings->imapaint;
   Brush *br = BKE_paint_brush(&imapaint->paint);
-  bool hasmat = true;
-  bool hastex = true;
-  bool hasstencil = true;
-  bool hasuvs = true;
+  bool has_mat = true;
+  bool has_tex = true;
+  bool has_stencil = true;
+  bool has_uvs = true;
 
   imapaint->missing_data = 0;
 
@@ -6426,19 +6431,19 @@ bool ED_paint_proj_mesh_data_check(
   if (imapaint->mode == IMAGEPAINT_MODE_MATERIAL) {
     /* no material, add one */
     if (ob->totcol == 0) {
-      hasmat = false;
-      hastex = false;
+      has_mat = false;
+      has_tex = false;
     }
     else {
       /* there may be material slots but they may be empty, check */
-      hasmat = false;
-      hastex = false;
+      has_mat = false;
+      has_tex = false;
 
       for (int i = 1; i < ob->totcol + 1; i++) {
         Material *ma = BKE_object_material_get(ob, i);
 
         if (ma && !ID_IS_LINKED(ma) && !ID_IS_OVERRIDE_LIBRARY(ma)) {
-          hasmat = true;
+          has_mat = true;
           if (ma->texpaintslot == nullptr) {
             /* refresh here just in case */
             BKE_texpaint_slot_refresh_cache(scene, ma, ob);
@@ -6448,7 +6453,7 @@ bool ED_paint_proj_mesh_data_check(
               !ID_IS_LINKED(ma->texpaintslot[ma->paint_active_slot].ima) &&
               !ID_IS_OVERRIDE_LIBRARY(ma->texpaintslot[ma->paint_active_slot].ima))
           {
-            hastex = true;
+            has_tex = true;
             break;
           }
         }
@@ -6457,7 +6462,7 @@ bool ED_paint_proj_mesh_data_check(
   }
   else if (imapaint->mode == IMAGEPAINT_MODE_IMAGE) {
     if (imapaint->canvas == nullptr || ID_IS_LINKED(imapaint->canvas)) {
-      hastex = false;
+      has_tex = false;
     }
   }
 
@@ -6465,7 +6470,7 @@ bool ED_paint_proj_mesh_data_check(
   layernum = CustomData_number_of_layers(&me->loop_data, CD_PROP_FLOAT2);
 
   if (layernum == 0) {
-    hasuvs = false;
+    has_uvs = false;
   }
 
   /* Make sure we have a stencil to paint on! */
@@ -6473,37 +6478,37 @@ bool ED_paint_proj_mesh_data_check(
     imapaint->flag |= IMAGEPAINT_PROJECT_LAYER_STENCIL;
 
     if (imapaint->stencil == nullptr) {
-      hasstencil = false;
+      has_stencil = false;
     }
   }
 
-  if (!hasuvs) {
+  if (!has_uvs) {
     imapaint->missing_data |= IMAGEPAINT_MISSING_UVS;
   }
-  if (!hasmat) {
+  if (!has_mat) {
     imapaint->missing_data |= IMAGEPAINT_MISSING_MATERIAL;
   }
-  if (!hastex) {
+  if (!has_tex) {
     imapaint->missing_data |= IMAGEPAINT_MISSING_TEX;
   }
-  if (!hasstencil) {
+  if (!has_stencil) {
     imapaint->missing_data |= IMAGEPAINT_MISSING_STENCIL;
   }
 
-  if (uvs) {
-    *uvs = hasuvs;
+  if (r_has_uvs) {
+    *r_has_uvs = has_uvs;
   }
-  if (mat) {
-    *mat = hasmat;
+  if (r_has_mat) {
+    *r_has_mat = has_mat;
   }
-  if (tex) {
-    *tex = hastex;
+  if (r_has_tex) {
+    *r_has_tex = has_tex;
   }
-  if (stencil) {
-    *stencil = hasstencil;
+  if (r_has_stencil) {
+    *r_has_stencil = has_stencil;
   }
 
-  return hasuvs && hasmat && hastex && hasstencil;
+  return has_uvs && has_mat && has_tex && has_stencil;
 }
 
 /* Add layer operator */

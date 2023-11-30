@@ -2034,15 +2034,15 @@ static TreeElement *do_outliner_select_walk(SpaceOutliner *space_outliner,
 
 /* Find the active element to walk from, or set one if none exists.
  * Changed is set to true if the active element is found, or false if it was set */
-static TreeElement *find_walk_select_start_element(SpaceOutliner *space_outliner, bool *changed)
+static TreeElement *find_walk_select_start_element(SpaceOutliner *space_outliner, bool *r_changed)
 {
   TreeElement *active_te = outliner_find_element_with_flag(&space_outliner->tree, TSE_ACTIVE);
-  *changed = false;
+  *r_changed = false;
 
   /* If no active element exists, use the first element in the tree */
   if (!active_te) {
     active_te = static_cast<TreeElement *>(space_outliner->tree.first);
-    *changed = true;
+    *r_changed = true;
   }
 
   /* If the active element is not visible, activate the first visible parent element */
@@ -2050,7 +2050,7 @@ static TreeElement *find_walk_select_start_element(SpaceOutliner *space_outliner
     while (!outliner_is_element_visible(active_te)) {
       active_te = active_te->parent;
     }
-    *changed = true;
+    *r_changed = true;
   }
 
   return active_te;

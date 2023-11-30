@@ -593,7 +593,8 @@ void WM_report_banner_show(wmWindowManager *wm, wmWindow *win) ATTR_NONNULL(1);
  * Hide all currently displayed banners and abort their timer.
  */
 void WM_report_banners_cancel(Main *bmain);
-/** Move a whole list of reports to the WM ReportList, and show the banner.
+/**
+ * Move a whole list of reports to the WM ReportList, and show the banner.
  *
  * \note In case the given \a reports is a `nullptr`, or has its #RPT_OP_HOLD flag set, this
  * function does nothing.
@@ -604,7 +605,8 @@ void WM_report_banners_cancel(Main *bmain);
  *
  * \params reports The #ReportList from which to move reports to the WM one, may be `nullptr`.
  * \params wm the WindowManager to add given \a reports to. If `nullptr`, the first WM of current
- * #G_MAIN will be used. */
+ * #G_MAIN will be used.
+ */
 void WM_reports_from_reports_move(wmWindowManager *wm, ReportList *reports);
 void WM_report(eReportType type, const char *message);
 void WM_reportf(eReportType type, const char *format, ...) ATTR_PRINTF_FORMAT(2, 3);
@@ -632,8 +634,10 @@ void WM_event_timer_free_data(wmTimer *timer);
  */
 void WM_event_timers_free_all(wmWindowManager *wm);
 
-/** Mark the given `timer` to be removed, actual removal and deletion is deferred and handled
- * internally by the window manager code. */
+/**
+ * Mark the given `timer` to be removed, actual removal and deletion is deferred and handled
+ * internally by the window manager code.
+ */
 void WM_event_timer_remove(wmWindowManager *wm, wmWindow *win, wmTimer *timer);
 void WM_event_timer_remove_notifier(wmWindowManager *wm, wmWindow *win, wmTimer *timer);
 /**
@@ -1754,7 +1758,7 @@ bool WM_event_is_xr(const wmEvent *event);
  * If this is a tablet event, return tablet pressure and set `*pen_flip`
  * to 1 if the eraser tool is being used, 0 otherwise.
  */
-float WM_event_tablet_data(const wmEvent *event, int *pen_flip, float tilt[2]);
+float WM_event_tablet_data(const wmEvent *event, bool *r_pen_flip, float r_tilt[2]);
 bool WM_event_is_tablet(const wmEvent *event);
 
 int WM_event_absolute_delta_x(const wmEvent *event);

@@ -1209,7 +1209,7 @@ static ImBuf *seq_render_movie_strip(const SeqRenderData *context,
     if (sanim && sanim->anim) {
       short fps_denom;
       float fps_num;
-      IMB_anim_get_fps(sanim->anim, &fps_denom, &fps_num, true);
+      IMB_anim_get_fps(sanim->anim, true, &fps_denom, &fps_num);
       seq->strip->stripdata->orig_fps = fps_denom / fps_num;
     }
     seq->strip->stripdata->orig_width = ibuf->x;
@@ -1224,7 +1224,7 @@ static ImBuf *seq_get_movieclip_ibuf(Sequence *seq, MovieClipUser user)
   ImBuf *ibuf = nullptr;
   float tloc[2], tscale, tangle;
   if (seq->clip_flag & SEQ_MOVIECLIP_RENDER_STABILIZED) {
-    ibuf = BKE_movieclip_get_stable_ibuf(seq->clip, &user, tloc, &tscale, &tangle, 0);
+    ibuf = BKE_movieclip_get_stable_ibuf(seq->clip, &user, 0, tloc, &tscale, &tangle);
   }
   else {
     ibuf = BKE_movieclip_get_ibuf_flag(seq->clip, &user, seq->clip->flag, MOVIECLIP_CACHE_SKIP);

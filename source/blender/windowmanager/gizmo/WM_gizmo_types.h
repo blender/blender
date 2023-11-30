@@ -361,7 +361,8 @@ typedef struct wmGizmoType {
   /** Gizmo-specific handler to update gizmo attributes based on the property value. */
   wmGizmoFnPropertyUpdate property_update;
 
-  /** Returns the final transformation which may be different from the 'matrix',
+  /**
+   * Returns the final transformation which may be different from the 'matrix',
    * depending on the gizmo.
    * Notes:
    * - Scale isn't applied (wmGizmo.scale/user_scale).

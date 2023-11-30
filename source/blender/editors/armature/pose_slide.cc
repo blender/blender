@@ -276,7 +276,6 @@ static int pose_slide_init(bContext *C, wmOperator *op, ePoseSlide_Modes mode)
   /* Initialize numeric input. */
   initNumInput(&pso->num);
   pso->num.idx_max = 0; /* One axis. */
-  pso->num.val_flag[0] |= NUM_NO_NEGATIVE;
   pso->num.unit_type[0] = B_UNIT_NONE; /* Percentages don't have any units. */
 
   /* Return status is whether we've got all the data we were requested to get. */
@@ -1230,7 +1229,6 @@ static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
         applyNumInput(&pso->num, &value);
 
         float factor = value / 100;
-        CLAMP(factor, 0.0f, 1.0f);
         ED_slider_factor_set(pso->slider, factor);
         RNA_float_set(op->ptr, "factor", ED_slider_factor_get(pso->slider));
 

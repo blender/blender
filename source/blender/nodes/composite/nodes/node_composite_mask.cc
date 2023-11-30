@@ -101,8 +101,7 @@ class MaskOperation : public NodeOperation {
         get_motion_blur_samples(),
         get_motion_blur_shutter());
 
-    output_mask.allocate_texture(domain);
-    GPU_texture_copy(output_mask.texture(), cached_mask.texture());
+    output_mask.wrap_external(cached_mask.texture());
   }
 
   Domain compute_domain() override

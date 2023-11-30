@@ -196,7 +196,7 @@ static float update_overlay_strip_position_data(bContext *C, const int mval[2])
 
   if (strip_len < 1) {
     /* Only check if there is a strip already under the mouse cursor. */
-    coords->is_intersecting = find_nearest_seq(scene, &region->v2d, &hand, mval);
+    coords->is_intersecting = find_nearest_seq(scene, &region->v2d, mval, &hand);
   }
   else {
     /* Check if there is a strip that would intersect with the new strip(s). */
@@ -543,7 +543,7 @@ static void prefetch_data_fn(void *custom_data, wmJobWorkerStatus * /*worker_sta
     g_drop_coords.strip_len = IMB_anim_get_duration(anim, IMB_TC_NONE);
     short frs_sec;
     float frs_sec_base;
-    if (IMB_anim_get_fps(anim, &frs_sec, &frs_sec_base, true)) {
+    if (IMB_anim_get_fps(anim, true, &frs_sec, &frs_sec_base)) {
       g_drop_coords.playback_rate = float(frs_sec) / frs_sec_base;
     }
     else {

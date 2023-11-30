@@ -410,7 +410,10 @@ double IMD_anim_get_offset(struct anim *anim);
  * Return the fps contained in movie files (function rval is false,
  * and frs_sec and frs_sec_base untouched if none available!)
  */
-bool IMB_anim_get_fps(struct anim *anim, short *frs_sec, float *frs_sec_base, bool no_av_base);
+bool IMB_anim_get_fps(const struct anim *anim,
+                      bool no_av_base,
+                      short *r_frs_sec,
+                      float *r_frs_sec_base);
 
 /**
  * \attention Defined in `anim_movie.cc`.

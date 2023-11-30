@@ -327,8 +327,10 @@ struct LinkNode *BLO_blendhandle_get_linkable_groups(BlendHandle *bh);
  */
 void BLO_blendhandle_close(BlendHandle *bh);
 
-/** Mark the given Main (and the 'root' local one in case of lib-split Mains) as invalid, and
- * generate an error report containing given `message`. */
+/**
+ * Mark the given Main (and the 'root' local one in case of lib-split Mains) as invalid, and
+ * generate an error report containing given `message`.
+ */
 void BLO_read_invalidate_message(BlendHandle *bh, struct Main *bmain, const char *message);
 
 /**

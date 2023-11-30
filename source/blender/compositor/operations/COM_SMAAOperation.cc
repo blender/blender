@@ -650,22 +650,22 @@ void SMAABlendingWeightCalculationOperation::get_area_of_interest(const int /*in
 /*-----------------------------------------------------------------------------*/
 /* Diagonal Search Functions */
 
-int SMAABlendingWeightCalculationOperation::search_diag1(int x, int y, int dir, bool *found)
+int SMAABlendingWeightCalculationOperation::search_diag1(int x, int y, int dir, bool *r_found)
 {
   float e[4];
   int end = x + SMAA_MAX_SEARCH_STEPS_DIAG * dir;
-  *found = false;
+  *r_found = false;
 
   while (x != end) {
     x += dir;
     y -= dir;
     sample_image_fn_(x, y, e);
     if (e[1] == 0.0f) {
-      *found = true;
+      *r_found = true;
       break;
     }
     if (e[0] == 0.0f) {
-      *found = true;
+      *r_found = true;
       return (dir < 0) ? x : x - dir;
     }
   }
@@ -673,23 +673,23 @@ int SMAABlendingWeightCalculationOperation::search_diag1(int x, int y, int dir, 
   return x - dir;
 }
 
-int SMAABlendingWeightCalculationOperation::search_diag2(int x, int y, int dir, bool *found)
+int SMAABlendingWeightCalculationOperation::search_diag2(int x, int y, int dir, bool *r_found)
 {
   float e[4];
   int end = x + SMAA_MAX_SEARCH_STEPS_DIAG * dir;
-  *found = false;
+  *r_found = false;
 
   while (x != end) {
     x += dir;
     y += dir;
     sample_image_fn_(x, y, e);
     if (e[1] == 0.0f) {
-      *found = true;
+      *r_found = true;
       break;
     }
     sample_image_fn_(x + 1, y, e);
     if (e[0] == 0.0f) {
-      *found = true;
+      *r_found = true;
       return (dir > 0) ? x : x - dir;
     }
   }

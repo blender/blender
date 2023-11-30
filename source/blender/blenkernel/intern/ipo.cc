@@ -238,80 +238,80 @@ static AdrBit2Path *adrcode_bitmaps_to_paths(int blocktype, int adrcode, int *to
 /* ADRCODE to RNA-Path Conversion Code  - Standard */
 
 /* Object types */
-static const char *ob_adrcodes_to_paths(int adrcode, int *array_index)
+static const char *ob_adrcodes_to_paths(int adrcode, int *r_array_index)
 {
   /* Set array index like this in-case nothing sets it correctly. */
-  *array_index = 0;
+  *r_array_index = 0;
 
   /* result depends on adrcode */
   switch (adrcode) {
     case OB_LOC_X:
-      *array_index = 0;
+      *r_array_index = 0;
       return "location";
     case OB_LOC_Y:
-      *array_index = 1;
+      *r_array_index = 1;
       return "location";
     case OB_LOC_Z:
-      *array_index = 2;
+      *r_array_index = 2;
       return "location";
     case OB_DLOC_X:
-      *array_index = 0;
+      *r_array_index = 0;
       return "delta_location";
     case OB_DLOC_Y:
-      *array_index = 1;
+      *r_array_index = 1;
       return "delta_location";
     case OB_DLOC_Z:
-      *array_index = 2;
+      *r_array_index = 2;
       return "delta_location";
 
     case OB_ROT_X:
-      *array_index = 0;
+      *r_array_index = 0;
       return "rotation_euler";
     case OB_ROT_Y:
-      *array_index = 1;
+      *r_array_index = 1;
       return "rotation_euler";
     case OB_ROT_Z:
-      *array_index = 2;
+      *r_array_index = 2;
       return "rotation_euler";
     case OB_DROT_X:
-      *array_index = 0;
+      *r_array_index = 0;
       return "delta_rotation_euler";
     case OB_DROT_Y:
-      *array_index = 1;
+      *r_array_index = 1;
       return "delta_rotation_euler";
     case OB_DROT_Z:
-      *array_index = 2;
+      *r_array_index = 2;
       return "delta_rotation_euler";
 
     case OB_SIZE_X:
-      *array_index = 0;
+      *r_array_index = 0;
       return "scale";
     case OB_SIZE_Y:
-      *array_index = 1;
+      *r_array_index = 1;
       return "scale";
     case OB_SIZE_Z:
-      *array_index = 2;
+      *r_array_index = 2;
       return "scale";
     case OB_DSIZE_X:
-      *array_index = 0;
+      *r_array_index = 0;
       return "delta_scale";
     case OB_DSIZE_Y:
-      *array_index = 1;
+      *r_array_index = 1;
       return "delta_scale";
     case OB_DSIZE_Z:
-      *array_index = 2;
+      *r_array_index = 2;
       return "delta_scale";
     case OB_COL_R:
-      *array_index = 0;
+      *r_array_index = 0;
       return "color";
     case OB_COL_G:
-      *array_index = 1;
+      *r_array_index = 1;
       return "color";
     case OB_COL_B:
-      *array_index = 2;
+      *r_array_index = 2;
       return "color";
     case OB_COL_A:
-      *array_index = 3;
+      *r_array_index = 3;
       return "color";
 #if 0
     case OB_PD_FSTR:
@@ -353,54 +353,54 @@ static const char *ob_adrcodes_to_paths(int adrcode, int *array_index)
 /* PoseChannel types
  * NOTE: pchan name comes from 'actname' added earlier...
  */
-static const char *pchan_adrcodes_to_paths(int adrcode, int *array_index)
+static const char *pchan_adrcodes_to_paths(int adrcode, int *r_array_index)
 {
   /* Set array index like this in-case nothing sets it correctly. */
-  *array_index = 0;
+  *r_array_index = 0;
 
   /* result depends on adrcode */
   switch (adrcode) {
     case AC_QUAT_W:
-      *array_index = 0;
+      *r_array_index = 0;
       return "rotation_quaternion";
     case AC_QUAT_X:
-      *array_index = 1;
+      *r_array_index = 1;
       return "rotation_quaternion";
     case AC_QUAT_Y:
-      *array_index = 2;
+      *r_array_index = 2;
       return "rotation_quaternion";
     case AC_QUAT_Z:
-      *array_index = 3;
+      *r_array_index = 3;
       return "rotation_quaternion";
 
     case AC_EUL_X:
-      *array_index = 0;
+      *r_array_index = 0;
       return "rotation_euler";
     case AC_EUL_Y:
-      *array_index = 1;
+      *r_array_index = 1;
       return "rotation_euler";
     case AC_EUL_Z:
-      *array_index = 2;
+      *r_array_index = 2;
       return "rotation_euler";
 
     case AC_LOC_X:
-      *array_index = 0;
+      *r_array_index = 0;
       return "location";
     case AC_LOC_Y:
-      *array_index = 1;
+      *r_array_index = 1;
       return "location";
     case AC_LOC_Z:
-      *array_index = 2;
+      *r_array_index = 2;
       return "location";
 
     case AC_SIZE_X:
-      *array_index = 0;
+      *r_array_index = 0;
       return "scale";
     case AC_SIZE_Y:
-      *array_index = 1;
+      *r_array_index = 1;
       return "scale";
     case AC_SIZE_Z:
-      *array_index = 2;
+      *r_array_index = 2;
       return "scale";
   }
 
@@ -410,10 +410,10 @@ static const char *pchan_adrcodes_to_paths(int adrcode, int *array_index)
 }
 
 /* Constraint types */
-static const char *constraint_adrcodes_to_paths(int adrcode, int *array_index)
+static const char *constraint_adrcodes_to_paths(int adrcode, int *r_array_index)
 {
   /* Set array index like this in-case nothing sets it correctly. */
-  *array_index = 0;
+  *r_array_index = 0;
 
   /* result depends on adrcode */
   switch (adrcode) {
@@ -431,7 +431,7 @@ static const char *constraint_adrcodes_to_paths(int adrcode, int *array_index)
  * NOTE: as we don't have access to the keyblock where the data comes from (for now),
  *       we'll just use numerical indices for now...
  */
-static char *shapekey_adrcodes_to_paths(ID *id, int adrcode, int * /*array_index*/)
+static char *shapekey_adrcodes_to_paths(ID *id, int adrcode, int * /*r_array_index*/)
 {
   static char buf[128];
 
@@ -461,7 +461,7 @@ static char *shapekey_adrcodes_to_paths(ID *id, int adrcode, int * /*array_index
 }
 
 /* MTex (Texture Slot) types */
-static const char *mtex_adrcodes_to_paths(int adrcode, int * /*array_index*/)
+static const char *mtex_adrcodes_to_paths(int adrcode, int * /*r_array_index*/)
 {
   const char *base = nullptr, *prop = nullptr;
   static char buf[128];
@@ -581,10 +581,10 @@ static const char *mtex_adrcodes_to_paths(int adrcode, int * /*array_index*/)
 }
 
 /* Texture types */
-static const char *texture_adrcodes_to_paths(int adrcode, int *array_index)
+static const char *texture_adrcodes_to_paths(int adrcode, int *r_array_index)
 {
   /* Set array index like this in-case nothing sets it correctly. */
-  *array_index = 0;
+  *r_array_index = 0;
 
   /* result depends on adrcode */
   switch (adrcode) {
@@ -607,16 +607,16 @@ static const char *texture_adrcodes_to_paths(int adrcode, int *array_index)
 
     /* voronoi */
     case TE_VNW1:
-      *array_index = 0;
+      *r_array_index = 0;
       return "feature_weights";
     case TE_VNW2:
-      *array_index = 1;
+      *r_array_index = 1;
       return "feature_weights";
     case TE_VNW3:
-      *array_index = 2;
+      *r_array_index = 2;
       return "feature_weights";
     case TE_VNW4:
-      *array_index = 3;
+      *r_array_index = 3;
       return "feature_weights";
     case TE_VNMEXP:
       return "minkovsky_exponent";
@@ -649,13 +649,13 @@ static const char *texture_adrcodes_to_paths(int adrcode, int *array_index)
       return "gain";
 
     case TE_COL_R:
-      *array_index = 0;
+      *r_array_index = 0;
       return "rgb_factor";
     case TE_COL_G:
-      *array_index = 1;
+      *r_array_index = 1;
       return "rgb_factor";
     case TE_COL_B:
-      *array_index = 2;
+      *r_array_index = 2;
       return "rgb_factor";
 
     case TE_BRIGHT:
@@ -668,41 +668,41 @@ static const char *texture_adrcodes_to_paths(int adrcode, int *array_index)
 }
 
 /* Material Types */
-static const char *material_adrcodes_to_paths(int adrcode, int *array_index)
+static const char *material_adrcodes_to_paths(int adrcode, int *r_array_index)
 {
   /* Set array index like this in-case nothing sets it correctly. */
-  *array_index = 0;
+  *r_array_index = 0;
 
   /* result depends on adrcode */
   switch (adrcode) {
     case MA_COL_R:
-      *array_index = 0;
+      *r_array_index = 0;
       return "diffuse_color";
     case MA_COL_G:
-      *array_index = 1;
+      *r_array_index = 1;
       return "diffuse_color";
     case MA_COL_B:
-      *array_index = 2;
+      *r_array_index = 2;
       return "diffuse_color";
 
     case MA_SPEC_R:
-      *array_index = 0;
+      *r_array_index = 0;
       return "specular_color";
     case MA_SPEC_G:
-      *array_index = 1;
+      *r_array_index = 1;
       return "specular_color";
     case MA_SPEC_B:
-      *array_index = 2;
+      *r_array_index = 2;
       return "specular_color";
 
     case MA_MIR_R:
-      *array_index = 0;
+      *r_array_index = 0;
       return "mirror_color";
     case MA_MIR_G:
-      *array_index = 1;
+      *r_array_index = 1;
       return "mirror_color";
     case MA_MIR_B:
-      *array_index = 2;
+      *r_array_index = 2;
       return "mirror_color";
 
     case MA_ALPHA:
@@ -754,17 +754,17 @@ static const char *material_adrcodes_to_paths(int adrcode, int *array_index)
       return "halo.add";
 
     default: /* for now, we assume that the others were MTex channels */
-      return mtex_adrcodes_to_paths(adrcode, array_index);
+      return mtex_adrcodes_to_paths(adrcode, r_array_index);
   }
 
   return nullptr;
 }
 
 /* Camera Types */
-static const char *camera_adrcodes_to_paths(int adrcode, int *array_index)
+static const char *camera_adrcodes_to_paths(int adrcode, int *r_array_index)
 {
   /* Set array index like this in-case nothing sets it correctly. */
-  *array_index = 0;
+  *r_array_index = 0;
 
   /* result depends on adrcode */
   switch (adrcode) {
@@ -806,10 +806,10 @@ static const char *camera_adrcodes_to_paths(int adrcode, int *array_index)
 }
 
 /* Light Types */
-static const char *light_adrcodes_to_paths(int adrcode, int *array_index)
+static const char *light_adrcodes_to_paths(int adrcode, int *r_array_index)
 {
   /* Set array index like this in-case nothing sets it correctly. */
-  *array_index = 0;
+  *r_array_index = 0;
 
   /* result depends on adrcode */
   switch (adrcode) {
@@ -817,13 +817,13 @@ static const char *light_adrcodes_to_paths(int adrcode, int *array_index)
       return "energy";
 
     case LA_COL_R:
-      *array_index = 0;
+      *r_array_index = 0;
       return "color";
     case LA_COL_G:
-      *array_index = 1;
+      *r_array_index = 1;
       return "color";
     case LA_COL_B:
-      *array_index = 2;
+      *r_array_index = 2;
       return "color";
 
     case LA_DIST:
@@ -843,7 +843,7 @@ static const char *light_adrcodes_to_paths(int adrcode, int *array_index)
       return "halo_intensity";
 
     default: /* for now, we assume that the others were MTex channels */
-      return mtex_adrcodes_to_paths(adrcode, array_index);
+      return mtex_adrcodes_to_paths(adrcode, r_array_index);
   }
 
   /* unrecognized adrcode, or not-yet-handled ones! */
@@ -851,10 +851,10 @@ static const char *light_adrcodes_to_paths(int adrcode, int *array_index)
 }
 
 /* Sound Types */
-static const char *sound_adrcodes_to_paths(int adrcode, int *array_index)
+static const char *sound_adrcodes_to_paths(int adrcode, int *r_array_index)
 {
   /* Set array index like this in-case nothing sets it correctly. */
-  *array_index = 0;
+  *r_array_index = 0;
 
   /* result depends on adrcode */
   switch (adrcode) {
@@ -877,30 +877,30 @@ static const char *sound_adrcodes_to_paths(int adrcode, int *array_index)
 }
 
 /* World Types */
-static const char *world_adrcodes_to_paths(int adrcode, int *array_index)
+static const char *world_adrcodes_to_paths(int adrcode, int *r_array_index)
 {
   /* Set array index like this in-case nothing sets it correctly. */
-  *array_index = 0;
+  *r_array_index = 0;
 
   /* result depends on adrcode */
   switch (adrcode) {
     case WO_HOR_R:
-      *array_index = 0;
+      *r_array_index = 0;
       return "horizon_color";
     case WO_HOR_G:
-      *array_index = 1;
+      *r_array_index = 1;
       return "horizon_color";
     case WO_HOR_B:
-      *array_index = 2;
+      *r_array_index = 2;
       return "horizon_color";
     case WO_ZEN_R:
-      *array_index = 0;
+      *r_array_index = 0;
       return "zenith_color";
     case WO_ZEN_G:
-      *array_index = 1;
+      *r_array_index = 1;
       return "zenith_color";
     case WO_ZEN_B:
-      *array_index = 2;
+      *r_array_index = 2;
       return "zenith_color";
 
     case WO_EXPOS:
@@ -916,17 +916,17 @@ static const char *world_adrcodes_to_paths(int adrcode, int *array_index)
       return "mist.height";
 
     default: /* for now, we assume that the others were MTex channels */
-      return mtex_adrcodes_to_paths(adrcode, array_index);
+      return mtex_adrcodes_to_paths(adrcode, r_array_index);
   }
 
   return nullptr;
 }
 
 /* Particle Types */
-static const char *particle_adrcodes_to_paths(int adrcode, int *array_index)
+static const char *particle_adrcodes_to_paths(int adrcode, int *r_array_index)
 {
   /* Set array index like this in-case nothing sets it correctly. */
-  *array_index = 0;
+  *r_array_index = 0;
 
   /* result depends on adrcode */
   switch (adrcode) {
@@ -945,13 +945,13 @@ static const char *particle_adrcodes_to_paths(int adrcode, int *array_index)
     case PART_LENGTH:
       return "settings.length";
     case PART_GRAV_X:
-      *array_index = 0;
+      *r_array_index = 0;
       return "settings.acceleration";
     case PART_GRAV_Y:
-      *array_index = 1;
+      *r_array_index = 1;
       return "settings.acceleration";
     case PART_GRAV_Z:
-      *array_index = 2;
+      *r_array_index = 2;
       return "settings.acceleration";
     case PART_KINK_AMP:
       return "settings.kink_amplitude";
@@ -1015,7 +1015,7 @@ static const char *particle_adrcodes_to_paths(int adrcode, int *array_index)
  *     - blocktype, adrcode      - determines setting to get
  *     - actname, constname, seq - used to build path
  * Output:
- *     - array_index             - index in property's array (if applicable) to use
+ *     - r_array_index           - index in property's array (if applicable) to use
  *     - return                  - the allocated path...
  */
 static char *get_rna_access(ID *id,
@@ -1024,7 +1024,7 @@ static char *get_rna_access(ID *id,
                             char actname[],
                             char constname[],
                             Sequence *seq,
-                            int *array_index)
+                            int *r_array_index)
 {
   DynStr *path = BLI_dynstr_new();
   const char *propname = nullptr;
@@ -1125,8 +1125,8 @@ static char *get_rna_access(ID *id,
    */
   if ((propname == nullptr) && (blocktype > 0)) {
     /* nothing was found, so exit */
-    if (array_index) {
-      *array_index = 0;
+    if (r_array_index) {
+      *r_array_index = 0;
     }
 
     BLI_dynstr_free(path);
@@ -1134,8 +1134,8 @@ static char *get_rna_access(ID *id,
     return nullptr;
   }
 
-  if (array_index) {
-    *array_index = dummy_index;
+  if (r_array_index) {
+    *r_array_index = dummy_index;
   }
 
   /* 'buf' _must_ be initialized in this block */
@@ -1193,7 +1193,7 @@ static char *get_rna_access(ID *id,
   BLI_dynstr_append(path, propname);
 
   /* if there was no array index pointer provided, add it to the path */
-  if (array_index == nullptr) {
+  if (r_array_index == nullptr) {
     SNPRINTF(buf, "[\"%d\"]", dummy_index);
     BLI_dynstr_append(path, buf);
   }

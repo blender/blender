@@ -3643,7 +3643,7 @@ static void tablet_tool_handle_proximity_in(void *data,
   /* In case pressure isn't supported. */
   td.Pressure = 1.0f;
 
-  GHOST_WindowWayland *win = ghost_wl_surface_user_data(seat->tablet.wl.surface_window);
+  const GHOST_WindowWayland *win = ghost_wl_surface_user_data(seat->tablet.wl.surface_window);
 
   seat->system->cursor_shape_set(win->getCursorShape());
 }
@@ -4177,6 +4177,8 @@ static bool xkb_compose_state_feed_and_get_utf8(
         break;
       }
       case XKB_COMPOSE_COMPOSING: {
+        r_utf8_buf[0] = '\0';
+        handled = true;
         break;
       }
       case XKB_COMPOSE_COMPOSED: {
@@ -4190,6 +4192,13 @@ static bool xkb_compose_state_feed_and_get_utf8(
         break;
       }
       case XKB_COMPOSE_CANCELLED: {
+        /* NOTE(@ideasman42): QT & GTK ignore these events as well as not inputting any text
+         * so `<Compose><Backspace>` for e.g. causes a cancel and *not* back-space.
+         * This isn't supported under GHOST at the moment.
+         * The key-event could also be ignored but this means tracking held state of
+         * keys wont work properly, so don't do any input and pass in the key-symbol. */
+        r_utf8_buf[0] = '\0';
+        handled = true;
         break;
       }
     }
@@ -4903,7 +4912,7 @@ static void gwl_seat_capability_pointer_disable(GWL_Seat *seat)
     return;
   }
 
-  zwp_pointer_gestures_v1 *pointer_gestures = seat->system->wp_pointer_gestures_get();
+  const zwp_pointer_gestures_v1 *pointer_gestures = seat->system->wp_pointer_gestures_get();
   if (pointer_gestures) {
 #ifdef ZWP_POINTER_GESTURE_HOLD_V1_INTERFACE
     { /* Hold gesture. */
@@ -6495,7 +6504,7 @@ GHOST_TSuccess GHOST_SystemWayland::getButtons(GHOST_Buttons &buttons) const
   if (UNLIKELY(!seat)) {
     return GHOST_kFailure;
   }
-  GWL_SeatStatePointer *seat_state_pointer = gwl_seat_state_pointer_active(seat);
+  const GWL_SeatStatePointer *seat_state_pointer = gwl_seat_state_pointer_active(seat);
   if (!seat_state_pointer) {
     return GHOST_kFailure;
   }
@@ -7468,7 +7477,7 @@ GHOST_TCapabilityFlag GHOST_SystemWayland::getCapabilities() const
 bool GHOST_SystemWayland::cursor_grab_use_software_display_get(const GHOST_TGrabCursorMode mode)
 {
   /* Caller must lock `server_mutex`. */
-  GWL_Seat *seat = gwl_display_seat_active_get(display_);
+  const GWL_Seat *seat = gwl_display_seat_active_get(display_);
   if (UNLIKELY(!seat)) {
     return false;
   }
@@ -7834,7 +7843,7 @@ GHOST_WindowWayland *ghost_wl_surface_user_data(wl_surface *wl_surface)
  * Functionality only used for the WAYLAND implementation.
  * \{ */
 
-GHOST_TSuccess GHOST_SystemWayland::pushEvent_maybe_pending(GHOST_IEvent *event)
+GHOST_TSuccess GHOST_SystemWayland::pushEvent_maybe_pending(const GHOST_IEvent *event)
 {
 #ifdef USE_EVENT_BACKGROUND_THREAD
   if (main_thread_id != std::this_thread::get_id()) {

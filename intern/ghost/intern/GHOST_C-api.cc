@@ -715,11 +715,11 @@ GHOST_TSuccess GHOST_SetSwapInterval(GHOST_WindowHandle windowhandle, int interv
   return window->setSwapInterval(interval);
 }
 
-GHOST_TSuccess GHOST_GetSwapInterval(GHOST_WindowHandle windowhandle, int *intervalOut)
+GHOST_TSuccess GHOST_GetSwapInterval(GHOST_WindowHandle windowhandle, int *r_interval)
 {
   GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
 
-  return window->getSwapInterval(*intervalOut);
+  return window->getSwapInterval(*r_interval);
 }
 
 GHOST_TSuccess GHOST_ActivateWindowDrawingContext(GHOST_WindowHandle windowhandle)

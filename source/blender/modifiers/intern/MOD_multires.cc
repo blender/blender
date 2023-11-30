@@ -185,7 +185,7 @@ static Mesh *multires_as_ccg(MultiresModifierData *mmd,
     return result;
   }
   BKE_subdiv_displacement_attach_from_multires(subdiv, mesh, mmd);
-  result = BKE_subdiv_to_ccg_mesh(subdiv, &ccg_settings, mesh);
+  result = BKE_subdiv_to_ccg_mesh(*subdiv, ccg_settings, *mesh);
 
   /* NOTE: CCG becomes an owner of Subdiv descriptor, so can not share
    * this pointer. Not sure if it's needed, but might have a second look

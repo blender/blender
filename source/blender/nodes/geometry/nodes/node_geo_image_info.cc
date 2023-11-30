@@ -70,7 +70,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
       short fps_sec = 0;
       float fps_sec_base = 0.0f;
-      IMB_anim_get_fps(anim, &fps_sec, &fps_sec_base, true);
+      IMB_anim_get_fps(anim, true, &fps_sec, &fps_sec_base);
       fps = float(fps_sec) / fps_sec_base;
     }
   }

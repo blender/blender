@@ -185,12 +185,12 @@ static AnimationEvalContext seq_prefetch_anim_eval_context(PrefetchJob *pfjob)
   return BKE_animsys_eval_context_construct(pfjob->depsgraph, seq_prefetch_cfra(pfjob));
 }
 
-void seq_prefetch_get_time_range(Scene *scene, int *start, int *end)
+void seq_prefetch_get_time_range(Scene *scene, int *r_start, int *r_end)
 {
   PrefetchJob *pfjob = seq_prefetch_job_get(scene);
 
-  *start = pfjob->cfra;
-  *end = seq_prefetch_cfra(pfjob);
+  *r_start = pfjob->cfra;
+  *r_end = seq_prefetch_cfra(pfjob);
 }
 
 static void seq_prefetch_free_depsgraph(PrefetchJob *pfjob)

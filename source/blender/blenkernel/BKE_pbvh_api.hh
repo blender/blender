@@ -15,6 +15,7 @@
 #include "BLI_bitmap.h"
 #include "BLI_compiler_compat.h"
 #include "BLI_function_ref.hh"
+#include "BLI_index_mask.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_span.hh"
@@ -215,12 +216,11 @@ void BKE_pbvh_update_mesh_pointers(PBVH *pbvh, Mesh *mesh);
  * Do a full rebuild with on Grids data structure.
  */
 void BKE_pbvh_build_grids(PBVH *pbvh,
-                          CCGElem **grids,
-                          int totgrid,
+                          blender::Span<CCGElem *> grids,
                           CCGKey *key,
                           blender::Span<int> grid_to_face_map,
-                          DMFlagMat *flagmats,
-                          unsigned int **grid_hidden,
+                          blender::Span<DMFlagMat> flagmats,
+                          blender::Span<BLI_bitmap *> grid_hidden,
                           Mesh *me,
                           SubdivCCG *subdiv_ccg);
 /**
@@ -332,14 +332,14 @@ void BKE_pbvh_bounding_box(const PBVH *pbvh, float min[3], float max[3]);
 /**
  * Multi-res hidden data, only valid for type == PBVH_GRIDS.
  */
-unsigned int **BKE_pbvh_grid_hidden(const PBVH *pbvh);
+blender::Span<const BLI_bitmap *> BKE_pbvh_get_grid_visibility(const PBVH *pbvh);
 
 void BKE_pbvh_sync_visibility_from_verts(PBVH *pbvh, Mesh *me);
 
 /**
  * Returns the number of visible quads in the nodes' grids.
  */
-int BKE_pbvh_count_grid_quads(BLI_bitmap **grid_hidden,
+int BKE_pbvh_count_grid_quads(blender::Span<const BLI_bitmap *> grid_hidden,
                               const int *grid_indices,
                               int totgrid,
                               int gridsize,
@@ -350,8 +350,7 @@ int BKE_pbvh_count_grid_quads(BLI_bitmap **grid_hidden,
  */
 const CCGKey *BKE_pbvh_get_grid_key(const PBVH *pbvh);
 
-CCGElem **BKE_pbvh_get_grids(const PBVH *pbvh);
-BLI_bitmap **BKE_pbvh_get_grid_visibility(const PBVH *pbvh);
+blender::Span<CCGElem *> BKE_pbvh_get_grids(const PBVH *pbvh);
 int BKE_pbvh_get_grid_num_verts(const PBVH *pbvh);
 int BKE_pbvh_get_grid_num_faces(const PBVH *pbvh);
 
@@ -404,7 +403,7 @@ void BKE_pbvh_node_get_grids(PBVH *pbvh,
                              int *totgrid,
                              int *maxgrid,
                              int *gridsize,
-                             CCGElem ***r_griddata);
+                             CCGElem *const **r_griddata);
 void BKE_pbvh_node_num_verts(const PBVH *pbvh,
                              const PBVHNode *node,
                              int *r_uniquevert,
@@ -458,15 +457,14 @@ void BKE_pbvh_update_vertex_data(PBVH *pbvh, int flags);
 void BKE_pbvh_update_visibility(PBVH *pbvh);
 void BKE_pbvh_update_normals(PBVH *pbvh, SubdivCCG *subdiv_ccg);
 void BKE_pbvh_redraw_BB(PBVH *pbvh, float bb_min[3], float bb_max[3]);
-void BKE_pbvh_get_grid_updates(PBVH *pbvh,
-                               bool clear,
-                               SubdivCCGFace ***r_gridfaces,
-                               int *r_totface);
+blender::IndexMask BKE_pbvh_get_grid_updates(const PBVH *pbvh,
+                                             blender::Span<const PBVHNode *> nodes,
+                                             blender::IndexMaskMemory &memory);
 void BKE_pbvh_grids_update(PBVH *pbvh,
-                           CCGElem **grids,
+                           blender::Span<CCGElem *> grids,
                            blender::Span<int> grid_to_face_map,
-                           DMFlagMat *flagmats,
-                           unsigned int **grid_hidden,
+                           blender::Span<DMFlagMat> flagmats,
+                           blender::Span<BLI_bitmap *> grid_hidden,
                            CCGKey *key);
 void BKE_pbvh_subdiv_cgg_set(PBVH *pbvh, SubdivCCG *subdiv_ccg);
 
@@ -505,9 +503,9 @@ struct PBVHVertexIter {
 
   /* grid */
   CCGKey key;
-  CCGElem **grids;
+  CCGElem *const *grids;
   CCGElem *grid;
-  BLI_bitmap **grid_hidden, *gh;
+  BLI_bitmap *const *grid_hidden, *gh;
   const int *grid_indices;
   int totgrid;
   int gridsize;

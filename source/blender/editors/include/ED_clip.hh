@@ -66,14 +66,14 @@ bool ED_space_clip_maskedit_mask_poll(bContext *C);
  * - Mask has visible and editable splines. */
 bool ED_space_clip_maskedit_mask_visible_splines_poll(bContext *C);
 
-void ED_space_clip_get_size(const SpaceClip *sc, int *width, int *height);
-void ED_space_clip_get_size_fl(const SpaceClip *sc, float size[2]);
+void ED_space_clip_get_size(const SpaceClip *sc, int *r_width, int *r_height);
+void ED_space_clip_get_size_fl(const SpaceClip *sc, float r_size[2]);
 void ED_space_clip_get_zoom(const SpaceClip *sc,
                             const ARegion *region,
-                            float *zoomx,
-                            float *zoomy);
-void ED_space_clip_get_aspect(const SpaceClip *sc, float *aspx, float *aspy);
-void ED_space_clip_get_aspect_dimension_aware(const SpaceClip *sc, float *aspx, float *aspy);
+                            float *r_zoomx,
+                            float *r_zoomy);
+void ED_space_clip_get_aspect(const SpaceClip *sc, float *r_aspx, float *r_aspy);
+void ED_space_clip_get_aspect_dimension_aware(const SpaceClip *sc, float *r_aspx, float *r_aspy);
 
 /**
  * Return current frame number in clip space.

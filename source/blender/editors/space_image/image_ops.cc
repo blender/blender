@@ -2305,9 +2305,9 @@ static bool image_should_be_saved_when_modified(Image *ima)
   return !ELEM(ima->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE);
 }
 
-static bool image_should_be_saved(Image *ima, bool *is_format_writable)
+static bool image_should_be_saved(Image *ima, bool *r_is_format_writable)
 {
-  if (BKE_image_is_dirty_writable(ima, is_format_writable) &&
+  if (BKE_image_is_dirty_writable(ima, r_is_format_writable) &&
       ELEM(ima->source, IMA_SRC_FILE, IMA_SRC_GENERATED, IMA_SRC_TILED))
   {
     return image_should_be_saved_when_modified(ima);

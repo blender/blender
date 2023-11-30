@@ -21,7 +21,10 @@ PyObject *BPyInit_bgl(void);
  * \param initbuffer: When not NULL holds a contiguous buffer
  * with the correct format from which the buffer will be initialized
  */
-struct _Buffer *BGL_MakeBuffer(int type, int ndimensions, int *dimensions, void *initbuffer);
+struct _Buffer *BGL_MakeBuffer(int type,
+                               int ndimensions,
+                               const int *dimensions,
+                               const void *initbuffer);
 
 int BGL_typeSize(int type);
 

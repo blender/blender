@@ -143,58 +143,61 @@ bool ED_space_clip_maskedit_mask_visible_splines_poll(bContext *C)
 /** \name Common Editing Functions
  * \{ */
 
-void ED_space_clip_get_size(const SpaceClip *sc, int *width, int *height)
+void ED_space_clip_get_size(const SpaceClip *sc, int *r_width, int *r_height)
 {
   if (sc->clip) {
-    BKE_movieclip_get_size(sc->clip, &sc->user, width, height);
+    BKE_movieclip_get_size(sc->clip, &sc->user, r_width, r_height);
   }
   else {
-    *width = *height = IMG_SIZE_FALLBACK;
+    *r_width = *r_height = IMG_SIZE_FALLBACK;
   }
 }
 
-void ED_space_clip_get_size_fl(const SpaceClip *sc, float size[2])
+void ED_space_clip_get_size_fl(const SpaceClip *sc, float r_size[2])
 {
   int size_i[2];
   ED_space_clip_get_size(sc, &size_i[0], &size_i[1]);
-  size[0] = size_i[0];
-  size[1] = size_i[1];
+  r_size[0] = size_i[0];
+  r_size[1] = size_i[1];
 }
 
-void ED_space_clip_get_zoom(const SpaceClip *sc, const ARegion *region, float *zoomx, float *zoomy)
+void ED_space_clip_get_zoom(const SpaceClip *sc,
+                            const ARegion *region,
+                            float *r_zoomx,
+                            float *r_zoomy)
 {
   int width, height;
 
   ED_space_clip_get_size(sc, &width, &height);
 
-  *zoomx = float(BLI_rcti_size_x(&region->winrct) + 1) /
-           (BLI_rctf_size_x(&region->v2d.cur) * width);
-  *zoomy = float(BLI_rcti_size_y(&region->winrct) + 1) /
-           (BLI_rctf_size_y(&region->v2d.cur) * height);
+  *r_zoomx = float(BLI_rcti_size_x(&region->winrct) + 1) /
+             (BLI_rctf_size_x(&region->v2d.cur) * width);
+  *r_zoomy = float(BLI_rcti_size_y(&region->winrct) + 1) /
+             (BLI_rctf_size_y(&region->v2d.cur) * height);
 }
 
-void ED_space_clip_get_aspect(const SpaceClip *sc, float *aspx, float *aspy)
+void ED_space_clip_get_aspect(const SpaceClip *sc, float *r_aspx, float *r_aspy)
 {
   MovieClip *clip = ED_space_clip_get_clip(sc);
 
   if (clip) {
-    BKE_movieclip_get_aspect(clip, aspx, aspy);
+    BKE_movieclip_get_aspect(clip, r_aspx, r_aspy);
   }
   else {
-    *aspx = *aspy = 1.0f;
+    *r_aspx = *r_aspy = 1.0f;
   }
 
-  if (*aspx < *aspy) {
-    *aspy = *aspy / *aspx;
-    *aspx = 1.0f;
+  if (*r_aspx < *r_aspy) {
+    *r_aspy = *r_aspy / *r_aspx;
+    *r_aspx = 1.0f;
   }
   else {
-    *aspx = *aspx / *aspy;
-    *aspy = 1.0f;
+    *r_aspx = *r_aspx / *r_aspy;
+    *r_aspy = 1.0f;
   }
 }
 
-void ED_space_clip_get_aspect_dimension_aware(const SpaceClip *sc, float *aspx, float *aspy)
+void ED_space_clip_get_aspect_dimension_aware(const SpaceClip *sc, float *r_aspx, float *r_aspy)
 {
   int w, h;
 
@@ -206,25 +209,25 @@ void ED_space_clip_get_aspect_dimension_aware(const SpaceClip *sc, float *aspx, 
    */
 
   if (!sc->clip) {
-    *aspx = 1.0f;
-    *aspy = 1.0f;
+    *r_aspx = 1.0f;
+    *r_aspy = 1.0f;
 
     return;
   }
 
-  ED_space_clip_get_aspect(sc, aspx, aspy);
+  ED_space_clip_get_aspect(sc, r_aspx, r_aspy);
   BKE_movieclip_get_size(sc->clip, &sc->user, &w, &h);
 
-  *aspx *= float(w);
-  *aspy *= float(h);
+  *r_aspx *= float(w);
+  *r_aspy *= float(h);
 
-  if (*aspx < *aspy) {
-    *aspy = *aspy / *aspx;
-    *aspx = 1.0f;
+  if (*r_aspx < *r_aspy) {
+    *r_aspy = *r_aspy / *r_aspx;
+    *r_aspx = 1.0f;
   }
   else {
-    *aspx = *aspx / *aspy;
-    *aspy = 1.0f;
+    *r_aspx = *r_aspx / *r_aspy;
+    *r_aspy = 1.0f;
   }
 }
 
@@ -264,7 +267,7 @@ ImBuf *ED_space_clip_get_stable_buffer(const SpaceClip *sc,
     ImBuf *ibuf;
 
     ibuf = BKE_movieclip_get_stable_ibuf(
-        sc->clip, &sc->user, loc, scale, angle, sc->postproc_flag);
+        sc->clip, &sc->user, sc->postproc_flag, loc, scale, angle);
 
     if (ibuf && (ibuf->byte_buffer.data || ibuf->float_buffer.data)) {
       return ibuf;

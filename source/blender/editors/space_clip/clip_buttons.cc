@@ -827,7 +827,7 @@ void uiTemplateMovieclipInformation(uiLayout *layout,
     if (clip->anim != nullptr) {
       short frs_sec;
       float frs_sec_base;
-      if (IMB_anim_get_fps(clip->anim, &frs_sec, &frs_sec_base, true)) {
+      if (IMB_anim_get_fps(clip->anim, true, &frs_sec, &frs_sec_base)) {
         ofs += BLI_snprintf_rlen(
             str + ofs, sizeof(str) - ofs, TIP_(", %.2f fps"), float(frs_sec) / frs_sec_base);
       }

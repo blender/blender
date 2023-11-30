@@ -653,7 +653,10 @@ bool BKE_library_ID_is_indirectly_used(Main *bmain, void *idv)
   return library_ID_is_used(bmain, idv, true);
 }
 
-void BKE_library_ID_test_usages(Main *bmain, void *idv, bool *is_used_local, bool *is_used_linked)
+void BKE_library_ID_test_usages(Main *bmain,
+                                void *idv,
+                                bool *r_is_used_local,
+                                bool *r_is_used_linked)
 {
   IDUsersIter iter;
   ListBase *lb_array[INDEX_ID_MAX];
@@ -683,8 +686,8 @@ void BKE_library_ID_test_usages(Main *bmain, void *idv, bool *is_used_local, boo
     }
   }
 
-  *is_used_local = (iter.count_direct != 0);
-  *is_used_linked = (iter.count_indirect != 0);
+  *r_is_used_local = (iter.count_direct != 0);
+  *r_is_used_linked = (iter.count_indirect != 0);
 }
 
 /* ***** IDs usages.checking/tagging. ***** */

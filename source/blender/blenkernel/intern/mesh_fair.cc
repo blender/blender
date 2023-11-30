@@ -39,13 +39,13 @@ using std::array;
 
 class VertexWeight {
  public:
-  virtual float weight_at_index(const int index) = 0;
+  virtual float weight_at_index(const int index) const = 0;
   virtual ~VertexWeight() = default;
 };
 
 class LoopWeight {
  public:
-  virtual float weight_at_index(const int index) = 0;
+  virtual float weight_at_index(const int index) const = 0;
   virtual ~LoopWeight() = default;
 };
 
@@ -81,13 +81,13 @@ class FairingContext {
 
   virtual ~FairingContext() = default;
 
-  void fair_verts(bool *affected,
+  void fair_verts(const bool affected_verts[],
                   const eMeshFairingDepth depth,
-                  VertexWeight *vertex_weight,
-                  LoopWeight *loop_weight)
+                  const VertexWeight *vertex_weight,
+                  const LoopWeight *loop_weight)
   {
 
-    fair_verts_ex(affected, int(depth), vertex_weight, loop_weight);
+    fair_verts_ex(affected_verts, int(depth), vertex_weight, loop_weight);
   }
 
  protected:
@@ -105,8 +105,8 @@ class FairingContext {
                           float multiplier,
                           const int depth,
                           Map<int, int> &vert_col_map,
-                          VertexWeight *vertex_weight,
-                          LoopWeight *loop_weight)
+                          const VertexWeight *vertex_weight,
+                          const LoopWeight *loop_weight)
   {
     if (depth == 0) {
       if (vert_col_map.contains(v)) {
@@ -147,15 +147,15 @@ class FairingContext {
                        loop_weight);
   }
 
-  void fair_verts_ex(const bool *affected,
+  void fair_verts_ex(const bool affected_verts[],
                      const int order,
-                     VertexWeight *vertex_weight,
-                     LoopWeight *loop_weight)
+                     const VertexWeight *vertex_weight,
+                     const LoopWeight *loop_weight)
   {
     Map<int, int> vert_col_map;
     int affected_verts_num = 0;
     for (int i = 0; i < totvert_; i++) {
-      if (!affected[i]) {
+      if (!affected_verts[i]) {
         continue;
       }
       vert_col_map.add(i, affected_verts_num);
@@ -331,7 +331,7 @@ class UniformVertexWeight : public VertexWeight {
     }
   }
 
-  float weight_at_index(const int index) override
+  float weight_at_index(const int index) const override
   {
     return vertex_weights_[index];
   }
@@ -384,7 +384,7 @@ class VoronoiVertexWeight : public VertexWeight {
     }
   }
 
-  float weight_at_index(const int index) override
+  float weight_at_index(const int index) const override
   {
     return vertex_weights_[index];
   }
@@ -425,14 +425,14 @@ class VoronoiVertexWeight : public VertexWeight {
 
 class UniformLoopWeight : public LoopWeight {
  public:
-  float weight_at_index(const int /*index*/) override
+  float weight_at_index(const int /*index*/) const override
   {
     return 1.0f;
   }
 };
 
 static void prefair_and_fair_verts(FairingContext *fairing_context,
-                                   bool *affected_verts,
+                                   const bool affected_verts[],
                                    const eMeshFairingDepth depth)
 {
   /* Pre-fair. */
@@ -452,7 +452,7 @@ static void prefair_and_fair_verts(FairingContext *fairing_context,
 
 void BKE_mesh_prefair_and_fair_verts(Mesh *mesh,
                                      blender::MutableSpan<float3> deform_vert_positions,
-                                     bool *affect_verts,
+                                     const bool affected_verts[],
                                      const eMeshFairingDepth depth)
 {
   MutableSpan<float3> deform_positions_span;
@@ -460,13 +460,15 @@ void BKE_mesh_prefair_and_fair_verts(Mesh *mesh,
     deform_positions_span = deform_vert_positions;
   }
   MeshFairingContext *fairing_context = new MeshFairingContext(mesh, deform_positions_span);
-  prefair_and_fair_verts(fairing_context, affect_verts, depth);
+  prefair_and_fair_verts(fairing_context, affected_verts, depth);
   delete fairing_context;
 }
 
-void BKE_bmesh_prefair_and_fair_verts(BMesh *bm, bool *affect_verts, const eMeshFairingDepth depth)
+void BKE_bmesh_prefair_and_fair_verts(BMesh *bm,
+                                      const bool affected_verts[],
+                                      const eMeshFairingDepth depth)
 {
   BMeshFairingContext *fairing_context = new BMeshFairingContext(bm);
-  prefair_and_fair_verts(fairing_context, affect_verts, depth);
+  prefair_and_fair_verts(fairing_context, affected_verts, depth);
   delete fairing_context;
 }

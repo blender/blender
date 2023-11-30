@@ -192,17 +192,6 @@ bool CustomData_has_layer(const struct CustomData * /*data*/, eCustomDataType /*
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Stubs of BKE_subdiv_ccg.hh
- * \{ */
-int BKE_subdiv_ccg_grid_to_face_index(const SubdivCCG * /*subdiv_ccg*/, const int /*grid_index*/)
-{
-  BLI_assert_unreachable();
-  return 0;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Stubs of BKE_node.h
  * \{ */
 extern "C" void ntreeGPUMaterialNodes(struct bNodeTree * /*localtree*/,
@@ -270,22 +259,6 @@ extern "C" bool IMB_saveiff(struct ImBuf * /*ibuf*/, const char * /*filepath*/, 
 {
   BLI_assert_unreachable();
   return false;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Stubs of BKE_pbvh.hh
- * \{ */
-
-int BKE_pbvh_count_grid_quads(BLI_bitmap ** /*grid_hidden*/,
-                              const int * /*grid_indices*/,
-                              int /*totgrid*/,
-                              int /*gridsize*/,
-                              int /*display_gridsize*/)
-{
-  BLI_assert_unreachable();
-  return 0;
 }
 
 /** \} */

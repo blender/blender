@@ -108,9 +108,7 @@ class KeyingScreenOperation : public NodeOperation {
     KeyingScreen &cached_keying_screen = context().cache_manager().keying_screens.get(
         context(), get_movie_clip(), movie_tracking_object, get_smoothness());
 
-    const Domain domain = compute_domain();
-    keying_screen.allocate_texture(domain);
-    GPU_texture_copy(keying_screen.texture(), cached_keying_screen.texture());
+    keying_screen.wrap_external(cached_keying_screen.texture());
   }
 
   Domain compute_domain() override

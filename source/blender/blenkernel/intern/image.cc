@@ -4828,17 +4828,16 @@ void BKE_image_pool_free(ImagePool *pool)
 }
 
 BLI_INLINE ImBuf *image_pool_find_item(
-    ImagePool *pool, Image *image, int entry, int index, bool *found)
+    ImagePool *pool, Image *image, int entry, int index, bool *r_found)
 {
-  *found = false;
-
   LISTBASE_FOREACH (ImagePoolItem *, item, &pool->image_buffers) {
     if (item->image == image && item->entry == entry && item->index == index) {
-      *found = true;
+      *r_found = true;
       return item->ibuf;
     }
   }
 
+  *r_found = false;
   return nullptr;
 }
 
