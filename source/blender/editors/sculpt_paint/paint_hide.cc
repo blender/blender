@@ -67,7 +67,10 @@ enum VisArea {
 };
 
 /* Return true if the element should be hidden/shown. */
-static bool is_effected(VisArea area, float planes[4][4], const float co[3], const float mask)
+static bool is_effected(const VisArea area,
+                        const float planes[4][4],
+                        const float co[3],
+                        const float mask)
 {
   if (area == VisArea::All) {
     return true;
@@ -76,21 +79,22 @@ static bool is_effected(VisArea area, float planes[4][4], const float co[3], con
     return mask > 0.5f;
   }
 
-  bool inside = isect_point_planes_v3(planes, 4, co);
+  const bool inside = isect_point_planes_v3(planes, 4, co);
   return ((inside && area == VisArea::Inside) || (!inside && area == VisArea::Outside));
 }
 
 static void partialvis_update_mesh(Object *ob,
                                    PBVH *pbvh,
-                                   VisAction action,
-                                   VisArea area,
-                                   float planes[4][4],
+                                   const VisAction action,
+                                   const VisArea area,
+                                   const float planes[4][4],
                                    const Span<PBVHNode *> nodes)
 {
   for (PBVHNode *node : nodes) {
     Mesh *mesh = static_cast<Mesh *>(ob->data);
     const Span<float3> positions = BKE_pbvh_get_vert_positions(pbvh);
-    bool any_changed = false, any_visible = false;
+    bool any_changed = false;
+    bool any_visible = false;
 
     const Span<int> verts = BKE_pbvh_node_get_vert_indices(node);
 
@@ -129,9 +133,9 @@ static void partialvis_update_mesh(Object *ob,
 static void partialvis_update_grids(Depsgraph *depsgraph,
                                     Object *ob,
                                     PBVH *pbvh,
-                                    VisAction action,
-                                    VisArea area,
-                                    float planes[4][4],
+                                    const VisAction action,
+                                    const VisArea area,
+                                    const float planes[4][4],
                                     const Span<PBVHNode *> nodes)
 {
   for (PBVHNode *node : nodes) {
@@ -146,20 +150,20 @@ static void partialvis_update_grids(Depsgraph *depsgraph,
     SculptSession *ss = ob->sculpt;
     SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
     MutableSpan<BLI_bitmap *> grid_hidden = subdiv_ccg->grid_hidden;
-    CCGKey key = *BKE_pbvh_get_grid_key(pbvh);
+    const CCGKey key = *BKE_pbvh_get_grid_key(pbvh);
 
     SCULPT_undo_push_node(ob, node, SCULPT_UNDO_HIDDEN);
 
     for (int i = 0; i < totgrid; i++) {
       int any_hidden = 0;
-      int g = grid_indices[i];
-      BLI_bitmap *gh = grid_hidden[g];
-
+      const int grid_index = grid_indices[i];
+      BLI_bitmap *gh = grid_hidden[grid_index];
       if (!gh) {
         switch (action) {
           case VisAction::Hide:
             /* Create grid flags data. */
-            gh = grid_hidden[g] = BLI_BITMAP_NEW(key.grid_area, "partialvis_update_grids");
+            gh = grid_hidden[grid_index] = BLI_BITMAP_NEW(key.grid_area,
+                                                          "partialvis_update_grids");
             break;
           case VisAction::Show:
             /* Entire grid is visible, nothing to show. */
@@ -169,7 +173,7 @@ static void partialvis_update_grids(Depsgraph *depsgraph,
       else if (action == VisAction::Show && area == VisArea::All) {
         /* Special case if we're showing all, just free the grid. */
         MEM_freeN(gh);
-        grid_hidden[g] = nullptr;
+        grid_hidden[grid_index] = nullptr;
         any_changed = true;
         any_visible = true;
         continue;
@@ -177,7 +181,7 @@ static void partialvis_update_grids(Depsgraph *depsgraph,
 
       for (int y = 0; y < key.grid_size; y++) {
         for (int x = 0; x < key.grid_size; x++) {
-          CCGElem *elem = CCG_grid_elem(&key, grids[g], x, y);
+          CCGElem *elem = CCG_grid_elem(&key, grids[grid_index], x, y);
           const float *co = CCG_elem_co(&key, elem);
           float mask = key.has_mask ? *CCG_elem_mask(&key, elem) : 0.0f;
 
@@ -202,7 +206,7 @@ static void partialvis_update_grids(Depsgraph *depsgraph,
       /* If everything in the grid is now visible, free the grid flags. */
       if (!any_hidden) {
         MEM_freeN(gh);
-        grid_hidden[g] = nullptr;
+        grid_hidden[grid_index] = nullptr;
       }
     }
 
@@ -217,9 +221,9 @@ static void partialvis_update_grids(Depsgraph *depsgraph,
 
 static void partialvis_update_bmesh_verts(BMesh *bm,
                                           const Set<BMVert *, 0> &verts,
-                                          VisAction action,
-                                          VisArea area,
-                                          float planes[4][4],
+                                          const VisAction action,
+                                          const VisArea area,
+                                          const float planes[4][4],
                                           bool *any_changed,
                                           bool *any_visible)
 {
@@ -258,16 +262,16 @@ static void partialvis_update_bmesh_faces(const Set<BMFace *, 0> &faces)
 
 static void partialvis_update_bmesh(Object *ob,
                                     PBVH *pbvh,
-                                    VisAction action,
-                                    VisArea area,
-                                    float planes[4][4],
+                                    const VisAction action,
+                                    const VisArea area,
+                                    const float planes[4][4],
                                     const Span<PBVHNode *> nodes)
 {
   for (PBVHNode *node : nodes) {
-    BMesh *bm;
-    bool any_changed = false, any_visible = false;
+    bool any_changed = false;
+    bool any_visible = false;
 
-    bm = BKE_pbvh_get_bmesh(pbvh);
+    BMesh *bm = BKE_pbvh_get_bmesh(pbvh);
 
     SCULPT_undo_push_node(ob, node, SCULPT_UNDO_HIDDEN);
 
@@ -310,10 +314,9 @@ static void clip_planes_from_rect(bContext *C,
                                   float clip_planes[4][4],
                                   const rcti *rect)
 {
-  BoundBox bb;
-
   view3d_operator_needs_opengl(C);
   ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
+  BoundBox bb;
   ED_view3d_clipping_calc(&bb, clip_planes, vc.region, vc.obact, rect);
 }
 
@@ -321,10 +324,12 @@ static void clip_planes_from_rect(bContext *C,
  * inside the clip_planes volume. If mode is outside, get all nodes
  * that lie at least partially outside the volume. If showing all, get
  * all nodes. */
-static Vector<PBVHNode *> get_pbvh_nodes(PBVH *pbvh, float clip_planes[4][4], VisArea area)
+static Vector<PBVHNode *> get_pbvh_nodes(PBVH *pbvh,
+                                         const float clip_planes[4][4],
+                                         const VisArea area)
 {
   PBVHFrustumPlanes frustum{};
-  frustum.planes = clip_planes;
+  frustum.planes = const_cast<float(*)[4]>(clip_planes);
   frustum.num_planes = 4;
   return blender::bke::pbvh::search_gather(pbvh, [&](PBVHNode &node) {
     switch (area) {
@@ -346,24 +351,23 @@ static int hide_show_exec(bContext *C, wmOperator *op)
   ARegion *region = CTX_wm_region(C);
   Object *ob = CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  Mesh *me = static_cast<Mesh *>(ob->data);
-  PBVH *pbvh;
-  PBVHType pbvh_type;
-  float clip_planes[4][4];
-  rcti rect;
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
 
   /* Read operator properties. */
-  VisAction action = VisAction(RNA_enum_get(op->ptr, "action"));
-  VisArea area = VisArea(RNA_enum_get(op->ptr, "area"));
+  const VisAction action = VisAction(RNA_enum_get(op->ptr, "action"));
+  const VisArea area = VisArea(RNA_enum_get(op->ptr, "area"));
+
+  rcti rect;
   rect_from_props(&rect, op->ptr);
 
+  float clip_planes[4][4];
   clip_planes_from_rect(C, depsgraph, clip_planes, &rect);
 
-  pbvh = BKE_sculpt_object_pbvh_ensure(depsgraph, ob);
+  PBVH *pbvh = BKE_sculpt_object_pbvh_ensure(depsgraph, ob);
   BLI_assert(BKE_object_sculpt_pbvh_get(ob) == pbvh);
 
   Vector<PBVHNode *> nodes = get_pbvh_nodes(pbvh, clip_planes, area);
-  pbvh_type = BKE_pbvh_type(pbvh);
+  const PBVHType pbvh_type = BKE_pbvh_type(pbvh);
 
   negate_m4(clip_planes);
 
@@ -397,7 +401,7 @@ static int hide_show_exec(bContext *C, wmOperator *op)
   /* Ensure that edges and faces get hidden as well (not used by
    * sculpt but it looks wrong when entering editmode otherwise). */
   if (ELEM(pbvh_type, PBVH_FACES, PBVH_GRIDS)) {
-    BKE_pbvh_sync_visibility_from_verts(pbvh, me);
+    BKE_pbvh_sync_visibility_from_verts(pbvh, mesh);
   }
 
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
@@ -413,8 +417,7 @@ static int hide_show_exec(bContext *C, wmOperator *op)
 
 static int hide_show_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  VisArea area = VisArea(RNA_enum_get(op->ptr, "area"));
-
+  const VisArea area = VisArea(RNA_enum_get(op->ptr, "area"));
   if (!ELEM(area, VisArea::All, VisArea::Masked)) {
     return WM_gesture_box_invoke(C, op, event);
   }
