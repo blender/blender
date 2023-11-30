@@ -169,7 +169,7 @@ void BKE_libblock_relink_ex(Main *bmain, void *idv, void *old_idv, void *new_idv
  * does cleanup if `ID_REMAP_TYPE_CLEANUP` is specified as \a remap_type).
  */
 void BKE_libblock_relink_multiple(Main *bmain,
-                                  const blender::Span<ID *> &ids,
+                                  const blender::Span<ID *> ids,
                                   eIDRemapType remap_type,
                                   IDRemapper *id_remapper,
                                   int remap_flags);

@@ -860,10 +860,10 @@ static void id_swap(Main *bmain,
 
   /* Finalize remapping of internal references to self broken by swapping, if requested. */
   if (do_self_remap) {
-    blender::Array<ID *> ids{id_a};
-    BKE_libblock_relink_multiple(bmain, ids, ID_REMAP_TYPE_REMAP, remapper_id_a, self_remap_flags);
-    ids[0] = id_b;
-    BKE_libblock_relink_multiple(bmain, ids, ID_REMAP_TYPE_REMAP, remapper_id_b, self_remap_flags);
+    BKE_libblock_relink_multiple(
+        bmain, {id_a}, ID_REMAP_TYPE_REMAP, remapper_id_a, self_remap_flags);
+    BKE_libblock_relink_multiple(
+        bmain, {id_b}, ID_REMAP_TYPE_REMAP, remapper_id_b, self_remap_flags);
   }
 
   if (input_remapper_id_a == nullptr && remapper_id_a != nullptr) {

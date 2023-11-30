@@ -734,14 +734,14 @@ void BKE_libblock_unlink(Main *bmain,
 
 struct LibBlockRelinkMultipleUserData {
   Main *bmain;
-  const blender::Span<ID *> &ids;
+  blender::Span<ID *> ids;
 };
 
 static void libblock_relink_foreach_idpair_cb(ID *old_id, ID *new_id, void *user_data)
 {
   LibBlockRelinkMultipleUserData *data = static_cast<LibBlockRelinkMultipleUserData *>(user_data);
   Main *bmain = data->bmain;
-  const blender::Span<ID *> &ids = data->ids;
+  const blender::Span<ID *> ids = data->ids;
 
   BLI_assert(old_id != nullptr);
   BLI_assert((new_id == nullptr) || GS(old_id->name) == GS(new_id->name));
@@ -792,7 +792,7 @@ static void libblock_relink_foreach_idpair_cb(ID *old_id, ID *new_id, void *user
 }
 
 void BKE_libblock_relink_multiple(Main *bmain,
-                                  const blender::Span<ID *> &ids,
+                                  const blender::Span<ID *> ids,
                                   const eIDRemapType remap_type,
                                   IDRemapper *id_remapper,
                                   const int remap_flags)

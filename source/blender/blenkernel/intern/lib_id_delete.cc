@@ -303,7 +303,7 @@ static size_t id_delete(Main *bmain,
     }
 
     /* Since we removed IDs from Main, their own other IDs usages need to be removed 'manually'. */
-    blender::Vector<ID *> cleanup_ids = {};
+    blender::Vector<ID *> cleanup_ids;
     for (ID *id = static_cast<ID *>(tagged_deleted_ids.first); id;
          id = static_cast<ID *>(id->next)) {
       cleanup_ids.append(id);
