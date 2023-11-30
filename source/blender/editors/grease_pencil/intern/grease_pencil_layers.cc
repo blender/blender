@@ -197,6 +197,43 @@ static void GREASE_PENCIL_OT_layer_reorder(wmOperatorType *ot)
       ot->srna, "location", prop_layer_reorder_location, LAYER_REORDER_ABOVE, "Location", "");
 }
 
+static int grease_pencil_layer_active_exec(bContext *C, wmOperator *op)
+{
+  using namespace blender::bke::greasepencil;
+  Object *object = CTX_data_active_object(C);
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  int layer_index = RNA_int_get(op->ptr, "layer");
+
+  const Layer &layer = *grease_pencil.layers()[layer_index];
+
+  if (grease_pencil.is_layer_active(&layer)) {
+    return OPERATOR_CANCELLED;
+  }
+  grease_pencil.set_active_layer(&layer);
+
+  WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_SELECTED, &grease_pencil);
+
+  return OPERATOR_FINISHED;
+}
+
+static void GREASE_PENCIL_OT_layer_active(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Set Active Layer";
+  ot->idname = "GREASE_PENCIL_OT_layer_active";
+  ot->description = "Set the active Grease Pencil layer";
+
+  /* callbacks */
+  ot->exec = grease_pencil_layer_active_exec;
+  ot->poll = active_grease_pencil_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  PropertyRNA *prop = RNA_def_int(
+      ot->srna, "layer", 0, 0, INT_MAX, "Grease Pencil Layer", "", 0, INT_MAX);
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+}
+
 static int grease_pencil_layer_group_add_exec(bContext *C, wmOperator *op)
 {
   using namespace blender::bke::greasepencil;
@@ -252,6 +289,7 @@ void ED_operatortypes_grease_pencil_layers()
   WM_operatortype_append(GREASE_PENCIL_OT_layer_add);
   WM_operatortype_append(GREASE_PENCIL_OT_layer_remove);
   WM_operatortype_append(GREASE_PENCIL_OT_layer_reorder);
+  WM_operatortype_append(GREASE_PENCIL_OT_layer_active);
 
   WM_operatortype_append(GREASE_PENCIL_OT_layer_group_add);
 }

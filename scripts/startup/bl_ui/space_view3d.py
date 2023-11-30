@@ -2166,7 +2166,9 @@ class VIEW3D_MT_paint_grease_pencil(Menu):
     bl_label = "Paint"
 
     def draw(self, _context):
-        pass
+        layout = self.layout
+
+        layout.menu("GREASE_PENCIL_MT_layer_active", text="Active Layer")
 
 
 class VIEW3D_MT_paint_gpencil(Menu):
@@ -5808,6 +5810,10 @@ class VIEW3D_MT_edit_greasepencil(Menu):
         layout = self.layout
         layout.menu("VIEW3D_MT_transform")
         layout.menu("VIEW3D_MT_mirror")
+
+        layout.separator()
+
+        layout.menu("GREASE_PENCIL_MT_layer_active", text="Active Layer")
 
         layout.separator()
 
