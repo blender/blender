@@ -194,7 +194,8 @@ int insert_key_action(Main *bmain,
                       eInsertKeyFlags insert_key_flag,
                       eBezTriple_KeyframeType key_type);
 
-/** Insert keys to the ID of the given PointerRNA for the given RNA paths. Tries to create an
+/**
+ * Insert keys to the ID of the given PointerRNA for the given RNA paths. Tries to create an
  * action if none exists yet.
  * \param scene_frame is expected to be not NLA mapped as that happens within the function.
  */

@@ -306,14 +306,16 @@ static bool reuse_bmain_data_remapper_is_id_remapped(IDRemapper *remapper, ID *i
   return false;
 }
 
-/** Does a complete replacement of data in `new_bmain` by data from `old_bmain. Original new data
+/**
+ * Does a complete replacement of data in `new_bmain` by data from `old_bmain. Original new data
  * are moved to the `old_bmain`, and will be freed together with it.
  *
  * WARNING: Currently only expects to work on local data, won't work properly if some of the IDs of
  * given type are linked.
  *
  * NOTE: There is no support at all for potential dependencies of the IDs moved around. This is not
- * expected to be necessary for the current use cases (UI-related IDs). */
+ * expected to be necessary for the current use cases (UI-related IDs).
+ */
 static void swap_old_bmain_data_for_blendfile(ReuseOldBMainData *reuse_data, const short id_code)
 {
   Main *new_bmain = reuse_data->new_bmain;
@@ -382,9 +384,11 @@ static void swap_old_bmain_data_for_blendfile(ReuseOldBMainData *reuse_data, con
   FOREACH_MAIN_LISTBASE_ID_END;
 }
 
-/** Similar to #swap_old_bmain_data_for_blendfile, but with special handling for WM ID. Tightly
+/**
+ * Similar to #swap_old_bmain_data_for_blendfile, but with special handling for WM ID. Tightly
  * related to further WM post-processing from calling WM code (see #WM_file_read and
- * #wm_homefile_read_ex). */
+ * #wm_homefile_read_ex).
+ */
 static void swap_wm_data_for_blendfile(ReuseOldBMainData *reuse_data, const bool load_ui)
 {
   Main *old_bmain = reuse_data->old_bmain;

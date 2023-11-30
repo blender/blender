@@ -18,16 +18,19 @@
 extern "C" {
 #endif
 
-/** Reporting Information and Errors.
+/**
+ * Reporting Information and Errors.
  *
  * These functions are thread-safe, unless otherwise specified.
  *
  * These functions also accept nullptr in case no error reporting is needed. The message are only
- * printed to the console then. */
+ * printed to the console then.
+ */
 
 /* Report structures are stored in DNA. */
 
-/** Initialize a #ReportList struct.
+/**
+ * Initialize a #ReportList struct.
  *
  * \note: Not thread-safe, should only be called from the 'owner' thread of the report list.
  */

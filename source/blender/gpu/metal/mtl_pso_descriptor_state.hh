@@ -13,8 +13,10 @@
 
 namespace blender::gpu {
 
-/** Vertex attribute and buffer descriptor wrappers
- * for use in PSO construction and caching. */
+/**
+ * Vertex attribute and buffer descriptor wrappers
+ * for use in PSO construction and caching.
+ */
 struct MTLVertexAttributeDescriptorPSO {
   MTLVertexFormat format;
   int offset;

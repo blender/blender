@@ -146,7 +146,8 @@ int64_t ED_keylist_array_len(const AnimKeylist *keylist);
 
 /* Key-data Generation --------------- */
 
-/** Add the keyframes of the F-Curve to the keylist.
+/**
+ * Add the keyframes of the F-Curve to the keylist.
  * \param adt can be a nullptr.
  * \param range only adds keys in the given range to the keylist.
  */

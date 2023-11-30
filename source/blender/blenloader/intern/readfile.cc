@@ -3544,8 +3544,10 @@ static void read_undo_remap_noundo_data(FileData *fd)
   FOREACH_MAIN_ID_END;
 }
 
-/** Contains sanity/debug checks to be performed at the very end of the reading process (i.e. after
- * data, liblink, linked data, etc. has been done). */
+/**
+ * Contains sanity/debug checks to be performed at the very end of the reading process (i.e. after
+ * data, liblink, linked data, etc. has been done).
+ */
 static void blo_read_file_checks(Main *bmain)
 {
 #ifndef NDEBUG
