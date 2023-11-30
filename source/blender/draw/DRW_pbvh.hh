@@ -64,7 +64,6 @@ struct PBVH_GPU_Args {
 
   blender::Span<MLoopTri> mlooptri;
   blender::Span<int> looptri_faces;
-  PBVHNode *node;
 
   /* BMesh. */
   const blender::Set<BMFace *, 0> *bm_faces;

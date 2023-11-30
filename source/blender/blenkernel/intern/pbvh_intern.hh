@@ -282,4 +282,4 @@ void pbvh_bmesh_normals_update(blender::Span<PBVHNode *> nodes);
 
 void pbvh_node_pixels_free(PBVHNode *node);
 void pbvh_pixels_free(PBVH *pbvh);
-void pbvh_free_draw_buffers(PBVH *pbvh, PBVHNode *node);
+void pbvh_free_draw_buffers(PBVH &pbvh, PBVHNode *node);
