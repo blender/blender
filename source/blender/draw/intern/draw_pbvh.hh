@@ -6,10 +6,6 @@
 
 #include "DNA_customdata_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct PBVHBatches;
 
 enum {
@@ -19,8 +15,4 @@ enum {
   CD_PBVH_MASK_TYPE = CD_NUMTYPES + 3
 };
 
-int drw_pbvh_material_index_get(struct PBVHBatches *batches);
-
-#ifdef __cplusplus
-}
-#endif
+int drw_pbvh_material_index_get(PBVHBatches *batches);

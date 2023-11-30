@@ -10,7 +10,7 @@
 
 #include "draw_attributes.hh"
 #include "draw_manager.h"
-#include "draw_pbvh.h"
+#include "draw_pbvh.hh"
 
 #include "BKE_curve.hh"
 #include "BKE_duplilist.h"

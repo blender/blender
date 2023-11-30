@@ -9,7 +9,7 @@
 #include "draw_sculpt.hh"
 
 #include "draw_attributes.hh"
-#include "draw_pbvh.h"
+#include "draw_pbvh.hh"
 
 #include "BKE_mesh_types.hh"
 #include "BKE_paint.hh"

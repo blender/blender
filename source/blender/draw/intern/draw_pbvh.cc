@@ -52,7 +52,7 @@
 
 #include "attribute_convert.hh"
 #include "bmesh.h"
-#include "draw_pbvh.h"
+#include "draw_pbvh.hh"
 #include "gpu_private.h"
 
 #define MAX_PBVH_BATCH_KEY 512

@@ -250,7 +250,7 @@ set(SRC
   intern/draw_manager_testing.h
   intern/draw_manager_text.h
   intern/draw_pass.hh
-  intern/draw_pbvh.h
+  intern/draw_pbvh.hh
   intern/draw_resource.hh
   intern/draw_sculpt.hh
   intern/draw_shader.h
