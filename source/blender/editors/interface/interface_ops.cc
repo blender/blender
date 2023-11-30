@@ -31,7 +31,7 @@
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_override.hh"
-#include "BKE_lib_remap.h"
+#include "BKE_lib_remap.hh"
 #include "BKE_material.h"
 #include "BKE_node.hh"
 #include "BKE_report.h"

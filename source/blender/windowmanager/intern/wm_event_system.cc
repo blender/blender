@@ -37,7 +37,7 @@
 #include "BKE_customdata.hh"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
-#include "BKE_lib_remap.h"
+#include "BKE_lib_remap.hh"
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"

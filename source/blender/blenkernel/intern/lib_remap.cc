@@ -22,7 +22,7 @@
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
-#include "BKE_lib_remap.h"
+#include "BKE_lib_remap.hh"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mball.h"
@@ -35,7 +35,7 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
 
-#include "lib_intern.h" /* own include */
+#include "lib_intern.hh" /* own include */
 
 static CLG_LogRef LOG = {"bke.lib_remap"};
 

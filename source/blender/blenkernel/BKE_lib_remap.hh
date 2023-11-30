@@ -23,13 +23,10 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_utildefines.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct ID;
 struct IDRemapper;
 struct LinkNode;
+struct Main;
 
 /* BKE_libblock_free, delete are declared in BKE_lib_id.h for convenience. */
 
@@ -120,13 +117,9 @@ typedef enum eIDRemapType {
  *
  * \note Is preferred over BKE_libblock_remap_locked due to performance.
  */
-void BKE_libblock_remap_multiple_locked(struct Main *bmain,
-                                        struct IDRemapper *mappings,
-                                        const int remap_flags);
+void BKE_libblock_remap_multiple_locked(Main *bmain, IDRemapper *mappings, const int remap_flags);
 
-void BKE_libblock_remap_multiple(struct Main *bmain,
-                                 struct IDRemapper *mappings,
-                                 const int remap_flags);
+void BKE_libblock_remap_multiple(Main *bmain, IDRemapper *mappings, const int remap_flags);
 
 /**
  * Bare raw remapping of IDs, with no other processing than actually updating the ID pointers.
@@ -137,9 +130,7 @@ void BKE_libblock_remap_multiple(struct Main *bmain,
  * case e.g. in read-file process.
  *
  * WARNING: This call will likely leave the given BMain in invalid state in many aspects. */
-void BKE_libblock_remap_multiple_raw(struct Main *bmain,
-                                     struct IDRemapper *mappings,
-                                     const int remap_flags);
+void BKE_libblock_remap_multiple_raw(Main *bmain, IDRemapper *mappings, const int remap_flags);
 /**
  * Replace all references in given Main to \a old_id by \a new_id
  * (if \a new_id is NULL, it unlinks \a old_id).
@@ -147,9 +138,9 @@ void BKE_libblock_remap_multiple_raw(struct Main *bmain,
  * \note Requiring new_id to be non-null, this *may* not be the case ultimately,
  * but makes things simpler for now.
  */
-void BKE_libblock_remap_locked(struct Main *bmain, void *old_idv, void *new_idv, int remap_flags)
+void BKE_libblock_remap_locked(Main *bmain, void *old_idv, void *new_idv, int remap_flags)
     ATTR_NONNULL(1, 2);
-void BKE_libblock_remap(struct Main *bmain, void *old_idv, void *new_idv, int remap_flags)
+void BKE_libblock_remap(Main *bmain, void *old_idv, void *new_idv, int remap_flags)
     ATTR_NONNULL(1, 2);
 
 /**
@@ -159,10 +150,8 @@ void BKE_libblock_remap(struct Main *bmain, void *old_idv, void *new_idv, int re
  * \param do_flag_never_null: If true, all IDs using \a idv in a 'non-NULL' way are flagged by
  * #LIB_TAG_DOIT flag (quite obviously, 'non-NULL' usages can never be unlinked by this function).
  */
-void BKE_libblock_unlink(struct Main *bmain,
-                         void *idv,
-                         bool do_flag_never_null,
-                         bool do_skip_indirect) ATTR_NONNULL();
+void BKE_libblock_unlink(Main *bmain, void *idv, bool do_flag_never_null, bool do_skip_indirect)
+    ATTR_NONNULL();
 
 /**
  * Similar to libblock_remap, but only affects IDs used by given \a idv ID.
@@ -173,17 +162,14 @@ void BKE_libblock_unlink(struct Main *bmain,
  * \param bmain: May be NULL, in which case there won't be depsgraph updates nor post-processing on
  * some ID types (like collections or objects) to ensure their runtime data is valid.
  */
-void BKE_libblock_relink_ex(
-    struct Main *bmain, void *idv, void *old_idv, void *new_idv, int remap_flags) ATTR_NONNULL(2);
+void BKE_libblock_relink_ex(Main *bmain, void *idv, void *old_idv, void *new_idv, int remap_flags)
+    ATTR_NONNULL(2);
 /**
  * Same as #BKE_libblock_relink_ex, but applies all rules defined in \a id_remapper to \a ids (or
  * does cleanup if `ID_REMAP_TYPE_CLEANUP` is specified as \a remap_type).
  */
-void BKE_libblock_relink_multiple(struct Main *bmain,
-                                  struct LinkNode *ids,
-                                  eIDRemapType remap_type,
-                                  struct IDRemapper *id_remapper,
-                                  int remap_flags);
+void BKE_libblock_relink_multiple(
+    Main *bmain, LinkNode *ids, eIDRemapType remap_type, IDRemapper *id_remapper, int remap_flags);
 
 /**
  * Remaps ID usages of given ID to their `id->newid` pointer if not None, and proceeds recursively
@@ -194,18 +180,16 @@ void BKE_libblock_relink_multiple(struct Main *bmain,
  * Very specific usage, not sure we'll keep it on the long run,
  * currently only used in Object/Collection duplication code.
  */
-void BKE_libblock_relink_to_newid(struct Main *bmain, struct ID *id, int remap_flag)
-    ATTR_NONNULL();
+void BKE_libblock_relink_to_newid(Main *bmain, ID *id, int remap_flag) ATTR_NONNULL();
 
 typedef void (*BKE_library_free_notifier_reference_cb)(const void *);
-typedef void (*BKE_library_remap_editor_id_reference_cb)(const struct IDRemapper *mappings);
+typedef void (*BKE_library_remap_editor_id_reference_cb)(const IDRemapper *mappings);
 
 void BKE_library_callback_free_notifier_reference_set(BKE_library_free_notifier_reference_cb func);
 void BKE_library_callback_remap_editor_id_reference_set(
     BKE_library_remap_editor_id_reference_cb func);
 
 /* IDRemapper */
-struct IDRemapper;
 typedef enum IDRemapperApplyResult {
   /** No remapping rules available for the source. */
   ID_REMAP_RESULT_SOURCE_UNAVAILABLE,
@@ -249,33 +233,31 @@ typedef enum IDRemapperApplyOptions {
 } IDRemapperApplyOptions;
 ENUM_OPERATORS(IDRemapperApplyOptions, ID_REMAP_APPLY_UNMAP_WHEN_REMAPPING_TO_SELF)
 
-typedef void (*IDRemapperIterFunction)(struct ID *old_id, struct ID *new_id, void *user_data);
+typedef void (*IDRemapperIterFunction)(ID *old_id, ID *new_id, void *user_data);
 
 /**
  * Create a new ID Remapper.
  *
  * An ID remapper stores multiple remapping rules.
  */
-struct IDRemapper *BKE_id_remapper_create(void);
+IDRemapper *BKE_id_remapper_create(void);
 
-void BKE_id_remapper_clear(struct IDRemapper *id_remapper);
-bool BKE_id_remapper_is_empty(const struct IDRemapper *id_remapper);
+void BKE_id_remapper_clear(IDRemapper *id_remapper);
+bool BKE_id_remapper_is_empty(const IDRemapper *id_remapper);
 /** Free the given ID Remapper. */
-void BKE_id_remapper_free(struct IDRemapper *id_remapper);
+void BKE_id_remapper_free(IDRemapper *id_remapper);
 /** Add a new remapping. Does not replace an existing mapping for `old_id`, if any. */
-void BKE_id_remapper_add(struct IDRemapper *id_remapper, struct ID *old_id, struct ID *new_id);
+void BKE_id_remapper_add(IDRemapper *id_remapper, ID *old_id, ID *new_id);
 /** Add a new remapping, replacing a potential already existing mapping of `old_id`. */
-void BKE_id_remapper_add_overwrite(struct IDRemapper *id_remapper,
-                                   struct ID *old_id,
-                                   struct ID *new_id);
+void BKE_id_remapper_add_overwrite(IDRemapper *id_remapper, ID *old_id, ID *new_id);
 
 /**
  * Apply a remapping.
  *
  * Update the id pointer stored in the given r_id_ptr if a remapping rule exists.
  */
-IDRemapperApplyResult BKE_id_remapper_apply(const struct IDRemapper *id_remapper,
-                                            struct ID **r_id_ptr,
+IDRemapperApplyResult BKE_id_remapper_apply(const IDRemapper *id_remapper,
+                                            ID **r_id_ptr,
                                             IDRemapperApplyOptions options);
 /**
  * Apply a remapping.
@@ -286,28 +268,24 @@ IDRemapperApplyResult BKE_id_remapper_apply(const struct IDRemapper *id_remapper
  * \param id_self: required for ID_REMAP_APPLY_UNMAP_WHEN_REMAPPING_TO_SELF.
  *     When remapping to id_self it will then be remapped to NULL.
  */
-IDRemapperApplyResult BKE_id_remapper_apply_ex(const struct IDRemapper *id_remapper,
-                                               struct ID **r_id_ptr,
+IDRemapperApplyResult BKE_id_remapper_apply_ex(const IDRemapper *id_remapper,
+                                               ID **r_id_ptr,
                                                IDRemapperApplyOptions options,
-                                               struct ID *id_self);
-bool BKE_id_remapper_has_mapping_for(const struct IDRemapper *id_remapper, uint64_t type_filter);
+                                               ID *id_self);
+bool BKE_id_remapper_has_mapping_for(const IDRemapper *id_remapper, uint64_t type_filter);
 
 /**
  * Determine the mapping result, without applying the mapping.
  */
-IDRemapperApplyResult BKE_id_remapper_get_mapping_result(const struct IDRemapper *id_remapper,
-                                                         struct ID *id,
+IDRemapperApplyResult BKE_id_remapper_get_mapping_result(const IDRemapper *id_remapper,
+                                                         ID *id,
                                                          IDRemapperApplyOptions options,
-                                                         const struct ID *id_self);
-void BKE_id_remapper_iter(const struct IDRemapper *id_remapper,
+                                                         const ID *id_self);
+void BKE_id_remapper_iter(const IDRemapper *id_remapper,
                           IDRemapperIterFunction func,
                           void *user_data);
 
 /** Returns a readable string for the given result. Can be used for debugging purposes. */
 const char *BKE_id_remapper_result_string(const IDRemapperApplyResult result);
 /** Prints out the rules inside the given id_remapper. Can be used for debugging purposes. */
-void BKE_id_remapper_print(const struct IDRemapper *id_remapper);
-
-#ifdef __cplusplus
-}
-#endif
+void BKE_id_remapper_print(const IDRemapper *id_remapper);

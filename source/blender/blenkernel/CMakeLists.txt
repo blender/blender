@@ -416,7 +416,7 @@ set(SRC
   BKE_lib_id.h
   BKE_lib_override.hh
   BKE_lib_query.h
-  BKE_lib_remap.h
+  BKE_lib_remap.hh
   BKE_library.h
   BKE_light.h
   BKE_light_linking.h
@@ -522,7 +522,7 @@ set(SRC
   intern/CCGSubSurf_intern.h
   intern/attribute_access_intern.hh
   intern/data_transfer_intern.h
-  intern/lib_intern.h
+  intern/lib_intern.hh
   intern/multires_inline.hh
   intern/multires_reshape.hh
   intern/multires_unsubdivide.hh

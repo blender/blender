@@ -20,7 +20,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_lib_query.h"
-#include "BKE_lib_remap.h"
+#include "BKE_lib_remap.hh"
 #include "BKE_outliner_treehash.hh"
 #include "BKE_screen.hh"
 

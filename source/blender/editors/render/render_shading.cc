@@ -45,7 +45,7 @@
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
-#include "BKE_lib_remap.h"
+#include "BKE_lib_remap.hh"
 #include "BKE_lightprobe.h"
 #include "BKE_linestyle.h"
 #include "BKE_main.h"

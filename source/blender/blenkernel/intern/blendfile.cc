@@ -46,7 +46,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_lib_override.hh"
 #include "BKE_lib_query.h"
-#include "BKE_lib_remap.h"
+#include "BKE_lib_remap.hh"
 #include "BKE_main.h"
 #include "BKE_main_idmap.hh"
 #include "BKE_main_namemap.hh"
