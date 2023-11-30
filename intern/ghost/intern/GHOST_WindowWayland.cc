@@ -1170,7 +1170,7 @@ static void libdecor_frame_handle_configure(libdecor_frame *frame,
 #  ifdef USE_EVENT_BACKGROUND_THREAD
   std::lock_guard lock_frame_guard{static_cast<GWL_Window *>(data)->frame_pending_mutex};
   const bool is_main_thread = [data] {
-    GWL_Window *win = static_cast<GWL_Window *>(data);
+    const GWL_Window *win = static_cast<GWL_Window *>(data);
     const GHOST_SystemWayland *system = win->ghost_system;
     return system->main_thread_id == std::this_thread::get_id();
   }();

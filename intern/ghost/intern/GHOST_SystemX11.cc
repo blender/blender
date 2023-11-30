@@ -1761,7 +1761,8 @@ bool GHOST_SystemX11::generateWindowExposeEvents()
   bool anyProcessed = false;
 
   for (; w_start != w_end; ++w_start) {
-    GHOST_Event *g_event = new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowUpdate, *w_start);
+    const GHOST_Event *g_event = new GHOST_Event(
+        getMilliSeconds(), GHOST_kEventWindowUpdate, *w_start);
 
     (*w_start)->validate();
 
