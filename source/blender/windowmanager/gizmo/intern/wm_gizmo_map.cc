@@ -27,7 +27,7 @@
 #include "GPU_framebuffer.h"
 #include "GPU_matrix.h"
 #include "GPU_platform.h"
-#include "GPU_select.h"
+#include "GPU_select.hh"
 #include "GPU_state.h"
 #include "GPU_viewport.h"
 

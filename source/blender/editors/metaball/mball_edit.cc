@@ -35,7 +35,7 @@
 
 #include "DEG_depsgraph.hh"
 
-#include "GPU_select.h"
+#include "GPU_select.hh"
 
 #include "ED_mball.hh"
 #include "ED_object.hh"

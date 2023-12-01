@@ -42,7 +42,7 @@
 
 #include "DEG_depsgraph.hh"
 
-#include "GPU_select.h"
+#include "GPU_select.hh"
 
 #include "ANIM_bone_collections.h"
 #include "ANIM_bonecolor.hh"

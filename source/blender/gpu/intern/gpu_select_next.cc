@@ -12,7 +12,7 @@
 #include "BLI_rect.h"
 #include "BLI_span.hh"
 
-#include "GPU_select.h"
+#include "GPU_select.hh"
 
 #include "gpu_select_private.h"
 

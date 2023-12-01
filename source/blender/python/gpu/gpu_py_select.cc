@@ -20,7 +20,7 @@
 
 #include "../generic/py_capi_utils.h"
 
-#include "GPU_select.h"
+#include "GPU_select.hh"
 
 #include "gpu_py.h"
 #include "gpu_py_select.h" /* Own include. */

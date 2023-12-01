@@ -13,7 +13,7 @@
 
 #include "DNA_userdef_types.h"
 
-#include "GPU_select.h"
+#include "GPU_select.hh"
 
 #include "BLI_rect.h"
 

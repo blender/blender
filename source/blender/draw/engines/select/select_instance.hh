@@ -12,7 +12,7 @@
 
 #include "DRW_gpu_wrapper.hh"
 
-#include "GPU_select.h"
+#include "GPU_select.hh"
 
 #include "../intern/gpu_select_private.h"
 

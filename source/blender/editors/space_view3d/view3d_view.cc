@@ -33,7 +33,7 @@
 #include "UI_resources.hh"
 
 #include "GPU_matrix.h"
-#include "GPU_select.h"
+#include "GPU_select.hh"
 #include "GPU_state.h"
 
 #include "WM_api.hh"

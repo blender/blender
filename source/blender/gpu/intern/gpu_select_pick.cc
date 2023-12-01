@@ -14,7 +14,7 @@
 
 #include "GPU_debug.h"
 #include "GPU_framebuffer.h"
-#include "GPU_select.h"
+#include "GPU_select.hh"
 #include "GPU_state.h"
 
 #include "MEM_guardedalloc.h"
