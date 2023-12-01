@@ -1213,8 +1213,7 @@ struct DRWSculptCallbackData {
   bool fast_mode; /* Set by draw manager. Do not init. */
 
   int debug_node_nr;
-  PBVHAttrReq *attrs;
-  int attrs_num;
+  blender::Span<PBVHAttrReq> attrs;
 };
 
 #define SCULPT_DEBUG_COLOR(id) (sculpt_debug_colors[id % 9])
@@ -1239,16 +1238,13 @@ static void sculpt_draw_cb(DRWSculptCallbackData *scd,
     return;
   }
 
-  int primcount;
   GPUBatch *geom;
 
   if (!scd->use_wire) {
-    geom = pbvh::tris_get(
-        batches, scd->attrs, scd->attrs_num, pbvh_draw_args, &primcount, scd->fast_mode);
+    geom = pbvh::tris_get(batches, scd->attrs, pbvh_draw_args, scd->fast_mode);
   }
   else {
-    geom = pbvh::lines_get(
-        batches, scd->attrs, scd->attrs_num, pbvh_draw_args, &primcount, scd->fast_mode);
+    geom = pbvh::lines_get(batches, scd->attrs, pbvh_draw_args, scd->fast_mode);
   }
 
   short index = 0;
@@ -1458,8 +1454,7 @@ void DRW_shgroup_call_sculpt(DRWShadingGroup *shgroup,
     }
   }
 
-  scd.attrs = attrs;
-  scd.attrs_num = attrs_num;
+  scd.attrs = {attrs, attrs_num};
 
   drw_sculpt_generate_calls(&scd);
 }
@@ -1529,8 +1524,7 @@ void DRW_shgroup_call_sculpt_with_materials(DRWShadingGroup **shgroups,
   scd.use_wire = false;
   scd.use_mats = true;
   scd.use_mask = false;
-  scd.attrs = attrs.data();
-  scd.attrs_num = attrs_num;
+  scd.attrs = attrs;
 
   drw_sculpt_generate_calls(&scd);
 }

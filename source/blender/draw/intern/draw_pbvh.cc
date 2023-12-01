@@ -391,19 +391,18 @@ struct PBVHBatches {
     GPU_INDEXBUF_DISCARD_SAFE(lines_index_coarse);
   }
 
-  std::string build_key(const PBVHAttrReq *attrs, int attrs_num, bool do_coarse_grids)
+  std::string build_key(const Span<PBVHAttrReq> attrs, bool do_coarse_grids)
   {
     PBVHBatch batch;
     Vector<PBVHVbo> vbos;
 
-    for (int i : IndexRange(attrs_num)) {
-      const PBVHAttrReq *attr = attrs + i;
-
-      if (!pbvh_attr_supported(attr->type, attr->domain)) {
+    for (const int i : attrs.index_range()) {
+      const PBVHAttrReq &attr = attrs[i];
+      if (!pbvh_attr_supported(attr.type, attr.domain)) {
         continue;
       }
 
-      PBVHVbo vbo(attr->domain, attr->type, std::string(attr->name));
+      PBVHVbo vbo(attr.domain, attr.type, std::string(attr.name));
       vbo.build_key();
 
       vbos.append(vbo);
@@ -447,21 +446,20 @@ struct PBVHBatches {
     return nullptr;
   }
 
-  bool has_batch(const PBVHAttrReq *attrs, int attrs_num, bool do_coarse_grids)
+  bool has_batch(const Span<PBVHAttrReq> attrs, bool do_coarse_grids)
   {
-    return batches.contains(build_key(attrs, attrs_num, do_coarse_grids));
+    return batches.contains(build_key(attrs, do_coarse_grids));
   }
 
-  PBVHBatch &ensure_batch(const PBVHAttrReq *attrs,
-                          int attrs_num,
+  PBVHBatch &ensure_batch(const Span<PBVHAttrReq> attrs,
                           const PBVH_GPU_Args &args,
                           bool do_coarse_grids)
   {
-    if (!has_batch(attrs, attrs_num, do_coarse_grids)) {
-      create_batch(attrs, attrs_num, args, do_coarse_grids);
+    if (!has_batch(attrs, do_coarse_grids)) {
+      create_batch(attrs, args, do_coarse_grids);
     }
 
-    return batches.lookup(build_key(attrs, attrs_num, do_coarse_grids));
+    return batches.lookup(build_key(attrs, do_coarse_grids));
   }
 
   void fill_vbo_normal_faces(const PBVH_GPU_Args &args, GPUVertBuf &vert_buf)
@@ -1332,10 +1330,7 @@ struct PBVHBatches {
     }
   }
 
-  void create_batch(const PBVHAttrReq *attrs,
-                    int attrs_num,
-                    const PBVH_GPU_Args &args,
-                    bool do_coarse_grids)
+  void create_batch(const Span<PBVHAttrReq> attrs, const PBVH_GPU_Args &args, bool do_coarse_grids)
   {
     check_index_buffers(args);
 
@@ -1354,18 +1349,16 @@ struct PBVHBatches {
       batch.lines_count = do_coarse_grids ? lines_count_coarse : lines_count;
     }
 
-    for (int i : IndexRange(attrs_num)) {
-      const PBVHAttrReq *attr = attrs + i;
-
-      if (!pbvh_attr_supported(attr->type, attr->domain)) {
+    for (const PBVHAttrReq &attr : attrs) {
+      if (!pbvh_attr_supported(attr.type, attr.domain)) {
         continue;
       }
 
-      if (!has_vbo(attr->domain, int(attr->type), attr->name)) {
-        create_vbo(attr->domain, uint32_t(attr->type), attr->name, args);
+      if (!has_vbo(attr.domain, int(attr.type), attr.name)) {
+        create_vbo(attr.domain, uint32_t(attr.type), attr.name, args);
       }
 
-      PBVHVbo *vbo = get_vbo(attr->domain, uint32_t(attr->type), attr->name);
+      PBVHVbo *vbo = get_vbo(attr.domain, uint32_t(attr.type), attr.name);
       int vbo_i = get_vbo_index(vbo);
 
       batch.vbos.append(vbo_i);
@@ -1402,33 +1395,25 @@ void node_free(PBVHBatches *batches)
 }
 
 GPUBatch *tris_get(PBVHBatches *batches,
-                   const PBVHAttrReq *attrs,
-                   int attrs_num,
+                   const Span<PBVHAttrReq> attrs,
                    const PBVH_GPU_Args &args,
-                   int *r_prim_count,
                    bool do_coarse_grids)
 {
   do_coarse_grids &= args.pbvh_type == PBVH_GRIDS;
 
-  PBVHBatch &batch = batches->ensure_batch(attrs, attrs_num, args, do_coarse_grids);
-
-  *r_prim_count = batch.tris_count;
+  PBVHBatch &batch = batches->ensure_batch(attrs, args, do_coarse_grids);
 
   return batch.tris;
 }
 
 GPUBatch *lines_get(PBVHBatches *batches,
-                    const PBVHAttrReq *attrs,
-                    int attrs_num,
+                    const Span<PBVHAttrReq> attrs,
                     const PBVH_GPU_Args &args,
-                    int *r_prim_count,
                     bool do_coarse_grids)
 {
   do_coarse_grids &= args.pbvh_type == PBVH_GRIDS;
 
-  PBVHBatch &batch = batches->ensure_batch(attrs, attrs_num, args, do_coarse_grids);
-
-  *r_prim_count = batch.lines_count;
+  PBVHBatch &batch = batches->ensure_batch(attrs, args, do_coarse_grids);
 
   return batch.lines;
 }
