@@ -250,45 +250,51 @@ static int partition_indices_grids(blender::MutableSpan<int> prim_indices,
 }
 
 /* Returns the index of the first element on the right of the partition */
-static int partition_indices_material(PBVH *pbvh,
-                                      const Span<int> looptri_faces,
-                                      const int *material_indices,
-                                      const bool *sharp_faces,
-                                      int lo,
-                                      int hi)
+static int partition_indices_material_faces(MutableSpan<int> indices,
+                                            const Span<int> looptri_faces,
+                                            const int *material_indices,
+                                            const bool *sharp_faces,
+                                            const int lo,
+                                            const int hi)
 {
-  const Span<DMFlagMat> flagmats = pbvh->subdiv_ccg->grid_flag_mats;
-  MutableSpan<int> indices = pbvh->prim_indices;
   int i = lo, j = hi;
-
   for (;;) {
-    if (!looptri_faces.is_empty()) {
-      const int first = looptri_faces[pbvh->prim_indices[lo]];
-      for (; face_materials_match(material_indices, sharp_faces, first, looptri_faces[indices[i]]);
-           i++) {
-        /* pass */
-      }
-      for (;
-           !face_materials_match(material_indices, sharp_faces, first, looptri_faces[indices[j]]);
-           j--) {
-        /* pass */
-      }
+    const int first = looptri_faces[indices[lo]];
+    for (; face_materials_match(material_indices, sharp_faces, first, looptri_faces[indices[i]]);
+         i++) {
+      /* pass */
     }
-    else {
-      const DMFlagMat *first = &flagmats[pbvh->prim_indices[lo]];
-      for (; grid_materials_match(first, &flagmats[indices[i]]); i++) {
-        /* pass */
-      }
-      for (; !grid_materials_match(first, &flagmats[indices[j]]); j--) {
-        /* pass */
-      }
+    for (; !face_materials_match(material_indices, sharp_faces, first, looptri_faces[indices[j]]);
+         j--) {
+      /* pass */
     }
-
     if (!(i < j)) {
       return i;
     }
+    std::swap(indices[i], indices[j]);
+    i++;
+  }
+}
 
-    std::swap(pbvh->prim_indices[i], pbvh->prim_indices[j]);
+/* Returns the index of the first element on the right of the partition */
+static int partition_indices_material_grids(MutableSpan<int> indices,
+                                            const Span<DMFlagMat> flagmats,
+                                            const int lo,
+                                            const int hi)
+{
+  int i = lo, j = hi;
+  for (;;) {
+    const DMFlagMat *first = &flagmats[indices[lo]];
+    for (; grid_materials_match(first, &flagmats[indices[i]]); i++) {
+      /* pass */
+    }
+    for (; !grid_materials_match(first, &flagmats[indices[j]]); j--) {
+      /* pass */
+    }
+    if (!(i < j)) {
+      return i;
+    }
+    std::swap(indices[i], indices[j]);
     i++;
   }
 }
@@ -642,8 +648,18 @@ static void build_sub(PBVH *pbvh,
   }
   else {
     /* Partition primitives by material */
-    end = partition_indices_material(
-        pbvh, looptri_faces, material_indices, sharp_faces, offset, offset + count - 1);
+    if (pbvh->header.type == PBVH_FACES) {
+      end = partition_indices_material_faces(pbvh->prim_indices,
+                                             looptri_faces,
+                                             material_indices,
+                                             sharp_faces,
+                                             offset,
+                                             offset + count - 1);
+    }
+    else {
+      end = partition_indices_material_grids(
+          pbvh->prim_indices, pbvh->subdiv_ccg->grid_flag_mats, offset, offset + count - 1);
+    }
   }
 
   /* Build children */
