@@ -1140,7 +1140,7 @@ static int grease_pencil_set_active_material_exec(bContext *C, wmOperator * /*op
     }
     bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
 
-    const blender::VArray<int> materials = *curves.attributes().lookup_or_default<int>(
+    const VArray<int> materials = *curves.attributes().lookup_or_default<int>(
         "material_index", ATTR_DOMAIN_CURVE, 0);
     object->actcol = materials[strokes.first()] + 1;
     break;
@@ -1507,7 +1507,7 @@ static int grease_pencil_set_material_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-void GREASE_PENCIL_OT_set_material(wmOperatorType *ot)
+static void GREASE_PENCIL_OT_set_material(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Set Active Material";
