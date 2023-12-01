@@ -387,8 +387,8 @@ void DRW_shgroup_add_material_resources(DRWShadingGroup *grp, struct GPUMaterial
 typedef bool(DRWCallVisibilityFn)(bool vis_in, void *user_data);
 
 void DRW_shgroup_call_ex(DRWShadingGroup *shgroup,
-                         Object *ob,
-                         float (*obmat)[4],
+                         const Object *ob,
+                         const float (*obmat)[4],
                          struct GPUBatch *geom,
                          bool bypass_culling,
                          void *user_data);
@@ -417,12 +417,12 @@ void DRW_shgroup_call_ex(DRWShadingGroup *shgroup,
   DRW_shgroup_call_ex(shgroup, ob, NULL, geom, true, NULL)
 
 void DRW_shgroup_call_range(
-    DRWShadingGroup *shgroup, Object *ob, struct GPUBatch *geom, uint v_sta, uint v_num);
+    DRWShadingGroup *shgroup, const Object *ob, struct GPUBatch *geom, uint v_sta, uint v_num);
 /**
  * A count of 0 instance will use the default number of instance in the batch.
  */
 void DRW_shgroup_call_instance_range(
-    DRWShadingGroup *shgroup, Object *ob, struct GPUBatch *geom, uint i_sta, uint i_num);
+    DRWShadingGroup *shgroup, const Object *ob, struct GPUBatch *geom, uint i_sta, uint i_num);
 
 void DRW_shgroup_call_compute(DRWShadingGroup *shgroup,
                               int groups_x_len,
@@ -436,9 +436,9 @@ void DRW_shgroup_call_compute_ref(DRWShadingGroup *shgroup, int groups_ref[3]);
  * \note No need for a barrier. \a indirect_buf is internally synchronized.
  */
 void DRW_shgroup_call_compute_indirect(DRWShadingGroup *shgroup, GPUStorageBuf *indirect_buf);
-void DRW_shgroup_call_procedural_points(DRWShadingGroup *sh, Object *ob, uint point_count);
-void DRW_shgroup_call_procedural_lines(DRWShadingGroup *sh, Object *ob, uint line_count);
-void DRW_shgroup_call_procedural_triangles(DRWShadingGroup *sh, Object *ob, uint tri_count);
+void DRW_shgroup_call_procedural_points(DRWShadingGroup *sh, const Object *ob, uint point_count);
+void DRW_shgroup_call_procedural_lines(DRWShadingGroup *sh, const Object *ob, uint line_count);
+void DRW_shgroup_call_procedural_triangles(DRWShadingGroup *sh, const Object *ob, uint tri_count);
 void DRW_shgroup_call_procedural_indirect(DRWShadingGroup *shgroup,
                                           GPUPrimType primitive_type,
                                           Object *ob,
@@ -448,14 +448,14 @@ void DRW_shgroup_call_procedural_indirect(DRWShadingGroup *shgroup,
  * TODO: Should be removed.
  */
 void DRW_shgroup_call_instances(DRWShadingGroup *shgroup,
-                                Object *ob,
+                                const Object *ob,
                                 struct GPUBatch *geom,
                                 uint count);
 /**
  * \warning Only use with Shaders that have INSTANCED_ATTR defined.
  */
 void DRW_shgroup_call_instances_with_attrs(DRWShadingGroup *shgroup,
-                                           Object *ob,
+                                           const Object *ob,
                                            struct GPUBatch *geom,
                                            struct GPUBatch *inst_attributes);
 
@@ -470,7 +470,7 @@ void DRW_shgroup_call_sculpt(DRWShadingGroup *shgroup,
 void DRW_shgroup_call_sculpt_with_materials(DRWShadingGroup **shgroups,
                                             struct GPUMaterial **gpumats,
                                             int num_shgroups,
-                                            Object *ob);
+                                            const Object *ob);
 
 DRWCallBuffer *DRW_shgroup_call_buffer(DRWShadingGroup *shgroup,
                                        struct GPUVertFormat *format,

@@ -1940,18 +1940,21 @@ static bool find_rna_property_rgba(PointerRNA *id_ptr, const char *name, float r
   return false;
 }
 
-static bool find_rna_property_rgba(ID *id, const char *name, float r_data[4])
+static bool find_rna_property_rgba(const ID *id, const char *name, float r_data[4])
 {
-  PointerRNA ptr = RNA_id_pointer_create(id);
+  PointerRNA ptr = RNA_id_pointer_create(const_cast<ID *>(id));
   return find_rna_property_rgba(&ptr, name, r_data);
 }
 
-bool BKE_object_dupli_find_rgba_attribute(
-    Object *ob, DupliObject *dupli, Object *dupli_parent, const char *name, float r_value[4])
+bool BKE_object_dupli_find_rgba_attribute(const Object *ob,
+                                          const DupliObject *dupli,
+                                          const Object *dupli_parent,
+                                          const char *name,
+                                          float r_value[4])
 {
   /* Check the dupli particle system. */
   if (dupli && dupli->particle_system) {
-    ParticleSettings *settings = dupli->particle_system->part;
+    const ParticleSettings *settings = dupli->particle_system->part;
 
     if (find_rna_property_rgba(&settings->id, name, r_value)) {
       return true;
@@ -1975,7 +1978,7 @@ bool BKE_object_dupli_find_rgba_attribute(
     }
 
     /* Check the main object data (e.g. mesh). */
-    if (ob->data && find_rna_property_rgba((ID *)ob->data, name, r_value)) {
+    if (ob->data && find_rna_property_rgba((const ID *)ob->data, name, r_value)) {
       return true;
     }
   }
@@ -1984,13 +1987,14 @@ bool BKE_object_dupli_find_rgba_attribute(
   return false;
 }
 
-bool BKE_view_layer_find_rgba_attribute(Scene *scene,
-                                        ViewLayer *layer,
+bool BKE_view_layer_find_rgba_attribute(const Scene *scene,
+                                        const ViewLayer *layer,
                                         const char *name,
                                         float r_value[4])
 {
   if (layer) {
-    PointerRNA layer_ptr = RNA_pointer_create(&scene->id, &RNA_ViewLayer, layer);
+    PointerRNA layer_ptr = RNA_pointer_create(
+        &const_cast<ID &>(scene->id), &RNA_ViewLayer, const_cast<ViewLayer *>(layer));
 
     if (find_rna_property_rgba(&layer_ptr, name, r_value)) {
       return true;

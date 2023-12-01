@@ -73,7 +73,7 @@ static void sculpt_draw_cb(SculptCallbackData *data,
 }
 
 static Vector<SculptBatch> sculpt_batches_get_ex(
-    Object *ob, bool use_wire, bool use_materials, PBVHAttrReq *attrs, int attrs_len)
+    const Object *ob, bool use_wire, bool use_materials, PBVHAttrReq *attrs, int attrs_len)
 {
   /* PBVH should always exist for non-empty meshes, created by depsgraph eval. */
   PBVH *pbvh = ob->sculpt ? ob->sculpt->pbvh : nullptr;
@@ -130,7 +130,7 @@ static Vector<SculptBatch> sculpt_batches_get_ex(
     update_only_visible = true;
   }
 
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  const Mesh *mesh = static_cast<const Mesh *>(ob->data);
   BKE_pbvh_update_normals(pbvh, mesh->runtime->subdiv_ccg);
 
   SculptCallbackData data;
@@ -154,7 +154,9 @@ static Vector<SculptBatch> sculpt_batches_get_ex(
   return data.batches;
 }
 
-Vector<SculptBatch> sculpt_batches_get(Object *ob, bool per_material, SculptBatchFeature features)
+Vector<SculptBatch> sculpt_batches_get(const Object *ob,
+                                       bool per_material,
+                                       SculptBatchFeature features)
 {
   PBVHAttrReq attrs[16] = {};
   int attrs_len = 0;
@@ -171,7 +173,7 @@ Vector<SculptBatch> sculpt_batches_get(Object *ob, bool per_material, SculptBatc
     attrs[attrs_len++].type = eCustomDataType(pbvh::CD_PBVH_FSET_TYPE);
   }
 
-  Mesh *mesh = BKE_object_get_original_mesh(ob);
+  const Mesh *mesh = BKE_object_get_original_mesh(ob);
 
   if (features & SCULPT_BATCH_VERTEX_COLOR) {
     const CustomDataLayer *layer = BKE_id_attributes_color_find(&mesh->id,
@@ -199,11 +201,11 @@ Vector<SculptBatch> sculpt_batches_get(Object *ob, bool per_material, SculptBatc
       ob, features & SCULPT_BATCH_WIREFRAME, per_material, attrs, attrs_len);
 }
 
-Vector<SculptBatch> sculpt_batches_per_material_get(Object *ob,
-                                                    MutableSpan<GPUMaterial *> materials)
+Vector<SculptBatch> sculpt_batches_per_material_get(const Object *ob,
+                                                    Span<const GPUMaterial *> materials)
 {
   BLI_assert(ob->type == OB_MESH);
-  Mesh *mesh = (Mesh *)ob->data;
+  const Mesh *mesh = static_cast<const Mesh *>(ob->data);
 
   DRW_Attributes draw_attrs;
   DRW_MeshCDMask cd_needed;

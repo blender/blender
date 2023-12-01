@@ -160,7 +160,7 @@ inline void ObjectBounds::sync()
   bounding_sphere.w = -1.0f; /* Disable test. */
 }
 
-inline void ObjectBounds::sync(Object &ob, float inflate_bounds)
+inline void ObjectBounds::sync(const Object &ob, float inflate_bounds)
 {
   const std::optional<blender::Bounds<float3>> bounds = BKE_object_boundbox_get(&ob);
   if (!bounds) {

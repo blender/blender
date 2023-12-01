@@ -89,9 +89,9 @@ typedef struct DupliObject {
  * Look up the RGBA value of a uniform shader attribute.
  * \return true if the attribute was found; if not, r_value is also set to zero.
  */
-bool BKE_object_dupli_find_rgba_attribute(struct Object *ob,
-                                          struct DupliObject *dupli,
-                                          struct Object *dupli_parent,
+bool BKE_object_dupli_find_rgba_attribute(const struct Object *ob,
+                                          const struct DupliObject *dupli,
+                                          const struct Object *dupli_parent,
                                           const char *name,
                                           float r_value[4]);
 
@@ -99,8 +99,8 @@ bool BKE_object_dupli_find_rgba_attribute(struct Object *ob,
  * Look up the RGBA value of a view layer/scene/world shader attribute.
  * \return true if the attribute was found; if not, r_value is also set to zero.
  */
-bool BKE_view_layer_find_rgba_attribute(struct Scene *scene,
-                                        struct ViewLayer *layer,
+bool BKE_view_layer_find_rgba_attribute(const struct Scene *scene,
+                                        const  struct ViewLayer *layer,
                                         const char *name,
                                         float r_value[4]);
 

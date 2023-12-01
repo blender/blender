@@ -204,7 +204,7 @@ struct ObjectBounds {
 
 #if !defined(GPU_SHADER) && defined(__cplusplus)
   void sync();
-  void sync(Object &ob, float inflate_bounds = 0.0f);
+  void sync(const Object &ob, float inflate_bounds = 0.0f);
   void sync(const float3 &center, const float3 &size);
 #endif
 };
@@ -260,7 +260,7 @@ struct LayerAttribute {
   uint _pad1, _pad2;
 
 #if !defined(GPU_SHADER) && defined(__cplusplus)
-  bool sync(Scene *scene, ViewLayer *layer, const GPULayerAttr &attr);
+  bool sync(const Scene *scene, const ViewLayer *layer, const GPULayerAttr &attr);
 #endif
 };
 #pragma pack(pop)

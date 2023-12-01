@@ -937,7 +937,7 @@ GPUVertBuf *DRW_cache_object_pos_vertbuf_get(Object *ob)
   }
 }
 
-int DRW_cache_object_material_count_get(Object *ob)
+int DRW_cache_object_material_count_get(const Object *ob)
 {
   short type = ob->type;
 
@@ -956,15 +956,15 @@ int DRW_cache_object_material_count_get(Object *ob)
     case OB_CURVES_LEGACY:
     case OB_SURF:
     case OB_FONT:
-      return DRW_curve_material_count_get(static_cast<Curve *>(ob->data));
+      return DRW_curve_material_count_get(static_cast<const Curve *>(ob->data));
     case OB_CURVES:
-      return DRW_curves_material_count_get(static_cast<Curves *>(ob->data));
+      return DRW_curves_material_count_get(static_cast<const Curves *>(ob->data));
     case OB_POINTCLOUD:
-      return DRW_pointcloud_material_count_get(static_cast<PointCloud *>(ob->data));
+      return DRW_pointcloud_material_count_get(static_cast<const PointCloud *>(ob->data));
     case OB_VOLUME:
-      return DRW_volume_material_count_get(static_cast<Volume *>(ob->data));
+      return DRW_volume_material_count_get(static_cast<const Volume *>(ob->data));
     case OB_GPENCIL_LEGACY:
-      return DRW_gpencil_material_count_get(static_cast<bGPdata *>(ob->data));
+      return DRW_gpencil_material_count_get(static_cast<const bGPdata *>(ob->data));
     default:
       BLI_assert(0);
       return 0;

@@ -371,7 +371,7 @@ typedef struct GPUMaterialTexture {
   GPUSamplerState sampler_state;
 } GPUMaterialTexture;
 
-ListBase GPU_material_attributes(GPUMaterial *material);
+ListBase GPU_material_attributes(const GPUMaterial *material);
 ListBase GPU_material_textures(GPUMaterial *material);
 
 typedef struct GPUUniformAttr {

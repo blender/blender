@@ -632,9 +632,9 @@ void DRW_shgroup_buffer_texture_ref(DRWShadingGroup *shgroup,
 /** \name Draw Call (DRW_calls)
  * \{ */
 
-static void drw_call_calc_orco(Object *ob, float (*r_orcofacs)[4])
+static void drw_call_calc_orco(const Object *ob, float (*r_orcofacs)[4])
 {
-  ID *ob_data = (ob) ? static_cast<ID *>(ob->data) : nullptr;
+  const ID *ob_data = (ob) ? static_cast<const ID *>(ob->data) : nullptr;
   struct {
     float texspace_location[3], texspace_size[3];
   } static_buf;
@@ -686,7 +686,9 @@ static void drw_call_calc_orco(Object *ob, float (*r_orcofacs)[4])
   }
 }
 
-BLI_INLINE void drw_call_matrix_init(DRWObjectMatrix *ob_mats, Object *ob, float (*obmat)[4])
+BLI_INLINE void drw_call_matrix_init(DRWObjectMatrix *ob_mats,
+                                     const Object *ob,
+                                     const float (*obmat)[4])
 {
   copy_m4_m4(ob_mats->model, obmat);
   if (ob) {
@@ -698,7 +700,7 @@ BLI_INLINE void drw_call_matrix_init(DRWObjectMatrix *ob_mats, Object *ob, float
   }
 }
 
-static void drw_call_obinfos_init(DRWObjectInfos *ob_infos, Object *ob)
+static void drw_call_obinfos_init(DRWObjectInfos *ob_infos, const Object *ob)
 {
   BLI_assert(ob);
   /* Index. */
@@ -729,7 +731,7 @@ static void drw_call_obinfos_init(DRWObjectInfos *ob_infos, Object *ob)
   copy_v4_v4(ob_infos->ob_color, ob->color);
 }
 
-static void drw_call_culling_init(DRWCullingState *cull, Object *ob)
+static void drw_call_culling_init(DRWCullingState *cull, const Object *ob)
 {
   using namespace blender;
   std::optional<Bounds<float3>> bounds;
@@ -754,7 +756,7 @@ static void drw_call_culling_init(DRWCullingState *cull, Object *ob)
   cull->user_data = nullptr;
 }
 
-static DRWResourceHandle drw_resource_handle_new(float (*obmat)[4], Object *ob)
+static DRWResourceHandle drw_resource_handle_new(const float (*obmat)[4], const Object *ob)
 {
   DRWCullingState *culling = static_cast<DRWCullingState *>(
       BLI_memblock_alloc(DST.vmempool->cullstates));
@@ -791,8 +793,8 @@ uint32_t DRW_object_resource_id_get(Object * /*ob*/)
 }
 
 static DRWResourceHandle drw_resource_handle(DRWShadingGroup *shgroup,
-                                             float (*obmat)[4],
-                                             Object *ob)
+                                             const float (*obmat)[4],
+                                             const Object *ob)
 {
   if (ob == nullptr) {
     if (obmat == nullptr) {
@@ -1020,8 +1022,8 @@ static void drw_command_set_mutable_state(DRWShadingGroup *shgroup,
 }
 
 void DRW_shgroup_call_ex(DRWShadingGroup *shgroup,
-                         Object *ob,
-                         float (*obmat)[4],
+                         const Object *ob,
+                         const float (*obmat)[4],
                          GPUBatch *geom,
                          bool bypass_culling,
                          void *user_data)
@@ -1049,7 +1051,7 @@ void DRW_shgroup_call_ex(DRWShadingGroup *shgroup,
 }
 
 void DRW_shgroup_call_range(
-    DRWShadingGroup *shgroup, Object *ob, GPUBatch *geom, uint v_sta, uint v_num)
+    DRWShadingGroup *shgroup, const Object *ob, GPUBatch *geom, uint v_sta, uint v_num)
 {
   BLI_assert(geom != nullptr);
   if (G.f & G_FLAG_PICKSEL) {
@@ -1060,7 +1062,7 @@ void DRW_shgroup_call_range(
 }
 
 void DRW_shgroup_call_instance_range(
-    DRWShadingGroup *shgroup, Object *ob, GPUBatch *geom, uint i_sta, uint i_num)
+    DRWShadingGroup *shgroup, const Object *ob, GPUBatch *geom, uint i_sta, uint i_num)
 {
   BLI_assert(geom != nullptr);
   if (G.f & G_FLAG_PICKSEL) {
@@ -1104,7 +1106,7 @@ void DRW_shgroup_barrier(DRWShadingGroup *shgroup, eGPUBarrier type)
 
 static void drw_shgroup_call_procedural_add_ex(DRWShadingGroup *shgroup,
                                                GPUBatch *geom,
-                                               Object *ob,
+                                               const Object *ob,
                                                uint vert_count)
 {
   BLI_assert(vert_count > 0);
@@ -1116,19 +1118,23 @@ static void drw_shgroup_call_procedural_add_ex(DRWShadingGroup *shgroup,
   drw_command_draw_procedural(shgroup, geom, handle, vert_count);
 }
 
-void DRW_shgroup_call_procedural_points(DRWShadingGroup *shgroup, Object *ob, uint point_count)
+void DRW_shgroup_call_procedural_points(DRWShadingGroup *shgroup,
+                                        const Object *ob,
+                                        uint point_count)
 {
   GPUBatch *geom = drw_cache_procedural_points_get();
   drw_shgroup_call_procedural_add_ex(shgroup, geom, ob, point_count);
 }
 
-void DRW_shgroup_call_procedural_lines(DRWShadingGroup *shgroup, Object *ob, uint line_count)
+void DRW_shgroup_call_procedural_lines(DRWShadingGroup *shgroup, const Object *ob, uint line_count)
 {
   GPUBatch *geom = drw_cache_procedural_lines_get();
   drw_shgroup_call_procedural_add_ex(shgroup, geom, ob, line_count * 2);
 }
 
-void DRW_shgroup_call_procedural_triangles(DRWShadingGroup *shgroup, Object *ob, uint tri_count)
+void DRW_shgroup_call_procedural_triangles(DRWShadingGroup *shgroup,
+                                           const Object *ob,
+                                           uint tri_count)
 {
   GPUBatch *geom = drw_cache_procedural_triangles_get();
   drw_shgroup_call_procedural_add_ex(shgroup, geom, ob, tri_count * 3);
@@ -1166,7 +1172,10 @@ void DRW_shgroup_call_procedural_indirect(DRWShadingGroup *shgroup,
   drw_command_draw_indirect(shgroup, geom, handle, indirect_buf);
 }
 
-void DRW_shgroup_call_instances(DRWShadingGroup *shgroup, Object *ob, GPUBatch *geom, uint count)
+void DRW_shgroup_call_instances(DRWShadingGroup *shgroup,
+                                const Object *ob,
+                                GPUBatch *geom,
+                                uint count)
 {
   BLI_assert(geom != nullptr);
   if (G.f & G_FLAG_PICKSEL) {
@@ -1177,7 +1186,7 @@ void DRW_shgroup_call_instances(DRWShadingGroup *shgroup, Object *ob, GPUBatch *
 }
 
 void DRW_shgroup_call_instances_with_attrs(DRWShadingGroup *shgroup,
-                                           Object *ob,
+                                           const Object *ob,
                                            GPUBatch *geom,
                                            GPUBatch *inst_attributes)
 {
@@ -1194,7 +1203,7 @@ void DRW_shgroup_call_instances_with_attrs(DRWShadingGroup *shgroup,
 
 #define SCULPT_DEBUG_BUFFERS (G.debug_value == 889)
 struct DRWSculptCallbackData {
-  Object *ob;
+  const Object *ob;
   DRWShadingGroup **shading_groups;
   int num_shading_groups;
   bool use_wire;
@@ -1289,7 +1298,7 @@ void DRW_sculpt_debug_cb(
 #endif
 }
 
-static void drw_sculpt_get_frustum_planes(Object *ob, float planes[6][4])
+static void drw_sculpt_get_frustum_planes(const Object *ob, float planes[6][4])
 {
   /* TODO: take into account partial redraw for clipping planes. */
   DRW_view_frustum_planes_get(DRW_view_default_get(), planes);
@@ -1461,13 +1470,15 @@ void DRW_shgroup_call_sculpt(DRWShadingGroup *shgroup,
 void DRW_shgroup_call_sculpt_with_materials(DRWShadingGroup **shgroups,
                                             GPUMaterial **gpumats,
                                             int num_shgroups,
-                                            Object *ob)
+                                            const Object *ob)
 {
   DRW_Attributes draw_attrs;
   DRW_MeshCDMask cd_needed;
 
+  const Mesh *me = static_cast<const Mesh *>(ob->data);
+
   if (gpumats) {
-    DRW_mesh_get_attributes(ob, (Mesh *)ob->data, gpumats, num_shgroups, &draw_attrs, &cd_needed);
+    DRW_mesh_get_attributes(ob, me, gpumats, num_shgroups, &draw_attrs, &cd_needed);
   }
   else {
     memset(&draw_attrs, 0, sizeof(draw_attrs));
@@ -1497,7 +1508,6 @@ void DRW_shgroup_call_sculpt_with_materials(DRWShadingGroup **shgroups,
   }
 
   /* UV maps are not in attribute requests. */
-  Mesh *me = (Mesh *)ob->data;
 
   for (uint i = 0; i < 32; i++) {
     if (cd_needed.uv & (1 << i)) {

@@ -421,7 +421,7 @@ GPUVertBuf **DRW_pointcloud_evaluated_attribute(PointCloud *pointcloud, const ch
   return &cache.eval_cache.attributes_buf[request_i];
 }
 
-int DRW_pointcloud_material_count_get(PointCloud *pointcloud)
+int DRW_pointcloud_material_count_get(const PointCloud *pointcloud)
 {
   return max_ii(1, pointcloud->totcol);
 }
