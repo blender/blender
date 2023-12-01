@@ -314,10 +314,7 @@ void BKE_pbvh_draw_cb(const Mesh &mesh,
                       void (*draw_fn)(void *user_data,
                                       blender::draw::pbvh::PBVHBatches *batches,
                                       const blender::draw::pbvh::PBVH_GPU_Args &args),
-                      void *user_data,
-                      bool full_render,
-                      PBVHAttrReq *attrs,
-                      int attrs_num);
+                      void *user_data);
 
 /* PBVH Access */
 

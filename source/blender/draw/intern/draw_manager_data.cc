@@ -1381,10 +1381,7 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd)
                    (void (*)(void *,
                              blender::draw::pbvh::PBVHBatches *,
                              const blender::draw::pbvh::PBVH_GPU_Args &))sculpt_draw_cb,
-                   scd,
-                   scd->use_mats,
-                   scd->attrs,
-                   scd->attrs_num);
+                   scd);
 
   if (SCULPT_DEBUG_BUFFERS) {
     int debug_node_nr = 0;

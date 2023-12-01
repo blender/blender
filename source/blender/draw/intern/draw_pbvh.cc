@@ -391,13 +391,13 @@ struct PBVHBatches {
     GPU_INDEXBUF_DISCARD_SAFE(lines_index_coarse);
   }
 
-  std::string build_key(PBVHAttrReq *attrs, int attrs_num, bool do_coarse_grids)
+  std::string build_key(const PBVHAttrReq *attrs, int attrs_num, bool do_coarse_grids)
   {
     PBVHBatch batch;
     Vector<PBVHVbo> vbos;
 
     for (int i : IndexRange(attrs_num)) {
-      PBVHAttrReq *attr = attrs + i;
+      const PBVHAttrReq *attr = attrs + i;
 
       if (!pbvh_attr_supported(attr->type, attr->domain)) {
         continue;
@@ -447,12 +447,12 @@ struct PBVHBatches {
     return nullptr;
   }
 
-  bool has_batch(PBVHAttrReq *attrs, int attrs_num, bool do_coarse_grids)
+  bool has_batch(const PBVHAttrReq *attrs, int attrs_num, bool do_coarse_grids)
   {
     return batches.contains(build_key(attrs, attrs_num, do_coarse_grids));
   }
 
-  PBVHBatch &ensure_batch(PBVHAttrReq *attrs,
+  PBVHBatch &ensure_batch(const PBVHAttrReq *attrs,
                           int attrs_num,
                           const PBVH_GPU_Args &args,
                           bool do_coarse_grids)
@@ -1332,7 +1332,7 @@ struct PBVHBatches {
     }
   }
 
-  void create_batch(PBVHAttrReq *attrs,
+  void create_batch(const PBVHAttrReq *attrs,
                     int attrs_num,
                     const PBVH_GPU_Args &args,
                     bool do_coarse_grids)
@@ -1355,7 +1355,7 @@ struct PBVHBatches {
     }
 
     for (int i : IndexRange(attrs_num)) {
-      PBVHAttrReq *attr = attrs + i;
+      const PBVHAttrReq *attr = attrs + i;
 
       if (!pbvh_attr_supported(attr->type, attr->domain)) {
         continue;
@@ -1402,7 +1402,7 @@ void node_free(PBVHBatches *batches)
 }
 
 GPUBatch *tris_get(PBVHBatches *batches,
-                   PBVHAttrReq *attrs,
+                   const PBVHAttrReq *attrs,
                    int attrs_num,
                    const PBVH_GPU_Args &args,
                    int *r_prim_count,
@@ -1418,7 +1418,7 @@ GPUBatch *tris_get(PBVHBatches *batches,
 }
 
 GPUBatch *lines_get(PBVHBatches *batches,
-                    PBVHAttrReq *attrs,
+                    const PBVHAttrReq *attrs,
                     int attrs_num,
                     const PBVH_GPU_Args &args,
                     int *r_prim_count,

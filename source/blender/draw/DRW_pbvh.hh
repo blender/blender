@@ -79,13 +79,13 @@ void node_gpu_flush(PBVHBatches *batches);
 PBVHBatches *node_create(const PBVH_GPU_Args &args);
 void node_free(PBVHBatches *batches);
 GPUBatch *tris_get(PBVHBatches *batches,
-                   PBVHAttrReq *attrs,
+                   const PBVHAttrReq *attrs,
                    int attrs_num,
                    const PBVH_GPU_Args &args,
                    int *r_prim_count,
                    bool do_coarse_grids);
 GPUBatch *lines_get(PBVHBatches *batches,
-                    PBVHAttrReq *attrs,
+                    const PBVHAttrReq *attrs,
                     int attrs_num,
                     const PBVH_GPU_Args &args,
                     int *r_prim_count,

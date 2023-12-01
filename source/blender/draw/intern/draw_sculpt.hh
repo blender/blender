@@ -32,9 +32,7 @@ enum SculptBatchFeature {
 ENUM_OPERATORS(SculptBatchFeature, SCULPT_BATCH_UV);
 
 /** Used by engines that don't use GPUMaterials, like the Workbench and Overlay engines. */
-Vector<SculptBatch> sculpt_batches_get(const Object *ob,
-                                       bool per_material,
-                                       SculptBatchFeature features);
+Vector<SculptBatch> sculpt_batches_get(const Object *ob, SculptBatchFeature features);
 
 /** Used by EEVEE. */
 Vector<SculptBatch> sculpt_batches_per_material_get(const Object *ob,

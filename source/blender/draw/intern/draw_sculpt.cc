@@ -40,7 +40,7 @@ struct SculptCallbackData {
   bool use_wire;
   bool fast_mode;
 
-  PBVHAttrReq *attrs;
+  const PBVHAttrReq *attrs;
   int attrs_len;
 
   Vector<SculptBatch> batches;
@@ -72,8 +72,10 @@ static void sculpt_draw_cb(SculptCallbackData *data,
   data->batches.append(batch);
 }
 
-static Vector<SculptBatch> sculpt_batches_get_ex(
-    const Object *ob, bool use_wire, bool use_materials, PBVHAttrReq *attrs, int attrs_len)
+static Vector<SculptBatch> sculpt_batches_get_ex(const Object *ob,
+                                                 bool use_wire,
+                                                 const PBVHAttrReq *attrs,
+                                                 int attrs_len)
 {
   /* PBVH should always exist for non-empty meshes, created by depsgraph eval. */
   PBVH *pbvh = ob->sculpt ? ob->sculpt->pbvh : nullptr;
@@ -146,17 +148,12 @@ static Vector<SculptBatch> sculpt_batches_get_ex(
       &update_frustum,
       &draw_frustum,
       (void (*)(void *, pbvh::PBVHBatches *, const pbvh::PBVH_GPU_Args &))sculpt_draw_cb,
-      &data,
-      use_materials,
-      attrs,
-      attrs_len);
+      &data);
 
   return data.batches;
 }
 
-Vector<SculptBatch> sculpt_batches_get(const Object *ob,
-                                       bool per_material,
-                                       SculptBatchFeature features)
+Vector<SculptBatch> sculpt_batches_get(const Object *ob, SculptBatchFeature features)
 {
   PBVHAttrReq attrs[16] = {};
   int attrs_len = 0;
@@ -197,8 +194,7 @@ Vector<SculptBatch> sculpt_batches_get(const Object *ob,
     }
   }
 
-  return sculpt_batches_get_ex(
-      ob, features & SCULPT_BATCH_WIREFRAME, per_material, attrs, attrs_len);
+  return sculpt_batches_get_ex(ob, features & SCULPT_BATCH_WIREFRAME, attrs, attrs_len);
 }
 
 Vector<SculptBatch> sculpt_batches_per_material_get(const Object *ob,
@@ -241,7 +237,7 @@ Vector<SculptBatch> sculpt_batches_per_material_get(const Object *ob,
     }
   }
 
-  return sculpt_batches_get_ex(ob, false, true, attrs, attrs_len);
+  return sculpt_batches_get_ex(ob, false, attrs, attrs_len);
 }
 
 }  // namespace blender::draw

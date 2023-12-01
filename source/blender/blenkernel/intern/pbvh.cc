@@ -2876,8 +2876,6 @@ void BKE_pbvh_update_normals(PBVH *pbvh, SubdivCCG *subdiv_ccg)
 struct PBVHDrawSearchData {
   PBVHFrustumPlanes *frustum;
   int accum_update_flag;
-  PBVHAttrReq *attrs;
-  int attrs_num;
 };
 
 static bool pbvh_draw_search(PBVHNode *node, PBVHDrawSearchData *data)
@@ -2898,10 +2896,7 @@ void BKE_pbvh_draw_cb(const Mesh &mesh,
                       void (*draw_fn)(void *user_data,
                                       blender::draw::pbvh::PBVHBatches *batches,
                                       const blender::draw::pbvh::PBVH_GPU_Args &args),
-                      void *user_data,
-                      bool /*full_render*/,
-                      PBVHAttrReq *attrs,
-                      int attrs_num)
+                      void *user_data)
 {
   using namespace blender;
   using namespace blender::bke::pbvh;
@@ -2916,8 +2911,6 @@ void BKE_pbvh_draw_cb(const Mesh &mesh,
     PBVHDrawSearchData data{};
     data.frustum = update_frustum;
     data.accum_update_flag = 0;
-    data.attrs = attrs;
-    data.attrs_num = attrs_num;
     nodes = search_gather(pbvh, [&](PBVHNode &node) { return pbvh_draw_search(&node, &data); });
     update_flag = data.accum_update_flag;
   }
