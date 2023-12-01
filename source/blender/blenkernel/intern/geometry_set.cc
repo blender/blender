@@ -128,7 +128,7 @@ GeometryComponent &GeometrySet::get_component_for_write(GeometryComponent::Type 
   else {
     /* If the referenced component is shared, make a copy. The copy is not shared and is
      * therefore mutable. */
-    component_ptr = GeometryComponentPtr(component_ptr->copy());
+    component_ptr = component_ptr->copy();
   }
   return const_cast<GeometryComponent &>(*component_ptr);
 }

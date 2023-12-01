@@ -10,7 +10,7 @@ namespace blender::bke {
 
 GeometryComponentEditData::GeometryComponentEditData() : GeometryComponent(Type::Edit) {}
 
-GeometryComponent *GeometryComponentEditData::copy() const
+GeometryComponentPtr GeometryComponentEditData::copy() const
 {
   GeometryComponentEditData *new_component = new GeometryComponentEditData();
   if (curves_edit_hints_) {
@@ -20,7 +20,7 @@ GeometryComponent *GeometryComponentEditData::copy() const
     new_component->grease_pencil_edit_hints_ = std::make_unique<GreasePencilEditHints>(
         *grease_pencil_edit_hints_);
   }
-  return new_component;
+  return GeometryComponentPtr(new_component);
 }
 
 bool GeometryComponentEditData::owns_direct_data() const
