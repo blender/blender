@@ -3702,8 +3702,6 @@ def km_sculpt(params):
          {"properties": [("mode", 'TOGGLE')]}),
         ("paint.hide_show", {"type": 'H', "value": 'PRESS', "ctrl": True},
          {"properties": [("action", 'HIDE'), ("area", 'MASKED')]}),
-        ("sculpt.reveal_all", {"type": 'H', "value": 'PRESS', "alt": True},
-         {"properties": []}),
         ("paint.hide_show", {"type": 'H', "value": 'PRESS', "alt": True},
          {"properties": [("action", 'SHOW'), ("area", 'ALL')]}),
         # Subdivision levels

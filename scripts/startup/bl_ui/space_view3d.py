@@ -3785,7 +3785,9 @@ class VIEW3D_MT_face_sets(Menu):
 
         layout.operator("sculpt.face_set_invert_visibility", text="Invert Visible Face Sets")
 
-        props = layout.operator("sculpt.reveal_all", text="Show All Face Sets")
+        props = layout.operator("paint.hide_show", text="Show All Face Sets")
+        props.action = "SHOW"
+        props.area = "ALL"
 
         layout.separator()
 
@@ -6138,7 +6140,9 @@ class VIEW3D_MT_sculpt_face_sets_edit_pie(Menu):
 
         pie.operator("sculpt.face_set_invert_visibility", text="Invert Visible")
 
-        props = pie.operator("sculpt.reveal_all", text="Show All")
+        props = pie.operator("paint.hide_show", text="Show All")
+        props.action = "SHOW"
+        props.area = "ALL"
 
 
 class VIEW3D_MT_wpaint_vgroup_lock_pie(Menu):

@@ -1262,94 +1262,6 @@ static void SCULPT_OT_mask_from_cavity(wmOperatorType *ot)
   RNA_def_boolean(ot->srna, "invert", false, "Cavity (Inverted)", "");
 }
 
-static int sculpt_reveal_all_exec(bContext *C, wmOperator *op)
-{
-  Object *ob = CTX_data_active_object(C);
-  SculptSession *ss = ob->sculpt;
-  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-
-  Mesh *mesh = BKE_object_get_original_mesh(ob);
-
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
-
-  if (!ss->pbvh) {
-    return OPERATOR_CANCELLED;
-  }
-
-  bool with_bmesh = BKE_pbvh_type(ss->pbvh) == PBVH_BMESH;
-
-  blender::Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, {});
-
-  if (nodes.is_empty()) {
-    return OPERATOR_CANCELLED;
-  }
-
-  /* Propagate face hide state to verts for undo. */
-  SCULPT_visibility_sync_all_from_faces(ob);
-
-  SCULPT_undo_push_begin(ob, op);
-
-  for (PBVHNode *node : nodes) {
-    BKE_pbvh_node_mark_update_visibility(node);
-
-    if (!with_bmesh) {
-      SCULPT_undo_push_node(ob, node, SCULPT_UNDO_HIDDEN);
-    }
-  }
-
-  SCULPT_topology_islands_invalidate(ss);
-
-  if (!with_bmesh) {
-    /* As an optimization, free the hide attribute when making all geometry visible. This allows
-     * reduced memory usage without manually clearing it later, and allows sculpt operations to
-     * avoid checking element's hide status. */
-    CustomData_free_layer_named(&mesh->face_data, ".hide_poly", mesh->faces_num);
-    ss->hide_poly = nullptr;
-  }
-  else {
-    SCULPT_undo_push_node(ob, nodes[0], SCULPT_UNDO_HIDDEN);
-
-    BMIter iter;
-    BMFace *f;
-    BMVert *v;
-    const int cd_mask = CustomData_get_offset_named(&ss->bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
-
-    BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
-      BM_log_vert_before_modified(ss->bm_log, v, cd_mask);
-    }
-    BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
-      BM_log_face_modified(ss->bm_log, f);
-    }
-
-    SCULPT_face_visibility_all_set(ss, true);
-  }
-
-  SCULPT_visibility_sync_all_from_faces(ob);
-  BKE_pbvh_update_visibility(ss->pbvh);
-
-  SCULPT_undo_push_end(ob);
-
-  SCULPT_tag_update_overlays(C);
-  DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
-  ED_region_tag_redraw(CTX_wm_region(C));
-
-  return OPERATOR_FINISHED;
-}
-
-static void SCULPT_OT_reveal_all(wmOperatorType *ot)
-{
-  /* Identifiers. */
-  ot->name = "Reveal All";
-  ot->idname = "SCULPT_OT_reveal_all";
-  ot->description = "Unhide all geometry";
-
-  /* Api callbacks. */
-  ot->exec = sculpt_reveal_all_exec;
-  ot->poll = SCULPT_mode_poll;
-
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-}
-
 void ED_operatortypes_sculpt()
 {
   WM_operatortype_append(SCULPT_OT_brush_stroke);
@@ -1385,7 +1297,6 @@ void ED_operatortypes_sculpt()
 
   WM_operatortype_append(SCULPT_OT_expand);
   WM_operatortype_append(SCULPT_OT_mask_from_cavity);
-  WM_operatortype_append(SCULPT_OT_reveal_all);
 }
 
 void ED_keymap_sculpt(wmKeyConfig *keyconf)
