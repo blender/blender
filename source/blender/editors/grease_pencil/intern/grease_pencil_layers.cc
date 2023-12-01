@@ -294,7 +294,7 @@ static int grease_pencil_layer_hide_exec(bContext *C, wmOperator *op)
 
   if (unselected) {
     /* hide unselected */
-    for (Layer *layer : grease_pencil.layers_for_write()) {      
+    for (Layer *layer : grease_pencil.layers_for_write()) {
       const bool is_active = grease_pencil.is_layer_active(layer);
       layer->set_visible(is_active);
     }
@@ -328,16 +328,16 @@ static void GREASE_PENCIL_OT_layer_hide(wmOperatorType *ot)
 
   /* props */
   PropertyRNA *prop = RNA_def_boolean(
-    ot->srna, "unselected", false, "Unselected", "Hide unselected rather than selected layers");
+      ot->srna, "unselected", false, "Unselected", "Hide unselected rather than selected layers");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   ot->prop = prop;
 }
 
-static int grease_pencil_layer_reveal_exec(bContext *C, wmOperator *op)
+static int grease_pencil_layer_reveal_exec(bContext *C, wmOperator * /*op*/)
 {
   using namespace blender::bke::greasepencil;
   Object *object = CTX_data_active_object(C);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);  
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
 
   if (!grease_pencil.has_active_layer()) {
     return OPERATOR_CANCELLED;
@@ -347,7 +347,7 @@ static int grease_pencil_layer_reveal_exec(bContext *C, wmOperator *op)
     layer->set_visible(true);
   }
 
-/* notifiers */
+  /* notifiers */
   DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, &grease_pencil);
 
