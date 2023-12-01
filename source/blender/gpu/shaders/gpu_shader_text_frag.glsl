@@ -64,7 +64,7 @@ float texture_1D_custom_bilinear_filter(vec2 uv)
 
 vec4 texture_1D_custom_bilinear_filter_color(vec2 uv)
 {
-  vec2 texel_2d = uv * glyph_dim + 0.5;
+  vec2 texel_2d = uv * vec2(glyph_dim) + 0.5;
   ivec2 texel_2d_near = ivec2(texel_2d) - 1;
 
   int frag_offset = glyph_offset + ((texel_2d_near.y * glyph_dim.x * glyph_depth) +
