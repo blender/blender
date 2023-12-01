@@ -62,6 +62,7 @@
 
 #include "UI_view2d.hh"
 
+#include "GPU_capabilities.h"
 #include "GPU_material.h"
 
 #include "IMB_imbuf_types.h"
@@ -336,6 +337,33 @@ static void compo_completejob(void *cjv)
 /** \name Composite Job C API
  * \{ */
 
+/* Identify if the compositor can run. Currently, this only checks if the compositor is set to GPU
+ * and the render size exceeds what can be allocated as a texture in it. */
+static bool is_compositing_possible(const bContext *C)
+{
+  Scene *scene = CTX_data_scene(C);
+  /* CPU compositor can always run. */
+  if (!U.experimental.use_full_frame_compositor ||
+      scene->nodetree->execution_mode != NTREE_EXECUTION_MODE_REALTIME)
+  {
+    return true;
+  }
+
+  int width, height;
+  BKE_render_resolution(&scene->r, false, &width, &height);
+  const int max_texture_size = GPU_max_texture_size();
+
+  /* There is no way to know if the render size is too large except if we actually allocate a test
+   * texture, which we want to avoid due its cost. So we employ a heuristic that so far has worked
+   * with all known GPU drivers. */
+  if (size_t(width) * height > (size_t(max_texture_size) * max_texture_size) / 4) {
+    WM_report(RPT_ERROR, "Render size too large for GPU, use CPU compositor instead");
+    return false;
+  }
+
+  return true;
+}
+
 void ED_node_composite_job(const bContext *C, bNodeTree *nodetree, Scene *scene_owner)
 {
   using namespace blender::ed::space_node;
@@ -343,6 +371,10 @@ void ED_node_composite_job(const bContext *C, bNodeTree *nodetree, Scene *scene_
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+
+  if (!is_compositing_possible(C)) {
+    return;
+  }
 
   /* See #32272. */
   if (G.is_rendering) {
