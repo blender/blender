@@ -334,7 +334,10 @@ static void gwl_window_resize_for_backend(GWL_Window *win, const int32_t size[2]
 {
 #ifdef WITH_OPENGL_BACKEND
   if (win->ghost_context_type == GHOST_kDrawingContextTypeOpenGL) {
-    wl_egl_window_resize(win->backend.egl_window, UNPACK2(size), 0, 0);
+    /* Null on window initialization. */
+    if (win->backend.egl_window) {
+      wl_egl_window_resize(win->backend.egl_window, UNPACK2(size), 0, 0);
+    }
   }
 #endif
 #ifdef WITH_VULKAN_BACKEND
