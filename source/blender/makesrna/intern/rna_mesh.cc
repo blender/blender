@@ -228,6 +228,17 @@ void rna_Mesh_update_draw(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
   WM_main_add_notifier(NC_GEOM | ND_DATA, id);
 }
 
+static void rna_Mesh_update_bone_selection_mode(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+  Mesh *me = static_cast<Mesh *>(ptr->data);
+  me->editflag &= ~ME_EDIT_PAINT_VERT_SEL;
+  me->editflag &= ~ME_EDIT_PAINT_FACE_SEL;
+
+  BKE_mesh_batch_cache_dirty_tag(me, BKE_MESH_BATCH_DIRTY_ALL);
+
+  rna_Mesh_update_draw(bmain, scene, ptr);
+}
+
 static void rna_Mesh_update_vertmask(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
   Mesh *me = static_cast<Mesh *>(ptr->data);
@@ -3249,6 +3260,13 @@ static void rna_def_mesh(BlenderRNA *brna)
                            "Topology Mirror",
                            "Use topology based mirroring "
                            "(for when both sides of mesh have matching, unique topology)");
+
+  prop = RNA_def_property(srna, "use_paint_bone_selection", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(
+      prop, nullptr, "editflag", ME_EDIT_PAINT_FACE_SEL | ME_EDIT_PAINT_VERT_SEL);
+  RNA_def_property_ui_text(prop, "Bone Selection", "Bone selection during painting");
+  RNA_def_property_ui_icon(prop, ICON_BONE_DATA, 0);
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_Mesh_update_bone_selection_mode");
 
   prop = RNA_def_property(srna, "use_paint_mask", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "editflag", ME_EDIT_PAINT_FACE_SEL);
