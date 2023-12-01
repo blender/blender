@@ -100,7 +100,7 @@ bool BKE_object_dupli_find_rgba_attribute(const struct Object *ob,
  * \return true if the attribute was found; if not, r_value is also set to zero.
  */
 bool BKE_view_layer_find_rgba_attribute(const struct Scene *scene,
-                                        const  struct ViewLayer *layer,
+                                        const struct ViewLayer *layer,
                                         const char *name,
                                         float r_value[4]);
 

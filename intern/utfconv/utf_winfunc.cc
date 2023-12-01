@@ -81,7 +81,8 @@ int urename(const char *oldname, const char *newname, const bool do_replace)
   if (oldname_16 && newname_16) {
     /* Closer to UNIX `rename` behavior, as it at least allows to replace an existing file.
      * Return value logic is inverted however (returns non-zero on sucess, 0 on failure).
-     * Note that the operation will still fail if the 'newname' existing file is opened anywhere. */
+     * Note that the operation will still fail if the 'newname' existing file is opened anywhere.
+     */
     r = (MoveFileExW(oldname_16, newname_16, do_replace ? MOVEFILE_REPLACE_EXISTING : 0) == 0);
   }
 
