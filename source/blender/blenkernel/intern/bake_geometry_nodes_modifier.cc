@@ -7,7 +7,7 @@
 #include "BKE_bake_geometry_nodes_modifier.hh"
 #include "BKE_collection.h"
 #include "BKE_curves.hh"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 
 #include "DNA_modifier_types.h"
 #include "DNA_node_types.h"

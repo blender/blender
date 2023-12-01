@@ -38,7 +38,7 @@
 
 #include "IMB_imbuf.h"
 
-#include "BKE_main.h"
+#include "BKE_main.hh"
 
 #include "BKE_anim_data.h"
 #include "BKE_colorband.h"

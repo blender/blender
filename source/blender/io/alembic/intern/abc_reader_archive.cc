@@ -10,7 +10,7 @@
 
 #include "Alembic/AbcCoreLayer/Read.h"
 
-#include "BKE_main.h"
+#include "BKE_main.hh"
 
 #include "BLI_path_util.h"
 #include "BLI_string.h"

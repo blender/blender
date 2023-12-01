@@ -20,7 +20,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_layer.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_modifier.hh"
 #include "BKE_outliner_treehash.hh"
 

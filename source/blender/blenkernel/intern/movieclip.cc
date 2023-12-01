@@ -52,7 +52,7 @@
 #include "BKE_image.h" /* openanim */
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_movieclip.h"
 #include "BKE_node.h"
 #include "BKE_node_tree_update.hh"

@@ -44,7 +44,7 @@
 #include "BKE_appdir.h"
 #include "BKE_context.hh"
 #include "BKE_idtype.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_preferences.h"
 
 #include "BLF_api.h"

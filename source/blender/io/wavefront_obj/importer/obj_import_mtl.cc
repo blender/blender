@@ -7,7 +7,7 @@
  */
 
 #include "BKE_image.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_node.hh"
 
 #include "BLI_map.hh"

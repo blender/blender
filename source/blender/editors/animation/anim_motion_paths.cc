@@ -20,7 +20,7 @@
 
 #include "BKE_action.h"
 #include "BKE_anim_data.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_scene.h"
 
 #include "DEG_depsgraph.hh"

@@ -14,7 +14,7 @@
 #  include "BLI_utildefines.h"
 
 #  include "BKE_context.hh"
-#  include "BKE_main.h"
+#  include "BKE_main.hh"
 #  include "BKE_object.hh"
 #  include "BKE_report.h"
 

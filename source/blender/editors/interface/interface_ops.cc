@@ -64,7 +64,7 @@
 #include "ED_keyframing.hh"
 
 /* only for UI_OT_editsource */
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BLI_ghash.h"
 #include "ED_screen.hh"
 #include "ED_text.hh"

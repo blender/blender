@@ -22,7 +22,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_idprop.h"
 #include "BKE_layer.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_screen.hh"

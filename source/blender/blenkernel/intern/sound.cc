@@ -45,7 +45,7 @@
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_packedFile.h"
 #include "BKE_scene.h"
 #include "BKE_sound.h"

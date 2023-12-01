@@ -16,7 +16,7 @@
 #include "BLI_math_base.h"
 #include "BLI_session_uuid.h"
 
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 

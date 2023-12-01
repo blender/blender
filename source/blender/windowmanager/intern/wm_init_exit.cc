@@ -42,7 +42,7 @@
 #include "BKE_image.h"
 #include "BKE_keyconfig.h"
 #include "BKE_lib_remap.hh"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_mball_tessellate.h"
 #include "BKE_node.hh"
 #include "BKE_preview_image.hh"

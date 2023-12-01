@@ -35,7 +35,7 @@
 #include "BKE_global.h"
 #include "BKE_icons.h"
 #include "BKE_layer.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_report.h"
 #include "BKE_screen.hh"
 #include "BKE_workspace.h"

@@ -35,7 +35,7 @@
 #include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_lib_id.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_movieclip.h"
 #include "BKE_report.h"
 #include "BKE_tracking.h"

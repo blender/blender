@@ -21,7 +21,7 @@
 
 #  include "MEM_guardedalloc.h"
 
-#  include "BKE_main.h"
+#  include "BKE_main.hh"
 #  include "DEG_depsgraph.hh"
 
 #  include "DNA_collection_types.h"

@@ -31,7 +31,7 @@
 #include "BKE_colorband.h"
 #include "BKE_idprop.h"
 #include "BKE_keyconfig.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_preferences.h"
 
 #include "BLO_readfile.h"

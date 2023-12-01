@@ -58,7 +58,7 @@
 #include "BKE_grease_pencil.hh"
 #include "BKE_key.h"
 #include "BKE_lib_id.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_nla.h"
 
 #include "GPU_immediate.h"

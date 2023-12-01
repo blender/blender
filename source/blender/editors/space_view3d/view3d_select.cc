@@ -43,7 +43,7 @@
 
 /* vertex box select */
 #include "BKE_global.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 

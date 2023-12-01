@@ -21,7 +21,7 @@
 #include "BKE_context.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_layer.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_mball.h"
 #include "BKE_object.hh"
 #include "BKE_report.h"

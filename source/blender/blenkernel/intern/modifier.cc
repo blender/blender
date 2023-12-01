@@ -64,7 +64,7 @@
 #include "BKE_screen.hh"
 
 /* may move these, only for BKE_modifier_path_relbase */
-#include "BKE_main.h"
+#include "BKE_main.hh"
 /* end */
 
 #include "DEG_depsgraph.hh"

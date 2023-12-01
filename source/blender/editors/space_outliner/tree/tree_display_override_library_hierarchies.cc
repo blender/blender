@@ -19,7 +19,7 @@
 
 #include "BKE_lib_override.hh"
 #include "BKE_lib_query.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 
 #include "../outliner_intern.hh"
 #include "common.hh"

@@ -9,7 +9,7 @@
 #pragma once
 
 #include "BKE_context.hh"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BLI_linklist.h"
 #include "BlenderTypes.h"
 #include "DEG_depsgraph.hh"

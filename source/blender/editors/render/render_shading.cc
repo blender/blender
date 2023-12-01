@@ -48,7 +48,7 @@
 #include "BKE_lib_remap.hh"
 #include "BKE_lightprobe.h"
 #include "BKE_linestyle.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_node.hh"
 #include "BKE_object.hh"

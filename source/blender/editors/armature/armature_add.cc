@@ -34,7 +34,7 @@
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_library.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"

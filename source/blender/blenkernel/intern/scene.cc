@@ -76,7 +76,7 @@
 #include "BKE_lib_query.h"
 #include "BKE_lib_remap.hh"
 #include "BKE_linestyle.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_mask.h"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"

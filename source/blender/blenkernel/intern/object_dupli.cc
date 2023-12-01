@@ -49,7 +49,7 @@
 #include "BKE_idprop.h"
 #include "BKE_instances.hh"
 #include "BKE_lattice.hh"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_iterators.hh"
 #include "BKE_mesh_runtime.hh"

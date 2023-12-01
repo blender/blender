@@ -19,7 +19,7 @@
 
 #include "BKE_callbacks.h"
 #include "BKE_context.hh"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_preferences.h"
 
 #include "BKE_report.h"
