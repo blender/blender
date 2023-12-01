@@ -1404,7 +1404,7 @@ static void blf_texture_draw(GlyphBLF *g,
   copy_v4_v4_uchar(static_cast<uchar *>(GPU_vertbuf_raw_step(&g_batch.col_step)), color);
   copy_v2_v2_int(static_cast<int *>(GPU_vertbuf_raw_step(&g_batch.glyph_size_step)), glyph_size);
   *((int *)GPU_vertbuf_raw_step(&g_batch.offset_step)) = g->offset;
-  *((int *)GPU_vertbuf_raw_step(&g_batch.glyph_depth_step)) = g->depth;
+  *((int *)GPU_vertbuf_raw_step(&g_batch.glyph_comp_len_step)) = g->depth;
   *((int *)GPU_vertbuf_raw_step(&g_batch.glyph_mode_step)) = g->render_mode;
 
   g_batch.glyph_len++;
