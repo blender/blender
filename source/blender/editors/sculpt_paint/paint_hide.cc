@@ -223,6 +223,11 @@ static void partialvis_update_grids(Depsgraph *depsgraph,
                                     const float planes[4][4],
                                     const Span<PBVHNode *> nodes)
 {
+  SculptSession *ss = ob->sculpt;
+  SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
+  MutableSpan<BLI_bitmap *> grid_hidden = subdiv_ccg->grid_hidden;
+  const CCGKey key = *BKE_pbvh_get_grid_key(pbvh);
+
   for (PBVHNode *node : nodes) {
     CCGElem *const *grids;
     const int *grid_indices;
@@ -231,11 +236,6 @@ static void partialvis_update_grids(Depsgraph *depsgraph,
 
     /* Get PBVH data. */
     BKE_pbvh_node_get_grids(pbvh, node, &grid_indices, &totgrid, nullptr, nullptr, &grids);
-
-    SculptSession *ss = ob->sculpt;
-    SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
-    MutableSpan<BLI_bitmap *> grid_hidden = subdiv_ccg->grid_hidden;
-    const CCGKey key = *BKE_pbvh_get_grid_key(pbvh);
 
     SCULPT_undo_push_node(ob, node, SCULPT_UNDO_HIDDEN);
 
@@ -354,11 +354,10 @@ static void partialvis_update_bmesh(Object *ob,
                                     const float planes[4][4],
                                     const Span<PBVHNode *> nodes)
 {
+  BMesh *bm = BKE_pbvh_get_bmesh(pbvh);
   for (PBVHNode *node : nodes) {
     bool any_changed = false;
     bool any_visible = false;
-
-    BMesh *bm = BKE_pbvh_get_bmesh(pbvh);
 
     SCULPT_undo_push_node(ob, node, SCULPT_UNDO_HIDDEN);
 
