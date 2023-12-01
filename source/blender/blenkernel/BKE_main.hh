@@ -33,6 +33,7 @@ struct IDNameLib_Map;
 struct ImBuf;
 struct Library;
 struct MainLock;
+struct ReportList;
 struct UniqueName_Map;
 
 /**
@@ -257,6 +258,41 @@ struct Main {
  */
 Main *BKE_main_new(void);
 void BKE_main_free(Main *mainvar);
+
+/** Struct packaging log/report info about a Main merge result. */
+struct MainMergeReport {
+  ReportList *reports = nullptr;
+
+  /** Number of IDs from source Main that have been moved into destination Main. */
+  int num_merged_ids = 0;
+  /** Number of (non-library) IDs from source Main that were expected to have a matching ID in
+   * destination Main, but did not. These have not been moved, and their usages have been remapped
+   * to null. */
+  int num_unknown_ids = 0;
+  /** Number of (non-library) IDs from source Main that already had a matching ID in destination
+   * Main. */
+  int num_remapped_ids = 0;
+  /** Number of Library IDs from source Main that already had a matching Library ID in destination
+   * Main. */
+  int num_remapped_libraries = 0;
+};
+
+/** Merge the content of `bmain_src` into `bmain_dst`.
+ *
+ * In case of collision (ID from same library with same name), the existing ID in `bmain_dst` is
+ * kept, the one from `bmain_src` is left in its original Main, and its usages in `bmain_dst` (from
+ * newly moved-in IDs) are remapped to its matching counterpart already in `bmain_dst`.
+ *
+ * Libraries are also de-duplicated, based on their absolute filepath, and remapped accordingly.
+ * Note that local IDs in source Main always remain local IDs in destination Main.
+ *
+ * In case some source IDs are linked data from the blendfile of `bmain_dst`, they are never moved.
+ * If a matching destination local ID is found, their usage get remapped as expected, otherwise
+ * they are dropped, their usages are remapped to null, and a warning is printed.
+ *
+ * Since `bmain_src` is either empty or contains left-over IDs with (likely) invalid ID
+ * relationships and other potential issues after the merge, it is always freed. */
+void BKE_main_merge(Main *bmain_dst, Main **r_bmain_src, MainMergeReport &reports);
 
 /**
  * Check whether given `bmain` is empty or contains some IDs.

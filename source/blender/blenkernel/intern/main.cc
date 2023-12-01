@@ -9,26 +9,36 @@
  */
 
 #include <cstring>
+#include <iostream>
+
+#include "CLG_log.h"
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
+#include "BLI_map.hh"
 #include "BLI_mempool.h"
 #include "BLI_threads.h"
+#include "BLI_vector.hh"
 
 #include "DNA_ID.h"
 
+#include "BKE_bpath.h"
 #include "BKE_global.h"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
+#include "BKE_lib_remap.hh"
 #include "BKE_main.hh"
 #include "BKE_main_idmap.hh"
 #include "BKE_main_namemap.hh"
+#include "BKE_report.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
+
+static CLG_LogRef LOG = {"bke.main"};
 
 Main *BKE_main_new()
 {
@@ -154,6 +164,271 @@ void BKE_main_free(Main *mainvar)
   BLI_spin_end((SpinLock *)mainvar->lock);
   MEM_freeN(mainvar->lock);
   MEM_freeN(mainvar);
+}
+
+static bool are_ids_from_different_mains_matching(Main *bmain_1, ID *id_1, Main *bmain_2, ID *id_2)
+{
+  /* Both IDs should not be null at the same time.
+   *
+   * NOTE: E.g. `id_1` may be null, in case `id_2` is a Library ID which path is the filepath of
+   * `bmain_1`. */
+  BLI_assert(id_1 || id_2);
+
+  /* Special handling for libraries, since their filepaths is used then, not their ID names.
+   *
+   * NOTE: In library case, this call should always return true, since given data should always
+   * match. The asserts below merely ensure that expected conditions are always met:
+   *   - A given library absolute filepath should never match its own bmain filepath.
+   *   - If both given libraries are non-null:
+   *     - Their absolute filepath should match.
+   *     - Neither of their absolute filepaths should match any of the bmain filepaths.
+   *   - If one of the library is null:
+   *      - The other library should match the bmain filepath of the null library. */
+  if ((!id_1 && GS(id_2->name) == ID_LI) || GS(id_1->name) == ID_LI) {
+    BLI_assert(!id_1 || !ID_IS_LINKED(id_1));
+    BLI_assert(!id_2 || !ID_IS_LINKED(id_2));
+
+    Library *lib_1 = reinterpret_cast<Library *>(id_1);
+    Library *lib_2 = reinterpret_cast<Library *>(id_2);
+
+    if (lib_1 && lib_2) {
+      BLI_assert(STREQ(lib_1->filepath_abs, lib_2->filepath_abs));
+    }
+    if (lib_1) {
+      BLI_assert(!STREQ(lib_1->filepath_abs, bmain_1->filepath));
+      if (lib_2) {
+        BLI_assert(!STREQ(lib_1->filepath_abs, bmain_2->filepath));
+      }
+      else {
+        BLI_assert(STREQ(lib_1->filepath_abs, bmain_2->filepath));
+      }
+    }
+    if (lib_2) {
+      BLI_assert(!STREQ(lib_2->filepath_abs, bmain_2->filepath));
+      if (lib_1) {
+        BLI_assert(!STREQ(lib_2->filepath_abs, bmain_1->filepath));
+      }
+      else {
+        BLI_assert(STREQ(lib_2->filepath_abs, bmain_1->filepath));
+      }
+    }
+
+    return true;
+  }
+
+  /* Now both IDs are expected to be valid data, and caller is expected to have ensured already
+   * that they have the same name. */
+  BLI_assert(id_1 && id_2);
+  BLI_assert(STREQ(id_1->name, id_2->name));
+
+  if (!id_1->lib && !id_2->lib) {
+    return true;
+  }
+
+  if (id_1->lib && id_2->lib) {
+    if (id_1->lib == id_2->lib) {
+      return true;
+    }
+    if (STREQ(id_1->lib->filepath_abs, id_2->lib->filepath_abs)) {
+      return true;
+    }
+    return false;
+  }
+
+  /* In case one Main is the library of the ID from the other Main. */
+
+  if (id_1->lib) {
+    if (STREQ(id_1->lib->filepath_abs, bmain_2->filepath)) {
+      return true;
+    }
+    return false;
+  }
+
+  if (id_2->lib) {
+    if (STREQ(id_2->lib->filepath_abs, bmain_1->filepath)) {
+      return true;
+    }
+    return false;
+  }
+
+  BLI_assert_unreachable();
+  return false;
+}
+
+static void main_merge_add_id_to_move(Main *bmain_dst,
+                                      blender::Map<std::string, blender::Vector<ID *>> &id_map_dst,
+                                      ID *id_src,
+                                      IDRemapper *id_remapper,
+                                      blender::Vector<ID *> &ids_to_move,
+                                      const bool is_library,
+                                      MainMergeReport &reports)
+{
+  const bool is_id_src_linked(id_src->lib);
+  bool is_id_src_from_bmain_dst = false;
+  if (is_id_src_linked) {
+    BLI_assert(!is_library);
+    blender::Vector<ID *> id_src_lib_dst = id_map_dst.lookup_default(id_src->lib->filepath_abs,
+                                                                     {});
+    /* The current library of the source ID would be remapped to null, which means that it comes
+     * from the destination Main. */
+    is_id_src_from_bmain_dst = !id_src_lib_dst.is_empty() && !id_src_lib_dst[0];
+  }
+  std::cout << id_src->name << " is linked from dst Main: " << is_id_src_from_bmain_dst << "\n";
+  std::cout.flush();
+
+  if (is_id_src_from_bmain_dst) {
+    /* Do not move an ID supposed to be from `bmain_dst` (used as library in `bmain_src`) into
+     * `bmain_src`. Fact that no match was found is worth a warning, although it could happen
+     * e.g. in case `bmain_dst` has been updated since it file was loaded as library in
+     * `bmain_src`. */
+    CLOG_WARN(&LOG,
+              "ID '%s' defined in source Main as linked from destination Main (file '%s') not "
+              "found in given destination Main",
+              id_src->name,
+              bmain_dst->filepath);
+    BKE_id_remapper_add(id_remapper, id_src, nullptr);
+    reports.num_unknown_ids++;
+  }
+  else {
+    ids_to_move.append(id_src);
+  }
+}
+
+void BKE_main_merge(Main *bmain_dst, Main **r_bmain_src, MainMergeReport &reports)
+{
+  Main *bmain_src = *r_bmain_src;
+  /* NOTE: Dedicated mapping type is needed here, to handle propoerly the library cases. */
+  blender::Map<std::string, blender::Vector<ID *>> id_map_dst;
+  ID *id_iter_dst, *id_iter_src;
+  FOREACH_MAIN_ID_BEGIN (bmain_dst, id_iter_dst) {
+    if (GS(id_iter_dst->name) == ID_LI) {
+      /* Libraries need specific handling, as we want to check them by their filepath, not the IDs
+       * themselves. */
+      Library *lib_dst = reinterpret_cast<Library *>(id_iter_dst);
+      BLI_assert(!id_map_dst.contains(lib_dst->filepath_abs));
+      id_map_dst.add(lib_dst->filepath_abs, {id_iter_dst});
+    }
+    else {
+      id_map_dst.lookup_or_add(id_iter_dst->name, {}).append(id_iter_dst);
+    }
+  }
+  FOREACH_MAIN_ID_END;
+  /* Add the current `bmain_dst` filepath in the mapping as well, as it may be a library of the
+   * `bmain_src` Main. */
+  id_map_dst.add(bmain_dst->filepath, {nullptr});
+
+  /* A dedicated remapper for libraries is needed because these need to be remapped _before_ IDs
+   * are moved from `bmain_src` to `bmain_dst`, to avoid having to fix naming and ordering of IDs
+   * afterwards (especially in case some source linked IDs become local in `bmain_dst`). */
+  IDRemapper *id_remapper = BKE_id_remapper_create();
+  IDRemapper *id_remapper_libraries = BKE_id_remapper_create();
+  blender::Vector<ID *> ids_to_move;
+
+  FOREACH_MAIN_ID_BEGIN (bmain_src, id_iter_src) {
+    const bool is_library = GS(id_iter_src->name) == ID_LI;
+
+    blender::Vector<ID *> ids_dst = id_map_dst.lookup_default(
+        is_library ? reinterpret_cast<Library *>(id_iter_src)->filepath_abs : id_iter_src->name,
+        {});
+    if (is_library) {
+      BLI_assert(ids_dst.size() <= 1);
+    }
+    if (ids_dst.is_empty()) {
+      main_merge_add_id_to_move(
+          bmain_dst, id_map_dst, id_iter_src, id_remapper, ids_to_move, is_library, reports);
+      continue;
+    }
+
+    bool src_has_match_in_dst = false;
+    for (ID *id_iter_dst : ids_dst) {
+      if (are_ids_from_different_mains_matching(bmain_dst, id_iter_dst, bmain_src, id_iter_src)) {
+        /* There should only ever be one potential match, never more. */
+        BLI_assert(!src_has_match_in_dst);
+        if (!src_has_match_in_dst) {
+          if (is_library) {
+            BKE_id_remapper_add(id_remapper_libraries, id_iter_src, id_iter_dst);
+            reports.num_remapped_libraries++;
+          }
+          else {
+            BKE_id_remapper_add(id_remapper, id_iter_src, id_iter_dst);
+            reports.num_remapped_ids++;
+          }
+          src_has_match_in_dst = true;
+        }
+#ifdef NDEBUG /* In DEBUG builds, keep looping to ensure there is only one match. */
+        break;
+#endif
+      }
+    }
+    if (!src_has_match_in_dst) {
+      main_merge_add_id_to_move(
+          bmain_dst, id_map_dst, id_iter_src, id_remapper, ids_to_move, is_library, reports);
+    }
+  }
+  FOREACH_MAIN_ID_END;
+
+  reports.num_merged_ids = int(ids_to_move.size());
+
+  /* Rebase relative filepaths in `bmain_src` using `bmain_dst` path as new reference, or make them
+   * absolute if destination bmain has no filepath.  */
+  if (bmain_src->filepath[0] != '\0') {
+    char dir_src[FILE_MAXDIR];
+    BLI_path_split_dir_part(bmain_src->filepath, dir_src, sizeof(dir_src));
+    BLI_path_normalize_native(dir_src);
+
+    if (bmain_dst->filepath[0] != '\0') {
+      char dir_dst[FILE_MAXDIR];
+      BLI_path_split_dir_part(bmain_dst->filepath, dir_dst, sizeof(dir_dst));
+      BLI_path_normalize_native(dir_dst);
+      BKE_bpath_relative_rebase(bmain_src, dir_src, dir_dst, reports.reports);
+    }
+    else {
+      BKE_bpath_absolute_convert(bmain_src, dir_src, reports.reports);
+    }
+  }
+
+  /* Libraries need to be remapped before moving IDs into `bmain_dst`, to ensure that the sorting
+   * of inserted IDs is correct. Note that no bmain is given here, so this is only a 'raw'
+   * remapping. */
+  BKE_libblock_relink_multiple(nullptr,
+                               ids_to_move,
+                               ID_REMAP_TYPE_REMAP,
+                               id_remapper_libraries,
+                               ID_REMAP_DO_LIBRARY_POINTERS);
+
+  for (ID *id_iter_src : ids_to_move) {
+    BKE_libblock_management_main_remove(bmain_src, id_iter_src);
+    BKE_libblock_management_main_add(bmain_dst, id_iter_src);
+  }
+
+  /* The other data has to be remapped once all IDs are in `bmain_dst`, to ensure that additional
+   * update process (e.g. collection hierarchy handling) happens as expected with the correct set
+   * of data.  */
+  BKE_libblock_relink_multiple(bmain_dst, ids_to_move, ID_REMAP_TYPE_REMAP, id_remapper, 0);
+
+  BKE_reportf(
+      reports.reports,
+      RPT_INFO,
+      "Merged %d IDs from '%s' Main into '%s' Main; %d IDs and %d Libraries already existed as "
+      "part of the destination Main, and %d IDs missing from desination Main, were freed together "
+      "with the source Main",
+      reports.num_merged_ids,
+      bmain_src->filepath,
+      bmain_dst->filepath,
+      reports.num_remapped_ids,
+      reports.num_remapped_libraries,
+      reports.num_unknown_ids);
+
+  /* Remapping above may have made some IDs local. So namemap needs to be cleared, and moved IDs
+   * need to be re-sorted. */
+  BKE_main_namemap_clear(bmain_dst);
+
+  BLI_assert(BKE_main_namemap_validate(bmain_dst));
+
+  BKE_id_remapper_free(id_remapper);
+  BKE_id_remapper_free(id_remapper_libraries);
+  BKE_main_free(bmain_src);
+  *r_bmain_src = nullptr;
 }
 
 bool BKE_main_is_empty(Main *bmain)
