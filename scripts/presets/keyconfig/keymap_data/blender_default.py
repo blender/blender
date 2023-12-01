@@ -4578,6 +4578,9 @@ def km_grease_pencil_paint(_params):
 
         # Active layer
         op_menu("GREASE_PENCIL_MT_layer_active", {"type": 'Y', "value": 'PRESS'}),
+
+        # Show/hide
+        *_template_items_hide_reveal_actions("grease_pencil.layer_hide", "grease_pencil.layer_reveal"),
     ])
 
     return keymap
@@ -4609,6 +4612,9 @@ def km_grease_pencil_edit(params):
          {"properties": [("type", "ALL_FRAMES")]}),
         # Keyframe Menu
         op_menu("VIEW3D_MT_edit_greasepencil_animation", {"type": 'I', "value": 'PRESS'}),
+
+        # Show/hide
+        *_template_items_hide_reveal_actions("grease_pencil.layer_hide", "grease_pencil.layer_reveal"),
 
         # Transform Actions.
         *_template_items_transform_actions(params, use_bend=True, use_mirror=True, use_tosphere=True, use_shear=True),
