@@ -6,6 +6,8 @@
 
 #include "DNA_customdata_types.h"
 
+namespace blender::draw::pbvh {
+
 struct PBVHBatches;
 
 enum {
@@ -15,4 +17,6 @@ enum {
   CD_PBVH_MASK_TYPE = CD_NUMTYPES + 3
 };
 
-int drw_pbvh_material_index_get(PBVHBatches *batches);
+int material_index_get(PBVHBatches *batches);
+
+}  // namespace blender::draw::pbvh

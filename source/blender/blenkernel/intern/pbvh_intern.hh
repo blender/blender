@@ -16,6 +16,10 @@
  * \ingroup bke
  */
 
+namespace blender::draw::pbvh {
+struct PBVHBatches;
+}
+
 struct PBVHGPUFormat;
 struct MLoopTri;
 struct BMVert;
@@ -35,7 +39,7 @@ struct BBC {
  * union'd structs */
 struct PBVHNode {
   /* Opaque handle for drawing code */
-  PBVHBatches *draw_batches = nullptr;
+  blender::draw::pbvh::PBVHBatches *draw_batches = nullptr;
 
   /* Voxel bounds */
   BB vb = {};

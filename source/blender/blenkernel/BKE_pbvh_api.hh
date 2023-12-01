@@ -41,14 +41,16 @@ struct MLoopTri;
 struct Mesh;
 struct PBVH;
 struct PBVHNode;
-struct PBVHBatches;
-struct PBVH_GPU_Args;
 struct SculptSession;
 struct SubdivCCGFace;
 struct SubdivCCG;
 struct TaskParallelSettings;
 struct Image;
 struct ImageUser;
+namespace blender::draw::pbvh {
+struct PBVHBatches;
+struct PBVH_GPU_Args;
+}  // namespace blender::draw::pbvh
 
 /*
  * These structs represent logical verts/edges/faces.
@@ -310,8 +312,8 @@ void BKE_pbvh_draw_cb(const Mesh &mesh,
                       PBVHFrustumPlanes *update_frustum,
                       PBVHFrustumPlanes *draw_frustum,
                       void (*draw_fn)(void *user_data,
-                                      PBVHBatches *batches,
-                                      const PBVH_GPU_Args &args),
+                                      blender::draw::pbvh::PBVHBatches *batches,
+                                      const blender::draw::pbvh::PBVH_GPU_Args &args),
                       void *user_data,
                       bool full_render,
                       PBVHAttrReq *attrs,

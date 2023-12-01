@@ -984,7 +984,7 @@ void BKE_pbvh_free(PBVH *pbvh)
   for (PBVHNode &node : pbvh->nodes) {
     if (node.flag & PBVH_Leaf) {
       if (node.draw_batches) {
-        DRW_pbvh_node_free(node.draw_batches);
+        blender::draw::pbvh::node_free(node.draw_batches);
       }
     }
 
@@ -1407,9 +1407,11 @@ bool BKE_pbvh_get_color_layer(Mesh *me, CustomDataLayer **r_layer, eAttrDomain *
   return *r_layer != nullptr;
 }
 
-static PBVH_GPU_Args pbvh_draw_args_init(const Mesh &mesh, PBVH &pbvh, const PBVHNode &node)
+static blender::draw::pbvh::PBVH_GPU_Args pbvh_draw_args_init(const Mesh &mesh,
+                                                              PBVH &pbvh,
+                                                              const PBVHNode &node)
 {
-  PBVH_GPU_Args args{};
+  blender::draw::pbvh::PBVH_GPU_Args args{};
 
   args.pbvh_type = pbvh.header.type;
 
@@ -1471,16 +1473,16 @@ static void node_update_draw_buffers(const Mesh &mesh, PBVH &pbvh, PBVHNode &nod
    * do any OpenGL calls. Flags are not cleared immediately, that happens
    * after GPU_pbvh_buffer_flush() which does the final OpenGL calls. */
   if (node.flag & PBVH_RebuildDrawBuffers) {
-    const PBVH_GPU_Args args = pbvh_draw_args_init(mesh, pbvh, node);
-    node.draw_batches = DRW_pbvh_node_create(args);
+    const blender::draw::pbvh::PBVH_GPU_Args args = pbvh_draw_args_init(mesh, pbvh, node);
+    node.draw_batches = blender::draw::pbvh::node_create(args);
   }
 
   if (node.flag & PBVH_UpdateDrawBuffers) {
     node.debug_draw_gen++;
 
     if (node.draw_batches) {
-      const PBVH_GPU_Args args = pbvh_draw_args_init(mesh, pbvh, node);
-      DRW_pbvh_node_update(node.draw_batches, args);
+      const blender::draw::pbvh::PBVH_GPU_Args args = pbvh_draw_args_init(mesh, pbvh, node);
+      blender::draw::pbvh::node_update(node.draw_batches, args);
     }
   }
 }
@@ -1488,7 +1490,7 @@ static void node_update_draw_buffers(const Mesh &mesh, PBVH &pbvh, PBVHNode &nod
 void pbvh_free_draw_buffers(PBVH & /*pbvh*/, PBVHNode *node)
 {
   if (node->draw_batches) {
-    DRW_pbvh_node_free(node->draw_batches);
+    blender::draw::pbvh::node_free(node->draw_batches);
     node->draw_batches = nullptr;
   }
 }
@@ -1511,8 +1513,8 @@ static void pbvh_update_draw_buffers(const Mesh &mesh,
         pbvh_free_draw_buffers(pbvh, node);
       }
       else if ((node->flag & PBVH_UpdateDrawBuffers) && node->draw_batches) {
-        const PBVH_GPU_Args args = pbvh_draw_args_init(mesh, pbvh, *node);
-        DRW_pbvh_update_pre(node->draw_batches, args);
+        const draw::pbvh::PBVH_GPU_Args args = pbvh_draw_args_init(mesh, pbvh, *node);
+        draw::pbvh::update_pre(node->draw_batches, args);
       }
     }
   }
@@ -1530,7 +1532,7 @@ static void pbvh_update_draw_buffers(const Mesh &mesh,
     if (node->flag & PBVH_UpdateDrawBuffers) {
 
       if (node->draw_batches) {
-        DRW_pbvh_node_gpu_flush(node->draw_batches);
+        draw::pbvh::node_gpu_flush(node->draw_batches);
       }
     }
 
@@ -2894,13 +2896,15 @@ void BKE_pbvh_draw_cb(const Mesh &mesh,
                       PBVHFrustumPlanes *update_frustum,
                       PBVHFrustumPlanes *draw_frustum,
                       void (*draw_fn)(void *user_data,
-                                      PBVHBatches *batches,
-                                      const PBVH_GPU_Args &args),
+                                      blender::draw::pbvh::PBVHBatches *batches,
+                                      const blender::draw::pbvh::PBVH_GPU_Args &args),
                       void *user_data,
                       bool /*full_render*/,
                       PBVHAttrReq *attrs,
                       int attrs_num)
 {
+  using namespace blender;
+  using namespace blender::bke::pbvh;
   Vector<PBVHNode *> nodes;
   int update_flag = 0;
 
@@ -2914,15 +2918,13 @@ void BKE_pbvh_draw_cb(const Mesh &mesh,
     data.accum_update_flag = 0;
     data.attrs = attrs;
     data.attrs_num = attrs_num;
-    nodes = blender::bke::pbvh::search_gather(
-        pbvh, [&](PBVHNode &node) { return pbvh_draw_search(&node, &data); });
+    nodes = search_gather(pbvh, [&](PBVHNode &node) { return pbvh_draw_search(&node, &data); });
     update_flag = data.accum_update_flag;
   }
   else {
     /* Get all nodes with draw updates, also those outside the view. */
     const int search_flag = PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers;
-    nodes = blender::bke::pbvh::search_gather(
-        pbvh, [&](PBVHNode &node) { return update_search(&node, search_flag); });
+    nodes = search_gather(pbvh, [&](PBVHNode &node) { return update_search(&node, search_flag); });
     update_flag = PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers;
   }
 
@@ -2935,12 +2937,11 @@ void BKE_pbvh_draw_cb(const Mesh &mesh,
   PBVHDrawSearchData draw_data{};
   draw_data.frustum = draw_frustum;
   draw_data.accum_update_flag = 0;
-  nodes = blender::bke::pbvh::search_gather(
-      pbvh, [&](PBVHNode &node) { return pbvh_draw_search(&node, &draw_data); });
+  nodes = search_gather(pbvh, [&](PBVHNode &node) { return pbvh_draw_search(&node, &draw_data); });
 
   for (PBVHNode *node : nodes) {
     if (!(node->flag & PBVH_FullyHidden)) {
-      const PBVH_GPU_Args args = pbvh_draw_args_init(mesh, *pbvh, *node);
+      const draw::pbvh::PBVH_GPU_Args args = pbvh_draw_args_init(mesh, *pbvh, *node);
       draw_fn(user_data, node->draw_batches, args);
     }
   }

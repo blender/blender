@@ -342,7 +342,7 @@ static void pbvh_bmesh_node_split(PBVH *pbvh, const Span<BBC> bbc_array, int nod
   n->layer_disp = nullptr;
 
   if (n->draw_batches) {
-    DRW_pbvh_node_free(n->draw_batches);
+    blender::draw::pbvh::node_free(n->draw_batches);
   }
   n->flag &= ~PBVH_Leaf;
 

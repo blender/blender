@@ -1222,9 +1222,10 @@ static float sculpt_debug_colors[9][4] = {
 };
 
 static void sculpt_draw_cb(DRWSculptCallbackData *scd,
-                           PBVHBatches *batches,
-                           const PBVH_GPU_Args &pbvh_draw_args)
+                           blender::draw::pbvh::PBVHBatches *batches,
+                           const blender::draw::pbvh::PBVH_GPU_Args &pbvh_draw_args)
 {
+  using namespace blender::draw;
   if (!batches) {
     return;
   }
@@ -1233,18 +1234,18 @@ static void sculpt_draw_cb(DRWSculptCallbackData *scd,
   GPUBatch *geom;
 
   if (!scd->use_wire) {
-    geom = DRW_pbvh_tris_get(
+    geom = pbvh::tris_get(
         batches, scd->attrs, scd->attrs_num, pbvh_draw_args, &primcount, scd->fast_mode);
   }
   else {
-    geom = DRW_pbvh_lines_get(
+    geom = pbvh::lines_get(
         batches, scd->attrs, scd->attrs_num, pbvh_draw_args, &primcount, scd->fast_mode);
   }
 
   short index = 0;
 
   if (scd->use_mats) {
-    index = drw_pbvh_material_index_get(batches);
+    index = pbvh::material_index_get(batches);
     index = clamp_i(index, 0, scd->num_shading_groups - 1);
   }
 
@@ -1368,7 +1369,9 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd)
                    update_only_visible,
                    &update_frustum,
                    &draw_frustum,
-                   (void (*)(void *, PBVHBatches *, const PBVH_GPU_Args &))sculpt_draw_cb,
+                   (void (*)(void *,
+                             blender::draw::pbvh::PBVHBatches *,
+                             const blender::draw::pbvh::PBVH_GPU_Args &))sculpt_draw_cb,
                    scd,
                    scd->use_mats,
                    scd->attrs,
@@ -1405,15 +1408,19 @@ void DRW_shgroup_call_sculpt(DRWShadingGroup *shgroup,
   int attrs_num = 0;
 
   /* NOTE: these are NOT #eCustomDataType, they are extended values, ASAN may warn about this. */
-  attrs[attrs_num++] = PBVHAttrReq(ATTR_DOMAIN_POINT, eCustomDataType(CD_PBVH_CO_TYPE));
-  attrs[attrs_num++] = PBVHAttrReq(ATTR_DOMAIN_POINT, eCustomDataType(CD_PBVH_NO_TYPE));
+  attrs[attrs_num++] = PBVHAttrReq(ATTR_DOMAIN_POINT,
+                                   eCustomDataType(blender::draw::pbvh::CD_PBVH_CO_TYPE));
+  attrs[attrs_num++] = PBVHAttrReq(ATTR_DOMAIN_POINT,
+                                   eCustomDataType(blender::draw::pbvh::CD_PBVH_NO_TYPE));
 
   if (use_mask) {
-    attrs[attrs_num++] = PBVHAttrReq(ATTR_DOMAIN_POINT, eCustomDataType(CD_PBVH_MASK_TYPE));
+    attrs[attrs_num++] = PBVHAttrReq(ATTR_DOMAIN_POINT,
+                                     eCustomDataType(blender::draw::pbvh::CD_PBVH_MASK_TYPE));
   }
 
   if (use_fset) {
-    attrs[attrs_num++] = PBVHAttrReq(ATTR_DOMAIN_FACE, eCustomDataType(CD_PBVH_FSET_TYPE));
+    attrs[attrs_num++] = PBVHAttrReq(ATTR_DOMAIN_FACE,
+                                     eCustomDataType(blender::draw::pbvh::CD_PBVH_FSET_TYPE));
   }
 
   Mesh *me = BKE_object_get_original_mesh(ob);
@@ -1477,8 +1484,8 @@ void DRW_shgroup_call_sculpt_with_materials(DRWShadingGroup **shgroups,
   int attrs_i = 0;
 
   /* NOTE: these are NOT #eCustomDataType, they are extended values, ASAN may warn about this. */
-  attrs[attrs_i++].type = (eCustomDataType)CD_PBVH_CO_TYPE;
-  attrs[attrs_i++].type = (eCustomDataType)CD_PBVH_NO_TYPE;
+  attrs[attrs_i++].type = (eCustomDataType)blender::draw::pbvh::CD_PBVH_CO_TYPE;
+  attrs[attrs_i++].type = (eCustomDataType)blender::draw::pbvh::CD_PBVH_NO_TYPE;
 
   for (int i = 0; i < draw_attrs.num_requests; i++) {
     DRW_AttributeRequest *req = draw_attrs.requests + i;

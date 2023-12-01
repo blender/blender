@@ -58,23 +58,10 @@
 #define MAX_PBVH_BATCH_KEY 512
 #define MAX_PBVH_VBOS 16
 
-using blender::float3;
-using blender::FunctionRef;
-using blender::IndexRange;
-using blender::Map;
-using blender::MutableSpan;
-using blender::short3;
-using blender::short4;
-using blender::Span;
-using blender::StringRef;
-using blender::StringRefNull;
-using blender::uchar3;
-using blender::uchar4;
-using blender::Vector;
+namespace blender::draw::pbvh {
 
 static bool pbvh_attr_supported(int type, const eAttrDomain domain)
 {
-  using namespace blender;
   if (!ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_FACE, ATTR_DOMAIN_CORNER)) {
     /* PBVH drawing does not support edge domain attributes. */
     return false;
@@ -85,7 +72,7 @@ static bool pbvh_attr_supported(int type, const eAttrDomain domain)
   bool type_supported = false;
   bke::attribute_math::convert_to_static_type(eCustomDataType(type), [&](auto dummy) {
     using T = decltype(dummy);
-    using Converter = draw::AttributeConverter<T>;
+    using Converter = AttributeConverter<T>;
     using VBOType = typename Converter::VBOType;
     if constexpr (!std::is_void_v<VBOType>) {
       type_supported = true;
@@ -131,7 +118,7 @@ inline short4 normal_float_to_short(const float3 &value)
 template<typename T>
 void extract_data_vert_faces(const PBVH_GPU_Args &args, const Span<T> attribute, GPUVertBuf &vbo)
 {
-  using Converter = blender::draw::AttributeConverter<T>;
+  using Converter = AttributeConverter<T>;
   using VBOType = typename Converter::VBOType;
   const Span<int> corner_verts = args.corner_verts;
   const Span<MLoopTri> looptris = args.mlooptri;
@@ -154,7 +141,7 @@ void extract_data_vert_faces(const PBVH_GPU_Args &args, const Span<T> attribute,
 template<typename T>
 void extract_data_face_faces(const PBVH_GPU_Args &args, const Span<T> attribute, GPUVertBuf &vbo)
 {
-  using Converter = blender::draw::AttributeConverter<T>;
+  using Converter = AttributeConverter<T>;
   using VBOType = typename Converter::VBOType;
 
   const Span<int> looptri_faces = args.looptri_faces;
@@ -174,7 +161,7 @@ void extract_data_face_faces(const PBVH_GPU_Args &args, const Span<T> attribute,
 template<typename T>
 void extract_data_corner_faces(const PBVH_GPU_Args &args, const Span<T> attribute, GPUVertBuf &vbo)
 {
-  using Converter = blender::draw::AttributeConverter<T>;
+  using Converter = AttributeConverter<T>;
   using VBOType = typename Converter::VBOType;
 
   const Span<MLoopTri> looptris = args.mlooptri;
@@ -212,7 +199,7 @@ template<typename T> const T &bmesh_cd_face_get(const BMFace &face, const int of
 template<typename T>
 void extract_data_vert_bmesh(const PBVH_GPU_Args &args, const int cd_offset, GPUVertBuf &vbo)
 {
-  using Converter = blender::draw::AttributeConverter<T>;
+  using Converter = AttributeConverter<T>;
   using VBOType = typename Converter::VBOType;
   VBOType *data = static_cast<VBOType *>(GPU_vertbuf_get_data(&vbo));
 
@@ -233,7 +220,7 @@ void extract_data_vert_bmesh(const PBVH_GPU_Args &args, const int cd_offset, GPU
 template<typename T>
 void extract_data_face_bmesh(const PBVH_GPU_Args &args, const int cd_offset, GPUVertBuf &vbo)
 {
-  using Converter = blender::draw::AttributeConverter<T>;
+  using Converter = AttributeConverter<T>;
   using VBOType = typename Converter::VBOType;
   VBOType *data = static_cast<VBOType *>(GPU_vertbuf_get_data(&vbo));
 
@@ -249,7 +236,7 @@ void extract_data_face_bmesh(const PBVH_GPU_Args &args, const int cd_offset, GPU
 template<typename T>
 void extract_data_corner_bmesh(const PBVH_GPU_Args &args, const int cd_offset, GPUVertBuf &vbo)
 {
-  using Converter = blender::draw::AttributeConverter<T>;
+  using Converter = AttributeConverter<T>;
   using VBOType = typename Converter::VBOType;
   VBOType *data = static_cast<VBOType *>(GPU_vertbuf_get_data(&vbo));
 
@@ -514,7 +501,6 @@ struct PBVHBatches {
       FunctionRef<void(FunctionRef<void(int x, int y, int grid_index, CCGElem *elems[4], int i)>
                            func)> foreach_grids)
   {
-    using namespace blender;
     uint vert_per_grid = square_i(args.ccg_key.grid_size - 1) * 4;
     uint vert_count = args.grid_indices.size() * vert_per_grid;
 
@@ -607,7 +593,7 @@ struct PBVHBatches {
     else {
       bke::attribute_math::convert_to_static_type(eCustomDataType(vbo.type), [&](auto dummy) {
         using T = decltype(dummy);
-        using Converter = draw::AttributeConverter<T>;
+        using Converter = AttributeConverter<T>;
         using VBOType = typename Converter::VBOType;
         std::fill_n(static_cast<VBOType *>(GPU_vertbuf_get_data(vbo.vert_buf)),
                     GPU_vertbuf_get_vertex_len(vbo.vert_buf),
@@ -682,7 +668,6 @@ struct PBVHBatches {
 
   void fill_vbo_faces(PBVHVbo &vbo, const PBVH_GPU_Args &args)
   {
-    using namespace blender;
     const int totvert = this->count_faces(args) * 3;
 
     int existing_num = GPU_vertbuf_get_vertex_len(vbo.vert_buf);
@@ -805,7 +790,6 @@ struct PBVHBatches {
 
   void fill_vbo_bmesh(PBVHVbo &vbo, const PBVH_GPU_Args &args)
   {
-    using namespace blender;
     faces_count = tris_count = count_faces(args);
 
     int existing_num = GPU_vertbuf_get_vertex_len(vbo.vert_buf);
@@ -964,7 +948,6 @@ struct PBVHBatches {
                   const StringRefNull name,
                   const PBVH_GPU_Args &args)
   {
-    using namespace blender;
     PBVHVbo vbo(domain, type, name);
     GPUVertFormat format;
 
@@ -1058,7 +1041,6 @@ struct PBVHBatches {
 
   void create_index_faces(const PBVH_GPU_Args &args)
   {
-    using namespace blender;
     const int *mat_index = static_cast<const int *>(
         CustomData_get_layer_named(args.face_data, CD_PROP_INT32, "material_index"));
 
@@ -1068,7 +1050,7 @@ struct PBVHBatches {
       material_index = mat_index[face_i];
     }
 
-    const blender::Span<blender::int2> edges = args.me->edges();
+    const Span<int2> edges = args.me->edges();
 
     /* Calculate number of edges. */
     int edge_count = 0;
@@ -1078,7 +1060,7 @@ struct PBVHBatches {
         continue;
       }
 
-      const blender::int3 real_edges = bke::mesh::looptri_get_real_edges(
+      const int3 real_edges = bke::mesh::looptri_get_real_edges(
           edges, args.corner_verts, args.corner_edges, args.mlooptri[looptri_i]);
 
       if (real_edges[0] != -1) {
@@ -1102,7 +1084,7 @@ struct PBVHBatches {
         continue;
       }
 
-      const blender::int3 real_edges = bke::mesh::looptri_get_real_edges(
+      const int3 real_edges = bke::mesh::looptri_get_real_edges(
           edges, args.corner_verts, args.corner_edges, args.mlooptri[looptri_i]);
 
       if (real_edges[0] != -1) {
@@ -1398,33 +1380,33 @@ struct PBVHBatches {
   }
 };
 
-void DRW_pbvh_node_update(PBVHBatches *batches, const PBVH_GPU_Args &args)
+void node_update(PBVHBatches *batches, const PBVH_GPU_Args &args)
 {
   batches->update(args);
 }
 
-void DRW_pbvh_node_gpu_flush(PBVHBatches *batches)
+void node_gpu_flush(PBVHBatches *batches)
 {
   batches->gpu_flush();
 }
 
-PBVHBatches *DRW_pbvh_node_create(const PBVH_GPU_Args &args)
+PBVHBatches *node_create(const PBVH_GPU_Args &args)
 {
   PBVHBatches *batches = new PBVHBatches(args);
   return batches;
 }
 
-void DRW_pbvh_node_free(PBVHBatches *batches)
+void node_free(PBVHBatches *batches)
 {
   delete batches;
 }
 
-GPUBatch *DRW_pbvh_tris_get(PBVHBatches *batches,
-                            PBVHAttrReq *attrs,
-                            int attrs_num,
-                            const PBVH_GPU_Args &args,
-                            int *r_prim_count,
-                            bool do_coarse_grids)
+GPUBatch *tris_get(PBVHBatches *batches,
+                   PBVHAttrReq *attrs,
+                   int attrs_num,
+                   const PBVH_GPU_Args &args,
+                   int *r_prim_count,
+                   bool do_coarse_grids)
 {
   do_coarse_grids &= args.pbvh_type == PBVH_GRIDS;
 
@@ -1435,12 +1417,12 @@ GPUBatch *DRW_pbvh_tris_get(PBVHBatches *batches,
   return batch.tris;
 }
 
-GPUBatch *DRW_pbvh_lines_get(PBVHBatches *batches,
-                             PBVHAttrReq *attrs,
-                             int attrs_num,
-                             const PBVH_GPU_Args &args,
-                             int *r_prim_count,
-                             bool do_coarse_grids)
+GPUBatch *lines_get(PBVHBatches *batches,
+                    PBVHAttrReq *attrs,
+                    int attrs_num,
+                    const PBVH_GPU_Args &args,
+                    int *r_prim_count,
+                    bool do_coarse_grids)
 {
   do_coarse_grids &= args.pbvh_type == PBVH_GRIDS;
 
@@ -1451,12 +1433,14 @@ GPUBatch *DRW_pbvh_lines_get(PBVHBatches *batches,
   return batch.lines;
 }
 
-void DRW_pbvh_update_pre(PBVHBatches *batches, const PBVH_GPU_Args &args)
+void update_pre(PBVHBatches *batches, const PBVH_GPU_Args &args)
 {
   batches->update_pre(args);
 }
 
-int drw_pbvh_material_index_get(PBVHBatches *batches)
+int material_index_get(PBVHBatches *batches)
 {
   return batches->material_index;
 }
+
+}  // namespace blender::draw::pbvh

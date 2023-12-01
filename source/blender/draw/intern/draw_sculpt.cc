@@ -47,8 +47,8 @@ struct SculptCallbackData {
 };
 
 static void sculpt_draw_cb(SculptCallbackData *data,
-                           PBVHBatches *batches,
-                           const PBVH_GPU_Args &pbvh_draw_args)
+                           pbvh::PBVHBatches *batches,
+                           const pbvh::PBVH_GPU_Args &pbvh_draw_args)
 {
   if (!batches) {
     return;
@@ -58,15 +58,15 @@ static void sculpt_draw_cb(SculptCallbackData *data,
 
   int primcount;
   if (data->use_wire) {
-    batch.batch = DRW_pbvh_lines_get(
+    batch.batch = pbvh::lines_get(
         batches, data->attrs, data->attrs_len, pbvh_draw_args, &primcount, data->fast_mode);
   }
   else {
-    batch.batch = DRW_pbvh_tris_get(
+    batch.batch = pbvh::tris_get(
         batches, data->attrs, data->attrs_len, pbvh_draw_args, &primcount, data->fast_mode);
   }
 
-  batch.material_slot = drw_pbvh_material_index_get(batches);
+  batch.material_slot = pbvh::material_index_get(batches);
   batch.debug_index = data->batches.size();
 
   data->batches.append(batch);
@@ -139,16 +139,17 @@ static Vector<SculptBatch> sculpt_batches_get_ex(
   data.attrs = attrs;
   data.attrs_len = attrs_len;
 
-  BKE_pbvh_draw_cb(*mesh,
-                   pbvh,
-                   update_only_visible,
-                   &update_frustum,
-                   &draw_frustum,
-                   (void (*)(void *, PBVHBatches *, const PBVH_GPU_Args &))sculpt_draw_cb,
-                   &data,
-                   use_materials,
-                   attrs,
-                   attrs_len);
+  BKE_pbvh_draw_cb(
+      *mesh,
+      pbvh,
+      update_only_visible,
+      &update_frustum,
+      &draw_frustum,
+      (void (*)(void *, pbvh::PBVHBatches *, const pbvh::PBVH_GPU_Args &))sculpt_draw_cb,
+      &data,
+      use_materials,
+      attrs,
+      attrs_len);
 
   return data.batches;
 }
@@ -159,15 +160,15 @@ Vector<SculptBatch> sculpt_batches_get(Object *ob, bool per_material, SculptBatc
   int attrs_len = 0;
 
   /* NOTE: these are NOT #eCustomDataType, they are extended values, ASAN may warn about this. */
-  attrs[attrs_len++].type = eCustomDataType(CD_PBVH_CO_TYPE);
-  attrs[attrs_len++].type = eCustomDataType(CD_PBVH_NO_TYPE);
+  attrs[attrs_len++].type = eCustomDataType(pbvh::CD_PBVH_CO_TYPE);
+  attrs[attrs_len++].type = eCustomDataType(pbvh::CD_PBVH_NO_TYPE);
 
   if (features & SCULPT_BATCH_MASK) {
-    attrs[attrs_len++].type = eCustomDataType(CD_PBVH_MASK_TYPE);
+    attrs[attrs_len++].type = eCustomDataType(pbvh::CD_PBVH_MASK_TYPE);
   }
 
   if (features & SCULPT_BATCH_FACE_SET) {
-    attrs[attrs_len++].type = eCustomDataType(CD_PBVH_FSET_TYPE);
+    attrs[attrs_len++].type = eCustomDataType(pbvh::CD_PBVH_FSET_TYPE);
   }
 
   Mesh *mesh = BKE_object_get_original_mesh(ob);
@@ -213,8 +214,8 @@ Vector<SculptBatch> sculpt_batches_per_material_get(Object *ob,
   int attrs_len = 0;
 
   /* NOTE: these are NOT #eCustomDataType, they are extended values, ASAN may warn about this. */
-  attrs[attrs_len++].type = eCustomDataType(CD_PBVH_CO_TYPE);
-  attrs[attrs_len++].type = eCustomDataType(CD_PBVH_NO_TYPE);
+  attrs[attrs_len++].type = eCustomDataType(pbvh::CD_PBVH_CO_TYPE);
+  attrs[attrs_len++].type = eCustomDataType(pbvh::CD_PBVH_NO_TYPE);
 
   for (int i = 0; i < draw_attrs.num_requests; i++) {
     DRW_AttributeRequest *req = draw_attrs.requests + i;

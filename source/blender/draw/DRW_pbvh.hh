@@ -21,9 +21,6 @@
 class PBVHAttrReq;
 struct GPUBatch;
 struct PBVHNode;
-struct PBVHBatches;
-struct PBVHGPUFormat;
-struct GSet;
 struct DMFlagMat;
 struct Mesh;
 struct MLoopTri;
@@ -32,59 +29,66 @@ struct SubdivCCG;
 struct BMesh;
 struct BMFace;
 
+namespace blender::draw::pbvh {
+
+struct PBVHBatches;
+
 struct PBVH_GPU_Args {
   int pbvh_type;
 
   BMesh *bm;
   const Mesh *me;
-  blender::MutableSpan<blender::float3> vert_positions;
-  blender::Span<int> corner_verts;
-  blender::Span<int> corner_edges;
+  MutableSpan<float3> vert_positions;
+  Span<int> corner_verts;
+  Span<int> corner_edges;
   const CustomData *vert_data;
   const CustomData *loop_data;
   const CustomData *face_data;
-  blender::Span<blender::float3> vert_normals;
-  blender::Span<blender::float3> face_normals;
+  Span<float3> vert_normals;
+  Span<float3> face_normals;
 
   const char *active_color;
   const char *render_color;
 
-  int face_sets_color_seed, face_sets_color_default;
+  int face_sets_color_seed;
+  int face_sets_color_default;
 
   SubdivCCG *subdiv_ccg;
-  blender::Span<DMFlagMat> grid_flag_mats;
-  blender::Span<int> grid_indices;
+  Span<DMFlagMat> grid_flag_mats;
+  Span<int> grid_indices;
   CCGKey ccg_key;
-  blender::Span<CCGElem *> grids;
-  blender::Span<const BLI_bitmap *> grid_hidden;
+  Span<CCGElem *> grids;
+  Span<const BLI_bitmap *> grid_hidden;
 
-  blender::Span<int> prim_indices;
+  Span<int> prim_indices;
 
   const bool *hide_poly;
 
-  blender::Span<MLoopTri> mlooptri;
-  blender::Span<int> looptri_faces;
+  Span<MLoopTri> mlooptri;
+  Span<int> looptri_faces;
 
   /* BMesh. */
-  const blender::Set<BMFace *, 0> *bm_faces;
+  const Set<BMFace *, 0> *bm_faces;
   int cd_mask_layer;
 };
 
-void DRW_pbvh_node_update(PBVHBatches *batches, const PBVH_GPU_Args &args);
-void DRW_pbvh_update_pre(PBVHBatches *batches, const PBVH_GPU_Args &args);
+void node_update(PBVHBatches *batches, const PBVH_GPU_Args &args);
+void update_pre(PBVHBatches *batches, const PBVH_GPU_Args &args);
 
-void DRW_pbvh_node_gpu_flush(PBVHBatches *batches);
-PBVHBatches *DRW_pbvh_node_create(const PBVH_GPU_Args &args);
-void DRW_pbvh_node_free(PBVHBatches *batches);
-GPUBatch *DRW_pbvh_tris_get(PBVHBatches *batches,
-                            PBVHAttrReq *attrs,
-                            int attrs_num,
-                            const PBVH_GPU_Args &args,
-                            int *r_prim_count,
-                            bool do_coarse_grids);
-GPUBatch *DRW_pbvh_lines_get(PBVHBatches *batches,
-                             PBVHAttrReq *attrs,
-                             int attrs_num,
-                             const PBVH_GPU_Args &args,
-                             int *r_prim_count,
-                             bool do_coarse_grids);
+void node_gpu_flush(PBVHBatches *batches);
+PBVHBatches *node_create(const PBVH_GPU_Args &args);
+void node_free(PBVHBatches *batches);
+GPUBatch *tris_get(PBVHBatches *batches,
+                   PBVHAttrReq *attrs,
+                   int attrs_num,
+                   const PBVH_GPU_Args &args,
+                   int *r_prim_count,
+                   bool do_coarse_grids);
+GPUBatch *lines_get(PBVHBatches *batches,
+                    PBVHAttrReq *attrs,
+                    int attrs_num,
+                    const PBVH_GPU_Args &args,
+                    int *r_prim_count,
+                    bool do_coarse_grids);
+
+}  // namespace blender::draw::pbvh
