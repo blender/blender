@@ -12,6 +12,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <limits>
 
 #include "MEM_guardedalloc.h"
 
@@ -2919,8 +2920,8 @@ std::optional<blender::Bounds<blender::float3>> BKE_armature_min_max(const bPose
   if (BLI_listbase_is_empty(&pose->chanbase)) {
     return std::nullopt;
   }
-  blender::float3 min(-FLT_MAX);
-  blender::float3 max(FLT_MAX);
+  blender::float3 min(std::numeric_limits<float>::max());
+  blender::float3 max(std::numeric_limits<float>::lowest());
   /* For now, we assume BKE_pose_where_is has already been called
    * (hence we have valid data in pachan). */
   LISTBASE_FOREACH (bPoseChannel *, pchan, &pose->chanbase) {
