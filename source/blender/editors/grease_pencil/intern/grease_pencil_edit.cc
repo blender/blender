@@ -14,12 +14,16 @@
 #include "BLI_span.hh"
 #include "BLI_stack.hh"
 
+#include "DNA_material_types.h"
+
 #include "BKE_context.hh"
 #include "BKE_curves_utils.hh"
 #include "BKE_grease_pencil.hh"
+#include "BKE_material.h"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 
 #include "DEG_depsgraph.hh"
 
@@ -28,6 +32,8 @@
 #include "ED_screen.hh"
 
 #include "WM_api.hh"
+
+#include "UI_resources.hh"
 
 namespace blender::ed::greasepencil {
 
@@ -1449,6 +1455,79 @@ static void GREASE_PENCIL_OT_caps_set(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Set Active Material Operator
+ * \{ */
+/* Retry enum items with object materials. */
+static const EnumPropertyItem *material_enum_itemf(bContext *C,
+                                                   PointerRNA * /*ptr*/,
+                                                   PropertyRNA * /*prop*/,
+                                                   bool *r_free)
+{
+  Object *ob = CTX_data_active_object(C);
+  EnumPropertyItem *item = nullptr, item_tmp = {0};
+  int totitem = 0;
+
+  if (ob == nullptr) {
+    return rna_enum_dummy_DEFAULT_items;
+  }
+
+  /* Existing materials */
+  for (const int i : IndexRange(ob->totcol)) {
+    if (Material *ma = BKE_object_material_get(ob, i + 1)) {
+      item_tmp.identifier = ma->id.name + 2;
+      item_tmp.name = ma->id.name + 2;
+      item_tmp.value = i + 1;
+      item_tmp.icon = ma->preview ? ma->preview->icon_id : ICON_NONE;
+
+      RNA_enum_item_add(&item, &totitem, &item_tmp);
+    }
+  }
+  RNA_enum_item_end(&item, &totitem);
+  *r_free = true;
+
+  return item;
+}
+
+static int grease_pencil_set_material_exec(bContext *C, wmOperator *op)
+{
+  Object *object = CTX_data_active_object(C);
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  const int slot = RNA_enum_get(op->ptr, "slot");
+
+  /* Try to get material slot. */
+  if ((slot < 1) || (slot > object->totcol)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  /* Set active material. */
+  object->actcol = slot;
+
+  WM_event_add_notifier(C, NC_GEOM | ND_DATA | NA_EDITED, &grease_pencil);
+
+  return OPERATOR_FINISHED;
+}
+
+void GREASE_PENCIL_OT_set_material(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Set Active Material";
+  ot->idname = "GREASE_PENCIL_OT_set_material";
+  ot->description = "Set active material";
+
+  /* callbacks */
+  ot->exec = grease_pencil_set_material_exec;
+  ot->poll = active_grease_pencil_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* Material to use (dynamic enum) */
+  ot->prop = RNA_def_enum(ot->srna, "slot", rna_enum_dummy_DEFAULT_items, 0, "Material Slot", "");
+  RNA_def_enum_funcs(ot->prop, material_enum_itemf);
+}
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Duplicate Operator
  * \{ */
 
@@ -1644,6 +1723,7 @@ void ED_operatortypes_grease_pencil_edit()
   WM_operatortype_append(GREASE_PENCIL_OT_set_uniform_opacity);
   WM_operatortype_append(GREASE_PENCIL_OT_caps_set);
   WM_operatortype_append(GREASE_PENCIL_OT_duplicate);
+  WM_operatortype_append(GREASE_PENCIL_OT_set_material);
 }
 
 void ED_keymap_grease_pencil(wmKeyConfig *keyconf)
