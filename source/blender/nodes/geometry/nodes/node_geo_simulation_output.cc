@@ -780,10 +780,10 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
   if (nmd.runtime->cache) {
     const bke::bake::ModifierCache &cache = *nmd.runtime->cache;
     std::lock_guard lock{cache.mutex};
-    if (const std::unique_ptr<bke::bake::NodeCache> *node_cache_ptr = cache.cache_by_id.lookup_ptr(
-            *bake_id))
+    if (const std::unique_ptr<bke::bake::SimulationNodeCache> *node_cache_ptr =
+            cache.simulation_cache_by_id.lookup_ptr(*bake_id))
     {
-      const bke::bake::NodeCache &node_cache = **node_cache_ptr;
+      const bke::bake::SimulationNodeCache &node_cache = **node_cache_ptr;
       if (node_cache.cache_status == bke::bake::CacheStatus::Baked &&
           !node_cache.frame_caches.is_empty())
       {

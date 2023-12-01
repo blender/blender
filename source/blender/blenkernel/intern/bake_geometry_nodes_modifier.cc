@@ -24,10 +24,10 @@
 
 namespace blender::bke::bake {
 
-void NodeCache::reset()
+void SimulationNodeCache::reset()
 {
   std::destroy_at(this);
-  new (this) NodeCache();
+  new (this) SimulationNodeCache();
 }
 void scene_simulation_states_reset(Scene &scene)
 {
@@ -40,7 +40,7 @@ void scene_simulation_states_reset(Scene &scene)
       if (!nmd->runtime->cache) {
         continue;
       }
-      for (auto item : nmd->runtime->cache->cache_by_id.items()) {
+      for (auto item : nmd->runtime->cache->simulation_cache_by_id.items()) {
         item.value->reset();
       }
     }

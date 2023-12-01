@@ -102,7 +102,7 @@ static void calculate_simulation_job_startjob(void *customdata, wmJobWorkerStatu
       if (!nmd->runtime->cache) {
         continue;
       }
-      for (auto item : nmd->runtime->cache->cache_by_id.items()) {
+      for (auto item : nmd->runtime->cache->simulation_cache_by_id.items()) {
         if (item.value->cache_status != bake::CacheStatus::Baked) {
           item.value->reset();
         }
@@ -296,11 +296,11 @@ static void bake_simulation_job_startjob(void *customdata, wmJobWorkerStatus *wo
         NodesModifierData &nmd = *modifier_bake_data.nmd;
         const bake::ModifierCache &modifier_cache = *nmd.runtime->cache;
         for (NodeBakeData &node_bake_data : modifier_bake_data.nodes) {
-          if (!modifier_cache.cache_by_id.contains(node_bake_data.id)) {
+          if (!modifier_cache.simulation_cache_by_id.contains(node_bake_data.id)) {
             continue;
           }
-          const bake::NodeCache &node_cache = *modifier_cache.cache_by_id.lookup(
-              node_bake_data.id);
+          const bake::SimulationNodeCache &node_cache =
+              *modifier_cache.simulation_cache_by_id.lookup(node_bake_data.id);
           if (node_cache.frame_caches.is_empty()) {
             continue;
           }
@@ -340,10 +340,10 @@ static void bake_simulation_job_startjob(void *customdata, wmJobWorkerStatus *wo
     for (ModifierBakeData &modifier_bake_data : object_bake_data.modifiers) {
       NodesModifierData &nmd = *modifier_bake_data.nmd;
       for (NodeBakeData &node_bake_data : modifier_bake_data.nodes) {
-        if (std::unique_ptr<bake::NodeCache> *node_cache_ptr =
-                nmd.runtime->cache->cache_by_id.lookup_ptr(node_bake_data.id))
+        if (std::unique_ptr<bake::SimulationNodeCache> *node_cache_ptr =
+                nmd.runtime->cache->simulation_cache_by_id.lookup_ptr(node_bake_data.id))
         {
-          bake::NodeCache &node_cache = **node_cache_ptr;
+          bake::SimulationNodeCache &node_cache = **node_cache_ptr;
           if (!node_cache.frame_caches.is_empty()) {
             /* Tag the caches as being baked so that they are not changed anymore. */
             node_cache.cache_status = bake::CacheStatus::Baked;
@@ -422,7 +422,7 @@ static Vector<ObjectBakeData> collect_nodes_to_bake(Main &bmain,
       ModifierBakeData modifier_bake_data;
       modifier_bake_data.nmd = nmd;
 
-      for (auto item : nmd->runtime->cache->cache_by_id.items()) {
+      for (auto item : nmd->runtime->cache->simulation_cache_by_id.items()) {
         item.value->reset();
       }
 
@@ -652,10 +652,10 @@ static void try_delete_bake(
   }
   bake::ModifierCache &modifier_cache = *nmd.runtime->cache;
   std::lock_guard lock{modifier_cache.mutex};
-  if (!modifier_cache.cache_by_id.contains(bake_id)) {
+  if (!modifier_cache.simulation_cache_by_id.contains(bake_id)) {
     return;
   }
-  bake::NodeCache &node_cache = *modifier_cache.cache_by_id.lookup(bake_id);
+  bake::SimulationNodeCache &node_cache = *modifier_cache.simulation_cache_by_id.lookup(bake_id);
   node_cache.reset();
   const std::optional<bake::BakePath> bake_path = bake::get_node_bake_path(
       *bmain, object, nmd, bake_id);
