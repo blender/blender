@@ -54,15 +54,15 @@
 namespace blender::ed::sculpt_paint::hide {
 
 enum class VisAction {
-  Hide,
-  Show,
+  Hide = 0,
+  Show = 1,
 };
 
 enum VisArea {
-  Inside,
-  Outside,
-  All,
-  Masked,
+  Inside = 0,
+  Outside = 1,
+  All = 2,
+  Masked = 3,
 };
 
 static bool action_to_hide(const VisAction action)
