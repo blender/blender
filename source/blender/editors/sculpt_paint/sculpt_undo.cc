@@ -290,7 +290,7 @@ static void update_cb(PBVHNode *node, void *rebuild)
 struct PartialUpdateData {
   PBVH *pbvh;
   bool rebuild;
-  char *modified_grids;
+  bool *modified_grids;
   bool *modified_hidden_verts;
   bool *modified_mask_verts;
   bool *modified_color_verts;
@@ -304,18 +304,12 @@ static void update_cb_partial(PBVHNode *node, void *userdata)
 {
   PartialUpdateData *data = static_cast<PartialUpdateData *>(userdata);
   if (BKE_pbvh_type(data->pbvh) == PBVH_GRIDS) {
-    const int *node_grid_indices;
-    int totgrid;
-    bool update = false;
-    BKE_pbvh_node_get_grids(
-        data->pbvh, node, &node_grid_indices, &totgrid, nullptr, nullptr, nullptr);
-    for (int i = 0; i < totgrid; i++) {
-      if (data->modified_grids[node_grid_indices[i]] == 1) {
-        update = true;
-      }
-    }
-    if (update) {
-      update_cb(node, &(data->rebuild));
+    const Span<int> grid_indices = BKE_pbvh_node_get_grid_indices(*node);
+    if (std::any_of(grid_indices.begin(), grid_indices.end(), [&](const int grid) {
+          return data->modified_grids[grid];
+        }))
+    {
+      update_cb(node, &data->rebuild);
     }
   }
   else {
@@ -383,6 +377,7 @@ static bool sculpt_undo_restore_deformed(
 
 static bool sculpt_undo_restore_coords(bContext *C, Depsgraph *depsgraph, SculptUndoNode *unode)
 {
+  using namespace blender;
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   BKE_view_layer_synced_ensure(scene, view_layer);
@@ -467,23 +462,20 @@ static bool sculpt_undo_restore_coords(bContext *C, Depsgraph *depsgraph, Sculpt
       }
     }
   }
-  else if (unode->maxgrid && subdiv_ccg != nullptr) {
-    /* Multires restore. */
-    CCGElem **grids, *grid;
+  else if (!unode->grids.is_empty() && subdiv_ccg != nullptr) {
+    const int gridsize = subdiv_ccg->grid_size;
     CCGKey key;
-    int gridsize;
-
-    grids = subdiv_ccg->grids.data();
-    gridsize = subdiv_ccg->grid_size;
     BKE_subdiv_ccg_key_top_level(key, *subdiv_ccg);
+    const Span<int> grid_indices = unode->grids;
 
     blender::MutableSpan<blender::float3> co = unode->co;
-    int index = 0;
-    for (int j = 0; j < unode->totgrid; j++) {
-      grid = grids[unode->grids[j]];
+    MutableSpan<CCGElem *> grids = subdiv_ccg->grids;
 
-      for (int i = 0; i < gridsize * gridsize; i++) {
-        swap_v3_v3(CCG_elem_offset_co(&key, grid, i), co[index]);
+    int index = 0;
+    for (const int i : grid_indices.index_range()) {
+      CCGElem *grid = grids[grid_indices[i]];
+      for (const int j : IndexRange(gridsize * gridsize)) {
+        swap_v3_v3(CCG_elem_offset_co(&key, grid, j), co[index]);
         index++;
       }
     }
@@ -517,11 +509,11 @@ static bool sculpt_undo_restore_hidden(bContext *C, SculptUndoNode *unode, bool 
     }
     hide_vert.finish();
   }
-  else if (unode->maxgrid && subdiv_ccg != nullptr) {
+  else if (!unode->grids.is_empty() && subdiv_ccg != nullptr) {
+    const Span<int> grids = unode->grids;
     blender::MutableSpan<BLI_bitmap *> grid_hidden = subdiv_ccg->grid_hidden;
-
-    for (int i = 0; i < unode->totgrid; i++) {
-      SWAP(BLI_bitmap *, unode->grid_hidden[i], grid_hidden[unode->grids[i]]);
+    for (const int i : grids.index_range()) {
+      SWAP(BLI_bitmap *, unode->grid_hidden[i], grid_hidden[grids[i]]);
     }
   }
 
@@ -589,23 +581,22 @@ static bool sculpt_undo_restore_mask(bContext *C, SculptUndoNode *unode, bool *m
 
     mask.finish();
   }
-  else if (unode->maxgrid && subdiv_ccg != nullptr) {
-    /* Multires restore. */
-    CCGElem **grids, *grid;
+  else if (!unode->grids.is_empty() && subdiv_ccg != nullptr) {
+    const int gridsize = subdiv_ccg->grid_size;
     CCGKey key;
-    int gridsize;
+    BKE_subdiv_ccg_key_top_level(key, *subdiv_ccg);
+    const Span<int> grid_indices = unode->grids;
 
-    grids = subdiv_ccg->grids.data();
-    gridsize = subdiv_ccg->grid_size;
     BKE_subdiv_ccg_key_top_level(key, *subdiv_ccg);
 
     blender::MutableSpan<float> mask = unode->mask;
-    int index = 0;
-    for (int j = 0; j < unode->totgrid; j++) {
-      grid = grids[unode->grids[j]];
+    MutableSpan<CCGElem *> grids = subdiv_ccg->grids;
 
-      for (int i = 0; i < gridsize * gridsize; i++) {
-        std::swap(*CCG_elem_offset_mask(&key, grid, i), mask[index]);
+    int index = 0;
+    for (const int i : grid_indices.index_range()) {
+      CCGElem *grid = grids[grid_indices[i]];
+      for (const int j : IndexRange(gridsize * gridsize)) {
+        std::swap(*CCG_elem_offset_mask(&key, grid, j), mask[index]);
         index++;
       }
     }
@@ -917,7 +908,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
   bool *modified_mask_verts = nullptr;
   bool *modified_color_verts = nullptr;
   bool *modified_face_set_faces = nullptr;
-  char *undo_modified_grids = nullptr;
+  bool *undo_modified_grids = nullptr;
   bool use_multires_undo = false;
 
   LISTBASE_FOREACH (SculptUndoNode *, unode, lb) {
@@ -1012,12 +1003,12 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
       }
 
       if (undo_modified_grids == nullptr) {
-        undo_modified_grids = static_cast<char *>(
-            MEM_callocN(sizeof(char) * unode->maxgrid, "undo_grids"));
+        undo_modified_grids = static_cast<bool *>(
+            MEM_callocN(sizeof(bool) * unode->maxgrid, "undo_grids"));
       }
 
-      for (int i = 0; i < unode->totgrid; i++) {
-        undo_modified_grids[unode->grids[i]] = 1;
+      for (const int grid : unode->grids) {
+        undo_modified_grids[grid] = true;
       }
     }
   }
@@ -1097,10 +1088,8 @@ static void sculpt_undo_free_list(ListBase *lb)
     SculptUndoNode *unode_next = unode->next;
 
     if (unode->grid_hidden) {
-      for (int i = 0; i < unode->totgrid; i++) {
-        if (unode->grid_hidden[i]) {
-          MEM_freeN(unode->grid_hidden[i]);
-        }
+      for (const int i : unode->grids.index_range()) {
+        MEM_SAFE_FREE(unode->grid_hidden[i]);
       }
       MEM_freeN(unode->grid_hidden);
     }
@@ -1172,21 +1161,18 @@ SculptUndoNode *SCULPT_undo_get_first_node()
 
 static size_t sculpt_undo_alloc_and_store_hidden(SculptSession *ss, SculptUndoNode *unode)
 {
-  PBVH *pbvh = ss->pbvh;
   PBVHNode *node = static_cast<PBVHNode *>(unode->node);
   const blender::Span<const BLI_bitmap *> grid_hidden = ss->subdiv_ccg->grid_hidden;
 
-  const int *grid_indices;
-  int totgrid;
-  BKE_pbvh_node_get_grids(pbvh, node, &grid_indices, &totgrid, nullptr, nullptr, nullptr);
+  const Span<int> grid_indices = BKE_pbvh_node_get_grid_indices(*node);
 
-  size_t alloc_size = sizeof(*unode->grid_hidden) * size_t(totgrid);
+  size_t alloc_size = sizeof(*unode->grid_hidden) * grid_indices.size();
   unode->grid_hidden = static_cast<BLI_bitmap **>(MEM_callocN(alloc_size, "unode->grid_hidden"));
 
-  for (int i = 0; i < totgrid; i++) {
-    if (grid_hidden[grid_indices[i]]) {
-      unode->grid_hidden[i] = static_cast<BLI_bitmap *>(
-          MEM_dupallocN(grid_hidden[grid_indices[i]]));
+  for (const int i : grid_indices.index_range()) {
+    const int grid_index = grid_indices[i];
+    if (grid_hidden[grid_index]) {
+      unode->grid_hidden[i] = static_cast<BLI_bitmap *>(MEM_dupallocN(grid_hidden[grid_index]));
       alloc_size += MEM_allocN_len(unode->grid_hidden[i]);
     }
     else {
@@ -1233,22 +1219,20 @@ static SculptUndoNode *sculpt_undo_alloc_node(Object *ob, PBVHNode *node, Sculpt
 {
   UndoSculpt *usculpt = sculpt_undo_get_nodes();
   SculptSession *ss = ob->sculpt;
-  int totvert = 0;
-  int allvert = 0;
-  int totgrid = 0;
-  int maxgrid = 0;
-  int gridsize = 0;
-  const int *grids = nullptr;
 
   SculptUndoNode *unode = sculpt_undo_alloc_node_type(ob, type);
   unode->node = node;
 
-  if (node) {
-    BKE_pbvh_node_num_verts(ss->pbvh, node, &totvert, &allvert);
-    BKE_pbvh_node_get_grids(ss->pbvh, node, &grids, &totgrid, &maxgrid, &gridsize, nullptr);
+  int totvert = 0;
+  int allvert = 0;
+  BKE_pbvh_node_num_verts(ss->pbvh, node, &totvert, &allvert);
 
-    unode->totvert = totvert;
+  Span<int> grids;
+  if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
+    grids = BKE_pbvh_node_get_grid_indices(*node);
   }
+
+  unode->totvert = totvert;
 
   bool need_loops = type == SCULPT_UNDO_COLOR;
   const bool need_faces = type == SCULPT_UNDO_FACE_SETS;
@@ -1281,12 +1265,12 @@ static SculptUndoNode *sculpt_undo_alloc_node(Object *ob, PBVHNode *node, Sculpt
       break;
     }
     case SCULPT_UNDO_HIDDEN: {
-      if (maxgrid) {
-        usculpt->undo_size += sculpt_undo_alloc_and_store_hidden(ss, unode);
-      }
-      else {
+      if (grids.is_empty()) {
         unode->vert_hidden.resize(allvert);
         usculpt->undo_size += BLI_BITMAP_SIZE(allvert);
+      }
+      else {
+        usculpt->undo_size += sculpt_undo_alloc_and_store_hidden(ss, unode);
       }
 
       break;
@@ -1323,13 +1307,12 @@ static SculptUndoNode *sculpt_undo_alloc_node(Object *ob, PBVHNode *node, Sculpt
     }
   }
 
-  if (maxgrid) {
+  if (!grids.is_empty()) {
     /* Multires. */
-    unode->maxgrid = maxgrid;
-    unode->totgrid = totgrid;
-    unode->gridsize = gridsize;
+    unode->maxgrid = ss->subdiv_ccg->grids.size();
+    unode->gridsize = ss->subdiv_ccg->grid_size;
 
-    unode->grids.reinitialize(totgrid);
+    unode->grids.reinitialize(grids.size());
     usculpt->undo_size += unode->grids.as_span().size_in_bytes();
   }
   else {
@@ -1556,10 +1539,7 @@ SculptUndoNode *SCULPT_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType
    */
 
   if (!unode->grids.is_empty()) {
-    int totgrid;
-    const int *grids;
-    BKE_pbvh_node_get_grids(ss->pbvh, node, &grids, &totgrid, nullptr, nullptr, nullptr);
-    unode->grids.as_mutable_span().copy_from({grids, totgrid});
+    unode->grids.as_mutable_span().copy_from(BKE_pbvh_node_get_grid_indices(*node));
   }
   else {
     unode->index.as_mutable_span().copy_from(BKE_pbvh_node_get_vert_indices(node));
@@ -2038,7 +2018,8 @@ static void sculpt_undo_push_all_grids(Object *object)
    * to the current operation without making any stroke in between.
    *
    * Skip pushing nodes based on the following logic: on redo SCULPT_UNDO_COORDS will ensure
-   * PBVH for the new base geometry, which will have same coordinates as if we create PBVH here. */
+   * PBVH for the new base geometry, which will have same coordinates as if we create PBVH here.
+   */
   if (ss->pbvh == nullptr) {
     return;
   }

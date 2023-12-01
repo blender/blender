@@ -377,13 +377,8 @@ bool BKE_pbvh_node_fully_unmasked_get(PBVHNode *node);
 void BKE_pbvh_mark_rebuild_pixels(PBVH *pbvh);
 void BKE_pbvh_vert_tag_update_normal(PBVH *pbvh, PBVHVertRef vertex);
 
-void BKE_pbvh_node_get_grids(PBVH *pbvh,
-                             PBVHNode *node,
-                             const int **grid_indices,
-                             int *totgrid,
-                             int *maxgrid,
-                             int *gridsize,
-                             CCGElem *const **r_griddata);
+blender::Span<int> BKE_pbvh_node_get_grid_indices(const PBVHNode &node);
+
 void BKE_pbvh_node_num_verts(const PBVH *pbvh,
                              const PBVHNode *node,
                              int *r_uniquevert,
