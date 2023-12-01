@@ -15,10 +15,11 @@
 #include "BLI_offset_indices.hh"
 #include "BLI_set.hh"
 #include "BLI_span.hh"
+#include "BLI_struct_equality_utils.hh"
 
+#include "BKE_attribute.hh"
 #include "BKE_ccg.h"
 
-class PBVHAttrReq;
 struct GPUBatch;
 struct PBVHNode;
 struct DMFlagMat;
@@ -30,6 +31,27 @@ struct BMesh;
 struct BMFace;
 
 namespace blender::draw::pbvh {
+
+class GenericRequest {
+ public:
+  std::string name;
+  eCustomDataType type;
+  eAttrDomain domain;
+  GenericRequest(const StringRef name, const eCustomDataType type, const eAttrDomain domain)
+      : name(name), type(type), domain(domain)
+  {
+  }
+  BLI_STRUCT_EQUALITY_OPERATORS_3(GenericRequest, type, domain, name);
+};
+
+enum class CustomRequest : int8_t {
+  Position,
+  Normal,
+  Mask,
+  FaceSet,
+};
+
+using AttributeRequest = std::variant<CustomRequest, GenericRequest>;
 
 struct PBVHBatches;
 
@@ -79,11 +101,11 @@ void node_gpu_flush(PBVHBatches *batches);
 PBVHBatches *node_create(const PBVH_GPU_Args &args);
 void node_free(PBVHBatches *batches);
 GPUBatch *tris_get(PBVHBatches *batches,
-                   Span<PBVHAttrReq> attrs,
+                   Span<AttributeRequest> attrs,
                    const PBVH_GPU_Args &args,
                    bool do_coarse_grids);
 GPUBatch *lines_get(PBVHBatches *batches,
-                    Span<PBVHAttrReq> attrs,
+                    Span<AttributeRequest> attrs,
                     const PBVH_GPU_Args &args,
                     bool do_coarse_grids);
 

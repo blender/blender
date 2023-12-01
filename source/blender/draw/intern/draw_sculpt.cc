@@ -11,6 +11,7 @@
 #include "draw_attributes.hh"
 #include "draw_pbvh.hh"
 
+#include "BKE_attribute.hh"
 #include "BKE_mesh_types.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
@@ -40,7 +41,7 @@ struct SculptCallbackData {
   bool use_wire;
   bool fast_mode;
 
-  Span<PBVHAttrReq> attrs;
+  Span<pbvh::AttributeRequest> attrs;
 
   Vector<SculptBatch> batches;
 };
@@ -70,7 +71,7 @@ static void sculpt_draw_cb(SculptCallbackData *data,
 
 static Vector<SculptBatch> sculpt_batches_get_ex(const Object *ob,
                                                  bool use_wire,
-                                                 const Span<PBVHAttrReq> attrs)
+                                                 const Span<pbvh::AttributeRequest> attrs)
 {
   /* PBVH should always exist for non-empty meshes, created by depsgraph eval. */
   PBVH *pbvh = ob->sculpt ? ob->sculpt->pbvh : nullptr;
@@ -149,46 +150,36 @@ static Vector<SculptBatch> sculpt_batches_get_ex(const Object *ob,
 
 Vector<SculptBatch> sculpt_batches_get(const Object *ob, SculptBatchFeature features)
 {
-  PBVHAttrReq attrs[16] = {};
-  int attrs_len = 0;
+  Vector<pbvh::AttributeRequest, 16> attrs;
 
-  /* NOTE: these are NOT #eCustomDataType, they are extended values, ASAN may warn about this. */
-  attrs[attrs_len++].type = eCustomDataType(pbvh::CD_PBVH_CO_TYPE);
-  attrs[attrs_len++].type = eCustomDataType(pbvh::CD_PBVH_NO_TYPE);
-
+  attrs.append(pbvh::CustomRequest::Position);
+  attrs.append(pbvh::CustomRequest::Normal);
   if (features & SCULPT_BATCH_MASK) {
-    attrs[attrs_len++].type = eCustomDataType(pbvh::CD_PBVH_MASK_TYPE);
+    attrs.append(pbvh::CustomRequest::Mask);
   }
-
   if (features & SCULPT_BATCH_FACE_SET) {
-    attrs[attrs_len++].type = eCustomDataType(pbvh::CD_PBVH_FSET_TYPE);
+    attrs.append(pbvh::CustomRequest::FaceSet);
   }
 
   const Mesh *mesh = BKE_object_get_original_mesh(ob);
+  const bke::AttributeAccessor attributes = mesh->attributes();
 
   if (features & SCULPT_BATCH_VERTEX_COLOR) {
-    const CustomDataLayer *layer = BKE_id_attributes_color_find(&mesh->id,
-                                                                mesh->active_color_attribute);
-    if (layer) {
-      attrs[attrs_len].type = eCustomDataType(layer->type);
-      attrs[attrs_len].domain = BKE_id_attribute_domain(&mesh->id, layer);
-      attrs[attrs_len].name = layer->name;
-      attrs_len++;
+    if (const char *name = mesh->active_color_attribute) {
+      if (const std::optional<bke::AttributeMetaData> meta_data = attributes.lookup_meta_data(
+              name)) {
+        attrs.append(pbvh::GenericRequest{name, meta_data->data_type, meta_data->domain});
+      }
     }
   }
 
   if (features & SCULPT_BATCH_UV) {
-    int layer_i = CustomData_get_active_layer_index(&mesh->loop_data, CD_PROP_FLOAT2);
-    if (layer_i != -1) {
-      CustomDataLayer *layer = mesh->loop_data.layers + layer_i;
-      attrs[attrs_len].type = CD_PROP_FLOAT2;
-      attrs[attrs_len].domain = ATTR_DOMAIN_CORNER;
-      attrs[attrs_len].name = layer->name;
-      attrs_len++;
+    if (const char *name = CustomData_get_active_layer_name(&mesh->loop_data, CD_PROP_FLOAT2)) {
+      attrs.append(pbvh::GenericRequest{name, CD_PROP_FLOAT2, ATTR_DOMAIN_CORNER});
     }
   }
 
-  return sculpt_batches_get_ex(ob, features & SCULPT_BATCH_WIREFRAME, {attrs, attrs_len});
+  return sculpt_batches_get_ex(ob, features & SCULPT_BATCH_WIREFRAME, attrs);
 }
 
 Vector<SculptBatch> sculpt_batches_per_material_get(const Object *ob,
@@ -199,22 +190,16 @@ Vector<SculptBatch> sculpt_batches_per_material_get(const Object *ob,
 
   DRW_Attributes draw_attrs;
   DRW_MeshCDMask cd_needed;
-
   DRW_mesh_get_attributes(ob, mesh, materials.data(), materials.size(), &draw_attrs, &cd_needed);
 
-  PBVHAttrReq attrs[16] = {};
-  int attrs_len = 0;
+  Vector<pbvh::AttributeRequest, 16> attrs;
 
-  /* NOTE: these are NOT #eCustomDataType, they are extended values, ASAN may warn about this. */
-  attrs[attrs_len++].type = eCustomDataType(pbvh::CD_PBVH_CO_TYPE);
-  attrs[attrs_len++].type = eCustomDataType(pbvh::CD_PBVH_NO_TYPE);
+  attrs.append(pbvh::CustomRequest::Position);
+  attrs.append(pbvh::CustomRequest::Normal);
 
   for (int i = 0; i < draw_attrs.num_requests; i++) {
-    DRW_AttributeRequest *req = draw_attrs.requests + i;
-    attrs[attrs_len].type = req->cd_type;
-    attrs[attrs_len].domain = req->domain;
-    attrs[attrs_len].name = req->attribute_name;
-    attrs_len++;
+    const DRW_AttributeRequest &req = draw_attrs.requests[i];
+    attrs.append(pbvh::GenericRequest{req.attribute_name, req.cd_type, req.domain});
   }
 
   /* UV maps are not in attribute requests. */
@@ -223,15 +208,12 @@ Vector<SculptBatch> sculpt_batches_per_material_get(const Object *ob,
       int layer_i = CustomData_get_layer_index_n(&mesh->loop_data, CD_PROP_FLOAT2, i);
       CustomDataLayer *layer = layer_i != -1 ? mesh->loop_data.layers + layer_i : nullptr;
       if (layer) {
-        attrs[attrs_len].type = CD_PROP_FLOAT2;
-        attrs[attrs_len].domain = ATTR_DOMAIN_CORNER;
-        attrs[attrs_len].name = layer->name;
-        attrs_len++;
+        attrs.append(pbvh::GenericRequest{layer->name, CD_PROP_FLOAT2, ATTR_DOMAIN_CORNER});
       }
     }
   }
 
-  return sculpt_batches_get_ex(ob, false, {attrs, attrs_len});
+  return sculpt_batches_get_ex(ob, false, attrs);
 }
 
 }  // namespace blender::draw

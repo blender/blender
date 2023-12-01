@@ -94,16 +94,6 @@ struct PBVHPixelsNode {
   void *node_data = nullptr;
 };
 
-class PBVHAttrReq {
- public:
-  PBVHAttrReq() = default;
-  PBVHAttrReq(const eAttrDomain domain, const eCustomDataType type) : domain(domain), type(type) {}
-
-  std::string name;
-  eAttrDomain domain;
-  eCustomDataType type;
-};
-
 struct PBVHFrustumPlanes {
   float (*planes)[4];
   int num_planes;

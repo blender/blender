@@ -1213,7 +1213,7 @@ struct DRWSculptCallbackData {
   bool fast_mode; /* Set by draw manager. Do not init. */
 
   int debug_node_nr;
-  blender::Span<PBVHAttrReq> attrs;
+  blender::Span<blender::draw::pbvh::AttributeRequest> attrs;
 };
 
 #define SCULPT_DEBUG_COLOR(id) (sculpt_debug_colors[id % 9])
@@ -1398,6 +1398,8 @@ void DRW_shgroup_call_sculpt(DRWShadingGroup *shgroup,
                              bool use_color,
                              bool use_uv)
 {
+  using namespace blender;
+  using namespace blender::draw;
   DRWSculptCallbackData scd{};
   scd.ob = ob;
   scd.shading_groups = &shgroup;
@@ -1406,55 +1408,36 @@ void DRW_shgroup_call_sculpt(DRWShadingGroup *shgroup,
   scd.use_mats = false;
   scd.use_mask = use_mask;
 
-  PBVHAttrReq attrs[16] = {};
-  int attrs_num = 0;
+  Vector<pbvh::AttributeRequest, 16> attrs;
 
-  /* NOTE: these are NOT #eCustomDataType, they are extended values, ASAN may warn about this. */
-  attrs[attrs_num++] = PBVHAttrReq(ATTR_DOMAIN_POINT,
-                                   eCustomDataType(blender::draw::pbvh::CD_PBVH_CO_TYPE));
-  attrs[attrs_num++] = PBVHAttrReq(ATTR_DOMAIN_POINT,
-                                   eCustomDataType(blender::draw::pbvh::CD_PBVH_NO_TYPE));
-
+  attrs.append(pbvh::CustomRequest::Position);
+  attrs.append(pbvh::CustomRequest::Normal);
   if (use_mask) {
-    attrs[attrs_num++] = PBVHAttrReq(ATTR_DOMAIN_POINT,
-                                     eCustomDataType(blender::draw::pbvh::CD_PBVH_MASK_TYPE));
+    attrs.append(pbvh::CustomRequest::Mask);
   }
-
   if (use_fset) {
-    attrs[attrs_num++] = PBVHAttrReq(ATTR_DOMAIN_FACE,
-                                     eCustomDataType(blender::draw::pbvh::CD_PBVH_FSET_TYPE));
+    attrs.append(pbvh::CustomRequest::FaceSet);
   }
 
-  Mesh *me = BKE_object_get_original_mesh(ob);
+  Mesh *mesh = BKE_object_get_original_mesh(ob);
+  const bke::AttributeAccessor attributes = mesh->attributes();
 
   if (use_color) {
-    const CustomDataLayer *layer = BKE_id_attributes_color_find(&me->id,
-                                                                me->active_color_attribute);
-    if (layer) {
-      eAttrDomain domain = BKE_id_attribute_domain(&me->id, layer);
-
-      attrs[attrs_num].type = eCustomDataType(layer->type);
-      attrs[attrs_num].domain = domain;
-
-      attrs[attrs_num].name = layer->name;
-      attrs_num++;
+    if (const char *name = mesh->active_color_attribute) {
+      if (const std::optional<bke::AttributeMetaData> meta_data = attributes.lookup_meta_data(
+              name)) {
+        attrs.append(pbvh::GenericRequest{name, meta_data->data_type, meta_data->domain});
+      }
     }
   }
 
   if (use_uv) {
-    int layer_i = CustomData_get_active_layer_index(&me->loop_data, CD_PROP_FLOAT2);
-    if (layer_i != -1) {
-      CustomDataLayer *layer = me->loop_data.layers + layer_i;
-
-      attrs[attrs_num].type = CD_PROP_FLOAT2;
-      attrs[attrs_num].domain = ATTR_DOMAIN_CORNER;
-      attrs[attrs_num].name = layer->name;
-
-      attrs_num++;
+    if (const char *name = CustomData_get_active_layer_name(&mesh->loop_data, CD_PROP_FLOAT2)) {
+      attrs.append(pbvh::GenericRequest{name, CD_PROP_FLOAT2, ATTR_DOMAIN_CORNER});
     }
   }
 
-  scd.attrs = {attrs, attrs_num};
+  scd.attrs = attrs;
 
   drw_sculpt_generate_calls(&scd);
 }
@@ -1464,58 +1447,40 @@ void DRW_shgroup_call_sculpt_with_materials(DRWShadingGroup **shgroups,
                                             int num_shgroups,
                                             const Object *ob)
 {
+  using namespace blender::draw;
   DRW_Attributes draw_attrs;
   DRW_MeshCDMask cd_needed;
 
-  const Mesh *me = static_cast<const Mesh *>(ob->data);
+  const Mesh *mesh = static_cast<const Mesh *>(ob->data);
 
   if (gpumats) {
-    DRW_mesh_get_attributes(ob, me, gpumats, num_shgroups, &draw_attrs, &cd_needed);
+    DRW_mesh_get_attributes(ob, mesh, gpumats, num_shgroups, &draw_attrs, &cd_needed);
   }
   else {
     memset(&draw_attrs, 0, sizeof(draw_attrs));
     memset(&cd_needed, 0, sizeof(cd_needed));
   }
 
-  int attrs_num = 2 + draw_attrs.num_requests;
+  blender::Vector<pbvh::AttributeRequest, 16> attrs;
 
-  /* UV maps are not in attribute requests. */
-  attrs_num += count_bits_i(cd_needed.uv);
-
-  blender::Array<PBVHAttrReq, 16> attrs(attrs_num, PBVHAttrReq{});
-
-  int attrs_i = 0;
-
-  /* NOTE: these are NOT #eCustomDataType, they are extended values, ASAN may warn about this. */
-  attrs[attrs_i++].type = (eCustomDataType)blender::draw::pbvh::CD_PBVH_CO_TYPE;
-  attrs[attrs_i++].type = (eCustomDataType)blender::draw::pbvh::CD_PBVH_NO_TYPE;
+  attrs.append(pbvh::CustomRequest::Position);
+  attrs.append(pbvh::CustomRequest::Normal);
 
   for (int i = 0; i < draw_attrs.num_requests; i++) {
-    DRW_AttributeRequest *req = draw_attrs.requests + i;
-
-    attrs[attrs_i].type = req->cd_type;
-    attrs[attrs_i].domain = req->domain;
-    attrs[attrs_i].name = req->attribute_name;
-    attrs_i++;
+    const DRW_AttributeRequest &req = draw_attrs.requests[i];
+    attrs.append(pbvh::GenericRequest{req.attribute_name, req.cd_type, req.domain});
   }
 
   /* UV maps are not in attribute requests. */
-
   for (uint i = 0; i < 32; i++) {
     if (cd_needed.uv & (1 << i)) {
-      int layer_i = CustomData_get_layer_index_n(&me->loop_data, CD_PROP_FLOAT2, i);
-      CustomDataLayer *layer = layer_i != -1 ? me->loop_data.layers + layer_i : nullptr;
-
+      int layer_i = CustomData_get_layer_index_n(&mesh->loop_data, CD_PROP_FLOAT2, i);
+      CustomDataLayer *layer = layer_i != -1 ? mesh->loop_data.layers + layer_i : nullptr;
       if (layer) {
-        attrs[attrs_i].type = CD_PROP_FLOAT2;
-        attrs[attrs_i].domain = ATTR_DOMAIN_CORNER;
-        attrs[attrs_i].name = layer->name;
-        attrs_i++;
+        attrs.append(pbvh::GenericRequest{layer->name, CD_PROP_FLOAT2, ATTR_DOMAIN_CORNER});
       }
     }
   }
-
-  attrs_num = attrs_i;
 
   DRWSculptCallbackData scd{};
   scd.ob = ob;

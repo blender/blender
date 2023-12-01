@@ -3431,14 +3431,12 @@ void DRW_batch_cache_free_old(Object *ob, int ctime)
 
 void DRW_cdlayer_attr_aliases_add(GPUVertFormat *format,
                                   const char *base_name,
-                                  const CustomData * /*data*/,
-                                  const CustomDataLayer *cl,
+                                  const int data_type,
+                                  const char *layer_name,
                                   bool is_active_render,
                                   bool is_active_layer)
 {
   char attr_name[32], attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
-  const char *layer_name = cl->name;
-
   GPU_vertformat_safe_attr_name(layer_name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
 
   /* Attribute layer name. */
@@ -3451,7 +3449,7 @@ void DRW_cdlayer_attr_aliases_add(GPUVertFormat *format,
 
   /* Active render layer name. */
   if (is_active_render) {
-    GPU_vertformat_alias_add(format, cl->type == CD_PROP_FLOAT2 ? "a" : base_name);
+    GPU_vertformat_alias_add(format, data_type == CD_PROP_FLOAT2 ? "a" : base_name);
   }
 
   /* Active display layer name. */
