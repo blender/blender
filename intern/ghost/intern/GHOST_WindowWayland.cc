@@ -103,9 +103,6 @@ struct WGL_XDG_Decor_Window {
 
   /** The window has been configured (see #xdg_surface_ack_configure). */
   bool initial_configure_seen = false;
-#ifdef USE_XDG_INIT_WINDOW_SIZE_HACK
-  bool initial_configure_seen_with_size = false;
-#endif
 };
 
 static void gwl_xdg_decor_window_destroy(WGL_XDG_Decor_Window *decor)
@@ -991,8 +988,11 @@ static int outputs_uniform_scale_or_default(const std::vector<GWL_Output *> &out
 static CLG_LogRef LOG_WL_XDG_TOPLEVEL = {"ghost.wl.handle.xdg_toplevel"};
 #define LOG (&LOG_WL_XDG_TOPLEVEL)
 
-static void xdg_toplevel_handle_configure(
-    void *data, xdg_toplevel * /*xdg_toplevel*/, int32_t width, int32_t height, wl_array *states)
+static void xdg_toplevel_handle_configure(void *data,
+                                          xdg_toplevel * /*xdg_toplevel*/,
+                                          const int32_t width,
+                                          const int32_t height,
+                                          wl_array *states)
 {
   /* TODO: log `states`, not urgent. */
   CLOG_INFO(LOG, 2, "configure (size=[%d, %d])", width, height);
@@ -1002,6 +1002,17 @@ static void xdg_toplevel_handle_configure(
 #ifdef USE_EVENT_BACKGROUND_THREAD
   std::lock_guard lock_frame_guard{win->frame_pending_mutex};
 #endif
+
+  const int32_t size[2] = {width, height};
+  for (int i = 0; i < 2; i++) {
+    if (size[i] == 0) {
+      /* Values may be zero, in this case the client should choose. */
+      continue;
+    }
+    win->frame_pending.size[i] = win->frame.fractional_scale ?
+                                     gwl_window_fractional_to_viewport_round(win->frame, size[i]) :
+                                     (size[i] * win->frame.buffer_scale);
+  }
 
   win->frame_pending.is_maximised = false;
   win->frame_pending.is_fullscreen = false;
@@ -1022,46 +1033,6 @@ static void xdg_toplevel_handle_configure(
       default:
         break;
     }
-  }
-
-#ifdef USE_XDG_INIT_WINDOW_SIZE_HACK
-  if (width || height) {
-    WGL_XDG_Decor_Window &decor = *win->xdg_decor;
-    if (decor.initial_configure_seen_with_size == false) {
-      if (win->ghost_system->xdg_decor_needs_window_size_hack() &&
-          (decor.mode == ZXDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE) &&
-          (win->frame_pending.is_maximised == false &&
-           win->frame_pending.is_fullscreen == false) &&
-          /* Account for the initial size being smaller. */
-          ((width <= win->frame.size[0]) && (height <= win->frame.size[1])))
-      {
-        /* Fail safe, check the window is *not* larger than all available outputs
-         * as this could cause files saved on other peoples systems to create
-         * unreasonably large windows. */
-        const GWL_Output *output_big = win->ghost_system->outputs_get_max_native_size();
-        if (output_big &&
-            ((output_big->size_native[0] < width) || (output_big->size_native[1] < height))) {
-          /* Pass, the window exceeds the size of the largest output, ignore initial size. */
-        }
-        else {
-          width = win->frame.size[0];
-          height = win->frame.size[1];
-        }
-      }
-      decor.initial_configure_seen_with_size = true;
-    }
-  }
-#endif /* USE_XDG_INIT_WINDOW_SIZE_HACK */
-
-  const int32_t size[2] = {width, height};
-  for (int i = 0; i < 2; i++) {
-    if (size[i] == 0) {
-      /* Values may be zero, in this case the client should choose. */
-      continue;
-    }
-    win->frame_pending.size[i] = win->frame.fractional_scale ?
-                                     gwl_window_fractional_to_viewport_round(win->frame, size[i]) :
-                                     (size[i] * win->frame.buffer_scale);
   }
 }
 

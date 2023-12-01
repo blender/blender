@@ -1134,9 +1134,6 @@ struct GWL_Display {
   GWL_LibDecor_System *libdecor = nullptr;
   bool libdecor_required = false;
 #endif
-#ifdef USE_XDG_INIT_WINDOW_SIZE_HACK
-  bool xdg_decor_ignore_initial_window_size = false;
-#endif
   GWL_XDG_Decor_System *xdg_decor = nullptr;
 
   /**
@@ -6031,17 +6028,10 @@ static void global_handle_add(void *data,
   else {
     /* Not found. */
 #ifdef USE_GNOME_NEEDS_LIBDECOR_HACK
-    /* `gtk_shell1` at time of writing. */
-    if (STRPREFIX(interface, "gtk_shell")) {
+    if (STRPREFIX(interface, "gtk_shell")) { /* `gtk_shell1` at time of writing. */
       /* Only require `libdecor` when built with X11 support,
        * otherwise there is nothing to fall back on. */
       display->libdecor_required = true;
-    }
-#endif
-#ifdef USE_XDG_INIT_WINDOW_SIZE_HACK
-    /* `org_kde_plasma_shell` at time of writing. */
-    if (STRPREFIX(interface, "org_kde_plasma_shell")) {
-      display->xdg_decor_ignore_initial_window_size = true;
     }
 #endif
   }
@@ -7674,32 +7664,11 @@ zxdg_decoration_manager_v1 *GHOST_SystemWayland::xdg_decor_manager_get()
   return display_->xdg_decor->manager;
 }
 
-#ifdef USE_XDG_INIT_WINDOW_SIZE_HACK
-bool GHOST_SystemWayland::xdg_decor_needs_window_size_hack() const
-{
-  return display_->xdg_decor_ignore_initial_window_size;
-}
-#endif
-
 /* End `xdg_decor`. */
 
 const std::vector<GWL_Output *> &GHOST_SystemWayland::outputs_get() const
 {
   return display_->outputs;
-}
-
-const GWL_Output *GHOST_SystemWayland::outputs_get_max_native_size() const
-{
-  uint64_t area_best = 0;
-  const GWL_Output *output_best = nullptr;
-  for (const GWL_Output *output : display_->outputs) {
-    const uint64_t area_test = (uint64_t)output->size_native[0] * (uint64_t)output->size_native[1];
-    if (output_best == nullptr || area_best < area_test) {
-      output_best = output;
-      area_best = area_test;
-    }
-  }
-  return output_best;
 }
 
 wl_shm *GHOST_SystemWayland::wl_shm_get() const
