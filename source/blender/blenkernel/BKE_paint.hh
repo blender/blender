@@ -174,7 +174,7 @@ void BKE_paint_free(Paint *p);
  * #id_us_plus(), rather than if we were copying between 2 existing scenes where a matching
  * value should decrease the existing user count as with #paint_brush_set()
  */
-void BKE_paint_copy(Paint *src, Paint *tar, int flag);
+void BKE_paint_copy(const Paint *src, Paint *tar, int flag);
 
 void BKE_paint_runtime_init(const ToolSettings *ts, Paint *paint);
 
@@ -202,21 +202,21 @@ void BKE_paint_curve_clamp_endpoint_add_index(PaintCurve *pc, int add_index);
 /**
  * Return true when in vertex/weight/texture paint + face-select mode?
  */
-bool BKE_paint_select_face_test(Object *ob);
+bool BKE_paint_select_face_test(const Object *ob);
 /**
  * Return true when in vertex/weight paint + vertex-select mode?
  */
-bool BKE_paint_select_vert_test(Object *ob);
+bool BKE_paint_select_vert_test(const Object *ob);
 /**
  * used to check if selection is possible
  * (when we don't care if its face or vert)
  */
-bool BKE_paint_select_elem_test(Object *ob);
+bool BKE_paint_select_elem_test(const Object *ob);
 /**
  * Checks if face/vertex hiding is always applied in the current mode.
  * Returns true in vertex/weight paint.
  */
-bool BKE_paint_always_hide_test(Object *ob);
+bool BKE_paint_always_hide_test(const Object *ob);
 
 /* Partial visibility. */
 
@@ -228,7 +228,7 @@ bool paint_is_grid_face_hidden(const unsigned int *grid_hidden, int gridsize, in
 /**
  * Return true if all vertices in the face are visible, false otherwise.
  */
-bool paint_is_bmesh_face_hidden(BMFace *f);
+bool paint_is_bmesh_face_hidden(const BMFace *f);
 
 /* Paint masks. */
 
@@ -245,7 +245,7 @@ bool paint_calculate_rake_rotation(UnifiedPaintSettings *ups,
                                    bool stroke_has_started);
 void paint_update_brush_rake_rotation(UnifiedPaintSettings *ups, Brush *brush, float rotation);
 
-void BKE_paint_stroke_get_average(Scene *scene, Object *ob, float stroke[3]);
+void BKE_paint_stroke_get_average(const Scene *scene, const Object *ob, float stroke[3]);
 
 /* Tool slot API. */
 

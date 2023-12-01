@@ -400,7 +400,7 @@ Paint *BKE_paint_get_active_from_paintmode(Scene *sce, ePaintMode mode)
   return nullptr;
 }
 
-const EnumPropertyItem *BKE_paint_get_tool_enum_from_paintmode(ePaintMode mode)
+const EnumPropertyItem *BKE_paint_get_tool_enum_from_paintmode(const ePaintMode mode)
 {
   switch (mode) {
     case PAINT_MODE_SCULPT:
@@ -430,7 +430,7 @@ const EnumPropertyItem *BKE_paint_get_tool_enum_from_paintmode(ePaintMode mode)
   return nullptr;
 }
 
-const char *BKE_paint_get_tool_prop_id_from_paintmode(ePaintMode mode)
+const char *BKE_paint_get_tool_prop_id_from_paintmode(const ePaintMode mode)
 {
   switch (mode) {
     case PAINT_MODE_SCULPT:
@@ -462,7 +462,7 @@ const char *BKE_paint_get_tool_prop_id_from_paintmode(ePaintMode mode)
   return nullptr;
 }
 
-const char *BKE_paint_get_tool_enum_translation_context_from_paintmode(ePaintMode mode)
+const char *BKE_paint_get_tool_enum_translation_context_from_paintmode(const ePaintMode mode)
 {
   switch (mode) {
     case PAINT_MODE_SCULPT:
@@ -1030,26 +1030,26 @@ bool BKE_palette_from_hash(Main *bmain, GHash *color_table, const char *name, co
   return done;
 }
 
-bool BKE_paint_select_face_test(Object *ob)
+bool BKE_paint_select_face_test(const Object *ob)
 {
   return ((ob != nullptr) && (ob->type == OB_MESH) && (ob->data != nullptr) &&
           (((Mesh *)ob->data)->editflag & ME_EDIT_PAINT_FACE_SEL) &&
           (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT)));
 }
 
-bool BKE_paint_select_vert_test(Object *ob)
+bool BKE_paint_select_vert_test(const Object *ob)
 {
   return ((ob != nullptr) && (ob->type == OB_MESH) && (ob->data != nullptr) &&
           (((Mesh *)ob->data)->editflag & ME_EDIT_PAINT_VERT_SEL) &&
           (ob->mode & OB_MODE_WEIGHT_PAINT || ob->mode & OB_MODE_VERTEX_PAINT));
 }
 
-bool BKE_paint_select_elem_test(Object *ob)
+bool BKE_paint_select_elem_test(const Object *ob)
 {
   return (BKE_paint_select_vert_test(ob) || BKE_paint_select_face_test(ob));
 }
 
-bool BKE_paint_always_hide_test(Object *ob)
+bool BKE_paint_always_hide_test(const Object *ob)
 {
   return ((ob != nullptr) && (ob->type == OB_MESH) && (ob->data != nullptr) &&
           (ob->mode & OB_MODE_WEIGHT_PAINT || ob->mode & OB_MODE_VERTEX_PAINT));
@@ -1072,7 +1072,7 @@ void BKE_paint_cavity_curve_preset(Paint *p, int preset)
   BKE_curvemapping_changed(cumap, false);
 }
 
-eObjectMode BKE_paint_object_mode_from_paintmode(ePaintMode mode)
+eObjectMode BKE_paint_object_mode_from_paintmode(const ePaintMode mode)
 {
   switch (mode) {
     case PAINT_MODE_SCULPT:
@@ -1218,7 +1218,7 @@ void BKE_paint_free(Paint *paint)
   MEM_SAFE_FREE(paint->tool_slots);
 }
 
-void BKE_paint_copy(Paint *src, Paint *tar, const int flag)
+void BKE_paint_copy(const Paint *src, Paint *tar, const int flag)
 {
   tar->brush = src->brush;
   tar->cavity_curve = BKE_curvemapping_copy(src->cavity_curve);
@@ -1235,9 +1235,9 @@ void BKE_paint_copy(Paint *src, Paint *tar, const int flag)
   }
 }
 
-void BKE_paint_stroke_get_average(Scene *scene, Object *ob, float stroke[3])
+void BKE_paint_stroke_get_average(const Scene *scene, const Object *ob, float stroke[3])
 {
-  UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
+  const UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
   if (ups->last_stroke_valid && ups->average_stroke_counter > 0) {
     float fac = 1.0f / ups->average_stroke_counter;
     mul_v3_v3fl(stroke, ups->average_stroke_accum, fac);
@@ -1291,7 +1291,7 @@ bool paint_is_grid_face_hidden(const uint *grid_hidden, int gridsize, int x, int
           BLI_BITMAP_TEST(grid_hidden, (y + 1) * gridsize + x));
 }
 
-bool paint_is_bmesh_face_hidden(BMFace *f)
+bool paint_is_bmesh_face_hidden(const BMFace *f)
 {
   BMLoop *l_iter;
   BMLoop *l_first;
@@ -1315,7 +1315,7 @@ float paint_grid_paint_mask(const GridPaintMask *gpm, uint level, uint x, uint y
 }
 
 /* Threshold to move before updating the brush rotation, reduces jitter. */
-static float paint_rake_rotation_spacing(UnifiedPaintSettings * /*ups*/, Brush *brush)
+static float paint_rake_rotation_spacing(const UnifiedPaintSettings * /*ups*/, const Brush *brush)
 {
   return brush->sculpt_tool == SCULPT_TOOL_CLAY_STRIPS ? 1.0f : 20.0f;
 }
