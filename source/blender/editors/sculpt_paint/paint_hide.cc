@@ -93,13 +93,15 @@ static void vert_show_all(Object &object, const Span<PBVHNode *> nodes)
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
   if (const VArray<bool> attribute = *attributes.lookup<bool>(".hide_vert", ATTR_DOMAIN_POINT)) {
     const VArraySpan hide_vert(attribute);
-    for (PBVHNode *node : nodes) {
-      const Span<int> verts = BKE_pbvh_node_get_vert_indices(node);
-      if (std::any_of(verts.begin(), verts.end(), [&](const int i) { return hide_vert[i]; })) {
-        SCULPT_undo_push_node(&object, node, SCULPT_UNDO_HIDDEN);
-        BKE_pbvh_node_mark_rebuild_draw(node);
+    threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+      for (PBVHNode *node : nodes.slice(range)) {
+        const Span<int> verts = BKE_pbvh_node_get_vert_indices(node);
+        if (std::any_of(verts.begin(), verts.end(), [&](const int i) { return hide_vert[i]; })) {
+          SCULPT_undo_push_node(&object, node, SCULPT_UNDO_HIDDEN);
+          BKE_pbvh_node_mark_rebuild_draw(node);
+        }
       }
-    }
+    });
   }
   for (PBVHNode *node : nodes) {
     BKE_pbvh_node_fully_hidden_set(node, false);
