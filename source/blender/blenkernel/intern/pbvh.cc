@@ -1433,8 +1433,10 @@ static blender::draw::pbvh::PBVH_GPU_Args pbvh_draw_args_init(const Mesh &mesh,
       args.mlooptri = pbvh.looptri;
       args.vert_normals = pbvh.vert_normals;
       args.face_normals = pbvh.face_normals;
+      /* Retrieve data from the original mesh. Ideally that would be passed to this function to
+       * make it clearer when each is used. */
       args.hide_poly = static_cast<const bool *>(
-          CustomData_get_layer_named(&mesh.face_data, CD_PROP_BOOL, ".hide_poly"));
+          CustomData_get_layer_named(&pbvh.mesh->face_data, CD_PROP_BOOL, ".hide_poly"));
 
       args.prim_indices = node.prim_indices;
       args.looptri_faces = mesh.looptri_faces();
