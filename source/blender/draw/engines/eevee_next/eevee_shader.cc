@@ -128,6 +128,8 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_debug_surfels";
     case DEBUG_IRRADIANCE_GRID:
       return "eevee_debug_irradiance_grid";
+    case DEBUG_GBUFFER:
+      return "eevee_debug_gbuffer";
     case DISPLAY_PROBE_GRID:
       return "eevee_display_probe_grid";
     case DISPLAY_PROBE_REFLECTION:

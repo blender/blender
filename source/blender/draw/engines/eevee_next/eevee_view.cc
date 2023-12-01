@@ -78,19 +78,32 @@ void ShadingView::render()
     return;
   }
 
+  update_view();
+
+  DRW_stats_group_start(name_);
+
+  /* Needs to be before anything else because it query its own gbuffer. */
+  inst_.planar_probes.set_view(render_view_, extent_);
+
   /* Query temp textures and create frame-buffers. */
   RenderBuffers &rbufs = inst_.render_buffers;
   rbufs.acquire(extent_);
+
   combined_fb_.ensure(GPU_ATTACHMENT_TEXTURE(rbufs.depth_tx),
                       GPU_ATTACHMENT_TEXTURE(rbufs.combined_tx));
   prepass_fb_.ensure(GPU_ATTACHMENT_TEXTURE(rbufs.depth_tx),
                      GPU_ATTACHMENT_TEXTURE(rbufs.vector_tx));
 
-  update_view();
+  GBuffer &gbuf = inst_.gbuffer;
+  gbuf.acquire(extent_,
+               inst_.pipelines.deferred.closure_layer_count(),
+               inst_.pipelines.deferred.color_layer_count());
 
-  DRW_stats_group_start(name_);
-
-  inst_.planar_probes.set_view(render_view_, extent_);
+  gbuffer_fb_.ensure(GPU_ATTACHMENT_TEXTURE(rbufs.depth_tx),
+                     GPU_ATTACHMENT_TEXTURE(rbufs.combined_tx),
+                     GPU_ATTACHMENT_TEXTURE(gbuf.header_tx),
+                     GPU_ATTACHMENT_TEXTURE_LAYER(gbuf.color_tx.layer_view(0), 0),
+                     GPU_ATTACHMENT_TEXTURE_LAYER(gbuf.closure_tx.layer_view(0), 0));
 
   /* If camera has any motion, compute motion vector in the film pass. Otherwise, we avoid float
    * precision issue by setting the motion of all static geometry to 0. */
@@ -119,9 +132,12 @@ void ShadingView::render()
                                   render_view_,
                                   prepass_fb_,
                                   combined_fb_,
+                                  gbuffer_fb_,
                                   extent_,
                                   rt_buffer_opaque_,
                                   rt_buffer_refract_);
+
+  inst_.gbuffer.release();
 
   inst_.volume.draw_compute(render_view_);
 
@@ -231,10 +247,10 @@ void CaptureView::render_world()
                                                       update_info->clipping_distances.y);
       view.sync(view_m4, win_m4);
 
-      capture_fb_.ensure(
+      combined_fb_.ensure(
           GPU_ATTACHMENT_NONE,
           GPU_ATTACHMENT_TEXTURE_CUBEFACE(inst_.reflection_probes.cubemap_tx_, face));
-      GPU_framebuffer_bind(capture_fb_);
+      GPU_framebuffer_bind(combined_fb_);
       inst_.pipelines.world.render(view);
     }
 
@@ -267,6 +283,10 @@ void CaptureView::render_probes()
     prepass_fb.ensure(GPU_ATTACHMENT_TEXTURE(inst_.render_buffers.depth_tx),
                       GPU_ATTACHMENT_TEXTURE(inst_.render_buffers.vector_tx));
 
+    inst_.gbuffer.acquire(extent,
+                          inst_.pipelines.probe.closure_layer_count(),
+                          inst_.pipelines.probe.color_layer_count());
+
     for (int face : IndexRange(6)) {
       float4x4 view_m4 = cubeface_mat(face);
       view_m4 = math::translate(view_m4, -update_info->probe_pos);
@@ -278,16 +298,24 @@ void CaptureView::render_probes()
                                                       update_info->clipping_distances.y);
       view.sync(view_m4, win_m4);
 
-      capture_fb_.ensure(
+      combined_fb_.ensure(
           GPU_ATTACHMENT_TEXTURE(inst_.render_buffers.depth_tx),
           GPU_ATTACHMENT_TEXTURE_CUBEFACE(inst_.reflection_probes.cubemap_tx_, face));
 
-      GPU_framebuffer_bind(capture_fb_);
-      GPU_framebuffer_clear_color_depth(capture_fb_, float4(0.0f, 0.0f, 0.0f, 1.0f), 1.0f);
-      inst_.pipelines.probe.render(view, prepass_fb, capture_fb_, extent);
+      gbuffer_fb_.ensure(
+          GPU_ATTACHMENT_TEXTURE(inst_.render_buffers.depth_tx),
+          GPU_ATTACHMENT_TEXTURE_CUBEFACE(inst_.reflection_probes.cubemap_tx_, face),
+          GPU_ATTACHMENT_TEXTURE(inst_.gbuffer.header_tx),
+          GPU_ATTACHMENT_TEXTURE_LAYER(inst_.gbuffer.color_tx.layer_view(0), 0),
+          GPU_ATTACHMENT_TEXTURE_LAYER(inst_.gbuffer.closure_tx.layer_view(0), 0));
+
+      GPU_framebuffer_bind(combined_fb_);
+      GPU_framebuffer_clear_color_depth(combined_fb_, float4(0.0f, 0.0f, 0.0f, 1.0f), 1.0f);
+      inst_.pipelines.probe.render(view, prepass_fb, combined_fb_, gbuffer_fb_, extent);
     }
 
     inst_.render_buffers.release();
+    inst_.gbuffer.release();
     GPU_debug_group_end();
     inst_.reflection_probes.remap_to_octahedral_projection(update_info->atlas_coord);
   }

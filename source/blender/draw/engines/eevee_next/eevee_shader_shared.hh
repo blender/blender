@@ -78,6 +78,14 @@ enum eDebugMode : uint32_t {
    * Show random color for each tile. Verify distribution and LOD transitions.
    */
   DEBUG_SHADOW_TILEMAP_RANDOM_COLOR = 13u,
+  /**
+   * Show storage cost of each pixel in the gbuffer.
+   */
+  DEBUG_GBUFFER_STORAGE = 14u,
+  /**
+   * Show evaluation cost of each pixel.
+   */
+  DEBUG_GBUFFER_EVALUATION = 15u,
 };
 
 /** \} */
@@ -1170,17 +1178,33 @@ BLI_STATIC_ASSERT_ALIGN(HiZData, 16)
 
 enum eClosureBits : uint32_t {
   CLOSURE_NONE = 0u,
-  /** NOTE: These are used as stencil bits. So we are limited to 8bits. */
   CLOSURE_DIFFUSE = (1u << 0u),
   CLOSURE_SSS = (1u << 1u),
   CLOSURE_REFLECTION = (1u << 2u),
   CLOSURE_REFRACTION = (1u << 3u),
-  /* Non-stencil bits. */
   CLOSURE_TRANSPARENCY = (1u << 8u),
   CLOSURE_EMISSION = (1u << 9u),
   CLOSURE_HOLDOUT = (1u << 10u),
   CLOSURE_VOLUME = (1u << 11u),
   CLOSURE_AMBIENT_OCCLUSION = (1u << 12u),
+};
+
+enum GBufferMode : uint32_t {
+  /** None mode for pixels not rendered. */
+  GBUF_NONE = 0u,
+
+  GBUF_REFLECTION = 1u,
+  GBUF_REFRACTION = 2u,
+  GBUF_DIFFUSE = 3u,
+  GBUF_SSS = 4u,
+
+  /** Special configurations. Packs multiple closures into 1 layer. */
+  GBUF_OPAQUE_DIELECTRIC = 4u,
+
+  /** Set for surfaces without lit closures. This stores only the normal to the surface. */
+  GBUF_UNLIT = 15u,
+
+  /** IMPORTANT: Needs to be less than 16 for correct packing in g-buffer header. */
 };
 
 struct RayTraceData {

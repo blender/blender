@@ -50,16 +50,16 @@ void main()
   ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
 
   bool valid_texel = in_texture_range(texel, gbuf_header_tx);
-  uint closure_bits = (!valid_texel) ? 0u : texelFetch(gbuf_header_tx, texel, 0).r;
+  uint header = (!valid_texel) ? 0u : texelFetch(gbuf_header_tx, texel, 0).r;
 
-  if (flag_test(closure_bits, uniform_buf.raytrace.closure_active)) {
+  if (gbuffer_has_closure(header, uniform_buf.raytrace.closure_active)) {
     GBufferData gbuf = gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_color_tx, texel);
 
     float roughness = 1.0;
     if (uniform_buf.raytrace.closure_active == eClosureBits(CLOSURE_REFLECTION)) {
       roughness = gbuf.reflection.roughness;
     }
-    if (uniform_buf.raytrace.closure_active == eClosureBits(CLOSURE_REFRACTION)) {
+    else if (uniform_buf.raytrace.closure_active == eClosureBits(CLOSURE_REFRACTION)) {
       roughness = 0.0; /* TODO(fclem): Apparent roughness. For now, always raytrace. */
     }
 

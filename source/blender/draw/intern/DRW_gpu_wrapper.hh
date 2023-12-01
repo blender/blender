@@ -529,6 +529,7 @@ class Texture : NonCopyable {
   GPUTexture *stencil_view_ = nullptr;
   Vector<GPUTexture *, 0> mip_views_;
   Vector<GPUTexture *, 0> layer_views_;
+  GPUTexture *layer_range_view_ = nullptr;
   const char *name_;
 
  public:
@@ -626,12 +627,14 @@ class Texture : NonCopyable {
       this->tx_ = a.tx_;
       this->name_ = a.name_;
       this->stencil_view_ = a.stencil_view_;
+      this->layer_range_view_ = a.layer_range_view_;
       this->mip_views_ = std::move(a.mip_views_);
       this->layer_views_ = std::move(a.layer_views_);
 
       a.tx_ = nullptr;
       a.name_ = nullptr;
       a.stencil_view_ = nullptr;
+      a.layer_range_view_ = nullptr;
       a.mip_views_.clear();
       a.layer_views_.clear();
     }
@@ -769,7 +772,7 @@ class Texture : NonCopyable {
   }
 
   /**
-   * Ensure the availability of mipmap views.
+   * Ensure the availability of layer views.
    * Layer views covers all layers of array textures.
    * Returns true if the views were (re)created.
    */
@@ -803,6 +806,33 @@ class Texture : NonCopyable {
           name_, tx_, format, 0, 9999, 0, 9999, cube_as_array, true);
     }
     return stencil_view_;
+  }
+
+  /**
+   * Layer range view cover only the given range.
+   * This can only called to create one range.
+   * View is recreated if:
+   * - The source texture is recreated.
+   * - The layer_len is different from the last call the this function.
+   * IMPORTANT: It is not recreated if the layer_start is different from the last call.
+   * IMPORTANT: If this view is recreated any reference to it should be updated.
+   */
+  GPUTexture *layer_range_view(int layer_start, int layer_len, bool cube_as_array = false)
+  {
+    BLI_assert(this->is_valid());
+    /* Make sure the range is valid as the GPU_texture_layer_count only returns the effective
+     * (clipped) range and not the requested range. */
+    BLI_assert_msg((layer_start + layer_len) <= GPU_texture_layer_count(tx_),
+                   "Layer range needs to be valid");
+
+    int view_layer_len = (layer_range_view_) ? GPU_texture_layer_count(layer_range_view_) : -1;
+    if (layer_len != view_layer_len) {
+      GPU_TEXTURE_FREE_SAFE(layer_range_view_);
+      eGPUTextureFormat format = GPU_texture_format(tx_);
+      layer_range_view_ = GPU_texture_create_view(
+          name_, tx_, format, 0, 9999, layer_start, layer_len, cube_as_array, false);
+    }
+    return layer_range_view_;
   }
 
   /**
@@ -935,6 +965,7 @@ class Texture : NonCopyable {
       GPU_TEXTURE_FREE_SAFE(view);
     }
     GPU_TEXTURE_FREE_SAFE(stencil_view_);
+    GPU_TEXTURE_FREE_SAFE(layer_range_view_);
     mip_views_.clear();
     layer_views_.clear();
   }
