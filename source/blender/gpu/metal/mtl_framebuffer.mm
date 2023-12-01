@@ -1624,37 +1624,29 @@ MTLRenderPassDescriptor *MTLFrameBuffer::bake_render_pass_descriptor(bool load_c
     /* Color attachments. */
     int colour_attachments = 0;
     for (int attachment_ind = 0; attachment_ind < GPU_FB_MAX_COLOR_ATTACHMENT; attachment_ind++) {
+      MTLAttachment &attachment_config = mtl_color_attachments_[attachment_ind];
 
-      if (mtl_color_attachments_[attachment_ind].used) {
-
-        /* Create attachment descriptor. */
-        MTLRenderPassColorAttachmentDescriptor *attachment =
-            colour_attachment_descriptors_[attachment_ind];
-        BLI_assert(attachment != nil);
-
-        id<MTLTexture> texture =
-            mtl_color_attachments_[attachment_ind].texture->get_metal_handle_base();
+      if (attachment_config.used) {
+        id<MTLTexture> texture = attachment_config.texture->get_metal_handle_base();
         if (texture == nil) {
           MTL_LOG_ERROR("Attempting to assign invalid texture as attachment");
         }
 
-        bool texture_is_memoryless = (mtl_color_attachments_[attachment_ind].texture->usage_get() &
+        bool texture_is_memoryless = (attachment_config.texture->usage_get() &
                                       GPU_TEXTURE_USAGE_MEMORYLESS);
 
         /* IF SRGB is enabled, but we are rendering with SRGB disabled, sample texture view. */
         id<MTLTexture> source_color_texture = texture;
-        if (this->get_is_srgb() &&
-            mtl_color_attachments_[attachment_ind].texture->is_format_srgb() &&
+        if (this->get_is_srgb() && attachment_config.texture->is_format_srgb() &&
             !this->get_srgb_enabled())
         {
-          source_color_texture =
-              mtl_color_attachments_[attachment_ind].texture->get_non_srgb_handle();
+          source_color_texture = attachment_config.texture->get_non_srgb_handle();
           BLI_assert(source_color_texture != nil);
         }
 
         /* Resolve appropriate load action -- IF force load, perform load.
          * If clear but framebuffer has no pending clear, also load. */
-        eGPULoadOp load_action = mtl_color_attachments_[attachment_ind].load_action;
+        eGPULoadOp load_action = attachment_config.load_action;
         if (descriptor_config == MTL_FB_CONFIG_LOAD) {
           /* MTL_FB_CONFIG_LOAD must always load. */
           load_action = GPU_LOADACTION_LOAD;
@@ -1668,7 +1660,7 @@ MTLRenderPassDescriptor *MTLFrameBuffer::bake_render_pass_descriptor(bool load_c
         }
 
         /* Ensure memoryless attachment cannot load or store results. */
-        eGPUStoreOp store_action = mtl_color_attachments_[attachment_ind].store_action;
+        eGPUStoreOp store_action = attachment_config.store_action;
         if (texture_is_memoryless && load_action == GPU_LOADACTION_LOAD) {
           load_action = GPU_LOADACTION_DONT_CARE;
         }
@@ -1676,19 +1668,21 @@ MTLRenderPassDescriptor *MTLFrameBuffer::bake_render_pass_descriptor(bool load_c
           store_action = GPU_STOREACTION_DONT_CARE;
         }
 
+        /* Create attachment descriptor. */
+        MTLRenderPassColorAttachmentDescriptor *attachment =
+            colour_attachment_descriptors_[attachment_ind];
+        BLI_assert(attachment != nil);
+
         attachment.texture = source_color_texture;
         attachment.loadAction = mtl_load_action_from_gpu(load_action);
-        attachment.clearColor =
-            (load_action == GPU_LOADACTION_CLEAR) ?
-                MTLClearColorMake(mtl_color_attachments_[attachment_ind].clear_value.color[0],
-                                  mtl_color_attachments_[attachment_ind].clear_value.color[1],
-                                  mtl_color_attachments_[attachment_ind].clear_value.color[2],
-                                  mtl_color_attachments_[attachment_ind].clear_value.color[3]) :
-                MTLClearColorMake(0.0, 0.0, 0.0, 0.0);
+        attachment.clearColor = (load_action == GPU_LOADACTION_CLEAR) ?
+                                    MTLClearColorMake(
+                                        UNPACK4(attachment_config.clear_value.color)) :
+                                    MTLClearColorMake(0.0, 0.0, 0.0, 0.0);
         attachment.storeAction = mtl_store_action_from_gpu(store_action);
-        attachment.level = mtl_color_attachments_[attachment_ind].mip;
-        attachment.slice = mtl_color_attachments_[attachment_ind].slice;
-        attachment.depthPlane = mtl_color_attachments_[attachment_ind].depth_plane;
+        attachment.level = attachment_config.mip;
+        attachment.slice = attachment_config.slice;
+        attachment.depthPlane = attachment_config.depth_plane;
         colour_attachments++;
 
         /* Copy attachment info back in. */
