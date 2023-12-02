@@ -19,7 +19,7 @@ set(SRC
 set(LIB
 )
 
-# This library is currently windows only, for the other platforms an empty target is created this 
+# This library is currently windows only, for the other platforms an empty target is created this
 # way we don't have to clutter if(WIN32) ... endif() all over the place to use this library.
 if(WIN32)
   list(APPEND SRC
