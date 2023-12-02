@@ -397,7 +397,7 @@ static bool sculpt_undo_restore_coords(bContext *C, Depsgraph *depsgraph, Sculpt
       if (kb) {
         ob->shapenr = BLI_findindex(&key->block, kb) + 1;
 
-        BKE_sculpt_update_object_for_edit(depsgraph, ob, false, false, false);
+        BKE_sculpt_update_object_for_edit(depsgraph, ob, false);
         WM_event_add_notifier(C, NC_OBJECT | ND_DATA, ob);
       }
       else {
@@ -868,7 +868,6 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
   SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
   bool update = false, rebuild = false, update_mask = false, update_visibility = false;
   bool update_face_sets = false;
-  bool need_mask = false;
   bool need_refine_subdiv = false;
   bool clear_automask_cache = false;
 
@@ -880,14 +879,6 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
     /* Restore pivot. */
     copy_v3_v3(ss->pivot_pos, unode->pivot_pos);
     copy_v3_v3(ss->pivot_rot, unode->pivot_rot);
-    if (STREQ(unode->idname, ob->id.name)) {
-      if (unode->type == SCULPT_UNDO_MASK) {
-        /* Is possible that we can't do the mask undo (below)
-         * because of the vertex count. */
-        need_mask = true;
-        break;
-      }
-    }
   }
 
   if (clear_automask_cache) {
@@ -902,7 +893,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
      * ensure object is updated after the node is handled. */
     const SculptUndoNode *first_unode = (const SculptUndoNode *)lb->first;
     if (first_unode->type != SCULPT_UNDO_GEOMETRY) {
-      BKE_sculpt_update_object_for_edit(depsgraph, ob, false, need_mask, false);
+      BKE_sculpt_update_object_for_edit(depsgraph, ob, false);
     }
 
     if (sculpt_undo_bmesh_restore(C, static_cast<SculptUndoNode *>(lb->first), ob, ss)) {
@@ -991,7 +982,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
       case SCULPT_UNDO_GEOMETRY:
         need_refine_subdiv = true;
         sculpt_undo_geometry_restore(unode, ob);
-        BKE_sculpt_update_object_for_edit(depsgraph, ob, false, need_mask, false);
+        BKE_sculpt_update_object_for_edit(depsgraph, ob, false);
         break;
 
       case SCULPT_UNDO_DYNTOPO_BEGIN:

@@ -115,7 +115,7 @@ static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
   MultiresModifierData *mmd = BKE_sculpt_multires_active(CTX_data_scene(C), ob);
   BKE_sculpt_mask_layers_ensure(depsgraph, CTX_data_main(C), ob, mmd);
 
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, false);
 
   PBVH *pbvh = ob->sculpt->pbvh;
   Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(pbvh, {});

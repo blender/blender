@@ -181,7 +181,7 @@ static void sample_detail_voxel(bContext *C, ViewContext *vc, const int mval[2])
   /* Update the active vertex. */
   const float mval_fl[2] = {float(mval[0]), float(mval[1])};
   SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false);
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, false);
 
   /* Average the edge length of the connected edges to the active vertex. */
   PBVHVertRef active_vertex = SCULPT_active_vertex_get(ss);

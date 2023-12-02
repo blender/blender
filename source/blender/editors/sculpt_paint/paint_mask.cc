@@ -104,7 +104,7 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
   MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
   BKE_sculpt_mask_layers_ensure(depsgraph, CTX_data_main(C), ob, mmd);
 
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, false, true, false);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, false);
   PBVH *pbvh = ob->sculpt->pbvh;
   const bool multires = (BKE_pbvh_type(pbvh) == PBVH_GRIDS);
 
@@ -690,7 +690,7 @@ struct SculptGestureFaceSetOperation {
 static void sculpt_gesture_face_set_begin(bContext *C, SculptGestureContext *sgcontext)
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-  BKE_sculpt_update_object_for_edit(depsgraph, sgcontext->vc.obact, true, false, false);
+  BKE_sculpt_update_object_for_edit(depsgraph, sgcontext->vc.obact, false);
 }
 
 static void face_set_gesture_apply_task(SculptGestureContext *sgcontext, PBVHNode *node)
@@ -804,7 +804,7 @@ struct SculptGestureMaskOperation {
 static void sculpt_gesture_mask_begin(bContext *C, SculptGestureContext *sgcontext)
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-  BKE_sculpt_update_object_for_edit(depsgraph, sgcontext->vc.obact, false, true, false);
+  BKE_sculpt_update_object_for_edit(depsgraph, sgcontext->vc.obact, false);
 }
 
 static void mask_gesture_apply_task(SculptGestureContext *sgcontext,
@@ -1415,7 +1415,7 @@ static void sculpt_gesture_trim_begin(bContext *C, SculptGestureContext *sgconte
   sculpt_gesture_trim_calculate_depth(sgcontext);
   sculpt_gesture_trim_geometry_generate(sgcontext);
   SCULPT_topology_islands_invalidate(ss);
-  BKE_sculpt_update_object_for_edit(depsgraph, sgcontext->vc.obact, true, false, false);
+  BKE_sculpt_update_object_for_edit(depsgraph, sgcontext->vc.obact, false);
   SCULPT_undo_push_node(sgcontext->vc.obact, nullptr, SCULPT_UNDO_GEOMETRY);
 }
 
@@ -1515,7 +1515,7 @@ struct SculptGestureProjectOperation {
 static void sculpt_gesture_project_begin(bContext *C, SculptGestureContext *sgcontext)
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-  BKE_sculpt_update_object_for_edit(depsgraph, sgcontext->vc.obact, false, false, false);
+  BKE_sculpt_update_object_for_edit(depsgraph, sgcontext->vc.obact, false);
 }
 
 static void project_line_gesture_apply_task(SculptGestureContext *sgcontext, PBVHNode *node)
@@ -1711,7 +1711,7 @@ static int sculpt_trim_gesture_lasso_exec(bContext *C, wmOperator *op)
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object *object = CTX_data_active_object(C);
 
-  BKE_sculpt_update_object_for_edit(depsgraph, object, false, true, false);
+  BKE_sculpt_update_object_for_edit(depsgraph, object,  false);
 
   SculptSession *ss = object->sculpt;
   if (BKE_pbvh_type(ss->pbvh) != PBVH_FACES) {

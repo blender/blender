@@ -1733,7 +1733,7 @@ static void paint_cursor_preview_boundary_data_update(PaintCursorContext *pconte
 
   /* Needed for updating the necessary SculptSession data in order to initialize the
    * boundary data for the preview. */
-  BKE_sculpt_update_object_for_edit(pcontext->depsgraph, pcontext->vc.obact, true, false, false);
+  BKE_sculpt_update_object_for_edit(pcontext->depsgraph, pcontext->vc.obact, false);
 
   if (ss->boundary_preview) {
     SCULPT_boundary_data_free(ss->boundary_preview);
@@ -1804,8 +1804,7 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
      * nullptr before drawing it. */
     SculptSession *ss = pcontext->ss;
     if (update_previews || !ss->pose_ik_chain_preview) {
-      BKE_sculpt_update_object_for_edit(
-          pcontext->depsgraph, pcontext->vc.obact, true, false, false);
+      BKE_sculpt_update_object_for_edit(pcontext->depsgraph, pcontext->vc.obact, false);
 
       /* Free the previous pose brush preview. */
       if (ss->pose_ik_chain_preview) {

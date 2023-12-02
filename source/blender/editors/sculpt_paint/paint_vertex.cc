@@ -197,7 +197,7 @@ bool brush_use_accumulate(const VPaint *vp)
 
 void init_stroke(Depsgraph *depsgraph, Object *ob)
 {
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, true);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, true);
   SculptSession *ss = ob->sculpt;
 
   /* Ensure ss->cache is allocated.  It will mostly be initialized in
@@ -217,7 +217,7 @@ void init_session(Depsgraph *depsgraph, Scene *scene, Object *ob, eObjectMode ob
   BLI_assert(ob->sculpt == nullptr);
   ob->sculpt = MEM_new<SculptSession>(__func__);
   ob->sculpt->mode_type = object_mode;
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, true);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, true);
 
   SCULPT_ensure_valid_pivot(ob, scene);
 }
@@ -2250,8 +2250,7 @@ static int vertex_color_set_exec(bContext *C, wmOperator *op)
   const bool affect_alpha = RNA_boolean_get(op->ptr, "use_alpha");
 
   /* Ensure valid sculpt state. */
-  BKE_sculpt_update_object_for_edit(
-      CTX_data_ensure_evaluated_depsgraph(C), obact, true, false, true);
+  BKE_sculpt_update_object_for_edit(CTX_data_ensure_evaluated_depsgraph(C), obact, true);
 
   SCULPT_undo_push_begin(obact, op);
   Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(obact->sculpt->pbvh, {});

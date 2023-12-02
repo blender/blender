@@ -62,7 +62,7 @@ void ED_sculpt_init_transform(bContext *C,
   copy_v3_v3(ss->prev_pivot_scale, ss->pivot_scale);
 
   SCULPT_undo_push_begin_ex(ob, undo_name);
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, false, false, false);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, false);
 
   ss->pivot_rot[3] = 1.0f;
 
@@ -304,7 +304,7 @@ void ED_sculpt_update_modal_transform(bContext *C, Object *ob)
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
 
   SCULPT_vertex_random_access_ensure(ss);
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, false, false, false);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, false);
 
   switch (sd->transform_mode) {
     case SCULPT_TRANSFORM_MODE_ALL_VERTICES: {
@@ -398,7 +398,7 @@ static int sculpt_set_pivot_position_exec(bContext *C, wmOperator *op)
 
   int mode = RNA_enum_get(op->ptr, "mode");
 
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, false, true, false);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, false);
 
   /* Pivot to center. */
   if (mode == SCULPT_PIVOT_POSITION_ORIGIN) {

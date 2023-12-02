@@ -4952,8 +4952,7 @@ void SCULPT_stroke_modifiers_check(const bContext *C, Object *ob, const Brush *b
       (!BKE_sculptsession_use_pbvh_draw(ob, rv3d) && need_pmap))
   {
     Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-    BKE_sculpt_update_object_for_edit(
-        depsgraph, ob, need_pmap, false, SCULPT_tool_is_paint(brush->sculpt_tool));
+    BKE_sculpt_update_object_for_edit(depsgraph, ob, SCULPT_tool_is_paint(brush->sculpt_tool));
   }
 }
 
@@ -5331,33 +5330,19 @@ static void sculpt_brush_init_tex(Sculpt *sd, SculptSession *ss)
   }
 }
 
-static void sculpt_brush_stroke_init(bContext *C, wmOperator *op)
+static void sculpt_brush_stroke_init(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
   ToolSettings *tool_settings = CTX_data_tool_settings(C);
   Sculpt *sd = tool_settings->sculpt;
   SculptSession *ss = CTX_data_active_object(C)->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
-  int mode = RNA_enum_get(op->ptr, "mode");
-  bool need_pmap, needs_colors;
-  bool need_mask = false;
-
-  if (brush->sculpt_tool == SCULPT_TOOL_MASK) {
-    need_mask = true;
-  }
-
-  if (brush->sculpt_tool == SCULPT_TOOL_CLOTH ||
-      brush->deform_target == BRUSH_DEFORM_TARGET_CLOTH_SIM)
-  {
-    need_mask = true;
-  }
 
   view3d_operator_needs_opengl(C);
   sculpt_brush_init_tex(sd, ss);
 
-  need_pmap = sculpt_needs_connectivity_info(sd, brush, ss, mode);
-  needs_colors = SCULPT_tool_is_paint(brush->sculpt_tool) &&
-                 !SCULPT_use_image_paint_brush(&tool_settings->paint_mode, ob);
+  const bool needs_colors = SCULPT_tool_is_paint(brush->sculpt_tool) &&
+                            !SCULPT_use_image_paint_brush(&tool_settings->paint_mode, ob);
 
   if (needs_colors) {
     BKE_sculpt_color_layer_create_if_needed(ob);
@@ -5366,8 +5351,7 @@ static void sculpt_brush_stroke_init(bContext *C, wmOperator *op)
   /* CTX_data_ensure_evaluated_depsgraph should be used at the end to include the updates of
    * earlier steps modifying the data. */
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  BKE_sculpt_update_object_for_edit(
-      depsgraph, ob, need_pmap, need_mask, SCULPT_tool_is_paint(brush->sculpt_tool));
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, SCULPT_tool_is_paint(brush->sculpt_tool));
 
   ED_paint_tool_update_sticky_shading_color(C, ob);
 }
@@ -5842,7 +5826,7 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, const wmEvent
     return OPERATOR_CANCELLED;
   }
 
-  sculpt_brush_stroke_init(C, op);
+  sculpt_brush_stroke_init(C);
 
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
@@ -5896,7 +5880,7 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, const wmEvent
 
 static int sculpt_brush_stroke_exec(bContext *C, wmOperator *op)
 {
-  sculpt_brush_stroke_init(C, op);
+  sculpt_brush_stroke_init(C);
 
   op->customdata = paint_stroke_new(C,
                                     op,
