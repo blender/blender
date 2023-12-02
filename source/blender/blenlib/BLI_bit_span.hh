@@ -363,6 +363,11 @@ class MutableBoundedBitSpan : public MutableBitSpan {
     return {data_, bit_range_.take_front(n)};
   }
 
+  BoundedBitSpan as_span() const
+  {
+    return BoundedBitSpan(data_, bit_range_);
+  }
+
   void copy_from(const BitSpan other);
   void copy_from(const BoundedBitSpan other);
 };

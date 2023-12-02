@@ -200,7 +200,7 @@ struct SculptUndoNode {
   int maxgrid;               /* same for grid */
   int gridsize;              /* same for grid */
   blender::Array<int> grids; /* to restore into right location */
-  BLI_bitmap **grid_hidden;
+  blender::BitGroupVector<> grid_hidden;
 
   /* bmesh */
   BMLogEntry *bm_entry;

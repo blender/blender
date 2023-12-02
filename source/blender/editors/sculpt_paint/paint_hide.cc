@@ -10,7 +10,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array_utils.hh"
-#include "BLI_bitmap.h"
+#include "BLI_bit_span_ops.hh"
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
@@ -156,12 +156,12 @@ static void vert_hide_update(Object &object,
 }
 
 static void partialvis_update_mesh(Object &object,
-                                   PBVH &pbvh,
                                    const VisAction action,
                                    const VisArea area,
                                    const float planes[4][4],
                                    const Span<PBVHNode *> nodes)
 {
+  PBVH &pbvh = *object.sculpt->pbvh;
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
   if (action == VisAction::Show && !attributes.contains(".hide_vert")) {
@@ -195,7 +195,7 @@ static void partialvis_update_mesh(Object &object,
           break;
       }
       break;
-    case VisArea::Masked:
+    case VisArea::Masked: {
       const VArraySpan<float> mask = *attributes.lookup<float>(".sculpt_mask", ATTR_DOMAIN_POINT);
       if (action == VisAction::Show && mask.is_empty()) {
         vert_show_all(object, nodes);
@@ -210,96 +210,154 @@ static void partialvis_update_mesh(Object &object,
         });
       }
       break;
+    }
   }
 
   BKE_mesh_flush_hidden_from_verts(&mesh);
 }
 
-/* Hide or show elements in multires grids with a special GridFlags
- * customdata layer. */
-static void partialvis_update_grids(Depsgraph *depsgraph,
-                                    Object *ob,
-                                    PBVH *pbvh,
+static void grids_show_all(Depsgraph &depsgraph, Object &object, const Span<PBVHNode *> nodes)
+{
+  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  PBVH &pbvh = *object.sculpt->pbvh;
+  SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
+  const BitGroupVector<> &grid_hidden = subdiv_ccg.grid_hidden;
+  if (!grid_hidden.is_empty()) {
+    threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+      for (PBVHNode *node : nodes.slice(range)) {
+        const Span<int> grids = BKE_pbvh_node_get_grid_indices(*node);
+        if (std::any_of(grids.begin(), grids.end(), [&](const int i) {
+              return bits::any_bit_set(grid_hidden[i]);
+            }))
+        {
+          SCULPT_undo_push_node(&object, node, SCULPT_UNDO_HIDDEN);
+          BKE_pbvh_node_mark_rebuild_draw(node);
+        }
+      }
+    });
+  }
+  for (PBVHNode *node : nodes) {
+    BKE_pbvh_node_fully_hidden_set(node, false);
+  }
+  BKE_subdiv_ccg_grid_hidden_free(subdiv_ccg);
+  BKE_pbvh_sync_visibility_from_verts(&pbvh, &mesh);
+  multires_mark_as_modified(&depsgraph, &object, MULTIRES_HIDDEN_MODIFIED);
+}
+
+static void grid_hide_update(Depsgraph &depsgraph,
+                             Object &object,
+                             const Span<PBVHNode *> nodes,
+                             const FunctionRef<void(const int, MutableBoundedBitSpan)> calc_hide)
+{
+  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  PBVH &pbvh = *object.sculpt->pbvh;
+  SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
+  BitGroupVector<> &grid_hidden = BKE_subdiv_ccg_grid_hidden_ensure(subdiv_ccg);
+
+  bool any_changed = false;
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    for (PBVHNode *node : nodes.slice(range)) {
+      bool changed = false;
+      bool any_visible = false;
+      for (const int grid : BKE_pbvh_node_get_grid_indices(*node)) {
+        MutableBoundedBitSpan gh = grid_hidden[grid];
+        const BitVector<1024> old_hide(gh);
+        calc_hide(grid, gh);
+        changed |= !bits::spans_equal(old_hide, gh);
+        any_visible |= bits::any_bit_unset(gh);
+      }
+      if (!changed) {
+        continue;
+      }
+      any_changed = true;
+
+      SCULPT_undo_push_node(&object, node, SCULPT_UNDO_HIDDEN);
+
+      /* Don't tag a visibility update, we handle updating the fully hidden status here. */
+      BKE_pbvh_node_mark_rebuild_draw(node);
+      BKE_pbvh_node_fully_hidden_set(node, !any_visible);
+    }
+  });
+
+  if (any_changed) {
+    multires_mark_as_modified(&depsgraph, &object, MULTIRES_HIDDEN_MODIFIED);
+    BKE_pbvh_sync_visibility_from_verts(&pbvh, &mesh);
+  }
+}
+
+static void partialvis_update_grids(Depsgraph &depsgraph,
+                                    Object &object,
                                     const VisAction action,
                                     const VisArea area,
                                     const float planes[4][4],
                                     const Span<PBVHNode *> nodes)
 {
-  SubdivCCG &subdiv_ccg = *ob->sculpt->subdiv_ccg;
-  const Span<CCGElem *> grids = subdiv_ccg.grids;
-  const CCGKey key = *BKE_pbvh_get_grid_key(pbvh);
-  MutableSpan<BLI_bitmap *> grid_hidden = subdiv_ccg.grid_hidden;
-
-  for (PBVHNode *node : nodes) {
-    bool any_changed = false;
-    bool any_visible = false;
-
-    SCULPT_undo_push_node(ob, node, SCULPT_UNDO_HIDDEN);
-
-    for (const int grid_index : BKE_pbvh_node_get_grid_indices(*node)) {
-      int any_hidden = 0;
-      BLI_bitmap *gh = grid_hidden[grid_index];
-      if (!gh) {
-        switch (action) {
-          case VisAction::Hide:
-            /* Create grid flags data. */
-            gh = grid_hidden[grid_index] = BLI_BITMAP_NEW(key.grid_area,
-                                                          "partialvis_update_grids");
-            break;
-          case VisAction::Show:
-            /* Entire grid is visible, nothing to show. */
-            continue;
-        }
-      }
-      else if (action == VisAction::Show && area == VisArea::All) {
-        /* Special case if we're showing all, just free the grid. */
-        MEM_freeN(gh);
-        grid_hidden[grid_index] = nullptr;
-        any_changed = true;
-        any_visible = true;
-        continue;
-      }
-
-      for (int y = 0; y < key.grid_size; y++) {
-        for (int x = 0; x < key.grid_size; x++) {
-          CCGElem *elem = CCG_grid_elem(&key, grids[grid_index], x, y);
-          const float *co = CCG_elem_co(&key, elem);
-          float mask = key.has_mask ? *CCG_elem_mask(&key, elem) : 0.0f;
-
-          /* Skip grid element if not in the effected area. */
-          if (is_effected(area, planes, co, mask)) {
-            /* Set or clear the hide flag. */
-            BLI_BITMAP_SET(gh, y * key.grid_size + x, action == VisAction::Hide);
-
-            any_changed = true;
-          }
-
-          /* Keep track of whether any elements are still hidden. */
-          if (BLI_BITMAP_TEST(gh, y * key.grid_size + x)) {
-            any_hidden = true;
-          }
-          else {
-            any_visible = true;
-          }
-        }
-      }
-
-      /* If everything in the grid is now visible, free the grid flags. */
-      if (!any_hidden) {
-        MEM_freeN(gh);
-        grid_hidden[grid_index] = nullptr;
-      }
-    }
-
-    /* Mark updates if anything was hidden/shown. */
-    if (any_changed) {
-      BKE_pbvh_node_mark_rebuild_draw(node);
-      BKE_pbvh_node_fully_hidden_set(node, !any_visible);
-      multires_mark_as_modified(depsgraph, ob, MULTIRES_HIDDEN_MODIFIED);
-    }
+  PBVH &pbvh = *object.sculpt->pbvh;
+  SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
+  if (action == VisAction::Show && area == VisArea::All) {
+    grids_show_all(depsgraph, object, nodes);
+    return;
   }
 
-  BKE_pbvh_sync_visibility_from_verts(pbvh, static_cast<Mesh *>(ob->data));
+  const bool value = action_to_hide(action);
+  switch (area) {
+    case VisArea::Inside:
+    case VisArea::Outside: {
+      const CCGKey key = *BKE_pbvh_get_grid_key(&pbvh);
+      const Span<CCGElem *> grids = subdiv_ccg.grids;
+      grid_hide_update(
+          depsgraph, object, nodes, [&](const int grid_index, MutableBoundedBitSpan hide) {
+            CCGElem *grid = grids[grid_index];
+            for (const int y : IndexRange(key.grid_size)) {
+              for (const int x : IndexRange(key.grid_size)) {
+                CCGElem *elem = CCG_grid_elem(&key, grid, x, y);
+                if (isect_point_planes_v3(planes, 4, CCG_elem_co(&key, elem))) {
+                  hide[y * key.grid_size + x].set(value);
+                }
+              }
+            }
+          });
+      break;
+    }
+    case VisArea::All:
+      switch (action) {
+        case VisAction::Hide:
+          grid_hide_update(
+              depsgraph, object, nodes, [&](const int /*verts*/, MutableBoundedBitSpan hide) {
+                hide.fill(true);
+              });
+          break;
+        case VisAction::Show:
+          grids_show_all(depsgraph, object, nodes);
+          break;
+      }
+      break;
+    case VisArea::Masked: {
+      const CCGKey key = *BKE_pbvh_get_grid_key(&pbvh);
+      const Span<CCGElem *> grids = subdiv_ccg.grids;
+      if (!key.has_mask) {
+        grid_hide_update(
+            depsgraph, object, nodes, [&](const int /*verts*/, MutableBoundedBitSpan hide) {
+              hide.fill(value);
+            });
+      }
+      else {
+        grid_hide_update(
+            depsgraph, object, nodes, [&](const int grid_index, MutableBoundedBitSpan hide) {
+              CCGElem *grid = grids[grid_index];
+              for (const int y : IndexRange(key.grid_size)) {
+                for (const int x : IndexRange(key.grid_size)) {
+                  CCGElem *elem = CCG_grid_elem(&key, grid, x, y);
+                  if (*CCG_elem_mask(&key, elem) > 0.5f) {
+                    hide[y * key.grid_size + x].set(value);
+                  }
+                }
+              }
+            });
+      }
+      break;
+    }
+  }
 }
 
 static void partialvis_update_bmesh_verts(BMesh *bm,
@@ -464,10 +522,10 @@ static int hide_show_exec(bContext *C, wmOperator *op)
 
   switch (pbvh_type) {
     case PBVH_FACES:
-      partialvis_update_mesh(*ob, *pbvh, action, area, clip_planes, nodes);
+      partialvis_update_mesh(*ob, action, area, clip_planes, nodes);
       break;
     case PBVH_GRIDS:
-      partialvis_update_grids(depsgraph, ob, pbvh, action, area, clip_planes, nodes);
+      partialvis_update_grids(*depsgraph, *ob, action, area, clip_planes, nodes);
       break;
     case PBVH_BMESH:
       partialvis_update_bmesh(ob, pbvh, action, area, clip_planes, nodes);

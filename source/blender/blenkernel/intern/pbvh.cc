@@ -45,6 +45,7 @@
 
 #include "pbvh_intern.hh"
 
+using blender::BitGroupVector;
 using blender::float3;
 using blender::MutableSpan;
 using blender::Span;
@@ -390,14 +391,16 @@ static void update_vb(PBVH *pbvh, PBVHNode *node, const Span<BBC> prim_bbc, int 
   node->orig_vb = node->vb;
 }
 
-int BKE_pbvh_count_grid_quads(const Span<const BLI_bitmap *> grid_hidden,
+int BKE_pbvh_count_grid_quads(const BitGroupVector<> &grid_hidden,
                               const int *grid_indices,
                               int totgrid,
                               int gridsize,
                               int display_gridsize)
 {
   const int gridarea = (gridsize - 1) * (gridsize - 1);
-  int totquad = 0;
+  if (grid_hidden.is_empty()) {
+    return gridarea * totgrid;
+  }
 
   /* grid hidden layer is present, so have to check each grid for
    * visibility */
@@ -407,21 +410,16 @@ int BKE_pbvh_count_grid_quads(const Span<const BLI_bitmap *> grid_hidden,
 
   int skip = depth2 < depth1 ? 1 << (depth1 - depth2 - 1) : 1;
 
+  int totquad = 0;
   for (int i = 0; i < totgrid; i++) {
-    const BLI_bitmap *gh = grid_hidden[grid_indices[i]];
-
-    if (gh) {
-      /* grid hidden are present, have to check each element */
-      for (int y = 0; y < gridsize - skip; y += skip) {
-        for (int x = 0; x < gridsize - skip; x += skip) {
-          if (!paint_is_grid_face_hidden(gh, gridsize, x, y)) {
-            totquad++;
-          }
+    const blender::BoundedBitSpan gh = grid_hidden[grid_indices[i]];
+    /* grid hidden are present, have to check each element */
+    for (int y = 0; y < gridsize - skip; y += skip) {
+      for (int x = 0; x < gridsize - skip; x += skip) {
+        if (!paint_is_grid_face_hidden(gh, gridsize, x, y)) {
+          totquad++;
         }
       }
-    }
-    else {
-      totquad += gridarea;
     }
   }
 
@@ -1466,7 +1464,6 @@ static blender::draw::pbvh::PBVH_GPU_Args pbvh_draw_args_init(const Mesh &mesh,
       args.grid_indices = node.prim_indices;
       args.subdiv_ccg = pbvh.subdiv_ccg;
       args.grids = pbvh.subdiv_ccg->grids;
-      args.grid_hidden = pbvh.subdiv_ccg->grid_hidden;
       args.grid_flag_mats = pbvh.subdiv_ccg->grid_flag_mats;
       args.vert_normals = pbvh.vert_normals;
       break;
@@ -1662,20 +1659,24 @@ static void pbvh_faces_node_visibility_update(const Mesh &mesh, const Span<PBVHN
 static void pbvh_grids_node_visibility_update(PBVH *pbvh, const Span<PBVHNode *> nodes)
 {
   using namespace blender;
+  const BitGroupVector<> &grid_hidden = pbvh->subdiv_ccg->grid_hidden;
+  if (grid_hidden.is_empty()) {
+    for (PBVHNode *node : nodes) {
+      BKE_pbvh_node_fully_hidden_set(node, false);
+      node->flag &= ~PBVH_UpdateVisibility;
+    }
+    return;
+  }
+
   CCGKey key = *BKE_pbvh_get_grid_key(pbvh);
-  const Span<const BLI_bitmap *> grid_hidden = pbvh->subdiv_ccg->grid_hidden;
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (PBVHNode *node : nodes.slice(range)) {
       for (const int grid_index : BKE_pbvh_node_get_grid_indices(*node)) {
-        const BLI_bitmap *gh = grid_hidden[grid_index];
-        if (!gh) {
-          BKE_pbvh_node_fully_hidden_set(node, false);
-          return;
-        }
+        const blender::BoundedBitSpan gh = grid_hidden[grid_index];
 
         for (int y = 0; y < key.grid_size; y++) {
           for (int x = 0; x < key.grid_size; x++) {
-            if (!BLI_BITMAP_TEST(gh, y * key.grid_size + x)) {
+            if (!gh[y * key.grid_size + x]) {
               BKE_pbvh_node_fully_hidden_set(node, false);
               return;
             }
@@ -2335,7 +2336,7 @@ static bool pbvh_grids_node_raycast(PBVH *pbvh,
   bool hit = false;
   float nearest_vertex_co[3] = {0.0};
   const CCGKey *gridkey = &pbvh->gridkey;
-  const Span<BLI_bitmap *> grid_hidden = pbvh->subdiv_ccg->grid_hidden;
+  const BitGroupVector<> &grid_hidden = pbvh->subdiv_ccg->grid_hidden;
   const Span<CCGElem *> grids = pbvh->subdiv_ccg->grids;
 
   for (int i = 0; i < totgrid; i++) {
@@ -2345,13 +2346,11 @@ static bool pbvh_grids_node_raycast(PBVH *pbvh,
       continue;
     }
 
-    const BLI_bitmap *gh = grid_hidden[grid_index];
-
     for (int y = 0; y < gridsize - 1; y++) {
       for (int x = 0; x < gridsize - 1; x++) {
         /* check if grid face is hidden */
-        if (gh) {
-          if (paint_is_grid_face_hidden(gh, gridsize, x, y)) {
+        if (!grid_hidden.is_empty()) {
+          if (paint_is_grid_face_hidden(grid_hidden[grid_index], gridsize, x, y)) {
             continue;
           }
         }
@@ -2665,7 +2664,7 @@ static bool pbvh_grids_node_nearest_to_ray(PBVH *pbvh,
   const int totgrid = node->prim_indices.size();
   const int gridsize = pbvh->gridkey.grid_size;
   bool hit = false;
-  const Span<BLI_bitmap *> grid_hidden = pbvh->subdiv_ccg->grid_hidden;
+  const BitGroupVector<> &grid_hidden = pbvh->subdiv_ccg->grid_hidden;
   const Span<CCGElem *> grids = pbvh->subdiv_ccg->grids;
 
   for (int i = 0; i < totgrid; i++) {
@@ -2674,13 +2673,11 @@ static bool pbvh_grids_node_nearest_to_ray(PBVH *pbvh,
       continue;
     }
 
-    const BLI_bitmap *gh = grid_hidden[node->prim_indices[i]];
-
     for (int y = 0; y < gridsize - 1; y++) {
       for (int x = 0; x < gridsize - 1; x++) {
         /* check if grid face is hidden */
-        if (gh) {
-          if (paint_is_grid_face_hidden(gh, gridsize, x, y)) {
+        if (!grid_hidden.is_empty()) {
+          if (paint_is_grid_face_hidden(grid_hidden[node->prim_indices[i]], gridsize, x, y)) {
             continue;
           }
         }
@@ -3078,9 +3075,10 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
         vi->bm_vdata, CD_PROP_FLOAT, ".sculpt_mask");
   }
 
-  vi->gh = nullptr;
+  vi->gh.reset();
   if (vi->grids && mode == PBVH_ITER_UNIQUE) {
-    vi->grid_hidden = pbvh->subdiv_ccg->grid_hidden.data();
+    vi->grid_hidden = pbvh->subdiv_ccg->grid_hidden.is_empty() ? nullptr :
+                                                                 &pbvh->subdiv_ccg->grid_hidden;
   }
 
   vi->mask = 0.0f;
@@ -3294,20 +3292,23 @@ void BKE_pbvh_sync_visibility_from_verts(PBVH *pbvh, Mesh *mesh)
     }
     case PBVH_GRIDS: {
       const OffsetIndices faces = mesh->faces();
-      const Span<BLI_bitmap *> grid_hidden = pbvh->subdiv_ccg->grid_hidden;
+      const BitGroupVector<> &grid_hidden = pbvh->subdiv_ccg->grid_hidden;
       CCGKey key = pbvh->gridkey;
 
       IndexMaskMemory memory;
-      const IndexMask hidden_faces = IndexMask::from_predicate(
-          faces.index_range(), GrainSize(1024), memory, [&](const int i) {
-            const IndexRange face = faces[i];
-            return std::any_of(face.begin(), face.end(), [&](const int corner) {
-              if (!grid_hidden[corner]) {
-                return false;
-              }
-              return BLI_BITMAP_TEST_BOOL(grid_hidden[corner], key.grid_area - 1);
-            });
-          });
+      const IndexMask hidden_faces =
+          grid_hidden.is_empty() ?
+              IndexMask::from_predicate(faces.index_range(),
+                                        GrainSize(1024),
+                                        memory,
+                                        [&](const int i) {
+                                          const IndexRange face = faces[i];
+                                          return std::any_of(
+                                              face.begin(), face.end(), [&](const int corner) {
+                                                return grid_hidden[corner][key.grid_area - 1];
+                                              });
+                                        }) :
+              IndexMask();
 
       MutableAttributeAccessor attributes = mesh->attributes_for_write();
       if (hidden_faces.is_empty()) {

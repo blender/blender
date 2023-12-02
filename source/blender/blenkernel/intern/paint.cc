@@ -1282,13 +1282,14 @@ void BKE_paint_blend_read_data(BlendDataReader *reader, const Scene *scene, Pain
   BKE_paint_runtime_init(scene->toolsettings, p);
 }
 
-bool paint_is_grid_face_hidden(const uint *grid_hidden, int gridsize, int x, int y)
+bool paint_is_grid_face_hidden(const blender::BoundedBitSpan grid_hidden,
+                               int gridsize,
+                               int x,
+                               int y)
 {
   /* Skip face if any of its corners are hidden. */
-  return (BLI_BITMAP_TEST(grid_hidden, y * gridsize + x) ||
-          BLI_BITMAP_TEST(grid_hidden, y * gridsize + x + 1) ||
-          BLI_BITMAP_TEST(grid_hidden, (y + 1) * gridsize + x + 1) ||
-          BLI_BITMAP_TEST(grid_hidden, (y + 1) * gridsize + x));
+  return grid_hidden[y * gridsize + x] || grid_hidden[y * gridsize + x + 1] ||
+         grid_hidden[(y + 1) * gridsize + x + 1] || grid_hidden[(y + 1) * gridsize + x];
 }
 
 bool paint_is_bmesh_face_hidden(const BMFace *f)
@@ -2148,32 +2149,24 @@ void BKE_sculpt_sync_face_visibility_to_grids(Mesh *mesh, SubdivCCG *subdiv_ccg)
   const VArray<bool> hide_poly = *attributes.lookup_or_default<bool>(
       ".hide_poly", ATTR_DOMAIN_FACE, false);
   if (hide_poly.is_single() && !hide_poly.get_internal_single()) {
-    /* Nothing is hidden, so we can just remove all visibility bitmaps. */
-    for (const int i : subdiv_ccg->grid_hidden.index_range()) {
-      BKE_subdiv_ccg_grid_hidden_free(*subdiv_ccg, i);
-    }
+    BKE_subdiv_ccg_grid_hidden_free(*subdiv_ccg);
     return;
   }
+
+  const OffsetIndices<int> faces = mesh->faces();
 
   const VArraySpan<bool> hide_poly_span(hide_poly);
   CCGKey key;
   BKE_subdiv_ccg_key_top_level(key, *subdiv_ccg);
-  for (int i = 0; i < mesh->totloop; i++) {
-    const int face_index = BKE_subdiv_ccg_grid_to_face_index(*subdiv_ccg, i);
-    const bool is_hidden = hide_poly_span[face_index];
-
-    /* Avoid creating and modifying the grid_hidden bitmap if the base mesh face is visible and
-     * there is not bitmap for the grid. This is because missing grid_hidden implies grid is fully
-     * visible. */
-    if (is_hidden) {
-      BKE_subdiv_ccg_grid_hidden_ensure(*subdiv_ccg, i);
+  BitGroupVector<> &grid_hidden = BKE_subdiv_ccg_grid_hidden_ensure(*subdiv_ccg);
+  threading::parallel_for(faces.index_range(), 1024, [&](const IndexRange range) {
+    for (const int i : range) {
+      const bool face_hidden = hide_poly_span[i];
+      for (const int corner : faces[i]) {
+        grid_hidden[corner].set_all(face_hidden);
+      }
     }
-
-    BLI_bitmap *gh = subdiv_ccg->grid_hidden[i];
-    if (gh) {
-      BLI_bitmap_set_all(gh, is_hidden, key.grid_area);
-    }
-  }
+  });
 }
 
 static PBVH *build_pbvh_for_dynamic_topology(Object *ob)

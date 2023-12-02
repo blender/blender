@@ -510,10 +510,19 @@ static bool sculpt_undo_restore_hidden(bContext *C, SculptUndoNode *unode, bool 
     hide_vert.finish();
   }
   else if (!unode->grids.is_empty() && subdiv_ccg != nullptr) {
+    if (unode->grid_hidden.is_empty()) {
+      BKE_subdiv_ccg_grid_hidden_free(*subdiv_ccg);
+      return true;
+    }
+
+    blender::BitGroupVector<> &grid_hidden = BKE_subdiv_ccg_grid_hidden_ensure(*subdiv_ccg);
     const Span<int> grids = unode->grids;
-    blender::MutableSpan<BLI_bitmap *> grid_hidden = subdiv_ccg->grid_hidden;
     for (const int i : grids.index_range()) {
-      SWAP(BLI_bitmap *, unode->grid_hidden[i], grid_hidden[grids[i]]);
+      const int grid_index = grids[i];
+      /* Swap the two bit spans. */
+      blender::BitVector<512> tmp(grid_hidden[grid_index]);
+      grid_hidden[grid_index].copy_from(unode->grid_hidden[i].as_span());
+      unode->grid_hidden[i].copy_from(tmp);
     }
   }
 
@@ -1087,13 +1096,6 @@ static void sculpt_undo_free_list(ListBase *lb)
   while (unode != nullptr) {
     SculptUndoNode *unode_next = unode->next;
 
-    if (unode->grid_hidden) {
-      for (const int i : unode->grids.index_range()) {
-        MEM_SAFE_FREE(unode->grid_hidden[i]);
-      }
-      MEM_freeN(unode->grid_hidden);
-    }
-
     if (unode->bm_entry) {
       BM_log_entry_drop(unode->bm_entry);
     }
@@ -1162,25 +1164,20 @@ SculptUndoNode *SCULPT_undo_get_first_node()
 static size_t sculpt_undo_alloc_and_store_hidden(SculptSession *ss, SculptUndoNode *unode)
 {
   PBVHNode *node = static_cast<PBVHNode *>(unode->node);
-  const blender::Span<const BLI_bitmap *> grid_hidden = ss->subdiv_ccg->grid_hidden;
-
-  const Span<int> grid_indices = BKE_pbvh_node_get_grid_indices(*node);
-
-  size_t alloc_size = sizeof(*unode->grid_hidden) * grid_indices.size();
-  unode->grid_hidden = static_cast<BLI_bitmap **>(MEM_callocN(alloc_size, "unode->grid_hidden"));
-
-  for (const int i : grid_indices.index_range()) {
-    const int grid_index = grid_indices[i];
-    if (grid_hidden[grid_index]) {
-      unode->grid_hidden[i] = static_cast<BLI_bitmap *>(MEM_dupallocN(grid_hidden[grid_index]));
-      alloc_size += MEM_allocN_len(unode->grid_hidden[i]);
-    }
-    else {
-      unode->grid_hidden[i] = nullptr;
-    }
+  if (!ss->subdiv_ccg) {
+    return 0;
+  }
+  const blender::BitGroupVector<> grid_hidden = ss->subdiv_ccg->grid_hidden;
+  if (grid_hidden.is_empty()) {
+    return 0;
   }
 
-  return alloc_size;
+  const Span<int> grid_indices = BKE_pbvh_node_get_grid_indices(*node);
+  for (const int i : grid_indices.index_range()) {
+    unode->grid_hidden[i].copy_from(grid_hidden[grid_indices[i]]);
+  }
+
+  return unode->grid_hidden.all_bits().full_ints_num() / blender::bits::BitsPerInt;
 }
 
 /* Allocate node and initialize its default fields specific for the given undo type.

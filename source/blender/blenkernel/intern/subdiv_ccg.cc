@@ -144,10 +144,6 @@ static void subdiv_ccg_alloc_elements(SubdivCCG &subdiv_ccg, Subdiv &subdiv)
     subdiv_ccg.grids[grid_index] = (CCGElem *)&subdiv_ccg.grids_storage[grid_offset];
   }
   subdiv_ccg.grid_flag_mats.reinitialize(num_grids);
-  subdiv_ccg.grid_hidden.reinitialize(num_grids);
-  for (int grid_index = 0; grid_index < num_grids; grid_index++) {
-    subdiv_ccg.grid_hidden[grid_index] = BLI_BITMAP_NEW(grid_area, "ccg grid hidden");
-  }
   /* TODO(sergey): Allocate memory for loose elements. */
   subdiv_ccg.faces.reinitialize(num_faces);
   subdiv_ccg.grid_to_face_map.reinitialize(num_grids);
@@ -563,10 +559,6 @@ Mesh *BKE_subdiv_to_ccg_mesh(Subdiv &subdiv,
 
 void BKE_subdiv_ccg_destroy(SubdivCCG *subdiv_ccg)
 {
-  for (const int grid_index : subdiv_ccg->grid_hidden.index_range()) {
-    MEM_SAFE_FREE(subdiv_ccg->grid_hidden[grid_index]);
-  }
-
   if (subdiv_ccg->subdiv != nullptr) {
     BKE_subdiv_free(subdiv_ccg->subdiv);
   }
@@ -1684,20 +1676,18 @@ SubdivCCGAdjacencyType BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(
   return SUBDIV_CCG_ADJACENT_NONE;
 }
 
-void BKE_subdiv_ccg_grid_hidden_ensure(SubdivCCG &subdiv_ccg, int grid_index)
+blender::BitGroupVector<> &BKE_subdiv_ccg_grid_hidden_ensure(SubdivCCG &subdiv_ccg)
 {
-  if (subdiv_ccg.grid_hidden[grid_index] != nullptr) {
-    return;
+  if (subdiv_ccg.grid_hidden.is_empty()) {
+    const int grid_area = subdiv_ccg.grid_size * subdiv_ccg.grid_size;
+    subdiv_ccg.grid_hidden = blender::BitGroupVector<>(subdiv_ccg.grids.size(), grid_area, false);
   }
-
-  CCGKey key;
-  BKE_subdiv_ccg_key_top_level(key, subdiv_ccg);
-  subdiv_ccg.grid_hidden[grid_index] = BLI_BITMAP_NEW(key.grid_area, __func__);
+  return subdiv_ccg.grid_hidden;
 }
 
-void BKE_subdiv_ccg_grid_hidden_free(SubdivCCG &subdiv_ccg, int grid_index)
+void BKE_subdiv_ccg_grid_hidden_free(SubdivCCG &subdiv_ccg)
 {
-  MEM_SAFE_FREE(subdiv_ccg.grid_hidden[grid_index]);
+  subdiv_ccg.grid_hidden = {};
 }
 
 static void subdiv_ccg_coord_to_ptex_coord(const SubdivCCG &subdiv_ccg,

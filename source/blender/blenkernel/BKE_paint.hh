@@ -224,7 +224,7 @@ bool BKE_paint_always_hide_test(const Object *ob);
  * Returns non-zero if any of the corners of the grid
  * face whose inner corner is at (x, y) are hidden, zero otherwise.
  */
-bool paint_is_grid_face_hidden(const unsigned int *grid_hidden, int gridsize, int x, int y);
+bool paint_is_grid_face_hidden(blender::BoundedBitSpan grid_hidden, int gridsize, int x, int y);
 /**
  * Return true if all vertices in the face are visible, false otherwise.
  */
