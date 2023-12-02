@@ -1551,10 +1551,10 @@ void ED_operatortypes_paint()
   WM_operatortype_append(blender::ed::sculpt_paint::hide::PAINT_OT_hide_show);
 
   /* paint masking */
-  WM_operatortype_append(PAINT_OT_mask_flood_fill);
-  WM_operatortype_append(PAINT_OT_mask_lasso_gesture);
-  WM_operatortype_append(PAINT_OT_mask_box_gesture);
-  WM_operatortype_append(PAINT_OT_mask_line_gesture);
+  WM_operatortype_append(blender::ed::sculpt_paint::mask::PAINT_OT_mask_flood_fill);
+  WM_operatortype_append(blender::ed::sculpt_paint::mask::PAINT_OT_mask_lasso_gesture);
+  WM_operatortype_append(blender::ed::sculpt_paint::mask::PAINT_OT_mask_box_gesture);
+  WM_operatortype_append(blender::ed::sculpt_paint::mask::PAINT_OT_mask_line_gesture);
 }
 
 void ED_keymap_paint(wmKeyConfig *keyconf)

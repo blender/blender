@@ -460,23 +460,12 @@ void PAINT_OT_hide_show(wmOperatorType *ot);
 
 /* `paint_mask.cc` */
 
-/* The gesture API doesn't write to this enum type,
- * it writes to eSelectOp from ED_select_utils.hh.
- * We must thus map the modes here to the desired
- * eSelectOp modes.
- *
- * Fixes #102349.
- */
-enum PaintMaskFloodMode {
-  PAINT_MASK_FLOOD_VALUE = SEL_OP_SUB,
-  PAINT_MASK_FLOOD_VALUE_INVERSE = SEL_OP_ADD,
-  PAINT_MASK_INVERT = SEL_OP_XOR,
-};
-
+namespace blender::ed::sculpt_paint::mask {
 void PAINT_OT_mask_flood_fill(wmOperatorType *ot);
 void PAINT_OT_mask_lasso_gesture(wmOperatorType *ot);
 void PAINT_OT_mask_box_gesture(wmOperatorType *ot);
 void PAINT_OT_mask_line_gesture(wmOperatorType *ot);
+}  // namespace blender::ed::sculpt_paint::mask
 
 /* `paint_curve.cc` */
 

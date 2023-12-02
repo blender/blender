@@ -915,7 +915,7 @@ static int sculpt_mask_by_color_invoke(bContext *C, wmOperator *op, const wmEven
   MultiresModifierData *mmd = BKE_sculpt_multires_active(CTX_data_scene(C), ob);
   BKE_sculpt_mask_layers_ensure(depsgraph, CTX_data_main(C), ob, mmd);
 
-  BKE_sculpt_update_object_for_edit(depsgraph, ob,  false);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, false);
   SCULPT_vertex_random_access_ensure(ss);
 
   /* Tools that are not brushes do not have the brush gizmo to update the vertex as the mouse move,
@@ -1064,7 +1064,7 @@ static int sculpt_bake_cavity_exec(bContext *C, wmOperator *op)
   MultiresModifierData *mmd = BKE_sculpt_multires_active(CTX_data_scene(C), ob);
   BKE_sculpt_mask_layers_ensure(depsgraph, CTX_data_main(C), ob, mmd);
 
-  BKE_sculpt_update_object_for_edit(depsgraph, ob,  false);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, false);
   SCULPT_vertex_random_access_ensure(ss);
 
   SCULPT_undo_push_begin(ob, op);
@@ -1283,11 +1283,11 @@ void ED_operatortypes_sculpt()
   WM_operatortype_append(SCULPT_OT_face_sets_init);
   WM_operatortype_append(SCULPT_OT_cloth_filter);
   WM_operatortype_append(SCULPT_OT_face_sets_edit);
-  WM_operatortype_append(SCULPT_OT_face_set_lasso_gesture);
-  WM_operatortype_append(SCULPT_OT_face_set_box_gesture);
-  WM_operatortype_append(SCULPT_OT_trim_box_gesture);
-  WM_operatortype_append(SCULPT_OT_trim_lasso_gesture);
-  WM_operatortype_append(SCULPT_OT_project_line_gesture);
+  WM_operatortype_append(blender::ed::sculpt_paint::mask::SCULPT_OT_face_set_lasso_gesture);
+  WM_operatortype_append(blender::ed::sculpt_paint::mask::SCULPT_OT_face_set_box_gesture);
+  WM_operatortype_append(blender::ed::sculpt_paint::mask::SCULPT_OT_trim_box_gesture);
+  WM_operatortype_append(blender::ed::sculpt_paint::mask::SCULPT_OT_trim_lasso_gesture);
+  WM_operatortype_append(blender::ed::sculpt_paint::mask::SCULPT_OT_project_line_gesture);
 
   WM_operatortype_append(SCULPT_OT_sample_color);
   WM_operatortype_append(SCULPT_OT_color_filter);

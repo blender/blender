@@ -56,10 +56,20 @@
 /* For undo push. */
 #include "sculpt_intern.hh"
 
-using blender::float3;
-using blender::OffsetIndices;
-using blender::Span;
-using blender::Vector;
+namespace blender::ed::sculpt_paint::mask {
+
+/* The gesture API doesn't write to this enum type,
+ * it writes to eSelectOp from ED_select_utils.hh.
+ * We must thus map the modes here to the desired
+ * eSelectOp modes.
+ *
+ * Fixes #102349.
+ */
+enum PaintMaskFloodMode {
+  PAINT_MASK_FLOOD_VALUE = SEL_OP_SUB,
+  PAINT_MASK_FLOOD_VALUE_INVERSE = SEL_OP_ADD,
+  PAINT_MASK_INVERT = SEL_OP_XOR,
+};
 
 static const EnumPropertyItem mode_items[] = {
     {PAINT_MASK_FLOOD_VALUE,
@@ -93,7 +103,6 @@ static float mask_flood_fill_get_new_value_for_elem(const float elem,
 
 static int mask_flood_fill_exec(bContext *C, wmOperator *op)
 {
-  using namespace blender;
   const Scene *scene = CTX_data_scene(C);
   Object *ob = CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
@@ -108,7 +117,7 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
   PBVH *pbvh = ob->sculpt->pbvh;
   const bool multires = (BKE_pbvh_type(pbvh) == PBVH_GRIDS);
 
-  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(pbvh, {});
+  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(pbvh, {});
   const SculptMaskWriteInfo mask_write = SCULPT_mask_get_for_write(ob->sculpt);
 
   SCULPT_undo_push_begin(ob, op);
@@ -567,7 +576,7 @@ static Vector<PBVHNode *> sculpt_gesture_update_effected_nodes_by_line_plane(
   frustum.planes = clip_planes;
   frustum.num_planes = sgcontext->line.use_side_planes ? 3 : 1;
 
-  return sgcontext->nodes = blender::bke::pbvh::search_gather(ss->pbvh, [&](PBVHNode &node) {
+  return sgcontext->nodes = bke::pbvh::search_gather(ss->pbvh, [&](PBVHNode &node) {
            return BKE_pbvh_node_frustum_contain_AABB(&node, &frustum);
          });
 }
@@ -583,7 +592,7 @@ static void sculpt_gesture_update_effected_nodes_by_clip_planes(SculptGestureCon
   frustum.planes = clip_planes;
   frustum.num_planes = 4;
 
-  sgcontext->nodes = blender::bke::pbvh::search_gather(ss->pbvh, [&](PBVHNode &node) {
+  sgcontext->nodes = bke::pbvh::search_gather(ss->pbvh, [&](PBVHNode &node) {
     return BKE_pbvh_node_frustum_contain_AABB(&node, &frustum);
   });
 }
@@ -695,7 +704,6 @@ static void sculpt_gesture_face_set_begin(bContext *C, SculptGestureContext *sgc
 
 static void face_set_gesture_apply_task(SculptGestureContext *sgcontext, PBVHNode *node)
 {
-  using namespace blender;
   SculptGestureFaceSetOperation *face_set_operation = (SculptGestureFaceSetOperation *)
                                                           sgcontext->operation;
   SculptSession &ss = *sgcontext->ss;
@@ -759,7 +767,6 @@ static void face_set_gesture_apply_task(SculptGestureContext *sgcontext, PBVHNod
 static void sculpt_gesture_face_set_apply_for_symmetry_pass(bContext * /*C*/,
                                                             SculptGestureContext *sgcontext)
 {
-  using namespace blender;
   threading::parallel_for(sgcontext->nodes.index_range(), 1, [&](const IndexRange range) {
     for (const int i : range) {
       face_set_gesture_apply_task(sgcontext, sgcontext->nodes[i]);
@@ -854,7 +861,6 @@ static void mask_gesture_apply_task(SculptGestureContext *sgcontext,
 static void sculpt_gesture_mask_apply_for_symmetry_pass(bContext * /*C*/,
                                                         SculptGestureContext *sgcontext)
 {
-  using namespace blender;
   const SculptMaskWriteInfo mask_write = SCULPT_mask_get_for_write(sgcontext->ss);
   threading::parallel_for(sgcontext->nodes.index_range(), 1, [&](const IndexRange range) {
     for (const int i : range) {
@@ -1168,8 +1174,7 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
   const float(*ob_imat)[4] = vc->obact->world_to_object;
 
   /* Write vertices coordinatesSCULPT_GESTURE_TRIM_DIFFERENCE for the front face. */
-  blender::MutableSpan<blender::float3> positions =
-      trim_operation->mesh->vert_positions_for_write();
+  MutableSpan<float3> positions = trim_operation->mesh->vert_positions_for_write();
 
   float depth_point[3];
 
@@ -1242,8 +1247,8 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
   BLI_polyfill_calc(screen_points, tot_screen_points, 0, r_tris);
 
   /* Write the front face triangle indices. */
-  blender::MutableSpan<int> face_offsets = trim_operation->mesh->face_offsets_for_write();
-  blender::MutableSpan<int> corner_verts = trim_operation->mesh->corner_verts_for_write();
+  MutableSpan<int> face_offsets = trim_operation->mesh->face_offsets_for_write();
+  MutableSpan<int> corner_verts = trim_operation->mesh->corner_verts_for_write();
   int face_index = 0;
   int loop_index = 0;
   for (int i = 0; i < tot_tris_face; i++) {
@@ -1345,7 +1350,7 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
    * we could calculate on the fly too (before calling split). */
 
   const short ob_src_totcol = trim_mesh->totcol;
-  blender::Array<short> material_remap(ob_src_totcol ? ob_src_totcol : 1);
+  Array<short> material_remap(ob_src_totcol ? ob_src_totcol : 1);
 
   BMFace *efa;
   i = 0;
@@ -1424,7 +1429,7 @@ static void sculpt_gesture_trim_apply_for_symmetry_pass(bContext * /*C*/,
 {
   SculptGestureTrimOperation *trim_operation = (SculptGestureTrimOperation *)sgcontext->operation;
   Mesh *trim_mesh = trim_operation->mesh;
-  blender::MutableSpan<blender::float3> positions = trim_mesh->vert_positions_for_write();
+  MutableSpan<float3> positions = trim_mesh->vert_positions_for_write();
   for (int i = 0; i < trim_mesh->totvert; i++) {
     flip_v3_v3(positions[i], trim_operation->true_mesh_co[i], sgcontext->symmpass);
   }
@@ -1562,7 +1567,6 @@ static void sculpt_gesture_project_apply_for_symmetry_pass(bContext * /*C*/,
 {
   switch (sgcontext->shape_type) {
     case SCULPT_GESTURE_SHAPE_LINE:
-      using namespace blender;
       threading::parallel_for(sgcontext->nodes.index_range(), 1, [&](const IndexRange range) {
         for (const int i : range) {
           project_line_gesture_apply_task(sgcontext, sgcontext->nodes[i]);
@@ -1924,3 +1928,5 @@ void SCULPT_OT_project_line_gesture(wmOperatorType *ot)
   WM_operator_properties_gesture_straightline(ot, WM_CURSOR_EDIT);
   sculpt_gesture_operator_properties(ot);
 }
+
+}  // namespace blender::ed::sculpt_paint::mask
