@@ -409,6 +409,46 @@ struct GWL_Cursor {
   int custom_scale = 1;
 };
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Internal #GWL_TabletTool Type
+ * \{ */
+
+/**
+ * Collect tablet event data before the frame callback runs.
+ */
+enum class GWL_TabletTool_EventTypes {
+  None = -1,
+
+  Motion = 0,
+  Pressure,
+  Tilt,
+
+  /* Left mouse button. */
+  Stylus0_Down,
+  Stylus0_Up,
+  /* Middle mouse button. */
+  Stylus1_Down,
+  Stylus1_Up,
+  /* Right mouse button. */
+  Stylus2_Down,
+  Stylus2_Up,
+  /* Mouse button number 4. */
+  Stylus3_Down,
+  Stylus3_Up,
+
+  Wheel,
+#define GWL_TabletTool_FrameTypes_NUM (int(GWL_TabletTool_EventTypes::Wheel) + 1)
+};
+
+static const GHOST_TButton gwl_tablet_tool_ebutton[] = {
+    GHOST_kButtonMaskLeft,    /* `Stylus0_*`. */
+    GHOST_kButtonMaskMiddle,  /* `Stylus1_*`. */
+    GHOST_kButtonMaskRight,   /* `Stylus2_*`. */
+    GHOST_kButtonMaskButton4, /* `Stylus3_*`. */
+};
+
 /**
  * A single tablet can have multiple tools (pen, eraser, brush... etc).
  * WAYLAND exposes tools via #zwp_tablet_tool_v2.
@@ -430,7 +470,45 @@ struct GWL_TabletTool {
   bool proximity = false;
 
   GHOST_TabletData data = GHOST_TABLET_DATA_NONE;
+
+  /** Motion. */
+  int32_t xy[2] = {0};
+  bool has_xy = false;
+
+  /**
+   * Collect data before the #zwp_tablet_tool_v2_listener::frame runs.
+   */
+  struct {
+    GWL_TabletTool_EventTypes frame_types[GWL_TabletTool_FrameTypes_NUM] = {
+        GWL_TabletTool_EventTypes::None,
+    };
+    int frame_types_num = 0;
+    int frame_types_mask = 0;
+
+    struct {
+      int32_t clicks = 0;
+    } wheel;
+  } frame_pending;
 };
+
+static void gwl_tablet_tool_frame_event_add(GWL_TabletTool *tablet_tool,
+                                            const GWL_TabletTool_EventTypes ty)
+{
+  const int ty_mask = 1 << int(ty);
+  /* Motion callback may run multiple times. */
+  if (tablet_tool->frame_pending.frame_types_mask & ty_mask) {
+    return;
+  }
+  tablet_tool->frame_pending.frame_types_mask |= ty_mask;
+  int i = tablet_tool->frame_pending.frame_types_num++;
+  tablet_tool->frame_pending.frame_types[i] = ty;
+}
+
+static void gwl_tablet_tool_frame_event_reset(GWL_TabletTool *tablet_tool)
+{
+  tablet_tool->frame_pending.frame_types_num = 0;
+  tablet_tool->frame_pending.frame_types_mask = 0;
+}
 
 /** \} */
 
@@ -3658,39 +3736,23 @@ static void tablet_tool_handle_down(void *data,
                                     zwp_tablet_tool_v2 * /*zwp_tablet_tool_v2*/,
                                     const uint32_t serial)
 {
-  CLOG_INFO(LOG, 2, "down");
-
   GWL_TabletTool *tablet_tool = static_cast<GWL_TabletTool *>(data);
   GWL_Seat *seat = tablet_tool->seat;
-  const GHOST_TButton ebutton = GHOST_kButtonMaskLeft;
-  const GHOST_TEventType etype = GHOST_kEventButtonDown;
+
+  CLOG_INFO(LOG, 2, "down");
 
   seat->data_source_serial = serial;
-  seat->tablet.buttons.set(ebutton, true);
 
-  if (wl_surface *wl_surface_focus = seat->tablet.wl.surface_window) {
-    GHOST_WindowWayland *win = ghost_wl_surface_user_data(wl_surface_focus);
-    seat->system->pushEvent_maybe_pending(new GHOST_EventButton(
-        seat->system->getMilliSeconds(), etype, win, ebutton, tablet_tool->data));
-  }
+  gwl_tablet_tool_frame_event_add(tablet_tool, GWL_TabletTool_EventTypes::Stylus0_Down);
 }
 
 static void tablet_tool_handle_up(void *data, zwp_tablet_tool_v2 * /*zwp_tablet_tool_v2*/)
 {
+  GWL_TabletTool *tablet_tool = static_cast<GWL_TabletTool *>(data);
+
   CLOG_INFO(LOG, 2, "up");
 
-  GWL_TabletTool *tablet_tool = static_cast<GWL_TabletTool *>(data);
-  GWL_Seat *seat = tablet_tool->seat;
-  const GHOST_TButton ebutton = GHOST_kButtonMaskLeft;
-  const GHOST_TEventType etype = GHOST_kEventButtonUp;
-
-  seat->tablet.buttons.set(ebutton, false);
-
-  if (wl_surface *wl_surface_focus = seat->tablet.wl.surface_window) {
-    GHOST_WindowWayland *win = ghost_wl_surface_user_data(wl_surface_focus);
-    seat->system->pushEvent_maybe_pending(new GHOST_EventButton(
-        seat->system->getMilliSeconds(), etype, win, ebutton, tablet_tool->data));
-  }
+  gwl_tablet_tool_frame_event_add(tablet_tool, GWL_TabletTool_EventTypes::Stylus0_Up);
 }
 
 static void tablet_tool_handle_motion(void *data,
@@ -3698,15 +3760,15 @@ static void tablet_tool_handle_motion(void *data,
                                       const wl_fixed_t x,
                                       const wl_fixed_t y)
 {
+  GWL_TabletTool *tablet_tool = static_cast<GWL_TabletTool *>(data);
+
   CLOG_INFO(LOG, 2, "motion");
 
-  GWL_TabletTool *tablet_tool = static_cast<GWL_TabletTool *>(data);
-  GWL_Seat *seat = tablet_tool->seat;
+  tablet_tool->xy[0] = x;
+  tablet_tool->xy[1] = y;
+  tablet_tool->has_xy = true;
 
-  seat->tablet.xy[0] = x;
-  seat->tablet.xy[1] = y;
-
-  /* NOTE: #tablet_tool_handle_frame generates the event (with updated pressure, tilt... etc). */
+  gwl_tablet_tool_frame_event_add(tablet_tool, GWL_TabletTool_EventTypes::Motion);
 }
 
 static void tablet_tool_handle_pressure(void *data,
@@ -3719,7 +3781,10 @@ static void tablet_tool_handle_pressure(void *data,
   GWL_TabletTool *tablet_tool = static_cast<GWL_TabletTool *>(data);
   GHOST_TabletData &td = tablet_tool->data;
   td.Pressure = pressure_unit;
+
+  gwl_tablet_tool_frame_event_add(tablet_tool, GWL_TabletTool_EventTypes::Pressure);
 }
+
 static void tablet_tool_handle_distance(void * /*data*/,
                                         zwp_tablet_tool_v2 * /*zwp_tablet_tool_v2*/,
                                         const uint32_t distance)
@@ -3744,6 +3809,8 @@ static void tablet_tool_handle_tilt(void *data,
   td.Ytilt = tilt_unit[1];
   CLAMP(td.Xtilt, -1.0f, 1.0f);
   CLAMP(td.Ytilt, -1.0f, 1.0f);
+
+  gwl_tablet_tool_frame_event_add(tablet_tool, GWL_TabletTool_EventTypes::Tilt);
 }
 
 static void tablet_tool_handle_rotation(void * /*data*/,
@@ -3767,77 +3834,133 @@ static void tablet_tool_handle_wheel(void *data,
   if (clicks == 0) {
     return;
   }
-  CLOG_INFO(LOG, 2, "wheel (clicks=%d)", clicks);
 
   GWL_TabletTool *tablet_tool = static_cast<GWL_TabletTool *>(data);
-  GWL_Seat *seat = tablet_tool->seat;
-  if (wl_surface *wl_surface_focus = seat->tablet.wl.surface_window) {
-    GHOST_WindowWayland *win = ghost_wl_surface_user_data(wl_surface_focus);
-    seat->system->pushEvent_maybe_pending(
-        new GHOST_EventWheel(seat->system->getMilliSeconds(), win, clicks));
-  }
+
+  CLOG_INFO(LOG, 2, "wheel (clicks=%d)", clicks);
+
+  tablet_tool->frame_pending.wheel.clicks = clicks;
+
+  gwl_tablet_tool_frame_event_add(tablet_tool, GWL_TabletTool_EventTypes::Wheel);
 }
+
 static void tablet_tool_handle_button(void *data,
                                       zwp_tablet_tool_v2 * /*zwp_tablet_tool_v2*/,
                                       const uint32_t serial,
                                       const uint32_t button,
                                       const uint32_t state)
 {
-  CLOG_INFO(LOG, 2, "button (button=%u, state=%u)", button, state);
-
   GWL_TabletTool *tablet_tool = static_cast<GWL_TabletTool *>(data);
   GWL_Seat *seat = tablet_tool->seat;
 
-  GHOST_TEventType etype = GHOST_kEventUnknown;
+  CLOG_INFO(LOG, 2, "button (button=%u, state=%u)", button, state);
+
+  bool is_press = false;
   switch (state) {
     case WL_POINTER_BUTTON_STATE_RELEASED:
-      etype = GHOST_kEventButtonUp;
+      is_press = false;
       break;
     case WL_POINTER_BUTTON_STATE_PRESSED:
-      etype = GHOST_kEventButtonDown;
-      break;
-  }
-
-  GHOST_TButton ebutton = GHOST_kButtonMaskLeft;
-  switch (button) {
-    case BTN_STYLUS:
-      ebutton = GHOST_kButtonMaskMiddle;
-      break;
-    case BTN_STYLUS2:
-      ebutton = GHOST_kButtonMaskRight;
-      break;
-    case BTN_STYLUS3:
-      ebutton = GHOST_kButtonMaskButton4;
+      is_press = true;
       break;
   }
 
   seat->data_source_serial = serial;
-  seat->tablet.buttons.set(ebutton, state == WL_POINTER_BUTTON_STATE_PRESSED);
 
-  if (wl_surface *wl_surface_focus = seat->tablet.wl.surface_window) {
-    GHOST_WindowWayland *win = ghost_wl_surface_user_data(wl_surface_focus);
-    seat->system->pushEvent_maybe_pending(new GHOST_EventButton(
-        seat->system->getMilliSeconds(), etype, win, ebutton, tablet_tool->data));
+  GWL_TabletTool_EventTypes ty = GWL_TabletTool_EventTypes::None;
+  switch (button) {
+    case BTN_STYLUS: {
+      ty = is_press ? GWL_TabletTool_EventTypes::Stylus1_Down :
+                      GWL_TabletTool_EventTypes::Stylus1_Up;
+      break;
+    }
+    case BTN_STYLUS2: {
+      ty = is_press ? GWL_TabletTool_EventTypes::Stylus2_Down :
+                      GWL_TabletTool_EventTypes::Stylus2_Up;
+      break;
+    }
+    case BTN_STYLUS3: {
+      ty = is_press ? GWL_TabletTool_EventTypes::Stylus3_Down :
+                      GWL_TabletTool_EventTypes::Stylus3_Up;
+      break;
+    }
+  }
+
+  if (ty != GWL_TabletTool_EventTypes::None) {
+    gwl_tablet_tool_frame_event_add(tablet_tool, ty);
   }
 }
 static void tablet_tool_handle_frame(void *data,
                                      zwp_tablet_tool_v2 * /*zwp_tablet_tool_v2*/,
                                      const uint32_t /*time*/)
 {
-  CLOG_INFO(LOG, 2, "frame");
-
   GWL_TabletTool *tablet_tool = static_cast<GWL_TabletTool *>(data);
   GWL_Seat *seat = tablet_tool->seat;
+  const uint64_t event_ms = seat->system->getMilliSeconds();
+
+  CLOG_INFO(LOG, 2, "frame");
 
   /* No need to check the surfaces origin, it's already known to be owned by GHOST. */
   if (wl_surface *wl_surface_focus = seat->tablet.wl.surface_window) {
     GHOST_WindowWayland *win = ghost_wl_surface_user_data(wl_surface_focus);
-    const int event_xy[2] = {WL_FIXED_TO_INT_FOR_WINDOW_V2(win, seat->tablet.xy)};
-    seat->system->pushEvent_maybe_pending(new GHOST_EventCursor(seat->system->getMilliSeconds(),
-                                                                GHOST_kEventCursorMove,
-                                                                win,
-                                                                UNPACK2(event_xy),
-                                                                tablet_tool->data));
+    bool has_motion = false;
+
+    for (int i = 0; i < tablet_tool->frame_pending.frame_types_num; i++) {
+      const GWL_TabletTool_EventTypes ty = tablet_tool->frame_pending.frame_types[i];
+      switch (ty) {
+        case GWL_TabletTool_EventTypes::None: {
+          GHOST_ASSERT(0, "Event types should never be None");
+          break;
+        }
+        /* Use motion for pressure and tilt as there are no explicit event types for these. */
+        case GWL_TabletTool_EventTypes::Motion:
+        case GWL_TabletTool_EventTypes::Pressure:
+        case GWL_TabletTool_EventTypes::Tilt: {
+          /* Only one motion event per frame. */
+          if (has_motion) {
+            break;
+          }
+          /* Can happen when there is pressure/tilt without motion. */
+          if (tablet_tool->has_xy == false) {
+            break;
+          }
+
+          seat->tablet.xy[0] = tablet_tool->xy[0];
+          seat->tablet.xy[1] = tablet_tool->xy[1];
+
+          const int event_xy[2] = {WL_FIXED_TO_INT_FOR_WINDOW_V2(win, tablet_tool->xy)};
+          seat->system->pushEvent_maybe_pending(new GHOST_EventCursor(
+              event_ms, GHOST_kEventCursorMove, win, UNPACK2(event_xy), tablet_tool->data));
+          has_motion = true;
+          break;
+        }
+        case GWL_TabletTool_EventTypes::Stylus0_Down:
+        case GWL_TabletTool_EventTypes::Stylus0_Up:
+        case GWL_TabletTool_EventTypes::Stylus1_Down:
+        case GWL_TabletTool_EventTypes::Stylus1_Up:
+        case GWL_TabletTool_EventTypes::Stylus2_Down:
+        case GWL_TabletTool_EventTypes::Stylus2_Up:
+        case GWL_TabletTool_EventTypes::Stylus3_Down:
+        case GWL_TabletTool_EventTypes::Stylus3_Up: {
+          const int button_enum_offset = int(ty) - int(GWL_TabletTool_EventTypes::Stylus0_Down);
+          const int button_index = button_enum_offset / 2;
+          const bool button_down = (button_index * 2) == button_enum_offset;
+          const GHOST_TButton ebutton = gwl_tablet_tool_ebutton[button_index];
+          const GHOST_TEventType etype = button_down ? GHOST_kEventButtonDown :
+                                                       GHOST_kEventButtonUp;
+          seat->tablet.buttons.set(ebutton, button_down);
+          seat->system->pushEvent_maybe_pending(
+              new GHOST_EventButton(event_ms, etype, win, ebutton, tablet_tool->data));
+          break;
+        }
+        case GWL_TabletTool_EventTypes::Wheel: {
+          seat->system->pushEvent_maybe_pending(
+              new GHOST_EventWheel(event_ms, win, tablet_tool->frame_pending.wheel.clicks));
+          break;
+        }
+      }
+    }
+
     if (tablet_tool->proximity == false) {
       seat->system->cursor_shape_set(win->getCursorShape());
     }
@@ -3846,6 +3969,8 @@ static void tablet_tool_handle_frame(void *data,
   if (tablet_tool->proximity == false) {
     seat->tablet.wl.surface_window = nullptr;
   }
+
+  gwl_tablet_tool_frame_event_reset(tablet_tool);
 }
 
 static const zwp_tablet_tool_v2_listener tablet_tool_listner = {
