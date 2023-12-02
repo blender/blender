@@ -362,63 +362,69 @@ ImBuf *make_sep_waveform_view_from_ibuf(ImBuf *ibuf)
 
 static void draw_zebra_byte(const ImBuf *src, ImBuf *ibuf, float perc)
 {
+#ifdef DEBUG_TIME
+  SCOPED_TIMER_AVERAGED(__func__);
+#endif
+  using namespace blender;
   uint limit = 255.0f * perc / 100.0f;
-  const uchar *p = src->byte_buffer.data;
-  uchar *o = ibuf->byte_buffer.data;
-  int x;
-  int y;
 
-  for (y = 0; y < ibuf->y; y++) {
-    for (x = 0; x < ibuf->x; x++) {
-      uchar r = *p++;
-      uchar g = *p++;
-      uchar b = *p++;
-      uchar a = *p++;
+  threading::parallel_for(IndexRange(ibuf->y), 16, [&](IndexRange y_range) {
+    const uchar *p = src->byte_buffer.data + y_range.first() * ibuf->x * 4;
+    uchar *o = ibuf->byte_buffer.data + y_range.first() * ibuf->x * 4;
+    for (const int y : y_range) {
+      for (int x = 0; x < ibuf->x; x++) {
+        uchar r = *p++;
+        uchar g = *p++;
+        uchar b = *p++;
+        uchar a = *p++;
 
-      if (r >= limit || g >= limit || b >= limit) {
-        if (((x + y) & 0x08) != 0) {
-          r = 255 - r;
-          g = 255 - g;
-          b = 255 - b;
+        if (r >= limit || g >= limit || b >= limit) {
+          if (((x + y) & 0x08) != 0) {
+            r = 255 - r;
+            g = 255 - g;
+            b = 255 - b;
+          }
         }
+        *o++ = r;
+        *o++ = g;
+        *o++ = b;
+        *o++ = a;
       }
-      *o++ = r;
-      *o++ = g;
-      *o++ = b;
-      *o++ = a;
     }
-  }
+  });
 }
 
 static void draw_zebra_float(ImBuf *src, ImBuf *ibuf, float perc)
 {
+#ifdef DEBUG_TIME
+  SCOPED_TIMER_AVERAGED(__func__);
+#endif
+  using namespace blender;
+
   float limit = perc / 100.0f;
-  const float *p = src->float_buffer.data;
-  uchar *o = ibuf->byte_buffer.data;
-  int x;
-  int y;
 
-  for (y = 0; y < ibuf->y; y++) {
-    for (x = 0; x < ibuf->x; x++) {
-      float r = *p++;
-      float g = *p++;
-      float b = *p++;
-      float a = *p++;
-
-      if (r >= limit || g >= limit || b >= limit) {
-        if (((x + y) & 0x08) != 0) {
-          r = -r;
-          g = -g;
-          b = -b;
+  threading::parallel_for(IndexRange(ibuf->y), 16, [&](IndexRange y_range) {
+    const float *p = src->float_buffer.data + y_range.first() * ibuf->x * 4;
+    uchar *o = ibuf->byte_buffer.data + y_range.first() * ibuf->x * 4;
+    for (const int y : y_range) {
+      for (int x = 0; x < ibuf->x; x++) {
+        float pix[4];
+        pix[0] = *p++;
+        pix[1] = *p++;
+        pix[2] = *p++;
+        pix[3] = *p++;
+        if (pix[0] >= limit || pix[1] >= limit || pix[2] >= limit) {
+          if (((x + y) & 0x08) != 0) {
+            pix[0] = -pix[0];
+            pix[1] = -pix[1];
+            pix[2] = -pix[2];
+          }
         }
+        rgba_float_to_uchar(o, pix);
+        o += 4;
       }
-
-      *o++ = unit_float_to_uchar_clamp(r);
-      *o++ = unit_float_to_uchar_clamp(g);
-      *o++ = unit_float_to_uchar_clamp(b);
-      *o++ = unit_float_to_uchar_clamp(a);
     }
-  }
+  });
 }
 
 ImBuf *make_zebra_view_from_ibuf(ImBuf *ibuf, float perc)
