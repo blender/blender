@@ -419,7 +419,7 @@ struct GWL_Cursor {
  * Collect tablet event data before the frame callback runs.
  */
 enum class GWL_TabletTool_EventTypes {
-  None = -1,
+  Unset = -1,
 
   Motion = 0,
   Pressure,
@@ -480,7 +480,7 @@ struct GWL_TabletTool {
    */
   struct {
     GWL_TabletTool_EventTypes frame_types[GWL_TabletTool_FrameTypes_NUM] = {
-        GWL_TabletTool_EventTypes::None,
+        GWL_TabletTool_EventTypes::Unset,
     };
     int frame_types_num = 0;
     int frame_types_mask = 0;
@@ -3930,7 +3930,7 @@ static void tablet_tool_handle_button(void *data,
 
   seat->data_source_serial = serial;
 
-  GWL_TabletTool_EventTypes ty = GWL_TabletTool_EventTypes::None;
+  GWL_TabletTool_EventTypes ty = GWL_TabletTool_EventTypes::Unset;
   switch (button) {
     case BTN_STYLUS: {
       ty = is_press ? GWL_TabletTool_EventTypes::Stylus1_Down :
@@ -3949,7 +3949,7 @@ static void tablet_tool_handle_button(void *data,
     }
   }
 
-  if (ty != GWL_TabletTool_EventTypes::None) {
+  if (ty != GWL_TabletTool_EventTypes::Unset) {
     gwl_tablet_tool_frame_event_add(tablet_tool, ty);
   }
 }
@@ -3971,8 +3971,8 @@ static void tablet_tool_handle_frame(void *data,
     for (int i = 0; i < tablet_tool->frame_pending.frame_types_num; i++) {
       const GWL_TabletTool_EventTypes ty = tablet_tool->frame_pending.frame_types[i];
       switch (ty) {
-        case GWL_TabletTool_EventTypes::None: {
-          GHOST_ASSERT(0, "Event types should never be None");
+        case GWL_TabletTool_EventTypes::Unset: {
+          GHOST_ASSERT(0, "Event types should never be Unset");
           break;
         }
         /* Use motion for pressure and tilt as there are no explicit event types for these. */
