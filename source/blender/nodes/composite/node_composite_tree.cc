@@ -78,7 +78,7 @@ static void localize(bNodeTree *localtree, bNodeTree *ntree)
     /* move over the compbufs */
     /* right after #blender::bke::ntreeCopyTree() `oldsock` pointers are valid */
 
-    if (ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
+    if (node->type == CMP_NODE_VIEWER) {
       if (node->id) {
         if (node->flag & NODE_DO_OUTPUT) {
           local_node->id = (ID *)node->id;
@@ -101,7 +101,7 @@ static void local_merge(Main *bmain, bNodeTree *localtree, bNodeTree *ntree)
 
   LISTBASE_FOREACH (bNode *, lnode, &localtree->nodes) {
     if (bNode *orig_node = nodeFindNodebyName(ntree, lnode->name)) {
-      if (ELEM(lnode->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
+      if (lnode->type == CMP_NODE_VIEWER) {
         if (lnode->id && (lnode->flag & NODE_DO_OUTPUT)) {
           /* image_merge does sanity check for pointers */
           BKE_image_merge(bmain, (Image *)orig_node->id, (Image *)lnode->id);

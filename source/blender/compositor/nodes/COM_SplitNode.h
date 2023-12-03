@@ -10,12 +10,12 @@
 namespace blender::compositor {
 
 /**
- * \brief SplitViewerNode
+ * \brief SplitNode
  * \ingroup Node
  */
-class SplitViewerNode : public Node {
+class SplitNode : public Node {
  public:
-  SplitViewerNode(bNode *editor_node);
+  SplitNode(bNode *node);
   void convert_to_operations(NodeConverter &converter,
                              const CompositorContext &context) const override;
 };

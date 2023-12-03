@@ -1017,7 +1017,8 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 #define CMP_NODE_CHROMA_MATTE 237
 #define CMP_NODE_CHANNEL_MATTE 238
 #define CMP_NODE_FLIP 239
-#define CMP_NODE_SPLITVIEWER 240
+/* Split viewer node is now a regular split node: CMP_NODE_SPLIT. */
+#define CMP_NODE_SPLITVIEWER__DEPRECATED 240
 // #define CMP_NODE_INDEX_MASK  241
 #define CMP_NODE_MAP_UV 242
 #define CMP_NODE_ID_MASK 243
@@ -1054,6 +1055,7 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 #define CMP_NODE_DESPECKLE 273
 #define CMP_NODE_ANTIALIASING 274
 #define CMP_NODE_KUWAHARA 275
+#define CMP_NODE_SPLIT 276
 
 #define CMP_NODE_GLARE 301
 #define CMP_NODE_TONEMAP 302

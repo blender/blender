@@ -6847,7 +6847,7 @@ static void def_cmp_flip(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
-static void def_cmp_splitviewer(StructRNA *srna)
+static void def_cmp_split(StructRNA *srna)
 {
   PropertyRNA *prop;
 

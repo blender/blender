@@ -363,7 +363,7 @@ static void do_version_ntree_242_2(bNodeTree *ntree)
 {
   if (ntree->type == NTREE_COMPOSIT) {
     LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-      if (ELEM(node->type, CMP_NODE_IMAGE, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
+      if (ELEM(node->type, CMP_NODE_IMAGE, CMP_NODE_VIEWER)) {
         /* only image had storage */
         if (node->storage) {
           NodeImageAnim *nia = static_cast<NodeImageAnim *>(node->storage);

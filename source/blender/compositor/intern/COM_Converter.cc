@@ -89,7 +89,7 @@
 #include "COM_SeparateXYZNode.h"
 #include "COM_SetAlphaNode.h"
 #include "COM_SetValueOperation.h"
-#include "COM_SplitViewerNode.h"
+#include "COM_SplitNode.h"
 #include "COM_Stabilize2dNode.h"
 #include "COM_SunBeamsNode.h"
 #include "COM_SwitchNode.h"
@@ -212,8 +212,8 @@ Node *COM_convert_bnode(bNode *b_node)
     case CMP_NODE_VIEWER:
       node = new ViewerNode(b_node);
       break;
-    case CMP_NODE_SPLITVIEWER:
-      node = new SplitViewerNode(b_node);
+    case CMP_NODE_SPLIT:
+      node = new SplitNode(b_node);
       break;
     case CMP_NODE_INVERT:
       node = new InvertNode(b_node);
