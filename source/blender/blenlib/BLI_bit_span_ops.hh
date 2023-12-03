@@ -270,6 +270,11 @@ template<typename BitSpanT, typename Fn> inline void foreach_1_index(const BitSp
   foreach_1_index_expr([](const BitInt x) { return x; }, fn, data);
 }
 
+template<typename BitSpanT, typename Fn> inline void foreach_0_index(const BitSpanT &data, Fn &&fn)
+{
+  foreach_1_index_expr([](const BitInt x) { return ~x; }, fn, data);
+}
+
 template<typename BitSpanT1, typename BitSpanT2>
 inline bool spans_equal(const BitSpanT1 &a, const BitSpanT2 &b)
 {
