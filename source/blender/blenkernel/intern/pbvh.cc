@@ -1182,7 +1182,7 @@ static void free_tree(node_tree *tree)
   free(tree);
 }
 
-float BKE_pbvh_node_get_tmin(PBVHNode *node)
+float BKE_pbvh_node_get_tmin(const PBVHNode *node)
 {
   return node->tmin;
 }
@@ -1884,7 +1884,7 @@ void BKE_pbvh_node_fully_hidden_set(PBVHNode *node, int fully_hidden)
   }
 }
 
-bool BKE_pbvh_node_fully_hidden_get(PBVHNode *node)
+bool BKE_pbvh_node_fully_hidden_get(const PBVHNode *node)
 {
   return (node->flag & PBVH_Leaf) && (node->flag & PBVH_FullyHidden);
 }
@@ -1901,7 +1901,7 @@ void BKE_pbvh_node_fully_masked_set(PBVHNode *node, int fully_masked)
   }
 }
 
-bool BKE_pbvh_node_fully_masked_get(PBVHNode *node)
+bool BKE_pbvh_node_fully_masked_get(const PBVHNode *node)
 {
   return (node->flag & PBVH_Leaf) && (node->flag & PBVH_FullyMasked);
 }
@@ -1918,7 +1918,7 @@ void BKE_pbvh_node_fully_unmasked_set(PBVHNode *node, int fully_masked)
   }
 }
 
-bool BKE_pbvh_node_fully_unmasked_get(PBVHNode *node)
+bool BKE_pbvh_node_fully_unmasked_get(const PBVHNode *node)
 {
   return (node->flag & PBVH_Leaf) && (node->flag & PBVH_FullyUnmasked);
 }
@@ -1929,7 +1929,7 @@ void BKE_pbvh_vert_tag_update_normal(PBVH *pbvh, PBVHVertRef vertex)
   pbvh->vert_bitmap[vertex.i] = true;
 }
 
-void BKE_pbvh_node_get_loops(PBVHNode *node, const int **r_loop_indices)
+void BKE_pbvh_node_get_loops(const PBVHNode *node, const int **r_loop_indices)
 {
   if (r_loop_indices) {
     *r_loop_indices = node->loop_indices.data();
@@ -2052,13 +2052,13 @@ Span<int> BKE_pbvh_node_get_grid_indices(const PBVHNode &node)
   return node.prim_indices;
 }
 
-void BKE_pbvh_node_get_BB(PBVHNode *node, float bb_min[3], float bb_max[3])
+void BKE_pbvh_node_get_BB(const PBVHNode *node, float bb_min[3], float bb_max[3])
 {
   copy_v3_v3(bb_min, node->vb.bmin);
   copy_v3_v3(bb_max, node->vb.bmax);
 }
 
-void BKE_pbvh_node_get_original_BB(PBVHNode *node, float bb_min[3], float bb_max[3])
+void BKE_pbvh_node_get_original_BB(const PBVHNode *node, float bb_min[3], float bb_max[3])
 {
   copy_v3_v3(bb_min, node->orig_vb.bmin);
   copy_v3_v3(bb_max, node->orig_vb.bmax);
@@ -2761,10 +2761,10 @@ enum PlaneAABBIsect {
  */
 static PlaneAABBIsect test_frustum_aabb(const float bb_min[3],
                                         const float bb_max[3],
-                                        PBVHFrustumPlanes *frustum)
+                                        const PBVHFrustumPlanes *frustum)
 {
   PlaneAABBIsect ret = ISECT_INSIDE;
-  float(*planes)[4] = frustum->planes;
+  const float(*planes)[4] = frustum->planes;
 
   for (int i = 0; i < frustum->num_planes; i++) {
     float vmin[3], vmax[3];
@@ -2791,7 +2791,7 @@ static PlaneAABBIsect test_frustum_aabb(const float bb_min[3],
   return ret;
 }
 
-bool BKE_pbvh_node_frustum_contain_AABB(PBVHNode *node, PBVHFrustumPlanes *data)
+bool BKE_pbvh_node_frustum_contain_AABB(const PBVHNode *node, const PBVHFrustumPlanes *data)
 {
   const float *bb_min, *bb_max;
   /* BKE_pbvh_node_get_BB */
@@ -2801,7 +2801,7 @@ bool BKE_pbvh_node_frustum_contain_AABB(PBVHNode *node, PBVHFrustumPlanes *data)
   return test_frustum_aabb(bb_min, bb_max, data) != ISECT_OUTSIDE;
 }
 
-bool BKE_pbvh_node_frustum_exclude_AABB(PBVHNode *node, PBVHFrustumPlanes *data)
+bool BKE_pbvh_node_frustum_exclude_AABB(const PBVHNode *node, const PBVHFrustumPlanes *data)
 {
   const float *bb_min, *bb_max;
   /* BKE_pbvh_node_get_BB */
@@ -2981,7 +2981,7 @@ void BKE_pbvh_vert_coords_apply(PBVH *pbvh, const Span<float3> vert_positions)
   }
 }
 
-bool BKE_pbvh_is_deformed(PBVH *pbvh)
+bool BKE_pbvh_is_deformed(const PBVH *pbvh)
 {
   return pbvh->deformed;
 }
