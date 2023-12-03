@@ -11,6 +11,7 @@
 #include <climits>
 
 #include "BLI_array_utils.hh"
+#include "BLI_bit_span_ops.hh"
 #include "BLI_bitmap.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
@@ -1356,36 +1357,6 @@ static void pbvh_faces_update_normals(PBVH *pbvh, Span<PBVHNode *> nodes, Mesh &
   }
 }
 
-static void node_update_mask_redraw(PBVH &pbvh, PBVHNode &node)
-{
-  if (!(node.flag & PBVH_UpdateMask)) {
-    return;
-  }
-  node.flag &= ~PBVH_UpdateMask;
-
-  bool has_unmasked = false;
-  bool has_masked = true;
-  if (node.flag & PBVH_Leaf) {
-    PBVHVertexIter vd;
-
-    BKE_pbvh_vertex_iter_begin (&pbvh, &node, vd, PBVH_ITER_ALL) {
-      if (vd.mask < 1.0f) {
-        has_unmasked = true;
-      }
-      if (vd.mask > 0.0f) {
-        has_masked = false;
-      }
-    }
-    BKE_pbvh_vertex_iter_end;
-  }
-  else {
-    has_unmasked = true;
-    has_masked = true;
-  }
-  BKE_pbvh_node_fully_masked_set(&node, !has_unmasked);
-  BKE_pbvh_node_fully_unmasked_set(&node, has_masked);
-}
-
 static void node_update_bounds(PBVH &pbvh, PBVHNode &node, const PBVHNodeFlags flag)
 {
   if ((flag & PBVH_UpdateBB) && (node.flag & PBVH_UpdateBB)) {
@@ -1605,19 +1576,6 @@ void BKE_pbvh_update_bounds(PBVH *pbvh, int flag)
   }
 }
 
-void BKE_pbvh_update_mask(PBVH *pbvh)
-{
-  using namespace blender;
-  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(
-      pbvh, [&](PBVHNode &node) { return update_search(&node, PBVH_UpdateMask); });
-
-  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-    for (PBVHNode *node : nodes.as_span().slice(range)) {
-      node_update_mask_redraw(*pbvh, *node);
-    }
-  });
-}
-
 void BKE_pbvh_update_vertex_data(PBVH *pbvh, int flag)
 {
   using namespace blender;
@@ -1631,15 +1589,156 @@ void BKE_pbvh_update_vertex_data(PBVH *pbvh, int flag)
   }
 }
 
+namespace blender::bke::pbvh {
+
+void node_update_mask_mesh(const Span<float> mask, PBVHNode &node)
+{
+  const bool fully_masked = std::all_of(node.vert_indices.begin(),
+                                        node.vert_indices.end(),
+                                        [&](const int vert) { return mask[vert] == 1.0f; });
+  const bool fully_unmasked = std::all_of(node.vert_indices.begin(),
+                                          node.vert_indices.end(),
+                                          [&](const int vert) { return mask[vert] <= 0.0f; });
+  SET_FLAG_FROM_TEST(node.flag, fully_masked, PBVH_FullyMasked);
+  SET_FLAG_FROM_TEST(node.flag, fully_unmasked, PBVH_FullyUnmasked);
+  node.flag &= ~PBVH_UpdateMask;
+}
+
+static void update_mask_mesh(const Mesh &mesh, const Span<PBVHNode *> nodes)
+{
+  const AttributeAccessor attributes = mesh.attributes();
+  const VArraySpan<float> mask = *attributes.lookup<float>(".sculpt_mask", ATTR_DOMAIN_POINT);
+  if (mask.is_empty()) {
+    for (PBVHNode *node : nodes) {
+      node->flag &= ~PBVH_FullyMasked;
+      node->flag |= PBVH_FullyUnmasked;
+      node->flag &= ~PBVH_UpdateMask;
+    }
+    return;
+  }
+
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    for (PBVHNode *node : nodes.slice(range)) {
+      node_update_mask_mesh(mask, *node);
+    }
+  });
+}
+
+void node_update_mask_grids(const CCGKey &key, const Span<CCGElem *> grids, PBVHNode &node)
+{
+  BLI_assert(key.has_mask);
+  bool fully_masked = true;
+  bool fully_unmasked = true;
+  for (const int grid : node.prim_indices) {
+    CCGElem *elem = grids[grid];
+    for (const int i : IndexRange(key.grid_area)) {
+      const float mask = *CCG_elem_offset_mask(&key, elem, i);
+      fully_masked &= mask == 1.0f;
+      fully_unmasked &= mask <= 0.0f;
+    }
+  }
+  SET_FLAG_FROM_TEST(node.flag, fully_masked, PBVH_FullyMasked);
+  SET_FLAG_FROM_TEST(node.flag, fully_unmasked, PBVH_FullyUnmasked);
+  node.flag &= ~PBVH_UpdateMask;
+}
+
+static void update_mask_grids(const SubdivCCG &subdiv_ccg, const Span<PBVHNode *> nodes)
+{
+  CCGKey key;
+  BKE_subdiv_ccg_key_top_level(key, subdiv_ccg);
+  if (!key.has_mask) {
+    for (PBVHNode *node : nodes) {
+      node->flag &= ~PBVH_FullyMasked;
+      node->flag |= PBVH_FullyUnmasked;
+      node->flag &= ~PBVH_UpdateMask;
+    }
+    return;
+  }
+
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    for (PBVHNode *node : nodes.slice(range)) {
+      node_update_mask_grids(key, subdiv_ccg.grids, *node);
+    }
+  });
+}
+
+void node_update_mask_bmesh(const int mask_offset, PBVHNode &node)
+{
+  BLI_assert(mask_offset != -1);
+  bool fully_masked = true;
+  bool fully_unmasked = true;
+  for (const BMVert *vert : node.bm_unique_verts) {
+    fully_masked &= BM_ELEM_CD_GET_FLOAT(vert, mask_offset) == 1.0f;
+    fully_unmasked &= BM_ELEM_CD_GET_FLOAT(vert, mask_offset) <= 0.0f;
+  }
+  for (const BMVert *vert : node.bm_other_verts) {
+    fully_masked &= BM_ELEM_CD_GET_FLOAT(vert, mask_offset) == 1.0f;
+    fully_unmasked &= BM_ELEM_CD_GET_FLOAT(vert, mask_offset) <= 0.0f;
+  }
+  SET_FLAG_FROM_TEST(node.flag, fully_masked, PBVH_FullyMasked);
+  SET_FLAG_FROM_TEST(node.flag, fully_unmasked, PBVH_FullyUnmasked);
+  node.flag &= ~PBVH_UpdateMask;
+}
+
+static void update_mask_bmesh(const BMesh &bm, const Span<PBVHNode *> nodes)
+{
+  const int offset = CustomData_get_offset_named(&bm.vdata, CD_PROP_FLOAT, ".sculpt_mask");
+  if (offset == -1) {
+    for (PBVHNode *node : nodes) {
+      node->flag &= ~PBVH_FullyMasked;
+      node->flag |= PBVH_FullyUnmasked;
+      node->flag &= ~PBVH_UpdateMask;
+    }
+    return;
+  }
+
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    for (PBVHNode *node : nodes.slice(range)) {
+      node_update_mask_bmesh(offset, *node);
+    }
+  });
+}
+
+}  // namespace blender::bke::pbvh
+
+void BKE_pbvh_update_mask(PBVH *pbvh)
+{
+  using namespace blender::bke::pbvh;
+  Vector<PBVHNode *> nodes = search_gather(
+      pbvh, [&](PBVHNode &node) { return update_search(&node, PBVH_UpdateMask); });
+
+  switch (BKE_pbvh_type(pbvh)) {
+    case PBVH_FACES:
+      update_mask_mesh(*pbvh->mesh, nodes);
+      break;
+    case PBVH_GRIDS:
+      update_mask_grids(*pbvh->subdiv_ccg, nodes);
+      break;
+    case PBVH_BMESH:
+      update_mask_bmesh(*pbvh->header.bm, nodes);
+      break;
+  }
+}
+
+namespace blender::bke::pbvh {
+
+void node_update_visibility_mesh(const Span<bool> hide_vert, PBVHNode &node)
+{
+  BLI_assert(!hide_vert.is_empty());
+  const bool fully_hidden = std::all_of(node.vert_indices.begin(),
+                                        node.vert_indices.end(),
+                                        [&](const int vert) { return hide_vert[vert]; });
+  SET_FLAG_FROM_TEST(node.flag, fully_hidden, PBVH_FullyHidden);
+  node.flag &= ~PBVH_UpdateVisibility;
+}
+
 static void pbvh_faces_node_visibility_update(const Mesh &mesh, const Span<PBVHNode *> nodes)
 {
-  using namespace blender;
-  using namespace blender::bke;
   const AttributeAccessor attributes = mesh.attributes();
   const VArraySpan<bool> hide_vert = *attributes.lookup<bool>(".hide_vert", ATTR_DOMAIN_POINT);
   if (hide_vert.is_empty()) {
     for (PBVHNode *node : nodes) {
-      BKE_pbvh_node_fully_hidden_set(node, false);
+      node->flag &= ~PBVH_FullyHidden;
       node->flag &= ~PBVH_UpdateVisibility;
     }
     return;
@@ -1647,76 +1746,69 @@ static void pbvh_faces_node_visibility_update(const Mesh &mesh, const Span<PBVHN
 
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (PBVHNode *node : nodes.slice(range)) {
-      const bool hidden = std::all_of(node->vert_indices.begin(),
-                                      node->vert_indices.end(),
-                                      [&](const int i) { return hide_vert[i]; });
-      BKE_pbvh_node_fully_hidden_set(node, hidden);
-      node->flag &= ~PBVH_UpdateVisibility;
+      node_update_visibility_mesh(hide_vert, *node);
     }
   });
+}
+
+void node_update_visibility_grids(const BitGroupVector<> &grid_hidden, PBVHNode &node)
+{
+  BLI_assert(!grid_hidden.is_empty());
+  const bool fully_hidden = std::none_of(
+      node.prim_indices.begin(), node.prim_indices.end(), [&](const int grid) {
+        return bits::any_bit_unset(grid_hidden[grid]);
+      });
+  SET_FLAG_FROM_TEST(node.flag, fully_hidden, PBVH_FullyHidden);
+  node.flag &= ~PBVH_UpdateVisibility;
 }
 
 static void pbvh_grids_node_visibility_update(PBVH *pbvh, const Span<PBVHNode *> nodes)
 {
-  using namespace blender;
   const BitGroupVector<> &grid_hidden = pbvh->subdiv_ccg->grid_hidden;
   if (grid_hidden.is_empty()) {
     for (PBVHNode *node : nodes) {
-      BKE_pbvh_node_fully_hidden_set(node, false);
+      node->flag &= ~PBVH_FullyHidden;
       node->flag &= ~PBVH_UpdateVisibility;
     }
     return;
   }
 
-  CCGKey key = *BKE_pbvh_get_grid_key(pbvh);
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (PBVHNode *node : nodes.slice(range)) {
-      for (const int grid_index : BKE_pbvh_node_get_grid_indices(*node)) {
-        const blender::BoundedBitSpan gh = grid_hidden[grid_index];
-
-        for (int y = 0; y < key.grid_size; y++) {
-          for (int x = 0; x < key.grid_size; x++) {
-            if (!gh[y * key.grid_size + x]) {
-              BKE_pbvh_node_fully_hidden_set(node, false);
-              return;
-            }
-          }
-        }
-      }
-      BKE_pbvh_node_fully_hidden_set(node, true);
-      node->flag &= ~PBVH_UpdateVisibility;
+      node_update_visibility_grids(grid_hidden, *node);
     }
   });
+}
+
+void node_update_visibility_bmesh(PBVHNode &node)
+{
+  const bool unique_hidden = std::all_of(
+      node.bm_unique_verts.begin(), node.bm_unique_verts.end(), [&](const BMVert *vert) {
+        return BM_elem_flag_test(vert, BM_ELEM_HIDDEN);
+      });
+  const bool other_hidden = std::all_of(
+      node.bm_other_verts.begin(), node.bm_other_verts.end(), [&](const BMVert *vert) {
+        return BM_elem_flag_test(vert, BM_ELEM_HIDDEN);
+      });
+  SET_FLAG_FROM_TEST(node.flag, unique_hidden && other_hidden, PBVH_FullyHidden);
+  node.flag &= ~PBVH_UpdateVisibility;
 }
 
 static void pbvh_bmesh_node_visibility_update(const Span<PBVHNode *> nodes)
 {
-  using namespace blender;
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (PBVHNode *node : nodes.slice(range)) {
-      for (const BMVert *v : node->bm_unique_verts) {
-        if (!BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
-          BKE_pbvh_node_fully_hidden_set(node, false);
-          return;
-        }
-      }
-
-      for (const BMVert *v : node->bm_other_verts) {
-        if (!BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
-          BKE_pbvh_node_fully_hidden_set(node, false);
-          return;
-        }
-      }
-
-      BKE_pbvh_node_fully_hidden_set(node, true);
-      node->flag &= ~PBVH_UpdateVisibility;
+      node_update_visibility_bmesh(*node);
     }
   });
 }
 
+}  // namespace blender::bke::pbvh
+
 void BKE_pbvh_update_visibility(PBVH *pbvh)
 {
-  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(
+  using namespace blender::bke::pbvh;
+  Vector<PBVHNode *> nodes = search_gather(
       pbvh, [&](PBVHNode &node) { return update_search(&node, PBVH_UpdateVisibility); });
 
   switch (BKE_pbvh_type(pbvh)) {

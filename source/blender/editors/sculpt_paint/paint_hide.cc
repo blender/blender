@@ -142,14 +142,11 @@ static void vert_hide_update(Object &object,
       if (!vert_hide_is_changed(verts, hide_vert.span, new_hide)) {
         continue;
       }
-
       SCULPT_undo_push_node(&object, node, SCULPT_UNDO_HIDDEN);
-
-      /* Don't tag a visibility update, we handle updating the fully hidden status here. */
-      BKE_pbvh_node_mark_rebuild_draw(node);
-      BKE_pbvh_node_fully_hidden_set(node, !new_hide.contains(false));
-
       array_utils::scatter(new_hide.as_span(), verts, hide_vert.span);
+
+      BKE_pbvh_node_mark_update_visibility(node);
+      bke::pbvh::node_update_visibility_mesh(hide_vert.span, *node);
     }
   });
   hide_vert.finish();
@@ -273,9 +270,8 @@ static void grid_hide_update(Depsgraph &depsgraph,
 
       SCULPT_undo_push_node(&object, node, SCULPT_UNDO_HIDDEN);
 
-      /* Don't tag a visibility update, we handle updating the fully hidden status here. */
-      BKE_pbvh_node_mark_rebuild_draw(node);
-      BKE_pbvh_node_fully_hidden_set(node, !any_visible);
+      BKE_pbvh_node_mark_update_visibility(node);
+      bke::pbvh::node_update_visibility_grids(grid_hidden, *node);
     }
   });
 

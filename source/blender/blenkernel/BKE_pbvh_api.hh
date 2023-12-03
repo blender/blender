@@ -651,4 +651,12 @@ Vector<PBVHNode *> search_gather(PBVH *pbvh,
                                  PBVHNodeFlags leaf_flag = PBVH_Leaf);
 Vector<PBVHNode *> gather_proxies(PBVH *pbvh);
 
+void node_update_mask_mesh(Span<float> mask, PBVHNode &node);
+void node_update_mask_grids(const CCGKey &key, Span<CCGElem *> grids, PBVHNode &node);
+void node_update_mask_bmesh(int mask_offset, PBVHNode &node);
+
+void node_update_visibility_mesh(Span<bool> hide_vert, PBVHNode &node);
+void node_update_visibility_grids(const BitGroupVector<> &grid_hidden, PBVHNode &node);
+void node_update_visibility_bmesh(PBVHNode &node);
+
 }  // namespace blender::bke::pbvh
