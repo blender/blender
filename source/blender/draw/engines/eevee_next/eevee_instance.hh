@@ -55,6 +55,7 @@ class Instance {
   UniformDataBuf global_ubo_;
 
   uint64_t depsgraph_last_update_ = 0;
+  bool overlays_enabled_;
 
  public:
   ShaderModule &shaders;
@@ -156,6 +157,8 @@ class Instance {
             const View3D *v3d = nullptr,
             const RegionView3D *rv3d = nullptr);
 
+  void view_update();
+
   void begin_sync();
   void object_sync(Object *ob);
   void end_sync();
@@ -200,7 +203,7 @@ class Instance {
 
   bool overlays_enabled() const
   {
-    return v3d && ((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0);
+    return overlays_enabled_;
   }
 
   bool use_scene_lights() const
@@ -260,7 +263,6 @@ class Instance {
   void render_sample();
   void render_read_result(RenderLayer *render_layer, const char *view_name);
 
-  void scene_sync();
   void mesh_sync(Object *ob, ObjectHandle &ob_handle);
 
   void update_eval_members();

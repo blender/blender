@@ -84,9 +84,8 @@ void World::sync()
 
   if (bl_world) {
     /* Detect world update before overriding it. */
-    WorldHandle &wo_handle = inst_.sync.sync_world(bl_world);
-    has_update = (wo_handle.recalc != 0);
-    wo_handle.reset_recalc_flag();
+    WorldHandle wo_handle = inst_.sync.sync_world();
+    has_update = wo_handle.recalc != 0;
   }
 
   /* Sync volume first since its result can override the surface world. */
@@ -120,14 +119,12 @@ void World::sync()
   inst_.reflection_probes.sync_world(bl_world);
   if (has_update) {
     inst_.reflection_probes.do_world_update_set(true);
-    inst_.sampling.reset();
   }
 
   /* We have to manually test here because we have overrides. */
   ::World *orig_world = (::World *)DEG_get_original_id(&bl_world->id);
   if (assign_if_different(prev_original_world, orig_world)) {
     inst_.reflection_probes.do_world_update_set(true);
-    inst_.sampling.reset();
   }
 
   GPUMaterial *gpumat = inst_.shaders.world_shader_get(bl_world, ntree, MAT_PIPE_DEFERRED);

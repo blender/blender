@@ -58,10 +58,7 @@ float4 PlanarProbe::reflection_clip_plane_get()
 
 void PlanarProbeModule::init()
 {
-  if (assign_if_different(update_probes_, !probes_.is_empty())) {
-    instance_.sampling.reset();
-  }
-
+  update_probes_ = !probes_.is_empty();
   do_display_draw_ = false;
 }
 

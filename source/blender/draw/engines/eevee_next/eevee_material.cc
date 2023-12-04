@@ -200,6 +200,8 @@ MaterialPass MaterialModule::material_pass_get(Object *ob,
   inst_.manager->register_layer_attributes(matpass.gpumat);
 
   if (GPU_material_recalc_flag_get(matpass.gpumat)) {
+    /* TODO(Miguel Pozo): This is broken, it consumes the flag,
+     * but GPUMats can be shared across viewports.*/
     inst_.sampling.reset();
   }
 

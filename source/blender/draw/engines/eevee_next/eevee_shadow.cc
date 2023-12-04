@@ -735,7 +735,6 @@ void ShadowModule::init()
   ::Scene &scene = *inst_.scene;
   bool enabled = (scene.eevee.flag & SCE_EEVEE_SHADOW_ENABLED) != 0;
   if (assign_if_different(enabled_, enabled)) {
-    inst_.sampling.reset();
     /* Force light reset. */
     for (Light &light : inst_.lights.light_map_.values()) {
       light.initialized = false;
@@ -966,9 +965,6 @@ void ShadowModule::end_sync()
       /* Clear for next sync. */
       shadow_ob.used = false;
     }
-  }
-  if (!past_casters_updated_.is_empty() || !curr_casters_updated_.is_empty()) {
-    inst_.sampling.reset();
   }
   past_casters_updated_.push_update();
   curr_casters_updated_.push_update();

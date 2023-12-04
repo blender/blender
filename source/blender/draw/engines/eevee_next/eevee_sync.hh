@@ -98,36 +98,17 @@ class ObjectKey {
  * \{ */
 
 struct BaseHandle {
-  /* Accumulated recalc flags, which corresponds to ID->recalc flags. */
   unsigned int recalc;
-  void reset_recalc_flag()
-  {
-    if (recalc != 0) {
-      recalc = 0;
-    }
-  }
 };
 
-struct ObjectHandle : public BaseHandle {
+struct ObjectHandle : BaseHandle {
   ObjectKey object_key;
 };
 
-struct WorldHandle : public DrawData {
-  void reset_recalc_flag()
-  {
-    if (recalc != 0) {
-      recalc = 0;
-    }
-  }
+struct WorldHandle : public BaseHandle {
 };
 
-struct SceneHandle : public DrawData {
-  void reset_recalc_flag()
-  {
-    if (recalc != 0) {
-      recalc = 0;
-    }
-  }
+struct SceneHandle : public BaseHandle {
 };
 
 class SyncModule {
@@ -136,13 +117,16 @@ class SyncModule {
 
   Map<ObjectKey, ObjectHandle> ob_handles = {};
 
+  bool world_updated_;
+
  public:
   SyncModule(Instance &inst) : inst_(inst){};
   ~SyncModule(){};
 
+  void view_update();
+
   ObjectHandle &sync_object(const ObjectRef &ob_ref);
-  WorldHandle &sync_world(::World *world);
-  SceneHandle &sync_scene(::Scene *scene);
+  WorldHandle sync_world();
 
   void sync_mesh(Object *ob,
                  ObjectHandle &ob_handle,
