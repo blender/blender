@@ -50,7 +50,7 @@ namespace blender::bke {
  */
 enum class MeshNormalDomain : int8_t {
   /**
-   * The mesh is completely smooth shaded; either all faces or edges are sharp.
+   * The mesh is completely flat shaded; either all faces or edges are sharp.
    * Only #Mesh::face_normals() is necessary. This case is generally the best
    * for performance, since no mixing is necessary and multithreading is simple.
    */
@@ -69,25 +69,28 @@ enum class MeshNormalDomain : int8_t {
   Corner = 2,
 };
 
-/**
- * Cache of a mesh's loose edges, accessed with #Mesh::loose_edges(). *
- */
 struct LooseGeomCache {
   /**
-   * A bitmap set to true for each loose element, false if the element is used by any face.
+   * A bitmap set to true for each "loose" element.
    * Allocated only if there is at least one loose element.
    */
   blender::BitVector<> is_loose_bits;
   /**
    * The number of loose elements. If zero, the #is_loose_bits shouldn't be accessed.
    * If less than zero, the cache has been accessed in an invalid way
-   * (i.e.directly instead of through #Mesh::loose_edges()).
+   * (i.e. directly instead of through a Mesh API function).
    */
   int count = -1;
 };
 
+/**
+ * Cache of a mesh's loose edges, accessed with #Mesh::loose_edges(). *
+ */
 struct LooseEdgeCache : public LooseGeomCache {
 };
+/**
+ * Cache of a mesh's loose vertices or vertices not used by faces.
+ */
 struct LooseVertCache : public LooseGeomCache {
 };
 
@@ -110,7 +113,10 @@ struct MeshRuntime {
    */
   SharedCache<Bounds<float3>> bounds_cache;
 
-  /** Lazily initialized SoA data from the #edit_mesh field in #Mesh. */
+  /**
+   * Lazily initialized SoA data from the #edit_mesh field in #Mesh. Used when the mesh is a BMesh
+   * wrapper (#ME_WRAPPER_TYPE_BMESH).
+   */
   EditMeshData *edit_data = nullptr;
 
   /**
@@ -133,6 +139,10 @@ struct MeshRuntime {
   /** Needed in case we need to lazily initialize the mesh. */
   CustomData_MeshMasks cd_mask_extra = {};
 
+  /**
+   * Grids representation for multiresolution sculpting. When this is set, the mesh will be empty,
+   * since it is conceptually replaced with the limited data stored in the grids.
+   */
   std::unique_ptr<SubdivCCG> subdiv_ccg;
   int subdiv_ccg_tot_level = 0;
 
@@ -162,9 +172,11 @@ struct MeshRuntime {
    */
   SubsurfRuntimeData *subsurf_runtime_data = nullptr;
 
-  /** Caches for lazily computed normals. */
+  /** Lazily computed vertex normals (#Mesh::vert_normals()). */
   SharedCache<Vector<float3>> vert_normals_cache;
+  /** Lazily computed face normals (#Mesh::vert_normals()). */
   SharedCache<Vector<float3>> face_normals_cache;
+  /** Lazily computed face corner normals (#Mesh::vert_normals()). */
   SharedCache<Vector<float3>> corner_normals_cache;
 
   /**
