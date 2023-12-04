@@ -603,7 +603,7 @@ struct GWL_KeyRepeatPlayload {
 
   xkb_keycode_t key_code;
 
-  /** Time time this timer started. */
+  /** Time this timer started. */
   uint64_t time_ms_init;
 
   /**
@@ -2014,8 +2014,8 @@ static void pthread_set_min_priority(pthread_t handle)
 
 static void thread_set_min_priority(std::thread &thread)
 {
-  constexpr bool is_ptrhead = std::is_same<std::thread::native_handle_type, void *>();
-  if (!is_ptrhead) {
+  constexpr bool is_pthread = std::is_same<std::thread::native_handle_type, pthread_t>();
+  if (!is_pthread) {
     return;
   }
   /* The cast is "safe" as non-matching types will have returned already.
