@@ -11,6 +11,8 @@
 
 #include "BLI_ghash.h"
 #include "BLI_gsqueue.h"
+#include "BLI_math_matrix.hh"
+#include "BLI_math_vector.hh"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 
@@ -310,6 +312,7 @@ static void sculpt_init_session(Main *bmain, Depsgraph *depsgraph, Scene *scene,
 
 void SCULPT_ensure_valid_pivot(const Object *ob, Scene *scene)
 {
+  using namespace blender;
   UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
   const SculptSession *ss = ob->sculpt;
 
@@ -320,11 +323,9 @@ void SCULPT_ensure_valid_pivot(const Object *ob, Scene *scene)
 
   /* No valid pivot? Use bounding box center. */
   if (ups->average_stroke_counter == 0 || !ups->last_stroke_valid) {
-    float location[3], max[3];
-    BKE_pbvh_bounding_box(ss->pbvh, location, max);
-
-    interp_v3_v3v3(location, location, max, 0.5f);
-    mul_m4_v3(ob->object_to_world, location);
+    const Bounds<float3> bounds = BKE_pbvh_bounding_box(ob->sculpt->pbvh);
+    const float3 center = math::midpoint(bounds.min, bounds.max);
+    const float3 location = math::transform_point(float4x4(ob->object_to_world), center);
 
     copy_v3_v3(ups->average_stroke_accum, location);
     ups->average_stroke_counter = 1;

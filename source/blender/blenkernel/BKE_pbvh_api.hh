@@ -13,6 +13,7 @@
 #include <string>
 
 #include "BLI_bit_group_vector.hh"
+#include "BLI_bounds_types.hh"
 #include "BLI_compiler_compat.h"
 #include "BLI_function_ref.hh"
 #include "BLI_index_mask.hh"
@@ -310,7 +311,7 @@ bool BKE_pbvh_has_faces(const PBVH *pbvh);
 /**
  * Get the PBVH root's bounding box.
  */
-void BKE_pbvh_bounding_box(const PBVH *pbvh, float min[3], float max[3]);
+blender::Bounds<blender::float3> BKE_pbvh_bounding_box(const PBVH *pbvh);
 
 void BKE_pbvh_sync_visibility_from_verts(PBVH *pbvh, Mesh *me);
 
@@ -391,8 +392,8 @@ blender::Vector<int> BKE_pbvh_node_calc_face_indices(const PBVH &pbvh, const PBV
  */
 int BKE_pbvh_num_faces(const PBVH *pbvh);
 
-void BKE_pbvh_node_get_BB(const PBVHNode *node, float bb_min[3], float bb_max[3]);
-void BKE_pbvh_node_get_original_BB(const PBVHNode *node, float bb_min[3], float bb_max[3]);
+blender::Bounds<blender::float3> BKE_pbvh_node_get_BB(const PBVHNode *node);
+blender::Bounds<blender::float3> BKE_pbvh_node_get_original_BB(const PBVHNode *node);
 
 float BKE_pbvh_node_get_tmin(const PBVHNode *node);
 
@@ -425,7 +426,7 @@ void BKE_pbvh_update_mask(PBVH *pbvh);
 void BKE_pbvh_update_vertex_data(PBVH *pbvh, int flags);
 void BKE_pbvh_update_visibility(PBVH *pbvh);
 void BKE_pbvh_update_normals(PBVH *pbvh, SubdivCCG *subdiv_ccg);
-void BKE_pbvh_redraw_BB(PBVH *pbvh, float bb_min[3], float bb_max[3]);
+blender::Bounds<blender::float3> BKE_pbvh_redraw_BB(PBVH *pbvh);
 blender::IndexMask BKE_pbvh_get_grid_updates(const PBVH *pbvh,
                                              blender::Span<const PBVHNode *> nodes,
                                              blender::IndexMaskMemory &memory);

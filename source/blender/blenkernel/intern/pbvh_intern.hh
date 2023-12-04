@@ -5,6 +5,7 @@
 #pragma once
 
 #include "BLI_array.hh"
+#include "BLI_bounds_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_set.hh"
 #include "BLI_span.hh"
@@ -25,16 +26,6 @@ struct MLoopTri;
 struct BMVert;
 struct BMFace;
 
-/* Axis-aligned bounding box */
-struct BB {
-  float bmin[3], bmax[3];
-};
-
-/* Axis-aligned bounding box with centroid */
-struct BBC {
-  float bmin[3], bmax[3], bcentroid[3];
-};
-
 /* NOTE: this structure is getting large, might want to split it into
  * union'd structs */
 struct PBVHNode {
@@ -42,8 +33,8 @@ struct PBVHNode {
   blender::draw::pbvh::PBVHBatches *draw_batches = nullptr;
 
   /* Voxel bounds */
-  BB vb = {};
-  BB orig_vb = {};
+  blender::Bounds<blender::float3> vb = {};
+  blender::Bounds<blender::float3> orig_vb = {};
 
   /* For internal nodes, the offset of the children in the PBVH
    * 'nodes' array. */
@@ -218,20 +209,6 @@ struct PBVH {
 
 /* pbvh.cc */
 
-void BB_reset(BB *bb);
-/**
- * Expand the bounding box to include a new coordinate.
- */
-void BB_expand(BB *bb, const float co[3]);
-/**
- * Expand the bounding box to include another bounding box.
- */
-void BB_expand_with_bb(BB *bb, const BB *bb2);
-void BBC_update_centroid(BBC *bbc);
-/**
- * Return 0, 1, or 2 to indicate the widest axis of the bounding box.
- */
-int BB_widest_axis(const BB *bb);
 void pbvh_grow_nodes(PBVH *bvh, int totnode);
 bool ray_face_intersection_quad(const float ray_start[3],
                                 IsectRayPrecalc *isect_precalc,

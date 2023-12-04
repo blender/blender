@@ -1652,17 +1652,16 @@ static void sculpt_extend_redraw_rect_previous(Object *ob, rcti *rect)
 
 bool SCULPT_get_redraw_rect(ARegion *region, RegionView3D *rv3d, Object *ob, rcti *rect)
 {
+  using namespace blender;
   PBVH *pbvh = ob->sculpt->pbvh;
-  float bb_min[3], bb_max[3];
-
   if (!pbvh) {
     return false;
   }
 
-  BKE_pbvh_redraw_BB(pbvh, bb_min, bb_max);
+  const Bounds<float3> bounds = BKE_pbvh_redraw_BB(pbvh);
 
   /* Convert 3D bounding box to screen space. */
-  if (!paint_convert_bb_to_rect(rect, bb_min, bb_max, region, rv3d, ob)) {
+  if (!paint_convert_bb_to_rect(rect, bounds.min, bounds.max, region, rv3d, ob)) {
     return false;
   }
 
@@ -2718,6 +2717,7 @@ void SCULPT_calc_vertex_displacement(SculptSession *ss,
 
 bool SCULPT_search_sphere(PBVHNode *node, SculptSearchSphereData *data)
 {
+  using namespace blender;
   const float *center;
   float nearest[3];
   if (data->center) {
@@ -2726,7 +2726,7 @@ bool SCULPT_search_sphere(PBVHNode *node, SculptSearchSphereData *data)
   else {
     center = data->ss->cache ? data->ss->cache->location : data->ss->cursor_location;
   }
-  float t[3], bb_min[3], bb_max[3];
+  float t[3];
 
   if (data->ignore_fully_ineffective) {
     if (BKE_pbvh_node_fully_hidden_get(node)) {
@@ -2737,19 +2737,15 @@ bool SCULPT_search_sphere(PBVHNode *node, SculptSearchSphereData *data)
     }
   }
 
-  if (data->original) {
-    BKE_pbvh_node_get_original_BB(node, bb_min, bb_max);
-  }
-  else {
-    BKE_pbvh_node_get_BB(node, bb_min, bb_max);
-  }
+  const Bounds<float3> bounds = (data->original) ? BKE_pbvh_node_get_original_BB(node) :
+                                                   BKE_pbvh_node_get_BB(node);
 
   for (int i = 0; i < 3; i++) {
-    if (bb_min[i] > center[i]) {
-      nearest[i] = bb_min[i];
+    if (bounds.min[i] > center[i]) {
+      nearest[i] = bounds.min[i];
     }
-    else if (bb_max[i] < center[i]) {
-      nearest[i] = bb_max[i];
+    else if (bounds.max[i] < center[i]) {
+      nearest[i] = bounds.max[i];
     }
     else {
       nearest[i] = center[i];
@@ -2763,24 +2759,19 @@ bool SCULPT_search_sphere(PBVHNode *node, SculptSearchSphereData *data)
 
 bool SCULPT_search_circle(PBVHNode *node, SculptSearchCircleData *data)
 {
-  float bb_min[3], bb_max[3];
-
+  using namespace blender;
   if (data->ignore_fully_ineffective) {
     if (BKE_pbvh_node_fully_masked_get(node)) {
       return false;
     }
   }
 
-  if (data->original) {
-    BKE_pbvh_node_get_original_BB(node, bb_min, bb_max);
-  }
-  else {
-    BKE_pbvh_node_get_BB(node, bb_min, bb_min);
-  }
+  const Bounds<float3> bounds = (data->original) ? BKE_pbvh_node_get_original_BB(node) :
+                                                   BKE_pbvh_node_get_BB(node);
 
   float dummy_co[3], dummy_depth;
   const float dist_sq = dist_squared_ray_to_aabb_v3(
-      data->dist_ray_to_aabb_precalc, bb_min, bb_max, dummy_co, &dummy_depth);
+      data->dist_ray_to_aabb_precalc, bounds.min, bounds.max, dummy_co, &dummy_depth);
 
   /* Seems like debug code.
    * Maybe this function can just return true if the node is not fully masked. */
@@ -5459,10 +5450,7 @@ void SCULPT_flush_update_step(bContext *C, SculptUpdateType update_flags)
        * the object's evaluated geometry bounding box is necessary because sculpt strokes don't
        * cause an object reevaluation. */
       BKE_mesh_tag_positions_changed_no_normals(mesh);
-
-      Bounds<float3> bounds;
-      BKE_pbvh_bounding_box(ob->sculpt->pbvh, bounds.min, bounds.max);
-      mesh->bounds_set_eager(bounds);
+      mesh->bounds_set_eager(BKE_pbvh_bounding_box(ob->sculpt->pbvh));
       if (ob->runtime->bounds_eval) {
         ob->runtime->bounds_eval = mesh->bounds_min_max();
       }

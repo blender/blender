@@ -13,6 +13,7 @@
 #include "BLI_array_utils.hh"
 #include "BLI_bit_span_ops.hh"
 #include "BLI_bitmap.h"
+#include "BLI_bounds.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
@@ -47,6 +48,7 @@
 #include "pbvh_intern.hh"
 
 using blender::BitGroupVector;
+using blender::Bounds;
 using blender::float3;
 using blender::MutableSpan;
 using blender::Span;
@@ -81,93 +83,44 @@ struct PBVHIter {
   int stackspace;
 };
 
-void BB_reset(BB *bb)
+/** Create invalid bounds for use with #math::min_max. */
+static Bounds<float3> negative_bounds()
 {
-  bb->bmin[0] = bb->bmin[1] = bb->bmin[2] = FLT_MAX;
-  bb->bmax[0] = bb->bmax[1] = bb->bmax[2] = -FLT_MAX;
-}
-
-void BB_expand(BB *bb, const float co[3])
-{
-  for (int i = 0; i < 3; i++) {
-    bb->bmin[i] = min_ff(bb->bmin[i], co[i]);
-    bb->bmax[i] = max_ff(bb->bmax[i], co[i]);
-  }
-}
-
-void BB_expand_with_bb(BB *bb, const BB *bb2)
-{
-  for (int i = 0; i < 3; i++) {
-    bb->bmin[i] = min_ff(bb->bmin[i], bb2->bmin[i]);
-    bb->bmax[i] = max_ff(bb->bmax[i], bb2->bmax[i]);
-  }
-}
-
-int BB_widest_axis(const BB *bb)
-{
-  float dim[3];
-
-  for (int i = 0; i < 3; i++) {
-    dim[i] = bb->bmax[i] - bb->bmin[i];
-  }
-
-  if (dim[0] > dim[1]) {
-    if (dim[0] > dim[2]) {
-      return 0;
-    }
-
-    return 2;
-  }
-
-  if (dim[1] > dim[2]) {
-    return 1;
-  }
-
-  return 2;
-}
-
-void BBC_update_centroid(BBC *bbc)
-{
-  for (int i = 0; i < 3; i++) {
-    bbc->bcentroid[i] = (bbc->bmin[i] + bbc->bmax[i]) * 0.5f;
-  }
+  return {float3(std::numeric_limits<float>::max()), float3(std::numeric_limits<float>::lowest())};
 }
 
 namespace blender::bke::pbvh {
 
 void update_node_bounds_mesh(const Span<float3> positions, PBVHNode &node)
 {
-  BB vb;
-  BB_reset(&vb);
+  Bounds<float3> bounds = negative_bounds();
   for (const int vert : node.vert_indices) {
-    BB_expand(&vb, positions[vert]);
+    math::min_max(positions[vert], bounds.min, bounds.max);
   }
-  node.vb = vb;
+  node.vb = bounds;
 }
 
 void update_node_bounds_grids(const CCGKey &key, const Span<CCGElem *> grids, PBVHNode &node)
 {
-  BB vb;
-  BB_reset(&vb);
+  Bounds<float3> bounds = negative_bounds();
   for (const int grid : node.prim_indices) {
     for (const int i : IndexRange(key.grid_area)) {
-      BB_expand(&vb, CCG_elem_offset_co(&key, grids[grid], i));
+      math::min_max(float3(CCG_elem_offset_co(&key, grids[grid], i)), bounds.min, bounds.max);
     }
   }
-  node.vb = vb;
+  node.vb = bounds;
 }
 
 void update_node_bounds_bmesh(PBVHNode &node)
 {
-  BB vb;
-  BB_reset(&vb);
+  Bounds<float3> bounds = negative_bounds();
   for (const BMVert *vert : node.bm_unique_verts) {
-    BB_expand(&vb, vert->co);
+    math::min_max(float3(vert->co), bounds.min, bounds.max);
   }
   for (const BMVert *vert : node.bm_other_verts) {
-    BB_expand(&vb, vert->co);
+    math::min_max(float3(vert->co), bounds.min, bounds.max);
   }
-  node.vb = vb;
+  node.vb = bounds;
 }
 
 }  // namespace blender::bke::pbvh
@@ -175,6 +128,7 @@ void update_node_bounds_bmesh(PBVHNode &node)
 /* Not recursive */
 static void update_node_vb(PBVH *pbvh, PBVHNode *node)
 {
+  using namespace blender;
   using namespace blender::bke::pbvh;
   if (node->flag & PBVH_Leaf) {
     switch (pbvh->header.type) {
@@ -190,23 +144,10 @@ static void update_node_vb(PBVH *pbvh, PBVHNode *node)
     }
   }
   else {
-    BB vb;
-    BB_reset(&vb);
-    BB_expand_with_bb(&vb, &pbvh->nodes[node->children_offset].vb);
-    BB_expand_with_bb(&vb, &pbvh->nodes[node->children_offset + 1].vb);
-    node->vb = vb;
+    node->vb = bounds::merge(pbvh->nodes[node->children_offset].vb,
+                             pbvh->nodes[node->children_offset + 1].vb);
   }
 }
-
-// void BKE_pbvh_node_BB_reset(PBVHNode *node)
-//{
-//  BB_reset(&node->vb);
-//}
-//
-// void BKE_pbvh_node_BB_expand(PBVHNode *node, float co[3])
-//{
-//  BB_expand(&node->vb, co);
-//}
 
 static bool face_materials_match(const int *material_indices,
                                  const bool *sharp_faces,
@@ -234,9 +175,10 @@ static int partition_prim_indices(blender::MutableSpan<int> prim_indices,
                                   int hi,
                                   int axis,
                                   float mid,
-                                  const Span<BBC> prim_bbc,
+                                  const Span<Bounds<float3>> prim_bounds,
                                   const Span<int> prim_to_face_map)
 {
+  using namespace blender;
   for (int i = lo; i < hi; i++) {
     prim_scratch[i - lo] = prim_indices[i];
   }
@@ -246,7 +188,8 @@ static int partition_prim_indices(blender::MutableSpan<int> prim_indices,
 
   while (i1 < hi) {
     const int face_i = prim_to_face_map[prim_scratch[i2]];
-    bool side = prim_bbc[prim_scratch[i2]].bcentroid[axis] >= mid;
+    const Bounds<float3> &bounds = prim_bounds[prim_scratch[i2]];
+    const bool side = math::midpoint(bounds.min[axis], bounds.max[axis]) >= mid;
 
     while (i1 < hi && prim_to_face_map[prim_scratch[i2]] == face_i) {
       prim_indices[side ? hi2-- : lo2++] = prim_scratch[i2];
@@ -371,11 +314,16 @@ static void build_mesh_leaf_node(const Span<int> corner_verts,
   BKE_pbvh_node_mark_rebuild_draw(node);
 }
 
-static void update_vb(PBVH *pbvh, PBVHNode *node, const Span<BBC> prim_bbc, int offset, int count)
+static void update_vb(const Span<int> prim_indices,
+                      PBVHNode *node,
+                      const Span<Bounds<float3>> prim_bounds,
+                      int offset,
+                      int count)
 {
-  BB_reset(&node->vb);
-  for (int i = offset + count - 1; i >= offset; i--) {
-    BB_expand_with_bb(&node->vb, (BB *)(&prim_bbc[pbvh->prim_indices[i]]));
+  using namespace blender;
+  node->vb = prim_bounds[prim_indices[offset]];
+  for (const int i : IndexRange(offset, count).drop_front(1)) {
+    node->vb = bounds::merge(node->vb, prim_bounds[prim_indices[i]]);
   }
   node->orig_vb = node->vb;
 }
@@ -432,7 +380,7 @@ static void build_leaf(PBVH *pbvh,
                        const Span<int> looptri_faces,
                        const bool *hide_poly,
                        int node_index,
-                       const Span<BBC> prim_bbc,
+                       const Span<Bounds<float3>> prim_bounds,
                        int offset,
                        int count)
 {
@@ -442,7 +390,7 @@ static void build_leaf(PBVH *pbvh,
   node.prim_indices = pbvh->prim_indices.as_span().slice(offset, count);
 
   /* Still need vb for searches */
-  update_vb(pbvh, &node, prim_bbc, offset, count);
+  update_vb(pbvh->prim_indices, &node, prim_bounds, offset, count);
 
   if (!pbvh->looptri.is_empty()) {
     build_mesh_leaf_node(
@@ -544,18 +492,18 @@ static void build_sub(PBVH *pbvh,
                       const int *material_indices,
                       const bool *sharp_faces,
                       int node_index,
-                      BB *cb,
-                      const Span<BBC> prim_bbc,
+                      const Bounds<float3> *cb,
+                      const Span<Bounds<float3>> prim_bounds,
                       int offset,
                       int count,
                       int *prim_scratch,
                       int depth)
 {
+  using namespace blender;
   const Span<int> prim_to_face_map = pbvh->header.type == PBVH_FACES ?
                                          looptri_faces :
                                          pbvh->subdiv_ccg->grid_to_face_map;
   int end;
-  BB cb_backing;
 
   if (!prim_scratch) {
     prim_scratch = static_cast<int *>(MEM_malloc_arrayN(pbvh->totprim, sizeof(int), __func__));
@@ -573,7 +521,7 @@ static void build_sub(PBVH *pbvh,
                  looptri_faces,
                  hide_poly,
                  node_index,
-                 prim_bbc,
+                 prim_bounds,
                  offset,
                  count);
 
@@ -590,18 +538,21 @@ static void build_sub(PBVH *pbvh,
   pbvh_grow_nodes(pbvh, pbvh->nodes.size() + 2);
 
   /* Update parent node bounding box */
-  update_vb(pbvh, &pbvh->nodes[node_index], prim_bbc, offset, count);
+  update_vb(pbvh->prim_indices, &pbvh->nodes[node_index], prim_bounds, offset, count);
 
+  Bounds<float3> cb_backing;
   if (!below_leaf_limit) {
     /* Find axis with widest range of primitive centroids */
     if (!cb) {
-      cb = &cb_backing;
-      BB_reset(cb);
+      cb_backing = negative_bounds();
       for (int i = offset + count - 1; i >= offset; i--) {
-        BB_expand(cb, prim_bbc[pbvh->prim_indices[i]].bcentroid);
+        const int prim = pbvh->prim_indices[i];
+        const float3 center = math::midpoint(prim_bounds[prim].min, prim_bounds[prim].max);
+        math::min_max(center, cb_backing.min, cb_backing.max);
       }
+      cb = &cb_backing;
     }
-    const int axis = BB_widest_axis(cb);
+    const int axis = math::dominant_axis(cb->max - cb->min);
 
     /* Partition primitives along that axis */
     end = partition_prim_indices(pbvh->prim_indices,
@@ -609,8 +560,8 @@ static void build_sub(PBVH *pbvh,
                                  offset,
                                  offset + count,
                                  axis,
-                                 (cb->bmax[axis] + cb->bmin[axis]) * 0.5f,
-                                 prim_bbc,
+                                 math::midpoint(cb->min[axis], cb->max[axis]),
+                                 prim_bounds,
                                  prim_to_face_map);
   }
   else {
@@ -633,7 +584,7 @@ static void build_sub(PBVH *pbvh,
             sharp_faces,
             pbvh->nodes[node_index].children_offset,
             nullptr,
-            prim_bbc,
+            prim_bounds,
             offset,
             end - offset,
             prim_scratch,
@@ -647,7 +598,7 @@ static void build_sub(PBVH *pbvh,
             sharp_faces,
             pbvh->nodes[node_index].children_offset + 1,
             nullptr,
-            prim_bbc,
+            prim_bounds,
             end,
             offset + count - end,
             prim_scratch,
@@ -665,8 +616,8 @@ static void pbvh_build(PBVH *pbvh,
                        const bool *hide_poly,
                        const int *material_indices,
                        const bool *sharp_faces,
-                       BB *cb,
-                       const Span<BBC> prim_bbc,
+                       const Bounds<float3> *cb,
+                       const Span<Bounds<float3>> prim_bounds,
                        int totprim)
 {
   if (totprim != pbvh->totprim) {
@@ -688,7 +639,7 @@ static void pbvh_build(PBVH *pbvh,
             sharp_faces,
             0,
             cb,
-            prim_bbc,
+            prim_bounds,
             0,
             totprim,
             nullptr,
@@ -779,6 +730,7 @@ void BKE_pbvh_update_mesh_pointers(PBVH *pbvh, Mesh *mesh)
 
 void BKE_pbvh_build_mesh(PBVH *pbvh, Mesh *mesh)
 {
+  using namespace blender;
   const int totvert = mesh->totvert;
   const int looptri_num = poly_to_tri_count(mesh->faces_num, mesh->totloop);
   MutableSpan<float3> vert_positions = mesh->vert_positions_for_write();
@@ -811,32 +763,25 @@ void BKE_pbvh_build_mesh(PBVH *pbvh, Mesh *mesh)
   pbvh->faces_num = mesh->faces_num;
 
   /* For each face, store the AABB and the AABB centroid */
-  blender::Array<BBC> prim_bbc(looptri_num);
-  BB cb;
-  BB_reset(&cb);
-  cb = blender::threading::parallel_reduce(
+  Array<Bounds<float3>> prim_bounds(looptri_num);
+  const Bounds<float3> cb = threading::parallel_reduce(
       looptris.index_range(),
       1024,
-      cb,
-      [&](const blender::IndexRange range, const BB &init) {
-        BB current = init;
+      negative_bounds(),
+      [&](const IndexRange range, const Bounds<float3> &init) {
+        Bounds<float3> current = init;
         for (const int i : range) {
           const MLoopTri &lt = looptris[i];
-          BBC *bbc = &prim_bbc[i];
-          BB_reset((BB *)bbc);
-          for (int j = 0; j < 3; j++) {
-            BB_expand((BB *)bbc, vert_positions[corner_verts[lt.tri[j]]]);
-          }
-          BBC_update_centroid(bbc);
-          BB_expand(&current, bbc->bcentroid);
+          Bounds<float3> &bounds = prim_bounds[i];
+          bounds = {vert_positions[corner_verts[lt.tri[0]]]};
+          math::min_max(vert_positions[corner_verts[lt.tri[1]]], bounds.min, bounds.max);
+          math::min_max(vert_positions[corner_verts[lt.tri[2]]], bounds.min, bounds.max);
+          const float3 center = math::midpoint(prim_bounds[i].min, prim_bounds[i].max);
+          math::min_max(center, current.min, current.max);
         }
         return current;
       },
-      [](const BB &a, const BB &b) {
-        BB current = a;
-        BB_expand_with_bb(&current, &b);
-        return current;
-      });
+      [](const Bounds<float3> &a, const Bounds<float3> &b) { return bounds::merge(a, b); });
 
   if (looptri_num) {
     const bool *hide_poly = static_cast<const bool *>(
@@ -853,7 +798,7 @@ void BKE_pbvh_build_mesh(PBVH *pbvh, Mesh *mesh)
                material_indices,
                sharp_faces,
                &cb,
-               prim_bbc,
+               prim_bounds,
                looptri_num);
 
 #ifdef TEST_PBVH_FACE_SPLIT
@@ -873,6 +818,7 @@ void BKE_pbvh_build_mesh(PBVH *pbvh, Mesh *mesh)
 
 void BKE_pbvh_build_grids(PBVH *pbvh, const CCGKey *key, Mesh *me, SubdivCCG *subdiv_ccg)
 {
+  using namespace blender;
   const int gridsize = key->grid_size;
   const Span<CCGElem *> grids = subdiv_ccg->grids;
 
@@ -898,32 +844,26 @@ void BKE_pbvh_build_grids(PBVH *pbvh, const CCGKey *key, Mesh *me, SubdivCCG *su
   pbvh->mesh = me;
 
   /* For each grid, store the AABB and the AABB centroid */
-  blender::Array<BBC> prim_bbc(grids.size());
-  BB cb;
-  BB_reset(&cb);
-  cb = blender::threading::parallel_reduce(
+  Array<Bounds<float3>> prim_bounds(grids.size());
+  const Bounds<float3> cb = threading::parallel_reduce(
       grids.index_range(),
       1024,
-      cb,
-      [&](const blender::IndexRange range, const BB &init) {
-        BB current = init;
+      negative_bounds(),
+      [&](const IndexRange range, const Bounds<float3> &init) {
+        Bounds<float3> current = init;
         for (const int i : range) {
           CCGElem *grid = grids[i];
-          BBC *bbc = &prim_bbc[i];
-          BB_reset((BB *)bbc);
-          for (int j = 0; j < gridsize * gridsize; j++) {
-            BB_expand((BB *)bbc, CCG_elem_offset_co(key, grid, j));
+          prim_bounds[i] = negative_bounds();
+          for (const int j : IndexRange(key->grid_area)) {
+            const float3 position = float3(CCG_elem_offset_co(key, grid, j));
+            math::min_max(position, prim_bounds[i].min, prim_bounds[i].max);
           }
-          BBC_update_centroid(bbc);
-          BB_expand(&current, bbc->bcentroid);
+          const float3 center = math::midpoint(prim_bounds[i].min, prim_bounds[i].max);
+          math::min_max(center, current.min, current.max);
         }
         return current;
       },
-      [](const BB &a, const BB &b) {
-        BB current = a;
-        BB_expand_with_bb(&current, &b);
-        return current;
-      });
+      [](const Bounds<float3> &a, const Bounds<float3> &b) { return bounds::merge(a, b); });
 
   if (!grids.is_empty()) {
     const int *material_indices = static_cast<const int *>(
@@ -931,7 +871,7 @@ void BKE_pbvh_build_grids(PBVH *pbvh, const CCGKey *key, Mesh *me, SubdivCCG *su
     const bool *sharp_faces = (const bool *)CustomData_get_layer_named(
         &me->face_data, CD_PROP_BOOL, "sharp_face");
     pbvh_build(
-        pbvh, {}, {}, {}, nullptr, material_indices, sharp_faces, &cb, prim_bbc, grids.size());
+        pbvh, {}, {}, {}, nullptr, material_indices, sharp_faces, &cb, prim_bounds, grids.size());
 
 #ifdef TEST_PBVH_FACE_SPLIT
     test_face_boundaries(pbvh);
@@ -1784,29 +1724,25 @@ void BKE_pbvh_update_visibility(PBVH *pbvh)
   }
 }
 
-void BKE_pbvh_redraw_BB(PBVH *pbvh, float bb_min[3], float bb_max[3])
+Bounds<float3> BKE_pbvh_redraw_BB(PBVH *pbvh)
 {
+  using namespace blender;
   if (pbvh->nodes.is_empty()) {
-    return;
+    return {};
   }
+  Bounds<float3> bounds = negative_bounds();
+
   PBVHIter iter;
-  PBVHNode *node;
-  BB bb;
-
-  BB_reset(&bb);
-
   pbvh_iter_begin(&iter, pbvh, {});
-
+  PBVHNode *node;
   while ((node = pbvh_iter_next(&iter, PBVH_Leaf))) {
     if (node->flag & PBVH_UpdateRedraw) {
-      BB_expand_with_bb(&bb, &node->vb);
+      bounds = bounds::merge(bounds, node->vb);
     }
   }
-
   pbvh_iter_end(&iter);
 
-  copy_v3_v3(bb_min, bb.bmin);
-  copy_v3_v3(bb_max, bb.bmax);
+  return bounds;
 }
 
 blender::IndexMask BKE_pbvh_get_grid_updates(const PBVH *pbvh,
@@ -1840,16 +1776,12 @@ bool BKE_pbvh_has_faces(const PBVH *pbvh)
   return (pbvh->totprim != 0);
 }
 
-void BKE_pbvh_bounding_box(const PBVH *pbvh, float min[3], float max[3])
+Bounds<float3> BKE_pbvh_bounding_box(const PBVH *pbvh)
 {
   if (pbvh->nodes.is_empty()) {
-    zero_v3(min);
-    zero_v3(max);
-    return;
+    return float3(0);
   }
-  const BB *bb = &pbvh->nodes[0].vb;
-  copy_v3_v3(min, bb->bmin);
-  copy_v3_v3(max, bb->bmax);
+  return pbvh->nodes.first().vb;
 }
 
 const CCGKey *BKE_pbvh_get_grid_key(const PBVH *pbvh)
@@ -2104,16 +2036,14 @@ Span<int> BKE_pbvh_node_get_grid_indices(const PBVHNode &node)
   return node.prim_indices;
 }
 
-void BKE_pbvh_node_get_BB(const PBVHNode *node, float bb_min[3], float bb_max[3])
+Bounds<float3> BKE_pbvh_node_get_BB(const PBVHNode *node)
 {
-  copy_v3_v3(bb_min, node->vb.bmin);
-  copy_v3_v3(bb_max, node->vb.bmax);
+  return node->vb;
 }
 
-void BKE_pbvh_node_get_original_BB(const PBVHNode *node, float bb_min[3], float bb_max[3])
+Bounds<float3> BKE_pbvh_node_get_original_BB(const PBVHNode *node)
 {
-  copy_v3_v3(bb_min, node->orig_vb.bmin);
-  copy_v3_v3(bb_max, node->orig_vb.bmax);
+  return node->orig_vb;
 }
 
 blender::MutableSpan<PBVHProxyNode> BKE_pbvh_node_get_proxies(PBVHNode *node)
@@ -2156,20 +2086,10 @@ struct RaycastData {
 
 static bool ray_aabb_intersect(PBVHNode *node, RaycastData *rcd)
 {
-  const float *bb_min, *bb_max;
-
   if (rcd->original) {
-    /* BKE_pbvh_node_get_original_BB */
-    bb_min = node->orig_vb.bmin;
-    bb_max = node->orig_vb.bmax;
+    return isect_ray_aabb_v3(&rcd->ray, node->orig_vb.min, node->orig_vb.max, &node->tmin);
   }
-  else {
-    /* BKE_pbvh_node_get_BB */
-    bb_min = node->vb.bmin;
-    bb_max = node->vb.bmax;
-  }
-
-  return isect_ray_aabb_v3(&rcd->ray, bb_min, bb_max, &node->tmin);
+  return isect_ray_aabb_v3(&rcd->ray, node->vb.min, node->vb.max, &node->tmin);
 }
 
 void BKE_pbvh_raycast(PBVH *pbvh,
@@ -2534,17 +2454,18 @@ void BKE_pbvh_clip_ray_ortho(
     return;
   }
   float rootmin_start, rootmin_end;
-  float bb_min_root[3], bb_max_root[3], bb_center[3], bb_diff[3];
+  Bounds<float3> bb_root;
+  float bb_center[3], bb_diff[3];
   IsectRayAABB_Precalc ray;
   float ray_normal_inv[3];
   float offset = 1.0f + 1e-3f;
   const float offset_vec[3] = {1e-3f, 1e-3f, 1e-3f};
 
   if (original) {
-    BKE_pbvh_node_get_original_BB(&pbvh->nodes.first(), bb_min_root, bb_max_root);
+    bb_root = BKE_pbvh_node_get_original_BB(&pbvh->nodes.first());
   }
   else {
-    BKE_pbvh_node_get_BB(&pbvh->nodes.first(), bb_min_root, bb_max_root);
+    bb_root = BKE_pbvh_node_get_BB(&pbvh->nodes.first());
   }
 
   /* Calc rough clipping to avoid overflow later. See #109555. */
@@ -2553,8 +2474,8 @@ void BKE_pbvh_clip_ray_ortho(
   float a[3], b[3], min[3] = {FLT_MAX, FLT_MAX, FLT_MAX}, max[3] = {FLT_MIN, FLT_MIN, FLT_MIN};
 
   /* Compute AABB bounds rotated along ray_normal.*/
-  copy_v3_v3(a, bb_min_root);
-  copy_v3_v3(b, bb_max_root);
+  copy_v3_v3(a, bb_root.min);
+  copy_v3_v3(b, bb_root.max);
   mul_m3_v3(mat, a);
   mul_m3_v3(mat, b);
   minmax_v3v3_v3(min, max, a);
@@ -2563,7 +2484,7 @@ void BKE_pbvh_clip_ray_ortho(
   float cent[3];
 
   /* Find midpoint of aabb on ray. */
-  mid_v3_v3v3(cent, bb_min_root, bb_max_root);
+  mid_v3_v3v3(cent, bb_root.min, bb_root.max);
   float t = line_point_factor_v3(cent, ray_start, ray_end);
   interp_v3_v3v3(cent, ray_start, ray_end, t);
 
@@ -2574,17 +2495,17 @@ void BKE_pbvh_clip_ray_ortho(
 
   /* Slightly offset min and max in case we have a zero width node
    * (due to a plane mesh for instance), or faces very close to the bounding box boundary. */
-  mid_v3_v3v3(bb_center, bb_max_root, bb_min_root);
+  mid_v3_v3v3(bb_center, bb_root.max, bb_root.min);
   /* Diff should be same for both min/max since it's calculated from center. */
-  sub_v3_v3v3(bb_diff, bb_max_root, bb_center);
+  sub_v3_v3v3(bb_diff, bb_root.max, bb_center);
   /* Handles case of zero width bb. */
   add_v3_v3(bb_diff, offset_vec);
-  madd_v3_v3v3fl(bb_max_root, bb_center, bb_diff, offset);
-  madd_v3_v3v3fl(bb_min_root, bb_center, bb_diff, -offset);
+  madd_v3_v3v3fl(bb_root.max, bb_center, bb_diff, offset);
+  madd_v3_v3v3fl(bb_root.min, bb_center, bb_diff, -offset);
 
   /* Final projection of start ray. */
   isect_ray_aabb_v3_precalc(&ray, ray_start, ray_normal);
-  if (!isect_ray_aabb_v3(&ray, bb_min_root, bb_max_root, &rootmin_start)) {
+  if (!isect_ray_aabb_v3(&ray, bb_root.min, bb_root.max, &rootmin_start)) {
     return;
   }
 
@@ -2592,7 +2513,7 @@ void BKE_pbvh_clip_ray_ortho(
   mul_v3_v3fl(ray_normal_inv, ray_normal, -1.0);
   isect_ray_aabb_v3_precalc(&ray, ray_end, ray_normal_inv);
   /* Unlikely to fail exiting if entering succeeded, still keep this here. */
-  if (!isect_ray_aabb_v3(&ray, bb_min_root, bb_max_root, &rootmin_end)) {
+  if (!isect_ray_aabb_v3(&ray, bb_root.min, bb_root.max, &rootmin_end)) {
     return;
   }
 
@@ -2626,13 +2547,13 @@ static bool nearest_to_ray_aabb_dist_sq(PBVHNode *node, FindNearestRayData *rcd)
 
   if (rcd->original) {
     /* BKE_pbvh_node_get_original_BB */
-    bb_min = node->orig_vb.bmin;
-    bb_max = node->orig_vb.bmax;
+    bb_min = node->orig_vb.min;
+    bb_max = node->orig_vb.max;
   }
   else {
     /* BKE_pbvh_node_get_BB */
-    bb_min = node->vb.bmin;
-    bb_max = node->vb.bmax;
+    bb_min = node->vb.min;
+    bb_max = node->vb.max;
   }
 
   float co_dummy[3], depth;
@@ -2811,8 +2732,7 @@ enum PlaneAABBIsect {
  * Returns true if the AABB is at least partially within the frustum
  * (ok, not a real frustum), false otherwise.
  */
-static PlaneAABBIsect test_frustum_aabb(const float bb_min[3],
-                                        const float bb_max[3],
+static PlaneAABBIsect test_frustum_aabb(const Bounds<float3> &bounds,
                                         const PBVHFrustumPlanes *frustum)
 {
   PlaneAABBIsect ret = ISECT_INSIDE;
@@ -2823,12 +2743,12 @@ static PlaneAABBIsect test_frustum_aabb(const float bb_min[3],
 
     for (int axis = 0; axis < 3; axis++) {
       if (planes[i][axis] < 0) {
-        vmin[axis] = bb_min[axis];
-        vmax[axis] = bb_max[axis];
+        vmin[axis] = bounds.min[axis];
+        vmax[axis] = bounds.max[axis];
       }
       else {
-        vmin[axis] = bb_max[axis];
-        vmax[axis] = bb_min[axis];
+        vmin[axis] = bounds.max[axis];
+        vmax[axis] = bounds.min[axis];
       }
     }
 
@@ -2845,22 +2765,12 @@ static PlaneAABBIsect test_frustum_aabb(const float bb_min[3],
 
 bool BKE_pbvh_node_frustum_contain_AABB(const PBVHNode *node, const PBVHFrustumPlanes *data)
 {
-  const float *bb_min, *bb_max;
-  /* BKE_pbvh_node_get_BB */
-  bb_min = node->vb.bmin;
-  bb_max = node->vb.bmax;
-
-  return test_frustum_aabb(bb_min, bb_max, data) != ISECT_OUTSIDE;
+  return test_frustum_aabb(node->vb, data) != ISECT_OUTSIDE;
 }
 
 bool BKE_pbvh_node_frustum_exclude_AABB(const PBVHNode *node, const PBVHFrustumPlanes *data)
 {
-  const float *bb_min, *bb_max;
-  /* BKE_pbvh_node_get_BB */
-  bb_min = node->vb.bmin;
-  bb_max = node->vb.bmax;
-
-  return test_frustum_aabb(bb_min, bb_max, data) != ISECT_INSIDE;
+  return test_frustum_aabb(node->vb, data) != ISECT_INSIDE;
 }
 
 void BKE_pbvh_update_normals(PBVH *pbvh, SubdivCCG *subdiv_ccg)
@@ -2979,7 +2889,7 @@ void BKE_pbvh_draw_debug_cb(PBVH *pbvh,
       continue;
     }
 
-    draw_fn(&node, user_data, node.vb.bmin, node.vb.bmax, node.flag);
+    draw_fn(&node, user_data, node.vb.min, node.vb.max, node.flag);
   }
 }
 

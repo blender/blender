@@ -105,10 +105,9 @@ static void split_thread_job(TaskPool *__restrict pool, void *taskdata);
 static void split_pixel_node(
     PBVH *pbvh, SplitNodePair *split, Image *image, ImageUser *image_user, SplitQueueData *tdata)
 {
-  BB cb;
   PBVHNode *node = &split->node;
 
-  cb = node->vb;
+  const Bounds<float3> cb = node->vb;
 
   if (count_node_pixels(*node) <= pbvh->pixel_leaf_limit || split->depth >= pbvh->depth_limit) {
     BKE_pbvh_pixels_node_data_get(split->node).rebuild_undo_regions();
@@ -116,8 +115,8 @@ static void split_pixel_node(
   }
 
   /* Find widest axis and its midpoint */
-  const int axis = BB_widest_axis(&cb);
-  const float mid = (cb.bmax[axis] + cb.bmin[axis]) * 0.5f;
+  const int axis = math::dominant_axis(cb.max - cb.min);
+  const float mid = (cb.max[axis] + cb.min[axis]) * 0.5f;
 
   node->flag = (PBVHNodeFlags)(int(node->flag) & int(~PBVH_TexLeaf));
 
@@ -134,10 +133,10 @@ static void split_pixel_node(
   child2->flag = PBVH_TexLeaf;
 
   child1->vb = cb;
-  child1->vb.bmax[axis] = mid;
+  child1->vb.max[axis] = mid;
 
   child2->vb = cb;
-  child2->vb.bmin[axis] = mid;
+  child2->vb.min[axis] = mid;
 
   NodeData &data = BKE_pbvh_pixels_node_data_get(split->node);
 

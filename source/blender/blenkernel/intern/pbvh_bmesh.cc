@@ -8,10 +8,12 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_bounds.hh"
 #include "BLI_ghash.h"
 #include "BLI_heap_simple.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector.hh"
 #include "BLI_memarena.h"
 #include "BLI_span.hh"
 #include "BLI_utildefines.h"
@@ -32,6 +34,8 @@
 static CLG_LogRef LOG = {"pbvh.bmesh"};
 
 using blender::Array;
+using blender::Bounds;
+using blender::float3;
 using blender::IndexRange;
 using blender::Span;
 using blender::Vector;
@@ -117,6 +121,11 @@ static void pbvh_bmesh_verify(PBVH *pbvh);
   BM_LOOPS_OF_VERT_ITER_END; \
   } \
   ((void)0)
+
+static Bounds<float3> negative_bounds()
+{
+  return {float3(std::numeric_limits<float>::max()), float3(std::numeric_limits<float>::lowest())};
+}
 
 static std::array<BMEdge *, 3> bm_edges_from_tri(BMesh *bm, const blender::Span<BMVert *> v_tri)
 {
@@ -205,10 +214,11 @@ static void pbvh_bmesh_node_finalize(PBVH *pbvh,
                                      const int cd_vert_node_offset,
                                      const int cd_face_node_offset)
 {
+  using namespace blender;
   PBVHNode *n = &pbvh->nodes[node_index];
   bool has_visible = false;
 
-  BB_reset(&n->vb);
+  n->vb = negative_bounds();
 
   for (BMFace *f : n->bm_faces) {
     /* Update ownership of faces. */
@@ -230,7 +240,7 @@ static void pbvh_bmesh_node_finalize(PBVH *pbvh,
         }
       }
       /* Update node bounding box. */
-      BB_expand(&n->vb, v->co);
+      math::min_max(float3(v->co), n->vb.min, n->vb.max);
     } while ((l_iter = l_iter->next) != l_first);
 
     if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
@@ -251,8 +261,11 @@ static void pbvh_bmesh_node_finalize(PBVH *pbvh,
 }
 
 /** Recursively split the node if it exceeds the leaf_limit. */
-static void pbvh_bmesh_node_split(PBVH *pbvh, const Span<BBC> bbc_array, int node_index)
+static void pbvh_bmesh_node_split(PBVH *pbvh,
+                                  const Span<Bounds<float3>> face_bounds,
+                                  int node_index)
 {
+  using namespace blender;
   const int cd_vert_node_offset = pbvh->cd_vert_node_offset;
   const int cd_face_node_offset = pbvh->cd_face_node_offset;
   PBVHNode *n = &pbvh->nodes[node_index];
@@ -264,17 +277,16 @@ static void pbvh_bmesh_node_split(PBVH *pbvh, const Span<BBC> bbc_array, int nod
   }
 
   /* Calculate bounding box around primitive centroids. */
-  BB cb;
-  BB_reset(&cb);
+  Bounds<float3> cb = negative_bounds();
   for (BMFace *f : n->bm_faces) {
-    const BBC *bbc = &bbc_array[BM_elem_index_get(f)];
-
-    BB_expand(&cb, bbc->bcentroid);
+    const int i = BM_elem_index_get(f);
+    const float3 center = math::midpoint(face_bounds[i].min, face_bounds[i].max);
+    math::min_max(center, cb.min, cb.max);
   }
 
   /* Find widest axis and its midpoint. */
-  const int axis = BB_widest_axis(&cb);
-  const float mid = (cb.bmax[axis] + cb.bmin[axis]) * 0.5f;
+  const int axis = math::dominant_axis(cb.max - cb.min);
+  const float mid = math::midpoint(cb.max[axis], cb.min[axis]);
 
   /* Add two new child nodes. */
   const int children = pbvh->nodes.size();
@@ -293,9 +305,8 @@ static void pbvh_bmesh_node_split(PBVH *pbvh, const Span<BBC> bbc_array, int nod
 
   /* Partition the parent node's faces between the two children. */
   for (BMFace *f : n->bm_faces) {
-    const BBC *bbc = &bbc_array[BM_elem_index_get(f)];
-
-    if (bbc->bcentroid[axis] < mid) {
+    const int i = BM_elem_index_get(f);
+    if (math::midpoint(face_bounds[i].min[axis], face_bounds[i].max[axis]) < mid) {
       c1->bm_faces.add(f);
     }
     else {
@@ -347,22 +358,22 @@ static void pbvh_bmesh_node_split(PBVH *pbvh, const Span<BBC> bbc_array, int nod
   n->flag &= ~PBVH_Leaf;
 
   /* Recurse. */
-  pbvh_bmesh_node_split(pbvh, bbc_array, children);
-  pbvh_bmesh_node_split(pbvh, bbc_array, children + 1);
+  pbvh_bmesh_node_split(pbvh, face_bounds, children);
+  pbvh_bmesh_node_split(pbvh, face_bounds, children + 1);
 
   /* Array maybe reallocated, update current node pointer */
   n = &pbvh->nodes[node_index];
 
   /* Update bounding box. */
-  BB_reset(&n->vb);
-  BB_expand_with_bb(&n->vb, &pbvh->nodes[n->children_offset].vb);
-  BB_expand_with_bb(&n->vb, &pbvh->nodes[n->children_offset + 1].vb);
+  n->vb = bounds::merge(pbvh->nodes[n->children_offset].vb,
+                        pbvh->nodes[n->children_offset + 1].vb);
   n->orig_vb = n->vb;
 }
 
 /** Recursively split the node if it exceeds the leaf_limit. */
 static bool pbvh_bmesh_node_limit_ensure(PBVH *pbvh, int node_index)
 {
+  using namespace blender;
   PBVHNode &node = pbvh->nodes[node_index];
   const int faces_num = node.bm_faces.size();
   if (faces_num <= pbvh->leaf_limit) {
@@ -374,21 +385,19 @@ static bool pbvh_bmesh_node_limit_ensure(PBVH *pbvh, int node_index)
   pbvh->draw_cache_invalid = true;
 
   /* For each BMFace, store the AABB and AABB centroid. */
-  Array<BBC> bbc_array(faces_num);
+  Array<Bounds<float3>> face_bounds(faces_num);
 
   int i = 0;
   for (BMFace *f : node.bm_faces) {
-    BBC *bbc = &bbc_array[i];
+    face_bounds[i] = negative_bounds();
 
-    BB_reset((BB *)bbc);
     BMLoop *l_first = BM_FACE_FIRST_LOOP(f);
     BMLoop *l_iter = l_first;
     do {
-      BB_expand((BB *)bbc, l_iter->v->co);
+      math::min_max(float3(l_iter->v->co), face_bounds[i].min, face_bounds[i].max);
     } while ((l_iter = l_iter->next) != l_first);
-    BBC_update_centroid(bbc);
 
-    /* So we can do direct lookups on 'bbc_array'. */
+    /* So we can do direct lookups on 'face_bounds'. */
     BM_elem_index_set(f, i); /* set_dirty! */
     i++;
   }
@@ -396,7 +405,7 @@ static bool pbvh_bmesh_node_limit_ensure(PBVH *pbvh, int node_index)
   /* Likely this is already dirty. */
   pbvh->header.bm->elem_index_dirty |= BM_FACE;
 
-  pbvh_bmesh_node_split(pbvh, bbc_array, node_index);
+  pbvh_bmesh_node_split(pbvh, face_bounds, node_index);
 
   return true;
 }
@@ -1955,9 +1964,13 @@ struct FastNodeBuildInfo {
  * This function is multi-thread-able since each invocation applies
  * to a sub part of the arrays.
  */
-static void pbvh_bmesh_node_limit_ensure_fast(
-    PBVH *pbvh, BMFace **nodeinfo, BBC *bbc_array, FastNodeBuildInfo *node, MemArena *arena)
+static void pbvh_bmesh_node_limit_ensure_fast(PBVH *pbvh,
+                                              BMFace **nodeinfo,
+                                              Bounds<float3> *face_bounds,
+                                              FastNodeBuildInfo *node,
+                                              MemArena *arena)
 {
+  using namespace blender;
   FastNodeBuildInfo *child1, *child2;
 
   if (node->totface <= pbvh->leaf_limit) {
@@ -1965,20 +1978,19 @@ static void pbvh_bmesh_node_limit_ensure_fast(
   }
 
   /* Calculate bounding box around primitive centroids. */
-  BB cb;
-  BB_reset(&cb);
+  Bounds<float3> cb = negative_bounds();
   for (int i = 0; i < node->totface; i++) {
     BMFace *f = nodeinfo[i + node->start];
-    BBC *bbc = &bbc_array[BM_elem_index_get(f)];
-
-    BB_expand(&cb, bbc->bcentroid);
+    const int face_index = BM_elem_index_get(f);
+    const float3 center = math::midpoint(face_bounds[face_index].min, face_bounds[face_index].max);
+    math::min_max(center, cb.min, cb.max);
   }
 
   /* Initialize the children. */
 
   /* Find widest axis and its midpoint. */
-  const int axis = BB_widest_axis(&cb);
-  const float mid = (cb.bmax[axis] + cb.bmin[axis]) * 0.5f;
+  const int axis = math::dominant_axis(cb.max - cb.min);
+  const float mid = math::midpoint(cb.max[axis], cb.min[axis]);
 
   int num_child1 = 0, num_child2 = 0;
 
@@ -1986,17 +1998,18 @@ static void pbvh_bmesh_node_limit_ensure_fast(
   const int end = node->start + node->totface;
   for (int i = node->start; i < end - num_child2; i++) {
     BMFace *f = nodeinfo[i];
-    BBC *bbc = &bbc_array[BM_elem_index_get(f)];
+    const int face_i = BM_elem_index_get(f);
 
-    if (bbc->bcentroid[axis] > mid) {
+    if (math::midpoint(face_bounds[face_i].min[axis], face_bounds[face_i].max[axis]) > mid) {
       int i_iter = end - num_child2 - 1;
       int candidate = -1;
       /* Found a face that should be part of another node, look for a face to substitute with. */
 
       for (; i_iter > i; i_iter--) {
         BMFace *f_iter = nodeinfo[i_iter];
-        const BBC *bbc_iter = &bbc_array[BM_elem_index_get(f_iter)];
-        if (bbc_iter->bcentroid[axis] <= mid) {
+        const int face_iter_i = BM_elem_index_get(f_iter);
+        if (math::midpoint(face_bounds[face_iter_i].min[axis],
+                           face_bounds[face_iter_i].max[axis]) <= mid) {
           candidate = i_iter;
           break;
         }
@@ -2048,13 +2061,17 @@ static void pbvh_bmesh_node_limit_ensure_fast(
   child2->start = node->start + num_child1;
   child1->child1 = child1->child2 = child2->child1 = child2->child2 = nullptr;
 
-  pbvh_bmesh_node_limit_ensure_fast(pbvh, nodeinfo, bbc_array, child1, arena);
-  pbvh_bmesh_node_limit_ensure_fast(pbvh, nodeinfo, bbc_array, child2, arena);
+  pbvh_bmesh_node_limit_ensure_fast(pbvh, nodeinfo, face_bounds, child1, arena);
+  pbvh_bmesh_node_limit_ensure_fast(pbvh, nodeinfo, face_bounds, child2, arena);
 }
 
-static void pbvh_bmesh_create_nodes_fast_recursive(
-    PBVH *pbvh, BMFace **nodeinfo, BBC *bbc_array, FastNodeBuildInfo *node, int node_index)
+static void pbvh_bmesh_create_nodes_fast_recursive(PBVH *pbvh,
+                                                   BMFace **nodeinfo,
+                                                   Bounds<float3> *face_bounds,
+                                                   FastNodeBuildInfo *node,
+                                                   int node_index)
 {
+  using namespace blender;
   PBVHNode *n = &pbvh->nodes[node_index];
   /* Two cases, node does not have children or does have children. */
   if (node->child1) {
@@ -2063,16 +2080,15 @@ static void pbvh_bmesh_create_nodes_fast_recursive(
     n->children_offset = children_offset;
     pbvh_grow_nodes(pbvh, pbvh->nodes.size() + 2);
     pbvh_bmesh_create_nodes_fast_recursive(
-        pbvh, nodeinfo, bbc_array, node->child1, children_offset);
+        pbvh, nodeinfo, face_bounds, node->child1, children_offset);
     pbvh_bmesh_create_nodes_fast_recursive(
-        pbvh, nodeinfo, bbc_array, node->child2, children_offset + 1);
+        pbvh, nodeinfo, face_bounds, node->child2, children_offset + 1);
 
     n = &pbvh->nodes[node_index];
 
     /* Update bounding box. */
-    BB_reset(&n->vb);
-    BB_expand_with_bb(&n->vb, &pbvh->nodes[n->children_offset].vb);
-    BB_expand_with_bb(&n->vb, &pbvh->nodes[n->children_offset + 1].vb);
+    n->vb = bounds::merge(pbvh->nodes[n->children_offset].vb,
+                          pbvh->nodes[n->children_offset + 1].vb);
     n->orig_vb = n->vb;
   }
   else {
@@ -2086,13 +2102,12 @@ static void pbvh_bmesh_create_nodes_fast_recursive(
     n->flag = PBVH_Leaf;
     n->bm_faces.reserve(node->totface);
 
-    BB_reset(&n->vb);
+    n->vb = face_bounds[node->start];
 
     const int end = node->start + node->totface;
 
     for (int i = node->start; i < end; i++) {
       BMFace *f = nodeinfo[i];
-      BBC *bbc = &bbc_array[BM_elem_index_get(f)];
 
       /* Update ownership of faces. */
       n->bm_faces.add_new(f);
@@ -2119,7 +2134,7 @@ static void pbvh_bmesh_create_nodes_fast_recursive(
         has_visible = true;
       }
 
-      BB_expand_with_bb(&n->vb, (BB *)bbc);
+      n->vb = bounds::merge(n->vb, face_bounds[BM_elem_index_get(f)]);
     }
 
     BLI_assert(n->vb.bmin[0] <= n->vb.bmax[0] && n->vb.bmin[1] <= n->vb.bmax[1] &&
@@ -2149,6 +2164,7 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
                           const int cd_vert_node_offset,
                           const int cd_face_node_offset)
 {
+  using namespace blender;
   pbvh->header.bm = bm;
 
   BKE_pbvh_bmesh_detail_size_set(pbvh, 0.75);
@@ -2162,7 +2178,8 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
   BKE_pbvh_update_bmesh_offsets(pbvh, cd_vert_node_offset, cd_face_node_offset);
 
   /* bounding box array of all faces, no need to recalculate every time. */
-  BBC *bbc_array = static_cast<BBC *>(MEM_mallocN(sizeof(BBC) * bm->totface, "BBC"));
+  Bounds<float3> *face_bounds = static_cast<Bounds<float3> *>(
+      MEM_mallocN(sizeof(Bounds<float3>) * bm->totface, "Bounds<float3>"));
   BMFace **nodeinfo = static_cast<BMFace **>(
       MEM_mallocN(sizeof(*nodeinfo) * bm->totface, "nodeinfo"));
   MemArena *arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "fast PBVH node storage");
@@ -2171,17 +2188,15 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
   BMFace *f;
   int i;
   BM_ITER_MESH_INDEX (f, &iter, bm, BM_FACES_OF_MESH, i) {
-    BBC *bbc = &bbc_array[i];
+    face_bounds[i] = negative_bounds();
+
     BMLoop *l_first = BM_FACE_FIRST_LOOP(f);
     BMLoop *l_iter = l_first;
-
-    BB_reset((BB *)bbc);
     do {
-      BB_expand((BB *)bbc, l_iter->v->co);
+      math::min_max(float3(l_iter->v->co), face_bounds[i].min, face_bounds[i].max);
     } while ((l_iter = l_iter->next) != l_first);
-    BBC_update_centroid(bbc);
 
-    /* so we can do direct lookups on 'bbc_array' */
+    /* so we can do direct lookups on 'face_bounds' */
     BM_elem_index_set(f, i); /* set_dirty! */
     nodeinfo[i] = f;
     BM_ELEM_CD_SET_INT(f, cd_face_node_offset, DYNTOPO_NODE_NONE);
@@ -2199,7 +2214,7 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
   rootnode.totface = bm->totface;
 
   /* Start recursion, assign faces to nodes accordingly. */
-  pbvh_bmesh_node_limit_ensure_fast(pbvh, nodeinfo, bbc_array, &rootnode, arena);
+  pbvh_bmesh_node_limit_ensure_fast(pbvh, nodeinfo, face_bounds, &rootnode, arena);
 
   /* We now have all faces assigned to a node,
    * next we need to assign those to the gsets of the nodes. */
@@ -2208,10 +2223,10 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
   pbvh->nodes.append({});
 
   /* Take root node and visit and populate children recursively. */
-  pbvh_bmesh_create_nodes_fast_recursive(pbvh, nodeinfo, bbc_array, &rootnode, 0);
+  pbvh_bmesh_create_nodes_fast_recursive(pbvh, nodeinfo, face_bounds, &rootnode, 0);
 
   BLI_memarena_free(arena);
-  MEM_freeN(bbc_array);
+  MEM_freeN(face_bounds);
   MEM_freeN(nodeinfo);
 }
 
