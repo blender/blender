@@ -2425,7 +2425,7 @@ NODE_DEFINE(GlassBsdfNode)
   SOCKET_ENUM(
       distribution, "Distribution", distribution_enum, CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID);
   SOCKET_IN_FLOAT(roughness, "Roughness", 0.0f);
-  SOCKET_IN_FLOAT(IOR, "IOR", 0.3f);
+  SOCKET_IN_FLOAT(IOR, "IOR", 1.5f);
 
   SOCKET_OUT_CLOSURE(BSDF, "BSDF");
 
@@ -2623,7 +2623,7 @@ NODE_DEFINE(PrincipledBsdfNode)
   SOCKET_IN_COLOR(base_color, "Base Color", make_float3(0.8f, 0.8f, 0.8f))
   SOCKET_IN_FLOAT(metallic, "Metallic", 0.0f);
   SOCKET_IN_FLOAT(roughness, "Roughness", 0.5f);
-  SOCKET_IN_FLOAT(ior, "IOR", 0.0f);
+  SOCKET_IN_FLOAT(ior, "IOR", 1.5f);
   SOCKET_IN_FLOAT(alpha, "Alpha", 1.0f);
   SOCKET_IN_NORMAL(normal, "Normal", zero_float3(), SocketType::LINK_NORMAL);
 
@@ -5781,7 +5781,7 @@ NODE_DEFINE(FresnelNode)
 
   SOCKET_IN_NORMAL(
       normal, "Normal", zero_float3(), SocketType::LINK_NORMAL | SocketType::OSL_INTERNAL);
-  SOCKET_IN_FLOAT(IOR, "IOR", 1.45f);
+  SOCKET_IN_FLOAT(IOR, "IOR", 1.5f);
 
   SOCKET_OUT_FLOAT(fac, "Fac");
 
