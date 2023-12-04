@@ -965,11 +965,11 @@ static void modwrap_dependsOnNormals(Mesh *me)
 {
   switch (me->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH: {
-      blender::bke::EditMeshData *edit_data = me->runtime->edit_data;
-      if (!edit_data->vertexCos.is_empty()) {
+      blender::bke::EditMeshData &edit_data = *me->runtime->edit_data;
+      if (!edit_data.vertexCos.is_empty()) {
         /* Note that 'ensure' is acceptable here since these values aren't modified in-place.
          * If that changes we'll need to recalculate. */
-        BKE_editmesh_cache_ensure_vert_normals(me->edit_mesh, edit_data);
+        BKE_editmesh_cache_ensure_vert_normals(*me->edit_mesh, edit_data);
       }
       else {
         BM_mesh_normals_update(me->edit_mesh->bm);

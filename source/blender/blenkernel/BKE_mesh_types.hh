@@ -117,7 +117,7 @@ struct MeshRuntime {
    * Lazily initialized SoA data from the #edit_mesh field in #Mesh. Used when the mesh is a BMesh
    * wrapper (#ME_WRAPPER_TYPE_BMESH).
    */
-  EditMeshData *edit_data = nullptr;
+  std::unique_ptr<EditMeshData> edit_data;
 
   /**
    * Data used to efficiently draw the mesh in the viewport, especially useful when
@@ -134,7 +134,7 @@ struct MeshRuntime {
   BVHCache *bvh_cache = nullptr;
 
   /** Cache of non-manifold boundary data for Shrink-wrap Target Project. */
-  ShrinkwrapBoundaryData *shrinkwrap_data = nullptr;
+  std::unique_ptr<ShrinkwrapBoundaryData> shrinkwrap_data;
 
   /** Needed in case we need to lazily initialize the mesh. */
   CustomData_MeshMasks cd_mask_extra = {};

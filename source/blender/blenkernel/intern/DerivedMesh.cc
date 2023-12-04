@@ -1035,9 +1035,9 @@ static void editbmesh_calc_modifier_final_normals(Mesh *mesh_final)
     case ME_WRAPPER_TYPE_MDATA:
       break;
     case ME_WRAPPER_TYPE_BMESH: {
-      BMEditMesh *em = mesh_final->edit_mesh;
-      blender::bke::EditMeshData *emd = mesh_final->runtime->edit_data;
-      if (!emd->vertexCos.is_empty()) {
+      BMEditMesh &em = *mesh_final->edit_mesh;
+      blender::bke::EditMeshData &emd = *mesh_final->runtime->edit_data;
+      if (!emd.vertexCos.is_empty()) {
         BKE_editmesh_cache_ensure_vert_normals(em, emd);
         BKE_editmesh_cache_ensure_face_normals(em, emd);
       }

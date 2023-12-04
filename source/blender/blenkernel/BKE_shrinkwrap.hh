@@ -9,8 +9,9 @@
 
 /* Shrinkwrap stuff */
 #include "BKE_bvhutils.hh"
-#include "BLI_bitmap.h"
 
+#include "BLI_array.hh"
+#include "BLI_bit_vector.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_span.hh"
@@ -48,23 +49,21 @@ struct ShrinkwrapBoundaryVertData {
 
 struct ShrinkwrapBoundaryData {
   /* True if the edge belongs to exactly one face. */
-  const BLI_bitmap *edge_is_boundary;
+  blender::BitVector<> edge_is_boundary;
   /* True if the looptri has any boundary edges. */
-  const BLI_bitmap *looptri_has_boundary;
+  blender::BitVector<> looptri_has_boundary;
 
   /* Mapping from vertex index to boundary vertex index, or -1.
    * Used for compact storage of data about boundary vertices. */
-  const int *vert_boundary_id;
-  unsigned int num_boundary_verts;
+  blender::Array<int> vert_boundary_id;
 
   /* Direction data about boundary vertices. */
-  const ShrinkwrapBoundaryVertData *boundary_verts;
+  blender::Array<ShrinkwrapBoundaryVertData> boundary_verts;
 };
 
 /**
  * Free boundary data for target project.
  */
-void BKE_shrinkwrap_boundary_data_free(ShrinkwrapBoundaryData *data);
 void BKE_shrinkwrap_compute_boundary_data(Mesh *mesh);
 
 /* Information about a mesh and BVH tree. */
