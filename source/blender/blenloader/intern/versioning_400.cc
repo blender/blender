@@ -338,6 +338,7 @@ static void versioning_replace_splitviewer(bNodeTree *ntree)
     STRNCPY(node->idname, "CompositorNodeSplit");
     node->type = CMP_NODE_SPLIT;
     MEM_freeN(node->storage);
+    node->storage = nullptr;
 
     bNode *viewer_node = nodeAddStaticNode(nullptr, ntree, CMP_NODE_VIEWER);
     /* Nodes are created stacked on top of each other, so separate them a bit. */
