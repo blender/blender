@@ -8133,7 +8133,7 @@ void GHOST_SystemWayland::output_scale_update(GWL_Output *output)
         if (tablet_tool->wl.surface_cursor != nullptr) {
           update_cursor_scale(seat->cursor,
                               seat->system->wl_shm_get(),
-                              &seat->pointer,
+                              &seat->tablet,
                               tablet_tool->wl.surface_cursor);
         }
       }
