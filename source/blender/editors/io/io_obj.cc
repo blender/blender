@@ -403,6 +403,9 @@ static int wm_obj_import_exec(bContext *C, wmOperator *op)
   import_params.use_split_groups = RNA_boolean_get(op->ptr, "use_split_groups");
   import_params.import_vertex_groups = RNA_boolean_get(op->ptr, "import_vertex_groups");
   import_params.validate_meshes = RNA_boolean_get(op->ptr, "validate_meshes");
+  char separator[2] = {};
+  RNA_string_get(op->ptr, "collection_separator", separator);
+  import_params.collection_separator = separator[0];
   import_params.relative_paths = ((U.flag & USER_RELPATHS) != 0);
   import_params.clear_selection = true;
 
@@ -465,6 +468,7 @@ static void ui_obj_import_settings(uiLayout *layout, PointerRNA *imfptr)
   uiItemR(col, imfptr, "use_split_groups", UI_ITEM_NONE, nullptr, ICON_NONE);
   uiItemR(col, imfptr, "import_vertex_groups", UI_ITEM_NONE, nullptr, ICON_NONE);
   uiItemR(col, imfptr, "validate_meshes", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, imfptr, "collection_separator", UI_ITEM_NONE, nullptr, ICON_NONE);
 }
 
 static void wm_obj_import_draw(bContext *C, wmOperator *op)
@@ -542,6 +546,13 @@ void WM_OT_obj_import(wmOperatorType *ot)
                   false,
                   "Validate Meshes",
                   "Check imported mesh objects for invalid data (slow)");
+
+  RNA_def_string(ot->srna,
+                 "collection_separator",
+                 nullptr,
+                 2,
+                 "Path Separator",
+                 "Character used to separate objects name into hierarchical structure");
 
   /* Only show .obj or .mtl files by default. */
   prop = RNA_def_string(ot->srna, "filter_glob", "*.obj;*.mtl", 0, "Extension Filter", "");

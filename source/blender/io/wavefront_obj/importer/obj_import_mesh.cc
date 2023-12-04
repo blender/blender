@@ -41,7 +41,8 @@ Object *MeshFromGeometry::create_mesh(Main *bmain,
     /* Empty mesh */
     return nullptr;
   }
-  std::string ob_name{mesh_geometry_.geometry_name_};
+  std::string ob_name = get_geometry_name(mesh_geometry_.geometry_name_,
+                                          import_params.collection_separator);
   if (ob_name.empty()) {
     ob_name = "Untitled";
   }

@@ -127,4 +127,16 @@ void transform_object(Object *object, const OBJImportParams &import_params)
   }
 }
 
+std::string get_geometry_name(const std::string &full_name, char separator)
+{
+  if (separator == 0) {
+    return full_name;
+  }
+  size_t pos = full_name.find_last_of(separator);
+  if (pos == std::string::npos) {
+    return full_name;
+  }
+  return full_name.substr(pos + 1);
+}
+
 }  // namespace blender::io::obj
