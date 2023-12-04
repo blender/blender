@@ -84,17 +84,6 @@ struct SubdivCCGCoord {
   short x, y;
 };
 
-/* This is actually a coarse face, which consists of multiple CCG grids. */
-struct SubdivCCGFace {
-  /* Total number of grids in this face.
-   *
-   * This 1:1 corresponds to a number of corners (or loops) from a coarse
-   * face. */
-  int num_grids;
-  /* Index of first grid from this face in SubdivCCG->grids array. */
-  int start_grid_index;
-};
-
 /* Definition of an edge which is adjacent to at least one of the faces. */
 struct SubdivCCGAdjacentEdge {
   int num_adjacent_faces;
@@ -155,10 +144,10 @@ struct SubdivCCG {
   int normal_offset = -1;
   int mask_offset = -1;
 
-  /* Faces from which grids are emitted. */
-  blender::Array<SubdivCCGFace> faces;
-  /* Indexed by grid index, points to corresponding face from `faces`. */
-  blender::Array<int> grid_to_face_map;
+  /* Faces from which grids are emitted. Owned by base mesh. */
+  blender::OffsetIndices<int> faces;
+  /* The face in #faces for each grid. Owned by base mesh (See #Mesh::corner_to_face_map()). */
+  blender::Span<int> grid_to_face_map;
 
   /* Edges which are adjacent to faces.
    * Used for faster grid stitching, at the cost of extra memory.
@@ -213,6 +202,7 @@ struct SubdivCCG {
  * same Subsurf without conflicts. */
 SubdivCCG *BKE_subdiv_to_ccg(Subdiv &subdiv,
                              const SubdivToCCGSettings &settings,
+                             const Mesh &coarse_mesh,
                              SubdivCCGMaskEvaluator *mask_evaluator,
                              SubdivCCGMaterialFlagsEvaluator *material_flags_evaluator);
 

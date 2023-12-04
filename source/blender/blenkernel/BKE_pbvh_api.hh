@@ -42,7 +42,6 @@ struct Mesh;
 struct PBVH;
 struct PBVHNode;
 struct SculptSession;
-struct SubdivCCGFace;
 struct SubdivCCG;
 struct TaskParallelSettings;
 struct Image;
