@@ -267,6 +267,7 @@ static void main_merge_add_id_to_move(Main *bmain_dst,
   bool is_id_src_from_bmain_dst = false;
   if (is_id_src_linked) {
     BLI_assert(!is_library);
+    UNUSED_VARS_NDEBUG(is_library);
     blender::Vector<ID *> id_src_lib_dst = id_map_dst.lookup_default(id_src->lib->filepath_abs,
                                                                      {});
     /* The current library of the source ID would be remapped to null, which means that it comes
