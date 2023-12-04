@@ -29,7 +29,6 @@
 #include "BKE_DerivedMesh.hh"
 #include "BKE_attribute.h"
 #include "BKE_cdderivedmesh.h"
-#include "BKE_context.hh"
 #include "BKE_lattice.hh"
 #include "BKE_lib_id.h"
 #include "BKE_modifier.hh"
@@ -1517,10 +1516,11 @@ void shrinkwrapGpencilModifier_deform(ShrinkwrapGpencilModifierData *mmd,
   }
 }
 
-void BKE_shrinkwrap_mesh_nearest_surface_deform(bContext *C, Object *ob_source, Object *ob_target)
+void BKE_shrinkwrap_mesh_nearest_surface_deform(Depsgraph *depsgraph,
+                                                Scene *scene,
+                                                Object *ob_source,
+                                                Object *ob_target)
 {
-  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-  Scene *sce = CTX_data_scene(C);
   ShrinkwrapModifierData ssmd = {{nullptr}};
   ModifierEvalContext ctx = {depsgraph, ob_source, ModifierApplyFlag(0)};
 
@@ -1534,7 +1534,7 @@ void BKE_shrinkwrap_mesh_nearest_surface_deform(bContext *C, Object *ob_source, 
   shrinkwrapModifier_deform(
       &ssmd,
       &ctx,
-      sce,
+      scene,
       ob_source,
       src_me,
       nullptr,

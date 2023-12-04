@@ -28,7 +28,6 @@
  * (So that you don't have to pass an enormous amount of arguments to functions)
  */
 
-struct bContext;
 struct BVHTree;
 struct MDeformVert;
 struct Mesh;
@@ -122,7 +121,10 @@ void shrinkwrapGpencilModifier_deform(ShrinkwrapGpencilModifierData *mmd,
 /**
  * Used in `editmesh_mask_extract.cc` to shrink-wrap the extracted mesh to the sculpt.
  */
-void BKE_shrinkwrap_mesh_nearest_surface_deform(bContext *C, Object *ob_source, Object *ob_target);
+void BKE_shrinkwrap_mesh_nearest_surface_deform(Depsgraph *depsgraph,
+                                                Scene *scene,
+                                                Object *ob_source,
+                                                Object *ob_target);
 
 /**
  * Used in `object_remesh.cc` to preserve the details and volume in the voxel remesher.
