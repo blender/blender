@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'd293f72ab6e7')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'72b6c44e759b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-27 10:28:34\n"
-"PO-Revision-Date: 2023-10-10 05:56+0000\n"
-"Last-Translator: maylog <maylog@126.com>\n"
+"POT-Creation-Date: 2023-12-04 11:06:00\n"
+"PO-Revision-Date: 2023-11-30 09:34+0000\n"
+"Last-Translator: Ye Gui <ziweidao@foxmail.com>\n"
 "Language-Team: Chinese (Simplified) <https://translate.blender.org/projects/blender-ui/ui/zh_Hans/>\n"
 "Language: zh_HANS\n"
 "MIME-Version: 1.0\n"
@@ -17141,7 +17141,7 @@ msgstr "过滤角度"
 
 
 msgid "Ignore points on the stroke that deviate from their neighbors by more than this angle when determining the extrapolation shape"
-msgstr "在确定外延形状时，忽略与邻居偏离超过此角度的笔画点"
+msgstr "在确定外延形状时，忽略与邻项偏离超过此角度的笔画点"
 
 
 msgid "Mode to define length"
@@ -33498,6 +33498,10 @@ msgid "Vertex Group Specials"
 msgstr "特殊顶点组"
 
 
+msgid "Strip"
+msgstr "片段"
+
+
 msgid "Utilities"
 msgstr "实用工具"
 
@@ -33618,10 +33622,6 @@ msgstr "选择通道"
 
 msgid "Select Handle"
 msgstr "选择控制柄"
-
-
-msgid "Strip"
-msgstr "片段"
 
 
 msgid "Inputs"
@@ -35301,7 +35301,7 @@ msgstr "材质模式"
 
 
 msgid "Method for setting materials on the new faces"
-msgstr "在新生面上设质材质的方法"
+msgstr "在新生面上设置材质的方法"
 
 
 msgid "Index Based"
@@ -42487,10 +42487,6 @@ msgid "Replace the input image's alpha channel by the alpha input value"
 msgstr "用 Alpha 输入值替换输入图像的 Alpha 通道"
 
 
-msgid "Split Viewer"
-msgstr "对照预览"
-
-
 msgid "Stabilize 2D"
 msgstr "二维稳像"
 
@@ -42688,7 +42684,7 @@ msgstr "模糊系数"
 
 
 msgid "Scaling factor for motion vectors (actually, 'shutter speed', in frames)"
-msgstr "运动矢量的缩放系数 (即 '宽门速度', 以帧为单位)"
+msgstr "运动矢量的缩放系数 (即 '快门速度', 以帧为单位)"
 
 
 msgid "Max Speed"
@@ -44058,12 +44054,12 @@ msgid "Create a point in the point cloud for each selected face corner"
 msgstr "为每个选定面拐在点云中创建点"
 
 
-msgid "How the voxel size is specified"
-msgstr "如何指定体素大小"
-
-
 msgid "Create a fog volume with the shape of the input mesh's surface"
 msgstr "使用输入网格表面的形状创建雾体积"
+
+
+msgid "How the voxel size is specified"
+msgstr "如何指定体素大小"
 
 
 msgid "UV Sphere"
@@ -44122,14 +44118,6 @@ msgid "Retrieve a point index within a curve"
 msgstr "检索点在曲线内的编号"
 
 
-msgid "Specify the approximate number of voxels along the diagonal"
-msgstr "沿对角线指定体素的近似数量"
-
-
-msgid "Specify the voxel side length"
-msgstr "指定体素边长度"
-
-
 msgid "Points to Vertices"
 msgstr "点 -> 顶点"
 
@@ -44144,6 +44132,14 @@ msgstr "点到体积"
 
 msgid "Generate a fog volume sphere around every point"
 msgstr "在每个点周围生成雾体积球体"
+
+
+msgid "Specify the approximate number of voxels along the diagonal"
+msgstr "沿对角线指定体素的近似数量"
+
+
+msgid "Specify the voxel side length"
+msgstr "指定体素边长度"
 
 
 msgid "Geometry Proximity"
@@ -44431,7 +44427,7 @@ msgstr "设置每个控制点处的曲线半径"
 
 
 msgid "Set Curve Tilt"
-msgstr "平滑曲线倾斜"
+msgstr "设置曲线倾斜"
 
 
 msgid "Set the tilt angle at each curve control point"
@@ -57182,6 +57178,10 @@ msgid "Flat"
 msgstr "平展"
 
 
+msgid "Duplicate"
+msgstr "复制"
+
+
 msgctxt "Operator"
 msgid "Select Mode"
 msgstr "选择模式"
@@ -59431,10 +59431,6 @@ msgid "Duplicate mesh and move"
 msgstr "复制网格并移动"
 
 
-msgid "Duplicate"
-msgstr "复制"
-
-
 msgctxt "Operator"
 msgid "Collapse Edges & Faces"
 msgstr "塌陷边线&面"
@@ -60101,7 +60097,7 @@ msgstr "选择多个环边"
 
 
 msgid "Select a loop of connected edges by connection type"
-msgstr "选择一个顶点连接紫外线循环"
+msgstr "按连接类型选择一个已连接边的循环"
 
 
 msgid "Ring"
@@ -64510,7 +64506,7 @@ msgstr "应用多级精度的基形"
 
 
 msgid "Modify the base mesh to conform to the displaced mesh"
-msgstr "修改基础网格至与置换后网格一致"
+msgstr "修改基础网格使其与置换后网格一致"
 
 
 msgctxt "Operator"
@@ -71160,15 +71156,6 @@ msgstr "投影线手势"
 
 msgid "Project the geometry onto a plane defined by a line"
 msgstr "将几何体投影到由线条定义的平面上"
-
-
-msgctxt "Operator"
-msgid "Reveal All"
-msgstr "显示全部"
-
-
-msgid "Unhide all geometry"
-msgstr "取消隐藏所有几何体"
 
 
 msgid "Sample the vertex color of the active vertex"
@@ -84258,7 +84245,7 @@ msgstr "编辑棚灯"
 
 
 msgid "View the result of the studio light editor in the viewport"
-msgstr "在视口查看工作间灯光编辑器的结果"
+msgstr "在视口查看棚灯编辑器的结果"
 
 
 msgid "VBO Collection Rate"
@@ -102176,12 +102163,12 @@ msgstr "交集"
 
 msgctxt "Operator"
 msgid "Degenerate"
-msgstr "回退"
+msgstr "退化"
 
 
 msgctxt "Operator"
 msgid "Distorted"
-msgstr "已畸变"
+msgstr "畸变"
 
 
 msgctxt "Operator"
@@ -104129,13 +104116,13 @@ msgstr "自定义遮挡"
 
 
 msgctxt "Operator"
-msgid "Lock Unused"
-msgstr "锁定未使用"
+msgid "Lock Unselected"
+msgstr "未选中项"
 
 
 msgctxt "Operator"
-msgid "Lock Unselected"
-msgstr "未选中项"
+msgid "Lock Unused"
+msgstr "锁定未使用"
 
 
 msgctxt "Operator"
@@ -106027,6 +106014,11 @@ msgstr "取消钉选"
 
 
 msgctxt "Operator"
+msgid "Invert Pins"
+msgstr "反转钉选"
+
+
+msgctxt "Operator"
 msgid "Clear Seam"
 msgstr "清除缝合边"
 
@@ -106142,8 +106134,8 @@ msgstr "切换全屏模式"
 
 
 msgctxt "Operator"
-msgid "Track Ordering..."
-msgstr "轨道排序..."
+msgid "Sound"
+msgstr "声音"
 
 
 msgctxt "Operator"
@@ -106152,13 +106144,13 @@ msgstr "重命名..."
 
 
 msgctxt "Operator"
-msgid "Stop Tweaking Strip Actions"
-msgstr "停止调节动作段"
+msgid "Track Ordering..."
+msgstr "轨道排序..."
 
 
 msgctxt "Operator"
-msgid "Add Tracks Above Selected"
-msgstr "在选中项上方添加轨道"
+msgid "Stop Tweaking Strip Actions"
+msgstr "停止调节动作段"
 
 
 msgctxt "Operator"
@@ -106540,11 +106532,6 @@ msgstr "跳转到下一片段(中心)"
 msgctxt "Operator"
 msgid "Movie"
 msgstr "影片"
-
-
-msgctxt "Operator"
-msgid "Sound"
-msgstr "声音"
 
 
 msgctxt "Operator"
@@ -114170,14 +114157,6 @@ msgid "Cannot make library override from a local object"
 msgstr "无法从本地物体创建库重写"
 
 
-msgid "The node group must have a geometry input socket"
-msgstr "节点组必须具有几何输入接口"
-
-
-msgid "The first input must be a geometry socket"
-msgstr "第一个输入必须是几何接口"
-
-
 msgid "The node group must have a geometry output socket"
 msgstr "节点组必须具有几何输出接口"
 
@@ -117988,10 +117967,6 @@ msgstr "Freestyle: 视图贴图创建"
 
 msgid "Freestyle: Stroke rendering"
 msgstr "Freestyle: 笔画渲染"
-
-
-msgid "Cannot open file: %s"
-msgstr "无法打开文件: %s"
 
 
 msgid "Bind To"

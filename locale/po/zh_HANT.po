@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'd293f72ab6e7')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'72b6c44e759b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-27 10:28:34\n"
+"POT-Creation-Date: 2023-12-04 11:06:00\n"
 "PO-Revision-Date: 2023-11-23 11:54+0000\n"
 "Last-Translator: 楊 景貴 <issacsopp@gmail.com>\n"
 "Language-Team: Chinese (Traditional) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -19381,6 +19381,10 @@ msgid "Vertex Group Specials"
 msgstr "頂點群組特殊項"
 
 
+msgid "Strip"
+msgstr "片段"
+
+
 msgid "Utilities"
 msgstr "效用"
 
@@ -19467,10 +19471,6 @@ msgstr "套用"
 
 msgid "Navigation"
 msgstr "導覽"
-
-
-msgid "Strip"
-msgstr "片段"
 
 
 msgid "Inputs"
@@ -25011,10 +25011,6 @@ msgstr "分離 XYZ"
 
 msgid "Set Alpha"
 msgstr "設定 Alpha"
-
-
-msgid "Split Viewer"
-msgstr "分割檢視器"
 
 
 msgid "Stabilize 2D"
@@ -31419,6 +31415,10 @@ msgid "Flat"
 msgstr "扁平"
 
 
+msgid "Duplicate"
+msgstr "製作複本"
+
+
 msgctxt "Operator"
 msgid "Select Mode"
 msgstr "選取模式"
@@ -32641,10 +32641,6 @@ msgstr "製作所選頂點、邊線或面的複本"
 
 msgid "Duplicate mesh and move"
 msgstr "製作網格複本並移動"
-
-
-msgid "Duplicate"
-msgstr "製作複本"
 
 
 msgctxt "Operator"
@@ -54254,6 +54250,11 @@ msgstr "切換全螢幕區域"
 
 
 msgctxt "Operator"
+msgid "Sound"
+msgstr "聲音"
+
+
+msgctxt "Operator"
 msgid "Track Ordering..."
 msgstr "軌道排序處理..."
 
@@ -54261,11 +54262,6 @@ msgstr "軌道排序處理..."
 msgctxt "Operator"
 msgid "Stop Tweaking Strip Actions"
 msgstr "停止調校片段動作"
-
-
-msgctxt "Operator"
-msgid "Add Tracks Above Selected"
-msgstr "在所選項之上添加軌道"
 
 
 msgctxt "Operator"
@@ -54325,11 +54321,6 @@ msgstr "已群組"
 msgctxt "Operator"
 msgid "Movie"
 msgstr "影片"
-
-
-msgctxt "Operator"
-msgid "Sound"
-msgstr "聲音"
 
 
 msgctxt "Operator"
@@ -59141,10 +59132,6 @@ msgid "Freestyle: Stroke rendering"
 msgstr "Freestyle：算繪筆觸"
 
 
-msgid "Cannot open file: %s"
-msgstr "無法開啟檔案：%s"
-
-
 msgid "Bone Envelopes"
 msgstr "骨骼封套"
 
@@ -59862,10 +59849,6 @@ msgstr "速度："
 
 msgid "Old"
 msgstr "老舊"
-
-
-msgid "Expects a Named Attribute with the name of a Grid in the Volume"
-msgstr "需要具有體積中網格名稱的具名屬性"
 
 
 msgid "Edge Crease"

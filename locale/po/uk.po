@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'd293f72ab6e7')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'72b6c44e759b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-27 10:28:34\n"
+"POT-Creation-Date: 2023-12-04 11:06:00\n"
 "PO-Revision-Date: 2021-03-01 19:15+0000\n"
 "Last-Translator: lxlalexlxl <lxlalexlxl@ukr.net>\n"
 "Language-Team: Ukrainian (Ukraine) (http://www.transifex.com/lxlalexlxl/blender/language/uk_UA/)\n"
@@ -29368,6 +29368,10 @@ msgid "Vertex Group Specials"
 msgstr "Параметри груп вершин"
 
 
+msgid "Strip"
+msgstr "Смужка"
+
+
 msgid "Utilities"
 msgstr "Утиліти"
 
@@ -29467,10 +29471,6 @@ msgstr "Вибрати Канал"
 
 msgid "Select Handle"
 msgstr "Вибрати Держак"
-
-
-msgid "Strip"
-msgstr "Смужка"
 
 
 msgid "Inputs"
@@ -37568,10 +37568,6 @@ msgid "Replace Alpha"
 msgstr "Замінити Альфа"
 
 
-msgid "Split Viewer"
-msgstr "Розділений оглядач"
-
-
 msgid "Stabilize 2D"
 msgstr "Стабілізація 2D"
 
@@ -38084,16 +38080,16 @@ msgid "Bring the input object geometry, location, rotation and scale into the mo
 msgstr "Внести геометрію, локацію, обертання та масштаб об'єкта уводу у модифікований об'єкт, підтримуючи відносну позицію між цими двома об'єктами у сцені"
 
 
+msgid "Points to Volume"
+msgstr "Точки в Об'єм"
+
+
 msgid "Specify the approximate number of voxels along the diagonal"
 msgstr "Визначити приблизну кількість вокселів уздовж діагоналі"
 
 
 msgid "Specify the voxel side length"
 msgstr "Визначити довжину сторони вокселя"
-
-
-msgid "Points to Volume"
-msgstr "Точки в Об'єм"
 
 
 msgid "Target Geometry"
@@ -48379,6 +48375,10 @@ msgid "Flat"
 msgstr "Плоско"
 
 
+msgid "Duplicate"
+msgstr "Дублювання"
+
+
 msgctxt "Operator"
 msgid "Select Mode"
 msgstr "Режим Вибору"
@@ -50565,10 +50565,6 @@ msgstr "Дублювати вибрані вершини, ребра або гр
 
 msgid "Duplicate mesh and move"
 msgstr "Дублювати сіть і рухати"
-
-
-msgid "Duplicate"
-msgstr "Дублювання"
 
 
 msgctxt "Operator"
@@ -87150,13 +87146,13 @@ msgstr "Інвертування"
 
 
 msgctxt "Operator"
-msgid "Lock Unused"
-msgstr "Блокувати Невикористане"
+msgid "Lock Unselected"
+msgstr "Блокувати Невибране"
 
 
 msgctxt "Operator"
-msgid "Lock Unselected"
-msgstr "Блокувати Невибране"
+msgid "Lock Unused"
+msgstr "Блокувати Невикористане"
 
 
 msgctxt "Operator"
@@ -89033,8 +89029,8 @@ msgstr "Перемкнути Область на Повний Екран"
 
 
 msgctxt "Operator"
-msgid "Track Ordering..."
-msgstr "Порядок Відстеження..."
+msgid "Sound"
+msgstr "Звук"
 
 
 msgctxt "Operator"
@@ -89043,13 +89039,13 @@ msgstr "Перейменування..."
 
 
 msgctxt "Operator"
-msgid "Stop Tweaking Strip Actions"
-msgstr "Зупинити Підправлення Дій Смужок"
+msgid "Track Ordering..."
+msgstr "Порядок Відстеження..."
 
 
 msgctxt "Operator"
-msgid "Add Tracks Above Selected"
-msgstr "Додати Відстеження Над Вибраним"
+msgid "Stop Tweaking Strip Actions"
+msgstr "Зупинити Підправлення Дій Смужок"
 
 
 msgctxt "Operator"
@@ -89324,11 +89320,6 @@ msgstr "Стрибок на Наступну Смужку (Центр)"
 msgctxt "Operator"
 msgid "Movie"
 msgstr "Фільм"
-
-
-msgctxt "Operator"
-msgid "Sound"
-msgstr "Звук"
 
 
 msgctxt "Operator"
@@ -98489,10 +98480,6 @@ msgstr "Freestyle: Створення карти вигляду"
 
 msgid "Freestyle: Stroke rendering"
 msgstr "Freestyle: Рендеринг штриха"
-
-
-msgid "Cannot open file: %s"
-msgstr "Неможливо відкрити файл: %s"
 
 
 msgid "Bind To"

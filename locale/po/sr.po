@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'd293f72ab6e7')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'72b6c44e759b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-27 10:28:34\n"
+"POT-Creation-Date: 2023-12-04 11:06:00\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -9131,6 +9131,10 @@ msgid "Vertex Group Specials"
 msgstr "Специјална група темена"
 
 
+msgid "Strip"
+msgstr "Одстрани"
+
+
 msgid "Math"
 msgstr "Математика"
 
@@ -9189,10 +9193,6 @@ msgstr "Примени"
 
 msgid "Navigation"
 msgstr "Навигација"
-
-
-msgid "Strip"
-msgstr "Одстрани"
 
 
 msgid "Inputs"
@@ -11449,10 +11449,6 @@ msgstr "YUVA раздвајање"
 
 msgid "Set Alpha"
 msgstr "Постави алфу"
-
-
-msgid "Split Viewer"
-msgstr "Подели прегледач"
 
 
 msgid "Stabilize 2D"
@@ -14876,6 +14872,10 @@ msgid "Flat"
 msgstr "Равно"
 
 
+msgid "Duplicate"
+msgstr "Дуплирај"
+
+
 msgctxt "Operator"
 msgid "Select Mode"
 msgstr "Мод изабора"
@@ -15496,10 +15496,6 @@ msgstr "Ротирај извор"
 
 msgid "Duplicate mesh and move"
 msgstr "Дуплира и премеша меш"
-
-
-msgid "Duplicate"
-msgstr "Дуплирај"
 
 
 msgctxt "Operator"
@@ -25101,13 +25097,13 @@ msgstr "Распакуј"
 
 
 msgctxt "Operator"
-msgid "Track Ordering..."
-msgstr "Редослед праћења..."
+msgid "Sound"
+msgstr "Звук"
 
 
 msgctxt "Operator"
-msgid "Add Tracks Above Selected"
-msgstr "Додаје стазе изнад изабране"
+msgid "Track Ordering..."
+msgstr "Редослед праћења..."
 
 
 msgctxt "Operator"
@@ -25154,11 +25150,6 @@ msgstr "Груписано"
 msgctxt "Operator"
 msgid "Movie"
 msgstr "Филм"
-
-
-msgctxt "Operator"
-msgid "Sound"
-msgstr "Звук"
 
 
 msgid "Storage"
@@ -27148,10 +27139,6 @@ msgstr "Препиши %s"
 
 msgid "UV Vertex"
 msgstr "UV теме"
-
-
-msgid "Cannot open file: %s"
-msgstr "Не могу да отворим датотеку: %s"
 
 
 msgctxt "Action"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'd293f72ab6e7')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'72b6c44e759b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-27 10:28:34\n"
+"POT-Creation-Date: 2023-12-04 11:06:00\n"
 "PO-Revision-Date: 2016-04-23 22:41+0300\n"
 "Last-Translator: Yousef Harfoush <bat3a@msn.com>\n"
 "Language-Team: Yousef Harfoush, Amine Moussaoui <bat3a@msn.com>\n"
@@ -16668,6 +16668,10 @@ msgid "Vertex Group Specials"
 msgstr "ﻂﻘﻨﻟﺍ ﺔﻋﻮﻤﺠﻣ ﺕﺎﻓﺎﺿﺇ"
 
 
+msgid "Strip"
+msgstr "ﻂﻳﺮﺷ"
+
+
 msgid "Math"
 msgstr "ﺏﺎﺴﺣ"
 
@@ -16734,10 +16738,6 @@ msgstr "ﻖﺒﻃ"
 
 msgid "Navigation"
 msgstr "ﺢﻔّﺼﺗ"
-
-
-msgid "Strip"
-msgstr "ﻂﻳﺮﺷ"
 
 
 msgid "Inputs"
@@ -36843,6 +36843,11 @@ msgstr "ﺔﻠﻣﺎﻜﻟﺍ ﺔﺷﺎﺸﻟﺍ ﺔﻘﻄﻨﻣ ﺐﻠﻗﺇ"
 
 
 msgctxt "Operator"
+msgid "Sound"
+msgstr "ﺕﻮﺻ"
+
+
+msgctxt "Operator"
 msgid "Track Ordering..."
 msgstr "...ﺕﺍﺭﺎﺴﻤﻟﺍ ﺐﻴﺗﺮﺗ"
 
@@ -36850,11 +36855,6 @@ msgstr "...ﺕﺍﺭﺎﺴﻤﻟﺍ ﺐﻴﺗﺮﺗ"
 msgctxt "Operator"
 msgid "Stop Tweaking Strip Actions"
 msgstr "ﺕﺎﻛﺮﺤﻟﺍ ﺔﻃﺮﺷﺃ ﻞﻳﺪﻌﺗ ﻦﻋ ﻒﻗﻮﺗ"
-
-
-msgctxt "Operator"
-msgid "Add Tracks Above Selected"
-msgstr "ﺭﺎﺘﺨﻤﻟﺍ ﻕﻮﻓ ﺕﺍﺭﺎﺴﻣ ﻒﺿﺃ"
 
 
 msgctxt "Operator"
@@ -36915,11 +36915,6 @@ msgstr "ﻲﻟﺎﺘﻟﺍ ﻂﻳﺮﺸﻟﺍ ﻰﻟﺍ ﺰﻔﻗﺍ"
 msgctxt "Operator"
 msgid "Movie"
 msgstr "ﻢﻠﻔﻟﺍ"
-
-
-msgctxt "Operator"
-msgid "Sound"
-msgstr "ﺕﻮﺻ"
 
 
 msgid "Storage"
@@ -39414,10 +39409,6 @@ msgstr "‬%s‪ ﻝﺪﺒﺘﺳﺇ"
 
 msgid "UV Vertex"
 msgstr "ﺔﻄﻘﻨﻟﺍ ﻡﺪﺨﺘﺳﺍ"
-
-
-msgid "Cannot open file: %s"
-msgstr "‬%s‪ :ﻒﻠﻤﻟﺍ ﺓءﺍﺮﻗ ﻦﻜﻤﻳ ﻻ﻿"
 
 
 msgid "Bone Envelopes"

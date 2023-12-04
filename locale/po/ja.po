@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'd293f72ab6e7')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'72b6c44e759b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-27 10:28:34\n"
+"POT-Creation-Date: 2023-12-04 11:06:00\n"
 "PO-Revision-Date: 2023-10-30 06:54+0000\n"
 "Last-Translator: Satoshi Yamasaki <yamyam@yo.rim.or.jp>\n"
 "Language-Team: Japanese <https://translate.blender.org/projects/blender-ui/ui/ja/>\n"
@@ -35545,6 +35545,10 @@ msgid "NLA"
 msgstr "NLA"
 
 
+msgid "Strip"
+msgstr "ストリップ"
+
+
 msgid "Utilities"
 msgstr "ユーティリティ"
 
@@ -35682,10 +35686,6 @@ msgstr "チャンネルを選択"
 
 msgid "Select Handle"
 msgstr "ハンドルを選択"
-
-
-msgid "Strip"
-msgstr "ストリップ"
 
 
 msgid "Inputs"
@@ -44913,10 +44913,6 @@ msgid "Replace the input image's alpha channel by the alpha input value"
 msgstr "入力画像のアルファチャンネルをアルファ入力値で置き換えます"
 
 
-msgid "Split Viewer"
-msgstr "分割ビューアー"
-
-
 msgid "Stabilize 2D"
 msgstr "2Dスタビライゼーション"
 
@@ -46352,14 +46348,6 @@ msgid "Shortest Edge Paths"
 msgstr "最短辺パス"
 
 
-msgid "Signed Distance"
-msgstr "符号付き距離"
-
-
-msgid "Retrieve the signed distance field grid called 'distance' from a volume"
-msgstr "ボリュームから 'distance' と呼ばれる符号付き距離フィールドグリッドを取得します"
-
-
 msgid "Is Spline Cyclic"
 msgstr "スプラインループフラグ"
 
@@ -46434,14 +46422,6 @@ msgstr "マテリアルで選択"
 
 msgid "Provide a selection of faces that use the specified material"
 msgstr "指定のマテリアルを使用する面の選択を出力します"
-
-
-msgid "Mean Filter SDF Volume"
-msgstr "SDFボリューム平均化フィルター"
-
-
-msgid "Smooth the surface of an SDF volume by applying a mean filter"
-msgstr "SDF ボリュームの表面を平均化フィルターでスムージングします"
 
 
 msgid "Merge by Distance"
@@ -46580,20 +46560,12 @@ msgid "Create a point in the point cloud for each selected face corner"
 msgstr "選択中の各面の角からポイントクラウド内にポイントを生成します"
 
 
-msgid "Mesh to SDF Volume"
-msgstr "メッシュのSDFボリューム化"
-
-
-msgid "Create an SDF volume with the shape of the input mesh's surface"
-msgstr "入力メッシュ表面の形状で SDF ボリュームを生成します"
+msgid "Create a fog volume with the shape of the input mesh's surface"
+msgstr "入力メッシュの形状でフォグボリュームを生成します"
 
 
 msgid "How the voxel size is specified"
 msgstr "ボクセルサイズを指定する方法"
-
-
-msgid "Create a fog volume with the shape of the input mesh's surface"
-msgstr "入力メッシュの形状でフォグボリュームを生成します"
 
 
 msgid "UV Sphere"
@@ -46640,14 +46612,6 @@ msgid "Offset a control point index within its curve"
 msgstr "カーブ内の制御点のインデックスをずらします"
 
 
-msgid "Offset SDF Volume"
-msgstr "SDFボリュームオフセット"
-
-
-msgid "Move the surface of an SDF volume inwards or outwards"
-msgstr "SDFボリュームの表面を内側または外側に移動します"
-
-
 msgid "Generate a point cloud with positions and radii defined by fields"
 msgstr "フィールドで指定した位置と半径のポイントクラウドを生成します"
 
@@ -46668,22 +46632,6 @@ msgid "Split all points to curve by its group ID and reorder by weight"
 msgstr "グループ ID で全ポイントをカーブに分離し，ウェイトで並べ替えます"
 
 
-msgid "Points to SDF Volume"
-msgstr "ポイントのSDFボリューム化"
-
-
-msgid "Generate an SDF volume sphere around every point"
-msgstr "各ポイントの周囲に SDF ボリューム球を生成します"
-
-
-msgid "Specify the approximate number of voxels along the diagonal"
-msgstr "対角線を元に概算したボクセル数を指定します"
-
-
-msgid "Specify the voxel side length"
-msgstr "ボクセルの辺の長さを指定します"
-
-
 msgid "Points to Vertices"
 msgstr "ポイントの頂点化"
 
@@ -46698,6 +46646,14 @@ msgstr "ポイントのボリューム化"
 
 msgid "Generate a fog volume sphere around every point"
 msgstr "ポイント毎にフォグボリューム球を生成します"
+
+
+msgid "Specify the approximate number of voxels along the diagonal"
+msgstr "対角線を元に概算したボクセル数を指定します"
+
+
+msgid "Specify the voxel side length"
+msgstr "ボクセルの辺の長さを指定します"
 
 
 msgid "Geometry Proximity"
@@ -46847,14 +46803,6 @@ msgid "Rotate geometry instances in local or global space"
 msgstr "ローカルまたはグローバル空間でジオメトリインスタンスを回転します"
 
 
-msgid "SDF Volume Sphere"
-msgstr "SDFボリューム球"
-
-
-msgid "Generate an SDF Volume Sphere"
-msgstr "SDF ボリューム球を生成します"
-
-
 msgid "Sample Curve"
 msgstr "カーブサンプル"
 
@@ -46919,42 +46867,6 @@ msgstr "UVサーフェスサンプル"
 
 msgid "Calculate the interpolated values of a mesh attribute at a UV coordinate"
 msgstr "UV 座標のメッシュ属性の補間値を計算します"
-
-
-msgid "Sample Volume"
-msgstr "ボリュームサンプル"
-
-
-msgid "Calculate the interpolated values of a Volume grid at the specified position"
-msgstr "ボリュームグリッドの指定の位置での補間値を計算します"
-
-
-msgid "Grid Type"
-msgstr "グリッドタイプ"
-
-
-msgid "Type of grid to sample data from"
-msgstr "データをサンプリングするグリッドのタイプ"
-
-
-msgid "Interpolation Mode"
-msgstr "補間モード"
-
-
-msgid "How to interpolate the values from neighboring voxels"
-msgstr "近隣のボクセルの値を補間する方法"
-
-
-msgid "Nearest Neighbor"
-msgstr "ニアレストネイバー"
-
-
-msgid "Trilinear"
-msgstr "トライリニア"
-
-
-msgid "Triquadratic"
-msgstr "トライクアドラティック"
 
 
 msgid "Scale Elements"
@@ -61430,6 +61342,10 @@ msgid "Enter/Exit draw mode for grease pencil"
 msgstr "グリースペンシルのドローモードに出入りします"
 
 
+msgid "Duplicate"
+msgstr "複製"
+
+
 msgid "Insert a blank frame on the current scene frame"
 msgstr "ブランクフレームを現在のシーンフレームに挿入します"
 
@@ -63899,10 +63815,6 @@ msgstr "選択した頂点/辺/面を複製します"
 
 msgid "Duplicate mesh and move"
 msgstr "メッシュを複製・移動します"
-
-
-msgid "Duplicate"
-msgstr "複製"
 
 
 msgctxt "Operator"
@@ -76329,15 +76241,6 @@ msgstr "投影ラインジェスチャ"
 
 msgid "Project the geometry onto a plane defined by a line"
 msgstr "線で定義された平面に形状を投影します"
-
-
-msgctxt "Operator"
-msgid "Reveal All"
-msgstr "すべて再表示"
-
-
-msgid "Unhide all geometry"
-msgstr "全形状の非表示を解除します"
 
 
 msgid "Sample the vertex color of the active vertex"
@@ -112433,13 +112336,13 @@ msgstr "カスタム遮蔽"
 
 
 msgctxt "Operator"
-msgid "Lock Unused"
-msgstr "未使用をロック"
+msgid "Lock Unselected"
+msgstr "非選択をロック"
 
 
 msgctxt "Operator"
-msgid "Lock Unselected"
-msgstr "非選択をロック"
+msgid "Lock Unused"
+msgstr "未使用をロック"
 
 
 msgctxt "Operator"
@@ -114545,8 +114448,8 @@ msgstr "エリアの全画面切り替え"
 
 
 msgctxt "Operator"
-msgid "Track Ordering..."
-msgstr "トラックの順序..."
+msgid "Sound"
+msgstr "音声"
 
 
 msgctxt "Operator"
@@ -114555,13 +114458,13 @@ msgstr "名前を変更..."
 
 
 msgctxt "Operator"
-msgid "Stop Tweaking Strip Actions"
-msgstr "ストリップアクションの調整を終了"
+msgid "Track Ordering..."
+msgstr "トラックの順序..."
 
 
 msgctxt "Operator"
-msgid "Add Tracks Above Selected"
-msgstr "トラックを選択の上に追加"
+msgid "Stop Tweaking Strip Actions"
+msgstr "ストリップアクションの調整を終了"
 
 
 msgctxt "Operator"
@@ -114955,11 +114858,6 @@ msgstr "次のストリップにジャンプ（中心）"
 msgctxt "Operator"
 msgid "Movie"
 msgstr "動画"
-
-
-msgctxt "Operator"
-msgid "Sound"
-msgstr "音声"
 
 
 msgctxt "Operator"
@@ -123626,14 +123524,6 @@ msgid "Cannot make library override from a local object"
 msgstr "ローカルオブジェクトからはライブラリオーバーライドを作成できません"
 
 
-msgid "The node group must have a geometry input socket"
-msgstr "ノードグループにジオメトリ入力ソケットが必要です"
-
-
-msgid "The first input must be a geometry socket"
-msgstr "最初の入力はジオメトリソケットにしてください"
-
-
 msgid "The node group must have a geometry output socket"
 msgstr "ノードグループにジオメトリ出力ソケットが必要です"
 
@@ -124629,10 +124519,6 @@ msgstr " UV，"
 
 msgid " Materials,"
 msgstr " マテリアル，"
-
-
-msgid " Textures,"
-msgstr " テクスチャ，"
 
 
 msgid " Stencil,"
@@ -128018,10 +127904,6 @@ msgstr "Freestyle: ビューマップ作成"
 
 msgid "Freestyle: Stroke rendering"
 msgstr "Freestyle: ストロークレンダリング"
-
-
-msgid "Cannot open file: %s"
-msgstr "ファイルが開けません: %s"
 
 
 msgid "Bind To"
@@ -131987,14 +131869,6 @@ msgid "Disabled, Blender was compiled without OpenSubdiv"
 msgstr "無効時，Blender は OpenSubdiv なしでコンパイルされています"
 
 
-msgid "Half-Band Width"
-msgstr "半値幅"
-
-
-msgid "Half the width of the narrow band in voxel units"
-msgstr "ナローバンドの半分の幅（ボクセル単位）"
-
-
 msgid "Corner Index"
 msgstr "コーナーインデックス"
 
@@ -132297,36 +132171,12 @@ msgid "Whether the node could find a single face to sample at the UV coordinate"
 msgstr "このノードが UV 座標でサンプリングするための単一面を探し出せたかどうか"
 
 
-msgid "Grid name needs to be specified"
-msgstr "グリッド名を指定してください"
-
-
-msgid "The grid type is unsupported"
-msgstr "未対応のグリッドタイプです"
-
-
-msgid "Expects a Named Attribute with the name of a Grid in the Volume"
-msgstr "ボリューム内のグリッドの名前の付いた名前付き属性にしてください"
-
-
 msgid "Origin of the scaling for each element. If multiple elements are connected, their center is averaged"
 msgstr "各要素のスケーリング原点．複数の要素がつながっている場合はその平均値が中心になります"
 
 
 msgid "Direction in which to scale the element"
 msgstr "要素をスケーリングする方向"
-
-
-msgid "Radius must be greater than 0"
-msgstr "半径は０より大きい必要があります"
-
-
-msgid "Half-band width must be greater than 1"
-msgstr "半値幅は１より大きい必要があります"
-
-
-msgid "Voxel size is too small"
-msgstr "ボクセルサイズが小さすぎます"
 
 
 msgid "The parts of the geometry that go into the first output"

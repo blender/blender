@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'd293f72ab6e7')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'72b6c44e759b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-27 10:28:34\n"
+"POT-Creation-Date: 2023-12-04 11:06:00\n"
 "PO-Revision-Date: 2019-12-08 17:40+0700\n"
 "Last-Translator: gongpha <gongpha@gmail.com>\n"
 "Language-Team: Thai Translation Team <gongpha@gmail.com>\n"
@@ -2732,6 +2732,10 @@ msgid "Flat"
 msgstr "ราบแบน"
 
 
+msgid "Duplicate"
+msgstr "ทำซ้ำ"
+
+
 msgctxt "Operator"
 msgid "Clear Render Region"
 msgstr "ล้างขอบเขตที่เรนเดอร์"
@@ -2811,10 +2815,6 @@ msgstr "วัสดุใหม่"
 
 msgid "Add a new material"
 msgstr "เพิ่มวัสดุใหม่"
-
-
-msgid "Duplicate"
-msgstr "ทำซ้ำ"
 
 
 msgid "Cut"
@@ -4324,6 +4324,11 @@ msgstr "สะท้อน Y"
 
 
 msgctxt "Operator"
+msgid "Sound"
+msgstr "เสียง"
+
+
+msgctxt "Operator"
 msgid "Rename..."
 msgstr "เปลี่ยนชื่อ..."
 
@@ -4341,11 +4346,6 @@ msgstr "แสดง"
 msgctxt "Operator"
 msgid "Movie"
 msgstr "ภาพยนตร์"
-
-
-msgctxt "Operator"
-msgid "Sound"
-msgstr "เสียง"
 
 
 msgctxt "Operator"

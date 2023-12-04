@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'd293f72ab6e7')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'72b6c44e759b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-27 10:28:34\n"
+"POT-Creation-Date: 2023-12-04 11:06:00\n"
 "PO-Revision-Date: 2023-10-08 06:34+0000\n"
 "Last-Translator: Wannes Malfait <wannes.malfait@gmail.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -4410,6 +4410,10 @@ msgid "Flat"
 msgstr "Vlak"
 
 
+msgid "Duplicate"
+msgstr "Dupliceren"
+
+
 msgctxt "Operator"
 msgid "New Image"
 msgstr "Nieuwe Afbeelding"
@@ -4659,10 +4663,6 @@ msgstr "Los Vlakken Op"
 msgctxt "Operator"
 msgid "Dissolve Selection"
 msgstr "Los Selectie Op"
-
-
-msgid "Duplicate"
-msgstr "Dupliceren"
 
 
 msgctxt "Operator"
@@ -7995,6 +7995,11 @@ msgstr "Volledig Scherm Gebied aan/uit"
 
 
 msgctxt "Operator"
+msgid "Sound"
+msgstr "Geluid"
+
+
+msgctxt "Operator"
 msgid "Rename..."
 msgstr "Hernoem..."
 
@@ -8026,11 +8031,6 @@ msgstr "Ververs Alles"
 msgctxt "Operator"
 msgid "Movie"
 msgstr "Film"
-
-
-msgctxt "Operator"
-msgid "Sound"
-msgstr "Geluid"
 
 
 msgctxt "Operator"

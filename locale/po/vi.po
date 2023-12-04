@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'd293f72ab6e7')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'72b6c44e759b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-27 10:28:34\n"
+"POT-Creation-Date: 2023-12-04 11:06:00\n"
 "PO-Revision-Date: 2022-08-19 12:33+0700\n"
 "Last-Translator: HỒ NHỰT CHÂU <su_huynh@yahoo.com>\n"
 "Language-Team: Tỉnh An Giang, Đình Bình Phú\n"
@@ -32525,6 +32525,10 @@ msgid "Vertex Group Specials"
 msgstr "Đồ Đặc Biệt Nhóm Đỉnh"
 
 
+msgid "Strip"
+msgstr "Đoạn"
+
+
 msgid "Utilities"
 msgstr "Các Dịch Vụ"
 
@@ -32640,10 +32644,6 @@ msgstr "Chọn Kênh"
 
 msgid "Select Handle"
 msgstr "Chọn Tay Cầm"
-
-
-msgid "Strip"
-msgstr "Đoạn"
 
 
 msgid "Inputs"
@@ -41325,10 +41325,6 @@ msgid "Replace the input image's alpha channel by the alpha input value"
 msgstr "Thay thế cho kênh độ đục ngõ vào của ảnh RGBA bằng giá trị ngõ vào độ đục"
 
 
-msgid "Split Viewer"
-msgstr "Chẻ Màn Hiển Thị"
-
-
 msgid "Stabilize 2D"
 msgstr "Ổn Định Hóa 2D"
 
@@ -42741,12 +42737,12 @@ msgid "Create a point in the point cloud for each selected face corner"
 msgstr "Chế tạo một điểm trong mây điểm cho mỗi góc giác của mặt được chọn"
 
 
-msgid "How the voxel size is specified"
-msgstr "Làm sao xác định cỡ thước của thể tích tử"
-
-
 msgid "Create a fog volume with the shape of the input mesh's surface"
 msgstr "Chế tạo một thể tích sương mù có hình dạng giống bề mặt của mạng lưới ngõ vào"
+
+
+msgid "How the voxel size is specified"
+msgstr "Làm sao xác định cỡ thước của thể tích tử"
 
 
 msgid "UV Sphere"
@@ -42781,14 +42777,6 @@ msgid "Generate a point cloud with positions and radii defined by fields"
 msgstr "Chế tạo một mây điểm có những vị trí và bán kính được chỉ định bởi trường nào"
 
 
-msgid "Specify the approximate number of voxels along the diagonal"
-msgstr "Xác định xấp xỉ số lượng thể tích tử trên đường chéo"
-
-
-msgid "Specify the voxel side length"
-msgstr "Xác định chiều dài cạnh của thể tích tử"
-
-
 msgid "Points to Vertices"
 msgstr "Điểm đến Đỉnh"
 
@@ -42803,6 +42791,14 @@ msgstr "Điểm sang Thể Tích"
 
 msgid "Generate a fog volume sphere around every point"
 msgstr "Chế tạo một hình cầu thể tích sương mù quanh mỗi điểm"
+
+
+msgid "Specify the approximate number of voxels along the diagonal"
+msgstr "Xác định xấp xỉ số lượng thể tích tử trên đường chéo"
+
+
+msgid "Specify the voxel side length"
+msgstr "Xác định chiều dài cạnh của thể tích tử"
 
 
 msgid "Geometry Proximity"
@@ -55348,6 +55344,10 @@ msgid "Flat"
 msgstr "Bằng Phẳng"
 
 
+msgid "Duplicate"
+msgstr "Dao Chép"
+
+
 msgctxt "Operator"
 msgid "Select Mode"
 msgstr "Chế Độ Chọn"
@@ -57569,10 +57569,6 @@ msgstr "Sao chép các đỉnh, cạnh, hay mặt được chọn"
 
 msgid "Duplicate mesh and move"
 msgstr "sao chép mạng lưới và di chuyển"
-
-
-msgid "Duplicate"
-msgstr "Dao Chép"
 
 
 msgctxt "Operator"
@@ -100430,13 +100426,13 @@ msgstr "Che Khuất Tùy Chọn"
 
 
 msgctxt "Operator"
-msgid "Lock Unused"
-msgstr "Khóa Không Được Dùng"
+msgid "Lock Unselected"
+msgstr "Khóa Không Được Chọn"
 
 
 msgctxt "Operator"
-msgid "Lock Unselected"
-msgstr "Khóa Không Được Chọn"
+msgid "Lock Unused"
+msgstr "Khóa Không Được Dùng"
 
 
 msgctxt "Operator"
@@ -102409,8 +102405,8 @@ msgstr "Bật/Tắt Vùng Toàn Màn"
 
 
 msgctxt "Operator"
-msgid "Track Ordering..."
-msgstr "Thứ Tự Theo Dõi..."
+msgid "Sound"
+msgstr "Âm Thanh"
 
 
 msgctxt "Operator"
@@ -102419,13 +102415,13 @@ msgstr "Đổi Tên..."
 
 
 msgctxt "Operator"
-msgid "Stop Tweaking Strip Actions"
-msgstr "Nghỉ Chỉnh Hành Động Đoạn"
+msgid "Track Ordering..."
+msgstr "Thứ Tự Theo Dõi..."
 
 
 msgctxt "Operator"
-msgid "Add Tracks Above Selected"
-msgstr "Thêm Theo Gõi Trên Được Chọn"
+msgid "Stop Tweaking Strip Actions"
+msgstr "Nghỉ Chỉnh Hành Động Đoạn"
 
 
 msgctxt "Operator"
@@ -102752,11 +102748,6 @@ msgstr "Nhảy Đến Đoạn Tiếp (Tâm)"
 msgctxt "Operator"
 msgid "Movie"
 msgstr "Phim"
-
-
-msgctxt "Operator"
-msgid "Sound"
-msgstr "Âm Thanh"
 
 
 msgctxt "Operator"
@@ -113682,10 +113673,6 @@ msgstr "Phong Cách Tự Do: Hiển thị chế tạo bản đồ"
 
 msgid "Freestyle: Stroke rendering"
 msgstr "Phong Cách Tự Do: Kết xuất nét"
-
-
-msgid "Cannot open file: %s"
-msgstr "Không thể mở tập tin: %s"
 
 
 msgid "Bind To"

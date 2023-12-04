@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'd293f72ab6e7')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'72b6c44e759b')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2023-11-27 10:28:34\n"
+"POT-Creation-Date: 2023-12-04 11:06:00\n"
 "PO-Revision-Date: 2023-11-27 09:55+0000\n"
 "Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -22021,6 +22021,10 @@ msgid "Vertex Group Specials"
 msgstr "Especiais para grupo de vértices"
 
 
+msgid "Strip"
+msgstr "Faixa"
+
+
 msgid "Math"
 msgstr "Matemática"
 
@@ -22104,10 +22108,6 @@ msgstr "Aplicar"
 
 msgid "Navigation"
 msgstr "Navegação"
-
-
-msgid "Strip"
-msgstr "Faixa"
 
 
 msgid "Inputs"
@@ -28539,10 +28539,6 @@ msgstr "Separar XYZ"
 
 msgid "Set Alpha"
 msgstr "Definir alfa"
-
-
-msgid "Split Viewer"
-msgstr "Visualizador dividido"
 
 
 msgid "Stabilize 2D"
@@ -37077,6 +37073,10 @@ msgid "Flat"
 msgstr "Achatar"
 
 
+msgid "Duplicate"
+msgstr "Duplicar"
+
+
 msgctxt "Operator"
 msgid "Select Mode"
 msgstr "Modo de seleção"
@@ -38634,10 +38634,6 @@ msgstr "Duplica os vértices, arestas ou faces selecionados."
 
 msgid "Duplicate mesh and move"
 msgstr "Duplica as malhas selecionadas e permite movê-las."
-
-
-msgid "Duplicate"
-msgstr "Duplicar"
 
 
 msgctxt "Operator"
@@ -65827,8 +65823,8 @@ msgstr "Alternar para tela cheia"
 
 
 msgctxt "Operator"
-msgid "Track Ordering..."
-msgstr "Ordenamento das trilhas..."
+msgid "Sound"
+msgstr "Som"
 
 
 msgctxt "Operator"
@@ -65837,13 +65833,13 @@ msgstr "Renomear..."
 
 
 msgctxt "Operator"
-msgid "Stop Tweaking Strip Actions"
-msgstr "Interromper os ajustes de faixa de ações"
+msgid "Track Ordering..."
+msgstr "Ordenamento das trilhas..."
 
 
 msgctxt "Operator"
-msgid "Add Tracks Above Selected"
-msgstr "Adicionar trilhas acima da seleção"
+msgid "Stop Tweaking Strip Actions"
+msgstr "Interromper os ajustes de faixa de ações"
 
 
 msgctxt "Operator"
@@ -66056,11 +66052,6 @@ msgstr "Saltar para a faixa posterior (centralizando-a)"
 msgctxt "Operator"
 msgid "Movie"
 msgstr "Filme"
-
-
-msgctxt "Operator"
-msgid "Sound"
-msgstr "Som"
 
 
 msgctxt "Operator"
@@ -70984,10 +70975,6 @@ msgid " Materials,"
 msgstr " Materiais,"
 
 
-msgid " Textures,"
-msgstr " Texturas,"
-
-
 msgid " Stencil,"
 msgstr " Estêncil,"
 
@@ -72652,10 +72639,6 @@ msgstr "Freestyle: Criação do mapa de visualização..."
 
 msgid "Freestyle: Stroke rendering"
 msgstr "Freestyle: Renderização de traços..."
-
-
-msgid "Cannot open file: %s"
-msgstr "Não é possível abrir o arquivo: %s"
 
 
 msgid "Bind To"

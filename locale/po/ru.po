@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'd293f72ab6e7')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'72b6c44e759b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-27 10:28:34\n"
+"POT-Creation-Date: 2023-12-04 11:06:00\n"
 "PO-Revision-Date: 2018-01-03 14:47+0000\n"
 "Last-Translator: Lockal <lockalsash@gmail.com>, 2023\n"
 "Language-Team: Russian (https://app.transifex.com/translateblender/teams/82039/ru/)\n"
@@ -29184,6 +29184,10 @@ msgid "Vertex Group Specials"
 msgstr "Настройка группы вершин"
 
 
+msgid "Strip"
+msgstr "Клип"
+
+
 msgid "Math"
 msgstr "Математика"
 
@@ -29284,10 +29288,6 @@ msgstr "Выделить канал"
 
 msgid "Select Handle"
 msgstr "Выделить рукоятку"
-
-
-msgid "Strip"
-msgstr "Клип"
 
 
 msgid "Inputs"
@@ -36420,10 +36420,6 @@ msgstr "Разделить XYZ"
 
 msgid "Set Alpha"
 msgstr "Установить альфа-канал"
-
-
-msgid "Split Viewer"
-msgstr "Двойной предпросмотр"
 
 
 msgid "Stabilize 2D"
@@ -45603,6 +45599,10 @@ msgid "Flat"
 msgstr "Плоский"
 
 
+msgid "Duplicate"
+msgstr "Дублировать"
+
+
 msgctxt "Operator"
 msgid "Select Mode"
 msgstr "Режим выделения"
@@ -47566,10 +47566,6 @@ msgstr "Дублировать выделенные вершины, рёбра �
 
 msgid "Duplicate mesh and move"
 msgstr "Дублировать меш и переместить"
-
-
-msgid "Duplicate"
-msgstr "Дублировать"
 
 
 msgctxt "Operator"
@@ -79352,13 +79348,13 @@ msgstr "Инвертировать"
 
 
 msgctxt "Operator"
-msgid "Lock Unused"
-msgstr "Заблокировать неиспользуемое"
+msgid "Lock Unselected"
+msgstr "Заблокировать невыделенное"
 
 
 msgctxt "Operator"
-msgid "Lock Unselected"
-msgstr "Заблокировать невыделенное"
+msgid "Lock Unused"
+msgstr "Заблокировать неиспользуемое"
 
 
 msgid "Flip Colors"
@@ -80863,8 +80859,8 @@ msgstr "Область во весь экран"
 
 
 msgctxt "Operator"
-msgid "Track Ordering..."
-msgstr "Порядок обхода…"
+msgid "Sound"
+msgstr "Звук"
 
 
 msgctxt "Operator"
@@ -80873,13 +80869,13 @@ msgstr "Переименовать…"
 
 
 msgctxt "Operator"
-msgid "Stop Tweaking Strip Actions"
-msgstr "Остановить настройку действий клипа"
+msgid "Track Ordering..."
+msgstr "Порядок обхода…"
 
 
 msgctxt "Operator"
-msgid "Add Tracks Above Selected"
-msgstr "Добавить треки над выделением"
+msgid "Stop Tweaking Strip Actions"
+msgstr "Остановить настройку действий клипа"
 
 
 msgctxt "Operator"
@@ -81148,11 +81144,6 @@ msgstr "Перейти к следующему клипу (центр)"
 msgctxt "Operator"
 msgid "Movie"
 msgstr "Видео"
-
-
-msgctxt "Operator"
-msgid "Sound"
-msgstr "Звук"
 
 
 msgctxt "Operator"
@@ -89091,10 +89082,6 @@ msgstr "Freestyle: создание карты вида"
 
 msgid "Freestyle: Stroke rendering"
 msgstr "Freestyle: рендеринг штрихов"
-
-
-msgid "Cannot open file: %s"
-msgstr "Не удалось открыть файл: %s"
 
 
 msgid "Bone Envelopes"

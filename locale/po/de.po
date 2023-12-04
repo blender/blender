@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'd293f72ab6e7')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'72b6c44e759b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-27 10:28:34\n"
+"POT-Creation-Date: 2023-12-04 11:06:00\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Martin Reininger <martinreininger@gmx.net>\n"
 "Language-Team: German translation team\n"
@@ -20409,6 +20409,10 @@ msgid "Add"
 msgstr "Hinzufügen"
 
 
+msgid "Strip"
+msgstr "Streifen"
+
+
 msgid "Math"
 msgstr "Mathematisch"
 
@@ -20516,10 +20520,6 @@ msgstr "Kanäle auswählen"
 
 msgid "Select Handle"
 msgstr "Griff auswählen"
-
-
-msgid "Strip"
-msgstr "Streifen"
 
 
 msgid "Inputs"
@@ -25223,10 +25223,6 @@ msgstr "Maske anwenden"
 
 msgid "Replace Alpha"
 msgstr "Alpha ersetzen"
-
-
-msgid "Split Viewer"
-msgstr "Ansicht teilen"
 
 
 msgid "Stabilize 2D"
@@ -31911,6 +31907,10 @@ msgid "Flat"
 msgstr "Flach"
 
 
+msgid "Duplicate"
+msgstr "Duplizieren"
+
+
 msgctxt "Operator"
 msgid "Select Mode"
 msgstr "Modus auswählen"
@@ -33061,10 +33061,6 @@ msgstr "Ausgewählte Eckpunkte, Kanten oder Flächen zum Mauszeiger duplizieren 
 
 msgid "Duplicate mesh and move"
 msgstr "Masche duplizieren und bewegen"
-
-
-msgid "Duplicate"
-msgstr "Duplizieren"
 
 
 msgctxt "Operator"
@@ -54337,13 +54333,13 @@ msgstr "Materialien maskieren"
 
 
 msgctxt "Operator"
-msgid "Lock Unused"
-msgstr "Sperre unbenutztes"
+msgid "Lock Unselected"
+msgstr "Sperre unausgewähltes"
 
 
 msgctxt "Operator"
-msgid "Lock Unselected"
-msgstr "Sperre unausgewähltes"
+msgid "Lock Unused"
+msgstr "Sperre unbenutztes"
 
 
 msgctxt "Operator"
@@ -55901,8 +55897,8 @@ msgstr "Vollbildbereich umschalten"
 
 
 msgctxt "Operator"
-msgid "Track Ordering..."
-msgstr "Spurenreihenfolge..."
+msgid "Sound"
+msgstr "Klang"
 
 
 msgctxt "Operator"
@@ -55911,8 +55907,8 @@ msgstr "Umbenennen..."
 
 
 msgctxt "Operator"
-msgid "Add Tracks Above Selected"
-msgstr "Spur über Auswahl hinzufügen"
+msgid "Track Ordering..."
+msgstr "Spurenreihenfolge..."
 
 
 msgctxt "Operator"
@@ -56161,11 +56157,6 @@ msgstr "Springe zum nächsten Streifen (Zentrum)"
 msgctxt "Operator"
 msgid "Movie"
 msgstr "Film"
-
-
-msgctxt "Operator"
-msgid "Sound"
-msgstr "Klang"
 
 
 msgctxt "Operator"
@@ -62289,10 +62280,6 @@ msgstr "Überschreibe %s"
 
 msgid "UV Vertex"
 msgstr "UV Knoten"
-
-
-msgid "Cannot open file: %s"
-msgstr "Datei kann nicht geöffnet werden: %s"
 
 
 msgid "Bind To"
