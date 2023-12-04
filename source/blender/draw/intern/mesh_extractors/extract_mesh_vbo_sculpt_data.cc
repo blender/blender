@@ -163,7 +163,7 @@ static void extract_sculpt_data_init_subdiv(const DRWSubdivCache &subdiv_cache,
   };
 
   gpuFaceSet *face_sets = (gpuFaceSet *)GPU_vertbuf_get_data(face_set_vbo);
-  const VArray<float> cd_face_sets = *attributes.lookup<float>(".sculpt_mask", ATTR_DOMAIN_POINT);
+  const VArray<int> cd_face_sets = *attributes.lookup<int>(".sculpt_face_set", ATTR_DOMAIN_FACE);
 
   GPUVertFormat *format = get_sculpt_data_format();
   GPU_vertbuf_init_build_on_device(vbo, format, subdiv_cache.num_subdiv_loops);
