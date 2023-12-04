@@ -86,6 +86,8 @@
 #include <cstring>
 #include <mutex>
 
+#include <pthread.h> /* For setting the thread priority. */
+
 #ifdef HAVE_POLL
 #  include <poll.h>
 #endif
@@ -95,8 +97,6 @@
 
 #ifdef USE_EVENT_BACKGROUND_THREAD
 #  include "GHOST_TimerTask.hh"
-
-#  include <pthread.h>
 #endif
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
@@ -2001,6 +2001,27 @@ static const char *ghost_wl_mime_send[] = {
     "text/plain;charset=utf-8",
     "text/plain",
 };
+
+static void pthread_set_min_priority(pthread_t handle)
+{
+  int policy;
+  sched_param sch_params;
+  if (pthread_getschedparam(handle, &policy, &sch_params) == 0) {
+    sch_params.sched_priority = sched_get_priority_min(policy);
+    pthread_setschedparam(handle, policy, &sch_params);
+  }
+}
+
+static void thread_set_min_priority(std::thread &thread)
+{
+  constexpr bool is_ptrhead = std::is_same<std::thread::native_handle_type, void *>();
+  if (!is_ptrhead) {
+    return;
+  }
+  /* The cast is "safe" as non-matching types will have returned already.
+   * This cast might be avoided with clever template use. */
+  pthread_set_min_priority(reinterpret_cast<pthread_t>(thread.native_handle()));
+}
 
 static int memfd_create_sealed(const char *name)
 {
@@ -6337,6 +6358,9 @@ static void gwl_display_event_thread_create(GWL_Display *display)
   display->events_pending.reserve(events_pending_default_size);
   display->events_pthread_is_active = true;
   pthread_create(&display->events_pthread, nullptr, gwl_display_event_thread_fn, display);
+  /* Application logic should take priority, this only ensures events don't accumulate when busy
+   * which typically takes a while (5+ seconds of frantic mouse motion for e.g.). */
+  pthread_set_min_priority(display->events_pthread);
   pthread_detach(display->events_pthread);
 }
 
@@ -7534,6 +7558,8 @@ static void cursor_anim_begin(GWL_Seat *seat)
 
   const int delay = seat->cursor.wl.theme_cursor->images[0]->delay;
   std::thread cursor_anim_thread(cursor_anim_frame_step_fn, seat, anim_handle, delay);
+  /* Application logic should take priority. */
+  thread_set_min_priority(cursor_anim_thread);
   cursor_anim_thread.detach();
 }
 
