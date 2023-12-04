@@ -45,11 +45,11 @@ using blender::VectorSet;
  * \{ */
 
 static void subdiv_ccg_average_inner_face_grids(SubdivCCG &subdiv_ccg,
-                                                CCGKey &key,
+                                                const CCGKey &key,
                                                 const SubdivCCGFace &face);
 
 void subdiv_ccg_average_faces_boundaries_and_corners(SubdivCCG &subdiv_ccg,
-                                                     CCGKey &key,
+                                                     const CCGKey &key,
                                                      const IndexMask &face_mask);
 
 /** \} */
@@ -469,9 +469,6 @@ static void subdiv_ccg_init_faces_vertex_neighborhood(SubdivCCG &subdiv_ccg)
   }
   subdiv_ccg_allocate_adjacent_vertices(subdiv_ccg, num_vertices);
   Vector<int, 64> face_vertices;
-  /* Key to access elements. */
-  CCGKey key;
-  BKE_subdiv_ccg_key_top_level(key, subdiv_ccg);
   /* Store adjacency for all faces. */
   for (const int face_index : faces.index_range()) {
     const SubdivCCGFace &face = faces[face_index];
@@ -579,8 +576,9 @@ void BKE_subdiv_ccg_destroy(SubdivCCG *subdiv_ccg)
   MEM_delete(subdiv_ccg);
 }
 
-void BKE_subdiv_ccg_key(CCGKey &key, const SubdivCCG &subdiv_ccg, int level)
+CCGKey BKE_subdiv_ccg_key(const SubdivCCG &subdiv_ccg, int level)
 {
+  CCGKey key;
   key.level = level;
   key.elem_size = element_size_bytes_get(subdiv_ccg);
   key.grid_size = BKE_subdiv_grid_size_from_level(level);
@@ -592,11 +590,12 @@ void BKE_subdiv_ccg_key(CCGKey &key, const SubdivCCG &subdiv_ccg, int level)
 
   key.has_normals = subdiv_ccg.has_normal;
   key.has_mask = subdiv_ccg.has_mask;
+  return key;
 }
 
-void BKE_subdiv_ccg_key_top_level(CCGKey &key, const SubdivCCG &subdiv_ccg)
+CCGKey BKE_subdiv_ccg_key_top_level(const SubdivCCG &subdiv_ccg)
 {
-  BKE_subdiv_ccg_key(key, subdiv_ccg, subdiv_ccg.level);
+  return BKE_subdiv_ccg_key(subdiv_ccg, subdiv_ccg.level);
 }
 
 /** \} */
@@ -611,7 +610,7 @@ void BKE_subdiv_ccg_key_top_level(CCGKey &key, const SubdivCCG &subdiv_ccg)
  *
  * The result is stored in normals storage from TLS. */
 static void subdiv_ccg_recalc_inner_face_normals(SubdivCCG &subdiv_ccg,
-                                                 CCGKey &key,
+                                                 const CCGKey &key,
                                                  MutableSpan<float3> face_normals,
                                                  const int grid_index)
 {
@@ -641,7 +640,7 @@ static void subdiv_ccg_recalc_inner_face_normals(SubdivCCG &subdiv_ccg,
 
 /* Average normals at every grid element, using adjacent faces normals. */
 static void subdiv_ccg_average_inner_face_normals(SubdivCCG &subdiv_ccg,
-                                                  CCGKey &key,
+                                                  const CCGKey &key,
                                                   const Span<float3> face_normals,
                                                   const int grid_index)
 {
@@ -681,8 +680,7 @@ static void subdiv_ccg_average_inner_face_normals(SubdivCCG &subdiv_ccg,
 static void subdiv_ccg_recalc_inner_grid_normals(SubdivCCG &subdiv_ccg, const IndexMask &face_mask)
 {
   using namespace blender;
-  CCGKey key;
-  BKE_subdiv_ccg_key_top_level(key, subdiv_ccg);
+  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
   const int grid_size_1 = subdiv_ccg.grid_size - 1;
   threading::EnumerableThreadSpecific<Array<float3>> face_normals_tls(
@@ -724,9 +722,7 @@ void BKE_subdiv_ccg_update_normals(SubdivCCG &subdiv_ccg, const IndexMask &face_
   }
   subdiv_ccg_recalc_inner_grid_normals(subdiv_ccg, face_mask);
 
-  CCGKey key;
-  BKE_subdiv_ccg_key_top_level(key, subdiv_ccg);
-
+  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
   subdiv_ccg_average_faces_boundaries_and_corners(subdiv_ccg, key, face_mask);
 }
 
@@ -744,7 +740,7 @@ static void average_grid_element_value_v3(float a[3], float b[3])
 }
 
 static void average_grid_element(SubdivCCG &subdiv_ccg,
-                                 CCGKey &key,
+                                 const CCGKey &key,
                                  CCGElem *grid_element_a,
                                  CCGElem *grid_element_b)
 {
@@ -778,7 +774,7 @@ static void element_accumulator_init(GridElementAccumulator &accumulator)
 
 static void element_accumulator_add(GridElementAccumulator &accumulator,
                                     const SubdivCCG &subdiv_ccg,
-                                    CCGKey &key,
+                                    const CCGKey &key,
                                     /*const*/ CCGElem &grid_element)
 {
   add_v3_v3(accumulator.co, CCG_elem_co(&key, &grid_element));
@@ -798,7 +794,7 @@ static void element_accumulator_mul_fl(GridElementAccumulator &accumulator, cons
 }
 
 static void element_accumulator_copy(SubdivCCG &subdiv_ccg,
-                                     CCGKey &key,
+                                     const CCGKey &key,
                                      CCGElem &destination,
                                      const GridElementAccumulator &accumulator)
 {
@@ -812,7 +808,7 @@ static void element_accumulator_copy(SubdivCCG &subdiv_ccg,
 }
 
 static void subdiv_ccg_average_inner_face_grids(SubdivCCG &subdiv_ccg,
-                                                CCGKey &key,
+                                                const CCGKey &key,
                                                 const SubdivCCGFace &face)
 {
   const Span<CCGElem *> grids = subdiv_ccg.grids;
@@ -847,7 +843,7 @@ static void subdiv_ccg_average_inner_face_grids(SubdivCCG &subdiv_ccg,
 }
 
 static void subdiv_ccg_average_grids_boundary(SubdivCCG &subdiv_ccg,
-                                              CCGKey &key,
+                                              const CCGKey &key,
                                               SubdivCCGAdjacentEdge &adjacent_edge,
                                               MutableSpan<GridElementAccumulator> accumulators)
 {
@@ -889,7 +885,7 @@ struct AverageGridsCornerData {
 };
 
 static void subdiv_ccg_average_grids_corners(SubdivCCG &subdiv_ccg,
-                                             CCGKey &key,
+                                             const CCGKey &key,
                                              SubdivCCGAdjacentVertex &adjacent_vertex)
 {
   const int num_adjacent_faces = adjacent_vertex.num_adjacent_faces;
@@ -914,7 +910,7 @@ static void subdiv_ccg_average_grids_corners(SubdivCCG &subdiv_ccg,
 }
 
 static void subdiv_ccg_average_boundaries(SubdivCCG &subdiv_ccg,
-                                          CCGKey &key,
+                                          const CCGKey &key,
                                           const IndexMask &adjacent_edge_mask)
 {
   using namespace blender;
@@ -931,7 +927,7 @@ static void subdiv_ccg_average_boundaries(SubdivCCG &subdiv_ccg,
 }
 
 static void subdiv_ccg_average_corners(SubdivCCG &subdiv_ccg,
-                                       CCGKey &key,
+                                       const CCGKey &key,
                                        const IndexMask &adjacent_vert_mask)
 {
   using namespace blender;
@@ -944,8 +940,7 @@ static void subdiv_ccg_average_corners(SubdivCCG &subdiv_ccg,
 void BKE_subdiv_ccg_average_grids(SubdivCCG &subdiv_ccg)
 {
   using namespace blender;
-  CCGKey key;
-  BKE_subdiv_ccg_key_top_level(key, subdiv_ccg);
+  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
   /* Average inner boundaries of grids (within one face), across faces
    * from different face-corners. */
   BKE_subdiv_ccg_average_stitch_faces(subdiv_ccg, subdiv_ccg.faces.index_range());
@@ -977,7 +972,7 @@ static void subdiv_ccg_affected_face_adjacency(SubdivCCG &subdiv_ccg,
 }
 
 void subdiv_ccg_average_faces_boundaries_and_corners(SubdivCCG &subdiv_ccg,
-                                                     CCGKey &key,
+                                                     const CCGKey &key,
                                                      const IndexMask &face_mask)
 {
   blender::Set<int> adjacent_vert_set;
@@ -1001,8 +996,7 @@ void subdiv_ccg_average_faces_boundaries_and_corners(SubdivCCG &subdiv_ccg,
 void BKE_subdiv_ccg_average_stitch_faces(SubdivCCG &subdiv_ccg, const IndexMask &face_mask)
 {
   using namespace blender;
-  CCGKey key;
-  BKE_subdiv_ccg_key_top_level(key, subdiv_ccg);
+  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
   face_mask.foreach_index(GrainSize(512), [&](const int face_index) {
     subdiv_ccg_average_inner_face_grids(subdiv_ccg, key, subdiv_ccg.faces[face_index]);
   });

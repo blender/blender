@@ -909,7 +909,7 @@ void BKE_pbvh_build_mesh(PBVH *pbvh, Mesh *mesh)
 #endif
 }
 
-void BKE_pbvh_build_grids(PBVH *pbvh, CCGKey *key, Mesh *me, SubdivCCG *subdiv_ccg)
+void BKE_pbvh_build_grids(PBVH *pbvh, const CCGKey *key, Mesh *me, SubdivCCG *subdiv_ccg)
 {
   const int gridsize = key->grid_size;
   const Span<CCGElem *> grids = subdiv_ccg->grids;
@@ -1644,8 +1644,7 @@ void node_update_mask_grids(const CCGKey &key, const Span<CCGElem *> grids, PBVH
 
 static void update_mask_grids(const SubdivCCG &subdiv_ccg, const Span<PBVHNode *> nodes)
 {
-  CCGKey key;
-  BKE_subdiv_ccg_key_top_level(key, subdiv_ccg);
+  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
   if (!key.has_mask) {
     for (PBVHNode *node : nodes) {
       node->flag &= ~PBVH_FullyMasked;
@@ -3023,7 +3022,7 @@ void BKE_pbvh_draw_debug_cb(PBVH *pbvh,
   }
 }
 
-void BKE_pbvh_grids_update(PBVH *pbvh, CCGKey *key)
+void BKE_pbvh_grids_update(PBVH *pbvh, const CCGKey *key)
 {
   pbvh->gridkey = *key;
 }

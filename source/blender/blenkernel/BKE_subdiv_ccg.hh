@@ -227,8 +227,8 @@ Mesh *BKE_subdiv_to_ccg_mesh(Subdiv &subdiv,
                              const Mesh &coarse_mesh);
 
 /* Create a key for accessing grid elements at a given level. */
-void BKE_subdiv_ccg_key(CCGKey &key, const SubdivCCG &subdiv_ccg, int level);
-void BKE_subdiv_ccg_key_top_level(CCGKey &key, const SubdivCCG &subdiv_ccg);
+CCGKey BKE_subdiv_ccg_key(const SubdivCCG &subdiv_ccg, int level);
+CCGKey BKE_subdiv_ccg_key_top_level(const SubdivCCG &subdiv_ccg);
 
 /* Recalculate all normals based on grid element coordinates. */
 void BKE_subdiv_ccg_recalc_normals(SubdivCCG &subdiv_ccg);

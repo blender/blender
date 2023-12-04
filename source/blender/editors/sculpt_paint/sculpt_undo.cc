@@ -464,8 +464,7 @@ static bool sculpt_undo_restore_coords(bContext *C, Depsgraph *depsgraph, Sculpt
   }
   else if (!unode->grids.is_empty() && subdiv_ccg != nullptr) {
     const int gridsize = subdiv_ccg->grid_size;
-    CCGKey key;
-    BKE_subdiv_ccg_key_top_level(key, *subdiv_ccg);
+    const CCGKey key = BKE_subdiv_ccg_key_top_level(*subdiv_ccg);
     const Span<int> grid_indices = unode->grids;
 
     blender::MutableSpan<blender::float3> co = unode->co;
@@ -596,11 +595,8 @@ static bool sculpt_undo_restore_mask(bContext *C, SculptUndoNode *unode, bool *m
   }
   else if (!unode->grids.is_empty() && subdiv_ccg != nullptr) {
     const int gridsize = subdiv_ccg->grid_size;
-    CCGKey key;
-    BKE_subdiv_ccg_key_top_level(key, *subdiv_ccg);
+    const CCGKey key = BKE_subdiv_ccg_key_top_level(*subdiv_ccg);
     const Span<int> grid_indices = unode->grids;
-
-    BKE_subdiv_ccg_key_top_level(key, *subdiv_ccg);
 
     blender::MutableSpan<float> mask = unode->mask;
     MutableSpan<CCGElem *> grids = subdiv_ccg->grids;

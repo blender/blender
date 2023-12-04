@@ -237,8 +237,7 @@ static void fill_mask_grids(Main &bmain,
 {
   SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
 
-  CCGKey key;
-  BKE_subdiv_ccg_key_top_level(key, subdiv_ccg);
+  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
   if (value == 0.0f && !key.has_mask) {
     /* Unlike meshes, don't dynamically remove masks since it is interleaved with other data. */
     return;
@@ -389,8 +388,7 @@ static void invert_mask_grids(Main &bmain,
 
   const BitGroupVector<> &grid_hidden = subdiv_ccg.grid_hidden;
 
-  CCGKey key;
-  BKE_subdiv_ccg_key_top_level(key, subdiv_ccg);
+  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
   const Span<CCGElem *> grids = subdiv_ccg.grids;
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (PBVHNode *node : nodes.slice(range)) {
