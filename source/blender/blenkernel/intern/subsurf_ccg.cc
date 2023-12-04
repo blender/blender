@@ -1049,9 +1049,6 @@ static void ccgDM_release(DerivedMesh *dm)
   if (ccgdm->gridOffset) {
     MEM_freeN(ccgdm->gridOffset);
   }
-  if (ccgdm->gridFlagMats) {
-    MEM_freeN(ccgdm->gridFlagMats);
-  }
   if (ccgdm->gridHidden) {
     /* Using dm->getNumGrids(dm) accesses freed memory */
     uint numGrids = ccgdm->numGrid;
@@ -1071,7 +1068,6 @@ static void ccgDM_release(DerivedMesh *dm)
   if (ccgdm->pmap_mem) {
     MEM_freeN(ccgdm->pmap_mem);
   }
-  MEM_freeN(ccgdm->faceFlags);
   MEM_freeN(ccgdm->vertMap);
   MEM_freeN(ccgdm->edgeMap);
   MEM_freeN(ccgdm->faceMap);
@@ -1231,7 +1227,6 @@ static void ccgdm_create_grids(DerivedMesh *dm)
   CCGDerivedMesh *ccgdm = (CCGDerivedMesh *)dm;
   CCGSubSurf *ss = ccgdm->ss;
   CCGElem **gridData;
-  DMFlagMat *gridFlagMats;
   CCGFace **gridFaces;
   int *gridOffset;
   int index, numFaces, numGrids, S, gIndex /*, gridSize */;
@@ -1259,8 +1254,6 @@ static void ccgdm_create_grids(DerivedMesh *dm)
   gridData = static_cast<CCGElem **>(MEM_mallocN(sizeof(CCGElem *) * numGrids, "ccgdm.gridData"));
   gridFaces = static_cast<CCGFace **>(
       MEM_mallocN(sizeof(CCGFace *) * numGrids, "ccgdm.gridFaces"));
-  gridFlagMats = static_cast<DMFlagMat *>(
-      MEM_mallocN(sizeof(DMFlagMat) * numGrids, "ccgdm.gridFlagMats"));
 
   ccgdm->gridHidden = static_cast<uint **>(
       MEM_callocN(sizeof(*ccgdm->gridHidden) * numGrids, "ccgdm.gridHidden"));
@@ -1272,14 +1265,12 @@ static void ccgdm_create_grids(DerivedMesh *dm)
     for (S = 0; S < numVerts; S++, gIndex++) {
       gridData[gIndex] = static_cast<CCGElem *>(ccgSubSurf_getFaceGridDataArray(ss, f, S));
       gridFaces[gIndex] = f;
-      gridFlagMats[gIndex] = ccgdm->faceFlags[index];
     }
   }
 
   ccgdm->gridData = gridData;
   ccgdm->gridFaces = gridFaces;
   ccgdm->gridOffset = gridOffset;
-  ccgdm->gridFlagMats = gridFlagMats;
   ccgdm->numGrid = numGrids;
 }
 
@@ -1303,14 +1294,6 @@ static void ccgDM_getGridKey(DerivedMesh *dm, CCGKey *key)
 {
   CCGDerivedMesh *ccgdm = (CCGDerivedMesh *)dm;
   CCG_key_top_level(key, ccgdm->ss);
-}
-
-static DMFlagMat *ccgDM_getGridFlagMats(DerivedMesh *dm)
-{
-  CCGDerivedMesh *ccgdm = (CCGDerivedMesh *)dm;
-
-  ccgdm_create_grids(dm);
-  return ccgdm->gridFlagMats;
 }
 
 static BLI_bitmap **ccgDM_getGridHidden(DerivedMesh *dm)
@@ -1342,7 +1325,6 @@ static void set_default_ccgdm_callbacks(CCGDerivedMesh *ccgdm)
   ccgdm->dm.getGridData = ccgDM_getGridData;
   ccgdm->dm.getGridOffset = ccgDM_getGridOffset;
   ccgdm->dm.getGridKey = ccgDM_getGridKey;
-  ccgdm->dm.getGridFlagMats = ccgDM_getGridFlagMats;
   ccgdm->dm.getGridHidden = ccgDM_getGridHidden;
 
   ccgdm->dm.release = ccgDM_release;
@@ -1403,7 +1385,6 @@ static void set_ccgdm_all_geometry(CCGDerivedMesh *ccgdm,
   int index;
   int i;
   int vertNum = 0, edgeNum = 0, faceNum = 0;
-  DMFlagMat *faceFlags = ccgdm->faceFlags;
   int *polyidx = nullptr;
   blender::Vector<int, 16> loopidx;
   blender::Vector<int, 16> vertidx;
@@ -1423,11 +1404,6 @@ static void set_ccgdm_all_geometry(CCGDerivedMesh *ccgdm,
   // gridInternalVerts = gridSideVerts * gridSideVerts; /* As yet, unused. */
   gridSideEdges = gridSize - 1;
   gridInternalEdges = (gridSideEdges - 1) * gridSideEdges * 2;
-
-  const int *material_indices = static_cast<const int *>(
-      CustomData_get_layer_named(&dm->polyData, CD_PROP_INT32, "material_index"));
-  const bool *sharp_faces = static_cast<const bool *>(
-      CustomData_get_layer_named(&dm->polyData, CD_PROP_BOOL, "sharp_face"));
 
   const int *base_polyOrigIndex = static_cast<const int *>(
       CustomData_get_layer(&dm->polyData, CD_ORIGINDEX));
@@ -1453,10 +1429,6 @@ static void set_ccgdm_all_geometry(CCGDerivedMesh *ccgdm,
     ccgdm->faceMap[index].startVert = vertNum;
     ccgdm->faceMap[index].startEdge = edgeNum;
     ccgdm->faceMap[index].startFace = faceNum;
-
-    faceFlags->sharp = sharp_faces ? sharp_faces[origIndex] : false;
-    faceFlags->mat_nr = material_indices ? material_indices[origIndex] : 0;
-    faceFlags++;
 
     /* set the face base vert */
     *((int *)ccgSubSurf_getFaceUserData(ss, f)) = vertNum;
@@ -1679,13 +1651,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
                                          int useSubsurfUv,
                                          DerivedMesh *dm)
 {
-  const int totedge = ccgSubSurf_getNumEdges(ss);
-  const int totface = ccgSubSurf_getNumFaces(ss);
   CCGDerivedMesh *ccgdm = MEM_cnew<CCGDerivedMesh>(__func__);
-
-  BLI_assert(totedge == ccgSubSurf_getNumEdges(ss));
-  UNUSED_VARS_NDEBUG(totedge);
-  BLI_assert(totface == ccgSubSurf_getNumFaces(ss));
   DM_from_template(&ccgdm->dm,
                    dm,
                    DM_TYPE_CCGDM,
@@ -1712,10 +1678,6 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
   ccgdm->ss = ss;
   ccgdm->drawInteriorEdges = drawInteriorEdges;
   ccgdm->useSubsurfUv = useSubsurfUv;
-
-  /* CDDM hack. */
-  ccgdm->faceFlags = static_cast<DMFlagMat *>(
-      MEM_callocN(sizeof(DMFlagMat) * totface, "faceFlags"));
 
   set_ccgdm_all_geometry(ccgdm, ss, dm, useSubsurfUv != 0);
 

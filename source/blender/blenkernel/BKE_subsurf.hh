@@ -31,17 +31,6 @@ struct SubsurfModifierData;
 
 /**************************** External *****************************/
 
-/*
- * NOTE: all #MFace interfaces now officially operate on tessellated data.
- *       Also, the #MFace orig-index layer indexes polys, not #MFace.
- */
-
-/* keep in sync with MFace type */
-struct DMFlagMat {
-  short mat_nr;
-  bool sharp;
-};
-
 enum SubsurfFlags {
   SUBSURF_USE_RENDER_PARAMS = 1,
   SUBSURF_IS_FINAL_CALC = 2,
@@ -105,8 +94,6 @@ struct CCGDerivedMesh {
     CCGFace *face;
   } * faceMap;
 
-  DMFlagMat *faceFlags;
-
   int *reverseFaceMap;
 
   PBVH *pbvh;
@@ -117,7 +104,6 @@ struct CCGDerivedMesh {
   CCGElem **gridData;
   int *gridOffset;
   CCGFace **gridFaces;
-  DMFlagMat *gridFlagMats;
   unsigned int **gridHidden;
   /* Elements in arrays above. */
   unsigned int numGrid;

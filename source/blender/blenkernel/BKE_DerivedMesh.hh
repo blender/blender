@@ -58,7 +58,6 @@ struct CCGElem;
 struct CCGKey;
 struct CustomData_MeshMasks;
 struct Depsgraph;
-struct DMFlagMat;
 struct vec2i;
 struct MFace;
 struct Mesh;
@@ -127,7 +126,6 @@ struct DerivedMesh {
   struct CCGElem **(*getGridData)(DerivedMesh *dm);
   int *(*getGridOffset)(DerivedMesh *dm);
   void (*getGridKey)(DerivedMesh *dm, struct CCGKey *key);
-  DMFlagMat *(*getGridFlagMats)(DerivedMesh *dm);
   unsigned int **(*getGridHidden)(DerivedMesh *dm);
 
   /* Direct Access Operations
