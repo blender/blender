@@ -3158,16 +3158,22 @@ Mesh *BKE_pbvh_get_mesh(PBVH *pbvh)
   return pbvh->mesh;
 }
 
-MutableSpan<float3> BKE_pbvh_get_vert_positions(const PBVH *pbvh)
+Span<float3> BKE_pbvh_get_vert_positions(const PBVH *pbvh)
 {
   BLI_assert(pbvh->header.type == PBVH_FACES);
   return pbvh->vert_positions;
 }
 
-const float (*BKE_pbvh_get_vert_normals(const PBVH *pbvh))[3]
+MutableSpan<float3> BKE_pbvh_get_vert_positions(PBVH *pbvh)
 {
   BLI_assert(pbvh->header.type == PBVH_FACES);
-  return reinterpret_cast<const float(*)[3]>(pbvh->vert_normals.data());
+  return pbvh->vert_positions;
+}
+
+Span<float3> BKE_pbvh_get_vert_normals(const PBVH *pbvh)
+{
+  BLI_assert(pbvh->header.type == PBVH_FACES);
+  return pbvh->vert_normals;
 }
 
 void BKE_pbvh_subdiv_cgg_set(PBVH *pbvh, SubdivCCG *subdiv_ccg)

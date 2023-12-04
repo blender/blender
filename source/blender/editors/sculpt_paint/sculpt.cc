@@ -215,7 +215,7 @@ void SCULPT_vertex_normal_get(const SculptSession *ss, PBVHVertRef vertex, float
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
-      const float(*vert_normals)[3] = BKE_pbvh_get_vert_normals(ss->pbvh);
+      const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(ss->pbvh);
       copy_v3_v3(no, vert_normals[vertex.i]);
       break;
     }

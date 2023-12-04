@@ -188,10 +188,9 @@ BLI_INLINE PBVHFaceRef BKE_pbvh_index_to_face(PBVH *pbvh, int index)
  * Returns true if the search should continue from this node, false otherwise.
  */
 
-typedef void (*BKE_pbvh_HitCallback)(PBVHNode *node, void *data);
-typedef void (*BKE_pbvh_HitOccludedCallback)(PBVHNode *node, void *data, float *tmin);
-
-typedef void (*BKE_pbvh_SearchNearestCallback)(PBVHNode *node, void *data, float *tmin);
+using BKE_pbvh_HitCallback = void (*)(PBVHNode *node, void *data);
+using BKE_pbvh_HitOccludedCallback = void (*)(PBVHNode *node, void *data, float *tmin);
+using BKE_pbvh_SearchNearestCallback = void (*)(PBVHNode *node, void *data, float *tmin);
 
 /* Building */
 
@@ -603,8 +602,9 @@ void BKE_pbvh_parallel_range_settings(TaskParallelSettings *settings,
                                       bool use_threading,
                                       int totnode);
 
-blender::MutableSpan<blender::float3> BKE_pbvh_get_vert_positions(const PBVH *pbvh);
-const float (*BKE_pbvh_get_vert_normals(const PBVH *pbvh))[3];
+blender::Span<blender::float3> BKE_pbvh_get_vert_positions(const PBVH *pbvh);
+blender::MutableSpan<blender::float3> BKE_pbvh_get_vert_positions(PBVH *pbvh);
+blender::Span<blender::float3> BKE_pbvh_get_vert_normals(const PBVH *pbvh);
 
 PBVHColorBufferNode *BKE_pbvh_node_color_buffer_get(PBVHNode *node);
 void BKE_pbvh_node_color_buffer_free(PBVH *pbvh);
