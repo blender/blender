@@ -1156,7 +1156,7 @@ void BM_select_history_merge_from_targetmap(
     BMesh *bm, GHash *vert_map, GHash *edge_map, GHash *face_map, const bool use_chain)
 {
 
-#ifdef DEBUG
+#ifndef NDEBUG
   LISTBASE_FOREACH (BMEditSelection *, ese, &bm->selected) {
     BLI_assert(BM_ELEM_API_FLAG_TEST(ese->ele, _FLAG_OVERLAP) == 0);
   }

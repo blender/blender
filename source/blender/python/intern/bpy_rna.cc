@@ -8829,7 +8829,7 @@ void pyrna_alloc_types()
    * But keep running in debug mode so we get immediate notification of bad class hierarchy
    * or any errors in "bpy_types.py" at load time, so errors don't go unnoticed. */
 
-#ifdef DEBUG
+#ifndef NDEBUG
   PyGILState_STATE gilstate;
 
   PropertyRNA *prop;
@@ -8855,7 +8855,7 @@ void pyrna_alloc_types()
   RNA_PROP_END;
 
   PyGILState_Release(gilstate);
-#endif /* DEBUG */
+#endif /* NDEBUG */
 }
 
 void pyrna_free_types()

@@ -67,7 +67,7 @@ Object *MeshFromGeometry::create_mesh(Main *bmain,
 
   if (import_params.validate_meshes || mesh_geometry_.has_invalid_faces_) {
     bool verbose_validate = false;
-#ifdef DEBUG
+#ifndef NDEBUG
     verbose_validate = true;
 #endif
     BKE_mesh_validate(mesh, verbose_validate, false);

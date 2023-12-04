@@ -206,6 +206,7 @@ void gpu::MTLTexture::bake_mip_swizzle_view()
     BLI_assert(range_len > 0);
     BLI_assert(mip_texture_base_level_ < texture_.mipmapLevelCount);
     BLI_assert(mip_texture_base_layer_ < max_slices);
+    UNUSED_VARS_NDEBUG(max_slices);
     mip_swizzle_view_ = [texture_
         newTextureViewWithPixelFormat:texture_view_pixel_format
                           textureType:texture_view_texture_type

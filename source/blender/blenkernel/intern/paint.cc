@@ -1121,7 +1121,7 @@ bool BKE_paint_ensure(ToolSettings *ts, Paint **r_paint)
                       (Paint *)ts->uvsculpt,
                       (Paint *)ts->curves_sculpt,
                       (Paint *)&ts->imapaint));
-#ifdef DEBUG
+#ifndef NDEBUG
       Paint paint_test = **r_paint;
       BKE_paint_runtime_init(ts, *r_paint);
       /* Swap so debug doesn't hide errors when release fails. */

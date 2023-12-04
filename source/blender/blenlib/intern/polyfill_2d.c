@@ -463,7 +463,7 @@ static void pf_coord_remove(PolyFill *pf, PolyIndex *pi)
   if (UNLIKELY(pf->indices == pi)) {
     pf->indices = pi->next;
   }
-#ifdef DEBUG
+#ifndef NDEBUG
   pi->index = (uint32_t)-1;
   pi->next = pi->prev = NULL;
 #endif

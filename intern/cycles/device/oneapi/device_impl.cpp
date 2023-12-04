@@ -545,7 +545,7 @@ void OneapiDevice::usm_free(void *usm_ptr)
 
 void OneapiDevice::check_usm(SyclQueue *queue_, const void *usm_ptr, bool allow_host = false)
 {
-#  ifdef _DEBUG
+#  ifndef NDEBUG
   sycl::queue *queue = reinterpret_cast<sycl::queue *>(queue_);
   sycl::info::device_type device_type =
       queue->get_device().get_info<sycl::info::device::device_type>();

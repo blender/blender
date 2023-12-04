@@ -49,7 +49,7 @@
 /* Setting zero so we can catch bugs in BLI_task/KDOPBVH.
  * TODO(sergey): Deduplicate the limits with PBVH from BKE.
  */
-#ifdef DEBUG
+#ifndef NDEBUG
 #  define KDOPBVH_THREAD_LEAF_THRESHOLD 0
 #else
 #  define KDOPBVH_THREAD_LEAF_THRESHOLD 1024

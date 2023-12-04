@@ -535,7 +535,7 @@ void BKE_mesh_face_offsets_ensure_alloc(Mesh *mesh)
   mesh->runtime->face_offsets_sharing_info = blender::implicit_sharing::info_for_mem_free(
       mesh->face_offset_indices);
 
-#ifdef DEBUG
+#ifndef NDEBUG
   /* Fill offsets with obviously bad values to simplify finding missing initialization. */
   mesh->face_offsets_for_write().fill(-1);
 #endif

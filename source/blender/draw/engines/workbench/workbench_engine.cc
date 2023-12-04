@@ -641,7 +641,7 @@ static bool workbench_render_framebuffers_init()
          GPU_framebuffer_check_valid(dfbl->depth_only_fb, nullptr);
 }
 
-#ifdef DEBUG
+#ifdef _DEBUG
 /* This is just to ease GPU debugging when the frame delimiter is set to Finish */
 #  define GPU_FINISH_DELIMITER() GPU_finish()
 #else

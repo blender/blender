@@ -3589,7 +3589,7 @@ static bool barycentric_weights(const float v1[3],
 
   wtot = w[0] + w[1] + w[2];
 
-#ifdef DEBUG /* Avoid floating point exception when debugging. */
+#ifndef NDEBUG /* Avoid floating point exception when debugging. */
   if (wtot != 0.0f)
 #endif
   {
@@ -3686,7 +3686,7 @@ bool barycentric_coords_v2(
   const float x3 = v3[0], y3 = v3[1];
   const float det = (y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3);
 
-#ifdef DEBUG /* Avoid floating point exception when debugging. */
+#ifndef NDEBUG /* Avoid floating point exception when debugging. */
   if (det != 0.0f)
 #endif
   {
@@ -3711,7 +3711,7 @@ void barycentric_weights_v2(
   w[2] = cross_tri_v2(v1, v2, co);
   wtot = w[0] + w[1] + w[2];
 
-#ifdef DEBUG /* Avoid floating point exception when debugging. */
+#ifndef NDEBUG /* Avoid floating point exception when debugging. */
   if (wtot != 0.0f)
 #endif
   {
@@ -3734,7 +3734,7 @@ void barycentric_weights_v2_clamped(
   w[2] = max_ff(cross_tri_v2(v1, v2, co), 0.0f);
   wtot = w[0] + w[1] + w[2];
 
-#ifdef DEBUG /* Avoid floating point exception when debugging. */
+#ifndef NDEBUG /* Avoid floating point exception when debugging. */
   if (wtot != 0.0f)
 #endif
   {
@@ -3757,7 +3757,7 @@ void barycentric_weights_v2_persp(
   w[2] = cross_tri_v2(v1, v2, co) / v3[3];
   wtot = w[0] + w[1] + w[2];
 
-#ifdef DEBUG /* Avoid floating point exception when debugging. */
+#ifndef NDEBUG /* Avoid floating point exception when debugging. */
   if (wtot != 0.0f)
 #endif
   {
@@ -3849,7 +3849,7 @@ void barycentric_weights_v2_quad(const float v1[2],
 
     wtot = w[0] + w[1] + w[2] + w[3];
 
-#ifdef DEBUG /* Avoid floating point exception when debugging. */
+#ifndef NDEBUG /* Avoid floating point exception when debugging. */
     if (wtot != 0.0f)
 #endif
     {

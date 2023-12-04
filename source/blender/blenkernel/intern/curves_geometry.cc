@@ -72,7 +72,7 @@ CurvesGeometry::CurvesGeometry(const int point_num, const int curve_num)
         MEM_malloc_arrayN(this->curve_num + 1, sizeof(int), __func__));
     this->runtime->curve_offsets_sharing_info = implicit_sharing::info_for_mem_free(
         this->curve_offsets);
-#ifdef DEBUG
+#ifndef NDEBUG
     this->offsets_for_write().fill(-1);
 #endif
     /* Set common values for convenience. */

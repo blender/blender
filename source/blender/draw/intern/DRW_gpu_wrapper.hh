@@ -172,7 +172,7 @@ class UniformCommon : public DataBuffer<T, len, false>, NonMovable, NonCopyable 
  protected:
   GPUUniformBuf *ubo_;
 
-#ifdef DEBUG
+#ifndef NDEBUG
   const char *name_ = typeid(T).name();
 #else
   const char *name_ = "UniformBuffer";
@@ -215,7 +215,7 @@ class StorageCommon : public DataBuffer<T, len, false>, NonMovable, NonCopyable 
  protected:
   GPUStorageBuf *ssbo_;
 
-#ifdef DEBUG
+#ifndef NDEBUG
   const char *name_ = typeid(T).name();
 #else
   const char *name_ = "StorageBuffer";

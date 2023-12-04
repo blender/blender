@@ -55,7 +55,9 @@ endif()
 
 # global compile definitions since add_definitions() adds for all.
 set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS
-  $<$<CONFIG:Debug>:DEBUG;_DEBUG>
+  # Visual Studio define for debug, enable on all platforms.
+  $<$<CONFIG:Debug>:_DEBUG>
+  # Standard C define to disable asserts.
   $<$<CONFIG:Release>:NDEBUG>
   $<$<CONFIG:MinSizeRel>:NDEBUG>
   $<$<CONFIG:RelWithDebInfo>:NDEBUG>

@@ -990,7 +990,7 @@ bool ED_operator_rv3d_user_region_poll(bContext *C);
  */
 void ED_view3d_init_mats_rv3d(const Object *ob, RegionView3D *rv3d);
 void ED_view3d_init_mats_rv3d_gl(const Object *ob, RegionView3D *rv3d);
-#ifdef DEBUG
+#ifndef NDEBUG
 /**
  * Ensure we correctly initialize.
  */

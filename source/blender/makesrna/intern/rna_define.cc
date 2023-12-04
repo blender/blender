@@ -36,7 +36,7 @@
 
 static CLG_LogRef LOG = {"rna.define"};
 
-#ifdef DEBUG
+#ifndef NDEBUG
 #  define ASSERT_SOFT_HARD_LIMITS \
     if (softmin < hardmin || softmax > hardmax) { \
       CLOG_ERROR(&LOG, "error with soft/hard limits: %s.%s", CONTAINER_RNA_ID(cont), identifier); \
@@ -1772,7 +1772,7 @@ void RNA_def_property_range(PropertyRNA *prop, double min, double max)
 {
   StructRNA *srna = DefRNA.laststruct;
 
-#ifdef DEBUG
+#ifndef NDEBUG
   if (min > max) {
     CLOG_ERROR(&LOG, "\"%s.%s\", min > max.", srna->identifier, prop->identifier);
     DefRNA.error = true;
@@ -4240,7 +4240,7 @@ PropertyRNA *RNA_def_float_percentage(StructOrFunctionRNA *cont_,
 
   ASSERT_SOFT_HARD_LIMITS;
 
-#ifdef DEBUG
+#ifndef NDEBUG
   /* Properties with PROP_PERCENTAGE should use a range like 0 to 100, unlike PROP_FACTOR. */
   if (hardmax < 2.0f) {
     CLOG_WARN(&LOG,
@@ -4559,7 +4559,7 @@ void RNA_enum_item_add(EnumPropertyItem **items, int *totitem, const EnumPropert
   if (tot == 0) {
     *items = static_cast<EnumPropertyItem *>(MEM_callocN(sizeof(EnumPropertyItem[8]), __func__));
 /* Ensure we get crashes on missing calls to 'RNA_enum_item_end', see #74227. */
-#ifdef DEBUG
+#ifndef NDEBUG
     memset(*items, 0xff, sizeof(EnumPropertyItem[8]));
 #endif
   }
@@ -4567,7 +4567,7 @@ void RNA_enum_item_add(EnumPropertyItem **items, int *totitem, const EnumPropert
     /* Power of two > 8. */
     *items = static_cast<EnumPropertyItem *>(
         MEM_recallocN_id(*items, sizeof(EnumPropertyItem) * tot * 2, __func__));
-#ifdef DEBUG
+#ifndef NDEBUG
     memset((*items) + tot, 0xff, sizeof(EnumPropertyItem) * tot);
 #endif
   }

@@ -300,7 +300,7 @@ bke::CurvesGeometry subdivide_curves(
    * Storing the leading zero is unnecessary but makes the array a bit simpler to use by avoiding
    * a check for the first segment, and because some existing utilities also use leading zeros. */
   Array<int> all_point_offset_data(src_curves.points_num() + src_curves.curves_num());
-#ifdef DEBUG
+#ifndef NDEBUG
   all_point_offset_data.fill(-1);
 #endif
   calculate_result_offsets(src_curves,

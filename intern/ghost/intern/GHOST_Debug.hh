@@ -10,7 +10,7 @@
 #pragma once
 
 #ifdef _MSC_VER
-#  ifdef DEBUG
+#  ifdef _DEBUG
 /* Suppress STL-MSVC debug info warning. */
 #    pragma warning(disable : 4786)
 #  endif

@@ -22,7 +22,7 @@ namespace blender::index_mask {
 
 template<typename T> void build_reverse_map(const IndexMask &mask, MutableSpan<T> r_map)
 {
-#ifdef DEBUG
+#ifndef NDEBUG
   /* Catch errors with asserts in debug builds. */
   r_map.fill(-1);
 #endif

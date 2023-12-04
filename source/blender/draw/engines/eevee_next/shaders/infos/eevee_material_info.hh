@@ -345,7 +345,7 @@ GPU_SHADER_CREATE_INFO(eevee_surf_occupancy)
  * Variations that are only there to test shaders at compile time.
  * \{ */
 
-#ifdef DEBUG
+#ifndef NDEBUG
 
 /* Stub functions defined by the material evaluation. */
 GPU_SHADER_CREATE_INFO(eevee_material_stub)

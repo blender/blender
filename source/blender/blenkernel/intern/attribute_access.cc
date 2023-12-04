@@ -681,7 +681,7 @@ void MutableAttributeAccessor::remove_anonymous()
 /**
  * Debug utility that checks whether the #finish function of an #AttributeWriter has been called.
  */
-#ifdef DEBUG
+#ifndef NDEBUG
 struct FinishCallChecker {
   std::string name;
   bool finish_called = false;
@@ -700,7 +700,7 @@ GAttributeWriter MutableAttributeAccessor::lookup_for_write(const AttributeIDRef
 {
   GAttributeWriter attribute = fn_->lookup_for_write(owner_, attribute_id);
   /* Check that the #finish method is called in debug builds. */
-#ifdef DEBUG
+#ifndef NDEBUG
   if (attribute) {
     auto checker = std::make_shared<FinishCallChecker>();
     checker->name = attribute_id.name();

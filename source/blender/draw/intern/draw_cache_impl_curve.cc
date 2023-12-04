@@ -916,7 +916,7 @@ void DRW_curve_batch_cache_create_requested(Object *ob, const Scene *scene)
 
   curve_render_data_free(rdata);
 
-#ifdef DEBUG
+#ifndef NDEBUG
   /* Make sure all requested batches have been setup. */
   for (int i = 0; i < sizeof(cache->batch) / sizeof(void *); i++) {
     BLI_assert(!DRW_batch_requested(((GPUBatch **)&cache->batch)[i], (GPUPrimType)0));

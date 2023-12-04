@@ -154,7 +154,7 @@ void ED_view3d_init_mats_rv3d_gl(const Object *ob, RegionView3D *rv3d)
   GPU_matrix_mul(ob->object_to_world);
 }
 
-#ifdef DEBUG
+#ifndef NDEBUG
 void ED_view3d_clear_mats_rv3d(RegionView3D *rv3d)
 {
   zero_m4(rv3d->viewmatob);

@@ -12,7 +12,7 @@
  */
 
 /* only validate array-bounds in debug mode */
-#ifdef DEBUG
+#ifndef NDEBUG
 #  define STACK_DECLARE(stack) unsigned int _##stack##_index, _##stack##_num_alloc
 #  define STACK_INIT(stack, stack_num) \
     ((void)stack, \
