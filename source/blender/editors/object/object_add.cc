@@ -1535,7 +1535,7 @@ static EnumPropertyItem rna_enum_gpencil_add_stroke_depth_order_items[] = {
 
 void OBJECT_OT_gpencil_add(wmOperatorType *ot)
 {
-/* identifiers */
+  /* identifiers */
   ot->name = "Add Grease Pencil";
   ot->description = "Add a Grease Pencil object to the scene";
   ot->idname = "OBJECT_OT_gpencil_add";
