@@ -47,15 +47,6 @@ static void free_mesh_eval(MeshRuntime &mesh_runtime)
   }
 }
 
-static void free_subdiv_ccg(MeshRuntime &mesh_runtime)
-{
-  /* TODO(sergey): Does this really belong here? */
-  if (mesh_runtime.subdiv_ccg != nullptr) {
-    BKE_subdiv_ccg_destroy(mesh_runtime.subdiv_ccg);
-    mesh_runtime.subdiv_ccg = nullptr;
-  }
-}
-
 static void free_bvh_cache(MeshRuntime &mesh_runtime)
 {
   if (mesh_runtime.bvh_cache) {
@@ -72,10 +63,11 @@ static void free_batch_cache(MeshRuntime &mesh_runtime)
   }
 }
 
+MeshRuntime::MeshRuntime() {}
+
 MeshRuntime::~MeshRuntime()
 {
   free_mesh_eval(*this);
-  free_subdiv_ccg(*this);
   free_bvh_cache(*this);
   free_batch_cache(*this);
   if (this->shrinkwrap_data) {
@@ -313,7 +305,7 @@ void BKE_mesh_runtime_clear_geometry(Mesh *mesh)
 {
   /* Tagging shared caches dirty will free the allocated data if there is only one user. */
   free_bvh_cache(*mesh->runtime);
-  free_subdiv_ccg(*mesh->runtime);
+  mesh->runtime->subdiv_ccg.reset();
   mesh->runtime->bounds_cache.tag_dirty();
   mesh->runtime->vert_to_face_offset_cache.tag_dirty();
   mesh->runtime->vert_to_face_map_cache.tag_dirty();
@@ -340,7 +332,7 @@ void BKE_mesh_tag_edges_split(Mesh *mesh)
   /* Triangulation didn't change because vertex positions and loop vertex indices didn't change. */
   free_bvh_cache(*mesh->runtime);
   mesh->runtime->vert_normals_cache.tag_dirty();
-  free_subdiv_ccg(*mesh->runtime);
+  mesh->runtime->subdiv_ccg.reset();
   mesh->runtime->vert_to_face_offset_cache.tag_dirty();
   mesh->runtime->vert_to_face_map_cache.tag_dirty();
   mesh->runtime->vert_to_corner_map_cache.tag_dirty();

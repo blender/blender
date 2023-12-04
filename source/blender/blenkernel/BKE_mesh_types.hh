@@ -8,6 +8,7 @@
  * \ingroup bke
  */
 
+#include <memory>
 #include <mutex>
 
 #include "BLI_array.hh"
@@ -101,7 +102,7 @@ struct MeshRuntime {
   std::mutex render_mutex;
 
   /** Implicit sharing user count for #Mesh::face_offset_indices. */
-  const ImplicitSharingInfo *face_offsets_sharing_info;
+  const ImplicitSharingInfo *face_offsets_sharing_info = nullptr;
 
   /**
    * A cache of bounds shared between data-blocks with unchanged positions. When changing positions
@@ -132,7 +133,7 @@ struct MeshRuntime {
   /** Needed in case we need to lazily initialize the mesh. */
   CustomData_MeshMasks cd_mask_extra = {};
 
-  SubdivCCG *subdiv_ccg = nullptr;
+  std::unique_ptr<SubdivCCG> subdiv_ccg;
   int subdiv_ccg_tot_level = 0;
 
   /** Set by modifier stack if only deformed from original. */
@@ -198,10 +199,8 @@ struct MeshRuntime {
    */
   BitVector<> subsurf_optimal_display_edges;
 
-  MeshRuntime() = default;
+  MeshRuntime();
   ~MeshRuntime();
-
-  MEM_CXX_CLASS_ALLOC_FUNCS("MeshRuntime")
 };
 
 }  // namespace blender::bke

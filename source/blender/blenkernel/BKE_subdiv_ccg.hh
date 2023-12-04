@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <memory>
+
 #include "BLI_array.hh"
 #include "BLI_bit_group_vector.hh"
 #include "BLI_offset_indices.hh"
@@ -187,6 +189,8 @@ struct SubdivCCG {
     /* Indexed by face, indicates index of the first grid which corresponds to the face. */
     blender::Array<int> start_face_grid_index;
   } cache_;
+
+  ~SubdivCCG();
 };
 
 /* Create CCG representation of subdivision surface.
@@ -200,14 +204,12 @@ struct SubdivCCG {
  * TODO(sergey): Allow some user-counter or more explicit control over who owns
  * the Subdiv. The goal should be to allow viewport GL Mesh and CCG to share
  * same Subsurf without conflicts. */
-SubdivCCG *BKE_subdiv_to_ccg(Subdiv &subdiv,
-                             const SubdivToCCGSettings &settings,
-                             const Mesh &coarse_mesh,
-                             SubdivCCGMaskEvaluator *mask_evaluator,
-                             SubdivCCGMaterialFlagsEvaluator *material_flags_evaluator);
-
-/* Destroy CCG representation of subdivision surface. */
-void BKE_subdiv_ccg_destroy(SubdivCCG *subdiv_ccg);
+std::unique_ptr<SubdivCCG> BKE_subdiv_to_ccg(
+    Subdiv &subdiv,
+    const SubdivToCCGSettings &settings,
+    const Mesh &coarse_mesh,
+    SubdivCCGMaskEvaluator *mask_evaluator,
+    SubdivCCGMaterialFlagsEvaluator *material_flags_evaluator);
 
 /* Helper function, creates Mesh structure which is properly setup to use
  * grids.

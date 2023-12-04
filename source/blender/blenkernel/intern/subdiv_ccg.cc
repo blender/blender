@@ -475,14 +475,15 @@ static void subdiv_ccg_init_faces_neighborhood(SubdivCCG &subdiv_ccg)
 /** \name Creation / evaluation
  * \{ */
 
-SubdivCCG *BKE_subdiv_to_ccg(Subdiv &subdiv,
-                             const SubdivToCCGSettings &settings,
-                             const Mesh &coarse_mesh,
-                             SubdivCCGMaskEvaluator *mask_evaluator,
-                             SubdivCCGMaterialFlagsEvaluator *material_flags_evaluator)
+std::unique_ptr<SubdivCCG> BKE_subdiv_to_ccg(
+    Subdiv &subdiv,
+    const SubdivToCCGSettings &settings,
+    const Mesh &coarse_mesh,
+    SubdivCCGMaskEvaluator *mask_evaluator,
+    SubdivCCGMaterialFlagsEvaluator *material_flags_evaluator)
 {
   BKE_subdiv_stats_begin(&subdiv.stats, SUBDIV_STATS_SUBDIV_TO_CCG);
-  SubdivCCG *subdiv_ccg = MEM_new<SubdivCCG>(__func__);
+  std::unique_ptr<SubdivCCG> subdiv_ccg = std::make_unique<SubdivCCG>();
   subdiv_ccg->subdiv = &subdiv;
   subdiv_ccg->level = bitscan_forward_i(settings.resolution - 1);
   subdiv_ccg->grid_size = BKE_subdiv_grid_size_from_level(subdiv_ccg->level);
@@ -492,7 +493,6 @@ SubdivCCG *BKE_subdiv_to_ccg(Subdiv &subdiv,
   subdiv_ccg_alloc_elements(*subdiv_ccg, subdiv);
   subdiv_ccg_init_faces_neighborhood(*subdiv_ccg);
   if (!subdiv_ccg_evaluate_grids(*subdiv_ccg, subdiv, mask_evaluator, material_flags_evaluator)) {
-    BKE_subdiv_ccg_destroy(subdiv_ccg);
     BKE_subdiv_stats_end(&subdiv.stats, SUBDIV_STATS_SUBDIV_TO_CCG);
     return nullptr;
   }
@@ -518,43 +518,41 @@ Mesh *BKE_subdiv_to_ccg_mesh(Subdiv &subdiv,
   bool has_mask = BKE_subdiv_ccg_mask_init_from_paint(&mask_evaluator, &coarse_mesh);
   SubdivCCGMaterialFlagsEvaluator material_flags_evaluator;
   BKE_subdiv_ccg_material_flags_init_from_mesh(&material_flags_evaluator, &coarse_mesh);
-  SubdivCCG *subdiv_ccg = BKE_subdiv_to_ccg(subdiv,
-                                            settings,
-                                            coarse_mesh,
-                                            has_mask ? &mask_evaluator : nullptr,
-                                            &material_flags_evaluator);
+  std::unique_ptr<SubdivCCG> subdiv_ccg = BKE_subdiv_to_ccg(subdiv,
+                                                            settings,
+                                                            coarse_mesh,
+                                                            has_mask ? &mask_evaluator : nullptr,
+                                                            &material_flags_evaluator);
   if (has_mask) {
     mask_evaluator.free(&mask_evaluator);
   }
   material_flags_evaluator.free(&material_flags_evaluator);
-  if (subdiv_ccg == nullptr) {
+  if (!subdiv_ccg) {
     return nullptr;
   }
   Mesh *result = BKE_mesh_new_nomain_from_template(&coarse_mesh, 0, 0, 0, 0);
-  result->runtime->subdiv_ccg = subdiv_ccg;
+  result->runtime->subdiv_ccg = std::move(subdiv_ccg);
   return result;
 }
 
-void BKE_subdiv_ccg_destroy(SubdivCCG *subdiv_ccg)
+SubdivCCG::~SubdivCCG()
 {
-  if (subdiv_ccg->subdiv != nullptr) {
-    BKE_subdiv_free(subdiv_ccg->subdiv);
+  if (this->subdiv != nullptr) {
+    BKE_subdiv_free(this->subdiv);
   }
 
-  for (const int i : subdiv_ccg->adjacent_edges.index_range()) {
-    SubdivCCGAdjacentEdge *adjacent_edge = &subdiv_ccg->adjacent_edges[i];
+  for (const int i : this->adjacent_edges.index_range()) {
+    SubdivCCGAdjacentEdge *adjacent_edge = &this->adjacent_edges[i];
     for (int face_index = 0; face_index < adjacent_edge->num_adjacent_faces; face_index++) {
       MEM_SAFE_FREE(adjacent_edge->boundary_coords[face_index]);
     }
     MEM_SAFE_FREE(adjacent_edge->boundary_coords);
   }
 
-  for (const int i : subdiv_ccg->adjacent_verts.index_range()) {
-    SubdivCCGAdjacentVertex *adjacent_vertex = &subdiv_ccg->adjacent_verts[i];
+  for (const int i : this->adjacent_verts.index_range()) {
+    SubdivCCGAdjacentVertex *adjacent_vertex = &this->adjacent_verts[i];
     MEM_SAFE_FREE(adjacent_vertex->corner_coords);
   }
-
-  MEM_delete(subdiv_ccg);
 }
 
 CCGKey BKE_subdiv_ccg_key(const SubdivCCG &subdiv_ccg, int level)

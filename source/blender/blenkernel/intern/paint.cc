@@ -1746,7 +1746,7 @@ static void sculpt_update_object(Depsgraph *depsgraph,
   ss->hide_poly = (bool *)CustomData_get_layer_named_for_write(
       &me->face_data, CD_PROP_BOOL, ".hide_poly", me->faces_num);
 
-  ss->subdiv_ccg = me_eval->runtime->subdiv_ccg;
+  ss->subdiv_ccg = me_eval->runtime->subdiv_ccg.get();
 
   PBVH *pbvh = BKE_sculpt_object_pbvh_ensure(depsgraph, ob);
   BLI_assert(pbvh == ss->pbvh);
@@ -2228,8 +2228,7 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
       case PBVH_GRIDS: {
         Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
         Mesh *mesh_eval = static_cast<Mesh *>(object_eval->data);
-        SubdivCCG *subdiv_ccg = mesh_eval->runtime->subdiv_ccg;
-        if (subdiv_ccg != nullptr) {
+        if (SubdivCCG *subdiv_ccg = mesh_eval->runtime->subdiv_ccg.get()) {
           BKE_sculpt_bvh_update_from_ccg(pbvh, subdiv_ccg);
         }
         break;
@@ -2255,7 +2254,7 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
     Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
     Mesh *mesh_eval = static_cast<Mesh *>(object_eval->data);
     if (mesh_eval->runtime->subdiv_ccg != nullptr) {
-      pbvh = build_pbvh_from_ccg(ob, mesh_eval->runtime->subdiv_ccg);
+      pbvh = build_pbvh_from_ccg(ob, mesh_eval->runtime->subdiv_ccg.get());
     }
     else if (ob->type == OB_MESH) {
       Mesh *me_eval_deform = object_eval->runtime->mesh_deform_eval;

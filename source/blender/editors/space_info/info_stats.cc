@@ -105,10 +105,9 @@ static bool stats_mesheval(const Mesh *me_eval, bool is_selected, SceneStats *st
 
   int totvert, totedge, totface, totloop;
 
-  const SubdivCCG *subdiv_ccg = me_eval->runtime->subdiv_ccg;
   const SubsurfRuntimeData *subsurf_runtime_data = me_eval->runtime->subsurf_runtime_data;
 
-  if (subdiv_ccg != nullptr) {
+  if (const std::unique_ptr<SubdivCCG> &subdiv_ccg = me_eval->runtime->subdiv_ccg) {
     BKE_subdiv_ccg_topology_counters(*subdiv_ccg, totvert, totedge, totface, totloop);
   }
   else if (subsurf_runtime_data && subsurf_runtime_data->resolution != 0) {

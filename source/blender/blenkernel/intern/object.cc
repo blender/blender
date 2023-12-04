@@ -1526,7 +1526,7 @@ static void object_update_from_subsurf_ccg(Object *object)
   if (mesh_eval == nullptr) {
     return;
   }
-  SubdivCCG *subdiv_ccg = mesh_eval->runtime->subdiv_ccg;
+  SubdivCCG *subdiv_ccg = mesh_eval->runtime->subdiv_ccg.get();
   if (subdiv_ccg == nullptr) {
     return;
   }
