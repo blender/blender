@@ -518,11 +518,15 @@ static bool sculpt_undo_restore_hidden(bContext *C, SculptUndoNode *unode, bool 
     blender::BitGroupVector<> &grid_hidden = BKE_subdiv_ccg_grid_hidden_ensure(*subdiv_ccg);
     const Span<int> grids = unode->grids;
     for (const int i : grids.index_range()) {
-      const int grid_index = grids[i];
       /* Swap the two bit spans. */
-      blender::BitVector<512> tmp(grid_hidden[grid_index]);
-      grid_hidden[grid_index].copy_from(unode->grid_hidden[i].as_span());
-      unode->grid_hidden[i].copy_from(tmp);
+      MutableBoundedBitSpan a = unode->grid_hidden[i];
+      MutableBoundedBitSpan b = grid_hidden[grids[i]];
+      for (const int j : a.index_range()) {
+        const bool value_a = a[j];
+        const bool value_b = b[j];
+        a[j].set(value_b);
+        b[j].set(value_a);
+      }
     }
   }
 
@@ -1164,6 +1168,7 @@ static size_t sculpt_undo_alloc_and_store_hidden(SculptSession *ss, SculptUndoNo
   }
 
   const Span<int> grid_indices = BKE_pbvh_node_get_grid_indices(*node);
+  unode->grid_hidden = blender::BitGroupVector<>(grid_indices.size(), grid_hidden.group_size());
   for (const int i : grid_indices.index_range()) {
     unode->grid_hidden[i].copy_from(grid_hidden[grid_indices[i]]);
   }

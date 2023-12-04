@@ -2046,8 +2046,8 @@ void BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
         for (const int corner : face) {
           GridPaintMask *gpm = &gmask[corner];
           const int vert = corner_verts[corner];
-          const int prev = corner_verts[mesh::face_corner_prev(face, vert)];
-          const int next = corner_verts[mesh::face_corner_next(face, vert)];
+          const int prev = corner_verts[mesh::face_corner_prev(face, corner)];
+          const int next = corner_verts[mesh::face_corner_next(face, corner)];
 
           gpm->data[0] = avg;
           gpm->data[1] = (mask_span[vert] + mask_span[next]) * 0.5f;
