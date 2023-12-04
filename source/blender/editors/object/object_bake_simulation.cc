@@ -64,7 +64,7 @@ namespace bake = blender::bke::bake;
 
 namespace blender::ed::object::bake_simulation {
 
-static bool calculate_to_frame_poll(bContext *C)
+static bool simulate_to_frame_poll(bContext *C)
 {
   if (!ED_operator_object_active(C)) {
     return false;
@@ -72,7 +72,7 @@ static bool calculate_to_frame_poll(bContext *C)
   return true;
 }
 
-struct CalculateSimulationJob {
+struct SimulateToFrameJob {
   wmWindowManager *wm;
   Main *bmain;
   Depsgraph *depsgraph;
@@ -82,9 +82,9 @@ struct CalculateSimulationJob {
   int end_frame;
 };
 
-static void calculate_simulation_job_startjob(void *customdata, wmJobWorkerStatus *worker_status)
+static void simulate_to_frame_startjob(void *customdata, wmJobWorkerStatus *worker_status)
 {
-  CalculateSimulationJob &job = *static_cast<CalculateSimulationJob *>(customdata);
+  SimulateToFrameJob &job = *static_cast<SimulateToFrameJob *>(customdata);
   G.is_rendering = true;
   G.is_break = false;
   WM_set_locked_interface(job.wm, true);
@@ -142,22 +142,22 @@ static void calculate_simulation_job_startjob(void *customdata, wmJobWorkerStatu
   worker_status->do_update = true;
 }
 
-static void calculate_simulation_job_endjob(void *customdata)
+static void simulate_to_frame_endjob(void *customdata)
 {
-  CalculateSimulationJob &job = *static_cast<CalculateSimulationJob *>(customdata);
+  SimulateToFrameJob &job = *static_cast<SimulateToFrameJob *>(customdata);
   WM_set_locked_interface(job.wm, false);
   G.is_rendering = false;
   WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, nullptr);
 }
 
-static int calculate_to_frame_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static int simulate_to_frame_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   Scene *scene = CTX_data_scene(C);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Main *bmain = CTX_data_main(C);
 
-  CalculateSimulationJob *job = MEM_new<CalculateSimulationJob>(__func__);
+  SimulateToFrameJob *job = MEM_new<SimulateToFrameJob>(__func__);
   job->wm = wm;
   job->bmain = bmain;
   job->depsgraph = depsgraph;
@@ -185,20 +185,17 @@ static int calculate_to_frame_invoke(bContext *C, wmOperator *op, const wmEvent 
                               WM_JOB_TYPE_CALCULATE_SIMULATION_NODES);
 
   WM_jobs_customdata_set(
-      wm_job, job, [](void *job) { MEM_delete(static_cast<CalculateSimulationJob *>(job)); });
+      wm_job, job, [](void *job) { MEM_delete(static_cast<SimulateToFrameJob *>(job)); });
   WM_jobs_timer(wm_job, 0.1, NC_OBJECT | ND_MODIFIER, NC_OBJECT | ND_MODIFIER);
-  WM_jobs_callbacks(wm_job,
-                    calculate_simulation_job_startjob,
-                    nullptr,
-                    nullptr,
-                    calculate_simulation_job_endjob);
+  WM_jobs_callbacks(
+      wm_job, simulate_to_frame_startjob, nullptr, nullptr, simulate_to_frame_endjob);
 
   WM_jobs_start(CTX_wm_manager(C), wm_job);
   WM_event_add_modal_handler(C, op);
   return OPERATOR_RUNNING_MODAL;
 }
 
-static int calculate_to_frame_modal(bContext *C, wmOperator * /*op*/, const wmEvent * /*event*/)
+static int simulate_to_frame_modal(bContext *C, wmOperator * /*op*/, const wmEvent * /*event*/)
 {
   if (!WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C), WM_JOB_TYPE_CALCULATE_SIMULATION_NODES))
   {
@@ -831,9 +828,9 @@ void OBJECT_OT_simulation_nodes_cache_calculate_to_frame(wmOperatorType *ot)
       "Calculate simulations in geometry nodes modifiers from the start to current frame";
   ot->idname = __func__;
 
-  ot->invoke = calculate_to_frame_invoke;
-  ot->modal = calculate_to_frame_modal;
-  ot->poll = calculate_to_frame_poll;
+  ot->invoke = simulate_to_frame_invoke;
+  ot->modal = simulate_to_frame_modal;
+  ot->poll = simulate_to_frame_poll;
 
   RNA_def_boolean(ot->srna,
                   "selected",
