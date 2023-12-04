@@ -100,17 +100,7 @@ enum {
  */
 typedef struct BoundBox {
   float vec[8][3];
-  int flag;
-  char _pad0[4];
 } BoundBox;
-
-/** #BoundBox.flag */
-enum {
-  /* BOUNDBOX_DISABLED = (1 << 0), */ /* UNUSED */
-  BOUNDBOX_DIRTY = (1 << 1),
-};
-
-struct CustomData_MeshMasks;
 
 typedef struct ObjectLineArt {
   short usage;
