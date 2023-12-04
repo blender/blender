@@ -1556,11 +1556,6 @@ void BKE_subdiv_ccg_neighbor_coords_get(const SubdivCCG &subdiv_ccg,
 #endif
 }
 
-int BKE_subdiv_ccg_grid_to_face_index(const SubdivCCG &subdiv_ccg, const int grid_index)
-{
-  return subdiv_ccg.grid_to_face_map[grid_index];
-}
-
 const int *BKE_subdiv_ccg_start_face_grid_index_ensure(SubdivCCG &subdiv_ccg)
 {
   if (subdiv_ccg.cache_.start_face_grid_index.is_empty()) {

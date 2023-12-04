@@ -276,7 +276,11 @@ void BKE_subdiv_ccg_neighbor_coords_get(const SubdivCCG &subdiv_ccg,
                                         bool include_duplicates,
                                         SubdivCCGNeighbors &r_neighbors);
 
-int BKE_subdiv_ccg_grid_to_face_index(const SubdivCCG &subdiv_ccg, int grid_index);
+inline int BKE_subdiv_ccg_grid_to_face_index(const SubdivCCG &subdiv_ccg, const int grid_index)
+{
+  return subdiv_ccg.grid_to_face_map[grid_index];
+}
+
 void BKE_subdiv_ccg_eval_limit_point(const SubdivCCG &subdiv_ccg,
                                      const SubdivCCGCoord &coord,
                                      float r_point[3]);
