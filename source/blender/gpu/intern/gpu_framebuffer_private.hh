@@ -86,6 +86,8 @@ class FrameBuffer {
   bool multi_viewport_ = false;
   bool scissor_test_ = false;
   bool dirty_state_ = true;
+  /* Flag specifying the current bind operation should use explicit load-store state. */
+  bool use_explicit_load_store_ = false;
 
 #ifndef GPU_NO_USE_PY_REFERENCES
  public:
@@ -235,6 +237,16 @@ class FrameBuffer {
   {
     return name_;
   };
+
+  inline void set_use_explicit_loadstore(bool use_explicit_loadstore)
+  {
+    use_explicit_load_store_ = use_explicit_loadstore;
+  }
+
+  inline bool get_use_explicit_loadstore() const
+  {
+    return use_explicit_load_store_;
+  }
 };
 
 /* Syntactic sugar. */

@@ -250,6 +250,8 @@ const char *GPU_framebuffer_get_name(GPUFrameBuffer *gpu_fb)
 void GPU_framebuffer_bind(GPUFrameBuffer *gpu_fb)
 {
   const bool enable_srgb = true;
+  /* Disable custom loadstore and bind. */
+  unwrap(gpu_fb)->set_use_explicit_loadstore(false);
   unwrap(gpu_fb)->bind(enable_srgb);
 }
 
@@ -257,8 +259,10 @@ void GPU_framebuffer_bind_loadstore(GPUFrameBuffer *gpu_fb,
                                     const GPULoadStore *load_store_actions,
                                     uint actions_len)
 {
-  /* Bind */
-  GPU_framebuffer_bind(gpu_fb);
+  const bool enable_srgb = true;
+  /* Bind with explicit loadstore state */
+  unwrap(gpu_fb)->set_use_explicit_loadstore(true);
+  unwrap(gpu_fb)->bind(enable_srgb);
 
   /* Update load store */
   FrameBuffer *fb = unwrap(gpu_fb);
@@ -422,6 +426,9 @@ void GPU_framebuffer_clear(GPUFrameBuffer *gpu_fb,
                            float clear_depth,
                            uint clear_stencil)
 {
+  BLI_assert_msg(unwrap(gpu_fb)->get_use_explicit_loadstore() == false,
+                 "Using GPU_framebuffer_clear_* functions in conjunction with custom load-store "
+                 "state via GPU_framebuffer_bind_ex is invalid.");
   unwrap(gpu_fb)->clear(buffers, clear_col, clear_depth, clear_stencil);
 }
 
@@ -463,17 +470,26 @@ void GPU_framebuffer_clear_color_depth_stencil(GPUFrameBuffer *fb,
 
 void GPU_framebuffer_multi_clear(GPUFrameBuffer *gpu_fb, const float (*clear_cols)[4])
 {
+  BLI_assert_msg(unwrap(gpu_fb)->get_use_explicit_loadstore() == false,
+                 "Using GPU_framebuffer_clear_* functions in conjunction with custom load-store "
+                 "state via GPU_framebuffer_bind_ex is invalid.");
   unwrap(gpu_fb)->clear_multi(clear_cols);
 }
 
 void GPU_clear_color(float red, float green, float blue, float alpha)
 {
+  BLI_assert_msg(Context::get()->active_fb->get_use_explicit_loadstore() == false,
+                 "Using GPU_framebuffer_clear_* functions in conjunction with custom load-store "
+                 "state via GPU_framebuffer_bind_ex is invalid.");
   float clear_col[4] = {red, green, blue, alpha};
   Context::get()->active_fb->clear(GPU_COLOR_BIT, clear_col, 0.0f, 0x0);
 }
 
 void GPU_clear_depth(float depth)
 {
+  BLI_assert_msg(Context::get()->active_fb->get_use_explicit_loadstore() == false,
+                 "Using GPU_framebuffer_clear_* functions in conjunction with custom load-store "
+                 "state via GPU_framebuffer_bind_ex is invalid.");
   float clear_col[4] = {0};
   Context::get()->active_fb->clear(GPU_DEPTH_BIT, clear_col, depth, 0x0);
 }

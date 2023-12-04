@@ -159,6 +159,13 @@ typedef struct GPULoadStore {
  *  - State can be customized at bind-time rather than applying to the frame-buffer object as a
  * whole.
  *
+ * NOTE: Using GPU_framebuffer_clear_* functions in conjunction with a custom load-store
+ * configuration is invalid. Instead, utilise GPU_LOADACTION_CLEAR and provide a clear color as
+ * the third parameter in `GPULoadStore action`.
+ *
+ * For Color attachments: {GPU_LOADACTION_CLEAR, GPU_STOREACTION_STORE, {Rf, Gf, Bf, Af}}
+ * For Depth attachments: {GPU_LOADACTION_CLEAR, GPU_STOREACTION_STORE, {Df}}
+ *
  * Example:
  * \code{.c}
  * GPU_framebuffer_bind_loadstore(&fb, {
