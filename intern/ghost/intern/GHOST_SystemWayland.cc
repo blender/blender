@@ -135,6 +135,11 @@ static void gwl_display_event_thread_destroy(GWL_Display *display);
 
 static void ghost_wl_display_lock_without_input(wl_display *wl_display, std::mutex *server_mutex);
 
+static void cursor_anim_begin_if_needed(GWL_Seat *seat);
+static void cursor_anim_begin(GWL_Seat *seat);
+static void cursor_anim_end(GWL_Seat *seat);
+static void cursor_anim_reset(GWL_Seat *seat);
+
 /** Default size for pending event vector. */
 constexpr size_t events_pending_default_size = 4096 / sizeof(void *);
 
@@ -372,6 +377,14 @@ static void gwl_simple_buffer_set_from_string(GWL_SimpleBuffer *buffer, const ch
  */
 #define EVDEV_OFFSET 8
 
+/**
+ * Data owned by the thread that updates the cursor.
+ * Exposed so the #GWL_Seat can request the thread to exit & free itself.
+ */
+struct GWL_Cursor_AnimHandle {
+  std::atomic<bool> exit_pending = false;
+};
+
 struct GWL_Cursor {
 
   /** Wayland core types. */
@@ -380,6 +393,10 @@ struct GWL_Cursor {
     wl_buffer *buffer = nullptr;
     wl_cursor_image image = {0};
     wl_cursor_theme *theme = nullptr;
+    /** Only set when the cursor is from the theme (it may be animated). */
+    wl_cursor *theme_cursor = nullptr;
+    /** Needed so changing the theme scale can reload 'theme_cursor' at a new scale. */
+    const char *theme_cursor_name = nullptr;
   } wl;
 
   bool visible = false;
@@ -395,6 +412,10 @@ struct GWL_Cursor {
   void *custom_data = nullptr;
   /** The size of `custom_data` in bytes. */
   size_t custom_data_size = 0;
+
+  /** Use for animated cursors. */
+  GWL_Cursor_AnimHandle *anim_handle = nullptr;
+
   /**
    * The name of the theme (set by an environment variable).
    * When disabled, leave as an empty string and the default theme will be used.
@@ -1305,6 +1326,11 @@ static void gwl_display_destroy(GWL_Display *display)
     display->events_pthread_is_active = false;
   }
 #endif
+
+  /* Stop all animated cursors (freeing their #GWL_Cursor_AnimHandle). */
+  for (GWL_Seat *seat : display->seats) {
+    cursor_anim_end(seat);
+  }
 
   /* For typical WAYLAND use this will always be set.
    * However when WAYLAND isn't running, this will early-exit and be null. */
@@ -2999,6 +3025,11 @@ static bool update_cursor_scale(GWL_Cursor &cursor,
     wl_cursor_theme_destroy(cursor.wl.theme);
     cursor.wl.theme = wl_cursor_theme_load(
         cursor.theme_name.c_str(), scale * cursor.theme_size, shm);
+    if (cursor.wl.theme_cursor) {
+      cursor.wl.theme_cursor = wl_cursor_theme_get_cursor(cursor.wl.theme,
+                                                          cursor.wl.theme_cursor_name);
+    }
+
     return true;
   }
   return false;
@@ -7263,7 +7294,7 @@ GHOST_IWindow *GHOST_SystemWayland::createWindow(const char *title,
  *
  * The caller is responsible for setting `seat->cursor.visible`.
  */
-static void cursor_buffer_show(const GWL_Seat *seat)
+static void cursor_buffer_show(GWL_Seat *seat)
 {
   const GWL_Cursor *cursor = &seat->cursor;
 
@@ -7292,6 +7323,8 @@ static void cursor_buffer_show(const GWL_Seat *seat)
 #endif
     }
   }
+
+  cursor_anim_reset(seat);
 }
 
 /**
@@ -7300,8 +7333,10 @@ static void cursor_buffer_show(const GWL_Seat *seat)
  *
  * The caller is responsible for setting `seat->cursor.visible`.
  */
-static void cursor_buffer_hide(const GWL_Seat *seat)
+static void cursor_buffer_hide(GWL_Seat *seat)
 {
+  cursor_anim_end(seat);
+
   wl_pointer_set_cursor(seat->wl.pointer, seat->pointer.serial, nullptr, 0, 0);
   for (zwp_tablet_tool_v2 *zwp_tablet_tool_v2 : seat->wp.tablet_tools) {
     zwp_tablet_tool_v2_set_cursor(zwp_tablet_tool_v2, seat->tablet.serial, nullptr, 0, 0);
@@ -7383,7 +7418,10 @@ static void cursor_buffer_set(const GWL_Seat *seat,
 
 static void cursor_buffer_set_from_seat(GWL_Seat *seat)
 {
-  cursor_buffer_set(seat, &seat->cursor.wl.image, seat->cursor.wl.buffer);
+  const GWL_Cursor *cursor = &seat->cursor;
+  cursor_anim_end(seat);
+  cursor_buffer_set(seat, &cursor->wl.image, cursor->wl.buffer);
+  cursor_anim_begin_if_needed(seat);
 }
 
 enum eCursorSetMode {
@@ -7446,6 +7484,82 @@ static bool cursor_is_software(const GHOST_TGrabCursorMode mode, const bool use_
   return false;
 }
 
+static bool cursor_anim_check(GWL_Seat *seat)
+{
+  const wl_cursor *wl_cursor = seat->cursor.wl.theme_cursor;
+  if (!wl_cursor) {
+    return false;
+  }
+  /* NOTE: return true to stress test animated cursor,
+   * to ensure (otherwise rare) issues are triggered more frequently. */
+  // return true;
+
+  return wl_cursor->image_count > 1;
+}
+
+static void cursor_anim_begin(GWL_Seat *seat)
+{
+  /* Caller must lock `server_mutex`. */
+  GHOST_ASSERT(seat->cursor.anim_handle == nullptr, "Must be cleared");
+
+  /* Callback for updating the cursor animation. */
+  auto cursor_anim_frame_step_fn =
+      [](GWL_Seat *seat, GWL_Cursor_AnimHandle *anim_handle, int delay) {
+        /* It's possible the `wl_cursor` is reloaded while the cursor is animating.
+         * Don't access outside the lock, tha's why the `delay` is passed in. */
+        std::mutex *server_mutex = seat->system->server_mutex;
+        int frame = 0;
+        while (!anim_handle->exit_pending.load()) {
+          std::this_thread::sleep_for(std::chrono::milliseconds(delay));
+          if (!anim_handle->exit_pending.load()) {
+            std::lock_guard lock_server_guard{*server_mutex};
+            if (!anim_handle->exit_pending.load()) {
+              struct wl_cursor *wl_cursor = seat->cursor.wl.theme_cursor;
+              frame = (frame + 1) % wl_cursor->image_count;
+              wl_cursor_image *image = wl_cursor->images[frame];
+              wl_buffer *buffer = wl_cursor_image_get_buffer(image);
+              cursor_buffer_set(seat, image, buffer);
+              delay = wl_cursor->images[frame]->delay;
+              /* Without this the cursor won't update when other processes are occupied. */
+              wl_display_flush(seat->system->wl_display_get());
+            }
+          }
+        }
+        delete anim_handle;
+      };
+
+  /* Allocate so this can be set before the thread begins. */
+  GWL_Cursor_AnimHandle *anim_handle = new GWL_Cursor_AnimHandle;
+  seat->cursor.anim_handle = anim_handle;
+
+  const int delay = seat->cursor.wl.theme_cursor->images[0]->delay;
+  std::thread cursor_anim_thread(cursor_anim_frame_step_fn, seat, anim_handle, delay);
+  cursor_anim_thread.detach();
+}
+
+static void cursor_anim_begin_if_needed(GWL_Seat *seat)
+{
+  if (cursor_anim_check(seat)) {
+    cursor_anim_begin(seat);
+  }
+}
+
+static void cursor_anim_end(GWL_Seat *seat)
+{
+  GWL_Cursor *cursor = &seat->cursor;
+  if (cursor->anim_handle) {
+    GWL_Cursor_AnimHandle *anim_handle = cursor->anim_handle;
+    cursor->anim_handle = nullptr;
+    anim_handle->exit_pending.store(true);
+  }
+}
+
+static void cursor_anim_reset(GWL_Seat *seat)
+{
+  cursor_anim_end(seat);
+  cursor_anim_begin_if_needed(seat);
+}
+
 GHOST_TSuccess GHOST_SystemWayland::cursor_shape_set(const GHOST_TStandardCursor shape)
 {
   /* Caller must lock `server_mutex`. */
@@ -7484,6 +7598,8 @@ GHOST_TSuccess GHOST_SystemWayland::cursor_shape_set(const GHOST_TStandardCursor
   cursor->is_custom = false;
   cursor->wl.buffer = buffer;
   cursor->wl.image = *image;
+  cursor->wl.theme_cursor = wl_cursor;
+  cursor->wl.theme_cursor_name = cursor_name;
 
   cursor_buffer_set_from_seat(seat);
 
@@ -7574,6 +7690,8 @@ GHOST_TSuccess GHOST_SystemWayland::cursor_shape_custom_set(const uint8_t *bitma
   cursor->wl.image.height = uint32_t(sizey);
   cursor->wl.image.hotspot_x = uint32_t(hotX);
   cursor->wl.image.hotspot_y = uint32_t(hotY);
+  cursor->wl.theme_cursor = nullptr;
+  cursor->wl.theme_cursor_name = nullptr;
 
   cursor_buffer_set_from_seat(seat);
 
