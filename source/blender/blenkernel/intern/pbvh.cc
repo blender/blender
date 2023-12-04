@@ -133,27 +133,69 @@ void BBC_update_centroid(BBC *bbc)
   }
 }
 
+namespace blender::bke::pbvh {
+
+void update_node_bounds_mesh(const Span<float3> positions, PBVHNode &node)
+{
+  BB vb;
+  BB_reset(&vb);
+  for (const int vert : node.vert_indices) {
+    BB_expand(&vb, positions[vert]);
+  }
+  node.vb = vb;
+}
+
+void update_node_bounds_grids(const CCGKey &key, const Span<CCGElem *> grids, PBVHNode &node)
+{
+  BB vb;
+  BB_reset(&vb);
+  for (const int grid : node.prim_indices) {
+    for (const int i : IndexRange(key.grid_area)) {
+      BB_expand(&vb, CCG_elem_offset_co(&key, grids[grid], i));
+    }
+  }
+  node.vb = vb;
+}
+
+void update_node_bounds_bmesh(PBVHNode &node)
+{
+  BB vb;
+  BB_reset(&vb);
+  for (const BMVert *vert : node.bm_unique_verts) {
+    BB_expand(&vb, vert->co);
+  }
+  for (const BMVert *vert : node.bm_other_verts) {
+    BB_expand(&vb, vert->co);
+  }
+  node.vb = vb;
+}
+
+}  // namespace blender::bke::pbvh
+
 /* Not recursive */
 static void update_node_vb(PBVH *pbvh, PBVHNode *node)
 {
-  BB vb;
-
-  BB_reset(&vb);
-
+  using namespace blender::bke::pbvh;
   if (node->flag & PBVH_Leaf) {
-    PBVHVertexIter vd;
-
-    BKE_pbvh_vertex_iter_begin (pbvh, node, vd, PBVH_ITER_ALL) {
-      BB_expand(&vb, vd.co);
+    switch (pbvh->header.type) {
+      case PBVH_FACES:
+        update_node_bounds_mesh(pbvh->vert_positions, *node);
+        break;
+      case PBVH_GRIDS:
+        update_node_bounds_grids(pbvh->gridkey, pbvh->subdiv_ccg->grids, *node);
+        break;
+      case PBVH_BMESH:
+        update_node_bounds_bmesh(*node);
+        break;
     }
-    BKE_pbvh_vertex_iter_end;
   }
   else {
+    BB vb;
+    BB_reset(&vb);
     BB_expand_with_bb(&vb, &pbvh->nodes[node->children_offset].vb);
     BB_expand_with_bb(&vb, &pbvh->nodes[node->children_offset + 1].vb);
+    node->vb = vb;
   }
-
-  node->vb = vb;
 }
 
 // void BKE_pbvh_node_BB_reset(PBVHNode *node)

@@ -657,4 +657,8 @@ void node_update_visibility_mesh(Span<bool> hide_vert, PBVHNode &node);
 void node_update_visibility_grids(const BitGroupVector<> &grid_hidden, PBVHNode &node);
 void node_update_visibility_bmesh(PBVHNode &node);
 
+void update_node_bounds_mesh(Span<float3> positions, PBVHNode &node);
+void update_node_bounds_grids(const CCGKey &key, Span<CCGElem *> grids, PBVHNode &node);
+void update_node_bounds_bmesh(PBVHNode &node);
+
 }  // namespace blender::bke::pbvh
