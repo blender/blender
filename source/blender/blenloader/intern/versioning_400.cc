@@ -344,6 +344,7 @@ static void versioning_replace_splitviewer(bNodeTree *ntree)
     /* Nodes are created stacked on top of each other, so separate them a bit. */
     viewer_node->locx = node->locx + node->width + viewer_node->width / 4.0f;
     viewer_node->locy = node->locy;
+    viewer_node->flag &= ~NODE_PREVIEW;
 
     bNodeSocket *split_out_socket = nodeAddStaticSocket(
         ntree, node, SOCK_OUT, SOCK_IMAGE, PROP_NONE, "Image", "Image");
