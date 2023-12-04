@@ -7324,12 +7324,11 @@ static int cursor_buffer_compatible_scale_from_image(const wl_cursor_image *wl_i
   return scale;
 }
 
-static void cursor_buffer_set_surface_impl(const GWL_Seat *seat,
+static void cursor_buffer_set_surface_impl(const wl_cursor_image *wl_image,
                                            wl_buffer *buffer,
                                            wl_surface *wl_surface,
                                            const int scale)
 {
-  const wl_cursor_image *wl_image = &seat->cursor.wl.image;
   const int32_t image_size_x = int32_t(wl_image->width);
   const int32_t image_size_y = int32_t(wl_image->height);
   GHOST_ASSERT((image_size_x % scale) == 0 && (image_size_y % scale) == 0,
@@ -7341,10 +7340,11 @@ static void cursor_buffer_set_surface_impl(const GWL_Seat *seat,
   wl_surface_commit(wl_surface);
 }
 
-static void cursor_buffer_set(const GWL_Seat *seat, wl_buffer *buffer)
+static void cursor_buffer_set(const GWL_Seat *seat,
+                              const wl_cursor_image *wl_image,
+                              wl_buffer *buffer)
 {
   const GWL_Cursor *cursor = &seat->cursor;
-  const wl_cursor_image *wl_image = &seat->cursor.wl.image;
   const bool visible = (cursor->visible && cursor->is_hardware);
 
   /* This is a requirement of WAYLAND, when this isn't the case,
@@ -7354,7 +7354,7 @@ static void cursor_buffer_set(const GWL_Seat *seat, wl_buffer *buffer)
         wl_image, cursor->is_custom ? cursor->custom_scale : seat->pointer.theme_scale);
     const int32_t hotspot_x = int32_t(wl_image->hotspot_x) / scale;
     const int32_t hotspot_y = int32_t(wl_image->hotspot_y) / scale;
-    cursor_buffer_set_surface_impl(seat, buffer, cursor->wl.surface_cursor, scale);
+    cursor_buffer_set_surface_impl(wl_image, buffer, cursor->wl.surface_cursor, scale);
     wl_pointer_set_cursor(seat->wl.pointer,
                           seat->pointer.serial,
                           visible ? cursor->wl.surface_cursor : nullptr,
@@ -7371,7 +7371,7 @@ static void cursor_buffer_set(const GWL_Seat *seat, wl_buffer *buffer)
     for (zwp_tablet_tool_v2 *zwp_tablet_tool_v2 : seat->wp.tablet_tools) {
       GWL_TabletTool *tablet_tool = static_cast<GWL_TabletTool *>(
           zwp_tablet_tool_v2_get_user_data(zwp_tablet_tool_v2));
-      cursor_buffer_set_surface_impl(seat, buffer, tablet_tool->wl.surface_cursor, scale);
+      cursor_buffer_set_surface_impl(wl_image, buffer, tablet_tool->wl.surface_cursor, scale);
       zwp_tablet_tool_v2_set_cursor(zwp_tablet_tool_v2,
                                     seat->tablet.serial,
                                     visible ? tablet_tool->wl.surface_cursor : nullptr,
@@ -7379,6 +7379,11 @@ static void cursor_buffer_set(const GWL_Seat *seat, wl_buffer *buffer)
                                     hotspot_y);
     }
   }
+}
+
+static void cursor_buffer_set_from_seat(GWL_Seat *seat)
+{
+  cursor_buffer_set(seat, &seat->cursor.wl.image, seat->cursor.wl.buffer);
 }
 
 enum eCursorSetMode {
@@ -7480,7 +7485,7 @@ GHOST_TSuccess GHOST_SystemWayland::cursor_shape_set(const GHOST_TStandardCursor
   cursor->wl.buffer = buffer;
   cursor->wl.image = *image;
 
-  cursor_buffer_set(seat, buffer);
+  cursor_buffer_set_from_seat(seat);
 
   return GHOST_kSuccess;
 }
@@ -7570,7 +7575,7 @@ GHOST_TSuccess GHOST_SystemWayland::cursor_shape_custom_set(const uint8_t *bitma
   cursor->wl.image.hotspot_x = uint32_t(hotX);
   cursor->wl.image.hotspot_y = uint32_t(hotY);
 
-  cursor_buffer_set(seat, buffer);
+  cursor_buffer_set_from_seat(seat);
 
   return GHOST_kSuccess;
 }
