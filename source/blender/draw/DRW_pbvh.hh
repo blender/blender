@@ -21,7 +21,6 @@
 
 struct GPUBatch;
 struct PBVHNode;
-struct DMFlagMat;
 struct Mesh;
 struct MLoopTri;
 struct CustomData;
@@ -75,7 +74,6 @@ struct PBVH_GPU_Args {
   int face_sets_color_default;
 
   SubdivCCG *subdiv_ccg;
-  Span<DMFlagMat> grid_flag_mats;
   Span<int> grid_indices;
   CCGKey ccg_key;
   Span<CCGElem *> grids;

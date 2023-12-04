@@ -35,7 +35,6 @@ struct BMesh;
 struct CCGElem;
 struct CCGKey;
 struct CustomData;
-struct DMFlagMat;
 struct IsectRayPrecalc;
 struct MLoopTri;
 struct Mesh;

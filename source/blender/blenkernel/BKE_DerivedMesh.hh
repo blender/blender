@@ -58,23 +58,13 @@ struct CCGElem;
 struct CCGKey;
 struct CustomData_MeshMasks;
 struct Depsgraph;
+struct DMFlagMat;
 struct vec2i;
 struct MFace;
 struct Mesh;
 struct ModifierData;
 struct Object;
 struct Scene;
-
-/*
- * NOTE: all #MFace interfaces now officially operate on tessellated data.
- *       Also, the #MFace orig-index layer indexes polys, not #MFace.
- */
-
-/* keep in sync with MFace type */
-struct DMFlagMat {
-  short mat_nr;
-  bool sharp;
-};
 
 enum DerivedMeshType {
   DM_TYPE_CDDM,

@@ -498,10 +498,13 @@ struct PBVHBatches {
           break;
         }
         case CustomRequest::Normal: {
+          const Span<int> grid_to_face_map = args.subdiv_ccg->grid_to_face_map;
+          const bool *sharp_faces = static_cast<const bool *>(
+              CustomData_get_layer_named(args.face_data, CD_PROP_BOOL, "sharp_face"));
           foreach_grids([&](int /*x*/, int /*y*/, int grid_index, CCGElem *elems[4], int /*i*/) {
             float3 no(0.0f, 0.0f, 0.0f);
 
-            const bool smooth = !args.grid_flag_mats[grid_index].sharp;
+            const bool smooth = !(sharp_faces && sharp_faces[grid_to_face_map[grid_index]]);
 
             if (smooth) {
               no = CCG_elem_no(&args.ccg_key, elems[0]);
@@ -1112,6 +1115,10 @@ struct PBVHBatches {
   void create_index_grids(const PBVH_GPU_Args &args, bool do_coarse)
   {
     const BitGroupVector<> &grid_hidden = args.subdiv_ccg->grid_hidden;
+    const Span<int> grid_to_face_map = args.subdiv_ccg->grid_to_face_map;
+
+    const bool *sharp_faces = static_cast<const bool *>(
+        CustomData_get_layer_named(args.face_data, CD_PROP_BOOL, "sharp_face"));
     const int *mat_index = static_cast<const int *>(
         CustomData_get_layer_named(args.face_data, CD_PROP_INT32, "material_index"));
 
@@ -1134,7 +1141,7 @@ struct PBVHBatches {
     }
 
     for (const int grid_index : args.grid_indices) {
-      bool smooth = !args.grid_flag_mats[grid_index].sharp;
+      bool smooth = !(sharp_faces && sharp_faces[grid_to_face_map[grid_index]]);
       if (!grid_hidden.is_empty()) {
         const BoundedBitSpan gh = grid_hidden[grid_index];
         for (int y = 0; y < gridsize - 1; y += skip) {

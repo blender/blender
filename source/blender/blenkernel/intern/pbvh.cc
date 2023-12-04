@@ -184,21 +184,16 @@ static bool face_materials_match(const int *material_indices,
   return true;
 }
 
-static bool grid_materials_match(const DMFlagMat *f1, const DMFlagMat *f2)
-{
-  return (f1->sharp == f2->sharp) && (f1->mat_nr == f2->mat_nr);
-}
-
 /* Adapted from BLI_kdopbvh.c */
 /* Returns the index of the first element on the right of the partition */
-static int partition_indices_faces(blender::MutableSpan<int> prim_indices,
-                                   int *prim_scratch,
-                                   int lo,
-                                   int hi,
-                                   int axis,
-                                   float mid,
-                                   const Span<BBC> prim_bbc,
-                                   const Span<int> looptri_faces)
+static int partition_prim_indices(blender::MutableSpan<int> prim_indices,
+                                  int *prim_scratch,
+                                  int lo,
+                                  int hi,
+                                  int axis,
+                                  float mid,
+                                  const Span<BBC> prim_bbc,
+                                  const Span<int> prim_to_face_map)
 {
   for (int i = lo; i < hi; i++) {
     prim_scratch[i - lo] = prim_indices[i];
@@ -208,40 +203,10 @@ static int partition_indices_faces(blender::MutableSpan<int> prim_indices,
   int i1 = lo, i2 = 0;
 
   while (i1 < hi) {
-    const int face_i = looptri_faces[prim_scratch[i2]];
+    const int face_i = prim_to_face_map[prim_scratch[i2]];
     bool side = prim_bbc[prim_scratch[i2]].bcentroid[axis] >= mid;
 
-    while (i1 < hi && looptri_faces[prim_scratch[i2]] == face_i) {
-      prim_indices[side ? hi2-- : lo2++] = prim_scratch[i2];
-      i1++;
-      i2++;
-    }
-  }
-
-  return lo2;
-}
-
-static int partition_indices_grids(blender::MutableSpan<int> prim_indices,
-                                   int *prim_scratch,
-                                   int lo,
-                                   int hi,
-                                   int axis,
-                                   float mid,
-                                   const Span<BBC> prim_bbc,
-                                   SubdivCCG *subdiv_ccg)
-{
-  for (int i = lo; i < hi; i++) {
-    prim_scratch[i - lo] = prim_indices[i];
-  }
-
-  int lo2 = lo, hi2 = hi - 1;
-  int i1 = lo, i2 = 0;
-
-  while (i1 < hi) {
-    int face_i = BKE_subdiv_ccg_grid_to_face_index(*subdiv_ccg, prim_scratch[i2]);
-    bool side = prim_bbc[prim_scratch[i2]].bcentroid[axis] >= mid;
-
-    while (i1 < hi && BKE_subdiv_ccg_grid_to_face_index(*subdiv_ccg, prim_scratch[i2]) == face_i) {
+    while (i1 < hi && prim_to_face_map[prim_scratch[i2]] == face_i) {
       prim_indices[side ? hi2-- : lo2++] = prim_scratch[i2];
       i1++;
       i2++;
@@ -253,7 +218,7 @@ static int partition_indices_grids(blender::MutableSpan<int> prim_indices,
 
 /* Returns the index of the first element on the right of the partition */
 static int partition_indices_material_faces(MutableSpan<int> indices,
-                                            const Span<int> looptri_faces,
+                                            const Span<int> prim_to_face_map,
                                             const int *material_indices,
                                             const bool *sharp_faces,
                                             const int lo,
@@ -261,36 +226,17 @@ static int partition_indices_material_faces(MutableSpan<int> indices,
 {
   int i = lo, j = hi;
   for (;;) {
-    const int first = looptri_faces[indices[lo]];
-    for (; face_materials_match(material_indices, sharp_faces, first, looptri_faces[indices[i]]);
-         i++) {
+    const int first = prim_to_face_map[indices[lo]];
+    for (;
+         face_materials_match(material_indices, sharp_faces, first, prim_to_face_map[indices[i]]);
+         i++)
+    {
       /* pass */
     }
-    for (; !face_materials_match(material_indices, sharp_faces, first, looptri_faces[indices[j]]);
-         j--) {
-      /* pass */
-    }
-    if (!(i < j)) {
-      return i;
-    }
-    std::swap(indices[i], indices[j]);
-    i++;
-  }
-}
-
-/* Returns the index of the first element on the right of the partition */
-static int partition_indices_material_grids(MutableSpan<int> indices,
-                                            const Span<DMFlagMat> flagmats,
-                                            const int lo,
-                                            const int hi)
-{
-  int i = lo, j = hi;
-  for (;;) {
-    const DMFlagMat *first = &flagmats[indices[lo]];
-    for (; grid_materials_match(first, &flagmats[indices[i]]); i++) {
-      /* pass */
-    }
-    for (; !grid_materials_match(first, &flagmats[indices[j]]); j--) {
+    for (;
+         !face_materials_match(material_indices, sharp_faces, first, prim_to_face_map[indices[j]]);
+         j--)
+    {
       /* pass */
     }
     if (!(i < j)) {
@@ -468,7 +414,7 @@ static void build_leaf(PBVH *pbvh,
 /* Return zero if all primitives in the node can be drawn with the
  * same material (including flat/smooth shading), non-zero otherwise */
 static bool leaf_needs_material_split(PBVH *pbvh,
-                                      const Span<int> looptri_faces,
+                                      const Span<int> prim_to_face_map,
                                       const int *material_indices,
                                       const bool *sharp_faces,
                                       int offset,
@@ -478,23 +424,11 @@ static bool leaf_needs_material_split(PBVH *pbvh,
     return false;
   }
 
-  if (!pbvh->looptri.is_empty()) {
-    const int first = looptri_faces[pbvh->prim_indices[offset]];
-    for (int i = offset + count - 1; i > offset; i--) {
-      int prim = pbvh->prim_indices[i];
-      if (!face_materials_match(material_indices, sharp_faces, first, looptri_faces[prim])) {
-        return true;
-      }
-    }
-  }
-  else {
-    const DMFlagMat *first = &pbvh->subdiv_ccg->grid_flag_mats[pbvh->prim_indices[offset]];
-
-    for (int i = offset + count - 1; i > offset; i--) {
-      int prim = pbvh->prim_indices[i];
-      if (!grid_materials_match(first, &pbvh->subdiv_ccg->grid_flag_mats[prim])) {
-        return true;
-      }
+  const int first = prim_to_face_map[pbvh->prim_indices[offset]];
+  for (int i = offset + count - 1; i > offset; i--) {
+    int prim = pbvh->prim_indices[i];
+    if (!face_materials_match(material_indices, sharp_faces, first, prim_to_face_map[prim])) {
+      return true;
     }
   }
 
@@ -575,6 +509,9 @@ static void build_sub(PBVH *pbvh,
                       int *prim_scratch,
                       int depth)
 {
+  const Span<int> prim_to_face_map = pbvh->header.type == PBVH_FACES ?
+                                         looptri_faces :
+                                         pbvh->subdiv_ccg->grid_to_face_map;
   int end;
   BB cb_backing;
 
@@ -586,7 +523,8 @@ static void build_sub(PBVH *pbvh,
   const bool below_leaf_limit = count <= pbvh->leaf_limit || depth >= STACK_FIXED_DEPTH - 1;
   if (below_leaf_limit) {
     if (!leaf_needs_material_split(
-            pbvh, looptri_faces, material_indices, sharp_faces, offset, count)) {
+            pbvh, prim_to_face_map, material_indices, sharp_faces, offset, count))
+    {
       build_leaf(pbvh,
                  corner_verts,
                  looptris,
@@ -624,41 +562,23 @@ static void build_sub(PBVH *pbvh,
     const int axis = BB_widest_axis(cb);
 
     /* Partition primitives along that axis */
-    if (pbvh->header.type == PBVH_FACES) {
-      end = partition_indices_faces(pbvh->prim_indices,
-                                    prim_scratch,
-                                    offset,
-                                    offset + count,
-                                    axis,
-                                    (cb->bmax[axis] + cb->bmin[axis]) * 0.5f,
-                                    prim_bbc,
-                                    looptri_faces);
-    }
-    else {
-      end = partition_indices_grids(pbvh->prim_indices,
-                                    prim_scratch,
-                                    offset,
-                                    offset + count,
-                                    axis,
-                                    (cb->bmax[axis] + cb->bmin[axis]) * 0.5f,
-                                    prim_bbc,
-                                    pbvh->subdiv_ccg);
-    }
+    end = partition_prim_indices(pbvh->prim_indices,
+                                 prim_scratch,
+                                 offset,
+                                 offset + count,
+                                 axis,
+                                 (cb->bmax[axis] + cb->bmin[axis]) * 0.5f,
+                                 prim_bbc,
+                                 prim_to_face_map);
   }
   else {
     /* Partition primitives by material */
-    if (pbvh->header.type == PBVH_FACES) {
-      end = partition_indices_material_faces(pbvh->prim_indices,
-                                             looptri_faces,
-                                             material_indices,
-                                             sharp_faces,
-                                             offset,
-                                             offset + count - 1);
-    }
-    else {
-      end = partition_indices_material_grids(
-          pbvh->prim_indices, pbvh->subdiv_ccg->grid_flag_mats, offset, offset + count - 1);
-    }
+    end = partition_indices_material_faces(pbvh->prim_indices,
+                                           prim_to_face_map,
+                                           material_indices,
+                                           sharp_faces,
+                                           offset,
+                                           offset + count - 1);
   }
 
   /* Build children */
@@ -1427,15 +1347,14 @@ static blender::draw::pbvh::PBVH_GPU_Args pbvh_draw_args_init(const Mesh &mesh,
       args.looptri_faces = mesh.looptri_faces();
       break;
     case PBVH_GRIDS:
-      args.vert_data = &mesh.vert_data;
-      args.loop_data = &mesh.loop_data;
-      args.face_data = &mesh.face_data;
+      args.vert_data = &pbvh.mesh->vert_data;
+      args.loop_data = &pbvh.mesh->loop_data;
+      args.face_data = &pbvh.mesh->face_data;
       args.ccg_key = pbvh.gridkey;
       args.me = pbvh.mesh;
       args.grid_indices = node.prim_indices;
       args.subdiv_ccg = pbvh.subdiv_ccg;
       args.grids = pbvh.subdiv_ccg->grids;
-      args.grid_flag_mats = pbvh.subdiv_ccg->grid_flag_mats;
       args.vert_normals = pbvh.vert_normals;
       break;
     case PBVH_BMESH:

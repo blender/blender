@@ -276,7 +276,6 @@ set(SRC
   intern/subdiv.cc
   intern/subdiv_ccg.cc
   intern/subdiv_ccg_mask.cc
-  intern/subdiv_ccg_material.cc
   intern/subdiv_converter.cc
   intern/subdiv_converter_mesh.cc
   intern/subdiv_deform.cc

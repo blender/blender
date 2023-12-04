@@ -143,7 +143,6 @@ static void subdiv_ccg_alloc_elements(SubdivCCG &subdiv_ccg, Subdiv &subdiv)
     const size_t grid_offset = grid_size_in_bytes * grid_index;
     subdiv_ccg.grids[grid_index] = (CCGElem *)&subdiv_ccg.grids_storage[grid_offset];
   }
-  subdiv_ccg.grid_flag_mats.reinitialize(num_grids);
   /* TODO(sergey): Allocate memory for loose elements. */
 }
 
@@ -211,7 +210,6 @@ static void subdiv_ccg_eval_regular_grid(Subdiv &subdiv,
                                          SubdivCCG &subdiv_ccg,
                                          const Span<int> face_ptex_offset,
                                          SubdivCCGMaskEvaluator *mask_evaluator,
-                                         SubdivCCGMaterialFlagsEvaluator *material_flags_evaluator,
                                          const int face_index)
 {
   const int ptex_face_index = face_ptex_offset[face_index];
@@ -234,9 +232,6 @@ static void subdiv_ccg_eval_regular_grid(Subdiv &subdiv,
             subdiv, subdiv_ccg, mask_evaluator, ptex_face_index, u, v, &grid[grid_element_offset]);
       }
     }
-    /* Assign material flags. */
-    subdiv_ccg.grid_flag_mats[grid_index] = material_flags_evaluator->eval_material_flags(
-        material_flags_evaluator, face_index);
   }
 }
 
@@ -244,7 +239,6 @@ static void subdiv_ccg_eval_special_grid(Subdiv &subdiv,
                                          SubdivCCG &subdiv_ccg,
                                          const Span<int> face_ptex_offset,
                                          SubdivCCGMaskEvaluator *mask_evaluator,
-                                         SubdivCCGMaterialFlagsEvaluator *material_flags_evaluator,
                                          const int face_index)
 {
   const int grid_size = subdiv_ccg.grid_size;
@@ -265,16 +259,12 @@ static void subdiv_ccg_eval_special_grid(Subdiv &subdiv,
             subdiv, subdiv_ccg, mask_evaluator, ptex_face_index, u, v, &grid[grid_element_offset]);
       }
     }
-    /* Assign material flags. */
-    subdiv_ccg.grid_flag_mats[grid_index] = material_flags_evaluator->eval_material_flags(
-        material_flags_evaluator, face_index);
   }
 }
 
 static bool subdiv_ccg_evaluate_grids(SubdivCCG &subdiv_ccg,
                                       Subdiv &subdiv,
-                                      SubdivCCGMaskEvaluator *mask_evaluator,
-                                      SubdivCCGMaterialFlagsEvaluator *material_flags_evaluator)
+                                      SubdivCCGMaskEvaluator *mask_evaluator)
 {
   using namespace blender;
   OpenSubdiv_TopologyRefiner *topology_refiner = subdiv.topology_refiner;
@@ -284,20 +274,12 @@ static bool subdiv_ccg_evaluate_grids(SubdivCCG &subdiv_ccg,
   threading::parallel_for(IndexRange(num_faces), 1024, [&](const IndexRange range) {
     for (const int face_index : range) {
       if (subdiv_ccg.faces[face_index].size() == 4) {
-        subdiv_ccg_eval_regular_grid(subdiv,
-                                     subdiv_ccg,
-                                     face_ptex_offset,
-                                     mask_evaluator,
-                                     material_flags_evaluator,
-                                     face_index);
+        subdiv_ccg_eval_regular_grid(
+            subdiv, subdiv_ccg, face_ptex_offset, mask_evaluator, face_index);
       }
       else {
-        subdiv_ccg_eval_special_grid(subdiv,
-                                     subdiv_ccg,
-                                     face_ptex_offset,
-                                     mask_evaluator,
-                                     material_flags_evaluator,
-                                     face_index);
+        subdiv_ccg_eval_special_grid(
+            subdiv, subdiv_ccg, face_ptex_offset, mask_evaluator, face_index);
       }
     }
   });
@@ -475,12 +457,10 @@ static void subdiv_ccg_init_faces_neighborhood(SubdivCCG &subdiv_ccg)
 /** \name Creation / evaluation
  * \{ */
 
-std::unique_ptr<SubdivCCG> BKE_subdiv_to_ccg(
-    Subdiv &subdiv,
-    const SubdivToCCGSettings &settings,
-    const Mesh &coarse_mesh,
-    SubdivCCGMaskEvaluator *mask_evaluator,
-    SubdivCCGMaterialFlagsEvaluator *material_flags_evaluator)
+std::unique_ptr<SubdivCCG> BKE_subdiv_to_ccg(Subdiv &subdiv,
+                                             const SubdivToCCGSettings &settings,
+                                             const Mesh &coarse_mesh,
+                                             SubdivCCGMaskEvaluator *mask_evaluator)
 {
   BKE_subdiv_stats_begin(&subdiv.stats, SUBDIV_STATS_SUBDIV_TO_CCG);
   std::unique_ptr<SubdivCCG> subdiv_ccg = std::make_unique<SubdivCCG>();
@@ -492,7 +472,7 @@ std::unique_ptr<SubdivCCG> BKE_subdiv_to_ccg(
   subdiv_ccg->grid_to_face_map = coarse_mesh.corner_to_face_map();
   subdiv_ccg_alloc_elements(*subdiv_ccg, subdiv);
   subdiv_ccg_init_faces_neighborhood(*subdiv_ccg);
-  if (!subdiv_ccg_evaluate_grids(*subdiv_ccg, subdiv, mask_evaluator, material_flags_evaluator)) {
+  if (!subdiv_ccg_evaluate_grids(*subdiv_ccg, subdiv, mask_evaluator)) {
     BKE_subdiv_stats_end(&subdiv.stats, SUBDIV_STATS_SUBDIV_TO_CCG);
     return nullptr;
   }
@@ -516,17 +496,11 @@ Mesh *BKE_subdiv_to_ccg_mesh(Subdiv &subdiv,
   BKE_subdiv_stats_end(&subdiv.stats, SUBDIV_STATS_SUBDIV_TO_CCG);
   SubdivCCGMaskEvaluator mask_evaluator;
   bool has_mask = BKE_subdiv_ccg_mask_init_from_paint(&mask_evaluator, &coarse_mesh);
-  SubdivCCGMaterialFlagsEvaluator material_flags_evaluator;
-  BKE_subdiv_ccg_material_flags_init_from_mesh(&material_flags_evaluator, &coarse_mesh);
-  std::unique_ptr<SubdivCCG> subdiv_ccg = BKE_subdiv_to_ccg(subdiv,
-                                                            settings,
-                                                            coarse_mesh,
-                                                            has_mask ? &mask_evaluator : nullptr,
-                                                            &material_flags_evaluator);
+  std::unique_ptr<SubdivCCG> subdiv_ccg = BKE_subdiv_to_ccg(
+      subdiv, settings, coarse_mesh, has_mask ? &mask_evaluator : nullptr);
   if (has_mask) {
     mask_evaluator.free(&mask_evaluator);
   }
-  material_flags_evaluator.free(&material_flags_evaluator);
   if (!subdiv_ccg) {
     return nullptr;
   }

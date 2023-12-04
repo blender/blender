@@ -154,7 +154,7 @@ struct PBVH {
   int pixel_leaf_limit;
   int depth_limit;
 
-  /* Mesh data */
+  /* Mesh data. The evaluated deform mesh for mesh sculpting, and the base mesh for grids. */
   Mesh *mesh;
 
   /** Local array used when not sculpting base mesh positions directly. */

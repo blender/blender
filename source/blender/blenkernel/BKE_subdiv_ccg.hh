@@ -20,7 +20,6 @@
 struct CCGElem;
 struct CCGFace;
 struct CCGKey;
-struct DMFlagMat;
 struct Mesh;
 struct Subdiv;
 
@@ -43,24 +42,6 @@ struct SubdivCCGMaskEvaluator {
 
 /* Return true if mesh has mask and evaluator can be used. */
 bool BKE_subdiv_ccg_mask_init_from_paint(SubdivCCGMaskEvaluator *mask_evaluator, const Mesh *mesh);
-
-/* --------------------------------------------------------------------
- * Materials.
- */
-
-/* Functor which evaluates material and flags of a given coarse face. */
-struct SubdivCCGMaterialFlagsEvaluator {
-  DMFlagMat (*eval_material_flags)(SubdivCCGMaterialFlagsEvaluator *material_flags_evaluator,
-                                   int coarse_face_index);
-
-  /* Free the data, not the evaluator itself. */
-  void (*free)(SubdivCCGMaterialFlagsEvaluator *material_flags_evaluator);
-
-  void *user_data;
-};
-
-void BKE_subdiv_ccg_material_flags_init_from_mesh(
-    SubdivCCGMaterialFlagsEvaluator *material_flags_evaluator, const Mesh *mesh);
 
 /* --------------------------------------------------------------------
  * SubdivCCG.
@@ -161,8 +142,6 @@ struct SubdivCCG {
    */
   blender::Array<SubdivCCGAdjacentVertex> adjacent_verts;
 
-  blender::Array<DMFlagMat> grid_flag_mats;
-
   /** Store the visibility of the items in each grid. If empty, everything is visible. */
   blender::BitGroupVector<> grid_hidden;
 
@@ -204,12 +183,10 @@ struct SubdivCCG {
  * TODO(sergey): Allow some user-counter or more explicit control over who owns
  * the Subdiv. The goal should be to allow viewport GL Mesh and CCG to share
  * same Subsurf without conflicts. */
-std::unique_ptr<SubdivCCG> BKE_subdiv_to_ccg(
-    Subdiv &subdiv,
-    const SubdivToCCGSettings &settings,
-    const Mesh &coarse_mesh,
-    SubdivCCGMaskEvaluator *mask_evaluator,
-    SubdivCCGMaterialFlagsEvaluator *material_flags_evaluator);
+std::unique_ptr<SubdivCCG> BKE_subdiv_to_ccg(Subdiv &subdiv,
+                                             const SubdivToCCGSettings &settings,
+                                             const Mesh &coarse_mesh,
+                                             SubdivCCGMaskEvaluator *mask_evaluator);
 
 /* Helper function, creates Mesh structure which is properly setup to use
  * grids.

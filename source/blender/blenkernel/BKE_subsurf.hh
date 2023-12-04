@@ -21,7 +21,6 @@ struct CCGElem;
 struct CCGFace;
 struct CCGSubSurf;
 struct CCGVert;
-struct DMFlagMat;
 struct DerivedMesh;
 struct Mesh;
 struct MeshElemMap;
@@ -31,6 +30,17 @@ struct PBVH;
 struct SubsurfModifierData;
 
 /**************************** External *****************************/
+
+/*
+ * NOTE: all #MFace interfaces now officially operate on tessellated data.
+ *       Also, the #MFace orig-index layer indexes polys, not #MFace.
+ */
+
+/* keep in sync with MFace type */
+struct DMFlagMat {
+  short mat_nr;
+  bool sharp;
+};
 
 enum SubsurfFlags {
   SUBSURF_USE_RENDER_PARAMS = 1,
