@@ -381,7 +381,7 @@ static void bm_mesh_select_mode_flush_vert_to_edge(BMesh *bm)
 
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
-  settings.use_threading = bm->totedge >= BM_OMP_LIMIT;
+  settings.use_threading = bm->totedge >= BM_THREAD_LIMIT;
   settings.userdata_chunk = &chunk_data;
   settings.userdata_chunk_size = sizeof(chunk_data);
   settings.func_reduce = bm_mesh_select_mode_flush_reduce_fn;
@@ -397,7 +397,7 @@ static void bm_mesh_select_mode_flush_edge_to_face(BMesh *bm)
 
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
-  settings.use_threading = bm->totface >= BM_OMP_LIMIT;
+  settings.use_threading = bm->totface >= BM_THREAD_LIMIT;
   settings.userdata_chunk = &chunk_data;
   settings.userdata_chunk_size = sizeof(chunk_data);
   settings.func_reduce = bm_mesh_select_mode_flush_reduce_fn;
