@@ -1533,7 +1533,7 @@ static blender::Vector<Object *> lightprobe_cache_irradiance_volume_subset_get(b
   auto irradiance_volume_setup = [&](Object *ob) {
     BKE_lightprobe_cache_free(ob);
     BKE_lightprobe_cache_create(ob);
-    DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
+    DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE | ID_RECALC_SHADING);
     probes.append(ob);
   };
 
@@ -1775,7 +1775,7 @@ static int lightprobe_cache_free_exec(bContext *C, wmOperator *op)
       continue;
     }
     BKE_lightprobe_cache_free(object);
-    DEG_id_tag_update(&object->id, ID_RECALC_COPY_ON_WRITE);
+    DEG_id_tag_update(&object->id, ID_RECALC_COPY_ON_WRITE | ID_RECALC_SHADING);
   }
 
   WM_event_add_notifier(C, NC_OBJECT | ND_OB_SHADING, scene);
