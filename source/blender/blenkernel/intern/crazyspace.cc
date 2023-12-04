@@ -130,6 +130,7 @@ void BKE_crazyspace_set_quats_editmesh(BMEditMesh *em,
   BMFace *f;
   BMIter iter;
   int index;
+  const bool has_origcos = !origcos.is_empty();
 
   {
     BMVert *v;
@@ -160,12 +161,12 @@ void BKE_crazyspace_set_quats_editmesh(BMEditMesh *em,
         const int i_curr = BM_elem_index_get(l_iter->v);
         const int i_next = BM_elem_index_get(l_iter->next->v);
 
-        /* retrieve mapped coordinates */
+        /* Retrieve mapped coordinates. */
         vd_prev = mappedcos[i_prev];
         vd_curr = mappedcos[i_curr];
         vd_next = mappedcos[i_next];
 
-        if (!origcos.is_empty()) {
+        if (has_origcos) {
           co_prev = origcos[i_prev];
           co_curr = origcos[i_curr];
           co_next = origcos[i_next];
@@ -197,39 +198,41 @@ void BKE_crazyspace_set_quats_mesh(Mesh *me,
   const Span<float3> positions = me->vert_positions();
   const OffsetIndices<int> faces = me->faces();
   const Span<int> corner_verts = me->corner_verts();
+  const bool has_origcos = !origcos.is_empty();
 
   for (const int i : faces.index_range()) {
     const IndexRange face = faces[i];
 
     for (const int corner : face) {
-      const int vert = corner_verts[corner];
-      if (!vert_tag[vert]) {
-        const int vert_prev = corner_verts[mesh::face_corner_prev(face, corner)];
-        const int vert_next = corner_verts[mesh::face_corner_next(face, corner)];
-
-        const float *co_prev, *co_curr, *co_next; /* orig */
-        const float *vd_prev, *vd_curr, *vd_next; /* deform */
-
-        /* retrieve mapped coordinates */
-        vd_prev = mappedcos[vert_prev];
-        vd_curr = mappedcos[vert];
-        vd_next = mappedcos[vert_next];
-
-        if (!origcos.is_empty()) {
-          co_prev = origcos[vert_prev];
-          co_curr = origcos[vert];
-          co_next = origcos[vert_next];
-        }
-        else {
-          co_prev = positions[vert_prev];
-          co_curr = positions[vert];
-          co_next = positions[vert_next];
-        }
-
-        set_crazy_vertex_quat(quats[vert], co_curr, co_next, co_prev, vd_curr, vd_next, vd_prev);
-
-        vert_tag[vert].set();
+      const int i_curr = corner_verts[corner];
+      if (vert_tag[i_curr]) {
+        continue;
       }
+      const int i_prev = corner_verts[mesh::face_corner_prev(face, corner)];
+      const int i_next = corner_verts[mesh::face_corner_next(face, corner)];
+
+      const float *co_prev, *co_curr, *co_next; /* orig */
+      const float *vd_prev, *vd_curr, *vd_next; /* deform */
+
+      /* Retrieve mapped coordinates. */
+      vd_prev = mappedcos[i_prev];
+      vd_curr = mappedcos[i_curr];
+      vd_next = mappedcos[i_next];
+
+      if (has_origcos) {
+        co_prev = origcos[i_prev];
+        co_curr = origcos[i_curr];
+        co_next = origcos[i_next];
+      }
+      else {
+        co_prev = positions[i_prev];
+        co_curr = positions[i_curr];
+        co_next = positions[i_next];
+      }
+
+      set_crazy_vertex_quat(quats[i_curr], co_curr, co_next, co_prev, vd_curr, vd_next, vd_prev);
+
+      vert_tag[i_curr].set();
     }
   }
 }
