@@ -248,8 +248,8 @@ static void pbvh_bmesh_node_finalize(PBVH *pbvh,
     }
   }
 
-  BLI_assert(n->vb.bmin[0] <= n->vb.bmax[0] && n->vb.bmin[1] <= n->vb.bmax[1] &&
-             n->vb.bmin[2] <= n->vb.bmax[2]);
+  BLI_assert(n->vb.min[0] <= n->vb.max[0] && n->vb.min[1] <= n->vb.max[1] &&
+             n->vb.min[2] <= n->vb.max[2]);
 
   n->orig_vb = n->vb;
 
@@ -2137,8 +2137,8 @@ static void pbvh_bmesh_create_nodes_fast_recursive(PBVH *pbvh,
       n->vb = bounds::merge(n->vb, face_bounds[BM_elem_index_get(f)]);
     }
 
-    BLI_assert(n->vb.bmin[0] <= n->vb.bmax[0] && n->vb.bmin[1] <= n->vb.bmax[1] &&
-               n->vb.bmin[2] <= n->vb.bmax[2]);
+    BLI_assert(n->vb.min[0] <= n->vb.max[0] && n->vb.min[1] <= n->vb.max[1] &&
+               n->vb.min[2] <= n->vb.max[2]);
 
     n->orig_vb = n->vb;
 
