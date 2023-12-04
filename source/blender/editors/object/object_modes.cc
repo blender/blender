@@ -507,7 +507,9 @@ static int object_transfer_mode_invoke(bContext *C, wmOperator *op, const wmEven
 
   Base *base_dst = ED_view3d_give_base_under_cursor(C, event->mval);
 
-  if (ID_IS_LINKED(base_dst->object) || ID_IS_OVERRIDE_LIBRARY(base_dst->object)) {
+  if ((base_dst != nullptr) &&
+      (ID_IS_LINKED(base_dst->object) || ID_IS_OVERRIDE_LIBRARY(base_dst->object)))
+  {
     BKE_reportf(op->reports,
                 RPT_ERROR,
                 "Unable to execute, %s object is linked",
