@@ -277,8 +277,7 @@ static void smooth_curve_attribute(const OffsetIndices<int> points_by_curve,
       return;
     }
 
-    Vector<IndexRange> selection_ranges = selection_mask.to_ranges();
-    for (const IndexRange range : selection_ranges) {
+    selection_mask.foreach_range([&](const IndexRange range) {
       GMutableSpan dst_data = data.slice(range);
 
       orig_data.resize(dst_data.size_in_bytes());
@@ -287,7 +286,7 @@ static void smooth_curve_attribute(const OffsetIndices<int> points_by_curve,
 
       gaussian_blur_1D(
           src_data, iterations, influence, smooth_ends, keep_shape, cyclic[curve_i], dst_data);
-    }
+    });
   });
 }
 
