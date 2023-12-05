@@ -100,6 +100,7 @@ class NodeDeclaration;
 class NodeDeclarationBuilder;
 class GatherAddNodeSearchParams;
 class GatherLinkSearchOpParams;
+class NodeExtraInfoParams;
 }  // namespace nodes
 namespace realtime_compositor {
 class Context;
@@ -130,6 +131,7 @@ using NodeGetCompositorOperationFunction = blender::realtime_compositor::NodeOpe
     *(*)(blender::realtime_compositor::Context &context, blender::nodes::DNode node);
 using NodeGetCompositorShaderNodeFunction =
     blender::realtime_compositor::ShaderNode *(*)(blender::nodes::DNode node);
+using NodeExtraInfoFunction = void (*)(blender::nodes::NodeExtraInfoParams &params);
 
 #else
 typedef void *NodeGetCompositorOperationFunction;
@@ -144,6 +146,7 @@ typedef void *SocketGetCPPTypeFunction;
 typedef void *SocketGetGeometryNodesCPPTypeFunction;
 typedef void *SocketGetGeometryNodesCPPValueFunction;
 typedef void *SocketGetCPPValueFunction;
+typedef void *NodeExtraInfoFunction;
 typedef struct CPPTypeHandle CPPTypeHandle;
 #endif
 
@@ -385,6 +388,9 @@ typedef struct bNodeType {
    * custom behavior here like adding custom search items.
    */
   NodeGatherSocketLinkOperationsFunction gather_link_search_ops;
+
+  /** Get extra information that is drawn next to the node. */
+  NodeExtraInfoFunction get_extra_info;
 
   /** True when the node cannot be muted. */
   bool no_muting;
