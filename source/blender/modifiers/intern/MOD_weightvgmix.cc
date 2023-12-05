@@ -140,8 +140,6 @@ static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_
   if (wmd->mask_tex_mapping == MOD_DISP_MAP_UV) {
     r_cddata_masks->fmask |= CD_MASK_MTFACE;
   }
-
-  /* No need to ask for CD_PREVIEW_MLOOPCOL... */
 }
 
 static bool depends_on_time(Scene * /*scene*/, ModifierData *md)
@@ -497,7 +495,7 @@ ModifierTypeInfo modifierType_WeightVGMix = {
     /*srna*/ &RNA_VertexWeightMixModifier,
     /*type*/ ModifierTypeType::NonGeometrical,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
-        eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_UsesPreview,
+        eModifierTypeFlag_SupportsEditmode,
     /*icon*/ ICON_MOD_VERTEX_WEIGHT,
 
     /*copy_data*/ BKE_modifier_copydata_generic,

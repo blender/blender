@@ -506,7 +506,7 @@ ModifierTypeInfo modifierType_DataTransfer = {
     /*srna*/ &RNA_DataTransferModifier,
     /*type*/ ModifierTypeType::NonGeometrical,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
-        eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_UsesPreview,
+        eModifierTypeFlag_SupportsEditmode,
     /*icon*/ ICON_MOD_DATA_TRANSFER,
 
     /*copy_data*/ BKE_modifier_copydata_generic,

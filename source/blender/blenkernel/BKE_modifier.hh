@@ -97,8 +97,6 @@ enum ModifierTypeFlag {
   /** Some modifier can't be added manually by user */
   eModifierTypeFlag_NoUserAdd = (1 << 8),
 
-  /** For modifiers that use CD_PREVIEW_MCOL for preview. */
-  eModifierTypeFlag_UsesPreview = (1 << 9),
   eModifierTypeFlag_AcceptsVertexCosOnly = (1 << 10),
 
   /** Accepts #BMesh input (without conversion). */
@@ -442,8 +440,6 @@ void BKE_modifier_set_error(const Object *ob, ModifierData *md, const char *form
 void BKE_modifier_set_warning(const Object *ob, ModifierData *md, const char *format, ...)
     ATTR_PRINTF_FORMAT(3, 4);
 
-bool BKE_modifier_is_preview(ModifierData *md);
-
 void BKE_modifiers_foreach_ID_link(Object *ob, IDWalkFunc walk, void *user_data);
 void BKE_modifiers_foreach_tex_link(Object *ob, TexWalkFunc walk, void *user_data);
 
@@ -502,12 +498,7 @@ struct CDMaskLink {
 CDMaskLink *BKE_modifier_calc_data_masks(const Scene *scene,
                                          ModifierData *md,
                                          CustomData_MeshMasks *final_datamask,
-                                         int required_mode,
-                                         ModifierData *previewmd,
-                                         const CustomData_MeshMasks *previewmask);
-ModifierData *BKE_modifier_get_last_preview(const Scene *scene,
-                                            ModifierData *md,
-                                            int required_mode);
+                                         int required_mode);
 
 struct VirtualModifierData {
   ArmatureModifierData amd;

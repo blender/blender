@@ -601,27 +601,12 @@ static void mesh_calc_modifiers(Depsgraph *depsgraph,
   ModifierData *firstmd = BKE_modifiers_get_virtual_modifierlist(ob, &virtual_modifier_data);
   ModifierData *md = firstmd;
 
-  /* Preview colors by modifiers such as dynamic paint, to show the results
-   * even if the resulting data is not used in a material. Only in object mode.
-   * TODO: this is broken, not drawn by the drawn manager. */
-  const bool do_mod_mcol = (ob->mode == OB_MODE_OBJECT);
-  ModifierData *previewmd = nullptr;
-  CustomData_MeshMasks previewmask = {0};
-  if (do_mod_mcol) {
-    /* Find the last active modifier generating a preview, or nullptr if none. */
-    /* XXX Currently, DPaint modifier just ignores this.
-     *     Needs a stupid hack...
-     *     The whole "modifier preview" thing has to be (re?)designed, anyway! */
-    previewmd = BKE_modifier_get_last_preview(scene, md, required_mode);
-  }
-
   /* Compute accumulated datamasks needed by each modifier. It helps to do
    * this fine grained so that for example vertex groups are preserved up to
    * an armature modifier, but not through a following subsurf modifier where
    * subdividing them is expensive. */
   CustomData_MeshMasks final_datamask = *dataMask;
-  CDMaskLink *datamasks = BKE_modifier_calc_data_masks(
-      scene, md, &final_datamask, required_mode, previewmd, &previewmask);
+  CDMaskLink *datamasks = BKE_modifier_calc_data_masks(scene, md, &final_datamask, required_mode);
   CDMaskLink *md_datamask = datamasks;
   /* XXX Always copying POLYINDEX, else tessellated data are no more valid! */
   CustomData_MeshMasks append_mask = CD_MASK_BAREMESH_ORIGINDEX;
@@ -901,12 +886,6 @@ static void mesh_calc_modifiers(Depsgraph *depsgraph,
         }
       }
 
-      /* in case of dynamic paint, make sure preview mask remains for following modifiers */
-      /* XXX Temp and hackish solution! */
-      if (md->type == eModifierType_DynamicPaint) {
-        append_mask.lmask |= CD_MASK_PREVIEW_MLOOPCOL;
-      }
-
       mesh_final->runtime->deformed_only = false;
     }
 
@@ -1113,8 +1092,7 @@ static void editbmesh_calc_modifiers(Depsgraph *depsgraph,
    * an armature modifier, but not through a following subsurf modifier where
    * subdividing them is expensive. */
   CustomData_MeshMasks final_datamask = *dataMask;
-  CDMaskLink *datamasks = BKE_modifier_calc_data_masks(
-      scene, md, &final_datamask, required_mode, nullptr, nullptr);
+  CDMaskLink *datamasks = BKE_modifier_calc_data_masks(scene, md, &final_datamask, required_mode);
   CDMaskLink *md_datamask = datamasks;
   CustomData_MeshMasks append_mask = CD_MASK_BAREMESH;
 

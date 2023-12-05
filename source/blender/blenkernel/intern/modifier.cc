@@ -250,24 +250,6 @@ bool BKE_modifier_supports_mapping(ModifierData *md)
           (mti->flags & eModifierTypeFlag_SupportsMapping));
 }
 
-bool BKE_modifier_is_preview(ModifierData *md)
-{
-  const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
-
-  /* Constructive modifiers are highly likely to also modify data like vgroups or vertex-colors! */
-  if (!((mti->flags & eModifierTypeFlag_UsesPreview) ||
-        (mti->type == ModifierTypeType::Constructive)))
-  {
-    return false;
-  }
-
-  if (md->mode & eModifierMode_Realtime) {
-    return true;
-  }
-
-  return false;
-}
-
 ModifierData *BKE_modifiers_findby_type(const Object *ob, ModifierType type)
 {
   LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
@@ -606,9 +588,7 @@ bool BKE_modifier_is_nonlocal_in_liboverride(const Object *ob, const ModifierDat
 CDMaskLink *BKE_modifier_calc_data_masks(const Scene *scene,
                                          ModifierData *md,
                                          CustomData_MeshMasks *final_datamask,
-                                         int required_mode,
-                                         ModifierData *previewmd,
-                                         const CustomData_MeshMasks *previewmask)
+                                         int required_mode)
 {
   CDMaskLink *dataMasks = nullptr;
   CDMaskLink *curr, *prev;
@@ -627,10 +607,6 @@ CDMaskLink *BKE_modifier_calc_data_masks(const Scene *scene,
 
       if (mti->required_data_mask) {
         mti->required_data_mask(md, &curr->mask);
-      }
-
-      if (previewmd == md && previewmask != nullptr) {
-        CustomData_MeshMasks_update(&curr->mask, previewmask);
       }
     }
 
@@ -668,25 +644,6 @@ CDMaskLink *BKE_modifier_calc_data_masks(const Scene *scene,
   BLI_linklist_reverse((LinkNode **)&dataMasks);
 
   return dataMasks;
-}
-
-ModifierData *BKE_modifier_get_last_preview(const Scene *scene,
-                                            ModifierData *md,
-                                            int required_mode)
-{
-  ModifierData *tmp_md = nullptr;
-
-  if ((required_mode & ~eModifierMode_Editmode) != eModifierMode_Realtime) {
-    return tmp_md;
-  }
-
-  /* Find the latest modifier in stack generating preview. */
-  for (; md; md = md->next) {
-    if (BKE_modifier_is_enabled(scene, md, required_mode) && BKE_modifier_is_preview(md)) {
-      tmp_md = md;
-    }
-  }
-  return tmp_md;
 }
 
 ModifierData *BKE_modifiers_get_virtual_modifierlist(const Object *ob,

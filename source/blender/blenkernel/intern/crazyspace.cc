@@ -273,7 +273,7 @@ int BKE_crazyspace_get_first_deform_matrices_editbmesh(
         const int required_mode = eModifierMode_Realtime | eModifierMode_Editmode;
         CustomData_MeshMasks cd_mask_extra = CD_MASK_BAREMESH;
         CDMaskLink *datamasks = BKE_modifier_calc_data_masks(
-            scene, md, &cd_mask_extra, required_mode, nullptr, nullptr);
+            scene, md, &cd_mask_extra, required_mode);
         cd_mask_extra = datamasks->mask;
         BLI_linklist_free((LinkNode *)datamasks, nullptr);
 

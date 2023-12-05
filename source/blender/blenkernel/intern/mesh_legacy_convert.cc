@@ -634,9 +634,6 @@ static bool check_matching_legacy_layer_counts(CustomData *fdata_legacy,
   if (!LAYER_CMP(ldata, CD_PROP_BYTE_COLOR, fdata_legacy, CD_MCOL)) {
     return false;
   }
-  if (!LAYER_CMP(ldata, CD_PREVIEW_MLOOPCOL, fdata_legacy, CD_PREVIEW_MCOL)) {
-    return false;
-  }
   if (!LAYER_CMP(ldata, CD_ORIGSPACE_MLOOP, fdata_legacy, CD_ORIGSPACE)) {
     return false;
   }
@@ -668,10 +665,6 @@ static void add_mface_layers(Mesh &mesh, CustomData *fdata_legacy, CustomData *l
     if (ldata->layers[i].type == CD_PROP_BYTE_COLOR) {
       CustomData_add_layer_named(
           fdata_legacy, CD_MCOL, CD_SET_DEFAULT, total, ldata->layers[i].name);
-    }
-    else if (ldata->layers[i].type == CD_PREVIEW_MLOOPCOL) {
-      CustomData_add_layer_named(
-          fdata_legacy, CD_PREVIEW_MCOL, CD_SET_DEFAULT, total, ldata->layers[i].name);
     }
     else if (ldata->layers[i].type == CD_ORIGSPACE_MLOOP) {
       CustomData_add_layer_named(
@@ -854,7 +847,6 @@ static void mesh_loops_to_tessdata(CustomData *fdata_legacy,
    * there's not much ways to solve this. Better IMHO to live with it for now (sigh). */
   const int numUV = CustomData_number_of_layers(loop_data, CD_PROP_FLOAT2);
   const int numCol = CustomData_number_of_layers(loop_data, CD_PROP_BYTE_COLOR);
-  const bool hasPCol = CustomData_has_layer(loop_data, CD_PREVIEW_MLOOPCOL);
   const bool hasOrigSpace = CustomData_has_layer(loop_data, CD_ORIGSPACE_MLOOP);
   const bool hasLoopNormal = CustomData_has_layer(loop_data, CD_NORMAL);
   const bool hasLoopTangent = CustomData_has_layer(loop_data, CD_TANGENT);
@@ -882,18 +874,6 @@ static void mesh_loops_to_tessdata(CustomData *fdata_legacy,
         fdata_legacy, CD_MCOL, i, num_faces);
     const MLoopCol *mloopcol = (const MLoopCol *)CustomData_get_layer_n(
         loop_data, CD_PROP_BYTE_COLOR, i);
-
-    for (findex = 0, lidx = loopindices; findex < num_faces; lidx++, findex++, mcol++) {
-      for (j = (mface ? mface[findex].v4 : (*lidx)[3]) ? 4 : 3; j--;) {
-        MESH_MLOOPCOL_TO_MCOL(&mloopcol[(*lidx)[j]], &(*mcol)[j]);
-      }
-    }
-  }
-
-  if (hasPCol) {
-    MCol(*mcol)[4] = (MCol(*)[4])CustomData_get_layer(fdata_legacy, CD_PREVIEW_MCOL);
-    const MLoopCol *mloopcol = (const MLoopCol *)CustomData_get_layer(loop_data,
-                                                                      CD_PREVIEW_MLOOPCOL);
 
     for (findex = 0, lidx = loopindices; findex < num_faces; lidx++, findex++, mcol++) {
       for (j = (mface ? mface[findex].v4 : (*lidx)[3]) ? 4 : 3; j--;) {

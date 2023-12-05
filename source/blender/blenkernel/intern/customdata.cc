@@ -1709,15 +1709,7 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
      layerWrite_mdisps,
      layerFilesize_mdisps},
     /* 20: CD_PREVIEW_MCOL */
-    {sizeof(MCol[4]),
-     "MCol",
-     4,
-     N_("PreviewCol"),
-     nullptr,
-     nullptr,
-     layerInterp_mcol,
-     layerSwap_mcol,
-     layerDefault_mcol},
+    {},
     /* 21: CD_ID_MCOL */ /* DEPRECATED */
     {sizeof(MCol[4]), "", 0, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr},
     /* 22: CD_TEXTURE_MCOL */
@@ -1772,24 +1764,8 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
      layerAdd_mloop_origspace,
      layerDoMinMax_mloop_origspace,
      layerCopyValue_mloop_origspace},
-    /* 32: CD_PREVIEW_MLOOPCOL */
-    {sizeof(MLoopCol),
-     "MLoopCol",
-     1,
-     N_("PreviewLoopCol"),
-     nullptr,
-     nullptr,
-     layerInterp_mloopcol,
-     nullptr,
-     layerDefault_mloopcol,
-     nullptr,
-     nullptr,
-     layerEqual_mloopcol,
-     layerMultiply_mloopcol,
-     layerInitMinMax_mloopcol,
-     layerAdd_mloopcol,
-     layerDoMinMax_mloopcol,
-     layerCopyValue_mloopcol},
+    /* 32: CD_PREVIEW_MLOOPCOL */ /* DEPRECATED */ /* UNUSED */
+    {},
     /* 33: CD_BM_ELEM_PYPTR */
     {sizeof(void *),
      "",
@@ -2031,11 +2007,11 @@ const CustomData_MeshMasks CD_MASK_DERIVEDMESH = {
                CD_MASK_ORCO | CD_MASK_CLOTH_ORCO | CD_MASK_PROP_ALL),
     /*emask*/
     (CD_MASK_ORIGINDEX | CD_MASK_FREESTYLE_EDGE | CD_MASK_PROP_ALL),
-    /*fmask*/ (CD_MASK_ORIGINDEX | CD_MASK_ORIGSPACE | CD_MASK_PREVIEW_MCOL | CD_MASK_TANGENT),
+    /*fmask*/ (CD_MASK_ORIGINDEX | CD_MASK_ORIGSPACE | CD_MASK_TANGENT),
     /*pmask*/
     (CD_MASK_ORIGINDEX | CD_MASK_FREESTYLE_FACE | CD_MASK_PROP_ALL),
     /*lmask*/
-    (CD_MASK_CUSTOMLOOPNORMAL | CD_MASK_PREVIEW_MLOOPCOL | CD_MASK_ORIGSPACE_MLOOP |
+    (CD_MASK_CUSTOMLOOPNORMAL | CD_MASK_ORIGSPACE_MLOOP |
      CD_MASK_PROP_ALL), /* XXX: MISSING #CD_MASK_MLOOPTANGENT ? */
 };
 const CustomData_MeshMasks CD_MASK_BMESH = {
@@ -2056,14 +2032,12 @@ const CustomData_MeshMasks CD_MASK_EVERYTHING = {
     (CD_MASK_BM_ELEM_PYPTR | CD_MASK_ORIGINDEX | CD_MASK_FREESTYLE_EDGE | CD_MASK_PROP_ALL),
     /*fmask*/
     (CD_MASK_MFACE | CD_MASK_ORIGINDEX | CD_MASK_NORMAL | CD_MASK_MTFACE | CD_MASK_MCOL |
-     CD_MASK_ORIGSPACE | CD_MASK_TANGENT | CD_MASK_TESSLOOPNORMAL | CD_MASK_PREVIEW_MCOL |
-     CD_MASK_PROP_ALL),
+     CD_MASK_ORIGSPACE | CD_MASK_TANGENT | CD_MASK_TESSLOOPNORMAL | CD_MASK_PROP_ALL),
     /*pmask*/
     (CD_MASK_BM_ELEM_PYPTR | CD_MASK_ORIGINDEX | CD_MASK_FREESTYLE_FACE | CD_MASK_PROP_ALL),
     /*lmask*/
     (CD_MASK_BM_ELEM_PYPTR | CD_MASK_MDISPS | CD_MASK_NORMAL | CD_MASK_CUSTOMLOOPNORMAL |
-     CD_MASK_MLOOPTANGENT | CD_MASK_PREVIEW_MLOOPCOL | CD_MASK_ORIGSPACE_MLOOP |
-     CD_MASK_GRID_PAINT_MASK | CD_MASK_PROP_ALL),
+     CD_MASK_MLOOPTANGENT | CD_MASK_ORIGSPACE_MLOOP | CD_MASK_GRID_PAINT_MASK | CD_MASK_PROP_ALL),
 };
 
 static const LayerTypeInfo *layerType_getInfo(const eCustomDataType type)
