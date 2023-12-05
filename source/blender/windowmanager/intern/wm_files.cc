@@ -3276,6 +3276,11 @@ static int wm_save_as_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent
   save_set_compress(op);
   save_set_filepath(C, op);
 
+  PropertyRNA *prop = RNA_struct_find_property(op->ptr, "relative_remap");
+  if (!RNA_property_is_set(op->ptr, prop)) {
+    RNA_property_boolean_set(op->ptr, prop, (U.flag & USER_RELPATHS));
+  }
+
   WM_event_add_fileselect(C, op);
 
   return OPERATOR_RUNNING_MODAL;
