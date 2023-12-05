@@ -37,17 +37,13 @@
 
 #include "transform_convert.hh"
 
-/** Helper struct for GP-frame transforms. */
-struct tGPFtransdata {
-  union {
-    /** Where `transdata` writes transform. */
-    float val;
-    /** #td->val and #td->loc share the same pointer. */
-    float loc[3];
-  };
-  /** Pointer to `gpf->framenum` */
-  int *sdata;
-};
+/* Weak way of identifying whether TransData was set by #GPLayerToTransData or
+ * #MaskLayerToTransData. This way we can identify whether the #td->extra is a pointer to an
+ * integer value and we can correctly flush the #recalcData_actedit. */
+static bool data_is_gp_or_mask(TransData *td, TransData2D *td2d)
+{
+  return td->extra && !td2d->loc2d;
+}
 
 /* -------------------------------------------------------------------- */
 /** \name Grease Pencil Transform helpers
@@ -352,6 +348,8 @@ static void TimeToTransData(
 
   /* Set flags to move handles as necessary. */
   td->flag |= TD_MOVEHANDLE1 | TD_MOVEHANDLE2;
+
+  BLI_assert(!data_is_gp_or_mask(td, td2d));
 }
 
 /* This function advances the address to which td points to, so it must return
@@ -406,7 +404,7 @@ static TransData *ActionFCurveToTransData(TransData *td,
  * 'R'/'L' mean only data on the named side are used.
  */
 static int GPLayerToTransData(TransData *td,
-                              tGPFtransdata *tfd,
+                              TransData2D *td2d,
                               bGPDlayer *gpl,
                               char side,
                               float cfra,
@@ -420,17 +418,16 @@ static int GPLayerToTransData(TransData *td,
     const bool is_selected = (gpf->flag & GP_FRAME_SELECT) != 0;
     if (is_prop_edit || is_selected) {
       if (FrameOnMouseSide(side, float(gpf->framenum), cfra)) {
-        tfd->val = float(gpf->framenum);
-        tfd->sdata = &gpf->framenum;
+        td2d->loc[0] = float(gpf->framenum);
 
-        td->loc = tfd->loc;
-        td->iloc[0] = tfd->loc[0];
-
-        td->val = &tfd->val;
-        td->ival = tfd->val;
+        td->loc = td->val = td2d->loc;
+        td->iloc[0] = td->ival = td2d->loc[0];
 
         td->center[0] = td->ival;
         td->center[1] = ypos;
+
+        /* Store the int value in #td->extra, so we can flush later. */
+        td->extra = &gpf->framenum;
 
         if (is_selected) {
           td->flag = TD_SELECTED;
@@ -438,8 +435,10 @@ static int GPLayerToTransData(TransData *td,
 
         /* Advance `td` now. */
         td++;
-        tfd++;
+        td2d++;
         count++;
+
+        BLI_assert(data_is_gp_or_mask(td, td2d));
       }
     }
   }
@@ -498,6 +497,8 @@ static int GreasePencilLayerToTransData(TransData *td,
     td2d++;
     total_trans_frames++;
     any_frame_affected = true;
+
+    BLI_assert(!data_is_gp_or_mask(td, td2d));
   };
 
   const blender::Map<int, GreasePencilFrame> &frame_map =
@@ -522,7 +523,7 @@ static int GreasePencilLayerToTransData(TransData *td,
 
 /* refer to comment above #GPLayerToTransData, this is the same but for masks */
 static int MaskLayerToTransData(TransData *td,
-                                tGPFtransdata *tfd,
+                                TransData2D *td2d,
                                 MaskLayer *masklay,
                                 char side,
                                 float cfra,
@@ -535,22 +536,23 @@ static int MaskLayerToTransData(TransData *td,
   LISTBASE_FOREACH (MaskLayerShape *, masklay_shape, &masklay->splines_shapes) {
     if (is_prop_edit || (masklay_shape->flag & MASK_SHAPE_SELECT)) {
       if (FrameOnMouseSide(side, float(masklay_shape->frame), cfra)) {
-        tfd->val = float(masklay_shape->frame);
-        tfd->sdata = &masklay_shape->frame;
+        td2d->loc[0] = float(masklay_shape->frame);
 
-        td->loc = tfd->loc;
-        td->iloc[0] = tfd->loc[0];
-
-        td->val = &tfd->val;
-        td->ival = tfd->val;
+        td->loc = td->val = td2d->loc;
+        td->iloc[0] = td->ival = td2d->loc[0];
 
         td->center[0] = td->ival;
         td->center[1] = ypos;
 
+        /* Store the int value in #td->extra, so we can flush later. */
+        td->extra = &masklay_shape->frame;
+
         /* advance td now */
         td++;
-        tfd++;
+        td2d++;
         count++;
+
+        BLI_assert(data_is_gp_or_mask(td, td2d));
       }
     }
   }
@@ -563,7 +565,6 @@ static void createTransActionData(bContext *C, TransInfo *t)
   Scene *scene = t->scene;
   TransData *td = nullptr;
   TransData2D *td2d = nullptr;
-  tGPFtransdata *tfd = nullptr;
 
   /* The T_DUPLICATED_KEYFRAMES flag is only set if we made some duplicates of the selected frames,
    * and they are the ones that are being transformed. */
@@ -669,13 +670,6 @@ static void createTransActionData(bContext *C, TransInfo *t)
   td = tc->data;
   td2d = tc->data_2d;
 
-  if (ELEM(ac.datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK, ANIMCONT_DOPESHEET, ANIMCONT_TIMELINE)) {
-    tc->data_gpf_len = gpf_count;
-    tc->custom.type.data = tfd = static_cast<tGPFtransdata *>(
-        MEM_callocN(sizeof(tGPFtransdata) * gpf_count, "tGPFtransdata"));
-    tc->custom.type.use_free = true;
-  }
-
   /* loop 2: build transdata array */
   LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
 
@@ -697,9 +691,9 @@ static void createTransActionData(bContext *C, TransInfo *t)
       bGPDlayer *gpl = (bGPDlayer *)ale->data;
       int i;
 
-      i = GPLayerToTransData(td, tfd, gpl, t->frame_side, cfra, is_prop_edit, ypos);
+      i = GPLayerToTransData(td, td2d, gpl, t->frame_side, cfra, is_prop_edit, ypos);
       td += i;
-      tfd += i;
+      td2d += i;
     }
     else if (ale->type == ANIMTYPE_GREASE_PENCIL_LAYER) {
       using namespace blender::bke::greasepencil;
@@ -715,9 +709,9 @@ static void createTransActionData(bContext *C, TransInfo *t)
       MaskLayer *masklay = (MaskLayer *)ale->data;
       int i;
 
-      i = MaskLayerToTransData(td, tfd, masklay, t->frame_side, cfra, is_prop_edit, ypos);
+      i = MaskLayerToTransData(td, td2d, masklay, t->frame_side, cfra, is_prop_edit, ypos);
       td += i;
-      tfd += i;
+      td2d += i;
     }
     else {
       AnimData *adt = ANIM_nla_mapping_get(&ac, ale);
@@ -879,20 +873,6 @@ static void createTransActionData(bContext *C, TransInfo *t)
 /** \name Action Transform Flush
  * \{ */
 
-/* (Grease Pencil Legacy)
- * This function helps flush transdata written to tempdata into the gp-frames. */
-static void flushTransIntFrameActionData(TransInfo *t)
-{
-  TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
-  tGPFtransdata *tfd = static_cast<tGPFtransdata *>(tc->custom.type.data);
-
-  /* flush data!
-   * Expects data_gpf_len to be set in the data container. */
-  for (int i = 0; i < tc->data_gpf_len; i++, tfd++) {
-    *(tfd->sdata) = round_fl_to_int(tfd->val);
-  }
-}
-
 static void invert_snap(eSnapMode &snap_mode)
 {
   /* Make snapping work like before 4.0 where pressing CTRL will switch between snapping to seconds
@@ -932,12 +912,6 @@ static void recalcData_actedit(TransInfo *t)
 
   ANIM_animdata_context_getdata(&ac);
 
-  /* perform flush */
-  if (ELEM(ac.datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK, ANIMCONT_DOPESHEET, ANIMCONT_TIMELINE)) {
-    /* flush transform values back to actual coordinates */
-    flushTransIntFrameActionData(t);
-  }
-
   /* Flush 2d vector. */
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
   eSnapMode snap_mode = t->tsnap.mode;
@@ -965,6 +939,11 @@ static void recalcData_actedit(TransInfo *t)
           round_fl_to_int(td->ival),
           round_fl_to_int(td2d->loc[0]),
           use_duplicated);
+    }
+    else if (data_is_gp_or_mask(td, td2d)) {
+      /* (Grease Pencil Legacy)
+       * This helps flush transdata written to tempdata into the gp-frames. */
+      *reinterpret_cast<int *>(td->extra) = round_fl_to_int(td2d->loc[0]);
     }
   }
 
