@@ -59,7 +59,7 @@ ObjectHandle &SyncModule::sync_object(const ObjectRef &ob_ref)
 WorldHandle SyncModule::sync_world()
 {
   WorldHandle handle;
-  handle.recalc = world_updated_ ? ID_RECALC_SHADING : 0;
+  handle.recalc = world_updated_ ? int(ID_RECALC_SHADING) : 0;
   world_updated_ = false;
   return handle;
 }
