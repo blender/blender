@@ -523,7 +523,7 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
     info.vertex_source_generated = vert_gen.str();
   }
 
-  if (!is_compute) {
+  if (!is_compute && pipeline_type != MAT_PIPE_VOLUME_OCCUPANCY) {
     frag_gen << ((codegen.material_functions) ? codegen.material_functions : "\n");
 
     if (codegen.displacement) {
