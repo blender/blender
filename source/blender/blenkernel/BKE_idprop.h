@@ -72,20 +72,25 @@ void IDP_FreeArray(struct IDProperty *prop);
 /* ---------- String Type ------------ */
 /**
  * \param st: The string to assign.
+ * Doesn't need to be null terminated when clamped by `maxncpy`.
  * \param name: The property name.
  * \param maxncpy: The maximum size of the string (including the `\0` terminator).
+ * When zero, this is the equivalent of passing in `strlen(st) + 1`
  * \return The new string property.
  */
 struct IDProperty *IDP_NewStringMaxSize(const char *st,
-                                        const char *name,
-                                        int maxncpy) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(2);
+                                        size_t st_maxncpy,
+                                        const char *name) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(3);
 struct IDProperty *IDP_NewString(const char *st, const char *name) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(2);
 /**
  * \param st: The string to assign.
+ * Doesn't need to be null terminated when clamped by `maxncpy`.
  * \param maxncpy: The maximum size of the string (including the `\0` terminator).
+ * When zero, this is the equivalent of passing in `strlen(st) + 1`
  */
-void IDP_AssignStringMaxSize(struct IDProperty *prop, const char *st, int maxncpy) ATTR_NONNULL();
+void IDP_AssignStringMaxSize(struct IDProperty *prop, const char *st, size_t st_maxncpy)
+    ATTR_NONNULL();
 void IDP_AssignString(struct IDProperty *prop, const char *st) ATTR_NONNULL();
 void IDP_FreeString(struct IDProperty *prop) ATTR_NONNULL();
 

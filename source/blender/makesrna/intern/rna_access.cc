@@ -3429,7 +3429,7 @@ void RNA_property_string_set(PointerRNA *ptr, PropertyRNA *prop, const char *val
     if (group) {
       IDP_AddToGroup(
           group,
-          IDP_NewStringMaxSize(value, prop->identifier, RNA_property_string_maxlength(prop)));
+          IDP_NewStringMaxSize(value, RNA_property_string_maxlength(prop), prop->identifier));
     }
   }
 }
