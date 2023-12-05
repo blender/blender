@@ -4514,7 +4514,7 @@ def generate_keymaps_impl(params=None):
         km_animation_channels(params),
 
         # Modes.
-        km_grease_pencil(params),
+        # km_grease_pencil(params), # Empty.
         km_grease_pencil_stroke_edit_mode(params),
         km_grease_pencil_stroke_paint_mode(params),
         km_grease_pencil_stroke_paint_draw_brush(params),
