@@ -242,12 +242,16 @@ static BLI_freenode *mempool_chunk_add(BLI_mempool *pool,
       BLI_freenode *next;
 
       BLI_asan_unpoison(curnode, pool->esize - POISON_REDZONE_SIZE);
-
+#ifdef WITH_MEM_VALGRIND
+      VALGRIND_MAKE_MEM_DEFINED(curnode, pool->esize - POISON_REDZONE_SIZE);
+#endif
       curnode->next = next = NODE_STEP_NEXT(curnode);
       curnode->freeword = FREEWORD;
 
       BLI_asan_poison(curnode, pool->esize);
-
+#ifdef WITH_MEM_VALGRIND
+      VALGRIND_MAKE_MEM_UNDEFINED(curnode, pool->esize);
+#endif
       curnode = next;
     }
   }
@@ -256,8 +260,14 @@ static BLI_freenode *mempool_chunk_add(BLI_mempool *pool,
       BLI_freenode *next;
 
       BLI_asan_unpoison(curnode, pool->esize - POISON_REDZONE_SIZE);
+#ifdef WITH_MEM_VALGRIND
+      VALGRIND_MAKE_MEM_DEFINED(curnode, pool->esize - POISON_REDZONE_SIZE);
+#endif
       curnode->next = next = NODE_STEP_NEXT(curnode);
       BLI_asan_poison(curnode, pool->esize);
+#ifdef WITH_MEM_VALGRIND
+      VALGRIND_MAKE_MEM_UNDEFINED(curnode, pool->esize);
+#endif
 
       curnode = next;
     }
@@ -266,14 +276,27 @@ static BLI_freenode *mempool_chunk_add(BLI_mempool *pool,
   /* terminate the list (rewind one)
    * will be overwritten if 'curnode' gets passed in again as 'last_tail' */
 
-  BLI_asan_unpoison(curnode, pool->esize - POISON_REDZONE_SIZE);
-  BLI_asan_poison(curnode, pool->esize);
+  if (POISON_REDZONE_SIZE > 0) {
+    BLI_asan_unpoison(curnode, pool->esize - POISON_REDZONE_SIZE);
+    BLI_asan_poison(curnode, pool->esize);
+#ifdef WITH_MEM_VALGRIND
+    VALGRIND_MAKE_MEM_DEFINED(curnode, pool->esize - POISON_REDZONE_SIZE);
+    VALGRIND_MAKE_MEM_UNDEFINED(curnode, pool->esize);
+#endif
+  }
 
   curnode = NODE_STEP_PREV(curnode);
 
   BLI_asan_unpoison(curnode, pool->esize - POISON_REDZONE_SIZE);
+#ifdef WITH_MEM_VALGRIND
+  VALGRIND_MAKE_MEM_DEFINED(curnode, pool->esize - POISON_REDZONE_SIZE);
+#endif
+
   curnode->next = NULL;
   BLI_asan_poison(curnode, pool->esize);
+#ifdef WITH_MEM_VALGRIND
+  VALGRIND_MAKE_MEM_UNDEFINED(curnode, pool->esize);
+#endif
 
 #ifdef USE_TOTALLOC
   pool->totalloc += pool->pchunk;
@@ -282,8 +305,14 @@ static BLI_freenode *mempool_chunk_add(BLI_mempool *pool,
   /* final pointer in the previously allocated chunk is wrong */
   if (last_tail) {
     BLI_asan_unpoison(last_tail, pool->esize - POISON_REDZONE_SIZE);
+#ifdef WITH_MEM_VALGRIND
+    VALGRIND_MAKE_MEM_DEFINED(last_tail, pool->esize - POISON_REDZONE_SIZE);
+#endif
     last_tail->next = CHUNK_DATA(mpchunk);
     BLI_asan_poison(last_tail, pool->esize);
+#ifdef WITH_MEM_VALGRIND
+    VALGRIND_MAKE_MEM_UNDEFINED(last_tail, pool->esize);
+#endif
   }
 
   return curnode;
@@ -295,6 +324,9 @@ static void mempool_chunk_free(BLI_mempool_chunk *mpchunk, BLI_mempool *pool)
   BLI_asan_unpoison(mpchunk, sizeof(BLI_mempool_chunk) + pool->esize * pool->csize);
 #else
   UNUSED_VARS(pool);
+#endif
+#ifdef WITH_MEM_VALGRIND
+  VALGRIND_MAKE_MEM_DEFINED(mpchunk, sizeof(BLI_mempool_chunk) + pool->esize * pool->csize);
 #endif
   MEM_freeN(mpchunk);
 }
@@ -394,6 +426,17 @@ void *BLI_mempool_alloc(BLI_mempool *pool)
   free_pop = pool->free;
 
   BLI_asan_unpoison(free_pop, pool->esize - POISON_REDZONE_SIZE);
+#ifdef WITH_MEM_VALGRIND
+  VALGRIND_MEMPOOL_ALLOC(pool, free_pop, pool->esize - POISON_REDZONE_SIZE);
+  /* Mark as define, then undefine immediately before returning so:
+   * - `free_pop->next` can be read without reading "undefined" memory.
+   * - `freeword` can be set without causing the memory to be considered "defined".
+   *
+   * These could be handled on a more granular level - dealing with defining & underlining these
+   * members explicitly but that requires more involved calls,
+   * adding overhead for no real benefit. */
+  VALGRIND_MAKE_MEM_DEFINED(free_pop, pool->esize - POISON_REDZONE_SIZE);
+#endif
 
   BLI_assert(pool->chunk_tail->next == NULL);
 
@@ -405,7 +448,7 @@ void *BLI_mempool_alloc(BLI_mempool *pool)
   pool->totused++;
 
 #ifdef WITH_MEM_VALGRIND
-  VALGRIND_MEMPOOL_ALLOC(pool, free_pop, pool->esize);
+  VALGRIND_MAKE_MEM_UNDEFINED(free_pop, pool->esize - POISON_REDZONE_SIZE);
 #endif
 
   return (void *)free_pop;
@@ -687,6 +730,9 @@ void *BLI_mempool_iterstep(BLI_mempool_iter *iter)
     ret = curnode;
 
     BLI_asan_unpoison(ret, iter->pool->esize - POISON_REDZONE_SIZE);
+#  ifdef WITH_MEM_VALGRIND
+    VALGRIND_MAKE_MEM_DEFINED(ret, iter->pool->esize - POISON_REDZONE_SIZE);
+#  endif
 
     if (++iter->curindex != iter->pool->pchunk) {
       curnode = POINTER_OFFSET(curnode, esize);
@@ -696,10 +742,16 @@ void *BLI_mempool_iterstep(BLI_mempool_iter *iter)
       iter->curchunk = iter->curchunk->next;
       if (UNLIKELY(iter->curchunk == NULL)) {
         BLI_asan_unpoison(ret, iter->pool->esize - POISON_REDZONE_SIZE);
+#  ifdef WITH_MEM_VALGRIND
+        VALGRIND_MAKE_MEM_DEFINED(ret, iter->pool->esize - POISON_REDZONE_SIZE);
+#  endif
         void *ret2 = (ret->freeword == FREEWORD) ? NULL : ret;
 
         if (ret->freeword == FREEWORD) {
           BLI_asan_poison(ret, iter->pool->esize);
+#  ifdef WITH_MEM_VALGRIND
+          VALGRIND_MAKE_MEM_UNDEFINED(ret, iter->pool->esize);
+#  endif
         }
 
         return ret2;
@@ -727,6 +779,9 @@ void *mempool_iter_threadsafe_step(BLI_mempool_threadsafe_iter *ts_iter)
     ret = curnode;
 
     BLI_asan_unpoison(ret, esize - POISON_REDZONE_SIZE);
+#  ifdef WITH_MEM_VALGRIND
+    VALGRIND_MAKE_MEM_DEFINED(ret, iter->pool->esize);
+#  endif
 
     if (++iter->curindex != iter->pool->pchunk) {
       curnode = POINTER_OFFSET(curnode, esize);
@@ -746,6 +801,9 @@ void *mempool_iter_threadsafe_step(BLI_mempool_threadsafe_iter *ts_iter)
       if (UNLIKELY(iter->curchunk == NULL)) {
         if (ret->freeword == FREEWORD) {
           BLI_asan_poison(ret, esize);
+#  ifdef WITH_MEM_VALGRIND
+          VALGRIND_MAKE_MEM_UNDEFINED(ret, iter->pool->esize);
+#  endif
           mempool_asan_unlock(iter->pool);
           return NULL;
         }
@@ -760,6 +818,9 @@ void *mempool_iter_threadsafe_step(BLI_mempool_threadsafe_iter *ts_iter)
       if (UNLIKELY(iter->curchunk == NULL)) {
         if (ret->freeword == FREEWORD) {
           BLI_asan_poison(ret, iter->pool->esize);
+#  ifdef WITH_MEM_VALGRIND
+          VALGRIND_MAKE_MEM_UNDEFINED(ret, iter->pool->esize);
+#  endif
           mempool_asan_unlock(iter->pool);
           return NULL;
         }
@@ -774,6 +835,9 @@ void *mempool_iter_threadsafe_step(BLI_mempool_threadsafe_iter *ts_iter)
 
     if (ret->freeword == FREEWORD) {
       BLI_asan_poison(ret, iter->pool->esize);
+#  ifdef WITH_MEM_VALGRIND
+      VALGRIND_MAKE_MEM_UNDEFINED(ret, iter->pool->esize);
+#  endif
     }
     else {
       break;
