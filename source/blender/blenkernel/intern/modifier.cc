@@ -528,34 +528,6 @@ int BKE_modifiers_get_cage_index(const Scene *scene,
   return cageIndex;
 }
 
-bool BKE_modifiers_is_softbody_enabled(Object *ob)
-{
-  ModifierData *md = BKE_modifiers_findby_type(ob, eModifierType_Softbody);
-
-  return (md && md->mode & (eModifierMode_Realtime | eModifierMode_Render));
-}
-
-bool BKE_modifiers_is_cloth_enabled(Object *ob)
-{
-  ModifierData *md = BKE_modifiers_findby_type(ob, eModifierType_Cloth);
-
-  return (md && md->mode & (eModifierMode_Realtime | eModifierMode_Render));
-}
-
-bool BKE_modifiers_is_modifier_enabled(Object *ob, int modifierType)
-{
-  ModifierData *md = BKE_modifiers_findby_type(ob, ModifierType(modifierType));
-
-  return (md && md->mode & (eModifierMode_Realtime | eModifierMode_Render));
-}
-
-bool BKE_modifiers_is_particle_enabled(Object *ob)
-{
-  ModifierData *md = BKE_modifiers_findby_type(ob, eModifierType_ParticleSystem);
-
-  return (md && md->mode & (eModifierMode_Realtime | eModifierMode_Render));
-}
-
 bool BKE_modifier_is_enabled(const Scene *scene, ModifierData *md, int required_mode)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));

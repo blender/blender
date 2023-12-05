@@ -458,11 +458,6 @@ int BKE_modifiers_get_cage_index(const Scene *scene,
                                  int *r_lastPossibleCageIndex,
                                  bool is_virtual);
 
-bool BKE_modifiers_is_modifier_enabled(Object *ob, int modifierType);
-bool BKE_modifiers_is_softbody_enabled(Object *ob);
-bool BKE_modifiers_is_cloth_enabled(Object *ob);
-bool BKE_modifiers_is_particle_enabled(Object *ob);
-
 /**
  * Takes an object and returns its first selected armature, else just its armature.
  * This should work for multiple armatures per object.
