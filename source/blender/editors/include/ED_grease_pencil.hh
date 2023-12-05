@@ -23,6 +23,9 @@ struct Object;
 struct KeyframeEditData;
 struct wmKeyConfig;
 struct ToolSettings;
+struct Scene;
+struct ViewDepths;
+struct View3D;
 
 enum {
   LAYER_REORDER_ABOVE,
@@ -50,6 +53,46 @@ eAttrDomain ED_grease_pencil_selection_domain_get(const ToolSettings *tool_setti
 /** \} */
 
 namespace blender::ed::greasepencil {
+
+enum class DrawingPlacementDepth { ObjectOrigin, Cursor, Surface, NearestStroke };
+
+enum class DrawingPlacementPlane { View, Front, Side, Top, Cursor };
+
+class DrawingPlacement {
+  const ARegion *region_;
+  const View3D *view3d_;
+
+  DrawingPlacementDepth depth_;
+  DrawingPlacementPlane plane_;
+  bke::greasepencil::DrawingTransforms transforms_;
+  ViewDepths *depth_cache_ = nullptr;
+  float surface_offset_;
+
+  float3 placement_loc_;
+  float3 placement_normal_;
+  float4 placement_plane_;
+
+ public:
+  DrawingPlacement() = default;
+  DrawingPlacement(const Scene &scene,
+                   const ARegion &region,
+                   const View3D &view3d,
+                   const Object &object);
+  ~DrawingPlacement();
+
+ public:
+  bool use_project_to_surface() const;
+  bool use_project_to_nearest_stroke() const;
+
+  void cache_viewport_depths(Depsgraph *depsgraph, ARegion *region, View3D *view3d);
+  void set_origin_to_nearest_stroke(float2 co);
+
+  /**
+   * Projects a screen space coordinate to the local drawing space.
+   */
+  float3 project(float2 co) const;
+  void project(Span<float2> src, MutableSpan<float3> dst) const;
+};
 
 void set_selected_frames_type(bke::greasepencil::Layer &layer,
                               const eBezTriple_KeyframeType key_type);

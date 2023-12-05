@@ -2421,7 +2421,7 @@ void ED_view3d_depth_override(Depsgraph *depsgraph,
     switch (mode) {
       case V3D_DEPTH_NO_GPENCIL:
         DRW_draw_depth_loop(
-            depsgraph, region, v3d, viewport, false, true, (v3d->flag2 & V3D_HIDE_OVERLAYS) == 0);
+            depsgraph, region, v3d, viewport, false, true, false);
         break;
       case V3D_DEPTH_GPENCIL_ONLY:
         DRW_draw_depth_loop(depsgraph, region, v3d, viewport, true, false, false);

@@ -232,6 +232,8 @@ namespace blender::bke::greasepencil {
 
 DrawingTransforms::DrawingTransforms(const Object &grease_pencil_ob)
 {
+  /* TODO: For now layer space = object space. This needs to change once the layers have a
+   * transform. */
   this->layer_space_to_world_space = float4x4_view(grease_pencil_ob.object_to_world);
   this->world_space_to_layer_space = math::invert(this->layer_space_to_world_space);
 }

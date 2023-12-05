@@ -1574,18 +1574,21 @@ typedef struct ToolSettings {
   char gpencil_v3d_align;
   /** General 2D Editor. */
   char gpencil_v2d_align;
-  char _pad0[2];
 
   /* Annotations. */
   /** Stroke placement settings - 3D View. */
   char annotate_v3d_align;
-
   /** Default stroke thickness for annotation strokes. */
   short annotate_thickness;
+
+  /** Normal offset used when drawing on surfaces. */
+  float gpencil_surface_offset;
+  
   /** Stroke selection mode for Edit. */
   char gpencil_selectmode_edit;
   /** Stroke selection mode for Sculpt. */
   char gpencil_selectmode_sculpt;
+  char _pad0[6];
 
   /** Grease Pencil Sculpt. */
   struct GP_Sculpt_Settings gp_sculpt;
