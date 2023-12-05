@@ -4085,26 +4085,6 @@ void CustomData_data_add(const eCustomDataType type, void *data1, const void *da
   }
 }
 
-void CustomData_bmesh_set(const CustomData *data,
-                          void *block,
-                          const eCustomDataType type,
-                          const void *source)
-{
-  void *dest = CustomData_bmesh_get(data, block, type);
-  const LayerTypeInfo *typeInfo = layerType_getInfo(type);
-
-  if (!dest) {
-    return;
-  }
-
-  if (typeInfo->copy) {
-    typeInfo->copy(source, dest, 1);
-  }
-  else {
-    memcpy(dest, source, typeInfo->size);
-  }
-}
-
 void CustomData_bmesh_set_n(
     CustomData *data, void *block, const eCustomDataType type, const int n, const void *source)
 {

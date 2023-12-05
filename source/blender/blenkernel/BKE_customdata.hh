@@ -509,11 +509,6 @@ const char *CustomData_get_render_layer_name(const CustomData *data, eCustomData
 
 bool CustomData_layer_is_anonymous(const CustomData *data, eCustomDataType type, int n);
 
-void CustomData_bmesh_set(const CustomData *data,
-                          void *block,
-                          eCustomDataType type,
-                          const void *source);
-
 void CustomData_bmesh_set_n(
     CustomData *data, void *block, eCustomDataType type, int n, const void *source);
 
