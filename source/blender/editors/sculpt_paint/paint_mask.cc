@@ -54,8 +54,8 @@
 #include "ED_sculpt.hh"
 #include "ED_view3d.hh"
 
-#include "bmesh.h"
-#include "tools/bmesh_boolean.h"
+#include "bmesh.hh"
+#include "tools/bmesh_boolean.hh"
 
 #include "paint_intern.hh"
 

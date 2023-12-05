@@ -44,7 +44,7 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
 #include "paint_intern.hh"
 

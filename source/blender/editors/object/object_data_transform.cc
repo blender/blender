@@ -41,7 +41,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_scene.h"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"

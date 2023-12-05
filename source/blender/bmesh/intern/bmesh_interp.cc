@@ -25,8 +25,8 @@
 #include "BKE_customdata.hh"
 #include "BKE_multires.hh"
 
-#include "bmesh.h"
-#include "intern/bmesh_private.h"
+#include "bmesh.hh"
+#include "intern/bmesh_private.hh"
 
 /* edge and vertex share, currently there's no need to have different logic */
 static void bm_data_interp_from_elem(CustomData *data_layer,

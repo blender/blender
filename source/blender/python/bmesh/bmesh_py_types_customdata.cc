@@ -14,7 +14,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
 #include "bmesh_py_types.h"
 #include "bmesh_py_types_customdata.h"

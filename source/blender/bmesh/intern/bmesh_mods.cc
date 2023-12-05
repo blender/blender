@@ -16,8 +16,8 @@
 
 #include "BKE_customdata.hh"
 
-#include "bmesh.h"
-#include "intern/bmesh_private.h"
+#include "bmesh.hh"
+#include "intern/bmesh_private.hh"
 
 using blender::Vector;
 

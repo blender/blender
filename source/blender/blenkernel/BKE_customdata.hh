@@ -43,7 +43,7 @@ using eCustomDataMask = uint64_t;
 
 /**
  * UV map related customdata offsets into BMesh attribute blocks. See #BM_uv_map_get_offsets.
- * Defined in #BKE_customdata.hh to avoid including bmesh.h in many unrelated areas.
+ * Defined in #BKE_customdata.hh to avoid including bmesh.hh in many unrelated areas.
  * An offset of -1 means that the corresponding layer does not exist.
  */
 struct BMUVOffsets {

@@ -38,7 +38,7 @@
 #include "paint_intern.hh"
 #include "sculpt_intern.hh"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
 #include <cmath>
 #include <cstdlib>

@@ -51,7 +51,7 @@
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
 using blender::Span;
 using blender::Vector;

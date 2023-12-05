@@ -24,7 +24,7 @@
 
 #include "DRW_pbvh.hh"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 #include "pbvh_intern.hh"
 
 #include "PIL_time.h"

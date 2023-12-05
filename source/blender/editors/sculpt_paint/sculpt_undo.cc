@@ -77,7 +77,7 @@
 #include "ED_sculpt.hh"
 #include "ED_undo.hh"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 #include "sculpt_intern.hh"
 
 using blender::Span;

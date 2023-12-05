@@ -19,8 +19,8 @@
 
 #include "BKE_customdata.hh"
 
-#include "bmesh.h"
-#include "intern/bmesh_operators_private.h"
+#include "bmesh.hh"
+#include "intern/bmesh_operators_private.hh"
 
 static void remdoubles_splitface(BMFace *f, BMesh *bm, BMOperator *op, BMOpSlot *slot_targetmap)
 {

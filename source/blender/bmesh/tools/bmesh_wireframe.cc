@@ -12,7 +12,7 @@
 
 #include "DNA_meshdata_types.h"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
@@ -20,7 +20,7 @@
 #include "BKE_customdata.hh"
 #include "BKE_deform.h"
 
-#include "bmesh_wireframe.h"
+#include "bmesh_wireframe.hh"
 
 static BMLoop *bm_edge_tag_faceloop(BMEdge *e)
 {

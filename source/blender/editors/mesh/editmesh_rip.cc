@@ -32,8 +32,8 @@
 #include "ED_transform.hh"
 #include "ED_view3d.hh"
 
-#include "bmesh.h"
-#include "bmesh_tools.h"
+#include "bmesh.hh"
+#include "bmesh_tools.hh"
 
 #include "mesh_intern.h" /* own include */
 

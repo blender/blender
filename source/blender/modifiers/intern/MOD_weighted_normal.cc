@@ -40,7 +40,7 @@
 #include "MOD_ui_common.hh"
 #include "MOD_util.hh"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
 #define CLNORS_VALID_VEC_LEN (1e-6f)
 

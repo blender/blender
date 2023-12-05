@@ -20,8 +20,8 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
-#include "bmesh.h"
-#include "intern/bmesh_private.h"
+#include "bmesh.hh"
+#include "intern/bmesh_private.hh"
 
 bool BM_verts_from_edges(BMVert **vert_arr, BMEdge **edge_arr, const int len)
 {

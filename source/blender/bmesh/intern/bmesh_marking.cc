@@ -23,11 +23,11 @@
 #include "BLI_math_vector.h"
 #include "BLI_task.h"
 
-#include "bmesh.h"
-#include "bmesh_structure.h"
+#include "bmesh.hh"
+#include "bmesh_structure.hh"
 
 /* For '_FLAG_OVERLAP'. */
-#include "bmesh_private.h"
+#include "bmesh_private.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Recounting total selection.

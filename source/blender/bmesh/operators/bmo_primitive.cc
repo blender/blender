@@ -19,8 +19,8 @@
 
 #include "DNA_meshdata_types.h"
 
-#include "bmesh.h"
-#include "intern/bmesh_operators_private.h"
+#include "bmesh.hh"
+#include "intern/bmesh_operators_private.hh"
 
 /* ************************ primitives ******************* */
 

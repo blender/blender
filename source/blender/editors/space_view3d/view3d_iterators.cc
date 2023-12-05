@@ -38,7 +38,7 @@
 
 #include "ANIM_bone_collections.hh"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
 #include "ED_armature.hh"
 #include "ED_screen.hh"

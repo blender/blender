@@ -31,10 +31,10 @@
 
 #include "eigen_capi.h"
 
-#include "bmesh.h"
-#include "bmesh_bevel.h" /* own include */
+#include "bmesh.hh"
+#include "bmesh_bevel.hh" /* own include */
 
-#include "./intern/bmesh_private.h"
+#include "./intern/bmesh_private.hh"
 
 using blender::Vector;
 
@@ -331,7 +331,7 @@ struct BevelParams {
   BMesh *bm;
   /** Blender units to offset each side of a beveled edge. */
   float offset;
-  /** How offset is measured; enum defined in bmesh_operators.h. */
+  /** How offset is measured; enum defined in bmesh_operators.hh. */
   int offset_type;
   /** Profile type: radius, superellipse, or custom */
   int profile_type;

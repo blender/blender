@@ -15,8 +15,8 @@
 #include "BLI_alloca.h"
 #include "BLI_math_vector.h"
 
-#include "bmesh.h"
-#include "intern/bmesh_private.h" /* for element checking */
+#include "bmesh.hh"
+#include "intern/bmesh_private.hh" /* for element checking */
 
 static BMVert *bm_vert_copy(BMesh *bm_src, BMesh *bm_dst, BMVert *v_src)
 {

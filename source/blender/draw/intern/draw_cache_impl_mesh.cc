@@ -47,7 +47,7 @@
 
 #include "atomic_ops.h"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
 #include "GPU_batch.h"
 #include "GPU_material.h"

@@ -29,7 +29,7 @@
 
 #include "DRW_engine.h"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
 #include "UI_resources.hh"
 

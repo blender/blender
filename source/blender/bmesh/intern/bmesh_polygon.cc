@@ -26,12 +26,12 @@
 #include "BLI_polyfill_2d.h"
 #include "BLI_polyfill_2d_beautify.h"
 
-#include "bmesh.h"
-#include "bmesh_tools.h"
+#include "bmesh.hh"
+#include "bmesh_tools.hh"
 
 #include "BKE_customdata.hh"
 
-#include "intern/bmesh_private.h"
+#include "intern/bmesh_private.hh"
 
 /**
  * \brief COMPUTE POLY NORMAL (BMFace)

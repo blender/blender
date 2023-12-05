@@ -26,7 +26,7 @@
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
 #include <cmath>
 #include <cstdlib>

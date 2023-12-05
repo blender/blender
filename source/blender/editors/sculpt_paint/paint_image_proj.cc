@@ -106,7 +106,7 @@
 
 #include "IMB_colormanagement.h"
 
-//#include "bmesh_tools.h"
+//#include "bmesh_tools.hh"
 
 #include "paint_intern.hh"
 

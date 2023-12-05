@@ -32,7 +32,7 @@
 #include "paint_intern.hh"
 #include "sculpt_intern.hh"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
 #define SCULPT_GEODESIC_VERTEX_NONE -1
 

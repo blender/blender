@@ -53,10 +53,10 @@
 
 #include "GEO_randomize.hh"
 
-#include "bmesh.h"
-#include "bmesh_tools.h"
-#include "tools/bmesh_boolean.h"
-#include "tools/bmesh_intersect.h"
+#include "bmesh.hh"
+#include "bmesh_tools.hh"
+#include "tools/bmesh_boolean.hh"
+#include "tools/bmesh_intersect.hh"
 
 // #define DEBUG_TIME
 

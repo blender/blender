@@ -16,9 +16,9 @@
 
 #include "BKE_customdata.hh"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
-#include "intern/bmesh_operators_private.h" /* own include */
+#include "intern/bmesh_operators_private.hh" /* own include */
 
 #include "BLI_strict_flags.h"
 

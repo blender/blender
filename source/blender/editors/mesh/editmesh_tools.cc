@@ -76,7 +76,7 @@
 
 #include "mesh_intern.h" /* own include */
 
-#include "bmesh_tools.h"
+#include "bmesh_tools.hh"
 
 #define USE_FACE_CREATE_SEL_EXTEND
 

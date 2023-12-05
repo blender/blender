@@ -17,7 +17,7 @@
 
 #include "ED_mesh.hh"
 
-#include "tools/bmesh_intersect_edges.h"
+#include "tools/bmesh_intersect_edges.hh"
 
 //#define DEBUG_TIME
 #ifdef DEBUG_TIME

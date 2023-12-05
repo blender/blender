@@ -13,9 +13,9 @@
 #include "BLI_mesh_boolean.hh"
 #include "BLI_mesh_intersect.hh"
 
-#include "bmesh.h"
-#include "bmesh_boolean.h"
-#include "bmesh_edgesplit.h"
+#include "bmesh.hh"
+#include "bmesh_boolean.hh"
+#include "bmesh_edgesplit.hh"
 
 #include "PIL_time.h"
 
@@ -402,7 +402,6 @@ static bool bmesh_boolean(BMesh *bm,
 
 }  // namespace blender::meshintersect
 
-extern "C" {
 /**
  * Perform the boolean operation specified by boolean_mode on the mesh bm.
  * The inputs to the boolean operation are either one sub-mesh (if use_self is true),
@@ -507,5 +506,3 @@ bool BM_mesh_boolean_knife(BMesh * /*bm*/,
   return false;
 }
 #endif
-
-} /* extern "C" */

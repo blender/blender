@@ -78,7 +78,7 @@
 #include "MOD_modifiertypes.hh"
 #include "MOD_ui_common.hh"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Generic BMesh Utilities

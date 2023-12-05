@@ -101,8 +101,8 @@
 
 #include "DEG_depsgraph_query.hh"
 
-#include "bmesh.h"
-#include "intern/bmesh_private.h" /* For element checking. */
+#include "bmesh.hh"
+#include "intern/bmesh_private.hh" /* For element checking. */
 
 #include "CLG_log.h"
 

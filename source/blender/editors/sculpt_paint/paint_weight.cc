@@ -63,7 +63,7 @@
 #include "IMB_imbuf.h"
 
 #include "BKE_ccg.h"
-#include "bmesh.h"
+#include "bmesh.hh"
 
 #include "paint_intern.hh" /* own include */
 #include "sculpt_intern.hh"

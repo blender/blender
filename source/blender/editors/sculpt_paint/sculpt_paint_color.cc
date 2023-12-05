@@ -28,7 +28,7 @@
 
 #include "IMB_imbuf.h"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
 #include <cmath>
 #include <cstdlib>

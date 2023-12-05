@@ -25,7 +25,7 @@
 #include "BKE_attribute.h"
 #include "BKE_pbvh.hh"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
 struct BMFace;
 struct BMesh;

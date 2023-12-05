@@ -80,7 +80,7 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
 using blender::float3;
 using blender::MutableSpan;

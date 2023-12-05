@@ -20,8 +20,8 @@
 
 #include "BLT_translation.h"
 
-#include "bmesh.h"
-#include "intern/bmesh_private.h"
+#include "bmesh.hh"
+#include "intern/bmesh_private.hh"
 
 /* forward declarations */
 static void bmo_flag_layer_alloc(BMesh *bm);

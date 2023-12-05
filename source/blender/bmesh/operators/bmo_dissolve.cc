@@ -14,10 +14,10 @@
 #include "BLI_stack.h"
 #include "BLI_vector.hh"
 
-#include "bmesh.h"
-#include "bmesh_tools.h"
+#include "bmesh.hh"
+#include "bmesh_tools.hh"
 
-#include "intern/bmesh_operators_private.h"
+#include "intern/bmesh_operators_private.hh"
 
 using blender::Vector;
 

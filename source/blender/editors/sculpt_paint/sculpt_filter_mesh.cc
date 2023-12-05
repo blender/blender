@@ -47,7 +47,7 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
 #include <cmath>
 #include <cstdlib>

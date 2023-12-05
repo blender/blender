@@ -5,8 +5,8 @@
 #include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
 
-#include "bmesh.h"
-#include "bmesh_tools.h"
+#include "bmesh.hh"
+#include "bmesh_tools.hh"
 
 #include "DNA_mesh_types.h"
 

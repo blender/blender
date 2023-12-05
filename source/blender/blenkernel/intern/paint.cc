@@ -73,7 +73,7 @@
 
 #include "BLO_read_write.hh"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
 using blender::float3;
 using blender::MutableSpan;

@@ -54,7 +54,7 @@
 
 #include "BLO_read_write.hh"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
 #include "CLG_log.h"
 

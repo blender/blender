@@ -42,7 +42,7 @@
 #include "ED_undo.hh"
 #include "ED_view3d.hh"
 
-#include "bmesh_tools.h"
+#include "bmesh_tools.hh"
 
 #include "MEM_guardedalloc.h"
 

@@ -20,9 +20,9 @@
 
 #include "BKE_customdata.hh"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
-#include "intern/bmesh_operators_private.h" /* own include */
+#include "intern/bmesh_operators_private.hh" /* own include */
 
 /* Merge loop-data that diverges, see: #41445 */
 #define USE_LOOP_CUSTOMDATA_MERGE

@@ -25,7 +25,7 @@
 #include "BKE_pbvh_api.hh"
 #include "BKE_pbvh_pixels.hh"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
 #include "sculpt_intern.hh"
 

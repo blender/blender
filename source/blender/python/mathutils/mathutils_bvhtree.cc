@@ -44,7 +44,7 @@
 
 #  include "DEG_depsgraph_query.hh"
 
-#  include "bmesh.h"
+#  include "bmesh.hh"
 
 #  include "../bmesh/bmesh_py_types.h"
 #endif /* MATH_STANDALONE */

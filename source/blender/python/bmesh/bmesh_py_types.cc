@@ -27,7 +27,7 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
 #include <Python.h>
 

@@ -29,7 +29,7 @@
 #include "BKE_ccg.h"
 #include "BKE_pbvh.hh"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
 struct BMLog;
 struct BMesh;

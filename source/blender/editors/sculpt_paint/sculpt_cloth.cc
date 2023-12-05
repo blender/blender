@@ -49,7 +49,7 @@
 
 #include "UI_interface.hh"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
 #include <cmath>
 #include <cstdlib>

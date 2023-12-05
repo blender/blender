@@ -34,13 +34,13 @@
 #include "ED_mesh.hh"
 #include "ED_screen.hh"
 
-#include "intern/bmesh_private.h"
+#include "intern/bmesh_private.hh"
 
 #include "mesh_intern.h" /* own include */
 
-#include "tools/bmesh_boolean.h"
-#include "tools/bmesh_intersect.h"
-#include "tools/bmesh_separate.h"
+#include "tools/bmesh_boolean.hh"
+#include "tools/bmesh_intersect.hh"
+#include "tools/bmesh_separate.hh"
 
 /* detect isolated holes and fill them */
 #define USE_NET_ISLAND_CONNECT

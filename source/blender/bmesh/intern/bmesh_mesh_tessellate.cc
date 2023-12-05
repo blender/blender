@@ -25,8 +25,8 @@
 #include "BLI_polyfill_2d_beautify.h"
 #include "BLI_task.h"
 
-#include "bmesh.h"
-#include "bmesh_tools.h"
+#include "bmesh.hh"
+#include "bmesh_tools.hh"
 
 /**
  * On systems with 32+ cores,

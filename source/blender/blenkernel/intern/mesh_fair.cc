@@ -23,8 +23,8 @@
 #include "BKE_mesh_fair.hh"
 #include "BKE_mesh_mapping.hh"
 
-#include "bmesh.h"
-#include "bmesh_tools.h"
+#include "bmesh.hh"
+#include "bmesh_tools.hh"
 
 #include "MEM_guardedalloc.h"
 #include "eigen_capi.h"

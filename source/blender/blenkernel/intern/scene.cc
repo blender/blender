@@ -116,7 +116,7 @@
 
 #include "DRW_engine.h"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
 CurveMapping *BKE_sculpt_default_cavity_curve()
 

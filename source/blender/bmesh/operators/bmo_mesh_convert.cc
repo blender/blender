@@ -14,8 +14,8 @@
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 
-#include "bmesh.h"
-#include "intern/bmesh_operators_private.h"
+#include "bmesh.hh"
+#include "intern/bmesh_operators_private.hh"
 
 #include "BKE_global.h"
 
