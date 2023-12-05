@@ -416,7 +416,7 @@ set(SRC
   BKE_lib_override.hh
   BKE_lib_query.h
   BKE_lib_remap.hh
-  BKE_library.h
+  BKE_library.hh
   BKE_light.h
   BKE_light_linking.h
   BKE_lightprobe.h

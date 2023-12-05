@@ -21,7 +21,7 @@
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_lib_id.h"
-#include "BKE_library.h"
+#include "BKE_library.hh"
 #include "BKE_main.hh"
 
 #include "MEM_guardedalloc.h"

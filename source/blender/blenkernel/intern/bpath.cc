@@ -59,7 +59,7 @@
 #include "BKE_idtype.h"
 #include "BKE_image.h"
 #include "BKE_lib_id.h"
-#include "BKE_library.h"
+#include "BKE_library.hh"
 #include "BKE_main.hh"
 #include "BKE_node.h"
 #include "BKE_report.h"
