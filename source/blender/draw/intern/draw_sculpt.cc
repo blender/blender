@@ -37,40 +37,8 @@ float3 SculptBatch::debug_color()
   return colors[debug_index % 9];
 }
 
-struct SculptCallbackData {
-  bool use_wire;
-  bool fast_mode;
-
-  Span<pbvh::AttributeRequest> attrs;
-
-  Vector<SculptBatch> batches;
-};
-
-static void sculpt_draw_cb(SculptCallbackData *data,
-                           pbvh::PBVHBatches *batches,
-                           const pbvh::PBVH_GPU_Args &pbvh_draw_args)
-{
-  if (!batches) {
-    return;
-  }
-
-  SculptBatch batch = {};
-
-  if (data->use_wire) {
-    batch.batch = pbvh::lines_get(batches, data->attrs, pbvh_draw_args, data->fast_mode);
-  }
-  else {
-    batch.batch = pbvh::tris_get(batches, data->attrs, pbvh_draw_args, data->fast_mode);
-  }
-
-  batch.material_slot = pbvh::material_index_get(batches);
-  batch.debug_index = data->batches.size();
-
-  data->batches.append(batch);
-}
-
 static Vector<SculptBatch> sculpt_batches_get_ex(const Object *ob,
-                                                 bool use_wire,
+                                                 const bool use_wire,
                                                  const Span<pbvh::AttributeRequest> attrs)
 {
   /* PBVH should always exist for non-empty meshes, created by depsgraph eval. */
@@ -131,21 +99,25 @@ static Vector<SculptBatch> sculpt_batches_get_ex(const Object *ob,
   const Mesh *mesh = static_cast<const Mesh *>(ob->data);
   BKE_pbvh_update_normals(pbvh, mesh->runtime->subdiv_ccg.get());
 
-  SculptCallbackData data;
-  data.use_wire = use_wire;
-  data.fast_mode = fast_mode;
-  data.attrs = attrs;
-
-  BKE_pbvh_draw_cb(
-      *mesh,
-      pbvh,
-      update_only_visible,
-      &update_frustum,
-      &draw_frustum,
-      (void (*)(void *, pbvh::PBVHBatches *, const pbvh::PBVH_GPU_Args &))sculpt_draw_cb,
-      &data);
-
-  return data.batches;
+  Vector<SculptBatch> result_batches;
+  BKE_pbvh_draw_cb(*mesh,
+                   pbvh,
+                   update_only_visible,
+                   update_frustum,
+                   draw_frustum,
+                   [&](pbvh::PBVHBatches *batches, const pbvh::PBVH_GPU_Args &args) {
+                     SculptBatch batch{};
+                     if (use_wire) {
+                       batch.batch = pbvh::lines_get(batches, attrs, args, fast_mode);
+                     }
+                     else {
+                       batch.batch = pbvh::tris_get(batches, attrs, args, fast_mode);
+                     }
+                     batch.material_slot = pbvh::material_index_get(batches);
+                     batch.debug_index = result_batches.size();
+                     result_batches.append(batch);
+                   });
+  return result_batches;
 }
 
 Vector<SculptBatch> sculpt_batches_get(const Object *ob, SculptBatchFeature features)

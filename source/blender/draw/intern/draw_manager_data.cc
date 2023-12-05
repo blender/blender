@@ -1234,10 +1234,6 @@ static void sculpt_draw_cb(DRWSculptCallbackData *scd,
                            const blender::draw::pbvh::PBVH_GPU_Args &pbvh_draw_args)
 {
   using namespace blender::draw;
-  if (!batches) {
-    return;
-  }
-
   GPUBatch *geom;
 
   if (!scd->use_wire) {
@@ -1369,15 +1365,14 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd)
   Mesh *mesh = static_cast<Mesh *>(scd->ob->data);
   BKE_pbvh_update_normals(pbvh, mesh->runtime->subdiv_ccg.get());
 
-  BKE_pbvh_draw_cb(*mesh,
-                   pbvh,
-                   update_only_visible,
-                   &update_frustum,
-                   &draw_frustum,
-                   (void (*)(void *,
-                             blender::draw::pbvh::PBVHBatches *,
-                             const blender::draw::pbvh::PBVH_GPU_Args &))sculpt_draw_cb,
-                   scd);
+  BKE_pbvh_draw_cb(
+      *mesh,
+      pbvh,
+      update_only_visible,
+      update_frustum,
+      draw_frustum,
+      [&](blender::draw::pbvh::PBVHBatches *batches,
+          const blender::draw::pbvh::PBVH_GPU_Args &args) { sculpt_draw_cb(scd, batches, args); });
 
   if (SCULPT_DEBUG_BUFFERS) {
     int debug_node_nr = 0;
