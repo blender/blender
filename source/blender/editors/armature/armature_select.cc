@@ -1350,7 +1350,7 @@ static int armature_de_select_all_exec(bContext *C, wmOperator *op)
       case SEL_SELECT:
         if ((ebone->flag & BONE_UNSELECTABLE) == 0) {
           ebone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-          if (ebone->parent) {
+          if (ebone->parent && (ebone->flag & BONE_CONNECTED)) {
             ebone->parent->flag |= BONE_TIPSEL;
           }
         }
@@ -1365,7 +1365,7 @@ static int armature_de_select_all_exec(bContext *C, wmOperator *op)
         else {
           if ((ebone->flag & BONE_UNSELECTABLE) == 0) {
             ebone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-            if (ebone->parent) {
+            if (ebone->parent && (ebone->flag & BONE_CONNECTED)) {
               ebone->parent->flag |= BONE_TIPSEL;
             }
           }
