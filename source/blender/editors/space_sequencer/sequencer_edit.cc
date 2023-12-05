@@ -202,6 +202,16 @@ bool sequencer_strip_poll(bContext *C)
 }
 #endif
 
+bool sequencer_strip_editable_poll(bContext *C)
+{
+  Scene *scene = CTX_data_scene(C);
+  if (ID_IS_LINKED(&scene->id)) {
+    return false;
+  }
+  Editing *ed = SEQ_editing_get(scene);
+  return (ed && (ed->act_seq != nullptr));
+}
+
 bool sequencer_strip_has_path_poll(bContext *C)
 {
   Editing *ed;
