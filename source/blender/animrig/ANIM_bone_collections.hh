@@ -241,13 +241,6 @@ void ANIM_armature_bonecoll_show_from_pchan(struct bArmature *armature,
 
 namespace blender::animrig {
 
-/**
- * Add a new bone collection to the given armature.
- *
- * The Armature owns the returned pointer.
- */
-::BoneCollection *armature_bonecoll_new(bArmature *armature, const char *name);
-
 /* --------------------------------------------------------------------
  * The following functions are only used by edit-mode Armature undo:
  */
