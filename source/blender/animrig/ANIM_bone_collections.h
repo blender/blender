@@ -74,6 +74,9 @@ struct BoneCollection *ANIM_armature_bonecoll_new(struct bArmature *armature, co
 /**
  * Add a bone collection to the Armature.
  *
+ * If `anchor` is null or isn't found, this inserts the copy at the start
+ * of the collection array.
+ *
  * NOTE: this should not typically be used. It is only used by the library overrides system to
  * apply override operations.
  */
@@ -81,6 +84,11 @@ struct BoneCollection *ANIM_armature_bonecoll_insert_copy_after(
     struct bArmature *armature,
     struct BoneCollection *anchor,
     const struct BoneCollection *bcoll_to_copy);
+
+/**
+ * Remove the bone collection at `index` from the armature.
+ */
+void ANIM_armature_bonecoll_remove_from_index(bArmature *armature, const int index);
 
 /**
  * Remove a bone collection from the armature.
@@ -121,6 +129,15 @@ void ANIM_armature_bonecoll_active_name_set(struct bArmature *armature, const ch
  */
 bool ANIM_armature_bonecoll_is_editable(const struct bArmature *armature,
                                         const struct BoneCollection *bcoll);
+
+/**
+ * Moves the bone collection at from_index to to_index.
+ *
+ * \return true if the collection was successfully moved, false otherwise.
+ * The latter happens if either index is out of bounds, or if the indices
+ * are equal.
+ */
+bool ANIM_armature_bonecoll_move_to_index(bArmature *armature, int from_index, int to_index);
 
 /**
  * Move the bone collection by \a step places up/down.

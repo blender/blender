@@ -185,6 +185,23 @@ static void rna_Armature_edit_bone_remove(bArmature *arm,
   RNA_POINTER_INVALIDATE(ebone_ptr);
 }
 
+static void rna_iterator_bone_collections_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+  bArmature *arm = (bArmature *)ptr->data;
+  rna_iterator_array_begin(iter,
+                           arm->collection_array,
+                           sizeof(BoneCollection *),
+                           arm->collection_array_num,
+                           false,
+                           nullptr);
+}
+
+static int rna_iterator_bone_collections_length(PointerRNA *ptr)
+{
+  bArmature *arm = (bArmature *)ptr->data;
+  return arm->collection_array_num;
+}
+
 static void rna_BoneCollections_active_set(PointerRNA *ptr,
                                            PointerRNA value,
                                            struct ReportList * /*reports*/)
@@ -216,7 +233,7 @@ static void rna_BoneCollections_active_index_range(
   // TODO: Figure out what this function actually is used for, as we may want to protect the first
   // collection (i.e. the default collection that should remain first).
   *min = 0;
-  *max = max_ii(0, BLI_listbase_count(&arm->collections) - 1);
+  *max = max_ii(0, arm->collection_array_num - 1);
 }
 
 static void rna_BoneCollections_active_name_set(PointerRNA *ptr, const char *name)
@@ -228,9 +245,9 @@ static void rna_BoneCollections_active_name_set(PointerRNA *ptr, const char *nam
 
 static void rna_BoneCollections_move(bArmature *arm, ReportList *reports, int from, int to)
 {
-  const int count = BLI_listbase_count(&arm->collections);
+  const int count = arm->collection_array_num;
   if (from < 0 || from >= count || to < 0 || to >= count ||
-      (from != to && !BLI_listbase_move_index(&arm->collections, from, to)))
+      (from != to && !ANIM_armature_bonecoll_move_to_index(arm, from, to)))
   {
     BKE_reportf(reports, RPT_ERROR, "Cannot move collection from index '%d' to '%d'", from, to);
   }
@@ -1952,8 +1969,16 @@ static void rna_def_armature(BlenderRNA *brna)
   rna_def_armature_edit_bones(brna, prop);
 
   prop = RNA_def_property(srna, "collections", PROP_COLLECTION, PROP_NONE);
-  RNA_def_property_collection_sdna(prop, nullptr, "collections", nullptr);
   RNA_def_property_struct_type(prop, "BoneCollection");
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_iterator_bone_collections_begin",
+                                    "rna_iterator_array_next",
+                                    "rna_iterator_array_end",
+                                    "rna_iterator_array_dereference_get",
+                                    "rna_iterator_bone_collections_length",
+                                    nullptr, /* TODO */
+                                    nullptr, /* TODO */
+                                    nullptr);
   RNA_def_property_ui_text(prop, "Bone Collections", "");
   RNA_def_property_override_funcs(
       prop, nullptr, nullptr, "rna_Armature_collections_override_apply");

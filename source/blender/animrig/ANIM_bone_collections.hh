@@ -35,6 +35,15 @@ namespace blender::animrig {
  * assumption is that the membership information in the collections will
  * be rebuilt from the EditBones when leaving edit mode.
  *
+ * The source and destination each have two parts: a heap-allocated array of
+ * `BoneCollection *`, and an integer that keeps track of that array's length.
+ * The destination parameters are pointers to those components, so they can
+ * be modified.  The destination array should be empty and unallocated.
+ *
+ * \param bcoll_array_dst,bcoll_array_dst_num: the destination BoneCollection
+ * array and array size.
+ * \param bcoll_array_src,bcoll_array_src_num: the source BoneCollection array
+ * and array size.
  * \param do_id_user: when true, increments the user count of IDs that
  * the BoneCollections' custom properties point to, if any.
  *
@@ -42,8 +51,12 @@ namespace blender::animrig {
  * pointers-to-the-duplicate-collections. This can be used to remap
  * collection pointers in other data, such as EditBones.
  */
-blender::Map<BoneCollection *, BoneCollection *> ANIM_bonecoll_listbase_copy_no_membership(
-    ListBase *bone_colls_dst, ListBase *bone_colls_src, bool do_id_user);
+blender::Map<BoneCollection *, BoneCollection *> ANIM_bonecoll_array_copy_no_membership(
+    BoneCollection ***bcoll_array_dst,
+    int *bcoll_array_dst_num,
+    BoneCollection **bcoll_array_src,
+    int bcoll_array_src_num,
+    bool do_id_user);
 /**
  * Frees a list of BoneCollections.
  *
@@ -54,9 +67,15 @@ blender::Map<BoneCollection *, BoneCollection *> ANIM_bonecoll_listbase_copy_no_
  * handle. Prefer using higher-level functions to remove BoneCollections
  * from Armatures.
  *
+ * \param bcoll_array: pointer to the heap-allocated array of `BoneCollection *`
+ * to be freed.
+ * \param bcoll_array_num: pointer to the integer that tracks the length of
+ * bcoll_array.
  * \param do_id_user: when true, decrements the user count of IDs that
  * the BoneCollections' custom properties point to, if any.
  */
-void ANIM_bonecoll_listbase_free(ListBase *bcolls, bool do_id_user);
+void ANIM_bonecoll_array_free(BoneCollection ***bcoll_array,
+                              int *bcoll_array_num,
+                              bool do_id_user);
 
 }  // namespace blender::animrig

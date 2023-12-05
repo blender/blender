@@ -73,7 +73,8 @@ struct UndoArmature {
   EditBone *act_edbone;
   char active_collection_name[MAX_NAME];
   ListBase /* EditBone */ ebones;
-  ListBase /* BoneCollection */ bone_collections;
+  BoneCollection **collection_array;
+  int collection_array_num;
   size_t undo_size;
 };
 
@@ -96,9 +97,12 @@ static void undoarm_to_editarm(UndoArmature *uarm, bArmature *arm)
   ED_armature_ebone_listbase_temp_clear(arm->edbo);
 
   /* Copy bone collections. */
-  ANIM_bonecoll_listbase_free(&arm->collections, true);
-  auto bcoll_map = ANIM_bonecoll_listbase_copy_no_membership(
-      &arm->collections, &uarm->bone_collections, true);
+  ANIM_bonecoll_array_free(&arm->collection_array, &arm->collection_array_num, true);
+  auto bcoll_map = ANIM_bonecoll_array_copy_no_membership(&arm->collection_array,
+                                                          &arm->collection_array_num,
+                                                          uarm->collection_array,
+                                                          uarm->collection_array_num,
+                                                          true);
 
   /* Always do a lookup-by-name and assignment. Even when the name of the active collection is
    * still the same, the order may have changed and thus the index needs to be updated. */
@@ -127,8 +131,11 @@ static void *undoarm_from_editarm(UndoArmature *uarm, bArmature *arm)
   ED_armature_ebone_listbase_temp_clear(&uarm->ebones);
 
   /* Copy bone collections. */
-  auto bcoll_map = ANIM_bonecoll_listbase_copy_no_membership(
-      &uarm->bone_collections, &arm->collections, false);
+  auto bcoll_map = ANIM_bonecoll_array_copy_no_membership(&uarm->collection_array,
+                                                          &uarm->collection_array_num,
+                                                          arm->collection_array,
+                                                          arm->collection_array_num,
+                                                          false);
   STRNCPY(uarm->active_collection_name, arm->active_collection_name);
 
   /* Point the new edit bones at the new collections. */
@@ -142,7 +149,10 @@ static void *undoarm_from_editarm(UndoArmature *uarm, bArmature *arm)
     uarm->undo_size += sizeof(BoneCollectionReference) *
                        BLI_listbase_count(&ebone->bone_collections);
   }
-  uarm->undo_size += sizeof(BoneCollection) * BLI_listbase_count(&uarm->bone_collections);
+  /* Size of the bone collections + the size of the pointers to those
+   * bone collections in the bone collection array. */
+  uarm->undo_size += (sizeof(BoneCollection) + sizeof(BoneCollection *)) *
+                     uarm->collection_array_num;
 
   return uarm;
 }
@@ -150,7 +160,7 @@ static void *undoarm_from_editarm(UndoArmature *uarm, bArmature *arm)
 static void undoarm_free_data(UndoArmature *uarm)
 {
   ED_armature_ebone_listbase_free(&uarm->ebones, false);
-  ANIM_bonecoll_listbase_free(&uarm->bone_collections, false);
+  ANIM_bonecoll_array_free(&uarm->collection_array, &uarm->collection_array_num, false);
 }
 
 static Object *editarm_object_from_context(bContext *C)

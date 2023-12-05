@@ -782,9 +782,7 @@ static BoneCollection *add_or_move_to_collection_bcoll(wmOperator *op, bArmature
     ANIM_armature_bonecoll_active_set(arm, target_bcoll);
   }
   else {
-    target_bcoll = static_cast<BoneCollection *>(
-        BLI_findlink(&arm->collections, collection_index));
-    if (target_bcoll == nullptr) {
+    if (collection_index >= arm->collection_array_num) {
       BKE_reportf(op->reports,
                   RPT_ERROR,
                   "Bone collection with index %d not found on Armature %s",
@@ -792,6 +790,7 @@ static BoneCollection *add_or_move_to_collection_bcoll(wmOperator *op, bArmature
                   arm->id.name + 2);
       return nullptr;
     }
+    target_bcoll = arm->collection_array[collection_index];
   }
 
   if (!ANIM_armature_bonecoll_is_editable(arm, target_bcoll)) {
@@ -896,8 +895,8 @@ static bool bone_collection_enum_itemf_for_object(Object *ob,
   EnumPropertyItem item_tmp = {0};
   bArmature *arm = static_cast<bArmature *>(ob->data);
 
-  int bcoll_index = 0;
-  LISTBASE_FOREACH_INDEX (BoneCollection *, bcoll, &arm->collections, bcoll_index) {
+  for (int bcoll_index = 0; bcoll_index < arm->collection_array_num; bcoll_index++) {
+    BoneCollection *bcoll = arm->collection_array[bcoll_index];
     if (!ANIM_armature_bonecoll_is_editable(arm, bcoll)) {
       /* Skip bone collections that cannot be assigned to because they're
        * linked and thus uneditable. If there is a way to still show these, but in a disabled

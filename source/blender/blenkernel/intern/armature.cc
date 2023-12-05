@@ -23,6 +23,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
+#include "BLI_span.hh"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 #include "BLT_translation.h"
@@ -89,6 +90,31 @@ static void armature_init_data(ID *id)
 }
 
 /**
+ * Copies the bone collection in `bcoll_src` to `bcoll_dst`, re-hooking up all
+ * of the bone relationships to the bones in `armature_dst`.
+ *
+ * Note: this function's use case is narrow in scope, intended only for use in
+ * `armature_copy_data()` below.  You probably don't want to use this otherwise.
+ */
+static void copy_bone_collection(bArmature *armature_dst,
+                          BoneCollection *&bcoll_dst,
+                          const BoneCollection *bcoll_src)
+{
+  bcoll_dst = static_cast<BoneCollection *>(MEM_dupallocN(bcoll_src));
+
+  /* ID properties. */
+  if (bcoll_dst->prop) {
+    bcoll_dst->prop = IDP_CopyProperty(bcoll_dst->prop);
+  }
+
+  /* Bone references. */
+  BLI_duplicatelist(&bcoll_dst->bones, &bcoll_dst->bones);
+  LISTBASE_FOREACH (BoneCollectionMember *, member, &bcoll_dst->bones) {
+    member->bone = BKE_armature_find_bone_name(armature_dst, member->bone->name);
+  }
+}
+
+/**
  * Only copy internal data of Armature ID from source
  * to already allocated/initialized destination.
  * You probably never want to use that directly,
@@ -138,18 +164,18 @@ static void armature_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, c
   armature_dst->act_edbone = nullptr;
 
   /* Duplicate bone collections & assignments. */
-  BLI_duplicatelist(&armature_dst->collections, &armature_src->collections);
-  LISTBASE_FOREACH (BoneCollection *, bcoll, &armature_dst->collections) {
-    /* ID properties. */
-    if (bcoll->prop) {
-      bcoll->prop = IDP_CopyProperty(bcoll->prop);
+  if (armature_src->collection_array) {
+    armature_dst->collection_array = static_cast<BoneCollection **>(
+        MEM_dupallocN(armature_src->collection_array));
+    armature_dst->collection_array_num = armature_src->collection_array_num;
+    for (int i = 0; i < armature_src->collection_array_num; i++) {
+      copy_bone_collection(
+          armature_dst, armature_dst->collection_array[i], armature_src->collection_array[i]);
     }
-
-    /* Bone references. */
-    BLI_duplicatelist(&bcoll->bones, &bcoll->bones);
-    LISTBASE_FOREACH (BoneCollectionMember *, member, &bcoll->bones) {
-      member->bone = BKE_armature_find_bone_name(armature_dst, member->bone->name);
-    }
+  }
+  else {
+    armature_dst->collection_array = nullptr;
+    armature_dst->collection_array_num = 0;
   }
 
   ANIM_armature_bonecoll_active_index_set(armature_dst,
@@ -164,17 +190,15 @@ static void armature_free_data(ID *id)
   ANIM_armature_runtime_free(armature);
 
   /* Free all BoneCollectionMembership objects. */
-  LISTBASE_FOREACH_MUTABLE (BoneCollection *, bcoll, &armature->collections) {
-    /* ID properties. */
-    if (bcoll->prop) {
-      IDP_FreeProperty(bcoll->prop);
-      bcoll->prop = nullptr;
+  if (armature->collection_array) {
+    for (BoneCollection *bcoll : armature->collections_span()) {
+      BLI_freelistN(&bcoll->bones);
+      ANIM_bonecoll_free(bcoll);
     }
-
-    /* Bone references. */
-    BLI_freelistN(&bcoll->bones);
+    MEM_freeN(armature->collection_array);
   }
-  BLI_freelistN(&armature->collections);
+  armature->collection_array = nullptr;
+  armature->collection_array_num = 0;
 
   BKE_armature_bone_hash_free(armature);
   BKE_armature_bonelist_free(&armature->bonebase, false);
@@ -232,7 +256,7 @@ static void armature_foreach_id(ID *id, LibraryForeachIDData *data)
     }
   }
 
-  LISTBASE_FOREACH (BoneCollection *, bcoll, &arm->collections) {
+  for (BoneCollection *bcoll : arm->collections_span()) {
     BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data,
                                             armature_foreach_id_bone_collection(bcoll, data));
   }
@@ -289,18 +313,39 @@ static void armature_blend_write(BlendWriter *writer, ID *id, const void *id_add
   const bArmature_Runtime runtime_backup = arm->runtime;
   memset(&arm->runtime, 0, sizeof(arm->runtime));
 
+  /* Convert BoneCollections over to a listbase for writing. */
+  BoneCollection **collection_array_backup = arm->collection_array;
+  if (arm->collection_array_num > 0) {
+    for (int i = 0; i < arm->collection_array_num - 1; i++) {
+      arm->collection_array[i]->next = arm->collection_array[i + 1];
+      arm->collection_array[i + 1]->prev = arm->collection_array[i];
+    }
+    arm->collections.first = arm->collection_array[0];
+    arm->collections.last = arm->collection_array[arm->collection_array_num - 1];
+    arm->collection_array = nullptr;
+  }
+
   BLO_write_id_struct(writer, bArmature, id_address, &arm->id);
   BKE_id_blend_write(writer, &arm->id);
-
-  arm->runtime = runtime_backup;
 
   /* Direct data */
   LISTBASE_FOREACH (Bone *, bone, &arm->bonebase) {
     write_bone(writer, bone);
   }
+
   LISTBASE_FOREACH (BoneCollection *, bcoll, &arm->collections) {
     write_bone_collection(writer, bcoll);
   }
+
+  /* Restore the BoneCollection array and clear the listbase. */
+  arm->collection_array = collection_array_backup;
+  for (int i = 0; i < arm->collection_array_num - 1; i++) {
+    arm->collection_array[i]->next = nullptr;
+    arm->collection_array[i + 1]->prev = nullptr;
+  }
+  BLI_listbase_clear(&arm->collections);
+
+  arm->runtime = runtime_backup;
 }
 
 static void direct_link_bones(BlendDataReader *reader, Bone *bone)
@@ -334,6 +379,42 @@ static void direct_link_bone_collection(BlendDataReader *reader, BoneCollection 
   }
 }
 
+static void read_bone_collections(BlendDataReader *reader, bArmature *arm)
+{
+  /* Read as listbase, but convert to an array on the armature. */
+  BLO_read_list(reader, &arm->collections);
+  arm->collection_array_num = BLI_listbase_count(&arm->collections);
+  arm->collection_array = (BoneCollection **)MEM_malloc_arrayN(
+      arm->collection_array_num, sizeof(BoneCollection *), __func__);
+  {
+    int i;
+    LISTBASE_FOREACH_INDEX (BoneCollection *, bcoll, &arm->collections, i) {
+      arm->collection_array[i] = bcoll;
+    }
+  }
+
+  /* We don't need the listbase or prev/next pointers because the
+   * collections are stored in an array. */
+  for (int i = 0; i < arm->collection_array_num - 1; i++) {
+    arm->collection_array[i]->next = nullptr;
+    arm->collection_array[i + 1]->prev = nullptr;
+  }
+  BLI_listbase_clear(&arm->collections);
+
+  /* Bone collections added via an override can be edited, but ones that already exist in
+  another
+   * blend file (so on the linked Armature) should not be touched. */
+  const bool reset_bcoll_override_flag = ID_IS_LINKED(&arm->id);
+  for (BoneCollection *bcoll : arm->collections_span()) {
+    direct_link_bone_collection(reader, bcoll);
+    if (reset_bcoll_override_flag) {
+      /* The linked Armature may have overrides in the library file already, and
+       * those should *not* be editable here. */
+      bcoll->flags &= ~BONE_COLLECTION_OVERRIDE_LIBRARY_LOCAL;
+    }
+  }
+}
+
 static void armature_blend_read_data(BlendDataReader *reader, ID *id)
 {
   bArmature *arm = (bArmature *)id;
@@ -347,19 +428,7 @@ static void armature_blend_read_data(BlendDataReader *reader, ID *id)
     direct_link_bones(reader, bone);
   }
 
-  BLO_read_list(reader, &arm->collections);
-
-  /* Bone collections added via an override can be edited, but ones that already exist in another
-   * blend file (so on the linked Armature) should not be touched. */
-  const bool reset_bcoll_override_flag = ID_IS_LINKED(&arm->id);
-  LISTBASE_FOREACH (BoneCollection *, bcoll, &arm->collections) {
-    direct_link_bone_collection(reader, bcoll);
-    if (reset_bcoll_override_flag) {
-      /* The linked Armature may have overrides in the library file already, and
-       * those should *not* be editable here. */
-      bcoll->flags &= ~BONE_COLLECTION_OVERRIDE_LIBRARY_LOCAL;
-    }
-  }
+  read_bone_collections(reader, arm);
 
   BLO_read_data_address(reader, &arm->act_bone);
   arm->act_edbone = nullptr;
@@ -3045,6 +3114,18 @@ bPoseChannel *BKE_armature_splineik_solver_find_root(bPoseChannel *pchan,
     rootchan = rootchan->parent;
   }
   return rootchan;
+}
+
+/* -------------------------------------------------------------------- */
+
+blender::Span<const BoneCollection *> bArmature::collections_span() const
+{
+  return blender::Span(collection_array, collection_array_num);
+}
+
+blender::Span<BoneCollection *> bArmature::collections_span()
+{
+  return blender::Span(collection_array, collection_array_num);
 }
 
 /** \} */
