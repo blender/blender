@@ -35,7 +35,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "ANIM_bone_collections.h"
+#include "ANIM_bone_collections.hh"
 
 #include "tree/tree_element_seq.hh"
 

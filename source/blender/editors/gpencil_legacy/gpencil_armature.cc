@@ -48,7 +48,7 @@
 #include "ED_mesh.hh"
 #include "ED_object.hh"
 
-#include "ANIM_bone_collections.h"
+#include "ANIM_bone_collections.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"

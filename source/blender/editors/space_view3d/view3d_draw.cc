@@ -60,7 +60,7 @@
 #include "ED_view3d_offscreen.hh"
 #include "ED_viewer_path.hh"
 
-#include "ANIM_bone_collections.h"
+#include "ANIM_bone_collections.hh"
 
 #include "DEG_depsgraph_query.hh"
 

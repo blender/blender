@@ -21,7 +21,7 @@
 #include "BLI_string.h"
 #include "ED_armature.hh"
 
-#include "ANIM_bone_collections.h"
+#include "ANIM_bone_collections.hh"
 
 #include "DEG_depsgraph.hh"
 

@@ -51,7 +51,7 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "ANIM_bone_collections.h"
+#include "ANIM_bone_collections.hh"
 
 #include "armature_intern.h"
 

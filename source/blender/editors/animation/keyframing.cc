@@ -46,7 +46,7 @@
 #include "ED_screen.hh"
 
 #include "ANIM_animdata.hh"
-#include "ANIM_bone_collections.h"
+#include "ANIM_bone_collections.hh"
 #include "ANIM_fcurve.hh"
 #include "ANIM_keyframing.hh"
 #include "ANIM_rna.hh"

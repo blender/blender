@@ -6,7 +6,7 @@
 
 #include "BLT_translation.h"
 
-#include "ANIM_bone_collections.h"
+#include "ANIM_bone_collections.hh"
 
 #include "testing/testing.h"
 

@@ -100,7 +100,7 @@
 #include "DRW_engine.h"
 #include "DRW_select_buffer.hh"
 
-#include "ANIM_bone_collections.h"
+#include "ANIM_bone_collections.hh"
 
 #include "view3d_intern.h" /* own include */
 

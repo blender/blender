@@ -67,7 +67,7 @@
 #include "RNA_define.hh"
 #include "RNA_prototypes.h"
 
-#include "ANIM_bone_collections.h"
+#include "ANIM_bone_collections.hh"
 
 #include "outliner_intern.hh"
 #include "tree/tree_display.hh"

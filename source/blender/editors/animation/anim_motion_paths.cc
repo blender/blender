@@ -33,7 +33,7 @@
 #include "ED_anim_api.hh"
 #include "ED_keyframes_keylist.hh"
 
-#include "ANIM_bone_collections.h"
+#include "ANIM_bone_collections.hh"
 
 #include "CLG_log.h"
 

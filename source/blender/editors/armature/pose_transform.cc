@@ -48,7 +48,7 @@
 #include "ED_screen.hh"
 #include "ED_util.hh"
 
-#include "ANIM_bone_collections.h"
+#include "ANIM_bone_collections.hh"
 #include "ANIM_keyframing.hh"
 
 #include "UI_interface.hh"

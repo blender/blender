@@ -37,7 +37,7 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
-#include "ANIM_bone_collections.h"
+#include "ANIM_bone_collections.hh"
 #include "ANIM_keyframing.hh"
 
 #include "transform.hh"

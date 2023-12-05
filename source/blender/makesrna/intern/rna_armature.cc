@@ -70,7 +70,7 @@ constexpr int COLOR_SETS_MAX_THEMED_INDEX = 20;
 #  include "BKE_armature.hh"
 #  include "ED_armature.hh"
 
-#  include "ANIM_bone_collections.h"
+#  include "ANIM_bone_collections.hh"
 
 #  include "DEG_depsgraph.hh"
 #  include "DEG_depsgraph_build.hh"

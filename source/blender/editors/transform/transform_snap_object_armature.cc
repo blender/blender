@@ -15,7 +15,7 @@
 
 #include "ED_transform_snap_object_context.hh"
 
-#include "ANIM_bone_collections.h"
+#include "ANIM_bone_collections.hh"
 
 #include "transform_snap_object.hh"
 

@@ -65,7 +65,7 @@
 #include "SEQ_sequencer.hh"
 
 #include "ANIM_armature_iter.hh"
-#include "ANIM_bone_collections.h"
+#include "ANIM_bone_collections.hh"
 
 #include "ED_armature.hh"
 

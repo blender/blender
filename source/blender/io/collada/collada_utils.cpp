@@ -49,7 +49,7 @@
 #include "BKE_object.hh"
 #include "BKE_scene.h"
 
-#include "ANIM_bone_collections.h"
+#include "ANIM_bone_collections.hh"
 
 #include "ED_node.hh"
 #include "ED_object.hh"

@@ -89,7 +89,7 @@
 #include "SEQ_sequencer.hh"
 #include "SEQ_utils.hh"
 
-#include "ANIM_bone_collections.h"
+#include "ANIM_bone_collections.hh"
 
 #include "UI_resources.hh" /* for TH_KEYFRAME_SCALE lookup */
 

@@ -45,7 +45,7 @@
 #include "BKE_particle.h"
 #include "BKE_report.h"
 
-#include "ANIM_bone_collections.h"
+#include "ANIM_bone_collections.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"

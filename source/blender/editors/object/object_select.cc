@@ -61,7 +61,7 @@
 #include "ED_screen.hh"
 #include "ED_select_utils.hh"
 
-#include "ANIM_bone_collections.h"
+#include "ANIM_bone_collections.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
