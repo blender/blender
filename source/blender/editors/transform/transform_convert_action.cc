@@ -433,12 +433,12 @@ static int GPLayerToTransData(TransData *td,
           td->flag = TD_SELECTED;
         }
 
+        BLI_assert(data_is_gp_or_mask(td, td2d));
+
         /* Advance `td` now. */
         td++;
         td2d++;
         count++;
-
-        BLI_assert(data_is_gp_or_mask(td, td2d));
       }
     }
   }
@@ -492,13 +492,13 @@ static int GreasePencilLayerToTransData(TransData *td,
     td->flag |= TD_GREASE_PENCIL_FRAME;
     td->extra = layer;
 
+    BLI_assert(!data_is_gp_or_mask(td, td2d));
+
     /* Advance `td` now. */
     td++;
     td2d++;
     total_trans_frames++;
     any_frame_affected = true;
-
-    BLI_assert(!data_is_gp_or_mask(td, td2d));
   };
 
   const blender::Map<int, GreasePencilFrame> &frame_map =
@@ -547,12 +547,12 @@ static int MaskLayerToTransData(TransData *td,
         /* Store the int value in #td->extra, so we can flush later. */
         td->extra = &masklay_shape->frame;
 
+        BLI_assert(data_is_gp_or_mask(td, td2d));
+
         /* advance td now */
         td++;
         td2d++;
         count++;
-
-        BLI_assert(data_is_gp_or_mask(td, td2d));
       }
     }
   }
