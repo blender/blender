@@ -97,8 +97,8 @@ static void armature_init_data(ID *id)
  * `armature_copy_data()` below.  You probably don't want to use this otherwise.
  */
 static void copy_bone_collection(bArmature *armature_dst,
-                          BoneCollection *&bcoll_dst,
-                          const BoneCollection *bcoll_src)
+                                 BoneCollection *&bcoll_dst,
+                                 const BoneCollection *bcoll_src)
 {
   bcoll_dst = static_cast<BoneCollection *>(MEM_dupallocN(bcoll_src));
 
