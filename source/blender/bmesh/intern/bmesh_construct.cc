@@ -443,6 +443,11 @@ void BM_elem_attrs_copy(BMesh *bm_src, BMesh *bm_dst, const void *ele_src, void 
   BM_elem_attrs_copy_ex(bm_src, bm_dst, ele_src, ele_dst, BM_ELEM_SELECT, 0x0);
 }
 
+void BM_elem_attrs_copy(BMesh &bm, const void *ele_src, void *ele_dst)
+{
+  BM_elem_attrs_copy_ex(&bm, &bm, ele_src, ele_dst, BM_ELEM_SELECT, 0x0);
+}
+
 void BM_elem_select_copy(BMesh *bm_dst, void *ele_dst_v, const void *ele_src_v)
 {
   BMHeader *ele_dst = static_cast<BMHeader *>(ele_dst_v);

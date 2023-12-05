@@ -132,6 +132,10 @@ void BM_elem_attrs_copy_ex(BMesh *bm_src,
                            char hflag_mask,
                            uint64_t cd_mask_exclude);
 void BM_elem_attrs_copy(BMesh *bm_src, BMesh *bm_dst, const void *ele_src_v, void *ele_dst_v);
+
+/** Copy attributes between elements in the same BMesh. */
+void BM_elem_attrs_copy(BMesh &bm, const void *ele_src, void *ele_dst);
+
 void BM_elem_select_copy(BMesh *bm_dst, void *ele_dst_v, const void *ele_src_v);
 
 /**

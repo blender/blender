@@ -56,7 +56,7 @@ static void bm_face_copy_shared_all(BMesh *bm,
 
   if (use_data) {
     /* copy face-attrs */
-    BM_elem_attrs_copy(bm, bm, f_other, f);
+    BM_elem_attrs_copy(*bm, f_other, f);
 
     /* copy loop-attrs */
     BM_face_copy_shared(bm, f, bm_loop_is_face_untag, nullptr);

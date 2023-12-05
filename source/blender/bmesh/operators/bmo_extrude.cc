@@ -74,20 +74,20 @@ void bmo_extrude_discrete_faces_exec(BMesh *bm, BMOperator *op)
       BMFace *f_side;
       BMLoop *l_side_iter;
 
-      BM_elem_attrs_copy(bm, bm, l_org, l_new);
+      BM_elem_attrs_copy(*bm, l_org, l_new);
 
       f_side = BM_face_create_quad_tri(
           bm, l_org->next->v, l_new->next->v, l_new->v, l_org->v, f_org, BM_CREATE_NOP);
 
       l_side_iter = BM_FACE_FIRST_LOOP(f_side);
 
-      BM_elem_attrs_copy(bm, bm, l_org->next, l_side_iter);
+      BM_elem_attrs_copy(*bm, l_org->next, l_side_iter);
       l_side_iter = l_side_iter->next;
-      BM_elem_attrs_copy(bm, bm, l_org->next, l_side_iter);
+      BM_elem_attrs_copy(*bm, l_org->next, l_side_iter);
       l_side_iter = l_side_iter->next;
-      BM_elem_attrs_copy(bm, bm, l_org, l_side_iter);
+      BM_elem_attrs_copy(*bm, l_org, l_side_iter);
       l_side_iter = l_side_iter->next;
-      BM_elem_attrs_copy(bm, bm, l_org, l_side_iter);
+      BM_elem_attrs_copy(*bm, l_org, l_side_iter);
 
       if (select_history_map) {
         BMEditSelection *ese;
@@ -142,14 +142,14 @@ static void bm_extrude_copy_face_loop_attributes(BMesh *bm, BMFace *f)
   l_other_1 = BM_edge_other_loop(l_first_0->e, l_first_1);
 
   /* copy data */
-  BM_elem_attrs_copy(bm, bm, l_other_0->f, f);
+  BM_elem_attrs_copy(*bm, l_other_0->f, f);
   BM_elem_flag_disable(f, BM_ELEM_HIDDEN); /* possibly we copy from a hidden face */
 
-  BM_elem_attrs_copy(bm, bm, l_other_0, l_first_0);
-  BM_elem_attrs_copy(bm, bm, l_other_0, l_first_3);
+  BM_elem_attrs_copy(*bm, l_other_0, l_first_0);
+  BM_elem_attrs_copy(*bm, l_other_0, l_first_3);
 
-  BM_elem_attrs_copy(bm, bm, l_other_1, l_first_1);
-  BM_elem_attrs_copy(bm, bm, l_other_1, l_first_2);
+  BM_elem_attrs_copy(*bm, l_other_1, l_first_1);
+  BM_elem_attrs_copy(*bm, l_other_1, l_first_2);
 }
 
 /* Disable the skin root flag on the input vert, assumes that the vert

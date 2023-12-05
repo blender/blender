@@ -98,7 +98,7 @@ BMVert *BM_vert_create(BMesh *bm,
       int *keyi;
 
       /* handles 'v->no' too */
-      BM_elem_attrs_copy(bm, bm, v_example, v);
+      BM_elem_attrs_copy(*bm, v_example, v);
 
       /* Exception: don't copy the original shape-key index. */
       keyi = static_cast<int *>(CustomData_bmesh_get(&bm->vdata, v->head.data, CD_SHAPE_KEYINDEX));
@@ -179,7 +179,7 @@ BMEdge *BM_edge_create(
 
   if (!(create_flag & BM_CREATE_SKIP_CD)) {
     if (e_example) {
-      BM_elem_attrs_copy(bm, bm, e_example, e);
+      BM_elem_attrs_copy(*bm, e_example, e);
     }
     else {
       CustomData_bmesh_set_default(&bm->edata, &e->head.data);
@@ -250,7 +250,7 @@ static BMLoop *bm_loop_create(BMesh *bm,
   if (!(create_flag & BM_CREATE_SKIP_CD)) {
     if (l_example) {
       /* no need to copy attrs, just handle customdata */
-      // BM_elem_attrs_copy(bm, bm, l_example, l);
+      // BM_elem_attrs_copy(*bm, l_example, l);
       CustomData_bmesh_free_block_data(&bm->ldata, l->head.data);
       CustomData_bmesh_copy_data(&bm->ldata, &bm->ldata, l_example->head.data, &l->head.data);
     }
@@ -447,7 +447,7 @@ BMFace *BM_face_create(BMesh *bm,
 
   if (!(create_flag & BM_CREATE_SKIP_CD)) {
     if (f_example) {
-      BM_elem_attrs_copy(bm, bm, f_example, f);
+      BM_elem_attrs_copy(*bm, f_example, f);
     }
     else {
       CustomData_bmesh_set_default(&bm->pdata, &f->head.data);
@@ -1251,7 +1251,7 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del)
       }
       BLI_assert(l_iter->v == l2->v);
 
-      BM_elem_attrs_copy(bm, bm, l2, l_iter);
+      BM_elem_attrs_copy(*bm, l2, l_iter);
     }
   } while ((l_iter = l_iter->next) != l_first);
 
@@ -1334,7 +1334,7 @@ static BMFace *bm_face_create__sfme(BMesh *bm, BMFace *f_example)
   f->totbounds = 1;
 #endif
 
-  BM_elem_attrs_copy(bm, bm, f_example, f);
+  BM_elem_attrs_copy(*bm, f_example, f);
 
   return f;
 }
