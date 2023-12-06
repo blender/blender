@@ -323,7 +323,8 @@ static void userdef_free_addons(UserDef *userdef)
 void BKE_blender_userdef_data_free(UserDef *userdef, bool clear_fonts)
 {
 #define U BLI_STATIC_ASSERT(false, "Global 'U' not allowed, only use arguments passed in!")
-#ifdef U /* quiet warning */
+#ifdef U
+  /* Quiet warning. */
 #endif
 
   userdef_free_keymaps(userdef);
