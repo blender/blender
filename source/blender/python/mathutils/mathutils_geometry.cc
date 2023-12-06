@@ -20,7 +20,7 @@
 #  include "BLI_convexhull_2d.h"
 #  include "BLI_delaunay_2d.h"
 #  include "MEM_guardedalloc.h"
-#endif
+#endif /* !MATH_STANDALONE */
 
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"

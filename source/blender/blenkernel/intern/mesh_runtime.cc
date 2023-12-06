@@ -473,6 +473,6 @@ bool BKE_mesh_runtime_is_valid(Mesh *me_eval)
   return is_valid;
 }
 
-#endif /* NDEBUG */
+#endif /* !NDEBUG */
 
 /** \} */

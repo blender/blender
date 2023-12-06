@@ -71,4 +71,4 @@ void BM_mesh_debug_print(BMesh *bm)
   MEM_freeN(str);
 }
 
-#endif /* NDEBUG */
+#endif /* !NDEBUG */

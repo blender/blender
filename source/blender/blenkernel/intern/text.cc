@@ -2370,7 +2370,7 @@ int text_check_identifier_nodigit_unicode(const uint ch)
 {
   return (ch < 255 && text_check_identifier_nodigit(char(ch)));
 }
-#endif /* WITH_PYTHON */
+#endif /* !WITH_PYTHON */
 
 bool text_check_whitespace(const char ch)
 {

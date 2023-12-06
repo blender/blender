@@ -128,7 +128,7 @@ static void drw_state_ensure_not_reused(DRWManager *dst)
 {
   memset(dst, 0xff, offsetof(DRWManager, system_gpu_context));
 }
-#endif
+#endif /* !NDEBUG */
 
 static bool drw_draw_show_annotation()
 {

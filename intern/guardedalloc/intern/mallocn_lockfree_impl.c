@@ -440,4 +440,4 @@ const char *MEM_lockfree_name_ptr(void *vmemh)
 }
 
 void MEM_lockfree_name_ptr_set(void *UNUSED(vmemh), const char *UNUSED(str)) {}
-#endif /* NDEBUG */
+#endif /* !NDEBUG */

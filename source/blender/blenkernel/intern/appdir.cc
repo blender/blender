@@ -84,7 +84,7 @@ static bool is_appdir_init = false;
 #  define ASSERT_IS_INIT() BLI_assert(is_appdir_init)
 #else
 #  define ASSERT_IS_INIT() ((void)0)
-#endif
+#endif /* NDEBUG */
 
 void BKE_appdir_init()
 {

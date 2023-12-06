@@ -82,4 +82,4 @@ void BKE_mesh_debug_print(const Mesh *me)
   MEM_freeN(str);
 }
 
-#endif /* NDEBUG */
+#endif /* !NDEBUG */

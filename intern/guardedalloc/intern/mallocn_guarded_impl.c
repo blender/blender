@@ -1265,4 +1265,4 @@ void MEM_guarded_name_ptr_set(void *vmemh, const char *str)
     MEMNEXT(memh->prev)->nextname = str;
   }
 }
-#endif /* NDEBUG */
+#endif /* !NDEBUG */

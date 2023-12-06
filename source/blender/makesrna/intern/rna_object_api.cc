@@ -1344,7 +1344,7 @@ void RNA_api_object(StructRNA *srna)
   RNA_def_parameter_flags(
       parm, PROP_THICK_WRAP, ParameterFlag(0)); /* needed for string return value */
   RNA_def_function_output(func, parm);
-#  endif /* NDEBUG */
+#  endif /* !NDEBUG */
 
   func = RNA_def_function(srna, "update_from_editmode", "rna_Object_update_from_editmode");
   RNA_def_function_ui_description(func, "Load the objects edit-mode data into the object data");

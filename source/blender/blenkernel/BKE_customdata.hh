@@ -757,7 +757,7 @@ size_t CustomData_get_elem_size(const CustomDataLayer *layer);
 struct DynStr;
 /** Use to inspect mesh data when debugging. */
 void CustomData_debug_info_from_layers(const CustomData *data, const char *indent, DynStr *dynstr);
-#endif /* NDEBUG */
+#endif /* !NDEBUG */
 
 namespace blender::bke {
 const CPPType *custom_data_type_to_cpp_type(eCustomDataType type);

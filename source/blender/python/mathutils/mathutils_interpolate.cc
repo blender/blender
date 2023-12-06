@@ -78,7 +78,7 @@ static PyObject *M_Interpolate_poly_3d_calc(PyObject * /*self*/, PyObject *args)
   return ret;
 }
 
-#endif /* MATH_STANDALONE */
+#endif /* !MATH_STANDALONE */
 
 static PyMethodDef M_Interpolate_methods[] = {
 #ifndef MATH_STANDALONE

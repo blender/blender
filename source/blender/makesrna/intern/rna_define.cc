@@ -85,7 +85,7 @@ static void print_default_info(const PropertyDefRNA *dp)
           dp->dnaname,
           dp->prop->identifier);
 }
-#endif /* RNA_RUNTIME */
+#endif /* !RNA_RUNTIME */
 
 /* Duplicated code since we can't link in blenkernel or blenlib */
 

@@ -8855,7 +8855,7 @@ void pyrna_alloc_types()
   RNA_PROP_END;
 
   PyGILState_Release(gilstate);
-#endif /* NDEBUG */
+#endif /* !NDEBUG */
 }
 
 void pyrna_free_types()
