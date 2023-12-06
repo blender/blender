@@ -200,6 +200,13 @@ class GHOST_SystemX11 : public GHOST_System {
   }
 #endif
 
+  /**
+   * Use this function instead of #GHOST_System::getMilliSeconds,
+   * passing in the time-stamp from X to input to get the event
+   * time-stamp with an offset applied to make it compatible with `getMilliSeconds`.
+   */
+  uint64_t ms_from_input_time(const Time timestamp_as_uint) const;
+
   /** Helped function for get data from the clipboard. */
   void getClipboard_xcout(const XEvent *evt,
                           Atom sel,
@@ -343,6 +350,8 @@ class GHOST_SystemX11 : public GHOST_System {
 
   /** Start time at initialization. */
   uint64_t m_start_time;
+  /** Start time at initialization (using  `CLOCK_MONOTONIC`). */
+  uint64_t m_start_time_monotonic;
 
   /** A vector of keyboard key masks. */
   char m_keyboard_vector[32];
