@@ -14,11 +14,15 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_array.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_rotation.h"
+#include "BLI_math_vector.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_path_util.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
+#include "BLI_task.hh"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
@@ -121,13 +125,6 @@ static void slice_get_float_buffers(const SeqRenderData *context,
 /* -------------------------------------------------------------------- */
 /** \name Glow Effect
  * \{ */
-
-enum {
-  GlowR = 0,
-  GlowG = 1,
-  GlowB = 2,
-  GlowA = 3,
-};
 
 static ImBuf *prepare_effect_imbufs(const SeqRenderData *context,
                                     ImBuf *ibuf1,
@@ -1829,20 +1826,14 @@ static void do_transform_effect(const SeqRenderData *context,
 /** \name Glow Effect
  * \{ */
 
-static void RVBlurBitmap2_float(float *map, int width, int height, float blur, int quality)
+static void glow_blur_bitmap(const blender::float4 *src,
+                             blender::float4 *map,
+                             int width,
+                             int height,
+                             float blur,
+                             int quality)
 {
-  /* Much better than the previous blur!
-   * We do the blurring in two passes which is a whole lot faster.
-   * I changed the math around to implement an actual Gaussian distribution.
-   *
-   * Watch out though, it tends to misbehave with large blur values on
-   * a small bitmap. Avoid! */
-
-  float *temp = nullptr, *swap;
-  float *filter = nullptr;
-  int x, y, i, fx, fy;
-  int index, ix, halfWidth;
-  float fval, k, curColor[4], curColor2[4], weight = 0;
+  using namespace blender;
 
   /* If we're not really blurring, bail out */
   if (blur <= 0) {
@@ -1850,183 +1841,95 @@ static void RVBlurBitmap2_float(float *map, int width, int height, float blur, i
   }
 
   /* If result would be no blurring, early out. */
-  halfWidth = ((quality + 1) * blur);
+  const int halfWidth = ((quality + 1) * blur);
   if (halfWidth == 0) {
     return;
   }
 
-  /* Allocate memory for the temp-map and the blur filter matrix. */
-  temp = static_cast<float *>(MEM_mallocN(sizeof(float[4]) * width * height, "blurbitmaptemp"));
-  if (!temp) {
-    return;
-  }
+  Array<float4> temp(width * height);
 
-  /* Allocate memory for the filter elements */
-  filter = (float *)MEM_mallocN(sizeof(float) * halfWidth * 2, "blurbitmapfilter");
-  if (!filter) {
-    MEM_freeN(temp);
-    return;
-  }
-
-  /* Apparently we're calculating a bell curve based on the standard deviation (or radius)
-   * This code is based on an example posted to comp.graphics.algorithms by
-   * Blancmange <bmange@airdmhor.gen.nz>
-   */
-
-  k = -1.0f / (2.0f * float(M_PI) * blur * blur);
-
-  for (ix = 0; ix < halfWidth; ix++) {
+  /* Initialize the gaussian filter. @TODO: use code from RE_filter_value */
+  Array<float> filter(halfWidth * 2);
+  const float k = -1.0f / (2.0f * float(M_PI) * blur * blur);
+  float weight = 0;
+  for (int ix = 0; ix < halfWidth; ix++) {
     weight = float(exp(k * (ix * ix)));
     filter[halfWidth - ix] = weight;
     filter[halfWidth + ix] = weight;
   }
   filter[0] = weight;
-
   /* Normalize the array */
-  fval = 0;
-  for (ix = 0; ix < halfWidth * 2; ix++) {
+  float fval = 0;
+  for (int ix = 0; ix < halfWidth * 2; ix++) {
     fval += filter[ix];
   }
-
-  for (ix = 0; ix < halfWidth * 2; ix++) {
+  for (int ix = 0; ix < halfWidth * 2; ix++) {
     filter[ix] /= fval;
   }
 
-  /* Blur the rows */
-  for (y = 0; y < height; y++) {
-    /* Do the left & right strips */
-    for (x = 0; x < halfWidth; x++) {
-      fx = 0;
-      zero_v4(curColor);
-      zero_v4(curColor2);
-
-      for (i = x - halfWidth; i < x + halfWidth; i++) {
-        if ((i >= 0) && (i < width)) {
-          index = (i + y * width) * 4;
-          madd_v4_v4fl(curColor, map + index, filter[fx]);
-
-          index = (width - 1 - i + y * width) * 4;
-          madd_v4_v4fl(curColor2, map + index, filter[fx]);
+  /* Blur the rows: read map, write temp */
+  threading::parallel_for(IndexRange(height), 32, [&](const IndexRange y_range) {
+    for (const int y : y_range) {
+      for (int x = 0; x < width; x++) {
+        float4 curColor = float4(0.0f);
+        int xmin = math::max(x - halfWidth, 0);
+        int xmax = math::min(x + halfWidth, width);
+        for (int nx = xmin, index = (xmin - x) + halfWidth; nx < xmax; nx++, index++) {
+          curColor += map[nx + y * width] * filter[index];
         }
-        fx++;
+        temp[x + y * width] = curColor;
       }
-      index = (x + y * width) * 4;
-      copy_v4_v4(temp + index, curColor);
-
-      index = (width - 1 - x + y * width) * 4;
-      copy_v4_v4(temp + index, curColor2);
     }
+  });
 
-    /* Do the main body */
-    for (x = halfWidth; x < width - halfWidth; x++) {
-      fx = 0;
-      zero_v4(curColor);
-      for (i = x - halfWidth; i < x + halfWidth; i++) {
-        index = (i + y * width) * 4;
-        madd_v4_v4fl(curColor, map + index, filter[fx]);
-        fx++;
-      }
-      index = (x + y * width) * 4;
-      copy_v4_v4(temp + index, curColor);
-    }
-  }
-
-  /* Swap buffers */
-  swap = temp;
-  temp = map;
-  map = swap;
-
-  /* Blur the columns */
-  for (x = 0; x < width; x++) {
-    /* Do the top & bottom strips */
-    for (y = 0; y < halfWidth; y++) {
-      fy = 0;
-      zero_v4(curColor);
-      zero_v4(curColor2);
-      for (i = y - halfWidth; i < y + halfWidth; i++) {
-        if ((i >= 0) && (i < height)) {
-          /* Bottom */
-          index = (x + i * width) * 4;
-          madd_v4_v4fl(curColor, map + index, filter[fy]);
-
-          /* Top */
-          index = (x + (height - 1 - i) * width) * 4;
-          madd_v4_v4fl(curColor2, map + index, filter[fy]);
+  /* Blur the columns: read temp, write map */
+  threading::parallel_for(IndexRange(width), 32, [&](const IndexRange x_range) {
+    const float4 one = float4(1.0f);
+    for (const int x : x_range) {
+      for (int y = 0; y < height; y++) {
+        float4 curColor = float4(0.0f);
+        int ymin = math::max(y - halfWidth, 0);
+        int ymax = math::min(y + halfWidth, height);
+        for (int ny = ymin, index = (ymin - y) + halfWidth; ny < ymax; ny++, index++) {
+          curColor += temp[x + ny * width] * filter[index];
         }
-        fy++;
+        if (src != nullptr) {
+          curColor = math::min(one, src[x + y * width] + curColor);
+        }
+        map[x + y * width] = curColor;
       }
-      index = (x + y * width) * 4;
-      copy_v4_v4(temp + index, curColor);
-
-      index = (x + (height - 1 - y) * width) * 4;
-      copy_v4_v4(temp + index, curColor2);
     }
-
-    /* Do the main body */
-    for (y = halfWidth; y < height - halfWidth; y++) {
-      fy = 0;
-      zero_v4(curColor);
-      for (i = y - halfWidth; i < y + halfWidth; i++) {
-        index = (x + i * width) * 4;
-        madd_v4_v4fl(curColor, map + index, filter[fy]);
-        fy++;
-      }
-      index = (x + y * width) * 4;
-      copy_v4_v4(temp + index, curColor);
-    }
-  }
-
-  /* Swap buffers */
-  swap = temp;
-  temp = map;
-  // map = swap; /* UNUSED. */
-
-  /* Tidy up. */
-  MEM_freeN(filter);
-  MEM_freeN(temp);
+  });
 }
 
-static void RVAddBitmaps_float(float *a, float *b, float *c, int width, int height)
+static void blur_isolate_highlights(const blender::float4 *in,
+                                    blender::float4 *out,
+                                    int width,
+                                    int height,
+                                    float threshold,
+                                    float boost,
+                                    float clamp)
 {
-  int x, y, index;
+  using namespace blender;
+  threading::parallel_for(IndexRange(height), 64, [&](const IndexRange y_range) {
+    const float4 clampv = float4(clamp);
+    for (const int y : y_range) {
+      int index = y * width;
+      for (int x = 0; x < width; x++, index++) {
 
-  for (y = 0; y < height; y++) {
-    for (x = 0; x < width; x++) {
-      index = (x + y * width) * 4;
-      c[index + GlowR] = min_ff(1.0f, a[index + GlowR] + b[index + GlowR]);
-      c[index + GlowG] = min_ff(1.0f, a[index + GlowG] + b[index + GlowG]);
-      c[index + GlowB] = min_ff(1.0f, a[index + GlowB] + b[index + GlowB]);
-      c[index + GlowA] = min_ff(1.0f, a[index + GlowA] + b[index + GlowA]);
-    }
-  }
-}
-
-static void RVIsolateHighlights_float(
-    const float *in, float *out, int width, int height, float threshold, float boost, float clamp)
-{
-  int x, y, index;
-  float intensity;
-
-  for (y = 0; y < height; y++) {
-    for (x = 0; x < width; x++) {
-      index = (x + y * width) * 4;
-
-      /* Isolate the intensity */
-      intensity = (in[index + GlowR] + in[index + GlowG] + in[index + GlowB] - threshold);
-      if (intensity > 0) {
-        out[index + GlowR] = min_ff(clamp, (in[index + GlowR] * boost * intensity));
-        out[index + GlowG] = min_ff(clamp, (in[index + GlowG] * boost * intensity));
-        out[index + GlowB] = min_ff(clamp, (in[index + GlowB] * boost * intensity));
-        out[index + GlowA] = min_ff(clamp, (in[index + GlowA] * boost * intensity));
-      }
-      else {
-        out[index + GlowR] = 0;
-        out[index + GlowG] = 0;
-        out[index + GlowB] = 0;
-        out[index + GlowA] = 0;
+        /* Isolate the intensity */
+        float intensity = (in[index].x + in[index].y + in[index].z - threshold);
+        float4 val;
+        if (intensity > 0) {
+          val = math::min(clampv, in[index] * (boost * intensity));
+        }
+        else {
+          val = float4(0.0f);
+        }
+        out[index] = val;
       }
     }
-  }
+  });
 }
 
 static void init_glow_effect(Sequence *seq)
@@ -2072,28 +1975,38 @@ static void do_glow_effect_byte(Sequence *seq,
                                 uchar * /*rect2*/,
                                 uchar *out)
 {
-  float *outbuf, *inbuf;
+  using namespace blender;
   GlowVars *glow = (GlowVars *)seq->effectdata;
 
-  inbuf = static_cast<float *>(MEM_mallocN(sizeof(float[4]) * x * y, "glow effect input"));
-  outbuf = static_cast<float *>(MEM_mallocN(sizeof(float[4]) * x * y, "glow effect output"));
+  Array<float4> inbuf(x * y);
+  Array<float4> outbuf(x * y);
 
-  IMB_buffer_float_from_byte(inbuf, rect1, IB_PROFILE_SRGB, IB_PROFILE_SRGB, false, x, y, x, x);
-  IMB_buffer_float_premultiply(inbuf, x, y);
+  using namespace blender;
+  IMB_colormanagement_transform_from_byte_threaded(*inbuf.data(), rect1, x, y, 4, "sRGB", "sRGB");
 
-  RVIsolateHighlights_float(
-      inbuf, outbuf, x, y, glow->fMini * 3.0f, glow->fBoost * fac, glow->fClamp);
-  RVBlurBitmap2_float(outbuf, x, y, glow->dDist * (render_size / 100.0f), glow->dQuality);
-  if (!glow->bNoComp) {
-    RVAddBitmaps_float(inbuf, outbuf, outbuf, x, y);
-  }
+  blur_isolate_highlights(
+      inbuf.data(), outbuf.data(), x, y, glow->fMini * 3.0f, glow->fBoost * fac, glow->fClamp);
+  glow_blur_bitmap(glow->bNoComp ? nullptr : inbuf.data(),
+                   outbuf.data(),
+                   x,
+                   y,
+                   glow->dDist * (render_size / 100.0f),
+                   glow->dQuality);
 
-  IMB_buffer_float_unpremultiply(outbuf, x, y);
-  IMB_buffer_byte_from_float(
-      out, outbuf, 4, 0.0f, IB_PROFILE_SRGB, IB_PROFILE_SRGB, false, x, y, x, x);
-
-  MEM_freeN(inbuf);
-  MEM_freeN(outbuf);
+  threading::parallel_for(IndexRange(y), 64, [&](const IndexRange y_range) {
+    size_t offset = y_range.first() * x;
+    IMB_buffer_byte_from_float(out + offset * 4,
+                               *(outbuf.data() + offset),
+                               4,
+                               0.0f,
+                               IB_PROFILE_SRGB,
+                               IB_PROFILE_SRGB,
+                               true,
+                               x,
+                               y_range.size(),
+                               x,
+                               x);
+  });
 }
 
 static void do_glow_effect_float(Sequence *seq,
@@ -2105,16 +2018,19 @@ static void do_glow_effect_float(Sequence *seq,
                                  float * /*rect2*/,
                                  float *out)
 {
-  float *outbuf = out;
-  float *inbuf = rect1;
+  using namespace blender;
+  float4 *outbuf = reinterpret_cast<float4 *>(out);
+  float4 *inbuf = reinterpret_cast<float4 *>(rect1);
   GlowVars *glow = (GlowVars *)seq->effectdata;
 
-  RVIsolateHighlights_float(
+  blur_isolate_highlights(
       inbuf, outbuf, x, y, glow->fMini * 3.0f, glow->fBoost * fac, glow->fClamp);
-  RVBlurBitmap2_float(outbuf, x, y, glow->dDist * (render_size / 100.0f), glow->dQuality);
-  if (!glow->bNoComp) {
-    RVAddBitmaps_float(inbuf, outbuf, outbuf, x, y);
-  }
+  glow_blur_bitmap(glow->bNoComp ? nullptr : inbuf,
+                   outbuf,
+                   x,
+                   y,
+                   glow->dDist * (render_size / 100.0f),
+                   glow->dQuality);
 }
 
 static ImBuf *do_glow_effect(const SeqRenderData *context,

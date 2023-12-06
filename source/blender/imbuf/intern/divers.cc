@@ -856,26 +856,6 @@ void IMB_color_to_bw(ImBuf *ibuf)
   }
 }
 
-void IMB_buffer_float_unpremultiply(float *buf, int width, int height)
-{
-  size_t total = size_t(width) * height;
-  float *fp = buf;
-  while (total--) {
-    premul_to_straight_v4(fp);
-    fp += 4;
-  }
-}
-
-void IMB_buffer_float_premultiply(float *buf, int width, int height)
-{
-  size_t total = size_t(width) * height;
-  float *fp = buf;
-  while (total--) {
-    straight_to_premul_v4(fp);
-    fp += 4;
-  }
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
