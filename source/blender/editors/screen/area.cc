@@ -1229,10 +1229,11 @@ static void region_overlap_fix(ScrArea *area, ARegion *region)
     }
 
     if (region_iter->overlap && ((region_iter->alignment & RGN_SPLIT_PREV) == 0)) {
-      if (ELEM(region_iter->alignment, RGN_ALIGN_FLOAT)) {
+      const int align_iter = RGN_ALIGN_ENUM_FROM_MASK(region_iter->alignment);
+      if (ELEM(align_iter, RGN_ALIGN_FLOAT)) {
         continue;
       }
-      align1 = region_iter->alignment;
+      align1 = align_iter;
       if (BLI_rcti_isect(&region_iter->winrct, &region->winrct, nullptr)) {
         if (align1 != align) {
           /* Left overlapping right or vice-versa, forbid this! */
@@ -1272,13 +1273,13 @@ static void region_overlap_fix(ScrArea *area, ARegion *region)
     if (region_iter->flag & (RGN_FLAG_POLL_FAILED | RGN_FLAG_HIDDEN)) {
       continue;
     }
-    if (ELEM(region_iter->alignment, RGN_ALIGN_FLOAT)) {
+    const int align_iter = RGN_ALIGN_ENUM_FROM_MASK(region_iter->alignment);
+    if (ELEM(align_iter, RGN_ALIGN_FLOAT)) {
       continue;
     }
 
     if (region_iter->overlap && (region_iter->alignment & RGN_SPLIT_PREV) == 0) {
-      if ((region_iter->alignment != align) &&
-          BLI_rcti_isect(&region_iter->winrct, &region->winrct, nullptr))
+      if ((align_iter != align) && BLI_rcti_isect(&region_iter->winrct, &region->winrct, nullptr))
       {
         /* Left overlapping right or vice-versa, forbid this! */
         region->flag |= RGN_FLAG_TOO_SMALL;
