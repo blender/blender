@@ -611,7 +611,7 @@ struct SculptSession {
    * A reference to the ".hide_poly" attribute, to store whether (base) faces are hidden.
    * May be null.
    */
-  bool *hide_poly;
+  const bool *hide_poly;
 
   /* BMesh for dynamic topology sculpting */
   BMesh *bm;
@@ -844,11 +844,10 @@ void BKE_sculpt_update_object_after_eval(Depsgraph *depsgraph, Object *ob_eval);
 MultiresModifierData *BKE_sculpt_multires_active(const Scene *scene, Object *ob);
 int *BKE_sculpt_face_sets_ensure(Object *ob);
 /**
- * Create the attribute used to store face visibility and retrieve its data.
- * Note that changes to the face visibility have to be propagated to other domains
- * (see #ed::sculpt_paint::hide::sync_all_from_faces).
+ * Update the pointer to the ".hide_poly" attribute. This is necessary because it is dynamically
+ * created, removed, and made mutable.
  */
-bool *BKE_sculpt_hide_poly_ensure(Mesh *mesh);
+void BKE_sculpt_hide_poly_pointer_update(Object &object);
 
 /**
  * Ensures a mask layer exists. If depsgraph and bmain are non-null,

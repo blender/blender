@@ -1734,8 +1734,7 @@ static void sculpt_update_object(Depsgraph *depsgraph,
     ss->face_sets = nullptr;
   }
 
-  ss->hide_poly = (bool *)CustomData_get_layer_named_for_write(
-      &me->face_data, CD_PROP_BOOL, ".hide_poly", me->faces_num);
+  ss->hide_poly = (bool *)CustomData_get_layer_named(&me->face_data, CD_PROP_BOOL, ".hide_poly");
 
   ss->subdiv_ccg = me_eval->runtime->subdiv_ccg.get();
 
@@ -1979,15 +1978,11 @@ int *BKE_sculpt_face_sets_ensure(Object *ob)
   return nullptr;
 }
 
-bool *BKE_sculpt_hide_poly_ensure(Mesh *mesh)
+void BKE_sculpt_hide_poly_pointer_update(Object &object)
 {
-  bool *hide_poly = static_cast<bool *>(CustomData_get_layer_named_for_write(
-      &mesh->face_data, CD_PROP_BOOL, ".hide_poly", mesh->faces_num));
-  if (hide_poly != nullptr) {
-    return hide_poly;
-  }
-  return static_cast<bool *>(CustomData_add_layer_named(
-      &mesh->face_data, CD_PROP_BOOL, CD_SET_DEFAULT, mesh->faces_num, ".hide_poly"));
+  const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+  object.sculpt->hide_poly = static_cast<const bool *>(
+      CustomData_get_layer_named(&mesh.face_data, CD_PROP_BOOL, ".hide_poly"));
 }
 
 void BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,

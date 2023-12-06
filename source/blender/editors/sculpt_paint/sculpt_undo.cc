@@ -573,7 +573,6 @@ static bool sculpt_undo_restore_hidden_face(Object &object,
                                             MutableSpan<bool> modified_faces)
 {
   using namespace blender;
-  SculptSession *ss = object.sculpt;
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
   bke::SpanAttributeWriter hide_poly = attributes.lookup_or_add_for_write_span<bool>(
@@ -592,7 +591,7 @@ static bool sculpt_undo_restore_hidden_face(Object &object,
     }
   }
   hide_poly.finish();
-  ss->hide_poly = BKE_sculpt_hide_poly_ensure(&mesh);
+  BKE_sculpt_hide_poly_pointer_update(object);
   return modified;
 }
 
