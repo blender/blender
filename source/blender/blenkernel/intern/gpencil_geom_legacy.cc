@@ -25,6 +25,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_polyfill_2d.h"
 #include "BLI_span.hh"
@@ -115,10 +116,9 @@ std::optional<blender::Bounds<blender::float3>> BKE_gpencil_data_minmax(const bG
 
 void BKE_gpencil_centroid_3d(bGPdata *gpd, float r_centroid[3])
 {
-  const blender::Bounds<blender::float3> bounds = *BKE_gpencil_data_minmax(gpd);
-
-  const float3 tot = bounds.min + bounds.max;
-  mul_v3_v3fl(r_centroid, tot, 0.5f);
+  using namespace blender;
+  const Bounds<float3> bounds = BKE_gpencil_data_minmax(gpd).value_or(Bounds(float3(0)));
+  copy_v3_v3(r_centroid, math::midpoint(bounds.min, bounds.max));
 }
 
 void BKE_gpencil_stroke_boundingbox_calc(bGPDstroke *gps)

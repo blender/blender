@@ -23,6 +23,7 @@
 #include "BLI_hash.h"
 #include "BLI_link_utils.h"
 #include "BLI_math_color.h"
+#include "BLI_math_vector.hh"
 #include "BLI_memblock.h"
 
 #include "gpencil_engine.h"
@@ -37,6 +38,7 @@
 
 GPENCIL_tObject *gpencil_object_cache_add(GPENCIL_PrivateData *pd, Object *ob)
 {
+  using namespace blender;
   bGPdata *gpd = (bGPdata *)ob->data;
   GPENCIL_tObject *tgp_ob = static_cast<GPENCIL_tObject *>(BLI_memblock_alloc(pd->gp_object_pool));
 
@@ -64,13 +66,12 @@ GPENCIL_tObject *gpencil_object_cache_add(GPENCIL_PrivateData *pd, Object *ob)
    * strokes not aligned with the object axes. Maybe we could try to
    * compute the minimum axis of all strokes. But this would be more
    * computationally heavy and should go into the GPData evaluation. */
-  const blender::Bounds<blender::float3> bounds = *BKE_gpencil_data_minmax(gpd);
-  BoundBox bb;
-  BKE_boundbox_init_from_minmax(&bb, bounds.min, bounds.max);
+  const std::optional<Bounds<float3>> bounds = BKE_gpencil_data_minmax(gpd).value_or(
+      Bounds(float3(0)));
+  float3 size = bounds->max - bounds->min;
+  float3 center = math::midpoint(bounds->min, bounds->max);
   /* Convert bbox to matrix */
-  float mat[4][4], size[3], center[3];
-  BKE_boundbox_calc_size_aabb(&bb, size);
-  BKE_boundbox_calc_center_aabb(&bb, center);
+  float mat[4][4];
   unit_m4(mat);
   copy_v3_v3(mat[3], center);
   /* Avoid division by 0.0 later. */

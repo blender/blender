@@ -790,7 +790,7 @@ void BKE_mesh_texspace_calc(Mesh *me)
   using namespace blender;
   if (me->texspace_flag & ME_TEXSPACE_FLAG_AUTO) {
     const Bounds<float3> bounds = me->bounds_min_max().value_or(
-        Bounds<float3>{float3(-1.0f), float3(1.0f)});
+        Bounds(float3(-1.0f), float3(1.0f)));
 
     float texspace_location[3], texspace_size[3];
     mid_v3_v3v3(texspace_location, bounds.min, bounds.max);
