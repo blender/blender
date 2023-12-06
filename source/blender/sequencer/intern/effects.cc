@@ -512,152 +512,23 @@ static void do_cross_effect(const SeqRenderData *context,
 /** \name Gamma Cross
  * \{ */
 
-static ushort gamtab[65536];
-static ushort igamtab1[256];
-static bool gamma_tabs_init = false;
-
-#define RE_GAMMA_TABLE_SIZE 400
-
-static float gamma_range_table[RE_GAMMA_TABLE_SIZE + 1];
-static float gamfactor_table[RE_GAMMA_TABLE_SIZE];
-static float inv_gamma_range_table[RE_GAMMA_TABLE_SIZE + 1];
-static float inv_gamfactor_table[RE_GAMMA_TABLE_SIZE];
-static float color_domain_table[RE_GAMMA_TABLE_SIZE + 1];
-static float color_step;
-static float inv_color_step;
-static float valid_gamma;
-static float valid_inv_gamma;
-
-static void makeGammaTables(float gamma)
-{
-  /* we need two tables: one forward, one backward */
-  int i;
-
-  valid_gamma = gamma;
-  valid_inv_gamma = 1.0f / gamma;
-  color_step = 1.0f / RE_GAMMA_TABLE_SIZE;
-  inv_color_step = float(RE_GAMMA_TABLE_SIZE);
-
-  /* We could squeeze out the two range tables to gain some memory */
-  for (i = 0; i < RE_GAMMA_TABLE_SIZE; i++) {
-    color_domain_table[i] = i * color_step;
-    gamma_range_table[i] = pow(color_domain_table[i], valid_gamma);
-    inv_gamma_range_table[i] = pow(color_domain_table[i], valid_inv_gamma);
-  }
-
-  /* The end of the table should match 1.0 carefully. In order to avoid
-   * rounding errors, we just set this explicitly. The last segment may
-   * have a different length than the other segments, but our
-   * interpolation is insensitive to that
-   */
-  color_domain_table[RE_GAMMA_TABLE_SIZE] = 1.0;
-  gamma_range_table[RE_GAMMA_TABLE_SIZE] = 1.0;
-  inv_gamma_range_table[RE_GAMMA_TABLE_SIZE] = 1.0;
-
-  /* To speed up calculations, we make these calc factor tables. They are
-   * multiplication factors used in scaling the interpolation
-   */
-  for (i = 0; i < RE_GAMMA_TABLE_SIZE; i++) {
-    gamfactor_table[i] = inv_color_step * (gamma_range_table[i + 1] - gamma_range_table[i]);
-    inv_gamfactor_table[i] = inv_color_step *
-                             (inv_gamma_range_table[i + 1] - inv_gamma_range_table[i]);
-  }
-}
+/* One could argue that gamma cross should not be hardcoded to 2.0 gamma,
+ * but instead either do proper input->linear conversion (often sRGB). Or
+ * maybe not even that, but do interpolation in some perceptual color space
+ * like Oklab. But currently it is fixed to just 2.0 gamma. */
 
 static float gammaCorrect(float c)
 {
-  int i;
-  float res;
-
-  i = floorf(c * inv_color_step);
-  /* Clip to range [0, 1]: outside, just do the complete calculation.
-   * We may have some performance problems here. Stretching up the LUT
-   * may help solve that, by exchanging LUT size for the interpolation.
-   * Negative colors are explicitly handled.
-   */
-  if (UNLIKELY(i < 0)) {
-    res = -powf(-c, valid_gamma);
+  if (UNLIKELY(c < 0)) {
+    return -(c * c);
   }
-  else if (i >= RE_GAMMA_TABLE_SIZE) {
-    res = powf(c, valid_gamma);
-  }
-  else {
-    res = gamma_range_table[i] + ((c - color_domain_table[i]) * gamfactor_table[i]);
-  }
-
-  return res;
+  return c * c;
 }
-
-/* ------------------------------------------------------------------------- */
 
 static float invGammaCorrect(float c)
 {
-  int i;
-  float res = 0.0;
-
-  i = floorf(c * inv_color_step);
-  /* Negative colors are explicitly handled */
-  if (UNLIKELY(i < 0)) {
-    res = -powf(-c, valid_inv_gamma);
-  }
-  else if (i >= RE_GAMMA_TABLE_SIZE) {
-    res = powf(c, valid_inv_gamma);
-  }
-  else {
-    res = inv_gamma_range_table[i] + ((c - color_domain_table[i]) * inv_gamfactor_table[i]);
-  }
-
-  return res;
+  return sqrtf_signed(c);
 }
-
-static void gamtabs(float gamma)
-{
-  float val, igamma = 1.0f / gamma;
-  int a;
-
-  /* gamtab: in short, out short */
-  for (a = 0; a < 65536; a++) {
-    val = a;
-    val /= 65535.0f;
-
-    if (gamma == 2.0f) {
-      val = sqrtf(val);
-    }
-    else if (gamma != 1.0f) {
-      val = powf(val, igamma);
-    }
-
-    gamtab[a] = (65535.99f * val);
-  }
-  /* inverse gamtab1 : in byte, out short */
-  for (a = 1; a <= 256; a++) {
-    if (gamma == 2.0f) {
-      igamtab1[a - 1] = a * a - 1;
-    }
-    else if (gamma == 1.0f) {
-      igamtab1[a - 1] = 256 * a - 1;
-    }
-    else {
-      val = a / 256.0f;
-      igamtab1[a - 1] = (65535.0 * pow(val, gamma)) - 1;
-    }
-  }
-}
-
-static void build_gammatabs()
-{
-  if (gamma_tabs_init == false) {
-    gamtabs(2.0f);
-    makeGammaTables(2.0f);
-    gamma_tabs_init = true;
-  }
-}
-
-static void init_gammacross(Sequence * /*seq*/) {}
-
-static void load_gammacross(Sequence * /*seq*/) {}
-
-static void free_gammacross(Sequence * /*seq*/, const bool /*do_id_user*/) {}
 
 static void do_gammacross_effect_byte(
     float fac, int x, int y, uchar *rect1, uchar *rect2, uchar *out)
@@ -716,8 +587,6 @@ static ImBuf *gammacross_init_execution(const SeqRenderData *context,
                                         ImBuf *ibuf3)
 {
   ImBuf *out = prepare_effect_imbufs(context, ibuf1, ibuf2, ibuf3);
-  build_gammatabs();
-
   return out;
 }
 
@@ -3543,9 +3412,6 @@ static SeqEffectHandle get_sequence_effect_impl(int seq_type)
       break;
     case SEQ_TYPE_GAMCROSS:
       rval.multithreaded = true;
-      rval.init = init_gammacross;
-      rval.load = load_gammacross;
-      rval.free = free_gammacross;
       rval.early_out = early_out_fade;
       rval.get_default_fac = get_default_fac_fade;
       rval.init_execution = gammacross_init_execution;
