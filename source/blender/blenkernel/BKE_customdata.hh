@@ -347,6 +347,11 @@ void CustomData_bmesh_copy_data(const CustomData *source,
                                 CustomData *dest,
                                 void *src_block,
                                 void **dest_block);
+/**
+ * Copy all layers from the sourde to the destination block. Allocate the result block if
+ * necessary, otherwise free its existing layer data.
+ */
+void CustomData_bmesh_copy_block(CustomData &data, void *src_block, void **dst_block);
 void CustomData_bmesh_copy_data_exclude_by_type(const CustomData *source,
                                                 CustomData *dest,
                                                 void *src_block,

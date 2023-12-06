@@ -3899,6 +3899,35 @@ void CustomData_bmesh_copy_data(const CustomData *source,
   CustomData_bmesh_copy_data_exclude_by_type(source, dest, src_block, dest_block, 0);
 }
 
+void CustomData_bmesh_copy_block(CustomData &data, void *src_block, void **dst_block)
+{
+  if (*dst_block) {
+    for (const CustomDataLayer &layer : Span(data.layers, data.totlayer)) {
+      const LayerTypeInfo &info = *layerType_getInfo(eCustomDataType(layer.type));
+      if (info.free) {
+        info.free(POINTER_OFFSET(*dst_block, layer.offset), 1);
+      }
+    }
+  }
+  else {
+    if (data.totsize == 0) {
+      return;
+    }
+    *dst_block = BLI_mempool_alloc(data.pool);
+  }
+
+  for (const CustomDataLayer &layer : Span(data.layers, data.totlayer)) {
+    const int offset = layer.offset;
+    const LayerTypeInfo &info = *layerType_getInfo(eCustomDataType(layer.type));
+    if (info.copy) {
+      info.copy(POINTER_OFFSET(src_block, offset), POINTER_OFFSET(*dst_block, offset), 1);
+    }
+    else {
+      memcpy(POINTER_OFFSET(*dst_block, offset), POINTER_OFFSET(src_block, offset), info.size);
+    }
+  }
+}
+
 void *CustomData_bmesh_get(const CustomData *data, void *block, const eCustomDataType type)
 {
   int layer_index = CustomData_get_active_layer_index(data, type);
