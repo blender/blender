@@ -1402,6 +1402,10 @@ static void lib_override_library_create_post_process(Main *bmain,
                ob_new->id.override_library->reference == &ob->id);
 
     if (old_active_object == ob) {
+      BLI_assert(view_layer);
+      /* May have been tagged as dirty again in a previous iteration of this loop, e.g. if adding a
+       * liboverride object to a colleciton. */
+      BKE_view_layer_synced_ensure(scene, view_layer);
       Base *basact = BKE_view_layer_base_find(view_layer, ob_new);
       if (basact != nullptr) {
         view_layer->basact = basact;
