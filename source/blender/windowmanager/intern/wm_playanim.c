@@ -1837,6 +1837,10 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
   BLF_exit();
 
+  /* NOTE: Must happen before GPU Context destruction as GPU resources are released via
+   * Color Management module. Must be re-initialized in the case of drag & drop. */
+  IMB_exit();
+
   if (g_WS.gpu_context) {
     GPU_context_active_set(g_WS.gpu_context);
     GPU_exit();
@@ -1851,11 +1855,12 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
   /* early exit, IMB and BKE should be exited only in end */
   if (ps.dropped_file[0]) {
+    /* Ensure drag & drop runs with a valid IMB state. */
+    IMB_init();
+
     STRNCPY(filepath, ps.dropped_file);
     return filepath;
   }
-
-  IMB_exit();
 
   totblock = MEM_get_memory_blocks_in_use();
   if (totblock != 0) {
