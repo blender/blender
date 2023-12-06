@@ -295,7 +295,8 @@ uint64_t GHOST_SystemX11::ms_from_input_time(const Time timestamp) const
   /* NOTE(@ideasman42): Return a time compatible with `getMilliSeconds()`,
    * this is needed as X11 time-stamps use monotonic time.
    * The X11 implementation *could* use any basis, in practice though we are supporting
-   * XORG/LIBINPUT  which uses time-stamps based on the monotonic time. */
+   * XORG/LIBINPUT which uses time-stamps based on the monotonic time,
+   * Needed to resolve failure to detect double-clicking, see: #40009. */
   return uint64_t(timestamp) - m_start_time_monotonic;
 }
 
