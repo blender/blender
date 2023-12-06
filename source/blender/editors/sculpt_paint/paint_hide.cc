@@ -107,6 +107,7 @@ static void vert_show_all(Object &object, const Span<PBVHNode *> nodes)
     BKE_pbvh_node_fully_hidden_set(node, false);
   }
   attributes.remove(".hide_vert");
+  BKE_mesh_flush_hidden_from_verts(&mesh);
 }
 
 static bool vert_hide_is_changed(const Span<int> verts,
@@ -123,18 +124,19 @@ static bool vert_hide_is_changed(const Span<int> verts,
 
 static void vert_hide_update(Object &object,
                              const Span<PBVHNode *> nodes,
-                             FunctionRef<void(Span<int>, MutableSpan<bool>)> calc_hide)
+                             const FunctionRef<void(Span<int>, MutableSpan<bool>)> calc_hide)
 {
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
   bke::SpanAttributeWriter<bool> hide_vert = attributes.lookup_or_add_for_write_span<bool>(
       ".hide_vert", ATTR_DOMAIN_POINT);
 
+  bool any_changed = false;
   threading::EnumerableThreadSpecific<Vector<bool>> all_new_hide;
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     Vector<bool> &new_hide = all_new_hide.local();
     for (PBVHNode *node : nodes.slice(range)) {
-      const Span<int> verts = BKE_pbvh_node_get_vert_indices(node);
+      const Span<int> verts = BKE_pbvh_node_get_unique_vert_indices(node);
 
       new_hide.reinitialize(verts.size());
       array_utils::gather(hide_vert.span.as_span(), verts, new_hide.as_mutable_span());
@@ -142,6 +144,8 @@ static void vert_hide_update(Object &object,
       if (!vert_hide_is_changed(verts, hide_vert.span, new_hide)) {
         continue;
       }
+
+      any_changed = true;
       SCULPT_undo_push_node(&object, node, SCULPT_UNDO_HIDDEN);
       array_utils::scatter(new_hide.as_span(), verts, hide_vert.span);
 
@@ -149,7 +153,11 @@ static void vert_hide_update(Object &object,
       bke::pbvh::node_update_visibility_mesh(hide_vert.span, *node);
     }
   });
+
   hide_vert.finish();
+  if (any_changed) {
+    BKE_mesh_flush_hidden_from_verts(&mesh);
+  }
 }
 
 static void partialvis_update_mesh(Object &object,
@@ -209,8 +217,6 @@ static void partialvis_update_mesh(Object &object,
       break;
     }
   }
-
-  BKE_mesh_flush_hidden_from_verts(&mesh);
 }
 
 static void grids_show_all(Depsgraph &depsgraph, Object &object, const Span<PBVHNode *> nodes)
@@ -606,6 +612,124 @@ void PAINT_OT_hide_show(wmOperatorType *ot)
   RNA_def_enum(
       ot->srna, "area", area_items, VisArea::Inside, "VisArea", "Which vertices to hide or show");
   WM_operator_properties_border(ot);
+}
+
+static void invert_visibility_mesh(Object &object, const Span<PBVHNode *> nodes)
+{
+  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
+  bke::SpanAttributeWriter<bool> hide_vert = attributes.lookup_or_add_for_write_span<bool>(
+      ".hide_vert", ATTR_DOMAIN_POINT);
+
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    for (PBVHNode *node : nodes.slice(range)) {
+      SCULPT_undo_push_node(&object, node, SCULPT_UNDO_HIDDEN);
+      for (const int vert : BKE_pbvh_node_get_unique_vert_indices(node)) {
+        hide_vert.span[vert] = !hide_vert.span[vert];
+      }
+      BKE_pbvh_node_mark_update_visibility(node);
+      bke::pbvh::node_update_visibility_mesh(hide_vert.span, *node);
+    }
+  });
+
+  hide_vert.finish();
+  BKE_mesh_flush_hidden_from_verts(&mesh);
+}
+
+static void invert_visibility_grids(Depsgraph &depsgraph,
+                                    Object &object,
+                                    const Span<PBVHNode *> nodes)
+{
+  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  PBVH &pbvh = *object.sculpt->pbvh;
+  SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
+  BitGroupVector<> &grid_hidden = BKE_subdiv_ccg_grid_hidden_ensure(subdiv_ccg);
+
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    for (PBVHNode *node : nodes.slice(range)) {
+      SCULPT_undo_push_node(&object, node, SCULPT_UNDO_HIDDEN);
+      for (const int i : BKE_pbvh_node_get_grid_indices(*node)) {
+        bits::invert(grid_hidden[i]);
+      }
+      BKE_pbvh_node_mark_update_visibility(node);
+      bke::pbvh::node_update_visibility_grids(grid_hidden, *node);
+    }
+  });
+
+  multires_mark_as_modified(&depsgraph, &object, MULTIRES_HIDDEN_MODIFIED);
+  BKE_pbvh_sync_visibility_from_verts(&pbvh, &mesh);
+}
+
+static void invert_visibility_bmesh(Object &object, const Span<PBVHNode *> nodes)
+{
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    for (PBVHNode *node : nodes.slice(range)) {
+      SCULPT_undo_push_node(&object, node, SCULPT_UNDO_HIDDEN);
+      bool fully_hidden = true;
+      for (BMVert *vert : BKE_pbvh_bmesh_node_unique_verts(node)) {
+        BM_elem_flag_toggle(vert, BM_ELEM_HIDDEN);
+        fully_hidden &= BM_elem_flag_test(vert, BM_ELEM_HIDDEN);
+      }
+      BKE_pbvh_node_fully_hidden_set(node, fully_hidden);
+      BKE_pbvh_node_mark_rebuild_draw(node);
+    }
+  });
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    for (PBVHNode *node : nodes.slice(range)) {
+      partialvis_update_bmesh_faces(BKE_pbvh_bmesh_node_faces(node));
+    }
+  });
+}
+
+static int visibility_invert_exec(bContext *C, wmOperator *op)
+{
+  ARegion &region = *CTX_wm_region(C);
+  Object &object = *CTX_data_active_object(C);
+  Depsgraph &depsgraph = *CTX_data_ensure_evaluated_depsgraph(C);
+
+  PBVH *pbvh = BKE_sculpt_object_pbvh_ensure(&depsgraph, &object);
+  BLI_assert(BKE_object_sculpt_pbvh_get(&object) == pbvh);
+
+  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(pbvh, {});
+  SCULPT_undo_push_begin(&object, op);
+  switch (BKE_pbvh_type(pbvh)) {
+    case PBVH_FACES:
+      invert_visibility_mesh(object, nodes);
+      break;
+    case PBVH_GRIDS:
+      invert_visibility_grids(depsgraph, object, nodes);
+      break;
+    case PBVH_BMESH:
+      invert_visibility_bmesh(object, nodes);
+      break;
+  }
+
+  SCULPT_undo_push_end(&object);
+
+  SCULPT_topology_islands_invalidate(object.sculpt);
+
+  RegionView3D *rv3d = CTX_wm_region_view3d(C);
+  if (!BKE_sculptsession_use_pbvh_draw(&object, rv3d)) {
+    DEG_id_tag_update(&object.id, ID_RECALC_GEOMETRY);
+  }
+
+  DEG_id_tag_update(&object.id, ID_RECALC_SHADING);
+  ED_region_tag_redraw(&region);
+
+  return OPERATOR_FINISHED;
+}
+
+void PAINT_OT_visibility_invert(wmOperatorType *ot)
+{
+  ot->name = "Invert Visibility";
+  ot->idname = "PAINT_OT_visibility_invert";
+  ot->description = "Invert the visibility of all vertices";
+
+  ot->modal = WM_gesture_box_modal;
+  ot->exec = visibility_invert_exec;
+  ot->poll = SCULPT_mode_poll_view3d;
+
+  ot->flag = OPTYPE_REGISTER;
 }
 
 }  // namespace blender::ed::sculpt_paint::hide

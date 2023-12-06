@@ -444,26 +444,6 @@ void SCULPT_face_set_visibility_set(SculptSession *ss, int face_set, bool visibl
   }
 }
 
-void SCULPT_face_visibility_all_invert(SculptSession *ss)
-{
-  SCULPT_topology_islands_invalidate(ss);
-  switch (BKE_pbvh_type(ss->pbvh)) {
-    case PBVH_FACES:
-    case PBVH_GRIDS:
-      blender::array_utils::invert_booleans({ss->hide_poly, ss->totfaces});
-      break;
-    case PBVH_BMESH: {
-      BMIter iter;
-      BMFace *f;
-
-      BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
-        BM_elem_flag_toggle(f, BM_ELEM_HIDDEN);
-      }
-      break;
-    }
-  }
-}
-
 void SCULPT_face_visibility_all_set(SculptSession *ss, bool visible)
 {
   SCULPT_topology_islands_invalidate(ss);

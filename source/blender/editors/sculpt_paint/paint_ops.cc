@@ -1549,6 +1549,7 @@ void ED_operatortypes_paint()
 
   /* partial visibility */
   WM_operatortype_append(blender::ed::sculpt_paint::hide::PAINT_OT_hide_show);
+  WM_operatortype_append(blender::ed::sculpt_paint::hide::PAINT_OT_visibility_invert);
 
   /* paint masking */
   WM_operatortype_append(blender::ed::sculpt_paint::mask::PAINT_OT_mask_flood_fill);

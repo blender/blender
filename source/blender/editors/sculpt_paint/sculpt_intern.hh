@@ -985,7 +985,6 @@ bool SCULPT_vertex_visible_get(const SculptSession *ss, PBVHVertRef vertex);
 bool SCULPT_vertex_all_faces_visible_get(const SculptSession *ss, PBVHVertRef vertex);
 bool SCULPT_vertex_any_face_visible_get(SculptSession *ss, PBVHVertRef vertex);
 
-void SCULPT_face_visibility_all_invert(SculptSession *ss);
 void SCULPT_face_visibility_all_set(SculptSession *ss, bool visible);
 
 void SCULPT_visibility_sync_all_from_faces(Object *ob);
@@ -1572,7 +1571,6 @@ void SCULPT_OT_project_line_gesture(wmOperatorType *ot);
 
 void SCULPT_OT_face_sets_randomize_colors(wmOperatorType *ot);
 void SCULPT_OT_face_set_change_visibility(wmOperatorType *ot);
-void SCULPT_OT_face_sets_invert_visibility(wmOperatorType *ot);
 void SCULPT_OT_face_sets_init(wmOperatorType *ot);
 void SCULPT_OT_face_sets_create(wmOperatorType *ot);
 void SCULPT_OT_face_sets_edit(wmOperatorType *ot);
