@@ -53,17 +53,11 @@ endif()
 # quiet output for Makefiles, 'make -s' helps too
 # set_property(GLOBAL PROPERTY RULE_MESSAGES OFF)
 
-# global compile definitions since add_definitions() adds for all.
+# Global compile definitions since add_definitions() adds for all.
+# _DEBUG is a Visual Studio define, enabled for all platforms.
 set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS
-  # Visual Studio define for debug, enable on all platforms.
   $<$<CONFIG:Debug>:_DEBUG>
-  # Standard C define to disable asserts.
-  $<$<CONFIG:Release>:NDEBUG>
-  $<$<CONFIG:MinSizeRel>:NDEBUG>
-  $<$<CONFIG:RelWithDebInfo>:NDEBUG>
 )
-
-
 # -----------------------------------------------------------------------------
 # Set policy
 
@@ -100,7 +94,6 @@ endif()
 # Load Blender's Local Macros
 
 include(build_files/cmake/macros.cmake)
-
 
 # -----------------------------------------------------------------------------
 # Initialize Project
@@ -734,6 +727,9 @@ mark_as_advanced(WITH_CXX_GUARDEDALLOC)
 
 option(WITH_ASSERT_ABORT "Call abort() when raising an assertion through BLI_assert()" ON)
 mark_as_advanced(WITH_ASSERT_ABORT)
+
+option(WITH_ASSERT_RELEASE "Build with asserts enabled even for non-debug configurations" OFF)
+mark_as_advanced(WITH_ASSERT_RELEASE)
 
 if((UNIX AND NOT APPLE) OR (CMAKE_GENERATOR MATCHES "^Visual Studio.+"))
   option(WITH_CLANG_TIDY "\
@@ -2165,6 +2161,20 @@ endif()
 
 if(WITH_ASSERT_ABORT)
   add_definitions(-DWITH_ASSERT_ABORT)
+endif()
+
+# NDEBUG is the standard C define to disable asserts.
+if(WITH_ASSERT_RELEASE)
+  # CMake seemingly be setting the NDEBUG flag on its own already on some configurations
+  # therefore we need to remove the flags if they happen to be set.
+  remove_cc_flag("-DNDEBUG") # GCC/CLang
+  remove_cc_flag("/DNDEBUG") # MSVC
+else()
+  set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS
+    $<$<CONFIG:Release>:NDEBUG>
+    $<$<CONFIG:MinSizeRel>:NDEBUG>
+    $<$<CONFIG:RelWithDebInfo>:NDEBUG>
+  )
 endif()
 
 # message(STATUS "Using CFLAGS: ${CMAKE_C_FLAGS}")
