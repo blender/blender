@@ -87,7 +87,7 @@ static PyObject *bpy_rna_context_temp_override_enter(BPyContextTempOverride *sel
   /* Sanity check, the region is in the screen/area. */
   if (self->ctx_temp.region_is_set && (region != nullptr)) {
     if (area == nullptr) {
-      PyErr_SetString(PyExc_TypeError, "Region set with nullptr area");
+      PyErr_SetString(PyExc_TypeError, "Region set with area set to None");
       return nullptr;
     }
     if ((screen && BLI_findindex(&screen->regionbase, region) == -1) &&
@@ -100,7 +100,7 @@ static PyObject *bpy_rna_context_temp_override_enter(BPyContextTempOverride *sel
 
   if (self->ctx_temp.area_is_set && (area != nullptr)) {
     if (screen == nullptr) {
-      PyErr_SetString(PyExc_TypeError, "Area set with nullptr screen");
+      PyErr_SetString(PyExc_TypeError, "Area set with screen set to None");
       return nullptr;
     }
     if (BLI_findindex(&screen->areabase, area) == -1) {
@@ -335,7 +335,12 @@ static PyObject *bpy_context_temp_override(PyObject *self, PyObject *args, PyObj
   params.area.type = &RNA_Area;
   params.region.type = &RNA_Region;
 
-  static const char *const _keywords[] = {"window", "area", "region", nullptr};
+  static const char *const _keywords[] = {
+      "window",
+      "area",
+      "region",
+      nullptr,
+  };
   static _PyArg_Parser _parser = {
       PY_ARG_PARSER_HEAD_COMPAT()
       "|$" /* Optional, keyword only arguments. */
@@ -403,6 +408,10 @@ static PyObject *bpy_context_temp_override(PyObject *self, PyObject *args, PyObj
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Public Type Definition
+ * \{ */
+
 #if (defined(__GNUC__) && !defined(__clang__))
 #  pragma GCC diagnostic push
 #  pragma GCC diagnostic ignored "-Wcast-function-type"
@@ -426,3 +435,5 @@ void bpy_rna_context_types_init()
     return;
   }
 }
+
+/** \} */
