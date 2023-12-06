@@ -1227,22 +1227,24 @@ static void region_overlap_fix(ScrArea *area, ARegion *region)
     if (region_iter->flag & (RGN_FLAG_POLL_FAILED | RGN_FLAG_HIDDEN)) {
       continue;
     }
+    if (!region_iter->overlap || (region_iter->alignment & RGN_SPLIT_PREV)) {
+      continue;
+    }
 
-    if (region_iter->overlap && ((region_iter->alignment & RGN_SPLIT_PREV) == 0)) {
-      const int align_iter = RGN_ALIGN_ENUM_FROM_MASK(region_iter->alignment);
-      if (ELEM(align_iter, RGN_ALIGN_FLOAT)) {
-        continue;
+    const int align_iter = RGN_ALIGN_ENUM_FROM_MASK(region_iter->alignment);
+    if (ELEM(align_iter, RGN_ALIGN_FLOAT)) {
+      continue;
+    }
+
+    align1 = align_iter;
+    if (BLI_rcti_isect(&region_iter->winrct, &region->winrct, nullptr)) {
+      if (align1 != align) {
+        /* Left overlapping right or vice-versa, forbid this! */
+        region->flag |= RGN_FLAG_TOO_SMALL;
+        return;
       }
-      align1 = align_iter;
-      if (BLI_rcti_isect(&region_iter->winrct, &region->winrct, nullptr)) {
-        if (align1 != align) {
-          /* Left overlapping right or vice-versa, forbid this! */
-          region->flag |= RGN_FLAG_TOO_SMALL;
-          return;
-        }
-        /* Else, we have our previous region on same side. */
-        break;
-      }
+      /* Else, we have our previous region on same side. */
+      break;
     }
   }
 
@@ -1273,18 +1275,19 @@ static void region_overlap_fix(ScrArea *area, ARegion *region)
     if (region_iter->flag & (RGN_FLAG_POLL_FAILED | RGN_FLAG_HIDDEN)) {
       continue;
     }
+    if (!region_iter->overlap || (region_iter->alignment & RGN_SPLIT_PREV)) {
+      continue;
+    }
+
     const int align_iter = RGN_ALIGN_ENUM_FROM_MASK(region_iter->alignment);
     if (ELEM(align_iter, RGN_ALIGN_FLOAT)) {
       continue;
     }
 
-    if (region_iter->overlap && (region_iter->alignment & RGN_SPLIT_PREV) == 0) {
-      if ((align_iter != align) && BLI_rcti_isect(&region_iter->winrct, &region->winrct, nullptr))
-      {
-        /* Left overlapping right or vice-versa, forbid this! */
-        region->flag |= RGN_FLAG_TOO_SMALL;
-        return;
-      }
+    if ((align_iter != align) && BLI_rcti_isect(&region_iter->winrct, &region->winrct, nullptr)) {
+      /* Left overlapping right or vice-versa, forbid this! */
+      region->flag |= RGN_FLAG_TOO_SMALL;
+      return;
     }
   }
 }
