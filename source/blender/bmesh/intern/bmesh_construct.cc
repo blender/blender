@@ -437,10 +437,36 @@ void BM_elem_attrs_copy_ex(BMesh *bm_src,
   }
 }
 
-void BM_elem_attrs_copy(BMesh *bm_src, BMesh *bm_dst, const void *ele_src, void *ele_dst)
+void BM_elem_attrs_copy(const BMesh *bm_src, BMesh *bm_dst, const BMVert *src, BMVert *dst)
 {
-  /* BMESH_TODO, default 'use_flags' to false */
-  BM_elem_attrs_copy_ex(bm_src, bm_dst, ele_src, ele_dst, BM_ELEM_SELECT, 0x0);
+  CustomData_bmesh_free_block_data_exclude_by_type(&bm_dst->vdata, dst->head.data, 0);
+  CustomData_bmesh_copy_data_exclude_by_type(
+      &bm_src->vdata, &bm_dst->vdata, src->head.data, &dst->head.data, 0);
+  dst->head.hflag = src->head.hflag & ~BM_ELEM_SELECT;
+  copy_v3_v3(dst->no, src->no);
+}
+void BM_elem_attrs_copy(const BMesh *bm_src, BMesh *bm_dst, const BMEdge *src, BMEdge *dst)
+{
+  CustomData_bmesh_free_block_data_exclude_by_type(&bm_dst->edata, dst->head.data, 0);
+  CustomData_bmesh_copy_data_exclude_by_type(
+      &bm_src->edata, &bm_dst->edata, src->head.data, &dst->head.data, 0);
+  dst->head.hflag = src->head.hflag & ~BM_ELEM_SELECT;
+}
+void BM_elem_attrs_copy(const BMesh *bm_src, BMesh *bm_dst, const BMFace *src, BMFace *dst)
+{
+  CustomData_bmesh_free_block_data_exclude_by_type(&bm_dst->pdata, dst->head.data, 0);
+  CustomData_bmesh_copy_data_exclude_by_type(
+      &bm_src->pdata, &bm_dst->pdata, src->head.data, &dst->head.data, 0);
+  dst->head.hflag = src->head.hflag & ~BM_ELEM_SELECT;
+  copy_v3_v3(dst->no, src->no);
+  dst->mat_nr = src->mat_nr;
+}
+void BM_elem_attrs_copy(const BMesh *bm_src, BMesh *bm_dst, const BMLoop *src, BMLoop *dst)
+{
+  CustomData_bmesh_free_block_data_exclude_by_type(&bm_dst->ldata, dst->head.data, 0);
+  CustomData_bmesh_copy_data_exclude_by_type(
+      &bm_src->ldata, &bm_dst->ldata, src->head.data, &dst->head.data, 0);
+  dst->head.hflag = src->head.hflag & ~BM_ELEM_SELECT;
 }
 
 void BM_elem_attrs_copy(BMesh &bm, const BMVert *src, BMVert *dst)
