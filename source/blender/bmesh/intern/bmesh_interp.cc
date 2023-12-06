@@ -42,9 +42,7 @@ static void bm_data_interp_from_elem(CustomData *data_layer,
         /* do nothing */
       }
       else {
-        CustomData_bmesh_free_block_data(data_layer, ele_dst->head.data);
-        CustomData_bmesh_copy_data(
-            data_layer, data_layer, ele_src_1->head.data, &ele_dst->head.data);
+        CustomData_bmesh_copy_block(*data_layer, ele_src_1->head.data, &ele_dst->head.data);
       }
     }
     else if (fac >= 1.0f) {
@@ -52,9 +50,7 @@ static void bm_data_interp_from_elem(CustomData *data_layer,
         /* do nothing */
       }
       else {
-        CustomData_bmesh_free_block_data(data_layer, ele_dst->head.data);
-        CustomData_bmesh_copy_data(
-            data_layer, data_layer, ele_src_2->head.data, &ele_dst->head.data);
+        CustomData_bmesh_copy_block(*data_layer, ele_src_2->head.data, &ele_dst->head.data);
       }
     }
     else {

@@ -59,13 +59,6 @@ void BM_edges_from_verts_ensure(BMesh *bm, BMEdge **edge_arr, BMVert **vert_arr,
   }
 }
 
-/* prototypes */
-static void bm_loop_attrs_copy(BMesh *bm_src,
-                               BMesh *bm_dst,
-                               const BMLoop *l_src,
-                               BMLoop *l_dst,
-                               eCustomDataMask mask_exclude);
-
 BMFace *BM_face_create_quad_tri(BMesh *bm,
                                 BMVert *v1,
                                 BMVert *v2,
@@ -112,7 +105,7 @@ void BM_face_copy_shared(BMesh *bm, BMFace *f, BMLoopFilterFunc filter_fn, void 
         BLI_assert(l_dst[j]->v == l_src[j]->v);
         if (BM_ELEM_API_FLAG_TEST(l_dst[j], _FLAG_OVERLAP) == 0) {
           if ((filter_fn == nullptr) || filter_fn(l_src[j], user_data)) {
-            bm_loop_attrs_copy(bm, bm, l_src[j], l_dst[j], 0x0);
+            CustomData_bmesh_copy_block(bm->ldata, l_src[j]->head.data, &l_dst[j]->head.data);
             BM_ELEM_API_FLAG_ENABLE(l_dst[j], _FLAG_OVERLAP);
           }
         }

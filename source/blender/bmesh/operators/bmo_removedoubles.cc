@@ -365,7 +365,7 @@ void bmo_pointmerge_facedata_exec(BMesh *bm, BMOperator *op)
         continue;
       }
 
-      CustomData_bmesh_copy_data(&bm->ldata, &bm->ldata, l_first->head.data, &l->head.data);
+      CustomData_bmesh_copy_block(bm->ldata, l_first->head.data, &l->head.data);
     }
   }
 }

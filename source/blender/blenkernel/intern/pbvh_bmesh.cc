@@ -1117,7 +1117,7 @@ static void short_edge_queue_create(EdgeQueueContext *eq_ctx,
 static void copy_edge_data(BMesh &bm, BMEdge &dst, /*const*/ BMEdge &src)
 {
   dst.head.hflag = src.head.hflag & ~BM_ELEM_TAG;
-  CustomData_bmesh_copy_data(&bm.edata, &bm.edata, src.head.data, &dst.head.data);
+  CustomData_bmesh_copy_block(bm.edata, src.head.data, &dst.head.data);
 }
 
 /* Merge edge custom data from src to dst. */

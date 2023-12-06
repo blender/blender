@@ -75,12 +75,12 @@ static void bm_interp_face_store(InterpFace *iface, BMesh *bm, BMFace *f, MemAre
   do {
     mul_v2_m3v3(cos_2d[i], static_cast<const float(*)[3]>(axis_mat), l_iter->v->co);
     blocks_l[i] = nullptr;
-    CustomData_bmesh_copy_data(&bm->ldata, &bm->ldata, l_iter->head.data, &blocks_l[i]);
+    CustomData_bmesh_copy_block(bm->ldata, l_iter->head.data, &blocks_l[i]);
     /* if we were not modifying the loops later we would do... */
     // blocks[i] = l_iter->head.data;
 
     blocks_v[i] = nullptr;
-    CustomData_bmesh_copy_data(&bm->vdata, &bm->vdata, l_iter->v->head.data, &blocks_v[i]);
+    CustomData_bmesh_copy_block(bm->vdata, l_iter->v->head.data, &blocks_v[i]);
 
     /* use later for index lookups */
     BM_elem_index_set(l_iter, i); /* set_dirty */
@@ -1258,8 +1258,8 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
         const int i_b = BM_elem_index_get(l_b_other);
         CustomData_bmesh_free_block_data(&bm->ldata, l_b->head.data);
         CustomData_bmesh_free_block_data(&bm->ldata, l_a->head.data);
-        CustomData_bmesh_copy_data(&bm->ldata, &bm->ldata, iface->blocks_l[i_a], &l_b->head.data);
-        CustomData_bmesh_copy_data(&bm->ldata, &bm->ldata, iface->blocks_l[i_b], &l_a->head.data);
+        CustomData_bmesh_copy_block(bm->ldata, iface->blocks_l[i_a], &l_b->head.data);
+        CustomData_bmesh_copy_block(bm->ldata, iface->blocks_l[i_b], &l_a->head.data);
 
 #ifdef USE_LOOP_CUSTOMDATA_MERGE
         if (has_math_ldata) {
