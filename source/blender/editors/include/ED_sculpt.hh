@@ -20,8 +20,6 @@ struct wmKeyConfig;
 /* sculpt.cc */
 
 void ED_operatortypes_sculpt();
-void ED_sculpt_redraw_planes_get(float planes[4][4], ARegion *region, Object *ob);
-bool ED_sculpt_mask_box_select(bContext *C, ViewContext *vc, const rcti *rect, bool select);
 
 void ED_keymap_sculpt(wmKeyConfig *keyconf);
 /* sculpt_transform.cc */

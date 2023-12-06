@@ -307,13 +307,3 @@ float *SCULPT_geodesic_from_vertex_and_symm(Sculpt *sd,
   BLI_gset_free(initial_verts, nullptr);
   return dists;
 }
-
-float *SCULPT_geodesic_from_vertex(Object *ob, const PBVHVertRef vertex, const float limit_radius)
-{
-  GSet *initial_verts = BLI_gset_int_new("initial_verts");
-  BLI_gset_add(initial_verts,
-               POINTER_FROM_INT(BKE_pbvh_vertex_to_index(ob->sculpt->pbvh, vertex)));
-  float *dists = SCULPT_geodesic_distances_create(ob, initial_verts, limit_radius);
-  BLI_gset_free(initial_verts, nullptr);
-  return dists;
-}

@@ -743,7 +743,6 @@ bool SCULPT_mode_poll_view3d(bContext *C);
  * Checks for a brush, not just sculpt mode.
  */
 bool SCULPT_poll(bContext *C);
-bool SCULPT_poll_view3d(bContext *C);
 
 /**
  * Returns true if sculpt session can handle color attributes
@@ -872,9 +871,6 @@ inline void SCULPT_mask_vert_set(const PBVHType type,
       break;
   }
 }
-void SCULPT_mask_write_array(SculptSession *ss,
-                             blender::Span<PBVHNode *> nodes,
-                             blender::Span<float> mask);
 
 /** Ensure random access; required for PBVH_BMESH */
 void SCULPT_vertex_random_access_ensure(SculptSession *ss);
@@ -955,7 +951,6 @@ void SCULPT_vertex_neighbors_get(SculptSession *ss,
 
 PBVHVertRef SCULPT_active_vertex_get(SculptSession *ss);
 const float *SCULPT_active_vertex_co_get(SculptSession *ss);
-void SCULPT_active_vertex_normal_get(SculptSession *ss, float normal[3]);
 
 /* Returns PBVH deformed vertices array if shape keys or deform modifiers are used, otherwise
  * returns mesh original vertices array. */
@@ -1128,9 +1123,7 @@ void SCULPT_flip_quat_by_symm_area(float quat[4],
  */
 void SCULPT_brush_test_init(SculptSession *ss, SculptBrushTest *test);
 
-bool SCULPT_brush_test_sphere(SculptBrushTest *test, const float co[3]);
 bool SCULPT_brush_test_sphere_sq(SculptBrushTest *test, const float co[3]);
-bool SCULPT_brush_test_sphere_fast(const SculptBrushTest *test, const float co[3]);
 bool SCULPT_brush_test_cube(SculptBrushTest *test,
                             const float co[3],
                             const float local[4][4],
@@ -1312,14 +1305,9 @@ void SCULPT_automasking_cache_free(AutomaskingCache *automasking);
 bool SCULPT_is_automasking_mode_enabled(const Sculpt *sd, const Brush *br, eAutomasking_flag mode);
 bool SCULPT_is_automasking_enabled(const Sculpt *sd, const SculptSession *ss, const Brush *br);
 
-float *SCULPT_boundary_automasking_init(Object *ob,
-                                        eBoundaryAutomaskMode mode,
-                                        int propagation_steps,
-                                        float *automask_factor);
 bool SCULPT_automasking_needs_normal(const SculptSession *ss,
                                      const Sculpt *sculpt,
                                      const Brush *brush);
-bool SCULPT_automasking_needs_original(const Sculpt *sd, const Brush *brush);
 int SCULPT_automasking_settings_hash(Object *ob, AutomaskingCache *automasking);
 
 /** \} */
@@ -1339,7 +1327,6 @@ float *SCULPT_geodesic_from_vertex_and_symm(Sculpt *sd,
                                             Object *ob,
                                             PBVHVertRef vertex,
                                             float limit_radius);
-float *SCULPT_geodesic_from_vertex(Object *ob, PBVHVertRef vertex, float limit_radius);
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1355,11 +1342,6 @@ void SCULPT_filter_cache_init(bContext *C,
                               float start_strength);
 void SCULPT_filter_cache_free(SculptSession *ss);
 void SCULPT_mesh_filter_properties(wmOperatorType *ot);
-
-void SCULPT_mask_filter_smooth_apply(Sculpt *sd,
-                                     Object *ob,
-                                     blender::Span<PBVHNode *> nodes,
-                                     int smooth_iterations);
 
 /* Filter orientation utils. */
 void SCULPT_filter_to_orientation_space(float r_v[3], FilterCache *filter_cache);
@@ -1511,7 +1493,6 @@ void SCULPT_cache_free(StrokeCache *cache);
 
 SculptUndoNode *SCULPT_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType type);
 SculptUndoNode *SCULPT_undo_get_node(PBVHNode *node, SculptUndoType type);
-SculptUndoNode *SCULPT_undo_get_first_node();
 
 /**
  * Pushes an undo step using the operator name. This is necessary for

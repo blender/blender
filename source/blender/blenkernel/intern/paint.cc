@@ -773,15 +773,6 @@ void BKE_paint_palette_set(Paint *p, Palette *palette)
   }
 }
 
-void BKE_paint_curve_set(Brush *br, PaintCurve *pc)
-{
-  if (br) {
-    id_us_min((ID *)br->paint_curve);
-    br->paint_curve = pc;
-    id_us_plus((ID *)br->paint_curve);
-  }
-}
-
 void BKE_paint_curve_clamp_endpoint_add_index(PaintCurve *pc, const int add_index)
 {
   pc->add_index = (add_index || pc->tot_points == 1) ? (add_index + 1) : 0;
@@ -2599,22 +2590,6 @@ static SculptAttribute *sculpt_get_cached_layer(SculptSession *ss,
   }
 
   return nullptr;
-}
-
-bool BKE_sculpt_attribute_exists(Object *ob,
-                                 eAttrDomain domain,
-                                 eCustomDataType proptype,
-                                 const char *name)
-{
-  SculptSession *ss = ob->sculpt;
-  SculptAttribute *attr = sculpt_get_cached_layer(ss, domain, proptype, name);
-
-  if (attr) {
-    return true;
-  }
-
-  CustomData *cdata = sculpt_get_cdata(ob, domain);
-  return CustomData_get_named_layer_index(cdata, proptype, name) != -1;
 }
 
 static SculptAttribute *sculpt_alloc_attr(SculptSession *ss)

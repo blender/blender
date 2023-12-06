@@ -1101,29 +1101,6 @@ static void sculpt_undo_free_list(ListBase *lb)
   }
 }
 
-/* Most likely we don't need this. */
-#if 0
-static bool sculpt_undo_cleanup(bContext *C, ListBase *lb)
-{
-  Scene *scene = CTX_data_scene(C);
-  ViewLayer *view_layer = CTX_data_view_layer(C);
-  Object *ob = BKE_view_layer_active_object_get(view_layer);
-  SculptUndoNode *unode;
-
-  unode = lb->first;
-
-  if (unode && !STREQ(unode->idname, ob->id.name)) {
-    if (unode->bm_entry) {
-      BM_log_cleanup_entry(unode->bm_entry);
-    }
-
-    return true;
-  }
-
-  return false;
-}
-#endif
-
 SculptUndoNode *SCULPT_undo_get_node(PBVHNode *node, SculptUndoType type)
 {
   UndoSculpt *usculpt = sculpt_undo_get_nodes();
@@ -1139,17 +1116,6 @@ SculptUndoNode *SCULPT_undo_get_node(PBVHNode *node, SculptUndoType type)
   }
 
   return nullptr;
-}
-
-SculptUndoNode *SCULPT_undo_get_first_node()
-{
-  UndoSculpt *usculpt = sculpt_undo_get_nodes();
-
-  if (usculpt == nullptr) {
-    return nullptr;
-  }
-
-  return static_cast<SculptUndoNode *>(usculpt->nodes.first);
 }
 
 static size_t sculpt_undo_alloc_and_store_hidden(SculptSession *ss, SculptUndoNode *unode)

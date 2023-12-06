@@ -339,11 +339,6 @@ const float *SCULPT_active_vertex_co_get(SculptSession *ss)
   return SCULPT_vertex_co_get(ss, SCULPT_active_vertex_get(ss));
 }
 
-void SCULPT_active_vertex_normal_get(SculptSession *ss, float normal[3])
-{
-  SCULPT_vertex_normal_get(ss, SCULPT_active_vertex_get(ss), normal);
-}
-
 MutableSpan<float3> SCULPT_mesh_deformed_positions_get(SculptSession *ss)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
@@ -1648,28 +1643,6 @@ bool SCULPT_get_redraw_rect(ARegion *region, RegionView3D *rv3d, Object *ob, rct
   return true;
 }
 
-void ED_sculpt_redraw_planes_get(float planes[4][4], ARegion *region, Object *ob)
-{
-  PBVH *pbvh = ob->sculpt->pbvh;
-  /* Copy here, original will be used below. */
-  rcti rect = ob->sculpt->cache->current_r;
-
-  sculpt_extend_redraw_rect_previous(ob, &rect);
-
-  paint_calc_redraw_planes(planes, region, ob, &rect);
-
-  /* We will draw this \a rect, so now we can set it as the previous partial \a rect.
-   * Note that we don't update with the union of previous/current (\a rect), only with
-   * the current. Thus we avoid the rectangle needlessly growing to include
-   * all the stroke area. */
-  ob->sculpt->cache->previous_r = ob->sculpt->cache->current_r;
-
-  /* Clear redraw flag from nodes. */
-  if (pbvh) {
-    BKE_pbvh_update_bounds(pbvh, PBVH_UpdateRedraw);
-  }
-}
-
 /************************ Brush Testing *******************/
 
 void SCULPT_brush_test_init(SculptSession *ss, SculptBrushTest *test)
@@ -1723,22 +1696,6 @@ BLI_INLINE bool sculpt_brush_test_clipping(const SculptBrushTest *test, const fl
   return ED_view3d_clipping_test(rv3d, symm_co, true);
 }
 
-bool SCULPT_brush_test_sphere(SculptBrushTest *test, const float co[3])
-{
-  float distsq = len_squared_v3v3(co, test->location);
-
-  if (distsq > test->radius_squared) {
-    return false;
-  }
-
-  if (sculpt_brush_test_clipping(test, co)) {
-    return false;
-  }
-
-  test->dist = sqrtf(distsq);
-  return true;
-}
-
 bool SCULPT_brush_test_sphere_sq(SculptBrushTest *test, const float co[3])
 {
   float distsq = len_squared_v3v3(co, test->location);
@@ -1751,14 +1708,6 @@ bool SCULPT_brush_test_sphere_sq(SculptBrushTest *test, const float co[3])
   }
   test->dist = distsq;
   return true;
-}
-
-bool SCULPT_brush_test_sphere_fast(const SculptBrushTest *test, const float co[3])
-{
-  if (sculpt_brush_test_clipping(test, co)) {
-    return false;
-  }
-  return len_squared_v3v3(co, test->location) <= test->radius_squared;
 }
 
 bool SCULPT_brush_test_circle_sq(SculptBrushTest *test, const float co[3])
@@ -4143,11 +4092,6 @@ bool SCULPT_mode_poll(bContext *C)
 bool SCULPT_mode_poll_view3d(bContext *C)
 {
   return (SCULPT_mode_poll(C) && CTX_wm_region_view3d(C));
-}
-
-bool SCULPT_poll_view3d(bContext *C)
-{
-  return (SCULPT_poll(C) && CTX_wm_region_view3d(C));
 }
 
 bool SCULPT_poll(bContext *C)

@@ -196,7 +196,6 @@ const Brush *BKE_paint_brush_for_read(const Paint *p);
 void BKE_paint_brush_set(Paint *paint, Brush *br);
 Palette *BKE_paint_palette(Paint *paint);
 void BKE_paint_palette_set(Paint *p, Palette *palette);
-void BKE_paint_curve_set(Brush *br, PaintCurve *pc);
 void BKE_paint_curve_clamp_endpoint_add_index(PaintCurve *pc, int add_index);
 
 /**
@@ -775,11 +774,6 @@ SculptAttribute *BKE_sculpt_attribute_get(Object *ob,
                                           eCustomDataType proptype,
                                           const char *name);
 
-bool BKE_sculpt_attribute_exists(Object *ob,
-                                 eAttrDomain domain,
-                                 eCustomDataType proptype,
-                                 const char *name);
-
 bool BKE_sculpt_attribute_destroy(Object *ob, SculptAttribute *attr);
 
 /* Destroy all attributes and pseudo-attributes created by sculpt mode. */
@@ -874,7 +868,6 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob);
 
 void BKE_sculpt_bvh_update_from_ccg(PBVH *pbvh, SubdivCCG *subdiv_ccg);
 
-void BKE_sculpt_ensure_orig_mesh_data(Scene *scene, Object *object);
 void BKE_sculpt_sync_face_visibility_to_grids(Mesh *mesh, SubdivCCG *subdiv_ccg);
 
 /**
