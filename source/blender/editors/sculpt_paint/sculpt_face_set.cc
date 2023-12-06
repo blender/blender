@@ -13,7 +13,9 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array.hh"
+#include "BLI_array_utils.hh"
 #include "BLI_bit_vector.hh"
+#include "BLI_enumerable_thread_specific.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_hash.h"
 #include "BLI_math_matrix.h"
@@ -51,6 +53,7 @@
 
 #include "ED_sculpt.hh"
 
+#include "paint_intern.hh"
 #include "sculpt_intern.hh"
 
 #include "RNA_access.hh"
@@ -747,15 +750,6 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
 
   SCULPT_undo_push_end(ob);
 
-  /* Sync face sets visibility and vertex visibility as now all Face Sets are visible. */
-  SCULPT_visibility_sync_all_from_faces(ob);
-
-  for (PBVHNode *node : nodes) {
-    BKE_pbvh_node_mark_update_visibility(node);
-  }
-
-  BKE_pbvh_update_visibility(ss->pbvh);
-
   SCULPT_tag_update_overlays(C);
 
   return OPERATOR_FINISHED;
@@ -834,127 +828,157 @@ enum eSculptFaceGroupVisibilityModes {
   SCULPT_FACE_SET_VISIBILITY_HIDE_ACTIVE = 2,
 };
 
+static void face_hide_update(Object &object,
+                             const Span<PBVHNode *> nodes,
+                             const FunctionRef<void(Span<int>, MutableSpan<bool>)> calc_hide)
+{
+  PBVH &pbvh = *object.sculpt->pbvh;
+  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
+  bke::SpanAttributeWriter<bool> hide_poly = attributes.lookup_or_add_for_write_span<bool>(
+      ".hide_poly", ATTR_DOMAIN_FACE);
+
+  struct TLS {
+    Vector<int> face_indices;
+    Vector<bool> new_hide;
+  };
+
+  bool any_changed = false;
+  threading::EnumerableThreadSpecific<TLS> all_tls;
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    TLS &tls = all_tls.local();
+    for (PBVHNode *node : nodes.slice(range)) {
+      tls.face_indices.clear();
+      BKE_pbvh_node_calc_face_indices(pbvh, *node, tls.face_indices);
+      const Span<int> faces = tls.face_indices;
+
+      tls.new_hide.reinitialize(faces.size());
+      MutableSpan<bool> new_hide = tls.new_hide;
+      array_utils::gather(hide_poly.span.as_span(), faces, new_hide);
+      calc_hide(faces, new_hide);
+      if (!hide::hide_is_changed(faces, hide_poly.span, new_hide)) {
+        continue;
+      }
+
+      any_changed = true;
+      SCULPT_undo_push_node(&object, node, SCULPT_UNDO_FACE_HIDDEN);
+      array_utils::scatter(new_hide.as_span(), faces, hide_poly.span);
+      BKE_pbvh_node_mark_update_visibility(node);
+    }
+  });
+
+  hide_poly.finish();
+  if (any_changed) {
+    SCULPT_visibility_sync_all_from_faces(&object);
+  }
+}
+
+static void show_all(Depsgraph &depsgraph, Object &object, const Span<PBVHNode *> nodes)
+{
+  switch (BKE_pbvh_type(object.sculpt->pbvh)) {
+    case PBVH_FACES:
+      hide::mesh_show_all(object, nodes);
+      break;
+    case PBVH_GRIDS:
+      hide::grids_show_all(depsgraph, object, nodes);
+      break;
+    case PBVH_BMESH:
+      BLI_assert_unreachable();
+      break;
+  }
+}
+
 static int sculpt_face_set_change_visibility_exec(bContext *C, wmOperator *op)
 {
-  Object *ob = CTX_data_active_object(C);
-  SculptSession *ss = ob->sculpt;
-  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  Object &object = *CTX_data_active_object(C);
+  SculptSession *ss = object.sculpt;
+  Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
 
-  Mesh *mesh = BKE_object_get_original_mesh(ob);
+  Mesh *mesh = BKE_object_get_original_mesh(&object);
+  BKE_sculpt_update_object_for_edit(&depsgraph, &object, false);
 
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, false);
-
-  /* Not supported for dyntopo. */
   if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
+    /* Not supported for dyntopo. There is no active face. */
     return OPERATOR_CANCELLED;
   }
 
   const int mode = RNA_enum_get(op->ptr, "mode");
-  const int tot_vert = SCULPT_vertex_count_get(ss);
+  const int active_face_set = SCULPT_active_face_set_get(ss);
 
-  PBVH *pbvh = ob->sculpt->pbvh;
+  SCULPT_undo_push_begin(&object, op);
+
+  PBVH *pbvh = object.sculpt->pbvh;
   Vector<PBVHNode *> nodes = bke::pbvh::search_gather(pbvh, {});
 
-  if (nodes.is_empty()) {
-    return OPERATOR_CANCELLED;
-  }
-
-  const int active_face_set = SCULPT_active_face_set_get(ss);
-  ss->hide_poly = BKE_sculpt_hide_poly_ensure(mesh);
-
-  SCULPT_undo_push_begin(ob, op);
-  for (PBVHNode *node : nodes) {
-    SCULPT_undo_push_node(ob, node, SCULPT_UNDO_HIDDEN);
-  }
+  const bke::AttributeAccessor attributes = mesh->attributes();
+  const VArraySpan<bool> hide_poly = *attributes.lookup<bool>(".hide_poly", ATTR_DOMAIN_FACE);
+  const VArraySpan<int> face_sets = *attributes.lookup<int>(".sculpt_face_set", ATTR_DOMAIN_FACE);
 
   switch (mode) {
     case SCULPT_FACE_SET_VISIBILITY_TOGGLE: {
-      bool hidden_vertex = false;
-
-      /* This can fail with regular meshes with non-manifold geometry as the visibility state can't
-       * be synced from face sets to non-manifold vertices. */
-      if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
-        for (int i = 0; i < tot_vert; i++) {
-          PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
-
-          if (!SCULPT_vertex_visible_get(ss, vertex)) {
-            hidden_vertex = true;
-            break;
-          }
-        }
-      }
-
-      if (ss->hide_poly) {
-        for (int i = 0; i < ss->totfaces; i++) {
-          if (ss->hide_poly[i]) {
-            hidden_vertex = true;
-            break;
-          }
-        }
-      }
-
-      if (hidden_vertex) {
-        SCULPT_face_visibility_all_set(ss, true);
+      if (hide_poly.contains(true) || face_sets.is_empty()) {
+        show_all(depsgraph, object, nodes);
       }
       else {
-        if (ss->face_sets) {
-          SCULPT_face_visibility_all_set(ss, false);
-          SCULPT_face_set_visibility_set(ss, active_face_set, true);
-        }
-        else {
-          SCULPT_face_visibility_all_set(ss, true);
-        }
+        face_hide_update(object, nodes, [&](const Span<int> faces, MutableSpan<bool> hide) {
+          for (const int i : hide.index_range()) {
+            hide[i] = face_sets[faces[i]] == active_face_set;
+          }
+        });
       }
       break;
     }
     case SCULPT_FACE_SET_VISIBILITY_SHOW_ACTIVE:
-      ss->hide_poly = BKE_sculpt_hide_poly_ensure(mesh);
-
-      if (ss->face_sets) {
-        SCULPT_face_visibility_all_set(ss, false);
-        SCULPT_face_set_visibility_set(ss, active_face_set, true);
+      if (face_sets.is_empty()) {
+        show_all(depsgraph, object, nodes);
       }
       else {
-        SCULPT_face_set_visibility_set(ss, active_face_set, true);
+        face_hide_update(object, nodes, [&](const Span<int> faces, MutableSpan<bool> hide) {
+          for (const int i : hide.index_range()) {
+            if (face_sets[faces[i]] == active_face_set) {
+              hide[i] = false;
+            }
+          }
+        });
       }
       break;
     case SCULPT_FACE_SET_VISIBILITY_HIDE_ACTIVE:
-      ss->hide_poly = BKE_sculpt_hide_poly_ensure(mesh);
-
-      if (ss->face_sets) {
-        SCULPT_face_set_visibility_set(ss, active_face_set, false);
+      if (face_sets.is_empty()) {
+        face_hide_update(object, nodes, [&](const Span<int> /*faces*/, MutableSpan<bool> hide) {
+          hide.fill(true);
+        });
       }
       else {
-        SCULPT_face_visibility_all_set(ss, false);
+        face_hide_update(object, nodes, [&](const Span<int> faces, MutableSpan<bool> hide) {
+          for (const int i : hide.index_range()) {
+            if (face_sets[faces[i]] == active_face_set) {
+              hide[i] = true;
+            }
+          }
+        });
       }
-
       break;
   }
 
   /* For modes that use the cursor active vertex, update the rotation origin for viewport
-   * navigation.
-   */
+   * navigation. */
   if (ELEM(mode, SCULPT_FACE_SET_VISIBILITY_TOGGLE, SCULPT_FACE_SET_VISIBILITY_SHOW_ACTIVE)) {
     UnifiedPaintSettings *ups = &CTX_data_tool_settings(C)->unified_paint_settings;
     float location[3];
     copy_v3_v3(location, SCULPT_active_vertex_co_get(ss));
-    mul_m4_v3(ob->object_to_world, location);
+    mul_m4_v3(object.object_to_world, location);
     copy_v3_v3(ups->average_stroke_accum, location);
     ups->average_stroke_counter = 1;
     ups->last_stroke_valid = true;
   }
 
-  /* Sync face sets visibility and vertex visibility. */
-  SCULPT_visibility_sync_all_from_faces(ob);
-
-  SCULPT_undo_push_end(ob);
-  for (PBVHNode *node : nodes) {
-    BKE_pbvh_node_mark_update_visibility(node);
-  }
+  SCULPT_undo_push_end(&object);
 
   BKE_pbvh_update_visibility(ss->pbvh);
+  ss->hide_poly = BKE_sculpt_hide_poly_ensure(mesh);
 
-  SCULPT_tag_update_overlays(C);
+  SCULPT_topology_islands_invalidate(object.sculpt);
+  hide::tag_update_visibility(*C);
 
   return OPERATOR_FINISHED;
 }

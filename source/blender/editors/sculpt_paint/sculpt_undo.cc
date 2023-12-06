@@ -181,6 +181,7 @@ static char *undo_type_to_str(int type)
     _(SCULPT_UNDO_DYNTOPO_SYMMETRIZE)
     _(SCULPT_UNDO_FACE_SETS)
     _(SCULPT_UNDO_HIDDEN)
+    _(SCULPT_UNDO_FACE_HIDDEN)
     _(SCULPT_UNDO_MASK)
     _(SCULPT_UNDO_COLOR)
     default:
@@ -281,10 +282,11 @@ void sculpt_undo_print_nodes(Object *ob, void *active)
 struct PartialUpdateData {
   PBVH *pbvh;
   bool changed_position;
-  bool changed_hide;
+  bool changed_hide_vert;
   bool changed_mask;
   Span<bool> modified_grids;
   Span<bool> modified_hidden_verts;
+  Span<bool> modified_hidden_faces;
   Span<bool> modified_mask_verts;
   Span<bool> modified_color_verts;
   Span<bool> modified_face_set_faces;
@@ -322,10 +324,25 @@ static void update_modified_node_mesh(PBVHNode *node, void *userdata)
     }
   }
 
+  Vector<int> faces;
   if (!data->modified_face_set_faces.is_empty()) {
-    for (const int face : BKE_pbvh_node_calc_face_indices(*data->pbvh, *node)) {
+    if (faces.is_empty()) {
+      faces = BKE_pbvh_node_calc_face_indices(*data->pbvh, *node);
+    }
+    for (const int face : faces) {
       if (data->modified_face_set_faces[face]) {
         BKE_pbvh_node_mark_update_face_sets(node);
+        break;
+      }
+    }
+  }
+  if (!data->modified_hidden_faces.is_empty()) {
+    if (faces.is_empty()) {
+      faces = BKE_pbvh_node_calc_face_indices(*data->pbvh, *node);
+    }
+    for (const int face : faces) {
+      if (data->modified_hidden_faces[face]) {
+        BKE_pbvh_node_mark_update_visibility(node);
         break;
       }
     }
@@ -346,14 +363,30 @@ static void update_modified_node_grids(PBVHNode *node, void *userdata)
     if (data->changed_mask) {
       BKE_pbvh_node_mark_update_mask(node);
     }
-    if (data->changed_hide) {
+    if (data->changed_hide_vert) {
       BKE_pbvh_node_mark_update_visibility(node);
     }
   }
+
+  Vector<int> faces;
   if (!data->modified_face_set_faces.is_empty()) {
-    for (const int face : BKE_pbvh_node_calc_face_indices(*data->pbvh, *node)) {
+    if (faces.is_empty()) {
+      faces = BKE_pbvh_node_calc_face_indices(*data->pbvh, *node);
+    }
+    for (const int face : faces) {
       if (data->modified_face_set_faces[face]) {
         BKE_pbvh_node_mark_update_face_sets(node);
+        break;
+      }
+    }
+  }
+  if (!data->modified_hidden_faces.is_empty()) {
+    if (faces.is_empty()) {
+      faces = BKE_pbvh_node_calc_face_indices(*data->pbvh, *node);
+    }
+    for (const int face : faces) {
+      if (data->modified_hidden_faces[face]) {
+        BKE_pbvh_node_mark_update_visibility(node);
         break;
       }
     }
@@ -532,6 +565,34 @@ static bool sculpt_undo_restore_hidden(Object *ob,
   }
 
   return true;
+}
+
+static bool sculpt_undo_restore_hidden_face(Object &object,
+                                            SculptUndoNode &unode,
+                                            MutableSpan<bool> modified_faces)
+{
+  using namespace blender;
+  SculptSession *ss = object.sculpt;
+  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
+  bke::SpanAttributeWriter hide_poly = attributes.lookup_or_add_for_write_span<bool>(
+      ".hide_poly", ATTR_DOMAIN_FACE);
+
+  const Span<int> face_indices = unode.face_indices;
+
+  bool modified = false;
+  for (const int i : face_indices.index_range()) {
+    const int face = face_indices[i];
+    if (unode.face_hidden[i].test() != hide_poly.span[face]) {
+      unode.face_hidden[i].set(!unode.face_hidden[i].test());
+      hide_poly.span[face] = !hide_poly.span[face];
+      modified_faces[face] = true;
+      modified = true;
+    }
+  }
+  hide_poly.finish();
+  ss->hide_poly = BKE_sculpt_hide_poly_ensure(&mesh);
+  return modified;
 }
 
 static bool sculpt_undo_restore_color(Object *ob,
@@ -894,7 +955,8 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
 
   bool changed_all_geometry = false;
   bool changed_position = false;
-  bool changed_hide = false;
+  bool changed_hide_vert = false;
+  bool changed_hide_face = false;
   bool changed_mask = false;
   bool changed_face_sets = false;
   bool changed_color = false;
@@ -903,6 +965,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
    * track of other updates. In order to tell the corresponding PBVH nodes to update, keep track
    * of which elements were updated for specific layers. */
   Vector<bool> modified_verts_hide;
+  Vector<bool> modified_faces_hide;
   Vector<bool> modified_verts_mask;
   Vector<bool> modified_verts_color;
   Vector<bool> modified_faces_face_set;
@@ -936,7 +999,13 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
       case SCULPT_UNDO_HIDDEN:
         modified_verts_hide.resize(ss->totvert, false);
         if (sculpt_undo_restore_hidden(ob, unode, modified_verts_hide)) {
-          changed_hide = true;
+          changed_hide_vert = true;
+        }
+        break;
+      case SCULPT_UNDO_FACE_HIDDEN:
+        modified_faces_hide.resize(ss->totfaces, false);
+        if (sculpt_undo_restore_hidden_face(*ob, *unode, modified_faces_hide)) {
+          changed_hide_face = true;
         }
         break;
       case SCULPT_UNDO_MASK:
@@ -987,7 +1056,8 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
 
   DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
 
-  if (!changed_position && !changed_hide && !changed_mask && !changed_face_sets && !changed_color)
+  if (!changed_position && !changed_hide_vert && !changed_hide_face && !changed_mask &&
+      !changed_face_sets && !changed_color)
   {
     return;
   }
@@ -997,11 +1067,12 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
    * the nodes get recreated, though in that case it could do all. */
   PartialUpdateData data{};
   data.changed_position = changed_position;
-  data.changed_hide = changed_hide;
+  data.changed_hide_vert = changed_hide_vert;
   data.changed_mask = changed_mask;
   data.pbvh = ss->pbvh;
   data.modified_grids = modified_grids;
   data.modified_hidden_verts = modified_verts_hide;
+  data.modified_hidden_faces = modified_faces_hide;
   data.modified_mask_verts = modified_verts_mask;
   data.modified_color_verts = modified_verts_color;
   data.modified_face_set_faces = modified_faces_face_set;
@@ -1018,8 +1089,11 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
   if (changed_mask) {
     BKE_pbvh_update_mask(ss->pbvh);
   }
-
-  if (changed_hide) {
+  if (changed_hide_face) {
+    SCULPT_visibility_sync_all_from_faces(ob);
+    BKE_pbvh_update_visibility(ss->pbvh);
+  }
+  if (changed_hide_vert) {
     if (ELEM(BKE_pbvh_type(ss->pbvh), PBVH_FACES, PBVH_GRIDS)) {
       Mesh &mesh = *static_cast<Mesh *>(ob->data);
       BKE_pbvh_sync_visibility_from_verts(ss->pbvh, &mesh);
@@ -1028,7 +1102,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
   }
 
   if (BKE_sculpt_multires_active(scene, ob)) {
-    if (changed_hide) {
+    if (changed_hide_vert) {
       multires_mark_as_modified(depsgraph, ob, MULTIRES_HIDDEN_MODIFIED);
     }
     else if (changed_position) {
@@ -1159,7 +1233,7 @@ static SculptUndoNode *sculpt_undo_alloc_node(Object *ob, PBVHNode *node, Sculpt
   unode->totvert = totvert;
 
   bool need_loops = type == SCULPT_UNDO_COLOR;
-  const bool need_faces = type == SCULPT_UNDO_FACE_SETS;
+  const bool need_faces = ELEM(type, SCULPT_UNDO_FACE_SETS, SCULPT_UNDO_FACE_HIDDEN);
 
   if (need_loops) {
     int totloop;
@@ -1197,6 +1271,11 @@ static SculptUndoNode *sculpt_undo_alloc_node(Object *ob, PBVHNode *node, Sculpt
         usculpt->undo_size += sculpt_undo_alloc_and_store_hidden(ss, unode);
       }
 
+      break;
+    }
+    case SCULPT_UNDO_FACE_HIDDEN: {
+      unode->face_hidden.resize(unode->face_indices.size());
+      usculpt->undo_size += BLI_BITMAP_SIZE(unode->face_indices.size());
       break;
     }
     case SCULPT_UNDO_MASK: {
@@ -1278,13 +1357,12 @@ static void sculpt_undo_store_coords(Object *ob, SculptUndoNode *unode)
 static void sculpt_undo_store_hidden(Object *ob, SculptUndoNode *unode)
 {
   using namespace blender;
-  using namespace blender::bke;
   if (!unode->grids.is_empty()) {
     /* Already stored during allocation. */
   }
 
   const Mesh &mesh = *static_cast<const Mesh *>(ob->data);
-  const AttributeAccessor attributes = mesh.attributes();
+  const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan<bool> hide_vert = *attributes.lookup<bool>(".hide_vert", ATTR_DOMAIN_POINT);
   if (hide_vert.is_empty()) {
     return;
@@ -1294,6 +1372,21 @@ static void sculpt_undo_store_hidden(Object *ob, SculptUndoNode *unode)
   const blender::Span<int> verts = BKE_pbvh_node_get_vert_indices(node);
   for (const int i : verts.index_range())
     unode->vert_hidden[i].set(hide_vert[verts[i]]);
+}
+
+static void sculpt_undo_store_face_hidden(Object &object, SculptUndoNode &unode)
+{
+  using namespace blender;
+  const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+  const bke::AttributeAccessor attributes = mesh.attributes();
+  const VArraySpan<bool> hide_poly = *attributes.lookup<bool>(".hide_poly", ATTR_DOMAIN_FACE);
+  if (hide_poly.is_empty()) {
+    unode.face_hidden.fill(false);
+    return;
+  }
+  const Span<int> faces = unode.face_indices;
+  for (const int i : faces.index_range())
+    unode.face_hidden[i].set(hide_poly[faces[i]]);
 }
 
 static void sculpt_undo_store_mask(Object *ob, SculptUndoNode *unode)
@@ -1403,6 +1496,7 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
         BKE_pbvh_vertex_iter_end;
         break;
 
+      case SCULPT_UNDO_FACE_HIDDEN:
       case SCULPT_UNDO_HIDDEN: {
         BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_ALL) {
           BM_log_vert_before_modified(ss->bm_log, vd.bm_vert, vd.cd_vert_mask_offset);
@@ -1488,6 +1582,9 @@ SculptUndoNode *SCULPT_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType
       break;
     case SCULPT_UNDO_HIDDEN:
       sculpt_undo_store_hidden(ob, unode);
+      break;
+    case SCULPT_UNDO_FACE_HIDDEN:
+      sculpt_undo_store_face_hidden(*ob, *unode);
       break;
     case SCULPT_UNDO_MASK:
       if (pbvh_has_mask(ss->pbvh)) {

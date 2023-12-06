@@ -53,6 +53,21 @@
 
 namespace blender::ed::sculpt_paint::hide {
 
+void tag_update_visibility(const bContext &C)
+{
+  ARegion *region = CTX_wm_region(&C);
+  ED_region_tag_redraw(region);
+
+  Object *ob = CTX_data_active_object(&C);
+  WM_event_add_notifier(&C, NC_OBJECT | ND_DRAW, ob);
+
+  DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
+  const RegionView3D *rv3d = CTX_wm_region_view3d(&C);
+  if (!BKE_sculptsession_use_pbvh_draw(ob, rv3d)) {
+    DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+  }
+}
+
 enum class VisAction {
   Hide = 0,
   Show = 1,
@@ -87,7 +102,7 @@ static bool is_effected(const VisArea area,
   return ((inside && area == VisArea::Inside) || (!inside && area == VisArea::Outside));
 }
 
-static void vert_show_all(Object &object, const Span<PBVHNode *> nodes)
+void mesh_show_all(Object &object, const Span<PBVHNode *> nodes)
 {
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
@@ -110,9 +125,7 @@ static void vert_show_all(Object &object, const Span<PBVHNode *> nodes)
   BKE_mesh_flush_hidden_from_verts(&mesh);
 }
 
-static bool vert_hide_is_changed(const Span<int> verts,
-                                 const Span<bool> orig_hide,
-                                 const Span<bool> new_hide)
+bool hide_is_changed(const Span<int> verts, const Span<bool> orig_hide, const Span<bool> new_hide)
 {
   for (const int i : verts.index_range()) {
     if (orig_hide[verts[i]] != new_hide[i]) {
@@ -141,7 +154,7 @@ static void vert_hide_update(Object &object,
       new_hide.reinitialize(verts.size());
       array_utils::gather(hide_vert.span.as_span(), verts, new_hide.as_mutable_span());
       calc_hide(verts, new_hide);
-      if (!vert_hide_is_changed(verts, hide_vert.span, new_hide)) {
+      if (!hide_is_changed(verts, hide_vert.span, new_hide)) {
         continue;
       }
 
@@ -196,14 +209,14 @@ static void partialvis_update_mesh(Object &object,
           });
           break;
         case VisAction::Show:
-          vert_show_all(object, nodes);
+          mesh_show_all(object, nodes);
           break;
       }
       break;
     case VisArea::Masked: {
       const VArraySpan<float> mask = *attributes.lookup<float>(".sculpt_mask", ATTR_DOMAIN_POINT);
       if (action == VisAction::Show && mask.is_empty()) {
-        vert_show_all(object, nodes);
+        mesh_show_all(object, nodes);
       }
       else {
         vert_hide_update(object, nodes, [&](const Span<int> verts, MutableSpan<bool> hide) {
@@ -219,12 +232,13 @@ static void partialvis_update_mesh(Object &object,
   }
 }
 
-static void grids_show_all(Depsgraph &depsgraph, Object &object, const Span<PBVHNode *> nodes)
+void grids_show_all(Depsgraph &depsgraph, Object &object, const Span<PBVHNode *> nodes)
 {
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   PBVH &pbvh = *object.sculpt->pbvh;
   SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
   const BitGroupVector<> &grid_hidden = subdiv_ccg.grid_hidden;
+  bool any_changed = false;
   if (!grid_hidden.is_empty()) {
     threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
       for (PBVHNode *node : nodes.slice(range)) {
@@ -233,11 +247,15 @@ static void grids_show_all(Depsgraph &depsgraph, Object &object, const Span<PBVH
               return bits::any_bit_set(grid_hidden[i]);
             }))
         {
+          any_changed = true;
           SCULPT_undo_push_node(&object, node, SCULPT_UNDO_HIDDEN);
           BKE_pbvh_node_mark_rebuild_draw(node);
         }
       }
     });
+  }
+  if (!any_changed) {
+    return;
   }
   for (PBVHNode *node : nodes) {
     BKE_pbvh_node_fully_hidden_set(node, false);
@@ -498,7 +516,6 @@ static Vector<PBVHNode *> get_pbvh_nodes(PBVH *pbvh,
 
 static int hide_show_exec(bContext *C, wmOperator *op)
 {
-  ARegion *region = CTX_wm_region(C);
   Object *ob = CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
@@ -546,14 +563,7 @@ static int hide_show_exec(bContext *C, wmOperator *op)
   SCULPT_undo_push_end(ob);
 
   SCULPT_topology_islands_invalidate(ob->sculpt);
-
-  RegionView3D *rv3d = CTX_wm_region_view3d(C);
-  if (!BKE_sculptsession_use_pbvh_draw(ob, rv3d)) {
-    DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-  }
-
-  DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
-  ED_region_tag_redraw(region);
+  tag_update_visibility(*C);
 
   return OPERATOR_FINISHED;
 }
@@ -683,7 +693,6 @@ static void invert_visibility_bmesh(Object &object, const Span<PBVHNode *> nodes
 
 static int visibility_invert_exec(bContext *C, wmOperator *op)
 {
-  ARegion &region = *CTX_wm_region(C);
   Object &object = *CTX_data_active_object(C);
   Depsgraph &depsgraph = *CTX_data_ensure_evaluated_depsgraph(C);
 
@@ -707,14 +716,7 @@ static int visibility_invert_exec(bContext *C, wmOperator *op)
   SCULPT_undo_push_end(&object);
 
   SCULPT_topology_islands_invalidate(object.sculpt);
-
-  RegionView3D *rv3d = CTX_wm_region_view3d(C);
-  if (!BKE_sculptsession_use_pbvh_draw(&object, rv3d)) {
-    DEG_id_tag_update(&object.id, ID_RECALC_GEOMETRY);
-  }
-
-  DEG_id_tag_update(&object.id, ID_RECALC_SHADING);
-  ED_region_tag_redraw(&region);
+  tag_update_visibility(*C);
 
   return OPERATOR_FINISHED;
 }

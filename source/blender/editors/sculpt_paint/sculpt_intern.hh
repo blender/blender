@@ -141,6 +141,7 @@ enum eBoundaryAutomaskMode {
 enum SculptUndoType {
   SCULPT_UNDO_COORDS,
   SCULPT_UNDO_HIDDEN,
+  SCULPT_UNDO_FACE_HIDDEN,
   SCULPT_UNDO_MASK,
   SCULPT_UNDO_DYNTOPO_BEGIN,
   SCULPT_UNDO_DYNTOPO_END,
@@ -195,6 +196,7 @@ struct SculptUndoNode {
   blender::Array<int> loop_index;
 
   blender::BitVector<> vert_hidden;
+  blender::BitVector<> face_hidden;
 
   /* multires */
   int maxgrid;               /* same for grid */
@@ -979,9 +981,6 @@ bool SCULPT_vertex_is_boundary(const SculptSession *ss, PBVHVertRef vertex);
 bool SCULPT_vertex_visible_get(const SculptSession *ss, PBVHVertRef vertex);
 bool SCULPT_vertex_all_faces_visible_get(const SculptSession *ss, PBVHVertRef vertex);
 bool SCULPT_vertex_any_face_visible_get(SculptSession *ss, PBVHVertRef vertex);
-
-void SCULPT_face_visibility_all_set(SculptSession *ss, bool visible);
-
 void SCULPT_visibility_sync_all_from_faces(Object *ob);
 
 /** \} */
@@ -998,8 +997,6 @@ bool SCULPT_vertex_has_face_set(SculptSession *ss, PBVHVertRef vertex, int face_
 bool SCULPT_vertex_has_unique_face_set(SculptSession *ss, PBVHVertRef vertex);
 
 int SCULPT_face_set_next_available_get(SculptSession *ss);
-
-void SCULPT_face_set_visibility_set(SculptSession *ss, int face_set, bool visible);
 
 /** \} */
 

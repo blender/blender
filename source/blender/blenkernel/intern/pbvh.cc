@@ -1811,9 +1811,8 @@ blender::Span<int> BKE_pbvh_node_get_unique_vert_indices(const PBVHNode *node)
   return node->vert_indices.as_span().take_front(node->uniq_verts);
 }
 
-blender::Vector<int> BKE_pbvh_node_calc_face_indices(const PBVH &pbvh, const PBVHNode &node)
+void BKE_pbvh_node_calc_face_indices(const PBVH &pbvh, const PBVHNode &node, Vector<int> &faces)
 {
-  Vector<int> faces;
   switch (pbvh.header.type) {
     case PBVH_FACES: {
       const Span<int> looptri_faces = pbvh.looptri_faces;
@@ -1843,7 +1842,12 @@ blender::Vector<int> BKE_pbvh_node_calc_face_indices(const PBVH &pbvh, const PBV
       BLI_assert_unreachable();
       break;
   }
+}
 
+blender::Vector<int> BKE_pbvh_node_calc_face_indices(const PBVH &pbvh, const PBVHNode &node)
+{
+  Vector<int> faces;
+  BKE_pbvh_node_calc_face_indices(pbvh, node, faces);
   return faces;
 }
 

@@ -420,46 +420,6 @@ bool SCULPT_vertex_visible_get(const SculptSession *ss, PBVHVertRef vertex)
   return true;
 }
 
-void SCULPT_face_set_visibility_set(SculptSession *ss, int face_set, bool visible)
-{
-  BLI_assert(ss->face_sets != nullptr);
-  BLI_assert(ss->hide_poly != nullptr);
-  switch (BKE_pbvh_type(ss->pbvh)) {
-    case PBVH_FACES:
-    case PBVH_GRIDS:
-      for (int i = 0; i < ss->totfaces; i++) {
-        if (ss->face_sets[i] != face_set) {
-          continue;
-        }
-        ss->hide_poly[i] = !visible;
-      }
-      break;
-    case PBVH_BMESH:
-      break;
-  }
-}
-
-void SCULPT_face_visibility_all_set(SculptSession *ss, bool visible)
-{
-  SCULPT_topology_islands_invalidate(ss);
-
-  switch (BKE_pbvh_type(ss->pbvh)) {
-    case PBVH_FACES:
-    case PBVH_GRIDS:
-      blender::MutableSpan(ss->hide_poly, ss->totfaces).fill(!visible);
-      break;
-    case PBVH_BMESH: {
-      BMIter iter;
-      BMFace *f;
-
-      BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
-        BM_elem_flag_set(f, BM_ELEM_HIDDEN, !visible);
-      }
-      break;
-    }
-  }
-}
-
 bool SCULPT_vertex_any_face_visible_get(SculptSession *ss, PBVHVertRef vertex)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
