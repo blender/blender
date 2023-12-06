@@ -3422,6 +3422,7 @@ static void do_brush_action(Sculpt *sd,
                             PaintModeSettings *paint_mode_settings)
 {
   using namespace blender;
+  using namespace blender::ed::sculpt_paint;
   SculptSession *ss = ob->sculpt;
   Vector<PBVHNode *> nodes, texnodes;
 
@@ -3651,7 +3652,7 @@ static void do_brush_action(Sculpt *sd,
       SCULPT_do_cloth_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_DRAW_FACE_SETS:
-      SCULPT_do_draw_face_sets_brush(sd, ob, nodes);
+      face_set::do_draw_face_sets_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_DISPLACEMENT_ERASER:
       SCULPT_do_displacement_eraser_brush(sd, ob, nodes);

@@ -1550,12 +1550,15 @@ void SCULPT_OT_project_line_gesture(wmOperatorType *ot);
 /** \name Face Set Operators
  * \{ */
 
+namespace blender::ed::sculpt_paint::face_set {
+
 void SCULPT_OT_face_sets_randomize_colors(wmOperatorType *ot);
 void SCULPT_OT_face_set_change_visibility(wmOperatorType *ot);
 void SCULPT_OT_face_sets_init(wmOperatorType *ot);
 void SCULPT_OT_face_sets_create(wmOperatorType *ot);
 void SCULPT_OT_face_sets_edit(wmOperatorType *ot);
 
+}
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1678,7 +1681,9 @@ void SCULPT_multiplane_scrape_preview_draw(uint gpuattr,
                                            const float outline_col[3],
                                            float outline_alpha);
 /* Draw Face Sets Brush. */
-void SCULPT_do_draw_face_sets_brush(Sculpt *sd, Object *ob, blender::Span<PBVHNode *> nodes);
+namespace blender::ed::sculpt_paint::face_set {
+void do_draw_face_sets_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes);
+}
 
 /* Paint Brush. */
 void SCULPT_do_paint_brush(PaintModeSettings *paint_mode_settings,

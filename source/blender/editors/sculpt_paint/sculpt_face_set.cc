@@ -58,15 +58,10 @@
 
 #include "bmesh.hh"
 
-using blender::Array;
-using blender::float3;
-using blender::Vector;
+namespace blender::ed::sculpt_paint::face_set {
 
-/* Utils. */
-
-int ED_sculpt_face_sets_find_next_available_id(Mesh *mesh)
+int find_next_available_id(Mesh *mesh)
 {
-  using namespace blender;
   const VArray<int> attribute = *mesh->attributes().lookup<int>(".sculpt_face_set",
                                                                 ATTR_DOMAIN_FACE);
   if (!attribute) {
@@ -83,9 +78,8 @@ int ED_sculpt_face_sets_find_next_available_id(Mesh *mesh)
   return next_face_set_id;
 }
 
-void ED_sculpt_face_sets_initialize_none_to_id(Mesh *mesh, const int new_id)
+void initialize_none_to_id(Mesh *mesh, const int new_id)
 {
-  using namespace blender;
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::SpanAttributeWriter<int> face_sets = attributes.lookup_for_write_span<int>(
       ".sculpt_face_set");
@@ -100,7 +94,7 @@ void ED_sculpt_face_sets_initialize_none_to_id(Mesh *mesh, const int new_id)
   }
 }
 
-int ED_sculpt_face_sets_active_update_and_get(bContext *C, Object *ob, const float mval[2])
+int active_update_and_get(bContext *C, Object *ob, const float mval[2])
 {
   SculptSession *ss = ob->sculpt;
   if (!ss) {
@@ -121,8 +115,6 @@ constexpr float FACE_SET_BRUSH_MIN_FADE = 0.05f;
 
 static void do_draw_face_sets_brush_faces(Object *ob, const Brush *brush, PBVHNode *node)
 {
-  using namespace blender;
-
   SculptSession *ss = ob->sculpt;
 
   BLI_assert(BKE_pbvh_type(ss->pbvh) == PBVH_FACES);
@@ -146,7 +138,7 @@ static void do_draw_face_sets_brush_faces(Object *ob, const Brush *brush, PBVHNo
     SCULPT_automasking_node_update(&automask_data, &vd);
 
     for (const int face_i : ss->pmap[vd.index]) {
-      const blender::IndexRange face = ss->faces[face_i];
+      const IndexRange face = ss->faces[face_i];
 
       const float3 poly_center = bke::mesh::face_center_calc(positions,
                                                              ss->corner_verts.slice(face));
@@ -184,8 +176,6 @@ static void do_draw_face_sets_brush_faces(Object *ob, const Brush *brush, PBVHNo
 
 static void do_draw_face_sets_brush_grids(Object *ob, const Brush *brush, PBVHNode *node)
 {
-  using namespace blender;
-
   SculptSession *ss = ob->sculpt;
 
   BLI_assert(BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS);
@@ -234,8 +224,6 @@ static void do_draw_face_sets_brush_grids(Object *ob, const Brush *brush, PBVHNo
 
 static void do_draw_face_sets_brush_bmesh(Object *ob, const Brush *brush, PBVHNode *node)
 {
-  using namespace blender;
-
   SculptSession *ss = ob->sculpt;
 
   BLI_assert(BKE_pbvh_type(ss->pbvh) == PBVH_BMESH);
@@ -391,9 +379,8 @@ static void do_relax_face_sets_brush_task(Object *ob,
   BKE_pbvh_vertex_iter_end;
 }
 
-void SCULPT_do_draw_face_sets_brush(Sculpt *sd, Object *ob, blender::Span<PBVHNode *> nodes)
+void do_draw_face_sets_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
 {
-  using namespace blender;
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
 
@@ -463,7 +450,6 @@ static EnumPropertyItem prop_sculpt_face_set_create_types[] = {
 
 static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
 {
-  using namespace blender;
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
@@ -484,7 +470,7 @@ static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
   float threshold = 0.5f;
 
   PBVH *pbvh = ob->sculpt->pbvh;
-  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(pbvh, {});
+  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(pbvh, {});
 
   if (nodes.is_empty()) {
     return OPERATOR_CANCELLED;
@@ -570,12 +556,10 @@ static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
 
 void SCULPT_OT_face_sets_create(wmOperatorType *ot)
 {
-  /* identifiers */
   ot->name = "Create Face Set";
   ot->idname = "SCULPT_OT_face_sets_create";
   ot->description = "Create a new Face Set";
 
-  /* api callbacks */
   ot->exec = sculpt_face_set_create_exec;
   ot->poll = SCULPT_mode_poll;
 
@@ -658,11 +642,10 @@ static EnumPropertyItem prop_sculpt_face_sets_init_types[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-using FaceSetsFloodFillFn = blender::FunctionRef<bool(int from_face, int edge, int to_face)>;
+using FaceSetsFloodFillFn = FunctionRef<bool(int from_face, int edge, int to_face)>;
 
 static void sculpt_face_sets_init_flood_fill(Object *ob, const FaceSetsFloodFillFn &test_fn)
 {
-  using namespace blender;
   SculptSession *ss = ob->sculpt;
   Mesh *mesh = static_cast<Mesh *>(ob->data);
 
@@ -720,7 +703,6 @@ static void sculpt_face_sets_init_flood_fill(Object *ob, const FaceSetsFloodFill
 
 static void sculpt_face_sets_init_loop(Object *ob, const int mode)
 {
-  using namespace blender;
   Mesh *mesh = static_cast<Mesh *>(ob->data);
   SculptSession *ss = ob->sculpt;
 
@@ -736,7 +718,6 @@ static void sculpt_face_sets_init_loop(Object *ob, const int mode)
 
 static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
 {
-  using namespace blender;
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
@@ -751,7 +732,7 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
   }
 
   PBVH *pbvh = ob->sculpt->pbvh;
-  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(pbvh, {});
+  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(pbvh, {});
 
   if (nodes.is_empty()) {
     return OPERATOR_CANCELLED;
@@ -854,12 +835,10 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
 
 void SCULPT_OT_face_sets_init(wmOperatorType *ot)
 {
-  /* identifiers */
   ot->name = "Init Face Sets";
   ot->idname = "SCULPT_OT_face_sets_init";
   ot->description = "Initializes all Face Sets in the mesh";
 
-  /* api callbacks */
   ot->exec = sculpt_face_set_init_exec;
   ot->poll = SCULPT_mode_poll;
 
@@ -929,7 +908,7 @@ static int sculpt_face_set_change_visibility_exec(bContext *C, wmOperator *op)
   const int tot_vert = SCULPT_vertex_count_get(ss);
 
   PBVH *pbvh = ob->sculpt->pbvh;
-  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(pbvh, {});
+  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(pbvh, {});
 
   if (nodes.is_empty()) {
     return OPERATOR_CANCELLED;
@@ -1054,12 +1033,10 @@ static int sculpt_face_set_change_visibility_invoke(bContext *C,
 
 void SCULPT_OT_face_set_change_visibility(wmOperatorType *ot)
 {
-  /* Identifiers. */
   ot->name = "Face Sets Visibility";
   ot->idname = "SCULPT_OT_face_set_change_visibility";
   ot->description = "Change the visibility of the Face Sets of the sculpt";
 
-  /* Api callbacks. */
   ot->exec = sculpt_face_set_change_visibility_exec;
   ot->invoke = sculpt_face_set_change_visibility_invoke;
   ot->poll = SCULPT_mode_poll;
@@ -1100,7 +1077,7 @@ static int sculpt_face_sets_randomize_colors_exec(bContext *C, wmOperator * /*op
     mesh->face_sets_color_default = ss->face_sets[random_index];
   }
 
-  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(pbvh, {});
+  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(pbvh, {});
   for (PBVHNode *node : nodes) {
     BKE_pbvh_node_mark_redraw(node);
   }
@@ -1112,12 +1089,10 @@ static int sculpt_face_sets_randomize_colors_exec(bContext *C, wmOperator * /*op
 
 void SCULPT_OT_face_sets_randomize_colors(wmOperatorType *ot)
 {
-  /* Identifiers. */
   ot->name = "Randomize Face Sets Colors";
   ot->idname = "SCULPT_OT_face_sets_randomize_colors";
   ot->description = "Generates a new set of random colors to render the Face Sets in the viewport";
 
-  /* Api callbacks. */
   ot->exec = sculpt_face_sets_randomize_colors_exec;
   ot->poll = SCULPT_mode_poll;
 
@@ -1179,7 +1154,6 @@ static void sculpt_face_set_grow(Object *ob,
                                  const int active_face_set_id,
                                  const bool modify_hidden)
 {
-  using namespace blender;
   Mesh *mesh = BKE_mesh_from_object(ob);
   const OffsetIndices faces = mesh->faces();
   const Span<int> corner_verts = mesh->corner_verts();
@@ -1207,7 +1181,6 @@ static void sculpt_face_set_shrink(Object *ob,
                                    const int active_face_set_id,
                                    const bool modify_hidden)
 {
-  using namespace blender;
   Mesh *mesh = BKE_mesh_from_object(ob);
   const OffsetIndices faces = mesh->faces();
   const Span<int> corner_verts = mesh->corner_verts();
@@ -1271,7 +1244,6 @@ static void sculpt_face_set_delete_geometry(Object *ob,
                                             const int active_face_set_id,
                                             const bool modify_hidden)
 {
-
   Mesh *mesh = static_cast<Mesh *>(ob->data);
   const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(mesh);
   BMeshCreateParams create_params{};
@@ -1331,7 +1303,7 @@ static void sculpt_face_set_edit_fair_face_set(Object *ob,
                     SCULPT_vertex_has_unique_face_set(ss, vertex);
   }
 
-  blender::MutableSpan<float3> positions = SCULPT_mesh_deformed_positions_get(ss);
+  MutableSpan<float3> positions = SCULPT_mesh_deformed_positions_get(ss);
   BKE_mesh_prefair_and_fair_verts(mesh, positions, fair_verts.data(), fair_order);
 
   for (int i = 0; i < totvert; i++) {
@@ -1429,7 +1401,7 @@ static void sculpt_face_set_edit_modify_geometry(bContext *C,
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, mesh);
 }
 
-static void face_set_edit_do_post_visibility_updates(Object *ob, blender::Span<PBVHNode *> nodes)
+static void face_set_edit_do_post_visibility_updates(Object *ob, Span<PBVHNode *> nodes)
 {
   SculptSession *ss = ob->sculpt;
 
@@ -1450,7 +1422,7 @@ static void sculpt_face_set_edit_modify_face_sets(Object *ob,
                                                   wmOperator *op)
 {
   PBVH *pbvh = ob->sculpt->pbvh;
-  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(pbvh, {});
+  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(pbvh, {});
 
   if (nodes.is_empty()) {
     return;
@@ -1474,7 +1446,7 @@ static void sculpt_face_set_edit_modify_coordinates(bContext *C,
   SculptSession *ss = ob->sculpt;
   PBVH *pbvh = ss->pbvh;
 
-  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(pbvh, {});
+  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(pbvh, {});
 
   const float strength = RNA_float_get(op->ptr, "strength");
 
@@ -1498,8 +1470,7 @@ static bool sculpt_face_set_edit_init(bContext *C, wmOperator *op)
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  const eSculptFaceSetEditMode mode = static_cast<eSculptFaceSetEditMode>(
-      RNA_enum_get(op->ptr, "mode"));
+  const eSculptFaceSetEditMode mode = eSculptFaceSetEditMode(RNA_enum_get(op->ptr, "mode"));
   const bool modify_hidden = RNA_boolean_get(op->ptr, "modify_hidden");
 
   if (!sculpt_face_set_edit_is_operation_valid(ss, mode, modify_hidden)) {
@@ -1521,8 +1492,7 @@ static int sculpt_face_set_edit_exec(bContext *C, wmOperator *op)
   Object *ob = CTX_data_active_object(C);
 
   const int active_face_set = RNA_int_get(op->ptr, "active_face_set");
-  const eSculptFaceSetEditMode mode = static_cast<eSculptFaceSetEditMode>(
-      RNA_enum_get(op->ptr, "mode"));
+  const eSculptFaceSetEditMode mode = eSculptFaceSetEditMode(RNA_enum_get(op->ptr, "mode"));
   const bool modify_hidden = RNA_boolean_get(op->ptr, "modify_hidden");
 
   switch (mode) {
@@ -1567,12 +1537,10 @@ static int sculpt_face_set_edit_invoke(bContext *C, wmOperator *op, const wmEven
 
 void SCULPT_OT_face_sets_edit(wmOperatorType *ot)
 {
-  /* Identifiers. */
   ot->name = "Edit Face Set";
   ot->idname = "SCULPT_OT_face_set_edit";
   ot->description = "Edits the current active Face Set";
 
-  /* Api callbacks. */
   ot->invoke = sculpt_face_set_edit_invoke;
   ot->exec = sculpt_face_set_edit_exec;
   ot->poll = SCULPT_mode_poll;
@@ -1593,3 +1561,5 @@ void SCULPT_OT_face_sets_edit(wmOperatorType *ot)
                              "Modify Hidden",
                              "Apply the edit operation to hidden Face Sets");
 }
+
+}  // namespace blender::ed::sculpt_paint::face_set

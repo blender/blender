@@ -1265,6 +1265,7 @@ static void SCULPT_OT_mask_from_cavity(wmOperatorType *ot)
 
 void ED_operatortypes_sculpt()
 {
+  using namespace blender::ed::sculpt_paint;
   WM_operatortype_append(SCULPT_OT_brush_stroke);
   WM_operatortype_append(SCULPT_OT_sculptmode_toggle);
   WM_operatortype_append(SCULPT_OT_set_persistent_base);
@@ -1277,17 +1278,17 @@ void ED_operatortypes_sculpt()
   WM_operatortype_append(SCULPT_OT_mesh_filter);
   WM_operatortype_append(SCULPT_OT_mask_filter);
   WM_operatortype_append(SCULPT_OT_set_pivot_position);
-  WM_operatortype_append(SCULPT_OT_face_sets_create);
-  WM_operatortype_append(SCULPT_OT_face_set_change_visibility);
-  WM_operatortype_append(SCULPT_OT_face_sets_randomize_colors);
-  WM_operatortype_append(SCULPT_OT_face_sets_init);
+  WM_operatortype_append(face_set::SCULPT_OT_face_sets_create);
+  WM_operatortype_append(face_set::SCULPT_OT_face_set_change_visibility);
+  WM_operatortype_append(face_set::SCULPT_OT_face_sets_randomize_colors);
+  WM_operatortype_append(face_set::SCULPT_OT_face_sets_init);
+  WM_operatortype_append(face_set::SCULPT_OT_face_sets_edit);
   WM_operatortype_append(SCULPT_OT_cloth_filter);
-  WM_operatortype_append(SCULPT_OT_face_sets_edit);
-  WM_operatortype_append(blender::ed::sculpt_paint::mask::SCULPT_OT_face_set_lasso_gesture);
-  WM_operatortype_append(blender::ed::sculpt_paint::mask::SCULPT_OT_face_set_box_gesture);
-  WM_operatortype_append(blender::ed::sculpt_paint::mask::SCULPT_OT_trim_box_gesture);
-  WM_operatortype_append(blender::ed::sculpt_paint::mask::SCULPT_OT_trim_lasso_gesture);
-  WM_operatortype_append(blender::ed::sculpt_paint::mask::SCULPT_OT_project_line_gesture);
+  WM_operatortype_append(mask::SCULPT_OT_face_set_lasso_gesture);
+  WM_operatortype_append(mask::SCULPT_OT_face_set_box_gesture);
+  WM_operatortype_append(mask::SCULPT_OT_trim_box_gesture);
+  WM_operatortype_append(mask::SCULPT_OT_trim_lasso_gesture);
+  WM_operatortype_append(mask::SCULPT_OT_project_line_gesture);
 
   WM_operatortype_append(SCULPT_OT_sample_color);
   WM_operatortype_append(SCULPT_OT_color_filter);

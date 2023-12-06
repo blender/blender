@@ -1690,6 +1690,7 @@ static void sculpt_expand_set_initial_components_for_mouse(bContext *C,
                                                            ExpandCache *expand_cache,
                                                            const float mval[2])
 {
+  using namespace blender::ed::sculpt_paint;
   SculptSession *ss = ob->sculpt;
 
   PBVHVertRef initial_vertex = sculpt_expand_target_vertex_update_and_get(C, ob, mval);
@@ -1715,7 +1716,7 @@ static void sculpt_expand_set_initial_components_for_mouse(bContext *C,
       expand_cache->next_face_set = SCULPT_active_face_set_get(ss);
     }
     else {
-      expand_cache->next_face_set = ED_sculpt_face_sets_find_next_available_id(
+      expand_cache->next_face_set = face_set::find_next_available_id(
           static_cast<Mesh *>(ob->data));
     }
   }

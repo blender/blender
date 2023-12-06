@@ -1115,6 +1115,7 @@ static void sculpt_gesture_face_set_end(bContext * /*C*/, SculptGestureContext *
 static void sculpt_gesture_init_face_set_properties(SculptGestureContext *sgcontext,
                                                     wmOperator * /*op*/)
 {
+  using namespace blender::ed::sculpt_paint;
   Mesh *mesh = BKE_mesh_from_object(sgcontext->vc.obact);
   sgcontext->operation = reinterpret_cast<SculptGestureOperation *>(
       MEM_cnew<SculptGestureFaceSetOperation>(__func__));
@@ -1129,7 +1130,7 @@ static void sculpt_gesture_init_face_set_properties(SculptGestureContext *sgcont
       sculpt_gesture_face_set_apply_for_symmetry_pass;
   face_set_operation->op.sculpt_gesture_end = sculpt_gesture_face_set_end;
 
-  face_set_operation->new_face_set_id = ED_sculpt_face_sets_find_next_available_id(mesh);
+  face_set_operation->new_face_set_id = face_set::find_next_available_id(mesh);
 }
 
 /* Mask Gesture Operation. */
@@ -1772,6 +1773,7 @@ static void sculpt_gesture_trim_apply_for_symmetry_pass(bContext * /*C*/,
 
 static void sculpt_gesture_trim_end(bContext * /*C*/, SculptGestureContext *sgcontext)
 {
+  using namespace blender::ed::sculpt_paint;
   Object *object = sgcontext->vc.obact;
   SculptSession *ss = object->sculpt;
   Mesh *mesh = (Mesh *)object->data;
@@ -1780,8 +1782,8 @@ static void sculpt_gesture_trim_end(bContext * /*C*/, SculptGestureContext *sgco
       &mesh->face_data, CD_PROP_INT32, ".sculpt_face_set", mesh->faces_num));
   if (ss->face_sets) {
     /* Assign a new Face Set ID to the new faces created by the trim operation. */
-    const int next_face_set_id = ED_sculpt_face_sets_find_next_available_id(mesh);
-    ED_sculpt_face_sets_initialize_none_to_id(mesh, next_face_set_id);
+    const int next_face_set_id = face_set::find_next_available_id(mesh);
+    face_set::initialize_none_to_id(mesh, next_face_set_id);
   }
 
   sculpt_gesture_trim_geometry_free(sgcontext);
