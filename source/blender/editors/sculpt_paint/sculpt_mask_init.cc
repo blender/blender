@@ -48,31 +48,6 @@ enum eSculptMaskInitMode {
   SCULPT_MASK_INIT_RANDOM_PER_LOOSE_PART,
 };
 
-static EnumPropertyItem prop_sculpt_mask_init_mode_types[] = {
-    {
-        SCULPT_MASK_INIT_RANDOM_PER_VERTEX,
-        "RANDOM_PER_VERTEX",
-        0,
-        "Random per Vertex",
-        "",
-    },
-    {
-        SCULPT_MASK_INIT_RANDOM_PER_FACE_SET,
-        "RANDOM_PER_FACE_SET",
-        0,
-        "Random per Face Set",
-        "",
-    },
-    {
-        SCULPT_MASK_INIT_RANDOM_PER_LOOSE_PART,
-        "RANDOM_PER_LOOSE_PART",
-        0,
-        "Random per Loose Part",
-        "",
-    },
-    {0, nullptr, 0, nullptr, nullptr},
-};
-
 static void mask_init_task(Object *ob,
                            const int mode,
                            const int seed,
@@ -160,10 +135,16 @@ void SCULPT_OT_mask_init(wmOperatorType *ot)
   ot->poll = SCULPT_mode_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-  RNA_def_enum(ot->srna,
-               "mode",
-               prop_sculpt_mask_init_mode_types,
-               SCULPT_MASK_INIT_RANDOM_PER_VERTEX,
-               "Mode",
-               "");
+
+  static EnumPropertyItem modes[] = {
+      {SCULPT_MASK_INIT_RANDOM_PER_VERTEX, "RANDOM_PER_VERTEX", 0, "Random per Vertex", ""},
+      {SCULPT_MASK_INIT_RANDOM_PER_FACE_SET, "RANDOM_PER_FACE_SET", 0, "Random per Face Set", ""},
+      {SCULPT_MASK_INIT_RANDOM_PER_LOOSE_PART,
+       "RANDOM_PER_LOOSE_PART",
+       0,
+       "Random per Loose Part",
+       ""},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+  RNA_def_enum(ot->srna, "mode", modes, SCULPT_MASK_INIT_RANDOM_PER_VERTEX, "Mode", "");
 }

@@ -416,38 +416,6 @@ enum eSculptFaceGroupsCreateModes {
   SCULPT_FACE_SET_SELECTION = 3,
 };
 
-static EnumPropertyItem prop_sculpt_face_set_create_types[] = {
-    {
-        SCULPT_FACE_SET_MASKED,
-        "MASKED",
-        0,
-        "Face Set from Masked",
-        "Create a new Face Set from the masked faces",
-    },
-    {
-        SCULPT_FACE_SET_VISIBLE,
-        "VISIBLE",
-        0,
-        "Face Set from Visible",
-        "Create a new Face Set from the visible vertices",
-    },
-    {
-        SCULPT_FACE_SET_ALL,
-        "ALL",
-        0,
-        "Face Set Full Mesh",
-        "Create an unique Face Set with all faces in the sculpt",
-    },
-    {
-        SCULPT_FACE_SET_SELECTION,
-        "SELECTION",
-        0,
-        "Face Set from Edit Mode Selection",
-        "Create an Face Set corresponding to the Edit Mode face selection",
-    },
-    {0, nullptr, 0, nullptr, nullptr},
-};
-
 static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
@@ -565,8 +533,30 @@ void SCULPT_OT_face_sets_create(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  RNA_def_enum(
-      ot->srna, "mode", prop_sculpt_face_set_create_types, SCULPT_FACE_SET_MASKED, "Mode", "");
+  static EnumPropertyItem modes[] = {
+      {SCULPT_FACE_SET_MASKED,
+       "MASKED",
+       0,
+       "Face Set from Masked",
+       "Create a new Face Set from the masked faces"},
+      {SCULPT_FACE_SET_VISIBLE,
+       "VISIBLE",
+       0,
+       "Face Set from Visible",
+       "Create a new Face Set from the visible vertices"},
+      {SCULPT_FACE_SET_ALL,
+       "ALL",
+       0,
+       "Face Set Full Mesh",
+       "Create an unique Face Set with all faces in the sculpt"},
+      {SCULPT_FACE_SET_SELECTION,
+       "SELECTION",
+       0,
+       "Face Set from Edit Mode Selection",
+       "Create an Face Set corresponding to the Edit Mode face selection"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+  RNA_def_enum(ot->srna, "mode", modes, SCULPT_FACE_SET_MASKED, "Mode", "");
 }
 
 enum eSculptFaceSetsInitMode {
@@ -578,68 +568,6 @@ enum eSculptFaceSetsInitMode {
   SCULPT_FACE_SETS_FROM_SHARP_EDGES = 5,
   SCULPT_FACE_SETS_FROM_BEVEL_WEIGHT = 6,
   SCULPT_FACE_SETS_FROM_FACE_SET_BOUNDARIES = 8,
-};
-
-static EnumPropertyItem prop_sculpt_face_sets_init_types[] = {
-    {
-        SCULPT_FACE_SETS_FROM_LOOSE_PARTS,
-        "LOOSE_PARTS",
-        0,
-        "Face Sets from Loose Parts",
-        "Create a Face Set per loose part in the mesh",
-    },
-    {
-        SCULPT_FACE_SETS_FROM_MATERIALS,
-        "MATERIALS",
-        0,
-        "Face Sets from Material Slots",
-        "Create a Face Set per Material Slot",
-    },
-    {
-        SCULPT_FACE_SETS_FROM_NORMALS,
-        "NORMALS",
-        0,
-        "Face Sets from Mesh Normals",
-        "Create Face Sets for Faces that have similar normal",
-    },
-    {
-        SCULPT_FACE_SETS_FROM_UV_SEAMS,
-        "UV_SEAMS",
-        0,
-        "Face Sets from UV Seams",
-        "Create Face Sets using UV Seams as boundaries",
-    },
-    {
-        SCULPT_FACE_SETS_FROM_CREASES,
-        "CREASES",
-        0,
-        "Face Sets from Edge Creases",
-        "Create Face Sets using Edge Creases as boundaries",
-    },
-    {
-        SCULPT_FACE_SETS_FROM_BEVEL_WEIGHT,
-        "BEVEL_WEIGHT",
-        0,
-        "Face Sets from Bevel Weight",
-        "Create Face Sets using Bevel Weights as boundaries",
-    },
-    {
-        SCULPT_FACE_SETS_FROM_SHARP_EDGES,
-        "SHARP_EDGES",
-        0,
-        "Face Sets from Sharp Edges",
-        "Create Face Sets using Sharp Edges as boundaries",
-    },
-
-    {
-        SCULPT_FACE_SETS_FROM_FACE_SET_BOUNDARIES,
-        "FACE_SET_BOUNDARIES",
-        0,
-        "Face Sets from Face Set Boundaries",
-        "Create a Face Set per isolated Face Set",
-    },
-
-    {0, nullptr, 0, nullptr, nullptr},
 };
 
 using FaceSetsFloodFillFn = FunctionRef<bool(int from_face, int edge, int to_face)>;
@@ -844,8 +772,50 @@ void SCULPT_OT_face_sets_init(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  RNA_def_enum(
-      ot->srna, "mode", prop_sculpt_face_sets_init_types, SCULPT_FACE_SET_MASKED, "Mode", "");
+  static EnumPropertyItem modes[] = {
+      {SCULPT_FACE_SETS_FROM_LOOSE_PARTS,
+       "LOOSE_PARTS",
+       0,
+       "Face Sets from Loose Parts",
+       "Create a Face Set per loose part in the mesh"},
+      {SCULPT_FACE_SETS_FROM_MATERIALS,
+       "MATERIALS",
+       0,
+       "Face Sets from Material Slots",
+       "Create a Face Set per Material Slot"},
+      {SCULPT_FACE_SETS_FROM_NORMALS,
+       "NORMALS",
+       0,
+       "Face Sets from Mesh Normals",
+       "Create Face Sets for Faces that have similar normal"},
+      {SCULPT_FACE_SETS_FROM_UV_SEAMS,
+       "UV_SEAMS",
+       0,
+       "Face Sets from UV Seams",
+       "Create Face Sets using UV Seams as boundaries"},
+      {SCULPT_FACE_SETS_FROM_CREASES,
+       "CREASES",
+       0,
+       "Face Sets from Edge Creases",
+       "Create Face Sets using Edge Creases as boundaries"},
+      {SCULPT_FACE_SETS_FROM_BEVEL_WEIGHT,
+       "BEVEL_WEIGHT",
+       0,
+       "Face Sets from Bevel Weight",
+       "Create Face Sets using Bevel Weights as boundaries"},
+      {SCULPT_FACE_SETS_FROM_SHARP_EDGES,
+       "SHARP_EDGES",
+       0,
+       "Face Sets from Sharp Edges",
+       "Create Face Sets using Sharp Edges as boundaries"},
+      {SCULPT_FACE_SETS_FROM_FACE_SET_BOUNDARIES,
+       "FACE_SET_BOUNDARIES",
+       0,
+       "Face Sets from Face Set Boundaries",
+       "Create a Face Set per isolated Face Set"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+  RNA_def_enum(ot->srna, "mode", modes, SCULPT_FACE_SET_MASKED, "Mode", "");
   RNA_def_float(
       ot->srna,
       "threshold",
@@ -862,31 +832,6 @@ enum eSculptFaceGroupVisibilityModes {
   SCULPT_FACE_SET_VISIBILITY_TOGGLE = 0,
   SCULPT_FACE_SET_VISIBILITY_SHOW_ACTIVE = 1,
   SCULPT_FACE_SET_VISIBILITY_HIDE_ACTIVE = 2,
-};
-
-static EnumPropertyItem prop_sculpt_face_sets_change_visibility_types[] = {
-    {
-        SCULPT_FACE_SET_VISIBILITY_TOGGLE,
-        "TOGGLE",
-        0,
-        "Toggle Visibility",
-        "Hide all Face Sets except for the active one",
-    },
-    {
-        SCULPT_FACE_SET_VISIBILITY_SHOW_ACTIVE,
-        "SHOW_ACTIVE",
-        0,
-        "Show Active Face Set",
-        "Show Active Face Set",
-    },
-    {
-        SCULPT_FACE_SET_VISIBILITY_HIDE_ACTIVE,
-        "HIDE_ACTIVE",
-        0,
-        "Hide Active Face Sets",
-        "Hide Active Face Sets",
-    },
-    {0, nullptr, 0, nullptr, nullptr},
 };
 
 static int sculpt_face_set_change_visibility_exec(bContext *C, wmOperator *op)
@@ -1043,12 +988,25 @@ void SCULPT_OT_face_set_change_visibility(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_DEPENDS_ON_CURSOR;
 
-  RNA_def_enum(ot->srna,
-               "mode",
-               prop_sculpt_face_sets_change_visibility_types,
-               SCULPT_FACE_SET_VISIBILITY_TOGGLE,
-               "Mode",
-               "");
+  static EnumPropertyItem modes[] = {
+      {SCULPT_FACE_SET_VISIBILITY_TOGGLE,
+       "TOGGLE",
+       0,
+       "Toggle Visibility",
+       "Hide all Face Sets except for the active one"},
+      {SCULPT_FACE_SET_VISIBILITY_SHOW_ACTIVE,
+       "SHOW_ACTIVE",
+       0,
+       "Show Active Face Set",
+       "Show Active Face Set"},
+      {SCULPT_FACE_SET_VISIBILITY_HIDE_ACTIVE,
+       "HIDE_ACTIVE",
+       0,
+       "Hide Active Face Sets",
+       "Hide Active Face Sets"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+  RNA_def_enum(ot->srna, "mode", modes, SCULPT_FACE_SET_VISIBILITY_TOGGLE, "Mode", "");
 }
 
 static int sculpt_face_sets_randomize_colors_exec(bContext *C, wmOperator * /*op*/)
@@ -1105,47 +1063,6 @@ enum eSculptFaceSetEditMode {
   SCULPT_FACE_SET_EDIT_DELETE_GEOMETRY = 2,
   SCULPT_FACE_SET_EDIT_FAIR_POSITIONS = 3,
   SCULPT_FACE_SET_EDIT_FAIR_TANGENCY = 4,
-};
-
-static EnumPropertyItem prop_sculpt_face_sets_edit_types[] = {
-    {
-        SCULPT_FACE_SET_EDIT_GROW,
-        "GROW",
-        0,
-        "Grow Face Set",
-        "Grows the Face Sets boundary by one face based on mesh topology",
-    },
-    {
-        SCULPT_FACE_SET_EDIT_SHRINK,
-        "SHRINK",
-        0,
-        "Shrink Face Set",
-        "Shrinks the Face Sets boundary by one face based on mesh topology",
-    },
-    {
-        SCULPT_FACE_SET_EDIT_DELETE_GEOMETRY,
-        "DELETE_GEOMETRY",
-        0,
-        "Delete Geometry",
-        "Deletes the faces that are assigned to the Face Set",
-    },
-    {
-        SCULPT_FACE_SET_EDIT_FAIR_POSITIONS,
-        "FAIR_POSITIONS",
-        0,
-        "Fair Positions",
-        "Creates a smooth as possible geometry patch from the Face Set minimizing changes in "
-        "vertex positions",
-    },
-    {
-        SCULPT_FACE_SET_EDIT_FAIR_TANGENCY,
-        "FAIR_TANGENCY",
-        0,
-        "Fair Tangency",
-        "Creates a smooth as possible geometry patch from the Face Set minimizing changes in "
-        "vertex tangents",
-    },
-    {0, nullptr, 0, nullptr, nullptr},
 };
 
 static void sculpt_face_set_grow(Object *ob,
@@ -1551,8 +1468,37 @@ void SCULPT_OT_face_sets_edit(wmOperatorType *ot)
       ot->srna, "active_face_set", 1, 0, INT_MAX, "Active Face Set", "", 0, 64);
   RNA_def_property_flag(prop, PROP_HIDDEN);
 
-  RNA_def_enum(
-      ot->srna, "mode", prop_sculpt_face_sets_edit_types, SCULPT_FACE_SET_EDIT_GROW, "Mode", "");
+  static EnumPropertyItem modes[] = {
+      {SCULPT_FACE_SET_EDIT_GROW,
+       "GROW",
+       0,
+       "Grow Face Set",
+       "Grows the Face Sets boundary by one face based on mesh topology"},
+      {SCULPT_FACE_SET_EDIT_SHRINK,
+       "SHRINK",
+       0,
+       "Shrink Face Set",
+       "Shrinks the Face Sets boundary by one face based on mesh topology"},
+      {SCULPT_FACE_SET_EDIT_DELETE_GEOMETRY,
+       "DELETE_GEOMETRY",
+       0,
+       "Delete Geometry",
+       "Deletes the faces that are assigned to the Face Set"},
+      {SCULPT_FACE_SET_EDIT_FAIR_POSITIONS,
+       "FAIR_POSITIONS",
+       0,
+       "Fair Positions",
+       "Creates a smooth as possible geometry patch from the Face Set minimizing changes in "
+       "vertex positions"},
+      {SCULPT_FACE_SET_EDIT_FAIR_TANGENCY,
+       "FAIR_TANGENCY",
+       0,
+       "Fair Tangency",
+       "Creates a smooth as possible geometry patch from the Face Set minimizing changes in "
+       "vertex tangents"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+  RNA_def_enum(ot->srna, "mode", modes, SCULPT_FACE_SET_EDIT_GROW, "Mode", "");
   RNA_def_float(ot->srna, "strength", 1.0f, 0.0f, 1.0f, "Strength", "", 0.0f, 1.0f);
 
   ot->prop = RNA_def_boolean(ot->srna,
