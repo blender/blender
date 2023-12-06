@@ -380,13 +380,12 @@ static bool sculpt_undo_restore_deformed(
   return false;
 }
 
-static bool sculpt_undo_restore_coords(bContext *C, Depsgraph *depsgraph, SculptUndoNode *unode)
+static bool sculpt_undo_restore_coords(bContext *C,
+                                       Object *ob,
+                                       Depsgraph *depsgraph,
+                                       SculptUndoNode *unode)
 {
   using namespace blender;
-  const Scene *scene = CTX_data_scene(C);
-  ViewLayer *view_layer = CTX_data_view_layer(C);
-  BKE_view_layer_synced_ensure(scene, view_layer);
-  Object *ob = BKE_view_layer_active_object_get(view_layer);
   SculptSession *ss = ob->sculpt;
   SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
 
@@ -488,15 +487,11 @@ static bool sculpt_undo_restore_coords(bContext *C, Depsgraph *depsgraph, Sculpt
   return true;
 }
 
-static bool sculpt_undo_restore_hidden(bContext *C,
+static bool sculpt_undo_restore_hidden(Object *ob,
                                        SculptUndoNode *unode,
                                        MutableSpan<bool> modified_vertices)
 {
   using namespace blender;
-  const Scene *scene = CTX_data_scene(C);
-  ViewLayer *view_layer = CTX_data_view_layer(C);
-  BKE_view_layer_synced_ensure(scene, view_layer);
-  Object *ob = BKE_view_layer_active_object_get(view_layer);
   SculptSession *ss = ob->sculpt;
   SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
 
@@ -539,14 +534,10 @@ static bool sculpt_undo_restore_hidden(bContext *C,
   return true;
 }
 
-static bool sculpt_undo_restore_color(bContext *C,
+static bool sculpt_undo_restore_color(Object *ob,
                                       SculptUndoNode *unode,
                                       MutableSpan<bool> modified_vertices)
 {
-  const Scene *scene = CTX_data_scene(C);
-  ViewLayer *view_layer = CTX_data_view_layer(C);
-  BKE_view_layer_synced_ensure(scene, view_layer);
-  Object *ob = BKE_view_layer_active_object_get(view_layer);
   SculptSession *ss = ob->sculpt;
 
   bool modified = false;
@@ -575,15 +566,11 @@ static bool sculpt_undo_restore_color(bContext *C,
   return modified;
 }
 
-static bool sculpt_undo_restore_mask(bContext *C,
+static bool sculpt_undo_restore_mask(Object *ob,
                                      SculptUndoNode *unode,
                                      MutableSpan<bool> modified_vertices)
 {
   using namespace blender;
-  const Scene *scene = CTX_data_scene(C);
-  ViewLayer *view_layer = CTX_data_view_layer(C);
-  BKE_view_layer_synced_ensure(scene, view_layer);
-  Object *ob = BKE_view_layer_active_object_get(view_layer);
   Mesh *mesh = BKE_object_get_original_mesh(ob);
   SculptSession *ss = ob->sculpt;
   SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
@@ -625,14 +612,10 @@ static bool sculpt_undo_restore_mask(bContext *C,
   return true;
 }
 
-static bool sculpt_undo_restore_face_sets(bContext *C,
+static bool sculpt_undo_restore_face_sets(Object *ob,
                                           SculptUndoNode *unode,
                                           MutableSpan<bool> modified_face_set_faces)
 {
-  const Scene *scene = CTX_data_scene(C);
-  ViewLayer *view_layer = CTX_data_view_layer(C);
-  BKE_view_layer_synced_ensure(scene, view_layer);
-  Object *ob = BKE_view_layer_active_object_get(view_layer);
   SculptSession *ss = ob->sculpt;
 
   ss->face_sets = BKE_sculpt_face_sets_ensure(ob);
@@ -946,31 +929,31 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
 
     switch (unode->type) {
       case SCULPT_UNDO_COORDS:
-        if (sculpt_undo_restore_coords(C, depsgraph, unode)) {
+        if (sculpt_undo_restore_coords(C, ob, depsgraph, unode)) {
           changed_position = true;
         }
         break;
       case SCULPT_UNDO_HIDDEN:
         modified_verts_hide.resize(ss->totvert, false);
-        if (sculpt_undo_restore_hidden(C, unode, modified_verts_hide)) {
+        if (sculpt_undo_restore_hidden(ob, unode, modified_verts_hide)) {
           changed_hide = true;
         }
         break;
       case SCULPT_UNDO_MASK:
         modified_verts_mask.resize(ss->totvert, false);
-        if (sculpt_undo_restore_mask(C, unode, modified_verts_mask)) {
+        if (sculpt_undo_restore_mask(ob, unode, modified_verts_mask)) {
           changed_mask = true;
         }
         break;
       case SCULPT_UNDO_FACE_SETS:
         modified_faces_face_set.resize(ss->totfaces, false);
-        if (sculpt_undo_restore_face_sets(C, unode, modified_faces_face_set)) {
+        if (sculpt_undo_restore_face_sets(ob, unode, modified_faces_face_set)) {
           changed_face_sets = true;
         }
         break;
       case SCULPT_UNDO_COLOR:
         modified_verts_color.resize(ss->totvert, false);
-        if (sculpt_undo_restore_color(C, unode, modified_verts_color)) {
+        if (sculpt_undo_restore_color(ob, unode, modified_verts_color)) {
           changed_color = true;
         }
         break;
