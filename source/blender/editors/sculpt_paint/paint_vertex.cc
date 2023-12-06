@@ -374,23 +374,24 @@ void mode_enter_generic(
 
 void mode_exit_generic(Object *ob, const eObjectMode mode_flag)
 {
+  using namespace blender;
   Mesh *me = BKE_mesh_from_object(ob);
   ob->mode &= ~mode_flag;
 
   if (mode_flag == OB_MODE_VERTEX_PAINT) {
     if (me->editflag & ME_EDIT_PAINT_FACE_SEL) {
-      BKE_mesh_flush_select_from_faces(me);
+      bke::mesh_select_face_flush(*me);
     }
     else if (me->editflag & ME_EDIT_PAINT_VERT_SEL) {
-      BKE_mesh_flush_select_from_verts(me);
+      bke::mesh_select_vert_flush(*me);
     }
   }
   else if (mode_flag == OB_MODE_WEIGHT_PAINT) {
     if (me->editflag & ME_EDIT_PAINT_VERT_SEL) {
-      BKE_mesh_flush_select_from_verts(me);
+      bke::mesh_select_vert_flush(*me);
     }
     else if (me->editflag & ME_EDIT_PAINT_FACE_SEL) {
-      BKE_mesh_flush_select_from_faces(me);
+      bke::mesh_select_face_flush(*me);
     }
   }
   else {

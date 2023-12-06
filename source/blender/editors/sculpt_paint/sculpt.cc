@@ -583,56 +583,6 @@ bool SCULPT_vertex_has_face_set(SculptSession *ss, PBVHVertRef vertex, int face_
   return true;
 }
 
-void SCULPT_visibility_sync_all_from_faces(Object *ob)
-{
-  SculptSession *ss = ob->sculpt;
-  Mesh *mesh = BKE_object_get_original_mesh(ob);
-
-  SCULPT_topology_islands_invalidate(ss);
-
-  switch (BKE_pbvh_type(ss->pbvh)) {
-    case PBVH_FACES: {
-      /* We may have adjusted the ".hide_poly" attribute, now make the hide status attributes for
-       * vertices and edges consistent. */
-      BKE_mesh_flush_hidden_from_faces(mesh);
-      break;
-    }
-    case PBVH_GRIDS: {
-      /* In addition to making the hide status of the base mesh consistent, we also have to
-       * propagate the status to the Multires grids. */
-      BKE_mesh_flush_hidden_from_faces(mesh);
-      BKE_sculpt_sync_face_visibility_to_grids(mesh, ss->subdiv_ccg);
-      break;
-    }
-    case PBVH_BMESH: {
-      BMIter iter;
-      BMFace *f;
-
-      /* Hide all verts and edges attached to faces. */
-      BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
-        BMLoop *l = f->l_first;
-        do {
-          BM_elem_flag_enable(l->v, BM_ELEM_HIDDEN);
-          BM_elem_flag_enable(l->e, BM_ELEM_HIDDEN);
-        } while ((l = l->next) != f->l_first);
-      }
-
-      /* Unhide verts and edges attached to visible faces. */
-      BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
-        if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
-          continue;
-        }
-
-        BMLoop *l = f->l_first;
-        do {
-          BM_elem_flag_disable(l->v, BM_ELEM_HIDDEN);
-          BM_elem_flag_disable(l->e, BM_ELEM_HIDDEN);
-        } while ((l = l->next) != f->l_first);
-      }
-      break;
-    }
-  }
-}
 
 static bool sculpt_check_unique_face_set_in_base_mesh(SculptSession *ss, int index)
 {

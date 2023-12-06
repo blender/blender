@@ -53,6 +53,58 @@
 
 namespace blender::ed::sculpt_paint::hide {
 
+void sync_all_from_faces(Object &object)
+{
+  SculptSession &ss = *object.sculpt;
+  Mesh &mesh = *static_cast<Mesh *>(object.data);
+
+  SCULPT_topology_islands_invalidate(&ss);
+
+  switch (BKE_pbvh_type(ss.pbvh)) {
+    case PBVH_FACES: {
+      /* We may have adjusted the ".hide_poly" attribute, now make the hide status attributes for
+       * vertices and edges consistent. */
+      bke::mesh_hide_face_flush(mesh);
+      break;
+    }
+    case PBVH_GRIDS: {
+      /* In addition to making the hide status of the base mesh consistent, we also have to
+       * propagate the status to the Multires grids. */
+      bke::mesh_hide_face_flush(mesh);
+      BKE_sculpt_sync_face_visibility_to_grids(&mesh, ss.subdiv_ccg);
+      break;
+    }
+    case PBVH_BMESH: {
+      BMesh &bm = *ss.bm;
+      BMIter iter;
+      BMFace *f;
+
+      /* Hide all verts and edges attached to faces. */
+      BM_ITER_MESH (f, &iter, &bm, BM_FACES_OF_MESH) {
+        BMLoop *l = f->l_first;
+        do {
+          BM_elem_flag_enable(l->v, BM_ELEM_HIDDEN);
+          BM_elem_flag_enable(l->e, BM_ELEM_HIDDEN);
+        } while ((l = l->next) != f->l_first);
+      }
+
+      /* Unhide verts and edges attached to visible faces. */
+      BM_ITER_MESH (f, &iter, &bm, BM_FACES_OF_MESH) {
+        if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
+          continue;
+        }
+
+        BMLoop *l = f->l_first;
+        do {
+          BM_elem_flag_disable(l->v, BM_ELEM_HIDDEN);
+          BM_elem_flag_disable(l->e, BM_ELEM_HIDDEN);
+        } while ((l = l->next) != f->l_first);
+      }
+      break;
+    }
+  }
+}
+
 void tag_update_visibility(const bContext &C)
 {
   ARegion *region = CTX_wm_region(&C);
@@ -122,7 +174,7 @@ void mesh_show_all(Object &object, const Span<PBVHNode *> nodes)
     BKE_pbvh_node_fully_hidden_set(node, false);
   }
   attributes.remove(".hide_vert");
-  BKE_mesh_flush_hidden_from_verts(&mesh);
+  bke::mesh_hide_vert_flush(mesh);
 }
 
 bool hide_is_changed(const Span<int> verts, const Span<bool> orig_hide, const Span<bool> new_hide)
@@ -169,7 +221,7 @@ static void vert_hide_update(Object &object,
 
   hide_vert.finish();
   if (any_changed) {
-    BKE_mesh_flush_hidden_from_verts(&mesh);
+    bke::mesh_hide_vert_flush(mesh);
   }
 }
 
@@ -643,7 +695,7 @@ static void invert_visibility_mesh(Object &object, const Span<PBVHNode *> nodes)
   });
 
   hide_vert.finish();
-  BKE_mesh_flush_hidden_from_verts(&mesh);
+  bke::mesh_hide_vert_flush(mesh);
 }
 
 static void invert_visibility_grids(Depsgraph &depsgraph,

@@ -846,7 +846,7 @@ int *BKE_sculpt_face_sets_ensure(Object *ob);
 /**
  * Create the attribute used to store face visibility and retrieve its data.
  * Note that changes to the face visibility have to be propagated to other domains
- * (see #SCULPT_visibility_sync_all_from_faces).
+ * (see #ed::sculpt_paint::hide::sync_all_from_faces).
  */
 bool *BKE_sculpt_hide_poly_ensure(Mesh *mesh);
 

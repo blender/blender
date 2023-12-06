@@ -874,7 +874,7 @@ static void face_hide_update(Object &object,
 
   hide_poly.finish();
   if (any_changed) {
-    SCULPT_visibility_sync_all_from_faces(&object);
+    hide::sync_all_from_faces(object);
   }
 }
 
@@ -1352,7 +1352,7 @@ static void face_set_edit_do_post_visibility_updates(Object *ob, Span<PBVHNode *
   SculptSession *ss = ob->sculpt;
 
   /* Sync face sets visibility and vertex visibility as now all Face Sets are visible. */
-  SCULPT_visibility_sync_all_from_faces(ob);
+  hide::sync_all_from_faces(*ob);
 
   for (PBVHNode *node : nodes) {
     BKE_pbvh_node_mark_update_visibility(node);

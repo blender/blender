@@ -297,6 +297,18 @@ void mesh_vert_normals_assign(Mesh &mesh, Span<float3> vert_normals);
 /** Set mesh vertex normals to known-correct values, avoiding future lazy computation. */
 void mesh_vert_normals_assign(Mesh &mesh, Vector<float3> vert_normals);
 
+/** Make edge and face visibility consistent with vertices. */
+void mesh_hide_vert_flush(Mesh &mesh);
+/** Make vertex and edge visibility consistent with faces. */
+void mesh_hide_face_flush(Mesh &mesh);
+
+/** Make edge and face visibility consistent with vertices. */
+void mesh_select_vert_flush(Mesh &mesh);
+/** Make vertex and face visibility consistent with edges. */
+void mesh_select_edge_flush(Mesh &mesh);
+/** Make vertex and edge visibility consistent with faces. */
+void mesh_select_face_flush(Mesh &mesh);
+
 }  // namespace blender::bke
 
 /* -------------------------------------------------------------------- */

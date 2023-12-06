@@ -78,6 +78,7 @@
 #include "ED_undo.hh"
 
 #include "bmesh.hh"
+#include "paint_intern.hh"
 #include "sculpt_intern.hh"
 
 using blender::MutableSpan;
@@ -914,6 +915,7 @@ static void sculpt_undo_refine_subdiv(Depsgraph *depsgraph,
 
 static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase *lb)
 {
+  using namespace blender::ed::sculpt_paint;
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
@@ -1090,7 +1092,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
     BKE_pbvh_update_mask(ss->pbvh);
   }
   if (changed_hide_face) {
-    SCULPT_visibility_sync_all_from_faces(ob);
+    hide::sync_all_from_faces(*ob);
     BKE_pbvh_update_visibility(ss->pbvh);
   }
   if (changed_hide_vert) {

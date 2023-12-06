@@ -3210,7 +3210,7 @@ void BKE_pbvh_sync_visibility_from_verts(PBVH *pbvh, Mesh *mesh)
   using namespace blender::bke;
   switch (pbvh->header.type) {
     case PBVH_FACES: {
-      BKE_mesh_flush_hidden_from_verts(mesh);
+      mesh_hide_vert_flush(*mesh);
       break;
     }
     case PBVH_BMESH: {
@@ -3273,7 +3273,7 @@ void BKE_pbvh_sync_visibility_from_verts(PBVH *pbvh, Mesh *mesh)
         hide_poly.finish();
       }
 
-      BKE_mesh_flush_hidden_from_faces(mesh);
+      mesh_hide_face_flush(*mesh);
       break;
     }
   }

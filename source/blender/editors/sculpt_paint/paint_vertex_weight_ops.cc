@@ -741,6 +741,7 @@ static int paint_weight_gradient_modal(bContext *C, wmOperator *op, const wmEven
 
 static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
 {
+  using namespace blender;
   wmGesture *gesture = static_cast<wmGesture *>(op->customdata);
   WPGradient_vertStoreBase *vert_cache;
   ARegion *region = CTX_wm_region(C);
@@ -773,7 +774,7 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
 
       /* On initialization only, convert face -> vert sel. */
       if (me->editflag & ME_EDIT_PAINT_FACE_SEL) {
-        BKE_mesh_flush_select_from_faces(me);
+        bke::mesh_select_face_flush(*me);
       }
     }
 
