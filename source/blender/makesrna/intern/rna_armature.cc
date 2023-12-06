@@ -534,8 +534,8 @@ static void rna_Bone_update_renamed(Main * /*bmain*/, Scene * /*scene*/, Pointer
 {
   ID *id = ptr->owner_id;
 
-  /* redraw view */
-  WM_main_add_notifier(NC_GEOM | ND_DATA, id);
+  /* Redraw Outliner / Dopesheet. */
+  WM_main_add_notifier(NC_GEOM | ND_DATA | NA_RENAME, id);
 
   /* update animation channels */
   WM_main_add_notifier(NC_ANIMATION | ND_ANIMCHAN, id);

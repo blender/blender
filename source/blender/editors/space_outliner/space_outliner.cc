@@ -214,8 +214,12 @@ static void outliner_main_region_listener(const wmRegionListenerParams *params)
     case NC_GEOM:
       switch (wmn->data) {
         case ND_VERTEX_GROUP:
-        case ND_DATA:
           ED_region_tag_redraw(region);
+          break;
+        case ND_DATA:
+          if (wmn->action == NA_RENAME) {
+            ED_region_tag_redraw(region);
+          }
           break;
       }
       break;
@@ -266,6 +270,13 @@ static void outliner_main_region_listener(const wmRegionListenerParams *params)
       }
       break;
     case NC_NODE:
+      if (ELEM(wmn->action, NA_ADDED, NA_REMOVED) &&
+          ELEM(space_outliner->outlinevis, SO_LIBRARIES, SO_DATA_API))
+      {
+        ED_region_tag_redraw(region);
+      }
+      break;
+    case NC_IMAGE:
       if (ELEM(wmn->action, NA_ADDED, NA_REMOVED) &&
           ELEM(space_outliner->outlinevis, SO_LIBRARIES, SO_DATA_API))
       {
