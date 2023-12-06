@@ -75,8 +75,8 @@ class INFO_MT_area(Menu):
             layout.operator("screen.region_quadview")
             layout.separator()
 
-        layout.operator("screen.area_split", text="Horizontal Split").direction = 'HORIZONTAL'
-        layout.operator("screen.area_split", text="Vertical Split").direction = 'VERTICAL'
+        layout.operator("screen.area_split", icon='SPLIT_HORIZONTAL', text="Horizontal Split").direction = 'HORIZONTAL'
+        layout.operator("screen.area_split", icon='SPLIT_VERTICAL', text="Vertical Split").direction = 'VERTICAL'
 
         layout.separator()
 

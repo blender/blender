@@ -20,7 +20,7 @@
 #include "GPU_state.h"
 
 #ifdef USE_GPU_SELECT
-#  include "GPU_select.h"
+#  include "GPU_select.hh"
 #endif
 
 void DRW_select_load_id(uint id)

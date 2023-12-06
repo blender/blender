@@ -574,7 +574,7 @@ void BKE_pchan_bbone_deform_segment_index(const struct bPoseChannel *pchan,
                                           int *r_index,
                                           float *r_blend_next);
 
-/* like EBONE_VISIBLE,  be sure to #include "ANIM_bone_collections.h". */
+/* like EBONE_VISIBLE,  be sure to #include "ANIM_bone_collections.hh". */
 #define PBONE_VISIBLE(arm, bone) ANIM_bone_is_visible(arm, bone)
 
 #define PBONE_SELECTABLE(arm, bone) \

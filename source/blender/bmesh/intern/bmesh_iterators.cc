@@ -15,8 +15,8 @@
 #include "BLI_bitmap.h"
 #include "BLI_utildefines.h"
 
-#include "bmesh.h"
-#include "intern/bmesh_private.h"
+#include "bmesh.hh"
+#include "intern/bmesh_private.hh"
 
 const char bm_iter_itype_htype_map[BM_ITYPE_MAX] = {
     '\0',

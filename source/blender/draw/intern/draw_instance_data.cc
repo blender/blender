@@ -595,10 +595,10 @@ static DRWUniformAttrBuf *drw_uniform_attrs_pool_ensure(GHash *table,
   return (DRWUniformAttrBuf *)*pval;
 }
 
-static void drw_uniform_attribute_lookup(GPUUniformAttr *attr,
-                                         Object *ob,
-                                         Object *dupli_parent,
-                                         DupliObject *dupli_source,
+static void drw_uniform_attribute_lookup(const GPUUniformAttr *attr,
+                                         const Object *ob,
+                                         const Object *dupli_parent,
+                                         const DupliObject *dupli_source,
                                          float r_data[4])
 {
   /* If requesting instance data, check the parent particle system and object. */
@@ -613,9 +613,9 @@ static void drw_uniform_attribute_lookup(GPUUniformAttr *attr,
 void drw_uniform_attrs_pool_update(GHash *table,
                                    const GPUUniformAttrList *key,
                                    DRWResourceHandle *handle,
-                                   Object *ob,
-                                   Object *dupli_parent,
-                                   DupliObject *dupli_source)
+                                   const Object *ob,
+                                   const Object *dupli_parent,
+                                   const DupliObject *dupli_source)
 {
   DRWUniformAttrBuf *buffer = drw_uniform_attrs_pool_ensure(table, key);
 
@@ -627,7 +627,7 @@ void drw_uniform_attrs_pool_update(GHash *table,
     float(*values)[4] = static_cast<float(*)[4]>(
         DRW_sparse_uniform_buffer_ensure_item(&buffer->ubos, chunk, item));
 
-    LISTBASE_FOREACH (GPUUniformAttr *, attr, &buffer->key.list) {
+    LISTBASE_FOREACH (const GPUUniformAttr *, attr, &buffer->key.list) {
       drw_uniform_attribute_lookup(attr, ob, dupli_parent, dupli_source, *values++);
     }
   }

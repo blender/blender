@@ -275,7 +275,7 @@ static int pose_slide_init(bContext *C, wmOperator *op, ePoseSlide_Modes mode)
 
   /* Initialize numeric input. */
   initNumInput(&pso->num);
-  pso->num.idx_max = 0; /* One axis. */
+  pso->num.idx_max = 0;                /* One axis. */
   pso->num.unit_type[0] = B_UNIT_NONE; /* Percentages don't have any units. */
 
   /* Return status is whether we've got all the data we were requested to get. */

@@ -178,7 +178,7 @@ static const EnumPropertyItem rna_enum_preference_gpu_backend_items[] = {
 #  include "BKE_global.h"
 #  include "BKE_idprop.h"
 #  include "BKE_image.h"
-#  include "BKE_main.h"
+#  include "BKE_main.hh"
 #  include "BKE_mesh_runtime.hh"
 #  include "BKE_object.hh"
 #  include "BKE_paint.hh"
@@ -187,7 +187,7 @@ static const EnumPropertyItem rna_enum_preference_gpu_backend_items[] = {
 #  include "DEG_depsgraph.hh"
 
 #  include "GPU_capabilities.h"
-#  include "GPU_select.h"
+#  include "GPU_select.hh"
 #  include "GPU_texture.h"
 
 #  include "BLF_api.h"

@@ -37,8 +37,8 @@
 
 #include "BLI_utildefines.h"
 
-#include "bmesh.h"
-#include "intern/bmesh_operators_private.h"
+#include "bmesh.hh"
+#include "intern/bmesh_operators_private.hh"
 
 #include "DNA_modifier_types.h"
 

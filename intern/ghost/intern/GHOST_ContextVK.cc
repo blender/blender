@@ -12,8 +12,10 @@
 #  include <vulkan/vulkan_win32.h>
 #elif defined(__APPLE__)
 #  include <MoltenVK/vk_mvk_moltenvk.h>
-#else /* X11 */
-#  include <vulkan/vulkan_xlib.h>
+#else /* X11/WAYLAND. */
+#  ifdef WITH_GHOST_X11
+#    include <vulkan/vulkan_xlib.h>
+#  endif
 #  ifdef WITH_GHOST_WAYLAND
 #    include <vulkan/vulkan_wayland.h>
 #  endif
@@ -946,9 +948,11 @@ const char *GHOST_ContextVK::getPlatformSpecificSurfaceExtension() const
   return VK_EXT_METAL_SURFACE_EXTENSION_NAME;
 #else /* UNIX/Linux */
   switch (m_platform) {
+#  ifdef WITH_GHOST_X11
     case GHOST_kVulkanPlatformX11:
       return VK_KHR_XLIB_SURFACE_EXTENSION_NAME;
       break;
+#  endif
 #  ifdef WITH_GHOST_WAYLAND
     case GHOST_kVulkanPlatformWayland:
       return VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME;
@@ -968,9 +972,11 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
 #else /* UNIX/Linux */
   bool use_window_surface = false;
   switch (m_platform) {
+#  ifdef WITH_GHOST_X11
     case GHOST_kVulkanPlatformX11:
       use_window_surface = (m_display != nullptr) && (m_window != (Window) nullptr);
       break;
+#  endif
 #  ifdef WITH_GHOST_WAYLAND
     case GHOST_kVulkanPlatformWayland:
       use_window_surface = (m_wayland_display != nullptr) && (m_wayland_surface != nullptr);
@@ -1061,6 +1067,7 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
     VK_CHECK(vkCreateMetalSurfaceEXT(instance, &info, nullptr, &m_surface));
 #else
     switch (m_platform) {
+#  ifdef WITH_GHOST_X11
       case GHOST_kVulkanPlatformX11: {
         VkXlibSurfaceCreateInfoKHR surface_create_info = {};
         surface_create_info.sType = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR;
@@ -1069,6 +1076,7 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
         VK_CHECK(vkCreateXlibSurfaceKHR(instance, &surface_create_info, nullptr, &m_surface));
         break;
       }
+#  endif
 #  ifdef WITH_GHOST_WAYLAND
       case GHOST_kVulkanPlatformWayland: {
         VkWaylandSurfaceCreateInfoKHR surface_create_info = {};

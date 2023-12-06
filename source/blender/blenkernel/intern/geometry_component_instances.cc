@@ -37,14 +37,14 @@ InstancesComponent::~InstancesComponent()
   this->clear();
 }
 
-GeometryComponent *InstancesComponent::copy() const
+GeometryComponentPtr InstancesComponent::copy() const
 {
   InstancesComponent *new_component = new InstancesComponent();
   if (instances_ != nullptr) {
     new_component->instances_ = new Instances(*instances_);
     new_component->ownership_ = GeometryOwnershipType::Owned;
   }
-  return new_component;
+  return GeometryComponentPtr(new_component);
 }
 
 void InstancesComponent::clear()

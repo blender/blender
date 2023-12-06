@@ -16,9 +16,9 @@
 
 #include "BKE_customdata.hh"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
-#include "intern/bmesh_operators_private.h" /* own include */
+#include "intern/bmesh_operators_private.hh" /* own include */
 
 #include "BLI_strict_flags.h"
 
@@ -378,7 +378,7 @@ static void bm_grid_fill_array(BMesh *bm,
           l_tmp = larr_y_a[y][0];
         }
 
-        BM_elem_attrs_copy(bm, bm, l_tmp->f, f);
+        BM_elem_attrs_copy(*bm, l_tmp->f, f);
 
         BM_face_as_array_loop_quad(f, l_quad);
 

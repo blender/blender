@@ -20,8 +20,8 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
-#include "bmesh.h"
-#include "intern/bmesh_private.h"
+#include "bmesh.hh"
+#include "intern/bmesh_private.hh"
 
 bool BM_verts_from_edges(BMVert **vert_arr, BMEdge **edge_arr, const int len)
 {
@@ -58,13 +58,6 @@ void BM_edges_from_verts_ensure(BMesh *bm, BMEdge **edge_arr, BMVert **vert_arr,
     i_prev = i;
   }
 }
-
-/* prototypes */
-static void bm_loop_attrs_copy(BMesh *bm_src,
-                               BMesh *bm_dst,
-                               const BMLoop *l_src,
-                               BMLoop *l_dst,
-                               eCustomDataMask mask_exclude);
 
 BMFace *BM_face_create_quad_tri(BMesh *bm,
                                 BMVert *v1,
@@ -112,7 +105,7 @@ void BM_face_copy_shared(BMesh *bm, BMFace *f, BMLoopFilterFunc filter_fn, void 
         BLI_assert(l_dst[j]->v == l_src[j]->v);
         if (BM_ELEM_API_FLAG_TEST(l_dst[j], _FLAG_OVERLAP) == 0) {
           if ((filter_fn == nullptr) || filter_fn(l_src[j], user_data)) {
-            bm_loop_attrs_copy(bm, bm, l_src[j], l_dst[j], 0x0);
+            CustomData_bmesh_copy_block(bm->ldata, l_src[j]->head.data, &l_dst[j]->head.data);
             BM_ELEM_API_FLAG_ENABLE(l_dst[j], _FLAG_OVERLAP);
           }
         }
@@ -437,10 +430,64 @@ void BM_elem_attrs_copy_ex(BMesh *bm_src,
   }
 }
 
-void BM_elem_attrs_copy(BMesh *bm_src, BMesh *bm_dst, const void *ele_src, void *ele_dst)
+void BM_elem_attrs_copy(const BMesh *bm_src, BMesh *bm_dst, const BMVert *src, BMVert *dst)
 {
-  /* BMESH_TODO, default 'use_flags' to false */
-  BM_elem_attrs_copy_ex(bm_src, bm_dst, ele_src, ele_dst, BM_ELEM_SELECT, 0x0);
+  CustomData_bmesh_free_block_data_exclude_by_type(&bm_dst->vdata, dst->head.data, 0);
+  CustomData_bmesh_copy_data_exclude_by_type(
+      &bm_src->vdata, &bm_dst->vdata, src->head.data, &dst->head.data, 0);
+  dst->head.hflag = src->head.hflag & ~BM_ELEM_SELECT;
+  copy_v3_v3(dst->no, src->no);
+}
+void BM_elem_attrs_copy(const BMesh *bm_src, BMesh *bm_dst, const BMEdge *src, BMEdge *dst)
+{
+  CustomData_bmesh_free_block_data_exclude_by_type(&bm_dst->edata, dst->head.data, 0);
+  CustomData_bmesh_copy_data_exclude_by_type(
+      &bm_src->edata, &bm_dst->edata, src->head.data, &dst->head.data, 0);
+  dst->head.hflag = src->head.hflag & ~BM_ELEM_SELECT;
+}
+void BM_elem_attrs_copy(const BMesh *bm_src, BMesh *bm_dst, const BMFace *src, BMFace *dst)
+{
+  CustomData_bmesh_free_block_data_exclude_by_type(&bm_dst->pdata, dst->head.data, 0);
+  CustomData_bmesh_copy_data_exclude_by_type(
+      &bm_src->pdata, &bm_dst->pdata, src->head.data, &dst->head.data, 0);
+  dst->head.hflag = src->head.hflag & ~BM_ELEM_SELECT;
+  copy_v3_v3(dst->no, src->no);
+  dst->mat_nr = src->mat_nr;
+}
+void BM_elem_attrs_copy(const BMesh *bm_src, BMesh *bm_dst, const BMLoop *src, BMLoop *dst)
+{
+  CustomData_bmesh_free_block_data_exclude_by_type(&bm_dst->ldata, dst->head.data, 0);
+  CustomData_bmesh_copy_data_exclude_by_type(
+      &bm_src->ldata, &bm_dst->ldata, src->head.data, &dst->head.data, 0);
+  dst->head.hflag = src->head.hflag & ~BM_ELEM_SELECT;
+}
+
+void BM_elem_attrs_copy(BMesh &bm, const BMVert *src, BMVert *dst)
+{
+  BLI_assert(src != dst);
+  CustomData_bmesh_copy_block(bm.vdata, src->head.data, &dst->head.data);
+  dst->head.hflag = src->head.hflag & ~BM_ELEM_SELECT;
+  copy_v3_v3(dst->no, src->no);
+}
+void BM_elem_attrs_copy(BMesh &bm, const BMEdge *src, BMEdge *dst)
+{
+  BLI_assert(src != dst);
+  CustomData_bmesh_copy_block(bm.edata, src->head.data, &dst->head.data);
+  dst->head.hflag = src->head.hflag & ~BM_ELEM_SELECT;
+}
+void BM_elem_attrs_copy(BMesh &bm, const BMFace *src, BMFace *dst)
+{
+  BLI_assert(src != dst);
+  CustomData_bmesh_copy_block(bm.pdata, src->head.data, &dst->head.data);
+  dst->head.hflag = src->head.hflag & ~BM_ELEM_SELECT;
+  copy_v3_v3(dst->no, src->no);
+  dst->mat_nr = src->mat_nr;
+}
+void BM_elem_attrs_copy(BMesh &bm, const BMLoop *src, BMLoop *dst)
+{
+  BLI_assert(src != dst);
+  CustomData_bmesh_copy_block(bm.ldata, src->head.data, &dst->head.data);
+  dst->head.hflag = src->head.hflag & ~BM_ELEM_SELECT;
 }
 
 void BM_elem_select_copy(BMesh *bm_dst, void *ele_dst_v, const void *ele_src_v)

@@ -20,7 +20,7 @@
 #ifdef WITH_AVI
 #  include "BLI_blenlib.h"
 
-#  include "BKE_main.h"
+#  include "BKE_main.hh"
 #endif
 
 #include "BKE_writeavi.h"

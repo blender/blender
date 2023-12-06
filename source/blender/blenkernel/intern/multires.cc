@@ -389,7 +389,7 @@ void multires_mark_as_modified(Depsgraph *depsgraph, Object *object, MultiresMod
    * In a longer term maybe special dependency graph tag can help sanitizing this a bit. */
   Object *object_eval = DEG_get_evaluated_object(depsgraph, object);
   Mesh *mesh = static_cast<Mesh *>(object_eval->data);
-  SubdivCCG *subdiv_ccg = mesh->runtime->subdiv_ccg;
+  SubdivCCG *subdiv_ccg = mesh->runtime->subdiv_ccg.get();
   if (subdiv_ccg == nullptr) {
     return;
   }

@@ -12,9 +12,9 @@
 
 #include "BLI_listbase.h"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
-#include "intern/bmesh_operators_private.h" /* own include */
+#include "intern/bmesh_operators_private.hh" /* own include */
 
 #define ELE_NEW 1
 #define ELE_OUT 2

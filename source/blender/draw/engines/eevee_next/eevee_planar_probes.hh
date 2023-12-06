@@ -69,6 +69,7 @@ struct PlanarProbe : ProbePlanarData {
 
 struct PlanarProbeResources : NonCopyable {
   Framebuffer combined_fb = {"planar.combined_fb"};
+  Framebuffer gbuffer_fb = {"planar.gbuffer_fb"};
   draw::View view = {"planar.view"};
 };
 

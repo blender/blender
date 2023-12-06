@@ -100,3 +100,17 @@ GPU_SHADER_CREATE_INFO(eevee_deferred_planar_eval)
 
 #undef image_out
 #undef image_in
+
+/* -------------------------------------------------------------------- */
+/** \name Debug
+ * \{ */
+
+GPU_SHADER_CREATE_INFO(eevee_debug_gbuffer)
+    .do_static_compilation(true)
+    .fragment_out(0, Type::VEC4, "out_color_add", DualBlend::SRC_0)
+    .fragment_out(0, Type::VEC4, "out_color_mul", DualBlend::SRC_1)
+    .push_constant(Type::INT, "debug_mode")
+    .fragment_source("eevee_debug_gbuffer_frag.glsl")
+    .additional_info("draw_view", "draw_fullscreen", "eevee_shared", "eevee_gbuffer_data");
+
+/** \} */

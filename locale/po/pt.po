@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'd293f72ab6e7')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'72b6c44e759b')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2023-11-27 10:28:34\n"
-"PO-Revision-Date: 2023-11-24 02:55+0000\n"
+"POT-Creation-Date: 2023-12-04 11:06:00\n"
+"PO-Revision-Date: 2023-11-30 20:00+0000\n"
 "Last-Translator: Duarte Ramos <duarte.framos@gmail.com>\n"
 "Language-Team: Portuguese <https://translate.blender.org/projects/blender-ui/ui/pt/>\n"
 "Language: pt\n"
@@ -495,7 +495,7 @@ msgstr "Ação ativa para este bloco de dados"
 
 
 msgid "Action Blending"
-msgstr "Mesclagem da ação"
+msgstr "Mistura da Acção"
 
 
 msgid "Method used for combining Active Action's result with result of NLA stack"
@@ -5399,7 +5399,7 @@ msgstr "Centralizar"
 
 
 msgid "Pole Merge Start Angle"
-msgstr "Ângulo inicial de mesclagem dos polos"
+msgstr "Ângulo inicial de Fusão dos Pólos"
 
 
 msgid "Angle at which interocular distance starts to fade to 0"
@@ -5407,7 +5407,7 @@ msgstr "Ângulo no qual a distância interocular começa a esmaecer para zero."
 
 
 msgid "Pole Merge End Angle"
-msgstr "Ângulo final de mesclagem dos polos"
+msgstr "Ângulo final de Fusão dos Pólos"
 
 
 msgid "Angle at which interocular distance is 0"
@@ -5415,7 +5415,7 @@ msgstr "Ângulo no qual a distância interocular tem valor igual a zero."
 
 
 msgid "Use Pole Merge"
-msgstr "Usar mesclagem dos polos"
+msgstr "Usar fusão dos pólos"
 
 
 msgid "Fade interocular distance to 0 after the given cutoff angle"
@@ -6545,11 +6545,11 @@ msgstr "Mescla a cor para misturar com a cor da textura de saída."
 
 
 msgid "Blend Factor"
-msgstr "Fator de mesclagem"
+msgstr "Fator de Mistura"
 
 
 msgid "Blend Type"
-msgstr "Tipo de mescla"
+msgstr "Tipo de Mistura"
 
 
 msgid "Mode used to mix with texture output color"
@@ -7102,7 +7102,7 @@ msgstr "Armação"
 
 
 msgid "Apply weight-blended transformation from multiple bones like the Armature modifier"
-msgstr "Aplicar transformação mesclada por pesos de vários ossos como o modificador Armação"
+msgstr "Aplicar transformação misturada por pesos de vários ossos como o modificador Armação"
 
 
 msgid "Child Of"
@@ -7326,7 +7326,7 @@ msgstr "Usar Envelopes"
 
 
 msgid "Multiply weights by envelope for all bones, instead of acting like Vertex Group based blending. The specified weights are still used, and only the listed bones are considered"
-msgstr "Multiplicar pesos por envelope para todos os ossos, em vez de agir como mesclagem baseada em Grupos de Vértices. Os pesos especificados ainda são usados, e apenas os ossos listados são tidos em consideração"
+msgstr "Multiplicar pesos por envelope para todos os ossos, em vez de agir como mistura baseada em Grupos de Vértices. Os pesos especificados ainda são usados, e apenas os ossos listados são tidos em consideração"
 
 
 msgid "Use Current Location"
@@ -7791,6 +7791,10 @@ msgstr "Aplicar transformação copiada antes da original, lidando com posição
 
 msgid "Apply copied transformation after original, using simple matrix multiplication as if the constraint target is a child in Full Inherit Scale mode. Will create shear when combining rotation and non-uniform scale"
 msgstr "Aplicar transformação copiada após original, usando multiplicações de matriz simples como se o alvo da restrição estiver em mode de Herança Total de Escala. Irá criar cisalhamento quando combinar rotação e escala não uniforme"
+
+
+msgid "Apply copied transformation after original, as if the constraint target is a child in Aligned Inherit Scale mode. This effectively uses Full for location and Split Channels for rotation and scale"
+msgstr "Aplicar transformação copiada após original, como se o alvo da restrição fosse um filho em mode Herança de Escala Alinhada. usa efectivamente Completa para a localização e Canais Separados para rotação e escala"
 
 
 msgid "Apply copied transformation after original, handling location, rotation and scale separately, similar to a sequence of three Copy constraints"
@@ -8305,8 +8309,24 @@ msgid "Strict"
 msgstr "Estrito"
 
 
+msgid "Volume is strictly preserved, overriding the scaling of non-free axes"
+msgstr "O volume é estritamente preservado, revogando a escala de eixos não livres"
+
+
 msgid "Uniform"
 msgstr "Uniformizar"
+
+
+msgid "Volume is preserved when the object is scaled uniformly. Deviations from uniform scale on non-free axes are passed through"
+msgstr "Volume é preservado quando o objecto tem escala uniforme. Desvios da escala uniforme em eixos não livres são ignorados"
+
+
+msgid "Single Axis"
+msgstr "Eixo Único"
+
+
+msgid "Volume is preserved when the object is scaled only on the free axis. Non-free axis scaling is passed through"
+msgstr "O volume é preservado quando o object é redimensionado apenas no eixo livre. Escala em em eixos não livres é ignorada"
 
 
 msgid "Volume of the bone at rest"
@@ -8353,12 +8373,24 @@ msgid "Use the pivot point in every rotation"
 msgstr "Usa o ponto de pivô em qualquer rotação."
 
 
+msgid "-X Rotation"
+msgstr "Rotação em -X"
+
+
 msgid "Use the pivot point in the negative rotation range around the X-axis"
 msgstr "Usa o ponto de pivô no campo de rotação negativo em torno do eixo X."
 
 
+msgid "-Y Rotation"
+msgstr "Rotação em -Y"
+
+
 msgid "Use the pivot point in the negative rotation range around the Y-axis"
 msgstr "Usa o ponto de pivô no campo de rotação negativo em torno do eixo Y."
+
+
+msgid "-Z Rotation"
+msgstr "Rotação em -Z"
 
 
 msgid "Use the pivot point in the negative rotation range around the Z-axis"
@@ -8407,6 +8439,10 @@ msgstr "O script Python emitiu um erro de funcionamento."
 
 msgid "Number of Targets"
 msgstr "Número de alvos"
+
+
+msgid "Usually only 1 to 3 are needed"
+msgstr "Normalmente apenas 1 a 3 são necessários"
 
 
 msgid "Target Objects"
@@ -8525,6 +8561,78 @@ msgid "Shrink the location to the nearest target vertex"
 msgstr "Encolhe a localização para os vértices mais próximos do alvo."
 
 
+msgid "Target Normal Project"
+msgstr "Projecção Normal do Alvo"
+
+
+msgid "Shrink the location to the nearest target surface along the interpolated vertex normals of the target"
+msgstr "Encolher a localização até à superfície alvo mais próxima ao longo das normais interpoladas do alvo"
+
+
+msgid "Target Mesh object"
+msgstr "Objecto Malha alvo"
+
+
+msgid "Axis that is aligned to the normal"
+msgstr "Eixo que é alinhado à normal"
+
+
+msgid "Invert Cull"
+msgstr "Inverter Oclusão"
+
+
+msgid "When projecting in the opposite direction invert the face cull mode"
+msgstr "Quando projectando na direcção oposta inverter modo de oclusão de faces"
+
+
+msgid "Project Opposite"
+msgstr "Projectar Oposto"
+
+
+msgid "Project in both specified and opposite directions"
+msgstr "Projectar em ambas as direcções opostas e especificadas"
+
+
+msgid "Align Axis To Normal"
+msgstr "Alinhar Eixo Com Normal"
+
+
+msgid "Align the specified axis to the surface normal"
+msgstr "Alinhar o eixo especificado com a normal da superfície"
+
+
+msgid "Snap Mode"
+msgstr "Modo de Adesão"
+
+
+msgid "Select how to constrain the object to the target surface"
+msgstr "Seleccionar como restringir o objecto à superfície alvo"
+
+
+msgid "The point is constrained to the surface of the target object, with distance offset towards the original point location"
+msgstr "O ponto está restringido à superfície do objecto alvo, com distância de afastamento à posição original do ponto"
+
+
+msgid "The point is constrained to be inside the target object"
+msgstr "O ponto está restringido a estar dentro do objecto alvo"
+
+
+msgid "The point is constrained to be outside the target object"
+msgstr "O ponto está restringido a estar fora do objecto alvo"
+
+
+msgid "Outside Surface"
+msgstr "Fora da Superfície"
+
+
+msgid "The point is constrained to the surface of the target object, with distance offset always to the outside, towards or away from the original location"
+msgstr "O ponto está restringido à superfície do objecto alvo, com distância de afastamento sempre em para o exterior, aproximando ou afastando-se da posição da origem"
+
+
+msgid "The point is constrained to the surface of the target object, with distance offset applied exactly along the target normal"
+msgstr "O ponto está restringido à superfície do objecto alvo, com distância de afastamento aplicada exactamente ao longo da normal do alvo"
+
+
 msgid "Spline IK Constraint"
 msgstr "Restrição - Cinemática por curvas"
 
@@ -8621,12 +8729,24 @@ msgid "Ignore the relative lengths of the bones when fitting to the curve"
 msgstr "Ignora o comprimento relativo dos ossos quando ajustando com a curva."
 
 
+msgid "Use Original Scale"
+msgstr "Usar Escala Original"
+
+
+msgid "Apply volume preservation over the original scaling"
+msgstr "Aplicar preservação de volume sobre a escala original"
+
+
 msgid "XZ Scale Mode"
 msgstr "Modo de escala XZ"
 
 
 msgid "Method used for determining the scaling of the X and Z axes of the bones"
 msgstr "Método usado para determinar a escala dos eixos X e Z dos ossos."
+
+
+msgid "Don't scale the X and Z axes"
+msgstr "Não redimensionar os eixos X e Z"
 
 
 msgid "Bone Original"
@@ -8653,8 +8773,28 @@ msgid "Scale of the X and Z axes are adjusted to preserve the volume of the bone
 msgstr "A escala dos eixos X e Z são ajustadas para preservar o volume dos ossos."
 
 
+msgid "Y Scale Mode"
+msgstr "Modo de Escala Y"
+
+
+msgid "Method used for determining the scaling of the Y axis of the bones, on top of the shape and scaling of the curve itself"
+msgstr "Método usado para determinar a escala do eixo Y dos ossos, em adição à forma e escala da própria curva"
+
+
+msgid "Don't scale in the Y axis"
+msgstr "Não redimensionar no eixo Y"
+
+
 msgid "Fit Curve"
 msgstr "Encaixar em uma curva"
+
+
+msgid "Scale the bones to fit the entire length of the curve"
+msgstr "Redimensionar os ossos para ocupar o comprimento total da curva"
+
+
+msgid "Use the original Y scale of the bone"
+msgstr "Usar a escala original Y do osso"
 
 
 msgid "Stretch To Constraint"
@@ -8669,8 +8809,32 @@ msgid "Keep Axis"
 msgstr "Manter eixo"
 
 
+msgid "The rotation type and axis order to use"
+msgstr "O tipo de rotação e a ordem de eixos a usar"
+
+
 msgid "XZ"
 msgstr "XZ"
+
+
+msgid "Rotate around local X, then Z"
+msgstr "Rodar em torno do X local, depois Z"
+
+
+msgid "ZX"
+msgstr "ZX"
+
+
+msgid "Rotate around local Z, then X"
+msgstr "Rodar em torno do Z local, depois X"
+
+
+msgid "Swing"
+msgstr "Oscilar"
+
+
+msgid "Use the smallest single axis rotation, similar to Damped Track"
+msgstr "Usar a rotação singular mais pequena do eixo, parecido com o Rastreamento Amortecido"
 
 
 msgid "Original Length"
@@ -8773,6 +8937,50 @@ msgid "Bottom range of Z axis source motion"
 msgstr "Base do intervalo da fonte de movimento do eixo Z."
 
 
+msgid "From Mode"
+msgstr "Do Modo"
+
+
+msgid "Specify the type of rotation channels to use"
+msgstr "Especificar que tipo de canais de rotação usar"
+
+
+msgid "Auto Euler"
+msgstr "Euler Automático"
+
+
+msgid "Euler using the rotation order of the target"
+msgstr "Euler usando a ordem de rotação do alvo"
+
+
+msgid "Quaternion rotation"
+msgstr "Rotação Quaternião"
+
+
+msgid "Swing and X Twist"
+msgstr "Oscilação e Torção X"
+
+
+msgid "Decompose into a swing rotation to aim the X axis, followed by twist around it"
+msgstr "Decompor numa rotação oscilatória para apontar o eixo X, seguido por torção em torno do mesmo"
+
+
+msgid "Swing and Y Twist"
+msgstr "Oscilação e Torção Y"
+
+
+msgid "Decompose into a swing rotation to aim the Y axis, followed by twist around it"
+msgstr "Decompor numa rotação oscilatória para apontar o eixo Y, seguido por uma torção em torno do mesmo"
+
+
+msgid "Swing and Z Twist"
+msgstr "Oscilação e Torção em Z"
+
+
+msgid "Decompose into a swing rotation to aim the Z axis, followed by twist around it"
+msgstr "Decompor numa rotação oscilatória para apontar o eixo Z, seguido por uma torção em torno do mesmo"
+
+
 msgid "Map From"
 msgstr "Mapear a partir de"
 
@@ -8787,6 +8995,10 @@ msgstr "Localização"
 
 msgid "Map To"
 msgstr "Mapear para"
+
+
+msgid "The transformation type to affect on the constrained object"
+msgstr "O tipo de transformação a afectar no objecto restringido"
 
 
 msgid "Map To X From"
@@ -8811,6 +9023,58 @@ msgstr "Mapear para Z a partir de"
 
 msgid "The source axis constrained object's Z axis uses"
 msgstr "O eixo fonte que o eixo Z restringido do objeto usa."
+
+
+msgid "Location Mix Mode"
+msgstr "Modo de mistura de posição"
+
+
+msgid "Specify how to combine the new location with original"
+msgstr "Especificar como combinar a nova posição com a original"
+
+
+msgid "Replace component values"
+msgstr "Substituir os valores dos componentes"
+
+
+msgid "Add component values together"
+msgstr "Adicionar valores dos componentes"
+
+
+msgid "Rotation Mix Mode"
+msgstr "Modo de mistura de rotação"
+
+
+msgid "Specify how to combine the new rotation with original"
+msgstr "Especificar como misturar a nova rotação com a original"
+
+
+msgid "Apply new rotation before original, as if it was on a parent"
+msgstr "Aplicar nova rotação antes da original, como se estivesse no pai"
+
+
+msgid "Apply new rotation after original, as if it was on a child"
+msgstr "Aplicar nova rotação após da original, como se estivesse no filho"
+
+
+msgid "Scale Mix Mode"
+msgstr "Modo de mistura de escala"
+
+
+msgid "Specify how to combine the new scale with original"
+msgstr "Especificar como combinar a nova escala com a original"
+
+
+msgid "Multiply component values together"
+msgstr "Multiplicar valores dos componentes"
+
+
+msgid "To Order"
+msgstr "À Ordem"
+
+
+msgid "Explicitly specify the output euler rotation order"
+msgstr "Especificar explicitamente a ordem final de rotação euler"
 
 
 msgid "To Maximum X"
@@ -8877,6 +9141,30 @@ msgid "Target object for multi-target constraints"
 msgstr "Objeto alvo para restrições com múltiplos alvos."
 
 
+msgid "Constraint Target Bone"
+msgstr "Osso Alvo da Restrição"
+
+
+msgid "Target bone for multi-target constraints"
+msgstr "Osso alvo para restrições com múltiplos alvos"
+
+
+msgid "Target armature bone"
+msgstr "Osso da armadura alvo"
+
+
+msgid "Target armature"
+msgstr "Armadura alvo"
+
+
+msgid "Blend Weight"
+msgstr "Peso de Mistura"
+
+
+msgid "Blending weight of this bone"
+msgstr "Peso de mistura deste osso"
+
+
 msgid "Curve in a curve mapping"
 msgstr "Curva dentro de um mapeamento de curva."
 
@@ -8899,6 +9187,10 @@ msgstr "Interpolação de curva neste ponto: Bézier ou vetor."
 
 msgid "Auto Handle"
 msgstr "Manípulo automático"
+
+
+msgid "Auto-Clamped Handle"
+msgstr "Manípulo Fixado Automaticamente"
 
 
 msgid "Vector Handle"
@@ -8961,8 +9253,20 @@ msgid "Extrapolated"
 msgstr "Extrapolado"
 
 
+msgid "Tone"
+msgstr "Tom"
+
+
+msgid "Tone of the curve"
+msgstr "Tom da curva"
+
+
 msgid "Standard"
 msgstr "Padrão"
+
+
+msgid "Filmlike"
+msgstr "Filmlike"
 
 
 msgid "Clip"
@@ -9041,6 +9345,10 @@ msgid "Refit"
 msgstr "Reajustes"
 
 
+msgid "Incrementally refit the curve (high quality)"
+msgstr "Reajusta incrementalmente a curva (alta qualidade)."
+
+
 msgid "Split"
 msgstr "Dividir"
 
@@ -9081,8 +9389,28 @@ msgid "Plane for projected stroke"
 msgstr "O plano para a projeção dos traços."
 
 
+msgid "Normal to Surface"
+msgstr "Normal à superfície"
+
+
+msgid "Draw in a plane perpendicular to the surface"
+msgstr "Desenhar num plano perpendicular à superfície."
+
+
+msgid "Tangent to Surface"
+msgstr "Tangente à Superfície"
+
+
+msgid "Draw in the surface plane"
+msgstr "Desenhar no plano da superfície"
+
+
 msgid "View"
 msgstr "Visualizar"
+
+
+msgid "Draw in a plane aligned to the viewport"
+msgstr "Desenhano plano alinhado com a janela de visualização"
 
 
 msgid "Detect Corners"
@@ -9113,12 +9441,166 @@ msgid "Use the start of the stroke for the depth"
 msgstr "Usa as terminações iniciais dos traços para definir a profundidade."
 
 
+msgid "Curve Point"
+msgstr "Ponto da Curva"
+
+
+msgid "Curve control point"
+msgstr "Ponto de controlo da curva"
+
+
 msgid "Index"
 msgstr "Índice"
 
 
+msgid "Index of this point"
+msgstr "Índice deste ponto"
+
+
+msgid "Profile Path editor used to build a profile path"
+msgstr "Editor de Caminho de Perfil usado para construir um desenho de perfil"
+
+
+msgid "Profile control points"
+msgstr "Pontos de controlo do perfil"
+
+
+msgctxt "Mesh"
+msgid "Preset"
+msgstr "Predefinido"
+
+
+msgctxt "Mesh"
+msgid "Line"
+msgstr "Linha"
+
+
+msgctxt "Mesh"
+msgid "Support Loops"
+msgstr "Anéis de Suporte"
+
+
+msgid "Loops on each side of the profile"
+msgstr "Anel de cada lado do perfil"
+
+
+msgctxt "Mesh"
+msgid "Cornice Molding"
+msgstr "Perfil de Cornija"
+
+
+msgctxt "Mesh"
+msgid "Crown Molding"
+msgstr "Perfil de Sanca"
+
+
+msgctxt "Mesh"
+msgid "Steps"
+msgstr "Passos"
+
+
+msgid "A number of steps defined by the segments"
+msgstr "Um número de passos definidos pelos segmentos"
+
+
 msgid "Segments"
 msgstr "Segmentos"
+
+
+msgid "Segments sampled from control points"
+msgstr "Segmentos amostrados dos pontos de controle"
+
+
+msgid "Force the path view to fit a defined boundary"
+msgstr "Forçar a visualização da curva a encaixar num limite definido"
+
+
+msgid "Sample Even Lengths"
+msgstr "Amostrar Distâncias Constantes"
+
+
+msgid "Sample edges with even lengths"
+msgstr "Amostrar arestas com comprimentos iguais"
+
+
+msgid "Sample Straight Edges"
+msgstr "Amostrar Arestas Direitas"
+
+
+msgid "Sample edges with vector handles"
+msgstr "Amostrar arestas com manípulos vector"
+
+
+msgid "Point of a path used to define a profile"
+msgstr "Ponto de um caminho usado para definir o perfil"
+
+
+msgid "First Handle Type"
+msgstr "Tipo do Primeiro Manípulo"
+
+
+msgid "Path interpolation at this point"
+msgstr "Interpolação da curva neste ponto"
+
+
+msgid "Free Handle"
+msgstr "Manípulo Livre"
+
+
+msgid "Aligned Free Handles"
+msgstr "Manípulo Livre Alinhado"
+
+
+msgid "Second Handle Type"
+msgstr "Tipo do Segundo Manípulo"
+
+
+msgid "X/Y coordinates of the path point"
+msgstr "Coordenadas X/Y do ponto da curva"
+
+
+msgid "Selection state of the path point"
+msgstr "Estado de selecção do ponto de curva"
+
+
+msgid "Profile Point"
+msgstr "Ponto do Perfil"
+
+
+msgid "Collection of Profile Points"
+msgstr "Colecção de Pontos do Perfil"
+
+
+msgid "Curve Slice"
+msgstr "Porção de Curva"
+
+
+msgid "A single curve from a curves data-block"
+msgstr "Uma única curva do data-block de curva"
+
+
+msgid "First Point Index"
+msgstr "Índice do Primeiro Ponto"
+
+
+msgid "The index of this curve's first control point"
+msgstr "O índice do primeiro ponto de controle desta curva"
+
+
+msgid "Index of this curve"
+msgstr "Índice desta curva"
+
+
+msgid "Control points of the curve"
+msgstr "Pontos de controlo da curva"
+
+
+msgid "Number of Points"
+msgstr "Número de pontos"
+
+
+msgid "Number of control points in the curve"
+msgstr "Número de pontos de controlo na curva"
 
 
 msgid "Curve Splines"
@@ -9137,12 +9619,44 @@ msgid "Active curve spline"
 msgstr "Curva Spline ativa"
 
 
+msgid "Dash Modifier Segment"
+msgstr "Segmento do Modificador de Traço"
+
+
+msgid "Configuration for a single dash segment"
+msgstr "Configuração de um único segmento do traço"
+
+
 msgid "Dash"
 msgstr "Mostrador"
 
 
+msgid "The number of consecutive points from the original stroke to include in this segment"
+msgstr "O número de pontos consecutivos do traço original a incluir neste segmento"
+
+
+msgid "Gap"
+msgstr "Espaço"
+
+
+msgid "The number of points skipped after this segment"
+msgstr "O número de pontos ingnorados após este segmento"
+
+
 msgid "Material Index"
 msgstr "Índice do material"
+
+
+msgid "Use this index on generated segment. -1 means using the existing material"
+msgstr "Usar este índice nos segmentos gerados. -1 para usar o material existente"
+
+
+msgid "Name of the dash segment"
+msgstr "Nome do segmento do tracejado"
+
+
+msgid "The factor to apply to the original point's opacity for the new points"
+msgstr "O factor a aplicar à opacidade original do ponto para novos pontos"
 
 
 msgid "Dependency Graph"
@@ -10848,7 +11362,7 @@ msgstr "Modificador para os valores de curva-f"
 
 
 msgid "Blend In"
-msgstr "Mesclar para dentro"
+msgstr "Misturar de Entrada"
 
 
 msgid "Number of frames from start frame for influence to take effect"
@@ -10856,7 +11370,7 @@ msgstr "Número de fotogramas a partir do fotograma inicial para que a influênc
 
 
 msgid "Blend Out"
-msgstr "Mesclar para fora"
+msgstr "Misturar de Saída"
 
 
 msgid "Number of frames from end frame for influence to fade out"
@@ -12932,7 +13446,7 @@ msgstr "Fotogramas anteriores"
 
 
 msgid "Blend Mode"
-msgstr "Modo de mesclagem"
+msgstr "Modo de Mistura"
 
 
 msgid "Regular"
@@ -14015,7 +14529,7 @@ msgstr "Quantidade de suavização para aplicar automaticamente para cada traço
 
 
 msgid "Brush blending mode"
-msgstr "O modo para mesclar pincéis."
+msgstr "O modo de mistura de pincéis"
 
 
 msgid "Exclusion"
@@ -16567,7 +17081,7 @@ msgstr "Mostrar cone"
 
 
 msgid "Spot Blend"
-msgstr "Mescla para o foco"
+msgstr "Desvanecimento para o foco"
 
 
 msgid "The softness of the spotlight edge"
@@ -16639,7 +17153,7 @@ msgstr "Blocos de dados de material para definir a aparência de objetos geomét
 
 
 msgid "Blend Mode for Transparent Faces"
-msgstr "Modo de mesclagem para faces transparentes"
+msgstr "Modo de Mistura para Faces Transparentes"
 
 
 msgid "Render polygon transparent, depending on alpha channel of the texture"
@@ -19129,7 +19643,7 @@ msgstr "Mesclar"
 
 
 msgid "Procedural - create a ramp texture"
-msgstr "Textura procedural - Cria uma textura a partir de uma gradiente."
+msgstr "Procedimental - Cria uma textura a partir de uma gradiente"
 
 
 msgid "Clouds"
@@ -19137,7 +19651,7 @@ msgstr "Nuvens"
 
 
 msgid "Procedural - create a cloud-like fractal noise texture"
-msgstr "Textura procedural - Cria uma textura de ruído fractal parecida com uma nuvem."
+msgstr "Procedimental - Cria uma textura de ruído fractal parecida com uma nuvem"
 
 
 msgid "Distorted Noise"
@@ -19145,7 +19659,7 @@ msgstr "Ruído distorcido"
 
 
 msgid "Procedural - noise texture distorted by two noise algorithms"
-msgstr "Textura procedural - Gera ruídos distorcidos por dois algoritmos diferentes."
+msgstr "Procedimental - Gera ruídos distorcidos por dois algoritmos diferentes"
 
 
 msgid "Image or Movie"
@@ -19161,7 +19675,7 @@ msgstr "Mágica"
 
 
 msgid "Procedural - color texture based on trigonometric functions"
-msgstr "Textura procedural - Cria cores com base em funções trigonométricas."
+msgstr "Procedimental - Textura de cores baseadas em funções trigonométricas."
 
 
 msgid "Marble"
@@ -19181,7 +19695,7 @@ msgstr "Textura procedural - Gera um ruído fractal de alta flexibilidade, usand
 
 
 msgid "Procedural - random noise, gives a different result every time, for every frame, for every pixel"
-msgstr "Textura procedural - Gera um ruído aleatório, fornecendo resultados diferentes para cada fotograma e cada pixel."
+msgstr "Procedimental - Gera um ruído aleatório, fornecendo resultados diferentes para cada fotograma e cada pixel"
 
 
 msgid "Stucci"
@@ -19189,7 +19703,7 @@ msgstr "Estuco"
 
 
 msgid "Procedural - create a fractal noise texture"
-msgstr "Textura procedural - Cria uma textura de ruído fractal, oferecendo diversos algoritmos de base."
+msgstr "Procedimental - Cria uma textura de ruído fractal, oferecendo diversos algoritmos de base"
 
 
 msgid "Voronoi"
@@ -19197,7 +19711,7 @@ msgstr "Diagrama de Voronoi"
 
 
 msgid "Procedural - create cell-like patterns based on Worley noise"
-msgstr "Textura procedural - Cria padrões em formato de células com base no ruído proposto por Steven Worley."
+msgstr "Procedimental - Cria padrões em formato de células com base no ruído proposto por Steven Worley"
 
 
 msgid "Wood"
@@ -19205,7 +19719,7 @@ msgstr "Madeira"
 
 
 msgid "Procedural - wave generated bands or rings, with optional noise"
-msgstr "Textura procedural - Cria ondas geradas através de faixas ou anéis, com ruído opcional."
+msgstr "Procedimental - Cria ondas geradas através de faixas ou anéis, com ruído opcional"
 
 
 msgid "Set negative texture RGB and intensity values to zero, for some uses like displacement this option can be disabled to get the full range"
@@ -19225,11 +19739,11 @@ msgstr "Mostra o alfa dentro da previsão de renderização."
 
 
 msgid "Blend Texture"
-msgstr "Textura tipo mescla"
+msgstr "Textura Blend"
 
 
 msgid "Procedural color blending texture"
-msgstr "Textura de mesclagem de cor procedural."
+msgstr "Textura de gradiente de cor procedimental"
 
 
 msgid "Progression"
@@ -19237,7 +19751,7 @@ msgstr "Progressão"
 
 
 msgid "Style of the color blending"
-msgstr "Estilo da mesclagem de cor."
+msgstr "Estilo da mistura de cor"
 
 
 msgid "Create a linear progression"
@@ -19301,7 +19815,7 @@ msgstr "Textura de nuvens"
 
 
 msgid "Procedural noise texture"
-msgstr "Textura de ruído procedural."
+msgstr "Textura de ruído procedimental"
 
 
 msgid "Determine whether Noise returns grayscale or RGB values"
@@ -19441,7 +19955,7 @@ msgstr "Gera um ruído rígido (transições mais aparentes)."
 
 
 msgid "Procedural distorted noise texture"
-msgstr "Textura de distorção de ruído procedural."
+msgstr "Textura de distorção de ruído procedimental"
 
 
 msgid "Distortion Amount"
@@ -19741,7 +20255,7 @@ msgstr "Turbulência de tipos de faixa de ruído e anéis de ruído."
 
 
 msgid "Procedural musgrave texture"
-msgstr "Textura procedural Musgrave."
+msgstr "Textura procedimental Musgrave."
 
 
 msgid "Highest Dimension"
@@ -19857,7 +20371,7 @@ msgstr "Cria cristas nos relevos."
 
 
 msgid "Procedural voronoi texture"
-msgstr "Textura procedural Voronoi."
+msgstr "Textura procedimental Voronoi."
 
 
 msgid "Coloring"
@@ -22221,7 +22735,7 @@ msgstr "Altera a transparência alfa ao longo do traço."
 
 
 msgid "Specify how the modifier value is blended into the base value"
-msgstr "Permite a especificação de como o valor do modificador é mesclado no valor de base."
+msgstr "Permite a especificação de como o valor do modificador é mesclado no valor de base"
 
 
 msgid "Curve used for the curve mapping"
@@ -22985,7 +23499,7 @@ msgstr "Renderizar opacidade"
 
 
 msgid "Method of blending mask layers"
-msgstr "Método de mesclagem de camadas de máscara."
+msgstr "Método de mesclagem de camadas de máscara"
 
 
 msgid "Merge Add"
@@ -23411,6 +23925,10 @@ msgid "Vertex Group Specials"
 msgstr "Especiais para grupo de vértices"
 
 
+msgid "Strip"
+msgstr "Faixa"
+
+
 msgid "Math"
 msgstr "Matemática"
 
@@ -23490,10 +24008,6 @@ msgstr "Aplicar"
 
 msgid "Navigation"
 msgstr "Navegação"
-
-
-msgid "Strip"
-msgstr "Faixa"
 
 
 msgid "Inputs"
@@ -29647,10 +30161,6 @@ msgstr "Separar XYZ"
 
 msgid "Set Alpha"
 msgstr "Definir alfa"
-
-
-msgid "Split Viewer"
-msgstr "Visualizador dividido"
 
 
 msgid "Stabilize 2D"
@@ -36864,6 +37374,10 @@ msgid "Flat"
 msgstr "Achatar"
 
 
+msgid "Duplicate"
+msgstr "Duplicar"
+
+
 msgctxt "Operator"
 msgid "Select Mode"
 msgstr "Modo de seleção"
@@ -38321,10 +38835,6 @@ msgstr "Duplica os vértices, arestas ou faces selecionados."
 
 msgid "Duplicate mesh and move"
 msgstr "Duplica as malhas selecionadas e permite movê-las."
-
-
-msgid "Duplicate"
-msgstr "Duplicar"
 
 
 msgctxt "Operator"
@@ -41431,7 +41941,7 @@ msgstr "Define o modo de interação com o objeto."
 
 
 msgid "Add a procedural operation/effect to the active object"
-msgstr "Adiciona um efeito ou operação procedural ao objeto ativo."
+msgstr "Adiciona um efeito ou operação procedimental ao objecto activo."
 
 
 msgid "Convert particles to a mesh object"
@@ -61936,6 +62446,11 @@ msgstr "Alternar para tela cheia"
 
 
 msgctxt "Operator"
+msgid "Sound"
+msgstr "Som"
+
+
+msgctxt "Operator"
 msgid "Track Ordering..."
 msgstr "Ordenamento das trilhas..."
 
@@ -61943,11 +62458,6 @@ msgstr "Ordenamento das trilhas..."
 msgctxt "Operator"
 msgid "Stop Tweaking Strip Actions"
 msgstr "Interromper os ajustes de faixa de ações"
-
-
-msgctxt "Operator"
-msgid "Add Tracks Above Selected"
-msgstr "Adicionar trilhas acima da seleção"
 
 
 msgctxt "Operator"
@@ -62053,11 +62563,6 @@ msgstr "Saltar para a faixa posterior (centralizando-a)"
 msgctxt "Operator"
 msgid "Movie"
 msgstr "Filme"
-
-
-msgctxt "Operator"
-msgid "Sound"
-msgstr "Som"
 
 
 msgctxt "Operator"
@@ -63282,7 +63787,7 @@ msgstr "Faces e vértices multilaterais"
 
 
 msgid "ShapeKey"
-msgstr "Chave de formato"
+msgstr "ShapeKey"
 
 
 msgid "OS Loop"
@@ -67367,10 +67872,6 @@ msgid "Freestyle: Stroke rendering"
 msgstr "Freestyle: Renderização de traços..."
 
 
-msgid "Cannot open file: %s"
-msgstr "Não é possível abrir o ficheiro: %s"
-
-
 msgid "Bone Envelopes"
 msgstr "Envelopes de ossos"
 
@@ -67734,11 +68235,11 @@ msgstr "Grupo de deformação '%s' não está no objeto '%s'"
 
 
 msgid "ShapeKey not found"
-msgstr "Chave de formato não encontrada."
+msgstr "ShapeKey não encontrada"
 
 
 msgid "Could not remove ShapeKey"
-msgstr "Não é possível remover a chave de formato."
+msgstr "Não foi possível remover a ShapeKey"
 
 
 msgid "Object should be of mesh type"

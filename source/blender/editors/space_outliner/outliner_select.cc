@@ -34,7 +34,7 @@
 #include "BKE_grease_pencil.hh"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_particle.h"
@@ -67,7 +67,7 @@
 #include "RNA_define.hh"
 #include "RNA_prototypes.h"
 
-#include "ANIM_bone_collections.h"
+#include "ANIM_bone_collections.hh"
 
 #include "outliner_intern.hh"
 #include "tree/tree_display.hh"

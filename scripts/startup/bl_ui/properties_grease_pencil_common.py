@@ -273,6 +273,7 @@ class GPENCIL_MT_layer_active(Menu):
                 layout.operator("gpencil.layer_active", text=gpl.info, icon=icon).layer = i
                 i -= 1
 
+
 class GREASE_PENCIL_MT_layer_active(Menu):
     bl_label = "Change Active Layer"
 
@@ -288,13 +289,14 @@ class GREASE_PENCIL_MT_layer_active(Menu):
 
         layout.separator()
 
-        for i in range(len(obd.layers) - 1,  -1,  -1):
+        for i in range(len(obd.layers) - 1, -1, -1):
             layer = obd.layers[i]
             if layer == obd.layers.active:
                 icon = 'GREASEPENCIL'
             else:
                 icon = 'NONE'
             layout.operator("grease_pencil.layer_active", text=layer.name, icon=icon).layer = i
+
 
 class GPENCIL_MT_material_active(Menu):
     bl_label = "Change Active Material"

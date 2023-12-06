@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'd293f72ab6e7')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'72b6c44e759b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-27 10:28:34\n"
+"POT-Creation-Date: 2023-12-04 11:06:00\n"
 "PO-Revision-Date: 2023-11-14 19:14+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -25991,6 +25991,10 @@ msgid "Vertex Group Specials"
 msgstr "버텍스 그룹 지정"
 
 
+msgid "Strip"
+msgstr "스트립"
+
+
 msgid "Math"
 msgstr "수학"
 
@@ -26086,10 +26090,6 @@ msgstr "채널을 선택"
 
 msgid "Select Handle"
 msgstr "핸들을 선택"
-
-
-msgid "Strip"
-msgstr "스트립"
 
 
 msgid "Inputs"
@@ -33273,10 +33273,6 @@ msgstr "분리 XYZ"
 
 msgid "Set Alpha"
 msgstr "알파 설정"
-
-
-msgid "Split Viewer"
-msgstr "분할 뷰어"
 
 
 msgid "Stabilize 2D"
@@ -42281,6 +42277,10 @@ msgid "Flat"
 msgstr "플랫"
 
 
+msgid "Duplicate"
+msgstr "복제"
+
+
 msgctxt "Operator"
 msgid "Select Mode"
 msgstr "선택 모드"
@@ -44285,10 +44285,6 @@ msgstr "선택된 버텍스를 복제, 에지 또는 페이스"
 
 msgid "Duplicate mesh and move"
 msgstr "메쉬를 복제하고 이동"
-
-
-msgid "Duplicate"
-msgstr "복제"
 
 
 msgctxt "Operator"
@@ -75347,13 +75343,13 @@ msgstr "반전"
 
 
 msgctxt "Operator"
-msgid "Lock Unused"
-msgstr "미사용을 잠금"
+msgid "Lock Unselected"
+msgstr "선택되지 않음 잠금"
 
 
 msgctxt "Operator"
-msgid "Lock Unselected"
-msgstr "선택되지 않음 잠금"
+msgid "Lock Unused"
+msgstr "미사용을 잠금"
 
 
 msgid "Flip Colors"
@@ -76939,8 +76935,8 @@ msgstr "전체 화면 영역을 토글"
 
 
 msgctxt "Operator"
-msgid "Track Ordering..."
-msgstr "트랙 정리..."
+msgid "Sound"
+msgstr "사운드"
 
 
 msgctxt "Operator"
@@ -76949,13 +76945,13 @@ msgstr "이름을 변경..."
 
 
 msgctxt "Operator"
-msgid "Stop Tweaking Strip Actions"
-msgstr "트위킹 스트립 액션을 중지"
+msgid "Track Ordering..."
+msgstr "트랙 정리..."
 
 
 msgctxt "Operator"
-msgid "Add Tracks Above Selected"
-msgstr "트랙을 선택된 위에 추가"
+msgid "Stop Tweaking Strip Actions"
+msgstr "트위킹 스트립 액션을 중지"
 
 
 msgctxt "Operator"
@@ -77198,11 +77194,6 @@ msgstr "다음 스트립(중심)으로 이동"
 msgctxt "Operator"
 msgid "Movie"
 msgstr "무비"
-
-
-msgctxt "Operator"
-msgid "Sound"
-msgstr "사운드"
 
 
 msgctxt "Operator"
@@ -84788,10 +84779,6 @@ msgstr "프리스타일: 뷰 맵 제작"
 
 msgid "Freestyle: Stroke rendering"
 msgstr "프리스타일: 스트로크 렌더링"
-
-
-msgid "Cannot open file: %s"
-msgstr "읽을 수 없는 파일: %s"
 
 
 msgid "Bone Envelopes"

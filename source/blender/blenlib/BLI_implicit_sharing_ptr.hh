@@ -20,12 +20,12 @@ namespace blender {
  */
 template<typename T> class ImplicitSharingPtr {
  private:
-  T *data_ = nullptr;
+  const T *data_ = nullptr;
 
  public:
   ImplicitSharingPtr() = default;
 
-  explicit ImplicitSharingPtr(T *data) : data_(data) {}
+  explicit ImplicitSharingPtr(const T *data) : data_(data) {}
 
   /* Implicit conversion from nullptr. */
   ImplicitSharingPtr(std::nullptr_t) : data_(nullptr) {}
@@ -69,22 +69,10 @@ template<typename T> class ImplicitSharingPtr {
     return *this;
   }
 
-  T *operator->()
-  {
-    BLI_assert(data_ != nullptr);
-    return data_;
-  }
-
   const T *operator->() const
   {
     BLI_assert(data_ != nullptr);
     return data_;
-  }
-
-  T &operator*()
-  {
-    BLI_assert(data_ != nullptr);
-    return *data_;
   }
 
   const T &operator*() const
@@ -98,17 +86,12 @@ template<typename T> class ImplicitSharingPtr {
     return data_ != nullptr;
   }
 
-  T *get()
-  {
-    return data_;
-  }
-
   const T *get() const
   {
     return data_;
   }
 
-  T *release()
+  const T *release()
   {
     T *data = data_;
     data_ = nullptr;
@@ -134,14 +117,14 @@ template<typename T> class ImplicitSharingPtr {
   BLI_STRUCT_EQUALITY_OPERATORS_1(ImplicitSharingPtr, data_)
 
  private:
-  static void add_user(T *data)
+  static void add_user(const T *data)
   {
     if (data != nullptr) {
       data->add_user();
     }
   }
 
-  static void remove_user_and_delete_if_last(T *data)
+  static void remove_user_and_delete_if_last(const T *data)
   {
     if (data != nullptr) {
       data->remove_user_and_delete_if_last();

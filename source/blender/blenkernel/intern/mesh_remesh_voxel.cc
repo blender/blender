@@ -39,7 +39,7 @@
 #include "BKE_mesh_runtime.hh"
 #include "BKE_mesh_sample.hh"
 
-#include "bmesh_tools.h"
+#include "bmesh_tools.hh"
 
 #ifdef WITH_OPENVDB
 #  include <openvdb/openvdb.h>

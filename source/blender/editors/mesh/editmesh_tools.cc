@@ -40,7 +40,7 @@
 #include "BKE_key.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
@@ -76,7 +76,7 @@
 
 #include "mesh_intern.h" /* own include */
 
-#include "bmesh_tools.h"
+#include "bmesh_tools.hh"
 
 #define USE_FACE_CREATE_SEL_EXTEND
 

@@ -109,7 +109,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_lib_override.hh"
 #include "BKE_lib_query.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_main_namemap.hh"
 #include "BKE_node.hh"
 #include "BKE_packedFile.h"
@@ -705,13 +705,13 @@ static void writedata(WriteData *wd, int filecode, size_t len, const void *adr)
     return;
   }
 
+  /* Align to 4 (writes uninitialized bytes in some cases). */
+  len = (len + 3) & ~size_t(3);
+
   if (len > INT_MAX) {
     BLI_assert_msg(0, "Cannot write chunks bigger than INT_MAX.");
     return;
   }
-
-  /* Align to 4 (writes uninitialized bytes in some cases). */
-  len = (len + 3) & ~size_t(3);
 
   /* Initialize #BHead. */
   bh.code = filecode;

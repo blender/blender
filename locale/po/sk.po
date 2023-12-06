@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'd293f72ab6e7')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'72b6c44e759b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-27 10:28:34\n"
-"PO-Revision-Date: 2023-11-14 09:51+0000\n"
+"POT-Creation-Date: 2023-12-04 11:06:00\n"
+"PO-Revision-Date: 2023-11-30 09:34+0000\n"
 "Last-Translator: Jozef Matta <jozef.m923@gmail.com>\n"
 "Language-Team: Slovak <https://translate.blender.org/projects/blender-ui/ui/sk/>\n"
 "Language: sk\n"
@@ -1434,12 +1434,24 @@ msgid "All"
 msgstr "Všetky"
 
 
+msgid "Show assets from all of the listed asset libraries"
+msgstr "Zobraziť aktíva zo všetkých uvedených knižníc aktív"
+
+
 msgid "Current File"
 msgstr "Aktuálny súbor"
 
 
+msgid "Show the assets currently available in this Blender session"
+msgstr "Zobrazí aktíva, ktoré sú aktuálne k dispozícii v tejto relácii Blenderu"
+
+
 msgid "Essentials"
 msgstr "Základné údaje"
+
+
+msgid "Show the basic building blocks and utilities coming with Blender"
+msgstr "Ukáže základné stavebné bloky a nástroje dodávané s Blenderom"
 
 
 msgid "Custom"
@@ -19318,6 +19330,10 @@ msgid "Additional data for an asset data-block"
 msgstr "Prídavné údaje pre blok údajov aktív"
 
 
+msgid "Type identifier of this data-block"
+msgstr "Identifikátor typu tohto bloku údajov"
+
+
 msgid "Brush"
 msgstr "Štetec"
 
@@ -19448,6 +19464,10 @@ msgstr "Knižnica Slabá referencia"
 
 msgid "Weak reference to a data-block in another library .blend file (used to re-use already appended data instead of appending new copies)"
 msgstr "Slabá referencia na blok údajov v inom súbore knižnice .blend (používa sa na opätovné použitie už pridaných údajov namiesto pridávania nových kópií)"
+
+
+msgid "Unique data-block ID name (within a same type and library)"
+msgstr "Jedinečný názov ID bloku údajov (v rámci toho istého typu a knižnice)"
 
 
 msgid "Full Name"
@@ -24041,6 +24061,10 @@ msgid "Grease Pencil data-block"
 msgstr "Blok údajov pastelky"
 
 
+msgid "Layer Groups"
+msgstr "Skupiny vrstiev"
+
+
 msgid "Image data-block referencing an external or packed image"
 msgstr "Blok údajov obrázku odkazujúci na externý alebo zabalený obrázok"
 
@@ -24992,6 +25016,10 @@ msgid "Probe clip start, below which objects will not appear in reflections"
 msgstr "Snímač začiatok klipu, za ktorým sa objekty nezobrazia v odrazoch"
 
 
+msgid "Viewport display size of the sampled data"
+msgstr "Veľkosť zobrazenia záberu snímaných údajov"
+
+
 msgid "Control how fast the probe influence decreases"
 msgstr "Ovládanie zníženia rýchlosti vplyvu snímača"
 
@@ -25176,6 +25204,14 @@ msgid "Show the clipping distances in the 3D view"
 msgstr "Zobrazenie orezania vzdialeností v 3D zobrazení"
 
 
+msgid "Display Data (Deprecated)"
+msgstr "Zobrazenie údajov (zastarané)"
+
+
+msgid "Deprecated, use use_data_display instead"
+msgstr "Zastarané, namiesto toho použite use_data_display"
+
+
 msgid "Show the influence volume in the 3D view"
 msgstr "Zobrazí vplyv objemu v 3D zobrazení"
 
@@ -25200,12 +25236,28 @@ msgid "Type of light probe"
 msgstr "Typ snímača svetla"
 
 
+msgid "Light probe that captures precise lighting from all directions at a single point in space"
+msgstr "Snímač svetla, ktorý zachytáva presné osvetlenie zo všetkých smerov v jednom bode v priestore"
+
+
+msgid "Light probe that captures incoming light from a single direction on a plane"
+msgstr "Snímač svetla, ktorý zachytáva prichádzajúce svetlo z jedného smeru v rovine"
+
+
+msgid "Light probe that captures low frequency lighting inside a volume"
+msgstr "Snímač svetla, ktorý zachytáva nízkofrekvenčné osvetlenie vnútri objemu"
+
+
 msgid "Use Custom Parallax"
 msgstr "Použiť vlastnú paralaxu"
 
 
 msgid "Enable custom settings for the parallax correction volume"
 msgstr "Povolí vlastné nastavenia pre objem korekcie paralaxy"
+
+
+msgid "Display sampled data in the viewport to debug captured light"
+msgstr "Zobrazenie snímaných údajov v zábere na ladenie zachyteného svetla"
 
 
 msgid "Visibility Bleed Bias"
@@ -25381,6 +25433,14 @@ msgid "True if this material has grease pencil data"
 msgstr "Pravdivé, ak tento materiál má údaje pastelky"
 
 
+msgid "Light Probe Volume Single Sided"
+msgstr "Snímač svetla jednostranného objemu"
+
+
+msgid "Consider material single sided for light probe volume capture. Additionally helps rejecting probes inside the object to avoid light leaks"
+msgstr "Zvažuje jednostranný materiál na zachytávanie objemu snímačom svetla. Okrem toho pomáha odmietnuť snímače vnútri objektu, aby sa zabránilo úniku svetla"
+
+
 msgid "Line Color"
 msgstr "Farba čiary"
 
@@ -25403,6 +25463,10 @@ msgstr "Nastavenia Čiarová grafika"
 
 msgid "Line art settings for material"
 msgstr "Nastavenie Čiarovej grafiky pre materiál"
+
+
+msgid "The max distance a vertex can be displaced. Displacements over this threshold may cause visibility issues"
+msgstr "Maximálna vzdialenosť, o ktorú môže byť vrchol posunutý. Posun nad túto hranicu môže spôsobiť problémy s viditeľnosťou"
 
 
 msgid "Metallic"
@@ -25573,6 +25637,22 @@ msgid "How intense (bright) the specular reflection is"
 msgstr "Aká je intenzita (lesklosť) zrkadlového odrazu"
 
 
+msgid "Surface Render Method"
+msgstr "Metóda prekresľovania povrchu"
+
+
+msgid "Controls the blending and the compatibility with certain features"
+msgstr "Riadi prelínanie a kompatibilitu s určitými funkciami"
+
+
+msgid "Allows for grayscale hashed transparency, and compatible with render passes and raytracing. Also known as deferred rendering"
+msgstr "Umožňuje priehľadnosť v odtieňoch sivej a je kompatibilný s priechodmi prekresľovania a sledovaním lúčov. Známe aj ako odložené prekresľovanie"
+
+
+msgid "Allows for colored transparency, but incompatible with render passes and raytracing. Also known as forward rendering"
+msgstr "Umožňuje farebnú priehľadnosť, ale je nekompatibilný s priechodmi prekresľovania a sledovaním lúčov. Známe aj ako dopredné prekresľovanie"
+
+
 msgid "Texture Slot Images"
 msgstr "Zásuvka obrázkov textúry"
 
@@ -25593,6 +25673,10 @@ msgid "Use back face culling to hide the back side of faces"
 msgstr "Použitím vyradenia zadnej plôšky sa skryje zadná strana plôšky"
 
 
+msgid "Use back face culling when casting shadows"
+msgstr "Pri vrhaní tieňov použije vylúčenie zadnej plôšky"
+
+
 msgid "Use shader nodes to render the material"
 msgstr "Použije tieňovač uzly na prekreslenie materiálu"
 
@@ -25603,6 +25687,14 @@ msgstr "Náhľad oblasti"
 
 msgid "Use the current world background to light the preview render"
 msgstr "Použije aktuálne pozadie oblasti na osvetlenie ukážky prekreslenia"
+
+
+msgid "Raytrace Refraction"
+msgstr "Lom sledovania lúča"
+
+
+msgid "Use raytracing to determine refracted color instead of using only light probes. This prevents the surface from contributing to the lighting of surfaces not using this setting"
+msgstr "Na určenie farby lomu použije sledovanie lúča namiesto použitia iba snímačov svetla. Tým sa zabráni tomu, aby povrch prispieval k osvetleniu povrchov, ktoré toto nastavenie nepoužívajú"
 
 
 msgid "Subsurface Translucency"
@@ -25621,12 +25713,24 @@ msgid "Use transparent shadows for this material if it contains a Transparent BS
 msgstr "Použije priehľadné tiene pre tento materiál, ak obsahuje transparentné BSDF, vypnutím sa bude prekresľovať rýchlejšie, ale nedáva presné tiene"
 
 
+msgid "Determines which inner part of the mesh will produce volumetric effect"
+msgstr "Určuje, ktorá vnútorná časť povrchovej siete bude vytvárať objemový efekt"
+
+
 msgid "Fast"
 msgstr "Rýchle"
 
 
+msgid "Each face is considered as a medium interface. Gives correct results for manifold geometry that contains no inner parts"
+msgstr "Každá strana sa považuje za stredné rozhranie. Poskytuje správne výsledky pre vyvinutú geometriu, ktorá neobsahuje žiadne vnútorné časti"
+
+
 msgid "Accurate"
 msgstr "Presná"
+
+
+msgid "Faces are considered as medium interface only when they have different consecutive facing. Gives correct results as long as the max ray depth is not exceeded. Have significant memory overhead compared to the fast method"
+msgstr "Plôšky sa považujú za stredné rozhranie len vtedy, ak majú rôzne po sebe idúce vytváranie plôšok. Poskytuje správne výsledky, pokiaľ nie je prekročená maximálna hĺbka lúča. V porovnaní s rýchlou metódou má značnú spotrebu pamäte"
 
 
 msgid "Mesh data-block defining geometric surfaces"
@@ -25679,6 +25783,10 @@ msgstr "Slučky"
 
 msgid "Loops of the mesh (face corners)"
 msgstr "Slučky povrchovej siete (rohov plôšok)"
+
+
+msgid "Normal Domain"
+msgstr "Bežná doména"
 
 
 msgid "Corner"
@@ -35205,6 +35313,10 @@ msgid "NLA"
 msgstr "NLA"
 
 
+msgid "Strip"
+msgstr "Pás"
+
+
 msgid "Utilities"
 msgstr "Obslužné programy"
 
@@ -35342,10 +35454,6 @@ msgstr "Vybrať kanál"
 
 msgid "Select Handle"
 msgstr "Vybrať manipulátor"
-
-
-msgid "Strip"
-msgstr "Pás"
 
 
 msgid "Inputs"
@@ -44524,10 +44632,6 @@ msgid "Replace the input image's alpha channel by the alpha input value"
 msgstr "Nahradí alfa kanály vstupného obrázka vstupnou hodnotou alfa"
 
 
-msgid "Split Viewer"
-msgstr "Zobrazovač rozdelenia"
-
-
 msgid "Stabilize 2D"
 msgstr "2D stabilizácia"
 
@@ -45955,14 +46059,6 @@ msgid "Shortest Edge Paths"
 msgstr "Najkratšie cesty hrán"
 
 
-msgid "Signed Distance"
-msgstr "Podpísaná vzdialenosť"
-
-
-msgid "Retrieve the signed distance field grid called 'distance' from a volume"
-msgstr "Získa podpísanú mriežku poľa vzdialenosti volanú 'vzdialenosť' z objemu"
-
-
 msgid "Is Spline Cyclic"
 msgstr "Je drážka cyklická"
 
@@ -46037,14 +46133,6 @@ msgstr "Výber materiálu"
 
 msgid "Provide a selection of faces that use the specified material"
 msgstr "Poskytne výber plôšok, ktoré používajú určený materiál"
-
-
-msgid "Mean Filter SDF Volume"
-msgstr "Priemerný objem filtra SDF"
-
-
-msgid "Smooth the surface of an SDF volume by applying a mean filter"
-msgstr "Vyhladzujte povrch objemu SDF použitím stredného filtra"
 
 
 msgid "Merge by Distance"
@@ -46183,20 +46271,12 @@ msgid "Create a point in the point cloud for each selected face corner"
 msgstr "Vytvorí bod v mračne bodov pre každý vybraný roh plôšky"
 
 
-msgid "Mesh to SDF Volume"
-msgstr "Povrchová sieť na objem SDF"
-
-
-msgid "Create an SDF volume with the shape of the input mesh's surface"
-msgstr "Vytvorí objem SDF s tvarom povrchu vstupnej povrchovej siete"
+msgid "Create a fog volume with the shape of the input mesh's surface"
+msgstr "Vytvorí objem hmly s tvarom povrchu vstupnej povrchovej siete"
 
 
 msgid "How the voxel size is specified"
 msgstr "Ako je určená veľkosť voxelu"
-
-
-msgid "Create a fog volume with the shape of the input mesh's surface"
-msgstr "Vytvorí objem hmly s tvarom povrchu vstupnej povrchovej siete"
 
 
 msgid "UV Sphere"
@@ -46243,14 +46323,6 @@ msgid "Offset a control point index within its curve"
 msgstr "Posuv indexu riadiaceho bodu v rámci jeho krivky"
 
 
-msgid "Offset SDF Volume"
-msgstr "Posuv objemu SDF"
-
-
-msgid "Move the surface of an SDF volume inwards or outwards"
-msgstr "Posunie povrch objemu SDF smerom dovnútra alebo von"
-
-
 msgid "Generate a point cloud with positions and radii defined by fields"
 msgstr "Vygeneruje mračno bodov s polohami a polomermi definovanými poľami"
 
@@ -46271,22 +46343,6 @@ msgid "Split all points to curve by its group ID and reorder by weight"
 msgstr "Rozdelí všetky body na krivku podľa ID skupiny a zmení poradie podľa váhy"
 
 
-msgid "Points to SDF Volume"
-msgstr "Body na objem SDF"
-
-
-msgid "Generate an SDF volume sphere around every point"
-msgstr "Vygeneruje sféru objemu SDF okolo každého bodu"
-
-
-msgid "Specify the approximate number of voxels along the diagonal"
-msgstr "Určiť približný počet voxelov pozdĺž uhlopriečky"
-
-
-msgid "Specify the voxel side length"
-msgstr "Určiť dĺžku strany voxelu"
-
-
 msgid "Points to Vertices"
 msgstr "Body na vrcholy"
 
@@ -46301,6 +46357,14 @@ msgstr "Body na objem"
 
 msgid "Generate a fog volume sphere around every point"
 msgstr "Vygeneruje sféru objemu hmly okolo každého bodu"
+
+
+msgid "Specify the approximate number of voxels along the diagonal"
+msgstr "Určiť približný počet voxelov pozdĺž uhlopriečky"
+
+
+msgid "Specify the voxel side length"
+msgstr "Určiť dĺžku strany voxelu"
 
 
 msgid "Geometry Proximity"
@@ -46447,14 +46511,6 @@ msgid "Rotate geometry instances in local or global space"
 msgstr "Otáča inštanciami geometrie v lokálnom alebo globálnom priestore"
 
 
-msgid "SDF Volume Sphere"
-msgstr "Sféra objemu SDF"
-
-
-msgid "Generate an SDF Volume Sphere"
-msgstr "Vygeneruje sféru objemu SDF"
-
-
 msgid "Sample Curve"
 msgstr "Snímka krivky"
 
@@ -46517,42 +46573,6 @@ msgstr "Snímka UV povrchu"
 
 msgid "Calculate the interpolated values of a mesh attribute at a UV coordinate"
 msgstr "Vypočíta interpolované hodnoty atribútu povrchovej siete pri UV súradnici"
-
-
-msgid "Sample Volume"
-msgstr "Snímka objemu"
-
-
-msgid "Calculate the interpolated values of a Volume grid at the specified position"
-msgstr "Vypočíta interpolované hodnoty mriežky objemu na zadanej pozícii"
-
-
-msgid "Grid Type"
-msgstr "Typ mriežky"
-
-
-msgid "Type of grid to sample data from"
-msgstr "Typ mriežky na výber snímky údajov"
-
-
-msgid "Interpolation Mode"
-msgstr "Režim interpolácie"
-
-
-msgid "How to interpolate the values from neighboring voxels"
-msgstr "Určuje, ako interpolovať hodnoty zo susedných voxelov"
-
-
-msgid "Nearest Neighbor"
-msgstr "Najbližší sused"
-
-
-msgid "Trilinear"
-msgstr "Trilineárna"
-
-
-msgid "Triquadratic"
-msgstr "Trojhranný"
 
 
 msgid "Scale Elements"
@@ -60894,6 +60914,10 @@ msgid "Enter/Exit draw mode for grease pencil"
 msgstr "Vstup/výstup z režimu kreslenia pre Pastelku"
 
 
+msgid "Duplicate"
+msgstr "Vytvoriť kópiu"
+
+
 msgid "Insert a blank frame on the current scene frame"
 msgstr "Vloží prázdnu snímku na aktuálnu snímku scény"
 
@@ -63340,10 +63364,6 @@ msgstr "Vytvára kópie vybratých vrcholov, hrán alebo plôšok"
 
 msgid "Duplicate mesh and move"
 msgstr "Vytvorí kópiu povrchovej siete a presunie ju"
-
-
-msgid "Duplicate"
-msgstr "Vytvoriť kópiu"
 
 
 msgctxt "Operator"
@@ -75701,15 +75721,6 @@ msgstr "Premietanie vzhľadom na čiaru"
 
 msgid "Project the geometry onto a plane defined by a line"
 msgstr "Premietne geometriu na rovinu definovanú čiarou"
-
-
-msgctxt "Operator"
-msgid "Reveal All"
-msgstr "Odhaliť všetko"
-
-
-msgid "Unhide all geometry"
-msgstr "Odkryje celú geometriu"
 
 
 msgid "Sample the vertex color of the active vertex"
@@ -109056,6 +109067,10 @@ msgid "%s is not supported"
 msgstr "%s nie je podporovaný"
 
 
+msgid "Please select at least one image"
+msgstr "Vyberte aspoň jeden obrázok"
+
+
 msgid "Cannot generate materials for unknown %s render engine"
 msgstr "Nie je možné vygenerovať materiály pre neznámy mechanizmus prekreslenia %s"
 
@@ -109833,6 +109848,14 @@ msgstr "Nič na zapečenie"
 
 msgid "Complete report available on '%s' text datablock"
 msgstr "Kompletný prehľad je k dispozícii v textovom bloku údajov '%s'"
+
+
+msgid "No active bone to copy from"
+msgstr "Žiadna aktívna kosť na kopírovanie"
+
+
+msgid "No selected bones to copy to"
+msgstr "Nie sú vybrané kosti na kopírovanie"
 
 
 msgid "Bone colors were synced; for %d bones this will not be visible due to pose bone color overrides"
@@ -111543,13 +111566,13 @@ msgstr "Vlastné pohlcovanie"
 
 
 msgctxt "Operator"
-msgid "Lock Unused"
-msgstr "Zamknúť nepoužité"
+msgid "Lock Unselected"
+msgstr "Zamknúť nevybrané"
 
 
 msgctxt "Operator"
-msgid "Lock Unselected"
-msgstr "Zamknúť nevybrané"
+msgid "Lock Unused"
+msgstr "Zamknúť nepoužité"
 
 
 msgctxt "Operator"
@@ -113655,8 +113678,8 @@ msgstr "Prepnúť oblasť na celú obrazovku"
 
 
 msgctxt "Operator"
-msgid "Track Ordering..."
-msgstr "Poradie stôp..."
+msgid "Sound"
+msgstr "Zvuk"
 
 
 msgctxt "Operator"
@@ -113665,13 +113688,13 @@ msgstr "Premenovať..."
 
 
 msgctxt "Operator"
-msgid "Stop Tweaking Strip Actions"
-msgstr "Zastaviť potiahnutie akcií pásu"
+msgid "Track Ordering..."
+msgstr "Poradie stôp..."
 
 
 msgctxt "Operator"
-msgid "Add Tracks Above Selected"
-msgstr "Pridať stopy nad vybranými"
+msgid "Stop Tweaking Strip Actions"
+msgstr "Zastaviť potiahnutie akcií pásu"
 
 
 msgctxt "Operator"
@@ -114065,11 +114088,6 @@ msgstr "Skočiť na ďalší pás (stred)"
 msgctxt "Operator"
 msgid "Movie"
 msgstr "Film"
-
-
-msgctxt "Operator"
-msgid "Sound"
-msgstr "Zvuk"
 
 
 msgctxt "Operator"
@@ -122782,14 +122800,6 @@ msgid "Cannot make library override from a local object"
 msgstr "Nemožno vytvoriť prepis knižnice z lokálneho objektu"
 
 
-msgid "The node group must have a geometry input socket"
-msgstr "Skupina uzlov musí mať vstupnú zásuvku geometrie"
-
-
-msgid "The first input must be a geometry socket"
-msgstr "Prvým vstupom musí byť geometrická zásuvka"
-
-
 msgid "The node group must have a geometry output socket"
 msgstr "Skupina uzlov musí mať výstupnú zásuvku geometrie"
 
@@ -123785,10 +123795,6 @@ msgstr " UV,"
 
 msgid " Materials,"
 msgstr " Materiály,"
-
-
-msgid " Textures,"
-msgstr " Textúry,"
 
 
 msgid " Stencil,"
@@ -127172,10 +127178,6 @@ msgstr "Voľný štýl: Vytvorenie mapy zobrazenia"
 
 msgid "Freestyle: Stroke rendering"
 msgstr "Voľný štýl: Prekreslenie ťahu"
-
-
-msgid "Cannot open file: %s"
-msgstr "Nemožno otvoriť súbor: %s"
 
 
 msgid "Bind To"
@@ -131127,14 +131129,6 @@ msgid "Disabled, Blender was compiled without OpenSubdiv"
 msgstr "Zakázané, Blender bol skompilovaný bez OpenSubdiv"
 
 
-msgid "Half-Band Width"
-msgstr "Šírka polovičného pásma"
-
-
-msgid "Half the width of the narrow band in voxel units"
-msgstr "Polovica šírky úzkeho pásma vo voxelových jednotkách"
-
-
 msgid "Corner Index"
 msgstr "Index rohov"
 
@@ -131435,36 +131429,12 @@ msgid "Whether the node could find a single face to sample at the UV coordinate"
 msgstr "Určuje, či by uzol mohol nájsť jednu plôšku na snímanie pri UV súradniciach"
 
 
-msgid "Grid name needs to be specified"
-msgstr "Je potrebné uviesť názov mriežky"
-
-
-msgid "The grid type is unsupported"
-msgstr "Typ mriežky nie je podporovaný"
-
-
-msgid "Expects a Named Attribute with the name of a Grid in the Volume"
-msgstr "Očakáva sa pomenovaný atribút s názvom mriežky v objeme"
-
-
 msgid "Origin of the scaling for each element. If multiple elements are connected, their center is averaged"
 msgstr "Počiatok zmeny mierky pre každý prvok. Ak je spojených viacero prvkov, ich stred sa spriemeruje"
 
 
 msgid "Direction in which to scale the element"
 msgstr "Smer, v ktorom má prvok zmeniť mierku"
-
-
-msgid "Radius must be greater than 0"
-msgstr "Polomer musí byť väčší ako 0"
-
-
-msgid "Half-band width must be greater than 1"
-msgstr "Šírka polovičného pásma musí byť väčšia ako 1"
-
-
-msgid "Voxel size is too small"
-msgstr "Veľkosť voxelu je príliš malá"
 
 
 msgid "The parts of the geometry that go into the first output"

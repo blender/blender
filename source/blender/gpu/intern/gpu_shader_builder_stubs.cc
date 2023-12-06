@@ -29,7 +29,7 @@
 
 #include "DRW_engine.h"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
 #include "UI_resources.hh"
 
@@ -219,15 +219,6 @@ extern "C" void ntreeFreeLocalTree(struct bNodeTree * /*ntree*/)
 extern "C" void DRW_deferred_shader_remove(struct GPUMaterial * /*mat*/)
 {
   BLI_assert_unreachable();
-}
-
-extern "C" void DRW_cdlayer_attr_aliases_add(struct GPUVertFormat * /*format*/,
-                                             const char * /*base_name*/,
-                                             const struct CustomData * /*data*/,
-                                             const struct CustomDataLayer * /*cl*/,
-                                             bool /*is_active_render*/,
-                                             bool /*is_active_layer*/)
-{
 }
 
 /** \} */

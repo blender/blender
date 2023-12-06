@@ -37,7 +37,7 @@
 #include "ED_armature.hh"
 #include "ED_view3d.hh"
 
-#include "ANIM_bone_collections.h"
+#include "ANIM_bone_collections.hh"
 #include "ANIM_bonecolor.hh"
 
 #include "UI_resources.hh"

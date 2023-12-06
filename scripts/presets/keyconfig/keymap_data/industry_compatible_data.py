@@ -3702,8 +3702,6 @@ def km_sculpt(params):
          {"properties": [("mode", 'TOGGLE')]}),
         ("paint.hide_show", {"type": 'H', "value": 'PRESS', "ctrl": True},
          {"properties": [("action", 'HIDE'), ("area", 'MASKED')]}),
-        ("sculpt.reveal_all", {"type": 'H', "value": 'PRESS', "alt": True},
-         {"properties": []}),
         ("paint.hide_show", {"type": 'H', "value": 'PRESS', "alt": True},
          {"properties": [("action", 'SHOW'), ("area", 'ALL')]}),
         # Subdivision levels
@@ -4516,7 +4514,7 @@ def generate_keymaps_impl(params=None):
         km_animation_channels(params),
 
         # Modes.
-        km_grease_pencil(params),
+        # km_grease_pencil(params), # Empty.
         km_grease_pencil_stroke_edit_mode(params),
         km_grease_pencil_stroke_paint_mode(params),
         km_grease_pencil_stroke_paint_draw_brush(params),

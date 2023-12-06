@@ -1476,7 +1476,8 @@ typedef enum eSpaceText_Flags {
   ST_SHOW_MARGIN = (1 << 7),
   ST_MATCH_CASE = (1 << 8),
 
-  ST_FIND_ACTIVATE = (1 << 9),
+  ST_FLAG_UNUSED_9 = (1 << 9), /* Dirty. */
+
 } eSpaceText_Flags;
 
 /* SpaceText.findstr/replacestr */

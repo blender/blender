@@ -304,8 +304,7 @@ static void transform_active_color(bContext *C,
   Object *obact = CTX_data_active_object(C);
 
   /* Ensure valid sculpt state. */
-  BKE_sculpt_update_object_for_edit(
-      CTX_data_ensure_evaluated_depsgraph(C), obact, true, false, true);
+  BKE_sculpt_update_object_for_edit(CTX_data_ensure_evaluated_depsgraph(C), obact, true);
 
   SCULPT_undo_push_begin(obact, op);
 

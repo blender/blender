@@ -14,8 +14,8 @@
 
 #include "BKE_customdata.hh"
 
-#include "bmesh.h"
-#include "intern/bmesh_operators_private.h" /* own include */
+#include "bmesh.hh"
+#include "intern/bmesh_operators_private.hh" /* own include */
 
 #define ELE_NEW 1
 

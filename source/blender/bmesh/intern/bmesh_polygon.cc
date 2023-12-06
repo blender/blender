@@ -26,12 +26,12 @@
 #include "BLI_polyfill_2d.h"
 #include "BLI_polyfill_2d_beautify.h"
 
-#include "bmesh.h"
-#include "bmesh_tools.h"
+#include "bmesh.hh"
+#include "bmesh_tools.hh"
 
 #include "BKE_customdata.hh"
 
-#include "intern/bmesh_private.h"
+#include "intern/bmesh_private.hh"
 
 /**
  * \brief COMPUTE POLY NORMAL (BMFace)
@@ -1115,9 +1115,9 @@ void BM_face_triangulate(BMesh *bm,
       }
 
       /* copy CD data */
-      BM_elem_attrs_copy(bm, bm, l_tri[0], l_new);
-      BM_elem_attrs_copy(bm, bm, l_tri[1], l_new->next);
-      BM_elem_attrs_copy(bm, bm, l_tri[2], l_new->prev);
+      BM_elem_attrs_copy(*bm, l_tri[0], l_new);
+      BM_elem_attrs_copy(*bm, l_tri[1], l_new->next);
+      BM_elem_attrs_copy(*bm, l_tri[2], l_new->prev);
 
       /* add all but the last face which is swapped and removed (below) */
       if (i != last_tri) {

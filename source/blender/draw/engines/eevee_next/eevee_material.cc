@@ -93,11 +93,11 @@ MaterialModule::MaterialModule(Instance &inst) : inst_(inst)
     nodeSetActive(ntree, output);
   }
   {
-    glossy_mat = (::Material *)BKE_id_new_nomain(ID_MA, "EEVEE default metal");
+    metallic_mat = (::Material *)BKE_id_new_nomain(ID_MA, "EEVEE default metal");
     bNodeTree *ntree = bke::ntreeAddTreeEmbedded(
-        nullptr, &glossy_mat->id, "Shader Nodetree", ntreeType_Shader->idname);
-    glossy_mat->use_nodes = true;
-    glossy_mat->surface_render_method = MA_SURFACE_METHOD_FORWARD;
+        nullptr, &metallic_mat->id, "Shader Nodetree", ntreeType_Shader->idname);
+    metallic_mat->use_nodes = true;
+    metallic_mat->surface_render_method = MA_SURFACE_METHOD_FORWARD;
 
     bNode *bsdf = nodeAddStaticNode(nullptr, ntree, SH_NODE_BSDF_GLOSSY);
     bNodeSocket *base_color = nodeFindSocket(bsdf, SOCK_IN, "Color");
@@ -140,7 +140,7 @@ MaterialModule::MaterialModule(Instance &inst) : inst_(inst)
 
 MaterialModule::~MaterialModule()
 {
-  BKE_id_free(nullptr, glossy_mat);
+  BKE_id_free(nullptr, metallic_mat);
   BKE_id_free(nullptr, diffuse_mat);
   BKE_id_free(nullptr, error_mat_);
 }
@@ -200,6 +200,8 @@ MaterialPass MaterialModule::material_pass_get(Object *ob,
   inst_.manager->register_layer_attributes(matpass.gpumat);
 
   if (GPU_material_recalc_flag_get(matpass.gpumat)) {
+    /* TODO(Miguel Pozo): This is broken, it consumes the flag,
+     * but GPUMats can be shared across viewports.*/
     inst_.sampling.reset();
   }
 

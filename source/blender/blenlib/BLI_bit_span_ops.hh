@@ -255,9 +255,24 @@ template<typename BitSpanT> inline bool any_bit_set(const BitSpanT &arg)
   return has_common_set_bits(arg);
 }
 
+template<typename... BitSpanT> inline bool has_common_unset_bits(const BitSpanT &...args)
+{
+  return any_set_expr([](const auto... x) { return ~(x | ...); }, args...);
+}
+
+template<typename BitSpanT> inline bool any_bit_unset(const BitSpanT &arg)
+{
+  return has_common_unset_bits(arg);
+}
+
 template<typename BitSpanT, typename Fn> inline void foreach_1_index(const BitSpanT &data, Fn &&fn)
 {
   foreach_1_index_expr([](const BitInt x) { return x; }, fn, data);
+}
+
+template<typename BitSpanT, typename Fn> inline void foreach_0_index(const BitSpanT &data, Fn &&fn)
+{
+  foreach_1_index_expr([](const BitInt x) { return ~x; }, fn, data);
 }
 
 template<typename BitSpanT1, typename BitSpanT2>

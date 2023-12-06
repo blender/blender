@@ -9,7 +9,7 @@
 #include "BKE_cryptomatte.h"
 #include "BKE_cryptomatte.hh"
 #include "BKE_image.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 
 #include "DNA_layer_types.h"
 #include "DNA_material_types.h"

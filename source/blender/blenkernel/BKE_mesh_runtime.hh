@@ -23,7 +23,7 @@ struct Scene;
 /** Return the number of derived triangles (looptris). */
 int BKE_mesh_runtime_looptri_len(const Mesh *mesh);
 
-bool BKE_mesh_runtime_ensure_edit_data(Mesh *mesh);
+void BKE_mesh_runtime_ensure_edit_data(Mesh *mesh);
 
 /**
  * Clear and free any derived caches associated with the mesh geometry data. Examples include BVH

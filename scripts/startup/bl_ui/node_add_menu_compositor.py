@@ -71,7 +71,6 @@ class NODE_MT_category_compositor_output(Menu):
 
         layout = self.layout
         node_add_menu.add_node_type(layout, "CompositorNodeComposite")
-        node_add_menu.add_node_type(layout, "CompositorNodeSplitViewer")
         node_add_menu.add_node_type(layout, "CompositorNodeViewer")
         layout.separator()
         node_add_menu.add_node_type(layout, "CompositorNodeOutputFile")
@@ -279,6 +278,7 @@ class NODE_MT_category_compositor_utilities(Menu):
         node_add_menu.add_node_type(layout, "CompositorNodeLevels")
         node_add_menu.add_node_type(layout, "CompositorNodeNormalize")
         layout.separator()
+        node_add_menu.add_node_type(layout, "CompositorNodeSplit")
         node_add_menu.add_node_type(layout, "CompositorNodeSwitch")
         node_add_menu.add_node_type(
             layout, "CompositorNodeSwitchView",

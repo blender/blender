@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'd293f72ab6e7')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'72b6c44e759b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-27 10:28:34\n"
+"POT-Creation-Date: 2023-12-04 11:06:00\n"
 "PO-Revision-Date: 2023-11-15 02:54+0000\n"
 "Last-Translator: bitigchi <bitigchi@me.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -7956,10 +7956,6 @@ msgid "Mirror"
 msgstr "Yansıt"
 
 
-msgid "Signed Distance"
-msgstr "İmzalı Uzaklık"
-
-
 msgid "Is Viewport"
 msgstr "Görüş Alanı"
 
@@ -12706,10 +12702,6 @@ msgstr "Boya Eğrisi"
 
 msgid " Materials,"
 msgstr " Malzemeler,"
-
-
-msgid " Textures,"
-msgstr " Dokular,"
 
 
 msgid "OK"

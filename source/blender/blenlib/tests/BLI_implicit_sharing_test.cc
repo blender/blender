@@ -47,10 +47,11 @@ class SharedDataContainer {
     }
     if (data_->is_mutable()) {
       data_->tag_ensured_mutable();
-      return data_.get();
     }
-    data_ = data_->copy();
-    return data_.get();
+    else {
+      data_ = data_->copy();
+    }
+    return const_cast<ImplicitlySharedData *>(data_.get());
   }
 };
 

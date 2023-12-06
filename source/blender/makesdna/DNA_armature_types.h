@@ -18,6 +18,7 @@
 #include "BLI_utildefines.h"
 
 #ifdef __cplusplus
+#  include "BLI_span.hh"
 namespace blender::animrig {
 class BoneColor;
 }
@@ -187,8 +188,15 @@ typedef struct bArmature {
   short deformflag;
   short pathflag;
 
-  /* BoneCollection. */
-  ListBase collections;
+  /** This is used only for reading/writing BoneCollections in blend
+   * files, for forwards/backwards compatibility with Blender 4.0.  It
+   * should always be empty at runtime.
+   * Use collection_array for everything other than file reading/writing. */
+  ListBase collections; /* BoneCollection. */
+
+  struct BoneCollection **collection_array; /* Array of `collection_array_num` BoneCollections. */
+  int collection_array_num;
+  char _pad2[4];
 
   /** Do not directly assign, use `ANIM_armature_bonecoll_active_set` instead.
    * This is stored as a string to make it possible for the library overrides system to understand
@@ -206,6 +214,12 @@ typedef struct bArmature {
 
   /** Keep last, for consistency with the position of other DNA runtime structures. */
   struct bArmature_Runtime runtime;
+
+#ifdef __cplusplus
+  /* Collection array access for convenient for-loop iteration. */
+  blender::Span<const BoneCollection *> collections_span() const;
+  blender::Span<BoneCollection *> collections_span();
+#endif
 } bArmature;
 
 /**

@@ -10,7 +10,7 @@
 #include "BLI_listbase_wrapper.hh"
 
 #include "BKE_collection.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 
 #include "DNA_collection_types.h"
 #include "DNA_space_types.h"

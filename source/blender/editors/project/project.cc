@@ -15,7 +15,7 @@
 #include "BKE_asset_library_custom.h"
 #include "BKE_blender_project.hh"
 #include "BKE_context.hh"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_report.h"
 
 #include "WM_api.hh"

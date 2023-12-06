@@ -58,10 +58,7 @@ float4 PlanarProbe::reflection_clip_plane_get()
 
 void PlanarProbeModule::init()
 {
-  if (assign_if_different(update_probes_, !probes_.is_empty())) {
-    instance_.sampling.reset();
-  }
-
+  update_probes_ = !probes_.is_empty();
   do_display_draw_ = false;
 }
 
@@ -136,10 +133,22 @@ void PlanarProbeModule::set_view(const draw::View &main_view, int2 main_view_ext
     world_clip_buf_.plane = probe.reflection_clip_plane_get();
     world_clip_buf_.push_update();
 
+    GBuffer &gbuf = instance_.gbuffer;
+    gbuf.acquire(extent,
+                 instance_.pipelines.deferred.closure_layer_count(),
+                 instance_.pipelines.deferred.color_layer_count());
+
     res.combined_fb.ensure(GPU_ATTACHMENT_TEXTURE_LAYER(depth_tx_, resource_index),
                            GPU_ATTACHMENT_TEXTURE_LAYER(radiance_tx_, resource_index));
 
-    instance_.pipelines.planar.render(res.view, res.combined_fb, resource_index, extent);
+    res.gbuffer_fb.ensure(GPU_ATTACHMENT_TEXTURE_LAYER(depth_tx_, resource_index),
+                          GPU_ATTACHMENT_TEXTURE_LAYER(radiance_tx_, resource_index),
+                          GPU_ATTACHMENT_TEXTURE(gbuf.header_tx),
+                          GPU_ATTACHMENT_TEXTURE_LAYER(gbuf.color_tx.layer_view(0), 0),
+                          GPU_ATTACHMENT_TEXTURE_LAYER(gbuf.closure_tx.layer_view(0), 0));
+
+    instance_.pipelines.planar.render(
+        res.view, res.combined_fb, res.gbuffer_fb, resource_index, extent);
 
     if (do_display_draw_ && probe.viewport_display) {
       display_data_buf_.get_or_resize(display_index++) = {probe.plane_to_world, resource_index};

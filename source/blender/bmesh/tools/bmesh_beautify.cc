@@ -25,8 +25,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "bmesh.h"
-#include "bmesh_beautify.h" /* own include */
+#include "bmesh.hh"
+#include "bmesh_beautify.hh" /* own include */
 
 // #define DEBUG_TIME
 

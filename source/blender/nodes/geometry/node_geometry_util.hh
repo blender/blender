@@ -120,6 +120,11 @@ void copy_with_checked_indices(const GVArray &src,
                                const IndexMask &mask,
                                GMutableSpan dst);
 
+void mix_baked_data_item(const eNodeSocketDatatype socket_type,
+                         void *prev,
+                         const void *next,
+                         const float factor);
+
 namespace enums {
 
 const EnumPropertyItem *attribute_type_type_with_socket_fn(bContext * /*C*/,

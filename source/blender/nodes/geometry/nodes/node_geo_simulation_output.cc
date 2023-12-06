@@ -168,11 +168,7 @@ bke::bake::BakeState move_values_to_simulation_state(
   return bake_state;
 }
 
-}  // namespace blender::nodes
-
-namespace blender::nodes::node_geo_simulation_output_cc {
-
-NODE_STORAGE_FUNCS(NodeGeometrySimulationOutput);
+namespace mix_baked_data_details {
 
 static bool sharing_info_equal(const ImplicitSharingInfo *a, const ImplicitSharingInfo *b)
 {
@@ -388,12 +384,15 @@ static void mix_geometries(GeometrySet &prev, const GeometrySet &next, const flo
   }
 }
 
-static void mix_simulation_state(const NodeSimulationItem &item,
-                                 void *prev,
-                                 const void *next,
-                                 const float factor)
+}  // namespace mix_baked_data_details
+
+void mix_baked_data_item(const eNodeSocketDatatype socket_type,
+                         void *prev,
+                         const void *next,
+                         const float factor)
 {
-  switch (eNodeSocketDatatype(item.socket_type)) {
+  using namespace mix_baked_data_details;
+  switch (socket_type) {
     case SOCK_GEOMETRY: {
       mix_geometries(
           *static_cast<GeometrySet *>(prev), *static_cast<const GeometrySet *>(next), factor);
@@ -405,7 +404,7 @@ static void mix_simulation_state(const NodeSimulationItem &item,
     case SOCK_BOOLEAN:
     case SOCK_ROTATION:
     case SOCK_RGBA: {
-      const CPPType &type = get_simulation_item_cpp_type(item);
+      const CPPType &type = get_simulation_item_cpp_type(socket_type);
       const bke::ValueOrFieldCPPType &value_or_field_type =
           *bke::ValueOrFieldCPPType::get_from_self(type);
       if (value_or_field_type.is_field(prev) || value_or_field_type.is_field(next)) {
@@ -426,6 +425,12 @@ static void mix_simulation_state(const NodeSimulationItem &item,
       break;
   }
 }
+
+}  // namespace blender::nodes
+
+namespace blender::nodes::node_geo_simulation_output_cc {
+
+NODE_STORAGE_FUNCS(NodeGeometrySimulationOutput);
 
 class LazyFunctionForSimulationOutputNode final : public LazyFunction {
   const bNode &node_;
@@ -578,7 +583,10 @@ class LazyFunctionForSimulationOutputNode final : public LazyFunction {
         simulation_items_, next_state, self_object, compute_context, node_, next_values);
 
     for (const int i : simulation_items_.index_range()) {
-      mix_simulation_state(simulation_items_[i], output_values[i], next_values[i], mix_factor);
+      mix_baked_data_item(eNodeSocketDatatype(simulation_items_[i].socket_type),
+                          output_values[i],
+                          next_values[i],
+                          mix_factor);
     }
 
     for (const int i : simulation_items_.index_range()) {
@@ -772,10 +780,10 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
   if (nmd.runtime->cache) {
     const bke::bake::ModifierCache &cache = *nmd.runtime->cache;
     std::lock_guard lock{cache.mutex};
-    if (const std::unique_ptr<bke::bake::NodeCache> *node_cache_ptr = cache.cache_by_id.lookup_ptr(
-            *bake_id))
+    if (const std::unique_ptr<bke::bake::SimulationNodeCache> *node_cache_ptr =
+            cache.simulation_cache_by_id.lookup_ptr(*bake_id))
     {
-      const bke::bake::NodeCache &node_cache = **node_cache_ptr;
+      const bke::bake::SimulationNodeCache &node_cache = **node_cache_ptr;
       if (node_cache.cache_status == bke::bake::CacheStatus::Baked &&
           !node_cache.frame_caches.is_empty())
       {

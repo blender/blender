@@ -31,6 +31,7 @@
 #include "BLI_utildefines.h"
 
 #include "BLI_alloca.h"
+#include "BLI_array.hh"
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
 #include "BLI_linklist.h"
@@ -52,8 +53,8 @@
 #include "BKE_lib_id.h"
 #include "BKE_lib_override.hh"
 #include "BKE_lib_query.h"
-#include "BKE_lib_remap.h"
-#include "BKE_main.h"
+#include "BKE_lib_remap.hh"
+#include "BKE_main.hh"
 #include "BKE_main_namemap.hh"
 #include "BKE_node.h"
 #include "BKE_rigidbody.h"
@@ -68,7 +69,7 @@
 
 #include "atomic_ops.h"
 
-#include "lib_intern.h"
+#include "lib_intern.hh"
 
 //#define DEBUG_TIME
 
@@ -859,15 +860,10 @@ static void id_swap(Main *bmain,
 
   /* Finalize remapping of internal references to self broken by swapping, if requested. */
   if (do_self_remap) {
-    LinkNode ids{};
-    ids.next = nullptr;
-    ids.link = id_a;
-
     BKE_libblock_relink_multiple(
-        bmain, &ids, ID_REMAP_TYPE_REMAP, remapper_id_a, self_remap_flags);
-    ids.link = id_b;
+        bmain, {id_a}, ID_REMAP_TYPE_REMAP, remapper_id_a, self_remap_flags);
     BKE_libblock_relink_multiple(
-        bmain, &ids, ID_REMAP_TYPE_REMAP, remapper_id_b, self_remap_flags);
+        bmain, {id_b}, ID_REMAP_TYPE_REMAP, remapper_id_b, self_remap_flags);
   }
 
   if (input_remapper_id_a == nullptr && remapper_id_a != nullptr) {

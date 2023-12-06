@@ -32,7 +32,7 @@
 #include "ED_transform.hh"
 #include "ED_view3d.hh"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
 #include "mesh_intern.h" /* own include */
 

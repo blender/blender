@@ -47,7 +47,7 @@ const EnumPropertyItem rna_enum_keyblock_type_items[] = {
 
 #  include "BKE_animsys.h"
 #  include "BKE_key.h"
-#  include "BKE_main.h"
+#  include "BKE_main.hh"
 
 #  include "DEG_depsgraph.hh"
 

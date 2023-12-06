@@ -36,9 +36,9 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "ANIM_bone_collections.h"
+#include "ANIM_bone_collections.hh"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
 #include "ED_armature.hh"
 #include "ED_screen.hh"

@@ -38,7 +38,7 @@
 #  include "BKE_idtype.h"
 #  include "BKE_image.h"
 #  include "BKE_lattice.hh"
-#  include "BKE_lib_remap.h"
+#  include "BKE_lib_remap.hh"
 #  include "BKE_light.h"
 #  include "BKE_lightprobe.h"
 #  include "BKE_linestyle.h"

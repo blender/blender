@@ -27,8 +27,8 @@
 
 #include "BKE_customdata.hh"
 
-#include "bmesh.h"
-#include "bmesh_log.h"
+#include "bmesh.hh"
+#include "bmesh_log.hh"
 #include "range_tree.h"
 
 #include "BLI_strict_flags.h"

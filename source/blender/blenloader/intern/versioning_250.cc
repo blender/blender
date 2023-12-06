@@ -57,7 +57,7 @@
 #include "BKE_colortools.h"
 #include "BKE_global.h" /* for G */
 #include "BKE_lib_id.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
 #include "BKE_multires.hh"

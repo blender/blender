@@ -11,6 +11,7 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
 #include "BLI_vector.hh"
+#include <string>
 
 struct Object;
 struct OBJImportParams;
@@ -35,5 +36,7 @@ Vector<Vector<int>> fixup_invalid_polygon(Span<float3> vertex_coords,
  * Apply axes transform to the Object, and clamp object dimensions to the specified value.
  */
 void transform_object(Object *object, const OBJImportParams &import_params);
+
+std::string get_geometry_name(const std::string &full_name, char separator);
 
 }  // namespace blender::io::obj

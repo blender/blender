@@ -24,7 +24,7 @@
 #include "BKE_armature.hh"
 #include "BKE_camera.h"
 #include "BKE_lib_id.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_object.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"

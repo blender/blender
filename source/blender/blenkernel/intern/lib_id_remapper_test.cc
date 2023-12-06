@@ -4,7 +4,7 @@
 
 #include "testing/testing.h"
 
-#include "BKE_lib_remap.h"
+#include "BKE_lib_remap.hh"
 
 #include "BLI_string.h"
 

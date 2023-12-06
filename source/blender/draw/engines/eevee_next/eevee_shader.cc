@@ -128,6 +128,8 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_debug_surfels";
     case DEBUG_IRRADIANCE_GRID:
       return "eevee_debug_irradiance_grid";
+    case DEBUG_GBUFFER:
+      return "eevee_debug_gbuffer";
     case DISPLAY_PROBE_GRID:
       return "eevee_display_probe_grid";
     case DISPLAY_PROBE_REFLECTION:
@@ -521,7 +523,7 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
     info.vertex_source_generated = vert_gen.str();
   }
 
-  if (!is_compute) {
+  if (!is_compute && pipeline_type != MAT_PIPE_VOLUME_OCCUPANCY) {
     frag_gen << ((codegen.material_functions) ? codegen.material_functions : "\n");
 
     if (codegen.displacement) {

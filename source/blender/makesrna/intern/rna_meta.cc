@@ -28,7 +28,7 @@
 #  include "DNA_object_types.h"
 #  include "DNA_scene_types.h"
 
-#  include "BKE_main.h"
+#  include "BKE_main.hh"
 #  include "BKE_mball.h"
 #  include "BKE_scene.h"
 

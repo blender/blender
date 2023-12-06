@@ -23,8 +23,8 @@
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
 
-#include "bmesh.h"
-#include "bmesh_tools.h"
+#include "bmesh.hh"
+#include "bmesh_tools.hh"
 
 #include "DEG_depsgraph.hh"
 

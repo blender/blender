@@ -20,7 +20,7 @@
 
 #include "BKE_blendfile.h"
 #include "BKE_global.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_report.h"
 
 #include "BLO_writefile.hh"

@@ -97,7 +97,7 @@ void DRW_vertbuf_create_wiredata(GPUVertBuf *vbo, int vert_len);
 
 void DRW_curve_batch_cache_create_requested(Object *ob, const Scene *scene);
 
-int DRW_curve_material_count_get(Curve *cu);
+int DRW_curve_material_count_get(const Curve *cu);
 
 GPUBatch *DRW_curve_batch_cache_get_wire_edge(Curve *cu);
 GPUBatch *DRW_curve_batch_cache_get_wire_edge_viewer_attribute(Curve *cu);
@@ -121,7 +121,7 @@ GPUBatch *DRW_lattice_batch_cache_get_edit_verts(Lattice *lt);
 /** \name Curves
  * \{ */
 
-int DRW_curves_material_count_get(Curves *curves);
+int DRW_curves_material_count_get(const Curves *curves);
 
 /**
  * Provide GPU access to a specific evaluated attribute on curves.
@@ -144,7 +144,7 @@ void DRW_curves_batch_cache_create_requested(Object *ob);
 /** \name PointCloud
  * \{ */
 
-int DRW_pointcloud_material_count_get(PointCloud *pointcloud);
+int DRW_pointcloud_material_count_get(const PointCloud *pointcloud);
 
 GPUVertBuf *DRW_pointcloud_position_and_radius_buffer_get(Object *ob);
 
@@ -159,7 +159,7 @@ void DRW_pointcloud_batch_cache_create_requested(Object *ob);
 /** \name Volume
  * \{ */
 
-int DRW_volume_material_count_get(Volume *volume);
+int DRW_volume_material_count_get(const Volume *volume);
 
 GPUBatch *DRW_volume_batch_cache_get_wireframes_face(Volume *volume);
 GPUBatch *DRW_volume_batch_cache_get_selection_surface(Volume *volume);

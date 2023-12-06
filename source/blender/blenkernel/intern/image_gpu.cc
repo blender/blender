@@ -24,7 +24,7 @@
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_image_partial_update.hh"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 
 #include "GPU_capabilities.h"
 #include "GPU_state.h"

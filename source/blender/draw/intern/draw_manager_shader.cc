@@ -19,7 +19,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_global.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 
 #include "DEG_depsgraph_query.hh"
 

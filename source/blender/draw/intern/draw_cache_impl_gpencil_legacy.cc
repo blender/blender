@@ -990,7 +990,7 @@ GPUBatch *DRW_cache_gpencil_edit_curve_points_get(Object *ob, int cfra)
   return cache->edit_curve_points_batch;
 }
 
-int DRW_gpencil_material_count_get(bGPdata *gpd)
+int DRW_gpencil_material_count_get(const bGPdata *gpd)
 {
   return max_ii(1, gpd->totcol);
 }

@@ -413,9 +413,8 @@ void mesh_render_data_update_normals(MeshRenderData &mr, const eMRDataType data_
     if (data_flag & (MR_DATA_POLY_NOR | MR_DATA_LOOP_NOR | MR_DATA_TAN_LOOP_NOR)) {
       mr.face_normals = mr.me->face_normals();
     }
-    if (((data_flag & MR_DATA_LOOP_NOR) && ELEM(mr.me->normals_domain(),
-                                                blender::bke::MeshNormalDomain::Corner,
-                                                blender::bke::MeshNormalDomain::Face)) ||
+    if (((data_flag & MR_DATA_LOOP_NOR) &&
+         mr.me->normals_domain() == blender::bke::MeshNormalDomain::Corner) ||
         (data_flag & MR_DATA_TAN_LOOP_NOR))
     {
       mr.loop_normals = mr.me->corner_normals();
@@ -490,7 +489,7 @@ MeshRenderData *mesh_render_data_create(Object *object,
     mr->bm = me->edit_mesh->bm;
     mr->edit_bmesh = me->edit_mesh;
     mr->me = (do_final) ? editmesh_eval_final : editmesh_eval_cage;
-    mr->edit_data = is_mode_active ? mr->me->runtime->edit_data : nullptr;
+    mr->edit_data = is_mode_active ? mr->me->runtime->edit_data.get() : nullptr;
 
     /* If there is no distinct cage, hide unmapped edges that can't be selected. */
     mr->hide_unmapped_edges = !do_final || editmesh_eval_final == editmesh_eval_cage;
@@ -498,8 +497,8 @@ MeshRenderData *mesh_render_data_create(Object *object,
     if (mr->edit_data) {
       blender::bke::EditMeshData *emd = mr->edit_data;
       if (!emd->vertexCos.is_empty()) {
-        BKE_editmesh_cache_ensure_vert_normals(mr->edit_bmesh, emd);
-        BKE_editmesh_cache_ensure_face_normals(mr->edit_bmesh, emd);
+        BKE_editmesh_cache_ensure_vert_normals(*mr->edit_bmesh, *emd);
+        BKE_editmesh_cache_ensure_face_normals(*mr->edit_bmesh, *emd);
       }
 
       mr->bm_vert_coords = mr->edit_data->vertexCos;

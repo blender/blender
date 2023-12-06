@@ -25,7 +25,7 @@
 #include "BKE_pbvh_api.hh"
 #include "BKE_pbvh_pixels.hh"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
 #include "sculpt_intern.hh"
 
@@ -579,7 +579,7 @@ bool SCULPT_use_image_paint_brush(PaintModeSettings *settings, Object *ob)
 void SCULPT_do_paint_brush_image(PaintModeSettings *paint_mode_settings,
                                  Sculpt *sd,
                                  Object *ob,
-                                 Span<PBVHNode *> texnodes)
+                                 blender::Span<PBVHNode *> texnodes)
 {
   Brush *brush = BKE_paint_brush(&sd->paint);
 

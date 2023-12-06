@@ -11,7 +11,7 @@
 #include "DNA_ID.h"
 #include "DNA_asset_types.h"
 
-#include "BKE_lib_remap.h"
+#include "BKE_lib_remap.hh"
 
 #include "asset_storage.hh"
 

@@ -93,8 +93,6 @@ static void step_object_sync_render(void *instance,
   if (object_is_visible) {
     inst.velocity.step_object_sync(ob, ob_handle.object_key, resource_handle, ob_handle.recalc);
   }
-
-  ob_handle.reset_recalc_flag();
 }
 
 void VelocityModule::step_sync(eVelocityStep step, float time)
@@ -239,11 +237,6 @@ bool VelocityModule::step_object_sync(Object *ob,
     return false;
   }
 
-  /* TODO(@fclem): Reset sampling here? Should ultimately be covered by depsgraph update tags. */
-  /* NOTE(Miguel Pozo): Disable, since is_deform is always true for objects with particle
-   * modifiers, and this causes the renderer to get stuck at sample 1. */
-  // inst_.sampling.reset();
-
   return true;
 }
 
@@ -358,14 +351,6 @@ void VelocityModule::end_sync()
     else {
       max_resource_id_ = max_uu(max_resource_id_, item.value.obj.resource_id);
     }
-  }
-
-  if (deleted_obj.size() > 0) {
-    inst_.sampling.reset();
-  }
-
-  if (inst_.is_viewport() && camera_has_motion()) {
-    inst_.sampling.reset();
   }
 
   for (auto &key : deleted_obj) {

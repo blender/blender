@@ -23,7 +23,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_idprop.h"
 #include "BKE_lib_id.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_sound.h"
 
 #include "DEG_depsgraph.hh"

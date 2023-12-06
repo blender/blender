@@ -721,9 +721,9 @@ GPUBatch *drw_cache_procedural_triangle_strips_get(void);
 void drw_uniform_attrs_pool_update(struct GHash *table,
                                    const struct GPUUniformAttrList *key,
                                    DRWResourceHandle *handle,
-                                   struct Object *ob,
-                                   struct Object *dupli_parent,
-                                   struct DupliObject *dupli_source);
+                                   const struct Object *ob,
+                                   const struct Object *dupli_parent,
+                                   const struct DupliObject *dupli_source);
 
 GPUUniformBuf *drw_ensure_layer_attribute_buffer(void);
 
@@ -737,9 +737,9 @@ void drw_engine_data_free(GPUViewport *viewport);
 struct DRW_Attributes;
 struct DRW_MeshCDMask;
 struct GPUMaterial;
-void DRW_mesh_get_attributes(struct Object *object,
-                             struct Mesh *me,
-                             struct GPUMaterial **gpumat_array,
+void DRW_mesh_get_attributes(const struct Object *object,
+                             const struct Mesh *me,
+                             const struct GPUMaterial *const *gpumat_array,
                              int gpumat_array_len,
                              struct DRW_Attributes *r_attrs,
                              struct DRW_MeshCDMask *r_cd_needed);

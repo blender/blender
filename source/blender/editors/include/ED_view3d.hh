@@ -27,7 +27,7 @@ struct Camera;
 struct CustomData_MeshMasks;
 struct Depsgraph;
 struct EditBone;
-struct GPUSelectResult;
+struct GPUSelectBuffer;
 struct ID;
 struct Main;
 struct MetaElem;
@@ -877,15 +877,6 @@ bool ED_view3d_autodist_simple(ARegion *region,
 bool ED_view3d_depth_read_cached_seg(
     const ViewDepths *vd, const int mval_sta[2], const int mval_end[2], int margin, float *depth);
 
-/**
- * The default value for the maximum number of elements that can be selected at once
- * using view-port selection.
- *
- * \note in many cases this defines the size of fixed-size stack buffers,
- * so take care increasing this value.
- */
-#define MAXPICKELEMS 2500
-
 enum eV3DSelectMode {
   /* all elements in the region, ignore depth */
   VIEW3D_SELECT_ALL = 0,
@@ -915,28 +906,21 @@ void view3d_opengl_select_cache_begin();
 void view3d_opengl_select_cache_end();
 
 /**
- * \warning be sure to account for a negative return value
- * This is an error, "Too many objects in select buffer"
- * and no action should be taken (can crash blender) if this happens
- *
  * \note (vc->obedit == NULL) can be set to explicitly skip edit-object selection.
  */
 int view3d_opengl_select_ex(ViewContext *vc,
-                            GPUSelectResult *buffer,
-                            unsigned int buffer_len,
+                            GPUSelectBuffer *buffer,
                             const rcti *input,
                             eV3DSelectMode select_mode,
                             eV3DSelectObjectFilter select_filter,
                             bool do_material_slot_selection);
 int view3d_opengl_select(ViewContext *vc,
-                         GPUSelectResult *buffer,
-                         unsigned int buffer_len,
+                         GPUSelectBuffer *buffer,
                          const rcti *input,
                          eV3DSelectMode select_mode,
                          eV3DSelectObjectFilter select_filter);
 int view3d_opengl_select_with_id_filter(ViewContext *vc,
-                                        GPUSelectResult *buffer,
-                                        unsigned int buffer_len,
+                                        GPUSelectBuffer *buffer,
                                         const rcti *input,
                                         eV3DSelectMode select_mode,
                                         eV3DSelectObjectFilter select_filter,

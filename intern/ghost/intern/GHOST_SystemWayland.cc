@@ -86,6 +86,8 @@
 #include <cstring>
 #include <mutex>
 
+#include <pthread.h> /* For setting the thread priority. */
+
 #ifdef HAVE_POLL
 #  include <poll.h>
 #endif
@@ -95,8 +97,6 @@
 
 #ifdef USE_EVENT_BACKGROUND_THREAD
 #  include "GHOST_TimerTask.hh"
-
-#  include <pthread.h>
 #endif
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
@@ -134,6 +134,11 @@ static const GWL_RegistryHandler *gwl_registry_handler_from_interface_slot(int i
 static void gwl_display_event_thread_destroy(GWL_Display *display);
 
 static void ghost_wl_display_lock_without_input(wl_display *wl_display, std::mutex *server_mutex);
+
+static void cursor_anim_begin_if_needed(GWL_Seat *seat);
+static void cursor_anim_begin(GWL_Seat *seat);
+static void cursor_anim_end(GWL_Seat *seat);
+static void cursor_anim_reset(GWL_Seat *seat);
 
 /** Default size for pending event vector. */
 constexpr size_t events_pending_default_size = 4096 / sizeof(void *);
@@ -372,6 +377,14 @@ static void gwl_simple_buffer_set_from_string(GWL_SimpleBuffer *buffer, const ch
  */
 #define EVDEV_OFFSET 8
 
+/**
+ * Data owned by the thread that updates the cursor.
+ * Exposed so the #GWL_Seat can request the thread to exit & free itself.
+ */
+struct GWL_Cursor_AnimHandle {
+  std::atomic<bool> exit_pending = false;
+};
+
 struct GWL_Cursor {
 
   /** Wayland core types. */
@@ -380,6 +393,10 @@ struct GWL_Cursor {
     wl_buffer *buffer = nullptr;
     wl_cursor_image image = {0};
     wl_cursor_theme *theme = nullptr;
+    /** Only set when the cursor is from the theme (it may be animated). */
+    wl_cursor *theme_cursor = nullptr;
+    /** Needed so changing the theme scale can reload 'theme_cursor' at a new scale. */
+    const char *theme_cursor_name = nullptr;
   } wl;
 
   bool visible = false;
@@ -395,6 +412,10 @@ struct GWL_Cursor {
   void *custom_data = nullptr;
   /** The size of `custom_data` in bytes. */
   size_t custom_data_size = 0;
+
+  /** Use for animated cursors. */
+  GWL_Cursor_AnimHandle *anim_handle = nullptr;
+
   /**
    * The name of the theme (set by an environment variable).
    * When disabled, leave as an empty string and the default theme will be used.
@@ -407,6 +428,46 @@ struct GWL_Cursor {
    * */
   int theme_size = 0;
   int custom_scale = 1;
+};
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Internal #GWL_TabletTool Type
+ * \{ */
+
+/**
+ * Collect tablet event data before the frame callback runs.
+ */
+enum class GWL_TabletTool_EventTypes {
+  Unset = -1,
+
+  Motion = 0,
+  Pressure,
+  Tilt,
+
+  /* Left mouse button. */
+  Stylus0_Down,
+  Stylus0_Up,
+  /* Middle mouse button. */
+  Stylus1_Down,
+  Stylus1_Up,
+  /* Right mouse button. */
+  Stylus2_Down,
+  Stylus2_Up,
+  /* Mouse button number 4. */
+  Stylus3_Down,
+  Stylus3_Up,
+
+  Wheel,
+#define GWL_TabletTool_FrameTypes_NUM (int(GWL_TabletTool_EventTypes::Wheel) + 1)
+};
+
+static const GHOST_TButton gwl_tablet_tool_ebutton[] = {
+    GHOST_kButtonMaskLeft,    /* `Stylus0_*`. */
+    GHOST_kButtonMaskMiddle,  /* `Stylus1_*`. */
+    GHOST_kButtonMaskRight,   /* `Stylus2_*`. */
+    GHOST_kButtonMaskButton4, /* `Stylus3_*`. */
 };
 
 /**
@@ -430,7 +491,45 @@ struct GWL_TabletTool {
   bool proximity = false;
 
   GHOST_TabletData data = GHOST_TABLET_DATA_NONE;
+
+  /** Motion. */
+  int32_t xy[2] = {0};
+  bool has_xy = false;
+
+  /**
+   * Collect data before the #zwp_tablet_tool_v2_listener::frame runs.
+   */
+  struct {
+    GWL_TabletTool_EventTypes frame_types[GWL_TabletTool_FrameTypes_NUM] = {
+        GWL_TabletTool_EventTypes::Unset,
+    };
+    int frame_types_num = 0;
+    int frame_types_mask = 0;
+
+    struct {
+      int32_t clicks = 0;
+    } wheel;
+  } frame_pending;
 };
+
+static void gwl_tablet_tool_frame_event_add(GWL_TabletTool *tablet_tool,
+                                            const GWL_TabletTool_EventTypes ty)
+{
+  const int ty_mask = 1 << int(ty);
+  /* Motion callback may run multiple times. */
+  if (tablet_tool->frame_pending.frame_types_mask & ty_mask) {
+    return;
+  }
+  tablet_tool->frame_pending.frame_types_mask |= ty_mask;
+  int i = tablet_tool->frame_pending.frame_types_num++;
+  tablet_tool->frame_pending.frame_types[i] = ty;
+}
+
+static void gwl_tablet_tool_frame_event_reset(GWL_TabletTool *tablet_tool)
+{
+  tablet_tool->frame_pending.frame_types_num = 0;
+  tablet_tool->frame_pending.frame_types_mask = 0;
+}
 
 /** \} */
 
@@ -504,6 +603,9 @@ struct GWL_KeyRepeatPlayload {
 
   xkb_keycode_t key_code;
 
+  /** Time this timer started. */
+  uint64_t time_ms_init;
+
   /**
    * Don't cache the `utf8_buf` as this changes based on modifiers which may be pressed
    * while key repeat is enabled.
@@ -572,6 +674,14 @@ struct GWL_SeatStatePointerScroll {
   bool inverted_xy[2] = {false, false};
   /** The source of scroll event. */
   enum wl_pointer_axis_source axis_source = WL_POINTER_AXIS_SOURCE_WHEEL;
+
+  /**
+   * While the time should always be available, not all callbacks set the time
+   * so account for it not being set.
+   */
+  bool has_event_ms = false;
+  /** Event time-stamp. */
+  uint64_t event_ms = 0;
 };
 
 /**
@@ -995,11 +1105,15 @@ static void gwl_seat_key_repeat_timer_add(GWL_Seat *seat,
                                           const bool use_delay)
 {
   GHOST_SystemWayland *system = seat->system;
+  const uint64_t time_now = system->getMilliSeconds();
   const uint64_t time_step = 1000 / seat->key_repeat.rate;
   const uint64_t time_start = use_delay ? seat->key_repeat.delay : time_step;
+
+  static_cast<GWL_KeyRepeatPlayload *>(payload)->time_ms_init = time_now;
+
 #ifdef USE_EVENT_BACKGROUND_THREAD
   GHOST_TimerTask *timer = new GHOST_TimerTask(
-      system->getMilliSeconds() + time_start, time_step, key_repeat_fn, payload);
+      time_now + time_start, time_step, key_repeat_fn, payload);
   seat->key_repeat.timer = timer;
   system->ghost_timer_manager()->addTimer(timer);
 #else
@@ -1084,6 +1198,15 @@ static void gwl_seat_ime_rect_reset(GWL_Seat *seat)
 
 struct GWL_RegistryEntry;
 
+/**
+ * Variables for converting input timestamps,
+ * see: #GHOST_SystemWayland::milliseconds_from_input_time.
+ */
+struct GWL_DisplayTimeStamp {
+  uint64_t last = 0;
+  uint64_t offset = 0;
+};
+
 struct GWL_Display {
 
   /** Wayland core types. */
@@ -1119,6 +1242,8 @@ struct GWL_Display {
     xdg_activation_v1 *activation_manager = nullptr;
   } xdg;
 
+  GWL_DisplayTimeStamp input_timestamp;
+
   GHOST_SystemWayland *system = nullptr;
 
   /**
@@ -1133,9 +1258,6 @@ struct GWL_Display {
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
   GWL_LibDecor_System *libdecor = nullptr;
   bool libdecor_required = false;
-#endif
-#ifdef USE_XDG_INIT_WINDOW_SIZE_HACK
-  bool xdg_decor_ignore_initial_window_size = false;
 #endif
   GWL_XDG_Decor_System *xdg_decor = nullptr;
 
@@ -1204,6 +1326,11 @@ static void gwl_display_destroy(GWL_Display *display)
     display->events_pthread_is_active = false;
   }
 #endif
+
+  /* Stop all animated cursors (freeing their #GWL_Cursor_AnimHandle). */
+  for (GWL_Seat *seat : display->seats) {
+    cursor_anim_end(seat);
+  }
 
   /* For typical WAYLAND use this will always be set.
    * However when WAYLAND isn't running, this will early-exit and be null. */
@@ -1542,6 +1669,14 @@ static void gwl_registry_entry_update_all(GWL_Display *display, const int interf
  * \{ */
 
 /**
+ * Return milliseconds from a microsecond uint32 pair (used by some wayland functions).
+ */
+static uint64_t ghost_wl_ms_from_utime_pair(uint32_t utime_hi, uint32_t utime_lo)
+{
+  return ((uint64_t(utime_hi) << 32) | uint64_t(utime_lo)) / 1000;
+}
+
+/**
  * Access the LOCALE (with a fallback).
  */
 static const char *ghost_wl_locale_from_env_with_default()
@@ -1867,6 +2002,27 @@ static const char *ghost_wl_mime_send[] = {
     "text/plain",
 };
 
+static void pthread_set_min_priority(pthread_t handle)
+{
+  int policy;
+  sched_param sch_params;
+  if (pthread_getschedparam(handle, &policy, &sch_params) == 0) {
+    sch_params.sched_priority = sched_get_priority_min(policy);
+    pthread_setschedparam(handle, policy, &sch_params);
+  }
+}
+
+static void thread_set_min_priority(std::thread &thread)
+{
+  constexpr bool is_pthread = std::is_same<std::thread::native_handle_type, pthread_t>();
+  if (!is_pthread) {
+    return;
+  }
+  /* The cast is "safe" as non-matching types will have returned already.
+   * This cast might be avoided with clever template use. */
+  pthread_set_min_priority(reinterpret_cast<pthread_t>(thread.native_handle()));
+}
+
 static int memfd_create_sealed(const char *name)
 {
 #ifdef HAVE_MEMFD_CREATE
@@ -2139,6 +2295,8 @@ static void keyboard_depressed_state_push_events_from_change(
 {
   GHOST_IWindow *win = ghost_wl_surface_user_data(seat->keyboard.wl.surface_window);
   const GHOST_SystemWayland *system = seat->system;
+  /* Caller has no time-stamp, set from system. */
+  const uint64_t event_ms = system->getMilliSeconds();
 
   /* Separate key up and down into separate passes so key down events always come after key up.
    * Do this so users of GHOST can use the last pressed or released modifier to check
@@ -2148,7 +2306,7 @@ static void keyboard_depressed_state_push_events_from_change(
     for (int d = seat->key_depressed.mods[i] - key_depressed_prev.mods[i]; d < 0; d++) {
       const GHOST_TKey gkey = GHOST_KEY_MODIFIER_FROM_INDEX(i);
       seat->system->pushEvent_maybe_pending(
-          new GHOST_EventKey(system->getMilliSeconds(), GHOST_kEventKeyUp, win, gkey, false));
+          new GHOST_EventKey(event_ms, GHOST_kEventKeyUp, win, gkey, false));
 
       CLOG_INFO(LOG, 2, "modifier (%d) up", i);
     }
@@ -2158,7 +2316,7 @@ static void keyboard_depressed_state_push_events_from_change(
     for (int d = seat->key_depressed.mods[i] - key_depressed_prev.mods[i]; d > 0; d--) {
       const GHOST_TKey gkey = GHOST_KEY_MODIFIER_FROM_INDEX(i);
       seat->system->pushEvent_maybe_pending(
-          new GHOST_EventKey(system->getMilliSeconds(), GHOST_kEventKeyDown, win, gkey, false));
+          new GHOST_EventKey(event_ms, GHOST_kEventKeyDown, win, gkey, false));
       CLOG_INFO(LOG, 2, "modifier (%d) down", i);
     }
   }
@@ -2183,7 +2341,8 @@ static CLG_LogRef LOG_WL_RELATIVE_POINTER = {"ghost.wl.handle.relative_pointer"}
  */
 static void relative_pointer_handle_relative_motion_impl(GWL_Seat *seat,
                                                          GHOST_WindowWayland *win,
-                                                         const wl_fixed_t xy[2])
+                                                         const wl_fixed_t xy[2],
+                                                         const uint64_t event_ms)
 {
   seat->pointer.xy[0] = xy[0];
   seat->pointer.xy[1] = xy[1];
@@ -2203,24 +2362,24 @@ static void relative_pointer_handle_relative_motion_impl(GWL_Seat *seat,
   }
 #endif
   const int event_xy[2] = {WL_FIXED_TO_INT_FOR_WINDOW_V2(win, seat->pointer.xy)};
-  seat->system->pushEvent_maybe_pending(new GHOST_EventCursor(seat->system->getMilliSeconds(),
-                                                              GHOST_kEventCursorMove,
-                                                              win,
-                                                              UNPACK2(event_xy),
-                                                              GHOST_TABLET_DATA_NONE));
+  seat->system->pushEvent_maybe_pending(new GHOST_EventCursor(
+      event_ms, GHOST_kEventCursorMove, win, UNPACK2(event_xy), GHOST_TABLET_DATA_NONE));
 }
 
 static void relative_pointer_handle_relative_motion(
     void *data,
     zwp_relative_pointer_v1 * /*zwp_relative_pointer_v1*/,
-    const uint32_t /*utime_hi*/,
-    const uint32_t /*utime_lo*/,
+    const uint32_t utime_hi,
+    const uint32_t utime_lo,
     const wl_fixed_t dx,
     const wl_fixed_t dy,
     const wl_fixed_t /*dx_unaccel*/,
     const wl_fixed_t /*dy_unaccel*/)
 {
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
+  const uint64_t time = ghost_wl_ms_from_utime_pair(utime_hi, utime_lo);
+  const uint64_t event_ms = seat->system->ms_from_input_time(time);
+
   if (wl_surface *wl_surface_focus = seat->pointer.wl.surface_window) {
     CLOG_INFO(LOG, 2, "relative_motion");
     GHOST_WindowWayland *win = ghost_wl_surface_user_data(wl_surface_focus);
@@ -2228,7 +2387,7 @@ static void relative_pointer_handle_relative_motion(
         seat->pointer.xy[0] + win->wl_fixed_from_window(dx),
         seat->pointer.xy[1] + win->wl_fixed_from_window(dy),
     };
-    relative_pointer_handle_relative_motion_impl(seat, win, xy_next);
+    relative_pointer_handle_relative_motion_impl(seat, win, xy_next, event_ms);
   }
   else {
     CLOG_INFO(LOG, 2, "relative_motion (skipped)");
@@ -2250,17 +2409,18 @@ static const zwp_relative_pointer_v1_listener relative_pointer_listener = {
 static CLG_LogRef LOG_WL_DATA_SOURCE = {"ghost.wl.handle.data_source"};
 #define LOG (&LOG_WL_DATA_SOURCE)
 
-static void dnd_events(const GWL_Seat *const seat, const GHOST_TEventType event)
+static void dnd_events(const GWL_Seat *const seat,
+                       const GHOST_TEventType event,
+                       const uint64_t event_ms)
 {
   /* NOTE: `seat->data_offer_dnd_mutex` must already be locked. */
   if (wl_surface *wl_surface_focus = seat->wl.surface_window_focus_dnd) {
     GHOST_WindowWayland *win = ghost_wl_surface_user_data(wl_surface_focus);
     const int event_xy[2] = {WL_FIXED_TO_INT_FOR_WINDOW_V2(win, seat->data_offer_dnd->dnd.xy)};
-    const uint64_t time = seat->system->getMilliSeconds();
     for (size_t i = 0; i < ARRAY_SIZE(ghost_wl_mime_preference_order_type); i++) {
       const GHOST_TDragnDropTypes type = ghost_wl_mime_preference_order_type[i];
       seat->system->pushEvent_maybe_pending(
-          new GHOST_EventDragnDrop(time, event, type, win, UNPACK2(event_xy), nullptr));
+          new GHOST_EventDragnDrop(event_ms, event, type, win, UNPACK2(event_xy), nullptr));
     }
   }
 }
@@ -2588,6 +2748,8 @@ static void data_device_handle_enter(void *data,
 {
   /* Always clear the current data-offer no matter what else happens. */
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
+  const uint64_t event_ms = seat->system->getMilliSeconds();
+
   std::lock_guard lock{seat->data_offer_dnd_mutex};
   if (seat->data_offer_dnd) {
     wl_data_offer_destroy(seat->data_offer_dnd->wl.id);
@@ -2627,12 +2789,14 @@ static void data_device_handle_enter(void *data,
 
   seat->system->seat_active_set(seat);
 
-  dnd_events(seat, GHOST_kEventDraggingEntered);
+  dnd_events(seat, GHOST_kEventDraggingEntered, event_ms);
 }
 
 static void data_device_handle_leave(void *data, wl_data_device * /*wl_data_device*/)
 {
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
+  const uint64_t event_ms = seat->system->getMilliSeconds();
+
   std::lock_guard lock{seat->data_offer_dnd_mutex};
   /* The user may have only dragged over the window decorations. */
   if (seat->data_offer_dnd == nullptr) {
@@ -2640,7 +2804,7 @@ static void data_device_handle_leave(void *data, wl_data_device * /*wl_data_devi
   }
   CLOG_INFO(LOG, 2, "leave");
 
-  dnd_events(seat, GHOST_kEventDraggingExited);
+  dnd_events(seat, GHOST_kEventDraggingExited, event_ms);
   seat->wl.surface_window_focus_dnd = nullptr;
 
   if (seat->data_offer_dnd && !seat->data_offer_dnd->dnd.in_use) {
@@ -2652,11 +2816,13 @@ static void data_device_handle_leave(void *data, wl_data_device * /*wl_data_devi
 
 static void data_device_handle_motion(void *data,
                                       wl_data_device * /*wl_data_device*/,
-                                      const uint32_t /*time*/,
+                                      const uint32_t time,
                                       const wl_fixed_t x,
                                       const wl_fixed_t y)
 {
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
+  const uint64_t event_ms = seat->system->ms_from_input_time(time);
+
   std::lock_guard lock{seat->data_offer_dnd_mutex};
   /* The user may have only dragged over the window decorations. */
   if (seat->data_offer_dnd == nullptr) {
@@ -2668,7 +2834,7 @@ static void data_device_handle_motion(void *data,
   seat->data_offer_dnd->dnd.xy[0] = x;
   seat->data_offer_dnd->dnd.xy[1] = y;
 
-  dnd_events(seat, GHOST_kEventDraggingUpdated);
+  dnd_events(seat, GHOST_kEventDraggingUpdated, event_ms);
 }
 
 static void data_device_handle_drop(void *data, wl_data_device * /*wl_data_device*/)
@@ -2700,6 +2866,7 @@ static void data_device_handle_drop(void *data, wl_data_device * /*wl_data_devic
                          GWL_DataOffer *data_offer,
                          wl_surface *wl_surface_window,
                          const char *mime_receive) {
+    const uint64_t event_ms = seat->system->getMilliSeconds();
     const wl_fixed_t xy[2] = {UNPACK2(data_offer->dnd.xy)};
 
     size_t data_buf_len = 0;
@@ -2763,7 +2930,7 @@ static void data_device_handle_drop(void *data, wl_data_device * /*wl_data_devic
 
       CLOG_INFO(LOG, 2, "drop_read_uris_fn file_count=%d", flist->count);
       const int event_xy[2] = {WL_FIXED_TO_INT_FOR_WINDOW_V2(win, xy)};
-      system->pushEvent_maybe_pending(new GHOST_EventDragnDrop(system->getMilliSeconds(),
+      system->pushEvent_maybe_pending(new GHOST_EventDragnDrop(event_ms,
                                                                GHOST_kEventDraggingDropDone,
                                                                GHOST_kDragnDropTypeFilenames,
                                                                win,
@@ -2879,6 +3046,11 @@ static bool update_cursor_scale(GWL_Cursor &cursor,
     wl_cursor_theme_destroy(cursor.wl.theme);
     cursor.wl.theme = wl_cursor_theme_load(
         cursor.theme_name.c_str(), scale * cursor.theme_size, shm);
+    if (cursor.wl.theme_cursor) {
+      cursor.wl.theme_cursor = wl_cursor_theme_get_cursor(cursor.wl.theme,
+                                                          cursor.wl.theme_cursor_name);
+    }
+
     return true;
   }
   return false;
@@ -2939,6 +3111,9 @@ static void pointer_handle_enter(void *data,
                                  const wl_fixed_t surface_x,
                                  const wl_fixed_t surface_y)
 {
+  GWL_Seat *seat = static_cast<GWL_Seat *>(data);
+  const uint64_t event_ms = seat->system->getMilliSeconds();
+
   /* Null when just destroyed. */
   if (!ghost_wl_surface_own_with_null_check(wl_surface)) {
     CLOG_INFO(LOG, 2, "enter (skipped)");
@@ -2948,7 +3123,6 @@ static void pointer_handle_enter(void *data,
 
   GHOST_WindowWayland *win = ghost_wl_surface_user_data(wl_surface);
 
-  GWL_Seat *seat = static_cast<GWL_Seat *>(data);
   seat->cursor_source_serial = serial;
   seat->pointer.serial = serial;
   seat->pointer.xy[0] = surface_x;
@@ -2965,11 +3139,8 @@ static void pointer_handle_enter(void *data,
   seat->system->cursor_shape_set(win->getCursorShape());
 
   const int event_xy[2] = {WL_FIXED_TO_INT_FOR_WINDOW_V2(win, seat->pointer.xy)};
-  seat->system->pushEvent_maybe_pending(new GHOST_EventCursor(seat->system->getMilliSeconds(),
-                                                              GHOST_kEventCursorMove,
-                                                              win,
-                                                              UNPACK2(event_xy),
-                                                              GHOST_TABLET_DATA_NONE));
+  seat->system->pushEvent_maybe_pending(new GHOST_EventCursor(
+      event_ms, GHOST_kEventCursorMove, win, UNPACK2(event_xy), GHOST_TABLET_DATA_NONE));
 }
 
 static void pointer_handle_leave(void *data,
@@ -2988,11 +3159,13 @@ static void pointer_handle_leave(void *data,
 
 static void pointer_handle_motion(void *data,
                                   wl_pointer * /*wl_pointer*/,
-                                  const uint32_t /*time*/,
+                                  const uint32_t time,
                                   const wl_fixed_t surface_x,
                                   const wl_fixed_t surface_y)
 {
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
+  const uint64_t event_ms = seat->system->ms_from_input_time(time);
+
   seat->pointer.xy[0] = surface_x;
   seat->pointer.xy[1] = surface_y;
 
@@ -3000,11 +3173,8 @@ static void pointer_handle_motion(void *data,
     CLOG_INFO(LOG, 2, "motion");
     GHOST_WindowWayland *win = ghost_wl_surface_user_data(wl_surface_focus);
     const int event_xy[2] = {WL_FIXED_TO_INT_FOR_WINDOW_V2(win, seat->pointer.xy)};
-    seat->system->pushEvent_maybe_pending(new GHOST_EventCursor(seat->system->getMilliSeconds(),
-                                                                GHOST_kEventCursorMove,
-                                                                win,
-                                                                UNPACK2(event_xy),
-                                                                GHOST_TABLET_DATA_NONE));
+    seat->system->pushEvent_maybe_pending(new GHOST_EventCursor(
+        event_ms, GHOST_kEventCursorMove, win, UNPACK2(event_xy), GHOST_TABLET_DATA_NONE));
   }
   else {
     CLOG_INFO(LOG, 2, "motion (skipped)");
@@ -3014,13 +3184,15 @@ static void pointer_handle_motion(void *data,
 static void pointer_handle_button(void *data,
                                   wl_pointer * /*wl_pointer*/,
                                   const uint32_t serial,
-                                  const uint32_t /*time*/,
+                                  const uint32_t time,
                                   const uint32_t button,
                                   const uint32_t state)
 {
+  GWL_Seat *seat = static_cast<GWL_Seat *>(data);
+  const uint64_t event_ms = seat->system->ms_from_input_time(time);
+
   CLOG_INFO(LOG, 2, "button (button=%u, state=%u)", button, state);
 
-  GWL_Seat *seat = static_cast<GWL_Seat *>(data);
   GHOST_TEventType etype = GHOST_kEventUnknown;
   switch (state) {
     case WL_POINTER_BUTTON_STATE_RELEASED:
@@ -3061,17 +3233,21 @@ static void pointer_handle_button(void *data,
 
   if (wl_surface *wl_surface_focus = seat->pointer.wl.surface_window) {
     GHOST_WindowWayland *win = ghost_wl_surface_user_data(wl_surface_focus);
-    seat->system->pushEvent_maybe_pending(new GHOST_EventButton(
-        seat->system->getMilliSeconds(), etype, win, ebutton, GHOST_TABLET_DATA_NONE));
+    seat->system->pushEvent_maybe_pending(
+        new GHOST_EventButton(event_ms, etype, win, ebutton, GHOST_TABLET_DATA_NONE));
   }
 }
 
 static void pointer_handle_axis(void *data,
                                 wl_pointer * /*wl_pointer*/,
-                                const uint32_t /*time*/,
+                                const uint32_t time,
                                 const uint32_t axis,
                                 const wl_fixed_t value)
 {
+  GWL_Seat *seat = static_cast<GWL_Seat *>(data);
+  seat->pointer_scroll.event_ms = seat->system->ms_from_input_time(time);
+  seat->pointer_scroll.has_event_ms = true;
+
   /* NOTE: this is used for touch based scrolling - or other input that doesn't scroll with
    * discrete "steps". This allows supporting smooth-scrolling without "touch" gesture support. */
   CLOG_INFO(LOG, 2, "axis (axis=%u, value=%d)", axis, value);
@@ -3079,14 +3255,16 @@ static void pointer_handle_axis(void *data,
   if (UNLIKELY(index == -1)) {
     return;
   }
-  GWL_Seat *seat = static_cast<GWL_Seat *>(data);
   seat->pointer_scroll.smooth_xy[index] = value;
 }
 
 static void pointer_handle_frame(void *data, wl_pointer * /*wl_pointer*/)
 {
-  CLOG_INFO(LOG, 2, "frame");
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
+  const uint64_t event_ms = seat->pointer_scroll.has_event_ms ? seat->pointer_scroll.event_ms :
+                                                                seat->system->getMilliSeconds();
+
+  CLOG_INFO(LOG, 2, "frame");
 
   /* Both discrete and smooth events may be set at once, never generate events for both
    * as this will be handling the same event in to different ways.
@@ -3113,8 +3291,8 @@ static void pointer_handle_frame(void *data, wl_pointer * /*wl_pointer*/)
     if (wl_surface *wl_surface_focus = seat->pointer.wl.surface_window) {
       GHOST_WindowWayland *win = ghost_wl_surface_user_data(wl_surface_focus);
       const int32_t discrete = seat->pointer_scroll.discrete_xy[1];
-      seat->system->pushEvent_maybe_pending(new GHOST_EventWheel(
-          seat->system->getMilliSeconds(), win, std::signbit(discrete) ? +1 : -1));
+      seat->system->pushEvent_maybe_pending(
+          new GHOST_EventWheel(event_ms, win, std::signbit(discrete) ? +1 : -1));
     }
     seat->pointer_scroll.discrete_xy[0] = 0;
     seat->pointer_scroll.discrete_xy[1] = 0;
@@ -3125,7 +3303,7 @@ static void pointer_handle_frame(void *data, wl_pointer * /*wl_pointer*/)
       GHOST_WindowWayland *win = ghost_wl_surface_user_data(wl_surface_focus);
       const int event_xy[2] = {WL_FIXED_TO_INT_FOR_WINDOW_V2(win, seat->pointer.xy)};
       seat->system->pushEvent_maybe_pending(new GHOST_EventTrackpad(
-          seat->system->getMilliSeconds(),
+          event_ms,
           win,
           GHOST_kTrackpadEventScroll,
           UNPACK2(event_xy),
@@ -3147,6 +3325,9 @@ static void pointer_handle_frame(void *data, wl_pointer * /*wl_pointer*/)
   seat->pointer_scroll.axis_source = WL_POINTER_AXIS_SOURCE_WHEEL;
   seat->pointer_scroll.inverted_xy[0] = false;
   seat->pointer_scroll.inverted_xy[1] = false;
+
+  seat->pointer_scroll.event_ms = 0;
+  seat->pointer_scroll.has_event_ms = false;
 }
 static void pointer_handle_axis_source(void *data,
                                        wl_pointer * /*wl_pointer*/,
@@ -3156,11 +3337,15 @@ static void pointer_handle_axis_source(void *data,
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
   seat->pointer_scroll.axis_source = (enum wl_pointer_axis_source)axis_source;
 }
-static void pointer_handle_axis_stop(void * /*data*/,
+static void pointer_handle_axis_stop(void *data,
                                      wl_pointer * /*wl_pointer*/,
-                                     uint32_t /*time*/,
+                                     uint32_t time,
                                      uint32_t axis)
 {
+  GWL_Seat *seat = static_cast<GWL_Seat *>(data);
+  seat->pointer_scroll.event_ms = seat->system->ms_from_input_time(time);
+  seat->pointer_scroll.has_event_ms = true;
+
   CLOG_INFO(LOG, 2, "axis_stop (axis=%u)", axis);
 }
 static void pointer_handle_axis_discrete(void *data,
@@ -3273,12 +3458,15 @@ static CLG_LogRef LOG_WL_POINTER_GESTURE_PINCH = {"ghost.wl.handle.pointer_gestu
 static void gesture_pinch_handle_begin(void *data,
                                        zwp_pointer_gesture_pinch_v1 * /*pinch*/,
                                        uint32_t /*serial*/,
-                                       uint32_t /*time*/,
+                                       uint32_t time,
                                        wl_surface * /*surface*/,
                                        uint32_t fingers)
 {
-  CLOG_INFO(LOG, 2, "begin (fingers=%u)", fingers);
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
+  (void)seat->system->ms_from_input_time(time); /* Only update internal time. */
+
+  CLOG_INFO(LOG, 2, "begin (fingers=%u)", fingers);
+
   /* Reset defaults. */
   seat->pointer_gesture_pinch = GWL_SeatStatePointerGesture_Pinch{};
 
@@ -3326,12 +3514,15 @@ static void gesture_pinch_handle_begin(void *data,
 
 static void gesture_pinch_handle_update(void *data,
                                         zwp_pointer_gesture_pinch_v1 * /*pinch*/,
-                                        uint32_t /*time*/,
+                                        uint32_t time,
                                         wl_fixed_t dx,
                                         wl_fixed_t dy,
                                         wl_fixed_t scale,
                                         wl_fixed_t rotation)
 {
+  GWL_Seat *seat = static_cast<GWL_Seat *>(data);
+  const uint64_t event_ms = seat->system->ms_from_input_time(time);
+
   CLOG_INFO(LOG,
             2,
             "update (dx=%.3f, dy=%.3f, scale=%.3f, rotation=%.3f)",
@@ -3339,8 +3530,6 @@ static void gesture_pinch_handle_update(void *data,
             wl_fixed_to_double(dy),
             wl_fixed_to_double(scale),
             wl_fixed_to_double(rotation));
-
-  GWL_Seat *seat = static_cast<GWL_Seat *>(data);
 
   GHOST_WindowWayland *win = nullptr;
 
@@ -3361,37 +3550,38 @@ static void gesture_pinch_handle_update(void *data,
   if (win) {
     const int event_xy[2] = {WL_FIXED_TO_INT_FOR_WINDOW_V2(win, seat->pointer.xy)};
     if (scale_as_delta_px) {
-      seat->system->pushEvent_maybe_pending(
-          new GHOST_EventTrackpad(seat->system->getMilliSeconds(),
-                                  win,
-                                  GHOST_kTrackpadEventMagnify,
-                                  event_xy[0],
-                                  event_xy[1],
-                                  scale_as_delta_px,
-                                  0,
-                                  false));
+      seat->system->pushEvent_maybe_pending(new GHOST_EventTrackpad(event_ms,
+                                                                    win,
+                                                                    GHOST_kTrackpadEventMagnify,
+                                                                    event_xy[0],
+                                                                    event_xy[1],
+                                                                    scale_as_delta_px,
+                                                                    0,
+                                                                    false));
     }
 
     if (rotation_as_delta_px) {
-      seat->system->pushEvent_maybe_pending(
-          new GHOST_EventTrackpad(seat->system->getMilliSeconds(),
-                                  win,
-                                  GHOST_kTrackpadEventRotate,
-                                  event_xy[0],
-                                  event_xy[1],
-                                  rotation_as_delta_px,
-                                  0,
-                                  false));
+      seat->system->pushEvent_maybe_pending(new GHOST_EventTrackpad(event_ms,
+                                                                    win,
+                                                                    GHOST_kTrackpadEventRotate,
+                                                                    event_xy[0],
+                                                                    event_xy[1],
+                                                                    rotation_as_delta_px,
+                                                                    0,
+                                                                    false));
     }
   }
 }
 
-static void gesture_pinch_handle_end(void * /*data*/,
+static void gesture_pinch_handle_end(void *data,
                                      zwp_pointer_gesture_pinch_v1 * /*pinch*/,
                                      uint32_t /*serial*/,
-                                     uint32_t /*time*/,
+                                     uint32_t time,
                                      int32_t cancelled)
 {
+  GWL_Seat *seat = static_cast<GWL_Seat *>(data);
+  (void)seat->system->ms_from_input_time(time); /* Only update internal time. */
+
   CLOG_INFO(LOG, 2, "end (cancelled=%i)", cancelled);
 }
 
@@ -3661,39 +3851,23 @@ static void tablet_tool_handle_down(void *data,
                                     zwp_tablet_tool_v2 * /*zwp_tablet_tool_v2*/,
                                     const uint32_t serial)
 {
-  CLOG_INFO(LOG, 2, "down");
-
   GWL_TabletTool *tablet_tool = static_cast<GWL_TabletTool *>(data);
   GWL_Seat *seat = tablet_tool->seat;
-  const GHOST_TButton ebutton = GHOST_kButtonMaskLeft;
-  const GHOST_TEventType etype = GHOST_kEventButtonDown;
+
+  CLOG_INFO(LOG, 2, "down");
 
   seat->data_source_serial = serial;
-  seat->tablet.buttons.set(ebutton, true);
 
-  if (wl_surface *wl_surface_focus = seat->tablet.wl.surface_window) {
-    GHOST_WindowWayland *win = ghost_wl_surface_user_data(wl_surface_focus);
-    seat->system->pushEvent_maybe_pending(new GHOST_EventButton(
-        seat->system->getMilliSeconds(), etype, win, ebutton, tablet_tool->data));
-  }
+  gwl_tablet_tool_frame_event_add(tablet_tool, GWL_TabletTool_EventTypes::Stylus0_Down);
 }
 
 static void tablet_tool_handle_up(void *data, zwp_tablet_tool_v2 * /*zwp_tablet_tool_v2*/)
 {
+  GWL_TabletTool *tablet_tool = static_cast<GWL_TabletTool *>(data);
+
   CLOG_INFO(LOG, 2, "up");
 
-  GWL_TabletTool *tablet_tool = static_cast<GWL_TabletTool *>(data);
-  GWL_Seat *seat = tablet_tool->seat;
-  const GHOST_TButton ebutton = GHOST_kButtonMaskLeft;
-  const GHOST_TEventType etype = GHOST_kEventButtonUp;
-
-  seat->tablet.buttons.set(ebutton, false);
-
-  if (wl_surface *wl_surface_focus = seat->tablet.wl.surface_window) {
-    GHOST_WindowWayland *win = ghost_wl_surface_user_data(wl_surface_focus);
-    seat->system->pushEvent_maybe_pending(new GHOST_EventButton(
-        seat->system->getMilliSeconds(), etype, win, ebutton, tablet_tool->data));
-  }
+  gwl_tablet_tool_frame_event_add(tablet_tool, GWL_TabletTool_EventTypes::Stylus0_Up);
 }
 
 static void tablet_tool_handle_motion(void *data,
@@ -3701,15 +3875,15 @@ static void tablet_tool_handle_motion(void *data,
                                       const wl_fixed_t x,
                                       const wl_fixed_t y)
 {
+  GWL_TabletTool *tablet_tool = static_cast<GWL_TabletTool *>(data);
+
   CLOG_INFO(LOG, 2, "motion");
 
-  GWL_TabletTool *tablet_tool = static_cast<GWL_TabletTool *>(data);
-  GWL_Seat *seat = tablet_tool->seat;
+  tablet_tool->xy[0] = x;
+  tablet_tool->xy[1] = y;
+  tablet_tool->has_xy = true;
 
-  seat->tablet.xy[0] = x;
-  seat->tablet.xy[1] = y;
-
-  /* NOTE: #tablet_tool_handle_frame generates the event (with updated pressure, tilt... etc). */
+  gwl_tablet_tool_frame_event_add(tablet_tool, GWL_TabletTool_EventTypes::Motion);
 }
 
 static void tablet_tool_handle_pressure(void *data,
@@ -3722,7 +3896,10 @@ static void tablet_tool_handle_pressure(void *data,
   GWL_TabletTool *tablet_tool = static_cast<GWL_TabletTool *>(data);
   GHOST_TabletData &td = tablet_tool->data;
   td.Pressure = pressure_unit;
+
+  gwl_tablet_tool_frame_event_add(tablet_tool, GWL_TabletTool_EventTypes::Pressure);
 }
+
 static void tablet_tool_handle_distance(void * /*data*/,
                                         zwp_tablet_tool_v2 * /*zwp_tablet_tool_v2*/,
                                         const uint32_t distance)
@@ -3747,6 +3924,8 @@ static void tablet_tool_handle_tilt(void *data,
   td.Ytilt = tilt_unit[1];
   CLAMP(td.Xtilt, -1.0f, 1.0f);
   CLAMP(td.Ytilt, -1.0f, 1.0f);
+
+  gwl_tablet_tool_frame_event_add(tablet_tool, GWL_TabletTool_EventTypes::Tilt);
 }
 
 static void tablet_tool_handle_rotation(void * /*data*/,
@@ -3770,77 +3949,133 @@ static void tablet_tool_handle_wheel(void *data,
   if (clicks == 0) {
     return;
   }
-  CLOG_INFO(LOG, 2, "wheel (clicks=%d)", clicks);
 
   GWL_TabletTool *tablet_tool = static_cast<GWL_TabletTool *>(data);
-  GWL_Seat *seat = tablet_tool->seat;
-  if (wl_surface *wl_surface_focus = seat->tablet.wl.surface_window) {
-    GHOST_WindowWayland *win = ghost_wl_surface_user_data(wl_surface_focus);
-    seat->system->pushEvent_maybe_pending(
-        new GHOST_EventWheel(seat->system->getMilliSeconds(), win, clicks));
-  }
+
+  CLOG_INFO(LOG, 2, "wheel (clicks=%d)", clicks);
+
+  tablet_tool->frame_pending.wheel.clicks = clicks;
+
+  gwl_tablet_tool_frame_event_add(tablet_tool, GWL_TabletTool_EventTypes::Wheel);
 }
+
 static void tablet_tool_handle_button(void *data,
                                       zwp_tablet_tool_v2 * /*zwp_tablet_tool_v2*/,
                                       const uint32_t serial,
                                       const uint32_t button,
                                       const uint32_t state)
 {
-  CLOG_INFO(LOG, 2, "button (button=%u, state=%u)", button, state);
-
   GWL_TabletTool *tablet_tool = static_cast<GWL_TabletTool *>(data);
   GWL_Seat *seat = tablet_tool->seat;
 
-  GHOST_TEventType etype = GHOST_kEventUnknown;
+  CLOG_INFO(LOG, 2, "button (button=%u, state=%u)", button, state);
+
+  bool is_press = false;
   switch (state) {
     case WL_POINTER_BUTTON_STATE_RELEASED:
-      etype = GHOST_kEventButtonUp;
+      is_press = false;
       break;
     case WL_POINTER_BUTTON_STATE_PRESSED:
-      etype = GHOST_kEventButtonDown;
-      break;
-  }
-
-  GHOST_TButton ebutton = GHOST_kButtonMaskLeft;
-  switch (button) {
-    case BTN_STYLUS:
-      ebutton = GHOST_kButtonMaskMiddle;
-      break;
-    case BTN_STYLUS2:
-      ebutton = GHOST_kButtonMaskRight;
-      break;
-    case BTN_STYLUS3:
-      ebutton = GHOST_kButtonMaskButton4;
+      is_press = true;
       break;
   }
 
   seat->data_source_serial = serial;
-  seat->tablet.buttons.set(ebutton, state == WL_POINTER_BUTTON_STATE_PRESSED);
 
-  if (wl_surface *wl_surface_focus = seat->tablet.wl.surface_window) {
-    GHOST_WindowWayland *win = ghost_wl_surface_user_data(wl_surface_focus);
-    seat->system->pushEvent_maybe_pending(new GHOST_EventButton(
-        seat->system->getMilliSeconds(), etype, win, ebutton, tablet_tool->data));
+  GWL_TabletTool_EventTypes ty = GWL_TabletTool_EventTypes::Unset;
+  switch (button) {
+    case BTN_STYLUS: {
+      ty = is_press ? GWL_TabletTool_EventTypes::Stylus1_Down :
+                      GWL_TabletTool_EventTypes::Stylus1_Up;
+      break;
+    }
+    case BTN_STYLUS2: {
+      ty = is_press ? GWL_TabletTool_EventTypes::Stylus2_Down :
+                      GWL_TabletTool_EventTypes::Stylus2_Up;
+      break;
+    }
+    case BTN_STYLUS3: {
+      ty = is_press ? GWL_TabletTool_EventTypes::Stylus3_Down :
+                      GWL_TabletTool_EventTypes::Stylus3_Up;
+      break;
+    }
+  }
+
+  if (ty != GWL_TabletTool_EventTypes::Unset) {
+    gwl_tablet_tool_frame_event_add(tablet_tool, ty);
   }
 }
 static void tablet_tool_handle_frame(void *data,
                                      zwp_tablet_tool_v2 * /*zwp_tablet_tool_v2*/,
-                                     const uint32_t /*time*/)
+                                     const uint32_t time)
 {
-  CLOG_INFO(LOG, 2, "frame");
-
   GWL_TabletTool *tablet_tool = static_cast<GWL_TabletTool *>(data);
   GWL_Seat *seat = tablet_tool->seat;
+  const uint64_t event_ms = seat->system->ms_from_input_time(time);
+
+  CLOG_INFO(LOG, 2, "frame");
 
   /* No need to check the surfaces origin, it's already known to be owned by GHOST. */
   if (wl_surface *wl_surface_focus = seat->tablet.wl.surface_window) {
     GHOST_WindowWayland *win = ghost_wl_surface_user_data(wl_surface_focus);
-    const int event_xy[2] = {WL_FIXED_TO_INT_FOR_WINDOW_V2(win, seat->tablet.xy)};
-    seat->system->pushEvent_maybe_pending(new GHOST_EventCursor(seat->system->getMilliSeconds(),
-                                                                GHOST_kEventCursorMove,
-                                                                win,
-                                                                UNPACK2(event_xy),
-                                                                tablet_tool->data));
+    bool has_motion = false;
+
+    for (int i = 0; i < tablet_tool->frame_pending.frame_types_num; i++) {
+      const GWL_TabletTool_EventTypes ty = tablet_tool->frame_pending.frame_types[i];
+      switch (ty) {
+        case GWL_TabletTool_EventTypes::Unset: {
+          GHOST_ASSERT(0, "Event types should never be Unset");
+          break;
+        }
+        /* Use motion for pressure and tilt as there are no explicit event types for these. */
+        case GWL_TabletTool_EventTypes::Motion:
+        case GWL_TabletTool_EventTypes::Pressure:
+        case GWL_TabletTool_EventTypes::Tilt: {
+          /* Only one motion event per frame. */
+          if (has_motion) {
+            break;
+          }
+          /* Can happen when there is pressure/tilt without motion. */
+          if (tablet_tool->has_xy == false) {
+            break;
+          }
+
+          seat->tablet.xy[0] = tablet_tool->xy[0];
+          seat->tablet.xy[1] = tablet_tool->xy[1];
+
+          const int event_xy[2] = {WL_FIXED_TO_INT_FOR_WINDOW_V2(win, tablet_tool->xy)};
+          seat->system->pushEvent_maybe_pending(new GHOST_EventCursor(
+              event_ms, GHOST_kEventCursorMove, win, UNPACK2(event_xy), tablet_tool->data));
+          has_motion = true;
+          break;
+        }
+        case GWL_TabletTool_EventTypes::Stylus0_Down:
+        case GWL_TabletTool_EventTypes::Stylus0_Up:
+        case GWL_TabletTool_EventTypes::Stylus1_Down:
+        case GWL_TabletTool_EventTypes::Stylus1_Up:
+        case GWL_TabletTool_EventTypes::Stylus2_Down:
+        case GWL_TabletTool_EventTypes::Stylus2_Up:
+        case GWL_TabletTool_EventTypes::Stylus3_Down:
+        case GWL_TabletTool_EventTypes::Stylus3_Up: {
+          const int button_enum_offset = int(ty) - int(GWL_TabletTool_EventTypes::Stylus0_Down);
+          const int button_index = button_enum_offset / 2;
+          const bool button_down = (button_index * 2) == button_enum_offset;
+          const GHOST_TButton ebutton = gwl_tablet_tool_ebutton[button_index];
+          const GHOST_TEventType etype = button_down ? GHOST_kEventButtonDown :
+                                                       GHOST_kEventButtonUp;
+          seat->tablet.buttons.set(ebutton, button_down);
+          seat->system->pushEvent_maybe_pending(
+              new GHOST_EventButton(event_ms, etype, win, ebutton, tablet_tool->data));
+          break;
+        }
+        case GWL_TabletTool_EventTypes::Wheel: {
+          seat->system->pushEvent_maybe_pending(
+              new GHOST_EventWheel(event_ms, win, tablet_tool->frame_pending.wheel.clicks));
+          break;
+        }
+      }
+    }
+
     if (tablet_tool->proximity == false) {
       seat->system->cursor_shape_set(win->getCursorShape());
     }
@@ -3849,6 +4084,8 @@ static void tablet_tool_handle_frame(void *data,
   if (tablet_tool->proximity == false) {
     seat->tablet.wl.surface_window = nullptr;
   }
+
+  gwl_tablet_tool_frame_event_reset(tablet_tool);
 }
 
 static const zwp_tablet_tool_v2_listener tablet_tool_listner = {
@@ -4237,11 +4474,13 @@ static void keyboard_handle_key_repeat_reset(GWL_Seat *seat, const bool use_dela
 static void keyboard_handle_key(void *data,
                                 wl_keyboard * /*wl_keyboard*/,
                                 const uint32_t serial,
-                                const uint32_t /*time*/,
+                                const uint32_t time,
                                 const uint32_t key,
                                 const uint32_t state)
 {
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
+  const uint64_t event_ms = seat->system->ms_from_input_time(time);
+
   const xkb_keycode_t key_code = key + EVDEV_OFFSET;
 
   const xkb_keysym_t sym = xkb_state_key_get_one_sym_without_modifiers(
@@ -4349,7 +4588,7 @@ static void keyboard_handle_key(void *data,
   if (wl_surface *wl_surface_focus = seat->keyboard.wl.surface_window) {
     GHOST_IWindow *win = ghost_wl_surface_user_data(wl_surface_focus);
     seat->system->pushEvent_maybe_pending(
-        new GHOST_EventKey(seat->system->getMilliSeconds(), etype, win, gkey, false, utf8_buf));
+        new GHOST_EventKey(event_ms, etype, win, gkey, false, utf8_buf));
   }
 
   /* An existing payload means the key repeat timer is reset and will be added again. */
@@ -4366,13 +4605,14 @@ static void keyboard_handle_key(void *data,
   }
 
   if (key_repeat_payload) {
-    auto key_repeat_fn = [](GHOST_ITimerTask *task, uint64_t /*time*/) {
+    auto key_repeat_fn = [](GHOST_ITimerTask *task, uint64_t time_ms) {
       GWL_KeyRepeatPlayload *payload = static_cast<GWL_KeyRepeatPlayload *>(task->getUserData());
 
       GWL_Seat *seat = payload->seat;
       if (wl_surface *wl_surface_focus = seat->keyboard.wl.surface_window) {
         GHOST_IWindow *win = ghost_wl_surface_user_data(wl_surface_focus);
         GHOST_SystemWayland *system = seat->system;
+        const uint64_t event_ms = payload->time_ms_init + time_ms;
         /* Calculate this value every time in case modifier keys are pressed. */
 
         char utf8_buf[sizeof(GHOST_TEventKeyData::utf8_buf)] = {'\0'};
@@ -4386,12 +4626,8 @@ static void keyboard_handle_key(void *data,
           xkb_state_key_get_utf8(seat->xkb.state, payload->key_code, utf8_buf, sizeof(utf8_buf));
         }
 
-        system->pushEvent_maybe_pending(new GHOST_EventKey(system->getMilliSeconds(),
-                                                           GHOST_kEventKeyDown,
-                                                           win,
-                                                           payload->key_data.gkey,
-                                                           true,
-                                                           utf8_buf));
+        system->pushEvent_maybe_pending(new GHOST_EventKey(
+            event_ms, GHOST_kEventKeyDown, win, payload->key_data.gkey, true, utf8_buf));
       }
     };
 
@@ -4741,10 +4977,11 @@ static void text_input_handle_done(void *data,
                                    zwp_text_input_v3 * /*zwp_text_input_v3*/,
                                    uint32_t /*serial*/)
 {
-  CLOG_INFO(LOG, 2, "done");
-
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
   GHOST_SystemWayland *system = seat->system;
+  const uint64_t event_ms = seat->system->getMilliSeconds();
+
+  CLOG_INFO(LOG, 2, "done");
 
   GHOST_WindowWayland *win = ghost_wl_surface_user_data(seat->ime.surface_window);
   if (seat->ime.has_commit_string_callback) {
@@ -4753,35 +4990,25 @@ static void text_input_handle_done(void *data,
       if (is_end) {
         seat->ime.has_preedit = false;
         /* `commit_string` (end). */
-        system->pushEvent_maybe_pending(new GHOST_EventIME(system->getMilliSeconds(),
-                                                           GHOST_kEventImeComposition,
-                                                           win,
-                                                           &seat->ime.event_ime_data));
-        system->pushEvent_maybe_pending(new GHOST_EventIME(system->getMilliSeconds(),
-                                                           GHOST_kEventImeCompositionEnd,
-                                                           win,
-                                                           &seat->ime.event_ime_data));
+        system->pushEvent_maybe_pending(new GHOST_EventIME(
+            event_ms, GHOST_kEventImeComposition, win, &seat->ime.event_ime_data));
+        system->pushEvent_maybe_pending(new GHOST_EventIME(
+            event_ms, GHOST_kEventImeCompositionEnd, win, &seat->ime.event_ime_data));
       }
       else {
         /* `commit_string` (continues). */
-        system->pushEvent_maybe_pending(new GHOST_EventIME(system->getMilliSeconds(),
-                                                           GHOST_kEventImeComposition,
-                                                           win,
-                                                           &seat->ime.event_ime_data));
+        system->pushEvent_maybe_pending(new GHOST_EventIME(
+            event_ms, GHOST_kEventImeComposition, win, &seat->ime.event_ime_data));
       }
     }
     else {
       /* `commit_string` ran with no active IME popup, start & end to insert text. */
-      system->pushEvent_maybe_pending(new GHOST_EventIME(system->getMilliSeconds(),
-                                                         GHOST_kEventImeCompositionStart,
-                                                         win,
-                                                         &seat->ime.event_ime_data));
       system->pushEvent_maybe_pending(new GHOST_EventIME(
-          system->getMilliSeconds(), GHOST_kEventImeComposition, win, &seat->ime.event_ime_data));
-      system->pushEvent_maybe_pending(new GHOST_EventIME(system->getMilliSeconds(),
-                                                         GHOST_kEventImeCompositionEnd,
-                                                         win,
-                                                         &seat->ime.event_ime_data));
+          event_ms, GHOST_kEventImeCompositionStart, win, &seat->ime.event_ime_data));
+      system->pushEvent_maybe_pending(new GHOST_EventIME(
+          event_ms, GHOST_kEventImeComposition, win, &seat->ime.event_ime_data));
+      system->pushEvent_maybe_pending(new GHOST_EventIME(
+          event_ms, GHOST_kEventImeCompositionEnd, win, &seat->ime.event_ime_data));
     }
 
     if (seat->ime.has_preedit == false) {
@@ -4793,17 +5020,15 @@ static void text_input_handle_done(void *data,
     if (is_end) {
       /* `preedit_string` (end). */
       seat->ime.has_preedit = false;
-      system->pushEvent_maybe_pending(new GHOST_EventIME(seat->system->getMilliSeconds(),
-                                                         GHOST_kEventImeCompositionEnd,
-                                                         win,
-                                                         &seat->ime.event_ime_data));
+      system->pushEvent_maybe_pending(new GHOST_EventIME(
+          event_ms, GHOST_kEventImeCompositionEnd, win, &seat->ime.event_ime_data));
     }
     else {
       const bool is_start = seat->ime.has_preedit == false;
       /* `preedit_string` (start or continue). */
       seat->ime.has_preedit = true;
       system->pushEvent_maybe_pending(new GHOST_EventIME(
-          seat->system->getMilliSeconds(),
+          event_ms,
           is_start ? GHOST_kEventImeCompositionStart : GHOST_kEventImeComposition,
           win,
           &seat->ime.event_ime_data));
@@ -6031,17 +6256,10 @@ static void global_handle_add(void *data,
   else {
     /* Not found. */
 #ifdef USE_GNOME_NEEDS_LIBDECOR_HACK
-    /* `gtk_shell1` at time of writing. */
-    if (STRPREFIX(interface, "gtk_shell")) {
+    if (STRPREFIX(interface, "gtk_shell")) { /* `gtk_shell1` at time of writing. */
       /* Only require `libdecor` when built with X11 support,
        * otherwise there is nothing to fall back on. */
       display->libdecor_required = true;
-    }
-#endif
-#ifdef USE_XDG_INIT_WINDOW_SIZE_HACK
-    /* `org_kde_plasma_shell` at time of writing. */
-    if (STRPREFIX(interface, "org_kde_plasma_shell")) {
-      display->xdg_decor_ignore_initial_window_size = true;
     }
 #endif
   }
@@ -6140,6 +6358,9 @@ static void gwl_display_event_thread_create(GWL_Display *display)
   display->events_pending.reserve(events_pending_default_size);
   display->events_pthread_is_active = true;
   pthread_create(&display->events_pthread, nullptr, gwl_display_event_thread_fn, display);
+  /* Application logic should take priority, this only ensures events don't accumulate when busy
+   * which typically takes a while (5+ seconds of frantic mouse motion for e.g.). */
+  pthread_set_min_priority(display->events_pthread);
   pthread_detach(display->events_pthread);
 }
 
@@ -6790,7 +7011,8 @@ static GHOST_TSuccess setCursorPositionClientRelative_impl(GWL_Seat *seat,
   };
 
   /* As the cursor was "warped" generate an event at the new location. */
-  relative_pointer_handle_relative_motion_impl(seat, win, xy_next);
+  const uint64_t event_ms = seat->system->getMilliSeconds();
+  relative_pointer_handle_relative_motion_impl(seat, win, xy_next, event_ms);
 
   return GHOST_kSuccess;
 }
@@ -7078,7 +7300,8 @@ GHOST_IWindow *GHOST_SystemWayland::createWindow(const char *title,
     if (window->getValid()) {
       m_windowManager->addWindow(window);
       m_windowManager->setActiveWindow(window);
-      pushEvent(new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowSize, window));
+      const uint64_t event_ms = getMilliSeconds();
+      pushEvent(new GHOST_Event(event_ms, GHOST_kEventWindowSize, window));
     }
     else {
       delete window;
@@ -7095,7 +7318,7 @@ GHOST_IWindow *GHOST_SystemWayland::createWindow(const char *title,
  *
  * The caller is responsible for setting `seat->cursor.visible`.
  */
-static void cursor_buffer_show(const GWL_Seat *seat)
+static void cursor_buffer_show(GWL_Seat *seat)
 {
   const GWL_Cursor *cursor = &seat->cursor;
 
@@ -7124,6 +7347,8 @@ static void cursor_buffer_show(const GWL_Seat *seat)
 #endif
     }
   }
+
+  cursor_anim_reset(seat);
 }
 
 /**
@@ -7132,8 +7357,10 @@ static void cursor_buffer_show(const GWL_Seat *seat)
  *
  * The caller is responsible for setting `seat->cursor.visible`.
  */
-static void cursor_buffer_hide(const GWL_Seat *seat)
+static void cursor_buffer_hide(GWL_Seat *seat)
 {
+  cursor_anim_end(seat);
+
   wl_pointer_set_cursor(seat->wl.pointer, seat->pointer.serial, nullptr, 0, 0);
   for (zwp_tablet_tool_v2 *zwp_tablet_tool_v2 : seat->wp.tablet_tools) {
     zwp_tablet_tool_v2_set_cursor(zwp_tablet_tool_v2, seat->tablet.serial, nullptr, 0, 0);
@@ -7156,12 +7383,11 @@ static int cursor_buffer_compatible_scale_from_image(const wl_cursor_image *wl_i
   return scale;
 }
 
-static void cursor_buffer_set_surface_impl(const GWL_Seat *seat,
+static void cursor_buffer_set_surface_impl(const wl_cursor_image *wl_image,
                                            wl_buffer *buffer,
                                            wl_surface *wl_surface,
                                            const int scale)
 {
-  const wl_cursor_image *wl_image = &seat->cursor.wl.image;
   const int32_t image_size_x = int32_t(wl_image->width);
   const int32_t image_size_y = int32_t(wl_image->height);
   GHOST_ASSERT((image_size_x % scale) == 0 && (image_size_y % scale) == 0,
@@ -7173,10 +7399,11 @@ static void cursor_buffer_set_surface_impl(const GWL_Seat *seat,
   wl_surface_commit(wl_surface);
 }
 
-static void cursor_buffer_set(const GWL_Seat *seat, wl_buffer *buffer)
+static void cursor_buffer_set(const GWL_Seat *seat,
+                              const wl_cursor_image *wl_image,
+                              wl_buffer *buffer)
 {
   const GWL_Cursor *cursor = &seat->cursor;
-  const wl_cursor_image *wl_image = &seat->cursor.wl.image;
   const bool visible = (cursor->visible && cursor->is_hardware);
 
   /* This is a requirement of WAYLAND, when this isn't the case,
@@ -7186,7 +7413,7 @@ static void cursor_buffer_set(const GWL_Seat *seat, wl_buffer *buffer)
         wl_image, cursor->is_custom ? cursor->custom_scale : seat->pointer.theme_scale);
     const int32_t hotspot_x = int32_t(wl_image->hotspot_x) / scale;
     const int32_t hotspot_y = int32_t(wl_image->hotspot_y) / scale;
-    cursor_buffer_set_surface_impl(seat, buffer, cursor->wl.surface_cursor, scale);
+    cursor_buffer_set_surface_impl(wl_image, buffer, cursor->wl.surface_cursor, scale);
     wl_pointer_set_cursor(seat->wl.pointer,
                           seat->pointer.serial,
                           visible ? cursor->wl.surface_cursor : nullptr,
@@ -7203,7 +7430,7 @@ static void cursor_buffer_set(const GWL_Seat *seat, wl_buffer *buffer)
     for (zwp_tablet_tool_v2 *zwp_tablet_tool_v2 : seat->wp.tablet_tools) {
       GWL_TabletTool *tablet_tool = static_cast<GWL_TabletTool *>(
           zwp_tablet_tool_v2_get_user_data(zwp_tablet_tool_v2));
-      cursor_buffer_set_surface_impl(seat, buffer, tablet_tool->wl.surface_cursor, scale);
+      cursor_buffer_set_surface_impl(wl_image, buffer, tablet_tool->wl.surface_cursor, scale);
       zwp_tablet_tool_v2_set_cursor(zwp_tablet_tool_v2,
                                     seat->tablet.serial,
                                     visible ? tablet_tool->wl.surface_cursor : nullptr,
@@ -7211,6 +7438,14 @@ static void cursor_buffer_set(const GWL_Seat *seat, wl_buffer *buffer)
                                     hotspot_y);
     }
   }
+}
+
+static void cursor_buffer_set_from_seat(GWL_Seat *seat)
+{
+  const GWL_Cursor *cursor = &seat->cursor;
+  cursor_anim_end(seat);
+  cursor_buffer_set(seat, &cursor->wl.image, cursor->wl.buffer);
+  cursor_anim_begin_if_needed(seat);
 }
 
 enum eCursorSetMode {
@@ -7273,6 +7508,84 @@ static bool cursor_is_software(const GHOST_TGrabCursorMode mode, const bool use_
   return false;
 }
 
+static bool cursor_anim_check(GWL_Seat *seat)
+{
+  const wl_cursor *wl_cursor = seat->cursor.wl.theme_cursor;
+  if (!wl_cursor) {
+    return false;
+  }
+  /* NOTE: return true to stress test animated cursor,
+   * to ensure (otherwise rare) issues are triggered more frequently. */
+  // return true;
+
+  return wl_cursor->image_count > 1;
+}
+
+static void cursor_anim_begin(GWL_Seat *seat)
+{
+  /* Caller must lock `server_mutex`. */
+  GHOST_ASSERT(seat->cursor.anim_handle == nullptr, "Must be cleared");
+
+  /* Callback for updating the cursor animation. */
+  auto cursor_anim_frame_step_fn =
+      [](GWL_Seat *seat, GWL_Cursor_AnimHandle *anim_handle, int delay) {
+        /* It's possible the `wl_cursor` is reloaded while the cursor is animating.
+         * Don't access outside the lock, tha's why the `delay` is passed in. */
+        std::mutex *server_mutex = seat->system->server_mutex;
+        int frame = 0;
+        while (!anim_handle->exit_pending.load()) {
+          std::this_thread::sleep_for(std::chrono::milliseconds(delay));
+          if (!anim_handle->exit_pending.load()) {
+            std::lock_guard lock_server_guard{*server_mutex};
+            if (!anim_handle->exit_pending.load()) {
+              struct wl_cursor *wl_cursor = seat->cursor.wl.theme_cursor;
+              frame = (frame + 1) % wl_cursor->image_count;
+              wl_cursor_image *image = wl_cursor->images[frame];
+              wl_buffer *buffer = wl_cursor_image_get_buffer(image);
+              cursor_buffer_set(seat, image, buffer);
+              delay = wl_cursor->images[frame]->delay;
+              /* Without this the cursor won't update when other processes are occupied. */
+              wl_display_flush(seat->system->wl_display_get());
+            }
+          }
+        }
+        delete anim_handle;
+      };
+
+  /* Allocate so this can be set before the thread begins. */
+  GWL_Cursor_AnimHandle *anim_handle = new GWL_Cursor_AnimHandle;
+  seat->cursor.anim_handle = anim_handle;
+
+  const int delay = seat->cursor.wl.theme_cursor->images[0]->delay;
+  std::thread cursor_anim_thread(cursor_anim_frame_step_fn, seat, anim_handle, delay);
+  /* Application logic should take priority. */
+  thread_set_min_priority(cursor_anim_thread);
+  cursor_anim_thread.detach();
+}
+
+static void cursor_anim_begin_if_needed(GWL_Seat *seat)
+{
+  if (cursor_anim_check(seat)) {
+    cursor_anim_begin(seat);
+  }
+}
+
+static void cursor_anim_end(GWL_Seat *seat)
+{
+  GWL_Cursor *cursor = &seat->cursor;
+  if (cursor->anim_handle) {
+    GWL_Cursor_AnimHandle *anim_handle = cursor->anim_handle;
+    cursor->anim_handle = nullptr;
+    anim_handle->exit_pending.store(true);
+  }
+}
+
+static void cursor_anim_reset(GWL_Seat *seat)
+{
+  cursor_anim_end(seat);
+  cursor_anim_begin_if_needed(seat);
+}
+
 GHOST_TSuccess GHOST_SystemWayland::cursor_shape_set(const GHOST_TStandardCursor shape)
 {
   /* Caller must lock `server_mutex`. */
@@ -7311,8 +7624,10 @@ GHOST_TSuccess GHOST_SystemWayland::cursor_shape_set(const GHOST_TStandardCursor
   cursor->is_custom = false;
   cursor->wl.buffer = buffer;
   cursor->wl.image = *image;
+  cursor->wl.theme_cursor = wl_cursor;
+  cursor->wl.theme_cursor_name = cursor_name;
 
-  cursor_buffer_set(seat, buffer);
+  cursor_buffer_set_from_seat(seat);
 
   return GHOST_kSuccess;
 }
@@ -7401,8 +7716,10 @@ GHOST_TSuccess GHOST_SystemWayland::cursor_shape_custom_set(const uint8_t *bitma
   cursor->wl.image.height = uint32_t(sizey);
   cursor->wl.image.hotspot_x = uint32_t(hotX);
   cursor->wl.image.hotspot_y = uint32_t(hotY);
+  cursor->wl.theme_cursor = nullptr;
+  cursor->wl.theme_cursor_name = nullptr;
 
-  cursor_buffer_set(seat, buffer);
+  cursor_buffer_set_from_seat(seat);
 
   return GHOST_kSuccess;
 }
@@ -7674,32 +7991,11 @@ zxdg_decoration_manager_v1 *GHOST_SystemWayland::xdg_decor_manager_get()
   return display_->xdg_decor->manager;
 }
 
-#ifdef USE_XDG_INIT_WINDOW_SIZE_HACK
-bool GHOST_SystemWayland::xdg_decor_needs_window_size_hack() const
-{
-  return display_->xdg_decor_ignore_initial_window_size;
-}
-#endif
-
 /* End `xdg_decor`. */
 
 const std::vector<GWL_Output *> &GHOST_SystemWayland::outputs_get() const
 {
   return display_->outputs;
-}
-
-const GWL_Output *GHOST_SystemWayland::outputs_get_max_native_size() const
-{
-  uint64_t area_best = 0;
-  const GWL_Output *output_best = nullptr;
-  for (const GWL_Output *output : display_->outputs) {
-    const uint64_t area_test = (uint64_t)output->size_native[0] * (uint64_t)output->size_native[1];
-    if (output_best == nullptr || area_best < area_test) {
-      output_best = output;
-      area_best = area_test;
-    }
-  }
-  return output_best;
 }
 
 wl_shm *GHOST_SystemWayland::wl_shm_get() const
@@ -7843,6 +8139,36 @@ GHOST_WindowWayland *ghost_wl_surface_user_data(wl_surface *wl_surface)
  * Functionality only used for the WAYLAND implementation.
  * \{ */
 
+uint64_t GHOST_SystemWayland::ms_from_input_time(const uint32_t timestamp_as_uint)
+{
+  /* NOTE(@ideasman42): Return a time compatible with `getMilliSeconds()`,
+   * this is needed as WAYLAND time-stamps don't have a well defined beginning
+   * use `timestamp_as_uint` to calculate an offset which is applied to future events.
+   * This is updated because time may have passed between generating the time-stamp and `now`.
+   * The method here is used by SDL. */
+
+  const uint64_t now = getMilliSeconds();
+  GWL_DisplayTimeStamp &input_timestamp = display_->input_timestamp;
+  uint64_t timestamp = uint64_t(timestamp_as_uint);
+  if (timestamp < input_timestamp.last) {
+    /* 32-bit timer rollover, bump the offset. */
+    input_timestamp.offset += uint64_t(std::numeric_limits<uint32_t>::max()) + 1;
+  }
+  input_timestamp.last = timestamp;
+
+  if (!input_timestamp.offset) {
+    input_timestamp.offset = (now - timestamp);
+  }
+  timestamp += input_timestamp.offset;
+
+  if (timestamp > now) {
+    input_timestamp.offset -= (timestamp - now);
+    timestamp = now;
+  }
+
+  return timestamp;
+}
+
 GHOST_TSuccess GHOST_SystemWayland::pushEvent_maybe_pending(const GHOST_IEvent *event)
 {
 #ifdef USE_EVENT_BACKGROUND_THREAD
@@ -7956,7 +8282,7 @@ void GHOST_SystemWayland::output_scale_update(GWL_Output *output)
         if (tablet_tool->wl.surface_cursor != nullptr) {
           update_cursor_scale(seat->cursor,
                               seat->system->wl_shm_get(),
-                              &seat->pointer,
+                              &seat->tablet,
                               tablet_tool->wl.surface_cursor);
         }
       }
@@ -8082,8 +8408,10 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
 #endif
 
       if (xy_motion_create_event) {
+        /* Caller has no time-stamp. */
+        const uint64_t event_ms = getMilliSeconds();
         seat->system->pushEvent_maybe_pending(new GHOST_EventCursor(
-            seat->system->getMilliSeconds(),
+            event_ms,
             GHOST_kEventCursorMove,
             ghost_wl_surface_user_data(wl_surface),
             wl_fixed_to_int(gwl_window_scale_wl_fixed_to(scale_params, xy_motion[0])),

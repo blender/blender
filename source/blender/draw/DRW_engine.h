@@ -217,8 +217,8 @@ void DRW_draw_cursor_2d_ex(const struct ARegion *region, const float cursor[2]);
 
 void DRW_cdlayer_attr_aliases_add(struct GPUVertFormat *format,
                                   const char *base_name,
-                                  const struct CustomData *data,
-                                  const struct CustomDataLayer *cl,
+                                  int data_type,
+                                  const char *layer_name,
                                   bool is_active_render,
                                   bool is_active_layer);
 #ifdef __cplusplus

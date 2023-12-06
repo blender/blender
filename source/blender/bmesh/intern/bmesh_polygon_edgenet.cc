@@ -25,8 +25,8 @@
 
 #include "BKE_customdata.hh"
 
-#include "bmesh.h"
-#include "intern/bmesh_private.h"
+#include "bmesh.hh"
+#include "intern/bmesh_private.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Face Split Edge-Net
@@ -590,8 +590,7 @@ bool BM_face_split_edgenet(BMesh *bm,
     do {
       BM_ITER_ELEM (l_other, &iter, l_iter->v, BM_LOOPS_OF_VERT) {
         if ((l_other->f != f) && BM_ELEM_API_FLAG_TEST(l_other->f, FACE_NET)) {
-          CustomData_bmesh_copy_data(
-              &bm->ldata, &bm->ldata, l_iter->head.data, &l_other->head.data);
+          CustomData_bmesh_copy_block(bm->ldata, l_iter->head.data, &l_other->head.data);
         }
       }
       /* tag not to interpolate */
@@ -622,8 +621,7 @@ bool BM_face_split_edgenet(BMesh *bm,
                 l_first = l_iter;
               }
               else {
-                CustomData_bmesh_copy_data(
-                    &bm->ldata, &bm->ldata, l_first->head.data, &l_iter->head.data);
+                CustomData_bmesh_copy_block(bm->ldata, l_first->head.data, &l_iter->head.data);
               }
             }
           }

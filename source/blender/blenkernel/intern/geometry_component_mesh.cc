@@ -34,14 +34,14 @@ MeshComponent::~MeshComponent()
   this->clear();
 }
 
-GeometryComponent *MeshComponent::copy() const
+GeometryComponentPtr MeshComponent::copy() const
 {
   MeshComponent *new_component = new MeshComponent();
   if (mesh_ != nullptr) {
     new_component->mesh_ = BKE_mesh_copy_for_eval(mesh_);
     new_component->ownership_ = GeometryOwnershipType::Owned;
   }
-  return new_component;
+  return GeometryComponentPtr(new_component);
 }
 
 void MeshComponent::clear()

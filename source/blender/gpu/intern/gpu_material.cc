@@ -22,7 +22,7 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_node.h"
 
@@ -346,7 +346,7 @@ void GPU_material_uniform_buffer_create(GPUMaterial *material, ListBase *inputs)
   material->ubo = GPU_uniformbuf_create_from_list(inputs, material->name);
 }
 
-ListBase GPU_material_attributes(GPUMaterial *material)
+ListBase GPU_material_attributes(const GPUMaterial *material)
 {
   return material->graph.attributes;
 }

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'd293f72ab6e7')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'72b6c44e759b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-27 10:28:34\n"
+"POT-Creation-Date: 2023-12-04 11:06:00\n"
 "PO-Revision-Date: 2023-10-12 15:54+0000\n"
 "Last-Translator: Zdeněk Doležal <Griperis@outlook.cz>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -14475,6 +14475,10 @@ msgid "Vertex Group Specials"
 msgstr "Skupina vertexů"
 
 
+msgid "Strip"
+msgstr "Proužek"
+
+
 msgid "Utilities"
 msgstr "Nástroje"
 
@@ -14554,10 +14558,6 @@ msgstr "Použít"
 
 msgid "Navigation"
 msgstr "Navigace"
-
-
-msgid "Strip"
-msgstr "Proužek"
 
 
 msgid "Inputs"
@@ -17863,10 +17863,6 @@ msgstr "Oddělit XYZ"
 
 msgid "Set Alpha"
 msgstr "Alfa"
-
-
-msgid "Split Viewer"
-msgstr "Rozdělený prohlížeč"
 
 
 msgid "Stabilize 2D"
@@ -23099,6 +23095,10 @@ msgid "Flat"
 msgstr "Ploché"
 
 
+msgid "Duplicate"
+msgstr "Zdvojit"
+
+
 msgctxt "Operator"
 msgid "Select Mode"
 msgstr "Seskupený objekt"
@@ -24028,10 +24028,6 @@ msgstr "Zdvojí vybrané vrcholy, hrany a plošky"
 
 msgid "Duplicate mesh and move"
 msgstr "Zdvojit síť"
-
-
-msgid "Duplicate"
-msgstr "Zdvojit"
 
 
 msgctxt "Operator"
@@ -41880,6 +41876,11 @@ msgstr "Svisle rozdělit"
 
 
 msgctxt "Operator"
+msgid "Sound"
+msgstr "Zvuk"
+
+
+msgctxt "Operator"
 msgid "Rename..."
 msgstr "Přejmenovat..."
 
@@ -41887,11 +41888,6 @@ msgstr "Přejmenovat..."
 msgctxt "Operator"
 msgid "Stop Tweaking Strip Actions"
 msgstr "Zrušit Akci"
-
-
-msgctxt "Operator"
-msgid "Add Tracks Above Selected"
-msgstr "Přidat stopy nad vybrané"
 
 
 msgctxt "Operator"
@@ -42012,11 +42008,6 @@ msgstr "Cesta/soubory"
 msgctxt "Operator"
 msgid "Movie"
 msgstr "Film"
-
-
-msgctxt "Operator"
-msgid "Sound"
-msgstr "Zvuk"
 
 
 msgctxt "Operator"
@@ -46286,10 +46277,6 @@ msgstr "vlastní"
 
 msgid "UV Vertex"
 msgstr "Vrchol"
-
-
-msgid "Cannot open file: %s"
-msgstr "Nelze otevřít soubor: %s"
 
 
 msgid "Bone Envelopes"

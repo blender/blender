@@ -23,14 +23,14 @@ GreasePencilComponent::~GreasePencilComponent()
   this->clear();
 }
 
-GeometryComponent *GreasePencilComponent::copy() const
+GeometryComponentPtr GreasePencilComponent::copy() const
 {
   GreasePencilComponent *new_component = new GreasePencilComponent();
   if (grease_pencil_ != nullptr) {
     new_component->grease_pencil_ = BKE_grease_pencil_copy_for_eval(grease_pencil_);
     new_component->ownership_ = GeometryOwnershipType::Owned;
   }
-  return new_component;
+  return GeometryComponentPtr(new_component);
 }
 
 void GreasePencilComponent::clear()

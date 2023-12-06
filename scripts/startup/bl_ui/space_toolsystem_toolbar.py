@@ -1654,13 +1654,17 @@ class _defs_texture_paint:
 class _defs_weight_paint:
 
     @staticmethod
-    def poll_select_mask(context):
+    def poll_select_tools(context):
         if context is None:
-            return True
+            return VIEW3D_PT_tools_active._tools_select
         ob = context.active_object
-        return (ob and ob.type == 'MESH' and
-                (ob.data.use_paint_mask or
-                 ob.data.use_paint_mask_vertex))
+        if (ob and ob.type == 'MESH' and
+            (ob.data.use_paint_mask or
+             ob.data.use_paint_mask_vertex)):
+            return VIEW3D_PT_tools_active._tools_select
+        elif context.pose_object:
+            return (_defs_view3d_select.select,)
+        return ()
 
     @staticmethod
     def generate_from_brushes(context):
@@ -3115,11 +3119,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
                 else ()
             ),
             None,
-            lambda context: (
-                VIEW3D_PT_tools_active._tools_select
-                if _defs_weight_paint.poll_select_mask(context)
-                else ()
-            ),
+            _defs_weight_paint.poll_select_tools,
             *_tools_annotate,
         ],
         'PAINT_GREASE_PENCIL': [

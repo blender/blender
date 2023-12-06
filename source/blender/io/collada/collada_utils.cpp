@@ -49,7 +49,7 @@
 #include "BKE_object.hh"
 #include "BKE_scene.h"
 
-#include "ANIM_bone_collections.h"
+#include "ANIM_bone_collections.hh"
 
 #include "ED_node.hh"
 #include "ED_object.hh"
@@ -58,8 +58,8 @@
 #include "WM_api.hh" /* XXX hrm, see if we can do without this */
 #include "WM_types.hh"
 
-#include "bmesh.h"
-#include "bmesh_tools.h"
+#include "bmesh.hh"
+#include "bmesh_tools.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"

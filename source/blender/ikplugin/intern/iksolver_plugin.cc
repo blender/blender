@@ -76,7 +76,7 @@ static void initialize_posetree(Object * /*ob*/, bPoseChannel *pchan_tip)
     PoseTree *tree;
     bKinematicConstraint *data = (bKinematicConstraint *)constraint->data;
     /* exclude tip from chain? */
-    if (!(data->flag & CONSTRAINT_IK_TIP)) {
+    if (!(data->flag & CONSTRAINT_IK_TIP) && pchan_tip->parent != nullptr) {
       pchan_tip = pchan_tip->parent;
     }
 

@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'd293f72ab6e7')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'72b6c44e759b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-27 10:28:34\n"
-"PO-Revision-Date: 2023-11-26 07:54+0000\n"
+"POT-Creation-Date: 2023-12-04 11:06:00\n"
+"PO-Revision-Date: 2023-12-04 05:17+0000\n"
 "Last-Translator: Gabriel Gazzán <gabcorreo@gmail.com>\n"
 "Language-Team: Spanish <https://translate.blender.org/projects/blender-ui/ui/es/>\n"
 "Language: es\n"
@@ -1434,12 +1434,24 @@ msgid "All"
 msgstr "Todo"
 
 
+msgid "Show assets from all of the listed asset libraries"
+msgstr "Mostrar los recursos de todas las bibliotecas de recursos listadas"
+
+
 msgid "Current File"
 msgstr "Archivo actual"
 
 
+msgid "Show the assets currently available in this Blender session"
+msgstr "Mostrar los recursos actualmente disponibles en esta sesión de Blender"
+
+
 msgid "Essentials"
 msgstr "Esenciales"
+
+
+msgid "Show the basic building blocks and utilities coming with Blender"
+msgstr "Mostrar los elementos basicos y utilidades que vienen con Blender"
 
 
 msgid "Custom"
@@ -24041,6 +24053,10 @@ msgid "Grease Pencil data-block"
 msgstr "Bloque de datos de lápiz de cera"
 
 
+msgid "Layer Groups"
+msgstr "Grupos de capas"
+
+
 msgid "Image data-block referencing an external or packed image"
 msgstr "Bloque de datos de imagen referenciando a una imagen externa o empacada"
 
@@ -24992,8 +25008,12 @@ msgid "Probe clip start, below which objects will not appear in reflections"
 msgstr "Recorte inicial de la sonda, más allá del cual los objetos no aparecerán en reflejos"
 
 
+msgid "Viewport display size of the sampled data"
+msgstr "Tamaño de visualización en la Vista 3D de los datos muestreados"
+
+
 msgid "Control how fast the probe influence decreases"
-msgstr "Permite controlar qué tan rápido decae la influencia de la sonda"
+msgstr "Permite controlar qué tan rápido decaerá la influencia de la sonda"
 
 
 msgid "Bake Samples"
@@ -25176,8 +25196,16 @@ msgid "Show the clipping distances in the 3D view"
 msgstr "Mostrar las distancias de recorte en la vista 3D"
 
 
+msgid "Display Data (Deprecated)"
+msgstr "Mostrar datos (Obsoleto)"
+
+
+msgid "Deprecated, use use_data_display instead"
+msgstr "Obsoleto, en su lugar usar use_data_display"
+
+
 msgid "Show the influence volume in the 3D view"
-msgstr "Mostrar el volumen de influencia en la vista 3D"
+msgstr "Mostrar el volumen de influencia en la Vista 3D"
 
 
 msgid "Parallax"
@@ -25200,12 +25228,28 @@ msgid "Type of light probe"
 msgstr "Tipo de sonda de luz"
 
 
+msgid "Light probe that captures precise lighting from all directions at a single point in space"
+msgstr "Sonda de luz que captura la iluminación precisa desde todas las direcciones en un punto del espacio"
+
+
+msgid "Light probe that captures incoming light from a single direction on a plane"
+msgstr "Sonda de luz que captura la luz entrante desde una sola dirección en un plano"
+
+
+msgid "Light probe that captures low frequency lighting inside a volume"
+msgstr "Sonda de luz que captura iluminación de baja frecuencia dentro de un volumen"
+
+
 msgid "Use Custom Parallax"
 msgstr "Usar paralaje personalizado"
 
 
 msgid "Enable custom settings for the parallax correction volume"
 msgstr "Habilita opciones personalizadas para el volumen de corrección de paralaje"
+
+
+msgid "Display Data"
+msgstr "Mostrar datos"
 
 
 msgid "Visibility Bleed Bias"
@@ -25403,6 +25447,14 @@ msgstr "Arte lineal"
 
 msgid "Line art settings for material"
 msgstr "Opciones de arte lineal del material"
+
+
+msgid "Max Vertex Displacement"
+msgstr "Desplazamiento máximo de vértices"
+
+
+msgid "The max distance a vertex can be displaced. Displacements over this threshold may cause visibility issues"
+msgstr "La distancia máxima que se podrá desplazar un vértice. Desplazamientos por encima de este umbral podrán causar problemas de visibilidad"
 
 
 msgid "Metallic"
@@ -35205,6 +35257,10 @@ msgid "NLA"
 msgstr "ANL"
 
 
+msgid "Strip"
+msgstr "Clip"
+
+
 msgid "Utilities"
 msgstr "Utilitarios"
 
@@ -35342,10 +35398,6 @@ msgstr "Seleccionar canal"
 
 msgid "Select Handle"
 msgstr "Seleccionar asa"
-
-
-msgid "Strip"
-msgstr "Clip"
 
 
 msgid "Inputs"
@@ -37681,7 +37733,7 @@ msgstr "Sobrescribir los datos de todos los elementos"
 
 
 msgid "Above Threshold"
-msgstr "Por sobre del umbral"
+msgstr "Por sobre el umbral"
 
 
 msgid "Only replace destination elements where data is above given threshold (exact behavior depends on data type)"
@@ -44524,10 +44576,6 @@ msgid "Replace the input image's alpha channel by the alpha input value"
 msgstr "Reemplaza el canal alfa de la imagen de entrada con el valor Alfa"
 
 
-msgid "Split Viewer"
-msgstr "Visor dividido"
-
-
 msgid "Stabilize 2D"
 msgstr "Estabilización 2D"
 
@@ -45955,14 +46003,6 @@ msgid "Shortest Edge Paths"
 msgstr "Caminos más cortos"
 
 
-msgid "Signed Distance"
-msgstr "Distancia con signo"
-
-
-msgid "Retrieve the signed distance field grid called 'distance' from a volume"
-msgstr "Proporciona la cuadrícula de campos de distancia con signo de un volumen (llamado 'distance')"
-
-
 msgid "Is Spline Cyclic"
 msgstr "Es curva cíclica"
 
@@ -46037,14 +46077,6 @@ msgstr "Seleccionar por material"
 
 msgid "Provide a selection of faces that use the specified material"
 msgstr "Proporciona una selección de caras que usan el material especificado"
-
-
-msgid "Mean Filter SDF Volume"
-msgstr "Promediar volumen SDF"
-
-
-msgid "Smooth the surface of an SDF volume by applying a mean filter"
-msgstr "Suaviza la superficie de un volumen SDF aplicando un filtro de promedio"
 
 
 msgid "Merge by Distance"
@@ -46183,20 +46215,12 @@ msgid "Create a point in the point cloud for each selected face corner"
 msgstr "Crear un punto en la nube de puntos para cada esquina de la cara seleccionada"
 
 
-msgid "Mesh to SDF Volume"
-msgstr "Malla a volumen SDF"
-
-
-msgid "Create an SDF volume with the shape of the input mesh's surface"
-msgstr "Crea un volumen SDF con la forma de la superficie de la malla de entrada"
+msgid "Create a fog volume with the shape of the input mesh's surface"
+msgstr "Crea un volumen de humo con la forma de la superficie de la malla de entrada"
 
 
 msgid "How the voxel size is specified"
 msgstr "Modo de especificar el tamaño de los vóxeles"
-
-
-msgid "Create a fog volume with the shape of the input mesh's surface"
-msgstr "Crea un volumen de humo con la forma de la superficie de la malla de entrada"
 
 
 msgid "UV Sphere"
@@ -46243,14 +46267,6 @@ msgid "Offset a control point index within its curve"
 msgstr "Desplaza el identificador de un punto de control dentro de su curva"
 
 
-msgid "Offset SDF Volume"
-msgstr "Desplazar volumen SDF"
-
-
-msgid "Move the surface of an SDF volume inwards or outwards"
-msgstr "Mueve la superficie de un volumen SDF hacia adentro o afuera"
-
-
 msgid "Generate a point cloud with positions and radii defined by fields"
 msgstr "Genera una nube de puntos con ubicaciones y radios definidos mediante campos"
 
@@ -46271,22 +46287,6 @@ msgid "Split all points to curve by its group ID and reorder by weight"
 msgstr "Genera curvas usando puntos, dividiéndolas según el ID de grupo de cada punto y ordenando los puntos de cada curva mediante su valor de influencia"
 
 
-msgid "Points to SDF Volume"
-msgstr "Puntos a volumen SDF"
-
-
-msgid "Generate an SDF volume sphere around every point"
-msgstr "Genera un volumen SDF esférico alrededor de cada punto"
-
-
-msgid "Specify the approximate number of voxels along the diagonal"
-msgstr "Especificar la cantidad aproximada de vóxeles a lo largo de la diagonal"
-
-
-msgid "Specify the voxel side length"
-msgstr "Especificar la longitud lateral de los vóxeles"
-
-
 msgid "Points to Vertices"
 msgstr "Puntos a vértices"
 
@@ -46301,6 +46301,14 @@ msgstr "Puntos a volumen"
 
 msgid "Generate a fog volume sphere around every point"
 msgstr "Genera un volumen esférico de humo alrededor de cada punto"
+
+
+msgid "Specify the approximate number of voxels along the diagonal"
+msgstr "Especificar la cantidad aproximada de vóxeles a lo largo de la diagonal"
+
+
+msgid "Specify the voxel side length"
+msgstr "Especificar la longitud lateral de los vóxeles"
 
 
 msgid "Geometry Proximity"
@@ -46447,14 +46455,6 @@ msgid "Rotate geometry instances in local or global space"
 msgstr "Rota la geometría de las instancias en espacio local o global"
 
 
-msgid "SDF Volume Sphere"
-msgstr "Volumen SDF esférico"
-
-
-msgid "Generate an SDF Volume Sphere"
-msgstr "Genera un volumen SDF con forma esférica"
-
-
 msgid "Sample Curve"
 msgstr "Muestrear curva"
 
@@ -46517,42 +46517,6 @@ msgstr "Muestrear superficie UV"
 
 msgid "Calculate the interpolated values of a mesh attribute at a UV coordinate"
 msgstr "Calcula los valores interpolados de un atributo de la malla en una coordenada UV"
-
-
-msgid "Sample Volume"
-msgstr "Muestrear volumen"
-
-
-msgid "Calculate the interpolated values of a Volume grid at the specified position"
-msgstr "Calcula los valores interpolados de la cuadrícula de un volumen en la posición especificada"
-
-
-msgid "Grid Type"
-msgstr "Tipo de cuadrícula"
-
-
-msgid "Type of grid to sample data from"
-msgstr "Tipo de cuadrícula desde la cual tomar muestras de datos"
-
-
-msgid "Interpolation Mode"
-msgstr "Modo de interpolación"
-
-
-msgid "How to interpolate the values from neighboring voxels"
-msgstr "Cómo interpolar los valores a partir de los vóxeles cercanos"
-
-
-msgid "Nearest Neighbor"
-msgstr "Más cercano"
-
-
-msgid "Trilinear"
-msgstr "Trilineal"
-
-
-msgid "Triquadratic"
-msgstr "Tricuadrático"
 
 
 msgid "Scale Elements"
@@ -60894,6 +60858,10 @@ msgid "Enter/Exit draw mode for grease pencil"
 msgstr "Ingresar/Salir del modo de dibujo de lápiz de cera"
 
 
+msgid "Duplicate"
+msgstr "Duplicar"
+
+
 msgid "Insert a blank frame on the current scene frame"
 msgstr "Inserta un fotograma en blanco en el fotograma actual de la escena"
 
@@ -63342,10 +63310,6 @@ msgid "Duplicate mesh and move"
 msgstr "Duplicar malla y mover"
 
 
-msgid "Duplicate"
-msgstr "Duplicar"
-
-
 msgctxt "Operator"
 msgid "Collapse Edges & Faces"
 msgstr "Colapsar bordes y caras"
@@ -65391,7 +65355,7 @@ msgstr "Aplica las posiciones de los vértices seleccionados a todas las restant
 
 
 msgid "Edge Tag"
-msgstr "Etiqueta de borde"
+msgstr "Etiquetar bordes"
 
 
 msgid "The edge flag to tag when selecting the shortest path"
@@ -75701,15 +75665,6 @@ msgstr "Gesto de proyectar línea"
 
 msgid "Project the geometry onto a plane defined by a line"
 msgstr "Proyecta la geometría sobre un plano definido mediante una línea"
-
-
-msgctxt "Operator"
-msgid "Reveal All"
-msgstr "Revelar todo"
-
-
-msgid "Unhide all geometry"
-msgstr "Vuelve a mostrar toda la geometría"
 
 
 msgid "Sample the vertex color of the active vertex"
@@ -86114,7 +86069,7 @@ msgstr "Modo Edición de Mallas"
 
 
 msgid "Measurement"
-msgstr "Medida"
+msgstr "Medición"
 
 
 msgid "Motion Tracking"
@@ -104704,7 +104659,7 @@ msgstr "Muestra textos sobreimpresos"
 
 
 msgid "Display Vertex Normals"
-msgstr "Mostrar normales vértices"
+msgstr "Mostrar normales de vértices"
 
 
 msgid "Display vertex normals as lines"
@@ -109702,7 +109657,7 @@ msgstr "Sobreimpresos personalizados"
 
 
 msgid "Object Extras"
-msgstr "Opciones extra"
+msgstr "Objetos adicionales"
 
 
 msgid "Controller Style"
@@ -111530,6 +111485,18 @@ msgid "Invert"
 msgstr "Invertir"
 
 
+msgid "Max Displacement"
+msgstr "Desplazamiento máx"
+
+
+msgid "Render Method"
+msgstr "Método de procesamiento"
+
+
+msgid "Light Probe Volume"
+msgstr "Sonda de luz Volumen"
+
+
 msgid "Intersection"
 msgstr "Intersección"
 
@@ -111542,14 +111509,26 @@ msgid "Custom Occlusion"
 msgstr "Oclusión personalizada"
 
 
-msgctxt "Operator"
-msgid "Lock Unused"
-msgstr "Bloquear no usados"
+msgid "Unsupported displacement method"
+msgstr "Método de desplazamiento no soportado"
+
+
+msgid "Transparency Overlap"
+msgstr "Superposición de transparencias"
+
+
+msgid "Raytraced Refraction"
+msgstr "Refracción por trazado de rayos"
 
 
 msgctxt "Operator"
 msgid "Lock Unselected"
 msgstr "Bloquear no seleccionados"
+
+
+msgctxt "Operator"
+msgid "Lock Unused"
+msgstr "Bloquear no usados"
 
 
 msgctxt "Operator"
@@ -113655,8 +113634,8 @@ msgstr "Pantalla completa"
 
 
 msgctxt "Operator"
-msgid "Track Ordering..."
-msgstr "Orden de pistas..."
+msgid "Sound"
+msgstr "Sonido"
 
 
 msgctxt "Operator"
@@ -113665,13 +113644,13 @@ msgstr "Renombrar..."
 
 
 msgctxt "Operator"
-msgid "Stop Tweaking Strip Actions"
-msgstr "Terminar de retocar acciones de clips"
+msgid "Track Ordering..."
+msgstr "Orden de pistas..."
 
 
 msgctxt "Operator"
-msgid "Add Tracks Above Selected"
-msgstr "Agregar pistas sobre la seleccionada"
+msgid "Stop Tweaking Strip Actions"
+msgstr "Terminar de retocar acciones de clips"
 
 
 msgctxt "Operator"
@@ -114065,11 +114044,6 @@ msgstr "Saltar al clip siguiente (centro)"
 msgctxt "Operator"
 msgid "Movie"
 msgstr "Película"
-
-
-msgctxt "Operator"
-msgid "Sound"
-msgstr "Sonido"
 
 
 msgctxt "Operator"
@@ -116605,7 +116579,7 @@ msgstr "Análisis de mallas"
 
 
 msgid "Face Angle"
-msgstr "Ángulo entre caras"
+msgstr "Ángulo de caras"
 
 
 msgid "Edge Marks"
@@ -122782,14 +122756,6 @@ msgid "Cannot make library override from a local object"
 msgstr "No es posible realizar una redefinición de biblioteca a partir de un objeto local"
 
 
-msgid "The node group must have a geometry input socket"
-msgstr "El grupo de nodos debe contener un conector de entrada de geometría"
-
-
-msgid "The first input must be a geometry socket"
-msgstr "La primer entrada debe ser un conector de geometría"
-
-
 msgid "The node group must have a geometry output socket"
 msgstr "El grupo de nodos debe contener un conector de salida de geometría"
 
@@ -123785,10 +123751,6 @@ msgstr " UV,"
 
 msgid " Materials,"
 msgstr " Materiales,"
-
-
-msgid " Textures,"
-msgstr " Texturas,"
 
 
 msgid " Stencil,"
@@ -127172,10 +127134,6 @@ msgstr "Freestyle: Creación del mapa de la vista"
 
 msgid "Freestyle: Stroke rendering"
 msgstr "Freestyle: Procesamiento de trazos"
-
-
-msgid "Cannot open file: %s"
-msgstr "No es posible abrir el archivo: %s"
 
 
 msgid "Bind To"
@@ -131127,14 +131085,6 @@ msgid "Disabled, Blender was compiled without OpenSubdiv"
 msgstr "Deshabilitado, Blender fue compilado sin soporte para OpenSubdiv"
 
 
-msgid "Half-Band Width"
-msgstr "Medio ancho de banda"
-
-
-msgid "Half the width of the narrow band in voxel units"
-msgstr "La mitad del ancho de la banda angosta (en vóxeles)"
-
-
 msgid "Corner Index"
 msgstr "Identificador de esquina"
 
@@ -131435,36 +131385,12 @@ msgid "Whether the node could find a single face to sample at the UV coordinate"
 msgstr "Indica si el nodo fue capaz de encontrar una cara individual de la cual tomar una muestra en esa coordenada UV"
 
 
-msgid "Grid name needs to be specified"
-msgstr "El nombre de la cuadrícula necesita ser especificado"
-
-
-msgid "The grid type is unsupported"
-msgstr "El tipo de cuadrícula no es soportado"
-
-
-msgid "Expects a Named Attribute with the name of a Grid in the Volume"
-msgstr "Se espera un atributo con el nombre de una cuadrícula del volumen"
-
-
 msgid "Origin of the scaling for each element. If multiple elements are connected, their center is averaged"
 msgstr "Origen de escalado de cada elemento. Si varios elementos se encontraran conectados entre sí, su centro se promediará"
 
 
 msgid "Direction in which to scale the element"
 msgstr "Dirección en la cual escalar el elemento"
-
-
-msgid "Radius must be greater than 0"
-msgstr "El radio debe ser mayor que 0"
-
-
-msgid "Half-band width must be greater than 1"
-msgstr "La mitad del ancho de banda debe ser mayor que 1"
-
-
-msgid "Voxel size is too small"
-msgstr "El tamaño del vóxel es demasiado pequeño"
 
 
 msgid "The parts of the geometry that go into the first output"

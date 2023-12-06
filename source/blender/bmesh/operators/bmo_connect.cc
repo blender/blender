@@ -13,9 +13,9 @@
 #include "BLI_utildefines.h"
 #include "BLI_utildefines_stack.h"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
-#include "intern/bmesh_operators_private.h" /* own include */
+#include "intern/bmesh_operators_private.hh" /* own include */
 
 #define VERT_INPUT 1
 

@@ -153,11 +153,13 @@ GPU_SHADER_CREATE_INFO(eevee_surf_deferred)
     .early_fragment_test(true)
     /* Direct output. (Emissive, Holdout) */
     .fragment_out(0, Type::VEC4, "out_radiance")
+    .fragment_out(1, Type::UINT, "out_gbuf_header")
+    .fragment_out(2, Type::VEC4, "out_gbuf_color")
+    .fragment_out(3, Type::VEC4, "out_gbuf_closure")
     /* Everything is stored inside a two layered target, one for each format. This is to fit the
      * limitation of the number of images we can bind on a single shader. */
     .image_array_out(GBUF_CLOSURE_SLOT, Qualifier::WRITE, GPU_RGBA16, "out_gbuf_closure_img")
     .image_array_out(GBUF_COLOR_SLOT, Qualifier::WRITE, GPU_RGB10_A2, "out_gbuf_color_img")
-    .image(GBUF_HEADER_SLOT, GPU_R8UI, Qualifier::WRITE, ImageType::UINT_2D, "out_gbuf_header_img")
     .fragment_source("eevee_surf_deferred_frag.glsl")
     .additional_info("eevee_global_ubo",
                      "eevee_utility_texture",

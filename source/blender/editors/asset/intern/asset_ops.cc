@@ -15,7 +15,7 @@
 #include "BKE_bpath.h"
 #include "BKE_context.hh"
 #include "BKE_lib_id.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_report.h"
 
 #include "BLI_fileops.h" /* MSVC needs this for `PATH_MAX` */

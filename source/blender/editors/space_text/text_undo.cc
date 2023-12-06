@@ -21,7 +21,7 @@
 #include "PIL_time.h"
 
 #include "BKE_context.hh"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_report.h"
 #include "BKE_text.h"
 #include "BKE_undo_system.h"

@@ -55,7 +55,7 @@
 
 #include "UI_resources.hh"
 
-#include "bmesh_tools.h"
+#include "bmesh_tools.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"

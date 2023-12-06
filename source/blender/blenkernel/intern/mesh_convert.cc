@@ -38,7 +38,7 @@
 #include "BKE_key.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_mball.h"
 #include "BKE_mesh.hh"
@@ -690,8 +690,12 @@ static void curve_to_mesh_eval_ensure(Object &object)
    * Brecht says hold off with that. */
   BKE_displist_make_curveTypes(nullptr, nullptr, &object, true);
 
-  BKE_object_runtime_free_data(&bevel_object);
-  BKE_object_runtime_free_data(&taper_object);
+  if (bevel_object.runtime) {
+    BKE_object_runtime_free_data(&bevel_object);
+  }
+  if (taper_object.runtime) {
+    BKE_object_runtime_free_data(&taper_object);
+  }
 }
 
 static const Curves *get_evaluated_curves_from_object(const Object *object)

@@ -2054,7 +2054,7 @@ bool isect_ray_line_v3(const float ray_origin[3],
   return true;
 }
 
-bool isect_point_planes_v3(float (*planes)[4], int totplane, const float p[3])
+bool isect_point_planes_v3(const float (*planes)[4], int totplane, const float p[3])
 {
   int i;
 

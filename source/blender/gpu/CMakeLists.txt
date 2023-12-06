@@ -100,7 +100,7 @@ set(SRC
   GPU_matrix.h
   GPU_platform.h
   GPU_primitive.h
-  GPU_select.h
+  GPU_select.hh
   GPU_shader.h
   GPU_shader_builtin.h
   GPU_shader_shared.h

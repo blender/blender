@@ -6,6 +6,10 @@ if(HAVE_MALLOC_STATS_H)
   add_definitions(-DHAVE_MALLOC_STATS_H)
 endif()
 
+if(WITH_MEM_VALGRIND)
+  add_definitions(-DWITH_MEM_VALGRIND)
+endif()
+
 set(INC
   PUBLIC .
 )

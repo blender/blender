@@ -56,7 +56,7 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
 using blender::Array;
 using blender::float3;
@@ -391,7 +391,7 @@ static void do_relax_face_sets_brush_task(Object *ob,
   BKE_pbvh_vertex_iter_end;
 }
 
-void SCULPT_do_draw_face_sets_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
+void SCULPT_do_draw_face_sets_brush(Sculpt *sd, Object *ob, blender::Span<PBVHNode *> nodes)
 {
   using namespace blender;
   SculptSession *ss = ob->sculpt;
@@ -478,7 +478,7 @@ static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
   ss->face_sets = BKE_sculpt_face_sets_ensure(ob);
   Mesh *mesh = static_cast<Mesh *>(ob->data);
 
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, mode == SCULPT_FACE_SET_MASKED, false);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, false);
 
   const int tot_vert = SCULPT_vertex_count_get(ss);
   float threshold = 0.5f;
@@ -743,7 +743,7 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
 
   const int mode = RNA_enum_get(op->ptr, "mode");
 
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, false);
 
   /* Dyntopo not supported. */
   if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
@@ -918,7 +918,7 @@ static int sculpt_face_set_change_visibility_exec(bContext *C, wmOperator *op)
 
   Mesh *mesh = BKE_object_get_original_mesh(ob);
 
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, false);
 
   /* Not supported for dyntopo. */
   if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
@@ -1429,7 +1429,7 @@ static void sculpt_face_set_edit_modify_geometry(bContext *C,
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, mesh);
 }
 
-static void face_set_edit_do_post_visibility_updates(Object *ob, Span<PBVHNode *> nodes)
+static void face_set_edit_do_post_visibility_updates(Object *ob, blender::Span<PBVHNode *> nodes)
 {
   SculptSession *ss = ob->sculpt;
 
@@ -1507,7 +1507,7 @@ static bool sculpt_face_set_edit_init(bContext *C, wmOperator *op)
   }
 
   ss->face_sets = BKE_sculpt_face_sets_ensure(ob);
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, false);
 
   return true;
 }
@@ -1550,7 +1550,7 @@ static int sculpt_face_set_edit_invoke(bContext *C, wmOperator *op, const wmEven
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
 
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, false);
 
   /* Update the current active Face Set and Vertex as the operator can be used directly from the
    * tool without brush cursor. */
@@ -1601,7 +1601,7 @@ static int sculpt_face_sets_invert_visibility_exec(bContext *C, wmOperator *op)
   Mesh *mesh = static_cast<Mesh *>(ob->data);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
 
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, false);
 
   /* Not supported for dyntopo. */
   if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {

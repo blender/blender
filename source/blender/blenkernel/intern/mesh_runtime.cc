@@ -47,15 +47,6 @@ static void free_mesh_eval(MeshRuntime &mesh_runtime)
   }
 }
 
-static void free_subdiv_ccg(MeshRuntime &mesh_runtime)
-{
-  /* TODO(sergey): Does this really belong here? */
-  if (mesh_runtime.subdiv_ccg != nullptr) {
-    BKE_subdiv_ccg_destroy(mesh_runtime.subdiv_ccg);
-    mesh_runtime.subdiv_ccg = nullptr;
-  }
-}
-
 static void free_bvh_cache(MeshRuntime &mesh_runtime)
 {
   if (mesh_runtime.bvh_cache) {
@@ -72,15 +63,13 @@ static void free_batch_cache(MeshRuntime &mesh_runtime)
   }
 }
 
+MeshRuntime::MeshRuntime() {}
+
 MeshRuntime::~MeshRuntime()
 {
   free_mesh_eval(*this);
-  free_subdiv_ccg(*this);
   free_bvh_cache(*this);
   free_batch_cache(*this);
-  if (this->shrinkwrap_data) {
-    BKE_shrinkwrap_boundary_data_free(this->shrinkwrap_data);
-  }
 }
 
 static int reset_bits_and_count(MutableBitSpan bits, const Span<int> indices_to_reset)
@@ -290,13 +279,11 @@ void BKE_mesh_runtime_verttri_from_looptri(MVertTri *r_verttri,
   }
 }
 
-bool BKE_mesh_runtime_ensure_edit_data(Mesh *mesh)
+void BKE_mesh_runtime_ensure_edit_data(Mesh *mesh)
 {
-  if (mesh->runtime->edit_data != nullptr) {
-    return false;
+  if (!mesh->runtime->edit_data) {
+    mesh->runtime->edit_data = std::make_unique<blender::bke::EditMeshData>();
   }
-  mesh->runtime->edit_data = MEM_new<blender::bke::EditMeshData>(__func__);
-  return true;
 }
 
 void BKE_mesh_runtime_clear_cache(Mesh *mesh)
@@ -304,8 +291,7 @@ void BKE_mesh_runtime_clear_cache(Mesh *mesh)
   using namespace blender::bke;
   free_mesh_eval(*mesh->runtime);
   free_batch_cache(*mesh->runtime);
-  MEM_delete(mesh->runtime->edit_data);
-  mesh->runtime->edit_data = nullptr;
+  mesh->runtime->edit_data.reset();
   BKE_mesh_runtime_clear_geometry(mesh);
 }
 
@@ -313,7 +299,7 @@ void BKE_mesh_runtime_clear_geometry(Mesh *mesh)
 {
   /* Tagging shared caches dirty will free the allocated data if there is only one user. */
   free_bvh_cache(*mesh->runtime);
-  free_subdiv_ccg(*mesh->runtime);
+  mesh->runtime->subdiv_ccg.reset();
   mesh->runtime->bounds_cache.tag_dirty();
   mesh->runtime->vert_to_face_offset_cache.tag_dirty();
   mesh->runtime->vert_to_face_map_cache.tag_dirty();
@@ -328,10 +314,7 @@ void BKE_mesh_runtime_clear_geometry(Mesh *mesh)
   mesh->runtime->looptri_faces_cache.tag_dirty();
   mesh->runtime->subsurf_face_dot_tags.clear_and_shrink();
   mesh->runtime->subsurf_optimal_display_edges.clear_and_shrink();
-  if (mesh->runtime->shrinkwrap_data) {
-    BKE_shrinkwrap_boundary_data_free(mesh->runtime->shrinkwrap_data);
-    mesh->runtime->shrinkwrap_data = nullptr;
-  }
+  mesh->runtime->shrinkwrap_data.reset();
   mesh->flag &= ~ME_NO_OVERLAPPING_TOPOLOGY;
 }
 
@@ -340,7 +323,7 @@ void BKE_mesh_tag_edges_split(Mesh *mesh)
   /* Triangulation didn't change because vertex positions and loop vertex indices didn't change. */
   free_bvh_cache(*mesh->runtime);
   mesh->runtime->vert_normals_cache.tag_dirty();
-  free_subdiv_ccg(*mesh->runtime);
+  mesh->runtime->subdiv_ccg.reset();
   mesh->runtime->vert_to_face_offset_cache.tag_dirty();
   mesh->runtime->vert_to_face_map_cache.tag_dirty();
   mesh->runtime->vert_to_corner_map_cache.tag_dirty();
@@ -361,10 +344,7 @@ void BKE_mesh_tag_edges_split(Mesh *mesh)
   }
   mesh->runtime->subsurf_face_dot_tags.clear_and_shrink();
   mesh->runtime->subsurf_optimal_display_edges.clear_and_shrink();
-  if (mesh->runtime->shrinkwrap_data) {
-    BKE_shrinkwrap_boundary_data_free(mesh->runtime->shrinkwrap_data);
-    mesh->runtime->shrinkwrap_data = nullptr;
-  }
+  mesh->runtime->shrinkwrap_data.reset();
 }
 
 void BKE_mesh_tag_sharpness_changed(Mesh *mesh)

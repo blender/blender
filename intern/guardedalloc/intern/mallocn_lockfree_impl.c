@@ -16,6 +16,12 @@
 
 #include "MEM_guardedalloc.h"
 
+/* Quiet warnings when dealing with allocated data written into the blend file.
+ * This also rounds up and causes warnings which we don't consider bugs in practice. */
+#ifdef WITH_MEM_VALGRIND
+#  include "valgrind/memcheck.h"
+#endif
+
 /* to ensure strict conversions */
 #include "../../source/blender/blenlib/BLI_strict_flags.h"
 
@@ -244,13 +250,27 @@ void *MEM_lockfree_mallocN(size_t len, const char *str)
 {
   MemHead *memh;
 
+#ifdef WITH_MEM_VALGRIND
+  const size_t len_unaligned = len;
+#endif
   len = SIZET_ALIGN_4(len);
 
   memh = (MemHead *)malloc(len + sizeof(MemHead));
 
   if (LIKELY(memh)) {
-    if (UNLIKELY(malloc_debug_memset && len)) {
-      memset(memh + 1, 255, len);
+
+    if (LIKELY(len)) {
+      if (UNLIKELY(malloc_debug_memset)) {
+        memset(memh + 1, 255, len);
+      }
+#ifdef WITH_MEM_VALGRIND
+      if (malloc_debug_memset) {
+        VALGRIND_MAKE_MEM_UNDEFINED(memh + 1, len_unaligned);
+      }
+      else {
+        VALGRIND_MAKE_MEM_DEFINED((const char *)(memh + 1) + len_unaligned, len - len_unaligned);
+      }
+#endif /* WITH_MEM_VALGRIND */
     }
 
     memh->len = len;
@@ -305,6 +325,9 @@ void *MEM_lockfree_mallocN_aligned(size_t len, size_t alignment, const char *str
    */
   size_t extra_padding = MEMHEAD_ALIGN_PADDING(alignment);
 
+#ifdef WITH_MEM_VALGRIND
+  const size_t len_unaligned = len;
+#endif
   len = SIZET_ALIGN_4(len);
 
   MemHeadAligned *memh = (MemHeadAligned *)aligned_malloc(
@@ -317,8 +340,18 @@ void *MEM_lockfree_mallocN_aligned(size_t len, size_t alignment, const char *str
      */
     memh = (MemHeadAligned *)((char *)memh + extra_padding);
 
-    if (UNLIKELY(malloc_debug_memset && len)) {
-      memset(memh + 1, 255, len);
+    if (LIKELY(len)) {
+      if (UNLIKELY(malloc_debug_memset)) {
+        memset(memh + 1, 255, len);
+      }
+#ifdef WITH_MEM_VALGRIND
+      if (malloc_debug_memset) {
+        VALGRIND_MAKE_MEM_UNDEFINED(memh + 1, len_unaligned);
+      }
+      else {
+        VALGRIND_MAKE_MEM_DEFINED((const char *)(memh + 1) + len_unaligned, len - len_unaligned);
+      }
+#endif /* WITH_MEM_VALGRIND */
     }
 
     memh->len = len | (size_t)MEMHEAD_ALIGN_FLAG;

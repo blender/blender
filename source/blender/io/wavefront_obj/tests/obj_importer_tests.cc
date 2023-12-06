@@ -9,7 +9,7 @@
 
 #include "BKE_curve.hh"
 #include "BKE_customdata.hh"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"

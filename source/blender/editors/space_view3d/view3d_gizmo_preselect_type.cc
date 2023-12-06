@@ -36,7 +36,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
 #include "ED_gizmo_library.hh"
 #include "ED_mesh.hh"

@@ -13,6 +13,8 @@ SplitOperation::SplitOperation()
   this->add_output_socket(DataType::Color);
   image1Input_ = nullptr;
   image2Input_ = nullptr;
+
+  flags_.can_be_constant = true;
 }
 
 void SplitOperation::init_execution()

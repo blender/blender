@@ -31,7 +31,7 @@
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_override.hh"
-#include "BKE_lib_remap.h"
+#include "BKE_lib_remap.hh"
 #include "BKE_material.h"
 #include "BKE_node.hh"
 #include "BKE_report.h"
@@ -64,7 +64,7 @@
 #include "ED_keyframing.hh"
 
 /* only for UI_OT_editsource */
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BLI_ghash.h"
 #include "ED_screen.hh"
 #include "ED_text.hh"

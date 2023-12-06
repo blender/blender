@@ -36,12 +36,12 @@
 #include "BLI_buffer.h"
 #include "BLI_kdopbvh.h"
 
-#include "bmesh.h"
-#include "intern/bmesh_private.h"
+#include "bmesh.hh"
+#include "intern/bmesh_private.hh"
 
-#include "bmesh_intersect.h" /* own include */
+#include "bmesh_intersect.hh" /* own include */
 
-#include "tools/bmesh_edgesplit.h"
+#include "tools/bmesh_edgesplit.hh"
 
 #include "BLI_strict_flags.h"
 

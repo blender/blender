@@ -16,9 +16,9 @@
 #include "BLI_stack.h"
 #include "BLI_utildefines_iter.h"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
-#include "bmesh_edgeloop.h" /* own include */
+#include "bmesh_edgeloop.hh" /* own include */
 
 struct BMEdgeLoopStore {
   BMEdgeLoopStore *next, *prev;

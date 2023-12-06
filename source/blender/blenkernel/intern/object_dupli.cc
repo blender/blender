@@ -49,7 +49,7 @@
 #include "BKE_idprop.h"
 #include "BKE_instances.hh"
 #include "BKE_lattice.hh"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_iterators.hh"
 #include "BKE_mesh_runtime.hh"
@@ -478,7 +478,7 @@ static const Mesh *mesh_data_from_duplicator_object(Object *ob,
      * We could change this but it matches 2.7x behavior. */
     me_eval = BKE_object_get_editmesh_eval_cage(ob);
     if ((me_eval == nullptr) || (me_eval->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH)) {
-      blender::bke::EditMeshData *emd = me_eval ? me_eval->runtime->edit_data : nullptr;
+      blender::bke::EditMeshData *emd = me_eval ? me_eval->runtime->edit_data.get() : nullptr;
 
       /* Only assign edit-mesh in the case we can't use `me_eval`. */
       *r_em = em;
@@ -487,7 +487,7 @@ static const Mesh *mesh_data_from_duplicator_object(Object *ob,
       if ((emd != nullptr) && !emd->vertexCos.is_empty()) {
         *r_vert_coords = reinterpret_cast<const float(*)[3]>(emd->vertexCos.data());
         if (r_vert_normals != nullptr) {
-          BKE_editmesh_cache_ensure_vert_normals(em, emd);
+          BKE_editmesh_cache_ensure_vert_normals(*em, *emd);
           *r_vert_normals = reinterpret_cast<const float(*)[3]>(emd->vertexNos.data());
         }
       }
@@ -1940,18 +1940,21 @@ static bool find_rna_property_rgba(PointerRNA *id_ptr, const char *name, float r
   return false;
 }
 
-static bool find_rna_property_rgba(ID *id, const char *name, float r_data[4])
+static bool find_rna_property_rgba(const ID *id, const char *name, float r_data[4])
 {
-  PointerRNA ptr = RNA_id_pointer_create(id);
+  PointerRNA ptr = RNA_id_pointer_create(const_cast<ID *>(id));
   return find_rna_property_rgba(&ptr, name, r_data);
 }
 
-bool BKE_object_dupli_find_rgba_attribute(
-    Object *ob, DupliObject *dupli, Object *dupli_parent, const char *name, float r_value[4])
+bool BKE_object_dupli_find_rgba_attribute(const Object *ob,
+                                          const DupliObject *dupli,
+                                          const Object *dupli_parent,
+                                          const char *name,
+                                          float r_value[4])
 {
   /* Check the dupli particle system. */
   if (dupli && dupli->particle_system) {
-    ParticleSettings *settings = dupli->particle_system->part;
+    const ParticleSettings *settings = dupli->particle_system->part;
 
     if (find_rna_property_rgba(&settings->id, name, r_value)) {
       return true;
@@ -1975,7 +1978,7 @@ bool BKE_object_dupli_find_rgba_attribute(
     }
 
     /* Check the main object data (e.g. mesh). */
-    if (ob->data && find_rna_property_rgba((ID *)ob->data, name, r_value)) {
+    if (ob->data && find_rna_property_rgba((const ID *)ob->data, name, r_value)) {
       return true;
     }
   }
@@ -1984,13 +1987,14 @@ bool BKE_object_dupli_find_rgba_attribute(
   return false;
 }
 
-bool BKE_view_layer_find_rgba_attribute(Scene *scene,
-                                        ViewLayer *layer,
+bool BKE_view_layer_find_rgba_attribute(const Scene *scene,
+                                        const ViewLayer *layer,
                                         const char *name,
                                         float r_value[4])
 {
   if (layer) {
-    PointerRNA layer_ptr = RNA_pointer_create(&scene->id, &RNA_ViewLayer, layer);
+    PointerRNA layer_ptr = RNA_pointer_create(
+        &const_cast<ID &>(scene->id), &RNA_ViewLayer, const_cast<ViewLayer *>(layer));
 
     if (find_rna_property_rgba(&layer_ptr, name, r_value)) {
       return true;

@@ -253,6 +253,14 @@ void ViewOpsData::init_navigation(bContext *C,
            &ViewOpsType_ndof_all))
   {
     calc_rv3d_dist = false;
+
+    /* When using "Free" NDOF navigation, ignore "Orbit Around Selected" preference.
+     * Logically it doesn't make sense to use the selection as a pivot when the first-person
+     * navigation pivots from the view-point. This also interferes with zoom-speed,
+     * causing zoom-speed scale based on the distance to the selection center, see: #115253. */
+    if ((U.ndof_flag & NDOF_MODE_ORBIT) == 0) {
+      viewops_flag &= ~VIEWOPS_FLAG_ORBIT_SELECT;
+    }
   }
 #endif
 

@@ -99,8 +99,9 @@ class NLA_MT_editor_menus(Menu):
         layout.menu("NLA_MT_select")
         if st.show_markers:
             layout.menu("NLA_MT_marker")
-        layout.menu("NLA_MT_edit")
         layout.menu("NLA_MT_add")
+        layout.menu("NLA_MT_tracks")
+        layout.menu("NLA_MT_strips")
 
 
 class NLA_MT_view(Menu):
@@ -189,28 +190,67 @@ class NLA_MT_marker_select(Menu):
         layout.operator("marker.select_leftright", text="After Current Frame").mode = 'RIGHT'
 
 
-class NLA_MT_edit(Menu):
-    bl_label = "Edit"
+class NLA_MT_add(Menu):
+    bl_label = "Add"
+    bl_translation_context = i18n_contexts.operator_default
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.operator("nla.actionclip_add", text="Action")
+        layout.operator("nla.transition_add", text="Transition")
+        layout.operator("nla.soundclip_add", text="Sound")
+
+        layout.separator()
+        layout.operator("nla.selected_objects_add", text="Selected Objects")
+
+
+class NLA_MT_tracks(Menu):
+    bl_label = "Track"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.operator("nla.tracks_add", text="Add").above_selected = False
+        layout.operator("nla.tracks_add", text="Add Above Selected").above_selected = True
+        layout.operator("nla.tracks_delete", text="Delete")
+
+        layout.separator()
+        layout.operator_menu_enum("anim.channels_move", "direction", text="Move")
+
+        layout.separator()
+        layout.operator("anim.channels_clean_empty")
+
+
+class NLA_MT_strips(Menu):
+    bl_label = "Strip"
 
     def draw(self, context):
         layout = self.layout
 
         scene = context.scene
 
-        layout.menu("NLA_MT_edit_transform", text="Transform")
-
+        layout.menu("NLA_MT_strips_transform", text="Transform")
         layout.operator_menu_enum("nla.snap", "type", text="Snap")
 
         layout.separator()
-        layout.operator("nla.bake", text="Bake Action")
-        layout.operator("nla.duplicate_move")
-        layout.operator("nla.duplicate_linked_move")
-        layout.operator("nla.split")
-        layout.operator("nla.delete")
-        layout.operator("nla.tracks_delete")
+        layout.operator("nla.split", text="Split")
+
+        layout.separator()
+        layout.operator("nla.duplicate", text="Duplicate").linked = False
+        layout.operator("nla.duplicate", text="Linked Duplicate").linked = True
+        layout.operator("nla.delete", text="Delete")
+
+        layout.separator()
+
+        layout.operator("nla.meta_add", text="Make Meta")
+        layout.operator("nla.meta_remove", text="Remove Meta")
 
         layout.separator()
         layout.operator("nla.mute_toggle")
+
+        layout.separator()
+        layout.operator("nla.bake", text="Bake Action")
 
         layout.separator()
         layout.operator("nla.apply_scale")
@@ -221,17 +261,6 @@ class NLA_MT_edit(Menu):
         layout.operator("nla.make_single_user")
 
         layout.separator()
-        layout.operator("nla.swap")
-        layout.operator("nla.move_up")
-        layout.operator("nla.move_down")
-
-        # TODO: this really belongs more in a "channel" (or better, "track") menu
-        layout.separator()
-        layout.operator_menu_enum("anim.channels_move", "direction", text="Track Ordering...")
-        layout.operator("anim.channels_clean_empty")
-
-        layout.separator()
-        # TODO: names of these tools for 'tweak-mode' need changing?
         if scene.is_nla_tweakmode:
             layout.operator("nla.tweakmode_exit", text="Stop Editing Stashed Action").isolate_action = True
             layout.operator("nla.tweakmode_exit", text="Stop Tweaking Strip Actions")
@@ -243,30 +272,7 @@ class NLA_MT_edit(Menu):
                             text="Start Tweaking Strip Actions (Lower Stack)").use_upper_stack_evaluation = False
 
 
-class NLA_MT_add(Menu):
-    bl_label = "Add"
-    bl_translation_context = i18n_contexts.operator_default
-
-    def draw(self, _context):
-        layout = self.layout
-
-        layout.operator("nla.actionclip_add")
-        layout.operator("nla.transition_add")
-        layout.operator("nla.soundclip_add")
-
-        layout.separator()
-        layout.operator("nla.meta_add")
-        layout.operator("nla.meta_remove")
-
-        layout.separator()
-        layout.operator("nla.tracks_add").above_selected = False
-        layout.operator("nla.tracks_add", text="Add Tracks Above Selected").above_selected = True
-
-        layout.separator()
-        layout.operator("nla.selected_objects_add")
-
-
-class NLA_MT_edit_transform(Menu):
+class NLA_MT_strips_transform(Menu):
     bl_label = "Transform"
 
     def draw(self, _context):
@@ -275,6 +281,13 @@ class NLA_MT_edit_transform(Menu):
         layout.operator("transform.translate", text="Move")
         layout.operator("transform.transform", text="Extend").mode = 'TIME_EXTEND'
         layout.operator("transform.transform", text="Scale").mode = 'TIME_SCALE'
+
+        layout.separator()
+        layout.operator("nla.swap", text="Swap")
+
+        layout.separator()
+        layout.operator("nla.move_up", text="Move Up")
+        layout.operator("nla.move_down", text="Move Down")
 
 
 class NLA_MT_snap_pie(Menu):
@@ -365,14 +378,15 @@ class NLA_MT_channel_context_menu(Menu):
 
 classes = (
     NLA_HT_header,
-    NLA_MT_edit,
     NLA_MT_editor_menus,
     NLA_MT_view,
     NLA_MT_select,
     NLA_MT_marker,
     NLA_MT_marker_select,
     NLA_MT_add,
-    NLA_MT_edit_transform,
+    NLA_MT_tracks,
+    NLA_MT_strips,
+    NLA_MT_strips_transform,
     NLA_MT_snap_pie,
     NLA_MT_view_pie,
     NLA_MT_context_menu,

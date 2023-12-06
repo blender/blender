@@ -76,8 +76,8 @@ void main()
   }
 
   bool valid_texel = in_texture_range(texel_fullres, gbuf_header_tx);
-  uint closure_bits = (!valid_texel) ? 0u : texelFetch(gbuf_header_tx, texel_fullres, 0).r;
-  if (!flag_test(closure_bits, CLOSURE_ACTIVE)) {
+  uint header = (!valid_texel) ? 0u : texelFetch(gbuf_header_tx, texel_fullres, 0).r;
+  if (!gbuffer_has_closure(header, eClosureBits(CLOSURE_ACTIVE))) {
     imageStore(out_radiance_img, texel_fullres, vec4(FLT_11_11_10_MAX, 0.0));
     imageStore(out_variance_img, texel_fullres, vec4(0.0));
     imageStore(out_hit_depth_img, texel_fullres, vec4(0.0));

@@ -21,7 +21,6 @@ struct CCGElem;
 struct CCGFace;
 struct CCGSubSurf;
 struct CCGVert;
-struct DMFlagMat;
 struct DerivedMesh;
 struct Mesh;
 struct MeshElemMap;
@@ -95,8 +94,6 @@ struct CCGDerivedMesh {
     CCGFace *face;
   } * faceMap;
 
-  DMFlagMat *faceFlags;
-
   int *reverseFaceMap;
 
   PBVH *pbvh;
@@ -107,7 +104,6 @@ struct CCGDerivedMesh {
   CCGElem **gridData;
   int *gridOffset;
   CCGFace **gridFaces;
-  DMFlagMat *gridFlagMats;
   unsigned int **gridHidden;
   /* Elements in arrays above. */
   unsigned int numGrid;

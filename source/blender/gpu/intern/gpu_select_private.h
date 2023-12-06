@@ -16,10 +16,7 @@ extern "C" {
 
 /* gpu_select_pick */
 
-void gpu_select_pick_begin(GPUSelectResult *buffer,
-                           uint buffer_len,
-                           const rcti *input,
-                           eGPUSelectMode mode);
+void gpu_select_pick_begin(GPUSelectBuffer *buffer, const rcti *input, eGPUSelectMode mode);
 bool gpu_select_pick_load_id(uint id, bool end);
 uint gpu_select_pick_end(void);
 
@@ -33,17 +30,16 @@ void gpu_select_pick_cache_load_id(void);
 
 /* gpu_select_sample_query */
 
-void gpu_select_query_begin(
-    GPUSelectResult *buffer, uint buffer_len, const rcti *input, eGPUSelectMode mode, int oldhits);
+void gpu_select_query_begin(GPUSelectBuffer *buffer,
+                            const rcti *input,
+                            eGPUSelectMode mode,
+                            int oldhits);
 bool gpu_select_query_load_id(uint id);
 uint gpu_select_query_end(void);
 
 /* gpu_select_next */
 
-void gpu_select_next_begin(GPUSelectResult *buffer,
-                           uint buffer_len,
-                           const rcti *input,
-                           eGPUSelectMode mode);
+void gpu_select_next_begin(GPUSelectBuffer *buffer, const rcti *input, eGPUSelectMode mode);
 uint gpu_select_next_end(void);
 
 /* Return a single offset since picking uses squared viewport. */

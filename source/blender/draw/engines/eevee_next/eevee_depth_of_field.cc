@@ -53,17 +53,13 @@ void DepthOfField::init()
     return;
   }
   /* Reminder: These are parameters not interpolated by motion blur. */
-  int update = 0;
   int sce_flag = sce_eevee.flag;
-  update += assign_if_different(do_jitter_, (sce_flag & SCE_EEVEE_DOF_JITTER) != 0);
-  update += assign_if_different(user_overblur_, sce_eevee.bokeh_overblur / 100.0f);
-  update += assign_if_different(fx_max_coc_, sce_eevee.bokeh_max_size);
-  update += assign_if_different(data_.scatter_color_threshold, sce_eevee.bokeh_threshold);
-  update += assign_if_different(data_.scatter_neighbor_max_color, sce_eevee.bokeh_neighbor_max);
-  update += assign_if_different(data_.bokeh_blades, float(camera->dof.aperture_blades));
-  if (update > 0) {
-    inst_.sampling.reset();
-  }
+  do_jitter_ = (sce_flag & SCE_EEVEE_DOF_JITTER) != 0;
+  user_overblur_ = sce_eevee.bokeh_overblur / 100.0f;
+  fx_max_coc_ = sce_eevee.bokeh_max_size;
+  data_.scatter_color_threshold = sce_eevee.bokeh_threshold;
+  data_.scatter_neighbor_max_color = sce_eevee.bokeh_neighbor_max;
+  data_.bokeh_blades = float(camera->dof.aperture_blades);
 }
 
 void DepthOfField::sync()
@@ -74,30 +70,20 @@ void DepthOfField::sync()
                                     reinterpret_cast<const ::Camera *>(camera_object_eval->data) :
                                     nullptr;
 
-  int update = 0;
-
   if (camera_data == nullptr || (camera_data->dof.flag & CAM_DOF_ENABLED) == 0) {
-    update += assign_if_different(jitter_radius_, 0.0f);
-    update += assign_if_different(fx_radius_, 0.0f);
-    if (update > 0) {
-      inst_.sampling.reset();
-    }
+    jitter_radius_ = 0.0f;
+    fx_radius_ = 0.0f;
     return;
   }
 
   float2 anisotropic_scale = {clamp_f(1.0f / camera_data->dof.aperture_ratio, 1e-5f, 1.0f),
                               clamp_f(camera_data->dof.aperture_ratio, 1e-5f, 1.0f)};
-  update += assign_if_different(data_.bokeh_anisotropic_scale, anisotropic_scale);
-  update += assign_if_different(data_.bokeh_rotation, camera_data->dof.aperture_rotation);
-  update += assign_if_different(focus_distance_,
-                                BKE_camera_object_dof_distance(camera_object_eval));
+  data_.bokeh_anisotropic_scale = anisotropic_scale;
+  data_.bokeh_rotation = camera_data->dof.aperture_rotation;
+  focus_distance_ = BKE_camera_object_dof_distance(camera_object_eval);
   data_.bokeh_anisotropic_scale_inv = 1.0f / data_.bokeh_anisotropic_scale;
 
   float fstop = max_ff(camera_data->dof.aperture_fstop, 1e-5f);
-
-  if (update) {
-    inst_.sampling.reset();
-  }
 
   float aperture = 1.0f / (2.0f * fstop);
   if (camera.is_perspective()) {
@@ -147,11 +133,8 @@ void DepthOfField::sync()
     fx_radius = 0.0f;
   }
 
-  update += assign_if_different(jitter_radius_, jitter_radius);
-  update += assign_if_different(fx_radius_, fx_radius);
-  if (update > 0) {
-    inst_.sampling.reset();
-  }
+  jitter_radius_ = jitter_radius;
+  fx_radius_ = fx_radius;
 
   if (fx_radius_ == 0.0f) {
     return;

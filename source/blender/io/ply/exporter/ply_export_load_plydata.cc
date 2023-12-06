@@ -24,9 +24,9 @@
 #include "DEG_depsgraph_query.hh"
 #include "DNA_layer_types.h"
 
-#include "bmesh.h"
-#include "bmesh_tools.h"
-#include <tools/bmesh_triangulate.h>
+#include "bmesh.hh"
+#include "bmesh_tools.hh"
+#include <tools/bmesh_triangulate.hh>
 
 namespace blender::io::ply {
 

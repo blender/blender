@@ -230,14 +230,9 @@ class GHOST_SystemWayland : public GHOST_System {
 #endif
   struct xdg_wm_base *xdg_decor_shell_get();
   struct zxdg_decoration_manager_v1 *xdg_decor_manager_get();
-#ifdef USE_XDG_INIT_WINDOW_SIZE_HACK
-  bool xdg_decor_needs_window_size_hack() const;
-#endif
   /* End `xdg_decor`. */
 
   const std::vector<GWL_Output *> &outputs_get() const;
-  /** Return the output with the largest pixel-area. */
-  const GWL_Output *outputs_get_max_native_size() const;
 
   struct wl_shm *wl_shm_get() const;
 
@@ -248,6 +243,13 @@ class GHOST_SystemWayland : public GHOST_System {
   static const char *xdg_app_id_get();
 
   /* WAYLAND utility functions. */
+
+  /**
+   * Use this function instead of #GHOST_System::getMilliSeconds,
+   * passing in the time-stamp from WAYLAND input to get the event
+   * time-stamp with an offset applied to make it compatible with `getMilliSeconds`.
+   */
+  uint64_t ms_from_input_time(const uint32_t timestamp_as_uint);
 
   /**
    * Push an event, with support for calling from a thread.

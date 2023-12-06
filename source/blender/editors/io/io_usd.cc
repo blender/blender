@@ -13,7 +13,7 @@
 #  include <cstring>
 
 #  include "BKE_context.hh"
-#  include "BKE_main.h"
+#  include "BKE_main.hh"
 #  include "BKE_report.h"
 
 #  include "BLI_blenlib.h"

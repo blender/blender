@@ -51,7 +51,10 @@
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 
-#include "bmesh.h"
+#include "bmesh.hh"
+
+using blender::Span;
+using blender::Vector;
 
 /* Sculpt Expand. */
 /* Operator for creating selections and patterns in Sculpt Mode. Expand can create masks, face sets
@@ -1797,7 +1800,7 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
 
   /* Update SculptSession data. */
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, false);
   sculpt_expand_ensure_sculptsession_data(ob);
 
   /* Update and get the active vertex (and face) from the cursor. */
@@ -2112,7 +2115,7 @@ static void sculpt_expand_cache_initial_config_set(bContext *C,
 static void sculpt_expand_undo_push(Object *ob, ExpandCache *expand_cache)
 {
   SculptSession *ss = ob->sculpt;
-  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, {});
+  blender::Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, {});
 
   switch (expand_cache->target) {
     case SCULPT_EXPAND_TARGET_MASK:
@@ -2180,7 +2183,7 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
     }
   }
 
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, needs_colors);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, needs_colors);
 
   /* Do nothing when the mesh has 0 vertices. */
   const int totvert = SCULPT_vertex_count_get(ss);

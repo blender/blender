@@ -10,7 +10,7 @@
 
 #include "GEO_randomize.hh"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
 #include "node_geometry_util.hh"
 

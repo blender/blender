@@ -30,8 +30,8 @@ TreeElementBoneCollectionBase::TreeElementBoneCollectionBase(TreeElement &legacy
 
 void TreeElementBoneCollectionBase::expand(SpaceOutliner & /*space_outliner*/) const
 {
-  int index;
-  LISTBASE_FOREACH_INDEX (BoneCollection *, bcoll, &armature_.collections, index) {
+  for (int index = 0; index < armature_.collection_array_num; index++) {
+    BoneCollection *bcoll = armature_.collection_array[index];
     add_element(
         &legacy_te_.subtree, &armature_.id, bcoll, &legacy_te_, TSE_BONE_COLLECTION, index);
   }

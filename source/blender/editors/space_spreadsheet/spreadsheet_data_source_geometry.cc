@@ -44,7 +44,7 @@
 #include "RNA_access.hh"
 #include "RNA_enum_types.hh"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
 #include "spreadsheet_data_source_geometry.hh"
 #include "spreadsheet_intern.hh"

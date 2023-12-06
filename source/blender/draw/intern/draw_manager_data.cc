@@ -10,7 +10,7 @@
 
 #include "draw_attributes.hh"
 #include "draw_manager.h"
-#include "draw_pbvh.h"
+#include "draw_pbvh.hh"
 
 #include "BKE_curve.hh"
 #include "BKE_duplilist.h"
@@ -632,9 +632,9 @@ void DRW_shgroup_buffer_texture_ref(DRWShadingGroup *shgroup,
 /** \name Draw Call (DRW_calls)
  * \{ */
 
-static void drw_call_calc_orco(Object *ob, float (*r_orcofacs)[4])
+static void drw_call_calc_orco(const Object *ob, float (*r_orcofacs)[4])
 {
-  ID *ob_data = (ob) ? static_cast<ID *>(ob->data) : nullptr;
+  const ID *ob_data = (ob) ? static_cast<const ID *>(ob->data) : nullptr;
   struct {
     float texspace_location[3], texspace_size[3];
   } static_buf;
@@ -686,7 +686,9 @@ static void drw_call_calc_orco(Object *ob, float (*r_orcofacs)[4])
   }
 }
 
-BLI_INLINE void drw_call_matrix_init(DRWObjectMatrix *ob_mats, Object *ob, float (*obmat)[4])
+BLI_INLINE void drw_call_matrix_init(DRWObjectMatrix *ob_mats,
+                                     const Object *ob,
+                                     const float (*obmat)[4])
 {
   copy_m4_m4(ob_mats->model, obmat);
   if (ob) {
@@ -698,7 +700,7 @@ BLI_INLINE void drw_call_matrix_init(DRWObjectMatrix *ob_mats, Object *ob, float
   }
 }
 
-static void drw_call_obinfos_init(DRWObjectInfos *ob_infos, Object *ob)
+static void drw_call_obinfos_init(DRWObjectInfos *ob_infos, const Object *ob)
 {
   BLI_assert(ob);
   /* Index. */
@@ -729,7 +731,7 @@ static void drw_call_obinfos_init(DRWObjectInfos *ob_infos, Object *ob)
   copy_v4_v4(ob_infos->ob_color, ob->color);
 }
 
-static void drw_call_culling_init(DRWCullingState *cull, Object *ob)
+static void drw_call_culling_init(DRWCullingState *cull, const Object *ob)
 {
   using namespace blender;
   std::optional<Bounds<float3>> bounds;
@@ -754,7 +756,7 @@ static void drw_call_culling_init(DRWCullingState *cull, Object *ob)
   cull->user_data = nullptr;
 }
 
-static DRWResourceHandle drw_resource_handle_new(float (*obmat)[4], Object *ob)
+static DRWResourceHandle drw_resource_handle_new(const float (*obmat)[4], const Object *ob)
 {
   DRWCullingState *culling = static_cast<DRWCullingState *>(
       BLI_memblock_alloc(DST.vmempool->cullstates));
@@ -791,8 +793,8 @@ uint32_t DRW_object_resource_id_get(Object * /*ob*/)
 }
 
 static DRWResourceHandle drw_resource_handle(DRWShadingGroup *shgroup,
-                                             float (*obmat)[4],
-                                             Object *ob)
+                                             const float (*obmat)[4],
+                                             const Object *ob)
 {
   if (ob == nullptr) {
     if (obmat == nullptr) {
@@ -1020,8 +1022,8 @@ static void drw_command_set_mutable_state(DRWShadingGroup *shgroup,
 }
 
 void DRW_shgroup_call_ex(DRWShadingGroup *shgroup,
-                         Object *ob,
-                         float (*obmat)[4],
+                         const Object *ob,
+                         const float (*obmat)[4],
                          GPUBatch *geom,
                          bool bypass_culling,
                          void *user_data)
@@ -1049,7 +1051,7 @@ void DRW_shgroup_call_ex(DRWShadingGroup *shgroup,
 }
 
 void DRW_shgroup_call_range(
-    DRWShadingGroup *shgroup, Object *ob, GPUBatch *geom, uint v_sta, uint v_num)
+    DRWShadingGroup *shgroup, const Object *ob, GPUBatch *geom, uint v_sta, uint v_num)
 {
   BLI_assert(geom != nullptr);
   if (G.f & G_FLAG_PICKSEL) {
@@ -1060,7 +1062,7 @@ void DRW_shgroup_call_range(
 }
 
 void DRW_shgroup_call_instance_range(
-    DRWShadingGroup *shgroup, Object *ob, GPUBatch *geom, uint i_sta, uint i_num)
+    DRWShadingGroup *shgroup, const Object *ob, GPUBatch *geom, uint i_sta, uint i_num)
 {
   BLI_assert(geom != nullptr);
   if (G.f & G_FLAG_PICKSEL) {
@@ -1104,7 +1106,7 @@ void DRW_shgroup_barrier(DRWShadingGroup *shgroup, eGPUBarrier type)
 
 static void drw_shgroup_call_procedural_add_ex(DRWShadingGroup *shgroup,
                                                GPUBatch *geom,
-                                               Object *ob,
+                                               const Object *ob,
                                                uint vert_count)
 {
   BLI_assert(vert_count > 0);
@@ -1116,19 +1118,23 @@ static void drw_shgroup_call_procedural_add_ex(DRWShadingGroup *shgroup,
   drw_command_draw_procedural(shgroup, geom, handle, vert_count);
 }
 
-void DRW_shgroup_call_procedural_points(DRWShadingGroup *shgroup, Object *ob, uint point_count)
+void DRW_shgroup_call_procedural_points(DRWShadingGroup *shgroup,
+                                        const Object *ob,
+                                        uint point_count)
 {
   GPUBatch *geom = drw_cache_procedural_points_get();
   drw_shgroup_call_procedural_add_ex(shgroup, geom, ob, point_count);
 }
 
-void DRW_shgroup_call_procedural_lines(DRWShadingGroup *shgroup, Object *ob, uint line_count)
+void DRW_shgroup_call_procedural_lines(DRWShadingGroup *shgroup, const Object *ob, uint line_count)
 {
   GPUBatch *geom = drw_cache_procedural_lines_get();
   drw_shgroup_call_procedural_add_ex(shgroup, geom, ob, line_count * 2);
 }
 
-void DRW_shgroup_call_procedural_triangles(DRWShadingGroup *shgroup, Object *ob, uint tri_count)
+void DRW_shgroup_call_procedural_triangles(DRWShadingGroup *shgroup,
+                                           const Object *ob,
+                                           uint tri_count)
 {
   GPUBatch *geom = drw_cache_procedural_triangles_get();
   drw_shgroup_call_procedural_add_ex(shgroup, geom, ob, tri_count * 3);
@@ -1166,7 +1172,10 @@ void DRW_shgroup_call_procedural_indirect(DRWShadingGroup *shgroup,
   drw_command_draw_indirect(shgroup, geom, handle, indirect_buf);
 }
 
-void DRW_shgroup_call_instances(DRWShadingGroup *shgroup, Object *ob, GPUBatch *geom, uint count)
+void DRW_shgroup_call_instances(DRWShadingGroup *shgroup,
+                                const Object *ob,
+                                GPUBatch *geom,
+                                uint count)
 {
   BLI_assert(geom != nullptr);
   if (G.f & G_FLAG_PICKSEL) {
@@ -1177,7 +1186,7 @@ void DRW_shgroup_call_instances(DRWShadingGroup *shgroup, Object *ob, GPUBatch *
 }
 
 void DRW_shgroup_call_instances_with_attrs(DRWShadingGroup *shgroup,
-                                           Object *ob,
+                                           const Object *ob,
                                            GPUBatch *geom,
                                            GPUBatch *inst_attributes)
 {
@@ -1194,7 +1203,7 @@ void DRW_shgroup_call_instances_with_attrs(DRWShadingGroup *shgroup,
 
 #define SCULPT_DEBUG_BUFFERS (G.debug_value == 889)
 struct DRWSculptCallbackData {
-  Object *ob;
+  const Object *ob;
   DRWShadingGroup **shading_groups;
   int num_shading_groups;
   bool use_wire;
@@ -1204,8 +1213,7 @@ struct DRWSculptCallbackData {
   bool fast_mode; /* Set by draw manager. Do not init. */
 
   int debug_node_nr;
-  PBVHAttrReq *attrs;
-  int attrs_num;
+  blender::Span<blender::draw::pbvh::AttributeRequest> attrs;
 };
 
 #define SCULPT_DEBUG_COLOR(id) (sculpt_debug_colors[id % 9])
@@ -1222,29 +1230,23 @@ static float sculpt_debug_colors[9][4] = {
 };
 
 static void sculpt_draw_cb(DRWSculptCallbackData *scd,
-                           PBVHBatches *batches,
-                           const PBVH_GPU_Args &pbvh_draw_args)
+                           blender::draw::pbvh::PBVHBatches *batches,
+                           const blender::draw::pbvh::PBVH_GPU_Args &pbvh_draw_args)
 {
-  if (!batches) {
-    return;
-  }
-
-  int primcount;
+  using namespace blender::draw;
   GPUBatch *geom;
 
   if (!scd->use_wire) {
-    geom = DRW_pbvh_tris_get(
-        batches, scd->attrs, scd->attrs_num, pbvh_draw_args, &primcount, scd->fast_mode);
+    geom = pbvh::tris_get(batches, scd->attrs, pbvh_draw_args, scd->fast_mode);
   }
   else {
-    geom = DRW_pbvh_lines_get(
-        batches, scd->attrs, scd->attrs_num, pbvh_draw_args, &primcount, scd->fast_mode);
+    geom = pbvh::lines_get(batches, scd->attrs, pbvh_draw_args, scd->fast_mode);
   }
 
   short index = 0;
 
   if (scd->use_mats) {
-    index = drw_pbvh_material_index_get(batches);
+    index = pbvh::material_index_get(batches);
     index = clamp_i(index, 0, scd->num_shading_groups - 1);
   }
 
@@ -1288,7 +1290,7 @@ void DRW_sculpt_debug_cb(
 #endif
 }
 
-static void drw_sculpt_get_frustum_planes(Object *ob, float planes[6][4])
+static void drw_sculpt_get_frustum_planes(const Object *ob, float planes[6][4])
 {
   /* TODO: take into account partial redraw for clipping planes. */
   DRW_view_frustum_planes_get(DRW_view_default_get(), planes);
@@ -1361,18 +1363,16 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd)
   }
 
   Mesh *mesh = static_cast<Mesh *>(scd->ob->data);
-  BKE_pbvh_update_normals(pbvh, mesh->runtime->subdiv_ccg);
+  BKE_pbvh_update_normals(pbvh, mesh->runtime->subdiv_ccg.get());
 
-  BKE_pbvh_draw_cb(*mesh,
-                   pbvh,
-                   update_only_visible,
-                   &update_frustum,
-                   &draw_frustum,
-                   (void (*)(void *, PBVHBatches *, const PBVH_GPU_Args &))sculpt_draw_cb,
-                   scd,
-                   scd->use_mats,
-                   scd->attrs,
-                   scd->attrs_num);
+  BKE_pbvh_draw_cb(
+      *mesh,
+      pbvh,
+      update_only_visible,
+      update_frustum,
+      draw_frustum,
+      [&](blender::draw::pbvh::PBVHBatches *batches,
+          const blender::draw::pbvh::PBVH_GPU_Args &args) { sculpt_draw_cb(scd, batches, args); });
 
   if (SCULPT_DEBUG_BUFFERS) {
     int debug_node_nr = 0;
@@ -1393,6 +1393,8 @@ void DRW_shgroup_call_sculpt(DRWShadingGroup *shgroup,
                              bool use_color,
                              bool use_uv)
 {
+  using namespace blender;
+  using namespace blender::draw;
   DRWSculptCallbackData scd{};
   scd.ob = ob;
   scd.shading_groups = &shgroup;
@@ -1401,52 +1403,36 @@ void DRW_shgroup_call_sculpt(DRWShadingGroup *shgroup,
   scd.use_mats = false;
   scd.use_mask = use_mask;
 
-  PBVHAttrReq attrs[16] = {};
-  int attrs_num = 0;
+  Vector<pbvh::AttributeRequest, 16> attrs;
 
-  /* NOTE: these are NOT #eCustomDataType, they are extended values, ASAN may warn about this. */
-  attrs[attrs_num++] = PBVHAttrReq(ATTR_DOMAIN_POINT, eCustomDataType(CD_PBVH_CO_TYPE));
-  attrs[attrs_num++] = PBVHAttrReq(ATTR_DOMAIN_POINT, eCustomDataType(CD_PBVH_NO_TYPE));
-
+  attrs.append(pbvh::CustomRequest::Position);
+  attrs.append(pbvh::CustomRequest::Normal);
   if (use_mask) {
-    attrs[attrs_num++] = PBVHAttrReq(ATTR_DOMAIN_POINT, eCustomDataType(CD_PBVH_MASK_TYPE));
+    attrs.append(pbvh::CustomRequest::Mask);
   }
-
   if (use_fset) {
-    attrs[attrs_num++] = PBVHAttrReq(ATTR_DOMAIN_FACE, eCustomDataType(CD_PBVH_FSET_TYPE));
+    attrs.append(pbvh::CustomRequest::FaceSet);
   }
 
-  Mesh *me = BKE_object_get_original_mesh(ob);
+  Mesh *mesh = BKE_object_get_original_mesh(ob);
+  const bke::AttributeAccessor attributes = mesh->attributes();
 
   if (use_color) {
-    const CustomDataLayer *layer = BKE_id_attributes_color_find(&me->id,
-                                                                me->active_color_attribute);
-    if (layer) {
-      eAttrDomain domain = BKE_id_attribute_domain(&me->id, layer);
-
-      attrs[attrs_num].type = eCustomDataType(layer->type);
-      attrs[attrs_num].domain = domain;
-
-      attrs[attrs_num].name = layer->name;
-      attrs_num++;
+    if (const char *name = mesh->active_color_attribute) {
+      if (const std::optional<bke::AttributeMetaData> meta_data = attributes.lookup_meta_data(
+              name)) {
+        attrs.append(pbvh::GenericRequest{name, meta_data->data_type, meta_data->domain});
+      }
     }
   }
 
   if (use_uv) {
-    int layer_i = CustomData_get_active_layer_index(&me->loop_data, CD_PROP_FLOAT2);
-    if (layer_i != -1) {
-      CustomDataLayer *layer = me->loop_data.layers + layer_i;
-
-      attrs[attrs_num].type = CD_PROP_FLOAT2;
-      attrs[attrs_num].domain = ATTR_DOMAIN_CORNER;
-      attrs[attrs_num].name = layer->name;
-
-      attrs_num++;
+    if (const char *name = CustomData_get_active_layer_name(&mesh->loop_data, CD_PROP_FLOAT2)) {
+      attrs.append(pbvh::GenericRequest{name, CD_PROP_FLOAT2, ATTR_DOMAIN_CORNER});
     }
   }
 
   scd.attrs = attrs;
-  scd.attrs_num = attrs_num;
 
   drw_sculpt_generate_calls(&scd);
 }
@@ -1454,59 +1440,42 @@ void DRW_shgroup_call_sculpt(DRWShadingGroup *shgroup,
 void DRW_shgroup_call_sculpt_with_materials(DRWShadingGroup **shgroups,
                                             GPUMaterial **gpumats,
                                             int num_shgroups,
-                                            Object *ob)
+                                            const Object *ob)
 {
+  using namespace blender::draw;
   DRW_Attributes draw_attrs;
   DRW_MeshCDMask cd_needed;
 
+  const Mesh *mesh = static_cast<const Mesh *>(ob->data);
+
   if (gpumats) {
-    DRW_mesh_get_attributes(ob, (Mesh *)ob->data, gpumats, num_shgroups, &draw_attrs, &cd_needed);
+    DRW_mesh_get_attributes(ob, mesh, gpumats, num_shgroups, &draw_attrs, &cd_needed);
   }
   else {
     memset(&draw_attrs, 0, sizeof(draw_attrs));
     memset(&cd_needed, 0, sizeof(cd_needed));
   }
 
-  int attrs_num = 2 + draw_attrs.num_requests;
+  blender::Vector<pbvh::AttributeRequest, 16> attrs;
 
-  /* UV maps are not in attribute requests. */
-  attrs_num += count_bits_i(cd_needed.uv);
-
-  blender::Array<PBVHAttrReq, 16> attrs(attrs_num, PBVHAttrReq{});
-
-  int attrs_i = 0;
-
-  /* NOTE: these are NOT #eCustomDataType, they are extended values, ASAN may warn about this. */
-  attrs[attrs_i++].type = (eCustomDataType)CD_PBVH_CO_TYPE;
-  attrs[attrs_i++].type = (eCustomDataType)CD_PBVH_NO_TYPE;
+  attrs.append(pbvh::CustomRequest::Position);
+  attrs.append(pbvh::CustomRequest::Normal);
 
   for (int i = 0; i < draw_attrs.num_requests; i++) {
-    DRW_AttributeRequest *req = draw_attrs.requests + i;
-
-    attrs[attrs_i].type = req->cd_type;
-    attrs[attrs_i].domain = req->domain;
-    attrs[attrs_i].name = req->attribute_name;
-    attrs_i++;
+    const DRW_AttributeRequest &req = draw_attrs.requests[i];
+    attrs.append(pbvh::GenericRequest{req.attribute_name, req.cd_type, req.domain});
   }
 
   /* UV maps are not in attribute requests. */
-  Mesh *me = (Mesh *)ob->data;
-
   for (uint i = 0; i < 32; i++) {
     if (cd_needed.uv & (1 << i)) {
-      int layer_i = CustomData_get_layer_index_n(&me->loop_data, CD_PROP_FLOAT2, i);
-      CustomDataLayer *layer = layer_i != -1 ? me->loop_data.layers + layer_i : nullptr;
-
+      int layer_i = CustomData_get_layer_index_n(&mesh->loop_data, CD_PROP_FLOAT2, i);
+      CustomDataLayer *layer = layer_i != -1 ? mesh->loop_data.layers + layer_i : nullptr;
       if (layer) {
-        attrs[attrs_i].type = CD_PROP_FLOAT2;
-        attrs[attrs_i].domain = ATTR_DOMAIN_CORNER;
-        attrs[attrs_i].name = layer->name;
-        attrs_i++;
+        attrs.append(pbvh::GenericRequest{layer->name, CD_PROP_FLOAT2, ATTR_DOMAIN_CORNER});
       }
     }
   }
-
-  attrs_num = attrs_i;
 
   DRWSculptCallbackData scd{};
   scd.ob = ob;
@@ -1515,8 +1484,7 @@ void DRW_shgroup_call_sculpt_with_materials(DRWShadingGroup **shgroups,
   scd.use_wire = false;
   scd.use_mats = true;
   scd.use_mask = false;
-  scd.attrs = attrs.data();
-  scd.attrs_num = attrs_num;
+  scd.attrs = attrs;
 
   drw_sculpt_generate_calls(&scd);
 }

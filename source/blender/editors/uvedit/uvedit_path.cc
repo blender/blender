@@ -52,10 +52,10 @@
 
 #include "UI_view2d.hh"
 
-#include "intern/bmesh_marking.h"
+#include "intern/bmesh_marking.hh"
 #include "uvedit_intern.h"
 
-#include "bmesh_tools.h"
+#include "bmesh_tools.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Path Select Struct & Properties
