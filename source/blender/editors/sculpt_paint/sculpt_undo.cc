@@ -278,19 +278,11 @@ void sculpt_undo_print_nodes(Object *ob, void *active)
 #  define sculpt_undo_print_nodes(ob, active) while (0)
 #endif
 
-static void update_cb(PBVHNode *node, void *rebuild)
-{
-  BKE_pbvh_node_mark_update(node);
-  BKE_pbvh_node_mark_update_mask(node);
-  if (*((bool *)rebuild)) {
-    BKE_pbvh_node_mark_update_visibility(node);
-  }
-  BKE_pbvh_node_fully_hidden_set(node, 0);
-}
-
 struct PartialUpdateData {
   PBVH *pbvh;
-  bool rebuild;
+  bool changed_position;
+  bool changed_hide;
+  bool changed_mask;
   Span<bool> modified_grids;
   Span<bool> modified_hidden_verts;
   Span<bool> modified_mask_verts;
@@ -298,52 +290,64 @@ struct PartialUpdateData {
   Span<bool> modified_face_set_faces;
 };
 
-/**
- * A version of #update_cb that tests for the update tag in #PBVH.vert_bitmap.
- */
-static void update_cb_partial(PBVHNode *node, void *userdata)
+static void update_modified_node_mesh(PBVHNode *node, void *userdata)
 {
   PartialUpdateData *data = static_cast<PartialUpdateData *>(userdata);
-  if (BKE_pbvh_type(data->pbvh) == PBVH_GRIDS) {
-    const Span<int> grid_indices = BKE_pbvh_node_get_grid_indices(*node);
-    if (std::any_of(grid_indices.begin(), grid_indices.end(), [&](const int grid) {
-          return data->modified_grids[grid];
-        }))
-    {
-      update_cb(node, &data->rebuild);
+  if (BKE_pbvh_node_has_vert_with_normal_update_tag(data->pbvh, node)) {
+    BKE_pbvh_node_mark_update(node);
+  }
+  const blender::Span<int> verts = BKE_pbvh_node_get_vert_indices(node);
+  if (!data->modified_mask_verts.is_empty()) {
+    for (const int vert : verts) {
+      if (data->modified_mask_verts[vert]) {
+        BKE_pbvh_node_mark_update_mask(node);
+        break;
+      }
     }
   }
-  else {
-    if (BKE_pbvh_node_has_vert_with_normal_update_tag(data->pbvh, node)) {
+  if (!data->modified_color_verts.is_empty()) {
+    for (const int vert : verts) {
+      if (data->modified_color_verts[vert]) {
+        BKE_pbvh_node_mark_update_color(node);
+        break;
+      }
+    }
+  }
+  if (!data->modified_hidden_verts.is_empty()) {
+    for (const int vert : verts) {
+      if (data->modified_hidden_verts[vert]) {
+        BKE_pbvh_node_mark_update_visibility(node);
+        break;
+      }
+    }
+  }
+
+  if (!data->modified_face_set_faces.is_empty()) {
+    for (const int face : BKE_pbvh_node_calc_face_indices(*data->pbvh, *node)) {
+      if (data->modified_face_set_faces[face]) {
+        BKE_pbvh_node_mark_update_face_sets(node);
+        break;
+      }
+    }
+  }
+}
+
+static void update_modified_node_grids(PBVHNode *node, void *userdata)
+{
+  PartialUpdateData *data = static_cast<PartialUpdateData *>(userdata);
+  const Span<int> grid_indices = BKE_pbvh_node_get_grid_indices(*node);
+  if (std::any_of(grid_indices.begin(), grid_indices.end(), [&](const int grid) {
+        return data->modified_grids[grid];
+      }))
+  {
+    if (data->changed_position) {
       BKE_pbvh_node_mark_update(node);
     }
-    const blender::Span<int> verts = BKE_pbvh_node_get_vert_indices(node);
-    if (!data->modified_mask_verts.is_empty()) {
-      for (const int vert : verts) {
-        if (data->modified_mask_verts[vert]) {
-          BKE_pbvh_node_mark_update_mask(node);
-          break;
-        }
-      }
+    if (data->changed_mask) {
+      BKE_pbvh_node_mark_update_mask(node);
     }
-    if (!data->modified_color_verts.is_empty()) {
-      for (const int vert : verts) {
-        if (data->modified_color_verts[vert]) {
-          BKE_pbvh_node_mark_update_color(node);
-          break;
-        }
-      }
-    }
-    if (!data->modified_hidden_verts.is_empty()) {
-      for (const int vert : verts) {
-        if (data->modified_hidden_verts[vert]) {
-          if (data->rebuild) {
-            BKE_pbvh_node_mark_update_visibility(node);
-          }
-          BKE_pbvh_node_fully_hidden_set(node, 0);
-          break;
-        }
-      }
+    if (data->changed_hide) {
+      BKE_pbvh_node_mark_update_visibility(node);
     }
   }
   if (!data->modified_face_set_faces.is_empty()) {
@@ -873,11 +877,8 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
   Object *ob = BKE_view_layer_active_object_get(view_layer);
   SculptSession *ss = ob->sculpt;
   SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
-  bool update = false, rebuild = false, update_mask = false, update_visibility = false;
-  bool update_face_sets = false;
-  bool need_refine_subdiv = false;
-  bool clear_automask_cache = false;
 
+  bool clear_automask_cache = false;
   LISTBASE_FOREACH (SculptUndoNode *, unode, lb) {
     if (!ELEM(unode->type, SCULPT_UNDO_COLOR, SCULPT_UNDO_MASK)) {
       clear_automask_cache = true;
@@ -891,8 +892,6 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
   if (clear_automask_cache) {
     ss->last_automasking_settings_hash = 0;
   }
-
-  DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
 
   if (lb->first != nullptr) {
     /* Only do early object update for edits if first node needs this.
@@ -908,24 +907,29 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
     }
   }
 
+  bool use_multires_undo = false;
+
+  bool changed_all_geometry = false;
+  bool changed_position = false;
+  bool changed_hide = false;
+  bool changed_mask = false;
+  bool changed_face_sets = false;
+  bool changed_color = false;
+
   /* The PBVH already keeps track of which vertices need updated normals, but it doesn't keep
-   * track of other updated. In order to tell the corresponding PBVH nodes to update, keep track
+   * track of other updates. In order to tell the corresponding PBVH nodes to update, keep track
    * of which elements were updated for specific layers. */
   Vector<bool> modified_verts_hide;
   Vector<bool> modified_verts_mask;
   Vector<bool> modified_verts_color;
   Vector<bool> modified_faces_face_set;
   Vector<bool> modified_grids;
-  bool use_multires_undo = false;
-
   LISTBASE_FOREACH (SculptUndoNode *, unode, lb) {
-
     if (!STREQ(unode->idname, ob->id.name)) {
       continue;
     }
 
-    /* Check if undo data matches current data well enough to
-     * continue. */
+    /* Check if undo data matches current data well enough to continue. */
     if (unode->maxvert) {
       if (ss->totvert != unode->maxvert) {
         continue;
@@ -943,40 +947,36 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
     switch (unode->type) {
       case SCULPT_UNDO_COORDS:
         if (sculpt_undo_restore_coords(C, depsgraph, unode)) {
-          update = true;
+          changed_position = true;
         }
         break;
       case SCULPT_UNDO_HIDDEN:
         modified_verts_hide.resize(ss->totvert, false);
         if (sculpt_undo_restore_hidden(C, unode, modified_verts_hide)) {
-          rebuild = true;
-          update_visibility = true;
+          changed_hide = true;
         }
         break;
       case SCULPT_UNDO_MASK:
         modified_verts_mask.resize(ss->totvert, false);
         if (sculpt_undo_restore_mask(C, unode, modified_verts_mask)) {
-          update = true;
-          update_mask = true;
+          changed_mask = true;
         }
         break;
       case SCULPT_UNDO_FACE_SETS:
         modified_faces_face_set.resize(ss->totfaces, false);
         if (sculpt_undo_restore_face_sets(C, unode, modified_faces_face_set)) {
-          update = true;
-          update_face_sets = true;
+          changed_face_sets = true;
         }
         break;
       case SCULPT_UNDO_COLOR:
         modified_verts_color.resize(ss->totvert, false);
         if (sculpt_undo_restore_color(C, unode, modified_verts_color)) {
-          update = true;
+          changed_color = true;
         }
-
         break;
       case SCULPT_UNDO_GEOMETRY:
-        need_refine_subdiv = true;
         sculpt_undo_geometry_restore(unode, ob);
+        changed_all_geometry = true;
         BKE_sculpt_update_object_for_edit(depsgraph, ob, false);
         break;
 
@@ -998,65 +998,72 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
     }
   }
 
-  if (subdiv_ccg != nullptr && need_refine_subdiv) {
+  if (subdiv_ccg != nullptr && changed_all_geometry) {
     sculpt_undo_refine_subdiv(depsgraph, ss, ob, subdiv_ccg->subdiv);
   }
 
-  if (update || rebuild) {
-    bool tag_update = false;
-    /* We update all nodes still, should be more clever, but also
-     * needs to work correct when exiting/entering sculpt mode and
-     * the nodes get recreated, though in that case it could do all. */
-    PartialUpdateData data{};
-    data.rebuild = rebuild;
-    data.pbvh = ss->pbvh;
-    data.modified_grids = modified_grids;
-    data.modified_hidden_verts = modified_verts_hide;
-    data.modified_mask_verts = modified_verts_mask;
-    data.modified_color_verts = modified_verts_color;
-    data.modified_face_set_faces = modified_faces_face_set;
-    BKE_pbvh_search_callback(ss->pbvh, {}, update_cb_partial, &data);
+  DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
+
+  if (!changed_position && !changed_hide && !changed_mask && !changed_face_sets && !changed_color)
+  {
+    return;
+  }
+
+  /* We update all nodes still, should be more clever, but also
+   * needs to work correct when exiting/entering sculpt mode and
+   * the nodes get recreated, though in that case it could do all. */
+  PartialUpdateData data{};
+  data.changed_position = changed_position;
+  data.changed_hide = changed_hide;
+  data.changed_mask = changed_mask;
+  data.pbvh = ss->pbvh;
+  data.modified_grids = modified_grids;
+  data.modified_hidden_verts = modified_verts_hide;
+  data.modified_mask_verts = modified_verts_mask;
+  data.modified_color_verts = modified_verts_color;
+  data.modified_face_set_faces = modified_faces_face_set;
+  if (use_multires_undo) {
+    BKE_pbvh_search_callback(ss->pbvh, {}, update_modified_node_grids, &data);
+  }
+  else {
+    BKE_pbvh_search_callback(ss->pbvh, {}, update_modified_node_mesh, &data);
+  }
+
+  if (changed_position) {
     BKE_pbvh_update_bounds(ss->pbvh, PBVH_UpdateBB | PBVH_UpdateOriginalBB | PBVH_UpdateRedraw);
+  }
+  if (changed_mask) {
+    BKE_pbvh_update_mask(ss->pbvh);
+  }
 
-    if (update_mask) {
-      BKE_pbvh_update_mask(ss->pbvh);
+  if (changed_hide) {
+    if (ELEM(BKE_pbvh_type(ss->pbvh), PBVH_FACES, PBVH_GRIDS)) {
+      Mesh &mesh = *static_cast<Mesh *>(ob->data);
+      BKE_pbvh_sync_visibility_from_verts(ss->pbvh, &mesh);
     }
-    if (update_face_sets) {
-      DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
-      BKE_pbvh_update_vertex_data(ss->pbvh, PBVH_RebuildDrawBuffers);
+    BKE_pbvh_update_visibility(ss->pbvh);
+  }
+
+  if (BKE_sculpt_multires_active(scene, ob)) {
+    if (changed_hide) {
+      multires_mark_as_modified(depsgraph, ob, MULTIRES_HIDDEN_MODIFIED);
     }
-
-    if (update_visibility) {
-      if (ELEM(BKE_pbvh_type(ss->pbvh), PBVH_FACES, PBVH_GRIDS)) {
-        Mesh *me = (Mesh *)ob->data;
-        BKE_pbvh_sync_visibility_from_verts(ss->pbvh, me);
-      }
-
-      BKE_pbvh_update_visibility(ss->pbvh);
+    else if (changed_position) {
+      multires_mark_as_modified(depsgraph, ob, MULTIRES_COORDS_MODIFIED);
     }
+  }
 
-    if (BKE_sculpt_multires_active(scene, ob)) {
-      if (rebuild) {
-        multires_mark_as_modified(depsgraph, ob, MULTIRES_HIDDEN_MODIFIED);
-      }
-      else {
-        multires_mark_as_modified(depsgraph, ob, MULTIRES_COORDS_MODIFIED);
-      }
-    }
+  const bool tag_update = ID_REAL_USERS(ob->data) > 1 ||
+                          !BKE_sculptsession_use_pbvh_draw(ob, rv3d) || ss->shapekey_active ||
+                          ss->deform_modifiers_active;
 
-    tag_update |= ID_REAL_USERS(ob->data) > 1 || !BKE_sculptsession_use_pbvh_draw(ob, rv3d) ||
-                  ss->shapekey_active || ss->deform_modifiers_active;
-
-    if (tag_update) {
-      Mesh *mesh = static_cast<Mesh *>(ob->data);
+  if (tag_update) {
+    Mesh *mesh = static_cast<Mesh *>(ob->data);
+    if (changed_position) {
       BKE_mesh_tag_positions_changed(mesh);
-
       BKE_sculptsession_free_deformMats(ss);
     }
-
-    if (tag_update) {
-      DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-    }
+    DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   }
 }
 
