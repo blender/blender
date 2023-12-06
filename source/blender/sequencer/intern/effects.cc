@@ -1232,16 +1232,24 @@ struct WipeZone {
   int xo, yo;
   int width;
   float pythangle;
+  float clockWidth;
+  int type;
+  bool forward;
 };
 
-static void precalc_wipe_zone(WipeZone *wipezone, WipeVars *wipe, int xo, int yo)
+static WipeZone precalc_wipe_zone(const WipeVars *wipe, int xo, int yo)
 {
-  wipezone->flip = (wipe->angle < 0.0f);
-  wipezone->angle = tanf(fabsf(wipe->angle));
-  wipezone->xo = xo;
-  wipezone->yo = yo;
-  wipezone->width = int(wipe->edgeWidth * ((xo + yo) / 2.0f));
-  wipezone->pythangle = 1.0f / sqrtf(wipezone->angle * wipezone->angle + 1.0f);
+  WipeZone zone;
+  zone.flip = (wipe->angle < 0.0f);
+  zone.angle = tanf(fabsf(wipe->angle));
+  zone.xo = xo;
+  zone.yo = yo;
+  zone.width = int(wipe->edgeWidth * ((xo + yo) / 2.0f));
+  zone.pythangle = 1.0f / sqrtf(zone.angle * zone.angle + 1.0f);
+  zone.clockWidth = wipe->edgeWidth * float(M_PI);
+  zone.type = wipe->wipetype;
+  zone.forward = wipe->forward != 0;
+  return zone;
 }
 
 /**
@@ -1273,18 +1281,15 @@ static float in_band(float width, float dist, int side, int dir)
   return alpha;
 }
 
-static float check_zone(WipeZone *wipezone, int x, int y, Sequence *seq, float fac)
+static float check_zone(const WipeZone *wipezone, int x, int y, float fac)
 {
   float posx, posy, hyp, hyp2, angle, hwidth, b1, b2, b3, pointdist;
-  /* some future stuff */
-  /* float hyp3, hyp4, b4, b5 */
   float temp1, temp2, temp3, temp4; /* some placeholder variables */
   int xo = wipezone->xo;
   int yo = wipezone->yo;
   float halfx = xo * 0.5f;
   float halfy = yo * 0.5f;
   float widthf, output = 0;
-  WipeVars *wipe = (WipeVars *)seq->effectdata;
   int width;
 
   if (wipezone->flip) {
@@ -1292,7 +1297,7 @@ static float check_zone(WipeZone *wipezone, int x, int y, Sequence *seq, float f
   }
   angle = wipezone->angle;
 
-  if (wipe->forward) {
+  if (wipezone->forward) {
     posx = fac * xo;
     posy = fac * yo;
   }
@@ -1301,7 +1306,7 @@ static float check_zone(WipeZone *wipezone, int x, int y, Sequence *seq, float f
     posy = yo - fac * yo;
   }
 
-  switch (wipe->wipetype) {
+  switch (wipezone->type) {
     case DO_SINGLE_WIPE:
       width = min_ii(wipezone->width, fac * yo);
       width = min_ii(width, yo - fac * yo);
@@ -1323,7 +1328,7 @@ static float check_zone(WipeZone *wipezone, int x, int y, Sequence *seq, float f
         b2 = temp1;
       }
 
-      if (wipe->forward) {
+      if (wipezone->forward) {
         if (b1 < b2) {
           output = in_band(width, hyp, 1, 1);
         }
@@ -1342,7 +1347,7 @@ static float check_zone(WipeZone *wipezone, int x, int y, Sequence *seq, float f
       break;
 
     case DO_DOUBLE_WIPE:
-      if (!wipe->forward) {
+      if (!wipezone->forward) {
         fac = 1.0f - fac; /* Go the other direction */
       }
 
@@ -1385,7 +1390,7 @@ static float check_zone(WipeZone *wipezone, int x, int y, Sequence *seq, float f
           output = in_band(hwidth, hyp2, 1, 1) * in_band(hwidth, hyp, 1, 1);
         }
       }
-      if (!wipe->forward) {
+      if (!wipezone->forward) {
         output = 1 - output;
       }
       break;
@@ -1397,34 +1402,28 @@ static float check_zone(WipeZone *wipezone, int x, int y, Sequence *seq, float f
        * temp4: angle of high side of blur
        */
       output = 1.0f - fac;
-      widthf = wipe->edgeWidth * 2.0f * float(M_PI);
+      widthf = wipezone->clockWidth;
       temp1 = 2.0f * float(M_PI) * fac;
 
-      if (wipe->forward) {
+      if (wipezone->forward) {
         temp1 = 2.0f * float(M_PI) - temp1;
       }
 
       x = x - halfx;
       y = y - halfy;
 
-      temp2 = asin(abs(y) / hypot(x, y));
-      if (x <= 0 && y >= 0) {
-        temp2 = float(M_PI) - temp2;
-      }
-      else if (x <= 0 && y <= 0) {
-        temp2 += float(M_PI);
-      }
-      else if (x >= 0 && y <= 0) {
-        temp2 = 2.0f * float(M_PI) - temp2;
+      temp2 = atan2f(y, x);
+      if (temp2 < 0.0f) {
+        temp2 += 2.0f * float(M_PI);
       }
 
-      if (wipe->forward) {
-        temp3 = temp1 - (widthf * 0.5f) * fac;
-        temp4 = temp1 + (widthf * 0.5f) * (1 - fac);
+      if (wipezone->forward) {
+        temp3 = temp1 - widthf * fac;
+        temp4 = temp1 + widthf * (1 - fac);
       }
       else {
-        temp3 = temp1 - (widthf * 0.5f) * (1 - fac);
-        temp4 = temp1 + (widthf * 0.5f) * fac;
+        temp3 = temp1 - widthf * (1 - fac);
+        temp4 = temp1 + widthf * fac;
       }
       if (temp3 < 0) {
         temp3 = 0;
@@ -1448,7 +1447,7 @@ static float check_zone(WipeZone *wipezone, int x, int y, Sequence *seq, float f
       if (output != output) {
         output = 1;
       }
-      if (wipe->forward) {
+      if (wipezone->forward) {
         output = 1 - output;
       }
       break;
@@ -1460,7 +1459,7 @@ static float check_zone(WipeZone *wipezone, int x, int y, Sequence *seq, float f
         xo = yo;
       }
 
-      if (!wipe->forward) {
+      if (!wipezone->forward) {
         fac = 1 - fac;
       }
 
@@ -1478,7 +1477,7 @@ static float check_zone(WipeZone *wipezone, int x, int y, Sequence *seq, float f
         output = in_band(hwidth, fabsf(temp2 - pointdist), 1, 1);
       }
 
-      if (!wipe->forward) {
+      if (!wipezone->forward) {
         output = 1 - output;
       }
 
@@ -1517,119 +1516,131 @@ static void copy_wipe_effect(Sequence *dst, Sequence *src, const int /*flag*/)
   dst->effectdata = MEM_dupallocN(src->effectdata);
 }
 
-static void do_wipe_effect_byte(
-    Sequence *seq, float fac, int x, int y, uchar *rect1, uchar *rect2, uchar *out)
+static void do_wipe_effect_byte(const Sequence *seq,
+                                float fac,
+                                int width,
+                                int height,
+                                const uchar *rect1,
+                                const uchar *rect2,
+                                uchar *out)
 {
-  WipeZone wipezone;
-  WipeVars *wipe = (WipeVars *)seq->effectdata;
-  precalc_wipe_zone(&wipezone, wipe, x, y);
+  using namespace blender;
+  const WipeVars *wipe = (const WipeVars *)seq->effectdata;
+  const WipeZone wipezone = precalc_wipe_zone(wipe, width, height);
 
-  uchar *cp1 = rect1;
-  uchar *cp2 = rect2;
-  uchar *rt = out;
+  threading::parallel_for(IndexRange(height), 64, [&](const IndexRange y_range) {
+    const uchar *cp1 = rect1 + y_range.first() * width * 4;
+    const uchar *cp2 = rect2 + y_range.first() * width * 4;
+    uchar *rt = out + y_range.first() * width * 4;
+    for (const int y : y_range) {
+      for (int x = 0; x < width; x++) {
+        float check = check_zone(&wipezone, x, y, fac);
+        if (check) {
+          if (cp1) {
+            float rt1[4], rt2[4], tempc[4];
 
-  for (int i = 0; i < y; i++) {
-    for (int j = 0; j < x; j++) {
-      float check = check_zone(&wipezone, j, i, seq, fac);
-      if (check) {
-        if (cp1) {
-          float rt1[4], rt2[4], tempc[4];
+            straight_uchar_to_premul_float(rt1, cp1);
+            straight_uchar_to_premul_float(rt2, cp2);
 
-          straight_uchar_to_premul_float(rt1, cp1);
-          straight_uchar_to_premul_float(rt2, cp2);
+            tempc[0] = rt1[0] * check + rt2[0] * (1 - check);
+            tempc[1] = rt1[1] * check + rt2[1] * (1 - check);
+            tempc[2] = rt1[2] * check + rt2[2] * (1 - check);
+            tempc[3] = rt1[3] * check + rt2[3] * (1 - check);
 
-          tempc[0] = rt1[0] * check + rt2[0] * (1 - check);
-          tempc[1] = rt1[1] * check + rt2[1] * (1 - check);
-          tempc[2] = rt1[2] * check + rt2[2] * (1 - check);
-          tempc[3] = rt1[3] * check + rt2[3] * (1 - check);
-
-          premul_float_to_straight_uchar(rt, tempc);
+            premul_float_to_straight_uchar(rt, tempc);
+          }
+          else {
+            rt[0] = 0;
+            rt[1] = 0;
+            rt[2] = 0;
+            rt[3] = 255;
+          }
         }
         else {
-          rt[0] = 0;
-          rt[1] = 0;
-          rt[2] = 0;
-          rt[3] = 255;
+          if (cp2) {
+            rt[0] = cp2[0];
+            rt[1] = cp2[1];
+            rt[2] = cp2[2];
+            rt[3] = cp2[3];
+          }
+          else {
+            rt[0] = 0;
+            rt[1] = 0;
+            rt[2] = 0;
+            rt[3] = 255;
+          }
         }
-      }
-      else {
-        if (cp2) {
-          rt[0] = cp2[0];
-          rt[1] = cp2[1];
-          rt[2] = cp2[2];
-          rt[3] = cp2[3];
-        }
-        else {
-          rt[0] = 0;
-          rt[1] = 0;
-          rt[2] = 0;
-          rt[3] = 255;
-        }
-      }
 
-      rt += 4;
-      if (cp1 != nullptr) {
-        cp1 += 4;
-      }
-      if (cp2 != nullptr) {
-        cp2 += 4;
+        rt += 4;
+        if (cp1 != nullptr) {
+          cp1 += 4;
+        }
+        if (cp2 != nullptr) {
+          cp2 += 4;
+        }
       }
     }
-  }
+  });
 }
 
-static void do_wipe_effect_float(
-    Sequence *seq, float fac, int x, int y, float *rect1, float *rect2, float *out)
+static void do_wipe_effect_float(Sequence *seq,
+                                 float fac,
+                                 int width,
+                                 int height,
+                                 const float *rect1,
+                                 const float *rect2,
+                                 float *out)
 {
-  WipeZone wipezone;
-  WipeVars *wipe = (WipeVars *)seq->effectdata;
-  precalc_wipe_zone(&wipezone, wipe, x, y);
+  using namespace blender;
+  const WipeVars *wipe = (const WipeVars *)seq->effectdata;
+  const WipeZone wipezone = precalc_wipe_zone(wipe, width, height);
 
-  float *rt1 = rect1;
-  float *rt2 = rect2;
-  float *rt = out;
-
-  for (int i = 0; i < y; i++) {
-    for (int j = 0; j < x; j++) {
-      float check = check_zone(&wipezone, j, i, seq, fac);
-      if (check) {
-        if (rt1) {
-          rt[0] = rt1[0] * check + rt2[0] * (1 - check);
-          rt[1] = rt1[1] * check + rt2[1] * (1 - check);
-          rt[2] = rt1[2] * check + rt2[2] * (1 - check);
-          rt[3] = rt1[3] * check + rt2[3] * (1 - check);
+  threading::parallel_for(IndexRange(height), 64, [&](const IndexRange y_range) {
+    const float *rt1 = rect1 + y_range.first() * width * 4;
+    const float *rt2 = rect2 + y_range.first() * width * 4;
+    float *rt = out + y_range.first() * width * 4;
+    for (const int y : y_range) {
+      for (int x = 0; x < width; x++) {
+        float check = check_zone(&wipezone, x, y, fac);
+        if (check) {
+          if (rt1) {
+            rt[0] = rt1[0] * check + rt2[0] * (1 - check);
+            rt[1] = rt1[1] * check + rt2[1] * (1 - check);
+            rt[2] = rt1[2] * check + rt2[2] * (1 - check);
+            rt[3] = rt1[3] * check + rt2[3] * (1 - check);
+          }
+          else {
+            rt[0] = 0;
+            rt[1] = 0;
+            rt[2] = 0;
+            rt[3] = 1.0;
+          }
         }
         else {
-          rt[0] = 0;
-          rt[1] = 0;
-          rt[2] = 0;
-          rt[3] = 1.0;
+          if (rt2) {
+            rt[0] = rt2[0];
+            rt[1] = rt2[1];
+            rt[2] = rt2[2];
+            rt[3] = rt2[3];
+          }
+          else {
+            rt[0] = 0;
+            rt[1] = 0;
+            rt[2] = 0;
+            rt[3] = 1.0;
+          }
         }
-      }
-      else {
-        if (rt2) {
-          rt[0] = rt2[0];
-          rt[1] = rt2[1];
-          rt[2] = rt2[2];
-          rt[3] = rt2[3];
-        }
-        else {
-          rt[0] = 0;
-          rt[1] = 0;
-          rt[2] = 0;
-          rt[3] = 1.0;
-        }
-      }
 
-      rt += 4;
-      if (rt1 != nullptr) {
-        rt1 += 4;
-      }
-      if (rt2 != nullptr) {
-        rt2 += 4;
+        rt += 4;
+        if (rt1 != nullptr) {
+          rt1 += 4;
+        }
+        if (rt2 != nullptr) {
+          rt2 += 4;
+        }
       }
     }
-  }
+  });
 }
 
 static ImBuf *do_wipe_effect(const SeqRenderData *context,
