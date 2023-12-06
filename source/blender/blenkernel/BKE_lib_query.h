@@ -70,12 +70,6 @@ enum {
    * How to handle that kind of cases totally depends on what caller code is doing... */
   IDWALK_CB_LOOPBACK = (1 << 6),
 
-  /** That ID is used as library override's reference by its owner. */
-  IDWALK_CB_OVERRIDE_LIBRARY_REFERENCE = (1 << 7),
-
-  /** That ID pointer is not overridable. */
-  IDWALK_CB_OVERRIDE_LIBRARY_NOT_OVERRIDABLE = (1 << 8),
-
   /**
    * Indicates that this is an internal runtime ID pointer, like e.g. `ID.newid` or `ID.original`.
    * \note Those should be ignored in most cases, and won't be processed/generated anyway unless
@@ -105,6 +99,16 @@ enum {
    * Callback is responsible to deal accordingly with #ID.us if needed.
    */
   IDWALK_CB_USER_ONE = (1 << 12),
+
+  /** This ID is used as library override's reference by its owner. */
+  IDWALK_CB_OVERRIDE_LIBRARY_REFERENCE = (1 << 16),
+
+  /** This ID pointer is not overridable. */
+  IDWALK_CB_OVERRIDE_LIBRARY_NOT_OVERRIDABLE = (1 << 17),
+
+  /** This ID pointer is expected to be overridden by default, in liboverride hierarchy context. */
+  IDWALK_CB_OVERRIDE_LIBRARY_HIERARCHY_DEFAULT = (1 << 18),
+
 };
 
 enum {

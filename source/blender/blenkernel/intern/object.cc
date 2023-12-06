@@ -411,7 +411,8 @@ static void object_foreach_id(ID *id, LibraryForeachIDData *data)
     }
   }
 
-  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, object->parent, IDWALK_CB_NEVER_SELF);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(
+      data, object->parent, IDWALK_CB_NEVER_SELF | IDWALK_CB_OVERRIDE_LIBRARY_HIERARCHY_DEFAULT);
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, object->track, IDWALK_CB_NEVER_SELF);
 
   for (int i = 0; i < object->totcol; i++) {
