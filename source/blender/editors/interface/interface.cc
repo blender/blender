@@ -4349,6 +4349,8 @@ static void ui_def_but_rna__menu(bContext *C, uiLayout *layout, void *but_p)
     }
     if (!item->identifier[0] && item->name) {
       categories++;
+      /* The category name adds to the column length. */
+      col_rows++;
     }
     if (item->icon) {
       has_item_with_icon = true;
