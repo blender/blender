@@ -68,7 +68,7 @@ void ED_sculpt_init_transform(bContext *C,
 
   SCULPT_vertex_random_access_ensure(ss);
 
-  SCULPT_filter_cache_init(C, ob, sd, SCULPT_UNDO_COORDS, mval_fl, 5.0, 1.0f);
+  SCULPT_filter_cache_init(C, ob, sd, SculptUndoType::Position, mval_fl, 5.0, 1.0f);
 
   if (sd->transform_mode == SCULPT_TRANSFORM_MODE_RADIUS_ELASTIC) {
     ss->filter_cache->transform_displacement_mode = SCULPT_TRANSFORM_DISPLACEMENT_INCREMENTAL;
@@ -147,11 +147,11 @@ static void sculpt_transform_task(Object *ob, const float transform_mats[8][4][4
   SculptSession *ss = ob->sculpt;
 
   SculptOrigVertData orig_data;
-  SCULPT_orig_vert_data_init(&orig_data, ob, node, SCULPT_UNDO_COORDS);
+  SCULPT_orig_vert_data_init(&orig_data, ob, node, SculptUndoType::Position);
 
   PBVHVertexIter vd;
 
-  SCULPT_undo_push_node(ob, node, SCULPT_UNDO_COORDS);
+  SCULPT_undo_push_node(ob, node, SculptUndoType::Position);
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     SCULPT_orig_vert_data_update(&orig_data, &vd);
     float *start_co;
@@ -215,7 +215,7 @@ static void sculpt_elastic_transform_task(Object *ob,
   const MutableSpan<float3> proxy = BKE_pbvh_node_add_proxy(*ss->pbvh, *node).co;
 
   SculptOrigVertData orig_data;
-  SCULPT_orig_vert_data_init(&orig_data, ob, node, SCULPT_UNDO_COORDS);
+  SCULPT_orig_vert_data_init(&orig_data, ob, node, SculptUndoType::Position);
 
   KelvinletParams params;
   /* TODO(pablodp606): These parameters can be exposed if needed as transform strength and volume
@@ -226,7 +226,7 @@ static void sculpt_elastic_transform_task(Object *ob,
   const float poisson_ratio = 0.4f;
   BKE_kelvinlet_init_params(&params, transform_radius, force, shear_modulus, poisson_ratio);
 
-  SCULPT_undo_push_node(ob, node, SCULPT_UNDO_COORDS);
+  SCULPT_undo_push_node(ob, node, SculptUndoType::Position);
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {

@@ -660,7 +660,7 @@ static void do_boundary_brush_bend_task(Object *ob, const Brush *brush, PBVHNode
 
   PBVHVertexIter vd;
   SculptOrigVertData orig_data;
-  SCULPT_orig_vert_data_init(&orig_data, ob, node, SCULPT_UNDO_COORDS);
+  SCULPT_orig_vert_data_init(&orig_data, ob, node, SculptUndoType::Position);
 
   const float disp = strength * sculpt_boundary_displacement_from_grab_delta_get(ss, boundary);
   float angle_factor = disp / ss->cache->radius;
@@ -714,7 +714,7 @@ static void do_boundary_brush_slide_task(Object *ob, const Brush *brush, PBVHNod
 
   PBVHVertexIter vd;
   SculptOrigVertData orig_data;
-  SCULPT_orig_vert_data_init(&orig_data, ob, node, SCULPT_UNDO_COORDS);
+  SCULPT_orig_vert_data_init(&orig_data, ob, node, SculptUndoType::Position);
 
   const float disp = sculpt_boundary_displacement_from_grab_delta_get(ss, boundary);
   AutomaskingNodeData automask_data;
@@ -760,7 +760,7 @@ static void do_boundary_brush_inflate_task(Object *ob, const Brush *brush, PBVHN
 
   PBVHVertexIter vd;
   SculptOrigVertData orig_data;
-  SCULPT_orig_vert_data_init(&orig_data, ob, node, SCULPT_UNDO_COORDS);
+  SCULPT_orig_vert_data_init(&orig_data, ob, node, SculptUndoType::Position);
   AutomaskingNodeData automask_data;
   SCULPT_automasking_node_begin(ob, ss->cache->automasking, &automask_data, node);
 
@@ -806,7 +806,7 @@ static void do_boundary_brush_grab_task(Object *ob, const Brush *brush, PBVHNode
 
   PBVHVertexIter vd;
   SculptOrigVertData orig_data;
-  SCULPT_orig_vert_data_init(&orig_data, ob, node, SCULPT_UNDO_COORDS);
+  SCULPT_orig_vert_data_init(&orig_data, ob, node, SculptUndoType::Position);
   AutomaskingNodeData automask_data;
   SCULPT_automasking_node_begin(ob, ss->cache->automasking, &automask_data, node);
 
@@ -849,7 +849,7 @@ static void do_boundary_brush_twist_task(Object *ob, const Brush *brush, PBVHNod
 
   PBVHVertexIter vd;
   SculptOrigVertData orig_data;
-  SCULPT_orig_vert_data_init(&orig_data, ob, node, SCULPT_UNDO_COORDS);
+  SCULPT_orig_vert_data_init(&orig_data, ob, node, SculptUndoType::Position);
   AutomaskingNodeData automask_data;
   SCULPT_automasking_node_begin(ob, ss->cache->automasking, &automask_data, node);
 
@@ -903,7 +903,7 @@ static void do_boundary_brush_smooth_task(Object *ob, const Brush *brush, PBVHNo
 
   PBVHVertexIter vd;
   SculptOrigVertData orig_data;
-  SCULPT_orig_vert_data_init(&orig_data, ob, node, SCULPT_UNDO_COORDS);
+  SCULPT_orig_vert_data_init(&orig_data, ob, node, SculptUndoType::Position);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     if (boundary->edit_info[vd.index].propagation_steps_num == -1) {

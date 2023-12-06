@@ -112,7 +112,7 @@ void mesh_show_all(Object &object, const Span<PBVHNode *> nodes)
       for (PBVHNode *node : nodes.slice(range)) {
         const Span<int> verts = BKE_pbvh_node_get_vert_indices(node);
         if (std::any_of(verts.begin(), verts.end(), [&](const int i) { return hide_vert[i]; })) {
-          SCULPT_undo_push_node(&object, node, SCULPT_UNDO_HIDDEN);
+          SCULPT_undo_push_node(&object, node, SculptUndoType::HideVert);
           BKE_pbvh_node_mark_rebuild_draw(node);
         }
       }
@@ -159,7 +159,7 @@ static void vert_hide_update(Object &object,
       }
 
       any_changed = true;
-      SCULPT_undo_push_node(&object, node, SCULPT_UNDO_HIDDEN);
+      SCULPT_undo_push_node(&object, node, SculptUndoType::HideVert);
       array_utils::scatter(new_hide.as_span(), verts, hide_vert.span);
 
       BKE_pbvh_node_mark_update_visibility(node);
@@ -248,7 +248,7 @@ void grids_show_all(Depsgraph &depsgraph, Object &object, const Span<PBVHNode *>
             }))
         {
           any_changed = true;
-          SCULPT_undo_push_node(&object, node, SCULPT_UNDO_HIDDEN);
+          SCULPT_undo_push_node(&object, node, SculptUndoType::HideVert);
           BKE_pbvh_node_mark_rebuild_draw(node);
         }
       }
@@ -296,7 +296,7 @@ static void grid_hide_update(Depsgraph &depsgraph,
       }
 
       any_changed = true;
-      SCULPT_undo_push_node(&object, node, SCULPT_UNDO_HIDDEN);
+      SCULPT_undo_push_node(&object, node, SculptUndoType::HideVert);
 
       for (const int i : grids.index_range()) {
         grid_hidden[grids[i]].copy_from(new_hide[i].as_span());
@@ -441,7 +441,7 @@ static void partialvis_update_bmesh(Object *ob,
     bool any_changed = false;
     bool any_visible = false;
 
-    SCULPT_undo_push_node(ob, node, SCULPT_UNDO_HIDDEN);
+    SCULPT_undo_push_node(ob, node, SculptUndoType::HideVert);
 
     partialvis_update_bmesh_verts(bm,
                                   BKE_pbvh_bmesh_node_unique_verts(node),
@@ -633,7 +633,7 @@ static void invert_visibility_mesh(Object &object, const Span<PBVHNode *> nodes)
 
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (PBVHNode *node : nodes.slice(range)) {
-      SCULPT_undo_push_node(&object, node, SCULPT_UNDO_HIDDEN);
+      SCULPT_undo_push_node(&object, node, SculptUndoType::HideVert);
       for (const int vert : BKE_pbvh_node_get_unique_vert_indices(node)) {
         hide_vert.span[vert] = !hide_vert.span[vert];
       }
@@ -657,7 +657,7 @@ static void invert_visibility_grids(Depsgraph &depsgraph,
 
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (PBVHNode *node : nodes.slice(range)) {
-      SCULPT_undo_push_node(&object, node, SCULPT_UNDO_HIDDEN);
+      SCULPT_undo_push_node(&object, node, SculptUndoType::HideVert);
       for (const int i : BKE_pbvh_node_get_grid_indices(*node)) {
         bits::invert(grid_hidden[i]);
       }
@@ -674,7 +674,7 @@ static void invert_visibility_bmesh(Object &object, const Span<PBVHNode *> nodes
 {
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (PBVHNode *node : nodes.slice(range)) {
-      SCULPT_undo_push_node(&object, node, SCULPT_UNDO_HIDDEN);
+      SCULPT_undo_push_node(&object, node, SculptUndoType::HideVert);
       bool fully_hidden = true;
       for (BMVert *vert : BKE_pbvh_bmesh_node_unique_verts(node)) {
         BM_elem_flag_toggle(vert, BM_ELEM_HIDDEN);

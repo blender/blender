@@ -439,7 +439,7 @@ static void do_surface_smooth_brush_laplacian_task(Object *ob, const Brush *brus
       ss, &test, brush->falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(nullptr);
 
-  SCULPT_orig_vert_data_init(&orig_data, ob, node, SCULPT_UNDO_COORDS);
+  SCULPT_orig_vert_data_init(&orig_data, ob, node, SculptUndoType::Position);
   AutomaskingNodeData automask_data;
   SCULPT_automasking_node_begin(ob, ss->cache->automasking, &automask_data, node);
 

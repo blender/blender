@@ -180,7 +180,7 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
   SCULPT_undo_push_begin(ob, op);
 
   for (PBVHNode *node : nodes) {
-    SCULPT_undo_push_node(ob, node, SCULPT_UNDO_MASK);
+    SCULPT_undo_push_node(ob, node, SculptUndoType::Mask);
   }
 
   float *prev_mask = nullptr;

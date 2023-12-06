@@ -138,17 +138,17 @@ enum eBoundaryAutomaskMode {
 
 /* Undo */
 
-enum SculptUndoType {
-  SCULPT_UNDO_COORDS,
-  SCULPT_UNDO_HIDDEN,
-  SCULPT_UNDO_FACE_HIDDEN,
-  SCULPT_UNDO_MASK,
-  SCULPT_UNDO_DYNTOPO_BEGIN,
-  SCULPT_UNDO_DYNTOPO_END,
-  SCULPT_UNDO_DYNTOPO_SYMMETRIZE,
-  SCULPT_UNDO_GEOMETRY,
-  SCULPT_UNDO_FACE_SETS,
-  SCULPT_UNDO_COLOR,
+enum class SculptUndoType : int8_t {
+  Position,
+  HideVert,
+  HideFace,
+  Mask,
+  DyntopoBegin,
+  DyntopoEnd,
+  DyntopoSymmetrize,
+  Geometry,
+  FaceSet,
+  Color,
 };
 
 /* Storage of geometry for the undo node.
@@ -1333,7 +1333,7 @@ float *SCULPT_geodesic_from_vertex_and_symm(Sculpt *sd,
 void SCULPT_filter_cache_init(bContext *C,
                               Object *ob,
                               Sculpt *sd,
-                              int undo_type,
+                              SculptUndoType undo_type,
                               const float mval_fl[2],
                               float area_normal_radius,
                               float start_strength);

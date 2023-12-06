@@ -173,7 +173,7 @@ static void do_draw_face_sets_brush_faces(Object *ob, const Brush *brush, PBVHNo
   BKE_pbvh_vertex_iter_end;
 
   if (changed) {
-    SCULPT_undo_push_node(ob, node, SCULPT_UNDO_FACE_SETS);
+    SCULPT_undo_push_node(ob, node, SculptUndoType::FaceSet);
   }
 }
 
@@ -221,7 +221,7 @@ static void do_draw_face_sets_brush_grids(Object *ob, const Brush *brush, PBVHNo
   BKE_pbvh_vertex_iter_end;
 
   if (changed) {
-    SCULPT_undo_push_node(ob, node, SCULPT_UNDO_FACE_SETS);
+    SCULPT_undo_push_node(ob, node, SculptUndoType::FaceSet);
   }
 }
 
@@ -306,7 +306,7 @@ static void do_draw_face_sets_brush_bmesh(Object *ob, const Brush *brush, PBVHNo
   }
 
   if (changed) {
-    SCULPT_undo_push_node(ob, node, SCULPT_UNDO_FACE_SETS);
+    SCULPT_undo_push_node(ob, node, SculptUndoType::FaceSet);
   }
 }
 
@@ -412,11 +412,11 @@ void do_draw_face_sets_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
 
 /* Face Sets Operators */
 
-enum eSculptFaceGroupsCreateModes {
-  SCULPT_FACE_SET_MASKED = 0,
-  SCULPT_FACE_SET_VISIBLE = 1,
-  SCULPT_FACE_SET_ALL = 2,
-  SCULPT_FACE_SET_SELECTION = 3,
+enum class CreateMode {
+  Masked = 0,
+  Visible = 1,
+  All = 2,
+  Selection = 3,
 };
 
 static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
@@ -425,7 +425,7 @@ static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
   SculptSession *ss = ob->sculpt;
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
 
-  const int mode = RNA_enum_get(op->ptr, "mode");
+  const CreateMode mode = CreateMode(RNA_enum_get(op->ptr, "mode"));
 
   /* Dyntopo not supported. */
   if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
@@ -449,69 +449,74 @@ static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
 
   SCULPT_undo_push_begin(ob, op);
   for (PBVHNode *node : nodes) {
-    SCULPT_undo_push_node(ob, node, SCULPT_UNDO_FACE_SETS);
+    SCULPT_undo_push_node(ob, node, SculptUndoType::FaceSet);
   }
 
   const int next_face_set = SCULPT_face_set_next_available_get(ss);
 
-  if (mode == SCULPT_FACE_SET_MASKED) {
-    for (int i = 0; i < tot_vert; i++) {
-      PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
+  switch (mode) {
+    case CreateMode::Masked: {
+      for (int i = 0; i < tot_vert; i++) {
+        PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
-      if (SCULPT_vertex_mask_get(ss, vertex) >= threshold && SCULPT_vertex_visible_get(ss, vertex))
-      {
-        SCULPT_vertex_face_set_set(ss, vertex, next_face_set);
-      }
-    }
-  }
-
-  if (mode == SCULPT_FACE_SET_VISIBLE) {
-
-    /* If all vertices in the sculpt are visible, create the new face set and update the default
-     * color. This way the new face set will be white, which is a quick way of disabling all face
-     * sets and the performance hit of rendering the overlay. */
-    bool all_visible = true;
-    for (int i = 0; i < tot_vert; i++) {
-      PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
-
-      if (!SCULPT_vertex_visible_get(ss, vertex)) {
-        all_visible = false;
-        break;
-      }
-    }
-
-    if (all_visible) {
-      mesh->face_sets_color_default = next_face_set;
-    }
-
-    for (int i = 0; i < tot_vert; i++) {
-      PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
-
-      if (SCULPT_vertex_visible_get(ss, vertex)) {
-        SCULPT_vertex_face_set_set(ss, vertex, next_face_set);
-      }
-    }
-  }
-
-  if (mode == SCULPT_FACE_SET_ALL) {
-    for (int i = 0; i < tot_vert; i++) {
-      PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
-
-      SCULPT_vertex_face_set_set(ss, vertex, next_face_set);
-    }
-  }
-
-  if (mode == SCULPT_FACE_SET_SELECTION) {
-    const bke::AttributeAccessor attributes = mesh->attributes();
-    const VArraySpan<bool> select_poly = *attributes.lookup_or_default<bool>(
-        ".select_poly", ATTR_DOMAIN_FACE, false);
-    threading::parallel_for(select_poly.index_range(), 4096, [&](const IndexRange range) {
-      for (const int i : range) {
-        if (select_poly[i]) {
-          ss->face_sets[i] = next_face_set;
+        if (SCULPT_vertex_mask_get(ss, vertex) >= threshold &&
+            SCULPT_vertex_visible_get(ss, vertex)) {
+          SCULPT_vertex_face_set_set(ss, vertex, next_face_set);
         }
       }
-    });
+
+      break;
+    }
+    case CreateMode::Visible: {
+      /* If all vertices in the sculpt are visible, create the new face set and update the default
+       * color. This way the new face set will be white, which is a quick way of disabling all face
+       * sets and the performance hit of rendering the overlay. */
+      bool all_visible = true;
+      for (int i = 0; i < tot_vert; i++) {
+        PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
+
+        if (!SCULPT_vertex_visible_get(ss, vertex)) {
+          all_visible = false;
+          break;
+        }
+      }
+
+      if (all_visible) {
+        mesh->face_sets_color_default = next_face_set;
+      }
+
+      for (int i = 0; i < tot_vert; i++) {
+        PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
+
+        if (SCULPT_vertex_visible_get(ss, vertex)) {
+          SCULPT_vertex_face_set_set(ss, vertex, next_face_set);
+        }
+      }
+
+      break;
+    }
+    case CreateMode::All: {
+      for (int i = 0; i < tot_vert; i++) {
+        PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
+
+        SCULPT_vertex_face_set_set(ss, vertex, next_face_set);
+      }
+
+      break;
+    }
+    case CreateMode::Selection: {
+      const bke::AttributeAccessor attributes = mesh->attributes();
+      const VArraySpan<bool> select_poly = *attributes.lookup_or_default<bool>(
+          ".select_poly", ATTR_DOMAIN_FACE, false);
+      threading::parallel_for(select_poly.index_range(), 4096, [&](const IndexRange range) {
+        for (const int i : range) {
+          if (select_poly[i]) {
+            ss->face_sets[i] = next_face_set;
+          }
+        }
+      });
+      break;
+    }
   }
 
   for (PBVHNode *node : nodes) {
@@ -537,40 +542,40 @@ void SCULPT_OT_face_sets_create(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   static EnumPropertyItem modes[] = {
-      {SCULPT_FACE_SET_MASKED,
+      {int(CreateMode::Masked),
        "MASKED",
        0,
        "Face Set from Masked",
        "Create a new Face Set from the masked faces"},
-      {SCULPT_FACE_SET_VISIBLE,
+      {int(CreateMode::Visible),
        "VISIBLE",
        0,
        "Face Set from Visible",
        "Create a new Face Set from the visible vertices"},
-      {SCULPT_FACE_SET_ALL,
+      {int(CreateMode::All),
        "ALL",
        0,
        "Face Set Full Mesh",
        "Create an unique Face Set with all faces in the sculpt"},
-      {SCULPT_FACE_SET_SELECTION,
+      {int(CreateMode::Selection),
        "SELECTION",
        0,
        "Face Set from Edit Mode Selection",
        "Create an Face Set corresponding to the Edit Mode face selection"},
       {0, nullptr, 0, nullptr, nullptr},
   };
-  RNA_def_enum(ot->srna, "mode", modes, SCULPT_FACE_SET_MASKED, "Mode", "");
+  RNA_def_enum(ot->srna, "mode", modes, int(CreateMode::Masked), "Mode", "");
 }
 
-enum eSculptFaceSetsInitMode {
-  SCULPT_FACE_SETS_FROM_LOOSE_PARTS = 0,
-  SCULPT_FACE_SETS_FROM_MATERIALS = 1,
-  SCULPT_FACE_SETS_FROM_NORMALS = 2,
-  SCULPT_FACE_SETS_FROM_UV_SEAMS = 3,
-  SCULPT_FACE_SETS_FROM_CREASES = 4,
-  SCULPT_FACE_SETS_FROM_SHARP_EDGES = 5,
-  SCULPT_FACE_SETS_FROM_BEVEL_WEIGHT = 6,
-  SCULPT_FACE_SETS_FROM_FACE_SET_BOUNDARIES = 8,
+enum class InitMode {
+  LooseParts = 0,
+  Materials = 1,
+  Normals = 2,
+  UVSeams = 3,
+  Creases = 4,
+  SharpEdges = 5,
+  BevelWeight = 6,
+  FaceSetBoundaries = 8,
 };
 
 using FaceSetsFloodFillFn = FunctionRef<bool(int from_face, int edge, int to_face)>;
@@ -632,12 +637,12 @@ static void sculpt_face_sets_init_flood_fill(Object *ob, const FaceSetsFloodFill
   }
 }
 
-static void sculpt_face_sets_init_loop(Object *ob, const int mode)
+static void sculpt_face_sets_init_loop(Object *ob, const InitMode mode)
 {
   Mesh *mesh = static_cast<Mesh *>(ob->data);
   SculptSession *ss = ob->sculpt;
 
-  if (mode == SCULPT_FACE_SETS_FROM_MATERIALS) {
+  if (mode == InitMode::Materials) {
     const bke::AttributeAccessor attributes = mesh->attributes();
     const VArraySpan<int> material_indices = *attributes.lookup_or_default<int>(
         "material_index", ATTR_DOMAIN_FACE, 0);
@@ -653,7 +658,7 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
   SculptSession *ss = ob->sculpt;
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
 
-  const int mode = RNA_enum_get(op->ptr, "mode");
+  const InitMode mode = InitMode(RNA_enum_get(op->ptr, "mode"));
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, false);
 
@@ -671,7 +676,7 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
 
   SCULPT_undo_push_begin(ob, op);
   for (PBVHNode *node : nodes) {
-    SCULPT_undo_push_node(ob, node, SCULPT_UNDO_FACE_SETS);
+    SCULPT_undo_push_node(ob, node, SculptUndoType::FaceSet);
   }
 
   const float threshold = RNA_float_get(op->ptr, "threshold");
@@ -681,7 +686,7 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
   const bke::AttributeAccessor attributes = mesh->attributes();
 
   switch (mode) {
-    case SCULPT_FACE_SETS_FROM_LOOSE_PARTS: {
+    case InitMode::LooseParts: {
       const VArray<bool> hide_poly = *attributes.lookup_or_default<bool>(
           ".hide_poly", ATTR_DOMAIN_FACE, false);
       sculpt_face_sets_init_flood_fill(
@@ -690,11 +695,11 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
           });
       break;
     }
-    case SCULPT_FACE_SETS_FROM_MATERIALS: {
-      sculpt_face_sets_init_loop(ob, SCULPT_FACE_SETS_FROM_MATERIALS);
+    case InitMode::Materials: {
+      sculpt_face_sets_init_loop(ob, InitMode::Materials);
       break;
     }
-    case SCULPT_FACE_SETS_FROM_NORMALS: {
+    case InitMode::Normals: {
       const Span<float3> face_normals = mesh->face_normals();
       sculpt_face_sets_init_flood_fill(
           ob, [&](const int from_face, const int /*edge*/, const int to_face) -> bool {
@@ -702,7 +707,7 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
           });
       break;
     }
-    case SCULPT_FACE_SETS_FROM_UV_SEAMS: {
+    case InitMode::UVSeams: {
       const VArraySpan<bool> uv_seams = *mesh->attributes().lookup_or_default<bool>(
           ".uv_seam", ATTR_DOMAIN_EDGE, false);
       sculpt_face_sets_init_flood_fill(
@@ -711,7 +716,7 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
           });
       break;
     }
-    case SCULPT_FACE_SETS_FROM_CREASES: {
+    case InitMode::Creases: {
       const float *creases = static_cast<const float *>(
           CustomData_get_layer_named(&mesh->edge_data, CD_PROP_FLOAT, "crease_edge"));
       sculpt_face_sets_init_flood_fill(
@@ -720,7 +725,7 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
           });
       break;
     }
-    case SCULPT_FACE_SETS_FROM_SHARP_EDGES: {
+    case InitMode::SharpEdges: {
       const VArraySpan<bool> sharp_edges = *mesh->attributes().lookup_or_default<bool>(
           "sharp_edge", ATTR_DOMAIN_EDGE, false);
       sculpt_face_sets_init_flood_fill(
@@ -729,7 +734,7 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
           });
       break;
     }
-    case SCULPT_FACE_SETS_FROM_BEVEL_WEIGHT: {
+    case InitMode::BevelWeight: {
       const float *bevel_weights = static_cast<const float *>(
           CustomData_get_layer_named(&mesh->edge_data, CD_PROP_FLOAT, "bevel_weight_edge"));
       sculpt_face_sets_init_flood_fill(
@@ -738,7 +743,7 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
           });
       break;
     }
-    case SCULPT_FACE_SETS_FROM_FACE_SET_BOUNDARIES: {
+    case InitMode::FaceSetBoundaries: {
       Array<int> face_sets_copy(Span<int>(ss->face_sets, mesh->faces_num));
       sculpt_face_sets_init_flood_fill(
           ob, [&](const int from_face, const int /*edge*/, const int to_face) -> bool {
@@ -767,49 +772,49 @@ void SCULPT_OT_face_sets_init(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   static EnumPropertyItem modes[] = {
-      {SCULPT_FACE_SETS_FROM_LOOSE_PARTS,
+      {int(InitMode::LooseParts),
        "LOOSE_PARTS",
        0,
        "Face Sets from Loose Parts",
        "Create a Face Set per loose part in the mesh"},
-      {SCULPT_FACE_SETS_FROM_MATERIALS,
+      {int(InitMode::Materials),
        "MATERIALS",
        0,
        "Face Sets from Material Slots",
        "Create a Face Set per Material Slot"},
-      {SCULPT_FACE_SETS_FROM_NORMALS,
+      {int(InitMode::Normals),
        "NORMALS",
        0,
        "Face Sets from Mesh Normals",
        "Create Face Sets for Faces that have similar normal"},
-      {SCULPT_FACE_SETS_FROM_UV_SEAMS,
+      {int(InitMode::UVSeams),
        "UV_SEAMS",
        0,
        "Face Sets from UV Seams",
        "Create Face Sets using UV Seams as boundaries"},
-      {SCULPT_FACE_SETS_FROM_CREASES,
+      {int(InitMode::Creases),
        "CREASES",
        0,
        "Face Sets from Edge Creases",
        "Create Face Sets using Edge Creases as boundaries"},
-      {SCULPT_FACE_SETS_FROM_BEVEL_WEIGHT,
+      {int(InitMode::BevelWeight),
        "BEVEL_WEIGHT",
        0,
        "Face Sets from Bevel Weight",
        "Create Face Sets using Bevel Weights as boundaries"},
-      {SCULPT_FACE_SETS_FROM_SHARP_EDGES,
+      {int(InitMode::SharpEdges),
        "SHARP_EDGES",
        0,
        "Face Sets from Sharp Edges",
        "Create Face Sets using Sharp Edges as boundaries"},
-      {SCULPT_FACE_SETS_FROM_FACE_SET_BOUNDARIES,
+      {int(InitMode::FaceSetBoundaries),
        "FACE_SET_BOUNDARIES",
        0,
        "Face Sets from Face Set Boundaries",
        "Create a Face Set per isolated Face Set"},
       {0, nullptr, 0, nullptr, nullptr},
   };
-  RNA_def_enum(ot->srna, "mode", modes, SCULPT_FACE_SET_MASKED, "Mode", "");
+  RNA_def_enum(ot->srna, "mode", modes, int(InitMode::LooseParts), "Mode", "");
   RNA_def_float(
       ot->srna,
       "threshold",
@@ -822,10 +827,10 @@ void SCULPT_OT_face_sets_init(wmOperatorType *ot)
       1.0f);
 }
 
-enum eSculptFaceGroupVisibilityModes {
-  SCULPT_FACE_SET_VISIBILITY_TOGGLE = 0,
-  SCULPT_FACE_SET_VISIBILITY_SHOW_ACTIVE = 1,
-  SCULPT_FACE_SET_VISIBILITY_HIDE_ACTIVE = 2,
+enum class VisibilityMode {
+  Toggle = 0,
+  ShowActive = 1,
+  HideActive = 2,
 };
 
 static void face_hide_update(Object &object,
@@ -861,7 +866,7 @@ static void face_hide_update(Object &object,
       }
 
       any_changed = true;
-      SCULPT_undo_push_node(&object, node, SCULPT_UNDO_FACE_HIDDEN);
+      SCULPT_undo_push_node(&object, node, SculptUndoType::HideFace);
       array_utils::scatter(new_hide.as_span(), faces, hide_poly.span);
       BKE_pbvh_node_mark_update_visibility(node);
     }
@@ -902,7 +907,7 @@ static int sculpt_face_set_change_visibility_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  const int mode = RNA_enum_get(op->ptr, "mode");
+  const VisibilityMode mode = VisibilityMode(RNA_enum_get(op->ptr, "mode"));
   const int active_face_set = SCULPT_active_face_set_get(ss);
 
   SCULPT_undo_push_begin(&object, op);
@@ -915,7 +920,7 @@ static int sculpt_face_set_change_visibility_exec(bContext *C, wmOperator *op)
   const VArraySpan<int> face_sets = *attributes.lookup<int>(".sculpt_face_set", ATTR_DOMAIN_FACE);
 
   switch (mode) {
-    case SCULPT_FACE_SET_VISIBILITY_TOGGLE: {
+    case VisibilityMode::Toggle: {
       if (hide_poly.contains(true) || face_sets.is_empty()) {
         show_all(depsgraph, object, nodes);
       }
@@ -928,7 +933,7 @@ static int sculpt_face_set_change_visibility_exec(bContext *C, wmOperator *op)
       }
       break;
     }
-    case SCULPT_FACE_SET_VISIBILITY_SHOW_ACTIVE:
+    case VisibilityMode::ShowActive:
       if (face_sets.is_empty()) {
         show_all(depsgraph, object, nodes);
       }
@@ -942,7 +947,7 @@ static int sculpt_face_set_change_visibility_exec(bContext *C, wmOperator *op)
         });
       }
       break;
-    case SCULPT_FACE_SET_VISIBILITY_HIDE_ACTIVE:
+    case VisibilityMode::HideActive:
       if (face_sets.is_empty()) {
         face_hide_update(object, nodes, [&](const Span<int> /*faces*/, MutableSpan<bool> hide) {
           hide.fill(true);
@@ -962,7 +967,7 @@ static int sculpt_face_set_change_visibility_exec(bContext *C, wmOperator *op)
 
   /* For modes that use the cursor active vertex, update the rotation origin for viewport
    * navigation. */
-  if (ELEM(mode, SCULPT_FACE_SET_VISIBILITY_TOGGLE, SCULPT_FACE_SET_VISIBILITY_SHOW_ACTIVE)) {
+  if (ELEM(mode, VisibilityMode::Toggle, VisibilityMode::ShowActive)) {
     UnifiedPaintSettings *ups = &CTX_data_tool_settings(C)->unified_paint_settings;
     float location[3];
     copy_v3_v3(location, SCULPT_active_vertex_co_get(ss));
@@ -1013,24 +1018,24 @@ void SCULPT_OT_face_set_change_visibility(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_DEPENDS_ON_CURSOR;
 
   static EnumPropertyItem modes[] = {
-      {SCULPT_FACE_SET_VISIBILITY_TOGGLE,
+      {int(VisibilityMode::Toggle),
        "TOGGLE",
        0,
        "Toggle Visibility",
        "Hide all Face Sets except for the active one"},
-      {SCULPT_FACE_SET_VISIBILITY_SHOW_ACTIVE,
+      {int(VisibilityMode::ShowActive),
        "SHOW_ACTIVE",
        0,
        "Show Active Face Set",
        "Show Active Face Set"},
-      {SCULPT_FACE_SET_VISIBILITY_HIDE_ACTIVE,
+      {int(VisibilityMode::HideActive),
        "HIDE_ACTIVE",
        0,
        "Hide Active Face Sets",
        "Hide Active Face Sets"},
       {0, nullptr, 0, nullptr, nullptr},
   };
-  RNA_def_enum(ot->srna, "mode", modes, SCULPT_FACE_SET_VISIBILITY_TOGGLE, "Mode", "");
+  RNA_def_enum(ot->srna, "mode", modes, int(VisibilityMode::Toggle), "Mode", "");
 }
 
 static int sculpt_face_sets_randomize_colors_exec(bContext *C, wmOperator * /*op*/)
@@ -1081,12 +1086,12 @@ void SCULPT_OT_face_sets_randomize_colors(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-enum eSculptFaceSetEditMode {
-  SCULPT_FACE_SET_EDIT_GROW = 0,
-  SCULPT_FACE_SET_EDIT_SHRINK = 1,
-  SCULPT_FACE_SET_EDIT_DELETE_GEOMETRY = 2,
-  SCULPT_FACE_SET_EDIT_FAIR_POSITIONS = 3,
-  SCULPT_FACE_SET_EDIT_FAIR_TANGENCY = 4,
+enum class EditMode {
+  Grow = 0,
+  Shrink = 1,
+  DeleteGeometry = 2,
+  FairPositions = 3,
+  FairTangency = 4,
 };
 
 static void sculpt_face_set_grow(Object *ob,
@@ -1257,33 +1262,33 @@ static void sculpt_face_set_edit_fair_face_set(Object *ob,
 
 static void sculpt_face_set_apply_edit(Object *ob,
                                        const int active_face_set_id,
-                                       const int mode,
+                                       const EditMode mode,
                                        const bool modify_hidden,
                                        const float strength = 0.0f)
 {
   SculptSession *ss = ob->sculpt;
 
   switch (mode) {
-    case SCULPT_FACE_SET_EDIT_GROW: {
+    case EditMode::Grow: {
       int *prev_face_sets = static_cast<int *>(MEM_dupallocN(ss->face_sets));
       sculpt_face_set_grow(ob, ss, prev_face_sets, active_face_set_id, modify_hidden);
       MEM_SAFE_FREE(prev_face_sets);
       break;
     }
-    case SCULPT_FACE_SET_EDIT_SHRINK: {
+    case EditMode::Shrink: {
       int *prev_face_sets = static_cast<int *>(MEM_dupallocN(ss->face_sets));
       sculpt_face_set_shrink(ob, ss, prev_face_sets, active_face_set_id, modify_hidden);
       MEM_SAFE_FREE(prev_face_sets);
       break;
     }
-    case SCULPT_FACE_SET_EDIT_DELETE_GEOMETRY:
+    case EditMode::DeleteGeometry:
       sculpt_face_set_delete_geometry(ob, ss, active_face_set_id, modify_hidden);
       break;
-    case SCULPT_FACE_SET_EDIT_FAIR_POSITIONS:
+    case EditMode::FairPositions:
       sculpt_face_set_edit_fair_face_set(
           ob, active_face_set_id, MESH_FAIRING_DEPTH_POSITION, strength);
       break;
-    case SCULPT_FACE_SET_EDIT_FAIR_TANGENCY:
+    case EditMode::FairTangency:
       sculpt_face_set_edit_fair_face_set(
           ob, active_face_set_id, MESH_FAIRING_DEPTH_TANGENCY, strength);
       break;
@@ -1291,7 +1296,7 @@ static void sculpt_face_set_apply_edit(Object *ob,
 }
 
 static bool sculpt_face_set_edit_is_operation_valid(SculptSession *ss,
-                                                    const eSculptFaceSetEditMode mode,
+                                                    const EditMode mode,
                                                     const bool modify_hidden)
 {
   if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
@@ -1299,7 +1304,7 @@ static bool sculpt_face_set_edit_is_operation_valid(SculptSession *ss,
     return false;
   }
 
-  if (mode == SCULPT_FACE_SET_EDIT_DELETE_GEOMETRY) {
+  if (mode == EditMode::DeleteGeometry) {
     if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
       /* Modification of base mesh geometry requires special remapping of multi-resolution
        * displacement, which does not happen here.
@@ -1314,7 +1319,7 @@ static bool sculpt_face_set_edit_is_operation_valid(SculptSession *ss,
     }
   }
 
-  if (ELEM(mode, SCULPT_FACE_SET_EDIT_FAIR_POSITIONS, SCULPT_FACE_SET_EDIT_FAIR_TANGENCY)) {
+  if (ELEM(mode, EditMode::FairPositions, EditMode::FairTangency)) {
     if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
       /* TODO: Multi-resolution topology representation using grids and duplicates can't be used
        * directly by the fair algorithm. Multi-resolution topology needs to be exposed in a
@@ -1329,7 +1334,7 @@ static bool sculpt_face_set_edit_is_operation_valid(SculptSession *ss,
 static void sculpt_face_set_edit_modify_geometry(bContext *C,
                                                  Object *ob,
                                                  const int active_face_set,
-                                                 const eSculptFaceSetEditMode mode,
+                                                 const EditMode mode,
                                                  const bool modify_hidden,
                                                  wmOperator *op)
 {
@@ -1358,7 +1363,7 @@ static void face_set_edit_do_post_visibility_updates(Object *ob, Span<PBVHNode *
 
 static void sculpt_face_set_edit_modify_face_sets(Object *ob,
                                                   const int active_face_set,
-                                                  const eSculptFaceSetEditMode mode,
+                                                  const EditMode mode,
                                                   const bool modify_hidden,
                                                   wmOperator *op)
 {
@@ -1370,18 +1375,15 @@ static void sculpt_face_set_edit_modify_face_sets(Object *ob,
   }
   SCULPT_undo_push_begin(ob, op);
   for (PBVHNode *node : nodes) {
-    SCULPT_undo_push_node(ob, node, SCULPT_UNDO_FACE_SETS);
+    SCULPT_undo_push_node(ob, node, SculptUndoType::FaceSet);
   }
   sculpt_face_set_apply_edit(ob, active_face_set, mode, modify_hidden);
   SCULPT_undo_push_end(ob);
   face_set_edit_do_post_visibility_updates(ob, nodes);
 }
 
-static void sculpt_face_set_edit_modify_coordinates(bContext *C,
-                                                    Object *ob,
-                                                    const int active_face_set,
-                                                    const eSculptFaceSetEditMode mode,
-                                                    wmOperator *op)
+static void sculpt_face_set_edit_modify_coordinates(
+    bContext *C, Object *ob, const int active_face_set, const EditMode mode, wmOperator *op)
 {
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   SculptSession *ss = ob->sculpt;
@@ -1394,7 +1396,7 @@ static void sculpt_face_set_edit_modify_coordinates(bContext *C,
   SCULPT_undo_push_begin(ob, op);
   for (PBVHNode *node : nodes) {
     BKE_pbvh_node_mark_update(node);
-    SCULPT_undo_push_node(ob, node, SCULPT_UNDO_COORDS);
+    SCULPT_undo_push_node(ob, node, SculptUndoType::Position);
   }
   sculpt_face_set_apply_edit(ob, active_face_set, mode, false, strength);
 
@@ -1411,7 +1413,7 @@ static bool sculpt_face_set_edit_init(bContext *C, wmOperator *op)
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  const eSculptFaceSetEditMode mode = eSculptFaceSetEditMode(RNA_enum_get(op->ptr, "mode"));
+  const EditMode mode = EditMode(RNA_enum_get(op->ptr, "mode"));
   const bool modify_hidden = RNA_boolean_get(op->ptr, "modify_hidden");
 
   if (!sculpt_face_set_edit_is_operation_valid(ss, mode, modify_hidden)) {
@@ -1433,19 +1435,19 @@ static int sculpt_face_set_edit_exec(bContext *C, wmOperator *op)
   Object *ob = CTX_data_active_object(C);
 
   const int active_face_set = RNA_int_get(op->ptr, "active_face_set");
-  const eSculptFaceSetEditMode mode = eSculptFaceSetEditMode(RNA_enum_get(op->ptr, "mode"));
+  const EditMode mode = EditMode(RNA_enum_get(op->ptr, "mode"));
   const bool modify_hidden = RNA_boolean_get(op->ptr, "modify_hidden");
 
   switch (mode) {
-    case SCULPT_FACE_SET_EDIT_DELETE_GEOMETRY:
+    case EditMode::DeleteGeometry:
       sculpt_face_set_edit_modify_geometry(C, ob, active_face_set, mode, modify_hidden, op);
       break;
-    case SCULPT_FACE_SET_EDIT_GROW:
-    case SCULPT_FACE_SET_EDIT_SHRINK:
+    case EditMode::Grow:
+    case EditMode::Shrink:
       sculpt_face_set_edit_modify_face_sets(ob, active_face_set, mode, modify_hidden, op);
       break;
-    case SCULPT_FACE_SET_EDIT_FAIR_POSITIONS:
-    case SCULPT_FACE_SET_EDIT_FAIR_TANGENCY:
+    case EditMode::FairPositions:
+    case EditMode::FairTangency:
       sculpt_face_set_edit_modify_coordinates(C, ob, active_face_set, mode, op);
       break;
   }
@@ -1493,28 +1495,28 @@ void SCULPT_OT_face_sets_edit(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_HIDDEN);
 
   static EnumPropertyItem modes[] = {
-      {SCULPT_FACE_SET_EDIT_GROW,
+      {int(EditMode::Grow),
        "GROW",
        0,
        "Grow Face Set",
        "Grows the Face Sets boundary by one face based on mesh topology"},
-      {SCULPT_FACE_SET_EDIT_SHRINK,
+      {int(EditMode::Shrink),
        "SHRINK",
        0,
        "Shrink Face Set",
        "Shrinks the Face Sets boundary by one face based on mesh topology"},
-      {SCULPT_FACE_SET_EDIT_DELETE_GEOMETRY,
+      {int(EditMode::DeleteGeometry),
        "DELETE_GEOMETRY",
        0,
        "Delete Geometry",
        "Deletes the faces that are assigned to the Face Set"},
-      {SCULPT_FACE_SET_EDIT_FAIR_POSITIONS,
+      {int(EditMode::FairPositions),
        "FAIR_POSITIONS",
        0,
        "Fair Positions",
        "Creates a smooth as possible geometry patch from the Face Set minimizing changes in "
        "vertex positions"},
-      {SCULPT_FACE_SET_EDIT_FAIR_TANGENCY,
+      {int(EditMode::FairTangency),
        "FAIR_TANGENCY",
        0,
        "Fair Tangency",
@@ -1522,7 +1524,7 @@ void SCULPT_OT_face_sets_edit(wmOperatorType *ot)
        "vertex tangents"},
       {0, nullptr, 0, nullptr, nullptr},
   };
-  RNA_def_enum(ot->srna, "mode", modes, SCULPT_FACE_SET_EDIT_GROW, "Mode", "");
+  RNA_def_enum(ot->srna, "mode", modes, int(EditMode::Grow), "Mode", "");
   RNA_def_float(ot->srna, "strength", 1.0f, 0.0f, 1.0f, "Strength", "", 0.0f, 1.0f);
 
   ot->prop = RNA_def_boolean(ot->srna,
