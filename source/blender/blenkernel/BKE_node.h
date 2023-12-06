@@ -100,7 +100,7 @@ class NodeDeclaration;
 class NodeDeclarationBuilder;
 class GatherAddNodeSearchParams;
 class GatherLinkSearchOpParams;
-class NodeExtraInfoParams;
+struct NodeExtraInfoParams;
 }  // namespace nodes
 namespace realtime_compositor {
 class Context;

@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "BLI_vector.hh"
+
 #include "UI_interface_c.hh"
 
 namespace blender::nodes {
