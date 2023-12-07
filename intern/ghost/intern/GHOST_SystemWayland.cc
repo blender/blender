@@ -7601,6 +7601,37 @@ static void cursor_anim_reset(GWL_Seat *seat)
   cursor_anim_begin_if_needed(seat);
 }
 
+static const wl_cursor *cursor_find_from_shape(GWL_Seat *seat,
+                                               const GHOST_TStandardCursor shape,
+                                               const char **r_cursor_name)
+{
+  /* Caller must lock `server_mutex`. */
+  GWL_Cursor *cursor = &seat->cursor;
+  wl_cursor *wl_cursor = nullptr;
+
+  auto cursor_find = ghost_wl_cursors.find(shape);
+  const char *cursor_name = (cursor_find == ghost_wl_cursors.end()) ? "" : (*cursor_find).second;
+  if (cursor_name[0] != '\0') {
+    if (!cursor->wl.theme) {
+      /* The cursor wl_surface hasn't entered an output yet. Initialize theme with scale 1. */
+      cursor->wl.theme = wl_cursor_theme_load(
+          cursor->theme_name.c_str(), cursor->theme_size, seat->system->wl_shm_get());
+    }
+
+    if (cursor->wl.theme) {
+      wl_cursor = wl_cursor_theme_get_cursor(cursor->wl.theme, cursor_name);
+      if (!wl_cursor) {
+        GHOST_PRINT("cursor '" << cursor_name << "' does not exist" << std::endl);
+      }
+    }
+  }
+
+  if (r_cursor_name && wl_cursor) {
+    *r_cursor_name = cursor_name;
+  }
+  return wl_cursor;
+}
+
 GHOST_TSuccess GHOST_SystemWayland::cursor_shape_set(const GHOST_TStandardCursor shape)
 {
   /* Caller must lock `server_mutex`. */
@@ -7609,26 +7640,14 @@ GHOST_TSuccess GHOST_SystemWayland::cursor_shape_set(const GHOST_TStandardCursor
   if (UNLIKELY(!seat)) {
     return GHOST_kFailure;
   }
-  auto cursor_find = ghost_wl_cursors.find(shape);
-  const char *cursor_name = (cursor_find == ghost_wl_cursors.end()) ?
-                                ghost_wl_cursors.at(GHOST_kStandardCursorDefault) :
-                                (*cursor_find).second;
 
-  GWL_Cursor *cursor = &seat->cursor;
-
-  if (!cursor->wl.theme) {
-    /* The cursor wl_surface hasn't entered an output yet. Initialize theme with scale 1. */
-    cursor->wl.theme = wl_cursor_theme_load(
-        cursor->theme_name.c_str(), cursor->theme_size, wl_shm_get());
-  }
-
-  const wl_cursor *wl_cursor = wl_cursor_theme_get_cursor(cursor->wl.theme, cursor_name);
-
-  if (!wl_cursor) {
-    GHOST_PRINT("cursor '" << cursor_name << "' does not exist" << std::endl);
+  const char *cursor_name = nullptr;
+  const wl_cursor *wl_cursor = cursor_find_from_shape(seat, shape, &cursor_name);
+  if (wl_cursor == nullptr) {
     return GHOST_kFailure;
   }
 
+  GWL_Cursor *cursor = &seat->cursor;
   wl_cursor_image *image = wl_cursor->images[0];
   wl_buffer *buffer = wl_cursor_image_get_buffer(image);
   if (!buffer) {
@@ -7650,12 +7669,9 @@ GHOST_TSuccess GHOST_SystemWayland::cursor_shape_set(const GHOST_TStandardCursor
 GHOST_TSuccess GHOST_SystemWayland::cursor_shape_check(const GHOST_TStandardCursor cursorShape)
 {
   /* No need to lock `server_mutex`. */
-  auto cursor_find = ghost_wl_cursors.find(cursorShape);
-  if (cursor_find == ghost_wl_cursors.end()) {
-    return GHOST_kFailure;
-  }
-  const char *value = (*cursor_find).second;
-  if (*value == '\0') {
+  GWL_Seat *seat = gwl_display_seat_active_get(display_);
+  const wl_cursor *wl_cursor = cursor_find_from_shape(seat, cursorShape, nullptr);
+  if (wl_cursor == nullptr) {
     return GHOST_kFailure;
   }
   return GHOST_kSuccess;
