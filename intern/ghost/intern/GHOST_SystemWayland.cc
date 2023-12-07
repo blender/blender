@@ -1947,7 +1947,7 @@ static const std::unordered_map<GHOST_TStandardCursor, const char *> ghost_wl_cu
     {GHOST_kStandardCursorDefault, "left_ptr"},
     {GHOST_kStandardCursorRightArrow, "right_ptr"},
     {GHOST_kStandardCursorLeftArrow, "left_ptr"},
-    {GHOST_kStandardCursorInfo, ""},
+    {GHOST_kStandardCursorInfo, "left_ptr_help"},
     {GHOST_kStandardCursorDestroy, "pirate"},
     {GHOST_kStandardCursorHelp, "question_arrow"},
     {GHOST_kStandardCursorWait, "watch"},
@@ -1967,9 +1967,9 @@ static const std::unordered_map<GHOST_TStandardCursor, const char *> ghost_wl_cu
     {GHOST_kStandardCursorZoomIn, "zoom-in"},
     {GHOST_kStandardCursorZoomOut, "zoom-out"},
     {GHOST_kStandardCursorMove, "move"},
-    {GHOST_kStandardCursorNSEWScroll, "size_all"}, /* Not an exact match. */
-    {GHOST_kStandardCursorNSScroll, "size_ver"},   /* Not an exact match. */
-    {GHOST_kStandardCursorEWScroll, "size_hor"},   /* Not an exact match. */
+    {GHOST_kStandardCursorNSEWScroll, "all-scroll"},
+    {GHOST_kStandardCursorNSScroll, "size_ver"},
+    {GHOST_kStandardCursorEWScroll, "size_hor"},
     {GHOST_kStandardCursorStop, "not-allowed"},
     {GHOST_kStandardCursorUpDown, "sb_v_double_arrow"},
     {GHOST_kStandardCursorLeftRight, "sb_h_double_arrow"},
