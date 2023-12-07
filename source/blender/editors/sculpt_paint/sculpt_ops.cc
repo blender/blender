@@ -268,6 +268,7 @@ static void SCULPT_OT_symmetrize(wmOperatorType *ot)
 
 static void sculpt_init_session(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
+  using namespace blender::ed::sculpt_paint;
   /* Create persistent sculpt mode data. */
   BKE_sculpt_toolsettings_data_ensure(scene);
 
@@ -289,8 +290,8 @@ static void sculpt_init_session(Main *bmain, Depsgraph *depsgraph, Scene *scene,
   /* This function expects a fully evaluated depsgraph. */
   BKE_sculpt_update_object_for_edit(depsgraph, ob, false);
 
-  SculptSession *ss = ob->sculpt;
-  if (ss->face_sets) {
+  Mesh &mesh = *static_cast<Mesh *>(ob->data);
+  if (mesh.attributes().contains(".sculpt_face_set")) {
     /* Here we can detect geometry that was just added to Sculpt Mode as it has the
      * SCULPT_FACE_SET_NONE assigned, so we can create a new Face Set for it. */
     /* In sculpt mode all geometry that is assigned to SCULPT_FACE_SET_NONE is considered as not
@@ -301,12 +302,8 @@ static void sculpt_init_session(Main *bmain, Depsgraph *depsgraph, Scene *scene,
     /* TODO(pablodp606): Based on this we can improve the UX in future tools for creating new
      * objects, like moving the transform pivot position to the new area or masking existing
      * geometry. */
-    const int new_face_set = SCULPT_face_set_next_available_get(ss);
-    for (int i = 0; i < ss->totfaces; i++) {
-      if (ss->face_sets[i] == SCULPT_FACE_SET_NONE) {
-        ss->face_sets[i] = new_face_set;
-      }
-    }
+    const int new_face_set = face_set::find_next_available_id(*ob);
+    face_set::initialize_none_to_id(static_cast<Mesh *>(ob->data), new_face_set);
   }
 }
 

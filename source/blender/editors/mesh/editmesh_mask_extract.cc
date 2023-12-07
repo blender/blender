@@ -529,12 +529,9 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
   BKE_mesh_nomain_to_mesh(new_mesh, mesh, ob);
 
   if (ob->mode == OB_MODE_SCULPT) {
-    SculptSession *ss = ob->sculpt;
-    ss->face_sets = static_cast<int *>(CustomData_get_layer_named_for_write(
-        &mesh->face_data, CD_PROP_INT32, ".sculpt_face_set", mesh->faces_num));
-    if (ss->face_sets) {
+    if (mesh->attributes().contains(".sculpt_face_set")) {
       /* Assign a new Face Set ID to the new faces created by the slice operation. */
-      const int next_face_set_id = sculpt_paint::face_set::find_next_available_id(mesh);
+      const int next_face_set_id = sculpt_paint::face_set::find_next_available_id(*ob);
       sculpt_paint::face_set::initialize_none_to_id(mesh, next_face_set_id);
     }
     ED_sculpt_undo_geometry_end(ob);

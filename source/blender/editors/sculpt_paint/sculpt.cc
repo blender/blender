@@ -493,37 +493,6 @@ bool SCULPT_vertex_all_faces_visible_get(const SculptSession *ss, PBVHVertRef ve
   return true;
 }
 
-void SCULPT_vertex_face_set_set(SculptSession *ss, PBVHVertRef vertex, int face_set)
-{
-  switch (BKE_pbvh_type(ss->pbvh)) {
-    case PBVH_FACES: {
-      BLI_assert(ss->face_sets != nullptr);
-      for (const int face_index : ss->pmap[vertex.i]) {
-        if (ss->hide_poly && ss->hide_poly[face_index]) {
-          /* Skip hidden faces connected to the vertex. */
-          continue;
-        }
-        ss->face_sets[face_index] = face_set;
-      }
-      break;
-    }
-    case PBVH_BMESH:
-      break;
-    case PBVH_GRIDS: {
-      BLI_assert(ss->face_sets != nullptr);
-      const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
-      const int grid_index = vertex.i / key->grid_area;
-      const int face_index = BKE_subdiv_ccg_grid_to_face_index(*ss->subdiv_ccg, grid_index);
-      if (ss->hide_poly && ss->hide_poly[face_index]) {
-        /* Skip the vertex if it's in a hidden face. */
-        return;
-      }
-      ss->face_sets[face_index] = face_set;
-      break;
-    }
-  }
-}
-
 int SCULPT_vertex_face_set_get(SculptSession *ss, PBVHVertRef vertex)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
@@ -582,7 +551,6 @@ bool SCULPT_vertex_has_face_set(SculptSession *ss, PBVHVertRef vertex, int face_
   }
   return true;
 }
-
 
 static bool sculpt_check_unique_face_set_in_base_mesh(SculptSession *ss, int index)
 {
@@ -667,45 +635,6 @@ bool SCULPT_vertex_has_unique_face_set(SculptSession *ss, PBVHVertRef vertex)
     }
   }
   return false;
-}
-
-int SCULPT_face_set_next_available_get(SculptSession *ss)
-{
-  switch (BKE_pbvh_type(ss->pbvh)) {
-    case PBVH_FACES:
-    case PBVH_GRIDS: {
-      if (!ss->face_sets) {
-        return 0;
-      }
-      int next_face_set = 0;
-      for (int i = 0; i < ss->totfaces; i++) {
-        if (ss->face_sets[i] > next_face_set) {
-          next_face_set = ss->face_sets[i];
-        }
-      }
-      next_face_set++;
-      return next_face_set;
-    }
-    case PBVH_BMESH: {
-      const int cd_offset = CustomData_get_offset_named(
-          &ss->bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
-      if (cd_offset == -1) {
-        return 0;
-      }
-
-      int next_face_set = 0;
-      BMIter iter;
-      BMFace *f;
-      BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
-        const int fset = *static_cast<const int *>(POINTER_OFFSET(f->head.data, cd_offset));
-        next_face_set = blender::math::max(next_face_set, fset);
-      }
-
-      next_face_set++;
-      return next_face_set;
-    }
-  }
-  return 0;
 }
 
 /* Sculpt Neighbor Iterators */
@@ -1361,6 +1290,8 @@ static void paint_mesh_restore_node(Object *ob,
                                     const SculptMaskWriteInfo mask_write,
                                     PBVHNode *node)
 {
+  using namespace blender;
+  using namespace blender::ed::sculpt_paint;
   SculptSession *ss = ob->sculpt;
 
   SculptUndoNode *unode;
@@ -1419,26 +1350,18 @@ static void paint_mesh_restore_node(Object *ob,
       break;
     }
     case SculptUndoType::FaceSet: {
-      const Span<int> face_sets = unode->face_sets;
-      ss->face_sets = BKE_sculpt_face_sets_ensure(ob);
       switch (BKE_pbvh_type(ss->pbvh)) {
         case PBVH_FACES:
         case PBVH_GRIDS: {
+          const Span<int> face_sets = unode->face_sets;
           const Span<int> faces = unode->face_indices;
-          blender::array_utils::scatter(face_sets, faces, {ss->face_sets, ss->faces_num});
+          bke::SpanAttributeWriter<int> attribute = face_set::ensure_face_sets_mesh(*ob);
+          blender::array_utils::scatter(face_sets, faces, attribute.span);
+          attribute.finish();
           break;
         }
-        case PBVH_BMESH: {
-          BMesh *bm = BKE_pbvh_get_bmesh(ss->pbvh);
-          const int offset = CustomData_get_offset_named(
-              &bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
-          int i = 0;
-          for (BMFace *face : BKE_pbvh_bmesh_node_faces(node)) {
-            BM_ELEM_CD_SET_INT(face, offset, face_sets[i]);
-            i++;
-          }
+        case PBVH_BMESH:
           break;
-        }
       }
       BKE_pbvh_node_mark_update_face_sets(node);
       break;
@@ -3401,7 +3324,7 @@ static void do_brush_action(Sculpt *sd,
     }
     else {
       /* By default create a new Face Sets. */
-      ss->cache->paint_face_set = SCULPT_face_set_next_available_get(ss);
+      ss->cache->paint_face_set = face_set::find_next_available_id(*ob);
     }
   }
 
@@ -5665,9 +5588,6 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, const wmEvent
   if (SCULPT_tool_is_mask(brush->sculpt_tool)) {
     MultiresModifierData *mmd = BKE_sculpt_multires_active(ss->scene, ob);
     BKE_sculpt_mask_layers_ensure(CTX_data_depsgraph_pointer(C), CTX_data_main(C), ob, mmd);
-  }
-  if (SCULPT_tool_is_face_sets(brush->sculpt_tool)) {
-    ss->face_sets = BKE_sculpt_face_sets_ensure(ob);
   }
 
   stroke = paint_stroke_new(C,

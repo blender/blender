@@ -677,22 +677,23 @@ static bool sculpt_undo_restore_face_sets(Object *ob,
                                           SculptUndoNode *unode,
                                           MutableSpan<bool> modified_face_set_faces)
 {
-  SculptSession *ss = ob->sculpt;
-
-  ss->face_sets = BKE_sculpt_face_sets_ensure(ob);
+  using namespace blender;
+  using namespace blender::ed::sculpt_paint;
+  bke::SpanAttributeWriter<int> face_sets = face_set::ensure_face_sets_mesh(*ob);
 
   bool modified = false;
   const Span<int> face_indices = unode->face_indices;
 
   for (const int i : face_indices.index_range()) {
     int face_index = face_indices[i];
-    if (unode->face_sets[i] != ss->face_sets[face_index]) {
+    if (unode->face_sets[i] != face_sets.span[face_index]) {
       modified_face_set_faces[face_index] = true;
       modified = true;
     }
 
-    SWAP(int, unode->face_sets[i], ss->face_sets[face_index]);
+    std::swap(unode->face_sets[i], face_sets.span[face_index]);
   }
+  face_sets.finish();
   return modified;
 }
 

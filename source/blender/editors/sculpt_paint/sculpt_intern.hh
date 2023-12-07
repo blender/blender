@@ -17,6 +17,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_vec_types.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 
@@ -721,11 +722,11 @@ struct ExpandCache {
    * the operator as they could have been modified by Expand when initializing the operator and
    * before starting changing the active vertex. These Face Sets are used for restoring and
    * checking the Face Sets state while the Expand operation modal runs. */
-  int *initial_face_sets;
+  blender::Array<int> initial_face_sets;
 
   /* Original data of the sculpt as it was before running the Expand operator. */
   float *original_mask;
-  int *original_face_sets;
+  blender::Array<int> original_face_sets;
   float (*original_colors)[4];
 
   bool check_islands;
@@ -990,13 +991,17 @@ bool SCULPT_vertex_any_face_visible_get(SculptSession *ss, PBVHVertRef vertex);
 
 int SCULPT_active_face_set_get(SculptSession *ss);
 int SCULPT_vertex_face_set_get(SculptSession *ss, PBVHVertRef vertex);
-void SCULPT_vertex_face_set_set(SculptSession *ss, PBVHVertRef vertex, int face_set);
 
 bool SCULPT_vertex_has_face_set(SculptSession *ss, PBVHVertRef vertex, int face_set);
 bool SCULPT_vertex_has_unique_face_set(SculptSession *ss, PBVHVertRef vertex);
 
-int SCULPT_face_set_next_available_get(SculptSession *ss);
+namespace blender::ed::sculpt_paint::face_set {
 
+bke::SpanAttributeWriter<int> ensure_face_sets_mesh(Object &object);
+int ensure_face_sets_bmesh(Object &object);
+Array<int> duplicate_face_sets(const Mesh &mesh);
+
+}
 /** \} */
 
 /* -------------------------------------------------------------------- */

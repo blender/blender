@@ -606,7 +606,7 @@ struct SculptSession {
    * geometry (the trim tool, for example) to detect which geometry was just added, so it can be
    * assigned a valid Face Set after creation. Tools are not intended to run with Face Sets IDs set
    * to 0. */
-  int *face_sets;
+  const int *face_sets;
   /**
    * A reference to the ".hide_poly" attribute, to store whether (base) faces are hidden.
    * May be null.
@@ -842,7 +842,6 @@ void BKE_sculpt_update_object_after_eval(Depsgraph *depsgraph, Object *ob_eval);
  * it's the last modifier on the stack and it is not on the first level.
  */
 MultiresModifierData *BKE_sculpt_multires_active(const Scene *scene, Object *ob);
-int *BKE_sculpt_face_sets_ensure(Object *ob);
 /**
  * Update the pointer to the ".hide_poly" attribute. This is necessary because it is dynamically
  * created, removed, and made mutable.

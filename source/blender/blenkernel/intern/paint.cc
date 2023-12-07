@@ -1727,8 +1727,8 @@ static void sculpt_update_object(Depsgraph *depsgraph,
 
   /* Sculpt Face Sets. */
   if (use_face_sets) {
-    ss->face_sets = static_cast<int *>(CustomData_get_layer_named_for_write(
-        &me->face_data, CD_PROP_INT32, ".sculpt_face_set", me->faces_num));
+    ss->face_sets = static_cast<const int *>(
+        CustomData_get_layer_named(&me->face_data, CD_PROP_INT32, ".sculpt_face_set"));
   }
   else {
     ss->face_sets = nullptr;
@@ -1928,54 +1928,6 @@ void BKE_sculpt_update_object_for_edit(Depsgraph *depsgraph, Object *ob_orig, bo
   Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob_orig);
 
   sculpt_update_object(depsgraph, ob_orig, ob_eval, is_paint_tool);
-}
-
-int *BKE_sculpt_face_sets_ensure(Object *ob)
-{
-  using namespace blender;
-  using namespace blender::bke;
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
-  SculptSession *ss = ob->sculpt;
-  PBVH *pbvh = ss->pbvh;
-  if (!pbvh) {
-    BLI_assert_unreachable();
-    return nullptr;
-  }
-  const StringRefNull name = ".sculpt_face_set";
-
-  switch (BKE_pbvh_type(pbvh)) {
-    case PBVH_FACES:
-    case PBVH_GRIDS: {
-      MutableAttributeAccessor attributes = mesh->attributes_for_write();
-      if (!attributes.contains(name)) {
-        attributes.add<int>(name,
-                            ATTR_DOMAIN_FACE,
-                            AttributeInitVArray(VArray<int>::ForSingle(1, mesh->faces_num)));
-        mesh->face_sets_color_default = 1;
-      }
-      return static_cast<int *>(CustomData_get_layer_named_for_write(
-          &mesh->face_data, CD_PROP_INT32, name.c_str(), mesh->faces_num));
-    }
-    case PBVH_BMESH: {
-      BMesh *bm = BKE_pbvh_get_bmesh(pbvh);
-      if (!CustomData_has_layer_named(&bm->pdata, CD_PROP_INT32, name.c_str())) {
-        BM_data_layer_add_named(bm, &bm->pdata, CD_PROP_INT32, name.c_str());
-        const int offset = CustomData_get_offset_named(&bm->pdata, CD_PROP_INT32, name.c_str());
-        if (offset == -1) {
-          return nullptr;
-        }
-        BMIter iter;
-        BMFace *face;
-        BM_ITER_MESH (face, &iter, bm, BM_FACES_OF_MESH) {
-          BM_ELEM_CD_SET_INT(face, offset, 1);
-        }
-        mesh->face_sets_color_default = 1;
-      }
-      break;
-    }
-  }
-
-  return nullptr;
 }
 
 void BKE_sculpt_hide_poly_pointer_update(Object &object)

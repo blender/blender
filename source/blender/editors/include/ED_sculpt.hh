@@ -49,7 +49,7 @@ void ED_sculpt_undo_geometry_end(Object *ob);
 
 namespace blender::ed::sculpt_paint::face_set {
 
-int find_next_available_id(Mesh *mesh);
+int find_next_available_id(Object &object);
 void initialize_none_to_id(Mesh *mesh, int new_id);
 int active_update_and_get(bContext *C, Object *ob, const float mval_fl[2]);
 
