@@ -1203,7 +1203,14 @@ struct GWL_RegistryEntry;
  * see: #GHOST_SystemWayland::milliseconds_from_input_time.
  */
 struct GWL_DisplayTimeStamp {
-  uint64_t last = 0;
+  /**
+   * When true, the GHOST & WAYLAND time-stamps are compatible,
+   * in most cases this means they will be equal however for systems with long up-times
+   * it may equal `uint32(GHOST_SystemWayland::getMilliSeconds())`,
+   * the `offsets` member is set to account for this case.
+   */
+  bool exact_match = false;
+  uint32_t last = 0;
   uint64_t offset = 0;
 };
 
@@ -8155,23 +8162,38 @@ uint64_t GHOST_SystemWayland::ms_from_input_time(const uint32_t timestamp_as_uin
    * This is updated because time may have passed between generating the time-stamp and `now`.
    * The method here is used by SDL. */
 
-  const uint64_t now = getMilliSeconds();
   GWL_DisplayTimeStamp &input_timestamp = display_->input_timestamp;
-  uint64_t timestamp = uint64_t(timestamp_as_uint);
-  if (timestamp < input_timestamp.last) {
+  if (timestamp_as_uint < input_timestamp.last) {
     /* 32-bit timer rollover, bump the offset. */
     input_timestamp.offset += uint64_t(std::numeric_limits<uint32_t>::max()) + 1;
   }
-  input_timestamp.last = timestamp;
+  input_timestamp.last = timestamp_as_uint;
 
-  if (!input_timestamp.offset) {
-    input_timestamp.offset = (now - timestamp);
+  uint64_t timestamp = uint64_t(timestamp_as_uint);
+  if (input_timestamp.exact_match) {
+    timestamp += input_timestamp.offset;
   }
-  timestamp += input_timestamp.offset;
+  else {
+    const uint64_t now = getMilliSeconds();
+    const uint32_t now_as_uint32 = uint32_t(now);
+    if (now_as_uint32 == timestamp_as_uint) {
+      input_timestamp.exact_match = true;
+      /* For systems with up times exceeding 47 days
+       * it's possible we need to begin with an offset. */
+      input_timestamp.offset = now - uint64_t(now_as_uint32);
+      timestamp = now;
+    }
+    else {
+      if (!input_timestamp.offset) {
+        input_timestamp.offset = (now - timestamp);
+      }
+      timestamp += input_timestamp.offset;
 
-  if (timestamp > now) {
-    input_timestamp.offset -= (timestamp - now);
-    timestamp = now;
+      if (timestamp > now) {
+        input_timestamp.offset -= (timestamp - now);
+        timestamp = now;
+      }
+    }
   }
 
   return timestamp;
