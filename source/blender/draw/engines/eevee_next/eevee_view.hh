@@ -165,4 +165,23 @@ class CaptureView {
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Lookdev View
+ *
+ * View for rendering the lookdev HDRI spheres.
+ * \{ */
+
+class LookdevView {
+ private:
+  Instance &inst_;
+
+  View view_ = {"Lookdev.View"};
+
+ public:
+  LookdevView(Instance &inst) : inst_(inst) {}
+  void render();
+};
+
+/** \} */
+
 }  // namespace blender::eevee

@@ -13,6 +13,8 @@
 
 #include "NOD_shader.h"
 
+#include "GPU_material.h"
+
 #include "eevee_instance.hh"
 
 namespace blender::eevee {
@@ -119,7 +121,169 @@ bool LookdevWorld::sync(const LookdevParameters &new_parameters)
  *
  * \{ */
 
-/* TODO(fclem): This is where the lookdev balls display should go. */
+LookdevModule::LookdevModule(Instance &inst) : inst_(inst) {}
+
+LookdevModule::~LookdevModule() {}
+
+void LookdevModule::init(const rcti *visible_rect)
+{
+  visible_rect_ = *visible_rect;
+  enabled_ = inst_.is_viewport() && inst_.overlays_enabled() && inst_.use_lookdev_overlay();
+
+  if (enabled_) {
+    const int2 extent_dummy(1);
+    constexpr eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_WRITE |
+                                       GPU_TEXTURE_USAGE_SHADER_READ;
+    dummy_cryptomatte_tx_.ensure_2d(GPU_RGBA32F, extent_dummy, usage);
+    dummy_aov_color_tx_.ensure_2d_array(GPU_RGBA16F, extent_dummy, 1, usage);
+    dummy_aov_value_tx_.ensure_2d_array(GPU_R16F, extent_dummy, 1, usage);
+  }
+}
+
+float LookdevModule::calc_viewport_scale()
+{
+  const float viewport_scale = clamp_f(
+      BLI_rcti_size_x(&visible_rect_) / (2000.0f * UI_SCALE_FAC), 0.5f, 1.0f);
+  return viewport_scale;
+}
+
+static eDRWLevelOfDetail calc_level_of_detail(const float viewport_scale)
+{
+  float res_scale = clamp_f(
+      (U.lookdev_sphere_size / 400.0f) * viewport_scale * UI_SCALE_FAC, 0.1f, 1.0f);
+
+  if (res_scale > 0.7f) {
+    return DRW_LOD_HIGH;
+  }
+  else if (res_scale > 0.25f) {
+    return DRW_LOD_MEDIUM;
+  }
+  return DRW_LOD_LOW;
+}
+
+static int calc_sphere_size(const float viewport_scale)
+{
+  const int sphere_radius = U.lookdev_sphere_size * UI_SCALE_FAC * viewport_scale;
+  const int sphere_size = sphere_radius * 2;
+  return sphere_size;
+}
+
+void LookdevModule::sync()
+{
+  for (Sphere &sphere : spheres_) {
+    sphere.pass.init();
+  }
+  display_ps_.init();
+
+  if (!enabled_) {
+    return;
+  }
+  const float viewport_scale = calc_viewport_scale();
+  const int sphere_size = calc_sphere_size(viewport_scale);
+  const int2 extent(sphere_size, sphere_size);
+
+  const eGPUTextureFormat depth_format = GPU_DEPTH_COMPONENT24;
+  const eGPUTextureFormat color_format = GPU_RGBA16F;
+
+  depth_tx_.ensure_2d(depth_format, extent);
+  for (int index : IndexRange(num_spheres)) {
+    if (spheres_[index].color_tx_.ensure_2d(color_format, extent)) {
+      if (inst_.sampling.finished_viewport()) {
+        inst_.sampling.reset();
+      }
+    }
+
+    spheres_[index].framebuffer.ensure(GPU_ATTACHMENT_TEXTURE(depth_tx_),
+                                       GPU_ATTACHMENT_TEXTURE(spheres_[index].color_tx_));
+  }
+
+  float4 position = inst_.camera.data_get().viewinv *
+                    float4(0.0, 0.0, -inst_.camera.data_get().clip_near, 1.0);
+  float4x4 model_m4 = float4x4::identity();
+  model_m4 = math::translate(model_m4, float3(position));
+  model_m4 = math::scale(model_m4, float3(sphere_scale));
+
+  ResourceHandle handle = inst_.manager->resource_handle(model_m4);
+  GPUBatch *geom = DRW_cache_sphere_get(calc_level_of_detail(viewport_scale));
+
+  sync_pass(spheres_[0].pass, geom, inst_.materials.metallic_mat, handle);
+  sync_pass(spheres_[1].pass, geom, inst_.materials.diffuse_mat, handle);
+  sync_display();
+}
+
+void LookdevModule::sync_pass(PassSimple &pass,
+                              GPUBatch *geom,
+                              ::Material *mat,
+                              ResourceHandle res_handle)
+{
+  pass.clear_depth(1.0f);
+  pass.clear_color(float4(0.0, 0.0, 0.0, 1.0));
+
+  const DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH |
+                         DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CULL_BACK;
+
+  GPUMaterial *gpumat = inst_.shaders.material_shader_get(
+      mat, mat->nodetree, MAT_PIPE_FORWARD, MAT_GEOM_MESH, MAT_PROBE_NONE);
+  pass.state_set(state);
+  pass.material_set(*inst_.manager, gpumat);
+
+  pass.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
+  pass.bind_image("rp_cryptomatte_img", dummy_cryptomatte_tx_);
+  pass.bind_image("rp_color_img", dummy_aov_color_tx_);
+  pass.bind_image("rp_value_img", dummy_aov_value_tx_);
+  pass.bind_image("aov_color_img", dummy_aov_color_tx_);
+  pass.bind_image("aov_value_img", dummy_aov_value_tx_);
+  inst_.bind_uniform_data(&pass);
+  inst_.hiz_buffer.bind_resources(pass);
+  inst_.reflection_probes.bind_resources(pass);
+  inst_.irradiance_cache.bind_resources(pass);
+  inst_.shadows.bind_resources(pass);
+  inst_.volume.bind_resources(pass);
+  inst_.cryptomatte.bind_resources(pass);
+
+  pass.draw(geom, res_handle, 0);
+}
+
+void LookdevModule::sync_display()
+{
+  PassSimple &pass = display_ps_;
+
+  const DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS |
+                         DRW_STATE_BLEND_ALPHA;
+  pass.state_set(state);
+  pass.shader_set(inst_.shaders.static_shader_get(LOOKDEV_DISPLAY));
+  pass.push_constant("viewportSize", float2(DRW_viewport_size_get()));
+  pass.push_constant("invertedViewportSize", float2(DRW_viewport_invert_size_get()));
+  pass.push_constant("anchor", int2(visible_rect_.xmax, visible_rect_.ymin));
+  pass.bind_texture("metallic_tx", &spheres_[0].color_tx_);
+  pass.bind_texture("diffuse_tx", &spheres_[1].color_tx_);
+
+  pass.draw_procedural(GPU_PRIM_TRIS, 2, 6);
+}
+
+void LookdevModule::draw(View &view)
+{
+  if (!enabled_) {
+    return;
+  }
+  for (Sphere &sphere : spheres_) {
+    sphere.framebuffer.bind();
+    inst_.manager->submit(sphere.pass, view);
+  }
+}
+
+void LookdevModule::display()
+{
+  if (!enabled_) {
+    return;
+  }
+
+  BLI_assert(inst_.is_viewport());
+
+  DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
+  GPU_framebuffer_bind(dfbl->default_fb);
+  inst_.manager->submit(display_ps_);
+}
 
 /** \} */
 

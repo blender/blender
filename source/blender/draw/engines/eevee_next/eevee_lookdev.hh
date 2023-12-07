@@ -16,6 +16,7 @@
 namespace blender::eevee {
 
 class Instance;
+class LookdevView;
 
 /* -------------------------------------------------------------------- */
 /** \name Parameters
@@ -81,18 +82,56 @@ class LookdevWorld {
  * \{ */
 
 class LookdevModule {
- public:
  private:
   Instance &inst_;
 
- public:
-  LookdevModule(Instance &inst) : inst_(inst)
-  {
-    /* Suppress CLANG `-Wunused-private-field` warning. */
-    (void)inst_;
+  bool enabled_;
+
+  static constexpr int num_spheres = 2;
+  /**
+   * The scale of the lookdev spheres.
+   *
+   * The lookdev spheres are resized to a small scale. This would reduce shadow artifacts as they
+   * would most likely be inside or outside shadow.
+   */
+  static constexpr float sphere_scale = 0.01f;
+
+  rcti visible_rect_;
+
+  /* Dummy textures: required to reuse forward mesh shader and avoid another shader variation. */
+  Texture dummy_cryptomatte_tx_;
+  Texture dummy_aov_color_tx_;
+  Texture dummy_aov_value_tx_;
+
+  Texture depth_tx_ = {"Lookdev.Depth"};
+
+  struct Sphere {
+    Framebuffer framebuffer = {"Lookdev.Framebuffer"};
+    Texture color_tx_ = {"Lookdev.Color"};
+    PassSimple pass = {"Lookdev.Sphere"};
   };
 
-  /* TODO(fclem): This is where the lookdev balls display should go. */
+  Sphere spheres_[num_spheres];
+  PassSimple display_ps_ = {"Lookdev.Display"};
+
+ public:
+  LookdevModule(Instance &inst);
+  ~LookdevModule();
+
+  void init(const rcti *visible_rect);
+  void sync();
+
+  void draw(View &view);
+
+  void display();
+
+ private:
+  void sync_pass(PassSimple &pass, GPUBatch *geom, ::Material *mat, ResourceHandle res_handle);
+  void sync_display();
+
+  float calc_viewport_scale();
+
+  friend class LookdevView;
 };
 
 /** \} */

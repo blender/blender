@@ -116,6 +116,8 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_horizon_scan_refract";
     case HORIZON_SETUP:
       return "eevee_horizon_setup";
+    case LOOKDEV_DISPLAY:
+      return "eevee_lookdev_display";
     case MOTION_BLUR_GATHER:
       return "eevee_motion_blur_gather";
     case MOTION_BLUR_TILE_DILATE:
