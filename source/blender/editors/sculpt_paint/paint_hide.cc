@@ -720,7 +720,7 @@ static void invert_visibility_bmesh(Object &object, const Span<PBVHNode *> nodes
       bool fully_hidden = true;
       for (BMVert *vert : BKE_pbvh_bmesh_node_unique_verts(node)) {
         BM_elem_flag_toggle(vert, BM_ELEM_HIDDEN);
-        fully_hidden &= BM_elem_flag_test(vert, BM_ELEM_HIDDEN);
+        fully_hidden &= BM_elem_flag_test_bool(vert, BM_ELEM_HIDDEN);
       }
       BKE_pbvh_node_fully_hidden_set(node, fully_hidden);
       BKE_pbvh_node_mark_rebuild_draw(node);
