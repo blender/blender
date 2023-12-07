@@ -298,7 +298,7 @@ static void main_merge_add_id_to_move(Main *bmain_dst,
 void BKE_main_merge(Main *bmain_dst, Main **r_bmain_src, MainMergeReport &reports)
 {
   Main *bmain_src = *r_bmain_src;
-  /* NOTE: Dedicated mapping type is needed here, to handle propoerly the library cases. */
+  /* NOTE: Dedicated mapping type is needed here, to handle properly the library cases. */
   blender::Map<std::string, blender::Vector<ID *>> id_map_dst;
   ID *id_iter_dst, *id_iter_src;
   FOREACH_MAIN_ID_BEGIN (bmain_dst, id_iter_dst) {

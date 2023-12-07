@@ -786,7 +786,7 @@ struct LibOverrideGroupTagData {
   /** Whether we are creating new override, or resyncing existing one. */
   bool is_resync;
 
-  /** ID tag to use for IDs detected as beeing part of the liboverride hierarchy. */
+  /** ID tag to use for IDs detected as being part of the liboverride hierarchy. */
   uint tag;
   uint missing_tag;
 
@@ -1461,7 +1461,7 @@ static void lib_override_library_create_post_process(Main *bmain,
     if (old_active_object == ob) {
       BLI_assert(view_layer);
       /* May have been tagged as dirty again in a previous iteration of this loop, e.g. if adding a
-       * liboverride object to a colleciton. */
+       * liboverride object to a collection. */
       BKE_view_layer_synced_ensure(scene, view_layer);
       Base *basact = BKE_view_layer_base_find(view_layer, ob_new);
       if (basact != nullptr) {

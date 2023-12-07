@@ -454,7 +454,7 @@ int BLI_rename(const char *from, const char *to)
    * Since this functionality isn't required at the moment, leave this as-is.
    * Noting it as a potential improvement. */
 
-  /* NOTE: To avoid the concurrency 'time of check/time of use' (TOC/TOU) issue, this code attemps
+  /* NOTE: To avoid the concurrency 'time of check/time of use' (TOC/TOU) issue, this code attempts
    * to use available solutions for an 'atomic' (file-system wise) rename operation, instead of
    * first checking for an existing `to` target path, and then doing the rename operation if it
    * does not exists at the time of check.

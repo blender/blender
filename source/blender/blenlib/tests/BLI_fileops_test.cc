@@ -125,7 +125,7 @@ TEST_F(FileOpsTest, rename)
   ASSERT_TRUE(BLI_exists(test_dirpath_src.c_str()));
   ASSERT_TRUE(BLI_exists(test_dirpath_dst.c_str()));
 
-  /* `test_dirpath_dst` now exists, but is empty, so overwrite rename should suceed. */
+  /* `test_dirpath_dst` now exists, but is empty, so overwrite rename should succeed. */
   ASSERT_EQ(0, BLI_rename_overwrite(test_dirpath_src.c_str(), test_dirpath_dst.c_str()));
   ASSERT_FALSE(BLI_exists(test_dirpath_src.c_str()));
   ASSERT_TRUE(BLI_exists(test_dirpath_dst.c_str()));

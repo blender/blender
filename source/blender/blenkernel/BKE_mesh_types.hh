@@ -140,7 +140,7 @@ struct MeshRuntime {
   CustomData_MeshMasks cd_mask_extra = {};
 
   /**
-   * Grids representation for multiresolution sculpting. When this is set, the mesh will be empty,
+   * Grids representation for multi-resolution sculpting. When this is set, the mesh will be empty,
    * since it is conceptually replaced with the limited data stored in the grids.
    */
   std::unique_ptr<SubdivCCG> subdiv_ccg;

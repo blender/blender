@@ -700,7 +700,7 @@ bool BM_face_is_any_edge_flag_test(const BMFace *f, char hflag) ATTR_WARN_UNUSED
 bool BM_edge_is_any_face_len_test(const BMEdge *e, int len) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
 /**
- * Use within assert's to check normals are valid.
+ * Use within asserts to check normals are valid.
  */
 bool BM_face_is_normal_valid(const BMFace *f) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 

@@ -7530,7 +7530,7 @@ static void cursor_anim_begin(GWL_Seat *seat)
   auto cursor_anim_frame_step_fn =
       [](GWL_Seat *seat, GWL_Cursor_AnimHandle *anim_handle, int delay) {
         /* It's possible the `wl_cursor` is reloaded while the cursor is animating.
-         * Don't access outside the lock, tha's why the `delay` is passed in. */
+         * Don't access outside the lock, that's why the `delay` is passed in. */
         std::mutex *server_mutex = seat->system->server_mutex;
         int frame = 0;
         while (!anim_handle->exit_pending.load()) {

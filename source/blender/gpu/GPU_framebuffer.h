@@ -160,11 +160,11 @@ typedef struct GPULoadStore {
  * whole.
  *
  * NOTE: Using GPU_framebuffer_clear_* functions in conjunction with a custom load-store
- * configuration is invalid. Instead, utilise GPU_LOADACTION_CLEAR and provide a clear color as
+ * configuration is invalid. Instead, utilize GPU_LOADACTION_CLEAR and provide a clear color as
  * the third parameter in `GPULoadStore action`.
  *
- * For Color attachments: {GPU_LOADACTION_CLEAR, GPU_STOREACTION_STORE, {Rf, Gf, Bf, Af}}
- * For Depth attachments: {GPU_LOADACTION_CLEAR, GPU_STOREACTION_STORE, {Df}}
+ * For Color attachments: `{GPU_LOADACTION_CLEAR, GPU_STOREACTION_STORE, {Rf, Gf, Bf, Af}}`
+ * For Depth attachments: `{GPU_LOADACTION_CLEAR, GPU_STOREACTION_STORE, {Df}}`
  *
  * Example:
  * \code{.c}

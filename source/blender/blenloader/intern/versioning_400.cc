@@ -328,7 +328,7 @@ static void versioning_eevee_shadow_settings(Object *object)
 static void versioning_replace_splitviewer(bNodeTree *ntree)
 {
   /* Split viewer was replaced with a regular split node, so add a viewer node,
-   * and link it to the new split node to achive the same behavior of the split viewer node. */
+   * and link it to the new split node to achieve the same behavior of the split viewer node. */
 
   LISTBASE_FOREACH_MUTABLE (bNode *, node, &ntree->nodes) {
     if (node->type != CMP_NODE_SPLITVIEWER__DEPRECATED) {
@@ -1001,7 +1001,7 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
           *version_cycles_node_socket_float_value(mul_socket_B) = *detail;
 
           if (noise_type == SHD_NOISE_MULTIFRACTAL) {
-            /* Add Add Math node after Multiply Math node. */
+            /* Add an Add Math node after Multiply Math node. */
 
             bNode *add_node = nodeAddStaticNode(nullptr, ntree, SH_NODE_MATH);
             add_node->parent = node->parent;

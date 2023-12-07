@@ -349,7 +349,7 @@ typedef struct FontBLF {
   int char_weight;    /* 100 - 900, 400 = normal. */
   float char_slant;   /* Slant in clockwise degrees. 0.0 = upright. */
   float char_width;   /* Factor of normal character width. 1.0 = normal. */
-  float char_spacing; /* Factor of normal normal spacing. 0.0 = normal. */
+  float char_spacing; /* Factor of normal character spacing. 0.0 = normal. */
 
   /** Max texture size. */
   int tex_size_max;

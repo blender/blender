@@ -512,7 +512,7 @@ static void do_cross_effect(const SeqRenderData *context,
 /* One could argue that gamma cross should not be hardcoded to 2.0 gamma,
  * but instead either do proper input->linear conversion (often sRGB). Or
  * maybe not even that, but do interpolation in some perceptual color space
- * like Oklab. But currently it is fixed to just 2.0 gamma. */
+ * like OKLAB. But currently it is fixed to just 2.0 gamma. */
 
 static float gammaCorrect(float c)
 {

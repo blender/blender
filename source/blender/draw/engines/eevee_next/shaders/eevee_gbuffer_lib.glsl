@@ -242,7 +242,7 @@ GBufferDataPacked gbuffer_pack(ClosureDiffuse diffuse,
   }
 
   if (layer == 0) {
-    /* If no lit BDSF is outputed, still output the surface normal in the first layer.
+    /* If no lit BDSF is outputted, still output the surface normal in the first layer.
      * This is needed by some algorithms. */
     gbuf.color[layer] = vec4(0.0);
     gbuf.closure[layer].xy = gbuffer_normal_pack(default_N);

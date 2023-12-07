@@ -162,9 +162,9 @@ ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1) BLI_INLINE
 
 /**
  * \brief Parallel (threaded) iterator,
- * only available for most basic itertypes (verts/edges/faces of mesh).
+ * only available for most basic iteration-types (verts/edges/faces of mesh).
  *
- * Uses BLI_task_parallel_mempool to iterate over all items of underlying matching mempool.
+ * Uses #BLI_task_parallel_mempool to iterate over all items of underlying matching mempool.
  *
  * \note You have to include BLI_task.h before BMesh includes to be able to use this function!
  */

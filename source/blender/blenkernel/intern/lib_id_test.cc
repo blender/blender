@@ -440,7 +440,7 @@ TEST(lib_id_main_unique_name, name_number_suffix_assignment)
 
   EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
 
-  /* Create objects again; they should get suffixes that were just free'd up. */
+  /* Create objects again; they should get suffixes that were just freed up. */
   ID *id_010 = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "Foo"));
   EXPECT_STREQ(id_010->name + 2, "Foo.010");
   ID *id_020 = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "Foo.123"));

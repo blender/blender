@@ -212,7 +212,7 @@ TEST_F(BMainMergeTest, linked_data)
 
   /* Use a relative library path. Since this is a different library, even though the object re-use
    * the same name, it should still be moved into `bmain_dst`. The library filepath should also be
-   * updated and become relative the the path of bmain_dst too. */
+   * updated and become relative the path of bmain_dst too. */
   bmain_src = BKE_main_new();
   BLI_strncpy(bmain_src->filepath, SRC_PATH, sizeof(bmain_dst->filepath));
 
