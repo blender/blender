@@ -1255,7 +1255,7 @@ static void sculpt_face_set_grow_shrink(Object &object,
   SCULPT_undo_push_end(&object);
 }
 
-bool check_single_face_set(const Object &object, const bool check_visible_only)
+static bool check_single_face_set(const Object &object, const bool check_visible_only)
 {
   const Mesh &mesh = *static_cast<const Mesh *>(object.data);
   const bke::AttributeAccessor attributes = mesh.attributes();
