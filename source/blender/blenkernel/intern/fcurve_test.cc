@@ -32,9 +32,9 @@ TEST(evaluate_fcurve, OnKeys)
 {
   FCurve *fcu = BKE_fcurve_create();
 
-  insert_vert_fcurve(fcu, 1.0f, 7.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF);
-  insert_vert_fcurve(fcu, 2.0f, 13.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF);
-  insert_vert_fcurve(fcu, 3.0f, 19.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF);
+  insert_vert_fcurve(fcu, {1.0f, 7.0f}, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF);
+  insert_vert_fcurve(fcu, {2.0f, 13.0f}, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF);
+  insert_vert_fcurve(fcu, {3.0f, 19.0f}, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF);
 
   EXPECT_NEAR(evaluate_fcurve(fcu, 1.0f), 7.0f, EPSILON);  /* hits 'on or before first' function */
   EXPECT_NEAR(evaluate_fcurve(fcu, 2.0f), 13.0f, EPSILON); /* hits 'between' function */
@@ -55,8 +55,10 @@ TEST(evaluate_fcurve, InterpolationConstant)
 {
   FCurve *fcu = BKE_fcurve_create();
 
-  EXPECT_EQ(insert_vert_fcurve(fcu, 1.0f, 7.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF), 0);
-  EXPECT_EQ(insert_vert_fcurve(fcu, 2.0f, 13.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF), 1);
+  EXPECT_EQ(insert_vert_fcurve(fcu, {1.0f, 7.0f}, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF),
+            0);
+  EXPECT_EQ(insert_vert_fcurve(fcu, {2.0f, 13.0f}, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF),
+            1);
 
   fcu->bezt[0].ipo = BEZT_IPO_CONST;
   fcu->bezt[1].ipo = BEZT_IPO_CONST;
@@ -71,8 +73,10 @@ TEST(evaluate_fcurve, InterpolationLinear)
 {
   FCurve *fcu = BKE_fcurve_create();
 
-  EXPECT_EQ(insert_vert_fcurve(fcu, 1.0f, 7.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF), 0);
-  EXPECT_EQ(insert_vert_fcurve(fcu, 2.0f, 13.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF), 1);
+  EXPECT_EQ(insert_vert_fcurve(fcu, {1.0f, 7.0f}, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF),
+            0);
+  EXPECT_EQ(insert_vert_fcurve(fcu, {2.0f, 13.0f}, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF),
+            1);
 
   fcu->bezt[0].ipo = BEZT_IPO_LIN;
   fcu->bezt[1].ipo = BEZT_IPO_LIN;
@@ -88,8 +92,10 @@ TEST(evaluate_fcurve, InterpolationBezier)
 {
   FCurve *fcu = BKE_fcurve_create();
 
-  EXPECT_EQ(insert_vert_fcurve(fcu, 1.0f, 7.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF), 0);
-  EXPECT_EQ(insert_vert_fcurve(fcu, 2.0f, 13.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF), 1);
+  EXPECT_EQ(insert_vert_fcurve(fcu, {1.0f, 7.0f}, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF),
+            0);
+  EXPECT_EQ(insert_vert_fcurve(fcu, {2.0f, 13.0f}, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF),
+            1);
 
   EXPECT_EQ(fcu->bezt[0].ipo, BEZT_IPO_BEZ);
   EXPECT_EQ(fcu->bezt[1].ipo, BEZT_IPO_BEZ);
@@ -121,8 +127,10 @@ TEST(evaluate_fcurve, InterpolationBounce)
 {
   FCurve *fcu = BKE_fcurve_create();
 
-  EXPECT_EQ(insert_vert_fcurve(fcu, 1.0f, 7.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF), 0);
-  EXPECT_EQ(insert_vert_fcurve(fcu, 2.0f, 13.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF), 1);
+  EXPECT_EQ(insert_vert_fcurve(fcu, {1.0f, 7.0f}, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF),
+            0);
+  EXPECT_EQ(insert_vert_fcurve(fcu, {2.0f, 13.0f}, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF),
+            1);
 
   fcu->bezt[0].ipo = BEZT_IPO_BOUNCE;
   fcu->bezt[1].ipo = BEZT_IPO_BOUNCE;
@@ -141,8 +149,10 @@ TEST(evaluate_fcurve, ExtrapolationLinearKeys)
 {
   FCurve *fcu = BKE_fcurve_create();
 
-  EXPECT_EQ(insert_vert_fcurve(fcu, 1.0f, 7.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF), 0);
-  EXPECT_EQ(insert_vert_fcurve(fcu, 2.0f, 13.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF), 1);
+  EXPECT_EQ(insert_vert_fcurve(fcu, {1.0f, 7.0f}, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF),
+            0);
+  EXPECT_EQ(insert_vert_fcurve(fcu, {2.0f, 13.0f}, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF),
+            1);
   fcu->bezt[0].ipo = BEZT_IPO_LIN;
   fcu->bezt[1].ipo = BEZT_IPO_LIN;
 
@@ -170,8 +180,10 @@ TEST(evaluate_fcurve, ExtrapolationBezierKeys)
 {
   FCurve *fcu = BKE_fcurve_create();
 
-  EXPECT_EQ(insert_vert_fcurve(fcu, 1.0f, 7.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF), 0);
-  EXPECT_EQ(insert_vert_fcurve(fcu, 2.0f, 13.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF), 1);
+  EXPECT_EQ(insert_vert_fcurve(fcu, {1.0f, 7.0f}, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF),
+            0);
+  EXPECT_EQ(insert_vert_fcurve(fcu, {2.0f, 13.0f}, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF),
+            1);
 
   fcu->bezt[0].vec[0][0] = 0.71855f; /* left handle X */
   fcu->bezt[0].vec[0][1] = 6.22482f; /* left handle Y */
@@ -207,8 +219,10 @@ TEST(fcurve_subdivide, BKE_fcurve_bezt_subdivide_handles)
   FCurve *fcu = BKE_fcurve_create();
 
   /* Insert two keyframes and set handles to something non-default. */
-  EXPECT_EQ(insert_vert_fcurve(fcu, 1.0f, 0.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF), 0);
-  EXPECT_EQ(insert_vert_fcurve(fcu, 13.0f, 2.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF), 1);
+  EXPECT_EQ(insert_vert_fcurve(fcu, {1.0f, 0.0f}, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF),
+            0);
+  EXPECT_EQ(insert_vert_fcurve(fcu, {13.0f, 2.0f}, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF),
+            1);
 
   fcu->bezt[0].h1 = fcu->bezt[0].h2 = HD_FREE;
   fcu->bezt[0].vec[0][0] = -5.0f;
@@ -273,11 +287,14 @@ TEST(fcurve_active_keyframe, ActiveKeyframe)
   EXPECT_EQ(BKE_fcurve_active_keyframe_index(fcu), FCURVE_ACTIVE_KEYFRAME_NONE);
 
   /* Check that adding new points sets the active index. */
-  EXPECT_EQ(insert_vert_fcurve(fcu, 1.0f, 7.5f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF), 0);
+  EXPECT_EQ(insert_vert_fcurve(fcu, {1.0f, 7.5f}, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF),
+            0);
   EXPECT_EQ(BKE_fcurve_active_keyframe_index(fcu), 0);
-  EXPECT_EQ(insert_vert_fcurve(fcu, 8.0f, 15.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF), 1);
+  EXPECT_EQ(insert_vert_fcurve(fcu, {8.0f, 15.0f}, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF),
+            1);
   EXPECT_EQ(BKE_fcurve_active_keyframe_index(fcu), 1);
-  EXPECT_EQ(insert_vert_fcurve(fcu, 14.0f, 8.2f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF), 2);
+  EXPECT_EQ(insert_vert_fcurve(fcu, {14.0f, 8.2f}, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF),
+            2);
   EXPECT_EQ(BKE_fcurve_active_keyframe_index(fcu), 2);
 
   /* Check clearing the index. */
@@ -325,9 +342,9 @@ TEST(BKE_fcurve, BKE_fcurve_keyframe_move_value_with_handles)
 {
   FCurve *fcu = BKE_fcurve_create();
 
-  insert_vert_fcurve(fcu, 1.0f, 7.5f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF);
-  insert_vert_fcurve(fcu, 8.0f, 15.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF);
-  insert_vert_fcurve(fcu, 14.0f, 8.2f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF);
+  insert_vert_fcurve(fcu, {1.0f, 7.5f}, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF);
+  insert_vert_fcurve(fcu, {8.0f, 15.0f}, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF);
+  insert_vert_fcurve(fcu, {14.0f, 8.2f}, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF);
 
   EXPECT_FLOAT_EQ(fcu->bezt[1].vec[0][0], 5.2671194f);
   EXPECT_FLOAT_EQ(fcu->bezt[1].vec[0][1], 15.0f);
@@ -356,9 +373,9 @@ TEST(BKE_fcurve, BKE_fcurve_keyframe_move_time_with_handles)
 {
   FCurve *fcu = BKE_fcurve_create();
 
-  insert_vert_fcurve(fcu, 1.0f, 7.5f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF);
-  insert_vert_fcurve(fcu, 8.0f, 15.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF);
-  insert_vert_fcurve(fcu, 14.0f, 8.2f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF);
+  insert_vert_fcurve(fcu, {1.0f, 7.5f}, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF);
+  insert_vert_fcurve(fcu, {8.0f, 15.0f}, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF);
+  insert_vert_fcurve(fcu, {14.0f, 8.2f}, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF);
 
   EXPECT_FLOAT_EQ(fcu->bezt[1].vec[0][0], 5.2671194f);
   EXPECT_FLOAT_EQ(fcu->bezt[1].vec[0][1], 15.0f);
@@ -387,11 +404,11 @@ TEST(BKE_fcurve, BKE_fcurve_calc_range)
 {
   FCurve *fcu = BKE_fcurve_create();
 
-  insert_vert_fcurve(fcu, 1.0f, 7.5f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF);
-  insert_vert_fcurve(fcu, 4.0f, -15.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF);
-  insert_vert_fcurve(fcu, 8.0f, 15.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF);
-  insert_vert_fcurve(fcu, 14.0f, 8.2f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF);
-  insert_vert_fcurve(fcu, 18.2f, -20.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF);
+  insert_vert_fcurve(fcu, {1.0f, 7.5f}, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF);
+  insert_vert_fcurve(fcu, {4.0f, -15.0f}, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF);
+  insert_vert_fcurve(fcu, {8.0f, 15.0f}, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF);
+  insert_vert_fcurve(fcu, {14.0f, 8.2f}, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF);
+  insert_vert_fcurve(fcu, {18.2f, -20.0f}, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF);
 
   for (int i = 0; i < fcu->totvert; i++) {
     fcu->bezt[i].f1 &= ~SELECT;
@@ -439,11 +456,11 @@ TEST(BKE_fcurve, BKE_fcurve_calc_bounds)
 {
   FCurve *fcu = BKE_fcurve_create();
 
-  insert_vert_fcurve(fcu, 1.0f, 7.5f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF);
-  insert_vert_fcurve(fcu, 4.0f, -15.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF);
-  insert_vert_fcurve(fcu, 8.0f, 15.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF);
-  insert_vert_fcurve(fcu, 14.0f, 8.2f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF);
-  insert_vert_fcurve(fcu, 18.2f, -20.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF);
+  insert_vert_fcurve(fcu, {1.0f, 7.5f}, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF);
+  insert_vert_fcurve(fcu, {4.0f, -15.0f}, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF);
+  insert_vert_fcurve(fcu, {8.0f, 15.0f}, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF);
+  insert_vert_fcurve(fcu, {14.0f, 8.2f}, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF);
+  insert_vert_fcurve(fcu, {18.2f, -20.0f}, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF);
 
   for (int i = 0; i < fcu->totvert; i++) {
     fcu->bezt[i].f1 &= ~SELECT;

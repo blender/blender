@@ -315,14 +315,14 @@ static bool insert_keyframe_value(
       return false;
     }
 
-    if (insert_vert_fcurve(fcu, cfra, curval, keytype, flag) < 0) {
+    if (insert_vert_fcurve(fcu, {cfra, curval}, keytype, flag) < 0) {
       return false;
     }
 
     return true;
   }
 
-  return insert_vert_fcurve(fcu, cfra, curval, keytype, flag) >= 0;
+  return insert_vert_fcurve(fcu, {cfra, curval}, keytype, flag) >= 0;
 }
 
 bool insert_keyframe_direct(ReportList *reports,

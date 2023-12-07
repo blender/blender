@@ -1056,8 +1056,7 @@ static BezTriple *rna_FKeyframe_points_insert(
     ID *id, FCurve *fcu, Main *bmain, float frame, float value, int keyframe_type, int flag)
 {
   int index = blender::animrig::insert_vert_fcurve(fcu,
-                                                   frame,
-                                                   value,
+                                                   {frame, value},
                                                    eBezTriple_KeyframeType(keyframe_type),
                                                    eInsertKeyFlags(flag) | INSERTKEY_NO_USERPREF);
 

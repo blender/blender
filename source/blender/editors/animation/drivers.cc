@@ -125,9 +125,9 @@ FCurve *alloc_driver_fcurve(const char rna_path[],
        *   which can be easily tweaked from there.
        */
       blender::animrig::insert_vert_fcurve(
-          fcu, 0.0f, 0.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_FAST | INSERTKEY_NO_USERPREF);
+          fcu, {0.0f, 0.0f}, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_FAST | INSERTKEY_NO_USERPREF);
       blender::animrig::insert_vert_fcurve(
-          fcu, 1.0f, 1.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_FAST | INSERTKEY_NO_USERPREF);
+          fcu, {1.0f, 1.0f}, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_FAST | INSERTKEY_NO_USERPREF);
       fcu->extend = FCURVE_EXTRAPOLATE_LINEAR;
       BKE_fcurve_handles_recalc(fcu);
     }

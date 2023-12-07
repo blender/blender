@@ -1272,7 +1272,7 @@ void bake_fcurve_segments(FCurve *fcu)
           /* add keyframes with these, tagging as 'breakdowns' */
           for (n = 1, fp = value_cache; n < range && fp; n++, fp++) {
             blender::animrig::insert_vert_fcurve(
-                fcu, fp->frame, fp->val, BEZT_KEYTYPE_BREAKDOWN, eInsertKeyFlags(1));
+                fcu, {fp->frame, fp->val}, BEZT_KEYTYPE_BREAKDOWN, eInsertKeyFlags(1));
           }
 
           /* free temp cache */

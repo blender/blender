@@ -260,11 +260,13 @@ void initialize_bezt(BezTriple *beztr,
   beztr->period = 4.1f;
 }
 
-int insert_vert_fcurve(
-    FCurve *fcu, float x, float y, eBezTriple_KeyframeType keyframe_type, eInsertKeyFlags flag)
+int insert_vert_fcurve(FCurve *fcu,
+                       const float2 position,
+                       eBezTriple_KeyframeType keyframe_type,
+                       eInsertKeyFlags flag)
 {
   BezTriple beztr = {{{0}}};
-  initialize_bezt(&beztr, {x, y}, keyframe_type, flag, eFCurve_Flags(fcu->flag));
+  initialize_bezt(&beztr, position, keyframe_type, flag, eFCurve_Flags(fcu->flag));
 
   uint oldTot = fcu->totvert;
   int a;
