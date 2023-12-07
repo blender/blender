@@ -238,7 +238,7 @@ float Light::point_radiance_get(const ::Light *la)
 void Light::debug_draw()
 {
 #ifndef NDEBUG
-  drw_debug_sphere(_position, influence_radius_max, float4(0.8f, 0.3f, 0.0f, 1.0f));
+  drw_debug_sphere(float3(_position), influence_radius_max, float4(0.8f, 0.3f, 0.0f, 1.0f));
 #endif
 }
 

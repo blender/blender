@@ -749,10 +749,10 @@ struct LightData {
 #define _clipmap_origin_y object_mat[3][3]
   /** Aliases for axes. */
 #ifndef USE_GPU_SHADER_CREATE_INFO
-#  define _right object_mat[0].xyz()
-#  define _up object_mat[1].xyz()
-#  define _back object_mat[2].xyz()
-#  define _position object_mat[3].xyz()
+#  define _right object_mat[0]
+#  define _up object_mat[1]
+#  define _back object_mat[2]
+#  define _position object_mat[3]
 #else
 #  define _right object_mat[0].xyz
 #  define _up object_mat[1].xyz
