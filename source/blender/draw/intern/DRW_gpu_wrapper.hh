@@ -975,8 +975,12 @@ class Texture : NonCopyable {
    */
   static void swap(Texture &a, Texture &b)
   {
-    SWAP(GPUTexture *, a.tx_, b.tx_);
-    SWAP(const char *, a.name_, b.name_);
+    std::swap(a.tx_, b.tx_);
+    std::swap(a.name_, b.name_);
+    std::swap(a.stencil_view_, b.stencil_view_);
+    std::swap(a.layer_range_view_, b.layer_range_view_);
+    std::swap(a.mip_views_, b.mip_views_);
+    std::swap(a.layer_views_, b.layer_views_);
   }
 
  private:

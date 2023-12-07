@@ -119,6 +119,8 @@ void RayTraceModule::sync()
       sub.dispatch(ray_dispatch_buf_);
       sub.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
     }
+    HiZBuffer::Type hiz_type = (&pass == &trace_refract_ps_) ? HiZBuffer::Type::BACK :
+                                                               HiZBuffer::Type::FRONT;
     pass.shader_set(inst_.shaders.static_shader_get(SHADER_VARIATION(RAY_TRACE_SCREEN_, type)));
     pass.bind_ssbo("tiles_coord_buf", &ray_tiles_buf_);
     pass.bind_image("ray_data_img", &ray_data_tx_);
@@ -127,7 +129,7 @@ void RayTraceModule::sync()
     pass.bind_texture("depth_tx", &depth_tx);
     pass.bind_image("ray_radiance_img", &ray_radiance_tx_);
     inst_.bind_uniform_data(&pass);
-    inst_.hiz_buffer.bind_resources(pass);
+    inst_.hiz_buffer.bind_resources(pass, hiz_type);
     inst_.sampling.bind_resources(pass);
     inst_.irradiance_cache.bind_resources(pass);
     inst_.reflection_probes.bind_resources(pass);

@@ -28,8 +28,16 @@ class HiZBuffer {
  private:
   Instance &inst_;
 
-  /** The texture containing the hiz mip chain. */
-  Texture hiz_tx_ = {"hiz_tx_"};
+  /** Contains depth pyramid of the current pass and the previous pass. */
+  SwapChain<Texture, 2> hiz_tx_;
+  /** References to the textures in the swap-chain. */
+  /* Closest surface depth of the current layer. */
+  GPUTexture *hiz_front_ref_tx_ = nullptr;
+  /* Closest surface depth of the layer below. */
+  GPUTexture *hiz_back_ref_tx_ = nullptr;
+  /** References to the mip views of the current (front) HiZ texture. */
+  std::array<GPUTexture *, HIZ_MIP_COUNT> hiz_mip_ref_;
+
   /**
    * Atomic counter counting the number of tile that have finished down-sampling.
    * The last one will process the last few mip level.
@@ -45,8 +53,8 @@ class HiZBuffer {
   /** Dirty flag to check if the update is necessary. */
   bool is_dirty_ = true;
   /** Reference to the depth texture to downsample. */
-  GPUTexture *src_tx_;
-  GPUTexture **src_tx_ptr_;
+  GPUTexture *src_tx_ = nullptr;
+  GPUTexture **src_tx_ptr_ = nullptr;
 
   HiZData &data_;
 
@@ -59,7 +67,8 @@ class HiZBuffer {
   void sync();
 
   /**
-   * Set source texture for the hiz downsampling.
+   * Set source texture for the hiz down-sampling.
+   * Need to be called once at the start of a pipeline or view.
    */
   void set_source(GPUTexture **texture, int layer = -1)
   {
@@ -68,7 +77,21 @@ class HiZBuffer {
   }
 
   /**
-   * Tag the buffer for update if needed.
+   * Swap front and back layer.
+   * Internally set front layer to be dirty.
+   * IMPORTANT: Before the second swap (and the second update)
+   * the content of the back hi-z buffer is undefined.
+   */
+  void swap_layer()
+  {
+    hiz_tx_.swap();
+    hiz_back_ref_tx_ = hiz_tx_.previous();
+    hiz_front_ref_tx_ = hiz_tx_.current();
+    set_dirty();
+  }
+
+  /**
+   * Tag the front buffer for update if needed.
    */
   void set_dirty()
   {
@@ -76,7 +99,7 @@ class HiZBuffer {
   }
 
   /**
-   * Update the content of the HiZ buffer with the depth render target.
+   * Update the content of the HiZ buffer with the source depth set by `set_source()`.
    * Noop if the buffer has not been tagged as dirty.
    * Should be called before each passes that needs to read the hiz buffer.
    */
@@ -84,14 +107,17 @@ class HiZBuffer {
 
   void debug_draw(View &view, GPUFrameBuffer *view_fb);
 
-  void bind_resources(DRWShadingGroup *grp)
-  {
-    DRW_shgroup_uniform_texture_ref(grp, "hiz_tx", &hiz_tx_);
-  }
+  enum class Type {
+    /* Previous layer depth (ex: For refraction). */
+    BACK,
+    /* Previous layer depth. */
+    FRONT,
+  };
 
-  template<typename PassType> void bind_resources(PassType &pass)
+  template<typename PassType> void bind_resources(PassType &pass, Type type = Type::FRONT)
   {
-    pass.bind_texture(HIZ_TEX_SLOT, &hiz_tx_);
+    pass.bind_texture(HIZ_TEX_SLOT,
+                      (type == Type::FRONT) ? &hiz_front_ref_tx_ : &hiz_back_ref_tx_);
   }
 };
 

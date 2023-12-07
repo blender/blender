@@ -655,18 +655,8 @@ void DeferredLayer::render(View &main_view,
   GPU_framebuffer_bind(prepass_fb);
   inst_.manager->submit(prepass_ps_, render_view);
 
-  if (closure_bits_ & CLOSURE_AMBIENT_OCCLUSION) {
-    /* If the shader needs Ambient Occlusion, we need to update the HiZ here. */
-    if (do_screen_space_refraction) {
-      /* TODO(fclem): This update conflicts with the refraction screen tracing which need the depth
-       * behind the refractive surface. In this case, we do not update the Hi-Z and only consider
-       * surfaces already in the Hi-Z buffer for the ambient occlusion computation. This might be
-       * solved (if really problematic) by having another copy of the Hi-Z buffer. */
-    }
-    else {
-      inst_.hiz_buffer.update();
-    }
-  }
+  inst_.hiz_buffer.swap_layer();
+  inst_.hiz_buffer.update();
 
   if (/* FIXME(fclem): Vulkan doesn't implement load / store config yet. */
       GPU_backend_get_type() == GPU_BACKEND_VULKAN)
@@ -710,15 +700,6 @@ void DeferredLayer::render(View &main_view,
 
   inst_.irradiance_cache.set_view(render_view);
 
-  RayTraceResult refract_result = inst_.raytracing.trace(rt_buffer,
-                                                         radiance_behind_tx_,
-                                                         render_view.persmat(),
-                                                         closure_bits_,
-                                                         CLOSURE_REFRACTION,
-                                                         main_view,
-                                                         render_view,
-                                                         !do_screen_space_refraction);
-
   /* Only update the HiZ after refraction tracing. */
   inst_.hiz_buffer.update();
 
@@ -732,6 +713,15 @@ void DeferredLayer::render(View &main_view,
 
   GPU_framebuffer_bind(combined_fb);
   inst_.manager->submit(eval_light_ps_, render_view);
+
+  RayTraceResult refract_result = inst_.raytracing.trace(rt_buffer,
+                                                         radiance_behind_tx_,
+                                                         render_view.persmat(),
+                                                         closure_bits_,
+                                                         CLOSURE_REFRACTION,
+                                                         main_view,
+                                                         render_view,
+                                                         !do_screen_space_refraction);
 
   RayTraceResult diffuse_result = inst_.raytracing.trace(rt_buffer,
                                                          radiance_feedback_tx_,
