@@ -4,6 +4,10 @@
 
 #ifdef WITH_ONEAPI
 
+/* <algorithm> is needed until included upstream in sycl/detail/property_list_base.hpp */
+#  include <algorithm>
+#  include <sycl/sycl.hpp>
+
 #  include "device/oneapi/device_impl.h"
 
 #  include "util/debug.h"
@@ -24,6 +28,9 @@ extern "C" bool rtcIsSYCLDeviceSupported(const sycl::device sycl_device);
 #  endif
 
 CCL_NAMESPACE_BEGIN
+
+static std::vector<sycl::device> available_sycl_devices();
+static int parse_driver_build_version(const sycl::device &device);
 
 static void queue_error_cb(const char *message, void *user_ptr)
 {
@@ -574,7 +581,7 @@ bool OneapiDevice::create_queue(SyclQueue *&external_queue,
 {
   bool finished_correct = true;
   try {
-    std::vector<sycl::device> devices = OneapiDevice::available_devices();
+    std::vector<sycl::device> devices = available_sycl_devices();
     if (device_index < 0 || device_index >= devices.size()) {
       return false;
     }
@@ -862,7 +869,7 @@ static const int lowest_supported_driver_version_neo = 26957;
 static const int lowest_supported_driver_version_neo = 26918;
 #  endif
 
-int OneapiDevice::parse_driver_build_version(const sycl::device &device)
+int parse_driver_build_version(const sycl::device &device)
 {
   const std::string &driver_version = device.get_info<sycl::info::device::driver_version>();
   int driver_build_version = 0;
@@ -901,7 +908,7 @@ int OneapiDevice::parse_driver_build_version(const sycl::device &device)
   return driver_build_version;
 }
 
-std::vector<sycl::device> OneapiDevice::available_devices()
+std::vector<sycl::device> available_sycl_devices()
 {
   bool allow_all_devices = false;
   if (getenv("CYCLES_ONEAPI_ALL_DEVICES") != nullptr) {
@@ -971,7 +978,7 @@ char *OneapiDevice::device_capabilities()
 {
   std::stringstream capabilities;
 
-  const std::vector<sycl::device> &oneapi_devices = available_devices();
+  const std::vector<sycl::device> &oneapi_devices = available_sycl_devices();
   for (const sycl::device &device : oneapi_devices) {
 #  ifndef WITH_ONEAPI_SYCL_HOST_TASK
     const std::string &name = device.get_info<sycl::info::device::name>();
@@ -1080,7 +1087,7 @@ char *OneapiDevice::device_capabilities()
 void OneapiDevice::iterate_devices(OneAPIDeviceIteratorCallback cb, void *user_ptr)
 {
   int num = 0;
-  std::vector<sycl::device> devices = OneapiDevice::available_devices();
+  std::vector<sycl::device> devices = available_sycl_devices();
   for (sycl::device &device : devices) {
     const std::string &platform_name =
         device.get_platform().get_info<sycl::info::platform::name>();

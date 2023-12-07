@@ -9,6 +9,7 @@
 #  include <array>
 
 #  include "device/device.h"
+#  include "device/oneapi/device_impl.h"
 #  include "device/queue.h"
 #  include "integrator/pass_accessor_cpu.h"
 #  include "session/buffers.h"
@@ -114,9 +115,11 @@ bool OIDNDenoiserGPU::denoise_create_if_needed(DenoiseContext &context)
   }
 
   switch (denoiser_device_->info.type) {
-#  if defined(OIDN_DEVICE_SYCL)
+#  if defined(OIDN_DEVICE_SYCL) && defined(WITH_ONEAPI)
     case DEVICE_ONEAPI:
-      oidn_device_ = oidnNewDevice(OIDN_DEVICE_TYPE_SYCL);
+      oidn_device_ = oidnNewSYCLDevice(
+          (const sycl::queue *)reinterpret_cast<OneapiDevice *>(denoiser_device_)->sycl_queue(),
+          1);
       denoiser_queue_->init_execution();
       break;
 #  endif
