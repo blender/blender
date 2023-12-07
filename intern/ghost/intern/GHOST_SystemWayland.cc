@@ -6956,6 +6956,14 @@ uint8_t GHOST_SystemWayland::getNumDisplays() const
   return display_ ? uint8_t(display_->outputs.size()) : 0;
 }
 
+uint64_t GHOST_SystemWayland::getMilliSeconds() const
+{
+  /* Match the timing method used by LIBINPUT, so the result is closer to WAYLAND's time-stamps. */
+  struct timespec ts = {0, 0};
+  clock_gettime(CLOCK_MONOTONIC, &ts);
+  return ((uint64_t(ts.tv_sec) * 1000) + (ts.tv_nsec / 1000000));
+}
+
 static GHOST_TSuccess getCursorPositionClientRelative_impl(
     const GWL_SeatStatePointer *seat_state_pointer,
     const GHOST_WindowWayland *win,
