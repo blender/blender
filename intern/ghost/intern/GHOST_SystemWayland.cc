@@ -394,7 +394,7 @@ struct GWL_Cursor {
     wl_cursor_image image = {0};
     wl_cursor_theme *theme = nullptr;
     /** Only set when the cursor is from the theme (it may be animated). */
-    wl_cursor *theme_cursor = nullptr;
+    const wl_cursor *theme_cursor = nullptr;
     /** Needed so changing the theme scale can reload 'theme_cursor' at a new scale. */
     const char *theme_cursor_name = nullptr;
   } wl;
@@ -7553,7 +7553,7 @@ static void cursor_anim_begin(GWL_Seat *seat)
           if (!anim_handle->exit_pending.load()) {
             std::lock_guard lock_server_guard{*server_mutex};
             if (!anim_handle->exit_pending.load()) {
-              struct wl_cursor *wl_cursor = seat->cursor.wl.theme_cursor;
+              const struct wl_cursor *wl_cursor = seat->cursor.wl.theme_cursor;
               frame = (frame + 1) % wl_cursor->image_count;
               wl_cursor_image *image = wl_cursor->images[frame];
               wl_buffer *buffer = wl_cursor_image_get_buffer(image);
@@ -7622,7 +7622,7 @@ GHOST_TSuccess GHOST_SystemWayland::cursor_shape_set(const GHOST_TStandardCursor
         cursor->theme_name.c_str(), cursor->theme_size, wl_shm_get());
   }
 
-  wl_cursor *wl_cursor = wl_cursor_theme_get_cursor(cursor->wl.theme, cursor_name);
+  const wl_cursor *wl_cursor = wl_cursor_theme_get_cursor(cursor->wl.theme, cursor_name);
 
   if (!wl_cursor) {
     GHOST_PRINT("cursor '" << cursor_name << "' does not exist" << std::endl);
