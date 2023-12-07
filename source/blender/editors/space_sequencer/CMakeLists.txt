@@ -25,6 +25,7 @@ set(SRC
   sequencer_buttons.cc
   sequencer_channels_draw.cc
   sequencer_channels_edit.cc
+  sequencer_clipboard.cc
   sequencer_drag_drop.cc
   sequencer_edit.cc
   sequencer_modifier.cc

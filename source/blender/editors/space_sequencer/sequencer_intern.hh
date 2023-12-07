@@ -326,3 +326,7 @@ SeqRetimingKey *retiming_mousover_key_get(const bContext *C, const int mval[2], 
 int left_fake_key_frame_get(const bContext *C, const Sequence *seq);
 int right_fake_key_frame_get(const bContext *C, const Sequence *seq);
 bool retiming_keys_are_visible(const bContext *C);
+
+/* `sequencer_clipboard.cc` */
+int sequencer_clipboard_copy_exec(bContext *C, wmOperator *op);
+int sequencer_clipboard_paste_exec(bContext *C, wmOperator *op);

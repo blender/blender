@@ -99,7 +99,6 @@
 #include "BLO_readfile.h"
 #include "BLO_undofile.hh"
 
-#include "SEQ_clipboard.hh"
 #include "SEQ_iterator.hh"
 #include "SEQ_modifier.hh"
 #include "SEQ_sequencer.hh"

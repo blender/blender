@@ -24,7 +24,6 @@ set(SRC
   SEQ_add.hh
   SEQ_animation.hh
   SEQ_channels.hh
-  SEQ_clipboard.hh
   SEQ_edit.hh
   SEQ_effects.hh
   SEQ_iterator.hh
@@ -43,7 +42,6 @@ set(SRC
 
   intern/animation.cc
   intern/channels.cc
-  intern/clipboard.cc
   intern/disk_cache.cc
   intern/disk_cache.hh
   intern/effects.cc

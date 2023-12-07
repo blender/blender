@@ -6,15 +6,11 @@
  * \ingroup spseq
  */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
-
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
-#include "BLI_ghash.h"
+#include "BLI_fileops.h"
 #include "BLI_math_vector.h"
+#include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_timecode.h"
 #include "BLI_utildefines.h"
@@ -28,7 +24,6 @@
 #include "BKE_context.hh"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
-#include "BKE_lib_id.h"
 #include "BKE_main.hh"
 #include "BKE_report.h"
 #include "BKE_sound.h"
@@ -36,7 +31,6 @@
 #include "SEQ_add.hh"
 #include "SEQ_animation.hh"
 #include "SEQ_channels.hh"
-#include "SEQ_clipboard.hh"
 #include "SEQ_edit.hh"
 #include "SEQ_effects.hh"
 #include "SEQ_iterator.hh"
@@ -58,9 +52,7 @@
 
 /* For menu, popup, icons, etc. */
 #include "ED_fileselect.hh"
-#include "ED_keyframing.hh"
 #include "ED_numinput.hh"
-#include "ED_outliner.hh"
 #include "ED_scene.hh"
 #include "ED_screen.hh"
 #include "ED_sequencer.hh"
@@ -2458,94 +2450,6 @@ void SEQUENCER_OT_rendersize(wmOperatorType *ot)
 /** \name Copy Operator
  * \{ */
 
-static void seq_copy_del_sound(Scene *scene, Sequence *seq)
-{
-  if (seq->type == SEQ_TYPE_META) {
-    LISTBASE_FOREACH (Sequence *, iseq, &seq->seqbase) {
-      seq_copy_del_sound(scene, iseq);
-    }
-  }
-  else if (seq->scene_sound) {
-    BKE_sound_remove_scene_sound(scene, seq->scene_sound);
-    seq->scene_sound = nullptr;
-  }
-}
-
-static void sequencer_copy_animation_listbase(Scene *scene,
-                                              Sequence *seq,
-                                              ListBase *clipboard,
-                                              ListBase *fcurve_base)
-{
-  /* Add curves for strips inside meta strip. */
-  if (seq->type == SEQ_TYPE_META) {
-    LISTBASE_FOREACH (Sequence *, meta_child, &seq->seqbase) {
-      sequencer_copy_animation_listbase(scene, meta_child, clipboard, fcurve_base);
-    }
-  }
-
-  GSet *fcurves = SEQ_fcurves_by_strip_get(seq, fcurve_base);
-  if (fcurves == nullptr) {
-    return;
-  }
-
-  GSET_FOREACH_BEGIN (FCurve *, fcu, fcurves) {
-    BLI_addtail(clipboard, BKE_fcurve_copy(fcu));
-  }
-  GSET_FOREACH_END();
-
-  BLI_gset_free(fcurves, nullptr);
-}
-
-static void sequencer_copy_animation(Scene *scene, Sequence *seq)
-{
-  if (SEQ_animation_curves_exist(scene)) {
-    sequencer_copy_animation_listbase(scene, seq, &fcurves_clipboard, &scene->adt->action->curves);
-  }
-  if (SEQ_animation_drivers_exist(scene)) {
-    sequencer_copy_animation_listbase(scene, seq, &drivers_clipboard, &scene->adt->drivers);
-  }
-}
-
-static int sequencer_copy_exec(bContext *C, wmOperator *op)
-{
-  Main *bmain = CTX_data_main(C);
-  Scene *scene = CTX_data_scene(C);
-  Editing *ed = SEQ_editing_get(scene);
-
-  SEQ_clipboard_free();
-
-  if (SEQ_transform_seqbase_isolated_sel_check(ed->seqbasep) == false) {
-    BKE_report(op->reports, RPT_ERROR, "Please select all related strips");
-    return OPERATOR_CANCELLED;
-  }
-
-  /* NOTE: The UUID is re-generated on paste, so we can keep UUID in the clipboard since
-   * nobody can reach them anyway.
-   * This reduces chance or running out of UUIDs if a cat falls asleep on Ctrl-C. */
-  SEQ_sequence_base_dupli_recursive(scene,
-                                    scene,
-                                    &seqbase_clipboard,
-                                    ed->seqbasep,
-                                    0,
-                                    (LIB_ID_CREATE_NO_USER_REFCOUNT | LIB_ID_FREE_NO_MAIN));
-
-  seqbase_clipboard_frame = scene->r.cfra;
-  SEQ_clipboard_active_seq_name_store(scene);
-
-  LISTBASE_FOREACH (Sequence *, seq, &seqbase_clipboard) {
-    /* Copy curves. */
-    sequencer_copy_animation(scene, seq);
-    /* Remove anything that references the current scene. */
-    seq_copy_del_sound(scene, seq);
-  }
-
-  /* Replace datablock pointers with copies, to keep things working in case
-   * data-blocks get deleted or another .blend file is opened. */
-  SEQ_clipboard_pointers_store(bmain, &seqbase_clipboard);
-
-  return OPERATOR_FINISHED;
-}
-
 void SEQUENCER_OT_copy(wmOperatorType *ot)
 {
   /* Identifiers. */
@@ -2554,7 +2458,7 @@ void SEQUENCER_OT_copy(wmOperatorType *ot)
   ot->description = "Copy the selected strips to the internal clipboard";
 
   /* Api callbacks. */
-  ot->exec = sequencer_copy_exec;
+  ot->exec = sequencer_clipboard_copy_exec;
   ot->poll = sequencer_edit_poll;
 
   /* Flags. */
@@ -2585,114 +2489,6 @@ bool ED_sequencer_deselect_all(Scene *scene)
   return changed;
 }
 
-static void sequencer_paste_animation(bContext *C)
-{
-  if (BLI_listbase_is_empty(&fcurves_clipboard) && BLI_listbase_is_empty(&drivers_clipboard)) {
-    return;
-  }
-
-  Main *bmain = CTX_data_main(C);
-  Scene *scene = CTX_data_scene(C);
-  bAction *act;
-
-  if (scene->adt != nullptr && scene->adt->action != nullptr) {
-    act = scene->adt->action;
-  }
-  else {
-    /* get action to add F-Curve+keyframe to */
-    act = ED_id_action_ensure(bmain, &scene->id);
-  }
-
-  LISTBASE_FOREACH (FCurve *, fcu, &fcurves_clipboard) {
-    BLI_addtail(&act->curves, BKE_fcurve_copy(fcu));
-  }
-  LISTBASE_FOREACH (FCurve *, fcu, &drivers_clipboard) {
-    BLI_addtail(&scene->adt->drivers, BKE_fcurve_copy(fcu));
-  }
-}
-
-static int sequencer_paste_exec(bContext *C, wmOperator *op)
-{
-  Main *bmain = CTX_data_main(C);
-  Scene *scene = CTX_data_scene(C);
-  Editing *ed = SEQ_editing_ensure(scene); /* Create if needed. */
-  ListBase nseqbase = {nullptr, nullptr};
-  int ofs;
-  Sequence *iseq, *iseq_first;
-
-  if (BLI_listbase_count(&seqbase_clipboard) == 0) {
-    BKE_report(op->reports, RPT_INFO, "No strips to paste");
-    return OPERATOR_CANCELLED;
-  }
-
-  ED_sequencer_deselect_all(scene);
-  if (RNA_boolean_get(op->ptr, "keep_offset")) {
-    ofs = scene->r.cfra - seqbase_clipboard_frame;
-  }
-  else {
-    int min_seq_startdisp = INT_MAX;
-    LISTBASE_FOREACH (Sequence *, seq, &seqbase_clipboard) {
-      if (SEQ_time_left_handle_frame_get(scene, seq) < min_seq_startdisp) {
-        min_seq_startdisp = SEQ_time_left_handle_frame_get(scene, seq);
-      }
-    }
-    /* Paste strips relative to the current-frame. */
-    ofs = scene->r.cfra - min_seq_startdisp;
-  }
-
-  /* Paste animation.
-   * NOTE: Only fcurves are copied. Drivers and NLA action strips are not copied.
-   * First backup original curves from scene and move curves from clipboard into scene. This way,
-   * when pasted strips are renamed, pasted fcurves are renamed with them. Finally restore original
-   * curves from backup.
-   */
-
-  SeqAnimationBackup animation_backup = {{nullptr}};
-  SEQ_animation_backup_original(scene, &animation_backup);
-  sequencer_paste_animation(C);
-
-  /* Copy strips, temporarily restoring pointers to actual data-blocks. This
-   * must happen on the clipboard itself, so that copying does user counting
-   * on the actual data-blocks. */
-  SEQ_clipboard_pointers_restore(&seqbase_clipboard, bmain);
-  SEQ_sequence_base_dupli_recursive(scene, scene, &nseqbase, &seqbase_clipboard, 0, 0);
-  SEQ_clipboard_pointers_store(bmain, &seqbase_clipboard);
-
-  iseq_first = static_cast<Sequence *>(nseqbase.first);
-
-  /* NOTE: SEQ_sequence_base_dupli_recursive() takes care of generating new UUIDs for sequences
-   * in the new list. */
-  BLI_movelisttolist(ed->seqbasep, &nseqbase);
-
-  for (iseq = iseq_first; iseq; iseq = iseq->next) {
-    if (SEQ_clipboard_pasted_seq_was_active(iseq)) {
-      SEQ_select_active_set(scene, iseq);
-    }
-    /* Make sure, that pasted strips have unique names. This has to be done after
-     * adding strips to seqbase, for lookup cache to work correctly. */
-    SEQ_ensure_unique_name(iseq, scene);
-  }
-
-  for (iseq = iseq_first; iseq; iseq = iseq->next) {
-    /* Translate after name has been changed, otherwise this will affect animdata of original
-     * strip. */
-    SEQ_transform_translate_sequence(scene, iseq, ofs);
-    /* Ensure, that pasted strips don't overlap. */
-    if (SEQ_transform_test_overlap(scene, ed->seqbasep, iseq)) {
-      SEQ_transform_seqbase_shuffle(ed->seqbasep, iseq, scene);
-    }
-  }
-
-  SEQ_animation_restore_original(scene, &animation_backup);
-
-  DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
-  DEG_relations_tag_update(bmain);
-  WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
-  ED_outliner_select_sync_from_sequence_tag(C);
-
-  return OPERATOR_FINISHED;
-}
-
 void SEQUENCER_OT_paste(wmOperatorType *ot)
 {
   /* Identifiers. */
@@ -2701,7 +2497,7 @@ void SEQUENCER_OT_paste(wmOperatorType *ot)
   ot->description = "Paste strips from the internal clipboard";
 
   /* Api callbacks. */
-  ot->exec = sequencer_paste_exec;
+  ot->exec = sequencer_clipboard_paste_exec;
   ot->poll = ED_operator_sequencer_active;
 
   /* Flags. */
