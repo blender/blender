@@ -37,7 +37,7 @@ void SplitOperation::execute_pixel_sampled(float output[4],
 {
   int perc = x_split_ ? split_percentage_ * this->get_width() / 100.0f :
                         split_percentage_ * this->get_height() / 100.0f;
-  bool image1 = x_split_ ? x > perc : y > perc;
+  bool image1 = x_split_ ? x >= perc : y >= perc;
   if (image1) {
     image1Input_->read_sampled(output, x, y, PixelSampler::Nearest);
   }
@@ -64,7 +64,7 @@ void SplitOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                  split_percentage_ * this->get_height() / 100.0f;
   const size_t elem_bytes = COM_data_type_bytes_len(get_output_socket()->get_data_type());
   for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
-    const bool is_image1 = x_split_ ? it.x > percent : it.y > percent;
+    const bool is_image1 = x_split_ ? it.x >= percent : it.y >= percent;
     memcpy(it.out, it.in(is_image1 ? 0 : 1), elem_bytes);
   }
 }
