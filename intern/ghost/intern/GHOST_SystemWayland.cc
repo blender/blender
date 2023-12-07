@@ -1943,46 +1943,63 @@ static GHOST_TTabletMode tablet_tool_map_type(enum zwp_tablet_tool_v2_type wp_ta
 
 static const int default_cursor_size = 24;
 
-static const std::unordered_map<GHOST_TStandardCursor, const char *> ghost_wl_cursors = {
-    {GHOST_kStandardCursorDefault, "left_ptr"},
-    {GHOST_kStandardCursorRightArrow, "right_ptr"},
-    {GHOST_kStandardCursorLeftArrow, "left_ptr"},
-    {GHOST_kStandardCursorInfo, "left_ptr_help"},
-    {GHOST_kStandardCursorDestroy, "pirate"},
-    {GHOST_kStandardCursorHelp, "question_arrow"},
-    {GHOST_kStandardCursorWait, "watch"},
-    {GHOST_kStandardCursorText, "xterm"},
-    {GHOST_kStandardCursorCrosshair, "crosshair"},
-    {GHOST_kStandardCursorCrosshairA, ""},
-    {GHOST_kStandardCursorCrosshairB, ""},
-    {GHOST_kStandardCursorCrosshairC, ""},
-    {GHOST_kStandardCursorPencil, "pencil"},
-    {GHOST_kStandardCursorUpArrow, "sb_up_arrow"},
-    {GHOST_kStandardCursorDownArrow, "sb_down_arrow"},
-    {GHOST_kStandardCursorVerticalSplit, "split_v"},
-    {GHOST_kStandardCursorHorizontalSplit, "split_h"},
-    {GHOST_kStandardCursorEraser, ""},
-    {GHOST_kStandardCursorKnife, ""},
-    {GHOST_kStandardCursorEyedropper, "color-picker"},
-    {GHOST_kStandardCursorZoomIn, "zoom-in"},
-    {GHOST_kStandardCursorZoomOut, "zoom-out"},
-    {GHOST_kStandardCursorMove, "move"},
-    {GHOST_kStandardCursorNSEWScroll, "all-scroll"},
-    {GHOST_kStandardCursorNSScroll, "size_ver"},
-    {GHOST_kStandardCursorEWScroll, "size_hor"},
-    {GHOST_kStandardCursorStop, "not-allowed"},
-    {GHOST_kStandardCursorUpDown, "sb_v_double_arrow"},
-    {GHOST_kStandardCursorLeftRight, "sb_h_double_arrow"},
-    {GHOST_kStandardCursorTopSide, "top_side"},
-    {GHOST_kStandardCursorBottomSide, "bottom_side"},
-    {GHOST_kStandardCursorLeftSide, "left_side"},
-    {GHOST_kStandardCursorRightSide, "right_side"},
-    {GHOST_kStandardCursorTopLeftCorner, "top_left_corner"},
-    {GHOST_kStandardCursorTopRightCorner, "top_right_corner"},
-    {GHOST_kStandardCursorBottomRightCorner, "bottom_right_corner"},
-    {GHOST_kStandardCursorBottomLeftCorner, "bottom_left_corner"},
-    {GHOST_kStandardCursorCopy, "copy"},
+struct GWL_Cursor_ShapeInfo {
+  const char *names[GHOST_kStandardCursorNumCursors] = {0};
 };
+
+static const GWL_Cursor_ShapeInfo ghost_wl_cursors = []() -> GWL_Cursor_ShapeInfo {
+  GWL_Cursor_ShapeInfo info{};
+
+#define CASE_CURSOR(shape_id, shape_name_in_theme) \
+  case shape_id: \
+    info.names[int(shape_id)] = shape_name_in_theme;
+
+  /* Use a switch to ensure missing values show a compiler warning. */
+  switch (GHOST_kStandardCursorDefault) {
+    CASE_CURSOR(GHOST_kStandardCursorDefault, "left_ptr");
+    CASE_CURSOR(GHOST_kStandardCursorRightArrow, "right_ptr");
+    CASE_CURSOR(GHOST_kStandardCursorLeftArrow, "left_ptr");
+    CASE_CURSOR(GHOST_kStandardCursorInfo, "left_ptr_help");
+    CASE_CURSOR(GHOST_kStandardCursorDestroy, "pirate");
+    CASE_CURSOR(GHOST_kStandardCursorHelp, "question_arrow");
+    CASE_CURSOR(GHOST_kStandardCursorWait, "watch");
+    CASE_CURSOR(GHOST_kStandardCursorText, "xterm");
+    CASE_CURSOR(GHOST_kStandardCursorCrosshair, "crosshair");
+    CASE_CURSOR(GHOST_kStandardCursorCrosshairA, "");
+    CASE_CURSOR(GHOST_kStandardCursorCrosshairB, "");
+    CASE_CURSOR(GHOST_kStandardCursorCrosshairC, "");
+    CASE_CURSOR(GHOST_kStandardCursorPencil, "pencil");
+    CASE_CURSOR(GHOST_kStandardCursorUpArrow, "sb_up_arrow");
+    CASE_CURSOR(GHOST_kStandardCursorDownArrow, "sb_down_arrow");
+    CASE_CURSOR(GHOST_kStandardCursorVerticalSplit, "split_v");
+    CASE_CURSOR(GHOST_kStandardCursorHorizontalSplit, "split_h");
+    CASE_CURSOR(GHOST_kStandardCursorEraser, "");
+    CASE_CURSOR(GHOST_kStandardCursorKnife, "");
+    CASE_CURSOR(GHOST_kStandardCursorEyedropper, "color-picker");
+    CASE_CURSOR(GHOST_kStandardCursorZoomIn, "zoom-in");
+    CASE_CURSOR(GHOST_kStandardCursorZoomOut, "zoom-out");
+    CASE_CURSOR(GHOST_kStandardCursorMove, "move");
+    CASE_CURSOR(GHOST_kStandardCursorNSEWScroll, "all-scroll");
+    CASE_CURSOR(GHOST_kStandardCursorNSScroll, "size_ver");
+    CASE_CURSOR(GHOST_kStandardCursorEWScroll, "size_hor");
+    CASE_CURSOR(GHOST_kStandardCursorStop, "not-allowed");
+    CASE_CURSOR(GHOST_kStandardCursorUpDown, "sb_v_double_arrow");
+    CASE_CURSOR(GHOST_kStandardCursorLeftRight, "sb_h_double_arrow");
+    CASE_CURSOR(GHOST_kStandardCursorTopSide, "top_side");
+    CASE_CURSOR(GHOST_kStandardCursorBottomSide, "bottom_side");
+    CASE_CURSOR(GHOST_kStandardCursorLeftSide, "left_side");
+    CASE_CURSOR(GHOST_kStandardCursorRightSide, "right_side");
+    CASE_CURSOR(GHOST_kStandardCursorTopLeftCorner, "top_left_corner");
+    CASE_CURSOR(GHOST_kStandardCursorTopRightCorner, "top_right_corner");
+    CASE_CURSOR(GHOST_kStandardCursorBottomRightCorner, "bottom_right_corner");
+    CASE_CURSOR(GHOST_kStandardCursorBottomLeftCorner, "bottom_left_corner");
+    CASE_CURSOR(GHOST_kStandardCursorCopy, "copy");
+    CASE_CURSOR(GHOST_kStandardCursorCustom, "");
+  }
+#undef CASE_CURSOR
+
+  return info;
+}();
 
 static constexpr const char *ghost_wl_mime_text_plain = "text/plain";
 static constexpr const char *ghost_wl_mime_text_utf8 = "text/plain;charset=utf-8";
@@ -7609,8 +7626,7 @@ static const wl_cursor *cursor_find_from_shape(GWL_Seat *seat,
   GWL_Cursor *cursor = &seat->cursor;
   wl_cursor *wl_cursor = nullptr;
 
-  auto cursor_find = ghost_wl_cursors.find(shape);
-  const char *cursor_name = (cursor_find == ghost_wl_cursors.end()) ? "" : (*cursor_find).second;
+  const char *cursor_name = ghost_wl_cursors.names[shape];
   if (cursor_name[0] != '\0') {
     if (!cursor->wl.theme) {
       /* The cursor wl_surface hasn't entered an output yet. Initialize theme with scale 1. */
