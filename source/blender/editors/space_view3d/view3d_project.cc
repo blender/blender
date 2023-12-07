@@ -400,8 +400,15 @@ bool ED_view3d_win_to_ray_clipped(Depsgraph *depsgraph,
                                   const bool do_clip_planes)
 {
   float ray_end_dummy[3];
-  return ED_view3d_win_to_ray_clipped_ex(
-      depsgraph, region, v3d, mval, do_clip_planes, nullptr, r_ray_normal, r_ray_start, ray_end_dummy);
+  return ED_view3d_win_to_ray_clipped_ex(depsgraph,
+                                         region,
+                                         v3d,
+                                         mval,
+                                         do_clip_planes,
+                                         nullptr,
+                                         r_ray_normal,
+                                         r_ray_start,
+                                         ray_end_dummy);
 }
 
 void ED_view3d_win_to_ray(const ARegion *region,
