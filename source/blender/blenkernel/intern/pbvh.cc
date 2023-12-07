@@ -2671,12 +2671,15 @@ static blender::draw::pbvh::PBVH_GPU_Args pbvh_draw_args_init(const Mesh &mesh,
                                                               PBVH &pbvh,
                                                               const PBVHNode &node)
 {
+  /* TODO: Use an explicit argument for the original mesh to avoid relying on #PBVH::mesh. */
   blender::draw::pbvh::PBVH_GPU_Args args{};
 
   args.pbvh_type = pbvh.header.type;
 
-  args.face_sets_color_default = mesh.face_sets_color_default;
-  args.face_sets_color_seed = mesh.face_sets_color_seed;
+  args.face_sets_color_default = pbvh.mesh ? pbvh.mesh->face_sets_color_default :
+                                             mesh.face_sets_color_default;
+  args.face_sets_color_seed = pbvh.mesh ? pbvh.mesh->face_sets_color_seed :
+                                          mesh.face_sets_color_seed;
 
   args.active_color = mesh.active_color_attribute;
   args.render_color = mesh.default_color_attribute;
