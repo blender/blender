@@ -296,6 +296,7 @@ struct GPUShader *DRW_shader_create_fullscreen_with_shaderlib_ex(const char *fra
 
 struct GPUMaterial *DRW_shader_from_world(struct World *wo,
                                           struct bNodeTree *ntree,
+                                          eGPUMaterialEngine engine,
                                           const uint64_t shader_id,
                                           const bool is_volume_shader,
                                           bool deferred,
@@ -303,6 +304,7 @@ struct GPUMaterial *DRW_shader_from_world(struct World *wo,
                                           void *thunk);
 struct GPUMaterial *DRW_shader_from_material(struct Material *ma,
                                              struct bNodeTree *ntree,
+                                             eGPUMaterialEngine engine,
                                              const uint64_t shader_id,
                                              const bool is_volume_shader,
                                              bool deferred,

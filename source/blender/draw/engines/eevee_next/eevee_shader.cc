@@ -668,8 +668,14 @@ GPUMaterial *ShaderModule::material_shader_get(::Material *blender_mat,
   uint64_t shader_uuid = shader_uuid_from_material_type(
       pipeline_type, geometry_type, displacement_type, blender_mat->blend_flag);
 
-  return DRW_shader_from_material(
-      blender_mat, nodetree, shader_uuid, is_volume, deferred_compilation, codegen_callback, this);
+  return DRW_shader_from_material(blender_mat,
+                                  nodetree,
+                                  GPU_MAT_EEVEE,
+                                  shader_uuid,
+                                  is_volume,
+                                  deferred_compilation,
+                                  codegen_callback,
+                                  this);
 }
 
 GPUMaterial *ShaderModule::world_shader_get(::World *blender_world,
@@ -683,8 +689,14 @@ GPUMaterial *ShaderModule::world_shader_get(::World *blender_world,
 
   uint64_t shader_uuid = shader_uuid_from_material_type(pipeline_type, geometry_type);
 
-  return DRW_shader_from_world(
-      blender_world, nodetree, shader_uuid, is_volume, defer_compilation, codegen_callback, this);
+  return DRW_shader_from_world(blender_world,
+                               nodetree,
+                               GPU_MAT_EEVEE,
+                               shader_uuid,
+                               is_volume,
+                               defer_compilation,
+                               codegen_callback,
+                               this);
 }
 
 /* Variation to compile a material only with a nodetree. Caller needs to maintain the list of
@@ -704,6 +716,7 @@ GPUMaterial *ShaderModule::material_shader_get(const char *name,
                                                    nodetree,
                                                    &materials,
                                                    name,
+                                                   GPU_MAT_EEVEE,
                                                    shader_uuid,
                                                    is_volume,
                                                    false,

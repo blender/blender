@@ -233,19 +233,19 @@ struct GPUUniformBuf *GPU_material_sss_profile_get(GPUMaterial *material,
 /**
  * High level functions to create and use GPU materials.
  */
-GPUMaterial *GPU_material_from_nodetree_find(struct ListBase *gpumaterials,
-                                             const void *engine_type,
-                                             int options);
-/**
- * \note Caller must use #GPU_material_from_nodetree_find to re-use existing materials,
- * This is enforced since constructing other arguments to this function may be expensive
- * so only do this when they are needed.
- */
+
+typedef enum eGPUMaterialEngine {
+  GPU_MAT_EEVEE_LEGACY = 0,
+  GPU_MAT_EEVEE,
+  GPU_MAT_COMPOSITOR,
+} eGPUMaterialEngine;
+
 GPUMaterial *GPU_material_from_nodetree(struct Scene *scene,
                                         struct Material *ma,
                                         struct bNodeTree *ntree,
                                         struct ListBase *gpumaterials,
                                         const char *name,
+                                        eGPUMaterialEngine engine,
                                         uint64_t shader_uuid,
                                         bool is_volume_shader,
                                         bool is_lookdev,
@@ -421,7 +421,8 @@ typedef void (*ConstructGPUMaterialFn)(void *thunk, GPUMaterial *material);
 
 /* Construct a GPU material from a set of callbacks. See the callback types for more information.
  * The given thunk will be passed as the first parameter of each callback. */
-GPUMaterial *GPU_material_from_callbacks(ConstructGPUMaterialFn construct_function_cb,
+GPUMaterial *GPU_material_from_callbacks(eGPUMaterialEngine engine,
+                                         ConstructGPUMaterialFn construct_function_cb,
                                          GPUCodegenCallbackFn generate_code_function_cb,
                                          void *thunk);
 
