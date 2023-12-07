@@ -861,7 +861,7 @@ static void face_hide_update(Object &object,
       MutableSpan<bool> new_hide = tls.new_hide;
       array_utils::gather(hide_poly.span.as_span(), faces, new_hide);
       calc_hide(faces, new_hide);
-      if (!hide::hide_is_changed(faces, hide_poly.span, new_hide)) {
+      if (!array_utils::indexed_data_equal<bool>(hide_poly.span, faces, new_hide)) {
         continue;
       }
 

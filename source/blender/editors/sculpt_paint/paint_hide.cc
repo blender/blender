@@ -177,16 +177,6 @@ void mesh_show_all(Object &object, const Span<PBVHNode *> nodes)
   bke::mesh_hide_vert_flush(mesh);
 }
 
-bool hide_is_changed(const Span<int> verts, const Span<bool> orig_hide, const Span<bool> new_hide)
-{
-  for (const int i : verts.index_range()) {
-    if (orig_hide[verts[i]] != new_hide[i]) {
-      return true;
-    }
-  }
-  return false;
-}
-
 static void vert_hide_update(Object &object,
                              const Span<PBVHNode *> nodes,
                              const FunctionRef<void(Span<int>, MutableSpan<bool>)> calc_hide)
@@ -206,7 +196,7 @@ static void vert_hide_update(Object &object,
       new_hide.reinitialize(verts.size());
       array_utils::gather(hide_vert.span.as_span(), verts, new_hide.as_mutable_span());
       calc_hide(verts, new_hide);
-      if (!hide_is_changed(verts, hide_vert.span, new_hide)) {
+      if (!array_utils::indexed_data_equal<bool>(hide_vert.span, verts, new_hide)) {
         continue;
       }
 

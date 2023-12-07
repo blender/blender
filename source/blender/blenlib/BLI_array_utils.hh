@@ -269,4 +269,15 @@ template<typename T> inline void fill_index_range(MutableSpan<T> span, const T s
   std::iota(span.begin(), span.end(), start);
 }
 
+template<typename T>
+bool indexed_data_equal(const Span<T> all_values, const Span<int> indices, const Span<T> values)
+{
+  for (const int i : indices.index_range()) {
+    if (all_values[indices[i]] != values[i]) {
+      return true;
+    }
+  }
+  return false;
+}
+
 }  // namespace blender::array_utils
