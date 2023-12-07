@@ -21,6 +21,7 @@ void OVERLAY_edit_grease_pencil_cache_init(OVERLAY_Data *vedata)
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const eAttrDomain selection_domain = ED_grease_pencil_selection_domain_get(
       draw_ctx->scene->toolsettings);
+  const View3D *v3d = draw_ctx->v3d;
 
   GPUShader *sh;
   DRWShadingGroup *grp;
@@ -29,11 +30,16 @@ void OVERLAY_edit_grease_pencil_cache_init(OVERLAY_Data *vedata)
                    DRW_STATE_BLEND_ALPHA;
   DRW_PASS_CREATE(psl->edit_grease_pencil_ps, (state | pd->clipping_state));
 
-  sh = OVERLAY_shader_edit_particle_strand();
-  grp = pd->edit_grease_pencil_wires_grp = DRW_shgroup_create(sh, psl->edit_grease_pencil_ps);
-  DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
+  const bool show_points = selection_domain == ATTR_DOMAIN_POINT;
+  const bool show_lines = (v3d->gp_flag & V3D_GP_SHOW_EDIT_LINES) != 0;
 
-  if (selection_domain == ATTR_DOMAIN_POINT) {
+  if (show_lines) {
+    sh = OVERLAY_shader_edit_particle_strand();
+    grp = pd->edit_grease_pencil_wires_grp = DRW_shgroup_create(sh, psl->edit_grease_pencil_ps);
+    DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
+  }
+
+  if (show_points) {
     sh = OVERLAY_shader_edit_particle_point();
     grp = pd->edit_grease_pencil_points_grp = DRW_shgroup_create(sh, psl->edit_grease_pencil_ps);
     DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
