@@ -207,7 +207,7 @@ class MeshFairingContext : public FairingContext {
     vlmap_ = mesh->vert_to_corner_map();
 
     /* Deformation coords. */
-    co_.reserve(mesh->totvert);
+    co_.resize(mesh->totvert);
     if (!deform_positions.is_empty()) {
       for (int i = 0; i < mesh->totvert; i++) {
         co_[i] = deform_positions[i];
@@ -261,7 +261,7 @@ class BMeshFairingContext : public FairingContext {
     BM_mesh_elem_index_ensure(bm, BM_LOOP);
 
     /* Deformation coords. */
-    co_.reserve(bm->totvert);
+    co_.resize(bm->totvert);
     for (int i = 0; i < bm->totvert; i++) {
       BMVert *v = BM_vert_at_index(bm, i);
       co_[i] = v->co;
@@ -319,7 +319,7 @@ class UniformVertexWeight : public VertexWeight {
   UniformVertexWeight(FairingContext *fairing_context)
   {
     const int totvert = fairing_context->vertex_count_get();
-    vertex_weights_.reserve(totvert);
+    vertex_weights_.resize(totvert);
     for (int i = 0; i < totvert; i++) {
       const int tot_loop = fairing_context->vertex_loop_map_get(i).size();
       if (tot_loop != 0) {
@@ -347,7 +347,7 @@ class VoronoiVertexWeight : public VertexWeight {
   {
 
     const int totvert = fairing_context->vertex_count_get();
-    vertex_weights_.reserve(totvert);
+    vertex_weights_.resize(totvert);
     for (int i = 0; i < totvert; i++) {
 
       float area = 0.0f;
