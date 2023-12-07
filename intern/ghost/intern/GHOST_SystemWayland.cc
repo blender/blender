@@ -394,7 +394,7 @@ struct GWL_Cursor {
     wl_cursor_image image = {0};
     wl_cursor_theme *theme = nullptr;
     /** Only set when the cursor is from the theme (it may be animated). */
-    wl_cursor *theme_cursor = nullptr;
+    const wl_cursor *theme_cursor = nullptr;
     /** Needed so changing the theme scale can reload 'theme_cursor' at a new scale. */
     const char *theme_cursor_name = nullptr;
   } wl;
@@ -1203,7 +1203,14 @@ struct GWL_RegistryEntry;
  * see: #GHOST_SystemWayland::milliseconds_from_input_time.
  */
 struct GWL_DisplayTimeStamp {
-  uint64_t last = 0;
+  /**
+   * When true, the GHOST & WAYLAND time-stamps are compatible,
+   * in most cases this means they will be equal however for systems with long up-times
+   * it may equal `uint32(GHOST_SystemWayland::getMilliSeconds())`,
+   * the `offsets` member is set to account for this case.
+   */
+  bool exact_match = false;
+  uint32_t last = 0;
   uint64_t offset = 0;
 };
 
@@ -1936,46 +1943,63 @@ static GHOST_TTabletMode tablet_tool_map_type(enum zwp_tablet_tool_v2_type wp_ta
 
 static const int default_cursor_size = 24;
 
-static const std::unordered_map<GHOST_TStandardCursor, const char *> ghost_wl_cursors = {
-    {GHOST_kStandardCursorDefault, "left_ptr"},
-    {GHOST_kStandardCursorRightArrow, "right_ptr"},
-    {GHOST_kStandardCursorLeftArrow, "left_ptr"},
-    {GHOST_kStandardCursorInfo, ""},
-    {GHOST_kStandardCursorDestroy, "pirate"},
-    {GHOST_kStandardCursorHelp, "question_arrow"},
-    {GHOST_kStandardCursorWait, "watch"},
-    {GHOST_kStandardCursorText, "xterm"},
-    {GHOST_kStandardCursorCrosshair, "crosshair"},
-    {GHOST_kStandardCursorCrosshairA, ""},
-    {GHOST_kStandardCursorCrosshairB, ""},
-    {GHOST_kStandardCursorCrosshairC, ""},
-    {GHOST_kStandardCursorPencil, "pencil"},
-    {GHOST_kStandardCursorUpArrow, "sb_up_arrow"},
-    {GHOST_kStandardCursorDownArrow, "sb_down_arrow"},
-    {GHOST_kStandardCursorVerticalSplit, "split_v"},
-    {GHOST_kStandardCursorHorizontalSplit, "split_h"},
-    {GHOST_kStandardCursorEraser, ""},
-    {GHOST_kStandardCursorKnife, ""},
-    {GHOST_kStandardCursorEyedropper, "color-picker"},
-    {GHOST_kStandardCursorZoomIn, "zoom-in"},
-    {GHOST_kStandardCursorZoomOut, "zoom-out"},
-    {GHOST_kStandardCursorMove, "move"},
-    {GHOST_kStandardCursorNSEWScroll, "size_all"}, /* Not an exact match. */
-    {GHOST_kStandardCursorNSScroll, "size_ver"},   /* Not an exact match. */
-    {GHOST_kStandardCursorEWScroll, "size_hor"},   /* Not an exact match. */
-    {GHOST_kStandardCursorStop, "not-allowed"},
-    {GHOST_kStandardCursorUpDown, "sb_v_double_arrow"},
-    {GHOST_kStandardCursorLeftRight, "sb_h_double_arrow"},
-    {GHOST_kStandardCursorTopSide, "top_side"},
-    {GHOST_kStandardCursorBottomSide, "bottom_side"},
-    {GHOST_kStandardCursorLeftSide, "left_side"},
-    {GHOST_kStandardCursorRightSide, "right_side"},
-    {GHOST_kStandardCursorTopLeftCorner, "top_left_corner"},
-    {GHOST_kStandardCursorTopRightCorner, "top_right_corner"},
-    {GHOST_kStandardCursorBottomRightCorner, "bottom_right_corner"},
-    {GHOST_kStandardCursorBottomLeftCorner, "bottom_left_corner"},
-    {GHOST_kStandardCursorCopy, "copy"},
+struct GWL_Cursor_ShapeInfo {
+  const char *names[GHOST_kStandardCursorNumCursors] = {0};
 };
+
+static const GWL_Cursor_ShapeInfo ghost_wl_cursors = []() -> GWL_Cursor_ShapeInfo {
+  GWL_Cursor_ShapeInfo info{};
+
+#define CASE_CURSOR(shape_id, shape_name_in_theme) \
+  case shape_id: \
+    info.names[int(shape_id)] = shape_name_in_theme;
+
+  /* Use a switch to ensure missing values show a compiler warning. */
+  switch (GHOST_kStandardCursorDefault) {
+    CASE_CURSOR(GHOST_kStandardCursorDefault, "left_ptr");
+    CASE_CURSOR(GHOST_kStandardCursorRightArrow, "right_ptr");
+    CASE_CURSOR(GHOST_kStandardCursorLeftArrow, "left_ptr");
+    CASE_CURSOR(GHOST_kStandardCursorInfo, "left_ptr_help");
+    CASE_CURSOR(GHOST_kStandardCursorDestroy, "pirate");
+    CASE_CURSOR(GHOST_kStandardCursorHelp, "question_arrow");
+    CASE_CURSOR(GHOST_kStandardCursorWait, "watch");
+    CASE_CURSOR(GHOST_kStandardCursorText, "xterm");
+    CASE_CURSOR(GHOST_kStandardCursorCrosshair, "crosshair");
+    CASE_CURSOR(GHOST_kStandardCursorCrosshairA, "");
+    CASE_CURSOR(GHOST_kStandardCursorCrosshairB, "");
+    CASE_CURSOR(GHOST_kStandardCursorCrosshairC, "");
+    CASE_CURSOR(GHOST_kStandardCursorPencil, "pencil");
+    CASE_CURSOR(GHOST_kStandardCursorUpArrow, "sb_up_arrow");
+    CASE_CURSOR(GHOST_kStandardCursorDownArrow, "sb_down_arrow");
+    CASE_CURSOR(GHOST_kStandardCursorVerticalSplit, "split_v");
+    CASE_CURSOR(GHOST_kStandardCursorHorizontalSplit, "split_h");
+    CASE_CURSOR(GHOST_kStandardCursorEraser, "");
+    CASE_CURSOR(GHOST_kStandardCursorKnife, "");
+    CASE_CURSOR(GHOST_kStandardCursorEyedropper, "color-picker");
+    CASE_CURSOR(GHOST_kStandardCursorZoomIn, "zoom-in");
+    CASE_CURSOR(GHOST_kStandardCursorZoomOut, "zoom-out");
+    CASE_CURSOR(GHOST_kStandardCursorMove, "move");
+    CASE_CURSOR(GHOST_kStandardCursorNSEWScroll, "all-scroll");
+    CASE_CURSOR(GHOST_kStandardCursorNSScroll, "size_ver");
+    CASE_CURSOR(GHOST_kStandardCursorEWScroll, "size_hor");
+    CASE_CURSOR(GHOST_kStandardCursorStop, "not-allowed");
+    CASE_CURSOR(GHOST_kStandardCursorUpDown, "sb_v_double_arrow");
+    CASE_CURSOR(GHOST_kStandardCursorLeftRight, "sb_h_double_arrow");
+    CASE_CURSOR(GHOST_kStandardCursorTopSide, "top_side");
+    CASE_CURSOR(GHOST_kStandardCursorBottomSide, "bottom_side");
+    CASE_CURSOR(GHOST_kStandardCursorLeftSide, "left_side");
+    CASE_CURSOR(GHOST_kStandardCursorRightSide, "right_side");
+    CASE_CURSOR(GHOST_kStandardCursorTopLeftCorner, "top_left_corner");
+    CASE_CURSOR(GHOST_kStandardCursorTopRightCorner, "top_right_corner");
+    CASE_CURSOR(GHOST_kStandardCursorBottomRightCorner, "bottom_right_corner");
+    CASE_CURSOR(GHOST_kStandardCursorBottomLeftCorner, "bottom_left_corner");
+    CASE_CURSOR(GHOST_kStandardCursorCopy, "copy");
+    CASE_CURSOR(GHOST_kStandardCursorCustom, "");
+  }
+#undef CASE_CURSOR
+
+  return info;
+}();
 
 static constexpr const char *ghost_wl_mime_text_plain = "text/plain";
 static constexpr const char *ghost_wl_mime_text_utf8 = "text/plain;charset=utf-8";
@@ -6956,6 +6980,14 @@ uint8_t GHOST_SystemWayland::getNumDisplays() const
   return display_ ? uint8_t(display_->outputs.size()) : 0;
 }
 
+uint64_t GHOST_SystemWayland::getMilliSeconds() const
+{
+  /* Match the timing method used by LIBINPUT, so the result is closer to WAYLAND's time-stamps. */
+  struct timespec ts = {0, 0};
+  clock_gettime(CLOCK_MONOTONIC, &ts);
+  return ((uint64_t(ts.tv_sec) * 1000) + (ts.tv_nsec / 1000000));
+}
+
 static GHOST_TSuccess getCursorPositionClientRelative_impl(
     const GWL_SeatStatePointer *seat_state_pointer,
     const GHOST_WindowWayland *win,
@@ -7530,7 +7562,7 @@ static void cursor_anim_begin(GWL_Seat *seat)
   auto cursor_anim_frame_step_fn =
       [](GWL_Seat *seat, GWL_Cursor_AnimHandle *anim_handle, int delay) {
         /* It's possible the `wl_cursor` is reloaded while the cursor is animating.
-         * Don't access outside the lock, tha's why the `delay` is passed in. */
+         * Don't access outside the lock, that's why the `delay` is passed in. */
         std::mutex *server_mutex = seat->system->server_mutex;
         int frame = 0;
         while (!anim_handle->exit_pending.load()) {
@@ -7538,7 +7570,7 @@ static void cursor_anim_begin(GWL_Seat *seat)
           if (!anim_handle->exit_pending.load()) {
             std::lock_guard lock_server_guard{*server_mutex};
             if (!anim_handle->exit_pending.load()) {
-              struct wl_cursor *wl_cursor = seat->cursor.wl.theme_cursor;
+              const struct wl_cursor *wl_cursor = seat->cursor.wl.theme_cursor;
               frame = (frame + 1) % wl_cursor->image_count;
               wl_cursor_image *image = wl_cursor->images[frame];
               wl_buffer *buffer = wl_cursor_image_get_buffer(image);
@@ -7586,6 +7618,36 @@ static void cursor_anim_reset(GWL_Seat *seat)
   cursor_anim_begin_if_needed(seat);
 }
 
+static const wl_cursor *cursor_find_from_shape(GWL_Seat *seat,
+                                               const GHOST_TStandardCursor shape,
+                                               const char **r_cursor_name)
+{
+  /* Caller must lock `server_mutex`. */
+  GWL_Cursor *cursor = &seat->cursor;
+  wl_cursor *wl_cursor = nullptr;
+
+  const char *cursor_name = ghost_wl_cursors.names[shape];
+  if (cursor_name[0] != '\0') {
+    if (!cursor->wl.theme) {
+      /* The cursor wl_surface hasn't entered an output yet. Initialize theme with scale 1. */
+      cursor->wl.theme = wl_cursor_theme_load(
+          cursor->theme_name.c_str(), cursor->theme_size, seat->system->wl_shm_get());
+    }
+
+    if (cursor->wl.theme) {
+      wl_cursor = wl_cursor_theme_get_cursor(cursor->wl.theme, cursor_name);
+      if (!wl_cursor) {
+        GHOST_PRINT("cursor '" << cursor_name << "' does not exist" << std::endl);
+      }
+    }
+  }
+
+  if (r_cursor_name && wl_cursor) {
+    *r_cursor_name = cursor_name;
+  }
+  return wl_cursor;
+}
+
 GHOST_TSuccess GHOST_SystemWayland::cursor_shape_set(const GHOST_TStandardCursor shape)
 {
   /* Caller must lock `server_mutex`. */
@@ -7594,26 +7656,14 @@ GHOST_TSuccess GHOST_SystemWayland::cursor_shape_set(const GHOST_TStandardCursor
   if (UNLIKELY(!seat)) {
     return GHOST_kFailure;
   }
-  auto cursor_find = ghost_wl_cursors.find(shape);
-  const char *cursor_name = (cursor_find == ghost_wl_cursors.end()) ?
-                                ghost_wl_cursors.at(GHOST_kStandardCursorDefault) :
-                                (*cursor_find).second;
 
-  GWL_Cursor *cursor = &seat->cursor;
-
-  if (!cursor->wl.theme) {
-    /* The cursor wl_surface hasn't entered an output yet. Initialize theme with scale 1. */
-    cursor->wl.theme = wl_cursor_theme_load(
-        cursor->theme_name.c_str(), cursor->theme_size, wl_shm_get());
-  }
-
-  wl_cursor *wl_cursor = wl_cursor_theme_get_cursor(cursor->wl.theme, cursor_name);
-
-  if (!wl_cursor) {
-    GHOST_PRINT("cursor '" << cursor_name << "' does not exist" << std::endl);
+  const char *cursor_name = nullptr;
+  const wl_cursor *wl_cursor = cursor_find_from_shape(seat, shape, &cursor_name);
+  if (wl_cursor == nullptr) {
     return GHOST_kFailure;
   }
 
+  GWL_Cursor *cursor = &seat->cursor;
   wl_cursor_image *image = wl_cursor->images[0];
   wl_buffer *buffer = wl_cursor_image_get_buffer(image);
   if (!buffer) {
@@ -7635,12 +7685,9 @@ GHOST_TSuccess GHOST_SystemWayland::cursor_shape_set(const GHOST_TStandardCursor
 GHOST_TSuccess GHOST_SystemWayland::cursor_shape_check(const GHOST_TStandardCursor cursorShape)
 {
   /* No need to lock `server_mutex`. */
-  auto cursor_find = ghost_wl_cursors.find(cursorShape);
-  if (cursor_find == ghost_wl_cursors.end()) {
-    return GHOST_kFailure;
-  }
-  const char *value = (*cursor_find).second;
-  if (*value == '\0') {
+  GWL_Seat *seat = gwl_display_seat_active_get(display_);
+  const wl_cursor *wl_cursor = cursor_find_from_shape(seat, cursorShape, nullptr);
+  if (wl_cursor == nullptr) {
     return GHOST_kFailure;
   }
   return GHOST_kSuccess;
@@ -8147,23 +8194,38 @@ uint64_t GHOST_SystemWayland::ms_from_input_time(const uint32_t timestamp_as_uin
    * This is updated because time may have passed between generating the time-stamp and `now`.
    * The method here is used by SDL. */
 
-  const uint64_t now = getMilliSeconds();
   GWL_DisplayTimeStamp &input_timestamp = display_->input_timestamp;
-  uint64_t timestamp = uint64_t(timestamp_as_uint);
-  if (timestamp < input_timestamp.last) {
+  if (timestamp_as_uint < input_timestamp.last) {
     /* 32-bit timer rollover, bump the offset. */
     input_timestamp.offset += uint64_t(std::numeric_limits<uint32_t>::max()) + 1;
   }
-  input_timestamp.last = timestamp;
+  input_timestamp.last = timestamp_as_uint;
 
-  if (!input_timestamp.offset) {
-    input_timestamp.offset = (now - timestamp);
+  uint64_t timestamp = uint64_t(timestamp_as_uint);
+  if (input_timestamp.exact_match) {
+    timestamp += input_timestamp.offset;
   }
-  timestamp += input_timestamp.offset;
+  else {
+    const uint64_t now = getMilliSeconds();
+    const uint32_t now_as_uint32 = uint32_t(now);
+    if (now_as_uint32 == timestamp_as_uint) {
+      input_timestamp.exact_match = true;
+      /* For systems with up times exceeding 47 days
+       * it's possible we need to begin with an offset. */
+      input_timestamp.offset = now - uint64_t(now_as_uint32);
+      timestamp = now;
+    }
+    else {
+      if (!input_timestamp.offset) {
+        input_timestamp.offset = (now - timestamp);
+      }
+      timestamp += input_timestamp.offset;
 
-  if (timestamp > now) {
-    input_timestamp.offset -= (timestamp - now);
-    timestamp = now;
+      if (timestamp > now) {
+        input_timestamp.offset -= (timestamp - now);
+        timestamp = now;
+      }
+    }
   }
 
   return timestamp;

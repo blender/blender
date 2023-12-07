@@ -182,7 +182,7 @@ class ParamsBuilder {
   void assert_current_param_type(ParamType param_type, StringRef expected_name = "")
   {
     UNUSED_VARS_NDEBUG(param_type, expected_name);
-#ifdef DEBUG
+#ifndef NDEBUG
     int param_index = this->current_param_index();
 
     if (expected_name != "") {
@@ -198,7 +198,7 @@ class ParamsBuilder {
   void assert_current_param_name(StringRef expected_name)
   {
     UNUSED_VARS_NDEBUG(expected_name);
-#ifdef DEBUG
+#ifndef NDEBUG
     if (expected_name.is_empty()) {
       return;
     }
@@ -334,7 +334,7 @@ class Params {
   void assert_correct_param(int param_index, StringRef name, ParamType param_type)
   {
     UNUSED_VARS_NDEBUG(param_index, name, param_type);
-#ifdef DEBUG
+#ifndef NDEBUG
     BLI_assert(builder_->signature_->params[param_index].type == param_type);
     if (name.size() > 0) {
       BLI_assert(builder_->signature_->params[param_index].name == name);
@@ -345,7 +345,7 @@ class Params {
   void assert_correct_param(int param_index, StringRef name, ParamCategory category)
   {
     UNUSED_VARS_NDEBUG(param_index, name, category);
-#ifdef DEBUG
+#ifndef NDEBUG
     BLI_assert(builder_->signature_->params[param_index].type.category() == category);
     if (name.size() > 0) {
       BLI_assert(builder_->signature_->params[param_index].name == name);

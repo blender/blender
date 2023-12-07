@@ -5273,7 +5273,7 @@ void CustomData_debug_info_from_layers(const CustomData *data, const char *inden
   }
 }
 
-#endif /* NDEBUG */
+#endif /* !NDEBUG */
 
 /** \} */
 

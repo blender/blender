@@ -109,7 +109,7 @@ struct GPUSource {
       if (source.find("'") != StringRef::not_found) {
         char_literals_preprocess();
       }
-#ifdef DEBUG
+#ifndef NDEBUG
       if (source.find("drw_print") != StringRef::not_found) {
         string_preprocess();
       }
@@ -205,7 +205,7 @@ struct GPUSource {
    */
   void check_no_quotes()
   {
-#ifdef DEBUG
+#ifndef NDEBUG
     int64_t pos = -1;
     do {
       pos = source.find('"', pos + 1);

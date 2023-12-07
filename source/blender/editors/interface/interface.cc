@@ -6382,7 +6382,7 @@ void UI_but_func_search_set(uiBut *but,
   search_but->arg_free_fn = search_arg_free_fn;
 
   if (search_exec_fn) {
-#ifdef DEBUG
+#ifndef NDEBUG
     if (but->func) {
       /* watch this, can be cause of much confusion, see: #47691 */
       printf("%s: warning, overwriting button callback with search function callback!\n",

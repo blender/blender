@@ -76,7 +76,7 @@ void BM_face_copy_shared(BMesh *bm, BMFace *f, BMLoopFilterFunc filter_fn, void 
   BMLoop *l_first;
   BMLoop *l_iter;
 
-#ifdef DEBUG
+#ifndef NDEBUG
   l_iter = l_first = BM_FACE_FIRST_LOOP(f);
   do {
     BLI_assert(BM_ELEM_API_FLAG_TEST(l_iter, _FLAG_OVERLAP) == 0);

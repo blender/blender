@@ -1739,8 +1739,10 @@ static void propagate_curve_values(ListBase /*tPChanFCurveLink*/ *pflinks,
       FCurve *fcu = (FCurve *)ld->data;
       const float current_fcu_value = evaluate_fcurve(fcu, source_frame);
       LISTBASE_FOREACH (FrameLink *, target_frame, target_frames) {
-        blender::animrig::insert_vert_fcurve(
-            fcu, target_frame->frame, current_fcu_value, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NEEDED);
+        blender::animrig::insert_vert_fcurve(fcu,
+                                             {target_frame->frame, current_fcu_value},
+                                             BEZT_KEYTYPE_KEYFRAME,
+                                             INSERTKEY_NEEDED);
       }
     }
   }

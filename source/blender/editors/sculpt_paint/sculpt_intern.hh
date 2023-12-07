@@ -17,6 +17,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_vec_types.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 
@@ -138,16 +139,17 @@ enum eBoundaryAutomaskMode {
 
 /* Undo */
 
-enum SculptUndoType {
-  SCULPT_UNDO_COORDS,
-  SCULPT_UNDO_HIDDEN,
-  SCULPT_UNDO_MASK,
-  SCULPT_UNDO_DYNTOPO_BEGIN,
-  SCULPT_UNDO_DYNTOPO_END,
-  SCULPT_UNDO_DYNTOPO_SYMMETRIZE,
-  SCULPT_UNDO_GEOMETRY,
-  SCULPT_UNDO_FACE_SETS,
-  SCULPT_UNDO_COLOR,
+enum class SculptUndoType : int8_t {
+  Position,
+  HideVert,
+  HideFace,
+  Mask,
+  DyntopoBegin,
+  DyntopoEnd,
+  DyntopoSymmetrize,
+  Geometry,
+  FaceSet,
+  Color,
 };
 
 /* Storage of geometry for the undo node.
@@ -195,6 +197,7 @@ struct SculptUndoNode {
   blender::Array<int> loop_index;
 
   blender::BitVector<> vert_hidden;
+  blender::BitVector<> face_hidden;
 
   /* multires */
   int maxgrid;               /* same for grid */
@@ -719,11 +722,11 @@ struct ExpandCache {
    * the operator as they could have been modified by Expand when initializing the operator and
    * before starting changing the active vertex. These Face Sets are used for restoring and
    * checking the Face Sets state while the Expand operation modal runs. */
-  int *initial_face_sets;
+  blender::Array<int> initial_face_sets;
 
   /* Original data of the sculpt as it was before running the Expand operator. */
   float *original_mask;
-  int *original_face_sets;
+  blender::Array<int> original_face_sets;
   float (*original_colors)[4];
 
   bool check_islands;
@@ -743,7 +746,6 @@ bool SCULPT_mode_poll_view3d(bContext *C);
  * Checks for a brush, not just sculpt mode.
  */
 bool SCULPT_poll(bContext *C);
-bool SCULPT_poll_view3d(bContext *C);
 
 /**
  * Returns true if sculpt session can handle color attributes
@@ -872,9 +874,6 @@ inline void SCULPT_mask_vert_set(const PBVHType type,
       break;
   }
 }
-void SCULPT_mask_write_array(SculptSession *ss,
-                             blender::Span<PBVHNode *> nodes,
-                             blender::Span<float> mask);
 
 /** Ensure random access; required for PBVH_BMESH */
 void SCULPT_vertex_random_access_ensure(SculptSession *ss);
@@ -955,7 +954,6 @@ void SCULPT_vertex_neighbors_get(SculptSession *ss,
 
 PBVHVertRef SCULPT_active_vertex_get(SculptSession *ss);
 const float *SCULPT_active_vertex_co_get(SculptSession *ss);
-void SCULPT_active_vertex_normal_get(SculptSession *ss, float normal[3]);
 
 /* Returns PBVH deformed vertices array if shape keys or deform modifiers are used, otherwise
  * returns mesh original vertices array. */
@@ -985,11 +983,6 @@ bool SCULPT_vertex_visible_get(const SculptSession *ss, PBVHVertRef vertex);
 bool SCULPT_vertex_all_faces_visible_get(const SculptSession *ss, PBVHVertRef vertex);
 bool SCULPT_vertex_any_face_visible_get(SculptSession *ss, PBVHVertRef vertex);
 
-void SCULPT_face_visibility_all_invert(SculptSession *ss);
-void SCULPT_face_visibility_all_set(SculptSession *ss, bool visible);
-
-void SCULPT_visibility_sync_all_from_faces(Object *ob);
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -998,15 +991,17 @@ void SCULPT_visibility_sync_all_from_faces(Object *ob);
 
 int SCULPT_active_face_set_get(SculptSession *ss);
 int SCULPT_vertex_face_set_get(SculptSession *ss, PBVHVertRef vertex);
-void SCULPT_vertex_face_set_set(SculptSession *ss, PBVHVertRef vertex, int face_set);
 
 bool SCULPT_vertex_has_face_set(SculptSession *ss, PBVHVertRef vertex, int face_set);
 bool SCULPT_vertex_has_unique_face_set(SculptSession *ss, PBVHVertRef vertex);
 
-int SCULPT_face_set_next_available_get(SculptSession *ss);
+namespace blender::ed::sculpt_paint::face_set {
 
-void SCULPT_face_set_visibility_set(SculptSession *ss, int face_set, bool visible);
+bke::SpanAttributeWriter<int> ensure_face_sets_mesh(Object &object);
+int ensure_face_sets_bmesh(Object &object);
+Array<int> duplicate_face_sets(const Mesh &mesh);
 
+}
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1129,9 +1124,7 @@ void SCULPT_flip_quat_by_symm_area(float quat[4],
  */
 void SCULPT_brush_test_init(SculptSession *ss, SculptBrushTest *test);
 
-bool SCULPT_brush_test_sphere(SculptBrushTest *test, const float co[3]);
 bool SCULPT_brush_test_sphere_sq(SculptBrushTest *test, const float co[3]);
-bool SCULPT_brush_test_sphere_fast(const SculptBrushTest *test, const float co[3]);
 bool SCULPT_brush_test_cube(SculptBrushTest *test,
                             const float co[3],
                             const float local[4][4],
@@ -1313,14 +1306,9 @@ void SCULPT_automasking_cache_free(AutomaskingCache *automasking);
 bool SCULPT_is_automasking_mode_enabled(const Sculpt *sd, const Brush *br, eAutomasking_flag mode);
 bool SCULPT_is_automasking_enabled(const Sculpt *sd, const SculptSession *ss, const Brush *br);
 
-float *SCULPT_boundary_automasking_init(Object *ob,
-                                        eBoundaryAutomaskMode mode,
-                                        int propagation_steps,
-                                        float *automask_factor);
 bool SCULPT_automasking_needs_normal(const SculptSession *ss,
                                      const Sculpt *sculpt,
                                      const Brush *brush);
-bool SCULPT_automasking_needs_original(const Sculpt *sd, const Brush *brush);
 int SCULPT_automasking_settings_hash(Object *ob, AutomaskingCache *automasking);
 
 /** \} */
@@ -1340,7 +1328,6 @@ float *SCULPT_geodesic_from_vertex_and_symm(Sculpt *sd,
                                             Object *ob,
                                             PBVHVertRef vertex,
                                             float limit_radius);
-float *SCULPT_geodesic_from_vertex(Object *ob, PBVHVertRef vertex, float limit_radius);
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1350,17 +1337,12 @@ float *SCULPT_geodesic_from_vertex(Object *ob, PBVHVertRef vertex, float limit_r
 void SCULPT_filter_cache_init(bContext *C,
                               Object *ob,
                               Sculpt *sd,
-                              int undo_type,
+                              SculptUndoType undo_type,
                               const float mval_fl[2],
                               float area_normal_radius,
                               float start_strength);
 void SCULPT_filter_cache_free(SculptSession *ss);
 void SCULPT_mesh_filter_properties(wmOperatorType *ot);
-
-void SCULPT_mask_filter_smooth_apply(Sculpt *sd,
-                                     Object *ob,
-                                     blender::Span<PBVHNode *> nodes,
-                                     int smooth_iterations);
 
 /* Filter orientation utils. */
 void SCULPT_filter_to_orientation_space(float r_v[3], FilterCache *filter_cache);
@@ -1512,7 +1494,6 @@ void SCULPT_cache_free(StrokeCache *cache);
 
 SculptUndoNode *SCULPT_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType type);
 SculptUndoNode *SCULPT_undo_get_node(PBVHNode *node, SculptUndoType type);
-SculptUndoNode *SCULPT_undo_get_first_node();
 
 /**
  * Pushes an undo step using the operator name. This is necessary for
@@ -1570,13 +1551,15 @@ void SCULPT_OT_project_line_gesture(wmOperatorType *ot);
 /** \name Face Set Operators
  * \{ */
 
+namespace blender::ed::sculpt_paint::face_set {
+
 void SCULPT_OT_face_sets_randomize_colors(wmOperatorType *ot);
 void SCULPT_OT_face_set_change_visibility(wmOperatorType *ot);
-void SCULPT_OT_face_sets_invert_visibility(wmOperatorType *ot);
 void SCULPT_OT_face_sets_init(wmOperatorType *ot);
 void SCULPT_OT_face_sets_create(wmOperatorType *ot);
 void SCULPT_OT_face_sets_edit(wmOperatorType *ot);
 
+}
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1699,7 +1682,9 @@ void SCULPT_multiplane_scrape_preview_draw(uint gpuattr,
                                            const float outline_col[3],
                                            float outline_alpha);
 /* Draw Face Sets Brush. */
-void SCULPT_do_draw_face_sets_brush(Sculpt *sd, Object *ob, blender::Span<PBVHNode *> nodes);
+namespace blender::ed::sculpt_paint::face_set {
+void do_draw_face_sets_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes);
+}
 
 /* Paint Brush. */
 void SCULPT_do_paint_brush(PaintModeSettings *paint_mode_settings,

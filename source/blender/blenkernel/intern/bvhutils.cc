@@ -1217,7 +1217,7 @@ BVHTree *BKE_bvhtree_from_mesh_get(BVHTreeFromMesh *data,
   bvhcache_insert(*bvh_cache_p, data->tree, bvh_cache_type);
   bvhcache_unlock(*bvh_cache_p, lock_started);
 
-#ifdef DEBUG
+#ifndef NDEBUG
   if (data->tree != nullptr) {
     if (BLI_bvhtree_get_tree_type(data->tree) != tree_type) {
       printf("tree_type %d obtained instead of %d\n",
@@ -1307,7 +1307,7 @@ BVHTree *BKE_bvhtree_from_editmesh_get(BVHTreeFromEditMesh *data,
     bvhcache_unlock(*bvh_cache_p, lock_started);
   }
 
-#ifdef DEBUG
+#ifndef NDEBUG
   if (data->tree != nullptr) {
     if (BLI_bvhtree_get_tree_type(data->tree) != tree_type) {
       printf("tree_type %d obtained instead of %d\n",

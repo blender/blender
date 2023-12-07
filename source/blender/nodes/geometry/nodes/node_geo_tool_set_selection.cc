@@ -58,14 +58,14 @@ static void node_geo_exec(GeoNodeExecParams params)
                                              ".select_vert",
                                              ATTR_DOMAIN_POINT,
                                              selection);
-          BKE_mesh_flush_select_from_verts(mesh);
+          bke::mesh_select_vert_flush(*mesh);
           break;
         case ATTR_DOMAIN_EDGE:
           bke::try_capture_field_on_geometry(geometry.get_component_for_write<MeshComponent>(),
                                              ".select_edge",
                                              ATTR_DOMAIN_EDGE,
                                              selection);
-          BKE_mesh_flush_select_from_edges(mesh);
+          bke::mesh_select_edge_flush(*mesh);
           break;
         case ATTR_DOMAIN_FACE:
           /* Remove attributes in case they are on the wrong domain, which can happen after
@@ -76,7 +76,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                                              ".select_poly",
                                              ATTR_DOMAIN_FACE,
                                              selection);
-          BKE_mesh_flush_select_from_faces(mesh);
+          bke::mesh_select_face_flush(*mesh);
           break;
         default:
           break;

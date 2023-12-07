@@ -1689,7 +1689,7 @@ void EDBM_update(Mesh *mesh, const EDBMUpdate_Params *params)
     em->bm->spacearr_dirty &= ~BM_SPACEARR_BMO_SET;
   }
 
-#ifdef DEBUG
+#ifndef NDEBUG
   {
     LISTBASE_FOREACH (BMEditSelection *, ese, &em->bm->selected) {
       BLI_assert(BM_elem_flag_test(ese->ele, BM_ELEM_SELECT));

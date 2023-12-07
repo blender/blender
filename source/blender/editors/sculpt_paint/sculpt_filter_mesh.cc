@@ -102,7 +102,7 @@ void SCULPT_filter_zero_disabled_axis_components(float r_v[3], FilterCache *filt
 void SCULPT_filter_cache_init(bContext *C,
                               Object *ob,
                               Sculpt *sd,
-                              const int undo_type,
+                              const SculptUndoType undo_type,
                               const float mval_fl[2],
                               float area_normal_radius,
                               float start_strength)
@@ -115,7 +115,7 @@ void SCULPT_filter_cache_init(bContext *C,
   ss->filter_cache->start_filter_strength = start_strength;
   ss->filter_cache->random_seed = rand();
 
-  if (undo_type == SCULPT_UNDO_COLOR) {
+  if (undo_type == SculptUndoType::Color) {
     BKE_pbvh_ensure_node_loops(ss->pbvh);
   }
 
@@ -140,7 +140,7 @@ void SCULPT_filter_cache_init(bContext *C,
   }
 
   for (const int i : ss->filter_cache->nodes.index_range()) {
-    SCULPT_undo_push_node(ob, ss->filter_cache->nodes[i], SculptUndoType(undo_type));
+    SCULPT_undo_push_node(ob, ss->filter_cache->nodes[i], undo_type);
   }
 
   /* Setup orientation matrices. */
@@ -355,7 +355,7 @@ static void mesh_filter_task(Object *ob,
   SculptSession *ss = ob->sculpt;
 
   SculptOrigVertData orig_data;
-  SCULPT_orig_vert_data_init(&orig_data, ob, node, SCULPT_UNDO_COORDS);
+  SCULPT_orig_vert_data_init(&orig_data, ob, node, SculptUndoType::Position);
 
   /* When using the relax face sets meshes filter,
    * each 3 iterations, do a whole mesh relax to smooth the contents of the Face Set. */
@@ -857,7 +857,7 @@ static void sculpt_mesh_filter_cancel(bContext *C, wmOperator * /*op*/)
     PBVHVertexIter vd;
 
     SculptOrigVertData orig_data;
-    SCULPT_orig_vert_data_init(&orig_data, ob, node, SCULPT_UNDO_COORDS);
+    SCULPT_orig_vert_data_init(&orig_data, ob, node, SculptUndoType::Position);
 
     BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
       SCULPT_orig_vert_data_update(&orig_data, &vd);
@@ -1022,7 +1022,7 @@ static int sculpt_mesh_filter_start(bContext *C, wmOperator *op)
   SCULPT_filter_cache_init(C,
                            ob,
                            sd,
-                           SCULPT_UNDO_COORDS,
+                           SculptUndoType::Position,
                            mval_fl,
                            RNA_float_get(op->ptr, "area_normal_radius"),
                            RNA_float_get(op->ptr, "strength"));

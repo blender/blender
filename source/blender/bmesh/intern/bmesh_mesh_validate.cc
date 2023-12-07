@@ -9,7 +9,7 @@
  */
 
 /* debug builds only */
-#ifdef DEBUG
+#ifndef NDEBUG
 
 #  include "BLI_map.hh"
 #  include "BLI_ordered_edge.hh"

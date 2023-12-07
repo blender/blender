@@ -1573,20 +1573,6 @@ MTLRenderPassDescriptor *MTLFrameBuffer::bake_render_pass_descriptor(bool load_c
       framebuffer_descriptor_[descriptor_config] = [[MTLRenderPassDescriptor alloc] init];
     }
 
-    if (@available(macOS 11.00, *)) {
-      /* Optimization: Use smaller tile size on Apple Silicon if exceeding a certain bpp limit. */
-      bool is_tile_based_gpu = [metal_ctx->device hasUnifiedMemory];
-      if (is_tile_based_gpu) {
-        uint framebuffer_bpp = this->get_bits_per_pixel();
-        bool use_small_tiles = (framebuffer_bpp > 64);
-
-        if (use_small_tiles) {
-          framebuffer_descriptor_[descriptor_config].tileWidth = 16;
-          framebuffer_descriptor_[descriptor_config].tileHeight = 16;
-        }
-      }
-    }
-
     /* Configure multilayered rendering. */
     if (use_multilayered_rendering_) {
       /* Ensure all targets have the same length. */

@@ -1029,7 +1029,7 @@ static void posttrans_mask_clean(Mask *mask)
       }
     }
 
-#ifdef DEBUG
+#ifndef NDEBUG
     for (masklay_shape = static_cast<MaskLayerShape *>(masklay->splines_shapes.first);
          masklay_shape;
          masklay_shape = masklay_shape->next)
@@ -1064,7 +1064,7 @@ static void posttrans_gpd_clean(bGPdata *gpd)
       }
     }
 
-#ifdef DEBUG
+#ifndef NDEBUG
     for (gpf = static_cast<bGPDframe *>(gpl->frames.first); gpf; gpf = gpf->next) {
       BLI_assert(!gpf->next || gpf->framenum < gpf->next->framenum);
     }

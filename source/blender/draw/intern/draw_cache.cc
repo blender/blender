@@ -98,7 +98,7 @@ struct VertShaded {
   }
 };
 
-/* Batch's only (free'd as an array) */
+/* Batch's only (freed as an array). */
 static struct DRWShapeCache {
   GPUBatch *drw_procedural_verts;
   GPUBatch *drw_procedural_lines;

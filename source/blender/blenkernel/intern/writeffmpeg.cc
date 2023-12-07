@@ -567,7 +567,7 @@ static const AVCodec *get_av1_encoder(
           break;
       }
       if (context->ffmpeg_crf >= 0) {
-        /* `libsvtav1` does not support `crf` until FFmpeg builds since 2022-02-24,
+        /* `libsvtav1` does not support CRF until FFMPEG builds since 2022-02-24,
          * use `qp` as fallback. */
         ffmpeg_dict_set_int(opts, "qp", context->ffmpeg_crf);
       }
@@ -762,9 +762,9 @@ static AVStream *alloc_video_stream(FFMpegContext *context,
   }
   else if (context->ffmpeg_crf >= 0) {
     /* As per https://trac.ffmpeg.org/wiki/Encode/VP9 we must set the bit rate to zero when
-     * encoding with vp9 in crf mode.
+     * encoding with VP9 in CRF mode.
      * Set this to always be zero for other codecs as well.
-     * We don't care about bit rate in crf mode. */
+     * We don't care about bit rate in CRF mode. */
     c->bit_rate = 0;
     ffmpeg_dict_set_int(&opts, "crf", context->ffmpeg_crf);
   }
@@ -776,11 +776,11 @@ static AVStream *alloc_video_stream(FFMpegContext *context,
   }
 
   if (context->ffmpeg_preset) {
-    /* 'preset' is used by h.264, 'deadline' is used by webm/vp9. I'm not
+    /* 'preset' is used by h.264, 'deadline' is used by WEBM/VP9. I'm not
      * setting those properties conditionally based on the video codec,
      * as the FFmpeg encoder simply ignores unknown settings anyway. */
-    char const *preset_name = nullptr;   /* used by h.264 */
-    char const *deadline_name = nullptr; /* used by webm/vp9 */
+    char const *preset_name = nullptr;   /* Used by h.264. */
+    char const *deadline_name = nullptr; /* Used by WEBM/VP9. */
     switch (context->ffmpeg_preset) {
       case FFM_PRESET_GOOD:
         preset_name = "medium";
@@ -818,7 +818,7 @@ static AVStream *alloc_video_stream(FFMpegContext *context,
   }
 
   if (context->ffmpeg_type == FFMPEG_XVID) {
-    /* arghhhh ... */
+    /* Alas! */
     c->pix_fmt = AV_PIX_FMT_YUV420P;
     c->codec_tag = (('D' << 24) + ('I' << 16) + ('V' << 8) + 'X');
   }
@@ -903,7 +903,7 @@ static AVStream *alloc_video_stream(FFMpegContext *context,
   }
   av_dict_free(&opts);
 
-  /* FFmpeg expects its data in the output pixel format. */
+  /* FFMPEG expects its data in the output pixel format. */
   context->current_frame = alloc_picture(c->pix_fmt, c->width, c->height);
 
   if (c->pix_fmt == AV_PIX_FMT_RGBA) {
@@ -1003,8 +1003,8 @@ static AVStream *alloc_audio_stream(FFMpegContext *context,
 
   if (codec->sample_fmts) {
     /* Check if the preferred sample format for this codec is supported.
-     * this is because, depending on the version of libav,
-     * and with the whole ffmpeg/libav fork situation,
+     * this is because, depending on the version of LIBAV,
+     * and with the whole FFMPEG/LIBAV fork situation,
      * you have various implementations around.
      * Float samples in particular are not always supported. */
     const enum AVSampleFormat *p = codec->sample_fmts;
@@ -1051,14 +1051,14 @@ static AVStream *alloc_audio_stream(FFMpegContext *context,
   }
 
   /* Need to prevent floating point exception when using VORBIS audio codec,
-   * initialize this value in the same way as it's done in FFmpeg itself (sergey) */
+   * initialize this value in the same way as it's done in FFMPEG itself (sergey) */
   c->time_base.num = 1;
   c->time_base.den = c->sample_rate;
 
   if (c->frame_size == 0) {
     /* Used to be if ((c->codec_id >= CODEC_ID_PCM_S16LE) && (c->codec_id <= CODEC_ID_PCM_DVD))
      * not sure if that is needed anymore, so let's try out if there are any
-     * complaints regarding some FFmpeg versions users might have. */
+     * complaints regarding some FFMPEG versions users might have. */
     context->audio_input_samples = AV_INPUT_BUFFER_MIN_SIZE * 8 / c->bits_per_coded_sample /
                                    num_channels;
   }
@@ -1134,7 +1134,7 @@ static int start_ffmpeg_impl(FFMpegContext *context,
   /* Determine the correct filename */
   ffmpeg_filepath_get(context, filepath, rd, context->ffmpeg_preview, suffix);
   PRINT(
-      "Starting output to %s(ffmpeg)...\n"
+      "Starting output to %s(FFMPEG)...\n"
       "  Using type=%d, codec=%d, audio_codec=%d,\n"
       "  video_bitrate=%d, audio_bitrate=%d,\n"
       "  gop_size=%d, autosplit=%d\n"
@@ -1165,7 +1165,7 @@ static int start_ffmpeg_impl(FFMpegContext *context,
 
   of = avformat_alloc_context();
   if (!of) {
-    BKE_report(reports, RPT_ERROR, "Can't allocate ffmpeg format context");
+    BKE_report(reports, RPT_ERROR, "Can't allocate FFMPEG format context");
     return 0;
   }
 
@@ -1236,7 +1236,7 @@ static int start_ffmpeg_impl(FFMpegContext *context,
     if (context->ffmpeg_audio_codec != AV_CODEC_ID_NONE &&
         rd->ffcodecdata.audio_mixrate != 48000 && rd->ffcodecdata.audio_channels != 2)
     {
-      BKE_report(reports, RPT_ERROR, "FFmpeg only supports 48khz / stereo audio for DV!");
+      BKE_report(reports, RPT_ERROR, "FFMPEG only supports 48khz / stereo audio for DV!");
       goto fail;
     }
   }
@@ -1571,7 +1571,7 @@ int BKE_ffmpeg_append(void *context_v,
 
 static void end_ffmpeg_impl(FFMpegContext *context, int is_autosplit)
 {
-  PRINT("Closing ffmpeg...\n");
+  PRINT("Closing FFMPEG...\n");
 
 #  ifdef WITH_AUDASPACE
   if (is_autosplit == false) {
@@ -1825,9 +1825,9 @@ bool BKE_ffmpeg_alpha_channel_is_supported(const RenderData *rd)
 
 void *BKE_ffmpeg_context_create()
 {
-  /* new ffmpeg data struct */
+  /* New FFMPEG data struct. */
   FFMpegContext *context = static_cast<FFMpegContext *>(
-      MEM_callocN(sizeof(FFMpegContext), "new ffmpeg context"));
+      MEM_callocN(sizeof(FFMpegContext), "new FFMPEG context"));
 
   context->ffmpeg_codec = AV_CODEC_ID_MPEG4;
   context->ffmpeg_audio_codec = AV_CODEC_ID_NONE;

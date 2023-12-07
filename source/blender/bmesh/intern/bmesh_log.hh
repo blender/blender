@@ -65,7 +65,7 @@ void BM_log_cleanup_entry(BMLogEntry *entry);
  * Remove an entry from the log.
  *
  * Uses entry->log as the log. If the log is NULL, the entry will be
- * free'd but not removed from any list, nor shall its IDs be released.
+ * freed but not removed from any list, nor shall its IDs be released.
  *
  * This operation is only valid on the first and last entries in the
  * log. Deleting from the middle will assert.

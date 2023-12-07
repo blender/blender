@@ -2537,4 +2537,4 @@ void main_args_setup(bContext *C, bArgs *ba, bool all)
 
 /** \} */
 
-#endif /* WITH_PYTHON_MODULE */
+#endif /* !WITH_PYTHON_MODULE */

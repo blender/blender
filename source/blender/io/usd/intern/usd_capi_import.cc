@@ -220,8 +220,6 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
     DEG_id_tag_update(&import_collection->id, ID_RECALC_COPY_ON_WRITE);
     DEG_relations_tag_update(data->bmain);
 
-    WM_main_add_notifier(NC_SCENE | ND_LAYER, nullptr);
-
     BKE_view_layer_synced_ensure(data->scene, data->view_layer);
     data->view_layer->active_collection = BKE_layer_collection_first_from_scene_collection(
         data->view_layer, import_collection);
@@ -454,7 +452,7 @@ static void import_endjob(void *customdata)
 
   MEM_SAFE_FREE(data->params.prim_path_mask);
 
-  WM_main_add_notifier(NC_SCENE | ND_FRAME, data->scene);
+  WM_main_add_notifier(NC_ID | NA_ADDED, nullptr);
   report_job_duration(data);
 }
 

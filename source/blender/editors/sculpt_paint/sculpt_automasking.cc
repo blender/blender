@@ -687,9 +687,9 @@ static void sculpt_face_sets_automasking_init(Sculpt *sd, Object *ob)
 
 #define EDGE_DISTANCE_INF -1
 
-static void SCULPT_boundary_automasking_init(Object *ob,
-                                             eBoundaryAutomaskMode mode,
-                                             int propagation_steps)
+static void boundary_automasking_init(Object *ob,
+                                      eBoundaryAutomaskMode mode,
+                                      int propagation_steps)
 {
   SculptSession *ss = ob->sculpt;
 
@@ -945,12 +945,11 @@ AutomaskingCache *SCULPT_automasking_cache_init(Sculpt *sd, Brush *brush, Object
 
   if (SCULPT_is_automasking_mode_enabled(sd, brush, BRUSH_AUTOMASKING_BOUNDARY_EDGES)) {
     SCULPT_vertex_random_access_ensure(ss);
-    SCULPT_boundary_automasking_init(ob, AUTOMASK_INIT_BOUNDARY_EDGES, boundary_propagation_steps);
+    boundary_automasking_init(ob, AUTOMASK_INIT_BOUNDARY_EDGES, boundary_propagation_steps);
   }
   if (SCULPT_is_automasking_mode_enabled(sd, brush, BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS)) {
     SCULPT_vertex_random_access_ensure(ss);
-    SCULPT_boundary_automasking_init(
-        ob, AUTOMASK_INIT_BOUNDARY_FACE_SETS, boundary_propagation_steps);
+    boundary_automasking_init(ob, AUTOMASK_INIT_BOUNDARY_FACE_SETS, boundary_propagation_steps);
   }
 
   /* Subtractive modes. */
@@ -962,12 +961,4 @@ AutomaskingCache *SCULPT_automasking_cache_init(Sculpt *sd, Brush *brush, Object
   }
 
   return automasking;
-}
-
-bool SCULPT_automasking_needs_original(const Sculpt *sd, const Brush *brush)
-{
-
-  return sculpt_automasking_mode_effective_bits(sd, brush) &
-         (BRUSH_AUTOMASKING_CAVITY_ALL | BRUSH_AUTOMASKING_BRUSH_NORMAL |
-          BRUSH_AUTOMASKING_VIEW_NORMAL);
 }

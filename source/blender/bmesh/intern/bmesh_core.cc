@@ -709,7 +709,7 @@ int bmesh_elem_check(void *element, const char htype)
   return err;
 }
 
-#endif /* NDEBUG */
+#endif /* !NDEBUG */
 
 /**
  * low level function, only frees the vert,

@@ -114,7 +114,7 @@ class GeoNodeExecParams {
       return value_or_field_type.as_field(params_.try_get_input_data_ptr(index));
     }
     else {
-#ifdef DEBUG
+#ifndef NDEBUG
       this->check_input_access(identifier, &CPPType::get<T>());
 #endif
       const int index = this->get_input_index(identifier);
@@ -144,7 +144,7 @@ class GeoNodeExecParams {
       return value_or_field.as_field();
     }
     else {
-#ifdef DEBUG
+#ifndef NDEBUG
       this->check_input_access(identifier, &CPPType::get<T>());
 #endif
       const int index = this->get_input_index(identifier);
@@ -177,7 +177,7 @@ class GeoNodeExecParams {
       });
     }
     else {
-#ifdef DEBUG
+#ifndef NDEBUG
       const CPPType &type = CPPType::get<StoredT>();
       this->check_output_access(identifier, type);
 #endif

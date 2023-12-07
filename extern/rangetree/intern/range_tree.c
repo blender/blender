@@ -206,7 +206,7 @@ static void rt_node_free(RangeTreeUInt *rt, Node *node);
 
 #ifdef USE_BTREE
 
-#ifdef DEBUG
+#ifndef NDEBUG
 static bool rb_is_balanced_root(const Node *root);
 #endif
 
@@ -238,7 +238,7 @@ static int key_cmp(uint key1, uint key2)
 /* removed from the tree */
 static void rb_node_invalidate(Node *node)
 {
-#ifdef DEBUG
+#ifndef NDEBUG
 	node->left = NULL;
 	node->right = NULL;
 	node->color = false;
@@ -481,7 +481,7 @@ static Node *rb_get_or_lower_recursive(Node *n, const uint key)
 	}
 }
 
-#ifdef DEBUG
+#ifndef NDEBUG
 
 static bool rb_is_balanced_recursive(const Node *node, int black)
 {
@@ -511,7 +511,7 @@ static bool rb_is_balanced_root(const Node *root)
 	return rb_is_balanced_recursive(root, black);
 }
 
-#endif  // DEBUG
+#endif  // NDEBUG
 
 
 /* End BTree API */
@@ -703,7 +703,7 @@ RangeTreeUInt *range_tree_uint_alloc(uint min, uint max)
 
 void range_tree_uint_free(RangeTreeUInt *rt)
 {
-#ifdef DEBUG
+#ifndef NDEBUG
 #ifdef USE_BTREE
 	assert(rb_is_balanced_root(rt->root));
 #endif

@@ -862,7 +862,7 @@ static void insert_fcurve_key(bAnimContext *ac,
 
     const float curval = evaluate_fcurve(fcu, cfra);
     blender::animrig::insert_vert_fcurve(
-        fcu, cfra, curval, eBezTriple_KeyframeType(ts->keyframe_type), eInsertKeyFlags(0));
+        fcu, {cfra, curval}, eBezTriple_KeyframeType(ts->keyframe_type), eInsertKeyFlags(0));
   }
 
   ale->update |= ANIM_UPDATE_DEFAULT;

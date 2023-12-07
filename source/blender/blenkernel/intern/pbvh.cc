@@ -1811,9 +1811,8 @@ blender::Span<int> BKE_pbvh_node_get_unique_vert_indices(const PBVHNode *node)
   return node->vert_indices.as_span().take_front(node->uniq_verts);
 }
 
-blender::Vector<int> BKE_pbvh_node_calc_face_indices(const PBVH &pbvh, const PBVHNode &node)
+void BKE_pbvh_node_calc_face_indices(const PBVH &pbvh, const PBVHNode &node, Vector<int> &faces)
 {
-  Vector<int> faces;
   switch (pbvh.header.type) {
     case PBVH_FACES: {
       const Span<int> looptri_faces = pbvh.looptri_faces;
@@ -1843,7 +1842,12 @@ blender::Vector<int> BKE_pbvh_node_calc_face_indices(const PBVH &pbvh, const PBV
       BLI_assert_unreachable();
       break;
   }
+}
 
+blender::Vector<int> BKE_pbvh_node_calc_face_indices(const PBVH &pbvh, const PBVHNode &node)
+{
+  Vector<int> faces;
+  BKE_pbvh_node_calc_face_indices(pbvh, node, faces);
   return faces;
 }
 
@@ -2667,12 +2671,15 @@ static blender::draw::pbvh::PBVH_GPU_Args pbvh_draw_args_init(const Mesh &mesh,
                                                               PBVH &pbvh,
                                                               const PBVHNode &node)
 {
+  /* TODO: Use an explicit argument for the original mesh to avoid relying on #PBVH::mesh. */
   blender::draw::pbvh::PBVH_GPU_Args args{};
 
   args.pbvh_type = pbvh.header.type;
 
-  args.face_sets_color_default = mesh.face_sets_color_default;
-  args.face_sets_color_seed = mesh.face_sets_color_seed;
+  args.face_sets_color_default = pbvh.mesh ? pbvh.mesh->face_sets_color_default :
+                                             mesh.face_sets_color_default;
+  args.face_sets_color_seed = pbvh.mesh ? pbvh.mesh->face_sets_color_seed :
+                                          mesh.face_sets_color_seed;
 
   args.active_color = mesh.active_color_attribute;
   args.render_color = mesh.default_color_attribute;
@@ -3206,7 +3213,7 @@ void BKE_pbvh_sync_visibility_from_verts(PBVH *pbvh, Mesh *mesh)
   using namespace blender::bke;
   switch (pbvh->header.type) {
     case PBVH_FACES: {
-      BKE_mesh_flush_hidden_from_verts(mesh);
+      mesh_hide_vert_flush(*mesh);
       break;
     }
     case PBVH_BMESH: {
@@ -3269,7 +3276,7 @@ void BKE_pbvh_sync_visibility_from_verts(PBVH *pbvh, Mesh *mesh)
         hide_poly.finish();
       }
 
-      BKE_mesh_flush_hidden_from_faces(mesh);
+      mesh_hide_face_flush(*mesh);
       break;
     }
   }

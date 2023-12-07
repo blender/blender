@@ -66,7 +66,7 @@ void paintface_flush_flags(bContext *C,
   /* we could call this directly in all areas that change selection,
    * since this could become slow for realtime updates (circle-select for eg) */
   if (flush_selection) {
-    BKE_mesh_flush_select_from_faces(me);
+    bke::mesh_select_face_flush(*me);
   }
 
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
@@ -184,7 +184,7 @@ void paintface_hide(bContext *C, Object *ob, const bool unselected)
   hide_poly.finish();
   select_poly.finish();
 
-  BKE_mesh_flush_hidden_from_faces(me);
+  bke::mesh_hide_face_flush(*me);
 
   paintface_flush_flags(C, ob, true, true);
 }
@@ -214,7 +214,7 @@ void paintface_reveal(bContext *C, Object *ob, const bool select)
 
   attributes.remove(".hide_poly");
 
-  BKE_mesh_flush_hidden_from_faces(me);
+  bke::mesh_hide_face_flush(*me);
 
   paintface_flush_flags(C, ob, true, true);
 }
@@ -820,7 +820,6 @@ bool paintface_mouse_select(bContext *C,
 void paintvert_flush_flags(Object *ob)
 {
   using namespace blender;
-  using namespace blender;
   Mesh *me = BKE_mesh_from_object(ob);
   Mesh *me_eval = BKE_object_get_evaluated_mesh(ob);
   if (me == nullptr) {
@@ -829,7 +828,7 @@ void paintvert_flush_flags(Object *ob)
 
   /* we could call this directly in all areas that change selection,
    * since this could become slow for realtime updates (circle-select for eg) */
-  BKE_mesh_flush_select_from_verts(me);
+  bke::mesh_select_vert_flush(*me);
 
   if (me_eval == nullptr) {
     return;
@@ -1214,7 +1213,7 @@ void paintvert_hide(bContext *C, Object *ob, const bool unselected)
   hide_vert.finish();
   select_vert.finish();
 
-  BKE_mesh_flush_hidden_from_verts(me);
+  bke::mesh_hide_vert_flush(*me);
 
   paintvert_flush_flags(ob);
   paintvert_tag_select_update(C, ob);
@@ -1245,7 +1244,7 @@ void paintvert_reveal(bContext *C, Object *ob, const bool select)
   /* Remove the hide attribute to reveal all vertices. */
   attributes.remove(".hide_vert");
 
-  BKE_mesh_flush_hidden_from_verts(me);
+  bke::mesh_hide_vert_flush(*me);
 
   paintvert_flush_flags(ob);
   paintvert_tag_select_update(C, ob);

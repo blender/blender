@@ -49,7 +49,7 @@ BLI_INLINE void bmesh_calc_tessellation_for_face_impl(BMLoop *(*looptris)[3],
                                                       MemArena **pf_arena_p,
                                                       const bool face_normal)
 {
-#ifdef DEBUG
+#ifndef NDEBUG
   /* The face normal is used for projecting faces into 2D space for tessellation.
    * Invalid normals may result in invalid tessellation.
    * Either `face_normal` should be true or normals should be updated first. */

@@ -28,9 +28,6 @@
 
 #include "BLO_read_write.hh"
 
-#ifdef WITH_PYTHON
-#endif
-
 #include "script_intern.h" /* own include */
 
 // static script_run_python(char *funcname, )

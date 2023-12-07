@@ -259,7 +259,7 @@ string HIPDevice::compile_kernel(const uint kernel_features, const char *name, c
 #  else
   options.append("Wno-parentheses-equality -Wno-unused-value --hipcc-func-supp -O3 -ffast-math");
 #  endif
-#  ifdef _DEBUG
+#  ifndef NDEBUG
   options.append(" -save-temps");
 #  endif
   options.append(" --amdgpu-target=").append(arch);

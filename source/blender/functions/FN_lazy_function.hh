@@ -49,7 +49,7 @@
 #include <atomic>
 #include <thread>
 
-#ifdef DEBUG
+#ifndef NDEBUG
 #  define FN_LAZY_FUNCTION_DEBUG_THREADS
 #endif
 

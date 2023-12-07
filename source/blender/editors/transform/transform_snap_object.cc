@@ -310,7 +310,7 @@ void SnapData::register_result(SnapObjectContext *sctx,
   sctx->ret.loc = math::transform_point(obmat, sctx->ret.loc);
   sctx->ret.no = math::normalize(math::transform_direction(obmat, sctx->ret.no));
 
-#ifdef DEBUG
+#ifndef NDEBUG
   /* Make sure this is only called once. */
   r_nearest->index = -2;
 #endif
@@ -1206,7 +1206,7 @@ bool ED_transform_snap_object_project_ray_all(SnapObjectContext *sctx,
     return false;
   }
 
-#ifdef DEBUG
+#ifndef NDEBUG
   float ray_depth_prev = sctx->ret.ray_depth_max;
 #endif
   if (raycastObjects(sctx)) {
@@ -1214,7 +1214,7 @@ bool ED_transform_snap_object_project_ray_all(SnapObjectContext *sctx,
       BLI_listbase_sort(r_hit_list, hit_depth_cmp);
     }
     /* meant to be readonly for 'all' hits, ensure it is */
-#ifdef DEBUG
+#ifndef NDEBUG
     BLI_assert(ray_depth_prev == sctx->ret.ray_depth_max);
 #endif
     return true;

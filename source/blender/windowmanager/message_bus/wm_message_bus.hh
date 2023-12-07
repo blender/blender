@@ -53,7 +53,7 @@ struct wmMsgTypeInfo {
 
 struct wmMsg {
   unsigned int type;
-  // #ifdef DEBUG
+  // #ifndef NDEBUG
   /* For debugging: '__func__:__LINE__'. */
   const char *id;
   // #endif

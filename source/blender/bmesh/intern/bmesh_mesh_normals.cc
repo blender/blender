@@ -212,7 +212,7 @@ static void bm_mesh_verts_calc_normals(BMesh *bm,
 
   TaskParallelSettings settings;
   BLI_parallel_mempool_settings_defaults(&settings);
-  settings.use_threading = bm->totvert >= BM_OMP_LIMIT;
+  settings.use_threading = bm->totvert >= BM_THREAD_LIMIT;
 
   if (vcos == nullptr) {
     BM_iter_parallel(bm, BM_VERTS_OF_MESH, bm_vert_calc_normals_cb, nullptr, &settings);
@@ -242,7 +242,7 @@ void BM_mesh_normals_update_ex(BMesh *bm, const BMeshNormalsUpdate_Params *param
     /* Calculate all face normals. */
     TaskParallelSettings settings;
     BLI_parallel_mempool_settings_defaults(&settings);
-    settings.use_threading = bm->totedge >= BM_OMP_LIMIT;
+    settings.use_threading = bm->totedge >= BM_THREAD_LIMIT;
 
     BM_iter_parallel(bm, BM_FACES_OF_MESH, bm_face_calc_normals_cb, nullptr, &settings);
   }
@@ -1356,7 +1356,7 @@ static void bm_mesh_loops_calc_normals(BMesh *bm,
                                        const bool do_rebuild,
                                        const float split_angle_cos)
 {
-  if (bm->totloop < BM_OMP_LIMIT) {
+  if (bm->totloop < BM_THREAD_LIMIT) {
     bm_mesh_loops_calc_normals__single_threaded(bm,
                                                 vcos,
                                                 fnos,

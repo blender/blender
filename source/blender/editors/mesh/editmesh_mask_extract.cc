@@ -366,6 +366,7 @@ void MESH_OT_paint_mask_extract(wmOperatorType *ot)
 
 static int face_set_extract_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
+  using namespace blender::ed;
   if (!CTX_wm_region_view3d(C)) {
     return OPERATOR_CANCELLED;
   }
@@ -375,7 +376,7 @@ static int face_set_extract_invoke(bContext *C, wmOperator *op, const wmEvent *e
                          float(event->xy[1] - region->winrct.ymin)};
 
   Object *ob = CTX_data_active_object(C);
-  const int face_set_id = ED_sculpt_face_sets_active_update_and_get(C, ob, mval);
+  const int face_set_id = sculpt_paint::face_set::active_update_and_get(C, ob, mval);
   if (face_set_id == SCULPT_FACE_SET_NONE) {
     return OPERATOR_CANCELLED;
   }
@@ -458,6 +459,8 @@ static void slice_paint_mask(BMesh *bm, bool invert, bool fill_holes, float mask
 
 static int paint_mask_slice_exec(bContext *C, wmOperator *op)
 {
+  using namespace blender;
+  using namespace blender::ed;
   Main *bmain = CTX_data_main(C);
   Object *ob = CTX_data_active_object(C);
   View3D *v3d = CTX_wm_view3d(C);
@@ -526,13 +529,10 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
   BKE_mesh_nomain_to_mesh(new_mesh, mesh, ob);
 
   if (ob->mode == OB_MODE_SCULPT) {
-    SculptSession *ss = ob->sculpt;
-    ss->face_sets = static_cast<int *>(CustomData_get_layer_named_for_write(
-        &mesh->face_data, CD_PROP_INT32, ".sculpt_face_set", mesh->faces_num));
-    if (ss->face_sets) {
+    if (mesh->attributes().contains(".sculpt_face_set")) {
       /* Assign a new Face Set ID to the new faces created by the slice operation. */
-      const int next_face_set_id = ED_sculpt_face_sets_find_next_available_id(mesh);
-      ED_sculpt_face_sets_initialize_none_to_id(mesh, next_face_set_id);
+      const int next_face_set_id = sculpt_paint::face_set::find_next_available_id(*ob);
+      sculpt_paint::face_set::initialize_none_to_id(mesh, next_face_set_id);
     }
     ED_sculpt_undo_geometry_end(ob);
   }

@@ -505,7 +505,7 @@ void _bmo_slot_copy(BMOpSlot slot_args_src[BMO_OP_MAX_SLOTS],
 
 /** \} */
 
-/* del "context" slot values, used for operator too */
+/** Delete "context" slot values, used for operator too. */
 enum {
   DEL_VERTS = 1,
   DEL_EDGES,

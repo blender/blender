@@ -510,6 +510,8 @@ void BKE_mesh_mdisp_flip(MDisps *md, const bool use_loop_mdisp_flip)
 /** \name Visibility Interpolation
  * \{ */
 
+namespace blender::bke {
+
 /* Hide edges when either of their vertices are hidden. */
 static void edge_hide_from_vert(const Span<int2> edges,
                                 const Span<bool> hide_vert,
@@ -539,11 +541,9 @@ static void face_hide_from_vert(const OffsetIndices<int> faces,
   });
 }
 
-void BKE_mesh_flush_hidden_from_verts(Mesh *me)
+void mesh_hide_vert_flush(Mesh &mesh)
 {
-  using namespace blender;
-  using namespace blender::bke;
-  MutableAttributeAccessor attributes = me->attributes_for_write();
+  MutableAttributeAccessor attributes = mesh.attributes_for_write();
 
   const VArray<bool> hide_vert = *attributes.lookup_or_default<bool>(
       ".hide_vert", ATTR_DOMAIN_POINT, false);
@@ -559,18 +559,16 @@ void BKE_mesh_flush_hidden_from_verts(Mesh *me)
   SpanAttributeWriter<bool> hide_poly = attributes.lookup_or_add_for_write_only_span<bool>(
       ".hide_poly", ATTR_DOMAIN_FACE);
 
-  edge_hide_from_vert(me->edges(), hide_vert_span, hide_edge.span);
-  face_hide_from_vert(me->faces(), me->corner_verts(), hide_vert_span, hide_poly.span);
+  edge_hide_from_vert(mesh.edges(), hide_vert_span, hide_edge.span);
+  face_hide_from_vert(mesh.faces(), mesh.corner_verts(), hide_vert_span, hide_poly.span);
 
   hide_edge.finish();
   hide_poly.finish();
 }
 
-void BKE_mesh_flush_hidden_from_faces(Mesh *me)
+void mesh_hide_face_flush(Mesh &mesh)
 {
-  using namespace blender;
-  using namespace blender::bke;
-  MutableAttributeAccessor attributes = me->attributes_for_write();
+  MutableAttributeAccessor attributes = mesh.attributes_for_write();
 
   const VArray<bool> hide_poly = *attributes.lookup_or_default<bool>(
       ".hide_poly", ATTR_DOMAIN_FACE, false);
@@ -580,9 +578,9 @@ void BKE_mesh_flush_hidden_from_faces(Mesh *me)
     return;
   }
   const VArraySpan<bool> hide_poly_span{hide_poly};
-  const OffsetIndices faces = me->faces();
-  const Span<int> corner_verts = me->corner_verts();
-  const Span<int> corner_edges = me->corner_edges();
+  const OffsetIndices faces = mesh.faces();
+  const Span<int> corner_verts = mesh.corner_verts();
+  const Span<int> corner_edges = mesh.corner_edges();
   SpanAttributeWriter<bool> hide_vert = attributes.lookup_or_add_for_write_only_span<bool>(
       ".hide_vert", ATTR_DOMAIN_POINT);
   SpanAttributeWriter<bool> hide_edge = attributes.lookup_or_add_for_write_only_span<bool>(
@@ -617,11 +615,9 @@ void BKE_mesh_flush_hidden_from_faces(Mesh *me)
 /** \name Selection Interpolation
  * \{ */
 
-void BKE_mesh_flush_select_from_faces(Mesh *me)
+void mesh_select_face_flush(Mesh &mesh)
 {
-  using namespace blender;
-  using namespace blender::bke;
-  MutableAttributeAccessor attributes = me->attributes_for_write();
+  MutableAttributeAccessor attributes = mesh.attributes_for_write();
   const VArray<bool> select_poly = *attributes.lookup_or_default<bool>(
       ".select_poly", ATTR_DOMAIN_FACE, false);
   if (select_poly.is_single() && !select_poly.get_internal_single()) {
@@ -645,11 +641,9 @@ void BKE_mesh_flush_select_from_faces(Mesh *me)
   select_edge.finish();
 }
 
-void BKE_mesh_flush_select_from_verts(Mesh *me)
+void mesh_select_vert_flush(Mesh &mesh)
 {
-  using namespace blender;
-  using namespace blender::bke;
-  MutableAttributeAccessor attributes = me->attributes_for_write();
+  MutableAttributeAccessor attributes = mesh.attributes_for_write();
   const VArray<bool> select_vert = *attributes.lookup_or_default<bool>(
       ".select_vert", ATTR_DOMAIN_POINT, false);
   if (select_vert.is_single() && !select_vert.get_internal_single()) {
@@ -683,11 +677,9 @@ void BKE_mesh_flush_select_from_verts(Mesh *me)
   select_poly.finish();
 }
 
-void BKE_mesh_flush_select_from_edges(Mesh *me)
+void mesh_select_edge_flush(Mesh &mesh)
 {
-  using namespace blender;
-  using namespace blender::bke;
-  MutableAttributeAccessor attributes = me->attributes_for_write();
+  MutableAttributeAccessor attributes = mesh.attributes_for_write();
   const VArray<bool> select_edge = *attributes.lookup_or_default<bool>(
       ".select_edge", ATTR_DOMAIN_POINT, false);
   if (select_edge.is_single() && !select_edge.get_internal_single()) {
@@ -720,6 +712,8 @@ void BKE_mesh_flush_select_from_edges(Mesh *me)
   select_vert.finish();
   select_poly.finish();
 }
+
+}  // namespace blender::bke
 
 /** \} */
 

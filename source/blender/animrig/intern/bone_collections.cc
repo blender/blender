@@ -137,7 +137,7 @@ static void bonecoll_ensure_name_unique(bArmature *armature, BoneCollection *bco
 }
 
 /**
- * Inserts bcoll into armature's array of bone collecions at index.
+ * Inserts bcoll into armature's array of bone collections at index.
  *
  * Note: the specified index is where the given bone collection will end up.
  * This means, for example, that for a collection array of length N, you can

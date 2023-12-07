@@ -237,9 +237,9 @@ static void update_pyconstraint_cb(void *arg1, void *arg2)
   if (owner && con) {
     BPY_pyconstraint_update(owner, con);
   }
-#  endif
+#  endif /* WITH_PYTHON */
 }
-#endif /* UNUSED */
+#endif   /* UNUSED */
 
 /** \} */
 

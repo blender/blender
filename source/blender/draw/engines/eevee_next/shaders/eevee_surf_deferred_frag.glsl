@@ -85,7 +85,7 @@ void main()
   GBufferDataPacked gbuf = gbuffer_pack(
       g_diffuse_data, g_reflection_data, g_refraction_data, out_normal, thickness);
 
-  /* Output header and first closure using framebuffer attachment. */
+  /* Output header and first closure using frame-buffer attachment. */
   out_gbuf_header = gbuf.header;
   out_gbuf_color = gbuf.color[0];
   out_gbuf_closure = gbuf.closure[0];

@@ -580,8 +580,8 @@ extern GHOST_ContextHandle GHOST_GetDrawingContext(GHOST_WindowHandle windowhand
 extern void GHOST_SetTitle(GHOST_WindowHandle windowhandle, const char *title);
 
 /**
- * Returns the title displayed in the title bar. The title
- * should be free'd with free().
+ * Returns the title displayed in the title bar.
+ * The title must be freed with free().
  *
  * \param windowhandle: The handle to the window.
  * \return The title, free with free().

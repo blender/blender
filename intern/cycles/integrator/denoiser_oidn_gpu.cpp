@@ -9,6 +9,7 @@
 #  include <array>
 
 #  include "device/device.h"
+#  include "device/oneapi/device_impl.h"
 #  include "device/queue.h"
 #  include "integrator/pass_accessor_cpu.h"
 #  include "session/buffers.h"
@@ -27,13 +28,10 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* Ideally, this would be dynamic and adaptively change when the runtime runs out of memory.  */
-constexpr int prefilter_max_mem = 1024;
-
-thread_mutex OIDNDenoiserGPU::mutex_;
-bool OIDNDenoiserGPU::is_device_type_supported(const DeviceType &type)
+bool OIDNDenoiserGPU::is_device_supported(const DeviceInfo &device)
 {
-  switch (type) {
+  /* Currently falls back to checking just the device type, can be improved. */
+  switch (device.type) {
 #  ifdef OIDN_DEVICE_SYCL
     /* Assume all devices with Cycles support are also supported by OIDN2. */
     case DEVICE_ONEAPI:
@@ -42,12 +40,6 @@ bool OIDNDenoiserGPU::is_device_type_supported(const DeviceType &type)
     default:
       return false;
   }
-}
-
-bool OIDNDenoiserGPU::is_device_supported(const DeviceInfo &device)
-{
-  /* Currently falls back to checking just the device type, can be improved. */
-  return is_device_type_supported(device.type);
 }
 
 OIDNDenoiserGPU::OIDNDenoiserGPU(Device *path_trace_device, const DenoiseParams &params)
@@ -123,9 +115,11 @@ bool OIDNDenoiserGPU::denoise_create_if_needed(DenoiseContext &context)
   }
 
   switch (denoiser_device_->info.type) {
-#  if defined(OIDN_DEVICE_SYCL)
+#  if defined(OIDN_DEVICE_SYCL) && defined(WITH_ONEAPI)
     case DEVICE_ONEAPI:
-      oidn_device_ = oidnNewDevice(OIDN_DEVICE_TYPE_SYCL);
+      oidn_device_ = oidnNewSYCLDevice(
+          (const sycl::queue *)reinterpret_cast<OneapiDevice *>(denoiser_device_)->sycl_queue(),
+          1);
       denoiser_queue_->init_execution();
       break;
 #  endif
@@ -156,7 +150,6 @@ bool OIDNDenoiserGPU::denoise_create_if_needed(DenoiseContext &context)
   if (context.use_pass_albedo) {
     albedo_filter_ = create_filter();
     if (albedo_filter_ == nullptr) {
-      oidnSetFilterInt(oidn_filter_, "maxMemoryMB", prefilter_max_mem);
       return false;
     }
   }
@@ -164,7 +157,6 @@ bool OIDNDenoiserGPU::denoise_create_if_needed(DenoiseContext &context)
   if (context.use_pass_normal) {
     normal_filter_ = create_filter();
     if (normal_filter_ == nullptr) {
-      oidnSetFilterInt(oidn_filter_, "maxMemoryMB", prefilter_max_mem);
       return false;
     }
   }

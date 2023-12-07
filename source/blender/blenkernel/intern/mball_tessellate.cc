@@ -963,7 +963,7 @@ static void vnormal(PROCESS *process, const float point[3], float r_no[3])
   r_no[1] = metaball(process, point[0], point[1] + delta, point[2]) - f;
   r_no[2] = metaball(process, point[0], point[1], point[2] + delta) - f;
 }
-#endif /* USE_ACCUM_NORMAL */
+#endif /* !USE_ACCUM_NORMAL */
 
 /**
  * \return the id of vertex between two corners.

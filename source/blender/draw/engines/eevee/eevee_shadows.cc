@@ -114,6 +114,7 @@ void EEVEE_shadows_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
 void EEVEE_shadows_caster_register(EEVEE_ViewLayerData *sldata, Object *ob)
 {
+  using namespace blender;
   EEVEE_LightsInfo *linfo = sldata->lights;
   EEVEE_ShadowCasterBuffer *backbuffer = linfo->shcaster_backbuffer;
   EEVEE_ShadowCasterBuffer *frontbuffer = linfo->shcaster_frontbuffer;
@@ -155,7 +156,7 @@ void EEVEE_shadows_caster_register(EEVEE_ViewLayerData *sldata, Object *ob)
   }
 
   /* Update World AABB in frontbuffer. */
-  const blender::Bounds<blender::float3> bounds = *BKE_object_boundbox_get(ob);
+  const Bounds<float3> bounds = BKE_object_boundbox_get(ob).value_or(Bounds(float3(0)));
   BoundBox bb;
   BKE_boundbox_init_from_minmax(&bb, bounds.min, bounds.max);
   float min[3], max[3];

@@ -528,7 +528,7 @@ void BLI_mempool_free(BLI_mempool *pool, void *addr)
     pool->totalloc = pool->pchunk;
 #endif
 
-    /* Temp alloc so valgrind doesn't complain when setting free'd blocks 'next'. */
+    /* Temporary allocation so VALGRIND doesn't complain when setting freed blocks 'next'. */
 #ifdef WITH_MEM_VALGRIND
     VALGRIND_MEMPOOL_ALLOC(pool, CHUNK_DATA(first), pool->csize);
 #endif

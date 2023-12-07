@@ -41,6 +41,7 @@ namespace blender::eevee {
 
 void Instance::init(const int2 &output_res,
                     const rcti *output_rect,
+                    const rcti *visible_rect,
                     RenderEngine *render_,
                     Depsgraph *depsgraph_,
                     Object *camera_object_,
@@ -90,6 +91,7 @@ void Instance::init(const int2 &output_res,
   reflection_probes.init();
   irradiance_cache.init();
   volume.init();
+  lookdev.init(visible_rect);
 }
 
 void Instance::init_light_bake(Depsgraph *depsgraph, draw::Manager *manager)
@@ -123,6 +125,7 @@ void Instance::init_light_bake(Depsgraph *depsgraph, draw::Manager *manager)
   reflection_probes.init();
   irradiance_cache.init();
   volume.init();
+  lookdev.init(&empty_rect);
 }
 
 void Instance::set_time(float time)
@@ -182,6 +185,7 @@ void Instance::begin_sync()
   render_buffers.sync();
   ambient_occlusion.sync();
   irradiance_cache.sync();
+  lookdev.sync();
 
   if (is_viewport() && velocity.camera_has_motion()) {
     sampling.reset();
@@ -360,6 +364,7 @@ void Instance::render_sample()
 {
   if (sampling.finished_viewport()) {
     film.display();
+    lookdev.display();
     return;
   }
 
@@ -374,6 +379,8 @@ void Instance::render_sample()
   capture_view.render_probes();
 
   main_view.render();
+
+  lookdev_view.render();
 
   motion_blur.step();
 }

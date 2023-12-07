@@ -473,16 +473,6 @@ void BKE_mesh_merge_customdata_for_apply_modifier(struct Mesh *me);
 
 /* Flush flags. */
 
-/**
- * Update the hide flag for edges and faces from the corresponding flag in verts.
- */
-void BKE_mesh_flush_hidden_from_verts(struct Mesh *me);
-void BKE_mesh_flush_hidden_from_faces(struct Mesh *me);
-
-void BKE_mesh_flush_select_from_faces(struct Mesh *me);
-void BKE_mesh_flush_select_from_verts(struct Mesh *me);
-void BKE_mesh_flush_select_from_edges(struct Mesh *me);
-
 /* spatial evaluation */
 /**
  * This function takes the difference between 2 vertex-coord-arrays

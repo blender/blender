@@ -1788,7 +1788,7 @@ static int exr_has_rgb(MultiPartInputFile &file, const char *rgb_channels[3])
   int num_channels = 0;
 
   for (int i = 0; channel_names[i]; i++) {
-    /* Also try to match lower case variant of of the channel names. */
+    /* Also try to match lower case variant of the channel names. */
     std::string lower_case_name = std::string(channel_names[i]);
     std::transform(lower_case_name.begin(),
                    lower_case_name.end(),

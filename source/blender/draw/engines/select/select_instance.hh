@@ -88,7 +88,7 @@ struct SelectMap {
 
   /** Mapping between internal IDs and `object->runtime->select_id`. */
   Vector<uint> select_id_map;
-#ifdef DEBUG
+#ifndef NDEBUG
   /** Debug map containing a copy of the object name. */
   Vector<std::string> map_names;
 #endif
@@ -113,7 +113,7 @@ struct SelectMap {
 
     uint object_id = ob_ref.object->runtime->select_id;
     uint id = select_id_map.append_and_get_index(object_id | sub_object_id);
-#ifdef DEBUG
+#ifndef NDEBUG
     map_names.append(ob_ref.object->id.name);
 #endif
     return {id};
@@ -153,7 +153,7 @@ struct SelectMap {
     info_buf.push_update();
 
     select_id_map.clear();
-#ifdef DEBUG
+#ifndef NDEBUG
     map_names.clear();
 #endif
   }

@@ -316,7 +316,7 @@ void BCAnimationCurve::clean_handles()
     float x = bezt->vec[1][0];
     float y = bezt->vec[1][1];
     blender::animrig::insert_vert_fcurve(
-        fcurve, x, y, (eBezTriple_KeyframeType)BEZKEYTYPE(bezt), INSERTKEY_NOFLAGS);
+        fcurve, {x, y}, (eBezTriple_KeyframeType)BEZKEYTYPE(bezt), INSERTKEY_NOFLAGS);
     BezTriple *lastb = fcurve->bezt + (fcurve->totvert - 1);
     lastb->f1 = lastb->f2 = lastb->f3 = 0;
   }
@@ -382,7 +382,7 @@ void BCAnimationCurve::add_value(const float val, const int frame_index)
   FCurve *fcu = get_edit_fcurve();
   fcu->auto_smoothing = U.auto_smoothing_new;
   blender::animrig::insert_vert_fcurve(
-      fcu, frame_index, val, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NOFLAGS);
+      fcu, {(float)frame_index, val}, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NOFLAGS);
 
   if (fcu->totvert == 1) {
     init_range(val);

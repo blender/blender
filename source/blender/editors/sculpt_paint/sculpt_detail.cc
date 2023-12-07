@@ -112,7 +112,7 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
   BKE_pbvh_bmesh_detail_size_set(ss->pbvh, object_space_constant_detail);
 
   SCULPT_undo_push_begin(ob, op);
-  SCULPT_undo_push_node(ob, nullptr, SCULPT_UNDO_COORDS);
+  SCULPT_undo_push_node(ob, nullptr, SculptUndoType::Position);
 
   const double start_time = PIL_check_seconds_timer();
 

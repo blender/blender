@@ -117,7 +117,7 @@ void GLUniformBuf::bind(int slot)
   slot_ = slot;
   glBindBufferBase(GL_UNIFORM_BUFFER, slot_, ubo_id_);
 
-#ifdef DEBUG
+#ifndef NDEBUG
   BLI_assert(slot < 16);
   GLContext::get()->bound_ubo_slots |= 1 << slot;
 #endif
@@ -138,7 +138,7 @@ void GLUniformBuf::bind_as_ssbo(int slot)
 
 void GLUniformBuf::unbind()
 {
-#ifdef DEBUG
+#ifndef NDEBUG
   /* NOTE: This only unbinds the last bound slot. */
   glBindBufferBase(GL_UNIFORM_BUFFER, slot_, 0);
   /* Hope that the context did not change. */

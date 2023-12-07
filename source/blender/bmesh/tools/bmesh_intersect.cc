@@ -30,8 +30,6 @@
 
 #include "BLI_linklist_stack.h"
 #include "BLI_utildefines_stack.h"
-#ifndef NDEBUG
-#endif
 
 #include "BLI_buffer.h"
 #include "BLI_kdopbvh.h"
@@ -1086,7 +1084,7 @@ bool BM_mesh_intersect(BMesh *bm,
   const bool isect_tri_tri_no_shared = (boolean_mode != BMESH_ISECT_BOOLEAN_NONE);
 
   int flag = BVH_OVERLAP_USE_THREADING | BVH_OVERLAP_RETURN_PAIRS;
-#  ifdef DEBUG
+#  ifndef NDEBUG
   /* The overlap result must match that obtained in Release to succeed
    * in the `bmesh_boolean` test. */
   if (looptris_tot < 1024) {

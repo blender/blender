@@ -823,8 +823,11 @@ static blender::float3 paint_init_pivot_grease_pencil(Object *ob, const int fram
 {
   using namespace blender;
   const GreasePencil &grease_pencil = *static_cast<const GreasePencil *>(ob->data);
-  const blender::Bounds<blender::float3> bounds = *grease_pencil.bounds_min_max(frame);
-  return blender::math::midpoint(bounds.min, bounds.max);
+  const std::optional<Bounds<float3>> bounds = grease_pencil.bounds_min_max(frame);
+  if (bounds.has_value()) {
+    return blender::math::midpoint(bounds->min, bounds->max);
+  }
+  return float3(0.0f);
 }
 
 void paint_init_pivot(Object *ob, Scene *scene)

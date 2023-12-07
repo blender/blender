@@ -2555,7 +2555,7 @@ static StructRNA *bpy_prop_deferred_data_or_srna(PyObject *self,
 
 /* Crash if this is ever used by accident! */
 #ifndef NDEBUG
-  *r_deferred_result = (PyObject *)(intptr_t)1;
+  *r_deferred_result = (PyObject *)intptr_t(1);
 #endif
 
   /* No error or deferred result, perform registration immediately. */

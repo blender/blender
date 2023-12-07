@@ -328,4 +328,34 @@ void CaptureView::render_probes()
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Lookdev View
+ * \{ */
+
+void LookdevView::render()
+{
+  if (!inst_.lookdev.enabled_) {
+    return;
+  }
+  GPU_debug_group_begin("Lookdev");
+
+  const float4x4 &view_m4 = inst_.camera.data_get().viewmat;
+  const float sphere_scale = inst_.lookdev.sphere_scale;
+  const float clip_near = inst_.camera.data_get().clip_near;
+  float4x4 win_m4 = math::projection::orthographic(-sphere_scale,
+                                                   sphere_scale,
+                                                   -sphere_scale,
+                                                   sphere_scale,
+                                                   clip_near - sphere_scale,
+                                                   clip_near + sphere_scale);
+  view_.sync(view_m4, win_m4);
+
+  inst_.lookdev.draw(view_);
+  inst_.lookdev.display();
+
+  GPU_debug_group_end();
+}
+
+/** \} */
+
 }  // namespace blender::eevee

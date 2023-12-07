@@ -1299,7 +1299,7 @@ static void drw_add_attributes_vbo(GPUBatch *batch,
   }
 }
 
-#ifdef DEBUG
+#ifndef NDEBUG
 /* Sanity check function to test if all requested batches are available. */
 static void drw_mesh_batch_cache_check_available(TaskGraph *task_graph, Mesh *me)
 {
@@ -1350,13 +1350,13 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph *task_graph,
 
   /* Early out */
   if (cache.batch_requested == 0) {
-#ifdef DEBUG
+#ifndef NDEBUG
     drw_mesh_batch_cache_check_available(task_graph, me);
 #endif
     return;
   }
 
-#ifdef DEBUG
+#ifndef NDEBUG
   /* Map the index of a buffer to a flag containing all batches that use it. */
   Map<int, DRWBatchFlag> batches_that_use_buffer_local;
 
@@ -1492,7 +1492,7 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph *task_graph,
 
   /* Second chance to early out */
   if ((batch_requested & ~cache.batch_ready) == 0) {
-#ifdef DEBUG
+#ifndef NDEBUG
     drw_mesh_batch_cache_check_available(task_graph, me);
 #endif
     return;
@@ -1815,7 +1815,7 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph *task_graph,
     DRW_vbo_request(cache.batch.surface_viewer_attribute, &mbuflist->vbo.attr_viewer);
   }
 
-#ifdef DEBUG
+#ifndef NDEBUG
   auto assert_final_deps_valid = [&](const int buffer_index) {
     BLI_assert(batches_that_use_buffer(buffer_index) ==
                batches_that_use_buffer_local.lookup(buffer_index));
@@ -1940,7 +1940,7 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph *task_graph,
    * based on the mode the correct one will be updated. Other option is to look into using
    * drw_batch_cache_generate_requested_delayed. */
   BLI_task_graph_work_and_wait(task_graph);
-#ifdef DEBUG
+#ifndef NDEBUG
   drw_mesh_batch_cache_check_available(task_graph, me);
 #endif
 }

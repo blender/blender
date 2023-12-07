@@ -61,7 +61,9 @@ int insert_bezt_fcurve(FCurve *fcu, const BezTriple *bezt, eInsertKeyFlags flag)
  * \param flag: Optional flags (#eInsertKeyFlags) for controlling how keys get added
  * and/or whether updates get done.
  */
-int insert_vert_fcurve(
-    FCurve *fcu, float x, float y, eBezTriple_KeyframeType keyframe_type, eInsertKeyFlags flag);
+int insert_vert_fcurve(FCurve *fcu,
+                       const float2 position,
+                       eBezTriple_KeyframeType keyframe_type,
+                       eInsertKeyFlags flag);
 
 }  // namespace blender::animrig

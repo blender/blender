@@ -221,7 +221,7 @@ float average(vec2 a);
 float average(vec3 a);
 float average(vec4 a);
 
-#  endif /* GPU_METAL */
+#  endif /* !GPU_METAL */
 
 /* ---------------------------------------------------------------------- */
 /** \name Implementation
@@ -240,7 +240,7 @@ bool is_zero(vec4 vec)
 {
   return all(equal(vec, vec4(0.0)));
 }
-#  endif
+#  endif /* GPU_METAL */
 
 bool is_any_zero(vec2 vec)
 {

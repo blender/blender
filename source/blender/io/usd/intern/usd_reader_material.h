@@ -108,7 +108,8 @@ class USDMaterialReader {
                       const char *dest_socket_name,
                       bNodeTree *ntree,
                       int column,
-                      NodePlacementContext *r_ctx) const;
+                      NodePlacementContext *r_ctx,
+                      bool is_color_corrected) const;
 
   /**
    * Follow the connected source of the USD input to create corresponding inputs
@@ -119,7 +120,8 @@ class USDMaterialReader {
                          const char *dest_socket_name,
                          bNodeTree *ntree,
                          int column,
-                         NodePlacementContext *r_ctx) const;
+                         NodePlacementContext *r_ctx,
+                         bool is_color_corrected = false) const;
 
   void convert_usd_uv_texture(const pxr::UsdShadeShader &usd_shader,
                               const pxr::TfToken &usd_source_name,
@@ -127,7 +129,8 @@ class USDMaterialReader {
                               const char *dest_socket_name,
                               bNodeTree *ntree,
                               int column,
-                              NodePlacementContext *r_ctx) const;
+                              NodePlacementContext *r_ctx,
+                              bool is_color_corrected = false) const;
 
   void convert_usd_transform_2d(const pxr::UsdShadeShader &usd_shader,
                                 bNode *dest_node,
@@ -140,7 +143,9 @@ class USDMaterialReader {
    * Load the texture image node's texture from the path given by the USD shader's
    * file input value.
    */
-  void load_tex_image(const pxr::UsdShadeShader &usd_shader, bNode *tex_image) const;
+  void load_tex_image(const pxr::UsdShadeShader &usd_shader,
+                      bNode *tex_image,
+                      bool is_color_corrected = false) const;
 
   /**
    * This function creates a Blender UV Map node, under the simplifying assumption that

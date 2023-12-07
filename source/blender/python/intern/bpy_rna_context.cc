@@ -30,7 +30,7 @@
 #include "bpy_rna.h"
 
 /* -------------------------------------------------------------------- */
-/** \name Private Utility Funcitons
+/** \name Private Utility Functions
  * \{ */
 
 static void bpy_rna_context_temp_set_screen_for_window(bContext *C, wmWindow *win, bScreen *screen)

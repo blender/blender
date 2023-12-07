@@ -190,7 +190,7 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *op)
        * are logged as added (as opposed to attempting to store just the
        * parts that symmetrize modifies). */
       SCULPT_undo_push_begin(ob, op);
-      SCULPT_undo_push_node(ob, nullptr, SCULPT_UNDO_DYNTOPO_SYMMETRIZE);
+      SCULPT_undo_push_node(ob, nullptr, SculptUndoType::DyntopoSymmetrize);
       BM_log_before_all_removed(ss->bm, ss->bm_log);
 
       BM_mesh_toolflags_set(ss->bm, true);
@@ -268,6 +268,7 @@ static void SCULPT_OT_symmetrize(wmOperatorType *ot)
 
 static void sculpt_init_session(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
+  using namespace blender::ed::sculpt_paint;
   /* Create persistent sculpt mode data. */
   BKE_sculpt_toolsettings_data_ensure(scene);
 
@@ -289,8 +290,8 @@ static void sculpt_init_session(Main *bmain, Depsgraph *depsgraph, Scene *scene,
   /* This function expects a fully evaluated depsgraph. */
   BKE_sculpt_update_object_for_edit(depsgraph, ob, false);
 
-  SculptSession *ss = ob->sculpt;
-  if (ss->face_sets) {
+  Mesh &mesh = *static_cast<Mesh *>(ob->data);
+  if (mesh.attributes().contains(".sculpt_face_set")) {
     /* Here we can detect geometry that was just added to Sculpt Mode as it has the
      * SCULPT_FACE_SET_NONE assigned, so we can create a new Face Set for it. */
     /* In sculpt mode all geometry that is assigned to SCULPT_FACE_SET_NONE is considered as not
@@ -301,12 +302,8 @@ static void sculpt_init_session(Main *bmain, Depsgraph *depsgraph, Scene *scene,
     /* TODO(pablodp606): Based on this we can improve the UX in future tools for creating new
      * objects, like moving the transform pivot position to the new area or masking existing
      * geometry. */
-    const int new_face_set = SCULPT_face_set_next_available_get(ss);
-    for (int i = 0; i < ss->totfaces; i++) {
-      if (ss->face_sets[i] == SCULPT_FACE_SET_NONE) {
-        ss->face_sets[i] = new_face_set;
-      }
-    }
+    const int new_face_set = face_set::find_next_available_id(*ob);
+    face_set::initialize_none_to_id(static_cast<Mesh *>(ob->data), new_face_set);
   }
 }
 
@@ -408,7 +405,7 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
       }
       SCULPT_dynamic_topology_enable_ex(bmain, depsgraph, ob);
       if (has_undo) {
-        SCULPT_undo_push_node(ob, nullptr, SCULPT_UNDO_DYNTOPO_BEGIN);
+        SCULPT_undo_push_node(ob, nullptr, SculptUndoType::DyntopoBegin);
         SCULPT_undo_push_end(ob);
       }
     }
@@ -740,7 +737,7 @@ static void do_mask_by_color_contiguous_update_node(Object *ob,
 {
   SculptSession *ss = ob->sculpt;
 
-  SCULPT_undo_push_node(ob, node, SCULPT_UNDO_MASK);
+  SCULPT_undo_push_node(ob, node, SculptUndoType::Mask);
   bool update_node = false;
 
   PBVHVertexIter vd;
@@ -846,7 +843,7 @@ static void do_mask_by_color_task(Object *ob,
 {
   SculptSession *ss = ob->sculpt;
 
-  SCULPT_undo_push_node(ob, node, SCULPT_UNDO_MASK);
+  SCULPT_undo_push_node(ob, node, SculptUndoType::Mask);
   bool update_node = false;
 
   float active_color[4];
@@ -1012,7 +1009,7 @@ static void sculpt_bake_cavity_exec_task(Object *ob,
   SculptSession *ss = ob->sculpt;
   PBVHVertexIter vd;
 
-  SCULPT_undo_push_node(ob, node, SCULPT_UNDO_MASK);
+  SCULPT_undo_push_node(ob, node, SculptUndoType::Mask);
 
   AutomaskingNodeData automask_data;
   SCULPT_automasking_node_begin(ob, automasking, &automask_data, node);
@@ -1265,6 +1262,7 @@ static void SCULPT_OT_mask_from_cavity(wmOperatorType *ot)
 
 void ED_operatortypes_sculpt()
 {
+  using namespace blender::ed::sculpt_paint;
   WM_operatortype_append(SCULPT_OT_brush_stroke);
   WM_operatortype_append(SCULPT_OT_sculptmode_toggle);
   WM_operatortype_append(SCULPT_OT_set_persistent_base);
@@ -1277,18 +1275,17 @@ void ED_operatortypes_sculpt()
   WM_operatortype_append(SCULPT_OT_mesh_filter);
   WM_operatortype_append(SCULPT_OT_mask_filter);
   WM_operatortype_append(SCULPT_OT_set_pivot_position);
-  WM_operatortype_append(SCULPT_OT_face_sets_create);
-  WM_operatortype_append(SCULPT_OT_face_set_change_visibility);
-  WM_operatortype_append(SCULPT_OT_face_sets_invert_visibility);
-  WM_operatortype_append(SCULPT_OT_face_sets_randomize_colors);
-  WM_operatortype_append(SCULPT_OT_face_sets_init);
+  WM_operatortype_append(face_set::SCULPT_OT_face_sets_create);
+  WM_operatortype_append(face_set::SCULPT_OT_face_set_change_visibility);
+  WM_operatortype_append(face_set::SCULPT_OT_face_sets_randomize_colors);
+  WM_operatortype_append(face_set::SCULPT_OT_face_sets_init);
+  WM_operatortype_append(face_set::SCULPT_OT_face_sets_edit);
   WM_operatortype_append(SCULPT_OT_cloth_filter);
-  WM_operatortype_append(SCULPT_OT_face_sets_edit);
-  WM_operatortype_append(blender::ed::sculpt_paint::mask::SCULPT_OT_face_set_lasso_gesture);
-  WM_operatortype_append(blender::ed::sculpt_paint::mask::SCULPT_OT_face_set_box_gesture);
-  WM_operatortype_append(blender::ed::sculpt_paint::mask::SCULPT_OT_trim_box_gesture);
-  WM_operatortype_append(blender::ed::sculpt_paint::mask::SCULPT_OT_trim_lasso_gesture);
-  WM_operatortype_append(blender::ed::sculpt_paint::mask::SCULPT_OT_project_line_gesture);
+  WM_operatortype_append(mask::SCULPT_OT_face_set_lasso_gesture);
+  WM_operatortype_append(mask::SCULPT_OT_face_set_box_gesture);
+  WM_operatortype_append(mask::SCULPT_OT_trim_box_gesture);
+  WM_operatortype_append(mask::SCULPT_OT_trim_lasso_gesture);
+  WM_operatortype_append(mask::SCULPT_OT_project_line_gesture);
 
   WM_operatortype_append(SCULPT_OT_sample_color);
   WM_operatortype_append(SCULPT_OT_color_filter);

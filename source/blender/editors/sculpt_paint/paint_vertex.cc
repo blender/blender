@@ -374,23 +374,24 @@ void mode_enter_generic(
 
 void mode_exit_generic(Object *ob, const eObjectMode mode_flag)
 {
+  using namespace blender;
   Mesh *me = BKE_mesh_from_object(ob);
   ob->mode &= ~mode_flag;
 
   if (mode_flag == OB_MODE_VERTEX_PAINT) {
     if (me->editflag & ME_EDIT_PAINT_FACE_SEL) {
-      BKE_mesh_flush_select_from_faces(me);
+      bke::mesh_select_face_flush(*me);
     }
     else if (me->editflag & ME_EDIT_PAINT_VERT_SEL) {
-      BKE_mesh_flush_select_from_verts(me);
+      bke::mesh_select_vert_flush(*me);
     }
   }
   else if (mode_flag == OB_MODE_WEIGHT_PAINT) {
     if (me->editflag & ME_EDIT_PAINT_VERT_SEL) {
-      BKE_mesh_flush_select_from_verts(me);
+      bke::mesh_select_vert_flush(*me);
     }
     else if (me->editflag & ME_EDIT_PAINT_FACE_SEL) {
-      BKE_mesh_flush_select_from_faces(me);
+      bke::mesh_select_face_flush(*me);
     }
   }
   else {
@@ -1808,7 +1809,7 @@ static void vpaint_paint_leaves(bContext *C,
                                 Span<PBVHNode *> nodes)
 {
   for (PBVHNode *node : nodes) {
-    SCULPT_undo_push_node(ob, node, SCULPT_UNDO_COLOR);
+    SCULPT_undo_push_node(ob, node, SculptUndoType::Color);
   }
 
   const Brush *brush = ob->sculpt->cache->brush;
@@ -2255,7 +2256,7 @@ static int vertex_color_set_exec(bContext *C, wmOperator *op)
   SCULPT_undo_push_begin(obact, op);
   Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(obact->sculpt->pbvh, {});
   for (PBVHNode *node : nodes) {
-    SCULPT_undo_push_node(obact, node, SCULPT_UNDO_COLOR);
+    SCULPT_undo_push_node(obact, node, SculptUndoType::Color);
   }
 
   paint_object_attributes_active_color_fill_ex(obact, paintcol, true, affect_alpha);

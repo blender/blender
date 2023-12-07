@@ -360,7 +360,7 @@ int BM_iter_mesh_count_flag(const char itype, BMesh *bm, const char hflag, const
  * allow adding but not removing, this isn't _totally_ safe since
  * you could add/remove within the same loop, but catches common cases
  */
-#ifdef DEBUG
+#ifndef NDEBUG
 #  define USE_IMMUTABLE_ASSERT
 #endif
 

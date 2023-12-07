@@ -67,7 +67,7 @@ struct rbCollisionShape;
 struct rbConstraint;
 struct rbDynamicsWorld;
 struct rbRigidBody;
-#endif
+#endif /* !WITH_BULLET */
 
 /* ************************************** */
 /* Memory Management */

@@ -74,7 +74,7 @@ Mesh *BKE_mesh_wrapper_from_editmesh(BMEditMesh *em,
   me->edit_mesh->is_shallow_copy = true;
 
   /* Make sure we crash if these are ever used. */
-#ifdef DEBUG
+#ifndef NDEBUG
   me->totvert = INT_MAX;
   me->totedge = INT_MAX;
   me->faces_num = INT_MAX;

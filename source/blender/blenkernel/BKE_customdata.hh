@@ -348,8 +348,8 @@ void CustomData_bmesh_copy_data(const CustomData *source,
                                 void *src_block,
                                 void **dest_block);
 /**
- * Copy all layers from the sourde to the destination block. Allocate the result block if
- * necessary, otherwise free its existing layer data.
+ * Copy all layers from the source to the destination block.
+ * Allocate the result block if necessary, otherwise free its existing layer data.
  */
 void CustomData_bmesh_copy_block(CustomData &data, void *src_block, void **dst_block);
 void CustomData_bmesh_copy_data_exclude_by_type(const CustomData *source,
@@ -757,7 +757,7 @@ size_t CustomData_get_elem_size(const CustomDataLayer *layer);
 struct DynStr;
 /** Use to inspect mesh data when debugging. */
 void CustomData_debug_info_from_layers(const CustomData *data, const char *indent, DynStr *dynstr);
-#endif /* NDEBUG */
+#endif /* !NDEBUG */
 
 namespace blender::bke {
 const CPPType *custom_data_type_to_cpp_type(eCustomDataType type);

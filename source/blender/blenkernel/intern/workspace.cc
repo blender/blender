@@ -379,7 +379,7 @@ WorkSpaceLayout *BKE_workspace_layout_add(Main *bmain,
   WorkSpaceLayout *layout = MEM_cnew<WorkSpaceLayout>(__func__);
 
   BLI_assert(!workspaces_is_screen_used(bmain, screen));
-#ifndef DEBUG
+#ifdef NDEBUG
   UNUSED_VARS(bmain);
 #endif
   layout->screen = screen;

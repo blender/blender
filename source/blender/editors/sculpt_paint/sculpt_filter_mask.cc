@@ -180,7 +180,7 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
   SCULPT_undo_push_begin(ob, op);
 
   for (PBVHNode *node : nodes) {
-    SCULPT_undo_push_node(ob, node, SCULPT_UNDO_MASK);
+    SCULPT_undo_push_node(ob, node, SculptUndoType::Mask);
   }
 
   float *prev_mask = nullptr;
@@ -221,22 +221,6 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
   SCULPT_tag_update_overlays(C);
 
   return OPERATOR_FINISHED;
-}
-
-void SCULPT_mask_filter_smooth_apply(Sculpt * /*sd*/,
-                                     Object *ob,
-                                     blender::Span<PBVHNode *> nodes,
-                                     const int smooth_iterations)
-{
-  using namespace blender;
-  const SculptMaskWriteInfo mask_write = SCULPT_mask_get_for_write(ob->sculpt);
-  for (int i = 0; i < smooth_iterations; i++) {
-    threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-      for (const int i : range) {
-        mask_filter_task(ob->sculpt, MASK_FILTER_SMOOTH, nullptr, mask_write, nodes[i]);
-      }
-    });
-  }
 }
 
 void SCULPT_OT_mask_filter(wmOperatorType *ot)

@@ -650,7 +650,7 @@ static bool check_matching_legacy_layer_counts(CustomData *fdata_legacy,
    * then there was nothing to do... */
   return a_num ? true : fallback;
 }
-#endif
+#endif /* !NDEBUG */
 
 static void add_mface_layers(Mesh &mesh, CustomData *fdata_legacy, CustomData *ldata, int total)
 {

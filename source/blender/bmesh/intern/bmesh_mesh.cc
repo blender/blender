@@ -335,7 +335,7 @@ void bmesh_edit_end(BMesh *bm, BMOpTypeFlag type_flag)
 void BM_mesh_elem_index_ensure_ex(BMesh *bm, const char htype, int elem_offset[4])
 {
 
-#ifdef DEBUG
+#ifndef NDEBUG
   BM_ELEM_INDEX_VALIDATE(bm, "Should Never Fail!", __func__);
 #endif
 
@@ -514,7 +514,7 @@ void BM_mesh_elem_index_validate(
   }
 
 #if 0 /* mostly annoying, even in debug mode */
-#  ifdef DEBUG
+#  ifndef NDEBUG
   if (is_any_error == 0) {
     fprintf(stderr, "Valid Index Success: at %s, %s, '%s', '%s'\n", location, func, msg_a, msg_b);
   }

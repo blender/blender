@@ -173,10 +173,10 @@ GHOST_SystemX11::GHOST_SystemX11()
   m_last_release_keycode = 0;
   m_last_release_time = 0;
 
-  /* Compute the initial time. */
+  /* Compute the initial times. */
   {
     timeval tv;
-    if (gettimeofday(&tv, nullptr) == -1) {
+    if (gettimeofday(&tv, nullptr) != 0) {
       GHOST_ASSERT(false, "Could not instantiate timer!");
     }
     /* Taking care not to overflow the `tv.tv_sec * 1000`. */
@@ -185,7 +185,7 @@ GHOST_SystemX11::GHOST_SystemX11()
 
   {
     struct timespec ts = {0, 0};
-    if (clock_gettime(CLOCK_MONOTONIC, &ts) == -1) {
+    if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0) {
       GHOST_ASSERT(false, "Could not instantiate monotonic timer!");
     }
     m_start_time_monotonic = ((uint64_t(ts.tv_sec) * 1000) + (ts.tv_nsec / 1000000));
@@ -213,7 +213,7 @@ GHOST_SystemX11::GHOST_SystemX11()
 #endif
 
 #ifdef WITH_X11_XINPUT
-  /* detect if we have xinput (for reuse) */
+  /* Detect if we have XINPUT (for reuse). */
   {
     memset(&m_xinput_version, 0, sizeof(m_xinput_version));
     XExtensionVersion *version = XGetExtensionVersion(m_display, INAME);
@@ -281,7 +281,7 @@ GHOST_TSuccess GHOST_SystemX11::init()
 uint64_t GHOST_SystemX11::getMilliSeconds() const
 {
   timeval tv;
-  if (gettimeofday(&tv, nullptr) == -1) {
+  if (gettimeofday(&tv, nullptr) != 0) {
     GHOST_ASSERT(false, "Could not compute time!");
   }
 

@@ -455,7 +455,7 @@ static void pf_coord_remove(PolyFill *pf, PolyIndex *pi)
   if (pf->kdtree.node_num) {
     kdtree2d_node_remove(&pf->kdtree, pi->index);
   }
-#endif
+#endif /* USE_KDTREE */
 
   pi->next->prev = pi->prev;
   pi->prev->next = pi->next;
@@ -463,10 +463,10 @@ static void pf_coord_remove(PolyFill *pf, PolyIndex *pi)
   if (UNLIKELY(pf->indices == pi)) {
     pf->indices = pi->next;
   }
-#ifdef DEBUG
+#ifndef NDEBUG
   pi->index = (uint32_t)-1;
   pi->next = pi->prev = NULL;
-#endif
+#endif /* !NDEBUG */
 
   pf->coords_num -= 1;
 }

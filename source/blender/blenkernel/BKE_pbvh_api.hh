@@ -384,6 +384,10 @@ int BKE_pbvh_node_num_unique_verts(const PBVH &pbvh, const PBVHNode &node);
 blender::Span<int> BKE_pbvh_node_get_vert_indices(const PBVHNode *node);
 blender::Span<int> BKE_pbvh_node_get_unique_vert_indices(const PBVHNode *node);
 void BKE_pbvh_node_get_loops(const PBVHNode *node, const int **r_loop_indices);
+
+void BKE_pbvh_node_calc_face_indices(const PBVH &pbvh,
+                                     const PBVHNode &node,
+                                     blender::Vector<int> &faces);
 blender::Vector<int> BKE_pbvh_node_calc_face_indices(const PBVH &pbvh, const PBVHNode &node);
 
 /* Get number of faces in the mesh; for PBVH_GRIDS the

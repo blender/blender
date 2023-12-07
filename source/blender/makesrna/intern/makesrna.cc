@@ -47,7 +47,7 @@ void BLI_system_backtrace(FILE *fp)
 {
   (void)fp;
 }
-#endif
+#endif /* !NDEBUG */
 
 /* Replace if different */
 #define TMP_EXT ".tmp"

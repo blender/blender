@@ -454,7 +454,7 @@ int BLI_rename(const char *from, const char *to)
    * Since this functionality isn't required at the moment, leave this as-is.
    * Noting it as a potential improvement. */
 
-  /* NOTE: To avoid the concurrency 'time of check/time of use' (TOC/TOU) issue, this code attemps
+  /* NOTE: To avoid the concurrency 'time of check/time of use' (TOC/TOU) issue, this code attempts
    * to use available solutions for an 'atomic' (file-system wise) rename operation, instead of
    * first checking for an existing `to` target path, and then doing the rename operation if it
    * does not exists at the time of check.
@@ -476,9 +476,11 @@ int BLI_rename(const char *from, const char *to)
   return urename(from, to, false);
 #elif defined(__APPLE__)
   return renamex_np(from, to, RENAME_EXCL);
-#elif defined(__GLIBC_PREREQ) && __GLIBC_PREREQ(2, 28)
+#elif defined(__GLIBC_PREREQ)
+#  if __GLIBC_PREREQ(2, 28)
   /* Most common Linux cases. */
   return renameat2(AT_FDCWD, from, AT_FDCWD, to, RENAME_NOREPLACE);
+#  endif
 #else
   /* At least all BSD's currently. */
   if (BLI_exists(to)) {

@@ -154,6 +154,8 @@ class GHOST_SystemWayland : public GHOST_System {
 
   uint8_t getNumDisplays() const override;
 
+  uint64_t getMilliSeconds() const override;
+
   GHOST_TSuccess getCursorPositionClientRelative(const GHOST_IWindow *window,
                                                  int32_t &x,
                                                  int32_t &y) const override;

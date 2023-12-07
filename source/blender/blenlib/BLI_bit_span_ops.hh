@@ -190,6 +190,11 @@ inline void foreach_1_index_expr(ExprFn &&expr,
       expr, handle, to_best_bit_span(first_arg), to_best_bit_span(args)...);
 }
 
+template<typename BitSpanT> inline void invert(const BitSpanT &data)
+{
+  mix_into_first_expr([](const BitInt x) { return ~x; }, data);
+}
+
 template<typename FirstBitSpanT, typename... BitSpanT>
 inline void inplace_or(FirstBitSpanT &first_arg, const BitSpanT &...args)
 {

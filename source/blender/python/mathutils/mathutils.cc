@@ -715,7 +715,7 @@ static bool BaseMathObject_is_tracked(BaseMathObject *self)
   self->cb_user = cb_user;
   return is_tracked;
 }
-#endif /* NDEBUG */
+#endif /* !NDEBUG */
 
 void BaseMathObject_dealloc(BaseMathObject *self)
 {

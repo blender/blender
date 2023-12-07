@@ -148,7 +148,7 @@ static void do_pose_brush_task(Object *ob, const Brush *brush, PBVHNode *node)
   float final_pos[3];
 
   SculptOrigVertData orig_data;
-  SCULPT_orig_vert_data_init(&orig_data, ob, node, SCULPT_UNDO_COORDS);
+  SCULPT_orig_vert_data_init(&orig_data, ob, node, SculptUndoType::Position);
   AutomaskingNodeData automask_data;
   SCULPT_automasking_node_begin(ob, ss->cache->automasking, &automask_data, node);
 

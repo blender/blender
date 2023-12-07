@@ -878,7 +878,7 @@ static int text_run_script_exec(bContext *C, wmOperator *op)
   return OPERATOR_CANCELLED;
 #else
   return text_run_script(C, op->reports);
-#endif
+#endif /* WITH_PYTHON */
 }
 
 void TEXT_OT_run_script(wmOperatorType *ot)

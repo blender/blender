@@ -492,7 +492,7 @@ bool BM_face_split_edgenet(BMesh *bm,
   BLI_assert(BM_ELEM_API_FLAG_TEST(f, FACE_NET) == 0);
   BM_ELEM_API_FLAG_ENABLE(f, FACE_NET);
 
-#ifdef DEBUG
+#ifndef NDEBUG
   for (i = 0; i < edge_net_len; i++) {
     BLI_assert(BM_ELEM_API_FLAG_TEST(edge_net[i], EDGE_NET) == 0);
     BLI_assert(BM_edge_in_face(edge_net[i], f) == false);
@@ -1637,7 +1637,7 @@ finally:
   if (use_partial_connect) {
 
 /* Sanity check: ensure we don't have connecting edges before splicing begins. */
-#  ifdef DEBUG
+#  ifndef NDEBUG
     {
       struct TempVertPair *tvp = temp_vert_pairs.list;
       do {

@@ -14,11 +14,15 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_array.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_rotation.h"
+#include "BLI_math_vector.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_path_util.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
+#include "BLI_task.hh"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
@@ -121,13 +125,6 @@ static void slice_get_float_buffers(const SeqRenderData *context,
 /* -------------------------------------------------------------------- */
 /** \name Glow Effect
  * \{ */
-
-enum {
-  GlowR = 0,
-  GlowG = 1,
-  GlowB = 2,
-  GlowA = 3,
-};
 
 static ImBuf *prepare_effect_imbufs(const SeqRenderData *context,
                                     ImBuf *ibuf1,
@@ -512,152 +509,23 @@ static void do_cross_effect(const SeqRenderData *context,
 /** \name Gamma Cross
  * \{ */
 
-static ushort gamtab[65536];
-static ushort igamtab1[256];
-static bool gamma_tabs_init = false;
-
-#define RE_GAMMA_TABLE_SIZE 400
-
-static float gamma_range_table[RE_GAMMA_TABLE_SIZE + 1];
-static float gamfactor_table[RE_GAMMA_TABLE_SIZE];
-static float inv_gamma_range_table[RE_GAMMA_TABLE_SIZE + 1];
-static float inv_gamfactor_table[RE_GAMMA_TABLE_SIZE];
-static float color_domain_table[RE_GAMMA_TABLE_SIZE + 1];
-static float color_step;
-static float inv_color_step;
-static float valid_gamma;
-static float valid_inv_gamma;
-
-static void makeGammaTables(float gamma)
-{
-  /* we need two tables: one forward, one backward */
-  int i;
-
-  valid_gamma = gamma;
-  valid_inv_gamma = 1.0f / gamma;
-  color_step = 1.0f / RE_GAMMA_TABLE_SIZE;
-  inv_color_step = float(RE_GAMMA_TABLE_SIZE);
-
-  /* We could squeeze out the two range tables to gain some memory */
-  for (i = 0; i < RE_GAMMA_TABLE_SIZE; i++) {
-    color_domain_table[i] = i * color_step;
-    gamma_range_table[i] = pow(color_domain_table[i], valid_gamma);
-    inv_gamma_range_table[i] = pow(color_domain_table[i], valid_inv_gamma);
-  }
-
-  /* The end of the table should match 1.0 carefully. In order to avoid
-   * rounding errors, we just set this explicitly. The last segment may
-   * have a different length than the other segments, but our
-   * interpolation is insensitive to that
-   */
-  color_domain_table[RE_GAMMA_TABLE_SIZE] = 1.0;
-  gamma_range_table[RE_GAMMA_TABLE_SIZE] = 1.0;
-  inv_gamma_range_table[RE_GAMMA_TABLE_SIZE] = 1.0;
-
-  /* To speed up calculations, we make these calc factor tables. They are
-   * multiplication factors used in scaling the interpolation
-   */
-  for (i = 0; i < RE_GAMMA_TABLE_SIZE; i++) {
-    gamfactor_table[i] = inv_color_step * (gamma_range_table[i + 1] - gamma_range_table[i]);
-    inv_gamfactor_table[i] = inv_color_step *
-                             (inv_gamma_range_table[i + 1] - inv_gamma_range_table[i]);
-  }
-}
+/* One could argue that gamma cross should not be hardcoded to 2.0 gamma,
+ * but instead either do proper input->linear conversion (often sRGB). Or
+ * maybe not even that, but do interpolation in some perceptual color space
+ * like OKLAB. But currently it is fixed to just 2.0 gamma. */
 
 static float gammaCorrect(float c)
 {
-  int i;
-  float res;
-
-  i = floorf(c * inv_color_step);
-  /* Clip to range [0, 1]: outside, just do the complete calculation.
-   * We may have some performance problems here. Stretching up the LUT
-   * may help solve that, by exchanging LUT size for the interpolation.
-   * Negative colors are explicitly handled.
-   */
-  if (UNLIKELY(i < 0)) {
-    res = -powf(-c, valid_gamma);
+  if (UNLIKELY(c < 0)) {
+    return -(c * c);
   }
-  else if (i >= RE_GAMMA_TABLE_SIZE) {
-    res = powf(c, valid_gamma);
-  }
-  else {
-    res = gamma_range_table[i] + ((c - color_domain_table[i]) * gamfactor_table[i]);
-  }
-
-  return res;
+  return c * c;
 }
-
-/* ------------------------------------------------------------------------- */
 
 static float invGammaCorrect(float c)
 {
-  int i;
-  float res = 0.0;
-
-  i = floorf(c * inv_color_step);
-  /* Negative colors are explicitly handled */
-  if (UNLIKELY(i < 0)) {
-    res = -powf(-c, valid_inv_gamma);
-  }
-  else if (i >= RE_GAMMA_TABLE_SIZE) {
-    res = powf(c, valid_inv_gamma);
-  }
-  else {
-    res = inv_gamma_range_table[i] + ((c - color_domain_table[i]) * inv_gamfactor_table[i]);
-  }
-
-  return res;
+  return sqrtf_signed(c);
 }
-
-static void gamtabs(float gamma)
-{
-  float val, igamma = 1.0f / gamma;
-  int a;
-
-  /* gamtab: in short, out short */
-  for (a = 0; a < 65536; a++) {
-    val = a;
-    val /= 65535.0f;
-
-    if (gamma == 2.0f) {
-      val = sqrtf(val);
-    }
-    else if (gamma != 1.0f) {
-      val = powf(val, igamma);
-    }
-
-    gamtab[a] = (65535.99f * val);
-  }
-  /* inverse gamtab1 : in byte, out short */
-  for (a = 1; a <= 256; a++) {
-    if (gamma == 2.0f) {
-      igamtab1[a - 1] = a * a - 1;
-    }
-    else if (gamma == 1.0f) {
-      igamtab1[a - 1] = 256 * a - 1;
-    }
-    else {
-      val = a / 256.0f;
-      igamtab1[a - 1] = (65535.0 * pow(val, gamma)) - 1;
-    }
-  }
-}
-
-static void build_gammatabs()
-{
-  if (gamma_tabs_init == false) {
-    gamtabs(2.0f);
-    makeGammaTables(2.0f);
-    gamma_tabs_init = true;
-  }
-}
-
-static void init_gammacross(Sequence * /*seq*/) {}
-
-static void load_gammacross(Sequence * /*seq*/) {}
-
-static void free_gammacross(Sequence * /*seq*/, const bool /*do_id_user*/) {}
 
 static void do_gammacross_effect_byte(
     float fac, int x, int y, uchar *rect1, uchar *rect2, uchar *out)
@@ -716,8 +584,6 @@ static ImBuf *gammacross_init_execution(const SeqRenderData *context,
                                         ImBuf *ibuf3)
 {
   ImBuf *out = prepare_effect_imbufs(context, ibuf1, ibuf2, ibuf3);
-  build_gammatabs();
-
   return out;
 }
 
@@ -1366,16 +1232,24 @@ struct WipeZone {
   int xo, yo;
   int width;
   float pythangle;
+  float clockWidth;
+  int type;
+  bool forward;
 };
 
-static void precalc_wipe_zone(WipeZone *wipezone, WipeVars *wipe, int xo, int yo)
+static WipeZone precalc_wipe_zone(const WipeVars *wipe, int xo, int yo)
 {
-  wipezone->flip = (wipe->angle < 0.0f);
-  wipezone->angle = tanf(fabsf(wipe->angle));
-  wipezone->xo = xo;
-  wipezone->yo = yo;
-  wipezone->width = int(wipe->edgeWidth * ((xo + yo) / 2.0f));
-  wipezone->pythangle = 1.0f / sqrtf(wipezone->angle * wipezone->angle + 1.0f);
+  WipeZone zone;
+  zone.flip = (wipe->angle < 0.0f);
+  zone.angle = tanf(fabsf(wipe->angle));
+  zone.xo = xo;
+  zone.yo = yo;
+  zone.width = int(wipe->edgeWidth * ((xo + yo) / 2.0f));
+  zone.pythangle = 1.0f / sqrtf(zone.angle * zone.angle + 1.0f);
+  zone.clockWidth = wipe->edgeWidth * float(M_PI);
+  zone.type = wipe->wipetype;
+  zone.forward = wipe->forward != 0;
+  return zone;
 }
 
 /**
@@ -1407,18 +1281,15 @@ static float in_band(float width, float dist, int side, int dir)
   return alpha;
 }
 
-static float check_zone(WipeZone *wipezone, int x, int y, Sequence *seq, float fac)
+static float check_zone(const WipeZone *wipezone, int x, int y, float fac)
 {
   float posx, posy, hyp, hyp2, angle, hwidth, b1, b2, b3, pointdist;
-  /* some future stuff */
-  /* float hyp3, hyp4, b4, b5 */
   float temp1, temp2, temp3, temp4; /* some placeholder variables */
   int xo = wipezone->xo;
   int yo = wipezone->yo;
   float halfx = xo * 0.5f;
   float halfy = yo * 0.5f;
   float widthf, output = 0;
-  WipeVars *wipe = (WipeVars *)seq->effectdata;
   int width;
 
   if (wipezone->flip) {
@@ -1426,7 +1297,7 @@ static float check_zone(WipeZone *wipezone, int x, int y, Sequence *seq, float f
   }
   angle = wipezone->angle;
 
-  if (wipe->forward) {
+  if (wipezone->forward) {
     posx = fac * xo;
     posy = fac * yo;
   }
@@ -1435,7 +1306,7 @@ static float check_zone(WipeZone *wipezone, int x, int y, Sequence *seq, float f
     posy = yo - fac * yo;
   }
 
-  switch (wipe->wipetype) {
+  switch (wipezone->type) {
     case DO_SINGLE_WIPE:
       width = min_ii(wipezone->width, fac * yo);
       width = min_ii(width, yo - fac * yo);
@@ -1457,7 +1328,7 @@ static float check_zone(WipeZone *wipezone, int x, int y, Sequence *seq, float f
         b2 = temp1;
       }
 
-      if (wipe->forward) {
+      if (wipezone->forward) {
         if (b1 < b2) {
           output = in_band(width, hyp, 1, 1);
         }
@@ -1476,7 +1347,7 @@ static float check_zone(WipeZone *wipezone, int x, int y, Sequence *seq, float f
       break;
 
     case DO_DOUBLE_WIPE:
-      if (!wipe->forward) {
+      if (!wipezone->forward) {
         fac = 1.0f - fac; /* Go the other direction */
       }
 
@@ -1519,7 +1390,7 @@ static float check_zone(WipeZone *wipezone, int x, int y, Sequence *seq, float f
           output = in_band(hwidth, hyp2, 1, 1) * in_band(hwidth, hyp, 1, 1);
         }
       }
-      if (!wipe->forward) {
+      if (!wipezone->forward) {
         output = 1 - output;
       }
       break;
@@ -1531,34 +1402,28 @@ static float check_zone(WipeZone *wipezone, int x, int y, Sequence *seq, float f
        * temp4: angle of high side of blur
        */
       output = 1.0f - fac;
-      widthf = wipe->edgeWidth * 2.0f * float(M_PI);
+      widthf = wipezone->clockWidth;
       temp1 = 2.0f * float(M_PI) * fac;
 
-      if (wipe->forward) {
+      if (wipezone->forward) {
         temp1 = 2.0f * float(M_PI) - temp1;
       }
 
       x = x - halfx;
       y = y - halfy;
 
-      temp2 = asin(abs(y) / hypot(x, y));
-      if (x <= 0 && y >= 0) {
-        temp2 = float(M_PI) - temp2;
-      }
-      else if (x <= 0 && y <= 0) {
-        temp2 += float(M_PI);
-      }
-      else if (x >= 0 && y <= 0) {
-        temp2 = 2.0f * float(M_PI) - temp2;
+      temp2 = atan2f(y, x);
+      if (temp2 < 0.0f) {
+        temp2 += 2.0f * float(M_PI);
       }
 
-      if (wipe->forward) {
-        temp3 = temp1 - (widthf * 0.5f) * fac;
-        temp4 = temp1 + (widthf * 0.5f) * (1 - fac);
+      if (wipezone->forward) {
+        temp3 = temp1 - widthf * fac;
+        temp4 = temp1 + widthf * (1 - fac);
       }
       else {
-        temp3 = temp1 - (widthf * 0.5f) * (1 - fac);
-        temp4 = temp1 + (widthf * 0.5f) * fac;
+        temp3 = temp1 - widthf * (1 - fac);
+        temp4 = temp1 + widthf * fac;
       }
       if (temp3 < 0) {
         temp3 = 0;
@@ -1582,7 +1447,7 @@ static float check_zone(WipeZone *wipezone, int x, int y, Sequence *seq, float f
       if (output != output) {
         output = 1;
       }
-      if (wipe->forward) {
+      if (wipezone->forward) {
         output = 1 - output;
       }
       break;
@@ -1594,7 +1459,7 @@ static float check_zone(WipeZone *wipezone, int x, int y, Sequence *seq, float f
         xo = yo;
       }
 
-      if (!wipe->forward) {
+      if (!wipezone->forward) {
         fac = 1 - fac;
       }
 
@@ -1612,7 +1477,7 @@ static float check_zone(WipeZone *wipezone, int x, int y, Sequence *seq, float f
         output = in_band(hwidth, fabsf(temp2 - pointdist), 1, 1);
       }
 
-      if (!wipe->forward) {
+      if (!wipezone->forward) {
         output = 1 - output;
       }
 
@@ -1651,119 +1516,131 @@ static void copy_wipe_effect(Sequence *dst, Sequence *src, const int /*flag*/)
   dst->effectdata = MEM_dupallocN(src->effectdata);
 }
 
-static void do_wipe_effect_byte(
-    Sequence *seq, float fac, int x, int y, uchar *rect1, uchar *rect2, uchar *out)
+static void do_wipe_effect_byte(const Sequence *seq,
+                                float fac,
+                                int width,
+                                int height,
+                                const uchar *rect1,
+                                const uchar *rect2,
+                                uchar *out)
 {
-  WipeZone wipezone;
-  WipeVars *wipe = (WipeVars *)seq->effectdata;
-  precalc_wipe_zone(&wipezone, wipe, x, y);
+  using namespace blender;
+  const WipeVars *wipe = (const WipeVars *)seq->effectdata;
+  const WipeZone wipezone = precalc_wipe_zone(wipe, width, height);
 
-  uchar *cp1 = rect1;
-  uchar *cp2 = rect2;
-  uchar *rt = out;
+  threading::parallel_for(IndexRange(height), 64, [&](const IndexRange y_range) {
+    const uchar *cp1 = rect1 + y_range.first() * width * 4;
+    const uchar *cp2 = rect2 + y_range.first() * width * 4;
+    uchar *rt = out + y_range.first() * width * 4;
+    for (const int y : y_range) {
+      for (int x = 0; x < width; x++) {
+        float check = check_zone(&wipezone, x, y, fac);
+        if (check) {
+          if (cp1) {
+            float rt1[4], rt2[4], tempc[4];
 
-  for (int i = 0; i < y; i++) {
-    for (int j = 0; j < x; j++) {
-      float check = check_zone(&wipezone, j, i, seq, fac);
-      if (check) {
-        if (cp1) {
-          float rt1[4], rt2[4], tempc[4];
+            straight_uchar_to_premul_float(rt1, cp1);
+            straight_uchar_to_premul_float(rt2, cp2);
 
-          straight_uchar_to_premul_float(rt1, cp1);
-          straight_uchar_to_premul_float(rt2, cp2);
+            tempc[0] = rt1[0] * check + rt2[0] * (1 - check);
+            tempc[1] = rt1[1] * check + rt2[1] * (1 - check);
+            tempc[2] = rt1[2] * check + rt2[2] * (1 - check);
+            tempc[3] = rt1[3] * check + rt2[3] * (1 - check);
 
-          tempc[0] = rt1[0] * check + rt2[0] * (1 - check);
-          tempc[1] = rt1[1] * check + rt2[1] * (1 - check);
-          tempc[2] = rt1[2] * check + rt2[2] * (1 - check);
-          tempc[3] = rt1[3] * check + rt2[3] * (1 - check);
-
-          premul_float_to_straight_uchar(rt, tempc);
+            premul_float_to_straight_uchar(rt, tempc);
+          }
+          else {
+            rt[0] = 0;
+            rt[1] = 0;
+            rt[2] = 0;
+            rt[3] = 255;
+          }
         }
         else {
-          rt[0] = 0;
-          rt[1] = 0;
-          rt[2] = 0;
-          rt[3] = 255;
+          if (cp2) {
+            rt[0] = cp2[0];
+            rt[1] = cp2[1];
+            rt[2] = cp2[2];
+            rt[3] = cp2[3];
+          }
+          else {
+            rt[0] = 0;
+            rt[1] = 0;
+            rt[2] = 0;
+            rt[3] = 255;
+          }
         }
-      }
-      else {
-        if (cp2) {
-          rt[0] = cp2[0];
-          rt[1] = cp2[1];
-          rt[2] = cp2[2];
-          rt[3] = cp2[3];
-        }
-        else {
-          rt[0] = 0;
-          rt[1] = 0;
-          rt[2] = 0;
-          rt[3] = 255;
-        }
-      }
 
-      rt += 4;
-      if (cp1 != nullptr) {
-        cp1 += 4;
-      }
-      if (cp2 != nullptr) {
-        cp2 += 4;
+        rt += 4;
+        if (cp1 != nullptr) {
+          cp1 += 4;
+        }
+        if (cp2 != nullptr) {
+          cp2 += 4;
+        }
       }
     }
-  }
+  });
 }
 
-static void do_wipe_effect_float(
-    Sequence *seq, float fac, int x, int y, float *rect1, float *rect2, float *out)
+static void do_wipe_effect_float(Sequence *seq,
+                                 float fac,
+                                 int width,
+                                 int height,
+                                 const float *rect1,
+                                 const float *rect2,
+                                 float *out)
 {
-  WipeZone wipezone;
-  WipeVars *wipe = (WipeVars *)seq->effectdata;
-  precalc_wipe_zone(&wipezone, wipe, x, y);
+  using namespace blender;
+  const WipeVars *wipe = (const WipeVars *)seq->effectdata;
+  const WipeZone wipezone = precalc_wipe_zone(wipe, width, height);
 
-  float *rt1 = rect1;
-  float *rt2 = rect2;
-  float *rt = out;
-
-  for (int i = 0; i < y; i++) {
-    for (int j = 0; j < x; j++) {
-      float check = check_zone(&wipezone, j, i, seq, fac);
-      if (check) {
-        if (rt1) {
-          rt[0] = rt1[0] * check + rt2[0] * (1 - check);
-          rt[1] = rt1[1] * check + rt2[1] * (1 - check);
-          rt[2] = rt1[2] * check + rt2[2] * (1 - check);
-          rt[3] = rt1[3] * check + rt2[3] * (1 - check);
+  threading::parallel_for(IndexRange(height), 64, [&](const IndexRange y_range) {
+    const float *rt1 = rect1 + y_range.first() * width * 4;
+    const float *rt2 = rect2 + y_range.first() * width * 4;
+    float *rt = out + y_range.first() * width * 4;
+    for (const int y : y_range) {
+      for (int x = 0; x < width; x++) {
+        float check = check_zone(&wipezone, x, y, fac);
+        if (check) {
+          if (rt1) {
+            rt[0] = rt1[0] * check + rt2[0] * (1 - check);
+            rt[1] = rt1[1] * check + rt2[1] * (1 - check);
+            rt[2] = rt1[2] * check + rt2[2] * (1 - check);
+            rt[3] = rt1[3] * check + rt2[3] * (1 - check);
+          }
+          else {
+            rt[0] = 0;
+            rt[1] = 0;
+            rt[2] = 0;
+            rt[3] = 1.0;
+          }
         }
         else {
-          rt[0] = 0;
-          rt[1] = 0;
-          rt[2] = 0;
-          rt[3] = 1.0;
+          if (rt2) {
+            rt[0] = rt2[0];
+            rt[1] = rt2[1];
+            rt[2] = rt2[2];
+            rt[3] = rt2[3];
+          }
+          else {
+            rt[0] = 0;
+            rt[1] = 0;
+            rt[2] = 0;
+            rt[3] = 1.0;
+          }
         }
-      }
-      else {
-        if (rt2) {
-          rt[0] = rt2[0];
-          rt[1] = rt2[1];
-          rt[2] = rt2[2];
-          rt[3] = rt2[3];
-        }
-        else {
-          rt[0] = 0;
-          rt[1] = 0;
-          rt[2] = 0;
-          rt[3] = 1.0;
-        }
-      }
 
-      rt += 4;
-      if (rt1 != nullptr) {
-        rt1 += 4;
-      }
-      if (rt2 != nullptr) {
-        rt2 += 4;
+        rt += 4;
+        if (rt1 != nullptr) {
+          rt1 += 4;
+        }
+        if (rt2 != nullptr) {
+          rt2 += 4;
+        }
       }
     }
-  }
+  });
 }
 
 static ImBuf *do_wipe_effect(const SeqRenderData *context,
@@ -1960,20 +1837,14 @@ static void do_transform_effect(const SeqRenderData *context,
 /** \name Glow Effect
  * \{ */
 
-static void RVBlurBitmap2_float(float *map, int width, int height, float blur, int quality)
+static void glow_blur_bitmap(const blender::float4 *src,
+                             blender::float4 *map,
+                             int width,
+                             int height,
+                             float blur,
+                             int quality)
 {
-  /* Much better than the previous blur!
-   * We do the blurring in two passes which is a whole lot faster.
-   * I changed the math around to implement an actual Gaussian distribution.
-   *
-   * Watch out though, it tends to misbehave with large blur values on
-   * a small bitmap. Avoid! */
-
-  float *temp = nullptr, *swap;
-  float *filter = nullptr;
-  int x, y, i, fx, fy;
-  int index, ix, halfWidth;
-  float fval, k, curColor[4], curColor2[4], weight = 0;
+  using namespace blender;
 
   /* If we're not really blurring, bail out */
   if (blur <= 0) {
@@ -1981,183 +1852,95 @@ static void RVBlurBitmap2_float(float *map, int width, int height, float blur, i
   }
 
   /* If result would be no blurring, early out. */
-  halfWidth = ((quality + 1) * blur);
+  const int halfWidth = ((quality + 1) * blur);
   if (halfWidth == 0) {
     return;
   }
 
-  /* Allocate memory for the temp-map and the blur filter matrix. */
-  temp = static_cast<float *>(MEM_mallocN(sizeof(float[4]) * width * height, "blurbitmaptemp"));
-  if (!temp) {
-    return;
-  }
+  Array<float4> temp(width * height);
 
-  /* Allocate memory for the filter elements */
-  filter = (float *)MEM_mallocN(sizeof(float) * halfWidth * 2, "blurbitmapfilter");
-  if (!filter) {
-    MEM_freeN(temp);
-    return;
-  }
-
-  /* Apparently we're calculating a bell curve based on the standard deviation (or radius)
-   * This code is based on an example posted to comp.graphics.algorithms by
-   * Blancmange <bmange@airdmhor.gen.nz>
-   */
-
-  k = -1.0f / (2.0f * float(M_PI) * blur * blur);
-
-  for (ix = 0; ix < halfWidth; ix++) {
+  /* Initialize the gaussian filter. @TODO: use code from RE_filter_value */
+  Array<float> filter(halfWidth * 2);
+  const float k = -1.0f / (2.0f * float(M_PI) * blur * blur);
+  float weight = 0;
+  for (int ix = 0; ix < halfWidth; ix++) {
     weight = float(exp(k * (ix * ix)));
     filter[halfWidth - ix] = weight;
     filter[halfWidth + ix] = weight;
   }
   filter[0] = weight;
-
   /* Normalize the array */
-  fval = 0;
-  for (ix = 0; ix < halfWidth * 2; ix++) {
+  float fval = 0;
+  for (int ix = 0; ix < halfWidth * 2; ix++) {
     fval += filter[ix];
   }
-
-  for (ix = 0; ix < halfWidth * 2; ix++) {
+  for (int ix = 0; ix < halfWidth * 2; ix++) {
     filter[ix] /= fval;
   }
 
-  /* Blur the rows */
-  for (y = 0; y < height; y++) {
-    /* Do the left & right strips */
-    for (x = 0; x < halfWidth; x++) {
-      fx = 0;
-      zero_v4(curColor);
-      zero_v4(curColor2);
-
-      for (i = x - halfWidth; i < x + halfWidth; i++) {
-        if ((i >= 0) && (i < width)) {
-          index = (i + y * width) * 4;
-          madd_v4_v4fl(curColor, map + index, filter[fx]);
-
-          index = (width - 1 - i + y * width) * 4;
-          madd_v4_v4fl(curColor2, map + index, filter[fx]);
+  /* Blur the rows: read map, write temp */
+  threading::parallel_for(IndexRange(height), 32, [&](const IndexRange y_range) {
+    for (const int y : y_range) {
+      for (int x = 0; x < width; x++) {
+        float4 curColor = float4(0.0f);
+        int xmin = math::max(x - halfWidth, 0);
+        int xmax = math::min(x + halfWidth, width);
+        for (int nx = xmin, index = (xmin - x) + halfWidth; nx < xmax; nx++, index++) {
+          curColor += map[nx + y * width] * filter[index];
         }
-        fx++;
+        temp[x + y * width] = curColor;
       }
-      index = (x + y * width) * 4;
-      copy_v4_v4(temp + index, curColor);
-
-      index = (width - 1 - x + y * width) * 4;
-      copy_v4_v4(temp + index, curColor2);
     }
+  });
 
-    /* Do the main body */
-    for (x = halfWidth; x < width - halfWidth; x++) {
-      fx = 0;
-      zero_v4(curColor);
-      for (i = x - halfWidth; i < x + halfWidth; i++) {
-        index = (i + y * width) * 4;
-        madd_v4_v4fl(curColor, map + index, filter[fx]);
-        fx++;
-      }
-      index = (x + y * width) * 4;
-      copy_v4_v4(temp + index, curColor);
-    }
-  }
-
-  /* Swap buffers */
-  swap = temp;
-  temp = map;
-  map = swap;
-
-  /* Blur the columns */
-  for (x = 0; x < width; x++) {
-    /* Do the top & bottom strips */
-    for (y = 0; y < halfWidth; y++) {
-      fy = 0;
-      zero_v4(curColor);
-      zero_v4(curColor2);
-      for (i = y - halfWidth; i < y + halfWidth; i++) {
-        if ((i >= 0) && (i < height)) {
-          /* Bottom */
-          index = (x + i * width) * 4;
-          madd_v4_v4fl(curColor, map + index, filter[fy]);
-
-          /* Top */
-          index = (x + (height - 1 - i) * width) * 4;
-          madd_v4_v4fl(curColor2, map + index, filter[fy]);
+  /* Blur the columns: read temp, write map */
+  threading::parallel_for(IndexRange(width), 32, [&](const IndexRange x_range) {
+    const float4 one = float4(1.0f);
+    for (const int x : x_range) {
+      for (int y = 0; y < height; y++) {
+        float4 curColor = float4(0.0f);
+        int ymin = math::max(y - halfWidth, 0);
+        int ymax = math::min(y + halfWidth, height);
+        for (int ny = ymin, index = (ymin - y) + halfWidth; ny < ymax; ny++, index++) {
+          curColor += temp[x + ny * width] * filter[index];
         }
-        fy++;
+        if (src != nullptr) {
+          curColor = math::min(one, src[x + y * width] + curColor);
+        }
+        map[x + y * width] = curColor;
       }
-      index = (x + y * width) * 4;
-      copy_v4_v4(temp + index, curColor);
-
-      index = (x + (height - 1 - y) * width) * 4;
-      copy_v4_v4(temp + index, curColor2);
     }
-
-    /* Do the main body */
-    for (y = halfWidth; y < height - halfWidth; y++) {
-      fy = 0;
-      zero_v4(curColor);
-      for (i = y - halfWidth; i < y + halfWidth; i++) {
-        index = (x + i * width) * 4;
-        madd_v4_v4fl(curColor, map + index, filter[fy]);
-        fy++;
-      }
-      index = (x + y * width) * 4;
-      copy_v4_v4(temp + index, curColor);
-    }
-  }
-
-  /* Swap buffers */
-  swap = temp;
-  temp = map;
-  // map = swap; /* UNUSED. */
-
-  /* Tidy up. */
-  MEM_freeN(filter);
-  MEM_freeN(temp);
+  });
 }
 
-static void RVAddBitmaps_float(float *a, float *b, float *c, int width, int height)
+static void blur_isolate_highlights(const blender::float4 *in,
+                                    blender::float4 *out,
+                                    int width,
+                                    int height,
+                                    float threshold,
+                                    float boost,
+                                    float clamp)
 {
-  int x, y, index;
+  using namespace blender;
+  threading::parallel_for(IndexRange(height), 64, [&](const IndexRange y_range) {
+    const float4 clampv = float4(clamp);
+    for (const int y : y_range) {
+      int index = y * width;
+      for (int x = 0; x < width; x++, index++) {
 
-  for (y = 0; y < height; y++) {
-    for (x = 0; x < width; x++) {
-      index = (x + y * width) * 4;
-      c[index + GlowR] = min_ff(1.0f, a[index + GlowR] + b[index + GlowR]);
-      c[index + GlowG] = min_ff(1.0f, a[index + GlowG] + b[index + GlowG]);
-      c[index + GlowB] = min_ff(1.0f, a[index + GlowB] + b[index + GlowB]);
-      c[index + GlowA] = min_ff(1.0f, a[index + GlowA] + b[index + GlowA]);
-    }
-  }
-}
-
-static void RVIsolateHighlights_float(
-    const float *in, float *out, int width, int height, float threshold, float boost, float clamp)
-{
-  int x, y, index;
-  float intensity;
-
-  for (y = 0; y < height; y++) {
-    for (x = 0; x < width; x++) {
-      index = (x + y * width) * 4;
-
-      /* Isolate the intensity */
-      intensity = (in[index + GlowR] + in[index + GlowG] + in[index + GlowB] - threshold);
-      if (intensity > 0) {
-        out[index + GlowR] = min_ff(clamp, (in[index + GlowR] * boost * intensity));
-        out[index + GlowG] = min_ff(clamp, (in[index + GlowG] * boost * intensity));
-        out[index + GlowB] = min_ff(clamp, (in[index + GlowB] * boost * intensity));
-        out[index + GlowA] = min_ff(clamp, (in[index + GlowA] * boost * intensity));
-      }
-      else {
-        out[index + GlowR] = 0;
-        out[index + GlowG] = 0;
-        out[index + GlowB] = 0;
-        out[index + GlowA] = 0;
+        /* Isolate the intensity */
+        float intensity = (in[index].x + in[index].y + in[index].z - threshold);
+        float4 val;
+        if (intensity > 0) {
+          val = math::min(clampv, in[index] * (boost * intensity));
+        }
+        else {
+          val = float4(0.0f);
+        }
+        out[index] = val;
       }
     }
-  }
+  });
 }
 
 static void init_glow_effect(Sequence *seq)
@@ -2203,28 +1986,38 @@ static void do_glow_effect_byte(Sequence *seq,
                                 uchar * /*rect2*/,
                                 uchar *out)
 {
-  float *outbuf, *inbuf;
+  using namespace blender;
   GlowVars *glow = (GlowVars *)seq->effectdata;
 
-  inbuf = static_cast<float *>(MEM_mallocN(sizeof(float[4]) * x * y, "glow effect input"));
-  outbuf = static_cast<float *>(MEM_mallocN(sizeof(float[4]) * x * y, "glow effect output"));
+  Array<float4> inbuf(x * y);
+  Array<float4> outbuf(x * y);
 
-  IMB_buffer_float_from_byte(inbuf, rect1, IB_PROFILE_SRGB, IB_PROFILE_SRGB, false, x, y, x, x);
-  IMB_buffer_float_premultiply(inbuf, x, y);
+  using namespace blender;
+  IMB_colormanagement_transform_from_byte_threaded(*inbuf.data(), rect1, x, y, 4, "sRGB", "sRGB");
 
-  RVIsolateHighlights_float(
-      inbuf, outbuf, x, y, glow->fMini * 3.0f, glow->fBoost * fac, glow->fClamp);
-  RVBlurBitmap2_float(outbuf, x, y, glow->dDist * (render_size / 100.0f), glow->dQuality);
-  if (!glow->bNoComp) {
-    RVAddBitmaps_float(inbuf, outbuf, outbuf, x, y);
-  }
+  blur_isolate_highlights(
+      inbuf.data(), outbuf.data(), x, y, glow->fMini * 3.0f, glow->fBoost * fac, glow->fClamp);
+  glow_blur_bitmap(glow->bNoComp ? nullptr : inbuf.data(),
+                   outbuf.data(),
+                   x,
+                   y,
+                   glow->dDist * (render_size / 100.0f),
+                   glow->dQuality);
 
-  IMB_buffer_float_unpremultiply(outbuf, x, y);
-  IMB_buffer_byte_from_float(
-      out, outbuf, 4, 0.0f, IB_PROFILE_SRGB, IB_PROFILE_SRGB, false, x, y, x, x);
-
-  MEM_freeN(inbuf);
-  MEM_freeN(outbuf);
+  threading::parallel_for(IndexRange(y), 64, [&](const IndexRange y_range) {
+    size_t offset = y_range.first() * x;
+    IMB_buffer_byte_from_float(out + offset * 4,
+                               *(outbuf.data() + offset),
+                               4,
+                               0.0f,
+                               IB_PROFILE_SRGB,
+                               IB_PROFILE_SRGB,
+                               true,
+                               x,
+                               y_range.size(),
+                               x,
+                               x);
+  });
 }
 
 static void do_glow_effect_float(Sequence *seq,
@@ -2236,16 +2029,19 @@ static void do_glow_effect_float(Sequence *seq,
                                  float * /*rect2*/,
                                  float *out)
 {
-  float *outbuf = out;
-  float *inbuf = rect1;
+  using namespace blender;
+  float4 *outbuf = reinterpret_cast<float4 *>(out);
+  float4 *inbuf = reinterpret_cast<float4 *>(rect1);
   GlowVars *glow = (GlowVars *)seq->effectdata;
 
-  RVIsolateHighlights_float(
+  blur_isolate_highlights(
       inbuf, outbuf, x, y, glow->fMini * 3.0f, glow->fBoost * fac, glow->fClamp);
-  RVBlurBitmap2_float(outbuf, x, y, glow->dDist * (render_size / 100.0f), glow->dQuality);
-  if (!glow->bNoComp) {
-    RVAddBitmaps_float(inbuf, outbuf, outbuf, x, y);
-  }
+  glow_blur_bitmap(glow->bNoComp ? nullptr : inbuf,
+                   outbuf,
+                   x,
+                   y,
+                   glow->dDist * (render_size / 100.0f),
+                   glow->dQuality);
 }
 
 static ImBuf *do_glow_effect(const SeqRenderData *context,
@@ -3543,9 +3339,6 @@ static SeqEffectHandle get_sequence_effect_impl(int seq_type)
       break;
     case SEQ_TYPE_GAMCROSS:
       rval.multithreaded = true;
-      rval.init = init_gammacross;
-      rval.load = load_gammacross;
-      rval.free = free_gammacross;
       rval.early_out = early_out_fade;
       rval.get_default_fac = get_default_fac_fade;
       rval.init_execution = gammacross_init_execution;

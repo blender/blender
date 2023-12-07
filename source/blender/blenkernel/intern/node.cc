@@ -3406,7 +3406,7 @@ static void free_localized_node_groups(bNodeTree *ntree)
 {
   /* Only localized node trees store a copy for each node group tree.
    * Each node group tree in a localized node tree can be freed,
-   * since it is a localized copy itself (no risk of accessing free'd
+   * since it is a localized copy itself (no risk of accessing freed
    * data in main, see #37939). */
   if (!(ntree->id.tag & LIB_TAG_LOCALIZED)) {
     return;

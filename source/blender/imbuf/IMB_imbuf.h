@@ -643,8 +643,6 @@ void IMB_buffer_byte_from_byte(unsigned char *rect_to,
                                int height,
                                int stride_to,
                                int stride_from);
-void IMB_buffer_float_unpremultiply(float *buf, int width, int height);
-void IMB_buffer_float_premultiply(float *buf, int width, int height);
 
 /**
  * Change the ordering of the color bytes pointed to by rect from

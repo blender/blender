@@ -576,11 +576,7 @@ static const EnumPropertyItem node_cryptomatte_layer_name_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-#endif
-
-#ifndef RNA_RUNTIME
-
-#endif
+#endif /* !RNA_RUNTIME */
 
 #undef ITEM_ATTRIBUTE
 #undef ITEM_FLOAT
