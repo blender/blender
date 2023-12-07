@@ -94,12 +94,22 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_film_cryptomatte_post";
     case DEFERRED_COMBINE:
       return "eevee_deferred_combine";
-    case DEFERRED_LIGHT:
-      return "eevee_deferred_light";
+    case DEFERRED_LIGHT_SINGLE:
+      return "eevee_deferred_light_single";
+    case DEFERRED_LIGHT_DOUBLE:
+      return "eevee_deferred_light_double";
+    case DEFERRED_LIGHT_TRIPLE:
+      return "eevee_deferred_light_triple";
     case DEFERRED_CAPTURE_EVAL:
       return "eevee_deferred_capture_eval";
     case DEFERRED_PLANAR_EVAL:
       return "eevee_deferred_planar_eval";
+    case DEFERRED_TILE_CLASSIFY:
+      return "eevee_deferred_tile_classify";
+    case DEFERRED_TILE_COMPACT:
+      return "eevee_deferred_tile_compact";
+    case DEFERRED_TILE_STENCIL:
+      return "eevee_deferred_tile_stencil";
     case HIZ_DEBUG:
       return "eevee_hiz_debug";
     case HIZ_UPDATE:

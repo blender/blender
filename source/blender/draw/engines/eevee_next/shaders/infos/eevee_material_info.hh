@@ -153,7 +153,7 @@ GPU_SHADER_CREATE_INFO(eevee_surf_deferred)
     .early_fragment_test(true)
     /* Direct output. (Emissive, Holdout) */
     .fragment_out(0, Type::VEC4, "out_radiance")
-    .fragment_out(1, Type::UINT, "out_gbuf_header")
+    .fragment_out(1, Type::UINT, "out_gbuf_header", DualBlend::NONE, DEFERRED_GBUFFER_ROG_ID)
     .fragment_out(2, Type::VEC4, "out_gbuf_color")
     .fragment_out(3, Type::VEC4, "out_gbuf_closure")
     /* Everything is stored inside a two layered target, one for each format. This is to fit the

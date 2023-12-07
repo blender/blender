@@ -445,27 +445,27 @@ void DeferredLayer::begin_sync()
   }
   {
     gbuffer_ps_.init();
+    gbuffer_ps_.subpass_transition(GPU_ATTACHEMENT_WRITE,
+                                   {GPU_ATTACHEMENT_WRITE,
+                                    GPU_ATTACHEMENT_WRITE,
+                                    GPU_ATTACHEMENT_WRITE,
+                                    GPU_ATTACHEMENT_WRITE});
+    /* G-buffer. */
+    gbuffer_ps_.bind_image(GBUF_CLOSURE_SLOT, &inst_.gbuffer.closure_img_tx);
+    gbuffer_ps_.bind_image(GBUF_COLOR_SLOT, &inst_.gbuffer.color_img_tx);
+    /* RenderPasses & AOVs. */
+    gbuffer_ps_.bind_image(RBUFS_COLOR_SLOT, &inst_.render_buffers.rp_color_tx);
+    gbuffer_ps_.bind_image(RBUFS_VALUE_SLOT, &inst_.render_buffers.rp_value_tx);
+    /* Cryptomatte. */
+    gbuffer_ps_.bind_image(RBUFS_CRYPTOMATTE_SLOT, &inst_.render_buffers.cryptomatte_tx);
+    /* Storage Buffer. */
+    /* Textures. */
+    gbuffer_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
 
-    {
-      /* Common resources. */
-
-      /* G-buffer. */
-      gbuffer_ps_.bind_image(GBUF_CLOSURE_SLOT, &inst_.gbuffer.closure_img_tx);
-      gbuffer_ps_.bind_image(GBUF_COLOR_SLOT, &inst_.gbuffer.color_img_tx);
-      /* RenderPasses & AOVs. */
-      gbuffer_ps_.bind_image(RBUFS_COLOR_SLOT, &inst_.render_buffers.rp_color_tx);
-      gbuffer_ps_.bind_image(RBUFS_VALUE_SLOT, &inst_.render_buffers.rp_value_tx);
-      /* Cryptomatte. */
-      gbuffer_ps_.bind_image(RBUFS_CRYPTOMATTE_SLOT, &inst_.render_buffers.cryptomatte_tx);
-      /* Storage Buffer. */
-      /* Textures. */
-      gbuffer_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
-
-      inst_.bind_uniform_data(&gbuffer_ps_);
-      inst_.sampling.bind_resources(gbuffer_ps_);
-      inst_.hiz_buffer.bind_resources(gbuffer_ps_);
-      inst_.cryptomatte.bind_resources(gbuffer_ps_);
-    }
+    inst_.bind_uniform_data(&gbuffer_ps_);
+    inst_.sampling.bind_resources(gbuffer_ps_);
+    inst_.hiz_buffer.bind_resources(gbuffer_ps_);
+    inst_.cryptomatte.bind_resources(gbuffer_ps_);
 
     DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL;
 
@@ -483,27 +483,85 @@ void DeferredLayer::end_sync()
 {
   eClosureBits evaluated_closures = CLOSURE_DIFFUSE | CLOSURE_REFLECTION | CLOSURE_REFRACTION;
   if (closure_bits_ & evaluated_closures) {
+    /* First add the tile classification step at the end of the GBuffer pass. */
+    {
+      /* Fill tile mask texture with the collected closure present in a tile. */
+      PassMain::Sub &sub = gbuffer_ps_.sub("TileClassify");
+      sub.subpass_transition(GPU_ATTACHEMENT_WRITE, /* Needed for depth test. */
+                             {GPU_ATTACHEMENT_IGNORE,
+                              GPU_ATTACHEMENT_READ, /* Header. */
+                              GPU_ATTACHEMENT_IGNORE,
+                              GPU_ATTACHEMENT_IGNORE});
+      /* Use depth test to reject background pixels. */
+      /* WORKAROUND: Avoid rasterizer discard, but the shaders actually use no fragment output. */
+      sub.state_set(DRW_STATE_WRITE_STENCIL | DRW_STATE_DEPTH_GREATER);
+      sub.shader_set(inst_.shaders.static_shader_get(DEFERRED_TILE_CLASSIFY));
+      sub.bind_image("tile_mask_img", &tile_mask_tx_);
+      sub.push_constant("closure_tile_size_shift", &closure_tile_size_shift_);
+      sub.barrier(GPU_BARRIER_TEXTURE_FETCH);
+      sub.draw_procedural(GPU_PRIM_TRIS, 1, 3);
+    }
+    {
+      PassMain::Sub &sub = gbuffer_ps_.sub("TileCompaction");
+      /* Use rasterizer discard. This processes the tile data to create tile command lists. */
+      sub.state_set(DRW_STATE_NO_DRAW);
+      sub.shader_set(inst_.shaders.static_shader_get(DEFERRED_TILE_COMPACT));
+      sub.bind_texture("tile_mask_tx", &tile_mask_tx_);
+      sub.bind_ssbo("closure_single_tile_buf", &closure_bufs_[0].tile_buf_);
+      sub.bind_ssbo("closure_single_draw_buf", &closure_bufs_[0].draw_buf_);
+      sub.bind_ssbo("closure_double_tile_buf", &closure_bufs_[1].tile_buf_);
+      sub.bind_ssbo("closure_double_draw_buf", &closure_bufs_[1].draw_buf_);
+      sub.bind_ssbo("closure_triple_tile_buf", &closure_bufs_[2].tile_buf_);
+      sub.bind_ssbo("closure_triple_draw_buf", &closure_bufs_[2].draw_buf_);
+      sub.barrier(GPU_BARRIER_TEXTURE_FETCH);
+      sub.draw_procedural(GPU_PRIM_POINTS, 1, max_lighting_tile_count_);
+    }
+
     {
       PassSimple &pass = eval_light_ps_;
       pass.init();
-      /* Use depth test to reject background pixels. */
-      /* WORKAROUND: Avoid rasterizer discard, but the shaders actually use no fragment output. */
-      pass.state_set(DRW_STATE_WRITE_STENCIL | DRW_STATE_DEPTH_GREATER);
-      pass.shader_set(inst_.shaders.static_shader_get(DEFERRED_LIGHT));
-      pass.bind_image("direct_diffuse_img", &direct_diffuse_tx_);
-      pass.bind_image("direct_reflect_img", &direct_reflect_tx_);
-      pass.bind_image("direct_refract_img", &direct_refract_tx_);
-      pass.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
-      pass.bind_image(RBUFS_COLOR_SLOT, &inst_.render_buffers.rp_color_tx);
-      pass.bind_image(RBUFS_VALUE_SLOT, &inst_.render_buffers.rp_value_tx);
-      inst_.bind_uniform_data(&pass);
-      inst_.gbuffer.bind_resources(pass);
-      inst_.lights.bind_resources(pass);
-      inst_.shadows.bind_resources(pass);
-      inst_.sampling.bind_resources(pass);
-      inst_.hiz_buffer.bind_resources(pass);
-      pass.barrier(GPU_BARRIER_TEXTURE_FETCH | GPU_BARRIER_SHADER_IMAGE_ACCESS);
-      pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);
+
+      {
+        PassSimple::Sub &sub = pass.sub("StencilSet");
+        sub.state_set(DRW_STATE_WRITE_STENCIL | DRW_STATE_STENCIL_ALWAYS |
+                      DRW_STATE_DEPTH_GREATER);
+        sub.shader_set(inst_.shaders.static_shader_get(DEFERRED_TILE_STENCIL));
+        sub.push_constant("closure_tile_size_shift", &closure_tile_size_shift_);
+        sub.bind_texture("direct_radiance_tx", &direct_radiance_txs_[0]);
+        /* Set stencil value for each tile complexity level. */
+        for (int i = 0; i < ARRAY_SIZE(closure_bufs_); i++) {
+          sub.bind_ssbo("closure_tile_buf", &closure_bufs_[i].tile_buf_);
+          sub.state_stencil(0xFFu, 1u << i, 0xFFu);
+          sub.draw_procedural_indirect(GPU_PRIM_TRIS, closure_bufs_[i].draw_buf_);
+        }
+      }
+      {
+        PassSimple::Sub &sub = pass.sub("Eval");
+        /* Use depth test to reject background pixels which have not been stencil cleared. */
+        /* WORKAROUND: Avoid rasterizer discard by enabling stencil write, but the shaders actually
+         * use no fragment output. */
+        sub.state_set(DRW_STATE_WRITE_STENCIL | DRW_STATE_STENCIL_EQUAL | DRW_STATE_DEPTH_GREATER);
+        sub.barrier(GPU_BARRIER_SHADER_STORAGE);
+        sub.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
+        sub.bind_image(RBUFS_COLOR_SLOT, &inst_.render_buffers.rp_color_tx);
+        sub.bind_image(RBUFS_VALUE_SLOT, &inst_.render_buffers.rp_value_tx);
+        /* Submit the more costly ones first to avoid long tail in occupancy.
+         * See page 78 of "Siggraph 2023: Unreal Engine Substrate" by Hillaire & de Rousiers. */
+        for (int i = ARRAY_SIZE(closure_bufs_) - 1; i >= 0; i--) {
+          sub.shader_set(inst_.shaders.static_shader_get(eShaderType(DEFERRED_LIGHT_SINGLE + i)));
+          sub.bind_image("direct_radiance_1_img", &direct_radiance_txs_[0]);
+          sub.bind_image("direct_radiance_2_img", &direct_radiance_txs_[1]);
+          sub.bind_image("direct_radiance_3_img", &direct_radiance_txs_[2]);
+          inst_.bind_uniform_data(&sub);
+          inst_.gbuffer.bind_resources(sub);
+          inst_.lights.bind_resources(sub);
+          inst_.shadows.bind_resources(sub);
+          inst_.sampling.bind_resources(sub);
+          inst_.hiz_buffer.bind_resources(sub);
+          sub.state_stencil(0xFFu, 1u << i, 0xFFu);
+          sub.draw_procedural(GPU_PRIM_TRIS, 1, 3);
+        }
+      }
     }
     {
       PassSimple &pass = combine_ps_;
@@ -511,9 +569,9 @@ void DeferredLayer::end_sync()
       /* Use depth test to reject background pixels. */
       pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_GREATER | DRW_STATE_BLEND_ADD_FULL);
       pass.shader_set(inst_.shaders.static_shader_get(DEFERRED_COMBINE));
-      pass.bind_image("direct_diffuse_img", &direct_diffuse_tx_);
-      pass.bind_image("direct_reflect_img", &direct_reflect_tx_);
-      pass.bind_image("direct_refract_img", &direct_refract_tx_);
+      pass.bind_image("direct_radiance_1_img", &direct_radiance_txs_[0]);
+      pass.bind_image("direct_radiance_2_img", &direct_radiance_txs_[1]);
+      pass.bind_image("direct_radiance_3_img", &direct_radiance_txs_[2]);
       pass.bind_image("indirect_diffuse_img", &indirect_diffuse_tx_);
       pass.bind_image("indirect_reflect_img", &indirect_reflect_tx_);
       pass.bind_image("indirect_refract_img", &indirect_refract_tx_);
@@ -566,6 +624,7 @@ void DeferredLayer::render(View &main_view,
    * environment. So in this case, disable tracing and fallback to probe. */
   bool do_screen_space_refraction = !is_first_pass && (closure_bits_ & CLOSURE_REFRACTION);
   bool do_screen_space_reflection = (closure_bits_ & CLOSURE_REFLECTION);
+  eGPUTextureUsage usage_rw = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE;
 
   if (do_screen_space_reflection) {
     /* TODO(fclem): Verify if GPU_TEXTURE_USAGE_ATTACHMENT is needed for the copy and the clear. */
@@ -609,13 +668,32 @@ void DeferredLayer::render(View &main_view,
     }
   }
 
-  if (/* FIXME(fclem): Metal doesn't clear the whole framebuffer correctly. */
-      GPU_backend_get_type() == GPU_BACKEND_METAL ||
-      /* FIXME(fclem): Vulkan doesn't implement load / store config yet. */
+  if (/* FIXME(fclem): Vulkan doesn't implement load / store config yet. */
       GPU_backend_get_type() == GPU_BACKEND_VULKAN)
   {
     inst_.gbuffer.header_tx.clear(int4(0));
   }
+
+  int2 tile_mask_size;
+  int tile_count;
+  closure_tile_size_shift_ = 4;
+  /* Increase tile size until they fit the budget. */
+  for (int i = 0; i < 4; i++, closure_tile_size_shift_++) {
+    tile_mask_size = math::divide_ceil(extent, int2(1u << closure_tile_size_shift_));
+    tile_count = tile_mask_size.x * tile_mask_size.y;
+    if (tile_count <= max_lighting_tile_count_) {
+      break;
+    }
+  }
+
+  int target_count = power_of_2_max_u(tile_count);
+  for (int i = 0; i < ARRAY_SIZE(closure_bufs_); i++) {
+    closure_bufs_[i].tile_buf_.resize(target_count);
+    closure_bufs_[i].draw_buf_.clear_to_zero();
+  }
+
+  tile_mask_tx_.ensure_2d_array(GPU_R8UI, tile_mask_size, 4, usage_rw);
+  tile_mask_tx_.clear(uint4(0));
 
   GPU_framebuffer_bind_ex(gbuffer_fb,
                           {
@@ -646,11 +724,10 @@ void DeferredLayer::render(View &main_view,
 
   inst_.shadows.set_view(render_view);
 
-  {
-    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE;
-    direct_diffuse_tx_.acquire(extent, GPU_RGBA16F, usage);
-    direct_reflect_tx_.acquire(extent, GPU_RGBA16F, usage);
-    direct_refract_tx_.acquire(extent, GPU_RGBA16F, usage);
+  int closure_count = count_bits_i(closure_bits_ & (CLOSURE_REFLECTION | CLOSURE_DIFFUSE));
+  for (int i = 0; i < ARRAY_SIZE(direct_radiance_txs_); i++) {
+    direct_radiance_txs_[i].acquire(
+        (closure_count > 1) ? extent : int2(1), GPU_R11F_G11F_B10F, usage_rw);
   }
 
   GPU_framebuffer_bind(combined_fb);
@@ -676,7 +753,8 @@ void DeferredLayer::render(View &main_view,
   indirect_reflect_tx_ = reflect_result.get();
   indirect_refract_tx_ = refract_result.get();
 
-  inst_.subsurface.render(direct_diffuse_tx_, indirect_diffuse_tx_, closure_bits_, render_view);
+  inst_.subsurface.render(
+      direct_radiance_txs_[0], indirect_diffuse_tx_, closure_bits_, render_view);
 
   GPU_framebuffer_bind(combined_fb);
   inst_.manager->submit(combine_ps_);
@@ -685,9 +763,9 @@ void DeferredLayer::render(View &main_view,
   refract_result.release();
   reflect_result.release();
 
-  direct_diffuse_tx_.release();
-  direct_reflect_tx_.release();
-  direct_refract_tx_.release();
+  for (int i = 0; i < ARRAY_SIZE(direct_radiance_txs_); i++) {
+    direct_radiance_txs_[i].release();
+  }
 
   if (do_screen_space_reflection) {
     GPU_texture_copy(radiance_feedback_tx_, rb.combined_tx);

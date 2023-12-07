@@ -1426,7 +1426,7 @@ struct PipelineInfoData {
   float alpha_hash_scale;
   float _pad0;
   float _pad1;
-  float _pad3;
+  float _pad2;
 };
 BLI_STATIC_ASSERT_ALIGN(PipelineInfoData, 16)
 
@@ -1528,6 +1528,7 @@ float4 utility_tx_sample_lut(sampler2DArray util_tx, float cos_theta, float roug
 
 using AOVsInfoDataBuf = draw::StorageBuffer<AOVsInfoData>;
 using CameraDataBuf = draw::UniformBuffer<CameraData>;
+using ClosureTileBuf = draw::StorageArrayBuffer<uint, 1024, true>;
 using DepthOfFieldDataBuf = draw::UniformBuffer<DepthOfFieldData>;
 using DepthOfFieldScatterListBuf = draw::StorageArrayBuffer<ScatterRect, 16, true>;
 using DrawIndirectBuf = draw::StorageBuffer<DrawCommand, true>;
