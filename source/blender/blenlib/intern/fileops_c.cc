@@ -476,9 +476,11 @@ int BLI_rename(const char *from, const char *to)
   return urename(from, to, false);
 #elif defined(__APPLE__)
   return renamex_np(from, to, RENAME_EXCL);
-#elif defined(__GLIBC_PREREQ) && __GLIBC_PREREQ(2, 28)
+#elif defined(__GLIBC_PREREQ)
+#  if __GLIBC_PREREQ(2, 28)
   /* Most common Linux cases. */
   return renameat2(AT_FDCWD, from, AT_FDCWD, to, RENAME_NOREPLACE);
+#  endif
 #else
   /* At least all BSD's currently. */
   if (BLI_exists(to)) {
