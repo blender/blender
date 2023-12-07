@@ -121,7 +121,7 @@ void CryptomatteNode::input_operations_from_render_source(
         }
 
         const std::string combined_name = combined_layer_pass_name(render_layer, render_pass);
-        if (blender::StringRef(combined_name).startswith(prefix)) {
+        if (combined_name != prefix && blender::StringRef(combined_name).startswith(prefix)) {
           RenderLayersProg *op = new RenderLayersProg(
               render_pass->name, DataType::Color, render_pass->channels);
           op->set_scene(scene);
@@ -183,7 +183,7 @@ void CryptomatteNode::input_operations_from_image_source(
       }
       LISTBASE_FOREACH (RenderPass *, render_pass, &render_layer->passes) {
         const std::string combined_name = combined_layer_pass_name(render_layer, render_pass);
-        if (blender::StringRef(combined_name).startswith(prefix)) {
+        if (combined_name != prefix && blender::StringRef(combined_name).startswith(prefix)) {
           MultilayerColorOperation *op = new MultilayerColorOperation(
               render_layer, render_pass, view);
           op->set_image(image);
