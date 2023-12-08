@@ -291,7 +291,7 @@ uint64_t GHOST_SystemX11::getMilliSeconds() const
 
 uint64_t GHOST_SystemX11::ms_from_input_time(const Time timestamp) const
 {
-  GHOST_ASSERT(timestamp >= m_start_time_monotonic, "Invalid time-stemp");
+  GHOST_ASSERT(timestamp >= m_start_time_monotonic, "Invalid time-stamp");
   /* NOTE(@ideasman42): Return a time compatible with `getMilliSeconds()`,
    * this is needed as X11 time-stamps use monotonic time.
    * The X11 implementation *could* use any basis, in practice though we are supporting

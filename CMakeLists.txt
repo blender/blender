@@ -1788,7 +1788,6 @@ if(CMAKE_COMPILER_IS_GNUCC)
     # The crashes can be resolved by disabling the flag per module (but not via pragmas).
     # However this also causes a type mix-up FreeStyle  (Blender & FreeStyle's `Curve`)
     # so it seems to impact GCC's the internal state enough that it's too risky to enable.
-    # Once this flag has been removed for the modules where this occurs.
     # When this is resolved the check can be enabled for fixed GCC versions.
     #
     # Prevents linking errors with MSVC.

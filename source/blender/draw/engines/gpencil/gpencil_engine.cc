@@ -383,7 +383,6 @@ static void gpencil_render_to_image(void * /*vedata*/,
 
   Render *render = engine->re;
   Depsgraph *depsgraph = DRW_context_state_get()->depsgraph;
-  Scene *scene = DRW_context_state_get()->scene;
   Object *camera_original_ob = RE_GetCamera(render);
   const char *viewname = RE_GetActiveRenderView(render);
   const int2 render_resolution = int2(engine->resolution_x, engine->resolution_y);
