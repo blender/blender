@@ -109,6 +109,9 @@ GHOST_SystemX11::GHOST_SystemX11()
       m_start_time(0),
       m_start_time_monotonic(0),
       m_keyboard_vector{0},
+#ifdef WITH_X11_XINPUT
+      m_last_key_time(0),
+#endif
       m_keycode_last_repeat_key(uint(-1))
 {
   XInitThreads();
@@ -614,6 +617,13 @@ bool GHOST_SystemX11::processEvents(bool waitForEvent)
         }
       }
 
+      /* Ensure generated time-stamps are non-zero. */
+      if (ELEM(xevent.type, KeyPress, KeyRelease)) {
+        if (xevent.xkey.time != 0) {
+          m_last_key_time = xevent.xkey.time;
+        }
+      }
+
       /* dispatch event to XIM server */
       if (XFilterEvent(&xevent, (Window) nullptr) == True) {
         /* do nothing now, the event is consumed by XIM. */
@@ -979,7 +989,14 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
     case KeyPress:
     case KeyRelease: {
       XKeyEvent *xke = &(xe->xkey);
-      const uint64_t event_ms = ms_from_input_time(xke->time);
+#ifdef WITH_X11_XINPUT
+      /* Can be zero for XIM generated events. */
+      const Time time = xke->time ? xke->time : m_last_key_time;
+#else
+      const Time time = xke->time;
+#endif
+      const uint64_t event_ms = ms_from_input_time(time);
+
       KeySym key_sym;
       char *utf8_buf = nullptr;
       char ascii;
