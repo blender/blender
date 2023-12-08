@@ -74,9 +74,13 @@ DrawingPlacement::DrawingPlacement(const Scene &scene,
     case (GP_PROJECT_VIEWSPACE | GP_PROJECT_DEPTH_VIEW):
       depth_ = DrawingPlacementDepth::Surface;
       surface_offset_ = scene.toolsettings->gpencil_surface_offset;
+      /* Default to view placement with the object origin if we don't hit a surface. */
+      placement_loc_ = transforms_.layer_space_to_world_space.location();
       break;
     case (GP_PROJECT_VIEWSPACE | GP_PROJECT_DEPTH_STROKE):
       depth_ = DrawingPlacementDepth::NearestStroke;
+      /* Default to view placement with the object origin if we don't hit a stroke. */
+      placement_loc_ = transforms_.layer_space_to_world_space.location();
       break;
   }
 
