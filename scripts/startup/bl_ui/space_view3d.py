@@ -5844,6 +5844,10 @@ class VIEW3D_MT_edit_greasepencil(Menu):
 
         layout.menu("VIEW3D_MT_edit_greasepencil_delete")
 
+        layout.separator()
+
+        layout.operator("grease_pencil.clean_loose")
+
 
 class VIEW3D_MT_edit_greasepencil_stroke(Menu):
     bl_label = "Stroke"

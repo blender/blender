@@ -1702,6 +1702,60 @@ static void GREASE_PENCIL_OT_duplicate(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+static int grease_pencil_clean_loose_exec(bContext *C, wmOperator *op)
+{
+  Object *object = CTX_data_active_object(C);
+  Scene &scene = *CTX_data_scene(C);
+  const int limit = RNA_int_get(op->ptr, "limit");
+
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  Array<MutableDrawingInfo> drawings = retrieve_editable_drawings(scene, grease_pencil);
+
+  threading::parallel_for_each(drawings, [&](MutableDrawingInfo &info) {
+    bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
+    const OffsetIndices<int> points_by_curve = curves.points_by_curve();
+
+    IndexMaskMemory memory;
+    const IndexMask editable_strokes = ed::greasepencil::retrieve_editable_strokes(
+        *object, info.drawing, memory);
+
+    const IndexMask curves_to_delete = IndexMask::from_predicate(
+        editable_strokes, GrainSize(4096), memory, [&](const int i) {
+          return points_by_curve[i].size() <= limit;
+        });
+
+    curves.remove_curves(curves_to_delete);
+  });
+
+  DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+  WM_event_add_notifier(C, NC_GEOM | ND_DATA, &grease_pencil);
+
+  return OPERATOR_FINISHED;
+}
+
+static void GREASE_PENCIL_OT_clean_loose(wmOperatorType *ot)
+{
+  ot->name = "Clean Loose Points";
+  ot->idname = "GREASE_PENCIL_OT_clean_loose";
+  ot->description = "Remove loose points";
+
+  ot->invoke = WM_operator_props_popup_confirm;
+  ot->exec = grease_pencil_clean_loose_exec;
+  ot->poll = editable_grease_pencil_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_int(ot->srna,
+              "limit",
+              1,
+              1,
+              INT_MAX,
+              "Limit",
+              "Number of points to consider stroke as loose",
+              1,
+              INT_MAX);
+}
+
 /** \} */
 
 }  // namespace blender::ed::greasepencil
@@ -1723,6 +1777,7 @@ void ED_operatortypes_grease_pencil_edit()
   WM_operatortype_append(GREASE_PENCIL_OT_caps_set);
   WM_operatortype_append(GREASE_PENCIL_OT_duplicate);
   WM_operatortype_append(GREASE_PENCIL_OT_set_material);
+  WM_operatortype_append(GREASE_PENCIL_OT_clean_loose);
 }
 
 void ED_keymap_grease_pencil(wmKeyConfig *keyconf)
