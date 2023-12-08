@@ -67,8 +67,11 @@ static bool wm_check_screen_exists(const Main *bmain, const bScreen *screen)
   return false;
 }
 
-static bool wm_check_area_exists(const bScreen *screen, const ScrArea *area)
+static bool wm_check_area_exists(const wmWindow *win, const bScreen *screen, const ScrArea *area)
 {
+  if (win && (BLI_findindex(&win->global_areas.areabase, area) != -1)) {
+    return true;
+  }
   if (screen && (BLI_findindex(&screen->areabase, area) != -1)) {
     return true;
   }
@@ -192,11 +195,11 @@ static PyObject *bpy_rna_context_temp_override_enter(BPyContextTempOverride *sel
   }
 
   if (self->ctx_temp.area_is_set && (area != nullptr)) {
-    if (screen == nullptr) {
-      PyErr_SetString(PyExc_TypeError, "Area set with screen set to None");
+    if (win == nullptr && screen == nullptr) {
+      PyErr_SetString(PyExc_TypeError, "Area set with window & screen set to None");
       return nullptr;
     }
-    if (!wm_check_area_exists(screen, area)) {
+    if (!wm_check_area_exists(win, screen, area)) {
       PyErr_SetString(PyExc_TypeError, "Area not found in screen");
       return nullptr;
     }
@@ -339,7 +342,9 @@ static PyObject *bpy_rna_context_temp_override_exit(BPyContextTempOverride *self
 
   /* Handle Area. */
   if (do_restore) {
-    if (self->ctx_init.area && !wm_check_area_exists(self->ctx_init.screen, self->ctx_init.area)) {
+    if (self->ctx_init.area &&
+        !wm_check_area_exists(self->ctx_init.win, self->ctx_init.screen, self->ctx_init.area))
+    {
       CTX_wm_area_set(C, nullptr);
       do_restore = false;
     }
