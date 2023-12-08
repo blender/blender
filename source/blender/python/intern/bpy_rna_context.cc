@@ -93,6 +93,7 @@ static void bpy_rna_context_temp_override__tp_dealloc(BPyContextTempOverride *se
 static PyObject *bpy_rna_context_temp_override_enter(BPyContextTempOverride *self)
 {
   bContext *C = self->context;
+  Main *bmain = CTX_data_main(C);
 
   CTX_py_state_push(C, &self->py_state, self->py_state_context_dict);
 
@@ -112,7 +113,34 @@ static PyObject *bpy_rna_context_temp_override_enter(BPyContextTempOverride *sel
   self->ctx_init.area_is_set = (self->ctx_init.area != area);
   self->ctx_init.region_is_set = (self->ctx_init.region != region);
 
-  /* Sanity check, the region is in the screen/area. */
+  /* NOTE(@ideasman42): Regarding sanity checks.
+   * There are 3 different situations to be accounted for here regarding overriding windowing data.
+   *
+   * - 1) Nothing is overridden.
+   *   Simple, no sanity checks needed.
+   *
+   * - 2) Some members are overridden.
+   *   Check the state is consistent (that the region is part the area or screen for e.g.).
+   *
+   * - 3) Some members are overridden *but* the context members are unchanged.
+   *   This is a less obvious case which often happens when a Python script copies the context
+   *   typically via `context.copy()`, manipulates it and passes it in as keyword arguments.
+   *
+   *   A naive approach could be to behave as if these arguments weren't passed in
+   *   which would work in many situations however there is a difference
+   *   since these members are used to restore the context afterwards.
+   *   It's possible a script might use this context-manager to *pin* the context,
+   *   running actions that change the context, relying on the context to be restored.
+   *
+   *   When error-checking unchanged context members some error checks must be skipped
+   *   such as the check to disallow temporary screens since that could break using
+   *   `temp_override(..)` running with the current context from a render-window for e.g.
+   *
+   *   In fact all sanity checks could be disabled when the members involved remain unchanged
+   *   however it's possible Python scripts corrupt Blender's internal windowing state so keeping
+   *   the checks is harmless and alerts developers early on that something is wrong.
+   */
+
   if (self->ctx_temp.region_is_set && (region != nullptr)) {
     if (area == nullptr) {
       PyErr_SetString(PyExc_TypeError, "Region set with area set to None");
@@ -138,7 +166,6 @@ static PyObject *bpy_rna_context_temp_override_enter(BPyContextTempOverride *sel
   }
 
   if (self->ctx_temp.screen_is_set && (screen != nullptr)) {
-    Main *bmain = CTX_data_main(C);
     if (win == nullptr) {
       PyErr_SetString(PyExc_TypeError, "Screen set with null screen");
       return nullptr;
@@ -147,21 +174,44 @@ static PyObject *bpy_rna_context_temp_override_enter(BPyContextTempOverride *sel
       PyErr_SetString(PyExc_TypeError, "Screen not found");
       return nullptr;
     }
-    if (BKE_workspace_layout_find_global(bmain, screen, nullptr) == nullptr) {
-      PyErr_SetString(PyExc_TypeError, "Screen has no workspace");
-      return nullptr;
-    }
 
-    LISTBASE_FOREACH (wmWindowManager *, wm, &bmain->wm) {
-      LISTBASE_FOREACH (wmWindow *, win_iter, &wm->windows) {
-        if (win_iter == win) {
-          continue;
-        }
-        if (screen == WM_window_get_active_screen(win_iter)) {
-          PyErr_SetString(PyExc_TypeError, "Screen is used by another window");
-          return nullptr;
+    /* Skip some checks when the screen is unchanged. */
+    if (self->ctx_init.screen_is_set) {
+      if (screen->temp != 0) {
+        PyErr_SetString(PyExc_TypeError,
+                        "Overriding context with temporary screen is not supported");
+        return nullptr;
+      }
+      if (BKE_workspace_layout_find_global(bmain, screen, nullptr) == nullptr) {
+        PyErr_SetString(PyExc_TypeError, "Screen has no workspace");
+        return nullptr;
+      }
+
+      LISTBASE_FOREACH (wmWindowManager *, wm, &bmain->wm) {
+        LISTBASE_FOREACH (wmWindow *, win_iter, &wm->windows) {
+          if (win_iter == win) {
+            continue;
+          }
+          if (screen == WM_window_get_active_screen(win_iter)) {
+            PyErr_SetString(PyExc_TypeError, "Screen is used by another window");
+            return nullptr;
+          }
         }
       }
+    }
+  }
+
+  if (self->ctx_temp.win_is_set && (win != nullptr)) {
+    bool found = false;
+    LISTBASE_FOREACH (wmWindowManager *, wm, &bmain->wm) {
+      if (BLI_findindex(&wm->windows, win) != -1) {
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      PyErr_SetString(PyExc_TypeError, "Window not found");
+      return nullptr;
     }
   }
 
@@ -483,15 +533,6 @@ static PyObject *bpy_context_temp_override(PyObject *self, PyObject *args, PyObj
   if (params.region.ptr != nullptr) {
     ctx_temp.region = static_cast<ARegion *>(params.region.ptr->data);
     ctx_temp.region_is_set = true;
-  }
-
-  /* Other sanity checks. */
-  if (ctx_temp.screen) {
-    if (ctx_temp.screen->temp != 0) {
-      PyErr_SetString(PyExc_TypeError,
-                      "Overriding context with temporary screen is not supported");
-      return nullptr;
-    }
   }
 
   BPyContextTempOverride *ret = PyObject_New(BPyContextTempOverride, &BPyContextTempOverride_Type);
