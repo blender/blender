@@ -91,9 +91,9 @@ static int content_planes_from_clip_flag(const ARegion *region,
   BLI_assert(planes_len <= 6);
   if (planes_len != 0) {
     RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
-    float projmat[4][4];
-    ED_view3d_ob_project_mat_get(rv3d, ob, projmat);
-    planes_from_projmat(projmat, clip_xmin, clip_xmax, clip_ymin, clip_ymax, clip_zmin, clip_zmax);
+    const blender::float4x4 projection = ED_view3d_ob_project_mat_get(rv3d, ob);
+    planes_from_projmat(
+        projection.ptr(), clip_xmin, clip_xmax, clip_ymin, clip_ymax, clip_zmin, clip_zmax);
   }
   return planes_len;
 }

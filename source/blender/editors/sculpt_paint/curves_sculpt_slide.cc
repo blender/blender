@@ -319,8 +319,7 @@ struct SlideOperationExecutor {
     MutableSpan<float3> positions_orig_cu = curves_orig_->positions_for_write();
     MutableSpan<float2> surface_uv_coords = curves_orig_->surface_uv_coords_for_write();
 
-    float4x4 projection;
-    ED_view3d_ob_project_mat_get(ctx_.rv3d, curves_ob_orig_, projection.ptr());
+    const float4x4 projection = ED_view3d_ob_project_mat_get(ctx_.rv3d, curves_ob_orig_);
 
     const float2 brush_pos_diff_re = brush_pos_re_ - self_->initial_brush_pos_re_;
 
@@ -341,9 +340,8 @@ struct SlideOperationExecutor {
         const float3 old_first_pos_eval_su = math::transform_point(transforms_.curves_to_surface,
                                                                    old_first_pos_eval_cu);
 
-        float2 old_first_symm_pos_eval_re;
-        ED_view3d_project_float_v2_m4(
-            ctx_.region, old_first_symm_pos_eval_cu, old_first_symm_pos_eval_re, projection.ptr());
+        const float2 old_first_symm_pos_eval_re = ED_view3d_project_float_v2_m4(
+            ctx_.region, old_first_symm_pos_eval_cu, projection);
 
         const float radius_falloff = slide_curve_info.radius_falloff;
         const float curve_weight = brush_strength_ * radius_falloff * curve_factors_[curve_i];

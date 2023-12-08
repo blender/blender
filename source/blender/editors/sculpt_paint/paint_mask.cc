@@ -530,7 +530,7 @@ enum eSculptGestureShapeType {
 };
 
 struct LassoGestureData {
-  float projviewobjmat[4][4];
+  float4x4 projviewobjmat;
 
   rcti boundbox;
   int width;
@@ -688,8 +688,8 @@ static SculptGestureContext *sculpt_gesture_init_from_lasso(bContext *C, wmOpera
     return nullptr;
   }
 
-  ED_view3d_ob_project_mat_get(
-      sgcontext->vc.rv3d, sgcontext->vc.obact, sgcontext->lasso.projviewobjmat);
+  sgcontext->lasso.projviewobjmat = ED_view3d_ob_project_mat_get(sgcontext->vc.rv3d,
+                                                                 sgcontext->vc.obact);
   BLI_lasso_boundbox(&sgcontext->lasso.boundbox, mcoords, mcoords_len);
   const int lasso_width = 1 + sgcontext->lasso.boundbox.xmax - sgcontext->lasso.boundbox.xmin;
   const int lasso_height = 1 + sgcontext->lasso.boundbox.ymax - sgcontext->lasso.boundbox.ymin;
@@ -945,15 +945,14 @@ static void sculpt_gesture_update_effected_nodes(SculptGestureContext *sgcontext
 
 static bool sculpt_gesture_is_effected_lasso(SculptGestureContext *sgcontext, const float co[3])
 {
-  float scr_co_f[2];
   int scr_co_s[2];
   float co_final[3];
 
   flip_v3_v3(co_final, co, sgcontext->symmpass);
 
   /* First project point to 2d space. */
-  ED_view3d_project_float_v2_m4(
-      sgcontext->vc.region, co_final, scr_co_f, sgcontext->lasso.projviewobjmat);
+  const float2 scr_co_f = ED_view3d_project_float_v2_m4(
+      sgcontext->vc.region, co_final, sgcontext->lasso.projviewobjmat);
 
   scr_co_s[0] = scr_co_f[0];
   scr_co_s[1] = scr_co_f[1];

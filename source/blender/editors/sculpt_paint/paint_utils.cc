@@ -76,7 +76,6 @@ bool paint_convert_bb_to_rect(rcti *rect,
                               RegionView3D *rv3d,
                               Object *ob)
 {
-  float projection_mat[4][4];
   int i, j, k;
 
   BLI_rcti_init_minmax(rect);
@@ -86,18 +85,18 @@ bool paint_convert_bb_to_rect(rcti *rect,
     return false;
   }
 
-  ED_view3d_ob_project_mat_get(rv3d, ob, projection_mat);
+  const blender::float4x4 projection = ED_view3d_ob_project_mat_get(rv3d, ob);
 
   for (i = 0; i < 2; i++) {
     for (j = 0; j < 2; j++) {
       for (k = 0; k < 2; k++) {
-        float vec[3], proj[2];
+        float vec[3];
         int proj_i[2];
         vec[0] = i ? bb_min[0] : bb_max[0];
         vec[1] = j ? bb_min[1] : bb_max[1];
         vec[2] = k ? bb_min[2] : bb_max[2];
         /* convert corner to screen space */
-        ED_view3d_project_float_v2_m4(region, vec, proj, projection_mat);
+        const blender::float2 proj = ED_view3d_project_float_v2_m4(region, vec, projection);
         /* expand 2D rectangle */
 
         /* we could project directly to int? */

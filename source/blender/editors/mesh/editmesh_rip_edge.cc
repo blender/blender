@@ -19,6 +19,7 @@
 
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector_types.hh"
 
 #include "WM_types.hh"
 
@@ -30,6 +31,8 @@
 #include "bmesh.hh"
 
 #include "mesh_intern.h" /* own include */
+
+using blender::float2;
 
 /* uses total number of selected edges around a vertex to choose how to extend */
 #define USE_TRICKY_EXTEND
@@ -59,13 +62,11 @@ static int edbm_rip_edge_invoke(bContext *C, wmOperator * /*op*/, const wmEvent 
     /* mouse direction to view center */
     float mval_dir[2];
 
-    float projectMat[4][4];
-
     if (bm->totvertsel == 0) {
       continue;
     }
 
-    ED_view3d_ob_project_mat_get(rv3d, obedit, projectMat);
+    const blender::float4x4 projectMat = ED_view3d_ob_project_mat_get(rv3d, obedit);
 
     zero_v2(cent_sco);
     cent_tot = 0;
@@ -75,8 +76,7 @@ static int edbm_rip_edge_invoke(bContext *C, wmOperator * /*op*/, const wmEvent 
       BM_elem_flag_disable(v, BM_ELEM_TAG);
 
       if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
-        float v_sco[2];
-        ED_view3d_project_float_v2_m4(region, v->co, v_sco, projectMat);
+        const float2 v_sco = ED_view3d_project_float_v2_m4(region, v->co, projectMat);
 
         add_v2_v2(cent_sco, v_sco);
         cent_tot += 1;
@@ -94,14 +94,13 @@ static int edbm_rip_edge_invoke(bContext *C, wmOperator * /*op*/, const wmEvent 
 
       BM_ITER_MESH (e, &eiter, bm, BM_EDGES_OF_MESH) {
         if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
-          float e_sco[2][2];
           float cent_sco_test[2];
           float dist_sq_test;
 
-          ED_view3d_project_float_v2_m4(region, e->v1->co, e_sco[0], projectMat);
-          ED_view3d_project_float_v2_m4(region, e->v2->co, e_sco[1], projectMat);
+          const float2 e_sco_0 = ED_view3d_project_float_v2_m4(region, e->v1->co, projectMat);
+          const float2 e_sco_1 = ED_view3d_project_float_v2_m4(region, e->v2->co, projectMat);
 
-          closest_to_line_segment_v2(cent_sco_test, mval_fl, e_sco[0], e_sco[1]);
+          closest_to_line_segment_v2(cent_sco_test, mval_fl, e_sco_0, e_sco_1);
           dist_sq_test = len_squared_v2v2(cent_sco_test, mval_fl);
           if (dist_sq_test < dist_sq_best) {
             dist_sq_best = dist_sq_test;
@@ -120,7 +119,7 @@ static int edbm_rip_edge_invoke(bContext *C, wmOperator * /*op*/, const wmEvent 
     BM_ITER_MESH (v, &viter, bm, BM_VERTS_OF_MESH) {
       BMIter eiter;
       BMEdge *e;
-      float v_sco[2];
+      float2 v_sco;
 
       if (BM_elem_flag_test(v, BM_ELEM_SELECT) && BM_elem_flag_test(v, BM_ELEM_TAG) == false) {
         /* Rules for */
@@ -156,15 +155,14 @@ static int edbm_rip_edge_invoke(bContext *C, wmOperator * /*op*/, const wmEvent 
           goto found_edge;
         }
 #endif
-        ED_view3d_project_float_v2_m4(region, v->co, v_sco, projectMat);
+        v_sco = ED_view3d_project_float_v2_m4(region, v->co, projectMat);
 
         BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
           if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
             BMVert *v_other = BM_edge_other_vert(e, v);
-            float v_other_sco[2];
             float angle_test;
 
-            ED_view3d_project_float_v2_m4(region, v_other->co, v_other_sco, projectMat);
+            float2 v_other_sco = ED_view3d_project_float_v2_m4(region, v_other->co, projectMat);
 
             /* avoid comparing with view-axis aligned edges (less than a pixel) */
             if (len_squared_v2v2(v_sco, v_other_sco) > 1.0f) {

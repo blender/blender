@@ -341,8 +341,7 @@ struct CurvesEffectOperationExecutor {
         bke::crazyspace::get_evaluated_curves_deformation(*ctx_.depsgraph, *object_);
     const OffsetIndices points_by_curve = curves_->points_by_curve();
 
-    float4x4 projection;
-    ED_view3d_ob_project_mat_get(ctx_.rv3d, object_, projection.ptr());
+    const float4x4 projection = ED_view3d_ob_project_mat_get(ctx_.rv3d, object_);
 
     const Vector<float4x4> symmetry_brush_transforms = get_symmetry_brush_transforms(
         eCurvesSymmetryType(curves_id_->symmetry));
@@ -367,9 +366,8 @@ struct CurvesEffectOperationExecutor {
           const float3 p2_cu = math::transform_point(brush_transform_inv,
                                                      deformation.positions[segment_i + 1]);
 
-          float2 p1_re, p2_re;
-          ED_view3d_project_float_v2_m4(ctx_.region, p1_cu, p1_re, projection.ptr());
-          ED_view3d_project_float_v2_m4(ctx_.region, p2_cu, p2_re, projection.ptr());
+          const float2 p1_re = ED_view3d_project_float_v2_m4(ctx_.region, p1_cu, projection);
+          const float2 p2_re = ED_view3d_project_float_v2_m4(ctx_.region, p2_cu, projection);
 
           float2 closest_on_brush_re;
           float2 closest_on_segment_re;

@@ -183,8 +183,7 @@ struct SnakeHookOperatorExecutor {
 
     MutableSpan<float3> positions_cu = curves_->positions_for_write();
 
-    float4x4 projection;
-    ED_view3d_ob_project_mat_get(ctx_.rv3d, object_, projection.ptr());
+    const float4x4 projection = ED_view3d_ob_project_mat_get(ctx_.rv3d, object_);
 
     const float brush_radius_re = brush_radius_base_re_ * brush_radius_factor_;
     const float brush_radius_sq_re = pow2f(brush_radius_re);
@@ -197,9 +196,8 @@ struct SnakeHookOperatorExecutor {
         const float3 old_pos_cu = deformation.positions[last_point_i];
         const float3 old_symm_pos_cu = math::transform_point(brush_transform_inv, old_pos_cu);
 
-        float2 old_symm_pos_re;
-        ED_view3d_project_float_v2_m4(
-            ctx_.region, old_symm_pos_cu, old_symm_pos_re, projection.ptr());
+        const float2 old_symm_pos_re = ED_view3d_project_float_v2_m4(
+            ctx_.region, old_symm_pos_cu, projection);
 
         const float distance_to_brush_sq_re = math::distance_squared(old_symm_pos_re,
                                                                      brush_pos_prev_re_);
@@ -232,9 +230,6 @@ struct SnakeHookOperatorExecutor {
 
   void spherical_snake_hook_with_symmetry()
   {
-    float4x4 projection;
-    ED_view3d_ob_project_mat_get(ctx_.rv3d, object_, projection.ptr());
-
     float3 brush_start_wo, brush_end_wo;
     ED_view3d_win_to_3d(
         ctx_.v3d,

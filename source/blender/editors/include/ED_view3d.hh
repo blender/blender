@@ -8,8 +8,10 @@
 
 #pragma once
 
-#include "BKE_attribute.h"
+#include "BLI_math_matrix_types.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_utildefines.h"
+
 #include "DNA_scene_types.h"
 
 /* ********* exports for space_view3d/ module ********** */
@@ -440,10 +442,9 @@ void pose_foreachScreenBone(ViewContext *vc,
 /**
  * \note use #ED_view3d_ob_project_mat_get to get the projection matrix
  */
-void ED_view3d_project_float_v2_m4(const ARegion *region,
-                                   const float co[3],
-                                   float r_co[2],
-                                   const float mat[4][4]);
+blender::float2 ED_view3d_project_float_v2_m4(const ARegion *region,
+                                              const float co[3],
+                                              const blender::float4x4 &mat);
 /**
  * \note use #ED_view3d_ob_project_mat_get to get projecting mat
  */
@@ -704,7 +705,7 @@ bool ED_view3d_win_to_segment_clipped(const Depsgraph *depsgraph,
                                       float r_ray_start[3],
                                       float r_ray_end[3],
                                       bool do_clip_planes);
-void ED_view3d_ob_project_mat_get(const RegionView3D *rv3d, const Object *ob, float r_pmat[4][4]);
+blender::float4x4 ED_view3d_ob_project_mat_get(const RegionView3D *rv3d, const Object *ob);
 void ED_view3d_ob_project_mat_get_from_obmat(const RegionView3D *rv3d,
                                              const float obmat[4][4],
                                              float r_pmat[4][4]);

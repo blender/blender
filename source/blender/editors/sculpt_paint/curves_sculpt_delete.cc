@@ -162,8 +162,7 @@ struct DeleteOperationExecutor {
   {
     const float4x4 brush_transform_inv = math::invert(brush_transform);
 
-    float4x4 projection;
-    ED_view3d_ob_project_mat_get(ctx_.rv3d, object_, projection.ptr());
+    const float4x4 projection = ED_view3d_ob_project_mat_get(ctx_.rv3d, object_);
 
     const float brush_radius_re = brush_radius_base_re_ * brush_radius_factor_;
     const float brush_radius_sq_re = pow2f(brush_radius_re);
@@ -175,8 +174,7 @@ struct DeleteOperationExecutor {
         if (points.size() == 1) {
           const float3 pos_cu = math::transform_point(brush_transform_inv,
                                                       self_->deformed_positions_[points.first()]);
-          float2 pos_re;
-          ED_view3d_project_float_v2_m4(ctx_.region, pos_cu, pos_re, projection.ptr());
+          const float2 pos_re = ED_view3d_project_float_v2_m4(ctx_.region, pos_cu, projection);
 
           if (math::distance_squared(brush_pos_re_, pos_re) <= brush_radius_sq_re) {
             curves_to_keep[curve_i] = false;
@@ -190,9 +188,8 @@ struct DeleteOperationExecutor {
           const float3 pos2_cu = math::transform_point(brush_transform_inv,
                                                        self_->deformed_positions_[segment_i + 1]);
 
-          float2 pos1_re, pos2_re;
-          ED_view3d_project_float_v2_m4(ctx_.region, pos1_cu, pos1_re, projection.ptr());
-          ED_view3d_project_float_v2_m4(ctx_.region, pos2_cu, pos2_re, projection.ptr());
+          const float2 pos1_re = ED_view3d_project_float_v2_m4(ctx_.region, pos1_cu, projection);
+          const float2 pos2_re = ED_view3d_project_float_v2_m4(ctx_.region, pos2_cu, projection);
 
           const float dist_sq_re = dist_squared_to_line_segment_v2(
               brush_pos_re_, pos1_re, pos2_re);
@@ -207,8 +204,7 @@ struct DeleteOperationExecutor {
 
   void delete_spherical_with_symmetry(MutableSpan<bool> curves_to_keep)
   {
-    float4x4 projection;
-    ED_view3d_ob_project_mat_get(ctx_.rv3d, object_, projection.ptr());
+    const float4x4 projection = ED_view3d_ob_project_mat_get(ctx_.rv3d, object_);
 
     float3 brush_wo;
     ED_view3d_win_to_3d(

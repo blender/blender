@@ -18,6 +18,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector.hh"
 
 #include "BKE_camera.h"
 #include "BKE_screen.hh"
@@ -31,10 +32,9 @@
 /* Non Clipping Projection Functions
  * ********************************* */
 
-void ED_view3d_project_float_v2_m4(const ARegion *region,
-                                   const float co[3],
-                                   float r_co[2],
-                                   const float mat[4][4])
+blender::float2 ED_view3d_project_float_v2_m4(const ARegion *region,
+                                              const float co[3],
+                                              const blender::float4x4 &mat)
 {
   float vec4[4];
 
@@ -42,8 +42,9 @@ void ED_view3d_project_float_v2_m4(const ARegion *region,
   vec4[3] = 1.0;
   // r_co[0] = IS_CLIPPED; /* Always overwritten. */
 
-  mul_m4_v4(mat, vec4);
+  mul_m4_v4(mat.ptr(), vec4);
 
+  blender::float2 r_co;
   if (vec4[3] > FLT_EPSILON) {
     r_co[0] = float(region->winx / 2.0f) + (region->winx / 2.0f) * vec4[0] / vec4[3];
     r_co[1] = float(region->winy / 2.0f) + (region->winy / 2.0f) * vec4[1] / vec4[3];
@@ -51,6 +52,7 @@ void ED_view3d_project_float_v2_m4(const ARegion *region,
   else {
     zero_v2(r_co);
   }
+  return r_co;
 }
 
 void ED_view3d_project_float_v3_m4(const ARegion *region,
@@ -698,12 +700,14 @@ bool ED_view3d_win_to_segment_clipped(const Depsgraph *depsgraph,
 /** \name Utility functions for projection
  * \{ */
 
-void ED_view3d_ob_project_mat_get(const RegionView3D *rv3d, const Object *ob, float r_pmat[4][4])
+blender::float4x4 ED_view3d_ob_project_mat_get(const RegionView3D *rv3d, const Object *ob)
 {
   float vmat[4][4];
+  blender::float4x4 r_pmat;
 
   mul_m4_m4m4(vmat, rv3d->viewmat, ob->object_to_world);
-  mul_m4_m4m4(r_pmat, rv3d->winmat, vmat);
+  mul_m4_m4m4(r_pmat.ptr(), rv3d->winmat, vmat);
+  return r_pmat;
 }
 
 void ED_view3d_ob_project_mat_get_from_obmat(const RegionView3D *rv3d,

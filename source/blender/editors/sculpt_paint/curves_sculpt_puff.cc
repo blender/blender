@@ -181,8 +181,7 @@ struct PuffOperationExecutor {
   {
     const float4x4 brush_transform_inv = math::invert(brush_transform);
 
-    float4x4 projection;
-    ED_view3d_ob_project_mat_get(ctx_.rv3d, object_, projection.ptr());
+    const float4x4 projection = ED_view3d_ob_project_mat_get(ctx_.rv3d, object_);
 
     const float brush_radius_re = brush_radius_base_re_ * brush_radius_factor_;
     const float brush_radius_sq_re = pow2f(brush_radius_re);
@@ -195,14 +194,12 @@ struct PuffOperationExecutor {
       const IndexRange points = points_by_curve[curve_i];
       const float3 first_pos_cu = math::transform_point(brush_transform_inv,
                                                         deformation.positions[points[0]]);
-      float2 prev_pos_re;
-      ED_view3d_project_float_v2_m4(ctx_.region, first_pos_cu, prev_pos_re, projection.ptr());
+      float2 prev_pos_re = ED_view3d_project_float_v2_m4(ctx_.region, first_pos_cu, projection);
       float max_weight = 0.0f;
       for (const int point_i : points.drop_front(1)) {
         const float3 pos_cu = math::transform_point(brush_transform_inv,
                                                     deformation.positions[point_i]);
-        float2 pos_re;
-        ED_view3d_project_float_v2_m4(ctx_.region, pos_cu, pos_re, projection.ptr());
+        const float2 pos_re = ED_view3d_project_float_v2_m4(ctx_.region, pos_cu, projection);
         BLI_SCOPED_DEFER([&]() { prev_pos_re = pos_re; });
 
         const float dist_to_brush_sq_re = dist_squared_to_line_segment_v2(
@@ -222,8 +219,7 @@ struct PuffOperationExecutor {
 
   void find_curves_weights_spherical_with_symmetry(MutableSpan<float> r_curve_weights)
   {
-    float4x4 projection;
-    ED_view3d_ob_project_mat_get(ctx_.rv3d, object_, projection.ptr());
+    const float4x4 projection = ED_view3d_ob_project_mat_get(ctx_.rv3d, object_);
 
     float3 brush_pos_wo;
     ED_view3d_win_to_3d(

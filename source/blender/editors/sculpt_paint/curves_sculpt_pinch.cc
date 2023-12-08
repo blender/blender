@@ -170,8 +170,7 @@ struct PinchOperationExecutor {
         bke::crazyspace::get_evaluated_curves_deformation(*ctx_.depsgraph, *object_);
     const OffsetIndices points_by_curve = curves_->points_by_curve();
 
-    float4x4 projection;
-    ED_view3d_ob_project_mat_get(ctx_.rv3d, object_, projection.ptr());
+    const float4x4 projection = ED_view3d_ob_project_mat_get(ctx_.rv3d, object_);
     MutableSpan<float3> positions_cu = curves_->positions_for_write();
     const float brush_radius_re = brush_radius_base_re_ * brush_radius_factor_;
     const float brush_radius_sq_re = pow2f(brush_radius_re);
@@ -182,9 +181,8 @@ struct PinchOperationExecutor {
         for (const int point_i : points.drop_front(1)) {
           const float3 old_pos_cu = deformation.positions[point_i];
           const float3 old_symm_pos_cu = math::transform_point(brush_transform_inv, old_pos_cu);
-          float2 old_symm_pos_re;
-          ED_view3d_project_float_v2_m4(
-              ctx_.region, old_symm_pos_cu, old_symm_pos_re, projection.ptr());
+          const float2 old_symm_pos_re = ED_view3d_project_float_v2_m4(
+              ctx_.region, old_symm_pos_cu, projection);
 
           const float dist_to_brush_sq_re = math::distance_squared(old_symm_pos_re, brush_pos_re_);
           if (dist_to_brush_sq_re > brush_radius_sq_re) {

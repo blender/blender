@@ -134,8 +134,7 @@ struct SmoothOperationExecutor {
     const float brush_radius_re = brush_radius_base_re_ * brush_radius_factor_;
     const float brush_radius_sq_re = pow2f(brush_radius_re);
 
-    float4x4 projection;
-    ED_view3d_ob_project_mat_get(ctx_.rv3d, object_, projection.ptr());
+    const float4x4 projection = ED_view3d_ob_project_mat_get(ctx_.rv3d, object_);
 
     const bke::crazyspace::GeometryDeformation deformation =
         bke::crazyspace::get_evaluated_curves_deformation(*ctx_.depsgraph, *object_);
@@ -146,8 +145,7 @@ struct SmoothOperationExecutor {
       for (const int point_i : points) {
         const float3 &pos_cu = math::transform_point(brush_transform_inv,
                                                      deformation.positions[point_i]);
-        float2 pos_re;
-        ED_view3d_project_float_v2_m4(ctx_.region, pos_cu, pos_re, projection.ptr());
+        const float2 pos_re = ED_view3d_project_float_v2_m4(ctx_.region, pos_cu, projection);
         const float dist_to_brush_sq_re = math::distance_squared(pos_re, brush_pos_re_);
         if (dist_to_brush_sq_re > brush_radius_sq_re) {
           continue;
@@ -168,9 +166,6 @@ struct SmoothOperationExecutor {
 
   void find_spherical_smooth_factors_with_symmetry(MutableSpan<float> r_point_smooth_factors)
   {
-    float4x4 projection;
-    ED_view3d_ob_project_mat_get(ctx_.rv3d, object_, projection.ptr());
-
     float3 brush_pos_wo;
     ED_view3d_win_to_3d(
         ctx_.v3d,

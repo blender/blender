@@ -63,11 +63,11 @@ void SCULPT_filter_to_orientation_space(float r_v[3], FilterCache *filter_cache)
       /* Do nothing, Sculpt Mode already works in object space. */
       break;
     case SCULPT_FILTER_ORIENTATION_WORLD:
-      mul_mat3_m4_v3(filter_cache->obmat, r_v);
+      mul_mat3_m4_v3(filter_cache->obmat.ptr(), r_v);
       break;
     case SCULPT_FILTER_ORIENTATION_VIEW:
-      mul_mat3_m4_v3(filter_cache->obmat, r_v);
-      mul_mat3_m4_v3(filter_cache->viewmat, r_v);
+      mul_mat3_m4_v3(filter_cache->obmat.ptr(), r_v);
+      mul_mat3_m4_v3(filter_cache->viewmat.ptr(), r_v);
       break;
   }
 }
@@ -79,11 +79,11 @@ void SCULPT_filter_to_object_space(float r_v[3], FilterCache *filter_cache)
       /* Do nothing, Sculpt Mode already works in object space. */
       break;
     case SCULPT_FILTER_ORIENTATION_WORLD:
-      mul_mat3_m4_v3(filter_cache->obmat_inv, r_v);
+      mul_mat3_m4_v3(filter_cache->obmat_inv.ptr(), r_v);
       break;
     case SCULPT_FILTER_ORIENTATION_VIEW:
-      mul_mat3_m4_v3(filter_cache->viewmat_inv, r_v);
-      mul_mat3_m4_v3(filter_cache->obmat_inv, r_v);
+      mul_mat3_m4_v3(filter_cache->viewmat_inv.ptr(), r_v);
+      mul_mat3_m4_v3(filter_cache->obmat_inv.ptr(), r_v);
       break;
   }
 }
@@ -144,16 +144,16 @@ void SCULPT_filter_cache_init(bContext *C,
   }
 
   /* Setup orientation matrices. */
-  copy_m4_m4(ss->filter_cache->obmat, ob->object_to_world);
-  invert_m4_m4(ss->filter_cache->obmat_inv, ob->object_to_world);
+  copy_m4_m4(ss->filter_cache->obmat.ptr(), ob->object_to_world);
+  invert_m4_m4(ss->filter_cache->obmat_inv.ptr(), ob->object_to_world);
 
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
 
   ss->filter_cache->vc = vc;
   if (vc.rv3d) {
-    copy_m4_m4(ss->filter_cache->viewmat, vc.rv3d->viewmat);
-    copy_m4_m4(ss->filter_cache->viewmat_inv, vc.rv3d->viewinv);
+    copy_m4_m4(ss->filter_cache->viewmat.ptr(), vc.rv3d->viewmat);
+    copy_m4_m4(ss->filter_cache->viewmat_inv.ptr(), vc.rv3d->viewinv);
   }
 
   Scene *scene = CTX_data_scene(C);
@@ -213,13 +213,9 @@ void SCULPT_filter_cache_init(bContext *C,
   }
 
   /* Update view normal */
-  float projection_mat[4][4];
   float mat[3][3];
   float viewDir[3] = {0.0f, 0.0f, 1.0f};
-
   if (vc.rv3d) {
-    ED_view3d_ob_project_mat_get(vc.rv3d, ob, projection_mat);
-
     invert_m4_m4(ob->world_to_object, ob->object_to_world);
     copy_m3_m4(mat, vc.rv3d->viewinv);
     mul_m3_v3(mat, viewDir);

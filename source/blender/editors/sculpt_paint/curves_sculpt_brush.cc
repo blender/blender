@@ -63,11 +63,8 @@ static std::optional<float3> find_curves_brush_position(const CurvesGeometry &cu
   const float brush_inner_radius_re = std::min<float>(brush_radius_re, float(UI_UNIT_X) / 3.0f);
   const float brush_inner_radius_sq_re = pow2f(brush_inner_radius_re);
 
-  float4x4 projection;
-  ED_view3d_ob_project_mat_get(&rv3d, &object, projection.ptr());
-
-  float2 brush_pos_re;
-  ED_view3d_project_float_v2_m4(&region, ray_start_cu, brush_pos_re, projection.ptr());
+  const float4x4 projection = ED_view3d_ob_project_mat_get(&rv3d, &object);
+  const float2 brush_pos_re = ED_view3d_project_float_v2_m4(&region, ray_start_cu, projection);
 
   const float max_depth_sq_cu = math::distance_squared(ray_start_cu, ray_end_cu);
 
@@ -117,8 +114,7 @@ static std::optional<float3> find_curves_brush_position(const CurvesGeometry &cu
               continue;
             }
 
-            float2 pos_re;
-            ED_view3d_project_float_v2_m4(&region, pos_cu, pos_re, projection.ptr());
+            const float2 pos_re = ED_view3d_project_float_v2_m4(&region, pos_cu, projection);
 
             BrushPositionCandidate candidate;
             candidate.position_cu = pos_cu;
@@ -133,9 +129,8 @@ static std::optional<float3> find_curves_brush_position(const CurvesGeometry &cu
             const float3 &p1_cu = positions[segment_i];
             const float3 &p2_cu = positions[segment_i + 1];
 
-            float2 p1_re, p2_re;
-            ED_view3d_project_float_v2_m4(&region, p1_cu, p1_re, projection.ptr());
-            ED_view3d_project_float_v2_m4(&region, p2_cu, p2_re, projection.ptr());
+            const float2 p1_re = ED_view3d_project_float_v2_m4(&region, p1_cu, projection);
+            const float2 p2_re = ED_view3d_project_float_v2_m4(&region, p2_cu, projection);
 
             float2 closest_re;
             const float lambda = closest_to_line_segment_v2(

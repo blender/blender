@@ -6,6 +6,7 @@
  * \ingroup draw_engine
  */
 
+#include "BKE_attribute.h"
 #include "BKE_curves.h"
 
 #include "DRW_render.h"

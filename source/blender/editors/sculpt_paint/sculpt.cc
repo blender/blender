@@ -2370,9 +2370,8 @@ static void sculpt_apply_texture(const SculptSession *ss,
       *r_value -= brush->texture_sample_bias;
     }
     else {
-      float point_2d[2];
-      ED_view3d_project_float_v2_m4(
-          cache->vc->region, symm_point, point_2d, cache->projection_mat);
+      const blender::float2 point_2d = ED_view3d_project_float_v2_m4(
+          cache->vc->region, symm_point, cache->projection_mat);
       const float point_3d[3] = {point_2d[0], point_2d[1], 0.0f};
       *r_value = BKE_brush_sample_tex_3d(scene, brush, mtex, point_3d, r_rgba, 0, ss->tex_pool);
     }
@@ -4228,7 +4227,7 @@ static void sculpt_update_cache_invariants(
   cache->brush = brush;
 
   /* Cache projection matrix. */
-  ED_view3d_ob_project_mat_get(cache->vc->rv3d, ob, cache->projection_mat);
+  cache->projection_mat = ED_view3d_ob_project_mat_get(cache->vc->rv3d, ob);
 
   invert_m4_m4(ob->world_to_object, ob->object_to_world);
   copy_m3_m4(mat, cache->vc->rv3d->viewinv);
@@ -5951,12 +5950,11 @@ bool SCULPT_vertex_is_occluded(SculptSession *ss, PBVHVertRef vertex, bool origi
   float co[3];
 
   copy_v3_v3(co, SCULPT_vertex_co_get(ss, vertex));
-  float mouse[2];
 
   ViewContext *vc = ss->cache ? ss->cache->vc : &ss->filter_cache->vc;
 
-  ED_view3d_project_float_v2_m4(
-      vc->region, co, mouse, ss->cache ? ss->cache->projection_mat : ss->filter_cache->viewmat);
+  const blender::float2 mouse = ED_view3d_project_float_v2_m4(
+      vc->region, co, ss->cache ? ss->cache->projection_mat : ss->filter_cache->viewmat);
 
   int depth = SCULPT_raycast_init(vc, mouse, ray_end, ray_start, ray_normal, original);
 
