@@ -173,8 +173,6 @@ struct SculptUndoNodeGeometry {
 };
 
 struct SculptUndoNode {
-  SculptUndoNode *next, *prev;
-
   SculptUndoType type;
 
   char idname[MAX_ID_NAME]; /* Name instead of pointer. */

@@ -128,7 +128,7 @@ namespace blender::ed::sculpt_paint::undo {
 #define NO_ACTIVE_LAYER ATTR_DOMAIN_AUTO
 
 struct UndoSculpt {
-  ListBase nodes;
+  Vector<std::unique_ptr<SculptUndoNode>> nodes;
 
   size_t undo_size;
 };
@@ -905,7 +905,7 @@ static void sculpt_undo_refine_subdiv(Depsgraph *depsgraph,
                                    reinterpret_cast<float(*)[3]>(deformed_verts.data()));
 }
 
-static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase *lb)
+static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, UndoSculpt &usculpt)
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -916,7 +916,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
   SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
 
   bool clear_automask_cache = false;
-  LISTBASE_FOREACH (SculptUndoNode *, unode, lb) {
+  for (const std::unique_ptr<SculptUndoNode> &unode : usculpt.nodes) {
     if (!ELEM(unode->type, SculptUndoType::Color, SculptUndoType::Mask)) {
       clear_automask_cache = true;
     }
@@ -930,16 +930,16 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
     ss->last_automasking_settings_hash = 0;
   }
 
-  if (lb->first != nullptr) {
+  if (!usculpt.nodes.is_empty()) {
     /* Only do early object update for edits if first node needs this.
      * Undo steps like geometry does not need object to be updated before they run and will
      * ensure object is updated after the node is handled. */
-    const SculptUndoNode *first_unode = (const SculptUndoNode *)lb->first;
+    const SculptUndoNode *first_unode = usculpt.nodes.first().get();
     if (first_unode->type != SculptUndoType::Geometry) {
       BKE_sculpt_update_object_for_edit(depsgraph, ob, false);
     }
 
-    if (sculpt_undo_bmesh_restore(C, *static_cast<SculptUndoNode *>(lb->first), ob, ss)) {
+    if (sculpt_undo_bmesh_restore(C, *usculpt.nodes.first(), ob, ss)) {
       return;
     }
   }
@@ -963,7 +963,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
   Vector<bool> modified_verts_color;
   Vector<bool> modified_faces_face_set;
   Vector<bool> modified_grids;
-  LISTBASE_FOREACH (SculptUndoNode *, unode, lb) {
+  for (std::unique_ptr<SculptUndoNode> &unode : usculpt.nodes) {
     if (!STREQ(unode->idname, ob->id.name)) {
       continue;
     }
@@ -1034,7 +1034,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
   }
 
   if (use_multires_undo) {
-    LISTBASE_FOREACH (SculptUndoNode *, unode, lb) {
+    for (std::unique_ptr<SculptUndoNode> &unode : usculpt.nodes) {
       if (!STREQ(unode->idname, ob->id.name)) {
         continue;
       }
@@ -1117,24 +1117,17 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
   }
 }
 
-static void sculpt_undo_free_list(ListBase *lb)
+static void sculpt_undo_free_list(UndoSculpt &usculpt)
 {
-  SculptUndoNode *unode = static_cast<SculptUndoNode *>(lb->first);
-  while (unode != nullptr) {
-    SculptUndoNode *unode_next = unode->next;
-
-    if (unode->bm_entry) {
-      BM_log_entry_drop(unode->bm_entry);
-    }
-
+  for (std::unique_ptr<SculptUndoNode> &unode : usculpt.nodes) {
     sculpt_undo_geometry_free_data(&unode->geometry_original);
     sculpt_undo_geometry_free_data(&unode->geometry_modified);
     sculpt_undo_geometry_free_data(&unode->geometry_bmesh_enter);
-
-    MEM_delete(unode);
-
-    unode = unode_next;
+    if (unode->bm_entry) {
+      BM_log_entry_drop(unode->bm_entry);
+    }
   }
+  usculpt.nodes.~Vector();
 }
 
 SculptUndoNode *get_node(PBVHNode *node, SculptUndoType type)
@@ -1145,9 +1138,9 @@ SculptUndoNode *get_node(PBVHNode *node, SculptUndoType type)
     return nullptr;
   }
 
-  LISTBASE_FOREACH (SculptUndoNode *, unode, &usculpt->nodes) {
+  for (std::unique_ptr<SculptUndoNode> &unode : usculpt->nodes) {
     if (unode->node == node && unode->type == type) {
-      return unode;
+      return unode.get();
     }
   }
 
@@ -1178,16 +1171,16 @@ static size_t sculpt_undo_alloc_and_store_hidden(SculptSession *ss, SculptUndoNo
  * Will also add the node to the list in the undo step. */
 static SculptUndoNode *sculpt_undo_alloc_node_type(Object *object, SculptUndoType type)
 {
-  const size_t alloc_size = sizeof(SculptUndoNode);
-  SculptUndoNode *unode = MEM_new<SculptUndoNode>(__func__);
-  STRNCPY(unode->idname, object->id.name);
-  unode->type = type;
-
   UndoSculpt *usculpt = sculpt_undo_get_nodes();
-  BLI_addtail(&usculpt->nodes, unode);
-  usculpt->undo_size += alloc_size;
+  std::unique_ptr<SculptUndoNode> unode = std::make_unique<SculptUndoNode>();
+  usculpt->nodes.append(std::move(unode));
+  usculpt->undo_size += sizeof(SculptUndoNode);
 
-  return unode;
+  SculptUndoNode *node_ptr = usculpt->nodes.last().get();
+  STRNCPY(node_ptr->idname, object->id.name);
+  node_ptr->type = type;
+
+  return node_ptr;
 }
 
 /* Will return first existing undo node of the given type.
@@ -1197,9 +1190,9 @@ static SculptUndoNode *sculpt_undo_find_or_alloc_node_type(Object *object, Sculp
 {
   UndoSculpt *usculpt = sculpt_undo_get_nodes();
 
-  LISTBASE_FOREACH (SculptUndoNode *, unode, &usculpt->nodes) {
+  for (std::unique_ptr<SculptUndoNode> &unode : usculpt->nodes) {
     if (unode->type == type) {
-      return unode;
+      return unode.get();
     }
   }
 
@@ -1443,10 +1436,11 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
   SculptSession *ss = ob->sculpt;
   PBVHVertexIter vd;
 
-  SculptUndoNode *unode = static_cast<SculptUndoNode *>(usculpt->nodes.first);
+  SculptUndoNode *unode = usculpt->nodes.is_empty() ? nullptr : usculpt->nodes.first().get();
 
   if (unode == nullptr) {
-    unode = MEM_new<SculptUndoNode>(__func__);
+    usculpt->nodes.append(std::make_unique<SculptUndoNode>());
+    unode = usculpt->nodes.last().get();
 
     STRNCPY(unode->idname, ob->id.name);
     unode->type = type;
@@ -1471,8 +1465,6 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
     else {
       unode->bm_entry = BM_log_entry_add(ss->bm_log);
     }
-
-    BLI_addtail(&usculpt->nodes, unode);
   }
 
   if (node) {
@@ -1688,7 +1680,7 @@ void push_end_ex(Object *ob, const bool use_nested_undo)
   UndoSculpt *usculpt = sculpt_undo_get_nodes();
 
   /* We don't need normals in the undo stack. */
-  LISTBASE_FOREACH (SculptUndoNode *, unode, &usculpt->nodes) {
+  for (std::unique_ptr<SculptUndoNode> &unode : usculpt->nodes) {
     usculpt->undo_size -= unode->no.as_span().size_in_bytes();
     unode->no = {};
   }
@@ -1773,8 +1765,7 @@ static void sculpt_undo_set_active_layer(bContext *C, SculptAttrRef *attr)
 static void sculpt_undosys_step_encode_init(bContext * /*C*/, UndoStep *us_p)
 {
   SculptUndoStep *us = (SculptUndoStep *)us_p;
-  /* Dummy, memory is cleared anyway. */
-  BLI_listbase_clear(&us->data.nodes);
+  new (&us->data.nodes) Vector<std::unique_ptr<SculptUndoNode>>();
 }
 
 static bool sculpt_undosys_step_encode(bContext * /*C*/, Main *bmain, UndoStep *us_p)
@@ -1784,13 +1775,13 @@ static bool sculpt_undosys_step_encode(bContext * /*C*/, Main *bmain, UndoStep *
   SculptUndoStep *us = (SculptUndoStep *)us_p;
   us->step.data_size = us->data.undo_size;
 
-  SculptUndoNode *unode = static_cast<SculptUndoNode *>(us->data.nodes.last);
+  SculptUndoNode *unode = us->data.nodes.is_empty() ? nullptr : us->data.nodes.last().get();
   if (unode && unode->type == SculptUndoType::DyntopoEnd) {
     us->step.use_memfile_step = true;
   }
   us->step.is_applied = true;
 
-  if (!BLI_listbase_is_empty(&us->data.nodes)) {
+  if (!us->data.nodes.is_empty()) {
     bmain->is_memfile_undo_flush_needed = true;
   }
 
@@ -1803,7 +1794,7 @@ static void sculpt_undosys_step_decode_undo_impl(bContext *C,
 {
   BLI_assert(us->step.is_applied == true);
 
-  sculpt_undo_restore_list(C, depsgraph, &us->data.nodes);
+  sculpt_undo_restore_list(C, depsgraph, us->data);
   us->step.is_applied = false;
 
   sculpt_undo_print_nodes(CTX_data_active_object(C), nullptr);
@@ -1815,7 +1806,7 @@ static void sculpt_undosys_step_decode_redo_impl(bContext *C,
 {
   BLI_assert(us->step.is_applied == false);
 
-  sculpt_undo_restore_list(C, depsgraph, &us->data.nodes);
+  sculpt_undo_restore_list(C, depsgraph, us->data);
   us->step.is_applied = true;
 
   sculpt_undo_print_nodes(CTX_data_active_object(C), nullptr);
@@ -1930,7 +1921,7 @@ static void sculpt_undosys_step_decode(
 static void sculpt_undosys_step_free(UndoStep *us_p)
 {
   SculptUndoStep *us = (SculptUndoStep *)us_p;
-  sculpt_undo_free_list(&us->data.nodes);
+  sculpt_undo_free_list(us->data);
 }
 
 void geometry_begin(Object *ob, const wmOperator *op)
