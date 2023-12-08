@@ -31,6 +31,15 @@
 namespace blender::bke::pbvh::pixels {
 
 /**
+ * Splitting of pixel nodes has been disabled as it was designed for C. When migrating to CPP
+ * the splitting data structure will corrupt memory.
+ *
+ * TODO(jbakker): This should be fixed or replaced with a different solution. If we go into a
+ * direction of compute shaders this might not be needed anymore.
+ */
+constexpr bool PBVH_PIXELS_SPLIT_NODES_ENABLED = false;
+
+/**
  * Calculate the delta of two neighbor UV coordinates in the given image buffer.
  */
 static float2 calc_barycentric_delta(const float2 uvs[3],
@@ -805,7 +814,7 @@ using namespace blender::bke::pbvh::pixels;
 
 void BKE_pbvh_build_pixels(PBVH *pbvh, Mesh *mesh, Image *image, ImageUser *image_user)
 {
-  if (update_pixels(pbvh, mesh, image, image_user)) {
+  if (update_pixels(pbvh, mesh, image, image_user) && PBVH_PIXELS_SPLIT_NODES_ENABLED) {
     split_pixel_nodes(pbvh, mesh, image, image_user);
   }
 }
