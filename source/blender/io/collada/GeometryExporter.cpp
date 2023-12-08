@@ -49,10 +49,10 @@ void GeometryExporter::operator()(Object *ob)
 {
   bool use_instantiation = this->export_settings.get_use_object_instantiation();
   Mesh *mesh = bc_get_mesh_copy(blender_context,
-                              ob,
-                              this->export_settings.get_export_mesh_type(),
-                              this->export_settings.get_apply_modifiers(),
-                              this->export_settings.get_triangulate());
+                                ob,
+                                this->export_settings.get_export_mesh_type(),
+                                this->export_settings.get_apply_modifiers(),
+                                this->export_settings.get_triangulate());
 
   std::string geom_id = get_geometry_id(ob, use_instantiation);
   std::vector<Normal> nor;
@@ -390,7 +390,8 @@ void GeometryExporter::create_mesh_primitive_list(short material_index,
     int map_index = 0;
 
     for (int a = 0; a < totlayer_mcol; a++) {
-      const char *layer_name = bc_CustomData_get_layer_name(&mesh->loop_data, CD_PROP_BYTE_COLOR, a);
+      const char *layer_name = bc_CustomData_get_layer_name(
+          &mesh->loop_data, CD_PROP_BYTE_COLOR, a);
       COLLADASW::Input input4(COLLADASW::InputSemantic::COLOR,
                               makeUrl(makeVertexColorSourceId(geom_id, layer_name)),
                               (has_uvs) ? 3 : 2, /* all color layers have same index order */
@@ -580,7 +581,9 @@ bool operator<(const Normal &a, const Normal &b)
   return a.x < b.x || (a.x == b.x && (a.y < b.y || (a.y == b.y && a.z < b.z)));
 }
 
-void GeometryExporter::createNormalsSource(std::string geom_id, Mesh *mesh, std::vector<Normal> &nor)
+void GeometryExporter::createNormalsSource(std::string geom_id,
+                                           Mesh *mesh,
+                                           std::vector<Normal> &nor)
 {
   COLLADASW::FloatSourceF source(mSW);
   source.setId(getIdBySemantics(geom_id, COLLADASW::InputSemantic::NORMAL));

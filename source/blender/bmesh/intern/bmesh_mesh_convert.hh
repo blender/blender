@@ -43,7 +43,7 @@ struct BMeshFromMeshParams {
  *
  * \warning This function doesn't calculate face normals.
  */
-void BM_mesh_bm_from_me(BMesh *bm, const struct Mesh *mesh, const struct BMeshFromMeshParams *params)
+void BM_mesh_bm_from_me(BMesh *bm, const Mesh *mesh, const BMeshFromMeshParams *params)
     ATTR_NONNULL(1, 3);
 
 struct BMeshToMeshParams {
@@ -70,10 +70,8 @@ struct BMeshToMeshParams {
 /**
  * \param bmain: May be NULL in case \a calc_object_remap parameter option is not set.
  */
-void BM_mesh_bm_to_me(struct Main *bmain,
-                      BMesh *bm,
-                      struct Mesh *mesh,
-                      const struct BMeshToMeshParams *params) ATTR_NONNULL(2, 3, 4);
+void BM_mesh_bm_to_me(struct Main *bmain, BMesh *bm, Mesh *mesh, const BMeshToMeshParams *params)
+    ATTR_NONNULL(2, 3, 4);
 
 /**
  * A version of #BM_mesh_bm_to_me intended for getting the mesh
@@ -91,7 +89,5 @@ void BM_mesh_bm_to_me(struct Main *bmain,
  *
  * \note Was `cddm_from_bmesh_ex` in 2.7x, removed `MFace` support.
  */
-void BM_mesh_bm_to_me_for_eval(BMesh *bm,
-                               struct Mesh *mesh,
-                               const struct CustomData_MeshMasks *cd_mask_extra)
+void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *mesh, const CustomData_MeshMasks *cd_mask_extra)
     ATTR_NONNULL(1, 2);

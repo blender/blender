@@ -89,7 +89,8 @@ static void extract_uv_init(const MeshRenderData &mr,
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
   GPUVertFormat format = {0};
 
-  CustomData *cd_ldata = (mr.extract_type == MR_EXTRACT_BMESH) ? &mr.bm->ldata : &mr.mesh->loop_data;
+  CustomData *cd_ldata = (mr.extract_type == MR_EXTRACT_BMESH) ? &mr.bm->ldata :
+                                                                 &mr.mesh->loop_data;
   int v_len = mr.loop_len;
   uint32_t uv_layers = cache.cd_used.uv;
   if (!mesh_extract_uv_format_init(&format, cache, cd_ldata, mr.extract_type, uv_layers)) {

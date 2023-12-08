@@ -539,7 +539,8 @@ const bool *ED_mesh_uv_map_edge_select_layer_get(const Mesh *mesh, int uv_map_in
 const bool *ED_mesh_uv_map_pin_layer_get(const Mesh *mesh, int uv_map_index);
 
 void ED_mesh_uv_ensure(Mesh *mesh, const char *name);
-int ED_mesh_uv_add(Mesh *mesh, const char *name, bool active_set, bool do_init, ReportList *reports);
+int ED_mesh_uv_add(
+    Mesh *mesh, const char *name, bool active_set, bool do_init, ReportList *reports);
 
 void ED_mesh_uv_loop_reset(bContext *C, Mesh *mesh);
 /**
