@@ -231,15 +231,14 @@ struct FindClosestData {
  *
  * \return A new point or curve closer than the \a initial input, if one exists.
  */
-std::optional<FindClosestData> closest_elem_find_screen_space(
-    const ViewContext &vc,
-    const Object &object,
-    const OffsetIndices<int> points_by_curve,
-    Span<float3> deformed_positions,
-    const IndexMask &mask,
-    eAttrDomain domain,
-    int2 coord,
-    const FindClosestData &initial);
+std::optional<FindClosestData> closest_elem_find_screen_space(const ViewContext &vc,
+                                                              const Object &object,
+                                                              OffsetIndices<int> points_by_curve,
+                                                              Span<float3> deformed_positions,
+                                                              const IndexMask &mask,
+                                                              eAttrDomain domain,
+                                                              int2 coord,
+                                                              const FindClosestData &initial);
 
 /**
  * Select points or curves in a (screen-space) rectangle.
