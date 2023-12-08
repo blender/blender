@@ -204,8 +204,6 @@ struct DeleteOperationExecutor {
 
   void delete_spherical_with_symmetry(MutableSpan<bool> curves_to_keep)
   {
-    const float4x4 projection = ED_view3d_ob_project_mat_get(ctx_.rv3d, object_);
-
     float3 brush_wo;
     ED_view3d_win_to_3d(
         ctx_.v3d,

@@ -219,8 +219,6 @@ struct PuffOperationExecutor {
 
   void find_curves_weights_spherical_with_symmetry(MutableSpan<float> r_curve_weights)
   {
-    const float4x4 projection = ED_view3d_ob_project_mat_get(ctx_.rv3d, object_);
-
     float3 brush_pos_wo;
     ED_view3d_win_to_3d(
         ctx_.v3d,

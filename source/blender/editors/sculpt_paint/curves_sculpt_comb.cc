@@ -289,8 +289,6 @@ struct CombOperationExecutor {
    */
   void comb_spherical_with_symmetry(MutableSpan<bool> r_changed_curves)
   {
-    const float4x4 projection = ED_view3d_ob_project_mat_get(ctx_.rv3d, curves_ob_orig_);
-
     float3 brush_start_wo, brush_end_wo;
     ED_view3d_win_to_3d(
         ctx_.v3d,
