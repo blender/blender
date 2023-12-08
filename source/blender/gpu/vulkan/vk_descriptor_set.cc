@@ -136,6 +136,7 @@ void VKDescriptorSetTracker::update(VKContext &context)
   std::unique_ptr<VKDescriptorSet> &descriptor_set = active_descriptor_set();
   VkDescriptorSet vk_descriptor_set = descriptor_set->vk_handle();
   BLI_assert(vk_descriptor_set != VK_NULL_HANDLE);
+  debug::object_label(vk_descriptor_set, shader.name_get());
 
   Vector<VkDescriptorBufferInfo> buffer_infos;
   buffer_infos.reserve(16);
