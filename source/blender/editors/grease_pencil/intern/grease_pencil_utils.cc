@@ -341,6 +341,9 @@ IndexMask retrieve_editable_strokes(Object &object,
 
   /* Get all the editable material indices */
   VectorSet<int> editable_material_indices = get_editable_material_indices(object);
+  if (editable_material_indices.is_empty()) {
+    return {};
+  }
 
   const bke::CurvesGeometry &curves = drawing.strokes();
   const IndexRange curves_range = drawing.strokes().curves_range();
@@ -348,7 +351,7 @@ IndexMask retrieve_editable_strokes(Object &object,
 
   const VArray<int> materials = *attributes.lookup<int>("material_index", ATTR_DOMAIN_CURVE);
   if (!materials) {
-    /* if the attribute does not exist then the default is the first material. */
+    /* If the attribute does not exist then the default is the first material. */
     if (editable_material_indices.contains(0)) {
       return curves_range;
     }
@@ -368,6 +371,9 @@ IndexMask retrieve_editable_points(Object &object,
 {
   /* Get all the editable material indices */
   VectorSet<int> editable_material_indices = get_editable_material_indices(object);
+  if (editable_material_indices.is_empty()) {
+    return {};
+  }
 
   const bke::CurvesGeometry &curves = drawing.strokes();
   const IndexRange points_range = drawing.strokes().points_range();
@@ -376,7 +382,7 @@ IndexMask retrieve_editable_points(Object &object,
   /* Propagate the material index to the points. */
   const VArray<int> materials = *attributes.lookup<int>("material_index", ATTR_DOMAIN_POINT);
   if (!materials) {
-    /* if the attribute does not exist then the default is the first material. */
+    /* If the attribute does not exist then the default is the first material. */
     if (editable_material_indices.contains(0)) {
       return points_range;
     }
