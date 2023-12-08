@@ -51,7 +51,7 @@ namespace blender::meshintersect {
  * that yield predictable results from run-to-run and machine-to-machine.
  */
 class Edge {
-  const Vert *v_[2]{nullptr, nullptr};
+  const Vert *v_[2] = {nullptr, nullptr};
 
  public:
   Edge() = default;

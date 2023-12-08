@@ -3409,7 +3409,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     if (!DNA_struct_member_exists(fd->filesdna, "Scene", "SceneDisplay", "display")) {
       /* Initialize new scene.SceneDisplay */
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-        const float vector[3]{-M_SQRT1_3, -M_SQRT1_3, M_SQRT1_3};
+        const float vector[3] = {-M_SQRT1_3, -M_SQRT1_3, M_SQRT1_3};
         copy_v3_v3(scene->display.light_direction, vector);
       }
     }

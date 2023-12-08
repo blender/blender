@@ -1153,7 +1153,7 @@ static void libdecor_frame_handle_configure(libdecor_frame *frame,
   GWL_WindowFrame *frame_pending = &static_cast<GWL_Window *>(data)->frame_pending;
 
   /* Set the size. */
-  int size_decor[2]{
+  int size_decor[2] = {
       libdecor_frame_get_content_width(frame),
       libdecor_frame_get_content_height(frame),
   };

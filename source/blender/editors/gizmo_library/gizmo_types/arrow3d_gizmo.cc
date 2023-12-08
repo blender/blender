@@ -342,7 +342,7 @@ static int gizmo_arrow_modal(bContext *C,
     blender::float2 mval;
     float ray_origin[3], ray_direction[3];
     float location[3];
-  } proj[2]{};
+  } proj[2] = {};
 
   proj[0].mval = {UNPACK2(inter->init_mval)};
   proj[1].mval = {float(event->mval[0]), float(event->mval[1])};

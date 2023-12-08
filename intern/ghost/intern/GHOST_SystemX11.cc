@@ -188,7 +188,7 @@ GHOST_SystemX11::GHOST_SystemX11()
     if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0) {
       GHOST_ASSERT(false, "Could not instantiate monotonic timer!");
     }
-    m_start_time_monotonic = ((uint64_t(ts.tv_sec) * 1000) + (ts.tv_nsec / 1000000));
+    m_start_time_monotonic = (uint64_t(ts.tv_sec) * 1000) + uint64_t(ts.tv_nsec / 1000000);
   }
 
   /* Use detectable auto-repeat, mac and windows also do this. */

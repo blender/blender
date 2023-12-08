@@ -254,7 +254,7 @@ blender::Array<uint> ExecutionGroup::get_execution_order() const
       uint by = my + 2 * ty;
       float addition = chunks_len_ / COM_RULE_OF_THIRDS_DIVIDER;
 
-      ChunkOrderHotspot hotspots[9]{
+      ChunkOrderHotspot hotspots[9] = {
           ChunkOrderHotspot(mx, my, addition * 0),
           ChunkOrderHotspot(tx, my, addition * 1),
           ChunkOrderHotspot(bx, my, addition * 2),

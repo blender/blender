@@ -1944,7 +1944,7 @@ static GHOST_TTabletMode tablet_tool_map_type(enum zwp_tablet_tool_v2_type wp_ta
 static const int default_cursor_size = 24;
 
 struct GWL_Cursor_ShapeInfo {
-  const char *names[GHOST_kStandardCursorNumCursors] = {0};
+  const char *names[GHOST_kStandardCursorNumCursors] = {nullptr};
 };
 
 static const GWL_Cursor_ShapeInfo ghost_wl_cursors = []() -> GWL_Cursor_ShapeInfo {
@@ -6985,7 +6985,7 @@ uint64_t GHOST_SystemWayland::getMilliSeconds() const
   /* Match the timing method used by LIBINPUT, so the result is closer to WAYLAND's time-stamps. */
   struct timespec ts = {0, 0};
   clock_gettime(CLOCK_MONOTONIC, &ts);
-  return ((uint64_t(ts.tv_sec) * 1000) + (ts.tv_nsec / 1000000));
+  return (uint64_t(ts.tv_sec) * 1000) + uint64_t(ts.tv_nsec / 1000000);
 }
 
 static GHOST_TSuccess getCursorPositionClientRelative_impl(
