@@ -110,6 +110,7 @@ class ObjectModule {
   void sync_grease_pencil(Manager &manager,
                           ObjectRef &object_ref,
                           Framebuffer &main_fb,
+                          Framebuffer &scene_fb,
                           TextureFromPool &depth_tx,
                           PassSortable &main_ps)
   {
@@ -196,9 +197,10 @@ class ObjectModule {
       object_subpass.draw(geom, handle);
     }
 
+    /** Merging the object depth buffer into the scene depth buffer. */
     float4x4 plane_mat = get_object_plane_mat(*object);
     ResourceHandle handle_plane_mat = manager.resource_handle(plane_mat);
-    object_subpass.framebuffer_set(&DRW_viewport_framebuffer_list_get()->depth_only_fb);
+    object_subpass.framebuffer_set(&scene_fb);
     object_subpass.state_set(DRW_STATE_DEPTH_LESS | DRW_STATE_WRITE_DEPTH);
     object_subpass.shader_set(shaders_.static_shader_get(DEPTH_MERGE));
     object_subpass.bind_texture("depthBuf", (object_has_vfx) ? nullptr : &depth_tx);
