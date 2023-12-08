@@ -89,9 +89,9 @@ static int UNUSED_FUNCTION(ED_operator_uvmap_mesh)(bContext *C)
   Object *ob = CTX_data_active_object(C);
 
   if (ob && ob->type == OB_MESH) {
-    Mesh *me = static_cast<Mesh *>(ob->data);
+    Mesh *mesh = static_cast<Mesh *>(ob->data);
 
-    if (CustomData_get_layer(&me->loop_data, CD_PROP_FLOAT2) != nullptr) {
+    if (CustomData_get_layer(&mesh->loop_data, CD_PROP_FLOAT2) != nullptr) {
       return 1;
     }
   }
@@ -1320,12 +1320,12 @@ static int uv_hide_exec(bContext *C, wmOperator *op)
 
     if (ts->uv_flag & UV_SYNC_SELECTION) {
       if (EDBM_mesh_hide(em, swap)) {
-        Mesh *me = static_cast<Mesh *>(ob->data);
+        Mesh *mesh = static_cast<Mesh *>(ob->data);
         EDBMUpdate_Params params = {0};
         params.calc_looptri = true;
         params.calc_normals = false;
         params.is_destructive = false;
-        EDBM_update(me, &params);
+        EDBM_update(mesh, &params);
       }
       continue;
     }
@@ -1497,12 +1497,12 @@ static int uv_reveal_exec(bContext *C, wmOperator *op)
     /* call the mesh function if we are in mesh sync sel */
     if (ts->uv_flag & UV_SYNC_SELECTION) {
       if (EDBM_mesh_reveal(em, select)) {
-        Mesh *me = static_cast<Mesh *>(ob->data);
+        Mesh *mesh = static_cast<Mesh *>(ob->data);
         EDBMUpdate_Params params = {0};
         params.calc_looptri = true;
         params.calc_normals = false;
         params.is_destructive = false;
-        EDBM_update(me, &params);
+        EDBM_update(mesh, &params);
       }
       continue;
     }
@@ -1698,8 +1698,8 @@ static int uv_seams_from_islands_exec(bContext *C, wmOperator *op)
 
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *ob = objects[ob_index];
-    Mesh *me = (Mesh *)ob->data;
-    BMEditMesh *em = me->edit_mesh;
+    Mesh *mesh = (Mesh *)ob->data;
+    BMEditMesh *em = mesh->edit_mesh;
     BMesh *bm = em->bm;
     BMIter iter;
 
@@ -1751,8 +1751,8 @@ static int uv_seams_from_islands_exec(bContext *C, wmOperator *op)
 
     if (changed) {
       changed_multi = true;
-      DEG_id_tag_update(&me->id, 0);
-      WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
+      DEG_id_tag_update(&mesh->id, 0);
+      WM_event_add_notifier(C, NC_GEOM | ND_DATA, mesh);
     }
   }
   MEM_freeN(objects);
@@ -1805,8 +1805,8 @@ static int uv_mark_seam_exec(bContext *C, wmOperator *op)
 
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *ob = objects[ob_index];
-    Mesh *me = (Mesh *)ob->data;
-    BMEditMesh *em = me->edit_mesh;
+    Mesh *mesh = (Mesh *)ob->data;
+    BMEditMesh *em = mesh->edit_mesh;
     BMesh *bm = em->bm;
 
     if (synced_selection && (bm->totedgesel == 0)) {
@@ -1827,8 +1827,8 @@ static int uv_mark_seam_exec(bContext *C, wmOperator *op)
     }
 
     if (changed) {
-      DEG_id_tag_update(&me->id, 0);
-      WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
+      DEG_id_tag_update(&mesh->id, 0);
+      WM_event_add_notifier(C, NC_GEOM | ND_DATA, mesh);
     }
   }
 

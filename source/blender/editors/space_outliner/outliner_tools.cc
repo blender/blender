@@ -281,9 +281,9 @@ static void unlink_material_fn(bContext * /*C*/,
       break;
     }
     case ID_ME: {
-      Mesh *me = (Mesh *)tsep->id;
-      totcol = me->totcol;
-      matar = me->mat;
+      Mesh *mesh = (Mesh *)tsep->id;
+      totcol = mesh->totcol;
+      matar = mesh->mat;
       break;
     }
     case ID_CU_LEGACY: {

@@ -1211,7 +1211,7 @@ void MESH_OT_mark_sharp(wmOperatorType *ot)
 /** \name Connect Vertex Path Operator
  * \{ */
 
-static bool edbm_connect_vert_pair(BMEditMesh *em, Mesh *me, wmOperator *op)
+static bool edbm_connect_vert_pair(BMEditMesh *em, Mesh *mesh, wmOperator *op)
 {
   BMesh *bm = em->bm;
   BMOperator bmop;
@@ -1307,7 +1307,7 @@ static bool edbm_connect_vert_pair(BMEditMesh *em, Mesh *me, wmOperator *op)
       params.calc_looptri = true;
       params.calc_normals = false;
       params.is_destructive = true;
-      EDBM_update(me, &params);
+      EDBM_update(mesh, &params);
     }
 
     if (em_backup_free) {
@@ -2694,11 +2694,11 @@ static int edbm_do_smooth_vertex_exec(bContext *C, wmOperator *op)
       scene, view_layer, CTX_wm_view3d(C), &objects_len);
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];
-    Mesh *me = static_cast<Mesh *>(obedit->data);
+    Mesh *mesh = static_cast<Mesh *>(obedit->data);
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     bool mirrx = false, mirry = false, mirrz = false;
     float clip_dist = 0.0f;
-    const bool use_topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
+    const bool use_topology = (mesh->editflag & ME_EDIT_MIRROR_TOPO) != 0;
 
     if (em->bm->totvertsel == 0) {
       continue;
@@ -2828,8 +2828,8 @@ static int edbm_do_smooth_laplacian_vertex_exec(bContext *C, wmOperator *op)
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
-    Mesh *me = static_cast<Mesh *>(obedit->data);
-    bool use_topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
+    Mesh *mesh = static_cast<Mesh *>(obedit->data);
+    bool use_topology = (mesh->editflag & ME_EDIT_MIRROR_TOPO) != 0;
 
     if (em->bm->totvertsel == 0) {
       tot_unselected++;
@@ -3137,15 +3137,15 @@ static int edbm_rotate_colors_exec(bContext *C, wmOperator *op)
 
     BMOperator bmop;
 
-    Mesh *me = BKE_object_get_original_mesh(ob);
+    Mesh *mesh = BKE_object_get_original_mesh(ob);
     const CustomDataLayer *layer = BKE_id_attribute_search(
-        &me->id, me->active_color_attribute, CD_MASK_COLOR_ALL, ATTR_DOMAIN_MASK_CORNER);
+        &mesh->id, mesh->active_color_attribute, CD_MASK_COLOR_ALL, ATTR_DOMAIN_MASK_CORNER);
     if (!layer) {
       continue;
     }
 
     int color_index = BKE_id_attribute_to_index(
-        &me->id, layer, ATTR_DOMAIN_MASK_CORNER, CD_MASK_COLOR_ALL);
+        &mesh->id, layer, ATTR_DOMAIN_MASK_CORNER, CD_MASK_COLOR_ALL);
     EDBM_op_init(em,
                  &bmop,
                  op,
@@ -3189,9 +3189,9 @@ static int edbm_reverse_colors_exec(bContext *C, wmOperator *op)
       continue;
     }
 
-    Mesh *me = BKE_object_get_original_mesh(obedit);
+    Mesh *mesh = BKE_object_get_original_mesh(obedit);
     const CustomDataLayer *layer = BKE_id_attribute_search(
-        &me->id, me->active_color_attribute, CD_MASK_COLOR_ALL, ATTR_DOMAIN_MASK_CORNER);
+        &mesh->id, mesh->active_color_attribute, CD_MASK_COLOR_ALL, ATTR_DOMAIN_MASK_CORNER);
     if (!layer) {
       continue;
     }
@@ -3199,7 +3199,7 @@ static int edbm_reverse_colors_exec(bContext *C, wmOperator *op)
     BMOperator bmop;
 
     int color_index = BKE_id_attribute_to_index(
-        &me->id, layer, ATTR_DOMAIN_MASK_CORNER, CD_MASK_COLOR_ALL);
+        &mesh->id, layer, ATTR_DOMAIN_MASK_CORNER, CD_MASK_COLOR_ALL);
     EDBM_op_init(
         em, &bmop, op, "reverse_colors faces=%hf color_index=%i", BM_ELEM_SELECT, color_index);
 
@@ -3747,18 +3747,18 @@ static int edbm_shape_propagate_to_all_exec(bContext *C, wmOperator *op)
       scene, view_layer, CTX_wm_view3d(C), &objects_len);
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];
-    Mesh *me = static_cast<Mesh *>(obedit->data);
-    BMEditMesh *em = me->edit_mesh;
+    Mesh *mesh = static_cast<Mesh *>(obedit->data);
+    BMEditMesh *em = mesh->edit_mesh;
 
     if (em->bm->totvertsel == 0) {
       continue;
     }
     tot_selected_verts_objects++;
 
-    const bool use_symmetry = (me->symmetry & ME_SYMMETRY_X) != 0;
+    const bool use_symmetry = (mesh->symmetry & ME_SYMMETRY_X) != 0;
 
     if (use_symmetry) {
-      const bool use_topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
+      const bool use_topology = (mesh->editflag & ME_EDIT_MIRROR_TOPO) != 0;
 
       EDBM_verts_mirror_cache_begin(em, 0, false, true, false, use_topology);
     }
@@ -3775,7 +3775,7 @@ static int edbm_shape_propagate_to_all_exec(bContext *C, wmOperator *op)
     params.calc_looptri = false;
     params.calc_normals = false;
     params.is_destructive = false;
-    EDBM_update(me, &params);
+    EDBM_update(mesh, &params);
   }
   MEM_freeN(objects);
 
@@ -3854,10 +3854,10 @@ static int edbm_blend_from_shape_exec(bContext *C, wmOperator *op)
       scene, view_layer, CTX_wm_view3d(C), &objects_len);
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];
-    Mesh *me = static_cast<Mesh *>(obedit->data);
-    Key *key = me->key;
+    Mesh *mesh = static_cast<Mesh *>(obedit->data);
+    Key *key = mesh->key;
     KeyBlock *kb = nullptr;
-    BMEditMesh *em = me->edit_mesh;
+    BMEditMesh *em = mesh->edit_mesh;
     int shape;
 
     if (em->bm->totvertsel == 0) {
@@ -3872,10 +3872,10 @@ static int edbm_blend_from_shape_exec(bContext *C, wmOperator *op)
     shape = BLI_findindex(&key->block, kb);
 
     if (kb) {
-      const bool use_symmetry = (me->symmetry & ME_SYMMETRY_X) != 0;
+      const bool use_symmetry = (mesh->symmetry & ME_SYMMETRY_X) != 0;
 
       if (use_symmetry) {
-        const bool use_topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
+        const bool use_topology = (mesh->editflag & ME_EDIT_MIRROR_TOPO) != 0;
 
         EDBM_verts_mirror_cache_begin(em, 0, false, true, false, use_topology);
       }
@@ -3914,7 +3914,7 @@ static int edbm_blend_from_shape_exec(bContext *C, wmOperator *op)
       params.calc_looptri = true;
       params.calc_normals = true;
       params.is_destructive = false;
-      EDBM_update(me, &params);
+      EDBM_update(mesh, &params);
     }
   }
   MEM_freeN(objects);
@@ -3966,9 +3966,9 @@ static void edbm_blend_from_shape_ui(bContext *C, wmOperator *op)
 {
   uiLayout *layout = op->layout;
   Object *obedit = CTX_data_edit_object(C);
-  Mesh *me = static_cast<Mesh *>(obedit->data);
+  Mesh *mesh = static_cast<Mesh *>(obedit->data);
 
-  PointerRNA ptr_key = RNA_id_pointer_create((ID *)me->key);
+  PointerRNA ptr_key = RNA_id_pointer_create((ID *)mesh->key);
 
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
@@ -4811,8 +4811,8 @@ static int edbm_separate_exec(bContext *C, wmOperator *op)
     CTX_DATA_BEGIN (C, Base *, base_iter, selected_editable_bases) {
       Object *ob = base_iter->object;
       if (ob->type == OB_MESH) {
-        Mesh *me = static_cast<Mesh *>(ob->data);
-        if (BKE_id_is_editable(bmain, &me->id)) {
+        Mesh *mesh = static_cast<Mesh *>(ob->data);
+        if (BKE_id_is_editable(bmain, &mesh->id)) {
           BMesh *bm_old = nullptr;
           bool changed = false;
 
@@ -4821,7 +4821,7 @@ static int edbm_separate_exec(bContext *C, wmOperator *op)
           bm_old = BM_mesh_create(&bm_mesh_allocsize_default, &create_params);
 
           BMeshFromMeshParams from_mesh_params{};
-          BM_mesh_bm_from_me(bm_old, me, &from_mesh_params);
+          BM_mesh_bm_from_me(bm_old, mesh, &from_mesh_params);
 
           switch (type) {
             case MESH_SEPARATE_MATERIAL:
@@ -4838,10 +4838,10 @@ static int edbm_separate_exec(bContext *C, wmOperator *op)
           if (changed) {
             BMeshToMeshParams to_mesh_params{};
             to_mesh_params.calc_object_remap = true;
-            BM_mesh_bm_to_me(bmain, bm_old, me, &to_mesh_params);
+            BM_mesh_bm_to_me(bmain, bm_old, mesh, &to_mesh_params);
 
-            DEG_id_tag_update(&me->id, ID_RECALC_GEOMETRY_ALL_MODES);
-            WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
+            DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY_ALL_MODES);
+            WM_event_add_notifier(C, NC_GEOM | ND_DATA, mesh);
           }
 
           BM_mesh_free(bm_old);
@@ -7367,7 +7367,7 @@ static int edbm_bridge_tag_boundary_edges(BMesh *bm)
 
 static int edbm_bridge_edge_loops_for_single_editmesh(wmOperator *op,
                                                       BMEditMesh *em,
-                                                      Mesh *me,
+                                                      Mesh *mesh,
                                                       const bool use_pairs,
                                                       const bool use_cyclic,
                                                       const bool use_merge,
@@ -7474,7 +7474,7 @@ static int edbm_bridge_edge_loops_for_single_editmesh(wmOperator *op,
     params.calc_looptri = true;
     params.calc_normals = false;
     params.is_destructive = true;
-    EDBM_update(me, &params);
+    EDBM_update(mesh, &params);
   }
 
   /* Always return finished so the user can select different options. */

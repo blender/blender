@@ -349,7 +349,7 @@ void ABCGenericMeshWriter::write_face_sets(Object *object, Mesh *mesh, Schema &s
   }
 }
 
-void ABCGenericMeshWriter::write_arb_geo_params(Mesh *me)
+void ABCGenericMeshWriter::write_arb_geo_params(Mesh *mesh)
 {
   if (!args_.export_params->vcolors) {
     return;
@@ -362,7 +362,7 @@ void ABCGenericMeshWriter::write_arb_geo_params(Mesh *me)
   else {
     arb_geom_params = abc_poly_mesh_.getSchema().getArbGeomParams();
   }
-  write_custom_data(arb_geom_params, m_custom_data_config, &me->loop_data, CD_PROP_BYTE_COLOR);
+  write_custom_data(arb_geom_params, m_custom_data_config, &mesh->loop_data, CD_PROP_BYTE_COLOR);
 }
 
 bool ABCGenericMeshWriter::get_velocities(Mesh *mesh, std::vector<Imath::V3f> &vels)

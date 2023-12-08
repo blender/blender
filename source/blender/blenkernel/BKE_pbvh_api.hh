@@ -205,7 +205,7 @@ void BKE_pbvh_update_mesh_pointers(PBVH *pbvh, Mesh *mesh);
 /**
  * Do a full rebuild with on Grids data structure.
  */
-void BKE_pbvh_build_grids(PBVH *pbvh, const CCGKey *key, Mesh *me, SubdivCCG *subdiv_ccg);
+void BKE_pbvh_build_grids(PBVH *pbvh, const CCGKey *key, Mesh *mesh, SubdivCCG *subdiv_ccg);
 /**
  * Build a PBVH from a BMesh.
  */
@@ -312,7 +312,7 @@ bool BKE_pbvh_has_faces(const PBVH *pbvh);
  */
 blender::Bounds<blender::float3> BKE_pbvh_bounding_box(const PBVH *pbvh);
 
-void BKE_pbvh_sync_visibility_from_verts(PBVH *pbvh, Mesh *me);
+void BKE_pbvh_sync_visibility_from_verts(PBVH *pbvh, Mesh *mesh);
 
 /**
  * Returns the number of visible quads in the nodes' grids.
@@ -612,7 +612,7 @@ blender::Span<blender::float3> BKE_pbvh_get_vert_normals(const PBVH *pbvh);
 
 PBVHColorBufferNode *BKE_pbvh_node_color_buffer_get(PBVHNode *node);
 void BKE_pbvh_node_color_buffer_free(PBVH *pbvh);
-bool BKE_pbvh_get_color_layer(Mesh *me, CustomDataLayer **r_layer, eAttrDomain *r_domain);
+bool BKE_pbvh_get_color_layer(Mesh *mesh, CustomDataLayer **r_layer, eAttrDomain *r_domain);
 
 /* Swaps colors at each element in indices (of domain pbvh->vcol_domain)
  * with values in colors. */

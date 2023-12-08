@@ -72,23 +72,23 @@ PyDoc_STRVAR(bpy_bm_from_edit_mesh_doc,
 static PyObject *bpy_bm_from_edit_mesh(PyObject * /*self*/, PyObject *value)
 {
   BMesh *bm;
-  Mesh *me = static_cast<Mesh *>(PyC_RNA_AsPointer(value, "Mesh"));
+  Mesh *mesh = static_cast<Mesh *>(PyC_RNA_AsPointer(value, "Mesh"));
 
-  if (me == nullptr) {
+  if (mesh == nullptr) {
     return nullptr;
   }
 
-  if (me->edit_mesh == nullptr) {
+  if (mesh->edit_mesh == nullptr) {
     PyErr_SetString(PyExc_ValueError, "The mesh must be in editmode");
     return nullptr;
   }
 
-  bm = me->edit_mesh->bm;
+  bm = mesh->edit_mesh->bm;
 
   return BPy_BMesh_CreatePyObject(bm, BPY_BMFLAG_IS_WRAPPED);
 }
 
-void EDBM_update_extern(Mesh *me, const bool do_tessface, const bool is_destructive);
+void EDBM_update_extern(Mesh *mesh, const bool do_tessface, const bool is_destructive);
 
 PyDoc_STRVAR(bpy_bm_update_edit_mesh_doc,
              ".. method:: update_edit_mesh(mesh, loop_triangles=True, destructive=True)\n"
@@ -106,7 +106,7 @@ static PyObject *bpy_bm_update_edit_mesh(PyObject * /*self*/, PyObject *args, Py
 {
   static const char *kwlist[] = {"mesh", "loop_triangles", "destructive", nullptr};
   PyObject *py_me;
-  Mesh *me;
+  Mesh *mesh;
   bool do_loop_triangles = true;
   bool is_destructive = true;
 
@@ -123,19 +123,19 @@ static PyObject *bpy_bm_update_edit_mesh(PyObject * /*self*/, PyObject *args, Py
     return nullptr;
   }
 
-  me = static_cast<Mesh *>(PyC_RNA_AsPointer(py_me, "Mesh"));
+  mesh = static_cast<Mesh *>(PyC_RNA_AsPointer(py_me, "Mesh"));
 
-  if (me == nullptr) {
+  if (mesh == nullptr) {
     return nullptr;
   }
 
-  if (me->edit_mesh == nullptr) {
+  if (mesh->edit_mesh == nullptr) {
     PyErr_SetString(PyExc_ValueError, "The mesh must be in editmode");
     return nullptr;
   }
 
   {
-    EDBM_update_extern(me, do_loop_triangles, is_destructive);
+    EDBM_update_extern(mesh, do_loop_triangles, is_destructive);
   }
 
   Py_RETURN_NONE;

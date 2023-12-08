@@ -553,7 +553,7 @@ void mesh_buffer_cache_create_requested(TaskGraph *task_graph,
                                         MeshBatchCache &cache,
                                         MeshBufferCache &mbc,
                                         Object *object,
-                                        Mesh *me,
+                                        Mesh *mesh,
 
                                         const bool is_editmode,
                                         const bool is_paint_mode,
@@ -597,7 +597,7 @@ void mesh_buffer_cache_create_requested(TaskGraph *task_graph,
    */
   const bool do_hq_normals = (scene->r.perf_flag & SCE_PERF_HQ_NORMALS) != 0 ||
                              GPU_use_hq_normals_workaround();
-  const bool override_single_mat = mesh_render_mat_len_get(object, me) <= 1;
+  const bool override_single_mat = mesh_render_mat_len_get(object, mesh) <= 1;
 
   /* Create an array containing all the extractors that needs to be executed. */
   ExtractorRunDatas extractors;
@@ -682,9 +682,9 @@ void mesh_buffer_cache_create_requested(TaskGraph *task_graph,
 #endif
 
   MeshRenderData *mr = mesh_render_data_create(
-      object, me, is_editmode, is_paint_mode, is_mode_active, obmat, do_final, do_uvedit, ts);
+      object, mesh, is_editmode, is_paint_mode, is_mode_active, obmat, do_final, do_uvedit, ts);
   mr->use_hide = use_hide;
-  mr->use_subsurf_fdots = mr->me && !mr->me->runtime->subsurf_face_dot_tags.is_empty();
+  mr->use_subsurf_fdots = mr->mesh && !mr->mesh->runtime->subsurf_face_dot_tags.is_empty();
   mr->use_final_mesh = do_final;
 
 #ifdef DEBUG_TIME

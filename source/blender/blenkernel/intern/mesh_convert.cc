@@ -319,12 +319,12 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
  * differently for curve and mesh, since curves use control points and handles to calculate the
  * bounding box, and mesh uses the tessellated curve.
  */
-static void mesh_copy_texture_space_from_curve_type(const Curve *cu, Mesh *me)
+static void mesh_copy_texture_space_from_curve_type(const Curve *cu, Mesh *mesh)
 {
-  me->texspace_flag = cu->texspace_flag & ~CU_TEXSPACE_FLAG_AUTO;
-  copy_v3_v3(me->texspace_location, cu->texspace_location);
-  copy_v3_v3(me->texspace_size, cu->texspace_size);
-  BKE_mesh_texspace_calc(me);
+  mesh->texspace_flag = cu->texspace_flag & ~CU_TEXSPACE_FLAG_AUTO;
+  copy_v3_v3(mesh->texspace_location, cu->texspace_location);
+  copy_v3_v3(mesh->texspace_size, cu->texspace_size);
+  BKE_mesh_texspace_calc(mesh);
 }
 
 Mesh *BKE_mesh_new_nomain_from_curve_displist(const Object *ob, const ListBase *dispbase)
@@ -374,12 +374,12 @@ static void appendPolyLineVert(ListBase *lb, uint index)
   BLI_addtail(lb, vl);
 }
 
-void BKE_mesh_to_curve_nurblist(const Mesh *me, ListBase *nurblist, const int edge_users_test)
+void BKE_mesh_to_curve_nurblist(const Mesh *mesh, ListBase *nurblist, const int edge_users_test)
 {
-  const Span<float3> positions = me->vert_positions();
-  const Span<blender::int2> mesh_edges = me->edges();
-  const blender::OffsetIndices polys = me->faces();
-  const Span<int> corner_edges = me->corner_edges();
+  const Span<float3> positions = mesh->vert_positions();
+  const Span<blender::int2> mesh_edges = mesh->edges();
+  const blender::OffsetIndices polys = mesh->faces();
+  const Span<int> corner_edges = mesh->corner_edges();
 
   /* only to detect edge polylines */
   int *edge_users;

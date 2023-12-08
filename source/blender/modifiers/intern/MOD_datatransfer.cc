@@ -153,7 +153,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   ReportList reports;
 
   /* Only used to check whether we are operating on org data or not... */
-  const Mesh *me = static_cast<const Mesh *>(ctx->object->data);
+  const Mesh *mesh = static_cast<const Mesh *>(ctx->object->data);
 
   Object *ob_source = dtmd->ob_source;
 
@@ -171,13 +171,13 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
     BLI_SPACE_TRANSFORM_SETUP(space_transform, ctx->object, ob_source);
   }
 
-  const blender::Span<blender::float3> me_positions = me->vert_positions();
-  const blender::Span<blender::int2> me_edges = me->edges();
+  const blender::Span<blender::float3> me_positions = mesh->vert_positions();
+  const blender::Span<blender::int2> me_edges = mesh->edges();
   const blender::Span<blender::float3> result_positions = result->vert_positions();
 
   const blender::Span<blender::int2> result_edges = result->edges();
 
-  if (((result == me) || (me_positions.data() == result_positions.data()) ||
+  if (((result == mesh) || (me_positions.data() == result_positions.data()) ||
        (me_edges.data() == result_edges.data())) &&
       (dtmd->data_types & DT_TYPES_AFFECT_MESH))
   {

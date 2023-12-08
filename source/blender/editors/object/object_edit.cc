@@ -536,17 +536,17 @@ void OBJECT_OT_hide_collection(wmOperatorType *ot)
 /** \name Toggle Edit-Mode Operator
  * \{ */
 
-static bool mesh_needs_keyindex(Main *bmain, const Mesh *me)
+static bool mesh_needs_keyindex(Main *bmain, const Mesh *mesh)
 {
-  if (me->key) {
+  if (mesh->key) {
     return false; /* will be added */
   }
 
   LISTBASE_FOREACH (const Object *, ob, &bmain->objects) {
-    if ((ob->parent) && (ob->parent->data == me) && ELEM(ob->partype, PARVERT1, PARVERT3)) {
+    if ((ob->parent) && (ob->parent->data == mesh) && ELEM(ob->partype, PARVERT1, PARVERT3)) {
       return true;
     }
-    if (ob->data == me) {
+    if (ob->data == mesh) {
       LISTBASE_FOREACH (const ModifierData *, md, &ob->modifiers) {
         if (md->type == eModifierType_Hook) {
           return true;
@@ -575,17 +575,17 @@ static bool ED_object_editmode_load_free_ex(Main *bmain,
   }
 
   if (obedit->type == OB_MESH) {
-    Mesh *me = static_cast<Mesh *>(obedit->data);
-    if (me->edit_mesh == nullptr) {
+    Mesh *mesh = static_cast<Mesh *>(obedit->data);
+    if (mesh->edit_mesh == nullptr) {
       return false;
     }
 
-    if (me->edit_mesh->bm->totvert > MESH_MAX_VERTS) {
+    if (mesh->edit_mesh->bm->totvert > MESH_MAX_VERTS) {
       /* This used to be warned int the UI, we could warn again although it's quite rare. */
       CLOG_WARN(&LOG,
                 "Too many vertices for mesh '%s' (%d)",
-                me->id.name + 2,
-                me->edit_mesh->bm->totvert);
+                mesh->id.name + 2,
+                mesh->edit_mesh->bm->totvert);
       return false;
     }
 
@@ -594,9 +594,9 @@ static bool ED_object_editmode_load_free_ex(Main *bmain,
     }
 
     if (free_data) {
-      EDBM_mesh_free_data(me->edit_mesh);
-      MEM_freeN(me->edit_mesh);
-      me->edit_mesh = nullptr;
+      EDBM_mesh_free_data(mesh->edit_mesh);
+      MEM_freeN(mesh->edit_mesh);
+      mesh->edit_mesh = nullptr;
     }
     /* will be recalculated as needed. */
     {

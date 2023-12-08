@@ -88,7 +88,7 @@ static int bm_face_isect_pair_swap(BMFace *f, void * /*user_data*/)
 /**
  * Use for intersect and boolean.
  */
-static void edbm_intersect_select(BMEditMesh *em, Mesh *me, bool do_select)
+static void edbm_intersect_select(BMEditMesh *em, Mesh *mesh, bool do_select)
 {
   if (do_select) {
     BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, false);
@@ -110,7 +110,7 @@ static void edbm_intersect_select(BMEditMesh *em, Mesh *me, bool do_select)
   params.calc_looptri = true;
   params.calc_normals = true;
   params.is_destructive = true;
-  EDBM_update(me, &params);
+  EDBM_update(mesh, &params);
 }
 
 /* -------------------------------------------------------------------- */

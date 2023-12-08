@@ -890,18 +890,18 @@ void BKE_modifier_path_init(char *path, int path_maxncpy, const char *name)
 /**
  * Call when #ModifierTypeInfo.depends_on_normals callback requests normals.
  */
-static void modwrap_dependsOnNormals(Mesh *me)
+static void modwrap_dependsOnNormals(Mesh *mesh)
 {
-  switch (me->runtime->wrapper_type) {
+  switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH: {
-      blender::bke::EditMeshData &edit_data = *me->runtime->edit_data;
+      blender::bke::EditMeshData &edit_data = *mesh->runtime->edit_data;
       if (!edit_data.vertexCos.is_empty()) {
         /* Note that 'ensure' is acceptable here since these values aren't modified in-place.
          * If that changes we'll need to recalculate. */
-        BKE_editmesh_cache_ensure_vert_normals(*me->edit_mesh, edit_data);
+        BKE_editmesh_cache_ensure_vert_normals(*mesh->edit_mesh, edit_data);
       }
       else {
-        BM_mesh_normals_update(me->edit_mesh->bm);
+        BM_mesh_normals_update(mesh->edit_mesh->bm);
       }
       break;
     }
@@ -916,69 +916,69 @@ static void modwrap_dependsOnNormals(Mesh *me)
 
 /* wrapper around ModifierTypeInfo.modify_mesh that ensures valid normals */
 
-Mesh *BKE_modifier_modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *me)
+Mesh *BKE_modifier_modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
 
-  if (me->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH) {
+  if (mesh->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH) {
     if ((mti->flags & eModifierTypeFlag_AcceptsBMesh) == 0) {
-      BKE_mesh_wrapper_ensure_mdata(me);
+      BKE_mesh_wrapper_ensure_mdata(mesh);
     }
   }
 
   if (mti->depends_on_normals && mti->depends_on_normals(md)) {
-    modwrap_dependsOnNormals(me);
+    modwrap_dependsOnNormals(mesh);
   }
-  return mti->modify_mesh(md, ctx, me);
+  return mti->modify_mesh(md, ctx, mesh);
 }
 
 void BKE_modifier_deform_verts(ModifierData *md,
                                const ModifierEvalContext *ctx,
-                               Mesh *me,
+                               Mesh *mesh,
                                blender::MutableSpan<blender::float3> positions)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
-  if (me && mti->depends_on_normals && mti->depends_on_normals(md)) {
-    modwrap_dependsOnNormals(me);
+  if (mesh && mti->depends_on_normals && mti->depends_on_normals(md)) {
+    modwrap_dependsOnNormals(mesh);
   }
-  mti->deform_verts(md, ctx, me, positions);
-  if (me) {
-    BKE_mesh_tag_positions_changed(me);
+  mti->deform_verts(md, ctx, mesh, positions);
+  if (mesh) {
+    BKE_mesh_tag_positions_changed(mesh);
   }
 }
 
 void BKE_modifier_deform_vertsEM(ModifierData *md,
                                  const ModifierEvalContext *ctx,
                                  BMEditMesh *em,
-                                 Mesh *me,
+                                 Mesh *mesh,
                                  blender::MutableSpan<blender::float3> positions)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
-  if (me && mti->depends_on_normals && mti->depends_on_normals(md)) {
-    modwrap_dependsOnNormals(me);
+  if (mesh && mti->depends_on_normals && mti->depends_on_normals(md)) {
+    modwrap_dependsOnNormals(mesh);
   }
-  mti->deform_verts_EM(md, ctx, em, me, positions);
+  mti->deform_verts_EM(md, ctx, em, mesh, positions);
 }
 
 /* end modifier callback wrappers */
 
 Mesh *BKE_modifier_get_evaluated_mesh_from_evaluated_object(Object *ob_eval)
 {
-  Mesh *me = nullptr;
+  Mesh *mesh = nullptr;
 
   if ((ob_eval->type == OB_MESH) && (ob_eval->mode & OB_MODE_EDIT)) {
     /* In EditMode, evaluated mesh is stored in BMEditMesh, not the object... */
     BMEditMesh *em = BKE_editmesh_from_object(ob_eval);
     /* 'em' might not exist yet in some cases, just after loading a .blend file, see #57878. */
     if (em != nullptr) {
-      me = BKE_object_get_editmesh_eval_final(ob_eval);
+      mesh = BKE_object_get_editmesh_eval_final(ob_eval);
     }
   }
-  if (me == nullptr) {
-    me = BKE_object_get_evaluated_mesh(ob_eval);
+  if (mesh == nullptr) {
+    mesh = BKE_object_get_evaluated_mesh(ob_eval);
   }
 
-  return me;
+  return mesh;
 }
 
 ModifierData *BKE_modifier_get_original(const Object *object, ModifierData *md)

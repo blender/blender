@@ -80,13 +80,13 @@ void triangulate(BMesh *bm)
 void enable_ex(Main *bmain, Depsgraph *depsgraph, Object *ob)
 {
   SculptSession *ss = ob->sculpt;
-  Mesh *me = static_cast<Mesh *>(ob->data);
-  const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(me);
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(mesh);
 
   SCULPT_pbvh_clear(ob);
 
   /* Dynamic topology doesn't ensure selection state is valid, so remove #36280. */
-  BKE_mesh_mselect_clear(me);
+  BKE_mesh_mselect_clear(mesh);
 
   /* Create triangles-only BMesh. */
   BMeshCreateParams create_params{};
@@ -98,18 +98,18 @@ void enable_ex(Main *bmain, Depsgraph *depsgraph, Object *ob)
   convert_params.calc_vert_normal = true;
   convert_params.use_shapekey = true;
   convert_params.active_shapekey = ob->shapenr;
-  BM_mesh_bm_from_me(ss->bm, me, &convert_params);
+  BM_mesh_bm_from_me(ss->bm, mesh, &convert_params);
   triangulate(ss->bm);
 
   BM_data_layer_add_named(ss->bm, &ss->bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
 
   /* Make sure the data for existing faces are initialized. */
-  if (me->faces_num != ss->bm->totface) {
+  if (mesh->faces_num != ss->bm->totface) {
     BM_mesh_normals_update(ss->bm);
   }
 
   /* Enable dynamic topology. */
-  me->flag |= ME_SCULPT_DYNAMIC_TOPOLOGY;
+  mesh->flag |= ME_SCULPT_DYNAMIC_TOPOLOGY;
 
   /* Enable logging for undo/redo. */
   ss->bm_log = BM_log_create(ss->bm);
@@ -128,7 +128,7 @@ static void SCULPT_dynamic_topology_disable_ex(
     Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob, undo::Node *unode)
 {
   SculptSession *ss = ob->sculpt;
-  Mesh *me = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
 
   if (ss->attrs.dyntopo_node_id_vertex) {
     BKE_sculpt_attribute_destroy(ob, ss->attrs.dyntopo_node_id_vertex);
@@ -142,37 +142,38 @@ static void SCULPT_dynamic_topology_disable_ex(
 
   if (unode) {
     /* Free all existing custom data. */
-    BKE_mesh_clear_geometry(me);
+    BKE_mesh_clear_geometry(mesh);
 
     /* Copy over stored custom data. */
     undo::NodeGeometry *geometry = &unode->geometry_bmesh_enter;
-    me->totvert = geometry->totvert;
-    me->totloop = geometry->totloop;
-    me->faces_num = geometry->faces_num;
-    me->totedge = geometry->totedge;
-    me->totface_legacy = 0;
-    CustomData_copy(&geometry->vert_data, &me->vert_data, CD_MASK_MESH.vmask, geometry->totvert);
-    CustomData_copy(&geometry->edge_data, &me->edge_data, CD_MASK_MESH.emask, geometry->totedge);
-    CustomData_copy(&geometry->loop_data, &me->loop_data, CD_MASK_MESH.lmask, geometry->totloop);
-    CustomData_copy(&geometry->face_data, &me->face_data, CD_MASK_MESH.pmask, geometry->faces_num);
+    mesh->totvert = geometry->totvert;
+    mesh->totloop = geometry->totloop;
+    mesh->faces_num = geometry->faces_num;
+    mesh->totedge = geometry->totedge;
+    mesh->totface_legacy = 0;
+    CustomData_copy(&geometry->vert_data, &mesh->vert_data, CD_MASK_MESH.vmask, geometry->totvert);
+    CustomData_copy(&geometry->edge_data, &mesh->edge_data, CD_MASK_MESH.emask, geometry->totedge);
+    CustomData_copy(&geometry->loop_data, &mesh->loop_data, CD_MASK_MESH.lmask, geometry->totloop);
+    CustomData_copy(
+        &geometry->face_data, &mesh->face_data, CD_MASK_MESH.pmask, geometry->faces_num);
     implicit_sharing::copy_shared_pointer(geometry->face_offset_indices,
                                           geometry->face_offsets_sharing_info,
-                                          &me->face_offset_indices,
-                                          &me->runtime->face_offsets_sharing_info);
+                                          &mesh->face_offset_indices,
+                                          &mesh->runtime->face_offsets_sharing_info);
   }
   else {
     BKE_sculptsession_bm_to_me(ob, true);
 
     /* Sync the visibility to vertices manually as the `pmap` is still not initialized. */
     bool *hide_vert = (bool *)CustomData_get_layer_named_for_write(
-        &me->vert_data, CD_PROP_BOOL, ".hide_vert", me->totvert);
+        &mesh->vert_data, CD_PROP_BOOL, ".hide_vert", mesh->totvert);
     if (hide_vert != nullptr) {
-      memset(hide_vert, 0, sizeof(bool) * me->totvert);
+      memset(hide_vert, 0, sizeof(bool) * mesh->totvert);
     }
   }
 
   /* Clear data. */
-  me->flag &= ~ME_SCULPT_DYNAMIC_TOPOLOGY;
+  mesh->flag &= ~ME_SCULPT_DYNAMIC_TOPOLOGY;
 
   /* Typically valid but with global-undo they can be nullptr, see: #36234. */
   if (ss->bm) {
@@ -309,7 +310,7 @@ static bool dyntopo_supports_customdata_layers(const Span<CustomDataLayer> layer
 
 enum WarnFlag check_attribute_warning(Scene *scene, Object *ob)
 {
-  Mesh *me = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
   SculptSession *ss = ob->sculpt;
 
   WarnFlag flag = WarnFlag(0);
@@ -317,16 +318,16 @@ enum WarnFlag check_attribute_warning(Scene *scene, Object *ob)
   BLI_assert(ss->bm == nullptr);
   UNUSED_VARS_NDEBUG(ss);
 
-  if (!dyntopo_supports_customdata_layers({me->vert_data.layers, me->vert_data.totlayer})) {
+  if (!dyntopo_supports_customdata_layers({mesh->vert_data.layers, mesh->vert_data.totlayer})) {
     flag |= VDATA;
   }
-  if (!dyntopo_supports_customdata_layers({me->edge_data.layers, me->edge_data.totlayer})) {
+  if (!dyntopo_supports_customdata_layers({mesh->edge_data.layers, mesh->edge_data.totlayer})) {
     flag |= EDATA;
   }
-  if (!dyntopo_supports_customdata_layers({me->face_data.layers, me->face_data.totlayer})) {
+  if (!dyntopo_supports_customdata_layers({mesh->face_data.layers, mesh->face_data.totlayer})) {
     flag |= LDATA;
   }
-  if (!dyntopo_supports_customdata_layers({me->loop_data.layers, me->loop_data.totlayer})) {
+  if (!dyntopo_supports_customdata_layers({mesh->loop_data.layers, mesh->loop_data.totlayer})) {
     flag |= LDATA;
   }
 

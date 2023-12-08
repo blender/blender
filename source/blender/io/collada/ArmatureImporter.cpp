@@ -871,7 +871,7 @@ void ArmatureImporter::link_armature(Object *ob_arm,
 
 bool ArmatureImporter::write_skin_controller_data(const COLLADAFW::SkinControllerData *data)
 {
-  /* at this stage we get vertex influence info that should go into me->verts and ob->defbase
+  /* at this stage we get vertex influence info that should go into mesh->verts and ob->defbase
    * there's no info to which object this should be long so we associate it with
    * skin controller data UID. */
 
@@ -955,14 +955,14 @@ void ArmatureImporter::make_shape_keys(bContext *C)
         /* Better to have a separate map of morph objects,
          * This will do for now since only mesh morphing is imported. */
 
-        Mesh *me = this->mesh_importer->get_mesh_by_geom_uid(morphTargetIds[i]);
+        Mesh *mesh = this->mesh_importer->get_mesh_by_geom_uid(morphTargetIds[i]);
 
-        if (me) {
-          me->key = key;
-          std::string morph_name = *this->mesh_importer->get_geometry_name(me->id.name);
+        if (mesh) {
+          mesh->key = key;
+          std::string morph_name = *this->mesh_importer->get_geometry_name(mesh->id.name);
 
           kb = BKE_keyblock_add_ctime(key, morph_name.c_str(), false);
-          BKE_keyblock_convert_from_mesh(me, key, kb);
+          BKE_keyblock_convert_from_mesh(mesh, key, kb);
 
           /* apply weights */
           weight = morphWeights.getFloatValues()->getData()[i];

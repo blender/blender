@@ -519,10 +519,10 @@ static void armature_deform_coords_impl(const Object *ob_arm,
     if (ob_target->type == OB_MESH) {
       target_data_id = me_target == nullptr ? (const ID *)ob_target->data : &me_target->id;
       if (em_target == nullptr) {
-        const Mesh *me = (const Mesh *)target_data_id;
-        dverts = BKE_mesh_deform_verts(me);
+        const Mesh *mesh = (const Mesh *)target_data_id;
+        dverts = BKE_mesh_deform_verts(mesh);
         if (dverts) {
-          dverts_len = me->totvert;
+          dverts_len = mesh->totvert;
         }
       }
     }

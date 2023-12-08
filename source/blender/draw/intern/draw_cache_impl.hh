@@ -35,8 +35,8 @@ void DRW_curve_batch_cache_dirty_tag(Curve *cu, int mode);
 void DRW_curve_batch_cache_validate(Curve *cu);
 void DRW_curve_batch_cache_free(Curve *cu);
 
-void DRW_mesh_batch_cache_dirty_tag(Mesh *me, eMeshBatchDirtyMode mode);
-void DRW_mesh_batch_cache_validate(Object *object, Mesh *me);
+void DRW_mesh_batch_cache_dirty_tag(Mesh *mesh, eMeshBatchDirtyMode mode);
+void DRW_mesh_batch_cache_validate(Object *object, Mesh *mesh);
 void DRW_mesh_batch_cache_free(void *batch_cache);
 
 void DRW_lattice_batch_cache_dirty_tag(Lattice *lt, int mode);
@@ -77,7 +77,7 @@ void DRW_batch_cache_free_old(Object *ob, int ctime);
  * Thread safety need to be assured by caller. Don't call this during drawing.
  * \note For now this only free the shading batches / VBO if any cd layers is not needed anymore.
  */
-void DRW_mesh_batch_cache_free_old(Mesh *me, int ctime);
+void DRW_mesh_batch_cache_free_old(Mesh *mesh, int ctime);
 void DRW_curves_batch_cache_free_old(Curves *curves, int ctime);
 void DRW_pointcloud_batch_cache_free_old(PointCloud *pointcloud, int ctime);
 
@@ -171,33 +171,33 @@ GPUBatch *DRW_volume_batch_cache_get_selection_surface(Volume *volume);
  * \{ */
 
 /**
- * Can be called for any surface type. Mesh *me is the final mesh.
+ * Can be called for any surface type. Mesh *mesh is the final mesh.
  */
 void DRW_mesh_batch_cache_create_requested(TaskGraph *task_graph,
                                            Object *ob,
-                                           Mesh *me,
+                                           Mesh *mesh,
                                            const Scene *scene,
                                            bool is_paint_mode,
                                            bool use_hide);
 
-GPUBatch *DRW_mesh_batch_cache_get_all_verts(Mesh *me);
-GPUBatch *DRW_mesh_batch_cache_get_all_edges(Mesh *me);
-GPUBatch *DRW_mesh_batch_cache_get_loose_edges(Mesh *me);
-GPUBatch *DRW_mesh_batch_cache_get_edge_detection(Mesh *me, bool *r_is_manifold);
-GPUBatch *DRW_mesh_batch_cache_get_surface(Mesh *me);
-GPUBatch *DRW_mesh_batch_cache_get_surface_edges(Object *object, Mesh *me);
+GPUBatch *DRW_mesh_batch_cache_get_all_verts(Mesh *mesh);
+GPUBatch *DRW_mesh_batch_cache_get_all_edges(Mesh *mesh);
+GPUBatch *DRW_mesh_batch_cache_get_loose_edges(Mesh *mesh);
+GPUBatch *DRW_mesh_batch_cache_get_edge_detection(Mesh *mesh, bool *r_is_manifold);
+GPUBatch *DRW_mesh_batch_cache_get_surface(Mesh *mesh);
+GPUBatch *DRW_mesh_batch_cache_get_surface_edges(Object *object, Mesh *mesh);
 GPUBatch **DRW_mesh_batch_cache_get_surface_shaded(Object *object,
-                                                   Mesh *me,
+                                                   Mesh *mesh,
                                                    GPUMaterial **gpumat_array,
                                                    uint gpumat_array_len);
 
-GPUBatch **DRW_mesh_batch_cache_get_surface_texpaint(Object *object, Mesh *me);
-GPUBatch *DRW_mesh_batch_cache_get_surface_texpaint_single(Object *object, Mesh *me);
-GPUBatch *DRW_mesh_batch_cache_get_surface_vertpaint(Object *object, Mesh *me);
-GPUBatch *DRW_mesh_batch_cache_get_surface_sculpt(Object *object, Mesh *me);
-GPUBatch *DRW_mesh_batch_cache_get_surface_weights(Mesh *me);
-GPUBatch *DRW_mesh_batch_cache_get_sculpt_overlays(Mesh *me);
-GPUBatch *DRW_mesh_batch_cache_get_surface_viewer_attribute(Mesh *me);
+GPUBatch **DRW_mesh_batch_cache_get_surface_texpaint(Object *object, Mesh *mesh);
+GPUBatch *DRW_mesh_batch_cache_get_surface_texpaint_single(Object *object, Mesh *mesh);
+GPUBatch *DRW_mesh_batch_cache_get_surface_vertpaint(Object *object, Mesh *mesh);
+GPUBatch *DRW_mesh_batch_cache_get_surface_sculpt(Object *object, Mesh *mesh);
+GPUBatch *DRW_mesh_batch_cache_get_surface_weights(Mesh *mesh);
+GPUBatch *DRW_mesh_batch_cache_get_sculpt_overlays(Mesh *mesh);
+GPUBatch *DRW_mesh_batch_cache_get_surface_viewer_attribute(Mesh *mesh);
 
 /** \} */
 
@@ -205,13 +205,13 @@ GPUBatch *DRW_mesh_batch_cache_get_surface_viewer_attribute(Mesh *me);
 /** \name Edit-Mesh Drawing
  * \{ */
 
-GPUBatch *DRW_mesh_batch_cache_get_edit_triangles(Mesh *me);
-GPUBatch *DRW_mesh_batch_cache_get_edit_vertices(Mesh *me);
-GPUBatch *DRW_mesh_batch_cache_get_edit_edges(Mesh *me);
-GPUBatch *DRW_mesh_batch_cache_get_edit_vert_normals(Mesh *me);
-GPUBatch *DRW_mesh_batch_cache_get_edit_loop_normals(Mesh *me);
-GPUBatch *DRW_mesh_batch_cache_get_edit_facedots(Mesh *me);
-GPUBatch *DRW_mesh_batch_cache_get_edit_skin_roots(Mesh *me);
+GPUBatch *DRW_mesh_batch_cache_get_edit_triangles(Mesh *mesh);
+GPUBatch *DRW_mesh_batch_cache_get_edit_vertices(Mesh *mesh);
+GPUBatch *DRW_mesh_batch_cache_get_edit_edges(Mesh *mesh);
+GPUBatch *DRW_mesh_batch_cache_get_edit_vert_normals(Mesh *mesh);
+GPUBatch *DRW_mesh_batch_cache_get_edit_loop_normals(Mesh *mesh);
+GPUBatch *DRW_mesh_batch_cache_get_edit_facedots(Mesh *mesh);
+GPUBatch *DRW_mesh_batch_cache_get_edit_skin_roots(Mesh *mesh);
 
 /** \} */
 
@@ -219,10 +219,10 @@ GPUBatch *DRW_mesh_batch_cache_get_edit_skin_roots(Mesh *me);
 /** \name Edit-mesh Selection
  * \{ */
 
-GPUBatch *DRW_mesh_batch_cache_get_triangles_with_select_id(Mesh *me);
-GPUBatch *DRW_mesh_batch_cache_get_facedots_with_select_id(Mesh *me);
-GPUBatch *DRW_mesh_batch_cache_get_edges_with_select_id(Mesh *me);
-GPUBatch *DRW_mesh_batch_cache_get_verts_with_select_id(Mesh *me);
+GPUBatch *DRW_mesh_batch_cache_get_triangles_with_select_id(Mesh *mesh);
+GPUBatch *DRW_mesh_batch_cache_get_facedots_with_select_id(Mesh *mesh);
+GPUBatch *DRW_mesh_batch_cache_get_edges_with_select_id(Mesh *mesh);
+GPUBatch *DRW_mesh_batch_cache_get_verts_with_select_id(Mesh *mesh);
 
 /** \} */
 
@@ -230,7 +230,7 @@ GPUBatch *DRW_mesh_batch_cache_get_verts_with_select_id(Mesh *me);
 /** \name Object Mode Wireframe Overlays
  * \{ */
 
-GPUBatch *DRW_mesh_batch_cache_get_wireframes_face(Mesh *me);
+GPUBatch *DRW_mesh_batch_cache_get_wireframes_face(Mesh *mesh);
 
 /** \} */
 
@@ -246,14 +246,14 @@ GPUBatch *DRW_mesh_batch_cache_get_wireframes_face(Mesh *me);
  * only valid after calling `DRW_mesh_batch_cache_create_requested`.
  */
 GPUBatch *DRW_mesh_batch_cache_get_edituv_faces_stretch_area(Object *object,
-                                                             Mesh *me,
+                                                             Mesh *mesh,
                                                              float **tot_area,
                                                              float **tot_uv_area);
-GPUBatch *DRW_mesh_batch_cache_get_edituv_faces_stretch_angle(Object *object, Mesh *me);
-GPUBatch *DRW_mesh_batch_cache_get_edituv_faces(Object *object, Mesh *me);
-GPUBatch *DRW_mesh_batch_cache_get_edituv_edges(Object *object, Mesh *me);
-GPUBatch *DRW_mesh_batch_cache_get_edituv_verts(Object *object, Mesh *me);
-GPUBatch *DRW_mesh_batch_cache_get_edituv_facedots(Object *object, Mesh *me);
+GPUBatch *DRW_mesh_batch_cache_get_edituv_faces_stretch_angle(Object *object, Mesh *mesh);
+GPUBatch *DRW_mesh_batch_cache_get_edituv_faces(Object *object, Mesh *mesh);
+GPUBatch *DRW_mesh_batch_cache_get_edituv_edges(Object *object, Mesh *mesh);
+GPUBatch *DRW_mesh_batch_cache_get_edituv_verts(Object *object, Mesh *mesh);
+GPUBatch *DRW_mesh_batch_cache_get_edituv_facedots(Object *object, Mesh *mesh);
 
 /** \} */
 
@@ -261,8 +261,8 @@ GPUBatch *DRW_mesh_batch_cache_get_edituv_facedots(Object *object, Mesh *me);
 /** \name For Image UV Editor
  * \{ */
 
-GPUBatch *DRW_mesh_batch_cache_get_uv_edges(Object *object, Mesh *me);
-GPUBatch *DRW_mesh_batch_cache_get_edit_mesh_analysis(Mesh *me);
+GPUBatch *DRW_mesh_batch_cache_get_uv_edges(Object *object, Mesh *mesh);
+GPUBatch *DRW_mesh_batch_cache_get_edit_mesh_analysis(Mesh *mesh);
 
 /** \} */
 
@@ -270,9 +270,9 @@ GPUBatch *DRW_mesh_batch_cache_get_edit_mesh_analysis(Mesh *me);
 /** \name For Direct Data Access
  * \{ */
 
-GPUVertBuf *DRW_mesh_batch_cache_pos_vertbuf_get(Mesh *me);
+GPUVertBuf *DRW_mesh_batch_cache_pos_vertbuf_get(Mesh *mesh);
 
-int DRW_mesh_material_count_get(const Object *object, const Mesh *me);
+int DRW_mesh_material_count_get(const Object *object, const Mesh *mesh);
 
 /* Edit mesh bitflags (is this the right place?) */
 enum {

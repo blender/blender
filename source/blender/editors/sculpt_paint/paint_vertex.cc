@@ -240,23 +240,23 @@ void init_session_data(const ToolSettings *ts, Object *ob)
     return;
   }
 
-  Mesh *me = (Mesh *)ob->data;
+  Mesh *mesh = (Mesh *)ob->data;
 
-  gmap->vert_to_loop = me->vert_to_corner_map();
-  gmap->vert_to_face = me->vert_to_face_map();
+  gmap->vert_to_loop = mesh->vert_to_corner_map();
+  gmap->vert_to_face = mesh->vert_to_face_map();
 
   /* Create average brush arrays */
   if (ob->mode == OB_MODE_WEIGHT_PAINT) {
     if (!vwpaint::brush_use_accumulate(ts->wpaint)) {
       if (ob->sculpt->mode.wpaint.alpha_weight == nullptr) {
-        ob->sculpt->mode.wpaint.alpha_weight = (float *)MEM_callocN(me->totvert * sizeof(float),
+        ob->sculpt->mode.wpaint.alpha_weight = (float *)MEM_callocN(mesh->totvert * sizeof(float),
                                                                     __func__);
       }
       if (ob->sculpt->mode.wpaint.dvert_prev == nullptr) {
         ob->sculpt->mode.wpaint.dvert_prev = (MDeformVert *)MEM_callocN(
-            me->totvert * sizeof(MDeformVert), __func__);
+            mesh->totvert * sizeof(MDeformVert), __func__);
         MDeformVert *dv = ob->sculpt->mode.wpaint.dvert_prev;
-        for (int i = 0; i < me->totvert; i++, dv++) {
+        for (int i = 0; i < mesh->totvert; i++, dv++) {
           /* Use to show this isn't initialized, never apply to the mesh data. */
           dv->flag = 1;
         }
@@ -265,7 +265,7 @@ void init_session_data(const ToolSettings *ts, Object *ob)
     else {
       MEM_SAFE_FREE(ob->sculpt->mode.wpaint.alpha_weight);
       if (ob->sculpt->mode.wpaint.dvert_prev != nullptr) {
-        BKE_defvert_array_free_elems(ob->sculpt->mode.wpaint.dvert_prev, me->totvert);
+        BKE_defvert_array_free_elems(ob->sculpt->mode.wpaint.dvert_prev, mesh->totvert);
         MEM_freeN(ob->sculpt->mode.wpaint.dvert_prev);
         ob->sculpt->mode.wpaint.dvert_prev = nullptr;
       }
@@ -325,7 +325,7 @@ void mode_enter_generic(
     Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob, const eObjectMode mode_flag)
 {
   ob->mode |= mode_flag;
-  Mesh *me = BKE_mesh_from_object(ob);
+  Mesh *mesh = BKE_mesh_from_object(ob);
 
   /* Same as sculpt mode, make sure we don't have cached derived mesh which
    * points to freed arrays.
@@ -334,7 +334,7 @@ void mode_enter_generic(
 
   if (mode_flag == OB_MODE_VERTEX_PAINT) {
     const ePaintMode paint_mode = PAINT_MODE_VERTEX;
-    ED_mesh_color_ensure(me, nullptr);
+    ED_mesh_color_ensure(mesh, nullptr);
 
     BKE_paint_ensure(scene->toolsettings, (Paint **)&scene->toolsettings->vpaint);
     Paint *paint = BKE_paint_get_active_from_paintmode(scene, paint_mode);
@@ -375,23 +375,23 @@ void mode_enter_generic(
 void mode_exit_generic(Object *ob, const eObjectMode mode_flag)
 {
   using namespace blender;
-  Mesh *me = BKE_mesh_from_object(ob);
+  Mesh *mesh = BKE_mesh_from_object(ob);
   ob->mode &= ~mode_flag;
 
   if (mode_flag == OB_MODE_VERTEX_PAINT) {
-    if (me->editflag & ME_EDIT_PAINT_FACE_SEL) {
-      bke::mesh_select_face_flush(*me);
+    if (mesh->editflag & ME_EDIT_PAINT_FACE_SEL) {
+      bke::mesh_select_face_flush(*mesh);
     }
-    else if (me->editflag & ME_EDIT_PAINT_VERT_SEL) {
-      bke::mesh_select_vert_flush(*me);
+    else if (mesh->editflag & ME_EDIT_PAINT_VERT_SEL) {
+      bke::mesh_select_vert_flush(*mesh);
     }
   }
   else if (mode_flag == OB_MODE_WEIGHT_PAINT) {
-    if (me->editflag & ME_EDIT_PAINT_VERT_SEL) {
-      bke::mesh_select_vert_flush(*me);
+    if (mesh->editflag & ME_EDIT_PAINT_VERT_SEL) {
+      bke::mesh_select_vert_flush(*mesh);
     }
-    else if (me->editflag & ME_EDIT_PAINT_FACE_SEL) {
-      bke::mesh_select_face_flush(*me);
+    else if (mesh->editflag & ME_EDIT_PAINT_FACE_SEL) {
+      bke::mesh_select_face_flush(*mesh);
     }
   }
   else {
@@ -841,7 +841,7 @@ static int vpaint_mode_toggle_exec(bContext *C, wmOperator *op)
     }
   }
 
-  Mesh *me = BKE_mesh_from_object(ob);
+  Mesh *mesh = BKE_mesh_from_object(ob);
 
   /* toggle: end vpaint */
   if (is_mode_set) {
@@ -859,7 +859,7 @@ static int vpaint_mode_toggle_exec(bContext *C, wmOperator *op)
   BKE_mesh_batch_cache_dirty_tag((Mesh *)ob->data, BKE_MESH_BATCH_DIRTY_ALL);
 
   /* update modifier stack for mapping requirements */
-  DEG_id_tag_update(&me->id, 0);
+  DEG_id_tag_update(&mesh->id, 0);
 
   WM_event_add_notifier(C, NC_SCENE | ND_MODE, scene);
   WM_msg_publish_rna_prop(mbus, &ob->id, ob, Object, mode);
@@ -951,7 +951,7 @@ static VPaintData *vpaint_init_vpaint(bContext *C,
                                       Depsgraph *depsgraph,
                                       VPaint *vp,
                                       Object *ob,
-                                      Mesh *me,
+                                      Mesh *mesh,
                                       const eAttrDomain domain,
                                       const eCustomDataType type,
                                       const Brush *brush)
@@ -971,7 +971,7 @@ static VPaintData *vpaint_init_vpaint(bContext *C,
   vpd->is_texbrush = !(brush->vertexpaint_tool == VPAINT_TOOL_BLUR) && brush->mtex.tex;
 
   if (brush->vertexpaint_tool == VPAINT_TOOL_SMEAR) {
-    const GVArray attribute = *me->attributes().lookup(me->active_color_attribute, domain);
+    const GVArray attribute = *mesh->attributes().lookup(mesh->active_color_attribute, domain);
     vpd->smear.color_prev = GArray(attribute.type(), attribute.size());
     attribute.materialize(vpd->smear.color_prev.data());
 
@@ -1000,22 +1000,22 @@ static bool vpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
   /* context checks could be a poll() */
-  Mesh *me = BKE_mesh_from_object(ob);
-  if (me == nullptr || me->faces_num == 0) {
+  Mesh *mesh = BKE_mesh_from_object(ob);
+  if (mesh == nullptr || mesh->faces_num == 0) {
     return false;
   }
 
-  ED_mesh_color_ensure(me, nullptr);
+  ED_mesh_color_ensure(mesh, nullptr);
 
-  const std::optional<bke::AttributeMetaData> meta_data = *me->attributes().lookup_meta_data(
-      me->active_color_attribute);
+  const std::optional<bke::AttributeMetaData> meta_data = *mesh->attributes().lookup_meta_data(
+      mesh->active_color_attribute);
 
   if (!meta_data) {
     return false;
   }
 
   VPaintData *vpd = vpaint_init_vpaint(
-      C, op, scene, depsgraph, vp, ob, me, meta_data->domain, meta_data->data_type, brush);
+      C, op, scene, depsgraph, vp, ob, mesh, meta_data->domain, meta_data->data_type, brush);
 
   paint_stroke_set_mode_data(stroke, vpd);
 
@@ -1032,7 +1032,7 @@ static void do_vpaint_brush_blur_loops(bContext *C,
                                        VPaint *vp,
                                        VPaintData *vpd,
                                        Object *ob,
-                                       Mesh *me,
+                                       Mesh *mesh,
                                        Span<PBVHNode *> nodes,
                                        GMutableSpan attribute)
 {
@@ -1050,9 +1050,9 @@ static void do_vpaint_brush_blur_loops(bContext *C,
   vwpaint::get_brush_alpha_data(
       scene, ss, brush, &brush_size_pressure, &brush_alpha_value, &brush_alpha_pressure);
   const bool use_normal = vwpaint::use_normal(vp);
-  const bool use_vert_sel = (me->editflag & (ME_EDIT_PAINT_FACE_SEL | ME_EDIT_PAINT_VERT_SEL)) !=
+  const bool use_vert_sel = (mesh->editflag & (ME_EDIT_PAINT_FACE_SEL | ME_EDIT_PAINT_VERT_SEL)) !=
                             0;
-  const bool use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
+  const bool use_face_sel = (mesh->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
 
   SculptBrushTest test_init;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
@@ -1062,9 +1062,9 @@ static void do_vpaint_brush_blur_loops(bContext *C,
 
   GMutableSpan g_previous_color = ss->cache->prev_colors_vpaint;
 
-  const blender::VArray<bool> select_vert = *me->attributes().lookup_or_default<bool>(
+  const blender::VArray<bool> select_vert = *mesh->attributes().lookup_or_default<bool>(
       ".select_vert", ATTR_DOMAIN_POINT, false);
-  const blender::VArray<bool> select_poly = *me->attributes().lookup_or_default<bool>(
+  const blender::VArray<bool> select_poly = *mesh->attributes().lookup_or_default<bool>(
       ".select_poly", ATTR_DOMAIN_FACE, false);
 
   blender::threading::parallel_for(nodes.index_range(), 1LL, [&](IndexRange range) {
@@ -1183,7 +1183,7 @@ static void do_vpaint_brush_blur_verts(bContext *C,
                                        VPaint *vp,
                                        VPaintData *vpd,
                                        Object *ob,
-                                       Mesh *me,
+                                       Mesh *mesh,
                                        Span<PBVHNode *> nodes,
                                        GMutableSpan attribute)
 {
@@ -1201,9 +1201,9 @@ static void do_vpaint_brush_blur_verts(bContext *C,
   vwpaint::get_brush_alpha_data(
       scene, ss, brush, &brush_size_pressure, &brush_alpha_value, &brush_alpha_pressure);
   const bool use_normal = vwpaint::use_normal(vp);
-  const bool use_vert_sel = (me->editflag & (ME_EDIT_PAINT_FACE_SEL | ME_EDIT_PAINT_VERT_SEL)) !=
+  const bool use_vert_sel = (mesh->editflag & (ME_EDIT_PAINT_FACE_SEL | ME_EDIT_PAINT_VERT_SEL)) !=
                             0;
-  const bool use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
+  const bool use_face_sel = (mesh->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
 
   SculptBrushTest test_init;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
@@ -1213,9 +1213,9 @@ static void do_vpaint_brush_blur_verts(bContext *C,
 
   GMutableSpan g_previous_color = ss->cache->prev_colors_vpaint;
 
-  const blender::VArray<bool> select_vert = *me->attributes().lookup_or_default<bool>(
+  const blender::VArray<bool> select_vert = *mesh->attributes().lookup_or_default<bool>(
       ".select_vert", ATTR_DOMAIN_POINT, false);
-  const blender::VArray<bool> select_poly = *me->attributes().lookup_or_default<bool>(
+  const blender::VArray<bool> select_poly = *mesh->attributes().lookup_or_default<bool>(
       ".select_poly", ATTR_DOMAIN_FACE, false);
 
   blender::threading::parallel_for(nodes.index_range(), 1LL, [&](IndexRange range) {
@@ -1320,7 +1320,7 @@ static void do_vpaint_brush_smear(bContext *C,
                                   VPaint *vp,
                                   VPaintData *vpd,
                                   Object *ob,
-                                  Mesh *me,
+                                  Mesh *mesh,
                                   Span<PBVHNode *> nodes,
                                   GMutableSpan attribute)
 {
@@ -1345,9 +1345,9 @@ static void do_vpaint_brush_smear(bContext *C,
   vwpaint::get_brush_alpha_data(
       scene, ss, brush, &brush_size_pressure, &brush_alpha_value, &brush_alpha_pressure);
   const bool use_normal = vwpaint::use_normal(vp);
-  const bool use_vert_sel = (me->editflag & (ME_EDIT_PAINT_FACE_SEL | ME_EDIT_PAINT_VERT_SEL)) !=
+  const bool use_vert_sel = (mesh->editflag & (ME_EDIT_PAINT_FACE_SEL | ME_EDIT_PAINT_VERT_SEL)) !=
                             0;
-  const bool use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
+  const bool use_face_sel = (mesh->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
 
   float brush_dir[3];
   sub_v3_v3v3(brush_dir, cache->location, cache->last_location);
@@ -1362,9 +1362,9 @@ static void do_vpaint_brush_smear(bContext *C,
   const float *sculpt_normal_frontface = SCULPT_brush_frontface_normal_from_falloff_shape(
       ss, brush->falloff_shape);
 
-  const blender::VArray<bool> select_vert = *me->attributes().lookup_or_default<bool>(
+  const blender::VArray<bool> select_vert = *mesh->attributes().lookup_or_default<bool>(
       ".select_vert", ATTR_DOMAIN_POINT, false);
-  const blender::VArray<bool> select_poly = *me->attributes().lookup_or_default<bool>(
+  const blender::VArray<bool> select_poly = *mesh->attributes().lookup_or_default<bool>(
       ".select_poly", ATTR_DOMAIN_FACE, false);
 
   blender::threading::parallel_for(nodes.index_range(), 1LL, [&](IndexRange range) {
@@ -1516,7 +1516,7 @@ static void do_vpaint_brush_smear(bContext *C,
 
 static void calculate_average_color(VPaintData *vpd,
                                     Object *ob,
-                                    Mesh *me,
+                                    Mesh *mesh,
                                     const Brush *brush,
                                     const GSpan attribute,
                                     Span<PBVHNode *> nodes)
@@ -1527,14 +1527,14 @@ static void calculate_average_color(VPaintData *vpd,
   const SculptVertexPaintGeomMap *gmap = &ss->mode.vpaint.gmap;
 
   StrokeCache *cache = ss->cache;
-  const bool use_vert_sel = (me->editflag & (ME_EDIT_PAINT_FACE_SEL | ME_EDIT_PAINT_VERT_SEL)) !=
+  const bool use_vert_sel = (mesh->editflag & (ME_EDIT_PAINT_FACE_SEL | ME_EDIT_PAINT_VERT_SEL)) !=
                             0;
 
   SculptBrushTest test_init;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
       ss, &test_init, brush->falloff_shape);
 
-  const blender::VArray<bool> select_vert = *me->attributes().lookup_or_default<bool>(
+  const blender::VArray<bool> select_vert = *mesh->attributes().lookup_or_default<bool>(
       ".select_vert", ATTR_DOMAIN_POINT, false);
 
   to_static_color_type(vpd->type, [&](auto dummy) {
@@ -1637,7 +1637,7 @@ static void vpaint_do_draw(bContext *C,
                            VPaint *vp,
                            VPaintData *vpd,
                            Object *ob,
-                           Mesh *me,
+                           Mesh *mesh,
                            Span<PBVHNode *> nodes,
                            GMutableSpan attribute)
 {
@@ -1655,9 +1655,9 @@ static void vpaint_do_draw(bContext *C,
   vwpaint::get_brush_alpha_data(
       scene, ss, brush, &brush_size_pressure, &brush_alpha_value, &brush_alpha_pressure);
   const bool use_normal = vwpaint::use_normal(vp);
-  const bool use_vert_sel = (me->editflag & (ME_EDIT_PAINT_FACE_SEL | ME_EDIT_PAINT_VERT_SEL)) !=
+  const bool use_vert_sel = (mesh->editflag & (ME_EDIT_PAINT_FACE_SEL | ME_EDIT_PAINT_VERT_SEL)) !=
                             0;
-  const bool use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
+  const bool use_face_sel = (mesh->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
 
   SculptBrushTest test_init;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
@@ -1667,9 +1667,9 @@ static void vpaint_do_draw(bContext *C,
 
   GMutableSpan g_previous_color = ss->cache->prev_colors_vpaint;
 
-  const blender::VArray<bool> select_vert = *me->attributes().lookup_or_default<bool>(
+  const blender::VArray<bool> select_vert = *mesh->attributes().lookup_or_default<bool>(
       ".select_vert", ATTR_DOMAIN_POINT, false);
-  const blender::VArray<bool> select_poly = *me->attributes().lookup_or_default<bool>(
+  const blender::VArray<bool> select_poly = *mesh->attributes().lookup_or_default<bool>(
       ".select_poly", ATTR_DOMAIN_FACE, false);
 
   blender::threading::parallel_for(nodes.index_range(), 1LL, [&](IndexRange range) {
@@ -1787,15 +1787,15 @@ static void vpaint_do_blur(bContext *C,
                            VPaint *vp,
                            VPaintData *vpd,
                            Object *ob,
-                           Mesh *me,
+                           Mesh *mesh,
                            Span<PBVHNode *> nodes,
                            GMutableSpan attribute)
 {
   if (vpd->domain == ATTR_DOMAIN_POINT) {
-    do_vpaint_brush_blur_verts(C, sd, vp, vpd, ob, me, nodes, attribute);
+    do_vpaint_brush_blur_verts(C, sd, vp, vpd, ob, mesh, nodes, attribute);
   }
   else {
-    do_vpaint_brush_blur_loops(C, sd, vp, vpd, ob, me, nodes, attribute);
+    do_vpaint_brush_blur_loops(C, sd, vp, vpd, ob, mesh, nodes, attribute);
   }
 }
 
@@ -1804,7 +1804,7 @@ static void vpaint_paint_leaves(bContext *C,
                                 VPaint *vp,
                                 VPaintData *vpd,
                                 Object *ob,
-                                Mesh *me,
+                                Mesh *mesh,
                                 GMutableSpan attribute,
                                 Span<PBVHNode *> nodes)
 {
@@ -1816,17 +1816,17 @@ static void vpaint_paint_leaves(bContext *C,
 
   switch ((eBrushVertexPaintTool)brush->vertexpaint_tool) {
     case VPAINT_TOOL_AVERAGE:
-      calculate_average_color(vpd, ob, me, brush, attribute, nodes);
-      vpaint_do_draw(C, sd, vp, vpd, ob, me, nodes, attribute);
+      calculate_average_color(vpd, ob, mesh, brush, attribute, nodes);
+      vpaint_do_draw(C, sd, vp, vpd, ob, mesh, nodes, attribute);
       break;
     case VPAINT_TOOL_DRAW:
-      vpaint_do_draw(C, sd, vp, vpd, ob, me, nodes, attribute);
+      vpaint_do_draw(C, sd, vp, vpd, ob, mesh, nodes, attribute);
       break;
     case VPAINT_TOOL_BLUR:
-      vpaint_do_blur(C, sd, vp, vpd, ob, me, nodes, attribute);
+      vpaint_do_blur(C, sd, vp, vpd, ob, mesh, nodes, attribute);
       break;
     case VPAINT_TOOL_SMEAR:
-      do_vpaint_brush_smear(C, sd, vp, vpd, ob, me, nodes, attribute);
+      do_vpaint_brush_smear(C, sd, vp, vpd, ob, mesh, nodes, attribute);
       break;
     default:
       break;
@@ -1838,7 +1838,7 @@ static void vpaint_do_paint(bContext *C,
                             VPaint *vp,
                             VPaintData *vpd,
                             Object *ob,
-                            Mesh *me,
+                            Mesh *mesh,
                             Brush *brush,
                             const ePaintSymmetryFlags symm,
                             const int axis,
@@ -1851,12 +1851,12 @@ static void vpaint_do_paint(bContext *C,
 
   Vector<PBVHNode *> nodes = vwpaint::pbvh_gather_generic(ob, vp, sd, brush);
 
-  bke::GSpanAttributeWriter attribute = me->attributes_for_write().lookup_for_write_span(
-      me->active_color_attribute);
+  bke::GSpanAttributeWriter attribute = mesh->attributes_for_write().lookup_for_write_span(
+      mesh->active_color_attribute);
   BLI_assert(attribute.domain == vpd->domain);
 
   /* Paint those leaves. */
-  vpaint_paint_leaves(C, sd, vp, vpd, ob, me, attribute.span, nodes);
+  vpaint_paint_leaves(C, sd, vp, vpd, ob, mesh, attribute.span, nodes);
 
   attribute.finish();
 }
@@ -1866,14 +1866,14 @@ static void vpaint_do_radial_symmetry(bContext *C,
                                       VPaint *vp,
                                       VPaintData *vpd,
                                       Object *ob,
-                                      Mesh *me,
+                                      Mesh *mesh,
                                       Brush *brush,
                                       const ePaintSymmetryFlags symm,
                                       const int axis)
 {
   for (int i = 1; i < vp->radial_symm[axis - 'X']; i++) {
     const float angle = (2.0 * M_PI) * i / vp->radial_symm[axis - 'X'];
-    vpaint_do_paint(C, sd, vp, vpd, ob, me, brush, symm, axis, i, angle);
+    vpaint_do_paint(C, sd, vp, vpd, ob, mesh, brush, symm, axis, i, angle);
   }
 }
 
@@ -1883,7 +1883,7 @@ static void vpaint_do_symmetrical_brush_actions(
     bContext *C, Sculpt *sd, VPaint *vp, VPaintData *vpd, Object *ob)
 {
   Brush *brush = BKE_paint_brush(&vp->paint);
-  Mesh *me = (Mesh *)ob->data;
+  Mesh *mesh = (Mesh *)ob->data;
   SculptSession *ss = ob->sculpt;
   StrokeCache *cache = ss->cache;
   const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
@@ -1892,10 +1892,10 @@ static void vpaint_do_symmetrical_brush_actions(
   /* initial stroke */
   const ePaintSymmetryFlags initial_symm = ePaintSymmetryFlags(0);
   cache->mirror_symmetry_pass = ePaintSymmetryFlags(0);
-  vpaint_do_paint(C, sd, vp, vpd, ob, me, brush, initial_symm, 'X', 0, 0);
-  vpaint_do_radial_symmetry(C, sd, vp, vpd, ob, me, brush, initial_symm, 'X');
-  vpaint_do_radial_symmetry(C, sd, vp, vpd, ob, me, brush, initial_symm, 'Y');
-  vpaint_do_radial_symmetry(C, sd, vp, vpd, ob, me, brush, initial_symm, 'Z');
+  vpaint_do_paint(C, sd, vp, vpd, ob, mesh, brush, initial_symm, 'X', 0, 0);
+  vpaint_do_radial_symmetry(C, sd, vp, vpd, ob, mesh, brush, initial_symm, 'X');
+  vpaint_do_radial_symmetry(C, sd, vp, vpd, ob, mesh, brush, initial_symm, 'Y');
+  vpaint_do_radial_symmetry(C, sd, vp, vpd, ob, mesh, brush, initial_symm, 'Z');
 
   cache->symmetry = symm;
 
@@ -1909,16 +1909,16 @@ static void vpaint_do_symmetrical_brush_actions(
       SCULPT_cache_calc_brushdata_symm(cache, symm_pass, 0, 0);
 
       if (i & (1 << 0)) {
-        vpaint_do_paint(C, sd, vp, vpd, ob, me, brush, symm_pass, 'X', 0, 0);
-        vpaint_do_radial_symmetry(C, sd, vp, vpd, ob, me, brush, symm_pass, 'X');
+        vpaint_do_paint(C, sd, vp, vpd, ob, mesh, brush, symm_pass, 'X', 0, 0);
+        vpaint_do_radial_symmetry(C, sd, vp, vpd, ob, mesh, brush, symm_pass, 'X');
       }
       if (i & (1 << 1)) {
-        vpaint_do_paint(C, sd, vp, vpd, ob, me, brush, symm_pass, 'Y', 0, 0);
-        vpaint_do_radial_symmetry(C, sd, vp, vpd, ob, me, brush, symm_pass, 'Y');
+        vpaint_do_paint(C, sd, vp, vpd, ob, mesh, brush, symm_pass, 'Y', 0, 0);
+        vpaint_do_radial_symmetry(C, sd, vp, vpd, ob, mesh, brush, symm_pass, 'Y');
       }
       if (i & (1 << 2)) {
-        vpaint_do_paint(C, sd, vp, vpd, ob, me, brush, symm_pass, 'Z', 0, 0);
-        vpaint_do_radial_symmetry(C, sd, vp, vpd, ob, me, brush, symm_pass, 'Z');
+        vpaint_do_paint(C, sd, vp, vpd, ob, mesh, brush, symm_pass, 'Z', 0, 0);
+        vpaint_do_radial_symmetry(C, sd, vp, vpd, ob, mesh, brush, symm_pass, 'Z');
       }
     }
   }
@@ -2213,20 +2213,20 @@ static bool paint_object_attributes_active_color_fill_ex(Object *ob,
                                                          bool only_selected = true,
                                                          bool affect_alpha = true)
 {
-  Mesh *me = BKE_mesh_from_object(ob);
-  if (!me) {
+  Mesh *mesh = BKE_mesh_from_object(ob);
+  if (!mesh) {
     return false;
   }
 
-  const bool use_face_sel = only_selected ? (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0 : false;
-  const bool use_vert_sel = only_selected ? (me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0 : false;
+  const bool use_face_sel = only_selected ? (mesh->editflag & ME_EDIT_PAINT_FACE_SEL) != 0 : false;
+  const bool use_vert_sel = only_selected ? (mesh->editflag & ME_EDIT_PAINT_VERT_SEL) != 0 : false;
   fill_mesh_color(
-      *me, fill_color, me->active_color_attribute, use_vert_sel, use_face_sel, affect_alpha);
+      *mesh, fill_color, mesh->active_color_attribute, use_vert_sel, use_face_sel, affect_alpha);
 
-  DEG_id_tag_update(&me->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&mesh->id, ID_RECALC_COPY_ON_WRITE);
 
   /* NOTE: Original mesh is used for display, so tag it directly here. */
-  BKE_mesh_batch_cache_dirty_tag(me, BKE_MESH_BATCH_DIRTY_ALL);
+  BKE_mesh_batch_cache_dirty_tag(mesh, BKE_MESH_BATCH_DIRTY_ALL);
 
   return true;
 }

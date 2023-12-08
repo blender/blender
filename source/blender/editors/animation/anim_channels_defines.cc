@@ -2585,20 +2585,20 @@ static void *acf_dsmesh_setting_ptr(bAnimListElem *ale,
                                     eAnimChannel_Settings setting,
                                     short *r_type)
 {
-  Mesh *me = (Mesh *)ale->data;
+  Mesh *mesh = (Mesh *)ale->data;
 
   /* Clear extra return data first. */
   *r_type = 0;
 
   switch (setting) {
     case ACHANNEL_SETTING_EXPAND: /* expanded */
-      return GET_ACF_FLAG_PTR(me->flag, r_type);
+      return GET_ACF_FLAG_PTR(mesh->flag, r_type);
 
     case ACHANNEL_SETTING_SELECT:  /* selected */
     case ACHANNEL_SETTING_MUTE:    /* muted (for NLA only) */
     case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
-      if (me->adt) {
-        return GET_ACF_FLAG_PTR(me->adt->flag, r_type);
+      if (mesh->adt) {
+        return GET_ACF_FLAG_PTR(mesh->adt->flag, r_type);
       }
       return nullptr;
 

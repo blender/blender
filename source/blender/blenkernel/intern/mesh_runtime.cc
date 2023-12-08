@@ -395,13 +395,13 @@ void BKE_mesh_tag_topology_changed(Mesh *mesh)
 
 /* Draw Engine */
 
-void (*BKE_mesh_batch_cache_dirty_tag_cb)(Mesh *me, eMeshBatchDirtyMode mode) = nullptr;
+void (*BKE_mesh_batch_cache_dirty_tag_cb)(Mesh *mesh, eMeshBatchDirtyMode mode) = nullptr;
 void (*BKE_mesh_batch_cache_free_cb)(void *batch_cache) = nullptr;
 
-void BKE_mesh_batch_cache_dirty_tag(Mesh *me, eMeshBatchDirtyMode mode)
+void BKE_mesh_batch_cache_dirty_tag(Mesh *mesh, eMeshBatchDirtyMode mode)
 {
-  if (me->runtime->batch_cache) {
-    BKE_mesh_batch_cache_dirty_tag_cb(me, mode);
+  if (mesh->runtime->batch_cache) {
+    BKE_mesh_batch_cache_dirty_tag_cb(mesh, mode);
   }
 }
 void BKE_mesh_batch_cache_free(void *batch_cache)

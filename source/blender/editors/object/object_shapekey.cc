@@ -115,14 +115,14 @@ static bool object_shape_key_mirror(
         MEM_callocN(sizeof(char) * kb->totelem, "shape_key_mirror"));
 
     if (ob->type == OB_MESH) {
-      Mesh *me = static_cast<Mesh *>(ob->data);
+      Mesh *mesh = static_cast<Mesh *>(ob->data);
       int i1, i2;
       float *fp1, *fp2;
       float tvec[3];
 
       ED_mesh_mirror_spatial_table_begin(ob, nullptr, nullptr);
 
-      for (i1 = 0; i1 < me->totvert; i1++) {
+      for (i1 = 0; i1 < mesh->totvert; i1++) {
         i2 = mesh_get_x_mirror_vert(ob, nullptr, i1, use_topology);
         if (i2 == i1) {
           fp1 = ((float *)kb->data) + i1 * 3;

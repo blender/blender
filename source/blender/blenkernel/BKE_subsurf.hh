@@ -48,7 +48,7 @@ DerivedMesh *subsurf_make_derived_from_derived(DerivedMesh *dm,
                                                float (*vertCos)[3],
                                                SubsurfFlags flags);
 
-void subsurf_calculate_limit_positions(Mesh *me, float (*r_positions)[3]);
+void subsurf_calculate_limit_positions(Mesh *mesh, float (*r_positions)[3]);
 
 /**
  * Get grid-size from 'level', level must be greater than zero.

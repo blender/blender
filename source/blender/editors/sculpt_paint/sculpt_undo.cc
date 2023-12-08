@@ -600,9 +600,9 @@ static bool sculpt_undo_restore_color(Object *ob, Node &unode, MutableSpan<bool>
     modified = true;
   }
 
-  Mesh *me = BKE_object_get_original_mesh(ob);
+  Mesh *mesh = BKE_object_get_original_mesh(ob);
 
-  if (!unode.loop_col.is_empty() && unode.maxloop == me->totloop) {
+  if (!unode.loop_col.is_empty() && unode.maxloop == mesh->totloop) {
     BKE_pbvh_swap_colors(ss->pbvh, unode.loop_index, unode.loop_col);
 
     modified = true;
@@ -708,7 +708,7 @@ static void sculpt_undo_bmesh_restore_generic(Node &unode, Object *ob, SculptSes
 static void sculpt_undo_bmesh_enable(Object *ob, Node &unode)
 {
   SculptSession *ss = ob->sculpt;
-  Mesh *me = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
 
   SCULPT_pbvh_clear(ob);
 
@@ -719,7 +719,7 @@ static void sculpt_undo_bmesh_enable(Object *ob, Node &unode)
   ss->bm = BM_mesh_create(&bm_mesh_allocsize_default, &bmesh_create_params);
   BM_data_layer_add_named(ss->bm, &ss->bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
 
-  me->flag |= ME_SCULPT_DYNAMIC_TOPOLOGY;
+  mesh->flag |= ME_SCULPT_DYNAMIC_TOPOLOGY;
 
   /* Restore the BMLog using saved entries. */
   ss->bm_log = BM_log_from_existing_entries_create(ss->bm, unode.bm_entry);
@@ -1702,12 +1702,12 @@ static void sculpt_undo_set_active_layer(bContext *C, SculptAttrRef *attr)
   }
 
   Object *ob = CTX_data_active_object(C);
-  Mesh *me = BKE_object_get_original_mesh(ob);
+  Mesh *mesh = BKE_object_get_original_mesh(ob);
 
   SculptAttrRef existing;
   sculpt_save_active_attribute(ob, &existing);
 
-  CustomDataLayer *layer = BKE_id_attribute_find(&me->id, attr->name, attr->type, attr->domain);
+  CustomDataLayer *layer = BKE_id_attribute_find(&mesh->id, attr->name, attr->type, attr->domain);
 
   /* Temporary fix for #97408. This is a fundamental
    * bug in the undo stack; the operator code needs to push
@@ -1719,28 +1719,28 @@ static void sculpt_undo_set_active_layer(bContext *C, SculptAttrRef *attr)
    */
   if (!layer) {
     layer = BKE_id_attribute_search_for_write(
-        &me->id, attr->name, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL);
+        &mesh->id, attr->name, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL);
     if (layer) {
       if (ED_geometry_attribute_convert(
-              me, attr->name, eCustomDataType(attr->type), attr->domain, nullptr))
+              mesh, attr->name, eCustomDataType(attr->type), attr->domain, nullptr))
       {
-        layer = BKE_id_attribute_find(&me->id, attr->name, attr->type, attr->domain);
+        layer = BKE_id_attribute_find(&mesh->id, attr->name, attr->type, attr->domain);
       }
     }
   }
 
   if (!layer) {
     /* Memfile undo killed the layer; re-create it. */
-    me->attributes_for_write().add(
+    mesh->attributes_for_write().add(
         attr->name, attr->domain, attr->type, bke::AttributeInitDefaultValue());
-    layer = BKE_id_attribute_find(&me->id, attr->name, attr->type, attr->domain);
+    layer = BKE_id_attribute_find(&mesh->id, attr->name, attr->type, attr->domain);
   }
 
   if (layer) {
-    BKE_id_attributes_active_color_set(&me->id, layer->name);
+    BKE_id_attributes_active_color_set(&mesh->id, layer->name);
 
     if (ob->sculpt && ob->sculpt->pbvh) {
-      BKE_pbvh_update_active_vcol(ob->sculpt->pbvh, me);
+      BKE_pbvh_update_active_vcol(ob->sculpt->pbvh, mesh);
 
       if (!sculpt_attribute_ref_equals(&existing, attr)) {
         BKE_pbvh_update_vertex_data(ob->sculpt->pbvh, PBVH_UpdateColor);
@@ -1878,10 +1878,10 @@ static void sculpt_undosys_step_decode(
          * (some) evaluated data. */
         BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
 
-        Mesh *me = static_cast<Mesh *>(ob->data);
+        Mesh *mesh = static_cast<Mesh *>(ob->data);
         /* Don't add sculpt topology undo steps when reading back undo state.
          * The undo steps must enter/exit for us. */
-        me->flag &= ~ME_SCULPT_DYNAMIC_TOPOLOGY;
+        mesh->flag &= ~ME_SCULPT_DYNAMIC_TOPOLOGY;
         ED_object_sculptmode_enter_ex(bmain, depsgraph, scene, ob, true, nullptr);
       }
 

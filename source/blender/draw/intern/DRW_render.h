@@ -1013,7 +1013,7 @@ struct DRW_Attributes;
 struct DRW_MeshCDMask;
 
 void DRW_mesh_batch_cache_get_attributes(struct Object *object,
-                                         struct Mesh *me,
+                                         struct Mesh *mesh,
                                          struct DRW_Attributes **r_attrs,
                                          struct DRW_MeshCDMask **r_cd_needed);
 

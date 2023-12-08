@@ -345,7 +345,7 @@ static bool edbm_backbuf_check_and_select_faces(EditSelectBuf_Cache *esel,
 }
 
 /* object mode, edbm_ prefix is confusing here, rename? */
-static bool edbm_backbuf_check_and_select_verts_obmode(Mesh *me,
+static bool edbm_backbuf_check_and_select_verts_obmode(Mesh *mesh,
                                                        EditSelectBuf_Cache *esel,
                                                        const eSelectOp sel_op)
 {
@@ -354,13 +354,13 @@ static bool edbm_backbuf_check_and_select_verts_obmode(Mesh *me,
 
   const BLI_bitmap *select_bitmap = esel->select_bitmap;
 
-  bke::MutableAttributeAccessor attributes = me->attributes_for_write();
+  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::SpanAttributeWriter<bool> select_vert = attributes.lookup_or_add_for_write_span<bool>(
       ".select_vert", ATTR_DOMAIN_POINT);
   const VArray<bool> hide_vert = *attributes.lookup_or_default<bool>(
       ".hide_vert", ATTR_DOMAIN_POINT, false);
 
-  for (int index = 0; index < me->totvert; index++) {
+  for (int index = 0; index < mesh->totvert; index++) {
     if (!hide_vert[index]) {
       const bool is_select = select_vert.span[index];
       const bool is_inside = BLI_BITMAP_TEST_BOOL(select_bitmap, index);
@@ -376,7 +376,7 @@ static bool edbm_backbuf_check_and_select_verts_obmode(Mesh *me,
 }
 
 /* object mode, edbm_ prefix is confusing here, rename? */
-static bool edbm_backbuf_check_and_select_faces_obmode(Mesh *me,
+static bool edbm_backbuf_check_and_select_faces_obmode(Mesh *mesh,
                                                        EditSelectBuf_Cache *esel,
                                                        const eSelectOp sel_op)
 {
@@ -385,13 +385,13 @@ static bool edbm_backbuf_check_and_select_faces_obmode(Mesh *me,
 
   const BLI_bitmap *select_bitmap = esel->select_bitmap;
 
-  bke::MutableAttributeAccessor attributes = me->attributes_for_write();
+  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::SpanAttributeWriter<bool> select_poly = attributes.lookup_or_add_for_write_span<bool>(
       ".select_poly", ATTR_DOMAIN_FACE);
   const VArray<bool> hide_poly = *attributes.lookup_or_default<bool>(
       ".hide_poly", ATTR_DOMAIN_FACE, false);
 
-  for (int index = 0; index < me->faces_num; index++) {
+  for (int index = 0; index < mesh->faces_num; index++) {
     if (!hide_poly[index]) {
       const bool is_select = select_poly.span[index];
       const bool is_inside = BLI_BITMAP_TEST_BOOL(select_bitmap, index);
@@ -1259,10 +1259,10 @@ static bool do_lasso_select_paintvert(ViewContext *vc,
   using namespace blender;
   const bool use_zbuf = !XRAY_ENABLED(vc->v3d);
   Object *ob = vc->obact;
-  Mesh *me = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
   rcti rect;
 
-  if (me == nullptr || me->totvert == 0) {
+  if (mesh == nullptr || mesh->totvert == 0) {
     return false;
   }
 
@@ -1286,11 +1286,11 @@ static bool do_lasso_select_paintvert(ViewContext *vc,
 
   if (use_zbuf) {
     if (esel->select_bitmap != nullptr) {
-      changed |= edbm_backbuf_check_and_select_verts_obmode(me, esel, sel_op);
+      changed |= edbm_backbuf_check_and_select_verts_obmode(mesh, esel, sel_op);
     }
   }
   else {
-    bke::MutableAttributeAccessor attributes = me->attributes_for_write();
+    bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
     bke::SpanAttributeWriter<bool> select_vert = attributes.lookup_or_add_for_write_span<bool>(
         ".select_vert", ATTR_DOMAIN_POINT);
 
@@ -1310,7 +1310,7 @@ static bool do_lasso_select_paintvert(ViewContext *vc,
 
   if (changed) {
     if (SEL_OP_CAN_DESELECT(sel_op)) {
-      BKE_mesh_mselect_validate(me);
+      BKE_mesh_mselect_validate(mesh);
     }
     paintvert_flush_flags(ob);
     paintvert_tag_select_update(vc->C, ob);
@@ -1325,10 +1325,10 @@ static bool do_lasso_select_paintface(ViewContext *vc,
                                       const eSelectOp sel_op)
 {
   Object *ob = vc->obact;
-  Mesh *me = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
   rcti rect;
 
-  if (me == nullptr || me->faces_num == 0) {
+  if (mesh == nullptr || mesh->faces_num == 0) {
     return false;
   }
 
@@ -1349,7 +1349,7 @@ static bool do_lasso_select_paintface(ViewContext *vc,
   }
 
   if (esel->select_bitmap) {
-    changed |= edbm_backbuf_check_and_select_faces_obmode(me, esel, sel_op);
+    changed |= edbm_backbuf_check_and_select_faces_obmode(mesh, esel, sel_op);
   }
 
   if (changed) {
@@ -3002,13 +3002,13 @@ static bool ed_wpaint_vertex_select_pick(bContext *C,
   View3D *v3d = CTX_wm_view3d(C);
   const bool use_zbuf = !XRAY_ENABLED(v3d);
 
-  Mesh *me = static_cast<Mesh *>(obact->data); /* already checked for nullptr */
+  Mesh *mesh = static_cast<Mesh *>(obact->data); /* already checked for nullptr */
   uint index = 0;
   bool changed = false;
 
   bool found = ED_mesh_pick_vert(C, obact, mval, ED_MESH_PICK_DEFAULT_VERT_DIST, use_zbuf, &index);
 
-  bke::MutableAttributeAccessor attributes = me->attributes_for_write();
+  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::AttributeWriter<bool> select_vert = attributes.lookup_or_add_for_write<bool>(
       ".select_vert", ATTR_DOMAIN_POINT);
 
@@ -3049,10 +3049,10 @@ static bool ed_wpaint_vertex_select_pick(bContext *C,
 
     /* update mselect */
     if (select_vert.varray[index]) {
-      BKE_mesh_mselect_active_set(me, index, ME_VSEL);
+      BKE_mesh_mselect_active_set(mesh, index, ME_VSEL);
     }
     else {
-      BKE_mesh_mselect_validate(me);
+      BKE_mesh_mselect_validate(mesh);
     }
 
     select_vert.finish();
@@ -3549,8 +3549,8 @@ static bool do_paintvert_box_select(ViewContext *vc,
   using namespace blender;
   const bool use_zbuf = !XRAY_ENABLED(vc->v3d);
 
-  Mesh *me = static_cast<Mesh *>(vc->obact->data);
-  if ((me == nullptr) || (me->totvert == 0)) {
+  Mesh *mesh = static_cast<Mesh *>(vc->obact->data);
+  if ((mesh == nullptr) || (mesh->totvert == 0)) {
     return false;
   }
 
@@ -3571,11 +3571,11 @@ static bool do_paintvert_box_select(ViewContext *vc,
           vc->depsgraph, vc->region, vc->v3d, rect, nullptr);
     }
     if (esel->select_bitmap != nullptr) {
-      changed |= edbm_backbuf_check_and_select_verts_obmode(me, esel, sel_op);
+      changed |= edbm_backbuf_check_and_select_verts_obmode(mesh, esel, sel_op);
     }
   }
   else {
-    bke::MutableAttributeAccessor attributes = me->attributes_for_write();
+    bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
     bke::SpanAttributeWriter<bool> select_vert = attributes.lookup_or_add_for_write_span<bool>(
         ".select_vert", ATTR_DOMAIN_POINT);
 
@@ -3594,7 +3594,7 @@ static bool do_paintvert_box_select(ViewContext *vc,
 
   if (changed) {
     if (SEL_OP_CAN_DESELECT(sel_op)) {
-      BKE_mesh_mselect_validate(me);
+      BKE_mesh_mselect_validate(mesh);
     }
     paintvert_flush_flags(vc->obact);
     paintvert_tag_select_update(vc->C, vc->obact);
@@ -3608,10 +3608,10 @@ static bool do_paintface_box_select(ViewContext *vc,
                                     eSelectOp sel_op)
 {
   Object *ob = vc->obact;
-  Mesh *me;
+  Mesh *mesh;
 
-  me = BKE_mesh_from_object(ob);
-  if ((me == nullptr) || (me->faces_num == 0)) {
+  mesh = BKE_mesh_from_object(ob);
+  if ((mesh == nullptr) || (mesh->faces_num == 0)) {
     return false;
   }
 
@@ -3632,7 +3632,7 @@ static bool do_paintface_box_select(ViewContext *vc,
           vc->depsgraph, vc->region, vc->v3d, rect, nullptr);
     }
     if (esel->select_bitmap != nullptr) {
-      changed |= edbm_backbuf_check_and_select_faces_obmode(me, esel, sel_op);
+      changed |= edbm_backbuf_check_and_select_faces_obmode(mesh, esel, sel_op);
     }
   }
 
@@ -4575,7 +4575,7 @@ static bool paint_facesel_circle_select(ViewContext *vc,
 {
   BLI_assert(ELEM(sel_op, SEL_OP_SET, SEL_OP_ADD, SEL_OP_SUB));
   Object *ob = vc->obact;
-  Mesh *me = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
 
   bool changed = false;
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
@@ -4592,7 +4592,7 @@ static bool paint_facesel_circle_select(ViewContext *vc,
     esel->select_bitmap = DRW_select_buffer_bitmap_from_circle(
         vc->depsgraph, vc->region, vc->v3d, mval, int(rad + 1.0f), nullptr);
     if (esel->select_bitmap != nullptr) {
-      changed |= edbm_backbuf_check_and_select_faces_obmode(me, esel, sel_op);
+      changed |= edbm_backbuf_check_and_select_faces_obmode(mesh, esel, sel_op);
       MEM_freeN(esel->select_bitmap);
       esel->select_bitmap = nullptr;
     }
@@ -4631,7 +4631,7 @@ static bool paint_vertsel_circle_select(ViewContext *vc,
   BLI_assert(ELEM(sel_op, SEL_OP_SET, SEL_OP_ADD, SEL_OP_SUB));
   const bool use_zbuf = !XRAY_ENABLED(vc->v3d);
   Object *ob = vc->obact;
-  Mesh *me = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
   // CircleSelectUserData data = {nullptr}; /* UNUSED. */
 
   bool changed = false;
@@ -4653,13 +4653,13 @@ static bool paint_vertsel_circle_select(ViewContext *vc,
     esel->select_bitmap = DRW_select_buffer_bitmap_from_circle(
         vc->depsgraph, vc->region, vc->v3d, mval, int(rad + 1.0f), nullptr);
     if (esel->select_bitmap != nullptr) {
-      changed |= edbm_backbuf_check_and_select_verts_obmode(me, esel, sel_op);
+      changed |= edbm_backbuf_check_and_select_verts_obmode(mesh, esel, sel_op);
       MEM_freeN(esel->select_bitmap);
       esel->select_bitmap = nullptr;
     }
   }
   else {
-    bke::MutableAttributeAccessor attributes = me->attributes_for_write();
+    bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
     bke::SpanAttributeWriter<bool> select_vert = attributes.lookup_or_add_for_write_span<bool>(
         ".select_vert", ATTR_DOMAIN_POINT);
 
@@ -4677,7 +4677,7 @@ static bool paint_vertsel_circle_select(ViewContext *vc,
 
   if (changed) {
     if (sel_op == SEL_OP_SUB) {
-      BKE_mesh_mselect_validate(me);
+      BKE_mesh_mselect_validate(mesh);
     }
     paintvert_flush_flags(ob);
     paintvert_tag_select_update(vc->C, ob);

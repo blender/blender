@@ -104,29 +104,29 @@ static void merge_uvs_for_vertex(const Span<int> loops_for_vert, Span<float2 *> 
   }
 }
 
-void BKE_mesh_merge_customdata_for_apply_modifier(Mesh *me)
+void BKE_mesh_merge_customdata_for_apply_modifier(Mesh *mesh)
 {
-  if (me->totloop == 0) {
+  if (mesh->totloop == 0) {
     return;
   }
-  const int mloopuv_layers_num = CustomData_number_of_layers(&me->loop_data, CD_PROP_FLOAT2);
+  const int mloopuv_layers_num = CustomData_number_of_layers(&mesh->loop_data, CD_PROP_FLOAT2);
   if (mloopuv_layers_num == 0) {
     return;
   }
 
-  const GroupedSpan<int> vert_to_loop = me->vert_to_corner_map();
+  const GroupedSpan<int> vert_to_loop = mesh->vert_to_corner_map();
 
   Vector<float2 *> mloopuv_layers;
   mloopuv_layers.reserve(mloopuv_layers_num);
   for (int a = 0; a < mloopuv_layers_num; a++) {
     float2 *mloopuv = static_cast<float2 *>(
-        CustomData_get_layer_n_for_write(&me->loop_data, CD_PROP_FLOAT2, a, me->totloop));
+        CustomData_get_layer_n_for_write(&mesh->loop_data, CD_PROP_FLOAT2, a, mesh->totloop));
     mloopuv_layers.append_unchecked(mloopuv);
   }
 
   Span<float2 *> mloopuv_layers_as_span = mloopuv_layers.as_span();
 
-  threading::parallel_for(IndexRange(me->totvert), 1024, [&](IndexRange range) {
+  threading::parallel_for(IndexRange(mesh->totvert), 1024, [&](IndexRange range) {
     for (const int64_t v_index : range) {
       merge_uvs_for_vertex(vert_to_loop[v_index], mloopuv_layers_as_span);
     }

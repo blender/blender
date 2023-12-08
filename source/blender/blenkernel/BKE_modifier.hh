@@ -536,17 +536,17 @@ ModifierData *BKE_modifier_get_evaluated(Depsgraph *depsgraph, Object *object, M
 
 /* wrappers for modifier callbacks that ensure valid normals */
 
-Mesh *BKE_modifier_modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *me);
+Mesh *BKE_modifier_modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh);
 
 void BKE_modifier_deform_verts(ModifierData *md,
                                const ModifierEvalContext *ctx,
-                               Mesh *me,
+                               Mesh *mesh,
                                blender::MutableSpan<blender::float3> positions);
 
 void BKE_modifier_deform_vertsEM(ModifierData *md,
                                  const ModifierEvalContext *ctx,
                                  BMEditMesh *em,
-                                 Mesh *me,
+                                 Mesh *mesh,
                                  blender::MutableSpan<blender::float3> positions);
 
 /**

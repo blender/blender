@@ -69,9 +69,9 @@ static void extract_sculpt_data_init(const MeshRenderData &mr,
         uchar face_set_color[4] = {UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX};
         if (cd_face_set_ofs != -1) {
           const int face_set_id = BM_ELEM_CD_GET_INT(l_iter->f, cd_face_set_ofs);
-          if (face_set_id != mr.me->face_sets_color_default) {
+          if (face_set_id != mr.mesh->face_sets_color_default) {
             BKE_paint_face_set_overlay_color_get(
-                face_set_id, mr.me->face_sets_color_seed, face_set_color);
+                face_set_id, mr.mesh->face_sets_color_seed, face_set_color);
           }
         }
         copy_v3_v3_uchar(vbo_data->face_set_color, face_set_color);
@@ -80,7 +80,7 @@ static void extract_sculpt_data_init(const MeshRenderData &mr,
     }
   }
   else {
-    const bke::AttributeAccessor attributes = mr.me->attributes();
+    const bke::AttributeAccessor attributes = mr.mesh->attributes();
     const VArray<float> mask = *attributes.lookup<float>(".sculpt_mask", ATTR_DOMAIN_POINT);
     const VArray<int> face_set = *attributes.lookup<int>(".sculpt_face_set", ATTR_DOMAIN_FACE);
 
@@ -96,9 +96,9 @@ static void extract_sculpt_data_init(const MeshRenderData &mr,
         if (face_set) {
           const int face_set_id = face_set[face_index];
           /* Skip for the default color Face Set to render it white. */
-          if (face_set_id != mr.me->face_sets_color_default) {
+          if (face_set_id != mr.mesh->face_sets_color_default) {
             BKE_paint_face_set_overlay_color_get(
-                face_set_id, mr.me->face_sets_color_seed, face_set_color);
+                face_set_id, mr.mesh->face_sets_color_seed, face_set_color);
           }
         }
         copy_v3_v3_uchar(vbo_data->face_set_color, face_set_color);
@@ -116,7 +116,7 @@ static void extract_sculpt_data_init_subdiv(const DRWSubdivCache &subdiv_cache,
 {
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buffer);
 
-  Mesh *coarse_mesh = mr.me;
+  Mesh *coarse_mesh = mr.mesh;
 
   /* First, interpolate mask if available. */
   GPUVertBuf *mask_vbo = nullptr;

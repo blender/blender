@@ -240,18 +240,18 @@ void DM_release(DerivedMesh *dm)
   MEM_SAFE_FREE(dm->face_offsets);
 }
 
-void BKE_mesh_runtime_eval_to_meshkey(Mesh *me_deformed, Mesh *me, KeyBlock *kb)
+void BKE_mesh_runtime_eval_to_meshkey(Mesh *me_deformed, Mesh *mesh, KeyBlock *kb)
 {
   /* Just a shallow wrapper around #BKE_keyblock_convert_from_mesh,
    * that ensures both evaluated mesh and original one has same number of vertices. */
 
   const int totvert = me_deformed->totvert;
 
-  if (totvert == 0 || me->totvert == 0 || me->totvert != totvert) {
+  if (totvert == 0 || mesh->totvert == 0 || mesh->totvert != totvert) {
     return;
   }
 
-  BKE_keyblock_convert_from_mesh(me_deformed, me->key, kb);
+  BKE_keyblock_convert_from_mesh(me_deformed, mesh->key, kb);
 }
 
 void DM_set_only_copy(DerivedMesh *dm, const CustomData_MeshMasks *mask)
@@ -374,32 +374,32 @@ static float (*get_orco_coords(Object *ob, BMEditMesh *em, int layer, int *free)
   return nullptr;
 }
 
-static Mesh *create_orco_mesh(Object *ob, Mesh *me, BMEditMesh *em, int layer)
+static Mesh *create_orco_mesh(Object *ob, Mesh *mesh, BMEditMesh *em, int layer)
 {
-  Mesh *mesh;
+  Mesh *orco_mesh;
   float(*orco)[3];
   int free;
 
   if (em) {
-    mesh = BKE_mesh_from_bmesh_for_eval_nomain(em->bm, nullptr, me);
-    BKE_mesh_ensure_default_orig_index_customdata(mesh);
+    orco_mesh = BKE_mesh_from_bmesh_for_eval_nomain(em->bm, nullptr, mesh);
+    BKE_mesh_ensure_default_orig_index_customdata(orco_mesh);
   }
   else {
-    mesh = BKE_mesh_copy_for_eval(me);
+    orco_mesh = BKE_mesh_copy_for_eval(mesh);
   }
 
   orco = get_orco_coords(ob, em, layer, &free);
 
   if (orco) {
-    mesh->vert_positions_for_write().copy_from(
-        {reinterpret_cast<const float3 *>(orco), mesh->totvert});
-    BKE_mesh_tag_positions_changed(mesh);
+    orco_mesh->vert_positions_for_write().copy_from(
+        {reinterpret_cast<const float3 *>(orco), orco_mesh->totvert});
+    BKE_mesh_tag_positions_changed(orco_mesh);
     if (free) {
       MEM_freeN(orco);
     }
   }
 
-  return mesh;
+  return orco_mesh;
 }
 
 static MutableSpan<float3> orco_coord_layer_ensure(Mesh *mesh, const eCustomDataType layer)

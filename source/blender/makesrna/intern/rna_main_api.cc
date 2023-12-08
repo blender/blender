@@ -306,12 +306,12 @@ static Mesh *rna_Main_meshes_new(Main *bmain, const char *name)
   char safe_name[MAX_ID_NAME - 2];
   rna_idname_validate(name, safe_name);
 
-  Mesh *me = BKE_mesh_add(bmain, safe_name);
-  id_us_min(&me->id);
+  Mesh *mesh = BKE_mesh_add(bmain, safe_name);
+  id_us_min(&mesh->id);
 
   WM_main_add_notifier(NC_ID | NA_ADDED, nullptr);
 
-  return me;
+  return mesh;
 }
 
 /* copied from Mesh_getFromObject and adapted to RNA interface */

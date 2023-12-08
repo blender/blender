@@ -117,7 +117,7 @@ class MeshImporter : public MeshImporterBase {
    */
   bool is_nice_mesh(COLLADAFW::Mesh *mesh);
 
-  void read_vertices(COLLADAFW::Mesh *mesh, Mesh *me);
+  void read_vertices(COLLADAFW::Mesh *mesh, Mesh *mesh);
 
   /**
    * Condition 1: The Primitive has normals
@@ -149,7 +149,7 @@ class MeshImporter : public MeshImporterBase {
    * HINT: This is done because `mesh->getFacesCount()` does
    * count loose edges as extra faces, which is not what we want here.
    */
-  void allocate_poly_data(COLLADAFW::Mesh *collada_mesh, Mesh *me);
+  void allocate_poly_data(COLLADAFW::Mesh *collada_mesh, Mesh *mesh);
 
   /* TODO: import uv set names */
   /**
@@ -159,14 +159,14 @@ class MeshImporter : public MeshImporterBase {
    *
    * TODO: import uv set names.
    */
-  void read_polys(COLLADAFW::Mesh *mesh, Mesh *me, blender::Vector<blender::float3> &loop_normals);
+  void read_polys(COLLADAFW::Mesh *mesh, Mesh *mesh, blender::Vector<blender::float3> &loop_normals);
   /**
    * Read all loose edges.
    * IMPORTANT: This function assumes that all edges from existing
    * faces have already been generated and added to me->medge
    * So this function MUST be called after read_faces() (see below)
    */
-  void read_lines(COLLADAFW::Mesh *mesh, Mesh *me);
+  void read_lines(COLLADAFW::Mesh *mesh, Mesh *mesh);
   uint get_vertex_count(COLLADAFW::Polygons *mp, int index);
 
   void get_vector(float v[3], COLLADAFW::MeshVertexData &arr, int i, int stride);

@@ -2448,28 +2448,28 @@ static void gpencil_generate_edgeloops(Object *ob,
                                        const bool use_vgroups)
 {
   using namespace blender;
-  Mesh *me = (Mesh *)ob->data;
-  if (me->totedge == 0) {
+  Mesh *mesh = (Mesh *)ob->data;
+  if (mesh->totedge == 0) {
     return;
   }
-  const Span<float3> vert_positions = me->vert_positions();
-  const Span<int2> edges = me->edges();
-  const Span<MDeformVert> dverts = me->deform_verts();
-  const blender::Span<blender::float3> vert_normals = me->vert_normals();
-  const bke::AttributeAccessor attributes = me->attributes();
+  const Span<float3> vert_positions = mesh->vert_positions();
+  const Span<int2> edges = mesh->edges();
+  const Span<MDeformVert> dverts = mesh->deform_verts();
+  const blender::Span<blender::float3> vert_normals = mesh->vert_normals();
+  const bke::AttributeAccessor attributes = mesh->attributes();
   const VArray<bool> uv_seams = *attributes.lookup_or_default<bool>(
       ".uv_seam", ATTR_DOMAIN_EDGE, false);
 
   /* Arrays for all edge vertices (forward and backward) that form a edge loop.
    * This is reused for each edge-loop to create gpencil stroke. */
-  uint *stroke = (uint *)MEM_mallocN(sizeof(uint) * me->totedge * 2, __func__);
-  uint *stroke_fw = (uint *)MEM_mallocN(sizeof(uint) * me->totedge, __func__);
-  uint *stroke_bw = (uint *)MEM_mallocN(sizeof(uint) * me->totedge, __func__);
+  uint *stroke = (uint *)MEM_mallocN(sizeof(uint) * mesh->totedge * 2, __func__);
+  uint *stroke_fw = (uint *)MEM_mallocN(sizeof(uint) * mesh->totedge, __func__);
+  uint *stroke_bw = (uint *)MEM_mallocN(sizeof(uint) * mesh->totedge, __func__);
 
   /* Create array with all edges. */
-  GpEdge *gp_edges = (GpEdge *)MEM_callocN(sizeof(GpEdge) * me->totedge, __func__);
+  GpEdge *gp_edges = (GpEdge *)MEM_callocN(sizeof(GpEdge) * mesh->totedge, __func__);
   GpEdge *gped = nullptr;
-  for (int i = 0; i < me->totedge; i++) {
+  for (int i = 0; i < mesh->totedge; i++) {
     const blender::int2 &edge = edges[i];
     gped = &gp_edges[i];
     copy_v3_v3(gped->n1, vert_normals[edge[0]]);
@@ -2497,7 +2497,7 @@ static void gpencil_generate_edgeloops(Object *ob,
     /* Look first unused edge. */
     if (gped->flag != 0) {
       e++;
-      if (e == me->totedge) {
+      if (e == mesh->totedge) {
         pending = false;
       }
       continue;
@@ -2510,9 +2510,9 @@ static void gpencil_generate_edgeloops(Object *ob,
     /* Hash used to avoid loop over same vertices. */
     GHash *v_table = BLI_ghash_int_new(__func__);
     /* Look forward edges. */
-    int totedges = gpencil_walk_edge(v_table, gp_edges, me->totedge, stroke_fw, e, angle, false);
+    int totedges = gpencil_walk_edge(v_table, gp_edges, mesh->totedge, stroke_fw, e, angle, false);
     /* Look backward edges. */
-    int totbw = gpencil_walk_edge(v_table, gp_edges, me->totedge, stroke_bw, e, angle, true);
+    int totbw = gpencil_walk_edge(v_table, gp_edges, mesh->totedge, stroke_bw, e, angle, true);
 
     BLI_ghash_free(v_table, nullptr, nullptr);
 

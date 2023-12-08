@@ -903,14 +903,14 @@ static int apply_objects_internal(bContext *C,
       id_us_plus((ID *)ob->data);
     }
     else if (ob->type == OB_MESH) {
-      Mesh *me = static_cast<Mesh *>(ob->data);
+      Mesh *mesh = static_cast<Mesh *>(ob->data);
 
       if (apply_scale) {
         multiresModifier_scale_disp(depsgraph, scene, ob);
       }
 
       /* adjust data */
-      BKE_mesh_transform(me, mat, true);
+      BKE_mesh_transform(mesh, mat, true);
     }
     else if (ob->type == OB_ARMATURE) {
       bArmature *arm = static_cast<bArmature *>(ob->data);
@@ -1323,8 +1323,8 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
   if (obedit) {
     if (obedit->type == OB_MESH) {
-      Mesh *me = static_cast<Mesh *>(obedit->data);
-      BMEditMesh *em = me->edit_mesh;
+      Mesh *mesh = static_cast<Mesh *>(obedit->data);
+      BMEditMesh *em = mesh->edit_mesh;
       BMVert *eve;
       BMIter iter;
 
@@ -1437,31 +1437,31 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
     }
     else if (ob->type == OB_MESH) {
       if (obedit == nullptr) {
-        Mesh *me = static_cast<Mesh *>(ob->data);
+        Mesh *mesh = static_cast<Mesh *>(ob->data);
 
         if (centermode == ORIGIN_TO_CURSOR) {
           /* done */
         }
         else if (centermode == ORIGIN_TO_CENTER_OF_MASS_SURFACE) {
-          BKE_mesh_center_of_surface(me, cent);
+          BKE_mesh_center_of_surface(mesh, cent);
         }
         else if (centermode == ORIGIN_TO_CENTER_OF_MASS_VOLUME) {
-          BKE_mesh_center_of_volume(me, cent);
+          BKE_mesh_center_of_volume(mesh, cent);
         }
         else if (around == V3D_AROUND_CENTER_BOUNDS) {
-          if (const std::optional<Bounds<float3>> bounds = me->bounds_min_max()) {
+          if (const std::optional<Bounds<float3>> bounds = mesh->bounds_min_max()) {
             cent = math::midpoint(bounds->min, bounds->max);
           }
         }
         else { /* #V3D_AROUND_CENTER_MEDIAN. */
-          BKE_mesh_center_median(me, cent);
+          BKE_mesh_center_median(mesh, cent);
         }
 
         negate_v3_v3(cent_neg, cent);
-        BKE_mesh_translate(me, cent_neg, true);
+        BKE_mesh_translate(mesh, cent_neg, true);
 
         tot_change++;
-        me->id.tag |= LIB_TAG_DOIT;
+        mesh->id.tag |= LIB_TAG_DOIT;
         do_inverse_offset = true;
       }
     }

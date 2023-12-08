@@ -631,7 +631,7 @@ static float heat_limit_weight(float weight)
 }
 
 void heat_bone_weighting(Object *ob,
-                         Mesh *me,
+                         Mesh *mesh,
                          float (*verts)[3],
                          int numbones,
                          bDeformGroup **dgrouplist,
@@ -646,27 +646,28 @@ void heat_bone_weighting(Object *ob,
   float solution, weight;
   int *vertsflipped = nullptr, *mask = nullptr;
   int a, tris_num, j, bbone, firstsegment, lastsegment;
-  bool use_topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
+  bool use_topology = (mesh->editflag & ME_EDIT_MIRROR_TOPO) != 0;
 
-  const blender::Span<blender::float3> vert_positions = me->vert_positions();
-  const blender::OffsetIndices faces = me->faces();
-  const blender::Span<int> corner_verts = me->corner_verts();
-  bool use_vert_sel = (me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
-  bool use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
+  const blender::Span<blender::float3> vert_positions = mesh->vert_positions();
+  const blender::OffsetIndices faces = mesh->faces();
+  const blender::Span<int> corner_verts = mesh->corner_verts();
+  bool use_vert_sel = (mesh->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
+  bool use_face_sel = (mesh->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
 
   *error_str = nullptr;
 
   /* bone heat needs triangulated faces */
-  tris_num = poly_to_tri_count(me->faces_num, me->totloop);
+  tris_num = poly_to_tri_count(mesh->faces_num, mesh->totloop);
 
   /* count triangles and create mask */
   if (ob->mode & OB_MODE_WEIGHT_PAINT && (use_face_sel || use_vert_sel)) {
-    mask = static_cast<int *>(MEM_callocN(sizeof(int) * me->totvert, "heat_bone_weighting mask"));
+    mask = static_cast<int *>(
+        MEM_callocN(sizeof(int) * mesh->totvert, "heat_bone_weighting mask"));
 
     /*  (added selectedVerts content for vertex mask, they used to just equal 1) */
     if (use_vert_sel) {
       const bool *select_vert = (const bool *)CustomData_get_layer_named(
-          &me->vert_data, CD_PROP_BOOL, ".select_vert");
+          &mesh->vert_data, CD_PROP_BOOL, ".select_vert");
       if (select_vert) {
         for (const int i : faces.index_range()) {
           for (const int vert : corner_verts.slice(faces[i])) {
@@ -677,7 +678,7 @@ void heat_bone_weighting(Object *ob,
     }
     else if (use_face_sel) {
       const bool *select_poly = (const bool *)CustomData_get_layer_named(
-          &me->face_data, CD_PROP_BOOL, ".select_poly");
+          &mesh->face_data, CD_PROP_BOOL, ".select_poly");
       if (select_poly) {
         for (const int i : faces.index_range()) {
           if (select_poly[i]) {
@@ -691,9 +692,9 @@ void heat_bone_weighting(Object *ob,
   }
 
   /* create laplacian */
-  sys = laplacian_system_construct_begin(me->totvert, tris_num, 1);
+  sys = laplacian_system_construct_begin(mesh->totvert, tris_num, 1);
 
-  sys->heat.tris_num = poly_to_tri_count(me->faces_num, me->totloop);
+  sys->heat.tris_num = poly_to_tri_count(mesh->faces_num, mesh->totloop);
   mlooptri = static_cast<MLoopTri *>(
       MEM_mallocN(sizeof(*sys->heat.mlooptri) * sys->heat.tris_num, __func__));
 
@@ -702,7 +703,7 @@ void heat_bone_weighting(Object *ob,
 
   sys->heat.mlooptri = mlooptri;
   sys->heat.corner_verts = corner_verts;
-  sys->heat.verts_num = me->totvert;
+  sys->heat.verts_num = mesh->totvert;
   sys->heat.verts = verts;
   sys->heat.root = root;
   sys->heat.tip = tip;
@@ -714,8 +715,8 @@ void heat_bone_weighting(Object *ob,
   laplacian_system_construct_end(sys);
 
   if (dgroupflip) {
-    vertsflipped = static_cast<int *>(MEM_callocN(sizeof(int) * me->totvert, "vertsflipped"));
-    for (a = 0; a < me->totvert; a++) {
+    vertsflipped = static_cast<int *>(MEM_callocN(sizeof(int) * mesh->totvert, "vertsflipped"));
+    for (a = 0; a < mesh->totvert; a++) {
       vertsflipped[a] = mesh_get_x_mirror_vert(ob, nullptr, a, use_topology);
     }
   }
@@ -732,7 +733,7 @@ void heat_bone_weighting(Object *ob,
 
     /* clear weights */
     if (bbone && firstsegment) {
-      for (a = 0; a < me->totvert; a++) {
+      for (a = 0; a < mesh->totvert; a++) {
         if (mask && !mask[a]) {
           continue;
         }
@@ -747,7 +748,7 @@ void heat_bone_weighting(Object *ob,
     /* fill right hand side */
     laplacian_begin_solve(sys, -1);
 
-    for (a = 0; a < me->totvert; a++) {
+    for (a = 0; a < mesh->totvert; a++) {
       if (heat_source_closest(sys, a, j)) {
         laplacian_add_right_hand_side(sys, a, sys->heat.H[a] * sys->heat.p[a]);
       }
@@ -756,7 +757,7 @@ void heat_bone_weighting(Object *ob,
     /* solve */
     if (laplacian_system_solve(sys)) {
       /* load solution into vertex groups */
-      for (a = 0; a < me->totvert; a++) {
+      for (a = 0; a < mesh->totvert; a++) {
         if (mask && !mask[a]) {
           continue;
         }
@@ -804,7 +805,7 @@ void heat_bone_weighting(Object *ob,
 
     /* remove too small vertex weights */
     if (bbone && lastsegment) {
-      for (a = 0; a < me->totvert; a++) {
+      for (a = 0; a < mesh->totvert; a++) {
         if (mask && !mask[a]) {
           continue;
         }
@@ -1619,12 +1620,12 @@ static void harmonic_coordinates_bind(MeshDeformModifierData *mmd, MeshDeformBin
 
   /* initialize data from 'cagedm' for reuse */
   {
-    Mesh *me = mdb->cagemesh;
-    mdb->cagemesh_cache.faces = me->faces();
-    mdb->cagemesh_cache.corner_verts = me->corner_verts();
-    mdb->cagemesh_cache.looptris = me->looptris();
-    mdb->cagemesh_cache.looptri_faces = me->looptri_faces();
-    mdb->cagemesh_cache.face_normals = me->face_normals();
+    Mesh *mesh = mdb->cagemesh;
+    mdb->cagemesh_cache.faces = mesh->faces();
+    mdb->cagemesh_cache.corner_verts = mesh->corner_verts();
+    mdb->cagemesh_cache.looptris = mesh->looptris();
+    mdb->cagemesh_cache.looptri_faces = mesh->looptri_faces();
+    mdb->cagemesh_cache.face_normals = mesh->face_normals();
   }
 
   /* make bounding box equal size in all directions, add padding, and compute

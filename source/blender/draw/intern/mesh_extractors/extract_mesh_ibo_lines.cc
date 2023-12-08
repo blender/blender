@@ -53,7 +53,7 @@ static void extract_lines_init(const MeshRenderData &mr,
                     mr.loop_len + mr.loop_loose_len);
 
   if (mr.extract_type == MR_EXTRACT_MESH) {
-    data->optimal_display_edges = mr.me->runtime->subsurf_optimal_display_edges;
+    data->optimal_display_edges = mr.mesh->runtime->subsurf_optimal_display_edges;
     data->e_origindex = mr.hide_unmapped_edges ? mr.e_origindex : nullptr;
     data->hide_edge = mr.use_hide ? mr.hide_edge : nullptr;
 

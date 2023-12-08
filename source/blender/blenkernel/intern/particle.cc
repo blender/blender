@@ -4330,7 +4330,7 @@ void psys_get_texture(
     ParticleSimulationData *sim, ParticleData *pa, ParticleTexture *ptex, int event, float cfra)
 {
   Object *ob = sim->ob;
-  Mesh *me = (Mesh *)ob->data;
+  Mesh *mesh = (Mesh *)ob->data;
   ParticleSettings *part = sim->psys->part;
   MTex **mtexp = part->mtex;
   MTex *mtex;
@@ -4395,16 +4395,16 @@ void psys_get_texture(
                                    nullptr,
                                    texvec);
 
-          BKE_mesh_texspace_ensure(me);
-          sub_v3_v3(texvec, me->texspace_location);
-          if (me->texspace_size[0] != 0.0f) {
-            texvec[0] /= me->texspace_size[0];
+          BKE_mesh_texspace_ensure(mesh);
+          sub_v3_v3(texvec, mesh->texspace_location);
+          if (mesh->texspace_size[0] != 0.0f) {
+            texvec[0] /= mesh->texspace_size[0];
           }
-          if (me->texspace_size[1] != 0.0f) {
-            texvec[1] /= me->texspace_size[1];
+          if (mesh->texspace_size[1] != 0.0f) {
+            texvec[1] /= mesh->texspace_size[1];
           }
-          if (me->texspace_size[2] != 0.0f) {
-            texvec[2] /= me->texspace_size[2];
+          if (mesh->texspace_size[2] != 0.0f) {
+            texvec[2] /= mesh->texspace_size[2];
           }
           break;
         case TEXCO_PARTICLE:

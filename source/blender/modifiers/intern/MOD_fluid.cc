@@ -114,16 +114,16 @@ static void fluid_modifier_do_isolated(void *userdata)
 }
 #endif /* WITH_FLUID */
 
-static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *me)
+static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
 #ifndef WITH_FLUID
   UNUSED_VARS(md, ctx);
-  return me;
+  return mesh;
 #else
   FluidModifierData *fmd = (FluidModifierData *)md;
 
   if (ctx->flag & MOD_APPLY_ORCO) {
-    return me;
+    return mesh;
   }
 
   /* Isolate execution of Mantaflow when running from dependency graph. The reason for this is
@@ -134,7 +134,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   FluidIsolationData isolation_data;
   isolation_data.depsgraph = ctx->depsgraph;
   isolation_data.object = ctx->object;
-  isolation_data.mesh = me;
+  isolation_data.mesh = mesh;
   isolation_data.fmd = fmd;
   BLI_task_isolate(fluid_modifier_do_isolated, &isolation_data);
 

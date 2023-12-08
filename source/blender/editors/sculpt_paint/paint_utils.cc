@@ -408,14 +408,14 @@ void paint_sample_color(
     if (ob) {
       CustomData_MeshMasks cddata_masks = CD_MASK_BAREMESH;
       cddata_masks.pmask |= CD_MASK_ORIGINDEX;
-      Mesh *me = (Mesh *)ob->data;
+      Mesh *mesh = (Mesh *)ob->data;
       const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
       const int *material_indices = (const int *)CustomData_get_layer_named(
           &me_eval->face_data, CD_PROP_INT32, "material_index");
 
       const int mval[2] = {x, y};
       uint faceindex;
-      uint faces_num = me->faces_num;
+      uint faces_num = mesh->faces_num;
 
       if (CustomData_has_layer(&me_eval->loop_data, CD_PROP_FLOAT2)) {
         ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
@@ -818,9 +818,10 @@ void PAINT_OT_vert_select_all(wmOperatorType *ot)
 static int vert_select_ungrouped_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
-  Mesh *me = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
 
-  if (BLI_listbase_is_empty(&me->vertex_group_names) || (BKE_mesh_deform_verts(me) == nullptr)) {
+  if (BLI_listbase_is_empty(&mesh->vertex_group_names) || (BKE_mesh_deform_verts(mesh) == nullptr))
+  {
     BKE_report(op->reports, RPT_ERROR, "No weights/vertex groups on object");
     return OPERATOR_CANCELLED;
   }

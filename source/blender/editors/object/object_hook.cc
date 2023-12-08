@@ -131,8 +131,8 @@ static bool return_editmesh_vgroup(Object *obedit, BMEditMesh *em, char *r_name,
 
 static void select_editbmesh_hook(Object *ob, HookModifierData *hmd)
 {
-  Mesh *me = static_cast<Mesh *>(ob->data);
-  BMEditMesh *em = me->edit_mesh;
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  BMEditMesh *em = mesh->edit_mesh;
   BMVert *eve;
   BMIter iter;
   int index = 0, nr = 0;
@@ -333,7 +333,7 @@ static bool object_hook_index_array(Main *bmain,
 
   switch (obedit->type) {
     case OB_MESH: {
-      Mesh *me = static_cast<Mesh *>(obedit->data);
+      Mesh *mesh = static_cast<Mesh *>(obedit->data);
 
       BMEditMesh *em;
 
@@ -342,7 +342,7 @@ static bool object_hook_index_array(Main *bmain,
 
       DEG_id_tag_update(static_cast<ID *>(obedit->data), 0);
 
-      em = me->edit_mesh;
+      em = mesh->edit_mesh;
 
       BKE_editmesh_looptri_and_normals_calc(em);
 

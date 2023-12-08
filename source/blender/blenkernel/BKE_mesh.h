@@ -85,10 +85,10 @@ void BKE_mesh_tag_face_winding_changed(struct Mesh *mesh);
 
 /* `mesh.cc` */
 
-struct BMesh *BKE_mesh_to_bmesh_ex(const struct Mesh *me,
+struct BMesh *BKE_mesh_to_bmesh_ex(const struct Mesh *mesh,
                                    const struct BMeshCreateParams *create_params,
                                    const struct BMeshFromMeshParams *convert_params);
-struct BMesh *BKE_mesh_to_bmesh(struct Mesh *me,
+struct BMesh *BKE_mesh_to_bmesh(struct Mesh *mesh,
                                 struct Object *ob,
                                 bool add_key_index,
                                 const struct BMeshCreateParams *params);
@@ -119,18 +119,18 @@ void BKE_mesh_ensure_default_orig_index_customdata_no_check(struct Mesh *mesh);
  * Free (or release) any data used by this mesh (does not free the mesh itself).
  * Only use for undo, in most cases `BKE_id_free(nullptr, me)` should be used.
  */
-void BKE_mesh_free_data_for_undo(struct Mesh *me);
+void BKE_mesh_free_data_for_undo(struct Mesh *mesh);
 
 /**
  * Remove all geometry and derived data like caches from the mesh.
  */
-void BKE_mesh_clear_geometry(struct Mesh *me);
+void BKE_mesh_clear_geometry(struct Mesh *mesh);
 
 /**
  * Same as #BKE_mesh_clear_geometry, but also clears attribute meta-data like active attribute
  * names and vertex group names. Used when the geometry is *entirely* replaced.
  */
-void BKE_mesh_clear_geometry_and_metadata(struct Mesh *me);
+void BKE_mesh_clear_geometry_and_metadata(struct Mesh *mesh);
 
 struct Mesh *BKE_mesh_add(struct Main *bmain, const char *name);
 
@@ -148,7 +148,7 @@ void BKE_mesh_copy_parameters_for_eval(struct Mesh *me_dst, const struct Mesh *m
  * when a new mesh is based on an existing mesh.
  */
 void BKE_mesh_copy_parameters(struct Mesh *me_dst, const struct Mesh *me_src);
-void BKE_mesh_ensure_skin_customdata(struct Mesh *me);
+void BKE_mesh_ensure_skin_customdata(struct Mesh *mesh);
 
 /** Add face offsets to describe faces to a new mesh. */
 void BKE_mesh_face_offsets_ensure_alloc(struct Mesh *mesh);
@@ -183,7 +183,7 @@ struct Mesh *BKE_mesh_new_nomain_from_curve_displist(const struct Object *ob,
 bool BKE_mesh_attribute_required(const char *name);
 
 float (*BKE_mesh_orco_verts_get(struct Object *ob))[3];
-void BKE_mesh_orco_verts_transform(struct Mesh *me, float (*orco)[3], int totvert, bool invert);
+void BKE_mesh_orco_verts_transform(struct Mesh *mesh, float (*orco)[3], int totvert, bool invert);
 
 /**
  * Add a #CD_ORCO layer to the Mesh if there is none already.
@@ -191,8 +191,8 @@ void BKE_mesh_orco_verts_transform(struct Mesh *me, float (*orco)[3], int totver
 void BKE_mesh_orco_ensure(struct Object *ob, struct Mesh *mesh);
 
 struct Mesh *BKE_mesh_from_object(struct Object *ob);
-void BKE_mesh_assign_object(struct Main *bmain, struct Object *ob, struct Mesh *me);
-void BKE_mesh_to_curve_nurblist(const struct Mesh *me,
+void BKE_mesh_assign_object(struct Main *bmain, struct Object *ob, struct Mesh *mesh);
+void BKE_mesh_to_curve_nurblist(const struct Mesh *mesh,
                                 struct ListBase *nurblist,
                                 int edge_users_test);
 void BKE_mesh_to_curve(struct Main *bmain,
@@ -207,19 +207,19 @@ void BKE_pointcloud_to_mesh(struct Main *bmain,
                             struct Depsgraph *depsgraph,
                             struct Scene *scene,
                             struct Object *ob);
-void BKE_mesh_material_index_remove(struct Mesh *me, short index);
-bool BKE_mesh_material_index_used(struct Mesh *me, short index);
-void BKE_mesh_material_index_clear(struct Mesh *me);
-void BKE_mesh_material_remap(struct Mesh *me, const unsigned int *remap, unsigned int remap_len);
-void BKE_mesh_smooth_flag_set(struct Mesh *me, bool use_smooth);
-void BKE_mesh_sharp_edges_set_from_angle(struct Mesh *me, float angle);
+void BKE_mesh_material_index_remove(struct Mesh *mesh, short index);
+bool BKE_mesh_material_index_used(struct Mesh *mesh, short index);
+void BKE_mesh_material_index_clear(struct Mesh *mesh);
+void BKE_mesh_material_remap(struct Mesh *mesh, const unsigned int *remap, unsigned int remap_len);
+void BKE_mesh_smooth_flag_set(struct Mesh *mesh, bool use_smooth);
+void BKE_mesh_sharp_edges_set_from_angle(struct Mesh *mesh, float angle);
 
-void BKE_mesh_texspace_calc(struct Mesh *me);
-void BKE_mesh_texspace_ensure(struct Mesh *me);
-void BKE_mesh_texspace_get(struct Mesh *me,
+void BKE_mesh_texspace_calc(struct Mesh *mesh);
+void BKE_mesh_texspace_ensure(struct Mesh *mesh);
+void BKE_mesh_texspace_get(struct Mesh *mesh,
                            float r_texspace_location[3],
                            float r_texspace_size[3]);
-void BKE_mesh_texspace_get_reference(struct Mesh *me,
+void BKE_mesh_texspace_get_reference(struct Mesh *mesh,
                                      char **r_texspace_flag,
                                      float **r_texspace_location,
                                      float **r_texspace_size);
@@ -259,22 +259,22 @@ void BKE_mesh_nomain_to_meshkey(struct Mesh *mesh_src, struct Mesh *mesh_dst, st
 /* vertex level transformations & checks (no derived mesh) */
 
 /* basic vertex data functions */
-void BKE_mesh_transform(struct Mesh *me, const float mat[4][4], bool do_keys);
-void BKE_mesh_translate(struct Mesh *me, const float offset[3], bool do_keys);
+void BKE_mesh_transform(struct Mesh *mesh, const float mat[4][4], bool do_keys);
+void BKE_mesh_translate(struct Mesh *mesh, const float offset[3], bool do_keys);
 
 void BKE_mesh_tessface_clear(struct Mesh *mesh);
 
-void BKE_mesh_mselect_clear(struct Mesh *me);
-void BKE_mesh_mselect_validate(struct Mesh *me);
+void BKE_mesh_mselect_clear(struct Mesh *mesh);
+void BKE_mesh_mselect_validate(struct Mesh *mesh);
 /**
  * \return the index within `me->mselect`, or -1
  */
-int BKE_mesh_mselect_find(struct Mesh *me, int index, int type);
+int BKE_mesh_mselect_find(struct Mesh *mesh, int index, int type);
 /**
  * \return The index of the active element.
  */
-int BKE_mesh_mselect_active_get(struct Mesh *me, int type);
-void BKE_mesh_mselect_active_set(struct Mesh *me, int index, int type);
+int BKE_mesh_mselect_active_get(struct Mesh *mesh, int type);
+void BKE_mesh_mselect_active_set(struct Mesh *mesh, int index, int type);
 
 void BKE_mesh_count_selected_items(const struct Mesh *mesh, int r_count[3]);
 
@@ -407,7 +407,7 @@ void BKE_mesh_normals_loop_to_vertex(int numVerts,
 /**
  * High-level custom normals functions.
  */
-bool BKE_mesh_has_custom_loop_normals(struct Mesh *me);
+bool BKE_mesh_has_custom_loop_normals(struct Mesh *mesh);
 
 /**
  * Higher level functions hiding most of the code needed around call to
@@ -428,20 +428,20 @@ void BKE_mesh_set_custom_normals_from_verts(struct Mesh *mesh, float (*r_custom_
 
 /* *** mesh_evaluate.cc *** */
 
-float BKE_mesh_calc_area(const struct Mesh *me);
+float BKE_mesh_calc_area(const struct Mesh *mesh);
 
-bool BKE_mesh_center_median(const struct Mesh *me, float r_cent[3]);
+bool BKE_mesh_center_median(const struct Mesh *mesh, float r_cent[3]);
 /**
  * Calculate the center from faces,
  * use when we want to ignore vertex locations that don't have connected faces.
  */
-bool BKE_mesh_center_median_from_faces(const struct Mesh *me, float r_cent[3]);
-bool BKE_mesh_center_of_surface(const struct Mesh *me, float r_cent[3]);
+bool BKE_mesh_center_median_from_faces(const struct Mesh *mesh, float r_cent[3]);
+bool BKE_mesh_center_of_surface(const struct Mesh *mesh, float r_cent[3]);
 /**
  * \note Mesh must be manifold with consistent face-winding,
  * see #mesh_calc_face_volume_centroid for details.
  */
-bool BKE_mesh_center_of_volume(const struct Mesh *me, float r_cent[3]);
+bool BKE_mesh_center_of_volume(const struct Mesh *mesh, float r_cent[3]);
 
 /**
  * Calculate the volume and center.
@@ -469,7 +469,7 @@ void BKE_mesh_mdisp_flip(struct MDisps *md, bool use_loop_mdisp_flip);
  * Without running this operation subdivision surface can cause UVs to be disconnected,
  * see: #81065.
  */
-void BKE_mesh_merge_customdata_for_apply_modifier(struct Mesh *me);
+void BKE_mesh_merge_customdata_for_apply_modifier(struct Mesh *mesh);
 
 /* Flush flags. */
 
@@ -503,17 +503,17 @@ void BKE_mesh_calc_relative_deform(const int *face_offsets,
  *
  * \returns true if a change is made.
  */
-bool BKE_mesh_validate(struct Mesh *me, bool do_verbose, bool cddata_check_mask);
+bool BKE_mesh_validate(struct Mesh *mesh, bool do_verbose, bool cddata_check_mask);
 /**
  * Checks if a Mesh is valid without any modification. This is always verbose.
  * \returns True if the mesh is valid.
  */
-bool BKE_mesh_is_valid(struct Mesh *me);
+bool BKE_mesh_is_valid(struct Mesh *mesh);
 /**
  * Check all material indices of faces are valid, invalid ones are set to 0.
  * \returns True if the material indices are valid.
  */
-bool BKE_mesh_validate_material_indices(struct Mesh *me);
+bool BKE_mesh_validate_material_indices(struct Mesh *mesh);
 
 #ifdef __cplusplus
 
@@ -522,7 +522,7 @@ bool BKE_mesh_validate_material_indices(struct Mesh *me);
  *
  * \return false if no changes needed to be made.
  */
-bool BKE_mesh_validate_arrays(struct Mesh *me,
+bool BKE_mesh_validate_arrays(struct Mesh *mesh,
                               float (*vert_positions)[3],
                               unsigned int totvert,
                               blender::int2 *edges,
@@ -557,7 +557,7 @@ bool BKE_mesh_validate_all_customdata(struct CustomData *vert_data,
                                       bool do_fixes,
                                       bool *r_change);
 
-void BKE_mesh_strip_loose_faces(struct Mesh *me);
+void BKE_mesh_strip_loose_faces(struct Mesh *mesh);
 
 /**
  * Calculate edges from faces.
@@ -578,18 +578,18 @@ void BKE_mesh_wrapper_deferred_finalize_mdata(struct Mesh *me_eval);
 void BKE_mesh_eval_geometry(struct Depsgraph *depsgraph, struct Mesh *mesh);
 
 /* Draw Cache */
-void BKE_mesh_batch_cache_dirty_tag(struct Mesh *me, eMeshBatchDirtyMode mode);
+void BKE_mesh_batch_cache_dirty_tag(struct Mesh *mesh, eMeshBatchDirtyMode mode);
 void BKE_mesh_batch_cache_free(void *batch_cache);
 
-extern void (*BKE_mesh_batch_cache_dirty_tag_cb)(struct Mesh *me, eMeshBatchDirtyMode mode);
+extern void (*BKE_mesh_batch_cache_dirty_tag_cb)(struct Mesh *mesh, eMeshBatchDirtyMode mode);
 extern void (*BKE_mesh_batch_cache_free_cb)(void *batch_cache);
 
 /* `mesh_debug.cc` */
 
 #ifndef NDEBUG
-char *BKE_mesh_debug_info(const struct Mesh *me)
+char *BKE_mesh_debug_info(const struct Mesh *mesh)
     ATTR_NONNULL(1) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
-void BKE_mesh_debug_print(const struct Mesh *me) ATTR_NONNULL(1);
+void BKE_mesh_debug_print(const struct Mesh *mesh) ATTR_NONNULL(1);
 #endif
 
 /* -------------------------------------------------------------------- */

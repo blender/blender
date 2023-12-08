@@ -234,10 +234,11 @@ static void mesh_foreach_id(ID *id, LibraryForeachIDData *data)
 
 static void mesh_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 {
-  Mesh *me = reinterpret_cast<Mesh *>(id);
-  if (me->loop_data.external) {
-    BKE_bpath_foreach_path_fixed_process(
-        bpath_data, me->loop_data.external->filepath, sizeof(me->loop_data.external->filepath));
+  Mesh *mesh = reinterpret_cast<Mesh *>(id);
+  if (mesh->loop_data.external) {
+    BKE_bpath_foreach_path_fixed_process(bpath_data,
+                                         mesh->loop_data.external->filepath,
+                                         sizeof(mesh->loop_data.external->filepath));
   }
 }
 
@@ -405,9 +406,9 @@ bool BKE_mesh_attribute_required(const char *name)
   return ELEM(StringRef(name), "position", ".corner_vert", ".corner_edge", ".edge_verts");
 }
 
-void BKE_mesh_ensure_skin_customdata(Mesh *me)
+void BKE_mesh_ensure_skin_customdata(Mesh *mesh)
 {
-  BMesh *bm = me->edit_mesh ? me->edit_mesh->bm : nullptr;
+  BMesh *bm = mesh->edit_mesh ? mesh->edit_mesh->bm : nullptr;
   MVertSkin *vs;
 
   if (bm) {
@@ -426,9 +427,9 @@ void BKE_mesh_ensure_skin_customdata(Mesh *me)
     }
   }
   else {
-    if (!CustomData_has_layer(&me->vert_data, CD_MVERT_SKIN)) {
+    if (!CustomData_has_layer(&mesh->vert_data, CD_MVERT_SKIN)) {
       vs = (MVertSkin *)CustomData_add_layer(
-          &me->vert_data, CD_MVERT_SKIN, CD_SET_DEFAULT, me->totvert);
+          &mesh->vert_data, CD_MVERT_SKIN, CD_SET_DEFAULT, mesh->totvert);
 
       /* Mark an arbitrary vertex as root */
       if (vs) {
@@ -438,18 +439,18 @@ void BKE_mesh_ensure_skin_customdata(Mesh *me)
   }
 }
 
-bool BKE_mesh_has_custom_loop_normals(Mesh *me)
+bool BKE_mesh_has_custom_loop_normals(Mesh *mesh)
 {
-  if (me->edit_mesh) {
-    return CustomData_has_layer(&me->edit_mesh->bm->ldata, CD_CUSTOMLOOPNORMAL);
+  if (mesh->edit_mesh) {
+    return CustomData_has_layer(&mesh->edit_mesh->bm->ldata, CD_CUSTOMLOOPNORMAL);
   }
 
-  return CustomData_has_layer(&me->loop_data, CD_CUSTOMLOOPNORMAL);
+  return CustomData_has_layer(&mesh->loop_data, CD_CUSTOMLOOPNORMAL);
 }
 
-void BKE_mesh_free_data_for_undo(Mesh *me)
+void BKE_mesh_free_data_for_undo(Mesh *mesh)
 {
-  mesh_free_data(&me->id);
+  mesh_free_data(&mesh->id);
 }
 
 /**
@@ -716,19 +717,19 @@ Mesh *BKE_mesh_copy_for_eval(const Mesh *source)
       BKE_id_copy_ex(nullptr, &source->id, nullptr, LIB_ID_COPY_LOCALIZE));
 }
 
-BMesh *BKE_mesh_to_bmesh_ex(const Mesh *me,
+BMesh *BKE_mesh_to_bmesh_ex(const Mesh *mesh,
                             const BMeshCreateParams *create_params,
                             const BMeshFromMeshParams *convert_params)
 {
-  const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(me);
+  const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(mesh);
 
   BMesh *bm = BM_mesh_create(&allocsize, create_params);
-  BM_mesh_bm_from_me(bm, me, convert_params);
+  BM_mesh_bm_from_me(bm, mesh, convert_params);
 
   return bm;
 }
 
-BMesh *BKE_mesh_to_bmesh(Mesh *me,
+BMesh *BKE_mesh_to_bmesh(Mesh *mesh,
                          Object *ob,
                          const bool add_key_index,
                          const BMeshCreateParams *params)
@@ -739,7 +740,7 @@ BMesh *BKE_mesh_to_bmesh(Mesh *me,
   bmesh_from_mesh_params.add_key_index = add_key_index;
   bmesh_from_mesh_params.use_shapekey = true;
   bmesh_from_mesh_params.active_shapekey = ob->shapenr;
-  return BKE_mesh_to_bmesh_ex(me, params, &bmesh_from_mesh_params);
+  return BKE_mesh_to_bmesh_ex(mesh, params, &bmesh_from_mesh_params);
 }
 
 Mesh *BKE_mesh_from_bmesh_nomain(BMesh *bm,
@@ -785,11 +786,11 @@ void BKE_mesh_ensure_default_orig_index_customdata_no_check(Mesh *mesh)
   ensure_orig_index_layer(mesh->face_data, mesh->faces_num);
 }
 
-void BKE_mesh_texspace_calc(Mesh *me)
+void BKE_mesh_texspace_calc(Mesh *mesh)
 {
   using namespace blender;
-  if (me->texspace_flag & ME_TEXSPACE_FLAG_AUTO) {
-    const Bounds<float3> bounds = me->bounds_min_max().value_or(
+  if (mesh->texspace_flag & ME_TEXSPACE_FLAG_AUTO) {
+    const Bounds<float3> bounds = mesh->bounds_min_max().value_or(
         Bounds(float3(-1.0f), float3(1.0f)));
 
     float texspace_location[3], texspace_size[3];
@@ -811,62 +812,62 @@ void BKE_mesh_texspace_calc(Mesh *me)
       }
     }
 
-    copy_v3_v3(me->texspace_location, texspace_location);
-    copy_v3_v3(me->texspace_size, texspace_size);
+    copy_v3_v3(mesh->texspace_location, texspace_location);
+    copy_v3_v3(mesh->texspace_size, texspace_size);
 
-    me->texspace_flag |= ME_TEXSPACE_FLAG_AUTO_EVALUATED;
+    mesh->texspace_flag |= ME_TEXSPACE_FLAG_AUTO_EVALUATED;
   }
 }
 
-void BKE_mesh_texspace_ensure(Mesh *me)
+void BKE_mesh_texspace_ensure(Mesh *mesh)
 {
-  if ((me->texspace_flag & ME_TEXSPACE_FLAG_AUTO) &&
-      !(me->texspace_flag & ME_TEXSPACE_FLAG_AUTO_EVALUATED))
+  if ((mesh->texspace_flag & ME_TEXSPACE_FLAG_AUTO) &&
+      !(mesh->texspace_flag & ME_TEXSPACE_FLAG_AUTO_EVALUATED))
   {
-    BKE_mesh_texspace_calc(me);
+    BKE_mesh_texspace_calc(mesh);
   }
 }
 
-void BKE_mesh_texspace_get(Mesh *me, float r_texspace_location[3], float r_texspace_size[3])
+void BKE_mesh_texspace_get(Mesh *mesh, float r_texspace_location[3], float r_texspace_size[3])
 {
-  BKE_mesh_texspace_ensure(me);
+  BKE_mesh_texspace_ensure(mesh);
 
   if (r_texspace_location) {
-    copy_v3_v3(r_texspace_location, me->texspace_location);
+    copy_v3_v3(r_texspace_location, mesh->texspace_location);
   }
   if (r_texspace_size) {
-    copy_v3_v3(r_texspace_size, me->texspace_size);
+    copy_v3_v3(r_texspace_size, mesh->texspace_size);
   }
 }
 
-void BKE_mesh_texspace_get_reference(Mesh *me,
+void BKE_mesh_texspace_get_reference(Mesh *mesh,
                                      char **r_texspace_flag,
                                      float **r_texspace_location,
                                      float **r_texspace_size)
 {
-  BKE_mesh_texspace_ensure(me);
+  BKE_mesh_texspace_ensure(mesh);
 
   if (r_texspace_flag != nullptr) {
-    *r_texspace_flag = &me->texspace_flag;
+    *r_texspace_flag = &mesh->texspace_flag;
   }
   if (r_texspace_location != nullptr) {
-    *r_texspace_location = me->texspace_location;
+    *r_texspace_location = mesh->texspace_location;
   }
   if (r_texspace_size != nullptr) {
-    *r_texspace_size = me->texspace_size;
+    *r_texspace_size = mesh->texspace_size;
   }
 }
 
 float (*BKE_mesh_orco_verts_get(Object *ob))[3]
 {
-  Mesh *me = static_cast<Mesh *>(ob->data);
-  Mesh *tme = me->texcomesh ? me->texcomesh : me;
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *tme = mesh->texcomesh ? mesh->texcomesh : mesh;
 
   /* Get appropriate vertex coordinates */
-  float(*vcos)[3] = (float(*)[3])MEM_calloc_arrayN(me->totvert, sizeof(*vcos), "orco mesh");
+  float(*vcos)[3] = (float(*)[3])MEM_calloc_arrayN(mesh->totvert, sizeof(*vcos), "orco mesh");
   const Span<float3> positions = tme->vert_positions();
 
-  int totvert = min_ii(tme->totvert, me->totvert);
+  int totvert = min_ii(tme->totvert, mesh->totvert);
 
   for (int a = 0; a < totvert; a++) {
     copy_v3_v3(vcos[a], positions[a]);
@@ -875,11 +876,12 @@ float (*BKE_mesh_orco_verts_get(Object *ob))[3]
   return vcos;
 }
 
-void BKE_mesh_orco_verts_transform(Mesh *me, float (*orco)[3], int totvert, const bool invert)
+void BKE_mesh_orco_verts_transform(Mesh *mesh, float (*orco)[3], int totvert, const bool invert)
 {
   float texspace_location[3], texspace_size[3];
 
-  BKE_mesh_texspace_get(me->texcomesh ? me->texcomesh : me, texspace_location, texspace_size);
+  BKE_mesh_texspace_get(
+      mesh->texcomesh ? mesh->texcomesh : mesh, texspace_location, texspace_size);
 
   if (invert) {
     for (int a = 0; a < totvert; a++) {
@@ -921,7 +923,7 @@ Mesh *BKE_mesh_from_object(Object *ob)
   return nullptr;
 }
 
-void BKE_mesh_assign_object(Main *bmain, Object *ob, Mesh *me)
+void BKE_mesh_assign_object(Main *bmain, Object *ob, Mesh *mesh)
 {
   Mesh *old = nullptr;
 
@@ -936,20 +938,20 @@ void BKE_mesh_assign_object(Main *bmain, Object *ob, Mesh *me)
     if (old) {
       id_us_min(&old->id);
     }
-    ob->data = me;
-    id_us_plus((ID *)me);
+    ob->data = mesh;
+    id_us_plus((ID *)mesh);
   }
 
-  BKE_object_materials_test(bmain, ob, (ID *)me);
+  BKE_object_materials_test(bmain, ob, (ID *)mesh);
 
   BKE_modifiers_test_object(ob);
 }
 
-void BKE_mesh_material_index_remove(Mesh *me, short index)
+void BKE_mesh_material_index_remove(Mesh *mesh, short index)
 {
   using namespace blender;
   using namespace blender::bke;
-  MutableAttributeAccessor attributes = me->attributes_for_write();
+  MutableAttributeAccessor attributes = mesh->attributes_for_write();
   AttributeWriter<int> material_indices = attributes.lookup_for_write<int>("material_index");
   if (!material_indices) {
     return;
@@ -967,14 +969,14 @@ void BKE_mesh_material_index_remove(Mesh *me, short index)
   indices_span.save();
   material_indices.finish();
 
-  BKE_mesh_tessface_clear(me);
+  BKE_mesh_tessface_clear(mesh);
 }
 
-bool BKE_mesh_material_index_used(Mesh *me, short index)
+bool BKE_mesh_material_index_used(Mesh *mesh, short index)
 {
   using namespace blender;
   using namespace blender::bke;
-  const AttributeAccessor attributes = me->attributes();
+  const AttributeAccessor attributes = mesh->attributes();
   const VArray<int> material_indices = *attributes.lookup_or_default<int>(
       "material_index", ATTR_DOMAIN_FACE, 0);
   if (material_indices.is_single()) {
@@ -984,17 +986,17 @@ bool BKE_mesh_material_index_used(Mesh *me, short index)
   return indices_span.contains(index);
 }
 
-void BKE_mesh_material_index_clear(Mesh *me)
+void BKE_mesh_material_index_clear(Mesh *mesh)
 {
   using namespace blender;
   using namespace blender::bke;
-  MutableAttributeAccessor attributes = me->attributes_for_write();
+  MutableAttributeAccessor attributes = mesh->attributes_for_write();
   attributes.remove("material_index");
 
-  BKE_mesh_tessface_clear(me);
+  BKE_mesh_tessface_clear(mesh);
 }
 
-void BKE_mesh_material_remap(Mesh *me, const uint *remap, uint remap_len)
+void BKE_mesh_material_remap(Mesh *mesh, const uint *remap, uint remap_len)
 {
   using namespace blender;
   using namespace blender::bke;
@@ -1007,8 +1009,8 @@ void BKE_mesh_material_remap(Mesh *me, const uint *remap, uint remap_len)
   } \
   ((void)0)
 
-  if (me->edit_mesh) {
-    BMEditMesh *em = me->edit_mesh;
+  if (mesh->edit_mesh) {
+    BMEditMesh *em = mesh->edit_mesh;
     BMIter iter;
     BMFace *efa;
 
@@ -1017,7 +1019,7 @@ void BKE_mesh_material_remap(Mesh *me, const uint *remap, uint remap_len)
     }
   }
   else {
-    MutableAttributeAccessor attributes = me->attributes_for_write();
+    MutableAttributeAccessor attributes = mesh->attributes_for_write();
     SpanAttributeWriter<int> material_indices = attributes.lookup_or_add_for_write_span<int>(
         "material_index", ATTR_DOMAIN_FACE);
     if (!material_indices) {
@@ -1033,11 +1035,11 @@ void BKE_mesh_material_remap(Mesh *me, const uint *remap, uint remap_len)
 #undef MAT_NR_REMAP
 }
 
-void BKE_mesh_smooth_flag_set(Mesh *me, const bool use_smooth)
+void BKE_mesh_smooth_flag_set(Mesh *mesh, const bool use_smooth)
 {
   using namespace blender;
   using namespace blender::bke;
-  MutableAttributeAccessor attributes = me->attributes_for_write();
+  MutableAttributeAccessor attributes = mesh->attributes_for_write();
   if (use_smooth) {
     attributes.remove("sharp_edge");
     attributes.remove("sharp_face");
@@ -1051,29 +1053,29 @@ void BKE_mesh_smooth_flag_set(Mesh *me, const bool use_smooth)
   }
 }
 
-void BKE_mesh_sharp_edges_set_from_angle(Mesh *me, const float angle)
+void BKE_mesh_sharp_edges_set_from_angle(Mesh *mesh, const float angle)
 {
   using namespace blender;
   using namespace blender::bke;
-  bke::MutableAttributeAccessor attributes = me->attributes_for_write();
+  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   if (angle >= M_PI) {
     attributes.remove("sharp_edge");
     attributes.remove("sharp_face");
     return;
   }
   if (angle == 0.0f) {
-    BKE_mesh_smooth_flag_set(me, false);
+    BKE_mesh_smooth_flag_set(mesh, false);
     return;
   }
   bke::SpanAttributeWriter<bool> sharp_edges = attributes.lookup_or_add_for_write_span<bool>(
       "sharp_edge", ATTR_DOMAIN_EDGE);
   const bool *sharp_faces = static_cast<const bool *>(
-      CustomData_get_layer_named(&me->face_data, CD_PROP_BOOL, "sharp_face"));
-  bke::mesh::edges_sharp_from_angle_set(me->faces(),
-                                        me->corner_verts(),
-                                        me->corner_edges(),
-                                        me->face_normals(),
-                                        me->corner_to_face_map(),
+      CustomData_get_layer_named(&mesh->face_data, CD_PROP_BOOL, "sharp_face"));
+  bke::mesh::edges_sharp_from_angle_set(mesh->faces(),
+                                        mesh->corner_verts(),
+                                        mesh->corner_edges(),
+                                        mesh->face_normals(),
+                                        mesh->corner_to_face_map(),
                                         sharp_faces,
                                         angle,
                                         sharp_edges.span);
@@ -1106,16 +1108,16 @@ void Mesh::bounds_set_eager(const blender::Bounds<float3> &bounds)
   this->runtime->bounds_cache.ensure([&](blender::Bounds<float3> &r_data) { r_data = bounds; });
 }
 
-void BKE_mesh_transform(Mesh *me, const float mat[4][4], bool do_keys)
+void BKE_mesh_transform(Mesh *mesh, const float mat[4][4], bool do_keys)
 {
-  MutableSpan<float3> positions = me->vert_positions_for_write();
+  MutableSpan<float3> positions = mesh->vert_positions_for_write();
 
   for (float3 &position : positions) {
     mul_m4_v3(mat, position);
   }
 
-  if (do_keys && me->key) {
-    LISTBASE_FOREACH (KeyBlock *, kb, &me->key->block) {
+  if (do_keys && mesh->key) {
+    LISTBASE_FOREACH (KeyBlock *, kb, &mesh->key->block) {
       float *fp = (float *)kb->data;
       for (int i = kb->totelem; i--; fp += 3) {
         mul_m4_v3(mat, fp);
@@ -1123,7 +1125,7 @@ void BKE_mesh_transform(Mesh *me, const float mat[4][4], bool do_keys)
     }
   }
 
-  BKE_mesh_tag_positions_changed(me);
+  BKE_mesh_tag_positions_changed(mesh);
 }
 
 static void translate_positions(MutableSpan<float3> positions, const float3 &translation)
@@ -1172,28 +1174,28 @@ void BKE_mesh_tessface_clear(Mesh *mesh)
 /* -------------------------------------------------------------------- */
 /* MSelect functions (currently used in weight paint mode) */
 
-void BKE_mesh_mselect_clear(Mesh *me)
+void BKE_mesh_mselect_clear(Mesh *mesh)
 {
-  MEM_SAFE_FREE(me->mselect);
-  me->totselect = 0;
+  MEM_SAFE_FREE(mesh->mselect);
+  mesh->totselect = 0;
 }
 
-void BKE_mesh_mselect_validate(Mesh *me)
+void BKE_mesh_mselect_validate(Mesh *mesh)
 {
   using namespace blender;
   using namespace blender::bke;
   MSelect *mselect_src, *mselect_dst;
   int i_src, i_dst;
 
-  if (me->totselect == 0) {
+  if (mesh->totselect == 0) {
     return;
   }
 
-  mselect_src = me->mselect;
+  mselect_src = mesh->mselect;
   mselect_dst = (MSelect *)MEM_malloc_arrayN(
-      (me->totselect), sizeof(MSelect), "Mesh selection history");
+      (mesh->totselect), sizeof(MSelect), "Mesh selection history");
 
-  const AttributeAccessor attributes = me->attributes();
+  const AttributeAccessor attributes = mesh->attributes();
   const VArray<bool> select_vert = *attributes.lookup_or_default<bool>(
       ".select_vert", ATTR_DOMAIN_POINT, false);
   const VArray<bool> select_edge = *attributes.lookup_or_default<bool>(
@@ -1201,7 +1203,7 @@ void BKE_mesh_mselect_validate(Mesh *me)
   const VArray<bool> select_poly = *attributes.lookup_or_default<bool>(
       ".select_poly", ATTR_DOMAIN_FACE, false);
 
-  for (i_src = 0, i_dst = 0; i_src < me->totselect; i_src++) {
+  for (i_src = 0, i_dst = 0; i_src < mesh->totselect; i_src++) {
     int index = mselect_src[i_src].index;
     switch (mselect_src[i_src].type) {
       case ME_VSEL: {
@@ -1238,20 +1240,20 @@ void BKE_mesh_mselect_validate(Mesh *me)
     MEM_freeN(mselect_dst);
     mselect_dst = nullptr;
   }
-  else if (i_dst != me->totselect) {
+  else if (i_dst != mesh->totselect) {
     mselect_dst = (MSelect *)MEM_reallocN(mselect_dst, sizeof(MSelect) * i_dst);
   }
 
-  me->totselect = i_dst;
-  me->mselect = mselect_dst;
+  mesh->totselect = i_dst;
+  mesh->mselect = mselect_dst;
 }
 
-int BKE_mesh_mselect_find(Mesh *me, int index, int type)
+int BKE_mesh_mselect_find(Mesh *mesh, int index, int type)
 {
   BLI_assert(ELEM(type, ME_VSEL, ME_ESEL, ME_FSEL));
 
-  for (int i = 0; i < me->totselect; i++) {
-    if ((me->mselect[i].index == index) && (me->mselect[i].type == type)) {
+  for (int i = 0; i < mesh->totselect; i++) {
+    if ((mesh->mselect[i].index == index) && (mesh->mselect[i].type == type)) {
       return i;
     }
   }
@@ -1259,36 +1261,37 @@ int BKE_mesh_mselect_find(Mesh *me, int index, int type)
   return -1;
 }
 
-int BKE_mesh_mselect_active_get(Mesh *me, int type)
+int BKE_mesh_mselect_active_get(Mesh *mesh, int type)
 {
   BLI_assert(ELEM(type, ME_VSEL, ME_ESEL, ME_FSEL));
 
-  if (me->totselect) {
-    if (me->mselect[me->totselect - 1].type == type) {
-      return me->mselect[me->totselect - 1].index;
+  if (mesh->totselect) {
+    if (mesh->mselect[mesh->totselect - 1].type == type) {
+      return mesh->mselect[mesh->totselect - 1].index;
     }
   }
   return -1;
 }
 
-void BKE_mesh_mselect_active_set(Mesh *me, int index, int type)
+void BKE_mesh_mselect_active_set(Mesh *mesh, int index, int type)
 {
-  const int msel_index = BKE_mesh_mselect_find(me, index, type);
+  const int msel_index = BKE_mesh_mselect_find(mesh, index, type);
 
   if (msel_index == -1) {
     /* add to the end */
-    me->mselect = (MSelect *)MEM_reallocN(me->mselect, sizeof(MSelect) * (me->totselect + 1));
-    me->mselect[me->totselect].index = index;
-    me->mselect[me->totselect].type = type;
-    me->totselect++;
+    mesh->mselect = (MSelect *)MEM_reallocN(mesh->mselect,
+                                            sizeof(MSelect) * (mesh->totselect + 1));
+    mesh->mselect[mesh->totselect].index = index;
+    mesh->mselect[mesh->totselect].type = type;
+    mesh->totselect++;
   }
-  else if (msel_index != me->totselect - 1) {
+  else if (msel_index != mesh->totselect - 1) {
     /* move to the end */
-    std::swap(me->mselect[msel_index], me->mselect[me->totselect - 1]);
+    std::swap(mesh->mselect[msel_index], mesh->mselect[mesh->totselect - 1]);
   }
 
-  BLI_assert((me->mselect[me->totselect - 1].index == index) &&
-             (me->mselect[me->totselect - 1].type == type));
+  BLI_assert((mesh->mselect[mesh->totselect - 1].index == index) &&
+             (mesh->mselect[mesh->totselect - 1].type == type));
 }
 
 void BKE_mesh_count_selected_items(const Mesh *mesh, int r_count[3])

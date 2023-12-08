@@ -128,8 +128,8 @@ void BKE_keyblock_convert_from_curve(const struct Curve *cu,
                                      const struct ListBase *nurb);
 void BKE_keyblock_convert_to_curve(struct KeyBlock *kb, struct Curve *cu, struct ListBase *nurb);
 
-void BKE_keyblock_update_from_mesh(const struct Mesh *me, struct KeyBlock *kb);
-void BKE_keyblock_convert_from_mesh(const struct Mesh *me,
+void BKE_keyblock_update_from_mesh(const struct Mesh *mesh, struct KeyBlock *kb);
+void BKE_keyblock_convert_from_mesh(const struct Mesh *mesh,
                                     const struct Key *key,
                                     struct KeyBlock *kb);
 void BKE_keyblock_convert_to_mesh(const struct KeyBlock *kb,

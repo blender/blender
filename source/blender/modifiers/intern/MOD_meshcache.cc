@@ -165,16 +165,16 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
   /* -------------------------------------------------------------------- */
   /* tricky shape key integration (slow!) */
   if (mcmd->deform_mode == MOD_MESHCACHE_DEFORM_INTEGRATE) {
-    Mesh *me = static_cast<Mesh *>(ob->data);
+    Mesh *mesh = static_cast<Mesh *>(ob->data);
 
     /* we could support any object type */
     if (UNLIKELY(ob->type != OB_MESH)) {
       BKE_modifier_set_error(ob, &mcmd->modifier, "'Integrate' only valid for Mesh objects");
     }
-    else if (UNLIKELY(me->totvert != verts_num)) {
+    else if (UNLIKELY(mesh->totvert != verts_num)) {
       BKE_modifier_set_error(ob, &mcmd->modifier, "'Integrate' original mesh vertex mismatch");
     }
-    else if (UNLIKELY(me->faces_num == 0)) {
+    else if (UNLIKELY(mesh->faces_num == 0)) {
       BKE_modifier_set_error(ob, &mcmd->modifier, "'Integrate' requires faces");
     }
     else {
@@ -182,15 +182,15 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
           MEM_malloc_arrayN(verts_num, sizeof(*vertexCos_New), __func__));
 
       BKE_mesh_calc_relative_deform(
-          me->face_offsets().data(),
-          me->faces_num,
-          me->corner_verts().data(),
-          me->totvert,
+          mesh->face_offsets().data(),
+          mesh->faces_num,
+          mesh->corner_verts().data(),
+          mesh->totvert,
           reinterpret_cast<const float(*)[3]>(
-              me->vert_positions().data()),  /* From the original Mesh. */
-          (const float(*)[3])vertexCos_Real, /* the input we've been given (shape keys!) */
-          (const float(*)[3])vertexCos,      /* The result of this modifier. */
-          vertexCos_New                      /* The result of this function. */
+              mesh->vert_positions().data()), /* From the original Mesh. */
+          (const float(*)[3])vertexCos_Real,  /* the input we've been given (shape keys!) */
+          (const float(*)[3])vertexCos,       /* The result of this modifier. */
+          vertexCos_New                       /* The result of this function. */
       );
 
       /* write the corrected locations back into the result */

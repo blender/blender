@@ -166,13 +166,13 @@ const IndexRange MeshesToIMeshInfo::input_face_for_orig_index(int orig_index,
 {
   int orig_mesh_index = input_mesh_for_imesh_face(orig_index);
   BLI_assert(0 <= orig_mesh_index && orig_mesh_index < meshes.size());
-  const Mesh *me = meshes[orig_mesh_index];
-  const OffsetIndices faces = me->faces();
+  const Mesh *mesh = meshes[orig_mesh_index];
+  const OffsetIndices faces = mesh->faces();
   int index_in_mesh = orig_index - mesh_face_offset[orig_mesh_index];
-  BLI_assert(0 <= index_in_mesh && index_in_mesh < me->faces_num);
+  BLI_assert(0 <= index_in_mesh && index_in_mesh < mesh->faces_num);
   const IndexRange face = faces[index_in_mesh];
   if (r_orig_mesh) {
-    *r_orig_mesh = me;
+    *r_orig_mesh = mesh;
   }
   if (r_orig_mesh_index) {
     *r_orig_mesh_index = orig_mesh_index;
@@ -193,11 +193,11 @@ void MeshesToIMeshInfo::input_mvert_for_orig_index(int orig_index,
 {
   int orig_mesh_index = input_mesh_for_imesh_vert(orig_index);
   BLI_assert(0 <= orig_mesh_index && orig_mesh_index < meshes.size());
-  const Mesh *me = meshes[orig_mesh_index];
+  const Mesh *mesh = meshes[orig_mesh_index];
   int index_in_mesh = orig_index - mesh_vert_offset[orig_mesh_index];
-  BLI_assert(0 <= index_in_mesh && index_in_mesh < me->totvert);
+  BLI_assert(0 <= index_in_mesh && index_in_mesh < mesh->totvert);
   if (r_orig_mesh) {
-    *r_orig_mesh = me;
+    *r_orig_mesh = mesh;
   }
   if (r_index_in_orig_mesh) {
     *r_index_in_orig_mesh = index_in_mesh;
@@ -211,11 +211,11 @@ void MeshesToIMeshInfo::input_medge_for_orig_index(int orig_index,
 {
   int orig_mesh_index = input_mesh_for_imesh_edge(orig_index);
   BLI_assert(0 <= orig_mesh_index && orig_mesh_index < meshes.size());
-  const Mesh *me = meshes[orig_mesh_index];
+  const Mesh *mesh = meshes[orig_mesh_index];
   int index_in_mesh = orig_index - mesh_edge_offset[orig_mesh_index];
-  BLI_assert(0 <= index_in_mesh && index_in_mesh < me->totedge);
+  BLI_assert(0 <= index_in_mesh && index_in_mesh < mesh->totedge);
   if (r_orig_mesh) {
-    *r_orig_mesh = me;
+    *r_orig_mesh = mesh;
   }
   if (r_index_in_orig_mesh) {
     *r_index_in_orig_mesh = index_in_mesh;
@@ -249,10 +249,10 @@ static IMesh meshes_to_imesh(Span<const Mesh *> meshes,
   int &totvert = r_info->tot_meshes_verts;
   int &totedge = r_info->tot_meshes_edges;
   int &faces_num = r_info->tot_meshes_polys;
-  for (const Mesh *me : meshes) {
-    totvert += me->totvert;
-    totedge += me->totedge;
-    faces_num += me->faces_num;
+  for (const Mesh *mesh : meshes) {
+    totvert += mesh->totvert;
+    totedge += mesh->totedge;
+    faces_num += mesh->faces_num;
   }
 
   /* Estimate the number of vertices and faces in the boolean output,
@@ -291,7 +291,7 @@ static IMesh meshes_to_imesh(Span<const Mesh *> meshes,
    * When making `Face`s, we also put in the original indices for edges that
    * make up the polygons using the same scheme. */
   for (int mi : meshes.index_range()) {
-    const Mesh *me = meshes[mi];
+    const Mesh *mesh = meshes[mi];
     r_info->mesh_vert_offset[mi] = v;
     r_info->mesh_edge_offset[mi] = e;
     r_info->mesh_face_offset[mi] = f;
@@ -307,11 +307,11 @@ static IMesh meshes_to_imesh(Span<const Mesh *> meshes,
      * that would have a negative transform if you do that. */
     bool need_face_flip = r_info->has_negative_transform[mi] != r_info->has_negative_transform[0];
 
-    Vector<Vert *> verts(me->totvert);
-    const Span<float3> vert_positions = me->vert_positions();
-    const OffsetIndices faces = me->faces();
-    const Span<int> corner_verts = me->corner_verts();
-    const Span<int> corner_edges = me->corner_edges();
+    Vector<Vert *> verts(mesh->totvert);
+    const Span<float3> vert_positions = mesh->vert_positions();
+    const OffsetIndices faces = mesh->faces();
+    const Span<int> corner_verts = mesh->corner_verts();
+    const Span<int> corner_edges = mesh->corner_edges();
 
     /* Allocate verts
      * Skip the matrix multiplication for each point when there is no transform for a mesh,
@@ -364,7 +364,7 @@ static IMesh meshes_to_imesh(Span<const Mesh *> meshes,
       r_info->mesh_to_imesh_face[f] = arena.add_face(face_vert, f, face_edge_orig);
       ++f;
     }
-    e += me->totedge;
+    e += mesh->totedge;
   }
   return IMesh(r_info->mesh_to_imesh_face);
 }
@@ -542,14 +542,14 @@ static int fill_orig_loops(const Face *f,
  * its normal. Also fill in r_axis_mat with the matrix that does that projection.
  * But before projecting, also transform the 3d coordinate by multiplying by trans_mat.
  * `cos_2d` should have room for `face.size()` entries. */
-static void get_poly2d_cos(const Mesh *me,
+static void get_poly2d_cos(const Mesh *mesh,
                            const IndexRange face,
                            float (*cos_2d)[2],
                            const float4x4 &trans_mat,
                            float r_axis_mat[3][3])
 {
-  const Span<float3> positions = me->vert_positions();
-  const Span<int> corner_verts = me->corner_verts();
+  const Span<float3> positions = mesh->vert_positions();
+  const Span<int> corner_verts = mesh->corner_verts();
   const Span<int> face_verts = corner_verts.slice(face);
 
   /* Project coordinates to 2d in cos_2d, using normal as projection axis. */
@@ -662,17 +662,23 @@ static void copy_or_interp_loop_attributes(Mesh *dest_mesh,
 static void merge_vertex_loop_face_customdata_layers(Mesh *target, MeshesToIMeshInfo &mim)
 {
   for (int mesh_index = 1; mesh_index < mim.meshes.size(); ++mesh_index) {
-    const Mesh *me = mim.meshes[mesh_index];
-    if (me->totvert) {
-      CustomData_merge_layout(
-          &me->vert_data, &target->vert_data, CD_MASK_MESH.vmask, CD_SET_DEFAULT, target->totvert);
+    const Mesh *mesh = mim.meshes[mesh_index];
+    if (mesh->totvert) {
+      CustomData_merge_layout(&mesh->vert_data,
+                              &target->vert_data,
+                              CD_MASK_MESH.vmask,
+                              CD_SET_DEFAULT,
+                              target->totvert);
     }
-    if (me->totloop) {
-      CustomData_merge_layout(
-          &me->loop_data, &target->loop_data, CD_MASK_MESH.lmask, CD_SET_DEFAULT, target->totloop);
+    if (mesh->totloop) {
+      CustomData_merge_layout(&mesh->loop_data,
+                              &target->loop_data,
+                              CD_MASK_MESH.lmask,
+                              CD_SET_DEFAULT,
+                              target->totloop);
     }
-    if (me->faces_num) {
-      CustomData_merge_layout(&me->face_data,
+    if (mesh->faces_num) {
+      CustomData_merge_layout(&mesh->face_data,
                               &target->face_data,
                               CD_MASK_MESH.pmask,
                               CD_SET_DEFAULT,
@@ -684,10 +690,13 @@ static void merge_vertex_loop_face_customdata_layers(Mesh *target, MeshesToIMesh
 static void merge_edge_customdata_layers(Mesh *target, MeshesToIMeshInfo &mim)
 {
   for (int mesh_index = 0; mesh_index < mim.meshes.size(); ++mesh_index) {
-    const Mesh *me = mim.meshes[mesh_index];
-    if (me->totedge) {
-      CustomData_merge_layout(
-          &me->edge_data, &target->edge_data, CD_MASK_MESH.emask, CD_SET_DEFAULT, target->totedge);
+    const Mesh *mesh = mim.meshes[mesh_index];
+    if (mesh->totedge) {
+      CustomData_merge_layout(&mesh->edge_data,
+                              &target->edge_data,
+                              CD_MASK_MESH.emask,
+                              CD_SET_DEFAULT,
+                              target->totedge);
     }
   }
 }

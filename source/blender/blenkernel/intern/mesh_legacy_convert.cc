@@ -214,59 +214,60 @@ static void mesh_calc_edges_mdata(const MVert * /*allvert*/,
   *r_totedge = totedge_final;
 }
 
-void BKE_mesh_calc_edges_legacy(Mesh *me)
+void BKE_mesh_calc_edges_legacy(Mesh *mesh)
 {
   using namespace blender;
   MEdge *edges;
   int totedge = 0;
   const Span<MVert> verts(
-      static_cast<const MVert *>(CustomData_get_layer(&me->vert_data, CD_MVERT)), me->totvert);
+      static_cast<const MVert *>(CustomData_get_layer(&mesh->vert_data, CD_MVERT)), mesh->totvert);
 
   mesh_calc_edges_mdata(
       verts.data(),
-      me->mface,
-      static_cast<MLoop *>(CustomData_get_layer_for_write(&me->loop_data, CD_MLOOP, me->totloop)),
-      static_cast<const MPoly *>(CustomData_get_layer(&me->face_data, CD_MPOLY)),
+      mesh->mface,
+      static_cast<MLoop *>(
+          CustomData_get_layer_for_write(&mesh->loop_data, CD_MLOOP, mesh->totloop)),
+      static_cast<const MPoly *>(CustomData_get_layer(&mesh->face_data, CD_MPOLY)),
       verts.size(),
-      me->totface_legacy,
-      me->totloop,
-      me->faces_num,
+      mesh->totface_legacy,
+      mesh->totloop,
+      mesh->faces_num,
       &edges,
       &totedge);
 
   if (totedge == 0) {
     /* flag that mesh has edges */
-    me->totedge = 0;
+    mesh->totedge = 0;
     return;
   }
 
   edges = (MEdge *)CustomData_add_layer_with_data(
-      &me->edge_data, CD_MEDGE, edges, totedge, nullptr);
-  me->totedge = totedge;
+      &mesh->edge_data, CD_MEDGE, edges, totedge, nullptr);
+  mesh->totedge = totedge;
 
-  BKE_mesh_tag_topology_changed(me);
-  BKE_mesh_strip_loose_faces(me);
+  BKE_mesh_tag_topology_changed(mesh);
+  BKE_mesh_strip_loose_faces(mesh);
 }
 
-void BKE_mesh_strip_loose_faces(Mesh *me)
+void BKE_mesh_strip_loose_faces(Mesh *mesh)
 {
   /* NOTE: We need to keep this for edge creation (for now?), and some old `readfile.cc` code. */
   MFace *f;
   int a, b;
-  MFace *mfaces = me->mface;
+  MFace *mfaces = mesh->mface;
 
-  for (a = b = 0, f = mfaces; a < me->totface_legacy; a++, f++) {
+  for (a = b = 0, f = mfaces; a < mesh->totface_legacy; a++, f++) {
     if (f->v3) {
       if (a != b) {
         memcpy(&mfaces[b], f, sizeof(mfaces[b]));
-        CustomData_copy_data(&me->fdata_legacy, &me->fdata_legacy, a, b, 1);
+        CustomData_copy_data(&mesh->fdata_legacy, &mesh->fdata_legacy, a, b, 1);
       }
       b++;
     }
   }
   if (a != b) {
-    CustomData_free_elem(&me->fdata_legacy, b, a - b);
-    me->totface_legacy = b;
+    CustomData_free_elem(&mesh->fdata_legacy, b, a - b);
+    mesh->totface_legacy = b;
   }
 }
 
@@ -683,25 +684,25 @@ static void add_mface_layers(Mesh &mesh, CustomData *fdata_legacy, CustomData *l
   update_active_fdata_layers(mesh, fdata_legacy, ldata);
 }
 
-static void mesh_ensure_tessellation_customdata(Mesh *me)
+static void mesh_ensure_tessellation_customdata(Mesh *mesh)
 {
-  if (UNLIKELY((me->totface_legacy != 0) && (me->faces_num == 0))) {
+  if (UNLIKELY((mesh->totface_legacy != 0) && (mesh->faces_num == 0))) {
     /* Pass, otherwise this function  clears 'mface' before
      * versioning 'mface -> mpoly' code kicks in #30583.
      *
      * Callers could also check but safer to do here - campbell */
   }
   else {
-    const int tottex_original = CustomData_number_of_layers(&me->loop_data, CD_PROP_FLOAT2);
-    const int totcol_original = CustomData_number_of_layers(&me->loop_data, CD_PROP_BYTE_COLOR);
+    const int tottex_original = CustomData_number_of_layers(&mesh->loop_data, CD_PROP_FLOAT2);
+    const int totcol_original = CustomData_number_of_layers(&mesh->loop_data, CD_PROP_BYTE_COLOR);
 
-    const int tottex_tessface = CustomData_number_of_layers(&me->fdata_legacy, CD_MTFACE);
-    const int totcol_tessface = CustomData_number_of_layers(&me->fdata_legacy, CD_MCOL);
+    const int tottex_tessface = CustomData_number_of_layers(&mesh->fdata_legacy, CD_MTFACE);
+    const int totcol_tessface = CustomData_number_of_layers(&mesh->fdata_legacy, CD_MCOL);
 
     if (tottex_tessface != tottex_original || totcol_tessface != totcol_original) {
-      BKE_mesh_tessface_clear(me);
+      BKE_mesh_tessface_clear(mesh);
 
-      add_mface_layers(*me, &me->fdata_legacy, &me->loop_data, me->totface_legacy);
+      add_mface_layers(*mesh, &mesh->fdata_legacy, &mesh->loop_data, mesh->totface_legacy);
 
       /* TODO: add some `--debug-mesh` option. */
       if (G.debug & G_DEBUG) {

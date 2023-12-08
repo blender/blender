@@ -3518,7 +3518,7 @@ void PARTICLE_OT_delete(wmOperatorType *ot)
 
 static void PE_mirror_x(Depsgraph *depsgraph, Scene *scene, Object *ob, int tagged)
 {
-  Mesh *me = (Mesh *)(ob->data);
+  Mesh *mesh = (Mesh *)(ob->data);
   ParticleSystemModifierData *psmd_eval;
   PTCacheEdit *edit = PE_get_current(depsgraph, scene, ob);
   ParticleSystem *psys = edit->psys;
@@ -3543,7 +3543,7 @@ static void PE_mirror_x(Depsgraph *depsgraph, Scene *scene, Object *ob, int tagg
                                      !psmd_eval->mesh_final->runtime->deformed_only);
 
   /* NOTE: this is not nice to use tessfaces but hard to avoid since pa->num uses tessfaces */
-  BKE_mesh_tessface_ensure(me);
+  BKE_mesh_tessface_ensure(mesh);
 
   /* NOTE: In case psys uses Mesh tessface indices, we mirror final Mesh itself, not orig mesh.
    * Avoids an (impossible) mesh -> orig -> mesh tessface indices conversion. */
@@ -3579,7 +3579,8 @@ static void PE_mirror_x(Depsgraph *depsgraph, Scene *scene, Object *ob, int tagg
     const MFace *mtessface = use_dm_final_indices ?
                                  (const MFace *)CustomData_get_layer(
                                      &psmd_eval->mesh_final->fdata_legacy, CD_MFACE) :
-                                 (const MFace *)CustomData_get_layer(&me->fdata_legacy, CD_MFACE);
+                                 (const MFace *)CustomData_get_layer(&mesh->fdata_legacy,
+                                                                     CD_MFACE);
 
     /* allocate new arrays and copy existing */
     new_pars = static_cast<ParticleData *>(

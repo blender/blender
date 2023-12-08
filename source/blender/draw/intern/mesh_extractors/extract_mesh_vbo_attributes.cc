@@ -216,7 +216,7 @@ static void extract_attr(const MeshRenderData &mr,
     });
   }
   else {
-    const bke::AttributeAccessor attributes = mr.me->attributes();
+    const bke::AttributeAccessor attributes = mr.mesh->attributes();
     const StringRef name = request.attribute_name;
     const eCustomDataType data_type = request.cd_type;
     const GVArraySpan attribute = *attributes.lookup_or_default(name, request.domain, data_type);
@@ -354,7 +354,7 @@ static void extract_mesh_attr_viewer_init(const MeshRenderData &mr,
                                     mr.loop_len};
 
   const StringRefNull attr_name = ".viewer";
-  const bke::AttributeAccessor attributes = mr.me->attributes();
+  const bke::AttributeAccessor attributes = mr.mesh->attributes();
   const bke::AttributeReader attribute = attributes.lookup_or_default<ColorGeometry4f>(
       attr_name, ATTR_DOMAIN_CORNER, {1.0f, 0.0f, 1.0f, 1.0f});
   attribute.varray.materialize(attr);

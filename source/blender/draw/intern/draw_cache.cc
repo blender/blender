@@ -925,13 +925,13 @@ GPUBatch *DRW_cache_object_surface_get(Object *ob)
 
 GPUVertBuf *DRW_cache_object_pos_vertbuf_get(Object *ob)
 {
-  Mesh *me = BKE_object_get_evaluated_mesh_no_subsurf(ob);
-  short type = (me != nullptr) ? short(OB_MESH) : ob->type;
+  Mesh *mesh = BKE_object_get_evaluated_mesh_no_subsurf(ob);
+  short type = (mesh != nullptr) ? short(OB_MESH) : ob->type;
 
   switch (type) {
     case OB_MESH:
       return DRW_mesh_batch_cache_pos_vertbuf_get(
-          static_cast<Mesh *>((me != nullptr) ? me : ob->data));
+          static_cast<Mesh *>((mesh != nullptr) ? mesh : ob->data));
     default:
       return nullptr;
   }
@@ -941,8 +941,8 @@ int DRW_cache_object_material_count_get(const Object *ob)
 {
   short type = ob->type;
 
-  Mesh *me = BKE_object_get_evaluated_mesh_no_subsurf(ob);
-  if (me != nullptr && type != OB_POINTCLOUD) {
+  Mesh *mesh = BKE_object_get_evaluated_mesh_no_subsurf(ob);
+  if (mesh != nullptr && type != OB_POINTCLOUD) {
     /* Some object types can have one data type in ob->data, but will be rendered as mesh.
      * For point clouds this never happens. Ideally this check would happen at another level
      * and we would just have to care about ob->data here. */
@@ -952,7 +952,7 @@ int DRW_cache_object_material_count_get(const Object *ob)
   switch (type) {
     case OB_MESH:
       return DRW_mesh_material_count_get(
-          ob, static_cast<const Mesh *>((me != nullptr) ? me : ob->data));
+          ob, static_cast<const Mesh *>((mesh != nullptr) ? mesh : ob->data));
     case OB_CURVES_LEGACY:
     case OB_SURF:
     case OB_FONT:

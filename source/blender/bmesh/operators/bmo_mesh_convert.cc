@@ -22,16 +22,16 @@
 void bmo_mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 {
   Object *ob = static_cast<Object *>(BMO_slot_ptr_get(op->slots_in, "object"));
-  Mesh *me = static_cast<Mesh *>(BMO_slot_ptr_get(op->slots_in, "mesh"));
+  Mesh *mesh = static_cast<Mesh *>(BMO_slot_ptr_get(op->slots_in, "mesh"));
   bool set_key = BMO_slot_bool_get(op->slots_in, "use_shapekey");
 
   BMeshFromMeshParams params{};
   params.use_shapekey = set_key;
   params.active_shapekey = ob->shapenr;
-  BM_mesh_bm_from_me(bm, me, &params);
+  BM_mesh_bm_from_me(bm, mesh, &params);
 
-  if (me->key && ob->shapenr > me->key->totkey) {
-    ob->shapenr = me->key->totkey - 1;
+  if (mesh->key && ob->shapenr > mesh->key->totkey) {
+    ob->shapenr = mesh->key->totkey - 1;
   }
 }
 
@@ -39,18 +39,18 @@ void bmo_object_load_bmesh_exec(BMesh *bm, BMOperator *op)
 {
   Object *ob = static_cast<Object *>(BMO_slot_ptr_get(op->slots_in, "object"));
   // Scene *scene = BMO_slot_ptr_get(op, "scene");
-  Mesh *me = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
 
-  BMO_op_callf(bm, op->flag, "bmesh_to_mesh mesh=%p object=%p", me, ob);
+  BMO_op_callf(bm, op->flag, "bmesh_to_mesh mesh=%p object=%p", mesh, ob);
 }
 
 void bmo_bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 {
-  Mesh *me = static_cast<Mesh *>(BMO_slot_ptr_get(op->slots_in, "mesh"));
+  Mesh *mesh = static_cast<Mesh *>(BMO_slot_ptr_get(op->slots_in, "mesh"));
   // Object *ob = BMO_slot_ptr_get(op, "object");
 
   BMeshToMeshParams params{};
   params.calc_object_remap = true;
 
-  BM_mesh_bm_to_me(G.main, bm, me, &params);
+  BM_mesh_bm_to_me(G.main, bm, mesh, &params);
 }

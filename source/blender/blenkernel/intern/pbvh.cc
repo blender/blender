@@ -816,7 +816,7 @@ void BKE_pbvh_build_mesh(PBVH *pbvh, Mesh *mesh)
 #endif
 }
 
-void BKE_pbvh_build_grids(PBVH *pbvh, const CCGKey *key, Mesh *me, SubdivCCG *subdiv_ccg)
+void BKE_pbvh_build_grids(PBVH *pbvh, const CCGKey *key, Mesh *mesh, SubdivCCG *subdiv_ccg)
 {
   using namespace blender;
   const int gridsize = key->grid_size;
@@ -825,11 +825,11 @@ void BKE_pbvh_build_grids(PBVH *pbvh, const CCGKey *key, Mesh *me, SubdivCCG *su
   pbvh->header.type = PBVH_GRIDS;
   pbvh->gridkey = *key;
   pbvh->subdiv_ccg = subdiv_ccg;
-  pbvh->faces_num = me->faces_num;
+  pbvh->faces_num = mesh->faces_num;
 
   /* Find maximum number of grids per face. */
   int max_grids = 1;
-  const blender::OffsetIndices faces = me->faces();
+  const blender::OffsetIndices faces = mesh->faces();
   for (const int i : faces.index_range()) {
     max_grids = max_ii(max_grids, faces[i].size());
   }
@@ -841,7 +841,7 @@ void BKE_pbvh_build_grids(PBVH *pbvh, const CCGKey *key, Mesh *me, SubdivCCG *su
   pbvh->leaf_limit = max_ii(LEAF_LIMIT / (gridsize * gridsize), max_grids);
 
   /* We also need the base mesh for PBVH draw. */
-  pbvh->mesh = me;
+  pbvh->mesh = mesh;
 
   /* For each grid, store the AABB and the AABB centroid */
   Array<Bounds<float3>> prim_bounds(grids.size());
@@ -867,9 +867,9 @@ void BKE_pbvh_build_grids(PBVH *pbvh, const CCGKey *key, Mesh *me, SubdivCCG *su
 
   if (!grids.is_empty()) {
     const int *material_indices = static_cast<const int *>(
-        CustomData_get_layer_named(&me->face_data, CD_PROP_INT32, "material_index"));
+        CustomData_get_layer_named(&mesh->face_data, CD_PROP_INT32, "material_index"));
     const bool *sharp_faces = (const bool *)CustomData_get_layer_named(
-        &me->face_data, CD_PROP_BOOL, "sharp_face");
+        &mesh->face_data, CD_PROP_BOOL, "sharp_face");
     pbvh_build(
         pbvh, {}, {}, {}, nullptr, material_indices, sharp_faces, &cb, prim_bounds, grids.size());
 
@@ -1286,11 +1286,11 @@ static void pbvh_update_BB_redraw(PBVH *pbvh, Span<PBVHNode *> nodes, int flag)
   });
 }
 
-bool BKE_pbvh_get_color_layer(Mesh *me, CustomDataLayer **r_layer, eAttrDomain *r_domain)
+bool BKE_pbvh_get_color_layer(Mesh *mesh, CustomDataLayer **r_layer, eAttrDomain *r_domain)
 {
   *r_layer = BKE_id_attribute_search_for_write(
-      &me->id, me->active_color_attribute, CD_MASK_COLOR_ALL, ATTR_DOMAIN_MASK_COLOR);
-  *r_domain = *r_layer ? BKE_id_attribute_domain(&me->id, *r_layer) : ATTR_DOMAIN_POINT;
+      &mesh->id, mesh->active_color_attribute, CD_MASK_COLOR_ALL, ATTR_DOMAIN_MASK_COLOR);
+  *r_domain = *r_layer ? BKE_id_attribute_domain(&mesh->id, *r_layer) : ATTR_DOMAIN_POINT;
   return *r_layer != nullptr;
 }
 
@@ -2689,7 +2689,7 @@ static blender::draw::pbvh::PBVH_GPU_Args pbvh_draw_args_init(const Mesh &mesh,
       args.vert_data = &mesh.vert_data;
       args.loop_data = &mesh.loop_data;
       args.face_data = &mesh.face_data;
-      args.me = pbvh.mesh;
+      args.mesh = pbvh.mesh;
       args.vert_positions = pbvh.vert_positions;
       args.corner_verts = mesh.corner_verts();
       args.corner_edges = mesh.corner_edges();
@@ -2709,7 +2709,7 @@ static blender::draw::pbvh::PBVH_GPU_Args pbvh_draw_args_init(const Mesh &mesh,
       args.loop_data = &pbvh.mesh->loop_data;
       args.face_data = &pbvh.mesh->face_data;
       args.ccg_key = pbvh.gridkey;
-      args.me = pbvh.mesh;
+      args.mesh = pbvh.mesh;
       args.grid_indices = node.prim_indices;
       args.subdiv_ccg = pbvh.subdiv_ccg;
       args.grids = pbvh.subdiv_ccg->grids;

@@ -46,7 +46,7 @@ static void extract_fdots_iter_face_mesh(const MeshRenderData &mr,
 
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_userdata);
   if (mr.use_subsurf_fdots) {
-    const BitSpan facedot_tags = mr.me->runtime->subsurf_face_dot_tags;
+    const BitSpan facedot_tags = mr.mesh->runtime->subsurf_face_dot_tags;
 
     for (const int ml_index : mr.faces[face_index]) {
       const int vert = mr.corner_verts[ml_index];

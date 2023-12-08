@@ -92,11 +92,11 @@ float face_area_calc(const Span<float3> vert_positions, const Span<int> face_ver
 
 }  // namespace blender::bke::mesh
 
-float BKE_mesh_calc_area(const Mesh *me)
+float BKE_mesh_calc_area(const Mesh *mesh)
 {
-  const Span<float3> positions = me->vert_positions();
-  const blender::OffsetIndices faces = me->faces();
-  const Span<int> corner_verts = me->corner_verts();
+  const Span<float3> positions = mesh->vert_positions();
+  const blender::OffsetIndices faces = mesh->faces();
+  const Span<int> corner_verts = mesh->corner_verts();
 
   float total_area = 0.0f;
   for (const int i : faces.index_range()) {
@@ -244,26 +244,26 @@ void face_angles_calc(const Span<float3> vert_positions,
 /** \name Mesh Center Calculation
  * \{ */
 
-bool BKE_mesh_center_median(const Mesh *me, float r_cent[3])
+bool BKE_mesh_center_median(const Mesh *mesh, float r_cent[3])
 {
-  const Span<float3> positions = me->vert_positions();
+  const Span<float3> positions = mesh->vert_positions();
   zero_v3(r_cent);
   for (const int i : positions.index_range()) {
     add_v3_v3(r_cent, positions[i]);
   }
   /* otherwise we get NAN for 0 verts */
-  if (me->totvert) {
-    mul_v3_fl(r_cent, 1.0f / float(me->totvert));
+  if (mesh->totvert) {
+    mul_v3_fl(r_cent, 1.0f / float(mesh->totvert));
   }
-  return (me->totvert != 0);
+  return (mesh->totvert != 0);
 }
 
-bool BKE_mesh_center_median_from_faces(const Mesh *me, float r_cent[3])
+bool BKE_mesh_center_median_from_faces(const Mesh *mesh, float r_cent[3])
 {
   int tot = 0;
-  const Span<float3> positions = me->vert_positions();
-  const blender::OffsetIndices faces = me->faces();
-  const Span<int> corner_verts = me->corner_verts();
+  const Span<float3> positions = mesh->vert_positions();
+  const blender::OffsetIndices faces = mesh->faces();
+  const Span<int> corner_verts = mesh->corner_verts();
   zero_v3(r_cent);
   for (const int i : faces.index_range()) {
     for (const int vert : corner_verts.slice(faces[i])) {
@@ -272,20 +272,20 @@ bool BKE_mesh_center_median_from_faces(const Mesh *me, float r_cent[3])
     tot += faces[i].size();
   }
   /* otherwise we get NAN for 0 verts */
-  if (me->faces_num) {
+  if (mesh->faces_num) {
     mul_v3_fl(r_cent, 1.0f / float(tot));
   }
-  return (me->faces_num != 0);
+  return (mesh->faces_num != 0);
 }
 
-bool BKE_mesh_center_of_surface(const Mesh *me, float r_cent[3])
+bool BKE_mesh_center_of_surface(const Mesh *mesh, float r_cent[3])
 {
   float face_area;
   float total_area = 0.0f;
   float face_cent[3];
-  const Span<float3> positions = me->vert_positions();
-  const blender::OffsetIndices faces = me->faces();
-  const Span<int> corner_verts = me->corner_verts();
+  const Span<float3> positions = mesh->vert_positions();
+  const blender::OffsetIndices faces = mesh->faces();
+  const Span<int> corner_verts = mesh->corner_verts();
 
   zero_v3(r_cent);
 
@@ -298,30 +298,30 @@ bool BKE_mesh_center_of_surface(const Mesh *me, float r_cent[3])
     total_area += face_area;
   }
   /* otherwise we get NAN for 0 faces */
-  if (me->faces_num) {
+  if (mesh->faces_num) {
     mul_v3_fl(r_cent, 1.0f / total_area);
   }
 
   /* zero area faces cause this, fallback to median */
   if (UNLIKELY(!is_finite_v3(r_cent))) {
-    return BKE_mesh_center_median(me, r_cent);
+    return BKE_mesh_center_median(mesh, r_cent);
   }
 
-  return (me->faces_num != 0);
+  return (mesh->faces_num != 0);
 }
 
-bool BKE_mesh_center_of_volume(const Mesh *me, float r_cent[3])
+bool BKE_mesh_center_of_volume(const Mesh *mesh, float r_cent[3])
 {
   float face_volume;
   float total_volume = 0.0f;
   float face_cent[3];
-  const Span<float3> positions = me->vert_positions();
-  const blender::OffsetIndices faces = me->faces();
-  const Span<int> corner_verts = me->corner_verts();
+  const Span<float3> positions = mesh->vert_positions();
+  const blender::OffsetIndices faces = mesh->faces();
+  const Span<int> corner_verts = mesh->corner_verts();
 
   /* Use an initial center to avoid numeric instability of geometry far away from the center. */
   float init_cent[3];
-  const bool init_cent_result = BKE_mesh_center_median_from_faces(me, init_cent);
+  const bool init_cent_result = BKE_mesh_center_median_from_faces(mesh, init_cent);
 
   zero_v3(r_cent);
 
@@ -348,7 +348,7 @@ bool BKE_mesh_center_of_volume(const Mesh *me, float r_cent[3])
     return init_cent_result;
   }
   add_v3_v3(r_cent, init_cent);
-  return (me->faces_num != 0);
+  return (mesh->faces_num != 0);
 }
 
 /** \} */

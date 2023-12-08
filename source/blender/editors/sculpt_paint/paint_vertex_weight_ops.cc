@@ -111,15 +111,15 @@ static int weight_from_bones_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   Object *ob = CTX_data_active_object(C);
   Object *armob = BKE_modifiers_is_deformed_by_armature(ob);
-  Mesh *me = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
   int type = RNA_enum_get(op->ptr, "type");
 
   ED_object_vgroup_calc_from_armature(
-      op->reports, depsgraph, scene, ob, armob, type, (me->symmetry & ME_SYMMETRY_X));
+      op->reports, depsgraph, scene, ob, armob, type, (mesh->symmetry & ME_SYMMETRY_X));
 
-  DEG_id_tag_update(&me->id, 0);
+  DEG_id_tag_update(&mesh->id, 0);
   DEG_relations_tag_update(CTX_data_main(C));
-  WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
+  WM_event_add_notifier(C, NC_GEOM | ND_DATA, mesh);
 
   return OPERATOR_FINISHED;
 }
@@ -170,15 +170,15 @@ void PAINT_OT_weight_from_bones(wmOperatorType *ot)
 static int weight_sample_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  Mesh *me;
+  Mesh *mesh;
   bool changed = false;
 
   ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
-  me = BKE_mesh_from_object(vc.obact);
-  const MDeformVert *dvert = BKE_mesh_deform_verts(me);
+  mesh = BKE_mesh_from_object(vc.obact);
+  const MDeformVert *dvert = BKE_mesh_deform_verts(mesh);
 
-  if (me && dvert && vc.v3d && vc.rv3d && (me->vertex_group_active_index != 0)) {
-    const bool use_vert_sel = (me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
+  if (mesh && dvert && vc.v3d && vc.rv3d && (mesh->vertex_group_active_index != 0)) {
+    const bool use_vert_sel = (mesh->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
     int v_idx_best = -1;
     uint index;
 
@@ -207,9 +207,9 @@ static int weight_sample_invoke(bContext *C, wmOperator *op, const wmEvent *even
     if (v_idx_best != -1) { /* should always be valid */
       ToolSettings *ts = vc.scene->toolsettings;
       Brush *brush = BKE_paint_brush(&ts->wpaint->paint);
-      const int vgroup_active = me->vertex_group_active_index - 1;
+      const int vgroup_active = mesh->vertex_group_active_index - 1;
       float vgroup_weight = BKE_defvert_find_weight(&dvert[v_idx_best], vgroup_active);
-      const int defbase_tot = BLI_listbase_count(&me->vertex_group_names);
+      const int defbase_tot = BLI_listbase_count(&mesh->vertex_group_names);
       bool use_lock_relative = ts->wpaint_lock_relative;
       bool *defbase_locked = nullptr, *defbase_unlocked = nullptr;
 
@@ -229,7 +229,7 @@ static int weight_sample_invoke(bContext *C, wmOperator *op, const wmEvent *even
             vc.obact, defbase_tot, &defbase_tot_sel);
 
         if (defbase_tot_sel > 1) {
-          if (ME_USING_MIRROR_X_VERTEX_GROUPS(me)) {
+          if (ME_USING_MIRROR_X_VERTEX_GROUPS(mesh)) {
             BKE_object_defgroup_mirror_selection(
                 vc.obact, defbase_tot, defbase_sel, defbase_sel, &defbase_tot_sel);
           }
@@ -319,15 +319,15 @@ static int weight_sample_group_invoke(bContext *C, wmOperator *op, const wmEvent
   ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
   BLI_assert(vc.v3d && vc.rv3d); /* Ensured by poll. */
 
-  Mesh *me = BKE_mesh_from_object(vc.obact);
-  const MDeformVert *dverts = BKE_mesh_deform_verts(me);
-  if (BLI_listbase_is_empty(&me->vertex_group_names) || (dverts == nullptr)) {
+  Mesh *mesh = BKE_mesh_from_object(vc.obact);
+  const MDeformVert *dverts = BKE_mesh_deform_verts(mesh);
+  if (BLI_listbase_is_empty(&mesh->vertex_group_names) || (dverts == nullptr)) {
     BKE_report(op->reports, RPT_WARNING, "No vertex group data");
     return OPERATOR_CANCELLED;
   }
 
-  const bool use_vert_sel = (me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
-  blender::Array<bool> groups(BLI_listbase_count(&me->vertex_group_names), false);
+  const bool use_vert_sel = (mesh->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
+  blender::Array<bool> groups(BLI_listbase_count(&mesh->vertex_group_names), false);
 
   bool found = false;
 
@@ -345,8 +345,8 @@ static int weight_sample_group_invoke(bContext *C, wmOperator *op, const wmEvent
   }
   else {
     /* Extract from the face. */
-    const blender::OffsetIndices faces = me->faces();
-    const blender::Span<int> corner_verts = me->corner_verts();
+    const blender::OffsetIndices faces = mesh->faces();
+    const blender::Span<int> corner_verts = mesh->corner_verts();
     uint index;
     if (ED_mesh_pick_face(C, vc.obact, event->mval, ED_MESH_PICK_DEFAULT_FACE_DIST, &index)) {
       for (const int vert : corner_verts.slice(faces[index])) {
@@ -367,7 +367,7 @@ static int weight_sample_group_invoke(bContext *C, wmOperator *op, const wmEvent
   wmOperatorCallContext opcontext = WM_OP_EXEC_DEFAULT;
   uiLayoutSetOperatorContext(layout, opcontext);
   int i = 0;
-  LISTBASE_FOREACH_INDEX (bDeformGroup *, dg, &me->vertex_group_names, i) {
+  LISTBASE_FOREACH_INDEX (bDeformGroup *, dg, &mesh->vertex_group_names, i) {
     if (groups[i] == false) {
       continue;
     }
@@ -405,36 +405,36 @@ void PAINT_OT_weight_sample_group(wmOperatorType *ot)
 /* fills in the selected faces with the current weight and vertex group */
 static bool weight_paint_set(Object *ob, float paintweight)
 {
-  Mesh *me = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
   MDeformWeight *dw, *dw_prev;
   int vgroup_active, vgroup_mirror = -1;
-  const bool topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
+  const bool topology = (mesh->editflag & ME_EDIT_MIRROR_TOPO) != 0;
 
   /* mutually exclusive, could be made into a */
-  const short paint_selmode = ME_EDIT_PAINT_SEL_MODE(me);
+  const short paint_selmode = ME_EDIT_PAINT_SEL_MODE(mesh);
 
-  const blender::OffsetIndices faces = me->faces();
-  const blender::Span<int> corner_verts = me->corner_verts();
-  MDeformVert *dvert = BKE_mesh_deform_verts_for_write(me);
+  const blender::OffsetIndices faces = mesh->faces();
+  const blender::Span<int> corner_verts = mesh->corner_verts();
+  MDeformVert *dvert = BKE_mesh_deform_verts_for_write(mesh);
 
-  if (me->faces_num == 0 || dvert == nullptr) {
+  if (mesh->faces_num == 0 || dvert == nullptr) {
     return false;
   }
 
   vgroup_active = BKE_object_defgroup_active_index_get(ob) - 1;
 
   /* if mirror painting, find the other group */
-  if (ME_USING_MIRROR_X_VERTEX_GROUPS(me)) {
+  if (ME_USING_MIRROR_X_VERTEX_GROUPS(mesh)) {
     vgroup_mirror = ED_wpaint_mirror_vgroup_ensure(ob, vgroup_active);
   }
 
   WPaintPrev wpp;
-  wpaint_prev_create(&wpp, dvert, me->totvert);
+  wpaint_prev_create(&wpp, dvert, mesh->totvert);
 
   const bool *select_vert = (const bool *)CustomData_get_layer_named(
-      &me->vert_data, CD_PROP_BOOL, ".select_vert");
+      &mesh->vert_data, CD_PROP_BOOL, ".select_vert");
   const bool *select_poly = (const bool *)CustomData_get_layer_named(
-      &me->face_data, CD_PROP_BOOL, ".select_poly");
+      &mesh->face_data, CD_PROP_BOOL, ".select_poly");
 
   for (const int i : faces.index_range()) {
     if ((paint_selmode == SCE_SELECT_FACE) && !(select_poly && select_poly[i])) {
@@ -453,7 +453,7 @@ static bool weight_paint_set(Object *ob, float paintweight)
           dw_prev->weight = dw->weight; /* set the undo weight */
           dw->weight = paintweight;
 
-          if (me->symmetry & ME_SYMMETRY_X) {
+          if (mesh->symmetry & ME_SYMMETRY_X) {
             /* x mirror painting */
             int j = mesh_get_x_mirror_vert(ob, nullptr, vert, topology);
             if (j >= 0) {
@@ -478,14 +478,14 @@ static bool weight_paint_set(Object *ob, float paintweight)
 
   {
     MDeformVert *dv = dvert;
-    for (int index = me->totvert; index != 0; index--, dv++) {
+    for (int index = mesh->totvert; index != 0; index--, dv++) {
       dv->flag = 0;
     }
   }
 
   wpaint_prev_destroy(&wpp);
 
-  DEG_id_tag_update(&me->id, 0);
+  DEG_id_tag_update(&mesh->id, 0);
 
   return true;
 }
@@ -551,7 +551,7 @@ struct WPGradient_vertStoreBase {
 struct WPGradient_userData {
   ARegion *region;
   Scene *scene;
-  Mesh *me;
+  Mesh *mesh;
   MDeformVert *dvert;
   const bool *select_vert;
   blender::VArray<bool> hide_vert;
@@ -718,11 +718,11 @@ static int paint_weight_gradient_modal(bContext *C, wmOperator *op, const wmEven
 
   if (ret & OPERATOR_CANCELLED) {
     if (vert_cache != nullptr) {
-      Mesh *me = static_cast<Mesh *>(ob->data);
+      Mesh *mesh = static_cast<Mesh *>(ob->data);
       if (vert_cache->wpp.wpaint_prev) {
-        MDeformVert *dvert = BKE_mesh_deform_verts_for_write(me);
-        BKE_defvert_array_free_elems(dvert, me->totvert);
-        BKE_defvert_array_copy(dvert, vert_cache->wpp.wpaint_prev, me->totvert);
+        MDeformVert *dvert = BKE_mesh_deform_verts_for_write(mesh);
+        BKE_defvert_array_free_elems(dvert, mesh->totvert);
+        BKE_defvert_array_copy(dvert, vert_cache->wpp.wpaint_prev, mesh->totvert);
         wpaint_prev_destroy(&vert_cache->wpp);
       }
       MEM_freeN(vert_cache);
@@ -747,8 +747,8 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
   ARegion *region = CTX_wm_region(C);
   Scene *scene = CTX_data_scene(C);
   Object *ob = CTX_data_active_object(C);
-  Mesh *me = static_cast<Mesh *>(ob->data);
-  MDeformVert *dverts = BKE_mesh_deform_verts_for_write(me);
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  MDeformVert *dverts = BKE_mesh_deform_verts_for_write(mesh);
   int x_start = RNA_int_get(op->ptr, "xstart");
   int y_start = RNA_int_get(op->ptr, "ystart");
   int x_end = RNA_int_get(op->ptr, "xend");
@@ -764,17 +764,17 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
   if (is_interactive) {
     if (gesture->user_data.data == nullptr) {
       gesture->user_data.data = MEM_mallocN(sizeof(WPGradient_vertStoreBase) +
-                                                (sizeof(WPGradient_vertStore) * me->totvert),
+                                                (sizeof(WPGradient_vertStore) * mesh->totvert),
                                             __func__);
       gesture->user_data.use_free = false;
       data.is_init = true;
 
       wpaint_prev_create(
-          &((WPGradient_vertStoreBase *)gesture->user_data.data)->wpp, dverts, me->totvert);
+          &((WPGradient_vertStoreBase *)gesture->user_data.data)->wpp, dverts, mesh->totvert);
 
       /* On initialization only, convert face -> vert sel. */
-      if (me->editflag & ME_EDIT_PAINT_FACE_SEL) {
-        bke::mesh_select_face_flush(*me);
+      if (mesh->editflag & ME_EDIT_PAINT_FACE_SEL) {
+        bke::mesh_select_face_flush(*mesh);
       }
     }
 
@@ -787,24 +787,24 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
 
     data.is_init = true;
     vert_cache = static_cast<WPGradient_vertStoreBase *>(MEM_mallocN(
-        sizeof(WPGradient_vertStoreBase) + (sizeof(WPGradient_vertStore) * me->totvert),
+        sizeof(WPGradient_vertStoreBase) + (sizeof(WPGradient_vertStore) * mesh->totvert),
         __func__));
   }
 
-  const blender::bke::AttributeAccessor attributes = me->attributes();
+  const blender::bke::AttributeAccessor attributes = mesh->attributes();
 
   data.region = region;
   data.scene = scene;
-  data.me = me;
+  data.mesh = mesh;
   data.dvert = dverts;
   data.select_vert = (const bool *)CustomData_get_layer_named(
-      &me->vert_data, CD_PROP_BOOL, ".select_vert");
+      &mesh->vert_data, CD_PROP_BOOL, ".select_vert");
   data.hide_vert = *attributes.lookup_or_default<bool>(".hide_vert", ATTR_DOMAIN_POINT, false);
   data.sco_start = sco_start;
   data.sco_end = sco_end;
   data.sco_line_div = 1.0f / len_v2v2(sco_start, sco_end);
   data.def_nr = BKE_object_defgroup_active_index_get(ob) - 1;
-  data.use_select = (me->editflag & (ME_EDIT_PAINT_FACE_SEL | ME_EDIT_PAINT_VERT_SEL)) != 0;
+  data.use_select = (mesh->editflag & (ME_EDIT_PAINT_FACE_SEL | ME_EDIT_PAINT_VERT_SEL)) != 0;
   data.vert_cache = vert_cache;
   data.vert_visit = nullptr;
   data.type = RNA_enum_get(op->ptr, "type");
@@ -826,7 +826,7 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
   const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
   const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
   if (data.is_init) {
-    data.vert_visit = BLI_BITMAP_NEW(me->totvert, __func__);
+    data.vert_visit = BLI_BITMAP_NEW(mesh->totvert, __func__);
 
     BKE_mesh_foreach_mapped_vert(me_eval, gradientVertInit__mapFunc, &data, MESH_FOREACH_NOP);
 
@@ -845,12 +845,12 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
   }
 
   if (scene->toolsettings->auto_normalize) {
-    const int vgroup_num = BLI_listbase_count(&me->vertex_group_names);
+    const int vgroup_num = BLI_listbase_count(&mesh->vertex_group_names);
     bool *lock_flags = BKE_object_defgroup_lock_flags_get(ob, vgroup_num);
     bool *vgroup_validmap = BKE_object_defgroup_validmap_get(ob, vgroup_num);
     if (vgroup_validmap != nullptr) {
       MDeformVert *dvert = dverts;
-      for (int i = 0; i < me->totvert; i++) {
+      for (int i = 0; i < mesh->totvert; i++) {
         if ((data.vert_cache->elem[i].flag & WPGradient_vertStore::VGRAD_STORE_IS_MODIFIED) != 0) {
           if (lock_flags != nullptr) {
             BKE_defvert_normalize_lock_map(

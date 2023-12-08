@@ -325,8 +325,8 @@ Material *BKE_gpencil_material_add(Main *bmain, const char *name)
 Material ***BKE_object_material_array_p(Object *ob)
 {
   if (ob->type == OB_MESH) {
-    Mesh *me = static_cast<Mesh *>(ob->data);
-    return &(me->mat);
+    Mesh *mesh = static_cast<Mesh *>(ob->data);
+    return &(mesh->mat);
   }
   if (ELEM(ob->type, OB_CURVES_LEGACY, OB_FONT, OB_SURF)) {
     Curve *cu = static_cast<Curve *>(ob->data);
@@ -362,8 +362,8 @@ Material ***BKE_object_material_array_p(Object *ob)
 short *BKE_object_material_len_p(Object *ob)
 {
   if (ob->type == OB_MESH) {
-    Mesh *me = static_cast<Mesh *>(ob->data);
-    return &(me->totcol);
+    Mesh *mesh = static_cast<Mesh *>(ob->data);
+    return &(mesh->totcol);
   }
   if (ELEM(ob->type, OB_CURVES_LEGACY, OB_FONT, OB_SURF)) {
     Curve *cu = static_cast<Curve *>(ob->data);

@@ -181,9 +181,9 @@ const float *SCULPT_vertex_co_get(const SculptSession *ss, PBVHVertRef vertex)
 bool SCULPT_has_loop_colors(const Object *ob)
 {
   using namespace blender;
-  Mesh *me = BKE_object_get_original_mesh(ob);
-  const std::optional<bke::AttributeMetaData> meta_data = me->attributes().lookup_meta_data(
-      me->active_color_attribute);
+  Mesh *mesh = BKE_object_get_original_mesh(ob);
+  const std::optional<bke::AttributeMetaData> meta_data = mesh->attributes().lookup_meta_data(
+      mesh->active_color_attribute);
   if (!meta_data) {
     return false;
   }
@@ -3149,22 +3149,22 @@ static void do_gravity(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes, float bst
 
 void SCULPT_vertcos_to_key(Object *ob, KeyBlock *kb, const Span<float3> vertCos)
 {
-  Mesh *me = (Mesh *)ob->data;
+  Mesh *mesh = (Mesh *)ob->data;
   float(*ofs)[3] = nullptr;
   int a, currkey_i;
   const int kb_act_idx = ob->shapenr - 1;
 
   /* For relative keys editing of base should update other keys. */
-  if (bool *dependent = BKE_keyblock_get_dependent_keys(me->key, kb_act_idx)) {
+  if (bool *dependent = BKE_keyblock_get_dependent_keys(mesh->key, kb_act_idx)) {
     ofs = BKE_keyblock_convert_to_vertcos(ob, kb);
 
     /* Calculate key coord offsets (from previous location). */
-    for (a = 0; a < me->totvert; a++) {
+    for (a = 0; a < mesh->totvert; a++) {
       sub_v3_v3v3(ofs[a], vertCos[a], ofs[a]);
     }
 
     /* Apply offsets on other keys. */
-    LISTBASE_FOREACH_INDEX (KeyBlock *, currkey, &me->key->block, currkey_i) {
+    LISTBASE_FOREACH_INDEX (KeyBlock *, currkey, &mesh->key->block, currkey_i) {
       if ((currkey != kb) && dependent[currkey_i]) {
         BKE_keyblock_update_from_offset(ob, currkey, ofs);
       }
@@ -3175,9 +3175,9 @@ void SCULPT_vertcos_to_key(Object *ob, KeyBlock *kb, const Span<float3> vertCos)
   }
 
   /* Modifying of basis key should update mesh. */
-  if (kb == me->key->refkey) {
-    me->vert_positions_for_write().copy_from(vertCos);
-    BKE_mesh_tag_positions_changed(me);
+  if (kb == mesh->key->refkey) {
+    mesh->vert_positions_for_write().copy_from(vertCos);
+    BKE_mesh_tag_positions_changed(mesh);
   }
 
   /* Apply new coords on active key block, no need to re-allocate kb->data here! */
@@ -3726,7 +3726,7 @@ void SCULPT_flush_stroke_deform(Sculpt * /*sd*/, Object *ob, bool is_proxy_used)
     /* This brushes aren't using proxies, so sculpt_combine_proxies() wouldn't propagate needed
      * deformation to original base. */
 
-    Mesh *me = (Mesh *)ob->data;
+    Mesh *mesh = (Mesh *)ob->data;
     Vector<PBVHNode *> nodes;
     Array<float3> vertCos;
 
@@ -3738,7 +3738,7 @@ void SCULPT_flush_stroke_deform(Sculpt * /*sd*/, Object *ob, bool is_proxy_used)
 
     nodes = blender::bke::pbvh::search_gather(ss->pbvh, {});
 
-    MutableSpan<float3> positions = me->vert_positions_for_write();
+    MutableSpan<float3> positions = mesh->vert_positions_for_write();
 
     threading::parallel_for(nodes.index_range(), 1, [&](IndexRange range) {
       for (const int i : range) {

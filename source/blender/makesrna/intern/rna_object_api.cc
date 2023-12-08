@@ -522,7 +522,7 @@ static void rna_Mesh_assign_verts_to_group(
     return;
   }
 
-  Mesh *me = (Mesh *)ob->data;
+  Mesh *mesh = (Mesh *)ob->data;
   int group_index = BLI_findlink(&ob->defbase, group);
   if (group_index == -1) {
     BKE_report(reports, RPT_ERROR, "No vertex groups assigned to mesh");
@@ -535,13 +535,13 @@ static void rna_Mesh_assign_verts_to_group(
   }
 
   /* makes a set of dVerts corresponding to the mVerts */
-  if (!me->dvert) {
-    create_dverts(&me->id);
+  if (!mesh->dvert) {
+    create_dverts(&mesh->id);
   }
 
   /* Loop list adding verts to group. */
   for (i = 0; i < totindex; i++) {
-    if (i < 0 || i >= me->totvert) {
+    if (i < 0 || i >= mesh->totvert) {
       BKE_report(reports, RPT_ERROR, "Bad vertex index in list");
       return;
     }

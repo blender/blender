@@ -350,14 +350,14 @@ static void do_versions_nodetree_multi_file_output_format_2_62_1(Scene *sce, bNo
 }
 
 /* blue and red are swapped pre 2.62.1, be sane (red == red) now! */
-static void do_versions_mesh_mloopcol_swap_2_62_1(Mesh *me)
+static void do_versions_mesh_mloopcol_swap_2_62_1(Mesh *mesh)
 {
-  for (int a = 0; a < me->loop_data.totlayer; a++) {
-    CustomDataLayer *layer = &me->loop_data.layers[a];
+  for (int a = 0; a < mesh->loop_data.totlayer; a++) {
+    CustomDataLayer *layer = &mesh->loop_data.layers[a];
 
     if (layer->type == CD_PROP_BYTE_COLOR) {
       MLoopCol *mloopcol = static_cast<MLoopCol *>(layer->data);
-      for (int i = 0; i < me->totloop; i++, mloopcol++) {
+      for (int i = 0; i < mesh->totloop; i++, mloopcol++) {
         SWAP(uchar, mloopcol->r, mloopcol->b);
       }
     }

@@ -219,9 +219,9 @@ ObjectState::ObjectState(const SceneState &scene_state, Object *ob)
   bool has_uv = false;
 
   if (ob->type == OB_MESH) {
-    const Mesh *me = static_cast<Mesh *>(ob->data);
-    const CustomData *cd_vdata = get_vert_custom_data(me);
-    const CustomData *cd_ldata = get_loop_custom_data(me);
+    const Mesh *mesh = static_cast<Mesh *>(ob->data);
+    const CustomData *cd_vdata = get_vert_custom_data(mesh);
+    const CustomData *cd_ldata = get_loop_custom_data(mesh);
 
     has_color = (CustomData_has_layer(cd_vdata, CD_PROP_COLOR) ||
                  CustomData_has_layer(cd_vdata, CD_PROP_BYTE_COLOR) ||

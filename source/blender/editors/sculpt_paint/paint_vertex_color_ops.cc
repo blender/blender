@@ -54,9 +54,9 @@ using blender::Vector;
 static bool vertex_weight_paint_mode_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
-  Mesh *me = BKE_mesh_from_object(ob);
+  Mesh *mesh = BKE_mesh_from_object(ob);
   return (ob && ELEM(ob->mode, OB_MODE_VERTEX_PAINT, OB_MODE_WEIGHT_PAINT)) &&
-         (me && me->faces_num && !me->deform_verts().is_empty());
+         (mesh && mesh->faces_num && !mesh->deform_verts().is_empty());
 }
 
 static void tag_object_after_update(Object *object)
@@ -78,27 +78,29 @@ static bool vertex_paint_from_weight(Object *ob)
 {
   using namespace blender;
 
-  Mesh *me;
-  if ((me = BKE_mesh_from_object(ob)) == nullptr || ED_mesh_color_ensure(me, nullptr) == false) {
+  Mesh *mesh;
+  if ((mesh = BKE_mesh_from_object(ob)) == nullptr || ED_mesh_color_ensure(mesh, nullptr) == false)
+  {
     return false;
   }
 
-  if (!me->attributes().contains(me->active_color_attribute)) {
+  if (!mesh->attributes().contains(mesh->active_color_attribute)) {
     BLI_assert_unreachable();
     return false;
   }
 
-  const int active_vertex_group_index = me->vertex_group_active_index - 1;
+  const int active_vertex_group_index = mesh->vertex_group_active_index - 1;
   const bDeformGroup *deform_group = static_cast<const bDeformGroup *>(
-      BLI_findlink(&me->vertex_group_names, active_vertex_group_index));
+      BLI_findlink(&mesh->vertex_group_names, active_vertex_group_index));
   if (deform_group == nullptr) {
     BLI_assert_unreachable();
     return false;
   }
 
-  bke::MutableAttributeAccessor attributes = me->attributes_for_write();
+  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
 
-  bke::GAttributeWriter color_attribute = attributes.lookup_for_write(me->active_color_attribute);
+  bke::GAttributeWriter color_attribute = attributes.lookup_for_write(
+      mesh->active_color_attribute);
   if (!color_attribute) {
     BLI_assert_unreachable();
     return false;
@@ -201,16 +203,17 @@ static void face_corner_color_equalize_verts(Mesh &mesh, const IndexMask selecti
 
 static bool vertex_color_smooth(Object *ob)
 {
-  Mesh *me;
-  if (((me = BKE_mesh_from_object(ob)) == nullptr) || (ED_mesh_color_ensure(me, nullptr) == false))
+  Mesh *mesh;
+  if (((mesh = BKE_mesh_from_object(ob)) == nullptr) ||
+      (ED_mesh_color_ensure(mesh, nullptr) == false))
   {
     return false;
   }
 
   IndexMaskMemory memory;
-  const IndexMask selection = get_selected_indices(*me, ATTR_DOMAIN_CORNER, memory);
+  const IndexMask selection = get_selected_indices(*mesh, ATTR_DOMAIN_CORNER, memory);
 
-  face_corner_color_equalize_verts(*me, selection);
+  face_corner_color_equalize_verts(*mesh, selection);
 
   tag_object_after_update(ob);
 
@@ -351,9 +354,9 @@ static int vertex_color_brightness_contrast_exec(bContext *C, wmOperator *op)
     }
   }
 
-  Mesh *me;
-  if (((me = BKE_mesh_from_object(obact)) == nullptr) ||
-      (ED_mesh_color_ensure(me, nullptr) == false))
+  Mesh *mesh;
+  if (((mesh = BKE_mesh_from_object(obact)) == nullptr) ||
+      (ED_mesh_color_ensure(mesh, nullptr) == false))
   {
     return OPERATOR_CANCELLED;
   }
@@ -398,9 +401,9 @@ static int vertex_color_hsv_exec(bContext *C, wmOperator *op)
   const float sat = RNA_float_get(op->ptr, "s");
   const float val = RNA_float_get(op->ptr, "v");
 
-  Mesh *me;
-  if (((me = BKE_mesh_from_object(obact)) == nullptr) ||
-      (ED_mesh_color_ensure(me, nullptr) == false))
+  Mesh *mesh;
+  if (((mesh = BKE_mesh_from_object(obact)) == nullptr) ||
+      (ED_mesh_color_ensure(mesh, nullptr) == false))
   {
     return OPERATOR_CANCELLED;
   }
@@ -449,9 +452,9 @@ static int vertex_color_invert_exec(bContext *C, wmOperator *op)
 {
   Object *obact = CTX_data_active_object(C);
 
-  Mesh *me;
-  if (((me = BKE_mesh_from_object(obact)) == nullptr) ||
-      (ED_mesh_color_ensure(me, nullptr) == false))
+  Mesh *mesh;
+  if (((mesh = BKE_mesh_from_object(obact)) == nullptr) ||
+      (ED_mesh_color_ensure(mesh, nullptr) == false))
   {
     return OPERATOR_CANCELLED;
   }
@@ -487,9 +490,9 @@ static int vertex_color_levels_exec(bContext *C, wmOperator *op)
   const float gain = RNA_float_get(op->ptr, "gain");
   const float offset = RNA_float_get(op->ptr, "offset");
 
-  Mesh *me;
-  if (((me = BKE_mesh_from_object(obact)) == nullptr) ||
-      (ED_mesh_color_ensure(me, nullptr) == false))
+  Mesh *mesh;
+  if (((mesh = BKE_mesh_from_object(obact)) == nullptr) ||
+      (ED_mesh_color_ensure(mesh, nullptr) == false))
   {
     return OPERATOR_CANCELLED;
   }

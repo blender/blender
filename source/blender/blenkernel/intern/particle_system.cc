@@ -320,7 +320,7 @@ void psys_calc_dmcache(Object *ob, Mesh *mesh_final, Mesh *mesh_original, Partic
    * nodearray: the array of nodes aligned with the base mesh's elements, so
    *            each original elements can reference its derived elements
    */
-  Mesh *me = (Mesh *)ob->data;
+  Mesh *mesh = (Mesh *)ob->data;
   bool use_modifier_stack = psys->part->use_modifier_stack;
   PARTICLE_P;
 
@@ -339,7 +339,7 @@ void psys_calc_dmcache(Object *ob, Mesh *mesh_final, Mesh *mesh_original, Partic
         origindex = nullptr;
       }
       else {
-        totelem = me->totvert;
+        totelem = mesh->totvert;
         origindex = static_cast<const int *>(
             CustomData_get_layer(&mesh_final->vert_data, CD_ORIGINDEX));
       }

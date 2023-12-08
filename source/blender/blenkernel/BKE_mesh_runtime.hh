@@ -77,7 +77,7 @@ Mesh *mesh_create_eval_no_deform_render(Depsgraph *depsgraph,
                                         Object *ob,
                                         const CustomData_MeshMasks *dataMask);
 
-void BKE_mesh_runtime_eval_to_meshkey(Mesh *me_deformed, Mesh *me, KeyBlock *kb);
+void BKE_mesh_runtime_eval_to_meshkey(Mesh *me_deformed, Mesh *mesh, KeyBlock *kb);
 
 #ifndef NDEBUG
 bool BKE_mesh_runtime_is_valid(Mesh *me_eval);

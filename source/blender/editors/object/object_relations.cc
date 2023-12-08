@@ -137,7 +137,7 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
   /* we need 1 to 3 selected vertices */
 
   if (obedit->type == OB_MESH) {
-    Mesh *me = static_cast<Mesh *>(obedit->data);
+    Mesh *mesh = static_cast<Mesh *>(obedit->data);
     BMEditMesh *em;
 
     EDBM_mesh_load(bmain, obedit);
@@ -145,7 +145,7 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 
     DEG_id_tag_update(static_cast<ID *>(obedit->data), 0);
 
-    em = me->edit_mesh;
+    em = mesh->edit_mesh;
 
     BKE_editmesh_looptri_and_normals_calc(em);
 
@@ -1849,7 +1849,7 @@ static void single_obdata_users(
   Light *la;
   Curve *cu;
   Camera *cam;
-  Mesh *me;
+  Mesh *mesh;
   Lattice *lat;
   ID *id;
 
@@ -1886,7 +1886,7 @@ static void single_obdata_users(
             break;
           case OB_MESH:
             /* Needed to remap texcomesh below. */
-            ob->data = me = static_cast<Mesh *>(
+            ob->data = mesh = static_cast<Mesh *>(
                 ID_NEW_SET(ob->data,
                            BKE_id_copy_ex(bmain,
                                           static_cast<const ID *>(ob->data),
@@ -1993,10 +1993,10 @@ static void single_obdata_users(
   }
   FOREACH_OBJECT_FLAG_END;
 
-  me = static_cast<Mesh *>(bmain->meshes.first);
-  while (me) {
-    ID_NEW_REMAP(me->texcomesh);
-    me = static_cast<Mesh *>(me->id.next);
+  mesh = static_cast<Mesh *>(bmain->meshes.first);
+  while (mesh) {
+    ID_NEW_REMAP(mesh->texcomesh);
+    mesh = static_cast<Mesh *>(mesh->id.next);
   }
 }
 
@@ -2842,7 +2842,7 @@ static int make_single_user_exec(bContext *C, wmOperator *op)
   if (RNA_boolean_get(op->ptr, "obdata")) {
     single_obdata_users(bmain, scene, view_layer, v3d, flag);
 
-    /* Needed since some IDs were remapped? (incl. me->texcomesh, see #73797). */
+    /* Needed since some IDs were remapped? (incl. mesh->texcomesh, see #73797). */
     update_deps = true;
   }
 

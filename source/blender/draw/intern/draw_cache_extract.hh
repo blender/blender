@@ -73,15 +73,15 @@ enum eMRDataType {
 };
 ENUM_OPERATORS(eMRDataType, MR_DATA_POLYS_SORTED)
 
-BLI_INLINE int mesh_render_mat_len_get(const Object *object, const Mesh *me)
+BLI_INLINE int mesh_render_mat_len_get(const Object *object, const Mesh *mesh)
 {
-  if (me->edit_mesh != NULL) {
+  if (mesh->edit_mesh != NULL) {
     const Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(object);
     if (editmesh_eval_final != NULL) {
       return std::max<int>(1, editmesh_eval_final->totcol);
     }
   }
-  return std::max<int>(1, me->totcol);
+  return std::max<int>(1, mesh->totcol);
 }
 
 struct MeshBufferList {
@@ -317,7 +317,7 @@ void mesh_buffer_cache_create_requested(TaskGraph *task_graph,
                                         MeshBatchCache &cache,
                                         MeshBufferCache &mbc,
                                         Object *object,
-                                        Mesh *me,
+                                        Mesh *mesh,
                                         bool is_editmode,
                                         bool is_paint_mode,
                                         bool is_mode_active,

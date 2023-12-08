@@ -316,12 +316,12 @@ XFormObjectData *ED_object_data_xform_create_ex(ID *id, bool is_edit_mode)
 
   switch (GS(id->name)) {
     case ID_ME: {
-      Mesh *me = (Mesh *)id;
-      Key *key = me->key;
+      Mesh *mesh = (Mesh *)id;
+      Key *key = mesh->key;
       const int key_index = -1;
 
       if (is_edit_mode) {
-        BMesh *bm = me->edit_mesh->bm;
+        BMesh *bm = mesh->edit_mesh->bm;
         /* Always operate on all keys for the moment. */
         // key_index = bm->shapenr - 1;
         const int elem_array_len = bm->totvert;
@@ -342,12 +342,12 @@ XFormObjectData *ED_object_data_xform_create_ex(ID *id, bool is_edit_mode)
         }
       }
       else {
-        const int elem_array_len = me->totvert;
+        const int elem_array_len = mesh->totvert;
         XFormObjectData_Mesh *xod = static_cast<XFormObjectData_Mesh *>(
             MEM_mallocN(sizeof(*xod) + (sizeof(*xod->elem_array) * elem_array_len), __func__));
         memset(xod, 0x0, sizeof(*xod));
-        blender::MutableSpan(reinterpret_cast<blender::float3 *>(xod->elem_array), me->totvert)
-            .copy_from(me->vert_positions());
+        blender::MutableSpan(reinterpret_cast<blender::float3 *>(xod->elem_array), mesh->totvert)
+            .copy_from(mesh->vert_positions());
 
         xod_base = &xod->base;
 
@@ -535,24 +535,24 @@ void ED_object_data_xform_by_mat4(XFormObjectData *xod_base, const float mat[4][
   using namespace blender;
   switch (GS(xod_base->id->name)) {
     case ID_ME: {
-      Mesh *me = (Mesh *)xod_base->id;
+      Mesh *mesh = (Mesh *)xod_base->id;
 
-      Key *key = me->key;
+      Key *key = mesh->key;
       const int key_index = -1;
 
       XFormObjectData_Mesh *xod = (XFormObjectData_Mesh *)xod_base;
       if (xod_base->is_edit_mode) {
-        BMesh *bm = me->edit_mesh->bm;
+        BMesh *bm = mesh->edit_mesh->bm;
         BM_mesh_vert_coords_apply_with_mat4(bm, xod->elem_array, mat);
         /* Always operate on all keys for the moment. */
         // key_index = bm->shapenr - 1;
       }
       else {
-        MutableSpan<float3> positions = me->vert_positions_for_write();
+        MutableSpan<float3> positions = mesh->vert_positions_for_write();
         for (const int i : positions.index_range()) {
           mul_v3_m4v3(positions[i], mat, xod->elem_array[i]);
         }
-        BKE_mesh_tag_positions_changed(me);
+        BKE_mesh_tag_positions_changed(mesh);
       }
 
       if (key != nullptr) {
@@ -646,22 +646,22 @@ void ED_object_data_xform_restore(XFormObjectData *xod_base)
 {
   switch (GS(xod_base->id->name)) {
     case ID_ME: {
-      Mesh *me = (Mesh *)xod_base->id;
+      Mesh *mesh = (Mesh *)xod_base->id;
 
-      Key *key = me->key;
+      Key *key = mesh->key;
       const int key_index = -1;
 
       XFormObjectData_Mesh *xod = (XFormObjectData_Mesh *)xod_base;
       if (xod_base->is_edit_mode) {
-        BMesh *bm = me->edit_mesh->bm;
+        BMesh *bm = mesh->edit_mesh->bm;
         BM_mesh_vert_coords_apply(bm, xod->elem_array);
         /* Always operate on all keys for the moment. */
         // key_index = bm->shapenr - 1;
       }
       else {
-        me->vert_positions_for_write().copy_from(
-            {reinterpret_cast<const blender::float3 *>(xod->elem_array), me->totvert});
-        BKE_mesh_tag_positions_changed(me);
+        mesh->vert_positions_for_write().copy_from(
+            {reinterpret_cast<const blender::float3 *>(xod->elem_array), mesh->totvert});
+        BKE_mesh_tag_positions_changed(mesh);
       }
 
       if ((key != nullptr) && (xod->key_data != nullptr)) {
@@ -747,15 +747,15 @@ void ED_object_data_xform_tag_update(XFormObjectData *xod_base)
 {
   switch (GS(xod_base->id->name)) {
     case ID_ME: {
-      Mesh *me = (Mesh *)xod_base->id;
+      Mesh *mesh = (Mesh *)xod_base->id;
       if (xod_base->is_edit_mode) {
         EDBMUpdate_Params params{};
         params.calc_looptri = true;
         params.calc_normals = true;
         params.is_destructive = false;
-        EDBM_update(me, &params);
+        EDBM_update(mesh, &params);
       }
-      DEG_id_tag_update(&me->id, ID_RECALC_GEOMETRY);
+      DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);
       break;
     }
     case ID_LT: {

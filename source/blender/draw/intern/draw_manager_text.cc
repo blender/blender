@@ -227,8 +227,8 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
    */
   DRWTextStore *dt = DRW_text_cache_ensure();
   const short txt_flag = DRW_TEXT_CACHE_GLOBALSPACE;
-  Mesh *me = BKE_object_get_editmesh_eval_cage(ob);
-  BMEditMesh *em = me->edit_mesh;
+  Mesh *mesh = BKE_object_get_editmesh_eval_cage(ob);
+  BMEditMesh *em = mesh->edit_mesh;
   float v1[3], v2[3], v3[3], vmid[3], fvec[3];
   char numstr[32]; /* Stores the measurement display text here */
   size_t numstr_len;
@@ -241,7 +241,7 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
   float clip_planes[4][4];
   /* allow for displaying shape keys and deform mods */
   BMIter iter;
-  const float(*vert_coords)[3] = BKE_mesh_wrapper_vert_coords(me);
+  const float(*vert_coords)[3] = BKE_mesh_wrapper_vert_coords(mesh);
   const bool use_coords = (vert_coords != nullptr);
 
   /* when 2 or more edge-info options are enabled, space apart */
@@ -348,7 +348,7 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
     const float(*face_normals)[3] = nullptr;
     if (use_coords) {
       BM_mesh_elem_index_ensure(em->bm, BM_VERT | BM_FACE);
-      face_normals = BKE_mesh_wrapper_face_normals(me);
+      face_normals = BKE_mesh_wrapper_face_normals(mesh);
     }
 
     BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {

@@ -265,43 +265,43 @@ bool EDBM_op_call_silentf(BMEditMesh *em, const char *fmt, ...)
 
 void EDBM_mesh_make(Object *ob, const int select_mode, const bool add_key_index)
 {
-  Mesh *me = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
   BMeshCreateParams create_params{};
   create_params.use_toolflags = true;
-  BMesh *bm = BKE_mesh_to_bmesh(me, ob, add_key_index, &create_params);
+  BMesh *bm = BKE_mesh_to_bmesh(mesh, ob, add_key_index, &create_params);
 
-  if (me->edit_mesh) {
+  if (mesh->edit_mesh) {
     /* this happens when switching shape keys */
-    EDBM_mesh_free_data(me->edit_mesh);
-    MEM_freeN(me->edit_mesh);
+    EDBM_mesh_free_data(mesh->edit_mesh);
+    MEM_freeN(mesh->edit_mesh);
   }
 
   /* Executing operators re-tessellates,
    * so we can avoid doing here but at some point it may need to be added back. */
-  me->edit_mesh = BKE_editmesh_create(bm);
+  mesh->edit_mesh = BKE_editmesh_create(bm);
 
-  me->edit_mesh->selectmode = me->edit_mesh->bm->selectmode = select_mode;
-  me->edit_mesh->mat_nr = (ob->actcol > 0) ? ob->actcol - 1 : 0;
+  mesh->edit_mesh->selectmode = mesh->edit_mesh->bm->selectmode = select_mode;
+  mesh->edit_mesh->mat_nr = (ob->actcol > 0) ? ob->actcol - 1 : 0;
 
   /* we need to flush selection because the mode may have changed from when last in editmode */
-  EDBM_selectmode_flush(me->edit_mesh);
+  EDBM_selectmode_flush(mesh->edit_mesh);
 }
 
 void EDBM_mesh_load_ex(Main *bmain, Object *ob, bool free_data)
 {
-  Mesh *me = static_cast<Mesh *>(ob->data);
-  BMesh *bm = me->edit_mesh->bm;
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  BMesh *bm = mesh->edit_mesh->bm;
 
   /* Workaround for #42360, 'ob->shapenr' should be 1 in this case.
    * however this isn't synchronized between objects at the moment. */
-  if (UNLIKELY((ob->shapenr == 0) && (me->key && !BLI_listbase_is_empty(&me->key->block)))) {
+  if (UNLIKELY((ob->shapenr == 0) && (mesh->key && !BLI_listbase_is_empty(&mesh->key->block)))) {
     bm->shapenr = 1;
   }
 
   BMeshToMeshParams params{};
   params.calc_object_remap = true;
   params.update_shapekey_indices = !free_data;
-  BM_mesh_bm_to_me(bmain, bm, me, &params);
+  BM_mesh_bm_to_me(bmain, bm, mesh, &params);
 }
 
 void EDBM_mesh_clear(BMEditMesh *em)
@@ -1698,13 +1698,13 @@ void EDBM_update(Mesh *mesh, const EDBMUpdate_Params *params)
 #endif
 }
 
-void EDBM_update_extern(Mesh *me, const bool do_tessellation, const bool is_destructive)
+void EDBM_update_extern(Mesh *mesh, const bool do_tessellation, const bool is_destructive)
 {
   EDBMUpdate_Params params{};
   params.calc_looptri = do_tessellation;
   params.calc_normals = false;
   params.is_destructive = is_destructive;
-  EDBM_update(me, &params);
+  EDBM_update(mesh, &params);
 }
 
 /** \} */

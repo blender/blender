@@ -106,7 +106,7 @@ struct UndoMesh {
    */
   UndoMesh *local_next, *local_prev;
 
-  Mesh me;
+  Mesh mesh;
   int selectmode;
   char uv_selectmode;
 
@@ -358,7 +358,7 @@ static void um_arraystore_cd_free(BArrayCustomData *bcd, const int bs_index)
  */
 static void um_arraystore_compact_ex(UndoMesh *um, const UndoMesh *um_ref, bool create)
 {
-  Mesh *me = &um->me;
+  Mesh *mesh = &um->mesh;
 
   /* Compacting can be time consuming, run in parallel.
    *
@@ -368,59 +368,62 @@ static void um_arraystore_compact_ex(UndoMesh *um, const UndoMesh *um_ref, bool 
    * Since this is itself a background thread, using too many threads here could
    * interfere with foreground tasks. */
   blender::threading::parallel_invoke(
-      4096 < (me->totvert + me->totedge + me->totloop + me->faces_num),
+      4096 < (mesh->totvert + mesh->totedge + mesh->totloop + mesh->faces_num),
       [&]() {
-        um_arraystore_cd_compact(&me->vert_data,
-                                 me->totvert,
+        um_arraystore_cd_compact(&mesh->vert_data,
+                                 mesh->totvert,
                                  create,
                                  ARRAY_STORE_INDEX_VERT,
                                  um_ref ? um_ref->store.vdata : nullptr,
                                  &um->store.vdata);
       },
       [&]() {
-        um_arraystore_cd_compact(&me->edge_data,
-                                 me->totedge,
+        um_arraystore_cd_compact(&mesh->edge_data,
+                                 mesh->totedge,
                                  create,
                                  ARRAY_STORE_INDEX_EDGE,
                                  um_ref ? um_ref->store.edata : nullptr,
                                  &um->store.edata);
       },
       [&]() {
-        um_arraystore_cd_compact(&me->loop_data,
-                                 me->totloop,
+        um_arraystore_cd_compact(&mesh->loop_data,
+                                 mesh->totloop,
                                  create,
                                  ARRAY_STORE_INDEX_LOOP,
                                  um_ref ? um_ref->store.ldata : nullptr,
                                  &um->store.ldata);
       },
       [&]() {
-        um_arraystore_cd_compact(&me->face_data,
-                                 me->faces_num,
+        um_arraystore_cd_compact(&mesh->face_data,
+                                 mesh->faces_num,
                                  create,
                                  ARRAY_STORE_INDEX_POLY,
                                  um_ref ? um_ref->store.pdata : nullptr,
                                  &um->store.pdata);
       },
       [&]() {
-        if (me->face_offset_indices) {
+        if (mesh->face_offset_indices) {
           BLI_assert(create == (um->store.face_offset_indices == nullptr));
           if (create) {
             BArrayState *state_reference = um_ref ? um_ref->store.face_offset_indices : nullptr;
-            const size_t stride = sizeof(*me->face_offset_indices);
+            const size_t stride = sizeof(*mesh->face_offset_indices);
             BArrayStore *bs = BLI_array_store_at_size_ensure(
                 &um_arraystore.bs_stride[ARRAY_STORE_INDEX_POLY_OFFSETS],
                 stride,
                 array_chunk_size_calc(stride));
-            um->store.face_offset_indices = BLI_array_store_state_add(
-                bs, me->face_offset_indices, size_t(me->faces_num + 1) * stride, state_reference);
+            um->store.face_offset_indices = BLI_array_store_state_add(bs,
+                                                                      mesh->face_offset_indices,
+                                                                      size_t(mesh->faces_num + 1) *
+                                                                          stride,
+                                                                      state_reference);
           }
-          blender::implicit_sharing::free_shared_data(&me->face_offset_indices,
-                                                      &me->runtime->face_offsets_sharing_info);
+          blender::implicit_sharing::free_shared_data(&mesh->face_offset_indices,
+                                                      &mesh->runtime->face_offsets_sharing_info);
         }
       },
       [&]() {
-        if (me->key && me->key->totkey) {
-          const size_t stride = me->key->elemsize;
+        if (mesh->key && mesh->key->totkey) {
+          const size_t stride = mesh->key->elemsize;
           BArrayStore *bs = create ? BLI_array_store_at_size_ensure(
                                          &um_arraystore.bs_stride[ARRAY_STORE_INDEX_SHAPE],
                                          stride,
@@ -428,13 +431,13 @@ static void um_arraystore_compact_ex(UndoMesh *um, const UndoMesh *um_ref, bool 
                                      nullptr;
           if (create) {
             um->store.keyblocks = static_cast<BArrayState **>(
-                MEM_mallocN(me->key->totkey * sizeof(*um->store.keyblocks), __func__));
+                MEM_mallocN(mesh->key->totkey * sizeof(*um->store.keyblocks), __func__));
           }
-          KeyBlock *keyblock = static_cast<KeyBlock *>(me->key->block.first);
-          for (int i = 0; i < me->key->totkey; i++, keyblock = keyblock->next) {
+          KeyBlock *keyblock = static_cast<KeyBlock *>(mesh->key->block.first);
+          for (int i = 0; i < mesh->key->totkey; i++, keyblock = keyblock->next) {
             if (create) {
-              BArrayState *state_reference = (um_ref && um_ref->me.key &&
-                                              (i < um_ref->me.key->totkey)) ?
+              BArrayState *state_reference = (um_ref && um_ref->mesh.key &&
+                                              (i < um_ref->mesh.key->totkey)) ?
                                                  um_ref->store.keyblocks[i] :
                                                  nullptr;
               um->store.keyblocks[i] = BLI_array_store_state_add(
@@ -449,22 +452,22 @@ static void um_arraystore_compact_ex(UndoMesh *um, const UndoMesh *um_ref, bool 
         }
       },
       [&]() {
-        if (me->mselect && me->totselect) {
+        if (mesh->mselect && mesh->totselect) {
           BLI_assert(create == (um->store.mselect == nullptr));
           if (create) {
             BArrayState *state_reference = um_ref ? um_ref->store.mselect : nullptr;
-            const size_t stride = sizeof(*me->mselect);
+            const size_t stride = sizeof(*mesh->mselect);
             BArrayStore *bs = BLI_array_store_at_size_ensure(
                 &um_arraystore.bs_stride[ARRAY_STORE_INDEX_MSEL],
                 stride,
                 array_chunk_size_calc(stride));
             um->store.mselect = BLI_array_store_state_add(
-                bs, me->mselect, size_t(me->totselect) * stride, state_reference);
+                bs, mesh->mselect, size_t(mesh->totselect) * stride, state_reference);
           }
 
-          /* keep me->totselect for validation */
-          MEM_freeN(me->mselect);
-          me->mselect = nullptr;
+          /* keep mesh->totselect for validation */
+          MEM_freeN(mesh->mselect);
+          mesh->mselect = nullptr;
         }
       });
 
@@ -558,17 +561,17 @@ static void um_arraystore_expand_clear(UndoMesh *um)
 
 static void um_arraystore_expand(UndoMesh *um)
 {
-  Mesh *me = &um->me;
+  Mesh *mesh = &um->mesh;
 
-  um_arraystore_cd_expand(um->store.vdata, &me->vert_data, me->totvert);
-  um_arraystore_cd_expand(um->store.edata, &me->edge_data, me->totedge);
-  um_arraystore_cd_expand(um->store.ldata, &me->loop_data, me->totloop);
-  um_arraystore_cd_expand(um->store.pdata, &me->face_data, me->faces_num);
+  um_arraystore_cd_expand(um->store.vdata, &mesh->vert_data, mesh->totvert);
+  um_arraystore_cd_expand(um->store.edata, &mesh->edge_data, mesh->totedge);
+  um_arraystore_cd_expand(um->store.ldata, &mesh->loop_data, mesh->totloop);
+  um_arraystore_cd_expand(um->store.pdata, &mesh->face_data, mesh->faces_num);
 
   if (um->store.keyblocks) {
-    const size_t stride = me->key->elemsize;
-    KeyBlock *keyblock = static_cast<KeyBlock *>(me->key->block.first);
-    for (int i = 0; i < me->key->totkey; i++, keyblock = keyblock->next) {
+    const size_t stride = mesh->key->elemsize;
+    KeyBlock *keyblock = static_cast<KeyBlock *>(mesh->key->block.first);
+    for (int i = 0; i < mesh->key->totkey; i++, keyblock = keyblock->next) {
       BArrayState *state = um->store.keyblocks[i];
       size_t state_len;
       keyblock->data = BLI_array_store_state_data_get_alloc(state, &state_len);
@@ -578,29 +581,30 @@ static void um_arraystore_expand(UndoMesh *um)
   }
 
   if (um->store.face_offset_indices) {
-    const size_t stride = sizeof(*me->face_offset_indices);
+    const size_t stride = sizeof(*mesh->face_offset_indices);
     BArrayState *state = um->store.face_offset_indices;
     size_t state_len;
-    me->face_offset_indices = static_cast<int *>(
+    mesh->face_offset_indices = static_cast<int *>(
         BLI_array_store_state_data_get_alloc(state, &state_len));
-    me->runtime->face_offsets_sharing_info = blender::implicit_sharing::info_for_mem_free(
-        me->face_offset_indices);
-    BLI_assert((me->faces_num + 1) == (state_len / stride));
+    mesh->runtime->face_offsets_sharing_info = blender::implicit_sharing::info_for_mem_free(
+        mesh->face_offset_indices);
+    BLI_assert((mesh->faces_num + 1) == (state_len / stride));
     UNUSED_VARS_NDEBUG(stride);
   }
   if (um->store.mselect) {
-    const size_t stride = sizeof(*me->mselect);
+    const size_t stride = sizeof(*mesh->mselect);
     BArrayState *state = um->store.mselect;
     size_t state_len;
-    me->mselect = static_cast<MSelect *>(BLI_array_store_state_data_get_alloc(state, &state_len));
-    BLI_assert(me->totselect == (state_len / stride));
+    mesh->mselect = static_cast<MSelect *>(
+        BLI_array_store_state_data_get_alloc(state, &state_len));
+    BLI_assert(mesh->totselect == (state_len / stride));
     UNUSED_VARS_NDEBUG(stride);
   }
 }
 
 static void um_arraystore_free(UndoMesh *um)
 {
-  Mesh *me = &um->me;
+  Mesh *mesh = &um->mesh;
 
   um_arraystore_cd_free(um->store.vdata, ARRAY_STORE_INDEX_VERT);
   um_arraystore_cd_free(um->store.edata, ARRAY_STORE_INDEX_EDGE);
@@ -608,10 +612,10 @@ static void um_arraystore_free(UndoMesh *um)
   um_arraystore_cd_free(um->store.pdata, ARRAY_STORE_INDEX_POLY);
 
   if (um->store.keyblocks) {
-    const size_t stride = me->key->elemsize;
+    const size_t stride = mesh->key->elemsize;
     BArrayStore *bs = BLI_array_store_at_size_get(
         &um_arraystore.bs_stride[ARRAY_STORE_INDEX_SHAPE], stride);
-    for (int i = 0; i < me->key->totkey; i++) {
+    for (int i = 0; i < mesh->key->totkey; i++) {
       BArrayState *state = um->store.keyblocks[i];
       BLI_array_store_state_remove(bs, state);
     }
@@ -620,7 +624,7 @@ static void um_arraystore_free(UndoMesh *um)
   }
 
   if (um->store.face_offset_indices) {
-    const size_t stride = sizeof(*me->face_offset_indices);
+    const size_t stride = sizeof(*mesh->face_offset_indices);
     BArrayStore *bs = BLI_array_store_at_size_get(
         &um_arraystore.bs_stride[ARRAY_STORE_INDEX_POLY_OFFSETS], stride);
     BArrayState *state = um->store.face_offset_indices;
@@ -628,7 +632,7 @@ static void um_arraystore_free(UndoMesh *um)
     um->store.face_offset_indices = nullptr;
   }
   if (um->store.mselect) {
-    const size_t stride = sizeof(*me->mselect);
+    const size_t stride = sizeof(*mesh->mselect);
     BArrayStore *bs = BLI_array_store_at_size_get(&um_arraystore.bs_stride[ARRAY_STORE_INDEX_MSEL],
                                                   stride);
     BArrayState *state = um->store.mselect;
@@ -678,8 +682,8 @@ static UndoMesh **mesh_undostep_reference_elems_from_objects(Object **object, in
   UndoMesh **um_references = static_cast<UndoMesh **>(
       MEM_callocN(sizeof(UndoMesh *) * object_len, __func__));
   for (int i = 0; i < object_len; i++) {
-    const Mesh *me = static_cast<const Mesh *>(object[i]->data);
-    BLI_ghash_insert(uuid_map, POINTER_FROM_INT(me->id.session_uuid), &um_references[i]);
+    const Mesh *mesh = static_cast<const Mesh *>(object[i]->data);
+    BLI_ghash_insert(uuid_map, POINTER_FROM_INT(mesh->id.session_uuid), &um_references[i]);
   }
   int uuid_map_len = object_len;
 
@@ -689,8 +693,8 @@ static UndoMesh **mesh_undostep_reference_elems_from_objects(Object **object, in
   UndoMesh *um_iter = static_cast<UndoMesh *>(um_arraystore.local_links.last);
   while (um_iter && (uuid_map_len != 0)) {
     UndoMesh **um_p;
-    if ((um_p = static_cast<UndoMesh **>(
-             BLI_ghash_popkey(uuid_map, POINTER_FROM_INT(um_iter->me.id.session_uuid), nullptr))))
+    if ((um_p = static_cast<UndoMesh **>(BLI_ghash_popkey(
+             uuid_map, POINTER_FROM_INT(um_iter->mesh.id.session_uuid), nullptr))))
     {
       *um_p = um_iter;
       uuid_map_len--;
@@ -726,11 +730,11 @@ static void *undomesh_from_editmesh(UndoMesh *um, BMEditMesh *em, Key *key, Undo
 #endif
   /* make sure shape keys work */
   if (key != nullptr) {
-    um->me.key = (Key *)BKE_id_copy_ex(
+    um->mesh.key = (Key *)BKE_id_copy_ex(
         nullptr, &key->id, nullptr, LIB_ID_COPY_LOCALIZE | LIB_ID_COPY_NO_ANIMDATA);
   }
   else {
-    um->me.key = nullptr;
+    um->mesh.key = nullptr;
   }
 
   /* Uncomment for troubleshooting. */
@@ -738,12 +742,12 @@ static void *undomesh_from_editmesh(UndoMesh *um, BMEditMesh *em, Key *key, Undo
 
   /* Copy the ID name characters to the mesh so code that depends on accessing the ID type can work
    * on it. Necessary to use the attribute API. */
-  STRNCPY(um->me.id.name, "MEundomesh_from_editmesh");
+  STRNCPY(um->mesh.id.name, "MEundomesh_from_editmesh");
 
   /* Runtime data is necessary for some asserts in other code, and the overhead of creating it for
    * undo meshes should be low. */
-  BLI_assert(um->me.runtime == nullptr);
-  um->me.runtime = new blender::bke::MeshRuntime();
+  BLI_assert(um->mesh.runtime == nullptr);
+  um->mesh.runtime = new blender::bke::MeshRuntime();
 
   CustomData_MeshMasks cd_mask_extra{};
   cd_mask_extra.vmask = CD_MASK_SHAPE_KEYINDEX;
@@ -753,7 +757,7 @@ static void *undomesh_from_editmesh(UndoMesh *um, BMEditMesh *em, Key *key, Undo
   params.update_shapekey_indices = false;
   params.cd_mask_extra = cd_mask_extra;
   params.active_shapekey_to_mvert = true;
-  BM_mesh_bm_to_me(nullptr, em->bm, &um->me, &params);
+  BM_mesh_bm_to_me(nullptr, em->bm, &um->mesh, &params);
 
   um->selectmode = em->selectmode;
   um->shapenr = em->bm->shapenr;
@@ -806,7 +810,7 @@ static void undomesh_to_editmesh(UndoMesh *um, Object *ob, BMEditMesh *em)
 #  endif
 #endif /* USE_ARRAY_STORE */
 
-  const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(&um->me);
+  const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(&um->mesh);
 
   em->bm->shapenr = um->shapenr;
 
@@ -821,7 +825,7 @@ static void undomesh_to_editmesh(UndoMesh *um, Object *ob, BMEditMesh *em)
   convert_params.calc_face_normal = false;
   convert_params.calc_vert_normal = false;
   convert_params.active_shapekey = um->shapenr;
-  BM_mesh_bm_from_me(bm, &um->me, &convert_params);
+  BM_mesh_bm_from_me(bm, &um->mesh, &convert_params);
 
   em_tmp = BKE_editmesh_create(bm);
   *em = *em_tmp;
@@ -845,7 +849,7 @@ static void undomesh_to_editmesh(UndoMesh *um, Object *ob, BMEditMesh *em)
 
 static void undomesh_free_data(UndoMesh *um)
 {
-  Mesh *me = &um->me;
+  Mesh *mesh = &um->mesh;
 
 #ifdef USE_ARRAY_STORE
 
@@ -863,12 +867,12 @@ static void undomesh_free_data(UndoMesh *um)
   um_arraystore_free(um);
 #endif
 
-  if (me->key) {
-    BKE_key_free_data(me->key);
-    MEM_freeN(me->key);
+  if (mesh->key) {
+    BKE_key_free_data(mesh->key);
+    MEM_freeN(mesh->key);
   }
 
-  BKE_mesh_free_data_for_undo(me);
+  BKE_mesh_free_data_for_undo(mesh);
 }
 
 static Object *editmesh_object_from_context(bContext *C)
@@ -878,8 +882,8 @@ static Object *editmesh_object_from_context(bContext *C)
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *obedit = BKE_view_layer_edit_object_get(view_layer);
   if (obedit && obedit->type == OB_MESH) {
-    const Mesh *me = static_cast<Mesh *>(obedit->data);
-    if (me->edit_mesh != nullptr) {
+    const Mesh *mesh = static_cast<Mesh *>(obedit->data);
+    if (mesh->edit_mesh != nullptr) {
       return obedit;
     }
   }
@@ -940,17 +944,17 @@ static bool mesh_undosys_step_encode(bContext *C, Main *bmain, UndoStep *us_p)
     MeshUndoStep_Elem *elem = &us->elems[i];
 
     elem->obedit_ref.ptr = ob;
-    Mesh *me = static_cast<Mesh *>(elem->obedit_ref.ptr->data);
-    BMEditMesh *em = me->edit_mesh;
+    Mesh *mesh = static_cast<Mesh *>(elem->obedit_ref.ptr->data);
+    BMEditMesh *em = mesh->edit_mesh;
     undomesh_from_editmesh(
-        &elem->data, me->edit_mesh, me->key, um_references ? um_references[i] : nullptr);
+        &elem->data, mesh->edit_mesh, mesh->key, um_references ? um_references[i] : nullptr);
     em->needs_flush_to_id = 1;
     us->step.data_size += elem->data.undo_size;
     elem->data.uv_selectmode = ts->uv_selectmode;
 
 #ifdef USE_ARRAY_STORE
     /** As this is only data storage it is safe to set the session ID here. */
-    elem->data.me.id.session_uuid = me->id.session_uuid;
+    elem->data.mesh.id.session_uuid = mesh->id.session_uuid;
 #endif
   }
   MEM_freeN(objects);
@@ -981,8 +985,8 @@ static void mesh_undosys_step_decode(
   for (uint i = 0; i < us->elems_len; i++) {
     MeshUndoStep_Elem *elem = &us->elems[i];
     Object *obedit = elem->obedit_ref.ptr;
-    Mesh *me = static_cast<Mesh *>(obedit->data);
-    if (me->edit_mesh == nullptr) {
+    Mesh *mesh = static_cast<Mesh *>(obedit->data);
+    if (mesh->edit_mesh == nullptr) {
       /* Should never fail, may not crash but can give odd behavior. */
       CLOG_ERROR(&LOG,
                  "name='%s', failed to enter edit-mode for object '%s', undo state invalid",
@@ -990,10 +994,10 @@ static void mesh_undosys_step_decode(
                  obedit->id.name);
       continue;
     }
-    BMEditMesh *em = me->edit_mesh;
+    BMEditMesh *em = mesh->edit_mesh;
     undomesh_to_editmesh(&elem->data, obedit, em);
     em->needs_flush_to_id = 1;
-    DEG_id_tag_update(&me->id, ID_RECALC_GEOMETRY);
+    DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);
   }
 
   /* The first element is always active */

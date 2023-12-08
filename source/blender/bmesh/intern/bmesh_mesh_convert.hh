@@ -43,7 +43,7 @@ struct BMeshFromMeshParams {
  *
  * \warning This function doesn't calculate face normals.
  */
-void BM_mesh_bm_from_me(BMesh *bm, const struct Mesh *me, const struct BMeshFromMeshParams *params)
+void BM_mesh_bm_from_me(BMesh *bm, const struct Mesh *mesh, const struct BMeshFromMeshParams *params)
     ATTR_NONNULL(1, 3);
 
 struct BMeshToMeshParams {
@@ -72,7 +72,7 @@ struct BMeshToMeshParams {
  */
 void BM_mesh_bm_to_me(struct Main *bmain,
                       BMesh *bm,
-                      struct Mesh *me,
+                      struct Mesh *mesh,
                       const struct BMeshToMeshParams *params) ATTR_NONNULL(2, 3, 4);
 
 /**
@@ -92,6 +92,6 @@ void BM_mesh_bm_to_me(struct Main *bmain,
  * \note Was `cddm_from_bmesh_ex` in 2.7x, removed `MFace` support.
  */
 void BM_mesh_bm_to_me_for_eval(BMesh *bm,
-                               struct Mesh *me,
+                               struct Mesh *mesh,
                                const struct CustomData_MeshMasks *cd_mask_extra)
     ATTR_NONNULL(1, 2);

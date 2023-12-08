@@ -176,17 +176,17 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
   bool is_mesh_verts_only = false;
   if (is_mesh) {
     /* TODO: Should be its own function. */
-    Mesh *me = static_cast<Mesh *>(ob->data);
+    Mesh *mesh = static_cast<Mesh *>(ob->data);
     if (is_edit_mode) {
-      BLI_assert(me->edit_mesh);
+      BLI_assert(mesh->edit_mesh);
       Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(ob);
       Mesh *editmesh_eval_cage = BKE_object_get_editmesh_eval_cage(ob);
       has_edit_mesh_cage = editmesh_eval_cage && (editmesh_eval_cage != editmesh_eval_final);
       if (editmesh_eval_final) {
-        me = editmesh_eval_final;
+        mesh = editmesh_eval_final;
       }
     }
-    is_mesh_verts_only = me->totedge == 0 && me->totvert > 0;
+    is_mesh_verts_only = mesh->totedge == 0 && mesh->totvert > 0;
   }
 
   const bool use_wire = !is_mesh_verts_only && ((pd->overlay.flag & V3D_OVERLAY_WIREFRAMES) ||

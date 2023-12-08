@@ -729,10 +729,10 @@ static bAnimListElem *make_new_animlistelem(void *data,
         break;
       }
       case ANIMTYPE_DSMESH: {
-        Mesh *me = (Mesh *)data;
-        AnimData *adt = me->adt;
+        Mesh *mesh = (Mesh *)data;
+        AnimData *adt = mesh->adt;
 
-        ale->flag = FILTER_MESH_OBJD(me);
+        ale->flag = FILTER_MESH_OBJD(mesh);
 
         ale->key_data = (adt) ? adt->action : nullptr;
         ale->datatype = ALE_ACT;
@@ -2799,14 +2799,14 @@ static size_t animdata_filter_ds_obdata(
     }
     case OB_MESH: /* ------- Mesh ---------- */
     {
-      Mesh *me = (Mesh *)ob->data;
+      Mesh *mesh = (Mesh *)ob->data;
 
       if (ads->filterflag & ADS_FILTER_NOMESH) {
         return 0;
       }
 
       type = ANIMTYPE_DSMESH;
-      expanded = FILTER_MESH_OBJD(me);
+      expanded = FILTER_MESH_OBJD(mesh);
       break;
     }
     case OB_LATTICE: /* ---- Lattice ---- */

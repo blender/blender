@@ -344,7 +344,7 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
 {
   using namespace blender::ed::sculpt_paint;
   const int mode_flag = OB_MODE_SCULPT;
-  Mesh *me = BKE_mesh_from_object(ob);
+  Mesh *mesh = BKE_mesh_from_object(ob);
 
   /* Enter sculpt mode. */
   ob->mode |= mode_flag;
@@ -367,11 +367,11 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
 
   /* Check dynamic-topology flag; re-enter dynamic-topology mode when changing modes,
    * As long as no data was added that is not supported. */
-  if (me->flag & ME_SCULPT_DYNAMIC_TOPOLOGY) {
+  if (mesh->flag & ME_SCULPT_DYNAMIC_TOPOLOGY) {
     MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
 
     const char *message_unsupported = nullptr;
-    if (me->totloop != me->faces_num * 3) {
+    if (mesh->totloop != mesh->faces_num * 3) {
       message_unsupported = TIP_("non-triangle face");
     }
     else if (mmd != nullptr) {
@@ -416,7 +416,7 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
     else {
       BKE_reportf(
           reports, RPT_WARNING, "Dynamic Topology found: %s, disabled", message_unsupported);
-      me->flag &= ~ME_SCULPT_DYNAMIC_TOPOLOGY;
+      mesh->flag &= ~ME_SCULPT_DYNAMIC_TOPOLOGY;
     }
   }
 
@@ -440,7 +440,7 @@ void ED_object_sculptmode_exit_ex(Main *bmain, Depsgraph *depsgraph, Scene *scen
 {
   using namespace blender::ed::sculpt_paint;
   const int mode_flag = OB_MODE_SCULPT;
-  Mesh *me = BKE_mesh_from_object(ob);
+  Mesh *mesh = BKE_mesh_from_object(ob);
 
   multires_flush_sculpt_updates(ob);
 
@@ -456,14 +456,14 @@ void ED_object_sculptmode_exit_ex(Main *bmain, Depsgraph *depsgraph, Scene *scen
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   }
 
-  if (me->flag & ME_SCULPT_DYNAMIC_TOPOLOGY) {
+  if (mesh->flag & ME_SCULPT_DYNAMIC_TOPOLOGY) {
     /* Dynamic topology must be disabled before exiting sculpt
      * mode to ensure the undo stack stays in a consistent
      * state. */
     dyntopo::disable_with_undo(bmain, depsgraph, scene, ob);
 
     /* Store so we know to re-enable when entering sculpt mode. */
-    me->flag |= ME_SCULPT_DYNAMIC_TOPOLOGY;
+    mesh->flag |= ME_SCULPT_DYNAMIC_TOPOLOGY;
   }
 
   /* Leave sculpt mode. */
@@ -522,9 +522,9 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
     BKE_paint_toolslots_brush_validate(bmain, &ts->sculpt->paint);
 
     if (ob->mode & mode_flag) {
-      Mesh *me = static_cast<Mesh *>(ob->data);
+      Mesh *mesh = static_cast<Mesh *>(ob->data);
       /* Dyntopo adds its own undo step. */
-      if ((me->flag & ME_SCULPT_DYNAMIC_TOPOLOGY) == 0) {
+      if ((mesh->flag & ME_SCULPT_DYNAMIC_TOPOLOGY) == 0) {
         /* Without this the memfile undo step is used,
          * while it works it causes lag when undoing the first undo step, see #71564. */
         wmWindowManager *wm = CTX_wm_manager(C);

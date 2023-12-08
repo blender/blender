@@ -138,10 +138,10 @@ bool BKE_object_defgroup_clear(Object *ob, bDeformGroup *dg, const bool use_sele
   bool changed = false;
 
   if (ob->type == OB_MESH) {
-    Mesh *me = static_cast<Mesh *>(ob->data);
+    Mesh *mesh = static_cast<Mesh *>(ob->data);
 
-    if (me->edit_mesh) {
-      BMEditMesh *em = me->edit_mesh;
+    if (mesh->edit_mesh) {
+      BMEditMesh *em = mesh->edit_mesh;
       const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
 
       if (cd_dvert_offset != -1) {
@@ -160,14 +160,14 @@ bool BKE_object_defgroup_clear(Object *ob, bDeformGroup *dg, const bool use_sele
       }
     }
     else {
-      if (BKE_mesh_deform_verts(me)) {
+      if (BKE_mesh_deform_verts(mesh)) {
         const bool *select_vert = (const bool *)CustomData_get_layer_named(
-            &me->vert_data, CD_PROP_BOOL, ".select_vert");
+            &mesh->vert_data, CD_PROP_BOOL, ".select_vert");
         int i;
 
-        dv = BKE_mesh_deform_verts_for_write(me);
+        dv = BKE_mesh_deform_verts_for_write(mesh);
 
-        for (i = 0; i < me->totvert; i++, dv++) {
+        for (i = 0; i < mesh->totvert; i++, dv++) {
           if (dv->dw && (!use_selection || (select_vert && select_vert[i]))) {
             MDeformWeight *dw = BKE_defvert_find_index(dv, def_nr);
             BKE_defvert_remove_group(dv, dw); /* dw can be nullptr */
@@ -257,8 +257,8 @@ static void object_defgroup_remove_common(Object *ob, bDeformGroup *dg, const in
   /* Remove all deform-verts. */
   if (BLI_listbase_is_empty(defbase)) {
     if (ob->type == OB_MESH) {
-      Mesh *me = static_cast<Mesh *>(ob->data);
-      CustomData_free_layer_active(&me->vert_data, CD_MDEFORMVERT, me->totvert);
+      Mesh *mesh = static_cast<Mesh *>(ob->data);
+      CustomData_free_layer_active(&mesh->vert_data, CD_MDEFORMVERT, mesh->totvert);
     }
     else if (ob->type == OB_LATTICE) {
       Lattice *lt = object_defgroup_lattice_get((ID *)(ob->data));
@@ -320,8 +320,8 @@ static void object_defgroup_remove_edit_mode(Object *ob, bDeformGroup *dg)
   }
   /* Else, make sure that any groups with higher indices are adjusted accordingly */
   else if (ob->type == OB_MESH) {
-    Mesh *me = static_cast<Mesh *>(ob->data);
-    BMEditMesh *em = me->edit_mesh;
+    Mesh *mesh = static_cast<Mesh *>(ob->data);
+    BMEditMesh *em = mesh->edit_mesh;
     const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
 
     BMIter iter;
@@ -404,8 +404,8 @@ void BKE_object_defgroup_remove_all_ex(Object *ob, bool only_unlocked)
   else { /* `defbase` is empty. */
     /* Remove all deform-verts. */
     if (ob->type == OB_MESH) {
-      Mesh *me = static_cast<Mesh *>(ob->data);
-      CustomData_free_layer_active(&me->vert_data, CD_MDEFORMVERT, me->totvert);
+      Mesh *mesh = static_cast<Mesh *>(ob->data);
+      CustomData_free_layer_active(&mesh->vert_data, CD_MDEFORMVERT, mesh->totvert);
     }
     else if (ob->type == OB_LATTICE) {
       Lattice *lt = object_defgroup_lattice_get((ID *)(ob->data));
@@ -495,9 +495,9 @@ bool BKE_object_defgroup_array_get(ID *id, MDeformVert **dvert_arr, int *dvert_t
   if (id) {
     switch (GS(id->name)) {
       case ID_ME: {
-        Mesh *me = (Mesh *)id;
-        *dvert_arr = BKE_mesh_deform_verts_for_write(me);
-        *dvert_tot = me->totvert;
+        Mesh *mesh = (Mesh *)id;
+        *dvert_arr = BKE_mesh_deform_verts_for_write(mesh);
+        *dvert_tot = mesh->totvert;
         return true;
       }
       case ID_LT: {
@@ -675,9 +675,9 @@ bool BKE_object_defgroup_check_lock_relative_multi(int defbase_tot,
 
 bool BKE_object_defgroup_active_is_locked(const Object *ob)
 {
-  Mesh *me = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
   bDeformGroup *dg = static_cast<bDeformGroup *>(
-      BLI_findlink(&me->vertex_group_names, me->vertex_group_active_index - 1));
+      BLI_findlink(&mesh->vertex_group_names, mesh->vertex_group_active_index - 1));
   return dg->flag & DG_LOCK_WEIGHT;
 }
 

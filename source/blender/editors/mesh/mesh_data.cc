@@ -54,10 +54,10 @@ using blender::float3;
 using blender::MutableSpan;
 using blender::Span;
 
-static CustomData *mesh_customdata_get_type(Mesh *me, const char htype, int *r_tot)
+static CustomData *mesh_customdata_get_type(Mesh *mesh, const char htype, int *r_tot)
 {
   CustomData *data;
-  BMesh *bm = (me->edit_mesh) ? me->edit_mesh->bm : nullptr;
+  BMesh *bm = (mesh->edit_mesh) ? mesh->edit_mesh->bm : nullptr;
   int tot;
 
   switch (htype) {
@@ -67,8 +67,8 @@ static CustomData *mesh_customdata_get_type(Mesh *me, const char htype, int *r_t
         tot = bm->totvert;
       }
       else {
-        data = &me->vert_data;
-        tot = me->totvert;
+        data = &mesh->vert_data;
+        tot = mesh->totvert;
       }
       break;
     case BM_EDGE:
@@ -77,8 +77,8 @@ static CustomData *mesh_customdata_get_type(Mesh *me, const char htype, int *r_t
         tot = bm->totedge;
       }
       else {
-        data = &me->edge_data;
-        tot = me->totedge;
+        data = &mesh->edge_data;
+        tot = mesh->totedge;
       }
       break;
     case BM_LOOP:
@@ -87,8 +87,8 @@ static CustomData *mesh_customdata_get_type(Mesh *me, const char htype, int *r_t
         tot = bm->totloop;
       }
       else {
-        data = &me->loop_data;
-        tot = me->totloop;
+        data = &mesh->loop_data;
+        tot = mesh->totloop;
       }
       break;
     case BM_FACE:
@@ -97,8 +97,8 @@ static CustomData *mesh_customdata_get_type(Mesh *me, const char htype, int *r_t
         tot = bm->totface;
       }
       else {
-        data = &me->face_data;
-        tot = me->faces_num;
+        data = &mesh->face_data;
+        tot = mesh->faces_num;
       }
       break;
     default:
@@ -179,9 +179,9 @@ static void mesh_uv_reset_mface(const blender::IndexRange face, float2 *mloopuv)
   mesh_uv_reset_array(fuv.data(), face.size());
 }
 
-void ED_mesh_uv_loop_reset_ex(Mesh *me, const int layernum)
+void ED_mesh_uv_loop_reset_ex(Mesh *mesh, const int layernum)
 {
-  BMEditMesh *em = me->edit_mesh;
+  BMEditMesh *em = mesh->edit_mesh;
 
   if (em) {
     /* Collect BMesh UVs */
@@ -203,31 +203,31 @@ void ED_mesh_uv_loop_reset_ex(Mesh *me, const int layernum)
   }
   else {
     /* Collect Mesh UVs */
-    BLI_assert(CustomData_has_layer(&me->loop_data, CD_PROP_FLOAT2));
-    float2 *mloopuv = static_cast<float2 *>(
-        CustomData_get_layer_n_for_write(&me->loop_data, CD_PROP_FLOAT2, layernum, me->totloop));
+    BLI_assert(CustomData_has_layer(&mesh->loop_data, CD_PROP_FLOAT2));
+    float2 *mloopuv = static_cast<float2 *>(CustomData_get_layer_n_for_write(
+        &mesh->loop_data, CD_PROP_FLOAT2, layernum, mesh->totloop));
 
-    const blender::OffsetIndices polys = me->faces();
+    const blender::OffsetIndices polys = mesh->faces();
     for (const int i : polys.index_range()) {
       mesh_uv_reset_mface(polys[i], mloopuv);
     }
   }
 
-  DEG_id_tag_update(&me->id, 0);
+  DEG_id_tag_update(&mesh->id, 0);
 }
 
-void ED_mesh_uv_loop_reset(bContext *C, Mesh *me)
+void ED_mesh_uv_loop_reset(bContext *C, Mesh *mesh)
 {
   /* could be ldata or pdata */
-  CustomData *ldata = mesh_customdata_get_type(me, BM_LOOP, nullptr);
+  CustomData *ldata = mesh_customdata_get_type(mesh, BM_LOOP, nullptr);
   const int layernum = CustomData_get_active_layer(ldata, CD_PROP_FLOAT2);
-  ED_mesh_uv_loop_reset_ex(me, layernum);
+  ED_mesh_uv_loop_reset_ex(mesh, layernum);
 
-  WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
+  WM_event_add_notifier(C, NC_GEOM | ND_DATA, mesh);
 }
 
 int ED_mesh_uv_add(
-    Mesh *me, const char *name, const bool active_set, const bool do_init, ReportList *reports)
+    Mesh *mesh, const char *name, const bool active_set, const bool do_init, ReportList *reports)
 {
   /* NOTE: keep in sync with #ED_mesh_color_add. */
 
@@ -239,11 +239,11 @@ int ED_mesh_uv_add(
   }
 
   char unique_name[MAX_CUSTOMDATA_LAYER_NAME];
-  BKE_id_attribute_calc_unique_name(&me->id, name, unique_name);
+  BKE_id_attribute_calc_unique_name(&mesh->id, name, unique_name);
   bool is_init = false;
 
-  if (me->edit_mesh) {
-    em = me->edit_mesh;
+  if (mesh->edit_mesh) {
+    em = mesh->edit_mesh;
 
     layernum_dst = CustomData_number_of_layers(&em->bm->ldata, CD_PROP_FLOAT2);
     if (layernum_dst >= MAX_MTFACE) {
@@ -265,18 +265,18 @@ int ED_mesh_uv_add(
     }
   }
   else {
-    layernum_dst = CustomData_number_of_layers(&me->loop_data, CD_PROP_FLOAT2);
+    layernum_dst = CustomData_number_of_layers(&mesh->loop_data, CD_PROP_FLOAT2);
     if (layernum_dst >= MAX_MTFACE) {
       BKE_reportf(reports, RPT_WARNING, "Cannot add more than %i UV maps", MAX_MTFACE);
       return -1;
     }
 
-    if (CustomData_has_layer(&me->loop_data, CD_PROP_FLOAT2) && do_init) {
+    if (CustomData_has_layer(&mesh->loop_data, CD_PROP_FLOAT2) && do_init) {
       CustomData_add_layer_named_with_data(
-          &me->loop_data,
+          &mesh->loop_data,
           CD_PROP_FLOAT2,
-          MEM_dupallocN(CustomData_get_layer(&me->loop_data, CD_PROP_FLOAT2)),
-          me->totloop,
+          MEM_dupallocN(CustomData_get_layer(&mesh->loop_data, CD_PROP_FLOAT2)),
+          mesh->totloop,
           unique_name,
           nullptr);
 
@@ -284,21 +284,21 @@ int ED_mesh_uv_add(
     }
     else {
       CustomData_add_layer_named(
-          &me->loop_data, CD_PROP_FLOAT2, CD_SET_DEFAULT, me->totloop, unique_name);
+          &mesh->loop_data, CD_PROP_FLOAT2, CD_SET_DEFAULT, mesh->totloop, unique_name);
     }
 
     if (active_set || layernum_dst == 0) {
-      CustomData_set_layer_active(&me->loop_data, CD_PROP_FLOAT2, layernum_dst);
+      CustomData_set_layer_active(&mesh->loop_data, CD_PROP_FLOAT2, layernum_dst);
     }
   }
 
   /* don't overwrite our copied coords */
   if (!is_init && do_init) {
-    ED_mesh_uv_loop_reset_ex(me, layernum_dst);
+    ED_mesh_uv_loop_reset_ex(mesh, layernum_dst);
   }
 
-  DEG_id_tag_update(&me->id, 0);
-  WM_main_add_notifier(NC_GEOM | ND_DATA, me);
+  DEG_id_tag_update(&mesh->id, 0);
+  WM_main_add_notifier(NC_GEOM | ND_DATA, mesh);
 
   return layernum_dst;
 }
@@ -371,29 +371,29 @@ bool *ED_mesh_uv_map_pin_layer_ensure(Mesh *mesh, const int uv_index)
   return ensure_corner_boolean_attribute(*mesh, BKE_uv_map_pin_name_get(uv_name, buffer));
 }
 
-void ED_mesh_uv_ensure(Mesh *me, const char *name)
+void ED_mesh_uv_ensure(Mesh *mesh, const char *name)
 {
   BMEditMesh *em;
   int layernum_dst;
 
-  if (me->edit_mesh) {
-    em = me->edit_mesh;
+  if (mesh->edit_mesh) {
+    em = mesh->edit_mesh;
 
     layernum_dst = CustomData_number_of_layers(&em->bm->ldata, CD_PROP_FLOAT2);
     if (layernum_dst == 0) {
-      ED_mesh_uv_add(me, name, true, true, nullptr);
+      ED_mesh_uv_add(mesh, name, true, true, nullptr);
     }
   }
   else {
-    layernum_dst = CustomData_number_of_layers(&me->loop_data, CD_PROP_FLOAT2);
+    layernum_dst = CustomData_number_of_layers(&mesh->loop_data, CD_PROP_FLOAT2);
     if (layernum_dst == 0) {
-      ED_mesh_uv_add(me, name, true, true, nullptr);
+      ED_mesh_uv_add(mesh, name, true, true, nullptr);
     }
   }
 }
 
 int ED_mesh_color_add(
-    Mesh *me, const char *name, const bool active_set, const bool do_init, ReportList *reports)
+    Mesh *mesh, const char *name, const bool active_set, const bool do_init, ReportList *reports)
 {
   /* If no name is supplied, provide a backwards compatible default. */
   if (!name) {
@@ -401,55 +401,56 @@ int ED_mesh_color_add(
   }
 
   CustomDataLayer *layer = BKE_id_attribute_new(
-      &me->id, name, CD_PROP_BYTE_COLOR, ATTR_DOMAIN_CORNER, reports);
+      &mesh->id, name, CD_PROP_BYTE_COLOR, ATTR_DOMAIN_CORNER, reports);
 
   if (do_init) {
-    const char *active_name = me->active_color_attribute;
-    if (const CustomDataLayer *active_layer = BKE_id_attributes_color_find(&me->id, active_name)) {
-      if (const BMEditMesh *em = me->edit_mesh) {
+    const char *active_name = mesh->active_color_attribute;
+    if (const CustomDataLayer *active_layer = BKE_id_attributes_color_find(&mesh->id, active_name))
+    {
+      if (const BMEditMesh *em = mesh->edit_mesh) {
         BMesh &bm = *em->bm;
         const int src_i = CustomData_get_named_layer(&bm.ldata, CD_PROP_BYTE_COLOR, active_name);
         const int dst_i = CustomData_get_named_layer(&bm.ldata, CD_PROP_BYTE_COLOR, layer->name);
         BM_data_layer_copy(&bm, &bm.ldata, CD_PROP_BYTE_COLOR, src_i, dst_i);
       }
       else {
-        memcpy(layer->data, active_layer->data, CustomData_get_elem_size(layer) * me->totloop);
+        memcpy(layer->data, active_layer->data, CustomData_get_elem_size(layer) * mesh->totloop);
       }
     }
   }
 
   if (active_set) {
-    BKE_id_attributes_active_color_set(&me->id, layer->name);
+    BKE_id_attributes_active_color_set(&mesh->id, layer->name);
   }
 
-  DEG_id_tag_update(&me->id, 0);
-  WM_main_add_notifier(NC_GEOM | ND_DATA, me);
+  DEG_id_tag_update(&mesh->id, 0);
+  WM_main_add_notifier(NC_GEOM | ND_DATA, mesh);
 
   int dummy;
-  const CustomData *data = mesh_customdata_get_type(me, BM_LOOP, &dummy);
+  const CustomData *data = mesh_customdata_get_type(mesh, BM_LOOP, &dummy);
   return CustomData_get_named_layer(data, CD_PROP_BYTE_COLOR, layer->name);
 }
 
-bool ED_mesh_color_ensure(Mesh *me, const char *name)
+bool ED_mesh_color_ensure(Mesh *mesh, const char *name)
 {
   using namespace blender;
-  BLI_assert(me->edit_mesh == nullptr);
-  if (me->attributes().contains(me->active_color_attribute)) {
+  BLI_assert(mesh->edit_mesh == nullptr);
+  if (mesh->attributes().contains(mesh->active_color_attribute)) {
     return true;
   }
 
   char unique_name[MAX_CUSTOMDATA_LAYER_NAME];
-  BKE_id_attribute_calc_unique_name(&me->id, name, unique_name);
-  if (!me->attributes_for_write().add(
+  BKE_id_attribute_calc_unique_name(&mesh->id, name, unique_name);
+  if (!mesh->attributes_for_write().add(
           unique_name, ATTR_DOMAIN_CORNER, CD_PROP_BYTE_COLOR, bke::AttributeInitDefaultValue()))
   {
     return false;
   }
 
-  BKE_id_attributes_active_color_set(&me->id, unique_name);
-  BKE_id_attributes_default_color_set(&me->id, unique_name);
-  BKE_mesh_tessface_clear(me);
-  DEG_id_tag_update(&me->id, 0);
+  BKE_id_attributes_active_color_set(&mesh->id, unique_name);
+  BKE_id_attributes_default_color_set(&mesh->id, unique_name);
+  BKE_mesh_tessface_clear(mesh);
+  DEG_id_tag_update(&mesh->id, 0);
 
   return true;
 }
@@ -473,8 +474,8 @@ static bool uv_texture_remove_poll(bContext *C)
   }
 
   Object *ob = ED_object_context(C);
-  Mesh *me = static_cast<Mesh *>(ob->data);
-  CustomData *ldata = mesh_customdata_get_type(me, BM_LOOP, nullptr);
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  CustomData *ldata = mesh_customdata_get_type(mesh, BM_LOOP, nullptr);
   const int active = CustomData_get_active_layer(ldata, CD_PROP_FLOAT2);
   if (active != -1) {
     return true;
@@ -486,9 +487,9 @@ static bool uv_texture_remove_poll(bContext *C)
 static int mesh_uv_texture_add_exec(bContext *C, wmOperator *op)
 {
   Object *ob = ED_object_context(C);
-  Mesh *me = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
 
-  if (ED_mesh_uv_add(me, nullptr, true, true, op->reports) == -1) {
+  if (ED_mesh_uv_add(mesh, nullptr, true, true, op->reports) == -1) {
     return OPERATOR_CANCELLED;
   }
 
@@ -519,11 +520,11 @@ void MESH_OT_uv_texture_add(wmOperatorType *ot)
 static int mesh_uv_texture_remove_exec(bContext *C, wmOperator *op)
 {
   Object *ob = ED_object_context(C);
-  Mesh *me = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
 
-  CustomData *ldata = mesh_customdata_get_type(me, BM_LOOP, nullptr);
+  CustomData *ldata = mesh_customdata_get_type(mesh, BM_LOOP, nullptr);
   const char *name = CustomData_get_active_layer_name(ldata, CD_PROP_FLOAT2);
-  if (!BKE_id_attribute_remove(&me->id, name, op->reports)) {
+  if (!BKE_id_attribute_remove(&mesh->id, name, op->reports)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -533,8 +534,8 @@ static int mesh_uv_texture_remove_exec(bContext *C, wmOperator *op)
     WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, nullptr);
   }
 
-  DEG_id_tag_update(&me->id, ID_RECALC_GEOMETRY);
-  WM_main_add_notifier(NC_GEOM | ND_DATA, me);
+  DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);
+  WM_main_add_notifier(NC_GEOM | ND_DATA, mesh);
 
   return OPERATOR_FINISHED;
 }
@@ -560,23 +561,23 @@ static int mesh_customdata_clear_exec__internal(bContext *C,
                                                 char htype,
                                                 const eCustomDataType type)
 {
-  Mesh *me = ED_mesh_context(C);
+  Mesh *mesh = ED_mesh_context(C);
 
   int tot;
-  CustomData *data = mesh_customdata_get_type(me, htype, &tot);
+  CustomData *data = mesh_customdata_get_type(mesh, htype, &tot);
 
   BLI_assert(CustomData_layertype_is_singleton(type) == true);
 
   if (CustomData_has_layer(data, type)) {
-    if (me->edit_mesh) {
-      BM_data_layer_free(me->edit_mesh->bm, data, type);
+    if (mesh->edit_mesh) {
+      BM_data_layer_free(mesh->edit_mesh->bm, data, type);
     }
     else {
       CustomData_free_layers(data, type, tot);
     }
 
-    DEG_id_tag_update(&me->id, 0);
-    WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
+    DEG_id_tag_update(&mesh->id, 0);
+    WM_event_add_notifier(C, NC_GEOM | ND_DATA, mesh);
 
     return OPERATOR_FINISHED;
   }
@@ -588,19 +589,19 @@ static bool mesh_customdata_mask_clear_poll(bContext *C)
 {
   Object *ob = ED_object_context(C);
   if (ob && ob->type == OB_MESH) {
-    Mesh *me = static_cast<Mesh *>(ob->data);
+    Mesh *mesh = static_cast<Mesh *>(ob->data);
 
     /* special case - can't run this if we're in sculpt mode */
     if (ob->mode & OB_MODE_SCULPT) {
       return false;
     }
 
-    if (!ID_IS_LINKED(me) && !ID_IS_OVERRIDE_LIBRARY(me)) {
-      CustomData *data = mesh_customdata_get_type(me, BM_VERT, nullptr);
+    if (!ID_IS_LINKED(mesh) && !ID_IS_OVERRIDE_LIBRARY(mesh)) {
+      CustomData *data = mesh_customdata_get_type(mesh, BM_VERT, nullptr);
       if (CustomData_has_layer_named(data, CD_PROP_FLOAT, ".sculpt_mask")) {
         return true;
       }
-      data = mesh_customdata_get_type(me, BM_LOOP, nullptr);
+      data = mesh_customdata_get_type(mesh, BM_LOOP, nullptr);
       if (CustomData_has_layer(data, CD_GRID_PAINT_MASK)) {
         return true;
       }
@@ -647,9 +648,9 @@ static int mesh_customdata_skin_state(bContext *C)
   Object *ob = ED_object_context(C);
 
   if (ob && ob->type == OB_MESH) {
-    Mesh *me = static_cast<Mesh *>(ob->data);
-    if (!ID_IS_LINKED(me) && !ID_IS_OVERRIDE_LIBRARY(me)) {
-      CustomData *data = mesh_customdata_get_type(me, BM_VERT, nullptr);
+    Mesh *mesh = static_cast<Mesh *>(ob->data);
+    if (!ID_IS_LINKED(mesh) && !ID_IS_OVERRIDE_LIBRARY(mesh)) {
+      CustomData *data = mesh_customdata_get_type(mesh, BM_VERT, nullptr);
       return CustomData_has_layer(data, CD_MVERT_SKIN);
     }
   }
@@ -664,12 +665,12 @@ static bool mesh_customdata_skin_add_poll(bContext *C)
 static int mesh_customdata_skin_add_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *ob = ED_object_context(C);
-  Mesh *me = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
 
-  BKE_mesh_ensure_skin_customdata(me);
+  BKE_mesh_ensure_skin_customdata(mesh);
 
-  DEG_id_tag_update(&me->id, 0);
-  WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
+  DEG_id_tag_update(&mesh->id, 0);
+  WM_event_add_notifier(C, NC_GEOM | ND_DATA, mesh);
 
   return OPERATOR_FINISHED;
 }
@@ -718,21 +719,21 @@ void MESH_OT_customdata_skin_clear(wmOperatorType *ot)
 static int mesh_customdata_custom_splitnormals_add_exec(bContext *C, wmOperator * /*op*/)
 {
   using namespace blender;
-  Mesh *me = ED_mesh_context(C);
-  if (BKE_mesh_has_custom_loop_normals(me)) {
+  Mesh *mesh = ED_mesh_context(C);
+  if (BKE_mesh_has_custom_loop_normals(mesh)) {
     return OPERATOR_CANCELLED;
   }
 
-  if (me->edit_mesh) {
-    BMesh &bm = *me->edit_mesh->bm;
+  if (mesh->edit_mesh) {
+    BMesh &bm = *mesh->edit_mesh->bm;
     BM_data_layer_add(&bm, &bm.ldata, CD_CUSTOMLOOPNORMAL);
   }
   else {
-    CustomData_add_layer(&me->loop_data, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, me->totloop);
+    CustomData_add_layer(&mesh->loop_data, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, mesh->totloop);
   }
 
-  DEG_id_tag_update(&me->id, 0);
-  WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
+  DEG_id_tag_update(&mesh->id, 0);
+  WM_event_add_notifier(C, NC_GEOM | ND_DATA, mesh);
 
   return OPERATOR_FINISHED;
 }
@@ -754,10 +755,10 @@ void MESH_OT_customdata_custom_splitnormals_add(wmOperatorType *ot)
 
 static int mesh_customdata_custom_splitnormals_clear_exec(bContext *C, wmOperator * /*op*/)
 {
-  Mesh *me = ED_mesh_context(C);
+  Mesh *mesh = ED_mesh_context(C);
 
-  if (BKE_mesh_has_custom_loop_normals(me)) {
-    BMEditMesh *em = me->edit_mesh;
+  if (BKE_mesh_has_custom_loop_normals(mesh)) {
+    BMEditMesh *em = mesh->edit_mesh;
     if (em != nullptr && em->bm->lnor_spacearr != nullptr) {
       BKE_lnor_spacearr_clear(em->bm->lnor_spacearr);
     }

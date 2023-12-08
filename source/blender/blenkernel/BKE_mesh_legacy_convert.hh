@@ -110,7 +110,7 @@ void BKE_mesh_convert_mfaces_to_mpolys(Mesh *mesh);
  */
 void BKE_mesh_do_versions_convert_mfaces_to_mpolys(Mesh *mesh);
 
-void BKE_mesh_calc_edges_legacy(Mesh *me);
+void BKE_mesh_calc_edges_legacy(Mesh *mesh);
 
 void BKE_mesh_do_versions_cd_flag_init(Mesh *mesh);
 

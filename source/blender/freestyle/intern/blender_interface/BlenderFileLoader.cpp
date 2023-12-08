@@ -390,11 +390,11 @@ int BlenderFileLoader::testDegenerateTriangle(float v1[3], float v2[3], float v3
   return 0;
 }
 
-static bool testEdgeMark(Mesh *me, const FreestyleEdge *fed, const MLoopTri *lt, int i)
+static bool testEdgeMark(Mesh *mesh, const FreestyleEdge *fed, const MLoopTri *lt, int i)
 {
-  const Span<blender::int2> edges = me->edges();
-  const Span<int> corner_verts = me->corner_verts();
-  const Span<int> corner_edges = me->corner_edges();
+  const Span<blender::int2> edges = mesh->edges();
+  const Span<int> corner_verts = mesh->corner_verts();
+  const Span<int> corner_edges = mesh->corner_edges();
 
   const int corner = lt->tri[i];
   const int corner_next = lt->tri[(i + 1) % 3];
@@ -408,26 +408,26 @@ static bool testEdgeMark(Mesh *me, const FreestyleEdge *fed, const MLoopTri *lt,
   return (fed[corner_edges[corner]].flag & FREESTYLE_EDGE_MARK) != 0;
 }
 
-void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
+void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *mesh, int id)
 {
   using namespace blender;
   char *name = ob->id.name + 2;
 
-  const Span<float3> vert_positions = me->vert_positions();
-  const OffsetIndices mesh_polys = me->faces();
-  const Span<int> corner_verts = me->corner_verts();
+  const Span<float3> vert_positions = mesh->vert_positions();
+  const OffsetIndices mesh_polys = mesh->faces();
+  const Span<int> corner_verts = mesh->corner_verts();
 
   // Compute loop triangles
-  int tottri = poly_to_tri_count(me->faces_num, me->totloop);
+  int tottri = poly_to_tri_count(mesh->faces_num, mesh->totloop);
   MLoopTri *mlooptri = (MLoopTri *)MEM_malloc_arrayN(tottri, sizeof(*mlooptri), __func__);
   blender::bke::mesh::looptris_calc(vert_positions, mesh_polys, corner_verts, {mlooptri, tottri});
-  const blender::Span<int> looptri_faces = me->looptri_faces();
-  const blender::Span<blender::float3> lnors = me->corner_normals();
+  const blender::Span<int> looptri_faces = mesh->looptri_faces();
+  const blender::Span<blender::float3> lnors = mesh->corner_normals();
 
   // Get other mesh data
-  const FreestyleEdge *fed = (const FreestyleEdge *)CustomData_get_layer(&me->edge_data,
+  const FreestyleEdge *fed = (const FreestyleEdge *)CustomData_get_layer(&mesh->edge_data,
                                                                          CD_FREESTYLE_EDGE);
-  const FreestyleFace *ffa = (const FreestyleFace *)CustomData_get_layer(&me->face_data,
+  const FreestyleFace *ffa = (const FreestyleFace *)CustomData_get_layer(&mesh->face_data,
                                                                          CD_FREESTYLE_FACE);
 
   // Compute view matrix
@@ -514,7 +514,7 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
 
   FrsMaterial tmpMat;
 
-  const bke::AttributeAccessor attributes = me->attributes();
+  const bke::AttributeAccessor attributes = mesh->attributes();
   const VArray<int> material_indices = *attributes.lookup_or_default<int>(
       "material_index", ATTR_DOMAIN_FACE, 0);
   const VArray<bool> sharp_faces = *attributes.lookup_or_default<bool>(
@@ -569,9 +569,9 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
     bool em1 = false, em2 = false, em3 = false;
 
     if (fed) {
-      em1 = testEdgeMark(me, fed, lt, 0);
-      em2 = testEdgeMark(me, fed, lt, 1);
-      em3 = testEdgeMark(me, fed, lt, 2);
+      em1 = testEdgeMark(mesh, fed, lt, 0);
+      em2 = testEdgeMark(mesh, fed, lt, 1);
+      em3 = testEdgeMark(mesh, fed, lt, 2);
     }
 
     if (mat) {

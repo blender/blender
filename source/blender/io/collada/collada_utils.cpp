@@ -364,8 +364,8 @@ bool bc_is_root_bone(Bone *aBone, bool deform_bones_only)
 
 int bc_get_active_UVLayer(Object *ob)
 {
-  Mesh *me = (Mesh *)ob->data;
-  return CustomData_get_active_layer_index(&me->loop_data, CD_PROP_FLOAT2);
+  Mesh *mesh = (Mesh *)ob->data;
+  return CustomData_get_active_layer_index(&mesh->loop_data, CD_PROP_FLOAT2);
 }
 
 std::string bc_url_encode(std::string data)
@@ -444,7 +444,7 @@ void bc_rotate_from_reference_quat(float quat_to[4], float quat_from[4], float m
   mul_qt_qtqt(quat_to, qd, quat_from); /* rot is the final rotation corresponding to mat_to */
 }
 
-void bc_triangulate_mesh(Mesh *me)
+void bc_triangulate_mesh(Mesh *mesh)
 {
   bool use_beauty = false;
   bool tag_only = false;
@@ -457,12 +457,12 @@ void bc_triangulate_mesh(Mesh *me)
   BMeshFromMeshParams bm_from_me_params{};
   bm_from_me_params.calc_face_normal = true;
   bm_from_me_params.calc_vert_normal = true;
-  BM_mesh_bm_from_me(bm, me, &bm_from_me_params);
+  BM_mesh_bm_from_me(bm, mesh, &bm_from_me_params);
   BM_mesh_triangulate(bm, quad_method, use_beauty, 4, tag_only, nullptr, nullptr, nullptr);
 
   BMeshToMeshParams bm_to_me_params{};
   bm_to_me_params.calc_object_remap = false;
-  BM_mesh_bm_to_me(nullptr, bm, me, &bm_to_me_params);
+  BM_mesh_bm_to_me(nullptr, bm, mesh, &bm_to_me_params);
   BM_mesh_free(bm);
 }
 
@@ -1064,11 +1064,11 @@ void bc_copy_m4d_v44(double (&r)[4][4], std::vector<std::vector<double>> &a)
 /**
  * Returns name of Active UV Layer or empty String if no active UV Layer defined
  */
-static std::string bc_get_active_uvlayer_name(Mesh *me)
+static std::string bc_get_active_uvlayer_name(Mesh *mesh)
 {
-  int num_layers = CustomData_number_of_layers(&me->loop_data, CD_PROP_FLOAT2);
+  int num_layers = CustomData_number_of_layers(&mesh->loop_data, CD_PROP_FLOAT2);
   if (num_layers) {
-    const char *layer_name = bc_CustomData_get_active_layer_name(&me->loop_data, CD_PROP_FLOAT2);
+    const char *layer_name = bc_CustomData_get_active_layer_name(&mesh->loop_data, CD_PROP_FLOAT2);
     if (layer_name) {
       return std::string(layer_name);
     }
@@ -1082,18 +1082,18 @@ static std::string bc_get_active_uvlayer_name(Mesh *me)
  */
 static std::string bc_get_active_uvlayer_name(Object *ob)
 {
-  Mesh *me = (Mesh *)ob->data;
-  return bc_get_active_uvlayer_name(me);
+  Mesh *mesh = (Mesh *)ob->data;
+  return bc_get_active_uvlayer_name(mesh);
 }
 
 /**
  * Returns UV Layer name or empty string if layer index is out of range
  */
-static std::string bc_get_uvlayer_name(Mesh *me, int layer)
+static std::string bc_get_uvlayer_name(Mesh *mesh, int layer)
 {
-  int num_layers = CustomData_number_of_layers(&me->loop_data, CD_PROP_FLOAT2);
+  int num_layers = CustomData_number_of_layers(&mesh->loop_data, CD_PROP_FLOAT2);
   if (num_layers && layer < num_layers) {
-    const char *layer_name = bc_CustomData_get_layer_name(&me->loop_data, CD_PROP_FLOAT2, layer);
+    const char *layer_name = bc_CustomData_get_layer_name(&mesh->loop_data, CD_PROP_FLOAT2, layer);
     if (layer_name) {
       return std::string(layer_name);
     }

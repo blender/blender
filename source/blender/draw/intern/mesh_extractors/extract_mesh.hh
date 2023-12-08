@@ -76,7 +76,7 @@ struct MeshRenderData {
   int freestyle_edge_ofs;
   int freestyle_face_ofs;
   /** Mesh */
-  Mesh *me;
+  Mesh *mesh;
   blender::Span<blender::float3> vert_positions;
   blender::Span<blender::int2> edges;
   blender::OffsetIndices<int> faces;
@@ -109,80 +109,80 @@ struct MeshRenderData {
   const char *default_color_name;
 };
 
-BLI_INLINE const Mesh *editmesh_final_or_this(const Object *object, const Mesh *me)
+BLI_INLINE const Mesh *editmesh_final_or_this(const Object *object, const Mesh *mesh)
 {
-  if (me->edit_mesh != nullptr) {
+  if (mesh->edit_mesh != nullptr) {
     Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(object);
     if (editmesh_eval_final != nullptr) {
       return editmesh_eval_final;
     }
   }
 
-  return me;
+  return mesh;
 }
 
-BLI_INLINE const CustomData *mesh_cd_ldata_get_from_mesh(const Mesh *me)
+BLI_INLINE const CustomData *mesh_cd_ldata_get_from_mesh(const Mesh *mesh)
 {
-  switch (me->runtime->wrapper_type) {
+  switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_SUBD:
     case ME_WRAPPER_TYPE_MDATA:
-      return &me->loop_data;
+      return &mesh->loop_data;
       break;
     case ME_WRAPPER_TYPE_BMESH:
-      return &me->edit_mesh->bm->ldata;
+      return &mesh->edit_mesh->bm->ldata;
       break;
   }
 
   BLI_assert(0);
-  return &me->loop_data;
+  return &mesh->loop_data;
 }
 
-BLI_INLINE const CustomData *mesh_cd_pdata_get_from_mesh(const Mesh *me)
+BLI_INLINE const CustomData *mesh_cd_pdata_get_from_mesh(const Mesh *mesh)
 {
-  switch (me->runtime->wrapper_type) {
+  switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_SUBD:
     case ME_WRAPPER_TYPE_MDATA:
-      return &me->face_data;
+      return &mesh->face_data;
       break;
     case ME_WRAPPER_TYPE_BMESH:
-      return &me->edit_mesh->bm->pdata;
+      return &mesh->edit_mesh->bm->pdata;
       break;
   }
 
   BLI_assert(0);
-  return &me->face_data;
+  return &mesh->face_data;
 }
 
-BLI_INLINE const CustomData *mesh_cd_edata_get_from_mesh(const Mesh *me)
+BLI_INLINE const CustomData *mesh_cd_edata_get_from_mesh(const Mesh *mesh)
 {
-  switch (me->runtime->wrapper_type) {
+  switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_SUBD:
     case ME_WRAPPER_TYPE_MDATA:
-      return &me->edge_data;
+      return &mesh->edge_data;
       break;
     case ME_WRAPPER_TYPE_BMESH:
-      return &me->edit_mesh->bm->edata;
+      return &mesh->edit_mesh->bm->edata;
       break;
   }
 
   BLI_assert(0);
-  return &me->edge_data;
+  return &mesh->edge_data;
 }
 
-BLI_INLINE const CustomData *mesh_cd_vdata_get_from_mesh(const Mesh *me)
+BLI_INLINE const CustomData *mesh_cd_vdata_get_from_mesh(const Mesh *mesh)
 {
-  switch (me->runtime->wrapper_type) {
+  switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_SUBD:
     case ME_WRAPPER_TYPE_MDATA:
-      return &me->vert_data;
+      return &mesh->vert_data;
       break;
     case ME_WRAPPER_TYPE_BMESH:
-      return &me->edit_mesh->bm->vdata;
+      return &mesh->edit_mesh->bm->vdata;
       break;
   }
 
   BLI_assert(0);
-  return &me->vert_data;
+  return &mesh->vert_data;
 }
 
 BLI_INLINE BMFace *bm_original_face_get(const MeshRenderData &mr, int idx)
@@ -338,7 +338,7 @@ struct MeshExtract {
  * otherwise don't use modifiers as they are not from this object.
  */
 MeshRenderData *mesh_render_data_create(Object *object,
-                                        Mesh *me,
+                                        Mesh *mesh,
                                         bool is_editmode,
                                         bool is_paint_mode,
                                         bool is_mode_active,

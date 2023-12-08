@@ -445,35 +445,35 @@ static void overlay_edit_uv_cache_populate(OVERLAY_Data *vedata, Object *ob)
 
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const bool is_edit_object = DRW_object_is_in_edit_mode(ob);
-  Mesh *me = (Mesh *)ob->data;
-  const bool has_active_object_uvmap = CustomData_get_active_layer(&me->loop_data,
+  Mesh *mesh = (Mesh *)ob->data;
+  const bool has_active_object_uvmap = CustomData_get_active_layer(&mesh->loop_data,
                                                                    CD_PROP_FLOAT2) != -1;
   const bool has_active_edit_uvmap = is_edit_object &&
-                                     (CustomData_get_active_layer(&me->edit_mesh->bm->ldata,
+                                     (CustomData_get_active_layer(&mesh->edit_mesh->bm->ldata,
                                                                   CD_PROP_FLOAT2) != -1);
   const bool draw_shadows = (draw_ctx->object_mode != OB_MODE_OBJECT) &&
                             (ob->mode == draw_ctx->object_mode);
 
   if (has_active_edit_uvmap) {
     if (pd->edit_uv.do_uv_overlay) {
-      geom = DRW_mesh_batch_cache_get_edituv_edges(ob, me);
+      geom = DRW_mesh_batch_cache_get_edituv_edges(ob, mesh);
       if (geom) {
         DRW_shgroup_call_obmat(pd->edit_uv_edges_grp, geom, nullptr);
       }
       if (pd->edit_uv.do_verts) {
-        geom = DRW_mesh_batch_cache_get_edituv_verts(ob, me);
+        geom = DRW_mesh_batch_cache_get_edituv_verts(ob, mesh);
         if (geom) {
           DRW_shgroup_call_obmat(pd->edit_uv_verts_grp, geom, nullptr);
         }
       }
       if (pd->edit_uv.do_faces) {
-        geom = DRW_mesh_batch_cache_get_edituv_faces(ob, me);
+        geom = DRW_mesh_batch_cache_get_edituv_faces(ob, mesh);
         if (geom) {
           DRW_shgroup_call_obmat(pd->edit_uv_faces_grp, geom, nullptr);
         }
       }
       if (pd->edit_uv.do_face_dots) {
-        geom = DRW_mesh_batch_cache_get_edituv_facedots(ob, me);
+        geom = DRW_mesh_batch_cache_get_edituv_facedots(ob, mesh);
         if (geom) {
           DRW_shgroup_call_obmat(pd->edit_uv_face_dots_grp, geom, nullptr);
         }
@@ -482,14 +482,14 @@ static void overlay_edit_uv_cache_populate(OVERLAY_Data *vedata, Object *ob)
 
     if (pd->edit_uv.do_uv_stretching_overlay) {
       if (pd->edit_uv.draw_type == SI_UVDT_STRETCH_ANGLE) {
-        geom = DRW_mesh_batch_cache_get_edituv_faces_stretch_angle(ob, me);
+        geom = DRW_mesh_batch_cache_get_edituv_faces_stretch_angle(ob, mesh);
       }
       else /* SI_UVDT_STRETCH_AREA */ {
         OVERLAY_StretchingAreaTotals *totals = static_cast<OVERLAY_StretchingAreaTotals *>(
             MEM_mallocN(sizeof(OVERLAY_StretchingAreaTotals), __func__));
         BLI_addtail(&pd->edit_uv.totals, totals);
         geom = DRW_mesh_batch_cache_get_edituv_faces_stretch_area(
-            ob, me, &totals->total_area, &totals->total_area_uv);
+            ob, mesh, &totals->total_area, &totals->total_area_uv);
       }
       if (geom) {
         DRW_shgroup_call_obmat(pd->edit_uv_stretching_grp, geom, nullptr);
@@ -499,7 +499,7 @@ static void overlay_edit_uv_cache_populate(OVERLAY_Data *vedata, Object *ob)
 
   if (draw_shadows && (has_active_object_uvmap || has_active_edit_uvmap)) {
     if (pd->edit_uv.do_uv_shadow_overlay) {
-      geom = DRW_mesh_batch_cache_get_uv_edges(ob, me);
+      geom = DRW_mesh_batch_cache_get_uv_edges(ob, mesh);
       if (geom) {
         DRW_shgroup_call_obmat(pd->edit_uv_shadow_edges_grp, geom, nullptr);
       }

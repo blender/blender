@@ -468,14 +468,14 @@ static void rna_Object_active_shape_update(Main *bmain, Scene * /*scene*/, Point
     /* exit/enter editmode to get new shape */
     switch (ob->type) {
       case OB_MESH: {
-        Mesh *me = static_cast<Mesh *>(ob->data);
-        BMEditMesh *em = me->edit_mesh;
+        Mesh *mesh = static_cast<Mesh *>(ob->data);
+        BMEditMesh *em = mesh->edit_mesh;
         int select_mode = em->selectmode;
         EDBM_mesh_load(bmain, ob);
         EDBM_mesh_make(ob, select_mode, true);
-        em = me->edit_mesh;
+        em = mesh->edit_mesh;
 
-        DEG_id_tag_update(&me->id, 0);
+        DEG_id_tag_update(&mesh->id, 0);
 
         BKE_editmesh_looptri_and_normals_calc(em);
         break;
@@ -511,9 +511,9 @@ static PointerRNA rna_Object_data_get(PointerRNA *ptr)
 {
   Object *ob = static_cast<Object *>(ptr->data);
   if (ob->type == OB_MESH) {
-    Mesh *me = static_cast<Mesh *>(ob->data);
-    me = BKE_mesh_wrapper_ensure_subdivision(me);
-    return rna_pointer_inherit_refine(ptr, &RNA_Mesh, me);
+    Mesh *mesh = static_cast<Mesh *>(ob->data);
+    mesh = BKE_mesh_wrapper_ensure_subdivision(mesh);
+    return rna_pointer_inherit_refine(ptr, &RNA_Mesh, mesh);
   }
   return rna_pointer_inherit_refine(ptr, &RNA_ID, ob->data);
 }
@@ -1047,15 +1047,15 @@ void rna_object_uvlayer_name_set(PointerRNA *ptr,
                                  int result_maxncpy)
 {
   Object *ob = reinterpret_cast<Object *>(ptr->owner_id);
-  Mesh *me;
+  Mesh *mesh;
   CustomDataLayer *layer;
   int a;
 
   if (ob->type == OB_MESH && ob->data) {
-    me = static_cast<Mesh *>(ob->data);
+    mesh = static_cast<Mesh *>(ob->data);
 
-    for (a = 0; a < me->loop_data.totlayer; a++) {
-      layer = &me->loop_data.layers[a];
+    for (a = 0; a < mesh->loop_data.totlayer; a++) {
+      layer = &mesh->loop_data.layers[a];
 
       if (layer->type == CD_PROP_FLOAT2 && STREQ(layer->name, value)) {
         BLI_strncpy(result, value, result_maxncpy);
@@ -1073,15 +1073,15 @@ void rna_object_vcollayer_name_set(PointerRNA *ptr,
                                    int result_maxncpy)
 {
   Object *ob = reinterpret_cast<Object *>(ptr->owner_id);
-  Mesh *me;
+  Mesh *mesh;
   CustomDataLayer *layer;
   int a;
 
   if (ob->type == OB_MESH && ob->data) {
-    me = static_cast<Mesh *>(ob->data);
+    mesh = static_cast<Mesh *>(ob->data);
 
-    for (a = 0; a < me->fdata_legacy.totlayer; a++) {
-      layer = &me->fdata_legacy.layers[a];
+    for (a = 0; a < mesh->fdata_legacy.totlayer; a++) {
+      layer = &mesh->fdata_legacy.layers[a];
 
       if (layer->type == CD_MCOL && STREQ(layer->name, value)) {
         BLI_strncpy(result, value, result_maxncpy);
@@ -1105,10 +1105,10 @@ static void rna_Object_active_material_index_set(PointerRNA *ptr, int value)
   ob->actcol = value + 1;
 
   if (ob->type == OB_MESH) {
-    Mesh *me = static_cast<Mesh *>(ob->data);
+    Mesh *mesh = static_cast<Mesh *>(ob->data);
 
-    if (me->edit_mesh) {
-      me->edit_mesh->mat_nr = value;
+    if (mesh->edit_mesh) {
+      mesh->edit_mesh->mat_nr = value;
     }
   }
 }

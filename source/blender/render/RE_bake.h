@@ -60,7 +60,7 @@ typedef struct BakePixel {
 typedef struct BakeHighPolyData {
   struct Object *ob;
   struct Object *ob_eval;
-  struct Mesh *me;
+  struct Mesh *mesh;
   bool is_flip_object;
 
   float obmat[4][4];
@@ -98,7 +98,7 @@ bool RE_bake_pixels_populate_from_objects(struct Mesh *me_low,
                                           float mat_cage[4][4],
                                           struct Mesh *me_cage);
 
-void RE_bake_pixels_populate(struct Mesh *me,
+void RE_bake_pixels_populate(struct Mesh *mesh,
                              struct BakePixel *pixel_array,
                              size_t pixels_num,
                              const struct BakeTargets *targets,
@@ -110,7 +110,7 @@ void RE_bake_margin(struct ImBuf *ibuf,
                     char *mask,
                     int margin,
                     char margin_type,
-                    struct Mesh const *me,
+                    const Mesh *mesh,
                     char const *uv_layer,
                     const float uv_offset[2]);
 
@@ -128,7 +128,7 @@ void RE_bake_normal_world_to_tangent(const BakePixel pixel_array[],
                                      size_t pixels_num,
                                      int depth,
                                      float result[],
-                                     struct Mesh *me,
+                                     struct Mesh *mesh,
                                      const eBakeNormalSwizzle normal_swizzle[3],
                                      float mat[4][4]);
 void RE_bake_normal_world_to_world(const BakePixel pixel_array[],

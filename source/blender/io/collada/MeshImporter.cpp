@@ -335,7 +335,7 @@ bool MeshImporter::is_nice_mesh(COLLADAFW::Mesh *mesh)
   return true;
 }
 
-void MeshImporter::read_vertices(COLLADAFW::Mesh *mesh, Mesh *me)
+void MeshImporter::read_vertices(COLLADAFW::Mesh *mesh, Mesh *blender_mesh)
 {
   /* vertices */
   COLLADAFW::MeshVertexData &pos = mesh->getPositions();
@@ -348,10 +348,10 @@ void MeshImporter::read_vertices(COLLADAFW::Mesh *mesh, Mesh *me)
     stride = 3;
   }
 
-  me->totvert = pos.getFloatValues()->getCount() / stride;
+  blender_mesh->totvert = pos.getFloatValues()->getCount() / stride;
   CustomData_add_layer_named(
-      &me->vert_data, CD_PROP_FLOAT3, CD_CONSTRUCT, me->totvert, "position");
-  MutableSpan<float3> positions = me->vert_positions_for_write();
+      &blender_mesh->vert_data, CD_PROP_FLOAT3, CD_CONSTRUCT, blender_mesh->totvert, "position");
+  MutableSpan<float3> positions = blender_mesh->vert_positions_for_write();
   for (const int i : positions.index_range()) {
     get_vector(positions[i], pos, i, stride);
   }
@@ -411,7 +411,7 @@ static std::string extract_vcolname(const COLLADAFW::String &collada_id)
   return colname;
 }
 
-void MeshImporter::allocate_poly_data(COLLADAFW::Mesh *collada_mesh, Mesh *me)
+void MeshImporter::allocate_poly_data(COLLADAFW::Mesh *collada_mesh, Mesh *mesh)
 {
   COLLADAFW::MeshPrimitiveArray &prim_arr = collada_mesh->getMeshPrimitives();
   int total_poly_count = 0;
@@ -566,7 +566,7 @@ void MeshImporter::mesh_add_edges(Mesh *mesh, int len)
   mesh->totedge = totedge;
 }
 
-void MeshImporter::read_lines(COLLADAFW::Mesh *mesh, Mesh *me)
+void MeshImporter::read_lines(COLLADAFW::Mesh *mesh, Mesh *mesh)
 {
   uint loose_edge_count = get_loose_edge_count(mesh);
   if (loose_edge_count > 0) {
@@ -598,7 +598,7 @@ void MeshImporter::read_lines(COLLADAFW::Mesh *mesh, Mesh *me)
 }
 
 void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh,
-                              Mesh *me,
+                              Mesh *mesh,
                               blender::Vector<blender::float3> &loop_normals)
 {
   uint i;
@@ -890,7 +890,7 @@ std::string *MeshImporter::get_geometry_name(const std::string &mesh_name)
   return nullptr;
 }
 
-static bool bc_has_out_of_bound_indices(Mesh *me)
+static bool bc_has_out_of_bound_indices(Mesh *mesh)
 {
   for (const int vert_i : me->corner_verts()) {
     if (vert_i >= me->totvert) {
@@ -933,7 +933,7 @@ static bool bc_has_same_material_configuration(Object *ob1, Object *ob2)
  * and no material is assigned to Data.
  * That is true right after the objects have been imported.
  */
-static void bc_copy_materials_to_data(Object *ob, Mesh *me)
+static void bc_copy_materials_to_data(Object *ob, Mesh *mesh)
 {
   for (int index = 0; index < ob->totcol; index++) {
     ob->matbits[index] = 0;
@@ -944,7 +944,7 @@ static void bc_copy_materials_to_data(Object *ob, Mesh *me)
 /**
  * Remove all references to materials from the object.
  */
-static void bc_remove_materials_from_object(Object *ob, Mesh *me)
+static void bc_remove_materials_from_object(Object *ob, Mesh *mesh)
 {
   for (int index = 0; index < ob->totcol; index++) {
     ob->matbits[index] = 0;
@@ -958,7 +958,7 @@ std::vector<Object *> MeshImporter::get_all_users_of(Mesh *reference_mesh)
   for (Object *ob : imported_objects) {
     if (bc_is_marked(ob)) {
       bc_remove_mark(ob);
-      Mesh *me = (Mesh *)ob->data;
+      Mesh *mesh = (Mesh *)ob->data;
       if (me == reference_mesh) {
         mesh_users.push_back(ob);
       }
@@ -970,7 +970,7 @@ std::vector<Object *> MeshImporter::get_all_users_of(Mesh *reference_mesh)
 void MeshImporter::optimize_material_assignements()
 {
   for (Object *ob : imported_objects) {
-    Mesh *me = (Mesh *)ob->data;
+    Mesh *mesh = (Mesh *)ob->data;
     if (ID_REAL_USERS(&me->id) == 1) {
       bc_copy_materials_to_data(ob, me);
       bc_remove_materials_from_object(ob, me);
@@ -1137,7 +1137,7 @@ bool MeshImporter::write_geometry(const COLLADAFW::Geometry *geom)
 
   const std::string &str_geom_id = mesh->getName().empty() ? mesh->getOriginalId() :
                                                              mesh->getName();
-  Mesh *me = BKE_mesh_add(m_bmain, (char *)str_geom_id.c_str());
+  Mesh *mesh = BKE_mesh_add(m_bmain, (char *)str_geom_id.c_str());
   id_us_min(&me->id); /* is already 1 here, but will be set later in BKE_mesh_assign_object */
 
   /* store the Mesh pointer to link it later with an Object

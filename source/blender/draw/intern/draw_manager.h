@@ -738,7 +738,7 @@ struct DRW_Attributes;
 struct DRW_MeshCDMask;
 struct GPUMaterial;
 void DRW_mesh_get_attributes(const struct Object *object,
-                             const struct Mesh *me,
+                             const struct Mesh *mesh,
                              const struct GPUMaterial *const *gpumat_array,
                              int gpumat_array_len,
                              struct DRW_Attributes *r_attrs,

@@ -541,7 +541,7 @@ struct PBVHBatches {
           break;
         }
         case CustomRequest::FaceSet: {
-          const bke::AttributeAccessor attributes = args.me->attributes();
+          const bke::AttributeAccessor attributes = args.mesh->attributes();
           if (const VArray<int> face_sets = *attributes.lookup<int>(".sculpt_face_set",
                                                                     ATTR_DOMAIN_FACE)) {
             const VArraySpan<int> face_sets_span(face_sets);
@@ -664,7 +664,7 @@ struct PBVHBatches {
 
     GPUVertBuf &vert_buf = *vbo.vert_buf;
 
-    const bke::AttributeAccessor attributes = args.me->attributes();
+    const bke::AttributeAccessor attributes = args.mesh->attributes();
 
     if (const CustomRequest *request_type = std::get_if<CustomRequest>(&vbo.request)) {
       switch (*request_type) {
@@ -741,7 +741,7 @@ struct PBVHBatches {
       }
     }
     else {
-      const bke::AttributeAccessor attributes = args.me->attributes();
+      const bke::AttributeAccessor attributes = args.mesh->attributes();
       const GenericRequest &request = std::get<GenericRequest>(vbo.request);
       const StringRef name = request.name;
       const eAttrDomain domain = request.domain;
@@ -1035,7 +1035,7 @@ struct PBVHBatches {
       material_index = mat_index[face_i];
     }
 
-    const Span<int2> edges = args.me->edges();
+    const Span<int2> edges = args.mesh->edges();
 
     /* Calculate number of edges. */
     int edge_count = 0;
