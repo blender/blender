@@ -312,10 +312,25 @@ static VectorSet<int> get_editable_material_indices(Object &object)
         (material->gp_style->flag & GP_MATERIAL_LOCKED) == 0 &&
         (material->gp_style->flag & GP_MATERIAL_HIDE) == 0)
     {
-      locked_material_indices.add(mat_i);
+      locked_material_indices.add_new(mat_i);
     }
   }
   return locked_material_indices;
+}
+
+static VectorSet<int> get_hidden_material_indices(Object &object)
+{
+  BLI_assert(object.type == OB_GREASE_PENCIL);
+  VectorSet<int> hidden_material_indices;
+  for (const int mat_i : IndexRange(object.totcol)) {
+    Material *material = BKE_object_material_get(&object, mat_i + 1);
+    if (material != nullptr && material->gp_style != nullptr &&
+        (material->gp_style->flag & GP_MATERIAL_HIDE) != 0)
+    {
+      hidden_material_indices.add_new(mat_i);
+    }
+  }
+  return hidden_material_indices;
 }
 
 IndexMask retrieve_editable_strokes(Object &object,
@@ -327,13 +342,23 @@ IndexMask retrieve_editable_strokes(Object &object,
   /* Get all the editable material indices */
   VectorSet<int> editable_material_indices = get_editable_material_indices(object);
 
+  if (locked_material_indices.is_empty()) {
+    return drawing.strokes().curves_range();
+  }
+
   const bke::CurvesGeometry &curves = drawing.strokes();
   const IndexRange curves_range = drawing.strokes().curves_range();
   const bke::AttributeAccessor attributes = curves.attributes();
 
+  const VArray<int> materials = *attributes.lookup<int>("material_index", ATTR_DOMAIN_CURVE);
+  if (!materials) {
+    /* if the attribute does not exist then the default is the first material. */
+    if (locked_material_indices.contains(0)) {
+      return curves_range;
+    }
+    return IndexMask();
+  }
   /* Get all the strokes that have their material unlocked. */
-  const VArray<int> materials = *attributes.lookup_or_default<int>(
-      "material_index", ATTR_DOMAIN_CURVE, -1);
   return IndexMask::from_predicate(
       curves_range, GrainSize(4096), memory, [&](const int64_t curve_i) {
         const int material_index = materials[curve_i];
@@ -348,13 +373,23 @@ IndexMask retrieve_editable_points(Object &object,
   /* Get all the editable material indices */
   VectorSet<int> editable_material_indices = get_editable_material_indices(object);
 
+  if (locked_material_indices.is_empty()) {
+    return drawing.strokes().points_range();
+  }
+
   const bke::CurvesGeometry &curves = drawing.strokes();
   const IndexRange points_range = drawing.strokes().points_range();
   const bke::AttributeAccessor attributes = curves.attributes();
 
   /* Propagate the material index to the points. */
-  const VArray<int> materials = *attributes.lookup_or_default<int>(
-      "material_index", ATTR_DOMAIN_POINT, -1);
+  const VArray<int> materials = *attributes.lookup<int>("material_index", ATTR_DOMAIN_POINT);
+  if (!materials) {
+    /* if the attribute does not exist then the default is the first material. */
+    if (locked_material_indices.contains(0)) {
+      return points_range;
+    }
+    return IndexMask();
+  }
   /* Get all the points that are part of a stroke with an unlocked material. */
   return IndexMask::from_predicate(
       points_range, GrainSize(4096), memory, [&](const int64_t point_i) {
@@ -375,6 +410,33 @@ IndexMask retrieve_editable_elements(Object &object,
     return ed::greasepencil::retrieve_editable_points(object, drawing, memory);
   }
   return {};
+}
+
+IndexMask retrieve_visible_strokes(Object &object,
+                                   const bke::greasepencil::Drawing &drawing,
+                                   IndexMaskMemory &memory)
+{
+  using namespace blender;
+
+  /* Get all the hidden material indices. */
+  VectorSet<int> hidden_material_indices = get_hidden_material_indices(object);
+
+  if (hidden_material_indices.is_empty()) {
+    return drawing.strokes().curves_range();
+  }
+
+  const bke::CurvesGeometry &curves = drawing.strokes();
+  const IndexRange curves_range = drawing.strokes().curves_range();
+  const bke::AttributeAccessor attributes = curves.attributes();
+
+  /* Get all the strokes that have their material visible. */
+  const VArray<int> materials = *attributes.lookup_or_default<int>(
+      "material_index", ATTR_DOMAIN_CURVE, -1);
+  return IndexMask::from_predicate(
+      curves_range, GrainSize(4096), memory, [&](const int64_t curve_i) {
+        const int material_index = materials[curve_i];
+        return !hidden_material_indices.contains(material_index);
+      });
 }
 
 IndexMask retrieve_editable_and_selected_strokes(Object &object,

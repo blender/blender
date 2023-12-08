@@ -222,6 +222,7 @@ void invert_booleans(MutableSpan<bool> span);
 void invert_booleans(MutableSpan<bool> span, const IndexMask &mask);
 
 int64_t count_booleans(const VArray<bool> &varray);
+int64_t count_booleans(const VArray<bool> &varray, const IndexMask &mask);
 
 enum class BooleanMix {
   None,

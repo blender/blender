@@ -181,6 +181,10 @@ IndexMask retrieve_editable_elements(Object &object,
                                      eAttrDomain selection_domain,
                                      IndexMaskMemory &memory);
 
+IndexMask retrieve_visible_strokes(Object &grease_pencil_object,
+                                   const bke::greasepencil::Drawing &drawing,
+                                   IndexMaskMemory &memory);
+
 IndexMask retrieve_editable_and_selected_strokes(Object &grease_pencil_object,
                                                  const bke::greasepencil::Drawing &drawing,
                                                  IndexMaskMemory &memory);
