@@ -5,6 +5,7 @@
 set(INC
   .
   ../blenkernel
+  ../imbuf
   ../makesrna
   ../../../intern/locale
 )
@@ -24,7 +25,6 @@ set(LIB
   bf_blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna
-  PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
 )
 

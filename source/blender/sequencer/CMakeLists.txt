@@ -8,6 +8,7 @@ set(INC
   ../blenkernel
   ../blenloader
   ../blentranslation
+  ../imbuf
   ../makesrna
   ../render
   ../windowmanager
@@ -81,7 +82,6 @@ set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
-  PRIVATE bf::imbuf
   PRIVATE bf::intern::atomic
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc

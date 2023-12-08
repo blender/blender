@@ -10,6 +10,7 @@ set(INC
   ../../blenloader
   ../../blentranslation
   ../../gpu
+  ../../imbuf
   ../../makesrna
   ../../render
   ../../windowmanager
@@ -48,7 +49,6 @@ set(LIB
   bf_blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna
-  PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
   extern_fmtlib
   PRIVATE bf::intern::atomic

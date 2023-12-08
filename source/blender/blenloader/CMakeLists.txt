@@ -9,6 +9,7 @@ set(INC
   ../draw
   ../editors/include
   ../gpu
+  ../imbuf
   ../makesrna
   ../nodes
   ../render
@@ -62,7 +63,6 @@ set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
-  PRIVATE bf::imbuf
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
 )

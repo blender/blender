@@ -12,6 +12,7 @@ if(WITH_COMPOSITOR_CPU)
     operations
     ../blenkernel
     ../blentranslation
+    ../imbuf
     ../makesrna
     ../nodes
     ../windowmanager
@@ -599,7 +600,6 @@ if(WITH_COMPOSITOR_CPU)
     PRIVATE bf::blenlib
     PRIVATE bf::depsgraph
     PRIVATE bf::dna
-    PRIVATE bf::imbuf
     PRIVATE bf::intern::clog
     PRIVATE bf::intern::guardedalloc
     extern_clew

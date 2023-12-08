@@ -9,9 +9,11 @@ set(INC
   ../blentranslation
   ../bmesh
   ../draw
+  ../functions
   ../gpencil_modifiers_legacy
   ../gpu
   ../ikplugin
+  ../imbuf
   ../makesrna
   ../modifiers
   ../nodes
@@ -545,11 +547,11 @@ set(LIB
   PRIVATE bf::dna
   bf_draw
   PRIVATE bf::extern::curve_fit_nd
-  PRIVATE bf::functions
+  bf_functions
   bf_gpencil_modifiers_legacy
   bf_gpu
   bf_ikplugin
-  PRIVATE bf::imbuf
+  bf_imbuf
   PRIVATE bf::intern::clog
   bf_intern_ghost
   PRIVATE bf::intern::guardedalloc

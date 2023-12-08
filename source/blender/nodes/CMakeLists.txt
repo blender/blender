@@ -58,8 +58,10 @@ set(INC
   ../blenloader
   ../blentranslation
   ../bmesh
+  ../functions
   ../geometry
   ../gpu
+  ../imbuf
   ../makesrna
   ../modifiers
   ../render
@@ -124,8 +126,7 @@ set(LIB
   bf_bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
-  PRIVATE bf::functions
-  PRIVATE bf::imbuf
+  bf_functions
   PRIVATE bf::intern::guardedalloc
   bf_nodes_composite
   bf_nodes_function

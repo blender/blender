@@ -6,6 +6,7 @@ set(INC
   ../include
   ../../blenkernel
   ../../blentranslation
+  ../../functions
   ../../geometry
   ../../gpu
   ../../makesrna
@@ -35,7 +36,6 @@ set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
-  PRIVATE bf::functions
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
 )

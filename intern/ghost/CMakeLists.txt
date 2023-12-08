@@ -4,6 +4,7 @@
 
 set(INC
   PUBLIC .
+  ../../source/blender/imbuf
 )
 
 set(INC_SYS
@@ -71,7 +72,6 @@ set(SRC
 set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::dna
-  PRIVATE bf::imbuf
   PRIVATE bf::intern::clog
 )
 

@@ -7,6 +7,7 @@ set(INC
   ..
   ../..
   ../../../blenkernel
+  ../../../../../intern/utfconv
 )
 
 set(INC_SYS
@@ -22,7 +23,6 @@ set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
-  PRIVATE bf::intern::utfconv
 )
 
 if(WITH_IMAGE_OPENEXR)

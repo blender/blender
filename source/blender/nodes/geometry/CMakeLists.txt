@@ -10,8 +10,10 @@ set(INC
   ../../blenkernel
   ../../blentranslation
   ../../bmesh
+  ../../functions
   ../../geometry
   ../../gpu
+  ../../imbuf
   ../../makesrna
   ../../modifiers
   ../../render
@@ -205,9 +207,8 @@ set(LIB
   bf_bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
-  PRIVATE bf::functions
+  bf_functions
   bf_geometry
-  PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
   bf_nodes
   extern_fmtlib

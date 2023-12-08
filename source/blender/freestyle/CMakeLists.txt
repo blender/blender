@@ -533,7 +533,6 @@ set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
-  PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
   bf_python_mathutils
 
@@ -545,6 +544,7 @@ set(INC
   .
   ../blenkernel
   ../blentranslation
+  ../imbuf
   ../makesrna
   ../python
   ../python/intern

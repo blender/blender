@@ -25,6 +25,7 @@ set(INC
   ../../blentranslation
   ../../editors/include
   ../../ikplugin
+  ../../imbuf
   ../../makesrna
   ../../windowmanager
   ../../../../intern/iksolver/extern
@@ -116,7 +117,6 @@ set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
-  PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
 )
 

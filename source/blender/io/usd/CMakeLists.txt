@@ -62,10 +62,12 @@ set(INC
   ../../blentranslation
   ../../bmesh
   ../../editors/include
+  ../../imbuf
   ../../makesrna
   ../../nodes
   ../../python/intern
   ../../windowmanager
+  ../../../../intern/utfconv
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
@@ -182,10 +184,9 @@ set(LIB
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::animrig
-  PRIVATE bf::imbuf
+  bf_imbuf
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
-  PRIVATE bf::intern::utfconv
   bf_io_common
 )
 

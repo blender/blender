@@ -9,7 +9,9 @@ set(INC
   ../../blenkernel
   ../../blentranslation
   ../../editors/include
+  ../../functions
   ../../gpu
+  ../../imbuf
   ../../makesrna
   ../../render
   ../../windowmanager
@@ -127,8 +129,7 @@ set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
-  PRIVATE bf::functions
-  PRIVATE bf::imbuf
+  bf_functions
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   bf_intern_sky
