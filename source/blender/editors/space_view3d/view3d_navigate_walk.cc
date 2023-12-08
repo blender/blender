@@ -110,7 +110,7 @@ enum eWalkDirectionFlag {
   WALK_BIT_GLOBAL_UP = 1 << 6,
   WALK_BIT_GLOBAL_DOWN = 1 << 7,
 };
-ENUM_OPERATORS(eWalkDirectionFlag, WALK_BIT_LOCAL_DOWN)
+ENUM_OPERATORS(eWalkDirectionFlag, WALK_BIT_GLOBAL_DOWN)
 
 enum eWalkTeleportState {
   WALK_TELEPORT_STATE_OFF = 0,
