@@ -47,15 +47,14 @@ static void do_color_smooth_task(Object *ob, const Brush *brush, PBVHNode *node)
       ss, &test, brush->falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(nullptr);
 
-  auto_mask::NodeData automask_data;
-  auto_mask::node_begin(ob, ss->cache->automasking, &automask_data, node);
+  auto_mask::NodeData automask_data = auto_mask::node_begin(*ob, ss->cache->automasking, *node);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
     }
 
-    auto_mask::node_update(&automask_data, &vd);
+    auto_mask::node_update(automask_data, vd);
 
     const float fade = bstrength * SCULPT_brush_strength_factor(ss,
                                                                 brush,
@@ -109,8 +108,7 @@ static void do_paint_brush_task(Object *ob,
 
   IMB_colormanagement_srgb_to_scene_linear_v3(brush_color, brush_color);
 
-  auto_mask::NodeData automask_data;
-  auto_mask::node_begin(ob, ss->cache->automasking, &automask_data, node);
+  auto_mask::NodeData automask_data = auto_mask::node_begin(*ob, ss->cache->automasking, *node);
 
   if (brush->flag & BRUSH_USE_GRADIENT) {
     switch (brush->gradient_stroke_mode) {
@@ -149,7 +147,7 @@ static void do_paint_brush_task(Object *ob,
       continue;
     }
 
-    auto_mask::node_update(&automask_data, &vd);
+    auto_mask::node_update(automask_data, vd);
 
     float fade = bstrength * SCULPT_brush_strength_factor(ss,
                                                           brush,
@@ -350,15 +348,14 @@ static void do_smear_brush_task(Object *ob, const Brush *brush, PBVHNode *node)
     sub_v3_v3v3(brush_delta, ss->cache->location, ss->cache->last_location);
   }
 
-  auto_mask::NodeData automask_data;
-  auto_mask::node_begin(ob, ss->cache->automasking, &automask_data, node);
+  auto_mask::NodeData automask_data = auto_mask::node_begin(*ob, ss->cache->automasking, *node);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
     }
 
-    auto_mask::node_update(&automask_data, &vd);
+    auto_mask::node_update(automask_data, vd);
 
     const float fade = bstrength * SCULPT_brush_strength_factor(ss,
                                                                 brush,

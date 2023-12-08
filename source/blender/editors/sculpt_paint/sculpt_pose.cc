@@ -151,12 +151,11 @@ static void do_pose_brush_task(Object *ob, const Brush *brush, PBVHNode *node)
 
   SculptOrigVertData orig_data;
   SCULPT_orig_vert_data_init(&orig_data, ob, node, undo::Type::Position);
-  auto_mask::NodeData automask_data;
-  auto_mask::node_begin(ob, ss->cache->automasking, &automask_data, node);
+  auto_mask::NodeData automask_data = auto_mask::node_begin(*ob, ss->cache->automasking, *node);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     SCULPT_orig_vert_data_update(&orig_data, &vd);
-    auto_mask::node_update(&automask_data, &vd);
+    auto_mask::node_update(automask_data, vd);
 
     float total_disp[3];
     zero_v3(total_disp);

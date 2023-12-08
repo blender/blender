@@ -1029,11 +1029,10 @@ static void sculpt_bake_cavity_exec_task(Object *ob,
 
   undo::push_node(ob, node, undo::Type::Mask);
 
-  auto_mask::NodeData automask_data;
-  auto_mask::node_begin(ob, automasking, &automask_data, node);
+  auto_mask::NodeData automask_data = auto_mask::node_begin(*ob, automasking, *node);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    auto_mask::node_update(&automask_data, &vd);
+    auto_mask::node_update(automask_data, vd);
 
     float automask = auto_mask::factor_get(automasking, ss, vd.vertex, &automask_data);
     float mask;

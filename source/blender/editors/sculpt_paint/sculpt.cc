@@ -2409,16 +2409,17 @@ static void sculpt_apply_texture(const SculptSession *ss,
   }
 }
 
-float SCULPT_brush_strength_factor(SculptSession *ss,
-                                   const Brush *brush,
-                                   const float brush_point[3],
-                                   float len,
-                                   const float vno[3],
-                                   const float fno[3],
-                                   float mask,
-                                   const PBVHVertRef vertex,
-                                   int thread_id,
-                                   blender::ed::sculpt_paint::auto_mask::NodeData *automask_data)
+float SCULPT_brush_strength_factor(
+    SculptSession *ss,
+    const Brush *brush,
+    const float brush_point[3],
+    float len,
+    const float vno[3],
+    const float fno[3],
+    float mask,
+    const PBVHVertRef vertex,
+    int thread_id,
+    const blender::ed::sculpt_paint::auto_mask::NodeData *automask_data)
 {
   using namespace blender::ed::sculpt_paint;
   StrokeCache *cache = ss->cache;
@@ -2443,17 +2444,18 @@ float SCULPT_brush_strength_factor(SculptSession *ss,
   return avg;
 }
 
-void SCULPT_brush_strength_color(SculptSession *ss,
-                                 const Brush *brush,
-                                 const float brush_point[3],
-                                 float len,
-                                 const float vno[3],
-                                 const float fno[3],
-                                 float mask,
-                                 const PBVHVertRef vertex,
-                                 int thread_id,
-                                 blender::ed::sculpt_paint::auto_mask::NodeData *automask_data,
-                                 float r_rgba[4])
+void SCULPT_brush_strength_color(
+    SculptSession *ss,
+    const Brush *brush,
+    const float brush_point[3],
+    float len,
+    const float vno[3],
+    const float fno[3],
+    float mask,
+    const PBVHVertRef vertex,
+    int thread_id,
+    const blender::ed::sculpt_paint::auto_mask::NodeData *automask_data,
+    float r_rgba[4])
 {
   using namespace blender::ed::sculpt_paint;
   StrokeCache *cache = ss->cache;
@@ -5979,31 +5981,29 @@ void SCULPT_fake_neighbors_free(Object *ob)
 
 namespace blender::ed::sculpt_paint::auto_mask {
 
-void node_begin(Object *ob,
-                auto_mask::Cache *automasking,
-                auto_mask::NodeData *automask_data,
-                PBVHNode *node)
+NodeData node_begin(Object &object, const Cache *automasking, PBVHNode &node)
 {
   if (!automasking) {
-    memset(automask_data, 0, sizeof(*automask_data));
-    return;
+    return {};
   }
 
-  automask_data->have_orig_data = automasking->settings.flags &
-                                  (BRUSH_AUTOMASKING_BRUSH_NORMAL | BRUSH_AUTOMASKING_VIEW_NORMAL);
+  NodeData automask_data;
+  automask_data.have_orig_data = automasking->settings.flags &
+                                 (BRUSH_AUTOMASKING_BRUSH_NORMAL | BRUSH_AUTOMASKING_VIEW_NORMAL);
 
-  if (automask_data->have_orig_data) {
-    SCULPT_orig_vert_data_init(&automask_data->orig_data, ob, node, undo::Type::Position);
+  if (automask_data.have_orig_data) {
+    SCULPT_orig_vert_data_init(&automask_data.orig_data, &object, &node, undo::Type::Position);
   }
   else {
-    memset(&automask_data->orig_data, 0, sizeof(automask_data->orig_data));
+    memset(&automask_data.orig_data, 0, sizeof(automask_data.orig_data));
   }
+  return automask_data;
 }
 
-void node_update(auto_mask::NodeData *automask_data, PBVHVertexIter *vd)
+void node_update(auto_mask::NodeData &automask_data, PBVHVertexIter &vd)
 {
-  if (automask_data->have_orig_data) {
-    SCULPT_orig_vert_data_update(&automask_data->orig_data, vd);
+  if (automask_data.have_orig_data) {
+    SCULPT_orig_vert_data_update(&automask_data.orig_data, &vd);
   }
 }
 

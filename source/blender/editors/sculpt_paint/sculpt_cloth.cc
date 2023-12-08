@@ -469,11 +469,11 @@ static void do_cloth_brush_apply_forces_task(Object *ob,
     madd_v3_v3fl(gravity, ss->cache->gravity_direction, -sd->gravity_factor);
   }
 
-  auto_mask::NodeData automask_data;
-  auto_mask::node_begin(ob, auto_mask::active_cache_get(ss), &automask_data, node);
+  auto_mask::NodeData automask_data = auto_mask::node_begin(
+      *ob, auto_mask::active_cache_get(ss), *node);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    auto_mask::node_update(&automask_data, &vd);
+    auto_mask::node_update(automask_data, vd);
 
     float force[3];
     float sim_location[3];
@@ -733,11 +733,10 @@ static void do_cloth_brush_solve_simulation_task(Object *ob,
   }
 
   auto_mask::Cache *automasking = auto_mask::active_cache_get(ss);
-  auto_mask::NodeData automask_data;
-  auto_mask::node_begin(ob, auto_mask::active_cache_get(ss), &automask_data, node);
+  auto_mask::NodeData automask_data = auto_mask::node_begin(*ob, automasking, *node);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    auto_mask::node_update(&automask_data, &vd);
+    auto_mask::node_update(automask_data, vd);
 
     float sim_location[3];
     cloth_brush_simulation_location_get(ss, brush, sim_location);
@@ -1366,12 +1365,12 @@ static void cloth_filter_apply_forces_task(Object *ob,
     sculpt_gravity[2] = -1.0f;
   }
   mul_v3_fl(sculpt_gravity, sd->gravity_factor * filter_strength);
-  auto_mask::NodeData automask_data;
-  auto_mask::node_begin(ob, auto_mask::active_cache_get(ss), &automask_data, node);
+  auto_mask::NodeData automask_data = auto_mask::node_begin(
+      *ob, auto_mask::active_cache_get(ss), *node);
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    auto_mask::node_update(&automask_data, &vd);
+    auto_mask::node_update(automask_data, vd);
 
     float fade = vd.mask;
     fade *= auto_mask::factor_get(ss->filter_cache->automasking, ss, vd.vertex, &automask_data);
@@ -1630,4 +1629,4 @@ void SCULPT_OT_cloth_filter(wmOperatorType *ot)
                              "Collide with other collider objects in the scene");
 }
 
-}  // namespace ed::sculpt_paint::cloth
+}  // namespace blender::ed::sculpt_paint::cloth

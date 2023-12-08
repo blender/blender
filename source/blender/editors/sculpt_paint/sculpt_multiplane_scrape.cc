@@ -61,8 +61,7 @@ static void calc_multiplane_scrape_surface_task(Object *ob,
   test_radius *= brush->normal_radius_factor;
   test.radius_squared = test_radius * test_radius;
 
-  auto_mask::NodeData automask_data;
-  auto_mask::node_begin(ob, ss->cache->automasking, &automask_data, node);
+  auto_mask::NodeData automask_data = auto_mask::node_begin(*ob, ss->cache->automasking, *node);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
 
@@ -74,7 +73,7 @@ static void calc_multiplane_scrape_surface_task(Object *ob,
     copy_v3_v3(normal, vd.no ? vd.no : vd.fno);
     mul_v3_m4v3(local_co, mat, vd.co);
 
-    auto_mask::node_update(&automask_data, &vd);
+    auto_mask::node_update(automask_data, vd);
 
     /* Use the brush falloff to weight the sampled normals. */
     const float fade = SCULPT_brush_strength_factor(ss,
@@ -122,8 +121,7 @@ static void do_multiplane_scrape_brush_task(Object *ob,
       ss, &test, brush->falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(nullptr);
 
-  auto_mask::NodeData automask_data;
-  auto_mask::node_begin(ob, ss->cache->automasking, &automask_data, node);
+  auto_mask::NodeData automask_data = auto_mask::node_begin(*ob, ss->cache->automasking, *node);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
 
@@ -166,7 +164,7 @@ static void do_multiplane_scrape_brush_task(Object *ob,
       continue;
     }
 
-    auto_mask::node_update(&automask_data, &vd);
+    auto_mask::node_update(automask_data, vd);
 
     /* Deform the local space along the Y axis to avoid artifacts on curved strokes. */
     /* This produces a not round brush tip. */

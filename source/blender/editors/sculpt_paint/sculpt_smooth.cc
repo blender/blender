@@ -194,15 +194,14 @@ static void do_enhance_details_brush_task(Object *ob,
       ss, &test, brush->falloff_shape);
 
   const int thread_id = BLI_task_parallel_thread_id(nullptr);
-  auto_mask::NodeData automask_data;
-  auto_mask::node_begin(ob, ss->cache->automasking, &automask_data, node);
+  auto_mask::NodeData automask_data = auto_mask::node_begin(*ob, ss->cache->automasking, *node);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
     }
 
-    auto_mask::node_update(&automask_data, &vd);
+    auto_mask::node_update(automask_data, vd);
 
     const float fade = bstrength * SCULPT_brush_strength_factor(ss,
                                                                 brush,
@@ -274,15 +273,14 @@ static void do_smooth_brush_task(Object *ob,
       ss, &test, brush->falloff_shape);
 
   const int thread_id = BLI_task_parallel_thread_id(nullptr);
-  auto_mask::NodeData automask_data;
-  auto_mask::node_begin(ob, ss->cache->automasking, &automask_data, node);
+  auto_mask::NodeData automask_data = auto_mask::node_begin(*ob, ss->cache->automasking, *node);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
     }
 
-    auto_mask::node_update(&automask_data, &vd);
+    auto_mask::node_update(automask_data, vd);
 
     const float fade = bstrength * SCULPT_brush_strength_factor(ss,
                                                                 brush,
@@ -435,8 +433,7 @@ static void do_surface_smooth_brush_laplacian_task(Object *ob, const Brush *brus
   const int thread_id = BLI_task_parallel_thread_id(nullptr);
 
   SCULPT_orig_vert_data_init(&orig_data, ob, node, undo::Type::Position);
-  auto_mask::NodeData automask_data;
-  auto_mask::node_begin(ob, ss->cache->automasking, &automask_data, node);
+  auto_mask::NodeData automask_data = auto_mask::node_begin(*ob, ss->cache->automasking, *node);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     SCULPT_orig_vert_data_update(&orig_data, &vd);
@@ -444,7 +441,7 @@ static void do_surface_smooth_brush_laplacian_task(Object *ob, const Brush *brus
       continue;
     }
 
-    auto_mask::node_update(&automask_data, &vd);
+    auto_mask::node_update(automask_data, vd);
 
     const float fade = bstrength * SCULPT_brush_strength_factor(ss,
                                                                 brush,
@@ -480,15 +477,14 @@ static void do_surface_smooth_brush_displace_task(Object *ob, const Brush *brush
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
       ss, &test, brush->falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(nullptr);
-  auto_mask::NodeData automask_data;
-  auto_mask::node_begin(ob, ss->cache->automasking, &automask_data, node);
+  auto_mask::NodeData automask_data = auto_mask::node_begin(*ob, ss->cache->automasking, *node);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
     }
 
-    auto_mask::node_update(&automask_data, &vd);
+    auto_mask::node_update(automask_data, vd);
 
     const float fade = bstrength * SCULPT_brush_strength_factor(ss,
                                                                 brush,

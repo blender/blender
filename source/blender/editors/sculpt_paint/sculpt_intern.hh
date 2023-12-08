@@ -1172,31 +1172,33 @@ void SCULPT_cube_tip_init(Sculpt *sd, Object *ob, Brush *brush, float mat[4][4])
 /**
  * Return a multiplier for brush strength on a particular vertex.
  */
-float SCULPT_brush_strength_factor(SculptSession *ss,
-                                   const Brush *br,
-                                   const float point[3],
-                                   float len,
-                                   const float vno[3],
-                                   const float fno[3],
-                                   float mask,
-                                   const PBVHVertRef vertex,
-                                   int thread_id,
-                                   blender::ed::sculpt_paint::auto_mask::NodeData *automask_data);
+float SCULPT_brush_strength_factor(
+    SculptSession *ss,
+    const Brush *br,
+    const float point[3],
+    float len,
+    const float vno[3],
+    const float fno[3],
+    float mask,
+    const PBVHVertRef vertex,
+    int thread_id,
+    const blender::ed::sculpt_paint::auto_mask::NodeData *automask_data);
 
 /**
  * Return a color of a brush texture on a particular vertex multiplied by active masks.
  */
-void SCULPT_brush_strength_color(SculptSession *ss,
-                                 const Brush *brush,
-                                 const float brush_point[3],
-                                 float len,
-                                 const float vno[3],
-                                 const float fno[3],
-                                 float mask,
-                                 const PBVHVertRef vertex,
-                                 int thread_id,
-                                 blender::ed::sculpt_paint::auto_mask::NodeData *automask_data,
-                                 float r_rgba[4]);
+void SCULPT_brush_strength_color(
+    SculptSession *ss,
+    const Brush *brush,
+    const float brush_point[3],
+    float len,
+    const float vno[3],
+    const float fno[3],
+    float mask,
+    const PBVHVertRef vertex,
+    int thread_id,
+    const blender::ed::sculpt_paint::auto_mask::NodeData *automask_data,
+    float r_rgba[4]);
 
 /**
  * Calculates the vertex offset for a single vertex depending on the brush setting rgb as vector
@@ -1326,15 +1328,15 @@ struct NodeData {
  * Call before PBVH vertex iteration.
  * \param automask_data: pointer to an uninitialized #auto_mask::NodeData struct.
  */
-void node_begin(Object *ob, Cache *automasking, NodeData *automask_data, PBVHNode *node);
+NodeData node_begin(Object &object, const Cache *automasking, PBVHNode &node);
 
 /* Call before factor_get and SCULPT_brush_strength_factor. */
-void node_update(NodeData *automask_data, PBVHVertexIter *vd);
+void node_update(NodeData &automask_data, PBVHVertexIter &vd);
 
 float factor_get(Cache *automasking,
                  SculptSession *ss,
                  PBVHVertRef vertex,
-                 NodeData *automask_data);
+                 const NodeData *automask_data);
 
 /* Returns the automasking cache depending on the active tool. Used for code that can run both for
  * brushes and filter. */

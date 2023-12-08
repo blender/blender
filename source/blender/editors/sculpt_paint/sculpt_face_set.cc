@@ -204,14 +204,14 @@ static void do_draw_face_sets_brush_faces(Object *ob,
       SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
           ss, &test, brush->falloff_shape);
 
-      auto_mask::NodeData automask_data;
-      auto_mask::node_begin(ob, ss->cache->automasking, &automask_data, node);
+      auto_mask::NodeData automask_data = auto_mask::node_begin(
+          *ob, ss->cache->automasking, *node);
 
       bool changed = false;
 
       PBVHVertexIter vd;
       BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-        auto_mask::node_update(&automask_data, &vd);
+        auto_mask::node_update(automask_data, vd);
 
         for (const int face_i : ss->pmap[vd.index]) {
           const IndexRange face = ss->faces[face_i];
@@ -270,14 +270,14 @@ static void do_draw_face_sets_brush_grids(Object *ob,
       SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
           ss, &test, brush->falloff_shape);
 
-      auto_mask::NodeData automask_data;
-      auto_mask::node_begin(ob, ss->cache->automasking, &automask_data, node);
+      auto_mask::NodeData automask_data = auto_mask::node_begin(
+          *ob, ss->cache->automasking, *node);
 
       bool changed = false;
 
       PBVHVertexIter vd;
       BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-        auto_mask::node_update(&automask_data, &vd);
+        auto_mask::node_update(automask_data, vd);
 
         if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
           continue;
@@ -335,8 +335,7 @@ static void do_draw_face_sets_brush_bmesh(Object *ob,
        * of the brush, as there is an explicit check there for the brushes which support dynamic
        * topology. Do it locally here for the Draw Face Set brush here, to mimic the behavior of
        * the other brushes but without marking the brush as supporting dynamic topology. */
-      auto_mask::NodeData automask_data;
-      auto_mask::node_begin(ob, nullptr, &automask_data, node);
+      auto_mask::NodeData automask_data = auto_mask::node_begin(*ob, nullptr, *node);
 
       bool changed = false;
 
@@ -363,7 +362,7 @@ static void do_draw_face_sets_brush_bmesh(Object *ob,
            * the typical code flow for it here for the reference, and ease of looking at what needs
            * to be done for such integration.
            *
-           * auto_mask::node_update(&automask_data, &vd); */
+           * auto_mask::node_update(automask_data, vd); */
 
           const float fade = bstrength *
                              SCULPT_brush_strength_factor(ss,
@@ -417,11 +416,10 @@ static void do_relax_face_sets_brush_task(Object *ob,
   }
 
   const int thread_id = BLI_task_parallel_thread_id(nullptr);
-  auto_mask::NodeData automask_data;
-  auto_mask::node_begin(ob, ss->cache->automasking, &automask_data, node);
+  auto_mask::NodeData automask_data = auto_mask::node_begin(*ob, ss->cache->automasking, *node);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    auto_mask::node_update(&automask_data, &vd);
+    auto_mask::node_update(automask_data, vd);
 
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
