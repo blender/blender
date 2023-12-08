@@ -1285,10 +1285,7 @@ bool SCULPT_stroke_is_dynamic_topology(const SculptSession *ss, const Brush *bru
 /** \name Sculpt Paint Mesh
  * \{ */
 
-static void paint_mesh_restore_node(Object *ob,
-                                    const SculptUndoType type,
-                                    const SculptMaskWriteInfo mask_write,
-                                    PBVHNode *node)
+static void paint_mesh_restore_node(Object *ob, const SculptUndoType type, PBVHNode *node)
 {
   using namespace blender;
   using namespace blender::ed::sculpt_paint;
@@ -1310,18 +1307,24 @@ static void paint_mesh_restore_node(Object *ob,
     case SculptUndoType::Mask: {
       switch (BKE_pbvh_type(ss->pbvh)) {
         case PBVH_FACES: {
-          blender::array_utils::scatter(unode->mask.as_span(),
-                                        BKE_pbvh_node_get_unique_vert_indices(node),
-                                        {mask_write.layer, ss->totvert});
+          Mesh &mesh = *static_cast<Mesh *>(ob->data);
+          bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
+          bke::SpanAttributeWriter<float> mask = attributes.lookup_or_add_for_write_span<float>(
+              ".sculpt_mask", ATTR_DOMAIN_POINT);
+          blender::array_utils::scatter(
+              unode->mask.as_span(), BKE_pbvh_node_get_unique_vert_indices(node), mask.span);
+          mask.finish();
           break;
         }
         case PBVH_BMESH: {
-          PBVHVertexIter vd;
-          BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-            const float orig_mask = BM_log_original_mask(ss->bm_log, vd.bm_vert);
-            BM_ELEM_CD_SET_FLOAT(vd.bm_vert, mask_write.bm_offset, orig_mask);
+          const int offset = CustomData_get_offset_named(
+              &ss->bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
+          if (offset != -1) {
+            for (BMVert *vert : BKE_pbvh_bmesh_node_unique_verts(node)) {
+              const float orig_mask = BM_log_original_mask(ss->bm_log, vert);
+              BM_ELEM_CD_SET_FLOAT(vert, offset, orig_mask);
+            }
           }
-          BKE_pbvh_vertex_iter_end;
           break;
         }
         case PBVH_GRIDS: {
@@ -1411,23 +1414,18 @@ static void paint_mesh_restore_co(Sculpt *sd, Object *ob)
       break;
   }
 
-  SculptMaskWriteInfo mask_write;
-  if (type == SculptUndoType::Mask) {
-    mask_write = SCULPT_mask_get_for_write(ss);
-  }
-
   if (ss->bm) {
     /* Disable multi-threading when dynamic-topology is enabled. Otherwise,
      * new entries might be inserted by #SCULPT_undo_push_node() into the #GHash
      * used internally by #BM_log_original_vert_co() by a different thread. See #33787. */
     for (const int i : nodes.index_range()) {
-      paint_mesh_restore_node(ob, type, mask_write, nodes[i]);
+      paint_mesh_restore_node(ob, type, nodes[i]);
     }
   }
   else {
     threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
       for (const int i : range) {
-        paint_mesh_restore_node(ob, type, mask_write, nodes[i]);
+        paint_mesh_restore_node(ob, type, nodes[i]);
       }
     });
   }
