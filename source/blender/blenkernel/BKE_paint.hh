@@ -36,8 +36,15 @@ struct Brush;
 struct CurveMapping;
 struct Depsgraph;
 struct EnumPropertyItem;
-struct ExpandCache;
-struct FilterCache;
+namespace blender::ed::sculpt_paint {
+namespace expand {
+struct Cache;
+}
+namespace filter {
+struct Cache;
+}
+struct StrokeCache;
+}  // namespace blender::ed::sculpt_paint
 struct GHash;
 struct GridPaintMask;
 struct Image;
@@ -61,7 +68,6 @@ struct Palette;
 struct PaletteColor;
 struct RegionView3D;
 struct Scene;
-struct StrokeCache;
 struct Sculpt;
 struct SculptSession;
 struct SubdivCCG;
@@ -545,7 +551,7 @@ struct SculptAttributePointers {
   SculptAttribute *persistent_disp;
 
   /* Precomputed auto-mask factor indexed by vertex, owned by the auto-masking system and
-   * initialized in #SCULPT_automasking_cache_init when needed. */
+   * initialized in #auto_mask::cache_init when needed. */
   SculptAttribute *automasking_factor;
   SculptAttribute *automasking_occlusion; /* CD_PROP_INT8. */
   SculptAttribute *automasking_stroke_id;
@@ -636,9 +642,9 @@ struct SculptSession {
   /* Pool for texture evaluations. */
   ImagePool *tex_pool;
 
-  StrokeCache *cache;
-  FilterCache *filter_cache;
-  ExpandCache *expand_cache;
+  blender::ed::sculpt_paint::StrokeCache *cache;
+  blender::ed::sculpt_paint::filter::Cache *filter_cache;
+  blender::ed::sculpt_paint::expand::Cache *expand_cache;
 
   /* Cursor data and active vertex for tools */
   PBVHVertRef active_vertex;

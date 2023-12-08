@@ -33,6 +33,8 @@
 #include <cmath>
 #include <cstdlib>
 
+namespace blender::ed::sculpt_paint::mask {
+
 enum eSculptMaskFilterTypes {
   MASK_FILTER_SMOOTH = 0,
   MASK_FILTER_SHARPEN = 1,
@@ -88,7 +90,7 @@ static void mask_filter_task(SculptSession *ss,
     switch (mode) {
       case MASK_FILTER_SMOOTH:
       case MASK_FILTER_SHARPEN: {
-        float val = SCULPT_neighbor_mask_average(ss, vd.vertex);
+        float val = smooth::neighbor_mask_average(ss, vd.vertex);
 
         val -= mask;
 
@@ -158,8 +160,6 @@ static void mask_filter_task(SculptSession *ss,
 
 static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
 {
-  using namespace blender;
-  using namespace blender::ed::sculpt_paint;
   Object *ob = CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   const Scene *scene = CTX_data_scene(C);
@@ -177,11 +177,11 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
 
   int num_verts = SCULPT_vertex_count_get(ss);
 
-  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(pbvh, {});
+  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(pbvh, {});
   undo::push_begin(ob, op);
 
   for (PBVHNode *node : nodes) {
-    undo::push_node(ob, node, SculptUndoType::Mask);
+    undo::push_node(ob, node, undo::Type::Mask);
   }
 
   float *prev_mask = nullptr;
@@ -260,3 +260,5 @@ void SCULPT_OT_mask_filter(wmOperatorType *ot)
       "Auto Iteration Count",
       "Use a automatic number of iterations based on the number of vertices of the sculpt");
 }
+
+}  // namespace blender::ed::sculpt_paint::mask

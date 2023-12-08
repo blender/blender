@@ -219,7 +219,7 @@ void init_session(Depsgraph *depsgraph, Scene *scene, Object *ob, eObjectMode ob
   ob->sculpt->mode_type = object_mode;
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true);
 
-  SCULPT_ensure_valid_pivot(ob, scene);
+  ensure_valid_pivot(ob, scene);
 }
 
 void init_session_data(const ToolSettings *ts, Object *ob)
@@ -1103,7 +1103,7 @@ static void do_vpaint_brush_blur_loops(bContext *C,
           using T = decltype(dummy);
           using Color =
               std::conditional_t<std::is_same_v<T, ColorGeometry4f>, ColorPaint4f, ColorPaint4b>;
-          using Traits = color::Traits<Color>;
+          using Traits = blender::color::Traits<Color>;
           using Blend = typename Traits::BlendType;
           MutableSpan<Color> previous_color = g_previous_color.typed<T>().template cast<Color>();
           MutableSpan<Color> colors = attribute.typed<T>().template cast<Color>();
@@ -1254,7 +1254,7 @@ static void do_vpaint_brush_blur_verts(bContext *C,
           using T = decltype(dummy);
           using Color =
               std::conditional_t<std::is_same_v<T, ColorGeometry4f>, ColorPaint4f, ColorPaint4b>;
-          using Traits = color::Traits<Color>;
+          using Traits = blender::color::Traits<Color>;
           using Blend = typename Traits::BlendType;
           MutableSpan<Color> previous_color = g_previous_color.typed<T>().template cast<Color>();
           MutableSpan<Color> colors = attribute.typed<T>().template cast<Color>();
@@ -1412,7 +1412,7 @@ static void do_vpaint_brush_smear(bContext *C,
           using T = decltype(dummy);
           using Color =
               std::conditional_t<std::is_same_v<T, ColorGeometry4f>, ColorPaint4f, ColorPaint4b>;
-          using Traits = color::Traits<Color>;
+          using Traits = blender::color::Traits<Color>;
           MutableSpan<Color> color_curr = g_color_curr.typed<T>().template cast<Color>();
           MutableSpan<Color> color_prev_smear =
               g_color_prev_smear.typed<T>().template cast<Color>();
@@ -1541,7 +1541,7 @@ static void calculate_average_color(VPaintData *vpd,
     using T = decltype(dummy);
     using Color =
         std::conditional_t<std::is_same_v<T, ColorGeometry4f>, ColorPaint4f, ColorPaint4b>;
-    using Traits = color::Traits<Color>;
+    using Traits = blender::color::Traits<Color>;
     using Blend = typename Traits::BlendType;
     const Span<Color> colors = attribute.typed<T>().template cast<Color>();
 
@@ -1710,7 +1710,7 @@ static void vpaint_do_draw(bContext *C,
           using T = decltype(dummy);
           using Color =
               std::conditional_t<std::is_same_v<T, ColorGeometry4f>, ColorPaint4f, ColorPaint4b>;
-          using Traits = color::Traits<Color>;
+          using Traits = blender::color::Traits<Color>;
           MutableSpan<Color> colors = attribute.typed<T>().template cast<Color>();
           MutableSpan<Color> previous_color = g_previous_color.typed<T>().template cast<Color>();
           Color color_final = fromFloat<Color>(vpd->paintcol);
@@ -1809,7 +1809,7 @@ static void vpaint_paint_leaves(bContext *C,
                                 Span<PBVHNode *> nodes)
 {
   for (PBVHNode *node : nodes) {
-    undo::push_node(ob, node, SculptUndoType::Color);
+    undo::push_node(ob, node, undo::Type::Color);
   }
 
   const Brush *brush = ob->sculpt->cache->brush;
@@ -2257,7 +2257,7 @@ static int vertex_color_set_exec(bContext *C, wmOperator *op)
   undo::push_begin(obact, op);
   Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(obact->sculpt->pbvh, {});
   for (PBVHNode *node : nodes) {
-    undo::push_node(obact, node, SculptUndoType::Color);
+    undo::push_node(obact, node, undo::Type::Color);
   }
 
   paint_object_attributes_active_color_fill_ex(obact, paintcol, true, affect_alpha);

@@ -158,7 +158,7 @@ template<typename ImageBuffer> class PaintingKernel {
              const PaintUVPrimitives &uv_primitives,
              const PackedPixelRow &pixel_row,
              ImBuf *image_buffer,
-             AutomaskingNodeData *automask_data)
+             auto_mask::NodeData *automask_data)
   {
     image_accessor.set_image_position(image_buffer, pixel_row.start_image_coordinate);
     const UVPrimitivePaintInput paint_input = uv_primitives.get_paint_input(
@@ -364,8 +364,8 @@ static void do_paint_pixels(void *__restrict userdata,
 
   brush_color[3] = 1.0f;
 
-  AutomaskingNodeData automask_data;
-  SCULPT_automasking_node_begin(ob, ss->cache->automasking, &automask_data, data->nodes[n]);
+  auto_mask::NodeData automask_data;
+  auto_mask::node_begin(ob, ss->cache->automasking, &automask_data, data->nodes[n]);
 
   ImageUser image_user = *data->image_data.image_user;
   bool pixels_updated = false;

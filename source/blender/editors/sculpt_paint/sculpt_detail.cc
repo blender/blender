@@ -47,6 +47,8 @@
 #include <cmath>
 #include <cstdlib>
 
+namespace blender::ed::sculpt_paint::dyntopo {
+
 static CLG_LogRef LOG = {"sculpt.detail"};
 
 /* -------------------------------------------------------------------- */
@@ -86,13 +88,11 @@ static bool sculpt_and_dynamic_topology_poll(bContext *C)
 
 static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
 {
-  using namespace blender;
-  using namespace blender::ed::sculpt_paint;
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
 
-  blender::Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, {});
+  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(ss->pbvh, {});
 
   if (nodes.is_empty()) {
     return OPERATOR_CANCELLED;
@@ -113,7 +113,7 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
   BKE_pbvh_bmesh_detail_size_set(ss->pbvh, object_space_constant_detail);
 
   undo::push_begin(ob, op);
-  undo::push_node(ob, nullptr, SculptUndoType::Position);
+  undo::push_node(ob, nullptr, undo::Type::Position);
 
   const double start_time = PIL_check_seconds_timer();
 
@@ -783,5 +783,7 @@ void SCULPT_OT_dyntopo_detail_size_edit(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+}  // namespace blender::ed::sculpt_paint::dyntopo
 
 /** \} */

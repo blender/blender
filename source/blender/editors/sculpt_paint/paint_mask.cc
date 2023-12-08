@@ -188,7 +188,7 @@ static bool try_remove_mask_mesh(Object &object, const Span<PBVHNode *> nodes)
       if (std::all_of(verts.begin(), verts.end(), [&](const int i) { return mask[i] == 0.0f; })) {
         continue;
       }
-      undo::push_node(&object, node, SculptUndoType::Mask);
+      undo::push_node(&object, node, undo::Type::Mask);
       BKE_pbvh_node_mark_redraw(node);
     }
   });
@@ -219,7 +219,7 @@ static void fill_mask_mesh(Object &object, const float value, const Span<PBVHNod
       if (std::all_of(verts.begin(), verts.end(), [&](int i) { return mask.span[i] == value; })) {
         continue;
       }
-      undo::push_node(&object, node, SculptUndoType::Mask);
+      undo::push_node(&object, node, undo::Type::Mask);
       mask.span.fill_indices(verts, value);
       BKE_pbvh_node_mark_redraw(node);
     }
@@ -265,7 +265,7 @@ static void fill_mask_grids(Main &bmain,
       {
         continue;
       }
-      undo::push_node(&object, node, SculptUndoType::Mask);
+      undo::push_node(&object, node, undo::Type::Mask);
 
       if (grid_hidden.is_empty()) {
         for (const int grid : grid_indices) {
@@ -306,7 +306,7 @@ static void fill_mask_bmesh(Object &object, const float value, const Span<PBVHNo
     return;
   }
 
-  undo::push_node(&object, nodes.first(), SculptUndoType::Mask);
+  undo::push_node(&object, nodes.first(), undo::Type::Mask);
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (PBVHNode *node : nodes.slice(range)) {
       bool redraw = false;
@@ -361,7 +361,7 @@ static void invert_mask_mesh(Object &object, const Span<PBVHNode *> nodes)
       ".sculpt_mask", ATTR_DOMAIN_POINT);
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (PBVHNode *node : nodes.slice(range)) {
-      undo::push_node(&object, node, SculptUndoType::Mask);
+      undo::push_node(&object, node, undo::Type::Mask);
       for (const int vert : BKE_pbvh_node_get_unique_vert_indices(node)) {
         if (!hide_vert.is_empty() && hide_vert[vert]) {
           continue;
@@ -392,7 +392,7 @@ static void invert_mask_grids(Main &bmain,
   const Span<CCGElem *> grids = subdiv_ccg.grids;
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (PBVHNode *node : nodes.slice(range)) {
-      undo::push_node(&object, node, SculptUndoType::Mask);
+      undo::push_node(&object, node, undo::Type::Mask);
 
       const Span<int> grid_indices = BKE_pbvh_node_get_grid_indices(*node);
       if (grid_hidden.is_empty()) {
@@ -428,7 +428,7 @@ static void invert_mask_bmesh(Object &object, const Span<PBVHNode *> nodes)
     return;
   }
 
-  undo::push_node(&object, nodes.first(), SculptUndoType::Mask);
+  undo::push_node(&object, nodes.first(), undo::Type::Mask);
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (PBVHNode *node : nodes.slice(range)) {
       for (BMVert *vert : BKE_pbvh_bmesh_node_unique_verts(node)) {
@@ -1052,7 +1052,7 @@ static void face_set_gesture_apply_mesh(SculptGestureContext *sgcontext,
 
   threading::parallel_for(sgcontext->nodes.index_range(), 1, [&](const IndexRange range) {
     for (PBVHNode *node : nodes.slice(range)) {
-      undo::push_node(sgcontext->vc.obact, node, SculptUndoType::FaceSet);
+      undo::push_node(sgcontext->vc.obact, node, undo::Type::FaceSet);
 
       bool any_updated = false;
       for (const int face : BKE_pbvh_node_calc_face_indices(pbvh, *node)) {
@@ -1089,7 +1089,7 @@ static void face_set_gesture_apply_bmesh(SculptGestureContext *sgcontext,
 
   threading::parallel_for(sgcontext->nodes.index_range(), 1, [&](const IndexRange range) {
     for (PBVHNode *node : nodes.slice(range)) {
-      undo::push_node(sgcontext->vc.obact, node, SculptUndoType::FaceSet);
+      undo::push_node(sgcontext->vc.obact, node, undo::Type::FaceSet);
 
       bool any_updated = false;
       for (BMFace *face : BKE_pbvh_bmesh_node_faces(node)) {
@@ -1186,7 +1186,7 @@ static void mask_gesture_apply_task(SculptGestureContext *sgcontext,
       if (!any_masked) {
         any_masked = true;
 
-        undo::push_node(ob, node, SculptUndoType::Mask);
+        undo::push_node(ob, node, undo::Type::Mask);
 
         if (is_multires) {
           BKE_pbvh_node_mark_normals_update(node);
@@ -1769,7 +1769,7 @@ static void sculpt_gesture_trim_begin(bContext *C, SculptGestureContext *sgconte
   sculpt_gesture_trim_geometry_generate(sgcontext);
   SCULPT_topology_islands_invalidate(ss);
   BKE_sculpt_update_object_for_edit(depsgraph, sgcontext->vc.obact, false);
-  undo::push_node(sgcontext->vc.obact, nullptr, SculptUndoType::Geometry);
+  undo::push_node(sgcontext->vc.obact, nullptr, undo::Type::Geometry);
 }
 
 static void sculpt_gesture_trim_apply_for_symmetry_pass(bContext * /*C*/,
@@ -1798,7 +1798,7 @@ static void sculpt_gesture_trim_end(bContext * /*C*/, SculptGestureContext *sgco
 
   sculpt_gesture_trim_geometry_free(sgcontext);
 
-  undo::push_node(sgcontext->vc.obact, nullptr, SculptUndoType::Geometry);
+  undo::push_node(sgcontext->vc.obact, nullptr, undo::Type::Geometry);
   BKE_mesh_batch_cache_dirty_tag(mesh, BKE_MESH_BATCH_DIRTY_ALL);
   DEG_id_tag_update(&sgcontext->vc.obact->id, ID_RECALC_GEOMETRY);
 }
@@ -1873,7 +1873,7 @@ static void project_line_gesture_apply_task(SculptGestureContext *sgcontext, PBV
   PBVHVertexIter vd;
   bool any_updated = false;
 
-  undo::push_node(sgcontext->vc.obact, node, SculptUndoType::Position);
+  undo::push_node(sgcontext->vc.obact, node, undo::Type::Position);
 
   BKE_pbvh_vertex_iter_begin (sgcontext->ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     float vertex_normal[3];

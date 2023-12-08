@@ -36,8 +36,10 @@
 
 #define SCULPT_GEODESIC_VERTEX_NONE -1
 
+namespace blender::ed::sculpt_paint::geodesic {
+
 /* Propagate distance from v1 and v2 to v0. */
-static bool sculpt_geodesic_mesh_test_dist_add(blender::Span<blender::float3> vert_positions,
+static bool sculpt_geodesic_mesh_test_dist_add(Span<float3> vert_positions,
                                                const int v0,
                                                const int v1,
                                                const int v2,
@@ -78,7 +80,6 @@ static bool sculpt_geodesic_mesh_test_dist_add(blender::Span<blender::float3> ve
 
 static float *geodesic_mesh_create(Object *ob, GSet *initial_verts, const float limit_radius)
 {
-  using namespace blender;
   SculptSession *ss = ob->sculpt;
   Mesh *mesh = BKE_object_get_original_mesh(ob);
 
@@ -87,11 +88,11 @@ static float *geodesic_mesh_create(Object *ob, GSet *initial_verts, const float 
 
   const float limit_radius_sq = limit_radius * limit_radius;
 
-  const blender::Span<blender::float3> vert_positions = SCULPT_mesh_deformed_positions_get(ss);
-  const blender::Span<blender::int2> edges = mesh->edges();
-  const blender::OffsetIndices faces = mesh->faces();
-  const blender::Span<int> corner_verts = mesh->corner_verts();
-  const blender::Span<int> corner_edges = mesh->corner_edges();
+  const Span<float3> vert_positions = SCULPT_mesh_deformed_positions_get(ss);
+  const Span<int2> edges = mesh->edges();
+  const OffsetIndices faces = mesh->faces();
+  const Span<int> corner_verts = mesh->corner_verts();
+  const Span<int> corner_edges = mesh->corner_edges();
   const bke::AttributeAccessor attributes = mesh->attributes();
   const VArraySpan<bool> hide_poly = *attributes.lookup<bool>(".hide_poly", ATTR_DOMAIN_FACE);
 
@@ -99,11 +100,11 @@ static float *geodesic_mesh_create(Object *ob, GSet *initial_verts, const float 
   BLI_bitmap *edge_tag = BLI_BITMAP_NEW(totedge, "edge tag");
 
   if (ss->epmap.is_empty()) {
-    ss->epmap = blender::bke::mesh::build_edge_to_face_map(
+    ss->epmap = bke::mesh::build_edge_to_face_map(
         faces, corner_edges, edges.size(), ss->edge_to_face_offsets, ss->edge_to_face_indices);
   }
   if (ss->vemap.is_empty()) {
-    ss->vemap = blender::bke::mesh::build_vert_to_edge_map(
+    ss->vemap = bke::mesh::build_vert_to_edge_map(
         edges, mesh->totvert, ss->vert_to_edge_offsets, ss->vert_to_edge_indices);
   }
 
@@ -235,7 +236,6 @@ static float *geodesic_mesh_create(Object *ob, GSet *initial_verts, const float 
  * calculate the distance. */
 static float *geodesic_fallback_create(Object *ob, GSet *initial_verts)
 {
-
   SculptSession *ss = ob->sculpt;
   Mesh *mesh = BKE_object_get_original_mesh(ob);
   const int totvert = mesh->totvert;
@@ -265,7 +265,7 @@ static float *geodesic_fallback_create(Object *ob, GSet *initial_verts)
   return dists;
 }
 
-float *SCULPT_geodesic_distances_create(Object *ob, GSet *initial_verts, const float limit_radius)
+float *distances_create(Object *ob, GSet *initial_verts, const float limit_radius)
 {
   SculptSession *ss = ob->sculpt;
   switch (BKE_pbvh_type(ss->pbvh)) {
@@ -279,10 +279,10 @@ float *SCULPT_geodesic_distances_create(Object *ob, GSet *initial_verts, const f
   return nullptr;
 }
 
-float *SCULPT_geodesic_from_vertex_and_symm(Sculpt *sd,
-                                            Object *ob,
-                                            const PBVHVertRef vertex,
-                                            const float limit_radius)
+float *distances_create_from_vert_and_symm(Sculpt *sd,
+                                           Object *ob,
+                                           const PBVHVertRef vertex,
+                                           const float limit_radius)
 {
   SculptSession *ss = ob->sculpt;
   GSet *initial_verts = BLI_gset_int_new("initial_verts");
@@ -306,7 +306,9 @@ float *SCULPT_geodesic_from_vertex_and_symm(Sculpt *sd,
     }
   }
 
-  float *dists = SCULPT_geodesic_distances_create(ob, initial_verts, limit_radius);
+  float *dists = distances_create(ob, initial_verts, limit_radius);
   BLI_gset_free(initial_verts, nullptr);
   return dists;
 }
+
+}  // namespace blender::ed::sculpt_paint::geodesic

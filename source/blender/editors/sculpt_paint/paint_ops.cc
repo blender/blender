@@ -1460,6 +1460,7 @@ void ED_operatormacros_paint()
 void ED_operatortypes_paint()
 {
   /* palette */
+  using namespace blender::ed::sculpt_paint;
   WM_operatortype_append(PALETTE_OT_new);
   WM_operatortype_append(PALETTE_OT_color_add);
   WM_operatortype_append(PALETTE_OT_color_delete);
@@ -1548,18 +1549,19 @@ void ED_operatortypes_paint()
   WM_operatortype_append(PAINT_OT_face_vert_reveal);
 
   /* partial visibility */
-  WM_operatortype_append(blender::ed::sculpt_paint::hide::PAINT_OT_hide_show);
-  WM_operatortype_append(blender::ed::sculpt_paint::hide::PAINT_OT_visibility_invert);
+  WM_operatortype_append(hide::PAINT_OT_hide_show);
+  WM_operatortype_append(hide::PAINT_OT_visibility_invert);
 
   /* paint masking */
-  WM_operatortype_append(blender::ed::sculpt_paint::mask::PAINT_OT_mask_flood_fill);
-  WM_operatortype_append(blender::ed::sculpt_paint::mask::PAINT_OT_mask_lasso_gesture);
-  WM_operatortype_append(blender::ed::sculpt_paint::mask::PAINT_OT_mask_box_gesture);
-  WM_operatortype_append(blender::ed::sculpt_paint::mask::PAINT_OT_mask_line_gesture);
+  WM_operatortype_append(mask::PAINT_OT_mask_flood_fill);
+  WM_operatortype_append(mask::PAINT_OT_mask_lasso_gesture);
+  WM_operatortype_append(mask::PAINT_OT_mask_box_gesture);
+  WM_operatortype_append(mask::PAINT_OT_mask_line_gesture);
 }
 
 void ED_keymap_paint(wmKeyConfig *keyconf)
 {
+  using namespace blender::ed::sculpt_paint;
   wmKeyMap *keymap;
 
   keymap = WM_keymap_ensure(keyconf, "Paint Curve", SPACE_EMPTY, RGN_TYPE_WINDOW);
@@ -1600,5 +1602,5 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
   keymap->poll = CURVES_SCULPT_mode_poll;
 
   /* sculpt expand. */
-  sculpt_expand_modal_keymap(keyconf);
+  expand::modal_keymap(keyconf);
 }
