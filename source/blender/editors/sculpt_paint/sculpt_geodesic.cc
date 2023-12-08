@@ -78,6 +78,7 @@ static bool sculpt_geodesic_mesh_test_dist_add(blender::Span<blender::float3> ve
 
 static float *geodesic_mesh_create(Object *ob, GSet *initial_verts, const float limit_radius)
 {
+  using namespace blender;
   SculptSession *ss = ob->sculpt;
   Mesh *mesh = BKE_object_get_original_mesh(ob);
 
@@ -91,6 +92,8 @@ static float *geodesic_mesh_create(Object *ob, GSet *initial_verts, const float 
   const blender::OffsetIndices faces = mesh->faces();
   const blender::Span<int> corner_verts = mesh->corner_verts();
   const blender::Span<int> corner_edges = mesh->corner_edges();
+  const bke::AttributeAccessor attributes = mesh->attributes();
+  const VArraySpan<bool> hide_poly = *attributes.lookup<bool>(".hide_poly", ATTR_DOMAIN_FACE);
 
   float *dists = static_cast<float *>(MEM_malloc_arrayN(totvert, sizeof(float), __func__));
   BLI_bitmap *edge_tag = BLI_BITMAP_NEW(totedge, "edge tag");
@@ -174,7 +177,7 @@ static float *geodesic_mesh_create(Object *ob, GSet *initial_verts, const float 
       if (ss->epmap[e].size() != 0) {
         for (int face_map_index = 0; face_map_index < ss->epmap[e].size(); face_map_index++) {
           const int face = ss->epmap[e][face_map_index];
-          if (ss->hide_poly && ss->hide_poly[face]) {
+          if (!hide_poly.is_empty() && hide_poly[face]) {
             continue;
           }
           for (const int v_other : corner_verts.slice(faces[face])) {

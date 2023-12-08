@@ -276,11 +276,12 @@ static bool sculpt_expand_state_get(SculptSession *ss,
  * Returns true when the target data should be modified by expand.
  */
 static bool sculpt_expand_face_state_get(SculptSession *ss,
+                                         const Span<bool> hide_poly,
                                          const Span<int> face_sets,
                                          ExpandCache *expand_cache,
                                          const int f)
 {
-  if (ss->hide_poly && ss->hide_poly[f]) {
+  if (!hide_poly.is_empty() && hide_poly[f]) {
     return false;
   }
 
@@ -1357,9 +1358,12 @@ static void sculpt_expand_face_sets_update(Object &object, ExpandCache *expand_c
   using namespace blender;
   using namespace blender::ed::sculpt_paint;
   bke::SpanAttributeWriter<int> face_sets = face_set::ensure_face_sets_mesh(object);
+  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  const bke::AttributeAccessor attributes = mesh.attributes();
+  const VArraySpan<bool> hide_poly = *attributes.lookup<bool>(".hide_poly", ATTR_DOMAIN_FACE);
   for (const int f : face_sets.span.index_range()) {
     const bool enabled = sculpt_expand_face_state_get(
-        object.sculpt, face_sets.span, expand_cache, f);
+        object.sculpt, hide_poly, face_sets.span, expand_cache, f);
     if (!enabled) {
       continue;
     }
