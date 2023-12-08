@@ -77,7 +77,7 @@ int find_next_available_id(Object &object)
       const int max = threading::parallel_reduce(
           face_sets.index_range(),
           4096,
-          0,
+          1,
           [&](const IndexRange range, int max) {
             for (const int id : face_sets.slice(range)) {
               max = std::max(max, id);
@@ -94,7 +94,7 @@ int find_next_available_id(Object &object)
       if (cd_offset == -1) {
         return 1;
       }
-      int next_face_set = 0;
+      int next_face_set = 1;
       BMIter iter;
       BMFace *f;
       BM_ITER_MESH (f, &iter, &bm, BM_FACES_OF_MESH) {
