@@ -371,7 +371,9 @@ static void translate_snap_grid_apply(TransInfo *t,
 
   float in[3];
   if (t->con.mode & CON_APPLY) {
-    BLI_assert(t->tsnap.target_type == SCE_SNAP_TO_NONE);
+    /* We need to clear the previous Snap to Grid result,
+     * otherwise #t->con.applyVec will have no effect. */
+    t->tsnap.target_type = SCE_SNAP_TO_NONE;
     t->con.applyVec(t, nullptr, nullptr, loc, in);
   }
   else {
@@ -381,6 +383,13 @@ static void translate_snap_grid_apply(TransInfo *t,
   for (int i = 0; i <= max_index; i++) {
     const float iter_fac = grid_dist[i] * asp[i];
     r_out[i] = iter_fac * roundf((in[i] + center_global[i]) / iter_fac) - center_global[i];
+  }
+
+  if ((t->con.mode & CON_APPLY) &&
+      (t->spacemtx[0][0] != 1.0f || t->spacemtx[1][1] != 1.0f || t->spacemtx[2][2] != 1.0f))
+  {
+    /* The space matrix is not identity, we need to constrain the result again. */
+    t->con.applyVec(t, nullptr, nullptr, r_out, r_out);
   }
 }
 
