@@ -95,6 +95,7 @@ FCurve *alloc_driver_fcurve(const char rna_path[],
                             const int array_index,
                             eDriverFCurveCreationMode creation_mode)
 {
+  using namespace blender::animrig;
   FCurve *fcu = BKE_fcurve_create();
 
   fcu->flag = (FCURVE_VISIBLE | FCURVE_SELECTED);
@@ -124,10 +125,9 @@ FCurve *alloc_driver_fcurve(const char rna_path[],
        * - These are configured to 0,0 and 1,1 to give a 1-1 mapping
        *   which can be easily tweaked from there.
        */
-      blender::animrig::insert_vert_fcurve(
-          fcu, {0.0f, 0.0f}, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_FAST | INSERTKEY_NO_USERPREF);
-      blender::animrig::insert_vert_fcurve(
-          fcu, {1.0f, 1.0f}, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_FAST | INSERTKEY_NO_USERPREF);
+      const KeyframeSettings settings = get_keyframe_settings(false);
+      insert_vert_fcurve(fcu, {0.0f, 0.0f}, settings, INSERTKEY_FAST);
+      insert_vert_fcurve(fcu, {1.0f, 1.0f}, settings, INSERTKEY_FAST);
       fcu->extend = FCURVE_EXTRAPOLATE_LINEAR;
       BKE_fcurve_handles_recalc(fcu);
     }

@@ -824,6 +824,7 @@ static void insert_fcurve_key(bAnimContext *ac,
                               const AnimationEvalContext anim_eval_context,
                               eInsertKeyFlags flag)
 {
+  using namespace blender::animrig;
   FCurve *fcu = (FCurve *)ale->key_data;
 
   ReportList *reports = ac->reports;
@@ -840,16 +841,16 @@ static void insert_fcurve_key(bAnimContext *ac,
    *   (TODO: add the full-blown PointerRNA relative parsing case here...)
    */
   if (ale->id && !ale->owner) {
-    blender::animrig::insert_keyframe(ac->bmain,
-                                      reports,
-                                      ale->id,
-                                      nullptr,
-                                      ((fcu->grp) ? (fcu->grp->name) : (nullptr)),
-                                      fcu->rna_path,
-                                      fcu->array_index,
-                                      &anim_eval_context,
-                                      eBezTriple_KeyframeType(ts->keyframe_type),
-                                      flag);
+    insert_keyframe(ac->bmain,
+                    reports,
+                    ale->id,
+                    nullptr,
+                    ((fcu->grp) ? (fcu->grp->name) : (nullptr)),
+                    fcu->rna_path,
+                    fcu->array_index,
+                    &anim_eval_context,
+                    eBezTriple_KeyframeType(ts->keyframe_type),
+                    flag);
   }
   else {
     AnimData *adt = ANIM_nla_mapping_get(ac, ale);
@@ -861,8 +862,9 @@ static void insert_fcurve_key(bAnimContext *ac,
     }
 
     const float curval = evaluate_fcurve(fcu, cfra);
-    blender::animrig::insert_vert_fcurve(
-        fcu, {cfra, curval}, eBezTriple_KeyframeType(ts->keyframe_type), eInsertKeyFlags(0));
+    KeyframeSettings settings = get_keyframe_settings(true);
+    settings.keyframe_type = eBezTriple_KeyframeType(ts->keyframe_type);
+    insert_vert_fcurve(fcu, {cfra, curval}, settings, eInsertKeyFlags(0));
   }
 
   ale->update |= ANIM_UPDATE_DEFAULT;

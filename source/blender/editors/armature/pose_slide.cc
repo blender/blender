@@ -1734,15 +1734,15 @@ static void propagate_curve_values(ListBase /*tPChanFCurveLink*/ *pflinks,
                                    const float source_frame,
                                    ListBase /*FrameLink*/ *target_frames)
 {
+  using namespace blender::animrig;
+  const KeyframeSettings settings = get_keyframe_settings(true);
   LISTBASE_FOREACH (tPChanFCurveLink *, pfl, pflinks) {
     LISTBASE_FOREACH (LinkData *, ld, &pfl->fcurves) {
       FCurve *fcu = (FCurve *)ld->data;
       const float current_fcu_value = evaluate_fcurve(fcu, source_frame);
       LISTBASE_FOREACH (FrameLink *, target_frame, target_frames) {
-        blender::animrig::insert_vert_fcurve(fcu,
-                                             {target_frame->frame, current_fcu_value},
-                                             BEZT_KEYTYPE_KEYFRAME,
-                                             INSERTKEY_NEEDED);
+        insert_vert_fcurve(
+            fcu, {target_frame->frame, current_fcu_value}, settings, INSERTKEY_NEEDED);
       }
     }
   }

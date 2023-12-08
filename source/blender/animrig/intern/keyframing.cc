@@ -310,19 +310,22 @@ static bool insert_keyframe_value(
     }
   }
 
+  KeyframeSettings settings = get_keyframe_settings((flag & INSERTKEY_NO_USERPREF) == 0);
+  settings.keyframe_type = keytype;
+
   if (flag & INSERTKEY_NEEDED) {
     if (!new_key_needed(fcu, cfra, curval)) {
       return false;
     }
 
-    if (insert_vert_fcurve(fcu, {cfra, curval}, keytype, flag) < 0) {
+    if (insert_vert_fcurve(fcu, {cfra, curval}, settings, flag) < 0) {
       return false;
     }
 
     return true;
   }
 
-  return insert_vert_fcurve(fcu, {cfra, curval}, keytype, flag) >= 0;
+  return insert_vert_fcurve(fcu, {cfra, curval}, settings, flag) >= 0;
 }
 
 bool insert_keyframe_direct(ReportList *reports,

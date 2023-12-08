@@ -19,6 +19,20 @@
 
 namespace blender::animrig {
 
+KeyframeSettings get_keyframe_settings(const bool from_userprefs)
+{
+  KeyframeSettings settings = {};
+  settings.keyframe_type = BEZT_KEYTYPE_KEYFRAME;
+  settings.handle = HD_AUTO_ANIM;
+  settings.interpolation = BEZT_IPO_BEZ;
+
+  if (from_userprefs) {
+    settings.interpolation = eBezTriple_Interpolation(U.ipo_new);
+    settings.handle = eBezTriple_Handle(U.keyhandles_new);
+  }
+  return settings;
+}
+
 bool delete_keyframe_fcurve(AnimData *adt, FCurve *fcu, float cfra)
 {
   bool found;
@@ -201,8 +215,7 @@ static void subdivide_nonauto_handles(const FCurve *fcu,
 
 void initialize_bezt(BezTriple *beztr,
                      const float2 position,
-                     const eBezTriple_KeyframeType keyframe_type,
-                     const eInsertKeyFlags flag,
+                     const KeyframeSettings &settings,
                      const eFCurve_Flags fcu_flags)
 {
   /* Set all three points, for nicer start position.
@@ -216,21 +229,8 @@ void initialize_bezt(BezTriple *beztr,
   beztr->vec[2][1] = position.y;
   beztr->f1 = beztr->f2 = beztr->f3 = SELECT;
 
-  /* Set default handle types and interpolation mode. */
-  if (flag & INSERTKEY_NO_USERPREF) {
-    /* For Py-API, we want scripts to have predictable behavior,
-     * hence the option to not depend on the userpref defaults.
-     */
-    beztr->h1 = beztr->h2 = HD_AUTO_ANIM;
-    beztr->ipo = BEZT_IPO_BEZ;
-  }
-  else {
-    /* For UI usage - defaults should come from the user-preferences and/or tool-settings. */
-    beztr->h1 = beztr->h2 = U.keyhandles_new; /* Use default handle type here. */
-
-    /* Use default interpolation mode, with exceptions for int/discrete values. */
-    beztr->ipo = U.ipo_new;
-  }
+  beztr->h1 = beztr->h2 = settings.handle;
+  beztr->ipo = settings.interpolation;
 
   /* Interpolation type used is constrained by the type of values the curve can take. */
   if (fcu_flags & FCURVE_DISCRETE_VALUES) {
@@ -242,7 +242,7 @@ void initialize_bezt(BezTriple *beztr,
 
   /* Set keyframe type value (supplied), which should come from the scene
    * settings in most cases. */
-  BEZKEYTYPE(beztr) = keyframe_type;
+  BEZKEYTYPE(beztr) = settings.keyframe_type;
 
   /* Set default values for "easing" interpolation mode settings.
    * NOTE: Even if these modes aren't currently used, if users switch
@@ -262,11 +262,11 @@ void initialize_bezt(BezTriple *beztr,
 
 int insert_vert_fcurve(FCurve *fcu,
                        const float2 position,
-                       eBezTriple_KeyframeType keyframe_type,
+                       const KeyframeSettings &settings,
                        eInsertKeyFlags flag)
 {
   BezTriple beztr = {{{0}}};
-  initialize_bezt(&beztr, position, keyframe_type, flag, eFCurve_Flags(fcu->flag));
+  initialize_bezt(&beztr, position, settings, eFCurve_Flags(fcu->flag));
 
   uint oldTot = fcu->totvert;
   int a;

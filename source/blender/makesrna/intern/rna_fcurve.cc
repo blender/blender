@@ -1055,10 +1055,10 @@ static void rna_FModifierStepped_frame_end_set(PointerRNA *ptr, float value)
 static BezTriple *rna_FKeyframe_points_insert(
     ID *id, FCurve *fcu, Main *bmain, float frame, float value, int keyframe_type, int flag)
 {
-  int index = blender::animrig::insert_vert_fcurve(fcu,
-                                                   {frame, value},
-                                                   eBezTriple_KeyframeType(keyframe_type),
-                                                   eInsertKeyFlags(flag) | INSERTKEY_NO_USERPREF);
+  using namespace blender::animrig;
+  KeyframeSettings settings = get_keyframe_settings(false);
+  settings.keyframe_type = eBezTriple_KeyframeType(keyframe_type);
+  int index = insert_vert_fcurve(fcu, {frame, value}, settings, eInsertKeyFlags(flag));
 
   if ((fcu->bezt) && (index >= 0)) {
     rna_tag_animation_update(bmain, id);
