@@ -1809,7 +1809,7 @@ static void vpaint_paint_leaves(bContext *C,
                                 Span<PBVHNode *> nodes)
 {
   for (PBVHNode *node : nodes) {
-    SCULPT_undo_push_node(ob, node, SculptUndoType::Color);
+    undo::push_node(ob, node, SculptUndoType::Color);
   }
 
   const Brush *brush = ob->sculpt->cache->brush;
@@ -1994,7 +1994,7 @@ static void vpaint_stroke_done(const bContext *C, PaintStroke *stroke)
 
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
-  SCULPT_undo_push_end(ob);
+  undo::push_end(ob);
 
   SCULPT_cache_free(ob->sculpt->cache);
   ob->sculpt->cache = nullptr;
@@ -2019,7 +2019,7 @@ static int vpaint_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     BKE_pbvh_ensure_node_loops(ob->sculpt->pbvh);
   }
 
-  SCULPT_undo_push_begin_ex(ob, "Vertex Paint");
+  undo::push_begin_ex(ob, "Vertex Paint");
 
   if ((retval = op->type->modal(C, op, event)) == OPERATOR_FINISHED) {
     paint_stroke_free(C, op, (PaintStroke *)op->customdata);
@@ -2240,6 +2240,7 @@ bool BKE_object_attributes_active_color_fill(Object *ob,
 
 static int vertex_color_set_exec(bContext *C, wmOperator *op)
 {
+  using namespace blender::ed::sculpt_paint;
   Scene *scene = CTX_data_scene(C);
   Object *obact = CTX_data_active_object(C);
 
@@ -2253,10 +2254,10 @@ static int vertex_color_set_exec(bContext *C, wmOperator *op)
   /* Ensure valid sculpt state. */
   BKE_sculpt_update_object_for_edit(CTX_data_ensure_evaluated_depsgraph(C), obact, true);
 
-  SCULPT_undo_push_begin(obact, op);
+  undo::push_begin(obact, op);
   Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(obact->sculpt->pbvh, {});
   for (PBVHNode *node : nodes) {
-    SCULPT_undo_push_node(obact, node, SculptUndoType::Color);
+    undo::push_node(obact, node, SculptUndoType::Color);
   }
 
   paint_object_attributes_active_color_fill_ex(obact, paintcol, true, affect_alpha);
@@ -2264,7 +2265,7 @@ static int vertex_color_set_exec(bContext *C, wmOperator *op)
   for (PBVHNode *node : nodes) {
     BKE_pbvh_node_mark_update_color(node);
   }
-  SCULPT_undo_push_end(obact);
+  undo::push_end(obact);
 
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, obact);
   return OPERATOR_FINISHED;

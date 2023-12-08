@@ -170,6 +170,7 @@ static bool sculpt_no_multires_poll(bContext *C)
 
 static int sculpt_symmetrize_exec(bContext *C, wmOperator *op)
 {
+  using namespace blender::ed::sculpt_paint;
   Main *bmain = CTX_data_main(C);
   Object *ob = CTX_data_active_object(C);
   const Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
@@ -189,8 +190,8 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *op)
        * as deleted, then after symmetrize operation all BMesh elements
        * are logged as added (as opposed to attempting to store just the
        * parts that symmetrize modifies). */
-      SCULPT_undo_push_begin(ob, op);
-      SCULPT_undo_push_node(ob, nullptr, SculptUndoType::DyntopoSymmetrize);
+      undo::push_begin(ob, op);
+      undo::push_node(ob, nullptr, SculptUndoType::DyntopoSymmetrize);
       BM_log_before_all_removed(ss->bm, ss->bm_log);
 
       BM_mesh_toolflags_set(ss->bm, true);
@@ -211,18 +212,18 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *op)
 
       /* Finish undo. */
       BM_log_all_added(ss->bm, ss->bm_log);
-      SCULPT_undo_push_end(ob);
+      undo::push_end(ob);
 
       break;
     }
     case PBVH_FACES: {
       /* Mesh Symmetrize. */
-      ED_sculpt_undo_geometry_begin(ob, op);
+      undo::geometry_begin(ob, op);
       Mesh *mesh = static_cast<Mesh *>(ob->data);
 
       BKE_mesh_mirror_apply_mirror_on_axis(bmain, mesh, sd->symmetrize_direction, dist);
 
-      ED_sculpt_undo_geometry_end(ob);
+      undo::geometry_end(ob);
       BKE_mesh_batch_cache_dirty_tag(mesh, BKE_MESH_BATCH_DIRTY_ALL);
 
       break;
@@ -339,6 +340,7 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
                                    const bool force_dyntopo,
                                    ReportList *reports)
 {
+  using namespace blender::ed::sculpt_paint;
   const int mode_flag = OB_MODE_SCULPT;
   Mesh *me = BKE_mesh_from_object(ob);
 
@@ -401,12 +403,12 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
       bool has_undo = wm->undo_stack != nullptr;
       /* Undo push is needed to prevent memory leak. */
       if (has_undo) {
-        SCULPT_undo_push_begin_ex(ob, "Dynamic topology enable");
+        undo::push_begin_ex(ob, "Dynamic topology enable");
       }
       SCULPT_dynamic_topology_enable_ex(bmain, depsgraph, ob);
       if (has_undo) {
-        SCULPT_undo_push_node(ob, nullptr, SculptUndoType::DyntopoBegin);
-        SCULPT_undo_push_end(ob);
+        undo::push_node(ob, nullptr, SculptUndoType::DyntopoBegin);
+        undo::push_end(ob);
       }
     }
     else {
@@ -487,6 +489,7 @@ void ED_object_sculptmode_exit(bContext *C, Depsgraph *depsgraph)
 
 static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 {
+  using namespace blender::ed::sculpt_paint;
   wmMsgBus *mbus = CTX_wm_message_bus(C);
   Main *bmain = CTX_data_main(C);
   Depsgraph *depsgraph = CTX_data_depsgraph_on_load(C);
@@ -522,8 +525,8 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
          * while it works it causes lag when undoing the first undo step, see #71564. */
         wmWindowManager *wm = CTX_wm_manager(C);
         if (wm->op_undo_depth <= 1) {
-          SCULPT_undo_push_begin(ob, op);
-          SCULPT_undo_push_end(ob);
+          undo::push_begin(ob, op);
+          undo::push_end(ob);
         }
       }
     }
@@ -735,9 +738,10 @@ static void do_mask_by_color_contiguous_update_node(Object *ob,
                                                     const SculptMaskWriteInfo mask_write,
                                                     PBVHNode *node)
 {
+  using namespace blender::ed::sculpt_paint;
   SculptSession *ss = ob->sculpt;
 
-  SCULPT_undo_push_node(ob, node, SculptUndoType::Mask);
+  undo::push_node(ob, node, SculptUndoType::Mask);
   bool update_node = false;
 
   PBVHVertexIter vd;
@@ -841,9 +845,10 @@ static void do_mask_by_color_task(Object *ob,
                                   const SculptMaskWriteInfo mask_write,
                                   PBVHNode *node)
 {
+  using namespace blender::ed::sculpt_paint;
   SculptSession *ss = ob->sculpt;
 
-  SCULPT_undo_push_node(ob, node, SculptUndoType::Mask);
+  undo::push_node(ob, node, SculptUndoType::Mask);
   bool update_node = false;
 
   float active_color[4];
@@ -894,6 +899,7 @@ static void sculpt_mask_by_color_full_mesh(Object *object,
 
 static int sculpt_mask_by_color_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
+  using namespace blender::ed::sculpt_paint;
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
@@ -922,7 +928,7 @@ static int sculpt_mask_by_color_invoke(bContext *C, wmOperator *op, const wmEven
   const float mval_fl[2] = {float(event->mval[0]), float(event->mval[1])};
   SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false);
 
-  SCULPT_undo_push_begin(ob, op);
+  undo::push_begin(ob, op);
   BKE_sculpt_color_layer_create_if_needed(ob);
 
   const PBVHVertRef active_vertex = SCULPT_active_vertex_get(ss);
@@ -942,7 +948,7 @@ static int sculpt_mask_by_color_invoke(bContext *C, wmOperator *op, const wmEven
   }
 
   BKE_pbvh_update_mask(ss->pbvh);
-  SCULPT_undo_push_end(ob);
+  undo::push_end(ob);
 
   SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
@@ -1006,10 +1012,11 @@ static void sculpt_bake_cavity_exec_task(Object *ob,
                                          const SculptMaskWriteInfo mask_write,
                                          PBVHNode *node)
 {
+  using namespace blender::ed::sculpt_paint;
   SculptSession *ss = ob->sculpt;
   PBVHVertexIter vd;
 
-  SCULPT_undo_push_node(ob, node, SculptUndoType::Mask);
+  undo::push_node(ob, node, SculptUndoType::Mask);
 
   AutomaskingNodeData automask_data;
   SCULPT_automasking_node_begin(ob, automasking, &automask_data, node);
@@ -1053,6 +1060,7 @@ static void sculpt_bake_cavity_exec_task(Object *ob,
 static int sculpt_bake_cavity_exec(bContext *C, wmOperator *op)
 {
   using namespace blender;
+  using namespace blender::ed::sculpt_paint;
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
@@ -1065,7 +1073,7 @@ static int sculpt_bake_cavity_exec(bContext *C, wmOperator *op)
   BKE_sculpt_update_object_for_edit(depsgraph, ob, false);
   SCULPT_vertex_random_access_ensure(ss);
 
-  SCULPT_undo_push_begin(ob, op);
+  undo::push_begin(ob, op);
 
   CavityBakeMixMode mode = CavityBakeMixMode(RNA_enum_get(op->ptr, "mix_mode"));
   float factor = RNA_float_get(op->ptr, "mix_factor");
@@ -1144,7 +1152,7 @@ static int sculpt_bake_cavity_exec(bContext *C, wmOperator *op)
   SCULPT_automasking_cache_free(automasking);
 
   BKE_pbvh_update_mask(ss->pbvh);
-  SCULPT_undo_push_end(ob);
+  undo::push_end(ob);
 
   SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
   SCULPT_tag_update_overlays(C);

@@ -1448,6 +1448,7 @@ static void cloth_filter_apply_forces_task(Object *ob,
 static int sculpt_cloth_filter_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   using namespace blender;
+  using namespace blender::ed::sculpt_paint;
   Object *ob = CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   SculptSession *ss = ob->sculpt;
@@ -1457,7 +1458,7 @@ static int sculpt_cloth_filter_modal(bContext *C, wmOperator *op, const wmEvent 
 
   if (event->type == LEFTMOUSE && event->val == KM_RELEASE) {
     SCULPT_filter_cache_free(ss);
-    SCULPT_undo_push_end(ob);
+    undo::push_end(ob);
     SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_COORDS);
     return OPERATOR_FINISHED;
   }
@@ -1507,6 +1508,7 @@ static int sculpt_cloth_filter_modal(bContext *C, wmOperator *op, const wmEvent 
 
 static int sculpt_cloth_filter_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
+  using namespace blender::ed::sculpt_paint;
   Object *ob = CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
@@ -1526,7 +1528,7 @@ static int sculpt_cloth_filter_invoke(bContext *C, wmOperator *op, const wmEvent
 
   SCULPT_stroke_id_next(ob);
 
-  SCULPT_undo_push_begin(ob, op);
+  undo::push_begin(ob, op);
   SCULPT_filter_cache_init(C,
                            ob,
                            sd,

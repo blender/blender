@@ -301,16 +301,17 @@ static void transform_active_color(bContext *C,
                                    wmOperator *op,
                                    const FunctionRef<void(ColorGeometry4f &color)> transform_fn)
 {
+  using namespace blender::ed::sculpt_paint;
   Object *obact = CTX_data_active_object(C);
 
   /* Ensure valid sculpt state. */
   BKE_sculpt_update_object_for_edit(CTX_data_ensure_evaluated_depsgraph(C), obact, true);
 
-  SCULPT_undo_push_begin(obact, op);
+  undo::push_begin(obact, op);
 
   Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(obact->sculpt->pbvh, {});
   for (PBVHNode *node : nodes) {
-    SCULPT_undo_push_node(obact, node, SculptUndoType::Color);
+    undo::push_node(obact, node, SculptUndoType::Color);
   }
 
   transform_active_color_data(*BKE_mesh_from_object(obact), transform_fn);
@@ -319,7 +320,7 @@ static void transform_active_color(bContext *C,
     BKE_pbvh_node_mark_update_color(node);
   }
 
-  SCULPT_undo_push_end(obact);
+  undo::push_end(obact);
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, obact);
 }
 

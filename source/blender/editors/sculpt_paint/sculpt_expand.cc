@@ -1283,12 +1283,13 @@ static void sculpt_expand_restore_original_state(bContext *C,
  */
 static void sculpt_expand_cancel(bContext *C, wmOperator * /*op*/)
 {
+  using namespace blender::ed::sculpt_paint;
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
 
   sculpt_expand_restore_original_state(C, ob, ss->expand_cache);
 
-  SCULPT_undo_push_end(ob);
+  undo::push_end(ob);
   sculpt_expand_cache_free(ss);
 }
 
@@ -1631,9 +1632,10 @@ static void sculpt_expand_reposition_pivot(bContext *C, Object *ob, ExpandCache 
 
 static void sculpt_expand_finish(bContext *C)
 {
+  using namespace blender::ed::sculpt_paint;
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
-  SCULPT_undo_push_end(ob);
+  undo::push_end(ob);
 
   /* Tag all nodes to redraw to avoid artifacts after the fast partial updates. */
   Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, {});
@@ -2116,23 +2118,24 @@ static void sculpt_expand_cache_initial_config_set(bContext *C,
  */
 static void sculpt_expand_undo_push(Object *ob, ExpandCache *expand_cache)
 {
+  using namespace blender::ed::sculpt_paint;
   SculptSession *ss = ob->sculpt;
   blender::Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, {});
 
   switch (expand_cache->target) {
     case SCULPT_EXPAND_TARGET_MASK:
       for (PBVHNode *node : nodes) {
-        SCULPT_undo_push_node(ob, node, SculptUndoType::Mask);
+        undo::push_node(ob, node, SculptUndoType::Mask);
       }
       break;
     case SCULPT_EXPAND_TARGET_FACE_SETS:
       for (PBVHNode *node : nodes) {
-        SCULPT_undo_push_node(ob, node, SculptUndoType::FaceSet);
+        undo::push_node(ob, node, SculptUndoType::FaceSet);
       }
       break;
     case SCULPT_EXPAND_TARGET_COLORS:
       for (PBVHNode *node : nodes) {
-        SCULPT_undo_push_node(ob, node, SculptUndoType::Color);
+        undo::push_node(ob, node, SculptUndoType::Color);
       }
       break;
   }
@@ -2140,6 +2143,7 @@ static void sculpt_expand_undo_push(Object *ob, ExpandCache *expand_cache)
 
 static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
+  using namespace blender::ed::sculpt_paint;
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
@@ -2205,7 +2209,7 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
   sculpt_expand_ensure_sculptsession_data(ob);
 
   /* Initialize undo. */
-  SCULPT_undo_push_begin(ob, op);
+  undo::push_begin(ob, op);
   sculpt_expand_undo_push(ob, ss->expand_cache);
 
   /* Set the initial element for expand from the event position. */

@@ -159,6 +159,7 @@ static void mask_filter_task(SculptSession *ss,
 static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
 {
   using namespace blender;
+  using namespace blender::ed::sculpt_paint;
   Object *ob = CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   const Scene *scene = CTX_data_scene(C);
@@ -177,10 +178,10 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
   int num_verts = SCULPT_vertex_count_get(ss);
 
   Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(pbvh, {});
-  SCULPT_undo_push_begin(ob, op);
+  undo::push_begin(ob, op);
 
   for (PBVHNode *node : nodes) {
-    SCULPT_undo_push_node(ob, node, SculptUndoType::Mask);
+    undo::push_node(ob, node, SculptUndoType::Mask);
   }
 
   float *prev_mask = nullptr;
@@ -216,7 +217,7 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
     }
   }
 
-  SCULPT_undo_push_end(ob);
+  undo::push_end(ob);
 
   SCULPT_tag_update_overlays(C);
 

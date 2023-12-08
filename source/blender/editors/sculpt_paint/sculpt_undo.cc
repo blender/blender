@@ -12,14 +12,14 @@
  * The sculpt undo system is a delta-based system. Each undo step stores
  * the difference with the prior one.
  *
- * To use the sculpt undo system, you must call SCULPT_undo_push_begin
- * inside an operator exec or invoke callback (ED_sculpt_undo_geometry_begin
+ * To use the sculpt undo system, you must call undo::push_begin
+ * inside an operator exec or invoke callback (undo::geometry_begin
  * may be called if you wish to save a non-delta copy of the entire mesh).
  * This will initialize the sculpt undo stack and set up an undo step.
  *
- * At the end of the operator you should call SCULPT_undo_push_end.
+ * At the end of the operator you should call undo::push_end.
  *
- * SCULPT_undo_push_end and ED_sculpt_undo_geometry_begin both take a
+ * undo::push_end and undo::geometry_begin both take a
  * #wmOperatorType as an argument. There are _ex versions that allow a custom
  * name; try to avoid using them. These can break the redo panel since it requires
  * the undo push have the same name as the calling operator.
@@ -81,9 +81,7 @@
 #include "paint_intern.hh"
 #include "sculpt_intern.hh"
 
-using blender::MutableSpan;
-using blender::Span;
-using blender::Vector;
+namespace blender::ed::sculpt_paint::undo {
 
 /* Uncomment to print the undo stack in the console on push/undo/redo. */
 //#define SCULPT_UNDO_DEBUG
@@ -160,7 +158,7 @@ struct SculptUndoStep {
 #endif
 };
 
-static UndoSculpt *sculpt_undo_get_nodes(void);
+static UndoSculpt *sculpt_undo_get_nodes();
 static bool sculpt_attribute_ref_equals(SculptAttrRef *a, SculptAttrRef *b);
 static void sculpt_save_active_attribute(Object *ob, SculptAttrRef *attr);
 static UndoSculpt *sculpt_undosys_step_get_nodes(UndoStep *us_p);
@@ -299,7 +297,7 @@ static void update_modified_node_mesh(PBVHNode *node, void *userdata)
   if (BKE_pbvh_node_has_vert_with_normal_update_tag(data->pbvh, node)) {
     BKE_pbvh_node_mark_update(node);
   }
-  const blender::Span<int> verts = BKE_pbvh_node_get_vert_indices(node);
+  const Span<int> verts = BKE_pbvh_node_get_vert_indices(node);
   if (!data->modified_mask_verts.is_empty()) {
     for (const int vert : verts) {
       if (data->modified_mask_verts[vert]) {
@@ -419,7 +417,6 @@ static bool sculpt_undo_restore_coords(bContext *C,
                                        Depsgraph *depsgraph,
                                        SculptUndoNode *unode)
 {
-  using namespace blender;
   SculptSession *ss = ob->sculpt;
   SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
 
@@ -446,11 +443,11 @@ static bool sculpt_undo_restore_coords(bContext *C,
 
     /* No need for float comparison here (memory is exactly equal or not). */
     const Span<int> index = unode->index;
-    blender::MutableSpan<blender::float3> positions = ss->vert_positions;
+    MutableSpan<float3> positions = ss->vert_positions;
 
     if (ss->shapekey_active) {
-      blender::MutableSpan<blender::float3> vertCos(
-          static_cast<blender::float3 *>(ss->shapekey_active->data), ss->shapekey_active->totelem);
+      MutableSpan<float3> vertCos(static_cast<float3 *>(ss->shapekey_active->data),
+                                  ss->shapekey_active->totelem);
 
       if (!unode->orig_co.is_empty()) {
         if (ss->deform_modifiers_active) {
@@ -505,7 +502,7 @@ static bool sculpt_undo_restore_coords(bContext *C,
     const CCGKey key = BKE_subdiv_ccg_key_top_level(*subdiv_ccg);
     const Span<int> grid_indices = unode->grids;
 
-    blender::MutableSpan<blender::float3> co = unode->co;
+    MutableSpan<float3> co = unode->co;
     MutableSpan<CCGElem *> grids = subdiv_ccg->grids;
 
     int index = 0;
@@ -525,7 +522,6 @@ static bool sculpt_undo_restore_hidden(Object *ob,
                                        SculptUndoNode *unode,
                                        MutableSpan<bool> modified_vertices)
 {
-  using namespace blender;
   SculptSession *ss = ob->sculpt;
   SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
 
@@ -550,7 +546,7 @@ static bool sculpt_undo_restore_hidden(Object *ob,
       return true;
     }
 
-    blender::BitGroupVector<> &grid_hidden = BKE_subdiv_ccg_grid_hidden_ensure(*subdiv_ccg);
+    BitGroupVector<> &grid_hidden = BKE_subdiv_ccg_grid_hidden_ensure(*subdiv_ccg);
     const Span<int> grids = unode->grids;
     for (const int i : grids.index_range()) {
       /* Swap the two bit spans. */
@@ -572,7 +568,6 @@ static bool sculpt_undo_restore_hidden_face(Object &object,
                                             SculptUndoNode &unode,
                                             MutableSpan<bool> modified_faces)
 {
-  using namespace blender;
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
   bke::SpanAttributeWriter hide_poly = attributes.lookup_or_add_for_write_span<bool>(
@@ -631,7 +626,6 @@ static bool sculpt_undo_restore_mask(Object *ob,
                                      SculptUndoNode *unode,
                                      MutableSpan<bool> modified_vertices)
 {
-  using namespace blender;
   Mesh *mesh = BKE_object_get_original_mesh(ob);
   SculptSession *ss = ob->sculpt;
   SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
@@ -657,7 +651,7 @@ static bool sculpt_undo_restore_mask(Object *ob,
     const CCGKey key = BKE_subdiv_ccg_key_top_level(*subdiv_ccg);
     const Span<int> grid_indices = unode->grids;
 
-    blender::MutableSpan<float> mask = unode->mask;
+    MutableSpan<float> mask = unode->mask;
     MutableSpan<CCGElem *> grids = subdiv_ccg->grids;
 
     int index = 0;
@@ -677,8 +671,6 @@ static bool sculpt_undo_restore_face_sets(Object *ob,
                                           SculptUndoNode *unode,
                                           MutableSpan<bool> modified_face_set_faces)
 {
-  using namespace blender;
-  using namespace blender::ed::sculpt_paint;
   bke::SpanAttributeWriter<int> face_sets = face_set::ensure_face_sets_mesh(*ob);
 
   bool modified = false;
@@ -709,7 +701,7 @@ static void sculpt_undo_bmesh_restore_generic(SculptUndoNode *unode, Object *ob,
   }
 
   if (unode->type == SculptUndoType::Mask) {
-    Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, {});
+    Vector<PBVHNode *> nodes = bke::pbvh::search_gather(ss->pbvh, {});
     for (PBVHNode *node : nodes) {
       BKE_pbvh_node_mark_redraw(node);
     }
@@ -790,10 +782,10 @@ static void sculpt_undo_geometry_store_data(SculptUndoNodeGeometry *geometry, Ob
   CustomData_copy(&mesh->edge_data, &geometry->edge_data, CD_MASK_MESH.emask, mesh->totedge);
   CustomData_copy(&mesh->loop_data, &geometry->loop_data, CD_MASK_MESH.lmask, mesh->totloop);
   CustomData_copy(&mesh->face_data, &geometry->face_data, CD_MASK_MESH.pmask, mesh->faces_num);
-  blender::implicit_sharing::copy_shared_pointer(mesh->face_offset_indices,
-                                                 mesh->runtime->face_offsets_sharing_info,
-                                                 &geometry->face_offset_indices,
-                                                 &geometry->face_offsets_sharing_info);
+  implicit_sharing::copy_shared_pointer(mesh->face_offset_indices,
+                                        mesh->runtime->face_offsets_sharing_info,
+                                        &geometry->face_offset_indices,
+                                        &geometry->face_offsets_sharing_info);
 
   geometry->totvert = mesh->totvert;
   geometry->totedge = mesh->totedge;
@@ -819,10 +811,10 @@ static void sculpt_undo_geometry_restore_data(SculptUndoNodeGeometry *geometry, 
   CustomData_copy(&geometry->edge_data, &mesh->edge_data, CD_MASK_MESH.emask, geometry->totedge);
   CustomData_copy(&geometry->loop_data, &mesh->loop_data, CD_MASK_MESH.lmask, geometry->totloop);
   CustomData_copy(&geometry->face_data, &mesh->face_data, CD_MASK_MESH.pmask, geometry->faces_num);
-  blender::implicit_sharing::copy_shared_pointer(geometry->face_offset_indices,
-                                                 geometry->face_offsets_sharing_info,
-                                                 &mesh->face_offset_indices,
-                                                 &mesh->runtime->face_offsets_sharing_info);
+  implicit_sharing::copy_shared_pointer(geometry->face_offset_indices,
+                                        geometry->face_offsets_sharing_info,
+                                        &mesh->face_offset_indices,
+                                        &mesh->runtime->face_offsets_sharing_info);
 }
 
 static void sculpt_undo_geometry_free_data(SculptUndoNodeGeometry *geometry)
@@ -839,8 +831,8 @@ static void sculpt_undo_geometry_free_data(SculptUndoNodeGeometry *geometry)
   if (geometry->faces_num) {
     CustomData_free(&geometry->face_data, geometry->faces_num);
   }
-  blender::implicit_sharing::free_shared_data(&geometry->face_offset_indices,
-                                              &geometry->face_offsets_sharing_info);
+  implicit_sharing::free_shared_data(&geometry->face_offset_indices,
+                                     &geometry->face_offsets_sharing_info);
 }
 
 static void sculpt_undo_geometry_restore(SculptUndoNode *unode, Object *object)
@@ -905,8 +897,8 @@ static void sculpt_undo_refine_subdiv(Depsgraph *depsgraph,
                                       Object *object,
                                       Subdiv *subdiv)
 {
-  blender::Array<blender::float3> deformed_verts =
-      BKE_multires_create_deformed_base_mesh_vert_coords(depsgraph, object, ss->multires.modifier);
+  Array<float3> deformed_verts = BKE_multires_create_deformed_base_mesh_vert_coords(
+      depsgraph, object, ss->multires.modifier);
 
   BKE_subdiv_eval_refine_from_mesh(subdiv,
                                    static_cast<const Mesh *>(object->data),
@@ -915,7 +907,6 @@ static void sculpt_undo_refine_subdiv(Depsgraph *depsgraph,
 
 static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase *lb)
 {
-  using namespace blender::ed::sculpt_paint;
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
@@ -1146,7 +1137,7 @@ static void sculpt_undo_free_list(ListBase *lb)
   }
 }
 
-SculptUndoNode *SCULPT_undo_get_node(PBVHNode *node, SculptUndoType type)
+SculptUndoNode *get_node(PBVHNode *node, SculptUndoType type)
 {
   UndoSculpt *usculpt = sculpt_undo_get_nodes();
 
@@ -1169,18 +1160,18 @@ static size_t sculpt_undo_alloc_and_store_hidden(SculptSession *ss, SculptUndoNo
   if (!ss->subdiv_ccg) {
     return 0;
   }
-  const blender::BitGroupVector<> grid_hidden = ss->subdiv_ccg->grid_hidden;
+  const BitGroupVector<> grid_hidden = ss->subdiv_ccg->grid_hidden;
   if (grid_hidden.is_empty()) {
     return 0;
   }
 
   const Span<int> grid_indices = BKE_pbvh_node_get_grid_indices(*node);
-  unode->grid_hidden = blender::BitGroupVector<>(grid_indices.size(), grid_hidden.group_size());
+  unode->grid_hidden = BitGroupVector<>(grid_indices.size(), grid_hidden.group_size());
   for (const int i : grid_indices.index_range()) {
     unode->grid_hidden[i].copy_from(grid_hidden[grid_indices[i]]);
   }
 
-  return unode->grid_hidden.all_bits().full_ints_num() / blender::bits::BitsPerInt;
+  return unode->grid_hidden.all_bits().full_ints_num() / bits::BitsPerInt;
 }
 
 /* Allocate node and initialize its default fields specific for the given undo type.
@@ -1358,7 +1349,6 @@ static void sculpt_undo_store_coords(Object *ob, SculptUndoNode *unode)
 
 static void sculpt_undo_store_hidden(Object *ob, SculptUndoNode *unode)
 {
-  using namespace blender;
   if (!unode->grids.is_empty()) {
     /* Already stored during allocation. */
   }
@@ -1371,14 +1361,13 @@ static void sculpt_undo_store_hidden(Object *ob, SculptUndoNode *unode)
   }
 
   PBVHNode *node = static_cast<PBVHNode *>(unode->node);
-  const blender::Span<int> verts = BKE_pbvh_node_get_vert_indices(node);
+  const Span<int> verts = BKE_pbvh_node_get_vert_indices(node);
   for (const int i : verts.index_range())
     unode->vert_hidden[i].set(hide_vert[verts[i]]);
 }
 
 static void sculpt_undo_store_face_hidden(Object &object, SculptUndoNode &unode)
 {
-  using namespace blender;
   const Mesh &mesh = *static_cast<const Mesh *>(object.data);
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan<bool> hide_poly = *attributes.lookup<bool>(".hide_poly", ATTR_DOMAIN_FACE);
@@ -1442,7 +1431,7 @@ static SculptUndoNode *sculpt_undo_geometry_push(Object *object, SculptUndoType 
 
 static void sculpt_undo_store_face_sets(const Mesh &mesh, SculptUndoNode &unode)
 {
-  blender::array_utils::gather(
+  array_utils::gather(
       *mesh.attributes().lookup_or_default<int>(".sculpt_face_set", ATTR_DOMAIN_FACE, 0),
       unode.face_indices.as_span(),
       unode.face_sets.as_mutable_span());
@@ -1524,7 +1513,7 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
   return unode;
 }
 
-SculptUndoNode *SCULPT_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType type)
+SculptUndoNode *push_node(Object *ob, PBVHNode *node, SculptUndoType type)
 {
   SculptSession *ss = ob->sculpt;
   SculptUndoNode *unode;
@@ -1546,7 +1535,7 @@ SculptUndoNode *SCULPT_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType
     BLI_thread_unlock(LOCK_CUSTOM1);
     return unode;
   }
-  if ((unode = SCULPT_undo_get_node(node, type))) {
+  if ((unode = get_node(node, type))) {
     BLI_thread_unlock(LOCK_CUSTOM1);
     return unode;
   }
@@ -1631,7 +1620,6 @@ static bool sculpt_attribute_ref_equals(SculptAttrRef *a, SculptAttrRef *b)
 
 static void sculpt_save_active_attribute(Object *ob, SculptAttrRef *attr)
 {
-  using namespace blender;
   Mesh *mesh = BKE_object_get_original_mesh(ob);
   attr->was_set = true;
   attr->domain = NO_ACTIVE_LAYER;
@@ -1655,12 +1643,12 @@ static void sculpt_save_active_attribute(Object *ob, SculptAttrRef *attr)
   attr->type = meta_data->data_type;
 }
 
-void SCULPT_undo_push_begin(Object *ob, const wmOperator *op)
+void push_begin(Object *ob, const wmOperator *op)
 {
-  SCULPT_undo_push_begin_ex(ob, op->type->name);
+  push_begin_ex(ob, op->type->name);
 }
 
-void SCULPT_undo_push_begin_ex(Object *ob, const char *name)
+void push_begin_ex(Object *ob, const char *name)
 {
   UndoStack *ustack = ED_undo_stack_get();
 
@@ -1681,7 +1669,7 @@ void SCULPT_undo_push_begin_ex(Object *ob, const char *name)
     sculpt_save_active_attribute(ob, &us->active_color_start);
   }
 
-  /* Set end attribute in case SCULPT_undo_push_end is not called,
+  /* Set end attribute in case push_end is not called,
    * so we don't end up with corrupted state.
    */
   if (!us->active_color_end.was_set) {
@@ -1690,12 +1678,12 @@ void SCULPT_undo_push_begin_ex(Object *ob, const char *name)
   }
 }
 
-void SCULPT_undo_push_end(Object *ob)
+void push_end(Object *ob)
 {
-  SCULPT_undo_push_end_ex(ob, false);
+  push_end_ex(ob, false);
 }
 
-void SCULPT_undo_push_end_ex(Object *ob, const bool use_nested_undo)
+void push_end_ex(Object *ob, const bool use_nested_undo)
 {
   UndoSculpt *usculpt = sculpt_undo_get_nodes();
 
@@ -1765,7 +1753,7 @@ static void sculpt_undo_set_active_layer(bContext *C, SculptAttrRef *attr)
   if (!layer) {
     /* Memfile undo killed the layer; re-create it. */
     me->attributes_for_write().add(
-        attr->name, attr->domain, attr->type, blender::bke::AttributeInitDefaultValue());
+        attr->name, attr->domain, attr->type, bke::AttributeInitDefaultValue());
     layer = BKE_id_attribute_find(&me->id, attr->name, attr->type, attr->domain);
   }
 
@@ -1945,25 +1933,25 @@ static void sculpt_undosys_step_free(UndoStep *us_p)
   sculpt_undo_free_list(&us->data.nodes);
 }
 
-void ED_sculpt_undo_geometry_begin(Object *ob, const wmOperator *op)
+void geometry_begin(Object *ob, const wmOperator *op)
 {
-  SCULPT_undo_push_begin(ob, op);
-  SCULPT_undo_push_node(ob, nullptr, SculptUndoType::Geometry);
+  push_begin(ob, op);
+  push_node(ob, nullptr, SculptUndoType::Geometry);
 }
 
-void ED_sculpt_undo_geometry_begin_ex(Object *ob, const char *name)
+void geometry_begin_ex(Object *ob, const char *name)
 {
-  SCULPT_undo_push_begin_ex(ob, name);
-  SCULPT_undo_push_node(ob, nullptr, SculptUndoType::Geometry);
+  push_begin_ex(ob, name);
+  push_node(ob, nullptr, SculptUndoType::Geometry);
 }
 
-void ED_sculpt_undo_geometry_end(Object *ob)
+void geometry_end(Object *ob)
 {
-  SCULPT_undo_push_node(ob, nullptr, SculptUndoType::Geometry);
-  SCULPT_undo_push_end(ob);
+  push_node(ob, nullptr, SculptUndoType::Geometry);
+  push_end(ob);
 }
 
-void ED_sculpt_undosys_type(UndoType *ut)
+void register_type(UndoType *ut)
 {
   ut->name = "Sculpt";
   ut->poll = nullptr; /* No poll from context for now. */
@@ -2047,14 +2035,14 @@ static void sculpt_undo_push_all_grids(Object *object)
     return;
   }
 
-  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, {});
+  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(ss->pbvh, {});
   for (PBVHNode *node : nodes) {
-    SculptUndoNode *unode = SCULPT_undo_push_node(object, node, SculptUndoType::Position);
+    SculptUndoNode *unode = push_node(object, node, SculptUndoType::Position);
     unode->node = nullptr;
   }
 }
 
-void ED_sculpt_undo_push_multires_mesh_begin(bContext *C, const char *str)
+void push_multires_mesh_begin(bContext *C, const char *str)
 {
   if (!sculpt_undo_use_multires_mesh(C)) {
     return;
@@ -2062,16 +2050,15 @@ void ED_sculpt_undo_push_multires_mesh_begin(bContext *C, const char *str)
 
   Object *object = CTX_data_active_object(C);
 
-  SCULPT_undo_push_begin_ex(object, str);
+  push_begin_ex(object, str);
 
-  SculptUndoNode *geometry_unode = SCULPT_undo_push_node(
-      object, nullptr, SculptUndoType::Geometry);
+  SculptUndoNode *geometry_unode = push_node(object, nullptr, SculptUndoType::Geometry);
   geometry_unode->geometry_clear_pbvh = false;
 
   sculpt_undo_push_all_grids(object);
 }
 
-void ED_sculpt_undo_push_multires_mesh_end(bContext *C, const char *str)
+void push_multires_mesh_end(bContext *C, const char *str)
 {
   if (!sculpt_undo_use_multires_mesh(C)) {
     ED_undo_push(C, str);
@@ -2080,11 +2067,12 @@ void ED_sculpt_undo_push_multires_mesh_end(bContext *C, const char *str)
 
   Object *object = CTX_data_active_object(C);
 
-  SculptUndoNode *geometry_unode = SCULPT_undo_push_node(
-      object, nullptr, SculptUndoType::Geometry);
+  SculptUndoNode *geometry_unode = push_node(object, nullptr, SculptUndoType::Geometry);
   geometry_unode->geometry_clear_pbvh = false;
 
-  SCULPT_undo_push_end(object);
+  push_end(object);
 }
 
 /** \} */
+
+}  // namespace blender::ed::sculpt_paint::undo

@@ -207,34 +207,36 @@ void sculpt_dynamic_topology_disable_with_undo(Main *bmain,
                                                Scene *scene,
                                                Object *ob)
 {
+  using namespace blender::ed::sculpt_paint;
   SculptSession *ss = ob->sculpt;
   if (ss->bm != nullptr) {
     /* May be false in background mode. */
     const bool use_undo = G.background ? (ED_undo_stack_get() != nullptr) : true;
     if (use_undo) {
-      SCULPT_undo_push_begin_ex(ob, "Dynamic topology disable");
-      SCULPT_undo_push_node(ob, nullptr, SculptUndoType::DyntopoEnd);
+      undo::push_begin_ex(ob, "Dynamic topology disable");
+      undo::push_node(ob, nullptr, SculptUndoType::DyntopoEnd);
     }
     SCULPT_dynamic_topology_disable_ex(bmain, depsgraph, scene, ob, nullptr);
     if (use_undo) {
-      SCULPT_undo_push_end(ob);
+      undo::push_end(ob);
     }
   }
 }
 
 static void sculpt_dynamic_topology_enable_with_undo(Main *bmain, Depsgraph *depsgraph, Object *ob)
 {
+  using namespace blender::ed::sculpt_paint;
   SculptSession *ss = ob->sculpt;
   if (ss->bm == nullptr) {
     /* May be false in background mode. */
     const bool use_undo = G.background ? (ED_undo_stack_get() != nullptr) : true;
     if (use_undo) {
-      SCULPT_undo_push_begin_ex(ob, "Dynamic topology enable");
+      undo::push_begin_ex(ob, "Dynamic topology enable");
     }
     SCULPT_dynamic_topology_enable_ex(bmain, depsgraph, ob);
     if (use_undo) {
-      SCULPT_undo_push_node(ob, nullptr, SculptUndoType::DyntopoBegin);
-      SCULPT_undo_push_end(ob);
+      undo::push_node(ob, nullptr, SculptUndoType::DyntopoBegin);
+      undo::push_end(ob);
     }
   }
 }

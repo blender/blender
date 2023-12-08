@@ -54,9 +54,10 @@ static void mask_init_task(Object *ob,
                            const SculptMaskWriteInfo mask_write,
                            PBVHNode *node)
 {
+  using namespace blender::ed::sculpt_paint;
   SculptSession *ss = ob->sculpt;
   PBVHVertexIter vd;
-  SCULPT_undo_push_node(ob, node, SculptUndoType::Mask);
+  undo::push_node(ob, node, SculptUndoType::Mask);
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     float mask;
     switch (mode) {
@@ -81,6 +82,7 @@ static void mask_init_task(Object *ob,
 static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
 {
   using namespace blender;
+  using namespace blender::ed::sculpt_paint;
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
@@ -99,7 +101,7 @@ static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  SCULPT_undo_push_begin(ob, op);
+  undo::push_begin(ob, op);
 
   if (mode == SCULPT_MASK_INIT_RANDOM_PER_LOOSE_PART) {
     SCULPT_topology_islands_ensure(ob);
@@ -116,7 +118,7 @@ static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
 
   multires_stitch_grids(ob);
 
-  SCULPT_undo_push_end(ob);
+  undo::push_end(ob);
 
   BKE_pbvh_update_mask(ss->pbvh);
   SCULPT_tag_update_overlays(C);

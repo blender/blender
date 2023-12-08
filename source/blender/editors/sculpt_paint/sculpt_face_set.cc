@@ -245,7 +245,7 @@ static void do_draw_face_sets_brush_faces(Object *ob,
       BKE_pbvh_vertex_iter_end;
 
       if (changed) {
-        SCULPT_undo_push_node(ob, node, SculptUndoType::FaceSet);
+        undo::push_node(ob, node, SculptUndoType::FaceSet);
       }
     }
   });
@@ -302,7 +302,7 @@ static void do_draw_face_sets_brush_grids(Object *ob,
       BKE_pbvh_vertex_iter_end;
 
       if (changed) {
-        SCULPT_undo_push_node(ob, node, SculptUndoType::FaceSet);
+        undo::push_node(ob, node, SculptUndoType::FaceSet);
       }
     }
   });
@@ -390,7 +390,7 @@ static void do_draw_face_sets_brush_bmesh(Object *ob,
       }
 
       if (changed) {
-        SCULPT_undo_push_node(ob, node, SculptUndoType::FaceSet);
+        undo::push_node(ob, node, SculptUndoType::FaceSet);
       }
     }
   });
@@ -511,7 +511,7 @@ static void face_sets_update(Object &object,
         continue;
       }
 
-      SCULPT_undo_push_node(&object, node, SculptUndoType::FaceSet);
+      undo::push_node(&object, node, SculptUndoType::FaceSet);
       array_utils::scatter(new_face_sets.as_span(), faces, face_sets.span);
       BKE_pbvh_node_mark_update_face_sets(node);
     }
@@ -547,7 +547,7 @@ static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
 
   BKE_sculpt_update_object_for_edit(&depsgraph, &object, false);
 
-  SCULPT_undo_push_begin(&object, op);
+  undo::push_begin(&object, op);
 
   const int next_face_set = find_next_available_id(object);
 
@@ -624,7 +624,7 @@ static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
     }
   }
 
-  SCULPT_undo_push_end(&object);
+  undo::push_end(&object);
 
   SCULPT_tag_update_overlays(C);
 
@@ -772,9 +772,9 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  SCULPT_undo_push_begin(ob, op);
+  undo::push_begin(ob, op);
   for (PBVHNode *node : nodes) {
-    SCULPT_undo_push_node(ob, node, SculptUndoType::FaceSet);
+    undo::push_node(ob, node, SculptUndoType::FaceSet);
   }
 
   const float threshold = RNA_float_get(op->ptr, "threshold");
@@ -856,7 +856,7 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
     }
   }
 
-  SCULPT_undo_push_end(ob);
+  undo::push_end(ob);
 
   SCULPT_tag_update_overlays(C);
 
@@ -969,7 +969,7 @@ static void face_hide_update(Object &object,
       }
 
       any_changed = true;
-      SCULPT_undo_push_node(&object, node, SculptUndoType::HideFace);
+      undo::push_node(&object, node, SculptUndoType::HideFace);
       array_utils::scatter(new_hide.as_span(), faces, hide_poly.span);
       BKE_pbvh_node_mark_update_visibility(node);
     }
@@ -1013,7 +1013,7 @@ static int sculpt_face_set_change_visibility_exec(bContext *C, wmOperator *op)
   const VisibilityMode mode = VisibilityMode(RNA_enum_get(op->ptr, "mode"));
   const int active_face_set = SCULPT_active_face_set_get(ss);
 
-  SCULPT_undo_push_begin(&object, op);
+  undo::push_begin(&object, op);
 
   PBVH *pbvh = object.sculpt->pbvh;
   Vector<PBVHNode *> nodes = bke::pbvh::search_gather(pbvh, {});
@@ -1080,7 +1080,7 @@ static int sculpt_face_set_change_visibility_exec(bContext *C, wmOperator *op)
     ups->last_stroke_valid = true;
   }
 
-  SCULPT_undo_push_end(&object);
+  undo::push_end(&object);
 
   BKE_pbvh_update_visibility(ss->pbvh);
   BKE_sculpt_hide_poly_pointer_update(object);
@@ -1214,7 +1214,7 @@ static void sculpt_face_set_grow_shrink(Object &object,
 
   bke::SpanAttributeWriter face_sets = ensure_face_sets_mesh(object);
 
-  SCULPT_undo_push_begin(&object, op);
+  undo::push_begin(&object, op);
 
   const Vector<PBVHNode *> nodes = bke::pbvh::search_gather(ss.pbvh, {});
   face_sets_update(object, nodes, [&](const Span<int> indices, MutableSpan<int> face_sets) {
@@ -1252,7 +1252,7 @@ static void sculpt_face_set_grow_shrink(Object &object,
     }
   });
   face_sets.finish();
-  SCULPT_undo_push_end(&object);
+  undo::push_end(&object);
 }
 
 static bool check_single_face_set(const Object &object, const bool check_visible_only)
@@ -1416,7 +1416,7 @@ static void sculpt_face_set_edit_modify_geometry(bContext *C,
                                                  wmOperator *op)
 {
   Mesh *mesh = static_cast<Mesh *>(ob->data);
-  ED_sculpt_undo_geometry_begin(ob, op);
+  undo::geometry_begin(ob, op);
   switch (mode) {
     case EditMode::DeleteGeometry:
       sculpt_face_set_delete_geometry(ob, active_face_set, modify_hidden);
@@ -1424,7 +1424,7 @@ static void sculpt_face_set_edit_modify_geometry(bContext *C,
     default:
       BLI_assert_unreachable();
   }
-  ED_sculpt_undo_geometry_end(ob);
+  undo::geometry_end(ob);
   BKE_mesh_batch_cache_dirty_tag(mesh, BKE_MESH_BATCH_DIRTY_ALL);
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, mesh);
@@ -1441,10 +1441,10 @@ static void sculpt_face_set_edit_modify_coordinates(
 
   const float strength = RNA_float_get(op->ptr, "strength");
 
-  SCULPT_undo_push_begin(ob, op);
+  undo::push_begin(ob, op);
   for (PBVHNode *node : nodes) {
     BKE_pbvh_node_mark_update(node);
-    SCULPT_undo_push_node(ob, node, SculptUndoType::Position);
+    undo::push_node(ob, node, SculptUndoType::Position);
   }
   switch (mode) {
     case EditMode::FairPositions:
@@ -1464,7 +1464,7 @@ static void sculpt_face_set_edit_modify_coordinates(
   }
   SCULPT_flush_update_step(C, SCULPT_UPDATE_COORDS);
   SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_COORDS);
-  SCULPT_undo_push_end(ob);
+  undo::push_end(ob);
 }
 
 static bool sculpt_face_set_edit_init(bContext *C, wmOperator *op)

@@ -1223,8 +1223,9 @@ void SCULPT_orig_vert_data_init(SculptOrigVertData *data,
                                 PBVHNode *node,
                                 SculptUndoType type)
 {
+  using namespace blender::ed::sculpt_paint;
   SculptUndoNode *unode;
-  unode = SCULPT_undo_push_node(ob, node, type);
+  unode = undo::push_node(ob, node, type);
   SCULPT_orig_vert_data_unode_init(data, ob, unode);
 }
 
@@ -1293,10 +1294,10 @@ static void paint_mesh_restore_node(Object *ob, const SculptUndoType type, PBVHN
 
   SculptUndoNode *unode;
   if (ss->bm) {
-    unode = SCULPT_undo_push_node(ob, node, type);
+    unode = undo::push_node(ob, node, type);
   }
   else {
-    unode = SCULPT_undo_get_node(node, type);
+    unode = undo::get_node(node, type);
   }
 
   if (!unode) {
@@ -1416,7 +1417,7 @@ static void paint_mesh_restore_co(Sculpt *sd, Object *ob)
 
   if (ss->bm) {
     /* Disable multi-threading when dynamic-topology is enabled. Otherwise,
-     * new entries might be inserted by #SCULPT_undo_push_node() into the #GHash
+     * new entries might be inserted by #undo::push_node() into the #GHash
      * used internally by #BM_log_original_vert_co() by a different thread. See #33787. */
     for (const int i : nodes.index_range()) {
       paint_mesh_restore_node(ob, type, nodes[i]);
@@ -1791,6 +1792,7 @@ static void calc_area_normal_and_center_task(Object *ob,
                                              AreaNormalCenterData *anctd,
                                              bool &r_any_vertex_sampled)
 {
+  using namespace blender::ed::sculpt_paint;
   SculptSession *ss = ob->sculpt;
 
   PBVHVertexIter vd;
@@ -1800,7 +1802,7 @@ static void calc_area_normal_and_center_task(Object *ob,
   bool normal_test_r, area_test_r;
 
   if (ss->cache && !ss->cache->accum) {
-    unode = SCULPT_undo_push_node(ob, node, SculptUndoType::Position);
+    unode = undo::push_node(ob, node, SculptUndoType::Position);
     use_original = (!unode->co.is_empty() || unode->bm_entry);
   }
 
@@ -3154,6 +3156,7 @@ static void sculpt_topology_update(Sculpt *sd,
                                    UnifiedPaintSettings * /*ups*/,
                                    PaintModeSettings * /*paint_mode_settings*/)
 {
+  using namespace blender::ed::sculpt_paint;
   SculptSession *ss = ob->sculpt;
 
   /* Build a list of all nodes that are potentially within the brush's area of influence. */
@@ -3185,10 +3188,10 @@ static void sculpt_topology_update(Sculpt *sd,
   }
 
   for (PBVHNode *node : nodes) {
-    SCULPT_undo_push_node(ob,
-                          node,
-                          brush->sculpt_tool == SCULPT_TOOL_MASK ? SculptUndoType::Mask :
-                                                                   SculptUndoType::Position);
+    undo::push_node(ob,
+                    node,
+                    brush->sculpt_tool == SCULPT_TOOL_MASK ? SculptUndoType::Mask :
+                                                             SculptUndoType::Position);
     BKE_pbvh_node_mark_update(node);
 
     if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
@@ -3214,6 +3217,7 @@ static void sculpt_topology_update(Sculpt *sd,
 
 static void do_brush_action_task(Object *ob, const Brush *brush, PBVHNode *node)
 {
+  using namespace blender::ed::sculpt_paint;
   SculptSession *ss = ob->sculpt;
 
   bool need_coords = ss->cache->supports_gravity;
@@ -3226,15 +3230,15 @@ static void do_brush_action_task(Object *ob, const Brush *brush, PBVHNode *node)
       need_coords = true;
     }
     else {
-      SCULPT_undo_push_node(ob, node, SculptUndoType::FaceSet);
+      undo::push_node(ob, node, SculptUndoType::FaceSet);
     }
   }
   else if (brush->sculpt_tool == SCULPT_TOOL_MASK) {
-    SCULPT_undo_push_node(ob, node, SculptUndoType::Mask);
+    undo::push_node(ob, node, SculptUndoType::Mask);
     BKE_pbvh_node_mark_update_mask(node);
   }
   else if (SCULPT_tool_is_paint(brush->sculpt_tool)) {
-    SCULPT_undo_push_node(ob, node, SculptUndoType::Color);
+    undo::push_node(ob, node, SculptUndoType::Color);
     BKE_pbvh_node_mark_update_color(node);
   }
   else {
@@ -3242,7 +3246,7 @@ static void do_brush_action_task(Object *ob, const Brush *brush, PBVHNode *node)
   }
 
   if (need_coords) {
-    SCULPT_undo_push_node(ob, node, SculptUndoType::Position);
+    undo::push_node(ob, node, SculptUndoType::Position);
     BKE_pbvh_node_mark_update(node);
   }
 }
@@ -3572,12 +3576,13 @@ static void sculpt_combine_proxies_node(Object &object,
                                         const bool use_orco,
                                         PBVHNode &node)
 {
+  using namespace blender::ed::sculpt_paint;
   SculptSession *ss = object.sculpt;
 
   float(*orco)[3] = nullptr;
   if (use_orco && !ss->bm) {
     orco = reinterpret_cast<float(*)[3]>(
-        (SCULPT_undo_push_node(&object, &node, SculptUndoType::Position)->co.data()));
+        (undo::push_node(&object, &node, SculptUndoType::Position)->co.data()));
   }
 
   MutableSpan<PBVHProxyNode> proxies = BKE_pbvh_node_get_proxies(&node);
@@ -4706,6 +4711,7 @@ void SCULPT_stroke_modifiers_check(const bContext *C, Object *ob, const Brush *b
 
 static void sculpt_raycast_cb(PBVHNode *node, void *data_v, float *tmin)
 {
+  using namespace blender::ed::sculpt_paint;
   if (BKE_pbvh_node_get_tmin(node) >= *tmin) {
     return;
   }
@@ -4719,7 +4725,7 @@ static void sculpt_raycast_cb(PBVHNode *node, void *data_v, float *tmin)
     }
     else {
       /* Intersect with coordinates from before we started stroke. */
-      SculptUndoNode *unode = SCULPT_undo_get_node(node, SculptUndoType::Position);
+      SculptUndoNode *unode = undo::get_node(node, SculptUndoType::Position);
       origco = (unode) ? reinterpret_cast<float(*)[3]>(unode->co.data()) : nullptr;
       use_origco = origco ? true : false;
     }
@@ -4746,6 +4752,7 @@ static void sculpt_raycast_cb(PBVHNode *node, void *data_v, float *tmin)
 
 static void sculpt_find_nearest_to_ray_cb(PBVHNode *node, void *data_v, float *tmin)
 {
+  using namespace blender::ed::sculpt_paint;
   if (BKE_pbvh_node_get_tmin(node) >= *tmin) {
     return;
   }
@@ -4759,7 +4766,7 @@ static void sculpt_find_nearest_to_ray_cb(PBVHNode *node, void *data_v, float *t
     }
     else {
       /* Intersect with coordinates from before we started stroke. */
-      SculptUndoNode *unode = SCULPT_undo_get_node(node, SculptUndoType::Position);
+      SculptUndoNode *unode = undo::get_node(node, SculptUndoType::Position);
       origco = (unode) ? reinterpret_cast<float(*)[3]>(unode->co.data()) : nullptr;
       use_origco = origco ? true : false;
     }
@@ -5315,6 +5322,7 @@ static bool over_mesh(bContext *C, wmOperator * /*op*/, const float mval[2])
 
 static void sculpt_stroke_undo_begin(const bContext *C, wmOperator *op)
 {
+  using namespace blender::ed::sculpt_paint;
   Object *ob = CTX_data_active_object(C);
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
@@ -5328,12 +5336,13 @@ static void sculpt_stroke_undo_begin(const bContext *C, wmOperator *op)
     ED_image_undo_push_begin(op->type->name, PAINT_MODE_SCULPT);
   }
   else {
-    SCULPT_undo_push_begin_ex(ob, sculpt_tool_name(sd));
+    undo::push_begin_ex(ob, sculpt_tool_name(sd));
   }
 }
 
 static void sculpt_stroke_undo_end(const bContext *C, Brush *brush)
 {
+  using namespace blender::ed::sculpt_paint;
   Object *ob = CTX_data_active_object(C);
   ToolSettings *tool_settings = CTX_data_tool_settings(C);
 
@@ -5343,7 +5352,7 @@ static void sculpt_stroke_undo_end(const bContext *C, Brush *brush)
     ED_image_undo_push_end();
   }
   else {
-    SCULPT_undo_push_end(ob);
+    undo::push_end(ob);
   }
 }
 

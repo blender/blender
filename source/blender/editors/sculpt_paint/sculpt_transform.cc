@@ -49,6 +49,7 @@ void ED_sculpt_init_transform(bContext *C,
                               const float mval_fl[2],
                               const char *undo_name)
 {
+  using namespace blender::ed::sculpt_paint;
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   SculptSession *ss = ob->sculpt;
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
@@ -61,7 +62,7 @@ void ED_sculpt_init_transform(bContext *C,
   copy_v4_v4(ss->prev_pivot_rot, ss->pivot_rot);
   copy_v3_v3(ss->prev_pivot_scale, ss->pivot_scale);
 
-  SCULPT_undo_push_begin_ex(ob, undo_name);
+  undo::push_begin_ex(ob, undo_name);
   BKE_sculpt_update_object_for_edit(depsgraph, ob, false);
 
   ss->pivot_rot[3] = 1.0f;
@@ -144,6 +145,7 @@ static void sculpt_transform_matrices_init(SculptSession *ss,
 
 static void sculpt_transform_task(Object *ob, const float transform_mats[8][4][4], PBVHNode *node)
 {
+  using namespace blender::ed::sculpt_paint;
   SculptSession *ss = ob->sculpt;
 
   SculptOrigVertData orig_data;
@@ -151,7 +153,7 @@ static void sculpt_transform_task(Object *ob, const float transform_mats[8][4][4
 
   PBVHVertexIter vd;
 
-  SCULPT_undo_push_node(ob, node, SculptUndoType::Position);
+  undo::push_node(ob, node, SculptUndoType::Position);
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     SCULPT_orig_vert_data_update(&orig_data, &vd);
     float *start_co;
@@ -209,7 +211,7 @@ static void sculpt_elastic_transform_task(Object *ob,
                                           const float elastic_transform_pivot[3],
                                           PBVHNode *node)
 {
-
+  using namespace blender::ed::sculpt_paint;
   SculptSession *ss = ob->sculpt;
 
   const MutableSpan<float3> proxy = BKE_pbvh_node_add_proxy(*ss->pbvh, *node).co;
@@ -226,7 +228,7 @@ static void sculpt_elastic_transform_task(Object *ob,
   const float poisson_ratio = 0.4f;
   BKE_kelvinlet_init_params(&params, transform_radius, force, shear_modulus, poisson_ratio);
 
-  SCULPT_undo_push_node(ob, node, SculptUndoType::Position);
+  undo::push_node(ob, node, SculptUndoType::Position);
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {

@@ -121,6 +121,7 @@ static bool object_remesh_poll(bContext *C)
 static int voxel_remesh_exec(bContext *C, wmOperator *op)
 {
   using namespace blender;
+  using namespace blender::ed;
   Object *ob = CTX_data_active_object(C);
 
   Mesh *mesh = static_cast<Mesh *>(ob->data);
@@ -148,7 +149,7 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
   }
 
   if (ob->mode == OB_MODE_SCULPT) {
-    ED_sculpt_undo_geometry_begin(ob, op);
+    sculpt_paint::undo::geometry_begin(ob, op);
   }
 
   if (mesh->flag & ME_REMESH_FIX_POLES && mesh->remesh_voxel_adaptivity <= 0.0f) {
@@ -173,7 +174,7 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
   BKE_mesh_nomain_to_mesh(new_mesh, mesh, ob);
 
   if (ob->mode == OB_MODE_SCULPT) {
-    ED_sculpt_undo_geometry_end(ob);
+    sculpt_paint::undo::geometry_end(ob);
   }
 
   BKE_mesh_batch_cache_dirty_tag(static_cast<Mesh *>(ob->data), BKE_MESH_BATCH_DIRTY_ALL);
@@ -830,6 +831,7 @@ static Mesh *remesh_symmetry_mirror(Object *ob, Mesh *mesh, eSymmetryAxes symmet
 
 static void quadriflow_start_job(void *customdata, wmJobWorkerStatus *worker_status)
 {
+  using namespace blender::ed;
   QuadriFlowJob *qj = static_cast<QuadriFlowJob *>(customdata);
 
   qj->stop = &worker_status->stop;
@@ -888,7 +890,7 @@ static void quadriflow_start_job(void *customdata, wmJobWorkerStatus *worker_sta
   new_mesh = remesh_symmetry_mirror(qj->owner, new_mesh, qj->symmetry_axes);
 
   if (ob->mode == OB_MODE_SCULPT) {
-    ED_sculpt_undo_geometry_begin(ob, qj->op);
+    sculpt_paint::undo::geometry_begin(ob, qj->op);
   }
 
   if (qj->preserve_attributes) {
@@ -900,7 +902,7 @@ static void quadriflow_start_job(void *customdata, wmJobWorkerStatus *worker_sta
   BKE_mesh_smooth_flag_set(static_cast<Mesh *>(ob->data), qj->smooth_normals);
 
   if (ob->mode == OB_MODE_SCULPT) {
-    ED_sculpt_undo_geometry_end(ob);
+    sculpt_paint::undo::geometry_end(ob);
   }
 
   BKE_mesh_batch_cache_dirty_tag(static_cast<Mesh *>(ob->data), BKE_MESH_BATCH_DIRTY_ALL);
