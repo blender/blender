@@ -706,7 +706,7 @@ bool select_box(const ViewContext &vc,
 
   const OffsetIndices points_by_curve = curves.points_by_curve();
   if (selection_domain == ATTR_DOMAIN_POINT) {
-    mask.foreach_index_optimized<int64_t>(GrainSize(1024), [&](const int64_t point_i) {
+    mask.foreach_index(GrainSize(1024), [&](const int point_i) {
       const float2 pos_proj = ED_view3d_project_float_v2_m4(
           vc.region, deformed_positions[point_i], projection);
       if (BLI_rcti_isect_pt_v(&rect, int2(pos_proj))) {
@@ -716,7 +716,7 @@ bool select_box(const ViewContext &vc,
     });
   }
   else if (selection_domain == ATTR_DOMAIN_CURVE) {
-    mask.foreach_index_optimized<int64_t>(GrainSize(512), [&](const int64_t curve_i) {
+    mask.foreach_index(GrainSize(512), [&](const int curve_i) {
       const IndexRange points = points_by_curve[curve_i];
       if (points.size() == 1) {
         const float2 pos_proj = ED_view3d_project_float_v2_m4(
@@ -772,7 +772,7 @@ bool select_lasso(const ViewContext &vc,
 
   const OffsetIndices points_by_curve = curves.points_by_curve();
   if (selection_domain == ATTR_DOMAIN_POINT) {
-    mask.foreach_index_optimized<int64_t>(GrainSize(1024), [&](const int64_t point_i) {
+    mask.foreach_index(GrainSize(1024), [&](const int point_i) {
       const float2 pos_proj = ED_view3d_project_float_v2_m4(
           vc.region, deformed_positions[point_i], projection);
       /* Check the lasso bounding box first as an optimization. */
@@ -786,7 +786,7 @@ bool select_lasso(const ViewContext &vc,
     });
   }
   else if (selection_domain == ATTR_DOMAIN_CURVE) {
-    mask.foreach_index_optimized<int64_t>(GrainSize(512), [&](const int64_t curve_i) {
+    mask.foreach_index(GrainSize(512), [&](const int curve_i) {
       const IndexRange points = points_by_curve[curve_i];
       if (points.size() == 1) {
         const float2 pos_proj = ED_view3d_project_float_v2_m4(
@@ -853,7 +853,7 @@ bool select_circle(const ViewContext &vc,
 
   const OffsetIndices points_by_curve = curves.points_by_curve();
   if (selection_domain == ATTR_DOMAIN_POINT) {
-    mask.foreach_index_optimized<int64_t>(GrainSize(1024), [&](const int64_t point_i) {
+    mask.foreach_index(GrainSize(1024), [&](const int point_i) {
       const float2 pos_proj = ED_view3d_project_float_v2_m4(
           vc.region, deformed_positions[point_i], projection);
       if (math::distance_squared(pos_proj, float2(coord)) <= radius_sq) {
@@ -863,7 +863,7 @@ bool select_circle(const ViewContext &vc,
     });
   }
   else if (selection_domain == ATTR_DOMAIN_CURVE) {
-    mask.foreach_index_optimized<int64_t>(GrainSize(512), [&](const int64_t curve_i) {
+    mask.foreach_index(GrainSize(512), [&](const int curve_i) {
       const IndexRange points = points_by_curve[curve_i];
       if (points.size() == 1) {
         const float2 pos_proj = ED_view3d_project_float_v2_m4(
