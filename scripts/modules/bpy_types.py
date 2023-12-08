@@ -87,13 +87,21 @@ class Context(StructRNA):
         new_context = {}
         generic_attrs = (
             *StructRNA.__dict__.keys(),
-            "bl_rna", "rna_type", "copy",
+            "bl_rna",
+            "rna_type",
+            "copy",
         )
+        function_types = {BuiltinMethodType, bpy_types.bpy_func}
         for attr in dir(self):
-            if not (attr.startswith("_") or attr in generic_attrs):
-                value = getattr(self, attr)
-                if type(value) != BuiltinMethodType:
-                    new_context[attr] = value
+            if attr.startswith("_"):
+                continue
+            if attr in generic_attrs:
+                continue
+            value = getattr(self, attr)
+            if type(value) in function_types:
+                continue
+
+            new_context[attr] = value
 
         return new_context
 
