@@ -1443,6 +1443,7 @@ static void area_dupli_fn(bScreen * /*screen*/, ScrArea *area, void *user_data)
 {
   ScrArea *area_src = static_cast<ScrArea *>(user_data);
   ED_area_data_copy(area, area_src, true);
+  ED_area_tag_redraw(area);
 };
 
 /* operator callback */
