@@ -403,10 +403,10 @@ static bool test_swap_v3_v3(float a[3], float b[3])
 }
 
 static bool sculpt_undo_restore_deformed(
-    const SculptSession *ss, SculptUndoNode *unode, int uindex, int oindex, float coord[3])
+    const SculptSession *ss, SculptUndoNode &unode, int uindex, int oindex, float coord[3])
 {
-  if (test_swap_v3_v3(coord, unode->orig_co[uindex])) {
-    copy_v3_v3(unode->co[uindex], ss->deform_cos[oindex]);
+  if (test_swap_v3_v3(coord, unode.orig_co[uindex])) {
+    copy_v3_v3(unode.co[uindex], ss->deform_cos[oindex]);
     return true;
   }
   return false;
@@ -415,19 +415,19 @@ static bool sculpt_undo_restore_deformed(
 static bool sculpt_undo_restore_coords(bContext *C,
                                        Object *ob,
                                        Depsgraph *depsgraph,
-                                       SculptUndoNode *unode)
+                                       SculptUndoNode &unode)
 {
   SculptSession *ss = ob->sculpt;
   SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
 
-  if (unode->maxvert) {
+  if (unode.maxvert) {
     /* Regular mesh restore. */
 
-    if (ss->shapekey_active && !STREQ(ss->shapekey_active->name, unode->shapeName)) {
+    if (ss->shapekey_active && !STREQ(ss->shapekey_active->name, unode.shapeName)) {
       /* Shape key has been changed before calling undo operator. */
 
       Key *key = BKE_key_from_object(ob);
-      KeyBlock *kb = key ? BKE_keyblock_find_name(key, unode->shapeName) : nullptr;
+      KeyBlock *kb = key ? BKE_keyblock_find_name(key, unode.shapeName) : nullptr;
 
       if (kb) {
         ob->shapenr = BLI_findindex(&key->block, kb) + 1;
@@ -442,28 +442,28 @@ static bool sculpt_undo_restore_coords(bContext *C,
     }
 
     /* No need for float comparison here (memory is exactly equal or not). */
-    const Span<int> index = unode->index;
+    const Span<int> index = unode.index;
     MutableSpan<float3> positions = ss->vert_positions;
 
     if (ss->shapekey_active) {
       MutableSpan<float3> vertCos(static_cast<float3 *>(ss->shapekey_active->data),
                                   ss->shapekey_active->totelem);
 
-      if (!unode->orig_co.is_empty()) {
+      if (!unode.orig_co.is_empty()) {
         if (ss->deform_modifiers_active) {
-          for (int i = 0; i < unode->totvert; i++) {
+          for (int i = 0; i < unode.totvert; i++) {
             sculpt_undo_restore_deformed(ss, unode, i, index[i], vertCos[index[i]]);
           }
         }
         else {
-          for (int i = 0; i < unode->totvert; i++) {
-            swap_v3_v3(vertCos[index[i]], unode->orig_co[i]);
+          for (int i = 0; i < unode.totvert; i++) {
+            swap_v3_v3(vertCos[index[i]], unode.orig_co[i]);
           }
         }
       }
       else {
-        for (int i = 0; i < unode->totvert; i++) {
-          swap_v3_v3(vertCos[index[i]], unode->co[i]);
+        for (int i = 0; i < unode.totvert; i++) {
+          swap_v3_v3(vertCos[index[i]], unode.co[i]);
         }
       }
 
@@ -475,34 +475,34 @@ static bool sculpt_undo_restore_coords(bContext *C,
       BKE_pbvh_vert_coords_apply(ss->pbvh, vertCos);
     }
     else {
-      if (!unode->orig_co.is_empty()) {
+      if (!unode.orig_co.is_empty()) {
         if (ss->deform_modifiers_active) {
-          for (int i = 0; i < unode->totvert; i++) {
+          for (int i = 0; i < unode.totvert; i++) {
             sculpt_undo_restore_deformed(ss, unode, i, index[i], positions[index[i]]);
             BKE_pbvh_vert_tag_update_normal(ss->pbvh, BKE_pbvh_make_vref(index[i]));
           }
         }
         else {
-          for (int i = 0; i < unode->totvert; i++) {
-            swap_v3_v3(positions[index[i]], unode->orig_co[i]);
+          for (int i = 0; i < unode.totvert; i++) {
+            swap_v3_v3(positions[index[i]], unode.orig_co[i]);
             BKE_pbvh_vert_tag_update_normal(ss->pbvh, BKE_pbvh_make_vref(index[i]));
           }
         }
       }
       else {
-        for (int i = 0; i < unode->totvert; i++) {
-          swap_v3_v3(positions[index[i]], unode->co[i]);
+        for (int i = 0; i < unode.totvert; i++) {
+          swap_v3_v3(positions[index[i]], unode.co[i]);
           BKE_pbvh_vert_tag_update_normal(ss->pbvh, BKE_pbvh_make_vref(index[i]));
         }
       }
     }
   }
-  else if (!unode->grids.is_empty() && subdiv_ccg != nullptr) {
+  else if (!unode.grids.is_empty() && subdiv_ccg != nullptr) {
     const int gridsize = subdiv_ccg->grid_size;
     const CCGKey key = BKE_subdiv_ccg_key_top_level(*subdiv_ccg);
-    const Span<int> grid_indices = unode->grids;
+    const Span<int> grid_indices = unode.grids;
 
-    MutableSpan<float3> co = unode->co;
+    MutableSpan<float3> co = unode.co;
     MutableSpan<CCGElem *> grids = subdiv_ccg->grids;
 
     int index = 0;
@@ -519,38 +519,38 @@ static bool sculpt_undo_restore_coords(bContext *C,
 }
 
 static bool sculpt_undo_restore_hidden(Object *ob,
-                                       SculptUndoNode *unode,
+                                       SculptUndoNode &unode,
                                        MutableSpan<bool> modified_vertices)
 {
   SculptSession *ss = ob->sculpt;
   SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
 
-  if (unode->maxvert) {
+  if (unode.maxvert) {
     Mesh &mesh = *static_cast<Mesh *>(ob->data);
     bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
     bke::SpanAttributeWriter<bool> hide_vert = attributes.lookup_or_add_for_write_span<bool>(
         ".hide_vert", ATTR_DOMAIN_POINT);
-    for (const int i : unode->index.index_range()) {
-      const int vert = unode->index[i];
-      if (unode->vert_hidden[i].test() != hide_vert.span[vert]) {
-        unode->vert_hidden[i].set(!unode->vert_hidden[i].test());
+    for (const int i : unode.index.index_range()) {
+      const int vert = unode.index[i];
+      if (unode.vert_hidden[i].test() != hide_vert.span[vert]) {
+        unode.vert_hidden[i].set(!unode.vert_hidden[i].test());
         hide_vert.span[vert] = !hide_vert.span[vert];
         modified_vertices[vert] = true;
       }
     }
     hide_vert.finish();
   }
-  else if (!unode->grids.is_empty() && subdiv_ccg != nullptr) {
-    if (unode->grid_hidden.is_empty()) {
+  else if (!unode.grids.is_empty() && subdiv_ccg != nullptr) {
+    if (unode.grid_hidden.is_empty()) {
       BKE_subdiv_ccg_grid_hidden_free(*subdiv_ccg);
       return true;
     }
 
     BitGroupVector<> &grid_hidden = BKE_subdiv_ccg_grid_hidden_ensure(*subdiv_ccg);
-    const Span<int> grids = unode->grids;
+    const Span<int> grids = unode.grids;
     for (const int i : grids.index_range()) {
       /* Swap the two bit spans. */
-      MutableBoundedBitSpan a = unode->grid_hidden[i];
+      MutableBoundedBitSpan a = unode.grid_hidden[i];
       MutableBoundedBitSpan b = grid_hidden[grids[i]];
       for (const int j : a.index_range()) {
         const bool value_a = a[j];
@@ -591,7 +591,7 @@ static bool sculpt_undo_restore_hidden_face(Object &object,
 }
 
 static bool sculpt_undo_restore_color(Object *ob,
-                                      SculptUndoNode *unode,
+                                      SculptUndoNode &unode,
                                       MutableSpan<bool> modified_vertices)
 {
   SculptSession *ss = ob->sculpt;
@@ -600,22 +600,22 @@ static bool sculpt_undo_restore_color(Object *ob,
 
   /* NOTE: even with loop colors we still store derived
    * vertex colors for original data lookup. */
-  if (!unode->col.is_empty() && unode->loop_col.is_empty()) {
-    BKE_pbvh_swap_colors(ss->pbvh, unode->index, unode->col);
+  if (!unode.col.is_empty() && unode.loop_col.is_empty()) {
+    BKE_pbvh_swap_colors(ss->pbvh, unode.index, unode.col);
     modified = true;
   }
 
   Mesh *me = BKE_object_get_original_mesh(ob);
 
-  if (!unode->loop_col.is_empty() && unode->maxloop == me->totloop) {
-    BKE_pbvh_swap_colors(ss->pbvh, unode->loop_index, unode->loop_col);
+  if (!unode.loop_col.is_empty() && unode.maxloop == me->totloop) {
+    BKE_pbvh_swap_colors(ss->pbvh, unode.loop_index, unode.loop_col);
 
     modified = true;
   }
 
   if (modified) {
-    for (int i = 0; i < unode->totvert; i++) {
-      modified_vertices[unode->index[i]] = true;
+    for (int i = 0; i < unode.totvert; i++) {
+      modified_vertices[unode.index[i]] = true;
     }
   }
 
@@ -623,35 +623,35 @@ static bool sculpt_undo_restore_color(Object *ob,
 }
 
 static bool sculpt_undo_restore_mask(Object *ob,
-                                     SculptUndoNode *unode,
+                                     SculptUndoNode &unode,
                                      MutableSpan<bool> modified_vertices)
 {
   Mesh *mesh = BKE_object_get_original_mesh(ob);
   SculptSession *ss = ob->sculpt;
   SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
 
-  if (unode->maxvert) {
+  if (unode.maxvert) {
     bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
     bke::SpanAttributeWriter<float> mask = attributes.lookup_or_add_for_write_span<float>(
         ".sculpt_mask", ATTR_DOMAIN_POINT);
 
-    const Span<int> index = unode->index;
+    const Span<int> index = unode.index;
 
-    for (int i = 0; i < unode->totvert; i++) {
-      if (mask.span[index[i]] != unode->mask[i]) {
-        std::swap(mask.span[index[i]], unode->mask[i]);
+    for (int i = 0; i < unode.totvert; i++) {
+      if (mask.span[index[i]] != unode.mask[i]) {
+        std::swap(mask.span[index[i]], unode.mask[i]);
         modified_vertices[index[i]] = true;
       }
     }
 
     mask.finish();
   }
-  else if (!unode->grids.is_empty() && subdiv_ccg != nullptr) {
+  else if (!unode.grids.is_empty() && subdiv_ccg != nullptr) {
     const int gridsize = subdiv_ccg->grid_size;
     const CCGKey key = BKE_subdiv_ccg_key_top_level(*subdiv_ccg);
-    const Span<int> grid_indices = unode->grids;
+    const Span<int> grid_indices = unode.grids;
 
-    MutableSpan<float> mask = unode->mask;
+    MutableSpan<float> mask = unode.mask;
     MutableSpan<CCGElem *> grids = subdiv_ccg->grids;
 
     int index = 0;
@@ -668,39 +668,39 @@ static bool sculpt_undo_restore_mask(Object *ob,
 }
 
 static bool sculpt_undo_restore_face_sets(Object *ob,
-                                          SculptUndoNode *unode,
+                                          SculptUndoNode &unode,
                                           MutableSpan<bool> modified_face_set_faces)
 {
   bke::SpanAttributeWriter<int> face_sets = face_set::ensure_face_sets_mesh(*ob);
 
   bool modified = false;
-  const Span<int> face_indices = unode->face_indices;
+  const Span<int> face_indices = unode.face_indices;
 
   for (const int i : face_indices.index_range()) {
     int face_index = face_indices[i];
-    if (unode->face_sets[i] != face_sets.span[face_index]) {
+    if (unode.face_sets[i] != face_sets.span[face_index]) {
       modified_face_set_faces[face_index] = true;
       modified = true;
     }
 
-    std::swap(unode->face_sets[i], face_sets.span[face_index]);
+    std::swap(unode.face_sets[i], face_sets.span[face_index]);
   }
   face_sets.finish();
   return modified;
 }
 
-static void sculpt_undo_bmesh_restore_generic(SculptUndoNode *unode, Object *ob, SculptSession *ss)
+static void sculpt_undo_bmesh_restore_generic(SculptUndoNode &unode, Object *ob, SculptSession *ss)
 {
-  if (unode->applied) {
+  if (unode.applied) {
     BM_log_undo(ss->bm, ss->bm_log);
-    unode->applied = false;
+    unode.applied = false;
   }
   else {
     BM_log_redo(ss->bm, ss->bm_log);
-    unode->applied = true;
+    unode.applied = true;
   }
 
-  if (unode->type == SculptUndoType::Mask) {
+  if (unode.type == SculptUndoType::Mask) {
     Vector<PBVHNode *> nodes = bke::pbvh::search_gather(ss->pbvh, {});
     for (PBVHNode *node : nodes) {
       BKE_pbvh_node_mark_redraw(node);
@@ -712,7 +712,7 @@ static void sculpt_undo_bmesh_restore_generic(SculptUndoNode *unode, Object *ob,
 }
 
 /* Create empty sculpt BMesh and enable logging. */
-static void sculpt_undo_bmesh_enable(Object *ob, SculptUndoNode *unode)
+static void sculpt_undo_bmesh_enable(Object *ob, SculptUndoNode &unode)
 {
   SculptSession *ss = ob->sculpt;
   Mesh *me = static_cast<Mesh *>(ob->data);
@@ -729,17 +729,17 @@ static void sculpt_undo_bmesh_enable(Object *ob, SculptUndoNode *unode)
   me->flag |= ME_SCULPT_DYNAMIC_TOPOLOGY;
 
   /* Restore the BMLog using saved entries. */
-  ss->bm_log = BM_log_from_existing_entries_create(ss->bm, unode->bm_entry);
+  ss->bm_log = BM_log_from_existing_entries_create(ss->bm, unode.bm_entry);
 }
 
 static void sculpt_undo_bmesh_restore_begin(bContext *C,
-                                            SculptUndoNode *unode,
+                                            SculptUndoNode &unode,
                                             Object *ob,
                                             SculptSession *ss)
 {
-  if (unode->applied) {
-    SCULPT_dynamic_topology_disable(C, unode);
-    unode->applied = false;
+  if (unode.applied) {
+    SCULPT_dynamic_topology_disable(C, &unode);
+    unode.applied = false;
   }
   else {
     sculpt_undo_bmesh_enable(ob, unode);
@@ -747,27 +747,27 @@ static void sculpt_undo_bmesh_restore_begin(bContext *C,
     /* Restore the mesh from the first log entry. */
     BM_log_redo(ss->bm, ss->bm_log);
 
-    unode->applied = true;
+    unode.applied = true;
   }
 }
 
 static void sculpt_undo_bmesh_restore_end(bContext *C,
-                                          SculptUndoNode *unode,
+                                          SculptUndoNode &unode,
                                           Object *ob,
                                           SculptSession *ss)
 {
-  if (unode->applied) {
+  if (unode.applied) {
     sculpt_undo_bmesh_enable(ob, unode);
 
     /* Restore the mesh from the last log entry. */
     BM_log_undo(ss->bm, ss->bm_log);
 
-    unode->applied = false;
+    unode.applied = false;
   }
   else {
     /* Disable dynamic topology sculpting. */
     SCULPT_dynamic_topology_disable(C, nullptr);
-    unode->applied = true;
+    unode.applied = true;
   }
 }
 
@@ -835,19 +835,19 @@ static void sculpt_undo_geometry_free_data(SculptUndoNodeGeometry *geometry)
                                      &geometry->face_offsets_sharing_info);
 }
 
-static void sculpt_undo_geometry_restore(SculptUndoNode *unode, Object *object)
+static void sculpt_undo_geometry_restore(SculptUndoNode &unode, Object *object)
 {
-  if (unode->geometry_clear_pbvh) {
+  if (unode.geometry_clear_pbvh) {
     SCULPT_pbvh_clear(object);
   }
 
-  if (unode->applied) {
-    sculpt_undo_geometry_restore_data(&unode->geometry_modified, object);
-    unode->applied = false;
+  if (unode.applied) {
+    sculpt_undo_geometry_restore_data(&unode.geometry_modified, object);
+    unode.applied = false;
   }
   else {
-    sculpt_undo_geometry_restore_data(&unode->geometry_original, object);
-    unode->applied = true;
+    sculpt_undo_geometry_restore_data(&unode.geometry_original, object);
+    unode.applied = true;
   }
 }
 
@@ -856,11 +856,11 @@ static void sculpt_undo_geometry_restore(SculptUndoNode *unode, Object *object)
  * Returns true if this was a dynamic-topology undo step, otherwise
  * returns false to indicate the non-dyntopo code should run. */
 static int sculpt_undo_bmesh_restore(bContext *C,
-                                     SculptUndoNode *unode,
+                                     SculptUndoNode &unode,
                                      Object *ob,
                                      SculptSession *ss)
 {
-  switch (unode->type) {
+  switch (unode.type) {
     case SculptUndoType::DyntopoBegin:
       sculpt_undo_bmesh_restore_begin(C, unode, ob, ss);
       return true;
@@ -939,7 +939,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
       BKE_sculpt_update_object_for_edit(depsgraph, ob, false);
     }
 
-    if (sculpt_undo_bmesh_restore(C, static_cast<SculptUndoNode *>(lb->first), ob, ss)) {
+    if (sculpt_undo_bmesh_restore(C, *static_cast<SculptUndoNode *>(lb->first), ob, ss)) {
       return;
     }
   }
@@ -985,13 +985,13 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
 
     switch (unode->type) {
       case SculptUndoType::Position:
-        if (sculpt_undo_restore_coords(C, ob, depsgraph, unode)) {
+        if (sculpt_undo_restore_coords(C, ob, depsgraph, *unode)) {
           changed_position = true;
         }
         break;
       case SculptUndoType::HideVert:
         modified_verts_hide.resize(ss->totvert, false);
-        if (sculpt_undo_restore_hidden(ob, unode, modified_verts_hide)) {
+        if (sculpt_undo_restore_hidden(ob, *unode, modified_verts_hide)) {
           changed_hide_vert = true;
         }
         break;
@@ -1003,24 +1003,24 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
         break;
       case SculptUndoType::Mask:
         modified_verts_mask.resize(ss->totvert, false);
-        if (sculpt_undo_restore_mask(ob, unode, modified_verts_mask)) {
+        if (sculpt_undo_restore_mask(ob, *unode, modified_verts_mask)) {
           changed_mask = true;
         }
         break;
       case SculptUndoType::FaceSet:
         modified_faces_face_set.resize(ss->totfaces, false);
-        if (sculpt_undo_restore_face_sets(ob, unode, modified_faces_face_set)) {
+        if (sculpt_undo_restore_face_sets(ob, *unode, modified_faces_face_set)) {
           changed_face_sets = true;
         }
         break;
       case SculptUndoType::Color:
         modified_verts_color.resize(ss->totvert, false);
-        if (sculpt_undo_restore_color(ob, unode, modified_verts_color)) {
+        if (sculpt_undo_restore_color(ob, *unode, modified_verts_color)) {
           changed_color = true;
         }
         break;
       case SculptUndoType::Geometry:
-        sculpt_undo_geometry_restore(unode, ob);
+        sculpt_undo_geometry_restore(*unode, ob);
         changed_all_geometry = true;
         BKE_sculpt_update_object_for_edit(depsgraph, ob, false);
         break;
