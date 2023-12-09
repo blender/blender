@@ -11,9 +11,16 @@ CCL_NAMESPACE_BEGIN
 #    define NDEBUG /* Disable "assert" in device code */
 #    define NANOVDB_USE_INTRINSICS
 #    include "nanovdb/NanoVDB.h"
-#    include "nanovdb/util/SampleFromVoxels.h"
 #  endif
 #endif
+
+ccl_device_inline float frac(float x, ccl_private int *ix)
+{
+  int i = float_to_int(x) - ((x < 0.0f) ? 1 : 0);
+  *ix = i;
+  return x - (float)i;
+}
+
 /* w0, w1, w2, and w3 are the four cubic B-spline basis functions. */
 ccl_device float cubic_w0(float a)
 {
@@ -126,46 +133,110 @@ kernel_tex_image_interp_tricubic(ccl_global const TextureInfo &info, float x, fl
 }
 
 #ifdef WITH_NANOVDB
-template<typename T, typename S>
-ccl_device typename nanovdb::NanoGrid<T>::ValueType kernel_tex_image_interp_tricubic_nanovdb(
-    ccl_private S &s, float x, float y, float z)
+ccl_device_forceinline float nanovdb_read(float f)
 {
-  float px = floorf(x);
-  float py = floorf(y);
-  float pz = floorf(z);
-  float fx = x - px;
-  float fy = y - py;
-  float fz = z - pz;
+  return f;
+}
 
-  float g0x = cubic_g0(fx);
-  float g1x = cubic_g1(fx);
-  float g0y = cubic_g0(fy);
-  float g1y = cubic_g1(fy);
-  float g0z = cubic_g0(fz);
-  float g1z = cubic_g1(fz);
+ccl_device_forceinline float3 nanovdb_read(const nanovdb::Vec3f f)
+{
+  return make_float3(f[0], f[1], f[2]);
+}
 
-  float x0 = px + cubic_h0(fx);
-  float x1 = px + cubic_h1(fx);
-  float y0 = py + cubic_h0(fy);
-  float y1 = py + cubic_h1(fy);
-  float z0 = pz + cubic_h0(fz);
-  float z1 = pz + cubic_h1(fz);
+template<typename OutT, typename Acc>
+ccl_device OutT
+kernel_tex_image_interp_trilinear_nanovdb(ccl_private Acc &acc, float x, float y, float z)
+{
+  int ix, iy, iz;
+  const float tx = frac(x - 0.5f, &ix);
+  const float ty = frac(y - 0.5f, &iy);
+  const float tz = frac(z - 0.5f, &iz);
 
-  using namespace nanovdb;
+  return mix(mix(mix(nanovdb_read(acc.getValue(nanovdb::Coord(ix, iy, iz))),
+                     nanovdb_read(acc.getValue(nanovdb::Coord(ix, iy, iz + 1))),
+                     tz),
+                 mix(nanovdb_read(acc.getValue(nanovdb::Coord(ix, iy + 1, iz + 1))),
+                     nanovdb_read(acc.getValue(nanovdb::Coord(ix, iy + 1, iz))),
+                     1.0f - tz),
+                 ty),
+             mix(mix(nanovdb_read(acc.getValue(nanovdb::Coord(ix + 1, iy + 1, iz))),
+                     nanovdb_read(acc.getValue(nanovdb::Coord(ix + 1, iy + 1, iz + 1))),
+                     tz),
+                 mix(nanovdb_read(acc.getValue(nanovdb::Coord(ix + 1, iy, iz + 1))),
+                     nanovdb_read(acc.getValue(nanovdb::Coord(ix + 1, iy, iz))),
+                     1.0f - tz),
+                 1.0f - ty),
+             tx);
+}
 
-  return g0z * (g0y * (g0x * s(Vec3f(x0, y0, z0)) + g1x * s(Vec3f(x1, y0, z0))) +
-                g1y * (g0x * s(Vec3f(x0, y1, z0)) + g1x * s(Vec3f(x1, y1, z0)))) +
-         g1z * (g0y * (g0x * s(Vec3f(x0, y0, z1)) + g1x * s(Vec3f(x1, y0, z1))) +
-                g1y * (g0x * s(Vec3f(x0, y1, z1)) + g1x * s(Vec3f(x1, y1, z1))));
+template<typename OutT, typename Acc>
+ccl_device OutT
+kernel_tex_image_interp_tricubic_nanovdb(ccl_private Acc &acc, float x, float y, float z)
+{
+  int ix, iy, iz;
+  int nix, niy, niz;
+  int pix, piy, piz;
+  int nnix, nniy, nniz;
+
+  /* A -0.5 offset is used to center the cubic samples around the sample point. */
+  const float tx = frac(x - 0.5f, &ix);
+  const float ty = frac(y - 0.5f, &iy);
+  const float tz = frac(z - 0.5f, &iz);
+
+  pix = ix - 1;
+  piy = iy - 1;
+  piz = iz - 1;
+  nix = ix + 1;
+  niy = iy + 1;
+  niz = iz + 1;
+  nnix = ix + 2;
+  nniy = iy + 2;
+  nniz = iz + 2;
+
+  const int xc[4] = {pix, ix, nix, nnix};
+  const int yc[4] = {piy, iy, niy, nniy};
+  const int zc[4] = {piz, iz, niz, nniz};
+  float u[4], v[4], w[4];
+
+  /* Some helper macros to keep code size reasonable.
+   * Lets the compiler inline all the matrix multiplications.
+   */
+#  define SET_CUBIC_SPLINE_WEIGHTS(u, t) \
+    { \
+      u[0] = (((-1.0f / 6.0f) * t + 0.5f) * t - 0.5f) * t + (1.0f / 6.0f); \
+      u[1] = ((0.5f * t - 1.0f) * t) * t + (2.0f / 3.0f); \
+      u[2] = ((-0.5f * t + 0.5f) * t + 0.5f) * t + (1.0f / 6.0f); \
+      u[3] = (1.0f / 6.0f) * t * t * t; \
+    } \
+    (void)0
+
+#  define DATA(x, y, z) (nanovdb_read(acc.getValue(nanovdb::Coord(xc[x], yc[y], zc[z]))))
+#  define COL_TERM(col, row) \
+    (v[col] * (u[0] * DATA(0, col, row) + u[1] * DATA(1, col, row) + u[2] * DATA(2, col, row) + \
+               u[3] * DATA(3, col, row)))
+#  define ROW_TERM(row) \
+    (w[row] * (COL_TERM(0, row) + COL_TERM(1, row) + COL_TERM(2, row) + COL_TERM(3, row)))
+
+  SET_CUBIC_SPLINE_WEIGHTS(u, tx);
+  SET_CUBIC_SPLINE_WEIGHTS(v, ty);
+  SET_CUBIC_SPLINE_WEIGHTS(w, tz);
+
+  /* Actual interpolation. */
+  return ROW_TERM(0) + ROW_TERM(1) + ROW_TERM(2) + ROW_TERM(3);
+
+#  undef COL_TERM
+#  undef ROW_TERM
+#  undef DATA
+#  undef SET_CUBIC_SPLINE_WEIGHTS
 }
 
 #  if defined(__KERNEL_METAL__)
-template<typename T>
-__attribute__((noinline)) typename nanovdb::NanoGrid<T>::ValueType kernel_tex_image_interp_nanovdb(
+template<typename OutT, typename T>
+__attribute__((noinline)) OutT kernel_tex_image_interp_nanovdb(
     ccl_global const TextureInfo &info, float x, float y, float z, uint interpolation)
 #  else
-template<typename T>
-ccl_device_noinline typename nanovdb::NanoGrid<T>::ValueType kernel_tex_image_interp_nanovdb(
+template<typename OutT, typename T>
+ccl_device_noinline OutT kernel_tex_image_interp_nanovdb(
     ccl_global const TextureInfo &info, float x, float y, float z, uint interpolation)
 #  endif
 {
@@ -176,13 +247,16 @@ ccl_device_noinline typename nanovdb::NanoGrid<T>::ValueType kernel_tex_image_in
   AccessorType acc = grid->getAccessor();
 
   switch (interpolation) {
-    case INTERPOLATION_CLOSEST:
-      return SampleFromVoxels<AccessorType, 0, false>(acc)(Vec3f(x, y, z));
-    case INTERPOLATION_LINEAR:
-      return SampleFromVoxels<AccessorType, 1, false>(acc)(Vec3f(x - 0.5f, y - 0.5f, z - 0.5f));
-    default:
-      SampleFromVoxels<AccessorType, 1, false> s(acc);
-      return kernel_tex_image_interp_tricubic_nanovdb<T>(s, x - 0.5f, y - 0.5f, z - 0.5f);
+    case INTERPOLATION_CLOSEST: {
+      const nanovdb::Coord coord((int32_t)floorf(x), (int32_t)floorf(y), (int32_t)floorf(z));
+      return nanovdb_read(acc.getValue(coord));
+    }
+    case INTERPOLATION_LINEAR: {
+      return kernel_tex_image_interp_trilinear_nanovdb<OutT>(acc, x, y, z);
+    }
+    default: {
+      return kernel_tex_image_interp_tricubic_nanovdb<OutT>(acc, x, y, z);
+    }
   }
 }
 #endif
@@ -240,20 +314,20 @@ ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals kg,
 
 #ifdef WITH_NANOVDB
   if (texture_type == IMAGE_DATA_TYPE_NANOVDB_FLOAT) {
-    float f = kernel_tex_image_interp_nanovdb<float>(info, x, y, z, interpolation);
+    float f = kernel_tex_image_interp_nanovdb<float, float>(info, x, y, z, interpolation);
     return make_float4(f, f, f, 1.0f);
   }
   if (texture_type == IMAGE_DATA_TYPE_NANOVDB_FLOAT3) {
-    nanovdb::Vec3f f = kernel_tex_image_interp_nanovdb<nanovdb::Vec3f>(
+    float3 f = kernel_tex_image_interp_nanovdb<float3, nanovdb::Vec3f>(
         info, x, y, z, interpolation);
-    return make_float4(f[0], f[1], f[2], 1.0f);
+    return make_float4(f.x, f.y, f.z, 1.0f);
   }
   if (texture_type == IMAGE_DATA_TYPE_NANOVDB_FPN) {
-    float f = kernel_tex_image_interp_nanovdb<nanovdb::FpN>(info, x, y, z, interpolation);
+    float f = kernel_tex_image_interp_nanovdb<float, nanovdb::FpN>(info, x, y, z, interpolation);
     return make_float4(f, f, f, 1.0f);
   }
   if (texture_type == IMAGE_DATA_TYPE_NANOVDB_FP16) {
-    float f = kernel_tex_image_interp_nanovdb<nanovdb::Fp16>(info, x, y, z, interpolation);
+    float f = kernel_tex_image_interp_nanovdb<float, nanovdb::Fp16>(info, x, y, z, interpolation);
     return make_float4(f, f, f, 1.0f);
   }
 #endif

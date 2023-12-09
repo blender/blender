@@ -8,7 +8,6 @@
 #  define NDEBUG /* Disable "assert" in device code */
 #  define NANOVDB_USE_INTRINSICS
 #  include "nanovdb/NanoVDB.h"
-#  include "nanovdb/util/SampleFromVoxels.h"
 #endif
 
 /* Open the Metal kernel context class

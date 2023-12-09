@@ -7,7 +7,6 @@
 #ifdef WITH_NANOVDB
 #  define NANOVDB_USE_INTRINSICS
 #  include <nanovdb/NanoVDB.h>
-#  include <nanovdb/util/SampleFromVoxels.h>
 #endif
 
 CCL_NAMESPACE_BEGIN
@@ -704,8 +703,8 @@ template<typename TexT, typename OutT = float4> struct NanoVDBInterpolator {
                                                   float y,
                                                   float z)
   {
-    const nanovdb::Vec3f xyz(x, y, z);
-    return read(nanovdb::SampleFromVoxels<AccessorType, 0, false>(acc)(xyz));
+    const nanovdb::Coord coord((int32_t)floorf(x), (int32_t)floorf(y), (int32_t)floorf(z));
+    return read(acc.getValue(coord));
   }
 
   static ccl_always_inline OutT interp_3d_linear(const AccessorType &acc,
@@ -713,8 +712,26 @@ template<typename TexT, typename OutT = float4> struct NanoVDBInterpolator {
                                                  float y,
                                                  float z)
   {
-    const nanovdb::Vec3f xyz(x - 0.5f, y - 0.5f, z - 0.5f);
-    return read(nanovdb::SampleFromVoxels<AccessorType, 1, false>(acc)(xyz));
+    int ix, iy, iz;
+    const float tx = frac(x - 0.5f, &ix);
+    const float ty = frac(y - 0.5f, &iy);
+    const float tz = frac(z - 0.5f, &iz);
+
+    return mix(mix(mix(read(acc.getValue(nanovdb::Coord(ix, iy, iz))),
+                       read(acc.getValue(nanovdb::Coord(ix, iy, iz + 1))),
+                       tz),
+                   mix(read(acc.getValue(nanovdb::Coord(ix, iy + 1, iz + 1))),
+                       read(acc.getValue(nanovdb::Coord(ix, iy + 1, iz))),
+                       1.0f - tz),
+                   ty),
+               mix(mix(read(acc.getValue(nanovdb::Coord(ix + 1, iy + 1, iz))),
+                       read(acc.getValue(nanovdb::Coord(ix + 1, iy + 1, iz + 1))),
+                       tz),
+                   mix(read(acc.getValue(nanovdb::Coord(ix + 1, iy, iz + 1))),
+                       read(acc.getValue(nanovdb::Coord(ix + 1, iy, iz))),
+                       1.0f - tz),
+                   1.0f - ty),
+               tx);
   }
 
   /* Tricubic b-spline interpolation. */
