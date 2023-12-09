@@ -56,7 +56,7 @@ void bmo_extrude_discrete_faces_exec(BMesh *bm, BMOperator *op)
 
     BMO_face_flag_enable(bm, f_org, EXT_DEL);
 
-    f_new = BM_face_copy(bm, bm, f_org, true, true);
+    f_new = BM_face_copy(bm, f_org, true, true);
     BMO_face_flag_enable(bm, f_new, EXT_KEEP);
 
     if (select_history_map) {

@@ -18,27 +18,43 @@
 #include "bmesh.hh"
 #include "intern/bmesh_private.hh" /* for element checking */
 
-static BMVert *bm_vert_copy(BMesh *bm_src, BMesh *bm_dst, BMVert *v_src)
+static BMVert *bm_vert_copy(BMesh *bm_dst,
+                            const std::optional<BMCustomDataCopyMap> &cd_vert_map,
+                            BMVert *v_src)
 {
   BMVert *v_dst = BM_vert_create(bm_dst, v_src->co, nullptr, BM_CREATE_SKIP_CD);
-  BM_elem_attrs_copy(bm_src, bm_dst, v_src, v_dst);
+  if (cd_vert_map.has_value()) {
+    BM_elem_attrs_copy(bm_dst, cd_vert_map.value(), v_src, v_dst);
+  }
+  else {
+    BM_elem_attrs_copy(*bm_dst, v_src, v_dst);
+  }
   return v_dst;
 }
 
-static BMEdge *bm_edge_copy_with_arrays(BMesh *bm_src,
-                                        BMesh *bm_dst,
+static BMEdge *bm_edge_copy_with_arrays(BMesh *bm_dst,
+                                        const std::optional<BMCustomDataCopyMap> &cd_edge_map,
                                         BMEdge *e_src,
                                         BMVert **verts_dst)
 {
   BMVert *e_dst_v1 = verts_dst[BM_elem_index_get(e_src->v1)];
   BMVert *e_dst_v2 = verts_dst[BM_elem_index_get(e_src->v2)];
   BMEdge *e_dst = BM_edge_create(bm_dst, e_dst_v1, e_dst_v2, nullptr, BM_CREATE_SKIP_CD);
-  BM_elem_attrs_copy(bm_src, bm_dst, e_src, e_dst);
+  if (cd_edge_map.has_value()) {
+    BM_elem_attrs_copy(bm_dst, cd_edge_map.value(), e_src, e_dst);
+  }
+  else {
+    BM_elem_attrs_copy(*bm_dst, e_src, e_dst);
+  }
   return e_dst;
 }
 
-static BMFace *bm_face_copy_with_arrays(
-    BMesh *bm_src, BMesh *bm_dst, BMFace *f_src, BMVert **verts_dst, BMEdge **edges_dst)
+static BMFace *bm_face_copy_with_arrays(BMesh *bm_dst,
+                                        const std::optional<BMCustomDataCopyMap> cd_face_map,
+                                        const std::optional<BMCustomDataCopyMap> &cd_loop_map,
+                                        BMFace *f_src,
+                                        BMVert **verts_dst,
+                                        BMEdge **edges_dst)
 {
   BMFace *f_dst;
   BMVert **vtar = BLI_array_alloca(vtar, f_src->len);
@@ -61,13 +77,23 @@ static BMFace *bm_face_copy_with_arrays(
   f_dst = BM_face_create(bm_dst, vtar, edar, f_src->len, nullptr, BM_CREATE_SKIP_CD);
 
   /* Copy attributes. */
-  BM_elem_attrs_copy(bm_src, bm_dst, f_src, f_dst);
+  if (cd_face_map.has_value()) {
+    BM_elem_attrs_copy(bm_dst, cd_face_map.value(), f_src, f_dst);
+  }
+  else {
+    BM_elem_attrs_copy(*bm_dst, f_src, f_dst);
+  }
 
   /* Copy per-loop custom data. */
   l_iter_src = l_first_src;
   l_iter_dst = BM_FACE_FIRST_LOOP(f_dst);
   do {
-    BM_elem_attrs_copy(bm_src, bm_dst, l_iter_src, l_iter_dst);
+    if (cd_loop_map.has_value()) {
+      BM_elem_attrs_copy(bm_dst, cd_loop_map.value(), l_iter_src, l_iter_dst);
+    }
+    else {
+      BM_elem_attrs_copy(*bm_dst, l_iter_src, l_iter_dst);
+    }
   } while ((void)(l_iter_dst = l_iter_dst->next), (l_iter_src = l_iter_src->next) != l_first_src);
 
   return f_dst;
@@ -82,6 +108,23 @@ void BM_mesh_copy_arrays(BMesh *bm_src,
                          BMFace **faces_src,
                          uint faces_src_len)
 {
+  const std::optional<BMCustomDataCopyMap> cd_vert_map =
+      (bm_src == bm_dst) ? std::nullopt :
+                           std::optional<BMCustomDataCopyMap>{
+                               CustomData_bmesh_copy_map_calc(bm_src->vdata, bm_dst->vdata)};
+  const std::optional<BMCustomDataCopyMap> cd_edge_map =
+      (bm_src == bm_dst) ? std::nullopt :
+                           std::optional<BMCustomDataCopyMap>{
+                               CustomData_bmesh_copy_map_calc(bm_src->edata, bm_dst->edata)};
+  const std::optional<BMCustomDataCopyMap> cd_face_map =
+      (bm_src == bm_dst) ? std::nullopt :
+                           std::optional<BMCustomDataCopyMap>{
+                               CustomData_bmesh_copy_map_calc(bm_src->pdata, bm_dst->pdata)};
+  const std::optional<BMCustomDataCopyMap> cd_loop_map =
+      (bm_src == bm_dst) ? std::nullopt :
+                           std::optional<BMCustomDataCopyMap>{
+                               CustomData_bmesh_copy_map_calc(bm_src->ldata, bm_dst->ldata)};
+
   /* Vertices. */
   BMVert **verts_dst = static_cast<BMVert **>(
       MEM_mallocN(sizeof(*verts_dst) * verts_src_len, __func__));
@@ -89,7 +132,7 @@ void BM_mesh_copy_arrays(BMesh *bm_src,
     BMVert *v_src = verts_src[i];
     BM_elem_index_set(v_src, i); /* set_dirty! */
 
-    BMVert *v_dst = bm_vert_copy(bm_src, bm_dst, v_src);
+    BMVert *v_dst = bm_vert_copy(bm_dst, cd_vert_map, v_src);
     BM_elem_index_set(v_dst, i); /* set_ok */
     verts_dst[i] = v_dst;
   }
@@ -103,7 +146,7 @@ void BM_mesh_copy_arrays(BMesh *bm_src,
     BMEdge *e_src = edges_src[i];
     BM_elem_index_set(e_src, i); /* set_dirty! */
 
-    BMEdge *e_dst = bm_edge_copy_with_arrays(bm_src, bm_dst, e_src, verts_dst);
+    BMEdge *e_dst = bm_edge_copy_with_arrays(bm_dst, cd_edge_map, e_src, verts_dst);
     BM_elem_index_set(e_dst, i);
     edges_dst[i] = e_dst;
   }
@@ -113,7 +156,8 @@ void BM_mesh_copy_arrays(BMesh *bm_src,
   /* Faces. */
   for (uint i = 0; i < faces_src_len; i++) {
     BMFace *f_src = faces_src[i];
-    BMFace *f_dst = bm_face_copy_with_arrays(bm_src, bm_dst, f_src, verts_dst, edges_dst);
+    BMFace *f_dst = bm_face_copy_with_arrays(
+        bm_dst, cd_face_map, cd_loop_map, f_src, verts_dst, edges_dst);
     BM_elem_index_set(f_dst, i);
   }
   bm_dst->elem_index_dirty &= ~BM_FACE;

@@ -33,7 +33,7 @@
 static BMVert *bmo_vert_copy(BMOperator *op,
                              BMOpSlot *slot_vertmap_out,
                              BMesh *bm_dst,
-                             BMesh *bm_src,
+                             const std::optional<BMCustomDataCopyMap> &cd_vert_map,
                              BMVert *v_src,
                              GHash *vhash)
 {
@@ -48,7 +48,12 @@ static BMVert *bmo_vert_copy(BMOperator *op,
   BLI_ghash_insert(vhash, v_src, v_dst);
 
   /* Copy attributes */
-  BM_elem_attrs_copy(bm_src, bm_dst, v_src, v_dst);
+  if (cd_vert_map.has_value()) {
+    BM_elem_attrs_copy(bm_dst, cd_vert_map.value(), v_src, v_dst);
+  }
+  else {
+    BM_elem_attrs_copy(*bm_dst, v_src, v_dst);
+  }
 
   /* Mark the vert for output */
   BMO_vert_flag_enable(bm_dst, v_dst, DUPE_NEW);
@@ -66,6 +71,7 @@ static BMEdge *bmo_edge_copy(BMOperator *op,
                              BMOpSlot *slot_boundarymap_out,
                              BMesh *bm_dst,
                              BMesh *bm_src,
+                             const std::optional<BMCustomDataCopyMap> &cd_edge_map,
                              BMEdge *e_src,
                              GHash *vhash,
                              GHash *ehash,
@@ -110,7 +116,12 @@ static BMEdge *bmo_edge_copy(BMOperator *op,
   BLI_ghash_insert(ehash, e_src, e_dst);
 
   /* Copy attributes */
-  BM_elem_attrs_copy(bm_src, bm_dst, e_src, e_dst);
+  if (cd_edge_map.has_value()) {
+    BM_elem_attrs_copy(bm_dst, cd_edge_map.value(), e_src, e_dst);
+  }
+  else {
+    BM_elem_attrs_copy(*bm_dst, e_src, e_dst);
+  }
 
   /* Mark the edge for output */
   BMO_edge_flag_enable(bm_dst, e_dst, DUPE_NEW);
@@ -134,7 +145,8 @@ static BMEdge *bmo_edge_copy(BMOperator *op,
 static BMFace *bmo_face_copy(BMOperator *op,
                              BMOpSlot *slot_facemap_out,
                              BMesh *bm_dst,
-                             BMesh *bm_src,
+                             const std::optional<BMCustomDataCopyMap> &cd_face_map,
+                             const std::optional<BMCustomDataCopyMap> &cd_loop_map,
                              BMFace *f_src,
                              GHash *vhash,
                              GHash *ehash)
@@ -162,13 +174,23 @@ static BMFace *bmo_face_copy(BMOperator *op,
   BMO_slot_map_elem_insert(op, slot_facemap_out, f_dst, f_src);
 
   /* Copy attributes */
-  BM_elem_attrs_copy(bm_src, bm_dst, f_src, f_dst);
+  if (cd_face_map.has_value()) {
+    BM_elem_attrs_copy(bm_dst, cd_face_map.value(), f_src, f_dst);
+  }
+  else {
+    BM_elem_attrs_copy(*bm_dst, f_src, f_dst);
+  }
 
   /* copy per-loop custom data */
   l_iter_src = l_first_src;
   l_iter_dst = BM_FACE_FIRST_LOOP(f_dst);
   do {
-    BM_elem_attrs_copy(bm_src, bm_dst, l_iter_src, l_iter_dst);
+    if (cd_loop_map.has_value()) {
+      BM_elem_attrs_copy(bm_dst, cd_loop_map.value(), l_iter_src, l_iter_dst);
+    }
+    else {
+      BM_elem_attrs_copy(*bm_dst, l_iter_src, l_iter_dst);
+    }
   } while ((void)(l_iter_dst = l_iter_dst->next), (l_iter_src = l_iter_src->next) != l_first_src);
 
   /* Mark the face for output */
@@ -205,6 +227,23 @@ static void bmo_mesh_copy(BMOperator *op, BMesh *bm_dst, BMesh *bm_src)
   vhash = BLI_ghash_ptr_new("bmesh dupeops v");
   ehash = BLI_ghash_ptr_new("bmesh dupeops e");
 
+  const std::optional<BMCustomDataCopyMap> cd_vert_map =
+      (bm_src == bm_dst) ? std::nullopt :
+                           std::optional<BMCustomDataCopyMap>{
+                               CustomData_bmesh_copy_map_calc(bm_src->vdata, bm_dst->vdata)};
+  const std::optional<BMCustomDataCopyMap> cd_edge_map =
+      (bm_src == bm_dst) ? std::nullopt :
+                           std::optional<BMCustomDataCopyMap>{
+                               CustomData_bmesh_copy_map_calc(bm_src->edata, bm_dst->edata)};
+  const std::optional<BMCustomDataCopyMap> cd_face_map =
+      (bm_src == bm_dst) ? std::nullopt :
+                           std::optional<BMCustomDataCopyMap>{
+                               CustomData_bmesh_copy_map_calc(bm_src->pdata, bm_dst->pdata)};
+  const std::optional<BMCustomDataCopyMap> cd_loop_map =
+      (bm_src == bm_dst) ? std::nullopt :
+                           std::optional<BMCustomDataCopyMap>{
+                               CustomData_bmesh_copy_map_calc(bm_src->ldata, bm_dst->ldata)};
+
   /* duplicate flagged vertices */
   BM_ITER_MESH (v, &viter, bm_src, BM_VERTS_OF_MESH) {
     if (BMO_vert_flag_test(bm_src, v, DUPE_INPUT) &&
@@ -212,7 +251,7 @@ static void bmo_mesh_copy(BMOperator *op, BMesh *bm_dst, BMesh *bm_src)
       BMIter iter;
       bool isolated = true;
 
-      v2 = bmo_vert_copy(op, slot_vert_map_out, bm_dst, bm_src, v, vhash);
+      v2 = bmo_vert_copy(op, slot_vert_map_out, bm_dst, cd_vert_map, v, vhash);
 
       BM_ITER_ELEM (f, &iter, v, BM_FACES_OF_VERT) {
         if (BMO_face_flag_test(bm_src, f, DUPE_INPUT)) {
@@ -244,11 +283,11 @@ static void bmo_mesh_copy(BMOperator *op, BMesh *bm_dst, BMesh *bm_src)
         BMO_edge_flag_test(bm_src, e, DUPE_DONE) == false) {
       /* make sure that verts are copied */
       if (!BMO_vert_flag_test(bm_src, e->v1, DUPE_DONE)) {
-        bmo_vert_copy(op, slot_vert_map_out, bm_dst, bm_src, e->v1, vhash);
+        bmo_vert_copy(op, slot_vert_map_out, bm_dst, cd_vert_map, e->v1, vhash);
         BMO_vert_flag_enable(bm_src, e->v1, DUPE_DONE);
       }
       if (!BMO_vert_flag_test(bm_src, e->v2, DUPE_DONE)) {
-        bmo_vert_copy(op, slot_vert_map_out, bm_dst, bm_src, e->v2, vhash);
+        bmo_vert_copy(op, slot_vert_map_out, bm_dst, cd_vert_map, e->v2, vhash);
         BMO_vert_flag_enable(bm_src, e->v2, DUPE_DONE);
       }
       /* now copy the actual edge */
@@ -257,6 +296,7 @@ static void bmo_mesh_copy(BMOperator *op, BMesh *bm_dst, BMesh *bm_src)
                     slot_boundary_map_out,
                     bm_dst,
                     bm_src,
+                    cd_edge_map,
                     e,
                     vhash,
                     ehash,
@@ -271,7 +311,7 @@ static void bmo_mesh_copy(BMOperator *op, BMesh *bm_dst, BMesh *bm_src)
       /* vertex pass */
       BM_ITER_ELEM (v, &viter, f, BM_VERTS_OF_FACE) {
         if (!BMO_vert_flag_test(bm_src, v, DUPE_DONE)) {
-          bmo_vert_copy(op, slot_vert_map_out, bm_dst, bm_src, v, vhash);
+          bmo_vert_copy(op, slot_vert_map_out, bm_dst, cd_vert_map, v, vhash);
           BMO_vert_flag_enable(bm_src, v, DUPE_DONE);
         }
       }
@@ -284,6 +324,7 @@ static void bmo_mesh_copy(BMOperator *op, BMesh *bm_dst, BMesh *bm_src)
                         slot_boundary_map_out,
                         bm_dst,
                         bm_src,
+                        cd_edge_map,
                         e,
                         vhash,
                         ehash,
@@ -291,8 +332,7 @@ static void bmo_mesh_copy(BMOperator *op, BMesh *bm_dst, BMesh *bm_src)
           BMO_edge_flag_enable(bm_src, e, DUPE_DONE);
         }
       }
-
-      bmo_face_copy(op, slot_face_map_out, bm_dst, bm_src, f, vhash, ehash);
+      bmo_face_copy(op, slot_face_map_out, bm_dst, cd_face_map, cd_loop_map, f, vhash, ehash);
       BMO_face_flag_enable(bm_src, f, DUPE_DONE);
     }
   }

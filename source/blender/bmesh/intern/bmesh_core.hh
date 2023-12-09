@@ -8,7 +8,17 @@
  * \ingroup bmesh
  */
 
-BMFace *BM_face_copy(BMesh *bm_dst, BMesh *bm_src, BMFace *f, bool copy_verts, bool copy_edges);
+/**
+ * When copying between different BMesh objects,
+ * `copy_verts` & `copy_edges` should always be true.
+ */
+BMFace *BM_face_copy(BMesh *bm,
+                     const BMCustomDataCopyMap &cd_face_map,
+                     const BMCustomDataCopyMap &cd_loop_map,
+                     BMFace *f,
+                     bool copy_verts,
+                     bool copy_edges);
+BMFace *BM_face_copy(BMesh *bm, BMFace *f, bool copy_verts, bool copy_edges);
 
 typedef enum eBMCreateFlag {
   BM_CREATE_NOP = 0,

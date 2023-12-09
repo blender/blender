@@ -216,6 +216,12 @@ static void mesh_customdatacorrect_face_substitute_set(TransCustomDataLayer *tcl
 {
   BLI_assert(is_zero_v3(f->no));
   BMesh *bm = tcld->bm;
+
+  const BMCustomDataCopyMap cd_face_map = CustomData_bmesh_copy_map_calc(tcld->bm_origfaces->pdata,
+                                                                         bm->pdata);
+  const BMCustomDataCopyMap cd_loop_map = CustomData_bmesh_copy_map_calc(tcld->bm_origfaces->ldata,
+                                                                         bm->ldata);
+
   /* It is impossible to calculate the loops weights of a face without area.
    * Find a substitute. */
   BMFace *f_substitute = mesh_customdatacorrect_find_best_face_substitute(f);
@@ -228,7 +234,8 @@ static void mesh_customdatacorrect_face_substitute_set(TransCustomDataLayer *tcl
     } while ((l_iter = l_iter->next) != l_first);
 
     /* Use the substitute face as the reference during the transformation. */
-    BMFace *f_substitute_copy = BM_face_copy(tcld->bm_origfaces, bm, f_substitute, true, true);
+    BMFace *f_substitute_copy = BM_face_copy(
+        bm, cd_face_map, cd_loop_map, f_substitute, true, true);
 
     /* Hack: reference substitute face in `f_copy->no`.
      * `tcld->origfaces` is already used to restore the initial value. */
@@ -255,6 +262,11 @@ static void mesh_customdatacorrect_init_vert(TransCustomDataLayer *tcld,
   int j, l_num;
   float *loop_weights;
 
+  const BMCustomDataCopyMap cd_face_map = CustomData_bmesh_copy_map_calc(tcld->bm_origfaces->pdata,
+                                                                         bm->pdata);
+  const BMCustomDataCopyMap cd_loop_map = CustomData_bmesh_copy_map_calc(tcld->bm_origfaces->ldata,
+                                                                         bm->ldata);
+
   // BM_ITER_ELEM (l, &liter, sv->v, BM_LOOPS_OF_VERT) {
   BM_iter_init(&liter, bm, BM_LOOPS_OF_VERT, v);
   l_num = liter.count;
@@ -268,7 +280,7 @@ static void mesh_customdatacorrect_init_vert(TransCustomDataLayer *tcld,
     /* Generic custom-data correction. Copy face data. */
     void **val_p;
     if (!BLI_ghash_ensure_p(tcld->origfaces, l->f, &val_p)) {
-      BMFace *f_copy = BM_face_copy(tcld->bm_origfaces, bm, l->f, true, true);
+      BMFace *f_copy = BM_face_copy(bm, cd_face_map, cd_loop_map, l->f, true, true);
       *val_p = f_copy;
 #ifdef USE_FACE_SUBSTITUTE
       if (is_zero_v3(l->f->no)) {
@@ -697,6 +709,8 @@ static void mesh_customdatacorrect_restore(TransInfo *t)
 
     BMesh *bm = tcld->bm;
     BMesh *bm_copy = tcld->bm_origfaces;
+    const BMCustomDataCopyMap cd_loop_map = CustomData_bmesh_copy_map_calc(bm_copy->ldata,
+                                                                           bm->ldata);
 
     GHashIterator gh_iter;
     GHASH_ITER (gh_iter, tcld->origfaces) {
@@ -709,7 +723,7 @@ static void mesh_customdatacorrect_restore(TransInfo *t)
       l_copy = BM_FACE_FIRST_LOOP(f_copy);
       do {
         /* TODO: Restore only the elements that transform. */
-        BM_elem_attrs_copy(bm_copy, bm, l_copy, l_iter);
+        BM_elem_attrs_copy(bm, cd_loop_map, l_copy, l_iter);
         l_copy = l_copy->next;
       } while ((l_iter = l_iter->next) != l_first);
     }

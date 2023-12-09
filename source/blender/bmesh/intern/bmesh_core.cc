@@ -280,18 +280,17 @@ static BMLoop *bm_face_boundary_add(
   return l;
 }
 
-BMFace *BM_face_copy(
-    BMesh *bm_dst, BMesh *bm_src, BMFace *f, const bool copy_verts, const bool copy_edges)
+static BMFace *bm_face_copy_impl(BMesh *bm_dst,
+                                 BMFace *f,
+                                 const bool copy_verts,
+                                 const bool copy_edges)
 {
   BMVert **verts = BLI_array_alloca(verts, f->len);
   BMEdge **edges = BLI_array_alloca(edges, f->len);
   BMLoop *l_iter;
   BMLoop *l_first;
-  BMLoop *l_copy;
   BMFace *f_copy;
   int i;
-
-  BLI_assert((bm_dst == bm_src) || (copy_verts && copy_edges));
 
   l_iter = l_first = BM_FACE_FIRST_LOOP(f);
   i = 0;
@@ -330,15 +329,45 @@ BMFace *BM_face_copy(
 
   f_copy = BM_face_create(bm_dst, verts, edges, f->len, nullptr, BM_CREATE_SKIP_CD);
 
-  BM_elem_attrs_copy(bm_src, bm_dst, f, f_copy);
+  return f_copy;
+}
 
-  l_iter = l_first = BM_FACE_FIRST_LOOP(f);
-  l_copy = BM_FACE_FIRST_LOOP(f_copy);
+BMFace *BM_face_copy(BMesh *bm_dst,
+                     const BMCustomDataCopyMap &cd_face_map,
+                     const BMCustomDataCopyMap &cd_loop_map,
+                     BMFace *f,
+                     const bool copy_verts,
+                     const bool copy_edges)
+{
+  BMFace *f_copy = bm_face_copy_impl(bm_dst, f, copy_verts, copy_edges);
+
+  /* Copy custom-data. */
+  BM_elem_attrs_copy(bm_dst, cd_face_map, f, f_copy);
+
+  BMLoop *l_first = BM_FACE_FIRST_LOOP(f);
+  BMLoop *l_copy = BM_FACE_FIRST_LOOP(f_copy);
+  BMLoop *l_iter = l_first;
   do {
-    BM_elem_attrs_copy(bm_src, bm_dst, l_iter, l_copy);
+    BM_elem_attrs_copy(bm_dst, cd_loop_map, l_iter, l_copy);
     l_copy = l_copy->next;
   } while ((l_iter = l_iter->next) != l_first);
+  return f_copy;
+}
 
+BMFace *BM_face_copy(BMesh *bm_dst, BMFace *f, const bool copy_verts, const bool copy_edges)
+{
+  BMFace *f_copy = bm_face_copy_impl(bm_dst, f, copy_verts, copy_edges);
+
+  /* Copy custom-data. */
+  BM_elem_attrs_copy(*bm_dst, f, f_copy);
+
+  BMLoop *l_first = BM_FACE_FIRST_LOOP(f);
+  BMLoop *l_copy = BM_FACE_FIRST_LOOP(f_copy);
+  BMLoop *l_iter = l_first;
+  do {
+    BM_elem_attrs_copy(*bm_dst, l_iter, l_copy);
+    l_copy = l_copy->next;
+  } while ((l_iter = l_iter->next) != l_first);
   return f_copy;
 }
 
