@@ -1208,6 +1208,10 @@ class AssetShelf(StructRNA, metaclass=RNAMeta):
     __slots__ = ()
 
 
+class FileHandler(StructRNA, metaclass=RNAMeta):
+    __slots__ = ()
+
+
 class NodeTree(bpy_types.ID, metaclass=RNAMetaPropGroup):
     __slots__ = ()
 
