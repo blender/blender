@@ -3343,7 +3343,7 @@ static int sequencer_strip_color_tag_set_exec(bContext *C, wmOperator *op)
   const Editing *ed = SEQ_editing_get(scene);
   const short color_tag = RNA_enum_get(op->ptr, "color");
 
-  LISTBASE_FOREACH (Sequence *, seq, &ed->seqbase) {
+  LISTBASE_FOREACH (Sequence *, seq, ed->seqbasep) {
     if (seq->flag & SELECT) {
       seq->color_tag = color_tag;
     }
