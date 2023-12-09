@@ -426,7 +426,7 @@ static void draw_seq_waveform_overlay(TimelineDrawContext *timeline_ctx,
   const float samples_per_frame = SOUND_WAVE_SAMPLES_PER_SECOND / FPS;
 
   /* Align strip start with nearest pixel to prevent waveform flickering. */
-  const float x1_aligned = align_frame_with_pixel(strip_ctx->content_start, frames_per_pixel);
+  const float x1_aligned = align_frame_with_pixel(strip_ctx->left_handle, frames_per_pixel);
   /* Offset x1 and x2 values, to match view min/max, if strip is out of bounds. */
   const float frame_start = max_ff(v2d->cur.xmin, x1_aligned);
   const float frame_end = min_ff(v2d->cur.xmax, strip_ctx->right_handle);
@@ -468,7 +468,7 @@ static void draw_seq_waveform_overlay(TimelineDrawContext *timeline_ctx,
   float prev_y_mid = y_zero;
   for (int i = 0; i < pixels_to_draw; i++) {
     float timeline_frame = start_frame + i * frames_per_pixel;
-    float frame_index = SEQ_give_frame_index(scene, seq, timeline_frame);
+    float frame_index = SEQ_give_frame_index(scene, seq, timeline_frame) + seq->anim_startofs;
     float sample = frame_index * samples_per_frame;
     int sample_index = round_fl_to_int(sample);
 
