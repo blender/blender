@@ -47,6 +47,7 @@ using namespace metal::raytracing;
 #define ccl_global device
 #define ccl_inline_constant static constant constexpr
 #define ccl_device_constant constant
+#define ccl_static_constexpr static constant constexpr
 #define ccl_constant constant
 #define ccl_gpu_shared threadgroup
 #define ccl_private thread

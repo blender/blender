@@ -5,9 +5,7 @@
 // clang-format off
 
 #ifdef WITH_NANOVDB
-#  define NDEBUG /* Disable "assert" in device code */
-#  define NANOVDB_USE_INTRINSICS
-#  include "nanovdb/NanoVDB.h"
+#  include "kernel/util/nanovdb.h"
 #endif
 
 /* Open the Metal kernel context class

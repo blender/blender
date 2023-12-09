@@ -5,8 +5,7 @@
 #pragma once
 
 #ifdef WITH_NANOVDB
-#  define NANOVDB_USE_INTRINSICS
-#  include <nanovdb/NanoVDB.h>
+#  include "kernel/util/nanovdb.h"
 #endif
 
 CCL_NAMESPACE_BEGIN
@@ -684,33 +683,27 @@ template<typename TexT, typename OutT = float4> struct TextureInterpolator {
 };
 
 #ifdef WITH_NANOVDB
-template<typename TexT, typename OutT = float4> struct NanoVDBInterpolator {
-
-  typedef typename nanovdb::NanoGrid<TexT>::AccessorType AccessorType;
+template<typename TexT, typename OutT> struct NanoVDBInterpolator {
 
   static ccl_always_inline float read(float r)
   {
     return r;
   }
 
-  static ccl_always_inline float4 read(nanovdb::Vec3f r)
+  static ccl_always_inline float4 read(const packed_float3 r)
   {
-    return make_float4(r[0], r[1], r[2], 1.0f);
+    return make_float4(r.x, r.y, r.z, 1.0f);
   }
 
-  static ccl_always_inline OutT interp_3d_closest(const AccessorType &acc,
-                                                  float x,
-                                                  float y,
-                                                  float z)
+  template<typename Acc>
+  static ccl_always_inline OutT interp_3d_closest(const Acc &acc, float x, float y, float z)
   {
     const nanovdb::Coord coord((int32_t)floorf(x), (int32_t)floorf(y), (int32_t)floorf(z));
     return read(acc.getValue(coord));
   }
 
-  static ccl_always_inline OutT interp_3d_linear(const AccessorType &acc,
-                                                 float x,
-                                                 float y,
-                                                 float z)
+  template<typename Acc>
+  static ccl_always_inline OutT interp_3d_linear(const Acc &acc, float x, float y, float z)
   {
     int ix, iy, iz;
     const float tx = frac(x - 0.5f, &ix);
@@ -735,13 +728,14 @@ template<typename TexT, typename OutT = float4> struct NanoVDBInterpolator {
   }
 
   /* Tricubic b-spline interpolation. */
+  template<typename Acc>
 #  if defined(__GNUC__) || defined(__clang__)
   static ccl_always_inline
 #  else
   static ccl_never_inline
 #  endif
       OutT
-      interp_3d_cubic(const AccessorType &acc, float x, float y, float z)
+      interp_3d_cubic(const Acc &acc, float x, float y, float z)
   {
     int ix, iy, iz;
     int nix, niy, niz;
@@ -796,15 +790,20 @@ template<typename TexT, typename OutT = float4> struct NanoVDBInterpolator {
     using namespace nanovdb;
 
     NanoGrid<TexT> *const grid = (NanoGrid<TexT> *)info.data;
-    AccessorType acc = grid->getAccessor();
 
     switch ((interp == INTERPOLATION_NONE) ? info.interpolation : interp) {
-      case INTERPOLATION_CLOSEST:
+      case INTERPOLATION_CLOSEST: {
+        ReadAccessor<TexT> acc(grid->tree().root());
         return interp_3d_closest(acc, x, y, z);
-      case INTERPOLATION_LINEAR:
+      }
+      case INTERPOLATION_LINEAR: {
+        CachedReadAccessor<TexT> acc(grid->tree().root());
         return interp_3d_linear(acc, x, y, z);
-      default:
+      }
+      default: {
+        CachedReadAccessor<TexT> acc(grid->tree().root());
         return interp_3d_cubic(acc, x, y, z);
+      }
     }
   }
 };
@@ -897,7 +896,7 @@ ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals kg,
       return make_float4(f, f, f, 1.0f);
     }
     case IMAGE_DATA_TYPE_NANOVDB_FLOAT3:
-      return NanoVDBInterpolator<nanovdb::Vec3f>::interp_3d(info, P.x, P.y, P.z, interp);
+      return NanoVDBInterpolator<packed_float3, float4>::interp_3d(info, P.x, P.y, P.z, interp);
     case IMAGE_DATA_TYPE_NANOVDB_FPN: {
       const float f = NanoVDBInterpolator<nanovdb::FpN, float>::interp_3d(
           info, P.x, P.y, P.z, interp);

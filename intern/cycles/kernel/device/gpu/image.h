@@ -8,9 +8,7 @@ CCL_NAMESPACE_BEGIN
 
 #if !defined __KERNEL_METAL__
 #  ifdef WITH_NANOVDB
-#    define NDEBUG /* Disable "assert" in device code */
-#    define NANOVDB_USE_INTRINSICS
-#    include "nanovdb/NanoVDB.h"
+#    include "kernel/util/nanovdb.h"
 #  endif
 #endif
 
@@ -133,16 +131,6 @@ kernel_tex_image_interp_tricubic(ccl_global const TextureInfo &info, float x, fl
 }
 
 #ifdef WITH_NANOVDB
-ccl_device_forceinline float nanovdb_read(float f)
-{
-  return f;
-}
-
-ccl_device_forceinline float3 nanovdb_read(const nanovdb::Vec3f f)
-{
-  return make_float3(f[0], f[1], f[2]);
-}
-
 template<typename OutT, typename Acc>
 ccl_device OutT
 kernel_tex_image_interp_trilinear_nanovdb(ccl_private Acc &acc, float x, float y, float z)
@@ -152,18 +140,18 @@ kernel_tex_image_interp_trilinear_nanovdb(ccl_private Acc &acc, float x, float y
   const float ty = frac(y - 0.5f, &iy);
   const float tz = frac(z - 0.5f, &iz);
 
-  return mix(mix(mix(nanovdb_read(acc.getValue(nanovdb::Coord(ix, iy, iz))),
-                     nanovdb_read(acc.getValue(nanovdb::Coord(ix, iy, iz + 1))),
+  return mix(mix(mix(OutT(acc.getValue(nanovdb::Coord(ix, iy, iz))),
+                     OutT(acc.getValue(nanovdb::Coord(ix, iy, iz + 1))),
                      tz),
-                 mix(nanovdb_read(acc.getValue(nanovdb::Coord(ix, iy + 1, iz + 1))),
-                     nanovdb_read(acc.getValue(nanovdb::Coord(ix, iy + 1, iz))),
+                 mix(OutT(acc.getValue(nanovdb::Coord(ix, iy + 1, iz + 1))),
+                     OutT(acc.getValue(nanovdb::Coord(ix, iy + 1, iz))),
                      1.0f - tz),
                  ty),
-             mix(mix(nanovdb_read(acc.getValue(nanovdb::Coord(ix + 1, iy + 1, iz))),
-                     nanovdb_read(acc.getValue(nanovdb::Coord(ix + 1, iy + 1, iz + 1))),
+             mix(mix(OutT(acc.getValue(nanovdb::Coord(ix + 1, iy + 1, iz))),
+                     OutT(acc.getValue(nanovdb::Coord(ix + 1, iy + 1, iz + 1))),
                      tz),
-                 mix(nanovdb_read(acc.getValue(nanovdb::Coord(ix + 1, iy, iz + 1))),
-                     nanovdb_read(acc.getValue(nanovdb::Coord(ix + 1, iy, iz))),
+                 mix(OutT(acc.getValue(nanovdb::Coord(ix + 1, iy, iz + 1))),
+                     OutT(acc.getValue(nanovdb::Coord(ix + 1, iy, iz))),
                      1.0f - tz),
                  1.0f - ty),
              tx);
@@ -210,7 +198,7 @@ kernel_tex_image_interp_tricubic_nanovdb(ccl_private Acc &acc, float x, float y,
     } \
     (void)0
 
-#  define DATA(x, y, z) (nanovdb_read(acc.getValue(nanovdb::Coord(xc[x], yc[y], zc[z]))))
+#  define DATA(x, y, z) (OutT(acc.getValue(nanovdb::Coord(xc[x], yc[y], zc[z]))))
 #  define COL_TERM(col, row) \
     (v[col] * (u[0] * DATA(0, col, row) + u[1] * DATA(1, col, row) + u[2] * DATA(2, col, row) + \
                u[3] * DATA(3, col, row)))
@@ -243,18 +231,19 @@ ccl_device_noinline OutT kernel_tex_image_interp_nanovdb(
   using namespace nanovdb;
 
   ccl_global NanoGrid<T> *const grid = (ccl_global NanoGrid<T> *)info.data;
-  typedef typename nanovdb::NanoGrid<T>::AccessorType AccessorType;
-  AccessorType acc = grid->getAccessor();
 
   switch (interpolation) {
     case INTERPOLATION_CLOSEST: {
+      ReadAccessor<T> acc(grid->tree().root());
       const nanovdb::Coord coord((int32_t)floorf(x), (int32_t)floorf(y), (int32_t)floorf(z));
-      return nanovdb_read(acc.getValue(coord));
+      return OutT(acc.getValue(coord));
     }
     case INTERPOLATION_LINEAR: {
+      CachedReadAccessor<T> acc(grid->tree().root());
       return kernel_tex_image_interp_trilinear_nanovdb<OutT>(acc, x, y, z);
     }
     default: {
+      CachedReadAccessor<T> acc(grid->tree().root());
       return kernel_tex_image_interp_tricubic_nanovdb<OutT>(acc, x, y, z);
     }
   }
@@ -318,7 +307,7 @@ ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals kg,
     return make_float4(f, f, f, 1.0f);
   }
   if (texture_type == IMAGE_DATA_TYPE_NANOVDB_FLOAT3) {
-    float3 f = kernel_tex_image_interp_nanovdb<float3, nanovdb::Vec3f>(
+    float3 f = kernel_tex_image_interp_nanovdb<float3, packed_float3>(
         info, x, y, z, interpolation);
     return make_float4(f.x, f.y, f.z, 1.0f);
   }

@@ -327,6 +327,7 @@ set(SRC_KERNEL_UTIL_HEADERS
   util/color.h
   util/differential.h
   util/lookup_table.h
+  util/nanovdb.h
   util/profiling.h
 )
 
@@ -483,8 +484,7 @@ if(WITH_CYCLES_CUDA_BINARIES)
 
     if(WITH_NANOVDB)
       set(cuda_flags ${cuda_flags}
-        -D WITH_NANOVDB
-        -I "${NANOVDB_INCLUDE_DIR}")
+        -D WITH_NANOVDB)
     endif()
 
     if(WITH_CYCLES_DEBUG)
@@ -634,8 +634,7 @@ if(WITH_CYCLES_HIP_BINARIES AND WITH_CYCLES_DEVICE_HIP)
 
     if(WITH_NANOVDB)
       set(hip_flags ${hip_flags}
-        -D WITH_NANOVDB
-        -I "${NANOVDB_INCLUDE_DIR}")
+        -D WITH_NANOVDB)
     endif()
 
     if(WITH_CYCLES_DEBUG)
@@ -755,8 +754,7 @@ if(WITH_CYCLES_DEVICE_OPTIX AND WITH_CYCLES_CUDA_BINARIES)
 
     if(WITH_NANOVDB)
       set(cuda_flags ${cuda_flags}
-        -D WITH_NANOVDB
-        -I "${NANOVDB_INCLUDE_DIR}")
+        -D WITH_NANOVDB)
     endif()
     if(WITH_CYCLES_OSL)
       set(cuda_flags ${cuda_flags}
@@ -936,8 +934,7 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
 
   if(WITH_NANOVDB)
     list(APPEND sycl_compiler_flags
-      -DWITH_NANOVDB
-      -I"${NANOVDB_INCLUDE_DIR}")
+      -DWITH_NANOVDB)
   endif()
 
   if(WITH_CYCLES_EMBREE AND EMBREE_SYCL_SUPPORT)
@@ -1256,16 +1253,3 @@ delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_SVM_HEADERS}" ${CYCLES
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_TYPES_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_UTIL_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/util)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_UTIL_HEADERS}" ${CYCLES_INSTALL_PATH}/source/util)
-
-if(WITH_NANOVDB)
-  set(SRC_NANOVDB_HEADERS
-    nanovdb/NanoVDB.h
-    nanovdb/CNanoVDB.h
-  )
-  set(SRC_NANOVDB_UTIL_HEADERS
-    nanovdb/util/CSampleFromVoxels.h
-    nanovdb/util/SampleFromVoxels.h
-  )
-  delayed_install(${NANOVDB_INCLUDE_DIR} "${SRC_NANOVDB_HEADERS}" ${CYCLES_INSTALL_PATH}/source/nanovdb)
-  delayed_install(${NANOVDB_INCLUDE_DIR} "${SRC_NANOVDB_UTIL_HEADERS}" ${CYCLES_INSTALL_PATH}/source/nanovdb/util)
-endif()

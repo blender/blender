@@ -34,7 +34,7 @@ typedef struct ccl_vdb_double_t {
 } ccl_vdb_double_t;
 
 #  define double ccl_vdb_double_t
-#  include <nanovdb/NanoVDB.h>
+#  include "kernel/util/nanovdb.h"
 #  undef double
 #endif
 

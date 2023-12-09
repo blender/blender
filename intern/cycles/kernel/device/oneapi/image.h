@@ -204,16 +204,14 @@ ccl_device float4 kernel_tex_image_interp(KernelGlobals, int id, float x, float 
 #ifdef WITH_NANOVDB
 template<typename TexT, typename OutT> struct NanoVDBInterpolator {
 
-  typedef typename nanovdb::NanoGrid<TexT>::AccessorType AccessorType;
-
   static ccl_always_inline float read(float r)
   {
     return r;
   }
 
-  static ccl_always_inline float4 read(nanovdb::Vec3f r)
+  static ccl_always_inline float4 read(const packed_float3 r)
   {
-    return make_float4(r[0], r[1], r[2], 1.0f);
+    return make_float4(r.x, r.y, r.z, 1.0f);
   }
 
   template<typename Acc>
@@ -305,16 +303,18 @@ template<typename TexT, typename OutT> struct NanoVDBInterpolator {
     using namespace nanovdb;
 
     NanoGrid<TexT> *const grid = (NanoGrid<TexT> *)info.data;
-    AccessorType acc = grid->getAccessor();
 
     switch (interp) {
       case INTERPOLATION_CLOSEST: {
+        ReadAccessor<TexT> acc(grid->tree().root());
         return interp_3d_closest(acc, x, y, z);
       }
       case INTERPOLATION_LINEAR: {
+        CachedReadAccessor<TexT> acc(grid->tree().root());
         return interp_3d_linear(acc, x, y, z);
       }
       default: {
+        CachedReadAccessor<TexT> acc(grid->tree().root());
         return interp_3d_cubic(acc, x, y, z);
       }
     }
@@ -343,7 +343,7 @@ ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals, int id, float3 P, in
     return make_float4(f, f, f, 1.0f);
   }
   else if (info.data_type == IMAGE_DATA_TYPE_NANOVDB_FLOAT3) {
-    return NanoVDBInterpolator<nanovdb::Vec3f, float4>::interp_3d(info, x, y, z, interpolation);
+    return NanoVDBInterpolator<packed_float3, float4>::interp_3d(info, x, y, z, interpolation);
   }
   else if (info.data_type == IMAGE_DATA_TYPE_NANOVDB_FPN) {
     const float f = NanoVDBInterpolator<nanovdb::FpN, float>::interp_3d(
