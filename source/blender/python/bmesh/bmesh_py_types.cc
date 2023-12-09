@@ -1494,7 +1494,35 @@ static PyObject *bpy_bm_elem_copy_from(BPy_BMElem *self, BPy_BMElem *value)
   }
 
   if (value->ele != self->ele) {
-    BM_elem_attrs_copy_ex(value->bm, self->bm, value->ele, self->ele, 0xff, CD_MASK_BM_ELEM_PYPTR);
+    switch (self->ele->head.htype) {
+      case BM_VERT:
+        BM_elem_attrs_copy(value->bm,
+                           self->bm,
+                           CD_MASK_BM_ELEM_PYPTR,
+                           reinterpret_cast<const BMVert *>(value->ele),
+                           reinterpret_cast<BMVert *>(self->ele));
+        break;
+      case BM_EDGE:
+        BM_elem_attrs_copy(value->bm,
+                           self->bm,
+                           CD_MASK_BM_ELEM_PYPTR,
+                           reinterpret_cast<const BMVert *>(value->ele),
+                           reinterpret_cast<BMVert *>(self->ele));
+        break;
+      case BM_FACE:
+        BM_elem_attrs_copy(value->bm,
+                           self->bm,
+                           CD_MASK_BM_ELEM_PYPTR,
+                           reinterpret_cast<const BMVert *>(value->ele),
+                           reinterpret_cast<BMVert *>(self->ele));
+        break;
+      case BM_LOOP:
+        BM_elem_attrs_copy(value->bm,
+                           self->bm,
+                           CD_MASK_BM_ELEM_PYPTR,
+                           reinterpret_cast<const BMVert *>(value->ele),
+                           reinterpret_cast<BMVert *>(self->ele));
+    }
   }
 
   Py_RETURN_NONE;
