@@ -424,13 +424,23 @@ static void draw_seq_waveform_overlay(TimelineDrawContext *timeline_ctx,
 
   const float frames_per_pixel = BLI_rctf_size_x(&v2d->cur) / timeline_ctx->region->winx;
   const float samples_per_frame = SOUND_WAVE_SAMPLES_PER_SECOND / FPS;
+  const float samples_per_pixel = samples_per_frame * frames_per_pixel;
+  /* The y coordinate for the middle of the strip. */
+  const float y_zero = (strip_ctx->bottom + strip_ctx->strip_content_top) / 2.0f;
+  /* The length from the middle of the strip to the top/bottom. */
+  const float y_scale = (strip_ctx->strip_content_top - strip_ctx->bottom) / 2.0f;
 
   /* Align strip start with nearest pixel to prevent waveform flickering. */
-  const float x1_aligned = align_frame_with_pixel(strip_ctx->left_handle, frames_per_pixel);
+  const float strip_start_aligned = align_frame_with_pixel(strip_ctx->left_handle,
+                                                           frames_per_pixel);
   /* Offset x1 and x2 values, to match view min/max, if strip is out of bounds. */
-  const float frame_start = max_ff(v2d->cur.xmin, x1_aligned);
-  const float frame_end = min_ff(v2d->cur.xmax, strip_ctx->right_handle);
-  const int pixels_to_draw = round_fl_to_int((frame_end - frame_start) / frames_per_pixel);
+  const float draw_start_frame = max_ff(v2d->cur.xmin, strip_start_aligned);
+  const float draw_end_frame = min_ff(v2d->cur.xmax, strip_ctx->right_handle);
+  /* Offset must be also aligned, otherwise waveform flickers when moving left handle. */
+  float sample_start_frame = draw_start_frame + seq->sound->offset_time / FPS;
+
+  const int pixels_to_draw = round_fl_to_int((draw_end_frame - draw_start_frame) /
+                                             frames_per_pixel);
 
   if (pixels_to_draw < 2) {
     return; /* Not much to draw, exit before running job. */
@@ -446,28 +456,15 @@ static void draw_seq_waveform_overlay(TimelineDrawContext *timeline_ctx,
   /* F-Curve lookup is quite expensive, so do this after precondition. */
   FCurve *fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "volume", 0, nullptr);
 
-  /* Offset must be also aligned, otherwise waveform flickers when moving left handle. */
-  float start_frame = SEQ_time_left_handle_frame_get(scene, seq);
-
-  /* Add off-screen part of strip to offset. */
-  start_frame += (frame_start - x1_aligned);
-  start_frame += seq->sound->offset_time / FPS;
-
-  /* The y coordinate for the middle of the strip. */
-  const float y_zero = (strip_ctx->bottom + strip_ctx->strip_content_top) / 2.0f;
-  /* The length from the middle of the strip to the top/bottom. */
-  const float y_scale = (strip_ctx->strip_content_top - strip_ctx->bottom) / 2.0f;
-  const float samples_per_pixel = samples_per_frame * frames_per_pixel;
-
   /* Draw zero line (when actual samples close to zero are drawn, they might not cover a pixel. */
   uchar color[4] = {255, 255, 255, 127};
   uchar color_clip[4] = {255, 0, 0, 127};
   uchar color_rms[4] = {255, 255, 255, 204};
-  timeline_ctx->quads->add_line(frame_start, y_zero, frame_end, y_zero, color);
+  timeline_ctx->quads->add_line(draw_start_frame, y_zero, draw_end_frame, y_zero, color);
 
   float prev_y_mid = y_zero;
   for (int i = 0; i < pixels_to_draw; i++) {
-    float timeline_frame = start_frame + i * frames_per_pixel;
+    float timeline_frame = sample_start_frame + i * frames_per_pixel;
     float frame_index = SEQ_give_frame_index(scene, seq, timeline_frame) + seq->anim_startofs;
     float sample = frame_index * samples_per_frame;
     int sample_index = round_fl_to_int(sample);
@@ -498,7 +495,7 @@ static void draw_seq_waveform_overlay(TimelineDrawContext *timeline_ctx,
 
     float volume = seq->volume;
     if (fcu && !BKE_fcurve_is_empty(fcu)) {
-      float evaltime = frame_start + (i * frames_per_pixel);
+      float evaltime = draw_start_frame + (i * frames_per_pixel);
       volume = evaluate_fcurve(fcu, evaltime);
       CLAMP_MIN(volume, 0.0f);
     }
@@ -516,8 +513,8 @@ static void draw_seq_waveform_overlay(TimelineDrawContext *timeline_ctx,
       CLAMP_MIN(value_min, -1.0f);
     }
 
-    float x1 = frame_start + i * frames_per_pixel;
-    float x2 = frame_start + (i + 1) * frames_per_pixel;
+    float x1 = draw_start_frame + i * frames_per_pixel;
+    float x2 = draw_start_frame + (i + 1) * frames_per_pixel;
     float y_min = y_zero + value_min * y_scale;
     float y_max = y_zero + value_max * y_scale;
     float y_mid = (y_max + y_min) * 0.5f;
@@ -527,7 +524,7 @@ static void draw_seq_waveform_overlay(TimelineDrawContext *timeline_ctx,
       /* If previous segment was also a line of different enough
        * height, join them. */
       if (std::abs(y_mid - prev_y_mid) > timeline_ctx->pixely) {
-        float x0 = frame_start + (i - 1) * frames_per_pixel;
+        float x0 = draw_start_frame + (i - 1) * frames_per_pixel;
         timeline_ctx->quads->add_line(x0, prev_y_mid, x1, y_mid, color);
       }
       timeline_ctx->quads->add_line(x1, y_mid, x2, y_mid, color);
