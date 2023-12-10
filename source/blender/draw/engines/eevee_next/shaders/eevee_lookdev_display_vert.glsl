@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 void main()
 {
   uint vert_index = gl_VertexID < 3 ? gl_VertexID : gl_VertexID - 2;
