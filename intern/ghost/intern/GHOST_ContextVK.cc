@@ -303,7 +303,6 @@ class GHOST_DeviceVK {
     }
 
     fprintf(stderr, "Couldn't find any Graphic queue family on selected device\n");
-    return;
   }
 };
 

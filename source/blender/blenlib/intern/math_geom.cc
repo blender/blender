@@ -2701,7 +2701,7 @@ bool isect_sweeping_sphere_tri_v3(const float p1[3],
     z = x + y - (a * c - b * b);
 
     if (z <= 0.0f && (x >= 0.0f && y >= 0.0f)) {
-      //(((uint)z)& ~(((uint)x)|((uint)y))) & 0x80000000) {
+      // ((uint32_t(z) & ~(uint32_t(x) | uint32_t(y))) & 0x80000000)
       *r_lambda = t0;
       copy_v3_v3(ipoint, point);
       return true;

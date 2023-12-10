@@ -236,7 +236,7 @@ class VoronoiMetricFunction : public mf::MultiFunction {
   {
     BLI_assert(dimensions >= 1 && dimensions <= 4);
     BLI_assert(feature >= 0 && feature <= 4);
-    if ELEM (metric_, SHD_VORONOI_MINKOWSKI) {
+    if (ELEM(metric_, SHD_VORONOI_MINKOWSKI)) {
       static std::array<mf::Signature, 12> signatures{
           create_signature(1, SHD_VORONOI_F1, SHD_VORONOI_MINKOWSKI),
           create_signature(2, SHD_VORONOI_F1, SHD_VORONOI_MINKOWSKI),
