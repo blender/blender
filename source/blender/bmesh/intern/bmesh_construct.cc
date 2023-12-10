@@ -591,7 +591,7 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
                            e,
                            BM_CREATE_SKIP_CD);
 
-    CustomData_bmesh_copy_block(bm_new->edata, vert_map, e->head.data, &e_new->head.data);
+    CustomData_bmesh_copy_block(bm_new->edata, edge_map, e->head.data, &e_new->head.data);
     e_new->head.hflag = e->head.hflag; /* low level! don't do this for normal api use */
     etable[i] = e_new;
     BM_elem_index_set(e, i);     /* set_inline */
