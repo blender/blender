@@ -667,7 +667,7 @@ static bool checkLayerSupport(const vector<VkLayerProperties> &layers_available,
   return false;
 }
 
-static void enableLayer(vector<VkLayerProperties> &layers_available,
+static void enableLayer(const vector<VkLayerProperties> &layers_available,
                         vector<const char *> &layers_enabled,
                         const VkLayer layer,
                         const bool display_warning)
@@ -789,7 +789,7 @@ static bool selectSurfaceFormat(const VkPhysicalDevice physical_device,
   vector<VkSurfaceFormatKHR> formats(format_count);
   vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device, surface, &format_count, formats.data());
 
-  for (VkSurfaceFormatKHR &format : formats) {
+  for (const VkSurfaceFormatKHR &format : formats) {
     if (surfaceFormatSupported(format)) {
       r_surfaceFormat = format;
       return true;

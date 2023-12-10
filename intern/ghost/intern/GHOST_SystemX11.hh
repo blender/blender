@@ -205,7 +205,7 @@ class GHOST_SystemX11 : public GHOST_System {
    * passing in the time-stamp from X to input to get the event
    * time-stamp with an offset applied to make it compatible with `getMilliSeconds`.
    */
-  uint64_t ms_from_input_time(const Time timestamp_as_uint) const;
+  uint64_t ms_from_input_time(const Time timestamp) const;
 
   /** Helped function for get data from the clipboard. */
   void getClipboard_xcout(const XEvent *evt,

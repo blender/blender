@@ -8101,8 +8101,12 @@ GHOST_TimerManager *GHOST_SystemWayland::ghost_timer_manager()
 
 #ifdef WITH_INPUT_IME
 
-void GHOST_SystemWayland::ime_begin(
-    GHOST_WindowWayland *win, int32_t x, int32_t y, int32_t w, int32_t h, bool completed) const
+void GHOST_SystemWayland::ime_begin(const GHOST_WindowWayland *win,
+                                    int32_t x,
+                                    int32_t y,
+                                    int32_t w,
+                                    int32_t h,
+                                    bool completed) const
 {
   GWL_Seat *seat = gwl_display_seat_active_get(display_);
   if (UNLIKELY(!seat)) {
@@ -8168,7 +8172,7 @@ void GHOST_SystemWayland::ime_begin(
   }
 }
 
-void GHOST_SystemWayland::ime_end(GHOST_WindowWayland * /*window*/) const
+void GHOST_SystemWayland::ime_end(const GHOST_WindowWayland * /*window*/) const
 {
   GWL_Seat *seat = gwl_display_seat_active_get(display_);
   if (UNLIKELY(!seat)) {

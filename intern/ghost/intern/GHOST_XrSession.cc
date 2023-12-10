@@ -474,8 +474,8 @@ static void ghost_xr_draw_view_info_from_view(const XrView &view, GHOST_XrDrawVi
 
 void GHOST_XrSession::drawView(GHOST_XrSwapchain &swapchain,
                                XrCompositionLayerProjectionView &r_proj_layer_view,
-                               XrSpaceLocation &view_location,
-                               XrView &view,
+                               const XrSpaceLocation &view_location,
+                               const XrView &view,
                                uint32_t view_idx,
                                void *draw_customdata)
 {

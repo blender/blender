@@ -80,7 +80,7 @@ class GHOST_ContextVK : public GHOST_Context {
 #endif
                   int contextMajorVersion,
                   int contextMinorVersion,
-                  int m_debug);
+                  int debug);
 
   /**
    * Destructor.
