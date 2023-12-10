@@ -2859,21 +2859,19 @@ static int image_clipboard_copy_exec(bContext *C, wmOperator *op)
   }
 
   ImageUser *iuser = image_user_from_context(C);
-  WM_cursor_set(CTX_wm_window(C), WM_CURSOR_WAIT);
-
+  WM_cursor_wait(true);
   void *lock;
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, &lock);
-  if (ibuf == nullptr) {
-    BKE_image_release_ibuf(ima, ibuf, lock);
-    WM_cursor_set(CTX_wm_window(C), WM_CURSOR_DEFAULT);
-    return OPERATOR_CANCELLED;
+  bool changed = false;
+  if (ibuf) {
+    if (WM_clipboard_image_set(ibuf)) {
+      changed = true;
+    }
   }
-
-  WM_clipboard_image_set(ibuf);
   BKE_image_release_ibuf(ima, ibuf, lock);
-  WM_cursor_set(CTX_wm_window(C), WM_CURSOR_DEFAULT);
+  WM_cursor_wait(false);
 
-  return OPERATOR_FINISHED;
+  return changed ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 static bool image_clipboard_copy_poll(bContext *C)
@@ -2909,29 +2907,26 @@ void IMAGE_OT_clipboard_copy(wmOperatorType *ot)
 
 static int image_clipboard_paste_exec(bContext *C, wmOperator *op)
 {
+  bool changed = false;
 
-  WM_cursor_set(CTX_wm_window(C), WM_CURSOR_WAIT);
-
+  WM_cursor_wait(true);
   ImBuf *ibuf = WM_clipboard_image_get();
-  if (!ibuf) {
-    WM_cursor_set(CTX_wm_window(C), WM_CURSOR_DEFAULT);
-    return OPERATOR_CANCELLED;
+  if (ibuf) {
+    ED_undo_push_op(C, op);
+
+    Main *bmain = CTX_data_main(C);
+    SpaceImage *sima = CTX_wm_space_image(C);
+    Image *ima = BKE_image_add_from_imbuf(bmain, ibuf, "Clipboard");
+    IMB_freeImBuf(ibuf);
+
+    ED_space_image_set(bmain, sima, ima, false);
+    BKE_image_signal(bmain, ima, (sima) ? &sima->iuser : nullptr, IMA_SIGNAL_USER_NEW_IMAGE);
+    WM_event_add_notifier(C, NC_IMAGE | NA_ADDED, ima);
+    changed = true;
   }
+  WM_cursor_wait(false);
 
-  ED_undo_push_op(C, op);
-
-  Main *bmain = CTX_data_main(C);
-  SpaceImage *sima = CTX_wm_space_image(C);
-  Image *ima = BKE_image_add_from_imbuf(bmain, ibuf, "Clipboard");
-  IMB_freeImBuf(ibuf);
-
-  ED_space_image_set(bmain, sima, ima, false);
-  BKE_image_signal(bmain, ima, (sima) ? &sima->iuser : nullptr, IMA_SIGNAL_USER_NEW_IMAGE);
-  WM_event_add_notifier(C, NC_IMAGE | NA_ADDED, ima);
-
-  WM_cursor_set(CTX_wm_window(C), WM_CURSOR_DEFAULT);
-
-  return OPERATOR_FINISHED;
+  return changed ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 static bool image_clipboard_paste_poll(bContext *C)
