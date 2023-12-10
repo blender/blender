@@ -2243,7 +2243,7 @@ static PyObject *bpy_bmvertseq_new(BPy_BMElemSeq *self, PyObject *args)
 
   if (py_vert_example) {
     if (py_vert_example->bm == bm) {
-      BM_elem_attrs_copy(*bm, py_vert_example->v, v);
+      BM_elem_attrs_copy(bm, py_vert_example->v, v);
     }
     else {
       const BMCustomDataCopyMap cd_vert_map = CustomData_bmesh_copy_map_calc(
@@ -2311,7 +2311,7 @@ static PyObject *bpy_bmedgeseq_new(BPy_BMElemSeq *self, PyObject *args)
 
   if (py_edge_example) {
     if (py_edge_example->bm == bm) {
-      BM_elem_attrs_copy(*bm, py_edge_example->e, e);
+      BM_elem_attrs_copy(bm, py_edge_example->e, e);
     }
     else {
       const BMCustomDataCopyMap cd_edge_map = CustomData_bmesh_copy_map_calc(

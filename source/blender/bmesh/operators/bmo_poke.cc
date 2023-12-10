@@ -93,12 +93,12 @@ void bmo_poke_exec(BMesh *bm, BMOperator *op)
         BM_loop_interp_from_face(bm, l_center_example, f, true, false);
       }
       else {
-        BM_elem_attrs_copy(*bm, l_center_example, l_new->prev);
+        BM_elem_attrs_copy(bm, l_center_example, l_new->prev);
       }
 
       /* Copy Loop Data */
-      BM_elem_attrs_copy(*bm, l_iter, l_new);
-      BM_elem_attrs_copy(*bm, l_iter->next, l_new->next);
+      BM_elem_attrs_copy(bm, l_iter, l_new);
+      BM_elem_attrs_copy(bm, l_iter->next, l_new->next);
 
       BMO_face_flag_enable(bm, f_new, ELE_NEW);
 

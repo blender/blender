@@ -428,10 +428,10 @@ void BM_mesh_wireframe(BMesh *bm,
       BM_elem_flag_enable(f_new, BM_ELEM_TAG);
       l_new = BM_FACE_FIRST_LOOP(f_new);
 
-      BM_elem_attrs_copy(*bm, l, l_new);
-      BM_elem_attrs_copy(*bm, l, l_new->prev);
-      BM_elem_attrs_copy(*bm, l_next, l_new->next);
-      BM_elem_attrs_copy(*bm, l_next, l_new->next->next);
+      BM_elem_attrs_copy(bm, l, l_new);
+      BM_elem_attrs_copy(bm, l, l_new->prev);
+      BM_elem_attrs_copy(bm, l_next, l_new->next);
+      BM_elem_attrs_copy(bm, l_next, l_new->next->next);
 
       f_new = BM_face_create_quad_tri(bm, v_l2, v_l1, v_pos1, v_pos2, f_src, BM_CREATE_NOP);
 
@@ -441,10 +441,10 @@ void BM_mesh_wireframe(BMesh *bm,
       BM_elem_flag_enable(f_new, BM_ELEM_TAG);
       l_new = BM_FACE_FIRST_LOOP(f_new);
 
-      BM_elem_attrs_copy(*bm, l_next, l_new);
-      BM_elem_attrs_copy(*bm, l_next, l_new->prev);
-      BM_elem_attrs_copy(*bm, l, l_new->next);
-      BM_elem_attrs_copy(*bm, l, l_new->next->next);
+      BM_elem_attrs_copy(bm, l_next, l_new);
+      BM_elem_attrs_copy(bm, l_next, l_new->prev);
+      BM_elem_attrs_copy(bm, l, l_new->next);
+      BM_elem_attrs_copy(bm, l, l_new->next->next);
 
       if (use_boundary) {
         if (BM_elem_flag_test(l->e, BM_ELEM_TAG)) {
@@ -460,10 +460,10 @@ void BM_mesh_wireframe(BMesh *bm,
           BM_elem_flag_enable(f_new, BM_ELEM_TAG);
           l_new = BM_FACE_FIRST_LOOP(f_new);
 
-          BM_elem_attrs_copy(*bm, l_next, l_new);
-          BM_elem_attrs_copy(*bm, l_next, l_new->prev);
-          BM_elem_attrs_copy(*bm, l, l_new->next);
-          BM_elem_attrs_copy(*bm, l, l_new->next->next);
+          BM_elem_attrs_copy(bm, l_next, l_new);
+          BM_elem_attrs_copy(bm, l_next, l_new->prev);
+          BM_elem_attrs_copy(bm, l, l_new->next);
+          BM_elem_attrs_copy(bm, l, l_new->next->next);
 
           f_new = BM_face_create_quad_tri(bm, v_b1, v_b2, v_pos2, v_pos1, f_src, BM_CREATE_NOP);
           if (mat_offset) {
@@ -472,10 +472,10 @@ void BM_mesh_wireframe(BMesh *bm,
           BM_elem_flag_enable(f_new, BM_ELEM_TAG);
           l_new = BM_FACE_FIRST_LOOP(f_new);
 
-          BM_elem_attrs_copy(*bm, l, l_new);
-          BM_elem_attrs_copy(*bm, l, l_new->prev);
-          BM_elem_attrs_copy(*bm, l_next, l_new->next);
-          BM_elem_attrs_copy(*bm, l_next, l_new->next->next);
+          BM_elem_attrs_copy(bm, l, l_new);
+          BM_elem_attrs_copy(bm, l, l_new->prev);
+          BM_elem_attrs_copy(bm, l_next, l_new->next);
+          BM_elem_attrs_copy(bm, l_next, l_new->next->next);
 
           if (use_crease) {
             BMEdge *e_new;

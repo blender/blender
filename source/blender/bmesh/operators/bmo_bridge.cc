@@ -410,19 +410,19 @@ static void bridge_loop_pair(BMesh *bm,
 
             l_iter = BM_FACE_FIRST_LOOP(f);
             if (l_b) {
-              BM_elem_attrs_copy(*bm, l_b, l_iter);
+              BM_elem_attrs_copy(bm, l_b, l_iter);
             }
             l_iter = l_iter->next;
             if (l_b_next) {
-              BM_elem_attrs_copy(*bm, l_b_next, l_iter);
+              BM_elem_attrs_copy(bm, l_b_next, l_iter);
             }
             l_iter = l_iter->next;
             if (l_a_next) {
-              BM_elem_attrs_copy(*bm, l_a_next, l_iter);
+              BM_elem_attrs_copy(bm, l_a_next, l_iter);
             }
             l_iter = l_iter->next;
             if (l_a) {
-              BM_elem_attrs_copy(*bm, l_a, l_iter);
+              BM_elem_attrs_copy(bm, l_a, l_iter);
             }
           }
         }
@@ -444,15 +444,15 @@ static void bridge_loop_pair(BMesh *bm,
 
             l_iter = BM_FACE_FIRST_LOOP(f);
             if (l_b) {
-              BM_elem_attrs_copy(*bm, l_b, l_iter);
+              BM_elem_attrs_copy(bm, l_b, l_iter);
             }
             l_iter = l_iter->next;
             if (l_a_next) {
-              BM_elem_attrs_copy(*bm, l_a_next, l_iter);
+              BM_elem_attrs_copy(bm, l_a_next, l_iter);
             }
             l_iter = l_iter->next;
             if (l_a) {
-              BM_elem_attrs_copy(*bm, l_a, l_iter);
+              BM_elem_attrs_copy(bm, l_a, l_iter);
             }
           }
         }
@@ -463,7 +463,7 @@ static void bridge_loop_pair(BMesh *bm,
 #endif
       {
         if (f_example && (f_example != f)) {
-          BM_elem_attrs_copy(*bm, f_example, f);
+          BM_elem_attrs_copy(bm, f_example, f);
         }
         BMO_face_flag_enable(bm, f, FACE_OUT);
         BM_elem_flag_enable(f, BM_ELEM_TAG);

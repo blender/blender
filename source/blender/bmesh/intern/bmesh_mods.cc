@@ -486,7 +486,7 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float fac)
   madd_v3_v3v3fl(v_new->co, v->co, v_new->co, fac);
 
   e_new->head.hflag = e->head.hflag;
-  BM_elem_attrs_copy(*bm, e, e_new);
+  BM_elem_attrs_copy(bm, e, e_new);
 
   /* v->v_new->v2 */
   BM_data_interp_face_vert_edge(bm, v_other, v, v_new, e, fac);

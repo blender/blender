@@ -52,7 +52,7 @@ static BMVert *bmo_vert_copy(BMOperator *op,
     BM_elem_attrs_copy(bm_dst, cd_vert_map.value(), v_src, v_dst);
   }
   else {
-    BM_elem_attrs_copy(*bm_dst, v_src, v_dst);
+    BM_elem_attrs_copy(bm_dst, v_src, v_dst);
   }
 
   /* Mark the vert for output */
@@ -120,7 +120,7 @@ static BMEdge *bmo_edge_copy(BMOperator *op,
     BM_elem_attrs_copy(bm_dst, cd_edge_map.value(), e_src, e_dst);
   }
   else {
-    BM_elem_attrs_copy(*bm_dst, e_src, e_dst);
+    BM_elem_attrs_copy(bm_dst, e_src, e_dst);
   }
 
   /* Mark the edge for output */
@@ -178,7 +178,7 @@ static BMFace *bmo_face_copy(BMOperator *op,
     BM_elem_attrs_copy(bm_dst, cd_face_map.value(), f_src, f_dst);
   }
   else {
-    BM_elem_attrs_copy(*bm_dst, f_src, f_dst);
+    BM_elem_attrs_copy(bm_dst, f_src, f_dst);
   }
 
   /* copy per-loop custom data */
@@ -189,7 +189,7 @@ static BMFace *bmo_face_copy(BMOperator *op,
       BM_elem_attrs_copy(bm_dst, cd_loop_map.value(), l_iter_src, l_iter_dst);
     }
     else {
-      BM_elem_attrs_copy(*bm_dst, l_iter_src, l_iter_dst);
+      BM_elem_attrs_copy(bm_dst, l_iter_src, l_iter_dst);
     }
   } while ((void)(l_iter_dst = l_iter_dst->next), (l_iter_src = l_iter_src->next) != l_first_src);
 
