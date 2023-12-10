@@ -7575,12 +7575,6 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
-  static const EnumPropertyItem ray_split_settings_items[] = {
-      {0, "UNIFIED", 0, "Unified", "All ray types use the same settings"},
-      {1, "SPLIT", 0, "Split", "Settings are individual to each ray type"},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
   static const EnumPropertyItem ray_tracing_method_items[] = {
       {RAYTRACE_EEVEE_METHOD_NONE, "NONE", 0, "None", "No intersection with scene geometry"},
       {RAYTRACE_EEVEE_METHOD_SCREEN,
@@ -7781,11 +7775,6 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Clamp", "Clamp pixel intensity to remove noise (0 to disable)");
   RNA_def_property_range(prop, 0.0f, FLT_MAX);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
-  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
-
-  prop = RNA_def_property(srna, "ray_split_settings", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(prop, ray_split_settings_items);
-  RNA_def_property_ui_text(prop, "Options Split", "Split settings per ray type");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
 
   prop = RNA_def_property(srna, "ray_tracing_method", PROP_ENUM, PROP_NONE);
@@ -8192,20 +8181,10 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
   RNA_def_property_ui_range(prop, 0.0f, 10.0f, 1, 2);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
-  prop = RNA_def_property(srna, "reflection_options", PROP_POINTER, PROP_NONE);
+  prop = RNA_def_property(srna, "ray_tracing_options", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "RaytraceEEVEE");
   RNA_def_property_ui_text(
       prop, "Reflection Trace Options", "EEVEE settings for tracing reflections");
-
-  prop = RNA_def_property(srna, "refraction_options", PROP_POINTER, PROP_NONE);
-  RNA_def_property_struct_type(prop, "RaytraceEEVEE");
-  RNA_def_property_ui_text(
-      prop, "Refraction Trace Options", "EEVEE settings for tracing refractions");
-
-  prop = RNA_def_property(srna, "diffuse_options", PROP_POINTER, PROP_NONE);
-  RNA_def_property_struct_type(prop, "RaytraceEEVEE");
-  RNA_def_property_ui_text(
-      prop, "Diffuse Trace Options", "EEVEE settings for tracing diffuse reflections");
 }
 
 static void rna_def_scene_gpencil(BlenderRNA *brna)

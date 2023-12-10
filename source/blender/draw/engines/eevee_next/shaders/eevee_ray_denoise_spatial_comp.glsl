@@ -63,7 +63,10 @@ void main()
         continue;
       }
 
-      uint tile_mask = imageLoad(tile_mask_img, tile_coord_neighbor).r;
+      int closure_index = uniform_buf.raytrace.closure_index;
+      ivec3 sample_tile = ivec3(tile_coord_neighbor, closure_index);
+
+      uint tile_mask = imageLoad(tile_mask_img, sample_tile).r;
       bool tile_is_unused = !flag_test(tile_mask, 1u << 0u);
       if (tile_is_unused) {
         ivec2 texel_fullres_neighbor = texel_fullres + ivec2(x, y) * int(tile_size);

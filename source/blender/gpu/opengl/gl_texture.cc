@@ -418,25 +418,13 @@ void GLTexture::copy_to(Texture *dst_)
   BLI_assert((dst->w_ == src->w_) && (dst->h_ == src->h_) && (dst->d_ == src->d_));
   BLI_assert(dst->format_ == src->format_);
   BLI_assert(dst->type_ == src->type_);
-  /* TODO: support array / 3D textures. */
-  BLI_assert(dst->d_ == 0);
 
-  if (GLContext::copy_image_support) {
-    int mip = 0;
-    /* NOTE: mip_size_get() won't override any dimension that is equal to 0. */
-    int extent[3] = {1, 1, 1};
-    this->mip_size_get(mip, extent);
-    glCopyImageSubData(
-        src->tex_id_, target_, mip, 0, 0, 0, dst->tex_id_, target_, mip, 0, 0, 0, UNPACK3(extent));
-  }
-  else {
-    /* Fallback for older GL. */
-    GPU_framebuffer_blit(wrap(src->framebuffer_get()),
-                         0,
-                         wrap(dst->framebuffer_get()),
-                         0,
-                         to_framebuffer_bits(format_));
-  }
+  int mip = 0;
+  /* NOTE: mip_size_get() won't override any dimension that is equal to 0. */
+  int extent[3] = {1, 1, 1};
+  this->mip_size_get(mip, extent);
+  glCopyImageSubData(
+      src->tex_id_, target_, mip, 0, 0, 0, dst->tex_id_, target_, mip, 0, 0, 0, UNPACK3(extent));
 
   has_pixels_ = true;
 }

@@ -12,8 +12,8 @@
 #pragma BLENDER_REQUIRE(gpu_shader_codegen_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_gbuffer_lib.glsl)
 
-shared uint tile_contains_ray_tracing;
-shared uint tile_contains_horizon_scan;
+shared uint tile_contains_ray_tracing[3];
+shared uint tile_contains_horizon_scan[3];
 
 /* Returns a blend factor between different tracing method. */
 float ray_roughness_factor(RayTraceData raytrace, float roughness)
@@ -24,25 +24,11 @@ float ray_roughness_factor(RayTraceData raytrace, float roughness)
 void main()
 {
   if (all(equal(gl_LocalInvocationID, uvec3(0)))) {
-    /* Clear num_groups_x to 0 so that we can use it as counter in the compaction phase.
-     * Note that these writes are subject to race condition, but we write the same value
-     * from all work-groups. */
-    ray_denoise_dispatch_buf.num_groups_x = 0u;
-    ray_denoise_dispatch_buf.num_groups_y = 1u;
-    ray_denoise_dispatch_buf.num_groups_z = 1u;
-    ray_dispatch_buf.num_groups_x = 0u;
-    ray_dispatch_buf.num_groups_y = 1u;
-    ray_dispatch_buf.num_groups_z = 1u;
-    horizon_dispatch_buf.num_groups_x = 0u;
-    horizon_dispatch_buf.num_groups_y = 1u;
-    horizon_dispatch_buf.num_groups_z = 1u;
-    horizon_denoise_dispatch_buf.num_groups_x = 0u;
-    horizon_denoise_dispatch_buf.num_groups_y = 1u;
-    horizon_denoise_dispatch_buf.num_groups_z = 1u;
-
     /* Init shared variables. */
-    tile_contains_ray_tracing = 0;
-    tile_contains_horizon_scan = 0;
+    for (int i = 0; i < 3; i++) {
+      tile_contains_ray_tracing[i] = 0;
+      tile_contains_horizon_scan[i] = 0;
+    }
   }
 
   barrier();
@@ -50,43 +36,56 @@ void main()
   ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
 
   bool valid_texel = in_texture_range(texel, gbuf_header_tx);
-  uint header = (!valid_texel) ? 0u : texelFetch(gbuf_header_tx, texel, 0).r;
 
-  if (gbuffer_has_closure(header, uniform_buf.raytrace.closure_active)) {
+  if (valid_texel) {
     GBufferData gbuf = gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_color_tx, texel);
 
-    float roughness = 1.0;
-    if (uniform_buf.raytrace.closure_active == eClosureBits(CLOSURE_REFLECTION)) {
-      roughness = gbuf.reflection.roughness;
-    }
-    else if (uniform_buf.raytrace.closure_active == eClosureBits(CLOSURE_REFRACTION)) {
-      roughness = 0.0; /* TODO(fclem): Apparent roughness. For now, always raytrace. */
-    }
+    /* TODO(fclem): Arbitrary closure stack. */
+    for (int i = 0; i < 3; i++) {
+      float ray_roughness_fac;
 
-    float ray_roughness_fac = ray_roughness_factor(uniform_buf.raytrace, roughness);
-    if (ray_roughness_fac > 0.0) {
+      if (i == 0 && gbuf.has_diffuse) {
+        /* Diffuse. */
+        ray_roughness_fac = ray_roughness_factor(uniform_buf.raytrace, 1.0);
+      }
+      else if (i == 1 && gbuf.has_reflection) {
+        /* Reflection. */
+        ray_roughness_fac = ray_roughness_factor(uniform_buf.raytrace, gbuf.reflection.roughness);
+      }
+      else if (i == 2 && gbuf.has_refraction) {
+        /* Refraction. */
+        ray_roughness_fac = 0.0; /* TODO(fclem): Apparent roughness. For now, always raytrace. */
+      }
+      else {
+        continue;
+      }
+
       /* We don't care about race condition here. */
-      tile_contains_horizon_scan = 1;
-    }
-    if (ray_roughness_fac < 1.0) {
-      /* We don't care about race condition here. */
-      tile_contains_ray_tracing = 1;
+      if (ray_roughness_fac > 0.0) {
+        tile_contains_horizon_scan[i] = 1;
+      }
+      if (ray_roughness_fac < 1.0) {
+        tile_contains_ray_tracing[i] = 1;
+      }
     }
   }
 
   barrier();
 
   if (all(equal(gl_LocalInvocationID, uvec3(0)))) {
-    ivec2 tile_co = ivec2(gl_WorkGroupID.xy);
+    ivec2 denoise_tile_co = ivec2(gl_WorkGroupID.xy);
+    ivec2 tracing_tile_co = denoise_tile_co / uniform_buf.raytrace.resolution_scale;
 
-    uint tile_mask = 0u;
-    if (tile_contains_ray_tracing > 0) {
-      tile_mask |= 1u << 0u;
-    }
-    if (tile_contains_horizon_scan > 0) {
-      tile_mask |= 1u << 1u;
-    }
+    for (int i = 0; i < 3; i++) {
+      if (tile_contains_ray_tracing[i] > 0) {
+        imageStore(tile_raytrace_denoise_img, ivec3(denoise_tile_co, i), uvec4(1));
+        imageStore(tile_raytrace_tracing_img, ivec3(tracing_tile_co, i), uvec4(1));
+      }
 
-    imageStore(tile_mask_img, tile_co, uvec4(tile_mask));
+      if (tile_contains_horizon_scan[i] > 0) {
+        imageStore(tile_horizon_denoise_img, ivec3(denoise_tile_co, i), uvec4(1));
+        imageStore(tile_horizon_tracing_img, ivec3(tracing_tile_co, i), uvec4(1));
+      }
+    }
   }
 }

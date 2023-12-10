@@ -1962,21 +1962,8 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 14)) {
-    if (!DNA_struct_member_exists(
-            fd->filesdna, "SceneEEVEE", "RaytraceEEVEE", "reflection_options")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "SceneEEVEE", "int", "ray_tracing_method")) {
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-        scene->eevee.reflection_options.flag = RAYTRACE_EEVEE_USE_DENOISE;
-        scene->eevee.reflection_options.denoise_stages = RAYTRACE_EEVEE_DENOISE_SPATIAL |
-                                                         RAYTRACE_EEVEE_DENOISE_TEMPORAL |
-                                                         RAYTRACE_EEVEE_DENOISE_BILATERAL;
-        scene->eevee.reflection_options.screen_trace_quality = 0.25f;
-        scene->eevee.reflection_options.screen_trace_thickness = 0.2f;
-        scene->eevee.reflection_options.sample_clamp = 10.0f;
-        scene->eevee.reflection_options.resolution_scale = 2;
-
-        scene->eevee.refraction_options = scene->eevee.reflection_options;
-
-        scene->eevee.ray_split_settings = 0;
         scene->eevee.ray_tracing_method = RAYTRACE_EEVEE_METHOD_SCREEN;
       }
     }
@@ -2274,13 +2261,6 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
         light->shadow_trace_distance = default_light.shadow_trace_distance;
       }
     }
-
-    if (!DNA_struct_member_exists(fd->filesdna, "SceneEEVEE", "RaytraceEEVEE", "diffuse_options"))
-    {
-      LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-        scene->eevee.diffuse_options = scene->eevee.reflection_options;
-      }
-    }
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 28)) {
@@ -2529,16 +2509,6 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
-    if (!DNA_struct_member_exists(
-            fd->filesdna, "RaytraceEEVEE", "float", "screen_trace_max_roughness"))
-    {
-      LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-        scene->eevee.reflection_options.screen_trace_max_roughness = 0.5f;
-        scene->eevee.refraction_options.screen_trace_max_roughness = 0.5f;
-        scene->eevee.diffuse_options.screen_trace_max_roughness = 0.5f;
-      }
-    }
-
     if (!DNA_struct_member_exists(fd->filesdna, "Material", "char", "displacement_method")) {
       /* Replace Cycles.displacement_method by Material::displacement_method. */
       LISTBASE_FOREACH (Material *, material, &bmain->materials) {
@@ -2591,6 +2561,21 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
+
+    if (!DNA_struct_member_exists(
+            fd->filesdna, "SceneEEVEE", "RaytraceEEVEE", "ray_tracing_options")) {
+      LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+        scene->eevee.ray_tracing_options.flag = RAYTRACE_EEVEE_USE_DENOISE;
+        scene->eevee.ray_tracing_options.denoise_stages = RAYTRACE_EEVEE_DENOISE_SPATIAL |
+                                                          RAYTRACE_EEVEE_DENOISE_TEMPORAL |
+                                                          RAYTRACE_EEVEE_DENOISE_BILATERAL;
+        scene->eevee.ray_tracing_options.screen_trace_quality = 0.25f;
+        scene->eevee.ray_tracing_options.screen_trace_thickness = 0.2f;
+        scene->eevee.ray_tracing_options.screen_trace_max_roughness = 0.5f;
+        scene->eevee.ray_tracing_options.sample_clamp = 10.0f;
+        scene->eevee.ray_tracing_options.resolution_scale = 2;
+      }
+    }
   }
 
   /* Always run this versioning; meshes are written with the legacy format which always needs to
