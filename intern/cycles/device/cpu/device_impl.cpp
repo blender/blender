@@ -313,7 +313,7 @@ void CPUDevice::get_cpu_kernel_thread_globals(
   kernel_thread_globals.clear();
   void *osl_memory = get_cpu_osl_memory();
   for (int i = 0; i < info.cpu_threads; i++) {
-    kernel_thread_globals.emplace_back(kernel_globals, osl_memory, profiler);
+    kernel_thread_globals.emplace_back(kernel_globals, osl_memory, profiler, i);
   }
 }
 
