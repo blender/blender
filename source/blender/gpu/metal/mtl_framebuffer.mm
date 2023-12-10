@@ -763,11 +763,6 @@ void MTLFrameBuffer::update_attachments(bool /*update_viewport*/)
     this->size_set(size[0], size[1]);
     srgb_ = (GPU_texture_format(attach.tex) == GPU_SRGB8_A8);
   }
-  else {
-    /* Empty frame-buffer. */
-    width_ = 0;
-    height_ = 0;
-  }
 
   /* We have now updated our internal structures. */
   dirty_attachments_ = false;
@@ -1249,7 +1244,7 @@ void MTLFrameBuffer::ensure_render_target_size()
   {
 
     /* Reset default size for empty framebuffer. */
-    this->default_size_set(0, 0);
+    this->default_size_set(width_, height_);
   }
 }
 
@@ -1495,16 +1490,9 @@ bool MTLFrameBuffer::validate_render_pass()
     this->update_attachments(true);
   }
 
-  /* Verify attachment count. */
-  int used_attachments = 0;
-  for (int attachment = 0; attachment < GPU_FB_MAX_COLOR_ATTACHMENT; attachment++) {
-    if (mtl_color_attachments_[attachment].used) {
-      used_attachments++;
-    }
-  }
-  used_attachments += (mtl_depth_attachment_.used) ? 1 : 0;
-  used_attachments += (mtl_stencil_attachment_.used) ? 1 : 0;
-  return (used_attachments > 0);
+  /* NOTE: Attachment-less render targets now supported so we do not need to validate attachment
+   * counts. Keeping this function in place if other parameters need to be validate. */
+  return true;
 }
 
 MTLLoadAction mtl_load_action_from_gpu(eGPULoadOp action)
@@ -1796,6 +1784,17 @@ MTLRenderPassDescriptor *MTLFrameBuffer::bake_render_pass_descriptor(bool load_c
     else {
       framebuffer_descriptor_[descriptor_config].stencilAttachment.texture = nil;
     }
+
+    /* Attachmentless render support. */
+    int total_num_attachments = colour_attachments + (mtl_depth_attachment_.used ? 1 : 0) +
+                                (mtl_stencil_attachment_.used ? 1 : 0);
+    if (total_num_attachments == 0) {
+      BLI_assert(width_ > 0 && height_ > 0);
+      framebuffer_descriptor_[descriptor_config].renderTargetWidth = width_;
+      framebuffer_descriptor_[descriptor_config].renderTargetHeight = height_;
+      framebuffer_descriptor_[descriptor_config].defaultRasterSampleCount = 1;
+    }
+
     descriptor_dirty_[descriptor_config] = false;
   }
   /* Clear dirty state flags. */
