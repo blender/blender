@@ -3514,13 +3514,6 @@ void BKE_object_apply_parent_inverse(Object *ob)
 /** \name Object Bounding Box API
  * \{ */
 
-BoundBox *BKE_boundbox_alloc_unit()
-{
-  BoundBox *bb = MEM_cnew<BoundBox>(__func__);
-  BKE_boundbox_init_from_minmax(bb, float3(-1), float3(1));
-  return bb;
-}
-
 void BKE_boundbox_init_from_minmax(BoundBox *bb, const float min[3], const float max[3])
 {
   bb->vec[0][0] = bb->vec[1][0] = bb->vec[2][0] = bb->vec[3][0] = min[0];
@@ -3531,20 +3524,6 @@ void BKE_boundbox_init_from_minmax(BoundBox *bb, const float min[3], const float
 
   bb->vec[0][2] = bb->vec[3][2] = bb->vec[4][2] = bb->vec[7][2] = min[2];
   bb->vec[1][2] = bb->vec[2][2] = bb->vec[5][2] = bb->vec[6][2] = max[2];
-}
-
-void BKE_boundbox_calc_center_aabb(const BoundBox *bb, float r_cent[3])
-{
-  r_cent[0] = 0.5f * (bb->vec[0][0] + bb->vec[4][0]);
-  r_cent[1] = 0.5f * (bb->vec[0][1] + bb->vec[2][1]);
-  r_cent[2] = 0.5f * (bb->vec[0][2] + bb->vec[1][2]);
-}
-
-void BKE_boundbox_calc_size_aabb(const BoundBox *bb, float r_size[3])
-{
-  r_size[0] = 0.5f * fabsf(bb->vec[0][0] - bb->vec[4][0]);
-  r_size[1] = 0.5f * fabsf(bb->vec[0][1] - bb->vec[2][1]);
-  r_size[2] = 0.5f * fabsf(bb->vec[0][2] - bb->vec[1][2]);
 }
 
 void BKE_boundbox_minmax(const BoundBox *bb,
