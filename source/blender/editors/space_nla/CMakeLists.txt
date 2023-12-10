@@ -20,11 +20,11 @@ set(INC_SYS
 
 set(SRC
   nla_buttons.cc
-  nla_tracks.cc
   nla_draw.cc
   nla_edit.cc
   nla_ops.cc
   nla_select.cc
+  nla_tracks.cc
   space_nla.cc
 
   nla_intern.hh

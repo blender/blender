@@ -197,8 +197,8 @@ set(SRC
   intern/mesh.cc
   intern/mesh_boolean_convert.cc
   intern/mesh_calc_edges.cc
-  intern/mesh_convert.cc
   intern/mesh_compare.cc
+  intern/mesh_convert.cc
   intern/mesh_debug.cc
   intern/mesh_evaluate.cc
   intern/mesh_fair.cc
@@ -463,8 +463,8 @@ set(SRC
   BKE_node_tree_update.hh
   BKE_node_tree_zones.hh
   BKE_object.hh
-  BKE_object_types.hh
   BKE_object_deform.h
+  BKE_object_types.hh
   BKE_ocean.h
   BKE_outliner_treehash.hh
   BKE_packedFile.h
@@ -841,6 +841,7 @@ if(WITH_GTESTS)
     intern/cryptomatte_test.cc
     intern/curves_geometry_test.cc
     intern/fcurve_test.cc
+    intern/file_handler_test.cc
     intern/grease_pencil_test.cc
     intern/idprop_serialize_test.cc
     intern/image_partial_update_test.cc
@@ -853,7 +854,6 @@ if(WITH_GTESTS)
     intern/main_test.cc
     intern/nla_test.cc
     intern/tracking_test.cc
-    intern/file_handler_test.cc
   )
   set(TEST_INC
     ../editors/include

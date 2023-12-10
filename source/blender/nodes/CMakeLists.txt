@@ -105,6 +105,7 @@ set(SRC
   NOD_math_functions.hh
   NOD_multi_function.hh
   NOD_node_declaration.hh
+  NOD_node_extra_info.hh
   NOD_register.hh
   NOD_rna_define.hh
   NOD_shader.h

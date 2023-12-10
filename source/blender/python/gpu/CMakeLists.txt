@@ -20,6 +20,7 @@ set(SRC
   gpu_py_batch.cc
   gpu_py_buffer.cc
   gpu_py_capabilities.cc
+  gpu_py_compute.cc
   gpu_py_element.cc
   gpu_py_framebuffer.cc
   gpu_py_matrix.cc
@@ -34,13 +35,13 @@ set(SRC
   gpu_py_uniformbuffer.cc
   gpu_py_vertex_buffer.cc
   gpu_py_vertex_format.cc
-  gpu_py_compute.cc
 
   gpu_py.h
   gpu_py_api.h
   gpu_py_batch.h
   gpu_py_buffer.h
   gpu_py_capabilities.h
+  gpu_py_compute.h
   gpu_py_element.h
   gpu_py_framebuffer.h
   gpu_py_matrix.h
@@ -54,7 +55,6 @@ set(SRC
   gpu_py_uniformbuffer.h
   gpu_py_vertex_buffer.h
   gpu_py_vertex_format.h
-  gpu_py_compute.h
 )
 
 set(LIB

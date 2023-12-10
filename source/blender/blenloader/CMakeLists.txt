@@ -8,6 +8,7 @@ set(INC
   ../blentranslation
   ../draw
   ../editors/include
+  ../bmesh
   ../gpu
   ../imbuf
   ../makesrna
@@ -15,7 +16,6 @@ set(INC
   ../render
   ../sequencer
   ../windowmanager
-  ../bmesh
 
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
