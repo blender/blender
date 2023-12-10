@@ -114,6 +114,15 @@ struct BPyContextTempOverride {
 
   ContextStore ctx_init;
   ContextStore ctx_temp;
+
+  struct {
+    /**
+     * The original screen of `ctx_temp.win`, needed when restoring this windows screen as it
+     * won't be `ctx_init.screen` (when switching the window as well as the screen), see #115937.
+     */
+    bScreen *screen;
+  } ctx_temp_orig;
+
   /** Bypass Python overrides set when calling an operator from Python. */
   bContext_PyState py_state;
   /**
@@ -248,6 +257,12 @@ static PyObject *bpy_rna_context_temp_override_enter(BPyContextTempOverride *sel
     }
   }
 
+  /* Manipulate the context (setup). */
+  if (self->ctx_temp.screen_is_set) {
+    self->ctx_temp_orig.screen = WM_window_get_active_screen(win);
+    bpy_rna_context_temp_set_screen_for_window(C, win, self->ctx_temp.screen);
+  }
+
   /* NOTE: always set these members, even when they are equal to the current values because
    * setting the window (for e.g.) clears the area & region, setting the area clears the region.
    * While it would be useful in some cases to leave the context as-is when setting members
@@ -262,7 +277,6 @@ static PyObject *bpy_rna_context_temp_override_enter(BPyContextTempOverride *sel
     CTX_wm_window_set(C, self->ctx_temp.win);
   }
   if (self->ctx_temp.screen_is_set) {
-    bpy_rna_context_temp_set_screen_for_window(C, win, self->ctx_temp.screen);
     CTX_wm_screen_set(C, self->ctx_temp.screen);
   }
   if (self->ctx_temp.area_is_set) {
@@ -281,6 +295,16 @@ static PyObject *bpy_rna_context_temp_override_exit(BPyContextTempOverride *self
   bContext *C = self->context;
 
   Main *bmain = CTX_data_main(C);
+
+  /* Manipulate the context (restore). */
+  if (self->ctx_temp.screen_is_set) {
+    if (self->ctx_temp_orig.screen && wm_check_screen_exists(bmain, self->ctx_temp_orig.screen)) {
+      wmWindow *win = self->ctx_temp.win_is_set ? self->ctx_temp.win : self->ctx_init.win;
+      if (win && wm_check_window_exists(bmain, win)) {
+        bpy_rna_context_temp_set_screen_for_window(C, win, self->ctx_temp_orig.screen);
+      }
+    }
+  }
 
   /* Account for for the window to be freed on file-read,
    * in this case the window should not be restored, see: #92818.
@@ -330,7 +354,6 @@ static PyObject *bpy_rna_context_temp_override_exit(BPyContextTempOverride *self
 
     if (do_restore) {
       if (self->ctx_init.screen_is_set || is_container_set) {
-        bpy_rna_context_temp_set_screen_for_window(C, self->ctx_init.win, self->ctx_init.screen);
         CTX_wm_screen_set(C, self->ctx_init.screen);
         is_container_set = true;
       }
@@ -610,6 +633,8 @@ static PyObject *bpy_context_temp_override(PyObject *self, PyObject *args, PyObj
   ret->context = C;
   ret->ctx_temp = ctx_temp;
   memset(&ret->ctx_init, 0, sizeof(ret->ctx_init));
+
+  ret->ctx_temp_orig.screen = nullptr;
 
   ret->py_state_context_dict = kwds;
 
