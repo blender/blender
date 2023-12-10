@@ -2274,6 +2274,30 @@ static wl_buffer *ghost_wl_buffer_create_for_image(wl_shm *shm,
   return buffer;
 }
 
+/**
+ * A version of `read` which will read `nbytes` or as many bytes as possible,
+ * useful as the LIBC version may `read` less than requested.
+ */
+static ssize_t read_exhaustive(const int fd, char *data, size_t nbytes)
+{
+  ssize_t nbytes_read = read(fd, data, nbytes);
+  if (nbytes_read > 0) {
+    while (nbytes_read < nbytes) {
+      const ssize_t nbytes_extra = read(fd, data + nbytes_read, nbytes - nbytes_read);
+      if (nbytes_extra > 0) {
+        nbytes_read += nbytes_extra;
+      }
+      else {
+        if (UNLIKELY(nbytes_extra < 0)) {
+          nbytes_read = nbytes_extra; /* Error. */
+        }
+        break;
+      }
+    }
+  }
+  return nbytes_read;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -2457,13 +2481,7 @@ static char *read_file_as_buffer(const int fd, const bool nil_terminate, size_t 
 {
   struct ByteChunk {
     ByteChunk *next;
-    /* NOTE(@ideasman42): On GNOME-SHELL-43.3, non powers of two values
-     * (1023 or 4088 for e.g.) makes `read()` *intermittently* include uninitialized memory
-     * (failing to read the end of the chunk) as well as truncating the end of the whole buffer.
-     * The WAYLAND spec doesn't mention buffer-size so this may be a bug in GNOME-SHELL.
-     * Whatever the case, using a power of two isn't a problem (besides some slop-space waste).
-     * This workaround isn't necessary for KDE & WLROOTS based compositors, see: #106040. */
-    char data[4096];
+    char data[4096 - sizeof(ByteChunk *)];
   };
   ByteChunk *chunk_first = nullptr, **chunk_link_p = &chunk_first;
   bool ok = true;
@@ -2476,7 +2494,8 @@ static char *read_file_as_buffer(const int fd, const bool nil_terminate, size_t 
       break;
     }
     chunk->next = nullptr;
-    const ssize_t len_chunk = read(fd, chunk->data, sizeof(chunk->data));
+    /* Using `read` causes issues with GNOME, see: #106040). */
+    const ssize_t len_chunk = read_exhaustive(fd, chunk->data, sizeof(chunk->data));
     if (len_chunk <= 0) {
       if (UNLIKELY(len_chunk < 0)) {
         CLOG_WARN(LOG, "error reading from pipe: %s", std::strerror(errno));
