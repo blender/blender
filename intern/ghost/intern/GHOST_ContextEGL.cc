@@ -352,7 +352,8 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
 
     const char *egl_extension_st = eglQueryString(EGL_NO_DISPLAY, EGL_EXTENSIONS);
     assert(egl_extension_st != nullptr);
-    assert(strstr(egl_extension_st, "EGL_MESA_platform_surfaceless") != nullptr);
+    assert(egl_extension_st == nullptr ||
+           strstr(egl_extension_st, "EGL_MESA_platform_surfaceless") != nullptr);
     if (egl_extension_st == nullptr ||
         strstr(egl_extension_st, "EGL_MESA_platform_surfaceless") == nullptr)
     {
