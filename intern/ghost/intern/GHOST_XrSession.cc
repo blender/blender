@@ -646,9 +646,8 @@ bool GHOST_XrSession::createActionSet(const GHOST_XrActionSetInfo &info)
 void GHOST_XrSession::destroyActionSet(const char *action_set_name)
 {
   std::map<std::string, GHOST_XrActionSet> &action_sets = m_oxr->action_sets;
-  if (action_sets.find(action_set_name) != action_sets.end()) {
-    action_sets.erase(action_set_name);
-  }
+  /* It's possible nothing is removed. */
+  action_sets.erase(action_set_name);
 }
 
 bool GHOST_XrSession::createActions(const char *action_set_name,
@@ -948,9 +947,8 @@ bool GHOST_XrSession::loadControllerModel(const char *subaction_path)
 void GHOST_XrSession::unloadControllerModel(const char *subaction_path)
 {
   std::map<std::string, GHOST_XrControllerModel> &controller_models = m_oxr->controller_models;
-  if (controller_models.find(subaction_path) != controller_models.end()) {
-    controller_models.erase(subaction_path);
-  }
+  /* It's possible nothing is removed. */
+  controller_models.erase(subaction_path);
 }
 
 bool GHOST_XrSession::updateControllerModelComponents(const char *subaction_path)

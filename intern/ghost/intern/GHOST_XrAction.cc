@@ -259,9 +259,8 @@ bool GHOST_XrAction::createBinding(XrInstance instance,
 
 void GHOST_XrAction::destroyBinding(const char *profile_path)
 {
-  if (m_profiles.find(profile_path) != m_profiles.end()) {
-    m_profiles.erase(profile_path);
-  }
+  /* It's possible nothing is removed. */
+  m_profiles.erase(profile_path);
 }
 
 void GHOST_XrAction::updateState(XrSession session,
@@ -492,9 +491,8 @@ bool GHOST_XrActionSet::createAction(XrInstance instance, const GHOST_XrActionIn
 
 void GHOST_XrActionSet::destroyAction(const char *action_name)
 {
-  if (m_actions.find(action_name) != m_actions.end()) {
-    m_actions.erase(action_name);
-  }
+  /* It's possible nothing is removed. */
+  m_actions.erase(action_name);
 }
 
 GHOST_XrAction *GHOST_XrActionSet::findAction(const char *action_name)
