@@ -2312,35 +2312,37 @@ static char *read_file_as_buffer(const int fd, const bool nil_terminate, size_t 
     ByteChunk *next;
     char data[4096 - sizeof(ByteChunk *)];
   };
-  ByteChunk *chunk_first = nullptr, **chunk_link_p = &chunk_first;
   bool ok = true;
   size_t len = 0;
-  while (true) {
-    ByteChunk *chunk = static_cast<typeof(chunk)>(malloc(sizeof(*chunk)));
-    if (UNLIKELY(chunk == nullptr)) {
-      errno = ENOMEM;
-      ok = false;
-      break;
-    }
-    chunk->next = nullptr;
-    /* Using `read` causes issues with GNOME, see: #106040). */
-    const ssize_t len_chunk = read_exhaustive(fd, chunk->data, sizeof(chunk->data));
-    if (len_chunk <= 0) {
-      if (UNLIKELY(len_chunk < 0)) {
-        ok = false;
-      }
-      free(chunk);
-      break;
-    }
-    if (chunk_first == nullptr) {
-      chunk_first = chunk;
-    }
-    *chunk_link_p = chunk;
-    chunk_link_p = &chunk->next;
-    len += len_chunk;
 
-    if (len_chunk != sizeof(chunk->data)) {
-      break;
+  ByteChunk *chunk_first = static_cast<ByteChunk *>(malloc(sizeof(ByteChunk)));
+  {
+    ByteChunk **chunk_link_p = &chunk_first;
+    ByteChunk *chunk = chunk_first;
+    while (true) {
+      if (UNLIKELY(chunk == nullptr)) {
+        errno = ENOMEM;
+        ok = false;
+        break;
+      }
+      chunk->next = nullptr;
+      /* Using `read` causes issues with GNOME, see: #106040). */
+      const ssize_t len_chunk = read_exhaustive(fd, chunk->data, sizeof(ByteChunk::data));
+      if (len_chunk <= 0) {
+        if (UNLIKELY(len_chunk < 0)) {
+          ok = false;
+        }
+        free(chunk);
+        break;
+      }
+      *chunk_link_p = chunk;
+      chunk_link_p = &chunk->next;
+      len += len_chunk;
+
+      if (len_chunk != sizeof(ByteChunk::data)) {
+        break;
+      }
+      chunk = static_cast<ByteChunk *>(malloc(sizeof(ByteChunk)));
     }
   }
 
