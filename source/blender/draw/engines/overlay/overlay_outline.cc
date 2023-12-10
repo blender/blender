@@ -38,7 +38,7 @@ static void gpencil_depth_plane(Object *ob, float r_plane[4])
    * computationally heavy and should go into the GPData evaluation. */
   const std::optional<Bounds<float3>> bounds = BKE_object_boundbox_get(ob).value_or(
       Bounds(float3(0)));
-  float3 size = bounds->max - bounds->min;
+  float3 size = (bounds->max - bounds->min) * 0.5f;
   float3 center = math::midpoint(bounds->min, bounds->max);
   /* Convert bbox to matrix */
   float mat[4][4];
