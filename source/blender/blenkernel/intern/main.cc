@@ -411,8 +411,8 @@ void BKE_main_merge(Main *bmain_dst, Main **r_bmain_src, MainMergeReport &report
       reports.reports,
       RPT_INFO,
       "Merged %d IDs from '%s' Main into '%s' Main; %d IDs and %d Libraries already existed as "
-      "part of the destination Main, and %d IDs missing from desination Main, were freed together "
-      "with the source Main",
+      "part of the destination Main, and %d IDs missing from destination Main, were freed "
+      "together with the source Main",
       reports.num_merged_ids,
       bmain_src->filepath,
       bmain_dst->filepath,

@@ -659,10 +659,14 @@ void PAINT_OT_hide_show(wmOperatorType *ot)
                "action",
                action_items,
                int(VisAction::Hide),
-               "VisAction",
+               "Visibility Action",
                "Whether to hide or show vertices");
-  RNA_def_enum(
-      ot->srna, "area", area_items, VisArea::Inside, "VisArea", "Which vertices to hide or show");
+  RNA_def_enum(ot->srna,
+               "area",
+               area_items,
+               VisArea::Inside,
+               "Visibility Area",
+               "Which vertices to hide or show");
   WM_operator_properties_border(ot);
 }
 

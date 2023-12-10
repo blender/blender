@@ -4540,7 +4540,7 @@ static void ANIM_OT_view_curve_in_graph_editor(wmOperatorType *ot)
                   "isolate",
                   false,
                   "Isolate",
-                  "Hides all other F-Curves other than the ones being framed");
+                  "Hides all F-Curves other than the ones being framed");
 }
 
 /** \} */

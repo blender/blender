@@ -201,7 +201,7 @@ class NLA_OT_bake(Operator):
     )
     step: IntProperty(
         name="Frame Step",
-        description="Frame Step",
+        description="Number of frames to skip forward while baking each frame",
         min=1, max=120,
         default=1,
     )
@@ -254,7 +254,7 @@ class NLA_OT_bake(Operator):
             ('LOCATION', "Location", "Bake location channels"),
             ('ROTATION', "Rotation", "Bake rotation channels"),
             ('SCALE', "Scale", "Bake scale channels"),
-            ('BBONE', "B-Bone", "Bake b-bone channels"),
+            ('BBONE', "B-Bone", "Bake B-Bone channels"),
         ),
         default={'LOCATION', 'ROTATION', 'SCALE', 'BBONE'},
     )

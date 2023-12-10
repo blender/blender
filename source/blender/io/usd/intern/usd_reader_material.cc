@@ -832,7 +832,7 @@ void USDMaterialReader::convert_usd_transform_2d(const pxr::UsdShadeShader &usd_
     if (!mapping) {
       BKE_reportf(reports(),
                   RPT_WARNING,
-                  "%s: Couldn't create SH_NODE_MAPPING for node input  %s",
+                  "%s: Couldn't create SH_NODE_MAPPING for node input %s",
                   __func__,
                   dest_socket_name);
       return;

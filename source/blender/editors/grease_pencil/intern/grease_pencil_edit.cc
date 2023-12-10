@@ -1010,7 +1010,7 @@ static void GREASE_PENCIL_OT_stroke_material_set(wmOperatorType *ot)
 {
   ot->name = "Assign Material";
   ot->idname = "GREASE_PENCIL_OT_stroke_material_set";
-  ot->description = "Change Stroke material with selected material";
+  ot->description = "Assign the active material slot to the selected strokes";
 
   ot->exec = grease_pencil_stroke_material_set_exec;
   ot->poll = editable_grease_pencil_poll;

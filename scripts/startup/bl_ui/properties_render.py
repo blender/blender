@@ -467,7 +467,7 @@ class RENDER_PT_eevee_next_volumes(RenderButtonsPanel, Panel):
 
 
 class RENDER_PT_eevee_next_volumes_lighting(RenderButtonsPanel, Panel):
-    bl_label = "Volumes Lighting"
+    bl_label = "Volume Lighting"
     bl_parent_id = "RENDER_PT_eevee_next_volumes"
     COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}
 
@@ -482,7 +482,7 @@ class RENDER_PT_eevee_next_volumes_lighting(RenderButtonsPanel, Panel):
 
 
 class RENDER_PT_eevee_next_volumes_shadows(RenderButtonsPanel, Panel):
-    bl_label = "Volumes Shadows"
+    bl_label = "Volume Shadows"
     bl_parent_id = "RENDER_PT_eevee_next_volumes"
     COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}
 
