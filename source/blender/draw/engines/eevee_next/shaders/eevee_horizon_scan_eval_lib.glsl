@@ -171,22 +171,22 @@ void horizon_scan_context_sample_finish(
    * The paper suggests a smooth test which is not physically correct since we
    * already consider the sample reflected radiance.
    * Set the weight to allow energy conservation. If we modulate the radiance, we loose energy. */
-  float weight = step(dot(sample_normal, -L), 0.0);
+  float weight = step(dot(sample_normal, L), 0.0);
 
 #ifdef HORIZON_OCCLUSION
   horizon_scan_context_sample_finish(ctx.occlusion_common, sample_radiance, 1.0, theta, bias);
 #endif
 #ifdef HORIZON_DIFFUSE
-  weight = bxdf_eval(ctx.diffuse, L, V);
+  weight *= bxdf_eval(ctx.diffuse, L, V);
   horizon_scan_context_sample_finish(ctx.diffuse_common, sample_radiance, weight, theta, bias);
 #endif
 #ifdef HORIZON_REFLECT
-  weight = bxdf_eval(ctx.reflection, L, V);
+  weight *= bxdf_eval(ctx.reflection, L, V);
   horizon_scan_context_sample_finish(ctx.reflection_common, sample_radiance, weight, theta, bias);
 #endif
 #ifdef HORIZON_REFRACT
   /* TODO(fclem): Broken: Black. */
-  weight = bxdf_eval(ctx.refraction, L, V);
+  weight *= bxdf_eval(ctx.refraction, L, V);
   horizon_scan_context_sample_finish(ctx.refraction_common, sample_radiance, weight, theta, bias);
 #endif
 }
