@@ -494,28 +494,28 @@ void GHOST_setAcceptDragOperation(GHOST_WindowHandle windowhandle, bool can_acce
 
 GHOST_TEventType GHOST_GetEventType(GHOST_EventHandle eventhandle)
 {
-  GHOST_IEvent *event = (GHOST_IEvent *)eventhandle;
+  const GHOST_IEvent *event = (const GHOST_IEvent *)eventhandle;
 
   return event->getType();
 }
 
 uint64_t GHOST_GetEventTime(GHOST_EventHandle eventhandle)
 {
-  GHOST_IEvent *event = (GHOST_IEvent *)eventhandle;
+  const GHOST_IEvent *event = (const GHOST_IEvent *)eventhandle;
 
   return event->getTime();
 }
 
 GHOST_WindowHandle GHOST_GetEventWindow(GHOST_EventHandle eventhandle)
 {
-  GHOST_IEvent *event = (GHOST_IEvent *)eventhandle;
+  const GHOST_IEvent *event = (const GHOST_IEvent *)eventhandle;
 
   return (GHOST_WindowHandle)event->getWindow();
 }
 
 GHOST_TEventDataPtr GHOST_GetEventData(GHOST_EventHandle eventhandle)
 {
-  GHOST_IEvent *event = (GHOST_IEvent *)eventhandle;
+  const GHOST_IEvent *event = (const GHOST_IEvent *)eventhandle;
 
   return event->getData();
 }
