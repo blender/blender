@@ -73,9 +73,9 @@ void GHOST_ShowMessageBox(GHOST_SystemHandle systemhandle,
 }
 
 GHOST_EventConsumerHandle GHOST_CreateEventConsumer(GHOST_EventCallbackProcPtr eventCallback,
-                                                    GHOST_TUserDataPtr userdata)
+                                                    GHOST_TUserDataPtr user_data)
 {
-  return (GHOST_EventConsumerHandle) new GHOST_CallbackEventConsumer(eventCallback, userdata);
+  return (GHOST_EventConsumerHandle) new GHOST_CallbackEventConsumer(eventCallback, user_data);
 }
 
 GHOST_TSuccess GHOST_DisposeEventConsumer(GHOST_EventConsumerHandle consumerhandle)
@@ -95,11 +95,11 @@ GHOST_TimerTaskHandle GHOST_InstallTimer(GHOST_SystemHandle systemhandle,
                                          uint64_t delay,
                                          uint64_t interval,
                                          GHOST_TimerProcPtr timerproc,
-                                         GHOST_TUserDataPtr userdata)
+                                         GHOST_TUserDataPtr user_data)
 {
   GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
 
-  return (GHOST_TimerTaskHandle)system->installTimer(delay, interval, timerproc, userdata);
+  return (GHOST_TimerTaskHandle)system->installTimer(delay, interval, timerproc, user_data);
 }
 
 GHOST_TSuccess GHOST_RemoveTimer(GHOST_SystemHandle systemhandle,
@@ -188,11 +188,11 @@ GHOST_TUserDataPtr GHOST_GetWindowUserData(GHOST_WindowHandle windowhandle)
 
   return window->getUserData();
 }
-void GHOST_SetWindowUserData(GHOST_WindowHandle windowhandle, GHOST_TUserDataPtr userdata)
+void GHOST_SetWindowUserData(GHOST_WindowHandle windowhandle, GHOST_TUserDataPtr user_data)
 {
   GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
 
-  window->setUserData(userdata);
+  window->setUserData(user_data);
 }
 
 bool GHOST_IsDialogWindow(GHOST_WindowHandle windowhandle)
@@ -541,11 +541,12 @@ GHOST_TUserDataPtr GHOST_GetTimerTaskUserData(GHOST_TimerTaskHandle timertaskhan
   return timertask->getUserData();
 }
 
-void GHOST_SetTimerTaskUserData(GHOST_TimerTaskHandle timertaskhandle, GHOST_TUserDataPtr userdata)
+void GHOST_SetTimerTaskUserData(GHOST_TimerTaskHandle timertaskhandle,
+                                GHOST_TUserDataPtr user_data)
 {
   GHOST_ITimerTask *timertask = (GHOST_ITimerTask *)timertaskhandle;
 
-  timertask->setUserData(userdata);
+  timertask->setUserData(user_data);
 }
 
 bool GHOST_GetValid(GHOST_WindowHandle windowhandle)
