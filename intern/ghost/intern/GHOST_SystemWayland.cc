@@ -2338,6 +2338,10 @@ static char *read_file_as_buffer(const int fd, const bool nil_terminate, size_t 
     *chunk_link_p = chunk;
     chunk_link_p = &chunk->next;
     len += len_chunk;
+
+    if (len_chunk != sizeof(chunk->data)) {
+      break;
+    }
   }
 
   char *buf = nullptr;
