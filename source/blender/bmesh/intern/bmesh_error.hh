@@ -10,7 +10,7 @@
 
 #include "bmesh_operator_api.hh"
 
-/*----------- bmop error system ----------*/
+/*----------- BMOP error system ----------*/
 
 /**
  * \note More can be added as needed.

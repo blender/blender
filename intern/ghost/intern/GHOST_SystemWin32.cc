@@ -207,7 +207,8 @@ uint64_t GHOST_SystemWin32::getMilliSeconds() const
  * Returns the number of milliseconds since the start of the Blender process to the time of the
  * last message, using the high frequency timer if available. This should be used instead of
  * getMilliSeconds when you need the time a message was delivered versus collected, so for all
- * event creation that are in reponse to receiving a Windows message. */
+ * event creation that are in response to receiving a Windows message.
+ */
 static uint64_t getMessageTime(GHOST_SystemWin32 *system)
 {
   /* Get difference between last message time and now. */

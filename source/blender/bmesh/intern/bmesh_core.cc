@@ -2178,7 +2178,7 @@ void bmesh_kernel_vert_separate(
       if (edges_found == v_edges_num) {
         /* We're done! The remaining edges in 'edges' form the last fan,
          * which can be left as is.
-         * if 'edges' were alloc'd it'd be freed here. */
+         * if 'edges' were allocated it'd be freed here. */
         break;
       }
 

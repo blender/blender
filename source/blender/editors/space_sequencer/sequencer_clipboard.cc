@@ -70,7 +70,7 @@ static int gather_strip_data_ids_to_null(LibraryIDLinkCallbackData *cb_data)
   IDRemapper *id_remapper = static_cast<IDRemapper *>(cb_data->user_data);
   ID *id = *cb_data->id_pointer;
 
-  /* We don't care about embedded, loopback, or internal IDs. */
+  /* We don't care about embedded, loop-back, or internal IDs. */
   if (cb_data->cb_flag & (IDWALK_CB_EMBEDDED | IDWALK_CB_EMBEDDED_NOT_OWNING)) {
     return IDWALK_RET_NOP;
   }
@@ -81,8 +81,7 @@ static int gather_strip_data_ids_to_null(LibraryIDLinkCallbackData *cb_data)
   if (id) {
     ID_Type id_type = GS((id)->name);
     /* Nullify everything that is not:
-     * Sound, Movieclip, Image, Text, Vfont, Action, or Collection IDs.
-     */
+     * #bSound, #MovieClip, #Image, #Text, #VFont, #bAction, or #Collection IDs. */
     if (!ELEM(id_type, ID_SO, ID_MC, ID_IM, ID_TXT, ID_VF, ID_AC)) {
       BKE_id_remapper_add(id_remapper, id, nullptr);
       return IDWALK_RET_STOP_RECURSION;
@@ -142,7 +141,7 @@ static bool sequencer_write_copy_paste_file(Main *bmain_src,
 
 {
   /* Ideally, scene should not be added to the global Main. There currently is no good
-   * solution to avoid it if we want to properly pull in all strip dependecies. */
+   * solution to avoid it if we want to properly pull in all strip dependencies. */
   Scene *scene_dst = BKE_scene_add(bmain_src, "copybuffer_vse_scene");
 
   /* Create a temporary scene that we will copy from.
@@ -194,7 +193,7 @@ static bool sequencer_write_copy_paste_file(Main *bmain_src,
 
   /* Ensure that there are no old copy tags around */
   BKE_blendfile_write_partial_begin(bmain_src);
-  /* Tag the scene copy so we can pull in all scrip deps */
+  /* Tag the scene copy so we can pull in all scrip dependencies. */
   BKE_copybuffer_copy_tag_ID(&scene_dst->id);
   /* Create the copy/paste temp file */
   bool retval = BKE_copybuffer_copy_end(bmain_src, filepath, reports);

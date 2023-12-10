@@ -329,7 +329,7 @@ typedef struct BMesh {
   int etable_tot;
   int ftable_tot;
 
-  /* operator api stuff (must be all NULL or all alloc'd) */
+  /* Operator API stuff (must be all null or all allocated). */
   struct BLI_mempool *vtoolflagpool, *etoolflagpool, *ftoolflagpool;
 
   uint use_toolflags : 1;
