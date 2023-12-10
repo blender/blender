@@ -2278,12 +2278,13 @@ static wl_buffer *ghost_wl_buffer_create_for_image(wl_shm *shm,
  * A version of `read` which will read `nbytes` or as many bytes as possible,
  * useful as the LIBC version may `read` less than requested.
  */
-static ssize_t read_exhaustive(const int fd, char *data, size_t nbytes)
+static ssize_t read_exhaustive(const int fd, void *data, size_t nbytes)
 {
   ssize_t nbytes_read = read(fd, data, nbytes);
   if (nbytes_read > 0) {
     while (nbytes_read < nbytes) {
-      const ssize_t nbytes_extra = read(fd, data + nbytes_read, nbytes - nbytes_read);
+      const ssize_t nbytes_extra = read(
+          fd, static_cast<char *>(data) + nbytes_read, nbytes - nbytes_read);
       if (nbytes_extra > 0) {
         nbytes_read += nbytes_extra;
       }
@@ -2296,6 +2297,82 @@ static ssize_t read_exhaustive(const int fd, char *data, size_t nbytes)
     }
   }
   return nbytes_read;
+}
+
+/**
+ * Read from `fd` into a buffer which is returned.
+ * Use for files where seeking to determine the final size isn't supported (pipes for e.g.).
+ *
+ * \return the buffer or null on failure.
+ * On failure `errno` will be set.
+ */
+static char *read_file_as_buffer(const int fd, const bool nil_terminate, size_t *r_len)
+{
+  struct ByteChunk {
+    ByteChunk *next;
+    char data[4096 - sizeof(ByteChunk *)];
+  };
+  ByteChunk *chunk_first = nullptr, **chunk_link_p = &chunk_first;
+  bool ok = true;
+  size_t len = 0;
+  while (true) {
+    ByteChunk *chunk = static_cast<typeof(chunk)>(malloc(sizeof(*chunk)));
+    if (UNLIKELY(chunk == nullptr)) {
+      errno = ENOMEM;
+      ok = false;
+      break;
+    }
+    chunk->next = nullptr;
+    /* Using `read` causes issues with GNOME, see: #106040). */
+    const ssize_t len_chunk = read_exhaustive(fd, chunk->data, sizeof(chunk->data));
+    if (len_chunk <= 0) {
+      if (UNLIKELY(len_chunk < 0)) {
+        ok = false;
+      }
+      free(chunk);
+      break;
+    }
+    if (chunk_first == nullptr) {
+      chunk_first = chunk;
+    }
+    *chunk_link_p = chunk;
+    chunk_link_p = &chunk->next;
+    len += len_chunk;
+  }
+
+  char *buf = nullptr;
+  if (ok) {
+    buf = static_cast<char *>(malloc(len + (nil_terminate ? 1 : 0)));
+    if (UNLIKELY(buf == nullptr)) {
+      errno = ENOMEM;
+      ok = false;
+    }
+  }
+
+  if (ok) {
+    *r_len = len;
+    if (nil_terminate) {
+      buf[len] = '\0';
+    }
+  }
+  else {
+    *r_len = 0;
+  }
+
+  char *buf_stride = buf;
+  while (chunk_first) {
+    if (ok) {
+      const size_t len_chunk = std::min(len, sizeof(chunk_first->data));
+      memcpy(buf_stride, chunk_first->data, len_chunk);
+      buf_stride += len_chunk;
+      len -= len_chunk;
+    }
+    ByteChunk *chunk = chunk_first->next;
+    free(chunk_first);
+    chunk_first = chunk;
+  }
+
+  return buf;
 }
 
 /** \} */
@@ -2473,80 +2550,6 @@ static void dnd_events(const GWL_Seat *const seat,
   }
 }
 
-/**
- * Read from `fd` into a buffer which is returned.
- * \return the buffer or null on failure.
- */
-static char *read_file_as_buffer(const int fd, const bool nil_terminate, size_t *r_len)
-{
-  struct ByteChunk {
-    ByteChunk *next;
-    char data[4096 - sizeof(ByteChunk *)];
-  };
-  ByteChunk *chunk_first = nullptr, **chunk_link_p = &chunk_first;
-  bool ok = true;
-  size_t len = 0;
-  while (true) {
-    ByteChunk *chunk = static_cast<typeof(chunk)>(malloc(sizeof(*chunk)));
-    if (UNLIKELY(chunk == nullptr)) {
-      CLOG_WARN(LOG, "unable to allocate chunk for file buffer");
-      ok = false;
-      break;
-    }
-    chunk->next = nullptr;
-    /* Using `read` causes issues with GNOME, see: #106040). */
-    const ssize_t len_chunk = read_exhaustive(fd, chunk->data, sizeof(chunk->data));
-    if (len_chunk <= 0) {
-      if (UNLIKELY(len_chunk < 0)) {
-        CLOG_WARN(LOG, "error reading from pipe: %s", std::strerror(errno));
-        ok = false;
-      }
-      free(chunk);
-      break;
-    }
-    if (chunk_first == nullptr) {
-      chunk_first = chunk;
-    }
-    *chunk_link_p = chunk;
-    chunk_link_p = &chunk->next;
-    len += len_chunk;
-  }
-
-  char *buf = nullptr;
-  if (ok) {
-    buf = static_cast<char *>(malloc(len + (nil_terminate ? 1 : 0)));
-    if (UNLIKELY(buf == nullptr)) {
-      CLOG_WARN(LOG, "unable to allocate file buffer: %zu bytes", len);
-      ok = false;
-    }
-  }
-
-  if (ok) {
-    *r_len = len;
-    if (nil_terminate) {
-      buf[len] = '\0';
-    }
-  }
-  else {
-    *r_len = 0;
-  }
-
-  char *buf_stride = buf;
-  while (chunk_first) {
-    if (ok) {
-      const size_t len_chunk = std::min(len, sizeof(chunk_first->data));
-      memcpy(buf_stride, chunk_first->data, len_chunk);
-      buf_stride += len_chunk;
-      len -= len_chunk;
-    }
-    ByteChunk *chunk = chunk_first->next;
-    free(chunk_first);
-    chunk_first = chunk;
-  }
-
-  return buf;
-}
-
 static char *read_buffer_from_data_offer(GWL_DataOffer *data_offer,
                                          const char *mime_receive,
                                          std::mutex *mutex,
@@ -2573,6 +2576,9 @@ static char *read_buffer_from_data_offer(GWL_DataOffer *data_offer,
   char *buf = nullptr;
   if (pipefd_ok) {
     buf = read_file_as_buffer(pipefd[0], nil_terminate, r_len);
+    if (buf == nullptr) {
+      CLOG_WARN(LOG, "unable to pipe into buffer: %s", std::strerror(errno));
+    }
     close(pipefd[0]);
   }
   return buf;
@@ -2601,6 +2607,9 @@ static char *read_buffer_from_primary_selection_offer(GWL_PrimarySelection_DataO
   char *buf = nullptr;
   if (pipefd_ok) {
     buf = read_file_as_buffer(pipefd[0], nil_terminate, r_len);
+    if (buf == nullptr) {
+      CLOG_WARN(LOG, "unable to pipe into buffer: %s", std::strerror(errno));
+    }
     close(pipefd[0]);
   }
   return buf;
