@@ -7724,6 +7724,16 @@ def km_3d_view_tool_edit_curve_draw(params):
         ]},
     )
 
+def km_3d_view_tool_edit_curves_draw(params):
+    return (
+        "3D View Tool: Edit Curves, Draw",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": [
+            # No need for `tool_modifier` since this takes all input.
+            ("curves.draw", {"type": params.tool_mouse, "value": 'PRESS'},
+             {"properties": [("wait_for_input", False)]}),
+        ]},
+    )
 
 def km_3d_view_tool_edit_curve_pen(params):
     return (
@@ -8666,6 +8676,7 @@ def generate_keymaps(params=None):
         km_3d_view_tool_edit_curve_randomize(params),
         km_3d_view_tool_edit_curve_extrude(params),
         km_3d_view_tool_edit_curve_extrude_to_cursor(params),
+        km_3d_view_tool_edit_curves_draw(params),
         km_3d_view_tool_sculpt_box_hide(params),
         km_3d_view_tool_sculpt_box_mask(params),
         km_3d_view_tool_sculpt_lasso_mask(params),

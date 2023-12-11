@@ -75,6 +75,7 @@ bool curves_poll(bContext *C);
  * \{ */
 
 void CURVES_OT_attribute_set(wmOperatorType *ot);
+void CURVES_OT_draw(wmOperatorType *ot);
 
 /** \} */
 

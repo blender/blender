@@ -1148,65 +1148,66 @@ class _defs_edit_mesh:
         )
 
 
+def curve_draw_settings(context, layout, _tool, *, extra=False):
+        # Tool settings initialize operator options.
+        tool_settings = context.tool_settings
+        cps = tool_settings.curve_paint_settings
+        region_type = context.region.type
+
+        if region_type == 'TOOL_HEADER':
+            if not extra:
+                layout.prop(cps, "curve_type", text="")
+                layout.prop(cps, "depth_mode", expand=True)
+                layout.popover("TOPBAR_PT_tool_settings_extra", text="...")
+                return
+
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        if region_type != 'TOOL_HEADER':
+            layout.prop(cps, "curve_type")
+            layout.separator()
+        if cps.curve_type == 'BEZIER':
+            layout.prop(cps, "fit_method")
+            layout.prop(cps, "error_threshold")
+            if region_type != 'TOOL_HEADER':
+                row = layout.row(heading="Detect Corners", align=True)
+            else:
+                row = layout.row(heading="Corners", align=True)
+            row.prop(cps, "use_corners_detect", text="")
+            sub = row.row(align=True)
+            sub.active = cps.use_corners_detect
+            sub.prop(cps, "corner_angle", text="")
+            layout.separator()
+
+        col = layout.column(align=True)
+        col.prop(cps, "radius_taper_start", text="Taper Start", slider=True)
+        col.prop(cps, "radius_taper_end", text="End", slider=True)
+        col = layout.column(align=True)
+        col.prop(cps, "radius_min", text="Radius Min")
+        col.prop(cps, "radius_max", text="Max")
+        col.prop(cps, "use_pressure_radius")
+
+        if region_type != 'TOOL_HEADER' or cps.depth_mode == 'SURFACE':
+            layout.separator()
+
+        if region_type != 'TOOL_HEADER':
+            row = layout.row()
+            row.prop(cps, "depth_mode", expand=True)
+        if cps.depth_mode == 'SURFACE':
+            col = layout.column()
+            col.prop(cps, "surface_offset")
+            col.prop(cps, "use_offset_absolute")
+            col.prop(cps, "use_stroke_endpoints")
+            if cps.use_stroke_endpoints:
+                colsub = layout.column(align=True)
+                colsub.prop(cps, "surface_plane")
+
+
 class _defs_edit_curve:
 
     @ToolDef.from_fn
     def draw():
-        def draw_settings(context, layout, _tool, *, extra=False):
-            # Tool settings initialize operator options.
-            tool_settings = context.tool_settings
-            cps = tool_settings.curve_paint_settings
-            region_type = context.region.type
-
-            if region_type == 'TOOL_HEADER':
-                if not extra:
-                    layout.prop(cps, "curve_type", text="")
-                    layout.prop(cps, "depth_mode", expand=True)
-                    layout.popover("TOPBAR_PT_tool_settings_extra", text="...")
-                    return
-
-            layout.use_property_split = True
-            layout.use_property_decorate = False
-
-            if region_type != 'TOOL_HEADER':
-                layout.prop(cps, "curve_type")
-                layout.separator()
-            if cps.curve_type == 'BEZIER':
-                layout.prop(cps, "fit_method")
-                layout.prop(cps, "error_threshold")
-                if region_type != 'TOOL_HEADER':
-                    row = layout.row(heading="Detect Corners", align=True)
-                else:
-                    row = layout.row(heading="Corners", align=True)
-                row.prop(cps, "use_corners_detect", text="")
-                sub = row.row(align=True)
-                sub.active = cps.use_corners_detect
-                sub.prop(cps, "corner_angle", text="")
-                layout.separator()
-
-            col = layout.column(align=True)
-            col.prop(cps, "radius_taper_start", text="Taper Start", slider=True)
-            col.prop(cps, "radius_taper_end", text="End", slider=True)
-            col = layout.column(align=True)
-            col.prop(cps, "radius_min", text="Radius Min")
-            col.prop(cps, "radius_max", text="Max")
-            col.prop(cps, "use_pressure_radius")
-
-            if region_type != 'TOOL_HEADER' or cps.depth_mode == 'SURFACE':
-                layout.separator()
-
-            if region_type != 'TOOL_HEADER':
-                row = layout.row()
-                row.prop(cps, "depth_mode", expand=True)
-            if cps.depth_mode == 'SURFACE':
-                col = layout.column()
-                col.prop(cps, "surface_offset")
-                col.prop(cps, "use_offset_absolute")
-                col.prop(cps, "use_stroke_endpoints")
-                if cps.use_stroke_endpoints:
-                    colsub = layout.column(align=True)
-                    colsub.prop(cps, "surface_plane")
-
         return dict(
             idname="builtin.draw",
             label="Draw",
@@ -1214,7 +1215,7 @@ class _defs_edit_curve:
             icon="ops.curve.draw",
             widget=None,
             keymap=(),
-            draw_settings=draw_settings,
+            draw_settings=curve_draw_settings,
         )
 
     @ToolDef.from_fn
@@ -1294,6 +1295,27 @@ class _defs_edit_curve:
             draw_settings=draw_settings,
         )
 
+class _defs_edit_curves:
+
+    @ToolDef.from_fn
+    def draw():
+        def curve_draw(context, layout, tool, *, extra=False):
+            curve_draw_settings(context, layout, tool, extra=extra)
+
+            if extra:
+                props = tool.operator_properties("curves.draw")
+                col = layout.column(align=True)
+                col.prop(props, "is_curve_2d", text="Curve 2D")
+
+        return dict(
+            idname="builtin.draw",
+            label="Draw",
+            cursor='PAINT_BRUSH',
+            icon="ops.curve.draw",
+            widget=None,
+            keymap=(),
+            draw_settings=curve_draw,
+        )
 
 class _defs_edit_text:
 
@@ -3003,6 +3025,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             *_tools_default,
             None,
             _defs_edit_curve.curve_radius,
+            _defs_edit_curves.draw,
         ],
         'EDIT_SURFACE': [
             *_tools_default,
