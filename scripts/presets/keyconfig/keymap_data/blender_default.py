@@ -6075,8 +6075,6 @@ def km_edit_curves(params):
 
         ("curves.set_selection_domain", {"type": 'ONE', "value": 'PRESS'}, {"properties": [("domain", 'POINT')]}),
         ("curves.set_selection_domain", {"type": 'TWO', "value": 'PRESS'}, {"properties": [("domain", 'CURVE')]}),
-        ("curves.disable_selection", {"type": 'ONE', "value": 'PRESS', "alt": True}, None),
-        ("curves.disable_selection", {"type": 'TWO', "value": 'PRESS', "alt": True}, None),
         ("curves.duplicate_move", {"type": 'D', "value": 'PRESS', "shift": True}, None),
         *_template_items_select_actions(params, "curves.select_all"),
         ("curves.select_linked", {"type": 'L', "value": 'PRESS', "ctrl": True}, None),
