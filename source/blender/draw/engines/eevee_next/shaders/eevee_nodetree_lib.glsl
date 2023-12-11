@@ -232,6 +232,36 @@ float ambient_occlusion_eval(vec3 normal,
   // clang-format off
 #if defined(GPU_FRAGMENT_SHADER) && defined(MAT_AMBIENT_OCCLUSION) && !defined(MAT_DEPTH) && !defined(MAT_SHADOW)
   // clang-format on
+#  if 0 /* TODO(fclem): Finish inverted horizon scan. */
+  /* TODO(fclem): Replace eevee_ambient_occlusion_lib by eevee_horizon_scan_eval_lib when this is
+   * finished. */
+  vec3 vP = drw_point_world_to_view(g_data.P);
+  vec3 vN = drw_normal_world_to_view(normal);
+
+  ivec2 texel = ivec2(gl_FragCoord.xy);
+  vec2 noise;
+  noise.x = interlieved_gradient_noise(vec2(texel), 3.0, 0.0);
+  noise.y = utility_tx_fetch(utility_tx, vec2(texel), UTIL_BLUE_NOISE_LAYER).r;
+  noise = fract(noise + sampling_rng_2D_get(SAMPLING_AO_U));
+
+  ClosureOcclusion occlusion;
+  occlusion.N = (inverted != 0.0) ? -vN : vN;
+
+  HorizonScanContext ctx;
+  ctx.occlusion = occlusion;
+
+  horizon_scan_eval(vP,
+                    ctx,
+                    noise,
+                    uniform_buf.ao.pixel_size,
+                    max_distance,
+                    uniform_buf.ao.thickness,
+                    uniform_buf.ao.angle_bias,
+                    10,
+                    inverted != 0.0);
+
+  return saturate(ctx.occlusion_result.r);
+#  else
   vec3 vP = drw_point_world_to_view(g_data.P);
   ivec2 texel = ivec2(gl_FragCoord.xy);
   OcclusionData data = ambient_occlusion_search(
@@ -245,6 +275,7 @@ float ambient_occlusion_eval(vec3 normal,
   vec3 unused;
   ambient_occlusion_eval(data, texel, V, N, Ng, inverted, visibility, unused_error, unused);
   return visibility;
+#  endif
 #else
   return 1.0;
 #endif
