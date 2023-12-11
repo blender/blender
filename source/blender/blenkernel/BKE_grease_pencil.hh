@@ -656,7 +656,7 @@ inline TreeNode &Layer::as_node()
 TREENODE_COMMON_METHODS_FORWARD_IMPL(Layer);
 inline bool Layer::is_empty() const
 {
-  return (this->frames().size() == 0);
+  return (this->frames().is_empty());
 }
 inline LayerGroup &Layer::parent_group() const
 {

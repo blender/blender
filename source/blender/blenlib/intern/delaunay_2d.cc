@@ -496,7 +496,7 @@ template<typename T> void cdt_draw(const std::string &label, const CDTArrangemen
   constexpr bool draw_edge_labels = false;
   constexpr bool draw_face_labels = false;
 
-  if (cdt.verts.size() == 0) {
+  if (cdt.verts.is_empty()) {
     return;
   }
   vec2<double> vmin(DBL_MAX, DBL_MAX);

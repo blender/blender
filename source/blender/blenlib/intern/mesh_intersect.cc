@@ -2126,7 +2126,7 @@ static Array<Face *> exact_triangulate_poly(Face *f, IMeshArena *arena)
     bool needs_steiner = false;
     for (int i = 0; i < 3; ++i) {
       i_v_out[i] = cdt_out.face[t][i];
-      if (cdt_out.vert_orig[i_v_out[i]].size() == 0) {
+      if (cdt_out.vert_orig[i_v_out[i]].is_empty()) {
         needs_steiner = true;
         break;
       }
@@ -2763,7 +2763,7 @@ static CoplanarClusterInfo find_clusters(const IMesh &tm,
   if (dbg_level > 0) {
     std::cout << "found " << maybe_coplanar_tris.size() << " possible coplanar tris\n";
   }
-  if (maybe_coplanar_tris.size() == 0) {
+  if (maybe_coplanar_tris.is_empty()) {
     if (dbg_level > 0) {
       std::cout << "No possible coplanar tris, so no clusters\n";
     }
@@ -2810,7 +2810,7 @@ static CoplanarClusterInfo find_clusters(const IMesh &tm,
           no_int_cls.append(&cl);
         }
       }
-      if (int_cls.size() == 0) {
+      if (int_cls.is_empty()) {
         /* t doesn't intersect any existing cluster in its plane, so make one just for it. */
         if (dbg_level > 1) {
           std::cout << "no intersecting clusters for t, make a new one\n";

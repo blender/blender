@@ -506,7 +506,7 @@ static void face_edge_loop_islands_calc(const int totedge,
   int tot_group = 0;
   bool group_id_overflow = false;
 
-  if (faces.size() == 0) {
+  if (faces.is_empty()) {
     *r_totgroup = 0;
     *r_face_groups = nullptr;
     if (r_edge_borders) {

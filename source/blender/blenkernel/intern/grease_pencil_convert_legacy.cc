@@ -112,7 +112,7 @@ void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
 
     /* Write point attributes. */
     IndexRange stroke_points_range = points_by_curve[stroke_i];
-    if (stroke_points_range.size() == 0) {
+    if (stroke_points_range.is_empty()) {
       continue;
     }
 

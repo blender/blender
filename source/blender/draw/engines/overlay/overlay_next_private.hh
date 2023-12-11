@@ -256,7 +256,7 @@ template<typename InstanceDataT> struct ShapeInstanceBuf : private select::Selec
 
   void end_sync(PassSimple &pass, GPUBatch *shape)
   {
-    if (data_buf.size() == 0) {
+    if (data_buf.is_empty()) {
       return;
     }
     this->select_bind(pass);

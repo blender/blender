@@ -452,7 +452,7 @@ static void connect_node_to_surface_output(const Span<bNodeTreePath *> treepath,
 static void connect_nodes_to_aovs(const Span<bNodeTreePath *> treepath,
                                   const Span<NodeSocketPair> &nodesocket_span)
 {
-  if (nodesocket_span.size() == 0) {
+  if (nodesocket_span.is_empty()) {
     return;
   }
   bNodeTree *main_nt = treepath.first()->nodetree;

@@ -539,7 +539,7 @@ static void end_node_frames(int v,
   const float *rad = nodes[v].radius;
   float mat[3][3];
 
-  if (emap[v].size() == 0) {
+  if (emap[v].is_empty()) {
     float avg = half_v2(rad);
 
     /* For solitary nodes, just build a box (two frames) */
@@ -814,7 +814,7 @@ static EMat *build_edge_mats(const MVertSkin *vs,
 
         *has_valid_root = true;
       }
-      else if (edges.size() == 0) {
+      else if (edges.is_empty()) {
         /* Vertex-only mesh is valid, mark valid root as well (will display error otherwise). */
         *has_valid_root = true;
         break;

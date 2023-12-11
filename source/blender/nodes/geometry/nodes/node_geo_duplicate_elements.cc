@@ -408,7 +408,7 @@ static void copy_stable_id_faces(const Mesh &mesh,
   int loop_index = 0;
   for (const int i_face : selection.index_range()) {
     const IndexRange range = face_offsets[i_face];
-    if (range.size() == 0) {
+    if (range.is_empty()) {
       continue;
     }
     const IndexRange source = faces[i_face];
@@ -950,7 +950,7 @@ static void duplicate_instances(GeometrySet &geometry_set,
   dst_instances->resize(duplicates.total_size());
   for (const int i_selection : selection.index_range()) {
     const IndexRange range = duplicates[i_selection];
-    if (range.size() == 0) {
+    if (range.is_empty()) {
       continue;
     }
     const int old_handle = src_instances.reference_handles()[i_selection];

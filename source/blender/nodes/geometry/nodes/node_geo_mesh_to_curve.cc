@@ -33,7 +33,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     evaluator.add(params.get_input<Field<bool>>("Selection"));
     evaluator.evaluate();
     const IndexMask selection = evaluator.get_evaluated_as_mask(0);
-    if (selection.size() == 0) {
+    if (selection.is_empty()) {
       geometry_set.remove_geometry_during_modify();
       return;
     }

@@ -64,7 +64,7 @@ Shader::~Shader()
 
 static void standard_defines(Vector<const char *> &sources)
 {
-  BLI_assert(sources.size() == 0);
+  BLI_assert(sources.is_empty());
   /* Version needs to be first. Exact values will be added by implementation. */
   sources.append("version");
   /* Define to identify code usage in shading language. */

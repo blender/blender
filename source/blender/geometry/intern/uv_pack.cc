@@ -1493,7 +1493,7 @@ static bool rotate_inside_square(const Span<std::unique_ptr<UVAABBIsland>> islan
                                  MutableSpan<UVPhi> r_phis,
                                  rctf *r_extent)
 {
-  if (island_indices.size() == 0) {
+  if (island_indices.is_empty()) {
     return false; /* Nothing to do. */
   }
   if (params.rotate_method != ED_UVPACK_ROTATION_ANY) {
@@ -2250,7 +2250,7 @@ float pack_islands(const Span<PackIsland *> &islands, const UVPackIsland_Params 
   BLI_assert(0.0f <= params.margin);
   BLI_assert(0.0f <= params.target_aspect_y);
 
-  if (islands.size() == 0) {
+  if (islands.is_empty()) {
     return 1.0f; /* Nothing to do, just create a safe default. */
   }
 

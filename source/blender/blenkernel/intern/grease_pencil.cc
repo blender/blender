@@ -771,7 +771,7 @@ FramesMapKey Layer::frame_key_at(const int frame_number) const
 {
   Span<int> sorted_keys = this->sorted_keys();
   /* No keyframes, return no drawing. */
-  if (sorted_keys.size() == 0) {
+  if (sorted_keys.is_empty()) {
     return -1;
   }
   /* Before the first drawing, return no drawing. */
@@ -1661,7 +1661,7 @@ static void remove_drawings_unchecked(GreasePencil &grease_pencil,
                                       Span<int64_t> sorted_indices_to_remove)
 {
   using namespace blender::bke::greasepencil;
-  if (grease_pencil.drawing_array_num == 0 || sorted_indices_to_remove.size() == 0) {
+  if (grease_pencil.drawing_array_num == 0 || sorted_indices_to_remove.is_empty()) {
     return;
   }
   const int64_t drawings_to_remove = sorted_indices_to_remove.size();

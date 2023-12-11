@@ -616,7 +616,7 @@ static bke::CurvesGeometry remove_points_and_split(const bke::CurvesGeometry &cu
     const Vector<IndexRange> ranges_to_keep = array_utils::find_all_ranges(curve_points_to_delete,
                                                                            false);
 
-    if (ranges_to_keep.size() == 0) {
+    if (ranges_to_keep.is_empty()) {
       continue;
     }
 
@@ -1555,7 +1555,7 @@ static void duplicate_points(bke::CurvesGeometry &curves, const IndexMask &mask)
     const Vector<IndexRange> ranges_to_duplicate = array_utils::find_all_ranges(
         curve_points_to_duplicate, true);
 
-    if (ranges_to_duplicate.size() == 0) {
+    if (ranges_to_duplicate.is_empty()) {
       continue;
     }
 

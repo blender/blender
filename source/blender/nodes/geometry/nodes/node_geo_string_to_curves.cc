@@ -373,7 +373,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     params.set_output("Remainder", std::move(layout->truncated_text));
   }
 
-  if (layout->positions.size() == 0) {
+  if (layout->positions.is_empty()) {
     params.set_output("Curve Instances", GeometrySet());
     params.set_default_remaining_outputs();
     return;

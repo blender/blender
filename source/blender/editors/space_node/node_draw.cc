@@ -2769,7 +2769,7 @@ static void node_draw_extra_info_panel(const bContext &C,
     preview = nullptr;
   }
   Vector<NodeExtraInfoRow> extra_info_rows = node_get_extra_info(C, tree_draw_ctx, snode, node);
-  if (extra_info_rows.size() == 0 && !preview) {
+  if (extra_info_rows.is_empty() && !preview) {
     return;
   }
 

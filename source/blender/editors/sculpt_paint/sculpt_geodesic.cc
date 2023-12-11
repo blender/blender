@@ -199,7 +199,7 @@ static float *geodesic_mesh_create(Object *ob, GSet *initial_verts, const float 
                 }
 
                 if (e_other != e && !BLI_BITMAP_TEST(edge_tag, e_other) &&
-                    (ss->epmap[e_other].size() == 0 || dists[ev_other] != FLT_MAX))
+                    (ss->epmap[e_other].is_empty() || dists[ev_other] != FLT_MAX))
                 {
                   if (BLI_BITMAP_TEST(affected_vertex, v_other) ||
                       BLI_BITMAP_TEST(affected_vertex, ev_other)) {

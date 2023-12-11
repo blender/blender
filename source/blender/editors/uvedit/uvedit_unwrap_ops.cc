@@ -1223,7 +1223,7 @@ static void uvedit_pack_islands_multi(const Scene *scene,
     }
   }
 
-  if (island_vector.size() == 0) {
+  if (island_vector.is_empty()) {
     return;
   }
 
@@ -2882,7 +2882,7 @@ static int smart_project_exec(bContext *C, wmOperator *op)
                                                    project_angle_limit_cos,
                                                    area_weight);
 
-    if (project_normal_array.size() == 0) {
+    if (project_normal_array.is_empty()) {
       MEM_freeN(thick_faces);
       continue;
     }

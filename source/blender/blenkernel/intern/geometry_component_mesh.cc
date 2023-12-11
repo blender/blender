@@ -776,7 +776,7 @@ static GVArray adapt_mesh_attribute_domain(const Mesh &mesh,
   if (!varray) {
     return {};
   }
-  if (varray.size() == 0) {
+  if (varray.is_empty()) {
     return {};
   }
   if (from_domain == to_domain) {

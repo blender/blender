@@ -817,7 +817,7 @@ Mesh *direct_mesh_boolean(Span<const Mesh *> meshes,
 {
 #ifdef WITH_GMP
   BLI_assert(transforms.is_empty() || meshes.size() == transforms.size());
-  BLI_assert(material_remaps.size() == 0 || material_remaps.size() == meshes.size());
+  BLI_assert(material_remaps.is_empty() || material_remaps.size() == meshes.size());
   if (meshes.size() <= 0) {
     return nullptr;
   }

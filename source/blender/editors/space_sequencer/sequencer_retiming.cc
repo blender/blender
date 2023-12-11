@@ -242,7 +242,7 @@ static int retiming_key_add_to_editable_strips(bContext *C,
   bool inserted = false;
 
   blender::Map selection = SEQ_retiming_selection_get(ed);
-  if (selection.size() == 0) {
+  if (selection.is_empty()) {
     return OPERATOR_CANCELLED;
   }
 

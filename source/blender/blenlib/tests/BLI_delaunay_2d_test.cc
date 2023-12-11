@@ -284,7 +284,7 @@ void graph_draw(const std::string &label,
   constexpr bool draw_vert_labels = false;
   constexpr bool draw_edge_labels = false;
 
-  if (verts.size() == 0) {
+  if (verts.is_empty()) {
     return;
   }
   vec2<double> vmin(1e10, 1e10);

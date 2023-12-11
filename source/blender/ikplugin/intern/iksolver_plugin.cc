@@ -65,7 +65,7 @@ static void initialize_posetree(Object * /*ob*/, bPoseChannel *pchan_tip)
   blender::Vector<bConstraint *> ik_constraints;
   find_ik_constraints(&pchan_tip->constraints, ik_constraints);
 
-  if (ik_constraints.size() == 0) {
+  if (ik_constraints.is_empty()) {
     return;
   }
 

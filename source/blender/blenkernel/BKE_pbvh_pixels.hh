@@ -200,7 +200,7 @@ struct NodeData {
   {
     undo_regions.clear();
     for (UDIMTilePixels &tile : tiles) {
-      if (tile.pixel_rows.size() == 0) {
+      if (tile.pixel_rows.is_empty()) {
         continue;
       }
 

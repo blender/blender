@@ -318,7 +318,7 @@ void looptris_calc_with_normals(const Span<float3> vert_positions,
                                 const Span<float3> face_normals,
                                 MutableSpan<MLoopTri> looptris)
 {
-  BLI_assert(!face_normals.is_empty() || faces.size() == 0);
+  BLI_assert(!face_normals.is_empty() || faces.is_empty());
   looptris_calc_all(vert_positions, faces, corner_verts, face_normals, looptris);
 }
 
