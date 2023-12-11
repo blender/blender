@@ -524,7 +524,7 @@ void gpu_shader_create_info_init()
   }
 
   /* TEST */
-  // gpu_shader_create_info_compile_all();
+  // gpu_shader_create_info_compile(nullptr);
 }
 
 void gpu_shader_create_info_exit()
@@ -540,15 +540,22 @@ void gpu_shader_create_info_exit()
   delete g_interfaces;
 }
 
-bool gpu_shader_create_info_compile_all()
+bool gpu_shader_create_info_compile(const char *name_starts_with_filter)
 {
   using namespace blender::gpu;
   int success = 0;
+  int skipped_filter = 0;
   int skipped = 0;
   int total = 0;
   for (ShaderCreateInfo *info : g_create_infos->values()) {
     info->finalize();
     if (info->do_static_compilation_) {
+      if (name_starts_with_filter &&
+          !info->name_.startswith(blender::StringRefNull(name_starts_with_filter)))
+      {
+        skipped_filter++;
+        continue;
+      }
       if ((info->metal_backend_only_ && GPU_backend_get_type() != GPU_BACKEND_METAL) ||
           (GPU_compute_shader_support() == false && info->compute_source_ != nullptr) ||
           (GPU_geometry_shader_support() == false && info->geometry_source_ != nullptr) ||
@@ -614,6 +621,9 @@ bool gpu_shader_create_info_compile_all()
     }
   }
   printf("Shader Test compilation result: %d / %d passed", success, total);
+  if (skipped_filter > 0) {
+    printf(" (skipped %d when filtering)", skipped_filter);
+  }
   if (skipped > 0) {
     printf(" (skipped %d for compatibility reasons)", skipped);
   }
