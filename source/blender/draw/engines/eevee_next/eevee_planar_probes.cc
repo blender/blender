@@ -150,7 +150,7 @@ void PlanarProbeModule::set_view(const draw::View &main_view, int2 main_view_ext
                           GPU_ATTACHMENT_TEXTURE_LAYER(gbuf.closure_tx.layer_view(0), 0));
 
     instance_.pipelines.planar.render(
-        res.view, depth_tx_.layer_view(resource_index), res.combined_fb, res.gbuffer_fb, extent);
+        res.view, depth_tx_.layer_view(resource_index), res.gbuffer_fb, res.combined_fb, extent);
 
     if (do_display_draw_ && probe.viewport_display) {
       display_data_buf_.get_or_resize(display_index++) = {probe.plane_to_world, resource_index};

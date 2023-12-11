@@ -1354,7 +1354,9 @@ void PlanarProbePipeline::render(View &view,
   GPU_framebuffer_clear_depth(gbuffer_fb, 1.0f);
   inst_.manager->submit(prepass_ps_, view);
 
-  inst_.hiz_buffer.set_source(&depth_layer_tx);
+  /* TODO(fclem): This is the only place where we use the layer source to HiZ.
+   * This is because the texture layer view is still a layer texture. */
+  inst_.hiz_buffer.set_source(&depth_layer_tx, 0);
   inst_.lights.set_view(view, extent);
   inst_.shadows.set_view(view, depth_layer_tx);
   inst_.irradiance_cache.set_view(view);
@@ -1362,8 +1364,14 @@ void PlanarProbePipeline::render(View &view,
   /* Update for lighting pass. */
   inst_.hiz_buffer.update();
 
-  GPU_framebuffer_bind(gbuffer_fb);
-  GPU_framebuffer_clear_color(gbuffer_fb, float4(0.0f, 0.0f, 0.0f, 1.0f));
+  GPU_framebuffer_bind_ex(gbuffer_fb,
+                          {
+                              {GPU_LOADACTION_LOAD, GPU_STOREACTION_STORE},          /* Depth */
+                              {GPU_LOADACTION_CLEAR, GPU_STOREACTION_STORE, {0.0f}}, /* Combined */
+                              {GPU_LOADACTION_CLEAR, GPU_STOREACTION_STORE, {0}}, /* GBuf Header */
+                              {GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_STORE}, /* GBuf Closure */
+                              {GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_STORE}, /* GBuf Color */
+                          });
   inst_.manager->submit(gbuffer_ps_, view);
 
   GPU_framebuffer_bind(combined_fb);
