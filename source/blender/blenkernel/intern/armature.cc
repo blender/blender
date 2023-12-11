@@ -320,8 +320,8 @@ static void armature_blend_write(BlendWriter *writer, ID *id, const void *id_add
       arm->collection_array[i]->next = arm->collection_array[i + 1];
       arm->collection_array[i + 1]->prev = arm->collection_array[i];
     }
-    arm->collections.first = arm->collection_array[0];
-    arm->collections.last = arm->collection_array[arm->collection_array_num - 1];
+    arm->collections_legacy.first = arm->collection_array[0];
+    arm->collections_legacy.last = arm->collection_array[arm->collection_array_num - 1];
     arm->collection_array = nullptr;
   }
 
@@ -333,7 +333,7 @@ static void armature_blend_write(BlendWriter *writer, ID *id, const void *id_add
     write_bone(writer, bone);
   }
 
-  LISTBASE_FOREACH (BoneCollection *, bcoll, &arm->collections) {
+  LISTBASE_FOREACH (BoneCollection *, bcoll, &arm->collections_legacy) {
     write_bone_collection(writer, bcoll);
   }
 
@@ -343,7 +343,7 @@ static void armature_blend_write(BlendWriter *writer, ID *id, const void *id_add
     arm->collection_array[i]->next = nullptr;
     arm->collection_array[i + 1]->prev = nullptr;
   }
-  BLI_listbase_clear(&arm->collections);
+  BLI_listbase_clear(&arm->collections_legacy);
 
   arm->runtime = runtime_backup;
 }
@@ -382,13 +382,13 @@ static void direct_link_bone_collection(BlendDataReader *reader, BoneCollection 
 static void read_bone_collections(BlendDataReader *reader, bArmature *arm)
 {
   /* Read as listbase, but convert to an array on the armature. */
-  BLO_read_list(reader, &arm->collections);
-  arm->collection_array_num = BLI_listbase_count(&arm->collections);
+  BLO_read_list(reader, &arm->collections_legacy);
+  arm->collection_array_num = BLI_listbase_count(&arm->collections_legacy);
   arm->collection_array = (BoneCollection **)MEM_malloc_arrayN(
       arm->collection_array_num, sizeof(BoneCollection *), __func__);
   {
     int i;
-    LISTBASE_FOREACH_INDEX (BoneCollection *, bcoll, &arm->collections, i) {
+    LISTBASE_FOREACH_INDEX (BoneCollection *, bcoll, &arm->collections_legacy, i) {
       arm->collection_array[i] = bcoll;
     }
   }
@@ -399,7 +399,7 @@ static void read_bone_collections(BlendDataReader *reader, bArmature *arm)
     arm->collection_array[i]->next = nullptr;
     arm->collection_array[i + 1]->prev = nullptr;
   }
-  BLI_listbase_clear(&arm->collections);
+  BLI_listbase_clear(&arm->collections_legacy);
 
   /* Bone collections added via an override can be edited, but ones that already exist in
   another

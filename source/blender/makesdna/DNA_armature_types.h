@@ -189,10 +189,12 @@ typedef struct bArmature {
   short pathflag;
 
   /** This is used only for reading/writing BoneCollections in blend
-   * files, for forwards/backwards compatibility with Blender 4.0.  It
-   * should always be empty at runtime.
-   * Use collection_array for everything other than file reading/writing. */
-  ListBase collections; /* BoneCollection. */
+   * files, for forwards/backwards compatibility with Blender 4.0. It
+   * should always be empty at runtime. Use collection_array for
+   * everything other than file reading/writing.
+   * TODO: remove this in Blender 5.0, and instead write the contents of
+   * collection_array to blend files directly. */
+  ListBase collections_legacy; /* BoneCollection. */
 
   struct BoneCollection **collection_array; /* Array of `collection_array_num` BoneCollections. */
   int collection_array_num;
