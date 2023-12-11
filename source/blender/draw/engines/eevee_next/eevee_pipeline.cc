@@ -653,6 +653,7 @@ void DeferredLayer::render(View &main_view,
   inst_.manager->submit(prepass_ps_, render_view);
 
   inst_.hiz_buffer.swap_layer();
+  /* Update for lighting pass or AO node. */
   inst_.hiz_buffer.update();
 
   inst_.irradiance_cache.set_view(render_view);
@@ -1195,10 +1196,12 @@ void DeferredProbeLayer::render(View &view,
   inst_.manager->submit(prepass_ps_, view);
 
   inst_.hiz_buffer.set_source(&inst_.render_buffers.depth_tx);
-  inst_.hiz_buffer.set_dirty();
   inst_.lights.set_view(view, extent);
   inst_.shadows.set_view(view);
   inst_.irradiance_cache.set_view(view);
+
+  /* Update for lighting pass. */
+  inst_.hiz_buffer.update();
 
   GPU_framebuffer_bind(gbuffer_fb);
   inst_.manager->submit(gbuffer_ps_, view);
@@ -1339,22 +1342,24 @@ PassMain::Sub *PlanarProbePipeline::material_add(::Material *blender_mat, GPUMat
   return &pass->sub(GPU_material_get_name(gpumat));
 }
 
-void PlanarProbePipeline::render(
-    View &view, Framebuffer &gbuffer_fb, Framebuffer &combined_fb, int layer_id, int2 extent)
+void PlanarProbePipeline::render(View &view,
+                                 GPUTexture *depth_layer_tx,
+                                 Framebuffer &gbuffer_fb,
+                                 Framebuffer &combined_fb,
+                                 int2 extent)
 {
   GPU_debug_group_begin("Planar.Capture");
-
-  inst_.hiz_buffer.set_source(&inst_.planar_probes.depth_tx_, layer_id);
-  inst_.hiz_buffer.set_dirty();
 
   GPU_framebuffer_bind(gbuffer_fb);
   GPU_framebuffer_clear_depth(gbuffer_fb, 1.0f);
   inst_.manager->submit(prepass_ps_, view);
 
+  inst_.hiz_buffer.set_source(&depth_layer_tx);
   inst_.lights.set_view(view, extent);
   inst_.shadows.set_view(view);
   inst_.irradiance_cache.set_view(view);
 
+  /* Update for lighting pass. */
   inst_.hiz_buffer.update();
 
   GPU_framebuffer_bind(gbuffer_fb);

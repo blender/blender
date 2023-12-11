@@ -69,11 +69,13 @@ class HiZBuffer {
   /**
    * Set source texture for the hiz down-sampling.
    * Need to be called once at the start of a pipeline or view.
+   * Tag the buffer as dirty.
    */
   void set_source(GPUTexture **texture, int layer = -1)
   {
     src_tx_ptr_ = texture;
     layer_id_ = layer;
+    swap_layer();
   }
 
   /**
