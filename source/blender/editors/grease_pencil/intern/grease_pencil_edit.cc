@@ -1644,7 +1644,10 @@ static void duplicate_points(bke::CurvesGeometry &curves, const IndexMask &mask)
 
     return true;
   });
-  array_utils::copy(dst_cyclic.as_span(), curves.cyclic_for_write().drop_front(old_curves_num));
+
+  if (!(src_cyclic.is_single() && !src_cyclic.get_internal_single())) {
+    array_utils::copy(dst_cyclic.as_span(), curves.cyclic_for_write().drop_front(old_curves_num));
+  }
 
   curves.update_curve_types();
   curves.tag_topology_changed();
