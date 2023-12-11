@@ -74,6 +74,7 @@ struct TransDataArgs_Translate {
   const TransInfo *t;
   const TransDataContainer *tc;
   float3 snap_source_local;
+  float3 snap_normal_local;
   float3 vec;
   enum eTranslateRotateMode rotate_mode;
 };
@@ -82,6 +83,7 @@ static void transdata_elem_translate(const TransInfo *t,
                                      const TransDataContainer *tc,
                                      TransData *td,
                                      const float3 &snap_source_local,
+                                     const float3 &snap_normal_local,
                                      const float3 &vec,
                                      enum eTranslateRotateMode rotate_mode)
 {
@@ -108,7 +110,7 @@ static void transdata_elem_translate(const TransInfo *t,
         original_normal = td->axismtx[2];
       }
 
-      rotation_between_vecs_to_mat3(mat, original_normal, t->tsnap.snapNormal);
+      rotation_between_vecs_to_mat3(mat, original_normal, snap_normal_local);
     }
 
     ElementRotation_ex(t, tc, td, mat, snap_source_local);
@@ -167,8 +169,13 @@ static void transdata_elem_translate_fn(void *__restrict iter_data_v,
   if (td->flag & TD_SKIP) {
     return;
   }
-  transdata_elem_translate(
-      data->t, data->tc, td, data->snap_source_local, data->vec, data->rotate_mode);
+  transdata_elem_translate(data->t,
+                           data->tc,
+                           td,
+                           data->snap_source_local,
+                           data->snap_normal_local,
+                           data->vec,
+                           data->rotate_mode);
 }
 
 /** \} */
@@ -497,12 +504,17 @@ static void applyTranslationValue(TransInfo *t, const float vec[3])
   }
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    float3 snap_source_local;
+    float3 snap_source_local, snap_normal_local;
     if (rotate_mode != TRANSLATE_ROTATE_OFF) {
       snap_source_local = t->tsnap.snap_source;
-      /* The pivot has to be in local-space (see #49494) */
+      snap_normal_local = t->tsnap.snapNormal;
       if (tc->use_local_mat) {
+        /* The pivot has to be in local-space (see #49494) */
         snap_source_local = math::transform_point(float4x4(tc->imat), snap_source_local);
+        if (t->data_type == &TransConvertType_Mesh) {
+          /* The #td->axismtx of other element types (e.g. Pose) are already in global space. */
+          snap_normal_local = math::transform_direction(float3x3(tc->imat3), snap_normal_local);
+        }
       }
     }
 
@@ -512,7 +524,8 @@ static void applyTranslationValue(TransInfo *t, const float vec[3])
         if (td->flag & TD_SKIP) {
           continue;
         }
-        transdata_elem_translate(t, tc, td, snap_source_local, vec, rotate_mode);
+        transdata_elem_translate(
+            t, tc, td, snap_source_local, snap_normal_local, vec, rotate_mode);
       }
     }
     else {
@@ -520,6 +533,7 @@ static void applyTranslationValue(TransInfo *t, const float vec[3])
       data.t = t;
       data.tc = tc;
       data.snap_source_local = snap_source_local;
+      data.snap_normal_local = snap_normal_local;
       data.vec = vec;
       data.rotate_mode = rotate_mode;
 
