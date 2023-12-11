@@ -24,8 +24,6 @@
 
 using namespace blender::gpu::shader;
 
-extern "C" char datatoc_glsl_shader_defines_glsl[];
-
 namespace blender::gpu {
 
 /* -------------------------------------------------------------------- */
@@ -487,49 +485,6 @@ static const std::string to_stage_name(shaderc_shader_kind stage)
   return std::string("unknown stage");
 }
 
-static char *glsl_patch_get()
-{
-  static char patch[2048] = "\0";
-  if (patch[0] != '\0') {
-    return patch;
-  }
-
-  const VKWorkarounds &workarounds = VKBackend::get().device_get().workarounds_get();
-
-  size_t slen = 0;
-  /* Version need to go first. */
-  STR_CONCAT(patch, slen, "#version 450\n");
-
-  if (GPU_shader_draw_parameters_support()) {
-    STR_CONCAT(patch, slen, "#extension GL_ARB_shader_draw_parameters : enable\n");
-    STR_CONCAT(patch, slen, "#define GPU_ARB_shader_draw_parameters\n");
-    STR_CONCAT(patch, slen, "#define gpu_BaseInstance (gl_BaseInstanceARB)\n");
-  }
-
-  STR_CONCAT(patch, slen, "#define gl_VertexID gl_VertexIndex\n");
-  STR_CONCAT(patch, slen, "#define gpu_InstanceIndex (gl_InstanceIndex)\n");
-  STR_CONCAT(patch, slen, "#define GPU_ARB_texture_cube_map_array\n");
-  STR_CONCAT(patch, slen, "#define gl_InstanceID (gpu_InstanceIndex - gpu_BaseInstance)\n");
-
-  /* TODO(fclem): This creates a validation error and should be already part of Vulkan 1.2. */
-  STR_CONCAT(patch, slen, "#extension GL_ARB_shader_viewport_layer_array: enable\n");
-  if (!workarounds.shader_output_layer) {
-    STR_CONCAT(patch, slen, "#define gpu_Layer gl_Layer\n");
-  }
-  if (!workarounds.shader_output_viewport_index) {
-    STR_CONCAT(patch, slen, "#define gpu_ViewportIndex gl_ViewportIndex\n");
-  }
-
-  STR_CONCAT(patch, slen, "#define DFDX_SIGN 1.0\n");
-  STR_CONCAT(patch, slen, "#define DFDY_SIGN 1.0\n");
-
-  /* GLSL Backend Lib. */
-  STR_CONCAT(patch, slen, datatoc_glsl_shader_defines_glsl);
-
-  BLI_assert(slen < sizeof(patch));
-  return patch;
-}
-
 static std::string combine_sources(Span<const char *> sources)
 {
   char *sources_combined = BLI_string_join_arrayN((const char **)sources.data(), sources.size());
@@ -641,7 +596,8 @@ void VKShader::build_shader_module(MutableSpan<const char *> sources,
                       shaderc_fragment_shader,
                       shaderc_compute_shader),
                  "Only forced ShaderC shader kinds are supported.");
-  sources[0] = glsl_patch_get();
+  const VKDevice &device = VKBackend::get().device_get();
+  sources[0] = device.glsl_patch_get();
   Vector<uint32_t> spirv_module = compile_glsl_to_spirv(sources, stage);
   build_shader_module(spirv_module, r_shader_module);
 }
