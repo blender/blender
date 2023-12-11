@@ -268,7 +268,7 @@ float ambient_occlusion_eval(vec3 normal,
       vP, hiz_tx, texel, max_distance, inverted, sample_count);
 
   vec3 V = drw_world_incident_vector(g_data.P);
-  vec3 N = g_data.N;
+  vec3 N = normal;
   vec3 Ng = g_data.Ng;
 
   float unused_error, visibility;
