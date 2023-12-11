@@ -49,13 +49,16 @@ vec4 closure_to_rgba(Closure cl)
   vec2 noise_probe = interlieved_gradient_noise(gl_FragCoord.xy, vec2(0, 1), vec2(0.0));
   LightProbeSample samp = lightprobe_load(g_data.P, g_data.Ng, V);
 
+  diffuse_light += stack.cl[0].light_shadowed;
   diffuse_light += lightprobe_eval(samp, g_diffuse_data, g_data.P, V, noise_probe);
+
+  reflection_light += stack.cl[1].light_shadowed;
   reflection_light += lightprobe_eval(samp, g_reflection_data, g_data.P, V, noise_probe);
 
   vec4 out_color;
   out_color.rgb = g_emission;
-  out_color.rgb += g_diffuse_data.color * g_diffuse_data.weight * stack.cl[0].light_shadowed;
-  out_color.rgb += g_reflection_data.color * g_reflection_data.weight * stack.cl[1].light_shadowed;
+  out_color.rgb += g_diffuse_data.color * g_diffuse_data.weight * diffuse_light;
+  out_color.rgb += g_reflection_data.color * g_reflection_data.weight * reflection_light;
 
   out_color.a = saturate(1.0 - average(g_transmittance));
 
