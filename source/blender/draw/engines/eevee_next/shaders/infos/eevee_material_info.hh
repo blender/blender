@@ -149,6 +149,7 @@ GPU_SHADER_CREATE_INFO(eevee_cryptomatte_out)
     .image_out(RBUFS_CRYPTOMATTE_SLOT, Qualifier::WRITE, GPU_RGBA32F, "rp_cryptomatte_img");
 
 GPU_SHADER_CREATE_INFO(eevee_surf_deferred)
+    .define("MAT_DEFERRED")
     /* NOTE: This removes the possibility of using gl_FragDepth. */
     .early_fragment_test(true)
     /* Direct output. (Emissive, Holdout) */
@@ -170,6 +171,7 @@ GPU_SHADER_CREATE_INFO(eevee_surf_deferred)
                      "eevee_hiz_data");
 
 GPU_SHADER_CREATE_INFO(eevee_surf_forward)
+    .define("MAT_FORWARD")
     /* Early fragment test is needed for render passes support for forward surfaces. */
     /* NOTE: This removes the possibility of using gl_FragDepth. */
     .early_fragment_test(true)
