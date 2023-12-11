@@ -41,92 +41,53 @@ enum {
  * \{ */
 
 /**
- * #MLoopTri's are lightweight triangulation data,
- * for functionality that doesn't support ngons.
- * This is cache data created from (polygons, corner vert, and position arrays).
- * There is no attempt to maintain this data's validity over time,
- * any changes to the underlying mesh invalidate the #MLoopTri array,
- * which will need to be re-calculated.
- *
- * Users normally access this via #Mesh::looptris().
- * In rare cases its calculated directly, with #bke::mesh::looptris_calc.
+ * #MLoopTri is runtime triangulation data for #Mesh, for functionality that doesn't support ngons.
  *
  * Typical usage includes:
  * - Viewport drawing.
  * - #BVHTree creation.
  * - Physics/collision detection.
  *
- * Storing loop indices (instead of vertex indices) allows us to
- * directly access UVs, vertex-colors as well as vertices.
- * The index of the source polygon is stored as well,
- * giving access to materials and polygon normals.
+ * A mesh's triangulation data is generally accessed via #Mesh::looptris(), which uses a cache that
+ * is lazily calculated from faces, corner vert, and position arrays. In rare cases it is
+ * calculated directly too, with #bke::mesh::looptris_calc. When the underlying mesh data changes,
+ * the array is recalculated from scratch; there is no extra attempt to maintain the validity over
+ * time.
  *
- * \note This data is runtime only, never written to disk.
+ * #MLoopTri is stored in an array, where each faces's triangles are stored contiguously.
+ * The number of triangles for each polygon is guaranteed to be the corner count - 2, even for
+ * degenerate geometry (see #bke::mesh::face_triangles_num).
  *
- * Usage examples:
- * \code{.c}
- * // access vertex locations.
- * float *vtri_co[3] = {
- *     positions[corner_verts[lt->tri[0]]],
- *     positions[corner_verts[lt->tri[1]]],
- *     positions[corner_verts[lt->tri[2]]],
+ * Storing corner indices (instead of vertex indices) gives more flexibility for accessing mesh
+ * data stored per-corner, though it does often add an extra level of indirection. The index of the
+ * corresponding face for each triangle is stored in a separate array, accessed with
+ * #Mesh::looptri_faces().
+ *
+ * Examples:
+ * \code{.cc}
+ * // Access vertex locations.
+ * std::array<float3, 3> tri_positions{
+ *   positions[corner_verts[tri.tri[0]]],
+ *   positions[corner_verts[tri.tri[1]]],
+ *   positions[corner_verts[tri.tri[2]]],
  * };
  *
- * // access UV coordinates (works for all loop data, vertex colors... etc).
- * float *uvtri_co[3] = {
- *     mloopuv[lt->tri[0]],
- *     mloopuv[lt->tri[1]],
- *     mloopuv[lt->tri[2]],
+ * // Access UV coordinates (works for all face corner data, vertex colors... etc).
+ * std::array<float2, 3> tri_uvs{
+ *   uv_map[tri.tri[0]],
+ *   uv_map[tri.tri[1]],
+ *   uv_map[tri.tri[2]],
  * };
- * \endcode
  *
- * #MLoopTri's are allocated in an array, where each polygon's #MLoopTri's are stored contiguously,
- * the number of triangles for each polygon is guaranteed to be the corner count - 2,
- * even for degenerate geometry. See #bke::mesh::face_triangles_num macro.
- *
- * It's also possible to perform a reverse lookup (find all #MLoopTri's for any given face).
- *
- * \code{.c}
- * // loop over all looptri's for a given polygon: i
+ * // Access all triangles in a given face.
  * const IndexRange face = faces[i];
- * MLoopTri *lt = &looptri[poly_to_tri_count(i, face.start())];
- * int j, lt_tot = bke::mesh::face_triangles_num(face.size());
- *
- * for (j = 0; j < lt_tot; j++, lt++) {
- *     int vtri[3] = {
- *         corner_verts[lt->tri[0]],
- *         corner_verts[lt->tri[1]],
- *         corner_verts[lt->tri[2]],
- *     };
- *     printf("tri %u %u %u\n", vtri[0], vtri[1], vtri[2]);
- * };
+ * const Span<MLoopTri> face_tris = looptris.slice(poly_to_tri_count(i, face.start()),
+ *                                                 bke::mesh::face_triangles_num(face.size()));
  * \endcode
  *
- * It may also be useful to check whether or not two vertices of a triangle
- * form an edge in the underlying mesh.
- *
- * This can be done by checking the edge of the referenced corner,
- * the winding of the #MLoopTri and the corners's will always match,
- * however the order of vertices in the edge is undefined.
- *
- * \code{.c}
- * // print real edges from an MLoopTri: lt
- * int j, j_next;
- * for (j = 2, j_next = 0; j_next < 3; j = j_next++) {
- *     const int2 &edge = &medge[corner_edges[lt->tri[j]]];
- *     unsigned int tri_edge[2]  = {corner_verts[lt->tri[j]], corner_verts[lt->tri[j_next]]};
- *
- *     if (((edge[0] == tri_edge[0]) && (edge[1] == tri_edge[1])) ||
- *         ((edge[0] == tri_edge[1]) && (edge[1] == tri_edge[0])))
- *     {
- *         printf("real edge found %u %u\n", tri_edge[0], tri_edge[1]);
- *     }
- * }
- * \endcode
- *
- * See #bke::mesh::looptri_get_real_edges for a utility that does this.
- *
- * \note A #MLoopTri may be in the middle of an ngon and not reference **any** edges.
+ * It may also be useful to check whether or not two vertices of a triangle form an edge in the
+ * underlying mesh. See #bke::mesh::looptri_get_real_edges for a utility that does this. Note that
+ * a #MLoopTri may be in the middle of an ngon and not reference **any** real edges.
  */
 typedef struct MLoopTri {
   unsigned int tri[3];
