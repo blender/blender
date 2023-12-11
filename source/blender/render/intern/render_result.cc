@@ -448,9 +448,9 @@ GPUTexture *RE_pass_ensure_gpu_texture_cache(Render *re, RenderPass *rpass)
     return nullptr;
   }
 
-  const eGPUTextureFormat format = (rpass->channels == 1) ? GPU_R16F :
-                                   (rpass->channels == 3) ? GPU_RGB16F :
-                                                            GPU_RGBA16F;
+  const eGPUTextureFormat format = (rpass->channels == 1) ? GPU_R32F :
+                                   (rpass->channels == 3) ? GPU_RGB32F :
+                                                            GPU_RGBA32F;
 
   /* TODO(sergey): Use utility to assign the texture. */
   ibuf->gpu.texture = GPU_texture_create_2d("RenderBuffer.gpu_texture",
