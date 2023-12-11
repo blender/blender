@@ -799,6 +799,14 @@ static RetimingRangeData seq_retiming_range_data_get(const Scene *scene, const S
 
 void SEQ_retiming_sound_animation_data_set(const Scene *scene, const Sequence *seq)
 {
+  /* Content cut off by `anim_startofs` is as if it does not exist for sequencer. But Audaspace
+   * seeking relies on having animation buffer initialized for whole sequence. */
+  if (seq->anim_startofs > 0) {
+    const int seq_start = SEQ_time_start_frame_get(seq);
+    BKE_sound_set_scene_sound_pitch_constant_range(
+        seq->scene_sound, seq_start - seq->anim_startofs, seq_start, 1.0f);
+  }
+
   RetimingRangeData retiming_data = seq_retiming_range_data_get(scene, seq);
   for (int i = 0; i < retiming_data.ranges.size(); i++) {
     RetimingRange range = retiming_data.ranges[i];
