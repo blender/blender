@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'72b6c44e759b')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'274dc815eb35')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2023-12-04 11:06:00\n"
-"PO-Revision-Date: 2023-11-27 09:55+0000\n"
+"POT-Creation-Date: 2023-12-11 11:18:04\n"
+"PO-Revision-Date: 2023-12-06 06:42+0000\n"
 "Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
 "Language: pt_BR\n"
@@ -412,6 +412,10 @@ msgid "Fribidi Library"
 msgstr "Biblioteca FriBidi"
 
 
+msgid "The FriBidi C compiled library (.so under Linux, .dll under windows...), you’ll likely have to edit it if you’re under Windows, e.g. using the one included in Blender libraries repository"
+msgstr "A biblioteca Fribidi C compilada (.so em sistemas Linux, .dll em sistemas Windows...), você provavelmente precisará editá-la se estiver no Windows, ex: usando a inclusa dentro das bibliotecas no repositório svn"
+
+
 msgid "Translation Root"
 msgstr "Raiz das traduções"
 
@@ -500,6 +504,10 @@ msgid "Combine"
 msgstr "Combinar"
 
 
+msgid "The strip values are combined with accumulated results by appropriately using addition, multiplication, or quaternion math, based on channel type"
+msgstr "Os valores da faixa são combinados com resultados acumulados usando apropriadamente adição, multiplicação ou matemática de quatérnios, com base no tipo de canal"
+
+
 msgid "Add"
 msgstr "Adicionar"
 
@@ -550,6 +558,10 @@ msgstr "Influência de ação"
 
 msgid "Amount the Active Action contributes to the result of the NLA stack"
 msgstr "O quanto a ação ativa contribui para o resultado da pilha de animação não linear"
+
+
+msgid "Slot to temporarily hold the main action while in tweak mode"
+msgstr "Slot para segurar temporariamente a ação principal enquanto estiver no modo de ajuste"
 
 
 msgid "Drivers"
@@ -609,7 +621,7 @@ msgstr "Gerar e gravar posição"
 
 
 msgid "When calculating Bone Paths, use Head or Tips"
-msgstr "Durante os cálculos dos caminhos dos ossos, define o uso das cabeças ou bases para gerar e gravar."
+msgstr "Durante os cálculos dos caminhos dos ossos, define o uso das cabeças ou bases para gerar e gravar"
 
 
 msgid "Heads"
@@ -617,7 +629,7 @@ msgstr "Cabeças"
 
 
 msgid "Calculate bone paths from heads"
-msgstr "Calcula o caminho dos ossos a partir das cabeças."
+msgstr "Calcula o caminho dos ossos a partir das cabeças"
 
 
 msgid "Tails"
@@ -629,7 +641,7 @@ msgstr "Depois do atual"
 
 
 msgid "Number of frames to show after the current frame (only for 'Around Current Frame' Onion-skinning method)"
-msgstr "Número de quadros a exibir após o quadro atual (apenas para o método de criação de fantasmas \"Ao redor do quadro\")."
+msgstr "Número de quadros a exibir após o quadro atual (apenas para o método de criação de fantasmas \"Ao redor do quadro\")"
 
 
 msgid "Before Current"
@@ -637,7 +649,7 @@ msgstr "Antes do atual"
 
 
 msgid "Number of frames to show before the current frame (only for 'Around Current Frame' Onion-skinning method)"
-msgstr "Números de quadros a exibir antes do quadro atual (apenas para o método de criação de fantasmas \"Ao redor do quadro\")."
+msgstr "Números de quadros a exibir antes do quadro atual (apenas para o método de criação de fantasmas \"Ao redor do quadro\")"
 
 
 msgid "End Frame"
@@ -645,7 +657,7 @@ msgstr "Quadro final"
 
 
 msgid "End frame of range of paths to display/calculate (not for 'Around Current Frame' Onion-skinning method)"
-msgstr "Quadro final do intervalo de caminhos para exibir ou calcular (não usado para o método de criação de fantasmas \"Ao redor do quadro\")."
+msgstr "Quadro final do intervalo de caminhos para exibir ou calcular (não usado para o método de criação de fantasmas \"Ao redor do quadro\")"
 
 
 msgid "Start Frame"
@@ -653,7 +665,7 @@ msgstr "Quadro inicial"
 
 
 msgid "Starting frame of range of paths to display/calculate (not for 'Around Current Frame' Onion-skinning method)"
-msgstr "Quadro inicial do intervalo de caminhos para exibir ou calcular (não usado para o método de criação de fantasmas \"Ao redor do quadro\")."
+msgstr "Quadro inicial do intervalo de caminhos para exibir ou calcular (não usado para o método de criação de fantasmas \"Ao redor do quadro\")"
 
 
 msgid "Frame Step"
@@ -661,7 +673,7 @@ msgstr "Intervalos de quadros"
 
 
 msgid "Number of frames between paths shown (not for 'On Keyframes' Onion-skinning method)"
-msgstr "O passo do número de quadros exibidos no caminho de movimento gerado. A divisão em passos não é usada na marcação dos quadros-chave nos fantasmas ou caminhos de movimento."
+msgstr "O passo do número de quadros exibidos no caminho de movimento gerado. A divisão em passos não é usada na marcação dos quadros-chave nos fantasmas ou caminhos de movimento"
 
 
 msgid "Has Motion Paths"
@@ -669,11 +681,31 @@ msgstr "Possui caminhos de movimento"
 
 
 msgid "Are there any bone paths that will need updating (read-only)"
-msgstr "Existem ainda alguns caminhos de ossos que necessitam atualização (modo de somente leitura)."
+msgstr "Existem ainda alguns caminhos de ossos que necessitam atualização (modo de somente leitura)"
+
+
+msgid "Paths Range"
+msgstr "Faixa de caminhos"
+
+
+msgid "Type of range to calculate for Motion Paths"
+msgstr "Tipo de intervalo a exibir para os caminhos de movimento"
+
+
+msgid "From the first keyframe to the last"
+msgstr "Do primeiro quadro ao último"
 
 
 msgid "Selected Keys"
 msgstr "Chaves Selecionadas"
+
+
+msgid "The entire Scene / Preview range"
+msgstr "Toda a faixa de cena/visualização"
+
+
+msgid "Manually determined frame range"
+msgstr "Intervalo de quadros determinado manualmente"
 
 
 msgid "Show Frame Numbers"
@@ -681,7 +713,7 @@ msgstr "Mostrar número dos quadros"
 
 
 msgid "Show frame numbers on Motion Paths"
-msgstr "Mostra os números dos quadros nos caminhos de movimento."
+msgstr "Mostra os números dos quadros nos caminhos de movimento"
 
 
 msgid "All Action Keyframes"
@@ -689,7 +721,7 @@ msgstr "Todos os quadros-chave de ação"
 
 
 msgid "For bone motion paths, search whole Action for keyframes instead of in group with matching name only (is slower)"
-msgstr "Para os caminhos de movimento dos ossos, pesquisa toda a ação presente nos quadros-chave ao invés de pesquisar somente no grupo de nome correspondente (é mais lento)."
+msgstr "Para os caminhos de movimento dos ossos, pesquisa toda a ação presente nos quadros-chave ao invés de pesquisar somente no grupo de nome correspondente (é mais lento)"
 
 
 msgid "Highlight Keyframes"
@@ -697,7 +729,7 @@ msgstr "Destacar quadros-chave"
 
 
 msgid "Emphasize position of keyframes on Motion Paths"
-msgstr "Enfatiza a posição dos quadros-chave nos caminhos de movimento."
+msgstr "Enfatiza a posição dos quadros-chave nos caminhos de movimento"
 
 
 msgid "Show Keyframe Numbers"
@@ -705,7 +737,7 @@ msgstr "Mostrar números dos quadros-chave"
 
 
 msgid "Show frame numbers of Keyframes on Motion Paths"
-msgstr "Exibe os números dos quadros que contém quadros-chave nos caminhos de movimento."
+msgstr "Exibe os números dos quadros que contém quadros-chave nos caminhos de movimento"
 
 
 msgid "Paths Type"
@@ -713,7 +745,7 @@ msgstr "Tipo de caminhos"
 
 
 msgid "Type of range to show for Motion Paths"
-msgstr "Tipo de intervalo a exibir para os caminhos de movimento."
+msgstr "Tipo de intervalo a exibir para os caminhos de movimento"
 
 
 msgid "Around Frame"
@@ -721,7 +753,7 @@ msgstr "Ao redor do quadro"
 
 
 msgid "Display Paths of poses within a fixed number of frames around the current frame"
-msgstr "Exibe caminhos das poses e movimentos dentro de um número fixo de quadros ao redor do quadro atual."
+msgstr "Exibe caminhos das poses e movimentos dentro de um número fixo de quadros ao redor do quadro atual"
 
 
 msgid "In Range"
@@ -729,7 +761,7 @@ msgstr "Dentro do intervalo"
 
 
 msgid "Display Paths of poses within specified range"
-msgstr "Exibe caminhos das poses e movimentos dentro de um intervalo especificado."
+msgstr "Exibe caminhos das poses e movimentos dentro de um intervalo especificado"
 
 
 msgid "Any Type"
@@ -737,11 +769,11 @@ msgstr "Qualquer tipo"
 
 
 msgid "RNA type used for pointers to any possible data"
-msgstr "Tipo de RNA usado para ponteiros de quaisquer dados possíveis."
+msgstr "Tipo de RNA usado para ponteiros de quaisquer dados possíveis"
 
 
 msgid "Area in a subdivided screen, containing an editor"
-msgstr "Área numa tela subdividida, contendo um editor."
+msgstr "Área numa tela subdividida, contendo um editor"
 
 
 msgid "Height"
@@ -757,7 +789,7 @@ msgstr "Regiões"
 
 
 msgid "Regions this area is subdivided in"
-msgstr "Regiões em que esta área está subdividida."
+msgstr "Regiões em que esta área está subdividida"
 
 
 msgid "Show Menus"
@@ -773,7 +805,7 @@ msgstr "Espaços"
 
 
 msgid "Spaces contained in this area, the first being the active space (NOTE: Useful for example to restore a previously used 3D view space in a certain area to get the old view orientation)"
-msgstr "Espaços contidos nesta área, sendo o primeiro, o espaço ativo (isso é útil, por exemplo, para restaurar um espaço da janela de visualização 3D usado anteriormente numa certa área para obter a orientação de uma vista antiga)."
+msgstr "Espaços contidos nesta área, sendo o primeiro, o espaço ativo (isso é útil, por exemplo, para restaurar um espaço da janela de visualização 3D usado anteriormente numa certa área para obter a orientação de uma vista antiga)"
 
 
 msgid "Editor Type"
@@ -792,12 +824,16 @@ msgid "3D Viewport"
 msgstr "Janela de Exibição 3D"
 
 
+msgid "Manipulate objects in a 3D environment"
+msgstr "Manipule objetos em um ambiente 3D"
+
+
 msgid "UV/Image Editor"
 msgstr "Editor de imagens e UVs"
 
 
 msgid "View and edit images and UV Maps"
-msgstr "Permite visualizar e editar imagens e mapas UV."
+msgstr "Permite visualizar e editar imagens e mapas UV"
 
 
 msgid "Node Editor"
@@ -805,7 +841,7 @@ msgstr "Editor de nós"
 
 
 msgid "Editor for node-based shading and compositing tools"
-msgstr "Editor para sombreamento embasado em nós e ferramentas de composição."
+msgstr "Editor para sombreamento embasado em nós e ferramentas de composição"
 
 
 msgid "Video Sequencer"
@@ -829,7 +865,7 @@ msgstr "Tabela de animação"
 
 
 msgid "Adjust timing of keyframes"
-msgstr "Permite ajustar a temporização dos quadros-chave."
+msgstr "Permite ajustar a temporização dos quadros-chave"
 
 
 msgid "Graph Editor"
@@ -837,7 +873,7 @@ msgstr "Editor gráfico"
 
 
 msgid "Edit drivers and keyframe interpolation"
-msgstr "Permite editar controladores e interpolação de quadros-chave."
+msgstr "Permite editar controladores e interpolação de quadros-chave"
 
 
 msgid "Nonlinear Animation"
@@ -845,7 +881,7 @@ msgstr "Animação não linear"
 
 
 msgid "Combine and layer Actions"
-msgstr "Permite a combinação entre movimentos e camadas de ações."
+msgstr "Permite a combinação entre movimentos e camadas de ações"
 
 
 msgid "Text Editor"
@@ -853,7 +889,7 @@ msgstr "Editor de texto"
 
 
 msgid "Edit scripts and in-file documentation"
-msgstr "Permite editar scripts e documentação presente em arquivos."
+msgstr "Permite editar scripts e documentação presente em arquivos"
 
 
 msgid "Python Console"
@@ -861,11 +897,15 @@ msgstr "Console Python"
 
 
 msgid "Interactive programmatic console for advanced editing and script development"
-msgstr "Console interativo programável para edições avançadas e desenvolvimento de scripts."
+msgstr "Console interativo programável para edições avançadas e desenvolvimento de scripts"
 
 
 msgid "Info"
 msgstr "Janela de informações"
+
+
+msgid "Log of operations, warnings and error messages"
+msgstr "Registros de operações, avisos e mensagens de erro"
 
 
 msgid "Top Bar"
@@ -876,12 +916,16 @@ msgid "Status Bar"
 msgstr "Barra de Status"
 
 
+msgid "Global bar at the bottom of the screen for general status information"
+msgstr "Barra global na parte inferior da tela para informações gerais de status"
+
+
 msgid "Outliner"
 msgstr "Esquematizador"
 
 
 msgid "Overview of scene graph and all available data-blocks"
-msgstr "Visão geral dos gráficos de cena e todos os blocos de dados disponíveis."
+msgstr "Visão geral dos gráficos de cena e todos os blocos de dados disponíveis"
 
 
 msgid "Properties"
@@ -889,7 +933,7 @@ msgstr "Propriedades"
 
 
 msgid "Edit properties of active object and related data-blocks"
-msgstr "Permite editar as propriedades do objeto ativo e blocos de dados relacionados."
+msgstr "Permite editar as propriedades do objeto ativo e blocos de dados relacionados"
 
 
 msgid "File Browser"
@@ -897,11 +941,15 @@ msgstr "Navegador de arquivos"
 
 
 msgid "Browse for files and assets"
-msgstr "Permite navegar em locais, pastas, arquivos e recursos."
+msgstr "Permite navegar em locais, pastas, arquivos e recursos"
 
 
 msgid "Spreadsheet"
 msgstr "Planilha"
+
+
+msgid "Explore geometry data in a table"
+msgstr "Explore dados da geometria em uma tabela"
 
 
 msgid "Preferences"
@@ -909,7 +957,7 @@ msgstr "Preferências"
 
 
 msgid "Edit persistent configuration settings"
-msgstr "Permite editar definições de configuração persistentes."
+msgstr "Permite editar definições de configuração persistentes"
 
 
 msgid "Width"
@@ -925,7 +973,7 @@ msgstr "Posição X"
 
 
 msgid "The window relative vertical location of the area"
-msgstr "A localização vertical relativa da área da janela."
+msgstr "A localização vertical relativa da área da janela"
 
 
 msgid "Y Position"
@@ -933,7 +981,7 @@ msgstr "Posição Y"
 
 
 msgid "The window relative horizontal location of the area"
-msgstr "A localização horizontal relativa da área da janela."
+msgstr "A localização horizontal relativa da área da janela"
 
 
 msgid "Area Spaces"
@@ -949,7 +997,7 @@ msgstr "Espaço ativo"
 
 
 msgid "Space currently being displayed in this area"
-msgstr "O espaço sendo mostrado atualmente nesta área."
+msgstr "O espaço sendo mostrado atualmente nesta área"
 
 
 msgid "Armature Bones"
@@ -981,23 +1029,87 @@ msgstr "Osso de edição ativo"
 
 
 msgid "Armatures active edit bone"
-msgstr "Osso ativo na edição da armação de ossos."
+msgstr "Osso ativo na edição da armação de ossos"
+
+
+msgid "Catalog Path"
+msgstr "Caminho do catálogo"
+
+
+msgid "Asset Library Reference"
+msgstr "Referência da Biblioteca de Ativos"
+
+
+msgid "Identifier to refer to the asset library"
+msgstr "Identificador para se referir à biblioteca de ativos"
+
+
+msgid "Asset Data"
+msgstr "Dados de ativos"
 
 
 msgid "Active Tag"
 msgstr "Etiqueta Ativa"
 
 
+msgid "Index of the tag set for editing"
+msgstr "Índice da etiqueta definida para edição"
+
+
 msgid "Author"
 msgstr "Autor"
+
+
+msgid "Name of the creator of the asset"
+msgstr "Nome do criador do ativo"
+
+
+msgid "Catalog UUID"
+msgstr "Catálogo UUID"
+
+
+msgid "Identifier for the asset's catalog, used by Blender to look up the asset's catalog path. Must be a UUID according to RFC4122"
+msgstr "Identificador do catálogo de ativos, usado pelo Blender para procurar o caminho do catálogo de ativos. Deve ser um UUID de acordo com RFC4122"
+
+
+msgid "Catalog Simple Name"
+msgstr "Nome Simples do Catálogo"
+
+
+msgid "Simple name of the asset's catalog, for debugging and data recovery purposes"
+msgstr "Nome simples do catálogo de ativos, para fins de depuração e recuperação de dados"
 
 
 msgid "Description"
 msgstr "Descrição"
 
 
+msgid "A description of the asset to be displayed for the user"
+msgstr "Uma descrição do ativo a ser exibido para o usuário"
+
+
 msgid "Tags"
 msgstr "Tags"
+
+
+msgid "Asset Representation"
+msgstr "Representação de Ativos"
+
+
+msgid "Full Library Path"
+msgstr "Caminho completo da biblioteca"
+
+
+msgid "Absolute path to the .blend file containing this asset"
+msgstr "Caminho absoluto para o arquivo .blend que contém este ativo"
+
+
+msgid "Full Path"
+msgstr "Caminho completo"
+
+
+msgid "Absolute path to the .blend file containing this asset extended with the path of the asset inside the file"
+msgstr "Caminho absoluto para o arquivo .blend que contém este ativo estendido com o caminho do ativo dentro do arquivo"
 
 
 msgctxt "ID"
@@ -1180,8 +1292,24 @@ msgid "World"
 msgstr "Ambiente"
 
 
+msgid "Additional information about the asset"
+msgstr "Informações adicionais sobre o ativo"
+
+
+msgid "Asset Shelf"
+msgstr "Prateleira de Ativos"
+
+
+msgid "Regions for quick access to assets"
+msgstr "Regiões para acesso rápido aos ativos"
+
+
 msgid "Asset Library"
 msgstr "Biblioteca de Recursos"
+
+
+msgid "Choose the asset library to display assets from"
+msgstr "Escolha a biblioteca de ativos para exibir os ativos"
 
 
 msgid "All"
@@ -1196,40 +1324,120 @@ msgid "ID Name"
 msgstr "Nome do identificador"
 
 
+msgid "If this is set, the asset gets a custom ID, otherwise it takes the name of the class used to define the menu (for example, if the class name is \"OBJECT_AST_hello\", and bl_idname is not set by the script, then bl_idname = \"OBJECT_AST_hello\")"
+msgstr "Caso isto seja configurado, a lista de interface de usuário \"uilist\" terá um identificador personalizado, caso contrário, ela terá o nome da classe usada para definir a lista (por exemplo, caso o nome da classe seja \"OBJECT_UL_vgroups\", e o bl_idname não seja configurado pelo script, então o bl_idname = \"OBJECT_UL_vgroups\")"
+
+
 msgid "Options"
 msgstr "Opções"
+
+
+msgid "Options for this asset shelf type"
+msgstr "Opções para este tipo de prateleira de ativos"
+
+
+msgid "No Asset Dragging"
+msgstr "Sem arrastar ativos"
 
 
 msgid "Space Type"
 msgstr "Tipo de espaço"
 
 
+msgid "The space where the asset shelf is going to be used in"
+msgstr "O espaço no qual a prateleira de ativos será utilizada"
+
+
+msgid "Preview Size"
+msgstr "Tamanho da visualização"
+
+
+msgid "Size of the asset preview thumbnails in pixels"
+msgstr "Tamanho das miniaturas de visualização de ativos em pixels"
+
+
 msgid "Display Filter"
 msgstr "Mostrar filtro"
+
+
+msgid "Filter assets by name"
+msgstr "Filtrar ativos por nome"
 
 
 msgid "Show Names"
 msgstr "Mostrar nomes"
 
 
+msgid "Show the asset name together with the preview. Otherwise only the preview will be visible"
+msgstr "Mostre o nome do ativo junto com a visualização. Caso contrário, apenas a pré-visualização ficará visível"
+
+
+msgid "Asset Tag"
+msgstr "Etiqueta de ativo"
+
+
+msgid "User defined tag (name token)"
+msgstr "Etiqueta definida pelo usuário (nome simbólico)"
+
+
+msgid "The identifier that makes up this tag"
+msgstr "O identificador que compõe esta etiqueta"
+
+
+msgid "Asset Tags"
+msgstr "Etiquetas de Ativos"
+
+
+msgid "Collection of custom asset tags"
+msgstr "Coleção de etiquetas de ativos personalizadas"
+
+
+msgid "Geometry attribute"
+msgstr "Atributo de geometria"
+
+
 msgid "Data Type"
 msgstr "Tipo de dados"
+
+
+msgid "Type of data stored in attribute"
+msgstr "Tipo de dados armazenados no atributo"
 
 
 msgid "Float"
 msgstr "Ponto flutuante"
 
 
+msgid "Floating-point value"
+msgstr "Valor em ponto flutuante"
+
+
 msgid "Integer"
 msgstr "Inteiro"
+
+
+msgid "32-bit integer"
+msgstr "Inteiro de 32 bits"
 
 
 msgid "Vector"
 msgstr "Vetor"
 
 
+msgid "3D vector with floating-point values"
+msgstr "Vetor 3D com valores do tipo ponto flutuante"
+
+
+msgid "RGBA color with 32-bit floating-point values"
+msgstr "Cor RGBA com valores de ponto flutuante de 32 bits"
+
+
 msgid "String"
 msgstr "Variável de texto"
+
+
+msgid "Text string"
+msgstr "Sequência de texto"
 
 
 msgid "Boolean"
@@ -1244,44 +1452,200 @@ msgid "2D Vector"
 msgstr "Vetor 2D"
 
 
+msgid "2D vector with floating-point values"
+msgstr "Vetor 2D com valores de ponto flutuante"
+
+
+msgid "8-Bit Integer"
+msgstr "Inteiro de 8 bits"
+
+
+msgid "Smaller integer with a range from -128 to 127"
+msgstr "Inteiro curto, com intervalo de -128 a 127"
+
+
+msgid "2D Integer Vector"
+msgstr "Vetor de inteiros 2D"
+
+
+msgid "32-bit signed integer vector"
+msgstr "Vetor de inteiro de 32 bits com sinal"
+
+
 msgid "Quaternion"
 msgstr "Quaternião"
+
+
+msgid "Floating point quaternion rotation"
+msgstr "Rotação de quatérnio de ponto flutuante"
 
 
 msgid "Domain"
 msgstr "Domínio"
 
 
+msgid "Domain of the Attribute"
+msgstr "Domínio do Atributo"
+
+
 msgid "Point"
 msgstr "Pontos"
+
+
+msgid "Attribute on point"
+msgstr "Atributo no ponto"
 
 
 msgid "Edge"
 msgstr "Arestas"
 
 
+msgid "Attribute on mesh edge"
+msgstr "Atributo na aresta da malha"
+
+
 msgid "Face"
 msgstr "Faces"
+
+
+msgid "Attribute on mesh faces"
+msgstr "Atributo em faces de malha"
 
 
 msgid "Face Corner"
 msgstr "Canto da Face"
 
 
+msgid "Attribute on mesh face corner"
+msgstr "Atributo no canto da face da malha"
+
+
 msgid "Spline"
 msgstr "Spline"
+
+
+msgid "Attribute on spline"
+msgstr "Atributo na curva"
 
 
 msgid "Instance"
 msgstr "Instância"
 
 
+msgid "Attribute on instance"
+msgstr "Atributo na instância"
+
+
 msgid "Layer"
 msgstr "Camadas"
 
 
+msgid "Is Internal"
+msgstr "É interno"
+
+
+msgid "The attribute is meant for internal use by Blender"
+msgstr "O atributo é destinado ao uso interno do Blender"
+
+
+msgid "Is Required"
+msgstr "É necessário"
+
+
+msgid "Whether the attribute can be removed or renamed"
+msgstr "Se o atributo pode ser removido ou renomeado"
+
+
+msgid "Name of the Attribute"
+msgstr "Nome do Atributo"
+
+
+msgid "Bool Attribute"
+msgstr "Atributo Booleano"
+
+
+msgid "Geometry attribute that stores booleans"
+msgstr "Atributo de geometria que armazena booleanos"
+
+
+msgid "Byte Color Attribute"
+msgstr "Atributo de cor de byte"
+
+
+msgid "Geometry attribute that stores RGBA colors as positive integer values using 8-bits per channel"
+msgstr "Atributo de geometria que armazena cores RGBA como valores inteiros positivos usando 8 bits por canal"
+
+
+msgid "Geometry attribute that stores 8-bit integers"
+msgstr "Atributo de geometria que armazena inteiros de 8-bits"
+
+
+msgid "Geometry attribute that stores floating-point 2D vectors"
+msgstr "Atributo de geometria que armazena vetores 2D de ponto flutuante"
+
+
+msgid "Float Attribute"
+msgstr "Atributo decimal (Float)"
+
+
+msgid "Geometry attribute that stores floating-point values"
+msgstr "Atributo de geometria que armazena valores decimais (de ponto flutuante)"
+
+
+msgid "Float Color Attribute"
+msgstr "Atributo decimal de cor (Float)"
+
+
+msgid "Geometry attribute that stores RGBA colors as floating-point values using 32-bits per channel"
+msgstr "Atributo de geometria que armazena cores RGBA como valores de ponto flutuante usando 32 bits por canal"
+
+
+msgid "Float Vector Attribute"
+msgstr "Vetor de atributo decimal (Float)"
+
+
+msgid "Geometry attribute that stores floating-point 3D vectors"
+msgstr "Atributo de geometria que armazena vetores 3D de ponto flutuante"
+
+
+msgid "2D Integer Vector Attribute"
+msgstr "Atributo de vetor 2D de inteiros"
+
+
+msgid "Geometry attribute that stores 2D integer vectors"
+msgstr "Atributo de geometria que armazena vetores 2D de inteiros"
+
+
+msgid "Integer Attribute"
+msgstr "Atributo de Inteiro"
+
+
+msgid "Geometry attribute that stores integer values"
+msgstr "Atributo de geometria que armazena valores inteiros"
+
+
+msgid "Quaternion Attribute"
+msgstr "Atributo Quatérnio"
+
+
+msgid "Geometry attribute that stores rotation"
+msgstr "Atributo de geometria que armazena rotação"
+
+
 msgid "String Attribute"
 msgstr "Atributo do Fio"
+
+
+msgid "Geometry attribute that stores strings"
+msgstr "Atributo de geometria que armazena sequências de texto"
+
+
+msgid "Attribute Group"
+msgstr "Grupo de Atributos"
+
+
+msgid "Group of geometry attributes"
+msgstr "Grupo de atributos de geometria"
 
 
 msgid "Active Attribute"
@@ -1290,6 +1654,34 @@ msgstr "Atributo Ativo"
 
 msgid "Active attribute"
 msgstr "Atributo ativo"
+
+
+msgid "Active Color"
+msgstr "Cor Ativa"
+
+
+msgid "Active color attribute for display and editing"
+msgstr "Atributo de cor ativo para exibição e edição"
+
+
+msgid "Active color attribute index"
+msgstr "Índice de atributos de cores ativos"
+
+
+msgid "Active Color Attribute"
+msgstr "Atributo de cor ativo"
+
+
+msgid "The name of the active color attribute for display and editing"
+msgstr "O nome do atributo de cor ativo para exibição e edição"
+
+
+msgid "Active Attribute Index"
+msgstr "Índice do Atributo Ativo"
+
+
+msgid "Active attribute index"
+msgstr "Índice do atributo ativo"
 
 
 msgid "Bake Data"
@@ -9309,6 +9701,18 @@ msgid "Whether this path is saved in bookmarks, or generated from OS"
 msgstr "Permite definir se este caminho será salvo através da marcação de favoritos, ou gerado a partir do sistema operacional."
 
 
+msgid "File Extensions"
+msgstr "Extensões de arquivo"
+
+
+msgid "Operator"
+msgstr "Operador"
+
+
+msgid "Label"
+msgstr "Rótulo"
+
+
 msgid "A file viewable in the File Browser"
 msgstr "Arquivo visualizável no Navegador de Arquivos"
 
@@ -15185,10 +15589,6 @@ msgstr "Cria imagens de aproximação em um diretório personalizado (o padrão 
 
 msgid "Node tree consisting of linked nodes used for shading, textures and compositing"
 msgstr "Árvore de nós consistindo de nós conectados, usados para sombreamento, texturas e composição."
-
-
-msgid "Label"
-msgstr "Rótulo"
 
 
 msgid "The node tree label"
@@ -38370,10 +38770,6 @@ msgid "Reverse Colors"
 msgstr "Inverter as cores"
 
 
-msgid "Flip direction of vertex colors inside faces"
-msgstr "Alterna a direção da pintura das cores dos vértices nas faces selecionadas."
-
-
 msgctxt "Operator"
 msgid "Rotate Colors"
 msgstr "Rotacionar cores"
@@ -46620,10 +47016,6 @@ msgid "Mask Filter"
 msgstr "Filtro de Máscara"
 
 
-msgid "Operator"
-msgstr "Operador"
-
-
 msgctxt "Operator"
 msgid "Init Mask"
 msgstr "Máscara de inicialização"
@@ -51869,14 +52261,6 @@ msgid "Active Palette Color"
 msgstr "Cor ativa da paleta"
 
 
-msgid "Refraction"
-msgstr "Refração"
-
-
-msgid "Denoising"
-msgstr "Redução de ruídos"
-
-
 msgid "Integrator Presets"
 msgstr "Predefinições de integrador"
 
@@ -52359,6 +52743,10 @@ msgstr "Reluzir"
 
 msgid "Indirect Lighting"
 msgstr "Iluminação indireta"
+
+
+msgid "Denoising"
+msgstr "Redução de ruídos"
 
 
 msgid "Shadows"
@@ -56955,10 +57343,6 @@ msgstr "Cortar para Região de Renderização"
 
 msgid "Crop the rendered frame to the defined render region size"
 msgstr "Recorta o quadro renderizado para o tamanho definido nas margens"
-
-
-msgid "File Extensions"
-msgstr "Extensões de arquivo"
 
 
 msgid "Add the file format extensions to the rendered file name (eg: filename + .jpg)"
@@ -63410,8 +63794,8 @@ msgid "Display vertex-per-face normals as lines"
 msgstr "Mostra as normais dos vértices por face como linhas."
 
 
-msgid "Stat Vis"
-msgstr "Visualização de estatísticas"
+msgid "Mesh Analysis"
+msgstr "Análise da malha"
 
 
 msgid "Display statistical information about the mesh"
@@ -65203,6 +65587,10 @@ msgstr "Superior"
 
 msgid "Auto-Step"
 msgstr "Passos automáticos"
+
+
+msgid "Refraction"
+msgstr "Refração"
 
 
 msgctxt "Operator"
@@ -67242,11 +67630,6 @@ msgstr "Limpar máscara"
 
 
 msgctxt "Operator"
-msgid "Invert Visible Face Sets"
-msgstr "Inverter Conjunto de Faces Visíveis"
-
-
-msgctxt "Operator"
 msgid "By Loose Parts"
 msgstr "Através das partes soltas"
 
@@ -67427,10 +67810,6 @@ msgstr "Aguçar"
 
 msgid "Seams"
 msgstr "Costuras"
-
-
-msgid "Mesh Analysis"
-msgstr "Análise da malha"
 
 
 msgid "Edge Marks"
@@ -68154,10 +68533,6 @@ msgid "Int"
 msgstr "Inteiro"
 
 
-msgid "PreviewCol"
-msgstr "Cor de previsão"
-
-
 msgid "TexturedCol"
 msgstr "Cor texturizada"
 
@@ -68180,10 +68555,6 @@ msgstr "Chave de formato"
 
 msgid "OS Loop"
 msgstr "Ciclo de sistema operacional"
-
-
-msgid "PreviewLoopCol"
-msgstr "Previsão de ciclo de cor"
 
 
 msgid "Int8"
@@ -71868,6 +72239,10 @@ msgid "File '%s' could not be loaded"
 msgstr "Arquivo '%s' não pode ser carregado."
 
 
+msgid "Please select all related strips"
+msgstr "Por favor, selecione as faixas relacionadas."
+
+
 msgid "Cannot apply effects to audio sequence strips"
 msgstr "Não é possível aplicar efeitos para as faixas de sequência de áudio."
 
@@ -71890,10 +72265,6 @@ msgstr "PARA FAZER: em quais situações isto ocorre ?"
 
 msgid "No valid inputs to swap"
 msgstr "Sem entradas válidas para trocar."
-
-
-msgid "Please select all related strips"
-msgstr "Por favor, selecione as faixas relacionadas."
 
 
 msgid "Please select two strips"

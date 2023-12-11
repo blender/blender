@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'72b6c44e759b')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'274dc815eb35')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-04 11:06:00\n"
+"POT-Creation-Date: 2023-12-11 11:18:04\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Martin Reininger <martinreininger@gmx.net>\n"
 "Language-Team: German translation team\n"
@@ -9759,6 +9759,18 @@ msgid "Save"
 msgstr "Speichern"
 
 
+msgid "File Extensions"
+msgstr "Dateiendungen"
+
+
+msgid "Operator"
+msgstr "Operator"
+
+
+msgid "Label"
+msgstr "Beschriftung"
+
+
 msgid "File Select Entry"
 msgstr "Eintrag zur Dateiauswahl"
 
@@ -15433,10 +15445,6 @@ msgstr "Proxy-Bilder in einem benutzerdefinierten Verzeichnis erstellen (Standar
 
 msgid "Node tree consisting of linked nodes used for shading, textures and compositing"
 msgstr "Knotenbaum beinhaltet verknüpfte Knoten, die für Shading, Texturen und Kompositionen verwendet wurden"
-
-
-msgid "Label"
-msgstr "Beschriftung"
 
 
 msgid "Grease Pencil Data"
@@ -32957,10 +32965,6 @@ msgid "Reverse Colors"
 msgstr "Farben umkehren"
 
 
-msgid "Flip direction of vertex colors inside faces"
-msgstr "Umkehrrichtung der Punktfarben innerhalb von Flächen"
-
-
 msgctxt "Operator"
 msgid "Rotate Colors"
 msgstr "Farben drehen"
@@ -38493,10 +38497,6 @@ msgid "Decrease Contrast"
 msgstr "Kontrast verringern"
 
 
-msgid "Operator"
-msgstr "Operator"
-
-
 msgctxt "Operator"
 msgid "Init Mask"
 msgstr "Maske initializieren"
@@ -42136,14 +42136,6 @@ msgid "Active Palette Color"
 msgstr "Aktive Farbpalette"
 
 
-msgid "Refraction"
-msgstr "Strahlenbrechnung"
-
-
-msgid "Denoising"
-msgstr "Rauschreduzierung"
-
-
 msgid "Integrator Presets"
 msgstr "Integrator-Voreinstellungen"
 
@@ -42746,6 +42738,10 @@ msgstr "Zähigkeit"
 
 msgid "Indirect Lighting"
 msgstr "Indirekte Beleuchtung"
+
+
+msgid "Denoising"
+msgstr "Rauschreduzierung"
 
 
 msgid "Shadows"
@@ -46680,10 +46676,6 @@ msgstr "Auf Renderbereich beschneiden"
 
 msgid "Crop the rendered frame to the defined render region size"
 msgstr "Beschneidet den gerenderten Rahmen auf die definierte Größe des Renderbereichs"
-
-
-msgid "File Extensions"
-msgstr "Dateiendungen"
 
 
 msgid "Add the file format extensions to the rendered file name (eg: filename + .jpg)"
@@ -54936,6 +54928,10 @@ msgid "Auto-Step"
 msgstr "Auto-Schritt"
 
 
+msgid "Refraction"
+msgstr "Strahlenbrechnung"
+
+
 msgctxt "Operator"
 msgid "Bake Indirect Lighting"
 msgstr "Indirekte Beleuchtung backen"
@@ -58671,10 +58667,6 @@ msgid "Int"
 msgstr "Int"
 
 
-msgid "PreviewCol"
-msgstr "Vorschaufarbe"
-
-
 msgid "TexturedCol"
 msgstr "Texturierte Farbe"
 
@@ -61689,20 +61681,20 @@ msgid "File '%s' could not be loaded"
 msgstr "Datei '%s' konnte nicht geladen werden"
 
 
-msgid "Cannot apply effects to audio sequence strips"
-msgstr "Effekt kann nicht auf Audio-Sequenzstreifen angewandt werden"
-
-
-msgid "Cannot apply effect to more than 3 sequence strips"
-msgstr "Effekt kann nicht auf mehr als 3 Sequenzstreifen angewandt werden"
-
-
 msgid "Please select all related strips"
 msgstr "Bitte alle beziehenden Streifen auswählen"
 
 
 msgid "No strips to paste"
 msgstr "Keine Streifen zum einfügen"
+
+
+msgid "Cannot apply effects to audio sequence strips"
+msgstr "Effekt kann nicht auf Audio-Sequenzstreifen angewandt werden"
+
+
+msgid "Cannot apply effect to more than 3 sequence strips"
+msgstr "Effekt kann nicht auf mehr als 3 Sequenzstreifen angewandt werden"
 
 
 msgid "Please select two strips"

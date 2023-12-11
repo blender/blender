@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'72b6c44e759b')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'274dc815eb35')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-04 11:06:00\n"
+"POT-Creation-Date: 2023-12-11 11:18:04\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -4241,6 +4241,18 @@ msgid "Save"
 msgstr "Sačuvaj"
 
 
+msgid "File Extensions"
+msgstr "Nastavci datoteka"
+
+
+msgid "Operator"
+msgstr "Operator"
+
+
+msgid "Label"
+msgstr "Naziv"
+
+
 msgid "Relative Path"
 msgstr "Relativna putanja"
 
@@ -6692,10 +6704,6 @@ msgstr "Datoteka filma"
 
 msgid "Node tree consisting of linked nodes used for shading, textures and compositing"
 msgstr "Drvo čvorova koje čine povezani čvorovi senčenja, tekstura i slaganja"
-
-
-msgid "Label"
-msgstr "Naziv"
 
 
 msgid "Grease Pencil Data"
@@ -18462,10 +18470,6 @@ msgid "Falloff Type"
 msgstr "Vrsta opadanja"
 
 
-msgid "Operator"
-msgstr "Operator"
-
-
 msgid "Sharpen"
 msgstr "Izoštreno"
 
@@ -22127,10 +22131,6 @@ msgstr "Ručno odredi broj procesa"
 
 msgid "Process the render result through the compositing pipeline, if compositing nodes are enabled"
 msgstr "Obradi rezultat renderovanja kroz proces slaganje, ako su omogućeni čvorovi slaganja"
-
-
-msgid "File Extensions"
-msgstr "Nastavci datoteka"
 
 
 msgid "Draw stylized strokes using Freestyle"

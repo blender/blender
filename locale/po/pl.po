@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'72b6c44e759b')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'274dc815eb35')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-04 11:06:00\n"
+"POT-Creation-Date: 2023-12-11 11:18:04\n"
 "PO-Revision-Date: 2017-08-26 11:13+0200\n"
 "Last-Translator: Mikołaj Juda <mikolaj.juda@gmail.com>\n"
 "Language: pl\n"
@@ -6684,10 +6684,6 @@ msgid "Col"
 msgstr "Kol"
 
 
-msgid "PreviewCol"
-msgstr "KolorPodglądu"
-
-
 msgid "TexturedCol"
 msgstr "TeksturowanyKolor"
 
@@ -6710,10 +6706,6 @@ msgstr "KluczKształtu"
 
 msgid "OS Loop"
 msgstr "OS Loop"
-
-
-msgid "PreviewLoopCol"
-msgstr "PreviewLoopCol"
 
 
 msgid "Not enough free memory"
@@ -9578,6 +9570,10 @@ msgid "File '%s' could not be loaded"
 msgstr "Plik '%s' nie mógł być załadowany"
 
 
+msgid "Please select all related strips"
+msgstr "Proszę zaznaczyć wszystkie powiązane paski"
+
+
 msgid "Cannot apply effects to audio sequence strips"
 msgstr "Nie można zaaplikować efektów na dźwiękowe paski sekwencji"
 
@@ -9600,10 +9596,6 @@ msgstr "TODO: w jakich przypadkach tak się dzieje?"
 
 msgid "No valid inputs to swap"
 msgstr "Brak prawidłowych wejść do zamiany"
-
-
-msgid "Please select all related strips"
-msgstr "Proszę zaznaczyć wszystkie powiązane paski"
 
 
 msgid "Please select two strips"

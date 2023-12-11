@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'72b6c44e759b')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'274dc815eb35')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-04 11:06:00\n"
-"PO-Revision-Date: 2023-12-04 05:17+0000\n"
-"Last-Translator: Gabriel Gazzán <gabcorreo@gmail.com>\n"
+"POT-Creation-Date: 2023-12-11 11:18:04\n"
+"PO-Revision-Date: 2023-12-09 04:50+0000\n"
+"Last-Translator: Darwin Yip <yipdarwin+blender@gmail.com>\n"
 "Language-Team: Spanish <https://translate.blender.org/projects/blender-ui/ui/es/>\n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
@@ -1456,6 +1456,10 @@ msgstr "Mostrar los elementos basicos y utilidades que vienen con Blender"
 
 msgid "Custom"
 msgstr "Personalizado"
+
+
+msgid "Show assets from the asset libraries configured in the Preferences"
+msgstr "Mostrar recursos de las bibliotecas de recursos configurados en las preferencias"
 
 
 msgid "ID Name"
@@ -13116,6 +13120,18 @@ msgstr "Guardar"
 
 msgid "Whether this path is saved in bookmarks, or generated from OS"
 msgstr "Indica si esta ruta se encuentra guardada en los marcadores o proviene del sistema operativo"
+
+
+msgid "File Extensions"
+msgstr "Extensiones de archivo"
+
+
+msgid "Operator"
+msgstr "Operador"
+
+
+msgid "Label"
+msgstr "Etiqueta"
 
 
 msgid "File Select Entry"
@@ -25425,6 +25441,14 @@ msgid "True if this material has grease pencil data"
 msgstr "Verdadero si este material contiene datos de lápiz de cera"
 
 
+msgid "Light Probe Volume Single Sided"
+msgstr "Volumen de sonda de luz de un solo lado"
+
+
+msgid "Consider material single sided for light probe volume capture. Additionally helps rejecting probes inside the object to avoid light leaks"
+msgstr "Considere el material de un solo lado para la captura del volumen de la sonda de luz. Además ayuda a rechazar sondas dentro del objeto para evitar fugas de luz"
+
+
 msgid "Line Color"
 msgstr "Color de línea"
 
@@ -25623,6 +25647,18 @@ msgstr "Especularidad"
 
 msgid "How intense (bright) the specular reflection is"
 msgstr "Qué tan intensa es la reflectividad"
+
+
+msgid "Surface Render Method"
+msgstr "Método de procesar superficie"
+
+
+msgid "Controls the blending and the compatibility with certain features"
+msgstr "Controla la mezcla y la compatibilidad con ciertas características"
+
+
+msgid "Blended"
+msgstr "Mezclado"
 
 
 msgid "Texture Slot Images"
@@ -26071,10 +26107,6 @@ msgstr "Crea las imágenes de reemplazo en un directorio personalizado (el direc
 
 msgid "Node tree consisting of linked nodes used for shading, textures and compositing"
 msgstr "Árbol de nodos compuesto por nodos vinculados entre sí; usados para sombreado, texturizado y composición"
-
-
-msgid "Label"
-msgstr "Etiqueta"
 
 
 msgid "The node tree label"
@@ -51356,11 +51388,6 @@ msgid "Name of the bone collection to unassign this bone from; empty to unassign
 msgstr "Nombre de la colección de la cual quitar este hueso; dejar vacío para quitarlo de la colección activa"
 
 
-msgctxt "Operator"
-msgid "Remove Bone from Bone collections"
-msgstr "Eliminar hueso de colección de huesos"
-
-
 msgid "Unassign the bone from this bone collection"
 msgstr "Quita el hueso de esta colección de huesos"
 
@@ -63015,17 +63042,9 @@ msgid "Reverse Colors"
 msgstr "Invertir colores"
 
 
-msgid "Flip direction of vertex colors inside faces"
-msgstr "Invierte la dirección de los colores de vértices dentro de las caras"
-
-
 msgctxt "Operator"
 msgid "Rotate Colors"
 msgstr "Rotar colores"
-
-
-msgid "Rotate color attributes inside faces"
-msgstr "Rota los atributos de color dentro de las caras"
 
 
 msgid "Counter Clockwise"
@@ -75207,19 +75226,6 @@ msgid "Modify Hidden"
 msgstr "Modificar ocultos"
 
 
-msgid "Apply the edit operation to hidden Face Sets"
-msgstr "Permite aplicar la operación de edición a los conjuntos de caras ocultos"
-
-
-msgctxt "Operator"
-msgid "Invert Face Set Visibility"
-msgstr "Invertir visibilidad de conjuntos de caras"
-
-
-msgid "Invert the visibility of the Face Sets of the sculpt"
-msgstr "Permite invertir la visibilidad de los conjuntos de caras de la escultura"
-
-
 msgctxt "Operator"
 msgid "Face Set Lasso Gesture"
 msgstr "Gesto de conjunto de caras con lazo"
@@ -75481,10 +75487,6 @@ msgstr "Modo de mezcla"
 
 msgid "Use settings from here"
 msgstr "Usar opciones de aquí"
-
-
-msgid "Operator"
-msgstr "Operador"
 
 
 msgid "Use settings from operator properties"
@@ -84706,18 +84708,6 @@ msgid "Panel containing UI elements"
 msgstr "Panel que contiene elementos de la interfaz"
 
 
-msgid "Refraction"
-msgstr "Refracción"
-
-
-msgid "Screen Tracing"
-msgstr "Trazado en pantalla"
-
-
-msgid "Denoising"
-msgstr "Reducción de ruidos"
-
-
 msgid "Light Groups"
 msgstr "Grupos de luces"
 
@@ -85596,8 +85586,16 @@ msgid "Indirect Lighting"
 msgstr "Iluminación indirecta"
 
 
+msgid "Denoising"
+msgstr "Reducción de ruidos"
+
+
 msgid "Raytracing"
 msgstr "Trazado de rayos"
+
+
+msgid "Screen Tracing"
+msgstr "Trazado en pantalla"
 
 
 msgid "Shadows"
@@ -93603,10 +93601,6 @@ msgid "Crop the rendered frame to the defined render region size"
 msgstr "Recorta la imagen procesada al tamaño definido por la región"
 
 
-msgid "File Extensions"
-msgstr "Extensiones de archivo"
-
-
 msgid "Add the file format extensions to the rendered file name (eg: filename + .jpg)"
 msgstr "Agrega la extensión del formato de archivo al nombre del archivo procesado (p.ej: nombre + .jpg)"
 
@@ -94775,14 +94769,6 @@ msgid "Brightness threshold for using sprite base depth of field"
 msgstr "Umbral de brillo para la profundidad de campo basada en sprites"
 
 
-msgid "Diffuse Trace Options"
-msgstr "Opciones de trazado de difusión"
-
-
-msgid "EEVEE settings for tracing diffuse reflections"
-msgstr "Opciones de EEVEE para el trazado de rayos de reflexión difusa"
-
-
 msgid "Auto Bake"
 msgstr "Captura automática"
 
@@ -94995,26 +94981,6 @@ msgid "Percentage of render size to add as overscan to the internal render buffe
 msgstr "Porcentaje del tamaño de procesamiento a agregar como sobrebarrido a los buffers internos de procesamiento"
 
 
-msgid "Options Split"
-msgstr "División de opciones"
-
-
-msgid "Split settings per ray type"
-msgstr "Divide las opciones por tipo de rayo"
-
-
-msgid "Unified"
-msgstr "Unificado"
-
-
-msgid "All ray types use the same settings"
-msgstr "Todos los tipos de rayo usarán las mismas opciones"
-
-
-msgid "Settings are individual to each ray type"
-msgstr "Opciones individuales para cada tipo de rayo"
-
-
 msgid "Tracing Method"
 msgstr "Método de trazado"
 
@@ -95041,14 +95007,6 @@ msgstr "Opciones de trazado de reflexión"
 
 msgid "EEVEE settings for tracing reflections"
 msgstr "Opciones de EEVEE para el trazado de reflexiones"
-
-
-msgid "Refraction Trace Options"
-msgstr "Opciones de trazado de refracción"
-
-
-msgid "EEVEE settings for tracing refractions"
-msgstr "Opciones de EEVEE para el trazado de refracciones"
 
 
 msgid "Directional Shadows Resolution"
@@ -104642,8 +104600,8 @@ msgid "Display scene statistics overlay text"
 msgstr "Mostrar sobreimpreso texto con estadísticas de la escena"
 
 
-msgid "Stat Vis"
-msgstr "Vis. estad."
+msgid "Mesh Analysis"
+msgstr "Análisis de mallas"
 
 
 msgid "Display statistical information about the mesh"
@@ -106108,10 +106066,6 @@ msgstr "Acción flotante, representando un botón digital o analógico"
 
 msgid "Vector2D"
 msgstr "Vector2D"
-
-
-msgid "2D float vector action, representing a thumbstick or trackpad"
-msgstr "Acción vectorial 2D decimal, representando un panel táctil"
 
 
 msgid "3D pose action, representing a controller's location and rotation"
@@ -107587,11 +107541,6 @@ msgstr "Detener retroceso"
 msgctxt "WindowManager"
 msgid "Stop Move Left"
 msgstr "Detener mov a izquierda"
-
-
-msgctxt "WindowManager"
-msgid "Stop Mode Right"
-msgstr "Detener mov a derecha"
 
 
 msgctxt "WindowManager"
@@ -109149,6 +109098,10 @@ msgstr "Agregar variante de material"
 
 msgid "No glTF Animation"
 msgstr "No existe ninguna animación glTF"
+
+
+msgid "No Actions in .blend file"
+msgstr "No hay acciones en el archivo .blend"
 
 
 msgid "Variant"
@@ -112436,6 +112389,10 @@ msgid "Light Clamping"
 msgstr "Limitación de luz"
 
 
+msgid "Refraction"
+msgstr "Refracción"
+
+
 msgid "Cascade Size"
 msgstr "Tamaño cascada"
 
@@ -113636,6 +113593,16 @@ msgstr "Pantalla completa"
 msgctxt "Operator"
 msgid "Sound"
 msgstr "Sonido"
+
+
+msgctxt "Operator"
+msgid "Move Up"
+msgstr "Mover arriba"
+
+
+msgctxt "Operator"
+msgid "Move Down"
+msgstr "Mover abajo"
 
 
 msgctxt "Operator"
@@ -116141,16 +116108,6 @@ msgstr "Extraer conjunto de caras"
 
 
 msgctxt "Operator"
-msgid "Invert Visible Face Sets"
-msgstr "Invertir conjuntos de caras visibles"
-
-
-msgctxt "Operator"
-msgid "Show All Face Sets"
-msgstr "Mostrar todos los conjuntos de caras"
-
-
-msgctxt "Operator"
 msgid "Randomize Colors"
 msgstr "Aleatorizar colores"
 
@@ -116572,10 +116529,6 @@ msgstr "Costuras"
 
 msgid "Vertex Group Weights"
 msgstr "Influencias de grupos de vértices"
-
-
-msgid "Mesh Analysis"
-msgstr "Análisis de mallas"
 
 
 msgid "Face Angle"
@@ -117997,10 +117950,6 @@ msgid "Int"
 msgstr "Entero"
 
 
-msgid "PreviewCol"
-msgstr "ColPrevisualización"
-
-
 msgid "TexturedCol"
 msgstr "ColTexturizado"
 
@@ -118023,10 +117972,6 @@ msgstr "Forma clave"
 
 msgid "OS Loop"
 msgstr "Bucle del SO"
-
-
-msgid "PreviewLoopCol"
-msgstr "ColPrevisualizaciónBucle"
 
 
 msgid "Int8"
@@ -118596,10 +118541,6 @@ msgid "No valid formats found"
 msgstr "No se encontraron formatos válidos"
 
 
-msgid "Can't allocate ffmpeg format context"
-msgstr "No es posible asignar el contexto del formato FFmpeg"
-
-
 msgid "Render width has to be 720 pixels for DV!"
 msgstr "¡El ancho de la imagen procesada debe ser de 720 píxeles para DV!"
 
@@ -118610,10 +118551,6 @@ msgstr "¡La altura de la imagen procesada debe ser de 480 píxeles para DV-NTSC
 
 msgid "Render height has to be 576 pixels for DV-PAL!"
 msgstr "¡La altura de la imagen procesada debe ser de 576 píxeles para DV-PAL!"
-
-
-msgid "FFmpeg only supports 48khz / stereo audio for DV!"
-msgstr "¡FFmpeg sólo soporta audio estéreo de 48khz para DV!"
 
 
 msgid "Error initializing video stream"
@@ -125894,6 +125831,14 @@ msgid "File '%s' could not be loaded"
 msgstr "No fue posible cargar el archivo '%s'"
 
 
+msgid "Please select all related strips"
+msgstr "Por favor seleccionar todos los clips relacionados"
+
+
+msgid "No strips to paste"
+msgstr "No hay clips para pegar"
+
+
 msgid "Slip offset: %s"
 msgstr "Deslizamiento: %s"
 
@@ -125932,14 +125877,6 @@ msgstr "No es posible reasignar las entradas: se ha detectado una recursión"
 
 msgid "No valid inputs to swap"
 msgstr "No hay entradas válidas para intercambiar"
-
-
-msgid "Please select all related strips"
-msgstr "Por favor seleccionar todos los clips relacionados"
-
-
-msgid "No strips to paste"
-msgstr "No hay clips para pegar"
 
 
 msgid "Please select two strips"
@@ -132073,10 +132010,6 @@ msgid "Incident"
 msgstr "Incidente"
 
 
-msgid "Ior"
-msgstr "IR"
-
-
 msgid "No mesh in active object"
 msgstr "Ninguna malla en el objeto activo"
 
@@ -133831,6 +133764,10 @@ msgid "Interpolates existing guide curves on a surface mesh"
 msgstr "Interpola las curvas guía existentes sobre la superficie de una malla"
 
 
+msgid "Follow Surface Normal"
+msgstr "Seguir la normal de la superficie"
+
+
 msgid "Redistribute Curve Points"
 msgstr "Redistribuir puntos de curva"
 
@@ -133855,6 +133792,18 @@ msgid "Rolls up hair curves starting from their tips"
 msgstr "Enrolla las curvas de pelo, desde sus puntas"
 
 
+msgid "Variation Level"
+msgstr "Nivel de variación"
+
+
+msgid "Retain Overall Shape"
+msgstr "Conservar la forma general"
+
+
+msgid "Roll Direction"
+msgstr "Dirección de rollo"
+
+
 msgid "Rotate Hair Curves"
 msgstr "Rotar curvas de pelo"
 
@@ -133867,12 +133816,24 @@ msgid "Sets the radius attribute of hair curves according to a profile shape"
 msgstr "Define el atributo de radio de las curvas de pelo mediante una forma de perfil"
 
 
+msgid "Replace Radius"
+msgstr "Reemplazar radio"
+
+
+msgid "Replace the original radius"
+msgstr "Reemplazar el radio original"
+
+
 msgid "Shrinkwrap Hair Curves"
 msgstr "Envolver curvas de pelo"
 
 
 msgid "Shrinkwraps hair curves to a mesh surface from below and optionally from above"
 msgstr "Envuelve las curvas de pelo alrededor de la superficie de una malla situada por debajo y opcionalmente por encima"
+
+
+msgid "Lock Roots"
+msgstr "Encerrar raíces"
 
 
 msgid "Smooth Hair Curves"
@@ -133883,12 +133844,24 @@ msgid "Smoothes the shape of hair curves"
 msgstr "Suaviza la forma de las curvas de pelo"
 
 
+msgid "Lock Tips"
+msgstr "Encerrar puntas"
+
+
+msgid "Lock tip position when smoothing"
+msgstr "Encerrar posición de la punta al alisar"
+
+
 msgid "Straighten Hair Curves"
 msgstr "Enderezar curvas de pelo"
 
 
 msgid "Straightens hair curves between root and tip"
 msgstr "Endereza las curvas de pelo, de su raíz a su punta"
+
+
+msgid "Amount of straightening"
+msgstr "Cantidad de alisado"
 
 
 msgid "Trim Hair Curves"
@@ -133899,6 +133872,22 @@ msgid "Trims or scales hair curves to a certain length"
 msgstr "Recorta o escala las curvas de pelo a una cierta longitud"
 
 
+msgid "Multiply the original length by a factor"
+msgstr "Multiplicar el largo original por un factor"
+
+
+msgid "Mask to blend overall effect"
+msgstr "Máscara para mezclar el efecto general"
+
+
 msgid "Smooth by Angle"
 msgstr "Suavizar por ángulo"
+
+
+msgid "Maximum face angle for smooth edges"
+msgstr "Ángulo de cara máximo para bordes lisos"
+
+
+msgid "Ignore Sharpness"
+msgstr "Ignorar nitidez"
 

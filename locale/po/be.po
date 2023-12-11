@@ -1,0 +1,360 @@
+
+msgid ""
+msgstr ""
+"Project-Id-Version: Blender 4.1.0 Alpha (b'274dc815eb35')\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-12-11 11:18:04\n"
+"PO-Revision-Date: 2023-12-11 10:35+0000\n"
+"Last-Translator: Aleh <zucchini.enjoyer@protonmail.com>\n"
+"Language-Team: Belarusian <https://translate.blender.org/projects/blender-ui/ui/be/>\n"
+"Language: be\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"X-Generator: Weblate 5.0.1"
+
+
+msgid "Shader AOV"
+msgstr "Шэйдар АВП"
+
+
+msgid "Valid"
+msgstr "Сапраўдны"
+
+
+msgid "Is the name of the AOV conflicting"
+msgstr "Ці канфліктуе назва АВП"
+
+
+msgid "Name"
+msgstr "Назва"
+
+
+msgid "Name of the AOV"
+msgstr "Назва АВП"
+
+
+msgid "Type"
+msgstr "Тып"
+
+
+msgid "Data type of the AOV"
+msgstr "Тып дадзеных АВП"
+
+
+msgid "Color"
+msgstr "Колер"
+
+
+msgid "Value"
+msgstr "Значэнне"
+
+
+msgid "List of AOVs"
+msgstr "Спіс АВП"
+
+
+msgid "Collection of AOVs"
+msgstr "Калекцыя АВП"
+
+
+msgid "Action F-Curves"
+msgstr "Ф-крывыя дзеянняў"
+
+
+msgid "Collection of action F-Curves"
+msgstr "Калекцыя Ф-крывых дзеянняў"
+
+
+msgid "Action Group"
+msgstr "Група дзеянняў"
+
+
+msgid "Groups of F-Curves"
+msgstr "Групы Ф-крывых"
+
+
+msgid "Channels"
+msgstr "Каналы"
+
+
+msgid "F-Curves in this group"
+msgstr "Ф-крывыя ў гэтай групе"
+
+
+msgid "Color Set"
+msgstr "Набор колераў"
+
+
+msgid "Custom color set to use"
+msgstr "Карыстальніцкі набор колераў для выкарыстання"
+
+
+msgid "Default Colors"
+msgstr "Колеры па змаўчанні"
+
+
+msgid "01 - Theme Color Set"
+msgstr "01 - Колеравая тэма"
+
+
+msgid "02 - Theme Color Set"
+msgstr "02 - Колеравая тэма"
+
+
+msgid "03 - Theme Color Set"
+msgstr "03 - Колеравая тэма"
+
+
+msgid "04 - Theme Color Set"
+msgstr "04 - Колеравая тэма"
+
+
+msgid "05 - Theme Color Set"
+msgstr "05 - Колеравая тэма"
+
+
+msgid "06 - Theme Color Set"
+msgstr "06 - Колеравая тэма"
+
+
+msgid "07 - Theme Color Set"
+msgstr "07 - Колеравая тэма"
+
+
+msgid "08 - Theme Color Set"
+msgstr "08 - Колеравая тэма"
+
+
+msgid "09 - Theme Color Set"
+msgstr "09 - Колеравая тэма"
+
+
+msgid "10 - Theme Color Set"
+msgstr "10 - Колеравая тэма"
+
+
+msgid "11 - Theme Color Set"
+msgstr "11 - Колеравая тэма"
+
+
+msgid "12 - Theme Color Set"
+msgstr "12 - Колеравая тэма"
+
+
+msgid "13 - Theme Color Set"
+msgstr "13 - Колеравая тэма"
+
+
+msgid "14 - Theme Color Set"
+msgstr "14 - Колеравая тэма"
+
+
+msgid "15 - Theme Color Set"
+msgstr "15 - Колеравая тэма"
+
+
+msgid "16 - Theme Color Set"
+msgstr "16 - Колеравая тэма"
+
+
+msgid "17 - Theme Color Set"
+msgstr "17 - Колеравая тэма"
+
+
+msgid "18 - Theme Color Set"
+msgstr "18 - Колеравая тэма"
+
+
+msgid "19 - Theme Color Set"
+msgstr "19 - Колеравая тэма"
+
+
+msgid "20 - Theme Color Set"
+msgstr "20 - Колеравая тэма"
+
+
+msgid "Custom Color Set"
+msgstr "Карыстальніцкі набор колераў"
+
+
+msgid "Colors"
+msgstr "Колеры"
+
+
+msgid "Copy of the colors associated with the group's color set"
+msgstr "Копія колераў, асацыяваных з наборам колераў групы"
+
+
+msgid "Color set is user-defined instead of a fixed theme color set"
+msgstr "Набор колераў, зададзены карыстальнікам, замест фіксаванай колеравай тэмы"
+
+
+msgid "Lock"
+msgstr "Заблакаваць"
+
+
+msgid "Action group is locked"
+msgstr "Група дзеянняў заблакавана"
+
+
+msgid "Mute"
+msgstr "Прыглушыць"
+
+
+msgid "Action group is muted"
+msgstr "Група дзеянняў прыглушана"
+
+
+msgid "Select"
+msgstr "Выбраць"
+
+
+msgid "Action group is selected"
+msgstr "Група дзеянняў выбрана"
+
+
+msgid "Expanded"
+msgstr "Разгорнуты"
+
+
+msgid "Action group is expanded except in graph editor"
+msgstr "Група дзеянняў разгорнута, акрамя рэдактара графаў"
+
+
+msgid "Expanded in Graph Editor"
+msgstr "Разгорнута ў рэдактары графаў"
+
+
+msgid "Action group is expanded in graph editor"
+msgstr "Група дзеянняў разгорнута ў рэдактары графаў"
+
+
+msgid "Pin in Graph Editor"
+msgstr "Прышпіліць у рэдактары графаў"
+
+
+msgid "Action Groups"
+msgstr "Групы дзеянняў"
+
+
+msgid "Collection of action groups"
+msgstr "Калекцыя груп дзеянняў"
+
+
+msgid "Action Pose Markers"
+msgstr "Маркеры поз дзеянняў"
+
+
+msgid "Collection of timeline markers"
+msgstr "Калекцыя маркераў шкалы часу"
+
+
+msgid "Active Pose Marker"
+msgstr "Актыўны маркер позы"
+
+
+msgid "Active pose marker for this action"
+msgstr "Актыўны маркер позы для гэтага дзеяння"
+
+
+msgid "Active Pose Marker Index"
+msgstr "Індэкс актыўнага маркера позы"
+
+
+msgid "Index of active pose marker"
+msgstr "Індэкс актыўнага маркера позы"
+
+
+msgid "Add-on"
+msgstr "Дадатак"
+
+
+msgid "Python add-ons to be loaded automatically"
+msgstr "Дадаткі Python, якія будуць загружацца аўтаматычна"
+
+
+msgid "Module"
+msgstr "Модуль"
+
+
+msgid "Module name"
+msgstr "Назва модуля"
+
+
+msgid "Add-on Preferences"
+msgstr "Налады дадатка"
+
+
+msgid "Password"
+msgstr "Пароль"
+
+
+msgid "E-mail address"
+msgstr "Адрасы электроннай пошты"
+
+
+msgid "Error Message"
+msgstr "Паведамленне аб памылцы"
+
+
+msgid "Message"
+msgstr "Паведамленне"
+
+
+msgid "Compute Device Type"
+msgstr "Тып вылічальнай прылады"
+
+
+msgid "Device to use for computation (rendering with Cycles)"
+msgstr "Прылада, якая выкарыстоўваецца для вылічэння (рэндэрынг з дапамогай Cycles)"
+
+
+msgid "Kernel Optimization"
+msgstr "Аптымізацыя ядра"
+
+
+msgid "Kernels can be optimized based on scene content. Optimized kernels are requested at the start of a render. If optimized kernels are not available, rendering will proceed using generic kernels until the optimized set is available in the cache. This can result in additional CPU usage for a brief time (tens of seconds)"
+msgstr "Ядры могуць быць аптымізаваныя на грунце змесціва сцэны. Аптымізаваныя ядры запытваюцца ў пачатку рэндэрынгу. Калі аптымізаваныя ядры недаступныя, рэндэрынг будзе адбывацца з выкарыстаннем агульных ядраў, пакуль аптымізаваны набор не будзе даступны ў кэшы. Гэта можа прывесці да дадатковага выкарыстання ЦП на кароткі час (дзясяткі секундаў)"
+
+
+msgid "Off"
+msgstr "Выключана"
+
+
+msgid "Disable kernel optimization. Slowest rendering, no extra background CPU usage"
+msgstr "Адключэнне аптымізацыі ядра. Самы павольны рэндэрынг, без дадатковай фонавай загрузкі ЦП"
+
+
+msgid "Intersection only"
+msgstr "Толькі перасячэнні"
+
+
+msgid "Optimize only intersection kernels. Faster rendering, negligible extra background CPU usage"
+msgstr "Аптымізацыя толькі ядраў перасячэння. Больш хуткі рэндэрынг, нязначнае дадатковае выкарыстанне ЦП ў фонавым рэжыме"
+
+
+msgid "Full"
+msgstr "Поўнае"
+
+
+msgid "Optimize all kernels. Fastest rendering, may result in extra background CPU usage"
+msgstr "Аптымізацыя ўсіх ядраў. Самы хуткі рэндэрынг, можа прывесці да дадатковай загрузцы ЦП ў фонавым рэжыме"
+
+
+msgid "MetalRT"
+msgstr "MetalRT"
+
+
+msgid "MetalRT for ray tracing uses less memory for scenes which use curves extensively, and can give better performance in specific cases"
+msgstr "MetalRT выкарыстоўвае менш памяці для трасіроўкі прамянёў у сцэнах, якія актыўна выкарыстоўваюць крывыя, і можа даць лепшую прадукцыйнасць у пэўных выпадках"
+
+
+msgid "On"
+msgstr "Уключана"
+
+
+msgid "Import Paths"
+msgstr "Шляхі імпарту"
+

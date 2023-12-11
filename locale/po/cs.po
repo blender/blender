@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'72b6c44e759b')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'274dc815eb35')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-04 11:06:00\n"
+"POT-Creation-Date: 2023-12-11 11:18:04\n"
 "PO-Revision-Date: 2023-10-12 15:54+0000\n"
 "Last-Translator: Zdeněk Doležal <Griperis@outlook.cz>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -7131,6 +7131,18 @@ msgid "Save"
 msgstr "Uložit"
 
 
+msgid "File Extensions"
+msgstr "Přípony souborů"
+
+
+msgid "Operator"
+msgstr "Operátor"
+
+
+msgid "Label"
+msgstr "Úroveň"
+
+
 msgid "Icon ID"
 msgstr "ID Ikony"
 
@@ -10711,10 +10723,6 @@ msgstr "Editační mód"
 
 msgid "Proxy Custom Directory"
 msgstr "Adresář zvuků"
-
-
-msgid "Label"
-msgstr "Úroveň"
 
 
 msgid "Grease Pencil Data"
@@ -23894,10 +23902,6 @@ msgid "Reverse Colors"
 msgstr "Nová vertexová barva"
 
 
-msgid "Flip direction of vertex colors inside faces"
-msgstr "Přepíná směr vybraných ploškových vrcholů a ploškových normál"
-
-
 msgctxt "Operator"
 msgid "Rotate Colors"
 msgstr "Vložit barvu"
@@ -29179,10 +29183,6 @@ msgid "Decrease Contrast"
 msgstr "Snížit Kontrast"
 
 
-msgid "Operator"
-msgstr "Operátor"
-
-
 msgctxt "Operator"
 msgid "Filter Mesh"
 msgstr "Filtrovat Síť"
@@ -32427,14 +32427,6 @@ msgid "Restrict"
 msgstr "Omezit"
 
 
-msgid "Refraction"
-msgstr "Lom"
-
-
-msgid "Denoising"
-msgstr "Odstranění šumu"
-
-
 msgid "Integrator Presets"
 msgstr "Generátory"
 
@@ -33017,6 +33009,10 @@ msgstr "Viskozita"
 
 msgid "Indirect Lighting"
 msgstr "Nepřímé osvětlení"
+
+
+msgid "Denoising"
+msgstr "Odstranění šumu"
 
 
 msgid "Shadows"
@@ -35913,10 +35909,6 @@ msgstr "Oříznout do Oblasti Vykreslení"
 
 msgid "Crop the rendered frame to the defined render region size"
 msgstr "Oříznout vykreslený snímek do definovaný velikosti vykreslovací oblasti"
-
-
-msgid "File Extensions"
-msgstr "Přípony souborů"
 
 
 msgid "Draw stylized strokes using Freestyle"
@@ -39715,6 +39707,10 @@ msgid "Show dashed lines indicating parent or constraint relationships"
 msgstr "Zobrazuje čárkované čáry naznačující vztahy s nadřazenými objekty, nebo vazby mezi objekty"
 
 
+msgid "Mesh Analysis"
+msgstr "Analýza sítě"
+
+
 msgid "Display vertex normals as lines"
 msgstr "Zobrazí normály vertexů pomocí čárek"
 
@@ -41212,6 +41208,10 @@ msgstr "Automaticky"
 
 msgid "Light Clamping"
 msgstr "Svorka Světla"
+
+
+msgid "Refraction"
+msgstr "Lom"
 
 
 msgid "Cascade Size"
@@ -43109,16 +43109,6 @@ msgstr "Sada Ploch z Viditelného"
 
 
 msgctxt "Operator"
-msgid "Invert Visible Face Sets"
-msgstr "Invertovat Viditelné Sady Ploch"
-
-
-msgctxt "Operator"
-msgid "Show All Face Sets"
-msgstr "Zobrazit Všechny Viditelné Sady Ploch"
-
-
-msgctxt "Operator"
 msgid "Randomize Colors"
 msgstr "Randomizovat barvy"
 
@@ -43348,10 +43338,6 @@ msgstr "Ostré"
 
 msgid "Seams"
 msgstr "Švy"
-
-
-msgid "Mesh Analysis"
-msgstr "Analýza sítě"
 
 
 msgid "Face Angle"
@@ -45875,6 +45861,10 @@ msgid "Mask not found"
 msgstr "Maska nebyla nalezena"
 
 
+msgid "Please select all related strips"
+msgstr "Odstranit označené značky"
+
+
 msgid "Cannot apply effects to audio sequence strips"
 msgstr "První frame animace"
 
@@ -45885,10 +45875,6 @@ msgstr "První frame animace"
 
 msgid "No valid inputs to swap"
 msgstr "Jméno skriptu"
-
-
-msgid "Please select all related strips"
-msgstr "Odstranit označené značky"
 
 
 msgid "Please select two strips"

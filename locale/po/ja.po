@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'72b6c44e759b')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'274dc815eb35')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-04 11:06:00\n"
-"PO-Revision-Date: 2023-10-30 06:54+0000\n"
+"POT-Creation-Date: 2023-12-11 11:18:04\n"
+"PO-Revision-Date: 2023-12-04 21:38+0000\n"
 "Last-Translator: Satoshi Yamasaki <yamyam@yo.rim.or.jp>\n"
 "Language-Team: Japanese <https://translate.blender.org/projects/blender-ui/ui/ja/>\n"
 "Language: ja\n"
@@ -345,6 +345,10 @@ msgstr "フル"
 
 msgid "Optimize all kernels. Fastest rendering, may result in extra background CPU usage"
 msgstr "全カーネルを最適化します．レンダリングが最も高速になりますが，バックグラウンドでの CPU の使用が追加されます"
+
+
+msgid "MetalRT"
+msgstr "MetalRT"
 
 
 msgid "On"
@@ -13191,6 +13195,18 @@ msgstr "保存"
 
 msgid "Whether this path is saved in bookmarks, or generated from OS"
 msgstr "このパスをブックマークに保存，または OS から生成します"
+
+
+msgid "File Extensions"
+msgstr "ファイル拡張子"
+
+
+msgid "Operator"
+msgstr "オペレーター"
+
+
+msgid "Label"
+msgstr "ラベル"
 
 
 msgid "File Select Entry"
@@ -26300,10 +26316,6 @@ msgstr "プロキシ画像をカスタムディレクトリに作成します（
 
 msgid "Node tree consisting of linked nodes used for shading, textures and compositing"
 msgstr "シェーディング，テクスチャ，コンポジティングで使用される，ノードの連結からなるノードツリー"
-
-
-msgid "Label"
-msgstr "ラベル"
 
 
 msgid "The node tree label"
@@ -51742,11 +51754,6 @@ msgid "Name of the bone collection to unassign this bone from; empty to unassign
 msgstr "割り当てを解除するボーンのボーンコレクション名．空でアクティブボーンコレクションから割り当て解除します"
 
 
-msgctxt "Operator"
-msgid "Remove Bone from Bone collections"
-msgstr "ボーンをボーンコレクションから除外"
-
-
 msgid "Unassign the bone from this bone collection"
 msgstr "ボーンをこのボーンコレクションから割り当て解除します"
 
@@ -63522,17 +63529,9 @@ msgid "Reverse Colors"
 msgstr "色を反転"
 
 
-msgid "Flip direction of vertex colors inside faces"
-msgstr "面内のカラー属性の方向を反転します"
-
-
 msgctxt "Operator"
 msgid "Rotate Colors"
 msgstr "色を回転"
-
-
-msgid "Rotate color attributes inside faces"
-msgstr "面の中でカラー属性を回転させます"
 
 
 msgid "Counter Clockwise"
@@ -75781,19 +75780,6 @@ msgid "Modify Hidden"
 msgstr "非表示を変更"
 
 
-msgid "Apply the edit operation to hidden Face Sets"
-msgstr "編集の操作を非表示の面セットに適用します"
-
-
-msgctxt "Operator"
-msgid "Invert Face Set Visibility"
-msgstr "面セットの可視性を反転"
-
-
-msgid "Invert the visibility of the Face Sets of the sculpt"
-msgstr "スカルプトの面セットの可視性を反転します"
-
-
 msgctxt "Operator"
 msgid "Face Set Lasso Gesture"
 msgstr "面セット投げ縄ジェスチャ"
@@ -76057,10 +76043,6 @@ msgstr "ミックスモード"
 
 msgid "Use settings from here"
 msgstr "使用する設定"
-
-
-msgid "Operator"
-msgstr "オペレーター"
 
 
 msgid "Use settings from operator properties"
@@ -85353,18 +85335,6 @@ msgid "Panel containing UI elements"
 msgstr "UIの要素を含むパネル"
 
 
-msgid "Refraction"
-msgstr "屈折"
-
-
-msgid "Screen Tracing"
-msgstr "スクリーントレーシング"
-
-
-msgid "Denoising"
-msgstr "デノイズ"
-
-
 msgid "Light Groups"
 msgstr "ライトグループ"
 
@@ -86243,8 +86213,16 @@ msgid "Indirect Lighting"
 msgstr "間接照明"
 
 
+msgid "Denoising"
+msgstr "デノイズ"
+
+
 msgid "Raytracing"
 msgstr "レイトレーシング"
+
+
+msgid "Screen Tracing"
+msgstr "スクリーントレーシング"
 
 
 msgid "Shadows"
@@ -94373,10 +94351,6 @@ msgid "Crop the rendered frame to the defined render region size"
 msgstr "レンダリングしたフレームを，設定されたレンダー領域のサイズで切り取ります"
 
 
-msgid "File Extensions"
-msgstr "ファイル拡張子"
-
-
 msgid "Add the file format extensions to the rendered file name (eg: filename + .jpg)"
 msgstr "レンダリングしたファイルの名前にファイルフォーマット拡張子を追加します(例:ファイル名＋.jpg)"
 
@@ -95547,14 +95521,6 @@ msgid "Brightness threshold for using sprite base depth of field"
 msgstr "被写界深度を元にしたスプライト使用の輝度のしきい値"
 
 
-msgid "Diffuse Trace Options"
-msgstr "ディフューズトレースオプション"
-
-
-msgid "EEVEE settings for tracing diffuse reflections"
-msgstr "EEVEE のディフューズ反射トレース用設定"
-
-
 msgid "Auto Bake"
 msgstr "自動ベイク"
 
@@ -95771,26 +95737,6 @@ msgid "Percentage of render size to add as overscan to the internal render buffe
 msgstr "オーバースキャンとして内部レンダーバッファに追加する，レンダーサイズの割合"
 
 
-msgid "Options Split"
-msgstr "オプション分割"
-
-
-msgid "Split settings per ray type"
-msgstr "レイタイプ毎の分割設定"
-
-
-msgid "Unified"
-msgstr "統一"
-
-
-msgid "All ray types use the same settings"
-msgstr "全レイタイプで同じ設定を使用します"
-
-
-msgid "Settings are individual to each ray type"
-msgstr "各レイタイプで個別に設定します"
-
-
 msgid "Tracing Method"
 msgstr "トレーシング方法"
 
@@ -95817,14 +95763,6 @@ msgstr "反射トレースオプション"
 
 msgid "EEVEE settings for tracing reflections"
 msgstr "EEVEE の反射トレース用設定"
-
-
-msgid "Refraction Trace Options"
-msgstr "屈折トレースオプション"
-
-
-msgid "EEVEE settings for tracing refractions"
-msgstr "EEVEE の屈折トレース用設定"
 
 
 msgid "Directional Shadows Resolution"
@@ -105454,8 +105392,8 @@ msgid "Display scene statistics overlay text"
 msgstr "シーン統計のオーバーレイテキストを表示します"
 
 
-msgid "Stat Vis"
-msgstr "統計の視覚化"
+msgid "Mesh Analysis"
+msgstr "メッシュ分析"
 
 
 msgid "Display statistical information about the mesh"
@@ -106933,10 +106871,6 @@ msgstr "Float アクション．ディジタルまたはアナログボタンの
 
 msgid "Vector2D"
 msgstr "ベクトル2D"
-
-
-msgid "2D float vector action, representing a thumbstick or trackpad"
-msgstr "2D Float ベクトルアクション．サムスティックまたはトラックパッドを表します"
 
 
 msgid "3D pose action, representing a controller's location and rotation"
@@ -108419,11 +108353,6 @@ msgstr "後方移動を停止"
 msgctxt "WindowManager"
 msgid "Stop Move Left"
 msgstr "左移動を停止"
-
-
-msgctxt "WindowManager"
-msgid "Stop Mode Right"
-msgstr "右移動を停止"
 
 
 msgctxt "WindowManager"
@@ -113250,6 +113179,10 @@ msgid "Light Clamping"
 msgstr "光の範囲制限"
 
 
+msgid "Refraction"
+msgstr "屈折"
+
+
 msgid "Cascade Size"
 msgstr "カスケードサイズ"
 
@@ -115909,7 +115842,7 @@ msgstr "最小グリッド間隔"
 
 
 msgid "Only Insert Needed"
-msgstr "必要な時のみを挿入"
+msgstr "必要な時のみ挿入"
 
 
 msgid "Auto-Keyframing"
@@ -116955,16 +116888,6 @@ msgstr "面セットを抽出"
 
 
 msgctxt "Operator"
-msgid "Invert Visible Face Sets"
-msgstr "面セットの表示を反転"
-
-
-msgctxt "Operator"
-msgid "Show All Face Sets"
-msgstr "すべての面セットを表示"
-
-
-msgctxt "Operator"
 msgid "Randomize Colors"
 msgstr "ランダムカラー"
 
@@ -117386,10 +117309,6 @@ msgstr "シーム"
 
 msgid "Vertex Group Weights"
 msgstr "頂点グループウェイト"
-
-
-msgid "Mesh Analysis"
-msgstr "メッシュ分析"
 
 
 msgid "Face Angle"
@@ -118803,10 +118722,6 @@ msgid "Int"
 msgstr "Int"
 
 
-msgid "PreviewCol"
-msgstr "プレビュー色"
-
-
 msgid "TexturedCol"
 msgstr "テクスチャ色"
 
@@ -118829,10 +118744,6 @@ msgstr "シェイプキー"
 
 msgid "OS Loop"
 msgstr "OSループ"
-
-
-msgid "PreviewLoopCol"
-msgstr "プレビューループ色"
 
 
 msgid "Int8"
@@ -119362,10 +119273,6 @@ msgid "No valid formats found"
 msgstr "有効なフォーマットがありません"
 
 
-msgid "Can't allocate ffmpeg format context"
-msgstr "ffmpeg フォーマットコンテクストがアロケートできません"
-
-
 msgid "Render width has to be 720 pixels for DV!"
 msgstr "DV用では幅が720ピクセルでないといけません！"
 
@@ -119376,10 +119283,6 @@ msgstr "DV-NTSC用では高さが480ピクセルでないといけません！"
 
 msgid "Render height has to be 576 pixels for DV-PAL!"
 msgstr "DV-PAL用では高さが576ピクセルでないといけません！"
-
-
-msgid "FFmpeg only supports 48khz / stereo audio for DV!"
-msgstr "FFmpeg ではDVは48khz/ステレオ音声のみ対応しています！"
 
 
 msgid "Error initializing video stream"
@@ -126664,6 +126567,14 @@ msgid "File '%s' could not be loaded"
 msgstr "ファイル「%s」が読み込めません"
 
 
+msgid "Please select all related strips"
+msgstr "関連するストリップをすべて選択してください"
+
+
+msgid "No strips to paste"
+msgstr "貼り付けるストリップがありません"
+
+
 msgid "Slip offset: %s"
 msgstr "スリップオフセット: %s"
 
@@ -126702,14 +126613,6 @@ msgstr "入力が再割り当てできません：再帰があります"
 
 msgid "No valid inputs to swap"
 msgstr "入れ替えに適切な入力ではありません"
-
-
-msgid "Please select all related strips"
-msgstr "関連するストリップをすべて選択してください"
-
-
-msgid "No strips to paste"
-msgstr "貼り付けるストリップがありません"
 
 
 msgid "Please select two strips"
@@ -132890,10 +132793,6 @@ msgstr "細部の粗さ"
 
 msgid "Incident"
 msgstr "入射"
-
-
-msgid "Ior"
-msgstr "IOR"
 
 
 msgid "No mesh in active object"

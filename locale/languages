@@ -17,6 +17,8 @@
 8:French (Français):fr_FR
 2:Japanese (日本語):ja_JP
 47:Slovak (Slovenčina):sk_SK
+41:Vietnamese (Tiếng Việt):vi_VN
+13:Simplified Chinese (简体中文):zh_HANS
 #
 0:In Progress:
 11:Czech (Čeština):cs_CZ
@@ -28,15 +30,13 @@
 12:Portuguese (Português):pt_PT
 15:Russian (Русский):ru_RU
 18:Ukrainian (Українська):uk_UA
-41:Vietnamese (Tiếng Việt):vi_VN
-13:Simplified Chinese (简体中文):zh_HANS
 14:Traditional Chinese (繁體中文):zh_HANT
 #
 0:Starting:
 45:Abkhaz (Аԥсуа бызшәа):ab
 # Skipped (see IMPORT_LANGUAGES_SKIP in settings.py). #37:Amharic (አማርኛ):am_ET
 21:Arabic (ﺔﻴﺑﺮﻌﻟﺍ):ar_EG
-# Skipped (see IMPORT_LANGUAGES_SKIP in settings.py). #52:Belarusian (беларуску):be
+52:Belarusian (беларуску):be
 22:Bulgarian (Български):bg_BG
 23:Greek (Ελληνικά):el_GR
 35:Esperanto (Esperanto):eo

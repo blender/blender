@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'72b6c44e759b')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'274dc815eb35')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-04 11:06:00\n"
+"POT-Creation-Date: 2023-12-11 11:18:04\n"
 "PO-Revision-Date: 2015-03-03 16:21+0530\n"
 "Last-Translator: Roshan Lal Gumasta <roshan@anisecrets.com>\n"
 "Language-Team: Hindi <www.anisecrets.com>\n"
@@ -1401,6 +1401,14 @@ msgid "Save"
 msgstr "सहेजें"
 
 
+msgid "Operator"
+msgstr "संचालक"
+
+
+msgid "Label"
+msgstr "सूचक पत्र"
+
+
 msgid "Relative Path"
 msgstr "सापेक्ष पथ"
 
@@ -2220,10 +2228,6 @@ msgstr "शिरोबिन्दु"
 
 msgid "Never"
 msgstr "कभी नहीं"
-
-
-msgid "Label"
-msgstr "सूचक पत्र"
 
 
 msgid "Links"
@@ -4205,10 +4209,6 @@ msgid "Sculpt"
 msgstr "गढन"
 
 
-msgid "Operator"
-msgstr "संचालक"
-
-
 msgctxt "Operator"
 msgid "Sculpt Mode"
 msgstr "शिल्प रूप"
@@ -4627,10 +4627,6 @@ msgstr "तालाबंदी x"
 
 msgid "Lock Y"
 msgstr "तालाबंदी y"
-
-
-msgid "Refraction"
-msgstr "अपवर्तन"
 
 
 msgid "Film"
@@ -5589,6 +5585,10 @@ msgstr "ऊपरी"
 
 msgid "Auto-Step"
 msgstr "स्वत:-चरण"
+
+
+msgid "Refraction"
+msgstr "अपवर्तन"
 
 
 msgid "Paths:"

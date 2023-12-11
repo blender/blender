@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'72b6c44e759b')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'274dc815eb35')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-04 11:06:00\n"
+"POT-Creation-Date: 2023-12-11 11:18:04\n"
 "PO-Revision-Date: 2016-04-23 22:41+0300\n"
 "Last-Translator: Yousef Harfoush <bat3a@msn.com>\n"
 "Language-Team: Yousef Harfoush, Amine Moussaoui <bat3a@msn.com>\n"
@@ -7373,6 +7373,18 @@ msgid "Whether this path is saved in bookmarks, or generated from OS"
 msgstr "ﻡﺎﻈﻨﻟﺍ ﻦﻣ ﺓﺪﻟﻮﺘﻤﻟﺍ ﻭﺍ ﻦﻳﻭﺎﻨﻌﻟﺍ ﻲﻓ ﻅﻮﻔﺤﻣ ﺭﺎﺴﻤﻟﺍ ﺍﺬﻫ ﻥﺎﻛ ﺎﻣ ﺍﺫﺍ"
 
 
+msgid "File Extensions"
+msgstr "ﻒﻠﻤﻟﺍ ﺕﺎﺌﻴﻫ"
+
+
+msgid "Operator"
+msgstr "ﻞﻣﺎﻋ"
+
+
+msgid "Label"
+msgstr "ﻖﺼﻠﻣ"
+
+
 msgid "Animations"
 msgstr "ﺕﺎﻜﻳﺮﺤﺘﻟﺍ"
 
@@ -11897,10 +11909,6 @@ msgstr "(ﺎﻴﺿﺍﺮﺘﻓﺍ ﻢﻠﻔﻟﺍ ﻊﻗﻮﻣ) ﺺﺼﺨﻣ ﺭ
 
 msgid "Node tree consisting of linked nodes used for shading, textures and compositing"
 msgstr "ﺐﻴﻛﺮﺘﻟﺍ ﻭ ,ﺔﺠﺴﻧﻷ﻿ﺍ ,ﻞﻴﻠﻈﺘﻠﻟ ﺔﻣﺪﺨﺘﺴﻤﻟﺍ ﻭ ﺔﻄﺒﺗﺮﻤﻟﺍ ﺪﻘﻌﻟﺍ ﻦﻣ ﺔﻧﻮﻜﻤﻟﺍ ﺓﺪﻘﻌﻟﺍ ﺓﺮﺠﺷ"
-
-
-msgid "Label"
-msgstr "ﻖﺼﻠﻣ"
 
 
 msgid "The node tree label"
@@ -27689,10 +27697,6 @@ msgid "Falloff Type"
 msgstr "ﻲﺷﻼ﻿ﺘﻟﺍ ﻉﻮﻧ"
 
 
-msgid "Operator"
-msgstr "ﻞﻣﺎﻋ"
-
-
 msgid "Sharpen"
 msgstr "ﺩﺎﺣ"
 
@@ -29739,10 +29743,6 @@ msgstr "ﺮﺼﺣﺃ"
 
 msgid "Palette Color"
 msgstr "ﻥﻮﻠﻟﺍ ﺔﺣﻮﻟ"
-
-
-msgid "Refraction"
-msgstr "ﺭﺎﺴﻜﻧﻻ﻿ﺍ"
 
 
 msgid "Integrator Presets"
@@ -32822,10 +32822,6 @@ msgid "Process the render result through the compositing pipeline, if compositin
 msgstr "ﺔﻠﻌﻔﻣ ﺐﻴﻛﺮﺘﻟﺍ ﺪﻘﻋ ﺖﻧﺎﻛ ﺍﺫﺇ ،ﺐﻴﻛﺮﺘﻟﺍ ﻞﺣﺍﺮﻣ ﺮﺒﻋ ﺮﻴﻴﺼﺘﻟﺍ ﺔﺠﻴﺘﻧ ﺔﺠﻟﺎﻌﻣ"
 
 
-msgid "File Extensions"
-msgstr "ﻒﻠﻤﻟﺍ ﺕﺎﺌﻴﻫ"
-
-
 msgid "Add the file format extensions to the rendered file name (eg: filename + .jpg)"
 msgstr " (jpg. + ﻒﻠﻣ_ﻢﺳﺇ :ﻝﺎﺜﻣ) ﺮﻴّﺼﻤﻟﺍ ﻒﻠﻤﻟﺍ ﻢﺳﺇ ﻰﻟﺇ ﻒﻠﻤﻟﺍ ﺔﺌﻴﻫ ﻒﺿﺃ"
 
@@ -35481,10 +35477,6 @@ msgid "Display vertex-per-face normals as lines"
 msgstr "ﻁﻮﻄﺨﻛ ﻪﺟﻭ-ﻞﻜﻟ-ﺔﻄﻘﻧ ﻢﻇﺍﻮﻧ ﺽﺮﻋﺇ"
 
 
-msgid "Stat Vis"
-msgstr "ﺔﻴﺋﺎﺼﺣﺇ ﺔﻨﻳﺎﻌﻣ"
-
-
 msgid "Display statistical information about the mesh"
 msgstr "ﻢﺴﺠﻤﻟﺍ ﻦﻋ ﺔﻴﺋﺎﺼﺣﺇ ﺕﺎﻣﻮﻠﻌﻣ ﺽﺮﻋﺇ"
 
@@ -36429,6 +36421,10 @@ msgstr "ﻒﻋﺎﻀﻤﻟﺍ"
 
 msgid "Auto-Step"
 msgstr "ﻲﺋﺎﻘﻠﺗ ﻡﺪﻘﺗ"
+
+
+msgid "Refraction"
+msgstr "ﺭﺎﺴﻜﻧﻻ﻿ﺍ"
 
 
 msgid "Paths:"

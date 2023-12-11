@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'72b6c44e759b')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'274dc815eb35')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-04 11:06:00\n"
+"POT-Creation-Date: 2023-12-11 11:18:04\n"
 "PO-Revision-Date: 2023-11-14 19:14+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -10409,6 +10409,18 @@ msgid "Whether this path is saved in bookmarks, or generated from OS"
 msgstr "이 경로는 북마크에서 저장되는지 여부, 또는 OS로부터 생성되는지"
 
 
+msgid "File Extensions"
+msgstr "파일 확장자"
+
+
+msgid "Operator"
+msgstr "작업자"
+
+
+msgid "Label"
+msgstr "레이블"
+
+
 msgid "Icon ID"
 msgstr "아이콘 ID"
 
@@ -18746,10 +18758,6 @@ msgstr "커스텀 디렉토리에 프록시 이미지를 생성 (기본값은 �
 
 msgid "Node tree consisting of linked nodes used for shading, textures and compositing"
 msgstr "셰이딩, 텍스처 및 컴포지팅에 사용되는 연결된 노드로 구성된 노드 트리"
-
-
-msgid "Label"
-msgstr "레이블"
 
 
 msgid "The node tree label"
@@ -44013,10 +44021,6 @@ msgid "Reverse Colors"
 msgstr "컬러를 반전"
 
 
-msgid "Flip direction of vertex colors inside faces"
-msgstr "페이스 내부의 버텍스 컬러의 방향을 뒤집기"
-
-
 msgctxt "Operator"
 msgid "Rotate Colors"
 msgstr "컬러를 회전"
@@ -52940,10 +52944,6 @@ msgid "Number of times that the filter is going to be applied"
 msgstr "필터가 적용되는 횟수"
 
 
-msgid "Operator"
-msgstr "작업자"
-
-
 msgid "Applies a filter to modify the current mesh"
 msgstr "현재 메쉬를 수정하기 위해 필터를 적용합니다"
 
@@ -58923,14 +58923,6 @@ msgid "Panel containing UI elements"
 msgstr "UI 요소가 포함된 패널"
 
 
-msgid "Refraction"
-msgstr "굴절"
-
-
-msgid "Denoising"
-msgstr "노이즈 제거"
-
-
 msgid "Integrator Presets"
 msgstr "적분기 프리셋"
 
@@ -59635,6 +59627,10 @@ msgstr "블룸"
 
 msgid "Indirect Lighting"
 msgstr "간접 라이트닝"
+
+
+msgid "Denoising"
+msgstr "노이즈 제거"
 
 
 msgid "Shadows"
@@ -65013,10 +65009,6 @@ msgstr "렌더 지역을 자르기"
 
 msgid "Crop the rendered frame to the defined render region size"
 msgstr "렌더링된 프레임을 정의된 렌더링 영역 크기로 자릅니다"
-
-
-msgid "File Extensions"
-msgstr "파일 확장자"
 
 
 msgid "Add the file format extensions to the rendered file name (eg: filename + .jpg)"
@@ -73150,8 +73142,8 @@ msgid "Display vertex-per-face normals as lines"
 msgstr "라인으로 페이스 당 버텍스 노멀을 표시"
 
 
-msgid "Stat Vis"
-msgstr "스탯 비스"
+msgid "Mesh Analysis"
+msgstr "메쉬 분석"
 
 
 msgid "Display statistical information about the mesh"
@@ -76077,6 +76069,10 @@ msgid "Light Clamping"
 msgstr "라이트 클램핑"
 
 
+msgid "Refraction"
+msgstr "굴절"
+
+
 msgid "Cascade Size"
 msgstr "캐스케이드 크기"
 
@@ -78716,10 +78712,6 @@ msgid "Vertex Group Weights"
 msgstr "버텍스 그룹 웨이트"
 
 
-msgid "Mesh Analysis"
-msgstr "메쉬 분석"
-
-
 msgid "Face Angle"
 msgstr "페이스 각도"
 
@@ -79504,10 +79496,6 @@ msgid "Int"
 msgstr "정수"
 
 
-msgid "PreviewCol"
-msgstr "PreviewCol"
-
-
 msgid "TexturedCol"
 msgstr "택스처화 Col"
 
@@ -79530,10 +79518,6 @@ msgstr "셰이프키"
 
 msgid "OS Loop"
 msgstr "OS 루프"
-
-
-msgid "PreviewLoopCol"
-msgstr "PreviewLoopCol"
 
 
 msgid "Source or destination meshes do not have any vertices, cannot transfer vertex data"
@@ -83904,6 +83888,10 @@ msgid "File '%s' could not be loaded"
 msgstr "파일 '%s'을 불러올 수 없습니다"
 
 
+msgid "Please select all related strips"
+msgstr "관련 스트립을 모두 선택하십시오"
+
+
 msgid "Cannot apply effects to audio sequence strips"
 msgstr "오디오 시퀀스 스트립에 이펙트를 적용 할 수 없습니다"
 
@@ -83926,10 +83914,6 @@ msgstr "TODO: 어떤 경우에 이런 일이 발생합니까?"
 
 msgid "No valid inputs to swap"
 msgstr "교환하는 유효한 입력이 없음"
-
-
-msgid "Please select all related strips"
-msgstr "관련 스트립을 모두 선택하십시오"
 
 
 msgid "Please select two strips"

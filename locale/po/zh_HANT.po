@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'72b6c44e759b')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'274dc815eb35')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-04 11:06:00\n"
-"PO-Revision-Date: 2023-11-23 11:54+0000\n"
-"Last-Translator: 楊 景貴 <issacsopp@gmail.com>\n"
+"POT-Creation-Date: 2023-12-11 11:18:04\n"
+"PO-Revision-Date: 2023-12-10 08:57+0000\n"
+"Last-Translator: luxem <luxem168@gmail.com>\n"
 "Language-Team: Chinese (Traditional) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
 "Language: zh_HANT\n"
 "MIME-Version: 1.0\n"
@@ -204,7 +204,7 @@ msgstr "靜音"
 
 
 msgid "Action group is muted"
-msgstr "動作群組已靜音"
+msgstr "動作群組已被靜音"
 
 
 msgid "Select"
@@ -312,11 +312,15 @@ msgstr "用於計算的裝置 (以 Cycles 算繪)"
 
 
 msgid "Kernel Optimization"
-msgstr "內核心最佳化"
+msgstr "操作核心優化"
 
 
 msgid "Off"
 msgstr "關"
+
+
+msgid "Disable kernel optimization. Slowest rendering, no extra background CPU usage"
+msgstr "停用核心優化。最慢的渲染，不增加額外的後台CPU使用。"
 
 
 msgid "Full"
@@ -9618,6 +9622,18 @@ msgid "Whether this path is saved in bookmarks, or generated from OS"
 msgstr "此路徑是否儲存於書籤、或是從作業系統生成"
 
 
+msgid "File Extensions"
+msgstr "副檔名"
+
+
+msgid "Operator"
+msgstr "操作器"
+
+
+msgid "Label"
+msgstr "標籤"
+
+
 msgid "Icon ID"
 msgstr "圖示 ID"
 
@@ -14651,10 +14667,6 @@ msgstr "在自訂的目錄中建立代理影像 (預設為影片位置)"
 
 msgid "Node tree consisting of linked nodes used for shading, textures and compositing"
 msgstr "由連結的節點組成的節點樹，用於著色、紋理、合成"
-
-
-msgid "Label"
-msgstr "標籤"
 
 
 msgid "The node tree label"
@@ -32435,10 +32447,6 @@ msgid "Reverse Colors"
 msgstr "反轉色彩"
 
 
-msgid "Flip direction of vertex colors inside faces"
-msgstr "翻轉面內部的底點色彩方向"
-
-
 msgctxt "Operator"
 msgid "Rotate Colors"
 msgstr "旋轉色彩"
@@ -39089,10 +39097,6 @@ msgid "Cavity (Inverted)"
 msgstr "坑腔 ( 反轉 )"
 
 
-msgid "Operator"
-msgstr "操作器"
-
-
 msgid "Relax Face Sets"
 msgstr "放鬆面集"
 
@@ -43205,10 +43209,6 @@ msgid "Palette Color"
 msgstr "色版色彩"
 
 
-msgid "Refraction"
-msgstr "折射"
-
-
 msgid "Integrator Presets"
 msgstr "整合器預置"
 
@@ -46925,10 +46925,6 @@ msgid "Process the render result through the compositing pipeline, if compositin
 msgstr "如果有啟用合成節點的話，透過合成導管處理算繪結果"
 
 
-msgid "File Extensions"
-msgstr "副檔名"
-
-
 msgid "Add the file format extensions to the rendered file name (eg: filename + .jpg)"
 msgstr "為算繪的檔案添加副檔名 (例如：檔案名稱 + .jpg)"
 
@@ -47599,14 +47595,6 @@ msgstr "混合係數"
 
 msgid "Factor for ambient occlusion blending"
 msgstr "周遭遮擋其混合的係數"
-
-
-msgid "Refraction Trace Options"
-msgstr "折射追蹤選項"
-
-
-msgid "EEVEE settings for tracing refractions"
-msgstr "EEVEE 中用於追蹤折射的設定"
 
 
 msgid "Screen Space Refractions"
@@ -52379,8 +52367,8 @@ msgid "Display vertex-per-face normals as lines"
 msgstr "將每面頂點的法線以線條顯示"
 
 
-msgid "Stat Vis"
-msgstr "統計顯示"
+msgid "Mesh Analysis"
+msgstr "網格分析"
 
 
 msgid "Display statistical information about the mesh"
@@ -53817,6 +53805,10 @@ msgid "Auto-Step"
 msgstr "自動步進"
 
 
+msgid "Refraction"
+msgstr "折射"
+
+
 msgid "Paths:"
 msgstr "路徑："
 
@@ -55150,16 +55142,6 @@ msgstr "擷取面集"
 
 
 msgctxt "Operator"
-msgid "Invert Visible Face Sets"
-msgstr "反轉可見面集"
-
-
-msgctxt "Operator"
-msgid "Show All Face Sets"
-msgstr "顯示所有面集"
-
-
-msgctxt "Operator"
 msgid "Randomize Colors"
 msgstr "亂數重設面集色彩"
 
@@ -55294,10 +55276,6 @@ msgstr "銳利"
 
 msgid "Seams"
 msgstr "縫線"
-
-
-msgid "Mesh Analysis"
-msgstr "網格分析"
 
 
 msgid "Edge Marks"
@@ -58423,6 +58401,10 @@ msgid "File '%s' could not be loaded"
 msgstr "無法載入檔案「%s」"
 
 
+msgid "Please select all related strips"
+msgstr "請選取所有相關的片段"
+
+
 msgid "Cannot apply effects to audio sequence strips"
 msgstr "無法將效果套用至音訊序段片段"
 
@@ -58445,10 +58427,6 @@ msgstr "待辦：什麼情況下才會發生？"
 
 msgid "No valid inputs to swap"
 msgstr "無有效輸入可供交換"
-
-
-msgid "Please select all related strips"
-msgstr "請選取所有相關的片段"
 
 
 msgid "Please select two strips"

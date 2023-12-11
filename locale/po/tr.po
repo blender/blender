@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'72b6c44e759b')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'274dc815eb35')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-04 11:06:00\n"
+"POT-Creation-Date: 2023-12-11 11:18:04\n"
 "PO-Revision-Date: 2023-11-15 02:54+0000\n"
 "Last-Translator: bitigchi <bitigchi@me.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -6254,6 +6254,10 @@ msgid "Save"
 msgstr "Kaydet"
 
 
+msgid "Operator"
+msgstr "Operatör"
+
+
 msgid "Environment"
 msgstr "Çevre"
 
@@ -9356,10 +9360,6 @@ msgid "Reload scripts"
 msgstr "Betikleri yeniden yükle"
 
 
-msgid "Operator"
-msgstr "Operatör"
-
-
 msgid "Sharpen"
 msgstr "Keskinlik"
 
@@ -10048,10 +10048,6 @@ msgstr "Yeni Dünya"
 
 msgid "UV Sculpting"
 msgstr "UV Yontması"
-
-
-msgid "Refraction"
-msgstr "Kırılma"
 
 
 msgid "Viewport Sampling Presets"
@@ -11536,6 +11532,10 @@ msgstr "Tarih"
 
 msgid "Caps Type"
 msgstr "Başlık Türü"
+
+
+msgid "Refraction"
+msgstr "Kırılma"
 
 
 msgid "Render Engine"

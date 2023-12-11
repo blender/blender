@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'72b6c44e759b')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'274dc815eb35')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-04 11:06:00\n"
+"POT-Creation-Date: 2023-12-11 11:18:04\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Yudhir Khanal <yudhir.khanal@gmail.com>\n"
 "Language-Team: Yudhir\n"
@@ -143,6 +143,10 @@ msgstr "मुख्याचित्रसाचोहरु"
 
 msgid "High Quality"
 msgstr "उच्च कोटी "
+
+
+msgid "Operator"
+msgstr "संचालक "
 
 
 msgid "End"
@@ -433,10 +437,6 @@ msgstr "सुचीको परिचय नाम "
 
 msgid "ID name of the menu this was called from"
 msgstr "सुचीको परिचय नाम जसबाट यो कार्य चलेको थियो "
-
-
-msgid "Operator"
-msgstr "संचालक "
 
 
 msgctxt "Operator"

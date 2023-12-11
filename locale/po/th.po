@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'72b6c44e759b')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'274dc815eb35')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-04 11:06:00\n"
+"POT-Creation-Date: 2023-12-11 11:18:04\n"
 "PO-Revision-Date: 2019-12-08 17:40+0700\n"
 "Last-Translator: gongpha <gongpha@gmail.com>\n"
 "Language-Team: Thai Translation Team <gongpha@gmail.com>\n"
@@ -1100,6 +1100,14 @@ msgid "Save"
 msgstr "บันทึก"
 
 
+msgid "File Extensions"
+msgstr "ส่วนขยายไฟล์"
+
+
+msgid "Label"
+msgstr "ข้อความ"
+
+
 msgid "Miscellaneous"
 msgstr "เบ็ดเตล็ด"
 
@@ -1639,10 +1647,6 @@ msgstr "อัปเดต"
 
 msgid "Movie File"
 msgstr "ไฟล์ภาพยนตร์"
-
-
-msgid "Label"
-msgstr "ข้อความ"
 
 
 msgid "Interface"
@@ -3670,10 +3674,6 @@ msgstr "เรนเดอร์มุมมอง"
 
 msgid "Render Region"
 msgstr "ขอบเขตการเรนเดอร์"
-
-
-msgid "File Extensions"
-msgstr "ส่วนขยายไฟล์"
 
 
 msgid "Stamp Render Time"

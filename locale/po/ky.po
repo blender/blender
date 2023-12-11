@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'72b6c44e759b')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'274dc815eb35')\n"
 "(b'0000000000000000000000000000000000000000')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-04 11:06:00\n"
+"POT-Creation-Date: 2023-12-11 11:18:04\n"
 "PO-Revision-Date: 2013-11-05 13:47+0600\n"
 "Last-Translator: Chyngyz Dzhumaliev <kyrgyzl10n@gmail.com>\n"
 "Language-Team: Kirghiz <kyrgyzl10n@gmail.com>\n"
@@ -785,6 +785,10 @@ msgstr "Ариптер"
 
 msgid "Save"
 msgstr "Сактоо"
+
+
+msgid "Operator"
+msgstr "Оператор"
 
 
 msgid "End"
@@ -2403,10 +2407,6 @@ msgstr "Темалар"
 
 msgid "Editing"
 msgstr "Оңдоо"
-
-
-msgid "Operator"
-msgstr "Оператор"
 
 
 msgctxt "Operator"

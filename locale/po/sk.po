@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'72b6c44e759b')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'274dc815eb35')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-04 11:06:00\n"
-"PO-Revision-Date: 2023-11-30 09:34+0000\n"
+"POT-Creation-Date: 2023-12-11 11:18:04\n"
+"PO-Revision-Date: 2023-12-11 10:34+0000\n"
 "Last-Translator: Jozef Matta <jozef.m923@gmail.com>\n"
 "Language-Team: Slovak <https://translate.blender.org/projects/blender-ui/ui/sk/>\n"
 "Language: sk\n"
@@ -1363,6 +1363,11 @@ msgstr "Scéna"
 
 
 msgctxt "ID"
+msgid "Screen"
+msgstr "Obrazovka"
+
+
+msgctxt "ID"
 msgid "Sound"
 msgstr "Zvuk"
 
@@ -1534,6 +1539,14 @@ msgid "Collection of custom asset tags"
 msgstr "Kolekcia vlastných príznakov aktív"
 
 
+msgid "Asset Weak Reference"
+msgstr "Slabý odkaz na aktívum"
+
+
+msgid "Weak reference to some asset"
+msgstr "Slabý odkaz na nejaké aktívum"
+
+
 msgid "Geometry attribute"
 msgstr "Atribút geometrie"
 
@@ -1688,6 +1701,10 @@ msgstr "Atribút na inštancii"
 
 msgid "Layer"
 msgstr "Vrstva"
+
+
+msgid "Attribute on Grease Pencil layer"
+msgstr "Atribút na vrstve Pastelky"
 
 
 msgid "Is Internal"
@@ -1943,7 +1960,7 @@ msgstr "Maximálna vzdialenosť lúčov pre združovanie bodov medzi aktívnymi 
 
 
 msgid "Normal Space"
-msgstr "Priestor normálov"
+msgstr "Priestor normál"
 
 
 msgid "Axis to bake in blue channel"
@@ -1983,7 +2000,7 @@ msgstr "Osi na zapečenie v červenom kanáli"
 
 
 msgid "Choose normal space for baking"
-msgstr "Vyberie priestor normálov pre zapečenie"
+msgstr "Vyberie priestor normál pre zapečenie"
 
 
 msgid "Object"
@@ -2376,6 +2393,10 @@ msgstr "Blok údajov pastelky"
 
 msgid "Grease Pencil v3"
 msgstr "Pastelka v3"
+
+
+msgid "Grease Pencil v3 data-blocks"
+msgstr "Blok údajov Pastelky v3"
 
 
 msgid "Hair Curves"
@@ -3900,6 +3921,10 @@ msgid "Bones"
 msgstr "Kosti"
 
 
+msgid "Bones assigned to this bone collection. In armature edit mode this will always return an empty list of bones, as the bone collection memberships are only synchronized when exiting edit mode"
+msgstr "Kosti priradené k tejto kolekcii kostí. V režime editácie armatúry to vždy vráti prázdny zoznam kostí, pretože príslušnosť ku kolekcii kostí sa synchronizuje až po opustení režimu editácie"
+
+
 msgid "Is Editable"
 msgstr "Je upraviteľné"
 
@@ -4428,7 +4453,7 @@ msgstr "Smer výplne"
 
 
 msgid "Normal"
-msgstr "Normál"
+msgstr "Normála"
 
 
 msgid "Fill internal area"
@@ -5744,7 +5769,7 @@ msgstr "Vnútorná maximálna odchýlka pružiny"
 
 
 msgid "How much the rays used to connect the internal points can diverge from the vertex normal"
-msgstr "Koľko lúčov použitých na spojenie vnútorných bodov sa môže líšiť od normálu vrcholu"
+msgstr "Koľko lúčov použitých na spojenie vnútorných bodov sa môže líšiť od normály vrcholu"
 
 
 msgid "Internal Spring Max Length"
@@ -5760,7 +5785,7 @@ msgstr "Skontrolujte normály vnútornej pružiny"
 
 
 msgid "Require the points the internal springs connect to have opposite normal directions"
-msgstr "Vyžaduje body, ktoré spájajú vnútorné pružiny, aby mali opačný smer normálov"
+msgstr "Vyžaduje body, ktoré spájajú vnútorné pružiny, aby mali opačný smer normál"
 
 
 msgid "Tension Stiffness"
@@ -6264,7 +6289,7 @@ msgstr "Jednostranný"
 
 
 msgid "Cloth collision acts with respect to the collider normals (improves penetration recovery)"
-msgstr "Pôsobenie kolízia plášťa s ohľadom na kolízie normálov (zlepšuje zotavenie z prerazenia)"
+msgstr "Pôsobenie kolízie plášťa s ohľadom na kolízie normál (zlepšuje zotavenie z prerazenia)"
 
 
 msgid "Override Normals"
@@ -6272,7 +6297,7 @@ msgstr "Prepísať normály"
 
 
 msgid "Cloth collision impulses act in the direction of the collider normals (more reliable in some cases)"
-msgstr "Impulzy kolízie plášťa účinkujú v smere kolíznych normálov (v niektorých prípadoch spoľahlivejšie)"
+msgstr "Impulzy kolízie plášťa účinkujú v smere kolíznych normál (v niektorých prípadoch spoľahlivejšie)"
 
 
 msgid "Kill Particles"
@@ -6304,7 +6329,7 @@ msgstr "Sú údaje"
 
 
 msgid "Treat image as non-color data without color management, like normal or displacement maps"
-msgstr "Zaobchádza s obrázkom ako s nefarebnými údajmi bez správy farieb, ako sú napríklad mapovanie normálov alebo posunov"
+msgstr "Zaobchádza s obrázkom ako s nefarebnými údajmi bez správy farieb, ako sú napríklad mapovanie normál alebo posunov"
 
 
 msgid "Input Color Space"
@@ -8581,11 +8606,11 @@ msgstr "Zmrští polohu na najbližší cieľový vrchol"
 
 
 msgid "Target Normal Project"
-msgstr "Premietnuť cieľový normál"
+msgstr "Premietnuť cieľovú normálu"
 
 
 msgid "Shrink the location to the nearest target surface along the interpolated vertex normals of the target"
-msgstr "Zmrští polohu na najbližší cieľový povrch pozdĺž interpolovaných normálov vrcholov cieľa"
+msgstr "Zmrští polohu na najbližší cieľový povrch pozdĺž interpolovaných normál vrcholov cieľa"
 
 
 msgid "Target Mesh object"
@@ -8593,7 +8618,7 @@ msgstr "Cieľová povrchová sieť objektu"
 
 
 msgid "Axis that is aligned to the normal"
-msgstr "Os zarovnaná na normál"
+msgstr "Os zarovnaná na normálu"
 
 
 msgid "Invert Cull"
@@ -8613,11 +8638,11 @@ msgstr "Premietnutie určený v oboch a opačných smeroch"
 
 
 msgid "Align Axis To Normal"
-msgstr "Zarovnať os na normál"
+msgstr "Zarovnať os na normálu"
 
 
 msgid "Align the specified axis to the surface normal"
-msgstr "Zarovná určenú os na normál povrchu"
+msgstr "Zarovná určenú os na normálu povrchu"
 
 
 msgid "Snap Mode"
@@ -8649,7 +8674,7 @@ msgstr "Bod je vynútený na povrchu cieľového objektu, posunom vzdialenosti v
 
 
 msgid "The point is constrained to the surface of the target object, with distance offset applied exactly along the target normal"
-msgstr "Bod je vynútený na povrchu cieľového objektu, s posunom vzdialenosti presne pozdĺž cieľového normálu"
+msgstr "Bod je vynútený na povrchu cieľového objektu, s posunom vzdialenosti presne pozdĺž cieľovej normály"
 
 
 msgid "Spline IK Constraint"
@@ -9409,7 +9434,7 @@ msgstr "Rovina pre premietaný ťah"
 
 
 msgid "Normal to Surface"
-msgstr "Normál na povrch"
+msgstr "Normála na povrch"
 
 
 msgid "Draw in a plane perpendicular to the surface"
@@ -13118,6 +13143,18 @@ msgid "Whether this path is saved in bookmarks, or generated from OS"
 msgstr "Či táto cesta je uložená v záložkách, alebo generovaná operačným systémom"
 
 
+msgid "File Extensions"
+msgstr "Prípony súborov"
+
+
+msgid "Operator"
+msgstr "Operátor"
+
+
+msgid "Label"
+msgstr "Nápis"
+
+
 msgid "File Select Entry"
 msgstr "Položka výberu súboru"
 
@@ -15172,7 +15209,7 @@ msgstr "Násobiteľ rýchlosti zdroja prešiel do kvapaliny (rýchlosť zdroja j
 
 
 msgid "Amount of normal directional velocity"
-msgstr "Veľkosť smerovej rýchlosti normálov"
+msgstr "Veľkosť smerovej rýchlosti normál"
 
 
 msgid "Amount of random velocity"
@@ -18695,7 +18732,7 @@ msgstr "Úrovne rozdelenia"
 
 
 msgid "Number of subdivisions that must be performed before extracting vertices' positions and normals"
-msgstr "Počet delení, ktoré sa musia vykonať pred extrahovaním pozícií vrcholov a normálov"
+msgstr "Počet delení, ktoré sa musia vykonať pred extrahovaním pozícií vrcholov a normál"
 
 
 msgid "Mesh target to shrink to"
@@ -18739,7 +18776,7 @@ msgstr "Zmrští povrchovú sieť na najbližší cieľový vrchol"
 
 
 msgid "Shrink the mesh to the nearest target surface along the interpolated vertex normals of the target"
-msgstr "Zmrští povrchovú sieť na najbližší cieľový povrch pozdĺž interpólovaných normálov vrcholov cieľa"
+msgstr "Zmrští povrchovú sieť na najbližší cieľový povrch pozdĺž interpólovaných normál vrcholov cieľa"
 
 
 msgid "Select how vertices are constrained to the target surface"
@@ -19218,6 +19255,34 @@ msgid "Grid scale"
 msgstr "Mierka mriežky"
 
 
+msgid "Collection of related drawings"
+msgstr "Kolekcia súvisiacich kresieb"
+
+
+msgid "Set layer visibility"
+msgstr "Nastaviť viditeľnosť vrstvy"
+
+
+msgid "Grease Pencil Layer Group"
+msgstr "Skupina vrstiev Pastelky"
+
+
+msgid "Group of Grease Pencil layers"
+msgstr "Skupina vrstiev Pastelky"
+
+
+msgid "Set layer group visibility"
+msgstr "Nastaviť viditeľnosť skupiny vrstiev"
+
+
+msgid "Protect group from further editing and/or frame changes"
+msgstr "Ochráni skupinu pred ďalšími úpravami a/alebo zmenami snímok"
+
+
+msgid "Group name"
+msgstr "Názov skupiny"
+
+
 msgid "Grease Pencil Layers"
 msgstr "Vrstvy pastelky"
 
@@ -19260,6 +19325,10 @@ msgstr "Index aktívnej vrstvy masky"
 
 msgid "Active index in layer mask array"
 msgstr "Aktívny index v poli vrstiev masky"
+
+
+msgid "Collection of Grease Pencil layers"
+msgstr "Kolekcia vrstiev Pastelky"
 
 
 msgid "Active Grease Pencil layer"
@@ -19644,7 +19713,7 @@ msgstr "Zobrazí kosti ako jednoduché 2D čiary s bodkami"
 
 
 msgid "B-Bone"
-msgstr "Kosť ohybu"
+msgstr "ohyb kosti"
 
 
 msgid "Display bones as boxes, showing subdivision and B-Splines"
@@ -20761,11 +20830,11 @@ msgstr "Normálny polomer"
 
 
 msgid "Ratio between the brush radius and the radius that is going to be used to sample the normal"
-msgstr "Pomer medzi polomerom štetca a polomerom použitým na snímku normálu"
+msgstr "Pomer medzi polomerom štetca a polomerom použitým na snímku normály"
 
 
 msgid "Normal Weight"
-msgstr "Váha normálov"
+msgstr "Normálna váha"
 
 
 msgid "How much grab will pull vertices out of surface during a grab"
@@ -21311,11 +21380,11 @@ msgstr "Ovplyvní iba vrcholy, ktoré zdieľajú nastavenie plôšky s aktívnym
 
 
 msgid "Area Normal"
-msgstr "Oblasť normálu"
+msgstr "Normálna oblasť"
 
 
 msgid "Affect only vertices with a similar normal to where the stroke starts"
-msgstr "Ovplyvní iba vrcholy s podobným normálom, ako je miesto, kde začína ťah"
+msgstr "Ovplyvní iba vrcholy s podobnou normálou, ako je miesto, kde začína ťah"
 
 
 msgid "Affect only vertices connected to the active vertex under the brush"
@@ -21323,11 +21392,11 @@ msgstr "Ovplyvní iba vrcholy spojené s aktívnym vrcholom pod štetcom"
 
 
 msgid "View Normal"
-msgstr "Zobraziť normál"
+msgstr "Zobraziť normálu"
 
 
 msgid "Affect only vertices with a normal that faces the viewer"
-msgstr "Ovplyvní iba vrcholy s normálom, ktorý je otočený k divákovi"
+msgstr "Ovplyvní iba vrcholy s normálou, ktorá je otočená k divákovi"
 
 
 msgid "Occlusion"
@@ -21499,11 +21568,11 @@ msgstr "Povolí citlivosť na tlak tabletu pre posuv"
 
 
 msgid "Original Normal"
-msgstr "Originálny normál"
+msgstr "Originálna normála"
 
 
 msgid "When locked keep using normal of surface where stroke was initiated"
-msgstr "Keď je zamknutá zachová použitie normálov povrchu, kde bol začatý ťah"
+msgstr "Keď je zamknutá zachová použitie normály povrchu, kde bol začatý ťah"
 
 
 msgid "Original Plane"
@@ -22646,7 +22715,7 @@ msgstr "Polovičná"
 
 
 msgid "Distance to move the curve parallel to its normals"
-msgstr "Vzdialenosť na posun krivky rovnobežne s jej normálmi"
+msgstr "Vzdialenosť na posun krivky rovnobežne s jej normálami"
 
 
 msgid "Path Duration"
@@ -23146,7 +23215,7 @@ msgstr "Normály"
 
 
 msgid "The curve normal value at each of the curve's control points"
-msgstr "Hodnota normálu krivky v každom z riadiacich bodov krivky"
+msgstr "Hodnota normály krivky v každom z riadiacich bodov krivky"
 
 
 msgid "Control points of all curves"
@@ -24063,6 +24132,14 @@ msgstr "Blok údajov pastelky"
 
 msgid "Layer Groups"
 msgstr "Skupiny vrstiev"
+
+
+msgid "Grease Pencil layer groups"
+msgstr "Skupiny vrstiev Pastelky"
+
+
+msgid "Grease Pencil layers"
+msgstr "Vrstvy Pastelky"
 
 
 msgid "Image data-block referencing an external or packed image"
@@ -25016,6 +25093,10 @@ msgid "Probe clip start, below which objects will not appear in reflections"
 msgstr "Snímač začiatok klipu, za ktorým sa objekty nezobrazia v odrazoch"
 
 
+msgid "Display Data Size"
+msgstr "Veľkosť zobrazenia údajov"
+
+
 msgid "Viewport display size of the sampled data"
 msgstr "Veľkosť zobrazenia záberu snímaných údajov"
 
@@ -25105,11 +25186,11 @@ msgstr "Plynulejšia interpolácia vyžiarenia, ale pridáva ľahké presvitanie
 
 
 msgid "Normal Bias"
-msgstr "Sklon normálu"
+msgstr "Sklon normály"
 
 
 msgid "Offset sampling of the irradiance grid in the surface normal direction to reduce light bleeding"
-msgstr "Posunutie vzorkovania mriežky ožiarenia v smere normály povrchu s cieľom znížiť presvitanie svetla"
+msgstr "Posunutie snímania mriežky ožiarenia v smere normály povrchu s cieľom znížiť presvitanie svetla"
 
 
 msgid "Resolution X"
@@ -25254,6 +25335,10 @@ msgstr "Použiť vlastnú paralaxu"
 
 msgid "Enable custom settings for the parallax correction volume"
 msgstr "Povolí vlastné nastavenia pre objem korekcie paralaxy"
+
+
+msgid "Display Data"
+msgstr "Údaje zobrazenia"
 
 
 msgid "Display sampled data in the viewport to debug captured light"
@@ -25465,6 +25550,10 @@ msgid "Line art settings for material"
 msgstr "Nastavenie Čiarovej grafiky pre materiál"
 
 
+msgid "Max Vertex Displacement"
+msgstr "Maximálny posun vrcholu"
+
+
 msgid "The max distance a vertex can be displaced. Displacements over this threshold may cause visibility issues"
 msgstr "Maximálna vzdialenosť, o ktorú môže byť vrchol posunutý. Posun nad túto hranicu môže spôsobiť problémy s viditeľnosťou"
 
@@ -25645,8 +25734,16 @@ msgid "Controls the blending and the compatibility with certain features"
 msgstr "Riadi prelínanie a kompatibilitu s určitými funkciami"
 
 
+msgid "Dithered"
+msgstr "Rozptýlené"
+
+
 msgid "Allows for grayscale hashed transparency, and compatible with render passes and raytracing. Also known as deferred rendering"
 msgstr "Umožňuje priehľadnosť v odtieňoch sivej a je kompatibilný s priechodmi prekresľovania a sledovaním lúčov. Známe aj ako odložené prekresľovanie"
+
+
+msgid "Blended"
+msgstr "Prelínané"
 
 
 msgid "Allows for colored transparency, but incompatible with render passes and raytracing. Also known as forward rendering"
@@ -25671,6 +25768,10 @@ msgstr "Vyradenie zadnej plôšky"
 
 msgid "Use back face culling to hide the back side of faces"
 msgstr "Použitím vyradenia zadnej plôšky sa skryje zadná strana plôšky"
+
+
+msgid "Shadow Backface Culling"
+msgstr "Vyradenie tienenia zadnej plôšky"
 
 
 msgid "Use back face culling when casting shadows"
@@ -25711,6 +25812,10 @@ msgstr "Priehľadné tiene"
 
 msgid "Use transparent shadows for this material if it contains a Transparent BSDF, disabling will render faster but not give accurate shadows"
 msgstr "Použije priehľadné tiene pre tento materiál, ak obsahuje transparentné BSDF, vypnutím sa bude prekresľovať rýchlejšie, ale nedáva presné tiene"
+
+
+msgid "Volume Intersection Method"
+msgstr "Metóda prekríženia objemov"
 
 
 msgid "Determines which inner part of the mesh will produce volumetric effect"
@@ -25758,7 +25863,7 @@ msgstr "Má vlastné normály"
 
 
 msgid "True if there are custom split normals data in this mesh"
-msgstr "Platí, ak existujú vlastné údaje delenia normálov v tejto povrchovej sieti"
+msgstr "Platí, ak existujú vlastné údaje delenia normál v tejto povrchovej sieti"
 
 
 msgid "Triangle Faces"
@@ -25789,6 +25894,10 @@ msgid "Normal Domain"
 msgstr "Bežná doména"
 
 
+msgid "The attribute domain that gives enough information to represent the mesh's normals"
+msgstr "Doména atribútov, ktorá poskytuje dostatok informácií na reprezentáciu normál povrchovej siete"
+
+
 msgid "Corner"
 msgstr "Rohové"
 
@@ -25798,7 +25907,7 @@ msgstr "Normály polygónov"
 
 
 msgid "The normal direction of each face, defined by the winding order and position of its vertices"
-msgstr "Smer normálu každej steny definovaný poradím navíjania a polohou jej vrcholov"
+msgstr "Smer normály každej steny definovaný poradím navíjania a polohou jej vrcholov"
 
 
 msgid "Polygons"
@@ -25937,6 +26046,18 @@ msgid "Fix Poles"
 msgstr "Opraviť póly"
 
 
+msgid "Produces fewer poles and a better topology flow"
+msgstr "Vytvorí menej pólov a vylepšuje prúdenie topológie"
+
+
+msgid "Preserve Attributes"
+msgstr "Zachovať atribúty"
+
+
+msgid "Transfer all attributes to the new mesh"
+msgstr "Prenos všetkých atribútov do novej povrchovej siete"
+
+
 msgid "Projects the mesh to preserve the volume and details of the original mesh"
 msgstr "Premietne povrchovú sieť pre zachovanie objemu a detailov pôvodnej povrchovej siete"
 
@@ -25994,7 +26115,7 @@ msgstr "Normály vrcholov"
 
 
 msgid "The normal direction of each vertex, defined as the average of the surrounding face normals"
-msgstr "Normálový smer každého vrcholu definovaný ako priemer normálov okolitých plôšok"
+msgstr "Smer normály každého vrcholu definovaný ako priemer normál okolitých plôšok"
 
 
 msgid "Vertices"
@@ -26127,10 +26248,6 @@ msgstr "Vytvorí obrázky náhrady vo vlastnom priečinku (predvolené je umiest
 
 msgid "Node tree consisting of linked nodes used for shading, textures and compositing"
 msgstr "Uzol stromu pozostávajúci z prepojených uzlov používaných na tieňovanie, textúry a kompozíciu"
-
-
-msgid "Label"
-msgstr "Nápis"
 
 
 msgid "The node tree label"
@@ -26321,6 +26438,18 @@ msgid "Use GPU accelerated compositing with more limited functionality"
 msgstr "Použijete GPU akcelerovanú kompozíciu s obmedzenejšou funkčnosťou"
 
 
+msgid "The precision of compositor intermediate result"
+msgstr "Presnosť medzivýsledku kompozítora"
+
+
+msgid "Full precision for final renders, half precision otherwise"
+msgstr "Plná presnosť pre finálne prekreslenie, polovičná presnosť v ostatných prípadoch"
+
+
+msgid "Full precision"
+msgstr "Úplná presnosť"
+
+
 msgid "Render Quality"
 msgstr "Kvalita prekreslenia"
 
@@ -26375,6 +26504,10 @@ msgstr "Upraviť"
 
 msgid "The node group is used in edit mode"
 msgstr "Skupina uzlov sa používa v režime editácie"
+
+
+msgid "The node group is used in object mode"
+msgstr "Skupina uzlov sa používa v režime objektu"
 
 
 msgid "Sculpt"
@@ -26715,6 +26848,22 @@ msgstr "Modifikátory pastelky"
 
 msgid "Modifiers affecting the data of the grease pencil object"
 msgstr "Modifikátory ovplyvňujúce údaje objektu pastelky"
+
+
+msgid "Disable in Planar Light Probes"
+msgstr "Zakázať v snímačoch rovinného osvetlenia"
+
+
+msgid "Globally disable in planar light probes"
+msgstr "Globálne zakázané v snímačoch rovinného osvetlenia"
+
+
+msgid "Disable in Spherical Light Probes"
+msgstr "Zakázať v sférických snímačoch svetla"
+
+
+msgid "Globally disable in spherical light probes"
+msgstr "Globálne zakázané v snímačoch sférického osvetlenia"
 
 
 msgid "Disable in Volume Probes"
@@ -27210,7 +27359,7 @@ msgstr "Nastavenia pre simuláciu mäkkého telesa"
 
 
 msgid "Axis that points in the 'forward' direction (applies to Instance Vertices when Align to Vertex Normal is enabled)"
-msgstr "Os smerujúca „vpred“ (platí pre vrcholy inštancií, keď je povolená možnosť Zarovnať podľa normálu vrcholu)"
+msgstr "Os smerujúca „vpred“ (platí pre vrcholy inštancií, keď je povolená možnosť Zarovnať podľa normály vrcholu)"
 
 
 msgctxt "ID"
@@ -27238,7 +27387,7 @@ msgstr "Prázdny"
 
 
 msgid "Axis that points in the upward direction (applies to Instance Vertices when Align to Vertex Normal is enabled)"
-msgstr "Os smerujúca nahor (platí pre vrcholy inštancií, keď je zapnutá možnosť Zarovnať podľa normálu vrcholu)"
+msgstr "Os smerujúca nahor (platí pre vrcholy inštancií, keď je zapnutá možnosť Zarovnať podľa normály vrcholu)"
 
 
 msgid "Camera Parent Lock"
@@ -27274,11 +27423,11 @@ msgstr "Mierka inštancie na základe veľkosti plôšky"
 
 
 msgid "Orient with Normals"
-msgstr "Orientácia normálmi"
+msgstr "Orientácia normálami"
 
 
 msgid "Rotate instance according to vertex normal"
-msgstr "Otáča inštanciou podľa normálov vrcholov"
+msgstr "Otáča inštanciou podľa normál vrcholov"
 
 
 msgid "Enable mesh symmetry in the X axis"
@@ -27916,7 +28065,7 @@ msgstr "Zdanlivý"
 
 
 msgid "Let the surface normal give the particle a starting velocity"
-msgstr "Dovolí normálu povrchu dať častici počiatočnú rýchlosť"
+msgstr "Dovolí normále povrchu dať častici počiatočnú rýchlosť"
 
 
 msgid "Object Aligned"
@@ -28064,7 +28213,7 @@ msgstr "Osi orientácie častíc (neovplyvňuje výsledky modifikátora výbuchu
 
 
 msgid "Normal-Tangent"
-msgstr "Normál-dotyčnica"
+msgstr "Normála-dotyčnica"
 
 
 msgid "Velocity / Hair"
@@ -29549,7 +29698,7 @@ msgstr "Stupne sivej"
 
 
 msgid "Size of derivative offset used for calculating normal"
-msgstr "Veľkosť derivačného posuvu použitého na výpočet normálu"
+msgstr "Veľkosť derivačného posuvu použitého na výpočet normály"
 
 
 msgid "Noise Basis"
@@ -29935,11 +30084,11 @@ msgstr "Zrkadlový odraz obrazu v smere Y"
 
 
 msgid "Normal Map"
-msgstr "Mapovanie normálu"
+msgstr "Mapa normál"
 
 
 msgid "Use image RGB values for normal mapping"
-msgstr "Používa obrazové RGB hodnoty pre mapovanie normálu"
+msgstr "Používa obrazové RGB hodnoty pre mapovanie normál"
 
 
 msgid "Magic Texture"
@@ -30460,6 +30609,14 @@ msgstr "Komunitné"
 
 msgid "Maintained by community developers"
 msgstr "Udržiavané komunitou vývojárov"
+
+
+msgid "Testing"
+msgstr "Testovanie"
+
+
+msgid "Newly contributed scripts (excluded from release builds)"
+msgstr "Novo pridané skripty (vylúčené z vydaných zostáv)"
 
 
 msgid "Asset Blend Path"
@@ -31372,6 +31529,14 @@ msgstr "Vždy obnoví obraz po zmene snímky"
 
 msgid "Cycle the images in the movie"
 msgstr "Cyklicky prechádza obrázky vo filme"
+
+
+msgid "Index Switch Item"
+msgstr "Prepínač indexu položiek"
+
+
+msgid "Consistent identifier used for the item"
+msgstr "Zjednocujúci identifikátor používaný pre položku"
 
 
 msgid "2D Integer Vector Attribute Value"
@@ -34259,7 +34424,7 @@ msgstr "Upraví geometriu ťahu tak, aby zodpovedala jeho hlavnej línii smeru"
 
 
 msgid "Displacement that is applied to the main direction line along its normal"
-msgstr "Posunutie, ktoré sa aplikuje na hlavný smer čiary pozdĺž jeho normálu"
+msgstr "Posunutie, ktoré sa aplikuje na hlavný smer čiary pozdĺž jeho normály"
 
 
 msgid "Add one-dimensional Perlin noise to stroke backbone geometry"
@@ -35876,6 +36041,10 @@ msgid "Index of this loop"
 msgstr "Index tejto slučky"
 
 
+msgid "The normal direction of the face corner, taking into account sharp faces, sharp edges, and custom normal data"
+msgstr "Smer normály rohu plôšky so zohľadnením ostrých plôšok, ostrých hrán a vlastných údajov normály"
+
+
 msgid "Local space unit length tangent vector of this vertex for this face (must be computed beforehand using calc_tangents)"
 msgstr "Vektor dotyčnice dĺžky lokálnej priestorovej jednotky tohto vrcholu pre túto plôšku (musí sa vypočítať vopred pomocou calc_tangents)"
 
@@ -35949,11 +36118,11 @@ msgstr "Index zásobníka materiálu tohto trojuholníka"
 
 
 msgid "Triangle Normal"
-msgstr "Normál trojuholníka"
+msgstr "Normála trojuholníka"
 
 
 msgid "Local space unit length normal vector for this triangle"
-msgstr "Jednotná dĺžky vektora normálu miestneho priestoru pre tento trojuholník"
+msgstr "Jednotná dĺžky vektora normály miestneho priestoru pre tento trojuholník"
 
 
 msgid "Polygon"
@@ -35966,6 +36135,10 @@ msgstr "Index plošky povrchovej siete, ktorej je trojuholník súčasťou"
 
 msgid "Split Normals"
 msgstr "Rozdeliť normály"
+
+
+msgid "Local space unit length split normal vectors of the face corners of this triangle"
+msgstr "Lokálne jednotkové dĺžkové vektory normál rohov plôšky tohto trojuholníka"
 
 
 msgid "Indices of triangle vertices"
@@ -35985,11 +36158,11 @@ msgstr "Kolekcia slučiek povrchovej siete"
 
 
 msgid "Mesh Normal Vector"
-msgstr "Vektor normálu povrchovej siete"
+msgstr "Vektor normály povrchovej siete"
 
 
 msgid "Vector in a mesh normal array"
-msgstr "Vektor v poli normálov povrchovej siete"
+msgstr "Vektor v poli normál povrchovej siete"
 
 
 msgid "Mesh Polygon"
@@ -36041,11 +36214,11 @@ msgstr "Index zásuvky materiálu tejto plôšky"
 
 
 msgid "Polygon Normal"
-msgstr "Normál polygónu"
+msgstr "Normála polygónu"
 
 
 msgid "Local space unit length normal vector for this face"
-msgstr "Vektor normálu lokálnej jednotkovej dĺžky priestoru pre túto plôšku"
+msgstr "Vektor normály lokálnej jednotkovej dĺžky priestoru pre túto plôšku"
 
 
 msgid "Freestyle Face Mark"
@@ -36273,7 +36446,7 @@ msgstr "Index tohto vrcholu"
 
 
 msgid "Vertex Normal"
-msgstr "Normál vrcholu"
+msgstr "Normála vrcholu"
 
 
 msgid "Undeformed Location"
@@ -36417,11 +36590,11 @@ msgstr "Deformuje sieť alebo krivku pomocou externej vyrovnávacej pamäte povr
 
 
 msgid "Normal Edit"
-msgstr "Úprava normálov"
+msgstr "Úprava normál"
 
 
 msgid "Modify the direction of the surface normals"
-msgstr "Upravuje smer normálov povrchu"
+msgstr "Upravuje smer normály povrchu"
 
 
 msgid "Weighted Normal"
@@ -36429,7 +36602,7 @@ msgstr "Vážené normály"
 
 
 msgid "Modify the direction of the surface normals using a weighting method"
-msgstr "Upravuje smer normálov povrchu použitím metódy váženia"
+msgstr "Upravuje smer normály povrchu použitím metódy vplyvu"
 
 
 msgid "UV Project"
@@ -37557,7 +37730,7 @@ msgstr "Vlastné normály"
 
 
 msgid "Transfer custom normals"
-msgstr "Prenos vlastných normálov"
+msgstr "Prenos vlastných normál"
 
 
 msgid "Transfer color attributes"
@@ -37645,7 +37818,7 @@ msgstr "Interpólovaná premietnutá hrana"
 
 
 msgid "Interpolate all source edges hit by the projection of destination one along its own normal (from vertices)"
-msgstr "Interpoluje všetky zdrojové hrany dotknuté premietnutím prvej cieľovej vedľa svojho vlastného normálu (z vrcholov)"
+msgstr "Interpoluje všetky zdrojové hrany dotknuté premietnutím prvej cieľovej vedľa svojho vlastnej normály (z vrcholov)"
 
 
 msgid "Islands Precision"
@@ -37729,19 +37902,19 @@ msgstr "Metóda používaná na priradenie rohov zdrojových plôšok do nejakej
 
 
 msgid "Nearest Corner and Best Matching Normal"
-msgstr "Najbližší roh a najvhodnejší normál"
+msgstr "Najbližší roh a najvhodnejšia normála"
 
 
 msgid "Copy from nearest corner which has the best matching normal"
-msgstr "Kopíruje z najbližšieho rohu s najvhodnejším normálom"
+msgstr "Kopíruje z najbližšieho rohu s najvhodnejšou normálou"
 
 
 msgid "Nearest Corner and Best Matching Face Normal"
-msgstr "Najbližší roh a najvhodnejší normál plôšky"
+msgstr "Najbližší roh a najvhodnejšia normála plôšky"
 
 
 msgid "Copy from nearest corner which has the face with the best matching normal to destination corner's face one"
-msgstr "Kopíruje z najbližšieho rohu plôšky s najvhodnejším normálom na jednu cieľovú rohovú plôšku"
+msgstr "Kopíruje z najbližšieho rohu plôšky s najvhodnejšou normálou na jednu cieľovú rohovú plôšku"
 
 
 msgid "Nearest Corner of Nearest Face"
@@ -37765,7 +37938,7 @@ msgstr "Premietaná interpólovaná plôška"
 
 
 msgid "Copy from interpolated corners of the source face hit by corner normal projection"
-msgstr "Kopíruje z interpolovaných rohov zdrojovej plôšky zasiahnutej premietnutím rohovým normálom"
+msgstr "Kopíruje z interpolovaných rohov zdrojovej plôšky zasiahnutej premietnutím rohovou normálou"
 
 
 msgid "Max Distance"
@@ -37845,15 +38018,15 @@ msgstr "Kopíruje z najbližšej plôšky (pomocou stredových bodov)"
 
 
 msgid "Best Normal-Matching"
-msgstr "Najvhodnejší normál"
+msgstr "Najvhodnejšia normála"
 
 
 msgid "Copy from source face which normal is the closest to destination one"
-msgstr "Kopíruje zo zdrojovej plôšky, ktorej normál je najbližšie k cieľovej"
+msgstr "Kopíruje zo zdrojovej plôšky, ktorej normála je najbližšie k cieľovej"
 
 
 msgid "Interpolate all source polygons intersected by the projection of destination one along its own normal"
-msgstr "Interpoluje všetky zdrojové polygóny pretínajúce premietanie jedného cieľa mimo jeho vlastného normálu"
+msgstr "Interpoluje všetky zdrojové polygóny pretínajúce premietanie jedného cieľa mimo jeho vlastnej normály"
 
 
 msgid "Ray Radius"
@@ -37949,7 +38122,7 @@ msgstr "Kopíruje interpólované hodnoty vrcholov z najbližšieho bodu na najb
 
 
 msgid "Copy from interpolated values of vertices from point on closest face hit by normal-projection"
-msgstr "Kopíruje interpólované hodnoty vrcholov z bodu na najbližšiu plôšku v dosahu premietania normálu"
+msgstr "Kopíruje interpólované hodnoty vrcholov z bodu na najbližšiu plôšku v dosahu premietania normály"
 
 
 msgid "Vertex group name for selecting the affected areas"
@@ -38097,15 +38270,15 @@ msgstr "Použije hodnotu intenzity textúry na presun v smere Z"
 
 
 msgid "Use the texture's intensity value to displace along the vertex normal"
-msgstr "Použije hodnotu intenzity textúry na presun pozdĺž normálu vrcholu"
+msgstr "Použije hodnotu intenzity textúry na presun pozdĺž normály vrcholu"
 
 
 msgid "Custom Normal"
-msgstr "Vlastný normál"
+msgstr "Vlastná normála"
 
 
 msgid "Use the texture's intensity value to displace along the (averaged) custom normal (falls back to vertex)"
-msgstr "Použije hodnotu intenzity textúry na presun pozdĺž (priemernej) vlastnej normálu (padá späť na vrchol)"
+msgstr "Použije hodnotu intenzity textúry na presun pozdĺž (priemernej) vlastnej normály (padá späť na vrchol)"
 
 
 msgid "RGB to XYZ"
@@ -38864,7 +39037,7 @@ msgstr "Umiestnenie na disku, kde sú uložené údaje o zapečení"
 
 
 msgid "Normal Edit Modifier"
-msgstr "Modifikátor úpravy normálu"
+msgstr "Modifikátor úpravy normály"
 
 
 msgid "Modifier affecting/generating custom normals"
@@ -38872,15 +39045,15 @@ msgstr "Modifikátor ovplyvňujúci/vytvárajúci vlastné normály"
 
 
 msgid "How much of generated normals to mix with existing ones"
-msgstr "Koľko z vygenerovaných normálov sa zmieša s existujúcimi"
+msgstr "Koľko z vygenerovaných normál sa zmieša s existujúcimi"
 
 
 msgid "Maximum angle between old and new normals"
-msgstr "Maximálny uhol medzi starými a novými normálmi"
+msgstr "Maximálny uhol medzi starými a novými normálami"
 
 
 msgid "How to mix generated normals with existing ones"
-msgstr "Spôsob zmiešania generovaných normálov s existujúcimi"
+msgstr "Spôsob zmiešania generovaných normál s existujúcimi"
 
 
 msgid "Copy"
@@ -38892,7 +39065,7 @@ msgstr "Kopíruje nové normály (prepíše existujúce)"
 
 
 msgid "Copy sum of new and old normals"
-msgstr "Kopíruje súčet nových a starých normálov"
+msgstr "Kopíruje súčet nových a starých normál"
 
 
 msgid "Copy new normals minus old normals"
@@ -38900,7 +39073,7 @@ msgstr "Kopíruje nové normály mínus staré normály"
 
 
 msgid "Copy product of old and new normals (not cross product)"
-msgstr "Kopíruje súčin starých a nových normálov (*nie* vektorový súčin)"
+msgstr "Kopíruje súčin starých a nových normál (*nie* vektorový súčin)"
 
 
 msgid "How to affect (generate) normals"
@@ -38916,7 +39089,7 @@ msgstr "Smerové"
 
 
 msgid "Normals 'track' (point to) the target object"
-msgstr "'Stopa' normálov (ukazuje na) cieľový objekt"
+msgstr "'Stopa' normál (ukazuje na) cieľový objekt"
 
 
 msgid "Lock Polygon Normals"
@@ -38924,7 +39097,7 @@ msgstr "Normály uzamknutého polygónu"
 
 
 msgid "Do not flip polygons when their normals are not consistent with their newly computed custom vertex normals"
-msgstr "Nepoužije preklopenie polygónov, keď ich normály nie sú v súlade s ich novo vypočítanými vlastnými vrcholmi normálov"
+msgstr "Nepoužije preklopenie polygónov, keď ich normály nie sú v súlade s ich novo vypočítanými vlastnými normálami vrcholmi"
 
 
 msgid "Offset from object's center"
@@ -38932,7 +39105,7 @@ msgstr "Posuv od stredu objektu"
 
 
 msgid "Target object used to affect normals"
-msgstr "Cieľový objekt použitý na ovplyvnenie normálov"
+msgstr "Cieľový objekt použitý na ovplyvnenie normál"
 
 
 msgid "Parallel Normals"
@@ -39164,7 +39337,7 @@ msgstr "Vygenerovať normály"
 
 
 msgid "Output normals for bump mapping - disabling can speed up performance if it's not needed"
-msgstr "Výstup normálov pre mapovanie nerovností - zakázanie môže urýchliť výkon, ak nie je potrebný"
+msgstr "Výstup normál pre mapovanie nerovností - zakázanie môže urýchliť výkon, ak nie je potrebný"
 
 
 msgid "Generate Spray Map"
@@ -39834,7 +40007,7 @@ msgstr "Obráti smerovanie plôšky"
 
 
 msgid "High Quality Normals"
-msgstr "Vysoká kvalita normálov"
+msgstr "Vysoká kvalita normál"
 
 
 msgid "Calculate normals which result in more even thickness (slow, disable when not needed)"
@@ -40641,31 +40814,31 @@ msgstr "Cyklický efekt zvlnenia"
 
 
 msgid "Displace along normals"
-msgstr "Premiestnenie pozdĺž normálov"
+msgstr "Presun pozdĺž normál"
 
 
 msgid "X Normal"
-msgstr "X normálu"
+msgstr "X normály"
 
 
 msgid "Enable displacement along the X normal"
-msgstr "Povolí presúvanie pozdĺž X normálu"
+msgstr "Povolí presúvanie pozdĺž X normály"
 
 
 msgid "Y Normal"
-msgstr "Y normálu"
+msgstr "Y normály"
 
 
 msgid "Enable displacement along the Y normal"
-msgstr "Povolí presúvanie pozdĺž Y normálu"
+msgstr "Povolí presúvanie pozdĺž Y normály"
 
 
 msgid "Z Normal"
-msgstr "Y normálu"
+msgstr "Z normály"
 
 
 msgid "Enable displacement along the Z normal"
-msgstr "Povolí presúvanie pozdĺž Z normálu"
+msgstr "Povolí presúvanie pozdĺž Z normály"
 
 
 msgid "X axis motion"
@@ -40685,7 +40858,7 @@ msgstr "Vzdialenosť medzi vlnami"
 
 
 msgid "WeightedNormal Modifier"
-msgstr "Modifikátor Váženia normálov"
+msgstr "Modifikátor Váženia normál"
 
 
 msgid "Keep Sharp"
@@ -40693,7 +40866,7 @@ msgstr "Zachovať ostré"
 
 
 msgid "Keep sharp edges as computed for default split normals, instead of setting a single weighted normal for each vertex"
-msgstr "Zachová ostré hrany vypočítané pre pôvodné rozdelenie normálov, namiesto stanovenia jedného váženého normálu pre každý vrchol"
+msgstr "Zachová ostré hrany vypočítané pre pôvodné rozdelenie normál, namiesto stanovenia jedného váženej normály pre každý vrchol"
 
 
 msgid "Weighting Mode"
@@ -40701,7 +40874,7 @@ msgstr "Režim váženia"
 
 
 msgid "Weighted vertex normal mode to use"
-msgstr "Režim na použitie určenia váhy normálu vrcholu"
+msgstr "Režim na použitie určenia váhy normály vrcholu"
 
 
 msgid "Face Area"
@@ -40709,11 +40882,11 @@ msgstr "Oblasť plôšok"
 
 
 msgid "Generate face area weighted normals"
-msgstr "Vygeneruje váhu normálov oblasti plôšok"
+msgstr "Vygeneruje váhu normál oblasti plôšok"
 
 
 msgid "Generate corner angle weighted normals"
-msgstr "Vygeneruje váhu normálov rohového uhla"
+msgstr "Vygeneruje váhu normál rohového uhla"
 
 
 msgid "Face Area & Angle"
@@ -40721,7 +40894,7 @@ msgstr "Oblasť plôšky a uhol"
 
 
 msgid "Generated normals weighted by both face area and angle"
-msgstr "Vygeneruje váhu normálov oblasti plôšky a rohového uhla"
+msgstr "Vygeneruje váhu normál oblasti plôšky a rohového uhla"
 
 
 msgid "Threshold value for different weights to be considered equal"
@@ -45274,6 +45447,10 @@ msgid "Instances of objects or collections"
 msgstr "Inštancie objektov alebo kolekcií"
 
 
+msgid "Grease Pencil component containing layers and curves data"
+msgstr "Komponent Pastelky obsahujúci údaje o vrstvách a krivkách"
+
+
 msgid "Attribute Statistic"
 msgstr "Atribút Štatistika"
 
@@ -45711,11 +45888,11 @@ msgstr "Body rozloží náhodne po povrchu, pričom zohľadní minimálnu vzdial
 
 
 msgid "Legacy Normal"
-msgstr "Zdediť normál"
+msgstr "Zdediť normálu"
 
 
 msgid "Output the normal and rotation values that have been output before the node started taking smooth normals into account"
-msgstr "Vygeneruje hodnoty normálov a rotácie, ktoré boli výstupom predtým, ako uzol začal brať do úvahy vyhladené hodnoty normálov"
+msgstr "Vygeneruje hodnoty normál a rotácie, ktoré boli výstupom predtým, ako uzol začal brať do úvahy vyhladené hodnoty normál"
 
 
 msgid "Dual Mesh"
@@ -45742,8 +45919,16 @@ msgid "Edge Paths to Curves"
 msgstr "Cesty hrán na krivky"
 
 
+msgid "Output curves following paths across mesh edges"
+msgstr "Výstupné krivky sledujúce cesty cez hrany povrchovej siete"
+
+
 msgid "Edge Paths to Selection"
 msgstr "Cesty hrán na výber"
+
+
+msgid "Output a selection of edges by following paths across mesh edges"
+msgstr "Výstup výberu hrán sledovaním ciest cez hrany povrchovej siete"
 
 
 msgid "Edges of Corner"
@@ -45843,7 +46028,7 @@ msgstr "Preklopiť plôšky"
 
 
 msgid "Reverse the order of the vertices and edges of selected faces, flipping their normal direction"
-msgstr "Obráti poradie vrcholov a hrán vybraných plôšok a prevráti smer ich normál"
+msgstr "Obráti poradie vrcholov a hrán vybraných plôšok a prevráti smer ich normály"
 
 
 msgid "Geometry to Instance"
@@ -45899,6 +46084,14 @@ msgid "Find the nearest element in a group. Similar to the \"Sample Nearest\" no
 msgstr "Nájde najbližší prvok v skupine. Podobne ako uzol \"Najbližšia snímka\""
 
 
+msgid "Index Switch"
+msgstr "Prepínač indexov"
+
+
+msgid "Choose between an arbitrary number of values with an index"
+msgstr "Výber medzi ľubovoľným počtom hodnôt s indexom"
+
+
 msgid "Curve Handle Positions"
 msgstr "Pozície manipulátora krivky"
 
@@ -45912,7 +46105,7 @@ msgstr "Náklon krivky"
 
 
 msgid "Retrieve the angle at each control point used to twist the curve's normal around its tangent"
-msgstr "Získava uhol v každom riadiacom bode, ktorý sa používa na otočenie normálu krivky okolo jej dotyčnice"
+msgstr "Získava uhol v každom riadiacom bode, ktorý sa používa na otočenie normály krivky okolo jej dotyčnice"
 
 
 msgid "Is Edge Smooth"
@@ -45992,7 +46185,7 @@ msgstr "Je plôška rovinná"
 
 
 msgid "Retrieve whether all triangles in a face are on the same plane, i.e. whether they have the same normal"
-msgstr "Zisťuje, či sú všetky trojuholníky na plôške v tej istej rovine, t. j. či majú rovnaký normál"
+msgstr "Zisťuje, či sú všetky trojuholníky na plôške v tej istej rovine, t. j. či majú rovnakú normálu"
 
 
 msgid "Face Neighbors"
@@ -46031,6 +46224,14 @@ msgid "The data type used to read the attribute values"
 msgstr "Typ údajov použitý na čítanie hodnôt atribútov"
 
 
+msgid "Named Layer Selection"
+msgstr "Výber pomenovanej vrstvy"
+
+
+msgid "Output a selection of a grease pencil layer"
+msgstr "Výstup výberu vrstvy Pastelky"
+
+
 msgid "Retrieve a unit length vector indicating the direction pointing away from the geometry at each element"
 msgstr "Získava vektor jednotkovej dĺžky udávajúceho smer smerujúci od geometrie pri každom prvku"
 
@@ -46057,6 +46258,10 @@ msgstr "Získava informácie, či je každá plôška označená pre vyhladené 
 
 msgid "Shortest Edge Paths"
 msgstr "Najkratšie cesty hrán"
+
+
+msgid "Find the shortest paths along mesh edges to selected end vertices, with customizable cost per edge"
+msgstr "Hľadá najkratšie cesty pozdĺž hrán povrchovej siete k vybraným koncovým vrcholom s prispôsobiteľnými nákladmi na hranu"
 
 
 msgid "Is Spline Cyclic"
@@ -46652,7 +46857,7 @@ msgstr "Nastaví pozície pre manipulátory Bézierových kriviek"
 
 
 msgid "Set Curve Normal"
-msgstr "Nastaviť normál krivky"
+msgstr "Nastaviť normálu krivky"
 
 
 msgid "Set the evaluation mode for curve normals"
@@ -46660,7 +46865,7 @@ msgstr "Nastaví režim vyhodnotenia pre normály krivky"
 
 
 msgid "Mode for curve normal evaluation"
-msgstr "Režim pre vyhodnocovania normálu krivky"
+msgstr "Režim pre vyhodnocovania normály krivky"
 
 
 msgid "Minimum Twist"
@@ -46740,7 +46945,7 @@ msgstr "Nastaviť vyhladenie tieňa"
 
 
 msgid "Control the smoothness of mesh normals around each face by changing the \"shade smooth\" attribute"
-msgstr "Ovláda vyhladenie normálov povrchovej siete okolo každej plôšky zmenou atribútu \"vyhladený tieň\""
+msgstr "Ovláda vyhladenie normál povrchovej siete okolo každej plôšky zmenou atribútu \"vyhladený tieň\""
 
 
 msgid "Set Spline Cyclic"
@@ -46761,6 +46966,10 @@ msgstr "Ovláda počet vyhodnocovaných bodov, ktoré sa majú vygenerovať na k
 
 msgid "Simulation Input"
 msgstr "Vstup simulácie"
+
+
+msgid "Input data for the simulation zone"
+msgstr "Vstupné údaje pre zónu simulácie"
 
 
 msgid "Simulation Output"
@@ -46789,6 +46998,14 @@ msgstr "Rozdeliť hrany"
 
 msgid "Duplicate mesh edges and break connections with the surrounding faces"
 msgstr "Vytvára kópie hrán povrchovej siete a prerušuje spojenie s okolitými plôškami"
+
+
+msgid "Split to Instances"
+msgstr "Rozdeliť na inštancie"
+
+
+msgid "Create separate geometries containing the elements from the same group"
+msgstr "Vytvorí samostatné geometrie obsahujúce prvky z tej istej skupiny"
 
 
 msgid "Store Named Attribute"
@@ -47457,7 +47674,7 @@ msgstr "Nerovnosti"
 
 
 msgid "Generate a perturbed normal from a height texture for bump mapping. Typically used for faking highly detailed surfaces"
-msgstr "Vygeneruje narušený normál z textúry výšky na mapovanie hrboľov. Zvyčajne sa používa na falšovanie veľmi detailných povrchov"
+msgstr "Vygeneruje narušenú normálu z textúry výšky na mapovanie hrboľov. Zvyčajne sa používa na falšovanie veľmi detailných povrchov"
 
 
 msgid "Invert the bump mapping direction to push into the surface instead of out"
@@ -47549,7 +47766,7 @@ msgstr "BSDF Odraz"
 
 
 msgid "Similar to the Principled BSDF node but uses the specular workflow instead of metallic, which functions by specifying the facing (along normal) reflection color. Energy is not conserved, so the result may not be physically accurate"
-msgstr "Podobne ako uzol Principiálne BSDF, ale namiesto kovového používa zrkadlový pracovný postup, ktorý funguje tak, že určuje farbu odrazu smerom k povrchu (pozdĺž normálu). Energia sa nezachováva, takže výsledok nemusí byť fyzikálne presný"
+msgstr "Podobne ako uzol Principiálne BSDF, ale namiesto kovového používa zrkadlový pracovný postup, ktorý funguje tak, že určuje farbu odrazu smerom k povrchu (pozdĺž normály). Energia sa nezachováva, takže výsledok nemusí byť fyzikálne presný"
 
 
 msgid "Emission"
@@ -47576,7 +47793,7 @@ msgid ""
 "Produce a blending factor depending on the angle between the surface normal and the view direction using Fresnel equations.\n"
 "Typically used for mixing reflections at grazing angles"
 msgstr ""
-"Pomocou Fresnelových rovníc vytvára faktor prelínania v závislosti od uhla medzi normálom povrchu a smerom pohľadu.\n"
+"Pomocou Fresnelových rovníc vytvára faktor prelínania v závislosti od uhla medzi normálou povrchu a smerom pohľadu.\n"
 "Typicky sa používa na miešanie odrazov pri uhloch odlesku"
 
 
@@ -47616,7 +47833,7 @@ msgid ""
 "Produce a blending factor depending on the angle between the surface normal and the view direction.\n"
 "Typically used for layering shaders with the Mix Shader node"
 msgstr ""
-"Vytvára faktor prelínania v závislosti od uhla medzi normálom povrchu a smerom pohľadu.\n"
+"Vytvára faktor prelínania v závislosti od uhla medzi normálou povrchu a smerom pohľadu.\n"
 "Zvyčajne sa používa na vrstvenie tieňovačov s uzlom Zmiešať tieňovač"
 
 
@@ -47701,7 +47918,7 @@ msgstr "Transformuje smerový vektor. Poloha je ignorovaná"
 
 
 msgid "Transform a unit normal vector. Location is ignored"
-msgstr "Transformuje normálny vektor jednotky. Poloha je ignorovaná"
+msgstr "Transformuje jednotný vektor normály. Poloha je ignorovaná"
 
 
 msgid "Perform math operations"
@@ -47765,15 +47982,15 @@ msgstr "Získava geometrické informácie o aktuálnom bode tieňovania"
 
 
 msgid "Generate a normal vector and a dot product"
-msgstr "Vygenerovať vektor normálu a bodového súčinu"
+msgstr "Vygeneruje vektor normály a bodového súčinu"
 
 
 msgid "Generate a perturbed normal from an RGB normal map image. Typically used for faking highly detailed surfaces"
-msgstr "Vygeneruje narušený normál z obrazu normálovej mapy RGB. Zvyčajne sa používa na falšovanie veľmi detailných povrchov"
+msgstr "Vygeneruje narušenú normálu z obrazu normálovej mapy RGB. Zvyčajne sa používa na falšovanie veľmi detailných povrchov"
 
 
 msgid "Space of the input normal"
-msgstr "Miesto vstupu normálu"
+msgstr "Miesto vstupu normály"
 
 
 msgid "Tangent Space"
@@ -47781,15 +47998,15 @@ msgstr "Priestor dotyku"
 
 
 msgid "Tangent space normal mapping"
-msgstr "Priestor dotyku mapovania normálov"
+msgstr "Priestor dotyku mapovania normál"
 
 
 msgid "Object space normal mapping"
-msgstr "Priestor objektu mapovania normálov"
+msgstr "Priestor objektu mapovania normál"
 
 
 msgid "World space normal mapping"
-msgstr "Priestor sveta mapovania normálov"
+msgstr "Priestor sveta mapovania normál"
 
 
 msgid "Blender Object Space"
@@ -47797,7 +48014,7 @@ msgstr "Priestor objektu Blendera"
 
 
 msgid "Object space normal mapping, compatible with Blender render baking"
-msgstr "Priestor objektu mapovania normálov, kompatibilné so zapečením Blendera"
+msgstr "Priestor objektu mapovania normál, kompatibilné so zapečením Blendera"
 
 
 msgid "Blender World Space"
@@ -47805,7 +48022,7 @@ msgstr "Priestor oblasti Blendera"
 
 
 msgid "World space normal mapping, compatible with Blender render baking"
-msgstr "Priestor oblasti mapovania normálov, kompatibilný so zapečením Blendera"
+msgstr "Priestor oblasti mapovania normál, kompatibilný so zapečením Blendera"
 
 
 msgid "UV Map for tangent space maps"
@@ -48277,6 +48494,10 @@ msgid "Normalize outputs to 0.0 to 1.0 range"
 msgstr "Normalizácia výstupov na rozsah 0,0 až 1,0"
 
 
+msgid "Type of the Noise texture"
+msgstr "Typ textúry šumu"
+
+
 msgid "More uneven result (varies with location), more similar to a real terrain"
 msgstr "Nerovnomernejší výsledok (líši sa v závislosti od oblasti), viac sa podobá skutočnému terénu"
 
@@ -48287,6 +48508,10 @@ msgstr "Vytvoriť ostré hroty"
 
 msgid "Create peaks and valleys with different roughness values"
 msgstr "Vytvorí hroty a údolia s rôznymi hodnotami drsnosti"
+
+
+msgid "The standard fractal Perlin noise"
+msgstr "Štandardný fraktálny Perlinov šum"
 
 
 msgid "Similar to Hybrid Multifractal creates a heterogeneous terrain, but with the likeness of river channels"
@@ -48386,7 +48611,7 @@ msgstr "Váhy skupiny vrcholov"
 
 
 msgid "XYZ normal vector mapped to RGB colors"
-msgstr "XYZ vektor normálu priradený na RGB farby"
+msgstr "XYZ vektor normály priradený na RGB farby"
 
 
 msgid "Sky Texture"
@@ -48790,7 +49015,7 @@ msgstr "Lom"
 
 
 msgid "For a given incident vector A, surface normal B and ratio of indices of refraction, Ior, refract returns the refraction vector, R"
-msgstr "Pre danú udalosť vektor A, normálu povrchu B a podiel indexov lomu, Ior, vráti lom vektoru lomu, R"
+msgstr "Pre danú udalosť vektor A, normála povrchu B a podiel indexov lomu, Ior, vráti lom vektoru lomu, R"
 
 
 msgctxt "NodeTree"
@@ -48799,7 +49024,7 @@ msgstr "Predná plôška"
 
 
 msgid "Orients a vector A to point away from a surface B as defined by its normal C. Returns (dot(B, C) < 0) ? A : -A"
-msgstr "Orientuje vektor A tak, aby smeroval preč od povrchu B definovaného jeho normálom C. Vráti (bod(B, C) < 0) ? A : -A"
+msgstr "Orientuje vektor A tak, aby smeroval preč od povrchu B definovaného jeho normálou C. Vráti (bod(B, C) < 0) ? A : -A"
 
 
 msgctxt "NodeTree"
@@ -48945,7 +49170,7 @@ msgstr "Transformácia vektora"
 
 
 msgid "Convert a vector, point, or normal between world, camera, and object coordinate space"
-msgstr "Konvertuje vektor, bod alebo normál medzi súradnicovým priestorom sveta, kamerou a priestorom objektov"
+msgstr "Konvertuje vektor, bod alebo normálu medzi súradnicovým priestorom sveta, kamerou a priestorom objektov"
 
 
 msgid "Convert From"
@@ -48969,7 +49194,7 @@ msgstr "Transformácia vektora smeru"
 
 
 msgid "Transform a normal vector with unit length"
-msgstr "Transformácia vektora normálu jednotkou dĺžky"
+msgstr "Transformácia vektora normály jednotkou dĺžky"
 
 
 msgid "Color Attribute"
@@ -49070,7 +49295,7 @@ msgstr "Zmiešať RGB"
 
 
 msgid "Value to Normal"
-msgstr "Hodnota na normál"
+msgstr "Hodnota na normálu"
 
 
 msgid "Collection of repeat items"
@@ -49079,6 +49304,10 @@ msgstr "Kolekcia opakujúcich sa položiek"
 
 msgid "Collection of simulation items"
 msgstr "Kolekcia položiek simulácie"
+
+
+msgid "Collection of index_switch items"
+msgstr "Kolekcia položiek index_switch (prepínača indexov)"
 
 
 msgid "Node Inputs"
@@ -49565,6 +49794,14 @@ msgid "The attribute name used by default when the node group is used by a geome
 msgstr "Názov atribútu, ktorý sa predvolene používa, keď je skupina uzlov použitá modifikátorom uzlov geometrie"
 
 
+msgid "Default Input"
+msgstr "Predvolený vstup"
+
+
+msgid "Input to use when the socket is unconnected. Requires \"Hide Value\""
+msgstr "Vstup, ktorý sa použije, keď je zásuvka nepripojená. Vyžaduje \"Skryť hodnotu\""
+
+
 msgid "Socket description"
 msgstr "Popis zásuvky"
 
@@ -49607,6 +49844,10 @@ msgstr "Vygeneruje výstupnú zásuvku uzla"
 
 msgid "Layer Selection"
 msgstr "Výber vrstvy"
+
+
+msgid "Take Grease Pencil Layer or Layer Group as selection field"
+msgstr "Zoberie si ako pole výberu vrstvu alebo skupinu vrstiev Pastelky"
 
 
 msgid "Socket Type"
@@ -50989,6 +51230,10 @@ msgid "Insert Keyframe"
 msgstr "Vložiť kľúčovú snímku"
 
 
+msgid "Insert keyframes on the current frame using either the active keying set, or the user preferences if no keying set is active"
+msgstr "Vloží kľúčové snímky na aktuálnu snímku použitím aktívnej súpravy kľúčovania alebo predvolieb užívateľa, ak nie je aktívna žiadna súprava kľúčovania"
+
+
 msgctxt "Operator"
 msgid "Insert Keyframe (Buttons)"
 msgstr "Vložiť kľúčovú snímku (tlačidlá)"
@@ -51167,6 +51412,27 @@ msgid ""
 msgstr ""
 "Konvertuje F-krivky/ovládače ovplyvňujúce rotáciu na radiány.\n"
 "Varovanie: Použite to len raz"
+
+
+msgctxt "Operator"
+msgid "View In Graph Editor"
+msgstr "Zobraziť v Editore grafov"
+
+
+msgid "Frame the property under the cursor in the Graph Editor"
+msgstr "Snímka vlastnosti pod kurzorom v editore grafu"
+
+
+msgid "Show All"
+msgstr "Zobraziť všetko"
+
+
+msgid "Frame the whole array property instead of only the index under the cursor"
+msgstr "Snímka celej vlastnosti poľa namiesto iba indexu pod kurzorom"
+
+
+msgid "Isolate"
+msgstr "Izolovať"
 
 
 msgctxt "Operator"
@@ -51410,11 +51676,6 @@ msgstr "Odstrániť vybrané kosti z aktívnej kolekcie kostí"
 
 msgid "Name of the bone collection to unassign this bone from; empty to unassign from the active bone collection"
 msgstr "Názov kolekcie kostí, z ktorej sa má táto kosť odhlásiť; prázdne - odhlásenie z aktívnej kolekcie kostí"
-
-
-msgctxt "Operator"
-msgid "Remove Bone from Bone collections"
-msgstr "Odstrániť kosť z kolekcie kostí"
 
 
 msgid "Unassign the bone from this bone collection"
@@ -52029,7 +52290,7 @@ msgstr "Zmazať jedinečné aktívum"
 
 
 msgid "Delete all asset metadata and turn the asset data-block back into a normal data-block"
-msgstr "Odstráni všetky metaúdaje o aktívach a zmeniť blok údajov o aktívach späť na normálny blok údajov"
+msgstr "Odstráni všetky metaúdaje o aktívach a zmení blok údajov o aktívach späť na normálny blok údajov"
 
 
 msgctxt "Operator"
@@ -55393,7 +55654,7 @@ msgstr "Pred uložením použije modifikátory"
 
 
 msgid "Scene Unit"
-msgstr "Jednotky scény"
+msgstr "Jednotka scény"
 
 
 msgid "Apply current scene's unit (as defined by unit scale) to exported data"
@@ -55622,7 +55883,7 @@ msgstr "Vyhladenie"
 
 
 msgid "Export smoothing information (prefer 'Normals Only' option if your target importer understand split normals)"
-msgstr "Exportuje informácie vyhladzovania (preferuje voľbu 'Len normály', ak váš cieľový importér rozpoznáva rozdelenie normálov)"
+msgstr "Exportuje informácie vyhladzovania (preferuje voľbu 'Len normály', ak váš cieľový importér rozpoznáva rozdelenie normál)"
 
 
 msgid "Normals Only"
@@ -55814,7 +56075,7 @@ msgstr "Konvertuje všetky plôšky na trojuholníky"
 
 
 msgid "Add binormal and tangent vectors, together with normal they form the tangent space (will only work correctly with tris/quads only meshes!)"
-msgstr "Pridá vektory dvoj-normálov a dotyčníc, spolu s normálom tvoria priestor dotyku (funguje správne len pre trojuholníkové/štvoruholníkové povrchové siete!)"
+msgstr "Pridá vektory dvoj-normálov a dotyčníc, spolu s normálou tvoria priestor dotyku (funguje správne len pre trojuholníkové/štvoruholníkové povrchové siete!)"
 
 
 msgid "Visible Objects"
@@ -55832,6 +56093,14 @@ msgstr "Export glTF 2.0"
 
 msgid "Export scene as glTF 2.0 file"
 msgstr "Exportuje scénu ako glTF (GL Transmission Format) 2.0 súbor"
+
+
+msgid "Filter Actions"
+msgstr "Filter akcií"
+
+
+msgid "Filter Actions to be exported"
+msgstr "Akcie filtra pre export"
 
 
 msgid "Include All Bone Influences"
@@ -55902,6 +56171,14 @@ msgid "Apply modifiers (excluding Armatures) to mesh objects -WARNING: prevents 
 msgstr "Použije modifikátory (okrem armatúr) na povrchové siete objektov - VAROVANIE: zabraňuje exportu kľúčových tvarov"
 
 
+msgid "Remove Armature Object"
+msgstr "Odstrániť objekt armatúry"
+
+
+msgid "Remove Armature object if possible. If Armature has multiple root bones, object will not be removed"
+msgstr "Ak je to možné, odstráni objekt Armatúra. Ak má Armatúra viacero koreňových kostí, objekt nebude odstránený"
+
+
 msgid "Export Attributes (when starting with underscore)"
 msgstr "Exportuje atribúty (ak začínajú podčiarknikom)"
 
@@ -55916,6 +56193,10 @@ msgstr "Vynúti export animácie na každý objekt. Môže byť užitočné pri 
 
 msgid "Export cameras"
 msgstr "Export kamier"
+
+
+msgid "Keep for compatibility only"
+msgstr "Zachovať len kvôli kompatibilite"
 
 
 msgid "Legal rights and conditions for the model"
@@ -55971,11 +56252,11 @@ msgstr "Úroveň kompresie (0 = vyššia rýchlosť, 6 = väčšia kompresia, vy
 
 
 msgid "Normal quantization bits"
-msgstr "Kvantizácia bitov normálov"
+msgstr "Kvantizácia bitov normál"
 
 
 msgid "Quantization bits for normal values (0 = no quantization)"
-msgstr "Kvantizácia bitov pre hodnoty normálov (0 = bez kvantizácie)"
+msgstr "Kvantizácia bitov pre hodnoty normál (0 = bez kvantizácie)"
 
 
 msgid "Position quantization bits"
@@ -56034,6 +56315,14 @@ msgid "Clips animations to selected playback range"
 msgstr "Klipy animácie na vybraný rozsah prehrávania"
 
 
+msgid "Geometry Nodes Instances (Experimental)"
+msgstr "Inštancie uzlov geometrie (experimentálne)"
+
+
+msgid "Export Geometry nodes instance meshes"
+msgstr "Exportovať uzly geometrie inštančných povrchových sietí"
+
+
 msgid "GPU Instances"
 msgstr "Inštancie GPU"
 
@@ -56048,6 +56337,22 @@ msgstr "Zarovnať hierarchiu kostí"
 
 msgid "Flatten Bone Hierarchy. Useful in case of non decomposable transformation matrix"
 msgstr "Zarovná hierarchiu kostí. Užitočné v prípade nerozložiteľnej transformačnej matrice"
+
+
+msgid "Flatten Object Hierarchy"
+msgstr "Zarovnať hierarchiu objektu"
+
+
+msgid "Flatten Object Hierarchy. Useful in case of non decomposable transformation matrix"
+msgstr "Zarovná hierarchiu objektov. Užitočné v prípade nerozložiteľnej transformačnej matrice"
+
+
+msgid "Full Collection Hierarchy"
+msgstr "Úplná hierarchia kolekcií"
+
+
+msgid "Export full hierarchy, including intermediate collections"
+msgstr "Exportovať celú hierarchiu vrátane medziľahlých kolekcií"
 
 
 msgid "Create WebP"
@@ -56306,6 +56611,14 @@ msgid "Export armatures using rest position as joints' rest pose. When off, curr
 msgstr "Exportuje armatúry s použitím kľudovej polohy ako kľudovej polohy kĺbov. Ak je vypnuté, ako kľudová poloha sa použije aktuálna poloha snímky"
 
 
+msgid "Shared Accessors"
+msgstr "Zdieľané prístupy"
+
+
+msgid "Export Primitives using shared accessors for attributes"
+msgstr "Exportuje prvotné tvary použitím zdieľaných prístupov pre atribúty"
+
+
 msgid "Skinning"
 msgstr "Vytvorenie pokožky"
 
@@ -56340,6 +56653,22 @@ msgstr "Ak je to lepšie, použije zriedkavý prístupový prvok"
 
 msgid "Try using Sparse Accessor if it saves space"
 msgstr "Pokúsi sa použiť Sparse Accessor, ak sa ušetrí miesto"
+
+
+msgid "Unused images"
+msgstr "Nepoužité obrázky"
+
+
+msgid "Export images not assigned to any material"
+msgstr "Exportuje obrázky nepriradené k žiadnemu materiálu"
+
+
+msgid "Prepare Unused textures"
+msgstr "Pripraviť nepoužité textúry"
+
+
+msgid "Export image texture nodes not assigned to any material. This feature is not standard and needs an external extension to be included in the glTF file"
+msgstr "Exportuje uzly textúry obrazu nepriradené k žiadnemu materiálu. Táto funkcia nie je štandardná a vyžaduje externé rozšírenie, ktoré sa má zahrnúť do súboru glTF"
 
 
 msgid "+Y Up"
@@ -60865,7 +61194,7 @@ msgstr "Akcia prijatá, keď je ťah vyfarbený"
 
 
 msgid "Apply brush normally"
-msgstr "Použiť normálnu štetec"
+msgstr "Použiť normálny štetec"
 
 
 msgid "Invert action of brush for duration of stroke"
@@ -60876,8 +61205,33 @@ msgid "Switch brush to smooth mode for duration of stroke"
 msgstr "Prepnúť štetec na režim vyhladenia počas trvania ťahu"
 
 
+msgctxt "Operator"
+msgid "Set Curve Caps"
+msgstr "Nastaviť uzáver krivky"
+
+
+msgid "Change curve caps mode (rounded or flat)"
+msgstr "Zmení režim uzáverov krivky (zaoblené alebo ploché)"
+
+
+msgid "Rounded"
+msgstr "Zaoblené"
+
+
 msgid "Flat"
 msgstr "Ploché"
+
+
+msgid "Toggle Start"
+msgstr "Prepnúť Štart"
+
+
+msgid "Toggle End"
+msgstr "Prepnúť Koniec"
+
+
+msgid "Delete selected strokes or points"
+msgstr "Odstráni vybrané ťahy alebo body"
 
 
 msgctxt "Operator"
@@ -60976,6 +61330,23 @@ msgid "Name of the target layer"
 msgstr "Názov cieľovej vrstvy"
 
 
+msgctxt "Operator"
+msgid "Hide Materials"
+msgstr "Skryť materiály"
+
+
+msgid "Hide active/inactive Grease Pencil material(s)"
+msgstr "Skryje aktívne/neaktívne materiály Pastelky"
+
+
+msgid "Hide inactive materials instead of the active one"
+msgstr "Skryť neaktívne materiály namiesto aktívnych"
+
+
+msgid "Lock and hide any material not used"
+msgstr "Uzamkne a skryje každý nepoužívaný materiál"
+
+
 msgid "(De)select all visible strokes"
 msgstr "Vyberie / Zruší výber všetkých viditeľných ťahov"
 
@@ -61022,6 +61393,11 @@ msgstr "Vyberie náhodné body z aktuálneho výberu ťahov"
 
 
 msgctxt "Operator"
+msgid "Set Active Material"
+msgstr "Nastaviť aktívny materiál"
+
+
+msgctxt "Operator"
 msgid "Select Mode"
 msgstr "Režim výberu"
 
@@ -61040,6 +61416,29 @@ msgstr "Vyberie všetky body ťahu"
 
 msgid "Select all stroke points between other strokes"
 msgstr "Vyberie všetky body ťahu medzi inými ťahmi"
+
+
+msgctxt "Operator"
+msgid "Set Uniform Opacity"
+msgstr "Nastaviť rovnomernú nepriehľadnosť"
+
+
+msgid "Set all stroke points to same opacity"
+msgstr "Nastaví všetky body ťahu na rovnakú nepriehľadnosť"
+
+
+msgctxt "Operator"
+msgid "Set Uniform Thickness"
+msgstr "Nastaviť rovnomernú hrúbku"
+
+
+msgid "Set all stroke points to same thickness"
+msgstr "Nastaví všetky body ťahu na rovnakú hrúbku"
+
+
+msgctxt "Operator"
+msgid "Assign Material"
+msgstr "Priradiť materiál"
 
 
 msgid "Simplify selected strokes"
@@ -62129,7 +62528,7 @@ msgstr "Ako sa vypočítajú normály počas importu"
 
 
 msgid "Use Normal Data"
-msgstr "Použiť údaje normálov"
+msgstr "Použiť údaje normál"
 
 
 msgid "Flat Shading"
@@ -62149,7 +62548,7 @@ msgstr "Úroveň záznamu"
 
 
 msgid "The glTF format requires discontinuous normals, UVs, and other vertex attributes to be stored as separate vertices, as required for rendering on typical graphics hardware. This option attempts to combine co-located vertices where possible. Currently cannot combine verts with different normals"
-msgstr "Formát glTF vyžaduje, aby sa diskontinuálne normály, UV súradnice a ďalšie atribúty vrcholov uložili ako oddelené vrcholy, ako je vyžadované pri vykresľovaní na typickom grafickom hardvéri. Táto možnosť sa pokúša kombinovať vrcholy umiestnené spolu, kde je to možné. V súčasnosti nie je možné kombinovať vrcholy s rôznymi normálmi"
+msgstr "Formát glTF vyžaduje, aby sa diskontinuálne normály, UV súradnice a ďalšie atribúty vrcholov uložili ako oddelené vrcholy, ako je vyžadované pri prekresľovaní na typickom grafickom hardvéri. Táto možnosť sa pokúša kombinovať vrcholy umiestnené spolu, kde je to možné. V súčasnosti nie je možné kombinovať vrcholy s rôznymi normálami"
 
 
 msgctxt "Operator"
@@ -62821,11 +63220,11 @@ msgstr "Vyberie podobné meta gule podľa typov vlastností"
 
 msgctxt "Operator"
 msgid "Average Normals"
-msgstr "Priemer normálov"
+msgstr "Priemer normál"
 
 
 msgid "Average custom normals of selected vertices"
-msgstr "Priemer vlastných normálov vybraných vrcholov"
+msgstr "Priemer vlastných normál vybraných vrcholov"
 
 
 msgid "Averaging method"
@@ -62833,7 +63232,7 @@ msgstr "Metóda spriemerňovania"
 
 
 msgid "Take average of vertex normals"
-msgstr "Zoberie priemer normálov vrcholov"
+msgstr "Zoberie priemer normál vrcholov"
 
 
 msgid "Set all vertex normals by face area"
@@ -62952,7 +63351,7 @@ msgstr "Bod na rovine"
 
 
 msgid "Plane Normal"
-msgstr "Normál roviny"
+msgstr "Normála roviny"
 
 
 msgid "The direction the plane points"
@@ -63071,17 +63470,9 @@ msgid "Reverse Colors"
 msgstr "Obrátiť farby"
 
 
-msgid "Flip direction of vertex colors inside faces"
-msgstr "Otočí smer farieb vrcholov vnútri plôšky"
-
-
 msgctxt "Operator"
 msgid "Rotate Colors"
 msgstr "Rotovať farby"
-
-
-msgid "Rotate color attributes inside faces"
-msgstr "Otáča atribútmi farieb vnútri plôšok"
 
 
 msgid "Counter Clockwise"
@@ -63167,20 +63558,20 @@ msgstr "Porovnať farby vrchlov"
 
 msgctxt "Operator"
 msgid "Add Custom Split Normals Data"
-msgstr "Pridať vlastné údaje delenia normálov"
+msgstr "Pridať vlastné údaje delenia normál"
 
 
 msgid "Add a custom split normals layer, if none exists yet"
-msgstr "Pridá vlastnú vrstvu delenia normálov, ak ešte neexistuje"
+msgstr "Pridá vlastnú vrstvu delenia normál, ak ešte neexistuje"
 
 
 msgctxt "Operator"
 msgid "Clear Custom Split Normals Data"
-msgstr "Vymazať vlastné údaje delenia normálov"
+msgstr "Vymazať vlastné údaje delenia normál"
 
 
 msgid "Remove the custom split normals layer, if it exists"
-msgstr "Odstráni vlastnú vrstvu delenia normálov, ak existuje"
+msgstr "Odstráni vlastnú vrstvu delenia normál, ak existuje"
 
 
 msgctxt "Operator"
@@ -63479,7 +63870,7 @@ msgstr "Vysunúť oblasť a presúvať"
 
 
 msgid "Extrude region together along the average normal"
-msgstr "Vysunie oblasť spolu pozdĺž priemerného normálu"
+msgstr "Vysunie oblasť spolu pozdĺž priemernej normály"
 
 
 msgid "Extrude Context"
@@ -63523,7 +63914,7 @@ msgstr "Vysunúť jednotlivé plôšky a presunúť"
 
 
 msgid "Extrude each individual face separately along local normals"
-msgstr "Vysunie každú jednotlivú plôšku oddelene pozdĺž miestnych normálov"
+msgstr "Vysunie každú jednotlivú plôšku oddelene pozdĺž lokálnych normál"
 
 
 msgid "Extrude Individual Faces"
@@ -63531,7 +63922,7 @@ msgstr "Vysunúť jednotlivé plôšky"
 
 
 msgid "Shrink/fatten selected vertices along normals"
-msgstr "Zmrští/nafúkne vybrané vrcholy pozdĺž normálov"
+msgstr "Zmrští/nafúkne vybrané vrcholy pozdĺž normál"
 
 
 msgctxt "Operator"
@@ -63566,7 +63957,7 @@ msgstr "Vysunúť oblasť a zmrštiť/nafúknuť"
 
 
 msgid "Extrude region together along local normals"
-msgstr "Vysunie oblasť spolu pozdĺž miestnych normálov"
+msgstr "Vysunie oblasť spolu pozdĺž miestnych normál"
 
 
 msgctxt "Operator"
@@ -63690,7 +64081,7 @@ msgstr "Zobrazí ploché plôšky"
 
 
 msgid "Display faces smooth (using vertex normals)"
-msgstr "Zobrazí vyhladené plôšky (použitím normálov vrcholov)"
+msgstr "Zobrazí vyhladené plôšky (použitím normál vrcholov)"
 
 
 msgctxt "Operator"
@@ -63758,7 +64149,7 @@ msgstr "Prehodiť normály"
 
 
 msgid "Flip the direction of selected faces' normals (and of their vertices)"
-msgstr "Preklopí smer vybraných normálov plôšok (a ich vrcholov)"
+msgstr "Preklopí smer vybraných normál plôšok (a ich vrcholov)"
 
 
 msgid "Custom Normals Only"
@@ -64188,15 +64579,15 @@ msgstr "Zlúči vlastné normály vybraných vrcholov"
 
 msgctxt "Operator"
 msgid "Face Normals Strength"
-msgstr "Vplyv normálov plôšok"
+msgstr "Vplyv normál plôšok"
 
 
 msgid "Set/Get strength of face (used in Weighted Normal modifier)"
-msgstr "Nastaví/získa vplyv plôšky (používa sa v modifikátore Vplyv normálu)"
+msgstr "Nastaví/získa vplyv plôšky (používa sa v modifikátore Vplyv normály)"
 
 
 msgid "Strength to use for assigning or selecting face influence for weighted normal modifier"
-msgstr "Vplyv použitý na priradenie alebo voľbu vplyvu plôšky pre modifikátor Vplyv normálu"
+msgstr "Vplyv použitý na priradenie alebo voľbu vplyvu plôšky pre modifikátor Vplyv normály"
 
 
 msgid "Weak"
@@ -64221,16 +64612,16 @@ msgstr "Prepočítať normály"
 
 
 msgid "Make face and vertex normals point either outside or inside the mesh"
-msgstr "Vytvorí bod normálu plôšky a vrcholu buď zvonku alebo zvnútra povrchovej siete"
+msgstr "Vytvorí bod normály plôšky a vrcholu buď zvonku alebo zvnútra povrchovej siete"
 
 
 msgctxt "Operator"
 msgid "Normals Vector Tools"
-msgstr "Nástroje vektorov normálov"
+msgstr "Nástroje vektorov normál"
 
 
 msgid "Custom normals tools using Normal Vector of UI"
-msgstr "Vlastné nástroje normálov používajúce vektor normálov v užívateľskom rozhraní"
+msgstr "Vlastné nástroje normál používajúce vektor normál v užívateľskom rozhraní"
 
 
 msgid "Absolute Coordinates"
@@ -64238,7 +64629,7 @@ msgstr "Absolútne súradnice"
 
 
 msgid "Copy Absolute coordinates or Normal vector"
-msgstr "Kopíruje absolútne súradnice alebo vektor normálu"
+msgstr "Kopíruje absolútne súradnice alebo vektor normály"
 
 
 msgid "Mode of tools taking input from interface"
@@ -64246,43 +64637,43 @@ msgstr "Režim nástrojov daných pri vstupe z rozhrania"
 
 
 msgid "Copy Normal"
-msgstr "Kopírovať normál"
+msgstr "Kopírovať normálu"
 
 
 msgid "Copy normal to the internal clipboard"
-msgstr "Skopíruje normál z internej schránky"
+msgstr "Skopíruje normálu z internej schránky"
 
 
 msgid "Paste Normal"
-msgstr "Prilepiť normál"
+msgstr "Prilepiť normálu"
 
 
 msgid "Paste normal from the internal clipboard"
-msgstr "Prilepí normál z internej schránky"
+msgstr "Prilepí normálu z internej schránky"
 
 
 msgid "Add Normal"
-msgstr "Pridať normál"
+msgstr "Pridať normálu"
 
 
 msgid "Add normal vector with selection"
-msgstr "Pridá vektor normálu pri výbere"
+msgstr "Pridá vektor normály pri výbere"
 
 
 msgid "Multiply Normal"
-msgstr "Viacnásobný normál"
+msgstr "Viacnásobná normála"
 
 
 msgid "Multiply normal vector with selection"
-msgstr "Viacnásobný vektor normálu pri výbere"
+msgstr "Viacnásobný vektor normály pri výbere"
 
 
 msgid "Reset Normal"
-msgstr "Resetovať normál"
+msgstr "Resetovať normálu"
 
 
 msgid "Reset the internal clipboard and/or normal of selected element"
-msgstr "Resetuje internú schránku a/alebo normál vybraného prvku"
+msgstr "Resetuje internú schránku a/alebo normálu vybraného prvku"
 
 
 msgctxt "Operator"
@@ -64387,7 +64778,7 @@ msgstr "Sféricky"
 
 
 msgid "Interpolate between original and new normals"
-msgstr "Interpolácia medzi pôvodnými a novými normálmi"
+msgstr "Interpolácia medzi pôvodnými a novými normálami"
 
 
 msgid "Spherize Strength"
@@ -64395,11 +64786,11 @@ msgstr "Sférická stálosť"
 
 
 msgid "Ratio of spherized normal to original normal"
-msgstr "Pomer sférického normálu ku pôvodnému normálu"
+msgstr "Pomer sférickej normály k pôvodnej normále"
 
 
 msgid "Target location to which normals will point"
-msgstr "Poloha cieľa, na ktorú sa nasmeruje normál"
+msgstr "Poloha cieľa, na ktorú sa nasmeruje normála"
 
 
 msgctxt "Operator"
@@ -64815,7 +65206,7 @@ msgstr "Skontrolovať plné 3D tlačou"
 
 
 msgid "Check for geometry is solid (has valid inside/outside) and correct normals"
-msgstr "Skontroluje celistvosť geometrie (platnosť vnútornej/vonkajšej) a korektnosť normálov"
+msgstr "Skontroluje celistvosť geometrie (platnosť vnútornej/vonkajšej) a korektnosť normál"
 
 
 msgctxt "Operator"
@@ -64938,7 +65329,7 @@ msgstr "Ostré hrany"
 
 
 msgid "Calculate sharp edges using custom normal data (when available)"
-msgstr "Vypočíta ostré hrany použitím vlastných údajov normálov (ak sú k dispozícii)"
+msgstr "Vypočíta ostré hrany použitím vlastných údajov normál (ak sú k dispozícii)"
 
 
 msgid "Merge selected to other unselected vertices"
@@ -65039,7 +65430,7 @@ msgstr "Zarovná osi transformácie s miestnym priestorom vybraných objektov"
 
 
 msgid "Align the transformation axes to average normal of selected elements (bone Y axis for pose mode)"
-msgstr "Zarovná osi transformácie na priemerný normál vybraných prvkov (kosť osi Y pre režim pózy)"
+msgstr "Zarovná osi transformácie na priemernú normálu vybraných prvkov (kosť osi Y pre režim pózy)"
 
 
 msgid "Gimbal"
@@ -65260,7 +65651,7 @@ msgstr "Typ"
 
 msgctxt "Mesh"
 msgid "Normal"
-msgstr "Normál"
+msgstr "Normála"
 
 
 msgctxt "Mesh"
@@ -65473,15 +65864,15 @@ msgstr "Vyberie najkratšiu dráhu medzi dvomi vrcholmi/hranami/plôškami"
 
 msgctxt "Operator"
 msgid "Smooth Normals Vectors"
-msgstr "Vyhladiť vektory normálov"
+msgstr "Vyhladiť vektory normál"
 
 
 msgid "Smooth custom normals based on adjacent vertex normals"
-msgstr "Vyhladí vlastné normály založené na priľahlých normáloch vrcholov"
+msgstr "Vyhladí vlastné normály založené na priľahlých normálach vrcholov"
 
 
 msgid "Specifies weight of smooth vs original normal"
-msgstr "Určiť váhu vyhladených proti originálnym normálom"
+msgstr "Určiť váhu vyhladených proti originálnym normálam"
 
 
 msgctxt "Operator"
@@ -65608,11 +65999,11 @@ msgstr "Faktor fraktálnej náhodnosti"
 
 
 msgid "Along Normal"
-msgstr "Pozdĺž normálu"
+msgstr "Pozdĺž normály"
 
 
 msgid "Apply fractal displacement along normal only"
-msgstr "Použije fraktálny posun pozdĺž normálu"
+msgstr "Použije fraktálny posun pozdĺž normály"
 
 
 msgid "Create N-Gons"
@@ -65878,6 +66269,14 @@ msgid "Push action down onto the top of the NLA stack as a new strip"
 msgstr "Akcia vytláčania na vrchol zásobníka NLA ako nového pásu"
 
 
+msgid "Track Index"
+msgstr "Index stopy"
+
+
+msgid "Index of NLA action track to perform pushdown operation on"
+msgstr "Index stopy akcie NLA pre vykonanie operácie vytlačenia"
+
+
 msgctxt "Operator"
 msgid "Sync Action Length"
 msgstr "Synchronizácia dĺžky akcie"
@@ -65934,6 +66333,22 @@ msgid "Bake object transformations"
 msgstr "Zapiecť objekt transformácie"
 
 
+msgid "Which channels to bake"
+msgstr "Určuje, ktoré kanály sa majú zapiecť"
+
+
+msgid "Bake location channels"
+msgstr "Zapiecť lokálne kanály"
+
+
+msgid "Bake rotation channels"
+msgstr "Zapiecť kanály rotácie"
+
+
+msgid "Bake scale channels"
+msgstr "Zapiecť kanály mierky"
+
+
 msgid "Clean Curves"
 msgstr "Vyčistiť krivky"
 
@@ -65980,6 +66395,15 @@ msgstr "Viditeľné kľúčovanie"
 
 msgid "Keyframe from the final transformations (with constraints applied)"
 msgstr "Kľúčová snímka z konečnej transformácie (s použitými vynúteniami)"
+
+
+msgctxt "Operator"
+msgid "Mouse Click on NLA Tracks"
+msgstr "Kliknúť myšou na NLA stopy"
+
+
+msgid "Handle clicks to select NLA tracks"
+msgstr "Kliknutie na manipulátor pre výber NLA stôp"
 
 
 msgctxt "Operator"
@@ -66658,8 +67082,25 @@ msgstr "Prepne skrytie vybraných uzlov"
 
 
 msgctxt "Operator"
+msgid "Add Item"
+msgstr "Pridať položku"
+
+
+msgid "Add an item to the index switch"
+msgstr "Pridá položku do prepínača indexov"
+
+
+msgctxt "Operator"
 msgid "Remove Item"
 msgstr "Odstrániť položku"
+
+
+msgid "Remove an item from the index switch"
+msgstr "Odstráni položku z prepínača indexov"
+
+
+msgid "Index of item to remove"
+msgstr "Index položky na odstránenie"
 
 
 msgctxt "Operator"
@@ -67504,12 +67945,24 @@ msgid "Curve from Mesh or Text objects"
 msgstr "Krivka podľa objektov povrchovej siete alebo textu"
 
 
+msgid "Mesh from Curve, Surface, Metaball, Text, or Point Cloud objects"
+msgstr "Povrchová sieť pre objekty krivky, povrchu, meta-gule, textu alebo mračna bodov"
+
+
 msgid "Grease Pencil from Curve or Mesh objects"
 msgstr "Pastelka z objektov krivky alebo povrchovej siete"
 
 
+msgid "Point Cloud from Mesh objects"
+msgstr "Mračno bodov z objektov povrchovej siete"
+
+
 msgid "Curves from evaluated curve data"
 msgstr "Krivky z vyhodnotených údajov krivky"
+
+
+msgid "Grease Pencil v3 from Grease Pencil"
+msgstr "Pastelka v3 z Pastelky"
 
 
 msgctxt "Operator"
@@ -68284,8 +68737,24 @@ msgid "Subset of probes to update"
 msgstr "Podsústava snímačov na aktualizáciu"
 
 
+msgid "All Volumes"
+msgstr "Všetky objemy"
+
+
+msgid "Bake all light probe volumes"
+msgstr "Zapečie všetky objemy snímačov svetla"
+
+
 msgid "Selected Only"
 msgstr "Len vybrané"
+
+
+msgid "Only bake selected light probe volumes"
+msgstr "Zapečie iba vybrané objemy snímačov svetla"
+
+
+msgid "Only bake the active light probe volume"
+msgstr "Zapečie iba aktívny objem snímača svetla"
 
 
 msgctxt "Operator"
@@ -68908,7 +69377,7 @@ msgstr "Počiatok na stred hmoty (objem)"
 
 
 msgid "Calculate the center of mass from the volume (must be manifold geometry with consistent normals)"
-msgstr "Vypočíta stred hmoty z objemu (musí byť vyvinutá geometria so zhodnými normálmi)"
+msgstr "Vypočíta stred hmoty z objemu (musí byť vyvinutá geometria so zhodnými normálami)"
 
 
 msgid "Clear the object's parenting"
@@ -69193,6 +69662,10 @@ msgstr "Určí cieľovú dĺžku hrany v novej povrchovej siete"
 
 msgid "Input target number of faces in the new mesh"
 msgstr "Určí cieľový počet plôšok v novej povrchovej siete"
+
+
+msgid "Reproject attributes onto the new mesh"
+msgstr "Znovu premietne atribúty na novú povrchovú sieť"
 
 
 msgid "Random seed to use with the solver. Different seeds will cause the remesher to come up with different quad layouts on the mesh"
@@ -69572,15 +70045,24 @@ msgstr "Názov kolekcie na výber"
 
 
 msgid "Render and display faces uniform, using Face Normals"
-msgstr "Prekreslí a zobrazí jednotné plôšky, použitím normálov plôšok"
+msgstr "Prekreslí a zobrazí jednotné plôšky, použitím normál plôšok"
 
 
 msgid "Render and display faces smooth, using interpolated Vertex Normals"
-msgstr "Prekreslí a zobrazí vyhladené plôšky, použitím normálov vrcholov"
+msgstr "Prekreslí a zobrazí vyhladené plôšky, použitím normál vrcholov"
+
+
+msgctxt "Operator"
+msgid "Shade Smooth by Angle"
+msgstr "Vyhladiť tieň podľa uhla"
 
 
 msgid "Set the sharpness of mesh edges based on the angle between the neighboring faces"
 msgstr "Nastavenie ostrosti hrán povrchovej siete na základe uhla medzi susednými plôškami"
+
+
+msgid "Maximum angle between face normals that will be considered as smooth"
+msgstr "Maximálny uhol medzi normálami plôšok, ktorý sa bude považovať za hladký"
 
 
 msgctxt "Operator"
@@ -74143,6 +74625,15 @@ msgstr "Pridá modifikátor hrúbky čiary k štýlu čiary priradeného k aktí
 
 
 msgctxt "Operator"
+msgid "Refresh action list"
+msgstr "Obnoví zoznam akcií"
+
+
+msgid "Refresh list of actions"
+msgstr "Obnoviť zoznam akcií"
+
+
+msgctxt "Operator"
 msgid "Add Grease Pencil Brush Preset"
 msgstr "Pridať predvoľbu štetca pastelky"
 
@@ -75263,19 +75754,6 @@ msgid "Modify Hidden"
 msgstr "Upraviť skryté"
 
 
-msgid "Apply the edit operation to hidden Face Sets"
-msgstr "Použije operáciu úprav na skryté sústavy plôšok"
-
-
-msgctxt "Operator"
-msgid "Invert Face Set Visibility"
-msgstr "Viditeľnosť inverznej plôšky"
-
-
-msgid "Invert the visibility of the Face Sets of the sculpt"
-msgstr "Invertuje viditeľnosť sústav plôšok tvarovania"
-
-
 msgctxt "Operator"
 msgid "Face Set Lasso Gesture"
 msgstr "Sústava plôšok pohybom v lase"
@@ -75352,7 +75830,7 @@ msgstr "Vytvorí sústavu plôšok pre každú zásuvku materiálu"
 
 
 msgid "Face Sets from Mesh Normals"
-msgstr "Sústava plôšok podľa normálov povrchovej siete"
+msgstr "Sústava plôšok podľa normál povrchovej siete"
 
 
 msgid "Create Face Sets for Faces that have similar normal"
@@ -75537,10 +76015,6 @@ msgstr "Režim zmiešania"
 
 msgid "Use settings from here"
 msgstr "Použiť nastavenia odtiaľ"
-
-
-msgid "Operator"
-msgstr "Operátor"
 
 
 msgid "Use settings from operator properties"
@@ -75894,7 +76368,7 @@ msgstr "Použije zobrazenie na orientáciu tvaru orezania"
 
 
 msgid "Use the surface normal to orientate the trimming shape"
-msgstr "Použije normálny povrch na orientáciu tvaru orezania"
+msgstr "Použije normálu povrchu na orientáciu tvaru orezania"
 
 
 msgid "Use Cursor for Depth"
@@ -78207,7 +78681,7 @@ msgstr "Otočiť normály"
 
 
 msgid "Rotate split normal of selected items"
-msgstr "Otáča oddelenými normálmi vybraných položiek"
+msgstr "Otáča oddelenými normálami vybraných položiek"
 
 
 msgctxt "Operator"
@@ -78292,7 +78766,7 @@ msgstr "Transformovať"
 
 
 msgid "Align with Point Normal"
-msgstr "Zarovnať s bodom normálu"
+msgstr "Zarovnať s bodom normály"
 
 
 msgid "Auto Merge & Split"
@@ -78344,7 +78818,7 @@ msgstr "Náhodné vrcholy"
 
 
 msgid "Align offset direction to normals"
-msgstr "Zarovná smer posuvu podľa normálov"
+msgstr "Zarovná smer posuvu podľa normál"
 
 
 msgid "Distance to offset"
@@ -78845,6 +79319,11 @@ msgid "Update given add-on's translation data (found as a py tuple in the add-on
 msgstr "Aktualizuje údaje prekladu doplnku (nájdené ako zdrojový kód doplnku v pythone)"
 
 
+msgctxt "Operator"
+msgid "Clean up I18n Work Repository"
+msgstr "Vyčistiť pracovné úložisko I18n"
+
+
 msgid "Clean up i18n working repository (po files)"
 msgstr "Vyčistí pracovné úložisko i18n (súbory .po)"
 
@@ -78878,6 +79357,11 @@ msgstr "Uložiť nastavenia i18n"
 
 msgid "Save translations' settings in a persistent JSon file"
 msgstr "Uloží nastavenia prekladov do trvalého .json súboru"
+
+
+msgctxt "Operator"
+msgid "Update I18n Blender Repository"
+msgstr "Aktualizovať úložisko I18n Blendera"
 
 
 msgid "Update i18n data (po files) in Blender source code repository"
@@ -78925,6 +79409,11 @@ msgstr "Aktualizovať štatistiku i18n"
 
 msgid "Create or extend a 'i18n_info.txt' Text datablock"
 msgstr "Vytvorí alebo rozšíri blok údajov textu \"i18n_info.txt\""
+
+
+msgctxt "Operator"
+msgid "Update I18n Work Repository"
+msgstr "Aktualizovať pracovné úložisko I18n"
 
 
 msgid "Update i18n working repository (po files)"
@@ -79330,6 +79819,30 @@ msgstr "Všetky UV"
 
 msgid "Export all UVs in this mesh (not just visible ones)"
 msgstr "Exportuje všetky UV v tejto povrchovej siete (nie len tie viditeľné)"
+
+
+msgid "Export Tiles"
+msgstr "Exportovať dlaždice"
+
+
+msgid "Choose whether to export only the [0, 1] range, or all UV tiles"
+msgstr "Vyberte, či chcete exportovať len rozsah [0, 1], alebo všetky dlaždice UV"
+
+
+msgid "Export only UVs in the [0, 1] range"
+msgstr "Exportovať iba UV v rozsahu [0, 1]"
+
+
+msgid "Export tiles in the UDIM numbering scheme: 1001 + u_tile + 10*v_tile"
+msgstr "Export dlaždíc v schéme číslovania UDIM: 1001 + u_dlaždica + 10*v_dlaždica"
+
+
+msgid "UVTILE"
+msgstr "UV dlaždica"
+
+
+msgid "Export tiles in the UVTILE numbering scheme: u(u_tile + 1)_v(v_tile + 1)"
+msgstr "Export dlaždíc v schéme číslovania UV dlaždice: u(u_dlaždica + 1)_v(v_dlaždica + 1)"
 
 
 msgid "File format to export the UV layout to"
@@ -80295,7 +80808,7 @@ msgstr "Orientácia na aktuálne nastavenie transformácie"
 
 
 msgid "Match the surface normal"
-msgstr "Prispôsobiť normálnemu povrchu"
+msgstr "Prispôsobiť normále povrchu"
 
 
 msgid "Surface Project"
@@ -80348,16 +80861,16 @@ msgstr "Vysunúť jedotlivo a presunúť"
 
 msgctxt "Operator"
 msgid "Extrude Manifold Along Normals"
-msgstr "Vysunúť vyvinuté pozdĺž normálov"
+msgstr "Vysunúť vyvinuté pozdĺž normál"
 
 
 msgid "Extrude manifold region along normals"
-msgstr "Vysunie vyvinutú oblasť pozdĺž normálov"
+msgstr "Vysunie vyvinutú oblasť pozdĺž normál"
 
 
 msgctxt "Operator"
 msgid "Extrude and Move on Normals"
-msgstr "Vysunúť a presúvať po normáloch"
+msgstr "Vysunúť a presúvať po normálach"
 
 
 msgid "Dissolves adjacent faces and intersects new geometry"
@@ -80366,7 +80879,7 @@ msgstr "Rozpúšťa susedné plochy a pretína novú geometriu"
 
 msgctxt "Operator"
 msgid "Extrude and Move on Individual Normals"
-msgstr "Vysunúť a presúvať po samostatných normáloch"
+msgstr "Vysunúť a presúvať po samostatných normálach"
 
 
 msgctxt "Operator"
@@ -81786,7 +82299,7 @@ msgstr "Nastaví použitie pripojenia materských kostí, ktoré majú presne je
 
 
 msgid "Import custom normals, if available (otherwise Blender will compute them)"
-msgstr "Import vlastných normálov, ak sú dostupné (inak ich Blender vypočíta)"
+msgstr "Import vlastných normál, ak sú dostupné (inak ich Blender vypočíta)"
 
 
 msgid "Find Bone Chains"
@@ -82631,6 +83144,14 @@ msgid "Export file in ASCII format, export as binary otherwise"
 msgstr "Exportuje súbor vo formáte ASCII, inak exportovaný ako binárny"
 
 
+msgid "Export Vertex Attributes"
+msgstr "Exportovať atribúty vrcholov"
+
+
+msgid "Export custom vertex attributes"
+msgstr "Exportovať vlastné atribúty vrcholov"
+
+
 msgid "Export Vertex Colors"
 msgstr "Exportuje farby vrcholov s povrchovými sieťami"
 
@@ -82662,6 +83183,14 @@ msgstr "Importovať PLY"
 
 msgid "Import an PLY file as an object"
 msgstr "Importuje súbor PLY ako objekt"
+
+
+msgid "Vertex Attributes"
+msgstr "Atribúty vrcholov"
+
+
+msgid "Import custom vertex attributes"
+msgstr "Importovať vlastné atribúty vrcholov"
 
 
 msgid "Merges vertices by distance"
@@ -83438,6 +83967,18 @@ msgstr "O aplikácii Blender"
 
 msgid "Open a window with information about Blender"
 msgstr "Otvorí okno s informáciami o aplikácii Blender"
+
+
+msgid "Save the scene to an STL file"
+msgstr "Uloží scénu do STL súboru"
+
+
+msgid "Batch Export"
+msgstr "Dávka exportu"
+
+
+msgid "Export each object to a separate file"
+msgstr "Exportovať každý objekt do samostatného súboru"
 
 
 msgid "Import an STL file as an object"
@@ -84762,18 +85303,6 @@ msgid "Panel containing UI elements"
 msgstr "Panel obsahujúci prvky užívateľského rozhrania"
 
 
-msgid "Refraction"
-msgstr "Lom"
-
-
-msgid "Screen Tracing"
-msgstr "Sledovanie obrazovky"
-
-
-msgid "Denoising"
-msgstr "Odstránenie šumu"
-
-
 msgid "Light Groups"
 msgstr "Skupiny svetla"
 
@@ -85120,6 +85649,11 @@ msgid "Snapping"
 msgstr "Prichytenie"
 
 
+msgctxt "ID"
+msgid "Displacement"
+msgstr "Posun"
+
+
 msgid "Bake Animation"
 msgstr "Zapiecť animáciu"
 
@@ -85179,6 +85713,10 @@ msgstr "Graf scény"
 
 msgid "Optimize Shape Keys"
 msgstr "Optimalizácia kľúčových tvarov"
+
+
+msgid "Unused Textures & Images"
+msgstr "Nepoužité textúry a obrázky"
 
 
 msgid "Exporter Extensions"
@@ -85652,8 +86190,20 @@ msgid "Indirect Lighting"
 msgstr "Nepriame osvetlenie"
 
 
+msgid "Denoising"
+msgstr "Odstránenie šumu"
+
+
+msgid "Horizon Scan"
+msgstr "Horizontálne skenovanie"
+
+
 msgid "Raytracing"
 msgstr "Sledovanie lúča"
+
+
+msgid "Screen Tracing"
+msgstr "Sledovanie obrazovky"
 
 
 msgid "Shadows"
@@ -85718,6 +86268,10 @@ msgstr "Poznámka"
 
 msgid "Time Stretching"
 msgstr "Natiahnutie času"
+
+
+msgid "Action Filter"
+msgstr "Filter akcií"
 
 
 msgid "Keyframing Settings"
@@ -86213,7 +86767,7 @@ msgstr "Voľné vysunutie alebo pozdĺž osi"
 
 msgctxt "Operator"
 msgid "Extrude Along Normals"
-msgstr "Vysunúť pozdĺž normálov"
+msgstr "Vysunúť pozdĺž normál"
 
 
 msgctxt "Operator"
@@ -88044,6 +88598,14 @@ msgstr "Manhattanská vzdialenosť pastelky"
 
 msgid "Pixels moved by mouse per axis when drawing stroke"
 msgstr "Pixely presúvané myšou na os pri kreslení ťahu"
+
+
+msgid "Default Key Channels"
+msgstr "Predvolené kľúčové kanály"
+
+
+msgid "Which channels to insert keys at when no keying set is active"
+msgstr "Určuje, ktoré kanály sa majú vkladať, keď nie je aktívna žiadna sústava kľúčov"
 
 
 msgid "New Handles Type"
@@ -90967,6 +91529,14 @@ msgid "When using volume rendering, assume volume has the same density everywher
 msgstr "Pri použití prekreslenia objemu sa predpokladá, že objem má všade rovnakú hustotu (bez použitia textúry), pre rýchlejšie prekreslenie"
 
 
+msgid "Bump Map Correction"
+msgstr "Oprava mapy hrboľov"
+
+
+msgid "Apply corrections to solve shadow terminator artifacts caused by bump mapping"
+msgstr "Použije korekcie na riešenie artefaktov terminátora tieňov spôsobených mapovaním hrboľov"
+
+
 msgid "Volume Interpolation"
 msgstr "Interpolácia objemu"
 
@@ -91348,11 +91918,11 @@ msgstr "Pre odstránenie šumu použije prechod odrazivosti"
 
 
 msgid "Albedo and Normal"
-msgstr "Odrazivosť a normál"
+msgstr "Odrazivosť a normála"
 
 
 msgid "Use albedo and normal passes for denoising"
-msgstr "Na odstránenie šumu použije prechod odrazivosti a normálov"
+msgstr "Na odstránenie šumu použije prechod odrazivosti a normál"
 
 
 msgid "Denoising Prefilter"
@@ -91360,7 +91930,7 @@ msgstr "Predbežný filter odstránenia šumu"
 
 
 msgid "Prefilter noisy guiding (albedo and normal) passes to improve denoising quality when using OpenImageDenoiser"
-msgstr "Predbežné filtrovanie zašumených vodiacich prechodov (odrazivosť a normály) na zlepšenie kvality odstránenia šumu použitím OpenImageDenoiser"
+msgstr "Predbežné filtrovanie zašumených vodiacich prechodov (odrazivosť a normála) na zlepšenie kvality odstránenia šumu použitím OpenImageDenoiser"
 
 
 msgid "Denoise color and guiding passes together. Improves quality when guiding passes are noisy using least amount of extra processing time"
@@ -92192,7 +92762,7 @@ msgstr "Zobrazí prechod prekreslenia Pozície"
 
 
 msgid "Show the Normal render pass"
-msgstr "Zobrazí prekreslenie prechodu Normálu"
+msgstr "Zobrazí prekreslenie normálneho prechodu"
 
 
 msgid "Show the UV render pass"
@@ -92212,11 +92782,11 @@ msgstr "Prechod odrazivosti použitý odstraňovačom šumu"
 
 
 msgid "Denoising Normal"
-msgstr "Normál odstraňovača šumu"
+msgstr "Normálne odstránenie šumu"
 
 
 msgid "Normal pass used by denoiser"
-msgstr "Prechod normálu použitý odstraňovačom šumu"
+msgstr "Normálny prechod použitý odstraňovačom šumu"
 
 
 msgid "Sample Count"
@@ -92297,6 +92867,10 @@ msgstr "Metóda interpolácie použitej pre objemy"
 
 msgid "Distance between volume shader samples when rendering the volume (lower values give more accurate and detailed results, but also increased render time)"
 msgstr "Vzdialenosť medzi snímaniami objemu tieňovača pri prekreslení objemu (nižšie hodnoty dávajú presnejšie a detailnejšie výsledky, ale aj zvýšia čas prekreslenia)"
+
+
+msgid "Keep Animation"
+msgstr "Zachovať animáciu"
 
 
 msgid "Settings/info about a language"
@@ -92416,7 +92990,7 @@ msgstr "Počet objektov na jednotku na čiare"
 
 
 msgid "Normal Offset"
-msgstr "Posuv normálu"
+msgstr "Posuv normály"
 
 
 msgid "Distance from the surface"
@@ -92448,11 +93022,11 @@ msgstr "Jeho zmenou získate iný vzor rozptylu"
 
 
 msgid "Use Normal Rotation"
-msgstr "Použiť rotáciu normálov"
+msgstr "Použiť rotáciu normál"
 
 
 msgid "Rotate the instances according to the surface normals"
-msgstr "Inštancie otáča podľa normálov povrchu"
+msgstr "Inštancie otáča podľa normály povrchu"
 
 
 msgid "Operator File List Element"
@@ -92791,6 +93365,14 @@ msgid "Clamp ray intensity to reduce noise (0 to disable)"
 msgstr "Zarážka intenzity lúčov na zníženie šumu (0 pre zákaz)"
 
 
+msgid "Screen-Trace Max Roughness"
+msgstr "Maximálna drsnosť sledovania obrazovky"
+
+
+msgid "Maximum roughness to use the tracing pipeline for. Higher roughness surfaces will use horizon scan. A value of 1 will disable horizon scan"
+msgstr "Maximálna drsnosť, pre ktorú sa má použiť sledovacie potrubie. Povrchy s vyššou drsnosťou budú používať skenovanie horizontu. Hodnota 1 zakáže skenovanie horizontu"
+
+
 msgid "Screen-Trace Precision"
 msgstr "Presnosť sledovania obrazovky"
 
@@ -92817,6 +93399,22 @@ msgstr "Celé číslo len na čítanie"
 
 msgid "Region in a subdivided screen area"
 msgstr "Oblasť v delenej oblasti obrazovky"
+
+
+msgid "Active Panel Category"
+msgstr "Kategória aktívnych panelov"
+
+
+msgid "The current active panel category, may be Null if the region does not support this feature (NOTE: these categories are generated at runtime, so list may be empty at initialization, before any drawing took place)"
+msgstr "Aktuálna aktívna kategória panela, môže byť Null (nulová), ak región túto funkciu nepodporuje (POZNÁMKA: tieto kategórie sa generujú za behu, takže zoznam môže byť pri inicializácii prázdny ešte pred kreslením)"
+
+
+msgid "Not Supported"
+msgstr "Nepodporované"
+
+
+msgid "This region does not support panel categories"
+msgstr "Táto oblasť nepodporuje kategórie panelov"
 
 
 msgid "Alignment of the region within the area"
@@ -93064,7 +93662,7 @@ msgstr "Dodá prechod faktora hmly (0,0 - 1,0)"
 
 
 msgid "Deliver normal pass"
-msgstr "Dodá prechod normálu"
+msgstr "Prináša normálny prechod"
 
 
 msgctxt "Scene"
@@ -93657,10 +94255,6 @@ msgstr "Orezať na oblasť prekreslenia"
 
 msgid "Crop the rendered frame to the defined render region size"
 msgstr "Oreže snímku prekreslenia na definovanú veľkosť oblasti prekreslenia"
-
-
-msgid "File Extensions"
-msgstr "Prípony súborov"
 
 
 msgid "Add the file format extensions to the rendered file name (eg: filename + .jpg)"
@@ -94831,14 +95425,6 @@ msgid "Brightness threshold for using sprite base depth of field"
 msgstr "Prah jasu pre použitie duchov základnej hĺbky ostrosti"
 
 
-msgid "Diffuse Trace Options"
-msgstr "Možnosti rozptýleného sledovania"
-
-
-msgid "EEVEE settings for tracing diffuse reflections"
-msgstr "Nastavenia EEVEE na sledovanie rozptylových odrazov"
-
-
 msgid "Auto Bake"
 msgstr "Automatické zapečenie"
 
@@ -95015,6 +95601,18 @@ msgid "Precision of the horizon search"
 msgstr "Presnosť snímania horizontu"
 
 
+msgid "Bias the horizon angles to reduce self intersection artifacts"
+msgstr "Skreslenie uhlov horizontu na zníženie artefaktov vlastného pretínania"
+
+
+msgid "Precision of the horizon scan"
+msgstr "Presnosť skenovania horizontu"
+
+
+msgid "Constant thickness of the surfaces considered when doing horizon scan and by extension ambient occlusion"
+msgstr "Konštantná hrúbka povrchov, ktoré sa berú do úvahy pri skenovaní horizontu, a tým aj pohlcovanie okolím"
+
+
 msgid "Light Threshold"
 msgstr "Prah svetla"
 
@@ -95051,26 +95649,6 @@ msgid "Percentage of render size to add as overscan to the internal render buffe
 msgstr "Percentuálna veľkosť prekreslenia na pridanie ako preskenovanie do interného zásobníka prekreslenia"
 
 
-msgid "Options Split"
-msgstr "Možnosti rozdelenia"
-
-
-msgid "Split settings per ray type"
-msgstr "Nastaví rozdelenie podľa typu lúča"
-
-
-msgid "Unified"
-msgstr "Zjednotený"
-
-
-msgid "All ray types use the same settings"
-msgstr "Všetky typy lúčov používajú rovnaké nastavenia"
-
-
-msgid "Settings are individual to each ray type"
-msgstr "Nastavenia sú individuálne pre každý typ lúča"
-
-
 msgid "Tracing Method"
 msgstr "Metóda sledovania"
 
@@ -95099,14 +95677,6 @@ msgid "EEVEE settings for tracing reflections"
 msgstr "Nastavenia EEVEE pre sledovanie odrazov"
 
 
-msgid "Refraction Trace Options"
-msgstr "Možnosti sledovania lomu"
-
-
-msgid "EEVEE settings for tracing refractions"
-msgstr "Nastavenia EEVEE pre sledovanie lomov"
-
-
 msgid "Directional Shadows Resolution"
 msgstr "Rozlíšenie smerových tieňov"
 
@@ -95124,7 +95694,7 @@ msgstr "Veľkosť bodu a oblasti svetla mapy tieňov"
 
 
 msgid "Shadow Normal Bias"
-msgstr "Skreslenie tieňových normálov"
+msgstr "Skreslenie tieňových normál"
 
 
 msgid "Shadow Pool Size"
@@ -95224,7 +95794,7 @@ msgstr "Povolí pohlcovanie okolím simuláciou strednej miery nepriameho tieňo
 
 
 msgid "Bent Normals"
-msgstr "Sklon normálov"
+msgstr "Sklon normál"
 
 
 msgid "Compute main non occluded direction to sample the environment"
@@ -95309,6 +95879,14 @@ msgstr "Koncová vzdialenosť objemového efektu"
 
 msgid "Maximum light contribution, reducing noise"
 msgstr "Maximálny svetelný príspevok, zníženie šumu"
+
+
+msgid "Volume Max Ray Depth"
+msgstr "Maximálny objem hĺbky lúča"
+
+
+msgid "Maximum surface intersection count used by the accurate volume intersection method. Will create artifact if it is exceeded"
+msgstr "Maximálny počet prekrížení na povrchu, ktorý sa používa pri metóde presného objemového prekríženia. Ak sa prekročí, vytvorí sa artefakt"
 
 
 msgid "Exponential Sampling"
@@ -100776,7 +101354,7 @@ msgstr "Kocka"
 
 
 msgid "Map using the normal vector"
-msgstr "Mapa použitím vektora normálu"
+msgstr "Mapa použitím vektora normály"
 
 
 msgid "Map with Z as central axis"
@@ -101663,6 +102241,14 @@ msgid "Theme settings for Font"
 msgstr "Nastavenie motívu písma"
 
 
+msgid "Character Weight"
+msgstr "Váha postavy"
+
+
+msgid "Weight of the characters. 100-900, 400 is normal"
+msgstr "Váha postáv. 100-900, 400 je normálna hodnota"
+
+
 msgid "Font size in points"
 msgstr "Veľkosť písma v bodoch"
 
@@ -101819,8 +102405,16 @@ msgid "Face Orientation Front"
 msgstr "Predná orientácia plôšky"
 
 
+msgid "Face Mode Selection"
+msgstr "Výber režimu plôšky"
+
+
 msgid "Face Retopology"
 msgstr "Opätovná topológia plôšky"
+
+
+msgid "Face Selection"
+msgstr "Výber plôšky"
 
 
 msgid "Face Dot Size"
@@ -102780,6 +103374,10 @@ msgid "Edge UV Face Select"
 msgstr "Výber hrany UV plôšky"
 
 
+msgid "Edge Mode Selection"
+msgstr "Výber režimu hrán"
+
+
 msgid "Edge Seam"
 msgstr "Hrana švu"
 
@@ -102821,7 +103419,7 @@ msgstr "Veľkosť vrcholu pastelky"
 
 
 msgid "Face Normal"
-msgstr "Normál plôšky"
+msgstr "Normála plôšky"
 
 
 msgid "NURBS Active U Lines"
@@ -102861,7 +103459,7 @@ msgstr "Koreň kože"
 
 
 msgid "Split Normal"
-msgstr "Oddelenie normálu"
+msgstr "Oddeliť normálu"
 
 
 msgid "Grease Pencil Keyframe"
@@ -103157,11 +103755,11 @@ msgstr "Ktoré prvky povrchovej siete sú vybrané na prácu"
 
 
 msgid "Normal Vector"
-msgstr "Vektor normálu"
+msgstr "Vektor normály"
 
 
 msgid "Normal Vector used to copy, add or multiply"
-msgstr "Vektor normálu slúžiaci na kopírovanie, pridávanie alebo množenie"
+msgstr "Vektor normály slúžiaci na kopírovanie, pridávanie alebo množenie"
 
 
 msgid "Plane Axis"
@@ -103205,7 +103803,7 @@ msgstr "Umiestnenie začnite použitím bodu premietaného do roviny zobrazenia 
 
 
 msgid "Use the surface normal (using the transform orientation as a fallback)"
-msgstr "Použije normálny povrch (ako alternatívu použije orientáciu transformácie)"
+msgstr "Použije normálu povrchu (ako alternatívu použije orientáciu transformácie)"
 
 
 msgid "Use the current transform orientation"
@@ -103229,6 +103827,11 @@ msgid "Display only faces with the currently displayed image assigned"
 msgstr "Zobrazí iba plôšky aktuálne zobrazeného obrázku"
 
 
+msgctxt "Unit"
+msgid "Snap Anim Element"
+msgstr "Prvok prichytenia animácie"
+
+
 msgid "Type of element to snap to"
 msgstr "Typ prvku na prichytenie"
 
@@ -103239,6 +103842,11 @@ msgstr "Prichytiť na snímku"
 
 msgid "Snap to seconds"
 msgstr "Prichytiť na sekundu"
+
+
+msgctxt "Unit"
+msgid "Nearest Marker"
+msgstr "Najbližšiu značku"
 
 
 msgid "Snap to nearest marker"
@@ -103431,6 +104039,14 @@ msgstr "Pridať údaje o váhe pre nové ťahy"
 
 msgid "When creating new strokes, the weight data is added according to the current vertex group and weight, if no vertex group selected, weight is not added"
 msgstr "Pri vytváraní nových ťahov sa údaje o váhei pridávajú podľa aktuálnej skupiny vrcholov a váhy, ak nie je vybratá žiadna skupina vrcholov, váha sa nepridá"
+
+
+msgid "Multi-frame Editing"
+msgstr "Úprava viacnásobných snímok"
+
+
+msgid "Enable multi-frame editing"
+msgstr "Povolí úpravu viacnásobných snímok"
 
 
 msgid "Cycle-Aware Keying"
@@ -104451,7 +105067,7 @@ msgstr "Zobrazí 3D kurzor prekrytia"
 
 
 msgid "Draw Normals"
-msgstr "Vykresliť normály"
+msgstr "Nakresliť normály"
 
 
 msgid "Display 3D curve normals in editmode"
@@ -104687,7 +105303,7 @@ msgstr "Maska zobrazenia tvarovania"
 
 
 msgid "Display Split Normals"
-msgstr "Zobraziť oddelenie normálov"
+msgstr "Zobraziť oddelenie normál"
 
 
 msgid "Display vertex-per-face normals as lines"
@@ -104698,8 +105314,8 @@ msgid "Display scene statistics overlay text"
 msgstr "Zobraziť prekrývajúci text štatistík scény"
 
 
-msgid "Stat Vis"
-msgstr "Zobraziť štatistiku"
+msgid "Mesh Analysis"
+msgstr "Analýza povrchovej siete"
 
 
 msgid "Display statistical information about the mesh"
@@ -104843,11 +105459,11 @@ msgstr "Zobrazí názov materiálu priradený ku každému ťahu"
 
 
 msgid "Constant Screen Size Normals"
-msgstr "Normály konštantnej veľkosti obrazovky"
+msgstr "Konštantná veľkosť normál obrazovky"
 
 
 msgid "Keep size of normals constant in relation to 3D view"
-msgstr "Zachová konštantnú veľkosť normálu vo vzťahu k 3D zobrazeniu"
+msgstr "Zachová konštantnú veľkosť normál vo vzťahu k 3D zobrazeniu"
 
 
 msgid "Vertex Opacity"
@@ -105346,7 +105962,7 @@ msgstr "Prah alfa"
 
 
 msgid "Z, Index, normal, UV and vector passes are only affected by surfaces with alpha transparency equal to or higher than this threshold"
-msgstr "Z, index, normál, UV a vektorové prechody sú ovplyvnené iba povrchmi s priehľadnosťou alfa rovnou alebo vyššou ako táto prahová hodnota"
+msgstr "Z, index, normála, UV a vektorové prechody sú ovplyvnené iba povrchami s priehľadnosťou alfa rovnou alebo vyššou ako táto prahová hodnota"
 
 
 msgid "Cryptomatte Levels"
@@ -106164,10 +106780,6 @@ msgstr "Akcia na pohyblivej čiarke, ktorá predstavuje digitálne alebo analóg
 
 msgid "Vector2D"
 msgstr "Vector2D"
-
-
-msgid "2D float vector action, representing a thumbstick or trackpad"
-msgstr "2D vektorová akcia na pohyblivej čiarke, ktorá predstavuje stlačenie palca alebo trackpad"
 
 
 msgid "3D pose action, representing a controller's location and rotation"
@@ -107187,7 +107799,7 @@ msgstr "Uzamknutie osi Z"
 
 msgctxt "WindowManager"
 msgid "Custom Normals Modal Map"
-msgstr "Typická mapa vlastných normálov"
+msgstr "Typická mapa vlastných normál"
 
 
 msgctxt "WindowManager"
@@ -107205,7 +107817,7 @@ msgstr "Invertovať"
 
 
 msgid "Toggle inversion of affected normals"
-msgstr "Prepína inverziu dotknutých normálov"
+msgstr "Prepína inverziu dotknutých normál"
 
 
 msgctxt "WindowManager"
@@ -107214,7 +107826,7 @@ msgstr "Sféricky"
 
 
 msgid "Interpolate between new and original normals"
-msgstr "Interpoluje medzi novými a pôvodnými normálmi"
+msgstr "Interpoluje medzi novými a pôvodnými normálami"
 
 
 msgctxt "WindowManager"
@@ -107358,7 +107970,7 @@ msgstr "Prepnúť tvrdé normály"
 
 
 msgid "Toggle harden normals flag"
-msgstr "Prepína príznak tvrdosti normálov"
+msgstr "Prepína príznak tvrdosti normál"
 
 
 msgctxt "WindowManager"
@@ -107631,6 +108243,16 @@ msgstr "Nadol"
 
 
 msgctxt "WindowManager"
+msgid "Local Up"
+msgstr "Lokálne hore"
+
+
+msgctxt "WindowManager"
+msgid "Local Down"
+msgstr "Lokálne dole"
+
+
+msgctxt "WindowManager"
 msgid "Stop Move Forward"
 msgstr "Zastaviť posun dopredu"
 
@@ -107646,8 +108268,18 @@ msgstr "Zastaviť posun doľava"
 
 
 msgctxt "WindowManager"
-msgid "Stop Mode Right"
-msgstr "Zastaviť režim doprava"
+msgid "Stop Move Global Up"
+msgstr "Zastaviť globálny posun nahor"
+
+
+msgctxt "WindowManager"
+msgid "Stop Move Local Up"
+msgstr "Zastaviť lokálny posun nahor"
+
+
+msgctxt "WindowManager"
+msgid "Stop Move Local Down"
+msgstr "Zastaviť lokálny posun nadol"
 
 
 msgctxt "WindowManager"
@@ -107876,6 +108508,11 @@ msgstr "Všeobecný expozičný hárok"
 msgctxt "WindowManager"
 msgid "NLA Editor"
 msgstr "NLA Editor"
+
+
+msgctxt "WindowManager"
+msgid "NLA Tracks"
+msgstr "NLA stopy"
 
 
 msgctxt "WindowManager"
@@ -108541,6 +109178,11 @@ msgstr "Rovina automatického vynútenia"
 msgctxt "WindowManager"
 msgid "Precision Mode"
 msgstr "Režim presnosti"
+
+
+msgctxt "WindowManager"
+msgid "Navigate"
+msgstr "Navigovať"
 
 
 msgctxt "WindowManager"
@@ -109211,6 +109853,10 @@ msgid "No glTF Animation"
 msgstr "Bez glTF animácie"
 
 
+msgid "No Actions in .blend file"
+msgstr "Žiadne akcie v .blend súbore"
+
+
 msgid "Variant"
 msgstr "Variant"
 
@@ -109673,6 +110319,21 @@ msgstr "Resetovať nastavenia"
 msgctxt "Operator"
 msgid "Deselect All"
 msgstr "Odznačiť všetko"
+
+
+msgctxt "Operator"
+msgid "Update Work Repository"
+msgstr "Aktualizovať pracovné úložisko"
+
+
+msgctxt "Operator"
+msgid "Clean up Work Repository"
+msgstr "Vyčistiť pracovné úložisko"
+
+
+msgctxt "Operator"
+msgid "Update Blender Repository"
+msgstr "Aktualizovať úložisko Blenderu"
 
 
 msgctxt "Operator"
@@ -110659,6 +111320,14 @@ msgid "Edit Bone(s)"
 msgstr "Upraviť kosť(i)"
 
 
+msgid "Scene(s)"
+msgstr "Scéna(y)"
+
+
+msgid "Brush(es)"
+msgstr "Štetec(ce)"
+
+
 msgid "Unknown"
 msgstr "Neznámy"
 
@@ -110796,7 +111465,7 @@ msgstr "Zdrojová os Z"
 
 
 msgid "Align to Normal"
-msgstr "Zarovnať na normál"
+msgstr "Zarovnať na normálu"
 
 
 msgid "Pivot Offset"
@@ -111553,6 +112222,18 @@ msgid "Invert"
 msgstr "Invertovať"
 
 
+msgid "Max Displacement"
+msgstr "Maximálny posun"
+
+
+msgid "Render Method"
+msgstr "Metóda prekreslenia"
+
+
+msgid "Light Probe Volume"
+msgstr "Snímač svetla objemu"
+
+
 msgid "Intersection"
 msgstr "Priesečník"
 
@@ -111563,6 +112244,18 @@ msgstr "Maska materiálu"
 
 msgid "Custom Occlusion"
 msgstr "Vlastné pohlcovanie"
+
+
+msgid "Unsupported displacement method"
+msgstr "Metóda nepodporovaného posunu"
+
+
+msgid "Transparency Overlap"
+msgstr "Prekrývanie priehľadnosti"
+
+
+msgid "Raytraced Refraction"
+msgstr "Lom sledovania lúča"
 
 
 msgctxt "Operator"
@@ -111616,7 +112309,7 @@ msgstr "Všetky hrany"
 
 
 msgid "Align to Vertex Normal"
-msgstr "Zarovnať normály vrcholov"
+msgstr "Zarovnať na normálu vrcholu"
 
 
 msgid "Show Instancer"
@@ -111977,7 +112670,7 @@ msgstr "Max. odchýlka vytvorenia"
 
 
 msgid "Check Surface Normals"
-msgstr "Kontrola normálov povrchu"
+msgstr "Kontrola normál povrchu"
 
 
 msgid "Max Tension"
@@ -112480,12 +113173,32 @@ msgid "Light Clamping"
 msgstr "Pripnutie svetla"
 
 
+msgid "Max Depth"
+msgstr "Maximálna hĺbka"
+
+
+msgid "Refraction"
+msgstr "Lom"
+
+
 msgid "Cascade Size"
 msgstr "Veľkosť kaskády"
 
 
 msgid "Pool Size"
 msgstr "Veľkosť nádrže"
+
+
+msgid "Tracing"
+msgstr "Sledovanie"
+
+
+msgid "Rays"
+msgstr "Lúče"
+
+
+msgid "Temporal Reprojection"
+msgstr "Časová opätovná projekcia"
 
 
 msgctxt "Operator"
@@ -112517,6 +113230,11 @@ msgstr "Mechanizmus prekreslenia"
 msgctxt "Operator"
 msgid "Bake Cubemap Only"
 msgstr "Zapiecť iba kockové rozloženie"
+
+
+msgctxt "Operator"
+msgid "Bake Volumes"
+msgstr "Zapiecť objem"
 
 
 msgid "Shadow Resolution"
@@ -112631,6 +113349,10 @@ msgstr "Mapa"
 
 msgid "Use for Rendering"
 msgstr "Použiť na prekreslenie"
+
+
+msgid "Occlusion Distance"
+msgstr "Vzdialenosť pohlcovania"
 
 
 msgid "Conflicts with another render pass with the same name"
@@ -113872,6 +114594,11 @@ msgstr "Typy"
 
 
 msgctxt "Operator"
+msgid "Show Object Hierarchy"
+msgstr "Zobraziť hierarchiu objektu"
+
+
+msgctxt "Operator"
 msgid "Show One Level"
 msgstr "Zobraziť jednu úroveň"
 
@@ -114136,6 +114863,11 @@ msgstr "Pokĺznutie obsahu pásu"
 
 msgid "Anchor X"
 msgstr "Kotva X"
+
+
+msgctxt "Sound"
+msgid "Strip Volume"
+msgstr "Objem pásu"
 
 
 msgid "%14s"
@@ -115243,6 +115975,11 @@ msgid "View Align"
 msgstr "Zarovnať zobrazenie"
 
 
+msgctxt "Text"
+msgid "Weight"
+msgstr "Váha"
+
+
 msgid "Shadow Offset X"
 msgstr "Posuv tieňov X"
 
@@ -115393,6 +116130,11 @@ msgstr "Obrátený smer kolieska priblíženia"
 
 msgid "Fly/Walk"
 msgstr "Lietanie/Chôdza"
+
+
+msgctxt "Operator"
+msgid "Extension Add-on Repository"
+msgstr "Úložisko rozšírení doplnkov"
 
 
 msgid "Multiple add-ons with the same name found!"
@@ -115831,6 +116573,11 @@ msgstr "Vytvoriť lokálne..."
 
 
 msgctxt "Operator"
+msgid "Insert Keyframe with Keying Set"
+msgstr "Vloží kľúčovú snímku so sústavou kľúčov"
+
+
+msgctxt "Operator"
 msgid "Delete Keyframes..."
 msgstr "Odstrániť kľúčovú snímku..."
 
@@ -116127,7 +116874,7 @@ msgstr "Rozšíriť masku podľa topológie"
 
 msgctxt "Operator"
 msgid "Expand Mask by Normals"
-msgstr "Rozšíriť masku podľa normálov"
+msgstr "Rozšíriť masku podľa normál"
 
 
 msgctxt "Operator"
@@ -116185,16 +116932,6 @@ msgstr "Extrahovať sústavu plôšok"
 
 
 msgctxt "Operator"
-msgid "Invert Visible Face Sets"
-msgstr "Invertovať viditeľné sústavy plôšok"
-
-
-msgctxt "Operator"
-msgid "Show All Face Sets"
-msgstr "Zobraziť všetky sústavy plôšok"
-
-
-msgctxt "Operator"
 msgid "Randomize Colors"
 msgstr "Náhodné farby"
 
@@ -116241,7 +116978,7 @@ msgstr "Podľa materiálov"
 
 msgctxt "Operator"
 msgid "By Normals"
-msgstr "Podľa normálov"
+msgstr "Podľa normál"
 
 
 msgctxt "Operator"
@@ -116405,7 +117142,7 @@ msgstr "Vysunúť plôšky"
 
 msgctxt "Operator"
 msgid "Extrude Faces Along Normals"
-msgstr "Vysunúť plôšky pozdĺž normálov"
+msgstr "Vysunúť plôšky pozdĺž normál"
 
 
 msgctxt "Operator"
@@ -116548,6 +117285,16 @@ msgstr "Vytvoriť kópiu aktívnej kľúčovej snímky (aktívna vrstva)"
 
 
 msgctxt "Operator"
+msgid "Set Caps"
+msgstr "Nastaviť koncovku"
+
+
+msgctxt "Operator"
+msgid "Smooth Points"
+msgstr "Body vyhladenia"
+
+
+msgctxt "Operator"
 msgid "View Selected"
 msgstr "Zobraziť vybrané"
 
@@ -116616,10 +117363,6 @@ msgstr "Švy"
 
 msgid "Vertex Group Weights"
 msgstr "Váhy skupiny vrcholov"
-
-
-msgid "Mesh Analysis"
-msgstr "Analýza povrchovej siete"
 
 
 msgid "Face Angle"
@@ -116988,7 +117731,7 @@ msgstr "Označiť ostré podľa vrcholov"
 
 msgctxt "Operator"
 msgid "Custom Normal"
-msgstr "Vlastný normál"
+msgstr "Vlastná normála"
 
 
 msgctxt "Operator"
@@ -117278,6 +118021,10 @@ msgstr "Len vo viacnásobnej snímke"
 msgctxt "Operator"
 msgid "Reproject"
 msgstr "Opätovne premietnuť"
+
+
+msgid "Mirror Points"
+msgstr "Zrkadlové body"
 
 
 msgid "Curve Shape"
@@ -117741,6 +118488,10 @@ msgid "Could not insert keyframe, as RNA path is invalid for the given ID (ID = 
 msgstr "Nemožno vložiť kľúčovú snímku, pretože cesta RNA pre danú identifikáciu (ID = %s, cesta = %s) je neplatná"
 
 
+msgid "Failed to insert keys on F-Curve with path '%s[%d]', ensure that it is not locked or sampled, and try removing F-Modifiers"
+msgstr "Nepodarilo sa vložiť kľúče na F-krivku s cestou '%s[%d]', uistite sa, či nie je uzamknutá alebo snímaná a pokúste sa odstrániť F-modifikátory"
+
+
 msgid "No ID block to insert keyframe in (path = %s)"
 msgstr "Žiadny blok ID na vloženie kľúčovej snímky (cesta = %s)"
 
@@ -117771,6 +118522,22 @@ msgstr "Nepodarilo sa vymazať kľúčovú snímku, pretože cesta RNA pre danú
 
 msgid "Not clearing all keyframes from locked F-Curve '%s' for %s '%s'"
 msgstr "Nie sú vymazané všetky kľúčové snímky z uzamknutej krivky funkcií '%s' pre %s '%s'"
+
+
+msgid "Could not insert keyframe, as this type does not support animation data (ID = %s)"
+msgstr "Nepodarilo sa vložiť kľúčovú snímku, pretože tento typ nepodporuje animačné údaje (ID = %s)"
+
+
+msgid "Could not insert keyframe, as this property does not exist (ID = %s, path = %s)"
+msgstr "Nemožno vložiť kľúčovú snímku, pretože táto vlastnosť neexistuje (ID = %s, cesta = %s)"
+
+
+msgid "Failed to insert any keys"
+msgstr "Nepodarilo sa vložiť žiadne kľúče"
+
+
+msgid "Named Layer node"
+msgstr "Pomenovaný uzol vrstvy"
 
 
 msgid "User Library"
@@ -118041,10 +118808,6 @@ msgid "Int"
 msgstr "Celé číslo"
 
 
-msgid "PreviewCol"
-msgstr "NahladFarby"
-
-
 msgid "TexturedCol"
 msgstr "TexturovanaFarba"
 
@@ -118062,15 +118825,11 @@ msgstr "Vrchol plôšky mnohouholníka"
 
 
 msgid "ShapeKey"
-msgstr "KLucovyTvar"
+msgstr "KlucovyTvar"
 
 
 msgid "OS Loop"
 msgstr "Slučka OS"
-
-
-msgid "PreviewLoopCol"
-msgstr "NáhladFarbySlucky"
 
 
 msgid "Int8"
@@ -118337,6 +119096,18 @@ msgstr "povrchove_siete"
 
 msgid "Auto Smooth"
 msgstr "Automatické vyhladenie"
+
+
+msgid "Socket_1"
+msgstr "Zásuvka_1"
+
+
+msgid "Input_1_use_attribute"
+msgstr "Vstup_1_použitého_atribútu"
+
+
+msgid "Input_1_attribute_name"
+msgstr "Názov_atribútu_vstupu_1"
 
 
 msgid "Tangent space can only be computed for tris/quads, aborting"
@@ -118640,10 +119411,6 @@ msgid "No valid formats found"
 msgstr "Nenašli sa žiadne platné formáty"
 
 
-msgid "Can't allocate ffmpeg format context"
-msgstr "Nemožno prideliť kontext formátu ffmpeg"
-
-
 msgid "Render width has to be 720 pixels for DV!"
 msgstr "Šírka prekreslenia musí byť 720 pixelov pre DV!"
 
@@ -118654,10 +119421,6 @@ msgstr "Výška prekreslenia musí byť 480 pixelov pre DV-NTSC!"
 
 msgid "Render height has to be 576 pixels for DV-PAL!"
 msgstr "Výška prekreslenia musí byť 576 pixelov pre DV-PAL!"
-
-
-msgid "FFmpeg only supports 48khz / stereo audio for DV!"
-msgstr "FFmpeg podporuje iba 48khz / stereo zvuk pre DV!"
 
 
 msgid "Error initializing video stream"
@@ -118861,7 +119624,7 @@ msgstr "Súbor %s sa nedá otvoriť na zápis: %s"
 
 
 msgid "Zero normal given"
-msgstr "Daná nula normálov"
+msgstr "Daná nulová normála"
 
 
 msgid "Select at least two edge loops"
@@ -118946,6 +119709,10 @@ msgstr "Kompilácia tieňovačov (%d zostávajúce)"
 
 msgid "Optimizing Shaders (%d remaining)"
 msgstr "Optimalizácia tieňovačov (%d zostávajúce)"
+
+
+msgid "EEVEE (Legacy)"
+msgstr "EEVEE (zdedené)"
 
 
 msgid "Incompatible Light cache version, please bake again"
@@ -119078,6 +119845,18 @@ msgstr "Žiadne kľúčové snímky na zameranie"
 
 msgid "Nothing selected"
 msgstr "Nič vybraté"
+
+
+msgid "No open Graph Editor window found"
+msgstr "Nenašlo sa žiadne otvorené okno Editora grafu"
+
+
+msgid "Cannot create the Animation Context"
+msgstr "Nemožno vytvoriť kontext animácie"
+
+
+msgid "F-Curves have no valid size"
+msgstr "F-krivky nemajú platnú veľkosť"
 
 
 msgid "<invalid>"
@@ -119260,6 +120039,14 @@ msgstr "Sústava kľúčovania '%s' - úspešne pridaná %d kľúčovej snímky"
 
 msgid "Successfully added %d keyframes for keying set '%s'"
 msgstr "Úspešne pridané %d kľúčové snímky pre sústavu kľúčovania '%s'"
+
+
+msgid "Unsupported context mode"
+msgstr "Nepodporovaný režim kontextu"
+
+
+msgid "'%s' is not editable"
+msgstr "'%s' nemožno upravovať"
 
 
 msgid "Successfully removed %d keyframes for keying set '%s'"
@@ -120450,6 +121237,11 @@ msgid "Missing Menu: %s"
 msgstr "Chýbajúca ponuka: %s"
 
 
+msgctxt "WindowManager"
+msgid "Search"
+msgstr "Vyhľadať"
+
+
 msgid "Non-Keyboard Shortcut"
 msgstr "Neklávesová skratka"
 
@@ -120519,6 +121311,21 @@ msgstr "Vymazať kľúčové snímky"
 msgctxt "Operator"
 msgid "Clear Single Keyframes"
 msgstr "Vymazať kľúčové snímky jednotlivo"
+
+
+msgctxt "Operator"
+msgid "View Single in Graph Editor"
+msgstr "Zobraziť jednotlivo v Editore grafov"
+
+
+msgctxt "Operator"
+msgid "View All in Graph Editor"
+msgstr "Zobraziť všetko v Editore grafov"
+
+
+msgctxt "Operator"
+msgid "View in Graph Editor"
+msgstr "Zobraziť v Editore grafov"
 
 
 msgctxt "Operator"
@@ -121572,6 +122379,14 @@ msgid "ASCII"
 msgstr "ASCII"
 
 
+msgid "Batch"
+msgstr "Dávka"
+
+
+msgid "No filename given"
+msgstr "Nie je zadaný žiadny názov súboru"
+
+
 msgid "File References"
 msgstr "Odkazy na súbory"
 
@@ -121854,7 +122669,7 @@ msgstr "Nepodporuje individuálny počiatok ako otočný bod"
 
 
 msgid "Can only copy one custom normal, vertex normal or face normal"
-msgstr "Mono kopírovať iba jednu vlastnú normál, normál vrcholu alebo normál plôšky"
+msgstr "Možno kopírovať iba jednu vlastnú normálu, normálu vrcholu alebo normálu plôšky"
 
 
 msgid "Removed: %d vertices, %d edges, %d faces"
@@ -121983,6 +122798,21 @@ msgstr ""
 
 msgid "SoundTrack"
 msgstr "ZvukovaStopa"
+
+
+msgctxt "Light"
+msgid "Volume"
+msgstr "Objem"
+
+
+msgctxt "Light"
+msgid "Plane"
+msgstr "Rovina"
+
+
+msgctxt "Light"
+msgid "Sphere"
+msgstr "Sféra"
 
 
 msgctxt "Light"
@@ -122596,6 +123426,10 @@ msgid "Unable to execute '%s', error changing modes"
 msgstr "Nepodarilo sa spustiť '%s', chyba zmeny režimov"
 
 
+msgid "Unable to execute, %s object is linked"
+msgstr "Nemožno vykonať, objekt %s je prepojený"
+
+
 msgid "Apply modifier as a new shapekey and keep it in the stack"
 msgstr "Použiť modifikátor ako nový kľúčový tvar a ponechať ho v zásobníku"
 
@@ -122830,6 +123664,10 @@ msgstr "Kolekciu '%s' (vytvorenú podľa aktívneho objektu) nie je možné prep
 
 msgid "Could not find an overridable root hierarchy for object '%s'"
 msgstr "Nepodarilo sa nájsť prepisovateľnú koreňovú hierarchiu pre objekt '%s'"
+
+
+msgid "Too many potential root collections (%d) for the override hierarchy, please use the Outliner instead"
+msgstr "Príliš veľa potenciálnych kolekcií koreňov (%d) pre hierarchiu prepisov, namiesto toho použite Líniový prehľad"
 
 
 msgid "Move the mouse to change the voxel size. CTRL: Relative Scale, SHIFT: Precision Mode, ENTER/LMB: Confirm Size, ESC/RMB: Cancel"
@@ -123755,6 +124593,14 @@ msgstr "Krivky nemajú informácie o pripojení povrchu"
 
 msgid "UV map or surface attachment is invalid"
 msgstr "Pripojenie UV mapy alebo povrchu je neplatné"
+
+
+msgid "No active Grease Pencil layer"
+msgstr "Neaktívna vrstva Pastelky"
+
+
+msgid "No Grease Pencil frame to draw on"
+msgstr "Žiadna snímka na kreslenie Pastelkou"
 
 
 msgid "PaintCurve"
@@ -125058,6 +125904,14 @@ msgid "Select an existing NLA Track or an empty action line first"
 msgstr "Najprv vyberte existujúcu stopu NLA alebo prázdny riadok akcie"
 
 
+msgid "No animation track found at index %d"
+msgstr "V indexe %d sa nenašla žiadna stopa animácie"
+
+
+msgid "Animation track at index %d is not a NLA 'Active Action' track"
+msgstr "Stopa animácie na indexe %d nie je stopou 'Aktívnej akcie' NLA"
+
+
 msgid ""
 "Node group assets not assigned to a catalog.\n"
 "Catalogs can be assigned in the Asset Browser"
@@ -125280,6 +126134,10 @@ msgstr "matrice"
 
 msgid "no matrices"
 msgstr "bez matríc"
+
+
+msgid "• Grease Pencil: %s layers"
+msgstr "• Pastelka: %s vrstiev"
 
 
 msgid "Supported: All Types"
@@ -125938,6 +126796,14 @@ msgid "File '%s' could not be loaded"
 msgstr "Súbor '%s' sa nepodarilo načítať"
 
 
+msgid "Please select all related strips"
+msgstr "Prosím, vyberte všetky súvisiace prúžky"
+
+
+msgid "No strips to paste"
+msgstr "Žiadne pásy na prilepenie"
+
+
 msgid "Slip offset: %s"
 msgstr "Posuv pokĺznutím: %s"
 
@@ -125976,14 +126842,6 @@ msgstr "Nemožno priradiť vstupy: zistená rekurzia"
 
 msgid "No valid inputs to swap"
 msgstr "Žiadne platné vstupy pre na výmenu"
-
-
-msgid "Please select all related strips"
-msgstr "Prosím, vyberte všetky súvisiace prúžky"
-
-
-msgid "No strips to paste"
-msgstr "Žiadne pásy na prilepenie"
 
 
 msgid "Please select two strips"
@@ -126036,6 +126894,10 @@ msgstr "Nemožno vytvoriť kľúč vnútri prechodu rýchlosti"
 
 msgid "Can not create freeze frame"
 msgstr "Nemožno vytvoriť snímku zmrazenia"
+
+
+msgid "Can not create transition from first or last key"
+msgstr "Nemožno vytvoriť prechod z prvého alebo posledného kľúča"
 
 
 msgid "Can not create transition"
@@ -126984,7 +127846,7 @@ msgstr "Nemožno použiť krivku s nulovou dĺžkou"
 
 
 msgid "Cannot use vertex with zero-length normal"
-msgstr "Nemožno použiť vrchol s nulovou dĺžkou normálu"
+msgstr "Nemožno použiť vrchol s nulovou dĺžkou normály"
 
 
 msgid "Cannot use zero-length edge"
@@ -127826,6 +128688,10 @@ msgid "ID '%s' is linked, cannot edit its overrides"
 msgstr "ID '%s' je prepojené, nemožno upraviť jeho prepis"
 
 
+msgid "Data-block '%s' is not a library override, or not part of a library override hierarchy"
+msgstr "Blok údajov '%s' nie je prepisom knižnice alebo nie je súčasťou hierarchie prepisov knižnice"
+
+
 msgid "%s is not compatible with %s 'refresh' options"
 msgstr "%s nie je kompatibilný s možnosťami 'obnovenia' %s"
 
@@ -127968,6 +128834,10 @@ msgstr "Armatúra '%s' neobsahuje kosť '%s'"
 
 msgid "Cannot move collection from index '%d' to '%d'"
 msgstr "Nemožno presunúť kolekciu z indexu '%d' do indexu '%d'"
+
+
+msgid "`Collection.bones` is not available in armature edit mode"
+msgstr "`Collection.bones` (kolekcia kostí) v režime editácie armatúry nie je dostupná"
 
 
 msgid "Invalid color palette index: %d"
@@ -128490,11 +129360,11 @@ msgstr "UV mapa '%s' sa nenašla"
 
 
 msgid "Number of custom normals is not number of loops (%f / %d)"
-msgstr "Počet vlastných normálov nie je počtom slučiek (%f / %d)"
+msgstr "Počet vlastných normál nie je počtom slučiek (%f / %d)"
 
 
 msgid "Number of custom normals is not number of vertices (%f / %d)"
-msgstr "Počet vlastných normálov nie je počtom vrcholov (%f / %d)"
+msgstr "Počet vlastných normál nie je počtom vrcholov (%f / %d)"
 
 
 msgid "Metaball '%s' does not contain spline given"
@@ -128523,6 +129393,30 @@ msgstr "Pás NLA '%s' sa v stope '%s' nenašiel"
 
 msgid "Registering node socket class: '%s' is too long, maximum length is %d"
 msgstr "Registrácia triedy zásuvky uzla: %s je príliš dlhá, maximálna dĺžka je %d"
+
+
+msgid "The node socket's default value"
+msgstr "Predvolená hodnota zásuvky uzla"
+
+
+msgid "The index from the context"
+msgstr "Index z kontextu"
+
+
+msgid "ID or Index"
+msgstr "ID alebo index"
+
+
+msgid "The \"id\" attribute if available, otherwise the index"
+msgstr "Atribút \"id\", ak je k dispozícii, inak index"
+
+
+msgid "The geometry's normal direction"
+msgstr "Smer normály geometrie"
+
+
+msgid "The position from the context"
+msgstr "Pozícia z kontextu"
 
 
 msgid "Parent is not part of the interface"
@@ -128612,6 +129506,14 @@ msgstr "Nemožno odstrániť zásuvky zo vstavaného uzla"
 
 msgid "Unable to move sockets in built-in node"
 msgstr "Nemožno presunúť zásuvky vo vstavanom uzle"
+
+
+msgid "Unable to locate item in node"
+msgstr "Nemožno nájsť položku v uzle"
+
+
+msgid "Unable to create item with this socket type"
+msgstr "Nemožno vytvoriť položku s týmto typom zásuvky"
 
 
 msgid "Registering node tree class: '%s' is too long, maximum length is %d"
@@ -129096,6 +129998,14 @@ msgstr "Typ manipulačného prvku '%s' je pre skupinu 3D skupinu manipulačného
 
 msgid "%s area type does not support gizmos"
 msgstr "Typ oblasti %s nepodporuje manipulačné prvky"
+
+
+msgid "Unknown operator"
+msgstr "Neznámy operátor"
+
+
+msgid "Operator missing srna"
+msgstr "Chýbajúci operátor srna"
 
 
 msgid "Gizmo target property '%s.%s' not found"
@@ -129713,7 +130623,7 @@ msgstr "Pohyb"
 
 
 msgid "Along Normals"
-msgstr "Pozdĺž normálov"
+msgstr "Pozdĺž normál"
 
 
 msgid "Life"
@@ -130071,6 +130981,10 @@ msgid "Instance Count"
 msgstr "Počet inštancií"
 
 
+msgid "Layer Count"
+msgstr "Počet vrstiev"
+
+
 msgid "How many times to blur the values for all elements"
 msgstr "Určuje, koľkokrát sa majú rozostriť hodnoty pre všetky prvky"
 
@@ -130141,6 +131055,10 @@ msgstr "Výber zo začiatku a konca drážok na základe vstupných veľkostí"
 
 msgid "Endpoint Selection node"
 msgstr "Uzol Výber koncového bodu"
+
+
+msgid "An index used to group curves together. Filling is done separately for each group"
+msgstr "Index používaný na zoskupovanie kriviek. Vypĺňanie sa vykonáva samostatne pre každú skupinu"
 
 
 msgid "Limit Radius"
@@ -130216,7 +131134,7 @@ msgstr "Stred kružnice opísanej tromi bodmi"
 
 
 msgid "The normal direction of the plane described by the three points, pointing towards the positive Z axis"
-msgstr "Normál roviny opísanej tromi bodmi smerujúci ku kladnej osi Z"
+msgstr "Normála roviny opísanej tromi bodmi smerujúci ku kladnej osi Z"
 
 
 msgid "The radius of the circle described by the three points"
@@ -130906,7 +131824,7 @@ msgstr "Základné krivky, medzi ktorými sú interpolované nové krivky"
 
 
 msgid "Optional up vector that is typically a surface normal"
-msgstr "Voliteľný vektor nahor, ktorý je zvyčajne normálny povrch"
+msgstr "Voliteľný vektor nahor, ktorý je zvyčajne normálou povrchu"
 
 
 msgid "Splits guides into separate groups. New curves interpolate existing curves from a single group"
@@ -131374,7 +132292,7 @@ msgstr "Pozícia zásahu"
 
 
 msgid "Hit Normal"
-msgstr "Normál zásahu"
+msgstr "Normála zásahu"
 
 
 msgid "Hit Distance"
@@ -131487,6 +132405,14 @@ msgstr "Preskočiť"
 
 msgid "Forward the output of the simulation input node directly to the output node and ignore the nodes in the simulation zone"
 msgstr "Presmeruje výstup vstupného uzla simulácie priamo do výstupného uzla a ignoruje uzly v zóne simulácie"
+
+
+msgid "All geometry groups as separate instances"
+msgstr "Všetky skupiny geometrie ako samostatné inštancie"
+
+
+msgid "The group ID of each group instance"
+msgstr "ID skupiny každej inštancie skupiny"
 
 
 msgid "Failed to write to attribute \"{}\" with domain \"{}\" and type \"{}\""
@@ -131818,7 +132744,7 @@ msgstr "Plášť IOR"
 
 
 msgid "Coat Normal"
-msgstr "Normál plášťa"
+msgstr "Normála plášťa"
 
 
 msgid "Sheen Weight"
@@ -131942,11 +132868,11 @@ msgstr "Zdrsnenie bezfarebného laku"
 
 
 msgid "Clear Coat Normal"
-msgstr "Normály bezfarebného laku"
+msgstr "Normála bezfarebného laku"
 
 
 msgid "True Normal"
-msgstr "Pravý normál"
+msgstr "Pravá normála"
 
 
 msgid "Incoming"
@@ -131978,7 +132904,7 @@ msgstr "Zachytiť"
 
 
 msgid "Tangent Normal"
-msgstr "Normál dotyku"
+msgstr "Normála dotyčnice"
 
 
 msgid "Facing"
@@ -132115,10 +133041,6 @@ msgstr "Zdrsnenie detailu"
 
 msgid "Incident"
 msgstr "Udalosť"
-
-
-msgid "Ior"
-msgstr "Index lomu"
 
 
 msgid "No mesh in active object"
@@ -133179,6 +134101,10 @@ msgid "4:3 in 16:9"
 msgstr "4:3 in 16:9"
 
 
+msgid "Visual Studio Code"
+msgstr "Kód Visual Studia"
+
+
 msgid "Blurry Footage"
 msgstr "Rozostrené zábery"
 
@@ -133759,12 +134685,108 @@ msgid "Attaches hair curves to a surface mesh"
 msgstr "Pripevní krivky vlasov na povrch siete"
 
 
+msgid "Surface UV Coordinate"
+msgstr "UV súradnice povrchu"
+
+
+msgid "Surface UV coordinate at the attachment point"
+msgstr "UV súradnica povrchu v bode pripojenia"
+
+
+msgid "Surface Normal"
+msgstr "Normála povrchu"
+
+
+msgid "Surface normal at the attachment point"
+msgstr "Normála povrchu v bode pripojenia"
+
+
+msgid "Surface Geometry to attach hair curves to"
+msgstr "Geometria povrchu na pripojenie kriviek vlasov"
+
+
+msgid "Surface Object to attach to (needs to have matching transforms)"
+msgstr "Objekt povrchu, ku ktorému sa má pripojiť (musí mať zodpovedajúce transformácie)"
+
+
+msgid "Surface UV map used for attachment "
+msgstr "UV mapa povrchu použitá na pripevnenie "
+
+
+msgid "Surface Rest Position"
+msgstr "Pokojová poloha povrchu"
+
+
+msgid "Set the surface mesh into its rest position before attachment"
+msgstr "Nastavenie povrchovej siete do pokojovej polohy pred upevnením"
+
+
+msgid "Sample Attachment UV"
+msgstr "Snímka prílohy UV"
+
+
+msgid "Sample the surface UV map at the attachment point"
+msgstr "Snímka UV mapy povrchu v bode pripojenia"
+
+
+msgid "Snap to Surface"
+msgstr "Prichytiť na povrch"
+
+
+msgid "Snap the root of each curve to the closest surface point"
+msgstr "Prichytí koreň každej krivky k najbližšiemu bodu povrchu"
+
+
+msgid "Align to Surface Normal"
+msgstr "Zarovnať na normálu povrchu"
+
+
+msgid "Align the curve to the surface normal (need guide as reference)"
+msgstr "Zarovná krivku na normálu povrchu (potrebuje vodenie ako referenciu)"
+
+
+msgid "Blend along Curve"
+msgstr "Prelínať pozdĺž krivky"
+
+
+msgid "Blend deformation along each curve from the root"
+msgstr "Zmieša deformáciu pozdĺž každej krivky od koreňa"
+
+
 msgid "Blend Hair Curves"
 msgstr "Prelínať krivky vlasov"
 
 
 msgid "Blends shape between multiple hair curves in a certain radius"
 msgstr "Prelína tvar medzi viacerými krivkami vlasov v určitom okruhu"
+
+
+msgid "Factor to blend overall effect"
+msgstr "Faktor prelínania celkového efektu"
+
+
+msgid "Blend Radius"
+msgstr "Polomer prelínania"
+
+
+msgid "Radius to select neighbors for blending"
+msgstr "Polomer na výber susedov pre prelínanie"
+
+
+msgid "Blend Neighbors"
+msgstr "Prelínať susedné"
+
+
+msgid "Amount of neighbors used for blending"
+msgstr "Množstvo susedov použitých na prelínanie"
+
+
+msgid "Preserve Length"
+msgstr "Zachovať dĺžku"
+
+
+msgid "Preserve each curve's length during deformation"
+msgstr "Počas deformácie zachová dĺžku každej krivky"
 
 
 msgid "Braid Hair Curves"
@@ -133775,12 +134797,200 @@ msgid "Deforms existing hair curves into braids using guide curves"
 msgstr "Deformuje existujúce krivky vlasov na vrkoče použitím vodiacich kriviek"
 
 
+msgid "Guide Index"
+msgstr "Index vodenia"
+
+
+msgid "Guide index map that was used for the operation"
+msgstr "Indexová mapa vodenia použitého na operáciu"
+
+
+msgid "Flare Parameter"
+msgstr "Parameter plameňa"
+
+
+msgid "Parameter from 0 to 1 along the flare"
+msgstr "Parameter od 0 do 1 pozdĺž vzplanutia"
+
+
+msgid "Strand Index"
+msgstr "Index kadere"
+
+
+msgid "Index of the strand within a braid that each curve belongs to"
+msgstr "Index vlákna v rámci vrkoča, ku ktorému patrí každá krivka"
+
+
+msgid "Guide index map to be used. This input has priority"
+msgstr "Mapa indexov vodenia na použitie. Tento vstup má prioritu"
+
+
+msgid "Guide Distance"
+msgstr "Vzdialenosť vodenia"
+
+
+msgid "Minimum distance between two guides for new guide map"
+msgstr "Minimálna vzdialenosť medzi dvoma vodeniami pre novú mapu vodenia"
+
+
+msgid "Guide Mask"
+msgstr "Maska vodenia"
+
+
+msgid "Mask for which curve are eligible to be selected as guides"
+msgstr "Maska, pre ktorú je krivka vhodná na výber ako vodenie"
+
+
+msgid "Existing Guide Map"
+msgstr "Existujúca mapa vodenia"
+
+
+msgid "Use the existing guide map attribute if available"
+msgstr "Použije existujúci atribút mapy vodenia, ak je k dispozícii"
+
+
+msgid "Subdivision level applied before deformation"
+msgstr "Úroveň delenia použitá pred deformáciou"
+
+
+msgid "Braid Start"
+msgstr "Začiatok vrkoča"
+
+
+msgid "Percentage along each curve to blend deformation from the root"
+msgstr "Percento pozdĺž každej krivky pre deformáciu prelínania od koreňa"
+
+
+msgid "Overall radius of the braids"
+msgstr "Celkový polomer vrkočov"
+
+
+msgid "Shape of the braid radius along each curve"
+msgstr "Tvar polomeru vrkoča pozdĺž každej krivky"
+
+
+msgid "Factor Min"
+msgstr "Faktor Min"
+
+
+msgid "Factor of the minimum radius of the braids"
+msgstr "Faktor minimálneho polomeru vrkočov"
+
+
+msgid "Factor Max"
+msgstr "Faktor Max"
+
+
+msgid "Factor of the maximum radius of the braids"
+msgstr "Faktor maximálneho polomeru vrkočov"
+
+
+msgid "Frequency factor of the braids"
+msgstr "Faktor frekvencie vrkočov"
+
+
+msgid "Thickness of each strand of hair"
+msgstr "Hrúbka každého pramienka vlasov"
+
+
+msgid "Thickness Shape"
+msgstr "Hrúbka tvaru"
+
+
+msgid "Shape adjustment of the strand thickness for the braids"
+msgstr "Nastaví hrúbku tvaru pramienka pre vrkoče"
+
+
+msgid "Shape Asymmetry"
+msgstr "Asymetria tvaru"
+
+
+msgid "Asymmetry of the shape adjustment of the strand thickness"
+msgstr "Asymetria nastavenia hrúbky tvaru prameňa"
+
+
+msgid "Flare Length"
+msgstr "Dĺžka povievania"
+
+
+msgid "Length of the flare at the end of the braid"
+msgstr "Dĺžka povievania na konci vrkoča"
+
+
+msgid "Flare Opening"
+msgstr "Otvorenie povievania"
+
+
+msgid "Opening radius of the flare at the tip of the braid"
+msgstr "Polomer otvorenia povievania na špičke vrkoča"
+
+
+msgid "Hair Tie"
+msgstr "Zviazanie vlasov"
+
+
+msgid "Geometry used for the hair tie instance (priority)"
+msgstr "Geometria použitá pre inštanciu zviazania vlasov (priorita)"
+
+
+msgid "Object used for the hair tie instance"
+msgstr "Predmet použitý pre inštanciu zviazania vlasov"
+
+
+msgid "Hair Tie Scale"
+msgstr "Mierka zviazania vlasov"
+
+
+msgid "Scale of the hair tie instance"
+msgstr "Mierka inštancie zviazania vlasov"
+
+
 msgid "Clump Hair Curves"
 msgstr "Zhlukovať krivky vlasov"
 
 
 msgid "Clumps together existing hair curves using guide curves"
 msgstr "Zhlukuje existujúce krivky vlasov pomocou vodiacich kriviek"
+
+
+msgid "Shape of the influence along curves (0=constant, 0.5=linear)"
+msgstr "Tvar vplyvu pozdĺž kriviek (0=konštantné, 0,5=lineárne)"
+
+
+msgid "Tip Spread"
+msgstr "Rozprestrenie špičky"
+
+
+msgid "Distance of random spread at the curve tips"
+msgstr "Vzdialenosť náhodného rozprestrenia na špičkách krivky"
+
+
+msgid "Clump Offset"
+msgstr "Posuv zhlukov"
+
+
+msgid "Offset of each clump in a random direction"
+msgstr "Posuv každého zhluku v náhodnom smere"
+
+
+msgid "Distance Falloff"
+msgstr "Vzdialenosť dopadu"
+
+
+msgid "Falloff distance for the clumping effect (0 means no falloff)"
+msgstr "Vzdialenosť dopadu pre efekt zhlukov (0 znamená žiadny dopad)"
+
+
+msgid "Distance Threshold"
+msgstr "Prah vzdialenosti"
+
+
+msgid "Distance threshold for the falloff around the guide"
+msgstr "Prahová hodnota vzdialenosti pre dopad okolo vodenia"
+
+
+msgid "Random seed for the operation"
+msgstr "Náhodné rozosiatie pre operáciu"
 
 
 msgid "Create Guide Index Map"
@@ -133791,12 +135001,60 @@ msgid "Creates an attribute that maps each curve to its nearest guide via index"
 msgstr "Vytvorí atribút, ktorý mapuje každú krivku k jej najbližšiemu vodeniu prostredníctvom indexu"
 
 
+msgid "Guide Selection"
+msgstr "Výber vodenia"
+
+
+msgid "Guide Curves or Points used for the selection of Guide Curves"
+msgstr "Krivky vodenia alebo body používané na výber kriviek vodenia"
+
+
+msgid "Minimum distance between two guides"
+msgstr "Minimálna vzdialenosť medzi dvoma vodeniami"
+
+
+msgid "ID to group together curves for guide map creation"
+msgstr "ID na zoskupenie kriviek na vytvorenie mapy vodenia"
+
+
 msgid "Curl Hair Curves"
 msgstr "Krivky kučery vlasov"
 
 
 msgid "Deforms existing hair curves into curls using guide curves"
 msgstr "Deformuje existujúce krivky vlasov na kučery použitím kriviek vodenia"
+
+
+msgid "Curl Start"
+msgstr "Začiatok kučery"
+
+
+msgid "Overall radius of the curls"
+msgstr "Celkový polomer kučier"
+
+
+msgid "Factor for the radius at the curl start"
+msgstr "Faktor pre polomer na začiatku kučery"
+
+
+msgid "Factor End"
+msgstr "Faktor ukončenia"
+
+
+msgid "Factor for the radius at the curl end"
+msgstr "Faktor pre polomer na konci kučery"
+
+
+msgid "Frequency factor of the curls"
+msgstr "Faktor frekvencie kučier"
+
+
+msgid "Amount of random offset per curve"
+msgstr "Množstvo náhodného posuvu na krivku"
+
+
+msgid "Random Seed for the operation"
+msgstr "Náhodné rozosiatie pre operáciu"
 
 
 msgid "Curve Info"
@@ -133807,12 +135065,76 @@ msgid "Reads information about each curve"
 msgstr "Číta informácie o každej krivke"
 
 
+msgid "Index of each Curve"
+msgstr "Index každej krivky"
+
+
+msgid "Curve ID"
+msgstr "ID krivky"
+
+
+msgid "ID of each Curve"
+msgstr "ID každej krivky"
+
+
+msgid "Length of each Curve"
+msgstr "Dĺžka každej krivky"
+
+
+msgid "Direction from root to tip of each Curve"
+msgstr "Smer od koreňa po špičku každej krivky"
+
+
+msgid "Random vector for each Curve"
+msgstr "Náhodný vektor pre každú krivku"
+
+
+msgid "Surface UV"
+msgstr "UV povrchu"
+
+
+msgid "Attachment surface UV coordinate of each Curve"
+msgstr "Uchytenie UV súradnice povrchu každej krivky"
+
+
 msgid "Curve Root"
 msgstr "Koreň krivky"
 
 
 msgid "Reads information about each curve's root point"
 msgstr "Číta informácie o koreňovom bode každej krivky"
+
+
+msgid "Root Selection"
+msgstr "Výber koreňa"
+
+
+msgid "Boolean selection of curve root points"
+msgstr "Výber logickej hodnoty koreňových bodov krivky"
+
+
+msgid "Root Position"
+msgstr "Poloha koreňa"
+
+
+msgid "Position of the root point of a Curve"
+msgstr "Poloha koreňového bodu krivky"
+
+
+msgid "Root Direction"
+msgstr "Smer koreňa"
+
+
+msgid "Direction of the root segment of a Curve"
+msgstr "Smer koreňového segmentu krivky"
+
+
+msgid "Root Index"
+msgstr "Index koreňa"
+
+
+msgid "Index of the root point of a Curve"
+msgstr "Index koreňového bodu krivky"
 
 
 msgid "Curve Segment"
@@ -133823,12 +135145,68 @@ msgid "Reads information each point's previous curve segment"
 msgstr "Číta informácie o predošlom segmente krivky každého bodu"
 
 
+msgid "Segment Length"
+msgstr "Dĺžka segmentu"
+
+
+msgid "Distance to previous point on Curve"
+msgstr "Vzdialenosť od predošlého bodu na krivke"
+
+
+msgid "Segment Direction"
+msgstr "Smer segmentu"
+
+
+msgid "Direction from previous neighboring point on segment"
+msgstr "Smer od predošlého susedného bodu na segmente"
+
+
+msgid "Neighbor Index"
+msgstr "Index susedov"
+
+
+msgid "Index of previous neighboring point on segment"
+msgstr "Index predošlého susedného bodu na segmente"
+
+
 msgid "Curve Tip"
 msgstr "Špička krivky"
 
 
 msgid "Reads information about each curve's tip point"
 msgstr "Číta informácie o bode špičky každej krivky"
+
+
+msgid "Tip Selection"
+msgstr "Výber špičky"
+
+
+msgid "Boolean selection of curve tip points"
+msgstr "Logická hodnota výberu bodov špičky krivky"
+
+
+msgid "Tip Position"
+msgstr "Poloha špičky"
+
+
+msgid "Position of the tip point of a Curve"
+msgstr "Poloha bodu špičky krivky"
+
+
+msgid "Tip Direction"
+msgstr "Smer špičky"
+
+
+msgid "Direction of the tip segment of a Curve"
+msgstr "Smer segmentu špičky krivky"
+
+
+msgid "Tip Index"
+msgstr "Index špičky"
+
+
+msgid "Index of the tip point of a Curve"
+msgstr "Index bodu špičky krivky"
 
 
 msgid "Displace Hair Curves"
@@ -133839,6 +135217,42 @@ msgid "Displaces hair curves by a vector based on various options"
 msgstr "Posúva krivky vlasov vektorom na základe rôznych možností"
 
 
+msgid "Factor to scale overall displacement"
+msgstr "Faktor na zmenu mierky celkového posunu"
+
+
+msgid "Object used to define the displacement space"
+msgstr "Objekt použitý na definovanie priestoru posunu"
+
+
+msgid "Displace Vector"
+msgstr "Vektor posunu"
+
+
+msgid "Vector for displacement"
+msgstr "Vektor pre posun"
+
+
+msgid "Surface geometry used to sample the normal for displacement"
+msgstr "Geometria povrchu použitá na zosnímanie normály pre posun"
+
+
+msgid "Surface object used to sample the normal for displacement"
+msgstr "Povrchový objekt používaný na zosnímanie normály pre posun"
+
+
+msgid "Surface UV map used to sample the normal for displacement"
+msgstr "Povrchová UV mapa použitá na zosnímanie normály pre posun"
+
+
+msgid "Surface Normal Displacement"
+msgstr "Posun normály povrchu"
+
+
+msgid "Amount of displacemement along the surface normal"
+msgstr "Veľkosť posunu pozdĺž normály povrchu"
+
+
 msgid "Duplicate Hair Curves"
 msgstr "Vytvoriť kópiu krivky vlasov"
 
@@ -133847,8 +135261,60 @@ msgid "Duplicates hair curves a certain number of times within a radius"
 msgstr "Vytvorí kópie krivky vlasov určitý počet krát v rámci polomeru"
 
 
+msgid "Amount of duplicates per curve"
+msgstr "Počet kópií na krivku"
+
+
+msgid "Viewport Amount"
+msgstr "Množstvo záberu"
+
+
+msgid "Percentage of amount used for the viewport"
+msgstr "Percento množstva použitého pre záber"
+
+
+msgid "Radius in which the duplicate curves are offset from the guides"
+msgstr "Polomer, v ktorom sú kópie kriviek posunuté od vodenia"
+
+
+msgid "Distribution Shape"
+msgstr "Tvar rozloženia"
+
+
+msgid "Shape of distribution from center to the edge around the guide"
+msgstr "Tvar rozloženia od stredu po okraj okolo vodenia"
+
+
+msgid "Offset of the curves to round the tip"
+msgstr "Posuv kriviek pre zaoblenie špičky"
+
+
+msgid "Keep an even thickness of the distribution of duplicates"
+msgstr "Zachová rovnomernú hrúbku rozloženia kópií"
+
+
 msgid "Deforms hair curves using a random vector per point to frizz them"
 msgstr "Deformuje krivky vlasov pomocou náhodného vektora na bod, čím ich rozstrapatí"
+
+
+msgid "Offset Vector"
+msgstr "Vektor posuvu"
+
+
+msgid "Vector by which each point was offset during deformation"
+msgstr "Vektor smeru, ktorým bol každý bod posunutý počas deformácie"
+
+
+msgid "Cumulative Offset"
+msgstr "Kumulatívny posuv"
+
+
+msgid "Apply offset cumulatively (previous points affect points after)"
+msgstr "Použije kumulatívny posuv (predošlé body ovplyvňujú body nasledujúce)"
+
+
+msgid "Overall distance factor for the deformation"
+msgstr "Celkový faktor vzdialenosti pre deformáciu"
 
 
 msgid "Generate Hair Curves"
@@ -133859,6 +135325,62 @@ msgid "Generates new hair curves on a surface mesh"
 msgstr "Vygeneruje nové krivky vlasov na povrchovej sieti"
 
 
+msgid "Normal direction of the surface mesh at the attachment point"
+msgstr "Smer normály povrchovej siete v bode prichytenia"
+
+
+msgid "Surface geometry for generation "
+msgstr "Geometria povrchu na generovanie "
+
+
+msgid "Surface object for generation (Needs matching transforms)"
+msgstr "Povrchový objekt na vygenerovanie (potrebuje zodpovedajúce transformácie)"
+
+
+msgid "Length of the generated hair curves"
+msgstr "Dĺžka vygenerovaných kriviek vlasov"
+
+
+msgid "Hair Material"
+msgstr "Materiál vlasov"
+
+
+msgid "Material of the generated hair curves"
+msgstr "Materiál vygenerovaných kriviek vlasov"
+
+
+msgid "Amount of control points of the generated hair curves"
+msgstr "Množstvo riadiacich bodov vygenerovaných kriviek vlasov"
+
+
+msgid "Poisson Disk Distribution"
+msgstr "Poissonove rozloženie diskov"
+
+
+msgid "Use poisson disk distribution method to keep a minimum distance"
+msgstr "Na udržanie minimálnej vzdialenosti použije metódu poissonovho rozloženia diskov"
+
+
+msgid "Surface density of generated hair curves"
+msgstr "Povrchová hustota vygenerovaných kriviek vlasov"
+
+
+msgid "Density Mask"
+msgstr "Maska hustoty"
+
+
+msgid "Factor applied on the density for curve distribution"
+msgstr "Faktor aplikovaný pre hustotu na rozloženie kriviek"
+
+
+msgid "Discard points based on an mask texture after distribution"
+msgstr "Vyradenie bodov na základe textúry masky po distribúcii"
+
+
+msgid "Factor applied on the density for the viewport"
+msgstr "Faktor aplikovaný na hustotu pre záber"
+
+
 msgid "Hair Attachment Info"
 msgstr "Informácie o prichytení vlasov"
 
@@ -133867,12 +135389,112 @@ msgid "Reads attachment information regarding a surface mesh"
 msgstr "Číta informácie o prichytení týkajúce sa povrchovej siete"
 
 
+msgid "Attachment UV"
+msgstr "Prichytenia UV"
+
+
+msgid "Surface attachment UV coordinate stored on each curve"
+msgstr "UV súradnice povrchu prichytenia uložené na každej krivke"
+
+
+msgid "Attachment is Valid"
+msgstr "Prichytenie je platné"
+
+
+msgid "Whether the stored attachment UV coordinate is valid"
+msgstr "Určuje, či je platná uložená UV súradnica prichytenia"
+
+
+msgid "Surface Geometry"
+msgstr "Geometria povrchu"
+
+
+msgid "Surface geometry of the curve attachment"
+msgstr "Povrchová geometria prichytenia krivky"
+
+
+msgid "Surface UV map used for attachment"
+msgstr "UV mapa povrchu použitá na prichytenie"
+
+
 msgid "Deforms hair curves using a noise texture"
 msgstr "Deformuje krivky vlasov použitím textúry šumu"
 
 
+msgid "Overall factor for the deformation"
+msgstr "Celkový faktor deformácie"
+
+
+msgid "Shape of amount along each curve (0=constant, 0.5=linear)"
+msgstr "Tvar množstva pozdĺž každej krivky (0=konštantný, 0,5=lineárny)"
+
+
+msgid "Scale of the noise texture by root position"
+msgstr "Mierka textúry šumu podľa polohy koreňa"
+
+
+msgid "Scale along Curve"
+msgstr "Mierka pozdĺž krivky"
+
+
+msgid "Scale of noise texture along each Curve"
+msgstr "Mierka textúry šumu pozdĺž každej krivky"
+
+
+msgid "Offset per Curve"
+msgstr "Posuv na krivku"
+
+
+msgid "Random offset of noise texture for each Curve"
+msgstr "Náhodný posuv textúry šumu pre každú krivku"
+
+
+msgid "Seed value for randomization"
+msgstr "Hodnota rozosiatia pre náhodnosť"
+
+
+msgid "Preserve the length of the Curves on a segment basis"
+msgstr "Zachová dĺžku kriviek na základe segmentov"
+
+
 msgid "Interpolates existing guide curves on a surface mesh"
 msgstr "Interpoluje existujúce vodiace krivky na povrchovej sieti"
+
+
+msgid "Index of the main guide curve per curve"
+msgstr "Index hlavnej vodiacej krivky na krivku"
+
+
+msgid "Follow Surface Normal"
+msgstr "Sledovať normálu povrchu"
+
+
+msgid "Align the interpolated curves to the surface normal"
+msgstr "Interpolované krivky sa zarovnajú s normálou povrchu"
+
+
+msgid "Part by Mesh Islands"
+msgstr "Časť podľa ostrovov povrchovej siete"
+
+
+msgid "Use mesh islands of the surface geometry for parting"
+msgstr "Na vytvorenie častí použije geometriu ostrovov povrchovej siete"
+
+
+msgid "Interpolation Guides"
+msgstr "Interpolácia vodenia"
+
+
+msgid "Amount of guides to be used for interpolation per curve"
+msgstr "Množstvo vodení na použitie pre interpoláciu na krivku"
+
+
+msgid "Distance to Guides"
+msgstr "Vzdialenosť od vodenia"
+
+
+msgid "Distance around each guide to spawn interpolated curves"
+msgstr "Vzdialenosť okolo každého vodenia na vytretie interpolovaných kriviek"
 
 
 msgid "Redistribute Curve Points"
@@ -133883,12 +135505,40 @@ msgid "Redistributes existing control points evenly along each curve"
 msgstr "Prerozdelí existujúce riadiace body rovnomerne pozdĺž každej krivky"
 
 
+msgid "Feature Awareness"
+msgstr "Informovanosť o funkciách"
+
+
+msgid "Use simeple feature awareness to keep feature definition"
+msgstr "Na zachovanie definície funkcie použije jednoduché informovanie o funkcii"
+
+
 msgid "Restore Curve Segment Length"
 msgstr "Obnoviť dĺžku segmentu krivky"
 
 
 msgid "Restores the length of each curve segment using a previous state after deformation"
 msgstr "Obnoví dĺžku každého segmentu krivky použitím predošlého stavu po deformácii"
+
+
+msgid "Only affect selected elements"
+msgstr "Ovplyvní iba vybrané prvky"
+
+
+msgid "Reference Position"
+msgstr "Referenčná poloha"
+
+
+msgid "Reference position before deformation"
+msgstr "Referenčná poloha pred deformáciou"
+
+
+msgid "Pin at Parameter"
+msgstr "Pripnúť na parameter"
+
+
+msgid "Pin each curve at a certain point for the operation"
+msgstr "Pripne každú krivku v určitom bode operácie"
 
 
 msgid "Roll Hair Curves"
@@ -133899,6 +135549,66 @@ msgid "Rolls up hair curves starting from their tips"
 msgstr "Zvinie krivky vlasov od ich špičiek"
 
 
+msgid "Variation Level"
+msgstr "Úroveň variácie"
+
+
+msgid "Level of smoothing on the roll path to include shape variation"
+msgstr "Úroveň vyhladenia na dráhe zvinutia vrátane variácie tvaru"
+
+
+msgid "Roll Length"
+msgstr "Dĺžka zvinutia"
+
+
+msgid "Length of each curve to be rolled"
+msgstr "Dĺžka každej krivky, ktorá sa má zvinúť"
+
+
+msgid "Roll Radius"
+msgstr "Polomer zvinutia"
+
+
+msgid "Radius of the rolls"
+msgstr "Polomer zvinutia"
+
+
+msgid "Roll Depth"
+msgstr "Hĺbka zvinutia"
+
+
+msgid "Depth offset of the roll"
+msgstr "Posun hĺbky zvinutia"
+
+
+msgid "Roll Taper"
+msgstr "Zúženie zvinutia"
+
+
+msgid "Taper of the roll"
+msgstr "Zúženie zvinutia"
+
+
+msgid "Retain Overall Shape"
+msgstr "Zachovať celkový tvar"
+
+
+msgid "Offset the roll along the original curve to retain shape"
+msgstr "Posúva zvinutie pozdĺž pôvodnej krivky, aby sa zachoval tvar"
+
+
+msgid "Roll Direction"
+msgstr "Smer zvinutia"
+
+
+msgid "Axis around which each curve is rolled"
+msgstr "Os, okolo ktorej sa každá krivka zvinie"
+
+
+msgid "Amount of randomization of the direction of the roll"
+msgstr "Náhodnosť množstva smeru zvinutia"
+
+
 msgid "Rotate Hair Curves"
 msgstr "Otočiť krivky vlasov"
 
@@ -133907,8 +135617,52 @@ msgid "Rotates each hair curve around an axis"
 msgstr "Otáča každú krivku vlasov okolo osi"
 
 
+msgid "Factor to influence the rotation angle"
+msgstr "Faktor na ovplyvnenie uhla rotácie"
+
+
+msgid "Rotation Axis (Default: Tangent at root)"
+msgstr "Os rotácie (predvolené: dotyčnica pri koreni)"
+
+
+msgid "Random offset to the rotation angle per Curve"
+msgstr "Náhodný posuv k uhlu pootočenia podľa krivky"
+
+
+msgid "Lock Ends"
+msgstr "Zamknúť konce"
+
+
+msgid "Lock rotation to the axis between the curve ends"
+msgstr "Uzamkne rotáciu k osi medzi koncami krivky"
+
+
 msgid "Sets the radius attribute of hair curves according to a profile shape"
 msgstr "Nastaví atribút polomeru kriviek vlasov podľa tvaru profilu"
+
+
+msgid "Replace Radius"
+msgstr "Nahradiť polomer"
+
+
+msgid "Replace the original radius"
+msgstr "Nahradí pôvodný polomer"
+
+
+msgid "Base radius to be set if 'Replace Radius' is enabled"
+msgstr "Základný polomer, ktorý sa má nastaviť, ak je povolená funkcia 'Nahradiť polomer'"
+
+
+msgid "Shape of the radius along the curve"
+msgstr "Tvar polomeru pozdĺž krivky"
+
+
+msgid "Factor of the radius at the minimum"
+msgstr "Faktor minimálneho polomeru"
+
+
+msgid "Factor of the radius at the maximum"
+msgstr "Faktor maximálneho polomeru"
 
 
 msgid "Shrinkwrap Hair Curves"
@@ -133919,12 +135673,68 @@ msgid "Shrinkwraps hair curves to a mesh surface from below and optionally from 
 msgstr "Zmrští krivky vlasov na povrchovej sieti zdola a voliteľne zhora"
 
 
+msgid "Surface geometry used for shrinkwrap"
+msgstr "Geometria povrchu použitá na zmrštenie"
+
+
+msgid "Surface object used for shrinkwrap"
+msgstr "Povrchový objekt používaný na zmrštenie"
+
+
+msgid "Offset Distance"
+msgstr "Vzdialenosť posuvu"
+
+
+msgid "Distance from the surface used for shrinkwrap"
+msgstr "Vzdialenosť od povrchu použitého na zmrštenie"
+
+
+msgid "Blend shrinkwrap for points above the surface"
+msgstr "Prelína zmrštenie pre body nad povrchom"
+
+
+msgid "Smoothing Steps"
+msgstr "Kroky vyhladenia"
+
+
+msgid "Amount of steps of smoothing applied after shwrinkwrap"
+msgstr "Množstvo krokov vyhladenia aplikovaných po zmrštení"
+
+
+msgid "Lock Roots"
+msgstr "Uzamknúť korene"
+
+
+msgid "Lock the position of root points"
+msgstr "Uzamkne polohu koreňových bodov"
+
+
 msgid "Smooth Hair Curves"
 msgstr "Vyhladiť krivky vlasov"
 
 
 msgid "Smoothes the shape of hair curves"
 msgstr "Vyhladí tvar kriviek vlasov"
+
+
+msgid "Amount of smoothing"
+msgstr "Množstvo vyhladenia"
+
+
+msgid "Amount of smoothing steps"
+msgstr "Počet krokov vyhladenia"
+
+
+msgid "Weight used for smoothing"
+msgstr "Váha použitá pre vyhladenie"
+
+
+msgid "Lock Tips"
+msgstr "Zamknúť špičky"
+
+
+msgid "Lock tip position when smoothing"
+msgstr "Pri vyhladzovaní uzamkne polohu špičky"
 
 
 msgid "Straighten Hair Curves"
@@ -133935,6 +135745,10 @@ msgid "Straightens hair curves between root and tip"
 msgstr "Narovná krivky vlasov medzi koreňom a špičkou"
 
 
+msgid "Amount of straightening"
+msgstr "Množstvo narovnania"
+
+
 msgid "Trim Hair Curves"
 msgstr "Zastrihnúť krivky vlasov"
 
@@ -133943,6 +135757,42 @@ msgid "Trims or scales hair curves to a certain length"
 msgstr "Zastrihne alebo upraví krivky vlasov na určitú dĺžku"
 
 
+msgid "Scale each curve uniformly to reach the target length"
+msgstr "Každú krivku rovnomerne upraví tak, aby bola dosiahnutá cieľová dĺžka"
+
+
+msgid "Multiply the original length by a factor"
+msgstr "Vynásobí pôvodnú dĺžku faktorom"
+
+
+msgid "Replace Length"
+msgstr "Nahradiť dĺžku"
+
+
+msgid "Use the length input to fully replace the original length"
+msgstr "Použitím vstupu dĺžky úplne nahradí pôvodnú dĺžku"
+
+
+msgid "Target length for the operation"
+msgstr "Cieľová dĺžka operácie"
+
+
+msgid "Mask to blend overall effect"
+msgstr "Maska prelínania celkového efektu"
+
+
+msgid "Trim hair curves randomly up to a certain amount"
+msgstr "Zastrihne krivky vlasov náhodne do určitého množstva"
+
+
 msgid "Smooth by Angle"
 msgstr "Vyhladiť podľa uhla"
+
+
+msgid "Maximum face angle for smooth edges"
+msgstr "Maximálny uhol plôšky pre hladké hrany"
+
+
+msgid "Ignore Sharpness"
+msgstr "Ignorovať ostrosť"
 

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'72b6c44e759b')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'274dc815eb35')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-04 11:06:00\n"
+"POT-Creation-Date: 2023-12-11 11:18:04\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Arvid Rudling <arvid.r@gmail.com>\n"
 "Language-Team: \n"
@@ -687,6 +687,14 @@ msgstr "Nabla"
 
 msgid "Weights"
 msgstr "Viktningar"
+
+
+msgid "File Extensions"
+msgstr "Filändelse"
+
+
+msgid "Operator"
+msgstr "Operator"
 
 
 msgid "File Name"
@@ -1918,10 +1926,6 @@ msgid "ID name of the menu this was called from"
 msgstr "ID-namn på menyn som detta anropades från"
 
 
-msgid "Operator"
-msgstr "Operator"
-
-
 msgctxt "Operator"
 msgid "Deinterlace Movies"
 msgstr "Avläta filmer"
@@ -2286,10 +2290,6 @@ msgstr "Lågupplöst mesh"
 
 msgid "Calculate heights against unsubdivided low resolution mesh"
 msgstr "Beräkna höjder mot icke-uppdelat lågupplöst mesh"
-
-
-msgid "File Extensions"
-msgstr "Filändelse"
 
 
 msgid "Stamp Filename"

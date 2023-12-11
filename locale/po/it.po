@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'72b6c44e759b')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'274dc815eb35')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-04 11:06:00\n"
-"PO-Revision-Date: 2023-12-04 05:17+0000\n"
+"POT-Creation-Date: 2023-12-11 11:18:04\n"
+"PO-Revision-Date: 2023-12-07 13:11+0000\n"
 "Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
 "Language: it\n"
@@ -911,6 +911,10 @@ msgid "Motion tracking tools"
 msgstr "Strumenti tracciatura movimento"
 
 
+msgid "Dope Sheet"
+msgstr "Foglio d'esposizione"
+
+
 msgid "Adjust timing of keyframes"
 msgstr "Aggiusta temporizzazione dei fotogrammi chiave"
 
@@ -1195,6 +1199,10 @@ msgid "Full Path"
 msgstr "Percorso Completo"
 
 
+msgid "Absolute path to the .blend file containing this asset extended with the path of the asset inside the file"
+msgstr "Percorso assoluto del file .blend contenente questa risorsa, esteso con il percorso della risorsa all'interno del file"
+
+
 msgctxt "ID"
 msgid "Data-block Type"
 msgstr "Tipo Blocco-dati"
@@ -1394,6 +1402,10 @@ msgid "World"
 msgstr "Mondo"
 
 
+msgid "The local data-block this asset represents; only valid if that is a data-block in this file"
+msgstr "Il blocco-dati locale rappresentato da questa risorsa; valido solo se si tratta di un blocco-dati in questo file"
+
+
 msgid "Asset Metadata"
 msgstr "Metadati degli Assets"
 
@@ -1402,16 +1414,40 @@ msgid "Additional information about the asset"
 msgstr "Informazioni aggiuntive dell'asset"
 
 
+msgid "Asset Shelf"
+msgstr "Scaffale delle Risorse"
+
+
+msgid "Regions for quick access to assets"
+msgstr "Regioni di accesso rapido alle risorse"
+
+
 msgid "Asset Library"
 msgstr "Libreria Assets"
+
+
+msgid "Choose the asset library to display assets from"
+msgstr "Scegli la libreria di risorse da cui visualizzare le risorse"
 
 
 msgid "All"
 msgstr "Tutti"
 
 
+msgid "Show assets from all of the listed asset libraries"
+msgstr "Mostra risorse da tutte le librerie di risorse elencate"
+
+
 msgid "Current File"
 msgstr "File Corrente"
+
+
+msgid "Show the assets currently available in this Blender session"
+msgstr "Mostra le risorse attualmente disponibili in questa sessione di Blender"
+
+
+msgid "Show the basic building blocks and utilities coming with Blender"
+msgstr "Mostra i moduli di base e le utilità fornite con Blender"
 
 
 msgid "Custom"
@@ -1422,8 +1458,16 @@ msgid "ID Name"
 msgstr "Nome ID"
 
 
+msgid "If this is set, the asset gets a custom ID, otherwise it takes the name of the class used to define the menu (for example, if the class name is \"OBJECT_AST_hello\", and bl_idname is not set by the script, then bl_idname = \"OBJECT_AST_hello\")"
+msgstr "Se impostato, la risorsa ottiene un ID personalizzato, altrimenti prende il nome della classe utilizzata per definire il menu (ad esempio, se il nome della classe è \"OBJECT_AST_ciao\" e bl_idname non è impostato dallo script, allora bl_idname = \"OBJECT_AST_ciao\")"
+
+
 msgid "Options"
 msgstr "Opzioni"
+
+
+msgid "Options for this asset shelf type"
+msgstr "Opzioni per questo tipo di scaffale delle risorse"
 
 
 msgid "Space Type"
@@ -10349,6 +10393,18 @@ msgid "Save"
 msgstr "Salva"
 
 
+msgid "File Extensions"
+msgstr "Estensioni File"
+
+
+msgid "Operator"
+msgstr "Operatore"
+
+
+msgid "Label"
+msgstr "Etichetta"
+
+
 msgid "Icon ID"
 msgstr "ID Icona"
 
@@ -15317,10 +15373,6 @@ msgstr "Cartella Proxy Personalizzata"
 
 msgid "Create proxy images in a custom directory (default is movie location)"
 msgstr "Crea immagini proxy in una directory personalizzata (la definita è la posizione del filmato)"
-
-
-msgid "Label"
-msgstr "Etichetta"
 
 
 msgid "Grease Pencil Data"
@@ -33131,10 +33183,6 @@ msgid "Reverse Colors"
 msgstr "Inverti Colori"
 
 
-msgid "Flip direction of vertex colors inside faces"
-msgstr "Scambia la direzione dei colori di vertice all'interno delle facce"
-
-
 msgctxt "Operator"
 msgid "Rotate Colors"
 msgstr "Ruota Colori"
@@ -39775,10 +39823,6 @@ msgid "Falloff Type"
 msgstr "Tipo Decadimento"
 
 
-msgid "Operator"
-msgstr "Operatore"
-
-
 msgid "Sharpen"
 msgstr "Affilatura"
 
@@ -43931,14 +43975,6 @@ msgid "Active Palette Color"
 msgstr "Colore Tavolozza Attivo"
 
 
-msgid "Refraction"
-msgstr "Rifrazione"
-
-
-msgid "Denoising"
-msgstr "Riduzione Rumore"
-
-
 msgid "Integrator Presets"
 msgstr "Preimpostazioni Integratore"
 
@@ -44424,6 +44460,10 @@ msgstr "Viscosità"
 
 msgid "Indirect Lighting"
 msgstr "Illuminazione Indiretta"
+
+
+msgid "Denoising"
+msgstr "Riduzione Rumore"
 
 
 msgid "Shadows"
@@ -48123,10 +48163,6 @@ msgstr "Regione Render"
 
 msgid "Process the render result through the compositing pipeline, if compositing nodes are enabled"
 msgstr "Elabora il risultato del render attraverso la sequenza del Compositore, se i nodi di composizione sono abilitati"
-
-
-msgid "File Extensions"
-msgstr "Estensioni File"
 
 
 msgid "Add the file format extensions to the rendered file name (eg: filename + .jpg)"
@@ -52828,8 +52864,8 @@ msgid "Display vertex-per-face normals as lines"
 msgstr "Mostra le normali vertex-per-face come linee"
 
 
-msgid "Stat Vis"
-msgstr "Vis Stat"
+msgid "Mesh Analysis"
+msgstr "Analisi Mesh"
 
 
 msgid "Display statistical information about the mesh"
@@ -54342,6 +54378,10 @@ msgstr "Maiuscolo"
 
 msgid "Auto-Step"
 msgstr "Passo Automatico"
+
+
+msgid "Refraction"
+msgstr "Rifrazione"
 
 
 msgid "Render Engine"
@@ -56349,10 +56389,6 @@ msgid "Vertex Group Weights"
 msgstr "Peso Gruppo Vertici"
 
 
-msgid "Mesh Analysis"
-msgstr "Analisi Mesh"
-
-
 msgid "Face Angle"
 msgstr "Angolo Faccia"
 
@@ -56962,10 +56998,6 @@ msgstr "Col"
 
 msgid "Int"
 msgstr "Int"
-
-
-msgid "PreviewCol"
-msgstr "AnteprimaCol"
 
 
 msgid "TexturedCol"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'72b6c44e759b')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'274dc815eb35')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-04 11:06:00\n"
+"POT-Creation-Date: 2023-12-11 11:18:04\n"
 "PO-Revision-Date: 2021-03-01 19:15+0000\n"
 "Last-Translator: lxlalexlxl <lxlalexlxl@ukr.net>\n"
 "Language-Team: Ukrainian (Ukraine) (http://www.transifex.com/lxlalexlxl/blender/language/uk_UA/)\n"
@@ -11294,6 +11294,18 @@ msgid "Whether this path is saved in bookmarks, or generated from OS"
 msgstr "Цей шлях збережено у закладках або згенеровано ОС"
 
 
+msgid "File Extensions"
+msgstr "Розширення Файлів"
+
+
+msgid "Operator"
+msgstr "Оператор"
+
+
+msgid "Label"
+msgstr "Позначка"
+
+
 msgid "File Select Entry"
 msgstr "Вхід Вибору Файлу"
 
@@ -21591,10 +21603,6 @@ msgstr "Створювати зображення замісника у нети
 
 msgid "Node tree consisting of linked nodes used for shading, textures and compositing"
 msgstr "Дерево вузлів, що складається з пов'язаних вузлів, які використовуються для відтінення, текстур і компонування"
-
-
-msgid "Label"
-msgstr "Позначка"
 
 
 msgid "The node tree label"
@@ -50276,10 +50284,6 @@ msgid "Reverse Colors"
 msgstr "Обернути кольори"
 
 
-msgid "Flip direction of vertex colors inside faces"
-msgstr "Змінити напрям кольорів вершин у межах граней"
-
-
 msgctxt "Operator"
 msgid "Rotate Colors"
 msgstr "Повернути кольори"
@@ -60511,10 +60515,6 @@ msgid "Modify Hidden"
 msgstr "Модифікувати Сховане"
 
 
-msgid "Apply the edit operation to hidden Face Sets"
-msgstr "Застосувати операцію редагування до схованих Наборів Граней"
-
-
 msgctxt "Operator"
 msgid "Face Set Lasso Gesture"
 msgstr "Набір Граней Ласо Жестом"
@@ -60743,10 +60743,6 @@ msgstr "Зменшити контраст маски малювання"
 
 msgid "Number of times that the filter is going to be applied"
 msgstr "Кількість разів, яку цей фільтр буде застосовано"
-
-
-msgid "Operator"
-msgstr "Оператор"
 
 
 msgctxt "Operator"
@@ -67787,14 +67783,6 @@ msgid "Panel containing UI elements"
 msgstr "Панель, що містить елементи Інтерфейсу Користувача"
 
 
-msgid "Refraction"
-msgstr "Заломлення"
-
-
-msgid "Denoising"
-msgstr "Знешумлення"
-
-
 msgid "Integrator Presets"
 msgstr "Передустави Інтегратора"
 
@@ -68543,6 +68531,10 @@ msgstr "Свічення"
 
 msgid "Indirect Lighting"
 msgstr "Відбите світло"
+
+
+msgid "Denoising"
+msgstr "Знешумлення"
 
 
 msgid "Shadows"
@@ -74604,10 +74596,6 @@ msgstr "Обрізка до Регіону Рендера"
 
 msgid "Crop the rendered frame to the defined render region size"
 msgstr "Обрізати рендерений кадр до визначеного розміру регіону рендера"
-
-
-msgid "File Extensions"
-msgstr "Розширення Файлів"
 
 
 msgid "Add the file format extensions to the rendered file name (eg: filename + .jpg)"
@@ -83779,8 +83767,8 @@ msgid "Display scene statistics overlay text"
 msgstr "Показувати текст накладки статистики сцени"
 
 
-msgid "Stat Vis"
-msgstr "Показ статистики"
+msgid "Mesh Analysis"
+msgstr "Аналіз Сіті"
 
 
 msgid "Display statistical information about the mesh"
@@ -87993,6 +87981,10 @@ msgid "Light Clamping"
 msgstr "Затискання Освітлення"
 
 
+msgid "Refraction"
+msgstr "Заломлення"
+
+
 msgid "Cascade Size"
 msgstr "Розмір Каскаду"
 
@@ -90979,16 +90971,6 @@ msgstr "Витягти Набір Граней"
 
 
 msgctxt "Operator"
-msgid "Invert Visible Face Sets"
-msgstr "Інвертувати Видимі Набори Граней"
-
-
-msgctxt "Operator"
-msgid "Show All Face Sets"
-msgstr "Показ Всіх Наборів Граней"
-
-
-msgctxt "Operator"
 msgid "Randomize Colors"
 msgstr "Рандомізувати Кольори"
 
@@ -91342,10 +91324,6 @@ msgstr "Шви"
 
 msgid "Vertex Group Weights"
 msgstr "Вагомості Груп Вершин"
-
-
-msgid "Mesh Analysis"
-msgstr "Аналіз Сіті"
 
 
 msgid "Face Angle"
@@ -92330,10 +92308,6 @@ msgid "Int"
 msgstr "Ціле"
 
 
-msgid "PreviewCol"
-msgstr "КолірПерегляду"
-
-
 msgid "TexturedCol"
 msgstr "КолірТекстури"
 
@@ -92356,10 +92330,6 @@ msgstr "Ключ форми"
 
 msgid "OS Loop"
 msgstr "Петля вихідного простору"
-
-
-msgid "PreviewLoopCol"
-msgstr "Колір петлі при перегляді"
 
 
 msgid "Float3"
@@ -97525,6 +97495,14 @@ msgid "File '%s' could not be loaded"
 msgstr "Файл '%s' неможливо завантажити"
 
 
+msgid "Please select all related strips"
+msgstr "Виберіть всі пов'язані смужки"
+
+
+msgid "No strips to paste"
+msgstr "Нема смужок для вставлення"
+
+
 msgid "Slip offset: %s"
 msgstr "Зсув ковзання: %s"
 
@@ -97563,14 +97541,6 @@ msgstr "Неможливо перепризначити уводи: виявле
 
 msgid "No valid inputs to swap"
 msgstr "Немає правильних вводів для обміну"
-
-
-msgid "Please select all related strips"
-msgstr "Виберіть всі пов'язані смужки"
-
-
-msgid "No strips to paste"
-msgstr "Нема смужок для вставлення"
 
 
 msgid "Please select two strips"
