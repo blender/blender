@@ -676,7 +676,6 @@ static bke::CurvesGeometry remove_points_and_split(const bke::CurvesGeometry &cu
 
 static int grease_pencil_delete_exec(bContext *C, wmOperator * /*op*/)
 {
-  using namespace blender;
   const Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
@@ -1120,7 +1119,6 @@ static void GREASE_PENCIL_OT_cyclical_set(wmOperatorType *ot)
  * \{ */
 static int grease_pencil_set_active_material_exec(bContext *C, wmOperator * /*op*/)
 {
-  using namespace blender;
   const Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
@@ -1663,7 +1661,6 @@ static void duplicate_points(bke::CurvesGeometry &curves, const IndexMask &mask)
 
 static int grease_pencil_duplicate_exec(bContext *C, wmOperator * /*op*/)
 {
-  using namespace blender;
   const Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
