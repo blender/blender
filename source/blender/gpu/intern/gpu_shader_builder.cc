@@ -26,7 +26,7 @@ namespace blender::gpu::shader_builder {
 class ShaderBuilder {
  private:
   GHOST_SystemHandle ghost_system_;
-  GHOST_ContextHandle ghost_context_;
+  GHOST_ContextHandle ghost_context_ = nullptr;
   GPUContext *gpu_context_ = nullptr;
 
  public:
