@@ -1652,12 +1652,64 @@ static void duplicate_points(bke::CurvesGeometry &curves, const IndexMask &mask)
   curves.update_curve_types();
   curves.tag_topology_changed();
 
-  /* Deselect the original and select the new curves. */
-  bke::GSpanAttributeWriter selection = ed::curves::ensure_selection_attribute(
-      curves, ATTR_DOMAIN_CURVE, CD_PROP_BOOL);
-  curves::fill_selection_true(selection.span,
-                              IndexMask(IndexRange(old_curves_num, num_curves_to_add)));
-  curves::fill_selection_false(selection.span, IndexMask(old_curves_num));
+  bke::SpanAttributeWriter<bool> selection = attributes.lookup_or_add_for_write_span<bool>(
+      ".selection", ATTR_DOMAIN_POINT);
+  selection.span.take_back(num_points_to_add).fill(true);
+  selection.finish();
+}
+
+static void duplicate_curves(bke::CurvesGeometry &curves, const IndexMask &mask)
+{
+  const int orig_points_num = curves.points_num();
+  const int orig_curves_num = curves.curves_num();
+  bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
+
+  /* Delete selection attribute so that it will not have to be resized. */
+  attributes.remove(".selection");
+
+  /* Resize the curves and copy the offsets of duplicated curves into the new offsets. */
+  curves.resize(curves.points_num(), orig_curves_num + mask.size());
+  const IndexRange orig_curves_range = curves.curves_range().take_front(orig_curves_num);
+  const IndexRange new_curves_range = curves.curves_range().drop_front(orig_curves_num);
+
+  MutableSpan<int> offset_data = curves.offsets_for_write();
+  offset_indices::gather_selected_offsets(
+      OffsetIndices<int>(offset_data.take_front(orig_curves_num + 1)),
+      mask,
+      orig_points_num,
+      offset_data.drop_front(orig_curves_num));
+  const OffsetIndices<int> points_by_curve = curves.points_by_curve();
+
+  /* Resize the points array to match the new total point count. */
+  curves.resize(points_by_curve.total_size(), curves.curves_num());
+
+  attributes.for_all([&](const bke::AttributeIDRef &id, const bke::AttributeMetaData meta_data) {
+    bke::GSpanAttributeWriter attribute = attributes.lookup_for_write_span(id);
+    switch (meta_data.domain) {
+      case ATTR_DOMAIN_POINT:
+        bke::attribute_math::gather_group_to_group(points_by_curve.slice(orig_curves_range),
+                                                   points_by_curve.slice(new_curves_range),
+                                                   mask,
+                                                   attribute.span,
+                                                   attribute.span);
+        break;
+      case ATTR_DOMAIN_CURVE:
+        array_utils::gather(attribute.span, mask, attribute.span.take_back(mask.size()));
+        break;
+      default:
+        BLI_assert_unreachable();
+        return true;
+    }
+    attribute.finish();
+    return true;
+  });
+
+  curves.update_curve_types();
+  curves.tag_topology_changed();
+
+  bke::SpanAttributeWriter<bool> selection = attributes.lookup_or_add_for_write_span<bool>(
+      ".selection", ATTR_DOMAIN_CURVE);
+  selection.span.take_back(mask.size()).fill(true);
   selection.finish();
 }
 
@@ -1667,18 +1719,25 @@ static int grease_pencil_duplicate_exec(bContext *C, wmOperator * /*op*/)
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
 
+  const eAttrDomain selection_domain = ED_grease_pencil_selection_domain_get(scene->toolsettings);
+
   std::atomic<bool> changed = false;
   const Array<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
     IndexMaskMemory memory;
-    const IndexMask points = ed::greasepencil::retrieve_editable_and_selected_points(
-        *object, info.drawing, memory);
-    if (points.is_empty()) {
+    const IndexMask elements = retrieve_editable_and_selected_elements(
+        *object, info.drawing, selection_domain, memory);
+    if (elements.is_empty()) {
       return;
     }
 
     bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
-    duplicate_points(curves, points);
+    if (selection_domain == ATTR_DOMAIN_CURVE) {
+      duplicate_curves(curves, elements);
+    }
+    else if (selection_domain == ATTR_DOMAIN_POINT) {
+      duplicate_points(curves, elements);
+    }
     info.drawing.tag_topology_changed();
     changed.store(true, std::memory_order_relaxed);
   });
