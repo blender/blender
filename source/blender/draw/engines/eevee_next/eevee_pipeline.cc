@@ -388,7 +388,7 @@ void ForwardPipeline::render(View &view, Framebuffer &prepass_fb, Framebuffer &c
 
   inst_.hiz_buffer.set_dirty();
 
-  inst_.shadows.set_view(view);
+  inst_.shadows.set_view(view, inst_.render_buffers.depth_tx);
   inst_.irradiance_cache.set_view(view);
 
   combined_fb.bind();
@@ -657,7 +657,7 @@ void DeferredLayer::render(View &main_view,
   inst_.hiz_buffer.update();
 
   inst_.irradiance_cache.set_view(render_view);
-  inst_.shadows.set_view(render_view);
+  inst_.shadows.set_view(render_view, inst_.render_buffers.depth_tx);
 
   if (/* FIXME(fclem): Vulkan doesn't implement load / store config yet. */
       GPU_backend_get_type() == GPU_BACKEND_VULKAN)
@@ -1197,7 +1197,7 @@ void DeferredProbeLayer::render(View &view,
 
   inst_.hiz_buffer.set_source(&inst_.render_buffers.depth_tx);
   inst_.lights.set_view(view, extent);
-  inst_.shadows.set_view(view);
+  inst_.shadows.set_view(view, inst_.render_buffers.depth_tx);
   inst_.irradiance_cache.set_view(view);
 
   /* Update for lighting pass. */
@@ -1356,7 +1356,7 @@ void PlanarProbePipeline::render(View &view,
 
   inst_.hiz_buffer.set_source(&depth_layer_tx);
   inst_.lights.set_view(view, extent);
-  inst_.shadows.set_view(view);
+  inst_.shadows.set_view(view, depth_layer_tx);
   inst_.irradiance_cache.set_view(view);
 
   /* Update for lighting pass. */
