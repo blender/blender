@@ -7723,6 +7723,7 @@ def km_3d_view_tool_edit_curve_draw(params):
         ]},
     )
 
+
 def km_3d_view_tool_edit_curves_draw(params):
     return (
         "3D View Tool: Edit Curves, Draw",
@@ -7733,6 +7734,7 @@ def km_3d_view_tool_edit_curves_draw(params):
              {"properties": [("wait_for_input", False)]}),
         ]},
     )
+
 
 def km_3d_view_tool_edit_curve_pen(params):
     return (
