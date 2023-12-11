@@ -211,7 +211,7 @@ void ShadingView::update_view()
   jitter *= 2.0f;
 
   window_translate_m4(winmat.ptr(), winmat.ptr(), UNPACK2(jitter));
-  jitter_view_.sync(winmat, winmat);
+  jitter_view_.sync(viewmat, winmat);
 
   /* FIXME(fclem): The offset may be noticeably large and the culling might make object pop
    * out of the blurring radius. To fix this, use custom enlarged culling matrix. */
