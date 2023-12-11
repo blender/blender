@@ -1,19 +1,12 @@
 /* SPDX-FileCopyrightText: 2018 Blender Foundation
  *
- * SPDX-License-Identifier: GPL-2.0-or-later
- *
- * Author: Sergey Sharybin. */
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#ifndef OPENSUBDIV_TOPOLOGY_REFINER_CAPI_H_
-#define OPENSUBDIV_TOPOLOGY_REFINER_CAPI_H_
+#pragma once
 
-#include <stdint.h>  // for bool
+#include <cstdint>  // for bool
 
-#include "opensubdiv_capi_type.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "opensubdiv_capi_type.hh"
 
 struct OpenSubdiv_Converter;
 struct OpenSubdiv_TopologyRefinerImpl;
@@ -23,19 +16,19 @@ struct OpenSubdiv_TopologyRefinerImpl;
 // make it possible to ensure we are not trying to abuse same OpenSubdiv's
 // topology refiner with different subdivision levels or with different
 // adaptive settings.
-typedef struct OpenSubdiv_TopologyRefinerSettings {
+struct OpenSubdiv_TopologyRefinerSettings {
   bool is_adaptive;
   int level;
-} OpenSubdiv_TopologyRefinerSettings;
+};
 
 // C-style wrapper around actual topology refiner.
 //
 // The only purpose is to allow C-only code to access C++ implementation of the
 // topology refiner.
-typedef struct OpenSubdiv_TopologyRefiner {
+struct OpenSubdiv_TopologyRefiner {
   // Query subdivision level the refiner is created for.
-  int (*getSubdivisionLevel)(const struct OpenSubdiv_TopologyRefiner *topology_refiner);
-  bool (*getIsAdaptive)(const struct OpenSubdiv_TopologyRefiner *topology_refiner);
+  int (*getSubdivisionLevel)(const OpenSubdiv_TopologyRefiner *topology_refiner);
+  bool (*getIsAdaptive)(const OpenSubdiv_TopologyRefiner *topology_refiner);
 
   // NOTE: All queries are querying base level.
   //
@@ -47,28 +40,27 @@ typedef struct OpenSubdiv_TopologyRefiner {
   //////////////////////////////////////////////////////////////////////////////
   // Query basic topology information from base level.
 
-  int (*getNumVertices)(const struct OpenSubdiv_TopologyRefiner *topology_refiner);
-  int (*getNumEdges)(const struct OpenSubdiv_TopologyRefiner *topology_refiner);
-  int (*getNumFaces)(const struct OpenSubdiv_TopologyRefiner *topology_refiner);
+  int (*getNumVertices)(const OpenSubdiv_TopologyRefiner *topology_refiner);
+  int (*getNumEdges)(const OpenSubdiv_TopologyRefiner *topology_refiner);
+  int (*getNumFaces)(const OpenSubdiv_TopologyRefiner *topology_refiner);
 
-  int (*getNumFaceVertices)(const struct OpenSubdiv_TopologyRefiner *topology_refiner,
+  int (*getNumFaceVertices)(const OpenSubdiv_TopologyRefiner *topology_refiner,
                             const int face_index);
-  void (*getFaceVertices)(const struct OpenSubdiv_TopologyRefiner *topology_refiner,
+  void (*getFaceVertices)(const OpenSubdiv_TopologyRefiner *topology_refiner,
                           const int face_index,
                           int *face_vertices_indices);
 
-  int (*getNumFaceEdges)(const struct OpenSubdiv_TopologyRefiner *topology_refiner,
-                         const int face_index);
-  void (*getFaceEdges)(const struct OpenSubdiv_TopologyRefiner *topology_refiner,
+  int (*getNumFaceEdges)(const OpenSubdiv_TopologyRefiner *topology_refiner, const int face_index);
+  void (*getFaceEdges)(const OpenSubdiv_TopologyRefiner *topology_refiner,
                        const int face_index,
                        int *face_edges_indices);
-  void (*getEdgeVertices)(const struct OpenSubdiv_TopologyRefiner *topology_refiner,
+  void (*getEdgeVertices)(const OpenSubdiv_TopologyRefiner *topology_refiner,
                           const int edge_index,
                           int edge_vertices_indices[2]);
 
-  int (*getNumVertexEdges)(const struct OpenSubdiv_TopologyRefiner *topology_refiner,
+  int (*getNumVertexEdges)(const OpenSubdiv_TopologyRefiner *topology_refiner,
                            const int vertex_index);
-  void (*getVertexEdges)(const struct OpenSubdiv_TopologyRefiner *topology_refiner,
+  void (*getVertexEdges)(const OpenSubdiv_TopologyRefiner *topology_refiner,
                          const int vertex_index,
                          int *vertex_edges_indices);
 
@@ -82,9 +74,9 @@ typedef struct OpenSubdiv_TopologyRefiner {
   // - Quad face consists of a single ptex face.
   // - N-gons (similar to triangle) consists of N ptex faces, ordered same
   //   way as for triangle.
-  int (*getNumFacePtexFaces)(const struct OpenSubdiv_TopologyRefiner *topology_refiner,
+  int (*getNumFacePtexFaces)(const OpenSubdiv_TopologyRefiner *topology_refiner,
                              const int face_index);
-  int (*getNumPtexFaces)(const struct OpenSubdiv_TopologyRefiner *topology_refiner);
+  int (*getNumPtexFaces)(const OpenSubdiv_TopologyRefiner *topology_refiner);
 
   // Initialize a per-base-face offset measured in ptex face indices.
   //
@@ -92,25 +84,24 @@ typedef struct OpenSubdiv_TopologyRefiner {
   // faces created for bases faces [0 .. base_face_index - 1].
   //
   // The array must contain at least total number of ptex faces elements.
-  void (*fillFacePtexIndexOffset)(const struct OpenSubdiv_TopologyRefiner *topology_refiner,
+  void (*fillFacePtexIndexOffset)(const OpenSubdiv_TopologyRefiner *topology_refiner,
                                   int *face_ptex_index_offset);
 
   //////////////////////////////////////////////////////////////////////////////
   // Face-varying data.
 
   // Number of face-varying channels (or how they are called in Blender layers).
-  int (*getNumFVarChannels)(const struct OpenSubdiv_TopologyRefiner *topology_refiner);
+  int (*getNumFVarChannels)(const OpenSubdiv_TopologyRefiner *topology_refiner);
   // Get face-varying interpolation type.
   OpenSubdiv_FVarLinearInterpolation (*getFVarLinearInterpolation)(
-      const struct OpenSubdiv_TopologyRefiner *topology_refiner);
+      const OpenSubdiv_TopologyRefiner *topology_refiner);
   // Get total number of face-varying values in a particular channel.
-  int (*getNumFVarValues)(const struct OpenSubdiv_TopologyRefiner *topology_refiner,
-                          const int channel);
+  int (*getNumFVarValues)(const OpenSubdiv_TopologyRefiner *topology_refiner, const int channel);
   // Get face-varying value indices associated with a particular face.
   //
   // This is an array of indices inside of face-varying array, array elements
   // are aligned with face corners (or loops in Blender terminology).
-  const int *(*getFaceFVarValueIndices)(const struct OpenSubdiv_TopologyRefiner *topology_refiner,
+  const int *(*getFaceFVarValueIndices)(const OpenSubdiv_TopologyRefiner *topology_refiner,
                                         const int face_index,
                                         const int channel);
 
@@ -118,13 +109,13 @@ typedef struct OpenSubdiv_TopologyRefiner {
   // Internal use.
 
   // Implementation of the topology refiner.
-  struct OpenSubdiv_TopologyRefinerImpl *impl;
-} OpenSubdiv_TopologyRefiner;
+  OpenSubdiv_TopologyRefinerImpl *impl;
+};
 
 // NOTE: Will return NULL in cases of bad topology.
 // NOTE: Mesh without faces is considered a bad topology.
 OpenSubdiv_TopologyRefiner *openSubdiv_createTopologyRefinerFromConverter(
-    struct OpenSubdiv_Converter *converter, const OpenSubdiv_TopologyRefinerSettings *settings);
+    OpenSubdiv_Converter *converter, const OpenSubdiv_TopologyRefinerSettings *settings);
 
 void openSubdiv_deleteTopologyRefiner(OpenSubdiv_TopologyRefiner *topology_refiner);
 
@@ -135,11 +126,4 @@ void openSubdiv_deleteTopologyRefiner(OpenSubdiv_TopologyRefiner *topology_refin
 // and compare with existing refiner before going into more computationally
 // complicated parts of subdivision process.
 bool openSubdiv_topologyRefinerCompareWithConverter(
-    const OpenSubdiv_TopologyRefiner *topology_refiner,
-    const struct OpenSubdiv_Converter *converter);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif  // OPENSUBDIV_TOPOLOGY_REFINER_CAPI_H_
+    const OpenSubdiv_TopologyRefiner *topology_refiner, const OpenSubdiv_Converter *converter);

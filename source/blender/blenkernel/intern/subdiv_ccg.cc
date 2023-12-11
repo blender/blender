@@ -27,7 +27,7 @@
 #include "BKE_subdiv.hh"
 #include "BKE_subdiv_eval.hh"
 
-#include "opensubdiv_topology_refiner_capi.h"
+#include "opensubdiv_topology_refiner_capi.hh"
 
 using blender::Array;
 using blender::float3;

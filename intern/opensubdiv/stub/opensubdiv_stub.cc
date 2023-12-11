@@ -4,7 +4,7 @@
  *
  * Author: Sergey Sharybin. */
 
-#include "opensubdiv_capi.h"
+#include "opensubdiv_capi.hh"
 
 #include <cstddef>
 
