@@ -9,11 +9,9 @@ GPU_SHADER_CREATE_INFO(eevee_hiz_data)
     .sampler(HIZ_TEX_SLOT, ImageType::FLOAT_2D, "hiz_tx")
     .additional_info("eevee_global_ubo");
 
-GPU_SHADER_CREATE_INFO(eevee_hiz_update)
-    .do_static_compilation(true)
+GPU_SHADER_CREATE_INFO(eevee_hiz_update_base)
     .local_group_size(FILM_GROUP_SIZE, FILM_GROUP_SIZE)
     .storage_buf(0, Qualifier::READ_WRITE, "uint", "finished_tile_counter")
-    .sampler(0, ImageType::DEPTH_2D, "depth_tx")
     .image(0, GPU_R32F, Qualifier::WRITE, ImageType::FLOAT_2D, "out_mip_0")
     .image(1, GPU_R32F, Qualifier::WRITE, ImageType::FLOAT_2D, "out_mip_1")
     .image(2, GPU_R32F, Qualifier::WRITE, ImageType::FLOAT_2D, "out_mip_2")
@@ -24,12 +22,17 @@ GPU_SHADER_CREATE_INFO(eevee_hiz_update)
     .push_constant(Type::BOOL, "update_mip_0")
     .compute_source("eevee_hiz_update_comp.glsl");
 
+GPU_SHADER_CREATE_INFO(eevee_hiz_update)
+    .do_static_compilation(true)
+    .sampler(0, ImageType::DEPTH_2D, "depth_tx")
+    .additional_info("eevee_hiz_update_base");
+
 GPU_SHADER_CREATE_INFO(eevee_hiz_update_layer)
     .do_static_compilation(true)
     .define("HIZ_LAYER")
     .sampler(1, ImageType::DEPTH_2D_ARRAY, "depth_layered_tx")
     .push_constant(Type::INT, "layer_id")
-    .additional_info("eevee_hiz_update");
+    .additional_info("eevee_hiz_update_base");
 
 GPU_SHADER_CREATE_INFO(eevee_hiz_debug)
     .do_static_compilation(true)
