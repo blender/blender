@@ -39,7 +39,7 @@ void ArmatureExporter::add_bone_collections(Object *ob_arm, COLLADASW::Node &nod
 
   std::stringstream collection_stream;
   std::stringstream visible_stream;
-  LISTBASE_FOREACH (const BoneCollection *, bcoll, &armature->collections) {
+  for (const BoneCollection *bcoll : armature->collections_span()) {
     collection_stream << bcoll->name << "\n";
 
     if (bcoll->flags & BONE_COLLECTION_VISIBLE) {
