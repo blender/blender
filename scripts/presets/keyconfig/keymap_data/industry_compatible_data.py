@@ -4119,6 +4119,7 @@ def km_curves(params):
         ("curves.set_selection_domain", {"type": 'TWO', "value": 'PRESS'}, {"properties": [("domain", 'CURVE')]}),
         ("curves.disable_selection", {"type": 'ONE', "value": 'PRESS', "alt": True}, None),
         ("curves.disable_selection", {"type": 'TWO', "value": 'PRESS', "alt": True}, None),
+        ("curves.duplicate_move", {"type": 'D', "value": 'PRESS', "ctrl": True}, None),
         # Selection Operators
         ("curves.select_all", {"type": 'A', "value": 'PRESS', "ctrl": True}, {"properties": [("action", 'SELECT')]}),
         ("curves.select_all", {"type": 'A', "value": 'PRESS', "shift": True,

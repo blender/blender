@@ -1244,6 +1244,44 @@ static void CURVES_OT_delete(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+namespace curves_duplicate {
+
+static int delete_exec(bContext *C, wmOperator * /*op*/)
+{
+  for (Curves *curves_id : get_unique_editable_curves(*C)) {
+    bke::CurvesGeometry &curves = curves_id->geometry.wrap();
+    IndexMaskMemory memory;
+    switch (eAttrDomain(curves_id->selection_domain)) {
+      case ATTR_DOMAIN_POINT:
+        duplicate_points(curves, retrieve_selected_points(*curves_id, memory));
+        break;
+      case ATTR_DOMAIN_CURVE:
+        duplicate_curves(curves, retrieve_selected_curves(*curves_id, memory));
+        break;
+      default:
+        BLI_assert_unreachable();
+        break;
+    }
+    DEG_id_tag_update(&curves_id->id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GEOM | ND_DATA, curves_id);
+  }
+  return OPERATOR_FINISHED;
+}
+
+}  // namespace curves_duplicate
+
+static void CURVES_OT_duplicate(wmOperatorType *ot)
+{
+  ot->name = "Duplicate";
+  ot->idname = __func__;
+  ot->description = "Copy selected points or curves";
+
+  ot->exec = curves_duplicate::delete_exec;
+  ot->poll = editable_curves_in_edit_mode_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
 }  // namespace blender::ed::curves
 
 void ED_operatortypes_curves()
@@ -1263,6 +1301,23 @@ void ED_operatortypes_curves()
   WM_operatortype_append(CURVES_OT_select_less);
   WM_operatortype_append(CURVES_OT_surface_set);
   WM_operatortype_append(CURVES_OT_delete);
+  WM_operatortype_append(CURVES_OT_duplicate);
+}
+
+void ED_operatormacros_curves()
+{
+  wmOperatorType *ot;
+  wmOperatorTypeMacro *otmacro;
+
+  /* Duplicate + Move = Interactively place newly duplicated strokes */
+  ot = WM_operatortype_append_macro("CURVES_OT_duplicate_move",
+                                    "Duplicate",
+                                    "Make copies of selected elements and move them",
+                                    OPTYPE_UNDO | OPTYPE_REGISTER);
+  WM_operatortype_macro_define(ot, "CURVES_OT_duplicate");
+  otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
+  RNA_boolean_set(otmacro->ptr, "use_proportional_edit", false);
+  RNA_boolean_set(otmacro->ptr, "mirror", false);
 }
 
 void ED_keymap_curves(wmKeyConfig *keyconf)

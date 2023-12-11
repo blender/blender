@@ -162,6 +162,7 @@ void ED_spacemacros_init()
   ED_operatormacros_action();
   ED_operatormacros_clip();
   ED_operatormacros_curve();
+  ED_operatormacros_curves();
   ED_operatormacros_mask();
   ED_operatormacros_sequencer();
   ED_operatormacros_paint();

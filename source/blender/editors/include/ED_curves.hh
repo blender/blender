@@ -32,6 +32,7 @@ struct wmKeyConfig;
  * \{ */
 
 void ED_operatortypes_curves();
+void ED_operatormacros_curves();
 void ED_curves_undosys_type(UndoType *ut);
 void ED_keymap_curves(wmKeyConfig *keyconf);
 
@@ -285,6 +286,9 @@ bool select_circle(const ViewContext &vc,
  * \returns true if any point or curve was removed.
  */
 bool remove_selection(bke::CurvesGeometry &curves, eAttrDomain selection_domain);
+
+void duplicate_points(bke::CurvesGeometry &curves, const IndexMask &mask);
+void duplicate_curves(bke::CurvesGeometry &curves, const IndexMask &mask);
 
 /** \} */
 
