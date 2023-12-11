@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "COM_bokeh_kernel.hh"
 #include "COM_cached_mask.hh"
 #include "COM_cached_shader.hh"
 #include "COM_cached_texture.hh"
@@ -51,6 +52,7 @@ class StaticCacheManager {
   DistortionGridContainer distortion_grids;
   KeyingScreenContainer keying_screens;
   CachedShaderContainer cached_shaders;
+  BokehKernelContainer bokeh_kernels;
 
   /* Reset the cache manager by deleting the cached resources that are no longer needed because
    * they weren't used in the last evaluation and prepare the remaining cached resources to track

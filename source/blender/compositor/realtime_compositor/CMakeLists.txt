@@ -83,6 +83,7 @@ set(SRC
   algorithms/COM_algorithm_symmetric_separable_blur_variable_size.hh
   algorithms/COM_algorithm_transform.hh
 
+  cached_resources/intern/bokeh_kernel.cc
   cached_resources/intern/cached_mask.cc
   cached_resources/intern/cached_shader.cc
   cached_resources/intern/cached_texture.cc
@@ -94,6 +95,7 @@ set(SRC
   cached_resources/intern/symmetric_blur_weights.cc
   cached_resources/intern/symmetric_separable_blur_weights.cc
 
+  cached_resources/COM_bokeh_kernel.hh
   cached_resources/COM_cached_mask.hh
   cached_resources/COM_cached_resource.hh
   cached_resources/COM_cached_shader.hh
