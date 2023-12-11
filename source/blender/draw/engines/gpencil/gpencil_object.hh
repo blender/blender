@@ -129,7 +129,7 @@ class ObjectModule {
     bool object_has_vfx = false; /* TODO: `vfx.object_has_vfx(gpd);`. */
 
     uint material_offset = materials_.object_offset_get();
-    for (auto i : IndexRange(BKE_object_material_count_eval(object))) {
+    for (const int i : IndexRange(BKE_object_material_count_eval(object))) {
       materials_.sync(object, i, do_material_holdout);
     }
 
@@ -268,6 +268,10 @@ class ObjectModule {
     return objects_buf_.size() > 0;
   }
 
+  /**
+   * Define a matrix that will be used to render a triangle to merge the depth of the rendered
+   * gpencil object with the rest of the scene.
+   */
   float4x4 get_object_plane_mat(const Object &object)
   {
     using namespace math;
@@ -309,8 +313,6 @@ class ObjectModule {
     plane_normal = normalize(transform_direction(bbox_mat_inv, plane_normal));
     plane_normal = normalize(transform_direction(bbox_mat_inv_t, plane_normal));
 
-    /* Define a matrix that will be used to render a triangle to merge the depth of the rendered
-     * gpencil object with the rest of the scene. */
     float4x4 plane_mat = from_up_axis<float4x4>(plane_normal);
     float radius = length(transform_direction(object_to_world, size));
     plane_mat = scale(plane_mat, float3(radius));
