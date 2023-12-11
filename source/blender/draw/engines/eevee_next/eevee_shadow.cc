@@ -1268,7 +1268,7 @@ void ShadowModule::set_view(View &view, GPUTexture *depth_tx)
 
   src_depth_tx_ = depth_tx;
 
-  int3 target_size(0);
+  int3 target_size(1);
   GPU_texture_get_mipmap_size(depth_tx, 0, target_size);
 
   dispatch_depth_scan_size_ = math::divide_ceil(target_size, int3(SHADOW_DEPTH_SCAN_GROUP_SIZE));
