@@ -88,7 +88,7 @@ GPU_SHADER_CREATE_INFO(eevee_surfel_light)
 GPU_SHADER_CREATE_INFO(eevee_surfel_cluster_build)
     .local_group_size(SURFEL_GROUP_SIZE)
     .additional_info("eevee_shared", "eevee_surfel_common", "draw_view")
-    .image(0, GPU_R32I, Qualifier::READ_WRITE, ImageType::INT_3D, "cluster_list_img")
+    .image(0, GPU_R32I, Qualifier::READ_WRITE, ImageType::INT_3D_ATOMIC, "cluster_list_img")
     .compute_source("eevee_surfel_cluster_build_comp.glsl")
     .do_static_compilation(true);
 
@@ -157,7 +157,7 @@ GPU_SHADER_CREATE_INFO(eevee_lightprobe_irradiance_offset)
     .additional_info("eevee_shared", "eevee_surfel_common", "draw_view")
     .storage_buf(0, Qualifier::READ, "int", "list_start_buf[]")
     .storage_buf(6, Qualifier::READ, "SurfelListInfoData", "list_info_buf")
-    .image(0, GPU_R32I, Qualifier::READ, ImageType::INT_3D, "cluster_list_img")
+    .image(0, GPU_R32I, Qualifier::READ, ImageType::INT_3D_ATOMIC, "cluster_list_img")
     .image(1, GPU_RGBA16F, Qualifier::READ_WRITE, ImageType::FLOAT_3D, "virtual_offset_img")
     .compute_source("eevee_lightprobe_irradiance_offset_comp.glsl")
     .do_static_compilation(true);

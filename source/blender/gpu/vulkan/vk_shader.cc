@@ -213,6 +213,9 @@ static void print_image_type(std::ostream &os,
     case ImageType::INT_3D:
     case ImageType::INT_CUBE:
     case ImageType::INT_CUBE_ARRAY:
+    case ImageType::INT_2D_ATOMIC:
+    case ImageType::INT_2D_ARRAY_ATOMIC:
+    case ImageType::INT_3D_ATOMIC:
       os << "i";
       break;
     case ImageType::UINT_BUFFER:
@@ -223,6 +226,9 @@ static void print_image_type(std::ostream &os,
     case ImageType::UINT_3D:
     case ImageType::UINT_CUBE:
     case ImageType::UINT_CUBE_ARRAY:
+    case ImageType::UINT_2D_ATOMIC:
+    case ImageType::UINT_2D_ARRAY_ATOMIC:
+    case ImageType::UINT_3D_ATOMIC:
       os << "u";
       break;
     default:
@@ -260,11 +266,17 @@ static void print_image_type(std::ostream &os,
     case ImageType::SHADOW_2D_ARRAY:
     case ImageType::DEPTH_2D:
     case ImageType::DEPTH_2D_ARRAY:
+    case ImageType::INT_2D_ATOMIC:
+    case ImageType::INT_2D_ARRAY_ATOMIC:
+    case ImageType::UINT_2D_ATOMIC:
+    case ImageType::UINT_2D_ARRAY_ATOMIC:
       os << "2D";
       break;
     case ImageType::FLOAT_3D:
     case ImageType::INT_3D:
+    case ImageType::INT_3D_ATOMIC:
     case ImageType::UINT_3D:
+    case ImageType::UINT_3D_ATOMIC:
       os << "3D";
       break;
     case ImageType::FLOAT_CUBE:
@@ -297,6 +309,7 @@ static void print_image_type(std::ostream &os,
     case ImageType::SHADOW_CUBE_ARRAY:
     case ImageType::DEPTH_2D_ARRAY:
     case ImageType::DEPTH_CUBE_ARRAY:
+    case ImageType::UINT_2D_ARRAY_ATOMIC:
       os << "Array";
       break;
     default:
@@ -732,6 +745,9 @@ static VkDescriptorType storage_descriptor_type(const shader::ImageType &image_t
     case shader::ImageType::INT_3D:
     case shader::ImageType::INT_CUBE:
     case shader::ImageType::INT_CUBE_ARRAY:
+    case shader::ImageType::INT_2D_ATOMIC:
+    case shader::ImageType::INT_2D_ARRAY_ATOMIC:
+    case shader::ImageType::INT_3D_ATOMIC:
     case shader::ImageType::UINT_1D:
     case shader::ImageType::UINT_1D_ARRAY:
     case shader::ImageType::UINT_2D:
@@ -739,6 +755,9 @@ static VkDescriptorType storage_descriptor_type(const shader::ImageType &image_t
     case shader::ImageType::UINT_3D:
     case shader::ImageType::UINT_CUBE:
     case shader::ImageType::UINT_CUBE_ARRAY:
+    case shader::ImageType::UINT_2D_ATOMIC:
+    case shader::ImageType::UINT_2D_ARRAY_ATOMIC:
+    case shader::ImageType::UINT_3D_ATOMIC:
       return VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
 
     case shader::ImageType::FLOAT_BUFFER:
@@ -770,6 +789,9 @@ static VkDescriptorType sampler_descriptor_type(const shader::ImageType &image_t
     case shader::ImageType::INT_3D:
     case shader::ImageType::INT_CUBE:
     case shader::ImageType::INT_CUBE_ARRAY:
+    case shader::ImageType::INT_2D_ATOMIC:
+    case shader::ImageType::INT_2D_ARRAY_ATOMIC:
+    case shader::ImageType::INT_3D_ATOMIC:
     case shader::ImageType::UINT_1D:
     case shader::ImageType::UINT_1D_ARRAY:
     case shader::ImageType::UINT_2D:
@@ -777,6 +799,9 @@ static VkDescriptorType sampler_descriptor_type(const shader::ImageType &image_t
     case shader::ImageType::UINT_3D:
     case shader::ImageType::UINT_CUBE:
     case shader::ImageType::UINT_CUBE_ARRAY:
+    case shader::ImageType::UINT_2D_ATOMIC:
+    case shader::ImageType::UINT_2D_ARRAY_ATOMIC:
+    case shader::ImageType::UINT_3D_ATOMIC:
     case shader::ImageType::SHADOW_2D:
     case shader::ImageType::SHADOW_2D_ARRAY:
     case shader::ImageType::SHADOW_CUBE:

@@ -761,8 +761,10 @@ void ShadowModule::init()
   const int2 atlas_extent = shadow_page_size_ * int2(SHADOW_PAGE_PER_ROW);
   const int atlas_layers = divide_ceil_u(shadow_page_len_, SHADOW_PAGE_PER_LAYER);
 
-  eGPUTextureUsage tex_usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE |
-                               GPU_TEXTURE_USAGE_ATOMIC;
+  eGPUTextureUsage tex_usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE;
+  if (ShadowModule::shadow_technique == ShadowTechnique::ATOMIC_RASTER) {
+    tex_usage |= GPU_TEXTURE_USAGE_ATOMIC;
+  }
   if (atlas_tx_.ensure_2d_array(atlas_type, atlas_extent, atlas_layers, tex_usage)) {
     /* Global update. */
     do_full_update = true;

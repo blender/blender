@@ -22,6 +22,13 @@
 #define depthCubeArray samplerCubeArray
 #define depth2DArrayShadow sampler2DArrayShadow
 
+#define usampler2DArrayAtomic usampler2DArray
+#define usampler2DAtomic usampler2D
+#define usampler3DAtomic usampler3D
+#define isampler2DArrayAtomic isampler2DArray
+#define isampler2DAtomic isampler2D
+#define isampler3DAtomic isampler3D
+
 /* Backend Functions. */
 #define select(A, B, mask) mix(A, B, mask)
 

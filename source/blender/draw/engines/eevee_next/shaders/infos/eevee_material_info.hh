@@ -251,7 +251,7 @@ GPU_SHADER_CREATE_INFO(eevee_surf_shadow_atomic)
     .image(SHADOW_ATLAS_IMG_SLOT,
            GPU_R32UI,
            Qualifier::READ_WRITE,
-           ImageType::UINT_2D_ARRAY,
+           ImageType::UINT_2D_ARRAY_ATOMIC,
            "shadow_atlas_img");
 
 GPU_SHADER_CREATE_INFO(eevee_surf_shadow_tbdr)
@@ -305,7 +305,11 @@ GPU_SHADER_CREATE_INFO(eevee_volume_object)
            Qualifier::READ_WRITE,
            ImageType::FLOAT_3D,
            "out_phase_img")
-    .image(VOLUME_OCCUPANCY_SLOT, GPU_R32UI, Qualifier::READ, ImageType::UINT_3D, "occupancy_img")
+    .image(VOLUME_OCCUPANCY_SLOT,
+           GPU_R32UI,
+           Qualifier::READ,
+           ImageType::UINT_3D_ATOMIC,
+           "occupancy_img")
     .additional_info("eevee_volume_material_common", "draw_object_infos_new", "draw_volume_infos");
 
 GPU_SHADER_CREATE_INFO(eevee_volume_world)
@@ -340,12 +344,12 @@ GPU_SHADER_CREATE_INFO(eevee_surf_occupancy)
     .image(VOLUME_HIT_COUNT_SLOT,
            GPU_R32UI,
            Qualifier::READ_WRITE,
-           ImageType::UINT_2D,
+           ImageType::UINT_2D_ATOMIC,
            "hit_count_img")
     .image(VOLUME_OCCUPANCY_SLOT,
            GPU_R32UI,
            Qualifier::READ_WRITE,
-           ImageType::UINT_3D,
+           ImageType::UINT_3D_ATOMIC,
            "occupancy_img")
     .fragment_source("eevee_surf_occupancy_frag.glsl")
     .additional_info("eevee_global_ubo", "eevee_sampling_data");

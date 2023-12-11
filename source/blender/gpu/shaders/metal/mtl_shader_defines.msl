@@ -13,6 +13,13 @@
 #pragma clang diagnostic ignored "-Wunused-variable"
 #pragma clang diagnostic ignored "-Wcomment"
 
+/** Feature support. */
+/* Native texture atomics supported in Metal 3.1+. Without these, we will use a fallback
+ * implementation based on SSBOS.*/
+#if __METAL_VERSION__ >= 310
+#  define MTL_SUPPORTS_TEXTURE_ATOMICS 1
+#endif
+
 /* Base instance with offsets. */
 #define gpu_BaseInstance gl_BaseInstanceARB
 #define gpu_InstanceIndex (gl_InstanceID + gpu_BaseInstance)
@@ -208,17 +215,71 @@ template<typename T> T atomicExchange(device T &mem, T data)
 
 /* Generate wrapper structs for combined texture and sampler type. */
 #ifdef USE_ARGUMENT_BUFFER_FOR_SAMPLERS
-#  define COMBINED_SAMPLER_TYPE(STRUCT_NAME, TEX_TYPE) \
-    template<typename T, access A = access::sample> struct STRUCT_NAME { \
-      thread TEX_TYPE<T, A> *texture; \
-      constant sampler *samp; \
-    }
+#  define SAMPLER_DECLARATION constant sampler *samp;
 #else
-#  define COMBINED_SAMPLER_TYPE(STRUCT_NAME, TEX_TYPE) \
-    template<typename T, access A = access::sample> struct STRUCT_NAME { \
-      thread TEX_TYPE<T, A> *texture; \
-      thread sampler *samp; \
-    }
+#  define SAMPLER_DECLARATION thread sampler *samp;
+#endif
+
+#define COMBINED_SAMPLER_TYPE(STRUCT_NAME, TEX_TYPE) \
+  template<typename T, access A = access::sample> struct STRUCT_NAME { \
+    thread TEX_TYPE<T, A> *texture; \
+    SAMPLER_DECLARATION \
+  }
+
+/* If native texture atomics are unsupported, we instead utilise a custom type which wraps a
+ * buffer-backed texture. This texture will always be a Texture2D, but will emulate access to
+ * Texture3D and Texture2DArray by stacking layers.
+ * Access pattern will be derived based on the source type. 2DArray and 3D atomic texture
+ * support will require information on the size of each layer within the source 2D texture.
+ *
+ * A device pointer to the backing buffer will also be available for the atomic operations.
+ * NOTE: For atomic ops, it will only be valid to use access::read_write.
+ * We still need to use the wrapped type for access:sample, as texture2DArray and texture3D
+ * will require access indirection.
+ *
+ * NOTE: Only type of UINT is valid, but full template provided to match syntax of standard
+ * textures. */
+#ifndef MTL_SUPPORTS_TEXTURE_ATOMICS
+
+template<typename T, access A = access::sample>
+struct _mtl_combined_image_sampler_2d_atomic_fallback {
+  thread texture2d<T, A> *texture;
+  SAMPLER_DECLARATION
+  device T *buffer;
+  /* Aligned width matches the number of buffer elements in bytes_per_row. This may be greater than
+   * the texture's native width to satisfy device alignment rules. We need to use the padded width
+   * when writing to ensure the
+   * correct writing location aligns with a given pixel location in the texture. */
+  uint aligned_width;
+};
+
+template<typename T, access A = access::sample>
+struct _mtl_combined_image_sampler_2d_array_atomic_fallback {
+  thread texture2d<T, A> *texture;
+  SAMPLER_DECLARATION
+  device T *buffer;
+  /* Aligned width matches the number of buffer elements in bytes_per_row. This may be greater than
+   * the texture's native width to satisfy device alignment rules. We need to use the padded width
+   * when writing to ensure the
+   * correct writing location aligns with a given pixel location in the texture. */
+  uint aligned_width;
+  /* Texture size required to determine location offset of array layer with 2D texture space. */
+  ushort3 texture_size;
+};
+
+template<typename T, access A = access::sample>
+struct _mtl_combined_image_sampler_3d_atomic_fallback {
+  thread texture2d<T, A> *texture;
+  SAMPLER_DECLARATION
+  device T *buffer;
+  /* Aligned width matches the number of buffer elements in bytes_per_row. This may be greater than
+   * the texture's native width to satisfy device alignment rules. We need to use the padded width
+   * when writing to ensure the
+   * correct writing location aligns with a given pixel location in the texture. */
+  uint aligned_width;
+  /* Texture size required to determine location offset of array layer with 2D texture space. */
+  ushort3 texture_size;
+};
 #endif
 
 /* Add any types as needed. */
@@ -279,6 +340,23 @@ struct SStruct {
 #define isamplerBuffer thread _mtl_combined_image_sampler_buffer<int, access::read>
 #define isamplerCube thread _mtl_combined_image_sampler_cube<int>
 #define isamplerCubeArray thread _mtl_combined_image_sampler_cube_array<int>
+
+#ifndef MTL_SUPPORTS_TEXTURE_ATOMICS
+/* If texture atomics are unsupported, map atomic types to internal atomic fallback type. */
+#  define usampler2DArrayAtomic _mtl_combined_image_sampler_2d_array_atomic_fallback<uint>
+#  define usampler2DAtomic _mtl_combined_image_sampler_2d_atomic_fallback<uint>
+#  define usampler3DAtomic _mtl_combined_image_sampler_3d_atomic_fallback<uint>
+#  define isampler2DArrayAtomic _mtl_combined_image_sampler_2d_array_atomic_fallback<int>
+#  define isampler2DAtomic _mtl_combined_image_sampler_2d_atomic_fallback<int>
+#  define isampler3DAtomic _mtl_combined_image_sampler_3d_atomic_fallback<int>
+#else
+#  define usampler2DArrayAtomic usampler2DArray
+#  define usampler2DAtomic usampler2D
+#  define usampler3DAtomic usampler3D
+#  define isampler2DArrayAtomic isampler2DArray
+#  define isampler2DAtomic isampler2D
+#  define isampler3DAtomic isampler3D
+#endif
 
 /* Vector accessor aliases. */
 #define st xy
@@ -976,7 +1054,7 @@ inline void _texture_write_internal_fast(thread _mtl_combined_image_sampler_3d<S
 }
 
 /* Texture atomic operations are only supported in Metal 3.1 and onward (macOS 14.0 Sonoma). */
-#if __METAL_VERSION__ >= 310
+#ifdef MTL_SUPPORTS_TEXTURE_ATOMICS
 
 /* Image atomic operations. */
 #  define imageAtomicMin(tex, coord, data) _texture_image_atomic_min_internal(tex, coord, data)
@@ -1192,77 +1270,456 @@ S _texture_image_atomic_exchange_internal(thread _mtl_combined_image_sampler_3d<
 }
 
 #else
-/* Fallback for imageAtomicMin if atomics are unsupported.
- * for general concurrent thread access, but will allow inter-thread writing.
- * This assumes 2D texture array.
- * NOTE: Implementations should switch to a buffer-backed texture write in these cases. */
+
+/** Texture atomic fallback function entry points.
+ * NOTE: When texture atomics are unsupported, the wrapped type contains a buffer-backed 2D
+ * texture. Atomic operations happen directly on the underlying buffer, and texture coordiantes are
+ * remapped into 2D texture space from 2D Array or 3D texture coordiantes.
+ */
+
+/* Image atomic operations. */
 #  define imageAtomicMin(tex, coord, data) \
-    auto val = _texelFetch_internal(tex, coord, 0).r; \
-    tex.texture->fence(); \
-    tex.texture->write(min(val, data), uint2(coord.xy), uint(coord.z)); \
-    tex.texture->fence();
-
-/* Fallback for atomic Exchange if atomics are unavailable.
- * NOTE: Implementations should switch to a buffer-backed texture write in these cases. */
+    _texture_image_atomic_min_internal_fallback(tex, coord, data)
+#  define imageAtomicAdd(tex, coord, data) \
+    _texture_image_atomic_add_internal_fallack(tex, coord, data)
 #  define imageAtomicExchange(tex, coord, data) \
-    _texture_image_atomic_exchange_internal_fallback(tex, coord, data)
+    _texture_image_atomic_exchange_internal_fallack(tex, coord, data)
+#  define imageAtomicXor(tex, coord, data) \
+    _texture_image_atomic_xor_internal_fallack(tex, coord, data)
+#  define imageAtomicOr(tex, coord, data) \
+    _texture_image_atomic_or_internal_fallack(tex, coord, data)
 
+/** Pixel address location remapping. */
+
+/* Map 2D/3D texture coordinate into a linear pixel ID. */
 template<typename S, access A>
-S _texture_image_atomic_exchange_internal_fallback(thread _mtl_combined_image_sampler_1d<S, A> tex,
-                                                   int coord,
-                                                   S data)
+uint tex_coord_to_linear_px(thread _mtl_combined_image_sampler_2d_atomic_fallback<S, A> tex,
+                            uint2 coord)
 {
-  S val = tex.texture->read(uint(coord), data).x;
-  tex.texture->fence();
-  tex.texture->write(data, uint(coord));
-  tex.texture->fence();
-  return val;
+  return (coord.x + coord.y * uint(tex.texture->get_width()));
+}
+template<typename S, access A>
+uint tex_coord_to_linear_px(thread _mtl_combined_image_sampler_2d_atomic_fallback<S, A> tex,
+                            int2 coord)
+{
+  return tex_coord_to_linear_px(tex, uint2(coord));
 }
 
 template<typename S, access A>
-S _texture_image_atomic_exchange_internal_fallback(
-    thread _mtl_combined_image_sampler_1d_array<S, A> tex, int2 coord, S data)
+uint tex_coord_to_linear_px(thread _mtl_combined_image_sampler_2d_array_atomic_fallback<S, A> tex,
+                            uint3 coord)
 {
-  S val = tex.texture->read(uint(coord.x), uint(coord.y), data).x;
-  tex.texture->fence();
-  tex.texture->write(data, uint(coord.x), uint(coord.y));
-  tex.texture->fence();
-  return val;
+  return (coord.x + coord.y * tex.texture_size.x +
+          coord.z * (tex.texture_size.x * tex.texture_size.y));
+}
+template<typename S, access A>
+uint tex_coord_to_linear_px(thread _mtl_combined_image_sampler_2d_array_atomic_fallback<S, A> tex,
+                            int3 coord)
+{
+  return tex_coord_to_linear_px(tex, uint3(coord));
 }
 
 template<typename S, access A>
-S _texture_image_atomic_exchange_internal_fallback(thread _mtl_combined_image_sampler_2d<S, A> tex,
-                                                   int2 coord,
-                                                   S data)
+uint tex_coord_to_linear_px(thread _mtl_combined_image_sampler_3d_atomic_fallback<S, A> tex,
+                            uint3 coord)
 {
-  S val = tex.texture->read(uint2(coord), data).x;
-  tex.texture->fence();
-  tex.texture->write(data, uint2(coord.x));
-  tex.texture->fence();
-  return val;
+  return (coord.x + coord.y * tex.texture_size.x +
+          coord.z * (tex.texture_size.x * tex.texture_size.y));
+}
+template<typename S, access A>
+uint tex_coord_to_linear_px(thread _mtl_combined_image_sampler_3d_atomic_fallback<S, A> tex,
+                            int3 coord)
+{
+  return tex_coord_to_linear_px(tex, uint3(coord));
+}
+
+/* Map 3D texture coordinate into 2D texture space. */
+template<typename S, access A>
+uint2 tex_coord_3d_to_2d(thread _mtl_combined_image_sampler_2d_array_atomic_fallback<S, A> tex,
+                         uint3 coord)
+{
+  uint linear_id = tex_coord_to_linear_px(tex, coord);
+  uint tex_full_w = uint(tex.texture->get_width());
+  uint2 out_2dcoord;
+  out_2dcoord.y = linear_id / tex_full_w;
+  out_2dcoord.x = linear_id - (out_2dcoord.y * tex_full_w);
+  return out_2dcoord;
 }
 
 template<typename S, access A>
-S _texture_image_atomic_exchange_internal_fallback(
-    thread _mtl_combined_image_sampler_2d_array<S, A> tex, int3 coord, S data)
+uint2 tex_coord_3d_to_2d(thread _mtl_combined_image_sampler_3d_atomic_fallback<S, A> tex,
+                         uint3 coord)
 {
-  S val = tex.texture->read(uint2(coord.xy), uint(coord.z), data).x;
-  tex.texture->fence();
-  tex.texture->write(data, uint2(coord.xy), uint(coord.z));
-  tex.texture->fence();
-  return val;
+  uint linear_id = tex_coord_to_linear_px(tex, coord);
+  uint tex_full_w = uint(tex.texture->get_width());
+  uint2 out_2dcoord;
+  out_2dcoord.y = linear_id / tex_full_w;
+  out_2dcoord.x = linear_id - (out_2dcoord.y * tex_full_w);
+  return out_2dcoord;
+}
+
+template<int N> bool in_range(vec<int, N> value, vec<int, N> min, vec<int, N> max)
+{
+  return (all(value >= min) && all(value < max));
+}
+
+/* Map 2D/3D texture coordiante into buffer index, accounting for padded row widths. */
+template<typename S, access A>
+uint tex_coord_to_linear_buffer_id(thread _mtl_combined_image_sampler_2d_atomic_fallback<S, A> tex,
+                                   uint2 coord)
+{
+  return (coord.x + coord.y * uint(tex.aligned_width));
+}
+template<typename S, access A>
+uint tex_coord_to_linear_buffer_id(thread _mtl_combined_image_sampler_2d_atomic_fallback<S, A> tex,
+                                   int2 coord)
+{
+  return tex_coord_to_linear_buffer_id(tex, uint2(coord));
 }
 
 template<typename S, access A>
-S _texture_image_atomic_exchange_internal_fallback(thread _mtl_combined_image_sampler_3d<S, A> tex,
-                                                   int3 coord,
-                                                   S data)
+uint tex_coord_to_linear_buffer_id(
+    thread _mtl_combined_image_sampler_2d_array_atomic_fallback<S, A> tex, uint3 coord)
 {
-  S val = tex.texture->read(uint3(coord), data).x;
-  tex.texture->fence();
-  tex.texture->write(data, uint3(coord));
-  tex.texture->fence();
-  return val;
+  uint2 coord2d = tex_coord_3d_to_2d(tex, coord);
+  return (coord2d.x + coord2d.y * uint(tex.aligned_width));
+}
+template<typename S, access A>
+uint tex_coord_to_linear_buffer_id(
+    thread _mtl_combined_image_sampler_2d_array_atomic_fallback<S, A> tex, int3 coord)
+{
+  return tex_coord_to_linear_buffer_id(tex, uint3(coord));
+}
+
+template<typename S, access A>
+uint tex_coord_to_linear_buffer_id(thread _mtl_combined_image_sampler_3d_atomic_fallback<S, A> tex,
+                                   uint3 coord)
+{
+  uint2 coord2d = tex_coord_3d_to_2d(tex, coord);
+  return (coord2d.x + coord2d.y * uint(tex.aligned_width));
+}
+template<typename S, access A>
+uint tex_coord_to_linear_buffer_id(thread _mtl_combined_image_sampler_3d_atomic_fallback<S, A> tex,
+                                   int3 coord)
+{
+  return tex_coord_to_linear_buffer_id(tex, uint3(coord));
+}
+
+/* imageAtomicMin. */
+
+template<typename S, access A>
+S _texture_image_atomic_min_internal_fallback(
+    thread _mtl_combined_image_sampler_2d_atomic_fallback<S, A> tex, int2 coord, S data)
+{
+  if (!in_range(coord.xy, int2(0, 0), int2(tex.texture->get_width(0), tex.texture->get_height(0))))
+  {
+    return S(0);
+  }
+  uint linear_id = tex_coord_to_linear_buffer_id(tex, coord);
+  return atomicMin(tex.buffer[linear_id], data);
+}
+
+template<typename S, access A>
+S _texture_image_atomic_min_internal_fallback(
+    thread _mtl_combined_image_sampler_2d_array_atomic_fallback<S, A> tex, int3 coord, S data)
+{
+  if (!in_range(coord.xyz, int3(0, 0, 0), int3(tex.texture_size.xyz))) {
+    return S(0);
+  }
+  uint linear_id = tex_coord_to_linear_buffer_id(tex, coord);
+  return atomicMin(tex.buffer[linear_id], data);
+}
+
+template<typename S, access A>
+S _texture_image_atomic_min_internal_fallback(
+    thread _mtl_combined_image_sampler_3d_atomic_fallback<S, A> tex, int3 coord, S data)
+{
+  if (!in_range(coord.xyz, int3(0, 0, 0), int3(tex.texture_size.xyz))) {
+    return S(0);
+  }
+  uint linear_id = tex_coord_to_linear_buffer_id(tex, coord);
+  return atomicMin(tex.buffer[linear_id], data);
+}
+
+/* imageAtomicAdd. */
+template<typename S, access A>
+S _texture_image_atomic_add_internal_fallack(
+    thread _mtl_combined_image_sampler_2d_atomic_fallback<S, A> tex, int2 coord, S data)
+{
+  if (!in_range(coord.xy, int2(0, 0), int2(tex.texture->get_width(0), tex.texture->get_height(0))))
+  {
+    return S(0);
+  }
+  uint linear_id = tex_coord_to_linear_buffer_id(tex, coord);
+  return atomicAdd(tex.buffer[linear_id], data);
+}
+
+template<typename S, access A>
+S _texture_image_atomic_add_internal_fallack(
+    thread _mtl_combined_image_sampler_2d_array_atomic_fallback<S, A> tex, int3 coord, S data)
+{
+  if (!in_range(coord.xyz, int3(0, 0, 0), int3(tex.texture_size.xyz))) {
+    return S(0);
+  }
+  uint linear_id = tex_coord_to_linear_buffer_id(tex, coord);
+  return atomicAdd(tex.buffer[linear_id], data);
+}
+
+template<typename S, access A>
+S _texture_image_atomic_add_internal_fallack(
+    thread _mtl_combined_image_sampler_3d_atomic_fallback<S, A> tex, int3 coord, S data)
+{
+  if (!in_range(coord.xyz, int3(0, 0, 0), int3(tex.texture_size.xyz))) {
+    return S(0);
+  }
+  uint linear_id = tex_coord_to_linear_buffer_id(tex, coord);
+  return atomicAdd(tex.buffer[linear_id], data);
+}
+
+/* imageAtomicExchange. */
+template<typename S, access A>
+S _texture_image_atomic_exchange_internal_fallack(
+    thread _mtl_combined_image_sampler_2d_atomic_fallback<S, A> tex, int2 coord, S data)
+{
+  if (!in_range(coord.xy, int2(0, 0), int2(tex.texture->get_width(0), tex.texture->get_height(0))))
+  {
+    return S(0);
+  }
+  uint linear_id = tex_coord_to_linear_buffer_id(tex, coord);
+  return atomicExchange(tex.buffer[linear_id], data);
+}
+
+template<typename S, access A>
+S _texture_image_atomic_exchange_internal_fallack(
+    thread _mtl_combined_image_sampler_2d_array_atomic_fallback<S, A> tex, int3 coord, S data)
+{
+  if (!in_range(coord.xyz, int3(0, 0, 0), int3(tex.texture_size.xyz))) {
+    return S(0);
+  }
+  uint linear_id = tex_coord_to_linear_buffer_id(tex, coord);
+  return atomicExchange(tex.buffer[linear_id], data);
+}
+
+template<typename S, access A>
+S _texture_image_atomic_exchange_internal_fallack(
+    thread _mtl_combined_image_sampler_3d_atomic_fallback<S, A> tex, int3 coord, S data)
+{
+  if (!in_range(coord.xyz, int3(0, 0, 0), int3(tex.texture_size.xyz))) {
+    return S(0);
+  }
+  uint linear_id = tex_coord_to_linear_buffer_id(tex, coord);
+  return atomicExchange(tex.buffer[linear_id], data);
+}
+
+/* imageAtomicXor. */
+template<typename S, access A>
+S _texture_image_atomic_xor_internal_fallack(
+    thread _mtl_combined_image_sampler_2d_atomic_fallback<S, A> tex, int2 coord, S data)
+{
+  if (!in_range(coord.xy, int2(0, 0), int2(tex.texture->get_width(0), tex.texture->get_height(0))))
+  {
+    return S(0);
+  }
+  uint linear_id = tex_coord_to_linear_buffer_id(tex, coord);
+  return atomicXor(tex.buffer[linear_id], data);
+}
+
+template<typename S, access A>
+S _texture_image_atomic_xor_internal_fallack(
+    thread _mtl_combined_image_sampler_2d_array_atomic_fallback<S, A> tex, int3 coord, S data)
+{
+  if (!in_range(coord.xyz, int3(0, 0, 0), int3(tex.texture_size.xyz))) {
+    return S(0);
+  }
+  uint linear_id = tex_coord_to_linear_buffer_id(tex, coord);
+  return atomicXor(tex.buffer[linear_id], data);
+}
+
+template<typename S, access A>
+S _texture_image_atomic_xor_internal_fallack(
+    thread _mtl_combined_image_sampler_3d_atomic_fallback<S, A> tex, int3 coord, S data)
+{
+  if (!in_range(coord.xyz, int3(0, 0, 0), int3(tex.texture_size.xyz))) {
+    return S(0);
+  }
+  uint linear_id = tex_coord_to_linear_buffer_id(tex, coord);
+  return atomicXor(tex.buffer[linear_id], data);
+}
+
+/* imageAtomicOr. */
+template<typename S, access A>
+S _texture_image_atomic_or_internal_fallack(
+    thread _mtl_combined_image_sampler_2d_atomic_fallback<S, A> tex, int2 coord, S data)
+{
+  if (!in_range(coord.xy, int2(0, 0), int2(tex.texture->get_width(0), tex.texture->get_height(0))))
+  {
+    return S(0);
+  }
+  uint linear_id = tex_coord_to_linear_buffer_id(tex, coord);
+  return atomicOr(tex.buffer[linear_id], data);
+}
+
+template<typename S, access A>
+S _texture_image_atomic_or_internal_fallack(
+    thread _mtl_combined_image_sampler_2d_array_atomic_fallback<S, A> tex, int3 coord, S data)
+{
+  if (!in_range(coord.xyz, int3(0, 0, 0), int3(tex.texture_size.xyz))) {
+    return S(0);
+  }
+  uint linear_id = tex_coord_to_linear_buffer_id(tex, coord);
+  return atomicOr(tex.buffer[linear_id], data);
+}
+
+template<typename S, access A>
+S _texture_image_atomic_or_internal_fallack(
+    thread _mtl_combined_image_sampler_3d_atomic_fallback<S, A> tex, int3 coord, S data)
+{
+  if (!in_range(coord.xyz, int3(0, 0, 0), int3(tex.texture_size.xyz))) {
+    return S(0);
+  }
+  uint linear_id = tex_coord_to_linear_buffer_id(tex, coord);
+  return atomicOr(tex.buffer[linear_id], data);
+}
+
+/** Texture sampling, reading and writing functions with layer mapping. */
+
+/* Texel Fetch. */
+template<typename S, typename T>
+inline vec<S, 4> _texelFetch_internal(
+    thread _mtl_combined_image_sampler_2d_atomic_fallback<S, access::sample> tex,
+    vec<T, 2> texel,
+    uint lod,
+    vec<T, 2> offset = vec<T, 2>(0))
+{
+  return tex.texture->sample(_point_sample_, float2(texel.xy + offset.xy), level(lod));
+}
+
+template<typename S, typename T>
+inline vec<S, 4> _texelFetch_internal(
+    thread _mtl_combined_image_sampler_2d_array_atomic_fallback<S, access::sample> tex,
+    vec<T, 3> texel,
+    uint lod,
+    vec<T, 3> offset = vec<T, 3>(0))
+{
+  return tex.texture->sample(
+      _point_sample_, float2(tex_coord_3d_to_2d(tex, uint3(texel + offset))), level(lod));
+}
+
+template<typename S, typename T>
+inline vec<S, 4> _texelFetch_internal(
+    thread _mtl_combined_image_sampler_3d_atomic_fallback<S, access::sample> tex,
+    vec<T, 3> texel,
+    uint lod,
+    vec<T, 3> offset = vec<T, 3>(0))
+{
+  return tex.texture->sample(
+      _point_sample_, float2(tex_coord_3d_to_2d(tex, uint3(texel + offset))), level(lod));
+}
+
+template<typename S, typename T, access A>
+inline vec<S, 4> _texelFetch_internal(
+    thread _mtl_combined_image_sampler_2d_atomic_fallback<S, A> tex,
+    vec<T, 2> texel,
+    uint lod,
+    vec<T, 2> offset = vec<T, 2>(0))
+{
+
+  float w = tex.texture->get_width() >> lod;
+  float h = tex.texture->get_height() >> lod;
+  if ((texel.x + offset.x) >= 0 && (texel.x + offset.x) < w && (texel.y + offset.y) >= 0 &&
+      (texel.y + offset.y) < h)
+  {
+    return tex.texture->read(uint2(texel + offset), lod);
+  }
+  else {
+    return vec<S, 4>(0);
+  }
+}
+
+template<typename S, typename T, access A>
+inline vec<S, 4> _texelFetch_internal(
+    thread _mtl_combined_image_sampler_2d_array_atomic_fallback<S, A> tex,
+    vec<T, 3> texel,
+    uint lod,
+    vec<T, 3> offset = vec<T, 3>(0))
+{
+  return tex.texture->read(tex_coord_3d_to_2d(tex, uint3(texel + offset)), lod);
+}
+
+template<typename S, typename T, access A>
+inline vec<S, 4> _texelFetch_internal(
+    thread _mtl_combined_image_sampler_3d_atomic_fallback<S, A> tex,
+    vec<T, 3> texel,
+    uint lod,
+    vec<T, 3> offset = vec<T, 3>(0))
+{
+  return tex.texture->read(tex_coord_3d_to_2d(tex, uint3(texel + offset)), lod);
+}
+
+/* imageStore. */
+
+template<typename S, typename T, access A>
+inline void _texture_write_internal(
+    thread _mtl_combined_image_sampler_2d_atomic_fallback<S, A> tex, T _coord, vec<S, 4> value)
+{
+  float w = tex.texture_size.x;
+  float h = tex.texture_size.y;
+  if (_coord.x >= 0 && _coord.x < w && _coord.y >= 0 && _coord.y < h) {
+    tex.texture->write(value, uint2(_coord.xy));
+  }
+}
+
+template<typename S, typename T, access A>
+inline void _texture_write_internal_fast(
+    thread _mtl_combined_image_sampler_2d_atomic_fallback<S, A> tex, T _coord, vec<S, 4> value)
+{
+  tex.texture->write(value, uint2(_coord.xy));
+}
+
+template<typename S, typename T, access A>
+inline void _texture_write_internal(
+    thread _mtl_combined_image_sampler_2d_array_atomic_fallback<S, A> tex,
+    T _coord,
+    vec<S, 4> value)
+{
+  float w = tex.texture_size.x;
+  float h = tex.texture_size.y;
+  float d = tex.texture_size.z;
+  if (_coord.x >= 0 && _coord.x < w && _coord.y >= 0 && _coord.y < h && _coord.z >= 0 &&
+      _coord.z < d)
+  {
+    tex.texture->write(value, tex_coord_3d_to_2d(tex, uint3(_coord)));
+  }
+}
+
+template<typename S, typename T, access A>
+inline void _texture_write_internal_fast(
+    thread _mtl_combined_image_sampler_2d_array_atomic_fallback<S, A> tex,
+    T _coord,
+    vec<S, 4> value)
+{
+  tex.texture->write(value, tex_coord_3d_to_2d(tex, uint3(_coord)));
+}
+
+template<typename S, typename T, access A>
+inline void _texture_write_internal(
+    thread _mtl_combined_image_sampler_3d_atomic_fallback<S, A> tex, T _coord, vec<S, 4> value)
+{
+  float w = tex.texture_size.x;
+  float h = tex.texture_size.y;
+  float d = tex.texture_size.z;
+  if (_coord.x >= 0 && _coord.x < w && _coord.y >= 0 && _coord.y < h && _coord.z >= 0 &&
+      _coord.z < d)
+  {
+    tex.texture->write(value, tex_coord_3d_to_2d(tex, uint3(_coord)));
+  }
+}
+
+template<typename S, typename T, access A>
+inline void _texture_write_internal_fast(
+    thread _mtl_combined_image_sampler_3d_atomic_fallback<S, A> tex, T _coord, vec<S, 4> value)
+{
+  tex.texture->write(value, tex_coord_3d_to_2d(tex, uint3(_coord)));
 }
 
 #endif
@@ -1595,6 +2052,27 @@ int3 textureSize(thread _mtl_combined_image_sampler_3d<T, A> image, uint lod)
               image.texture->get_height(lod),
               image.texture->get_depth(lod));
 }
+
+#ifndef MTL_SUPPORTS_TEXTURE_ATOMICS
+/* textureSize functions for fallback atomic textures. */
+template<typename T, access A>
+int2 textureSize(thread _mtl_combined_image_sampler_2d_atomic_fallback<T, A> image, uint lod)
+{
+  return int2(image.texture->get_width(lod), image.texture->get_height(lod));
+}
+
+template<typename T, access A>
+int3 textureSize(thread _mtl_combined_image_sampler_2d_array_atomic_fallback<T, A> image, uint lod)
+{
+  return int3(image.texture_size);
+}
+
+template<typename T, access A>
+int3 textureSize(thread _mtl_combined_image_sampler_3d_atomic_fallback<T, A> image, uint lod)
+{
+  return int3(image.texture_size);
+}
+#endif
 
 /* Equality and comparison functions. */
 #define lessThan(a, b) ((a) < (b))

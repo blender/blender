@@ -205,7 +205,7 @@ GPU_SHADER_CREATE_INFO(eevee_shadow_page_clear)
     .image(SHADOW_ATLAS_IMG_SLOT,
            GPU_R32UI,
            Qualifier::READ_WRITE,
-           ImageType::UINT_2D_ARRAY,
+           ImageType::UINT_2D_ARRAY_ATOMIC,
            "shadow_atlas_img");
 
 /* TBDR clear implementation. */
@@ -260,6 +260,13 @@ GPU_SHADER_CREATE_INFO(eevee_shadow_page_tile_store)
  * \{ */
 
 GPU_SHADER_CREATE_INFO(eevee_shadow_data)
+    /* SHADOW_READ_ATOMIC macro indiciating shadow funcions should use usampler2DArrayAtomic as the
+       atlas type. */
+    .define("SHADOW_READ_ATOMIC")
+    .sampler(SHADOW_ATLAS_TEX_SLOT, ImageType::UINT_2D_ARRAY_ATOMIC, "shadow_atlas_tx")
+    .sampler(SHADOW_TILEMAPS_TEX_SLOT, ImageType::UINT_2D, "shadow_tilemaps_tx");
+
+GPU_SHADER_CREATE_INFO(eevee_shadow_data_non_atomic)
     .sampler(SHADOW_ATLAS_TEX_SLOT, ImageType::UINT_2D_ARRAY, "shadow_atlas_tx")
     .sampler(SHADOW_TILEMAPS_TEX_SLOT, ImageType::UINT_2D, "shadow_tilemaps_tx");
 

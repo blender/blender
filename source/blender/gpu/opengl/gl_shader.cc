@@ -376,6 +376,9 @@ static void print_image_type(std::ostream &os,
     case ImageType::INT_3D:
     case ImageType::INT_CUBE:
     case ImageType::INT_CUBE_ARRAY:
+    case ImageType::INT_2D_ATOMIC:
+    case ImageType::INT_2D_ARRAY_ATOMIC:
+    case ImageType::INT_3D_ATOMIC:
       os << "i";
       break;
     case ImageType::UINT_BUFFER:
@@ -386,6 +389,9 @@ static void print_image_type(std::ostream &os,
     case ImageType::UINT_3D:
     case ImageType::UINT_CUBE:
     case ImageType::UINT_CUBE_ARRAY:
+    case ImageType::UINT_2D_ATOMIC:
+    case ImageType::UINT_2D_ARRAY_ATOMIC:
+    case ImageType::UINT_3D_ATOMIC:
       os << "u";
       break;
     default:
@@ -417,8 +423,12 @@ static void print_image_type(std::ostream &os,
     case ImageType::FLOAT_2D_ARRAY:
     case ImageType::INT_2D:
     case ImageType::INT_2D_ARRAY:
+    case ImageType::INT_2D_ATOMIC:
+    case ImageType::INT_2D_ARRAY_ATOMIC:
     case ImageType::UINT_2D:
     case ImageType::UINT_2D_ARRAY:
+    case ImageType::UINT_2D_ATOMIC:
+    case ImageType::UINT_2D_ARRAY_ATOMIC:
     case ImageType::SHADOW_2D:
     case ImageType::SHADOW_2D_ARRAY:
     case ImageType::DEPTH_2D:
@@ -428,6 +438,8 @@ static void print_image_type(std::ostream &os,
     case ImageType::FLOAT_3D:
     case ImageType::INT_3D:
     case ImageType::UINT_3D:
+    case ImageType::INT_3D_ATOMIC:
+    case ImageType::UINT_3D_ATOMIC:
       os << "3D";
       break;
     case ImageType::FLOAT_CUBE:
@@ -455,6 +467,7 @@ static void print_image_type(std::ostream &os,
     case ImageType::INT_CUBE_ARRAY:
     case ImageType::UINT_1D_ARRAY:
     case ImageType::UINT_2D_ARRAY:
+    case ImageType::UINT_2D_ARRAY_ATOMIC:
     case ImageType::UINT_CUBE_ARRAY:
     case ImageType::SHADOW_2D_ARRAY:
     case ImageType::SHADOW_CUBE_ARRAY:
