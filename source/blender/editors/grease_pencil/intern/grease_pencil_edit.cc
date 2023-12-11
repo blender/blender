@@ -1115,8 +1115,9 @@ static void GREASE_PENCIL_OT_cyclical_set(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Set selected material as active material
+/** \name Set Active Material Operator
  * \{ */
+
 static int grease_pencil_set_active_material_exec(bContext *C, wmOperator * /*op*/)
 {
   const Scene *scene = CTX_data_scene(C);
@@ -1162,7 +1163,7 @@ static void GREASE_PENCIL_OT_set_active_material(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Set stroke uniform Thickness
+/** \name Set Uniform Thickness Operator
  * \{ */
 
 static int grease_pencil_set_uniform_thickness_exec(bContext *C, wmOperator *op)
@@ -1220,7 +1221,7 @@ static void GREASE_PENCIL_OT_set_uniform_thickness(wmOperatorType *ot)
 
 /** \} */
 /* -------------------------------------------------------------------- */
-/** \name Set stroke uniform Opacity
+/** \name Set Uniform Opacity Operator
  * \{ */
 
 static int grease_pencil_set_uniform_opacity_exec(bContext *C, wmOperator *op)
@@ -1328,7 +1329,7 @@ static void GREASE_PENCIL_OT_stroke_switch_direction(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Caps mode Set Operator
+/** \name Set Curve Caps Operator
  * \{ */
 
 enum class CapsMode : int8_t {
@@ -1454,6 +1455,7 @@ static void GREASE_PENCIL_OT_caps_set(wmOperatorType *ot)
 /* -------------------------------------------------------------------- */
 /** \name Set Active Material Operator
  * \{ */
+
 /* Retry enum items with object materials. */
 static const EnumPropertyItem *material_enum_itemf(bContext *C,
                                                    PointerRNA * /*ptr*/,
