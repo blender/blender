@@ -148,7 +148,7 @@ GPU_SHADER_CREATE_INFO(eevee_cryptomatte_out)
     .storage_buf(CRYPTOMATTE_BUF_SLOT, Qualifier::READ, "vec2", "cryptomatte_object_buf[]")
     .image_out(RBUFS_CRYPTOMATTE_SLOT, Qualifier::WRITE, GPU_RGBA32F, "rp_cryptomatte_img");
 
-GPU_SHADER_CREATE_INFO(eevee_surf_deferred)
+GPU_SHADER_CREATE_INFO(eevee_surf_deferred_base)
     .define("MAT_DEFERRED")
     /* NOTE: This removes the possibility of using gl_FragDepth. */
     .early_fragment_test(true)
@@ -161,7 +161,6 @@ GPU_SHADER_CREATE_INFO(eevee_surf_deferred)
      * limitation of the number of images we can bind on a single shader. */
     .image_array_out(GBUF_CLOSURE_SLOT, Qualifier::WRITE, GPU_RGBA16, "out_gbuf_closure_img")
     .image_array_out(GBUF_COLOR_SLOT, Qualifier::WRITE, GPU_RGB10_A2, "out_gbuf_color_img")
-    .fragment_source("eevee_surf_deferred_frag.glsl")
     .additional_info("eevee_global_ubo",
                      "eevee_utility_texture",
                      /* Added at runtime because of test shaders not having `node_tree`. */
@@ -169,6 +168,18 @@ GPU_SHADER_CREATE_INFO(eevee_surf_deferred)
                      // "eevee_cryptomatte_out",
                      "eevee_sampling_data",
                      "eevee_hiz_data");
+
+GPU_SHADER_CREATE_INFO(eevee_surf_deferred)
+    .fragment_source("eevee_surf_deferred_frag.glsl")
+    .additional_info("eevee_surf_deferred_base");
+
+GPU_SHADER_CREATE_INFO(eevee_surf_deferred_hybrid)
+    .fragment_source("eevee_surf_hybrid_frag.glsl")
+    .define("LIGHT_CLOSURE_EVAL_COUNT", "2")
+    .additional_info("eevee_surf_deferred_base",
+                     "eevee_light_data",
+                     "eevee_lightprobe_data",
+                     "eevee_shadow_data");
 
 GPU_SHADER_CREATE_INFO(eevee_surf_forward)
     .define("MAT_FORWARD")

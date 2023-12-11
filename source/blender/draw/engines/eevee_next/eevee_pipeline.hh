@@ -175,6 +175,10 @@ struct DeferredLayerBase {
   PassMain::Sub *prepass_double_sided_moving_ps_ = nullptr;
 
   PassMain gbuffer_ps_ = {"Shading"};
+  /* Shaders that use the ClosureToRGBA node needs to be rendered first.
+   * Consider they hybrid forward and deferred. */
+  PassMain::Sub *gbuffer_single_sided_hybrid_ps_ = nullptr;
+  PassMain::Sub *gbuffer_double_sided_hybrid_ps_ = nullptr;
   PassMain::Sub *gbuffer_single_sided_ps_ = nullptr;
   PassMain::Sub *gbuffer_double_sided_ps_ = nullptr;
 

@@ -464,7 +464,20 @@ void DeferredLayer::begin_sync()
     inst_.hiz_buffer.bind_resources(gbuffer_ps_);
     inst_.cryptomatte.bind_resources(gbuffer_ps_);
 
+    /* Bind light resources for the NPR materials that gets rendered first.
+     * Non-NPR shaders will override these resource bindings. */
+    inst_.lights.bind_resources(gbuffer_ps_);
+    inst_.shadows.bind_resources(gbuffer_ps_);
+    inst_.reflection_probes.bind_resources(gbuffer_ps_);
+    inst_.irradiance_cache.bind_resources(gbuffer_ps_);
+
     DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL;
+
+    gbuffer_single_sided_hybrid_ps_ = &gbuffer_ps_.sub("DoubleSided");
+    gbuffer_single_sided_hybrid_ps_->state_set(state | DRW_STATE_CULL_BACK);
+
+    gbuffer_double_sided_hybrid_ps_ = &gbuffer_ps_.sub("SingleSided");
+    gbuffer_double_sided_hybrid_ps_->state_set(state);
 
     gbuffer_double_sided_ps_ = &gbuffer_ps_.sub("DoubleSided");
     gbuffer_double_sided_ps_->state_set(state);
@@ -600,9 +613,15 @@ PassMain::Sub *DeferredLayer::material_add(::Material *blender_mat, GPUMaterial 
   eClosureBits closure_bits = shader_closure_bits_from_flag(gpumat);
   closure_bits_ |= closure_bits;
 
-  PassMain::Sub *pass = (blender_mat->blend_flag & MA_BL_CULL_BACKFACE) ?
-                            gbuffer_single_sided_ps_ :
-                            gbuffer_double_sided_ps_;
+  bool has_shader_to_rgba = (closure_bits & CLOSURE_SHADER_TO_RGBA) != 0;
+  bool backface_culling = (blender_mat->blend_flag & MA_BL_CULL_BACKFACE) != 0;
+
+  PassMain::Sub *pass = (has_shader_to_rgba) ?
+                            ((backface_culling) ? gbuffer_single_sided_hybrid_ps_ :
+                                                  gbuffer_double_sided_hybrid_ps_) :
+                            ((backface_culling) ? gbuffer_single_sided_ps_ :
+                                                  gbuffer_double_sided_ps_);
+
   return &pass->sub(GPU_material_get_name(gpumat));
 }
 
