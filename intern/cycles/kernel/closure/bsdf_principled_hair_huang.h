@@ -138,6 +138,14 @@ ccl_device_inline float to_gamma(float phi, float b)
   return atan2f(sin_phi, b * cos_phi);
 }
 
+/* Intersect `wi` with the ellipse defined by `x = sin_gamma, y = b * cos_gamma` results in solving
+ * for `gamma` in equation `-cos_phi_i * sin_gamma + b * sin_phi_i * cos_gamma = h`.
+ * Also, make use of `r = sqrt(sqr(cos_phi_i) + sqr(b * sin_phi_i))` to pre-map `h` to [-1, 1]. */
+ccl_device_inline float h_to_gamma(const float h_div_r, const float b, const float3 wi)
+{
+  return (b == 1.0f) ? -asinf(h_div_r) : atan2f(wi.z, -b * wi.x) - acosf(-h_div_r);
+}
+
 /* Compute the coordinate on the ellipse, given `gamma` and the aspect ratio between the minor axis
  * and the major axis. */
 ccl_device_inline float2 to_point(float gamma, float b)
@@ -576,20 +584,12 @@ ccl_device int bsdf_hair_huang_sample(const KernelGlobals kg,
   /* Get `wi` in local coordinate. */
   const float3 wi = bsdf->extra->wi;
 
-  const float2 sincos_phi_i = sincos_phi(wi);
-  const float sin_phi_i = sincos_phi_i.x;
-  const float cos_phi_i = sincos_phi_i.y;
-
   /* Get minor axis, assuming major axis is 1. */
   const float b = bsdf->aspect_ratio;
   const bool is_circular = (b == 1.0f);
 
-  const float h = sample_h * 2.0f - 1.0f;
-  const float gamma_mi = is_circular ?
-                             asinf(h) :
-                             atan2f(cos_phi_i, -b * sin_phi_i) -
-                                 acosf(h * bsdf->extra->radius *
-                                       inversesqrtf(sqr(cos_phi_i) + sqr(b * sin_phi_i)));
+  const float h_div_r = sample_h * 2.0f - 1.0f;
+  const float gamma_mi = h_to_gamma(h_div_r, b, wi);
 
   /* Macronormal. */
   const float3 wmi_ = sphg_dir(0, gamma_mi, b);
