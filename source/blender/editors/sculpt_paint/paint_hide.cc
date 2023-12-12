@@ -260,7 +260,7 @@ static void partialvis_update_mesh(Object &object,
       if (action == VisAction::Show && mask.is_empty()) {
         mesh_show_all(object, nodes);
       }
-      else {
+      else if (!mask.is_empty()) {
         vert_hide_update(object, nodes, [&](const Span<int> verts, MutableSpan<bool> hide) {
           for (const int i : verts.index_range()) {
             if (mask[verts[i]] > 0.5f) {
