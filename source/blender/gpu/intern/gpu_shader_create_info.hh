@@ -270,7 +270,7 @@ enum class ImageType {
    * NOTE: Atomic variants MUST be used if the texture bound to this resource has usage flag:
    * `GPU_TEXTURE_USAGE_ATOMIC`, even if atomic texture operations are not used in the given
    * shader.
-   * The shader source MUST also utilise the correct atomic sampler handle e.g.
+   * The shader source MUST also utilize the correct atomic sampler handle e.g.
    * `usampler2DAtomic` in conjunction with these types, for passing texture/image resources into
    * functions. */
   UINT_2D_ATOMIC,

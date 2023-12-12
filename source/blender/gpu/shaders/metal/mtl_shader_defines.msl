@@ -226,7 +226,7 @@ template<typename T> T atomicExchange(device T &mem, T data)
     SAMPLER_DECLARATION \
   }
 
-/* If native texture atomics are unsupported, we instead utilise a custom type which wraps a
+/* If native texture atomics are unsupported, we instead utilize a custom type which wraps a
  * buffer-backed texture. This texture will always be a Texture2D, but will emulate access to
  * Texture3D and Texture2DArray by stacking layers.
  * Access pattern will be derived based on the source type. 2DArray and 3D atomic texture
@@ -1271,10 +1271,11 @@ S _texture_image_atomic_exchange_internal(thread _mtl_combined_image_sampler_3d<
 
 #else
 
-/** Texture atomic fallback function entry points.
+/**
+ * Texture atomic fallback function entry points.
  * NOTE: When texture atomics are unsupported, the wrapped type contains a buffer-backed 2D
- * texture. Atomic operations happen directly on the underlying buffer, and texture coordiantes are
- * remapped into 2D texture space from 2D Array or 3D texture coordiantes.
+ * texture. Atomic operations happen directly on the underlying buffer, and texture coordinates are
+ * remapped into 2D texture space from 2D Array or 3D texture coordinates.
  */
 
 /* Image atomic operations. */
@@ -1363,7 +1364,7 @@ template<int N> bool in_range(vec<int, N> value, vec<int, N> min, vec<int, N> ma
   return (all(value >= min) && all(value < max));
 }
 
-/* Map 2D/3D texture coordiante into buffer index, accounting for padded row widths. */
+/* Map 2D/3D texture coordinate into buffer index, accounting for padded row widths. */
 template<typename S, access A>
 uint tex_coord_to_linear_buffer_id(thread _mtl_combined_image_sampler_2d_atomic_fallback<S, A> tex,
                                    uint2 coord)

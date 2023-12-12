@@ -1949,7 +1949,7 @@ void MSLGeneratorInterface::prepare_from_createinfo(const shader::ShaderCreateIn
     }
   }
 
-  /* For texure atomic fallback support, bind texture source buffers and data buffer as storage
+  /* For texture atomic fallback support, bind texture source buffers and data buffer as storage
    * blocks. */
   if (!MTLBackend::get_capabilities().supports_texture_atomics) {
     uint atomic_fallback_buffer_count = 0;
@@ -1962,7 +1962,7 @@ void MSLGeneratorInterface::prepare_from_createinfo(const shader::ShaderCreateIn
                ImageType::INT_2D_ARRAY_ATOMIC,
                ImageType::INT_3D_ATOMIC))
       {
-        /* Add storagebuffer bindpoint. */
+        /* Add storage-buffer bind-point. */
         MSLBufferBlock ssbo;
 
         /* We maintain two bind indices. "Slot" refers to the storage index buffer(N) in which

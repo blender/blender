@@ -2401,7 +2401,7 @@ void gpu::MTLTexture::ensure_baked()
           total_bytes, (gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_HOST_READ));
       BLI_assert(backing_buffer_ != nullptr);
 
-      /* NOTE: Fallback buffer-backed textue always set to Texture2D. */
+      /* NOTE: Fallback buffer-backed texture always set to Texture2D. */
       texture_descriptor_.textureType = MTLTextureType2D;
       texture_descriptor_.depth = 1;
       texture_descriptor_.arrayLength = 1;
