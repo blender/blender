@@ -853,7 +853,7 @@ void USDMeshReader::read_mesh_sample(ImportSettings *settings,
     for (int i = 0; i < positions_.size(); i++) {
       vert_positions[i] = {positions_[i][0], positions_[i][1], positions_[i][2]};
     }
-    BKE_mesh_tag_positions_changed(mesh);
+    mesh->tag_positions_changed();
 
     read_vertex_creases(mesh, motionSampleTime);
   }

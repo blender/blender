@@ -393,7 +393,7 @@ static Mesh *create_orco_mesh(Object *ob, Mesh *mesh, BMEditMesh *em, int layer)
   if (orco) {
     orco_mesh->vert_positions_for_write().copy_from(
         {reinterpret_cast<const float3 *>(orco), orco_mesh->totvert});
-    BKE_mesh_tag_positions_changed(orco_mesh);
+    orco_mesh->tag_positions_changed();
     if (free) {
       MEM_freeN(orco);
     }
@@ -1161,7 +1161,7 @@ static void editbmesh_calc_modifiers(Depsgraph *depsgraph,
       else {
         BKE_mesh_wrapper_ensure_mdata(mesh_final);
         BKE_modifier_deform_verts(md, &mectx, mesh_final, mesh_final->vert_positions_for_write());
-        BKE_mesh_tag_positions_changed(mesh_final);
+        mesh_final->tag_positions_changed();
       }
     }
     else {

@@ -1125,7 +1125,7 @@ void BKE_mesh_transform(Mesh *mesh, const float mat[4][4], bool do_keys)
     }
   }
 
-  BKE_mesh_tag_positions_changed(mesh);
+  mesh->tag_positions_changed();
 }
 
 static void translate_positions(MutableSpan<float3> positions, const float3 &translation)
@@ -1157,7 +1157,7 @@ void BKE_mesh_translate(Mesh *mesh, const float offset[3], const bool do_keys)
     }
   }
 
-  BKE_mesh_tag_positions_changed_uniformly(mesh);
+  mesh->tag_positions_changed_uniformly();
 
   if (bounds) {
     bounds->min += offset;

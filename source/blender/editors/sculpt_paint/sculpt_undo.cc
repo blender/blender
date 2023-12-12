@@ -1072,7 +1072,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, UndoSculpt &usculpt)
   if (tag_update) {
     Mesh *mesh = static_cast<Mesh *>(ob->data);
     if (changed_position) {
-      BKE_mesh_tag_positions_changed(mesh);
+      mesh->tag_positions_changed();
       BKE_sculptsession_free_deformMats(ss);
     }
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);

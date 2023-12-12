@@ -245,7 +245,7 @@ void BKE_mesh_calc_edges_legacy(Mesh *mesh)
       &mesh->edge_data, CD_MEDGE, edges, totedge, nullptr);
   mesh->totedge = totedge;
 
-  BKE_mesh_tag_topology_changed(mesh);
+  mesh->tag_topology_changed();
   BKE_mesh_strip_loose_faces(mesh);
 }
 

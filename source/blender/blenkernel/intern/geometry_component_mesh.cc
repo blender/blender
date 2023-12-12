@@ -854,14 +854,14 @@ static void tag_component_positions_changed(void *owner)
 {
   Mesh *mesh = static_cast<Mesh *>(owner);
   if (mesh != nullptr) {
-    BKE_mesh_tag_positions_changed(mesh);
+    mesh->tag_positions_changed();
   }
 }
 
 static void tag_component_sharpness_changed(void *owner)
 {
   if (Mesh *mesh = static_cast<Mesh *>(owner)) {
-    BKE_mesh_tag_sharpness_changed(mesh);
+    mesh->tag_sharpness_changed();
   }
 }
 

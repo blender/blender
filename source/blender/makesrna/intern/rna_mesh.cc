@@ -266,7 +266,7 @@ static void rna_Mesh_update_facemask(Main *bmain, Scene *scene, PointerRNA *ptr)
 static void rna_Mesh_update_positions_tag(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
   Mesh *mesh = rna_mesh(ptr);
-  BKE_mesh_tag_positions_changed(mesh);
+  mesh->tag_positions_changed();
   rna_Mesh_update_data_legacy_deg_tag_all(bmain, scene, ptr);
 }
 
@@ -596,7 +596,7 @@ static void rna_MeshPolygon_use_smooth_set(PointerRNA *ptr, bool value)
   const int index = rna_MeshPolygon_index_get(ptr);
   if (value == sharp_faces[index]) {
     sharp_faces[index] = !value;
-    BKE_mesh_tag_sharpness_changed(mesh);
+    mesh->tag_sharpness_changed();
   }
 }
 
@@ -1344,7 +1344,7 @@ static void rna_MeshEdge_use_edge_sharp_set(PointerRNA *ptr, bool value)
   const int index = rna_MeshEdge_index_get(ptr);
   if (value != sharp_edge[index]) {
     sharp_edge[index] = value;
-    BKE_mesh_tag_sharpness_changed(mesh);
+    mesh->tag_sharpness_changed();
   }
 }
 

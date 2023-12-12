@@ -119,7 +119,7 @@ static void deform_verts(ModifierData *md,
     int init = 0;
 
     surmd->runtime.mesh->vert_positions_for_write().copy_from(positions);
-    BKE_mesh_tag_positions_changed(surmd->runtime.mesh);
+    surmd->runtime.mesh->tag_positions_changed();
 
     mesh_verts_num = surmd->runtime.mesh->totvert;
 

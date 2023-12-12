@@ -3534,7 +3534,7 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
       sim->ob,
       psys->hair_in_mesh,
       reinterpret_cast<float(*)[3]>(psys->hair_out_mesh->vert_positions_for_write().data()));
-  BKE_mesh_tag_positions_changed(psys->hair_out_mesh);
+  psys->hair_out_mesh->tag_positions_changed();
 
   /* restore cloth effector weights */
   psys->clmd->sim_parms->effector_weights = clmd_effweights;

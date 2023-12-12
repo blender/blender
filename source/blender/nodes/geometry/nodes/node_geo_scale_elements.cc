@@ -193,7 +193,7 @@ static void scale_vertex_islands_uniformly(Mesh &mesh,
     }
   });
 
-  BKE_mesh_tag_positions_changed(&mesh);
+  mesh.tag_positions_changed();
 }
 
 static void scale_vertex_islands_on_axis(Mesh &mesh,
@@ -239,7 +239,7 @@ static void scale_vertex_islands_on_axis(Mesh &mesh,
     }
   });
 
-  BKE_mesh_tag_positions_changed(&mesh);
+  mesh.tag_positions_changed();
 }
 
 static Vector<ElementIsland> prepare_face_islands(const Mesh &mesh,

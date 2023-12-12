@@ -115,7 +115,7 @@ static void deform_verts(ModifierData *md,
   }
 
   mesh->vert_positions_for_write().copy_from(positions);
-  BKE_mesh_tag_positions_changed(mesh);
+  mesh->tag_positions_changed();
 
   clothModifier_do(clmd,
                    ctx->depsgraph,

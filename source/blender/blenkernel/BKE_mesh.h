@@ -50,39 +50,6 @@ typedef enum eMeshBatchDirtyMode {
   BKE_MESH_BATCH_DIRTY_UVEDIT_SELECT,
 } eMeshBatchDirtyMode;
 
-/*  mesh_runtime.cc  */
-
-/**
- * Call after changing vertex positions to tag lazily calculated caches for recomputation.
- */
-void BKE_mesh_tag_positions_changed(struct Mesh *mesh);
-
-/**
- * The same as #BKE_mesh_tag_positions_changed but doesn't tag normals dirty, instead expecting
- * them to be updated separately.
- */
-void BKE_mesh_tag_positions_changed_no_normals(struct Mesh *mesh);
-
-/**
- * Call after moving every mesh vertex by the same translation.
- */
-void BKE_mesh_tag_positions_changed_uniformly(struct Mesh *mesh);
-
-void BKE_mesh_tag_topology_changed(struct Mesh *mesh);
-
-/**
- * Call when new edges and vertices have been created but positions and faces haven't changed.
- */
-void BKE_mesh_tag_edges_split(struct Mesh *mesh);
-
-/** Call when changing "sharp_face" or "sharp_edge" data. */
-void BKE_mesh_tag_sharpness_changed(struct Mesh *mesh);
-
-/**
- * Call when face vertex order has changed but positions and faces haven't changed
- */
-void BKE_mesh_tag_face_winding_changed(struct Mesh *mesh);
-
 /* `mesh.cc` */
 
 struct BMesh *BKE_mesh_to_bmesh_ex(const struct Mesh *mesh,

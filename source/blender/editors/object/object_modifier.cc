@@ -812,7 +812,7 @@ static Mesh *create_applied_mesh_for_modifier(Depsgraph *depsgraph,
   if (mti->type == ModifierTypeType::OnlyDeform) {
     result = mesh_temp;
     mti->deform_verts(md_eval, &mectx, result, deformedVerts);
-    BKE_mesh_tag_positions_changed(result);
+    result->tag_positions_changed();
 
     if (build_shapekey_layers) {
       add_shapekey_layers(*result, *mesh);

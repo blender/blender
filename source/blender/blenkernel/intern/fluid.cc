@@ -2127,7 +2127,7 @@ static void emit_from_mesh(
       /* Calculate emission map bounds. */
       bb_boundInsert(bb, positions[i]);
     }
-    BKE_mesh_tag_positions_changed(mesh);
+    mesh->tag_positions_changed();
     mul_m4_v3(flow_ob->object_to_world, flow_center);
     manta_pos_to_cell(fds, flow_center);
 

@@ -92,7 +92,7 @@ void mesh_flip_faces(Mesh &mesh, const IndexMask &selection)
         return true;
       });
 
-  BKE_mesh_tag_face_winding_changed(&mesh);
+  mesh.tag_face_winding_changed();
 }
 
 }  // namespace blender::bke

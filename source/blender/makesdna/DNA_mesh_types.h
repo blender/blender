@@ -395,6 +395,21 @@ typedef struct Mesh {
    * using #face_normals() or #vert_normals() when possible (see #normals_domain()).
    */
   blender::Span<blender::float3> corner_normals() const;
+
+  /** Call after changing vertex positions to tag lazily calculated caches for recomputation. */
+  void tag_positions_changed();
+  /** Call after moving every mesh vertex by the same translation. */
+  void tag_positions_changed_uniformly();
+  /** Like #tag_positions_changed but doesn't tag normals; they must be updated separately. */
+  void tag_positions_changed_no_normals();
+  /** Call when changing "sharp_face" or "sharp_edge" data. */
+  void tag_sharpness_changed();
+  /** Call when face vertex order has changed but positions and faces haven't changed. */
+  void tag_face_winding_changed();
+  /** Call when new edges and vertices have been created but vertices and faces haven't changed. */
+  void tag_edges_split();
+  /** Call for topology updates not described by other update tags. */
+  void tag_topology_changed();
 #endif
 } Mesh;
 

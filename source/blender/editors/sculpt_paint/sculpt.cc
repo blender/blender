@@ -3176,7 +3176,7 @@ void SCULPT_vertcos_to_key(Object *ob, KeyBlock *kb, const Span<float3> vertCos)
   /* Modifying of basis key should update mesh. */
   if (kb == mesh->key->refkey) {
     mesh->vert_positions_for_write().copy_from(vertCos);
-    BKE_mesh_tag_positions_changed(mesh);
+    mesh->tag_positions_changed();
   }
 
   /* Apply new coords on active key block, no need to re-allocate kb->data here! */
@@ -5263,7 +5263,7 @@ void SCULPT_flush_update_step(bContext *C, SculptUpdateType update_flags)
        * the mesh's bounds eagerly here since they are trivial to access from the PBVH. Updating
        * the object's evaluated geometry bounding box is necessary because sculpt strokes don't
        * cause an object reevaluation. */
-      BKE_mesh_tag_positions_changed_no_normals(mesh);
+      mesh->tag_positions_changed_no_normals();
       mesh->bounds_set_eager(BKE_pbvh_bounding_box(ob->sculpt->pbvh));
       if (ob->runtime->bounds_eval) {
         ob->runtime->bounds_eval = mesh->bounds_min_max();

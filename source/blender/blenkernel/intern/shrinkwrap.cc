@@ -1541,7 +1541,7 @@ void BKE_shrinkwrap_mesh_nearest_surface_deform(Depsgraph *depsgraph,
       -1,
       reinterpret_cast<float(*)[3]>(src_me->vert_positions_for_write().data()),
       src_me->totvert);
-  BKE_mesh_tag_positions_changed(src_me);
+  src_me->tag_positions_changed();
 }
 
 void BKE_shrinkwrap_remesh_target_project(Mesh *src_me, Mesh *target_me, Object *ob_target)
@@ -1578,5 +1578,5 @@ void BKE_shrinkwrap_remesh_target_project(Mesh *src_me, Mesh *target_me, Object 
     BKE_shrinkwrap_free_tree(&tree);
   }
 
-  BKE_mesh_tag_positions_changed(src_me);
+  src_me->tag_positions_changed();
 }

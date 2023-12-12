@@ -943,7 +943,7 @@ void BKE_modifier_deform_verts(ModifierData *md,
   }
   mti->deform_verts(md, ctx, mesh, positions);
   if (mesh) {
-    BKE_mesh_tag_positions_changed(mesh);
+    mesh->tag_positions_changed();
   }
 }
 

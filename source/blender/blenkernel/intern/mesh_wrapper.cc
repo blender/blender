@@ -193,7 +193,7 @@ void BKE_mesh_wrapper_tag_positions_changed(Mesh *mesh)
       break;
     case ME_WRAPPER_TYPE_MDATA:
     case ME_WRAPPER_TYPE_SUBD:
-      BKE_mesh_tag_positions_changed(mesh);
+      mesh->tag_positions_changed();
       break;
   }
 }
