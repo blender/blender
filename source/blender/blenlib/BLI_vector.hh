@@ -816,6 +816,7 @@ class Vector {
   {
     const T *prev_end = this->end();
     end_ = std::remove_if(this->begin(), this->end(), predicate);
+    destruct_n(end_, prev_end - end_);
     UPDATE_VECTOR_SIZE(this);
     return int64_t(prev_end - end_);
   }
