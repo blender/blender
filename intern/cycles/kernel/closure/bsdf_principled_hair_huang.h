@@ -188,8 +188,8 @@ ccl_device int bsdf_hair_huang_setup(ccl_private ShaderData *sd,
   /* Compute local frame. The Y axis is aligned with the curve tangent; the X axis is perpendicular
    to the ray direction for circular cross-sections, or aligned with the major axis for elliptical
    cross-sections. */
-  const float3 Y = safe_normalize(sd->dPdu);
-  const float3 X = safe_normalize(cross(Y, sd->wi));
+  bsdf->extra->Y = safe_normalize(sd->dPdu);
+  const float3 X = safe_normalize(cross(sd->dPdu, sd->wi));
 
   /* h from -1..0..1 means the rays goes from grazing the hair, to hitting it at the center, to
    * grazing the other edge. This is the cosine of the angle between `sd->N` and `X`. */
@@ -199,6 +199,8 @@ ccl_device int bsdf_hair_huang_setup(ccl_private ShaderData *sd,
   kernel_assert(isfinite_safe(bsdf->h));
 
   if (bsdf->aspect_ratio != 1.0f && (sd->type & PRIMITIVE_CURVE)) {
+    /* Adjust `bsdf->N` to be orthogonal to `sd->dPdu`. */
+    bsdf->N = safe_normalize(cross(sd->dPdu, safe_normalize(cross(bsdf->N, sd->dPdu))));
     /* Align local frame with the curve normal. */
     if (bsdf->aspect_ratio > 1.0f) {
       /* Switch major and minor axis. */
@@ -214,14 +216,12 @@ ccl_device int bsdf_hair_huang_setup(ccl_private ShaderData *sd,
 
   /* Fill extra closure. */
   if (is_zero(bsdf->N) || !isfinite_safe(bsdf->N)) {
-    bsdf->extra->Y = Y;
     /* Construct arbitrary local coordinate system. The implementation should ensure smooth
      * transition along the hair shaft. */
-    make_orthonormals(Y, &bsdf->extra->Z, &bsdf->N);
+    make_orthonormals(bsdf->extra->Y, &bsdf->extra->Z, &bsdf->N);
   }
   else {
     bsdf->extra->Z = safe_normalize(cross(bsdf->N, sd->dPdu));
-    bsdf->extra->Y = safe_normalize(cross(bsdf->extra->Z, bsdf->N));
   }
 
   const float3 I = make_float3(
