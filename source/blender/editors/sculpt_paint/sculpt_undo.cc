@@ -495,7 +495,6 @@ static bool sculpt_undo_restore_coords(bContext *C, Object *ob, Depsgraph *depsg
     }
   }
   else if (!unode.grids.is_empty() && subdiv_ccg != nullptr) {
-    const int gridsize = subdiv_ccg->grid_size;
     const CCGKey key = BKE_subdiv_ccg_key_top_level(*subdiv_ccg);
     const Span<int> grid_indices = unode.grids;
 
@@ -505,7 +504,7 @@ static bool sculpt_undo_restore_coords(bContext *C, Object *ob, Depsgraph *depsg
     int index = 0;
     for (const int i : grid_indices.index_range()) {
       CCGElem *grid = grids[grid_indices[i]];
-      for (const int j : IndexRange(gridsize * gridsize)) {
+      for (const int j : IndexRange(key.grid_area)) {
         swap_v3_v3(CCG_elem_offset_co(&key, grid, j), co[index]);
         index++;
       }
@@ -640,7 +639,6 @@ static bool sculpt_undo_restore_mask(Object *ob, Node &unode, MutableSpan<bool> 
     mask.finish();
   }
   else if (!unode.grids.is_empty() && subdiv_ccg != nullptr) {
-    const int gridsize = subdiv_ccg->grid_size;
     const CCGKey key = BKE_subdiv_ccg_key_top_level(*subdiv_ccg);
     const Span<int> grid_indices = unode.grids;
 
@@ -650,7 +648,7 @@ static bool sculpt_undo_restore_mask(Object *ob, Node &unode, MutableSpan<bool> 
     int index = 0;
     for (const int i : grid_indices.index_range()) {
       CCGElem *grid = grids[grid_indices[i]];
-      for (const int j : IndexRange(gridsize * gridsize)) {
+      for (const int j : IndexRange(key.grid_area)) {
         std::swap(*CCG_elem_offset_mask(&key, grid, j), mask[index]);
         index++;
       }
@@ -1309,22 +1307,44 @@ static Node *sculpt_undo_alloc_node(Object *ob, PBVHNode *node, Type type)
 static void sculpt_undo_store_coords(Object *ob, Node *unode)
 {
   SculptSession *ss = ob->sculpt;
-  PBVHVertexIter vd;
 
-  BKE_pbvh_vertex_iter_begin (ss->pbvh, static_cast<PBVHNode *>(unode->node), vd, PBVH_ITER_ALL) {
-    copy_v3_v3(unode->co[vd.i], vd.co);
-    if (vd.no) {
-      copy_v3_v3(unode->no[vd.i], vd.no);
+  if (!unode->grids.is_empty()) {
+    const SubdivCCG &subdiv_ccg = *ss->subdiv_ccg;
+    const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
+    const Span<CCGElem *> grids = subdiv_ccg.grids;
+    {
+      int index = 0;
+      for (const int grid : unode->grids) {
+        CCGElem *elem = grids[grid];
+        for (const int i : IndexRange(key.grid_area)) {
+          const float *co = CCG_elem_offset_co(&key, elem, i);
+          unode->co[index] = float3(co);
+          index++;
+        }
+      }
     }
-    else {
-      copy_v3_v3(unode->no[vd.i], vd.fno);
-    }
-
-    if (ss->deform_modifiers_active) {
-      copy_v3_v3(unode->orig_co[vd.i], ss->orig_cos[unode->index[vd.i]]);
+    if (key.has_normals) {
+      int index = 0;
+      for (const int grid : unode->grids) {
+        CCGElem *elem = grids[grid];
+        for (const int i : IndexRange(key.grid_area)) {
+          unode->no[index] = float3(CCG_elem_offset_no(&key, elem, i));
+          index++;
+        }
+      }
     }
   }
-  BKE_pbvh_vertex_iter_end;
+  else {
+    array_utils::gather(BKE_pbvh_get_vert_positions(ss->pbvh).as_span(),
+                        unode->index.as_span(),
+                        unode->co.as_mutable_span());
+    array_utils::gather(
+        BKE_pbvh_get_vert_normals(ss->pbvh), unode->index.as_span(), unode->no.as_mutable_span());
+    if (ss->deform_modifiers_active) {
+      array_utils::gather(
+          ss->orig_cos.as_span(), unode->index.as_span(), unode->orig_co.as_mutable_span());
+    }
+  }
 }
 
 static void sculpt_undo_store_hidden(Object *ob, Node *unode)
@@ -1362,13 +1382,36 @@ static void sculpt_undo_store_face_hidden(Object &object, Node &unode)
 
 static void sculpt_undo_store_mask(Object *ob, Node *unode)
 {
-  SculptSession *ss = ob->sculpt;
-  PBVHVertexIter vd;
+  const SculptSession *ss = ob->sculpt;
 
-  BKE_pbvh_vertex_iter_begin (ss->pbvh, static_cast<PBVHNode *>(unode->node), vd, PBVH_ITER_ALL) {
-    unode->mask[vd.i] = vd.mask;
+  if (!unode->grids.is_empty()) {
+    const SubdivCCG &subdiv_ccg = *ss->subdiv_ccg;
+    const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
+    if (key.has_mask) {
+      const Span<CCGElem *> grids = subdiv_ccg.grids;
+      int index = 0;
+      for (const int grid : unode->grids) {
+        CCGElem *elem = grids[grid];
+        for (const int i : IndexRange(key.grid_area)) {
+          unode->mask[index] = *CCG_elem_offset_mask(&key, elem, i);
+          index++;
+        }
+      }
+    }
+    else {
+      unode->mask.fill(0.0f);
+    }
   }
-  BKE_pbvh_vertex_iter_end;
+  else {
+    const Mesh &mesh = *static_cast<const Mesh *>(ob->data);
+    const bke::AttributeAccessor attributes = mesh.attributes();
+    if (const VArray mask = *attributes.lookup<float>(".sculpt_mask", ATTR_DOMAIN_POINT)) {
+      array_utils::gather(mask, unode->index.as_span(), unode->mask.as_mutable_span());
+    }
+    else {
+      unode->mask.fill(0.0f);
+    }
+  }
 }
 
 static void sculpt_undo_store_color(Object *ob, Node *unode)
@@ -1460,18 +1503,22 @@ static Node *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Type type)
       case Type::Mask:
         /* Before any vertex values get modified, ensure their
          * original positions are logged. */
-        BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_ALL) {
-          BM_log_vert_before_modified(ss->bm_log, vd.bm_vert, vd.cd_vert_mask_offset);
+        for (BMVert *vert : BKE_pbvh_bmesh_node_unique_verts(node)) {
+          BM_log_vert_before_modified(ss->bm_log, vert, vd.cd_vert_mask_offset);
         }
-        BKE_pbvh_vertex_iter_end;
+        for (BMVert *vert : BKE_pbvh_bmesh_node_other_verts(node)) {
+          BM_log_vert_before_modified(ss->bm_log, vert, vd.cd_vert_mask_offset);
+        }
         break;
 
       case Type::HideFace:
       case Type::HideVert: {
-        BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_ALL) {
-          BM_log_vert_before_modified(ss->bm_log, vd.bm_vert, vd.cd_vert_mask_offset);
+        for (BMVert *vert : BKE_pbvh_bmesh_node_unique_verts(node)) {
+          BM_log_vert_before_modified(ss->bm_log, vert, vd.cd_vert_mask_offset);
         }
-        BKE_pbvh_vertex_iter_end;
+        for (BMVert *vert : BKE_pbvh_bmesh_node_other_verts(node)) {
+          BM_log_vert_before_modified(ss->bm_log, vert, vd.cd_vert_mask_offset);
+        }
 
         for (BMFace *f : BKE_pbvh_bmesh_node_faces(node)) {
           BM_log_face_modified(ss->bm_log, f);
@@ -1557,9 +1604,7 @@ Node *push_node(Object *ob, PBVHNode *node, Type type)
       sculpt_undo_store_face_hidden(*ob, *unode);
       break;
     case Type::Mask:
-      if (pbvh_has_mask(ss->pbvh)) {
-        sculpt_undo_store_mask(ob, unode);
-      }
+      sculpt_undo_store_mask(ob, unode);
       break;
     case Type::Color:
       sculpt_undo_store_color(ob, unode);
