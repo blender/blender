@@ -1028,7 +1028,7 @@ static int sculpt_face_set_change_visibility_exec(bContext *C, wmOperator *op)
       else {
         face_hide_update(object, nodes, [&](const Span<int> faces, MutableSpan<bool> hide) {
           for (const int i : hide.index_range()) {
-            hide[i] = face_sets[faces[i]] == active_face_set;
+            hide[i] = face_sets[faces[i]] != active_face_set;
           }
         });
       }
