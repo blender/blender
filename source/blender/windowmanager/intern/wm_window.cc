@@ -1298,13 +1298,13 @@ void wm_window_reset_drawable()
  *
  * Mouse coordinate conversion happens here.
  */
-static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr)
+static bool ghost_event_proc(GHOST_EventHandle ghost_event, GHOST_TUserDataPtr C_void_ptr)
 {
   bContext *C = static_cast<bContext *>(C_void_ptr);
   wmWindowManager *wm = CTX_wm_manager(C);
-  GHOST_TEventType type = GHOST_GetEventType(evt);
+  GHOST_TEventType type = GHOST_GetEventType(ghost_event);
 
-  GHOST_WindowHandle ghostwin = GHOST_GetEventWindow(evt);
+  GHOST_WindowHandle ghostwin = GHOST_GetEventWindow(ghost_event);
 
   if (type == GHOST_kEventQuitRequest) {
     /* Find an active window to display quit dialog in. */
@@ -1326,8 +1326,8 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
     return true;
   }
 
-  GHOST_TEventDataPtr data = GHOST_GetEventData(evt);
-  const uint64_t event_time_ms = GHOST_GetEventTime(evt);
+  GHOST_TEventDataPtr data = GHOST_GetEventData(ghost_event);
+  const uint64_t event_time_ms = GHOST_GetEventTime(ghost_event);
 
   /* Ghost now can call this function for life resizes,
    * but it should return if WM didn't initialize yet.
