@@ -210,3 +210,11 @@ blender_add_lib_nolist(bf_windowmanager "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
 # RNA_prototypes.h
 add_dependencies(bf_windowmanager bf_rna)
+
+if(WITH_GTESTS)
+  set(TEST_SRC
+    intern/wm_dragdrop_test.cc
+  )
+  include(GTestTesting)
+  blender_add_test_lib(bf_wm_tests "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB}")
+endif()

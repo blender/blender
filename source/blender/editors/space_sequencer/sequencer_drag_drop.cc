@@ -249,7 +249,7 @@ static void sequencer_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
     return;
   }
 
-  const char *path = WM_drag_get_path(drag);
+  const char *path = WM_drag_get_single_path(drag);
   /* Path dropped. */
   if (path) {
     if (RNA_struct_find_property(drop->ptr, "filepath")) {
@@ -335,7 +335,7 @@ static void get_drag_path(const bContext *C, wmDrag *drag, char r_path[FILE_MAX]
     BLI_path_abs(r_path, BKE_main_blendfile_path_from_global());
   }
   else {
-    BLI_strncpy(r_path, WM_drag_get_path(drag), FILE_MAX);
+    BLI_strncpy(r_path, WM_drag_get_single_path(drag), FILE_MAX);
   }
 }
 

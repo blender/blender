@@ -1424,16 +1424,32 @@ const ListBase *WM_drag_asset_list_get(const wmDrag *drag);
 
 const char *WM_drag_get_item_name(wmDrag *drag);
 
-/* Path drag and drop. */
+/* Paths drag and drop. */
 /**
- * \param path: The path to drag. Value will be copied into the drag data so the passed string may
- *              be destructed.
+ * \param paths: The paths to drag. Values will be copied into the drag data so the passed strings
+ * may be destructed.
  */
-wmDragPath *WM_drag_create_path_data(const char *path);
-const char *WM_drag_get_path(const wmDrag *drag);
+wmDragPath *WM_drag_create_path_data(blender::Span<const char *> paths);
+/* If #drag contains path data, returns the first path int he path list. */
+const char *WM_drag_get_single_path(const wmDrag *drag);
+/* If #drag contains path data, returns the first path in the path list that maches a
+ * a `file_type`.*/
+/*
+ * \param drag: The drag that could contain drag path data.
+ * \param file_type: `eFileSel_File_Types` bit flag
+ */
+const char *WM_drag_get_single_path(const wmDrag *drag, int file_type);
+blender::Span<std::string> WM_drag_get_paths(const wmDrag *drag);
+/* If #drag contains path data, returns if any file path match a `file_type`.*/
+/*
+ * \param drag: The drag that could contain drag path data.
+ * \param file_type: `eFileSel_File_Types` bit flag
+ */
+bool WM_drag_has_path_file_type(const wmDrag *drag, int file_type);
 /**
  * Note that even though the enum return type uses bit-flags, this should never have multiple
- * type-bits set, so `ELEM()` like comparison is possible.
+ * type-bits set, so `ELEM()` like comparison is possible. To check all paths or to do a bit-flag
+ * check use `WM_drag_has_path_file_type(drag,file_type)` instead.
  */
 int /* eFileSel_File_Types */ WM_drag_get_path_file_type(const wmDrag *drag);
 

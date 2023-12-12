@@ -316,7 +316,7 @@ static bool text_drop_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*eve
 static void text_drop_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *drop)
 {
   /* copy drag path to properties */
-  RNA_string_set(drop->ptr, "filepath", WM_drag_get_path(drag));
+  RNA_string_set(drop->ptr, "filepath", WM_drag_get_single_path(drag));
 }
 
 static bool text_drop_paste_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)

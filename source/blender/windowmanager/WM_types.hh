@@ -111,6 +111,7 @@ struct wmWindowManager;
 
 #include "BLI_compiler_attrs.h"
 #include "BLI_utildefines.h"
+#include "BLI_vector.hh"
 #include "DNA_listBase.h"
 #include "DNA_uuid_types.h"
 #include "DNA_vec_types.h"
@@ -1179,10 +1180,12 @@ struct wmDragAssetListItem {
 };
 
 struct wmDragPath {
-  char *path;
-  /* Note that even though the enum type uses bit-flags, this should never have multiple type-bits
-   * set, so `ELEM()` like comparison is possible. */
-  int file_type; /* eFileSel_File_Types */
+  blender::Vector<std::string> paths;
+  /* File type of each path in #paths. */
+  blender::Vector<int> file_types; /* eFileSel_File_Types */
+  /* Bit flag of file types in #paths. */
+  int file_types_bit_flag; /* eFileSel_File_Types */
+  std::string tooltip;
 };
 
 struct wmDragGreasePencilLayer {

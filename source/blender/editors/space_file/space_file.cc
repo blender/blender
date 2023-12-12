@@ -797,7 +797,7 @@ static bool filepath_drop_poll(bContext *C, wmDrag *drag, const wmEvent * /*even
 
 static void filepath_drop_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *drop)
 {
-  RNA_string_set(drop->ptr, "filepath", WM_drag_get_path(drag));
+  RNA_string_set(drop->ptr, "filepath", WM_drag_get_single_path(drag));
 }
 
 /* region dropbox definition */
