@@ -885,7 +885,7 @@ static void gwl_window_frame_update_from_pending_no_lock(GWL_Window *win)
   win->frame_pending.size[1] = 0;
 }
 
-static void gwl_window_frame_update_from_pending(GWL_Window *win)
+[[maybe_unused]] static void gwl_window_frame_update_from_pending(GWL_Window *win)
 {
 #ifdef USE_EVENT_BACKGROUND_THREAD
   std::lock_guard lock_frame_guard{win->frame_pending_mutex};
