@@ -409,12 +409,13 @@ void mesh_render_data_update_normals(MeshRenderData &mr, const eMRDataType data_
 {
   if (mr.extract_type != MR_EXTRACT_BMESH) {
     /* Mesh */
+    mr.normals_domain = mr.mesh->normals_domain();
     mr.vert_normals = mr.mesh->vert_normals();
     if (data_flag & (MR_DATA_POLY_NOR | MR_DATA_LOOP_NOR | MR_DATA_TAN_LOOP_NOR)) {
       mr.face_normals = mr.mesh->face_normals();
     }
     if (((data_flag & MR_DATA_LOOP_NOR) &&
-         mr.mesh->normals_domain() == blender::bke::MeshNormalDomain::Corner) ||
+         mr.normals_domain == blender::bke::MeshNormalDomain::Corner) ||
         (data_flag & MR_DATA_TAN_LOOP_NOR))
     {
       mr.loop_normals = mr.mesh->corner_normals();

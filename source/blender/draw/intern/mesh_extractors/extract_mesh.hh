@@ -90,9 +90,12 @@ struct MeshRenderData {
   blender::Span<MLoopTri> looptris;
   blender::Span<int> looptri_faces;
   const int *material_indices;
+
+  blender::bke::MeshNormalDomain normals_domain;
   blender::Span<blender::float3> vert_normals;
   blender::Span<blender::float3> face_normals;
   blender::Span<blender::float3> loop_normals;
+
   const bool *hide_vert;
   const bool *hide_edge;
   const bool *hide_poly;

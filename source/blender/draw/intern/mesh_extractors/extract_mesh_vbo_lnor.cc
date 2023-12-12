@@ -68,7 +68,9 @@ static void extract_lnor_iter_face_mesh(const MeshRenderData &mr, const int face
     if (!mr.loop_normals.is_empty()) {
       *lnor_data = GPU_normal_convert_i10_v3(mr.loop_normals[ml_index]);
     }
-    else if (mr.sharp_faces && mr.sharp_faces[face_index]) {
+    else if (mr.normals_domain == bke::MeshNormalDomain::Face ||
+             (mr.sharp_faces && mr.sharp_faces[face_index]))
+    {
       *lnor_data = GPU_normal_convert_i10_v3(mr.face_normals[face_index]);
     }
     else {
@@ -189,7 +191,9 @@ static void extract_lnor_hq_iter_face_mesh(const MeshRenderData &mr,
     if (!mr.loop_normals.is_empty()) {
       normal_float_to_short_v3(&lnor_data->x, mr.loop_normals[ml_index]);
     }
-    else if (mr.sharp_faces && mr.sharp_faces[face_index]) {
+    else if (mr.normals_domain == bke::MeshNormalDomain::Face ||
+             (mr.sharp_faces && mr.sharp_faces[face_index]))
+    {
       normal_float_to_short_v3(&lnor_data->x, mr.face_normals[face_index]);
     }
     else {
