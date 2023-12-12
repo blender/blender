@@ -760,8 +760,8 @@ endif()
 
 # Unit testing
 option(WITH_GTESTS "Enable GTest unit testing" OFF)
-option(WITH_OPENGL_RENDER_TESTS "Enable OpenGL render related unit testing (Experimental)" OFF)
-option(WITH_OPENGL_DRAW_TESTS "Enable OpenGL UI drawing related unit testing (Experimental)" OFF)
+option(WITH_GPU_RENDER_TESTS "Enable GPU render related unit testing (EEVEE, Workbench and Grease Pencil)" OFF)
+option(WITH_GPU_DRAW_TESTS "Enable GPU drawing related unit testing (GPU backends and draw manager)" OFF)
 option(WITH_COMPOSITOR_REALTIME_TESTS "Enable regression testing for realtime compositor" OFF)
 if(UNIX AND NOT (APPLE OR HAIKU))
   option(WITH_UI_TESTS "\

@@ -928,8 +928,8 @@ if(WITH_XR_OPENXR)
 endif()
 
 if(WITH_GTESTS)
-  if(WITH_OPENGL_DRAW_TESTS)
-    add_definitions(-DWITH_OPENGL_DRAW_TESTS)
+  if(WITH_GPU_DRAW_TESTS)
+    add_definitions(-DWITH_GPU_DRAW_TESTS)
     if(WITH_OPENGL_BACKEND)
       add_definitions(-DWITH_OPENGL_BACKEND)
     endif()
@@ -964,7 +964,7 @@ blender_add_lib(bf_draw "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
 
 if(WITH_GTESTS)
-  if(WITH_OPENGL_DRAW_TESTS)
+  if(WITH_GPU_DRAW_TESTS)
     set(TEST_SRC
       tests/draw_pass_test.cc
       tests/draw_testing.cc
