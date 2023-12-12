@@ -2387,6 +2387,7 @@ void gpu::MTLTexture::ensure_baked()
         texture_descriptor_.width = new_w;
         texture_descriptor_.height = new_h;
 
+        UNUSED_VARS_NDEBUG(max_height);
         BLI_assert_msg(texture_descriptor_.width <= max_width &&
                            texture_descriptor_.height <= max_height,
                        "Atomic fallback support texture is too large.");

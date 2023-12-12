@@ -490,6 +490,7 @@ id<MTLBuffer> MTLStorageBuf::get_metal_buffer()
       /* Fetch metal texture to ensure it has been initialized. */
       id<MTLTexture> tex = texture_->get_metal_handle_base();
       BLI_assert(tex != nil);
+      UNUSED_VARS_NDEBUG(tex);
       source_buffer = texture_->backing_buffer_;
     }
   }
