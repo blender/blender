@@ -88,7 +88,7 @@ class GLShader : public Shader {
   }
 
  private:
-  char *glsl_patch_get(GLenum gl_stage);
+  const char *glsl_patch_get(GLenum gl_stage);
 
   /** Create, compile and attach the shader stage to the shader program. */
   GLuint create_shader_stage(GLenum gl_stage, MutableSpan<const char *> sources);

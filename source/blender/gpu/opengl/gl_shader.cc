@@ -6,6 +6,8 @@
  * \ingroup gpu
  */
 
+#include <iomanip>
+
 #include "BKE_global.h"
 
 #include "BLI_string.h"
@@ -1022,116 +1024,116 @@ bool GLShader::do_geometry_shader_injection(const shader::ShaderCreateInfo *info
 /** \name Shader stage creation
  * \{ */
 
-static char *glsl_patch_default_get()
+static const char *glsl_patch_default_get()
 {
   /** Used for shader patching. Init once. */
-  static char patch[2048] = "\0";
-  if (patch[0] != '\0') {
-    return patch;
+  static std::string patch;
+  if (!patch.empty()) {
+    return patch.c_str();
   }
 
-  size_t slen = 0;
+  std::stringstream ss;
   /* Version need to go first. */
   if (epoxy_gl_version() >= 43) {
-    STR_CONCAT(patch, slen, "#version 430\n");
+    ss << "#version 430\n";
   }
   else {
-    STR_CONCAT(patch, slen, "#version 330\n");
+    ss << "#version 330\n";
   }
 
   /* Enable extensions for features that are not part of our base GLSL version
    * don't use an extension for something already available! */
   if (GLContext::texture_gather_support) {
-    STR_CONCAT(patch, slen, "#extension GL_ARB_texture_gather: enable\n");
+    ss << "#extension GL_ARB_texture_gather: enable\n";
     /* Some drivers don't agree on epoxy_has_gl_extension("GL_ARB_texture_gather") and the actual
      * support in the shader so double check the preprocessor define (see #56544). */
-    STR_CONCAT(patch, slen, "#ifdef GL_ARB_texture_gather\n");
-    STR_CONCAT(patch, slen, "#  define GPU_ARB_texture_gather\n");
-    STR_CONCAT(patch, slen, "#endif\n");
+    ss << "#ifdef GL_ARB_texture_gather\n";
+    ss << "#  define GPU_ARB_texture_gather\n";
+    ss << "#endif\n";
   }
   if (GLContext::shader_draw_parameters_support) {
-    STR_CONCAT(patch, slen, "#extension GL_ARB_shader_draw_parameters : enable\n");
-    STR_CONCAT(patch, slen, "#define GPU_ARB_shader_draw_parameters\n");
-    STR_CONCAT(patch, slen, "#define gpu_BaseInstance gl_BaseInstanceARB\n");
+    ss << "#extension GL_ARB_shader_draw_parameters : enable\n";
+    ss << "#define GPU_ARB_shader_draw_parameters\n";
+    ss << "#define gpu_BaseInstance gl_BaseInstanceARB\n";
   }
   if (GLContext::geometry_shader_invocations) {
-    STR_CONCAT(patch, slen, "#extension GL_ARB_gpu_shader5 : enable\n");
-    STR_CONCAT(patch, slen, "#define GPU_ARB_gpu_shader5\n");
+    ss << "#extension GL_ARB_gpu_shader5 : enable\n";
+    ss << "#define GPU_ARB_gpu_shader5\n";
   }
   if (GLContext::texture_cube_map_array_support) {
-    STR_CONCAT(patch, slen, "#extension GL_ARB_texture_cube_map_array : enable\n");
-    STR_CONCAT(patch, slen, "#define GPU_ARB_texture_cube_map_array\n");
+    ss << "#extension GL_ARB_texture_cube_map_array : enable\n";
+    ss << "#define GPU_ARB_texture_cube_map_array\n";
   }
   if (epoxy_has_gl_extension("GL_ARB_conservative_depth")) {
-    STR_CONCAT(patch, slen, "#extension GL_ARB_conservative_depth : enable\n");
+    ss << "#extension GL_ARB_conservative_depth : enable\n";
   }
   if (GPU_shader_image_load_store_support()) {
-    STR_CONCAT(patch, slen, "#extension GL_ARB_shader_image_load_store: enable\n");
-    STR_CONCAT(patch, slen, "#extension GL_ARB_shading_language_420pack: enable\n");
+    ss << "#extension GL_ARB_shader_image_load_store: enable\n";
+    ss << "#extension GL_ARB_shading_language_420pack: enable\n";
   }
   if (GLContext::layered_rendering_support) {
-    STR_CONCAT(patch, slen, "#extension GL_ARB_shader_viewport_layer_array: enable\n");
-    STR_CONCAT(patch, slen, "#define gpu_Layer gl_Layer\n");
-    STR_CONCAT(patch, slen, "#define gpu_ViewportIndex gl_ViewportIndex\n");
+    ss << "#extension GL_ARB_shader_viewport_layer_array: enable\n";
+    ss << "#define gpu_Layer gl_Layer\n";
+    ss << "#define gpu_ViewportIndex gl_ViewportIndex\n";
   }
   if (GLContext::native_barycentric_support) {
-    STR_CONCAT(patch, slen, "#extension GL_AMD_shader_explicit_vertex_parameter: enable\n");
+    ss << "#extension GL_AMD_shader_explicit_vertex_parameter: enable\n";
   }
   if (GLContext::framebuffer_fetch_support) {
-    STR_CONCAT(patch, slen, "#extension GL_EXT_shader_framebuffer_fetch: enable\n");
+    ss << "#extension GL_EXT_shader_framebuffer_fetch: enable\n";
   }
 
   /* Fallbacks. */
   if (!GLContext::shader_draw_parameters_support) {
-    STR_CONCAT(patch, slen, "uniform int gpu_BaseInstance;\n");
+    ss << "uniform int gpu_BaseInstance;\n";
   }
 
   /* Vulkan GLSL compatibility. */
-  STR_CONCAT(patch, slen, "#define gpu_InstanceIndex (gl_InstanceID + gpu_BaseInstance)\n");
-  STR_CONCAT(patch, slen, "#define gpu_EmitVertex EmitVertex\n");
+  ss << "#define gpu_InstanceIndex (gl_InstanceID + gpu_BaseInstance)\n";
+  ss << "#define gpu_EmitVertex EmitVertex\n";
 
   /* Array compatibility. */
-  STR_CONCAT(patch, slen, "#define gpu_Array(_type) _type[]\n");
+  ss << "#define gpu_Array(_type) _type[]\n";
 
   /* Derivative sign can change depending on implementation. */
-  STR_CONCATF(patch, slen, "#define DFDX_SIGN %1.1f\n", GLContext::derivative_signs[0]);
-  STR_CONCATF(patch, slen, "#define DFDY_SIGN %1.1f\n", GLContext::derivative_signs[1]);
+  ss << "#define DFDX_SIGN " << std::setprecision(2) << GLContext::derivative_signs[0] << "\n";
+  ss << "#define DFDY_SIGN " << std::setprecision(2) << GLContext::derivative_signs[1] << "\n";
 
   /* GLSL Backend Lib. */
-  STR_CONCAT(patch, slen, datatoc_glsl_shader_defines_glsl);
+  ss << datatoc_glsl_shader_defines_glsl;
 
-  BLI_assert(slen < sizeof(patch));
-  return patch;
+  patch = ss.str();
+  return patch.c_str();
 }
 
-static char *glsl_patch_compute_get()
+static const char *glsl_patch_compute_get()
 {
   /** Used for shader patching. Init once. */
-  static char patch[2048] = "\0";
-  if (patch[0] != '\0') {
-    return patch;
+  static std::string patch;
+  if (!patch.empty()) {
+    return patch.c_str();
   }
 
-  size_t slen = 0;
+  std::stringstream ss;
   /* Version need to go first. */
-  STR_CONCAT(patch, slen, "#version 430\n");
-  STR_CONCAT(patch, slen, "#extension GL_ARB_compute_shader :enable\n");
+  ss << "#version 430\n";
+  ss << "#extension GL_ARB_compute_shader :enable\n";
 
   if (GLContext::texture_cube_map_array_support) {
-    STR_CONCAT(patch, slen, "#extension GL_ARB_texture_cube_map_array : enable\n");
-    STR_CONCAT(patch, slen, "#define GPU_ARB_texture_cube_map_array\n");
+    ss << "#extension GL_ARB_texture_cube_map_array : enable\n";
+    ss << "#define GPU_ARB_texture_cube_map_array\n";
   }
 
   /* Array compatibility. */
-  STR_CONCAT(patch, slen, "#define gpu_Array(_type) _type[]\n");
+  ss << "#define gpu_Array(_type) _type[]\n";
 
-  STR_CONCAT(patch, slen, datatoc_glsl_shader_defines_glsl);
+  ss << datatoc_glsl_shader_defines_glsl;
 
-  BLI_assert(slen < sizeof(patch));
-  return patch;
+  patch = ss.str();
+  return patch.c_str();
 }
 
-char *GLShader::glsl_patch_get(GLenum gl_stage)
+const char *GLShader::glsl_patch_get(GLenum gl_stage)
 {
   if (gl_stage == GL_COMPUTE_SHADER) {
     return glsl_patch_compute_get();
