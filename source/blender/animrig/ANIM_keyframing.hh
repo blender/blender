@@ -32,6 +32,9 @@ namespace blender::animrig {
 /** \name Key-Framing Management
  * \{ */
 
+/* Set the FCurve flag based on the property type of `prop`. */
+void update_autoflags_fcurve_direct(FCurve *fcu, PropertyRNA *prop);
+
 /**
  * \brief Main Insert Key-framing API call.
  *

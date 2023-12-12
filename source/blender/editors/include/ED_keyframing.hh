@@ -63,7 +63,6 @@ bAction *ED_id_action_ensure(Main *bmain, ID *id);
  * but also through RNA when editing an ID prop, see #37103).
  */
 void update_autoflags_fcurve(FCurve *fcu, bContext *C, ReportList *reports, PointerRNA *ptr);
-void update_autoflags_fcurve_direct(FCurve *fcu, PropertyRNA *prop);
 
 /* -------- */
 
