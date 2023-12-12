@@ -1,4 +1,5 @@
-/* Copyright Contributors to the OpenVDB Project
+/* SPDX-FileCopyrightText: 2020-2021 Contributors to the OpenVDB Project
+ *
  * SPDX-License-Identifier: MPL-2.0
  *
  * This is an extract from NanoVDB.h, with minimal code needed for kernel side access to grids. The
