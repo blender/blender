@@ -886,8 +886,6 @@ if(WITH_GTESTS)
 
   if(WITH_OPENGL_DRAW_TESTS)
     list(APPEND TEST_SRC
-      tests/gpu_testing.cc
-
       tests/buffer_texture_test.cc
       tests/compute_test.cc
       tests/framebuffer_test.cc
@@ -899,8 +897,7 @@ if(WITH_GTESTS)
       tests/storage_buffer_test.cc
       tests/texture_test.cc
       tests/vertex_buffer_test.cc
-
-      tests/gpu_testing.hh
+      tests/shader_create_info_test.cc
     )
   endif()
 
@@ -911,7 +908,19 @@ if(WITH_GTESTS)
     )
   endif()
 
+  # Enable shader validation on buildbot for Metal
+  if(WITH_METAL_BACKEND AND NOT WITH_OPENGL_DRAW_TESTS)
+    list(APPEND TEST_SRC
+      tests/shader_create_info_test.cc
+    )
+  endif()
+
   if (TEST_SRC)
+    list(APPEND TEST_SRC
+      tests/gpu_testing.cc
+      tests/gpu_testing.hh
+    )
+
     include(GTestTesting)
     blender_add_test_lib(bf_gpu_tests "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}")
   endif()

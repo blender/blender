@@ -29,12 +29,6 @@ namespace blender::gpu::tests {
 
 using namespace blender::gpu::shader;
 
-static void test_shader_compile_statically_defined()
-{
-  EXPECT_TRUE(gpu_shader_create_info_compile(nullptr));
-}
-GPU_TEST(shader_compile_statically_defined)
-
 static void test_shader_compute_2d()
 {
 
