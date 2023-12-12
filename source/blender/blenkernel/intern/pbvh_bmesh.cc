@@ -1965,8 +1965,8 @@ struct FastNodeBuildInfo {
  * to a sub part of the arrays.
  */
 static void pbvh_bmesh_node_limit_ensure_fast(PBVH *pbvh,
-                                              BMFace **nodeinfo,
-                                              Bounds<float3> *face_bounds,
+                                              const blender::MutableSpan<BMFace *> nodeinfo,
+                                              const blender::Span<Bounds<float3>> face_bounds,
                                               FastNodeBuildInfo *node,
                                               MemArena *arena)
 {
@@ -2066,8 +2066,8 @@ static void pbvh_bmesh_node_limit_ensure_fast(PBVH *pbvh,
 }
 
 static void pbvh_bmesh_create_nodes_fast_recursive(PBVH *pbvh,
-                                                   BMFace **nodeinfo,
-                                                   Bounds<float3> *face_bounds,
+                                                   const blender::Span<BMFace *> nodeinfo,
+                                                   const blender::Span<Bounds<float3>> face_bounds,
                                                    FastNodeBuildInfo *node,
                                                    int node_index)
 {
@@ -2177,11 +2177,13 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
 
   BKE_pbvh_update_bmesh_offsets(pbvh, cd_vert_node_offset, cd_face_node_offset);
 
+  if (bm->totface == 0) {
+    return;
+  }
+
   /* bounding box array of all faces, no need to recalculate every time. */
-  Bounds<float3> *face_bounds = static_cast<Bounds<float3> *>(
-      MEM_mallocN(sizeof(Bounds<float3>) * bm->totface, "Bounds<float3>"));
-  BMFace **nodeinfo = static_cast<BMFace **>(
-      MEM_mallocN(sizeof(*nodeinfo) * bm->totface, "nodeinfo"));
+  blender::Array<Bounds<float3>> face_bounds(bm->totface);
+  blender::Array<BMFace *> nodeinfo(bm->totface);
   MemArena *arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "fast PBVH node storage");
 
   BMIter iter;
@@ -2226,8 +2228,6 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
   pbvh_bmesh_create_nodes_fast_recursive(pbvh, nodeinfo, face_bounds, &rootnode, 0);
 
   BLI_memarena_free(arena);
-  MEM_freeN(face_bounds);
-  MEM_freeN(nodeinfo);
 }
 
 bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
