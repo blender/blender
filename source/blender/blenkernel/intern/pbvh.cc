@@ -1780,11 +1780,9 @@ void BKE_pbvh_vert_tag_update_normal(PBVH *pbvh, PBVHVertRef vertex)
   pbvh->vert_bitmap[vertex.i] = true;
 }
 
-void BKE_pbvh_node_get_loops(const PBVHNode *node, const int **r_loop_indices)
+blender::Span<int> BKE_pbvh_node_get_loops(const PBVHNode *node)
 {
-  if (r_loop_indices) {
-    *r_loop_indices = node->loop_indices.data();
-  }
+  return node->loop_indices;
 }
 
 int BKE_pbvh_num_faces(const PBVH *pbvh)
@@ -3132,16 +3130,6 @@ bool BKE_pbvh_draw_cache_invalid(const PBVH *pbvh)
 void BKE_pbvh_is_drawing_set(PBVH *pbvh, bool val)
 {
   pbvh->is_drawing = val;
-}
-
-void BKE_pbvh_node_num_loops(PBVH *pbvh, PBVHNode *node, int *r_totloop)
-{
-  UNUSED_VARS(pbvh);
-  BLI_assert(BKE_pbvh_type(pbvh) == PBVH_FACES);
-
-  if (r_totloop) {
-    *r_totloop = node->loop_indices.size();
-  }
 }
 
 void BKE_pbvh_update_active_vcol(PBVH *pbvh, Mesh *mesh)

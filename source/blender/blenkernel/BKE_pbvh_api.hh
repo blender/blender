@@ -383,7 +383,7 @@ void BKE_pbvh_node_num_verts(const PBVH *pbvh,
 int BKE_pbvh_node_num_unique_verts(const PBVH &pbvh, const PBVHNode &node);
 blender::Span<int> BKE_pbvh_node_get_vert_indices(const PBVHNode *node);
 blender::Span<int> BKE_pbvh_node_get_unique_vert_indices(const PBVHNode *node);
-void BKE_pbvh_node_get_loops(const PBVHNode *node, const int **r_loop_indices);
+blender::Span<int> BKE_pbvh_node_get_loops(const PBVHNode *node);
 
 void BKE_pbvh_node_calc_face_indices(const PBVH &pbvh,
                                      const PBVHNode &node,
@@ -632,9 +632,6 @@ void BKE_pbvh_store_colors_vertex(PBVH *pbvh,
                                   blender::MutableSpan<blender::float4> r_colors);
 
 bool BKE_pbvh_is_drawing(const PBVH *pbvh);
-
-/* Do not call in PBVH_GRIDS mode */
-void BKE_pbvh_node_num_loops(PBVH *pbvh, PBVHNode *node, int *r_totloop);
 
 void BKE_pbvh_update_active_vcol(PBVH *pbvh, Mesh *mesh);
 

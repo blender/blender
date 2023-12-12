@@ -191,15 +191,15 @@ struct Node {
   Array<float3> no;
   Array<float4> col;
   Array<float> mask;
-  int totvert;
 
   Array<float4> loop_col;
   Array<float4> orig_loop_col;
-  int totloop;
 
   /* non-multires */
   int maxvert;      /* to verify if totvert it still the same */
   Array<int> index; /* Unique vertex indices, to restore into right location */
+  int unique_verts_num;
+
   int maxloop;
   Array<int> loop_index;
 

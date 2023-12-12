@@ -439,7 +439,7 @@ static bool restore_coords(bContext *C, Object *ob, Depsgraph *depsgraph, Node &
     }
 
     /* No need for float comparison here (memory is exactly equal or not). */
-    const Span<int> index = unode.index;
+    const Span<int> index = unode.index.as_span().take_front(unode.unique_verts_num);
     MutableSpan<float3> positions = ss->vert_positions;
 
     if (ss->shapekey_active) {
@@ -448,18 +448,18 @@ static bool restore_coords(bContext *C, Object *ob, Depsgraph *depsgraph, Node &
 
       if (!unode.orig_co.is_empty()) {
         if (ss->deform_modifiers_active) {
-          for (int i = 0; i < unode.totvert; i++) {
+          for (const int i : index.index_range()) {
             restore_deformed(ss, unode, i, index[i], vertCos[index[i]]);
           }
         }
         else {
-          for (int i = 0; i < unode.totvert; i++) {
+          for (const int i : index.index_range()) {
             swap_v3_v3(vertCos[index[i]], unode.orig_co[i]);
           }
         }
       }
       else {
-        for (int i = 0; i < unode.totvert; i++) {
+        for (const int i : index.index_range()) {
           swap_v3_v3(vertCos[index[i]], unode.co[i]);
         }
       }
@@ -474,20 +474,20 @@ static bool restore_coords(bContext *C, Object *ob, Depsgraph *depsgraph, Node &
     else {
       if (!unode.orig_co.is_empty()) {
         if (ss->deform_modifiers_active) {
-          for (int i = 0; i < unode.totvert; i++) {
+          for (const int i : index.index_range()) {
             restore_deformed(ss, unode, i, index[i], positions[index[i]]);
             BKE_pbvh_vert_tag_update_normal(ss->pbvh, BKE_pbvh_make_vref(index[i]));
           }
         }
         else {
-          for (int i = 0; i < unode.totvert; i++) {
+          for (const int i : index.index_range()) {
             swap_v3_v3(positions[index[i]], unode.orig_co[i]);
             BKE_pbvh_vert_tag_update_normal(ss->pbvh, BKE_pbvh_make_vref(index[i]));
           }
         }
       }
       else {
-        for (int i = 0; i < unode.totvert; i++) {
+        for (const int i : index.index_range()) {
           swap_v3_v3(positions[index[i]], unode.co[i]);
           BKE_pbvh_vert_tag_update_normal(ss->pbvh, BKE_pbvh_make_vref(index[i]));
         }
@@ -524,7 +524,7 @@ static bool restore_hidden(Object *ob, Node &unode, MutableSpan<bool> modified_v
     bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
     bke::SpanAttributeWriter<bool> hide_vert = attributes.lookup_or_add_for_write_span<bool>(
         ".hide_vert", ATTR_DOMAIN_POINT);
-    for (const int i : unode.index.index_range()) {
+    for (const int i : unode.index.index_range().take_front(unode.unique_verts_num)) {
       const int vert = unode.index[i];
       if (unode.vert_hidden[i].test() != hide_vert.span[vert]) {
         unode.vert_hidden[i].set(!unode.vert_hidden[i].test());
@@ -620,7 +620,7 @@ static bool restore_mask(Object *ob, Node &unode, MutableSpan<bool> modified_ver
     bke::SpanAttributeWriter<float> mask = attributes.lookup_or_add_for_write_span<float>(
         ".sculpt_mask", ATTR_DOMAIN_POINT);
 
-    const Span<int> index = unode.index;
+    const Span<int> index = unode.index.as_span().take_front(unode.unique_verts_num);
 
     for (const int i : index.index_range()) {
       const int vert = index[i];
@@ -1177,28 +1177,27 @@ static Node *alloc_node(Object *ob, PBVHNode *node, Type type)
   Node *unode = alloc_node_type(ob, type);
   unode->node = node;
 
-  int totvert = 0;
-  int allvert = 0;
-  BKE_pbvh_node_num_verts(ss->pbvh, node, &totvert, &allvert);
-
-  Span<int> grids;
   if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
-    grids = BKE_pbvh_node_get_grid_indices(*node);
-  }
+    unode->maxgrid = ss->subdiv_ccg->grids.size();
+    unode->gridsize = ss->subdiv_ccg->grid_size;
 
-  unode->totvert = totvert;
+    unode->grids = BKE_pbvh_node_get_grid_indices(*node);
+    usculpt->undo_size += unode->grids.as_span().size_in_bytes();
+  }
+  else {
+    unode->maxvert = ss->totvert;
+
+    unode->index = BKE_pbvh_node_get_vert_indices(node);
+    unode->unique_verts_num = BKE_pbvh_node_get_unique_vert_indices(node).size();
+    usculpt->undo_size += unode->index.as_span().size_in_bytes();
+  }
 
   bool need_loops = type == Type::Color;
   const bool need_faces = ELEM(type, Type::FaceSet, Type::HideFace);
 
   if (need_loops) {
-    int totloop;
-
-    BKE_pbvh_node_num_loops(ss->pbvh, node, &totloop);
-
-    unode->loop_index.reinitialize(totloop);
-    unode->maxloop = 0;
-    unode->totloop = totloop;
+    unode->loop_index = BKE_pbvh_node_get_loops(node);
+    unode->maxloop = static_cast<Mesh *>(ob->data)->totloop;
 
     usculpt->undo_size += unode->loop_index.as_span().size_in_bytes();
   }
@@ -1210,21 +1209,21 @@ static Node *alloc_node(Object *ob, PBVHNode *node, Type type)
 
   switch (type) {
     case Type::Position: {
-      unode->co.reinitialize(allvert);
+      unode->co.reinitialize(unode->index.size());
       usculpt->undo_size += unode->co.as_span().size_in_bytes();
 
       /* Needed for original data lookup. */
-      unode->no.reinitialize(allvert);
+      unode->no.reinitialize(unode->index.size());
       usculpt->undo_size += unode->no.as_span().size_in_bytes();
       break;
     }
     case Type::HideVert: {
-      if (grids.is_empty()) {
-        unode->vert_hidden.resize(allvert);
-        usculpt->undo_size += BLI_BITMAP_SIZE(allvert);
+      if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
+        usculpt->undo_size += alloc_and_store_hidden(ss, unode);
       }
       else {
-        usculpt->undo_size += alloc_and_store_hidden(ss, unode);
+        unode->vert_hidden.resize(unode->index.size());
+        usculpt->undo_size += BLI_BITMAP_SIZE(unode->index.size());
       }
 
       break;
@@ -1235,19 +1234,19 @@ static Node *alloc_node(Object *ob, PBVHNode *node, Type type)
       break;
     }
     case Type::Mask: {
-      unode->mask.reinitialize(allvert);
+      unode->mask.reinitialize(unode->index.size());
       usculpt->undo_size += unode->mask.as_span().size_in_bytes();
       break;
     }
     case Type::Color: {
       /* Allocate vertex colors, even for loop colors we still
        * need this for original data lookup. */
-      unode->col.reinitialize(allvert);
+      unode->col.reinitialize(unode->index.size());
       usculpt->undo_size += unode->col.as_span().size_in_bytes();
 
       /* Allocate loop colors separately too. */
       if (ss->vcol_domain == ATTR_DOMAIN_CORNER) {
-        unode->loop_col.reinitialize(unode->totloop);
+        unode->loop_col.reinitialize(unode->loop_index.size());
         unode->undo_size += unode->loop_col.as_span().size_in_bytes();
       }
       break;
@@ -1266,23 +1265,8 @@ static Node *alloc_node(Object *ob, PBVHNode *node, Type type)
     }
   }
 
-  if (!grids.is_empty()) {
-    /* Multires. */
-    unode->maxgrid = ss->subdiv_ccg->grids.size();
-    unode->gridsize = ss->subdiv_ccg->grid_size;
-
-    unode->grids.reinitialize(grids.size());
-    usculpt->undo_size += unode->grids.as_span().size_in_bytes();
-  }
-  else {
-    /* Regular mesh. */
-    unode->maxvert = ss->totvert;
-    unode->index.reinitialize(allvert);
-    usculpt->undo_size += unode->index.as_span().size_in_bytes();
-  }
-
   if (ss->deform_modifiers_active) {
-    unode->orig_co.reinitialize(allvert);
+    unode->orig_co.reinitialize(unode->index.size());
     usculpt->undo_size += unode->orig_co.as_span().size_in_bytes();
   }
 
@@ -1408,7 +1392,7 @@ static void store_color(Object *ob, Node *unode)
    * vertex colors for original data lookup. */
   BKE_pbvh_store_colors_vertex(ss->pbvh, unode->index, unode->col);
 
-  if (!unode->loop_col.is_empty() && unode->totloop) {
+  if (!unode->loop_col.is_empty() && !unode->loop_index.is_empty()) {
     BKE_pbvh_store_colors(ss->pbvh, unode->loop_index, unode->loop_col);
   }
 }
@@ -1526,7 +1510,6 @@ static Node *bmesh_push(Object *ob, PBVHNode *node, Type type)
 Node *push_node(Object *ob, PBVHNode *node, Type type)
 {
   SculptSession *ss = ob->sculpt;
-  Node *unode;
 
   /* List is manipulated by multiple threads, so we lock. */
   BLI_thread_lock(LOCK_CUSTOM1);
@@ -1536,47 +1519,25 @@ Node *push_node(Object *ob, PBVHNode *node, Type type)
   if (ss->bm || ELEM(type, Type::DyntopoBegin, Type::DyntopoEnd)) {
     /* Dynamic topology stores only one undo node per stroke,
      * regardless of the number of PBVH nodes modified. */
-    unode = bmesh_push(ob, node, type);
+    Node *unode = bmesh_push(ob, node, type);
     BLI_thread_unlock(LOCK_CUSTOM1);
     return unode;
   }
   if (type == Type::Geometry) {
-    unode = geometry_push(ob, type);
+    Node *unode = geometry_push(ob, type);
     BLI_thread_unlock(LOCK_CUSTOM1);
     return unode;
   }
-  if ((unode = get_node(node, type))) {
+  if (Node *unode = get_node(node, type)) {
     BLI_thread_unlock(LOCK_CUSTOM1);
     return unode;
   }
 
-  unode = alloc_node(ob, node, type);
+  Node *unode = alloc_node(ob, node, type);
 
   /* NOTE: If this ever becomes a bottleneck, make a lock inside of the node.
    * so we release global lock sooner, but keep data locked for until it is
-   * fully initialized.
-   */
-
-  if (!unode->grids.is_empty()) {
-    unode->grids.as_mutable_span().copy_from(BKE_pbvh_node_get_grid_indices(*node));
-  }
-  else {
-    unode->index.as_mutable_span().copy_from(BKE_pbvh_node_get_vert_indices(node));
-
-    if (!unode->loop_index.is_empty()) {
-      const int *loop_indices;
-      int allloop;
-      BKE_pbvh_node_num_loops(ss->pbvh, static_cast<PBVHNode *>(unode->node), &allloop);
-      BKE_pbvh_node_get_loops(static_cast<PBVHNode *>(unode->node), &loop_indices);
-
-      if (allloop) {
-        unode->loop_index.as_mutable_span().copy_from({loop_indices, allloop});
-
-        unode->maxloop = BKE_object_get_original_mesh(ob)->totloop;
-      }
-    }
-  }
-
+   * fully initialized. */
   switch (type) {
     case Type::Position:
       store_coords(ob, unode);
