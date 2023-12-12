@@ -695,6 +695,7 @@ class PipelineModule {
 
   void begin_sync()
   {
+    data.is_probe_reflection = false;
     probe.begin_sync();
     planar.begin_sync();
     deferred.begin_sync();
