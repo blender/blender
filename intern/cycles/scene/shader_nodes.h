@@ -851,6 +851,8 @@ class PrincipledHairBsdfNode : public BsdfBaseNode {
   {
     return ShaderNode::get_feature() | KERNEL_FEATURE_NODE_PRINCIPLED_HAIR;
   }
+
+  bool has_surface_transparent();
 };
 
 class HairBsdfNode : public BsdfNode {

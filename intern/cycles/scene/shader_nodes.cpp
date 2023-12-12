@@ -3372,13 +3372,22 @@ PrincipledHairBsdfNode::PrincipledHairBsdfNode() : BsdfBaseNode(get_node_type())
   closure = CLOSURE_BSDF_HAIR_HUANG_ID;
 }
 
-void PrincipledHairBsdfNode::attributes(Shader *shader, AttributeRequestSet *attributes)
+/* Treat hair as transparent if the hit is outside of the projected width. */
+bool PrincipledHairBsdfNode::has_surface_transparent()
 {
   if (model == NODE_PRINCIPLED_HAIR_HUANG) {
-    /* Make sure we have the normal for elliptical cross section tracking. */
     if (aspect_ratio != 1.0f || input("Aspect Ratio")->link) {
-      attributes->add(ATTR_STD_VERTEX_NORMAL);
+      return true;
     }
+  }
+  return false;
+}
+
+void PrincipledHairBsdfNode::attributes(Shader *shader, AttributeRequestSet *attributes)
+{
+  if (has_surface_transparent()) {
+    /* Make sure we have the normal for elliptical cross section tracking. */
+    attributes->add(ATTR_STD_VERTEX_NORMAL);
   }
 
   if (!input("Random")->link) {
