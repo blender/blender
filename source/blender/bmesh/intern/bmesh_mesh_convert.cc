@@ -212,6 +212,7 @@ static void mesh_attributes_copy_to_bmesh_block(CustomData &data,
 
 void BM_mesh_bm_from_me(BMesh *bm, const Mesh *mesh, const BMeshFromMeshParams *params)
 {
+  using namespace blender;
   if (!mesh) {
     /* Sanity check. */
     return;
@@ -410,26 +411,17 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *mesh, const BMeshFromMeshParams *
                                            CustomData_get_offset(&bm->vdata, CD_SHAPE_KEYINDEX) :
                                            -1;
 
-  const bool *select_vert = (const bool *)CustomData_get_layer_named(
-      &mesh->vert_data, CD_PROP_BOOL, ".select_vert");
-  const bool *select_edge = (const bool *)CustomData_get_layer_named(
-      &mesh->edge_data, CD_PROP_BOOL, ".select_edge");
-  const bool *select_poly = (const bool *)CustomData_get_layer_named(
-      &mesh->face_data, CD_PROP_BOOL, ".select_poly");
-  const bool *hide_vert = (const bool *)CustomData_get_layer_named(
-      &mesh->vert_data, CD_PROP_BOOL, ".hide_vert");
-  const bool *hide_edge = (const bool *)CustomData_get_layer_named(
-      &mesh->edge_data, CD_PROP_BOOL, ".hide_edge");
-  const bool *hide_poly = (const bool *)CustomData_get_layer_named(
-      &mesh->face_data, CD_PROP_BOOL, ".hide_poly");
-  const int *material_indices = (const int *)CustomData_get_layer_named(
-      &mesh->face_data, CD_PROP_INT32, "material_index");
-  const bool *sharp_faces = (const bool *)CustomData_get_layer_named(
-      &mesh->face_data, CD_PROP_BOOL, "sharp_face");
-  const bool *sharp_edges = (const bool *)CustomData_get_layer_named(
-      &mesh->edge_data, CD_PROP_BOOL, "sharp_edge");
-  const bool *uv_seams = (const bool *)CustomData_get_layer_named(
-      &mesh->edge_data, CD_PROP_BOOL, ".uv_seam");
+  const bke::AttributeAccessor attributes = mesh->attributes();
+  const VArraySpan select_vert = *attributes.lookup<bool>(".select_vert", ATTR_DOMAIN_POINT);
+  const VArraySpan select_edge = *attributes.lookup<bool>(".select_edge", ATTR_DOMAIN_EDGE);
+  const VArraySpan select_poly = *attributes.lookup<bool>(".select_poly", ATTR_DOMAIN_FACE);
+  const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", ATTR_DOMAIN_POINT);
+  const VArraySpan hide_edge = *attributes.lookup<bool>(".hide_edge", ATTR_DOMAIN_EDGE);
+  const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", ATTR_DOMAIN_FACE);
+  const VArraySpan material_indices = *attributes.lookup<int>("material_index", ATTR_DOMAIN_FACE);
+  const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", ATTR_DOMAIN_FACE);
+  const VArraySpan sharp_edges = *attributes.lookup<bool>("sharp_edge", ATTR_DOMAIN_EDGE);
+  const VArraySpan uv_seams = *attributes.lookup<bool>(".uv_seam", ATTR_DOMAIN_EDGE);
 
   const Span<float3> positions = mesh->vert_positions();
   Array<BMVert *> vtable(mesh->totvert);
@@ -438,10 +430,10 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *mesh, const BMeshFromMeshParams *
         bm, keyco ? keyco[i] : positions[i], nullptr, BM_CREATE_SKIP_CD);
     BM_elem_index_set(v, i); /* set_ok */
 
-    if (hide_vert && hide_vert[i]) {
+    if (!hide_vert.is_empty() && hide_vert[i]) {
       BM_elem_flag_enable(v, BM_ELEM_HIDDEN);
     }
-    if (select_vert && select_vert[i]) {
+    if (!select_vert.is_empty() && select_vert[i]) {
       BM_vert_select_set(bm, v, true);
     }
 
@@ -476,16 +468,16 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *mesh, const BMeshFromMeshParams *
     BM_elem_index_set(e, i); /* set_ok */
 
     e->head.hflag = 0;
-    if (uv_seams && uv_seams[i]) {
+    if (!uv_seams.is_empty() && uv_seams[i]) {
       BM_elem_flag_enable(e, BM_ELEM_SEAM);
     }
-    if (hide_edge && hide_edge[i]) {
+    if (!hide_edge.is_empty() && hide_edge[i]) {
       BM_elem_flag_enable(e, BM_ELEM_HIDDEN);
     }
-    if (select_edge && select_edge[i]) {
+    if (!select_edge.is_empty() && select_edge[i]) {
       BM_edge_select_set(bm, e, true);
     }
-    if (!(sharp_edges && sharp_edges[i])) {
+    if (!(!sharp_edges.is_empty() && sharp_edges[i])) {
       BM_elem_flag_enable(e, BM_ELEM_SMOOTH);
     }
 
@@ -529,17 +521,17 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *mesh, const BMeshFromMeshParams *
     BM_elem_index_set(f, bm->totface - 1); /* set_ok */
 
     /* Transfer flag. */
-    if (!(sharp_faces && sharp_faces[i])) {
+    if (!(!sharp_faces.is_empty() && sharp_faces[i])) {
       BM_elem_flag_enable(f, BM_ELEM_SMOOTH);
     }
-    if (hide_poly && hide_poly[i]) {
+    if (!hide_poly.is_empty() && hide_poly[i]) {
       BM_elem_flag_enable(f, BM_ELEM_HIDDEN);
     }
-    if (select_poly && select_poly[i]) {
+    if (!select_poly.is_empty() && select_poly[i]) {
       BM_face_select_set(bm, f, true);
     }
 
-    f->mat_nr = material_indices == nullptr ? 0 : material_indices[i];
+    f->mat_nr = material_indices.is_empty() ? 0 : material_indices[i];
     if (i == mesh->act_face) {
       bm->act_face = f;
     }

@@ -60,7 +60,7 @@ static void extract_lnor_iter_face_bm(const MeshRenderData &mr,
 
 static void extract_lnor_iter_face_mesh(const MeshRenderData &mr, const int face_index, void *data)
 {
-  const bool hidden = mr.hide_poly && mr.hide_poly[face_index];
+  const bool hidden = !mr.hide_poly.is_empty() && mr.hide_poly[face_index];
 
   for (const int ml_index : mr.faces[face_index]) {
     const int vert = mr.corner_verts[ml_index];
@@ -69,7 +69,7 @@ static void extract_lnor_iter_face_mesh(const MeshRenderData &mr, const int face
       *lnor_data = GPU_normal_convert_i10_v3(mr.loop_normals[ml_index]);
     }
     else if (mr.normals_domain == bke::MeshNormalDomain::Face ||
-             (mr.sharp_faces && mr.sharp_faces[face_index]))
+             (!mr.sharp_faces.is_empty() && mr.sharp_faces[face_index]))
     {
       *lnor_data = GPU_normal_convert_i10_v3(mr.face_normals[face_index]);
     }
@@ -83,7 +83,7 @@ static void extract_lnor_iter_face_mesh(const MeshRenderData &mr, const int face
     if (hidden || (mr.edit_bmesh && (mr.v_origindex) && mr.v_origindex[vert] == ORIGINDEX_NONE)) {
       lnor_data->w = -1;
     }
-    else if (mr.select_poly && mr.select_poly[face_index]) {
+    else if (!mr.select_poly.is_empty() && mr.select_poly[face_index]) {
       lnor_data->w = 1;
     }
     else {
@@ -183,7 +183,7 @@ static void extract_lnor_hq_iter_face_mesh(const MeshRenderData &mr,
                                            const int face_index,
                                            void *data)
 {
-  const bool hidden = mr.hide_poly && mr.hide_poly[face_index];
+  const bool hidden = !mr.hide_poly.is_empty() && mr.hide_poly[face_index];
 
   for (const int ml_index : mr.faces[face_index]) {
     const int vert = mr.corner_verts[ml_index];
@@ -192,7 +192,7 @@ static void extract_lnor_hq_iter_face_mesh(const MeshRenderData &mr,
       normal_float_to_short_v3(&lnor_data->x, mr.loop_normals[ml_index]);
     }
     else if (mr.normals_domain == bke::MeshNormalDomain::Face ||
-             (mr.sharp_faces && mr.sharp_faces[face_index]))
+             (!mr.sharp_faces.is_empty() && mr.sharp_faces[face_index]))
     {
       normal_float_to_short_v3(&lnor_data->x, mr.face_normals[face_index]);
     }
@@ -206,7 +206,7 @@ static void extract_lnor_hq_iter_face_mesh(const MeshRenderData &mr,
     if (hidden || (mr.edit_bmesh && (mr.v_origindex) && mr.v_origindex[vert] == ORIGINDEX_NONE)) {
       lnor_data->w = -1;
     }
-    else if (mr.select_poly && mr.select_poly[face_index]) {
+    else if (!mr.select_poly.is_empty() && mr.select_poly[face_index]) {
       lnor_data->w = 1;
     }
     else {

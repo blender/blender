@@ -217,8 +217,8 @@ static void extract_edituv_lines_iter_face_mesh(const MeshRenderData &mr,
     mp_select = (efa) ? BM_elem_flag_test_bool(efa, BM_ELEM_SELECT) : false;
   }
   else {
-    mp_hidden = (mr.hide_poly) ? mr.hide_poly[face_index] : false;
-    mp_select = mr.select_poly && mr.select_poly[face_index];
+    mp_hidden = mr.hide_poly.is_empty() ? false : mr.hide_poly[face_index];
+    mp_select = !mr.select_poly.is_empty() && mr.select_poly[face_index];
   }
 
   for (const int ml_index : face) {
@@ -295,8 +295,8 @@ static void extract_edituv_lines_iter_subdiv_mesh(const DRWSubdivCache &subdiv_c
     mp_select = (efa) ? BM_elem_flag_test_bool(efa, BM_ELEM_SELECT) : false;
   }
   else {
-    mp_hidden = (mr.hide_poly) ? mr.hide_poly[coarse_face_index] : false;
-    mp_select = mr.select_poly && mr.select_poly[coarse_face_index];
+    mp_hidden = mr.hide_poly.is_empty() ? false : mr.hide_poly[coarse_face_index];
+    mp_select = !mr.select_poly.is_empty() && mr.select_poly[coarse_face_index];
   }
 
   uint start_loop_idx = subdiv_quad_index * 4;

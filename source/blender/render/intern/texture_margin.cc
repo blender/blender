@@ -13,6 +13,7 @@
 #include "BLI_vector.hh"
 
 #include "BKE_DerivedMesh.hh"
+#include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
@@ -567,15 +568,13 @@ void RE_generate_texturemargin_adjacentfaces(ImBuf *ibuf,
                                              char const *uv_layer,
                                              const float uv_offset[2])
 {
-  const blender::float2 *mloopuv;
-  if ((uv_layer == nullptr) || (uv_layer[0] == '\0')) {
-    mloopuv = static_cast<const blender::float2 *>(
-        CustomData_get_layer(&mesh->loop_data, CD_PROP_FLOAT2));
-  }
-  else {
-    mloopuv = static_cast<const blender::float2 *>(
-        CustomData_get_layer_named(&mesh->loop_data, CD_PROP_FLOAT2, uv_layer));
-  }
+  const blender::StringRef uv_map_name = (uv_layer && uv_layer[0]) ?
+                                             uv_layer :
+                                             CustomData_get_active_layer_name(&mesh->loop_data,
+                                                                              CD_PROP_FLOAT2);
+  const blender::bke::AttributeAccessor attributes = mesh->attributes();
+  const blender::VArraySpan<blender::float2> uv_map = *attributes.lookup<blender::float2>(
+      uv_map_name, ATTR_DOMAIN_CORNER);
 
   blender::render::texturemargin::generate_margin(ibuf,
                                                   mask,
@@ -585,7 +584,7 @@ void RE_generate_texturemargin_adjacentfaces(ImBuf *ibuf,
                                                   mesh->faces(),
                                                   mesh->corner_edges(),
                                                   mesh->corner_verts(),
-                                                  {mloopuv, mesh->totloop},
+                                                  uv_map,
                                                   uv_offset);
 }
 

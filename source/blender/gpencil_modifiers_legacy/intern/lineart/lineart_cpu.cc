@@ -1466,8 +1466,8 @@ static LineartTriangle *lineart_triangle_from_index(LineartData *ld,
 struct EdgeFeatData {
   LineartData *ld;
   Mesh *mesh;
-  Object *ob_eval; /* For evaluated materials. */
-  const int *material_indices;
+  Object *ob_eval;                     /* For evaluated materials. */
+  blender::Span<int> material_indices; /* May be empty. */
   blender::Span<blender::int2> edges;
   blender::Span<int> corner_verts;
   blender::Span<int> corner_edges;
@@ -1506,11 +1506,11 @@ static void lineart_identify_mlooptri_feature_edges(void *__restrict userdata,
   EdgeFeatData *e_feat_data = (EdgeFeatData *)userdata;
   EdgeFeatReduceData *reduce_data = (EdgeFeatReduceData *)tls->userdata_chunk;
   Mesh *mesh = e_feat_data->mesh;
-  const int *material_indices = e_feat_data->material_indices;
   Object *ob_eval = e_feat_data->ob_eval;
   LineartEdgeNeighbor *edge_nabr = e_feat_data->edge_nabr;
   const blender::Span<MLoopTri> looptris = e_feat_data->looptris;
   const blender::Span<int> looptri_faces = e_feat_data->looptri_faces;
+  const blender::Span<int> material_indices = e_feat_data->material_indices;
 
   uint16_t edge_flag_result = 0;
 
@@ -1656,8 +1656,8 @@ static void lineart_identify_mlooptri_feature_edges(void *__restrict userdata,
       }
     }
 
-    int mat1 = material_indices ? material_indices[looptri_faces[f1]] : 0;
-    int mat2 = material_indices ? material_indices[looptri_faces[f2]] : 0;
+    int mat1 = material_indices.is_empty() ? 0 : material_indices[looptri_faces[f1]];
+    int mat2 = material_indices.is_empty() ? 0 : material_indices[looptri_faces[f2]];
 
     if (mat1 != mat2) {
       Material *m1 = BKE_object_material_get_eval(ob_eval, mat1 + 1);
@@ -1791,7 +1791,7 @@ struct TriData {
   blender::Span<int> corner_verts;
   blender::Span<MLoopTri> looptris;
   blender::Span<int> looptri_faces;
-  const int *material_indices;
+  blender::Span<int> material_indices;
   LineartVert *vert_arr;
   LineartTriangle *tri_arr;
   int lineart_triangle_size;
@@ -1808,7 +1808,8 @@ static void lineart_load_tri_task(void *__restrict userdata,
   const blender::Span<int> corner_verts = tri_task_data->corner_verts;
   const MLoopTri *looptri = &tri_task_data->looptris[i];
   const int face_i = tri_task_data->looptri_faces[i];
-  const int *material_indices = tri_task_data->material_indices;
+  const blender::Span<int> material_indices = tri_task_data->material_indices;
+
   LineartVert *vert_arr = tri_task_data->vert_arr;
   LineartTriangle *tri = tri_task_data->tri_arr;
 
@@ -1823,8 +1824,8 @@ static void lineart_load_tri_task(void *__restrict userdata,
   tri->v[2] = &vert_arr[v3];
 
   /* Material mask bits and occlusion effectiveness assignment. */
-  Material *mat = BKE_object_material_get(ob_info->original_ob_eval,
-                                          material_indices ? material_indices[face_i] + 1 : 1);
+  Material *mat = BKE_object_material_get(
+      ob_info->original_ob_eval, material_indices.is_empty() ? 1 : material_indices[face_i] + 1);
   tri->material_mask_bits |= ((mat && (mat->lineart.flags & LRT_MATERIAL_MASK_ENABLED)) ?
                                   mat->lineart.material_mask_bits :
                                   0);
@@ -1958,10 +1959,9 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
   }
 
   /* Triangulate. */
-  const blender::Span<MLoopTri> looptris = mesh->looptris();
-
-  const int *material_indices = (const int *)CustomData_get_layer_named(
-      &mesh->face_data, CD_PROP_INT32, "material_index");
+  const Span<MLoopTri> looptris = mesh->looptris();
+  const bke::AttributeAccessor attributes = mesh->attributes();
+  const VArraySpan material_indices = *attributes.lookup<int>("material_index", ATTR_DOMAIN_FACE);
 
   /* Check if we should look for custom data tags like Freestyle edges or faces. */
   bool can_find_freestyle_edge = false;
@@ -2090,7 +2090,6 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
   edge_feat_settings.userdata_chunk_size = sizeof(EdgeFeatReduceData);
   edge_feat_settings.func_reduce = feat_data_sum_reduce;
 
-  const bke::AttributeAccessor attributes = mesh->attributes();
   const VArray<bool> sharp_edges = *attributes.lookup_or_default<bool>(
       "sharp_edge", ATTR_DOMAIN_EDGE, false);
   const VArray<bool> sharp_faces = *attributes.lookup_or_default<bool>(

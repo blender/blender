@@ -51,7 +51,7 @@ void BKE_mesh_calc_loop_tangent_ex(const float (*vert_positions)[3],
                                    const MLoopTri *looptri,
                                    const int *looptri_faces,
                                    uint looptri_len,
-                                   const bool *sharp_faces,
+                                   const blender::Span<bool> sharp_faces,
 
                                    CustomData *loopdata,
                                    bool calc_active_tangent,

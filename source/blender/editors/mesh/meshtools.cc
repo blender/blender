@@ -1302,7 +1302,7 @@ bool ED_mesh_pick_face_vert(
  * \return boolean true == Found
  */
 struct VertPickData {
-  const bool *hide_vert;
+  blender::VArraySpan<bool> hide_vert;
   const float *mval_f; /* [2] */
   ARegion *region;
 
@@ -1317,7 +1317,7 @@ static void ed_mesh_pick_vert__mapFunc(void *user_data,
                                        const float /*no*/[3])
 {
   VertPickData *data = static_cast<VertPickData *>(user_data);
-  if (data->hide_vert && data->hide_vert[index]) {
+  if (!data->hide_vert.is_empty() && data->hide_vert[index]) {
     return;
   }
   float sco[2];
@@ -1334,6 +1334,7 @@ static void ed_mesh_pick_vert__mapFunc(void *user_data,
 bool ED_mesh_pick_vert(
     bContext *C, Object *ob, const int mval[2], uint dist_px, bool use_zbuf, uint *r_index)
 {
+  using namespace blender;
   Mesh *mesh = static_cast<Mesh *>(ob->data);
 
   BLI_assert(mesh && GS(mesh->id.name) == ID_ME);
@@ -1381,13 +1382,14 @@ bool ED_mesh_pick_vert(
       return false;
     }
 
+    const bke::AttributeAccessor attributes = mesh->attributes();
+
     /* setup data */
     data.region = region;
     data.mval_f = mval_f;
     data.len_best = FLT_MAX;
     data.v_idx_best = -1;
-    data.hide_vert = (const bool *)CustomData_get_layer_named(
-        &me_eval->vert_data, CD_PROP_BOOL, ".hide_vert");
+    data.hide_vert = *attributes.lookup<bool>(".hide_vert", ATTR_DOMAIN_POINT);
 
     BKE_mesh_foreach_mapped_vert(me_eval, ed_mesh_pick_vert__mapFunc, &data, MESH_FOREACH_NOP);
 

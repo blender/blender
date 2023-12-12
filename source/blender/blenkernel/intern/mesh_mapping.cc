@@ -663,14 +663,14 @@ static void face_edge_loop_islands_calc(const int totedge,
 int *BKE_mesh_calc_smoothgroups(int edges_num,
                                 const blender::OffsetIndices<int> faces,
                                 const blender::Span<int> corner_edges,
-                                const bool *sharp_edges,
-                                const bool *sharp_faces,
+                                const blender::Span<bool> sharp_edges,
+                                const blender::Span<bool> sharp_faces,
                                 int *r_totgroup,
                                 bool use_bitflags)
 {
   int *face_groups = nullptr;
 
-  auto face_is_smooth = [&](const int i) { return !(sharp_faces && sharp_faces[i]); };
+  auto face_is_smooth = [&](const int i) { return sharp_faces.is_empty() || !sharp_faces[i]; };
 
   auto face_is_island_boundary_smooth = [&](const int face_index,
                                             const int /*loop_index*/,
@@ -679,7 +679,7 @@ int *BKE_mesh_calc_smoothgroups(int edges_num,
                                             const blender::Span<int> edge_face_map_elem) {
     /* Edge is sharp if one of its faces is flat, or edge itself is sharp,
      * or edge is not used by exactly two faces. */
-    if (face_is_smooth(face_index) && !(sharp_edges && sharp_edges[edge_index]) &&
+    if (face_is_smooth(face_index) && !(!sharp_edges.is_empty() && sharp_edges[edge_index]) &&
         (edge_user_count == 2))
     {
       /* In that case, edge appears to be smooth, but we need to check its other face too. */

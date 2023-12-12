@@ -1069,8 +1069,7 @@ void BKE_mesh_sharp_edges_set_from_angle(Mesh *mesh, const float angle)
   }
   bke::SpanAttributeWriter<bool> sharp_edges = attributes.lookup_or_add_for_write_span<bool>(
       "sharp_edge", ATTR_DOMAIN_EDGE);
-  const bool *sharp_faces = static_cast<const bool *>(
-      CustomData_get_layer_named(&mesh->face_data, CD_PROP_BOOL, "sharp_face"));
+  const VArraySpan<bool> sharp_faces = *attributes.lookup<bool>("sharp_face", ATTR_DOMAIN_FACE);
   bke::mesh::edges_sharp_from_angle_set(mesh->faces(),
                                         mesh->corner_verts(),
                                         mesh->corner_edges(),

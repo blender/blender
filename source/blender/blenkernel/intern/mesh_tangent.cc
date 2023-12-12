@@ -237,7 +237,7 @@ struct SGLSLMeshToTangent {
     if (precomputedLoopNormals) {
       return mikk::float3(precomputedLoopNormals[loop_index]);
     }
-    if (sharp_faces && sharp_faces[face_index]) { /* flat */
+    if (!sharp_faces.is_empty() && sharp_faces[face_index]) { /* flat */
       if (precomputedFaceNormals) {
         return mikk::float3(precomputedFaceNormals[face_index]);
       }
@@ -284,7 +284,7 @@ struct SGLSLMeshToTangent {
   const float (*vert_normals)[3];
   const float (*orco)[3];
   float (*tangent)[4]; /* destination */
-  const bool *sharp_faces;
+  blender::Span<bool> sharp_faces;
   int numTessFaces;
 
 #ifdef USE_LOOPTRI_DETECT_QUADS
@@ -397,7 +397,7 @@ void BKE_mesh_calc_loop_tangent_ex(const float (*vert_positions)[3],
                                    const MLoopTri *looptri,
                                    const int *looptri_faces,
                                    const uint looptri_len,
-                                   const bool *sharp_faces,
+                                   const blender::Span<bool> sharp_faces,
 
                                    CustomData *loopdata,
                                    bool calc_active_tangent,
@@ -581,7 +581,11 @@ void BKE_mesh_calc_loop_tangents(Mesh *me_eval,
                                  int tangent_names_len)
 {
   /* TODO(@ideasman42): store in Mesh.runtime to avoid recalculation. */
+  using namespace blender;
+  using namespace blender::bke;
   const blender::Span<MLoopTri> looptris = me_eval->looptris();
+  const bke::AttributeAccessor attributes = me_eval->attributes();
+  const VArraySpan sharp_face = *attributes.lookup<bool>("sharp_face", ATTR_DOMAIN_FACE);
   short tangent_mask = 0;
   BKE_mesh_calc_loop_tangent_ex(
       reinterpret_cast<const float(*)[3]>(me_eval->vert_positions().data()),
@@ -590,8 +594,7 @@ void BKE_mesh_calc_loop_tangents(Mesh *me_eval,
       looptris.data(),
       me_eval->looptri_faces().data(),
       uint(looptris.size()),
-      static_cast<const bool *>(
-          CustomData_get_layer_named(&me_eval->face_data, CD_PROP_BOOL, "sharp_face")),
+      sharp_face,
       &me_eval->loop_data,
       calc_active_tangent,
       tangent_names,

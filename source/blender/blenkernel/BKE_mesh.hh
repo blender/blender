@@ -155,6 +155,8 @@ short2 lnor_space_custom_normal_to_data(const CornerNormalSpace &lnor_space,
  *
  * \param sharp_edges: Optional array of sharp edge tags, used to split the evaluated normals on
  * each side of the edge.
+ * \param sharp_faces: Optional array of sharp face tags, used to split the evaluated normals on
+ * the face's edges.
  * \param r_lnors_spacearr: Optional return data filled with information about the custom
  * normals spaces for each grouped fan of face corners.
  */
@@ -166,12 +168,15 @@ void normals_calc_loop(Span<float3> vert_positions,
                        Span<int> loop_to_face_map,
                        Span<float3> vert_normals,
                        Span<float3> face_normals,
-                       const bool *sharp_edges,
-                       const bool *sharp_faces,
+                       Span<bool> sharp_edges,
+                       Span<bool> sharp_faces,
                        const short2 *clnors_data,
                        CornerNormalSpaceArray *r_lnors_spacearr,
                        MutableSpan<float3> r_loop_normals);
 
+/**
+ * \param sharp_faces: Optional array used to mark specific faces for sharp shading.
+ */
 void normals_loop_custom_set(Span<float3> vert_positions,
                              Span<int2> edges,
                              OffsetIndices<int> faces,
@@ -179,11 +184,14 @@ void normals_loop_custom_set(Span<float3> vert_positions,
                              Span<int> corner_edges,
                              Span<float3> vert_normals,
                              Span<float3> face_normals,
-                             const bool *sharp_faces,
+                             Span<bool> sharp_faces,
                              MutableSpan<bool> sharp_edges,
                              MutableSpan<float3> r_custom_loop_normals,
                              MutableSpan<short2> r_clnors_data);
 
+/**
+ * \param sharp_faces: Optional array used to mark specific faces for sharp shading.
+ */
 void normals_loop_custom_set_from_verts(Span<float3> vert_positions,
                                         Span<int2> edges,
                                         OffsetIndices<int> faces,
@@ -191,7 +199,7 @@ void normals_loop_custom_set_from_verts(Span<float3> vert_positions,
                                         Span<int> corner_edges,
                                         Span<float3> vert_normals,
                                         Span<float3> face_normals,
-                                        const bool *sharp_faces,
+                                        Span<bool> sharp_faces,
                                         MutableSpan<bool> sharp_edges,
                                         MutableSpan<float3> r_custom_vert_normals,
                                         MutableSpan<short2> r_clnors_data);
@@ -209,7 +217,7 @@ void edges_sharp_from_angle_set(OffsetIndices<int> faces,
                                 Span<int> corner_edges,
                                 Span<float3> face_normals,
                                 Span<int> loop_to_face,
-                                const bool *sharp_faces,
+                                Span<bool> sharp_faces,
                                 const float split_angle,
                                 MutableSpan<bool> sharp_edges);
 

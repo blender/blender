@@ -22,6 +22,7 @@
 #include "BKE_DerivedMesh.hh"
 #include "BKE_action.h"
 #include "BKE_armature.hh"
+#include "BKE_attribute.hh"
 #include "BKE_curve.hh"
 #include "BKE_displist.h"
 #include "BKE_editmesh.hh"
@@ -213,7 +214,7 @@ struct foreachScreenObjectVert_userData {
   void (*func)(void *user_data, const float screen_co[2], int index);
   void *user_data;
   ViewContext vc;
-  const bool *hide_vert;
+  blender::VArraySpan<bool> hide_vert;
   eV3DProjTest clip_flag;
 };
 
@@ -272,7 +273,7 @@ static void meshobject_foreachScreenVert__mapFunc(void *user_data,
 {
   foreachScreenObjectVert_userData *data = static_cast<foreachScreenObjectVert_userData *>(
       user_data);
-  if (data->hide_vert && data->hide_vert[index]) {
+  if (!data->hide_vert.is_empty() && data->hide_vert[index]) {
     return;
   }
 
@@ -299,6 +300,7 @@ void meshobject_foreachScreenVert(ViewContext *vc,
 
   const Object *ob_eval = DEG_get_evaluated_object(vc->depsgraph, vc->obact);
   const Mesh *mesh = BKE_object_get_evaluated_mesh(ob_eval);
+  const blender::bke::AttributeAccessor attributes = mesh->attributes();
 
   ED_view3d_check_mats_rv3d(vc->rv3d);
 
@@ -306,8 +308,7 @@ void meshobject_foreachScreenVert(ViewContext *vc,
   data.func = func;
   data.user_data = user_data;
   data.clip_flag = clip_flag;
-  data.hide_vert = (const bool *)CustomData_get_layer_named(
-      &mesh->vert_data, CD_PROP_BOOL, ".hide_vert");
+  data.hide_vert = *attributes.lookup<bool>(".hide_vert", ATTR_DOMAIN_POINT);
 
   if (clip_flag & V3D_PROJ_TEST_CLIP_BB) {
     ED_view3d_clipping_local(vc->rv3d, vc->obact->object_to_world);

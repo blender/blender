@@ -191,9 +191,9 @@ static void accumululate_material_counts_mesh(
     const MeshRenderData &mr, threading::EnumerableThreadSpecific<Array<int>> &all_tri_counts)
 {
   const OffsetIndices faces = mr.faces;
-  if (!mr.material_indices) {
-    if (mr.use_hide && mr.hide_poly) {
-      const Span hide_poly(mr.hide_poly, mr.face_len);
+  if (mr.material_indices.is_empty()) {
+    if (mr.use_hide && !mr.hide_poly.is_empty()) {
+      const Span hide_poly = mr.hide_poly;
       all_tri_counts.local().first() = threading::parallel_reduce(
           faces.index_range(),
           4096,
@@ -214,11 +214,11 @@ static void accumululate_material_counts_mesh(
     return;
   }
 
-  const Span material_indices(mr.material_indices, mr.face_len);
+  const Span material_indices = mr.material_indices;
   threading::parallel_for(material_indices.index_range(), 1024, [&](const IndexRange range) {
     Array<int> &tri_counts = all_tri_counts.local();
     const int last_index = tri_counts.size() - 1;
-    if (mr.use_hide && mr.hide_poly) {
+    if (mr.use_hide && !mr.hide_poly.is_empty()) {
       for (const int i : range) {
         if (!mr.hide_poly[i]) {
           const int mat = std::clamp(material_indices[i], 0, last_index);
@@ -297,8 +297,10 @@ static void mesh_render_data_faces_sorted_build(MeshRenderData &mr, MeshBufferCa
   }
   else {
     for (int i = 0; i < mr.face_len; i++) {
-      if (!(mr.use_hide && mr.hide_poly && mr.hide_poly[i])) {
-        const int mat = mr.material_indices ? clamp_i(mr.material_indices[i], 0, mat_last) : 0;
+      if (!(mr.use_hide && !mr.hide_poly.is_empty() && mr.hide_poly[i])) {
+        const int mat = mr.material_indices.is_empty() ?
+                            0 :
+                            clamp_i(mr.material_indices[i], 0, mat_last);
         tri_first_index[i] = mat_tri_offs[mat];
         mat_tri_offs[mat] += mr.faces[i].size() - 2;
       }
@@ -476,6 +478,7 @@ MeshRenderData *mesh_render_data_create(Object *object,
                                         const bool do_uvedit,
                                         const ToolSettings *ts)
 {
+  using namespace blender;
   MeshRenderData *mr = MEM_new<MeshRenderData>(__func__);
   mr->toolsettings = ts;
   mr->mat_len = mesh_render_mat_len_get(object, mesh);
@@ -599,25 +602,19 @@ MeshRenderData *mesh_render_data_create(Object *object,
     mr->p_origindex = static_cast<const int *>(
         CustomData_get_layer(&mr->mesh->face_data, CD_ORIGINDEX));
 
-    mr->material_indices = static_cast<const int *>(
-        CustomData_get_layer_named(&mr->mesh->face_data, CD_PROP_INT32, "material_index"));
+    const bke::AttributeAccessor attributes = mr->mesh->attributes();
 
-    mr->hide_vert = static_cast<const bool *>(
-        CustomData_get_layer_named(&mr->mesh->vert_data, CD_PROP_BOOL, ".hide_vert"));
-    mr->hide_edge = static_cast<const bool *>(
-        CustomData_get_layer_named(&mr->mesh->edge_data, CD_PROP_BOOL, ".hide_edge"));
-    mr->hide_poly = static_cast<const bool *>(
-        CustomData_get_layer_named(&mr->mesh->face_data, CD_PROP_BOOL, ".hide_poly"));
+    mr->material_indices = *attributes.lookup<int>("material_index", ATTR_DOMAIN_FACE);
 
-    mr->select_vert = static_cast<const bool *>(
-        CustomData_get_layer_named(&mr->mesh->vert_data, CD_PROP_BOOL, ".select_vert"));
-    mr->select_edge = static_cast<const bool *>(
-        CustomData_get_layer_named(&mr->mesh->edge_data, CD_PROP_BOOL, ".select_edge"));
-    mr->select_poly = static_cast<const bool *>(
-        CustomData_get_layer_named(&mr->mesh->face_data, CD_PROP_BOOL, ".select_poly"));
+    mr->hide_vert = *attributes.lookup<bool>(".hide_vert", ATTR_DOMAIN_POINT);
+    mr->hide_edge = *attributes.lookup<bool>(".hide_edge", ATTR_DOMAIN_EDGE);
+    mr->hide_poly = *attributes.lookup<bool>(".hide_poly", ATTR_DOMAIN_FACE);
 
-    mr->sharp_faces = static_cast<const bool *>(
-        CustomData_get_layer_named(&mr->mesh->face_data, CD_PROP_BOOL, "sharp_face"));
+    mr->select_vert = *attributes.lookup<bool>(".select_vert", ATTR_DOMAIN_POINT);
+    mr->select_edge = *attributes.lookup<bool>(".select_edge", ATTR_DOMAIN_EDGE);
+    mr->select_poly = *attributes.lookup<bool>(".select_poly", ATTR_DOMAIN_FACE);
+
+    mr->sharp_faces = *attributes.lookup<bool>("sharp_face", ATTR_DOMAIN_FACE);
   }
   else {
     /* #BMesh */

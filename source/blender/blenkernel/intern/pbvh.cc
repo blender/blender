@@ -149,17 +149,17 @@ static void update_node_vb(PBVH *pbvh, PBVHNode *node)
   }
 }
 
-static bool face_materials_match(const int *material_indices,
-                                 const bool *sharp_faces,
+static bool face_materials_match(const Span<int> material_indices,
+                                 const Span<bool> sharp_faces,
                                  const int a,
                                  const int b)
 {
-  if (material_indices) {
+  if (!material_indices.is_empty()) {
     if (material_indices[a] != material_indices[b]) {
       return false;
     }
   }
-  if (sharp_faces) {
+  if (!sharp_faces.is_empty()) {
     if (sharp_faces[a] != sharp_faces[b]) {
       return false;
     }
@@ -204,8 +204,8 @@ static int partition_prim_indices(blender::MutableSpan<int> prim_indices,
 /* Returns the index of the first element on the right of the partition */
 static int partition_indices_material_faces(MutableSpan<int> indices,
                                             const Span<int> prim_to_face_map,
-                                            const int *material_indices,
-                                            const bool *sharp_faces,
+                                            const Span<int> material_indices,
+                                            const Span<bool> sharp_faces,
                                             const int lo,
                                             const int hi)
 {
@@ -264,7 +264,7 @@ static int map_insert_vert(blender::Map<int, int> &map,
 static void build_mesh_leaf_node(const Span<int> corner_verts,
                                  const Span<MLoopTri> looptris,
                                  const Span<int> looptri_faces,
-                                 const bool *hide_poly,
+                                 const Span<bool> hide_poly,
                                  MutableSpan<bool> vert_bitmap,
                                  PBVHNode *node)
 {
@@ -305,11 +305,11 @@ static void build_mesh_leaf_node(const Span<int> corner_verts,
     }
   }
 
-  const bool fully_hidden = hide_poly && std::all_of(prim_indices.begin(),
-                                                     prim_indices.end(),
-                                                     [&](const int tri) {
-                                                       return hide_poly[looptri_faces[tri]];
-                                                     });
+  const bool fully_hidden = !hide_poly.is_empty() &&
+                            std::all_of(
+                                prim_indices.begin(), prim_indices.end(), [&](const int tri) {
+                                  return hide_poly[looptri_faces[tri]];
+                                });
   BKE_pbvh_node_fully_hidden_set(node, fully_hidden);
   BKE_pbvh_node_mark_rebuild_draw(node);
 }
@@ -378,7 +378,7 @@ static void build_leaf(PBVH *pbvh,
                        const Span<int> corner_verts,
                        const Span<MLoopTri> looptris,
                        const Span<int> looptri_faces,
-                       const bool *hide_poly,
+                       const Span<bool> hide_poly,
                        int node_index,
                        const Span<Bounds<float3>> prim_bounds,
                        int offset,
@@ -405,8 +405,8 @@ static void build_leaf(PBVH *pbvh,
  * same material (including flat/smooth shading), non-zero otherwise */
 static bool leaf_needs_material_split(PBVH *pbvh,
                                       const Span<int> prim_to_face_map,
-                                      const int *material_indices,
-                                      const bool *sharp_faces,
+                                      const Span<int> material_indices,
+                                      const Span<bool> sharp_faces,
                                       int offset,
                                       int count)
 {
@@ -488,9 +488,9 @@ static void build_sub(PBVH *pbvh,
                       const Span<int> corner_verts,
                       const Span<MLoopTri> looptris,
                       const Span<int> looptri_faces,
-                      const bool *hide_poly,
-                      const int *material_indices,
-                      const bool *sharp_faces,
+                      const Span<bool> hide_poly,
+                      const Span<int> material_indices,
+                      const Span<bool> sharp_faces,
                       int node_index,
                       const Bounds<float3> *cb,
                       const Span<Bounds<float3>> prim_bounds,
@@ -613,9 +613,9 @@ static void pbvh_build(PBVH *pbvh,
                        const Span<int> corner_verts,
                        const Span<MLoopTri> looptris,
                        const Span<int> looptri_faces,
-                       const bool *hide_poly,
-                       const int *material_indices,
-                       const bool *sharp_faces,
+                       const Span<bool> hide_poly,
+                       const Span<int> material_indices,
+                       const Span<bool> sharp_faces,
                        const Bounds<float3> *cb,
                        const Span<Bounds<float3>> prim_bounds,
                        int totprim)
@@ -731,6 +731,7 @@ void BKE_pbvh_update_mesh_pointers(PBVH *pbvh, Mesh *mesh)
 void BKE_pbvh_build_mesh(PBVH *pbvh, Mesh *mesh)
 {
   using namespace blender;
+  using namespace blender::bke;
   const int totvert = mesh->totvert;
   const int looptri_num = poly_to_tri_count(mesh->faces_num, mesh->totloop);
   MutableSpan<float3> vert_positions = mesh->vert_positions_for_write();
@@ -784,19 +785,17 @@ void BKE_pbvh_build_mesh(PBVH *pbvh, Mesh *mesh)
       [](const Bounds<float3> &a, const Bounds<float3> &b) { return bounds::merge(a, b); });
 
   if (looptri_num) {
-    const bool *hide_poly = static_cast<const bool *>(
-        CustomData_get_layer_named(&mesh->face_data, CD_PROP_BOOL, ".hide_poly"));
-    const int *material_indices = static_cast<const int *>(
-        CustomData_get_layer_named(&mesh->face_data, CD_PROP_INT32, "material_index"));
-    const bool *sharp_faces = (const bool *)CustomData_get_layer_named(
-        &mesh->face_data, CD_PROP_BOOL, "sharp_face");
+    const AttributeAccessor attributes = mesh->attributes();
+    const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", ATTR_DOMAIN_FACE);
+    const VArraySpan material_index = *attributes.lookup<int>("material_index", ATTR_DOMAIN_FACE);
+    const VArraySpan sharp_face = *attributes.lookup<bool>("sharp_face", ATTR_DOMAIN_FACE);
     pbvh_build(pbvh,
                corner_verts,
                looptris,
                looptri_faces,
                hide_poly,
-               material_indices,
-               sharp_faces,
+               material_index,
+               sharp_face,
                &cb,
                prim_bounds,
                looptri_num);
@@ -819,6 +818,7 @@ void BKE_pbvh_build_mesh(PBVH *pbvh, Mesh *mesh)
 void BKE_pbvh_build_grids(PBVH *pbvh, const CCGKey *key, Mesh *mesh, SubdivCCG *subdiv_ccg)
 {
   using namespace blender;
+  using namespace blender::bke;
   const int gridsize = key->grid_size;
   const Span<CCGElem *> grids = subdiv_ccg->grids;
 
@@ -866,12 +866,10 @@ void BKE_pbvh_build_grids(PBVH *pbvh, const CCGKey *key, Mesh *mesh, SubdivCCG *
       [](const Bounds<float3> &a, const Bounds<float3> &b) { return bounds::merge(a, b); });
 
   if (!grids.is_empty()) {
-    const int *material_indices = static_cast<const int *>(
-        CustomData_get_layer_named(&mesh->face_data, CD_PROP_INT32, "material_index"));
-    const bool *sharp_faces = (const bool *)CustomData_get_layer_named(
-        &mesh->face_data, CD_PROP_BOOL, "sharp_face");
-    pbvh_build(
-        pbvh, {}, {}, {}, nullptr, material_indices, sharp_faces, &cb, prim_bounds, grids.size());
+    const AttributeAccessor attributes = mesh->attributes();
+    const VArraySpan material_index = *attributes.lookup<int>("material_index", ATTR_DOMAIN_FACE);
+    const VArraySpan sharp_face = *attributes.lookup<bool>("sharp_face", ATTR_DOMAIN_FACE);
+    pbvh_build(pbvh, {}, {}, {}, {}, material_index, sharp_face, &cb, prim_bounds, grids.size());
 
 #ifdef TEST_PBVH_FACE_SPLIT
     test_face_boundaries(pbvh);
@@ -2060,7 +2058,7 @@ static bool pbvh_faces_node_raycast(PBVH *pbvh,
                                     const PBVHNode *node,
                                     float (*origco)[3],
                                     const Span<int> corner_verts,
-                                    const bool *hide_poly,
+                                    const Span<bool> hide_poly,
                                     const float ray_start[3],
                                     const float ray_normal[3],
                                     IsectRayPrecalc *isect_precalc,
@@ -2078,7 +2076,7 @@ static bool pbvh_faces_node_raycast(PBVH *pbvh,
     const MLoopTri *lt = &pbvh->looptri[looptri_i];
     const blender::int3 face_verts = node->face_vert_indices[i];
 
-    if (hide_poly && hide_poly[pbvh->looptri_faces[looptri_i]]) {
+    if (!hide_poly.is_empty() && hide_poly[pbvh->looptri_faces[looptri_i]]) {
       continue;
     }
 
@@ -2221,7 +2219,7 @@ bool BKE_pbvh_node_raycast(PBVH *pbvh,
                            float (*origco)[3],
                            bool use_origco,
                            const Span<int> corner_verts,
-                           const bool *hide_poly,
+                           const Span<bool> hide_poly,
                            const float ray_start[3],
                            const float ray_normal[3],
                            IsectRayPrecalc *isect_precalc,
@@ -2415,7 +2413,7 @@ static bool pbvh_faces_node_nearest_to_ray(PBVH *pbvh,
                                            const PBVHNode *node,
                                            float (*origco)[3],
                                            const Span<int> corner_verts,
-                                           const bool *hide_poly,
+                                           const Span<bool> hide_poly,
                                            const float ray_start[3],
                                            const float ray_normal[3],
                                            float *depth,
@@ -2429,7 +2427,7 @@ static bool pbvh_faces_node_nearest_to_ray(PBVH *pbvh,
     const MLoopTri *lt = &pbvh->looptri[looptri_i];
     const blender::int3 face_verts = node->face_vert_indices[i];
 
-    if (hide_poly && hide_poly[pbvh->looptri_faces[looptri_i]]) {
+    if (!hide_poly.is_empty() && hide_poly[pbvh->looptri_faces[looptri_i]]) {
       continue;
     }
 
@@ -2523,7 +2521,7 @@ bool BKE_pbvh_node_find_nearest_to_ray(PBVH *pbvh,
                                        float (*origco)[3],
                                        bool use_origco,
                                        const Span<int> corner_verts,
-                                       const bool *hide_poly,
+                                       const Span<bool> hide_poly,
                                        const float ray_start[3],
                                        const float ray_normal[3],
                                        float *depth,
@@ -2659,8 +2657,7 @@ static blender::draw::pbvh::PBVH_GPU_Args pbvh_draw_args_init(const Mesh &mesh,
       args.face_normals = pbvh.face_normals;
       /* Retrieve data from the original mesh. Ideally that would be passed to this function to
        * make it clearer when each is used. */
-      args.hide_poly = static_cast<const bool *>(
-          CustomData_get_layer_named(&pbvh.mesh->face_data, CD_PROP_BOOL, ".hide_poly"));
+      args.hide_poly = *pbvh.mesh->attributes().lookup<bool>(".hide_poly", ATTR_DOMAIN_FACE);
 
       args.prim_indices = node.prim_indices;
       args.looptri_faces = mesh.looptri_faces();

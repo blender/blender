@@ -232,6 +232,7 @@ static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
                                          blender::MutableSpan<int> corner_edges,
                                          const blender::OffsetIndices<int> faces)
 {
+  using namespace blender;
   Object *ob_target = enmd->target;
 
   const bool do_facenors_fix = (enmd->flag & MOD_NORMALEDIT_NO_POLYNORS_FIX) == 0;
@@ -321,8 +322,8 @@ static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
   if (do_facenors_fix) {
     faces_check_flip(*mesh, nos, mesh->face_normals());
   }
-  const bool *sharp_faces = static_cast<const bool *>(
-      CustomData_get_layer_named(&mesh->face_data, CD_PROP_BOOL, "sharp_face"));
+  const bke::AttributeAccessor attributes = mesh->attributes();
+  const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", ATTR_DOMAIN_FACE);
   blender::bke::mesh::normals_loop_custom_set(vert_positions,
                                               edges,
                                               faces,
@@ -358,6 +359,7 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
                                               blender::MutableSpan<int> corner_edges,
                                               const blender::OffsetIndices<int> faces)
 {
+  using namespace blender;
   Object *ob_target = enmd->target;
 
   const bool do_facenors_fix = (enmd->flag & MOD_NORMALEDIT_NO_POLYNORS_FIX) == 0;
@@ -426,8 +428,8 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
   if (do_facenors_fix) {
     faces_check_flip(*mesh, nos, mesh->face_normals());
   }
-  const bool *sharp_faces = static_cast<const bool *>(
-      CustomData_get_layer_named(&mesh->face_data, CD_PROP_BOOL, "sharp_face"));
+  const bke::AttributeAccessor attributes = mesh->attributes();
+  const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", ATTR_DOMAIN_FACE);
   blender::bke::mesh::normals_loop_custom_set(positions,
                                               edges,
                                               faces,
@@ -511,8 +513,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
     clnors = static_cast<blender::short2 *>(
         CustomData_get_layer_for_write(ldata, CD_CUSTOMLOOPNORMAL, corner_verts.size()));
     loop_normals.reinitialize(corner_verts.size());
-    const bool *sharp_faces = static_cast<const bool *>(
-        CustomData_get_layer_named(&result->face_data, CD_PROP_BOOL, "sharp_face"));
+    const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", ATTR_DOMAIN_FACE);
     blender::bke::mesh::normals_calc_loop(positions,
                                           edges,
                                           faces,
@@ -521,7 +522,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
                                           result->corner_to_face_map(),
                                           result->vert_normals(),
                                           result->face_normals(),
-                                          sharp_edges.span.data(),
+                                          sharp_edges.span,
                                           sharp_faces,
                                           clnors,
                                           nullptr,

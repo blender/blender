@@ -520,6 +520,8 @@ static void do_multires_bake(MultiresBakeRender *bkr,
   if (require_tangent) {
     if (CustomData_get_layer_index(&dm->loopData, CD_TANGENT) == -1) {
       const blender::Span<blender::float3> corner_normals = temp_mesh->corner_normals();
+      const bool *sharp_faces = static_cast<const bool *>(
+          CustomData_get_layer_named(&dm->polyData, CD_PROP_BOOL, "sharp_face"));
       BKE_mesh_calc_loop_tangent_ex(
           reinterpret_cast<const float(*)[3]>(positions.data()),
           faces,
@@ -527,8 +529,7 @@ static void do_multires_bake(MultiresBakeRender *bkr,
           looptris.data(),
           looptri_faces.data(),
           looptris.size(),
-          static_cast<const bool *>(
-              CustomData_get_layer_named(&dm->polyData, CD_PROP_BOOL, "sharp_face")),
+          sharp_faces ? blender::Span(sharp_faces, faces.size()) : blender::Span<bool>(),
           &dm->loopData,
           true,
           nullptr,

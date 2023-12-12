@@ -294,12 +294,14 @@ void SCULPT_vertex_persistent_normal_get(SculptSession *ss, PBVHVertRef vertex, 
 
 float SCULPT_vertex_mask_get(SculptSession *ss, PBVHVertRef vertex)
 {
+  using namespace blender;
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
       const Mesh *mesh = BKE_pbvh_get_mesh(ss->pbvh);
-      const float *mask = static_cast<const float *>(
-          CustomData_get_layer_named(&mesh->vert_data, CD_PROP_FLOAT, ".sculpt_mask"));
-      return mask ? mask[vertex.i] : 0.0f;
+      const bke::AttributeAccessor attributes = mesh->attributes();
+      const VArray mask = *attributes.lookup_or_default<float>(
+          ".sculpt_mask", ATTR_DOMAIN_POINT, 0.0f);
+      return mask[vertex.i];
     }
     case PBVH_BMESH: {
       BMVert *v;
@@ -408,9 +410,10 @@ bool vert_visible_get(const SculptSession *ss, PBVHVertRef vertex)
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
       const Mesh *mesh = BKE_pbvh_get_mesh(ss->pbvh);
-      const bool *hide_vert = static_cast<const bool *>(
-          CustomData_get_layer_named(&mesh->vert_data, CD_PROP_BOOL, ".hide_vert"));
-      return hide_vert == nullptr || !hide_vert[vertex.i];
+      const bke::AttributeAccessor attributes = mesh->attributes();
+      const VArray hide_vert = *attributes.lookup_or_default<bool>(
+          ".hide_vert", ATTR_DOMAIN_POINT, false);
+      return !hide_vert[vertex.i];
     }
     case PBVH_BMESH:
       return !BM_elem_flag_test((BMVert *)vertex.i, BM_ELEM_HIDDEN);
@@ -2890,7 +2893,7 @@ struct SculptRaycastData {
   float depth;
   bool original;
   Span<int> corner_verts;
-  const bool *hide_poly;
+  blender::VArraySpan<bool> hide_poly;
 
   PBVHVertRef active_vertex;
   float *face_normal;
@@ -2908,7 +2911,7 @@ struct SculptFindNearestToRayData {
   float dist_sq_to_ray;
   bool original;
   Span<int> corner_verts;
-  const bool *hide_poly;
+  blender::VArraySpan<bool> hide_poly;
 };
 
 ePaintSymmetryAreas SCULPT_get_vertex_symm_area(const float co[3])
@@ -4883,6 +4886,7 @@ bool SCULPT_cursor_geometry_info_update(bContext *C,
                                         const float mval[2],
                                         bool use_sampled_normal)
 {
+  using namespace blender;
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Scene *scene = CTX_data_scene(C);
   Sculpt *sd = scene->toolsettings->sculpt;
@@ -4917,8 +4921,8 @@ bool SCULPT_cursor_geometry_info_update(bContext *C,
   if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
     const Mesh &mesh = *static_cast<const Mesh *>(ob->data);
     srd.corner_verts = mesh.corner_verts();
-    srd.hide_poly = static_cast<const bool *>(
-        CustomData_get_layer_named(&mesh.face_data, CD_PROP_BOOL, ".hide_poly"));
+    const bke::AttributeAccessor attributes = mesh.attributes();
+    srd.hide_poly = *attributes.lookup<bool>(".hide_poly", ATTR_DOMAIN_FACE);
   }
   srd.ray_start = ray_start;
   srd.ray_normal = ray_normal;
@@ -5027,6 +5031,7 @@ bool SCULPT_stroke_get_location_ex(bContext *C,
                                    bool check_closest,
                                    bool limit_closest_radius)
 {
+  using namespace blender;
   using namespace blender::ed::sculpt_paint;
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Object *ob;
@@ -5064,8 +5069,8 @@ bool SCULPT_stroke_get_location_ex(bContext *C,
     if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
       const Mesh &mesh = *static_cast<const Mesh *>(ob->data);
       srd.corner_verts = mesh.corner_verts();
-      srd.hide_poly = static_cast<const bool *>(
-          CustomData_get_layer_named(&mesh.face_data, CD_PROP_BOOL, ".hide_poly"));
+      const bke::AttributeAccessor attributes = mesh.attributes();
+      srd.hide_poly = *attributes.lookup<bool>(".hide_poly", ATTR_DOMAIN_FACE);
     }
     srd.depth = depth;
     srd.original = original;
@@ -5092,8 +5097,8 @@ bool SCULPT_stroke_get_location_ex(bContext *C,
   if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
     const Mesh &mesh = *static_cast<const Mesh *>(ob->data);
     srd.corner_verts = mesh.corner_verts();
-    srd.hide_poly = static_cast<const bool *>(
-        CustomData_get_layer_named(&mesh.face_data, CD_PROP_BOOL, ".hide_poly"));
+    const bke::AttributeAccessor attributes = mesh.attributes();
+    srd.hide_poly = *attributes.lookup<bool>(".hide_poly", ATTR_DOMAIN_FACE);
   }
   srd.ray_start = ray_start;
   srd.ray_normal = ray_normal;

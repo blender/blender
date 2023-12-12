@@ -44,7 +44,7 @@ class InstanceRotationFieldInput final : public bke::InstancesFieldInput {
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  Field<float3> rotation{std::make_shared<InstanceRotationFieldInput>()};
+  Field<math::Quaternion> rotation{std::make_shared<InstanceRotationFieldInput>()};
   params.set_output("Rotation", std::move(rotation));
 }
 

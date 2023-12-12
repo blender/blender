@@ -11,6 +11,7 @@
 #pragma once
 
 #include "BLI_math_vector_types.hh"
+#include "BLI_virtual_array.hh"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -89,20 +90,20 @@ struct MeshRenderData {
   /* The triangulation of #Mesh faces, owned by the mesh. */
   blender::Span<MLoopTri> looptris;
   blender::Span<int> looptri_faces;
-  const int *material_indices;
+  blender::VArraySpan<int> material_indices;
 
   blender::bke::MeshNormalDomain normals_domain;
   blender::Span<blender::float3> vert_normals;
   blender::Span<blender::float3> face_normals;
   blender::Span<blender::float3> loop_normals;
 
-  const bool *hide_vert;
-  const bool *hide_edge;
-  const bool *hide_poly;
-  const bool *select_vert;
-  const bool *select_edge;
-  const bool *select_poly;
-  const bool *sharp_faces;
+  blender::VArraySpan<bool> hide_vert;
+  blender::VArraySpan<bool> hide_edge;
+  blender::VArraySpan<bool> hide_poly;
+  blender::VArraySpan<bool> select_vert;
+  blender::VArraySpan<bool> select_edge;
+  blender::VArraySpan<bool> select_poly;
+  blender::VArraySpan<bool> sharp_faces;
 
   blender::Span<int> loose_verts;
   blender::Span<int> loose_edges;

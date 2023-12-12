@@ -22,6 +22,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_action.h" /* BKE_pose_channel_find_name */
+#include "BKE_attribute.hh"
 #include "BKE_deform.h"
 #include "BKE_editmesh.hh"
 #include "BKE_image.h"
@@ -100,8 +101,9 @@ void MOD_get_texture_coords(MappingInfoModifierData *dmd,
       BLI_bitmap *done = BLI_BITMAP_NEW(verts_num, __func__);
       char uvname[MAX_CUSTOMDATA_LAYER_NAME];
       CustomData_validate_layer_name(&mesh->loop_data, CD_PROP_FLOAT2, dmd->uvlayer_name, uvname);
-      const float(*mloop_uv)[2] = static_cast<const float(*)[2]>(
-          CustomData_get_layer_named(&mesh->loop_data, CD_PROP_FLOAT2, uvname));
+      const bke::AttributeAccessor attributes = mesh->attributes();
+      const VArraySpan uv_map = *attributes.lookup_or_default<float2>(
+          uvname, ATTR_DOMAIN_CORNER, float2(0));
 
       /* verts are given the UV from the first face that uses them */
       for (const int i : faces.index_range()) {
@@ -110,8 +112,8 @@ void MOD_get_texture_coords(MappingInfoModifierData *dmd,
           const int vert = corner_verts[corner];
           if (!BLI_BITMAP_TEST(done, vert)) {
             /* remap UVs from [0, 1] to [-1, 1] */
-            r_texco[vert][0] = (mloop_uv[corner][0] * 2.0f) - 1.0f;
-            r_texco[vert][1] = (mloop_uv[corner][1] * 2.0f) - 1.0f;
+            r_texco[vert][0] = (uv_map[corner][0] * 2.0f) - 1.0f;
+            r_texco[vert][1] = (uv_map[corner][1] * 2.0f) - 1.0f;
             BLI_BITMAP_ENABLE(done, vert);
           }
         }

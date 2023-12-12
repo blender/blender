@@ -47,13 +47,13 @@ static void extract_lines_paint_mask_iter_face_mesh(const MeshRenderData &mr,
   for (int ml_index = face.start(); ml_index < ml_index_end; ml_index += 1) {
     const int e_index = mr.corner_edges[ml_index];
 
-    if (!((mr.use_hide && mr.hide_edge && mr.hide_edge[e_index]) ||
+    if (!((mr.use_hide && !mr.hide_edge.is_empty() && mr.hide_edge[e_index]) ||
           ((mr.e_origindex) && (mr.e_origindex[e_index] == ORIGINDEX_NONE))))
     {
 
       const int ml_index_last = face.size() + face.start() - 1;
       const int ml_index_other = (ml_index == ml_index_last) ? face.start() : (ml_index + 1);
-      if (mr.select_poly && mr.select_poly[face_index]) {
+      if (!mr.select_poly.is_empty() && mr.select_poly[face_index]) {
         if (BLI_BITMAP_TEST_AND_SET_ATOMIC(data->select_map, e_index)) {
           /* Hide edge as it has more than 2 selected loop. */
           GPU_indexbuf_set_line_restart(&data->elb, e_index);
@@ -121,12 +121,12 @@ static void extract_lines_paint_mask_iter_subdiv_mesh(const DRWSubdivCache &subd
       GPU_indexbuf_set_line_restart(&data->elb, subdiv_edge_index);
     }
     else {
-      if (!((mr.use_hide && mr.hide_edge && mr.hide_edge[coarse_edge_index]) ||
+      if (!((mr.use_hide && !mr.hide_edge.is_empty() && mr.hide_edge[coarse_edge_index]) ||
             ((mr.e_origindex) && (mr.e_origindex[coarse_edge_index] == ORIGINDEX_NONE))))
       {
         const uint ml_index_other = (loop_idx == (end_loop_idx - 1)) ? start_loop_idx :
                                                                        loop_idx + 1;
-        if (mr.select_poly && mr.select_poly[coarse_quad_index]) {
+        if (!mr.select_poly.is_empty() && mr.select_poly[coarse_quad_index]) {
           if (BLI_BITMAP_TEST_AND_SET_ATOMIC(data->select_map, coarse_edge_index)) {
             /* Hide edge as it has more than 2 selected loop. */
             GPU_indexbuf_set_line_restart(&data->elb, subdiv_edge_index);

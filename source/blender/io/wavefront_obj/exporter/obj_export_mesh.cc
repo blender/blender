@@ -200,10 +200,9 @@ int OBJMesh::ith_smooth_group(const int face_index) const
 
 void OBJMesh::calc_smooth_groups(const bool use_bitflags)
 {
-  const bool *sharp_edges = static_cast<const bool *>(
-      CustomData_get_layer_named(&export_mesh_->edge_data, CD_PROP_BOOL, "sharp_edge"));
-  const bool *sharp_faces = static_cast<const bool *>(
-      CustomData_get_layer_named(&export_mesh_->face_data, CD_PROP_BOOL, "sharp_face"));
+  const bke::AttributeAccessor attributes = export_mesh_->attributes();
+  const VArraySpan sharp_edges = *attributes.lookup<bool>("sharp_edge", ATTR_DOMAIN_EDGE);
+  const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", ATTR_DOMAIN_FACE);
   poly_smooth_groups_ = BKE_mesh_calc_smoothgroups(mesh_edges_.size(),
                                                    mesh_faces_,
                                                    export_mesh_->corner_edges(),

@@ -248,6 +248,8 @@ bool BKE_mesh_calc_islands_loop_face_uvmap(float (*vert_positions)[3],
 /**
  * Calculate smooth groups from sharp edges.
  *
+ * \param sharp_edges: Optional (possibly empty) span.
+ * \param sharp_faces: Optional (possibly empty) span.
  * \param r_totgroup: The total number of groups, 1 or more.
  * \return Polygon aligned array of group index values (bitflags if use_bitflags is true),
  * starting at 1 (0 being used as 'invalid' flag).
@@ -256,8 +258,8 @@ bool BKE_mesh_calc_islands_loop_face_uvmap(float (*vert_positions)[3],
 int *BKE_mesh_calc_smoothgroups(int edges_num,
                                 blender::OffsetIndices<int> faces,
                                 blender::Span<int> corner_edges,
-                                const bool *sharp_edges,
-                                const bool *sharp_faces,
+                                blender::Span<bool> sharp_edges,
+                                blender::Span<bool> sharp_faces,
                                 int *r_totgroup,
                                 bool use_bitflags);
 

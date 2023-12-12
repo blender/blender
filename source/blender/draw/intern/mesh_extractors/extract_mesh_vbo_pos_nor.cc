@@ -87,12 +87,12 @@ static void extract_pos_nor_iter_face_mesh(const MeshRenderData &mr,
                                            void *_data)
 {
   MeshExtract_PosNor_Data *data = static_cast<MeshExtract_PosNor_Data *>(_data);
-  const bool poly_hidden = mr.hide_poly && mr.hide_poly[face_index];
+  const bool poly_hidden = !mr.hide_poly.is_empty() && mr.hide_poly[face_index];
 
   for (const int ml_index : mr.faces[face_index]) {
     const int vert_i = mr.corner_verts[ml_index];
     PosNorLoop *vert = &data->vbo_data[ml_index];
-    const bool vert_hidden = mr.hide_vert && mr.hide_vert[vert_i];
+    const bool vert_hidden = !mr.hide_vert.is_empty() && mr.hide_vert[vert_i];
     copy_v3_v3(vert->pos, mr.vert_positions[vert_i]);
     vert->nor = data->normals[vert_i].low;
     /* Flag for paint mode overlay. */
@@ -100,7 +100,7 @@ static void extract_pos_nor_iter_face_mesh(const MeshRenderData &mr,
         ((mr.v_origindex) && (mr.v_origindex[vert_i] == ORIGINDEX_NONE))) {
       vert->nor.w = -1;
     }
-    else if (mr.select_vert && mr.select_vert[vert_i]) {
+    else if (!mr.select_vert.is_empty() && mr.select_vert[vert_i]) {
       vert->nor.w = 1;
     }
     else {
@@ -199,12 +199,12 @@ static void extract_vertex_flags(const MeshRenderData &mr, char *flags)
 {
   for (int i = 0; i < mr.vert_len; i++) {
     char *flag = &flags[i];
-    const bool vert_hidden = mr.hide_vert && mr.hide_vert[i];
+    const bool vert_hidden = !mr.hide_vert.is_empty() && mr.hide_vert[i];
     /* Flag for paint mode overlay. */
     if (vert_hidden || ((mr.v_origindex) && (mr.v_origindex[i] == ORIGINDEX_NONE))) {
       *flag = -1;
     }
-    else if (mr.select_vert && mr.select_vert[i]) {
+    else if (!mr.select_vert.is_empty() && mr.select_vert[i]) {
       *flag = 1;
     }
     else {
@@ -457,12 +457,12 @@ static void extract_pos_nor_hq_iter_face_mesh(const MeshRenderData &mr,
                                               void *_data)
 {
   MeshExtract_PosNorHQ_Data *data = static_cast<MeshExtract_PosNorHQ_Data *>(_data);
-  const bool poly_hidden = mr.hide_poly && mr.hide_poly[face_index];
+  const bool poly_hidden = !mr.hide_poly.is_empty() && mr.hide_poly[face_index];
 
   for (const int ml_index : mr.faces[face_index]) {
     const int vert_i = mr.corner_verts[ml_index];
 
-    const bool vert_hidden = mr.hide_vert && mr.hide_vert[vert_i];
+    const bool vert_hidden = !mr.hide_vert.is_empty() && mr.hide_vert[vert_i];
     PosNorHQLoop *vert = &data->vbo_data[ml_index];
     copy_v3_v3(vert->pos, mr.vert_positions[vert_i]);
     copy_v3_v3_short(vert->nor, data->normals[vert_i].high);
@@ -472,7 +472,7 @@ static void extract_pos_nor_hq_iter_face_mesh(const MeshRenderData &mr,
         ((mr.v_origindex) && (mr.v_origindex[vert_i] == ORIGINDEX_NONE))) {
       vert->nor[3] = -1;
     }
-    else if (mr.select_vert && mr.select_vert[vert_i]) {
+    else if (!mr.select_vert.is_empty() && mr.select_vert[vert_i]) {
       vert->nor[3] = 1;
     }
     else {

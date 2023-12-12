@@ -22,13 +22,13 @@ struct MeshExtract_LinesData {
   GPUIndexBufBuilder elb;
   BitSpan optimal_display_edges;
   const int *e_origindex;
-  const bool *hide_edge;
+  Span<bool> hide_edge;
   bool test_visibility;
 };
 
 BLI_INLINE bool is_edge_visible(const MeshExtract_LinesData *data, const int edge)
 {
-  if (data->hide_edge && data->hide_edge[edge]) {
+  if (!data->hide_edge.is_empty() && data->hide_edge[edge]) {
     return false;
   }
   if (data->e_origindex && data->e_origindex[edge] == ORIGINDEX_NONE) {
@@ -55,10 +55,10 @@ static void extract_lines_init(const MeshRenderData &mr,
   if (mr.extract_type == MR_EXTRACT_MESH) {
     data->optimal_display_edges = mr.mesh->runtime->subsurf_optimal_display_edges;
     data->e_origindex = mr.hide_unmapped_edges ? mr.e_origindex : nullptr;
-    data->hide_edge = mr.use_hide ? mr.hide_edge : nullptr;
+    data->hide_edge = mr.use_hide ? Span(mr.hide_edge) : Span<bool>();
 
     data->test_visibility = !data->optimal_display_edges.is_empty() || data->e_origindex ||
-                            data->hide_edge;
+                            !data->hide_edge.is_empty();
   }
 }
 
@@ -221,8 +221,8 @@ static void extract_lines_loose_geom_subdiv(const DRWSubdivCache &subdiv_cache,
     case MR_EXTRACT_MESH: {
       const int *e_origindex = (mr.hide_unmapped_edges) ? mr.e_origindex : nullptr;
       if (e_origindex == nullptr) {
-        const bool *hide_edge = mr.hide_edge;
-        if (hide_edge) {
+        const Span<bool> hide_edge = mr.hide_edge;
+        if (!hide_edge.is_empty()) {
           for (DRWSubdivLooseEdge edge : loose_edges) {
             *flags_data++ = hide_edge[edge.coarse_edge_index];
           }
@@ -239,8 +239,8 @@ static void extract_lines_loose_geom_subdiv(const DRWSubdivCache &subdiv_cache,
           }
         }
         else {
-          const bool *hide_edge = mr.hide_edge;
-          if (hide_edge) {
+          const Span<bool> hide_edge = mr.hide_edge;
+          if (!hide_edge.is_empty()) {
             for (DRWSubdivLooseEdge edge : loose_edges) {
               int e = edge.coarse_edge_index;
 
