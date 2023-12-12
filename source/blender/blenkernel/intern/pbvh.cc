@@ -1849,43 +1849,6 @@ blender::Vector<int> BKE_pbvh_node_calc_face_indices(const PBVH &pbvh, const PBV
   return faces;
 }
 
-void BKE_pbvh_node_num_verts(const PBVH *pbvh,
-                             const PBVHNode *node,
-                             int *r_uniquevert,
-                             int *r_totvert)
-{
-  int tot;
-
-  switch (pbvh->header.type) {
-    case PBVH_GRIDS:
-      tot = node->prim_indices.size() * pbvh->gridkey.grid_area;
-      if (r_totvert) {
-        *r_totvert = tot;
-      }
-      if (r_uniquevert) {
-        *r_uniquevert = tot;
-      }
-      break;
-    case PBVH_FACES:
-      if (r_totvert) {
-        *r_totvert = node->uniq_verts + node->face_verts;
-      }
-      if (r_uniquevert) {
-        *r_uniquevert = node->uniq_verts;
-      }
-      break;
-    case PBVH_BMESH:
-      tot = node->bm_unique_verts.size();
-      if (r_totvert) {
-        *r_totvert = tot + node->bm_other_verts.size();
-      }
-      if (r_uniquevert) {
-        *r_uniquevert = tot;
-      }
-      break;
-  }
-}
-
 int BKE_pbvh_node_num_unique_verts(const PBVH &pbvh, const PBVHNode &node)
 {
   switch (pbvh.header.type) {
@@ -2983,8 +2946,22 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
   vi->vert_positions = {};
   vi->vertex.i = 0LL;
 
-  int uniq_verts, totvert;
-  BKE_pbvh_node_num_verts(pbvh, node, &uniq_verts, &totvert);
+  int uniq_verts;
+  int totvert;
+  switch (pbvh->header.type) {
+    case PBVH_GRIDS:
+      totvert = node->prim_indices.size() * pbvh->gridkey.grid_area;
+      uniq_verts = totvert;
+      break;
+    case PBVH_FACES:
+      totvert = node->uniq_verts + node->face_verts;
+      uniq_verts = node->uniq_verts;
+      break;
+    case PBVH_BMESH:
+      totvert = node->bm_unique_verts.size() + node->bm_other_verts.size();
+      uniq_verts = node->bm_unique_verts.size();
+      break;
+  }
 
   if (pbvh->header.type == PBVH_GRIDS) {
     vi->key = pbvh->gridkey;
