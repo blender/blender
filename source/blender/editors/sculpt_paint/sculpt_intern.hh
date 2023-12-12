@@ -186,9 +186,9 @@ struct Node {
   char idname[MAX_ID_NAME]; /* Name instead of pointer. */
   void *node;               /* only during push, not valid afterwards! */
 
-  Array<float3> co;
-  Array<float3> orig_co;
-  Array<float3> no;
+  Array<float3> position;
+  Array<float3> orig_position;
+  Array<float3> normal;
   Array<float4> col;
   Array<float> mask;
 
@@ -196,12 +196,15 @@ struct Node {
   Array<float4> orig_loop_col;
 
   /* non-multires */
-  int maxvert;      /* to verify if totvert it still the same */
-  Array<int> index; /* Unique vertex indices, to restore into right location */
+
+  /* to verify if totvert it still the same */
+  int mesh_verts_num;
+  int mesh_corners_num;
+
+  Array<int> vert_indices;
   int unique_verts_num;
 
-  int maxloop;
-  Array<int> loop_index;
+  Array<int> corner_indices;
 
   BitVector<> vert_hidden;
   BitVector<> face_hidden;

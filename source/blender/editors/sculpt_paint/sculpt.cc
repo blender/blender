@@ -1231,8 +1231,8 @@ void SCULPT_orig_vert_data_unode_init(SculptOrigVertData *data,
     data->bm_log = ss->bm_log;
   }
   else {
-    data->coords = reinterpret_cast<float(*)[3]>(data->unode->co.data());
-    data->normals = reinterpret_cast<float(*)[3]>(data->unode->no.data());
+    data->coords = reinterpret_cast<float(*)[3]>(data->unode->position.data());
+    data->normals = reinterpret_cast<float(*)[3]>(data->unode->normal.data());
     data->vmasks = data->unode->mask.data();
     data->colors = reinterpret_cast<float(*)[4]>(data->unode->col.data());
   }
@@ -1244,8 +1244,7 @@ void SCULPT_orig_vert_data_init(SculptOrigVertData *data,
                                 blender::ed::sculpt_paint::undo::Type type)
 {
   using namespace blender::ed::sculpt_paint;
-  undo::Node *unode;
-  unode = undo::push_node(ob, node, type);
+  undo::Node *unode = undo::push_node(ob, node, type);
   SCULPT_orig_vert_data_unode_init(data, ob, unode);
 }
 
@@ -1829,7 +1828,7 @@ static void calc_area_normal_and_center_task(Object *ob,
 
   if (ss->cache && !ss->cache->accum) {
     unode = undo::push_node(ob, node, undo::Type::Position);
-    use_original = (!unode->co.is_empty() || unode->bm_entry);
+    use_original = (!unode->position.is_empty() || unode->bm_entry);
   }
 
   SculptBrushTest normal_test;
@@ -1939,8 +1938,8 @@ static void calc_area_normal_and_center_task(Object *ob,
           copy_v3_v3(no_s, temp_no_s);
         }
         else {
-          copy_v3_v3(co, unode->co[vd.i]);
-          copy_v3_v3(no_s, unode->no[vd.i]);
+          copy_v3_v3(co, unode->position[vd.i]);
+          copy_v3_v3(no_s, unode->normal[vd.i]);
         }
       }
       else {
@@ -3618,7 +3617,7 @@ static void sculpt_combine_proxies_node(Object &object,
   float(*orco)[3] = nullptr;
   if (use_orco && !ss->bm) {
     orco = reinterpret_cast<float(*)[3]>(
-        (undo::push_node(&object, &node, undo::Type::Position)->co.data()));
+        (undo::push_node(&object, &node, undo::Type::Position)->position.data()));
   }
 
   MutableSpan<PBVHProxyNode> proxies = BKE_pbvh_node_get_proxies(&node);
@@ -4775,7 +4774,7 @@ static void sculpt_raycast_cb(PBVHNode *node, void *data_v, float *tmin)
     else {
       /* Intersect with coordinates from before we started stroke. */
       undo::Node *unode = undo::get_node(node, undo::Type::Position);
-      origco = (unode) ? reinterpret_cast<float(*)[3]>(unode->co.data()) : nullptr;
+      origco = (unode) ? reinterpret_cast<float(*)[3]>(unode->position.data()) : nullptr;
       use_origco = origco ? true : false;
     }
   }
@@ -4816,7 +4815,7 @@ static void sculpt_find_nearest_to_ray_cb(PBVHNode *node, void *data_v, float *t
     else {
       /* Intersect with coordinates from before we started stroke. */
       undo::Node *unode = undo::get_node(node, undo::Type::Position);
-      origco = (unode) ? reinterpret_cast<float(*)[3]>(unode->co.data()) : nullptr;
+      origco = (unode) ? reinterpret_cast<float(*)[3]>(unode->position.data()) : nullptr;
       use_origco = origco ? true : false;
     }
   }

@@ -405,8 +405,8 @@ static bool test_swap_v3_v3(float a[3], float b[3])
 static bool restore_deformed(
     const SculptSession *ss, Node &unode, int uindex, int oindex, float coord[3])
 {
-  if (test_swap_v3_v3(coord, unode.orig_co[uindex])) {
-    copy_v3_v3(unode.co[uindex], ss->deform_cos[oindex]);
+  if (test_swap_v3_v3(coord, unode.orig_position[uindex])) {
+    copy_v3_v3(unode.position[uindex], ss->deform_cos[oindex]);
     return true;
   }
   return false;
@@ -417,7 +417,7 @@ static bool restore_coords(bContext *C, Object *ob, Depsgraph *depsgraph, Node &
   SculptSession *ss = ob->sculpt;
   SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
 
-  if (unode.maxvert) {
+  if (unode.mesh_verts_num) {
     /* Regular mesh restore. */
 
     if (ss->shapekey_active && !STREQ(ss->shapekey_active->name, unode.shapeName)) {
@@ -439,14 +439,14 @@ static bool restore_coords(bContext *C, Object *ob, Depsgraph *depsgraph, Node &
     }
 
     /* No need for float comparison here (memory is exactly equal or not). */
-    const Span<int> index = unode.index.as_span().take_front(unode.unique_verts_num);
+    const Span<int> index = unode.vert_indices.as_span().take_front(unode.unique_verts_num);
     MutableSpan<float3> positions = ss->vert_positions;
 
     if (ss->shapekey_active) {
       MutableSpan<float3> vertCos(static_cast<float3 *>(ss->shapekey_active->data),
                                   ss->shapekey_active->totelem);
 
-      if (!unode.orig_co.is_empty()) {
+      if (!unode.orig_position.is_empty()) {
         if (ss->deform_modifiers_active) {
           for (const int i : index.index_range()) {
             restore_deformed(ss, unode, i, index[i], vertCos[index[i]]);
@@ -454,13 +454,13 @@ static bool restore_coords(bContext *C, Object *ob, Depsgraph *depsgraph, Node &
         }
         else {
           for (const int i : index.index_range()) {
-            swap_v3_v3(vertCos[index[i]], unode.orig_co[i]);
+            swap_v3_v3(vertCos[index[i]], unode.orig_position[i]);
           }
         }
       }
       else {
         for (const int i : index.index_range()) {
-          swap_v3_v3(vertCos[index[i]], unode.co[i]);
+          swap_v3_v3(vertCos[index[i]], unode.position[i]);
         }
       }
 
@@ -472,7 +472,7 @@ static bool restore_coords(bContext *C, Object *ob, Depsgraph *depsgraph, Node &
       BKE_pbvh_vert_coords_apply(ss->pbvh, vertCos);
     }
     else {
-      if (!unode.orig_co.is_empty()) {
+      if (!unode.orig_position.is_empty()) {
         if (ss->deform_modifiers_active) {
           for (const int i : index.index_range()) {
             restore_deformed(ss, unode, i, index[i], positions[index[i]]);
@@ -481,14 +481,14 @@ static bool restore_coords(bContext *C, Object *ob, Depsgraph *depsgraph, Node &
         }
         else {
           for (const int i : index.index_range()) {
-            swap_v3_v3(positions[index[i]], unode.orig_co[i]);
+            swap_v3_v3(positions[index[i]], unode.orig_position[i]);
             BKE_pbvh_vert_tag_update_normal(ss->pbvh, BKE_pbvh_make_vref(index[i]));
           }
         }
       }
       else {
         for (const int i : index.index_range()) {
-          swap_v3_v3(positions[index[i]], unode.co[i]);
+          swap_v3_v3(positions[index[i]], unode.position[i]);
           BKE_pbvh_vert_tag_update_normal(ss->pbvh, BKE_pbvh_make_vref(index[i]));
         }
       }
@@ -498,14 +498,14 @@ static bool restore_coords(bContext *C, Object *ob, Depsgraph *depsgraph, Node &
     const CCGKey key = BKE_subdiv_ccg_key_top_level(*subdiv_ccg);
     const Span<int> grid_indices = unode.grids;
 
-    MutableSpan<float3> co = unode.co;
+    MutableSpan<float3> position = unode.position;
     MutableSpan<CCGElem *> grids = subdiv_ccg->grids;
 
     int index = 0;
     for (const int i : grid_indices.index_range()) {
       CCGElem *grid = grids[grid_indices[i]];
       for (const int j : IndexRange(key.grid_area)) {
-        swap_v3_v3(CCG_elem_offset_co(&key, grid, j), co[index]);
+        swap_v3_v3(CCG_elem_offset_co(&key, grid, j), position[index]);
         index++;
       }
     }
@@ -519,13 +519,13 @@ static bool restore_hidden(Object *ob, Node &unode, MutableSpan<bool> modified_v
   SculptSession *ss = ob->sculpt;
   SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
 
-  if (unode.maxvert) {
+  if (unode.mesh_verts_num) {
     Mesh &mesh = *static_cast<Mesh *>(ob->data);
     bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
     bke::SpanAttributeWriter<bool> hide_vert = attributes.lookup_or_add_for_write_span<bool>(
         ".hide_vert", ATTR_DOMAIN_POINT);
-    for (const int i : unode.index.index_range().take_front(unode.unique_verts_num)) {
-      const int vert = unode.index[i];
+    for (const int i : unode.vert_indices.index_range().take_front(unode.unique_verts_num)) {
+      const int vert = unode.vert_indices[i];
       if (unode.vert_hidden[i].test() != hide_vert.span[vert]) {
         unode.vert_hidden[i].set(!unode.vert_hidden[i].test());
         hide_vert.span[vert] = !hide_vert.span[vert];
@@ -591,19 +591,19 @@ static bool restore_color(Object *ob, Node &unode, MutableSpan<bool> modified_ve
   /* NOTE: even with loop colors we still store derived
    * vertex colors for original data lookup. */
   if (!unode.col.is_empty() && unode.loop_col.is_empty()) {
-    BKE_pbvh_swap_colors(ss->pbvh, unode.index, unode.col);
+    BKE_pbvh_swap_colors(ss->pbvh, unode.vert_indices, unode.col);
     modified = true;
   }
 
   Mesh *mesh = BKE_object_get_original_mesh(ob);
 
-  if (!unode.loop_col.is_empty() && unode.maxloop == mesh->totloop) {
-    BKE_pbvh_swap_colors(ss->pbvh, unode.loop_index, unode.loop_col);
+  if (!unode.loop_col.is_empty() && unode.mesh_corners_num == mesh->totloop) {
+    BKE_pbvh_swap_colors(ss->pbvh, unode.corner_indices, unode.loop_col);
     modified = true;
   }
 
   if (modified) {
-    modified_vertices.fill_indices(unode.index.as_span(), true);
+    modified_vertices.fill_indices(unode.vert_indices.as_span(), true);
   }
 
   return modified;
@@ -615,12 +615,12 @@ static bool restore_mask(Object *ob, Node &unode, MutableSpan<bool> modified_ver
   SculptSession *ss = ob->sculpt;
   SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
 
-  if (unode.maxvert) {
+  if (unode.mesh_verts_num) {
     bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
     bke::SpanAttributeWriter<float> mask = attributes.lookup_or_add_for_write_span<float>(
         ".sculpt_mask", ATTR_DOMAIN_POINT);
 
-    const Span<int> index = unode.index.as_span().take_front(unode.unique_verts_num);
+    const Span<int> index = unode.vert_indices.as_span().take_front(unode.unique_verts_num);
 
     for (const int i : index.index_range()) {
       const int vert = index[i];
@@ -939,8 +939,8 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, UndoSculpt &usculpt)
     }
 
     /* Check if undo data matches current data well enough to continue. */
-    if (unode->maxvert) {
-      if (ss->totvert != unode->maxvert) {
+    if (unode->mesh_verts_num) {
+      if (ss->totvert != unode->mesh_verts_num) {
         continue;
       }
     }
@@ -1185,21 +1185,21 @@ static Node *alloc_node(Object *ob, PBVHNode *node, Type type)
     usculpt->undo_size += unode->grids.as_span().size_in_bytes();
   }
   else {
-    unode->maxvert = ss->totvert;
+    unode->mesh_verts_num = ss->totvert;
 
-    unode->index = BKE_pbvh_node_get_vert_indices(node);
+    unode->vert_indices = BKE_pbvh_node_get_vert_indices(node);
     unode->unique_verts_num = BKE_pbvh_node_get_unique_vert_indices(node).size();
-    usculpt->undo_size += unode->index.as_span().size_in_bytes();
+    usculpt->undo_size += unode->vert_indices.as_span().size_in_bytes();
   }
 
   bool need_loops = type == Type::Color;
   const bool need_faces = ELEM(type, Type::FaceSet, Type::HideFace);
 
   if (need_loops) {
-    unode->loop_index = BKE_pbvh_node_get_loops(node);
-    unode->maxloop = static_cast<Mesh *>(ob->data)->totloop;
+    unode->corner_indices = BKE_pbvh_node_get_loops(node);
+    unode->mesh_corners_num = static_cast<Mesh *>(ob->data)->totloop;
 
-    usculpt->undo_size += unode->loop_index.as_span().size_in_bytes();
+    usculpt->undo_size += unode->corner_indices.as_span().size_in_bytes();
   }
 
   if (need_faces) {
@@ -1209,12 +1209,12 @@ static Node *alloc_node(Object *ob, PBVHNode *node, Type type)
 
   switch (type) {
     case Type::Position: {
-      unode->co.reinitialize(unode->index.size());
-      usculpt->undo_size += unode->co.as_span().size_in_bytes();
+      unode->position.reinitialize(unode->vert_indices.size());
+      usculpt->undo_size += unode->position.as_span().size_in_bytes();
 
       /* Needed for original data lookup. */
-      unode->no.reinitialize(unode->index.size());
-      usculpt->undo_size += unode->no.as_span().size_in_bytes();
+      unode->normal.reinitialize(unode->vert_indices.size());
+      usculpt->undo_size += unode->normal.as_span().size_in_bytes();
       break;
     }
     case Type::HideVert: {
@@ -1222,8 +1222,8 @@ static Node *alloc_node(Object *ob, PBVHNode *node, Type type)
         usculpt->undo_size += alloc_and_store_hidden(ss, unode);
       }
       else {
-        unode->vert_hidden.resize(unode->index.size());
-        usculpt->undo_size += BLI_BITMAP_SIZE(unode->index.size());
+        unode->vert_hidden.resize(unode->vert_indices.size());
+        usculpt->undo_size += BLI_BITMAP_SIZE(unode->vert_indices.size());
       }
 
       break;
@@ -1234,19 +1234,19 @@ static Node *alloc_node(Object *ob, PBVHNode *node, Type type)
       break;
     }
     case Type::Mask: {
-      unode->mask.reinitialize(unode->index.size());
+      unode->mask.reinitialize(unode->vert_indices.size());
       usculpt->undo_size += unode->mask.as_span().size_in_bytes();
       break;
     }
     case Type::Color: {
       /* Allocate vertex colors, even for loop colors we still
        * need this for original data lookup. */
-      unode->col.reinitialize(unode->index.size());
+      unode->col.reinitialize(unode->vert_indices.size());
       usculpt->undo_size += unode->col.as_span().size_in_bytes();
 
       /* Allocate loop colors separately too. */
       if (ss->vcol_domain == ATTR_DOMAIN_CORNER) {
-        unode->loop_col.reinitialize(unode->loop_index.size());
+        unode->loop_col.reinitialize(unode->corner_indices.size());
         unode->undo_size += unode->loop_col.as_span().size_in_bytes();
       }
       break;
@@ -1266,8 +1266,8 @@ static Node *alloc_node(Object *ob, PBVHNode *node, Type type)
   }
 
   if (ss->deform_modifiers_active) {
-    unode->orig_co.reinitialize(unode->index.size());
-    usculpt->undo_size += unode->orig_co.as_span().size_in_bytes();
+    unode->orig_position.reinitialize(unode->vert_indices.size());
+    usculpt->undo_size += unode->orig_position.as_span().size_in_bytes();
   }
 
   return unode;
@@ -1286,7 +1286,7 @@ static void store_coords(Object *ob, Node *unode)
       for (const int grid : unode->grids) {
         CCGElem *elem = grids[grid];
         for (const int i : IndexRange(key.grid_area)) {
-          unode->co[index] = float3(CCG_elem_offset_co(&key, elem, i));
+          unode->position[index] = float3(CCG_elem_offset_co(&key, elem, i));
           index++;
         }
       }
@@ -1296,7 +1296,7 @@ static void store_coords(Object *ob, Node *unode)
       for (const int grid : unode->grids) {
         CCGElem *elem = grids[grid];
         for (const int i : IndexRange(key.grid_area)) {
-          unode->no[index] = float3(CCG_elem_offset_no(&key, elem, i));
+          unode->normal[index] = float3(CCG_elem_offset_no(&key, elem, i));
           index++;
         }
       }
@@ -1304,13 +1304,15 @@ static void store_coords(Object *ob, Node *unode)
   }
   else {
     array_utils::gather(BKE_pbvh_get_vert_positions(ss->pbvh).as_span(),
-                        unode->index.as_span(),
-                        unode->co.as_mutable_span());
-    array_utils::gather(
-        BKE_pbvh_get_vert_normals(ss->pbvh), unode->index.as_span(), unode->no.as_mutable_span());
+                        unode->vert_indices.as_span(),
+                        unode->position.as_mutable_span());
+    array_utils::gather(BKE_pbvh_get_vert_normals(ss->pbvh),
+                        unode->vert_indices.as_span(),
+                        unode->normal.as_mutable_span());
     if (ss->deform_modifiers_active) {
-      array_utils::gather(
-          ss->orig_cos.as_span(), unode->index.as_span(), unode->orig_co.as_mutable_span());
+      array_utils::gather(ss->orig_cos.as_span(),
+                          unode->vert_indices.as_span(),
+                          unode->orig_position.as_mutable_span());
     }
   }
 }
@@ -1374,7 +1376,7 @@ static void store_mask(Object *ob, Node *unode)
     const Mesh &mesh = *static_cast<const Mesh *>(ob->data);
     const bke::AttributeAccessor attributes = mesh.attributes();
     if (const VArray mask = *attributes.lookup<float>(".sculpt_mask", ATTR_DOMAIN_POINT)) {
-      array_utils::gather(mask, unode->index.as_span(), unode->mask.as_mutable_span());
+      array_utils::gather(mask, unode->vert_indices.as_span(), unode->mask.as_mutable_span());
     }
     else {
       unode->mask.fill(0.0f);
@@ -1390,10 +1392,10 @@ static void store_color(Object *ob, Node *unode)
 
   /* NOTE: even with loop colors we still store (derived)
    * vertex colors for original data lookup. */
-  BKE_pbvh_store_colors_vertex(ss->pbvh, unode->index, unode->col);
+  BKE_pbvh_store_colors_vertex(ss->pbvh, unode->vert_indices, unode->col);
 
-  if (!unode->loop_col.is_empty() && !unode->loop_index.is_empty()) {
-    BKE_pbvh_store_colors(ss->pbvh, unode->loop_index, unode->loop_col);
+  if (!unode->loop_col.is_empty() && !unode->corner_indices.is_empty()) {
+    BKE_pbvh_store_colors(ss->pbvh, unode->corner_indices, unode->loop_col);
   }
 }
 
@@ -1658,8 +1660,8 @@ void push_end_ex(Object *ob, const bool use_nested_undo)
 
   /* We don't need normals in the undo stack. */
   for (std::unique_ptr<Node> &unode : usculpt->nodes) {
-    usculpt->undo_size -= unode->no.as_span().size_in_bytes();
-    unode->no = {};
+    usculpt->undo_size -= unode->normal.as_span().size_in_bytes();
+    unode->normal = {};
   }
 
   /* We could remove this and enforce all callers run in an operator using 'OPTYPE_UNDO'. */
