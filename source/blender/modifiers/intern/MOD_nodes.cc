@@ -164,9 +164,11 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
   DEG_add_node_tree_output_relation(ctx->node, nmd->node_group, "Nodes Modifier");
 
   bool needs_own_transform_relation = false;
+  bool needs_scene_camera_relation = false;
   Set<ID *> used_ids;
   find_used_ids_from_settings(nmd->settings, used_ids);
-  nodes::find_node_tree_dependencies(*nmd->node_group, used_ids, needs_own_transform_relation);
+  nodes::find_node_tree_dependencies(
+      *nmd->node_group, used_ids, needs_own_transform_relation, needs_scene_camera_relation);
 
   if (ctx->object->type == OB_CURVES) {
     Curves *curves_id = static_cast<Curves *>(ctx->object->data);
@@ -202,6 +204,11 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
 
   if (needs_own_transform_relation) {
     DEG_add_depends_on_transform_relation(ctx->node, "Nodes Modifier");
+  }
+  if (needs_scene_camera_relation) {
+    DEG_add_scene_camera_relation(ctx->node, ctx->scene, DEG_OB_COMP_TRANSFORM, "Nodes Modifier");
+    /* Active camera is a scene parameter that can change, so we need a relation for that, too. */
+    DEG_add_scene_relation(ctx->node, ctx->scene, DEG_SCENE_COMP_PARAMETERS, "Nodes Modifier");
   }
 }
 

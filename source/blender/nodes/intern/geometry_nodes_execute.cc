@@ -104,6 +104,7 @@ static bool node_needs_own_transform_relation(const bNode &node)
 static void process_nodes_for_depsgraph(const bNodeTree &tree,
                                         Set<ID *> &ids,
                                         bool &r_needs_own_transform_relation,
+                                        bool &r_needs_scene_camera_relation,
                                         Set<const bNodeTree *> &checked_groups)
 {
   if (!checked_groups.add(&tree)) {
@@ -115,21 +116,28 @@ static void process_nodes_for_depsgraph(const bNodeTree &tree,
     add_used_ids_from_sockets(node->inputs, ids);
     add_used_ids_from_sockets(node->outputs, ids);
     r_needs_own_transform_relation |= node_needs_own_transform_relation(*node);
+    r_needs_scene_camera_relation |= (node->type == GEO_NODE_INPUT_ACTIVE_CAMERA);
   }
 
   for (const bNode *node : tree.group_nodes()) {
     if (const bNodeTree *sub_tree = reinterpret_cast<const bNodeTree *>(node->id)) {
-      process_nodes_for_depsgraph(*sub_tree, ids, r_needs_own_transform_relation, checked_groups);
+      process_nodes_for_depsgraph(*sub_tree,
+                                  ids,
+                                  r_needs_own_transform_relation,
+                                  r_needs_scene_camera_relation,
+                                  checked_groups);
     }
   }
 }
 
 void find_node_tree_dependencies(const bNodeTree &tree,
                                  Set<ID *> &r_ids,
-                                 bool &r_needs_own_transform_relation)
+                                 bool &r_needs_own_transform_relation,
+                                 bool &r_needs_scene_camera_relation)
 {
   Set<const bNodeTree *> checked_groups;
-  process_nodes_for_depsgraph(tree, r_ids, r_needs_own_transform_relation, checked_groups);
+  process_nodes_for_depsgraph(
+      tree, r_ids, r_needs_own_transform_relation, r_needs_scene_camera_relation, checked_groups);
 }
 
 StringRef input_use_attribute_suffix()

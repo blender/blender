@@ -283,6 +283,7 @@ class NODE_MT_geometry_node_GEO_INPUT_SCENE(Menu):
         layout = self.layout
         if context.space_data.geometry_nodes_type == 'TOOL':
             node_add_menu.add_node_type(layout, "GeometryNodeTool3DCursor")
+        node_add_menu.add_node_type(layout, "GeometryNodeInputActiveCamera")
         node_add_menu.add_node_type(layout, "GeometryNodeCollectionInfo")
         node_add_menu.add_node_type(layout, "GeometryNodeImageInfo")
         node_add_menu.add_node_type(layout, "GeometryNodeIsViewport")

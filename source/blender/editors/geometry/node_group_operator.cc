@@ -249,8 +249,11 @@ static Depsgraph *build_depsgraph_from_indirect_ids(Main &bmain,
 {
   Set<ID *> ids_for_relations;
   bool needs_own_transform_relation = false;
-  nodes::find_node_tree_dependencies(
-      node_tree_orig, ids_for_relations, needs_own_transform_relation);
+  bool needs_scene_camera_relation = false;
+  nodes::find_node_tree_dependencies(node_tree_orig,
+                                     ids_for_relations,
+                                     needs_own_transform_relation,
+                                     needs_scene_camera_relation);
   IDP_foreach_property(
       &const_cast<IDProperty &>(properties),
       IDP_TYPE_FILTER_ID,
