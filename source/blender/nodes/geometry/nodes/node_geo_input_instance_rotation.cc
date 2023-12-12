@@ -12,21 +12,23 @@ namespace blender::nodes::node_geo_input_instance_rotation_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Vector>("Rotation").field_source();
+  b.add_output<decl::Rotation>("Rotation").field_source();
 }
 
 class InstanceRotationFieldInput final : public bke::InstancesFieldInput {
  public:
-  InstanceRotationFieldInput() : bke::InstancesFieldInput(CPPType::get<float3>(), "Rotation") {}
+  InstanceRotationFieldInput()
+      : bke::InstancesFieldInput(CPPType::get<math::Quaternion>(), "Rotation")
+  {
+  }
 
   GVArray get_varray_for_context(const bke::Instances &instances,
                                  const IndexMask & /*mask*/) const final
   {
-    auto rotation_fn = [&](const int i) -> float3 {
-      return float3(math::to_euler(math::normalize(instances.transforms()[i])));
-    };
-
-    return VArray<float3>::ForFunc(instances.instances_num(), rotation_fn);
+    const Span<float4x4> transforms = instances.transforms();
+    return VArray<math::Quaternion>::ForFunc(instances.instances_num(), [transforms](const int i) {
+      return math::to_quaternion(math::normalize(transforms[i]));
+    });
   }
 
   uint64_t hash() const override

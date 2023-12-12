@@ -1382,7 +1382,11 @@ static void version_geometry_nodes_use_rotation_socket(bNodeTree &ntree)
       bNodeSocket *socket = nodeFindSocket(node, SOCK_IN, "Rotation");
       change_input_socket_to_rotation_type(ntree, *node, *socket);
     }
-    if (STR_ELEM(node->idname, "GeometryNodeDistributePointsOnFaces", "GeometryNodeObjectInfo")) {
+    if (STR_ELEM(node->idname,
+                 "GeometryNodeDistributePointsOnFaces",
+                 "GeometryNodeObjectInfo",
+                 "GeometryNodeInputInstanceRotation"))
+    {
       bNodeSocket *socket = nodeFindSocket(node, SOCK_OUT, "Rotation");
       change_output_socket_to_rotation_type(ntree, *node, *socket);
     }
@@ -2503,12 +2507,6 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 401, 9)) {
-    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
-      if (ntree->type == NTREE_GEOMETRY) {
-        version_geometry_nodes_use_rotation_socket(*ntree);
-      }
-    }
-
     if (!DNA_struct_member_exists(fd->filesdna, "Material", "char", "displacement_method")) {
       /* Replace Cycles.displacement_method by Material::displacement_method. */
       LISTBASE_FOREACH (Material *, material, &bmain->materials) {
@@ -2574,6 +2572,12 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
         scene->eevee.ray_tracing_options.screen_trace_max_roughness = 0.5f;
         scene->eevee.ray_tracing_options.sample_clamp = 10.0f;
         scene->eevee.ray_tracing_options.resolution_scale = 2;
+      }
+    }
+
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type == NTREE_GEOMETRY) {
+        version_geometry_nodes_use_rotation_socket(*ntree);
       }
     }
   }
