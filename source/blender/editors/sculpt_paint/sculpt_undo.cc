@@ -1177,9 +1177,12 @@ static Node *alloc_node(Object *ob, PBVHNode *node, Type type)
   Node *unode = alloc_node_type(ob, type);
   unode->node = node;
 
+  int verts_num;
   if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
     unode->maxgrid = ss->subdiv_ccg->grids.size();
     unode->gridsize = ss->subdiv_ccg->grid_size;
+
+    verts_num = unode->maxgrid * unode->gridsize;
 
     unode->grids = BKE_pbvh_node_get_grid_indices(*node);
     usculpt->undo_size += unode->grids.as_span().size_in_bytes();
@@ -1189,6 +1192,9 @@ static Node *alloc_node(Object *ob, PBVHNode *node, Type type)
 
     unode->vert_indices = BKE_pbvh_node_get_vert_indices(node);
     unode->unique_verts_num = BKE_pbvh_node_get_unique_vert_indices(node).size();
+
+    verts_num = unode->vert_indices.size();
+
     usculpt->undo_size += unode->vert_indices.as_span().size_in_bytes();
   }
 
@@ -1209,11 +1215,11 @@ static Node *alloc_node(Object *ob, PBVHNode *node, Type type)
 
   switch (type) {
     case Type::Position: {
-      unode->position.reinitialize(unode->vert_indices.size());
+      unode->position.reinitialize(verts_num);
       usculpt->undo_size += unode->position.as_span().size_in_bytes();
 
       /* Needed for original data lookup. */
-      unode->normal.reinitialize(unode->vert_indices.size());
+      unode->normal.reinitialize(verts_num);
       usculpt->undo_size += unode->normal.as_span().size_in_bytes();
       break;
     }
@@ -1234,14 +1240,14 @@ static Node *alloc_node(Object *ob, PBVHNode *node, Type type)
       break;
     }
     case Type::Mask: {
-      unode->mask.reinitialize(unode->vert_indices.size());
+      unode->mask.reinitialize(verts_num);
       usculpt->undo_size += unode->mask.as_span().size_in_bytes();
       break;
     }
     case Type::Color: {
       /* Allocate vertex colors, even for loop colors we still
        * need this for original data lookup. */
-      unode->col.reinitialize(unode->vert_indices.size());
+      unode->col.reinitialize(verts_num);
       usculpt->undo_size += unode->col.as_span().size_in_bytes();
 
       /* Allocate loop colors separately too. */
