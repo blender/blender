@@ -54,7 +54,9 @@ enum {
  * the array is recalculated from scratch; there is no extra attempt to maintain the validity over
  * time.
  *
- * #MLoopTri is stored in an array, where triangles tessellated from faces stored contiguously.
+ * #MLoopTri is stored in an array, where triangles from each face are stored sequentially.
+ * The triangles order is guaranteed to match the face order where the first triangle will always
+ * be from the first face, and the last triangle from the last face.
  * The number of triangles for each polygon is guaranteed to be the corner count - 2, even for
  * degenerate geometry (see #bke::mesh::face_triangles_num).
  *
