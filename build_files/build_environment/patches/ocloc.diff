@@ -1,0 +1,14 @@
+diff --git a/shared/offline_compiler/source/ocloc_fatbinary.cpp b/shared/offline_compiler/source/ocloc_fatbinary.cpp
+index 98a1c0e..4d9b5b0 100644
+--- a/shared/offline_compiler/source/ocloc_fatbinary.cpp
++++ b/shared/offline_compiler/source/ocloc_fatbinary.cpp
+@@ -286,7 +286,9 @@ int buildFatBinaryForTarget(int retVal, const std::vector<std::string> &argsCopy
+         productConfig = ProductConfigHelper::parseMajorMinorRevisionValue(argHelper->productConfigHelper->getProductConfigFromDeviceName(product));
+     }
+ 
+-    fatbinary.appendFileEntry(pointerSize + "." + productConfig, pCompiler->getPackedDeviceBinaryOutput());
++    // Storing binaries under the hardware prefix instead of the full architecture version number,
++    // as they would otherwise be ignored if they do not fully match that of the execution device.
++    fatbinary.appendFileEntry(pointerSize + "." + NEO::hardwarePrefix[argHelper->productConfigHelper->getProductFamilyFromDeviceName(productConfig)], pCompiler->getPackedDeviceBinaryOutput());
+     return retVal;
+ }
