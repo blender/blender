@@ -29,6 +29,9 @@ typedef struct HuangHairExtra {
 
   /* Squared Eccentricity. */
   float e2;
+
+  /* Valid integration interval. */
+  float gamma_m_min, gamma_m_max;
 } HuangHairExtra;
 
 typedef struct HuangHairBSDF {
@@ -311,50 +314,6 @@ ccl_device Spectrum bsdf_hair_huang_eval_r(KernelGlobals kg,
 
   /* Get minor axis, assuming major axis is 1. */
   const float b = bsdf->aspect_ratio;
-  const bool is_circular = (b == 1.0f);
-
-  const float phi_i = is_circular ? 0.0f : dir_phi(wi);
-  const float phi_o = dir_phi(wo);
-
-  /* Compute visible azimuthal range from incoming and outgoing directions. */
-  /* `dot(wi, wmi) > 0` */
-  const float tan_tilt = tanf(bsdf->tilt);
-  float phi_m_max1 = acosf(fmaxf(-tan_tilt * tan_theta(wi), 0.0f)) + phi_i;
-  if (isnan_safe(phi_m_max1)) {
-    return zero_spectrum();
-  }
-  float phi_m_min1 = -phi_m_max1 + 2.0f * phi_i;
-
-  /* `dot(wo, wmi) > 0` */
-  float phi_m_max2 = acosf(fmaxf(-tan_tilt * tan_theta(wo), 0.0f)) + phi_o;
-  if (isnan_safe(phi_m_max2)) {
-    return zero_spectrum();
-  }
-  float phi_m_min2 = -phi_m_max2 + 2.0f * phi_o;
-
-  if (!is_circular) {
-    /* Try to wrap range. */
-    if ((phi_m_max2 - phi_m_min1) > M_2PI_F) {
-      phi_m_min2 -= M_2PI_F;
-      phi_m_max2 -= M_2PI_F;
-    }
-    if ((phi_m_max1 - phi_m_min2) > M_2PI_F) {
-      phi_m_min1 -= M_2PI_F;
-      phi_m_max1 -= M_2PI_F;
-    }
-  }
-
-  const float phi_m_min = fmaxf(phi_m_min1, phi_m_min2) + 1e-3f;
-  const float phi_m_max = fminf(phi_m_max1, phi_m_max2) - 1e-3f;
-  if (phi_m_min > phi_m_max) {
-    return zero_spectrum();
-  }
-
-  const float gamma_m_min = to_gamma(phi_m_min, b);
-  float gamma_m_max = to_gamma(phi_m_max, b);
-  if (gamma_m_max < gamma_m_min) {
-    gamma_m_max += M_2PI_F;
-  }
 
   const float3 wh = normalize(wi + wo);
 
@@ -363,16 +322,19 @@ ccl_device Spectrum bsdf_hair_huang_eval_r(KernelGlobals kg,
 
   /* Maximal sample resolution. */
   float res = roughness * 0.7f;
+
+  const float gamma_m_range = bsdf->extra->gamma_m_max - bsdf->extra->gamma_m_min;
+
   /* Number of intervals should be even. */
-  const size_t intervals = 2 * (size_t)ceilf((gamma_m_max - gamma_m_min) / res * 0.5f);
+  const size_t intervals = 2 * (size_t)ceilf(gamma_m_range / res * 0.5f);
 
   /* Modified resolution based on numbers of intervals. */
-  res = (gamma_m_max - gamma_m_min) / float(intervals);
+  res = gamma_m_range / float(intervals);
 
   /* Integrate using Composite Simpson's 1/3 rule. */
   float integral = 0.0f;
   for (size_t i = 0; i <= intervals; i++) {
-    const float gamma_m = gamma_m_min + i * res;
+    const float gamma_m = bsdf->extra->gamma_m_min + i * res;
     const float3 wm = sphg_dir(bsdf->tilt, gamma_m, b);
 
     if (microfacet_visible(wi, wo, make_float3(wm.x, 0.0f, wm.z), wh)) {
@@ -420,46 +382,25 @@ ccl_device Spectrum bsdf_hair_huang_eval_residual(KernelGlobals kg,
   const float b = bsdf->aspect_ratio;
   const bool is_circular = (b == 1.0f);
 
-  const float phi_i = is_circular ? 0.0f : dir_phi(wi);
-
-  /* Compute visible azimuthal range from the incoming direction. */
-  const float tan_tilt = tanf(bsdf->tilt);
-  const float phi_m_max = acosf(fmaxf(-tan_tilt * tan_theta(wi), 0.0f)) + phi_i;
-  if (isnan_safe(phi_m_max)) {
-    /* Early detection of `dot(wi, wmi) < 0`. */
-    return zero_spectrum();
-  }
-  const float phi_m_min = -phi_m_max + 2.0f * phi_i;
-
-  if (tan_tilt * tan_theta(wo) < -1.0f) {
-    /* Early detection of `dot(wo, wmo) < 0`. */
-    return zero_spectrum();
-  }
-
   const Spectrum mu_a = bsdf->sigma;
   const float eta = bsdf->eta;
   const float inv_eta = 1.0f / eta;
-
-  const float gamma_m_min = to_gamma(phi_m_min, b) + 1e-3f;
-  float gamma_m_max = to_gamma(phi_m_max, b) - 1e-3f;
-  if (gamma_m_max < gamma_m_min) {
-    gamma_m_max += M_2PI_F;
-  }
 
   const float roughness = bsdf->roughness;
   const float roughness2 = sqr(roughness);
   const float sqrt_roughness = sqrtf(roughness);
 
   float res = roughness * 0.8f;
-  const size_t intervals = 2 * (size_t)ceilf((gamma_m_max - gamma_m_min) / res * 0.5f);
-  res = (gamma_m_max - gamma_m_min) / intervals;
+  const float gamma_m_range = bsdf->extra->gamma_m_max - bsdf->extra->gamma_m_min;
+  const size_t intervals = 2 * (size_t)ceilf(gamma_m_range / res * 0.5f);
+  res = gamma_m_range / intervals;
 
   Spectrum S_tt = zero_spectrum();
   Spectrum S_trt = zero_spectrum();
   Spectrum S_trrt = zero_spectrum();
   for (size_t i = 0; i <= intervals; i++) {
 
-    const float gamma_mi = gamma_m_min + i * res;
+    const float gamma_mi = bsdf->extra->gamma_m_min + i * res;
 
     const float3 wmi = sphg_dir(bsdf->tilt, gamma_mi, b);
     const float3 wmi_ = sphg_dir(0.0f, gamma_mi, b);
@@ -852,6 +793,29 @@ ccl_device Spectrum bsdf_hair_huang_eval(KernelGlobals kg,
 
   /* TODO: better estimation of the pdf */
   *pdf = 1.0f;
+
+  /* Early detection of `dot(wo, wmo) < 0`. */
+  const float tan_tilt = tanf(bsdf->tilt);
+  if (tan_tilt * tan_theta(local_O) < -1.0f) {
+    return zero_spectrum();
+  }
+
+  /* Compute visible azimuthal range from the incoming direction. */
+  const float half_span = acosf(fmaxf(-tan_tilt * tan_theta(local_I), 0.0f));
+  if (isnan_safe(half_span)) {
+    /* Early detection of `dot(wi, wmi) < 0`. */
+    return zero_spectrum();
+  }
+  const float b = bsdf->aspect_ratio;
+  const float phi_i = (b == 1.0f) ? 0.0f : dir_phi(local_I);
+  const float gamma_m_min = to_gamma(phi_i - half_span, b);
+  float gamma_m_max = to_gamma(phi_i + half_span, b);
+  if (gamma_m_max < gamma_m_min) {
+    gamma_m_max += M_2PI_F;
+  }
+
+  bsdf->extra->gamma_m_min = gamma_m_min + 1e-3f;
+  bsdf->extra->gamma_m_max = gamma_m_max - 1e-3f;
 
   return (bsdf_hair_huang_eval_r(kg, sc, local_I, local_O) +
           bsdf_hair_huang_eval_residual(kg, sc, local_I, local_O, sd->lcg_state)) /
