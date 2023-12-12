@@ -53,12 +53,12 @@ bool operator==(const BokehKernelKey &a, const BokehKernelKey &b)
 
 /* The exterior angle is the angle between each two consecutive vertices of the regular polygon
  * from its center. */
-float compute_exterior_angle(int sides)
+static float compute_exterior_angle(int sides)
 {
   return (M_PI * 2.0f) / sides;
 }
 
-float compute_rotation(float angle, int sides)
+static float compute_rotation(float angle, int sides)
 {
   /* Offset the rotation such that the second vertex of the regular polygon lies on the positive
    * y axis, which is 90 degrees minus the angle that it makes with the positive x axis assuming
