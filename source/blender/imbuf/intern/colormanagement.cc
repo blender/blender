@@ -4340,6 +4340,19 @@ static void blackbody_temperature_to_rec709(float rec709[3], float t)
   }
 }
 
+void IMB_colormanagement_blackbody_temperature_to_rgb(float r_dest[4], float value)
+{
+  float rec709[3];
+  blackbody_temperature_to_rec709(rec709, value);
+
+  float rgb[3];
+  IMB_colormanagement_rec709_to_scene_linear(rgb, rec709);
+  clamp_v3(rgb, 0.0f, FLT_MAX);
+
+  copy_v3_v3(r_dest, rgb);
+  r_dest[3] = 1.0f;
+}
+
 void IMB_colormanagement_blackbody_temperature_to_rgb_table(float *r_table,
                                                             const int width,
                                                             const float min,
@@ -4347,16 +4360,7 @@ void IMB_colormanagement_blackbody_temperature_to_rgb_table(float *r_table,
 {
   for (int i = 0; i < width; i++) {
     float temperature = min + (max - min) / float(width) * float(i);
-
-    float rec709[3];
-    blackbody_temperature_to_rec709(rec709, temperature);
-
-    float rgb[3];
-    IMB_colormanagement_rec709_to_scene_linear(rgb, rec709);
-    clamp_v3(rgb, 0.0f, FLT_MAX);
-
-    copy_v3_v3(&r_table[i * 4], rgb);
-    r_table[i * 4 + 3] = 0.0f;
+    IMB_colormanagement_blackbody_temperature_to_rgb(&r_table[i * 4], temperature);
   }
 }
 
@@ -4420,20 +4424,24 @@ static void wavelength_to_xyz(float xyz[3], float lambda_nm)
   }
 }
 
+void IMB_colormanagement_wavelength_to_rgb(float r_dest[4], float value)
+{
+  float xyz[3];
+  wavelength_to_xyz(xyz, value);
+
+  float rgb[3];
+  IMB_colormanagement_xyz_to_scene_linear(rgb, xyz);
+  clamp_v3(rgb, 0.0f, FLT_MAX);
+
+  copy_v3_v3(r_dest, rgb);
+  r_dest[3] = 1.0f;
+}
+
 void IMB_colormanagement_wavelength_to_rgb_table(float *r_table, const int width)
 {
   for (int i = 0; i < width; i++) {
-    float temperature = 380 + 400 / float(width) * float(i);
-
-    float xyz[3];
-    wavelength_to_xyz(xyz, temperature);
-
-    float rgb[3];
-    IMB_colormanagement_xyz_to_scene_linear(rgb, xyz);
-    clamp_v3(rgb, 0.0f, FLT_MAX);
-
-    copy_v3_v3(&r_table[i * 4], rgb);
-    r_table[i * 4 + 3] = 0.0f;
+    float wavelength = 380 + 400 / float(width) * float(i);
+    IMB_colormanagement_wavelength_to_rgb(&r_table[i * 4], wavelength);
   }
 }
 
