@@ -888,6 +888,71 @@ GHOST_TSuccess GHOST_SystemCocoa::setCursorPosition(int32_t x, int32_t y)
   return GHOST_kSuccess;
 }
 
+GHOST_TSuccess GHOST_SystemCocoa::getPixelAtCursor(float r_color[3]) const
+{
+  /* NOTE: There are known issues/limitations at the moment:
+   *
+   * - User needs to allow screen capture permission for Blender.
+   * - Blender has no control of the cursor outside of its window, so it is
+   *   not going to be the eyedropper icon.
+   * - GHOST does not report click events from outside of the window, so the
+   *   user needs to press Enter instead.
+   *
+   * Ref #111303.
+   */
+
+  @autoreleasepool {
+    /* Check for screen capture access permission early to prevent issues.
+     * Without permission, macOS may capture only the Blender window, wallpaper, and taskbar.
+     * This behavior could confuse users, especially when trying to pick a color from another app,
+     * potentially capturing the wallpaper under that app window.
+     */
+    if (@available(macOS 11.0, *)) {
+      /* Although these methods are documented as available for macOS 10.15, they are not actually
+       * shipped, leading to a crash if used on macOS 10.15.
+       *
+       * Ref: https://developer.apple.com/forums/thread/683860?answerId=684400022#684400022
+       */
+      if (!CGPreflightScreenCaptureAccess()) {
+        CGRequestScreenCaptureAccess();
+        return GHOST_kFailure;
+      }
+    }
+
+    CGEventRef event = CGEventCreate(nil);
+    if (!event) {
+      return GHOST_kFailure;
+    }
+    CGPoint mouseLocation = CGEventGetLocation(event);
+    CFRelease(event);
+
+    CGRect rect = CGRectMake(mouseLocation.x, mouseLocation.y, 1, 1);
+    CGImageRef image = CGWindowListCreateImage(
+        rect, kCGWindowListOptionOnScreenOnly, kCGNullWindowID, kCGWindowImageDefault);
+    if (!image) {
+      return GHOST_kFailure;
+    }
+    NSBitmapImageRep *bitmap = [[NSBitmapImageRep alloc] initWithCGImage:image];
+    CGImageRelease(image);
+
+    NSColor *color = [bitmap colorAtX:0 y:0];
+    if (!color) {
+      return GHOST_kFailure;
+    }
+    NSColor *srgbColor = [color colorUsingColorSpace:[NSColorSpace sRGBColorSpace]];
+    if (!srgbColor) {
+      return GHOST_kFailure;
+    }
+
+    CGFloat red = 0.0, green = 0.0, blue = 0.0;
+    [color getRed:&red green:&green blue:&blue alpha:nil];
+    r_color[0] = red;
+    r_color[1] = green;
+    r_color[2] = blue;
+  }
+  return GHOST_kSuccess;
+}
+
 GHOST_TSuccess GHOST_SystemCocoa::setMouseCursorPosition(int32_t x, int32_t y)
 {
   float xf = (float)x, yf = (float)y;
@@ -953,8 +1018,6 @@ GHOST_TCapabilityFlag GHOST_SystemCocoa::getCapabilities() const
       ~(
           /* Cocoa has no support for a primary selection clipboard. */
           GHOST_kCapabilityPrimaryClipboard |
-          /* Cocoa has no support for sampling colors from the desktop. */
-          GHOST_kCapabilityDesktopSample |
           /* This Cocoa back-end has not yet implemented image copy/paste. */
           GHOST_kCapabilityClipboardImages));
 }
