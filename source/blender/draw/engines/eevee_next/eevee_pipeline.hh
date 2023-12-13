@@ -188,15 +188,15 @@ struct DeferredLayerBase {
   /* Return the amount of gbuffer layer needed. */
   int closure_layer_count() const
   {
-    return count_bits_i(closure_bits_ &
-                        (CLOSURE_REFRACTION | CLOSURE_REFLECTION | CLOSURE_DIFFUSE | CLOSURE_SSS));
+    return count_bits_i(closure_bits_ & (CLOSURE_REFRACTION | CLOSURE_REFLECTION |
+                                         CLOSURE_DIFFUSE | CLOSURE_TRANSLUCENT | CLOSURE_SSS));
   }
 
   /* Return the amount of gbuffer layer needed. */
   int color_layer_count() const
   {
-    return count_bits_i(closure_bits_ &
-                        (CLOSURE_REFRACTION | CLOSURE_REFLECTION | CLOSURE_DIFFUSE));
+    return count_bits_i(closure_bits_ & (CLOSURE_REFRACTION | CLOSURE_REFLECTION |
+                                         CLOSURE_DIFFUSE | CLOSURE_TRANSLUCENT));
   }
 };
 

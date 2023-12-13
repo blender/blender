@@ -491,7 +491,8 @@ void DeferredLayer::begin_sync()
 
 void DeferredLayer::end_sync()
 {
-  eClosureBits evaluated_closures = CLOSURE_DIFFUSE | CLOSURE_REFLECTION | CLOSURE_REFRACTION;
+  eClosureBits evaluated_closures = CLOSURE_DIFFUSE | CLOSURE_TRANSLUCENT | CLOSURE_REFLECTION |
+                                    CLOSURE_REFRACTION;
   if (closure_bits_ & evaluated_closures) {
     /* Add the tile classification step at the end of the GBuffer pass. */
     {
@@ -716,7 +717,8 @@ void DeferredLayer::render(View &main_view,
 
   inst_.manager->submit(gbuffer_ps_, render_view);
 
-  int closure_count = count_bits_i(closure_bits_ & (CLOSURE_REFLECTION | CLOSURE_DIFFUSE));
+  int closure_count = count_bits_i(closure_bits_ &
+                                   (CLOSURE_REFLECTION | CLOSURE_DIFFUSE | CLOSURE_TRANSLUCENT));
   for (int i = 0; i < ARRAY_SIZE(direct_radiance_txs_); i++) {
     direct_radiance_txs_[i].acquire(
         (closure_count > 1) ? extent : int2(1), GPU_R11F_G11F_B10F, usage_rw);

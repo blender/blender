@@ -25,7 +25,7 @@ void main(void)
 
   GBufferData gbuf = gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_color_tx, texel);
 
-  if (gbuf.has_diffuse && gbuf.diffuse.sss_id != 0u) {
+  if (gbuf.has_sss) {
     vec3 radiance = imageLoad(direct_light_img, texel).rgb +
                     imageLoad(indirect_light_img, texel).rgb;
 

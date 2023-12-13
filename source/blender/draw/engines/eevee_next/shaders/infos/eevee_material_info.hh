@@ -175,7 +175,6 @@ GPU_SHADER_CREATE_INFO(eevee_surf_deferred)
 
 GPU_SHADER_CREATE_INFO(eevee_surf_deferred_hybrid)
     .fragment_source("eevee_surf_hybrid_frag.glsl")
-    .define("LIGHT_CLOSURE_EVAL_COUNT", "2")
     .additional_info("eevee_surf_deferred_base",
                      "eevee_light_data",
                      "eevee_lightprobe_data",
@@ -189,7 +188,6 @@ GPU_SHADER_CREATE_INFO(eevee_surf_forward)
     .fragment_out(0, Type::VEC4, "out_radiance", DualBlend::SRC_0)
     .fragment_out(0, Type::VEC4, "out_transmittance", DualBlend::SRC_1)
     .fragment_source("eevee_surf_forward_frag.glsl")
-    .define("LIGHT_CLOSURE_EVAL_COUNT", "3")
     .additional_info("eevee_global_ubo",
                      "eevee_light_data",
                      "eevee_lightprobe_data",

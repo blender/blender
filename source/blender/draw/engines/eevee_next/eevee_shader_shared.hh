@@ -1182,6 +1182,7 @@ enum eClosureBits : uint32_t {
   CLOSURE_SSS = (1u << 1u),
   CLOSURE_REFLECTION = (1u << 2u),
   CLOSURE_REFRACTION = (1u << 3u),
+  CLOSURE_TRANSLUCENT = (1u << 4u),
   CLOSURE_TRANSPARENCY = (1u << 8u),
   CLOSURE_EMISSION = (1u << 9u),
   CLOSURE_HOLDOUT = (1u << 10u),
@@ -1198,6 +1199,7 @@ enum GBufferMode : uint32_t {
   GBUF_REFRACTION = 2u,
   GBUF_DIFFUSE = 3u,
   GBUF_SSS = 4u,
+  GBUF_TRANSLUCENT = 5u,
 
   /** Special configurations. Packs multiple closures into 1 layer. */
   GBUF_OPAQUE_DIELECTRIC = 14u,

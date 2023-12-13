@@ -14,58 +14,22 @@
 #pragma BLENDER_REQUIRE(common_hair_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_ambient_occlusion_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_surf_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_light_eval_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_lightprobe_eval_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_forward_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_nodetree_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
 
-vec4 closure_to_rgba(Closure cl)
+/* Global thickness because it is needed for closure_to_rgba. */
+float g_thickness;
+
+vec4 closure_to_rgba(Closure cl_unused)
 {
-  vec3 diffuse_light = vec3(0.0);
-  vec3 reflection_light = vec3(0.0);
-  vec3 refraction_light = vec3(0.0);
-  float shadow = 1.0;
-
-  float vPz = dot(drw_view_forward(), g_data.P) - dot(drw_view_forward(), drw_view_position());
-  vec3 V = drw_world_incident_vector(g_data.P);
-
-  ClosureLightStack stack;
-
-  ClosureLight cl_diff;
-  cl_diff.N = g_diffuse_data.N;
-  cl_diff.ltc_mat = LTC_LAMBERT_MAT;
-  cl_diff.type = LIGHT_DIFFUSE;
-  stack.cl[0] = cl_diff;
-
-  ClosureLight cl_refl;
-  cl_refl.N = g_reflection_data.N;
-  cl_refl.ltc_mat = LTC_GGX_MAT(dot(g_reflection_data.N, V), g_reflection_data.roughness);
-  cl_refl.type = LIGHT_SPECULAR;
-  stack.cl[1] = cl_refl;
-
-  float thickness = 0.01; /* TODO(fclem) thickness. */
-  light_eval(stack, g_data.P, g_data.Ng, V, vPz, thickness);
-
-  vec2 noise_probe = interlieved_gradient_noise(gl_FragCoord.xy, vec2(0, 1), vec2(0.0));
-  LightProbeSample samp = lightprobe_load(g_data.P, g_data.Ng, V);
-
-  diffuse_light += stack.cl[0].light_shadowed;
-  diffuse_light += lightprobe_eval(samp, g_diffuse_data, g_data.P, V, noise_probe);
-
-  reflection_light += stack.cl[1].light_shadowed;
-  reflection_light += lightprobe_eval(samp, g_reflection_data, g_data.P, V, noise_probe);
-
-  vec4 out_color;
-  out_color.rgb = g_emission;
-  out_color.rgb += g_diffuse_data.color * g_diffuse_data.weight * diffuse_light;
-  out_color.rgb += g_reflection_data.color * g_reflection_data.weight * reflection_light;
-
-  out_color.a = saturate(1.0 - average(g_transmittance));
+  vec3 radiance, transmittance;
+  forward_lighting_eval(g_thickness, radiance, transmittance);
 
   /* Reset for the next closure tree. */
   closure_weights_reset();
 
-  return out_color;
+  return vec4(radiance, saturate(1.0 - average(transmittance)));
 }
 
 void main()
@@ -84,7 +48,7 @@ void main()
 
   g_holdout = saturate(g_holdout);
 
-  float thickness = nodetree_thickness();
+  g_thickness = max(0.0, nodetree_thickness());
 
   g_diffuse_data.color *= g_diffuse_data.weight;
   g_reflection_data.color *= g_reflection_data.weight;
@@ -121,8 +85,12 @@ void main()
 
   /* ----- GBuffer output ----- */
 
-  GBufferDataPacked gbuf = gbuffer_pack(
-      g_diffuse_data, g_reflection_data, g_refraction_data, out_normal, thickness);
+  GBufferDataPacked gbuf = gbuffer_pack(g_diffuse_data,
+                                        g_translucent_data,
+                                        g_reflection_data,
+                                        g_refraction_data,
+                                        out_normal,
+                                        g_thickness);
 
   /* Output header and first closure using frame-buffer attachment. */
   out_gbuf_header = gbuf.header;

@@ -282,9 +282,15 @@ float lightprobe_roughness_to_lod(float roughness)
   return sqrt(roughness) * 11.0;
 }
 
-vec3 lightprobe_eval(LightProbeSample samp, ClosureDiffuse diffuse, vec3 P, vec3 V, vec2 noise)
+vec3 lightprobe_eval(LightProbeSample samp, ClosureDiffuse cl, vec3 P, vec3 V, vec2 noise)
 {
-  vec3 radiance_sh = spherical_harmonics_evaluate_lambert(diffuse.N, samp.volume_irradiance);
+  vec3 radiance_sh = spherical_harmonics_evaluate_lambert(cl.N, samp.volume_irradiance);
+  return radiance_sh;
+}
+
+vec3 lightprobe_eval(LightProbeSample samp, ClosureTranslucent cl, vec3 P, vec3 V, vec2 noise)
+{
+  vec3 radiance_sh = spherical_harmonics_evaluate_lambert(-cl.N, samp.volume_irradiance);
   return radiance_sh;
 }
 

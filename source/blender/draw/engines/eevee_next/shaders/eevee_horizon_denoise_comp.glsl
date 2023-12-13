@@ -55,20 +55,7 @@ vec3 from_accumulation_space(vec3 color)
 
 vec3 load_normal(ivec2 texel)
 {
-  GBufferData gbuf = gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_color_tx, texel);
-
-  /* TODO(fclem): Load preprocessed Normal. */
-  vec3 N = vec3(0.0);
-  if (gbuf.has_diffuse) {
-    N = gbuf.diffuse.N;
-  }
-  else if (gbuf.has_reflection) {
-    N = gbuf.reflection.N;
-  }
-  else if (gbuf.has_refraction) {
-    N = gbuf.refraction.N;
-  }
-  return N;
+  return gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_color_tx, texel).surface_N;
 }
 
 void main()
