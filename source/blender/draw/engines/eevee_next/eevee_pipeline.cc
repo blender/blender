@@ -1144,7 +1144,7 @@ void DeferredProbeLayer::end_sync()
     PassSimple &pass = eval_light_ps_;
     pass.init();
     /* Use depth test to reject background pixels. */
-    pass.state_set(DRW_STATE_DEPTH_GREATER | DRW_STATE_WRITE_COLOR);
+    pass.state_set(DRW_STATE_DEPTH_GREATER | DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ADD_FULL);
     pass.shader_set(inst_.shaders.static_shader_get(DEFERRED_CAPTURE_EVAL));
     pass.bind_image(RBUFS_COLOR_SLOT, &inst_.render_buffers.rp_color_tx);
     pass.bind_image(RBUFS_VALUE_SLOT, &inst_.render_buffers.rp_value_tx);
