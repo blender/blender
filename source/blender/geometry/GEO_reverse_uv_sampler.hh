@@ -21,13 +21,13 @@ namespace blender::geometry {
  */
 class ReverseUVSampler {
  private:
-  const Span<float2> uv_map_;
-  const Span<MLoopTri> looptris_;
+  Span<float2> uv_map_;
+  Span<MLoopTri> looptris_;
   int resolution_;
   MultiValueMap<int2, int> looptris_by_cell_;
 
  public:
-  ReverseUVSampler(const Span<float2> uv_map, const Span<MLoopTri> looptris);
+  ReverseUVSampler(Span<float2> uv_map, Span<MLoopTri> looptris);
 
   enum class ResultType {
     None,

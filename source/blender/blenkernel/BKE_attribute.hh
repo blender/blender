@@ -874,7 +874,7 @@ void gather_attributes(AttributeAccessor src_attributes,
                        eAttrDomain domain,
                        const AnonymousAttributePropagationInfo &propagation_info,
                        const Set<std::string> &skip,
-                       const Span<int> indices,
+                       Span<int> indices,
                        MutableAttributeAccessor dst_attributes);
 
 /**

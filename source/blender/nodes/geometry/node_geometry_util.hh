@@ -37,10 +37,7 @@ namespace blender::nodes {
 bool check_tool_context_and_error(GeoNodeExecParams &params);
 void search_link_ops_for_tool_node(GatherLinkSearchOpParams &params);
 
-void transform_mesh(Mesh &mesh,
-                    const float3 translation,
-                    const math::Quaternion rotation,
-                    const float3 scale);
+void transform_mesh(Mesh &mesh, float3 translation, math::Quaternion rotation, float3 scale);
 
 void transform_geometry_set(GeoNodeExecParams &params,
                             GeometrySet &geometry,
@@ -62,9 +59,9 @@ void separate_geometry(GeometrySet &geometry_set,
 void get_closest_in_bvhtree(BVHTreeFromMesh &tree_data,
                             const VArray<float3> &positions,
                             const IndexMask &mask,
-                            const MutableSpan<int> r_indices,
-                            const MutableSpan<float> r_distances_sq,
-                            const MutableSpan<float3> r_positions);
+                            MutableSpan<int> r_indices,
+                            MutableSpan<float> r_distances_sq,
+                            MutableSpan<float3> r_positions);
 
 int apply_offset_in_cyclic_range(IndexRange range, int start_index, int offset);
 
@@ -101,14 +98,14 @@ const CPPType &get_simulation_item_cpp_type(eNodeSocketDatatype socket_type);
 const CPPType &get_simulation_item_cpp_type(const NodeSimulationItem &item);
 
 bke::bake::BakeState move_values_to_simulation_state(
-    const Span<NodeSimulationItem> node_simulation_items, const Span<void *> input_values);
-void move_simulation_state_to_values(const Span<NodeSimulationItem> node_simulation_items,
+    Span<NodeSimulationItem> node_simulation_items, Span<void *> input_values);
+void move_simulation_state_to_values(Span<NodeSimulationItem> node_simulation_items,
                                      bke::bake::BakeState zone_state,
                                      const Object &self_object,
                                      const ComputeContext &compute_context,
                                      const bNode &sim_output_node,
                                      Span<void *> r_output_values);
-void copy_simulation_state_to_values(const Span<NodeSimulationItem> node_simulation_items,
+void copy_simulation_state_to_values(Span<NodeSimulationItem> node_simulation_items,
                                      const bke::bake::BakeStateRef &zone_state,
                                      const Object &self_object,
                                      const ComputeContext &compute_context,
@@ -120,7 +117,7 @@ void copy_with_checked_indices(const GVArray &src,
                                const IndexMask &mask,
                                GMutableSpan dst);
 
-void mix_baked_data_item(const eNodeSocketDatatype socket_type,
+void mix_baked_data_item(eNodeSocketDatatype socket_type,
                          void *prev,
                          const void *next,
                          const float factor);

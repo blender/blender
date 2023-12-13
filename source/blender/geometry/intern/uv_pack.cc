@@ -2245,7 +2245,7 @@ static void finalize_geometry(const Span<PackIsland *> &islands, const UVPackIsl
   BLI_memarena_free(arena);
 }
 
-float pack_islands(const Span<PackIsland *> &islands, const UVPackIsland_Params &params)
+float pack_islands(const Span<PackIsland *> islands, const UVPackIsland_Params &params)
 {
   BLI_assert(0.0f <= params.margin);
   BLI_assert(0.0f <= params.target_aspect_y);

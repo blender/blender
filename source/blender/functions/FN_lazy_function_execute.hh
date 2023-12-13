@@ -30,8 +30,8 @@ class BasicParams : public Params {
 
  public:
   BasicParams(const LazyFunction &fn,
-              const Span<GMutablePointer> inputs,
-              const Span<GMutablePointer> outputs,
+              Span<GMutablePointer> inputs,
+              Span<GMutablePointer> outputs,
               MutableSpan<std::optional<ValueUsage>> input_usages,
               Span<ValueUsage> output_usages,
               MutableSpan<bool> set_outputs);

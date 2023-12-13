@@ -186,12 +186,12 @@ struct GeometrySet {
   /**
    * Remove all geometry components with types that are not in the provided list.
    */
-  void keep_only(const Span<GeometryComponent::Type> component_types);
+  void keep_only(Span<GeometryComponent::Type> component_types);
   /**
    * Keeps the provided geometry types, but also instances and edit data.
    * Instances must not be removed while using #modify_geometry_sets.
    */
-  void keep_only_during_modify(const Span<GeometryComponent::Type> component_types);
+  void keep_only_during_modify(Span<GeometryComponent::Type> component_types);
   void remove_geometry_during_modify();
 
   void add(const GeometryComponent &component);

@@ -62,6 +62,6 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(bke::CurvesGeometry &curves,
 
 float3 compute_surface_point_normal(const MLoopTri &looptri,
                                     const float3 &bary_coord,
-                                    const Span<float3> corner_normals);
+                                    Span<float3> corner_normals);
 
 }  // namespace blender::geometry

@@ -193,7 +193,7 @@ int insert_key_action(Main *bmain,
                       PointerRNA *ptr,
                       const std::string &rna_path,
                       float frame,
-                      const Span<float> values,
+                      Span<float> values,
                       eInsertKeyFlags insert_key_flag,
                       eBezTriple_KeyframeType key_type);
 
