@@ -19,6 +19,7 @@ void StaticCacheManager::reset()
   keying_screens.reset();
   cached_shaders.reset();
   bokeh_kernels.reset();
+  cached_images.reset();
 }
 
 }  // namespace blender::realtime_compositor

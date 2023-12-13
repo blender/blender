@@ -842,6 +842,7 @@ static bool id_type_can_have_drawdata(const short id_type)
     case ID_TE:
     case ID_MSK:
     case ID_MC:
+    case ID_IM:
       return true;
 
     /* no DrawData */

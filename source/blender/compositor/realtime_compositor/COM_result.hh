@@ -300,6 +300,12 @@ class Result {
   /* Returns the type of the result. */
   ResultType type() const;
 
+  /* Returns the precision of the result. */
+  ResultPrecision precision() const;
+
+  /* Sets the precision of the result. */
+  void set_precision(ResultPrecision precision);
+
   /* Returns true if the result is a texture and false of it is a single value. */
   bool is_texture() const;
 

@@ -445,59 +445,9 @@ class ImageOperation : public NodeOperation {
 
   void execute() override
   {
-    if (!is_valid()) {
-      allocate_invalid();
-      return;
-    }
-
-    update_image_frame_number();
-
     for (const bNodeSocket *output : this->node()->output_sockets()) {
       compute_output(output->identifier);
     }
-  }
-
-  /* Returns true if the node results can be computed, otherwise, returns false. */
-  bool is_valid()
-  {
-    Image *image = get_image();
-    ImageUser *image_user = get_image_user();
-    if (!image || !image_user) {
-      return false;
-    }
-
-    if (BKE_image_is_multilayer(image)) {
-      if (!image->rr) {
-        return false;
-      }
-
-      RenderLayer *render_layer = get_render_layer();
-      if (!render_layer) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  /* Allocate all needed outputs as invalid. This should be called when is_valid returns false. */
-  void allocate_invalid()
-  {
-    for (const bNodeSocket *output : this->node()->output_sockets()) {
-      if (!should_compute_output(output->identifier)) {
-        continue;
-      }
-
-      Result &result = get_result(output->identifier);
-      result.allocate_invalid();
-    }
-  }
-
-  /* Compute the effective frame number of the image if it was animated and invalidate the cached
-   * GPU texture if the computed frame number is different. */
-  void update_image_frame_number()
-  {
-    BKE_image_user_frame_calc(get_image(), get_image_user(), context().get_frame_number());
   }
 
   void compute_output(StringRef identifier)
@@ -506,26 +456,33 @@ class ImageOperation : public NodeOperation {
       return;
     }
 
-    ImageUser image_user = compute_image_user_for_output(identifier);
-    BKE_image_ensure_gpu_texture(get_image(), &image_user);
-    GPUTexture *image_texture = BKE_image_get_gpu_texture(get_image(), &image_user, nullptr);
+    GPUTexture *image_texture = context().cache_manager().cached_images.get(
+        context(), get_image(), get_image_user(), get_pass_name(identifier));
 
-    const int2 size = int2(GPU_texture_width(image_texture), GPU_texture_height(image_texture));
     Result &result = get_result(identifier);
-    result.allocate_texture(Domain(size));
-
-    GPUShader *shader = context().get_shader(get_shader_name(identifier));
-    GPU_shader_bind(shader);
-
-    const int2 lower_bound = int2(0);
-    GPU_shader_uniform_2iv(shader, "lower_bound", lower_bound);
-
-    if (result.type() == ResultType::Color) {
-      GPU_shader_uniform_1b(shader, "premultiply_alpha", should_premultiply_alpha(image_user));
+    if (!image_texture) {
+      result.allocate_invalid();
+      return;
     }
+
+    const ResultPrecision precision = Result::precision(GPU_texture_format(image_texture));
+
+    /* Alpha is mot an actual pass, but one that is extracted from the combined pass. So we need to
+     * extract it using a shader. */
+    if (identifier != "Alpha") {
+      result.set_precision(precision);
+      result.wrap_external(image_texture);
+      return;
+    }
+
+    GPUShader *shader = context().get_shader("compositor_convert_color_to_alpha", precision);
+    GPU_shader_bind(shader);
 
     const int input_unit = GPU_shader_get_sampler_binding(shader, "input_tx");
     GPU_texture_bind(image_texture, input_unit);
+
+    const int2 size = int2(GPU_texture_width(image_texture), GPU_texture_height(image_texture));
+    result.allocate_texture(Domain(size));
 
     result.bind_as_image(shader, "output_img");
 
@@ -536,139 +493,21 @@ class ImageOperation : public NodeOperation {
     result.unbind_as_image();
   }
 
-  /* Get a copy of the image user that is appropriate to retrieve the image buffer for the output
-   * with the given identifier. This essentially sets the appropriate pass and view indices that
-   * corresponds to the output. */
-  ImageUser compute_image_user_for_output(StringRef identifier)
-  {
-    ImageUser image_user = *get_image_user();
-
-    /* Set the needed view. */
-    image_user.view = get_view_index();
-
-    /* Set the needed pass. */
-    if (BKE_image_is_multilayer(get_image())) {
-      image_user.pass = get_pass_index(get_pass_name(identifier));
-      BKE_image_multilayer_index(get_image()->rr, &image_user);
-    }
-    else {
-      BKE_image_multiview_index(get_image(), &image_user);
-    }
-
-    return image_user;
-  }
-
-  /* Get the shader that should be used to compute the output with the given identifier. The
-   * shaders just copy the retrieved image textures into the results except for the alpha output,
-   * which extracts the alpha and writes it to the result instead. Note that a call to a host
-   * texture copy doesn't work because results are stored in a different half float formats. */
-  const char *get_shader_name(StringRef identifier)
-  {
-    if (identifier == "Alpha") {
-      return "compositor_read_input_alpha";
-    }
-    else if (get_result(identifier).type() == ResultType::Color) {
-      return "compositor_read_input_color";
-    }
-    else {
-      return "compositor_read_input_float";
-    }
-  }
-
-  /* Compositor image inputs are expected to be always pre-multiplied, so identify if the GPU
-   * texture returned by the image module is straight and needs to be pre-multiplied. An exception
-   * is when the image has an alpha mode of channel packed or alpha ignore, in which case, we
-   * always ignore pre-multiplication. */
-  bool should_premultiply_alpha(ImageUser &image_user)
-  {
-    Image *image = get_image();
-    if (ELEM(image->alpha_mode, IMA_ALPHA_CHANNEL_PACKED, IMA_ALPHA_IGNORE)) {
-      return false;
-    }
-
-    ImBuf *image_buffer = BKE_image_acquire_ibuf(image, &image_user, nullptr);
-    if (!image_buffer) {
-      return false;
-    }
-
-    const bool has_premultiplied_alpha = BKE_image_has_gpu_texture_premultiplied_alpha(
-        image, image_buffer);
-    BKE_image_release_ibuf(image, image_buffer, nullptr);
-
-    return !has_premultiplied_alpha;
-  }
-
-  Image *get_image()
-  {
-    return (Image *)bnode().id;
-  }
-
-  ImageUser *get_image_user()
-  {
-    return static_cast<ImageUser *>(bnode().storage);
-  }
-
-  /* Get the render layer selected in the node assuming the image is a multilayer image. */
-  RenderLayer *get_render_layer()
-  {
-    const ListBase *layers = &get_image()->rr->layers;
-    return static_cast<RenderLayer *>(BLI_findlink(layers, get_image_user()->layer));
-  }
-
-  /* Get the name of the pass corresponding to the output with the given identifier assuming the
-   * image is a multilayer image. */
+  /* Get the name of the pass corresponding to the output with the given identifier. */
   const char *get_pass_name(StringRef identifier)
   {
     DOutputSocket output = node().output_by_identifier(identifier);
     return static_cast<NodeImageLayer *>(output->storage)->pass_name;
   }
 
-  /* Get the index of the pass with the given name in the selected render layer's passes list
-   * assuming the image is a multilayer image. */
-  int get_pass_index(const char *name)
+  Image *get_image()
   {
-    return BLI_findstringindex(&get_render_layer()->passes, name, offsetof(RenderPass, name));
+    return reinterpret_cast<Image *>(bnode().id);
   }
 
-  /* Get the index of the view selected in the node. If the image is not a multi-view image or only
-   * has a single view, then zero is returned. Otherwise, if the image is a multi-view image, the
-   * index of the selected view is returned. However, note that the value of the view member of the
-   * image user is not the actual index of the view. More specifically, the index 0 is reserved to
-   * denote the special mode of operation "All", which dynamically selects the view whose name
-   * matches the view currently being rendered. It follows that the views are then indexed starting
-   * from 1. So for non zero view values, the actual index of the view is the value of the view
-   * member of the image user minus 1. */
-  int get_view_index()
+  ImageUser *get_image_user()
   {
-    /* The image is not a multi-view image, so just return zero. */
-    if (!BKE_image_is_multiview(get_image())) {
-      return 0;
-    }
-
-    const ListBase *views = &get_image()->rr->views;
-    /* There is only one view and its index is 0. */
-    if (BLI_listbase_count_at_most(views, 2) < 2) {
-      return 0;
-    }
-
-    const int view = get_image_user()->view;
-    /* The view is not zero, which means it is manually specified and the actual index is then the
-     * view value minus 1. */
-    if (view != 0) {
-      return view - 1;
-    }
-
-    /* Otherwise, the view value is zero, denoting the special mode of operation "All", which finds
-     * the index of the view whose name matches the view currently being rendered. */
-    const char *view_name = context().get_view_name().data();
-    const int matched_view = BLI_findstringindex(views, view_name, offsetof(RenderView, name));
-
-    /* No view matches the view currently being rendered, so fallback to the first view. */
-    if (matched_view == -1) {
-      return 0;
-    }
-
-    return matched_view;
+    return static_cast<ImageUser *>(bnode().storage);
   }
 };
 

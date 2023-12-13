@@ -11,6 +11,7 @@ set(INC
   ../compositor/realtime_compositor
   ../compositor/realtime_compositor/cached_resources
   ../draw
+  ../draw/intern
   ../gpu
   ../gpu/intern
   ../imbuf

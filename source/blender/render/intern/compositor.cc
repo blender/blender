@@ -10,12 +10,15 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_ID.h"
+
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_node.hh"
 #include "BKE_scene.h"
 
 #include "DRW_engine.h"
+#include "DRW_render.h"
 
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
@@ -334,10 +337,13 @@ class Context : public realtime_compositor::Context {
      * incomplete support, and leave more specific message to individual nodes? */
   }
 
-  IDRecalcFlag query_id_recalc_flag(ID * /*id*/) const override
+  IDRecalcFlag query_id_recalc_flag(ID *id) const override
   {
-    /* TODO: implement? */
-    return IDRecalcFlag(0);
+    DrawEngineType *owner = (DrawEngineType *)this;
+    DrawData *draw_data = DRW_drawdata_ensure(id, owner, sizeof(DrawData), nullptr, nullptr);
+    IDRecalcFlag recalc_flag = IDRecalcFlag(draw_data->recalc);
+    draw_data->recalc = IDRecalcFlag(0);
+    return recalc_flag;
   }
 
   void output_to_render_result()

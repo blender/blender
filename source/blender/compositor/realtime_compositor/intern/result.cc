@@ -433,6 +433,18 @@ ResultType Result::type() const
   return type_;
 }
 
+ResultPrecision Result::precision() const
+{
+  return precision_;
+}
+
+void Result::set_precision(ResultPrecision precision)
+{
+  /* Changing the precision can only be done if it wasn't allocated yet. */
+  BLI_assert(!is_allocated());
+  precision_ = precision;
+}
+
 bool Result::is_texture() const
 {
   return !is_single_value_;
