@@ -7,10 +7,6 @@
  * \ingroup bke
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct BlendHandle;
 struct ID;
 struct Library;
@@ -23,12 +19,11 @@ typedef struct BlendfileLinkAppendContextItem BlendfileLinkAppendContextItem;
 /**
  * Allocate and initialize a new context to link/append data-blocks.
  */
-BlendfileLinkAppendContext *BKE_blendfile_link_append_context_new(
-    struct LibraryLink_Params *params);
+BlendfileLinkAppendContext *BKE_blendfile_link_append_context_new(LibraryLink_Params *params);
 /**
  * Free a link/append context.
  */
-void BKE_blendfile_link_append_context_free(struct BlendfileLinkAppendContext *lapp_context);
+void BKE_blendfile_link_append_context_free(BlendfileLinkAppendContext *lapp_context);
 /**
  * Set or clear flags in given \a lapp_context.
  *
@@ -37,7 +32,7 @@ void BKE_blendfile_link_append_context_free(struct BlendfileLinkAppendContext *l
  * - #eBLOLibLinkFlags * from `BLO_readfile.h`.
  * \param do_set: Set the given \a flag if true, clear it otherwise.
  */
-void BKE_blendfile_link_append_context_flag_set(struct BlendfileLinkAppendContext *lapp_context,
+void BKE_blendfile_link_append_context_flag_set(BlendfileLinkAppendContext *lapp_context,
                                                 int flag,
                                                 bool do_set);
 
@@ -48,12 +43,10 @@ void BKE_blendfile_link_append_context_flag_set(struct BlendfileLinkAppendContex
  * cannot be linked in BKE code.
  */
 void BKE_blendfile_link_append_context_embedded_blendfile_set(
-    struct BlendfileLinkAppendContext *lapp_context,
-    const void *blendfile_mem,
-    int blendfile_memsize);
+    BlendfileLinkAppendContext *lapp_context, const void *blendfile_mem, int blendfile_memsize);
 /** Clear reference to Blender's embedded startup file into the context. */
 void BKE_blendfile_link_append_context_embedded_blendfile_clear(
-    struct BlendfileLinkAppendContext *lapp_context);
+    BlendfileLinkAppendContext *lapp_context);
 
 /**
  * Add a new source library to search for items to be linked to the given link/append context.
@@ -66,9 +59,9 @@ void BKE_blendfile_link_append_context_embedded_blendfile_clear(
  * \note *Never* call #BKE_blendfile_link_append_context_library_add()
  * after having added some items.
  */
-void BKE_blendfile_link_append_context_library_add(struct BlendfileLinkAppendContext *lapp_context,
+void BKE_blendfile_link_append_context_library_add(BlendfileLinkAppendContext *lapp_context,
                                                    const char *libname,
-                                                   struct BlendHandle *blo_handle);
+                                                   BlendHandle *blo_handle);
 /**
  * Add a new item (data-block name and `idcode`) to be searched and linked/appended from libraries
  * associated to the given context.
@@ -79,11 +72,8 @@ void BKE_blendfile_link_append_context_library_add(struct BlendfileLinkAppendCon
  * #BKE_blendfile_link_append_context_item_library_index_enable to enable the added item for all
  * added library sources.
  */
-struct BlendfileLinkAppendContextItem *BKE_blendfile_link_append_context_item_add(
-    struct BlendfileLinkAppendContext *lapp_context,
-    const char *idname,
-    short idcode,
-    void *userdata);
+BlendfileLinkAppendContextItem *BKE_blendfile_link_append_context_item_add(
+    BlendfileLinkAppendContext *lapp_context, const char *idname, short idcode, void *userdata);
 
 #define BLENDFILE_LINK_APPEND_INVALID -1
 /**
@@ -101,8 +91,8 @@ struct BlendfileLinkAppendContextItem *BKE_blendfile_link_append_context_item_ad
  *         it could not open the .blend file.
  */
 int BKE_blendfile_link_append_context_item_idtypes_from_library_add(
-    struct BlendfileLinkAppendContext *lapp_context,
-    struct ReportList *reports,
+    BlendfileLinkAppendContext *lapp_context,
+    ReportList *reports,
     uint64_t id_types_filter,
     int library_index);
 
@@ -111,24 +101,24 @@ int BKE_blendfile_link_append_context_item_idtypes_from_library_add(
  * context.
  */
 void BKE_blendfile_link_append_context_item_library_index_enable(
-    struct BlendfileLinkAppendContext *lapp_context,
-    struct BlendfileLinkAppendContextItem *item,
+    BlendfileLinkAppendContext *lapp_context,
+    BlendfileLinkAppendContextItem *item,
     int library_index);
 /**
  * Check if given link/append context is empty (has no items to process) or not.
  */
-bool BKE_blendfile_link_append_context_is_empty(struct BlendfileLinkAppendContext *lapp_context);
+bool BKE_blendfile_link_append_context_is_empty(BlendfileLinkAppendContext *lapp_context);
 
-void *BKE_blendfile_link_append_context_item_userdata_get(
-    struct BlendfileLinkAppendContext *lapp_context, struct BlendfileLinkAppendContextItem *item);
-struct ID *BKE_blendfile_link_append_context_item_newid_get(
-    struct BlendfileLinkAppendContext *lapp_context, struct BlendfileLinkAppendContextItem *item);
-struct ID *BKE_blendfile_link_append_context_item_liboverrideid_get(
-    struct BlendfileLinkAppendContext *lapp_context, struct BlendfileLinkAppendContextItem *item);
-short BKE_blendfile_link_append_context_item_idcode_get(
-    struct BlendfileLinkAppendContext *lapp_context, struct BlendfileLinkAppendContextItem *item);
+void *BKE_blendfile_link_append_context_item_userdata_get(BlendfileLinkAppendContext *lapp_context,
+                                                          BlendfileLinkAppendContextItem *item);
+ID *BKE_blendfile_link_append_context_item_newid_get(BlendfileLinkAppendContext *lapp_context,
+                                                     BlendfileLinkAppendContextItem *item);
+ID *BKE_blendfile_link_append_context_item_liboverrideid_get(
+    BlendfileLinkAppendContext *lapp_context, BlendfileLinkAppendContextItem *item);
+short BKE_blendfile_link_append_context_item_idcode_get(BlendfileLinkAppendContext *lapp_context,
+                                                        BlendfileLinkAppendContextItem *item);
 
-typedef enum eBlendfileLinkAppendForeachItemFlag {
+enum eBlendfileLinkAppendForeachItemFlag {
   /** Loop over directly linked items (i.e. those explicitly defined by user code). */
   BKE_BLENDFILE_LINK_APPEND_FOREACH_ITEM_FLAG_DO_DIRECT = 1 << 0,
   /** Loop over indirectly linked items (i.e. those defined by internal code, as dependencies of
@@ -137,7 +127,7 @@ typedef enum eBlendfileLinkAppendForeachItemFlag {
    * IMPORTANT: Those 'indirect' items currently may not cover **all** indirectly linked data.
    * See comments in #foreach_libblock_link_append_callback. */
   BKE_BLENDFILE_LINK_APPEND_FOREACH_ITEM_FLAG_DO_INDIRECT = 1 << 1,
-} eBlendfileLinkAppendForeachItemFlag;
+};
 /**
  * Callback called by #BKE_blendfile_link_append_context_item_foreach over each (or a subset of
  * each) of the items in given #BlendfileLinkAppendContext.
@@ -147,8 +137,8 @@ typedef enum eBlendfileLinkAppendForeachItemFlag {
  * \return `true` if iteration should continue, `false` otherwise.
  */
 typedef bool (*BKE_BlendfileLinkAppendContexteItemFunction)(
-    struct BlendfileLinkAppendContext *lapp_context,
-    struct BlendfileLinkAppendContextItem *item,
+    BlendfileLinkAppendContext *lapp_context,
+    BlendfileLinkAppendContextItem *item,
     void *userdata);
 /**
  * Iterate over all (or a subset) of the items listed in given #BlendfileLinkAppendContext,
@@ -159,7 +149,7 @@ typedef bool (*BKE_BlendfileLinkAppendContexteItemFunction)(
  * \param userdata: An opaque void pointer passed to the `callback_function`.
  */
 void BKE_blendfile_link_append_context_item_foreach(
-    struct BlendfileLinkAppendContext *lapp_context,
+    BlendfileLinkAppendContext *lapp_context,
     BKE_BlendfileLinkAppendContexteItemFunction callback_function,
     eBlendfileLinkAppendForeachItemFlag flag,
     void *userdata);
@@ -171,18 +161,16 @@ void BKE_blendfile_link_append_context_item_foreach(
  * The IDs processed by this functions are the one that have been linked by a previous call to
  * #BKE_blendfile_link on the same `lapp_context`.
  */
-void BKE_blendfile_append(struct BlendfileLinkAppendContext *lapp_context,
-                          struct ReportList *reports);
+void BKE_blendfile_append(BlendfileLinkAppendContext *lapp_context, ReportList *reports);
 /**
  * Perform linking operation on all items added to given `lapp_context`.
  */
-void BKE_blendfile_link(struct BlendfileLinkAppendContext *lapp_context,
-                        struct ReportList *reports);
+void BKE_blendfile_link(BlendfileLinkAppendContext *lapp_context, ReportList *reports);
 
 /**
  * Options controlling the behavior of liboverrides creation.
  */
-typedef enum eBKELibLinkOverride {
+enum eBKELibLinkOverride {
   BKE_LIBLINK_OVERRIDE_INIT = 0,
 
   /**
@@ -200,7 +188,7 @@ typedef enum eBKELibLinkOverride {
    * their usages remain indirect.
    */
   BKE_LIBLINK_OVERRIDE_CREATE_RUNTIME = 1 << 1,
-} eBKELibLinkOverride;
+};
 
 /**
  * Create (or find existing) liboverrides from linked data.
@@ -214,9 +202,9 @@ typedef enum eBKELibLinkOverride {
  * of dependencies or hierarchies. It is not expected to be directly exposed to users in its
  * current state, but rather as a helper for specific use-cases like 'presets assets' handling.
  */
-void BKE_blendfile_override(struct BlendfileLinkAppendContext *lapp_context,
+void BKE_blendfile_override(BlendfileLinkAppendContext *lapp_context,
                             const eBKELibLinkOverride flags,
-                            struct ReportList *reports);
+                            ReportList *reports);
 
 /**
  * Try to relocate all linked IDs added to `lapp_context`, belonging to the given `library`.
@@ -240,11 +228,7 @@ void BKE_blendfile_override(struct BlendfileLinkAppendContext *lapp_context,
  * NOTE: content of `lapp_context` after execution of that function should not be assumed valid
  * anymore, and should immediately be freed.
  */
-void BKE_blendfile_library_relocate(struct BlendfileLinkAppendContext *lapp_context,
-                                    struct ReportList *reports,
-                                    struct Library *library,
+void BKE_blendfile_library_relocate(BlendfileLinkAppendContext *lapp_context,
+                                    ReportList *reports,
+                                    Library *library,
                                     bool do_reload);
-
-#ifdef __cplusplus
-}
-#endif

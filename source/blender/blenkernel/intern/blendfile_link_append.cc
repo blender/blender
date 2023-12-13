@@ -50,7 +50,7 @@
 #include "BKE_rigidbody.h"
 #include "BKE_scene.h"
 
-#include "BKE_blendfile_link_append.h"
+#include "BKE_blendfile_link_append.hh"
 
 #include "BLO_readfile.h"
 #include "BLO_writefile.hh"

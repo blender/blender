@@ -34,7 +34,7 @@
 #include "BLO_writefile.hh"
 
 #include "BKE_blender.h"
-#include "BKE_blendfile.h"
+#include "BKE_blendfile.hh"
 #include "BKE_callbacks.h"
 #include "BKE_context.hh"
 #include "BKE_global.h"

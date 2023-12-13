@@ -25,8 +25,8 @@
 #include "IMB_moviecache.h"
 
 #include "BKE_blender_copybuffer.h" /* own include */
-#include "BKE_blendfile.h"
-#include "BKE_blendfile_link_append.h"
+#include "BKE_blendfile.hh"
+#include "BKE_blendfile_link_append.hh"
 #include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_layer.h"

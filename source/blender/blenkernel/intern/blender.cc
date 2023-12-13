@@ -25,7 +25,7 @@
 #include "BKE_blender.h" /* own include */
 #include "BKE_blender_user_menu.h"
 #include "BKE_blender_version.h" /* own include */
-#include "BKE_blendfile.h"
+#include "BKE_blendfile.hh"
 #include "BKE_brush.hh"
 #include "BKE_cachefile.h"
 #include "BKE_callbacks.h"

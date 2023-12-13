@@ -7,10 +7,7 @@
  * \ingroup bke
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
+struct bContext;
 struct BlendFileData;
 struct BlendFileReadParams;
 struct BlendFileReadReport;
@@ -20,7 +17,7 @@ struct Main;
 struct MemFile;
 struct ReportList;
 struct UserDef;
-struct bContext;
+struct WorkspaceConfigFileData;
 
 /**
  * Check whether given path ends with a blend file compatible extension
@@ -63,38 +60,38 @@ bool BKE_blendfile_is_readable(const char *path, struct ReportList *reports);
  * This is done in a separate step so the caller may perform actions after it is known the file
  * loaded correctly but before the file replaces the existing blend file contents.
  */
-void BKE_blendfile_read_setup_readfile(struct bContext *C,
-                                       struct BlendFileData *bfd,
-                                       const struct BlendFileReadParams *params,
-                                       struct BlendFileReadWMSetupData *wm_setup_data,
-                                       struct BlendFileReadReport *reports,
+void BKE_blendfile_read_setup_readfile(bContext *C,
+                                       BlendFileData *bfd,
+                                       const BlendFileReadParams *params,
+                                       BlendFileReadWMSetupData *wm_setup_data,
+                                       BlendFileReadReport *reports,
                                        bool startup_update_defaults,
                                        const char *startup_app_template);
 
 /**
  * Simpler version of #BKE_blendfile_read_setup_readfile used when reading undo steps from
  * memfile. */
-void BKE_blendfile_read_setup_undo(struct bContext *C,
-                                   struct BlendFileData *bfd,
-                                   const struct BlendFileReadParams *params,
-                                   struct BlendFileReadReport *reports);
+void BKE_blendfile_read_setup_undo(bContext *C,
+                                   BlendFileData *bfd,
+                                   const BlendFileReadParams *params,
+                                   BlendFileReadReport *reports);
 
 /**
  * \return Blend file data, this must be passed to
  * #BKE_blendfile_read_setup_readfile/#BKE_blendfile_read_setup_undo when non-NULL.
  */
-struct BlendFileData *BKE_blendfile_read(const char *filepath,
-                                         const struct BlendFileReadParams *params,
-                                         struct BlendFileReadReport *reports);
+BlendFileData *BKE_blendfile_read(const char *filepath,
+                                  const BlendFileReadParams *params,
+                                  BlendFileReadReport *reports);
 
 /**
  * \return Blend file data, this must be passed to
  * #BKE_blendfile_read_setup_readfile/#BKE_blendfile_read_setup_undo when non-NULL.
  */
-struct BlendFileData *BKE_blendfile_read_from_memory(const void *filebuf,
-                                                     int filelength,
-                                                     const struct BlendFileReadParams *params,
-                                                     struct ReportList *reports);
+BlendFileData *BKE_blendfile_read_from_memory(const void *filebuf,
+                                              int filelength,
+                                              const BlendFileReadParams *params,
+                                              ReportList *reports);
 
 /**
  * \return Blend file data, this must be passed to
@@ -102,30 +99,30 @@ struct BlendFileData *BKE_blendfile_read_from_memory(const void *filebuf,
  *
  * \note `memfile` is the undo buffer.
  */
-struct BlendFileData *BKE_blendfile_read_from_memfile(struct Main *bmain,
-                                                      struct MemFile *memfile,
-                                                      const struct BlendFileReadParams *params,
-                                                      struct ReportList *reports);
+BlendFileData *BKE_blendfile_read_from_memfile(Main *bmain,
+                                               MemFile *memfile,
+                                               const BlendFileReadParams *params,
+                                               ReportList *reports);
 /**
  * Utility to make a file 'empty' used for startup to optionally give an empty file.
  * Handy for tests.
  */
-void BKE_blendfile_read_make_empty(struct bContext *C);
+void BKE_blendfile_read_make_empty(bContext *C);
 
 /**
  * Only read the #UserDef from a .blend.
  */
-struct UserDef *BKE_blendfile_userdef_read(const char *filepath, struct ReportList *reports);
-struct UserDef *BKE_blendfile_userdef_read_from_memory(const void *filebuf,
-                                                       int filelength,
-                                                       struct ReportList *reports);
-struct UserDef *BKE_blendfile_userdef_from_defaults(void);
+UserDef *BKE_blendfile_userdef_read(const char *filepath, ReportList *reports);
+UserDef *BKE_blendfile_userdef_read_from_memory(const void *filebuf,
+                                                int filelength,
+                                                ReportList *reports);
+UserDef *BKE_blendfile_userdef_from_defaults(void);
 
 /**
  * Only write the #UserDef in a `.blend`.
  * \return success.
  */
-bool BKE_blendfile_userdef_write(const char *filepath, struct ReportList *reports);
+bool BKE_blendfile_userdef_write(const char *filepath, ReportList *reports);
 /**
  * Only write the #UserDef in a `.blend`, merging with the existing blend file.
  * \return success.
@@ -133,34 +130,25 @@ bool BKE_blendfile_userdef_write(const char *filepath, struct ReportList *report
  * \note In the future we should re-evaluate user preferences,
  * possibly splitting out system/hardware specific preferences.
  */
-bool BKE_blendfile_userdef_write_app_template(const char *filepath, struct ReportList *reports);
+bool BKE_blendfile_userdef_write_app_template(const char *filepath, ReportList *reports);
 
-bool BKE_blendfile_userdef_write_all(struct ReportList *reports);
+bool BKE_blendfile_userdef_write_all(ReportList *reports);
 
-struct WorkspaceConfigFileData *BKE_blendfile_workspace_config_read(const char *filepath,
-                                                                    const void *filebuf,
-                                                                    int filelength,
-                                                                    struct ReportList *reports);
-bool BKE_blendfile_workspace_config_write(struct Main *bmain,
-                                          const char *filepath,
-                                          struct ReportList *reports);
-void BKE_blendfile_workspace_config_data_free(struct WorkspaceConfigFileData *workspace_config);
+WorkspaceConfigFileData *BKE_blendfile_workspace_config_read(const char *filepath,
+                                                             const void *filebuf,
+                                                             int filelength,
+                                                             ReportList *reports);
+bool BKE_blendfile_workspace_config_write(Main *bmain, const char *filepath, ReportList *reports);
+void BKE_blendfile_workspace_config_data_free(WorkspaceConfigFileData *workspace_config);
 
 /* Partial blend file writing. */
 
-void BKE_blendfile_write_partial_tag_ID(struct ID *id, bool set);
-void BKE_blendfile_write_partial_begin(struct Main *bmain_src);
+void BKE_blendfile_write_partial_tag_ID(ID *id, bool set);
+void BKE_blendfile_write_partial_begin(Main *bmain_src);
 /**
  * \param remap_mode: Choose the kind of path remapping or none #eBLO_WritePathRemap.
  * \return Success.
  */
-bool BKE_blendfile_write_partial(struct Main *bmain_src,
-                                 const char *filepath,
-                                 int write_flags,
-                                 int remap_mode,
-                                 struct ReportList *reports);
-void BKE_blendfile_write_partial_end(struct Main *bmain_src);
-
-#ifdef __cplusplus
-}
-#endif
+bool BKE_blendfile_write_partial(
+    Main *bmain_src, const char *filepath, int write_flags, int remap_mode, ReportList *reports);
+void BKE_blendfile_write_partial_end(Main *bmain_src);

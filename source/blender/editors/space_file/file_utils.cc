@@ -11,7 +11,7 @@
 #include "BLI_rect.h"
 #include "BLI_string.h"
 
-#include "BKE_blendfile.h"
+#include "BKE_blendfile.hh"
 #include "BKE_context.hh"
 
 #include "ED_fileselect.hh"

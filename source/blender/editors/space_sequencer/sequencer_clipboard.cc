@@ -29,7 +29,7 @@
 
 #include "BKE_appdir.h"
 #include "BKE_blender_copybuffer.h"
-#include "BKE_blendfile.h"
+#include "BKE_blendfile.hh"
 #include "BKE_context.hh"
 #include "BKE_fcurve.h"
 #include "BKE_lib_id.h"
