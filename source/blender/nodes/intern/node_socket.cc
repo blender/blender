@@ -371,24 +371,6 @@ static const char *get_current_socket_identifier_for_future_socket(
     const Span<const SocketDeclaration *> socket_decls)
 {
   switch (node.type) {
-    case GEO_NODE_SWITCH: {
-      const NodeSwitch &storage = *static_cast<const NodeSwitch *>(node.storage);
-      const bool use_field_socket = ELEM(storage.input_type,
-                                         SOCK_FLOAT,
-                                         SOCK_INT,
-                                         SOCK_BOOLEAN,
-                                         SOCK_VECTOR,
-                                         SOCK_RGBA,
-                                         SOCK_STRING,
-                                         SOCK_ROTATION);
-      if (BLI_str_startswith(socket.identifier, "Switch")) {
-        if (use_field_socket) {
-          return "Switch";
-        }
-        return "Switch_001";
-      }
-      return get_identifier_from_decl({"False", "True", "Output"}, socket, socket_decls);
-    }
     case GEO_NODE_SAMPLE_CURVE: {
       return get_identifier_from_decl("Value", socket, socket_decls);
     }

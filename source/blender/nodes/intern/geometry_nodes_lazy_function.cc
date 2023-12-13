@@ -3524,73 +3524,43 @@ struct GeometryNodesLazyFunctionBuilder {
     lf::FunctionNode &lf_node = graph_params.lf_graph.add_function(*lazy_function);
     scope_.add(std::move(lazy_function));
 
-    int input_index = 0;
-    for (const bNodeSocket *bsocket : bnode.input_sockets()) {
-      if (bsocket->is_available()) {
-        lf::InputSocket &lf_socket = lf_node.input(input_index);
-        graph_params.lf_inputs_by_bsocket.add(bsocket, &lf_socket);
-        mapping_->bsockets_by_lf_socket_map.add(&lf_socket, bsocket);
-        input_index++;
-      }
+    for (const int i : bnode.input_sockets().index_range()) {
+      graph_params.lf_inputs_by_bsocket.add(&bnode.input_socket(i), &lf_node.input(i));
+      mapping_->bsockets_by_lf_socket_map.add(&lf_node.input(i), &bnode.input_socket(i));
     }
-    for (const bNodeSocket *bsocket : bnode.output_sockets()) {
-      if (bsocket->is_available()) {
-        lf::OutputSocket &lf_socket = lf_node.output(0);
-        graph_params.lf_output_by_bsocket.add(bsocket, &lf_socket);
-        mapping_->bsockets_by_lf_socket_map.add(&lf_socket, bsocket);
-        break;
-      }
-    }
+
+    graph_params.lf_output_by_bsocket.add(&bnode.output_socket(0), &lf_node.output(0));
+    mapping_->bsockets_by_lf_socket_map.add(&lf_node.output(0), &bnode.output_socket(0));
 
     this->build_switch_node_socket_usage(bnode, graph_params);
   }
 
   void build_switch_node_socket_usage(const bNode &bnode, BuildGraphParams &graph_params)
   {
-    const bNodeSocket *switch_input_bsocket = nullptr;
-    const bNodeSocket *false_input_bsocket = nullptr;
-    const bNodeSocket *true_input_bsocket = nullptr;
-    const bNodeSocket *output_bsocket = nullptr;
-    for (const bNodeSocket *socket : bnode.input_sockets()) {
-      if (!socket->is_available()) {
-        continue;
-      }
-      if (socket->name == StringRef("Switch")) {
-        switch_input_bsocket = socket;
-      }
-      else if (socket->name == StringRef("False")) {
-        false_input_bsocket = socket;
-      }
-      else if (socket->name == StringRef("True")) {
-        true_input_bsocket = socket;
-      }
-    }
-    for (const bNodeSocket *socket : bnode.output_sockets()) {
-      if (socket->is_available()) {
-        output_bsocket = socket;
-        break;
-      }
-    }
+    const bNodeSocket &switch_input_bsocket = bnode.input_socket(0);
+    const bNodeSocket &false_input_bsocket = bnode.input_socket(1);
+    const bNodeSocket &true_input_bsocket = bnode.input_socket(2);
+    const bNodeSocket &output_bsocket = bnode.output_socket(0);
     lf::OutputSocket *output_is_used_socket = graph_params.usage_by_bsocket.lookup_default(
-        output_bsocket, nullptr);
+        &output_bsocket, nullptr);
     if (output_is_used_socket == nullptr) {
       return;
     }
-    graph_params.usage_by_bsocket.add(switch_input_bsocket, output_is_used_socket);
-    if (switch_input_bsocket->is_directly_linked()) {
+    graph_params.usage_by_bsocket.add(&switch_input_bsocket, output_is_used_socket);
+    if (switch_input_bsocket.is_directly_linked()) {
       /* The condition input is dynamic, so the usage of the other inputs is as well. */
       static const LazyFunctionForSwitchSocketUsage switch_socket_usage_fn;
       lf::Node &lf_node = graph_params.lf_graph.add_function(switch_socket_usage_fn);
-      graph_params.lf_inputs_by_bsocket.add(switch_input_bsocket, &lf_node.input(0));
-      graph_params.usage_by_bsocket.add(false_input_bsocket, &lf_node.output(0));
-      graph_params.usage_by_bsocket.add(true_input_bsocket, &lf_node.output(1));
+      graph_params.lf_inputs_by_bsocket.add(&switch_input_bsocket, &lf_node.input(0));
+      graph_params.usage_by_bsocket.add(&false_input_bsocket, &lf_node.output(0));
+      graph_params.usage_by_bsocket.add(&true_input_bsocket, &lf_node.output(1));
     }
     else {
-      if (switch_input_bsocket->default_value_typed<bNodeSocketValueBoolean>()->value) {
-        graph_params.usage_by_bsocket.add(true_input_bsocket, output_is_used_socket);
+      if (switch_input_bsocket.default_value_typed<bNodeSocketValueBoolean>()->value) {
+        graph_params.usage_by_bsocket.add(&true_input_bsocket, output_is_used_socket);
       }
       else {
-        graph_params.usage_by_bsocket.add(false_input_bsocket, output_is_used_socket);
+        graph_params.usage_by_bsocket.add(&false_input_bsocket, output_is_used_socket);
       }
     }
   }
