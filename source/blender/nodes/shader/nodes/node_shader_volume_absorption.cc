@@ -16,11 +16,9 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Shader>("Volume").translation_context(BLT_I18NCONTEXT_ID_ID);
 }
 
-#define socket_not_zero(sock) (in[sock].link || (clamp_f(in[sock].vec[0], 0.0f, 1.0f) > 1e-5f))
+#define socket_not_zero(sock) (in[sock].link || (in[sock].vec[0] > 1e-5f))
 #define socket_not_white(sock) \
-  (in[sock].link || \
-   (clamp_f(in[sock].vec[0], 0.0f, 1.0f) < 1.0f && clamp_f(in[sock].vec[1], 0.0f, 1.0f) < 1.0f && \
-    clamp_f(in[sock].vec[2], 0.0f, 1.0f) < 1.0f))
+  (in[sock].link || (in[sock].vec[0] < 1.0f || in[sock].vec[1] < 1.0f || in[sock].vec[2] < 1.0f))
 
 static int node_shader_gpu_volume_absorption(GPUMaterial *mat,
                                              bNode *node,

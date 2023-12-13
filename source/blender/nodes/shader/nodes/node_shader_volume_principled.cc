@@ -56,15 +56,12 @@ static void attribute_post_process(GPUMaterial *mat,
   }
 }
 
-#define socket_not_zero(sock) (in[sock].link || (clamp_f(in[sock].vec[0], 0.0f, 1.0f) > 1e-5f))
+#define socket_not_zero(sock) (in[sock].link || (in[sock].vec[0] > 1e-5f))
 #define socket_not_black(sock) \
-  (in[sock].link || (clamp_f(in[sock].vec[0], 0.0f, 1.0f) > 1e-5f && \
-                     clamp_f(in[sock].vec[1], 0.0f, 1.0f) > 1e-5f && \
-                     clamp_f(in[sock].vec[2], 0.0f, 1.0f) > 1e-5f))
-#define socket_not_white(sock) \
   (in[sock].link || \
-   (clamp_f(in[sock].vec[0], 0.0f, 1.0f) < 1.0f && clamp_f(in[sock].vec[1], 0.0f, 1.0f) < 1.0f && \
-    clamp_f(in[sock].vec[2], 0.0f, 1.0f) < 1.0f))
+   (in[sock].vec[0] > 1e-5f || in[sock].vec[1] > 1e-5f || in[sock].vec[2] > 1e-5f))
+#define socket_not_white(sock) \
+  (in[sock].link || (in[sock].vec[0] < 1.0f || in[sock].vec[1] < 1.0f || in[sock].vec[2] < 1.0f))
 
 static int node_shader_gpu_volume_principled(GPUMaterial *mat,
                                              bNode *node,
