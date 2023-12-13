@@ -313,6 +313,8 @@ void SEQUENCER_OT_retiming_freeze_frame_add(wmOperatorType *ot);
 void SEQUENCER_OT_retiming_transition_add(wmOperatorType *ot);
 void SEQUENCER_OT_retiming_segment_speed_set(wmOperatorType *ot);
 int sequencer_retiming_key_select_exec(bContext *C, wmOperator *op);
+/* Select a key and all following keys. */
+int sequencer_retiming_select_linked_time(bContext *C, wmOperator *op);
 int sequencer_select_exec(bContext *C, wmOperator *op);
 int sequencer_retiming_key_remove_exec(bContext *C, wmOperator *op);
 int sequencer_retiming_select_all_exec(bContext *C, wmOperator *op);

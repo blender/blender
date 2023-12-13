@@ -660,8 +660,34 @@ static bool select_key(const Editing *ed,
   return true;
 }
 
+int sequencer_retiming_select_linked_time(bContext *C, wmOperator *op)
+{
+  Scene *scene = CTX_data_scene(C);
+  Editing *ed = SEQ_editing_get(scene);
+  const int mval[2] = {RNA_int_get(op->ptr, "mouse_x"), RNA_int_get(op->ptr, "mouse_y")};
+
+  Sequence *seq_key_owner = nullptr;
+  SeqRetimingKey *key = retiming_mousover_key_get(C, mval, &seq_key_owner);
+
+  if (key == nullptr) {
+    return OPERATOR_CANCELLED;
+  }
+  if (!RNA_boolean_get(op->ptr, "extend")) {
+    SEQ_retiming_selection_clear(ed);
+  }
+  for (; key <= SEQ_retiming_last_key_get(seq_key_owner); key++) {
+    select_key(ed, key, false, false);
+  }
+  WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
+  return OPERATOR_FINISHED;
+}
+
 int sequencer_retiming_key_select_exec(bContext *C, wmOperator *op)
 {
+  if (RNA_boolean_get(op->ptr, "linked_time")) {
+    return sequencer_retiming_select_linked_time(C, op);
+  }
+
   Scene *scene = CTX_data_scene(C);
   Editing *ed = SEQ_editing_get(scene);
   const int mval[2] = {RNA_int_get(op->ptr, "mouse_x"), RNA_int_get(op->ptr, "mouse_y")};
