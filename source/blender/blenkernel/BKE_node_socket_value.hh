@@ -19,24 +19,22 @@ namespace blender::bke {
  * \{ */
 
 template<typename T> struct SocketValueVariant {
-  using Field = fn::Field<T>;
-
   /** Value that is used when the field is empty. */
   T value{};
-  Field field;
+  fn::Field<T> field;
 
   SocketValueVariant() = default;
 
   SocketValueVariant(T value) : value(std::move(value)) {}
 
-  SocketValueVariant(Field field) : field(std::move(field)) {}
+  SocketValueVariant(fn::Field<T> field) : field(std::move(field)) {}
 
   bool is_field() const
   {
     return bool(this->field);
   }
 
-  Field as_field() const
+  fn::Field<T> as_field() const
   {
     if (this->field) {
       return this->field;
