@@ -245,7 +245,7 @@ static Mesh *cdts_to_mesh(const Span<meshintersect::CDT_result<double>> results)
   /* The delaunay triangulation doesn't seem to return all of the necessary all_edges, even in
    * triangulation mode. */
   BKE_mesh_calc_edges(mesh, true, false);
-  BKE_mesh_smooth_flag_set(mesh, false);
+  bke::mesh_smooth_set(*mesh, false);
 
   mesh->tag_overlapping_none();
 

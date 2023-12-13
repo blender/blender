@@ -1121,11 +1121,11 @@ void BKE_mesh_material_remap(Mesh *mesh, const uint *remap, uint remap_len)
 #undef MAT_NR_REMAP
 }
 
-void BKE_mesh_smooth_flag_set(Mesh *mesh, const bool use_smooth)
+namespace blender::bke {
+
+void mesh_smooth_set(Mesh &mesh, const bool use_smooth)
 {
-  using namespace blender;
-  using namespace blender::bke;
-  MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  MutableAttributeAccessor attributes = mesh.attributes_for_write();
   if (use_smooth) {
     attributes.remove("sharp_edge");
     attributes.remove("sharp_face");
@@ -1139,33 +1139,33 @@ void BKE_mesh_smooth_flag_set(Mesh *mesh, const bool use_smooth)
   }
 }
 
-void BKE_mesh_sharp_edges_set_from_angle(Mesh *mesh, const float angle)
+void mesh_sharp_edges_set_from_angle(Mesh &mesh, const float angle)
 {
-  using namespace blender;
-  using namespace blender::bke;
-  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  MutableAttributeAccessor attributes = mesh.attributes_for_write();
   if (angle >= M_PI) {
     attributes.remove("sharp_edge");
     attributes.remove("sharp_face");
     return;
   }
   if (angle == 0.0f) {
-    BKE_mesh_smooth_flag_set(mesh, false);
+    mesh_smooth_set(mesh, false);
     return;
   }
-  bke::SpanAttributeWriter<bool> sharp_edges = attributes.lookup_or_add_for_write_span<bool>(
+  SpanAttributeWriter<bool> sharp_edges = attributes.lookup_or_add_for_write_span<bool>(
       "sharp_edge", ATTR_DOMAIN_EDGE);
   const VArraySpan<bool> sharp_faces = *attributes.lookup<bool>("sharp_face", ATTR_DOMAIN_FACE);
-  bke::mesh::edges_sharp_from_angle_set(mesh->faces(),
-                                        mesh->corner_verts(),
-                                        mesh->corner_edges(),
-                                        mesh->face_normals(),
-                                        mesh->corner_to_face_map(),
-                                        sharp_faces,
-                                        angle,
-                                        sharp_edges.span);
+  mesh::edges_sharp_from_angle_set(mesh.faces(),
+                                   mesh.corner_verts(),
+                                   mesh.corner_edges(),
+                                   mesh.face_normals(),
+                                   mesh.corner_to_face_map(),
+                                   sharp_faces,
+                                   angle,
+                                   sharp_edges.span);
   sharp_edges.finish();
 }
+
+}  // namespace blender::bke
 
 std::optional<blender::Bounds<blender::float3>> Mesh::bounds_min_max() const
 {

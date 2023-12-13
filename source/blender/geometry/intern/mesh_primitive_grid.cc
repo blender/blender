@@ -51,7 +51,7 @@ Mesh *create_grid_mesh(const int verts_x,
   MutableSpan<int2> edges = mesh->edges_for_write();
   MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
   MutableSpan<int> corner_edges = mesh->corner_edges_for_write();
-  BKE_mesh_smooth_flag_set(mesh, false);
+  bke::mesh_smooth_set(*mesh, false);
 
   offset_indices::fill_constant_group_size(4, 0, mesh->face_offsets_for_write());
 

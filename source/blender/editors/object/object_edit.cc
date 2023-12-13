@@ -1566,6 +1566,7 @@ void OBJECT_OT_paths_clear(wmOperatorType *ot)
 
 static int shade_smooth_exec(bContext *C, wmOperator *op)
 {
+  using namespace blender;
   const bool use_smooth = STREQ(op->idname, "OBJECT_OT_shade_smooth");
   const bool use_smooth_by_angle = STREQ(op->idname, "OBJECT_OT_shade_smooth_by_angle");
   bool changed_multi = false;
@@ -1616,11 +1617,11 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
 
     bool changed = false;
     if (ob->type == OB_MESH) {
-      BKE_mesh_smooth_flag_set(static_cast<Mesh *>(ob->data), use_smooth || use_smooth_by_angle);
+      bke::mesh_smooth_set(*static_cast<Mesh *>(ob->data), use_smooth || use_smooth_by_angle);
       if (use_smooth || use_smooth_by_angle) {
         if (use_smooth_by_angle) {
           const float angle = RNA_float_get(op->ptr, "angle");
-          BKE_mesh_sharp_edges_set_from_angle(static_cast<Mesh *>(ob->data), angle);
+          bke::mesh_sharp_edges_set_from_angle(*static_cast<Mesh *>(ob->data), angle);
         }
       }
       BKE_mesh_batch_cache_dirty_tag(static_cast<Mesh *>(ob->data), BKE_MESH_BATCH_DIRTY_ALL);

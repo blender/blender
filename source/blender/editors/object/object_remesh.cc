@@ -168,7 +168,7 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
   else {
     const VArray<bool> sharp_face = *mesh->attributes().lookup_or_default<bool>(
         "sharp_face", ATTR_DOMAIN_FACE, false);
-    BKE_mesh_smooth_flag_set(new_mesh, !sharp_face[0]);
+    bke::mesh_smooth_set(*new_mesh, !sharp_face[0]);
   }
 
   BKE_mesh_nomain_to_mesh(new_mesh, mesh, ob);
@@ -831,6 +831,7 @@ static Mesh *remesh_symmetry_mirror(Object *ob, Mesh *mesh, eSymmetryAxes symmet
 
 static void quadriflow_start_job(void *customdata, wmJobWorkerStatus *worker_status)
 {
+  using namespace blender;
   using namespace blender::ed;
   QuadriFlowJob *qj = static_cast<QuadriFlowJob *>(customdata);
 
@@ -899,7 +900,7 @@ static void quadriflow_start_job(void *customdata, wmJobWorkerStatus *worker_sta
 
   BKE_mesh_nomain_to_mesh(new_mesh, mesh, ob);
 
-  BKE_mesh_smooth_flag_set(static_cast<Mesh *>(ob->data), qj->smooth_normals);
+  bke::mesh_smooth_set(*static_cast<Mesh *>(ob->data), qj->smooth_normals);
 
   if (ob->mode == OB_MODE_SCULPT) {
     sculpt_paint::undo::geometry_end(ob);

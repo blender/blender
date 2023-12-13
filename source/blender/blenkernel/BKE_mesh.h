@@ -176,8 +176,6 @@ void BKE_mesh_material_index_remove(struct Mesh *mesh, short index);
 bool BKE_mesh_material_index_used(struct Mesh *mesh, short index);
 void BKE_mesh_material_index_clear(struct Mesh *mesh);
 void BKE_mesh_material_remap(struct Mesh *mesh, const unsigned int *remap, unsigned int remap_len);
-void BKE_mesh_smooth_flag_set(struct Mesh *mesh, bool use_smooth);
-void BKE_mesh_sharp_edges_set_from_angle(struct Mesh *mesh, float angle);
 
 void BKE_mesh_texspace_calc(struct Mesh *mesh);
 void BKE_mesh_texspace_ensure(struct Mesh *mesh);

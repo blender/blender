@@ -376,7 +376,7 @@ Mesh *create_cuboid_mesh(const float3 &size,
   Mesh *mesh = BKE_mesh_new_nomain(config.vertex_count, 0, config.face_count, config.loop_count);
   MutableSpan<float3> positions = mesh->vert_positions_for_write();
   MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
-  BKE_mesh_smooth_flag_set(mesh, false);
+  bke::mesh_smooth_set(*mesh, false);
 
   calculate_positions(config, positions);
   offset_indices::fill_constant_group_size(4, 0, mesh->face_offsets_for_write());

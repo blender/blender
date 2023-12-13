@@ -312,6 +312,9 @@ void mesh_vert_normals_assign(Mesh &mesh, Span<float3> vert_normals);
 /** Set mesh vertex normals to known-correct values, avoiding future lazy computation. */
 void mesh_vert_normals_assign(Mesh &mesh, Vector<float3> vert_normals);
 
+void mesh_smooth_set(Mesh &mesh, bool use_smooth);
+void mesh_sharp_edges_set_from_angle(Mesh &mesh, float angle);
+
 /** Make edge and face visibility consistent with vertices. */
 void mesh_hide_vert_flush(Mesh &mesh);
 /** Make vertex and edge visibility consistent with faces. */

@@ -599,7 +599,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
     /* For Sculpting template. */
     if (app_template && STREQ(app_template, "Sculpting")) {
       mesh->remesh_voxel_size = 0.035f;
-      BKE_mesh_smooth_flag_set(mesh, false);
+      blender::bke::mesh_smooth_set(*mesh, false);
     }
     else {
       /* Remove sculpt-mask data in default mesh objects for all non-sculpt templates. */

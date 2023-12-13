@@ -3261,7 +3261,7 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
   const bool is_sharp = orgmesh->attributes()
                             .lookup_or_default<bool>("sharp_face", ATTR_DOMAIN_FACE, false)
                             .varray[0];
-  BKE_mesh_smooth_flag_set(mesh, !is_sharp);
+  bke::mesh_smooth_set(*mesh, !is_sharp);
 
   /* Get size (dimension) but considering scaling. */
   copy_v3_v3(cell_size_scaled, fds->cell_size);
