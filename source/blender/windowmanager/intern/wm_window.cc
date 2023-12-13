@@ -1334,11 +1334,11 @@ static void ghost_event_proc_timestamp_warning(GHOST_EventHandle ghost_event)
    * Different input methods may detect and trigger events in a way that wont ensure
    * monotonic event times, so only consider this an error for large time deltas. */
   double time_delta = 0.0;
-  if (event_ms_ref < (event_ms - event_time_error_ms)) {
+  if (event_ms < (event_ms_ref - event_time_error_ms)) {
     /* New event time is after (to be expected). */
     time_delta = double(now_ms - event_ms) / -1000.0;
   }
-  else if (event_ms_ref > (event_ms + event_time_error_ms)) {
+  else if (event_ms > (event_ms_ref + event_time_error_ms)) {
     /* New event time is before (unexpected but not an error). */
     time_delta = double(event_ms - now_ms) / 1000.0;
   }
@@ -1361,10 +1361,13 @@ static void ghost_event_proc_timestamp_warning(GHOST_EventHandle ghost_event)
   }
 
   fprintf(stderr,
-          "GHOST: suspicious time-stamp from far in the %s: %.2f %s, type %d\n",
+          "GHOST: suspicious time-stamp from far in the %s: %.2f %s, "
+          "absolute value is %" PRIu64 ", current time is %" PRIu64 ", for type %d\n",
           time_delta < 0.0f ? "past" : "future",
           std::abs(time_delta),
           time_unit,
+          event_ms,
+          now_ms,
           int(GHOST_GetEventType(ghost_event)));
 }
 #endif /* !NDEBUG */
