@@ -1283,7 +1283,6 @@ void txt_sel_line(Text *text)
 void txt_sel_set(Text *text, int startl, int startc, int endl, int endc)
 {
   TextLine *froml, *tol;
-  int fromllen, tollen;
 
   /* Support negative indices. */
   if (startl < 0 || endl < 0) {
@@ -1312,19 +1311,15 @@ void txt_sel_set(Text *text, int startl, int startc, int endl, int endc)
     }
   }
 
-  fromllen = BLI_strlen_utf8(froml->line);
-  tollen = BLI_strlen_utf8(tol->line);
-
   /* Support negative indices. */
   if (startc < 0) {
-    startc = fromllen + startc + 1;
+    const int fromllen = BLI_strlen_utf8(froml->line);
+    startc = std::max(0, fromllen + startc + 1);
   }
   if (endc < 0) {
-    endc = tollen + endc + 1;
+    const int tollen = BLI_strlen_utf8(tol->line);
+    endc = std::max(0, tollen + endc + 1);
   }
-
-  CLAMP(startc, 0, fromllen);
-  CLAMP(endc, 0, tollen);
 
   text->curl = froml;
   text->curc = BLI_str_utf8_offset_from_index(froml->line, froml->len, startc);

@@ -2163,11 +2163,9 @@ static int rna_ConsoleLine_current_character_get(PointerRNA *ptr)
   return BLI_str_utf8_offset_to_index(ci->line, ci->len, ci->cursor);
 }
 
-static void rna_ConsoleLine_current_character_set(PointerRNA *ptr, int index)
+static void rna_ConsoleLine_current_character_set(PointerRNA *ptr, const int index)
 {
   ConsoleLine *ci = (ConsoleLine *)ptr->data;
-  const int len_utf8 = BLI_strlen_utf8(ci->line);
-  CLAMP_MAX(index, len_utf8);
   ci->cursor = BLI_str_utf8_offset_from_index(ci->line, ci->len, index);
 }
 
