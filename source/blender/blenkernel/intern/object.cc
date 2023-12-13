@@ -3656,8 +3656,10 @@ void BKE_object_minmax(Object *ob, float r_min[3], float r_max[3])
 {
   using namespace blender;
   if (const std::optional<Bounds<float3>> bounds = BKE_object_boundbox_get(ob)) {
-    copy_v3_v3(r_min, math::transform_point(float4x4(ob->object_to_world), bounds->min));
-    copy_v3_v3(r_max, math::transform_point(float4x4(ob->object_to_world), bounds->max));
+    minmax_v3v3_v3(
+        r_min, r_max, math::transform_point(float4x4(ob->object_to_world), bounds->min));
+    minmax_v3v3_v3(
+        r_min, r_max, math::transform_point(float4x4(ob->object_to_world), bounds->max));
     return;
   }
   float3 size = ob->scale;
