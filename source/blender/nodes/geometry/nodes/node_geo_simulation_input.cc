@@ -41,7 +41,7 @@ class LazyFunctionForSimulationInputNode final : public LazyFunction {
 
     MutableSpan<int> lf_index_by_bsocket = own_lf_graph_info.mapping.lf_index_by_bsocket;
     lf_index_by_bsocket[node.output_socket(0).index_in_tree()] = outputs_.append_and_get_index_as(
-        "Delta Time", CPPType::get<ValueOrField<float>>());
+        "Delta Time", CPPType::get<SocketValueVariant<float>>());
 
     for (const int i : simulation_items_.index_range()) {
       const NodeSimulationItem &item = simulation_items_[i];
@@ -103,7 +103,7 @@ class LazyFunctionForSimulationInputNode final : public LazyFunction {
       BLI_assert_unreachable();
     }
     if (!params.output_was_set(0)) {
-      params.set_output(0, bke::ValueOrField<float>(delta_time));
+      params.set_output(0, bke::SocketValueVariant<float>(delta_time));
     }
   }
 

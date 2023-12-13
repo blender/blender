@@ -48,8 +48,8 @@ Array<std::unique_ptr<BakeItem>> move_socket_values_to_bake_items(const Span<voi
         break;
       }
       case SOCK_STRING: {
-        const ValueOrField<std::string> &value = *static_cast<const ValueOrField<std::string> *>(
-            socket_value);
+        const SocketValueVariant<std::string> &value =
+            *static_cast<const SocketValueVariant<std::string> *>(socket_value);
         bake_items[i] = std::make_unique<StringBakeItem>(value.as_value());
         break;
       }
@@ -60,14 +60,15 @@ Array<std::unique_ptr<BakeItem>> move_socket_values_to_bake_items(const Span<voi
       case SOCK_ROTATION:
       case SOCK_RGBA: {
         const CPPType &type = get_socket_cpp_type(socket_type);
-        const ValueOrFieldCPPType &value_or_field_type = *ValueOrFieldCPPType::get_from_self(type);
-        const CPPType &base_type = value_or_field_type.value;
-        if (!value_or_field_type.is_field(socket_value)) {
-          const void *value = value_or_field_type.get_value_ptr(socket_value);
+        const SocketValueVariantCPPType &value_variant_type =
+            *SocketValueVariantCPPType::get_from_self(type);
+        const CPPType &base_type = value_variant_type.value;
+        if (!value_variant_type.is_field(socket_value)) {
+          const void *value = value_variant_type.get_value_ptr(socket_value);
           bake_items[i] = std::make_unique<PrimitiveBakeItem>(base_type, value);
           break;
         }
-        const fn::GField &field = *value_or_field_type.get_field_ptr(socket_value);
+        const fn::GField &field = *value_variant_type.get_field_ptr(socket_value);
         if (!field.node().depends_on_input()) {
           BUFFER_FOR_CPP_TYPE_VALUE(base_type, value);
           fn::evaluate_constant_field(field, value);
@@ -144,11 +145,12 @@ Array<std::unique_ptr<BakeItem>> move_socket_values_to_bake_items(const Span<voi
     case SOCK_BOOLEAN:
     case SOCK_ROTATION:
     case SOCK_RGBA: {
-      const ValueOrFieldCPPType &value_or_field_type = *ValueOrFieldCPPType::get_from_self(type);
-      const CPPType &base_type = value_or_field_type.value;
+      const SocketValueVariantCPPType &value_variant_type =
+          *SocketValueVariantCPPType::get_from_self(type);
+      const CPPType &base_type = value_variant_type.value;
       if (const auto *item = dynamic_cast<const PrimitiveBakeItem *>(&bake_item)) {
         if (item->type() == base_type) {
-          value_or_field_type.construct_from_value(r_value, item->value());
+          value_variant_type.construct_from_value(r_value, item->value());
           return true;
         }
         return false;
@@ -158,7 +160,7 @@ Array<std::unique_ptr<BakeItem>> move_socket_values_to_bake_items(const Span<voi
             base_type);
         const AnonymousAttributeIDPtr &attribute_id = attribute_field->anonymous_id();
         fn::GField field{attribute_field};
-        value_or_field_type.construct_from_field(r_value, std::move(field));
+        value_variant_type.construct_from_field(r_value, std::move(field));
         r_attribute_map.add(item->name(), attribute_id);
         return true;
       }
@@ -166,7 +168,7 @@ Array<std::unique_ptr<BakeItem>> move_socket_values_to_bake_items(const Span<voi
     }
     case SOCK_STRING: {
       if (const auto *item = dynamic_cast<const StringBakeItem *>(&bake_item)) {
-        new (r_value) ValueOrField<std::string>(item->value());
+        new (r_value) SocketValueVariant<std::string>(item->value());
         return true;
       }
       return false;

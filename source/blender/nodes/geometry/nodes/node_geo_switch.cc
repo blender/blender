@@ -174,7 +174,7 @@ class LazyFunctionForSwitchNode : public LazyFunction {
     const CPPType &cpp_type = *socket_type->geometry_nodes_cpp_type;
 
     debug_name_ = node.name;
-    inputs_.append_as("Condition", CPPType::get<ValueOrField<bool>>());
+    inputs_.append_as("Condition", CPPType::get<SocketValueVariant<bool>>());
     inputs_.append_as("False", cpp_type, lf::ValueUsage::Maybe);
     inputs_.append_as("True", cpp_type, lf::ValueUsage::Maybe);
     outputs_.append_as("Value", cpp_type);
@@ -182,7 +182,7 @@ class LazyFunctionForSwitchNode : public LazyFunction {
 
   void execute_impl(lf::Params &params, const lf::Context & /*context*/) const override
   {
-    const ValueOrField<bool> condition = params.get_input<ValueOrField<bool>>(0);
+    const SocketValueVariant<bool> condition = params.get_input<SocketValueVariant<bool>>(0);
     if (condition.is_field() && can_be_field_) {
       Field<bool> condition_field = condition.as_field();
       if (condition_field.node().depends_on_input()) {
@@ -220,28 +220,28 @@ class LazyFunctionForSwitchNode : public LazyFunction {
   void execute_field(Field<bool> condition, lf::Params &params) const
   {
     /* When the condition is a non-constant field, we need both inputs. */
-    void *false_value_or_field = params.try_get_input_data_ptr_or_request(false_input_index);
-    void *true_value_or_field = params.try_get_input_data_ptr_or_request(true_input_index);
-    if (ELEM(nullptr, false_value_or_field, true_value_or_field)) {
+    void *false_value_variant = params.try_get_input_data_ptr_or_request(false_input_index);
+    void *true_value_variant = params.try_get_input_data_ptr_or_request(true_input_index);
+    if (ELEM(nullptr, false_value_variant, true_value_variant)) {
       /* Try again when inputs are available. */
       return;
     }
 
     const CPPType &type = *outputs_[0].type;
-    const bke::ValueOrFieldCPPType &value_or_field_type = *bke::ValueOrFieldCPPType::get_from_self(
-        type);
-    const CPPType &value_type = value_or_field_type.value;
+    const bke::SocketValueVariantCPPType &value_variant_type =
+        *bke::SocketValueVariantCPPType::get_from_self(type);
+    const CPPType &value_type = value_variant_type.value;
     const MultiFunction &switch_multi_function = this->get_switch_multi_function(value_type);
 
-    GField false_field = value_or_field_type.as_field(false_value_or_field);
-    GField true_field = value_or_field_type.as_field(true_value_or_field);
+    GField false_field = value_variant_type.as_field(false_value_variant);
+    GField true_field = value_variant_type.as_field(true_value_variant);
 
     GField output_field{FieldOperation::Create(
         switch_multi_function,
         {std::move(condition), std::move(false_field), std::move(true_field)})};
 
     void *output_ptr = params.get_output_data_ptr(0);
-    value_or_field_type.construct_from_field(output_ptr, std::move(output_field));
+    value_variant_type.construct_from_field(output_ptr, std::move(output_field));
     params.output_set(0);
   }
 

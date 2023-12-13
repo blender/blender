@@ -57,8 +57,8 @@ namespace blender::nodes {
 namespace aai = bke::anonymous_attribute_inferencing;
 using bke::bNodeTreeZone;
 using bke::bNodeTreeZones;
-using bke::ValueOrField;
-using bke::ValueOrFieldCPPType;
+using bke::SocketValueVariant;
+using bke::SocketValueVariantCPPType;
 
 static const CPPType *get_socket_cpp_type(const bNodeSocketType &typeinfo)
 {
@@ -342,14 +342,14 @@ class LazyFunctionForGeometryNode : public LazyFunction {
                                         const int lf_index,
                                         AnonymousAttributeIDPtr attribute_id) const
   {
-    const ValueOrFieldCPPType &value_or_field_cpp_type = *ValueOrFieldCPPType::get_from_self(
-        *outputs_[lf_index].type);
+    const SocketValueVariantCPPType &value_variant_type =
+        *SocketValueVariantCPPType::get_from_self(*outputs_[lf_index].type);
     GField output_field{std::make_shared<AnonymousAttributeFieldInput>(
         std::move(attribute_id),
-        value_or_field_cpp_type.value,
+        value_variant_type.value,
         fmt::format(TIP_("{} node"), std::string_view(node_.label_or_name())))};
     void *r_value = params.get_output_data_ptr(lf_index);
-    value_or_field_cpp_type.construct_from_field(r_value, std::move(output_field));
+    value_variant_type.construct_from_field(r_value, std::move(output_field));
     params.output_set(lf_index);
   }
 
@@ -415,21 +415,22 @@ class LazyFunctionForMultiInput : public LazyFunction {
   {
     /* Currently we only have multi-inputs for geometry and string sockets. This could be
      * generalized in the future. */
-    base_type_->to_static_type_tag<GeometrySet, ValueOrField<std::string>>([&](auto type_tag) {
-      using T = typename decltype(type_tag)::type;
-      if constexpr (std::is_void_v<T>) {
-        /* This type is not supported in this node for now. */
-        BLI_assert_unreachable();
-      }
-      else {
-        void *output_ptr = params.get_output_data_ptr(0);
-        Vector<T> &values = *new (output_ptr) Vector<T>();
-        for (const int i : inputs_.index_range()) {
-          values.append(params.extract_input<T>(i));
-        }
-        params.output_set(0);
-      }
-    });
+    base_type_->to_static_type_tag<GeometrySet, SocketValueVariant<std::string>>(
+        [&](auto type_tag) {
+          using T = typename decltype(type_tag)::type;
+          if constexpr (std::is_void_v<T>) {
+            /* This type is not supported in this node for now. */
+            BLI_assert_unreachable();
+          }
+          else {
+            void *output_ptr = params.get_output_data_ptr(0);
+            Vector<T> &values = *new (output_ptr) Vector<T>();
+            for (const int i : inputs_.index_range()) {
+              values.append(params.extract_input<T>(i));
+            }
+            params.output_set(0);
+          }
+        });
   }
 };
 
@@ -481,11 +482,11 @@ class LazyFunctionForUndefinedNode : public LazyFunction {
  * Executes a multi-function. If all inputs are single values, the results will also be single
  * values. If any input is a field, the outputs will also be fields.
  */
-static void execute_multi_function_on_value_or_field(
+static void execute_multi_function_on_value_variant(
     const MultiFunction &fn,
     const std::shared_ptr<MultiFunction> &owned_fn,
-    const Span<const ValueOrFieldCPPType *> input_types,
-    const Span<const ValueOrFieldCPPType *> output_types,
+    const Span<const SocketValueVariantCPPType *> input_types,
+    const Span<const SocketValueVariantCPPType *> output_types,
     const Span<const void *> input_values,
     const Span<void *> output_values)
 {
@@ -496,9 +497,9 @@ static void execute_multi_function_on_value_or_field(
   /* Check if any input is a field. */
   bool any_input_is_field = false;
   for (const int i : input_types.index_range()) {
-    const ValueOrFieldCPPType &type = *input_types[i];
-    const void *value_or_field = input_values[i];
-    if (type.is_field(value_or_field)) {
+    const SocketValueVariantCPPType &type = *input_types[i];
+    const void *value_variant = input_values[i];
+    if (type.is_field(value_variant)) {
       any_input_is_field = true;
       break;
     }
@@ -508,9 +509,9 @@ static void execute_multi_function_on_value_or_field(
     /* Convert all inputs into fields, so that they can be used as input in the new field. */
     Vector<GField> input_fields;
     for (const int i : input_types.index_range()) {
-      const ValueOrFieldCPPType &type = *input_types[i];
-      const void *value_or_field = input_values[i];
-      input_fields.append(type.as_field(value_or_field));
+      const SocketValueVariantCPPType &type = *input_types[i];
+      const void *value_variant = input_values[i];
+      input_fields.append(type.as_field(value_variant));
     }
 
     /* Construct the new field node. */
@@ -524,9 +525,9 @@ static void execute_multi_function_on_value_or_field(
 
     /* Store the new fields in the output. */
     for (const int i : output_types.index_range()) {
-      const ValueOrFieldCPPType &type = *output_types[i];
-      void *value_or_field = output_values[i];
-      type.construct_from_field(value_or_field, GField{operation, i});
+      const SocketValueVariantCPPType &type = *output_types[i];
+      void *value_variant = output_values[i];
+      type.construct_from_field(value_variant, GField{operation, i});
     }
   }
   else {
@@ -536,16 +537,16 @@ static void execute_multi_function_on_value_or_field(
     mf::ContextBuilder context;
 
     for (const int i : input_types.index_range()) {
-      const ValueOrFieldCPPType &type = *input_types[i];
-      const void *value_or_field = input_values[i];
-      const void *value = type.get_value_ptr(value_or_field);
+      const SocketValueVariantCPPType &type = *input_types[i];
+      const void *value_variant = input_values[i];
+      const void *value = type.get_value_ptr(value_variant);
       params.add_readonly_single_input(GPointer{type.value, value});
     }
     for (const int i : output_types.index_range()) {
-      const ValueOrFieldCPPType &type = *output_types[i];
-      void *value_or_field = output_values[i];
-      type.self.default_construct(value_or_field);
-      void *value = type.get_value_ptr(value_or_field);
+      const SocketValueVariantCPPType &type = *output_types[i];
+      void *value_variant = output_values[i];
+      type.self.default_construct(value_variant);
+      void *value = type.get_value_ptr(value_variant);
       type.value.destruct(value);
       params.add_uninitialized_single_output(GMutableSpan{type.value, value, 1});
     }
@@ -620,13 +621,13 @@ class LazyFunctionForMutedNode : public LazyFunction {
       }
       /* Perform a type conversion and then format the value. */
       const bke::DataTypeConversions &conversions = bke::get_implicit_type_conversions();
-      const auto *from_type = ValueOrFieldCPPType::get_from_self(input_type);
-      const auto *to_type = ValueOrFieldCPPType::get_from_self(output_type);
+      const auto *from_type = SocketValueVariantCPPType::get_from_self(input_type);
+      const auto *to_type = SocketValueVariantCPPType::get_from_self(output_type);
       if (from_type != nullptr && to_type != nullptr) {
         if (conversions.is_convertible(from_type->value, to_type->value)) {
           const MultiFunction &multi_fn = *conversions.get_conversion_multi_function(
               mf::DataType::ForSingle(from_type->value), mf::DataType::ForSingle(to_type->value));
-          execute_multi_function_on_value_or_field(
+          execute_multi_function_on_value_variant(
               multi_fn, {}, {from_type}, {to_type}, {input_value}, {output_value});
         }
         params.output_set(output_i);
@@ -646,13 +647,13 @@ class LazyFunctionForMutedNode : public LazyFunction {
 class LazyFunctionForMultiFunctionConversion : public LazyFunction {
  private:
   const MultiFunction &fn_;
-  const ValueOrFieldCPPType &from_type_;
-  const ValueOrFieldCPPType &to_type_;
+  const SocketValueVariantCPPType &from_type_;
+  const SocketValueVariantCPPType &to_type_;
 
  public:
   LazyFunctionForMultiFunctionConversion(const MultiFunction &fn,
-                                         const ValueOrFieldCPPType &from,
-                                         const ValueOrFieldCPPType &to)
+                                         const SocketValueVariantCPPType &from,
+                                         const SocketValueVariantCPPType &to)
       : fn_(fn), from_type_(from), to_type_(to)
   {
     debug_name_ = "Convert";
@@ -667,7 +668,7 @@ class LazyFunctionForMultiFunctionConversion : public LazyFunction {
     BLI_assert(from_value != nullptr);
     BLI_assert(to_value != nullptr);
 
-    execute_multi_function_on_value_or_field(
+    execute_multi_function_on_value_variant(
         fn_, {}, {&from_type_}, {&to_type_}, {from_value}, {to_value});
 
     params.output_set(0);
@@ -680,8 +681,8 @@ class LazyFunctionForMultiFunctionConversion : public LazyFunction {
 class LazyFunctionForMultiFunctionNode : public LazyFunction {
  private:
   const NodeMultiFunctions::Item fn_item_;
-  Vector<const ValueOrFieldCPPType *> input_types_;
-  Vector<const ValueOrFieldCPPType *> output_types_;
+  Vector<const SocketValueVariantCPPType *> input_types_;
+  Vector<const SocketValueVariantCPPType *> output_types_;
 
  public:
   LazyFunctionForMultiFunctionNode(const bNode &node,
@@ -693,10 +694,10 @@ class LazyFunctionForMultiFunctionNode : public LazyFunction {
     debug_name_ = node.name;
     lazy_function_interface_from_node(node, inputs_, outputs_, r_lf_index_by_bsocket);
     for (const lf::Input &fn_input : inputs_) {
-      input_types_.append(ValueOrFieldCPPType::get_from_self(*fn_input.type));
+      input_types_.append(SocketValueVariantCPPType::get_from_self(*fn_input.type));
     }
     for (const lf::Output &fn_output : outputs_) {
-      output_types_.append(ValueOrFieldCPPType::get_from_self(*fn_output.type));
+      output_types_.append(SocketValueVariantCPPType::get_from_self(*fn_output.type));
     }
   }
 
@@ -710,7 +711,7 @@ class LazyFunctionForMultiFunctionNode : public LazyFunction {
     for (const int i : outputs_.index_range()) {
       output_values[i] = params.get_output_data_ptr(i);
     }
-    execute_multi_function_on_value_or_field(
+    execute_multi_function_on_value_variant(
         *fn_item_.fn, fn_item_.owned_fn, input_types_, output_types_, input_values, output_values);
     for (const int i : outputs_.index_range()) {
       params.output_set(i);
@@ -790,10 +791,10 @@ class LazyFunctionForViewerNode : public LazyFunction {
     const NodeGeometryViewer *storage = static_cast<NodeGeometryViewer *>(bnode_.storage);
 
     if (use_field_input_) {
-      const void *value_or_field = params.try_get_input_data_ptr(1);
-      BLI_assert(value_or_field != nullptr);
-      const auto &value_or_field_type = *ValueOrFieldCPPType::get_from_self(*inputs_[1].type);
-      GField field = value_or_field_type.as_field(value_or_field);
+      const void *value_variant = params.try_get_input_data_ptr(1);
+      BLI_assert(value_variant != nullptr);
+      const auto &value_variant_type = *SocketValueVariantCPPType::get_from_self(*inputs_[1].type);
+      GField field = value_variant_type.as_field(value_variant);
       const eAttrDomain domain = eAttrDomain(storage->domain);
       const StringRefNull viewer_attribute_name = ".viewer";
       if (domain == ATTR_DOMAIN_INSTANCE) {
@@ -1099,14 +1100,14 @@ class LazyFunctionForSwitchSocketUsage : public lf::LazyFunction {
   LazyFunctionForSwitchSocketUsage()
   {
     debug_name_ = "Switch Socket Usage";
-    inputs_.append_as("Condition", CPPType::get<ValueOrField<bool>>());
+    inputs_.append_as("Condition", CPPType::get<SocketValueVariant<bool>>());
     outputs_.append_as("False", CPPType::get<bool>());
     outputs_.append_as("True", CPPType::get<bool>());
   }
 
   void execute_impl(lf::Params &params, const lf::Context & /*context*/) const override
   {
-    const ValueOrField<bool> &condition = params.get_input<ValueOrField<bool>>(0);
+    const SocketValueVariant<bool> &condition = params.get_input<SocketValueVariant<bool>>(0);
     if (condition.is_field()) {
       params.set_output(0, true);
       params.set_output(1, true);
@@ -1128,7 +1129,7 @@ class LazyFunctionForIndexSwitchSocketUsage : public lf::LazyFunction {
   LazyFunctionForIndexSwitchSocketUsage(const bNode &bnode)
   {
     debug_name_ = "Index Switch Socket Usage";
-    inputs_.append_as("Index", CPPType::get<ValueOrField<int>>());
+    inputs_.append_as("Index", CPPType::get<SocketValueVariant<int>>());
     for (const bNodeSocket *socket : bnode.input_sockets().drop_front(1)) {
       outputs_.append_as(socket->identifier, CPPType::get<bool>());
     }
@@ -1136,7 +1137,7 @@ class LazyFunctionForIndexSwitchSocketUsage : public lf::LazyFunction {
 
   void execute_impl(lf::Params &params, const lf::Context & /*context*/) const override
   {
-    const ValueOrField<int> &index = params.get_input<ValueOrField<int>>(0);
+    const SocketValueVariant<int> &index = params.get_input<SocketValueVariant<int>>(0);
     if (index.is_field()) {
       for (const int i : outputs_.index_range()) {
         params.set_output(i, true);
@@ -1156,10 +1157,10 @@ class LazyFunctionForIndexSwitchSocketUsage : public lf::LazyFunction {
  */
 class LazyFunctionForAnonymousAttributeSetExtract : public lf::LazyFunction {
  private:
-  const ValueOrFieldCPPType &type_;
+  const SocketValueVariantCPPType &type_;
 
  public:
-  LazyFunctionForAnonymousAttributeSetExtract(const ValueOrFieldCPPType &type) : type_(type)
+  LazyFunctionForAnonymousAttributeSetExtract(const SocketValueVariantCPPType &type) : type_(type)
   {
     debug_name_ = "Extract Attribute Set";
     inputs_.append_as("Use", CPPType::get<bool>());
@@ -1174,15 +1175,15 @@ class LazyFunctionForAnonymousAttributeSetExtract : public lf::LazyFunction {
       params.set_output<bke::AnonymousAttributeSet>(0, {});
       return;
     }
-    const void *value_or_field = params.try_get_input_data_ptr_or_request(1);
-    if (value_or_field == nullptr) {
+    const void *value_variant = params.try_get_input_data_ptr_or_request(1);
+    if (value_variant == nullptr) {
       /* Wait until the field is computed. */
       return;
     }
 
     bke::AnonymousAttributeSet attributes;
-    if (type_.is_field(value_or_field)) {
-      const GField &field = *type_.get_field_ptr(value_or_field);
+    if (type_.is_field(value_variant)) {
+      const GField &field = *type_.get_field_ptr(value_variant);
       field.node().for_each_field_input_recursive([&](const FieldInput &field_input) {
         if (const auto *attr_field_input = dynamic_cast<const AnonymousAttributeFieldInput *>(
                 &field_input))
@@ -1528,7 +1529,7 @@ class LazyFunctionForRepeatZone : public LazyFunction {
   {
     debug_name_ = "Repeat Zone";
 
-    inputs_.append_as("Iterations", CPPType::get<ValueOrField<int>>(), lf::ValueUsage::Used);
+    inputs_.append_as("Iterations", CPPType::get<SocketValueVariant<int>>(), lf::ValueUsage::Used);
     for (const bNodeSocket *socket : zone.input_node->input_sockets().drop_front(1).drop_back(1)) {
       inputs_.append_as(
           socket->name, *socket->typeinfo->geometry_nodes_cpp_type, lf::ValueUsage::Maybe);
@@ -1641,7 +1642,8 @@ class LazyFunctionForRepeatZone : public LazyFunction {
 
     /* Number of iterations to evaluate. */
     const int iterations = std::max<int>(
-        0, params.get_input<ValueOrField<int>>(zone_info_.indices.inputs.main[0]).as_value());
+        0,
+        params.get_input<SocketValueVariant<int>>(zone_info_.indices.inputs.main[0]).as_value());
 
     /* Show a warning when the inspection index is out of range. */
     if (node_storage.inspection_index > 0) {
@@ -2853,7 +2855,8 @@ struct GeometryNodesLazyFunctionBuilder {
                                              lf::Graph &lf_graph,
                                              Set<lf::InputSocket *> &socket_usage_inputs)
   {
-    const ValueOrFieldCPPType &type = *ValueOrFieldCPPType::get_from_self(lf_field_socket.type());
+    const SocketValueVariantCPPType &type = *SocketValueVariantCPPType::get_from_self(
+        lf_field_socket.type());
     auto &lazy_function = scope_.construct<LazyFunctionForAnonymousAttributeSetExtract>(type);
     lf::Node &lf_node = lf_graph.add_function(lazy_function);
     lf::InputSocket &lf_use_input = lf_node.input(0);
@@ -3781,15 +3784,15 @@ struct GeometryNodesLazyFunctionBuilder {
     if (from_type == to_type) {
       return &from_socket;
     }
-    const auto *from_field_type = ValueOrFieldCPPType::get_from_self(from_type);
-    const auto *to_field_type = ValueOrFieldCPPType::get_from_self(to_type);
-    if (from_field_type != nullptr && to_field_type != nullptr) {
-      if (conversions_->is_convertible(from_field_type->value, to_field_type->value)) {
+    const auto *from_variant_type = SocketValueVariantCPPType::get_from_self(from_type);
+    const auto *to_variant_type = SocketValueVariantCPPType::get_from_self(to_type);
+    if (from_variant_type != nullptr && to_variant_type != nullptr) {
+      if (conversions_->is_convertible(from_variant_type->value, to_variant_type->value)) {
         const MultiFunction &multi_fn = *conversions_->get_conversion_multi_function(
-            mf::DataType::ForSingle(from_field_type->value),
-            mf::DataType::ForSingle(to_field_type->value));
+            mf::DataType::ForSingle(from_variant_type->value),
+            mf::DataType::ForSingle(to_variant_type->value));
         auto &fn = scope_.construct<LazyFunctionForMultiFunctionConversion>(
-            multi_fn, *from_field_type, *to_field_type);
+            multi_fn, *from_variant_type, *to_variant_type);
         lf::Node &conversion_node = lf_graph.add_function(fn);
         lf_graph.add_link(from_socket, conversion_node.input(0));
         return &conversion_node.output(0);

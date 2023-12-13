@@ -70,7 +70,7 @@ SOCKET_VALUE_CPP_TYPE_MAKE(int32_t);
 SOCKET_VALUE_CPP_TYPE_MAKE(blender::int2);
 SOCKET_VALUE_CPP_TYPE_MAKE(std::string);
 
-BLI_VECTOR_CPP_TYPE_MAKE(blender::bke::ValueOrField<std::string>);
+BLI_VECTOR_CPP_TYPE_MAKE(blender::bke::SocketValueVariant<std::string>);
 
 void FN_register_cpp_types()
 {
@@ -86,5 +86,5 @@ void FN_register_cpp_types()
   SOCKET_VALUE_CPP_TYPE_REGISTER(blender::int2);
   SOCKET_VALUE_CPP_TYPE_REGISTER(std::string);
 
-  BLI_VECTOR_CPP_TYPE_REGISTER(blender::bke::ValueOrField<std::string>);
+  BLI_VECTOR_CPP_TYPE_REGISTER(blender::bke::SocketValueVariant<std::string>);
 }

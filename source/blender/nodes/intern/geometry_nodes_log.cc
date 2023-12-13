@@ -180,11 +180,11 @@ void GeoTreeLogger::log_value(const bNode &node, const bNodeSocket &socket, cons
     const bke::GeometrySet &geometry = *value.get<bke::GeometrySet>();
     store_logged_value(this->allocator->construct<GeometryInfoLog>(geometry));
   }
-  else if (const auto *value_or_field_type = bke::ValueOrFieldCPPType::get_from_self(type)) {
-    const void *value_or_field = value.get();
-    const CPPType &base_type = value_or_field_type->value;
-    if (value_or_field_type->is_field(value_or_field)) {
-      const GField *field = value_or_field_type->get_field_ptr(value_or_field);
+  else if (const auto *value_variant_type = bke::SocketValueVariantCPPType::get_from_self(type)) {
+    const void *value_variant = value.get();
+    const CPPType &base_type = value_variant_type->value;
+    if (value_variant_type->is_field(value_variant)) {
+      const GField *field = value_variant_type->get_field_ptr(value_variant);
       if (field->node().depends_on_input()) {
         store_logged_value(this->allocator->construct<FieldInfoLog>(*field));
       }
@@ -195,7 +195,7 @@ void GeoTreeLogger::log_value(const bNode &node, const bNodeSocket &socket, cons
       }
     }
     else {
-      const void *value = value_or_field_type->get_value_ptr(value_or_field);
+      const void *value = value_variant_type->get_value_ptr(value_variant);
       log_generic_value(base_type, value);
     }
   }

@@ -12,32 +12,32 @@ namespace blender::bke {
 
 static auto &get_from_self_map()
 {
-  static Map<const CPPType *, const ValueOrFieldCPPType *> map;
+  static Map<const CPPType *, const SocketValueVariantCPPType *> map;
   return map;
 }
 
 static auto &get_from_value_map()
 {
-  static Map<const CPPType *, const ValueOrFieldCPPType *> map;
+  static Map<const CPPType *, const SocketValueVariantCPPType *> map;
   return map;
 }
 
-void ValueOrFieldCPPType::register_self()
+void SocketValueVariantCPPType::register_self()
 {
   get_from_value_map().add_new(&this->value, this);
   get_from_self_map().add_new(&this->self, this);
 }
 
-const ValueOrFieldCPPType *ValueOrFieldCPPType::get_from_self(const CPPType &self)
+const SocketValueVariantCPPType *SocketValueVariantCPPType::get_from_self(const CPPType &self)
 {
-  const ValueOrFieldCPPType *type = get_from_self_map().lookup_default(&self, nullptr);
+  const SocketValueVariantCPPType *type = get_from_self_map().lookup_default(&self, nullptr);
   BLI_assert(type == nullptr || type->self == self);
   return type;
 }
 
-const ValueOrFieldCPPType *ValueOrFieldCPPType::get_from_value(const CPPType &value)
+const SocketValueVariantCPPType *SocketValueVariantCPPType::get_from_value(const CPPType &value)
 {
-  const ValueOrFieldCPPType *type = get_from_value_map().lookup_default(&value, nullptr);
+  const SocketValueVariantCPPType *type = get_from_value_map().lookup_default(&value, nullptr);
   BLI_assert(type == nullptr || type->value == value);
   return type;
 }

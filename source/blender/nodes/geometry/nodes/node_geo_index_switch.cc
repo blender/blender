@@ -186,7 +186,7 @@ class LazyFunctionForIndexSwitchNode : public LazyFunction {
     const CPPType &cpp_type = *node.output_socket(0).typeinfo->geometry_nodes_cpp_type;
 
     debug_name_ = node.name;
-    inputs_.append_as("Index", CPPType::get<ValueOrField<int>>(), lf::ValueUsage::Used);
+    inputs_.append_as("Index", CPPType::get<SocketValueVariant<int>>(), lf::ValueUsage::Used);
     for (const int i : storage.items_span().index_range()) {
       const bNodeSocket &input = node.input_socket(value_inputs_start + i);
       inputs_.append_as(input.identifier, cpp_type, lf::ValueUsage::Maybe);
@@ -196,7 +196,7 @@ class LazyFunctionForIndexSwitchNode : public LazyFunction {
 
   void execute_impl(lf::Params &params, const lf::Context & /*context*/) const override
   {
-    const ValueOrField<int> index = params.get_input<ValueOrField<int>>(0);
+    const SocketValueVariant<int> index = params.get_input<SocketValueVariant<int>>(0);
     if (index.is_field() && can_be_field_) {
       Field<int> index_field = index.as_field();
       if (index_field.node().depends_on_input()) {
@@ -256,12 +256,12 @@ class LazyFunctionForIndexSwitchNode : public LazyFunction {
     }
 
     const CPPType &type = *outputs_[0].type;
-    const auto &value_or_field_type = *bke::ValueOrFieldCPPType::get_from_self(type);
-    const CPPType &value_type = value_or_field_type.value;
+    const auto &value_variant_type = *bke::SocketValueVariantCPPType::get_from_self(type);
+    const CPPType &value_type = value_variant_type.value;
 
     Vector<GField> input_fields({std::move(index)});
     for (const int i : IndexRange(values_num)) {
-      input_fields.append(value_or_field_type.as_field(input_values[i]));
+      input_fields.append(value_variant_type.as_field(input_values[i]));
     }
 
     std::unique_ptr<mf::MultiFunction> switch_fn = std::make_unique<IndexSwitchFunction>(
@@ -269,7 +269,7 @@ class LazyFunctionForIndexSwitchNode : public LazyFunction {
     GField output_field(FieldOperation::Create(std::move(switch_fn), std::move(input_fields)));
 
     void *output_ptr = params.get_output_data_ptr(0);
-    value_or_field_type.construct_from_field(output_ptr, std::move(output_field));
+    value_variant_type.construct_from_field(output_ptr, std::move(output_field));
     params.output_set(0);
   }
 };
