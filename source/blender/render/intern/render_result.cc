@@ -1055,6 +1055,7 @@ ImBuf *RE_render_result_rect_to_ibuf(RenderResult *rr,
   if (rv->ibuf) {
     IMB_assign_byte_buffer(ibuf, rv->ibuf->byte_buffer.data, IB_DO_NOT_TAKE_OWNERSHIP);
     IMB_assign_float_buffer(ibuf, rv->ibuf->float_buffer.data, IB_DO_NOT_TAKE_OWNERSHIP);
+    ibuf->channels = rv->ibuf->channels;
   }
 
   /* float factor for random dither, imbuf takes care of it */

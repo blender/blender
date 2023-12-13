@@ -66,6 +66,8 @@
 
 #include "NOD_composite.hh"
 
+#include "COM_render_context.hh"
+
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
 #include "DEG_depsgraph_debug.hh"
@@ -1267,10 +1269,18 @@ static void do_render_compositor(Render *re)
           /* If we have consistent depsgraph now would be a time to update them. */
         }
 
+        blender::realtime_compositor::RenderContext compositor_render_context;
         LISTBASE_FOREACH (RenderView *, rv, &re->result->views) {
-          ntreeCompositExecTree(
-              re, re->pipeline_scene_eval, ntree, &re->r, true, G.background == 0, rv->name);
+          ntreeCompositExecTree(re,
+                                re->pipeline_scene_eval,
+                                ntree,
+                                &re->r,
+                                true,
+                                G.background == 0,
+                                rv->name,
+                                &compositor_render_context);
         }
+        compositor_render_context.save_file_outputs(re->pipeline_scene_eval);
 
         ntree->runtime->stats_draw = nullptr;
         ntree->runtime->test_break = nullptr;

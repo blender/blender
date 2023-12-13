@@ -14,6 +14,7 @@
 #include "GPU_shader.h"
 #include "GPU_texture.h"
 
+#include "COM_render_context.hh"
 #include "COM_result.hh"
 #include "COM_static_cache_manager.hh"
 #include "COM_texture_pool.hh"
@@ -103,6 +104,11 @@ class Context {
    * since the last time the flag was reset, hence why the method reset the flag after querying it,
    * that is, to ready it to track the next change. */
   virtual IDRecalcFlag query_id_recalc_flag(ID *id) const = 0;
+
+  /* Get a pointer to the render context of this context. A render context stores information about
+   * the current render. It might be null if the compositor is not being evaluated as part of a
+   * render pipeline. */
+  virtual RenderContext *render_context() const;
 
   /* Get the size of the compositing region. See get_compositing_region(). */
   int2 get_compositing_region_size() const;

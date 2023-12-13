@@ -24,9 +24,11 @@ ExecutionSystem::ExecutionSystem(RenderData *rd,
                                  bNodeTree *editingtree,
                                  bool rendering,
                                  bool fastcalculation,
-                                 const char *view_name)
+                                 const char *view_name,
+                                 realtime_compositor::RenderContext *render_context)
 {
   num_work_threads_ = WorkScheduler::get_num_cpu_threads();
+  context_.set_render_context(render_context);
   context_.set_view_name(view_name);
   context_.set_scene(scene);
   context_.set_bnodetree(editingtree);

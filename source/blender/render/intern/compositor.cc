@@ -27,6 +27,7 @@
 
 #include "COM_context.hh"
 #include "COM_evaluator.hh"
+#include "COM_render_context.hh"
 
 #include "RE_compositor.hh"
 #include "RE_pipeline.h"
@@ -122,17 +123,20 @@ class ContextInputData {
   const bNodeTree *node_tree;
   bool use_file_output;
   std::string view_name;
+  realtime_compositor::RenderContext *render_context;
 
   ContextInputData(const Scene &scene,
                    const RenderData &render_data,
                    const bNodeTree &node_tree,
                    const bool use_file_output,
-                   const char *view_name)
+                   const char *view_name,
+                   realtime_compositor::RenderContext *render_context)
       : scene(&scene),
         render_data(&render_data),
         node_tree(&node_tree),
         use_file_output(use_file_output),
-        view_name(view_name)
+        view_name(view_name),
+        render_context(render_context)
   {
   }
 };
@@ -433,6 +437,11 @@ class Context : public realtime_compositor::Context {
       input_data_.node_tree->runtime->update_draw(input_data_.node_tree->runtime->udh);
     }
   }
+
+  realtime_compositor::RenderContext *render_context() const override
+  {
+    return input_data_.render_context;
+  }
 };
 
 /* Render Realtime Compositor */
@@ -507,12 +516,13 @@ void Render::compositor_execute(const Scene &scene,
                                 const RenderData &render_data,
                                 const bNodeTree &node_tree,
                                 const bool use_file_output,
-                                const char *view_name)
+                                const char *view_name,
+                                blender::realtime_compositor::RenderContext *render_context)
 {
   std::unique_lock lock(gpu_compositor_mutex);
 
   blender::render::ContextInputData input_data(
-      scene, render_data, node_tree, use_file_output, view_name);
+      scene, render_data, node_tree, use_file_output, view_name, render_context);
 
   if (gpu_compositor == nullptr) {
     gpu_compositor = new blender::render::RealtimeCompositor(*this, input_data);
@@ -536,9 +546,11 @@ void RE_compositor_execute(Render &render,
                            const RenderData &render_data,
                            const bNodeTree &node_tree,
                            const bool use_file_output,
-                           const char *view_name)
+                           const char *view_name,
+                           blender::realtime_compositor::RenderContext *render_context)
 {
-  render.compositor_execute(scene, render_data, node_tree, use_file_output, view_name);
+  render.compositor_execute(
+      scene, render_data, node_tree, use_file_output, view_name, render_context);
 }
 
 void RE_compositor_free(Render &render)

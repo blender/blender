@@ -23,6 +23,10 @@
 
 #include "tile_highlight.h"
 
+namespace blender::realtime_compositor {
+class RenderContext;
+}
+
 struct bNodeTree;
 struct Depsgraph;
 struct GSet;
@@ -46,7 +50,8 @@ struct BaseRender {
                                   const RenderData &render_data,
                                   const bNodeTree &node_tree,
                                   const bool use_file_output,
-                                  const char *view_name) = 0;
+                                  const char *view_name,
+                                  blender::realtime_compositor::RenderContext *render_context) = 0;
   virtual void compositor_free() = 0;
 
   virtual void display_init(RenderResult *render_result) = 0;
@@ -93,11 +98,13 @@ struct ViewRender : public BaseRender {
     return nullptr;
   }
 
-  void compositor_execute(const Scene & /*scene*/,
-                          const RenderData & /*render_data*/,
-                          const bNodeTree & /*node_tree*/,
-                          const bool /*use_file_output*/,
-                          const char * /*view_name*/) override
+  void compositor_execute(
+      const Scene & /*scene*/,
+      const RenderData & /*render_data*/,
+      const bNodeTree & /*node_tree*/,
+      const bool /*use_file_output*/,
+      const char * /*view_name*/,
+      blender::realtime_compositor::RenderContext * /*render_context*/) override
   {
   }
   void compositor_free() override {}
@@ -141,7 +148,8 @@ struct Render : public BaseRender {
                           const RenderData &render_data,
                           const bNodeTree &node_tree,
                           const bool use_file_output,
-                          const char *view_name) override;
+                          const char *view_name,
+                          blender::realtime_compositor::RenderContext *render_context) override;
   void compositor_free() override;
 
   void display_init(RenderResult *render_result) override;

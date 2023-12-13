@@ -10,6 +10,7 @@ if(WITH_COMPOSITOR_CPU)
     intern
     nodes
     operations
+    realtime_compositor
     ../blenkernel
     ../blentranslation
     ../imbuf
@@ -117,8 +118,6 @@ if(WITH_COMPOSITOR_CPU)
     nodes/COM_MaskNode.h
     nodes/COM_MovieClipNode.cc
     nodes/COM_MovieClipNode.h
-    nodes/COM_OutputFileNode.cc
-    nodes/COM_OutputFileNode.h
     nodes/COM_RenderLayersNode.cc
     nodes/COM_RenderLayersNode.h
     nodes/COM_SceneTimeNode.cc
@@ -139,6 +138,8 @@ if(WITH_COMPOSITOR_CPU)
     # output nodes
     nodes/COM_CompositorNode.cc
     nodes/COM_CompositorNode.h
+    nodes/COM_FileOutputNode.cc
+    nodes/COM_FileOutputNode.h
     nodes/COM_ViewLevelsNode.cc
     nodes/COM_ViewLevelsNode.h
     nodes/COM_ViewerNode.cc
@@ -419,10 +420,8 @@ if(WITH_COMPOSITOR_CPU)
     operations/COM_CompositorOperation.h
     operations/COM_ConvertDepthToRadiusOperation.cc
     operations/COM_ConvertDepthToRadiusOperation.h
-    operations/COM_OutputFileMultiViewOperation.cc
-    operations/COM_OutputFileMultiViewOperation.h
-    operations/COM_OutputFileOperation.cc
-    operations/COM_OutputFileOperation.h
+    operations/COM_FileOutputOperation.cc
+    operations/COM_FileOutputOperation.h
     operations/COM_PreviewOperation.cc
     operations/COM_PreviewOperation.h
     operations/COM_SplitOperation.cc
@@ -602,6 +601,7 @@ if(WITH_COMPOSITOR_CPU)
     PRIVATE bf::dna
     PRIVATE bf::intern::clog
     PRIVATE bf::intern::guardedalloc
+    bf_realtime_compositor
     extern_clew
     PRIVATE bf::intern::atomic
   )
