@@ -258,6 +258,12 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
   int flag = wm_link_append_flag(op);
   const bool do_append = (flag & FILE_LINK) == 0;
 
+  /* from here down, no error returns */
+
+  if (view_layer && RNA_boolean_get(op->ptr, "autoselect")) {
+    BKE_view_layer_base_deselect_all(scene, view_layer);
+  }
+
   /* sanity checks for flag */
   if (scene && scene->id.lib) {
     BKE_reportf(op->reports,
@@ -266,12 +272,6 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
                 scene->id.name + 2);
     flag &= ~(BLO_LIBLINK_COLLECTION_INSTANCE | BLO_LIBLINK_OBDATA_INSTANCE);
     scene = nullptr;
-  }
-
-  /* from here down, no error returns */
-
-  if (view_layer && RNA_boolean_get(op->ptr, "autoselect")) {
-    BKE_view_layer_base_deselect_all(scene, view_layer);
   }
 
   /* tag everything, all untagged data can be made local
@@ -383,7 +383,9 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
    * to all objects and limit update to the particular object only.
    * But afraid first we need to change collection evaluation in DEG
    * according to depsgraph manifesto. */
-  DEG_id_tag_update(&scene->id, 0);
+  if (scene) {
+    DEG_id_tag_update(&scene->id, 0);
+  }
 
   /* recreate dependency graph to include new objects */
   DEG_relations_tag_update(bmain);
