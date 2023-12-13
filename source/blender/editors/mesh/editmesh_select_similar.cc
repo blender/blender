@@ -508,11 +508,6 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 /** \name Select Similar Edge
  * \{ */
 
-/**
- * NOTE: This is not normal, but the edge direction itself and always in
- * a positive quadrant (tries z, y then x).
- * Therefore we need to use the entire object transformation matrix.
- */
 static void edge_pos_direction_worldspace_get(Object *ob, BMEdge *edge, float *r_dir)
 {
   float v1[3], v2[3];
@@ -524,22 +519,6 @@ static void edge_pos_direction_worldspace_get(Object *ob, BMEdge *edge, float *r
 
   sub_v3_v3v3(r_dir, v1, v2);
   normalize_v3(r_dir);
-
-  /* Make sure we have a consistent direction that can be checked regardless of
-   * the verts order of the edges. This spares us from storing dir and -dir in the tree_3d. */
-  if (fabs(r_dir[2]) < FLT_EPSILON) {
-    if (fabs(r_dir[1]) < FLT_EPSILON) {
-      if (r_dir[0] < 0.0f) {
-        mul_v3_fl(r_dir, -1.0f);
-      }
-    }
-    else if (r_dir[1] < 0.0f) {
-      mul_v3_fl(r_dir, -1.0f);
-    }
-  }
-  else if (r_dir[2] < 0.0f) {
-    mul_v3_fl(r_dir, -1.0f);
-  }
 }
 
 static float edge_length_squared_worldspace_get(Object *ob, BMEdge *edge)
@@ -619,7 +598,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
       tree_1d = BLI_kdtree_1d_new(tot_edges_selected_all);
       break;
     case SIMEDGE_DIR:
-      tree_3d = BLI_kdtree_3d_new(tot_edges_selected_all);
+      tree_3d = BLI_kdtree_3d_new(tot_edges_selected_all * 2);
       break;
     case SIMEDGE_FACE:
       gset = BLI_gset_ptr_new("Select similar edge: face");
@@ -687,9 +666,13 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
             BLI_gset_add(gset, POINTER_FROM_INT(BM_edge_face_count(edge)));
             break;
           case SIMEDGE_DIR: {
-            float dir[3];
+            float dir[3], dir_flip[3];
             edge_pos_direction_worldspace_get(ob, edge, dir);
             BLI_kdtree_3d_insert(tree_3d, tree_index++, dir);
+            /* Also store the flipped direction so it can be checked regardless of the verts order
+             * of the edges. */
+            negate_v3_v3(dir_flip, dir);
+            BLI_kdtree_3d_insert(tree_3d, tree_index++, dir_flip);
             break;
           }
           case SIMEDGE_LENGTH: {
