@@ -10,6 +10,8 @@
 #  include "device/device.h"
 #  include "device/hip/device_impl.h"
 
+#  include "integrator/denoiser_oidn_gpu.h"
+
 #  include "util/string.h"
 #  include "util/windows.h"
 #endif /* WITH_HIP */
@@ -158,6 +160,11 @@ void device_hip_info(vector<DeviceInfo> &devices)
     info.has_light_tree = true;
     info.has_mnee = true;
     info.denoisers = 0;
+#  if defined(WITH_OPENIMAGEDENOISE)
+    if (OIDNDenoiserGPU::is_device_supported(info)) {
+      info.denoisers |= DENOISER_OPENIMAGEDENOISE;
+    }
+#  endif
 
     info.has_gpu_queue = true;
     /* Check if the device has P2P access to any other device in the system. */

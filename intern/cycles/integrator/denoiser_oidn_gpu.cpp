@@ -30,16 +30,48 @@ CCL_NAMESPACE_BEGIN
 
 bool OIDNDenoiserGPU::is_device_supported(const DeviceInfo &device)
 {
-  /* Currently falls back to checking just the device type, can be improved. */
+  int device_type = OIDN_DEVICE_TYPE_DEFAULT;
   switch (device.type) {
 #  ifdef OIDN_DEVICE_SYCL
-    /* Assume all devices with Cycles support are also supported by OIDN2. */
     case DEVICE_ONEAPI:
-      return true;
+      device_type = OIDN_DEVICE_TYPE_SYCL;
+      break;
 #  endif
+#  ifdef OIDN_DEVICE_HIP
+    case DEVICE_HIP:
+      device_type = OIDN_DEVICE_TYPE_HIP;
+      break;
+#  endif
+#  ifdef OIDN_DEVICE_CUDA
+    case DEVICE_CUDA:
+    case DEVICE_OPTIX:
+      device_type = OIDN_DEVICE_TYPE_CUDA;
+      break;
+#  endif
+    case DEVICE_CPU:
+      /* This is the GPU denoiser - CPU devices shouldn't end up here. */
+      assert(0);
     default:
       return false;
   }
+
+  /* Match GPUs by their PCI ID. */
+  const int num_devices = oidnGetNumPhysicalDevices();
+  for (int i = 0; i < num_devices; i++) {
+    if (oidnGetPhysicalDeviceInt(i, "type") == device_type) {
+      if (oidnGetPhysicalDeviceBool(i, "pciAddressSupported")) {
+        unsigned int pci_domain = oidnGetPhysicalDeviceInt(i, "pciDomain");
+        unsigned int pci_bus = oidnGetPhysicalDeviceInt(i, "pciBus");
+        unsigned int pci_device = oidnGetPhysicalDeviceInt(i, "pciDevice");
+        string pci_id = string_printf("%04x:%02x:%02x", pci_domain, pci_bus, pci_device);
+        if (device.id.find(pci_id) != string::npos) {
+          return true;
+        }
+      }
+    }
+  }
+
+  return false;
 }
 
 OIDNDenoiserGPU::OIDNDenoiserGPU(Device *path_trace_device, const DenoiseParams &params)
@@ -78,6 +110,9 @@ uint OIDNDenoiserGPU::get_device_type_mask() const
   uint device_mask = 0;
 #  ifdef OIDN_DEVICE_SYCL
   device_mask |= DEVICE_MASK_ONEAPI;
+#  endif
+#  ifdef OIDN_DEVICE_HIP
+  device_mask |= DEVICE_MASK_HIP;
 #  endif
   return device_mask;
 }
@@ -123,12 +158,24 @@ bool OIDNDenoiserGPU::denoise_create_if_needed(DenoiseContext &context)
       denoiser_queue_->init_execution();
       break;
 #  endif
+#  if defined(OIDN_DEVICE_HIP) && defined(WITH_HIP)
+    case DEVICE_HIP: {
+      hipStream_t stream = nullptr;
+      oidn_device_ = oidnNewHIPDevice(&denoiser_device_->info.num, &stream, 1);
+      break;
+    }
+#  endif
     default:
       break;
   }
+
   if (!oidn_device_) {
     denoiser_device_->set_error("Failed to create OIDN device");
     return false;
+  }
+
+  if (denoiser_queue_) {
+    denoiser_queue_->init_execution();
   }
 
   oidnCommitDevice(oidn_device_);
