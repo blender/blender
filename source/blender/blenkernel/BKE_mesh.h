@@ -14,7 +14,6 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
-#include "BKE_customdata.hh"
 
 struct BMesh;
 struct BMeshCreateParams;
@@ -562,46 +561,6 @@ void BKE_mesh_debug_print(const struct Mesh *mesh) ATTR_NONNULL(1);
 /* -------------------------------------------------------------------- */
 /** \name Inline Mesh Data Access
  * \{ */
-
-/**
- * \return The material index for each face. May be null.
- * \note In C++ code, prefer using the attribute API (#AttributeAccessor).
- */
-BLI_INLINE const int *BKE_mesh_material_indices(const Mesh *mesh)
-{
-  return (const int *)CustomData_get_layer_named(
-      &mesh->face_data, CD_PROP_INT32, "material_index");
-}
-
-/**
- * \return The material index for each face. Create the layer if it doesn't exist.
- * \note In C++ code, prefer using the attribute API (#MutableAttributeAccessor).
- */
-BLI_INLINE int *BKE_mesh_material_indices_for_write(Mesh *mesh)
-{
-  int *indices = (int *)CustomData_get_layer_named_for_write(
-      &mesh->face_data, CD_PROP_INT32, "material_index", mesh->faces_num);
-  if (indices) {
-    return indices;
-  }
-  return (int *)CustomData_add_layer_named(
-      &mesh->face_data, CD_PROP_INT32, CD_SET_DEFAULT, mesh->faces_num, "material_index");
-}
-
-BLI_INLINE const MDeformVert *BKE_mesh_deform_verts(const Mesh *mesh)
-{
-  return (const MDeformVert *)CustomData_get_layer(&mesh->vert_data, CD_MDEFORMVERT);
-}
-BLI_INLINE MDeformVert *BKE_mesh_deform_verts_for_write(Mesh *mesh)
-{
-  MDeformVert *dvert = (MDeformVert *)CustomData_get_layer_for_write(
-      &mesh->vert_data, CD_MDEFORMVERT, mesh->totvert);
-  if (dvert) {
-    return dvert;
-  }
-  return (MDeformVert *)CustomData_add_layer(
-      &mesh->vert_data, CD_MDEFORMVERT, CD_SET_DEFAULT, mesh->totvert);
-}
 
 #ifdef __cplusplus
 }

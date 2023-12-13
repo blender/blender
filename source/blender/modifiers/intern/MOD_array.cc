@@ -316,8 +316,8 @@ static void mesh_merge_transform(Mesh *result,
   }
 
   /* remap the vertex groups if necessary */
-  if (BKE_mesh_deform_verts(result) != nullptr) {
-    MDeformVert *dvert = BKE_mesh_deform_verts_for_write(result);
+  if (!result->deform_verts().is_empty()) {
+    MDeformVert *dvert = result->deform_verts_for_write().data();
     BKE_object_defgroup_index_map_apply(&dvert[cap_verts_index], cap_nverts, remap, remap_len);
   }
 

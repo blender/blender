@@ -1274,7 +1274,7 @@ static float *get_weights_array(Object *ob, char *vgroup, WeightsArrayCache *cac
   /* gather dvert and totvert */
   if (ob->type == OB_MESH) {
     Mesh *mesh = static_cast<Mesh *>(ob->data);
-    dvert = BKE_mesh_deform_verts(mesh);
+    dvert = mesh->deform_verts().data();
     totvert = mesh->totvert;
 
     if (mesh->edit_mesh && mesh->edit_mesh->bm->totvert == totvert) {

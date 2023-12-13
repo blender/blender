@@ -40,11 +40,15 @@
  * if any of these reference becomes invalid.
  */
 
-#include "BKE_image.h"
+#include "BLI_listbase_wrapper.hh"
 #include "BLI_vector.hh"
-#include "DRW_gpu_wrapper.hh"
+
+#include "BKE_image.h"
+
 #include "GPU_debug.h"
 #include "GPU_material.h"
+
+#include "DRW_gpu_wrapper.hh"
 
 #include "draw_command.hh"
 #include "draw_handle.hh"

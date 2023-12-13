@@ -2575,7 +2575,7 @@ float *psys_cache_vgroup(Mesh *mesh, ParticleSystem *psys, int vgroup)
     /* hair dynamics pinning vgroup */
   }
   else if (psys->vgroup[vgroup]) {
-    const MDeformVert *dvert = BKE_mesh_deform_verts(mesh);
+    const MDeformVert *dvert = mesh->deform_verts().data();
     if (dvert) {
       int totvert = mesh->totvert, i;
       vg = static_cast<float *>(MEM_callocN(sizeof(float) * totvert, "vg_cache"));

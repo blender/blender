@@ -477,7 +477,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
     return mesh;
   }
 
-  MDeformVert *dvert = BKE_mesh_deform_verts_for_write(mesh);
+  MDeformVert *dvert = mesh->deform_verts_for_write().data();
   /* Ultimate security check. */
   if (!dvert) {
     return mesh;

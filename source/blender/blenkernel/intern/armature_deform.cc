@@ -520,7 +520,7 @@ static void armature_deform_coords_impl(const Object *ob_arm,
       target_data_id = me_target == nullptr ? (const ID *)ob_target->data : &me_target->id;
       if (em_target == nullptr) {
         const Mesh *mesh = (const Mesh *)target_data_id;
-        dverts = BKE_mesh_deform_verts(mesh);
+        dverts = mesh->deform_verts().data();
         if (dverts) {
           dverts_len = mesh->totvert;
         }
@@ -555,7 +555,7 @@ static void armature_deform_coords_impl(const Object *ob_arm,
         use_dverts = (cd_dvert_offset != -1);
       }
       else if (me_target) {
-        use_dverts = (BKE_mesh_deform_verts(me_target) != nullptr);
+        use_dverts = !me_target->deform_verts().is_empty();
       }
       else if (dverts) {
         use_dverts = true;

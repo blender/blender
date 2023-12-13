@@ -128,7 +128,7 @@ static void createFacepa(ExplodeModifierData *emd, ParticleSystemModifierData *p
 
   /* set protected verts */
   if (emd->vgroup) {
-    const MDeformVert *dvert = BKE_mesh_deform_verts(mesh);
+    const MDeformVert *dvert = mesh->deform_verts().data();
     if (dvert) {
       const int defgrp_index = emd->vgroup - 1;
       for (i = 0; i < totvert; i++, dvert++) {

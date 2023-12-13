@@ -19,6 +19,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_deform.h"
 #include "BKE_mesh.hh"
 #include "BKE_particle.h"
@@ -144,6 +145,7 @@ static void mesh_calc_hq_normal(Mesh *mesh,
 /* NOLINTNEXTLINE: readability-function-size */
 Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
+  using namespace blender;
   Mesh *result;
   const SolidifyModifierData *smd = (SolidifyModifierData *)md;
 
@@ -415,7 +417,9 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
   } \
   (void)0
 
-  int *dst_material_index = BKE_mesh_material_indices_for_write(result);
+  bke::MutableAttributeAccessor dst_attributes = mesh->attributes_for_write();
+  bke::SpanAttributeWriter dst_material_index = dst_attributes.lookup_or_add_for_write_span<int>(
+      "material_index", ATTR_DOMAIN_FACE);
 
   /* flip normals */
 
@@ -451,8 +455,8 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
 #endif
 
       if (mat_ofs) {
-        dst_material_index[faces_num + i] += mat_ofs;
-        CLAMP(dst_material_index[faces_num + i], 0, mat_nr_max);
+        dst_material_index.span[faces_num + i] += mat_ofs;
+        CLAMP(dst_material_index.span[faces_num + i], 0, mat_nr_max);
       }
 
       e = corner_edges[corner_2 + 0];
@@ -982,7 +986,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
 
   /* Add vertex weights for rim and shell vgroups. */
   if (shell_defgrp_index != -1 || rim_defgrp_index != -1) {
-    MDeformVert *dst_dvert = BKE_mesh_deform_verts_for_write(result);
+    MDeformVert *dst_dvert = result->deform_verts_for_write().data();
 
     /* Ultimate security check. */
     if (dst_dvert != nullptr) {
@@ -1121,8 +1125,8 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
 
       /* use the next material index if option enabled */
       if (mat_ofs_rim) {
-        dst_material_index[new_face_index] += mat_ofs_rim;
-        CLAMP(dst_material_index[new_face_index], 0, mat_nr_max);
+        dst_material_index.span[new_face_index] += mat_ofs_rim;
+        CLAMP(dst_material_index.span[new_face_index], 0, mat_nr_max);
       }
       if (crease_outer) {
         /* crease += crease_outer; without wrapping */
@@ -1151,6 +1155,8 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
   if (old_vert_arr) {
     MEM_freeN(old_vert_arr);
   }
+
+  dst_material_index.finish();
 
   return result;
 }

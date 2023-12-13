@@ -3352,7 +3352,7 @@ static void hair_create_input_mesh(ParticleSimulationData *sim,
   }
   blender::MutableSpan<blender::float3> positions = mesh->vert_positions_for_write();
   blender::int2 *edge = mesh->edges_for_write().data();
-  dvert = BKE_mesh_deform_verts_for_write(mesh);
+  dvert = mesh->deform_verts_for_write().data();
 
   if (psys->clmd->hairdata == nullptr) {
     psys->clmd->hairdata = static_cast<ClothHairData *>(

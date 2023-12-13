@@ -5357,7 +5357,7 @@ static void lineart_gpencil_generate(LineartCache *cache,
         if (eval_ob && eval_ob->type == OB_MESH) {
           int dindex = 0;
           Mesh *mesh = BKE_object_get_evaluated_mesh(eval_ob);
-          MDeformVert *dvert = BKE_mesh_deform_verts_for_write(mesh);
+          MDeformVert *dvert = mesh->deform_verts_for_write().data();
           if (dvert) {
             LISTBASE_FOREACH (bDeformGroup *, db, &mesh->vertex_group_names) {
               if ((!source_vgname) || strstr(db->name, source_vgname) == db->name) {

@@ -906,7 +906,7 @@ static Mesh *subdivide_base(const Mesh *orig)
       CustomData_get_layer(&orig->vert_data, CD_MVERT_SKIN));
   const blender::Span<blender::float3> orig_vert_positions = orig->vert_positions();
   const blender::Span<blender::int2> orig_edges = orig->edges();
-  const MDeformVert *origdvert = BKE_mesh_deform_verts(orig);
+  const MDeformVert *origdvert = orig->deform_verts().data();
   int orig_vert_num = orig->totvert;
   int orig_edge_num = orig->totedge;
 
@@ -932,7 +932,7 @@ static Mesh *subdivide_base(const Mesh *orig)
       CustomData_get_layer_for_write(&result->vert_data, CD_MVERT_SKIN, result->totvert));
   MDeformVert *outdvert = nullptr;
   if (origdvert) {
-    outdvert = BKE_mesh_deform_verts_for_write(result);
+    outdvert = result->deform_verts_for_write().data();
   }
 
   /* Copy original vertex data */
@@ -1913,7 +1913,6 @@ static Mesh *base_skin(Mesh *origmesh, SkinModifierData *smd, eSkinErrorFlag *r_
   BMesh *bm;
   EMat *emat;
   SkinNode *skin_nodes;
-  const MDeformVert *dvert;
   bool has_valid_root = false;
 
   const MVertSkin *nodes = static_cast<const MVertSkin *>(
@@ -1921,7 +1920,7 @@ static Mesh *base_skin(Mesh *origmesh, SkinModifierData *smd, eSkinErrorFlag *r_
 
   const blender::Span<blender::float3> vert_positions = origmesh->vert_positions();
   const blender::Span<blender::int2> edges = origmesh->edges();
-  dvert = BKE_mesh_deform_verts(origmesh);
+  const MDeformVert *dvert = origmesh->deform_verts().data();
   const int verts_num = origmesh->totvert;
 
   blender::Array<int> vert_to_edge_offsets;

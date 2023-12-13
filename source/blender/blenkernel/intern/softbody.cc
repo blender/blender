@@ -2701,7 +2701,7 @@ static void mesh_to_softbody(Object *ob)
   sb = ob->soft;
   bp = sb->bpoint;
 
-  const MDeformVert *dvert = BKE_mesh_deform_verts(mesh);
+  const MDeformVert *dvert = mesh->deform_verts().data();
 
   defgroup_index = dvert ? (sb->vertgroup - 1) : -1;
   defgroup_index_mass = dvert ? BKE_id_defgroup_name_index(&mesh->id, sb->namedVG_Mass) : -1;

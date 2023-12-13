@@ -248,7 +248,7 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
         const float global_offset = (mcmd->flag & MOD_MESHCACHE_INVERT_VERTEX_GROUP) ?
                                         mcmd->factor :
                                         0.0f;
-        if (BKE_mesh_deform_verts(mesh) != nullptr) {
+        if (!mesh->deform_verts().is_empty()) {
           for (int i = 0; i < verts_num; i++) {
             /* For each vertex, compute its blending factor between the mesh cache (for `fac = 0`)
              * and the former position of the vertex (for `fac = 1`). */

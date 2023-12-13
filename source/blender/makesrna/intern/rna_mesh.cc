@@ -55,6 +55,7 @@ static const EnumPropertyItem rna_enum_mesh_remesh_mode_items[] = {
 
 #  include "BLI_math_vector.h"
 
+#  include "BKE_attribute.hh"
 #  include "BKE_customdata.hh"
 #  include "BKE_main.hh"
 #  include "BKE_mesh.hh"
@@ -628,18 +629,23 @@ static void rna_MeshPolygon_select_set(PointerRNA *ptr, bool value)
 
 static int rna_MeshPolygon_material_index_get(PointerRNA *ptr)
 {
+  using namespace blender;
   const Mesh *mesh = rna_mesh(ptr);
-  const int *material_indices = BKE_mesh_material_indices(mesh);
-  const int index = rna_MeshPolygon_index_get(ptr);
-  return material_indices == nullptr ? 0 : material_indices[index];
+  const bke::AttributeAccessor attributes = mesh->attributes();
+  const VArray material_index = *attributes.lookup_or_default<int>(
+      "material_index", ATTR_DOMAIN_FACE, 0);
+  return material_index[rna_MeshPolygon_index_get(ptr)];
 }
 
 static void rna_MeshPolygon_material_index_set(PointerRNA *ptr, int value)
 {
+  using namespace blender;
   Mesh *mesh = rna_mesh(ptr);
-  int *material_indices = BKE_mesh_material_indices_for_write(mesh);
-  const int index = rna_MeshPolygon_index_get(ptr);
-  material_indices[index] = max_ii(0, value);
+  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  bke::AttributeWriter material_index = attributes.lookup_or_add_for_write<int>("material_index",
+                                                                                ATTR_DOMAIN_FACE);
+  material_index.varray.set(rna_MeshPolygon_index_get(ptr), max_ii(0, value));
+  material_index.finish();
 }
 
 static void rna_MeshPolygon_center_get(PointerRNA *ptr, float *values)
@@ -765,7 +771,7 @@ static void rna_Mesh_texspace_location_get(PointerRNA *ptr, float values[3])
 static void rna_MeshVertex_groups_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
   Mesh *mesh = rna_mesh(ptr);
-  MDeformVert *dverts = (MDeformVert *)BKE_mesh_deform_verts(mesh);
+  MDeformVert *dverts = mesh->deform_verts_for_write().data();
   if (dverts) {
     const int index = rna_MeshVertex_index_get(ptr);
     MDeformVert *dvert = &dverts[index];
@@ -1384,10 +1390,12 @@ static bool rna_MeshEdge_is_loose_get(PointerRNA *ptr)
 
 static int rna_MeshLoopTriangle_material_index_get(PointerRNA *ptr)
 {
+  using namespace blender;
   const Mesh *mesh = rna_mesh(ptr);
-  const int face_i = rna_MeshLoopTriangle_polygon_index_get(ptr);
-  const int *material_indices = BKE_mesh_material_indices(mesh);
-  return material_indices == nullptr ? 0 : material_indices[face_i];
+  const bke::AttributeAccessor attributes = mesh->attributes();
+  const VArray material_indices = *attributes.lookup_or_default<int>(
+      "material_index", ATTR_DOMAIN_FACE, 0);
+  return material_indices[rna_MeshLoopTriangle_polygon_index_get(ptr)];
 }
 
 static bool rna_MeshLoopTriangle_use_smooth_get(PointerRNA *ptr)
@@ -1405,7 +1413,7 @@ static char *rna_VertexGroupElement_path(const PointerRNA *ptr)
 {
   const Mesh *mesh = rna_mesh(ptr); /* XXX not always! */
   const MDeformWeight *dw = (MDeformWeight *)ptr->data;
-  const MDeformVert *dvert = BKE_mesh_deform_verts(mesh);
+  const MDeformVert *dvert = mesh->deform_verts().data();
   int a, b;
 
   for (a = 0; a < mesh->totvert; a++, dvert++) {

@@ -18,7 +18,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_attribute.h"
+#include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
 #include "BKE_displist.h"
 #include "BKE_global.h"
@@ -601,6 +601,7 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh,
                               Mesh *mesh,
                               blender::Vector<blender::float3> &loop_normals)
 {
+  using namespace blender;
   uint i;
 
   allocate_poly_data(collada_mesh, mesh);
@@ -615,7 +616,10 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh,
 
   MaterialIdPrimitiveArrayMap mat_prim_map;
 
-  int *material_indices = BKE_mesh_material_indices_for_write(mesh);
+  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  bke::SpanAttributeWriter material_indices = attributes.lookup_or_add_for_write_span<int>(
+      "material_index", ATTR_DOMAIN_FACE);
+
   bool *sharp_faces = static_cast<bool *>(CustomData_get_layer_named_for_write(
       &mesh->face_data, CD_PROP_BOOL, "sharp_face", mesh->faces_num));
   if (!sharp_faces) {
@@ -642,7 +646,7 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh,
 
     /* Since we cannot set `poly->mat_nr` here, we store a portion of `mesh->mpoly` in Primitive.
      */
-    Primitive prim = {face_index, &material_indices[face_index], 0};
+    Primitive prim = {face_index, &material_indices.span[face_index], 0};
 
     /* If MeshPrimitive is TRIANGLE_FANS we split it into triangles
      * The first triangle-fan vertex will be the first vertex in every triangle
@@ -800,6 +804,7 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh,
   }
 
   geom_uid_mat_mapping_map[collada_mesh->getUniqueId()] = mat_prim_map;
+  material_indices.finish();
 }
 
 void MeshImporter::get_vector(float v[3], COLLADAFW::MeshVertexData &arr, int i, int stride)

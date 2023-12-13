@@ -846,7 +846,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
               me->totloop,
               me->face_offsets_for_write().data(),
               me->faces_num,
-              BKE_mesh_deform_verts_for_write(me),
+              me->deform_verts_for_write().data(),
               false,
               true,
               &changed);

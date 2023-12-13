@@ -170,7 +170,7 @@ void MOD_get_vgroup(const Object *ob,
   if (mesh) {
     *defgrp_index = BKE_id_defgroup_name_index(&mesh->id, name);
     if (*defgrp_index != -1) {
-      *dvert = BKE_mesh_deform_verts(mesh);
+      *dvert = mesh->deform_verts().data();
     }
     else {
       *dvert = nullptr;

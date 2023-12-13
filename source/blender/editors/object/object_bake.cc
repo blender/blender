@@ -23,6 +23,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_DerivedMesh.hh"
+#include "BKE_attribute.hh"
 #include "BKE_blender.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_context.hh"
@@ -114,6 +115,7 @@ struct MultiresBakeJob {
 
 static bool multiresbake_check(bContext *C, wmOperator *op)
 {
+  using namespace blender;
   Scene *scene = CTX_data_scene(C);
   Object *ob;
   Mesh *mesh;
@@ -163,10 +165,13 @@ static bool multiresbake_check(bContext *C, wmOperator *op)
       ok = false;
     }
     else {
-      const int *material_indices = BKE_mesh_material_indices(mesh);
+      const bke::AttributeAccessor attributes = mesh->attributes();
+      const VArraySpan material_indices = *attributes.lookup<int>("material_index",
+                                                                  ATTR_DOMAIN_FACE);
       a = mesh->faces_num;
       while (ok && a--) {
-        Image *ima = bake_object_image_get(ob, material_indices ? material_indices[a] : 0);
+        Image *ima = bake_object_image_get(ob,
+                                           material_indices.is_empty() ? 0 : material_indices[a]);
 
         if (!ima) {
           BKE_report(

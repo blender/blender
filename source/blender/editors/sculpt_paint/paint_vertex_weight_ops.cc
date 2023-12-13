@@ -175,7 +175,7 @@ static int weight_sample_invoke(bContext *C, wmOperator *op, const wmEvent *even
 
   ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
   mesh = BKE_mesh_from_object(vc.obact);
-  const MDeformVert *dvert = BKE_mesh_deform_verts(mesh);
+  const MDeformVert *dvert = mesh->deform_verts().data();
 
   if (mesh && dvert && vc.v3d && vc.rv3d && (mesh->vertex_group_active_index != 0)) {
     const bool use_vert_sel = (mesh->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
@@ -320,7 +320,7 @@ static int weight_sample_group_invoke(bContext *C, wmOperator *op, const wmEvent
   BLI_assert(vc.v3d && vc.rv3d); /* Ensured by poll. */
 
   Mesh *mesh = BKE_mesh_from_object(vc.obact);
-  const MDeformVert *dverts = BKE_mesh_deform_verts(mesh);
+  const MDeformVert *dverts = mesh->deform_verts().data();
   if (BLI_listbase_is_empty(&mesh->vertex_group_names) || (dverts == nullptr)) {
     BKE_report(op->reports, RPT_WARNING, "No vertex group data");
     return OPERATOR_CANCELLED;
@@ -416,7 +416,7 @@ static bool weight_paint_set(Object *ob, float paintweight)
 
   const blender::OffsetIndices faces = mesh->faces();
   const blender::Span<int> corner_verts = mesh->corner_verts();
-  MDeformVert *dvert = BKE_mesh_deform_verts_for_write(mesh);
+  MDeformVert *dvert = mesh->deform_verts_for_write().data();
 
   if (mesh->faces_num == 0 || dvert == nullptr) {
     return false;
@@ -722,7 +722,7 @@ static int paint_weight_gradient_modal(bContext *C, wmOperator *op, const wmEven
     if (vert_cache != nullptr) {
       Mesh *mesh = static_cast<Mesh *>(ob->data);
       if (vert_cache->wpp.wpaint_prev) {
-        MDeformVert *dvert = BKE_mesh_deform_verts_for_write(mesh);
+        MDeformVert *dvert = mesh->deform_verts_for_write().data();
         BKE_defvert_array_free_elems(dvert, mesh->totvert);
         BKE_defvert_array_copy(dvert, vert_cache->wpp.wpaint_prev, mesh->totvert);
         wpaint_prev_destroy(&vert_cache->wpp);
@@ -750,7 +750,7 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   Object *ob = CTX_data_active_object(C);
   Mesh *mesh = static_cast<Mesh *>(ob->data);
-  MDeformVert *dverts = BKE_mesh_deform_verts_for_write(mesh);
+  MDeformVert *dverts = mesh->deform_verts_for_write().data();
   int x_start = RNA_int_get(op->ptr, "xstart");
   int y_start = RNA_int_get(op->ptr, "ystart");
   int x_end = RNA_int_get(op->ptr, "xend");

@@ -112,7 +112,7 @@ bDeformGroup *BKE_object_defgroup_add(Object *ob)
 MDeformVert *BKE_object_defgroup_data_create(ID *id)
 {
   if (GS(id->name) == ID_ME) {
-    return BKE_mesh_deform_verts_for_write((Mesh *)id);
+    return ((Mesh *)id)->deform_verts_for_write().data();
   }
   if (GS(id->name) == ID_LT) {
     Lattice *lt = (Lattice *)id;
@@ -160,12 +160,12 @@ bool BKE_object_defgroup_clear(Object *ob, bDeformGroup *dg, const bool use_sele
       }
     }
     else {
-      if (BKE_mesh_deform_verts(mesh)) {
+      if (!mesh->deform_verts().data()) {
         const bool *select_vert = (const bool *)CustomData_get_layer_named(
             &mesh->vert_data, CD_PROP_BOOL, ".select_vert");
         int i;
 
-        dv = BKE_mesh_deform_verts_for_write(mesh);
+        dv = mesh->deform_verts_for_write().data();
 
         for (i = 0; i < mesh->totvert; i++, dv++) {
           if (dv->dw && (!use_selection || (select_vert && select_vert[i]))) {
@@ -496,7 +496,7 @@ bool BKE_object_defgroup_array_get(ID *id, MDeformVert **dvert_arr, int *dvert_t
     switch (GS(id->name)) {
       case ID_ME: {
         Mesh *mesh = (Mesh *)id;
-        *dvert_arr = BKE_mesh_deform_verts_for_write(mesh);
+        *dvert_arr = mesh->deform_verts_for_write().data();
         *dvert_tot = mesh->totvert;
         return true;
       }

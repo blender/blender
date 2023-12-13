@@ -720,6 +720,7 @@ void RE_bake_pixels_populate(Mesh *mesh,
                              const BakeTargets *targets,
                              const char *uv_layer)
 {
+  using namespace blender;
   const float(*mloopuv)[2];
   if ((uv_layer == nullptr) || (uv_layer[0] == '\0')) {
     mloopuv = static_cast<const float(*)[2]>(
@@ -756,8 +757,9 @@ void RE_bake_pixels_populate(Mesh *mesh,
       mesh->vert_positions(), mesh->faces(), mesh->corner_verts(), {looptri, tottri});
 
   const blender::Span<int> looptri_faces = mesh->looptri_faces();
+  const bke::AttributeAccessor attributes = mesh->attributes();
+  const VArraySpan material_indices = *attributes.lookup<int>("material_index", ATTR_DOMAIN_FACE);
 
-  const int *material_indices = BKE_mesh_material_indices(mesh);
   const int materials_num = targets->materials_num;
 
   for (int i = 0; i < tottri; i++) {
@@ -767,7 +769,7 @@ void RE_bake_pixels_populate(Mesh *mesh,
     bd.primitive_id = i;
 
     /* Find images matching this material. */
-    const int material_index = (material_indices && materials_num) ?
+    const int material_index = (!material_indices.is_empty() && materials_num) ?
                                    clamp_i(material_indices[face_i], 0, materials_num - 1) :
                                    0;
     Image *image = targets->material_to_image[material_index];

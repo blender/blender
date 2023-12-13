@@ -2014,7 +2014,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
   /* Checks that result has dvert data. */
   MDeformVert *dst_dvert = nullptr;
   if (shell_defgrp_index != -1 || rim_defgrp_index != -1) {
-    dst_dvert = BKE_mesh_deform_verts_for_write(result);
+    dst_dvert = result->deform_verts_for_write().data();
   }
 
   /* Get vertex crease layer and ensure edge creases are active if vertex creases are found, since
@@ -2148,9 +2148,12 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
     }
   }
 #endif
-
-  const int *src_material_index = BKE_mesh_material_indices(mesh);
-  int *dst_material_index = BKE_mesh_material_indices_for_write(result);
+  const bke::AttributeAccessor src_attributes = mesh->attributes();
+  const VArraySpan src_material_index = *src_attributes.lookup<int>("material_index",
+                                                                    ATTR_DOMAIN_FACE);
+  bke::MutableAttributeAccessor dst_attributes = result->attributes_for_write();
+  bke::SpanAttributeWriter dst_material_index = dst_attributes.lookup_or_add_for_write_span<int>(
+      "material_index", ATTR_DOMAIN_FACE);
 
   /* Make boundary edges/faces. */
   {
@@ -2293,20 +2296,24 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
                 for (EdgeGroup *g3 = g2; g3->valid && k < j; g3++) {
                   if ((do_rim && !g3->is_orig_closed) || (do_shell && g3->split)) {
                     /* Check both far ends in terms of faces of an edge group. */
-                    if ((src_material_index ? src_material_index[g3->edges[0]->faces[0]->index] :
-                                              0) == l) {
+                    if ((!src_material_index.is_empty() ?
+                             src_material_index[g3->edges[0]->faces[0]->index] :
+                             0) == l) {
                       face = g3->edges[0]->faces[0]->index;
                       count++;
                     }
                     NewEdgeRef *le = g3->edges[g3->edges_len - 1];
                     if (le->faces[1] &&
-                        (src_material_index ? src_material_index[le->faces[1]->index] : 0) == l) {
+                        (!src_material_index.is_empty() ? src_material_index[le->faces[1]->index] :
+                                                          0) == l)
+                    {
                       face = le->faces[1]->index;
                       count++;
                     }
-                    else if (!le->faces[1] &&
-                             (src_material_index ? src_material_index[le->faces[0]->index] : 0) ==
-                                 l) {
+                    else if (!le->faces[1] && (!src_material_index.is_empty() ?
+                                                   src_material_index[le->faces[0]->index] :
+                                                   0) == l)
+                    {
                       face = le->faces[0]->index;
                       count++;
                     }
@@ -2325,9 +2332,10 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
                 origindex_face[face_index] = ORIGINDEX_NONE;
               }
               face_offsets[face_index] = int(loop_index);
-              dst_material_index[face_index] = most_mat_nr +
-                                               (g->is_orig_closed || !do_rim ? 0 : mat_ofs_rim);
-              CLAMP(dst_material_index[face_index], 0, mat_nr_max);
+              dst_material_index.span[face_index] = most_mat_nr + (g->is_orig_closed || !do_rim ?
+                                                                       0 :
+                                                                       mat_ofs_rim);
+              CLAMP(dst_material_index.span[face_index], 0, mat_nr_max);
               face_index++;
 
               for (uint k = 0; g2->valid && k < j; g2++) {
@@ -2401,9 +2409,11 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
                              int(face_index),
                              1);
         face_offsets[face_index] = int(loop_index);
-        dst_material_index[face_index] =
-            (src_material_index ? src_material_index[orig_face_index] : 0) + mat_ofs_rim;
-        CLAMP(dst_material_index[face_index], 0, mat_nr_max);
+        dst_material_index.span[face_index] = (!src_material_index.is_empty() ?
+                                                   src_material_index[orig_face_index] :
+                                                   0) +
+                                              mat_ofs_rim;
+        CLAMP(dst_material_index.span[face_index], 0, mat_nr_max);
         face_index++;
 
         int loop1 = -1;
@@ -2593,10 +2603,11 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
           CustomData_copy_data(
               &mesh->face_data, &result->face_data, int(i / 2), int(face_index), 1);
           face_offsets[face_index] = int(loop_index);
-          dst_material_index[face_index] = (src_material_index ? src_material_index[fr->index] :
-                                                                 0) +
-                                           (fr->reversed != do_flip ? mat_ofs : 0);
-          CLAMP(dst_material_index[face_index], 0, mat_nr_max);
+          dst_material_index.span[face_index] = (!src_material_index.is_empty() ?
+                                                     src_material_index[fr->index] :
+                                                     0) +
+                                                (fr->reversed != do_flip ? mat_ofs : 0);
+          CLAMP(dst_material_index.span[face_index], 0, mat_nr_max);
           if (fr->reversed != do_flip) {
             for (int l = int(k) - 1; l >= 0; l--) {
               if (shell_defgrp_index != -1) {
@@ -2685,6 +2696,8 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
   }
 
 #undef MOD_SOLIDIFY_EMPTY_TAG
+
+  dst_material_index.finish();
 
   return result;
 }

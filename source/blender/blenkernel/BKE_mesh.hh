@@ -10,6 +10,7 @@
 
 #include "BLI_index_mask.hh"
 
+#include "BKE_customdata.hh"
 #include "BKE_mesh.h"
 #include "BKE_mesh_types.hh"
 
@@ -389,7 +390,8 @@ inline blender::MutableSpan<int> Mesh::corner_edges_for_write()
 
 inline blender::Span<MDeformVert> Mesh::deform_verts() const
 {
-  const MDeformVert *dverts = BKE_mesh_deform_verts(this);
+  const MDeformVert *dverts = static_cast<const MDeformVert *>(
+      CustomData_get_layer(&this->vert_data, CD_MDEFORMVERT));
   if (!dverts) {
     return {};
   }
@@ -397,7 +399,14 @@ inline blender::Span<MDeformVert> Mesh::deform_verts() const
 }
 inline blender::MutableSpan<MDeformVert> Mesh::deform_verts_for_write()
 {
-  return {BKE_mesh_deform_verts_for_write(this), this->totvert};
+  MDeformVert *dvert = static_cast<MDeformVert *>(
+      CustomData_get_layer_for_write(&this->vert_data, CD_MDEFORMVERT, this->totvert));
+  if (dvert) {
+    return {dvert, this->totvert};
+  }
+  return {static_cast<MDeformVert *>(CustomData_add_layer(
+              &this->vert_data, CD_MDEFORMVERT, CD_SET_DEFAULT, this->totvert)),
+          this->totvert};
 }
 
 /** \} */

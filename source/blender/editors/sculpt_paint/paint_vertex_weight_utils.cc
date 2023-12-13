@@ -60,7 +60,7 @@ bool ED_wpaint_ensure_data(bContext *C,
   }
 
   /* If nothing was added yet, we make deform-verts and a vertex deform group. */
-  if (BKE_mesh_deform_verts(mesh) == nullptr) {
+  if (mesh->deform_verts().is_empty()) {
     BKE_object_defgroup_data_create(&mesh->id);
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, mesh);
   }
