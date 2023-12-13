@@ -408,6 +408,55 @@ void ForwardPipeline::render(View &view, Framebuffer &prepass_fb, Framebuffer &c
 /** \name Deferred Layer
  * \{ */
 
+void DeferredLayerBase::gbuffer_pass_sync(Instance &inst)
+{
+  gbuffer_ps_.init();
+  gbuffer_ps_.subpass_transition(GPU_ATTACHEMENT_WRITE,
+                                 {GPU_ATTACHEMENT_WRITE,
+                                  GPU_ATTACHEMENT_WRITE,
+                                  GPU_ATTACHEMENT_WRITE,
+                                  GPU_ATTACHEMENT_WRITE});
+  /* G-buffer. */
+  gbuffer_ps_.bind_image(GBUF_CLOSURE_SLOT, &inst.gbuffer.closure_img_tx);
+  gbuffer_ps_.bind_image(GBUF_COLOR_SLOT, &inst.gbuffer.color_img_tx);
+  /* RenderPasses & AOVs. */
+  gbuffer_ps_.bind_image(RBUFS_COLOR_SLOT, &inst.render_buffers.rp_color_tx);
+  gbuffer_ps_.bind_image(RBUFS_VALUE_SLOT, &inst.render_buffers.rp_value_tx);
+  /* Cryptomatte. */
+  gbuffer_ps_.bind_image(RBUFS_CRYPTOMATTE_SLOT, &inst.render_buffers.cryptomatte_tx);
+  /* Storage Buffer. */
+  /* Textures. */
+  gbuffer_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst.pipelines.utility_tx);
+
+  inst.bind_uniform_data(&gbuffer_ps_);
+  inst.sampling.bind_resources(gbuffer_ps_);
+  inst.hiz_buffer.bind_resources(gbuffer_ps_);
+  inst.cryptomatte.bind_resources(gbuffer_ps_);
+
+  /* Bind light resources for the NPR materials that gets rendered first.
+   * Non-NPR shaders will override these resource bindings. */
+  inst.lights.bind_resources(gbuffer_ps_);
+  inst.shadows.bind_resources(gbuffer_ps_);
+  inst.reflection_probes.bind_resources(gbuffer_ps_);
+  inst.irradiance_cache.bind_resources(gbuffer_ps_);
+
+  DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL;
+
+  gbuffer_single_sided_hybrid_ps_ = &gbuffer_ps_.sub("DoubleSided");
+  gbuffer_single_sided_hybrid_ps_->state_set(state | DRW_STATE_CULL_BACK);
+
+  gbuffer_double_sided_hybrid_ps_ = &gbuffer_ps_.sub("SingleSided");
+  gbuffer_double_sided_hybrid_ps_->state_set(state);
+
+  gbuffer_double_sided_ps_ = &gbuffer_ps_.sub("DoubleSided");
+  gbuffer_double_sided_ps_->state_set(state);
+
+  gbuffer_single_sided_ps_ = &gbuffer_ps_.sub("SingleSided");
+  gbuffer_single_sided_ps_->state_set(state | DRW_STATE_CULL_BACK);
+
+  closure_bits_ = CLOSURE_NONE;
+}
+
 void DeferredLayer::begin_sync()
 {
   {
@@ -440,53 +489,8 @@ void DeferredLayer::begin_sync()
     prepass_single_sided_moving_ps_ = &prepass_ps_.sub("SingleSided.Moving");
     prepass_single_sided_moving_ps_->state_set(state_depth_color | DRW_STATE_CULL_BACK);
   }
-  {
-    gbuffer_ps_.init();
-    gbuffer_ps_.subpass_transition(GPU_ATTACHEMENT_WRITE,
-                                   {GPU_ATTACHEMENT_WRITE,
-                                    GPU_ATTACHEMENT_WRITE,
-                                    GPU_ATTACHEMENT_WRITE,
-                                    GPU_ATTACHEMENT_WRITE});
-    /* G-buffer. */
-    gbuffer_ps_.bind_image(GBUF_CLOSURE_SLOT, &inst_.gbuffer.closure_img_tx);
-    gbuffer_ps_.bind_image(GBUF_COLOR_SLOT, &inst_.gbuffer.color_img_tx);
-    /* RenderPasses & AOVs. */
-    gbuffer_ps_.bind_image(RBUFS_COLOR_SLOT, &inst_.render_buffers.rp_color_tx);
-    gbuffer_ps_.bind_image(RBUFS_VALUE_SLOT, &inst_.render_buffers.rp_value_tx);
-    /* Cryptomatte. */
-    gbuffer_ps_.bind_image(RBUFS_CRYPTOMATTE_SLOT, &inst_.render_buffers.cryptomatte_tx);
-    /* Storage Buffer. */
-    /* Textures. */
-    gbuffer_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
 
-    inst_.bind_uniform_data(&gbuffer_ps_);
-    inst_.sampling.bind_resources(gbuffer_ps_);
-    inst_.hiz_buffer.bind_resources(gbuffer_ps_);
-    inst_.cryptomatte.bind_resources(gbuffer_ps_);
-
-    /* Bind light resources for the NPR materials that gets rendered first.
-     * Non-NPR shaders will override these resource bindings. */
-    inst_.lights.bind_resources(gbuffer_ps_);
-    inst_.shadows.bind_resources(gbuffer_ps_);
-    inst_.reflection_probes.bind_resources(gbuffer_ps_);
-    inst_.irradiance_cache.bind_resources(gbuffer_ps_);
-
-    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL;
-
-    gbuffer_single_sided_hybrid_ps_ = &gbuffer_ps_.sub("DoubleSided");
-    gbuffer_single_sided_hybrid_ps_->state_set(state | DRW_STATE_CULL_BACK);
-
-    gbuffer_double_sided_hybrid_ps_ = &gbuffer_ps_.sub("SingleSided");
-    gbuffer_double_sided_hybrid_ps_->state_set(state);
-
-    gbuffer_double_sided_ps_ = &gbuffer_ps_.sub("DoubleSided");
-    gbuffer_double_sided_ps_->state_set(state);
-
-    gbuffer_single_sided_ps_ = &gbuffer_ps_.sub("SingleSided");
-    gbuffer_single_sided_ps_->state_set(state | DRW_STATE_CULL_BACK);
-  }
-
-  closure_bits_ = CLOSURE_NONE;
+  this->gbuffer_pass_sync(inst_);
 }
 
 void DeferredLayer::end_sync()
@@ -1130,38 +1134,8 @@ void DeferredProbeLayer::begin_sync()
     prepass_single_sided_static_ps_ = &prepass_ps_.sub("SingleSided");
     prepass_single_sided_static_ps_->state_set(state_depth_only | DRW_STATE_CULL_BACK);
   }
-  {
-    gbuffer_ps_.init();
-    {
-      /* Common resources. */
 
-      /* G-buffer. */
-      gbuffer_ps_.bind_image(GBUF_CLOSURE_SLOT, &inst_.gbuffer.closure_tx);
-      gbuffer_ps_.bind_image(GBUF_COLOR_SLOT, &inst_.gbuffer.color_tx);
-      gbuffer_ps_.bind_image(GBUF_HEADER_SLOT, &inst_.gbuffer.header_tx);
-      /* RenderPasses & AOVs. */
-      gbuffer_ps_.bind_image(RBUFS_COLOR_SLOT, &inst_.render_buffers.rp_color_tx);
-      gbuffer_ps_.bind_image(RBUFS_VALUE_SLOT, &inst_.render_buffers.rp_value_tx);
-      /* Cryptomatte. */
-      gbuffer_ps_.bind_image(RBUFS_CRYPTOMATTE_SLOT, &inst_.render_buffers.cryptomatte_tx);
-      /* Storage Buffer. */
-      /* Textures. */
-      gbuffer_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
-
-      inst_.bind_uniform_data(&gbuffer_ps_);
-      inst_.sampling.bind_resources(gbuffer_ps_);
-      inst_.hiz_buffer.bind_resources(gbuffer_ps_);
-      inst_.cryptomatte.bind_resources(gbuffer_ps_);
-    }
-
-    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL;
-
-    gbuffer_double_sided_ps_ = &gbuffer_ps_.sub("DoubleSided");
-    gbuffer_double_sided_ps_->state_set(state);
-
-    gbuffer_single_sided_ps_ = &gbuffer_ps_.sub("SingleSided");
-    gbuffer_single_sided_ps_->state_set(state | DRW_STATE_CULL_BACK);
-  }
+  this->gbuffer_pass_sync(inst_);
 }
 
 void DeferredProbeLayer::end_sync()
@@ -1201,9 +1175,15 @@ PassMain::Sub *DeferredProbeLayer::material_add(::Material *blender_mat, GPUMate
   eClosureBits closure_bits = shader_closure_bits_from_flag(gpumat);
   closure_bits_ |= closure_bits;
 
-  PassMain::Sub *pass = (blender_mat->blend_flag & MA_BL_CULL_BACKFACE) ?
-                            gbuffer_single_sided_ps_ :
-                            gbuffer_double_sided_ps_;
+  bool has_shader_to_rgba = (closure_bits & CLOSURE_SHADER_TO_RGBA) != 0;
+  bool backface_culling = (blender_mat->blend_flag & MA_BL_CULL_BACKFACE) != 0;
+
+  PassMain::Sub *pass = (has_shader_to_rgba) ?
+                            ((backface_culling) ? gbuffer_single_sided_hybrid_ps_ :
+                                                  gbuffer_double_sided_hybrid_ps_) :
+                            ((backface_culling) ? gbuffer_single_sided_ps_ :
+                                                  gbuffer_double_sided_ps_);
+
   return &pass->sub(GPU_material_get_name(gpumat));
 }
 
@@ -1300,30 +1280,9 @@ void PlanarProbePipeline::begin_sync()
     prepass_single_sided_static_ps_ = &prepass_ps_.sub("SingleSided.Static");
     prepass_single_sided_static_ps_->state_set(state_depth_only | DRW_STATE_CULL_BACK);
   }
-  {
-    gbuffer_ps_.init();
-    gbuffer_ps_.bind_image(GBUF_CLOSURE_SLOT, &inst_.gbuffer.closure_tx);
-    gbuffer_ps_.bind_image(GBUF_COLOR_SLOT, &inst_.gbuffer.color_tx);
-    gbuffer_ps_.bind_image(GBUF_HEADER_SLOT, &inst_.gbuffer.header_tx);
-    gbuffer_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
-    inst_.bind_uniform_data(&gbuffer_ps_);
-    inst_.sampling.bind_resources(gbuffer_ps_);
-    inst_.hiz_buffer.bind_resources(gbuffer_ps_);
-    /* Cryptomatte. */
-    gbuffer_ps_.bind_image(RBUFS_CRYPTOMATTE_SLOT, &inst_.render_buffers.cryptomatte_tx);
-    /* RenderPasses & AOVs. */
-    gbuffer_ps_.bind_image(RBUFS_COLOR_SLOT, &inst_.render_buffers.rp_color_tx);
-    gbuffer_ps_.bind_image(RBUFS_VALUE_SLOT, &inst_.render_buffers.rp_value_tx);
-    inst_.cryptomatte.bind_resources(gbuffer_ps_);
 
-    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL;
+  this->gbuffer_pass_sync(inst_);
 
-    gbuffer_double_sided_ps_ = &gbuffer_ps_.sub("DoubleSided");
-    gbuffer_double_sided_ps_->state_set(state);
-
-    gbuffer_single_sided_ps_ = &gbuffer_ps_.sub("SingleSided");
-    gbuffer_single_sided_ps_->state_set(state | DRW_STATE_CULL_BACK);
-  }
   {
     PassSimple &pass = eval_light_ps_;
     pass.init();
@@ -1363,9 +1322,15 @@ PassMain::Sub *PlanarProbePipeline::material_add(::Material *blender_mat, GPUMat
   eClosureBits closure_bits = shader_closure_bits_from_flag(gpumat);
   closure_bits_ |= closure_bits;
 
-  PassMain::Sub *pass = (blender_mat->blend_flag & MA_BL_CULL_BACKFACE) ?
-                            gbuffer_single_sided_ps_ :
-                            gbuffer_double_sided_ps_;
+  bool has_shader_to_rgba = (closure_bits & CLOSURE_SHADER_TO_RGBA) != 0;
+  bool backface_culling = (blender_mat->blend_flag & MA_BL_CULL_BACKFACE) != 0;
+
+  PassMain::Sub *pass = (has_shader_to_rgba) ?
+                            ((backface_culling) ? gbuffer_single_sided_hybrid_ps_ :
+                                                  gbuffer_double_sided_hybrid_ps_) :
+                            ((backface_culling) ? gbuffer_single_sided_ps_ :
+                                                  gbuffer_double_sided_ps_);
+
   return &pass->sub(GPU_material_get_name(gpumat));
 }
 

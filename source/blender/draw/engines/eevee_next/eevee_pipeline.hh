@@ -198,6 +198,8 @@ struct DeferredLayerBase {
     return count_bits_i(closure_bits_ & (CLOSURE_REFRACTION | CLOSURE_REFLECTION |
                                          CLOSURE_DIFFUSE | CLOSURE_TRANSLUCENT));
   }
+
+  void gbuffer_pass_sync(Instance &inst);
 };
 
 class DeferredPipeline;
