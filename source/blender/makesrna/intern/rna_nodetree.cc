@@ -2771,7 +2771,7 @@ static void rna_Node_image_layer_update(Main *bmain, Scene *scene, PointerRNA *p
   Image *ima = reinterpret_cast<Image *>(node->id);
   ImageUser *iuser = static_cast<ImageUser *>(node->storage);
 
-  if (node->type == CMP_NODE_CRYPTOMATTE && node->custom1 != CMP_CRYPTOMATTE_SRC_IMAGE) {
+  if (node->type == CMP_NODE_CRYPTOMATTE && node->custom1 != CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE) {
     return;
   }
 
@@ -2842,7 +2842,7 @@ static const EnumPropertyItem *rna_Node_image_layer_itemf(bContext * /*C*/,
   const EnumPropertyItem *item = nullptr;
   RenderLayer *rl;
 
-  if (node->type == CMP_NODE_CRYPTOMATTE && node->custom1 != CMP_CRYPTOMATTE_SRC_IMAGE) {
+  if (node->type == CMP_NODE_CRYPTOMATTE && node->custom1 != CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE) {
     return rna_enum_dummy_NULL_items;
   }
 
@@ -2864,7 +2864,7 @@ static bool rna_Node_image_has_layers_get(PointerRNA *ptr)
   bNode *node = static_cast<bNode *>(ptr->data);
   Image *ima = reinterpret_cast<Image *>(node->id);
 
-  if (node->type == CMP_NODE_CRYPTOMATTE && node->custom1 != CMP_CRYPTOMATTE_SRC_IMAGE) {
+  if (node->type == CMP_NODE_CRYPTOMATTE && node->custom1 != CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE) {
     return false;
   }
 
@@ -2880,7 +2880,7 @@ static bool rna_Node_image_has_views_get(PointerRNA *ptr)
   bNode *node = static_cast<bNode *>(ptr->data);
   Image *ima = reinterpret_cast<Image *>(node->id);
 
-  if (node->type == CMP_NODE_CRYPTOMATTE && node->custom1 != CMP_CRYPTOMATTE_SRC_IMAGE) {
+  if (node->type == CMP_NODE_CRYPTOMATTE && node->custom1 != CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE) {
     return false;
   }
 
@@ -2930,7 +2930,7 @@ static const EnumPropertyItem *rna_Node_image_view_itemf(bContext * /*C*/,
   const EnumPropertyItem *item = nullptr;
   RenderView *rv;
 
-  if (node->type == CMP_NODE_CRYPTOMATTE && node->custom1 != CMP_CRYPTOMATTE_SRC_IMAGE) {
+  if (node->type == CMP_NODE_CRYPTOMATTE && node->custom1 != CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE) {
     return rna_enum_dummy_NULL_items;
   }
 
@@ -3156,7 +3156,7 @@ static PointerRNA rna_NodeCryptomatte_scene_get(PointerRNA *ptr)
 {
   bNode *node = static_cast<bNode *>(ptr->data);
 
-  Scene *scene = (node->custom1 == CMP_CRYPTOMATTE_SRC_RENDER) ?
+  Scene *scene = (node->custom1 == CMP_NODE_CRYPTOMATTE_SOURCE_RENDER) ?
                      reinterpret_cast<Scene *>(node->id) :
                      nullptr;
   return rna_pointer_inherit_refine(ptr, &RNA_Scene, scene);
@@ -3166,7 +3166,7 @@ static void rna_NodeCryptomatte_scene_set(PointerRNA *ptr, PointerRNA value, Rep
 {
   bNode *node = static_cast<bNode *>(ptr->data);
 
-  if (node->custom1 == CMP_CRYPTOMATTE_SRC_RENDER) {
+  if (node->custom1 == CMP_NODE_CRYPTOMATTE_SOURCE_RENDER) {
     rna_Node_scene_set(ptr, value, reports);
   }
 }
@@ -3175,7 +3175,7 @@ static PointerRNA rna_NodeCryptomatte_image_get(PointerRNA *ptr)
 {
   bNode *node = static_cast<bNode *>(ptr->data);
 
-  Image *image = (node->custom1 == CMP_CRYPTOMATTE_SRC_IMAGE) ?
+  Image *image = (node->custom1 == CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE) ?
                      reinterpret_cast<Image *>(node->id) :
                      nullptr;
   return rna_pointer_inherit_refine(ptr, &RNA_Image, image);
@@ -3187,7 +3187,7 @@ static void rna_NodeCryptomatte_image_set(PointerRNA *ptr,
 {
   bNode *node = static_cast<bNode *>(ptr->data);
 
-  if (node->custom1 == CMP_CRYPTOMATTE_SRC_IMAGE) {
+  if (node->custom1 == CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE) {
     if (node->id)
       id_us_min(node->id);
     if (value.data)
@@ -8443,8 +8443,16 @@ static void def_cmp_cryptomatte(StructRNA *srna)
   PropertyRNA *prop;
 
   static const EnumPropertyItem cryptomatte_source_items[] = {
-      {CMP_CRYPTOMATTE_SRC_RENDER, "RENDER", 0, "Render", "Use Cryptomatte passes from a render"},
-      {CMP_CRYPTOMATTE_SRC_IMAGE, "IMAGE", 0, "Image", "Use Cryptomatte passes from an image"},
+      {CMP_NODE_CRYPTOMATTE_SOURCE_RENDER,
+       "RENDER",
+       0,
+       "Render",
+       "Use Cryptomatte passes from a render"},
+      {CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE,
+       "IMAGE",
+       0,
+       "Image",
+       "Use Cryptomatte passes from an image"},
       {0, nullptr, 0, nullptr, nullptr}};
 
   prop = RNA_def_property(srna, "source", PROP_ENUM, PROP_NONE);

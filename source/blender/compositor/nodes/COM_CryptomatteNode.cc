@@ -204,10 +204,10 @@ Vector<NodeOperation *> CryptomatteNode::create_input_operations(const Composito
 {
   Vector<NodeOperation *> input_operations;
   switch (node.custom1) {
-    case CMP_CRYPTOMATTE_SRC_RENDER:
+    case CMP_NODE_CRYPTOMATTE_SOURCE_RENDER:
       input_operations_from_render_source(context, node, input_operations);
       break;
-    case CMP_CRYPTOMATTE_SRC_IMAGE:
+    case CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE:
       input_operations_from_image_source(context, node, input_operations);
       break;
   }

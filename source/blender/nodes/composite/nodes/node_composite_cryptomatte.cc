@@ -98,11 +98,11 @@ static blender::bke::cryptomatte::CryptomatteSessionPtr cryptomatte_init_from_no
   }
 
   switch (node.custom1) {
-    case CMP_CRYPTOMATTE_SRC_RENDER: {
+    case CMP_NODE_CRYPTOMATTE_SOURCE_RENDER: {
       return cryptomatte_init_from_node_render(node, use_meta_data);
     }
 
-    case CMP_CRYPTOMATTE_SRC_IMAGE: {
+    case CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE: {
       return cryptomatte_init_from_node_image(scene, node);
     }
   }

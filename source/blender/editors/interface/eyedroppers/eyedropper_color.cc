@@ -316,8 +316,8 @@ static bool eyedropper_cryptomatte_sample_fl(bContext *C,
     return false;
   }
 
-  /* CMP_CRYPTOMATTE_SRC_RENDER and CMP_CRYPTOMATTE_SRC_IMAGE require a referenced image/scene to
-   * work properly. */
+  /* CMP_NODE_CRYPTOMATTE_SOURCE_RENDER and CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE require a referenced
+   * image/scene to work properly. */
   if (!node->id) {
     return false;
   }
@@ -330,10 +330,10 @@ static bool eyedropper_cryptomatte_sample_fl(bContext *C,
   ntreeCompositCryptomatteLayerPrefix(scene, node, prefix, sizeof(prefix) - 1);
   prefix[MAX_NAME] = '\0';
 
-  if (node->custom1 == CMP_CRYPTOMATTE_SRC_RENDER) {
+  if (node->custom1 == CMP_NODE_CRYPTOMATTE_SOURCE_RENDER) {
     return eyedropper_cryptomatte_sample_render_fl(node, prefix, fpos, r_col);
   }
-  if (node->custom1 == CMP_CRYPTOMATTE_SRC_IMAGE) {
+  if (node->custom1 == CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE) {
     return eyedropper_cryptomatte_sample_image_fl(node, crypto, prefix, fpos, r_col);
   }
   return false;

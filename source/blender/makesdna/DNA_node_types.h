@@ -2518,6 +2518,12 @@ typedef enum CMPNodeCombSepColorMode {
   CMP_NODE_COMBSEP_COLOR_YUV = 4,
 } CMPNodeCombSepColorMode;
 
+/* Cryptomatte node source. */
+typedef enum CMPNodeCryptomatteSource {
+  CMP_NODE_CRYPTOMATTE_SOURCE_RENDER = 0,
+  CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE = 1,
+} CMPNodeCryptomatteSource;
+
 /* Point Density shader node */
 
 enum {
