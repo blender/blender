@@ -42,7 +42,7 @@
 #include "BLF_api.h"
 #include "WM_api.hh"
 
-#include "draw_manager_text.h"
+#include "draw_manager_text.hh"
 #include "intern/bmesh_polygon.hh"
 
 struct ViewCachedString {

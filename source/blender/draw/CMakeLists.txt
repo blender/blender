@@ -250,7 +250,7 @@ set(SRC
   intern/draw_manager.hh
   intern/draw_manager_profiling.hh
   intern/draw_manager_testing.h
-  intern/draw_manager_text.h
+  intern/draw_manager_text.hh
   intern/draw_pass.hh
   intern/draw_pbvh.hh
   intern/draw_resource.hh

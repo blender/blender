@@ -10,7 +10,7 @@
 
 #include "UI_resources.hh"
 
-#include "draw_manager_text.h"
+#include "draw_manager_text.hh"
 #include "overlay_private.hh"
 
 void OVERLAY_background_cache_init(OVERLAY_Data *vedata)

@@ -8,7 +8,7 @@
 #include "DRW_render.h"
 
 #include "draw_cache_impl.hh"
-#include "draw_manager_text.h"
+#include "draw_manager_text.hh"
 
 #include "BLI_math_color.h"
 

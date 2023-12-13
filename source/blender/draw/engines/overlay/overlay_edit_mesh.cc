@@ -17,7 +17,7 @@
 #include "BKE_object.hh"
 
 #include "draw_cache_impl.hh"
-#include "draw_manager_text.h"
+#include "draw_manager_text.hh"
 
 #include "overlay_private.hh"
 

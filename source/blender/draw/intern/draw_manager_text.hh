@@ -6,11 +6,9 @@
  * \ingroup draw
  */
 
-#pragma once
+#include "BLI_sys_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#pragma once
 
 struct ARegion;
 struct DRWTextStore;
@@ -18,10 +16,10 @@ struct Object;
 struct UnitSettings;
 struct View3D;
 
-struct DRWTextStore *DRW_text_cache_create(void);
-void DRW_text_cache_destroy(struct DRWTextStore *dt);
+DRWTextStore *DRW_text_cache_create();
+void DRW_text_cache_destroy(DRWTextStore *dt);
 
-void DRW_text_cache_add(struct DRWTextStore *dt,
+void DRW_text_cache_add(DRWTextStore *dt,
                         const float co[3],
                         const char *str,
                         int str_len,
@@ -30,12 +28,12 @@ void DRW_text_cache_add(struct DRWTextStore *dt,
                         short flag,
                         const uchar col[4]);
 
-void DRW_text_cache_draw(struct DRWTextStore *dt, struct ARegion *region, struct View3D *v3d);
+void DRW_text_cache_draw(DRWTextStore *dt, ARegion *region, View3D *v3d);
 
-void DRW_text_edit_mesh_measure_stats(struct ARegion *region,
-                                      struct View3D *v3d,
-                                      struct Object *ob,
-                                      const struct UnitSettings *unit);
+void DRW_text_edit_mesh_measure_stats(ARegion *region,
+                                      View3D *v3d,
+                                      Object *ob,
+                                      const UnitSettings *unit);
 
 enum {
   // DRW_UNUSED_1 = (1 << 0),  /* dirty */
@@ -47,8 +45,4 @@ enum {
 
 /* `draw_manager.cc` */
 
-struct DRWTextStore *DRW_text_cache_ensure(void);
-
-#ifdef __cplusplus
-}
-#endif
+DRWTextStore *DRW_text_cache_ensure();

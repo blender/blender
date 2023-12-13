@@ -80,7 +80,7 @@
 #include "draw_manager.h"
 #include "draw_manager_profiling.hh"
 #include "draw_manager_testing.h"
-#include "draw_manager_text.h"
+#include "draw_manager_text.hh"
 #include "draw_shader.h"
 #include "draw_subdivision.hh"
 #include "draw_texture_pool.h"
