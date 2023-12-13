@@ -1476,7 +1476,10 @@ static int imb_exr_split_token(const char *str, const char *end, const char **to
   return int(end - *token);
 }
 
-static int imb_exr_split_channel_name(ExrChannel *echan, char *layname, char *passname)
+static int imb_exr_split_channel_name(ExrChannel *echan,
+                                      char *layname,
+                                      char *passname,
+                                      bool has_xyz_channels)
 {
   const int layname_maxncpy = EXR_TOT_MAXNAME;
   const int passname_maxncpy = EXR_TOT_MAXNAME;
@@ -1484,19 +1487,25 @@ static int imb_exr_split_channel_name(ExrChannel *echan, char *layname, char *pa
   const char *end = name + strlen(name);
   const char *token;
 
-  /* Some multi-layers have the combined buffer with names A B G R saved. */
+  /* Some multi-layers have the combined buffer with names V, RGBA, or XYZ saved. Additionally, the
+   * Z channel can be interpreted as a Depth channel, but we only detect it as such if no X and Y
+   * channels exists, since the Z in this case is part of XYZ. The same goes for the Y channel,
+   * which can be detected as a luminance channel with the same name. */
   if (name[1] == 0) {
+    /* Notice that we will be comparing with this upper-case version of the channel name, so the
+     * below comparisons are effectively not case sensitive, and would also consider lowercase
+     * versions of the listed channels. */
     echan->chan_id = BLI_toupper_ascii(name[0]);
     layname[0] = '\0';
 
-    /* Notice that we are comparing with an upper-case version of the channel name, so the
-     * comparison is effectively not case sensitive, and would also consider lowercase versions of
-     * the listed channels. */
-    if (ELEM(echan->chan_id, 'R', 'G', 'B', 'A', 'V')) {
-      BLI_strncpy(passname, "Combined", passname_maxncpy);
-    }
-    else if (echan->chan_id == 'Z') {
+    if (echan->chan_id == 'Z' && !has_xyz_channels) {
       BLI_strncpy(passname, "Depth", passname_maxncpy);
+    }
+    else if (echan->chan_id == 'Y' && !has_xyz_channels) {
+      BLI_strncpy(passname, name, passname_maxncpy);
+    }
+    else if (ELEM(echan->chan_id, 'R', 'G', 'B', 'A', 'V', 'X', 'Y', 'Z')) {
+      BLI_strncpy(passname, "Combined", passname_maxncpy);
     }
     else {
       BLI_strncpy(passname, name, passname_maxncpy);
@@ -1610,6 +1619,26 @@ static ExrPass *imb_exr_get_pass(ListBase *lb, char *passname)
   return pass;
 }
 
+static bool exr_has_xyz_channels(ExrHandle *exr_handle)
+{
+  bool x_found = false;
+  bool y_found = false;
+  bool z_found = false;
+  LISTBASE_FOREACH (ExrChannel *, channel, &exr_handle->channels) {
+    if (channel->m->name == "X" || channel->m->name == "x") {
+      x_found = true;
+    }
+    if (channel->m->name == "Y" || channel->m->name == "y") {
+      y_found = true;
+    }
+    if (channel->m->name == "Z" || channel->m->name == "z") {
+      z_found = true;
+    }
+  }
+
+  return x_found && y_found && z_found;
+}
+
 static bool imb_exr_multilayer_parse_channels_from_file(ExrHandle *data)
 {
   std::vector<MultiViewChannelName> channels;
@@ -1628,13 +1657,14 @@ static bool imb_exr_multilayer_parse_channels_from_file(ExrHandle *data)
     echan->m->internal_name = channel.internal_name;
   }
 
+  const bool has_xyz_channels = exr_has_xyz_channels(data);
+
   /* now try to sort out how to assign memory to the channels */
   /* first build hierarchical layer list */
   ExrChannel *echan = (ExrChannel *)data->channels.first;
   for (; echan; echan = echan->next) {
     char layname[EXR_TOT_MAXNAME], passname[EXR_TOT_MAXNAME];
-    if (imb_exr_split_channel_name(echan, layname, passname)) {
-
+    if (imb_exr_split_channel_name(echan, layname, passname, has_xyz_channels)) {
       const char *view = echan->m->view.c_str();
       char internal_name[EXR_PASS_MAXNAME];
 
@@ -1876,6 +1906,17 @@ static bool exr_has_alpha(MultiPartInputFile &file)
   return !(header.channels().findChannel("A") == nullptr);
 }
 
+static bool exr_has_xyz(MultiPartInputFile &file)
+{
+  const Header &header = file.header(0);
+  return (header.channels().findChannel("X") != nullptr ||
+          header.channels().findChannel("x") != nullptr) &&
+         (header.channels().findChannel("Y") != nullptr ||
+          header.channels().findChannel("y") != nullptr) &&
+         (header.channels().findChannel("Z") != nullptr ||
+          header.channels().findChannel("z") != nullptr);
+}
+
 static bool exr_is_half_float(MultiPartInputFile &file)
 {
   const ChannelList &channels = file.header(0).channels();
@@ -2082,6 +2123,7 @@ struct ImBuf *imb_load_openexr(const uchar *mem,
           const char *rgb_channels[3];
           const int num_rgb_channels = exr_has_rgb(*file, rgb_channels);
           const bool has_luma = exr_has_luma(*file);
+          const bool has_xyz = exr_has_xyz(*file);
           FrameBuffer frameBuffer;
           float *first;
           size_t xstride = sizeof(float[4]);
@@ -2100,6 +2142,14 @@ struct ImBuf *imb_load_openexr(const uchar *mem,
               frameBuffer.insert(exr_rgba_channelname(*file, rgb_channels[i]),
                                  Slice(Imf::FLOAT, (char *)(first + i), xstride, ystride));
             }
+          }
+          else if (has_xyz) {
+            frameBuffer.insert(exr_rgba_channelname(*file, "X"),
+                               Slice(Imf::FLOAT, (char *)first, xstride, ystride));
+            frameBuffer.insert(exr_rgba_channelname(*file, "Y"),
+                               Slice(Imf::FLOAT, (char *)(first + 1), xstride, ystride));
+            frameBuffer.insert(exr_rgba_channelname(*file, "Z"),
+                               Slice(Imf::FLOAT, (char *)(first + 2), xstride, ystride));
           }
           else if (has_luma) {
             frameBuffer.insert(exr_rgba_channelname(*file, "Y"),
@@ -2155,16 +2205,12 @@ struct ImBuf *imb_load_openexr(const uchar *mem,
                          BLI_YCC_ITU_BT709);
             }
           }
-          else if (num_rgb_channels <= 1) {
+          else if (!has_xyz && num_rgb_channels <= 1) {
             /* Convert 1 to 3 channels. */
             for (size_t a = 0; a < size_t(ibuf->x) * ibuf->y; a++) {
               float *color = ibuf->rect_float + a * 4;
-              if (num_rgb_channels <= 1) {
-                color[1] = color[0];
-              }
-              if (num_rgb_channels <= 2) {
-                color[2] = color[0];
-              }
+              color[1] = color[0];
+              color[2] = color[0];
             }
           }
 
