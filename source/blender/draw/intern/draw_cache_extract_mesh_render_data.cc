@@ -488,7 +488,6 @@ void mesh_render_data_update_normals(MeshRenderData &mr, const eMRDataType data_
 {
   if (mr.extract_type != MR_EXTRACT_BMESH) {
     /* Mesh */
-    mr.normals_domain = mr.mesh->normals_domain();
     mr.vert_normals = mr.mesh->vert_normals();
     if (data_flag & (MR_DATA_POLY_NOR | MR_DATA_LOOP_NOR | MR_DATA_TAN_LOOP_NOR)) {
       mr.face_normals = mr.mesh->face_normals();
@@ -678,6 +677,8 @@ MeshRenderData *mesh_render_data_create(Object *object,
         CustomData_get_layer(&mr->mesh->edge_data, CD_ORIGINDEX));
     mr->p_origindex = static_cast<const int *>(
         CustomData_get_layer(&mr->mesh->face_data, CD_ORIGINDEX));
+
+    mr->normals_domain = mr->mesh->normals_domain();
 
     const bke::AttributeAccessor attributes = mr->mesh->attributes();
 
