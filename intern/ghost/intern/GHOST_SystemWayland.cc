@@ -1675,6 +1675,11 @@ static void gwl_registry_entry_update_all(GWL_Display *display, const int interf
 /** \name Private Utility Functions
  * \{ */
 
+static uint64_t sub_abs_u64(const uint64_t a, const uint64_t b)
+{
+  return a > b ? a - b : b - a;
+}
+
 /**
  * Return milliseconds from a microsecond uint32 pair (used by some wayland functions).
  */
@@ -8261,15 +8266,31 @@ uint64_t GHOST_SystemWayland::ms_from_input_time(const uint32_t timestamp_as_uin
    * use `timestamp_as_uint` to calculate an offset which is applied to future events.
    * This is updated because time may have passed between generating the time-stamp and `now`.
    * The method here is used by SDL. */
+  uint64_t timestamp = uint64_t(timestamp_as_uint);
 
   GWL_DisplayTimeStamp &input_timestamp = display_->input_timestamp;
-  if (timestamp_as_uint < input_timestamp.last) {
-    /* 32-bit timer rollover, bump the offset. */
-    input_timestamp.offset += uint64_t(std::numeric_limits<uint32_t>::max()) + 1;
+  if (UNLIKELY(timestamp_as_uint < input_timestamp.last)) {
+    /* NOTE(@ideasman42): Sometimes event times are out of order,
+     * while this should _never_ happen, it occasionally does when resizing the window then
+     * clicking on the window with GNOME+LIBDECOR.
+     * Accept events must occur within ~25 days, out-of-order time-stamps above this time-frame
+     * will be treated as a wrapped integer. */
+    if (input_timestamp.last - timestamp_as_uint > std::numeric_limits<uint32_t>::max() / 2) {
+      /* Finally check to avoid invalid rollover,
+       * ensure the rolled over time is closer to "now" than it is currently. */
+      const uint64_t offset_test = input_timestamp.offset +
+                                   uint64_t(std::numeric_limits<uint32_t>::max()) + 1;
+      const uint64_t now = getMilliSeconds();
+      if (sub_abs_u64(now, timestamp + offset_test) <
+          sub_abs_u64(now, timestamp + input_timestamp.offset))
+      {
+        /* 32-bit timer rollover, bump the offset. */
+        input_timestamp.offset = offset_test;
+      }
+    }
   }
   input_timestamp.last = timestamp_as_uint;
 
-  uint64_t timestamp = uint64_t(timestamp_as_uint);
   if (input_timestamp.exact_match) {
     timestamp += input_timestamp.offset;
   }
