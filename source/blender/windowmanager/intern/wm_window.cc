@@ -1323,7 +1323,8 @@ static void ghost_event_proc_timestamp_warning(GHOST_EventHandle ghost_event)
   const uint64_t now_ms = GHOST_GetMilliSeconds(g_system);
   /* Ensure the reference time occurred in the last #event_time_ok_ms.
    * If not, the reference time it's self may be a bad time-stamp. */
-  if ((event_ms_ref < (now_ms - event_time_ok_ms)) || (event_ms_ref > (now_ms + event_time_ok_ms)))
+  if (event_ms_ref < event_time_error_ms || (event_ms_ref < (now_ms - event_time_ok_ms)) ||
+      (event_ms_ref > (now_ms + event_time_ok_ms)))
   {
     /* Skip, the reference time not recent enough to be used. */
     return;
