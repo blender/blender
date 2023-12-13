@@ -70,7 +70,9 @@
 #include "BLO_read_write.hh"
 
 using blender::float3;
+using blender::int2;
 using blender::MutableSpan;
+using blender::OffsetIndices;
 using blender::Span;
 using blender::StringRef;
 using blender::VArray;
@@ -545,6 +547,43 @@ void BKE_mesh_face_offsets_ensure_alloc(Mesh *mesh)
   mesh->face_offset_indices[mesh->faces_num] = mesh->totloop;
 }
 
+Span<float3> Mesh::vert_positions() const
+{
+  return {static_cast<const float3 *>(
+              CustomData_get_layer_named(&this->vert_data, CD_PROP_FLOAT3, "position")),
+          this->totvert};
+}
+MutableSpan<float3> Mesh::vert_positions_for_write()
+{
+  return {static_cast<float3 *>(CustomData_get_layer_named_for_write(
+              &this->vert_data, CD_PROP_FLOAT3, "position", this->totvert)),
+          this->totvert};
+}
+
+Span<int2> Mesh::edges() const
+{
+  return {static_cast<const int2 *>(
+              CustomData_get_layer_named(&this->edge_data, CD_PROP_INT32_2D, ".edge_verts")),
+          this->totedge};
+}
+MutableSpan<int2> Mesh::edges_for_write()
+{
+  return {static_cast<int2 *>(CustomData_get_layer_named_for_write(
+              &this->edge_data, CD_PROP_INT32_2D, ".edge_verts", this->totedge)),
+          this->totedge};
+}
+
+OffsetIndices<int> Mesh::faces() const
+{
+  return Span(this->face_offset_indices, this->faces_num + 1);
+}
+Span<int> Mesh::face_offsets() const
+{
+  if (this->faces_num == 0) {
+    return {};
+  }
+  return {this->face_offset_indices, this->faces_num + 1};
+}
 MutableSpan<int> Mesh::face_offsets_for_write()
 {
   if (this->faces_num == 0) {
@@ -553,6 +592,53 @@ MutableSpan<int> Mesh::face_offsets_for_write()
   blender::implicit_sharing::make_trivial_data_mutable(
       &this->face_offset_indices, &this->runtime->face_offsets_sharing_info, this->faces_num + 1);
   return {this->face_offset_indices, this->faces_num + 1};
+}
+
+Span<int> Mesh::corner_verts() const
+{
+  return {static_cast<const int *>(
+              CustomData_get_layer_named(&this->loop_data, CD_PROP_INT32, ".corner_vert")),
+          this->totloop};
+}
+MutableSpan<int> Mesh::corner_verts_for_write()
+{
+  return {static_cast<int *>(CustomData_get_layer_named_for_write(
+              &this->loop_data, CD_PROP_INT32, ".corner_vert", this->totloop)),
+          this->totloop};
+}
+
+Span<int> Mesh::corner_edges() const
+{
+  return {static_cast<const int *>(
+              CustomData_get_layer_named(&this->loop_data, CD_PROP_INT32, ".corner_edge")),
+          this->totloop};
+}
+MutableSpan<int> Mesh::corner_edges_for_write()
+{
+  return {static_cast<int *>(CustomData_get_layer_named_for_write(
+              &this->loop_data, CD_PROP_INT32, ".corner_edge", this->totloop)),
+          this->totloop};
+}
+
+Span<MDeformVert> Mesh::deform_verts() const
+{
+  const MDeformVert *dverts = static_cast<const MDeformVert *>(
+      CustomData_get_layer(&this->vert_data, CD_MDEFORMVERT));
+  if (!dverts) {
+    return {};
+  }
+  return {dverts, this->totvert};
+}
+MutableSpan<MDeformVert> Mesh::deform_verts_for_write()
+{
+  MDeformVert *dvert = static_cast<MDeformVert *>(
+      CustomData_get_layer_for_write(&this->vert_data, CD_MDEFORMVERT, this->totvert));
+  if (dvert) {
+    return {dvert, this->totvert};
+  }
+  return {static_cast<MDeformVert *>(CustomData_add_layer(
+              &this->vert_data, CD_MDEFORMVERT, CD_SET_DEFAULT, this->totvert)),
+          this->totvert};
 }
 
 static void mesh_ensure_cdlayers_primary(Mesh &mesh)

@@ -20,6 +20,7 @@
 #include "BLI_timeit.hh"
 
 #include "BKE_bvhutils.hh"
+#include "BKE_customdata.hh"
 #include "BKE_editmesh_cache.hh"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
