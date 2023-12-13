@@ -215,6 +215,12 @@ size_t BLI_str_partition_ex_utf8(const char *str,
 int BLI_str_utf8_offset_to_index(const char *str,
                                  size_t str_len,
                                  int offset_target) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+/**
+ * Return the byte offset in `str` from `index_target`.
+ * \param index_target: The unicode index, where multi-byte characters are counted once.
+ * There is no need to clamp this value, the index is logically clamped to `BLI_strlen_utf8(str)`
+ * or below.
+ */
 int BLI_str_utf8_offset_from_index(const char *str,
                                    size_t str_len,
                                    int index_target) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
