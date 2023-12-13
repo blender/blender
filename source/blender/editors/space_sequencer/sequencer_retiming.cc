@@ -553,7 +553,7 @@ static int strip_speed_set_exec(bContext *C, const wmOperator *op)
       continue;
     }
     /* TODO: it would be nice to multiply speed with complex retiming by a factor. */
-    SEQ_retiming_key_speed_set(scene, seq, key, RNA_float_get(op->ptr, "speed"));
+    SEQ_retiming_key_speed_set(scene, seq, key, RNA_float_get(op->ptr, "speed"), false);
     SEQ_relations_invalidate_cache_raw(scene, seq);
   }
 
@@ -566,9 +566,19 @@ static int segment_speed_set_exec(const bContext *C,
                                   blender::Map<SeqRetimingKey *, Sequence *> selection)
 {
   Scene *scene = CTX_data_scene(C);
+  ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(scene));
 
   for (auto item : selection.items()) {
-    SEQ_retiming_key_speed_set(scene, item.value, item.key, RNA_float_get(op->ptr, "speed"));
+    SEQ_retiming_key_speed_set(scene,
+                               item.value,
+                               item.key,
+                               RNA_float_get(op->ptr, "speed"),
+                               RNA_boolean_get(op->ptr, "keep_retiming"));
+
+    if (SEQ_transform_test_overlap(scene, seqbase, item.value)) {
+      SEQ_transform_seqbase_shuffle(seqbase, item.value, scene);
+    }
+
     SEQ_relations_invalidate_cache_raw(scene, item.value);
   }
 
@@ -631,6 +641,12 @@ void SEQUENCER_OT_retiming_segment_speed_set(wmOperatorType *ot)
                 "New speed of retimed segment",
                 0.1f,
                 FLT_MAX);
+
+  RNA_def_boolean(ot->srna,
+                  "keep_retiming",
+                  true,
+                  "Preserve Current retiming",
+                  "Keep speed of other segments unchanged, change strip length instead");
 }
 
 /** \} */

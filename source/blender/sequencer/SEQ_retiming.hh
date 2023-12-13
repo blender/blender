@@ -45,10 +45,8 @@ void SEQ_retiming_offset_transition_key(const Scene *scene,
                                         SeqRetimingKey *key,
                                         int offset);
 float SEQ_retiming_key_speed_get(const Sequence *seq, const SeqRetimingKey *key);
-void SEQ_retiming_key_speed_set(const Scene *scene,
-                                Sequence *seq,
-                                SeqRetimingKey *key,
-                                float speed);
+void SEQ_retiming_key_speed_set(
+    const Scene *scene, Sequence *seq, SeqRetimingKey *key, float speed, bool keep_retiming);
 int SEQ_retiming_key_index_get(const Sequence *seq, const SeqRetimingKey *key);
 SeqRetimingKey *SEQ_retiming_key_get_by_timeline_frame(const Scene *scene,
                                                        const Sequence *seq,
