@@ -21,9 +21,9 @@
 #  include "BLI_math_vector_types.hh"
 
 namespace blender {
-template<typename T> class Bounds;
+template<typename T> struct Bounds;
 namespace offset_indices {
-template<typename T> class GroupedSpan;
+template<typename T> struct GroupedSpan;
 template<typename T> class OffsetIndices;
 }  // namespace offset_indices
 using offset_indices::GroupedSpan;
