@@ -23,6 +23,7 @@
 #include "BKE_editmesh_cache.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
+#include "BKE_object.hh"
 
 #include "GPU_batch.h"
 
@@ -336,6 +337,82 @@ void mesh_render_data_update_faces_sorted(MeshRenderData &mr,
 /* ---------------------------------------------------------------------- */
 /** \name Mesh/BMesh Interface (indirect, partially cached access to complex data).
  * \{ */
+
+const Mesh *editmesh_final_or_this(const Object *object, const Mesh *mesh)
+{
+  if (mesh->edit_mesh != nullptr) {
+    Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(object);
+    if (editmesh_eval_final != nullptr) {
+      return editmesh_eval_final;
+    }
+  }
+
+  return mesh;
+}
+
+const CustomData *mesh_cd_ldata_get_from_mesh(const Mesh *mesh)
+{
+  switch (mesh->runtime->wrapper_type) {
+    case ME_WRAPPER_TYPE_SUBD:
+    case ME_WRAPPER_TYPE_MDATA:
+      return &mesh->loop_data;
+      break;
+    case ME_WRAPPER_TYPE_BMESH:
+      return &mesh->edit_mesh->bm->ldata;
+      break;
+  }
+
+  BLI_assert(0);
+  return &mesh->loop_data;
+}
+
+const CustomData *mesh_cd_pdata_get_from_mesh(const Mesh *mesh)
+{
+  switch (mesh->runtime->wrapper_type) {
+    case ME_WRAPPER_TYPE_SUBD:
+    case ME_WRAPPER_TYPE_MDATA:
+      return &mesh->face_data;
+      break;
+    case ME_WRAPPER_TYPE_BMESH:
+      return &mesh->edit_mesh->bm->pdata;
+      break;
+  }
+
+  BLI_assert(0);
+  return &mesh->face_data;
+}
+
+const CustomData *mesh_cd_edata_get_from_mesh(const Mesh *mesh)
+{
+  switch (mesh->runtime->wrapper_type) {
+    case ME_WRAPPER_TYPE_SUBD:
+    case ME_WRAPPER_TYPE_MDATA:
+      return &mesh->edge_data;
+      break;
+    case ME_WRAPPER_TYPE_BMESH:
+      return &mesh->edit_mesh->bm->edata;
+      break;
+  }
+
+  BLI_assert(0);
+  return &mesh->edge_data;
+}
+
+const CustomData *mesh_cd_vdata_get_from_mesh(const Mesh *mesh)
+{
+  switch (mesh->runtime->wrapper_type) {
+    case ME_WRAPPER_TYPE_SUBD:
+    case ME_WRAPPER_TYPE_MDATA:
+      return &mesh->vert_data;
+      break;
+    case ME_WRAPPER_TYPE_BMESH:
+      return &mesh->edit_mesh->bm->vdata;
+      break;
+  }
+
+  BLI_assert(0);
+  return &mesh->vert_data;
+}
 
 void mesh_render_data_update_looptris(MeshRenderData &mr,
                                       const eMRIterType iter_type,

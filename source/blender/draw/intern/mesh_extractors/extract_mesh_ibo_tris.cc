@@ -6,7 +6,9 @@
  * \ingroup draw
  */
 
-#include "MEM_guardedalloc.h"
+#include "BKE_editmesh.hh"
+
+#include "GPU_index_buffer.h"
 
 #include "extract_mesh.hh"
 

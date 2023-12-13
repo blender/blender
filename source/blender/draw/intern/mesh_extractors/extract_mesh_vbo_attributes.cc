@@ -21,6 +21,8 @@
 #include "draw_subdivision.hh"
 #include "extract_mesh.hh"
 
+#include "GPU_vertex_buffer.h"
+
 namespace blender::draw {
 
 /* ---------------------------------------------------------------------- */

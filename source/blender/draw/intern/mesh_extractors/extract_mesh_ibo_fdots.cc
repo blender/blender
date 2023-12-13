@@ -6,7 +6,7 @@
  * \ingroup draw
  */
 
-#include "BLI_bitmap.h"
+#include "GPU_index_buffer.h"
 
 #include "extract_mesh.hh"
 

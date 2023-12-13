@@ -8,24 +8,15 @@
 
 #pragma once
 
-#include <algorithm>
-
 #include "BLI_utildefines.h"
 
-#include "DNA_customdata_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_view3d_enums.h"
-
-#include "BKE_attribute.h"
-#include "BKE_object.hh"
-
-#include "GPU_batch.h"
-#include "GPU_index_buffer.h"
-#include "GPU_vertex_buffer.h"
+#include "GPU_shader.h"
 
 #include "draw_attributes.hh"
 
 struct DRWSubdivCache;
+struct GPUBatch;
+struct GPUIndexBuf;
 struct MeshRenderData;
 struct TaskGraph;
 
@@ -73,16 +64,7 @@ enum eMRDataType {
 };
 ENUM_OPERATORS(eMRDataType, MR_DATA_POLYS_SORTED)
 
-BLI_INLINE int mesh_render_mat_len_get(const Object *object, const Mesh *mesh)
-{
-  if (mesh->edit_mesh != NULL) {
-    const Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(object);
-    if (editmesh_eval_final != NULL) {
-      return std::max<int>(1, editmesh_eval_final->totcol);
-    }
-  }
-  return std::max<int>(1, mesh->totcol);
-}
+int mesh_render_mat_len_get(const Object *object, const Mesh *mesh);
 
 struct MeshBufferList {
   /* Every VBO below contains at least enough data for every loop in the mesh
@@ -256,7 +238,7 @@ struct MeshBufferCache {
        mbc == &batch_cache.final || mbc == &batch_cache.cage || mbc == &batch_cache.uv_cage; \
        mbc = (mbc == &batch_cache.final) ? \
                  &batch_cache.cage : \
-                 ((mbc == &batch_cache.cage) ? &batch_cache.uv_cage : NULL))
+                 ((mbc == &batch_cache.cage) ? &batch_cache.uv_cage : nullptr))
 
 struct MeshBatchCache {
   MeshBufferCache final, cage, uv_cage;
