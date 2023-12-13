@@ -14,7 +14,6 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
-
 struct BMesh;
 struct BMeshCreateParams;
 struct BMeshFromMeshParams;

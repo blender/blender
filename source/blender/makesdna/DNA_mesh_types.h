@@ -11,7 +11,6 @@
 #include "DNA_ID.h"
 #include "DNA_customdata_types.h"
 #include "DNA_defs.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_session_uuid_types.h"
 
 /** Workaround to forward-declare C++ type in C header. */
@@ -19,13 +18,18 @@
 
 #  include <optional>
 
-#  include "BLI_bounds_types.hh"
 #  include "BLI_math_vector_types.hh"
-#  include "BLI_offset_indices.hh"
 
 namespace blender {
-template<typename T> class Span;
+template<typename T> class Bounds;
+namespace offset_indices {
+template<typename T> class GroupedSpan;
+template<typename T> class OffsetIndices;
+}  // namespace offset_indices
+using offset_indices::GroupedSpan;
+using offset_indices::OffsetIndices;
 template<typename T> class MutableSpan;
+template<typename T> class Span;
 namespace bke {
 struct MeshRuntime;
 class AttributeAccessor;

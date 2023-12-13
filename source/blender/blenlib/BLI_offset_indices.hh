@@ -6,7 +6,13 @@
 
 #include <algorithm>
 
-#include "BLI_index_mask.hh"
+namespace blender {
+namespace index_mask {
+class IndexMask;
+}
+using index_mask::IndexMask;
+}  // namespace blender
+
 #include "BLI_index_range.hh"
 #include "BLI_span.hh"
 

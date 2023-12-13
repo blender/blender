@@ -12,6 +12,8 @@
 
 #pragma once
 
+#include "BLI_math_bits.h"
+
 #include "DRW_render.h"
 #include "draw_shader_shared.h"
 
