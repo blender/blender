@@ -107,7 +107,7 @@ static void edbm_intersect_select(BMEditMesh *em, Mesh *mesh, bool do_select)
   }
 
   EDBMUpdate_Params params{};
-  params.calc_looptri = true;
+  params.calc_looptris = true;
   params.calc_normals = true;
   params.is_destructive = true;
   EDBM_update(mesh, &params);
@@ -968,7 +968,7 @@ static int edbm_face_split_by_edges_exec(bContext *C, wmOperator * /*op*/)
 #endif
 
     EDBMUpdate_Params params{};
-    params.calc_looptri = true;
+    params.calc_looptris = true;
     params.calc_normals = true;
     params.is_destructive = true;
     EDBM_update(static_cast<Mesh *>(obedit->data), &params);
@@ -1076,7 +1076,7 @@ static int edbm_face_split_by_edges_exec(bContext *C, wmOperator * /*op*/)
       BLI_ghash_free(face_edge_map, nullptr, nullptr);
 
       EDBMUpdate_Params params{};
-      params.calc_looptri = true;
+      params.calc_looptris = true;
       params.calc_normals = true;
       params.is_destructive = true;
       EDBM_update(static_cast<Mesh *>(obedit->data), &params);

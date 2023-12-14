@@ -119,10 +119,10 @@ static void sample_mesh_surface(const Mesh &mesh,
   const Span<MLoopTri> looptris = mesh.looptris();
 
   for (const int looptri_index : looptris.index_range()) {
-    const MLoopTri &looptri = looptris[looptri_index];
-    const int v0_loop = looptri.tri[0];
-    const int v1_loop = looptri.tri[1];
-    const int v2_loop = looptri.tri[2];
+    const MLoopTri &lt = looptris[looptri_index];
+    const int v0_loop = lt.tri[0];
+    const int v1_loop = lt.tri[1];
+    const int v2_loop = lt.tri[2];
     const float3 &v0_pos = positions[corner_verts[v0_loop]];
     const float3 &v1_pos = positions[corner_verts[v1_loop]];
     const float3 &v2_pos = positions[corner_verts[v2_loop]];
@@ -215,12 +215,12 @@ BLI_NOINLINE static void update_elimination_mask_based_on_density_factors(
       continue;
     }
 
-    const MLoopTri &looptri = looptris[looptri_indices[i]];
+    const MLoopTri &lt = looptris[looptri_indices[i]];
     const float3 bary_coord = bary_coords[i];
 
-    const int v0_loop = looptri.tri[0];
-    const int v1_loop = looptri.tri[1];
-    const int v2_loop = looptri.tri[2];
+    const int v0_loop = lt.tri[0];
+    const int v1_loop = lt.tri[1];
+    const int v2_loop = lt.tri[2];
 
     const float v0_density_factor = std::max(0.0f, density_factors[v0_loop]);
     const float v1_density_factor = std::max(0.0f, density_factors[v1_loop]);
@@ -380,11 +380,11 @@ static void compute_legacy_normal_outputs(const Mesh &mesh,
 
   for (const int i : bary_coords.index_range()) {
     const int looptri_index = looptri_indices[i];
-    const MLoopTri &looptri = looptris[looptri_index];
+    const MLoopTri &lt = looptris[looptri_index];
 
-    const int v0_index = corner_verts[looptri.tri[0]];
-    const int v1_index = corner_verts[looptri.tri[1]];
-    const int v2_index = corner_verts[looptri.tri[2]];
+    const int v0_index = corner_verts[lt.tri[0]];
+    const int v1_index = corner_verts[lt.tri[1]];
+    const int v2_index = corner_verts[lt.tri[2]];
     const float3 v0_pos = positions[v0_index];
     const float3 v1_pos = positions[v1_index];
     const float3 v2_pos = positions[v2_index];

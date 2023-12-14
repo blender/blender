@@ -1499,9 +1499,9 @@ static void feat_data_sum_reduce(const void *__restrict /*userdata*/,
   feat_chunk_join->feat_edges += feat_chunk->feat_edges;
 }
 
-static void lineart_identify_mlooptri_feature_edges(void *__restrict userdata,
-                                                    const int i,
-                                                    const TaskParallelTLS *__restrict tls)
+static void lineart_identify_looptri_feature_edges(void *__restrict userdata,
+                                                   const int i,
+                                                   const TaskParallelTLS *__restrict tls)
 {
   EdgeFeatData *e_feat_data = (EdgeFeatData *)userdata;
   EdgeFeatReduceData *reduce_data = (EdgeFeatReduceData *)tls->userdata_chunk;
@@ -1806,7 +1806,7 @@ static void lineart_load_tri_task(void *__restrict userdata,
   LineartObjectInfo *ob_info = tri_task_data->ob_info;
   const blender::Span<blender::float3> positions = tri_task_data->positions;
   const blender::Span<int> corner_verts = tri_task_data->corner_verts;
-  const MLoopTri *looptri = &tri_task_data->looptris[i];
+  const MLoopTri *lt = &tri_task_data->looptris[i];
   const int face_i = tri_task_data->looptri_faces[i];
   const blender::Span<int> material_indices = tri_task_data->material_indices;
 
@@ -1815,9 +1815,9 @@ static void lineart_load_tri_task(void *__restrict userdata,
 
   tri = (LineartTriangle *)(((uchar *)tri) + tri_task_data->lineart_triangle_size * i);
 
-  int v1 = corner_verts[looptri->tri[0]];
-  int v2 = corner_verts[looptri->tri[1]];
-  int v3 = corner_verts[looptri->tri[2]];
+  int v1 = corner_verts[lt->tri[0]];
+  int v2 = corner_verts[lt->tri[1]];
+  int v3 = corner_verts[lt->tri[2]];
 
   tri->v[0] = &vert_arr[v1];
   tri->v[1] = &vert_arr[v2];
@@ -1876,13 +1876,13 @@ static void lineart_edge_neighbor_init_task(void *__restrict userdata,
 {
   EdgeNeighborData *en_data = (EdgeNeighborData *)userdata;
   LineartAdjacentEdge *adj_e = &en_data->adj_e[i];
-  const MLoopTri *looptri = &en_data->looptris[i / 3];
+  const MLoopTri *lt = &en_data->looptris[i / 3];
   LineartEdgeNeighbor *edge_nabr = &en_data->edge_nabr[i];
   const blender::Span<int> corner_verts = en_data->corner_verts;
 
   adj_e->e = i;
-  adj_e->v1 = corner_verts[looptri->tri[i % 3]];
-  adj_e->v2 = corner_verts[looptri->tri[(i + 1) % 3]];
+  adj_e->v1 = corner_verts[lt->tri[i % 3]];
+  adj_e->v2 = corner_verts[lt->tri[(i + 1) % 3]];
   if (adj_e->v1 > adj_e->v2) {
     std::swap(adj_e->v1, adj_e->v2);
   }
@@ -2126,14 +2126,14 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
   BLI_task_parallel_range(0,
                           total_edges,
                           &edge_feat_data,
-                          lineart_identify_mlooptri_feature_edges,
+                          lineart_identify_looptri_feature_edges,
                           &edge_feat_settings);
 
   LooseEdgeData loose_data = {0};
 
   if (la_data->conf.use_loose) {
     /* Only identifying floating edges at this point because other edges has been taken care of
-     * inside #lineart_identify_mlooptri_feature_edges function. */
+     * inside #lineart_identify_looptri_feature_edges function. */
     const bke::LooseEdgeCache &loose_edges = mesh->loose_edges();
     loose_data.loose_array = static_cast<int *>(
         MEM_malloc_arrayN(loose_edges.count, sizeof(int), __func__));

@@ -114,29 +114,29 @@ int sample_surface_points_projected(
 
 float3 compute_bary_coord_in_triangle(Span<float3> vert_positions,
                                       Span<int> corner_verts,
-                                      const MLoopTri &looptri,
+                                      const MLoopTri &lt,
                                       const float3 &position);
 
 template<typename T>
 inline T sample_corner_attribute_with_bary_coords(const float3 &bary_weights,
-                                                  const MLoopTri &looptri,
+                                                  const MLoopTri &lt,
                                                   const Span<T> corner_attribute)
 {
   return attribute_math::mix3(bary_weights,
-                              corner_attribute[looptri.tri[0]],
-                              corner_attribute[looptri.tri[1]],
-                              corner_attribute[looptri.tri[2]]);
+                              corner_attribute[lt.tri[0]],
+                              corner_attribute[lt.tri[1]],
+                              corner_attribute[lt.tri[2]]);
 }
 
 template<typename T>
 inline T sample_corner_attribute_with_bary_coords(const float3 &bary_weights,
-                                                  const MLoopTri &looptri,
+                                                  const MLoopTri &lt,
                                                   const VArray<T> &corner_attribute)
 {
   return attribute_math::mix3(bary_weights,
-                              corner_attribute[looptri.tri[0]],
-                              corner_attribute[looptri.tri[1]],
-                              corner_attribute[looptri.tri[2]]);
+                              corner_attribute[lt.tri[0]],
+                              corner_attribute[lt.tri[1]],
+                              corner_attribute[lt.tri[2]]);
 }
 
 /**

@@ -73,7 +73,7 @@ static Mesh *remesh_quadriflow(const Mesh *input_mesh,
 
   /* Gather the required data for export to the internal quadriflow mesh format. */
   Array<MVertTri> verttri(looptris.size());
-  BKE_mesh_runtime_verttri_from_looptri(
+  BKE_mesh_runtime_verttris_from_looptris(
       verttri.data(), input_corner_verts.data(), looptris.data(), looptris.size());
 
   const int totfaces = looptris.size();
@@ -199,10 +199,9 @@ static openvdb::FloatGrid::Ptr remesh_voxel_level_set_create(const Mesh *mesh,
   }
 
   for (const int i : IndexRange(looptris.size())) {
-    const MLoopTri &loop_tri = looptris[i];
-    triangles[i] = openvdb::Vec3I(corner_verts[loop_tri.tri[0]],
-                                  corner_verts[loop_tri.tri[1]],
-                                  corner_verts[loop_tri.tri[2]]);
+    const MLoopTri &lt = looptris[i];
+    triangles[i] = openvdb::Vec3I(
+        corner_verts[lt.tri[0]], corner_verts[lt.tri[1]], corner_verts[lt.tri[2]]);
   }
 
   openvdb::math::Transform::Ptr transform = openvdb::math::Transform::createLinearTransform(
@@ -324,7 +323,7 @@ static void find_nearest_tris_parallel(const Span<float3> positions,
 
 static void find_nearest_verts(const Span<float3> positions,
                                const Span<int> corner_verts,
-                               const Span<MLoopTri> src_tris,
+                               const Span<MLoopTri> src_looptris,
                                const Span<float3> dst_positions,
                                const Span<int> nearest_vert_tris,
                                MutableSpan<int> nearest_verts)
@@ -332,16 +331,16 @@ static void find_nearest_verts(const Span<float3> positions,
   threading::parallel_for(dst_positions.index_range(), 512, [&](const IndexRange range) {
     for (const int dst_vert : range) {
       const float3 &dst_position = dst_positions[dst_vert];
-      const MLoopTri &src_tri = src_tris[nearest_vert_tris[dst_vert]];
+      const MLoopTri &src_lt = src_looptris[nearest_vert_tris[dst_vert]];
 
       std::array<float, 3> distances;
       for (const int i : IndexRange(3)) {
-        const int src_vert = corner_verts[src_tri.tri[i]];
+        const int src_vert = corner_verts[src_lt.tri[i]];
         distances[i] = math::distance_squared(positions[src_vert], dst_position);
       }
 
       const int min = std::min_element(distances.begin(), distances.end()) - distances.begin();
-      nearest_verts[dst_vert] = corner_verts[src_tri.tri[min]];
+      nearest_verts[dst_vert] = corner_verts[src_lt.tri[min]];
     }
   });
 }
@@ -516,7 +515,7 @@ void mesh_remesh_reproject_attributes(const Mesh &src, Mesh &dst)
   const Span<float3> src_positions = src.vert_positions();
   const OffsetIndices src_faces = src.faces();
   const Span<int> src_corner_verts = src.corner_verts();
-  const Span<MLoopTri> src_tris = src.looptris();
+  const Span<MLoopTri> src_looptris = src.looptris();
 
   /* The main idea in the following code is to trade some complexity in sampling for the benefit of
    * only using and building a single BVH tree. Since sculpt mode doesn't generally deal with loose
@@ -530,7 +529,7 @@ void mesh_remesh_reproject_attributes(const Mesh &src, Mesh &dst)
    * possibly improved performance from lower cache usage in the "complex" sampling part of the
    * algorithm and the copying itself. */
   BVHTreeFromMesh bvhtree{};
-  BKE_bvhtree_from_mesh_get(&bvhtree, &src, BVHTREE_FROM_LOOPTRI, 2);
+  BKE_bvhtree_from_mesh_get(&bvhtree, &src, BVHTREE_FROM_LOOPTRIS, 2);
 
   const Span<float3> dst_positions = dst.vert_positions();
   const OffsetIndices dst_faces = dst.faces();
@@ -545,7 +544,7 @@ void mesh_remesh_reproject_attributes(const Mesh &src, Mesh &dst)
     if (!point_ids.is_empty()) {
       Array<int> map(dst.totvert);
       find_nearest_verts(
-          src_positions, src_corner_verts, src_tris, dst_positions, vert_nearest_tris, map);
+          src_positions, src_corner_verts, src_looptris, dst_positions, vert_nearest_tris, map);
       gather_attributes(point_ids, src_attributes, ATTR_DOMAIN_POINT, map, dst_attributes);
     }
 

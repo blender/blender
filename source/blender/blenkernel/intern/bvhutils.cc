@@ -269,10 +269,10 @@ static void mesh_faces_nearest_point(void *userdata,
   } while (t2);
 }
 /* copy of function above */
-static void mesh_looptri_nearest_point(void *userdata,
-                                       int index,
-                                       const float co[3],
-                                       BVHTreeNearest *nearest)
+static void mesh_looptris_nearest_point(void *userdata,
+                                        int index,
+                                        const float co[3],
+                                        BVHTreeNearest *nearest)
 {
   const BVHTreeFromMesh *data = (BVHTreeFromMesh *)userdata;
   const MLoopTri *lt = &data->looptris[index];
@@ -294,10 +294,10 @@ static void mesh_looptri_nearest_point(void *userdata,
   }
 }
 /* Copy of function above (warning, should de-duplicate with `editmesh_bvh.cc`). */
-static void editmesh_looptri_nearest_point(void *userdata,
-                                           int index,
-                                           const float co[3],
-                                           BVHTreeNearest *nearest)
+static void editmesh_looptris_nearest_point(void *userdata,
+                                            int index,
+                                            const float co[3],
+                                            BVHTreeNearest *nearest)
 {
   BMEditMesh *em = static_cast<BMEditMesh *>(userdata);
   const BMLoop **ltri = (const BMLoop **)em->looptris[index];
@@ -366,10 +366,10 @@ static void mesh_faces_spherecast(void *userdata,
   } while (t2);
 }
 /* copy of function above */
-static void mesh_looptri_spherecast(void *userdata,
-                                    int index,
-                                    const BVHTreeRay *ray,
-                                    BVHTreeRayHit *hit)
+static void mesh_looptris_spherecast(void *userdata,
+                                     int index,
+                                     const BVHTreeRay *ray,
+                                     BVHTreeRayHit *hit)
 {
   const BVHTreeFromMesh *data = (BVHTreeFromMesh *)userdata;
   const Span<float3> positions = data->vert_positions;
@@ -397,10 +397,10 @@ static void mesh_looptri_spherecast(void *userdata,
   }
 }
 /* Copy of function above (warning, should de-duplicate with `editmesh_bvh.cc`). */
-static void editmesh_looptri_spherecast(void *userdata,
-                                        int index,
-                                        const BVHTreeRay *ray,
-                                        BVHTreeRayHit *hit)
+static void editmesh_looptris_spherecast(void *userdata,
+                                         int index,
+                                         const BVHTreeRay *ray,
+                                         BVHTreeRayHit *hit)
 {
   BMEditMesh *em = static_cast<BMEditMesh *>(userdata);
   const BMLoop **ltri = (const BMLoop **)em->looptris[index];
@@ -609,14 +609,14 @@ static void bvhtree_from_mesh_setup_data(BVHTree *tree,
       r_data->nearest_callback = mesh_faces_nearest_point;
       r_data->raycast_callback = mesh_faces_spherecast;
       break;
-    case BVHTREE_FROM_LOOPTRI:
-    case BVHTREE_FROM_LOOPTRI_NO_HIDDEN:
-      r_data->nearest_callback = mesh_looptri_nearest_point;
-      r_data->raycast_callback = mesh_looptri_spherecast;
+    case BVHTREE_FROM_LOOPTRIS:
+    case BVHTREE_FROM_LOOPTRIS_NO_HIDDEN:
+      r_data->nearest_callback = mesh_looptris_nearest_point;
+      r_data->raycast_callback = mesh_looptris_spherecast;
       break;
     case BVHTREE_FROM_EM_LOOSEVERTS:
     case BVHTREE_FROM_EM_EDGES:
-    case BVHTREE_FROM_EM_LOOPTRI:
+    case BVHTREE_FROM_EM_LOOPTRIS:
     case BVHTREE_MAX_ITEM:
       BLI_assert(false);
       break;
@@ -640,9 +640,9 @@ static void bvhtree_from_editmesh_setup_data(BVHTree *tree,
       r_data->nearest_callback = nullptr; /* TODO */
       r_data->raycast_callback = nullptr; /* TODO */
       break;
-    case BVHTREE_FROM_EM_LOOPTRI:
-      r_data->nearest_callback = editmesh_looptri_nearest_point;
-      r_data->raycast_callback = editmesh_looptri_spherecast;
+    case BVHTREE_FROM_EM_LOOPTRIS:
+      r_data->nearest_callback = editmesh_looptris_nearest_point;
+      r_data->raycast_callback = editmesh_looptris_spherecast;
       break;
 
     case BVHTREE_FROM_VERTS:
@@ -650,8 +650,8 @@ static void bvhtree_from_editmesh_setup_data(BVHTree *tree,
     case BVHTREE_FROM_EDGES:
     case BVHTREE_FROM_LOOSEEDGES:
     case BVHTREE_FROM_FACES:
-    case BVHTREE_FROM_LOOPTRI:
-    case BVHTREE_FROM_LOOPTRI_NO_HIDDEN:
+    case BVHTREE_FROM_LOOPTRIS:
+    case BVHTREE_FROM_LOOPTRIS_NO_HIDDEN:
     case BVHTREE_MAX_ITEM:
       BLI_assert(false);
       break;
@@ -943,16 +943,16 @@ static BVHTree *bvhtree_from_mesh_faces_create_tree(float epsilon,
 /** \name LoopTri Face Builder
  * \{ */
 
-static BVHTree *bvhtree_from_editmesh_looptri_create_tree(float epsilon,
-                                                          int tree_type,
-                                                          int axis,
-                                                          BMEditMesh *em,
-                                                          const BitSpan looptri_mask,
-                                                          int looptri_num_active)
+static BVHTree *bvhtree_from_editmesh_looptris_create_tree(float epsilon,
+                                                           int tree_type,
+                                                           int axis,
+                                                           BMEditMesh *em,
+                                                           const BitSpan looptris_mask,
+                                                           int looptris_num_active)
 {
-  const int looptri_num = em->tottri;
+  const int looptris_num = em->tottri;
 
-  BVHTree *tree = bvhtree_new_common(epsilon, tree_type, axis, looptri_num, looptri_num_active);
+  BVHTree *tree = bvhtree_new_common(epsilon, tree_type, axis, looptris_num, looptris_num_active);
   if (!tree) {
     return nullptr;
   }
@@ -963,9 +963,9 @@ static BVHTree *bvhtree_from_editmesh_looptri_create_tree(float epsilon,
    * and/or selected. Even if the faces themselves are not selected for the snapped
    * transform, having a vertex selected means the face (and thus it's tessellated
    * triangles) will be moving and will not be a good snap targets. */
-  for (int i = 0; i < looptri_num; i++) {
+  for (int i = 0; i < looptris_num; i++) {
     const BMLoop **ltri = looptris[i];
-    bool insert = !looptri_mask.is_empty() ? looptri_mask[i] : true;
+    bool insert = !looptris_mask.is_empty() ? looptris_mask[i] : true;
 
     if (insert) {
       /* No reason found to block hit-testing the triangle for snap, so insert it now. */
@@ -977,26 +977,26 @@ static BVHTree *bvhtree_from_editmesh_looptri_create_tree(float epsilon,
       BLI_bvhtree_insert(tree, i, co[0], 3);
     }
   }
-  BLI_assert(BLI_bvhtree_get_len(tree) == looptri_num_active);
+  BLI_assert(BLI_bvhtree_get_len(tree) == looptris_num_active);
 
   return tree;
 }
 
-static BVHTree *bvhtree_from_mesh_looptri_create_tree(float epsilon,
-                                                      int tree_type,
-                                                      int axis,
-                                                      const Span<float3> positions,
-                                                      const Span<int> corner_verts,
-                                                      const Span<MLoopTri> looptris,
-                                                      const BitSpan looptri_mask,
-                                                      int looptri_num_active)
+static BVHTree *bvhtree_from_mesh_looptris_create_tree(float epsilon,
+                                                       int tree_type,
+                                                       int axis,
+                                                       const Span<float3> positions,
+                                                       const Span<int> corner_verts,
+                                                       const Span<MLoopTri> looptris,
+                                                       const BitSpan looptris_mask,
+                                                       int looptris_num_active)
 {
   if (positions.is_empty()) {
     return nullptr;
   }
 
   BVHTree *tree = bvhtree_new_common(
-      epsilon, tree_type, axis, looptris.size(), looptri_num_active);
+      epsilon, tree_type, axis, looptris.size(), looptris_num_active);
 
   if (!tree) {
     return nullptr;
@@ -1004,7 +1004,7 @@ static BVHTree *bvhtree_from_mesh_looptri_create_tree(float epsilon,
 
   for (const int i : looptris.index_range()) {
     float co[3][3];
-    if (!looptri_mask.is_empty() && !looptri_mask[i]) {
+    if (!looptris_mask.is_empty() && !looptris_mask[i]) {
       continue;
     }
 
@@ -1015,79 +1015,79 @@ static BVHTree *bvhtree_from_mesh_looptri_create_tree(float epsilon,
     BLI_bvhtree_insert(tree, i, co[0], 3);
   }
 
-  BLI_assert(BLI_bvhtree_get_len(tree) == looptri_num_active);
+  BLI_assert(BLI_bvhtree_get_len(tree) == looptris_num_active);
 
   return tree;
 }
 
-BVHTree *bvhtree_from_editmesh_looptri_ex(BVHTreeFromEditMesh *data,
-                                          BMEditMesh *em,
-                                          const BitSpan looptri_mask,
-                                          int looptri_num_active,
-                                          float epsilon,
-                                          int tree_type,
-                                          int axis)
+BVHTree *bvhtree_from_editmesh_looptris_ex(BVHTreeFromEditMesh *data,
+                                           BMEditMesh *em,
+                                           const BitSpan looptris_mask,
+                                           int looptris_num_active,
+                                           float epsilon,
+                                           int tree_type,
+                                           int axis)
 {
   /* BMESH specific check that we have tessfaces,
    * we _could_ tessellate here but rather not - campbell */
-  BVHTree *tree = bvhtree_from_editmesh_looptri_create_tree(
-      epsilon, tree_type, axis, em, looptri_mask, looptri_num_active);
+  BVHTree *tree = bvhtree_from_editmesh_looptris_create_tree(
+      epsilon, tree_type, axis, em, looptris_mask, looptris_num_active);
 
   bvhtree_balance(tree, false);
 
   if (data) {
-    bvhtree_from_editmesh_setup_data(tree, BVHTREE_FROM_EM_LOOPTRI, data);
+    bvhtree_from_editmesh_setup_data(tree, BVHTREE_FROM_EM_LOOPTRIS, data);
   }
   return tree;
 }
 
-BVHTree *bvhtree_from_editmesh_looptri(
+BVHTree *bvhtree_from_editmesh_looptris(
     BVHTreeFromEditMesh *data, BMEditMesh *em, float epsilon, int tree_type, int axis)
 {
-  return bvhtree_from_editmesh_looptri_ex(data, em, {}, -1, epsilon, tree_type, axis);
+  return bvhtree_from_editmesh_looptris_ex(data, em, {}, -1, epsilon, tree_type, axis);
 }
 
-BVHTree *bvhtree_from_mesh_looptri_ex(BVHTreeFromMesh *data,
-                                      const Span<float3> vert_positions,
-                                      const Span<int> corner_verts,
-                                      const Span<MLoopTri> looptris,
-                                      const BitSpan looptri_mask,
-                                      int looptri_num_active,
-                                      float epsilon,
-                                      int tree_type,
-                                      int axis)
+BVHTree *bvhtree_from_mesh_looptris_ex(BVHTreeFromMesh *data,
+                                       const Span<float3> vert_positions,
+                                       const Span<int> corner_verts,
+                                       const Span<MLoopTri> looptris,
+                                       const BitSpan looptris_mask,
+                                       int looptris_num_active,
+                                       float epsilon,
+                                       int tree_type,
+                                       int axis)
 {
-  BVHTree *tree = bvhtree_from_mesh_looptri_create_tree(epsilon,
-                                                        tree_type,
-                                                        axis,
-                                                        vert_positions,
-                                                        corner_verts,
-                                                        looptris,
-                                                        looptri_mask,
-                                                        looptri_num_active);
+  BVHTree *tree = bvhtree_from_mesh_looptris_create_tree(epsilon,
+                                                         tree_type,
+                                                         axis,
+                                                         vert_positions,
+                                                         corner_verts,
+                                                         looptris,
+                                                         looptris_mask,
+                                                         looptris_num_active);
 
   bvhtree_balance(tree, false);
 
   if (data) {
     /* Setup BVHTreeFromMesh */
     bvhtree_from_mesh_setup_data(
-        tree, BVHTREE_FROM_LOOPTRI, vert_positions, {}, corner_verts, looptris, nullptr, data);
+        tree, BVHTREE_FROM_LOOPTRIS, vert_positions, {}, corner_verts, looptris, nullptr, data);
   }
 
   return tree;
 }
 
-static BitVector<> looptri_no_hidden_map_get(const blender::OffsetIndices<int> faces,
-                                             const VArray<bool> &hide_poly,
-                                             const int looptri_len,
-                                             int *r_looptri_active_len)
+static BitVector<> looptris_no_hidden_map_get(const blender::OffsetIndices<int> faces,
+                                              const VArray<bool> &hide_poly,
+                                              const int looptris_len,
+                                              int *r_looptris_active_len)
 {
   if (hide_poly.is_single() && !hide_poly.get_internal_single()) {
     return {};
   }
-  BitVector<> looptri_mask(looptri_len);
+  BitVector<> looptris_mask(looptris_len);
 
-  int looptri_no_hidden_len = 0;
+  int looptris_no_hidden_len = 0;
   int looptri_index = 0;
   for (const int64_t i : faces.index_range()) {
     const int triangles_num = blender::bke::mesh::face_triangles_num(faces[i].size());
@@ -1097,16 +1097,16 @@ static BitVector<> looptri_no_hidden_map_get(const blender::OffsetIndices<int> f
     else {
       for (const int i : IndexRange(triangles_num)) {
         UNUSED_VARS(i);
-        looptri_mask[looptri_index].set();
+        looptris_mask[looptri_index].set();
         looptri_index++;
-        looptri_no_hidden_len++;
+        looptris_no_hidden_len++;
       }
     }
   }
 
-  *r_looptri_active_len = looptri_no_hidden_len;
+  *r_looptris_active_len = looptris_no_hidden_len;
 
-  return looptri_mask;
+  return looptris_mask;
 }
 
 BVHTree *BKE_bvhtree_from_mesh_get(BVHTreeFromMesh *data,
@@ -1117,7 +1117,7 @@ BVHTree *BKE_bvhtree_from_mesh_get(BVHTreeFromMesh *data,
   BVHCache **bvh_cache_p = (BVHCache **)&mesh->runtime->bvh_cache;
 
   Span<MLoopTri> looptris;
-  if (ELEM(bvh_cache_type, BVHTREE_FROM_LOOPTRI, BVHTREE_FROM_LOOPTRI_NO_HIDDEN)) {
+  if (ELEM(bvh_cache_type, BVHTREE_FROM_LOOPTRIS, BVHTREE_FROM_LOOPTRIS_NO_HIDDEN)) {
     looptris = mesh->looptris();
   }
 
@@ -1183,26 +1183,26 @@ BVHTree *BKE_bvhtree_from_mesh_get(BVHTreeFromMesh *data,
           -1);
       break;
     }
-    case BVHTREE_FROM_LOOPTRI_NO_HIDDEN: {
+    case BVHTREE_FROM_LOOPTRIS_NO_HIDDEN: {
       blender::bke::AttributeAccessor attributes = mesh->attributes();
       int mask_bits_act_len = -1;
-      const BitVector<> mask = looptri_no_hidden_map_get(
+      const BitVector<> mask = looptris_no_hidden_map_get(
           mesh->faces(),
           *attributes.lookup_or_default(".hide_poly", ATTR_DOMAIN_FACE, false),
           looptris.size(),
           &mask_bits_act_len);
-      data->tree = bvhtree_from_mesh_looptri_create_tree(
+      data->tree = bvhtree_from_mesh_looptris_create_tree(
           0.0f, tree_type, 6, positions, corner_verts, looptris, mask, mask_bits_act_len);
       break;
     }
-    case BVHTREE_FROM_LOOPTRI: {
-      data->tree = bvhtree_from_mesh_looptri_create_tree(
+    case BVHTREE_FROM_LOOPTRIS: {
+      data->tree = bvhtree_from_mesh_looptris_create_tree(
           0.0f, tree_type, 6, positions, corner_verts, looptris, {}, -1);
       break;
     }
     case BVHTREE_FROM_EM_LOOSEVERTS:
     case BVHTREE_FROM_EM_EDGES:
-    case BVHTREE_FROM_EM_LOOPTRI:
+    case BVHTREE_FROM_EM_LOOPTRIS:
     case BVHTREE_MAX_ITEM:
       BLI_assert_unreachable();
       break;
@@ -1281,14 +1281,14 @@ BVHTree *BKE_bvhtree_from_editmesh_get(BVHTreeFromEditMesh *data,
     case BVHTREE_FROM_EM_EDGES:
       data->tree = bvhtree_from_editmesh_edges_create_tree(0.0f, tree_type, 6, em, {}, -1);
       break;
-    case BVHTREE_FROM_EM_LOOPTRI:
-      data->tree = bvhtree_from_editmesh_looptri_create_tree(0.0f, tree_type, 6, em, {}, -1);
+    case BVHTREE_FROM_EM_LOOPTRIS:
+      data->tree = bvhtree_from_editmesh_looptris_create_tree(0.0f, tree_type, 6, em, {}, -1);
       break;
     case BVHTREE_FROM_VERTS:
     case BVHTREE_FROM_EDGES:
     case BVHTREE_FROM_FACES:
-    case BVHTREE_FROM_LOOPTRI:
-    case BVHTREE_FROM_LOOPTRI_NO_HIDDEN:
+    case BVHTREE_FROM_LOOPTRIS:
+    case BVHTREE_FROM_LOOPTRIS_NO_HIDDEN:
     case BVHTREE_FROM_LOOSEVERTS:
     case BVHTREE_FROM_LOOSEEDGES:
     case BVHTREE_MAX_ITEM:

@@ -27,11 +27,11 @@ BLI_NOINLINE static void sample_point_attribute(const Span<int> corner_verts,
                                                 const MutableSpan<T> dst)
 {
   mask.foreach_index([&](const int i) {
-    const MLoopTri &tri = looptris[looptri_indices[i]];
+    const MLoopTri &lt = looptris[looptri_indices[i]];
     dst[i] = attribute_math::mix3(bary_coords[i],
-                                  src[corner_verts[tri.tri[0]]],
-                                  src[corner_verts[tri.tri[1]]],
-                                  src[corner_verts[tri.tri[2]]]);
+                                  src[corner_verts[lt.tri[0]]],
+                                  src[corner_verts[lt.tri[1]]],
+                                  src[corner_verts[lt.tri[2]]]);
   });
 }
 
@@ -44,11 +44,11 @@ void sample_point_normals(const Span<int> corner_verts,
                           const MutableSpan<float3> dst)
 {
   mask.foreach_index([&](const int i) {
-    const MLoopTri &tri = looptris[looptri_indices[i]];
+    const MLoopTri &lt = looptris[looptri_indices[i]];
     const float3 value = attribute_math::mix3(bary_coords[i],
-                                              src[corner_verts[tri.tri[0]]],
-                                              src[corner_verts[tri.tri[1]]],
-                                              src[corner_verts[tri.tri[2]]]);
+                                              src[corner_verts[lt.tri[0]]],
+                                              src[corner_verts[lt.tri[1]]],
+                                              src[corner_verts[lt.tri[2]]]);
     dst[i] = math::normalize(value);
   });
 }
@@ -91,8 +91,8 @@ BLI_NOINLINE static void sample_corner_attribute(const Span<MLoopTri> looptris,
         return;
       }
     }
-    const MLoopTri &tri = looptris[looptri_indices[i]];
-    dst[i] = sample_corner_attribute_with_bary_coords(bary_coords[i], tri, src);
+    const MLoopTri &lt = looptris[looptri_indices[i]];
+    dst[i] = sample_corner_attribute_with_bary_coords(bary_coords[i], lt, src);
   });
 }
 
@@ -104,8 +104,8 @@ void sample_corner_normals(const Span<MLoopTri> looptris,
                            const MutableSpan<float3> dst)
 {
   mask.foreach_index([&](const int i) {
-    const MLoopTri &tri = looptris[looptri_indices[i]];
-    const float3 value = sample_corner_attribute_with_bary_coords(bary_coords[i], tri, src);
+    const MLoopTri &lt = looptris[looptri_indices[i]];
+    const float3 value = sample_corner_attribute_with_bary_coords(bary_coords[i], lt, src);
     dst[i] = math::normalize(value);
   });
 }
@@ -172,9 +172,9 @@ static void sample_barycentric_weights(const Span<float3> vert_positions,
         return;
       }
     }
-    const MLoopTri &tri = looptris[looptri_indices[i]];
+    const MLoopTri &lt = looptris[looptri_indices[i]];
     bary_coords[i] = compute_bary_coord_in_triangle(
-        vert_positions, corner_verts, tri, sample_positions[i]);
+        vert_positions, corner_verts, lt, sample_positions[i]);
   });
 }
 
@@ -194,11 +194,11 @@ static void sample_nearest_weights(const Span<float3> vert_positions,
         return;
       }
     }
-    const MLoopTri &tri = looptris[looptri_indices[i]];
+    const MLoopTri &lt = looptris[looptri_indices[i]];
     bary_coords[i] = MIN3_PAIR(
-        math::distance_squared(sample_positions[i], vert_positions[corner_verts[tri.tri[0]]]),
-        math::distance_squared(sample_positions[i], vert_positions[corner_verts[tri.tri[1]]]),
-        math::distance_squared(sample_positions[i], vert_positions[corner_verts[tri.tri[2]]]),
+        math::distance_squared(sample_positions[i], vert_positions[corner_verts[lt.tri[0]]]),
+        math::distance_squared(sample_positions[i], vert_positions[corner_verts[lt.tri[1]]]),
+        math::distance_squared(sample_positions[i], vert_positions[corner_verts[lt.tri[2]]]),
         float3(1, 0, 0),
         float3(0, 1, 0),
         float3(0, 0, 1));
@@ -227,11 +227,11 @@ int sample_surface_points_spherical(RandomNumberGenerator &rng,
   const int old_num = r_bary_coords.size();
 
   for (const int looptri_index : looptri_indices_to_sample) {
-    const MLoopTri &looptri = looptris[looptri_index];
+    const MLoopTri &lt = looptris[looptri_index];
 
-    const float3 &v0 = positions[corner_verts[looptri.tri[0]]];
-    const float3 &v1 = positions[corner_verts[looptri.tri[1]]];
-    const float3 &v2 = positions[corner_verts[looptri.tri[2]]];
+    const float3 &v0 = positions[corner_verts[lt.tri[0]]];
+    const float3 &v1 = positions[corner_verts[lt.tri[1]]];
+    const float3 &v2 = positions[corner_verts[lt.tri[2]]];
 
     const float looptri_area = area_tri_v3(v0, v1, v2);
 
@@ -367,12 +367,12 @@ int sample_surface_points_projected(
 
 float3 compute_bary_coord_in_triangle(const Span<float3> vert_positions,
                                       const Span<int> corner_verts,
-                                      const MLoopTri &looptri,
+                                      const MLoopTri &lt,
                                       const float3 &position)
 {
-  const float3 &v0 = vert_positions[corner_verts[looptri.tri[0]]];
-  const float3 &v1 = vert_positions[corner_verts[looptri.tri[1]]];
-  const float3 &v2 = vert_positions[corner_verts[looptri.tri[2]]];
+  const float3 &v0 = vert_positions[corner_verts[lt.tri[0]]];
+  const float3 &v1 = vert_positions[corner_verts[lt.tri[1]]];
+  const float3 &v2 = vert_positions[corner_verts[lt.tri[2]]];
   float3 bary_coords;
   interp_weights_tri_v3(bary_coords, v0, v1, v2, position);
   return bary_coords;

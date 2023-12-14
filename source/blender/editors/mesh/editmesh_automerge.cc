@@ -61,7 +61,7 @@ void EDBM_automerge(Object *obedit, bool update, const char hflag, const float d
   BMO_op_finish(bm, &weldop);
 
   EDBMUpdate_Params params{};
-  params.calc_looptri = true;
+  params.calc_looptris = true;
   params.calc_normals = false;
   params.is_destructive = true;
   if ((totvert_prev != bm->totvert) && update) {
@@ -124,7 +124,7 @@ void EDBM_automerge_and_split(Object *obedit,
 
   if (LIKELY(ok) && update) {
     EDBMUpdate_Params params{};
-    params.calc_looptri = true;
+    params.calc_looptris = true;
     params.calc_normals = false;
     params.is_destructive = true;
     EDBM_update(static_cast<Mesh *>(obedit->data), &params);

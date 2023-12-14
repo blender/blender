@@ -59,7 +59,7 @@ static bool calculate_mesh_proximity(const VArray<float3> &positions,
       BKE_bvhtree_from_mesh_get(&bvh_data, &mesh, BVHTREE_FROM_EDGES, 2);
       break;
     case GEO_NODE_PROX_TARGET_FACES:
-      BKE_bvhtree_from_mesh_get(&bvh_data, &mesh, BVHTREE_FROM_LOOPTRI, 2);
+      BKE_bvhtree_from_mesh_get(&bvh_data, &mesh, BVHTREE_FROM_LOOPTRIS, 2);
       break;
   }
 

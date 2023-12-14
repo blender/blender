@@ -58,7 +58,7 @@ BMBVHTree *BKE_bmbvh_new_ex(BMesh *bm,
   BMFace *f_test, *f_test_prev;
   bool test_fn_ret;
 
-  /* BKE_editmesh_looptri_calc() must be called already */
+  /* BKE_editmesh_looptris_calc() must be called already */
   BLI_assert(looptris_tot != 0 || bm->totface == 0);
 
   if (cos_cage) {

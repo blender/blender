@@ -29,7 +29,7 @@
 /** \name Tangent Space Calculation
  * \{ */
 
-/* Necessary complexity to handle looptri's as quads for correct tangents */
+/* Necessary complexity to handle looptris as quads for correct tangents. */
 #define USE_LOOPTRI_DETECT_QUADS
 
 struct SGLSLEditMeshToTangent {
@@ -137,7 +137,7 @@ struct SGLSLEditMeshToTangent {
   int numTessFaces;
 
 #ifdef USE_LOOPTRI_DETECT_QUADS
-  /* map from 'fake' face index to looptri,
+  /* map from 'fake' face index to looptris,
    * quads will point to the first looptri of the quad */
   const int *face_as_quad_map;
   int num_face_as_quad_map;

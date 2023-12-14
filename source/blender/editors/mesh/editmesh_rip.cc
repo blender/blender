@@ -1103,7 +1103,7 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     error_rip_failed = false;
 
     EDBMUpdate_Params params{};
-    params.calc_looptri = true;
+    params.calc_looptris = true;
     params.calc_normals = true;
     params.is_destructive = true;
     EDBM_update(static_cast<Mesh *>(obedit->data), &params);

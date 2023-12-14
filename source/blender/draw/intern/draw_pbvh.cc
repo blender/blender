@@ -127,7 +127,7 @@ void extract_data_vert_faces(const PBVH_GPU_Args &args, const Span<T> attribute,
   using Converter = AttributeConverter<T>;
   using VBOType = typename Converter::VBOType;
   const Span<int> corner_verts = args.corner_verts;
-  const Span<MLoopTri> looptris = args.mlooptri;
+  const Span<MLoopTri> looptris = args.looptris;
   const Span<int> looptri_faces = args.looptri_faces;
   const Span<bool> hide_poly = args.hide_poly;
 
@@ -170,7 +170,7 @@ void extract_data_corner_faces(const PBVH_GPU_Args &args, const Span<T> attribut
   using Converter = AttributeConverter<T>;
   using VBOType = typename Converter::VBOType;
 
-  const Span<MLoopTri> looptris = args.mlooptri;
+  const Span<MLoopTri> looptris = args.looptris;
   const Span<int> looptri_faces = args.looptri_faces;
   const Span<bool> hide_poly = args.hide_poly;
 
@@ -460,7 +460,7 @@ struct PBVHBatches {
       }
       else {
         for (const int i : IndexRange(3)) {
-          const int vert = args.corner_verts[args.mlooptri[looptri_i].tri[i]];
+          const int vert = args.corner_verts[args.looptris[looptri_i].tri[i]];
           *data = normal_float_to_short(args.vert_normals[vert]);
           data++;
         }
@@ -685,7 +685,7 @@ struct PBVHBatches {
                                                                    ATTR_DOMAIN_POINT)) {
             const VArraySpan<float> mask_span(mask);
             const Span<int> corner_verts = args.corner_verts;
-            const Span<MLoopTri> looptris = args.mlooptri;
+            const Span<MLoopTri> looptris = args.looptris;
             const Span<int> looptri_faces = args.looptri_faces;
             const Span<bool> hide_poly = args.hide_poly;
 
@@ -1045,7 +1045,7 @@ struct PBVHBatches {
       }
 
       const int3 real_edges = bke::mesh::looptri_get_real_edges(
-          edges, args.corner_verts, args.corner_edges, args.mlooptri[looptri_i]);
+          edges, args.corner_verts, args.corner_edges, args.looptris[looptri_i]);
 
       if (real_edges[0] != -1) {
         edge_count++;
@@ -1069,7 +1069,7 @@ struct PBVHBatches {
       }
 
       const int3 real_edges = bke::mesh::looptri_get_real_edges(
-          edges, args.corner_verts, args.corner_edges, args.mlooptri[looptri_i]);
+          edges, args.corner_verts, args.corner_edges, args.looptris[looptri_i]);
 
       if (real_edges[0] != -1) {
         GPU_indexbuf_add_line_verts(&elb_lines, vertex_i, vertex_i + 1);

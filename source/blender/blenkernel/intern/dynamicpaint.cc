@@ -2403,10 +2403,10 @@ static void dynamic_paint_create_uv_surface_neighbor_cb(void *__restrict userdat
 
 #undef JITTER_SAMPLES
 
-static float dist_squared_to_looptri_uv_edges(const blender::Span<MLoopTri> looptris,
-                                              const float (*mloopuv)[2],
-                                              int tri_index,
-                                              const float point[2])
+static float dist_squared_to_looptris_uv_edges(const blender::Span<MLoopTri> looptris,
+                                               const float (*mloopuv)[2],
+                                               int tri_index,
+                                               const float point[2])
 {
   BLI_assert(tri_index >= 0);
 
@@ -2568,7 +2568,7 @@ static void dynamic_paint_find_island_border(const DynamicPaintCreateUVSurfaceDa
     const int vert1 = corner_verts[loop_idx[(edge_idx + 1) % 3]];
 
     /* Use a pre-computed vert-to-looptri mapping,
-     * speeds up things a lot compared to looping over all looptri. */
+     * speeds up things a lot compared to looping over all looptris. */
     const MeshElemMap *map = &bdata->vert_to_looptri_map[vert0];
 
     bool found_other = false;
@@ -2687,7 +2687,7 @@ static void dynamic_paint_find_island_border(const DynamicPaintCreateUVSurfaceDa
       const float final_pt[2] = {((final_index % w) + 0.5f) / w, ((final_index / w) + 0.5f) / h};
       const float threshold = square_f(0.7f) / (w * h);
 
-      if (dist_squared_to_looptri_uv_edges(looptris, mloopuv, final_tri_index, final_pt) >
+      if (dist_squared_to_looptris_uv_edges(looptris, mloopuv, final_tri_index, final_pt) >
           threshold) {
         continue;
       }
@@ -4342,7 +4342,7 @@ static bool dynamicPaint_paintMesh(Depsgraph *depsgraph,
     /* check bounding box collision */
     if (grid && meshBrush_boundsIntersect(&grid->grid_bounds, &mesh_bb, brush, brush_radius)) {
       /* Build a bvh tree from transformed vertices */
-      if (BKE_bvhtree_from_mesh_get(&treeData, mesh, BVHTREE_FROM_LOOPTRI, 4)) {
+      if (BKE_bvhtree_from_mesh_get(&treeData, mesh, BVHTREE_FROM_LOOPTRIS, 4)) {
         int c_index;
         int total_cells = grid->dim[0] * grid->dim[1] * grid->dim[2];
 

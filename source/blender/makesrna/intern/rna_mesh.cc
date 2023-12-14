@@ -323,10 +323,10 @@ static int rna_MeshLoop_index_get(PointerRNA *ptr)
 static int rna_MeshLoopTriangle_index_get(PointerRNA *ptr)
 {
   const Mesh *mesh = rna_mesh(ptr);
-  const MLoopTri *tri = static_cast<const MLoopTri *>(ptr->data);
-  const int index = int(tri - mesh->looptris().data());
+  const MLoopTri *lt = static_cast<const MLoopTri *>(ptr->data);
+  const int index = int(lt - mesh->looptris().data());
   BLI_assert(index >= 0);
-  BLI_assert(index < BKE_mesh_runtime_looptri_len(mesh));
+  BLI_assert(index < BKE_mesh_runtime_looptris_len(mesh));
   return index;
 }
 
@@ -352,13 +352,13 @@ static void rna_Mesh_loop_triangles_begin(CollectionPropertyIterator *iter, Poin
 static int rna_Mesh_loop_triangles_length(PointerRNA *ptr)
 {
   const Mesh *mesh = rna_mesh(ptr);
-  return BKE_mesh_runtime_looptri_len(mesh);
+  return BKE_mesh_runtime_looptris_len(mesh);
 }
 
 int rna_Mesh_loop_triangles_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
 {
   const Mesh *mesh = rna_mesh(ptr);
-  if (index < 0 || index >= BKE_mesh_runtime_looptri_len(mesh)) {
+  if (index < 0 || index >= BKE_mesh_runtime_looptris_len(mesh)) {
     return false;
   }
   /* Casting away const is okay because this RNA type doesn't allow changing the value. */
@@ -375,7 +375,7 @@ static void rna_Mesh_loop_triangle_polygons_begin(CollectionPropertyIterator *it
   rna_iterator_array_begin(iter,
                            const_cast<int *>(mesh->looptri_faces().data()),
                            sizeof(int),
-                           BKE_mesh_runtime_looptri_len(mesh),
+                           BKE_mesh_runtime_looptris_len(mesh),
                            false,
                            nullptr);
 }
@@ -383,7 +383,7 @@ static void rna_Mesh_loop_triangle_polygons_begin(CollectionPropertyIterator *it
 int rna_Mesh_loop_triangle_polygons_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
 {
   const Mesh *mesh = rna_mesh(ptr);
-  if (index < 0 || index >= BKE_mesh_runtime_looptri_len(mesh)) {
+  if (index < 0 || index >= BKE_mesh_runtime_looptris_len(mesh)) {
     return false;
   }
   /* Casting away const is okay because this RNA type doesn't allow changing the value. */

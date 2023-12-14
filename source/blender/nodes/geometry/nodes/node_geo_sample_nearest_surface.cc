@@ -77,7 +77,7 @@ static void get_closest_mesh_looptris(const Mesh &mesh,
 {
   BLI_assert(mesh.faces_num > 0);
   BVHTreeFromMesh tree_data;
-  BKE_bvhtree_from_mesh_get(&tree_data, &mesh, BVHTREE_FROM_LOOPTRI, 2);
+  BKE_bvhtree_from_mesh_get(&tree_data, &mesh, BVHTREE_FROM_LOOPTRIS, 2);
   get_closest_in_bvhtree(
       tree_data, positions, mask, r_looptri_indices, r_distances_sq, r_positions);
   free_bvhtree_from_mesh(&tree_data);

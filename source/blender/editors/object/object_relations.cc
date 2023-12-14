@@ -147,7 +147,7 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 
     em = mesh->edit_mesh;
 
-    BKE_editmesh_looptri_and_normals_calc(em);
+    BKE_editmesh_looptris_and_normals_calc(em);
 
     /* Make sure the evaluated mesh is updated.
      *

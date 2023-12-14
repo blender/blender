@@ -4350,7 +4350,7 @@ static int edbm_select_nth_exec(bContext *C, wmOperator *op)
     if (edbm_deselect_nth(em, &op_params) == true) {
       found_active_elt = true;
       EDBMUpdate_Params params{};
-      params.calc_looptri = false;
+      params.calc_looptris = false;
       params.calc_normals = false;
       params.is_destructive = false;
       EDBM_update(static_cast<Mesh *>(obedit->data), &params);

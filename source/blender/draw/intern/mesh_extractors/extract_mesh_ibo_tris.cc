@@ -78,9 +78,9 @@ static void extract_tris_iter_face_mesh(const MeshRenderData &mr,
 
   int tri_len = face.size() - 2;
   for (int offs = 0; offs < tri_len; offs++) {
-    const MLoopTri *mlt = &mr.looptris[tri_first_index_real + offs];
+    const MLoopTri *lt = &mr.looptris[tri_first_index_real + offs];
     int tri_index = tri_first_index + offs;
-    GPU_indexbuf_set_tri_verts(elb, tri_index, mlt->tri[0], mlt->tri[1], mlt->tri[2]);
+    GPU_indexbuf_set_tri_verts(elb, tri_index, lt->tri[0], lt->tri[1], lt->tri[2]);
   }
 }
 
@@ -188,18 +188,18 @@ static void extract_tris_single_mat_iter_looptri_bm(const MeshRenderData & /*mr*
 }
 
 static void extract_tris_single_mat_iter_looptri_mesh(const MeshRenderData &mr,
-                                                      const MLoopTri *mlt,
-                                                      const int mlt_index,
+                                                      const MLoopTri *lt,
+                                                      const int lt_index,
                                                       void *_data)
 {
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_data);
-  const int face_i = mr.looptri_faces[mlt_index];
+  const int face_i = mr.looptri_faces[lt_index];
   const bool hidden = mr.use_hide && !mr.hide_poly.is_empty() && mr.hide_poly[face_i];
   if (hidden) {
-    GPU_indexbuf_set_tri_restart(elb, mlt_index);
+    GPU_indexbuf_set_tri_restart(elb, lt_index);
   }
   else {
-    GPU_indexbuf_set_tri_verts(elb, mlt_index, mlt->tri[0], mlt->tri[1], mlt->tri[2]);
+    GPU_indexbuf_set_tri_verts(elb, lt_index, lt->tri[0], lt->tri[1], lt->tri[2]);
   }
 }
 

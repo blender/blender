@@ -60,7 +60,7 @@ struct AddCurvesOnMeshOutputs {
 AddCurvesOnMeshOutputs add_curves_on_mesh(bke::CurvesGeometry &curves,
                                           const AddCurvesOnMeshInputs &inputs);
 
-float3 compute_surface_point_normal(const MLoopTri &looptri,
+float3 compute_surface_point_normal(const MLoopTri &lt,
                                     const float3 &bary_coord,
                                     Span<float3> corner_normals);
 

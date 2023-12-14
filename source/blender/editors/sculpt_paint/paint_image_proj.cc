@@ -1322,7 +1322,7 @@ static void uv_image_outset(const ProjPaintState *ps,
   int fidx[2];
   uint loop_index;
   uint vert[2];
-  const MLoopTri *ltri = &ps->looptris_eval[tri_index];
+  const MLoopTri *lt = &ps->looptris_eval[tri_index];
 
   float ibuf_inv[2];
 
@@ -1338,7 +1338,7 @@ static void uv_image_outset(const ProjPaintState *ps,
       continue;
     }
 
-    loop_index = ltri->tri[fidx[0]];
+    loop_index = lt->tri[fidx[0]];
 
     seam_data = &ps->loopSeamData[loop_index];
     seam_uvs = seam_data->seam_uvs;
@@ -1350,7 +1350,7 @@ static void uv_image_outset(const ProjPaintState *ps,
     fidx[1] = (fidx[0] == 2) ? 0 : fidx[0] + 1;
 
     vert[0] = ps->corner_verts_eval[loop_index];
-    vert[1] = ps->corner_verts_eval[ltri->tri[fidx[1]]];
+    vert[1] = ps->corner_verts_eval[lt->tri[fidx[1]]];
 
     for (uint i = 0; i < 2; i++) {
       VertSeam *seam;

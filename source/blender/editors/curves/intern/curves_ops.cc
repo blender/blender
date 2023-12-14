@@ -269,7 +269,7 @@ static void try_convert_single_object(Object &curves_ob,
   Mesh &surface_me = *static_cast<Mesh *>(surface_ob.data);
 
   BVHTreeFromMesh surface_bvh;
-  BKE_bvhtree_from_mesh_get(&surface_bvh, &surface_me, BVHTREE_FROM_LOOPTRI, 2);
+  BKE_bvhtree_from_mesh_get(&surface_bvh, &surface_me, BVHTREE_FROM_LOOPTRIS, 2);
   BLI_SCOPED_DEFER([&]() { free_bvhtree_from_mesh(&surface_bvh); });
 
   const Span<float3> positions_cu = curves.positions();
@@ -605,7 +605,7 @@ static void snap_curves_to_surface_exec_object(Object &curves_ob,
   switch (attach_mode) {
     case AttachMode::Nearest: {
       BVHTreeFromMesh surface_bvh;
-      BKE_bvhtree_from_mesh_get(&surface_bvh, &surface_mesh, BVHTREE_FROM_LOOPTRI, 2);
+      BKE_bvhtree_from_mesh_get(&surface_bvh, &surface_mesh, BVHTREE_FROM_LOOPTRIS, 2);
       BLI_SCOPED_DEFER([&]() { free_bvhtree_from_mesh(&surface_bvh); });
 
       threading::parallel_for(curves.curves_range(), 256, [&](const IndexRange curves_range) {
@@ -639,11 +639,11 @@ static void snap_curves_to_surface_exec_object(Object &curves_ob,
           }
 
           if (!surface_uv_map.is_empty()) {
-            const MLoopTri &tri = surface_looptris[looptri_index];
+            const MLoopTri &lt = surface_looptris[looptri_index];
             const float3 bary_coords = bke::mesh_surface_sample::compute_bary_coord_in_triangle(
-                surface_positions, corner_verts, tri, new_first_point_pos_su);
+                surface_positions, corner_verts, lt, new_first_point_pos_su);
             const float2 uv = bke::mesh_surface_sample::sample_corner_attribute_with_bary_coords(
-                bary_coords, tri, surface_uv_map);
+                bary_coords, lt, surface_uv_map);
             surface_uv_coords[curve_i] = uv;
           }
         }
@@ -671,12 +671,12 @@ static void snap_curves_to_surface_exec_object(Object &curves_ob,
             continue;
           }
 
-          const MLoopTri &looptri = surface_looptris[lookup_result.looptri_index];
+          const MLoopTri &lt = surface_looptris[lookup_result.looptri_index];
           const float3 &bary_coords = lookup_result.bary_weights;
 
-          const float3 &p0_su = surface_positions[corner_verts[looptri.tri[0]]];
-          const float3 &p1_su = surface_positions[corner_verts[looptri.tri[1]]];
-          const float3 &p2_su = surface_positions[corner_verts[looptri.tri[2]]];
+          const float3 &p0_su = surface_positions[corner_verts[lt.tri[0]]];
+          const float3 &p1_su = surface_positions[corner_verts[lt.tri[1]]];
+          const float3 &p2_su = surface_positions[corner_verts[lt.tri[2]]];
 
           float3 new_first_point_pos_su;
           interp_v3_v3v3v3(new_first_point_pos_su, p0_su, p1_su, p2_su, bary_coords);

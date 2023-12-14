@@ -458,7 +458,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
     if (changed) {
       EDBM_selectmode_flush(em);
       EDBMUpdate_Params params{};
-      params.calc_looptri = false;
+      params.calc_looptris = false;
       params.calc_normals = false;
       params.is_destructive = false;
       EDBM_update(static_cast<Mesh *>(ob->data), &params);
@@ -484,7 +484,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
       }
       EDBM_selectmode_flush(em);
       EDBMUpdate_Params params{};
-      params.calc_looptri = false;
+      params.calc_looptris = false;
       params.calc_normals = false;
       params.is_destructive = false;
       EDBM_update(static_cast<Mesh *>(ob->data), &params);
@@ -899,7 +899,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
     if (changed) {
       EDBM_selectmode_flush(em);
       EDBMUpdate_Params params{};
-      params.calc_looptri = false;
+      params.calc_looptris = false;
       params.calc_normals = false;
       params.is_destructive = false;
       EDBM_update(static_cast<Mesh *>(ob->data), &params);
@@ -925,7 +925,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
       }
       EDBM_selectmode_flush(em);
       EDBMUpdate_Params params{};
-      params.calc_looptri = false;
+      params.calc_looptris = false;
       params.calc_normals = false;
       params.is_destructive = false;
       EDBM_update(static_cast<Mesh *>(ob->data), &params);
@@ -1259,7 +1259,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
     if (changed) {
       EDBM_selectmode_flush(em);
       EDBMUpdate_Params params{};
-      params.calc_looptri = false;
+      params.calc_looptris = false;
       params.calc_normals = false;
       params.is_destructive = false;
       EDBM_update(static_cast<Mesh *>(ob->data), &params);

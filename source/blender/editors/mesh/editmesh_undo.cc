@@ -831,7 +831,7 @@ static void undomesh_to_editmesh(UndoMesh *um, Object *ob, BMEditMesh *em)
   *em = *em_tmp;
 
   /* Calculate face normals and tessellation at once since it's multi-threaded. */
-  BKE_editmesh_looptri_and_normals_calc(em);
+  BKE_editmesh_looptris_and_normals_calc(em);
 
   em->selectmode = um->selectmode;
   bm->selectmode = um->selectmode;

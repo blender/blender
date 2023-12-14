@@ -156,7 +156,7 @@ void BKE_mesh_calc_loop_tangent_single(Mesh *mesh,
 /** \name Mesh Tangent Calculations (All Layers)
  * \{ */
 
-/* Necessary complexity to handle looptri's as quads for correct tangents */
+/* Necessary complexity to handle looptris as quads for correct tangents. */
 #define USE_LOOPTRI_DETECT_QUADS
 
 struct SGLSLMeshToTangent {
@@ -189,7 +189,7 @@ struct SGLSLMeshToTangent {
   {
 #ifdef USE_LOOPTRI_DETECT_QUADS
     if (face_as_quad_map) {
-      lt = looptri[face_as_quad_map[face_num]];
+      lt = looptris[face_as_quad_map[face_num]];
       face_index = looptri_faces[face_as_quad_map[face_num]];
       if (faces[face_index].size() == 4) {
         return uint(faces[face_index][vert_num]);
@@ -197,11 +197,11 @@ struct SGLSLMeshToTangent {
       /* fall through to regular triangle */
     }
     else {
-      lt = looptri[face_num];
+      lt = looptris[face_num];
       face_index = looptri_faces[face_num];
     }
 #else
-    lt = &looptri[face_num];
+    lt = &looptris[face_num];
 #endif
     return lt.tri[vert_num];
   }
@@ -275,7 +275,7 @@ struct SGLSLMeshToTangent {
 
   const float (*precomputedFaceNormals)[3];
   const float (*precomputedLoopNormals)[3];
-  const MLoopTri *looptri;
+  const MLoopTri *looptris;
   const int *looptri_faces;
   const float2 *mloopuv; /* texture coordinates */
   blender::OffsetIndices<int> faces;
@@ -288,8 +288,8 @@ struct SGLSLMeshToTangent {
   int numTessFaces;
 
 #ifdef USE_LOOPTRI_DETECT_QUADS
-  /* map from 'fake' face index to looptri,
-   * quads will point to the first looptri of the quad */
+  /* map from 'fake' face index to looptris,
+   * quads will point to the first looptris of the quad */
   const int *face_as_quad_map;
   int num_face_as_quad_map;
 #endif
@@ -394,9 +394,9 @@ void BKE_mesh_calc_loop_tangent_step_0(const CustomData *loopData,
 void BKE_mesh_calc_loop_tangent_ex(const float (*vert_positions)[3],
                                    const blender::OffsetIndices<int> faces,
                                    const int *corner_verts,
-                                   const MLoopTri *looptri,
+                                   const MLoopTri *looptris,
                                    const int *looptri_faces,
-                                   const uint looptri_len,
+                                   const uint looptris_len,
                                    const blender::Span<bool> sharp_faces,
 
                                    CustomData *loopdata,
@@ -461,13 +461,13 @@ void BKE_mesh_calc_loop_tangent_ex(const float (*vert_positions)[3],
     int *face_as_quad_map = nullptr;
 
     /* map faces to quads */
-    if (looptri_len != uint(faces.size())) {
+    if (looptris_len != uint(faces.size())) {
       /* Over allocate, since we don't know how many ngon or quads we have. */
 
-      /* map fake face index to looptri */
-      face_as_quad_map = static_cast<int *>(MEM_mallocN(sizeof(int) * looptri_len, __func__));
+      /* Map fake face index to looptris. */
+      face_as_quad_map = static_cast<int *>(MEM_mallocN(sizeof(int) * looptris_len, __func__));
       int k, j;
-      for (k = 0, j = 0; j < int(looptri_len); k++, j++) {
+      for (k = 0, j = 0; j < int(looptris_len); k++, j++) {
         face_as_quad_map[k] = j;
         /* step over all quads */
         if (faces[looptri_faces[j]].size() == 4) {
@@ -477,12 +477,12 @@ void BKE_mesh_calc_loop_tangent_ex(const float (*vert_positions)[3],
       num_face_as_quad_map = k;
     }
     else {
-      num_face_as_quad_map = int(looptri_len);
+      num_face_as_quad_map = int(looptris_len);
     }
 #endif
 
     /* Calculation */
-    if (looptri_len != 0) {
+    if (looptris_len != 0) {
       TaskPool *task_pool = BLI_task_pool_create(nullptr, TASK_PRIORITY_HIGH);
 
       tangent_mask_curr = 0;
@@ -493,7 +493,7 @@ void BKE_mesh_calc_loop_tangent_ex(const float (*vert_positions)[3],
         int index = CustomData_get_layer_index_n(loopdata_out, CD_TANGENT, n);
         BLI_assert(n < MAX_MTFACE);
         SGLSLMeshToTangent *mesh2tangent = &data_array[n];
-        mesh2tangent->numTessFaces = int(looptri_len);
+        mesh2tangent->numTessFaces = int(looptris_len);
 #ifdef USE_LOOPTRI_DETECT_QUADS
         mesh2tangent->face_as_quad_map = face_as_quad_map;
         mesh2tangent->num_face_as_quad_map = num_face_as_quad_map;
@@ -502,7 +502,7 @@ void BKE_mesh_calc_loop_tangent_ex(const float (*vert_positions)[3],
         mesh2tangent->vert_normals = vert_normals;
         mesh2tangent->faces = faces;
         mesh2tangent->corner_verts = corner_verts;
-        mesh2tangent->looptri = looptri;
+        mesh2tangent->looptris = looptris;
         mesh2tangent->looptri_faces = looptri_faces;
         mesh2tangent->sharp_faces = sharp_faces;
         /* NOTE: we assume we do have tessellated loop normals at this point

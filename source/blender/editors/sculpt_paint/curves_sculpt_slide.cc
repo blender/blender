@@ -200,7 +200,7 @@ struct SlideOperationExecutor {
       report_missing_uv_map_on_evaluated_surface(stroke_extension.reports);
       return;
     }
-    BKE_bvhtree_from_mesh_get(&surface_bvh_eval_, surface_eval_, BVHTREE_FROM_LOOPTRI, 2);
+    BKE_bvhtree_from_mesh_get(&surface_bvh_eval_, surface_eval_, BVHTREE_FROM_LOOPTRIS, 2);
     BLI_SCOPED_DEFER([&]() { free_bvhtree_from_mesh(&surface_bvh_eval_); });
 
     if (stroke_extension.is_first) {
@@ -376,13 +376,13 @@ struct SlideOperationExecutor {
         }
 
         /* Compute the uv of the new surface position on the evaluated mesh. */
-        const MLoopTri &looptri_eval = surface_looptris_eval_[looptri_index_eval];
+        const MLoopTri &lt_eval = surface_looptris_eval_[looptri_index_eval];
         const float3 bary_weights_eval = bke::mesh_surface_sample::compute_bary_coord_in_triangle(
-            surface_positions_eval_, surface_corner_verts_eval_, looptri_eval, hit_pos_eval_su);
+            surface_positions_eval_, surface_corner_verts_eval_, lt_eval, hit_pos_eval_su);
         const float2 uv = bke::attribute_math::mix3(bary_weights_eval,
-                                                    surface_uv_map_eval_[looptri_eval.tri[0]],
-                                                    surface_uv_map_eval_[looptri_eval.tri[1]],
-                                                    surface_uv_map_eval_[looptri_eval.tri[2]]);
+                                                    surface_uv_map_eval_[lt_eval.tri[0]],
+                                                    surface_uv_map_eval_[lt_eval.tri[1]],
+                                                    surface_uv_map_eval_[lt_eval.tri[2]]);
 
         /* Try to find the same uv on the original surface. */
         const ReverseUVSampler::Result result = reverse_uv_sampler_orig.sample(uv);
@@ -390,22 +390,22 @@ struct SlideOperationExecutor {
           found_invalid_uv_mapping_.store(true);
           continue;
         }
-        const MLoopTri &looptri_orig = surface_looptris_orig_[result.looptri_index];
+        const MLoopTri &lt_orig = surface_looptris_orig_[result.looptri_index];
         const float3 &bary_weights_orig = result.bary_weights;
 
         /* Gather old and new surface normal. */
         const float3 &initial_normal_cu = slide_curve_info.initial_normal_cu;
-        const float3 new_normal_cu = math::normalize(math::transform_point(
-            transforms_.surface_to_curves_normal,
-            geometry::compute_surface_point_normal(
-                looptri_orig, result.bary_weights, corner_normals_orig_su_)));
+        const float3 new_normal_cu = math::normalize(
+            math::transform_point(transforms_.surface_to_curves_normal,
+                                  geometry::compute_surface_point_normal(
+                                      lt_orig, result.bary_weights, corner_normals_orig_su_)));
 
         /* Gather old and new surface position. */
         const float3 new_first_pos_orig_su = bke::attribute_math::mix3<float3>(
             bary_weights_orig,
-            positions_orig_su[corner_verts_orig[looptri_orig.tri[0]]],
-            positions_orig_su[corner_verts_orig[looptri_orig.tri[1]]],
-            positions_orig_su[corner_verts_orig[looptri_orig.tri[2]]]);
+            positions_orig_su[corner_verts_orig[lt_orig.tri[0]]],
+            positions_orig_su[corner_verts_orig[lt_orig.tri[1]]],
+            positions_orig_su[corner_verts_orig[lt_orig.tri[2]]]);
         const float3 old_first_pos_orig_cu = self_->initial_positions_cu_[first_point_i];
         const float3 new_first_pos_orig_cu = math::transform_point(transforms_.surface_to_curves,
                                                                    new_first_pos_orig_su);

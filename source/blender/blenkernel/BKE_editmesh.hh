@@ -67,23 +67,23 @@ struct BMEditMesh {
 
 /* editmesh.cc */
 
-void BKE_editmesh_looptri_calc_ex(BMEditMesh *em, const BMeshCalcTessellation_Params *params);
-void BKE_editmesh_looptri_calc(BMEditMesh *em);
-void BKE_editmesh_looptri_calc_with_partial_ex(BMEditMesh *em,
-                                               BMPartialUpdate *bmpinfo,
-                                               const BMeshCalcTessellation_Params *params);
-void BKE_editmesh_looptri_calc_with_partial(BMEditMesh *em, BMPartialUpdate *bmpinfo);
-void BKE_editmesh_looptri_and_normals_calc_with_partial(BMEditMesh *em, BMPartialUpdate *bmpinfo);
+void BKE_editmesh_looptris_calc_ex(BMEditMesh *em, const BMeshCalcTessellation_Params *params);
+void BKE_editmesh_looptris_calc(BMEditMesh *em);
+void BKE_editmesh_looptris_calc_with_partial_ex(BMEditMesh *em,
+                                                BMPartialUpdate *bmpinfo,
+                                                const BMeshCalcTessellation_Params *params);
+void BKE_editmesh_looptris_calc_with_partial(BMEditMesh *em, BMPartialUpdate *bmpinfo);
+void BKE_editmesh_looptris_and_normals_calc_with_partial(BMEditMesh *em, BMPartialUpdate *bmpinfo);
 
 /**
  * Performing the face normal calculation at the same time as tessellation
  * gives a reasonable performance boost (approx ~20% faster).
  */
-void BKE_editmesh_looptri_and_normals_calc(BMEditMesh *em);
+void BKE_editmesh_looptris_and_normals_calc(BMEditMesh *em);
 
 /**
  * \note The caller is responsible for ensuring triangulation data,
- * typically by calling #BKE_editmesh_looptri_calc.
+ * typically by calling #BKE_editmesh_looptris_calc.
  */
 BMEditMesh *BKE_editmesh_create(BMesh *bm);
 BMEditMesh *BKE_editmesh_copy(BMEditMesh *em);

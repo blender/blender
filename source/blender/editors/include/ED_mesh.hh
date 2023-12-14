@@ -112,7 +112,7 @@ bool EDBM_mesh_hide(BMEditMesh *em, bool swap);
 bool EDBM_mesh_reveal(BMEditMesh *em, bool select);
 
 struct EDBMUpdate_Params {
-  uint calc_looptri : 1;
+  uint calc_looptris : 1;
   uint calc_normals : 1;
   uint is_destructive : 1;
 };
@@ -577,12 +577,12 @@ BMBackup EDBM_redo_state_store(BMEditMesh *em);
 /**
  * Restore a BMesh from backup.
  */
-void EDBM_redo_state_restore(BMBackup *backup, BMEditMesh *em, bool recalc_looptri)
+void EDBM_redo_state_restore(BMBackup *backup, BMEditMesh *em, bool recalc_looptris)
     ATTR_NONNULL(1, 2);
 /**
  * Delete the backup, flushing it to an edit-mesh.
  */
-void EDBM_redo_state_restore_and_free(BMBackup *backup, BMEditMesh *em, bool recalc_looptri)
+void EDBM_redo_state_restore_and_free(BMBackup *backup, BMEditMesh *em, bool recalc_looptris)
     ATTR_NONNULL(1, 2);
 void EDBM_redo_state_free(BMBackup *backup) ATTR_NONNULL(1);
 

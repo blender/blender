@@ -71,7 +71,7 @@ struct LaplacianSystem {
   blender::Map<blender::OrderedEdge, int> edgehash; /* edge hash for construction */
 
   struct HeatWeighting {
-    const MLoopTri *mlooptri;
+    const MLoopTri *looptris;
     blender::Span<int> corner_verts; /* needed to find vertices by index */
     int verts_num;
     int tris_num;
@@ -373,7 +373,7 @@ struct BVHCallbackUserData {
 static void bvh_callback(void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit)
 {
   BVHCallbackUserData *data = (BVHCallbackUserData *)userdata;
-  const MLoopTri *lt = &data->sys->heat.mlooptri[index];
+  const MLoopTri *lt = &data->sys->heat.looptris[index];
   const blender::Span<int> corner_verts = data->sys->heat.corner_verts;
   float(*verts)[3] = data->sys->heat.verts;
   const float *vtri_co[3];
@@ -405,7 +405,7 @@ static void bvh_callback(void *userdata, int index, const BVHTreeRay *ray, BVHTr
 /* Ray-tracing for vertex to bone/vertex visibility. */
 static void heat_ray_tree_create(LaplacianSystem *sys)
 {
-  const MLoopTri *looptri = sys->heat.mlooptri;
+  const MLoopTri *looptris = sys->heat.looptris;
   const blender::Span<int> corner_verts = sys->heat.corner_verts;
   float(*verts)[3] = sys->heat.verts;
   int tris_num = sys->heat.tris_num;
@@ -417,7 +417,7 @@ static void heat_ray_tree_create(LaplacianSystem *sys)
       MEM_callocN(sizeof(MLoopTri *) * verts_num, "HeatVFaces"));
 
   for (a = 0; a < tris_num; a++) {
-    const MLoopTri *lt = &looptri[a];
+    const MLoopTri *lt = &looptris[a];
     float bb[6];
     int vtri[3];
 
@@ -572,7 +572,7 @@ static void heat_calc_vnormals(LaplacianSystem *sys)
 
 static void heat_laplacian_create(LaplacianSystem *sys)
 {
-  const MLoopTri *mlooptri = sys->heat.mlooptri, *lt;
+  const MLoopTri *looptris = sys->heat.looptris, *lt;
   const blender::Span<int> corner_verts = sys->heat.corner_verts;
   int tris_num = sys->heat.tris_num;
   int verts_num = sys->heat.verts_num;
@@ -588,7 +588,7 @@ static void heat_laplacian_create(LaplacianSystem *sys)
     laplacian_add_vertex(sys, sys->heat.verts[a], 0);
   }
 
-  for (a = 0, lt = mlooptri; a < tris_num; a++, lt++) {
+  for (a = 0, lt = looptris; a < tris_num; a++, lt++) {
     int vtri[3];
     vtri[0] = corner_verts[lt->tri[0]];
     vtri[1] = corner_verts[lt->tri[1]];
@@ -608,7 +608,7 @@ static void heat_system_free(LaplacianSystem *sys)
 {
   BLI_bvhtree_free(sys->heat.bvhtree);
   MEM_freeN((void *)sys->heat.vltree);
-  MEM_freeN((void *)sys->heat.mlooptri);
+  MEM_freeN((void *)sys->heat.looptris);
 
   MEM_freeN(sys->heat.mindist);
   MEM_freeN(sys->heat.H);
@@ -642,7 +642,7 @@ void heat_bone_weighting(Object *ob,
                          const char **error_str)
 {
   LaplacianSystem *sys;
-  MLoopTri *mlooptri;
+  MLoopTri *looptris;
   float solution, weight;
   int *vertsflipped = nullptr, *mask = nullptr;
   int a, tris_num, j, bbone, firstsegment, lastsegment;
@@ -695,13 +695,13 @@ void heat_bone_weighting(Object *ob,
   sys = laplacian_system_construct_begin(mesh->totvert, tris_num, 1);
 
   sys->heat.tris_num = poly_to_tri_count(mesh->faces_num, mesh->totloop);
-  mlooptri = static_cast<MLoopTri *>(
-      MEM_mallocN(sizeof(*sys->heat.mlooptri) * sys->heat.tris_num, __func__));
+  looptris = static_cast<MLoopTri *>(
+      MEM_mallocN(sizeof(*sys->heat.looptris) * sys->heat.tris_num, __func__));
 
   blender::bke::mesh::looptris_calc(
-      vert_positions, faces, corner_verts, {mlooptri, sys->heat.tris_num});
+      vert_positions, faces, corner_verts, {looptris, sys->heat.tris_num});
 
-  sys->heat.mlooptri = mlooptri;
+  sys->heat.looptris = looptris;
   sys->heat.corner_verts = corner_verts;
   sys->heat.verts_num = mesh->totvert;
   sys->heat.verts = verts;
@@ -1603,7 +1603,7 @@ static void harmonic_coordinates_bind(MeshDeformModifierData *mmd, MeshDeformBin
   mdb->boundisect = static_cast<MDefBoundIsect *(*)[6]>(
       MEM_callocN(sizeof(*mdb->boundisect) * mdb->size3, "MDefBoundIsect"));
   mdb->semibound = static_cast<int *>(MEM_callocN(sizeof(int) * mdb->size3, "MDefSemiBound"));
-  mdb->bvhtree = BKE_bvhtree_from_mesh_get(&mdb->bvhdata, mdb->cagemesh, BVHTREE_FROM_LOOPTRI, 4);
+  mdb->bvhtree = BKE_bvhtree_from_mesh_get(&mdb->bvhdata, mdb->cagemesh, BVHTREE_FROM_LOOPTRIS, 4);
   mdb->inside = static_cast<int *>(MEM_callocN(sizeof(int) * mdb->verts_num, "MDefInside"));
 
   if (mmd->flag & MOD_MDEF_DYNAMIC_BIND) {

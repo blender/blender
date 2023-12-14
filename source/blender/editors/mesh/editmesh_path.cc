@@ -273,7 +273,7 @@ static void mouse_mesh_shortest_path_vert(Scene * /*scene*/,
   }
 
   EDBMUpdate_Params params{};
-  params.calc_looptri = false;
+  params.calc_looptris = false;
   params.calc_normals = false;
   params.is_destructive = false;
   EDBM_update(static_cast<Mesh *>(obedit->data), &params);
@@ -494,7 +494,7 @@ static void mouse_mesh_shortest_path_edge(
   }
 
   EDBMUpdate_Params params{};
-  params.calc_looptri = false;
+  params.calc_looptris = false;
   params.calc_normals = false;
   params.is_destructive = false;
   EDBM_update(static_cast<Mesh *>(obedit->data), &params);
@@ -628,7 +628,7 @@ static void mouse_mesh_shortest_path_face(Scene * /*scene*/,
   }
 
   EDBMUpdate_Params params{};
-  params.calc_looptri = false;
+  params.calc_looptris = false;
   params.calc_normals = false;
   params.is_destructive = false;
   EDBM_update(static_cast<Mesh *>(obedit->data), &params);

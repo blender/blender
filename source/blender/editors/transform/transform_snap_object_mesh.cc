@@ -36,7 +36,7 @@ static void snap_object_data_mesh_get(const Mesh *me_eval,
 {
   /* The BVHTree from looptris is always required. */
   BKE_bvhtree_from_mesh_get(
-      r_treedata, me_eval, use_hide ? BVHTREE_FROM_LOOPTRI_NO_HIDDEN : BVHTREE_FROM_LOOPTRI, 4);
+      r_treedata, me_eval, use_hide ? BVHTREE_FROM_LOOPTRIS_NO_HIDDEN : BVHTREE_FROM_LOOPTRIS, 4);
 }
 
 /** \} */
@@ -49,10 +49,10 @@ static void snap_object_data_mesh_get(const Mesh *me_eval,
  * Support for storing all depths, not just the first (ray-cast 'all'). */
 
 /* Callback to ray-cast with back-face culling (#Mesh). */
-static void mesh_looptri_raycast_backface_culling_cb(void *userdata,
-                                                     int index,
-                                                     const BVHTreeRay *ray,
-                                                     BVHTreeRayHit *hit)
+static void mesh_looptris_raycast_backface_culling_cb(void *userdata,
+                                                      int index,
+                                                      const BVHTreeRay *ray,
+                                                      BVHTreeRayHit *hit)
 {
   const BVHTreeFromMesh *data = (BVHTreeFromMesh *)userdata;
   const blender::Span<blender::float3> positions = data->vert_positions;
@@ -166,7 +166,7 @@ static bool raycastMesh(SnapObjectContext *sctx,
                              0.0f,
                              &hit,
                              sctx->runtime.params.use_backface_culling ?
-                                 mesh_looptri_raycast_backface_culling_cb :
+                                 mesh_looptris_raycast_backface_culling_cb :
                                  treedata.raycast_callback,
                              &treedata) != -1)
     {
@@ -533,7 +533,7 @@ static eSnapMode snapMesh(SnapObjectContext *sctx,
   else {
     BLI_assert(snap_to & SCE_SNAP_TO_EDGE_ENDPOINT);
     if (bvhtree[0]) {
-      /* Snap to loose edge verts. */
+      /* Snap to loose edges verts. */
       BLI_bvhtree_find_nearest_projected(
           bvhtree[0],
           nearest2d.pmat_local.ptr(),
@@ -547,7 +547,7 @@ static eSnapMode snapMesh(SnapObjectContext *sctx,
     }
 
     if (treedata.tree) {
-      /* Snap to looptri verts. */
+      /* Snap to looptris verts. */
       BLI_bvhtree_find_nearest_projected(
           treedata.tree,
           nearest2d.pmat_local.ptr(),

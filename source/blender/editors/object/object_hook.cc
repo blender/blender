@@ -344,7 +344,7 @@ static bool object_hook_index_array(Main *bmain,
 
       em = mesh->edit_mesh;
 
-      BKE_editmesh_looptri_and_normals_calc(em);
+      BKE_editmesh_looptris_and_normals_calc(em);
 
       /* check selected vertices first */
       if (return_editmesh_indexar(em, r_indexar_num, r_indexar, r_cent) == 0) {

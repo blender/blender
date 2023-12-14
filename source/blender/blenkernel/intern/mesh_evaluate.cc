@@ -359,22 +359,22 @@ bool BKE_mesh_center_of_volume(const Mesh *mesh, float r_cent[3])
 
 static bool mesh_calc_center_centroid_ex(const float (*positions)[3],
                                          int /*mverts_num*/,
-                                         const MLoopTri *looptri,
-                                         int looptri_num,
+                                         const MLoopTri *looptris,
+                                         int looptris_num,
                                          const int *corner_verts,
                                          float r_center[3])
 {
 
   zero_v3(r_center);
 
-  if (looptri_num == 0) {
+  if (looptris_num == 0) {
     return false;
   }
 
   float totweight = 0.0f;
   const MLoopTri *lt;
   int i;
-  for (i = 0, lt = looptri; i < looptri_num; i++, lt++) {
+  for (i = 0, lt = looptris; i < looptris_num; i++, lt++) {
     const float *v1 = positions[corner_verts[lt->tri[0]]];
     const float *v2 = positions[corner_verts[lt->tri[1]]];
     const float *v3 = positions[corner_verts[lt->tri[2]]];
@@ -397,8 +397,8 @@ static bool mesh_calc_center_centroid_ex(const float (*positions)[3],
 
 void BKE_mesh_calc_volume(const float (*vert_positions)[3],
                           const int mverts_num,
-                          const MLoopTri *looptri,
-                          const int looptri_num,
+                          const MLoopTri *looptris,
+                          const int looptris_num,
                           const int *corner_verts,
                           float *r_volume,
                           float r_center[3])
@@ -415,19 +415,19 @@ void BKE_mesh_calc_volume(const float (*vert_positions)[3],
     zero_v3(r_center);
   }
 
-  if (looptri_num == 0) {
+  if (looptris_num == 0) {
     return;
   }
 
   if (!mesh_calc_center_centroid_ex(
-          vert_positions, mverts_num, looptri, looptri_num, corner_verts, center))
+          vert_positions, mverts_num, looptris, looptris_num, corner_verts, center))
   {
     return;
   }
 
   totvol = 0.0f;
 
-  for (i = 0, lt = looptri; i < looptri_num; i++, lt++) {
+  for (i = 0, lt = looptris; i < looptris_num; i++, lt++) {
     const float *v1 = vert_positions[corner_verts[lt->tri[0]]];
     const float *v2 = vert_positions[corner_verts[lt->tri[1]]];
     const float *v3 = vert_positions[corner_verts[lt->tri[2]]];

@@ -69,9 +69,9 @@ static void init_dualcon_mesh(DualConInput *input, Mesh *mesh)
   input->mloop = (DualConLoop)mesh->corner_verts().data();
   input->loop_stride = sizeof(int);
 
-  input->looptri = (DualConTri)mesh->looptris().data();
+  input->looptris = (DualConTri)mesh->looptris().data();
   input->tri_stride = sizeof(MLoopTri);
-  input->tottri = BKE_mesh_runtime_looptri_len(mesh);
+  input->tottri = BKE_mesh_runtime_looptris_len(mesh);
 
   const blender::Bounds<blender::float3> bounds = *mesh->bounds_min_max();
   copy_v3_v3(input->min, bounds.min);

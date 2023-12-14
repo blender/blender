@@ -852,7 +852,7 @@ BLI_INLINE void apply_effector_fields(FluidEffectorSettings * /*fes*/,
 static void update_velocities(FluidEffectorSettings *fes,
                               const blender::Span<blender::float3> vert_positions,
                               const int *corner_verts,
-                              const MLoopTri *mlooptri,
+                              const MLoopTri *looptris,
                               float *velocity_map,
                               int index,
                               BVHTreeFromMesh *tree_data,
@@ -876,12 +876,12 @@ static void update_velocities(FluidEffectorSettings *fes,
           tree_data->tree, ray_start, &nearest, tree_data->nearest_callback, tree_data) != -1)
   {
     float weights[3];
-    int v1, v2, v3, f_index = nearest.index;
+    int v1, v2, v3, lt_index = nearest.index;
 
     /* Calculate barycentric weights for nearest point. */
-    v1 = corner_verts[mlooptri[f_index].tri[0]];
-    v2 = corner_verts[mlooptri[f_index].tri[1]];
-    v3 = corner_verts[mlooptri[f_index].tri[2]];
+    v1 = corner_verts[looptris[lt_index].tri[0]];
+    v2 = corner_verts[looptris[lt_index].tri[1]];
+    v3 = corner_verts[looptris[lt_index].tri[2]];
     interp_weights_tri_v3(
         weights, vert_positions[v1], vert_positions[v2], vert_positions[v3], nearest.co);
 
@@ -1080,7 +1080,7 @@ static void obstacles_from_mesh(Object *coll_ob,
 
     /* Skip effector sampling loop if object has disabled effector. */
     bool use_effector = fes->flags & FLUID_EFFECTOR_USE_EFFEC;
-    if (use_effector && BKE_bvhtree_from_mesh_get(&tree_data, mesh, BVHTREE_FROM_LOOPTRI, 4)) {
+    if (use_effector && BKE_bvhtree_from_mesh_get(&tree_data, mesh, BVHTREE_FROM_LOOPTRIS, 4)) {
 
       ObstaclesFromDMData data{};
       data.fes = fes;
@@ -1801,7 +1801,7 @@ static void sample_mesh(FluidFlowSettings *ffs,
                         blender::Span<blender::float3> vert_positions,
                         const blender::Span<blender::float3> vert_normals,
                         const int *corner_verts,
-                        const MLoopTri *mlooptri,
+                        const MLoopTri *looptris,
                         const float (*mloopuv)[2],
                         float *influence_map,
                         float *velocity_map,
@@ -1882,13 +1882,13 @@ static void sample_mesh(FluidFlowSettings *ffs,
           tree_data->tree, ray_start, &nearest, tree_data->nearest_callback, tree_data) != -1)
   {
     float weights[3];
-    int v1, v2, v3, f_index = nearest.index;
+    int v1, v2, v3, lt_index = nearest.index;
     float hit_normal[3];
 
     /* Calculate barycentric weights for nearest point. */
-    v1 = corner_verts[mlooptri[f_index].tri[0]];
-    v2 = corner_verts[mlooptri[f_index].tri[1]];
-    v3 = corner_verts[mlooptri[f_index].tri[2]];
+    v1 = corner_verts[looptris[lt_index].tri[0]];
+    v2 = corner_verts[looptris[lt_index].tri[1]];
+    v3 = corner_verts[looptris[lt_index].tri[2]];
     interp_weights_tri_v3(
         weights, vert_positions[v1], vert_positions[v2], vert_positions[v3], nearest.co);
 
@@ -1925,9 +1925,9 @@ static void sample_mesh(FluidFlowSettings *ffs,
         }
         else if (mloopuv) {
           const float *uv[3];
-          uv[0] = mloopuv[mlooptri[f_index].tri[0]];
-          uv[1] = mloopuv[mlooptri[f_index].tri[1]];
-          uv[2] = mloopuv[mlooptri[f_index].tri[2]];
+          uv[0] = mloopuv[looptris[lt_index].tri[0]];
+          uv[1] = mloopuv[looptris[lt_index].tri[1]];
+          uv[2] = mloopuv[looptris[lt_index].tri[2]];
 
           interp_v2_v2v2v2(tex_co, UNPACK3(uv), weights);
 
@@ -2146,7 +2146,7 @@ static void emit_from_mesh(
 
     /* Skip flow sampling loop if object has disabled flow. */
     bool use_flow = ffs->flags & FLUID_FLOW_USE_INFLOW;
-    if (use_flow && BKE_bvhtree_from_mesh_get(&tree_data, mesh, BVHTREE_FROM_LOOPTRI, 4)) {
+    if (use_flow && BKE_bvhtree_from_mesh_get(&tree_data, mesh, BVHTREE_FROM_LOOPTRIS, 4)) {
 
       EmitFromDMData data{};
       data.fds = fds;

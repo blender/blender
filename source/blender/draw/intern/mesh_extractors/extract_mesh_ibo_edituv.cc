@@ -55,7 +55,7 @@ static void extract_edituv_tris_iter_looptri_bm(const MeshRenderData & /*mr*/,
 }
 
 static void extract_edituv_tris_iter_looptri_mesh(const MeshRenderData &mr,
-                                                  const MLoopTri *mlt,
+                                                  const MLoopTri *lt,
                                                   const int elt_index,
                                                   void *_data)
 {
@@ -65,7 +65,7 @@ static void extract_edituv_tris_iter_looptri_mesh(const MeshRenderData &mr,
   const bool mp_hidden = (efa) ? BM_elem_flag_test_bool(efa, BM_ELEM_HIDDEN) : true;
   const bool mp_select = (efa) ? BM_elem_flag_test_bool(efa, BM_ELEM_SELECT) : false;
 
-  edituv_tri_add(data, mp_hidden, mp_select, mlt->tri[0], mlt->tri[1], mlt->tri[2]);
+  edituv_tri_add(data, mp_hidden, mp_select, lt->tri[0], lt->tri[1], lt->tri[2]);
 }
 
 static void extract_edituv_tris_finish(const MeshRenderData & /*mr*/,

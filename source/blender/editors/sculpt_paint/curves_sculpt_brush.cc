@@ -193,7 +193,7 @@ std::optional<CurvesBrush3D> sample_curves_3d_brush(const Depsgraph &depsgraph,
 
     Mesh *surface_eval = BKE_object_get_evaluated_mesh(surface_object_eval);
     BVHTreeFromMesh surface_bvh;
-    BKE_bvhtree_from_mesh_get(&surface_bvh, surface_eval, BVHTREE_FROM_LOOPTRI, 2);
+    BKE_bvhtree_from_mesh_get(&surface_bvh, surface_eval, BVHTREE_FROM_LOOPTRIS, 2);
     BLI_SCOPED_DEFER([&]() { free_bvhtree_from_mesh(&surface_bvh); });
 
     const float3 center_ray_start_su = math::transform_point(world_to_surface_mat,

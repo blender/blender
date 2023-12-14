@@ -133,7 +133,7 @@ bool BKE_shrinkwrap_init_tree(
     return false;
   }
 
-  data->bvh = BKE_bvhtree_from_mesh_get(&data->treeData, mesh, BVHTREE_FROM_LOOPTRI, 4);
+  data->bvh = BKE_bvhtree_from_mesh_get(&data->treeData, mesh, BVHTREE_FROM_LOOPTRIS, 4);
 
   if (data->bvh == nullptr) {
     return false;
@@ -226,7 +226,7 @@ static std::unique_ptr<ShrinkwrapBoundaryData> shrinkwrap_build_boundary_data(Me
 
   data->edge_is_boundary = std::move(edge_is_boundary);
 
-  /* Build the boundary looptri bitmask. */
+  /* Build the boundary looptris bit-mask. */
   const blender::Span<MLoopTri> looptris = mesh->looptris();
 
   blender::BitVector<> looptri_has_boundary(looptris.size(), false);
@@ -995,21 +995,25 @@ static void target_project_edge(const ShrinkwrapTreeData *tree,
 }
 
 /* Target normal projection BVH callback - based on mesh_looptri_nearest_point. */
-static void mesh_looptri_target_project(void *userdata,
-                                        int index,
-                                        const float co[3],
-                                        BVHTreeNearest *nearest)
+static void mesh_looptris_target_project(void *userdata,
+                                         int index,
+                                         const float co[3],
+                                         BVHTreeNearest *nearest)
 {
   using namespace blender;
   const ShrinkwrapTreeData *tree = (ShrinkwrapTreeData *)userdata;
   const BVHTreeFromMesh *data = &tree->treeData;
   const MLoopTri *lt = &data->looptris[index];
-  const int tri_verts[3] = {data->corner_verts[lt->tri[0]],
-                            data->corner_verts[lt->tri[1]],
-                            data->corner_verts[lt->tri[2]]};
-  const float *vtri_co[3] = {data->vert_positions[tri_verts[0]],
-                             data->vert_positions[tri_verts[1]],
-                             data->vert_positions[tri_verts[2]]};
+  const int tri_verts[3] = {
+      data->corner_verts[lt->tri[0]],
+      data->corner_verts[lt->tri[1]],
+      data->corner_verts[lt->tri[2]],
+  };
+  const float *vtri_co[3] = {
+      data->vert_positions[tri_verts[0]],
+      data->vert_positions[tri_verts[1]],
+      data->vert_positions[tri_verts[2]],
+  };
   float raw_hit_co[3], hit_co[3], hit_no[3], dist_sq, vtri_no[3][3];
 
   /* First find the closest point and bail out if it's worse than the current solution. */
@@ -1066,7 +1070,7 @@ void BKE_shrinkwrap_find_nearest_surface(ShrinkwrapTreeData *tree,
 #endif
 
     BLI_bvhtree_find_nearest_ex(
-        tree->bvh, co, nearest, mesh_looptri_target_project, tree, BVH_NEAREST_OPTIMAL_ORDER);
+        tree->bvh, co, nearest, mesh_looptris_target_project, tree, BVH_NEAREST_OPTIMAL_ORDER);
 
 #ifdef TRACE_TARGET_PROJECT
     printf("====== TARGET PROJECT END: %d %g ======\n\n", nearest->index, nearest->dist_sq);
@@ -1165,21 +1169,21 @@ void BKE_shrinkwrap_compute_smooth_normal(const ShrinkwrapTreeData *tree,
                                           float r_no[3])
 {
   const BVHTreeFromMesh *treeData = &tree->treeData;
-  const MLoopTri *tri = &treeData->looptris[looptri_idx];
+  const MLoopTri *lt = &treeData->looptris[looptri_idx];
   const int face_i = tree->mesh->looptri_faces()[looptri_idx];
 
   /* Interpolate smooth normals if enabled. */
   if (!(tree->sharp_faces && tree->sharp_faces[face_i])) {
-    const int vert_indices[3] = {treeData->corner_verts[tri->tri[0]],
-                                 treeData->corner_verts[tri->tri[1]],
-                                 treeData->corner_verts[tri->tri[2]]};
+    const int vert_indices[3] = {treeData->corner_verts[lt->tri[0]],
+                                 treeData->corner_verts[lt->tri[1]],
+                                 treeData->corner_verts[lt->tri[2]]};
     float w[3], no[3][3], tmp_co[3];
 
     /* Custom and auto smooth split normals. */
     if (!tree->corner_normals.is_empty()) {
-      copy_v3_v3(no[0], tree->corner_normals[tri->tri[0]]);
-      copy_v3_v3(no[1], tree->corner_normals[tri->tri[1]]);
-      copy_v3_v3(no[2], tree->corner_normals[tri->tri[2]]);
+      copy_v3_v3(no[0], tree->corner_normals[lt->tri[0]]);
+      copy_v3_v3(no[1], tree->corner_normals[lt->tri[1]]);
+      copy_v3_v3(no[2], tree->corner_normals[lt->tri[2]]);
     }
     /* Ordinary vertex normals. */
     else {
@@ -1215,7 +1219,7 @@ void BKE_shrinkwrap_compute_smooth_normal(const ShrinkwrapTreeData *tree,
   else if (!tree->face_normals.is_empty()) {
     copy_v3_v3(r_no, tree->face_normals[face_i]);
   }
-  /* Finally fallback to the looptri normal. */
+  /* Finally fallback to the looptris normal. */
   else {
     copy_v3_v3(r_no, hit_no);
   }

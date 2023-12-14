@@ -148,7 +148,7 @@ static int edbm_polybuild_transform_at_cursor_invoke(bContext *C,
   }
 
   EDBMUpdate_Params params{};
-  params.calc_looptri = true;
+  params.calc_looptris = true;
   params.calc_normals = true;
   params.is_destructive = true;
   EDBM_update(static_cast<Mesh *>(vc.obedit->data), &params);
@@ -234,7 +234,7 @@ static int edbm_polybuild_delete_at_cursor_invoke(bContext *C,
 
   if (changed) {
     EDBMUpdate_Params params{};
-    params.calc_looptri = true;
+    params.calc_looptris = true;
     params.calc_normals = true;
     params.is_destructive = true;
     EDBM_update(static_cast<Mesh *>(vc.obedit->data), &params);
@@ -401,7 +401,7 @@ static int edbm_polybuild_face_at_cursor_invoke(bContext *C, wmOperator *op, con
 
   if (changed) {
     EDBMUpdate_Params params{};
-    params.calc_looptri = true;
+    params.calc_looptris = true;
     params.calc_normals = true;
     params.is_destructive = true;
     EDBM_update(static_cast<Mesh *>(vc.obedit->data), &params);
@@ -492,7 +492,7 @@ static int edbm_polybuild_split_at_cursor_invoke(bContext *C,
 
   if (changed) {
     EDBMUpdate_Params params{};
-    params.calc_looptri = true;
+    params.calc_looptris = true;
     params.calc_normals = true;
     params.is_destructive = true;
     EDBM_update(static_cast<Mesh *>(vc.obedit->data), &params);

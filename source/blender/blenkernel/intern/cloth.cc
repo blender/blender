@@ -858,7 +858,7 @@ static void cloth_from_mesh(ClothModifierData *clmd, const Object *ob, Mesh *mes
     printf("cloth_free_modifier clmd->clothObject->looptri\n");
     return;
   }
-  BKE_mesh_runtime_verttri_from_looptri(
+  BKE_mesh_runtime_verttris_from_looptris(
       clmd->clothObject->tri, corner_verts.data(), looptris.data(), looptris.size());
 
   clmd->clothObject->edges = mesh->edges().data();
@@ -1517,7 +1517,7 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
     }
 
     Set<OrderedEdge> existing_vert_pairs;
-    BKE_bvhtree_from_mesh_get(&treedata, tmp_mesh ? tmp_mesh : mesh, BVHTREE_FROM_LOOPTRI, 2);
+    BKE_bvhtree_from_mesh_get(&treedata, tmp_mesh ? tmp_mesh : mesh, BVHTREE_FROM_LOOPTRIS, 2);
     rng = BLI_rng_new_srandom(0);
 
     const blender::Span<blender::float3> vert_normals = tmp_mesh ? tmp_mesh->vert_normals() :

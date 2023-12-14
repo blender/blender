@@ -61,7 +61,7 @@ BMBackup EDBM_redo_state_store(BMEditMesh *em)
   return backup;
 }
 
-void EDBM_redo_state_restore(BMBackup *backup, BMEditMesh *em, bool recalc_looptri)
+void EDBM_redo_state_restore(BMBackup *backup, BMEditMesh *em, bool recalc_looptris)
 {
   BM_mesh_data_free(em->bm);
   BMesh *tmpbm = BM_mesh_copy(backup->bmcopy);
@@ -69,19 +69,19 @@ void EDBM_redo_state_restore(BMBackup *backup, BMEditMesh *em, bool recalc_loopt
   MEM_freeN(tmpbm);
   tmpbm = nullptr;
 
-  if (recalc_looptri) {
-    BKE_editmesh_looptri_calc(em);
+  if (recalc_looptris) {
+    BKE_editmesh_looptris_calc(em);
   }
 }
 
-void EDBM_redo_state_restore_and_free(BMBackup *backup, BMEditMesh *em, bool recalc_looptri)
+void EDBM_redo_state_restore_and_free(BMBackup *backup, BMEditMesh *em, bool recalc_looptris)
 {
   BM_mesh_data_free(em->bm);
   *em->bm = *backup->bmcopy;
   MEM_freeN(backup->bmcopy);
   backup->bmcopy = nullptr;
-  if (recalc_looptri) {
-    BKE_editmesh_looptri_calc(em);
+  if (recalc_looptris) {
+    BKE_editmesh_looptris_calc(em);
   }
 }
 
@@ -1662,17 +1662,17 @@ void EDBM_update(Mesh *mesh, const EDBMUpdate_Params *params)
   DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_GEOM | ND_DATA, &mesh->id);
 
-  if (params->calc_normals && params->calc_looptri) {
+  if (params->calc_normals && params->calc_looptris) {
     /* Calculating both has some performance gains. */
-    BKE_editmesh_looptri_and_normals_calc(em);
+    BKE_editmesh_looptris_and_normals_calc(em);
   }
   else {
     if (params->calc_normals) {
       EDBM_mesh_normals_update(em);
     }
 
-    if (params->calc_looptri) {
-      BKE_editmesh_looptri_calc(em);
+    if (params->calc_looptris) {
+      BKE_editmesh_looptris_calc(em);
     }
   }
 
@@ -1701,7 +1701,7 @@ void EDBM_update(Mesh *mesh, const EDBMUpdate_Params *params)
 void EDBM_update_extern(Mesh *mesh, const bool do_tessellation, const bool is_destructive)
 {
   EDBMUpdate_Params params{};
-  params.calc_looptri = do_tessellation;
+  params.calc_looptris = do_tessellation;
   params.calc_normals = false;
   params.is_destructive = is_destructive;
   EDBM_update(mesh, &params);

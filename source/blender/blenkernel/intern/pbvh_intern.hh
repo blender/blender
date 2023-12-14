@@ -43,7 +43,7 @@ struct PBVHNode {
   /* List of primitives for this node. Semantics depends on
    * PBVH type:
    *
-   * - PBVH_FACES: Indices into the PBVH.looptri array.
+   * - PBVH_FACES: Indices into the #PBVH::looptris array.
    * - PBVH_GRIDS: Multires grid indices.
    * - PBVH_BMESH: Unused.  See PBVHNode.bm_faces.
    *
@@ -163,7 +163,7 @@ struct PBVH {
   blender::OffsetIndices<int> faces;
   blender::Span<int> corner_verts;
   /* Owned by the #PBVH, because after deformations they have to be recomputed. */
-  blender::Array<MLoopTri> looptri;
+  blender::Array<MLoopTri> looptris;
   blender::Span<int> looptri_faces;
 
   /* Grid Data */

@@ -568,7 +568,7 @@ void BKE_mesh_remap_calc_verts_from_mesh(const int mode,
       float *weights = static_cast<float *>(
           MEM_mallocN(sizeof(*weights) * tmp_buff_size, __func__));
 
-      BKE_bvhtree_from_mesh_get(&treedata, me_src, BVHTREE_FROM_LOOPTRI, 2);
+      BKE_bvhtree_from_mesh_get(&treedata, me_src, BVHTREE_FROM_LOOPTRIS, 2);
 
       if (mode == MREMAP_MODE_VERT_POLYINTERP_VNORPROJ) {
         for (i = 0; i < numverts_dst; i++) {
@@ -860,7 +860,7 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
       const blender::Span<blender::float3> positions_src = me_src->vert_positions();
       const blender::Span<int> looptri_faces = me_src->looptri_faces();
 
-      BKE_bvhtree_from_mesh_get(&treedata, me_src, BVHTREE_FROM_LOOPTRI, 2);
+      BKE_bvhtree_from_mesh_get(&treedata, me_src, BVHTREE_FROM_LOOPTRIS, 2);
 
       for (i = 0; i < numedges_dst; i++) {
         interp_v3_v3v3(tmp_co,
@@ -1444,32 +1444,32 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
       if (use_islands) {
         looptris_src = me_src->looptris();
         looptri_faces_src = me_src->looptri_faces();
-        blender::BitVector<> looptri_active(looptris_src.size());
+        blender::BitVector<> looptris_active(looptris_src.size());
 
         for (tindex = 0; tindex < num_trees; tindex++) {
-          int num_looptri_active = 0;
-          looptri_active.fill(false);
+          int looptris_num_active = 0;
+          looptris_active.fill(false);
           for (const int64_t i : looptris_src.index_range()) {
             const blender::IndexRange face = faces_src[looptri_faces_src[i]];
             if (island_store.items_to_islands[face.start()] == tindex) {
-              looptri_active[i].set();
-              num_looptri_active++;
+              looptris_active[i].set();
+              looptris_num_active++;
             }
           }
-          bvhtree_from_mesh_looptri_ex(&treedata[tindex],
-                                       positions_src,
-                                       corner_verts_src,
-                                       looptris_src,
-                                       looptri_active,
-                                       num_looptri_active,
-                                       0.0,
-                                       2,
-                                       6);
+          bvhtree_from_mesh_looptris_ex(&treedata[tindex],
+                                        positions_src,
+                                        corner_verts_src,
+                                        looptris_src,
+                                        looptris_active,
+                                        looptris_num_active,
+                                        0.0,
+                                        2,
+                                        6);
         }
       }
       else {
         BLI_assert(num_trees == 1);
-        BKE_bvhtree_from_mesh_get(&treedata[0], me_src, BVHTREE_FROM_LOOPTRI, 2);
+        BKE_bvhtree_from_mesh_get(&treedata[0], me_src, BVHTREE_FROM_LOOPTRIS, 2);
       }
     }
 
@@ -2069,7 +2069,7 @@ void BKE_mesh_remap_calc_faces_from_mesh(const int mode,
     float hit_dist;
     const blender::Span<int> looptri_faces = me_src->looptri_faces();
 
-    BKE_bvhtree_from_mesh_get(&treedata, me_src, BVHTREE_FROM_LOOPTRI, 2);
+    BKE_bvhtree_from_mesh_get(&treedata, me_src, BVHTREE_FROM_LOOPTRIS, 2);
 
     if (mode == MREMAP_MODE_POLY_NEAREST) {
       nearest.index = -1;

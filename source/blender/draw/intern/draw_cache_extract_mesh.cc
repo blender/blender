@@ -287,10 +287,10 @@ static void extract_range_iter_looptri_mesh(void *__restrict userdata,
 
   const ExtractorIterData *data = static_cast<ExtractorIterData *>(userdata);
   const MeshRenderData &mr = *data->mr;
-  const MLoopTri *mlt = &((const MLoopTri *)data->elems)[iter];
+  const MLoopTri *lt = &((const MLoopTri *)data->elems)[iter];
   for (const ExtractorRunData &run_data : data->extractors) {
     run_data.extractor->iter_looptri_mesh(
-        mr, mlt, iter, POINTER_OFFSET(extract_data, run_data.data_offset));
+        mr, lt, iter, POINTER_OFFSET(extract_data, run_data.data_offset));
   }
 }
 

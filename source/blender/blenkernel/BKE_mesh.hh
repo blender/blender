@@ -55,7 +55,7 @@ void looptris_calc_face_indices(OffsetIndices<int> faces, MutableSpan<int> loopt
 int3 looptri_get_real_edges(Span<int2> edges,
                             Span<int> corner_verts,
                             Span<int> corner_edges,
-                            const MLoopTri &tri);
+                            const MLoopTri &lt);
 
 /** Calculate the average position of the vertices in the face. */
 float3 face_center_calc(Span<float3> vert_positions, Span<int> face_verts);

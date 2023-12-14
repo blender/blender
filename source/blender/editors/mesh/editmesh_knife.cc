@@ -186,7 +186,7 @@ struct KnifeUndoFrame {
 
 struct KnifeBVH {
   BVHTree *tree;          /* Knife Custom BVH Tree. */
-  BMLoop *(*looptris)[3]; /* Used by #knife_bvh_raycast_cb to store the intersecting looptri. */
+  BMLoop *(*looptris)[3]; /* Used by #knife_bvh_raycast_cb to store the intersecting triangles. */
   float uv[2];            /* Used by #knife_bvh_raycast_cb to store the intersecting uv. */
   uint ob_index;
 
@@ -4297,7 +4297,7 @@ static void knifetool_finish_single_post(KnifeTool_OpData * /*kcd*/, Object *ob)
   BMEditMesh *em = BKE_editmesh_from_object(ob);
   EDBM_selectmode_flush(em);
   EDBMUpdate_Params params{};
-  params.calc_looptri = true;
+  params.calc_looptris = true;
   params.calc_normals = true;
   params.is_destructive = true;
   EDBM_update(static_cast<Mesh *>(ob->data), &params);

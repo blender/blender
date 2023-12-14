@@ -65,9 +65,9 @@ void OpenVDBMeshAdapter::getIndexSpacePoint(size_t polygon_index,
                                             size_t vertex_index,
                                             openvdb::Vec3d &pos) const
 {
-  const MLoopTri &looptri = looptris_[polygon_index];
+  const MLoopTri &lt = looptris_[polygon_index];
   const float3 transformed_co = math::transform_point(
-      transform_, positions_[corner_verts_[looptri.tri[vertex_index]]]);
+      transform_, positions_[corner_verts_[lt.tri[vertex_index]]]);
   pos = &transformed_co.x;
 }
 
@@ -164,10 +164,9 @@ static openvdb::FloatGrid::Ptr mesh_to_sdf_volume_grid(const Mesh &mesh,
 
   threading::parallel_for(looptris.index_range(), 2048, [&](const IndexRange range) {
     for (const int i : range) {
-      const MLoopTri &loop_tri = looptris[i];
-      triangles[i] = openvdb::Vec3I(corner_verts[loop_tri.tri[0]],
-                                    corner_verts[loop_tri.tri[1]],
-                                    corner_verts[loop_tri.tri[2]]);
+      const MLoopTri &lt = looptris[i];
+      triangles[i] = openvdb::Vec3I(
+          corner_verts[lt.tri[0]], corner_verts[lt.tri[1]], corner_verts[lt.tri[2]]);
     }
   });
 

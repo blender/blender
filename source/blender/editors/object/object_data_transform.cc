@@ -750,7 +750,7 @@ void ED_object_data_xform_tag_update(XFormObjectData *xod_base)
       Mesh *mesh = (Mesh *)xod_base->id;
       if (xod_base->is_edit_mode) {
         EDBMUpdate_Params params{};
-        params.calc_looptri = true;
+        params.calc_looptris = true;
         params.calc_normals = true;
         params.is_destructive = false;
         EDBM_update(mesh, &params);

@@ -70,7 +70,7 @@ void solve_length_and_collision_constraints(const OffsetIndices<int> points_by_c
   solve_length_constraints(points_by_curve, curve_selection, segment_lengths_cu, positions_cu);
 
   BVHTreeFromMesh surface_bvh;
-  BKE_bvhtree_from_mesh_get(&surface_bvh, &surface, BVHTREE_FROM_LOOPTRI, 2);
+  BKE_bvhtree_from_mesh_get(&surface_bvh, &surface, BVHTREE_FROM_LOOPTRIS, 2);
   BLI_SCOPED_DEFER([&]() { free_bvhtree_from_mesh(&surface_bvh); });
 
   const float radius = 0.005f;

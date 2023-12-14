@@ -419,8 +419,8 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *mesh, int id)
 
   // Compute loop triangles
   int tottri = poly_to_tri_count(mesh->faces_num, mesh->totloop);
-  MLoopTri *mlooptri = (MLoopTri *)MEM_malloc_arrayN(tottri, sizeof(*mlooptri), __func__);
-  blender::bke::mesh::looptris_calc(vert_positions, mesh_polys, corner_verts, {mlooptri, tottri});
+  MLoopTri *looptris = (MLoopTri *)MEM_malloc_arrayN(tottri, sizeof(*looptris), __func__);
+  blender::bke::mesh::looptris_calc(vert_positions, mesh_polys, corner_verts, {looptris, tottri});
   const blender::Span<int> looptri_faces = mesh->looptri_faces();
   const blender::Span<blender::float3> lnors = mesh->corner_normals();
 
@@ -449,7 +449,7 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *mesh, int id)
   float n1[3], n2[3], n3[3], facenormal[3];
   int clip[3];
   for (int a = 0; a < tottri; a++) {
-    const MLoopTri *lt = &mlooptri[a];
+    const MLoopTri *lt = &looptris[a];
 
     copy_v3_v3(v1, vert_positions[corner_verts[lt->tri[0]]]);
     copy_v3_v3(v2, vert_positions[corner_verts[lt->tri[1]]]);
@@ -471,7 +471,7 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *mesh, int id)
   }
 #endif
   if (numFaces == 0) {
-    MEM_freeN(mlooptri);
+    MEM_freeN(looptris);
     return;
   }
 
@@ -523,7 +523,7 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *mesh, int id)
   // We parse the vlak nodes again and import meshes while applying the clipping
   // by the near and far view planes.
   for (int a = 0; a < tottri; a++) {
-    const MLoopTri *lt = &mlooptri[a];
+    const MLoopTri *lt = &looptris[a];
     const int poly_i = looptri_faces[a];
     Material *mat = BKE_object_material_get(ob, material_indices[poly_i] + 1);
 
@@ -631,7 +631,7 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *mesh, int id)
     }
   }
 
-  MEM_freeN(mlooptri);
+  MEM_freeN(looptris);
 
   // We might have several times the same vertex. We want a clean
   // shape with no real-vertex. Here, we are making a cleaning pass.

@@ -210,7 +210,7 @@ static int mesh_set_attribute_exec(bContext *C, wmOperator *op)
 
     changed = true;
     EDBMUpdate_Params update{};
-    update.calc_looptri = false;
+    update.calc_looptris = false;
     update.calc_normals = false;
     update.is_destructive = false;
     EDBM_update(mesh, &update);

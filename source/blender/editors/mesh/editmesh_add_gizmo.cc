@@ -347,7 +347,7 @@ static int add_primitive_cube_gizmo_exec(bContext *C, wmOperator *op)
 
   EDBM_selectmode_flush_ex(em, SCE_SELECT_VERTEX);
   EDBMUpdate_Params params{};
-  params.calc_looptri = true;
+  params.calc_looptris = true;
   params.calc_normals = false;
   params.is_destructive = true;
   EDBM_update(static_cast<Mesh *>(obedit->data), &params);

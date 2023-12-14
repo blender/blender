@@ -418,10 +418,10 @@ static void update_geom_primitives(PBVH &pbvh, const uv_islands::MeshData &mesh_
 {
   PBVHData &pbvh_data = BKE_pbvh_pixels_data_get(pbvh);
   pbvh_data.clear_data();
-  for (const MLoopTri &looptri : mesh_data.looptris) {
-    pbvh_data.geom_primitives.append(int3(mesh_data.corner_verts[looptri.tri[0]],
-                                          mesh_data.corner_verts[looptri.tri[1]],
-                                          mesh_data.corner_verts[looptri.tri[2]]));
+  for (const MLoopTri &lt : mesh_data.looptris) {
+    pbvh_data.geom_primitives.append(int3(mesh_data.corner_verts[lt.tri[0]],
+                                          mesh_data.corner_verts[lt.tri[1]],
+                                          mesh_data.corner_verts[lt.tri[2]]));
   }
 }
 
@@ -676,7 +676,7 @@ static bool update_pixels(PBVH *pbvh, Mesh *mesh, Image *image, ImageUser *image
   const VArraySpan uv_map = *attributes.lookup<float2>(active_uv_name, ATTR_DOMAIN_CORNER);
 
   uv_islands::MeshData mesh_data(
-      pbvh->looptri, mesh->corner_verts(), uv_map, pbvh->vert_positions);
+      pbvh->looptris, mesh->corner_verts(), uv_map, pbvh->vert_positions);
   uv_islands::UVIslands islands(mesh_data);
 
   uv_islands::UVIslandsMask uv_masks;

@@ -216,7 +216,7 @@ static void statvis_calc_thickness(const MeshRenderData &mr, float *r_thickness)
   else {
     BVHTreeFromMesh treeData = {nullptr};
 
-    BVHTree *tree = BKE_bvhtree_from_mesh_get(&treeData, mr.mesh, BVHTREE_FROM_LOOPTRI, 4);
+    BVHTree *tree = BKE_bvhtree_from_mesh_get(&treeData, mr.mesh, BVHTREE_FROM_LOOPTRIS, 4);
     const Span<MLoopTri> looptris = mr.looptris;
     const Span<int> looptri_faces = mr.looptri_faces;
     for (const int i : looptris.index_range()) {
@@ -278,15 +278,15 @@ static bool bvh_overlap_cb(void *userdata, int index_a, int index_b, int /*threa
     return false;
   }
 
-  const MLoopTri *tri_a = &data->looptris[index_a];
-  const MLoopTri *tri_b = &data->looptris[index_b];
+  const MLoopTri *lt_a = &data->looptris[index_a];
+  const MLoopTri *lt_b = &data->looptris[index_b];
 
-  const float *tri_a_co[3] = {data->positions[data->corner_verts[tri_a->tri[0]]],
-                              data->positions[data->corner_verts[tri_a->tri[1]]],
-                              data->positions[data->corner_verts[tri_a->tri[2]]]};
-  const float *tri_b_co[3] = {data->positions[data->corner_verts[tri_b->tri[0]]],
-                              data->positions[data->corner_verts[tri_b->tri[1]]],
-                              data->positions[data->corner_verts[tri_b->tri[2]]]};
+  const float *tri_a_co[3] = {data->positions[data->corner_verts[lt_a->tri[0]]],
+                              data->positions[data->corner_verts[lt_a->tri[1]]],
+                              data->positions[data->corner_verts[lt_a->tri[2]]]};
+  const float *tri_b_co[3] = {data->positions[data->corner_verts[lt_b->tri[0]]],
+                              data->positions[data->corner_verts[lt_b->tri[1]]],
+                              data->positions[data->corner_verts[lt_b->tri[2]]]};
   float ix_pair[2][3];
   int verts_shared = 0;
 
@@ -344,7 +344,7 @@ static void statvis_calc_intersect(const MeshRenderData &mr, float *r_intersect)
     uint overlap_len;
     BVHTreeFromMesh treeData = {nullptr};
 
-    BVHTree *tree = BKE_bvhtree_from_mesh_get(&treeData, mr.mesh, BVHTREE_FROM_LOOPTRI, 4);
+    BVHTree *tree = BKE_bvhtree_from_mesh_get(&treeData, mr.mesh, BVHTREE_FROM_LOOPTRIS, 4);
 
     BVHTree_OverlapData data = {};
     data.positions = mr.vert_positions;

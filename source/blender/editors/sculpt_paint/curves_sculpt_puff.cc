@@ -121,7 +121,7 @@ struct PuffOperationExecutor {
     surface_corner_verts_ = surface_->corner_verts();
     surface_looptris_ = surface_->looptris();
     corner_normals_su_ = surface_->corner_normals();
-    BKE_bvhtree_from_mesh_get(&surface_bvh_, surface_, BVHTREE_FROM_LOOPTRI, 2);
+    BKE_bvhtree_from_mesh_get(&surface_bvh_, surface_, BVHTREE_FROM_LOOPTRIS, 2);
     BLI_SCOPED_DEFER([&]() { free_bvhtree_from_mesh(&surface_bvh_); });
 
     if (stroke_extension.is_first) {
@@ -292,15 +292,15 @@ struct PuffOperationExecutor {
                                  surface_bvh_.nearest_callback,
                                  &surface_bvh_);
 
-        const MLoopTri &looptri = surface_looptris_[nearest.index];
+        const MLoopTri &lt = surface_looptris_[nearest.index];
         const float3 closest_pos_su = nearest.co;
-        const float3 &v0_su = surface_positions_[surface_corner_verts_[looptri.tri[0]]];
-        const float3 &v1_su = surface_positions_[surface_corner_verts_[looptri.tri[1]]];
-        const float3 &v2_su = surface_positions_[surface_corner_verts_[looptri.tri[2]]];
+        const float3 &v0_su = surface_positions_[surface_corner_verts_[lt.tri[0]]];
+        const float3 &v1_su = surface_positions_[surface_corner_verts_[lt.tri[1]]];
+        const float3 &v2_su = surface_positions_[surface_corner_verts_[lt.tri[2]]];
         float3 bary_coords;
         interp_weights_tri_v3(bary_coords, v0_su, v1_su, v2_su, closest_pos_su);
         const float3 normal_su = geometry::compute_surface_point_normal(
-            looptri, bary_coords, corner_normals_su_);
+            lt, bary_coords, corner_normals_su_);
         const float3 normal_cu = math::normalize(
             math::transform_direction(transforms_.surface_to_curves_normal, normal_su));
 

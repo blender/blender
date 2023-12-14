@@ -151,9 +151,9 @@ static void createFaceRingMap(const int mvert_tot,
   MeshElemMap *map = MEM_cnew_array<MeshElemMap>(mvert_tot, __func__);
 
   for (const int i : looptris.index_range()) {
-    const MLoopTri &mlt = looptris[i];
+    const MLoopTri &lt = looptris[i];
     for (int j = 0; j < 3; j++) {
-      const int v_index = corner_verts[mlt.tri[j]];
+      const int v_index = corner_verts[lt.tri[j]];
       map[v_index].count++;
       indices_num++;
     }
@@ -166,9 +166,9 @@ static void createFaceRingMap(const int mvert_tot,
     map[i].count = 0;
   }
   for (const int i : looptris.index_range()) {
-    const MLoopTri &mlt = looptris[i];
+    const MLoopTri &lt = looptris[i];
     for (int j = 0; j < 3; j++) {
-      const int v_index = corner_verts[mlt.tri[j]];
+      const int v_index = corner_verts[lt.tri[j]];
       map[v_index].indices[map[v_index].count] = i;
       map[v_index].count++;
     }

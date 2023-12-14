@@ -1008,7 +1008,7 @@ static int mesh_tessface_calc(Mesh &mesh,
 /* We abuse #MFace.edcode to tag quad faces. See below for details. */
 #define TESSFACE_IS_QUAD 1
 
-  const int looptri_num = poly_to_tri_count(faces_num, totloop);
+  const int looptris_num = poly_to_tri_count(faces_num, totloop);
 
   MFace *mface, *mf;
   MemArena *arena = nullptr;
@@ -1028,9 +1028,9 @@ static int mesh_tessface_calc(Mesh &mesh,
    * if all faces are triangles it will be correct, `quads == 2x` allocations. */
   /* Take care since memory is _not_ zeroed so be sure to initialize each field. */
   mface_to_poly_map = (int *)MEM_malloc_arrayN(
-      size_t(looptri_num), sizeof(*mface_to_poly_map), __func__);
-  mface = (MFace *)MEM_malloc_arrayN(size_t(looptri_num), sizeof(*mface), __func__);
-  lindices = (uint(*)[4])MEM_malloc_arrayN(size_t(looptri_num), sizeof(*lindices), __func__);
+      size_t(looptris_num), sizeof(*mface_to_poly_map), __func__);
+  mface = (MFace *)MEM_malloc_arrayN(size_t(looptris_num), sizeof(*mface), __func__);
+  lindices = (uint(*)[4])MEM_malloc_arrayN(size_t(looptris_num), sizeof(*lindices), __func__);
 
   mface_index = 0;
   for (poly_index = 0; poly_index < faces_num; poly_index++) {
@@ -1187,10 +1187,10 @@ static int mesh_tessface_calc(Mesh &mesh,
   CustomData_free(fdata_legacy, totface);
   totface = mface_index;
 
-  BLI_assert(totface <= looptri_num);
+  BLI_assert(totface <= looptris_num);
 
   /* Not essential but without this we store over-allocated memory in the #CustomData layers. */
-  if (LIKELY(looptri_num != totface)) {
+  if (LIKELY(looptris_num != totface)) {
     mface = (MFace *)MEM_reallocN(mface, sizeof(*mface) * size_t(totface));
     mface_to_poly_map = (int *)MEM_reallocN(mface_to_poly_map,
                                             sizeof(*mface_to_poly_map) * size_t(totface));

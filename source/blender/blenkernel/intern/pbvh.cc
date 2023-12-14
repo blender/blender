@@ -278,10 +278,10 @@ static void build_mesh_leaf_node(const Span<int> corner_verts,
   node->face_vert_indices.reinitialize(prim_indices.size());
 
   for (const int i : prim_indices.index_range()) {
-    const MLoopTri &tri = looptris[prim_indices[i]];
+    const MLoopTri &lt = looptris[prim_indices[i]];
     for (int j = 0; j < 3; j++) {
       node->face_vert_indices[i][j] = map_insert_vert(
-          map, vert_bitmap, &node->face_verts, &node->uniq_verts, corner_verts[tri.tri[j]]);
+          map, vert_bitmap, &node->face_verts, &node->uniq_verts, corner_verts[lt.tri[j]]);
     }
   }
 
@@ -392,7 +392,7 @@ static void build_leaf(PBVH *pbvh,
   /* Still need vb for searches */
   update_vb(pbvh->prim_indices, &node, prim_bounds, offset, count);
 
-  if (!pbvh->looptri.is_empty()) {
+  if (!pbvh->looptris.is_empty()) {
     build_mesh_leaf_node(
         corner_verts, looptris, looptri_faces, hide_poly, pbvh->vert_bitmap, &node);
   }
@@ -733,14 +733,14 @@ void BKE_pbvh_build_mesh(PBVH *pbvh, Mesh *mesh)
   using namespace blender;
   using namespace blender::bke;
   const int totvert = mesh->totvert;
-  const int looptri_num = poly_to_tri_count(mesh->faces_num, mesh->totloop);
+  const int looptris_num = poly_to_tri_count(mesh->faces_num, mesh->totloop);
   MutableSpan<float3> vert_positions = mesh->vert_positions_for_write();
   const blender::OffsetIndices<int> faces = mesh->faces();
   const Span<int> corner_verts = mesh->corner_verts();
 
-  pbvh->looptri.reinitialize(looptri_num);
-  blender::bke::mesh::looptris_calc(vert_positions, faces, corner_verts, pbvh->looptri);
-  const Span<MLoopTri> looptris = pbvh->looptri;
+  pbvh->looptris.reinitialize(looptris_num);
+  blender::bke::mesh::looptris_calc(vert_positions, faces, corner_verts, pbvh->looptris);
+  const Span<MLoopTri> looptris = pbvh->looptris;
 
   pbvh->mesh = mesh;
   pbvh->header.type = PBVH_FACES;
@@ -764,7 +764,7 @@ void BKE_pbvh_build_mesh(PBVH *pbvh, Mesh *mesh)
   pbvh->faces_num = mesh->faces_num;
 
   /* For each face, store the AABB and the AABB centroid */
-  Array<Bounds<float3>> prim_bounds(looptri_num);
+  Array<Bounds<float3>> prim_bounds(looptris_num);
   const Bounds<float3> cb = threading::parallel_reduce(
       looptris.index_range(),
       1024,
@@ -784,7 +784,7 @@ void BKE_pbvh_build_mesh(PBVH *pbvh, Mesh *mesh)
       },
       [](const Bounds<float3> &a, const Bounds<float3> &b) { return bounds::merge(a, b); });
 
-  if (looptri_num) {
+  if (looptris_num) {
     const AttributeAccessor attributes = mesh->attributes();
     const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", ATTR_DOMAIN_FACE);
     const VArraySpan material_index = *attributes.lookup<int>("material_index", ATTR_DOMAIN_FACE);
@@ -798,7 +798,7 @@ void BKE_pbvh_build_mesh(PBVH *pbvh, Mesh *mesh)
                sharp_face,
                &cb,
                prim_bounds,
-               looptri_num);
+               looptris_num);
 
 #ifdef TEST_PBVH_FACE_SPLIT
     test_face_boundaries(pbvh, looptri_faces);
@@ -2073,7 +2073,7 @@ static bool pbvh_faces_node_raycast(PBVH *pbvh,
 
   for (const int i : node->prim_indices.index_range()) {
     const int looptri_i = node->prim_indices[i];
-    const MLoopTri *lt = &pbvh->looptri[looptri_i];
+    const MLoopTri *lt = &pbvh->looptris[looptri_i];
     const blender::int3 face_verts = node->face_vert_indices[i];
 
     if (!hide_poly.is_empty() && hide_poly[pbvh->looptri_faces[looptri_i]]) {
@@ -2424,7 +2424,7 @@ static bool pbvh_faces_node_nearest_to_ray(PBVH *pbvh,
 
   for (const int i : node->prim_indices.index_range()) {
     const int looptri_i = node->prim_indices[i];
-    const MLoopTri *lt = &pbvh->looptri[looptri_i];
+    const MLoopTri *lt = &pbvh->looptris[looptri_i];
     const blender::int3 face_verts = node->face_vert_indices[i];
 
     if (!hide_poly.is_empty() && hide_poly[pbvh->looptri_faces[looptri_i]]) {
@@ -2652,7 +2652,7 @@ static blender::draw::pbvh::PBVH_GPU_Args pbvh_draw_args_init(const Mesh &mesh,
       args.vert_positions = pbvh.vert_positions;
       args.corner_verts = mesh.corner_verts();
       args.corner_edges = mesh.corner_edges();
-      args.mlooptri = pbvh.looptri;
+      args.looptris = pbvh.looptris;
       args.vert_normals = pbvh.vert_normals;
       args.face_normals = pbvh.face_normals;
       /* Retrieve data from the original mesh. Ideally that would be passed to this function to
@@ -3147,12 +3147,12 @@ void BKE_pbvh_ensure_node_loops(PBVH *pbvh)
     loop_indices.clear();
 
     for (const int i : node.prim_indices) {
-      const MLoopTri &mlt = pbvh->looptri[i];
+      const MLoopTri &lt = pbvh->looptris[i];
 
       for (int k = 0; k < 3; k++) {
-        if (!BLI_BITMAP_TEST(visit, mlt.tri[k])) {
-          loop_indices.append(mlt.tri[k]);
-          BLI_BITMAP_ENABLE(visit, mlt.tri[k]);
+        if (!BLI_BITMAP_TEST(visit, lt.tri[k])) {
+          loop_indices.append(lt.tri[k]);
+          BLI_BITMAP_ENABLE(visit, lt.tri[k]);
         }
       }
     }

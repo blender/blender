@@ -2777,11 +2777,11 @@ static void mesh_faces_to_scratch(Object *ob)
   /* Allocate and copy faces. */
 
   sb->scratch->bodyface_num = poly_to_tri_count(mesh->faces_num, mesh->totloop);
-  blender::Array<MLoopTri> looptri(sb->scratch->bodyface_num);
+  blender::Array<MLoopTri> looptris(sb->scratch->bodyface_num);
   blender::bke::mesh::looptris_calc(
-      mesh->vert_positions(), mesh->faces(), mesh->corner_verts(), looptri);
+      mesh->vert_positions(), mesh->faces(), mesh->corner_verts(), looptris);
 
-  lt = looptri.data();
+  lt = looptris.data();
 
   bodyface = sb->scratch->bodyface = static_cast<BodyFace *>(
       MEM_mallocN(sizeof(BodyFace) * sb->scratch->bodyface_num, "SB_body_Faces"));

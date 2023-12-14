@@ -85,7 +85,7 @@ enum ePartialType {
  * use for comparison with previous updates.
  */
 struct PartialTypeState {
-  ePartialType for_looptri;
+  ePartialType for_looptris;
   ePartialType for_normals;
 };
 
@@ -104,7 +104,7 @@ static TransCustomDataMesh *mesh_customdata_ensure(TransDataContainer *tc)
     tc->custom.type.data = MEM_callocN(sizeof(TransCustomDataMesh), __func__);
     tc->custom.type.free_cb = mesh_customdata_free_fn;
     tcmd = static_cast<TransCustomDataMesh *>(tc->custom.type.data);
-    tcmd->partial_update_state_prev.for_looptri = PARTIAL_NONE;
+    tcmd->partial_update_state_prev.for_looptris = PARTIAL_NONE;
     tcmd->partial_update_state_prev.for_normals = PARTIAL_NONE;
   }
   return tcmd;
@@ -1900,13 +1900,13 @@ static void mesh_partial_types_calc(TransInfo *t, PartialTypeState *r_partial_st
 {
   /* Calculate the kind of partial updates which can be performed. */
   enum ePartialType partial_for_normals = PARTIAL_NONE;
-  enum ePartialType partial_for_looptri = PARTIAL_NONE;
+  enum ePartialType partial_for_looptris = PARTIAL_NONE;
 
   /* Note that operations such as #TFM_CREASE are not handled here
    * (if they were, leaving as #PARTIAL_NONE would be appropriate). */
   switch (t->mode) {
     case TFM_TRANSLATION: {
-      partial_for_looptri = PARTIAL_TYPE_GROUP;
+      partial_for_looptris = PARTIAL_TYPE_GROUP;
       partial_for_normals = PARTIAL_TYPE_GROUP;
       /* Translation can rotate when snapping to normal. */
       if (transform_snap_is_active(t) && usingSnappingNormal(t) && validSnappingNormal(t)) {
@@ -1915,12 +1915,12 @@ static void mesh_partial_types_calc(TransInfo *t, PartialTypeState *r_partial_st
       break;
     }
     case TFM_ROTATION: {
-      partial_for_looptri = PARTIAL_TYPE_GROUP;
+      partial_for_looptris = PARTIAL_TYPE_GROUP;
       partial_for_normals = PARTIAL_TYPE_ALL;
       break;
     }
     case TFM_RESIZE: {
-      partial_for_looptri = PARTIAL_TYPE_GROUP;
+      partial_for_looptris = PARTIAL_TYPE_GROUP;
       partial_for_normals = PARTIAL_TYPE_GROUP;
       /* Non-uniform scale needs to recalculate all normals
        * since their relative locations change.
@@ -1934,7 +1934,7 @@ static void mesh_partial_types_calc(TransInfo *t, PartialTypeState *r_partial_st
       break;
     }
     default: {
-      partial_for_looptri = PARTIAL_TYPE_ALL;
+      partial_for_looptris = PARTIAL_TYPE_ALL;
       partial_for_normals = PARTIAL_TYPE_ALL;
       break;
     }
@@ -1942,15 +1942,15 @@ static void mesh_partial_types_calc(TransInfo *t, PartialTypeState *r_partial_st
 
   /* With projection, transform isn't affine. */
   if (transform_snap_project_individual_is_active(t)) {
-    if (partial_for_looptri == PARTIAL_TYPE_GROUP) {
-      partial_for_looptri = PARTIAL_TYPE_ALL;
+    if (partial_for_looptris == PARTIAL_TYPE_GROUP) {
+      partial_for_looptris = PARTIAL_TYPE_ALL;
     }
     if (partial_for_normals == PARTIAL_TYPE_GROUP) {
       partial_for_normals = PARTIAL_TYPE_ALL;
     }
   }
 
-  r_partial_state->for_looptri = partial_for_looptri;
+  r_partial_state->for_looptris = partial_for_looptris;
   r_partial_state->for_normals = partial_for_normals;
 }
 
@@ -1967,12 +1967,12 @@ static void mesh_partial_update(TransInfo *t,
   /* Promote the partial update types based on the previous state
    * so the values that no longer modified are reset before being left as-is.
    * Needed for translation which can toggle snap-to-normal during transform. */
-  const enum ePartialType partial_for_looptri = std::max(partial_state->for_looptri,
-                                                         partial_state_prev->for_looptri);
+  const enum ePartialType partial_for_looptris = std::max(partial_state->for_looptris,
+                                                          partial_state_prev->for_looptris);
   const enum ePartialType partial_for_normals = std::max(partial_state->for_normals,
                                                          partial_state_prev->for_normals);
 
-  if ((partial_for_looptri == PARTIAL_TYPE_ALL) && (partial_for_normals == PARTIAL_TYPE_ALL) &&
+  if ((partial_for_looptris == PARTIAL_TYPE_ALL) && (partial_for_normals == PARTIAL_TYPE_ALL) &&
       (em->bm->totvert == em->bm->totvertsel))
   {
     /* The additional cost of generating the partial connectivity data isn't justified
@@ -1981,21 +1981,21 @@ static void mesh_partial_update(TransInfo *t,
      * While proportional editing can cause all geometry to need updating with a partial
      * selection. It's impractical to calculate this ahead of time. Further, the down side of
      * using partial updates when their not needed is negligible. */
-    BKE_editmesh_looptri_and_normals_calc(em);
+    BKE_editmesh_looptris_and_normals_calc(em);
   }
   else {
-    if (partial_for_looptri != PARTIAL_NONE) {
-      BMPartialUpdate *bmpinfo = mesh_partial_ensure(t, tc, partial_for_looptri);
+    if (partial_for_looptris != PARTIAL_NONE) {
+      BMPartialUpdate *bmpinfo = mesh_partial_ensure(t, tc, partial_for_looptris);
       BMeshCalcTessellation_Params params{};
       params.face_normals = true;
-      BKE_editmesh_looptri_calc_with_partial_ex(em, bmpinfo, &params);
+      BKE_editmesh_looptris_calc_with_partial_ex(em, bmpinfo, &params);
     }
 
     if (partial_for_normals != PARTIAL_NONE) {
       BMPartialUpdate *bmpinfo = mesh_partial_ensure(t, tc, partial_for_normals);
       /* While not a large difference, take advantage of existing normals where possible. */
-      const bool face_normals = !((partial_for_looptri == PARTIAL_TYPE_ALL) ||
-                                  ((partial_for_looptri == PARTIAL_TYPE_GROUP) &&
+      const bool face_normals = !((partial_for_looptris == PARTIAL_TYPE_ALL) ||
+                                  ((partial_for_looptris == PARTIAL_TYPE_GROUP) &&
                                    (partial_for_normals == PARTIAL_TYPE_GROUP)));
       BMeshNormalsUpdate_Params params{};
       params.face_normals = face_normals;

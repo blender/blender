@@ -22,10 +22,10 @@ ReverseUVSampler::ReverseUVSampler(const Span<float2> uv_map, const Span<MLoopTr
   resolution_ = std::max<int>(3, std::sqrt(looptris.size()) * 2);
 
   for (const int looptri_index : looptris.index_range()) {
-    const MLoopTri &looptri = looptris[looptri_index];
-    const float2 &uv_0 = uv_map_[looptri.tri[0]];
-    const float2 &uv_1 = uv_map_[looptri.tri[1]];
-    const float2 &uv_2 = uv_map_[looptri.tri[2]];
+    const MLoopTri &lt = looptris[looptri_index];
+    const float2 &uv_0 = uv_map_[lt.tri[0]];
+    const float2 &uv_1 = uv_map_[lt.tri[1]];
+    const float2 &uv_2 = uv_map_[lt.tri[2]];
 
     const int2 key_0 = uv_to_cell_key(uv_0, resolution_);
     const int2 key_1 = uv_to_cell_key(uv_1, resolution_);
@@ -50,7 +50,7 @@ ReverseUVSampler::Result ReverseUVSampler::sample(const float2 &query_uv) const
 
   float best_dist = FLT_MAX;
   float3 best_bary_weights;
-  int best_looptri;
+  int best_looptri_index;
 
   /* The distance to an edge that is allowed to be inside or outside the triangle. Without this,
    * the lookup can fail for floating point accuracy reasons when the uv is almost exact on an
@@ -58,10 +58,10 @@ ReverseUVSampler::Result ReverseUVSampler::sample(const float2 &query_uv) const
   const float edge_epsilon = 0.00001f;
 
   for (const int looptri_index : looptri_indices) {
-    const MLoopTri &looptri = looptris_[looptri_index];
-    const float2 &uv_0 = uv_map_[looptri.tri[0]];
-    const float2 &uv_1 = uv_map_[looptri.tri[1]];
-    const float2 &uv_2 = uv_map_[looptri.tri[2]];
+    const MLoopTri &lt = looptris_[looptri_index];
+    const float2 &uv_0 = uv_map_[lt.tri[0]];
+    const float2 &uv_1 = uv_map_[lt.tri[1]];
+    const float2 &uv_2 = uv_map_[lt.tri[2]];
     float3 bary_weights;
     if (!barycentric_coords_v2(uv_0, uv_1, uv_2, query_uv, bary_weights)) {
       continue;
@@ -86,14 +86,14 @@ ReverseUVSampler::Result ReverseUVSampler::sample(const float2 &query_uv) const
     if (dist < best_dist) {
       best_dist = dist;
       best_bary_weights = bary_weights;
-      best_looptri = looptri_index;
+      best_looptri_index = looptri_index;
     }
   }
 
   /* Allow using the closest (but not intersecting) triangle if the uv is almost exactly on an
    * edge. */
   if (best_dist < edge_epsilon) {
-    return Result{ResultType::Ok, best_looptri, math::clamp(best_bary_weights, 0.0f, 1.0f)};
+    return Result{ResultType::Ok, best_looptri_index, math::clamp(best_bary_weights, 0.0f, 1.0f)};
   }
 
   return Result{};

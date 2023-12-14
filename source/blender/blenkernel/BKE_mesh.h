@@ -414,8 +414,8 @@ bool BKE_mesh_center_of_volume(const struct Mesh *mesh, float r_cent[3]);
  */
 void BKE_mesh_calc_volume(const float (*vert_positions)[3],
                           int mverts_num,
-                          const struct MLoopTri *mlooptri,
-                          int looptri_num,
+                          const struct MLoopTri *looptris,
+                          int looptris_num,
                           const int *corner_verts,
                           float *r_volume,
                           float r_center[3]);

@@ -186,7 +186,7 @@ static void editmesh_partial_update_update_fn(bContext *C,
 
   BMEditMesh *em = static_cast<BMEditMesh *>(arg1);
 
-  BKE_editmesh_looptri_and_normals_calc_with_partial(em, bmpinfo);
+  BKE_editmesh_looptris_and_normals_calc_with_partial(em, bmpinfo);
 }
 
 /** \} */

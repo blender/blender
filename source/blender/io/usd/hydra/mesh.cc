@@ -277,10 +277,10 @@ void gather_corner_data(const Span<MLoopTri> looptris,
                         MutableSpan<T> dst_data)
 {
   triangles.foreach_index_optimized<int>(GrainSize(1024), [&](const int src, const int dst) {
-    const MLoopTri &tri = looptris[src];
-    dst_data[dst * 3 + 0] = src_data[tri.tri[0]];
-    dst_data[dst * 3 + 1] = src_data[tri.tri[1]];
-    dst_data[dst * 3 + 2] = src_data[tri.tri[2]];
+    const MLoopTri &lt = looptris[src];
+    dst_data[dst * 3 + 0] = src_data[lt.tri[0]];
+    dst_data[dst * 3 + 1] = src_data[lt.tri[1]];
+    dst_data[dst * 3 + 2] = src_data[lt.tri[2]];
   });
 }
 
@@ -315,10 +315,10 @@ static void copy_submesh(const Mesh &mesh,
      * for vertices actually used by the subset of triangles. */
     verts.reserve(triangles.size());
     triangles.foreach_index([&](const int src, const int dst) {
-      const MLoopTri &tri = looptris[src];
-      sm.face_vertex_indices[dst * 3 + 0] = verts.index_of_or_add(corner_verts[tri.tri[0]]);
-      sm.face_vertex_indices[dst * 3 + 1] = verts.index_of_or_add(corner_verts[tri.tri[1]]);
-      sm.face_vertex_indices[dst * 3 + 2] = verts.index_of_or_add(corner_verts[tri.tri[2]]);
+      const MLoopTri &lt = looptris[src];
+      sm.face_vertex_indices[dst * 3 + 0] = verts.index_of_or_add(corner_verts[lt.tri[0]]);
+      sm.face_vertex_indices[dst * 3 + 1] = verts.index_of_or_add(corner_verts[lt.tri[1]]);
+      sm.face_vertex_indices[dst * 3 + 2] = verts.index_of_or_add(corner_verts[lt.tri[2]]);
     });
     dst_verts_num = verts.size();
   }
@@ -343,10 +343,10 @@ static void copy_submesh(const Mesh &mesh,
       break;
     case bke::MeshNormalDomain::Point:
       triangles.foreach_index(GrainSize(1024), [&](const int src, const int dst) {
-        const MLoopTri &tri = looptris[src];
-        dst_normals[dst * 3 + 0] = src_normals[corner_verts[tri.tri[0]]];
-        dst_normals[dst * 3 + 1] = src_normals[corner_verts[tri.tri[1]]];
-        dst_normals[dst * 3 + 2] = src_normals[corner_verts[tri.tri[2]]];
+        const MLoopTri &lt = looptris[src];
+        dst_normals[dst * 3 + 0] = src_normals[corner_verts[lt.tri[0]]];
+        dst_normals[dst * 3 + 1] = src_normals[corner_verts[lt.tri[1]]];
+        dst_normals[dst * 3 + 2] = src_normals[corner_verts[lt.tri[2]]];
       });
       break;
     case bke::MeshNormalDomain::Corner:

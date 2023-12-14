@@ -159,7 +159,7 @@ static void deform_verts(ModifierData *md,
         collmd->tri_num = looptris.size();
         MVertTri *tri = static_cast<MVertTri *>(
             MEM_mallocN(sizeof(*tri) * collmd->tri_num, __func__));
-        BKE_mesh_runtime_verttri_from_looptri(
+        BKE_mesh_runtime_verttris_from_looptris(
             tri, mesh->corner_verts().data(), looptris.data(), collmd->tri_num);
         collmd->tri = tri;
       }

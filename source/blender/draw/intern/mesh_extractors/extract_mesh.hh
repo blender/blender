@@ -178,7 +178,7 @@ BLI_INLINE const float *bm_face_no_get(const MeshRenderData &mr, const BMFace *e
 
 using ExtractTriBMeshFn = void(const MeshRenderData &mr, BMLoop **elt, int elt_index, void *data);
 using ExtractTriMeshFn = void(const MeshRenderData &mr,
-                              const MLoopTri *mlt,
+                              const MLoopTri *lt,
                               int elt_index,
                               void *data);
 using ExtractFaceBMeshFn = void(const MeshRenderData &mr,

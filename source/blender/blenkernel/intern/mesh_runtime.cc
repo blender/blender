@@ -262,21 +262,21 @@ blender::Span<int> Mesh::looptri_faces() const
   return this->runtime->looptri_faces_cache.data();
 }
 
-int BKE_mesh_runtime_looptri_len(const Mesh *mesh)
+int BKE_mesh_runtime_looptris_len(const Mesh *mesh)
 {
   /* Allow returning the size without calculating the cache. */
   return poly_to_tri_count(mesh->faces_num, mesh->totloop);
 }
 
-void BKE_mesh_runtime_verttri_from_looptri(MVertTri *r_verttri,
-                                           const int *corner_verts,
-                                           const MLoopTri *looptri,
-                                           int looptri_num)
+void BKE_mesh_runtime_verttris_from_looptris(MVertTri *r_verttri,
+                                             const int *corner_verts,
+                                             const MLoopTri *looptris,
+                                             int looptris_num)
 {
-  for (int i = 0; i < looptri_num; i++) {
-    r_verttri[i].tri[0] = corner_verts[looptri[i].tri[0]];
-    r_verttri[i].tri[1] = corner_verts[looptri[i].tri[1]];
-    r_verttri[i].tri[2] = corner_verts[looptri[i].tri[2]];
+  for (int i = 0; i < looptris_num; i++) {
+    r_verttri[i].tri[0] = corner_verts[looptris[i].tri[0]];
+    r_verttri[i].tri[1] = corner_verts[looptris[i].tri[1]];
+    r_verttri[i].tri[2] = corner_verts[looptris[i].tri[2]];
   }
 }
 
