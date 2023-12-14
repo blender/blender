@@ -58,12 +58,11 @@ struct TransDataVertSlideVert {
 };
 
 struct VertSlideData {
+  /* result of ED_view3d_ob_project_mat_get */
+  float4x4 proj_mat;
   TransDataVertSlideVert *sv;
   int totsv;
   int curr_sv_index;
-
-  /* result of ED_view3d_ob_project_mat_get */
-  float4x4 proj_mat;
 };
 
 struct VertSlideParams {
@@ -194,7 +193,7 @@ static VertSlideData *createVertSlideVerts(TransInfo *t, const TransDataContaine
   BMEdge *e;
   BMVert *v;
   TransDataVertSlideVert *sv_array;
-  VertSlideData *sld = static_cast<VertSlideData *>(MEM_callocN(sizeof(*sld), "sld"));
+  VertSlideData *sld = MEM_new<VertSlideData>(__func__);
   int j;
 
   sld->curr_sv_index = 0;
