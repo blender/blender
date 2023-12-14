@@ -3022,9 +3022,8 @@ bool pbvh_has_face_sets(PBVH *pbvh)
     case PBVH_FACES:
       return pbvh->mesh->attributes().contains(".sculpt_face_set");
     case PBVH_BMESH:
-      return false;
+      return CustomData_has_layer_named(&pbvh->header.bm->pdata, CD_PROP_FLOAT, ".sculpt_mask");
   }
-
   return false;
 }
 
