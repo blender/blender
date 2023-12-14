@@ -506,8 +506,6 @@ void do_surface_smooth_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
 {
   Brush *brush = BKE_paint_brush(&sd->paint);
 
-  TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
   for (int i = 0; i < brush->surface_smooth_iterations; i++) {
     threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
       for (const int i : range) {

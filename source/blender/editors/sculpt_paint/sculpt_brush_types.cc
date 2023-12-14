@@ -2318,8 +2318,6 @@ void SCULPT_do_slide_relax_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
 
   BKE_curvemapping_init(brush->curve);
 
-  TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
   if (ss->cache->alt_smooth) {
     SCULPT_boundary_info_ensure(ob);
     for (int i = 0; i < 4; i++) {

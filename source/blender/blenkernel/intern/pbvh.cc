@@ -3044,14 +3044,6 @@ void BKE_pbvh_get_frustum_planes(const PBVH *pbvh, PBVHFrustumPlanes *planes)
   }
 }
 
-void BKE_pbvh_parallel_range_settings(TaskParallelSettings *settings,
-                                      bool use_threading,
-                                      int totnode)
-{
-  memset(settings, 0, sizeof(*settings));
-  settings->use_threading = use_threading && totnode > 1;
-}
-
 Mesh *BKE_pbvh_get_mesh(PBVH *pbvh)
 {
   return pbvh->mesh;

@@ -602,18 +602,9 @@ void BKE_pbvh_node_get_bm_orco_data(PBVHNode *node,
  */
 bool BKE_pbvh_node_has_vert_with_normal_update_tag(PBVH *pbvh, PBVHNode *node);
 
-// void BKE_pbvh_node_BB_reset(PBVHNode *node);
-// void BKE_pbvh_node_BB_expand(PBVHNode *node, float co[3]);
-
 bool pbvh_has_mask(const PBVH *pbvh);
 
 bool pbvh_has_face_sets(PBVH *pbvh);
-
-/* Parallelization. */
-
-void BKE_pbvh_parallel_range_settings(TaskParallelSettings *settings,
-                                      bool use_threading,
-                                      int totnode);
 
 blender::Span<blender::float3> BKE_pbvh_get_vert_positions(const PBVH *pbvh);
 blender::MutableSpan<blender::float3> BKE_pbvh_get_vert_positions(PBVH *pbvh);

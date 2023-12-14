@@ -327,11 +327,8 @@ static std::vector<bool> init_uv_primitives_brush_test(SculptSession *ss,
   return brush_test;
 }
 
-static void do_paint_pixels(void *__restrict userdata,
-                            const int n,
-                            const TaskParallelTLS *__restrict tls)
+static void do_paint_pixels(TexturePaintingUserData *data, const int n)
 {
-  TexturePaintingUserData *data = static_cast<TexturePaintingUserData *>(userdata);
   Object *ob = data->ob;
   SculptSession *ss = ob->sculpt;
   const Brush *brush = data->brush;
@@ -339,7 +336,7 @@ static void do_paint_pixels(void *__restrict userdata,
   PBVHNode *node = data->nodes[n];
   PBVHData &pbvh_data = BKE_pbvh_pixels_data_get(*pbvh);
   NodeData &node_data = BKE_pbvh_pixels_node_data_get(*node);
-  const int thread_id = BLI_task_parallel_thread_id(tls);
+  const int thread_id = BLI_task_parallel_thread_id(nullptr);
   const Span<float3> positions = SCULPT_mesh_deformed_positions_get(ss);
 
   std::vector<bool> brush_test = init_uv_primitives_brush_test(
@@ -472,11 +469,8 @@ static void push_undo(const NodeData &node_data,
   }
 }
 
-static void do_push_undo_tile(void *__restrict userdata,
-                              const int n,
-                              const TaskParallelTLS *__restrict /*tls*/)
+static void do_push_undo_tile(TexturePaintingUserData *data, const int n)
 {
-  TexturePaintingUserData *data = static_cast<TexturePaintingUserData *>(userdata);
   PBVHNode *node = data->nodes[n];
 
   NodeData &node_data = BKE_pbvh_pixels_node_data_get(*node);
@@ -501,14 +495,6 @@ static void do_push_undo_tile(void *__restrict userdata,
   }
 }
 
-static void do_mark_dirty_regions(void *__restrict userdata,
-                                  const int n,
-                                  const TaskParallelTLS *__restrict /*tls*/)
-{
-  TexturePaintingUserData *data = static_cast<TexturePaintingUserData *>(userdata);
-  PBVHNode *node = data->nodes[n];
-  BKE_pbvh_pixels_mark_image_dirty(*node, *data->image_data.image, *data->image_data.image_user);
-}
 /* -------------------------------------------------------------------- */
 
 /** \name Fix non-manifold edge bleeding.
@@ -580,6 +566,7 @@ void SCULPT_do_paint_brush_image(PaintModeSettings *paint_mode_settings,
                                  Object *ob,
                                  blender::Span<PBVHNode *> texnodes)
 {
+  using namespace blender;
   Brush *brush = BKE_paint_brush(&sd->paint);
 
   TexturePaintingUserData data = {nullptr};
@@ -591,14 +578,19 @@ void SCULPT_do_paint_brush_image(PaintModeSettings *paint_mode_settings,
     return;
   }
 
-  TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, texnodes.size());
-  BLI_task_parallel_range(0, texnodes.size(), &data, do_push_undo_tile, &settings);
-  BLI_task_parallel_range(0, texnodes.size(), &data, do_paint_pixels, &settings);
+  threading::parallel_for(texnodes.index_range(), 1, [&](const IndexRange range) {
+    for (const int i : range) {
+      do_push_undo_tile(&data, i);
+    }
+  });
+  threading::parallel_for(texnodes.index_range(), 1, [&](const IndexRange range) {
+    for (const int i : range) {
+      do_paint_pixels(&data, i);
+    }
+  });
   fix_non_manifold_seam_bleeding(*ob, data);
 
-  TaskParallelSettings settings_flush;
-
-  BKE_pbvh_parallel_range_settings(&settings_flush, false, texnodes.size());
-  BLI_task_parallel_range(0, texnodes.size(), &data, do_mark_dirty_regions, &settings_flush);
+  for (PBVHNode *node : texnodes) {
+    BKE_pbvh_pixels_mark_image_dirty(*node, *data.image_data.image, *data.image_data.image_user);
+  }
 }

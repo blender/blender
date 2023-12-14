@@ -269,9 +269,6 @@ static void sculpt_transform_radius_elastic(Sculpt *sd, Object *ob, const float 
   sculpt_transform_matrices_init(
       ss, symm, ss->filter_cache->transform_displacement_mode, transform_mats);
 
-  TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, ss->filter_cache->nodes.size());
-
   /* Elastic transform needs to apply all transform matrices to all vertices and then combine the
    * displacement proxies as all vertices are modified by all symmetry passes. */
   for (ePaintSymmetryFlags symmpass = PAINT_SYMM_NONE; symmpass <= symm; symmpass++) {
