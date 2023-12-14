@@ -15,6 +15,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector_types.hh"
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
@@ -1211,7 +1212,7 @@ struct TempFrameValCache {
 
 void sample_fcurve_segment(FCurve *fcu,
                            const float start_frame,
-                           const int sample_rate,
+                           const float sample_rate,
                            float *samples,
                            const int sample_count)
 {
@@ -1219,6 +1220,104 @@ void sample_fcurve_segment(FCurve *fcu,
     const float evaluation_time = start_frame + (float(i) / sample_rate);
     samples[i] = evaluate_fcurve(fcu, evaluation_time);
   }
+}
+
+static void remove_fcurve_key_range(FCurve *fcu,
+                                    const blender::int2 range,
+                                    const BakeCurveRemove removal_mode)
+{
+  switch (removal_mode) {
+
+    case BakeCurveRemove::REMOVE_ALL: {
+      BKE_fcurve_delete_keys_all(fcu);
+      break;
+    }
+
+    case BakeCurveRemove::REMOVE_OUT_RANGE: {
+      bool replace;
+
+      int before_index = BKE_fcurve_bezt_binarysearch_index(
+          fcu->bezt, range[0], fcu->totvert, &replace);
+
+      if (before_index > 0) {
+        BKE_fcurve_delete_keys(fcu, {0, uint(before_index)});
+      }
+
+      int after_index = BKE_fcurve_bezt_binarysearch_index(
+          fcu->bezt, range[1], fcu->totvert, &replace);
+      /* REMOVE_OUT_RANGE is treated as exlusive on both ends. */
+      if (replace) {
+        after_index++;
+      }
+      if (after_index < fcu->totvert) {
+        BKE_fcurve_delete_keys(fcu, {uint(after_index), fcu->totvert});
+      }
+      break;
+    }
+
+    case BakeCurveRemove::REMOVE_IN_RANGE: {
+      bool replace;
+      const int range_start_index = BKE_fcurve_bezt_binarysearch_index(
+          fcu->bezt, range[0], fcu->totvert, &replace);
+      int range_end_index = BKE_fcurve_bezt_binarysearch_index(
+          fcu->bezt, range[1], fcu->totvert, &replace);
+      if (replace) {
+        range_end_index++;
+      }
+
+      if (range_end_index > range_start_index) {
+        BKE_fcurve_delete_keys(fcu, {uint(range_start_index), uint(range_end_index)});
+      }
+      break;
+    }
+
+    default:
+      break;
+  }
+}
+
+void bake_fcurve(FCurve *fcu,
+                 const blender::int2 range,
+                 const float step,
+                 const BakeCurveRemove remove_existing)
+{
+  using namespace blender::animrig;
+  BLI_assert(step > 0);
+  const int sample_count = (range[1] - range[0]) / step + 1;
+  float *samples = static_cast<float *>(
+      MEM_callocN(sample_count * sizeof(float), "Channel Bake Samples"));
+  const float sample_rate = 1.0f / step;
+  sample_fcurve_segment(fcu, range[0], sample_rate, samples, sample_count);
+
+  if (remove_existing != BakeCurveRemove::REMOVE_NONE) {
+    remove_fcurve_key_range(fcu, range, remove_existing);
+  }
+
+  BezTriple *baked_keys = static_cast<BezTriple *>(
+      MEM_callocN(sample_count * sizeof(BezTriple), "beztriple"));
+
+  const KeyframeSettings settings = get_keyframe_settings(true);
+
+  for (int i = 0; i < sample_count; i++) {
+    BezTriple *key = &baked_keys[i];
+    blender::float2 key_position = {range[0] + i * step, samples[i]};
+    initialize_bezt(key, key_position, settings, eFCurve_Flags(fcu->flag));
+  }
+
+  int merged_size;
+  BezTriple *merged_bezt = BKE_bezier_array_merge(
+      baked_keys, sample_count, fcu->bezt, fcu->totvert, &merged_size);
+
+  if (fcu->bezt != nullptr) {
+    /* Can happen if we removed all keys beforehand. */
+    MEM_freeN(fcu->bezt);
+  }
+  MEM_freeN(baked_keys);
+  fcu->bezt = merged_bezt;
+  fcu->totvert = merged_size;
+
+  MEM_freeN(samples);
+  BKE_fcurve_handles_recalc(fcu);
 }
 
 void bake_fcurve_segments(FCurve *fcu)

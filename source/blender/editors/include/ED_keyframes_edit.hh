@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "BLI_math_vector_types.hh"
 #include "ED_anim_api.hh" /* for enum eAnimFilter_Flags */
 
 struct BezTriple;
@@ -497,7 +498,14 @@ void bake_fcurve_segments(FCurve *fcu);
  * \param sample_rate: indicates how many samples per frame should be generated.
  */
 void sample_fcurve_segment(
-    FCurve *fcu, float start_frame, int sample_rate, float *r_samples, int sample_count);
+    FCurve *fcu, float start_frame, float sample_rate, float *r_samples, int sample_count);
+
+enum class BakeCurveRemove { REMOVE_NONE, REMOVE_IN_RANGE, REMOVE_OUT_RANGE, REMOVE_ALL };
+/** Creates keyframes in the given range at the given step interval.
+ * \param range: start and end frame to bake. Is inclusive on both ends.
+ * \param remove_existing: choice which keys to remove in relation to the given range.
+ */
+void bake_fcurve(FCurve *fcu, blender::int2 range, float step, BakeCurveRemove remove_existing);
 
 /* ----------- */
 

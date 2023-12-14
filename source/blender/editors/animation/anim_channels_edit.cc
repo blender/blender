@@ -4310,6 +4310,189 @@ static void ANIM_OT_channel_view_pick(wmOperatorType *ot)
                              "Ignore frames outside of the preview range");
 }
 
+static const EnumPropertyItem channel_bake_key_options[] = {
+    {BEZT_IPO_BEZ, "BEZIER", 0, "Bezier", "New keys will be beziers"},
+    {BEZT_IPO_LIN, "LIN", 0, "Linear", "New keys will be linear"},
+    {BEZT_IPO_CONST, "CONST", 0, "Constant", "New keys will be constant"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
+static const EnumPropertyItem channel_bake_remove_options[] = {
+    {int(BakeCurveRemove::REMOVE_NONE), "NONE", 0, "None", "Keep all keys"},
+    {int(BakeCurveRemove::REMOVE_IN_RANGE),
+     "IN_RANGE",
+     0,
+     "In Range",
+     "Remove all keys within the defined range"},
+    {int(BakeCurveRemove::REMOVE_OUT_RANGE),
+     "OUT_RANGE",
+     0,
+     "Outside Range",
+     "Remove all keys outside the defined range"},
+    {int(BakeCurveRemove::REMOVE_ALL), "ALL", 0, "All", "Remove all existing keys"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
+static int channels_bake_exec(bContext *C, wmOperator *op)
+{
+  bAnimContext ac;
+
+  /* Get editor data. */
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
+    return OPERATOR_CANCELLED;
+  }
+
+  ListBase anim_data = {nullptr, nullptr};
+  const int filter = (ANIMFILTER_SEL | ANIMFILTER_NODUPLIS | ANIMFILTER_DATA_VISIBLE |
+                      ANIMFILTER_LIST_VISIBLE | ANIMFILTER_FCURVESONLY);
+  size_t anim_data_length = ANIM_animdata_filter(
+      &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
+
+  if (anim_data_length == 0) {
+    WM_report(RPT_WARNING, "No channels to operate on");
+    return OPERATOR_CANCELLED;
+  }
+
+  Scene *scene = CTX_data_scene(C);
+
+  /* The range will default to the scene or preview range, but only if it hasn't been set before.
+   * If a range is set here, the redo panel wouldn't work properly because the range would
+   * constantly be overridden. */
+  blender::int2 frame_range;
+  RNA_int_get_array(op->ptr, "range", frame_range);
+  if (frame_range[1] < frame_range[0]) {
+    frame_range[1] = frame_range[0];
+  }
+  const float step = RNA_float_get(op->ptr, "step");
+  if (frame_range[0] == 0 && frame_range[1] == 0) {
+    if (scene->r.flag & SCER_PRV_RANGE) {
+      frame_range = {scene->r.psfra, scene->r.pefra};
+    }
+    else {
+      frame_range = {scene->r.sfra, scene->r.efra};
+    }
+    RNA_int_set_array(op->ptr, "range", frame_range);
+  }
+
+  const bool remove_outside_range = RNA_boolean_get(op->ptr, "remove_outside_range");
+  const BakeCurveRemove remove_existing = remove_outside_range ? BakeCurveRemove::REMOVE_ALL :
+                                                                 BakeCurveRemove::REMOVE_IN_RANGE;
+  const int interpolation_type = RNA_enum_get(op->ptr, "interpolation_type");
+  const bool bake_modifiers = RNA_boolean_get(op->ptr, "bake_modifiers");
+
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+    FCurve *fcu = static_cast<FCurve *>(ale->data);
+    if (!fcu->bezt) {
+      continue;
+    }
+    AnimData *adt = ANIM_nla_mapping_get(&ac, ale);
+    blender::int2 nla_mapped_range;
+    nla_mapped_range[0] = int(BKE_nla_tweakedit_remap(adt, frame_range[0], NLATIME_CONVERT_UNMAP));
+    nla_mapped_range[1] = int(BKE_nla_tweakedit_remap(adt, frame_range[1], NLATIME_CONVERT_UNMAP));
+    /* Save current state of modifier flags so they can be reapplied after baking. */
+    blender::Vector<short> modifier_flags;
+    if (!bake_modifiers) {
+      LISTBASE_FOREACH (FModifier *, modifier, &fcu->modifiers) {
+        modifier_flags.append(modifier->flag);
+        modifier->flag |= FMODIFIER_FLAG_MUTED;
+      }
+    }
+
+    bool replace;
+    const int last_index = BKE_fcurve_bezt_binarysearch_index(
+        fcu->bezt, nla_mapped_range[1], fcu->totvert, &replace);
+
+    /* Since the interpolation of a key defines the curve following it, the last key in the baked
+     * segment needs to keep the interpolation mode that existed previously so the curve isn't
+     * changed. */
+    const char segment_end_interpolation = fcu->bezt[min_ii(last_index, fcu->totvert - 1)].ipo;
+
+    bake_fcurve(fcu, nla_mapped_range, step, remove_existing);
+
+    if (bake_modifiers) {
+      free_fmodifiers(&fcu->modifiers);
+    }
+    else {
+      int modifier_index = 0;
+      LISTBASE_FOREACH (FModifier *, modifier, &fcu->modifiers) {
+        modifier->flag = modifier_flags[modifier_index];
+        modifier_index++;
+      }
+    }
+
+    for (int i = 0; i < fcu->totvert; i++) {
+      BezTriple *key = &fcu->bezt[i];
+      if (key->vec[1][0] < nla_mapped_range[0]) {
+        continue;
+      }
+      if (key->vec[1][0] > nla_mapped_range[1]) {
+        fcu->bezt[max_ii(i - 1, 0)].ipo = segment_end_interpolation;
+        break;
+      }
+      key->ipo = interpolation_type;
+    }
+  }
+
+  ANIM_animdata_freelist(&anim_data);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_SELECTED, nullptr);
+
+  return OPERATOR_FINISHED;
+}
+
+static void ANIM_OT_channels_bake(wmOperatorType *ot)
+{
+  /* Identifiers */
+  ot->name = "Bake Channels";
+  ot->idname = "ANIM_OT_channels_bake";
+  ot->description =
+      "Create keyframes following the current shape of F-Curves of selected channels";
+
+  /* API callbacks */
+  ot->exec = channels_bake_exec;
+  ot->poll = channel_view_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  RNA_def_int_array(ot->srna,
+                    "range",
+                    2,
+                    nullptr,
+                    INT_MIN,
+                    INT_MAX,
+                    "Frame Range",
+                    "The range in which to create new keys",
+                    0,
+                    INT_MAX);
+
+  RNA_def_float(ot->srna,
+                "step",
+                1.0f,
+                0.01f,
+                FLT_MAX,
+                "Frame Step",
+                "At which interval to add keys",
+                1.0f,
+                16.0f);
+
+  RNA_def_boolean(ot->srna,
+                  "remove_outside_range",
+                  false,
+                  "Remove Outside Range",
+                  "Removes keys outside the given range, leaving only the newly baked");
+
+  RNA_def_enum(ot->srna,
+               "interpolation_type",
+               channel_bake_key_options,
+               BEZT_IPO_BEZ,
+               "Interpolation Type",
+               "Choose the interpolation type with which new keys will be added");
+
+  RNA_def_boolean(ot->srna,
+                  "bake_modifiers",
+                  true,
+                  "Bake Modifiers",
+                  "Bake Modifiers into keyframes and delete them after");
+}
+
 /* Find a Graph Editor area and modify the given context to be the window region of it. */
 static bool move_context_to_graph_editor(bContext *C)
 {
@@ -4584,6 +4767,8 @@ void ED_operatortypes_animchannels()
 
   WM_operatortype_append(ANIM_OT_channels_group);
   WM_operatortype_append(ANIM_OT_channels_ungroup);
+
+  WM_operatortype_append(ANIM_OT_channels_bake);
 }
 
 void ED_keymap_animchannels(wmKeyConfig *keyconf)
