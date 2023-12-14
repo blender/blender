@@ -1239,16 +1239,6 @@ static void libdecor_frame_handle_configure(libdecor_frame *frame,
         }
       }
     }
-
-#  ifdef USE_EVENT_BACKGROUND_THREAD
-    /* NOTE(@ideasman42): when running from the event handling thread,
-     * don't apply the new window size back to LIBDECOR, otherwise the window content
-     * (which uses a deferred update) and the window get noticeably out of sync.
-     * Rely on the new `frame_pending->size` to resize the window later. */
-    if (is_main_thread == false) {
-      has_size = false;
-    }
-#  endif
   }
 
   /* Set the state. */
