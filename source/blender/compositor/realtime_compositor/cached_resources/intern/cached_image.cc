@@ -236,7 +236,7 @@ CachedImage::CachedImage(Context &context,
   const ResultPrecision precision = Result::precision(target_format);
 
   /* The GPU image returned by the IMB module can be in a format not supported by the compositor,
-   * or it might need premultiplication, so preprocess them first. */
+   * or it might need pre-multiplication, so preprocess them first. */
   if (result_type == ResultType::Color && should_premultiply_alpha(image, image_buffer)) {
     texture_ = preprocess_texture(
         context, texture_, target_format, precision, "compositor_premultiply_alpha");

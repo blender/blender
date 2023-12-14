@@ -224,7 +224,7 @@ void BKE_editmesh_loop_tangent_calc(BMEditMesh *em,
         face_as_quad_map[i] = j;
         /* step over all quads */
         if (em->looptris[j][0]->f->len == 4) {
-          j++; /* skips the nest looptri */
+          j++; /* Skips the next looptri. */
         }
       }
       num_face_as_quad_map = i;

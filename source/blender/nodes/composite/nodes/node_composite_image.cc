@@ -41,7 +41,7 @@
 #include "COM_node_operation.hh"
 #include "COM_utilities.hh"
 
-/* **************** IMAGE (and RenderResult, multilayer image) ******************** */
+/* **************** IMAGE (and RenderResult, multi-layer image) ******************** */
 
 static bNodeSocketTemplate cmp_node_rlayers_out[] = {
     {SOCK_RGBA, N_("Image"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
@@ -336,7 +336,7 @@ static void cmp_node_rlayer_create_outputs(bNodeTree *ntree,
 }
 
 /* XXX make this into a generic socket verification function for dynamic socket replacement
- * (multilayer, groups, static templates) */
+ * (multi-layer, groups, static templates). */
 static void cmp_node_image_verify_outputs(bNodeTree *ntree, bNode *node, bool rlayer)
 {
   bNodeSocket *sock, *sock_next;

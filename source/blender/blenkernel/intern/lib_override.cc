@@ -795,7 +795,7 @@ struct LibOverrideGroupTagData {
    *
    * NOTE: This is needed only for partial resync, when only part of the liboverridden hierarchy is
    * re-generated, since some IDs in that sub-hierarchy may not be detected as needing to be
-   * overridden, while they would when comsidering the whole hierarchy. */
+   * overridden, while they would when considering the whole hierarchy. */
   blender::Set<ID *> linked_ids_hierarchy_default_override;
   bool do_create_linked_overrides_set;
 
@@ -1165,7 +1165,7 @@ static void lib_override_linked_group_tag(LibOverrideGroupTagData *data)
   /* In case this code only process part of the whole hierarchy, it first needs to process the
    * whole linked hierarchy to know which IDs should be overridden anyway, even though in the more
    * limited sub-hierarchy scope they would not be. This is critical for partial resync to work
-   * propoerly.
+   * properly.
    *
    * NOTE: Regenerating that Set for every processed sub-hierarchy is not optimal. This is done
    * that way for now to limit the scope of these changes. Better handling is considered a TODO for

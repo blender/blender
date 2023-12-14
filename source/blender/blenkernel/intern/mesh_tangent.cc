@@ -471,7 +471,7 @@ void BKE_mesh_calc_loop_tangent_ex(const float (*vert_positions)[3],
         face_as_quad_map[k] = j;
         /* step over all quads */
         if (faces[looptri_faces[j]].size() == 4) {
-          j++; /* skips the nest looptri */
+          j++; /* Skips the next looptri. */
         }
       }
       num_face_as_quad_map = k;
