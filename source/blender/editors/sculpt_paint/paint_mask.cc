@@ -1127,7 +1127,7 @@ static void sculpt_gesture_face_set_apply_for_symmetry_pass(bContext * /*C*/,
 
 static void sculpt_gesture_face_set_end(bContext * /*C*/, SculptGestureContext *sgcontext)
 {
-  BKE_pbvh_update_visibility(sgcontext->ss->pbvh);
+  bke::pbvh::update_visibility(*sgcontext->ss->pbvh);
 }
 
 static void sculpt_gesture_init_face_set_properties(SculptGestureContext *sgcontext,
@@ -1224,7 +1224,7 @@ static void sculpt_gesture_mask_end(bContext *C, SculptGestureContext *sgcontext
   if (BKE_pbvh_type(sgcontext->ss->pbvh) == PBVH_GRIDS) {
     multires_mark_as_modified(depsgraph, sgcontext->vc.obact, MULTIRES_COORDS_MODIFIED);
   }
-  BKE_pbvh_update_mask(sgcontext->ss->pbvh);
+  blender::bke::pbvh::update_mask(*sgcontext->ss->pbvh);
 }
 
 static void sculpt_gesture_init_mask_properties(bContext *C,

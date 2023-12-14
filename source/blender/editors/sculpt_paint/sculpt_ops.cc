@@ -956,7 +956,7 @@ static int sculpt_mask_by_color_invoke(bContext *C, wmOperator *op, const wmEven
     sculpt_mask_by_color_full_mesh(ob, active_vertex, threshold, invert, preserve_mask);
   }
 
-  BKE_pbvh_update_mask(ss->pbvh);
+  bke::pbvh::update_mask(*ss->pbvh);
   undo::push_end(ob);
 
   SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
@@ -1161,7 +1161,7 @@ static int sculpt_bake_cavity_exec(bContext *C, wmOperator *op)
 
   auto_mask::cache_free(automasking);
 
-  BKE_pbvh_update_mask(ss->pbvh);
+  bke::pbvh::update_mask(*ss->pbvh);
   undo::push_end(ob);
 
   SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);

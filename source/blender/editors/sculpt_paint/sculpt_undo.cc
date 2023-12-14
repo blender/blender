@@ -1039,21 +1039,21 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, UndoSculpt &usculpt)
   }
 
   if (changed_position) {
-    BKE_pbvh_update_bounds(ss->pbvh, PBVH_UpdateBB | PBVH_UpdateOriginalBB | PBVH_UpdateRedraw);
+    bke::pbvh::update_bounds(*ss->pbvh, PBVH_UpdateBB | PBVH_UpdateOriginalBB | PBVH_UpdateRedraw);
   }
   if (changed_mask) {
-    BKE_pbvh_update_mask(ss->pbvh);
+    bke::pbvh::update_mask(*ss->pbvh);
   }
   if (changed_hide_face) {
     hide::sync_all_from_faces(*ob);
-    BKE_pbvh_update_visibility(ss->pbvh);
+    bke::pbvh::update_visibility(*ss->pbvh);
   }
   if (changed_hide_vert) {
     if (ELEM(BKE_pbvh_type(ss->pbvh), PBVH_FACES, PBVH_GRIDS)) {
       Mesh &mesh = *static_cast<Mesh *>(ob->data);
       BKE_pbvh_sync_visibility_from_verts(ss->pbvh, &mesh);
     }
-    BKE_pbvh_update_visibility(ss->pbvh);
+    bke::pbvh::update_visibility(*ss->pbvh);
   }
 
   if (BKE_sculpt_multires_active(scene, ob)) {
@@ -1740,7 +1740,7 @@ static void set_active_layer(bContext *C, SculptAttrRef *attr)
       BKE_pbvh_update_active_vcol(ob->sculpt->pbvh, mesh);
 
       if (!sculpt_attribute_ref_equals(&existing, attr)) {
-        BKE_pbvh_update_vertex_data(ob->sculpt->pbvh, PBVH_UpdateColor);
+        bke::pbvh::update_vertex_data(*ob->sculpt->pbvh, PBVH_UpdateColor);
       }
     }
   }

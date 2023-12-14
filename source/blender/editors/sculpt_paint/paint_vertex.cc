@@ -522,6 +522,7 @@ void update_cache_invariants(
 /* Initialize the stroke cache variants from operator properties */
 void update_cache_variants(bContext *C, VPaint *vp, Object *ob, PointerRNA *ptr)
 {
+  using namespace blender;
   Scene *scene = CTX_data_scene(C);
   SculptSession *ss = ob->sculpt;
   StrokeCache *cache = ss->cache;
@@ -562,7 +563,7 @@ void update_cache_variants(bContext *C, VPaint *vp, Object *ob, PointerRNA *ptr)
   cache->radius_squared = cache->radius * cache->radius;
 
   if (ss->pbvh) {
-    BKE_pbvh_update_bounds(ss->pbvh, PBVH_UpdateRedraw | PBVH_UpdateBB);
+    bke::pbvh::update_bounds(*ss->pbvh, PBVH_UpdateRedraw | PBVH_UpdateBB);
   }
 }
 

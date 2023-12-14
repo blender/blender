@@ -1080,7 +1080,7 @@ static int sculpt_face_set_change_visibility_exec(bContext *C, wmOperator *op)
 
   undo::push_end(&object);
 
-  BKE_pbvh_update_visibility(ss->pbvh);
+  bke::pbvh::update_visibility(*ss->pbvh);
   BKE_sculpt_hide_poly_pointer_update(object);
 
   SCULPT_topology_islands_invalidate(object.sculpt);

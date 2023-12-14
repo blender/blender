@@ -133,7 +133,7 @@ void cache_init(bContext *C,
   /* `mesh->runtime.subdiv_ccg` is not available. Updating of the normals is done during drawing.
    * Filters can't use normals in multi-resolution. */
   if (BKE_pbvh_type(ss->pbvh) != PBVH_GRIDS) {
-    BKE_pbvh_update_normals(ss->pbvh, nullptr);
+    bke::pbvh::update_normals(*ss->pbvh, nullptr);
   }
 
   for (const int i : ss->filter_cache->nodes.index_range()) {
@@ -760,7 +760,7 @@ static void sculpt_mesh_filter_apply(bContext *C, wmOperator *op)
 
   /* The relax mesh filter needs the updated normals of the modified mesh after each iteration. */
   if (ELEM(MESH_FILTER_RELAX, MESH_FILTER_RELAX_FACE_SETS)) {
-    BKE_pbvh_update_normals(ss->pbvh, ss->subdiv_ccg);
+    bke::pbvh::update_normals(*ss->pbvh, ss->subdiv_ccg);
   }
 
   SCULPT_flush_update_step(C, SCULPT_UPDATE_COORDS);
@@ -859,7 +859,7 @@ static void sculpt_mesh_filter_cancel(bContext *C, wmOperator * /*op*/)
     BKE_pbvh_node_mark_update(node);
   }
 
-  BKE_pbvh_update_bounds(ss->pbvh, PBVH_UpdateBB);
+  blender::bke::pbvh::update_bounds(*ss->pbvh, PBVH_UpdateBB);
 }
 
 static int sculpt_mesh_filter_modal(bContext *C, wmOperator *op, const wmEvent *event)

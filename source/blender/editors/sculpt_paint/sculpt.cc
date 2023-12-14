@@ -5237,7 +5237,7 @@ void SCULPT_flush_update_step(bContext *C, SculptUpdateType update_flags)
     rcti r;
 
     if (update_flags & SCULPT_UPDATE_COORDS) {
-      BKE_pbvh_update_bounds(ss->pbvh, PBVH_UpdateBB);
+      bke::pbvh::update_bounds(*ss->pbvh, PBVH_UpdateBB);
     }
 
     RegionView3D *rv3d = CTX_wm_region_view3d(C);
@@ -5264,10 +5264,10 @@ void SCULPT_flush_update_step(bContext *C, SculptUpdateType update_flags)
        * sculpt mode has special requirements and is expected to have sole ownership of the mesh it
        * modifies, it's generally okay.
        *
-       * Vertex and face normals are updated later in #BKE_pbvh_update_normals. However, we update
-       * the mesh's bounds eagerly here since they are trivial to access from the PBVH. Updating
-       * the object's evaluated geometry bounding box is necessary because sculpt strokes don't
-       * cause an object reevaluation. */
+       * Vertex and face normals are updated later in #bke::pbvh::update_normals. However, we
+       * update the mesh's bounds eagerly here since they are trivial to access from the PBVH.
+       * Updating the object's evaluated geometry bounding box is necessary because sculpt strokes
+       * don't cause an object reevaluation. */
       mesh->tag_positions_changed_no_normals();
       mesh->bounds_set_eager(BKE_pbvh_bounding_box(ob->sculpt->pbvh));
       if (ob->runtime->bounds_eval) {
@@ -5279,6 +5279,7 @@ void SCULPT_flush_update_step(bContext *C, SculptUpdateType update_flags)
 
 void SCULPT_flush_update_done(const bContext *C, Object *ob, SculptUpdateType update_flags)
 {
+  using namespace blender;
   /* After we are done drawing the stroke, check if we need to do a more
    * expensive depsgraph tag to update geometry. */
   wmWindowManager *wm = CTX_wm_manager(C);
@@ -5328,18 +5329,18 @@ void SCULPT_flush_update_done(const bContext *C, Object *ob, SculptUpdateType up
   }
 
   if (update_flags & SCULPT_UPDATE_COORDS) {
-    BKE_pbvh_update_bounds(ss->pbvh, PBVH_UpdateOriginalBB);
+    bke::pbvh::update_bounds(*ss->pbvh, PBVH_UpdateOriginalBB);
 
     /* Coordinates were modified, so fake neighbors are not longer valid. */
     SCULPT_fake_neighbors_free(ob);
   }
 
   if (update_flags & SCULPT_UPDATE_MASK) {
-    BKE_pbvh_update_mask(ss->pbvh);
+    bke::pbvh::update_mask(*ss->pbvh);
   }
 
   if (update_flags & SCULPT_UPDATE_COLOR) {
-    BKE_pbvh_update_vertex_data(ss->pbvh, PBVH_UpdateColor);
+    bke::pbvh::update_vertex_data(*ss->pbvh, PBVH_UpdateColor);
   }
 
   BKE_sculpt_attributes_destroy_temporary_stroke(ob);

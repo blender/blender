@@ -1341,6 +1341,7 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph *task_graph,
                                            const bool is_paint_mode,
                                            const bool use_hide)
 {
+  using namespace blender;
   BLI_assert(task_graph);
   const ToolSettings *ts = nullptr;
   if (scene) {
@@ -1507,7 +1508,7 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph *task_graph,
   const bool do_update_sculpt_normals = ob->sculpt && ob->sculpt->pbvh;
   if (do_update_sculpt_normals) {
     Mesh *mesh = static_cast<Mesh *>(ob->data);
-    BKE_pbvh_update_normals(ob->sculpt->pbvh, mesh->runtime->subdiv_ccg.get());
+    bke::pbvh::update_normals(*ob->sculpt->pbvh, mesh->runtime->subdiv_ccg.get());
   }
 
   cache.batch_ready |= batch_requested;

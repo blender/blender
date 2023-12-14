@@ -418,13 +418,14 @@ const blender::Set<BMFace *, 0> &BKE_pbvh_bmesh_node_faces(PBVHNode *node);
 void BKE_pbvh_bmesh_node_save_orig(BMesh *bm, BMLog *log, PBVHNode *node, bool use_original);
 void BKE_pbvh_bmesh_after_stroke(PBVH *pbvh);
 
-/* Update Bounding Box/Redraw and clear flags. */
+namespace blender::bke::pbvh {
+void update_bounds(PBVH &pbvh, int flags);
+void update_mask(PBVH &pbvh);
+void update_visibility(PBVH &pbvh);
+void update_vertex_data(PBVH &pbvh, int flags);
+void update_normals(PBVH &pbvh, SubdivCCG *subdiv_ccg);
+}  // namespace blender::bke::pbvh
 
-void BKE_pbvh_update_bounds(PBVH *pbvh, int flags);
-void BKE_pbvh_update_mask(PBVH *pbvh);
-void BKE_pbvh_update_vertex_data(PBVH *pbvh, int flags);
-void BKE_pbvh_update_visibility(PBVH *pbvh);
-void BKE_pbvh_update_normals(PBVH *pbvh, SubdivCCG *subdiv_ccg);
 blender::Bounds<blender::float3> BKE_pbvh_redraw_BB(PBVH *pbvh);
 blender::IndexMask BKE_pbvh_get_grid_updates(const PBVH *pbvh,
                                              blender::Span<const PBVHNode *> nodes,
