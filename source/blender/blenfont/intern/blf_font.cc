@@ -769,7 +769,7 @@ size_t blf_font_width_to_rstrlen(
 
   i_tmp = i;
   g = blf_glyph_from_utf8_and_step(font, gc, nullptr, str, str_len, &i_tmp, nullptr);
-  for (width_new = pen_x = 0; (s != nullptr);
+  for (width_new = pen_x = 0; (s != nullptr && i > 0);
        i = i_prev, s = s_prev, g = g_prev, g_prev = nullptr, width_new = pen_x)
   {
     s_prev = BLI_str_find_prev_char_utf8(s, str);
