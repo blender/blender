@@ -9,6 +9,7 @@
 #include <cstdio>
 
 #include "ANIM_action.hh"
+#include "ANIM_animdata.hh"
 #include "ANIM_keyframing.hh"
 
 #include "MEM_guardedalloc.h"
@@ -5094,7 +5095,7 @@ static void achannel_setting_slider_shapekey_cb(bContext *C, void *key_poin, voi
   if (RNA_path_resolve_property(&id_ptr, rna_path, &ptr, &prop)) {
     /* find or create new F-Curve */
     /* XXX is the group name for this ok? */
-    bAction *act = ED_id_action_ensure(bmain, (ID *)key);
+    bAction *act = blender::animrig::id_action_ensure(bmain, (ID *)key);
     FCurve *fcu = blender::animrig::action_fcurve_ensure(bmain, act, nullptr, &ptr, rna_path, 0);
 
     /* set the special 'replace' flag if on a keyframe */

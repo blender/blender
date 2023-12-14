@@ -61,6 +61,7 @@
 #include "ED_screen.hh"
 
 #include "ANIM_action.hh"
+#include "ANIM_animdata.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -1072,7 +1073,7 @@ static int followpath_path_animate_exec(bContext *C, wmOperator *op)
         (BKE_fcurve_find(&cu->adt->action->curves, "eval_time", 0) == nullptr))
     {
       /* create F-Curve for path animation */
-      act = ED_id_action_ensure(bmain, &cu->id);
+      act = blender::animrig::id_action_ensure(bmain, &cu->id);
       fcu = blender::animrig::action_fcurve_ensure(bmain, act, nullptr, nullptr, "eval_time", 0);
 
       /* standard vertical range - 1:1 = 100 frames */
@@ -1096,7 +1097,7 @@ static int followpath_path_animate_exec(bContext *C, wmOperator *op)
     path = RNA_path_from_ID_to_property(&ptr, prop);
 
     /* create F-Curve for constraint */
-    act = ED_id_action_ensure(bmain, &ob->id);
+    act = blender::animrig::id_action_ensure(bmain, &ob->id);
     fcu = blender::animrig::action_fcurve_ensure(bmain, act, nullptr, nullptr, path, 0);
 
     /* standard vertical range - 0.0 to 1.0 */

@@ -67,6 +67,7 @@
 #include "UI_view2d.hh"
 
 #include "ANIM_action.hh"
+#include "ANIM_animdata.hh"
 #include "ANIM_keyframing.hh"
 
 #include "ED_clip.hh"
@@ -524,7 +525,7 @@ static void gpencil_stroke_path_animation(bContext *C,
   prop = RNA_struct_find_property(&ptr, "eval_time");
 
   /* Ensure we have an F-Curve to add keyframes to */
-  act = ED_id_action_ensure(bmain, (ID *)cu);
+  act = blender::animrig::id_action_ensure(bmain, (ID *)cu);
   fcu = blender::animrig::action_fcurve_ensure(bmain, act, nullptr, &ptr, "eval_time", 0);
 
   if (gtd->mode == GP_STROKECONVERT_TIMING_LINEAR) {

@@ -8,9 +8,13 @@
 
 #include "ANIM_animdata.hh"
 #include "BKE_action.h"
+#include "BKE_anim_data.h"
 #include "BKE_fcurve.h"
 #include "BKE_lib_id.h"
 #include "BLI_listbase.h"
+#include "BLI_string.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_build.hh"
 #include "DNA_anim_types.h"
 #include "ED_anim_api.hh"
 
@@ -19,6 +23,47 @@ namespace blender::animrig {
 /* -------------------------------------------------------------------- */
 /** \name Public F-Curves API
  * \{ */
+
+bAction *id_action_ensure(Main *bmain, ID *id)
+{
+  AnimData *adt;
+
+  /* init animdata if none available yet */
+  adt = BKE_animdata_from_id(id);
+  if (adt == nullptr) {
+    adt = BKE_animdata_ensure_id(id);
+  }
+  if (adt == nullptr) {
+    /* if still none (as not allowed to add, or ID doesn't have animdata for some reason) */
+    printf("ERROR: Couldn't add AnimData (ID = %s)\n", (id) ? (id->name) : "<None>");
+    return nullptr;
+  }
+
+  /* init action if none available yet */
+  /* TODO: need some wizardry to handle NLA stuff correct */
+  if (adt->action == nullptr) {
+    /* init action name from name of ID block */
+    char actname[sizeof(id->name) - 2];
+    SNPRINTF(actname, "%sAction", id->name + 2);
+
+    /* create action */
+    adt->action = BKE_action_add(bmain, actname);
+
+    /* set ID-type from ID-block that this is going to be assigned to
+     * so that users can't accidentally break actions by assigning them
+     * to the wrong places
+     */
+    BKE_animdata_action_ensure_idroot(id, adt->action);
+
+    /* Tag depsgraph to be rebuilt to include time dependency. */
+    DEG_relations_tag_update(bmain);
+  }
+
+  DEG_id_tag_update(&adt->action->id, ID_RECALC_ANIMATION_NO_FLUSH);
+
+  /* return the action */
+  return adt->action;
+}
 
 void animdata_fcurve_delete(bAnimContext *ac, AnimData *adt, FCurve *fcu)
 {

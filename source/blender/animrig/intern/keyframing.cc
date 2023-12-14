@@ -536,7 +536,7 @@ int insert_keyframe(Main *bmain,
 
   /* If no action is provided, keyframe to the default one attached to this ID-block. */
   if (act == nullptr) {
-    act = ED_id_action_ensure(bmain, id);
+    act = id_action_ensure(bmain, id);
     if (act == nullptr) {
       BKE_reportf(reports,
                   RPT_ERROR,
@@ -936,7 +936,7 @@ void insert_key_rna(PointerRNA *rna_pointer,
                     ReportList *reports)
 {
   ID *id = rna_pointer->owner_id;
-  bAction *action = ED_id_action_ensure(bmain, id);
+  bAction *action = id_action_ensure(bmain, id);
   if (action == nullptr) {
     BKE_reportf(reports,
                 RPT_ERROR,

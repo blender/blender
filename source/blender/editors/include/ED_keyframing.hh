@@ -49,14 +49,6 @@ eInsertKeyFlags ANIM_get_keyframing_flags(Scene *scene, bool use_autokey_mode);
 /* -------- */
 
 /**
- * Get (or add relevant data to be able to do so) the Active Action for the given
- * Animation Data block, given an ID block where the Animation Data should reside.
- */
-bAction *ED_id_action_ensure(Main *bmain, ID *id);
-
-/* -------- */
-
-/**
  * \brief Lesser Key-framing API call.
  *
  * Update integer/discrete flags of the FCurve (used when creating/inserting keyframes,

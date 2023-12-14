@@ -57,6 +57,7 @@ set(LIB
   bf_editor_util
   PRIVATE bf::intern::atomic
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::animrig
 )
 
 if(WITH_AUDASPACE)

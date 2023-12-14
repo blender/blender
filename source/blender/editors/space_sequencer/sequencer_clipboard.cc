@@ -51,6 +51,8 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
 
+#include "ANIM_animdata.hh"
+
 #include "WM_api.hh"
 #include "WM_types.hh"
 
@@ -175,7 +177,7 @@ static bool sequencer_write_copy_paste_file(Main *bmain_src,
 
   if (!BLI_listbase_is_empty(&fcurves_dst) || !BLI_listbase_is_empty(&drivers_dst)) {
     BLI_assert(scene_dst->adt == nullptr);
-    bAction *act_dst = ED_id_action_ensure(bmain_src, &scene_dst->id);
+    bAction *act_dst = blender::animrig::id_action_ensure(bmain_src, &scene_dst->id);
     BLI_movelisttolist(&act_dst->curves, &fcurves_dst);
     BLI_movelisttolist(&scene_dst->adt->drivers, &drivers_dst);
   }
@@ -251,7 +253,7 @@ static bool sequencer_paste_animation(Main *bmain_dst, Scene *scene_dst, Scene *
   }
   else {
     /* get action to add F-Curve+keyframe to */
-    act_dst = ED_id_action_ensure(bmain_dst, &scene_dst->id);
+    act_dst = blender::animrig::id_action_ensure(bmain_dst, &scene_dst->id);
   }
 
   LISTBASE_FOREACH (FCurve *, fcu, &scene_src->adt->action->curves) {
