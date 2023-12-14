@@ -1242,9 +1242,8 @@ void MTLFrameBuffer::ensure_render_target_size()
   if (colour_attachment_count_ == 0 && !this->has_depth_attachment() &&
       !this->has_stencil_attachment())
   {
-
     /* Reset default size for empty framebuffer. */
-    this->default_size_set(width_, height_);
+    this->default_size_set(0, 0);
   }
 }
 
@@ -1786,7 +1785,7 @@ MTLRenderPassDescriptor *MTLFrameBuffer::bake_render_pass_descriptor(bool load_c
     }
 
     /* Attachmentless render support. */
-    int total_num_attachments = colour_attachments + (mtl_depth_attachment_.used ? 1 : 0) +
+    int total_num_attachments = colour_attachment_count_ + (mtl_depth_attachment_.used ? 1 : 0) +
                                 (mtl_stencil_attachment_.used ? 1 : 0);
     if (total_num_attachments == 0) {
       BLI_assert(width_ > 0 && height_ > 0);
