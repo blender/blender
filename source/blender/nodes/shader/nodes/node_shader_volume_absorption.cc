@@ -16,17 +16,13 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Shader>("Volume").translation_context(BLT_I18NCONTEXT_ID_ID);
 }
 
-#define socket_not_zero(sock) (in[sock].link || (in[sock].vec[0] > 1e-5f))
-#define socket_not_white(sock) \
-  (in[sock].link || (in[sock].vec[0] < 1.0f || in[sock].vec[1] < 1.0f || in[sock].vec[2] < 1.0f))
-
 static int node_shader_gpu_volume_absorption(GPUMaterial *mat,
                                              bNode *node,
                                              bNodeExecData * /*execdata*/,
                                              GPUNodeStack *in,
                                              GPUNodeStack *out)
 {
-  if (socket_not_zero(SOCK_DENSITY_ID) && socket_not_white(SOCK_COLOR_ID)) {
+  if (node_socket_not_zero(in[SOCK_DENSITY_ID]) && node_socket_not_white(in[SOCK_COLOR_ID])) {
     GPU_material_flag_set(mat, GPU_MATFLAG_VOLUME_ABSORPTION);
   }
   return GPU_stack_link(mat, node, "node_volume_absorption", in, out);
