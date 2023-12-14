@@ -1430,28 +1430,32 @@ const char *WM_drag_get_item_name(wmDrag *drag);
  * may be destructed.
  */
 wmDragPath *WM_drag_create_path_data(blender::Span<const char *> paths);
-/* If #drag contains path data, returns the first path int he path list. */
+/**
+ *  If `drag` contains path data, returns the first path int he path list.
+ */
 const char *WM_drag_get_single_path(const wmDrag *drag);
-/* If #drag contains path data, returns the first path in the path list that maches a
- * a `file_type`.*/
-/*
+/**
+ * If `drag` contains path data, returns the first path in the path list that matches a
+ * a `file_type`.
+ *
  * \param drag: The drag that could contain drag path data.
- * \param file_type: `eFileSel_File_Types` bit flag
+ * \param file_type: #eFileSel_File_Types bit flag.
  */
 const char *WM_drag_get_single_path(const wmDrag *drag, int file_type);
 blender::Span<std::string> WM_drag_get_paths(const wmDrag *drag);
-/* If #drag contains path data, returns if any file path match a `file_type`.*/
-/*
+/**
+ * If `drag` contains path data, returns if any file path match a `file_type`.
+ *
  * \param drag: The drag that could contain drag path data.
- * \param file_type: `eFileSel_File_Types` bit flag
+ * \param file_type: #eFileSel_File_Types bit flag.
  */
 bool WM_drag_has_path_file_type(const wmDrag *drag, int file_type);
 /**
  * Note that even though the enum return type uses bit-flags, this should never have multiple
  * type-bits set, so `ELEM()` like comparison is possible. To check all paths or to do a bit-flag
- * check use `WM_drag_has_path_file_type(drag,file_type)` instead.
+ * check use `WM_drag_has_path_file_type(drag, file_type)` instead.
  */
-int /* eFileSel_File_Types */ WM_drag_get_path_file_type(const wmDrag *drag);
+int /* #eFileSel_File_Types */ WM_drag_get_path_file_type(const wmDrag *drag);
 
 /* Set OpenGL viewport and scissor */
 void wmViewport(const rcti *winrct);
@@ -1478,11 +1482,12 @@ enum eWM_JobFlag {
 ENUM_OPERATORS(eWM_JobFlag, WM_JOB_PROGRESS);
 
 /**
- * Identifying jobs by owner alone is unreliable, this isn't saved,
- * order can change (keep 0 for 'any').
+ * Identifying jobs by owner alone is unreliable, this isn't saved, order can change.
  */
 enum eWM_JobType {
+  /** Not a real type, use for querying any type. */
   WM_JOB_TYPE_ANY = 0,
+
   WM_JOB_TYPE_COMPOSITE,
   WM_JOB_TYPE_RENDER,
   WM_JOB_TYPE_RENDER_PREVIEW, /* UI preview */
@@ -1567,7 +1572,7 @@ void WM_jobs_callbacks_ex(wmJob *wm_job,
 
 /**
  * If job running, the same owner gave it a new job.
- * if different owner starts existing startjob, it suspends itself
+ * if different owner starts existing #wmJob::startjob, it suspends itself.
  */
 void WM_jobs_start(wmWindowManager *wm, wmJob *);
 /**
@@ -1615,20 +1620,17 @@ void WM_clipboard_text_set(const char *buf, bool selection);
 bool WM_clipboard_image_available();
 
 /**
- * Get image data from the Clipboard
- * \param r_width: the returned image width in pixels.
- * \param r_height: the returned image height in pixels.
- * \return pointer uint array in RGBA byte order. Caller must free.
+ * Get image data from the clipboard.
+ * \return The image or null when not found. Caller must free.
  */
 ImBuf *WM_clipboard_image_get();
 
 /**
- * Put image data to the Clipboard
- * \param rgba: uint array in RGBA byte order.
- * \param width: the image width in pixels.
- * \param height: the image height in pixels.
+ * Put image data to the clipboard.
+ *
+ * \param ibuf: the image to set the clipboard to.
  */
-bool WM_clipboard_image_set(ImBuf *ibuf);
+bool WM_clipboard_image_set(ImBuf *ibuf) ATTR_NONNULL(1);
 
 /* progress */
 
