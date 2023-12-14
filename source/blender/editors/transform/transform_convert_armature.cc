@@ -1326,7 +1326,7 @@ static void recalcData_pose(TransInfo *t)
         int targetless_ik = (t->flag & T_AUTOIK);
 
         animrecord_check_state(t, &ob->id);
-        blender::animrig::autokeyframe_pose(t->context, t->scene, ob, t->mode, targetless_ik);
+        blender::animrig::autokeyframe_pose(t->context, t->scene, ob, targetless_ik);
       }
 
       if (motionpath_need_update_pose(t->scene, ob)) {
@@ -1589,7 +1589,7 @@ static void special_aftertrans_update__pose(bContext *C, TransInfo *t)
       /* automatic inserting of keys and unkeyed tagging -
        * only if transform wasn't canceled (or TFM_DUMMY) */
       if (!canceled && (t->mode != TFM_DUMMY)) {
-        blender::animrig::autokeyframe_pose(C, t->scene, ob, t->mode, targetless_ik);
+        blender::animrig::autokeyframe_pose(C, t->scene, ob, targetless_ik);
         DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
       }
       else {

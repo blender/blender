@@ -780,7 +780,7 @@ static void recalcData_objects(TransInfo *t)
        * (FPoints) instead of keyframes? */
       if ((t->animtimer) && blender::animrig::is_autokey_on(t->scene)) {
         animrecord_check_state(t, &ob->id);
-        blender::animrig::autokeyframe_object(t->context, t->scene, t->view_layer, ob, t->mode);
+        blender::animrig::autokeyframe_object(t->context, t->scene, ob);
       }
 
       motionpath_update |= motionpath_need_update_object(t->scene, ob);
@@ -855,7 +855,7 @@ static void special_aftertrans_update__object(bContext *C, TransInfo *t)
 
     /* Set auto-key if necessary. */
     if (!canceled) {
-      blender::animrig::autokeyframe_object(C, t->scene, t->view_layer, ob, t->mode);
+      blender::animrig::autokeyframe_object(C, t->scene, ob);
     }
 
     motionpath_update |= motionpath_need_update_object(t->scene, ob);
