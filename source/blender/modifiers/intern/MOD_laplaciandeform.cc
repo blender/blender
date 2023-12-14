@@ -65,18 +65,34 @@ struct LaplacianSystem {
   int tris_num;
   int anchors_num;
   int repeat;
-  char anchor_grp_name[64]; /* Vertex Group name */
-  float (*co)[3];           /* Original vertex coordinates */
-  float (*no)[3];           /* Original vertex normal */
-  float (*delta)[3];        /* Differential Coordinates */
-  uint (*tris)[3];          /* Copy of MLoopTri (tessellation triangle) v1-v3 */
-  int *index_anchors;       /* Static vertex index list */
-  int *unit_verts;          /* Unit vectors of projected edges onto the plane orthogonal to n */
-  int *ringf_indices;       /* Indices of faces per vertex */
-  int *ringv_indices;       /* Indices of neighbors(vertex) per vertex */
-  LinearSolver *context;    /* System for solve general implicit rotations */
-  MeshElemMap *ringf_map;   /* Map of faces per vertex */
-  MeshElemMap *ringv_map;   /* Map of vertex per vertex */
+  /** Vertex Group name */
+  char anchor_grp_name[64];
+  /** Original vertex coordinates. */
+  float (*co)[3];
+  /** Original vertex normal. */
+  float (*no)[3];
+  /** Differential Coordinates. */
+  float (*delta)[3];
+  /**
+   * An array of triangles, each triangle represents 3 vertex indices.
+   *
+   * \note This is derived from the meshes #MLoopTri array.
+   */
+  uint (*tris)[3];
+  /** Static vertex index list. */
+  int *index_anchors;
+  /** Unit vectors of projected edges onto the plane orthogonal to n. */
+  int *unit_verts;
+  /** Indices of faces per vertex. */
+  int *ringf_indices;
+  /** Indices of neighbors(vertex) per vertex. */
+  int *ringv_indices;
+  /** System for solve general implicit rotations. */
+  LinearSolver *context;
+  /** Map of faces per vertex. */
+  MeshElemMap *ringf_map;
+  /** Map of vertex per vertex. */
+  MeshElemMap *ringv_map;
 };
 
 static LaplacianSystem *newLaplacianSystem()
