@@ -728,7 +728,7 @@ static bool cloth_from_object(
     clmd->clothObject->old_solver_type = 255;
   }
   else {
-    BKE_modifier_set_error(ob, &(clmd->modifier), "Out of memory on allocating clmd->clothObject");
+    BKE_modifier_set_error(ob, &(clmd->modifier), "Out of memory on allocating cloth object");
     return false;
   }
 
@@ -835,9 +835,7 @@ static void cloth_from_mesh(ClothModifierData *clmd, const Object *ob, Mesh *mes
   clmd->clothObject->verts = MEM_cnew_array<ClothVertex>(clmd->clothObject->mvert_num, __func__);
   if (clmd->clothObject->verts == nullptr) {
     cloth_free_modifier(clmd);
-    BKE_modifier_set_error(
-        ob, &(clmd->modifier), "Out of memory on allocating clmd->clothObject->verts");
-    printf("cloth_free_modifier clmd->clothObject->verts\n");
+    BKE_modifier_set_error(ob, &(clmd->modifier), "Out of memory on allocating vertices");
     return;
   }
 
@@ -853,9 +851,7 @@ static void cloth_from_mesh(ClothModifierData *clmd, const Object *ob, Mesh *mes
       MEM_malloc_arrayN(looptris.size(), sizeof(MVertTri), __func__));
   if (clmd->clothObject->tri == nullptr) {
     cloth_free_modifier(clmd);
-    BKE_modifier_set_error(
-        ob, &(clmd->modifier), "Out of memory on allocating clmd->clothObject->looptri");
-    printf("cloth_free_modifier clmd->clothObject->looptri\n");
+    BKE_modifier_set_error(ob, &(clmd->modifier), "Out of memory on allocating triangles");
     return;
   }
   BKE_mesh_runtime_verttris_from_looptris(
