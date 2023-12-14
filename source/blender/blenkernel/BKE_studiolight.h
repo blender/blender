@@ -79,9 +79,7 @@ typedef struct StudioLight {
   StudioLightImage matcap_diffuse;
   StudioLightImage matcap_specular;
   struct ImBuf *equirect_radiance_buffer;
-  struct ImBuf *radiance_cubemap_buffers[6];
   struct GPUTexture *equirect_radiance_gputexture;
-  struct GPUTexture *equirect_irradiance_gputexture;
   SolidLight light[STUDIOLIGHT_MAX_LIGHT];
   float light_ambient[3];
 

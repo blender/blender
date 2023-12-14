@@ -97,6 +97,14 @@ static const char *STUDIOLIGHT_MATCAP_DEFAULT = "basic_1.exr";
     } \
   } while (0)
 
+static void studiolight_free_image_buffers(StudioLight *sl)
+{
+  sl->flag &= ~STUDIOLIGHT_EXTERNAL_IMAGE_LOADED;
+  IMB_SAFE_FREE(sl->matcap_diffuse.ibuf);
+  IMB_SAFE_FREE(sl->matcap_specular.ibuf);
+  IMB_SAFE_FREE(sl->equirect_radiance_buffer);
+}
+
 static void studiolight_free(StudioLight *sl)
 {
 #define STUDIOLIGHT_DELETE_ICON(s) \
@@ -116,17 +124,28 @@ static void studiolight_free(StudioLight *sl)
   STUDIOLIGHT_DELETE_ICON(sl->icon_id_matcap_flipped);
 #undef STUDIOLIGHT_DELETE_ICON
 
-  for (int index = 0; index < 6; index++) {
-    IMB_SAFE_FREE(sl->radiance_cubemap_buffers[index]);
-  }
+  studiolight_free_image_buffers(sl);
+
   GPU_TEXTURE_SAFE_FREE(sl->equirect_radiance_gputexture);
-  GPU_TEXTURE_SAFE_FREE(sl->equirect_irradiance_gputexture);
-  IMB_SAFE_FREE(sl->equirect_radiance_buffer);
   GPU_TEXTURE_SAFE_FREE(sl->matcap_diffuse.gputexture);
   GPU_TEXTURE_SAFE_FREE(sl->matcap_specular.gputexture);
-  IMB_SAFE_FREE(sl->matcap_diffuse.ibuf);
-  IMB_SAFE_FREE(sl->matcap_specular.ibuf);
   MEM_SAFE_FREE(sl);
+}
+
+/**
+ * Free temp resources when the studio light is only requested for icons.
+ *
+ * Only keeps around resources for studio lights that have been used in any viewport.
+ */
+static void studiolight_free_temp_resources(StudioLight *sl)
+{
+  const bool is_used_in_viewport = bool(sl->flag & (STUDIOLIGHT_EQUIRECT_RADIANCE_GPUTEXTURE |
+                                                    STUDIOLIGHT_MATCAP_SPECULAR_GPUTEXTURE |
+                                                    STUDIOLIGHT_MATCAP_DIFFUSE_GPUTEXTURE));
+  if (is_used_in_viewport) {
+    return;
+  }
+  studiolight_free_image_buffers(sl);
 }
 
 static StudioLight *studiolight_create(int flag)
@@ -147,10 +166,6 @@ static StudioLight *studiolight_create(int flag)
   }
   else {
     sl->icon_id_radiance = BKE_icon_ensure_studio_light(sl, STUDIOLIGHT_ICON_ID_TYPE_RADIANCE);
-  }
-
-  for (int index = 0; index < 6; index++) {
-    sl->radiance_cubemap_buffers[index] = nullptr;
   }
 
   return sl;
@@ -941,6 +956,7 @@ void BKE_studiolight_preview(uint *icon_buffer, StudioLight *sl, int icon_id_typ
       break;
     }
   }
+  studiolight_free_temp_resources(sl);
 }
 
 void BKE_studiolight_ensure_flag(StudioLight *sl, int flag)
