@@ -1738,10 +1738,6 @@ static void set_active_layer(bContext *C, SculptAttrRef *attr)
 
     if (ob->sculpt && ob->sculpt->pbvh) {
       BKE_pbvh_update_active_vcol(ob->sculpt->pbvh, mesh);
-
-      if (!sculpt_attribute_ref_equals(&existing, attr)) {
-        bke::pbvh::update_vertex_data(*ob->sculpt->pbvh, PBVH_UpdateColor);
-      }
     }
   }
 }

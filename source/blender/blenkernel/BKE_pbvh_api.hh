@@ -422,7 +422,6 @@ namespace blender::bke::pbvh {
 void update_bounds(PBVH &pbvh, int flags);
 void update_mask(PBVH &pbvh);
 void update_visibility(PBVH &pbvh);
-void update_vertex_data(PBVH &pbvh, int flags);
 void update_normals(PBVH &pbvh, SubdivCCG *subdiv_ccg);
 }  // namespace blender::bke::pbvh
 

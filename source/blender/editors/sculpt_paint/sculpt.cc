@@ -5339,10 +5339,6 @@ void SCULPT_flush_update_done(const bContext *C, Object *ob, SculptUpdateType up
     bke::pbvh::update_mask(*ss->pbvh);
   }
 
-  if (update_flags & SCULPT_UPDATE_COLOR) {
-    bke::pbvh::update_vertex_data(*ss->pbvh, PBVH_UpdateColor);
-  }
-
   BKE_sculpt_attributes_destroy_temporary_stroke(ob);
 
   if (update_flags & SCULPT_UPDATE_COORDS) {

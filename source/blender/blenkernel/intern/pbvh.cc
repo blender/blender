@@ -1345,18 +1345,6 @@ void update_bounds(PBVH &pbvh, int flag)
   }
 }
 
-void update_vertex_data(PBVH &pbvh, int flag)
-{
-  Vector<PBVHNode *> nodes = search_gather(
-      &pbvh, [&](PBVHNode &node) { return update_search(&node, flag); });
-
-  if (flag & (PBVH_UpdateColor)) {
-    for (PBVHNode *node : nodes) {
-      node->flag |= PBVH_UpdateRedraw | PBVH_UpdateDrawBuffers | PBVH_UpdateColor;
-    }
-  }
-}
-
 void node_update_mask_mesh(const Span<float> mask, PBVHNode &node)
 {
   const bool fully_masked = std::all_of(node.vert_indices.begin(),
