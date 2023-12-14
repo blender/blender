@@ -683,16 +683,9 @@ static void gwl_window_activate(GWL_Window *win)
 /** \name Internal #GWL_Window Pending Actions
  * \{ */
 
-static void gwl_window_frame_pending_fractional_scale_set(GWL_Window *win,
-                                                          bool *r_surface_needs_commit,
-                                                          bool *r_surface_needs_buffer_scale)
+static void gwl_window_frame_pending_fractional_scale_set_notest(
+    GWL_Window *win, bool *r_surface_needs_commit, bool *r_surface_needs_buffer_scale)
 {
-  if (win->frame_pending.fractional_scale == win->frame.fractional_scale &&
-      win->frame_pending.buffer_scale == win->frame.buffer_scale)
-  {
-    return;
-  }
-
   if (win->frame_pending.fractional_scale) {
     win->frame.fractional_scale = win->frame_pending.fractional_scale;
     gwl_window_viewport_set(win, r_surface_needs_commit, r_surface_needs_buffer_scale);
@@ -718,6 +711,19 @@ static void gwl_window_frame_pending_fractional_scale_set(GWL_Window *win,
       }
     }
   }
+}
+
+static void gwl_window_frame_pending_fractional_scale_set(GWL_Window *win,
+                                                          bool *r_surface_needs_commit,
+                                                          bool *r_surface_needs_buffer_scale)
+{
+  if (win->frame_pending.fractional_scale == win->frame.fractional_scale &&
+      win->frame_pending.buffer_scale == win->frame.buffer_scale)
+  {
+    return;
+  }
+  gwl_window_frame_pending_fractional_scale_set_notest(
+      win, r_surface_needs_commit, r_surface_needs_buffer_scale);
 }
 
 static void gwl_window_frame_pending_size_set(GWL_Window *win,
@@ -1531,24 +1537,17 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
    * So leave the buffer scaled up because there is no *guarantee* the fractional scaling support
    * will run which could result in an incorrect buffer scale. */
   int scale_fractional_from_output;
-  window_->frame.buffer_scale = outputs_uniform_scale_or_default(
-      system_->outputs_get(), 1, &scale_fractional_from_output);
-  window_->frame_pending.buffer_scale = window_->frame.buffer_scale;
+  const int buffer_scale_from_output = outputs_uniform_scale_or_default(
+      system_->outputs_get(), 0, &scale_fractional_from_output);
 
   window_->frame.size[0] = int32_t(width);
   window_->frame.size[1] = int32_t(height);
-
-  /* The window surface must be rounded to the scale,
-   * failing to do so causes the WAYLAND-server to close the window immediately. */
-  gwl_round_int2_by(window_->frame.size, window_->frame.buffer_scale);
 
   window_->is_dialog = is_dialog;
 
   /* Window surfaces. */
   window_->wl.surface = wl_compositor_create_surface(system_->wl_compositor_get());
   ghost_wl_surface_tag(window_->wl.surface);
-
-  wl_surface_set_buffer_scale(window_->wl.surface, window_->frame.buffer_scale);
 
   wl_surface_add_listener(window_->wl.surface, &wl_surface_listener, window_);
 
@@ -1627,6 +1626,16 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
       decor.scale_fractional_from_output = scale_fractional_from_output;
     }
 
+    /* FIXME: this shouldn't be necessary, used by the state configure callback. */
+    if (buffer_scale_from_output) {
+      window_->frame_pending.buffer_scale = buffer_scale_from_output;
+      window_->frame.buffer_scale = buffer_scale_from_output;
+    }
+    else {
+      window_->frame_pending.buffer_scale = 1;
+      window_->frame.buffer_scale = 1;
+    }
+
     /* Commit needed so the top-level callbacks run (and `toplevel` can be accessed). */
     wl_surface_commit(window_->wl.surface);
 
@@ -1656,6 +1665,9 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
         break;
       }
     }
+    /* Clear the values to match XDG logic, see comment above. */
+    window_->frame_pending.buffer_scale = 0;
+    window_->frame.buffer_scale = 0;
   }
   else
 #endif /* WITH_GHOST_WAYLAND_LIBDECOR */
@@ -1681,10 +1693,87 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
     }
   }
 
-  /* Postpone binding the buffer until after it's decor has been configured:
-   * - Ensure the window is sized properly (with XDG window decorations), see: #113059.
-   * - Avoids flickering on startup.
-   */
+  /* If the scale is known early, setup the window scale.
+   * Otherwise accept an unsightly flicker once the outputs scale can be found. */
+  int early_buffer_scale = 0;
+  int early_fractional_scale = 0;
+
+  if (const int test_fractional_scale =
+          fractional_scale_manager ? (window_->frame_pending.fractional_scale_preferred ?
+                                          window_->frame_pending.fractional_scale_preferred :
+                                          scale_fractional_from_output) :
+                                     0)
+  {
+    if (!gwl_round_int_test(test_fractional_scale, FRACTIONAL_DENOMINATOR)) {
+      early_fractional_scale = test_fractional_scale;
+    }
+    else {
+      /* Rounded, use simple integer buffer scaling. */
+      early_buffer_scale = test_fractional_scale / FRACTIONAL_DENOMINATOR;
+      early_fractional_scale = 0;
+    }
+  }
+  else if (buffer_scale_from_output) {
+    early_buffer_scale = buffer_scale_from_output;
+  }
+
+  if (early_fractional_scale != 0) {
+    /* Fractional scale is known. */
+
+    window_->frame.fractional_scale_preferred = early_fractional_scale;
+    window_->frame.fractional_scale = early_fractional_scale;
+    window_->frame.buffer_scale = 1;
+
+    window_->frame_pending.fractional_scale_preferred = early_fractional_scale;
+    window_->frame_pending.fractional_scale = early_fractional_scale;
+    window_->frame_pending.buffer_scale = 1;
+
+    /* The scale is considered initialized now. */
+    window_->frame_pending.is_scale_init = true;
+
+    /* If the output scale changes here it means the scale settings were not properly set. */
+    GHOST_ASSERT(outputs_changed_update_scale() == false,
+                 "Fractional scale was not properly initialized");
+
+    /* Always commit and set the scale. */
+    bool surface_needs_commit_dummy = false, surface_needs_buffer_scale_dummy = false;
+    gwl_window_frame_pending_fractional_scale_set_notest(
+        window_, &surface_needs_commit_dummy, &surface_needs_buffer_scale_dummy);
+  }
+  else if (early_buffer_scale != 0) {
+    /* Non-fractional scale is known. */
+
+    /* No fractional scale, simple initialization. */
+    window_->frame.buffer_scale = early_buffer_scale;
+    window_->frame_pending.buffer_scale = early_buffer_scale;
+
+    /* The scale is considered initialized now. */
+    window_->frame_pending.is_scale_init = true;
+
+    /* The window surface must be rounded to the scale,
+     * failing to do so causes the WAYLAND-server to close the window immediately. */
+    gwl_round_int2_by(window_->frame.size, window_->frame.buffer_scale);
+  }
+  else {
+    /* Scale isn't known (the windows size may flicker when #outputs_changed_update_scale runs). */
+    window_->frame.buffer_scale = 1;
+    window_->frame_pending.buffer_scale = 1;
+    GHOST_ASSERT(window_->frame_pending.is_scale_init == false,
+                 "An initialized scale is not expected");
+  }
+
+  if (window_->frame_pending.is_scale_init) {
+    /* If the output scale changes here it means the scale settings were not properly set. */
+    GHOST_ASSERT(outputs_changed_update_scale() == false,
+                 "Fractional scale was not properly initialized");
+  }
+
+  wl_surface_set_buffer_scale(window_->wl.surface, window_->frame.buffer_scale);
+
+/* Postpone binding the buffer until after it's decor has been configured:
+ * - Ensure the window is sized properly (with XDG window decorations), see: #113059.
+ * - Avoids flickering on startup.
+ */
 #ifdef WITH_OPENGL_BACKEND
   if (type == GHOST_kDrawingContextTypeOpenGL) {
     window_->backend.egl_window = wl_egl_window_create(
