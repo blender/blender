@@ -1804,43 +1804,57 @@ blender::Span<int> BKE_pbvh_node_get_unique_vert_indices(const PBVHNode *node)
   return node->vert_indices.as_span().take_front(node->uniq_verts);
 }
 
-void BKE_pbvh_node_calc_face_indices(const PBVH &pbvh, const PBVHNode &node, Vector<int> &faces)
+namespace blender::bke::pbvh {
+
+Span<int> node_face_indices_calc_mesh(const PBVH &pbvh, const PBVHNode &node, Vector<int> &faces)
 {
+  faces.clear();
+  const Span<int> looptri_faces = pbvh.looptri_faces;
+  int prev_face = -1;
+  for (const int tri : node.prim_indices) {
+    const int face = looptri_faces[tri];
+    if (face != prev_face) {
+      faces.append(face);
+      prev_face = face;
+    }
+  }
+  return faces.as_span();
+}
+
+Span<int> node_face_indices_calc_grids(const PBVH &pbvh, const PBVHNode &node, Vector<int> &faces)
+{
+  faces.clear();
+  const Span<int> grid_to_face_map = pbvh.subdiv_ccg->grid_to_face_map;
+  int prev_face = -1;
+  for (const int prim : node.prim_indices) {
+    const int face = grid_to_face_map[prim];
+    if (face != prev_face) {
+      faces.append(face);
+      prev_face = face;
+    }
+  }
+  return faces.as_span();
+}
+
+}  // namespace blender::bke::pbvh
+
+blender::Vector<int> BKE_pbvh_node_calc_face_indices(const PBVH &pbvh, const PBVHNode &node)
+{
+  using namespace blender::bke::pbvh;
+  Vector<int> faces;
   switch (pbvh.header.type) {
     case PBVH_FACES: {
-      const Span<int> looptri_faces = pbvh.looptri_faces;
-      int prev_face = -1;
-      for (const int tri : node.prim_indices) {
-        const int face = looptri_faces[tri];
-        if (face != prev_face) {
-          faces.append(face);
-          prev_face = face;
-        }
-      }
+      node_face_indices_calc_mesh(pbvh, node, faces);
       break;
     }
     case PBVH_GRIDS: {
-      const SubdivCCG &subdiv_ccg = *pbvh.subdiv_ccg;
-      int prev_face = -1;
-      for (const int prim : node.prim_indices) {
-        const int face = BKE_subdiv_ccg_grid_to_face_index(subdiv_ccg, prim);
-        if (face != prev_face) {
-          faces.append(face);
-          prev_face = face;
-        }
-      }
+      node_face_indices_calc_grids(pbvh, node, faces);
       break;
     }
     case PBVH_BMESH:
       BLI_assert_unreachable();
       break;
   }
-}
-
-blender::Vector<int> BKE_pbvh_node_calc_face_indices(const PBVH &pbvh, const PBVHNode &node)
-{
-  Vector<int> faces;
-  BKE_pbvh_node_calc_face_indices(pbvh, node, faces);
   return faces;
 }
 

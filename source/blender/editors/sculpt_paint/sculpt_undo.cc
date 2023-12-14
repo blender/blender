@@ -326,7 +326,7 @@ static void update_modified_node_mesh(PBVHNode *node, void *userdata)
   Vector<int> faces;
   if (!data->modified_face_set_faces.is_empty()) {
     if (faces.is_empty()) {
-      faces = BKE_pbvh_node_calc_face_indices(*data->pbvh, *node);
+      bke::pbvh::node_face_indices_calc_mesh(*data->pbvh, *node, faces);
     }
     for (const int face : faces) {
       if (data->modified_face_set_faces[face]) {
@@ -337,7 +337,7 @@ static void update_modified_node_mesh(PBVHNode *node, void *userdata)
   }
   if (!data->modified_hidden_faces.is_empty()) {
     if (faces.is_empty()) {
-      faces = BKE_pbvh_node_calc_face_indices(*data->pbvh, *node);
+      bke::pbvh::node_face_indices_calc_mesh(*data->pbvh, *node, faces);
     }
     for (const int face : faces) {
       if (data->modified_hidden_faces[face]) {
@@ -370,7 +370,7 @@ static void update_modified_node_grids(PBVHNode *node, void *userdata)
   Vector<int> faces;
   if (!data->modified_face_set_faces.is_empty()) {
     if (faces.is_empty()) {
-      faces = BKE_pbvh_node_calc_face_indices(*data->pbvh, *node);
+      bke::pbvh::node_face_indices_calc_grids(*data->pbvh, *node, faces);
     }
     for (const int face : faces) {
       if (data->modified_face_set_faces[face]) {
@@ -381,7 +381,7 @@ static void update_modified_node_grids(PBVHNode *node, void *userdata)
   }
   if (!data->modified_hidden_faces.is_empty()) {
     if (faces.is_empty()) {
-      faces = BKE_pbvh_node_calc_face_indices(*data->pbvh, *node);
+      bke::pbvh::node_face_indices_calc_grids(*data->pbvh, *node, faces);
     }
     for (const int face : faces) {
       if (data->modified_hidden_faces[face]) {

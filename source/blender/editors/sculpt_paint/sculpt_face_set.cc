@@ -497,9 +497,8 @@ static void face_sets_update(Object &object,
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     TLS &tls = all_tls.local();
     for (PBVHNode *node : nodes.slice(range)) {
-      tls.face_indices.clear();
-      BKE_pbvh_node_calc_face_indices(pbvh, *node, tls.face_indices);
-      const Span<int> faces = tls.face_indices;
+      const Span<int> faces = bke::pbvh::node_face_indices_calc_mesh(
+          pbvh, *node, tls.face_indices);
 
       tls.new_face_sets.reinitialize(faces.size());
       MutableSpan<int> new_face_sets = tls.new_face_sets;
@@ -954,9 +953,8 @@ static void face_hide_update(Object &object,
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     TLS &tls = all_tls.local();
     for (PBVHNode *node : nodes.slice(range)) {
-      tls.face_indices.clear();
-      BKE_pbvh_node_calc_face_indices(pbvh, *node, tls.face_indices);
-      const Span<int> faces = tls.face_indices;
+      const Span<int> faces = bke::pbvh::node_face_indices_calc_mesh(
+          pbvh, *node, tls.face_indices);
 
       tls.new_hide.reinitialize(faces.size());
       MutableSpan<bool> new_hide = tls.new_hide;
