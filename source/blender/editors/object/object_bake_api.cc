@@ -1075,12 +1075,13 @@ static void bake_targets_populate_pixels_color_attributes(BakeTargets *targets,
   }
 
   /* Populate through adjacent triangles, first triangle wins. */
-  const int tottri = poly_to_tri_count(me_eval->faces_num, me_eval->totloop);
-  MLoopTri *looptris = static_cast<MLoopTri *>(MEM_mallocN(sizeof(*looptris) * tottri, __func__));
+  const int looptris_num = poly_to_tri_count(me_eval->faces_num, me_eval->totloop);
+  MLoopTri *looptris = static_cast<MLoopTri *>(
+      MEM_mallocN(sizeof(*looptris) * looptris_num, __func__));
 
   const blender::Span<int> corner_verts = me_eval->corner_verts();
   blender::bke::mesh::looptris_calc(
-      me_eval->vert_positions(), me_eval->faces(), corner_verts, {looptris, tottri});
+      me_eval->vert_positions(), me_eval->faces(), corner_verts, {looptris, looptris_num});
   const blender::Span<int> looptri_faces = me_eval->looptri_faces();
 
   /* For mapping back to original mesh in case there are modifiers. */
@@ -1091,7 +1092,7 @@ static void bake_targets_populate_pixels_color_attributes(BakeTargets *targets,
   const blender::OffsetIndices orig_faces = mesh->faces();
   const blender::Span<int> orig_corner_verts = mesh->corner_verts();
 
-  for (int i = 0; i < tottri; i++) {
+  for (int i = 0; i < looptris_num; i++) {
     const MLoopTri *lt = &looptris[i];
     const int face_i = looptri_faces[i];
 
