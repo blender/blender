@@ -682,10 +682,11 @@ void nearest_interpolation_color_wrap(
     const struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v);
 void bilinear_interpolation_color(
     const struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v);
-void bilinear_interpolation_color_char(
-    const struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v);
-void bilinear_interpolation_color_fl(
-    const struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v);
+void bilinear_interpolation_color_char(const struct ImBuf *in,
+                                       unsigned char outI[4],
+                                       float u,
+                                       float v);
+void bilinear_interpolation_color_fl(const struct ImBuf *in, float outF[4], float u, float v);
 /**
  * Note about wrapping, the u/v still needs to be within the image bounds,
  * just the interpolation is wrapped.
