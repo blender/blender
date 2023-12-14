@@ -18,7 +18,7 @@
 #  include "BLI_blenlib.h"
 #  include "BLI_boxpack_2d.h"
 #  include "BLI_convexhull_2d.h"
-#  include "BLI_delaunay_2d.h"
+#  include "BLI_delaunay_2d.hh"
 #  include "MEM_guardedalloc.h"
 #endif /* !MATH_STANDALONE */
 

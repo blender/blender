@@ -9,7 +9,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
 
-#include "BLI_delaunay_2d.h"
+#include "BLI_delaunay_2d.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"

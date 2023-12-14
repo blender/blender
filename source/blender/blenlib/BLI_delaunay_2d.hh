@@ -4,16 +4,18 @@
 
 #pragma once
 
+#include "BLI_array.hh"
+#include "BLI_math_mpq.hh"
+#include "BLI_math_vector_mpq_types.hh"
+#include "BLI_math_vector_types.hh"
+#include "BLI_vector.hh"
+
 /** \file
  * \ingroup bli
  *
  * This header file contains both a C interface and a C++ interface
  * to the 2D Constrained Delaunay Triangulation library routine.
  */
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * Interface for Constrained Delaunay Triangulation (CDT) in 2D.
@@ -197,16 +199,7 @@ CDT_result *BLI_delaunay_2d_cdt_calc(const CDT_input *input, const CDT_output_ty
 
 void BLI_delaunay_2d_cdt_free(CDT_result *result);
 
-#ifdef __cplusplus
-}
-
 /* C++ Interface. */
-
-#  include "BLI_array.hh"
-#  include "BLI_math_mpq.hh"
-#  include "BLI_math_vector_mpq_types.hh"
-#  include "BLI_math_vector_types.hh"
-#  include "BLI_vector.hh"
 
 namespace blender::meshintersect {
 
@@ -216,11 +209,11 @@ template<> struct vec2_impl<double> {
   typedef double2 type;
 };
 
-#  ifdef WITH_GMP
+#ifdef WITH_GMP
 template<> struct vec2_impl<mpq_class> {
   typedef mpq2 type;
 };
-#  endif
+#endif
 
 template<typename Arith_t> using vec2 = typename vec2_impl<Arith_t>::type;
 
@@ -259,11 +252,9 @@ template<typename Arith_t> class CDT_result {
 
 CDT_result<double> delaunay_2d_calc(const CDT_input<double> &input, CDT_output_type output_type);
 
-#  ifdef WITH_GMP
+#ifdef WITH_GMP
 CDT_result<mpq_class> delaunay_2d_calc(const CDT_input<mpq_class> &input,
                                        CDT_output_type output_type);
-#  endif
+#endif
 
 } /* namespace blender::meshintersect */
-
-#endif /* __cplusplus */

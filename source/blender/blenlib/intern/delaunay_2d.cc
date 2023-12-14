@@ -21,7 +21,7 @@
 #include "BLI_task.hh"
 #include "BLI_vector.hh"
 
-#include "BLI_delaunay_2d.h"
+#include "BLI_delaunay_2d.hh"
 
 namespace blender::meshintersect {
 
@@ -2820,8 +2820,7 @@ blender::meshintersect::CDT_result<mpq_class> delaunay_2d_calc(const CDT_input<m
  * and "len" array to say where the individual vectors start and how
  * long they are.
  */
-extern "C" ::CDT_result *BLI_delaunay_2d_cdt_calc(const ::CDT_input *input,
-                                                  const CDT_output_type output_type)
+::CDT_result *BLI_delaunay_2d_cdt_calc(const ::CDT_input *input, const CDT_output_type output_type)
 {
   blender::meshintersect::CDT_input<double> in;
   in.vert = blender::Array<blender::meshintersect::vec2<double>>(input->verts_len);
@@ -2955,7 +2954,7 @@ extern "C" ::CDT_result *BLI_delaunay_2d_cdt_calc(const ::CDT_input *input,
   return output;
 }
 
-extern "C" void BLI_delaunay_2d_cdt_free(::CDT_result *result)
+void BLI_delaunay_2d_cdt_free(::CDT_result *result)
 {
   MEM_freeN(result->vert_coords);
   MEM_freeN(result->edges);
