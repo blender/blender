@@ -1731,10 +1731,6 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
     /* The scale is considered initialized now. */
     window_->frame_pending.is_scale_init = true;
 
-    /* If the output scale changes here it means the scale settings were not properly set. */
-    GHOST_ASSERT(outputs_changed_update_scale() == false,
-                 "Fractional scale was not properly initialized");
-
     /* Always commit and set the scale. */
     bool surface_needs_commit_dummy = false, surface_needs_buffer_scale_dummy = false;
     gwl_window_frame_pending_fractional_scale_set_notest(
