@@ -106,7 +106,7 @@ typedef struct SBScratch {
   short needstobuildcollider;
   short flag;
   BodyFace *bodyface;
-  int totface;
+  int bodyface_num;
   float aabbmin[3], aabbmax[3];
   ReferenceState Ref;
 } SBScratch;
@@ -1251,10 +1251,10 @@ static void scan_for_ext_face_forces(Object *ob, float timenow)
   float tune = -10.0f;
   float feedback[3];
 
-  if (sb && sb->scratch->totface) {
+  if (sb && sb->scratch->bodyface_num) {
 
     bf = sb->scratch->bodyface;
-    for (a = 0; a < sb->scratch->totface; a++, bf++) {
+    for (a = 0; a < sb->scratch->bodyface_num; a++, bf++) {
       bf->ext_force[0] = bf->ext_force[1] = bf->ext_force[2] = 0.0f;
       /*+++edges intruding. */
       bf->flag &= ~BFF_INTERSECT;
@@ -1300,7 +1300,7 @@ static void scan_for_ext_face_forces(Object *ob, float timenow)
       /*--- close vertices. */
     }
     bf = sb->scratch->bodyface;
-    for (a = 0; a < sb->scratch->totface; a++, bf++) {
+    for (a = 0; a < sb->scratch->bodyface_num; a++, bf++) {
       if ((bf->flag & BFF_INTERSECT) || (bf->flag & BFF_CLOSEVERT)) {
         sb->bpoint[bf->v1].choke2 = max_ff(sb->bpoint[bf->v1].choke2, choke);
         sb->bpoint[bf->v2].choke2 = max_ff(sb->bpoint[bf->v2].choke2, choke);
@@ -2776,17 +2776,17 @@ static void mesh_faces_to_scratch(Object *ob)
 
   /* Allocate and copy faces. */
 
-  sb->scratch->totface = poly_to_tri_count(mesh->faces_num, mesh->totloop);
-  blender::Array<MLoopTri> looptri(sb->scratch->totface);
+  sb->scratch->bodyface_num = poly_to_tri_count(mesh->faces_num, mesh->totloop);
+  blender::Array<MLoopTri> looptri(sb->scratch->bodyface_num);
   blender::bke::mesh::looptris_calc(
       mesh->vert_positions(), mesh->faces(), mesh->corner_verts(), looptri);
 
   lt = looptri.data();
 
   bodyface = sb->scratch->bodyface = static_cast<BodyFace *>(
-      MEM_mallocN(sizeof(BodyFace) * sb->scratch->totface, "SB_body_Faces"));
+      MEM_mallocN(sizeof(BodyFace) * sb->scratch->bodyface_num, "SB_body_Faces"));
 
-  for (a = 0; a < sb->scratch->totface; a++, lt++, bodyface++) {
+  for (a = 0; a < sb->scratch->bodyface_num; a++, lt++, bodyface++) {
     bodyface->v1 = corner_verts[lt->tri[0]];
     bodyface->v2 = corner_verts[lt->tri[1]];
     bodyface->v3 = corner_verts[lt->tri[2]];
@@ -3111,7 +3111,7 @@ static void sb_new_scratch(SoftBody *sb)
   sb->scratch = static_cast<SBScratch *>(MEM_callocN(sizeof(SBScratch), "SBScratch"));
   sb->scratch->colliderhash = BLI_ghash_ptr_new("sb_new_scratch gh");
   sb->scratch->bodyface = nullptr;
-  sb->scratch->totface = 0;
+  sb->scratch->bodyface_num = 0;
   sb->scratch->aabbmax[0] = sb->scratch->aabbmax[1] = sb->scratch->aabbmax[2] = 1.0e30f;
   sb->scratch->aabbmin[0] = sb->scratch->aabbmin[1] = sb->scratch->aabbmin[2] = -1.0e30f;
   sb->scratch->Ref.ivert = nullptr;
