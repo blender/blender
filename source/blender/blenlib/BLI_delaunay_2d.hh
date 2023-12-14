@@ -50,10 +50,46 @@
  * for dynamically maintaining a triangulation.
  */
 
+/** What triangles and edges of CDT are desired when getting output? */
+enum CDT_output_type {
+  /** All triangles, outer boundary is convex hull. */
+  CDT_FULL,
+  /** All triangles fully enclosed by constraint edges or faces. */
+  CDT_INSIDE,
+  /** Like previous, but detect holes and omit those from output. */
+  CDT_INSIDE_WITH_HOLES,
+  /** Only point, edge, and face constraints, and their intersections. */
+  CDT_CONSTRAINTS,
+  /**
+   * Like CDT_CONSTRAINTS, but keep enough
+   * edges so that any output faces that came from input faces can be made as valid
+   * #BMesh faces in Blender: that is,
+   * no vertex appears more than once and no isolated holes in faces.
+   */
+  CDT_CONSTRAINTS_VALID_BMESH,
+  /** Like previous, but detect holes and omit those from output. */
+  CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES,
+};
+
+namespace blender::meshintersect {
+
+/** #vec2<Arith_t> is a 2d vector with #Arith_t as the type for coordinates. */
+template<typename Arith_t> struct vec2_impl;
+template<> struct vec2_impl<double> {
+  typedef double2 type;
+};
+
+#ifdef WITH_GMP
+template<> struct vec2_impl<mpq_class> {
+  typedef mpq2 type;
+};
+#endif
+
+template<typename Arith_t> using vec2 = typename vec2_impl<Arith_t>::type;
+
 /**
  * Input to Constrained Delaunay Triangulation.
- * There are verts_len vertices, whose coordinates
- * are given by vert_coords. For the rest of the input,
+ * Input vertex coordinates are stored in `vert`. For the rest of the input,
  * vertices are referred to by indices into that array.
  * Edges and Faces are optional. If provided, they will
  * appear in the output triangulation ("constraints").
@@ -61,11 +97,7 @@
  * implied by the faces will be inferred.
  *
  * The edges are given by pairs of vertex indices.
- * The faces are given in a triple `(faces, faces_start_table, faces_len_table)`
- * to represent a list-of-lists as follows:
- * the vertex indices for a counterclockwise traversal of
- * face number `i` starts at `faces_start_table[i]` and has `faces_len_table[i]`
- * elements.
+ * The faces are given as groups of vertex indices, in counterclockwise order.
  *
  * The edges implied by the faces are automatically added
  * and need not be put in the edges array, which is intended
@@ -105,18 +137,14 @@
  * If this is not needed, set need_ids to false and the execution may be much
  * faster in some circumstances.
  */
-typedef struct CDT_input {
-  int verts_len;
-  int edges_len;
-  int faces_len;
-  float (*vert_coords)[2];
-  int (*edges)[2];
-  int *faces;
-  int *faces_start_table;
-  int *faces_len_table;
-  float epsilon;
-  bool need_ids;
-} CDT_input;
+template<typename Arith_t> class CDT_input {
+ public:
+  Array<vec2<Arith_t>> vert;
+  Array<std::pair<int, int>> edge;
+  Array<Vector<int>> face;
+  Arith_t epsilon{0};
+  bool need_ids{true};
+};
 
 /**
  * A representation of the triangulation for output.
@@ -131,101 +159,15 @@ typedef struct CDT_input {
  * The output faces may be pieces of some input faces, or they
  * may be new.
  *
- * In the same way that faces lists-of-lists were represented by
- * a run-together array and a "start" and "len" extra array,
- * similar triples are used to represent the output to input
+ * Extra outputs are used to represent the output to input
  * mapping of vertices, edges, and faces.
  * These are only set if need_ids is true in the input.
  *
- * Those triples are:
- * - verts_orig, verts_orig_start_table, verts_orig_len_table
- * - edges_orig, edges_orig_start_table, edges_orig_len_table
- * - faces_orig, faces_orig_start_table, faces_orig_len_table
  *
- * For edges, the edges_orig triple can also say which original face
- * edge is part of a given output edge. See the comment below
- * on the C++ interface for how to decode the entries in the edges_orig
- * table.
+ * For edges, the edge_orig triple can also say which original face
+ * edge is part of a given output edge. See the comment below for how
+ * to decode the entries in the edge_orig table.
  */
-typedef struct CDT_result {
-  int verts_len;
-  int edges_len;
-  int faces_len;
-  int face_edge_offset;
-  float (*vert_coords)[2];
-  int (*edges)[2];
-  int *faces;
-  int *faces_start_table;
-  int *faces_len_table;
-  int *verts_orig;
-  int *verts_orig_start_table;
-  int *verts_orig_len_table;
-  int *edges_orig;
-  int *edges_orig_start_table;
-  int *edges_orig_len_table;
-  int *faces_orig;
-  int *faces_orig_start_table;
-  int *faces_orig_len_table;
-} CDT_result;
-
-/** What triangles and edges of CDT are desired when getting output? */
-typedef enum CDT_output_type {
-  /** All triangles, outer boundary is convex hull. */
-  CDT_FULL,
-  /** All triangles fully enclosed by constraint edges or faces. */
-  CDT_INSIDE,
-  /** Like previous, but detect holes and omit those from output. */
-  CDT_INSIDE_WITH_HOLES,
-  /** Only point, edge, and face constraints, and their intersections. */
-  CDT_CONSTRAINTS,
-  /**
-   * Like CDT_CONSTRAINTS, but keep enough
-   * edges so that any output faces that came from input faces can be made as valid
-   * #BMesh faces in Blender: that is,
-   * no vertex appears more than once and no isolated holes in faces.
-   */
-  CDT_CONSTRAINTS_VALID_BMESH,
-  /** Like previous, but detect holes and omit those from output. */
-  CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES,
-} CDT_output_type;
-
-/**
- * API interface to CDT.
- * This returns a pointer to an allocated CDT_result.
- * When the caller is finished with it, the caller
- * should use #BLI_delaunay_2d_cdt_free() to free it.
- */
-CDT_result *BLI_delaunay_2d_cdt_calc(const CDT_input *input, const CDT_output_type output_type);
-
-void BLI_delaunay_2d_cdt_free(CDT_result *result);
-
-/* C++ Interface. */
-
-namespace blender::meshintersect {
-
-/** #vec2<Arith_t> is a 2d vector with #Arith_t as the type for coordinates. */
-template<typename Arith_t> struct vec2_impl;
-template<> struct vec2_impl<double> {
-  typedef double2 type;
-};
-
-#ifdef WITH_GMP
-template<> struct vec2_impl<mpq_class> {
-  typedef mpq2 type;
-};
-#endif
-
-template<typename Arith_t> using vec2 = typename vec2_impl<Arith_t>::type;
-
-template<typename Arith_t> class CDT_input {
- public:
-  Array<vec2<Arith_t>> vert;
-  Array<std::pair<int, int>> edge;
-  Array<Vector<int>> face;
-  Arith_t epsilon{0};
-  bool need_ids{true};
-};
-
 template<typename Arith_t> class CDT_result {
  public:
   Array<vec2<Arith_t>> vert;

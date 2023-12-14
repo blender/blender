@@ -15,7 +15,6 @@
 #include <type_traits>
 
 #define DO_CPP_TESTS 1
-#define DO_C_TESTS 1
 #define DO_TEXT_TESTS 0
 #define DO_RANDOM_TESTS 0
 
@@ -1733,56 +1732,6 @@ TEST(delaunay_m, RepeatTri)
   repeattri_test<mpq_class>();
 }
 #  endif
-#endif
-
-#if DO_C_TESTS
-
-TEST(delaunay_d, CintTwoFace)
-{
-  float vert_coords[][2] = {
-      {0.0, 0.0}, {1.0, 0.0}, {0.5, 1.0}, {1.1, 1.0}, {1.1, 0.0}, {1.6, 1.0}};
-  int faces[] = {0, 1, 2, 3, 4, 5};
-  int faces_len[] = {3, 3};
-  int faces_start[] = {0, 3};
-
-  ::CDT_input input;
-  input.verts_len = 6;
-  input.edges_len = 0;
-  input.faces_len = 2;
-  input.vert_coords = vert_coords;
-  input.edges = nullptr;
-  input.faces = faces;
-  input.faces_len_table = faces_len;
-  input.faces_start_table = faces_start;
-  input.epsilon = 1e-5f;
-  input.need_ids = false;
-  ::CDT_result *output = BLI_delaunay_2d_cdt_calc(&input, CDT_FULL);
-  BLI_delaunay_2d_cdt_free(output);
-}
-
-TEST(delaunay_d, CintTwoFaceNoIds)
-{
-  float vert_coords[][2] = {
-      {0.0, 0.0}, {1.0, 0.0}, {0.5, 1.0}, {1.1, 1.0}, {1.1, 0.0}, {1.6, 1.0}};
-  int faces[] = {0, 1, 2, 3, 4, 5};
-  int faces_len[] = {3, 3};
-  int faces_start[] = {0, 3};
-
-  ::CDT_input input;
-  input.verts_len = 6;
-  input.edges_len = 0;
-  input.faces_len = 2;
-  input.vert_coords = vert_coords;
-  input.edges = nullptr;
-  input.faces = faces;
-  input.faces_len_table = faces_len;
-  input.faces_start_table = faces_start;
-  input.epsilon = 1e-5f;
-  input.need_ids = true;
-  ::CDT_result *output = BLI_delaunay_2d_cdt_calc(&input, CDT_FULL);
-  BLI_delaunay_2d_cdt_free(output);
-}
-
 #endif
 
 #if DO_TEXT_TESTS
