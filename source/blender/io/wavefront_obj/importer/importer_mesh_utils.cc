@@ -24,38 +24,38 @@
 
 namespace blender::io::obj {
 
-Vector<Vector<int>> fixup_invalid_polygon(Span<float3> vertex_coords,
-                                          Span<int> face_vertex_indices)
+Vector<Vector<int>> fixup_invalid_polygon(Span<float3> vert_positions, Span<int> face_verts)
 {
   using namespace blender::meshintersect;
-  if (face_vertex_indices.size() < 3) {
+  if (face_verts.size() < 3) {
     return {};
   }
 
-  const float3 normal = bke::mesh::face_normal_calc(vertex_coords, face_vertex_indices);
+  const float3 normal = bke::mesh::face_normal_calc(vert_positions, face_verts);
   float axis_mat[3][3];
   axis_dominant_v3_to_m3(axis_mat, normal);
 
-  /* Prepare data for CDT. */
-  CDT_input<double> input;
-  input.vert.reinitialize(face_vertex_indices.size());
-  input.face.reinitialize(1);
-  input.face[0].resize(face_vertex_indices.size());
-  for (int64_t i = 0; i < face_vertex_indices.size(); ++i) {
-    input.face[0][i] = i;
-  }
-  input.epsilon = 1.0e-6f;
-  input.need_ids = true;
   /* Project vertices to 2D. */
-  for (size_t i = 0; i < face_vertex_indices.size(); ++i) {
-    int idx = face_vertex_indices[i];
-    BLI_assert(idx >= 0 && idx < vertex_coords.size());
-    float3 coord = vertex_coords[idx];
+  Array<double2> input_verts(face_verts.size());
+  for (const int i : face_verts.index_range()) {
+    int idx = face_verts[i];
+    BLI_assert(idx >= 0 && idx < vert_positions.size());
     float2 coord2d;
-    mul_v2_m3v3(coord2d, axis_mat, coord);
-    input.vert[i] = double2(coord2d.x, coord2d.y);
+    mul_v2_m3v3(coord2d, axis_mat, vert_positions[idx]);
+    input_verts[i] = double2(coord2d.x, coord2d.y);
   }
 
+  Array<Vector<int>> input_faces(1);
+  input_faces.first().resize(input_verts.size());
+
+  std::iota(input_faces.first().begin(), input_faces.first().end(), 0);
+
+  /* Prepare data for CDT. */
+  CDT_input<double> input;
+  input.vert = std::move(input_verts);
+  input.face = std::move(input_faces);
+  input.epsilon = 1.0e-6f;
+  input.need_ids = true;
   CDT_result<double> res = delaunay_2d_calc(input, CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES);
 
   /* Emit new face information from CDT result. */
@@ -77,7 +77,7 @@ Vector<Vector<int>> fixup_invalid_polygon(Span<float3> vertex_coords,
       else {
         /* Vertex corresponds to one or more of the input vertices, use it. */
         idx = res.vert_orig[idx][0];
-        BLI_assert(idx >= 0 && idx < face_vertex_indices.size());
+        BLI_assert(idx >= 0 && idx < face_verts.size());
         face_verts.append(idx);
       }
     }

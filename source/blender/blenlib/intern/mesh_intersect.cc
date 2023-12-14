@@ -1686,7 +1686,7 @@ static void prepare_need_tri(CDT_data &cd, const IMesh &tm, int t)
   cd.is_reversed.append(rev);
 }
 
-static CDT_data prepare_cdt_input(const IMesh &tm, int t, const Vector<ITT_value> itts)
+static CDT_data prepare_cdt_input(const IMesh &tm, int t, const Span<ITT_value> itts)
 {
   CDT_data ans;
   BLI_assert(tm.face(t)->plane_populated());
@@ -1718,7 +1718,7 @@ static CDT_data prepare_cdt_input(const IMesh &tm, int t, const Vector<ITT_value
 static CDT_data prepare_cdt_input_for_cluster(const IMesh &tm,
                                               const CoplanarClusterInfo &clinfo,
                                               int c,
-                                              const Vector<ITT_value> itts)
+                                              const Span<ITT_value> itts)
 {
   CDT_data ans;
   BLI_assert(c < clinfo.tot_cluster());
@@ -2086,13 +2086,11 @@ static Array<Face *> polyfill_triangulate_poly(Face *f, IMeshArena *arena)
 static Array<Face *> exact_triangulate_poly(Face *f, IMeshArena *arena)
 {
   int flen = f->size();
-  CDT_input<mpq_class> cdt_in;
-  cdt_in.vert = Array<mpq2>(flen);
-  cdt_in.face = Array<Vector<int>>(1);
-  cdt_in.face[0].reserve(flen);
-  for (int i : f->index_range()) {
-    cdt_in.face[0].append(i);
-  }
+  Array<mpq2> in_verts(flen);
+  Array<Vector<int>> faces;
+  faces.first().resize(flen);
+  std::iota(faces.first().begin(), faces.first().end(), 0);
+
   /* Project poly along dominant axis of normal to get 2d coords. */
   if (!f->plane_populated()) {
     f->populate_plane(false);
@@ -2108,7 +2106,7 @@ static Array<Face *> exact_triangulate_poly(Face *f, IMeshArena *arena)
   bool rev = rev1 ^ rev2;
   for (int i = 0; i < flen; ++i) {
     int ii = rev ? flen - i - 1 : i;
-    mpq2 &p2d = cdt_in.vert[ii];
+    mpq2 &p2d = in_verts[ii];
     int k = 0;
     for (int j = 0; j < 3; ++j) {
       if (j != axis) {
@@ -2116,6 +2114,11 @@ static Array<Face *> exact_triangulate_poly(Face *f, IMeshArena *arena)
       }
     }
   }
+
+  CDT_input<mpq_class> cdt_in;
+  cdt_in.vert = std::move(in_verts);
+  cdt_in.face = std::move(faces);
+
   CDT_result<mpq_class> cdt_out = delaunay_2d_calc(cdt_in, CDT_INSIDE);
   int n_tris = cdt_out.face.size();
   Array<Face *> ans(n_tris);
