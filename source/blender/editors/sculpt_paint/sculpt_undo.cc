@@ -1511,59 +1511,68 @@ Node *push_node(Object *ob, PBVHNode *node, Type type)
 {
   SculptSession *ss = ob->sculpt;
 
+  Node *unode;
+
   /* List is manipulated by multiple threads, so we lock. */
   BLI_thread_lock(LOCK_CUSTOM1);
 
   ss->needs_flush_to_id = 1;
 
-  if (ss->bm || ELEM(type, Type::DyntopoBegin, Type::DyntopoEnd)) {
-    /* Dynamic topology stores only one undo node per stroke,
-     * regardless of the number of PBVH nodes modified. */
-    Node *unode = bmesh_push(ob, node, type);
-    BLI_thread_unlock(LOCK_CUSTOM1);
-    return unode;
-  }
-  if (type == Type::Geometry) {
-    Node *unode = geometry_push(ob, type);
-    BLI_thread_unlock(LOCK_CUSTOM1);
-    return unode;
-  }
-  if (Node *unode = get_node(node, type)) {
-    BLI_thread_unlock(LOCK_CUSTOM1);
-    return unode;
-  }
+  threading::isolate_task([&]() {
+    if (ss->bm || ELEM(type, Type::DyntopoBegin, Type::DyntopoEnd)) {
+      /* Dynamic topology stores only one undo node per stroke,
+       * regardless of the number of PBVH nodes modified. */
+      unode = bmesh_push(ob, node, type);
+      BLI_thread_unlock(LOCK_CUSTOM1);
+      // return unode;
+      return;
+    }
+    if (type == Type::Geometry) {
+      unode = geometry_push(ob, type);
+      BLI_thread_unlock(LOCK_CUSTOM1);
+      // return unode;
+      return;
+    }
+    if (unode = get_node(node, type)) {
+      BLI_thread_unlock(LOCK_CUSTOM1);
+      // return unode;
+      return;
+    }
 
-  Node *unode = alloc_node(ob, node, type);
+    unode = alloc_node(ob, node, type);
 
-  /* NOTE: If this ever becomes a bottleneck, make a lock inside of the node.
-   * so we release global lock sooner, but keep data locked for until it is
-   * fully initialized. */
-  switch (type) {
-    case Type::Position:
-      store_coords(ob, unode);
-      break;
-    case Type::HideVert:
-      store_hidden(ob, unode);
-      break;
-    case Type::HideFace:
-      store_face_hidden(*ob, *unode);
-      break;
-    case Type::Mask:
-      store_mask(ob, unode);
-      break;
-    case Type::Color:
-      store_color(ob, unode);
-      break;
-    case Type::DyntopoBegin:
-    case Type::DyntopoEnd:
-    case Type::DyntopoSymmetrize:
-      BLI_assert_msg(0, "Dynamic topology should've already been handled");
-    case Type::Geometry:
-      break;
-    case Type::FaceSet:
-      store_face_sets(*static_cast<const Mesh *>(ob->data), *unode);
-      break;
-  }
+    /* NOTE: If this ever becomes a bottleneck, make a lock inside of the node.
+     * so we release global lock sooner, but keep data locked for until it is
+     * fully initialized. */
+    switch (type) {
+      case Type::Position:
+        store_coords(ob, unode);
+        break;
+      case Type::HideVert:
+        store_hidden(ob, unode);
+        break;
+      case Type::HideFace:
+        store_face_hidden(*ob, *unode);
+        break;
+      case Type::Mask:
+        store_mask(ob, unode);
+        break;
+      case Type::Color:
+        store_color(ob, unode);
+        break;
+      case Type::DyntopoBegin:
+      case Type::DyntopoEnd:
+      case Type::DyntopoSymmetrize:
+        BLI_assert_msg(0, "Dynamic topology should've already been handled");
+      case Type::Geometry:
+        break;
+      case Type::FaceSet:
+        store_face_sets(*static_cast<const Mesh *>(ob->data), *unode);
+        break;
+    }
+
+    BLI_thread_unlock(LOCK_CUSTOM1);
+  });
 
   /* Store sculpt pivot. */
   copy_v3_v3(unode->pivot_pos, ss->pivot_pos);
@@ -1576,8 +1585,6 @@ Node *push_node(Object *ob, PBVHNode *node, Type type)
   else {
     unode->shapeName[0] = '\0';
   }
-
-  BLI_thread_unlock(LOCK_CUSTOM1);
 
   return unode;
 }
