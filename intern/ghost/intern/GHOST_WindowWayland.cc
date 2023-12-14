@@ -62,7 +62,7 @@ static constexpr size_t base_dpi = 96;
 #endif
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
-struct WGL_LibDecor_Window {
+struct GWL_LibDecor_Window {
   libdecor_frame *frame = nullptr;
 
   /**
@@ -91,14 +91,14 @@ struct WGL_LibDecor_Window {
   bool initial_state_seen = false;
 };
 
-static void gwl_libdecor_window_destroy(WGL_LibDecor_Window *decor)
+static void gwl_libdecor_window_destroy(GWL_LibDecor_Window *decor)
 {
   libdecor_frame_unref(decor->frame);
   delete decor;
 }
 #endif /* WITH_GHOST_WAYLAND_LIBDECOR */
 
-struct WGL_XDG_Decor_Window {
+struct GWL_XDG_Decor_Window {
   xdg_surface *surface = nullptr;
   zxdg_toplevel_decoration_v1 *toplevel_decor = nullptr;
   xdg_toplevel *toplevel = nullptr;
@@ -119,7 +119,7 @@ struct WGL_XDG_Decor_Window {
   bool initial_configure_seen = false;
 };
 
-static void gwl_xdg_decor_window_destroy(WGL_XDG_Decor_Window *decor)
+static void gwl_xdg_decor_window_destroy(GWL_XDG_Decor_Window *decor)
 {
   if (decor->toplevel_decor) {
     zxdg_toplevel_decoration_v1_destroy(decor->toplevel_decor);
@@ -309,9 +309,9 @@ struct GWL_Window {
   std::vector<GWL_Output *> outputs;
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
-  WGL_LibDecor_Window *libdecor = nullptr;
+  GWL_LibDecor_Window *libdecor = nullptr;
 #endif
-  WGL_XDG_Decor_Window *xdg_decor = nullptr;
+  GWL_XDG_Decor_Window *xdg_decor = nullptr;
 
   /**
    * The current value of frame, copied from `frame_pending` when applying updates.
@@ -366,13 +366,13 @@ static void gwl_window_title_set(GWL_Window *win, const char *title)
 {
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
   if (use_libdecor) {
-    WGL_LibDecor_Window &decor = *win->libdecor;
+    GWL_LibDecor_Window &decor = *win->libdecor;
     libdecor_frame_set_title(decor.frame, title);
   }
   else
 #endif
   {
-    WGL_XDG_Decor_Window &decor = *win->xdg_decor;
+    GWL_XDG_Decor_Window &decor = *win->xdg_decor;
     xdg_toplevel_set_title(decor.toplevel, title);
   }
 
@@ -844,7 +844,7 @@ static void gwl_window_frame_update_from_pending_no_lock(GWL_Window *win)
   }
 
   if (win->xdg_decor) {
-    WGL_XDG_Decor_Window &decor = *win->xdg_decor;
+    GWL_XDG_Decor_Window &decor = *win->xdg_decor;
     if (decor.pending.ack_configure) {
       xdg_surface_ack_configure(decor.surface, decor.pending.ack_configure_serial);
       /* The XDG spec states a commit event is required after ACK configure. */
@@ -1175,7 +1175,7 @@ static void libdecor_frame_handle_configure(libdecor_frame *frame,
 
   {
     const GWL_Window *win = static_cast<GWL_Window *>(data);
-    const WGL_LibDecor_Window &decor = *win->libdecor;
+    const GWL_LibDecor_Window &decor = *win->libdecor;
     if (decor.initial_configure_seen_with_size) {
       size_decor[0] = decor.applied.size[0];
       size_decor[1] = decor.applied.size[1];
@@ -1280,7 +1280,7 @@ static void libdecor_frame_handle_configure(libdecor_frame *frame,
   /* Commit the changes. */
   {
     GWL_Window *win = static_cast<GWL_Window *>(data);
-    WGL_LibDecor_Window &decor = *win->libdecor;
+    GWL_LibDecor_Window &decor = *win->libdecor;
     if (has_size == false) {
       /* Keep the current decor size. */
       size_next[0] = size_decor[0];
@@ -1568,8 +1568,8 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
   if (use_libdecor) {
-    window_->libdecor = new WGL_LibDecor_Window;
-    WGL_LibDecor_Window &decor = *window_->libdecor;
+    window_->libdecor = new GWL_LibDecor_Window;
+    GWL_LibDecor_Window &decor = *window_->libdecor;
 
     /* create window decorations */
     decor.frame = libdecor_decorate(
@@ -1580,7 +1580,7 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
     libdecor_frame_set_app_id(decor.frame, xdg_app_id);
 
     if (parentWindow) {
-      WGL_LibDecor_Window &decor_parent =
+      GWL_LibDecor_Window &decor_parent =
           *dynamic_cast<const GHOST_WindowWayland *>(parentWindow)->window_->libdecor;
       libdecor_frame_set_parent(decor.frame, decor_parent.frame);
     }
@@ -1588,8 +1588,8 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
   else
 #endif
   {
-    window_->xdg_decor = new WGL_XDG_Decor_Window;
-    WGL_XDG_Decor_Window &decor = *window_->xdg_decor;
+    window_->xdg_decor = new GWL_XDG_Decor_Window;
+    GWL_XDG_Decor_Window &decor = *window_->xdg_decor;
     decor.surface = xdg_wm_base_get_xdg_surface(system_->xdg_decor_shell_get(),
                                                 window_->wl.surface);
     decor.toplevel = xdg_surface_get_toplevel(decor.surface);
@@ -1601,7 +1601,7 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
     xdg_toplevel_add_listener(decor.toplevel, &xdg_toplevel_listener, window_);
 
     if (parentWindow && is_dialog) {
-      WGL_XDG_Decor_Window &decor_parent =
+      GWL_XDG_Decor_Window &decor_parent =
           *dynamic_cast<const GHOST_WindowWayland *>(parentWindow)->window_->xdg_decor;
       xdg_toplevel_set_parent(decor.toplevel, decor_parent.toplevel);
     }
@@ -1617,7 +1617,7 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
   /* Causes a glitch with `libdecor` for some reason. */
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
   if (use_libdecor) {
-    WGL_LibDecor_Window &decor = *window_->libdecor;
+    GWL_LibDecor_Window &decor = *window_->libdecor;
     if (fractional_scale_manager &&
         (gwl_round_int_test(scale_fractional_from_output, FRACTIONAL_DENOMINATOR) == false))
     {
@@ -1657,7 +1657,7 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
   else
 #endif /* WITH_GHOST_WAYLAND_LIBDECOR */
   {
-    WGL_XDG_Decor_Window &decor = *window_->xdg_decor;
+    GWL_XDG_Decor_Window &decor = *window_->xdg_decor;
 
     if (system_->xdg_decor_manager_get()) {
       decor.toplevel_decor = zxdg_decoration_manager_v1_get_toplevel_decoration(
