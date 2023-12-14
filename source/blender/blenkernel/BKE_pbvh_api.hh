@@ -111,18 +111,6 @@ BLI_INLINE PBVHVertRef BKE_pbvh_make_vref(intptr_t i)
   return ret;
 }
 
-BLI_INLINE PBVHEdgeRef BKE_pbvh_make_eref(intptr_t i)
-{
-  PBVHEdgeRef ret = {i};
-  return ret;
-}
-
-BLI_INLINE PBVHFaceRef BKE_pbvh_make_fref(intptr_t i)
-{
-  PBVHFaceRef ret = {i};
-  return ret;
-}
-
 BLI_INLINE int BKE_pbvh_vertex_to_index(PBVH *pbvh, PBVHVertRef v)
 {
   return (BKE_pbvh_type(pbvh) == PBVH_BMESH && v.i != PBVH_REF_NONE ?
@@ -141,46 +129,6 @@ BLI_INLINE PBVHVertRef BKE_pbvh_index_to_vertex(PBVH *pbvh, int index)
   }
 
   return BKE_pbvh_make_vref(PBVH_REF_NONE);
-}
-
-BLI_INLINE int BKE_pbvh_edge_to_index(PBVH *pbvh, PBVHEdgeRef e)
-{
-  return (BKE_pbvh_type(pbvh) == PBVH_BMESH && e.i != PBVH_REF_NONE ?
-              BM_elem_index_get((BMEdge *)(e.i)) :
-              (e.i));
-}
-
-BLI_INLINE PBVHEdgeRef BKE_pbvh_index_to_edge(PBVH *pbvh, int index)
-{
-  switch (BKE_pbvh_type(pbvh)) {
-    case PBVH_FACES:
-    case PBVH_GRIDS:
-      return BKE_pbvh_make_eref(index);
-    case PBVH_BMESH:
-      return BKE_pbvh_make_eref((intptr_t)BKE_pbvh_get_bmesh(pbvh)->etable[index]);
-  }
-
-  return BKE_pbvh_make_eref(PBVH_REF_NONE);
-}
-
-BLI_INLINE int BKE_pbvh_face_to_index(PBVH *pbvh, PBVHFaceRef f)
-{
-  return (BKE_pbvh_type(pbvh) == PBVH_BMESH && f.i != PBVH_REF_NONE ?
-              BM_elem_index_get((BMFace *)(f.i)) :
-              (f.i));
-}
-
-BLI_INLINE PBVHFaceRef BKE_pbvh_index_to_face(PBVH *pbvh, int index)
-{
-  switch (BKE_pbvh_type(pbvh)) {
-    case PBVH_FACES:
-    case PBVH_GRIDS:
-      return BKE_pbvh_make_fref(index);
-    case PBVH_BMESH:
-      return BKE_pbvh_make_fref((intptr_t)BKE_pbvh_get_bmesh(pbvh)->ftable[index]);
-  }
-
-  return BKE_pbvh_make_fref(PBVH_REF_NONE);
 }
 
 /* Callbacks */

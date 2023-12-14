@@ -159,7 +159,6 @@ struct SculptUndoStep {
 };
 
 static UndoSculpt *get_nodes();
-static bool sculpt_attribute_ref_equals(SculptAttrRef *a, SculptAttrRef *b);
 static void sculpt_save_active_attribute(Object *ob, SculptAttrRef *attr);
 static UndoSculpt *sculpt_undosys_step_get_nodes(UndoStep *us_p);
 
@@ -1587,11 +1586,6 @@ Node *push_node(Object *ob, PBVHNode *node, Type type)
   }
 
   return unode;
-}
-
-static bool sculpt_attribute_ref_equals(SculptAttrRef *a, SculptAttrRef *b)
-{
-  return a->domain == b->domain && a->type == b->type && STREQ(a->name, b->name);
 }
 
 static void sculpt_save_active_attribute(Object *ob, SculptAttrRef *attr)

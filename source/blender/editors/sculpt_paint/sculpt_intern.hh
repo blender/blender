@@ -1886,4 +1886,3 @@ int SCULPT_vertex_island_get(const SculptSession *ss, PBVHVertRef vertex);
 /* Make SCULPT_ alias to a few blenkernel sculpt methods. */
 
 #define SCULPT_vertex_attr_get BKE_sculpt_vertex_attr_get
-#define SCULPT_face_attr_get BKE_sculpt_face_attr_get

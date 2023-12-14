@@ -65,20 +65,6 @@ struct PBVHVertRef {
   PBVH_REF_CXX_METHODS(PBVHVertRef)
 };
 
-/* NOTE: edges in PBVH_GRIDS are always pulled from the base mesh. */
-struct PBVHEdgeRef {
-  intptr_t i;
-
-  PBVH_REF_CXX_METHODS(PBVHVertRef)
-};
-
-/* NOTE: faces in PBVH_GRIDS are always puled from the base mesh. */
-struct PBVHFaceRef {
-  intptr_t i;
-
-  PBVH_REF_CXX_METHODS(PBVHVertRef)
-};
-
 #define PBVH_REF_NONE -1LL
 
 /* Public members of PBVH, used for inlined functions. */
