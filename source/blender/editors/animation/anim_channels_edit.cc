@@ -4317,22 +4317,6 @@ static const EnumPropertyItem channel_bake_key_options[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-static const EnumPropertyItem channel_bake_remove_options[] = {
-    {int(BakeCurveRemove::REMOVE_NONE), "NONE", 0, "None", "Keep all keys"},
-    {int(BakeCurveRemove::REMOVE_IN_RANGE),
-     "IN_RANGE",
-     0,
-     "In Range",
-     "Remove all keys within the defined range"},
-    {int(BakeCurveRemove::REMOVE_OUT_RANGE),
-     "OUT_RANGE",
-     0,
-     "Outside Range",
-     "Remove all keys outside the defined range"},
-    {int(BakeCurveRemove::REMOVE_ALL), "ALL", 0, "All", "Remove all existing keys"},
-    {0, nullptr, 0, nullptr, nullptr},
-};
-
 static int channels_bake_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
