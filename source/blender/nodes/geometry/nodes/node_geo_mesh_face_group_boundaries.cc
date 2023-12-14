@@ -89,11 +89,8 @@ class BoundaryFieldInput final : public bke::MeshFieldInput {
                 if (faces_group_id[edge_state_value] == group_id) {
                   break;
                 }
-                if (edge_state.compare_exchange_weak(edge_state_value,
-                                                     is_boundary,
-                                                     std::memory_order_release,
-                                                     std::memory_order_release))
-                {
+                if (edge_state.compare_exchange_weak(
+                        edge_state_value, is_boundary, std::memory_order_release)) {
                   boundary[edge_i] = true;
                   break;
                 }
