@@ -958,12 +958,6 @@ float ANIM_unit_mapping_get_factor(Scene *scene, ID *id, FCurve *fcu, short flag
  * \{ */
 
 /**
- * Provide access to Keyframe Type info in #BezTriple.
- * NOTE: this is so that we can change it from being stored in 'hide'
- */
-#define BEZKEYTYPE(bezt) ((bezt)->hide)
-
-/**
  * Set/Clear/Toggle macro.
  * \param channel: Channel with a 'flag' member that we're setting.
  * \param smode: 0=clear, 1=set, 2=invert.

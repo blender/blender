@@ -239,8 +239,9 @@ void initialize_bezt(BezTriple *beztr,
     beztr->ipo = BEZT_IPO_LIN;
   }
 
-  /* The keytype is hackily stored on the hide flag since that isn't used in animation. */
-  beztr->hide = settings.keyframe_type;
+  /* Set keyframe type value (supplied),
+   * which should come from the scene settings in most cases. */
+  BEZKEYTYPE(beztr) = settings.keyframe_type;
 
   /* Set default values for "easing" interpolation mode settings.
    * NOTE: Even if these modes aren't currently used, if users switch
