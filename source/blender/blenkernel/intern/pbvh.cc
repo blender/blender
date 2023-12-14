@@ -377,6 +377,7 @@ static void build_leaf(PBVH *pbvh,
                        const Span<MLoopTri> looptris,
                        const Span<int> looptri_faces,
                        const Span<bool> hide_poly,
+                       MutableSpan<bool> vert_bitmap,
                        int node_index,
                        const Span<Bounds<float3>> prim_bounds,
                        int offset,
@@ -391,8 +392,7 @@ static void build_leaf(PBVH *pbvh,
   update_vb(pbvh->prim_indices, &node, prim_bounds, offset, count);
 
   if (!pbvh->looptris.is_empty()) {
-    build_mesh_leaf_node(
-        corner_verts, looptris, looptri_faces, hide_poly, pbvh->vert_bitmap, &node);
+    build_mesh_leaf_node(corner_verts, looptris, looptri_faces, hide_poly, vert_bitmap, &node);
   }
   else {
     build_grid_leaf_node(pbvh, &node);
@@ -489,6 +489,7 @@ static void build_sub(PBVH *pbvh,
                       const Span<bool> hide_poly,
                       const Span<int> material_indices,
                       const Span<bool> sharp_faces,
+                      MutableSpan<bool> vert_bitmap,
                       int node_index,
                       const Bounds<float3> *cb,
                       const Span<Bounds<float3>> prim_bounds,
@@ -518,6 +519,7 @@ static void build_sub(PBVH *pbvh,
                  looptris,
                  looptri_faces,
                  hide_poly,
+                 vert_bitmap,
                  node_index,
                  prim_bounds,
                  offset,
@@ -580,6 +582,7 @@ static void build_sub(PBVH *pbvh,
             hide_poly,
             material_indices,
             sharp_faces,
+            vert_bitmap,
             pbvh->nodes[node_index].children_offset,
             nullptr,
             prim_bounds,
@@ -594,6 +597,7 @@ static void build_sub(PBVH *pbvh,
             hide_poly,
             material_indices,
             sharp_faces,
+            vert_bitmap,
             pbvh->nodes[node_index].children_offset + 1,
             nullptr,
             prim_bounds,
@@ -614,6 +618,7 @@ static void pbvh_build(PBVH *pbvh,
                        const Span<bool> hide_poly,
                        const Span<int> material_indices,
                        const Span<bool> sharp_faces,
+                       MutableSpan<bool> vert_bitmap,
                        const Bounds<float3> *cb,
                        const Span<Bounds<float3>> prim_bounds,
                        int totprim)
@@ -635,6 +640,7 @@ static void pbvh_build(PBVH *pbvh,
             hide_poly,
             material_indices,
             sharp_faces,
+            vert_bitmap,
             0,
             cb,
             prim_bounds,
@@ -746,7 +752,6 @@ void BKE_pbvh_build_mesh(PBVH *pbvh, Mesh *mesh)
   BKE_pbvh_update_mesh_pointers(pbvh, mesh);
   const Span<int> looptri_faces = pbvh->looptri_faces;
 
-  /* Those are not set in #BKE_pbvh_update_mesh_pointers because they are owned by the #PBVH. */
   pbvh->vert_bitmap = blender::Array<bool>(totvert, false);
   pbvh->totvert = totvert;
 
@@ -794,6 +799,7 @@ void BKE_pbvh_build_mesh(PBVH *pbvh, Mesh *mesh)
                hide_poly,
                material_index,
                sharp_face,
+               pbvh->vert_bitmap,
                &cb,
                prim_bounds,
                looptris_num);
@@ -867,7 +873,8 @@ void BKE_pbvh_build_grids(PBVH *pbvh, const CCGKey *key, Mesh *mesh, SubdivCCG *
     const AttributeAccessor attributes = mesh->attributes();
     const VArraySpan material_index = *attributes.lookup<int>("material_index", ATTR_DOMAIN_FACE);
     const VArraySpan sharp_face = *attributes.lookup<bool>("sharp_face", ATTR_DOMAIN_FACE);
-    pbvh_build(pbvh, {}, {}, {}, {}, material_index, sharp_face, &cb, prim_bounds, grids.size());
+    pbvh_build(
+        pbvh, {}, {}, {}, {}, material_index, sharp_face, {}, &cb, prim_bounds, grids.size());
 
 #ifdef TEST_PBVH_FACE_SPLIT
     test_face_boundaries(pbvh);
