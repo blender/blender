@@ -2106,26 +2106,22 @@ void BKE_sculpt_sync_face_visibility_to_grids(Mesh *mesh, SubdivCCG *subdiv_ccg)
   });
 }
 
+namespace blender::bke {
+
 static PBVH *build_pbvh_for_dynamic_topology(Object *ob)
 {
-  PBVH *pbvh = ob->sculpt->pbvh = BKE_pbvh_new(PBVH_BMESH);
-
   sculptsession_bmesh_add_layers(ob);
 
-  BKE_pbvh_build_bmesh(pbvh,
-                       ob->sculpt->bm,
-                       ob->sculpt->bm_log,
-                       ob->sculpt->attrs.dyntopo_node_id_vertex->bmesh_cd_offset,
-                       ob->sculpt->attrs.dyntopo_node_id_face->bmesh_cd_offset);
-  return pbvh;
+  return pbvh::build_bmesh(ob->sculpt->bm,
+                           ob->sculpt->bm_log,
+                           ob->sculpt->attrs.dyntopo_node_id_vertex->bmesh_cd_offset,
+                           ob->sculpt->attrs.dyntopo_node_id_face->bmesh_cd_offset);
 }
 
 static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform)
 {
   Mesh *mesh = BKE_object_get_original_mesh(ob);
-  PBVH *pbvh = BKE_pbvh_new(PBVH_FACES);
-
-  BKE_pbvh_build_mesh(pbvh, mesh);
+  PBVH *pbvh = pbvh::build_mesh(mesh);
 
   const bool is_deformed = check_sculpt_object_deformed(ob, true);
   if (is_deformed && me_eval_deform != nullptr) {
@@ -2138,17 +2134,17 @@ static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform)
 static PBVH *build_pbvh_from_ccg(Object *ob, SubdivCCG *subdiv_ccg)
 {
   const CCGKey key = BKE_subdiv_ccg_key_top_level(*subdiv_ccg);
-  PBVH *pbvh = BKE_pbvh_new(PBVH_GRIDS);
-
   Mesh *base_mesh = BKE_mesh_from_object(ob);
   BKE_sculpt_sync_face_visibility_to_grids(base_mesh, subdiv_ccg);
 
-  BKE_pbvh_build_grids(pbvh, &key, base_mesh, subdiv_ccg);
-  return pbvh;
+  return pbvh::build_grids(&key, base_mesh, subdiv_ccg);
 }
+
+}  // namespace blender::bke
 
 PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
 {
+  using namespace blender::bke;
   if (ob->sculpt == nullptr) {
     return nullptr;
   }
@@ -2160,7 +2156,7 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
     const PBVHType pbvh_type = BKE_pbvh_type(pbvh);
     switch (pbvh_type) {
       case PBVH_FACES: {
-        BKE_pbvh_update_mesh_pointers(pbvh, BKE_object_get_original_mesh(ob));
+        pbvh::update_mesh_pointers(pbvh, BKE_object_get_original_mesh(ob));
         break;
       }
       case PBVH_GRIDS: {
@@ -2264,16 +2260,13 @@ void BKE_paint_face_set_overlay_color_get(const int face_set, const int seed, uc
 
 int BKE_sculptsession_vertex_count(const SculptSession *ss)
 {
-  switch (BKE_pbvh_type(ss->pbvh)) {
-    case PBVH_FACES:
-      return ss->totvert;
-    case PBVH_BMESH:
-      return BM_mesh_elem_count(ss->bm, BM_VERT);
-    case PBVH_GRIDS:
-      return BKE_pbvh_get_grid_num_verts(ss->pbvh);
+  if (ss->bm) {
+    return ss->bm->totvert;
   }
-
-  return 0;
+  if (ss->subdiv_ccg) {
+    return ss->subdiv_ccg->grids.size() * BKE_subdiv_ccg_key_top_level(*ss->subdiv_ccg).grid_area;
+  }
+  return ss->totvert;
 }
 
 /**
@@ -2390,79 +2383,67 @@ static bool sculpt_attribute_create(SculptSession *ss,
 
   out->simple_array = false;
 
-  switch (BKE_pbvh_type(ss->pbvh)) {
-    case PBVH_BMESH: {
-      CustomData *cdata = nullptr;
-      out->data_for_bmesh = true;
+  if (BMesh *bm = ss->bm) {
+    CustomData *cdata = nullptr;
+    out->data_for_bmesh = true;
 
-      switch (domain) {
-        case ATTR_DOMAIN_POINT:
-          cdata = &ss->bm->vdata;
-          break;
-        case ATTR_DOMAIN_FACE:
-          cdata = &ss->bm->pdata;
-          break;
-        default:
-          out->used = false;
-          return false;
-      }
-
-      BLI_assert(CustomData_get_named_layer_index(cdata, proptype, name) == -1);
-
-      BM_data_layer_add_named(ss->bm, cdata, proptype, name);
-      int index = CustomData_get_named_layer_index(cdata, proptype, name);
-
-      if (!permanent) {
-        cdata->layers[index].flag |= CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY;
-      }
-
-      out->data = nullptr;
-      out->layer = cdata->layers + index;
-      out->bmesh_cd_offset = out->layer->offset;
-      out->elem_size = CustomData_sizeof(proptype);
-      break;
+    switch (domain) {
+      case ATTR_DOMAIN_POINT:
+        cdata = &bm->vdata;
+        break;
+      case ATTR_DOMAIN_FACE:
+        cdata = &bm->pdata;
+        break;
+      default:
+        out->used = false;
+        return false;
     }
-    case PBVH_FACES: {
-      CustomData *cdata = nullptr;
 
-      switch (domain) {
-        case ATTR_DOMAIN_POINT:
-          cdata = &mesh->vert_data;
-          break;
-        case ATTR_DOMAIN_FACE:
-          cdata = &mesh->face_data;
-          break;
-        default:
-          out->used = false;
-          return false;
-      }
+    BLI_assert(CustomData_get_named_layer_index(cdata, proptype, name) == -1);
 
-      BLI_assert(CustomData_get_named_layer_index(cdata, proptype, name) == -1);
+    BM_data_layer_add_named(bm, cdata, proptype, name);
+    int index = CustomData_get_named_layer_index(cdata, proptype, name);
 
-      CustomData_add_layer_named(cdata, proptype, CD_SET_DEFAULT, totelem, name);
-      int index = CustomData_get_named_layer_index(cdata, proptype, name);
-
-      if (!permanent) {
-        cdata->layers[index].flag |= CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY;
-      }
-
-      out->layer = cdata->layers + index;
-      out->data = out->layer->data;
-      out->data_for_bmesh = false;
-      out->bmesh_cd_offset = -1;
-      out->elem_size = CustomData_get_elem_size(out->layer);
-
-      break;
+    if (!permanent) {
+      cdata->layers[index].flag |= CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY;
     }
-    case PBVH_GRIDS: {
-      /* GRIDS should have been handled as simple arrays. */
-      BLI_assert_unreachable();
-      break;
-    }
-    default:
-      BLI_assert_unreachable();
-      break;
+
+    out->data = nullptr;
+    out->layer = cdata->layers + index;
+    out->bmesh_cd_offset = out->layer->offset;
+    out->elem_size = CustomData_sizeof(proptype);
   }
+  else {
+    CustomData *cdata = nullptr;
+
+    switch (domain) {
+      case ATTR_DOMAIN_POINT:
+        cdata = &mesh->vert_data;
+        break;
+      case ATTR_DOMAIN_FACE:
+        cdata = &mesh->face_data;
+        break;
+      default:
+        out->used = false;
+        return false;
+    }
+
+    BLI_assert(CustomData_get_named_layer_index(cdata, proptype, name) == -1);
+
+    CustomData_add_layer_named(cdata, proptype, CD_SET_DEFAULT, totelem, name);
+    int index = CustomData_get_named_layer_index(cdata, proptype, name);
+
+    if (!permanent) {
+      cdata->layers[index].flag |= CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY;
+    }
+
+    out->layer = cdata->layers + index;
+    out->data = out->layer->data;
+    out->data_for_bmesh = false;
+    out->bmesh_cd_offset = -1;
+    out->elem_size = CustomData_get_elem_size(out->layer);
+  }
+  /* GRIDS should have been handled as simple arrays. */
 
   out->used = true;
   out->elem_num = totelem;

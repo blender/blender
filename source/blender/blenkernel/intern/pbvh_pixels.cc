@@ -285,7 +285,7 @@ static void split_flush_final_nodes(SplitQueueData *tdata)
     if (!newsplit->parent->children_offset) {
       newsplit->parent->children_offset = pbvh->nodes.size();
 
-      pbvh_grow_nodes(pbvh, pbvh->nodes.size() + 2);
+      pbvh->nodes.resize(pbvh->nodes.size() + 2);
       newsplit->source_index = newsplit->parent->children_offset;
     }
     else {

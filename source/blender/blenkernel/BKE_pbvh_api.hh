@@ -193,24 +193,23 @@ using BKE_pbvh_HitCallback = void (*)(PBVHNode *node, void *data);
 using BKE_pbvh_HitOccludedCallback = void (*)(PBVHNode *node, void *data, float *tmin);
 using BKE_pbvh_SearchNearestCallback = void (*)(PBVHNode *node, void *data, float *tmin);
 
-/* Building */
-
-PBVH *BKE_pbvh_new(PBVHType type);
+namespace blender::bke::pbvh {
 
 /**
  * Do a full rebuild with on Mesh data structure.
  */
-void BKE_pbvh_build_mesh(PBVH *pbvh, Mesh *mesh);
-void BKE_pbvh_update_mesh_pointers(PBVH *pbvh, Mesh *mesh);
+PBVH *build_mesh(Mesh *mesh);
+void update_mesh_pointers(PBVH *pbvh, Mesh *mesh);
 /**
  * Do a full rebuild with on Grids data structure.
  */
-void BKE_pbvh_build_grids(PBVH *pbvh, const CCGKey *key, Mesh *mesh, SubdivCCG *subdiv_ccg);
+PBVH *build_grids(const CCGKey *key, Mesh *mesh, SubdivCCG *subdiv_ccg);
 /**
  * Build a PBVH from a BMesh.
  */
-void BKE_pbvh_build_bmesh(
-    PBVH *pbvh, BMesh *bm, BMLog *log, int cd_vert_node_offset, int cd_face_node_offset);
+PBVH *build_bmesh(BMesh *bm, BMLog *log, int cd_vert_node_offset, int cd_face_node_offset);
+
+}  // namespace blender::bke::pbvh
 
 void BKE_pbvh_update_bmesh_offsets(PBVH *pbvh, int cd_vert_node_offset, int cd_face_node_offset);
 
@@ -314,14 +313,17 @@ blender::Bounds<blender::float3> BKE_pbvh_bounding_box(const PBVH *pbvh);
 
 void BKE_pbvh_sync_visibility_from_verts(PBVH *pbvh, Mesh *mesh);
 
+namespace blender::bke::pbvh {
+
 /**
  * Returns the number of visible quads in the nodes' grids.
  */
-int BKE_pbvh_count_grid_quads(const blender::BitGroupVector<> &grid_visibility,
-                              const int *grid_indices,
-                              int totgrid,
-                              int gridsize,
-                              int display_gridsize);
+int count_grid_quads(const BitGroupVector<> &grid_visibility,
+                     Span<int> grid_indices,
+                     int gridsize,
+                     int display_gridsize);
+
+}  // namespace blender::bke::pbvh
 
 /**
  * Multi-res level, only valid for type == #PBVH_GRIDS.

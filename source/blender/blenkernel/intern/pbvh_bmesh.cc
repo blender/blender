@@ -291,7 +291,7 @@ static void pbvh_bmesh_node_split(PBVH *pbvh,
   /* Add two new child nodes. */
   const int children = pbvh->nodes.size();
   n->children_offset = children;
-  pbvh_grow_nodes(pbvh, pbvh->nodes.size() + 2);
+  pbvh->nodes.resize(pbvh->nodes.size() + 2);
 
   /* Array reallocated, update current node pointer. */
   n = &pbvh->nodes[node_index];
@@ -2078,7 +2078,7 @@ static void pbvh_bmesh_create_nodes_fast_recursive(PBVH *pbvh,
     int children_offset = pbvh->nodes.size();
 
     n->children_offset = children_offset;
-    pbvh_grow_nodes(pbvh, pbvh->nodes.size() + 2);
+    pbvh->nodes.resize(pbvh->nodes.size() + 2);
     pbvh_bmesh_create_nodes_fast_recursive(
         pbvh, nodeinfo, face_bounds, node->child1, children_offset);
     pbvh_bmesh_create_nodes_fast_recursive(
@@ -2158,16 +2158,19 @@ void BKE_pbvh_update_bmesh_offsets(PBVH *pbvh, int cd_vert_node_offset, int cd_f
   pbvh->cd_face_node_offset = cd_face_node_offset;
 }
 
-void BKE_pbvh_build_bmesh(PBVH *pbvh,
-                          BMesh *bm,
-                          BMLog *log,
-                          const int cd_vert_node_offset,
-                          const int cd_face_node_offset)
+namespace blender::bke::pbvh {
+
+PBVH *build_bmesh(BMesh *bm,
+                  BMLog *log,
+                  const int cd_vert_node_offset,
+                  const int cd_face_node_offset)
 {
-  using namespace blender;
+  std::unique_ptr<PBVH> pbvh = std::make_unique<PBVH>();
+  pbvh->header.type = PBVH_BMESH;
+
   pbvh->header.bm = bm;
 
-  BKE_pbvh_bmesh_detail_size_set(pbvh, 0.75);
+  BKE_pbvh_bmesh_detail_size_set(pbvh.get(), 0.75);
 
   pbvh->header.type = PBVH_BMESH;
   pbvh->bm_log = log;
@@ -2175,15 +2178,15 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
   /* TODO: choose leaf limit better. */
   pbvh->leaf_limit = 400;
 
-  BKE_pbvh_update_bmesh_offsets(pbvh, cd_vert_node_offset, cd_face_node_offset);
+  BKE_pbvh_update_bmesh_offsets(pbvh.get(), cd_vert_node_offset, cd_face_node_offset);
 
   if (bm->totface == 0) {
-    return;
+    return {};
   }
 
   /* bounding box array of all faces, no need to recalculate every time. */
-  blender::Array<Bounds<float3>> face_bounds(bm->totface);
-  blender::Array<BMFace *> nodeinfo(bm->totface);
+  Array<Bounds<float3>> face_bounds(bm->totface);
+  Array<BMFace *> nodeinfo(bm->totface);
   MemArena *arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "fast PBVH node storage");
 
   BMIter iter;
@@ -2216,7 +2219,7 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
   rootnode.totface = bm->totface;
 
   /* Start recursion, assign faces to nodes accordingly. */
-  pbvh_bmesh_node_limit_ensure_fast(pbvh, nodeinfo, face_bounds, &rootnode, arena);
+  pbvh_bmesh_node_limit_ensure_fast(pbvh.get(), nodeinfo, face_bounds, &rootnode, arena);
 
   /* We now have all faces assigned to a node,
    * next we need to assign those to the gsets of the nodes. */
@@ -2225,10 +2228,13 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
   pbvh->nodes.append({});
 
   /* Take root node and visit and populate children recursively. */
-  pbvh_bmesh_create_nodes_fast_recursive(pbvh, nodeinfo, face_bounds, &rootnode, 0);
+  pbvh_bmesh_create_nodes_fast_recursive(pbvh.get(), nodeinfo, face_bounds, &rootnode, 0);
 
   BLI_memarena_free(arena);
+  return pbvh.release();
 }
+
+}  // namespace blender::bke::pbvh
 
 bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
                                     PBVHTopologyUpdateMode mode,

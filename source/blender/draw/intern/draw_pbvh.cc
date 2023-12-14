@@ -351,11 +351,10 @@ struct PBVHBatches {
         break;
       }
       case PBVH_GRIDS: {
-        count = BKE_pbvh_count_grid_quads(args.subdiv_ccg->grid_hidden,
-                                          args.grid_indices.data(),
-                                          args.grid_indices.size(),
-                                          args.ccg_key.grid_size,
-                                          args.ccg_key.grid_size);
+        count = bke::pbvh::count_grid_quads(args.subdiv_ccg->grid_hidden,
+                                            args.grid_indices,
+                                            args.ccg_key.grid_size,
+                                            args.ccg_key.grid_size);
 
         break;
       }
@@ -1163,8 +1162,8 @@ struct PBVHBatches {
 
     const CCGKey *key = &args.ccg_key;
 
-    uint visible_quad_len = BKE_pbvh_count_grid_quads(
-        grid_hidden, args.grid_indices.data(), totgrid, key->grid_size, display_gridsize);
+    uint visible_quad_len = bke::pbvh::count_grid_quads(
+        grid_hidden, args.grid_indices, key->grid_size, display_gridsize);
 
     GPU_indexbuf_init(&elb, GPU_PRIM_TRIS, 2 * visible_quad_len, INT_MAX);
     GPU_indexbuf_init(&elb_lines,
