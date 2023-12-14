@@ -2777,7 +2777,7 @@ static void mesh_faces_to_scratch(Object *ob)
   /* Allocate and copy faces. */
 
   sb->scratch->totface = poly_to_tri_count(mesh->faces_num, mesh->totloop);
-  blender::Array<MLoopTri> looptri(mesh->totvert);
+  blender::Array<MLoopTri> looptri(sb->scratch->totface);
   blender::bke::mesh::looptris_calc(
       mesh->vert_positions(), mesh->faces(), mesh->corner_verts(), looptri);
 
