@@ -2208,12 +2208,13 @@ int add_face_constraints(CDT_state<T> *cdt_state,
                          CDT_output_type output_type)
 {
   int nv = input.vert.size();
-  int nf = input.face.size();
+  const Span<Vector<int>> input_faces = input.face;
   SymEdge<T> *face_symedge0 = nullptr;
   CDTArrangement<T> *cdt = &cdt_state->cdt;
+
   int maxflen = 0;
-  for (int f = 0; f < nf; f++) {
-    maxflen = max_ii(maxflen, input.face[f].size());
+  for (const int f : input_faces.index_range()) {
+    maxflen = max_ii(maxflen, input_faces[f].size());
   }
   /* For convenience in debugging, make face_edge_offset be a power of 10. */
   cdt_state->face_edge_offset = power_of_10_greater_equal_to(
@@ -2222,19 +2223,19 @@ int add_face_constraints(CDT_state<T> *cdt_state,
    * If we really have that many faces and that large a max face length that when multiplied
    * together the are >= INT_MAX, then the Delaunay calculation will take unreasonably long anyway.
    */
-  BLI_assert(INT_MAX / cdt_state->face_edge_offset > nf);
+  BLI_assert(INT_MAX / cdt_state->face_edge_offset > input_faces.size());
   int faces_added = 0;
-  for (int f = 0; f < nf; f++) {
-    int flen = input.face[f].size();
-    if (flen <= 2) {
+  for (const int f : input_faces.index_range()) {
+    const Span<int> face = input_faces[f];
+    if (face.size() <= 2) {
       /* Ignore faces with fewer than 3 vertices. */
       continue;
     }
     int fedge_start = (f + 1) * cdt_state->face_edge_offset;
-    for (int i = 0; i < flen; i++) {
+    for (const int i : face.index_range()) {
       int face_edge_id = fedge_start + i;
-      int iv1 = input.face[f][i];
-      int iv2 = input.face[f][(i + 1) % flen];
+      int iv1 = face[i];
+      int iv2 = face[(i + 1) % face.size()];
       if (iv1 < 0 || iv1 >= nv || iv2 < 0 || iv2 >= nv) {
         /* Ignore face edges with invalid vertices. */
         continue;
@@ -2260,7 +2261,7 @@ int add_face_constraints(CDT_state<T> *cdt_state,
       }
       BLI_linklist_free(edge_list, nullptr);
     }
-    int fedge_end = fedge_start + flen - 1;
+    int fedge_end = fedge_start + face.size() - 1;
     if (face_symedge0 != nullptr) {
       /* We need to propagate face ids to all faces that represent #f, if #need_ids.
        * Even if `need_ids == false`, we need to propagate at least the fact that
