@@ -32,18 +32,7 @@ Vector<Vector<int>> fixup_invalid_polygon(Span<float3> vertex_coords,
     return {};
   }
 
-  /* Calculate face normal, to project verts to 2D. */
-  float normal[3] = {0, 0, 0};
-  float3 co_prev = vertex_coords[face_vertex_indices.last()];
-  for (int idx : face_vertex_indices) {
-    BLI_assert(idx >= 0 && idx < vertex_coords.size());
-    float3 co_curr = vertex_coords[idx];
-    add_newell_cross_v3_v3v3(normal, co_prev, co_curr);
-    co_prev = co_curr;
-  }
-  if (UNLIKELY(normalize_v3(normal) == 0.0f)) {
-    normal[2] = 1.0f;
-  }
+  const float3 normal = bke::mesh::face_normal_calc(vertex_coords, face_vertex_indices);
   float axis_mat[3][3];
   axis_dominant_v3_to_m3(axis_mat, normal);
 
