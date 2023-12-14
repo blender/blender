@@ -98,7 +98,7 @@ BVHTree *bvhtree_from_editmesh_verts(
  */
 BVHTree *bvhtree_from_editmesh_verts_ex(BVHTreeFromEditMesh *data,
                                         BMEditMesh *em,
-                                        blender::BitSpan mask,
+                                        blender::BitSpan verts_mask,
                                         int verts_num_active,
                                         float epsilon,
                                         int tree_type,
@@ -109,7 +109,7 @@ BVHTree *bvhtree_from_editmesh_verts_ex(BVHTreeFromEditMesh *data,
  * \param vert_allocated: if true, vert freeing will be done when freeing data.
  * \param verts_mask: if not null, true elements give which vert to add to BVH-tree.
  * \param verts_num_active: if >= 0, number of active verts to add to BVH-tree
- * (else will be computed from mask).
+ * (else will be computed from `verts_mask`).
  */
 BVHTree *bvhtree_from_mesh_verts_ex(BVHTreeFromMesh *data,
                                     blender::Span<blender::float3> vert_positions,
@@ -139,7 +139,7 @@ BVHTree *bvhtree_from_editmesh_edges_ex(BVHTreeFromEditMesh *data,
  * \param edge, edge_allocated: if true, elem freeing will be done when freeing data.
  * \param edges_mask: if not null, true elements give which vert to add to BVH-tree.
  * \param edges_num_active: if >= 0, number of active edges to add to BVH-tree
- * (else will be computed from mask).
+ * (else will be computed from `edges_mask`).
  */
 BVHTree *bvhtree_from_mesh_edges_ex(BVHTreeFromMesh *data,
                                     blender::Span<blender::float3> vert_positions,
@@ -158,7 +158,7 @@ BVHTree *bvhtree_from_editmesh_looptris(
  */
 BVHTree *bvhtree_from_editmesh_looptris_ex(BVHTreeFromEditMesh *data,
                                            BMEditMesh *em,
-                                           blender::BitSpan mask,
+                                           blender::BitSpan looptris_mask,
                                            int looptris_num_active,
                                            float epsilon,
                                            int tree_type,
@@ -171,7 +171,7 @@ BVHTree *bvhtree_from_mesh_looptris_ex(BVHTreeFromMesh *data,
                                        blender::Span<blender::float3> vert_positions,
                                        blender::Span<int> corner_verts,
                                        blender::Span<MLoopTri> looptris,
-                                       blender::BitSpan mask,
+                                       blender::BitSpan looptris_mask,
                                        int looptris_num_active,
                                        float epsilon,
                                        int tree_type,
