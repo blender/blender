@@ -1533,7 +1533,7 @@ Node *push_node(Object *ob, PBVHNode *node, Type type)
       // return unode;
       return;
     }
-    if (unode = get_node(node, type)) {
+    if ((unode = get_node(node, type))) {
       BLI_thread_unlock(LOCK_CUSTOM1);
       // return unode;
       return;
