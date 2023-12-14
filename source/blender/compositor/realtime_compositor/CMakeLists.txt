@@ -133,6 +133,9 @@ set(GLSL_SRC
   shaders/compositor_box_mask.glsl
   shaders/compositor_compute_preview.glsl
   shaders/compositor_convert.glsl
+  shaders/compositor_cryptomatte_image.glsl
+  shaders/compositor_cryptomatte_matte.glsl
+  shaders/compositor_cryptomatte_pick.glsl
   shaders/compositor_despeckle.glsl
   shaders/compositor_directional_blur.glsl
   shaders/compositor_displace.glsl
@@ -271,6 +274,7 @@ set(SRC_SHADER_CREATE_INFOS
   shaders/infos/compositor_box_mask_info.hh
   shaders/infos/compositor_compute_preview_info.hh
   shaders/infos/compositor_convert_info.hh
+  shaders/infos/compositor_cryptomatte_info.hh
   shaders/infos/compositor_despeckle_info.hh
   shaders/infos/compositor_directional_blur_info.hh
   shaders/infos/compositor_displace_info.hh

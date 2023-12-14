@@ -6,15 +6,27 @@
  * \ingroup cmpnodes
  */
 
+#include <string>
+
 #include "node_composite_util.hh"
 
 #include "BLI_assert.h"
 #include "BLI_dynstr.h"
 #include "BLI_hash_mm3.h"
+#include "BLI_listbase.h"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector_types.hh"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
 #include "BLI_utildefines.h"
+#include "BLI_vector.hh"
+
+#include "IMB_imbuf_types.h"
+
+#include "GPU_shader.h"
+#include "GPU_texture.h"
+
+#include "DNA_image_types.h"
 
 #include "BKE_context.hh"
 #include "BKE_cryptomatte.hh"
@@ -29,6 +41,8 @@
 #include "RE_pipeline.h"
 
 #include "COM_node_operation.hh"
+#include "COM_result.hh"
+#include "COM_utilities.hh"
 
 #include <optional>
 
@@ -228,6 +242,8 @@ CryptomatteSession *ntreeCompositCryptomatteSession(const Scene *scene, bNode *n
 
 namespace blender::nodes::node_composite_cryptomatte_cc {
 
+NODE_STORAGE_FUNCS(NodeCryptomatte)
+
 static bNodeSocketTemplate cmp_node_cryptomatte_out[] = {
     {SOCK_RGBA, N_("Image")},
     {SOCK_FLOAT, N_("Matte")},
@@ -237,7 +253,9 @@ static bNodeSocketTemplate cmp_node_cryptomatte_out[] = {
 
 static void cmp_node_cryptomatte_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>("Image").default_value({0.0f, 0.0f, 0.0f, 1.0f});
+  b.add_input<decl::Color>("Image")
+      .default_value({0.0f, 0.0f, 0.0f, 1.0f})
+      .compositor_domain_priority(0);
   b.add_output<decl::Color>("Image");
   b.add_output<decl::Float>("Matte");
   b.add_output<decl::Color>("Pick");
@@ -318,10 +336,397 @@ class CryptoMatteOperation : public NodeOperation {
 
   void execute() override
   {
-    get_input("Image").pass_through(get_result("Image"));
-    get_result("Matte").allocate_invalid();
-    get_result("Pick").allocate_invalid();
-    context().set_info_message("Viewport compositor setup not fully supported");
+    Vector<GPUTexture *> layers = get_layers();
+    if (layers.is_empty()) {
+      allocate_invalid();
+      return;
+    }
+
+    Result &output_pick = get_result("Pick");
+    if (output_pick.should_compute()) {
+      compute_pick(layers);
+    }
+
+    Result &matte_output = get_result("Matte");
+    Result &image_output = get_result("Image");
+    if (!matte_output.should_compute() && !image_output.should_compute()) {
+      return;
+    }
+
+    Result matte = compute_matte(layers);
+
+    if (image_output.should_compute()) {
+      compute_image(matte);
+    }
+
+    if (matte_output.should_compute()) {
+      matte_output.steal_data(matte);
+    }
+    else {
+      matte.release();
+    }
+  }
+
+  void allocate_invalid()
+  {
+    Result &pick = get_result("Pick");
+    if (pick.should_compute()) {
+      pick.allocate_invalid();
+    }
+
+    Result &matte = get_result("Matte");
+    if (matte.should_compute()) {
+      matte.allocate_invalid();
+    }
+
+    Result &image = get_result("Image");
+    if (image.should_compute()) {
+      image.allocate_invalid();
+    }
+  }
+
+  /* Computes the pick result, which is a special human-viewable image that the user can pick
+   * entities from using the Cryptomatte picker operator. See the shader for more information. */
+  void compute_pick(Vector<GPUTexture *> &layers)
+  {
+    /* See the comment below for why full precision is necessary. */
+    GPUShader *shader = context().get_shader("compositor_cryptomatte_pick", ResultPrecision::Full);
+    GPU_shader_bind(shader);
+
+    GPUTexture *first_layer = layers[0];
+    const int input_unit = GPU_shader_get_sampler_binding(shader, "first_layer_tx");
+    GPU_texture_bind(first_layer, input_unit);
+
+    Result &output_pick = get_result("Pick");
+
+    /* Promote to full precision since it stores the identifiers of the first Cryptomatte rank,
+     * which is a 32-bit float. See the shader for more information. */
+    output_pick.set_precision(ResultPrecision::Full);
+
+    const Domain domain = compute_domain();
+    output_pick.allocate_texture(domain);
+    output_pick.bind_as_image(shader, "output_img");
+
+    compute_dispatch_threads_at_least(shader, domain.size);
+
+    GPU_shader_unbind();
+    GPU_texture_unbind(first_layer);
+    output_pick.unbind_as_image();
+  }
+
+  /* Computes and returns the matte by accumulating the coverage of all entities whose identifiers
+   * are selected by the user, across all layers. See the shader for more information. */
+  Result compute_matte(Vector<GPUTexture *> &layers)
+  {
+    const Domain domain = compute_domain();
+    Result output_matte = context().create_temporary_result(ResultType::Float);
+    output_matte.allocate_texture(domain);
+
+    /* Clear the matte to zero to ready it to accumulate the coverage. */
+    const float4 zero_color = float4(0.0f);
+    GPU_texture_clear(output_matte.texture(), GPU_DATA_FLOAT, zero_color);
+
+    Vector<float> identifiers = get_identifiers();
+    /* The user haven't selected any entities, return the currently zero matte. */
+    if (identifiers.is_empty()) {
+      return output_matte;
+    }
+
+    GPUShader *shader = context().get_shader("compositor_cryptomatte_matte");
+    GPU_shader_bind(shader);
+
+    GPU_shader_uniform_1i(shader, "identifiers_count", identifiers.size());
+    GPU_shader_uniform_1f_array(shader, "identifiers", identifiers.size(), identifiers.data());
+
+    for (GPUTexture *layer : layers) {
+      const int input_unit = GPU_shader_get_sampler_binding(shader, "layer_tx");
+      GPU_texture_bind(layer, input_unit);
+
+      /* Bind the matte with read access, since we will be accumulating in it. */
+      output_matte.bind_as_image(shader, "matte_img", true);
+
+      compute_dispatch_threads_at_least(shader, domain.size);
+
+      GPU_texture_unbind(layer);
+      output_matte.unbind_as_image();
+    }
+
+    GPU_shader_unbind();
+
+    return output_matte;
+  }
+
+  /* Computes the output image result by premultiplying the matte to the image. */
+  void compute_image(Result &matte)
+  {
+    GPUShader *shader = context().get_shader("compositor_cryptomatte_image");
+    GPU_shader_bind(shader);
+
+    Result &input_image = get_input("Image");
+    input_image.bind_as_texture(shader, "input_tx");
+
+    matte.bind_as_texture(shader, "matte_tx");
+
+    const Domain domain = compute_domain();
+    Result &image_output = get_result("Image");
+    image_output.allocate_texture(domain);
+    image_output.bind_as_image(shader, "output_img");
+
+    compute_dispatch_threads_at_least(shader, domain.size);
+
+    GPU_shader_unbind();
+    input_image.unbind_as_texture();
+    matte.unbind_as_texture();
+    image_output.unbind_as_image();
+  }
+
+  /* Returns all the relevant Cryptomatte layers from the selected source. */
+  Vector<GPUTexture *> get_layers()
+  {
+    switch (get_source()) {
+      case CMP_NODE_CRYPTOMATTE_SOURCE_RENDER:
+        return get_layers_from_render();
+      case CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE:
+        return get_layers_from_image();
+    }
+
+    BLI_assert_unreachable();
+    return Vector<GPUTexture *>();
+  }
+
+  /* Returns all the relevant Cryptomatte layers from the selected render. */
+  Vector<GPUTexture *> get_layers_from_render()
+  {
+    Vector<GPUTexture *> layers;
+
+    Scene *scene = get_scene();
+    if (!scene) {
+      return layers;
+    }
+
+    Render *render = RE_GetSceneRender(scene);
+    if (!render) {
+      return layers;
+    }
+
+    RenderResult *render_result = RE_AcquireResultRead(render);
+    if (!render_result) {
+      RE_ReleaseResult(render);
+      return layers;
+    }
+
+    int view_layer_index;
+    const std::string type_name = get_type_name();
+    LISTBASE_FOREACH_INDEX (ViewLayer *, view_layer, &scene->view_layers, view_layer_index) {
+      RenderLayer *render_layer = RE_GetRenderLayer(render_result, view_layer->name);
+      if (!render_layer) {
+        continue;
+      }
+
+      LISTBASE_FOREACH (RenderPass *, render_pass, &render_layer->passes) {
+        /* We are only interested in passes of the current view. Except if the current view is
+         * unnamed, that is, in the case of mono rendering, in which case we just return the first
+         * view. */
+        if (!context().get_view_name().is_empty() &&
+            context().get_view_name() != render_pass->view) {
+          continue;
+        }
+
+        /* If the combined pass name doesn't start with the Cryptomatte type name, then it is not a
+         * Cryptomatte layer. */
+        const std::string combined_name = get_combined_layer_pass_name(render_layer, render_pass);
+        if (combined_name == type_name || !StringRef(combined_name).startswith(type_name)) {
+          continue;
+        }
+
+        GPUTexture *pass_texture = context().get_input_texture(
+            scene, view_layer_index, render_pass->name);
+        layers.append(pass_texture);
+      }
+
+      if (!layers.is_empty()) {
+        break;
+      }
+    }
+
+    RE_ReleaseResult(render);
+
+    return layers;
+  }
+
+  /* Returns all the relevant Cryptomatte layers from the selected EXR image. */
+  Vector<GPUTexture *> get_layers_from_image()
+  {
+    Vector<GPUTexture *> layers;
+
+    Image *image = get_image();
+    if (!image || image->type != IMA_TYPE_MULTILAYER) {
+      return layers;
+    }
+
+    /* The render result structure of the image is populated as a side effect of the acquisition of
+     * an image buffer, so acquire an image buffer and immediately release it since it is not
+     * actually needed. */
+    ImageUser image_user_for_layer = *get_image_user();
+    ImBuf *image_buffer = BKE_image_acquire_ibuf(image, &image_user_for_layer, nullptr);
+    BKE_image_release_ibuf(image, image_buffer, nullptr);
+    if (!image_buffer || !image->rr) {
+      return layers;
+    }
+
+    int layer_index;
+    const std::string type_name = get_type_name();
+    LISTBASE_FOREACH_INDEX (RenderLayer *, render_layer, &image->rr->layers, layer_index) {
+      /* If the layer name doesn't start with the Cryptomatte type name, then it is not a
+       * Cryptomatte layer. Unless it is an unnamed layer, in which case, we need to check its
+       * passes. */
+      const bool is_unnamed_layer = render_layer->name[0] == '\0';
+      if (!is_unnamed_layer && !StringRefNull(render_layer->name).startswith(type_name)) {
+        continue;
+      }
+
+      image_user_for_layer.layer = layer_index;
+      LISTBASE_FOREACH (RenderPass *, render_pass, &render_layer->passes) {
+        /* If the combined pass name doesn't start with the Cryptomatte type name, then it is not a
+         * Cryptomatte layer. */
+        const std::string combined_name = get_combined_layer_pass_name(render_layer, render_pass);
+        if (combined_name == type_name || !StringRef(combined_name).startswith(type_name)) {
+          continue;
+        }
+
+        GPUTexture *pass_texture = context().cache_manager().cached_images.get(
+            context(), image, &image_user_for_layer, render_pass->name);
+        layers.append(pass_texture);
+      }
+
+      /* If we already found Cryptomatte layers, no need to check other render layers. */
+      if (!layers.is_empty()) {
+        return layers;
+      }
+    }
+
+    return layers;
+  }
+
+  /* Returns the combined name of the render layer and pass using the EXR convention of a period
+   * separator. */
+  std::string get_combined_layer_pass_name(RenderLayer *render_layer, RenderPass *render_pass)
+  {
+    if (render_layer->name[0] == '\0') {
+      return std::string(render_pass->name);
+    }
+    return std::string(render_layer->name) + "." + std::string(render_pass->name);
+  }
+
+  /* Get the selected type name of the Cryptomatte from the metadata of the image/render. This type
+   * name will be used to identify the corresponding layers in the source image/render. See the
+   * "EXR File: Layer Naming" section of the Cryptomatte specification for more information on what
+   * this represents. */
+  std::string get_type_name()
+  {
+    char type_name[MAX_NAME];
+    ntreeCompositCryptomatteLayerPrefix(
+        &context().get_scene(), &bnode(), type_name, sizeof(type_name));
+    return std::string(type_name);
+  }
+
+  /* Get the identifiers of the entities selected by the user to generate a matte from. The
+   * identifiers are hashes of the names of the entities encoded in floats. See the "ID Generation"
+   * section of the Cryptomatte specification for more information. */
+  Vector<float> get_identifiers()
+  {
+    Vector<float> identifiers;
+    LISTBASE_FOREACH (CryptomatteEntry *, cryptomatte_entry, &node_storage(bnode()).entries) {
+      identifiers.append(cryptomatte_entry->encoded_hash);
+    }
+    return identifiers;
+  }
+
+  /* The domain should be centered with the same size as the source. In case of invalid source,
+   * fallback to the domain inferred from the input. */
+  Domain compute_domain() override
+  {
+    switch (get_source()) {
+      case CMP_NODE_CRYPTOMATTE_SOURCE_RENDER:
+        return Domain(context().get_render_size());
+      case CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE:
+        return compute_image_domain();
+    }
+
+    BLI_assert_unreachable();
+    return Domain::identity();
+  }
+
+  /* In case of a render source, the domain should be centered with the same size as the render. In
+   * case of an invalid render, fallback to the domain inferred from the input. */
+  Domain compute_render_domain()
+  {
+    BLI_assert(get_source() == CMP_NODE_CRYPTOMATTE_SOURCE_RENDER);
+
+    Scene *scene = get_scene();
+    if (!scene) {
+      return NodeOperation::compute_domain();
+    }
+
+    Render *render = RE_GetSceneRender(scene);
+    if (!render) {
+      return NodeOperation::compute_domain();
+    }
+
+    RenderResult *render_result = RE_AcquireResultRead(render);
+    if (!render_result) {
+      RE_ReleaseResult(render);
+      return NodeOperation::compute_domain();
+    }
+
+    const int2 render_size = int2(render_result->rectx, render_result->rectx);
+    RE_ReleaseResult(render);
+    return Domain(render_size);
+  }
+
+  /* In case of an image source, the domain should be centered with the same size as the source
+   * image. In case of an invalid image, fallback to the domain inferred from the input. */
+  Domain compute_image_domain()
+  {
+    BLI_assert(get_source() == CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE);
+
+    Image *image = get_image();
+    if (!image) {
+      return NodeOperation::compute_domain();
+    }
+
+    ImageUser image_user = *get_image_user();
+    ImBuf *image_buffer = BKE_image_acquire_ibuf(image, &image_user, nullptr);
+    if (!image_buffer) {
+      return NodeOperation::compute_domain();
+    }
+
+    const int2 image_size = int2(image_buffer->x, image_buffer->y);
+    BKE_image_release_ibuf(image, image_buffer, nullptr);
+    return Domain(image_size);
+  }
+
+  const ImageUser *get_image_user()
+  {
+    BLI_assert(get_source() == CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE);
+    return &node_storage(bnode()).iuser;
+  }
+
+  Scene *get_scene()
+  {
+    BLI_assert(get_source() == CMP_NODE_CRYPTOMATTE_SOURCE_RENDER);
+    return reinterpret_cast<Scene *>(bnode().id);
+  }
+
+  Image *get_image()
+  {
+    BLI_assert(get_source() == CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE);
+    return reinterpret_cast<Image *>(bnode().id);
+  }
+
+  CMPNodeCryptomatteSource get_source()
+  {
+    return static_cast<CMPNodeCryptomatteSource>(bnode().custom1);
   }
 };
 
@@ -347,8 +752,6 @@ void register_node_type_cmp_cryptomatte()
   node_type_storage(
       &ntype, "NodeCryptomatte", file_ns::node_free_cryptomatte, file_ns::node_copy_cryptomatte);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
-  ntype.realtime_compositor_unsupported_message = N_(
-      "Node not supported in the Viewport compositor");
 
   nodeRegisterType(&ntype);
 }
