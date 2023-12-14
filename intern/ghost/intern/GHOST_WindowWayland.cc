@@ -1625,49 +1625,6 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
     {
       decor.scale_fractional_from_output = scale_fractional_from_output;
     }
-
-    /* FIXME: this shouldn't be necessary, used by the state configure callback. */
-    if (buffer_scale_from_output) {
-      window_->frame_pending.buffer_scale = buffer_scale_from_output;
-      window_->frame.buffer_scale = buffer_scale_from_output;
-    }
-    else {
-      window_->frame_pending.buffer_scale = 1;
-      window_->frame.buffer_scale = 1;
-    }
-
-    /* Commit needed so the top-level callbacks run (and `toplevel` can be accessed). */
-    wl_surface_commit(window_->wl.surface);
-
-    /* Additional round-trip is needed to ensure `xdg_toplevel` is set. */
-    wl_display_roundtrip(system_->wl_display_get());
-
-    /* NOTE: LIBDECOR requires the window to be created & configured before the state can be set.
-     * Workaround this by using the underlying `xdg_toplevel` */
-    while (!decor.initial_configure_seen) {
-      wl_display_flush(system->wl_display_get());
-      wl_display_dispatch(system->wl_display_get());
-    }
-
-    xdg_toplevel *toplevel = libdecor_frame_get_xdg_toplevel(decor.frame);
-    gwl_window_state_set_for_xdg(toplevel, state, gwl_window_state_get(window_));
-
-    /* Needed for maximize to use the size of the maximized frame instead of the size
-     * from `width` & `height`, see #113961 (follow up comments). */
-    int roundtrip_count = 0;
-    while (!decor.initial_state_seen) {
-      /* Use round-trip so as not to block in the case setting
-       * the state is ignored by the compositor. */
-      wl_display_roundtrip(system_->wl_display_get());
-      /* Avoid waiting continuously if the requested state is ignored
-       * (2x round-trips should be enough). */
-      if (++roundtrip_count >= 2) {
-        break;
-      }
-    }
-    /* Clear the values to match XDG logic, see comment above. */
-    window_->frame_pending.buffer_scale = 0;
-    window_->frame.buffer_scale = 0;
   }
   else
 #endif /* WITH_GHOST_WAYLAND_LIBDECOR */
@@ -1784,13 +1741,50 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
   }
 #endif
 
-  /* Commit after setting the buffer. */
-  wl_surface_commit(window_->wl.surface);
-
   /* Drawing context. */
   if (setDrawingContextType(type) == GHOST_kFailure) {
     GHOST_PRINT("Failed to create drawing context" << std::endl);
   }
+
+#ifdef WITH_GHOST_WAYLAND_LIBDECOR
+  if (use_libdecor) {
+    /* Commit needed so the top-level callbacks run (and `toplevel` can be accessed). */
+    wl_surface_commit(window_->wl.surface);
+    GWL_LibDecor_Window &decor = *window_->libdecor;
+
+    /* Additional round-trip is needed to ensure `xdg_toplevel` is set. */
+    wl_display_roundtrip(system_->wl_display_get());
+
+    /* NOTE: LIBDECOR requires the window to be created & configured before the state can be set.
+     * Workaround this by using the underlying `xdg_toplevel` */
+    while (!decor.initial_configure_seen) {
+      wl_display_flush(system->wl_display_get());
+      wl_display_dispatch(system->wl_display_get());
+    }
+
+    xdg_toplevel *toplevel = libdecor_frame_get_xdg_toplevel(decor.frame);
+    gwl_window_state_set_for_xdg(toplevel, state, gwl_window_state_get(window_));
+
+    /* Needed for maximize to use the size of the maximized frame instead of the size
+     * from `width` & `height`, see #113961 (follow up comments). */
+    int roundtrip_count = 0;
+    while (!decor.initial_state_seen) {
+      /* Use round-trip so as not to block in the case setting
+       * the state is ignored by the compositor. */
+      wl_display_roundtrip(system_->wl_display_get());
+      /* Avoid waiting continuously if the requested state is ignored
+       * (2x round-trips should be enough). */
+      if (++roundtrip_count >= 2) {
+        break;
+      }
+    }
+  }
+#endif /* WITH_GHOST_WAYLAND_LIBDECOR */
+
+  /* Commit after setting the buffer.
+   * While postponing until after the buffer drawing is context is set
+   * isn't essential, it reduces flickering. */
+  wl_surface_commit(window_->wl.surface);
 
   /* Set swap interval to 0 to prevent blocking. */
   setSwapInterval(0);
