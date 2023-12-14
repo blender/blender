@@ -1639,6 +1639,13 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
       zxdg_toplevel_decoration_v1_set_mode(decor.toplevel_decor,
                                            ZXDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE);
     }
+
+    /* Commit needed to so configure callback runs. */
+    wl_surface_commit(window_->wl.surface);
+    while (!decor.initial_configure_seen) {
+      wl_display_flush(system->wl_display_get());
+      wl_display_dispatch(system->wl_display_get());
+    }
   }
 
   /* If the scale is known early, setup the window scale.
@@ -1775,15 +1782,6 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
   {
     GWL_XDG_Decor_Window &decor = *window_->xdg_decor;
     gwl_window_state_set(window_, state);
-
-    /* Commit needed to so configure callback runs. */
-    wl_surface_commit(window_->wl.surface);
-    while (!decor.initial_configure_seen) {
-      wl_display_flush(system->wl_display_get());
-      wl_display_dispatch(system->wl_display_get());
-    }
-
-    wl_display_roundtrip(system_->wl_display_get());
   }
 
   /* Commit after setting the buffer.
