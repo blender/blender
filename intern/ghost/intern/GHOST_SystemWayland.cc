@@ -3874,7 +3874,7 @@ static void gesture_pinch_handle_begin(void *data,
   seat->pointer_gesture_pinch.rotation.factor = 5;
 
   if (win) {
-    /* NOTE(@ideasman42): Blender's use of track-pad coordinates is inconsistent and needs work.
+    /* NOTE(@ideasman42): Blender's use of trackpad coordinates is inconsistent and needs work.
      * This isn't specific to WAYLAND, in practice they tend to work well enough in most cases.
      * Some operators scale by the UI scale, some don't.
      * Even though the window scale is correct, it doesn't account for the UI scale preference

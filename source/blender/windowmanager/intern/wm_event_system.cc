@@ -5343,7 +5343,7 @@ static wmEvent *wm_event_add_mousemove_to_head(wmWindow *win)
 
 static wmEvent *wm_event_add_trackpad(wmWindow *win, const wmEvent *event, int deltax, int deltay)
 {
-  /* Ignore in between track-pad events for performance, we only need high accuracy
+  /* Ignore in between trackpad events for performance, we only need high accuracy
    * for painting with mouse moves, for navigation using the accumulated value is ok. */
   const wmEvent *event_last = static_cast<wmEvent *>(win->event_queue.last);
   if (event_last && event_last->type == event->type) {

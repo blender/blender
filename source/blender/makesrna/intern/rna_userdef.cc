@@ -6239,7 +6239,7 @@ static void rna_def_userdef_input(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Mouse Drag Threshold",
                            "Number of pixels to drag before a drag event is triggered "
-                           "for mouse/track-pad input "
+                           "for mouse/trackpad input "
                            "(otherwise click events are detected)");
 
   prop = RNA_def_property(srna, "drag_threshold_tablet", PROP_INT, PROP_PIXEL);

@@ -549,7 +549,7 @@ GHOST_SystemCocoa::GHOST_SystemCocoa()
   sysctl(mib, 2, &boottime, &len, nullptr, 0);
   m_start_time = ((boottime.tv_sec * 1000) + (boottime.tv_usec / 1000));
 
-  /* Detect multi-touch track-pad. */
+  /* Detect multi-touch trackpad. */
   mib[0] = CTL_HW;
   mib[1] = HW_MODEL;
   sysctl(mib, 2, nullptr, &len, nullptr, 0);

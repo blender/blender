@@ -632,11 +632,11 @@ enum eWM_EventFlag {
    */
   WM_EVENT_IS_REPEAT = (1 << 1),
   /**
-   * Generated for consecutive track-pad or NDOF-motion events,
+   * Generated for consecutive trackpad or NDOF-motion events,
    * the repeat chain is broken by key/button events,
    * or cursor motion exceeding #WM_EVENT_CURSOR_MOTION_THRESHOLD.
    *
-   * Changing the type of track-pad or gesture event also breaks the chain.
+   * Changing the type of trackpad or gesture event also breaks the chain.
    */
   WM_EVENT_IS_CONSECUTIVE = (1 << 2),
   /**
@@ -674,7 +674,7 @@ struct wmTabletData {
  *   See: #ISKEYBOARD_OR_BUTTON.
  *
  * - Previous x/y are exceptions: #wmEvent.prev
- *   these are set on mouse motion, see #MOUSEMOVE & track-pad events.
+ *   these are set on mouse motion, see #MOUSEMOVE & trackpad events.
  *
  * - Modal key-map handling sets `prev_val` & `prev_type` to `val` & `type`,
  *   this allows modal keys-maps to check the original values (needed in some cases).

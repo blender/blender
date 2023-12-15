@@ -1364,7 +1364,7 @@ static const EnumPropertyItem rna_enum_xr_action_types[] = {
      "VECTOR2D",
      0,
      "Vector2D",
-     "2D float vector action, representing a thumb-stick or track-pad"},
+     "2D float vector action, representing a thumbstick or trackpad"},
     {XR_POSE_INPUT,
      "POSE",
      0,
