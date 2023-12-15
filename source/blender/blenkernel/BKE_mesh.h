@@ -34,10 +34,6 @@ struct Mesh;
 struct Object;
 struct Scene;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* TODO: Move to `BKE_mesh_types.hh` when possible. */
 typedef enum eMeshBatchDirtyMode {
   BKE_MESH_BATCH_DIRTY_ALL = 0,
@@ -558,9 +554,5 @@ void BKE_mesh_debug_print(const struct Mesh *mesh) ATTR_NONNULL(1);
 /* -------------------------------------------------------------------- */
 /** \name Inline Mesh Data Access
  * \{ */
-
-#ifdef __cplusplus
-}
-#endif
 
 /** \} */
