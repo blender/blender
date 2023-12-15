@@ -492,7 +492,7 @@ void mesh_render_data_update_normals(MeshRenderData &mr, const eMRDataType data_
     if (data_flag & (MR_DATA_POLY_NOR | MR_DATA_LOOP_NOR | MR_DATA_TAN_LOOP_NOR)) {
       mr.face_normals = mr.mesh->face_normals();
     }
-    if (((data_flag & MR_DATA_LOOP_NOR) &&
+    if (((data_flag & MR_DATA_LOOP_NOR) && !mr.use_simplify_normals &&
          mr.normals_domain == blender::bke::MeshNormalDomain::Corner) ||
         (data_flag & MR_DATA_TAN_LOOP_NOR))
     {
@@ -504,7 +504,8 @@ void mesh_render_data_update_normals(MeshRenderData &mr, const eMRDataType data_
     if (data_flag & MR_DATA_POLY_NOR) {
       /* Use #BMFace.no instead. */
     }
-    if (((data_flag & MR_DATA_LOOP_NOR) && bm_loop_normals_required(mr.bm)) ||
+    if (((data_flag & MR_DATA_LOOP_NOR) && !mr.use_simplify_normals &&
+         bm_loop_normals_required(mr.bm)) ||
         (data_flag & MR_DATA_TAN_LOOP_NOR))
     {
 

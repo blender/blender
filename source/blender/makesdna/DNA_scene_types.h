@@ -2090,7 +2090,7 @@ enum {
 /** #RenderData::mode. */
 enum {
   R_MODE_UNUSED_0 = 1 << 0, /* dirty */
-  R_MODE_UNUSED_1 = 1 << 1, /* cleared */
+  R_SIMPLIFY_NORMALS = 1 << 1,
   R_MODE_UNUSED_2 = 1 << 2, /* cleared */
   R_MODE_UNUSED_3 = 1 << 3, /* cleared */
   R_MODE_UNUSED_4 = 1 << 4, /* cleared */
