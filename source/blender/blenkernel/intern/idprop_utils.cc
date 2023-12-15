@@ -100,6 +100,9 @@ static void idp_repr_fn_recursive(ReprState *state, const IDProperty *prop)
       break;
     }
     case IDP_INT: {
+      if (const IDPropertyUIDataEnumItem *item = IDP_EnumItemFind(prop)) {
+        STR_APPEND_FMT("%s", item->name);
+      }
       STR_APPEND_FMT("%d", IDP_Int(prop));
       break;
     }

@@ -21,6 +21,7 @@ struct BlendWriter;
 struct ID;
 struct IDProperty;
 struct IDPropertyUIData;
+struct IDPropertyUIDataEnumItem;
 struct Library;
 
 typedef union IDPropertyTemplate {
@@ -93,6 +94,14 @@ void IDP_AssignStringMaxSize(struct IDProperty *prop, const char *st, size_t st_
     ATTR_NONNULL();
 void IDP_AssignString(struct IDProperty *prop, const char *st) ATTR_NONNULL();
 void IDP_FreeString(struct IDProperty *prop) ATTR_NONNULL();
+
+/*-------- Enum Type -------*/
+
+const struct IDPropertyUIDataEnumItem *IDP_EnumItemFind(const struct IDProperty *prop);
+
+bool IDP_EnumItemsValidate(const struct IDPropertyUIDataEnumItem *items,
+                           int items_num,
+                           void (*error_fn)(const char *));
 
 /*-------- ID Type -------*/
 

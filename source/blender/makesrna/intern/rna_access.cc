@@ -519,6 +519,14 @@ void rna_property_rna_or_id_get(PropertyRNA *prop,
       r_prop_rna_or_id->array_len = idprop_evaluated != nullptr ? uint(idprop_evaluated->len) : 0;
     }
     else {
+      /* Special case for int properties with enum items, these are displayed as a PROP_ENUM. */
+      if (idprop->type == IDP_INT) {
+        const IDPropertyUIDataInt *ui_data_int = reinterpret_cast<IDPropertyUIDataInt *>(
+            idprop->ui_data);
+        if (ui_data_int && ui_data_int->enum_items_num > 0) {
+          r_prop_rna_or_id->rnaprop = &rna_PropertyGroupItem_enum;
+        }
+      }
       r_prop_rna_or_id->rnaprop = typemap[int(idprop->type)];
     }
   }
@@ -559,6 +567,14 @@ PropertyRNA *rna_ensure_property(PropertyRNA *prop)
 
     if (idprop->type == IDP_ARRAY) {
       return arraytypemap[int(idprop->subtype)];
+    }
+    /* Special case for int properties with enum items, these are displayed as a PROP_ENUM. */
+    if (idprop->type == IDP_INT) {
+      const IDPropertyUIDataInt *ui_data_int = reinterpret_cast<IDPropertyUIDataInt *>(
+          idprop->ui_data);
+      if (ui_data_int && ui_data_int->enum_items_num > 0) {
+        return &rna_PropertyGroupItem_enum;
+      }
     }
     return typemap[int(idprop->type)];
   }
@@ -1501,6 +1517,39 @@ void RNA_property_enum_items_ex(bContext *C,
                                 int *r_totitem,
                                 bool *r_free)
 {
+  if (!use_static && prop->magic != RNA_MAGIC) {
+    const IDProperty *idprop = (IDProperty *)prop;
+    if (idprop->type == IDP_INT) {
+      IDPropertyUIDataInt *ui_data = reinterpret_cast<IDPropertyUIDataInt *>(idprop->ui_data);
+
+      int totitem = 0;
+      EnumPropertyItem *result = nullptr;
+      if (ui_data) {
+        for (const IDPropertyUIDataEnumItem &idprop_item :
+             blender::Span(ui_data->enum_items, ui_data->enum_items_num))
+        {
+          BLI_assert(idprop_item.identifier != nullptr);
+          BLI_assert(idprop_item.name != nullptr);
+          const EnumPropertyItem item = {idprop_item.value,
+                                         idprop_item.identifier,
+                                         idprop_item.icon,
+                                         idprop_item.name,
+                                         idprop_item.description ? idprop_item.description : ""};
+          RNA_enum_item_add(&result, &totitem, &item);
+        }
+      }
+
+      RNA_enum_item_end(&result, &totitem);
+      *r_item = result;
+      if (r_totitem) {
+        /* Exclude the terminator item. */
+        *r_totitem = totitem - 1;
+      }
+      *r_free = true;
+      return;
+    }
+  }
+
   EnumPropertyRNA *eprop = (EnumPropertyRNA *)rna_ensure_property(prop);
 
   *r_free = false;
