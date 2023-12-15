@@ -43,8 +43,9 @@ typedef enum eUSDTexNameCollisionMode {
 typedef enum eSubdivExportMode {
   USD_SUBDIV_IGNORE = 0,     /* Subdivision scheme = None, export base mesh without subdivision. */
   USD_SUBDIV_TESSELLATE = 1, /* Subdivision scheme = None, export subdivided mesh. */
-  USD_SUBDIV_BEST_MATCH = 2, /* Apply the USD subdivision scheme that is the closest match to Blender. */
-                             /* Reverts to USD_SUBDIV_TESSELLATE if the subdivision method is not supported. */
+  USD_SUBDIV_BEST_MATCH =
+      2, /* Apply the USD subdivision scheme that is the closest match to Blender. */
+         /* Reverts to USD_SUBDIV_TESSELLATE if the subdivision method is not supported. */
 } eSubdivExportMode;
 
 struct USDExportParams {
