@@ -45,6 +45,7 @@
 extern "C" {
 #  include <libavcodec/avcodec.h>
 #  include <libavformat/avformat.h>
+#  include <libavutil/buffer.h>
 #  include <libavutil/channel_layout.h>
 #  include <libavutil/imgutils.h>
 #  include <libavutil/opt.h>
@@ -117,10 +118,7 @@ static void ffmpeg_filepath_get(FFMpegContext *context,
 static void delete_picture(AVFrame *f)
 {
   if (f) {
-    if (f->data[0]) {
-      MEM_freeN(f->data[0]);
-    }
-    av_free(f);
+    av_frame_free(&f);
   }
 }
 
@@ -233,24 +231,22 @@ static int write_audio_frame(FFMpegContext *context)
 /* Allocate a temporary frame */
 static AVFrame *alloc_picture(AVPixelFormat pix_fmt, int width, int height)
 {
-  AVFrame *f;
-  uint8_t *buf;
-  int size;
-
   /* allocate space for the struct */
-  f = av_frame_alloc();
-  if (!f) {
-    return nullptr;
-  }
-  size = av_image_get_buffer_size(pix_fmt, width, height, 1);
-  /* allocate the actual picture buffer */
-  buf = static_cast<uint8_t *>(MEM_mallocN(size, "AVFrame buffer"));
-  if (!buf) {
-    free(f);
+  AVFrame *f = av_frame_alloc();
+  if (f == nullptr) {
     return nullptr;
   }
 
-  av_image_fill_arrays(f->data, f->linesize, buf, pix_fmt, width, height, 1);
+  /* allocate the actual picture buffer */
+  int size = av_image_get_buffer_size(pix_fmt, width, height, 1);
+  AVBufferRef *buf = av_buffer_alloc(size);
+  if (buf == nullptr) {
+    av_frame_free(&f);
+    return nullptr;
+  }
+
+  av_image_fill_arrays(f->data, f->linesize, buf->data, pix_fmt, width, height, 1);
+  f->buf[0] = buf;
   f->format = pix_fmt;
   f->width = width;
   f->height = height;
@@ -424,13 +420,8 @@ static AVFrame *generate_video_frame(FFMpegContext *context, const uint8_t *pixe
   /* Convert to the output pixel format, if it's different that Blender's internal one. */
   if (context->img_convert_frame != nullptr) {
     BLI_assert(context->img_convert_ctx != NULL);
-    sws_scale(context->img_convert_ctx,
-              (const uint8_t *const *)rgb_frame->data,
-              rgb_frame->linesize,
-              0,
-              codec->height,
-              context->current_frame->data,
-              context->current_frame->linesize);
+    /* Note: `sws_scale` is single threaded, have to use `sws_scale_frame` instead. */
+    sws_scale_frame(context->img_convert_ctx, context->current_frame, rgb_frame);
   }
 
   return context->current_frame;
@@ -677,6 +668,34 @@ static const AVCodec *get_av1_encoder(
   return codec;
 }
 
+static SwsContext *get_threaded_sws_context(int width,
+                                            int height,
+                                            AVPixelFormat src_format,
+                                            AVPixelFormat dst_format)
+{
+  /* sws_getContext does not allow passing flags that ask for multi-threaded
+   * scaling context, so do it the hard way. */
+  SwsContext *c = sws_alloc_context();
+  if (c == nullptr) {
+    return nullptr;
+  }
+  av_opt_set_int(c, "srcw", width, 0);
+  av_opt_set_int(c, "srch", height, 0);
+  av_opt_set_int(c, "src_format", src_format, 0);
+  av_opt_set_int(c, "dstw", width, 0);
+  av_opt_set_int(c, "dsth", height, 0);
+  av_opt_set_int(c, "dst_format", dst_format, 0);
+  av_opt_set_int(c, "sws_flags", SWS_BICUBIC, 0);
+  av_opt_set_int(c, "threads", BLI_system_thread_count(), 0);
+
+  if (sws_init_context(c, nullptr, nullptr) < 0) {
+    sws_freeContext(c);
+    return nullptr;
+  }
+
+  return c;
+}
+
 /* prepare a video stream for the output file */
 
 static AVStream *alloc_video_stream(FFMpegContext *context,
@@ -914,16 +933,8 @@ static AVStream *alloc_video_stream(FFMpegContext *context,
   else {
     /* Output pixel format is different, allocate frame for conversion. */
     context->img_convert_frame = alloc_picture(AV_PIX_FMT_RGBA, c->width, c->height);
-    context->img_convert_ctx = sws_getContext(c->width,
-                                              c->height,
-                                              AV_PIX_FMT_RGBA,
-                                              c->width,
-                                              c->height,
-                                              c->pix_fmt,
-                                              SWS_BICUBIC,
-                                              nullptr,
-                                              nullptr,
-                                              nullptr);
+    context->img_convert_ctx = get_threaded_sws_context(
+        c->width, c->height, AV_PIX_FMT_RGBA, c->pix_fmt);
   }
 
   avcodec_parameters_from_context(st->codecpar, c);
