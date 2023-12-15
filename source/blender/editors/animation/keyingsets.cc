@@ -1150,7 +1150,6 @@ int ANIM_apply_keyingset(
     }
   }
 
-  Main *bmain = CTX_data_main(C);
   ReportList *reports = CTX_wm_reports(C);
   int keyed_channels = 0;
 
