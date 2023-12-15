@@ -420,8 +420,17 @@ static AVFrame *generate_video_frame(FFMpegContext *context, const uint8_t *pixe
   /* Convert to the output pixel format, if it's different that Blender's internal one. */
   if (context->img_convert_frame != nullptr) {
     BLI_assert(context->img_convert_ctx != NULL);
-    /* Note: `sws_scale` is single threaded, have to use `sws_scale_frame` instead. */
+#  if defined(FFMPEG_SWSCALE_THREADING)
     sws_scale_frame(context->img_convert_ctx, context->current_frame, rgb_frame);
+#  else
+    sws_scale(context->img_convert_ctx,
+              (const uint8_t *const *)rgb_frame->data,
+              rgb_frame->linesize,
+              0,
+              codec->height,
+              context->current_frame->data,
+              context->current_frame->linesize);
+#  endif
   }
 
   return context->current_frame;
@@ -673,6 +682,7 @@ static SwsContext *get_threaded_sws_context(int width,
                                             AVPixelFormat src_format,
                                             AVPixelFormat dst_format)
 {
+#  if defined(FFMPEG_SWSCALE_THREADING)
   /* sws_getContext does not allow passing flags that ask for multi-threaded
    * scaling context, so do it the hard way. */
   SwsContext *c = sws_alloc_context();
@@ -692,6 +702,18 @@ static SwsContext *get_threaded_sws_context(int width,
     sws_freeContext(c);
     return nullptr;
   }
+#  else
+  SwsContext *c = sws_getContext(width,
+                                 height,
+                                 src_format,
+                                 width,
+                                 height,
+                                 dst_format,
+                                 SWS_BICUBIC,
+                                 nullptr,
+                                 nullptr,
+                                 nullptr);
+#  endif
 
   return c;
 }
