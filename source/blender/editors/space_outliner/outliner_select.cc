@@ -328,7 +328,7 @@ static void tree_element_object_activate(bContext *C,
   }
 
   /* find associated base in current scene */
-  BKE_view_layer_synced_ensure(sce, view_layer);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   base = BKE_view_layer_base_find(view_layer, ob);
 
   if (scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK) {
