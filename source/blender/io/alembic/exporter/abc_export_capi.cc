@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "ABC_alembic.h"
+#include "IO_subdiv_disabler.hh"
 #include "abc_archive.h"
 #include "abc_hierarchy_iterator.h"
-#include "abc_subdiv_disabler.h"
 
 #include "MEM_guardedalloc.h"
 

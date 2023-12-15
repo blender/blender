@@ -44,7 +44,6 @@ set(SRC
   exporter/abc_custom_props.cc
   exporter/abc_export_capi.cc
   exporter/abc_hierarchy_iterator.cc
-  exporter/abc_subdiv_disabler.cc
   exporter/abc_writer_abstract.cc
   exporter/abc_writer_camera.cc
   exporter/abc_writer_curves.cc
@@ -72,7 +71,6 @@ set(SRC
   exporter/abc_archive.h
   exporter/abc_custom_props.h
   exporter/abc_hierarchy_iterator.h
-  exporter/abc_subdiv_disabler.h
   exporter/abc_writer_abstract.h
   exporter/abc_writer_camera.h
   exporter/abc_writer_curves.h

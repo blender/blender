@@ -91,6 +91,26 @@ const EnumPropertyItem rna_enum_usd_tex_name_collision_mode_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+const EnumPropertyItem rna_enum_usd_export_subdiv_mode_items[] = {
+    {USD_SUBDIV_IGNORE,
+     "IGNORE",
+     0,
+     "Ignore",
+     "Subdivision scheme = None, export base mesh without subdivision"},
+    {USD_SUBDIV_TESSELLATE,
+     "TESSELLATE",
+     0,
+     "Tessellate",
+     "Subdivision scheme = None, export subdivided mesh"},
+    {USD_SUBDIV_BEST_MATCH,
+     "BEST_MATCH",
+     0,
+     "Best Match",
+     "Subdivision scheme = Catmull-Clark, when possible. "
+     "Reverts to exporting the subdivided mesh for the Simple subdivision type"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 /* Stored in the wmOperator's customdata field to indicate it should run as a background job.
  * This is set when the operator is invoked, and not set when it is only executed. */
 enum { AS_BACKGROUND_JOB = 1 };
@@ -155,6 +175,8 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
   const bool export_mesh_colors = RNA_boolean_get(op->ptr, "export_mesh_colors");
   const bool export_normals = RNA_boolean_get(op->ptr, "export_normals");
   const bool export_materials = RNA_boolean_get(op->ptr, "export_materials");
+  const eSubdivExportMode export_subdiv = eSubdivExportMode(
+      RNA_enum_get(op->ptr, "export_subdivision"));
   const bool use_instancing = RNA_boolean_get(op->ptr, "use_instancing");
   const bool evaluation_mode = RNA_enum_get(op->ptr, "evaluation_mode");
 
@@ -174,6 +196,7 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
       export_normals,
       export_mesh_colors,
       export_materials,
+      export_subdiv,
       selected_objects_only,
       visible_objects_only,
       use_instancing,
@@ -211,6 +234,7 @@ static void wm_usd_export_draw(bContext * /*C*/, wmOperator *op)
   uiItemR(col, ptr, "export_uvmaps", UI_ITEM_NONE, nullptr, ICON_NONE);
   uiItemR(col, ptr, "export_normals", UI_ITEM_NONE, nullptr, ICON_NONE);
   uiItemR(col, ptr, "export_materials", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "export_subdivision", UI_ITEM_NONE, nullptr, ICON_NONE);
   uiItemR(col, ptr, "root_prim_path", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   col = uiLayoutColumn(box, true);
@@ -334,6 +358,14 @@ void WM_OT_usd_export(wmOperatorType *ot)
                   "Materials",
                   "Export viewport settings of materials as USD preview materials, and export "
                   "material assignments as geometry subsets");
+
+  RNA_def_enum(ot->srna,
+               "export_subdivision",
+               rna_enum_usd_export_subdiv_mode_items,
+               USD_SUBDIV_BEST_MATCH,
+               "Subdivision Scheme",
+               "Choose how subdivision modifiers will be mapped to the USD subdivision scheme "
+               "during export");
 
   RNA_def_boolean(ot->srna,
                   "use_instancing",
