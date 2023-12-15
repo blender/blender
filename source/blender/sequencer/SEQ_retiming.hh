@@ -32,11 +32,11 @@ SeqRetimingKey *SEQ_retiming_add_key(const Scene *scene, Sequence *seq, int time
 SeqRetimingKey *SEQ_retiming_add_transition(const Scene *scene,
                                             Sequence *seq,
                                             SeqRetimingKey *key,
-                                            int offset);
+                                            const int offset);
 SeqRetimingKey *SEQ_retiming_add_freeze_frame(const Scene *scene,
                                               Sequence *seq,
                                               SeqRetimingKey *key,
-                                              int offset);
+                                              const int offset);
 bool SEQ_retiming_is_last_key(const Sequence *seq, const SeqRetimingKey *key);
 SeqRetimingKey *SEQ_retiming_last_key_get(const Sequence *seq);
 void SEQ_retiming_remove_key(const Scene *scene, Sequence *seq, SeqRetimingKey *key);
@@ -52,9 +52,9 @@ SeqRetimingKey *SEQ_retiming_key_get_by_timeline_frame(const Scene *scene,
                                                        const Sequence *seq,
                                                        int timeline_frame);
 void SEQ_retiming_sound_animation_data_set(const Scene *scene, const Sequence *seq);
-float SEQ_retiming_key_timeline_frame_get(const Scene *scene,
-                                          const Sequence *seq,
-                                          const SeqRetimingKey *key);
+int SEQ_retiming_key_timeline_frame_get(const Scene *scene,
+                                        const Sequence *seq,
+                                        const SeqRetimingKey *key);
 void SEQ_retiming_key_timeline_frame_set(const Scene *scene,
                                          Sequence *seq,
                                          SeqRetimingKey *key,

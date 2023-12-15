@@ -1661,7 +1661,6 @@ static void rna_def_retiming_key(BlenderRNA *brna)
   RNA_def_struct_sdna(srna, "SeqRetimingKey");
 
   prop = RNA_def_property(srna, "timeline_frame", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, nullptr, "strip_frame_index");
   RNA_def_property_int_funcs(
       prop, "rna_Sequence_retiming_key_frame_get", "rna_Sequence_retiming_key_frame_set", nullptr);
   RNA_def_property_ui_text(prop, "Timeline Frame", "Position of retiming key in timeline");

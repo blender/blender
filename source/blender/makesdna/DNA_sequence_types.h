@@ -127,13 +127,15 @@ typedef enum eSeqRetimingKeyFlag {
 } eSeqRetimingKeyFlag;
 
 typedef struct SeqRetimingKey {
-  int strip_frame_index;
+  double strip_frame_index;
   int flag; /* eSeqRetimingKeyFlag */
   int _pad0;
   float retiming_factor; /* Value between 0-1 mapped to original content range. */
 
-  int original_strip_frame_index; /* Used for transition keys only. */
-  float original_retiming_factor; /* Used for transition keys only. */
+  char _pad1[4];
+  double original_strip_frame_index; /* Used for transition keys only. */
+  float original_retiming_factor;    /* Used for transition keys only. */
+  char _pad2[4];
 } SeqRetimingKey;
 
 typedef struct SequenceRuntime {
