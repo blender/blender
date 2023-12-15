@@ -128,7 +128,7 @@ static int blf_search_by_filepath(const char *filepath)
 {
   for (int i = 0; i < BLF_MAX_FONT; i++) {
     const FontBLF *font = global_font[i];
-    if (font && STREQ(font->filepath, filepath)) {
+    if (font && font->filepath && STREQ(font->filepath, filepath)) {
       return i;
     }
   }
