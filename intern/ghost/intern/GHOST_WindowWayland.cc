@@ -1293,13 +1293,8 @@ static void libdecor_frame_handle_configure(libdecor_frame *frame,
       }
     }
     if (decor.initial_configure_seen_with_size == false) {
-#  ifdef USE_EVENT_BACKGROUND_THREAD
-      if (is_main_thread)
-#  endif
-      {
-        if (size_next[0] && size_next[1]) {
-          decor.initial_configure_seen_with_size = true;
-        }
+      if (size_next[0] && size_next[1]) {
+        decor.initial_configure_seen_with_size = true;
       }
     }
   }
