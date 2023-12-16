@@ -784,15 +784,15 @@ struct AttributeTransferData {
   /* Expect that if an attribute exists, it is stored as a contiguous array internally anyway. */
   GVArraySpan src;
   AttributeMetaData meta_data;
-  bke::GSpanAttributeWriter dst;
+  GSpanAttributeWriter dst;
 };
 /**
  * Retrieve attribute arrays and writers for attributes that should be transferred between
  * data-blocks of the same type.
  */
 Vector<AttributeTransferData> retrieve_attributes_for_transfer(
-    const bke::AttributeAccessor src_attributes,
-    bke::MutableAttributeAccessor dst_attributes,
+    const AttributeAccessor src_attributes,
+    MutableAttributeAccessor dst_attributes,
     eAttrDomainMask domain_mask,
     const AnonymousAttributePropagationInfo &propagation_info,
     const Set<std::string> &skip = {});

@@ -31,15 +31,6 @@
 
 #include "attribute_access_intern.hh"
 
-using blender::float3;
-using blender::GMutableSpan;
-using blender::GSpan;
-using blender::GVArrayImpl_For_GSpan;
-using blender::Set;
-using blender::StringRef;
-using blender::StringRefNull;
-using blender::bke::AttributeIDRef;
-
 namespace blender::bke {
 
 std::ostream &operator<<(std::ostream &stream, const AttributeIDRef &attribute_id)
@@ -598,11 +589,9 @@ bool CustomDataAttributeProvider::foreach_attribute(const void *owner,
 /** \name Attribute API
  * \{ */
 
-static blender::GVArray try_adapt_data_type(blender::GVArray varray,
-                                            const blender::CPPType &to_type)
+static GVArray try_adapt_data_type(GVArray varray, const CPPType &to_type)
 {
-  const blender::bke::DataTypeConversions &conversions =
-      blender::bke::get_implicit_type_conversions();
+  const DataTypeConversions &conversions = get_implicit_type_conversions();
   return conversions.try_convert(std::move(varray), to_type);
 }
 
@@ -817,32 +806,31 @@ fn::GField AttributeValidator::validate_field_if_necessary(const fn::GField &fie
 }
 
 Vector<AttributeTransferData> retrieve_attributes_for_transfer(
-    const bke::AttributeAccessor src_attributes,
-    bke::MutableAttributeAccessor dst_attributes,
+    const AttributeAccessor src_attributes,
+    MutableAttributeAccessor dst_attributes,
     const eAttrDomainMask domain_mask,
     const AnonymousAttributePropagationInfo &propagation_info,
     const Set<std::string> &skip)
 {
   Vector<AttributeTransferData> attributes;
-  src_attributes.for_all(
-      [&](const bke::AttributeIDRef &id, const bke::AttributeMetaData meta_data) {
-        if (!(ATTR_DOMAIN_AS_MASK(meta_data.domain) & domain_mask)) {
-          return true;
-        }
-        if (id.is_anonymous() && !propagation_info.propagate(id.anonymous_id())) {
-          return true;
-        }
-        if (skip.contains(id.name())) {
-          return true;
-        }
+  src_attributes.for_all([&](const AttributeIDRef &id, const AttributeMetaData meta_data) {
+    if (!(ATTR_DOMAIN_AS_MASK(meta_data.domain) & domain_mask)) {
+      return true;
+    }
+    if (id.is_anonymous() && !propagation_info.propagate(id.anonymous_id())) {
+      return true;
+    }
+    if (skip.contains(id.name())) {
+      return true;
+    }
 
-        const GVArray src = *src_attributes.lookup(id, meta_data.domain);
-        bke::GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
-            id, meta_data.domain, meta_data.data_type);
-        attributes.append({std::move(src), meta_data, std::move(dst)});
+    const GVArray src = *src_attributes.lookup(id, meta_data.domain);
+    GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
+        id, meta_data.domain, meta_data.data_type);
+    attributes.append({std::move(src), meta_data, std::move(dst)});
 
-        return true;
-      });
+    return true;
+  });
   return attributes;
 }
 
@@ -866,15 +854,14 @@ void gather_attributes(const AttributeAccessor src_attributes,
     if (skip.contains(id.name())) {
       return true;
     }
-    const bke::GAttributeReader src = src_attributes.lookup(id, domain);
+    const GAttributeReader src = src_attributes.lookup(id, domain);
     if (selection.size() == src_size && src.sharing_info && src.varray.is_span()) {
-      const bke::AttributeInitShared init(src.varray.get_internal_span().data(),
-                                          *src.sharing_info);
+      const AttributeInitShared init(src.varray.get_internal_span().data(), *src.sharing_info);
       if (dst_attributes.add(id, domain, meta_data.data_type, init)) {
         return true;
       }
     }
-    bke::GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
+    GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
         id, domain, meta_data.data_type);
     if (!dst) {
       return true;
@@ -929,8 +916,8 @@ void gather_attributes(const AttributeAccessor src_attributes,
       if (skip.contains(id.name())) {
         return true;
       }
-      const bke::GAttributeReader src = src_attributes.lookup(id, domain);
-      bke::GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
+      const GAttributeReader src = src_attributes.lookup(id, domain);
+      GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
           id, domain, meta_data.data_type);
       if (!dst) {
         return true;
@@ -962,7 +949,7 @@ void gather_attributes_group_to_group(const AttributeAccessor src_attributes,
       return true;
     }
     const GVArraySpan src = *src_attributes.lookup(id, domain);
-    bke::GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
+    GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
         id, domain, meta_data.data_type);
     if (!dst) {
       return true;
@@ -992,7 +979,7 @@ void gather_attributes_to_groups(const AttributeAccessor src_attributes,
       return true;
     }
     const GVArraySpan src = *src_attributes.lookup(id, domain);
-    bke::GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
+    GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
         id, domain, meta_data.data_type);
     if (!dst) {
       return true;
@@ -1041,7 +1028,7 @@ void copy_attributes_group_to_group(const AttributeAccessor src_attributes,
       return true;
     }
     const GVArraySpan src = *src_attributes.lookup(id, domain);
-    bke::GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
+    GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
         id, domain, meta_data.data_type);
     if (!dst) {
       return true;
