@@ -914,4 +914,9 @@ void copy_attributes_group_to_group(AttributeAccessor src_attributes,
                                     const IndexMask &selection,
                                     MutableAttributeAccessor dst_attributes);
 
+void fill_attribute_range_default(MutableAttributeAccessor dst_attributes,
+                                  eAttrDomain domain,
+                                  const Set<std::string> &skip,
+                                  IndexRange range);
+
 }  // namespace blender::bke

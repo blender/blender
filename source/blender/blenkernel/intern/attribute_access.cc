@@ -1052,4 +1052,25 @@ void copy_attributes_group_to_group(const AttributeAccessor src_attributes,
   });
 }
 
+void fill_attribute_range_default(MutableAttributeAccessor attributes,
+                                  const eAttrDomain domain,
+                                  const Set<std::string> &skip,
+                                  const IndexRange range)
+{
+  attributes.for_all([&](const AttributeIDRef &id, const AttributeMetaData meta_data) {
+    if (meta_data.domain != domain) {
+      return true;
+    }
+    if (skip.contains(id.name())) {
+      return true;
+    }
+    GSpanAttributeWriter attribute = attributes.lookup_for_write_span(id);
+    const CPPType &type = attribute.span.type();
+    GMutableSpan data = attribute.span.slice(range);
+    type.fill_assign_n(type.default_value(), data.data(), data.size());
+    attribute.finish();
+    return true;
+  });
+}
+
 }  // namespace blender::bke

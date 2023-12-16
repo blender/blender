@@ -655,12 +655,15 @@ static int curves_draw_exec(bContext *C, wmOperator *op)
 
   Curves *curves_id = static_cast<Curves *>(obedit->data);
   bke::CurvesGeometry &curves = curves_id->geometry.wrap();
-  const eAttrDomain selection_domain = eAttrDomain(curves_id->selection_domain);
   const int curve_index = curves.curves_num();
 
   const bool use_pressure_radius = (cps->flag & CURVE_PAINT_FLAG_PRESSURE_RADIUS) ||
                                    ((cps->radius_taper_start != 0.0f) ||
                                     (cps->radius_taper_end != 0.0f));
+
+  bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
+
+  attributes.remove(".selection");
 
   if (cdd->curve_type == CU_BEZIER) {
     /* Allow to interpolate multiple channels */
@@ -761,30 +764,18 @@ static int curves_draw_exec(bContext *C, wmOperator *op)
 
     if (result == 0) {
       curves.resize(curves.points_num() + cubic_spline_len, curve_index + 1);
-      MutableSpan<int8_t> curve_types = curves.curve_types_for_write();
-      curve_types[curve_index] = CURVE_TYPE_BEZIER;
-      curves.update_curve_types();
+      curves.fill_curve_types(IndexRange(curve_index, 1), CURVE_TYPE_BEZIER);
 
+      MutableSpan<float3> positions = curves.positions_for_write();
       MutableSpan<float3> handle_positions_l = curves.handle_positions_left_for_write();
       MutableSpan<float3> handle_positions_r = curves.handle_positions_right_for_write();
       MutableSpan<int8_t> handle_types_l = curves.handle_types_left_for_write();
       MutableSpan<int8_t> handle_types_r = curves.handle_types_right_for_write();
-      MutableSpan<bool> cyclic = curves.cyclic_for_write();
-      MutableSpan<int> resolution = curves.resolution_for_write();
 
-      resolution[curve_index] = 12;
-      IndexRange new_points = curves.points_by_curve()[curve_index];
-      MutableSpan<float3> positions = curves.positions_for_write();
+      const IndexRange new_points = curves.points_by_curve()[curve_index];
 
-      bke::MutableAttributeAccessor curves_attributes = curves.attributes_for_write();
-      bke::SpanAttributeWriter<float> radius_attribute =
-          curves_attributes.lookup_or_add_for_write_only_span<float>("radius", ATTR_DOMAIN_POINT);
-      MutableSpan<float> radii = radius_attribute.span;
-
-      bke::GSpanAttributeWriter selection = ensure_selection_attribute(
-          curves, selection_domain, CD_PROP_BOOL);
-
-      curves::fill_selection_false(selection.span);
+      bke::SpanAttributeWriter<float> radii = attributes.lookup_or_add_for_write_only_span<float>(
+          "radius", ATTR_DOMAIN_POINT);
 
       float *co = cubic_spline;
 
@@ -800,18 +791,14 @@ static int curves_draw_exec(bContext *C, wmOperator *op)
         const float radius = (radius_index != -1) ?
                                  (pt[radius_index] * cdd->radius.range) + cdd->radius.min :
                                  radius_max;
-        radii[i] = radius;
+        radii.span[i] = radius;
 
         handle_types_l[i] = BEZIER_HANDLE_ALIGN;
         handle_types_r[i] = BEZIER_HANDLE_ALIGN;
         co += (dims * 3);
       }
 
-      curves::fill_selection_true(
-          selection.span,
-          selection.domain == ATTR_DOMAIN_POINT ? new_points : IndexRange(curve_index, 1));
-      selection.finish();
-      //         bezt->f1 = bezt->f2 = bezt->f3 = SELECT;
+      // bezt->f1 = bezt->f2 = bezt->f3 = SELECT;
 
       if (corners_index) {
         /* ignore the first and last */
@@ -829,9 +816,35 @@ static int curves_draw_exec(bContext *C, wmOperator *op)
         }
       }
 
-      cyclic[curve_index] = bool(calc_flag & CURVE_FIT_CALC_CYCLIC);
+      radii.finish();
 
-      radius_attribute.finish();
+      bke::AttributeWriter<bool> selection = attributes.lookup_or_add_for_write<bool>(
+          ".selection", ATTR_DOMAIN_CURVE);
+      selection.varray.set(curve_index, true);
+      selection.finish();
+
+      if (attributes.contains("resolution")) {
+        curves.resolution_for_write()[curve_index] = 12;
+      }
+
+      if (attributes.contains("cyclic") || bool(calc_flag & CURVE_FIT_CALC_CYCLIC)) {
+        curves.cyclic_for_write()[curve_index] = true;
+      }
+
+      bke::fill_attribute_range_default(attributes,
+                                        ATTR_DOMAIN_POINT,
+                                        {"position",
+                                         "radius",
+                                         "handle_left",
+                                         "handle_right",
+                                         "handle_type_left",
+                                         "handle_type_right",
+                                         ".selection"},
+                                        new_points);
+      bke::fill_attribute_range_default(attributes,
+                                        ATTR_DOMAIN_CURVE,
+                                        {"curve_type", "resolution", "cyclic", ".selection"},
+                                        IndexRange(curve_index, 1));
     }
 
     if (corners_index) {
@@ -844,20 +857,13 @@ static int curves_draw_exec(bContext *C, wmOperator *op)
   }
   else { /* CU_POLY */
     curves.resize(curves.points_num() + stroke_len, curve_index + 1);
-    MutableSpan<int8_t> curve_types = curves.curve_types_for_write();
-    curve_types[curve_index] = CURVE_TYPE_POLY;
-    curves.update_curve_types();
+    curves.fill_curve_types(IndexRange(curve_index, 1), CURVE_TYPE_POLY);
 
-    IndexRange new_points = curves.points_by_curve()[curve_index];
     MutableSpan<float3> positions = curves.positions_for_write();
-    bke::MutableAttributeAccessor curves_attributes = curves.attributes_for_write();
-    bke::SpanAttributeWriter<float> radius_attribute =
-        curves_attributes.lookup_or_add_for_write_only_span<float>("radius", ATTR_DOMAIN_POINT);
-    MutableSpan<float> radii = radius_attribute.span;
+    bke::SpanAttributeWriter<float> radii = attributes.lookup_or_add_for_write_only_span<float>(
+        "radius", ATTR_DOMAIN_POINT);
 
-    bke::GSpanAttributeWriter selection = ensure_selection_attribute(
-        curves, selection_domain, CD_PROP_BOOL);
-    curves::fill_selection_false(selection.span);
+    const IndexRange new_points = curves.points_by_curve()[curve_index];
 
     IndexRange::Iterator points_iter = new_points.begin();
 
@@ -872,14 +878,21 @@ static int curves_draw_exec(bContext *C, wmOperator *op)
         positions[i][2] = 0.0f;
       }
 
-      radii[i] = use_pressure_radius ? (selem->pressure * radius_range) + radius_min :
-                                       cps->radius_max;
+      radii.span[i] = use_pressure_radius ? (selem->pressure * radius_range) + radius_min :
+                                            cps->radius_max;
     }
-    curves::fill_selection_true(
-        selection.span,
-        selection.domain == ATTR_DOMAIN_POINT ? new_points : IndexRange(curve_index, 1));
+
+    radii.finish();
+
+    bke::AttributeWriter<bool> selection = attributes.lookup_or_add_for_write<bool>(
+        ".selection", ATTR_DOMAIN_CURVE);
+    selection.varray.set(curve_index, true);
     selection.finish();
-    radius_attribute.finish();
+
+    bke::fill_attribute_range_default(
+        attributes, ATTR_DOMAIN_POINT, {"position", "radius", ".selection"}, new_points);
+    bke::fill_attribute_range_default(
+        attributes, ATTR_DOMAIN_CURVE, {"curve_type", ".selection"}, IndexRange(curve_index, 1));
   }
 
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);

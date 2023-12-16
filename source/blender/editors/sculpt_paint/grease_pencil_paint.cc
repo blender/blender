@@ -238,27 +238,14 @@ struct PaintOperationExecutor {
     curves.update_curve_types();
 
     /* Initialize the rest of the attributes with default values. */
-    Set<std::string> attributes_to_skip{{"position",
-                                         "curve_type",
-                                         "material_index",
-                                         "cyclic",
-                                         "radius",
-                                         "opacity",
-                                         "vertex_color"}};
-    attributes.for_all(
-        [&](const bke::AttributeIDRef &id, const bke::AttributeMetaData /*meta_data*/) {
-          if (attributes_to_skip.contains(id.name())) {
-            return true;
-          }
-          bke::GSpanAttributeWriter attribute = attributes.lookup_for_write_span(id);
-          const CPPType &type = attribute.span.type();
-          GMutableSpan new_data = attribute.span.slice(attribute.domain == ATTR_DOMAIN_POINT ?
-                                                           curves.points_range().take_back(1) :
-                                                           curves.curves_range().take_back(1));
-          type.fill_assign_n(type.default_value(), new_data.data(), new_data.size());
-          attribute.finish();
-          return true;
-        });
+    bke::fill_attribute_range_default(attributes,
+                                      ATTR_DOMAIN_POINT,
+                                      {"position", "radius", "opacity", "vertex_color"},
+                                      curves.points_range().take_back(1));
+    bke::fill_attribute_range_default(attributes,
+                                      ATTR_DOMAIN_CURVE,
+                                      {"curve_type", "material_index", "cyclic"},
+                                      curves.curves_range().take_back(1));
 
     drawing_->tag_topology_changed();
   }
@@ -417,18 +404,10 @@ struct PaintOperationExecutor {
     }
 
     /* Initialize the rest of the attributes with default values. */
-    Set<std::string> attributes_to_skip{{"position", "radius", "opacity", "vertex_color"}};
-    attributes.for_all([&](const bke::AttributeIDRef &id, const bke::AttributeMetaData meta_data) {
-      if (attributes_to_skip.contains(id.name()) || meta_data.domain != ATTR_DOMAIN_POINT) {
-        return true;
-      }
-      bke::GSpanAttributeWriter attribute = attributes.lookup_for_write_span(id);
-      const CPPType &type = attribute.span.type();
-      GMutableSpan new_data = attribute.span.slice(new_points);
-      type.fill_assign_n(type.default_value(), new_data.data(), new_data.size());
-      attribute.finish();
-      return true;
-    });
+    bke::fill_attribute_range_default(attributes,
+                                      ATTR_DOMAIN_POINT,
+                                      {"position", "radius", "opacity", "vertex_color"},
+                                      curves.points_range().take_back(1));
   }
 
   void execute(PaintOperation &self, const bContext &C, const InputSample &extension_sample)

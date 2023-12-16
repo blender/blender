@@ -397,22 +397,12 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
   }
 
   /* Explicitly set all other attributes besides those processed above to default values. */
-  Set<std::string> attributes_to_skip{
-      {"position", "curve_type", "surface_uv_coordinate", "resolution"}};
-  attributes.for_all(
-      [&](const bke::AttributeIDRef &id, const bke::AttributeMetaData /*meta_data*/) {
-        if (attributes_to_skip.contains(id.name())) {
-          return true;
-        }
-        bke::GSpanAttributeWriter attribute = attributes.lookup_for_write_span(id);
-        const CPPType &type = attribute.span.type();
-        GMutableSpan new_data = attribute.span.slice(attribute.domain == ATTR_DOMAIN_POINT ?
-                                                         outputs.new_points_range :
-                                                         outputs.new_curves_range);
-        type.fill_assign_n(type.default_value(), new_data.data(), new_data.size());
-        attribute.finish();
-        return true;
-      });
+  bke::fill_attribute_range_default(
+      attributes, ATTR_DOMAIN_POINT, {"position"}, outputs.new_points_range);
+  bke::fill_attribute_range_default(attributes,
+                                    ATTR_DOMAIN_CURVE,
+                                    {"curve_type", "surface_uv_coordinate", "resolution"},
+                                    outputs.new_curves_range);
 
   return outputs;
 }
