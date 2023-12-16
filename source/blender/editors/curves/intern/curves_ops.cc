@@ -1282,6 +1282,46 @@ static void CURVES_OT_duplicate(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+namespace clear_tilt {
+
+static int exec(bContext *C, wmOperator * /*op*/)
+{
+  for (Curves *curves_id : get_unique_editable_curves(*C)) {
+    bke::CurvesGeometry &curves = curves_id->geometry.wrap();
+    IndexMaskMemory memory;
+    const IndexMask selection = retrieve_selected_points(*curves_id, memory);
+    if (selection.is_empty()) {
+      continue;
+    }
+
+    if (selection.size() == curves.points_num()) {
+      curves.attributes_for_write().remove("tilt");
+    }
+    else {
+      index_mask::masked_fill(curves.tilt_for_write(), 0.0f, selection);
+    }
+
+    curves.tag_normals_changed();
+    DEG_id_tag_update(&curves_id->id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GEOM | ND_DATA, curves_id);
+  }
+  return OPERATOR_FINISHED;
+}
+
+}  // namespace clear_tilt
+
+static void CURVES_OT_tilt_clear(wmOperatorType *ot)
+{
+  ot->name = "Clear Tilt";
+  ot->idname = __func__;
+  ot->description = "Clear the tilt of selected control points";
+
+  ot->exec = clear_tilt::exec;
+  ot->poll = editable_curves_in_edit_mode_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
 }  // namespace blender::ed::curves
 
 void ED_operatortypes_curves()
@@ -1302,6 +1342,7 @@ void ED_operatortypes_curves()
   WM_operatortype_append(CURVES_OT_surface_set);
   WM_operatortype_append(CURVES_OT_delete);
   WM_operatortype_append(CURVES_OT_duplicate);
+  WM_operatortype_append(CURVES_OT_tilt_clear);
 }
 
 void ED_operatormacros_curves()

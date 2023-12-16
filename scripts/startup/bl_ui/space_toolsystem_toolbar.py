@@ -3026,8 +3026,10 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
         'EDIT_CURVES': [
             *_tools_default,
             None,
-            _defs_edit_curve.curve_radius,
             _defs_edit_curves.draw,
+            None,
+            _defs_edit_curve.curve_radius,
+            _defs_edit_curve.tilt,
         ],
         'EDIT_SURFACE': [
             *_tools_default,
