@@ -340,7 +340,7 @@ struct Rows {
           continue;
         }
 
-        float new_distance = blender::math::distance(float2(destination), float2(source));
+        float new_distance = math::distance(float2(destination), float2(source));
         if (new_distance < found_distance) {
           found_distance = new_distance;
           found_source = source;
@@ -395,8 +395,8 @@ struct Rows {
         if (source.type != PixelType::Brush) {
           continue;
         }
-        float new_distance = blender::math::distance(float2(sx, sy),
-                                                     float2(pixel.copy_command.destination));
+        float new_distance = math::distance(float2(sx, sy),
+                                            float2(pixel.copy_command.destination));
         if (new_distance < found_distance) {
           found_source = int2(sx, sy);
           found_distance = new_distance;
@@ -458,7 +458,7 @@ struct Rows {
                                      point,
                                      tile_edge.vertex_1.coordinate,
                                      tile_edge.vertex_2.coordinate);
-          float distance_to_edge = blender::math::distance(closest_edge_point, point);
+          float distance_to_edge = math::distance(closest_edge_point, point);
           if (distance_to_edge < margin && distance_to_edge < pixel.distance) {
             if (pixel.type != PixelType::SelectedForCloserExamination) {
               selected_pixels.append(std::reference_wrapper<Pixel>(pixel));
@@ -498,15 +498,14 @@ struct Rows {
       }
     }
   }
+};
 
-};  // namespace blender::bke::pbvh::pixels
-
-void BKE_pbvh_pixels_copy_update(PBVH &pbvh,
-                                 Image &image,
-                                 ImageUser &image_user,
-                                 const uv_islands::MeshData &mesh_data)
+void copy_update(PBVH &pbvh,
+                 Image &image,
+                 ImageUser &image_user,
+                 const uv_islands::MeshData &mesh_data)
 {
-  PBVHData &pbvh_data = BKE_pbvh_pixels_data_get(pbvh);
+  PBVHData &pbvh_data = data_get(pbvh);
   pbvh_data.tiles_copy_pixels.clear();
   const NonManifoldUVEdges non_manifold_edges(mesh_data);
   if (non_manifold_edges.is_empty()) {
@@ -546,12 +545,9 @@ void BKE_pbvh_pixels_copy_update(PBVH &pbvh,
   }
 }
 
-void BKE_pbvh_pixels_copy_pixels(PBVH &pbvh,
-                                 Image &image,
-                                 ImageUser &image_user,
-                                 image::TileNumber tile_number)
+void copy_pixels(PBVH &pbvh, Image &image, ImageUser &image_user, image::TileNumber tile_number)
 {
-  PBVHData &pbvh_data = BKE_pbvh_pixels_data_get(pbvh);
+  PBVHData &pbvh_data = data_get(pbvh);
   std::optional<std::reference_wrapper<CopyPixelTile>> pixel_tile =
       pbvh_data.tiles_copy_pixels.find_tile(tile_number);
   if (!pixel_tile.has_value()) {

@@ -451,6 +451,7 @@ void multires_flush_sculpt_updates(Object *object)
 
 void multires_force_sculpt_rebuild(Object *object)
 {
+  using namespace blender;
   multires_flush_sculpt_updates(object);
 
   if (object == nullptr || object->sculpt == nullptr) {
@@ -460,7 +461,7 @@ void multires_force_sculpt_rebuild(Object *object)
   SculptSession *ss = object->sculpt;
 
   if (ss->pbvh != nullptr) {
-    BKE_pbvh_free(ss->pbvh);
+    bke::pbvh::free(ss->pbvh);
     object->sculpt->pbvh = nullptr;
   }
 }

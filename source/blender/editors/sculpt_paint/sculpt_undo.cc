@@ -1031,10 +1031,10 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, UndoSculpt &usculpt)
   data.modified_color_verts = modified_verts_color;
   data.modified_face_set_faces = modified_faces_face_set;
   if (use_multires_undo) {
-    BKE_pbvh_search_callback(ss->pbvh, {}, update_modified_node_grids, &data);
+    bke::pbvh::search_callback(ss->pbvh, {}, update_modified_node_grids, &data);
   }
   else {
-    BKE_pbvh_search_callback(ss->pbvh, {}, update_modified_node_mesh, &data);
+    bke::pbvh::search_callback(ss->pbvh, {}, update_modified_node_mesh, &data);
   }
 
   if (changed_position) {

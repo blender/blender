@@ -71,7 +71,7 @@ static int count_node_pixels(PBVHNode &node)
     return 0;
   }
 
-  NodeData &data = BKE_pbvh_pixels_node_data_get(node);
+  NodeData &data = node_data_get(node);
 
   int totpixel = 0;
 
@@ -119,7 +119,7 @@ static void split_pixel_node(
   const Bounds<float3> cb = node->vb;
 
   if (count_node_pixels(*node) <= pbvh->pixel_leaf_limit || split->depth >= pbvh->depth_limit) {
-    BKE_pbvh_pixels_node_data_get(split->node).rebuild_undo_regions();
+    node_data_get(split->node).rebuild_undo_regions();
     return;
   }
 
@@ -147,7 +147,7 @@ static void split_pixel_node(
   child2->vb = cb;
   child2->vb.min[axis] = mid;
 
-  NodeData &data = BKE_pbvh_pixels_node_data_get(split->node);
+  NodeData &data = node_data_get(split->node);
 
   NodeData *data1 = MEM_new<NodeData>(__func__);
   NodeData *data2 = MEM_new<NodeData>(__func__);
@@ -181,8 +181,8 @@ static void split_pixel_node(
       continue;
     }
 
-    const Span<float3> vert_cos = BKE_pbvh_get_vert_positions(pbvh);
-    PBVHData &pbvh_data = BKE_pbvh_pixels_data_get(*pbvh);
+    const Span<float3> positions = BKE_pbvh_get_vert_positions(pbvh);
+    PBVHData &pbvh_data = data_get(*pbvh);
 
     for (const PackedPixelRow &row : tile.pixel_rows) {
       UDIMTilePixels *tile1 = &data1->tiles[i];
@@ -193,9 +193,9 @@ static void split_pixel_node(
 
       float verts[3][3];
 
-      copy_v3_v3(verts[0], vert_cos[tri[0]]);
-      copy_v3_v3(verts[1], vert_cos[tri[1]]);
-      copy_v3_v3(verts[2], vert_cos[tri[2]]);
+      copy_v3_v3(verts[0], positions[tri[0]]);
+      copy_v3_v3(verts[1], positions[tri[1]]);
+      copy_v3_v3(verts[2], positions[tri[2]]);
 
       float2 delta = uv_prim.delta_barycentric_coord_u;
       float2 uv1 = row.start_barycentric_coord;
@@ -258,7 +258,7 @@ static void split_pixel_node(
     data.clear_data();
   }
   else {
-    pbvh_node_pixels_free(node);
+    node_pixels_free(node);
   }
 
   BLI_thread_queue_push(tdata->new_nodes, static_cast<void *>(split1));
@@ -416,7 +416,7 @@ static void extract_barycentric_pixels(UDIMTilePixels &tile_data,
 /** Update the geometry primitives of the pbvh. */
 static void update_geom_primitives(PBVH &pbvh, const uv_islands::MeshData &mesh_data)
 {
-  PBVHData &pbvh_data = BKE_pbvh_pixels_data_get(pbvh);
+  PBVHData &pbvh_data = data_get(pbvh);
   pbvh_data.clear_data();
   for (const MLoopTri &lt : mesh_data.looptris) {
     pbvh_data.geom_primitives.append(int3(mesh_data.corner_verts[lt.tri[0]],
@@ -717,7 +717,7 @@ static bool update_pixels(PBVH *pbvh, Mesh *mesh, Image *image, ImageUser *image
   }
 
   /* Add solution for non-manifold parts of the model. */
-  BKE_pbvh_pixels_copy_update(*pbvh, *image, *image_user, mesh_data);
+  copy_update(*pbvh, *image, *image_user, mesh_data);
 
   /* Rebuild the undo regions. */
   for (PBVHNode *node : nodes_to_update) {
@@ -766,21 +766,21 @@ static bool update_pixels(PBVH *pbvh, Mesh *mesh, Image *image, ImageUser *image
   return true;
 }
 
-NodeData &BKE_pbvh_pixels_node_data_get(PBVHNode &node)
+NodeData &node_data_get(PBVHNode &node)
 {
   BLI_assert(node.pixels.node_data != nullptr);
   NodeData *node_data = static_cast<NodeData *>(node.pixels.node_data);
   return *node_data;
 }
 
-PBVHData &BKE_pbvh_pixels_data_get(PBVH &pbvh)
+PBVHData &data_get(PBVH &pbvh)
 {
   BLI_assert(pbvh.pixels.data != nullptr);
   PBVHData *data = static_cast<PBVHData *>(pbvh.pixels.data);
   return *data;
 }
 
-void BKE_pbvh_pixels_mark_image_dirty(PBVHNode &node, Image &image, ImageUser &image_user)
+void mark_image_dirty(PBVHNode &node, Image &image, ImageUser &image_user)
 {
   BLI_assert(node.pixels.node_data != nullptr);
   NodeData *node_data = static_cast<NodeData *>(node.pixels.node_data);
@@ -801,7 +801,7 @@ void BKE_pbvh_pixels_mark_image_dirty(PBVHNode &node, Image &image, ImageUser &i
   }
 }
 
-void BKE_pbvh_pixels_collect_dirty_tiles(PBVHNode &node, Vector<image::TileNumber> &r_dirty_tiles)
+void collect_dirty_tiles(PBVHNode &node, Vector<image::TileNumber> &r_dirty_tiles)
 {
   NodeData *node_data = static_cast<NodeData *>(node.pixels.node_data);
   node_data->collect_dirty_tiles(r_dirty_tiles);
@@ -809,18 +809,20 @@ void BKE_pbvh_pixels_collect_dirty_tiles(PBVHNode &node, Vector<image::TileNumbe
 
 }  // namespace blender::bke::pbvh::pixels
 
-using namespace blender::bke::pbvh::pixels;
+namespace blender::bke::pbvh {
 
-void BKE_pbvh_build_pixels(PBVH *pbvh, Mesh *mesh, Image *image, ImageUser *image_user)
+void build_pixels(PBVH *pbvh, Mesh *mesh, Image *image, ImageUser *image_user)
 {
-  if (update_pixels(pbvh, mesh, image, image_user) && PBVH_PIXELS_SPLIT_NODES_ENABLED) {
-    split_pixel_nodes(pbvh, mesh, image, image_user);
+  if (pixels::update_pixels(pbvh, mesh, image, image_user) &&
+      pixels::PBVH_PIXELS_SPLIT_NODES_ENABLED)
+  {
+    pixels::split_pixel_nodes(pbvh, mesh, image, image_user);
   }
 }
 
-void pbvh_node_pixels_free(PBVHNode *node)
+void node_pixels_free(PBVHNode *node)
 {
-  NodeData *node_data = static_cast<NodeData *>(node->pixels.node_data);
+  pixels::NodeData *node_data = static_cast<pixels::NodeData *>(node->pixels.node_data);
 
   if (!node_data) {
     return;
@@ -830,9 +832,11 @@ void pbvh_node_pixels_free(PBVHNode *node)
   node->pixels.node_data = nullptr;
 }
 
-void pbvh_pixels_free(PBVH *pbvh)
+void pixels_free(PBVH *pbvh)
 {
-  PBVHData *pbvh_data = static_cast<PBVHData *>(pbvh->pixels.data);
+  pixels::PBVHData *pbvh_data = static_cast<pixels::PBVHData *>(pbvh->pixels.data);
   MEM_delete(pbvh_data);
   pbvh->pixels.data = nullptr;
 }
+
+}  // namespace blender::bke::pbvh

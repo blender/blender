@@ -1339,7 +1339,7 @@ static void paint_mesh_restore_node(Object *ob, const undo::Type type, PBVHNode 
           bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
           bke::SpanAttributeWriter<float> mask = attributes.lookup_or_add_for_write_span<float>(
               ".sculpt_mask", ATTR_DOMAIN_POINT);
-          blender::array_utils::scatter(
+          array_utils::scatter(
               unode->mask.as_span(), BKE_pbvh_node_get_unique_vert_indices(node), mask.span);
           mask.finish();
           break;
@@ -2867,6 +2867,7 @@ static void sculpt_pbvh_update_pixels(PaintModeSettings *paint_mode_settings,
                                       SculptSession *ss,
                                       Object *ob)
 {
+  using namespace blender;
   BLI_assert(ob->type == OB_MESH);
   Mesh *mesh = (Mesh *)ob->data;
 
@@ -2876,7 +2877,7 @@ static void sculpt_pbvh_update_pixels(PaintModeSettings *paint_mode_settings,
     return;
   }
 
-  BKE_pbvh_build_pixels(ss->pbvh, mesh, image, image_user);
+  bke::pbvh::build_pixels(ss->pbvh, mesh, image, image_user);
 }
 
 /** \} */
@@ -3195,6 +3196,7 @@ static void sculpt_topology_update(Sculpt *sd,
                                    UnifiedPaintSettings * /*ups*/,
                                    PaintModeSettings * /*paint_mode_settings*/)
 {
+  using namespace blender;
   using namespace blender::ed::sculpt_paint;
   SculptSession *ss = ob->sculpt;
 
@@ -3240,13 +3242,13 @@ static void sculpt_topology_update(Sculpt *sd,
   }
 
   if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
-    BKE_pbvh_bmesh_update_topology(ss->pbvh,
-                                   mode,
-                                   ss->cache->location,
-                                   ss->cache->view_normal,
-                                   ss->cache->radius,
-                                   (brush->flag & BRUSH_FRONTFACE) != 0,
-                                   (brush->falloff_shape != PAINT_FALLOFF_SHAPE_SPHERE));
+    bke::pbvh::bmesh_update_topology(ss->pbvh,
+                                     mode,
+                                     ss->cache->location,
+                                     ss->cache->view_normal,
+                                     ss->cache->radius,
+                                     (brush->flag & BRUSH_FRONTFACE) != 0,
+                                     (brush->falloff_shape != PAINT_FALLOFF_SHAPE_SPHERE));
   }
 
   /* Update average stroke position. */
@@ -4762,6 +4764,7 @@ void SCULPT_stroke_modifiers_check(const bContext *C, Object *ob, const Brush *b
 
 static void sculpt_raycast_cb(PBVHNode *node, void *data_v, float *tmin)
 {
+  using namespace blender;
   using namespace blender::ed::sculpt_paint;
   if (BKE_pbvh_node_get_tmin(node) >= *tmin) {
     return;
@@ -4782,19 +4785,19 @@ static void sculpt_raycast_cb(PBVHNode *node, void *data_v, float *tmin)
     }
   }
 
-  if (BKE_pbvh_node_raycast(srd->ss->pbvh,
-                            node,
-                            origco,
-                            use_origco,
-                            srd->corner_verts,
-                            srd->hide_poly,
-                            srd->ray_start,
-                            srd->ray_normal,
-                            &srd->isect_precalc,
-                            &srd->depth,
-                            &srd->active_vertex,
-                            &srd->active_face_grid_index,
-                            srd->face_normal))
+  if (bke::pbvh::raycast_node(srd->ss->pbvh,
+                              node,
+                              origco,
+                              use_origco,
+                              srd->corner_verts,
+                              srd->hide_poly,
+                              srd->ray_start,
+                              srd->ray_normal,
+                              &srd->isect_precalc,
+                              &srd->depth,
+                              &srd->active_vertex,
+                              &srd->active_face_grid_index,
+                              srd->face_normal))
   {
     srd->hit = true;
     *tmin = srd->depth;
@@ -4803,6 +4806,7 @@ static void sculpt_raycast_cb(PBVHNode *node, void *data_v, float *tmin)
 
 static void sculpt_find_nearest_to_ray_cb(PBVHNode *node, void *data_v, float *tmin)
 {
+  using namespace blender;
   using namespace blender::ed::sculpt_paint;
   if (BKE_pbvh_node_get_tmin(node) >= *tmin) {
     return;
@@ -4823,16 +4827,16 @@ static void sculpt_find_nearest_to_ray_cb(PBVHNode *node, void *data_v, float *t
     }
   }
 
-  if (BKE_pbvh_node_find_nearest_to_ray(srd->ss->pbvh,
-                                        node,
-                                        origco,
-                                        use_origco,
-                                        srd->corner_verts,
-                                        srd->hide_poly,
-                                        srd->ray_start,
-                                        srd->ray_normal,
-                                        &srd->depth,
-                                        &srd->dist_sq_to_ray))
+  if (bke::pbvh::find_nearest_to_ray_node(srd->ss->pbvh,
+                                          node,
+                                          origco,
+                                          use_origco,
+                                          srd->corner_verts,
+                                          srd->hide_poly,
+                                          srd->ray_start,
+                                          srd->ray_normal,
+                                          &srd->depth,
+                                          &srd->dist_sq_to_ray))
   {
     srd->hit = true;
     *tmin = srd->dist_sq_to_ray;
@@ -4846,6 +4850,7 @@ float SCULPT_raycast_init(ViewContext *vc,
                           float ray_normal[3],
                           bool original)
 {
+  using namespace blender;
   float obimat[4][4];
   float dist;
   Object *ob = vc->obact;
@@ -4873,7 +4878,7 @@ float SCULPT_raycast_init(ViewContext *vc,
     ED_view3d_win_to_origin(vc->region, mval, ray_start);
     mul_m4_v3(obimat, ray_start);
 
-    BKE_pbvh_clip_ray_ortho(ob->sculpt->pbvh, original, ray_start, ray_end, ray_normal);
+    bke::pbvh::clip_ray_ortho(ob->sculpt->pbvh, original, ray_start, ray_end, ray_normal);
 
     dist = len_v3v3(ray_start, ray_end);
   }
@@ -4930,7 +4935,7 @@ bool SCULPT_cursor_geometry_info_update(bContext *C,
   srd.face_normal = face_normal;
 
   isect_ray_tri_watertight_v3_precalc(&srd.isect_precalc, ray_normal);
-  BKE_pbvh_raycast(ss->pbvh, sculpt_raycast_cb, &srd, ray_start, ray_normal, srd.original);
+  bke::pbvh::raycast(ss->pbvh, sculpt_raycast_cb, &srd, ray_start, ray_normal, srd.original);
 
   /* Cursor is not over the mesh, return default values. */
   if (!srd.hit) {
@@ -5077,7 +5082,7 @@ bool SCULPT_stroke_get_location_ex(bContext *C,
     srd.face_normal = face_normal;
     isect_ray_tri_watertight_v3_precalc(&srd.isect_precalc, ray_normal);
 
-    BKE_pbvh_raycast(ss->pbvh, sculpt_raycast_cb, &srd, ray_start, ray_normal, srd.original);
+    bke::pbvh::raycast(ss->pbvh, sculpt_raycast_cb, &srd, ray_start, ray_normal, srd.original);
     if (srd.hit) {
       hit = true;
       copy_v3_v3(out, ray_normal);
@@ -5105,7 +5110,7 @@ bool SCULPT_stroke_get_location_ex(bContext *C,
   srd.depth = FLT_MAX;
   srd.dist_sq_to_ray = FLT_MAX;
 
-  BKE_pbvh_find_nearest_to_ray(
+  bke::pbvh::find_nearest_to_ray(
       ss->pbvh, sculpt_find_nearest_to_ray_cb, &srd, ray_start, ray_normal, srd.original);
   if (srd.hit && srd.dist_sq_to_ray) {
     hit = true;
@@ -6012,6 +6017,7 @@ void node_update(auto_mask::NodeData &automask_data, PBVHVertexIter &vd)
 
 bool SCULPT_vertex_is_occluded(SculptSession *ss, PBVHVertRef vertex, bool original)
 {
+  using namespace blender;
   float ray_start[3], ray_end[3], ray_normal[3], face_normal[3];
   float co[3];
 
@@ -6039,7 +6045,7 @@ bool SCULPT_vertex_is_occluded(SculptSession *ss, PBVHVertRef vertex, bool origi
   srd.face_normal = face_normal;
 
   isect_ray_tri_watertight_v3_precalc(&srd.isect_precalc, ray_normal);
-  BKE_pbvh_raycast(ss->pbvh, sculpt_raycast_cb, &srd, ray_start, ray_normal, srd.original);
+  bke::pbvh::raycast(ss->pbvh, sculpt_raycast_cb, &srd, ray_start, ray_normal, srd.original);
 
   return srd.hit;
 }

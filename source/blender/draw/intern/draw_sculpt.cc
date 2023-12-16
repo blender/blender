@@ -76,10 +76,10 @@ static Vector<SculptBatch> sculpt_batches_get_ex(const Object *ob,
 
   if (paint && (paint->flags & PAINT_SCULPT_DELAY_UPDATES)) {
     if (navigating) {
-      BKE_pbvh_get_frustum_planes(pbvh, &update_frustum);
+      bke::pbvh::get_frustum_planes(pbvh, &update_frustum);
     }
     else {
-      BKE_pbvh_set_frustum_planes(pbvh, &update_frustum);
+      bke::pbvh::set_frustum_planes(pbvh, &update_frustum);
     }
   }
 
@@ -100,23 +100,23 @@ static Vector<SculptBatch> sculpt_batches_get_ex(const Object *ob,
   bke::pbvh::update_normals(*pbvh, mesh->runtime->subdiv_ccg.get());
 
   Vector<SculptBatch> result_batches;
-  BKE_pbvh_draw_cb(*mesh,
-                   pbvh,
-                   update_only_visible,
-                   update_frustum,
-                   draw_frustum,
-                   [&](pbvh::PBVHBatches *batches, const pbvh::PBVH_GPU_Args &args) {
-                     SculptBatch batch{};
-                     if (use_wire) {
-                       batch.batch = pbvh::lines_get(batches, attrs, args, fast_mode);
-                     }
-                     else {
-                       batch.batch = pbvh::tris_get(batches, attrs, args, fast_mode);
-                     }
-                     batch.material_slot = pbvh::material_index_get(batches);
-                     batch.debug_index = result_batches.size();
-                     result_batches.append(batch);
-                   });
+  bke::pbvh::draw_cb(*mesh,
+                     pbvh,
+                     update_only_visible,
+                     update_frustum,
+                     draw_frustum,
+                     [&](pbvh::PBVHBatches *batches, const pbvh::PBVH_GPU_Args &args) {
+                       SculptBatch batch{};
+                       if (use_wire) {
+                         batch.batch = pbvh::lines_get(batches, attrs, args, fast_mode);
+                       }
+                       else {
+                         batch.batch = pbvh::tris_get(batches, attrs, args, fast_mode);
+                       }
+                       batch.material_slot = pbvh::material_index_get(batches);
+                       batch.debug_index = result_batches.size();
+                       result_batches.append(batch);
+                     });
   return result_batches;
 }
 

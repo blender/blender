@@ -157,54 +157,52 @@ PBVH *build_grids(const CCGKey *key, Mesh *mesh, SubdivCCG *subdiv_ccg);
  */
 PBVH *build_bmesh(BMesh *bm, BMLog *log, int cd_vert_node_offset, int cd_face_node_offset);
 
-}  // namespace blender::bke::pbvh
+void update_bmesh_offsets(PBVH *pbvh, int cd_vert_node_offset, int cd_face_node_offset);
 
-void BKE_pbvh_update_bmesh_offsets(PBVH *pbvh, int cd_vert_node_offset, int cd_face_node_offset);
-
-void BKE_pbvh_build_pixels(PBVH *pbvh, Mesh *mesh, Image *image, ImageUser *image_user);
-void BKE_pbvh_free(PBVH *pbvh);
+void build_pixels(PBVH *pbvh, Mesh *mesh, Image *image, ImageUser *image_user);
+void free(PBVH *pbvh);
 
 /* Hierarchical Search in the BVH, two methods:
  * - For each hit calling a callback.
  * - Gather nodes in an array (easy to multi-thread) see blender::bke::pbvh::search_gather.
  */
 
-void BKE_pbvh_search_callback(PBVH *pbvh,
-                              blender::FunctionRef<bool(PBVHNode &)> scb,
-                              BKE_pbvh_HitCallback hcb,
-                              void *hit_data);
+void search_callback(PBVH *pbvh,
+                     FunctionRef<bool(PBVHNode &)> scb,
+                     BKE_pbvh_HitCallback hcb,
+                     void *hit_data);
 
 /* Ray-cast
  * the hit callback is called for all leaf nodes intersecting the ray;
  * it's up to the callback to find the primitive within the leaves that is
  * hit first */
 
-void BKE_pbvh_raycast(PBVH *pbvh,
-                      BKE_pbvh_HitOccludedCallback cb,
-                      void *data,
-                      const float ray_start[3],
-                      const float ray_normal[3],
-                      bool original);
+void raycast(PBVH *pbvh,
+             BKE_pbvh_HitOccludedCallback cb,
+             void *data,
+             const float ray_start[3],
+             const float ray_normal[3],
+             bool original);
 
-bool BKE_pbvh_node_raycast(PBVH *pbvh,
-                           PBVHNode *node,
-                           float (*origco)[3],
-                           bool use_origco,
-                           blender::Span<int> corner_verts,
-                           blender::Span<bool> hide_poly,
-                           const float ray_start[3],
-                           const float ray_normal[3],
-                           IsectRayPrecalc *isect_precalc,
-                           float *depth,
-                           PBVHVertRef *active_vertex,
-                           int *active_face_grid_index,
-                           float *face_normal);
+bool raycast_node(PBVH *pbvh,
+                  PBVHNode *node,
+                  float (*origco)[3],
+                  bool use_origco,
+                  Span<int> corner_verts,
+                  Span<bool> hide_poly,
+                  const float ray_start[3],
+                  const float ray_normal[3],
+                  IsectRayPrecalc *isect_precalc,
+                  float *depth,
+                  PBVHVertRef *active_vertex,
+                  int *active_face_grid_index,
+                  float *face_normal);
 
-bool BKE_pbvh_bmesh_node_raycast_detail(PBVHNode *node,
-                                        const float ray_start[3],
-                                        IsectRayPrecalc *isect_precalc,
-                                        float *depth,
-                                        float *r_edge_length);
+bool bmesh_node_raycast_detail(PBVHNode *node,
+                               const float ray_start[3],
+                               IsectRayPrecalc *isect_precalc,
+                               float *depth,
+                               float *r_edge_length);
 
 /**
  * For orthographic cameras, project the far away ray segment points to the root node so
@@ -216,39 +214,40 @@ bool BKE_pbvh_bmesh_node_raycast_detail(PBVHNode *node,
  * dividing view3d->clip_end by the object scale, which for small object and large
  * clip_end's can easily lead to floating-point overflows.
  */
-void BKE_pbvh_clip_ray_ortho(
+void clip_ray_ortho(
     PBVH *pbvh, bool original, float ray_start[3], float ray_end[3], float ray_normal[3]);
 
-void BKE_pbvh_find_nearest_to_ray(PBVH *pbvh,
-                                  BKE_pbvh_HitOccludedCallback cb,
-                                  void *data,
-                                  const float ray_start[3],
-                                  const float ray_normal[3],
-                                  bool original);
+void find_nearest_to_ray(PBVH *pbvh,
+                         BKE_pbvh_HitOccludedCallback cb,
+                         void *data,
+                         const float ray_start[3],
+                         const float ray_normal[3],
+                         bool original);
 
-bool BKE_pbvh_node_find_nearest_to_ray(PBVH *pbvh,
-                                       PBVHNode *node,
-                                       float (*origco)[3],
-                                       bool use_origco,
-                                       blender::Span<int> corner_verts,
-                                       blender::Span<bool> hide_poly,
-                                       const float ray_start[3],
-                                       const float ray_normal[3],
-                                       float *depth,
-                                       float *dist_sq);
+bool find_nearest_to_ray_node(PBVH *pbvh,
+                              PBVHNode *node,
+                              float (*origco)[3],
+                              bool use_origco,
+                              Span<int> corner_verts,
+                              Span<bool> hide_poly,
+                              const float ray_start[3],
+                              const float ray_normal[3],
+                              float *depth,
+                              float *dist_sq);
 
 /* Drawing */
-void BKE_pbvh_set_frustum_planes(PBVH *pbvh, PBVHFrustumPlanes *planes);
-void BKE_pbvh_get_frustum_planes(const PBVH *pbvh, PBVHFrustumPlanes *planes);
+void set_frustum_planes(PBVH *pbvh, PBVHFrustumPlanes *planes);
+void get_frustum_planes(const PBVH *pbvh, PBVHFrustumPlanes *planes);
 
-void BKE_pbvh_draw_cb(
-    const Mesh &mesh,
-    PBVH *pbvh,
-    bool update_only_visible,
-    const PBVHFrustumPlanes &update_frustum,
-    const PBVHFrustumPlanes &draw_frustum,
-    blender::FunctionRef<void(blender::draw::pbvh::PBVHBatches *batches,
-                              const blender::draw::pbvh::PBVH_GPU_Args &args)> draw_fn);
+void draw_cb(const Mesh &mesh,
+             PBVH *pbvh,
+             bool update_only_visible,
+             const PBVHFrustumPlanes &update_frustum,
+             const PBVHFrustumPlanes &draw_frustum,
+             FunctionRef<void(draw::pbvh::PBVHBatches *batches,
+                              const draw::pbvh::PBVH_GPU_Args &args)> draw_fn);
+
+}  // namespace blender::bke::pbvh
 
 /* PBVH Access */
 
@@ -292,16 +291,20 @@ enum PBVHTopologyUpdateMode {
 };
 ENUM_OPERATORS(PBVHTopologyUpdateMode, PBVH_Collapse);
 
+namespace blender::bke::pbvh {
+
 /**
  * Collapse short edges, subdivide long edges.
  */
-bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
-                                    PBVHTopologyUpdateMode mode,
-                                    const float center[3],
-                                    const float view_normal[3],
-                                    float radius,
-                                    bool use_frontface,
-                                    bool use_projected);
+bool bmesh_update_topology(PBVH *pbvh,
+                           PBVHTopologyUpdateMode mode,
+                           const float center[3],
+                           const float view_normal[3],
+                           float radius,
+                           bool use_frontface,
+                           bool use_projected);
+
+}  // namespace blender::bke::pbvh
 
 /* Node Access */
 

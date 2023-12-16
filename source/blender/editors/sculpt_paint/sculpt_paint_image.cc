@@ -334,8 +334,8 @@ static void do_paint_pixels(TexturePaintingUserData *data, const int n)
   const Brush *brush = data->brush;
   PBVH *pbvh = ss->pbvh;
   PBVHNode *node = data->nodes[n];
-  PBVHData &pbvh_data = BKE_pbvh_pixels_data_get(*pbvh);
-  NodeData &node_data = BKE_pbvh_pixels_node_data_get(*node);
+  PBVHData &pbvh_data = bke::pbvh::pixels::data_get(*pbvh);
+  NodeData &node_data = bke::pbvh::pixels::node_data_get(*node);
   const int thread_id = BLI_task_parallel_thread_id(nullptr);
   const Span<float3> positions = SCULPT_mesh_deformed_positions_get(ss);
 
@@ -473,7 +473,7 @@ static void do_push_undo_tile(TexturePaintingUserData *data, const int n)
 {
   PBVHNode *node = data->nodes[n];
 
-  NodeData &node_data = BKE_pbvh_pixels_node_data_get(*node);
+  NodeData &node_data = bke::pbvh::pixels::node_data_get(*node);
   Image *image = data->image_data.image;
   ImageUser *image_user = data->image_data.image_user;
 
@@ -504,7 +504,7 @@ static Vector<image::TileNumber> collect_dirty_tiles(Span<PBVHNode *> nodes)
 {
   Vector<image::TileNumber> dirty_tiles;
   for (PBVHNode *node : nodes) {
-    BKE_pbvh_pixels_collect_dirty_tiles(*node, dirty_tiles);
+    bke::pbvh::pixels::collect_dirty_tiles(*node, dirty_tiles);
   }
   return dirty_tiles;
 }
@@ -513,7 +513,7 @@ static void fix_non_manifold_seam_bleeding(PBVH &pbvh,
                                            Span<TileNumber> tile_numbers_to_fix)
 {
   for (image::TileNumber tile_number : tile_numbers_to_fix) {
-    BKE_pbvh_pixels_copy_pixels(
+    bke::pbvh::pixels::copy_pixels(
         pbvh, *user_data.image_data.image, *user_data.image_data.image_user, tile_number);
   }
 }
@@ -591,6 +591,6 @@ void SCULPT_do_paint_brush_image(PaintModeSettings *paint_mode_settings,
   fix_non_manifold_seam_bleeding(*ob, data);
 
   for (PBVHNode *node : texnodes) {
-    BKE_pbvh_pixels_mark_image_dirty(*node, *data.image_data.image, *data.image_data.image_user);
+    bke::pbvh::pixels::mark_image_dirty(*node, *data.image_data.image, *data.image_data.image_user);
   }
 }

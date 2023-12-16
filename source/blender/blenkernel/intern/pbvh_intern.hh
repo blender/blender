@@ -128,8 +128,6 @@ struct PBVHNode {
   int debug_draw_gen = 0;
 };
 
-typedef struct PBVHBMeshLog PBVHBMeshLog;
-
 struct PBVH {
   PBVHPublic header;
 
@@ -212,6 +210,8 @@ struct PBVH {
 
 /* pbvh.cc */
 
+namespace blender::bke::pbvh {
+
 bool ray_face_intersection_quad(const float ray_start[3],
                                 IsectRayPrecalc *isect_precalc,
                                 const float t0[3],
@@ -244,25 +244,27 @@ bool ray_face_nearest_tri(const float ray_start[3],
 
 /* pbvh_bmesh.cc */
 
-bool pbvh_bmesh_node_raycast(PBVHNode *node,
-                             const float ray_start[3],
-                             const float ray_normal[3],
-                             IsectRayPrecalc *isect_precalc,
-                             float *dist,
-                             bool use_original,
-                             PBVHVertRef *r_active_vertex,
-                             float *r_face_normal);
-bool pbvh_bmesh_node_nearest_to_ray(PBVHNode *node,
-                                    const float ray_start[3],
-                                    const float ray_normal[3],
-                                    float *depth,
-                                    float *dist_sq,
-                                    bool use_original);
+bool bmesh_node_raycast(PBVHNode *node,
+                        const float ray_start[3],
+                        const float ray_normal[3],
+                        IsectRayPrecalc *isect_precalc,
+                        float *dist,
+                        bool use_original,
+                        PBVHVertRef *r_active_vertex,
+                        float *r_face_normal);
+bool bmesh_node_nearest_to_ray(PBVHNode *node,
+                               const float ray_start[3],
+                               const float ray_normal[3],
+                               float *depth,
+                               float *dist_sq,
+                               bool use_original);
 
-void pbvh_bmesh_normals_update(blender::Span<PBVHNode *> nodes);
+void bmesh_normals_update(Span<PBVHNode *> nodes);
 
 /* pbvh_pixels.hh */
 
-void pbvh_node_pixels_free(PBVHNode *node);
-void pbvh_pixels_free(PBVH *pbvh);
-void pbvh_free_draw_buffers(PBVH &pbvh, PBVHNode *node);
+void node_pixels_free(PBVHNode *node);
+void pixels_free(PBVH *pbvh);
+void free_draw_buffers(PBVH &pbvh, PBVHNode *node);
+
+}  // namespace blender::bke::pbvh

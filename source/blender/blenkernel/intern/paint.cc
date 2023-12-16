@@ -1430,6 +1430,7 @@ void BKE_sculptsession_bm_to_me(Object *ob, bool reorder)
 
 static void sculptsession_free_pbvh(Object *object)
 {
+  using namespace blender;
   SculptSession *ss = object->sculpt;
 
   if (!ss) {
@@ -1437,7 +1438,7 @@ static void sculptsession_free_pbvh(Object *object)
   }
 
   if (ss->pbvh) {
-    BKE_pbvh_free(ss->pbvh);
+    bke::pbvh::free(ss->pbvh);
     ss->pbvh = nullptr;
   }
 
@@ -2638,14 +2639,15 @@ SculptAttribute *BKE_sculpt_attribute_ensure(Object *ob,
 
 static void sculptsession_bmesh_attr_update_internal(Object *ob)
 {
+  using namespace blender;
   SculptSession *ss = ob->sculpt;
 
   sculptsession_bmesh_add_layers(ob);
 
   if (ss->pbvh) {
-    BKE_pbvh_update_bmesh_offsets(ss->pbvh,
-                                  ob->sculpt->attrs.dyntopo_node_id_vertex->bmesh_cd_offset,
-                                  ob->sculpt->attrs.dyntopo_node_id_face->bmesh_cd_offset);
+    bke::pbvh::update_bmesh_offsets(ss->pbvh,
+                                    ob->sculpt->attrs.dyntopo_node_id_vertex->bmesh_cd_offset,
+                                    ob->sculpt->attrs.dyntopo_node_id_face->bmesh_cd_offset);
   }
 }
 

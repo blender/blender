@@ -419,14 +419,11 @@ struct PBVHData {
   }
 };
 
-NodeData &BKE_pbvh_pixels_node_data_get(PBVHNode &node);
-void BKE_pbvh_pixels_mark_image_dirty(PBVHNode &node, Image &image, ImageUser &image_user);
-PBVHData &BKE_pbvh_pixels_data_get(PBVH &pbvh);
-void BKE_pbvh_pixels_collect_dirty_tiles(PBVHNode &node, Vector<image::TileNumber> &r_dirty_tiles);
+NodeData &node_data_get(PBVHNode &node);
+void mark_image_dirty(PBVHNode &node, Image &image, ImageUser &image_user);
+PBVHData &data_get(PBVH &pbvh);
+void collect_dirty_tiles(PBVHNode &node, Vector<image::TileNumber> &r_dirty_tiles);
 
-void BKE_pbvh_pixels_copy_pixels(PBVH &pbvh,
-                                 Image &image,
-                                 ImageUser &image_user,
-                                 image::TileNumber tile_number);
+void copy_pixels(PBVH &pbvh, Image &image, ImageUser &image_user, image::TileNumber tile_number);
 
 }  // namespace blender::bke::pbvh::pixels
