@@ -905,9 +905,7 @@ void free(PBVH *pbvh)
   delete pbvh;
 }
 
-}  // namespace blender::bke::pbvh
-
-static void pbvh_iter_begin(PBVHIter *iter, PBVH *pbvh, blender::FunctionRef<bool(PBVHNode &)> scb)
+static void pbvh_iter_begin(PBVHIter *iter, PBVH *pbvh, FunctionRef<bool(PBVHNode &)> scb)
 {
   iter->pbvh = pbvh;
   iter->scb = scb;
@@ -1047,18 +1045,17 @@ static void node_tree_insert(node_tree *tree, node_tree *new_node)
 }
 
 static void traverse_tree(node_tree *tree,
-                          BKE_pbvh_HitOccludedCallback hcb,
-                          void *hit_data,
+                          const FunctionRef<void(PBVHNode &node, float *tmin)> hit_fn,
                           float *tmin)
 {
   if (tree->left) {
-    traverse_tree(tree->left, hcb, hit_data, tmin);
+    traverse_tree(tree->left, hit_fn, tmin);
   }
 
-  hcb(tree->data, hit_data, tmin);
+  hit_fn(*tree->data, tmin);
 
   if (tree->right) {
-    traverse_tree(tree->right, hcb, hit_data, tmin);
+    traverse_tree(tree->right, hit_fn, tmin);
   }
 }
 
@@ -1074,8 +1071,10 @@ static void free_tree(node_tree *tree)
     tree->right = nullptr;
   }
 
-  free(tree);
+  ::free(tree);
 }
+
+}  // namespace blender::bke::pbvh
 
 float BKE_pbvh_node_get_tmin(const PBVHNode *node)
 {
@@ -1084,22 +1083,21 @@ float BKE_pbvh_node_get_tmin(const PBVHNode *node)
 
 namespace blender::bke::pbvh {
 
-void search_callback(PBVH *pbvh,
-                     FunctionRef<bool(PBVHNode &)> scb,
-                     BKE_pbvh_HitCallback hcb,
-                     void *hit_data)
+void search_callback(PBVH &pbvh,
+                     FunctionRef<bool(PBVHNode &)> filter_fn,
+                     FunctionRef<void(PBVHNode &)> hit_fn)
 {
-  if (pbvh->nodes.is_empty()) {
+  if (pbvh.nodes.is_empty()) {
     return;
   }
   PBVHIter iter;
   PBVHNode *node;
 
-  pbvh_iter_begin(&iter, pbvh, scb);
+  pbvh_iter_begin(&iter, &pbvh, filter_fn);
 
   while ((node = pbvh_iter_next(&iter, PBVH_Leaf))) {
     if (node->flag & PBVH_Leaf) {
-      hcb(node, hit_data);
+      hit_fn(*node);
     }
   }
 
@@ -1107,9 +1105,8 @@ void search_callback(PBVH *pbvh,
 }
 
 static void search_callback_occluded(PBVH *pbvh,
-                                     FunctionRef<bool(PBVHNode &)> scb,
-                                     BKE_pbvh_HitOccludedCallback hcb,
-                                     void *hit_data)
+                                     const FunctionRef<bool(PBVHNode &)> scb,
+                                     const FunctionRef<void(PBVHNode &node, float *tmin)> hit_fn)
 {
   if (pbvh->nodes.is_empty()) {
     return;
@@ -1142,7 +1139,7 @@ static void search_callback_occluded(PBVH *pbvh,
 
   if (tree) {
     float tmin = FLT_MAX;
-    traverse_tree(tree, hcb, hit_data, &tmin);
+    traverse_tree(tree, hit_fn, &tmin);
     free_tree(tree);
   }
 }
@@ -1570,6 +1567,7 @@ void update_visibility(PBVH &pbvh)
 Bounds<float3> BKE_pbvh_redraw_BB(PBVH *pbvh)
 {
   using namespace blender;
+  using namespace blender::bke::pbvh;
   if (pbvh->nodes.is_empty()) {
     return {};
   }
@@ -1916,17 +1914,16 @@ struct RaycastData {
   bool original;
 };
 
-static bool ray_aabb_intersect(PBVHNode *node, RaycastData *rcd)
+static bool ray_aabb_intersect(PBVHNode &node, const RaycastData &rcd)
 {
-  if (rcd->original) {
-    return isect_ray_aabb_v3(&rcd->ray, node->orig_vb.min, node->orig_vb.max, &node->tmin);
+  if (rcd.original) {
+    return isect_ray_aabb_v3(&rcd.ray, node.orig_vb.min, node.orig_vb.max, &node.tmin);
   }
-  return isect_ray_aabb_v3(&rcd->ray, node->vb.min, node->vb.max, &node->tmin);
+  return isect_ray_aabb_v3(&rcd.ray, node.vb.min, node.vb.max, &node.tmin);
 }
 
 void raycast(PBVH *pbvh,
-             BKE_pbvh_HitOccludedCallback cb,
-             void *data,
+             const FunctionRef<void(PBVHNode &node, float *tmin)> hit_fn,
              const float ray_start[3],
              const float ray_normal[3],
              bool original)
@@ -1937,7 +1934,7 @@ void raycast(PBVH *pbvh,
   rcd.original = original;
 
   search_callback_occluded(
-      pbvh, [&](PBVHNode &node) { return ray_aabb_intersect(&node, &rcd); }, cb, data);
+      pbvh, [&](PBVHNode &node) { return ray_aabb_intersect(node, rcd); }, hit_fn);
 }
 
 bool ray_face_intersection_quad(const float ray_start[3],
@@ -2396,8 +2393,7 @@ static bool nearest_to_ray_aabb_dist_sq(PBVHNode *node, FindNearestRayData *rcd)
 }
 
 void find_nearest_to_ray(PBVH *pbvh,
-                         BKE_pbvh_SearchNearestCallback cb,
-                         void *data,
+                         const FunctionRef<void(PBVHNode &node, float *tmin)> fn,
                          const float ray_start[3],
                          const float ray_normal[3],
                          bool original)
@@ -2408,7 +2404,7 @@ void find_nearest_to_ray(PBVH *pbvh,
   ncd.original = original;
 
   search_callback_occluded(
-      pbvh, [&](PBVHNode &node) { return nearest_to_ray_aabb_dist_sq(&node, &ncd); }, cb, data);
+      pbvh, [&](PBVHNode &node) { return nearest_to_ray_aabb_dist_sq(&node, &ncd); }, fn);
 }
 
 static bool pbvh_faces_node_nearest_to_ray(PBVH *pbvh,

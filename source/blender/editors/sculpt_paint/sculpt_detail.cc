@@ -199,15 +199,14 @@ static void sample_detail_voxel(bContext *C, ViewContext *vc, const int mval[2])
   }
 }
 
-static void sculpt_raycast_detail_cb(PBVHNode *node, void *data_v, float *tmin)
+static void sculpt_raycast_detail_cb(PBVHNode &node, SculptDetailRaycastData &srd, float *tmin)
 {
-  if (BKE_pbvh_node_get_tmin(node) < *tmin) {
-    SculptDetailRaycastData *srd = static_cast<SculptDetailRaycastData *>(data_v);
+  if (BKE_pbvh_node_get_tmin(&node) < *tmin) {
     if (bke::pbvh::bmesh_node_raycast_detail(
-            node, srd->ray_start, &srd->isect_precalc, &srd->depth, &srd->edge_length))
+            &node, srd.ray_start, &srd.isect_precalc, &srd.depth, &srd.edge_length))
     {
-      srd->hit = true;
-      *tmin = srd->depth;
+      srd.hit = true;
+      *tmin = srd.depth;
     }
   }
 }
@@ -232,7 +231,11 @@ static void sample_detail_dyntopo(bContext *C, ViewContext *vc, const int mval[2
   isect_ray_tri_watertight_v3_precalc(&srd.isect_precalc, ray_normal);
 
   bke::pbvh::raycast(
-      ob->sculpt->pbvh, sculpt_raycast_detail_cb, &srd, ray_start, ray_normal, false);
+      ob->sculpt->pbvh,
+      [&](PBVHNode &node, float *tmin) { sculpt_raycast_detail_cb(node, srd, tmin); },
+      ray_start,
+      ray_normal,
+      false);
 
   if (srd.hit && srd.edge_length > 0.0f) {
     /* Convert edge length to world space detail resolution. */

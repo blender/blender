@@ -133,14 +133,6 @@ BLI_INLINE PBVHVertRef BKE_pbvh_index_to_vertex(PBVH *pbvh, int index)
 
 /* Callbacks */
 
-/**
- * Returns true if the search should continue from this node, false otherwise.
- */
-
-using BKE_pbvh_HitCallback = void (*)(PBVHNode *node, void *data);
-using BKE_pbvh_HitOccludedCallback = void (*)(PBVHNode *node, void *data, float *tmin);
-using BKE_pbvh_SearchNearestCallback = void (*)(PBVHNode *node, void *data, float *tmin);
-
 namespace blender::bke::pbvh {
 
 /**
@@ -167,10 +159,9 @@ void free(PBVH *pbvh);
  * - Gather nodes in an array (easy to multi-thread) see blender::bke::pbvh::search_gather.
  */
 
-void search_callback(PBVH *pbvh,
-                     FunctionRef<bool(PBVHNode &)> scb,
-                     BKE_pbvh_HitCallback hcb,
-                     void *hit_data);
+void search_callback(PBVH &pbvh,
+                     FunctionRef<bool(PBVHNode &)> filter_fn,
+                     FunctionRef<void(PBVHNode &)> hit_fn);
 
 /* Ray-cast
  * the hit callback is called for all leaf nodes intersecting the ray;
@@ -178,8 +169,7 @@ void search_callback(PBVH *pbvh,
  * hit first */
 
 void raycast(PBVH *pbvh,
-             BKE_pbvh_HitOccludedCallback cb,
-             void *data,
+             FunctionRef<void(PBVHNode &node, float *tmin)> cb,
              const float ray_start[3],
              const float ray_normal[3],
              bool original);
@@ -218,8 +208,7 @@ void clip_ray_ortho(
     PBVH *pbvh, bool original, float ray_start[3], float ray_end[3], float ray_normal[3]);
 
 void find_nearest_to_ray(PBVH *pbvh,
-                         BKE_pbvh_HitOccludedCallback cb,
-                         void *data,
+                         const FunctionRef<void(PBVHNode &node, float *tmin)> fn,
                          const float ray_start[3],
                          const float ray_normal[3],
                          bool original);

@@ -290,101 +290,99 @@ struct PartialUpdateData {
   Span<bool> modified_face_set_faces;
 };
 
-static void update_modified_node_mesh(PBVHNode *node, void *userdata)
+static void update_modified_node_mesh(PBVHNode &node, PartialUpdateData &data)
 {
-  PartialUpdateData *data = static_cast<PartialUpdateData *>(userdata);
-  if (BKE_pbvh_node_has_vert_with_normal_update_tag(data->pbvh, node)) {
-    BKE_pbvh_node_mark_update(node);
+  if (BKE_pbvh_node_has_vert_with_normal_update_tag(data.pbvh, &node)) {
+    BKE_pbvh_node_mark_update(&node);
   }
-  const Span<int> verts = BKE_pbvh_node_get_vert_indices(node);
-  if (!data->modified_mask_verts.is_empty()) {
+  const Span<int> verts = BKE_pbvh_node_get_vert_indices(&node);
+  if (!data.modified_mask_verts.is_empty()) {
     for (const int vert : verts) {
-      if (data->modified_mask_verts[vert]) {
-        BKE_pbvh_node_mark_update_mask(node);
+      if (data.modified_mask_verts[vert]) {
+        BKE_pbvh_node_mark_update_mask(&node);
         break;
       }
     }
   }
-  if (!data->modified_color_verts.is_empty()) {
+  if (!data.modified_color_verts.is_empty()) {
     for (const int vert : verts) {
-      if (data->modified_color_verts[vert]) {
-        BKE_pbvh_node_mark_update_color(node);
+      if (data.modified_color_verts[vert]) {
+        BKE_pbvh_node_mark_update_color(&node);
         break;
       }
     }
   }
-  if (!data->modified_hidden_verts.is_empty()) {
+  if (!data.modified_hidden_verts.is_empty()) {
     for (const int vert : verts) {
-      if (data->modified_hidden_verts[vert]) {
-        BKE_pbvh_node_mark_update_visibility(node);
+      if (data.modified_hidden_verts[vert]) {
+        BKE_pbvh_node_mark_update_visibility(&node);
         break;
       }
     }
   }
 
   Vector<int> faces;
-  if (!data->modified_face_set_faces.is_empty()) {
+  if (!data.modified_face_set_faces.is_empty()) {
     if (faces.is_empty()) {
-      bke::pbvh::node_face_indices_calc_mesh(*data->pbvh, *node, faces);
+      bke::pbvh::node_face_indices_calc_mesh(*data.pbvh, node, faces);
     }
     for (const int face : faces) {
-      if (data->modified_face_set_faces[face]) {
-        BKE_pbvh_node_mark_update_face_sets(node);
+      if (data.modified_face_set_faces[face]) {
+        BKE_pbvh_node_mark_update_face_sets(&node);
         break;
       }
     }
   }
-  if (!data->modified_hidden_faces.is_empty()) {
+  if (!data.modified_hidden_faces.is_empty()) {
     if (faces.is_empty()) {
-      bke::pbvh::node_face_indices_calc_mesh(*data->pbvh, *node, faces);
+      bke::pbvh::node_face_indices_calc_mesh(*data.pbvh, node, faces);
     }
     for (const int face : faces) {
-      if (data->modified_hidden_faces[face]) {
-        BKE_pbvh_node_mark_update_visibility(node);
+      if (data.modified_hidden_faces[face]) {
+        BKE_pbvh_node_mark_update_visibility(&node);
         break;
       }
     }
   }
 }
 
-static void update_modified_node_grids(PBVHNode *node, void *userdata)
+static void update_modified_node_grids(PBVHNode &node, PartialUpdateData &data)
 {
-  PartialUpdateData *data = static_cast<PartialUpdateData *>(userdata);
-  const Span<int> grid_indices = BKE_pbvh_node_get_grid_indices(*node);
+  const Span<int> grid_indices = BKE_pbvh_node_get_grid_indices(node);
   if (std::any_of(grid_indices.begin(), grid_indices.end(), [&](const int grid) {
-        return data->modified_grids[grid];
+        return data.modified_grids[grid];
       }))
   {
-    if (data->changed_position) {
-      BKE_pbvh_node_mark_update(node);
+    if (data.changed_position) {
+      BKE_pbvh_node_mark_update(&node);
     }
-    if (data->changed_mask) {
-      BKE_pbvh_node_mark_update_mask(node);
+    if (data.changed_mask) {
+      BKE_pbvh_node_mark_update_mask(&node);
     }
-    if (data->changed_hide_vert) {
-      BKE_pbvh_node_mark_update_visibility(node);
+    if (data.changed_hide_vert) {
+      BKE_pbvh_node_mark_update_visibility(&node);
     }
   }
 
   Vector<int> faces;
-  if (!data->modified_face_set_faces.is_empty()) {
+  if (!data.modified_face_set_faces.is_empty()) {
     if (faces.is_empty()) {
-      bke::pbvh::node_face_indices_calc_grids(*data->pbvh, *node, faces);
+      bke::pbvh::node_face_indices_calc_grids(*data.pbvh, node, faces);
     }
     for (const int face : faces) {
-      if (data->modified_face_set_faces[face]) {
-        BKE_pbvh_node_mark_update_face_sets(node);
+      if (data.modified_face_set_faces[face]) {
+        BKE_pbvh_node_mark_update_face_sets(&node);
         break;
       }
     }
   }
-  if (!data->modified_hidden_faces.is_empty()) {
+  if (!data.modified_hidden_faces.is_empty()) {
     if (faces.is_empty()) {
-      bke::pbvh::node_face_indices_calc_grids(*data->pbvh, *node, faces);
+      bke::pbvh::node_face_indices_calc_grids(*data.pbvh, node, faces);
     }
     for (const int face : faces) {
-      if (data->modified_hidden_faces[face]) {
-        BKE_pbvh_node_mark_update_visibility(node);
+      if (data.modified_hidden_faces[face]) {
+        BKE_pbvh_node_mark_update_visibility(&node);
         break;
       }
     }
@@ -1031,10 +1029,12 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, UndoSculpt &usculpt)
   data.modified_color_verts = modified_verts_color;
   data.modified_face_set_faces = modified_faces_face_set;
   if (use_multires_undo) {
-    bke::pbvh::search_callback(ss->pbvh, {}, update_modified_node_grids, &data);
+    bke::pbvh::search_callback(
+        *ss->pbvh, {}, [&](PBVHNode &node) { update_modified_node_grids(node, data); });
   }
   else {
-    bke::pbvh::search_callback(ss->pbvh, {}, update_modified_node_mesh, &data);
+    bke::pbvh::search_callback(
+        *ss->pbvh, {}, [&](PBVHNode &node) { update_modified_node_mesh(node, data); });
   }
 
   if (changed_position) {
