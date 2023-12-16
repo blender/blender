@@ -97,9 +97,6 @@ struct PBVHNode {
   /* Used for ray-casting: how close the bounding-box is to the ray point. */
   float tmin = 0.0f;
 
-  /* Scalar displacements for sculpt mode's layer brush. */
-  float *layer_disp = nullptr;
-
   blender::Vector<PBVHProxyNode> proxies;
 
   /* Dyntopo */

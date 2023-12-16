@@ -339,12 +339,6 @@ static void pbvh_bmesh_node_split(PBVH *pbvh,
   }
   n->bm_faces.clear_and_shrink();
 
-  if (n->layer_disp) {
-    MEM_freeN(n->layer_disp);
-  }
-
-  n->layer_disp = nullptr;
-
   if (n->draw_batches) {
     draw::pbvh::node_free(n->draw_batches);
   }

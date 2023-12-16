@@ -37,35 +37,16 @@ struct CCGElem;
 struct CCGKey;
 struct CustomData;
 struct IsectRayPrecalc;
-struct MLoopTri;
 struct Mesh;
 struct PBVH;
 struct PBVHNode;
-struct SculptSession;
 struct SubdivCCG;
-struct TaskParallelSettings;
 struct Image;
 struct ImageUser;
 namespace blender::draw::pbvh {
 struct PBVHBatches;
 struct PBVH_GPU_Args;
 }  // namespace blender::draw::pbvh
-
-/*
- * These structs represent logical verts/edges/faces.
- * for PBVH_GRIDS and PBVH_FACES they store integer
- * offsets, PBVH_BMESH stores pointers.
- *
- * The idea is to enforce stronger type checking by encapsulating
- * intptr_t's in structs.
- */
-
-/* A generic PBVH vertex.
- *
- * NOTE: in PBVH_GRIDS we consider the final grid points
- * to be vertices.  This is not true of edges or faces which are pulled from
- * the base mesh.
- */
 
 struct PBVHProxyNode {
   blender::Vector<blender::float3> co;
