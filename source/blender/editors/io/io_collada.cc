@@ -494,7 +494,7 @@ void WM_OT_collada_export(wmOperatorType *ot)
 
   RNA_def_boolean(ot->srna,
                   "apply_modifiers",
-                  0,
+                  false,
                   "Apply Modifiers",
                   "Apply modifiers to exported mesh (non destructive)");
 
@@ -596,7 +596,7 @@ void WM_OT_collada_export(wmOperatorType *ot)
 
   RNA_def_boolean(ot->srna,
                   "keep_smooth_curves",
-                  0,
+                  false,
                   "Keep Smooth curves",
                   "Export also the curve handles (if available) (this does only work when the "
                   "inverse parent matrix "
@@ -604,47 +604,50 @@ void WM_OT_collada_export(wmOperatorType *ot)
 
   RNA_def_boolean(ot->srna,
                   "keep_keyframes",
-                  0,
+                  false,
                   "Keep Keyframes",
                   "Use existing keyframes as additional sample points (this helps when you want "
                   "to keep manual tweaks)");
 
   RNA_def_boolean(ot->srna,
                   "keep_flat_curves",
-                  0,
+                  false,
                   "All Keyed Curves",
                   "Export also curves which have only one key or are totally flat");
 
-  RNA_def_boolean(
-      ot->srna, "active_uv_only", 0, "Only Selected UV Map", "Export only the selected UV Map");
+  RNA_def_boolean(ot->srna,
+                  "active_uv_only",
+                  false,
+                  "Only Selected UV Map",
+                  "Export only the selected UV Map");
 
   RNA_def_boolean(ot->srna,
                   "use_texture_copies",
-                  1,
+                  true,
                   "Copy",
                   "Copy textures to same folder where the .dae file is exported");
 
   RNA_def_boolean(ot->srna,
                   "triangulate",
-                  1,
+                  true,
                   "Triangulate",
                   "Export polygons (quads and n-gons) as triangles");
 
   RNA_def_boolean(ot->srna,
                   "use_object_instantiation",
-                  1,
+                  true,
                   "Use Object Instances",
                   "Instantiate multiple Objects from same Data");
 
   RNA_def_boolean(
       ot->srna,
       "use_blender_profile",
-      1,
+      true,
       "Use Blender Profile",
       "Export additional Blender specific information (for material, shaders, bones, etc.)");
 
   RNA_def_boolean(
-      ot->srna, "sort_by_name", 0, "Sort by Object name", "Sort exported data by Object name");
+      ot->srna, "sort_by_name", false, "Sort by Object name", "Sort exported data by Object name");
 
   RNA_def_int(ot->srna,
               "export_object_transformation_type",
@@ -687,20 +690,20 @@ void WM_OT_collada_export(wmOperatorType *ot)
   RNA_def_boolean(
       ot->srna,
       "open_sim",
-      0,
+      false,
       "Export to SL/OpenSim",
       "Compatibility mode for Second Life, OpenSimulator and other compatible online worlds");
 
   RNA_def_boolean(ot->srna,
                   "limit_precision",
-                  0,
+                  false,
                   "Limit Precision",
                   "Reduce the precision of the exported data to 6 digits");
 
   RNA_def_boolean(
       ot->srna,
       "keep_bind_info",
-      0,
+      false,
       "Keep Bind Info",
       "Store Bindpose information in custom bone properties for later use during Collada export");
 }
@@ -813,32 +816,32 @@ void WM_OT_collada_import(wmOperatorType *ot)
 
   RNA_def_boolean(ot->srna,
                   "import_units",
-                  0,
+                  false,
                   "Import Units",
                   "If disabled match import to Blender's current Unit settings, "
                   "otherwise use the settings from the Imported scene");
 
   RNA_def_boolean(ot->srna,
                   "custom_normals",
-                  1,
+                  true,
                   "Custom Normals",
                   "Import custom normals, if available (otherwise Blender will compute them)");
 
   RNA_def_boolean(ot->srna,
                   "fix_orientation",
-                  0,
+                  false,
                   "Fix Leaf Bones",
                   "Fix Orientation of Leaf Bones (Collada does only support Joints)");
 
   RNA_def_boolean(ot->srna,
                   "find_chains",
-                  0,
+                  false,
                   "Find Bone Chains",
                   "Find best matching Bone Chains and ensure bones in chain are connected");
 
   RNA_def_boolean(ot->srna,
                   "auto_connect",
-                  0,
+                  false,
                   "Auto Connect",
                   "Set use_connect for parent bones which have exactly one child bone");
 
@@ -855,7 +858,7 @@ void WM_OT_collada_import(wmOperatorType *ot)
   RNA_def_boolean(
       ot->srna,
       "keep_bind_info",
-      0,
+      false,
       "Keep Bind Info",
       "Store Bindpose information in custom bone properties for later use during Collada export");
 }

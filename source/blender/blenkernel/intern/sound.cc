@@ -1188,7 +1188,7 @@ void BKE_sound_update_scene(Depsgraph *depsgraph, Scene *scene)
 
   /* cheap test to skip looping over all objects (no speakers is a common case) */
   if (DEG_id_type_any_exists(depsgraph, ID_SPK)) {
-    DEGObjectIterSettings deg_iter_settings = {0};
+    DEGObjectIterSettings deg_iter_settings = {nullptr};
     deg_iter_settings.depsgraph = depsgraph;
     deg_iter_settings.flags = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
                               DEG_ITER_OBJECT_FLAG_LINKED_INDIRECTLY |

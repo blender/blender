@@ -840,7 +840,7 @@ static AVStream *alloc_video_stream(FFMpegContext *context,
     }
     /* "codec_id != AV_CODEC_ID_AV1" is required due to "preset" already being set by an AV1 codec.
      */
-    if (preset_name != NULL && codec_id != AV_CODEC_ID_AV1) {
+    if (preset_name != nullptr && codec_id != AV_CODEC_ID_AV1) {
       av_dict_set(&opts, "preset", preset_name, 0);
     }
     if (deadline_name != nullptr) {
@@ -1190,7 +1190,7 @@ static int start_ffmpeg_impl(FFMpegContext *context,
     return 0;
   }
 
-  fmt = av_guess_format(NULL, exts[0], nullptr);
+  fmt = av_guess_format(nullptr, exts[0], nullptr);
   if (!fmt) {
     BKE_report(reports, RPT_ERROR, "No valid formats found");
     return 0;
@@ -1652,7 +1652,7 @@ static void end_ffmpeg_impl(FFMpegContext *context, int is_autosplit)
     context->img_convert_frame = nullptr;
   }
 
-  if (context->outfile != NULL && context->outfile->oformat) {
+  if (context->outfile != nullptr && context->outfile->oformat) {
     if (!(context->outfile->oformat->flags & AVFMT_NOFILE)) {
       avio_close(context->outfile->pb);
     }

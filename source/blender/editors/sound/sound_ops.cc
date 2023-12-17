@@ -731,7 +731,7 @@ static void SOUND_OT_mixdown(wmOperatorType *ot)
   RNA_def_int(ot->srna, "bitrate", 192, 32, 512, "Bitrate", "Bitrate in kbit/s", 32, 512);
   RNA_def_boolean(ot->srna,
                   "split_channels",
-                  0,
+                  false,
                   "Split channels",
                   "Each channel will be rendered into a mono file");
 #endif /* WITH_AUDASPACE */

@@ -263,7 +263,7 @@ void VKCommandBuffers::bind(const VKDescriptorSet &descriptor_set,
                           1,
                           &vk_descriptor_set,
                           0,
-                          0);
+                          nullptr);
   command_buffer.command_recorded();
 }
 

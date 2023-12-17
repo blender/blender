@@ -3334,7 +3334,7 @@ static void softbody_reset(Object *ob, SoftBody *sb, float (*vertexCos)[3], int 
 
   /* copy some info to scratch */
   /* we only need that if we want to reconstruct IPO */
-  if (1) {
+  if (true) {
     reference_to_scratch(ob);
     SB_estimate_transform(ob, nullptr, nullptr, nullptr);
     SB_estimate_transform(ob, nullptr, nullptr, nullptr);

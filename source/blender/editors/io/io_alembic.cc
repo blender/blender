@@ -349,27 +349,27 @@ void WM_OT_alembic_export(wmOperatorType *ot)
                 1.0f);
 
   RNA_def_boolean(
-      ot->srna, "selected", 0, "Selected Objects Only", "Export only selected objects");
+      ot->srna, "selected", false, "Selected Objects Only", "Export only selected objects");
 
   RNA_def_boolean(ot->srna,
                   "visible_objects_only",
-                  0,
+                  false,
                   "Visible Objects Only",
                   "Export only objects that are visible");
 
   RNA_def_boolean(ot->srna,
                   "flatten",
-                  0,
+                  false,
                   "Flatten Hierarchy",
                   "Do not preserve objects' parent/children relationship");
 
-  RNA_def_boolean(ot->srna, "uvs", 1, "UVs", "Export UVs");
+  RNA_def_boolean(ot->srna, "uvs", true, "UVs", "Export UVs");
 
-  RNA_def_boolean(ot->srna, "packuv", 1, "Pack UV Islands", "Export UVs with packed island");
+  RNA_def_boolean(ot->srna, "packuv", true, "Pack UV Islands", "Export UVs with packed island");
 
-  RNA_def_boolean(ot->srna, "normals", 1, "Normals", "Export normals");
+  RNA_def_boolean(ot->srna, "normals", true, "Normals", "Export normals");
 
-  RNA_def_boolean(ot->srna, "vcolors", 0, "Color Attributes", "Export color attributes");
+  RNA_def_boolean(ot->srna, "vcolors", false, "Color Attributes", "Export color attributes");
 
   RNA_def_boolean(ot->srna,
                   "orcos",
@@ -378,17 +378,17 @@ void WM_OT_alembic_export(wmOperatorType *ot)
                   "Export undeformed mesh vertex coordinates");
 
   RNA_def_boolean(
-      ot->srna, "face_sets", 0, "Face Sets", "Export per face shading group assignments");
+      ot->srna, "face_sets", false, "Face Sets", "Export per face shading group assignments");
 
   RNA_def_boolean(ot->srna,
                   "subdiv_schema",
-                  0,
+                  false,
                   "Use Subdivision Schema",
                   "Export meshes using Alembic's subdivision schema");
 
   RNA_def_boolean(ot->srna,
                   "apply_subdiv",
-                  0,
+                  false,
                   "Apply Subdivision Surface",
                   "Export subdivision surfaces as meshes");
 
@@ -438,11 +438,11 @@ void WM_OT_alembic_export(wmOperatorType *ot)
 
   RNA_def_boolean(ot->srna,
                   "export_hair",
-                  1,
+                  true,
                   "Export Hair",
                   "Exports hair particle systems as animated curves");
   RNA_def_boolean(
-      ot->srna, "export_particles", 1, "Export Particles", "Exports non-hair particle systems");
+      ot->srna, "export_particles", true, "Export Particles", "Exports non-hair particle systems");
 
   RNA_def_boolean(ot->srna,
                   "export_custom_properties",
@@ -689,7 +689,7 @@ void WM_OT_alembic_import(wmOperatorType *ot)
 
   RNA_def_boolean(ot->srna,
                   "validate_meshes",
-                  0,
+                  false,
                   "Validate Meshes",
                   "Check imported mesh objects for invalid data (slow)");
 
