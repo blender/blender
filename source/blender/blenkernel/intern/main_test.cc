@@ -141,8 +141,8 @@ TEST_F(BMainMergeTest, linked_data)
   EXPECT_TRUE(BLI_listbase_is_empty(&bmain_src->collections));
   EXPECT_TRUE(BLI_listbase_is_empty(&bmain_src->objects));
 
-  BLI_strncpy(bmain_dst->filepath, DST_PATH, sizeof(bmain_dst->filepath));
-  BLI_strncpy(bmain_src->filepath, SRC_PATH, sizeof(bmain_dst->filepath));
+  STRNCPY(bmain_dst->filepath, DST_PATH);
+  STRNCPY(bmain_src->filepath, SRC_PATH);
 
   BKE_id_new(bmain_dst, ID_GR, "Coll_dst");
 
@@ -178,7 +178,7 @@ TEST_F(BMainMergeTest, linked_data)
   /* Try another merge, with the same library path - second library should be skipped, destination
    * merge should still have only one library ID.*/
   bmain_src = BKE_main_new();
-  BLI_strncpy(bmain_src->filepath, SRC_PATH, sizeof(bmain_dst->filepath));
+  STRNCPY(bmain_src->filepath, SRC_PATH);
 
   Collection *coll_2 = static_cast<Collection *>(BKE_id_new(bmain_src, ID_GR, "Coll_src_2"));
   Object *ob_2 = static_cast<Object *>(BKE_id_new(bmain_src, ID_OB, "Ob_src_2"));
@@ -214,7 +214,7 @@ TEST_F(BMainMergeTest, linked_data)
    * the same name, it should still be moved into `bmain_dst`. The library filepath should also be
    * updated and become relative the path of bmain_dst too. */
   bmain_src = BKE_main_new();
-  BLI_strncpy(bmain_src->filepath, SRC_PATH, sizeof(bmain_dst->filepath));
+  STRNCPY(bmain_src->filepath, SRC_PATH);
 
   Collection *coll_3 = static_cast<Collection *>(BKE_id_new(bmain_src, ID_GR, "Coll_src_3"));
   Object *ob_3 = static_cast<Object *>(BKE_id_new(bmain_src, ID_OB, "Ob_src"));
@@ -254,7 +254,7 @@ TEST_F(BMainMergeTest, linked_data)
    * library should also be skipped, and the 'linked' object in source bmain should become a local
    * object in destination bmain. */
   bmain_src = BKE_main_new();
-  BLI_strncpy(bmain_src->filepath, SRC_PATH, sizeof(bmain_dst->filepath));
+  STRNCPY(bmain_src->filepath, SRC_PATH);
 
   Collection *coll_4 = static_cast<Collection *>(BKE_id_new(bmain_src, ID_GR, "Coll_src"));
   Object *ob_4 = static_cast<Object *>(BKE_id_new(bmain_src, ID_OB, "Ob_src_4"));

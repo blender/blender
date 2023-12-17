@@ -1831,10 +1831,7 @@ static FT_GlyphSlot blf_glyphslot_ensure_outline(FontBLF *font, const uint charc
   return glyph;
 }
 
-float blf_character_to_curves(FontBLF *font,
-                              unsigned int unicode,
-                              ListBase *nurbsbase,
-                              const float scale)
+float blf_character_to_curves(FontBLF *font, uint unicode, ListBase *nurbsbase, const float scale)
 {
   FT_GlyphSlot glyph = blf_glyphslot_ensure_outline(font, unicode);
   if (!glyph) {

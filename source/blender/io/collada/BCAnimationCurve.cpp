@@ -385,7 +385,7 @@ void BCAnimationCurve::add_value(const float val, const int frame_index)
   const KeyframeSettings settings = get_keyframe_settings(true);
   FCurve *fcu = get_edit_fcurve();
   fcu->auto_smoothing = U.auto_smoothing_new;
-  insert_vert_fcurve(fcu, {(float)frame_index, val}, settings, INSERTKEY_NOFLAGS);
+  insert_vert_fcurve(fcu, {float(frame_index), val}, settings, INSERTKEY_NOFLAGS);
 
   if (fcu->totvert == 1) {
     init_range(val);

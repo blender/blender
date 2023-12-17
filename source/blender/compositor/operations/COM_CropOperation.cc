@@ -42,7 +42,7 @@ void CropBaseOperation::update_area()
       local_settings.y2 = height;
     }
 
-    xmax_ = MAX2(local_settings.x1, local_settings.x2);
+    xmax_ = std::max(local_settings.x1, local_settings.x2);
     xmin_ = std::min(local_settings.x1, local_settings.x2);
     ymax_ = std::max(local_settings.y1, local_settings.y2);
     ymin_ = std::min(local_settings.y1, local_settings.y2);

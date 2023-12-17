@@ -33,7 +33,7 @@ extern int builtin_font_size;
 
 VFontData *BKE_vfontdata_from_freetypefont(PackedFile *pf)
 {
-  int fontid = BLF_load_mem("FTVFont", static_cast<const unsigned char *>(pf->data), pf->size);
+  int fontid = BLF_load_mem("FTVFont", static_cast<const uchar *>(pf->data), pf->size);
   if (fontid == -1) {
     return nullptr;
   }
@@ -84,14 +84,12 @@ VChar *BKE_vfontdata_char_from_freetypefont(VFont *vfont, ulong character)
   int font_id = -1;
 
   if (BKE_vfont_is_builtin(vfont)) {
-    font_id = BLF_load_mem(vfont->data->name,
-                           static_cast<const unsigned char *>(builtin_font_data),
-                           builtin_font_size);
+    font_id = BLF_load_mem(
+        vfont->data->name, static_cast<const uchar *>(builtin_font_data), builtin_font_size);
   }
   else if (vfont->temp_pf) {
-    font_id = BLF_load_mem(vfont->data->name,
-                           static_cast<const unsigned char *>(vfont->temp_pf->data),
-                           vfont->temp_pf->size);
+    font_id = BLF_load_mem(
+        vfont->data->name, static_cast<const uchar *>(vfont->temp_pf->data), vfont->temp_pf->size);
   }
 
   if (font_id == -1) {

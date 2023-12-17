@@ -2641,7 +2641,7 @@ static void gwl_seat_cursor_anim_begin(GWL_Seat *seat)
           if (!anim_handle->exit_pending.load()) {
             std::lock_guard lock_server_guard{*server_mutex};
             if (!anim_handle->exit_pending.load()) {
-              const struct wl_cursor *wl_cursor = seat->cursor.wl.theme_cursor;
+              const wl_cursor *wl_cursor = seat->cursor.wl.theme_cursor;
               frame = (frame + 1) % wl_cursor->image_count;
               wl_cursor_image *image = wl_cursor->images[frame];
               wl_buffer *buffer = wl_cursor_image_get_buffer(image);
@@ -7339,7 +7339,7 @@ uint8_t GHOST_SystemWayland::getNumDisplays() const
 uint64_t GHOST_SystemWayland::getMilliSeconds() const
 {
   /* Match the timing method used by LIBINPUT, so the result is closer to WAYLAND's time-stamps. */
-  struct timespec ts = {0, 0};
+  timespec ts = {0, 0};
   clock_gettime(CLOCK_MONOTONIC, &ts);
   return (uint64_t(ts.tv_sec) * 1000) + uint64_t(ts.tv_nsec / 1000000);
 }

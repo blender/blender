@@ -38,7 +38,7 @@ using blender::gpu::shader::Qualifier;
     "      - ``NO_RESTRICT``\n" \
     "      - ``READ``\n" \
     "      - ``WRITE``\n"
-static const struct PyC_FlagSet pygpu_qualifiers[] = {
+static const PyC_FlagSet pygpu_qualifiers[] = {
     {int(Qualifier::NO_RESTRICT), "NO_RESTRICT"},
     {int(Qualifier::READ), "READ"},
     {int(Qualifier::WRITE), "WRITE"},
@@ -680,8 +680,8 @@ static PyObject *pygpu_shader_info_image(BPyGPUShaderCreateInfo *self,
                                          PyObject *kwds)
 {
   int slot;
-  struct PyC_StringEnum pygpu_texformat = {pygpu_textureformat_items};
-  struct PyC_StringEnum pygpu_imagetype = {pygpu_imagetype_items};
+  PyC_StringEnum pygpu_texformat = {pygpu_textureformat_items};
+  PyC_StringEnum pygpu_imagetype = {pygpu_imagetype_items};
   const char *name;
   PyObject *py_qualifiers = nullptr;
   Qualifier qualifier = Qualifier::NO_RESTRICT;

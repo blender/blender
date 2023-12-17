@@ -34,7 +34,7 @@ void KeyingBlurOperation::execute_pixel(float output[4], int x, int y, void *dat
   float average = 0.0f;
 
   if (axis_ == 0) {
-    const int start = MAX2(0, x - size_ + 1);
+    const int start = std::max(0, x - size_ + 1);
     const int end = std::min(buffer_width, x + size_);
     for (int cx = start; cx < end; cx++) {
       int buffer_index = (y * buffer_width + cx);

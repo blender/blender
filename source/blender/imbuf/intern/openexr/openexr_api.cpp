@@ -1587,13 +1587,13 @@ static bool exr_has_xyz_channels(ExrHandle *exr_handle)
   bool y_found = false;
   bool z_found = false;
   LISTBASE_FOREACH (ExrChannel *, channel, &exr_handle->channels) {
-    if (channel->m->name == "X" || channel->m->name == "x") {
+    if (ELEM(channel->m->name, "X", "x")) {
       x_found = true;
     }
-    if (channel->m->name == "Y" || channel->m->name == "y") {
+    if (ELEM(channel->m->name, "Y", "y")) {
       y_found = true;
     }
-    if (channel->m->name == "Z" || channel->m->name == "z") {
+    if (ELEM(channel->m->name, "Z", "z")) {
       z_found = true;
     }
   }

@@ -834,7 +834,7 @@ struct LibOverrideGroupTagData {
   GHash *linked_object_to_instantiating_collections;
   MemArena *mem_arena;
 
-  void clear(void)
+  void clear()
   {
     linked_ids_hierarchy_default_override.clear();
     BLI_ghash_free(linked_object_to_instantiating_collections, nullptr, nullptr);

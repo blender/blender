@@ -22,7 +22,7 @@ void SunBeamsOperation::calc_rays_common_data()
   /* convert to pixels */
   source_px_[0] = data_.source[0] * this->get_width();
   source_px_[1] = data_.source[1] * this->get_height();
-  ray_length_px_ = data_.ray_length * MAX2(this->get_width(), this->get_height());
+  ray_length_px_ = data_.ray_length * std::max(this->get_width(), this->get_height());
 }
 
 void SunBeamsOperation::init_execution()

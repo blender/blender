@@ -276,7 +276,7 @@ RayTraceResult RayTraceModule::render(RayTraceBuffer &rt_buffer,
   RaytraceEEVEE options = ray_tracing_options_;
 
   bool use_horizon_scan = options.screen_trace_max_roughness < 1.0f;
-  if ((active_closures == CLOSURE_REFRACTION) || (active_closures == CLOSURE_NONE)) {
+  if (ELEM(active_closures, CLOSURE_REFRACTION, CLOSURE_NONE)) {
     /* Disable horizon scan if there is only a refraction closure. Avoid the setup cost. */
     use_horizon_scan = false;
   }

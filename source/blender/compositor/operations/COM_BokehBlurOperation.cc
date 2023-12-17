@@ -89,7 +89,7 @@ void BokehBlurOperation::execute_pixel(float output[4], int x, int y, void *data
     int bufferwidth = input_buffer->get_width();
     int bufferstartx = input_rect.xmin;
     int bufferstarty = input_rect.ymin;
-    const float max_dim = MAX2(this->get_width(), this->get_height());
+    const float max_dim = std::max(this->get_width(), this->get_height());
     int pixel_size = size_ * max_dim / 100.0f;
     zero_v4(color_accum);
 
@@ -149,7 +149,7 @@ bool BokehBlurOperation::determine_depending_area_of_interest(rcti *input,
 {
   rcti new_input;
   rcti bokeh_input;
-  const float max_dim = MAX2(this->get_width(), this->get_height());
+  const float max_dim = std::max(this->get_width(), this->get_height());
 
   if (sizeavailable_) {
     new_input.xmax = input->xmax + (size_ * max_dim / 100.0f);
@@ -205,7 +205,7 @@ void BokehBlurOperation::execute_opencl(OpenCLDevice *device,
   if (!sizeavailable_) {
     update_size();
   }
-  const float max_dim = MAX2(this->get_width(), this->get_height());
+  const float max_dim = std::max(this->get_width(), this->get_height());
   cl_int radius = size_ * max_dim / 100.0f;
   cl_int step = this->get_step();
 
@@ -260,14 +260,14 @@ void BokehBlurOperation::determine_canvas(const rcti &preferred_area, rcti &r_ar
   switch (execution_model_) {
     case eExecutionModel::Tiled: {
       NodeOperation::determine_canvas(preferred_area, r_area);
-      const float max_dim = MAX2(BLI_rcti_size_x(&r_area), BLI_rcti_size_y(&r_area));
+      const float max_dim = std::max(BLI_rcti_size_x(&r_area), BLI_rcti_size_y(&r_area));
       r_area.xmax += 2 * size_ * max_dim / 100.0f;
       r_area.ymax += 2 * size_ * max_dim / 100.0f;
       break;
     }
     case eExecutionModel::FullFrame: {
       set_determined_canvas_modifier([=](rcti &canvas) {
-        const float max_dim = MAX2(BLI_rcti_size_x(&canvas), BLI_rcti_size_y(&canvas));
+        const float max_dim = std::max(BLI_rcti_size_x(&canvas), BLI_rcti_size_y(&canvas));
         /* Rounding to even prevents image jiggling in backdrop while switching size values. */
         float add_size = round_to_even(2 * size_ * max_dim / 100.0f);
         canvas.xmax += add_size;
@@ -285,7 +285,7 @@ void BokehBlurOperation::get_area_of_interest(const int input_idx,
 {
   switch (input_idx) {
     case IMAGE_INPUT_INDEX: {
-      const float max_dim = MAX2(this->get_width(), this->get_height());
+      const float max_dim = std::max(this->get_width(), this->get_height());
       const float add_size = size_ * max_dim / 100.0f;
       r_input_area.xmin = output_area.xmin - add_size;
       r_input_area.xmax = output_area.xmax + add_size;
@@ -312,7 +312,7 @@ void BokehBlurOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                       const rcti &area,
                                                       Span<MemoryBuffer *> inputs)
 {
-  const float max_dim = MAX2(this->get_width(), this->get_height());
+  const float max_dim = std::max(this->get_width(), this->get_height());
   const int pixel_size = size_ * max_dim / 100.0f;
   const float m = bokehDimension_ / pixel_size;
 
@@ -341,7 +341,7 @@ void BokehBlurOperation::update_memory_buffer_partial(MemoryBuffer *output,
     }
     const int miny = std::max(y - pixel_size, image_rect.ymin);
     const int maxy = MIN2(y + pixel_size, image_rect.ymax);
-    const int minx = MAX2(x - pixel_size, image_rect.xmin);
+    const int minx = std::max(x - pixel_size, image_rect.xmin);
     const int maxx = MIN2(x + pixel_size, image_rect.xmax);
     const int step = get_step();
     const int elem_stride = image_input->elem_stride * step;

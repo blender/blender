@@ -902,7 +902,7 @@ bool BKE_volume_load(const Volume *volume, const Main *bmain)
     }
   }
 
-  BLI_strncpy(grids.filepath, filepath, FILE_MAX);
+  STRNCPY(grids.filepath, filepath);
 
   return grids.error_msg.empty();
 #else

@@ -187,7 +187,7 @@ GHOST_SystemX11::GHOST_SystemX11()
   }
 
   {
-    struct timespec ts = {0, 0};
+    timespec ts = {0, 0};
     if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0) {
       GHOST_ASSERT(false, "Could not instantiate monotonic timer!");
     }

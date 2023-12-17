@@ -875,8 +875,7 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
       nodeAddLink(ntree, sub1_node, sub1_socket_out, min_node, min_socket_A);
       nodeAddLink(ntree, min_node, min_socket_out, node, detail_socket);
 
-      if ((noise_type == SHD_NOISE_RIDGED_MULTIFRACTAL) ||
-          (noise_type == SHD_NOISE_HETERO_TERRAIN)) {
+      if (ELEM(noise_type, SHD_NOISE_RIDGED_MULTIFRACTAL, SHD_NOISE_HETERO_TERRAIN)) {
         locy_offset -= 40.0f;
 
         /* Add Greater Than Math node before Subtract Math node. */
