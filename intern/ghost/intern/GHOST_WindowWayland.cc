@@ -49,8 +49,37 @@
 
 #include <atomic>
 
+#include <cstring>  /* For `memcpy`. */
+#include <malloc.h> /* For `malloc_usable_size`. */
+
 /* Logging, use `ghost.wl.*` prefix. */
 #include "CLG_log.h"
+
+/**
+ * LIBDECOR support committing a window-configuration in the main-thread that was
+ * handled in a non-main-thread.
+ *
+ * This is needed for proper order of operations as the commit needs to occur after the buffer
+ * is resized (something that can't be done from a non-main thread).
+ * Without this, the window-frame can get out of sync with its contents and resizing is slow.
+ *
+ * Eventually LIBDECOR should support copying & freeing a configuration, even when it does,
+ * older versions of the library will to be supported and the workaround will need to be kept.
+ * See: https://gitlab.freedesktop.org/libdecor/libdecor/-/issues/64
+ */
+#ifdef USE_EVENT_BACKGROUND_THREAD
+#  ifdef WITH_GHOST_WAYLAND_LIBDECOR
+#    ifdef HAVE_MALLOC_USABLE_SIZE
+#      define USE_LIBDECOR_CONFIG_COPY_WORKAROUND
+#    endif
+#  endif
+#endif
+
+#ifdef USE_LIBDECOR_CONFIG_COPY_WORKAROUND
+static libdecor_configuration *ghost_wl_libdecor_configuration_copy(
+    const libdecor_configuration *configuration);
+static void ghost_wl_libdecor_configuration_free(libdecor_configuration *configuration);
+#endif
 
 static const xdg_activation_token_v1_listener *xdg_activation_listener_get();
 
@@ -66,27 +95,32 @@ struct GWL_LibDecor_Window {
   libdecor_frame *frame = nullptr;
 
   /**
-   * Store the last size applied from #libdecor_frame_interface::configure
-   * This is meant to be equivalent of calling:
-   * `libdecor_frame_get_content_width(frame)`
-   * `libdecor_frame_get_content_height(frame)`
-   * However these functions are only available via the plugin API,
-   * so they need to be stored somewhere.
+   * Defer calling #libdecor_frame_commit.
+   * \note Accessing the members must lock on `win->frame_pending_mutex`.
    */
   struct {
-    int32_t size[2] = {0, 0};
-  } applied;
+    /** When set, ACK configure is expected. */
+    bool ack_configure = false;
+    /** The new size to use. */
+    int size[2] = {0, 0};
+    libdecor_configuration *configuration = nullptr;
+
+#  ifdef USE_LIBDECOR_CONFIG_COPY_WORKAROUND
+    bool configuration_needs_free = false;
+#  endif
+  } pending;
 
   /** The window has been configured (see #xdg_surface_ack_configure). */
   bool initial_configure_seen = false;
-  /** The window size has been configured. */
-  bool initial_configure_seen_with_size = false;
-  /** The window state has been configured. */
-  bool initial_state_seen = false;
 };
 
 static void gwl_libdecor_window_destroy(GWL_LibDecor_Window *decor)
 {
+#  ifdef USE_LIBDECOR_CONFIG_COPY_WORKAROUND
+  if (decor->pending.configuration_needs_free) {
+    ghost_wl_libdecor_configuration_free(decor->pending.configuration);
+  }
+#  endif /* USE_LIBDECOR_CONFIG_COPY_WORKAROUND */
   libdecor_frame_unref(decor->frame);
   delete decor;
 }
@@ -843,7 +877,38 @@ static void gwl_window_frame_update_from_pending_no_lock(GWL_Window *win)
     wl_surface_set_buffer_scale(win->wl.surface, win->frame.buffer_scale);
   }
 
-  if (win->xdg_decor) {
+#ifdef WITH_GHOST_WAYLAND_LIBDECOR
+  if (use_libdecor) {
+    GWL_LibDecor_Window &decor = *win->libdecor;
+    if (decor.pending.ack_configure) {
+      surface_needs_commit = true;
+
+      decor.pending.ack_configure = false;
+
+      libdecor_configuration *configuration = decor.pending.configuration;
+
+      libdecor_state *state = libdecor_state_new(UNPACK2(decor.pending.size));
+      libdecor_frame_commit(decor.frame, state, configuration);
+      libdecor_state_free(state);
+
+      decor.pending.configuration = nullptr;
+      decor.pending.size[0] = 0;
+      decor.pending.size[1] = 0;
+
+      decor.initial_configure_seen = true;
+
+#  ifdef USE_LIBDECOR_CONFIG_COPY_WORKAROUND
+      if (decor.pending.configuration_needs_free) {
+        ghost_wl_libdecor_configuration_free(decor.pending.configuration);
+        decor.pending.configuration_needs_free = false;
+      }
+#  endif
+    }
+  }
+  else
+#endif
+      if (win->xdg_decor)
+  {
     GWL_XDG_Decor_Window &decor = *win->xdg_decor;
     if (decor.pending.ack_configure) {
       xdg_surface_ack_configure(decor.surface, decor.pending.ack_configure_serial);
@@ -995,6 +1060,33 @@ static int outputs_uniform_scale_or_default(const std::vector<GWL_Output *> &out
   }
   return scale_default;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name LIBDECOR Configuration Workaround
+ *
+ * These workarounds are needed until LIBDECOR supports copy/free.
+ * \{ */
+
+#ifdef USE_LIBDECOR_CONFIG_COPY_WORKAROUND
+
+static libdecor_configuration *ghost_wl_libdecor_configuration_copy(
+    const libdecor_configuration *configuration)
+{
+  size_t configuration_size = malloc_usable_size((void *)configuration);
+  libdecor_configuration *configuration_copy = (libdecor_configuration *)malloc(
+      configuration_size);
+  memcpy((void *)configuration_copy, (const void *)configuration, configuration_size);
+  return configuration_copy;
+}
+
+static void ghost_wl_libdecor_configuration_free(libdecor_configuration *configuration)
+{
+  free((void *)configuration);
+}
+
+#endif /* USE_LIBDECOR_CONFIG_COPY_WORKAROUND */
 
 /** \} */
 
@@ -1168,19 +1260,6 @@ static void libdecor_frame_handle_configure(libdecor_frame *frame,
 
   /* Set the size. */
   int size_next[2] = {0, 0};
-  bool has_size = false;
-
-  /* Keep track the current size of window decorations (last set by this function). */
-  int size_decor[2] = {0, 0};
-
-  {
-    const GWL_Window *win = static_cast<GWL_Window *>(data);
-    const GWL_LibDecor_Window &decor = *win->libdecor;
-    if (decor.initial_configure_seen_with_size) {
-      size_decor[0] = decor.applied.size[0];
-      size_decor[1] = decor.applied.size[1];
-    }
-  }
 
   {
     GWL_Window *win = static_cast<GWL_Window *>(data);
@@ -1216,26 +1295,6 @@ static void libdecor_frame_handle_configure(libdecor_frame *frame,
       /* Account for buffer rounding requirement, once fractional scaling is enabled
        * the buffer scale will be 1, rounding is a requirement until then. */
       gwl_round_int2_by(frame_pending.size, win->frame.buffer_scale);
-
-      has_size = true;
-    }
-    else {
-      /* The window decorations may be zero on startup. */
-      if (UNLIKELY(size_decor[0] == 0 || size_decor[1] == 0)) {
-        if (fractional_scale != 0 && (scale_as_fractional != fractional_scale)) {
-          /* Invert the fractional part: (1.25 -> 1.75), (2.75 -> 2.25), (1.5 -> 1.5).
-           * Needed to properly set the initial window size. */
-          const int scale_fractional_part_inv = scale_as_fractional -
-                                                (FRACTIONAL_DENOMINATOR -
-                                                 (scale_as_fractional - fractional_scale));
-          size_decor[0] = ((win->frame.size[0] / scale_as_fractional) * scale_fractional_part_inv);
-          size_decor[1] = ((win->frame.size[1] / scale_as_fractional) * scale_fractional_part_inv);
-        }
-        else {
-          size_decor[0] = win->frame.size[0] / scale;
-          size_decor[1] = win->frame.size[1] / scale;
-        }
-      }
     }
   }
 
@@ -1249,7 +1308,36 @@ static void libdecor_frame_handle_configure(libdecor_frame *frame,
     }
   }
 
-  /* Apply the changes. */
+  if (size_next[0] && size_next[1]) {
+    GWL_Window *win = static_cast<GWL_Window *>(data);
+    GWL_LibDecor_Window &decor = *win->libdecor;
+
+#  ifdef USE_LIBDECOR_CONFIG_COPY_WORKAROUND
+    /* Unlikely but possible a previous configuration is unhandled. */
+    if (decor.pending.configuration_needs_free) {
+      ghost_wl_libdecor_configuration_free(decor.pending.configuration);
+      decor.pending.configuration_needs_free = false;
+    }
+#  endif /* USE_LIBDECOR_CONFIG_COPY_WORKAROUND */
+
+    decor.pending.size[0] = size_next[0];
+    decor.pending.size[1] = size_next[1];
+    decor.pending.configuration = configuration;
+    decor.pending.ack_configure = true;
+
+    if (!is_main_thread) {
+#  ifdef USE_LIBDECOR_CONFIG_COPY_WORKAROUND
+      decor.pending.configuration = ghost_wl_libdecor_configuration_copy(configuration);
+      decor.pending.configuration_needs_free = true;
+#  else
+      /* Without a way to copy the configuration,
+       * the configuration will be ignored as it can't be postponed. */
+      decor.pending.configuration = nullptr;
+#  endif /* !USE_LIBDECOR_CONFIG_COPY_WORKAROUND */
+    }
+  }
+
+  /* Apply & commit the changes. */
   {
     GWL_Window *win = static_cast<GWL_Window *>(data);
 #  ifdef USE_EVENT_BACKGROUND_THREAD
@@ -1260,42 +1348,6 @@ static void libdecor_frame_handle_configure(libdecor_frame *frame,
 #  endif
     {
       gwl_window_frame_update_from_pending_no_lock(win);
-    }
-  }
-
-  /* Commit the changes. */
-  {
-    GWL_Window *win = static_cast<GWL_Window *>(data);
-    GWL_LibDecor_Window &decor = *win->libdecor;
-    if (has_size == false) {
-      /* Keep the current decor size. */
-      size_next[0] = size_decor[0];
-      size_next[1] = size_decor[1];
-    }
-    else {
-      /* Store the new size for later reuse. */
-      decor.applied.size[0] = size_next[0];
-      decor.applied.size[1] = size_next[1];
-    }
-
-    if (size_next[0] && size_next[1]) {
-      libdecor_state *state = libdecor_state_new(UNPACK2(size_next));
-      libdecor_frame_commit(frame, state, configuration);
-      libdecor_state_free(state);
-    }
-
-    if (decor.initial_configure_seen == false) {
-      decor.initial_configure_seen = true;
-    }
-    else {
-      if (decor.initial_state_seen == false) {
-        decor.initial_state_seen = true;
-      }
-    }
-    if (decor.initial_configure_seen_with_size == false) {
-      if (size_next[0] && size_next[1]) {
-        decor.initial_configure_seen_with_size = true;
-      }
     }
   }
 }
@@ -1728,20 +1780,6 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
 
     xdg_toplevel *toplevel = libdecor_frame_get_xdg_toplevel(decor.frame);
     gwl_window_state_set_for_xdg(toplevel, state, gwl_window_state_get(window_));
-
-    /* Needed for maximize to use the size of the maximized frame instead of the size
-     * from `width` & `height`, see #113961 (follow up comments). */
-    int roundtrip_count = 0;
-    while (!decor.initial_state_seen) {
-      /* Use round-trip so as not to block in the case setting
-       * the state is ignored by the compositor. */
-      wl_display_roundtrip(system_->wl_display_get());
-      /* Avoid waiting continuously if the requested state is ignored
-       * (2x round-trips should be enough). */
-      if (++roundtrip_count >= 2) {
-        break;
-      }
-    }
   }
   else
 #endif /* WITH_GHOST_WAYLAND_LIBDECOR */
