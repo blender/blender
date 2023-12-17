@@ -591,6 +591,7 @@ void SCULPT_do_paint_brush_image(PaintModeSettings *paint_mode_settings,
   fix_non_manifold_seam_bleeding(*ob, data);
 
   for (PBVHNode *node : texnodes) {
-    bke::pbvh::pixels::mark_image_dirty(*node, *data.image_data.image, *data.image_data.image_user);
+    bke::pbvh::pixels::mark_image_dirty(
+        *node, *data.image_data.image, *data.image_data.image_user);
   }
 }
