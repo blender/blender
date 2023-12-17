@@ -2415,7 +2415,7 @@ bool GHOST_WindowWayland::outputs_changed_update_scale()
                                  double(fractional_scale_next));
         }
         else {
-          window_->frame_pending.size[i] = value / scale_prev;
+          size_next[i] = value / scale_prev;
         }
         if (window_->frame_pending.buffer_scale > 1) {
           gwl_round_int_by(&size_next[i], window_->frame_pending.buffer_scale);
