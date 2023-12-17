@@ -1511,11 +1511,6 @@ static const wl_surface_listener wl_surface_listener = {
  * WAYLAND specific implementation of the #GHOST_Window interface.
  * \{ */
 
-GHOST_TSuccess GHOST_WindowWayland::hasCursorShape(GHOST_TStandardCursor cursorShape)
-{
-  return system_->cursor_shape_check(cursorShape);
-}
-
 GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
                                          const char *title,
                                          const int32_t /*left*/,
@@ -1796,6 +1791,64 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
   setSwapInterval(0);
 }
 
+GHOST_WindowWayland::~GHOST_WindowWayland()
+{
+#ifdef USE_EVENT_BACKGROUND_THREAD
+  std::lock_guard lock_server_guard{*system_->server_mutex};
+#endif
+
+  releaseNativeHandles();
+
+#ifdef WITH_OPENGL_BACKEND
+  if (window_->ghost_context_type == GHOST_kDrawingContextTypeOpenGL) {
+    wl_egl_window_destroy(window_->backend.egl_window);
+  }
+#endif
+#ifdef WITH_VULKAN_BACKEND
+  if (window_->ghost_context_type == GHOST_kDrawingContextTypeVulkan) {
+    delete window_->backend.vulkan_window_info;
+  }
+#endif
+
+  if (window_->xdg.activation_token) {
+    xdg_activation_token_v1_destroy(window_->xdg.activation_token);
+    window_->xdg.activation_token = nullptr;
+  }
+
+  if (window_->wp.fractional_scale_handle) {
+    wp_fractional_scale_v1_destroy(window_->wp.fractional_scale_handle);
+    window_->wp.fractional_scale_handle = nullptr;
+  }
+
+  if (window_->wp.viewport) {
+    wp_viewport_destroy(window_->wp.viewport);
+    window_->wp.viewport = nullptr;
+  }
+
+#ifdef WITH_GHOST_WAYLAND_LIBDECOR
+  if (use_libdecor) {
+    gwl_libdecor_window_destroy(window_->libdecor);
+  }
+  else
+#endif
+  {
+    gwl_xdg_decor_window_destroy(window_->xdg_decor);
+  }
+
+  /* Clear any pointers to this window. This is needed because there are no guarantees
+   * that flushing the display will the "leave" handlers before handling events. */
+  system_->window_surface_unref(window_->wl.surface);
+
+  wl_surface_destroy(window_->wl.surface);
+
+  /* NOTE(@ideasman42): Flushing will often run the appropriate handlers event
+   * (#wl_surface_listener.leave in particular) to avoid attempted access to the freed surfaces.
+   * This is not fool-proof though, hence the call to #window_surface_unref, see: #99078. */
+  wl_display_flush(system_->wl_display_get());
+
+  delete window_;
+}
+
 #ifdef USE_EVENT_BACKGROUND_THREAD
 GHOST_TSuccess GHOST_WindowWayland::swapBuffers()
 {
@@ -1803,6 +1856,11 @@ GHOST_TSuccess GHOST_WindowWayland::swapBuffers()
   return GHOST_Window::swapBuffers();
 }
 #endif /* USE_EVENT_BACKGROUND_THREAD */
+
+GHOST_TSuccess GHOST_WindowWayland::hasCursorShape(GHOST_TStandardCursor cursorShape)
+{
+  return system_->cursor_shape_check(cursorShape);
+}
 
 GHOST_TSuccess GHOST_WindowWayland::setWindowCursorGrab(GHOST_TGrabCursorMode mode)
 {
@@ -1948,64 +2006,6 @@ void GHOST_WindowWayland::clientToScreen(int32_t inX,
 {
   outX = inX;
   outY = inY;
-}
-
-GHOST_WindowWayland::~GHOST_WindowWayland()
-{
-#ifdef USE_EVENT_BACKGROUND_THREAD
-  std::lock_guard lock_server_guard{*system_->server_mutex};
-#endif
-
-  releaseNativeHandles();
-
-#ifdef WITH_OPENGL_BACKEND
-  if (window_->ghost_context_type == GHOST_kDrawingContextTypeOpenGL) {
-    wl_egl_window_destroy(window_->backend.egl_window);
-  }
-#endif
-#ifdef WITH_VULKAN_BACKEND
-  if (window_->ghost_context_type == GHOST_kDrawingContextTypeVulkan) {
-    delete window_->backend.vulkan_window_info;
-  }
-#endif
-
-  if (window_->xdg.activation_token) {
-    xdg_activation_token_v1_destroy(window_->xdg.activation_token);
-    window_->xdg.activation_token = nullptr;
-  }
-
-  if (window_->wp.fractional_scale_handle) {
-    wp_fractional_scale_v1_destroy(window_->wp.fractional_scale_handle);
-    window_->wp.fractional_scale_handle = nullptr;
-  }
-
-  if (window_->wp.viewport) {
-    wp_viewport_destroy(window_->wp.viewport);
-    window_->wp.viewport = nullptr;
-  }
-
-#ifdef WITH_GHOST_WAYLAND_LIBDECOR
-  if (use_libdecor) {
-    gwl_libdecor_window_destroy(window_->libdecor);
-  }
-  else
-#endif
-  {
-    gwl_xdg_decor_window_destroy(window_->xdg_decor);
-  }
-
-  /* Clear any pointers to this window. This is needed because there are no guarantees
-   * that flushing the display will the "leave" handlers before handling events. */
-  system_->window_surface_unref(window_->wl.surface);
-
-  wl_surface_destroy(window_->wl.surface);
-
-  /* NOTE(@ideasman42): Flushing will often run the appropriate handlers event
-   * (#wl_surface_listener.leave in particular) to avoid attempted access to the freed surfaces.
-   * This is not fool-proof though, hence the call to #window_surface_unref, see: #99078. */
-  wl_display_flush(system_->wl_display_get());
-
-  delete window_;
 }
 
 uint16_t GHOST_WindowWayland::getDPIHint()
