@@ -227,6 +227,7 @@ typedef struct Sequence {
 
   /** The linked "bSound" object. */
   struct bSound *sound;
+  /** Handle to #AUD_SequenceEntry*/
   void *scene_sound;
   float volume;
 
