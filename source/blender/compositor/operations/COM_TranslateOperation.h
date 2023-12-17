@@ -66,7 +66,7 @@ class TranslateOperation : public MultiThreadedOperation {
         delta_x_ = temp_delta[0];
         input_yoperation_->read_sampled(temp_delta, 0, 0, PixelSampler::Nearest);
         delta_y_ = temp_delta[0];
-        if(get_is_relative()) {
+        if (get_is_relative()) {
           const int input_width = BLI_rcti_size_x(&input_operation_->get_canvas());
           const int input_height = BLI_rcti_size_y(&input_operation_->get_canvas());
           delta_x_ *= input_width;
@@ -76,9 +76,11 @@ class TranslateOperation : public MultiThreadedOperation {
       else {
         delta_x_ = get_input_operation(X_INPUT_INDEX)->get_constant_value_default(0.0f);
         delta_y_ = get_input_operation(Y_INPUT_INDEX)->get_constant_value_default(0.0f);
-        if(get_is_relative()) {
-          const int input_width = BLI_rcti_size_x(&get_input_operation(IMAGE_INPUT_INDEX)->get_canvas());
-          const int input_height = BLI_rcti_size_y(&get_input_operation(IMAGE_INPUT_INDEX)->get_canvas());
+        if (get_is_relative()) {
+          const int input_width = BLI_rcti_size_x(
+              &get_input_operation(IMAGE_INPUT_INDEX)->get_canvas());
+          const int input_height = BLI_rcti_size_y(
+              &get_input_operation(IMAGE_INPUT_INDEX)->get_canvas());
           delta_x_ *= input_width;
           delta_y_ *= input_height;
         }
