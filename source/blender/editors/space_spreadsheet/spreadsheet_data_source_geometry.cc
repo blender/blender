@@ -19,7 +19,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_modifier.hh"
-#include "BKE_node_socket_value_cpp_type.hh"
+#include "BKE_node_socket_value.hh"
 #include "BKE_object_types.hh"
 #include "BKE_volume.hh"
 #include "BKE_volume_openvdb.hh"

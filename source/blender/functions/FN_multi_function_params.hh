@@ -162,6 +162,11 @@ class ParamsBuilder {
     actual_params_.append_unchecked_as(std::in_place_type<GVectorArray *>, &vector_array);
   }
 
+  int next_param_index() const
+  {
+    return actual_params_.size();
+  }
+
   GMutableSpan computed_array(int param_index)
   {
     BLI_assert(ELEM(signature_->params[param_index].type.category(),

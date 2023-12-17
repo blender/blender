@@ -24,7 +24,6 @@ set(SRC
   intern/multi_function_procedure_optimization.cc
 
   FN_field.hh
-  FN_init.h
   FN_lazy_function.hh
   FN_lazy_function_execute.hh
   FN_lazy_function_graph.hh

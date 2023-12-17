@@ -211,6 +211,8 @@ typedef struct bNodeSocketType {
   const CPPTypeHandle *geometry_nodes_cpp_type;
   /* Get geometry nodes cpp value. */
   SocketGetGeometryNodesCPPValueFunction get_geometry_nodes_cpp_value;
+  /* Default value for this socket type. */
+  const void *geometry_nodes_default_cpp_value;
 } bNodeSocketType;
 
 typedef void *(*NodeInitExecFunction)(struct bNodeExecContext *context,

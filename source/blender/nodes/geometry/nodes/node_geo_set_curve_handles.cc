@@ -30,7 +30,7 @@ static void node_declare(NodeDeclarationBuilder &b)
         const StringRef side = node_storage(node).mode == GEO_NODE_CURVE_HANDLE_LEFT ?
                                    "handle_left" :
                                    "handle_right";
-        new (r_value) SocketValueVariant<float3>(bke::AttributeFieldInput::Create<float3>(side));
+        new (r_value) SocketValueVariant(bke::AttributeFieldInput::Create<float3>(side));
       });
   b.add_input<decl::Vector>("Offset").default_value(float3(0.0f, 0.0f, 0.0f)).field_on_all();
   b.add_output<decl::Geometry>("Curve").propagate_all();

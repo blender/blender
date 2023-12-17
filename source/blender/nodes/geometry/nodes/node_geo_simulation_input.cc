@@ -41,7 +41,7 @@ class LazyFunctionForSimulationInputNode final : public LazyFunction {
 
     MutableSpan<int> lf_index_by_bsocket = own_lf_graph_info.mapping.lf_index_by_bsocket;
     lf_index_by_bsocket[node.output_socket(0).index_in_tree()] = outputs_.append_and_get_index_as(
-        "Delta Time", CPPType::get<SocketValueVariant<float>>());
+        "Delta Time", CPPType::get<SocketValueVariant>());
 
     for (const int i : simulation_items_.index_range()) {
       const NodeSimulationItem &item = simulation_items_[i];
@@ -62,27 +62,27 @@ class LazyFunctionForSimulationInputNode final : public LazyFunction {
     const GeoNodesLFUserData &user_data = *static_cast<const GeoNodesLFUserData *>(
         context.user_data);
     if (!user_data.call_data->simulation_params) {
-      params.set_default_remaining_outputs();
+      this->set_default_outputs(params);
       return;
     }
     if (!user_data.call_data->self_object()) {
       /* Self object is currently required for creating anonymous attribute names. */
-      params.set_default_remaining_outputs();
+      this->set_default_outputs(params);
       return;
     }
     std::optional<FoundNestedNodeID> found_id = find_nested_node_id(user_data, output_node_id_);
     if (!found_id) {
-      params.set_default_remaining_outputs();
+      this->set_default_outputs(params);
       return;
     }
     if (found_id->is_in_loop) {
-      params.set_default_remaining_outputs();
+      this->set_default_outputs(params);
       return;
     }
     SimulationZoneBehavior *zone_behavior = user_data.call_data->simulation_params->get(
         found_id->id);
     if (!zone_behavior) {
-      params.set_default_remaining_outputs();
+      this->set_default_outputs(params);
       return;
     }
     sim_input::Behavior &input_behavior = zone_behavior->input;
@@ -103,8 +103,13 @@ class LazyFunctionForSimulationInputNode final : public LazyFunction {
       BLI_assert_unreachable();
     }
     if (!params.output_was_set(0)) {
-      params.set_output(0, bke::SocketValueVariant<float>(delta_time));
+      params.set_output(0, SocketValueVariant(delta_time));
     }
+  }
+
+  void set_default_outputs(lf::Params &params) const
+  {
+    set_default_remaining_node_outputs(params, node_);
   }
 
   void output_simulation_state_copy(lf::Params &params,

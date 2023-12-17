@@ -132,7 +132,7 @@ const bNodeSocket *GeoNodeExecParams::find_available_socket(const StringRef name
 
 void GeoNodeExecParams::set_default_remaining_outputs()
 {
-  params_.set_default_remaining_outputs();
+  set_default_remaining_node_outputs(params_, node_);
 }
 
 void GeoNodeExecParams::check_input_access(StringRef identifier,

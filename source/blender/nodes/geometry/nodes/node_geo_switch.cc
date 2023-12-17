@@ -96,6 +96,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 class LazyFunctionForSwitchNode : public LazyFunction {
  private:
   bool can_be_field_ = false;
+  const CPPType *base_type_;
 
  public:
   LazyFunctionForSwitchNode(const bNode &node)
@@ -113,9 +114,10 @@ class LazyFunctionForSwitchNode : public LazyFunction {
     }
     BLI_assert(socket_type != nullptr);
     const CPPType &cpp_type = *socket_type->geometry_nodes_cpp_type;
+    base_type_ = socket_type->base_cpp_type;
 
     debug_name_ = node.name;
-    inputs_.append_as("Condition", CPPType::get<SocketValueVariant<bool>>());
+    inputs_.append_as("Condition", CPPType::get<SocketValueVariant>());
     inputs_.append_as("False", cpp_type, lf::ValueUsage::Maybe);
     inputs_.append_as("True", cpp_type, lf::ValueUsage::Maybe);
     outputs_.append_as("Value", cpp_type);
@@ -123,18 +125,13 @@ class LazyFunctionForSwitchNode : public LazyFunction {
 
   void execute_impl(lf::Params &params, const lf::Context & /*context*/) const override
   {
-    const SocketValueVariant<bool> condition = params.get_input<SocketValueVariant<bool>>(0);
-    if (condition.is_field() && can_be_field_) {
-      Field<bool> condition_field = condition.as_field();
-      if (condition_field.node().depends_on_input()) {
-        this->execute_field(condition.as_field(), params);
-        return;
-      }
-      const bool condition_bool = fn::evaluate_constant_field(condition_field);
-      this->execute_single(condition_bool, params);
-      return;
+    SocketValueVariant condition_variant = params.get_input<SocketValueVariant>(0);
+    if (condition_variant.is_context_dependent_field() && can_be_field_) {
+      this->execute_field(condition_variant.get<Field<bool>>(), params);
     }
-    this->execute_single(condition.as_value(), params);
+    else {
+      this->execute_single(condition_variant.get<bool>(), params);
+    }
   }
 
   static constexpr int false_input_index = 1;
@@ -161,41 +158,39 @@ class LazyFunctionForSwitchNode : public LazyFunction {
   void execute_field(Field<bool> condition, lf::Params &params) const
   {
     /* When the condition is a non-constant field, we need both inputs. */
-    void *false_value_variant = params.try_get_input_data_ptr_or_request(false_input_index);
-    void *true_value_variant = params.try_get_input_data_ptr_or_request(true_input_index);
+    auto *false_value_variant = params.try_get_input_data_ptr_or_request<SocketValueVariant>(
+        false_input_index);
+    auto *true_value_variant = params.try_get_input_data_ptr_or_request<SocketValueVariant>(
+        true_input_index);
     if (ELEM(nullptr, false_value_variant, true_value_variant)) {
       /* Try again when inputs are available. */
       return;
     }
 
-    const CPPType &type = *outputs_[0].type;
-    const bke::SocketValueVariantCPPType &value_variant_type =
-        *bke::SocketValueVariantCPPType::get_from_self(type);
-    const CPPType &value_type = value_variant_type.value;
-    const MultiFunction &switch_multi_function = this->get_switch_multi_function(value_type);
+    const MultiFunction &switch_multi_function = this->get_switch_multi_function();
 
-    GField false_field = value_variant_type.as_field(false_value_variant);
-    GField true_field = value_variant_type.as_field(true_value_variant);
+    GField false_field = false_value_variant->extract<GField>();
+    GField true_field = true_value_variant->extract<GField>();
 
     GField output_field{FieldOperation::Create(
         switch_multi_function,
         {std::move(condition), std::move(false_field), std::move(true_field)})};
 
     void *output_ptr = params.get_output_data_ptr(0);
-    value_variant_type.construct_from_field(output_ptr, std::move(output_field));
+    new (output_ptr) SocketValueVariant(std::move(output_field));
     params.output_set(0);
   }
 
-  const MultiFunction &get_switch_multi_function(const CPPType &type) const
+  const MultiFunction &get_switch_multi_function() const
   {
     const MultiFunction *switch_multi_function = nullptr;
-    type.to_static_type_tag<float,
-                            int,
-                            bool,
-                            float3,
-                            ColorGeometry4f,
-                            std::string,
-                            math::Quaternion>([&](auto type_tag) {
+    base_type_->to_static_type_tag<float,
+                                   int,
+                                   bool,
+                                   float3,
+                                   ColorGeometry4f,
+                                   std::string,
+                                   math::Quaternion>([&](auto type_tag) {
       using T = typename decltype(type_tag)::type;
       if constexpr (std::is_void_v<T>) {
         BLI_assert_unreachable();

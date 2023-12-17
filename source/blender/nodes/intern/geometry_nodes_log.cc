@@ -8,7 +8,7 @@
 #include "BKE_compute_contexts.hh"
 #include "BKE_curves.hh"
 #include "BKE_node_runtime.hh"
-#include "BKE_node_socket_value_cpp_type.hh"
+#include "BKE_node_socket_value.hh"
 #include "BKE_viewer_path.hh"
 
 #include "DNA_modifier_types.h"
@@ -180,23 +180,16 @@ void GeoTreeLogger::log_value(const bNode &node, const bNodeSocket &socket, cons
     const bke::GeometrySet &geometry = *value.get<bke::GeometrySet>();
     store_logged_value(this->allocator->construct<GeometryInfoLog>(geometry));
   }
-  else if (const auto *value_variant_type = bke::SocketValueVariantCPPType::get_from_self(type)) {
-    const void *value_variant = value.get();
-    const CPPType &base_type = value_variant_type->value;
-    if (value_variant_type->is_field(value_variant)) {
-      const GField *field = value_variant_type->get_field_ptr(value_variant);
-      if (field->node().depends_on_input()) {
-        store_logged_value(this->allocator->construct<FieldInfoLog>(*field));
-      }
-      else {
-        BUFFER_FOR_CPP_TYPE_VALUE(base_type, value);
-        fn::evaluate_constant_field(*field, value);
-        log_generic_value(base_type, value);
-      }
+  else if (type.is<bke::SocketValueVariant>()) {
+    bke::SocketValueVariant value_variant = *value.get<bke::SocketValueVariant>();
+    if (value_variant.is_context_dependent_field()) {
+      const GField field = value_variant.extract<GField>();
+      store_logged_value(this->allocator->construct<FieldInfoLog>(field));
     }
     else {
-      const void *value = value_variant_type->get_value_ptr(value_variant);
-      log_generic_value(base_type, value);
+      value_variant.convert_to_single();
+      const GPointer value = value_variant.get_single_ptr();
+      log_generic_value(*value.type(), value.get());
     }
   }
   else {

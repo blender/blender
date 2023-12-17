@@ -379,6 +379,14 @@ std::unique_ptr<LazyFunction> get_simulation_input_lazy_function(
 std::unique_ptr<LazyFunction> get_switch_node_lazy_function(const bNode &node);
 std::unique_ptr<LazyFunction> get_index_switch_node_lazy_function(const bNode &node);
 
+/**
+ * Outputs the default value of each output socket that has not been output yet. This needs the
+ * #bNode because otherwise the default values for the outputs are not known. The lazy-function
+ * parameters do not differentiate between e.g. float and vector sockets. The #SocketValueVariant
+ * type is used for both.
+ */
+void set_default_remaining_node_outputs(lf::Params &params, const bNode &node);
+
 struct FoundNestedNodeID {
   int id;
   bool is_in_simulation = false;

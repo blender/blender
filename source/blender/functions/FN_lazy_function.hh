@@ -198,11 +198,6 @@ class Params {
   template<typename T> void set_output(int index, T &&value);
 
   /**
-   * Utility to initialize all outputs that haven't been set yet.
-   */
-  void set_default_remaining_outputs();
-
-  /**
    * Returns true when the lazy-function is now allowed to use multi-threading when interacting
    * with this #Params. That means, it is allowed to call non-const methods from different threads.
    */

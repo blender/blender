@@ -233,22 +233,21 @@ static void node_geo_exec(GeoNodeExecParams params)
   const bool use_clamp = bool(storage.clamp);
 
   GField value_field = params.extract_input<GField>("Value");
-  SocketValueVariant<int> index_value_variant = params.extract_input<SocketValueVariant<int>>(
-      "Index");
+  SocketValueVariant index_value_variant = params.extract_input<SocketValueVariant>("Index");
   const CPPType &cpp_type = value_field.cpp_type();
 
-  if (index_value_variant.is_field()) {
+  if (index_value_variant.is_context_dependent_field()) {
     /* If the index is a field, the output has to be a field that still depends on the input. */
     auto fn = std::make_shared<SampleIndexFunction>(
         std::move(geometry), std::move(value_field), domain, use_clamp);
-    auto op = FieldOperation::Create(std::move(fn), {index_value_variant.as_field()});
+    auto op = FieldOperation::Create(std::move(fn), {index_value_variant.extract<Field<int>>()});
     params.set_output("Value", GField(std::move(op)));
   }
   else if (const GeometryComponent *component = find_source_component(geometry, domain)) {
     /* Optimization for the case when the index is a single value. Here only that one index has to
      * be evaluated. */
     const int domain_size = component->attribute_domain_size(domain);
-    int index = index_value_variant.as_value();
+    int index = index_value_variant.extract<int>();
     if (use_clamp) {
       index = std::clamp(index, 0, domain_size - 1);
     }

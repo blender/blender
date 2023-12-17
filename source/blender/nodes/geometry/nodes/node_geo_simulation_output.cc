@@ -15,7 +15,7 @@
 #include "BKE_curves.hh"
 #include "BKE_instances.hh"
 #include "BKE_modifier.hh"
-#include "BKE_node_socket_value_cpp_type.hh"
+#include "BKE_node_socket_value.hh"
 #include "BKE_object.hh"
 #include "BKE_scene.h"
 
@@ -405,16 +405,22 @@ void mix_baked_data_item(const eNodeSocketDatatype socket_type,
     case SOCK_ROTATION:
     case SOCK_RGBA: {
       const CPPType &type = get_simulation_item_cpp_type(socket_type);
-      const bke::SocketValueVariantCPPType &value_variant_type =
-          *bke::SocketValueVariantCPPType::get_from_self(type);
-      if (value_variant_type.is_field(prev) || value_variant_type.is_field(next)) {
+      SocketValueVariant prev_value_variant = *static_cast<const SocketValueVariant *>(prev);
+      SocketValueVariant next_value_variant = *static_cast<const SocketValueVariant *>(next);
+      if (prev_value_variant.is_context_dependent_field() ||
+          next_value_variant.is_context_dependent_field())
+      {
         /* Fields are evaluated on geometries and are mixed there. */
         break;
       }
 
-      void *prev_value = value_variant_type.get_value_ptr(prev);
-      const void *next_value = value_variant_type.get_value_ptr(next);
-      bke::attribute_math::convert_to_static_type(value_variant_type.value, [&](auto dummy) {
+      prev_value_variant.convert_to_single();
+      next_value_variant.convert_to_single();
+
+      void *prev_value = prev_value_variant.get_single_ptr().get();
+      const void *next_value = next_value_variant.get_single_ptr().get();
+
+      bke::attribute_math::convert_to_static_type(type, [&](auto dummy) {
         using T = decltype(dummy);
         *static_cast<T *>(prev_value) = bke::attribute_math::mix2(
             factor, *static_cast<T *>(prev_value), *static_cast<const T *>(next_value));
@@ -495,26 +501,26 @@ class LazyFunctionForSimulationOutputNode final : public LazyFunction {
     GeoNodesLFUserData &user_data = *static_cast<GeoNodesLFUserData *>(context.user_data);
     if (!user_data.call_data->self_object()) {
       /* The self object is currently required for generating anonymous attribute names. */
-      params.set_default_remaining_outputs();
+      this->set_default_outputs(params);
       return;
     }
     if (!user_data.call_data->simulation_params) {
-      params.set_default_remaining_outputs();
+      this->set_default_outputs(params);
       return;
     }
     std::optional<FoundNestedNodeID> found_id = find_nested_node_id(user_data, node_.identifier);
     if (!found_id) {
-      params.set_default_remaining_outputs();
+      this->set_default_outputs(params);
       return;
     }
     if (found_id->is_in_loop) {
-      params.set_default_remaining_outputs();
+      this->set_default_outputs(params);
       return;
     }
     SimulationZoneBehavior *zone_behavior = user_data.call_data->simulation_params->get(
         found_id->id);
     if (!zone_behavior) {
-      params.set_default_remaining_outputs();
+      this->set_default_outputs(params);
       return;
     }
     sim_output::Behavior &output_behavior = zone_behavior->output;
@@ -538,6 +544,11 @@ class LazyFunctionForSimulationOutputNode final : public LazyFunction {
     else {
       BLI_assert_unreachable();
     }
+  }
+
+  void set_default_outputs(lf::Params &params) const
+  {
+    set_default_remaining_node_outputs(params, node_);
   }
 
   void output_cached_state(lf::Params &params,
@@ -627,17 +638,19 @@ class LazyFunctionForSimulationOutputNode final : public LazyFunction {
                        GeoNodesLFUserData &user_data,
                        const sim_output::StoreNewState &info) const
   {
-    const bool *skip = params.try_get_input_data_ptr_or_request<bool>(skip_input_index_);
-    if (skip == nullptr) {
+    const SocketValueVariant *skip_variant =
+        params.try_get_input_data_ptr_or_request<SocketValueVariant>(skip_input_index_);
+    if (skip_variant == nullptr) {
       /* Wait for skip input to be computed. */
       return;
     }
+    const bool skip = skip_variant->get<bool>();
 
     /* Instead of outputting the values directly, convert them to a bake state and then back. This
      * ensures that some geometry processing happens on the data consistently (e.g. removing
      * anonymous attributes). */
     std::optional<bke::bake::BakeState> bake_state = this->get_bake_state_from_inputs(params,
-                                                                                      *skip);
+                                                                                      skip);
     if (!bake_state) {
       /* Wait for inputs to be computed. */
       return;

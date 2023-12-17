@@ -15,13 +15,12 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  Vector<bke::SocketValueVariant<std::string>> strings =
-      params.extract_input<Vector<bke::SocketValueVariant<std::string>>>("Strings");
+  Vector<SocketValueVariant> strings = params.extract_input<Vector<SocketValueVariant>>("Strings");
   const std::string delim = params.extract_input<std::string>("Delimiter");
 
   std::string output;
   for (const int i : strings.index_range()) {
-    output += strings[i].as_value();
+    output += strings[i].extract<std::string>();
     if (i < (strings.size() - 1)) {
       output += delim;
     }
