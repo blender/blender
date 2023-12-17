@@ -36,8 +36,8 @@ def cycles_shader_nodes_poll(context):
 
 
 def eevee_shader_nodes_poll(context):
-    return context.engine == 'BLENDER_EEVEE' or
-    context.engine == 'BLENDER_EEVEE_NEXT'
+    return (context.engine == 'BLENDER_EEVEE' or
+            context.engine == 'BLENDER_EEVEE_NEXT')
 
 
 def object_cycles_shader_nodes_poll(context):
