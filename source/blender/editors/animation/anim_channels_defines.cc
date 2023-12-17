@@ -1190,7 +1190,7 @@ static int acf_nla_controls_icon(bAnimListElem * /*ale*/)
 /** NLA Control F-Curves expander type define. */
 static bAnimChannelType ACF_NLACONTROLS = {
     /*channel_type_name*/ "NLA Controls Expander",
-    /*track_role*/ ACHANNEL_ROLE_EXPANDER,
+    /*channel_role*/ ACHANNEL_ROLE_EXPANDER,
 
     /*get_backdrop_color*/ acf_nla_controls_color,
     /*get_channel_color*/ nullptr,
