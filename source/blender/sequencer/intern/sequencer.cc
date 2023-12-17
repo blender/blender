@@ -954,7 +954,9 @@ static void seq_update_scene_strip_sound(Sequence *seq)
   BKE_sound_set_scene_volume(seq->scene, seq->scene->audio.volume);
 
   /* Mute nested strips of scene when not using sequencer as input. */
-  if ((seq->flag & SEQ_SCENE_STRIPS) == 0 && seq->scene->sound_scene != nullptr) {
+  if ((seq->flag & SEQ_SCENE_STRIPS) == 0 && seq->scene->sound_scene != nullptr &&
+      seq->scene->ed != nullptr)
+  {
     SEQ_for_each_callback(&seq->scene->ed->seqbase, seq_mute_sound_strips_cb, seq->scene);
   }
 }
