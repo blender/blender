@@ -32,8 +32,6 @@ struct ColorBand;
 
 /* ************************ style definitions ******************** */
 
-#define MAX_STYLE_NAME 64
-
 /**
  * Default offered by Blender.
  * #uiFont.uifont_id
@@ -90,7 +88,7 @@ typedef struct uiFontStyle {
 typedef struct uiStyle {
   struct uiStyle *next, *prev;
 
-  /** MAX_STYLE_NAME. */
+  /** #MAX_NAME */
   char name[64];
 
   uiFontStyle paneltitle;

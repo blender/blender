@@ -67,8 +67,7 @@
 
 #include "lib_intern.hh"
 
-#define OVERRIDE_AUTO_CHECK_DELAY 0.2 /* 200ms between auto-override checks. */
-//#define DEBUG_OVERRIDE_TIMEIT
+// #define DEBUG_OVERRIDE_TIMEIT
 
 #ifdef DEBUG_OVERRIDE_TIMEIT
 #  include "PIL_time_utildefines.h"

@@ -168,7 +168,6 @@ enum {
    * need their keyframes tagged with this.
    */
   TD_INTVALUES = 1 << 11,
-#define TD_MIRROR_AXIS_SHIFT 12
   /** For edit-mode mirror. */
   TD_MIRROR_X = 1 << 12,
   TD_MIRROR_Y = 1 << 13,

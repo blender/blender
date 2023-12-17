@@ -762,9 +762,6 @@ static void writelist_id(WriteData *wd, int filecode, const char *structname, co
 #define writestruct(wd, filecode, struct_id, nr, adr) \
   writestruct_nr(wd, filecode, SDNA_TYPE_FROM_STRUCT(struct_id), nr, adr)
 
-#define writelist(wd, filecode, struct_id, lb) \
-  writelist_nr(wd, filecode, SDNA_TYPE_FROM_STRUCT(struct_id), lb)
-
 /** \} */
 
 /* -------------------------------------------------------------------- */

@@ -75,7 +75,6 @@
 #define SEQ_LEFTHANDLE 1
 #define SEQ_RIGHTHANDLE 2
 #define SEQ_HANDLE_SIZE 8.0f
-#define SEQ_SCROLLER_TEXT_OFFSET 8
 #define MUTE_ALPHA 120
 
 struct StripDrawContext {

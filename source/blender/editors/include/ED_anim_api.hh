@@ -454,9 +454,6 @@ ENUM_OPERATORS(eAnimFilter_Flags, ANIMFILTER_TMP_IGNORE_ONLYSEL);
 /** Track widths */
 #define NLATRACK_NAMEWIDTH (10 * U.widget_unit)
 
-/** Track toggle-buttons */
-#define NLATRACK_BUTTON_WIDTH (0.8f * U.widget_unit)
-
 /** \} */
 
 /* -------------------------------------------------------------------- */

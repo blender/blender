@@ -29,8 +29,6 @@ struct MDeformVert;
 #define GPENCIL_MIN_FILL_FAC 0.05f
 #define GPENCIL_MAX_FILL_FAC 8.0f
 
-#define GPENCIL_MAX_THICKNESS 5000
-
 /* ***************************************** */
 /* GP Stroke Points */
 
@@ -889,8 +887,6 @@ typedef enum eGP_DrawMode {
 #define GPENCIL_SCULPT_MODE(gpd) ((gpd) && (gpd->flag & GP_DATA_STROKE_SCULPTMODE))
 #define GPENCIL_WEIGHT_MODE(gpd) ((gpd) && (gpd->flag & GP_DATA_STROKE_WEIGHTMODE))
 #define GPENCIL_VERTEX_MODE(gpd) ((gpd) && (gpd->flag & GP_DATA_STROKE_VERTEXMODE))
-#define GPENCIL_SCULPT_OR_WEIGHT_MODE(gpd) \
-  ((gpd) && ((gpd)->flag & (GP_DATA_STROKE_SCULPTMODE | GP_DATA_STROKE_WEIGHTMODE)))
 #define GPENCIL_NONE_EDIT_MODE(gpd) \
   ((gpd) && (((gpd)->flag & (GP_DATA_STROKE_EDITMODE | GP_DATA_STROKE_SCULPTMODE | \
                              GP_DATA_STROKE_WEIGHTMODE | GP_DATA_STROKE_VERTEXMODE)) == 0))

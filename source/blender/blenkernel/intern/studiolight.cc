@@ -38,7 +38,6 @@
 /* Statics */
 static ListBase studiolights;
 static int last_studiolight_id = 0;
-#define STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE 96
 #define STUDIOLIGHT_PASSNAME_DIFFUSE "diffuse"
 #define STUDIOLIGHT_PASSNAME_SPECULAR "specular"
 
