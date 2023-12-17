@@ -63,18 +63,19 @@ struct TransCustomData_PartialUpdate {
  * (which can happen when rotation is enabled with snapping).
  */
 enum ePartialType {
-  PARTIAL_NONE =
-      -1,                 /**
-                           * Update only faces between tagged and non-tagged faces (affine transformations).
-                           * Use when transforming is guaranteed not to change the relative locations of vertices.
-                           *
-                           * This has the advantage that selecting the entire mesh or only isolated elements,
-                           * can skip normal/tessellation updates entirely, so it's worth using when possible.
-                           */
-  PARTIAL_TYPE_GROUP = 0, /**
-                           * Update for all tagged vertices (any kind of deformation).
-                           * Use as a default since it can be used with any kind of deformation.
-                           */
+  PARTIAL_NONE = -1,
+  /**
+   * Update only faces between tagged and non-tagged faces (affine transformations).
+   * Use when transforming is guaranteed not to change the relative locations of vertices.
+   *
+   * This has the advantage that selecting the entire mesh or only isolated elements,
+   * can skip normal/tessellation updates entirely, so it's worth using when possible.
+   */
+  PARTIAL_TYPE_GROUP = 0,
+  /**
+   * Update for all tagged vertices (any kind of deformation).
+   * Use as a default since it can be used with any kind of deformation.
+   */
   PARTIAL_TYPE_ALL = 1,
 };
 
