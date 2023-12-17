@@ -2248,9 +2248,7 @@ int add_face_constraints(CDT_state<T> *cdt_state,
       add_edge_constraint(cdt_state, v1, v2, id, &edge_list);
       /* Set a new face_symedge0 each time since earlier ones may not
        * survive later symedge splits. Really, just want the one when
-       * i == flen -1, but this code guards against that one somehow
-       * being null.
-       */
+       * `i == face.size() - 1`, but this code guards against that one somehow being null. */
       if (edge_list != nullptr) {
         CDTEdge<T> *face_edge = static_cast<CDTEdge<T> *>(edge_list->link);
         face_symedge0 = &face_edge->symedges[0];

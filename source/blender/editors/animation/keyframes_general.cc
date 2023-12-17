@@ -1245,7 +1245,7 @@ static void remove_fcurve_key_range(FCurve *fcu,
 
       int after_index = BKE_fcurve_bezt_binarysearch_index(
           fcu->bezt, range[1], fcu->totvert, &replace);
-      /* REMOVE_OUT_RANGE is treated as exlusive on both ends. */
+      /* #REMOVE_OUT_RANGE is treated as exclusive on both ends. */
       if (replace) {
         after_index++;
       }

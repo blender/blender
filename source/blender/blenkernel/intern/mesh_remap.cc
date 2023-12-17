@@ -2125,9 +2125,8 @@ void BKE_mesh_remap_calc_faces_from_mesh(const int mode,
     }
     else if (mode == MREMAP_MODE_POLY_POLYINTERP_PNORPROJ) {
       /* We cast our rays randomly, with a pseudo-even distribution
-       * (since we spread across tessellated tris,
-       * with additional weighting based on each tri's relative area).
-       */
+       * (since we spread across tessellated triangles,
+       * with additional weighting based on each triangle's relative area). */
       RNG *rng = BLI_rng_new(0);
 
       const size_t numfaces_src = size_t(me_src->faces_num);

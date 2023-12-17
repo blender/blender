@@ -193,6 +193,7 @@ dict_custom = {
     "irradiance",
     "iteratively",
     "jitteryness",
+    "keyable",
     "keyless",
     "linearize",
     "linearized",

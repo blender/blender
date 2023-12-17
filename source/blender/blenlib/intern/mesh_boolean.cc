@@ -2557,7 +2557,7 @@ static void inside_shape_callback(void *userdata,
   if (isect_ray_tri_epsilon_v3(
           ray->origin, ray->direction, fv0, fv1, fv2, &dist, nullptr, FLT_EPSILON))
   {
-    /* Count parity as +1 if ray is in the same direction as tri's normal,
+    /* Count parity as +1 if ray is in the same direction as triangle's normal,
      * and -1 if the directions are opposite. */
     double3 o_db{double(ray->origin[0]), double(ray->origin[1]), double(ray->origin[2])};
     int parity = orient3d(tri.vert[0]->co, tri.vert[1]->co, tri.vert[2]->co, o_db);

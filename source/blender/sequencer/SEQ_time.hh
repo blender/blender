@@ -122,6 +122,6 @@ void SEQ_time_start_frame_set(const Scene *scene, Sequence *seq, int timeline_fr
 void SEQ_time_update_meta_strip_range(const Scene *scene, Sequence *seq_meta);
 
 /**
- * Get difference between scene and movie strip framerate.
+ * Get difference between scene and movie strip frame-rate.
  */
 float SEQ_time_media_playback_rate_factor_get(const Scene *scene, const Sequence *seq);

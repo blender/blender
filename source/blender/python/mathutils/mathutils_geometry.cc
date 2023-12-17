@@ -1249,7 +1249,7 @@ PyDoc_STRVAR(M_Geometry_tessellate_polygon_doc,
 /* PolyFill function, uses Blenders scan-fill to fill multiple poly lines. */
 static PyObject *M_Geometry_tessellate_polygon(PyObject * /*self*/, PyObject *polyLineSeq)
 {
-  PyObject *tri_list; /* Return this list of tri's */
+  PyObject *tri_list; /* Return this list of triangles. */
   PyObject *polyLine, *polyVec;
   int i, len_polylines, len_polypoints;
   bool list_parse_error = false;

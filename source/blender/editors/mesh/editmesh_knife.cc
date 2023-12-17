@@ -1271,12 +1271,11 @@ static void knife_bvh_init(KnifeTool_OpData *kcd)
   f_test_prev = nullptr;
   test_fn_ret = false;
 
-  /* Add tri's for each object.
+  /* Add triangles for each object.
    * TODO:
    * test_fn can leave large gaps between bvh tree indices.
    * Compacting bvh tree indices may be possible.
-   * Don't forget to update #knife_bvh_intersect_plane!
-   */
+   * Don't forget to update #knife_bvh_intersect_plane! */
   tottri = 0;
   for (uint ob_index = 0; ob_index < kcd->objects_len; ob_index++) {
     ob = kcd->objects[ob_index];

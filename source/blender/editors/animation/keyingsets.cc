@@ -1069,8 +1069,7 @@ static int insert_key_to_keying_set_path(bContext *C,
   const eBezTriple_KeyframeType keytype = eBezTriple_KeyframeType(
       scene->toolsettings->keyframe_type);
   /* For each possible index, perform operation
-   * - assume that arraylen is greater than index.
-   */
+   * - Assume that array-length is greater than index. */
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(depsgraph,
                                                                                     frame);
