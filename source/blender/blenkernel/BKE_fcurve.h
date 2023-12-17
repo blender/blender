@@ -505,7 +505,7 @@ void BKE_fcurve_delete_key(struct FCurve *fcu, int index);
  * removing keys.
  * Has a complexity of O(N) with respect to number of keys in `fcu`.
  *
- * \param index_range is right exclusive.
+ * \param index_range: is right exclusive.
  */
 void BKE_fcurve_delete_keys(FCurve *fcu, blender::uint2 index_range);
 

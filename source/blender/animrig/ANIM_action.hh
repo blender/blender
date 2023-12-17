@@ -17,7 +17,7 @@ namespace blender::animrig {
 /**
  * Get (or add relevant data to be able to do so) F-Curve from the given Action,
  * for the given Animation Data block. This assumes that all the destinations are valid.
- * \param ptr can be a null pointer.
+ * \param ptr: can be a null pointer.
  */
 FCurve *action_fcurve_ensure(Main *bmain,
                              bAction *act,

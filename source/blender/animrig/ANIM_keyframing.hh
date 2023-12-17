@@ -179,7 +179,7 @@ bool autokeyframe_property(bContext *C,
 /**
  * Insert keys for the given rna_path in the given action. The length of the values Span is
  * expected to be the size of the property array.
- * \param frame is expected to be in the local time of the action, meaning it has to be NLA mapped
+ * \param frame: is expected to be in the local time of the action, meaning it has to be NLA mapped
  * already.
  * \returns The number of keys inserted.
  */
@@ -195,7 +195,7 @@ int insert_key_action(Main *bmain,
 /**
  * Insert keys to the ID of the given PointerRNA for the given RNA paths. Tries to create an
  * action if none exists yet.
- * \param scene_frame is expected to be not NLA mapped as that happens within the function.
+ * \param scene_frame: is expected to be not NLA mapped as that happens within the function.
  */
 void insert_key_rna(PointerRNA *rna_pointer,
                     const blender::Span<std::string> rna_paths,
