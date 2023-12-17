@@ -2382,6 +2382,7 @@ bool GHOST_WindowWayland::outputs_changed_update_scale()
                                   window_->frame.fractional_scale :
                                   window_->frame.buffer_scale * FRACTIONAL_DENOMINATOR;
   int scale_prev = fractional_scale_prev / FRACTIONAL_DENOMINATOR;
+  bool do_frame_resize = true;
 
   if (window_->frame_pending.is_scale_init == false) {
     window_->frame_pending.is_scale_init = true;
@@ -2392,13 +2393,56 @@ bool GHOST_WindowWayland::outputs_changed_update_scale()
      *
      * To support anything more sophisticated, windows would need to be created with a scale
      * argument (representing the scale used when the window was stored, for e.g.). */
-    is_fractional_prev = is_fractional_next;
-    scale_prev = scale_next;
-    fractional_scale_prev = fractional_scale_next;
 
-    /* Leave `window_->frame_pending` as-is, so changes are detected and updates are applied. */
+#ifdef WITH_GHOST_WAYLAND_LIBDECOR
+    if (use_libdecor) {
+      /* LIBDECOR needs it's own logic, failing to do this causes the window border
+       * not to follow the GHOST window on startup - with multiple monitors,
+       * each with different fractional scale, see: #109194.
+       *
+       * Note that the window will show larger, then resize to be smaller soon
+       * after opening, this would be nice to avoid but but would require DPI
+       * to be stored in the window (as noted above). */
+      int size_next[2] = {0, 0};
+      int size_orig[2] = {0, 0};
 
-    force_frame_update = true;
+      /* Leave `window_->frame_pending` as-is, only change the window frame. */
+      for (size_t i = 0; i < ARRAY_SIZE(window_->frame_pending.size); i++) {
+        const int value = size_next[i] ? window_->frame_pending.size[i] : window_->frame.size[i];
+        size_orig[i] = value;
+        if (is_fractional_prev || is_fractional_next) {
+          size_next[i] = lroundf((value * double(FRACTIONAL_DENOMINATOR)) /
+                                 double(fractional_scale_next));
+        }
+        else {
+          window_->frame_pending.size[i] = value / scale_prev;
+        }
+        if (window_->frame_pending.buffer_scale > 1) {
+          gwl_round_int_by(&size_next[i], window_->frame_pending.buffer_scale);
+        }
+      }
+
+      if (size_orig[0] != size_next[0] || size_orig[1] != size_next[1]) {
+        GWL_LibDecor_Window &decor = *window_->libdecor;
+        libdecor_state *state = libdecor_state_new(UNPACK2(size_next));
+        libdecor_frame_commit(decor.frame, state, nullptr);
+        libdecor_state_free(state);
+      }
+
+      do_frame_resize = false;
+
+      force_frame_update = true;
+    }
+    else
+#endif /* WITH_GHOST_WAYLAND_LIBDECOR */
+    {
+      is_fractional_prev = is_fractional_next;
+      scale_prev = scale_next;
+      fractional_scale_prev = fractional_scale_next;
+
+      /* Leave `window_->frame_pending` as-is, so changes are detected and updates are applied. */
+      force_frame_update = true;
+    }
   }
 
   if ((fractional_scale_prev != fractional_scale_next) ||
@@ -2411,18 +2455,20 @@ bool GHOST_WindowWayland::outputs_changed_update_scale()
      * NOTE: some flickering is still possible even when resizing this
      * happens when dragging the right hand side of the title-bar in KDE
      * as expanding changed the size on the RHS, this may be up to the compositor to fix. */
-    for (size_t i = 0; i < ARRAY_SIZE(window_->frame_pending.size); i++) {
-      const int value = window_->frame_pending.size[i] ? window_->frame_pending.size[i] :
-                                                         window_->frame.size[i];
-      if (is_fractional_prev || is_fractional_next) {
-        window_->frame_pending.size[i] = lroundf(
-            value * (double(fractional_scale_next) / double(fractional_scale_prev)));
-      }
-      else {
-        window_->frame_pending.size[i] = (value * scale_next) / scale_prev;
-      }
-      if (window_->frame_pending.buffer_scale > 1) {
-        gwl_round_int_by(&window_->frame_pending.size[i], window_->frame_pending.buffer_scale);
+    if (do_frame_resize) {
+      for (size_t i = 0; i < ARRAY_SIZE(window_->frame_pending.size); i++) {
+        const int value = window_->frame_pending.size[i] ? window_->frame_pending.size[i] :
+                                                           window_->frame.size[i];
+        if (is_fractional_prev || is_fractional_next) {
+          window_->frame_pending.size[i] = lroundf(
+              (value * (double(fractional_scale_next)) / double(fractional_scale_prev)));
+        }
+        else {
+          window_->frame_pending.size[i] = (value * scale_next) / scale_prev;
+        }
+        if (window_->frame_pending.buffer_scale > 1) {
+          gwl_round_int_by(&window_->frame_pending.size[i], window_->frame_pending.buffer_scale);
+        }
       }
     }
 
