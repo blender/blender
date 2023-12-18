@@ -908,6 +908,10 @@ template<class T> inline void PassBase<T>::material_set(Manager &manager, GPUMat
       /* Color Ramp */
       bind_texture(tex->sampler_name, *tex->colorband);
     }
+    else if (tex->sky) {
+      /* Sky */
+      bind_texture(tex->sampler_name, *tex->sky, tex->sampler_state);
+    }
   }
 
   GPUUniformBuf *ubo = GPU_material_uniform_buffer_get(material);
