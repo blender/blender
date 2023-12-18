@@ -381,7 +381,8 @@ static bool bone_collection_assign_poll(bContext *C)
     return false;
   }
 
-  if (ID_IS_LINKED(ob->data)) {
+  bArmature *armature = static_cast<bArmature *>(ob->data);
+  if (ID_IS_LINKED(armature) && !ID_IS_OVERRIDE_LIBRARY(armature)) {
     CTX_wm_operator_poll_msg_set(
         C, "Cannot edit bone collections on linked Armatures without override");
     return false;
