@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'274dc815eb35')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'0b00b360f7ae')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-11 11:18:04\n"
+"POT-Creation-Date: 2023-12-18 13:45:58\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -11571,6 +11571,10 @@ msgid "Component"
 msgstr "Компонента"
 
 
+msgid "Bake"
+msgstr "Испеци"
+
+
 msgid "Original"
 msgstr "Оригинал"
 
@@ -13559,9 +13563,22 @@ msgid "Reset Original Length"
 msgstr "Врати оригиналну дужину"
 
 
+msgid "Duplicate"
+msgstr "Дуплирај"
+
+
 msgctxt "Operator"
 msgid "Select Random"
 msgstr "Изабери насумично"
+
+
+msgctxt "Operator"
+msgid "Clear Tilt"
+msgstr "Очисти увртање"
+
+
+msgid "Clear the tilt of selected control points"
+msgstr "Чисти увртање изабраних контролних тачака"
 
 
 msgid "Cyclic U"
@@ -13856,15 +13873,6 @@ msgstr "Раздвој изабране тачке од неизабраних �
 
 msgid "Subdivide selected segments"
 msgstr "Издели изабране сегменте"
-
-
-msgctxt "Operator"
-msgid "Clear Tilt"
-msgstr "Очисти увртање"
-
-
-msgid "Clear the tilt of selected control points"
-msgstr "Чисти увртање изабраних контролних тачака"
 
 
 msgid "Add a new control point (linked to only selected end-curve one, if any)"
@@ -14878,10 +14886,6 @@ msgstr "Генериши мек шум (мекан прелаз)"
 
 msgid "Flat"
 msgstr "Равно"
-
-
-msgid "Duplicate"
-msgstr "Дуплирај"
 
 
 msgctxt "Operator"
@@ -18074,10 +18078,6 @@ msgstr "Испеци физику"
 
 msgid "Bake physics"
 msgstr "Пече физику"
-
-
-msgid "Bake"
-msgstr "Испеци"
 
 
 msgctxt "Operator"

@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'274dc815eb35')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'0b00b360f7ae')\n"
 "(b'0000000000000000000000000000000000000000')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-11 11:18:04\n"
+"POT-Creation-Date: 2023-12-18 13:45:58\n"
 "PO-Revision-Date: 2013-11-05 13:47+0600\n"
 "Last-Translator: Chyngyz Dzhumaliev <kyrgyzl10n@gmail.com>\n"
 "Language-Team: Kirghiz <kyrgyzl10n@gmail.com>\n"
@@ -1619,6 +1619,10 @@ msgid "Translate"
 msgstr "Жылдыруу"
 
 
+msgid "Bake"
+msgstr "Бышыруу"
+
+
 msgid "Background"
 msgstr "Фон"
 
@@ -2291,10 +2295,6 @@ msgstr "Түшүрүү"
 msgctxt "Operator"
 msgid "Refresh"
 msgstr "Жаңылоо"
-
-
-msgid "Bake"
-msgstr "Бышыруу"
 
 
 msgctxt "Operator"

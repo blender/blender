@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'274dc815eb35')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'0b00b360f7ae')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2023-12-11 11:18:04\n"
-"PO-Revision-Date: 2023-12-10 14:41+0000\n"
+"POT-Creation-Date: 2023-12-18 13:45:58\n"
+"PO-Revision-Date: 2023-12-16 01:58+0000\n"
 "Last-Translator: Duarte Ramos <duarte.framos@gmail.com>\n"
 "Language-Team: Portuguese <https://translate.blender.org/projects/blender-ui/ui/pt/>\n"
 "Language: pt\n"
@@ -3860,7 +3860,7 @@ msgstr "Parenteamento relativo"
 
 
 msgid "Object children will use relative transform, like deform"
-msgstr "Crianças do objeto irão usar a transformação relativa, como deformação."
+msgstr "Filhos do objecto irão usar a transformação relativa, como deformação"
 
 
 msgid "Scale Easing"
@@ -4024,7 +4024,7 @@ msgstr "Capacidades de escultura"
 
 
 msgid "Read-only indications of which brush operations are supported by the current sculpt tool"
-msgstr "Indicações somente-leitura de quais operações de pincel são suportadas pela ferramenta de escultura atual."
+msgstr "Indicações apenas de leitura de que operações de pincel são suportadas pela ferramenta de escultura actual"
 
 
 msgid "Has Auto Smooth"
@@ -4307,7 +4307,7 @@ msgstr "Curva de tremulação"
 
 
 msgid "Curve used for the jitter effect"
-msgstr "A curva usada para o efeito de tremulação."
+msgstr "Curva usada para o efeito de tremulação"
 
 
 msgid "Random Curve"
@@ -4331,7 +4331,7 @@ msgstr "Curva de força"
 
 
 msgid "Curve used for the strength"
-msgstr "A curva usada para a força."
+msgstr "Curva usada para a força"
 
 
 msgid "Dilate/Contract"
@@ -4351,7 +4351,7 @@ msgstr "Adiciona o efeito do pincel"
 
 
 msgid "Subtract effect of brush"
-msgstr "Subtrai o efeito do pincel."
+msgstr "Subtrair o efeito do pincel"
 
 
 msgid "Eraser Mode"
@@ -13737,6 +13737,10 @@ msgid "Cell Size"
 msgstr "Tamanho da célula"
 
 
+msgid "CFL"
+msgstr "CFL"
+
+
 msgid "Maximal velocity per cell (greater CFL numbers will minimize the number of simulation steps and the computation time.)"
 msgstr "Velocidade máxima por célula (valores CFL mais altos minimizam o número de passos da simulação e o tempo de computação)"
 
@@ -13835,6 +13839,10 @@ msgstr "Tipo de Domínio"
 
 msgid "Change domain type of the simulation"
 msgstr "Alterar o tipo de domínio da simulação"
+
+
+msgid "Gas"
+msgstr "Gás"
 
 
 msgid "Create domain for gases"
@@ -13945,20 +13953,104 @@ msgid "Cell Type"
 msgstr "Tipo de Célula"
 
 
+msgid "Cell type to be highlighted"
+msgstr "Tipo de Célula a ser Destacada"
+
+
+msgid "Highlight the cells regardless of their type"
+msgstr "Destacar células independentemente do seu tipo"
+
+
 msgid "Fluid"
 msgstr "Fluido"
+
+
+msgid "Highlight only the cells of type Fluid"
+msgstr "Destacar apenas células do tipo Fluído"
 
 
 msgid "Obstacle"
 msgstr "Obstáculo"
 
 
+msgid "Highlight only the cells of type Obstacle"
+msgstr "Destacar apenas células do tipo Obstáculo"
+
+
+msgid "Highlight only the cells of type Empty"
+msgstr "Destacar apenas células do tipo Vazio"
+
+
+msgid "Highlight only the cells of type Inflow"
+msgstr "Destacar apenas células do Admissão"
+
+
 msgid "Outflow"
 msgstr "Escoamento"
 
 
+msgid "Highlight only the cells of type Outflow"
+msgstr "Destacar apenas células do tipo Exaustão"
+
+
+msgid "Color Gridlines"
+msgstr "Colorir Grelha"
+
+
+msgid "Simulation field to color map onto gridlines"
+msgstr "Campo de simulação para mapear cores na grelha"
+
+
 msgid "Flags"
 msgstr "Etiquetas"
+
+
+msgid "Flag grid of the fluid domain"
+msgstr "Grelha de bandeiras do domínio do fluido"
+
+
+msgid "Highlight Range"
+msgstr "Realçar Alcance"
+
+
+msgid "Highlight the voxels with values of the color mapped field within the range"
+msgstr "Realçar os voxels com valores do campo mapeado por cores dentro do alcance"
+
+
+msgid "Lower Bound"
+msgstr "Limite Inferior"
+
+
+msgid "Lower bound of the highlighting range"
+msgstr "Limite inferior da distância de realce"
+
+
+msgid "Color used to highlight the range"
+msgstr "Cor usada para realçar a distância"
+
+
+msgid "Upper Bound"
+msgstr "Limite Superior"
+
+
+msgid "Upper bound of the highlighting range"
+msgstr "Limite superior da distância de realce"
+
+
+msgid "Guiding weight (higher value results in greater lag)"
+msgstr "Peso guia (valor mais alto resulta e maior atraso)"
+
+
+msgid "Guiding size (higher value results in larger vortices)"
+msgstr "Tamanho guia (valor mais alto resulta em maiores vórtices)"
+
+
+msgid "Use velocities from this object for the guiding effect (object needs to have fluid modifier and be of type domain))"
+msgstr "Usar velocidades deste objecto para o efeito guia (o objecto precisa de ter um modificador de Fluído e ser do tipo Domínio)"
+
+
+msgid "Guiding source"
+msgstr "Fonte de Guia"
 
 
 msgid "Choose where to get guiding velocities from"
@@ -14055,6 +14147,38 @@ msgstr "Factor do raio das partículas (valor mais alto resulta em malhas de par
 
 msgid "Mesh scale"
 msgstr "Escala da Malha"
+
+
+msgid "The mesh simulation is scaled up by this factor (compared to the base resolution of the domain). For best meshing, it is recommended to adjust the mesh particle radius alongside this value"
+msgstr "A escala da simulação de malha é aumentada por este factor (comparada com a resolução base do domínio). Para melhor criação de malha, recomenda-se ajustar o raio da malha de partícula em conjunto com este valor"
+
+
+msgid "Smoothen Neg"
+msgstr "Suavização Neg"
+
+
+msgid "Negative mesh smoothening"
+msgstr "Suavização de malha negativa"
+
+
+msgid "Smoothen Pos"
+msgstr "Suavização Pos"
+
+
+msgid "Positive mesh smoothening"
+msgstr "Suavização de malha positiva"
+
+
+msgid "Scale of noise (higher value results in larger vortices)"
+msgstr "Escala do ruído (valo mais alto resulta em vórtices maiores)"
+
+
+msgid "Noise Scale"
+msgstr "Escala o Ruído"
+
+
+msgid "The noise simulation is scaled up by this factor (compared to the base resolution of the domain)"
+msgstr "A escala da simulação do ruído é aumentada por este factor (comparada com a resolução base do domínio)"
 
 
 msgid "Strength of noise"
@@ -14178,8 +14302,16 @@ msgid "Change the underlying simulation method"
 msgstr "Alterar o método subjacente de simulação"
 
 
+msgid "FLIP"
+msgstr "FLIP"
+
+
 msgid "Use FLIP as the simulation method (more splashy behavior)"
 msgstr "Usar FLIP como método de simulação (comportamento com mais salpicos)"
+
+
+msgid "APIC"
+msgstr "APIC"
 
 
 msgid "Use APIC as the simulation method (more energetic and stable behavior)"
@@ -14246,12 +14378,172 @@ msgid "Amount of buoyancy force that rises bubbles (high value results in bubble
 msgstr "Quantidade de força de flutuação que eleva bolhas (valor alto resulta em movimento de bolhas maioritariamente ascendente)"
 
 
+msgid "Bubble Drag"
+msgstr "Arrasto de Bolhas"
+
+
+msgid "Amount of drag force that moves bubbles along with the fluid (high value results in bubble movement mainly along with the fluid)"
+msgstr "Quantidade de força de arrasto que move bolhas na direcção do fluido (valor alto resulta em movimento de bolhas principalmente na direcção do fluido)"
+
+
+msgid "Combined Export"
+msgstr "Exportação Combinada"
+
+
+msgid "Determines which particle systems are created from secondary particles"
+msgstr "Determina que sistemas de partículas são criados a partir das partículas secundárias"
+
+
+msgid "Create a separate particle system for every secondary particle type"
+msgstr "Criar sistema de partículas separado para cada tipo de partículas secundárias"
+
+
+msgid "Spray + Foam"
+msgstr "Aspersão + Espuma"
+
+
+msgid "Spray and foam particles are saved in the same particle system"
+msgstr "Partículas de aspersão e espuma são gravadas no mesmo sistema de partículas"
+
+
+msgid "Spray + Bubbles"
+msgstr "Aspersão + Bolhas"
+
+
+msgid "Spray and bubble particles are saved in the same particle system"
+msgstr "Partículas de aspersão e bolhas são gravadas no mesmo sistema de partículas"
+
+
+msgid "Foam + Bubbles"
+msgstr "Espuma + Bolhas"
+
+
+msgid "Foam and bubbles particles are saved in the same particle system"
+msgstr "Partículas de espuma e bolhas são gravadas no mesmo sistema de partículas"
+
+
+msgid "Spray + Foam + Bubbles"
+msgstr "Aspersão + Espuma + Bolhas"
+
+
+msgid "Create one particle system that contains all three secondary particle types"
+msgstr "Criar um sistema de partículas que contém os três tipos de partículas secondárias"
+
+
+msgid "Maximum Lifetime"
+msgstr "Longevidade Máxima"
+
+
+msgid "Highest possible particle lifetime"
+msgstr "Tempo de vida da partícula mais longo possível"
+
+
+msgid "Minimum Lifetime"
+msgstr "Longevidade Mínima"
+
+
+msgid "Lowest possible particle lifetime"
+msgstr "Tempo de vida da partícula mais curto possível"
+
+
+msgid "Maximum Kinetic Energy Potential"
+msgstr "Potencial de Energia Cinética Máximo"
+
+
+msgid "Upper clamping threshold that indicates the fluid speed where cells no longer emit more particles (higher value results in generally less particles)"
+msgstr "Limite de fixação superior que indica a velocidade do fluido à qual as células já não emitem mais partículas (valor mais alto resulta em menos partículas na generalidade)"
+
+
+msgid "Maximum Trapped Air Potential"
+msgstr "Potencial Máximo de Ar Retido"
+
+
+msgid "Upper clamping threshold for marking fluid cells where air is trapped (higher value results in less marked cells)"
+msgstr "Limite de fixação superior para marcar células de fluido onde ar fica retido (valor mais alto resulta em células menos marcadas)"
+
+
+msgid "Maximum Wave Crest Potential"
+msgstr "Potencial Máximo de Crista de Ondas"
+
+
+msgid "Upper clamping threshold for marking fluid cells as wave crests (higher value results in less marked cells)"
+msgstr "Limite de fixação superior para marcar células de fluido como cristas de onda (valor mais alto resulta em células menos marcadas)"
+
+
+msgid "Minimum Kinetic Energy Potential"
+msgstr "Potencial de Energia Cinética Mínimo"
+
+
+msgid "Lower clamping threshold that indicates the fluid speed where cells start to emit particles (lower values result in generally more particles)"
+msgstr "Limite de fixação inferior que indica a velocidade do fluido à qual células começam a emitir partículas (valor mais baixo resulta em mais partículas na generalidade)"
+
+
+msgid "Minimum Trapped Air Potential"
+msgstr "Potencial Mínimo de Ar Retido"
+
+
+msgid "Lower clamping threshold for marking fluid cells where air is trapped (lower value results in more marked cells)"
+msgstr "Limite de fixação inferior para marcar células de fluido onde ar fica retido (valor mais baixo resulta em células mais marcadas)"
+
+
+msgid "Minimum Wave Crest Potential"
+msgstr "Potencial Mínimo de Crista de Ondas"
+
+
+msgid "Lower clamping threshold for marking fluid cells as wave crests (lower value results in more marked cells)"
+msgstr "Limite de fixação inferior para marcar células de fluido como cristas de onda (valor mais baixo resulta em células mais marcadas)"
+
+
+msgid "Potential Radius"
+msgstr "Raio de Potencial"
+
+
+msgid "Radius to compute potential for each cell (higher values are slower but create smoother potential grids)"
+msgstr "Raio para computar potencial para cada célula (valores mais altos são mais lentos mas criam grelhas de potencial mais suaves)"
+
+
+msgid "Trapped Air Sampling"
+msgstr "Amostragem de Ar Retido"
+
+
+msgid "Maximum number of particles generated per trapped air cell per frame"
+msgstr "Número máximo de partículas geradas por célula de ar retido por fotograma"
+
+
+msgid "Wave Crest Sampling"
+msgstr "Amostragem de Crista de Onda"
+
+
+msgid "Maximum number of particles generated per wave crest cell per frame"
+msgstr "Número máximo de partículas geradas por célula de ar crista de onda por fotograma"
+
+
+msgid "Update Radius"
+msgstr "Raio Superior"
+
+
+msgid "Radius to compute position update for each particle (higher values are slower but particles move less chaotic)"
+msgstr "Raio para calcular actualização de posição para cada partícula (valores mais altos são mais lentos mas o movimento de partículas é menos caotico)"
+
+
 msgid "p0"
 msgstr "Ponto inicial"
 
 
 msgid "Start point"
 msgstr "Ponto de início."
+
+
+msgid "Tension"
+msgstr "Tensão"
+
+
+msgid "Surface tension of liquid (higher value results in greater hydrophobic behavior)"
+msgstr "Tensão superficial do líquido (valor mais alto resulta em comportamento hidrofóbico mais acentuado)"
+
+
+msgid "System Maximum"
+msgstr "Máximo do Sistema"
 
 
 msgid "Time Scale"
@@ -25474,10 +25766,6 @@ msgid "Channel"
 msgstr "Canal"
 
 
-msgid "Dope Sheet Channel"
-msgstr "Canal da tabela de animação"
-
-
 msgid "Snap"
 msgstr "Atrair"
 
@@ -32021,6 +32309,10 @@ msgid "Component"
 msgstr "Componente"
 
 
+msgid "Bake"
+msgstr "Gerar e gravar"
+
+
 msgid "Original"
 msgstr "Original"
 
@@ -32774,6 +33066,10 @@ msgid "Value to Normal"
 msgstr "Valor para as normais"
 
 
+msgid "Socket Type"
+msgstr "Tipo de conexão"
+
+
 msgid "Node Inputs"
 msgstr "Entradas de nós"
 
@@ -33012,10 +33308,6 @@ msgstr "Conector de nó virtual"
 
 msgid "Virtual socket of a node"
 msgstr "O conector virtual de um nó."
-
-
-msgid "Socket Type"
-msgstr "Tipo de conexão"
 
 
 msgid "Boolean Node Socket Interface"
@@ -36150,6 +36442,14 @@ msgid "Reset original length of bone for Stretch To Constraint"
 msgstr "Redefine o comprimento original do osso para a restrição \"Esticar para\"."
 
 
+msgid "Error distance threshold (in object units)"
+msgstr "Ajuste para erros de distanciamento (em unidades de objeto). "
+
+
+msgid "Duplicate"
+msgstr "Duplicar"
+
+
 msgid "(De)select all control points"
 msgstr "(De)seleciona todos os pontos de controlo."
 
@@ -36157,6 +36457,15 @@ msgstr "(De)seleciona todos os pontos de controlo."
 msgctxt "Operator"
 msgid "Select Random"
 msgstr "Selecionar aleatoriamente"
+
+
+msgctxt "Operator"
+msgid "Clear Tilt"
+msgstr "Limpar inclinação"
+
+
+msgid "Clear the tilt of selected control points"
+msgstr "Limpa a inclinação dos pontos de controlo selecionados."
 
 
 msgctxt "Operator"
@@ -36222,10 +36531,6 @@ msgstr "Desenhar curva"
 
 msgid "Draw a freehand spline"
 msgstr "Permite o desenho de curvas do tipo spline a mão livre."
-
-
-msgid "Error distance threshold (in object units)"
-msgstr "Ajuste para erros de distanciamento (em unidades de objeto). "
 
 
 msgctxt "Operator"
@@ -36604,15 +36909,6 @@ msgstr "Subdivide os segmentos selecionados."
 
 msgid "Switch direction of selected splines"
 msgstr "Inverte a direção das Splines selecionadas."
-
-
-msgctxt "Operator"
-msgid "Clear Tilt"
-msgstr "Limpar inclinação"
-
-
-msgid "Clear the tilt of selected control points"
-msgstr "Limpa a inclinação dos pontos de controlo selecionados."
 
 
 msgid "Add a new control point (linked to only selected end-curve one, if any)"
@@ -38970,10 +39266,6 @@ msgstr "Alterna o pincel para o modo suave através da duração do traço."
 
 msgid "Flat"
 msgstr "Achatar"
-
-
-msgid "Duplicate"
-msgstr "Duplicar"
 
 
 msgctxt "Operator"
@@ -46281,10 +46573,6 @@ msgstr "Gerar e gravar físicas"
 
 msgid "Bake physics"
 msgstr "Gera e grava as físicas."
-
-
-msgid "Bake"
-msgstr "Gerar e gravar"
 
 
 msgctxt "Operator"
@@ -60610,6 +60898,10 @@ msgstr "Grupo de canal"
 
 msgid "Channels Selected"
 msgstr "Canais selecionados"
+
+
+msgid "Dope Sheet Channel"
+msgstr "Canal da tabela de animação"
 
 
 msgid "Color of Keyframe"

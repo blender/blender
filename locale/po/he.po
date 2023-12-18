@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'274dc815eb35')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'0b00b360f7ae')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-11 11:18:04\n"
+"POT-Creation-Date: 2023-12-18 13:45:58\n"
 "PO-Revision-Date: 2023-10-06 09:54+0000\n"
 "Last-Translator: Eitan Traurig <eitant13@gmail.com>\n"
 "Language-Team: Hebrew <https://translate.blender.org/projects/blender-ui/ui/he/>\n"
@@ -1141,16 +1141,16 @@ msgid "Image 2"
 msgstr "2 הנומת"
 
 
-msgid "Std Dev"
-msgstr "ןקת תייטס"
-
-
 msgid "Path:"
 msgstr ":ביתנ"
 
 
 msgid "Add Input"
 msgstr "טלק ףסוה"
+
+
+msgid "Std Dev"
+msgstr "ןקת תייטס"
 
 
 msgctxt "NodeTree"

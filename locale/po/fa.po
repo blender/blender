@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'274dc815eb35')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'0b00b360f7ae')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-11 11:18:04\n"
+"POT-Creation-Date: 2023-12-18 13:45:58\n"
 "PO-Revision-Date: 2023-11-30 20:00+0000\n"
 "Last-Translator: \"M. Amin Taheri\" <amintaheri2001@gmail.com>\n"
 "Language-Team: Persian <https://translate.blender.org/projects/blender-ui/ui/fa/>\n"
@@ -3569,6 +3569,10 @@ msgid "Rotation to Euler"
 msgstr "ﺮﻟﻭﺍ ﻪﺑ ﺶﺧﺮﭼ"
 
 
+msgid "Bake"
+msgstr "ﻦﺘﺨﭘ"
+
+
 msgid "Original"
 msgstr "ﯽﻠﺻﺍ"
 
@@ -4190,10 +4194,6 @@ msgstr "ﻥﺯﻭ ﻦﯿﯿﻌﺗ"
 msgctxt "Operator"
 msgid "Copy Pose"
 msgstr "ﺖﺳﮊ ﯽﭙﮐ"
-
-
-msgid "Bake"
-msgstr "ﻦﺘﺨﭘ"
 
 
 msgctxt "Operator"

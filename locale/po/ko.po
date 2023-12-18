@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'274dc815eb35')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'0b00b360f7ae')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-11 11:18:04\n"
+"POT-Creation-Date: 2023-12-18 13:45:58\n"
 "PO-Revision-Date: 2023-11-14 19:14+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -25942,10 +25942,6 @@ msgid "Channel"
 msgstr "채널"
 
 
-msgid "Dope Sheet Channel"
-msgstr "도프시트 채널"
-
-
 msgid "Snap"
 msgstr "스냅"
 
@@ -33555,6 +33551,10 @@ msgid "Component"
 msgstr "구성 요소"
 
 
+msgid "Bake"
+msgstr "베이크"
+
+
 msgid "Original"
 msgstr "원본"
 
@@ -34580,6 +34580,10 @@ msgid "Value to Normal"
 msgstr "값을 노멀로 변환"
 
 
+msgid "Socket Type"
+msgstr "소켓 유형"
+
+
 msgid "Node Inputs"
 msgstr "노드 입력"
 
@@ -34838,10 +34842,6 @@ msgstr "가상 노드 소켓"
 
 msgid "Virtual socket of a node"
 msgstr "노드의 가상 소켓"
-
-
-msgid "Socket Type"
-msgstr "소켓 유형"
 
 
 msgid "Boolean Node Socket Interface"
@@ -38315,6 +38315,14 @@ msgid "Reset original length of bone for Stretch To Constraint"
 msgstr "제약으로 늘이기에 대해 본의 원본 길이를 재설정"
 
 
+msgid "Error distance threshold (in object units)"
+msgstr "오류 거리 임계 값 (오브젝트 단위로)"
+
+
+msgid "Duplicate"
+msgstr "복제"
+
+
 msgid "(De)select all control points"
 msgstr "모든 컨트롤 포인트를 선택(취소)"
 
@@ -38322,6 +38330,15 @@ msgstr "모든 컨트롤 포인트를 선택(취소)"
 msgctxt "Operator"
 msgid "Select Random"
 msgstr "랜덤 선택"
+
+
+msgctxt "Operator"
+msgid "Clear Tilt"
+msgstr "기울기를 지우기"
+
+
+msgid "Clear the tilt of selected control points"
+msgstr "선택된 컨트롤 포인트의 기울기를 지우기"
 
 
 msgctxt "Operator"
@@ -38396,10 +38413,6 @@ msgstr "커브를 그리기"
 
 msgid "Draw a freehand spline"
 msgstr "자유형 스플라인을 그리기"
-
-
-msgid "Error distance threshold (in object units)"
-msgstr "오류 거리 임계 값 (오브젝트 단위로)"
 
 
 msgctxt "Operator"
@@ -38842,15 +38855,6 @@ msgstr "선택된 부분을 섭디비젼"
 
 msgid "Switch direction of selected splines"
 msgstr "선택된 스플라인의 방향을 전환"
-
-
-msgctxt "Operator"
-msgid "Clear Tilt"
-msgstr "기울기를 지우기"
-
-
-msgid "Clear the tilt of selected control points"
-msgstr "선택된 컨트롤 포인트의 기울기를 지우기"
 
 
 msgid "Add a new control point (linked to only selected end-curve one, if any)"
@@ -42283,10 +42287,6 @@ msgstr "스트로크의 지속에 대해 스무스 모드로 브러시를 전환
 
 msgid "Flat"
 msgstr "플랫"
-
-
-msgid "Duplicate"
-msgstr "복제"
 
 
 msgctxt "Operator"
@@ -51654,10 +51654,6 @@ msgstr "피직스를 베이크"
 
 msgid "Bake physics"
 msgstr "피직스를 베이크"
-
-
-msgid "Bake"
-msgstr "베이크"
 
 
 msgctxt "Operator"
@@ -70309,22 +70305,6 @@ msgid "Studio light image file has separate \"diffuse\" and \"specular\" passes"
 msgstr "스튜디오 라이트 이미지 파일에는 별도의 \"확산\"및 \"반사\" 패스가 있습니다"
 
 
-msgid "Irradiance Cache Path"
-msgstr "방사 조도 캐시 경로"
-
-
-msgid "Path where the irradiance cache is stored"
-msgstr "방사 조도 캐시가 저장된 경로"
-
-
-msgid "SH Cache Path"
-msgstr "SH 캐시 경로"
-
-
-msgid "Path where the spherical harmonics cache is stored"
-msgstr "구형 고조파 캐시가 저장된 경로"
-
-
 msgid "Lights user to display objects in solid draw mode"
 msgstr "솔리드 그리기 모드에서 오브젝트를 표시하는 사용자 라이트"
 
@@ -70967,6 +70947,10 @@ msgstr "채널 그룹"
 
 msgid "Channels Selected"
 msgstr "채널 선택됨"
+
+
+msgid "Dope Sheet Channel"
+msgstr "도프시트 채널"
 
 
 msgid "Interpolation Line"

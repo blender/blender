@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'274dc815eb35')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'0b00b360f7ae')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-11 11:18:04\n"
+"POT-Creation-Date: 2023-12-18 13:45:58\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -10410,6 +10410,22 @@ msgid "Outer Mask"
 msgstr "Ulkomaski"
 
 
+msgid "Path:"
+msgstr "Polku:"
+
+
+msgid "Base Path:"
+msgstr "Peruspolku:"
+
+
+msgid "Add Input"
+msgstr "Lisää syöte"
+
+
+msgid "Format:"
+msgstr "Formaatti:"
+
+
 msgid "From Min"
 msgstr "Minimistä"
 
@@ -10432,22 +10448,6 @@ msgstr "Y-siirros"
 
 msgid "Dot"
 msgstr "Piste"
-
-
-msgid "Path:"
-msgstr "Polku:"
-
-
-msgid "Base Path:"
-msgstr "Peruspolku:"
-
-
-msgid "Add Input"
-msgstr "Lisää syöte"
-
-
-msgid "Format:"
-msgstr "Formaatti:"
 
 
 msgid "Degr"

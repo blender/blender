@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'274dc815eb35')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'0b00b360f7ae')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-11 11:18:04\n"
-"PO-Revision-Date: 2023-12-09 16:14+0000\n"
+"POT-Creation-Date: 2023-12-18 13:45:58\n"
+"PO-Revision-Date: 2023-12-15 13:02+0000\n"
 "Last-Translator: Hoang Duy Tran <hoangduytran1960@googlemail.com>\n"
 "Language-Team: Vietnamese <https://translate.blender.org/projects/blender-ui/ui/vi/>\n"
 "Language: vi\n"
@@ -632,7 +632,7 @@ msgstr "Đường Chuyển Động"
 
 
 msgid "Motion Path settings for visualization"
-msgstr "Sắp đặt của Đường Chuyển Động trong việc diễn họa"
+msgstr "Những sắp đặt của Đường Chuyển Động cho diễn họa"
 
 
 msgid "Motion Path Settings"
@@ -640,7 +640,7 @@ msgstr "Sắp Đặt Đường Chuyển Động"
 
 
 msgid "Motion Path settings for animation visualization"
-msgstr "Sắp đặt Đường Chuyển Động cho quá trình diễn họa hoạt họa"
+msgstr "Những sắp đặt của Đường Chuyển Động cho quá trình diễn họa hoạt họa"
 
 
 msgid "Bake Location"
@@ -960,7 +960,7 @@ msgstr "Thanh Đỉnh"
 
 
 msgid "Global bar at the top of the screen for global per-window settings"
-msgstr "Thanh trên đỉnh của màn hình trong sắp đặt toàn cầu của từng cửa sổ"
+msgstr "Thanh toàn cầu trên đỉnh của màn hình cho các sắp đặt toàn cầu của từng cửa sổ"
 
 
 msgid "Status Bar"
@@ -1245,7 +1245,7 @@ msgstr "Đường Cong"
 
 msgctxt "ID"
 msgid "Curves"
-msgstr "Đường Cong"
+msgstr "Các Đường Cong"
 
 
 msgctxt "ID"
@@ -1256,6 +1256,11 @@ msgstr "Phông"
 msgctxt "ID"
 msgid "Grease Pencil"
 msgstr "Bút Chì Dầu"
+
+
+msgctxt "ID"
+msgid "Grease Pencil v3"
+msgstr "Bút Chì Dầu v3"
 
 
 msgctxt "ID"
@@ -1354,6 +1359,11 @@ msgstr "Cảnh"
 
 
 msgctxt "ID"
+msgid "Screen"
+msgstr "Màn Hình"
+
+
+msgctxt "ID"
 msgid "Sound"
 msgstr "Âm Thanh"
 
@@ -1425,12 +1435,24 @@ msgid "All"
 msgstr "Toàn Bộ"
 
 
+msgid "Show assets from all of the listed asset libraries"
+msgstr "Hiển thị các tài sản từ toàn bộ các thư viện tài sản được liệt kê"
+
+
 msgid "Current File"
 msgstr "Tập tin hiện tại"
 
 
+msgid "Show the assets currently available in this Blender session"
+msgstr "Hiển thị các tài sản hiện có trong phiên sử dụng Blender này"
+
+
 msgid "Essentials"
 msgstr "Cốt Yếu"
+
+
+msgid "Show the basic building blocks and utilities coming with Blender"
+msgstr "Hiển thị các khối xây dựng cơ bản và các tiện ích đi kèm với Blender"
 
 
 msgid "Custom"
@@ -1511,6 +1533,14 @@ msgstr "Dấu Nhãn Tài Sản"
 
 msgid "Collection of custom asset tags"
 msgstr "Bộ sưu tập bộ dấu nhãn tài sản tùy chỉnh"
+
+
+msgid "Asset Weak Reference"
+msgstr "Tham Chiếu Yếu tới Tài Sản"
+
+
+msgid "Weak reference to some asset"
+msgstr "Tham chiếu yếu đến một số tài sản"
 
 
 msgid "Geometry attribute"
@@ -1667,6 +1697,10 @@ msgstr "Thuộc tính về thực thể"
 
 msgid "Layer"
 msgstr "Tầng Lớp"
+
+
+msgid "Attribute on Grease Pencil layer"
+msgstr "Thuộc tính trên tầng lớp Bút Chì Dầu"
 
 
 msgid "Is Internal"
@@ -2351,6 +2385,14 @@ msgstr "Bút Chì Dầu"
 
 msgid "Grease Pencil data-blocks"
 msgstr "Khối dữ liệu của Bút Chì Dầu"
+
+
+msgid "Grease Pencil v3"
+msgstr "Bút Chì Dầu v3"
+
+
+msgid "Grease Pencil v3 data-blocks"
+msgstr "Khối dữ liệu Bút Chì Dầu v3"
 
 
 msgid "Hair Curves"
@@ -3074,7 +3116,7 @@ msgstr "Tránh va đập với quần thể khác"
 
 
 msgid "Deflectors"
-msgstr "Vật Làm Lệch Hướng"
+msgstr "Vật Đi Lệch"
 
 
 msgid "Avoid collision with deflector objects"
@@ -3873,6 +3915,10 @@ msgstr "Bộ sưu tập xương trong khối dữ liệu của Khung Cốt"
 
 msgid "Bones"
 msgstr "Xương"
+
+
+msgid "Bones assigned to this bone collection. In armature edit mode this will always return an empty list of bones, as the bone collection memberships are only synchronized when exiting edit mode"
+msgstr "Xương vốn được ấn định cho bộ sưu tập xương này. Trong chế độ chỉnh sửa khung cốt, việc làm này sẽ luôn trả về một danh sách xương trống rỗng, vì tư cách thành viên của bộ sưu tập xương chỉ được phép đồng bộ hóa khi thoát khỏi chế độ chỉnh sửa mà thôi"
 
 
 msgid "Is Editable"
@@ -6494,6 +6540,10 @@ msgid "High Dynamic Range"
 msgstr "Dải Động Cao"
 
 
+msgid "Enable high dynamic range display in rendered viewport, uncapping display brightness. This requires a monitor with HDR support and a view transform designed for HDR. 'Filmic' and 'AgX' do not generate HDR colors"
+msgstr "Bật hiển thị dải động cao trong cổng chiếu kết xuất, không giới hạn độ sáng màn hình. Việc làm này đòi hỏi màn hình phải hỗ trợ HDR và biến hóa góc nhìn phải được thiết kế cho HDR. 'Filmic' và 'AgX' sẽ không tạo ra màu HDR đâu nhé"
+
+
 msgid "View Transform"
 msgstr "Góc Nhìn Biến Hóa"
 
@@ -7112,7 +7162,7 @@ msgstr "Co-Bọc"
 
 
 msgid "Restrict movements to surface of target mesh"
-msgstr "Hạn chế chỉ được chuyển động ở trên mặt của khung lưới mục tiêu"
+msgstr "Hạn chế chỉ được chuyển động ở trên bề mặt của khung lưới mục tiêu"
 
 
 msgid "Action Constraint"
@@ -7912,7 +7962,7 @@ msgstr "Đối Tượng định Độ Sâu"
 
 
 msgid "Object used to define depth in camera space by projecting onto surface of this object"
-msgstr "Đối tượng dùng để xác định độ sâu trong không gian của máy quay phim bằng cách phóng chiếu lên mặt của đối tượng này"
+msgstr "Đối tượng dùng để xác định độ sâu trong không gian của máy quay phim bằng cách phóng chiếu lên bề mặt của đối tượng này"
 
 
 msgid "How the footage fits in the camera frame"
@@ -8004,7 +8054,7 @@ msgstr "Trên Bề Mặt"
 
 
 msgid "The object is constrained on the surface of a virtual sphere around the target object, with a radius defined by the limit distance"
-msgstr "Đối tượng bị ràng buộc trên mặt của một hình cầu ảo bao quanh đối tượng mục tiêu, với bán kính được xác định bằng khoảng cách hạn chế"
+msgstr "Đối tượng bị ràng buộc trên bề mặt của một hình cầu ảo bao quanh đối tượng mục tiêu, với bán kính được xác định bằng khoảng cách hạn chế"
 
 
 msgid "Lock X Pos"
@@ -10431,11 +10481,11 @@ msgstr "Các Cài Đặt của đầu bút"
 
 
 msgid "Inner Proximity"
-msgstr "Vùng Lân Cận Nội Tại"
+msgstr "Cận Độ Bên Trong"
 
 
 msgid "Proximity falloff is applied inside the volume"
-msgstr "Độ nhòe mờ lân cận được áp dụng bên trong khối thể tích"
+msgstr "Suy giảm dần do cận độ được áp dụng bên trong khối thể tích"
 
 
 msgid "Paint Alpha"
@@ -10455,11 +10505,11 @@ msgstr "Màu sắc của nước sơn"
 
 
 msgid "Proximity Distance"
-msgstr "Khoảng Cách Vùng Lân Cận"
+msgstr "Khoảng Cách Cận Độ"
 
 
 msgid "Maximum distance from brush to mesh surface to affect paint"
-msgstr "Khoảng cách tối đa từ đầu bút tới mặt khung lưới để tác động sơn"
+msgstr "Khoảng cách tối đa từ đầu bút tới bề mặt khung lưới để tác động sơn"
 
 
 msgid "Paint Color Ramp"
@@ -10467,7 +10517,7 @@ msgstr "Dốc Màu của Sơn"
 
 
 msgid "Color ramp used to define proximity falloff"
-msgstr "Dốc màu dùng để xác định độ nhòe mờ lân cận"
+msgstr "Dốc màu dùng để xác định suy giảm dần theo mức cận độ"
 
 
 msgid "Paint Source"
@@ -10479,11 +10529,11 @@ msgstr "Tâm Đối Tượng"
 
 
 msgid "Proximity"
-msgstr "Vùng Lân Cận"
+msgstr "Mức Cận Độ"
 
 
 msgid "Mesh Volume + Proximity"
-msgstr "Thể Tích Khung Lưới + Vùng Lân Cận"
+msgstr "Thể Tích Khung Lưới + Mức Cận Độ"
 
 
 msgid "Mesh Volume"
@@ -10555,7 +10605,7 @@ msgstr "Bán Kính Làm Mịn"
 
 
 msgid "Smooth falloff added after solid radius"
-msgstr "Độ nhòe mờ mịn màng dần dần được thêm vào sau bán kính đặc"
+msgstr "Suy giảm dần mịn màng được thêm vào sau bán kính đặc"
 
 
 msgid "Smudge Strength"
@@ -10607,7 +10657,7 @@ msgstr "Sử dụng bán kính từ những sắp đặt của hạt"
 
 
 msgid "Brush is projected to canvas from defined direction within brush proximity"
-msgstr "Đầu bút được phóng chiếu tới khung vẽ với hướng đã định nội trong khoảng lân cận của đầu bút"
+msgstr "Đầu bút được phóng chiếu tới khung vẽ từ hướng đã định nội trong vùng lân cận đầu bút"
 
 
 msgid "Only Use Alpha"
@@ -10716,7 +10766,7 @@ msgstr "Sắp đặt của mặt khung vẽ Sơn Động Lực"
 
 
 msgid "Paint Surface List"
-msgstr "Danh Sách Mặt Sơn"
+msgstr "Danh Sách Bề Mặt Sơn"
 
 
 msgid "Paint surface list"
@@ -10744,7 +10794,7 @@ msgstr "Tỷ Lệ Ảnh Hưởng"
 
 
 msgid "Adjust influence brush objects have on this surface"
-msgstr "Điều chỉnh ảnh hưởng của các đối tượng đầu bút trên mặt này"
+msgstr "Điều chỉnh ảnh hưởng của các đối tượng đầu bút trên bề mặt này"
 
 
 msgid "Radius Scale"
@@ -10752,7 +10802,7 @@ msgstr "Tỷ Lệ Bán Kính"
 
 
 msgid "Adjust radius of proximity brushes or particles for this surface"
-msgstr "Điều chỉnh bán kính của các hạt hoặc các đầu bút lân cận đối với mặt này"
+msgstr "Điều chỉnh bán kính của các hạt hoặc các đầu bút lân cận đối với bề mặt này"
 
 
 msgid "Color Dry"
@@ -10936,7 +10986,7 @@ msgstr "Tốc Độ Thu Nhỏ"
 
 
 msgid "How fast shrink effect moves on the canvas surface"
-msgstr "Tốc độ hiệu ứng co lại di chuyển trên mặt khung vẽ"
+msgstr "Tốc độ hiệu ứng co lại di chuyển trên bề mặt khung vẽ"
 
 
 msgid "Spread Speed"
@@ -10944,7 +10994,7 @@ msgstr "Tốc Độ Lan Tỏa"
 
 
 msgid "How fast spread effect moves on the canvas surface"
-msgstr "Tốc độ di chuyển của hiệu ứng lan tỏa trên mặt khung vẽ"
+msgstr "Tốc độ di chuyển của hiệu ứng lan tỏa trên bề mặt khung vẽ"
 
 
 msgid "Format"
@@ -11673,7 +11723,7 @@ msgstr "Bộ Mã/Giải Hóa Video"
 
 
 msgid "FFmpeg codec to use for video output"
-msgstr "Bộ mã/giải hóa FFmpeg để sản xuất video"
+msgstr "Bộ hóa/giải mã FFmpeg để sản xuất video"
 
 
 msgid "No Video"
@@ -12525,7 +12575,7 @@ msgstr "Không"
 
 msgctxt "ParticleSettings"
 msgid "Braid"
-msgstr "Tết Bện"
+msgstr "Bím Tóc"
 
 
 msgctxt "ParticleSettings"
@@ -17408,7 +17458,7 @@ msgstr "Đặt tỷ lệ phần trăm xây dựng thủ công"
 
 
 msgid "Transition"
-msgstr "Chuyển Cảnh/Tiếp"
+msgstr "Chuyển Cảnh"
 
 
 msgid "How are strokes animated (i.e. are they appearing or disappearing)"
@@ -19173,6 +19223,34 @@ msgid "Grid scale"
 msgstr "Tỷ lệ khung lưới đồ thị"
 
 
+msgid "Collection of related drawings"
+msgstr "Bộ sưu tập các bản vẽ liên quan"
+
+
+msgid "Set layer visibility"
+msgstr "Đặt mức độ hiển thị của tầng lớp"
+
+
+msgid "Grease Pencil Layer Group"
+msgstr "Nhóm Tầng Lớp Bút Chì Dầu"
+
+
+msgid "Group of Grease Pencil layers"
+msgstr "Nhóm các Tầng Lớp Bút Chì Dầu"
+
+
+msgid "Set layer group visibility"
+msgstr "Đặt mức độ hiển thị của nhóm tầng lớp"
+
+
+msgid "Protect group from further editing and/or frame changes"
+msgstr "Bảo vệ nhóm khỏi quá trình chỉnh sửa thêm và/hoặc các thay đổi khung hình"
+
+
+msgid "Group name"
+msgstr "Tên nhóm"
+
+
 msgid "Grease Pencil Layers"
 msgstr "Các Tầng Lớp Bút Chì Dầu"
 
@@ -19215,6 +19293,10 @@ msgstr "Chỉ Số của Tầng Chắn Lọc đang Hoạt Động"
 
 msgid "Active index in layer mask array"
 msgstr "Chỉ số đang hoạt động trong mảng về tầng chắn lọc"
+
+
+msgid "Collection of Grease Pencil layers"
+msgstr "Bộ sưu tập các tầng lớp Bút Chì Dầu"
 
 
 msgid "Active Grease Pencil layer"
@@ -19283,6 +19365,10 @@ msgstr "Loại cơ sở cho khối dữ liệu, định nghĩa một tên duy nh
 
 msgid "Additional data for an asset data-block"
 msgstr "Dữ liệu bổ sung cho một khối dữ liệu tài sản"
+
+
+msgid "Type identifier of this data-block"
+msgstr "Kiểu định danh của khối dữ liệu này"
 
 
 msgid "Brush"
@@ -19415,6 +19501,10 @@ msgstr "Tham Chiếu Yếu của Thư viện"
 
 msgid "Weak reference to a data-block in another library .blend file (used to re-use already appended data instead of appending new copies)"
 msgstr "Tham chiếu yếu đến khối dữ liệu trong một tập tin .blend ở một thư viện khác (dùng để tái dụng dữ liệu đã được chèn thêm vào, thay vì việc chồng chất thêm bằng các bản sao mới)"
+
+
+msgid "Unique data-block ID name (within a same type and library)"
+msgstr "Tên ID khối dữ liệu độc nhất (nội trong cùng một thể loại và thư viện)"
 
 
 msgid "Full Name"
@@ -19651,11 +19741,11 @@ msgstr "Vị trí khởi đầu của các đường quan hệ từ xương ph�
 
 
 msgid "Draw the relationship line from the parent tail to the child head"
-msgstr "Vẽ đường quan hệ từ đuôi phụ huynh đến đầu con cái"
+msgstr "Vẽ đường biểu thị mối quan hệ từ đuôi phụ huynh đến đầu con cái"
 
 
 msgid "Draw the relationship line from the parent head to the child head"
-msgstr "Vẽ đường quan hệ từ đầu phụ huynh đến đầu con cái"
+msgstr "Vẽ đường biểu thị mối quan hệ từ đầu phụ huynh đến đầu con cái"
 
 
 msgid "Display Axes"
@@ -24008,6 +24098,18 @@ msgid "Grease Pencil data-block"
 msgstr "Khối dữ liệu Bút Chì Dầu"
 
 
+msgid "Layer Groups"
+msgstr "Nhóm Tầng Lớp"
+
+
+msgid "Grease Pencil layer groups"
+msgstr "Các nhóm tầng lớp bút chì dầu"
+
+
+msgid "Grease Pencil layers"
+msgstr "Các tầng lớp Bút Chì Dầu"
+
+
 msgid "Image data-block referencing an external or packed image"
 msgstr "Khối dữ liệu hình ảnh tham chiếu một hình ảnh bên ngoài hay hình ảnh đóng gói"
 
@@ -24959,6 +25061,14 @@ msgid "Probe clip start, below which objects will not appear in reflections"
 msgstr "Điểm khởi đầu sự thăm dò ánh sáng. Những đối tượng nằm dưới điểm này sẽ không xuất hiện trong ánh phản quang"
 
 
+msgid "Display Data Size"
+msgstr "Hiển Thị Kích Thước Dữ Liệu"
+
+
+msgid "Viewport display size of the sampled data"
+msgstr "Kích thước hiển thị khung nhìn của dữ liệu đã lấy mẫu"
+
+
 msgid "Control how fast the probe influence decreases"
 msgstr "Điều chế tốc độ suy giảm của sự thăm dò ánh sáng"
 
@@ -25143,6 +25253,14 @@ msgid "Show the clipping distances in the 3D view"
 msgstr "Hiển thị các khoảng cách tầm nhìn trong khung nhìn 3D"
 
 
+msgid "Display Data (Deprecated)"
+msgstr "Hiển Thị Dữ Liệu (Lỗi Thời)"
+
+
+msgid "Deprecated, use use_data_display instead"
+msgstr "Không dùng nữa, thay vào đó sử dụng use_data_display nhé"
+
+
 msgid "Show the influence volume in the 3D view"
 msgstr "Hiển thị thể tích ảnh hưởng trong khung nhìn 3D"
 
@@ -25167,12 +25285,32 @@ msgid "Type of light probe"
 msgstr "Thể loại bộ thăm dò ánh sáng"
 
 
+msgid "Light probe that captures precise lighting from all directions at a single point in space"
+msgstr "Đầu dò ánh sáng nắm bắt ánh sáng chính xác từ mọi hướng tại một điểm duy nhất trong không gian"
+
+
+msgid "Light probe that captures incoming light from a single direction on a plane"
+msgstr "Đầu dò ánh sáng nắm bắt ánh sáng tiến vào từ một hướng duy nhất trên một bề diện"
+
+
+msgid "Light probe that captures low frequency lighting inside a volume"
+msgstr "Đầu dò ánh sáng nắm bắt ánh sáng tần số thấp bên trong một thể tích"
+
+
 msgid "Use Custom Parallax"
 msgstr "Sử Dụng Thị Sai Tùy Chỉnh"
 
 
 msgid "Enable custom settings for the parallax correction volume"
 msgstr "Cho phép những sắp đặt tùy chỉnh đối với thể tích sửa thị sai"
+
+
+msgid "Display Data"
+msgstr "Hiển Thị Dữ Liệu"
+
+
+msgid "Display sampled data in the viewport to debug captured light"
+msgstr "Hiển thị dữ liệu đã lấy mẫu trong khung nhìn để điều tra gỡ lỗi ánh sáng đã nắm bắt"
 
 
 msgid "Visibility Bleed Bias"
@@ -25348,6 +25486,14 @@ msgid "True if this material has grease pencil data"
 msgstr "Đúng (True) nếu nguyên vật liệu này có dữ liệu Bút Chì Dầu"
 
 
+msgid "Light Probe Volume Single Sided"
+msgstr "Đầu Dò Ánh Sáng Thể Tích Đơn Mặt"
+
+
+msgid "Consider material single sided for light probe volume capture. Additionally helps rejecting probes inside the object to avoid light leaks"
+msgstr "Xem xét nguyên vật liệu đơn mặt cho quá trình nắm bắt đầu dò ánh sáng thể tích. Ngoài ra còn giúp việc loại bỏ các đầu dò bên trong vật thể để tránh những rò rỉ về ánh sáng"
+
+
 msgid "Line Color"
 msgstr "Màu của Đường Nét"
 
@@ -25370,6 +25516,14 @@ msgstr "Cài Đặt về Mỹ Thuật Đường Nét"
 
 msgid "Line art settings for material"
 msgstr "Cài đặt về Mỹ Thuật Đường Nét cho nguyên vật liệu"
+
+
+msgid "Max Vertex Displacement"
+msgstr "Dịch Hình Điểm Đỉnh Tối Đa"
+
+
+msgid "The max distance a vertex can be displaced. Displacements over this threshold may cause visibility issues"
+msgstr "Khoảng cách tối đa mà một điểm đỉnh có thể dịch hình được. Sự dịch hình vượt quá ngưỡng này có thể gây ra các vấn đề về tầm nhìn"
 
 
 msgid "Metallic"
@@ -25540,6 +25694,30 @@ msgid "How intense (bright) the specular reflection is"
 msgstr "Cường độ (độ sáng) của phản xạ lóng lánh"
 
 
+msgid "Surface Render Method"
+msgstr "Phương Pháp Kết Xuất Bề Mặt"
+
+
+msgid "Controls the blending and the compatibility with certain features"
+msgstr "Điều khiển sự pha trộn và khả năng tương thích với các tính năng nhất định"
+
+
+msgid "Dithered"
+msgstr "Phối Màu"
+
+
+msgid "Allows for grayscale hashed transparency, and compatible with render passes and raytracing. Also known as deferred rendering"
+msgstr "Cho phép độ trong suốt được băm theo thang độ xám và tương thích với các đường truyền kết xuất và dò tia. Còn được gọi là kết xuất bị trì hoãn"
+
+
+msgid "Blended"
+msgstr "Pha Trộn"
+
+
+msgid "Allows for colored transparency, but incompatible with render passes and raytracing. Also known as forward rendering"
+msgstr "Cho phép độ trong suốt của màu, nhưng không tương thích với các đường truyền kết xuất và dò tia. Còn được gọi là hiển thị chuyển tiếp"
+
+
 msgid "Texture Slot Images"
 msgstr "Hình Ảnh trong Khe Chất Liệu"
 
@@ -25560,6 +25738,14 @@ msgid "Use back face culling to hide the back side of faces"
 msgstr "Dùng phương pháp loại trừ mặt trái để giấu các mặt trái của các Mặt"
 
 
+msgid "Shadow Backface Culling"
+msgstr "Loại Bỏ Mặt Sau của Bóng Tối"
+
+
+msgid "Use back face culling when casting shadows"
+msgstr "Sử dụng tính năng loại bỏ mặt sau khi tạo bóng"
+
+
 msgid "Use shader nodes to render the material"
 msgstr "Dùng các nút tô bóng để kết xuất chất liệu"
 
@@ -25570,6 +25756,14 @@ msgstr "Xem Trước Thế Giới"
 
 msgid "Use the current world background to light the preview render"
 msgstr "Dùng nền thế giới hiện tại để chiếu sáng bản xem trước kết xuất"
+
+
+msgid "Raytrace Refraction"
+msgstr "Khúc xạ Raytrace"
+
+
+msgid "Use raytracing to determine refracted color instead of using only light probes. This prevents the surface from contributing to the lighting of surfaces not using this setting"
+msgstr "Sử dụng phương pháp dò tia để xác định màu khúc xạ thay vì chỉ sử dụng đầu dò ánh sáng. Điều này ngăn không cho bề mặt góp phần chiếu sáng các bề mặt không sử dụng cài đặt này"
 
 
 msgid "Subsurface Translucency"
@@ -25588,12 +25782,28 @@ msgid "Use transparent shadows for this material if it contains a Transparent BS
 msgstr "Dùng bóng tối trong suốt cho nguyên vật liệu này nếu nó có chứa một BSDF Trong Suốt. Nếu tắt đi thì sẽ kết xuất nhanh hơn nhưng bóng tối sẽ không chính xác"
 
 
+msgid "Volume Intersection Method"
+msgstr "Phương Pháp Giao Cắt Thể Tích"
+
+
+msgid "Determines which inner part of the mesh will produce volumetric effect"
+msgstr "Xác định phần bên trong nào của khung lưới sẽ tạo ra hiệu ứng thể tích"
+
+
 msgid "Fast"
 msgstr "Nhanh"
 
 
+msgid "Each face is considered as a medium interface. Gives correct results for manifold geometry that contains no inner parts"
+msgstr "Mỗi mặt được coi là một giao diện chất trung gian. Cung cấp kết quả chính xác cho hình học đa tạp không có nội phần"
+
+
 msgid "Accurate"
 msgstr "Chính Xác"
+
+
+msgid "Faces are considered as medium interface only when they have different consecutive facing. Gives correct results as long as the max ray depth is not exceeded. Have significant memory overhead compared to the fast method"
+msgstr "Các mặt chỉ được coi là giao diện vật chất khi chúng có sự đối mặt liên tiếp nhau. Cái này cho kết quả chính xác nếu độ sâu tia xạ không vượt quá tối đa. Chức năng này tiêu tốn bộ nhớ đáng kể so với phương pháp nhanh"
 
 
 msgid "Mesh data-block defining geometric surfaces"
@@ -25646,6 +25856,14 @@ msgstr "Vòng Mạch"
 
 msgid "Loops of the mesh (face corners)"
 msgstr "Các vòng mạch của khung lưới (các góc của Mặt)"
+
+
+msgid "Normal Domain"
+msgstr "Phạm Vi Pháp Tuyến"
+
+
+msgid "The attribute domain that gives enough information to represent the mesh's normals"
+msgstr "Phạm vi thuộc tính cung cấp đủ thông tin để đại diện các pháp tuyến của khung lưới"
 
 
 msgid "Corner"
@@ -25794,6 +26012,18 @@ msgstr "Biệt riêng các điểm đỉnh đã chọn ra để sơn (chắn l�
 
 msgid "Fix Poles"
 msgstr "Sửa Điểm Hội Tụ"
+
+
+msgid "Produces fewer poles and a better topology flow"
+msgstr "Tạo ra ít cực hơn và luồng cấu trúc liên kết tốt hơn"
+
+
+msgid "Preserve Attributes"
+msgstr "Bảo Tồn các Thuộc Tính"
+
+
+msgid "Transfer all attributes to the new mesh"
+msgstr "Thuyên chuyển toàn bộ các thuộc tính sang khung lưới mới"
 
 
 msgid "Projects the mesh to preserve the volume and details of the original mesh"
@@ -26152,6 +26382,18 @@ msgid "Use GPU accelerated compositing with more limited functionality"
 msgstr "Sử dụng tính năng tổng hợp tăng tốc GPU với chức năng hạn chế hơn"
 
 
+msgid "The precision of compositor intermediate result"
+msgstr "Độ chính xác của kết quả trung gian của trình tổng hợp"
+
+
+msgid "Full precision for final renders, half precision otherwise"
+msgstr "Độ chính xác toàn phần cho các kết xuất cuối cùng, nếu không thì độ chính xác chỉ bằng một nửa mà thôi"
+
+
+msgid "Full precision"
+msgstr "Độ chính xác toàn phần"
+
+
 msgid "Render Quality"
 msgstr "Chất Lượng Kết Xuất"
 
@@ -26206,6 +26448,10 @@ msgstr "Biên Soạn"
 
 msgid "The node group is used in edit mode"
 msgstr "Nhóm nút được sử dụng trong chế độ biên soạn"
+
+
+msgid "The node group is used in object mode"
+msgstr "Nhóm nút được sử dụng trong chế độ đối tượng"
 
 
 msgid "Sculpt"
@@ -26546,6 +26792,22 @@ msgstr "Bộ Điều Chỉnh Bút Chì Dầu"
 
 msgid "Modifiers affecting the data of the grease pencil object"
 msgstr "Những bộ điều chỉnh gây tác động đến dữ liệu của đối tượng Bút Chì Dầu"
+
+
+msgid "Disable in Planar Light Probes"
+msgstr "Tắt trong Dò Ánh Sáng Mặt Phẳng"
+
+
+msgid "Globally disable in planar light probes"
+msgstr "Tắt toàn cầu trong dò ánh sáng mặt phẳng"
+
+
+msgid "Disable in Spherical Light Probes"
+msgstr "Tắt trong Dò Ánh Sáng Hình Cầu"
+
+
+msgid "Globally disable in spherical light probes"
+msgstr "Tắt toàn cầu trong các dò ánh sáng hình cầu"
 
 
 msgid "Disable in Volume Probes"
@@ -30281,6 +30543,14 @@ msgid "Maintained by community developers"
 msgstr "Được bảo hành bởi các lập trình viên của cộng đồng"
 
 
+msgid "Testing"
+msgstr "Thử Nghiệm"
+
+
+msgid "Newly contributed scripts (excluded from release builds)"
+msgstr "Các tập lệnh mới đóng góp (không được bao gồm trong các bản xây dựng phát hành)"
+
+
 msgid "Asset Blend Path"
 msgstr "Đường Dẫn Tài Sản Blend"
 
@@ -31191,6 +31461,14 @@ msgstr "Luôn luôn làm tươi mới hình ảnh lại khi khung hình thay đ�
 
 msgid "Cycle the images in the movie"
 msgstr "Lặp lại các hình ảnh trong phim một cách tuần hoàn"
+
+
+msgid "Index Switch Item"
+msgstr "Mục Chuyển Đổi Chỉ Số"
+
+
+msgid "Consistent identifier used for the item"
+msgstr "Mã định danh nhất quán sử dụng cho mục"
 
 
 msgid "2D Integer Vector Attribute Value"
@@ -32208,7 +32486,7 @@ msgstr "F24"
 
 msgctxt "UI_Events_KeyMaps"
 msgid "Pause"
-msgstr "Tạm Dừng"
+msgstr "Tạm Ngưng"
 
 
 msgctxt "UI_Events_KeyMaps"
@@ -33506,7 +33784,7 @@ msgstr "Đối tượng đang hoạt động của tầng lớp này"
 
 
 msgid "Selected Objects"
-msgstr "Đối Tượng được Chọn"
+msgstr "Đối Tượng Được Chọn"
 
 
 msgid "All the selected objects of this layer"
@@ -35018,10 +35296,6 @@ msgid "Channel"
 msgstr "Kênh"
 
 
-msgid "Dope Sheet Channel"
-msgstr "Kênh của Bảng Hành Động"
-
-
 msgid "Snap"
 msgstr "Bám Dính"
 
@@ -35675,6 +35949,10 @@ msgid "Index of this loop"
 msgstr "Chỉ số của vòng mạch này"
 
 
+msgid "The normal direction of the face corner, taking into account sharp faces, sharp edges, and custom normal data"
+msgstr "Chiều hướng pháp tuyến của góc mặt, tính đến các mặt sắc cạnh, các cạnh sắc nét và dữ liệu pháp tuyến tùy chỉnh"
+
+
 msgid "Local space unit length tangent vector of this vertex for this face (must be computed beforehand using calc_tangents)"
 msgstr "Vectơ tiếp tuyến, đơn vị chiều dài trong không gian cục bộ, của điểm đỉnh này, cho mặt này (phải được tính toán trước bằng cách sử dụng hàm calc_tangents)"
 
@@ -35765,6 +36043,10 @@ msgstr "Chỉ số của Mặt khung lưới mà hình tam giác là một phầ
 
 msgid "Split Normals"
 msgstr "Pháp Tuyến Tách Phân"
+
+
+msgid "Local space unit length split normal vectors of the face corners of this triangle"
+msgstr "Độ dài đơn vị không gian cục bộ tách phân các vectơ pháp tuyến của các góc mặt tam giác này"
 
 
 msgid "Indices of triangle vertices"
@@ -38642,6 +38924,14 @@ msgid "Nodes Modifier"
 msgstr "Bộ Điều Chỉnh Nút"
 
 
+msgid "Simulation Bake Directory"
+msgstr "Thư Mục Nướng Mô Phỏng"
+
+
+msgid "Location on disk where the bake data is stored"
+msgstr "Vị trí trên đĩa nơi lưu trữ dữ liệu nướng"
+
+
 msgid "Node Group"
 msgstr "Nhóm Nút"
 
@@ -38652,14 +38942,6 @@ msgstr "Nhóm nút điều khiển hoạt động của bộ điều chỉnh nà
 
 msgid "Show Node Group"
 msgstr "Hiển Thị Nhóm Nút"
-
-
-msgid "Simulation Bake Directory"
-msgstr "Thư Mục Nướng Mô Phỏng"
-
-
-msgid "Location on disk where the bake data is stored"
-msgstr "Vị trí trên đĩa nơi lưu trữ dữ liệu nướng"
 
 
 msgid "Normal Edit Modifier"
@@ -44109,6 +44391,24 @@ msgstr "Phần phân số của A"
 
 
 msgctxt "NodeTree"
+msgid "Truncated Modulo"
+msgstr "Phép Chia Lấy Số Dư Cắt Bớt"
+
+
+msgid "The remainder of truncated division using fmod(A,B)"
+msgstr "Số dư của phép chia cắt bớt sử dụng hàm fmod(A,B)"
+
+
+msgctxt "NodeTree"
+msgid "Floored Modulo"
+msgstr "Phép Chia Lấy Số Dư Làm Tròn Xuống"
+
+
+msgid "The remainder of floored division"
+msgstr "Số dư của phép chia làm tròn xuống"
+
+
+msgctxt "NodeTree"
 msgid "Wrap"
 msgstr "Hàm Tuần Hoàn"
 
@@ -45041,6 +45341,10 @@ msgid "Instances of objects or collections"
 msgstr "Thực thể của đối tượng hoặc của bộ sưu tập"
 
 
+msgid "Grease Pencil component containing layers and curves data"
+msgstr "Thành phần Bút Chì Dầu có chứa dữ liệu của các tầng lớp và các đường cong"
+
+
 msgid "Attribute Statistic"
 msgstr "Thống Kê Thuộc Tính"
 
@@ -45055,6 +45359,18 @@ msgstr "Kiểu dữ liệu mà thuộc tính được chuyển đổi thành, tr
 
 msgid "Which domain to read the data from"
 msgstr "Tên miền (phạm vi), nơi cần phải đọc dữ liệu từ đó ra"
+
+
+msgid "Bake"
+msgstr "Nướng"
+
+
+msgid "Active Item Index"
+msgstr "Chỉ Số của Mục đang Hoạt Động"
+
+
+msgid "Index of the active item"
+msgstr "Chỉ số của mục đang hoạt động"
 
 
 msgid "Blur Attribute"
@@ -45509,8 +45825,16 @@ msgid "Edge Paths to Curves"
 msgstr "Đường Cạnh thành Đường Cong"
 
 
+msgid "Output curves following paths across mesh edges"
+msgstr "Xuất ra các đường cong đi theo đường dẫn qua các cạnh khung lưới"
+
+
 msgid "Edge Paths to Selection"
 msgstr "Đường Cạnh thành Lựa Chọn"
+
+
+msgid "Output a selection of edges by following paths across mesh edges"
+msgstr "Xuất ra một vùng lựa chọn các cạnh bằng cách đi theo các đường dẫn qua các cạnh khung lưới"
 
 
 msgid "Edges of Corner"
@@ -45666,6 +45990,14 @@ msgid "Find the nearest element in a group. Similar to the \"Sample Nearest\" no
 msgstr "Tìm phần tử gần nhất trong một nhóm. Tương tự như nút \"Lấy Mẫu Vật cái Gần Nhất\""
 
 
+msgid "Index Switch"
+msgstr "Chuyển Đổi Chỉ Số"
+
+
+msgid "Choose between an arbitrary number of values with an index"
+msgstr "Chọn giữa một loạt các giá trị tùy ý có chỉ số"
+
+
 msgid "Curve Handle Positions"
 msgstr "Vị Trí Điều Khiển Đường Cong"
 
@@ -45798,6 +46130,14 @@ msgid "The data type used to read the attribute values"
 msgstr "Thể loại dữ liệu sử dụng để đọc các giá trị thuộc tính"
 
 
+msgid "Named Layer Selection"
+msgstr "Lựa Chọn Tầng Lớp có Tên"
+
+
+msgid "Output a selection of a grease pencil layer"
+msgstr "Xuất ra lựa chọn của một tầng lớp bút chì dầu"
+
+
 msgid "Retrieve a unit length vector indicating the direction pointing away from the geometry at each element"
 msgstr "Trích xuất vectơ độ dài đơn vị cho biết chiều hướng quay ra khỏi hình học ở mỗi phần tử"
 
@@ -45824,6 +46164,10 @@ msgstr "Truy xuất xem mỗi mặt được đánh dấu cho pháp tuyến mị
 
 msgid "Shortest Edge Paths"
 msgstr "Đường Cạnh Ngắn Nhất"
+
+
+msgid "Find the shortest paths along mesh edges to selected end vertices, with customizable cost per edge"
+msgstr "Tìm những đường đi ngắn nhất dọc theo các cạnh của khung lưới tới các điểm đỉnh cuối đã chọn, với phí tổn có thể tự tùy chỉnh trên mỗi cạnh"
 
 
 msgid "Is Spline Cyclic"
@@ -46135,7 +46479,7 @@ msgstr "Xác định chiều dài cạnh bên của thể tích tử"
 
 
 msgid "Geometry Proximity"
-msgstr "Mức Lân Cận Hình Học"
+msgstr "Mức Cận Độ Hình Học"
 
 
 msgid "Compute the closest location on the target geometry"
@@ -46151,15 +46495,15 @@ msgstr "Phần tử của hình học mục tiêu để tính toán khoảng cá
 
 
 msgid "Calculate the proximity to the target's points (faster than the other modes)"
-msgstr "Tính toán mức lân cận với các điểm của mục tiêu (nhanh hơn các chế độ khác)"
+msgstr "Tính toán mức cận độ với các điểm của mục tiêu (nhanh hơn các chế độ khác)"
 
 
 msgid "Calculate the proximity to the target's edges"
-msgstr "Tính toán mức lân cận tới các cạnh của mục tiêu"
+msgstr "Tính toán mức cận độ tới các cạnh của mục tiêu"
 
 
 msgid "Calculate the proximity to the target's faces"
-msgstr "Tính toán mức lân cận với các mặt của mục tiêu"
+msgstr "Tính toán mức cận độ với các mặt của mục tiêu"
 
 
 msgid "Raycast"
@@ -46212,14 +46556,6 @@ msgstr "Nút đầu ra của vùng mà nút đầu vào này vốn được ghé
 
 msgid "Repeat Output"
 msgstr "Lặp Lại Đầu Ra"
-
-
-msgid "Active Item Index"
-msgstr "Chỉ Số của Mục đang Hoạt Động"
-
-
-msgid "Index of the active item"
-msgstr "Chỉ số của mục đang hoạt động"
 
 
 msgid "Inspection Index"
@@ -46530,6 +46866,10 @@ msgid "Simulation Input"
 msgstr "Đầu Vào Mô Phỏng"
 
 
+msgid "Input data for the simulation zone"
+msgstr "Dữ liệu đầu vào cho vùng mô phỏng"
+
+
 msgid "Simulation Output"
 msgstr "Đầu Ra Mô Phỏng"
 
@@ -46556,6 +46896,14 @@ msgstr "Tách Phân Cạnh"
 
 msgid "Duplicate mesh edges and break connections with the surrounding faces"
 msgstr "Nhân đôi các cạnh khung lưới và phá vỡ kết nối với các mặt xung quanh"
+
+
+msgid "Split to Instances"
+msgstr "Tách Phân thành các Thực Thể"
+
+
+msgid "Create separate geometries containing the elements from the same group"
+msgstr "Tạo các hình học riêng biệt chứa các phần tử từ cùng một nhóm"
 
 
 msgid "Store Named Attribute"
@@ -48028,8 +48376,8 @@ msgid "Use the 4D vector (X, Y, Z, W) as input"
 msgstr "Sử dụng véctơ 4D (X, Y, Z, W) làm đầu vào"
 
 
-msgid "Normalize outputs to 0.0 to 1.0 range"
-msgstr "Bình thường hóa đầu ra sang phạm vi 0.0 đến 1.0"
+msgid "Type of the Noise texture"
+msgstr "Thể loại chất liệu Nhiễu"
 
 
 msgid "More uneven result (varies with location), more similar to a real terrain"
@@ -48044,8 +48392,16 @@ msgid "Create peaks and valleys with different roughness values"
 msgstr "Kiến Tạo các đỉnh núi và thung lũng với các giá trị độ gồ ghề khác nhau"
 
 
+msgid "The standard fractal Perlin noise"
+msgstr "Nhiễu Perlin phân dạng tiêu chuẩn"
+
+
 msgid "Similar to Hybrid Multifractal creates a heterogeneous terrain, but with the likeness of river channels"
 msgstr "Tương tự như Hỗn Hợp Đa Phân Dạng (Hybrid Multifractal) kiến tạo một địa hình hỗn tạp, song với hình dạng trông giống như các mạch sông ngòi"
+
+
+msgid "Normalize outputs to 0.0 to 1.0 range"
+msgstr "Bình thường hóa đầu ra sang phạm vi 0.0 đến 1.0"
 
 
 msgid "Generate a volumetric point for each particle or vertex of another object"
@@ -48828,12 +49184,28 @@ msgid "Value to Normal"
 msgstr "Giá Trị thành Pháp Tuyến"
 
 
+msgid "Attribute Domain"
+msgstr "Phạm Vi Thuộc tính"
+
+
+msgid "Color of the corresponding socket type in the node editor"
+msgstr "Màu của loại ổ cắm tương ứng trong trình biên soạn nút"
+
+
+msgid "Socket Type"
+msgstr "Loại Ổ Cắm"
+
+
 msgid "Collection of repeat items"
 msgstr "Bộ sưu tập các mục lặp lại"
 
 
 msgid "Collection of simulation items"
 msgstr "Bộ sưu tập các mục mô phỏng"
+
+
+msgid "Collection of index_switch items"
+msgstr "Bộ sưu tập các mục đổi chỉ số (index_switch)"
 
 
 msgid "Node Inputs"
@@ -49296,10 +49668,6 @@ msgid "Declaration of a node socket"
 msgstr "Khai báo của một ổ cắm nút"
 
 
-msgid "Attribute Domain"
-msgstr "Phạm Vi Thuộc tính"
-
-
 msgid "Attribute domain used by the geometry nodes modifier to create an attribute output"
 msgstr "Phạm vi thuộc tính sử dụng bởi trình biên soạn nút hình học để kiến tạo đầu ra thuộc tính"
 
@@ -49318,6 +49686,14 @@ msgstr "Thuộc Tính Mặc Định"
 
 msgid "The attribute name used by default when the node group is used by a geometry nodes modifier"
 msgstr "Tên thuộc tính sử dụng mặc định khi nhóm nút được bộ điều chỉnh nút hình học sử dụng"
+
+
+msgid "Default Input"
+msgstr "Đầu Vào Mặc Định"
+
+
+msgid "Input to use when the socket is unconnected. Requires \"Hide Value\""
+msgstr "Đầu vào để sử dụng khi ổ cắm không kết nối. Đòi hỏi \"Ẩn Giấu Giá Trị\""
 
 
 msgid "Socket description"
@@ -49364,8 +49740,8 @@ msgid "Layer Selection"
 msgstr "Sự Lựa Chọn Tầng Lớp"
 
 
-msgid "Socket Type"
-msgstr "Loại Ổ Cắm"
+msgid "Take Grease Pencil Layer or Layer Group as selection field"
+msgstr "Lấy Tầng Lớp Bút Chì Dầu hoặc Nhóm Tầng Lớp làm trường lựa chọn"
 
 
 msgid "Type of the socket generated by this interface item"
@@ -50744,9 +51120,13 @@ msgid "Insert Keyframe"
 msgstr "Chèn Thêm Khung Khóa"
 
 
+msgid "Insert keyframes on the current frame using either the active keying set, or the user preferences if no keying set is active"
+msgstr "Chèn các khung khóa vào khung hình hiện tại bằng cách sử dụng bộ khóa đang hoạt động, hoặc cấu hình người dùng nếu không có bộ khóa nào đang hoạt động cả"
+
+
 msgctxt "Operator"
 msgid "Insert Keyframe (Buttons)"
-msgstr "Chèn Thêm Khung Khóa (Nút Bấm)"
+msgstr "Chèn Thêm Khung Khóa (các Nút Bấm)"
 
 
 msgid "Insert a keyframe for current UI-active property"
@@ -50922,6 +51302,27 @@ msgid ""
 msgstr ""
 "Chuyển đổi các đường cong-F/các điều vận tác động đến xoay chiều, đổi góc độ xoay chiều sang thành radian.\n"
 "Cảnh báo: Chỉ sử dụng một lần mà thôi"
+
+
+msgctxt "Operator"
+msgid "View In Graph Editor"
+msgstr "Quan Sát Trong Trình Biên Soạn Đồ Thị"
+
+
+msgid "Frame the property under the cursor in the Graph Editor"
+msgstr "Đóng khung thuộc tính nằm dưới con trỏ trong Trình Biên Soạn Đồ Thị"
+
+
+msgid "Show All"
+msgstr "Hiển Thị Toàn Bộ"
+
+
+msgid "Frame the whole array property instead of only the index under the cursor"
+msgstr "Đóng khung toàn bộ thuộc tính mảng thay vì duy chỉ mục nằm dưới con trỏ mà thôi"
+
+
+msgid "Isolate"
+msgstr "Cô Lập"
 
 
 msgctxt "Operator"
@@ -53889,6 +54290,14 @@ msgid "Remove selected control points or curves"
 msgstr "Xóa các điểm điều khiển hoặc các đường cong đã chọn"
 
 
+msgid "Error distance threshold (in object units)"
+msgstr "Giới hạn khoảng cách sai số (đơn vị đối tượng)"
+
+
+msgid "Duplicate"
+msgstr "Nhân Đôi"
+
+
 msgctxt "Operator"
 msgid "Curve Sculpt Mode Toggle"
 msgstr "Bật/Tắt Chế Độ Điêu Khắc Đường Cong"
@@ -54004,6 +54413,15 @@ msgstr "Sử dụng đối tượng đang hoạt động làm bề mặt cho cá
 
 
 msgctxt "Operator"
+msgid "Clear Tilt"
+msgstr "Xóa Xoay Nghiêng"
+
+
+msgid "Clear the tilt of selected control points"
+msgstr "Xóa sự xoay nghiêng của các điểm điều khiển lựa chọn"
+
+
+msgctxt "Operator"
 msgid "Toggle Cyclic"
 msgstr "Bật/Tắt tính Tuần Hoàn"
 
@@ -54075,10 +54493,6 @@ msgstr "Vẽ Đường Cong"
 
 msgid "Draw a freehand spline"
 msgstr "Vẽ một chốt trục tự do"
-
-
-msgid "Error distance threshold (in object units)"
-msgstr "Giới hạn khoảng cách sai số (đơn vị đối tượng)"
 
 
 msgctxt "Operator"
@@ -54695,15 +55109,6 @@ msgstr "Phân chia các phân đoạn được chọn"
 
 msgid "Switch direction of selected splines"
 msgstr "Đảo chiều hướng của chốt trục được chọn"
-
-
-msgctxt "Operator"
-msgid "Clear Tilt"
-msgstr "Xóa Xoay Nghiêng"
-
-
-msgid "Clear the tilt of selected control points"
-msgstr "Xóa sự xoay nghiêng của các điểm điều khiển lựa chọn"
 
 
 msgctxt "Operator"
@@ -55580,6 +55985,14 @@ msgid "Export scene as glTF 2.0 file"
 msgstr "Xuất Khẩu cảnh ra tập tin glTF 2.0"
 
 
+msgid "Filter Actions"
+msgstr "Thanh Lọc các Hành Động"
+
+
+msgid "Filter Actions to be exported"
+msgstr "Thanh Lọc các Hành Động sẽ được xuất khẩu"
+
+
 msgid "Include All Bone Influences"
 msgstr "Bao Gồm Toàn Bộ các Tác Động của Xương"
 
@@ -55613,7 +56026,7 @@ msgstr "Đặt toàn bộ hoạt họa glTF bắt đầu từ giây 0.0. Có th�
 
 
 msgid "Animation mode"
-msgstr "Chế Độ Hoạt Họa"
+msgstr "Chế độ hoạt họa"
 
 
 msgid "Export Animation mode"
@@ -55648,6 +56061,14 @@ msgid "Apply modifiers (excluding Armatures) to mesh objects -WARNING: prevents 
 msgstr "Áp dụng các bộ điều chỉnh (ngoại trừ Khung Cốt) vào đối tượng khung lưới - CẢNH BÁO: ngăn ngừa quá trình xuất khẩu các hình mẫu"
 
 
+msgid "Remove Armature Object"
+msgstr "Xóa Đối Tượng Khung Cốt"
+
+
+msgid "Remove Armature object if possible. If Armature has multiple root bones, object will not be removed"
+msgstr "Loại bỏ đối tượng Khung Cốt nếu có thể. Nếu Khung Cốt có nhiều xương gốc thì đối tượng sẽ không bị xóa đi"
+
+
 msgid "Export Attributes (when starting with underscore)"
 msgstr "Xuất Khẩu các Thuộc Tính (khi bắt đầu bằng dấu gạch chân)"
 
@@ -55662,6 +56083,10 @@ msgstr "Ép buộc xuất khẩu hoạt họa trên mọi đối tượng. Có t
 
 msgid "Export cameras"
 msgstr "Xuất Khẩu Máy Quay Phim"
+
+
+msgid "Keep for compatibility only"
+msgstr "Chỉ giữ lại cho tính tương thích mà thôi"
 
 
 msgid "Legal rights and conditions for the model"
@@ -55780,6 +56205,14 @@ msgid "Clips animations to selected playback range"
 msgstr "Cắt ngắn hoạt họa trong khoảng chơi lại đã chọn"
 
 
+msgid "Geometry Nodes Instances (Experimental)"
+msgstr "Thực Thể Hóa Nút Hình Học (Thử Nghiệm)"
+
+
+msgid "Export Geometry nodes instance meshes"
+msgstr "Xuất Khẩu các nút Hình Học thực thể hóa ra khung lưới"
+
+
 msgid "GPU Instances"
 msgstr "Thực Thể GPU"
 
@@ -55789,11 +56222,27 @@ msgstr "Xuất khẩu dùng EXT_mesh_gpu_instancing (trình mở rộng thực t
 
 
 msgid "Flatten Bone Hierarchy"
-msgstr "Xóa Tầng Bậc của Xương"
+msgstr "Phi Tầng Bậc Xương"
 
 
 msgid "Flatten Bone Hierarchy. Useful in case of non decomposable transformation matrix"
-msgstr "Xóa Hệ Thống Tầng Bậc của Xương. Hữu ích trong trường hợp ma trận biến hóa không thể phân tích được"
+msgstr "Phi (làm phẳng bẹt) Tầng Bậc của Xương. Hữu ích trong trường hợp ma trận biến hóa không thể phân tích được"
+
+
+msgid "Flatten Object Hierarchy"
+msgstr "Phi Tầng Bậc Đối Tượng"
+
+
+msgid "Flatten Object Hierarchy. Useful in case of non decomposable transformation matrix"
+msgstr "Phi (làm phẳng bẹt) tầng bậc của đối tượng. Hữu ích trong trường hợp ma trận biến hóa không thể phân hủy được"
+
+
+msgid "Full Collection Hierarchy"
+msgstr "Toàn Bộ Tầng Bậc của Bộ Sưu Tập"
+
+
+msgid "Export full hierarchy, including intermediate collections"
+msgstr "Xuất toàn bộ tầng bậc, bao gồm cả các bộ sưu tập trung gian"
 
 
 msgid "Create WebP"
@@ -56052,6 +56501,14 @@ msgid "Export armatures using rest position as joints' rest pose. When off, curr
 msgstr "Xuất khẩu các khung cốt bằng cách sử dụng vị trí nghỉ làm tư thế nghỉ của các khớp nối. Khi tắt đi thì tư thế của khung hình hiện tại sẽ được sử dụng làm tư thế nghỉ"
 
 
+msgid "Shared Accessors"
+msgstr "Trình Truy Cập Dùng Chung"
+
+
+msgid "Export Primitives using shared accessors for attributes"
+msgstr "Xuất Khẩu các Hình Cơ Bản bằng cách sử dụng các trình truy cập dùng chung cho các thuộc tính"
+
+
 msgid "Skinning"
 msgstr "Da Bọc"
 
@@ -56086,6 +56543,22 @@ msgstr "Sử dụng Trình Truy Cập Thưa Thớt nếu tốt hơn"
 
 msgid "Try using Sparse Accessor if it saves space"
 msgstr "Hãy thử sử dụng Trình Truy Cập Thưa Thớt nếu nó tiết kiệm được dung lượng"
+
+
+msgid "Unused images"
+msgstr "Các hình ảnh không sử dụng đến"
+
+
+msgid "Export images not assigned to any material"
+msgstr "Xuất khẩu các hình ảnh không được ấn định cho bất kỳ nguyên vật liệu nào cả"
+
+
+msgid "Prepare Unused textures"
+msgstr "Chuẩn bị các chất liệu Không Sử Dụng đến"
+
+
+msgid "Export image texture nodes not assigned to any material. This feature is not standard and needs an external extension to be included in the glTF file"
+msgstr "Xuất khẩu các nút chất liệu hình ảnh không được ấn định cho bất kỳ nguyên vật liệu nào hết. Tính năng này không phải là tiêu chuẩn và cần có sự mở rộng bên ngoài để được đưa vào tập tin glTF"
 
 
 msgid "+Y Up"
@@ -60622,8 +61095,33 @@ msgid "Switch brush to smooth mode for duration of stroke"
 msgstr "Đổi bút sang chế độ mịn màng cho khoảng thời lượng của nét vẽ"
 
 
+msgctxt "Operator"
+msgid "Set Curve Caps"
+msgstr "Đặt Đầu Nắp Đường Cong"
+
+
+msgid "Change curve caps mode (rounded or flat)"
+msgstr "Thay đổi chế độ đầu nắp đường cong (tròn hoặc phẳng)"
+
+
+msgid "Rounded"
+msgstr "Tròn"
+
+
 msgid "Flat"
-msgstr "Phẳng Bẹt"
+msgstr "Phẳng"
+
+
+msgid "Toggle Start"
+msgstr "Bật/Tắt Đầu"
+
+
+msgid "Toggle End"
+msgstr "Bật/Tắt Cuối"
+
+
+msgid "Delete selected strokes or points"
+msgstr "Xóa các nét hoặc các điểm đã chọn"
 
 
 msgctxt "Operator"
@@ -60658,10 +61156,6 @@ msgstr "Bật/Tắt Chế Độ Vẽ Bút Chì Dầu"
 
 msgid "Enter/Exit draw mode for grease pencil"
 msgstr "Bước Vào/Thoát Ra khỏi chế độ vẽ Bút Chì Dầu"
-
-
-msgid "Duplicate"
-msgstr "Nhân Đôi"
 
 
 msgid "Insert a blank frame on the current scene frame"
@@ -60722,6 +61216,23 @@ msgid "Name of the target layer"
 msgstr "Tên của tầng lớp mục tiêu"
 
 
+msgctxt "Operator"
+msgid "Hide Materials"
+msgstr "Ẩn Giấu Nguyên Vật Liệu"
+
+
+msgid "Hide active/inactive Grease Pencil material(s)"
+msgstr "Ẩn giấu (các) nguyên vật liệu Bút Chì Dầu đang hoạt động/không hoạt động"
+
+
+msgid "Hide inactive materials instead of the active one"
+msgstr "Ẩn giấu các nguyên vật liệu không hoạt động, thay vì nguyên vật liệu đang hoạt động"
+
+
+msgid "Lock and hide any material not used"
+msgstr "Khóa và ẩn giấu bất kỳ nguyên vật liệu nào không sử dụng đến"
+
+
 msgid "(De)select all visible strokes"
 msgstr "(Hủy)chọn toàn bộ các nét nhìn thấy được"
 
@@ -60768,6 +61279,11 @@ msgstr "Chọn các điểm ngẫu nhiên từ lựa chọn nét hiện tại"
 
 
 msgctxt "Operator"
+msgid "Set Active Material"
+msgstr "Đặt Nguyên Vật Liệu đang Hoạt Động"
+
+
+msgctxt "Operator"
 msgid "Select Mode"
 msgstr "Chế Độ Lựa Chọn"
 
@@ -60786,6 +61302,29 @@ msgstr "Chọn toàn bộ các điểm của nét vẽ"
 
 msgid "Select all stroke points between other strokes"
 msgstr "Chọn toàn bộ các điểm của nét giữa các nét vẽ khác"
+
+
+msgctxt "Operator"
+msgid "Set Uniform Opacity"
+msgstr "Đặt Độ Đục Đồng Nhất"
+
+
+msgid "Set all stroke points to same opacity"
+msgstr "Đặt toàn bộ các điểm nét vẽ là có cùng một độ đục"
+
+
+msgctxt "Operator"
+msgid "Set Uniform Thickness"
+msgstr "Đặt Độ Dày Đồng Đều"
+
+
+msgid "Set all stroke points to same thickness"
+msgstr "Đặt toàn bộ các điểm nét vẽ có cùng độ dày"
+
+
+msgctxt "Operator"
+msgid "Assign Material"
+msgstr "Ấn Định Nguyên Vật Liệu"
 
 
 msgid "Simplify selected strokes"
@@ -63651,7 +64190,7 @@ msgstr "Thi hành tự hợp nhất hoặc tự giao cắt"
 
 
 msgid "Swap"
-msgstr "Tráo Đổi"
+msgstr "Trao Đổi"
 
 
 msgid "Use with difference intersection to swap which side is kept"
@@ -64671,7 +65210,7 @@ msgstr "Chọn các cạnh ranh giới vòng quanh các mặt được chọn"
 
 
 msgid "Merge vertices based on their proximity"
-msgstr "Hội nhập các điểm đỉnh dựa trên tính lân cận của chúng"
+msgstr "Hội nhập các điểm đỉnh dựa trên mức cận độ của chúng"
 
 
 msgid "Sharp Edges"
@@ -65619,6 +66158,14 @@ msgid "Push action down onto the top of the NLA stack as a new strip"
 msgstr "Đẩn hành động xuống vào đỉnh của ngăn xếp NLA như một dải mới"
 
 
+msgid "Track Index"
+msgstr "Chỉ Số Rãnh"
+
+
+msgid "Index of NLA action track to perform pushdown operation on"
+msgstr "Chỉ số rãnh hành động NLA để thực hành thao tác đẩy xuống trên đó"
+
+
 msgctxt "Operator"
 msgid "Sync Action Length"
 msgstr "Đồng Bộ Chiều Dài của Hành Động"
@@ -65675,6 +66222,22 @@ msgid "Bake object transformations"
 msgstr "Nướng các biến hóa của đối tượng"
 
 
+msgid "Which channels to bake"
+msgstr "Những kênh nào để nướng"
+
+
+msgid "Bake location channels"
+msgstr "Nướng các kênh vị trí"
+
+
+msgid "Bake rotation channels"
+msgstr "Nướng các kênh xoay chiều"
+
+
+msgid "Bake scale channels"
+msgstr "Nướng các kênh đổi tỷ lệ"
+
+
 msgid "Clean Curves"
 msgstr "Dọn Dẹp các Đường Cong"
 
@@ -65721,6 +66284,15 @@ msgstr "Tạo Khung Khóa Trực Quan"
 
 msgid "Keyframe from the final transformations (with constraints applied)"
 msgstr "Tạo khung khóa từ những biến hóa cuối cùng (với các ràng buộc được áp dụng nữa)"
+
+
+msgctxt "Operator"
+msgid "Mouse Click on NLA Tracks"
+msgstr "Nhấp Chuột trên Rãnh NLA"
+
+
+msgid "Handle clicks to select NLA tracks"
+msgstr "Xử lý các nhấp chuột để chọn rãnh NLA"
 
 
 msgctxt "Operator"
@@ -66399,8 +66971,25 @@ msgstr "Hiện/Ẩn các nút đã chọn"
 
 
 msgctxt "Operator"
+msgid "Add Item"
+msgstr "Thêm Mục"
+
+
+msgid "Add an item to the index switch"
+msgstr "Thêm một mục vào đổi chỉ số"
+
+
+msgctxt "Operator"
 msgid "Remove Item"
 msgstr "Xóa Mục"
+
+
+msgid "Remove an item from the index switch"
+msgstr "Xóa một mục khỏi đổi chỉ số"
+
+
+msgid "Index of item to remove"
+msgstr "Chỉ số mục cần xóa"
 
 
 msgctxt "Operator"
@@ -67245,12 +67834,24 @@ msgid "Curve from Mesh or Text objects"
 msgstr "Đường Cong từ các đối tượng Khung Lưới hoặc Văn Bản"
 
 
+msgid "Mesh from Curve, Surface, Metaball, Text, or Point Cloud objects"
+msgstr "Khung lưới từ các đối tượng Đường Cong, Bề Mặt, Siêu Cầu, Văn Bản hoặc Đám Mây Điểm"
+
+
 msgid "Grease Pencil from Curve or Mesh objects"
 msgstr "Bút Chì Dầu từ các đối tượng Đường Cong hoặc Khung Lưới"
 
 
+msgid "Point Cloud from Mesh objects"
+msgstr "Đám Mây Điểm từ các vật thể Khung Lưới"
+
+
 msgid "Curves from evaluated curve data"
 msgstr "Đường cong từ dữ liệu đường cong đã tính toán"
+
+
+msgid "Grease Pencil v3 from Grease Pencil"
+msgstr "Bút Chì Dầu v3 từ Bút Chì Dầu"
 
 
 msgctxt "Operator"
@@ -67516,6 +68117,14 @@ msgstr "Bật/Tắt Trường Lực"
 
 msgid "Toggle object's force field"
 msgstr "Bật/Tắt trường lực của đối tượng"
+
+
+msgid "Bake ID"
+msgstr "ID Nướng"
+
+
+msgid "Name of the modifier that contains the node"
+msgstr "Tên của bộ điều chỉnh có chứa nút"
 
 
 msgctxt "Operator"
@@ -68025,8 +68634,24 @@ msgid "Subset of probes to update"
 msgstr "Tập hợp con của các bộ thăm dò ánh sáng để cập nhật"
 
 
+msgid "All Volumes"
+msgstr "Toàn Bộ các Thể Tíc"
+
+
+msgid "Bake all light probe volumes"
+msgstr "Nướng toàn bộ các thể tích dò ánh sáng"
+
+
 msgid "Selected Only"
 msgstr "Duy cái được Chọn"
+
+
+msgid "Only bake selected light probe volumes"
+msgstr "Duy nướng các thể tích dò ánh sáng đã chọn mà thôi"
+
+
+msgid "Only bake the active light probe volume"
+msgstr "Duy nướng thể tích dò ánh sáng đang hoạt động mà thôi"
 
 
 msgctxt "Operator"
@@ -68936,6 +69561,10 @@ msgid "Input target number of faces in the new mesh"
 msgstr "Số lượng các mặt mục tiêu cung cấp trong khung lưới mới"
 
 
+msgid "Reproject attributes onto the new mesh"
+msgstr "Tái phóng chiếu các thuộc tính vào khung lưới mới"
+
+
 msgid "Random seed to use with the solver. Different seeds will cause the remesher to come up with different quad layouts on the mesh"
 msgstr "Mầm ngẫu nhiên để sử dụng với trình giải nghiệm. Các mầm khác nhau sẽ khiến cho trình kiến tạo lại khung lưới sinh tạo ra những bố trí tứ giác trên khung lưới khác nhau"
 
@@ -69320,8 +69949,17 @@ msgid "Render and display faces smooth, using interpolated Vertex Normals"
 msgstr "Kết xuất và hiển thị các mặt mịn màng, sử dụng các Pháp Tuyến Điểm Đỉnh đã được nội suy"
 
 
+msgctxt "Operator"
+msgid "Shade Smooth by Angle"
+msgstr "Tô Bóng Mịn Màng theo Góc Độ"
+
+
 msgid "Set the sharpness of mesh edges based on the angle between the neighboring faces"
 msgstr "Đặt độ sắc nét của các cạnh khung lưới dựa trên góc giữa các mặt lân cận"
+
+
+msgid "Maximum angle between face normals that will be considered as smooth"
+msgstr "Góc tối đa giữa các pháp tuyến của mặt sẽ được cân nhắc là mịn màng"
 
 
 msgctxt "Operator"
@@ -69600,27 +70238,6 @@ msgstr "Nướng bộ đệm nhớ trên toàn bộ các đối tượng đã ch
 
 
 msgctxt "Operator"
-msgid "Bake Single Simulation Zone"
-msgstr "Nướng Đơn Vùng Mô Phỏng"
-
-
-msgid "Bake a single simulation zone"
-msgstr "Nướng một đơn vùng mô phỏng"
-
-
-msgid "Bake ID"
-msgstr "ID Nướng"
-
-
-msgid "Nested node id of the node to bake"
-msgstr "Id nút lồng nhau của nút cần nướng"
-
-
-msgid "Name of the modifier that contains the node to bake"
-msgstr "Tên của bộ điều chỉnh có chứa nút để nướng"
-
-
-msgctxt "Operator"
 msgid "Calculate Simulation to Frame"
 msgstr "Tính Toán Mô Phỏng đến Khung Hình"
 
@@ -69644,23 +70261,6 @@ msgstr "Xóa các mô phỏng được lưu trong bộ nhớ đệm/đã đượ
 
 msgid "Delete cache on all selected objects"
 msgstr "Xóa bộ đệm nhớ trên toàn bộ các đối tượng đã chọn"
-
-
-msgctxt "Operator"
-msgid "Delete Single Cached Simulation"
-msgstr "Xóa Mô Phỏng Lưu Trong Đơn Bộ Nhớ Đệm"
-
-
-msgid "Delete simulation data of a single simulation zone"
-msgstr "Xóa dữ liệu mô phỏng của một đơn vùng mô phỏng"
-
-
-msgid "Nested node id of the bake to delete"
-msgstr "Id nút lồng nhau của nướng cần phải xóa đi"
-
-
-msgid "Name of the modifier that contains the node"
-msgstr "Tên của bộ điều chỉnh có chứa nút"
 
 
 msgctxt "Operator"
@@ -73190,10 +73790,6 @@ msgid "Bake physics"
 msgstr "Nướng vật lý"
 
 
-msgid "Bake"
-msgstr "Nướng"
-
-
 msgctxt "Operator"
 msgid "Bake All Physics"
 msgstr "Nướng Toàn Bộ các Vật Lý"
@@ -73881,6 +74477,15 @@ msgstr "Thêm Bộ Điều Chỉnh Độ Dày Nét"
 
 msgid "Add a line thickness modifier to the line style associated with the active lineset"
 msgstr "Thêm một bộ điều chỉnh độ dày đường nét vào phong cách của bộ đường nét đang hoạt động"
+
+
+msgctxt "Operator"
+msgid "Refresh action list"
+msgstr "Làm mới lại danh sách hành động"
+
+
+msgid "Refresh list of actions"
+msgstr "Làm mới lại danh sách các hành động"
 
 
 msgctxt "Operator"
@@ -77028,7 +77633,7 @@ msgstr "ogg"
 
 
 msgid "Xiph.Org Ogg Container"
-msgstr "Định dạng Xiph.Org Ogg"
+msgstr "Vỏ Bọc Định Dạng Xiph.Org Ogg"
 
 
 msgid "wav"
@@ -77178,38 +77783,38 @@ msgstr "Bật hoặc tắt đính ghim"
 
 msgctxt "Operator"
 msgid "Add Surface Circle"
-msgstr "Thêm Vòng Tròn Mặt"
+msgstr "Thêm Vòng Tròn Bề Mặt"
 
 
 msgid "Construct a Nurbs surface Circle"
-msgstr "Kiến tạo một Vòng Tròn mặt NURBS (Non-uniform rational basis spline)"
+msgstr "Kiến tạo một Vòng Tròn bề mặt NURBS (Non-uniform rational basis spline)"
 
 
 msgctxt "Operator"
 msgid "Add Surface Curve"
-msgstr "Thêm Đường Cong Mặt"
+msgstr "Thêm Đường Cong Bề Mặt"
 
 
 msgid "Construct a Nurbs surface Curve"
-msgstr "Kiến tạo một Đường Cong mặt NURBS (Non-uniform rational basis spline)"
+msgstr "Kiến tạo một Đường Cong bề mặt NURBS (Non-uniform rational basis spline)"
 
 
 msgctxt "Operator"
 msgid "Add Surface Cylinder"
-msgstr "Thêm Hình Trụ Mặt"
+msgstr "Thêm Hình Trụ Bề Mặt"
 
 
 msgid "Construct a Nurbs surface Cylinder"
-msgstr "Kiến tạo một Hình Trụ mặt NURBS (Non-uniform rational basis spline)"
+msgstr "Kiến tạo một Hình Trụ bề mặt NURBS (Non-uniform rational basis spline)"
 
 
 msgctxt "Operator"
 msgid "Add Surface Sphere"
-msgstr "Thêm Hình Cầu Mặt"
+msgstr "Thêm Hình Cầu Bề Mặt"
 
 
 msgid "Construct a Nurbs surface Sphere"
-msgstr "Kiến tạo một Hình Cầu mặt NURBS (Non-uniform rational basis spline)"
+msgstr "Kiến tạo một Hình Cầu bề mặt NURBS (Non-uniform rational basis spline)"
 
 
 msgctxt "Operator"
@@ -77223,11 +77828,11 @@ msgstr "Kiến tạo một miếng bề mặt Nurbs (Non-uniform rational basis 
 
 msgctxt "Operator"
 msgid "Add Surface Torus"
-msgstr "Thêm Hình Xuyến Mặt"
+msgstr "Thêm Hình Xuyến Bề Mặt"
 
 
 msgid "Construct a Nurbs surface Torus"
-msgstr "Kiến tạo một Hình Xuyến với mặt NURBS (Non-uniform rational basis spline)"
+msgstr "Kiến tạo một Hình Xuyến với bề mặt NURBS (Non-uniform rational basis spline)"
 
 
 msgctxt "Operator"
@@ -78557,6 +79162,11 @@ msgid "Update given add-on's translation data (found as a py tuple in the add-on
 msgstr "Cập nhật dữ liệu phiên dịch của trình bổ sung chỉ định (một tập hợp 'py' trong mã nguồn của trình bổ sung)"
 
 
+msgctxt "Operator"
+msgid "Clean up I18n Work Repository"
+msgstr "Dọn dẹp Kho Lưu Trữ Công Việc I18n"
+
+
 msgid "Clean up i18n working repository (po files)"
 msgstr "Dọn dẹp kho lưu trữ làm việc của i18n (các tập tin po)"
 
@@ -78590,6 +79200,11 @@ msgstr "I18n Lưu các Sắp Đặt"
 
 msgid "Save translations' settings in a persistent JSon file"
 msgstr "Lưu các sắp đặt về phiên dịch vào một tập tin JSon ổn định"
+
+
+msgctxt "Operator"
+msgid "Update I18n Blender Repository"
+msgstr "Cập Nhật Kho Lưu Trữ Blender I18n"
 
 
 msgid "Update i18n data (po files) in Blender source code repository"
@@ -78637,6 +79252,11 @@ msgstr "Cập Nhật các Thống Kê I18n"
 
 msgid "Create or extend a 'i18n_info.txt' Text datablock"
 msgstr "Kiến Tạo hoặc mở rộng một khối dữ liệu Văn Bản 'i18n_info.txt'"
+
+
+msgctxt "Operator"
+msgid "Update I18n Work Repository"
+msgstr "Cập Nhật Kho Lưu Trữ Công Việc I18n"
 
 
 msgid "Update i18n working repository (po files)"
@@ -79042,6 +79662,30 @@ msgstr "Toàn Bộ UV"
 
 msgid "Export all UVs in this mesh (not just visible ones)"
 msgstr "Xuất Khẩu toàn bộ các UV trong khung lưới này (không phải chỉ UV nhìn thấy được)"
+
+
+msgid "Export Tiles"
+msgstr "Xuất Khẩu các Ô"
+
+
+msgid "Choose whether to export only the [0, 1] range, or all UV tiles"
+msgstr "Lựa chọn chỉ xuất khẩu phạm vi [0, 1] hoặc toàn bộ các ô UV nhé"
+
+
+msgid "Export only UVs in the [0, 1] range"
+msgstr "Duy xuất khẩu các UV trong phạm vi [0, 1] mà thôi"
+
+
+msgid "Export tiles in the UDIM numbering scheme: 1001 + u_tile + 10*v_tile"
+msgstr "Xuất khẩu các ô theo kế hoạch đánh số UDIM: 1001 + ô_u + 10*ô_v"
+
+
+msgid "UVTILE"
+msgstr "ÔUV"
+
+
+msgid "Export tiles in the UVTILE numbering scheme: u(u_tile + 1)_v(v_tile + 1)"
+msgstr "Xuất khẩu các ô theo kế hoạch đánh số UVTILE: u(ô_u + 1)_v(ô_v + 1)"
 
 
 msgid "File format to export the UV layout to"
@@ -79702,7 +80346,7 @@ msgstr "Đính Vá"
 
 
 msgid "Stitch selected UV vertices by proximity"
-msgstr "Đính Vá các điểm đỉnh UV được chọn tùy theo mức lân cận của chúng"
+msgstr "Đính Vá các điểm đỉnh UV được chọn tùy theo mức cận độ của chúng"
 
 
 msgid "Index of the active object"
@@ -82343,6 +82987,14 @@ msgid "Export file in ASCII format, export as binary otherwise"
 msgstr "Xuất Khẩu tập tin dùng định dạng ASCII, nếu không xuất khẩu ở dạng nhị phân"
 
 
+msgid "Export Vertex Attributes"
+msgstr "Xuất Khẩu các Thuộc Tính Điểm Đỉnh"
+
+
+msgid "Export custom vertex attributes"
+msgstr "Xuất khẩu các thuộc tính điểm đỉnh tùy chỉnh"
+
+
 msgid "Export Vertex Colors"
 msgstr "Xuất Khẩu Màu Điểm Đỉnh"
 
@@ -82374,6 +83026,14 @@ msgstr "Nhập Khẩu PLY"
 
 msgid "Import an PLY file as an object"
 msgstr "Nhập khẩu tập tin PLY như một đối tượng"
+
+
+msgid "Vertex Attributes"
+msgstr "Thuộc Tính Điểm Đỉnh"
+
+
+msgid "Import custom vertex attributes"
+msgstr "Nhập khẩu các thuộc tính điểm đỉnh tùy chỉnh"
 
 
 msgid "Merges vertices by distance"
@@ -83152,6 +83812,18 @@ msgid "Open a window with information about Blender"
 msgstr "Mở một cửa sổ với các thông tin về Blender"
 
 
+msgid "Save the scene to an STL file"
+msgstr "Lưu cảnh ra một tập tin STL"
+
+
+msgid "Batch Export"
+msgstr "Xuất Khẩu Hàng Loạt"
+
+
+msgid "Export each object to a separate file"
+msgstr "Xuất từng đối tượng sang một tập tin riêng biệt"
+
+
 msgid "Import an STL file as an object"
 msgstr "Nhập khẩu tập tin STL như một đối tượng"
 
@@ -83178,6 +83850,10 @@ msgid "Set Tool by Name"
 msgstr "Đặt Công Cụ bằng Tên"
 
 
+msgid "Set the tool by name (for key-maps)"
+msgstr "Đặt công cụ bằng tên (cho bố trí phím)"
+
+
 msgid "Set Fallback"
 msgstr "Đặt Sử Dụng Chức Năng Dự Bị"
 
@@ -83201,6 +83877,10 @@ msgstr "Định danh của công cụ"
 msgctxt "Operator"
 msgid "Set Tool by Index"
 msgstr "Đặt Công Cụ bằng Chỉ Số"
+
+
+msgid "Set the tool by index (for key-maps)"
+msgstr "Đặt công cụ theo chỉ số (dành cho bố trí phím)"
 
 
 msgid "Set the fallback tool instead of the primary"
@@ -84812,6 +85492,11 @@ msgid "Snapping"
 msgstr "Bám Dính"
 
 
+msgctxt "ID"
+msgid "Displacement"
+msgstr "Dịch Hình"
+
+
 msgid "Bake Animation"
 msgstr "Nướng Hoạt Họa"
 
@@ -84871,6 +85556,10 @@ msgstr "Đồ Thị Cảnh"
 
 msgid "Optimize Shape Keys"
 msgstr "Tối Ưu Hóa các Hình Mẫu"
+
+
+msgid "Unused Textures & Images"
+msgstr "Chất Liệu & Hình Ảnh Không Sử Dụng Đến"
 
 
 msgid "Exporter Extensions"
@@ -85348,6 +86037,10 @@ msgid "Denoising"
 msgstr "Lọc Nhiễu"
 
 
+msgid "Horizon Scan"
+msgstr "Rà Quét Đường Chân Trời"
+
+
 msgid "Raytracing"
 msgstr "Dò Tia"
 
@@ -85418,6 +86111,10 @@ msgstr "Ghi Chú"
 
 msgid "Time Stretching"
 msgstr "Kéo Giãn Thời Gian"
+
+
+msgid "Action Filter"
+msgstr "Thanh Lọc Hành Động"
 
 
 msgid "Keyframing Settings"
@@ -87746,6 +88443,14 @@ msgid "Pixels moved by mouse per axis when drawing stroke"
 msgstr "Số điểm ảnh chuột được di chuyển trên mỗi trục khi vẽ nét (trước khi chuyển động được ghi nhận)"
 
 
+msgid "Default Key Channels"
+msgstr "Các Kênh Khóa Mặc Định"
+
+
+msgid "Which channels to insert keys at when no keying set is active"
+msgstr "Những kênh nào cần chèn khóa khi không có bộ khóa nào hoạt động cả"
+
+
 msgid "New Handles Type"
 msgstr "Loại Tay Cầm cho Cái Mới"
 
@@ -88555,10 +89260,6 @@ msgstr "Số điểm ảnh phải kéo rê trước khi sự kiện kéo rê (dr
 
 msgid "Mouse Drag Threshold"
 msgstr "Ngưỡng Kéo Rê Chuột"
-
-
-msgid "Number of pixels to drag before a drag event is triggered for mouse/track-pad input (otherwise click events are detected)"
-msgstr "Số điểm ảnh phải kéo rê trước khi sự kiện kéo rê, do chuột/track-pad cung cấp cho, được kích hoạt (nếu không thì sẽ được phát hiện là sự kiện nút bấm)"
 
 
 msgid "Tablet Drag Threshold"
@@ -90643,6 +91344,14 @@ msgid "When using volume rendering, assume volume has the same density everywher
 msgstr "Khi sử dụng quá trình kết xuất thể tích, giả định là thể tích có tỷ trọng đồng đều ở khắp nơi (không sử dụng bất cứ chất liệu nào), để kết xuất nhanh hơn"
 
 
+msgid "Bump Map Correction"
+msgstr "Chỉnh Sửa Ánh Xạ Gồ Ghề"
+
+
+msgid "Apply corrections to solve shadow terminator artifacts caused by bump mapping"
+msgstr "Áp dụng các chỉnh sửa để giải quyết các giả tượng của phần kết thúc bóng tối do ánh xạ gồ ghề gây ra"
+
+
 msgid "Volume Interpolation"
 msgstr "Nội Suy Thể Tích"
 
@@ -91967,6 +92676,10 @@ msgid "Distance between volume shader samples when rendering the volume (lower v
 msgstr "Khoảng cách giữa các mẫu vật tô bóng thể tích khi kết xuất thể tích (giá trị càng thấp thì càng chính xác và chi tiết hơn nhưng thời gian kết xuất sẽ tăng lên)"
 
 
+msgid "Keep Animation"
+msgstr "Duy Trì Hoạt Họa"
+
+
 msgid "Settings/info about a language"
 msgstr "Sắp đặt/thông tin về ngôn ngữ"
 
@@ -92447,6 +93160,14 @@ msgid "Clamp ray intensity to reduce noise (0 to disable)"
 msgstr "Hạn định cường độ tia để giảm nhiễu (0 để tắt đi)"
 
 
+msgid "Screen-Trace Max Roughness"
+msgstr "Độ Nhám Tối Đa của Dò Tia Màn Hình"
+
+
+msgid "Maximum roughness to use the tracing pipeline for. Higher roughness surfaces will use horizon scan. A value of 1 will disable horizon scan"
+msgstr "Độ nhám tối đa để sử dụng cho đường ống dò tia. Các bề mặt có độ nhám cao hơn sẽ sử dụng phương pháp rà quét đường chân trời. Giá trị 1 sẽ tắt tính năng rà quét đường chân trời đi"
+
+
 msgid "Screen-Trace Precision"
 msgstr "Độ Chính Xác của Dò Tia Màn Hình"
 
@@ -92473,6 +93194,22 @@ msgstr "Số Nguyên Duy Đọc"
 
 msgid "Region in a subdivided screen area"
 msgstr "Vùng trong diện tích màn hình được phân chia"
+
+
+msgid "Active Panel Category"
+msgstr "Danh Mục Bảng Đang Hoạt Động"
+
+
+msgid "The current active panel category, may be Null if the region does not support this feature (NOTE: these categories are generated at runtime, so list may be empty at initialization, before any drawing took place)"
+msgstr "Danh mục bảng đang hoạt động hiện tại có thể là Null nếu khu vực không hỗ trợ tính năng này (LƯU Ý: các danh mục này được sinh tạo trong thời gian chạy, vì vậy danh sách có thể trống rỗng khi khởi tạo, trước khi bất kỳ quá trình vẽ nào diễn ra)"
+
+
+msgid "Not Supported"
+msgstr "Chưa Hỗ Trợ"
+
+
+msgid "This region does not support panel categories"
+msgstr "Khu vực này chưa hỗ trợ các danh mục bảng"
 
 
 msgid "Alignment of the region within the area"
@@ -93583,10 +94320,6 @@ msgid "Repeat Item"
 msgstr "Mục Lặp Lại"
 
 
-msgid "Color of the corresponding socket type in the node editor"
-msgstr "Màu của loại ổ cắm tương ứng trong trình biên soạn nút"
-
-
 msgid "Retiming Key"
 msgstr "Khóa Tính Lại Thời Gian"
 
@@ -94627,6 +95360,18 @@ msgid "Precision of the horizon search"
 msgstr "Độ chính xác của quá trình lùng tìm đường chân trời"
 
 
+msgid "Bias the horizon angles to reduce self intersection artifacts"
+msgstr "Thiên lệch các góc đường chân trời để giảm giả tượng tự giao cắt nhau"
+
+
+msgid "Precision of the horizon scan"
+msgstr "Độ chính xác của rà quét đường chân trời"
+
+
+msgid "Constant thickness of the surfaces considered when doing horizon scan and by extension ambient occlusion"
+msgstr "Độ dày không đổi của các bề mặt được cân nhắc đến khi thực hiện rà quét đường chân trời và bằng phần mở rộng tính hấp thụ môi trường xung quanh (AO)"
+
+
 msgid "Light Threshold"
 msgstr "Ngưỡng Ánh Sáng"
 
@@ -94893,6 +95638,14 @@ msgstr "Khoảng cách kết thúc của hiệu ứng thể tích"
 
 msgid "Maximum light contribution, reducing noise"
 msgstr "Lượng ánh sáng đóng góp tối đa, thuyên giảm nhiễu"
+
+
+msgid "Volume Max Ray Depth"
+msgstr "Độ Sâu Tia Xạ Tối Đa"
+
+
+msgid "Maximum surface intersection count used by the accurate volume intersection method. Will create artifact if it is exceeded"
+msgstr "Số lượng giao cắt bề mặt tối đa vốn sử dụng bởi phương pháp giao cắt thể tích chính xác. Sẽ tạo ra giả tượng nếu vượt quá"
 
 
 msgid "Exponential Sampling"
@@ -100119,7 +100872,7 @@ msgstr "Bézier U"
 
 
 msgid "Make this nurbs curve or surface act like a Bezier spline in the U direction"
-msgstr "Bắt đường cong nurbs và bê mặt này hành động giống như một đường cong Bezier trong hướng U"
+msgstr "Bắt đường cong nurbs và bề mặt này hành động giống như một đường cong Bezier trong hướng U"
 
 
 msgid "Bezier V"
@@ -100296,22 +101049,6 @@ msgstr "Có Điểm Nhấn Lóng Lánh"
 
 msgid "Studio light image file has separate \"diffuse\" and \"specular\" passes"
 msgstr "Tập tin hình ảnh của bố trí ánh sáng studio có các lượt \"khuếch xạ\" và \"lóng lánh\" riêng biệt"
-
-
-msgid "Irradiance Cache Path"
-msgstr "Đường Dẫn của Bộ Đệm Nhớ về Sự Tỏa Sáng"
-
-
-msgid "Path where the irradiance cache is stored"
-msgstr "Đường dẫn đến bộ đệm nhớ lưu sự chiếu sáng"
-
-
-msgid "SH Cache Path"
-msgstr "Đường Dẫn của Bộ Đệm Nhớ SH"
-
-
-msgid "Path where the spherical harmonics cache is stored"
-msgstr "Đường dẫn đến bộ đệm nhớ lưu kết quả của hàm điều hòa cầu (Spherical Harmonics, viết tắt SH)"
 
 
 msgid "Lights user to display objects in solid draw mode"
@@ -101053,6 +101790,10 @@ msgid "Channels Selected"
 msgstr "Kênh được Chọn"
 
 
+msgid "Dope Sheet Channel"
+msgstr "Kênh của Bảng Hành Động"
+
+
 msgid "Dope Sheet Sub-channel"
 msgstr "Kênh Thứ của Bảng Hành Động"
 
@@ -101229,6 +101970,14 @@ msgid "Theme settings for Font"
 msgstr "Sắp đặt kiểu mẫu về Phông Chữ"
 
 
+msgid "Character Weight"
+msgstr "Trọng Lượng Ký Tự"
+
+
+msgid "Weight of the characters. 100-900, 400 is normal"
+msgstr "Trọng lượng của các ký tự. 100-900, 400 là bình thường"
+
+
 msgid "Font size in points"
 msgstr "Kích thước phông chữ trong số điểm"
 
@@ -101385,8 +102134,16 @@ msgid "Face Orientation Front"
 msgstr "Định Hướng Mặt: Trước"
 
 
+msgid "Face Mode Selection"
+msgstr "Lựa Chọn Chế Độ Mặt"
+
+
 msgid "Face Retopology"
 msgstr "Tái Cấu Trúc Mặt"
+
+
+msgid "Face Selection"
+msgstr "Lựa Chọn Mặt"
 
 
 msgid "Face Dot Size"
@@ -102346,6 +103103,10 @@ msgid "Edge UV Face Select"
 msgstr "Cạnh của Mặt UV được Chọn"
 
 
+msgid "Edge Mode Selection"
+msgstr "Lựa Chọn Chế Độ Cạnh"
+
+
 msgid "Edge Seam"
 msgstr "Cạnh Đường Khâu"
 
@@ -103007,6 +103768,14 @@ msgstr "Thêm dữ liệu trọng lượng vào các nét vẽ mới"
 
 msgid "When creating new strokes, the weight data is added according to the current vertex group and weight, if no vertex group selected, weight is not added"
 msgstr "Khi tạo các nét vẽ mới, dữ liệu trọng lượng sẽ được thêm vào tùy theo nhóm điểm đỉnh hiện tại và trọng lượng, nếu không có nhóm điểm đỉnh nào đã được chọn thì trọng số sẽ không được thêm vào"
+
+
+msgid "Multi-frame Editing"
+msgstr "Biên Soạn Đa Khung Hình"
+
+
+msgid "Enable multi-frame editing"
+msgstr "Bật chỉnh sửa đa khung hình"
 
 
 msgid "Cycle-Aware Keying"
@@ -107203,6 +107972,16 @@ msgstr "Xuống"
 
 
 msgctxt "WindowManager"
+msgid "Local Up"
+msgstr "Lên Cục Bộ"
+
+
+msgctxt "WindowManager"
+msgid "Local Down"
+msgstr "Xuống Cục Bộ"
+
+
+msgctxt "WindowManager"
 msgid "Stop Move Forward"
 msgstr "Ngừng Di Chuyển Về Phía Trước"
 
@@ -107214,7 +107993,22 @@ msgstr "Ngừng Di Chuyển Về Phía Sau"
 
 msgctxt "WindowManager"
 msgid "Stop Move Left"
-msgstr "Ngừng Di Chuyển Trái"
+msgstr "Ngừng Di Chuyển sang Trái"
+
+
+msgctxt "WindowManager"
+msgid "Stop Move Global Up"
+msgstr "Ngừng Di Chuyển Toàn Cầu Lên"
+
+
+msgctxt "WindowManager"
+msgid "Stop Move Local Up"
+msgstr "Ngừng Di Chuyển Cục Bộ Lên"
+
+
+msgctxt "WindowManager"
+msgid "Stop Move Local Down"
+msgstr "Ngừng Di Chuyển Cục Bộ Xuống"
 
 
 msgctxt "WindowManager"
@@ -107443,6 +108237,11 @@ msgstr "Thông Dụng về Bảng Hành Động"
 msgctxt "WindowManager"
 msgid "NLA Editor"
 msgstr "Soạn NLA"
+
+
+msgctxt "WindowManager"
+msgid "NLA Tracks"
+msgstr "Các Rãnh NLA"
 
 
 msgctxt "WindowManager"
@@ -108111,6 +108910,11 @@ msgstr "Chế Độ Chuẩn Xác"
 
 
 msgctxt "WindowManager"
+msgid "Navigate"
+msgstr "Điều Hướng"
+
+
+msgctxt "WindowManager"
 msgid "Eyedropper Modal Map"
 msgstr "Ánh Xạ Mô Thái của Ống Nhỏ Mắt"
 
@@ -108634,6 +109438,10 @@ msgid "%s is not supported"
 msgstr "%s chưa được hỗ trợ"
 
 
+msgid "Please select at least one image"
+msgstr "Xin vui lòng chọn ít nhất một hình ảnh nhé"
+
+
 msgid "Cannot generate materials for unknown %s render engine"
 msgstr "Không thể sinh tạo nguyên vật liệu cho máy kết xuất %s chưa biết đến"
 
@@ -108757,6 +109565,10 @@ msgstr "Thêm Biến Thể Nguyên Vật Liệu"
 
 msgid "No glTF Animation"
 msgstr "Không Có Hoạt Họa glTF"
+
+
+msgid "No Actions in .blend file"
+msgstr "Không có Hành Động nào trong tập tin .blend cả"
 
 
 msgid "Variant"
@@ -109219,6 +110031,21 @@ msgstr "Hủy Chọn Toàn Bộ"
 
 
 msgctxt "Operator"
+msgid "Update Work Repository"
+msgstr "Cập Nhật Kho Lưu Trữ Công Việc"
+
+
+msgctxt "Operator"
+msgid "Clean up Work Repository"
+msgstr "Dọn Dẹp Kho Lưu Trữ Công Việc"
+
+
+msgctxt "Operator"
+msgid "Update Blender Repository"
+msgstr "Cập Nhật Kho Lưu Trữ Blender"
+
+
+msgctxt "Operator"
 msgid "Statistics"
 msgstr "Thống Kê"
 
@@ -109391,6 +110218,14 @@ msgstr "Không có gì để nướng cả"
 
 msgid "Complete report available on '%s' text datablock"
 msgstr "Thông báo toàn vẹn hiện nằm trong khối dữ liệu văn bản '%s'"
+
+
+msgid "No active bone to copy from"
+msgstr "Không có xương nào đang hoạt động để sao chép từ đó sang cả"
+
+
+msgid "No selected bones to copy to"
+msgstr "Không có xương nào đã chọn để sao chép sang cả"
 
 
 msgid "Bone colors were synced; for %d bones this will not be visible due to pose bone color overrides"
@@ -110188,6 +111023,14 @@ msgstr "(Các) Hành Động"
 
 msgid "Edit Bone(s)"
 msgstr "Các Xương Biên Soạn"
+
+
+msgid "Scene(s)"
+msgstr "(Các) Cảnh"
+
+
+msgid "Brush(es)"
+msgstr "(Các) Đầu Bút"
 
 
 msgid "Unknown"
@@ -111084,6 +111927,18 @@ msgid "Invert"
 msgstr "Đảo Nghịch"
 
 
+msgid "Max Displacement"
+msgstr "Độ Dịch Hình Tối Đa"
+
+
+msgid "Render Method"
+msgstr "Phương Pháp Kết Xuất"
+
+
+msgid "Light Probe Volume"
+msgstr "Thể Tích Thăm Dò Ánh Sáng"
+
+
 msgid "Intersection"
 msgstr "Giao Cắt"
 
@@ -111094,6 +111949,18 @@ msgstr "Chắn Lọc Nguyên Vật Liệu"
 
 msgid "Custom Occlusion"
 msgstr "Tùy Chỉnh Tính Hấp Thụ Quang Xạ"
+
+
+msgid "Unsupported displacement method"
+msgstr "Phương pháp dịch hình chưa được hỗ trợ"
+
+
+msgid "Transparency Overlap"
+msgstr "Chồng Gối Độ Trong"
+
+
+msgid "Raytraced Refraction"
+msgstr "Khúc Xạ Dò Tia"
 
 
 msgctxt "Operator"
@@ -112011,6 +112878,10 @@ msgid "Light Clamping"
 msgstr "Hạn Chế Ánh Sáng"
 
 
+msgid "Max Depth"
+msgstr "Độ Sâu Tối Đa"
+
+
 msgid "Refraction"
 msgstr "Khúc Xạ"
 
@@ -112021,6 +112892,18 @@ msgstr "Kích Thước Tầng Chồng"
 
 msgid "Pool Size"
 msgstr "Kích Thước Bể"
+
+
+msgid "Tracing"
+msgstr "Dò Tia"
+
+
+msgid "Rays"
+msgstr "Tia Xạ"
+
+
+msgid "Temporal Reprojection"
+msgstr "Tái Phóng Chiếu theo Thời Gian"
 
 
 msgctxt "Operator"
@@ -112052,6 +112935,11 @@ msgstr "Động Cơ Kết Xuất"
 msgctxt "Operator"
 msgid "Bake Cubemap Only"
 msgstr "Duy Nướng Bản Đồ Lập Phương"
+
+
+msgctxt "Operator"
+msgid "Bake Volumes"
+msgstr "Nướng Thể Tích"
 
 
 msgid "Shadow Resolution"
@@ -112166,6 +113054,10 @@ msgstr "Ánh Xạ"
 
 msgid "Use for Rendering"
 msgstr "Sử Dụng trong Kết Xuất"
+
+
+msgid "Occlusion Distance"
+msgstr "Khoảng Cách Che Khuất"
 
 
 msgid "Conflicts with another render pass with the same name"
@@ -113407,6 +114299,11 @@ msgstr "Thể Loại"
 
 
 msgctxt "Operator"
+msgid "Show Object Hierarchy"
+msgstr "Hiển Thị Tầng Bậc của Đối Tượng"
+
+
+msgctxt "Operator"
 msgid "Show One Level"
 msgstr "Hiển Thị Một Tầng"
 
@@ -113671,6 +114568,11 @@ msgstr "Xê Dịch Nội Dung Đoạn Phim"
 
 msgid "Anchor X"
 msgstr "X của Điểm Neo"
+
+
+msgctxt "Sound"
+msgid "Strip Volume"
+msgstr "Âm Lượng của Dải"
 
 
 msgid "%14s"
@@ -114213,6 +115115,10 @@ msgid "Unable to find toolbar group"
 msgstr "Không tìm thấy nhóm thanh công cụ"
 
 
+msgid "Taper Start"
+msgstr "Vuốt Thon Khởi Đầu"
+
+
 msgid ""
 "%s\n"
 "• %s toggles snap while dragging.\n"
@@ -114227,10 +115133,6 @@ msgstr ""
 
 msgid "Depth:"
 msgstr "Chiều/Độ Sâu:"
-
-
-msgid "Taper Start"
-msgstr "Vuốt Thon Khởi Đầu"
 
 
 msgid "Weight: %.3f"
@@ -114761,6 +115663,11 @@ msgid "View Align"
 msgstr "Căn Chỉnh theo Góc Nhìn"
 
 
+msgctxt "Text"
+msgid "Weight"
+msgstr "Trọng Lượng"
+
+
 msgid "Shadow Offset X"
 msgstr "Dịch Chuyển Bóng Tối Chiều X"
 
@@ -114834,7 +115741,7 @@ msgstr "Tráo Đổi Trục Y và Z"
 
 
 msgid "Invert Axis Pan"
-msgstr "Đảo Ngược Trục Lia"
+msgstr "Đảo Nghịch Trục Lia"
 
 
 msgid "Invert Pan Axis"
@@ -114911,6 +115818,11 @@ msgstr "Đảo Ngịch Hướng Thu-Phóng của Bánh Xe"
 
 msgid "Fly/Walk"
 msgstr "Bay Lượn/Đi Bộ"
+
+
+msgctxt "Operator"
+msgid "Extension Add-on Repository"
+msgstr "Kho lưu trữ tiện ích mở rộng"
 
 
 msgid "Multiple add-ons with the same name found!"
@@ -115346,6 +116258,11 @@ msgstr "Nền Sau"
 msgctxt "Operator"
 msgid "Make Local..."
 msgstr "Cục Bộ Hóa..."
+
+
+msgctxt "Operator"
+msgid "Insert Keyframe with Keying Set"
+msgstr "Chèn Khung Khóa với Bộ Khóa"
 
 
 msgctxt "Operator"
@@ -116056,6 +116973,16 @@ msgstr "Nhân Đôi Khung Khóa đang Hoạt Động (Tầng Lớp đang Hoạt 
 
 
 msgctxt "Operator"
+msgid "Set Caps"
+msgstr "Đặt Đầu Nắp"
+
+
+msgctxt "Operator"
+msgid "Smooth Points"
+msgstr "Làm Mịn các Điểm"
+
+
+msgctxt "Operator"
 msgid "View Selected"
 msgstr "Hiển Thị cái Được Chọn"
 
@@ -116727,7 +117654,7 @@ msgstr "Nhân Đôi Khung Khóa đang Hoạt Động (Toàn Bộ các Tầng L�
 
 msgctxt "Operator"
 msgid "Hide Active Layer"
-msgstr "Ẩn Giấu Tầng đang Hoạt Động"
+msgstr "Ẩn Giấu Tầng Lớp đang Hoạt Động"
 
 
 msgctxt "Operator"
@@ -116782,6 +117709,10 @@ msgstr "Duy trong Đa Khung Hình"
 msgctxt "Operator"
 msgid "Reproject"
 msgstr "Tái Phóng Chiếu"
+
+
+msgid "Mirror Points"
+msgstr "Phản Chiếu Đối Xứng các Điểm"
 
 
 msgid "Curve Shape"
@@ -117245,6 +118176,10 @@ msgid "Could not insert keyframe, as RNA path is invalid for the given ID (ID = 
 msgstr "Không thể cộng thêm khung khóa vào được, vì đường dẫn RNA là không hợp lệ đối với ID đã cho (ID = %s, đường dẫn = %s)"
 
 
+msgid "Failed to insert keys on F-Curve with path '%s[%d]', ensure that it is not locked or sampled, and try removing F-Modifiers"
+msgstr "Không thể chèn các khóa trên Đường Cong-F với đường dẫn '%s[%d]' được, xin hãy đảm bảo rằng nó không bị khóa lại hoặc đã được lấy mẫu rồi, và thử xóa Bộ Điều Chỉnh-F đi nhé"
+
+
 msgid "No ID block to insert keyframe in (path = %s)"
 msgstr "Không có khối ID nào để có thể cộng thêm khung khóa vào (đường dẫn = %s)"
 
@@ -117275,6 +118210,22 @@ msgstr "Không thể xóa khung khóa được, vì đường dẫn RNA với ID
 
 msgid "Not clearing all keyframes from locked F-Curve '%s' for %s '%s'"
 msgstr "Không xóa được hết toàn bộ các khung khóa khỏi Đường Cong-F đang bị khóa '%s' đối với %s '%s'"
+
+
+msgid "Could not insert keyframe, as this type does not support animation data (ID = %s)"
+msgstr "Không thể chèn khung khóa vì thể loại này chưa hỗ trợ dữ liệu hoạt họa (ID = %s)"
+
+
+msgid "Could not insert keyframe, as this property does not exist (ID = %s, path = %s)"
+msgstr "Không thể chèn khung khóa được, vì thuộc tính này không tồn tại (ID = %s, path = %s)"
+
+
+msgid "Failed to insert any keys"
+msgstr "Không thể chèn bất kỳ khóa nào được"
+
+
+msgid "Named Layer node"
+msgstr "Nút Tầng Lớp có Tên"
 
 
 msgid "User Library"
@@ -117453,20 +118404,8 @@ msgid "Null cloth object"
 msgstr "Đối tượng vải vóc Null (vô nghĩa)"
 
 
-msgid "Out of memory on allocating clmd->clothObject"
-msgstr "Bộ nhớ cạn kiệt khi cấp phát cho clmd->clothObject"
-
-
 msgid "Cannot build springs"
 msgstr "Không thể xây dựng các lò xo"
-
-
-msgid "Out of memory on allocating clmd->clothObject->verts"
-msgstr "Bộ nhớ cạn kiệt khi cấp phát cho clmd->clothObject->verts"
-
-
-msgid "Out of memory on allocating clmd->clothObject->looptri"
-msgstr "Bộ nhớ cạn kiệt khi cấp phát cho clmd->clothObject->looptri"
 
 
 msgid "Scene Collection"
@@ -118296,6 +119235,10 @@ msgid "Optimizing Shaders (%d remaining)"
 msgstr "Đang Tối Ưu Hóa các Bộ Tô Bóng (%d còn lại)"
 
 
+msgid "EEVEE (Legacy)"
+msgstr "EEVEE (Lỗi Thời)"
+
+
 msgid "Incompatible Light cache version, please bake again"
 msgstr "Phiên bản bộ đệm nhớ Ánh Sáng không tương thích, làm ơn nướng lại"
 
@@ -118426,6 +119369,18 @@ msgstr "Không có khung khóa nào để tập trung vào cả"
 
 msgid "Nothing selected"
 msgstr "Chưa chọn cái gì cả"
+
+
+msgid "No open Graph Editor window found"
+msgstr "Không tìm thấy cửa sổ của Trình Biên Soạn Đồ Thị nào đang mở cả"
+
+
+msgid "Cannot create the Animation Context"
+msgstr "Không thể tạo Bối Cảnh Hoạt Họa được"
+
+
+msgid "F-Curves have no valid size"
+msgstr "Đường Cong-F không có kích thước hợp lệ"
 
 
 msgid "<invalid>"
@@ -118598,6 +119553,14 @@ msgstr "Bộ Khóa '%s' - đã thành công trong việc thêm %d khung khóa v�
 
 msgid "Successfully added %d keyframes for keying set '%s'"
 msgstr "Đã thêm %d khung khóa vào Bộ Khóa '%s'"
+
+
+msgid "Unsupported context mode"
+msgstr "Chế độ ngữ cảnh chưa được hỗ trợ"
+
+
+msgid "'%s' is not editable"
+msgstr "'%s' không thể chỉnh sửa được"
 
 
 msgid "Successfully removed %d keyframes for keying set '%s'"
@@ -119305,6 +120268,10 @@ msgid "Node group must have a group output node"
 msgstr "Nhóm nút phải có nút đầu ra nhóm"
 
 
+msgid "Data-block inputs are unsupported"
+msgstr "Đầu vào khối dữ liệu chưa được hỗ trợ"
+
+
 msgid "Annotation Create Poly: LMB click to place next stroke vertex | ESC/Enter to end  (or click outside this area)"
 msgstr "Chú Thích, Kiến Tạo Đa Giác: bấm NCT để đặt điểm tiếp theo của đường vẽ | ESC/Enter để kết thúc (hoặc bấm vào một điểm ở ngoài khu vực này)"
 
@@ -119784,6 +120751,11 @@ msgid "Missing Menu: %s"
 msgstr "Thiếu Trình Đơn: %s"
 
 
+msgctxt "WindowManager"
+msgid "Search"
+msgstr "Tìm Kiếm"
+
+
 msgid "Non-Keyboard Shortcut"
 msgstr "Đường Tắt Không Dành Cho Bàn Phím"
 
@@ -119853,6 +120825,21 @@ msgstr "Xóa các Khung Khóa"
 msgctxt "Operator"
 msgid "Clear Single Keyframes"
 msgstr "Xóa các Khung Khóa Đơn"
+
+
+msgctxt "Operator"
+msgid "View All in Graph Editor"
+msgstr "Quan Sát Toàn Bộ trong Trình Biên Soạn Đồ Thị"
+
+
+msgctxt "Operator"
+msgid "View Single in Graph Editor"
+msgstr "Quan Sát Đơn Lẻ trong Trình Biên Soạn Đồ Thị"
+
+
+msgctxt "Operator"
+msgid "View in Graph Editor"
+msgstr "Quan Sát Trong Trình Biên Soạn Đồ Thị"
 
 
 msgctxt "Operator"
@@ -120560,43 +121547,47 @@ msgstr "Duyệt Đoạn Phim (Movie Clip) sẽ được kết nối"
 
 
 msgid "Browse Mask to be linked"
-msgstr "Duyệt Màn Chắn Lọc sắp kết nối"
+msgstr "Duyệt Màn Chắn Lọc sẽ được kết nối"
 
 
 msgid "Browse Palette Data to be linked"
-msgstr "Duyệt Dữ Liệu về Bảng Pha Màu sắp kết nối"
+msgstr "Duyệt Dữ Liệu về Bảng Pha Màu sẽ được kết nối"
 
 
 msgid "Browse Paint Curve Data to be linked"
-msgstr "Duyệt Dữ Liệu về Đường Cong Sơn sắp kết nối"
+msgstr "Duyệt Dữ Liệu về Đường Cong Sơn sẽ được kết nối"
 
 
 msgid "Browse Cache Files to be linked"
-msgstr "Duyệt các Tập Tin về Bộ Nhớ Đệm sắp kết nối"
+msgstr "Duyệt các Tập Tin về Bộ Nhớ Đệm sẽ được kết nối"
 
 
 msgid "Browse Workspace to be linked"
-msgstr "Duyệt Không Gian Làm Việc sắp kết nối"
+msgstr "Duyệt Không Gian Làm Việc sẽ được kết nối"
 
 
 msgid "Browse LightProbe to be linked"
-msgstr "Duyệt Điểm Thăm Dò Ánh Sáng sắp kết nối"
+msgstr "Duyệt Điểm Thăm Dò Ánh Sáng sẽ được kết nối"
 
 
 msgid "Browse Curves Data to be linked"
-msgstr "Duyệt thảo Dữ Liệu Đường Cong sẽ liên kết"
+msgstr "Duyệt thảo Dữ Liệu Đường Cong sẽ được liên kết"
 
 
 msgid "Browse Point Cloud Data to be linked"
-msgstr "Duyệt Dữ Liệu Mây Điểm Chấm sắp Kết Nối"
+msgstr "Duyệt Dữ Liệu Mây Điểm Chấm sẽ được Kết Nối"
 
 
 msgid "Browse Volume Data to be linked"
-msgstr "Duyệt Thảo Dữ Liệu Thể Tích sắp Kết Nối"
+msgstr "Duyệt Thảo Dữ Liệu Thể Tích sẽ được Kết Nối"
+
+
+msgid "Browse Grease Pencil v3 Data to be linked"
+msgstr "Duyệt Dữ Liệu Grease Pencil v3 sẽ được kết nối"
 
 
 msgid "Browse ID data to be linked"
-msgstr "Duyệt dữ liệu ID sắp kết nối"
+msgstr "Duyệt dữ liệu ID sẽ được kết nối"
 
 
 msgid "The data-block %s is not overridable"
@@ -120891,6 +121882,14 @@ msgstr "Cờ Bit của Nhóm Mịn"
 
 msgid "ASCII"
 msgstr "ASCII"
+
+
+msgid "Batch"
+msgstr "Hàng Loạt"
+
+
+msgid "No filename given"
+msgstr "Không có tên tập tin nào được cung cấp cả"
 
 
 msgid "File References"
@@ -121307,6 +122306,21 @@ msgstr "RãnhÂmThanh"
 
 
 msgctxt "Light"
+msgid "Volume"
+msgstr "Thể Tích"
+
+
+msgctxt "Light"
+msgid "Plane"
+msgstr "Bề Diện"
+
+
+msgctxt "Light"
+msgid "Sphere"
+msgstr "Hình Cầu"
+
+
+msgctxt "Light"
 msgid "LightProbe"
 msgstr "ThămDòÁnhSáng"
 
@@ -121637,10 +122651,6 @@ msgid "Failed to remove blobs directory %s"
 msgstr "Không xóa được thư mục Viên Tròn (blobs) %s"
 
 
-msgid "File has to be saved"
-msgstr "Tập tin phải được lưu đã"
-
-
 msgid "Skipped some collections because of cycle detected"
 msgstr "Bỏ qua một số bộ sưu tập bởi vì đã phát hiện có sự tuần hoàn vòng tròn xảy ra"
 
@@ -121915,6 +122925,10 @@ msgstr "Không tìm thấy bộ điều chỉnh móc/mắc/gài"
 
 msgid "Unable to execute '%s', error changing modes"
 msgstr "Không thể thi hành '%s', lỗi xảy ra trong khi đổi chế độ"
+
+
+msgid "Unable to execute, %s object is linked"
+msgstr "Không thể thi hành được, đối tượng %s là đối tượng liên kết"
 
 
 msgid "Apply modifier as a new shapekey and keep it in the stack"
@@ -123082,6 +124096,14 @@ msgid "UV map or surface attachment is invalid"
 msgstr "Ánh xạ UV hoặc bề mặt đính kèm bất hợp lệ"
 
 
+msgid "No active Grease Pencil layer"
+msgstr "Không có tầng lớp Bút Chì Dầu nào đang hoạt động cả"
+
+
+msgid "No Grease Pencil frame to draw on"
+msgstr "Không có khung hình Bút Chì Dầu nào để vẽ lên cả"
+
+
 msgid "PaintCurve"
 msgstr "ĐườngCongSơn"
 
@@ -123119,7 +124141,7 @@ msgstr " Các UV,"
 
 
 msgid " Materials,"
-msgstr " Vật Liệu,"
+msgstr " Nguyên Vật Liệu,"
 
 
 msgid " Stencil,"
@@ -124375,6 +125397,14 @@ msgid "Select an existing NLA Track or an empty action line first"
 msgstr "Chọn một Rãnh NLA hiện tồn tại hoặc một dòng hành động trống trước đã"
 
 
+msgid "No animation track found at index %d"
+msgstr "Không tìm thấy rãnh hoạt họa nào tại chỉ mục %d cả"
+
+
+msgid "Animation track at index %d is not a NLA 'Active Action' track"
+msgstr "Rãnh hoạt họa ở chỉ mục %d không phải là rãngh 'Hành Động đang Hoạt Động' của NLA"
+
+
 msgid ""
 "Node group assets not assigned to a catalog.\n"
 "Catalogs can be assigned in the Asset Browser"
@@ -124585,6 +125615,10 @@ msgstr "các ma trận"
 
 msgid "no matrices"
 msgstr "không có ma trận"
+
+
+msgid "• Grease Pencil: %s layers"
+msgstr "• Bút Chì Dầu: %s tầng lớp"
 
 
 msgid "Supported: All Types"
@@ -125337,6 +126371,10 @@ msgstr "Không thể tạo khóa bên trong quá trình chuyển đổi tốc đ
 
 msgid "Can not create freeze frame"
 msgstr "Không thể tạo khung hình đóng băng được"
+
+
+msgid "Can not create transition from first or last key"
+msgstr "Không thể tạo chuyển tiếp từ khóa đầu tiên hoặc khóa cuối cùng được"
 
 
 msgid "Can not create transition"
@@ -127127,6 +128165,10 @@ msgid "ID '%s' is linked, cannot edit its overrides"
 msgstr "ID '%s' đã kết nối rồi, không thể chỉnh sửa những vượt quyền của nó được"
 
 
+msgid "Data-block '%s' is not a library override, or not part of a library override hierarchy"
+msgstr "Khối dữ liệu '%s' không phải là một vượt quyền thư viện, hoặc không phải là một phần của hệ thống cấp bậc vượt quyền thư viện"
+
+
 msgid "%s is not compatible with %s 'refresh' options"
 msgstr "%s không tương hợp với tùy chọn 'làm tươi lại' (refresh) %s"
 
@@ -127145,10 +128187,6 @@ msgstr "Không thể chỉnh sửa thuộc tính này từ khối dữ liệu v�
 
 msgid "Only boolean, int, float, and enum properties supported"
 msgstr "Chỉ hỗ trợ các tính chất boolean, int, float và enum mà thôi"
-
-
-msgid "Only boolean, int, and float properties supported"
-msgstr "Chỉ hỗ trợ các tính chất boolean, int và float mà thôi"
 
 
 msgid "'%s' does not contain '%s' with prefix and suffix"
@@ -127265,6 +128303,10 @@ msgstr "Khung Cốt '%s' không có chứa xương '%s'"
 
 msgid "Cannot move collection from index '%d' to '%d'"
 msgstr "Không thể di chuyển bộ sưu tập từ chỉ số '%d' sang '%d' được"
+
+
+msgid "`Collection.bones` is not available in armature edit mode"
+msgstr "`Collection.bones` không khả dụng ở chế độ biên soạn khung cốt"
 
 
 msgid "Invalid color palette index: %d"
@@ -127818,6 +128860,30 @@ msgid "Registering node socket class: '%s' is too long, maximum length is %d"
 msgstr "Lớp ổ cắm của nút (node socket) đang đăng ký: '%s' quá dài, chiều dài tối đa là %d"
 
 
+msgid "The node socket's default value"
+msgstr "Giá trị mặc định của ổ cắm nút"
+
+
+msgid "The index from the context"
+msgstr "Chỉ mục từ ngữ cảnh"
+
+
+msgid "ID or Index"
+msgstr "ID hoặc Chỉ Mục"
+
+
+msgid "The \"id\" attribute if available, otherwise the index"
+msgstr "Thuộc tính \"id\" nếu có, nếu không thì chỉ mục"
+
+
+msgid "The geometry's normal direction"
+msgstr "Chiều hướng pháp tuyến của hình học"
+
+
+msgid "The position from the context"
+msgstr "Vị trí từ bối cảnh"
+
+
 msgid "Parent is not part of the interface"
 msgstr "Phụ huynh không phải là một phần của giao diện"
 
@@ -127905,6 +128971,14 @@ msgstr "Không thể xóa ổ cắm khỏi nút tích hợp được"
 
 msgid "Unable to move sockets in built-in node"
 msgstr "Không thể di chuyển ổ cắm trong nút tích hợp được"
+
+
+msgid "Unable to locate item in node"
+msgstr "Không thể định vị mục trong nút được"
+
+
+msgid "Unable to create item with this socket type"
+msgstr "Không thể tạo mục với thể loại ổ cắm này được"
 
 
 msgid "Registering node tree class: '%s' is too long, maximum length is %d"
@@ -128389,6 +129463,14 @@ msgstr "GizmoType (kiểu Gizmo) '%s' là dành cho nhóm-gizmo 3D. Hàm gọi l
 
 msgid "%s area type does not support gizmos"
 msgstr "%s thể loại khu vực không hỗ trợ các gizmo"
+
+
+msgid "Unknown operator"
+msgstr "Thao tác chưa biết đến"
+
+
+msgid "Operator missing srna"
+msgstr "Thao tác thiếu srna"
 
 
 msgid "Gizmo target property '%s.%s' not found"
@@ -129169,6 +130251,26 @@ msgid "Outer Mask"
 msgstr "Màn Chắn Lọc Ngoại"
 
 
+msgid "Path:"
+msgstr "Đường Dẫn:"
+
+
+msgid "Base Path:"
+msgstr "Đường Dẫn Cơ Sở:"
+
+
+msgid "Add Input"
+msgstr "Thêm Đầu Vào"
+
+
+msgid "File Subpath:"
+msgstr "Đường Dẫn Thành Phần của Tập Tin:"
+
+
+msgid "Format:"
+msgstr "Định Dạng:"
+
+
 msgid "ID value"
 msgstr "Giá trị ID"
 
@@ -129219,26 +130321,6 @@ msgstr "Không Biến Dạng"
 
 msgid "Dot"
 msgstr "Tích Vô Hướng"
-
-
-msgid "Path:"
-msgstr "Đường Dẫn:"
-
-
-msgid "Base Path:"
-msgstr "Đường Dẫn Cơ Sở:"
-
-
-msgid "Add Input"
-msgstr "Thêm Đầu Vào"
-
-
-msgid "File Subpath:"
-msgstr "Đường Dẫn Thành Phần của Tập Tin:"
-
-
-msgid "Format:"
-msgstr "Định Dạng:"
 
 
 msgid "Degr"
@@ -129345,6 +130427,10 @@ msgid "Instance Count"
 msgstr "Số Lượng Thực Thể"
 
 
+msgid "Layer Count"
+msgstr "Số Tầng Lớp"
+
+
 msgid "How many times to blur the values for all elements"
 msgstr "Số lần làm nhòe mờ các giá trị cho tất cả các phần tử"
 
@@ -129415,6 +130501,10 @@ msgstr "Khoảng lựa chọn từ đầu và cuối chốt trục dựa trên k
 
 msgid "Endpoint Selection node"
 msgstr "Nút Lựa Chọn Điểm Cuối"
+
+
+msgid "An index used to group curves together. Filling is done separately for each group"
+msgstr "Một chỉ số dùng để nhóm các đường cong lại với nhau. Việc phủ kín được thực hiện cho riêng cho từng nhóm nhé"
 
 
 msgid "Limit Radius"
@@ -130763,6 +131853,14 @@ msgid "Forward the output of the simulation input node directly to the output no
 msgstr "Chuyển trực tiếp đầu ra của nút đầu vào mô phỏng đến nút đầu ra và bỏ qua các nút trong vùng mô phỏng"
 
 
+msgid "All geometry groups as separate instances"
+msgstr "Toàn bộ các nhóm hình học là các thực thể riêng biệt"
+
+
+msgid "The group ID of each group instance"
+msgstr "ID nhóm của từng thực thể nhóm một"
+
+
 msgid "Failed to write to attribute \"{}\" with domain \"{}\" and type \"{}\""
 msgstr "Không thể viết vào thuộc tính \"{}\" với phạm vi \"{}\" và kiểu \"{}\""
 
@@ -131144,6 +132242,10 @@ msgstr "Chỉ số khúc xạ sử dụng cho các tia xâm nhập phần tử d
 
 msgid "Adjustment to the IOR to increase or decrease specular intensity (0.5 means no adjustment, 0 removes all reflections, 1 doubles them at normal incidence)"
 msgstr "Điều chỉnh chỉ số khúc xạ để tăng hoặc giảm cường độ của ánh lóng lánh (0.5 nghĩa là không điều chỉnh, 0 loại bỏ tất cả các phản xạ, 1 nhân đôi chúng tại pháp tuyến điểm rơi vào)"
+
+
+msgid "Tint dielectric reflection at normal incidence for artistic control, and metallic reflection at near-grazing incidence to simulate complex index of refraction"
+msgstr "Phản xạ điện mội của màu nhuốm tại góc pháp tuyến để điều khiển theo con mắt nghệ thuật, cùng phản xạ kim loại ở góc chạm gần để mô phỏng chỉ số khúc xạ phức tạp"
 
 
 msgid "Blend between transmission and other base layer components"
@@ -133005,6 +134107,74 @@ msgid "Attaches hair curves to a surface mesh"
 msgstr "Đính đường cong tóc lên một bề mặt"
 
 
+msgid "Surface UV Coordinate"
+msgstr "Tọa Độ UV của Bề Mặt"
+
+
+msgid "Surface UV coordinate at the attachment point"
+msgstr "Tọa độ UV bề mặt tại điểm đính vào"
+
+
+msgid "Surface Normal"
+msgstr "Pháp Tuyến Bề Mặt"
+
+
+msgid "Surface normal at the attachment point"
+msgstr "Pháp tuyến Bề mặt tại điểm đính kèm"
+
+
+msgid "Surface Geometry to attach hair curves to"
+msgstr "Hình Học Bề Mặt để gắn các đường cong tóc vào"
+
+
+msgid "Surface Object to attach to (needs to have matching transforms)"
+msgstr "Đối Tượng Bề Mặt để gắn vào (cần có các biến hóa xứng khớp)"
+
+
+msgid "Surface UV map used for attachment "
+msgstr "Ánh xạ UV bề mặt sử dụng để đính vào "
+
+
+msgid "Surface Rest Position"
+msgstr "Vị Trí Nghỉ của Bề Mặt"
+
+
+msgid "Set the surface mesh into its rest position before attachment"
+msgstr "Đặt khung lưới bề mặt vào vị trí nghỉ của nó trước khi đính vào"
+
+
+msgid "Sample Attachment UV"
+msgstr "Lấy Mẫu UV của cái Đính Vào"
+
+
+msgid "Sample the surface UV map at the attachment point"
+msgstr "Lấy mẫu ánh xạ UV bề mặt tại điểm đính vào"
+
+
+msgid "Snap to Surface"
+msgstr "Bám Dính vào Bề Mặt"
+
+
+msgid "Snap the root of each curve to the closest surface point"
+msgstr "Bám dính gốc của mỗi đường cong vào điểm bề mặt gần nhất"
+
+
+msgid "Align to Surface Normal"
+msgstr "Căn Chỉnh theo Pháp Tuyến Bề Mặt"
+
+
+msgid "Align the curve to the surface normal (need guide as reference)"
+msgstr "Căn chỉnh đường cong theo pháp tuyến bề mặt (cần hướng dẫn làm tham chiếu)"
+
+
+msgid "Blend along Curve"
+msgstr "Pha Trộn dọc theo Đường Cong"
+
+
+msgid "Blend deformation along each curve from the root"
+msgstr "Pha trộn biến dạng dọc theo từng đường cong một từ gốc"
+
+
 msgid "Blend Hair Curves"
 msgstr "Đường Cong Tóc Blender"
 
@@ -133013,12 +134183,188 @@ msgid "Blends shape between multiple hair curves in a certain radius"
 msgstr "Pha trộn hình dạng giữa nhiều đường cong tóc trong một bán kính nhất định"
 
 
+msgid "Factor to blend overall effect"
+msgstr "Hiệu số pha trộn hiệu quả tổng thể"
+
+
+msgid "Blend Radius"
+msgstr "Bán Kính Pha Trộn"
+
+
+msgid "Radius to select neighbors for blending"
+msgstr "Bán kính lựa chọn hàng xóm lân cận để pha trộn"
+
+
+msgid "Blend Neighbors"
+msgstr "Pha Trộn Hàng Xóm"
+
+
+msgid "Amount of neighbors used for blending"
+msgstr "Số lượng hàng xóm sử dụng để pha trộn"
+
+
+msgid "Preserve Length"
+msgstr "Bảo Tồn Chiều Dài"
+
+
+msgid "Preserve each curve's length during deformation"
+msgstr "Bảo tồn chiều dài của mỗi đường cong trong quá trình biến dạng"
+
+
 msgid "Braid Hair Curves"
-msgstr "Đường Cong Tết Tóc"
+msgstr "Đường Cong Bím Tóc Tóc"
 
 
 msgid "Deforms existing hair curves into braids using guide curves"
 msgstr "Biến dạng các đường cong tóc hiện có thành các bím tóc bằng các đường cong hướng dẫn"
+
+
+msgid "Guide Index"
+msgstr "Chỉ Số Hướng Dẫn"
+
+
+msgid "Guide index map that was used for the operation"
+msgstr "Bản đồ chỉ số hướng dẫn vốn được sử dụng cho thao tác"
+
+
+msgid "Flare Parameter"
+msgstr "Thông Số Đuôi Tóc"
+
+
+msgid "Parameter from 0 to 1 along the flare"
+msgstr "Tham số từ 0 đến 1 dọc theo đuôi tóc"
+
+
+msgid "Strand Index"
+msgstr "Chỉ Số Sợi"
+
+
+msgid "Index of the strand within a braid that each curve belongs to"
+msgstr "Chỉ số của sợi trong bím tóc mà mỗi đường cong thuộc về"
+
+
+msgid "Guide index map to be used. This input has priority"
+msgstr "Bản đồ chỉ số hướng dẫn sẽ được sử dụng. Đầu vào này được ưu tiên hơn"
+
+
+msgid "Guide Distance"
+msgstr "Khoảng Cách Hướng Dẫn"
+
+
+msgid "Minimum distance between two guides for new guide map"
+msgstr "Khoảng cách tối thiểu giữa hai hướng dẫn cho bản đồ hướng dẫn mới"
+
+
+msgid "Guide Mask"
+msgstr "Chắn Lọc Hướng Dẫn"
+
+
+msgid "Mask for which curve are eligible to be selected as guides"
+msgstr "Chắn lọc cho đường cong nào đủ điều kiện được chọn làm hướng dẫn"
+
+
+msgid "Existing Guide Map"
+msgstr "Bản Đồ Hướng Dẫn Hiện Có"
+
+
+msgid "Use the existing guide map attribute if available"
+msgstr "Sử dụng thuộc tính bản đồ hướng dẫn hiện có nếu có"
+
+
+msgid "Subdivision level applied before deformation"
+msgstr "Mức phân hóa áp dụng trước khi biến dạng"
+
+
+msgid "Braid Start"
+msgstr "Điểm Khởi Đầu Bím Tóc"
+
+
+msgid "Percentage along each curve to blend deformation from the root"
+msgstr "Tỷ lệ phần trăm dọc theo mỗi đường cong để pha trộn biến dạng từ gốc"
+
+
+msgid "Overall radius of the braids"
+msgstr "Bán kính tổng thể của bím tóc"
+
+
+msgid "Shape of the braid radius along each curve"
+msgstr "Hình dạng bán kính bím tóc dọc theo mỗi đường cong"
+
+
+msgid "Factor Min"
+msgstr "Hệ Số Tối Thiểu"
+
+
+msgid "Factor of the minimum radius of the braids"
+msgstr "Hệ số bán kính tối thiểu của bím tóc"
+
+
+msgid "Factor Max"
+msgstr "Hệ Số Tối Đa"
+
+
+msgid "Factor of the maximum radius of the braids"
+msgstr "Hệ số bán kính tối đa của bím tóc"
+
+
+msgid "Frequency factor of the braids"
+msgstr "Hệ số tần số của các bím tóc"
+
+
+msgid "Thickness of each strand of hair"
+msgstr "Độ dày của từng sợi tóc"
+
+
+msgid "Thickness Shape"
+msgstr "Độ Dày Hình Dạng"
+
+
+msgid "Shape adjustment of the strand thickness for the braids"
+msgstr "Điều chỉnh hình dạng độ dày của sợi cho bím tóc"
+
+
+msgid "Shape Asymmetry"
+msgstr "Hình Dạng Phi Đối Xứng"
+
+
+msgid "Asymmetry of the shape adjustment of the strand thickness"
+msgstr "Mức phi đối xứng của việc điều chỉnh hình dạng độ dày sợi"
+
+
+msgid "Flare Length"
+msgstr "Chiều Dài Đuôi Tóc"
+
+
+msgid "Length of the flare at the end of the braid"
+msgstr "Chiều dài của đuôi tóc ở cuối bím tóc"
+
+
+msgid "Flare Opening"
+msgstr "Đuôi Tóc Bắt Đầu"
+
+
+msgid "Opening radius of the flare at the tip of the braid"
+msgstr "Bán kính mở của đuôi tóc ở đầu bím tóc"
+
+
+msgid "Hair Tie"
+msgstr "Dây Buộc Tóc"
+
+
+msgid "Geometry used for the hair tie instance (priority)"
+msgstr "Hình học sử dụng cho thực thể dây buộc tóc (ưu tiên)"
+
+
+msgid "Object used for the hair tie instance"
+msgstr "Đối tượng được sử dụng cho ví dụ buộc tóc"
+
+
+msgid "Hair Tie Scale"
+msgstr "Tỷ Lệ Dây Buộc Tóc"
+
+
+msgid "Scale of the hair tie instance"
+msgstr "Tỷ lệ của thực thể dây buộc tóc"
 
 
 msgid "Clump Hair Curves"
@@ -133029,12 +134375,68 @@ msgid "Clumps together existing hair curves using guide curves"
 msgstr "Khóm các đường cong tóc hiện có với nhau lại bằng các đường cong hướng dẫn"
 
 
+msgid "Shape of the influence along curves (0=constant, 0.5=linear)"
+msgstr "Hình dạng ảnh hưởng dọc theo các đường cong (0=hằng số, 0.5=tuyến tính)"
+
+
+msgid "Tip Spread"
+msgstr "Mức Lan Tỏa của Đỉnh"
+
+
+msgid "Distance of random spread at the curve tips"
+msgstr "Khoảng cách lan tỏa ngẫu nhiên tại các đầu đường cong"
+
+
+msgid "Clump Offset"
+msgstr "Dịch Chuyển Khóm"
+
+
+msgid "Offset of each clump in a random direction"
+msgstr "Dịch chuyển của từng khóm theo hướng ngẫu nhiên"
+
+
+msgid "Distance Falloff"
+msgstr "Khoảng Cách Suy Giảm Dần"
+
+
+msgid "Falloff distance for the clumping effect (0 means no falloff)"
+msgstr "Khoảng cách suy giảm dần cho hiệu ứng khóm (0 có nghĩa là không có suy giảm dần)"
+
+
+msgid "Distance Threshold"
+msgstr "Ngưỡng Khoảng Cách"
+
+
+msgid "Distance threshold for the falloff around the guide"
+msgstr "Ngưỡng khoảng cách cho suy giảm dần xung quanh hướng dẫn"
+
+
+msgid "Random seed for the operation"
+msgstr "Mầm ngẫu nhiên cho thao tác"
+
+
 msgid "Create Guide Index Map"
 msgstr "Tạo Ánh Xạ Chỉ Số Hướng Dẫn"
 
 
 msgid "Creates an attribute that maps each curve to its nearest guide via index"
 msgstr "Tạo một thuộc tính ánh xạ từng đường cong tới hướng dẫn gần nhất của nó thông qua chỉ số"
+
+
+msgid "Guide Selection"
+msgstr "Lựa Chọn Hướng Dẫn"
+
+
+msgid "Guide Curves or Points used for the selection of Guide Curves"
+msgstr "Đường Cong Hướng Dẫn hoặc các Điểm sử dụng để chọn Đường Cong Hướng Dẫn"
+
+
+msgid "Minimum distance between two guides"
+msgstr "Khoảng cách tối thiểu giữa hai hướng dẫn"
+
+
+msgid "ID to group together curves for guide map creation"
+msgstr "ID để nhóm các đường cong lại với nhau hòng tạo bản đồ hướng dẫn"
 
 
 msgid "Curl Hair Curves"
@@ -133045,12 +134447,76 @@ msgid "Deforms existing hair curves into curls using guide curves"
 msgstr "Biến dạng các đường cong tóc hiện có thành các lọn tóc bằng các đường cong hướng dẫn"
 
 
+msgid "Curl Start"
+msgstr "Khởi Đầu Uốn Quăn"
+
+
+msgid "Overall radius of the curls"
+msgstr "Bán kính tổng thể của các phần uốn quăn"
+
+
+msgid "Factor for the radius at the curl start"
+msgstr "Hệ số bán kính khi bắt đầu uốn quăn"
+
+
+msgid "Factor End"
+msgstr "Hệ Số Kết Thúc"
+
+
+msgid "Factor for the radius at the curl end"
+msgstr "Hệ số bán kính ở đuôi phần uốn quăn"
+
+
+msgid "Frequency factor of the curls"
+msgstr "Hệ số tần số của các phần uốn quăn"
+
+
+msgid "Amount of random offset per curve"
+msgstr "Lượng dịch chuyển ngẫu nhiên của mỗi đường cong"
+
+
+msgid "Random Seed for the operation"
+msgstr "Mầm ngẫu nhiên cho thao tác"
+
+
 msgid "Curve Info"
 msgstr "Thông Tin Đường Cong"
 
 
 msgid "Reads information about each curve"
 msgstr "Đọc thông tin về từng đường cong một"
+
+
+msgid "Index of each Curve"
+msgstr "Chỉ Số của mỗi Đường Cong"
+
+
+msgid "Curve ID"
+msgstr "ID của Đường Cong"
+
+
+msgid "ID of each Curve"
+msgstr "ID của mỗi Đường Cong"
+
+
+msgid "Length of each Curve"
+msgstr "Chiều Dài của mỗi Đường Cong"
+
+
+msgid "Direction from root to tip of each Curve"
+msgstr "Chiều hướng từ gốc đến ngọn của mỗi Đường Cong"
+
+
+msgid "Random vector for each Curve"
+msgstr "Vector ngẫu nhiên cho mỗi đường cong"
+
+
+msgid "Surface UV"
+msgstr "UV của Bề Mặt"
+
+
+msgid "Attachment surface UV coordinate of each Curve"
+msgstr "Tọa độ UV bề mặt đính vào của mỗi Đường cong"
 
 
 msgid "Curve Root"
@@ -133061,12 +134527,68 @@ msgid "Reads information about each curve's root point"
 msgstr "Đọc thông tin về điểm gốc của mỗi đường cong"
 
 
+msgid "Root Selection"
+msgstr "Lựa Chọn Gốc"
+
+
+msgid "Boolean selection of curve root points"
+msgstr "Lựa chọn Boolean các điểm gốc của đường cong"
+
+
+msgid "Root Position"
+msgstr "Vị Trí Gốc"
+
+
+msgid "Position of the root point of a Curve"
+msgstr "Vị trí điểm gốc của một Đường Cong"
+
+
+msgid "Root Direction"
+msgstr "Chiều Hướng Gốc"
+
+
+msgid "Direction of the root segment of a Curve"
+msgstr "Chiều hướng của phân đoạn gốc của một Đường Cong"
+
+
+msgid "Root Index"
+msgstr "Chỉ Số Gốc"
+
+
+msgid "Index of the root point of a Curve"
+msgstr "Chỉ số điểm gốc của một Đường Cong"
+
+
 msgid "Curve Segment"
 msgstr "Phân Đoạn Đường Cong"
 
 
 msgid "Reads information each point's previous curve segment"
 msgstr "Đọc thông tin phân đoạn đường cong trước của mỗi điểm"
+
+
+msgid "Segment Length"
+msgstr "Chiều Dài Phân Đoạn"
+
+
+msgid "Distance to previous point on Curve"
+msgstr "Khoảng cách tới điểm trước đó trên Đường Cong"
+
+
+msgid "Segment Direction"
+msgstr "Chiều Hướng Phân Đoạn"
+
+
+msgid "Direction from previous neighboring point on segment"
+msgstr "Chiều hướng từ điểm lân cận trước đó trên phân đoạn"
+
+
+msgid "Neighbor Index"
+msgstr "Chỉ Số Hàng Xóm"
+
+
+msgid "Index of previous neighboring point on segment"
+msgstr "Chỉ số của điểm lân cận trước đó trên phân đoạn"
 
 
 msgid "Curve Tip"
@@ -133077,12 +134599,80 @@ msgid "Reads information about each curve's tip point"
 msgstr "Đọc thông tin về điểm ngọn của mỗi đường cong"
 
 
+msgid "Tip Selection"
+msgstr "Lựa Chọn Đỉnh"
+
+
+msgid "Boolean selection of curve tip points"
+msgstr "Lựa chọn Boolean của các điểm đầu đường cong"
+
+
+msgid "Tip Position"
+msgstr "Vị Trí Đỉnh"
+
+
+msgid "Position of the tip point of a Curve"
+msgstr "Vị trí điểm đầu của một Đường Cong"
+
+
+msgid "Tip Direction"
+msgstr "Chiều Hướng Đỉnh"
+
+
+msgid "Direction of the tip segment of a Curve"
+msgstr "Chiều hướng của phân đoạn đỉnh của một Đường Cong"
+
+
+msgid "Tip Index"
+msgstr "Chỉ Số Đỉnh"
+
+
+msgid "Index of the tip point of a Curve"
+msgstr "Chỉ số điểm đỉnh của một Đường Cong"
+
+
 msgid "Displace Hair Curves"
 msgstr "Dịch chuyển các đường cong tóc"
 
 
 msgid "Displaces hair curves by a vector based on various options"
 msgstr "Dịch chuyển các đường cong tóc bằng một véctơ dựa trên các tùy chọn khác nhau"
+
+
+msgid "Factor to scale overall displacement"
+msgstr "Hiệu số để đổi tỷ lệ dịch chuyển tổng thể"
+
+
+msgid "Object used to define the displacement space"
+msgstr "Đối tượng dùng để xác định không gian dịch chuyển"
+
+
+msgid "Displace Vector"
+msgstr "Véctơ Dịch Hình"
+
+
+msgid "Vector for displacement"
+msgstr "Vector cho sự dịch hình"
+
+
+msgid "Surface geometry used to sample the normal for displacement"
+msgstr "Hình học bề mặt sử dụng để lấy mẫu pháp tuyến cho sự dịch hình"
+
+
+msgid "Surface object used to sample the normal for displacement"
+msgstr "Đối tượng bề mặt sử dụng để lấy mẫu pháp tuyến cho sự dịch hình"
+
+
+msgid "Surface UV map used to sample the normal for displacement"
+msgstr "Bản đồ UV bề mặt sử dụng để lấy mẫu pháp tuyến cho sự dịch hình"
+
+
+msgid "Surface Normal Displacement"
+msgstr "Dịch Hình Pháp Tuyến Bề Mặt"
+
+
+msgid "Amount of displacemement along the surface normal"
+msgstr "Lượng dịch hình dọc theo pháp tuyến bề mặt"
 
 
 msgid "Duplicate Hair Curves"
@@ -133093,8 +134683,60 @@ msgid "Duplicates hair curves a certain number of times within a radius"
 msgstr "Nhân đôi đường cong tóc một số lần nhất định nội trong bán kính"
 
 
+msgid "Amount of duplicates per curve"
+msgstr "Lượng nhân đôi mỗi đường cong"
+
+
+msgid "Viewport Amount"
+msgstr "Lượng Cổng Nhìn"
+
+
+msgid "Percentage of amount used for the viewport"
+msgstr "Phần trăm lượng sử dụng cho cổng nhìn"
+
+
+msgid "Radius in which the duplicate curves are offset from the guides"
+msgstr "Bán kính trong đó các đường cong nhân đôi được dịch chuyển đi từ các hướng dẫn"
+
+
+msgid "Distribution Shape"
+msgstr "Hình Dạng Phân Bổ"
+
+
+msgid "Shape of distribution from center to the edge around the guide"
+msgstr "Hình dạng phân bố từ tâm đến mép xung quanh hướng dẫn"
+
+
+msgid "Offset of the curves to round the tip"
+msgstr "Dịch chuyển của các đường cong để làm tròn đỉnh đầu"
+
+
+msgid "Keep an even thickness of the distribution of duplicates"
+msgstr "Phân phối các bản nhân đôi giữ độ dày đồng đều"
+
+
 msgid "Deforms hair curves using a random vector per point to frizz them"
 msgstr "Làm biến dạng các đường cong tóc bằng cách sử dụng một véctơ ngẫu nhiên trên mỗi điểm để làm xù chúng lên"
+
+
+msgid "Offset Vector"
+msgstr "Vectơ Dịch Chuyển"
+
+
+msgid "Vector by which each point was offset during deformation"
+msgstr "Vector mà mỗi điểm được dịch chuyển đi trong quá trình biến dạng"
+
+
+msgid "Cumulative Offset"
+msgstr "Dịch Chuyển Tích Lũy"
+
+
+msgid "Apply offset cumulatively (previous points affect points after)"
+msgstr "Áp dụng dịch chuyển tích lũy (các điểm trước ảnh hưởng đến các điểm sau)"
+
+
+msgid "Overall distance factor for the deformation"
+msgstr "Hệ số khoảng cách tổng thể cho sự biến dạng"
 
 
 msgid "Generate Hair Curves"
@@ -133105,20 +134747,176 @@ msgid "Generates new hair curves on a surface mesh"
 msgstr "Sinh tạo các đường cong tóc mới trên khung lưới bề mặt"
 
 
+msgid "Normal direction of the surface mesh at the attachment point"
+msgstr "Chiều hướng pháp tuyến của khung lưới bề mặt tại điểm gắn vào"
+
+
+msgid "Surface geometry for generation "
+msgstr "Hình học bề mặt để sinh tạo "
+
+
+msgid "Surface object for generation (Needs matching transforms)"
+msgstr "Đối tượng bề mặt để sinh tạo (Cần các biến dạng xứng khớp)"
+
+
+msgid "Length of the generated hair curves"
+msgstr "Chiều dài của đường cong tóc sinh tạo ra"
+
+
+msgid "Hair Material"
+msgstr "Nguyên Vật Liệu Tóc"
+
+
+msgid "Material of the generated hair curves"
+msgstr "Chất liệu của các đường cong tóc được sinh tạo ra"
+
+
+msgid "Amount of control points of the generated hair curves"
+msgstr "Số lượng điểm điều khiển của các đường cong tóc sinh tạo ra"
+
+
+msgid "Poisson Disk Distribution"
+msgstr "Phân Phối Đĩa Poisson"
+
+
+msgid "Use poisson disk distribution method to keep a minimum distance"
+msgstr "Sử dụng phương pháp phân phối đĩa poisson để giữ một khoảng cách tối thiểu"
+
+
+msgid "Surface density of generated hair curves"
+msgstr "Mật độ bề mặt của đường cong tóc sinh tạo ra"
+
+
+msgid "Density Mask"
+msgstr "Màn Chắn Lọc Mật Độ"
+
+
+msgid "Factor applied on the density for curve distribution"
+msgstr "Hệ số áp dụng cho mật độ để phân bố đường cong"
+
+
+msgid "Discard points based on an mask texture after distribution"
+msgstr "Loại bỏ các điểm dựa trên chất liệu màn chắn lọc sau khi phân bổ"
+
+
+msgid "Factor applied on the density for the viewport"
+msgstr "Hệ số áp dụng trên mật độ cho khung nhìn"
+
+
 msgid "Hair Attachment Info"
 msgstr "Thông Tin Đính Tóc"
 
 
 msgid "Reads attachment information regarding a surface mesh"
-msgstr "Đọc thông tin đính kèm liên quan đến khung lưới bề mặt"
+msgstr "Đọc thông tin của vật đính kèm liên quan đến khung lưới bề mặt"
+
+
+msgid "Attachment UV"
+msgstr "UV của vật Đính Kèm"
+
+
+msgid "Surface attachment UV coordinate stored on each curve"
+msgstr "Tọa độ UV của vật đính kèm bề mặt được lưu trữ trên mỗi đường cong"
+
+
+msgid "Attachment is Valid"
+msgstr "Vật Đính Kèm là Hợp Lệ"
+
+
+msgid "Whether the stored attachment UV coordinate is valid"
+msgstr "Tọa độ UV của vật đính kèm được lưu trữ có hợp lệ hay không"
+
+
+msgid "Surface Geometry"
+msgstr "Hình Học Bề Mặt"
+
+
+msgid "Surface geometry of the curve attachment"
+msgstr "Hình học bề mặt của phần đính kèm đường cong"
+
+
+msgid "Surface UV map used for attachment"
+msgstr "Ánh xạ UV bề mặt sử dụng cho vật đính kèm"
 
 
 msgid "Deforms hair curves using a noise texture"
 msgstr "Làm biến dạng các đường cong tóc bằng cách sử dụng chất liệu nhiễu"
 
 
+msgid "Overall factor for the deformation"
+msgstr "Hệ số biến dạng tổng thể"
+
+
+msgid "Shape of amount along each curve (0=constant, 0.5=linear)"
+msgstr "Hình dạng của lượng dọc theo mỗi đường cong (0=không đổi, 0.5=tuyến tính)"
+
+
+msgid "Scale of the noise texture by root position"
+msgstr "Tỷ lệ chất liệu nhiễu theo vị trí gốc"
+
+
+msgid "Scale along Curve"
+msgstr "Đổi Tỷ Lệ dọc theo Đường Cong"
+
+
+msgid "Scale of noise texture along each Curve"
+msgstr "Tỷ lệ của chất liệu nhiễu dọc theo mỗi Đường Cong"
+
+
+msgid "Offset per Curve"
+msgstr "Dịch Chuyển mỗi Đường Cong"
+
+
+msgid "Random offset of noise texture for each Curve"
+msgstr "Dịch chuyển ngẫu nhiên chất liệu nhiễu cho mỗi Đường Cong"
+
+
+msgid "Seed value for randomization"
+msgstr "Giá trị mầm ngẫu nhiên"
+
+
+msgid "Preserve the length of the Curves on a segment basis"
+msgstr "Bảo tồn độ dài của Đường Cong trên cơ sở phân đoạn"
+
+
 msgid "Interpolates existing guide curves on a surface mesh"
 msgstr "Nội suy các đường cong hướng dẫn hiện có trên khung lưới bề mặt"
+
+
+msgid "Index of the main guide curve per curve"
+msgstr "Chỉ số của đường cong hướng dẫn chính trên mỗi đường cong"
+
+
+msgid "Follow Surface Normal"
+msgstr "Đi Theo Pháp Tuyến Bề Mặt"
+
+
+msgid "Align the interpolated curves to the surface normal"
+msgstr "Căn chỉnh các đường cong nội suy với bề mặt pháp tuyến"
+
+
+msgid "Part by Mesh Islands"
+msgstr "Phân Chia Phần theo Quần Đảo Khung Lưới"
+
+
+msgid "Use mesh islands of the surface geometry for parting"
+msgstr "Sử dụng các hải đảo khung lưới của hình học bề mặt để phân chia phần"
+
+
+msgid "Interpolation Guides"
+msgstr "Số Hướng Dẫn Nội Suy"
+
+
+msgid "Amount of guides to be used for interpolation per curve"
+msgstr "Số lượng hướng dẫn sử dụng để nội suy trên mỗi đường cong"
+
+
+msgid "Distance to Guides"
+msgstr "Khoảng Cách đến Hướng Dẫn"
+
+
+msgid "Distance around each guide to spawn interpolated curves"
+msgstr "Khoảng cách xung quanh mỗi hướng dẫn để tạo ra các đường cong nội suy"
 
 
 msgid "Redistribute Curve Points"
@@ -133129,12 +134927,40 @@ msgid "Redistributes existing control points evenly along each curve"
 msgstr "Phân phối lại các điểm kiểm soát hiện có dọc theo mỗi đường cong"
 
 
+msgid "Feature Awareness"
+msgstr "Nhận Thức Hình Thể"
+
+
+msgid "Use simeple feature awareness to keep feature definition"
+msgstr "Sử dụng tính năng nhận thức hình thể đơn giản để duy trì các định hình về hình thể"
+
+
 msgid "Restore Curve Segment Length"
 msgstr "Khôi Phục Độ Dài Phân Đoạn Đường Cong"
 
 
 msgid "Restores the length of each curve segment using a previous state after deformation"
 msgstr "Khôi phục độ dài của từng phân đoạn đường cong sử dụng trạng thái trước sau khi biến dạng"
+
+
+msgid "Only affect selected elements"
+msgstr "Duy ảnh hưởng đến các phần tử được chọn mà thôi"
+
+
+msgid "Reference Position"
+msgstr "Vị Trí Tham Chiếu"
+
+
+msgid "Reference position before deformation"
+msgstr "Vị trí tham chiếu trước khi biến dạng"
+
+
+msgid "Pin at Parameter"
+msgstr "Ghim tại Tham số"
+
+
+msgid "Pin each curve at a certain point for the operation"
+msgstr "Ghim từng đường cong tại một điểm nhất định cho thao tác"
 
 
 msgid "Roll Hair Curves"
@@ -133145,6 +134971,66 @@ msgid "Rolls up hair curves starting from their tips"
 msgstr "Cuộn các đường cong tóc lên bắt đầu từ đỉnh của chúng"
 
 
+msgid "Variation Level"
+msgstr "Mức Độ Biến Thiên"
+
+
+msgid "Level of smoothing on the roll path to include shape variation"
+msgstr "Mức độ làm mịn trên đường lăn để bao gồm sự biến thiên của hình dạng"
+
+
+msgid "Roll Length"
+msgstr "Chiều Dài Cuộn"
+
+
+msgid "Length of each curve to be rolled"
+msgstr "Chiều dài của mỗi đường cong được cuộn"
+
+
+msgid "Roll Radius"
+msgstr "Bán Kính Cuộn"
+
+
+msgid "Radius of the rolls"
+msgstr "Bán kính cuộn"
+
+
+msgid "Roll Depth"
+msgstr "Chiều Sâu Cuộn"
+
+
+msgid "Depth offset of the roll"
+msgstr "Độ sâu của cuộn"
+
+
+msgid "Roll Taper"
+msgstr "Vuốt Thon Cuộn"
+
+
+msgid "Taper of the roll"
+msgstr "Vuốt thon của cuộn"
+
+
+msgid "Retain Overall Shape"
+msgstr "Giữ Nguyên Hình Dạng Tổng Thể"
+
+
+msgid "Offset the roll along the original curve to retain shape"
+msgstr "Dịch chuyển cuộn dọc theo đường cong ban đầu để giữ nguyên hình dạng"
+
+
+msgid "Roll Direction"
+msgstr "Chiều Hướng Cuộn"
+
+
+msgid "Axis around which each curve is rolled"
+msgstr "Trục mà mỗi đường cong sẽ được cuộn quanh"
+
+
+msgid "Amount of randomization of the direction of the roll"
+msgstr "Số lượng ngẫu nhiên chiều hướng cuộn"
+
+
 msgid "Rotate Hair Curves"
 msgstr "Xoay Chiều Đường Cong Tóc"
 
@@ -133153,8 +135039,52 @@ msgid "Rotates each hair curve around an axis"
 msgstr "Xoay chiều từng đường cong tóc quanh một trục"
 
 
+msgid "Factor to influence the rotation angle"
+msgstr "Hiệu số ảnh hưởng đến góc xoay chiều"
+
+
+msgid "Rotation Axis (Default: Tangent at root)"
+msgstr "Trục Xoay Chiều (Mặc Định: Tiếp tuyến tại gốc)"
+
+
+msgid "Random offset to the rotation angle per Curve"
+msgstr "Dịch chuyển ngẫu nhiên cho góc xoay chiều trên mỗi Đường Cong"
+
+
+msgid "Lock Ends"
+msgstr "Khóa các Đầu"
+
+
+msgid "Lock rotation to the axis between the curve ends"
+msgstr "Khóa xoay chiều theo trục giữa các đầu đường cong"
+
+
 msgid "Sets the radius attribute of hair curves according to a profile shape"
 msgstr "Đặt thuộc tính bán kính của đường cong tóc theo hình dạng mặt cắt"
+
+
+msgid "Replace Radius"
+msgstr "Thay Thế Bán Kính"
+
+
+msgid "Replace the original radius"
+msgstr "Thay thế bán kính ban đầu"
+
+
+msgid "Base radius to be set if 'Replace Radius' is enabled"
+msgstr "Bán kính cơ sở sẽ được đặt nếu 'Thay Thế Bán Kính' được bật lên"
+
+
+msgid "Shape of the radius along the curve"
+msgstr "Hình dạng bán kính dọc theo đường cong"
+
+
+msgid "Factor of the radius at the minimum"
+msgstr "Hệ số bán kính tại tối thiểu"
+
+
+msgid "Factor of the radius at the maximum"
+msgstr "Hệ số bán kính tại tối đa"
 
 
 msgid "Shrinkwrap Hair Curves"
@@ -133165,12 +135095,68 @@ msgid "Shrinkwraps hair curves to a mesh surface from below and optionally from 
 msgstr "Co-Bọc các đường cong tóc thành bề mặt khung lưới từ bên dưới và từ bên trên nếu muốn"
 
 
+msgid "Surface geometry used for shrinkwrap"
+msgstr "Hình học bề mặt sử dụng cho co bọc"
+
+
+msgid "Surface object used for shrinkwrap"
+msgstr "Vật thể bề mặt sử dụng cho co bọc"
+
+
+msgid "Offset Distance"
+msgstr "Khoảng Cách Dịch Chuyển"
+
+
+msgid "Distance from the surface used for shrinkwrap"
+msgstr "Khoảng cách từ bề mặt sử dụng cho co bọc"
+
+
+msgid "Blend shrinkwrap for points above the surface"
+msgstr "Pha trộn co bọc cho các điểm phía trên bề mặt"
+
+
+msgid "Smoothing Steps"
+msgstr "Số Bước Làm Mịn"
+
+
+msgid "Amount of steps of smoothing applied after shwrinkwrap"
+msgstr "Số bước làm mịn được áp dụng sau khi co bọc"
+
+
+msgid "Lock Roots"
+msgstr "Khóa Gốc"
+
+
+msgid "Lock the position of root points"
+msgstr "Khóa vị trí của điểm gốc"
+
+
 msgid "Smooth Hair Curves"
 msgstr "Làm Mịn Đường Cong"
 
 
 msgid "Smoothes the shape of hair curves"
 msgstr "Làm mịn hình dạng đường cong của tóc"
+
+
+msgid "Amount of smoothing"
+msgstr "Lượng làm mịn"
+
+
+msgid "Amount of smoothing steps"
+msgstr "Số bước làm mịn"
+
+
+msgid "Weight used for smoothing"
+msgstr "Trọng lượng dùng để làm mịn"
+
+
+msgid "Lock Tips"
+msgstr "Khóa Đỉnh"
+
+
+msgid "Lock tip position when smoothing"
+msgstr "Khóa vị trí đỉnh khi làm mịn"
 
 
 msgid "Straighten Hair Curves"
@@ -133181,6 +135167,10 @@ msgid "Straightens hair curves between root and tip"
 msgstr "Duỗi thẳng các đường cong của tóc từ gốc đến ngọn"
 
 
+msgid "Amount of straightening"
+msgstr "Lượng nắn thẳng"
+
+
 msgid "Trim Hair Curves"
 msgstr "Cắt Xén Đường Cong Tóc"
 
@@ -133189,6 +135179,42 @@ msgid "Trims or scales hair curves to a certain length"
 msgstr "Cắt xén hoặc đổi tỷ lệ các đường cong tóc theo một độ dài nhất định"
 
 
+msgid "Scale each curve uniformly to reach the target length"
+msgstr "Đổi tỷ lệ đồng đều mỗi đường cong để đạt được độ dài mục tiêu"
+
+
+msgid "Multiply the original length by a factor"
+msgstr "Nhân độ dài ban đầu với một hệ số"
+
+
+msgid "Replace Length"
+msgstr "Thay Thế Chiều Dài"
+
+
+msgid "Use the length input to fully replace the original length"
+msgstr "Sử dụng đầu vào độ dài để thay thế hoàn toàn độ dài ban đầu"
+
+
+msgid "Target length for the operation"
+msgstr "Độ dài mục tiêu cho thao tác"
+
+
+msgid "Mask to blend overall effect"
+msgstr "Màn chắn lọc để pha trộn hiệu ứng tổng thể"
+
+
+msgid "Trim hair curves randomly up to a certain amount"
+msgstr "Cắt bớt những đường cong tóc ngẫu nhiên đến một mức nhất định"
+
+
 msgid "Smooth by Angle"
 msgstr "Làm Mịn theo Góc"
+
+
+msgid "Maximum face angle for smooth edges"
+msgstr "Góc mặt tối đa cho các cạnh mịn"
+
+
+msgid "Ignore Sharpness"
+msgstr "Bỏ Qua Độ Sắc Nét"
 

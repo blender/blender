@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'274dc815eb35')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'0b00b360f7ae')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-11 11:18:04\n"
-"PO-Revision-Date: 2023-10-08 06:34+0000\n"
-"Last-Translator: Wannes Malfait <wannes.malfait@gmail.com>\n"
+"POT-Creation-Date: 2023-12-18 13:45:58\n"
+"PO-Revision-Date: 2023-12-17 14:13+0000\n"
+"Last-Translator: Brecht Van Lommel <brechtvanlommel@gmail.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
@@ -495,7 +495,7 @@ msgstr "Data Type"
 
 
 msgid "Vector"
-msgstr "Punt"
+msgstr "Vector"
 
 
 msgid "True or false"
@@ -503,7 +503,7 @@ msgstr "Waar of niet waar"
 
 
 msgid "2D Vector"
-msgstr "2D Punt"
+msgstr "2D Vector"
 
 
 msgid "Domain"
@@ -3836,6 +3836,10 @@ msgid "Delete Constraint"
 msgstr "Verwijder Beperking"
 
 
+msgid "Duplicate"
+msgstr "Dupliceren"
+
+
 msgctxt "Operator"
 msgid "Dissolve Vertices"
 msgstr "Los Punten Op"
@@ -4408,10 +4412,6 @@ msgstr "Toon Krommes"
 
 msgid "Flat"
 msgstr "Vlak"
-
-
-msgid "Duplicate"
-msgstr "Dupliceren"
 
 
 msgctxt "Operator"

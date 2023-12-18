@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'274dc815eb35')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'0b00b360f7ae')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-11 11:18:04\n"
+"POT-Creation-Date: 2023-12-18 13:45:58\n"
 "PO-Revision-Date: 2015-03-03 16:21+0530\n"
 "Last-Translator: Roshan Lal Gumasta <roshan@anisecrets.com>\n"
 "Language-Team: Hindi <www.anisecrets.com>\n"
@@ -3254,6 +3254,10 @@ msgid "Equal"
 msgstr "बराबर"
 
 
+msgid "Bake"
+msgstr "भर्जन"
+
+
 msgid "Z Up"
 msgstr "Z ऊर्ध्व"
 
@@ -3594,6 +3598,10 @@ msgid "Report"
 msgstr "विवरण"
 
 
+msgid "Duplicate"
+msgstr "अनुकृति"
+
+
 msgctxt "Operator"
 msgid "Toggle Cyclic"
 msgstr "चक्रीय बंद/बुझ"
@@ -3778,10 +3786,6 @@ msgstr "अगले अनुबोधक चिन्ह"
 
 msgid "Flat"
 msgstr "समतल"
-
-
-msgid "Duplicate"
-msgstr "अनुकृति"
 
 
 msgctxt "Operator"
@@ -4112,10 +4116,6 @@ msgstr "युगल हटाएँ"
 msgctxt "Operator"
 msgid "Copy Pose"
 msgstr "मुद्रा की प्रतिलिपि बनाएँ"
-
-
-msgid "Bake"
-msgstr "भर्जन"
 
 
 msgctxt "Operator"

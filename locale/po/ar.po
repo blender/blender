@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'274dc815eb35')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'0b00b360f7ae')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-11 11:18:04\n"
+"POT-Creation-Date: 2023-12-18 13:45:58\n"
 "PO-Revision-Date: 2016-04-23 22:41+0300\n"
 "Last-Translator: Yousef Harfoush <bat3a@msn.com>\n"
 "Language-Team: Yousef Harfoush, Amine Moussaoui <bat3a@msn.com>\n"
@@ -16635,10 +16635,6 @@ msgid "Channel"
 msgstr "ﺓﺎﻨﻗ"
 
 
-msgid "Dope Sheet Channel"
-msgstr "ﻂﻴﻄﺨﺗ ﺔﻗﺭﻭ ﺓﺎﻨﻗ"
-
-
 msgid "Snap"
 msgstr "ﻱﺫﺎﺣ"
 
@@ -20329,6 +20325,10 @@ msgid "Component"
 msgstr "ﻥﻮّﻜﻣ"
 
 
+msgid "Bake"
+msgstr "ﻥﺰّﺧ"
+
+
 msgid "Original"
 msgstr "ﻲﻠﺻﺃ"
 
@@ -22561,6 +22561,15 @@ msgstr "ﺎﻴﺋﺍﻮﺸﻋ ﺮﺘﺧﺍ"
 
 
 msgctxt "Operator"
+msgid "Clear Tilt"
+msgstr "ﻥﻼ﻿ﻴﻤﻟﺍ ﻝﺯﺍ"
+
+
+msgid "Clear the tilt of selected control points"
+msgstr "ﺓﺭﺎﺘﺨﻤﻟﺍ ﻢﻜﺤﺘﻟﺍ ﻂﻘﻧ ﻥﻼ﻿ﻴﻣ ﻝﺯﺍ"
+
+
+msgctxt "Operator"
 msgid "Toggle Cyclic"
 msgstr "ﻱﺭﻭﺪﻟﺍ ﺐﻠﻗﺍ"
 
@@ -22805,15 +22814,6 @@ msgstr "ﻑﺪﻬﻟﺍ ﻥﺯﻭ ﻊﺿ"
 
 msgid "Set softbody goal weight for selected points"
 msgstr "ﺓﺭﺎﺘﺨﻤﻟﺍ ﻂﻘﻨﻠﻟ ﻦﻴﻠﻟﺍ ﻢﺴﺠﻟﺍ ﻑﺪﻫ ﻥﺯﻭ ﻊﺿ"
-
-
-msgctxt "Operator"
-msgid "Clear Tilt"
-msgstr "ﻥﻼ﻿ﻴﻤﻟﺍ ﻝﺯﺍ"
-
-
-msgid "Clear the tilt of selected control points"
-msgstr "ﺓﺭﺎﺘﺨﻤﻟﺍ ﻢﻜﺤﺘﻟﺍ ﻂﻘﻧ ﻥﻼ﻿ﻴﻣ ﻝﺯﺍ"
 
 
 msgctxt "Operator"
@@ -27292,10 +27292,6 @@ msgstr "ﺪﻳﺪﺟ ﻖﺒﺴﻣ ﺏﺎﺴﺣ ﻒﺿﺃ"
 msgctxt "Operator"
 msgid "Bake Physics"
 msgstr "ﺕﺎﻴﺋﺎﻳﺰﻴﻔﻟﺍ ﻥﺰﺧ"
-
-
-msgid "Bake"
-msgstr "ﻥﺰّﺧ"
 
 
 msgctxt "Operator"
@@ -34535,6 +34531,10 @@ msgstr "ﺔﻟﺎﻌﻔﻟﺍ ﺓﺎﻨﻘﻟﺍ ﺔﻋﻮﻤﺠﻣ"
 
 msgid "Channel Group"
 msgstr "ﺕﺍﻮﻨﻗ ﺔﻋﻮﻤﺠﻣ"
+
+
+msgid "Dope Sheet Channel"
+msgstr "ﻂﻴﻄﺨﺗ ﺔﻗﺭﻭ ﺓﺎﻨﻗ"
 
 
 msgid "Color of Keyframe"

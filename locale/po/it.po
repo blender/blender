@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'274dc815eb35')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'0b00b360f7ae')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-11 11:18:04\n"
-"PO-Revision-Date: 2023-12-07 13:11+0000\n"
-"Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
+"POT-Creation-Date: 2023-12-18 13:45:58\n"
+"PO-Revision-Date: 2023-12-17 02:53+0000\n"
+"Last-Translator: Jad Musallam <rubber.444332@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
@@ -405,6 +405,10 @@ msgstr "Visualizza l'interfaccia utente glTF per gestire le varianti dei materia
 
 msgid "Display glTF UI to manage animations"
 msgstr "Visualizza l'Interfaccia Utente glTF per gestire le animazioni"
+
+
+msgid "glTFpack file path"
+msgstr "Percorso file glTFpack"
 
 
 msgid "Displays glTF Material Output node in Shader Editor (Menu Add > Output)"
@@ -1293,6 +1297,11 @@ msgstr "Luce"
 
 
 msgctxt "ID"
+msgid "Light Probe"
+msgstr "Sonda luminosa"
+
+
+msgctxt "ID"
 msgid "Line Style"
 msgstr "Stile Linea"
 
@@ -1419,7 +1428,7 @@ msgstr "Scaffale delle Risorse"
 
 
 msgid "Regions for quick access to assets"
-msgstr "Regioni di accesso rapido alle risorse"
+msgstr "Comparti di accesso rapido alle risorse"
 
 
 msgid "Asset Library"
@@ -1435,7 +1444,7 @@ msgstr "Tutti"
 
 
 msgid "Show assets from all of the listed asset libraries"
-msgstr "Mostra risorse da tutte le librerie di risorse elencate"
+msgstr "Mostra le risorse da tutte le librerie di risorse elencate"
 
 
 msgid "Current File"
@@ -1446,12 +1455,20 @@ msgid "Show the assets currently available in this Blender session"
 msgstr "Mostra le risorse attualmente disponibili in questa sessione di Blender"
 
 
+msgid "Essentials"
+msgstr "Essenziali"
+
+
 msgid "Show the basic building blocks and utilities coming with Blender"
 msgstr "Mostra i moduli di base e le utilità fornite con Blender"
 
 
 msgid "Custom"
 msgstr "Personalizzato"
+
+
+msgid "Show assets from the asset libraries configured in the Preferences"
+msgstr "Mostra risorse dalle librerie delle risorse configurate nelle Preferenze"
 
 
 msgid "ID Name"
@@ -1470,36 +1487,116 @@ msgid "Options for this asset shelf type"
 msgstr "Opzioni per questo tipo di scaffale delle risorse"
 
 
+msgid "No Asset Dragging"
+msgstr "Nessun Trascinamento di Risorse"
+
+
 msgid "Space Type"
 msgstr "Tipo Spazio"
+
+
+msgid "The space where the asset shelf is going to be used in"
+msgstr "Lo spazio dove lo scaffale delle risorse verrà usato"
+
+
+msgid "Preview Size"
+msgstr "Dimensione dell'Anteprima"
+
+
+msgid "Size of the asset preview thumbnails in pixels"
+msgstr "Dimensione delle miniature di anteprima delle risorse in pixel"
 
 
 msgid "Display Filter"
 msgstr "Mostra Filtro"
 
 
+msgid "Filter assets by name"
+msgstr "Filtra le risorse per nome"
+
+
 msgid "Show Names"
 msgstr "Mostra Nomi"
+
+
+msgid "Show the asset name together with the preview. Otherwise only the preview will be visible"
+msgstr "Mostra il nome della risorsa insieme all'anteprima. Altrimenti sarà visibile solo l'anteprima"
+
+
+msgid "Asset Tag"
+msgstr "Etichetta della Risorsa"
+
+
+msgid "User defined tag (name token)"
+msgstr "Etichetta definita dall'utente (token del nome)"
+
+
+msgid "The identifier that makes up this tag"
+msgstr "L'identificativo che costituisce questa etichetta"
+
+
+msgid "Asset Tags"
+msgstr "Etichette delle Risorse"
+
+
+msgid "Collection of custom asset tags"
+msgstr "Raccolta di etichette delle risorse personalizzate"
+
+
+msgid "Asset Weak Reference"
+msgstr "Risorsa di Riferimento Debole"
+
+
+msgid "Weak reference to some asset"
+msgstr "Riferimento debole ad alcune risorse"
+
+
+msgid "Geometry attribute"
+msgstr "Attributo geometria"
 
 
 msgid "Data Type"
 msgstr "Tipo Dati"
 
 
+msgid "Type of data stored in attribute"
+msgstr "Tipo di dati memorizzati nell'attributo"
+
+
 msgid "Float"
 msgstr "Virgola Mobile"
 
 
+msgid "Floating-point value"
+msgstr "Valore in Virgola Mobile"
+
+
 msgid "Integer"
-msgstr "Intero"
+msgstr "Valore Intero"
+
+
+msgid "32-bit integer"
+msgstr "Intero a 32 bit"
 
 
 msgid "Vector"
 msgstr "Vettore"
 
 
+msgid "3D vector with floating-point values"
+msgstr "Vettore 3D con valori in virgola mobile"
+
+
+msgid "RGBA color with 32-bit floating-point values"
+msgstr "Colore RGBA con valori in virgola mobile a 32 bit"
+
+
 msgid "Byte Color"
 msgstr "Colore Byte"
+
+
+msgid "RGBA color with 8-bit positive integer values"
+msgstr "Colore RGBA con valori interi positivi a 8-bit"
 
 
 msgid "String"
@@ -1522,24 +1619,56 @@ msgid "2D Vector"
 msgstr "Vettore 2D"
 
 
+msgid "2D vector with floating-point values"
+msgstr "Vettore 2D con valori in virgola mobile"
+
+
+msgid "8-Bit Integer"
+msgstr "Intero a 8 bit"
+
+
+msgid "Smaller integer with a range from -128 to 127"
+msgstr "Intero più piccolo, con un intervallo compreso tra -128 e 127"
+
+
 msgid "2D Integer Vector"
 msgstr "Vettore Intero 2D"
+
+
+msgid "32-bit signed integer vector"
+msgstr "Vettore di valori interi a 32 bit con segno"
 
 
 msgid "Quaternion"
 msgstr "Quaternione"
 
 
+msgid "Floating point quaternion rotation"
+msgstr "Rotazione di quaternioni in virgola mobile"
+
+
 msgid "Domain"
 msgstr "Dominio"
+
+
+msgid "Domain of the Attribute"
+msgstr "Dominio dell'Attributo"
 
 
 msgid "Point"
 msgstr "Punto"
 
 
+msgid "Attribute on point"
+msgstr "Attributo sul punto"
+
+
 msgid "Edge"
 msgstr "Spigolo"
+
+
+msgid "Attribute on mesh edge"
+msgstr "Attributo sullo spigolo della mesh"
 
 
 msgid "Face"
@@ -11558,6 +11687,10 @@ msgid "Freestyle Settings"
 msgstr "Impostazioni Freestyle"
 
 
+msgid "Freestyle settings for a ViewLayer data-block"
+msgstr "Impostazioni Freestyle per un blocco-dati ViewLayer"
+
+
 msgid "As Render Pass"
 msgstr "Come Passaggio del Render"
 
@@ -11620,6 +11753,10 @@ msgstr "Contorni Suggestivi"
 
 msgid "View Map Cache"
 msgstr "Cache Mappa Vista"
+
+
+msgid "Keep the computed view map and avoid recalculating it if mesh geometry is unchanged"
+msgstr "Conserva la mappa di visualizzazione calcolata, evitando di ricalcolarla se la geometria della mesh rimane invariata"
 
 
 msgid "Edit Curve"
@@ -20646,10 +20783,6 @@ msgid "Channel"
 msgstr "Canale"
 
 
-msgid "Dope Sheet Channel"
-msgstr "Canale DopeSheet"
-
-
 msgid "Snap"
 msgstr "Aggancia"
 
@@ -26027,6 +26160,10 @@ msgid "Component"
 msgstr "Componente"
 
 
+msgid "Bake"
+msgstr "Precalcolo (bake)"
+
+
 msgid "Original"
 msgstr "Originale"
 
@@ -26700,6 +26837,10 @@ msgid "Value to Normal"
 msgstr "Valore a Normale"
 
 
+msgid "Socket Type"
+msgstr "Tipo di Connettore"
+
+
 msgid "Node Inputs"
 msgstr "Ingressi Nodo"
 
@@ -26854,10 +26995,6 @@ msgstr "Connettore Nodo Vettore"
 
 msgid "Virtual Node Socket"
 msgstr "Connettore Nodo Virtuale"
-
-
-msgid "Socket Type"
-msgstr "Tipo di Connettore"
 
 
 msgid "Maximum value"
@@ -29672,6 +29809,14 @@ msgid "Reset original length of bone for Stretch To Constraint"
 msgstr "Ripristina la lunghezza originale dell'osso per il vincolo Stira A"
 
 
+msgid "Error distance threshold (in object units)"
+msgstr "Soglia della distanza di errore (in unità oggetto): valori più alti smussano maggiormente"
+
+
+msgid "Duplicate"
+msgstr "Duplica"
+
+
 msgid "(De)select all control points"
 msgstr "(De)seleziona tutti i rapporti"
 
@@ -29683,6 +29828,15 @@ msgstr "Selezione Casuale"
 
 msgid "Probability"
 msgstr "Probabilità"
+
+
+msgctxt "Operator"
+msgid "Clear Tilt"
+msgstr "Cancella Inclinazione"
+
+
+msgid "Clear the tilt of selected control points"
+msgstr "Cancella la torsione dei punti di controllo selezionati"
 
 
 msgctxt "Operator"
@@ -29749,10 +29903,6 @@ msgstr "Disegna Curva"
 
 msgid "Draw a freehand spline"
 msgstr "Disegna una spline a mano libera"
-
-
-msgid "Error distance threshold (in object units)"
-msgstr "Soglia della distanza di errore (in unità oggetto): valori più alti smussano maggiormente"
 
 
 msgctxt "Operator"
@@ -30119,15 +30269,6 @@ msgstr "Suddivide i segmenti selezionati"
 
 msgid "Switch direction of selected splines"
 msgstr "Cambia la direzione delle spline selezionate"
-
-
-msgctxt "Operator"
-msgid "Clear Tilt"
-msgstr "Cancella Inclinazione"
-
-
-msgid "Clear the tilt of selected control points"
-msgstr "Cancella la torsione dei punti di controllo selezionati"
 
 
 msgid "Location to add new vertex at"
@@ -32098,10 +32239,6 @@ msgstr "Dispone il pennello nel modo morbido per la durata del tratto"
 
 msgid "Flat"
 msgstr "Piano"
-
-
-msgid "Duplicate"
-msgstr "Duplica"
 
 
 msgctxt "Operator"
@@ -38944,10 +39081,6 @@ msgstr "Precalcolo Fisica"
 
 msgid "Bake physics"
 msgstr "Precalcolo della fisica"
-
-
-msgid "Bake"
-msgstr "Precalcolo (bake)"
 
 
 msgctxt "Operator"
@@ -51504,6 +51637,10 @@ msgid "Channels Selected"
 msgstr "Canali Selezionati"
 
 
+msgid "Dope Sheet Channel"
+msgstr "Canale DopeSheet"
+
+
 msgid "Color of Keyframe"
 msgstr "Colore Keyframe"
 
@@ -60912,18 +61049,6 @@ msgid "Inner Edge:"
 msgstr "Spigolo Interno:"
 
 
-msgid "From Min"
-msgstr "Da Min"
-
-
-msgid "From Max"
-msgstr "Da Max"
-
-
-msgid "Dot"
-msgstr "Punti"
-
-
 msgid "Path:"
 msgstr "Percorso:"
 
@@ -60938,6 +61063,18 @@ msgstr "Sottopercorso File:"
 
 msgid "Format:"
 msgstr "Formato:"
+
+
+msgid "From Min"
+msgstr "Da Min"
+
+
+msgid "From Max"
+msgstr "Da Max"
+
+
+msgid "Dot"
+msgstr "Punti"
 
 
 msgid "Val"

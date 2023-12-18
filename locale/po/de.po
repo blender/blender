@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'274dc815eb35')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'0b00b360f7ae')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-11 11:18:04\n"
+"POT-Creation-Date: 2023-12-18 13:45:58\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Martin Reininger <martinreininger@gmx.net>\n"
 "Language-Team: German translation team\n"
@@ -20364,10 +20364,6 @@ msgid "Channel"
 msgstr "Kanal"
 
 
-msgid "Dope Sheet Channel"
-msgstr "DopeSheet-Kanal"
-
-
 msgid "Snap"
 msgstr "Einrasten"
 
@@ -25529,6 +25525,10 @@ msgid "Component"
 msgstr "Komponente"
 
 
+msgid "Bake"
+msgstr "Backen"
+
+
 msgid "Collection Info"
 msgstr "Sammlungsinfo"
 
@@ -26487,6 +26487,14 @@ msgid "Value to Normal"
 msgstr "Wert zu Normale"
 
 
+msgid "Attribute Domain"
+msgstr "Attributdomäne"
+
+
+msgid "Socket Type"
+msgstr "Buchsentype"
+
+
 msgid "Node Inputs"
 msgstr "Knoteneingaben"
 
@@ -26647,20 +26655,12 @@ msgid "Vector Node Socket"
 msgstr "Vektor-Knotenbuchse"
 
 
-msgid "Attribute Domain"
-msgstr "Attributdomäne"
-
-
 msgid "Default Attribute"
 msgstr "Standardattribut"
 
 
 msgid "Layer Selection"
 msgstr "Layer Auswahl"
-
-
-msgid "Socket Type"
-msgstr "Buchsentype"
 
 
 msgid "Maximum value"
@@ -29127,6 +29127,10 @@ msgstr "Originallänge zurücksetzen"
 msgctxt "Operator"
 msgid "Convert Particle System to Curves"
 msgstr "Partikelsysteme zu Kurven konvertieren"
+
+
+msgid "Duplicate"
+msgstr "Duplizieren"
 
 
 msgid "(De)select all control points"
@@ -31913,10 +31917,6 @@ msgstr "Strichmodus"
 
 msgid "Flat"
 msgstr "Flach"
-
-
-msgid "Duplicate"
-msgstr "Duplizieren"
 
 
 msgctxt "Operator"
@@ -37610,10 +37610,6 @@ msgstr "Physik backen"
 
 msgid "Bake physics"
 msgstr "Physik backen"
-
-
-msgid "Bake"
-msgstr "Backen"
 
 
 msgctxt "Operator"
@@ -44554,10 +44550,6 @@ msgid "Mouse Drag Threshold"
 msgstr "Maus Schwellwert ziehen"
 
 
-msgid "Number of pixels to drag before a drag event is triggered for mouse/track-pad input (otherwise click events are detected)"
-msgstr "Anzahl der Pixel, die gezogen werden müssen, bevor ein Ziehereignis für die Maus-/Trackpad-Eingabe ausgelöst wird (andernfalls werden Klickereignisse erkannt)"
-
-
 msgid "Tablet Drag Threshold"
 msgstr "Tablet Schwellwert ziehen"
 
@@ -49715,10 +49707,6 @@ msgid "Stereo Mode"
 msgstr "Stereomodus"
 
 
-msgid "SH Cache Path"
-msgstr "SH Pufferpfad"
-
-
 msgid "Map X and Y coordinates directly"
 msgstr "Direkte Textur X und Y Koordinaten"
 
@@ -50097,6 +50085,10 @@ msgstr "Kanalgruppe"
 
 msgid "Channels Selected"
 msgstr "Ausgewählte Kanäle"
+
+
+msgid "Dope Sheet Channel"
+msgstr "DopeSheet-Kanal"
 
 
 msgid "Interpolation Line"
@@ -62757,6 +62749,26 @@ msgid "Buffer Edge:"
 msgstr "Pufferkante:"
 
 
+msgid "Path:"
+msgstr "Pfad:"
+
+
+msgid "Base Path:"
+msgstr "Basispfad:"
+
+
+msgid "Add Input"
+msgstr "Eingang hinzufügen"
+
+
+msgid "File Subpath:"
+msgstr "Datei Unterpfad:"
+
+
+msgid "Format:"
+msgstr "Format:"
+
+
 msgid "From Min"
 msgstr "Von Minimum"
 
@@ -62783,26 +62795,6 @@ msgstr "Entzerren"
 
 msgid "Dot"
 msgstr "Punkt"
-
-
-msgid "Path:"
-msgstr "Pfad:"
-
-
-msgid "Base Path:"
-msgstr "Basispfad:"
-
-
-msgid "Add Input"
-msgstr "Eingang hinzufügen"
-
-
-msgid "File Subpath:"
-msgstr "Datei Unterpfad:"
-
-
-msgid "Format:"
-msgstr "Format:"
 
 
 msgid "Val"

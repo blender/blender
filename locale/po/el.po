@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'274dc815eb35')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'0b00b360f7ae')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-11 11:18:04\n"
+"POT-Creation-Date: 2023-12-18 13:45:58\n"
 "PO-Revision-Date: 2008-03-23 12:20+0200\n"
 "Last-Translator: Kostas Karvouniaris <neogen556@yahoo.gr>\n"
 "Language-Team: \n"
@@ -681,6 +681,10 @@ msgid "Nor"
 msgstr "Nor"
 
 
+msgid "Bake"
+msgstr "Φτιάξε"
+
+
 msgid "Linked"
 msgstr "Συνδεδεμένο/α"
 
@@ -882,10 +886,6 @@ msgstr "Επικόλληση Στάσης"
 
 msgid "Keep Original"
 msgstr "Διατήρηση Αρχικού"
-
-
-msgid "Bake"
-msgstr "Φτιάξε"
 
 
 msgctxt "Operator"

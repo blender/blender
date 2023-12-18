@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'274dc815eb35')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'0b00b360f7ae')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-11 11:18:04\n"
-"PO-Revision-Date: 2023-10-12 15:54+0000\n"
+"POT-Creation-Date: 2023-12-18 13:45:58\n"
+"PO-Revision-Date: 2023-12-12 02:28+0000\n"
 "Last-Translator: Zdeněk Doležal <Griperis@outlook.cz>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
 "Language: cs\n"
@@ -339,8 +339,28 @@ msgid "Optimize all kernels. Fastest rendering, may result in extra background C
 msgstr "Optimalizovat všechna jádra. Nejrychlejší renderování, může způsobit dodatečnou zátěž CPU na pozadí"
 
 
+msgid "MetalRT"
+msgstr "MetalRT"
+
+
+msgid "Disable MetalRT (uses BVH2 layout for intersection queries)"
+msgstr "Vypnout MetalRT (používá BVH2 rozložení pro výpočet kolizí)"
+
+
+msgid "On"
+msgstr "Zapnout"
+
+
+msgid "Enable MetalRT for intersection queries"
+msgstr "Zapnout MetalRT pro výpočet kolizí"
+
+
 msgid "Auto"
 msgstr "Automaticky"
+
+
+msgid "Automatically pick the fastest intersection method"
+msgstr "Automaticky vybrat nejrychlejší metodu výpočtu kolizí"
 
 
 msgid "Distribute memory across devices"
@@ -18754,6 +18774,10 @@ msgid "Value to Normal"
 msgstr "Hodnota k Normále"
 
 
+msgid "Socket Type"
+msgstr "Stejné typy"
+
+
 msgid "Node Inputs"
 msgstr "Vstupy Uzlu"
 
@@ -18840,10 +18864,6 @@ msgstr "Výchozí hodnota"
 
 msgid "Geometry socket of a node"
 msgstr "Soket geometrického uzlu"
-
-
-msgid "Socket Type"
-msgstr "Stejné typy"
 
 
 msgid "Collection of Nodes"
@@ -21160,6 +21180,10 @@ msgid "Reset Original Length"
 msgstr "Uchovat originál"
 
 
+msgid "Duplicate"
+msgstr "Zdvojit"
+
+
 msgid "(De)select all control points"
 msgstr "O(d)značit vše"
 
@@ -21167,6 +21191,15 @@ msgstr "O(d)značit vše"
 msgctxt "Operator"
 msgid "Select Random"
 msgstr "Vybrat Náhodně"
+
+
+msgctxt "Operator"
+msgid "Clear Tilt"
+msgstr "Původni velikost"
+
+
+msgid "Clear the tilt of selected control points"
+msgstr "Vyrovná úhly označených plošek"
 
 
 msgctxt "Operator"
@@ -21521,15 +21554,6 @@ msgstr "Nastavit váhu cíle"
 
 msgid "Subdivide selected segments"
 msgstr "Rozdělit vybrané úseky"
-
-
-msgctxt "Operator"
-msgid "Clear Tilt"
-msgstr "Původni velikost"
-
-
-msgid "Clear the tilt of selected control points"
-msgstr "Vyrovná úhly označených plošek"
 
 
 msgid "Add a new control point (linked to only selected end-curve one, if any)"
@@ -23101,10 +23125,6 @@ msgstr "Režim tahu"
 
 msgid "Flat"
 msgstr "Ploché"
-
-
-msgid "Duplicate"
-msgstr "Zdvojit"
 
 
 msgctxt "Operator"

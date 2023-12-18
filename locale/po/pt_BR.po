@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'274dc815eb35')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'0b00b360f7ae')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2023-12-11 11:18:04\n"
+"POT-Creation-Date: 2023-12-18 13:45:58\n"
 "PO-Revision-Date: 2023-12-06 06:42+0000\n"
 "Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -22372,10 +22372,6 @@ msgid "Channel"
 msgstr "Canal"
 
 
-msgid "Dope Sheet Channel"
-msgstr "Canal da tabela de animação"
-
-
 msgid "Snap"
 msgstr "Atrair"
 
@@ -29249,6 +29245,10 @@ msgid "Point cloud component containing only point data"
 msgstr "Componente de nuvem de pontos contendo apenas dados de pontos"
 
 
+msgid "Bake"
+msgstr "Gerar e gravar"
+
+
 msgid "Original"
 msgstr "Original"
 
@@ -30158,6 +30158,10 @@ msgid "Value to Normal"
 msgstr "Valor para as normais"
 
 
+msgid "Socket Type"
+msgstr "Tipo de conexão"
+
+
 msgid "Node Inputs"
 msgstr "Entradas de nós"
 
@@ -30404,10 +30408,6 @@ msgstr "Conector de nó virtual"
 
 msgid "Virtual socket of a node"
 msgstr "O conector virtual de um nó."
-
-
-msgid "Socket Type"
-msgstr "Tipo de conexão"
 
 
 msgid "Boolean Node Socket Interface"
@@ -33862,6 +33862,14 @@ msgid "Reset original length of bone for Stretch To Constraint"
 msgstr "Redefine o comprimento original do osso para a restrição \"Esticar para\"."
 
 
+msgid "Error distance threshold (in object units)"
+msgstr "Ajuste para erros de distanciamento (em unidades de objeto). "
+
+
+msgid "Duplicate"
+msgstr "Duplicar"
+
+
 msgid "(De)select all control points"
 msgstr "(De)seleciona todos os pontos de controle."
 
@@ -33869,6 +33877,15 @@ msgstr "(De)seleciona todos os pontos de controle."
 msgctxt "Operator"
 msgid "Select Random"
 msgstr "Selecionar aleatoriamente"
+
+
+msgctxt "Operator"
+msgid "Clear Tilt"
+msgstr "Limpar inclinação"
+
+
+msgid "Clear the tilt of selected control points"
+msgstr "Limpa a inclinação dos pontos de controle selecionados."
 
 
 msgctxt "Operator"
@@ -33943,10 +33960,6 @@ msgstr "Desenhar curva"
 
 msgid "Draw a freehand spline"
 msgstr "Permite o desenho de curvas do tipo spline a mão livre."
-
-
-msgid "Error distance threshold (in object units)"
-msgstr "Ajuste para erros de distanciamento (em unidades de objeto). "
 
 
 msgctxt "Operator"
@@ -34346,15 +34359,6 @@ msgstr "Subdivide os segmentos selecionados."
 
 msgid "Switch direction of selected splines"
 msgstr "Inverte a direção das Splines selecionadas."
-
-
-msgctxt "Operator"
-msgid "Clear Tilt"
-msgstr "Limpar inclinação"
-
-
-msgid "Clear the tilt of selected control points"
-msgstr "Limpa a inclinação dos pontos de controle selecionados."
 
 
 msgctxt "Operator"
@@ -37471,10 +37475,6 @@ msgstr "Alterna o pincel para o modo suave através da duração do traço."
 
 msgid "Flat"
 msgstr "Achatar"
-
-
-msgid "Duplicate"
-msgstr "Duplicar"
 
 
 msgctxt "Operator"
@@ -45896,10 +45896,6 @@ msgstr "Gerar e gravar físicas"
 
 msgid "Bake physics"
 msgstr "Gera e grava as físicas."
-
-
-msgid "Bake"
-msgstr "Gerar e gravar"
 
 
 msgctxt "Operator"
@@ -62173,6 +62169,10 @@ msgid "Channels Selected"
 msgstr "Canais selecionados"
 
 
+msgid "Dope Sheet Channel"
+msgstr "Canal da tabela de animação"
+
+
 msgid "Interpolation Line"
 msgstr "Linha de Interpolação"
 
@@ -73675,16 +73675,16 @@ msgid "Inner Edge:"
 msgstr "Aresta Interna:"
 
 
+msgid "Add Input"
+msgstr "Adicionar Entrada"
+
+
 msgid "Undistortion"
 msgstr "Sem distorções"
 
 
 msgid "Dot"
 msgstr "Ponto"
-
-
-msgid "Add Input"
-msgstr "Adicionar Entrada"
 
 
 msgid "Val"

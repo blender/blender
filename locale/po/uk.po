@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'274dc815eb35')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'0b00b360f7ae')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-11 11:18:04\n"
+"POT-Creation-Date: 2023-12-18 13:45:58\n"
 "PO-Revision-Date: 2021-03-01 19:15+0000\n"
 "Last-Translator: lxlalexlxl <lxlalexlxl@ukr.net>\n"
 "Language-Team: Ukrainian (Ukraine) (http://www.transifex.com/lxlalexlxl/blender/language/uk_UA/)\n"
@@ -29303,10 +29303,6 @@ msgid "Channel"
 msgstr "Канал"
 
 
-msgid "Dope Sheet Channel"
-msgstr "Канал Аркуша експозицій"
-
-
 msgid "Snap"
 msgstr "Підхоп"
 
@@ -37976,6 +37972,10 @@ msgid "Component"
 msgstr "Компонент"
 
 
+msgid "Bake"
+msgstr "Запікання"
+
+
 msgid "Collection Info"
 msgstr "Інфо Колекції"
 
@@ -39393,6 +39393,10 @@ msgid "Value to Normal"
 msgstr "Значення в нормаль"
 
 
+msgid "Socket Type"
+msgstr "Тип роз'єму"
+
+
 msgid "Node Inputs"
 msgstr "Вводи вузлів"
 
@@ -39703,10 +39707,6 @@ msgstr "Ховати значення уводу роз'єму навіть то
 
 msgid "Layer Selection"
 msgstr "Вибрання Шару"
-
-
-msgid "Socket Type"
-msgstr "Тип роз'єму"
 
 
 msgid "Boolean Node Socket Interface"
@@ -43521,6 +43521,14 @@ msgid "Reset original length of bone for Stretch To Constraint"
 msgstr "Скинути початкову довжину кістки для примусу Розтяг за"
 
 
+msgid "Error distance threshold (in object units)"
+msgstr "Поріг помилки відстані (в об'єктних одиницях)"
+
+
+msgid "Duplicate"
+msgstr "Дублювання"
+
+
 msgid "(De)select all control points"
 msgstr "(Не) вибрати всі керувальні точки"
 
@@ -43528,6 +43536,15 @@ msgstr "(Не) вибрати всі керувальні точки"
 msgctxt "Operator"
 msgid "Select Random"
 msgstr "Вибрати Випадково"
+
+
+msgctxt "Operator"
+msgid "Clear Tilt"
+msgstr "Зчистити нахил"
+
+
+msgid "Clear the tilt of selected control points"
+msgstr "Зчистити нахил вибраних керувальних точок"
 
 
 msgctxt "Operator"
@@ -43602,10 +43619,6 @@ msgstr "Рисувати Криву"
 
 msgid "Draw a freehand spline"
 msgstr "Рисувати вільноформного сплайну"
-
-
-msgid "Error distance threshold (in object units)"
-msgstr "Поріг помилки відстані (в об'єктних одиницях)"
 
 
 msgctxt "Operator"
@@ -44101,15 +44114,6 @@ msgstr "Поділити вибрані сегменти"
 
 msgid "Switch direction of selected splines"
 msgstr "Змінити напрям обраного сплайна"
-
-
-msgctxt "Operator"
-msgid "Clear Tilt"
-msgstr "Зчистити нахил"
-
-
-msgid "Clear the tilt of selected control points"
-msgstr "Зчистити нахил вибраних керувальних точок"
 
 
 msgid "Add a new control point (linked to only selected end-curve one, if any)"
@@ -48381,10 +48385,6 @@ msgstr "Перемкнути пензель у режим згладжуванн
 
 msgid "Flat"
 msgstr "Плоско"
-
-
-msgid "Duplicate"
-msgstr "Дублювання"
 
 
 msgctxt "Operator"
@@ -59018,10 +59018,6 @@ msgstr "Запекти фізику"
 
 msgid "Bake physics"
 msgstr "Запекти фізику"
-
-
-msgid "Bake"
-msgstr "Запікання"
 
 
 msgctxt "Operator"
@@ -80358,22 +80354,6 @@ msgid "Studio light image file has separate \"diffuse\" and \"specular\" passes"
 msgstr "Зображення студійного освітлювача має окремі проходи «розсіяння» та «блікування»"
 
 
-msgid "Irradiance Cache Path"
-msgstr "Шлях Кешу Опроміненості"
-
-
-msgid "Path where the irradiance cache is stored"
-msgstr "Шлях, де зберігається кеш опроміненості"
-
-
-msgid "SH Cache Path"
-msgstr "Шлях Кешу Сферичної Гармоніки"
-
-
-msgid "Path where the spherical harmonics cache is stored"
-msgstr "Шлях, де зберігається кеш сферичної гармоніки"
-
-
 msgid "Lights user to display objects in solid draw mode"
 msgstr "Світло, що використовується для показу об'єктів в режимі суцільного малювання"
 
@@ -81060,6 +81040,10 @@ msgstr "Група каналів"
 
 msgid "Channels Selected"
 msgstr "Канали вибрані"
+
+
+msgid "Dope Sheet Channel"
+msgstr "Канал Аркуша експозицій"
 
 
 msgid "Dope Sheet Sub-channel"
@@ -89818,6 +89802,10 @@ msgid "Unable to find toolbar group"
 msgstr "Неможливо знайти групу смуги засобів"
 
 
+msgid "Taper Start"
+msgstr "Конусність Старт"
+
+
 msgid ""
 "%s\n"
 "• %s toggles snap while dragging.\n"
@@ -89832,10 +89820,6 @@ msgstr ""
 
 msgid "Depth:"
 msgstr "Глибина:"
-
-
-msgid "Taper Start"
-msgstr "Конусність Старт"
 
 
 msgid "Weight: %.3f"

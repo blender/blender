@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'274dc815eb35')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'0b00b360f7ae')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-11 11:18:04\n"
+"POT-Creation-Date: 2023-12-18 13:45:58\n"
 "PO-Revision-Date: 2023-12-11 03:52+0000\n"
 "Last-Translator: Lockal <lockalsash@gmail.com>\n"
 "Language-Team: Russian <https://translate.blender.org/projects/blender-ui/ui/ru/>\n"
@@ -30222,10 +30222,6 @@ msgid "Channel"
 msgstr "Канал"
 
 
-msgid "Dope Sheet Channel"
-msgstr "Канал экспозиционного листа"
-
-
 msgid "Snap"
 msgstr "Привязка"
 
@@ -37973,6 +37969,10 @@ msgid "Attribute Statistic"
 msgstr "Статистика по атрибуту"
 
 
+msgid "Bake"
+msgstr "Запекание"
+
+
 msgid "Original"
 msgstr "Оригинал"
 
@@ -39404,6 +39404,10 @@ msgid "Value to Normal"
 msgstr "Значение в нормаль"
 
 
+msgid "Socket Type"
+msgstr "Тип сокета"
+
+
 msgid "Node Inputs"
 msgstr "Входы ноды"
 
@@ -39678,10 +39682,6 @@ msgstr "Сокет"
 
 msgid "Socket description"
 msgstr "Описание сокета"
-
-
-msgid "Socket Type"
-msgstr "Тип сокета"
 
 
 msgid "Boolean Node Socket Interface"
@@ -43237,6 +43237,14 @@ msgid "Reset original length of bone for Stretch To Constraint"
 msgstr "Сбросить исходную длину кости для ограничителя растяжения"
 
 
+msgid "Error distance threshold (in object units)"
+msgstr "Порог расстояния ошибки (в единицах объекта)"
+
+
+msgid "Duplicate"
+msgstr "Дублировать"
+
+
 msgid "(De)select all control points"
 msgstr "Установить/снять выделение со всех контрольных точек"
 
@@ -43248,6 +43256,15 @@ msgstr "Выделить случайным образом"
 
 msgid "Probability"
 msgstr "Вероятность"
+
+
+msgctxt "Operator"
+msgid "Clear Tilt"
+msgstr "Очистить наклон"
+
+
+msgid "Clear the tilt of selected control points"
+msgstr "Очистить наклон выделенных контрольных точек"
 
 
 msgctxt "Operator"
@@ -43322,10 +43339,6 @@ msgstr "Нарисовать кривую"
 
 msgid "Draw a freehand spline"
 msgstr "Нарисовать сплайн от руки"
-
-
-msgid "Error distance threshold (in object units)"
-msgstr "Порог расстояния ошибки (в единицах объекта)"
 
 
 msgctxt "Operator"
@@ -43788,15 +43801,6 @@ msgstr "Подразделить выделенные сегменты"
 
 msgid "Switch direction of selected splines"
 msgstr "Переключить направление выделенных сплайнов"
-
-
-msgctxt "Operator"
-msgid "Clear Tilt"
-msgstr "Очистить наклон"
-
-
-msgid "Clear the tilt of selected control points"
-msgstr "Очистить наклон выделенных контрольных точек"
 
 
 msgid "Add a new control point (linked to only selected end-curve one, if any)"
@@ -47316,10 +47320,6 @@ msgstr "Плоский"
 msgctxt "Operator"
 msgid "Grease Pencil Draw Mode Toggle"
 msgstr "Переключить режим рисования Grease Pencil"
-
-
-msgid "Duplicate"
-msgstr "Дублировать"
 
 
 msgctxt "Operator"
@@ -56777,10 +56777,6 @@ msgstr "Запечь физику"
 
 msgid "Bake physics"
 msgstr "Запечь физику"
-
-
-msgid "Bake"
-msgstr "Запекание"
 
 
 msgctxt "Operator"
@@ -75738,22 +75734,6 @@ msgid "Studio light image file has separate \"diffuse\" and \"specular\" passes"
 msgstr "Файл изображения студийного света имеет отдельные «диффузные» и «глянцевые» проходы"
 
 
-msgid "Irradiance Cache Path"
-msgstr "Путь к кэшу освещённости"
-
-
-msgid "Path where the irradiance cache is stored"
-msgstr "Директория, где хранится кэш освещённости"
-
-
-msgid "SH Cache Path"
-msgstr "Путь к кэшу студии освещения"
-
-
-msgid "Path where the spherical harmonics cache is stored"
-msgstr "Директория, где хранится кэш сферических гармоник"
-
-
 msgid "Lights user to display objects in solid draw mode"
 msgstr "Источники света для отображения объектов в режиме сплошного затенения"
 
@@ -76415,6 +76395,10 @@ msgstr "Группа каналов"
 
 msgid "Channels Selected"
 msgstr "Выделенные каналы"
+
+
+msgid "Dope Sheet Channel"
+msgstr "Канал экспозиционного листа"
 
 
 msgid "Interpolation Line"

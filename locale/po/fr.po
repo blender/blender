@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'274dc815eb35')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'0b00b360f7ae')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-11 11:18:04\n"
-"PO-Revision-Date: 2023-12-11 03:52+0000\n"
+"POT-Creation-Date: 2023-12-18 13:45:58\n"
+"PO-Revision-Date: 2023-12-15 16:22+0000\n"
 "Last-Translator: Damien Picard <dam.pic@free.fr>\n"
 "Language-Team: French <https://translate.blender.org/projects/blender-ui/ui/fr/>\n"
 "Language: fr\n"
@@ -1480,7 +1480,7 @@ msgstr "Nom de l’ID"
 
 
 msgid "If this is set, the asset gets a custom ID, otherwise it takes the name of the class used to define the menu (for example, if the class name is \"OBJECT_AST_hello\", and bl_idname is not set by the script, then bl_idname = \"OBJECT_AST_hello\")"
-msgstr "Si défini, l’asset obtient un ID personnel, sinon il prend le nom de la classe utilisée pour définir le menu (par exemple, si le nom de classe est \"OBJECT_AST_hello\", et que bl_idname n’est pas défini par le script, alors bl_idname = \"OBJECT_AST_hello\")"
+msgstr "Si défini, l’asset obtient un ID personnel, sinon il prend le nom de la classe utilisée pour le définir (par exemple, si le nom de classe est \"OBJECT_AST_hello\", et que bl_idname n’est pas défini par le script, alors bl_idname = \"OBJECT_AST_hello\")"
 
 
 msgid "Options"
@@ -13155,16 +13155,44 @@ msgid "Whether this path is saved in bookmarks, or generated from OS"
 msgstr "Si ce chemin est enregistré dans les signets, ou généré par l’OS"
 
 
+msgid "File Handler Type"
+msgstr "Type de gestionnaire de fichiers"
+
+
+msgid "Extends functionality to operators that manages files, such as adding drag and drop support"
+msgstr "Ajouter des fonctionnalités aux opérateurs qui gèrent les fichiers, comme la prise en charge du glisser-déposer"
+
+
 msgid "File Extensions"
 msgstr "Extensions de fichier"
+
+
+msgid ""
+"Formatted string of file extensions supported by the file handler, each extension should start with a \".\" and be separated by \";\".\n"
+"For Example: `\".blend;.ble\"`"
+msgstr ""
+"Chaîne de caractères formatée des extensions de fichiers prises en charge par le gestionnaire de fichiers, chaque extension devrait commencer par un \".\" et être séparée par des \";\".\n"
+"Par exemple : `\".blend;.ble\"`"
+
+
+msgid "If this is set, the file handler gets a custom ID, otherwise it takes the name of the class used to define the file handler (for example, if the class name is \"OBJECT_FH_hello\", and bl_idname is not set by the script, then bl_idname = \"OBJECT_FH_hello\")"
+msgstr "Si défini, le gestionnaire de fichiers obtient un ID personnel, sinon il prend le nom de la classe utilisée pour le définir (par exemple, si le nom de classe est \"OBJECT_FH_hello\", et que bl_idname n’est pas défini par le script, alors bl_idname = \"OBJECT_FH_hello\")"
 
 
 msgid "Operator"
 msgstr "Opérateur"
 
 
+msgid "Operator that can handle import files with the extensions given in bl_file_extensions"
+msgstr "Opérateur pouvant gérer l’import des fichiers avec les extensions spécifiées dans bl_file_extensions"
+
+
 msgid "Label"
 msgstr "Libellé"
+
+
+msgid "The file handler label"
+msgstr "Le libellé du gestionnaire de fichiers"
 
 
 msgid "File Select Entry"
@@ -28882,7 +28910,7 @@ msgstr "Première frame de l’intervalle de lecture/rendu"
 
 
 msgid "Number of frames to skip forward while rendering/playing back each frame"
-msgstr "Nombre de frames à ignorer (à sauter) lors du rendu/de la lecture de chaque frame"
+msgstr "Nombre de frames à sauter lors du rendu/de la lecture de chaque frame"
 
 
 msgid "Constant acceleration in a given direction"
@@ -35247,7 +35275,7 @@ msgstr "Auto-chevauchement"
 
 
 msgid "Disable stencil and overlap self intersections with alpha materials"
-msgstr "Désactiver les auto-intersections pour les matériaux avec alpha"
+msgstr "Faire se chevaucher les auto-intersections pour les matériaux avec alpha"
 
 
 msgid "Material Line Art"
@@ -35398,10 +35426,6 @@ msgstr "Opérations de liaison d’ombre"
 
 msgid "Channel"
 msgstr "Canal"
-
-
-msgid "Dope Sheet Channel"
-msgstr "Canal de la feuille d’exposition"
 
 
 msgid "Snap"
@@ -39038,6 +39062,14 @@ msgid "Nodes Modifier"
 msgstr "Modificateur Nœuds"
 
 
+msgid "Simulation Bake Directory"
+msgstr "Dossier de précalcul de simulation"
+
+
+msgid "Location on disk where the bake data is stored"
+msgstr "Emplacement où stocker les données de précalcul sur le disque"
+
+
 msgid "Node Group"
 msgstr "Groupe de nœuds"
 
@@ -39048,14 +39080,6 @@ msgstr "Groupe de nœuds contrôlant l’action de ce modificateur"
 
 msgid "Show Node Group"
 msgstr "Afficher le groupe de nœuds"
-
-
-msgid "Simulation Bake Directory"
-msgstr "Dossier de précalcul de simulation"
-
-
-msgid "Location on disk where the bake data is stored"
-msgstr "Emplacement où stocker les données de précalcul sur le disque"
 
 
 msgid "Normal Edit Modifier"
@@ -45489,6 +45513,18 @@ msgid "Which domain to read the data from"
 msgstr "Depuis quel domaine lire les données"
 
 
+msgid "Bake"
+msgstr "Précalculer"
+
+
+msgid "Active Item Index"
+msgstr "Indice de l’élément actif"
+
+
+msgid "Index of the active item"
+msgstr "Indice de l’élément actif"
+
+
 msgid "Blur Attribute"
 msgstr "Flouter l’attribut"
 
@@ -46674,14 +46710,6 @@ msgid "Repeat Output"
 msgstr "Sortie de répétition"
 
 
-msgid "Active Item Index"
-msgstr "Indice de l’élément actif"
-
-
-msgid "Index of the active item"
-msgstr "Indice de l’élément actif"
-
-
 msgid "Inspection Index"
 msgstr "Indice d’inspection"
 
@@ -46998,6 +47026,10 @@ msgid "Simulation Output"
 msgstr "Sortie de simulation"
 
 
+msgid "Output data from the simulation zone"
+msgstr "Données de sortie pour la zone de simulation"
+
+
 msgid "Spline Length"
 msgstr "Longueur de spline"
 
@@ -47028,6 +47060,10 @@ msgstr "Séparer en instances"
 
 msgid "Create separate geometries containing the elements from the same group"
 msgstr "Créer des géométries séparées contenant les éléments du même groupe"
+
+
+msgid "Attribute domain for the Selection and Group ID inputs"
+msgstr "Domaine d’attribut pour les entrées Sélection et ID du groupe"
 
 
 msgid "Store Named Attribute"
@@ -48512,10 +48548,6 @@ msgid "Use the 4D vector (X, Y, Z, W) as input"
 msgstr "Utiliser le vecteur 4D (X, Y, Z, W) comme entrée"
 
 
-msgid "Normalize outputs to 0.0 to 1.0 range"
-msgstr "Normaliser les sorties dans l’intervalle de 0.0 à 1.0"
-
-
 msgid "Type of the Noise texture"
 msgstr "Type de la texture bruit"
 
@@ -48538,6 +48570,10 @@ msgstr "Le bruit fractal de Perlin standard"
 
 msgid "Similar to Hybrid Multifractal creates a heterogeneous terrain, but with the likeness of river channels"
 msgstr "Similairement à Hybride multifractal, créer un relief hétérogène, mais ressemblant plus à des cours d’eau"
+
+
+msgid "Normalize outputs to 0.0 to 1.0 range"
+msgstr "Normaliser les sorties dans l’intervalle de 0.0 à 1.0"
 
 
 msgid "Generate a volumetric point for each particle or vertex of another object"
@@ -49320,6 +49356,18 @@ msgid "Value to Normal"
 msgstr "Valeur vers normale"
 
 
+msgid "Attribute Domain"
+msgstr "Domaine d’attribut"
+
+
+msgid "Color of the corresponding socket type in the node editor"
+msgstr "Couleur du type de prise correspondant dans l’éditeur de nœuds"
+
+
+msgid "Socket Type"
+msgstr "Type de prise"
+
+
 msgid "Collection of repeat items"
 msgstr "Collection d’éléments de répétition"
 
@@ -49792,10 +49840,6 @@ msgid "Declaration of a node socket"
 msgstr "Déclaration d’une prise de nœuds"
 
 
-msgid "Attribute Domain"
-msgstr "Domaine d’attribut"
-
-
 msgid "Attribute domain used by the geometry nodes modifier to create an attribute output"
 msgstr "Domaine de l’attribut utilisé par le modificateur nœuds de géométrie pour créer une sortie d’attribut"
 
@@ -49870,10 +49914,6 @@ msgstr "Sélection des calques"
 
 msgid "Take Grease Pencil Layer or Layer Group as selection field"
 msgstr "Utiliser un calque ou un groupe de calques Grease Pencil comme champ de sélection"
-
-
-msgid "Socket Type"
-msgstr "Type de prise"
 
 
 msgid "Type of the socket generated by this interface item"
@@ -51457,6 +51497,10 @@ msgid "Isolate"
 msgstr "Isoler"
 
 
+msgid "Hides all F-Curves other than the ones being framed"
+msgstr "Cacher toutes les F-courbes autres que les courbes choisies à afficher"
+
+
 msgctxt "Operator"
 msgid "Align Bones"
 msgstr "Aligner les os"
@@ -51698,6 +51742,11 @@ msgstr "Retirer les os sélectionnés de la collection d’os active"
 
 msgid "Name of the bone collection to unassign this bone from; empty to unassign from the active bone collection"
 msgstr "Nom de la collection d’os de laquelle retirer l’os ; laisser vide pour retirer de la collection d’os active"
+
+
+msgctxt "Operator"
+msgid "Remove Bone from Bone Collection"
+msgstr "Retirer l’os de la collection d’os"
 
 
 msgid "Unassign the bone from this bone collection"
@@ -54422,6 +54471,14 @@ msgid "Remove selected control points or curves"
 msgstr "Supprimer les points de contrôle ou courbes sélectionnées"
 
 
+msgid "Error distance threshold (in object units)"
+msgstr "Seuil d’erreur de distance (en unités objet)"
+
+
+msgid "Duplicate"
+msgstr "Dupliquer"
+
+
 msgctxt "Operator"
 msgid "Curve Sculpt Mode Toggle"
 msgstr "(Dés)activer le mode de sculpture de courbe"
@@ -54537,6 +54594,15 @@ msgstr "Utiliser l’objet actif comme surface pour les objets courbes sélectio
 
 
 msgctxt "Operator"
+msgid "Clear Tilt"
+msgstr "Réinitialiser l’inclinaison"
+
+
+msgid "Clear the tilt of selected control points"
+msgstr "Réinitialiser l’inclinaison des points de contrôle sélectionnés"
+
+
+msgctxt "Operator"
 msgid "Toggle Cyclic"
 msgstr "(Dés)activer cyclique"
 
@@ -54608,10 +54674,6 @@ msgstr "Dessiner une courbe"
 
 msgid "Draw a freehand spline"
 msgstr "Dessiner une courbe à main levée"
-
-
-msgid "Error distance threshold (in object units)"
-msgstr "Seuil d’erreur de distance (en unités objet)"
 
 
 msgctxt "Operator"
@@ -55228,15 +55290,6 @@ msgstr "Subdiviser les segments sélectionnés"
 
 msgid "Switch direction of selected splines"
 msgstr "Inverser la direction des splines sélectionnées"
-
-
-msgctxt "Operator"
-msgid "Clear Tilt"
-msgstr "Réinitialiser l’inclinaison"
-
-
-msgid "Clear the tilt of selected control points"
-msgstr "Réinitialiser l’inclinaison des points de contrôle sélectionnés"
 
 
 msgctxt "Operator"
@@ -61402,10 +61455,6 @@ msgid "Duplicate the selected points"
 msgstr "Dupliquer les points sélectionnés"
 
 
-msgid "Duplicate"
-msgstr "Dupliquer"
-
-
 msgid "Insert a blank frame on the current scene frame"
 msgstr "Insérer une frame vide à la frame actuelle de la scène"
 
@@ -61587,6 +61636,10 @@ msgstr "Mettre tous les points de traits à la même épaisseur"
 msgctxt "Operator"
 msgid "Assign Material"
 msgstr "Assigner le matériau"
+
+
+msgid "Assign the active material slot to the selected strokes"
+msgstr "Assigner l’emplacement de matériau actif aux traits sélectionnés"
 
 
 msgid "Simplify selected strokes"
@@ -63618,9 +63671,17 @@ msgid "Reverse Colors"
 msgstr "Inverser les couleurs"
 
 
+msgid "Flip direction of face corner color attribute inside faces"
+msgstr "Inverser la direction des attributs de couleurs sur coins de faces à l’intérieur des faces"
+
+
 msgctxt "Operator"
 msgid "Rotate Colors"
 msgstr "Tourner les couleurs"
+
+
+msgid "Rotate face corner color attribute inside faces"
+msgstr "Faire tourner les attributs de couleurs sur coins de faces à l’intérieur des faces"
 
 
 msgid "Counter Clockwise"
@@ -66497,6 +66558,10 @@ msgid "Bake scale channels"
 msgstr "Précalculer les canaux d’échelle"
 
 
+msgid "Bake B-Bone channels"
+msgstr "Précalculer les canaux de B-os"
+
+
 msgid "Clean Curves"
 msgstr "Nettoyer les courbes"
 
@@ -66527,6 +66592,10 @@ msgstr "Seulement les os sélectionnés"
 
 msgid "Only key selected bones (Pose baking only)"
 msgstr "N’insérer d’images clés que pour les os sélectionnés (précalcul de pose uniquement)"
+
+
+msgid "Number of frames to skip forward while baking each frame"
+msgstr "Nombre de frames à sauter lors du précalcul de chaque frame"
 
 
 msgid "Overwrite Current Action"
@@ -68376,6 +68445,14 @@ msgstr "(Dés)activer le champ de force"
 
 msgid "Toggle object's force field"
 msgstr "(Dés)activer le champ de force de l’objet"
+
+
+msgid "Bake ID"
+msgstr "ID de précalcul"
+
+
+msgid "Name of the modifier that contains the node"
+msgstr "Nom du modificateur contenant le nœud"
 
 
 msgctxt "Operator"
@@ -70489,27 +70566,6 @@ msgstr "Précalculer le cache sur tous les objets sélectionnés"
 
 
 msgctxt "Operator"
-msgid "Bake Single Simulation Zone"
-msgstr "Précalculer une seule zone de simulation"
-
-
-msgid "Bake a single simulation zone"
-msgstr "Précalculer une seule zone de simulation"
-
-
-msgid "Bake ID"
-msgstr "ID de précalcul"
-
-
-msgid "Nested node id of the node to bake"
-msgstr "Identifiant imbriqué du nœud à précalculer"
-
-
-msgid "Name of the modifier that contains the node to bake"
-msgstr "Nom du modificateur contenant le nœud à précalculer"
-
-
-msgctxt "Operator"
 msgid "Calculate Simulation to Frame"
 msgstr "Calculer la simulation jusqu’à la frame"
 
@@ -70533,23 +70589,6 @@ msgstr "Supprimer les simulations en cache dans les modificateurs de nœuds de g
 
 msgid "Delete cache on all selected objects"
 msgstr "Supprimer le cache sur tous les objets sélectionnés"
-
-
-msgctxt "Operator"
-msgid "Delete Single Cached Simulation"
-msgstr "Supprimer une seule simulation en cache"
-
-
-msgid "Delete simulation data of a single simulation zone"
-msgstr "Supprimer les données de simulation d’une seule zone de simulation"
-
-
-msgid "Nested node id of the bake to delete"
-msgstr "Identifiant imbriqué du nœud à supprimer"
-
-
-msgid "Name of the modifier that contains the node"
-msgstr "Nom du modificateur contenant le nœud"
 
 
 msgctxt "Operator"
@@ -72328,6 +72367,10 @@ msgid "Hide/show some vertices"
 msgstr "Cacher/afficher des sommets"
 
 
+msgid "Visibility Action"
+msgstr "Action de visibilité"
+
+
 msgid "Whether to hide or show vertices"
 msgstr "S’il faut afficher ou cacher les sommets"
 
@@ -72338,6 +72381,10 @@ msgstr "Cacher les sommets"
 
 msgid "Show vertices"
 msgstr "Afficher les sommets"
+
+
+msgid "Visibility Area"
+msgstr "Zone de visibilité"
 
 
 msgid "Which vertices to hide or show"
@@ -72639,6 +72686,15 @@ msgstr "Mode de peinture de sommets"
 
 msgid "Toggle the vertex paint mode in 3D view"
 msgstr "(Dés)activer le mode de peinture de sommets dans la vue 3D"
+
+
+msgctxt "Operator"
+msgid "Invert Visibility"
+msgstr "Inverser la visibilité"
+
+
+msgid "Invert the visibility of all vertices"
+msgstr "Inverser la visibilité de tous les sommets"
 
 
 msgctxt "Operator"
@@ -74077,10 +74133,6 @@ msgstr "Précalculer la physique"
 
 msgid "Bake physics"
 msgstr "Précalculer la physique"
-
-
-msgid "Bake"
-msgstr "Précalculer"
 
 
 msgctxt "Operator"
@@ -75900,6 +75952,10 @@ msgstr "Créer une pièce de géométrie la plus lisse possible à partir de l�
 
 msgid "Modify Hidden"
 msgstr "Modifier les cachés"
+
+
+msgid "Apply the edit operation to hidden geometry"
+msgstr "Appliquer l’opération d’édition à la géométrie cachée"
 
 
 msgctxt "Operator"
@@ -86370,6 +86426,14 @@ msgid "Shadows"
 msgstr "Ombres"
 
 
+msgid "Volume Lighting"
+msgstr "Éclairage des volumes"
+
+
+msgid "Volume Shadows"
+msgstr "Ombres des volumes"
+
+
 msgid "Screen Space Reflections"
 msgstr "Réflexions en espace écran"
 
@@ -89577,10 +89641,6 @@ msgstr "Nombre de pixels à glisser avant qu’un évènement « glisser » ne
 
 msgid "Mouse Drag Threshold"
 msgstr "Seuil de cliquer-glisser souris"
-
-
-msgid "Number of pixels to drag before a drag event is triggered for mouse/track-pad input (otherwise click events are detected)"
-msgstr "Nombre de pixels à glisser avant qu’un évènement « glisser » ne soit déclenché, pour les entrées souris et trackpad (sans quoi des évènements de clics sont détectés)"
 
 
 msgid "Tablet Drag Threshold"
@@ -94689,10 +94749,6 @@ msgid "Repeat Item"
 msgstr "Élément de répétition"
 
 
-msgid "Color of the corresponding socket type in the node editor"
-msgstr "Couleur du type de prise correspondant dans l’éditeur de nœuds"
-
-
 msgid "Retiming Key"
 msgstr "Clé de reminutage"
 
@@ -95855,6 +95911,10 @@ msgstr "Taille des cartes d’ombres des éclairages points et zones"
 
 msgid "Shadow Normal Bias"
 msgstr "Biais normal des ombres"
+
+
+msgid "Move shadows along their normal"
+msgstr "Déplacer les ombres le long de leurs normales"
 
 
 msgid "Shadow Pool Size"
@@ -101460,22 +101520,6 @@ msgid "Studio light image file has separate \"diffuse\" and \"specular\" passes"
 msgstr "Le fichier image d’éclairage studio a des passes « diffuse » et « spéculaire » séparées"
 
 
-msgid "Irradiance Cache Path"
-msgstr "Chemin du cache d’irradiance"
-
-
-msgid "Path where the irradiance cache is stored"
-msgstr "Chemin où le cache d’irradiance est stocké"
-
-
-msgid "SH Cache Path"
-msgstr "Chemin de cache HS"
-
-
-msgid "Path where the spherical harmonics cache is stored"
-msgstr "Chemin où le cache d’harmoniques sphériques est stocké"
-
-
 msgid "Lights user to display objects in solid draw mode"
 msgstr "Éclairages utilisés pour afficher les objets en mode d’affichage solide"
 
@@ -102223,6 +102267,10 @@ msgstr "Groupe de canaux"
 
 msgid "Channels Selected"
 msgstr "Canaux sélectionnés"
+
+
+msgid "Dope Sheet Channel"
+msgstr "Canal de la feuille d’exposition"
 
 
 msgid "Dope Sheet Sub-channel"
@@ -103880,6 +103928,10 @@ msgstr "Premier point"
 
 msgid "Snap to first point"
 msgstr "Aimanter au premier point"
+
+
+msgid "Offset along normal when drawing on surfaces"
+msgstr "Décaler le long de la normale lors du dessin sur des surfaces"
 
 
 msgid "New Keyframe Type"
@@ -108428,8 +108480,18 @@ msgstr "Arrêter le déplacement vers la gauche"
 
 
 msgctxt "WindowManager"
+msgid "Stop Move Right"
+msgstr "Arrêter le déplacement vers la droite"
+
+
+msgctxt "WindowManager"
 msgid "Stop Move Global Up"
 msgstr "Arrêter le déplacement vers le haut global"
+
+
+msgctxt "WindowManager"
+msgid "Stop Move Global Down"
+msgstr "Arrêter le déplacement vers le bas global"
 
 
 msgctxt "WindowManager"
@@ -111093,6 +111155,14 @@ msgstr "La face active doit être un quadrilatère"
 
 msgid "Active face not selected"
 msgstr "La face active n’est pas sélectionnée"
+
+
+msgid "No selected faces"
+msgstr "Aucune face sélectionnée"
+
+
+msgid "No UV layers"
+msgstr "Aucun calque UV"
 
 
 msgid "No active face"
@@ -115650,6 +115720,10 @@ msgid "Unable to find toolbar group"
 msgstr "Impossible de trouver le groupe de barre d’outil"
 
 
+msgid "Taper Start"
+msgstr "Début d’effilage"
+
+
 msgid ""
 "%s\n"
 "• %s toggles snap while dragging.\n"
@@ -115664,10 +115738,6 @@ msgstr ""
 
 msgid "Depth:"
 msgstr "Profondeur :"
-
-
-msgid "Taper Start"
-msgstr "Début d’effilage"
 
 
 msgid "Weight: %.3f"
@@ -118956,20 +119026,8 @@ msgid "Null cloth object"
 msgstr "Objet tissu null"
 
 
-msgid "Out of memory on allocating clmd->clothObject"
-msgstr "Mémoire insuffisante lors de l’allocation de clmd->clothObject"
-
-
 msgid "Cannot build springs"
 msgstr "Impossible de construire les ressorts"
-
-
-msgid "Out of memory on allocating clmd->clothObject->verts"
-msgstr "Mémoire insuffisante lors de l’allocation de clmd->clothObject->verts"
-
-
-msgid "Out of memory on allocating clmd->clothObject->looptri"
-msgstr "Mémoire insuffisante lors de l’allocation de clmd->clothObject->looptri"
 
 
 msgid "Scene Collection"
@@ -119300,6 +119358,10 @@ msgstr "sondes lumière"
 
 msgid "linestyles"
 msgstr "styles de lignes"
+
+
+msgid "Merged %d IDs from '%s' Main into '%s' Main; %d IDs and %d Libraries already existed as part of the destination Main, and %d IDs missing from destination Main, were freed together with the source Main"
+msgstr "%d ID fusionnés depuis le Main « %s » vers le Main « %s » ; %d ID et %d bibliothèques existaient déjà dans le Main de destination, et %d ID manquants dans le Main de destination ont été libérés, ainsi que le Main source"
 
 
 msgid "MaskLayer"
@@ -119639,6 +119701,10 @@ msgid "No valid formats found"
 msgstr "Aucun format valide trouvé"
 
 
+msgid "Can't allocate FFMPEG format context"
+msgstr "Impossible d’allouer le contexte de format FFmpeg"
+
+
 msgid "Render width has to be 720 pixels for DV!"
 msgstr "La largeur de rendu doit être de 720 pixels pour le DV !"
 
@@ -119649,6 +119715,10 @@ msgstr "La hauteur du rendu doit être de 480 pixels pour le DV NTSC !"
 
 msgid "Render height has to be 576 pixels for DV-PAL!"
 msgstr "La hauteur du rendu doit être de 576 pixels pour le DV PAL !"
+
+
+msgid "FFMPEG only supports 48khz / stereo audio for DV!"
+msgstr "FFmpeg ne prend en charge que l’audio 48kHz stéréo pour le DV !"
 
 
 msgid "Error initializing video stream"
@@ -121542,13 +121612,13 @@ msgstr "Effacer les images clés d’une seule propriété"
 
 
 msgctxt "Operator"
-msgid "View Single in Graph Editor"
-msgstr "Voir une seule dans l’éditeur de graphes"
+msgid "View All in Graph Editor"
+msgstr "Voir tout dans l’éditeur de graphes"
 
 
 msgctxt "Operator"
-msgid "View All in Graph Editor"
-msgstr "Voir tout dans l’éditeur de graphes"
+msgid "View Single in Graph Editor"
+msgstr "Voir une seule dans l’éditeur de graphes"
 
 
 msgctxt "Operator"
@@ -123372,10 +123442,6 @@ msgstr "Impossible de supprimer le dossier de métadonnées %s"
 
 msgid "Failed to remove blobs directory %s"
 msgstr "Impossible de supprimer le dossier de blobs %s"
-
-
-msgid "File has to be saved"
-msgstr "Le fichier doit être enregistré"
 
 
 msgid "Skipped some collections because of cycle detected"
@@ -127036,8 +127102,16 @@ msgid "Please select all related strips"
 msgstr "Veuillez sélectionner toutes les bandes concernées"
 
 
+msgid "Could not create the copy paste file!"
+msgstr "Impossible de créer le fichier de copier-coller !"
+
+
 msgid "No strips to paste"
 msgstr "Aucune bande à coller"
+
+
+msgid "%d strips pasted"
+msgstr "%d bandes collées"
 
 
 msgid "Slip offset: %s"
@@ -128688,6 +128762,10 @@ msgid "%s: Error: Couldn't get input socket %s for node %s"
 msgstr "%s : Erreur : Impossible de trouver la prise d’entrée %s pour le nœud %s"
 
 
+msgid "%s: Couldn't create SH_NODE_MAPPING for node input %s"
+msgstr "%s : Impossible de créer SH_NODE_MAPPING pour l’entrée %s"
+
+
 msgid "Unsupported type %s for mesh data"
 msgstr "Type non pris en charge pour les données de maillage %s"
 
@@ -128921,7 +128999,7 @@ msgstr "Aucun matériau à supprimer"
 
 
 msgid "Registering id property class: '%s' is too long, maximum length is %d"
-msgstr "Enregistrement de la classe de propriété id : « %s » est trop long, longueur maximum de %d"
+msgstr "Enregistrement de la classe de propriété id : « %s » est trop long, la longueur maximale est %d"
 
 
 msgid "'%s' is of a type that cannot be an asset"
@@ -128958,10 +129036,6 @@ msgstr "Impossible d’éditer cette propriété dans un bloc de données systè
 
 msgid "Only boolean, int, float, and enum properties supported"
 msgstr "Seules les propriétés booléennes, entières, flottantes et énum sont prises en charge"
-
-
-msgid "Only boolean, int, and float properties supported"
-msgstr "Seules les propriétés booléennes, entières et flottantes sont prises en charge"
 
 
 msgid "'%s' does not contain '%s' with prefix and suffix"
@@ -129640,7 +129714,7 @@ msgstr "La bande NLA « %s » est introuvable dans la piste « %s »"
 
 
 msgid "Registering node socket class: '%s' is too long, maximum length is %d"
-msgstr "Enregistrement de la classe de prise de nœud : « %s » est trop long, longueur maximum de %d"
+msgstr "Enregistrement de la classe de prise de nœud : « %s » est trop long, la longueur maximale est %d"
 
 
 msgid "The node socket's default value"
@@ -129765,7 +129839,7 @@ msgstr "Impossible de créer un élément avec ce type de prise"
 
 
 msgid "Registering node tree class: '%s' is too long, maximum length is %d"
-msgstr "Enregistrement de la classe d’arborescence nodale : « %s » est trop long, longueur maximum de %d"
+msgstr "Enregistrement de la classe d’arborescence nodale : « %s » est trop long, la longueur maximale est %d"
 
 
 msgid "Registering node tree class: '%s', bl_idname '%s' could not be unregistered"
@@ -129797,7 +129871,7 @@ msgstr "Impossible de trouver le nœud « %s » dans l’arborescence de nœud
 
 
 msgid "Registering node class: '%s' is too long, maximum length is %d"
-msgstr "Enregistrement de la classe de nœud : « %s » est trop long, longueur maximum de %d"
+msgstr "Enregistrement de la classe de nœud : « %s » est trop long, la longueur maximale est %d"
 
 
 msgid "Registering node class: '%s', bl_idname '%s' is a builtin node"
@@ -130141,7 +130215,11 @@ msgstr "%s parent '%s' introuvable pour '%s'"
 
 
 msgid "Registering asset shelf class: '%s' is too long, maximum length is %d"
-msgstr "Enregistrement de la classe d’étagère d’assets : « %s » est trop long, longueur maximum de %d"
+msgstr "Enregistrement de la classe d’étagère d’assets : « %s » est trop long, la longueur maximale est %d"
+
+
+msgid "Registering file handler class: '%s' is too long, maximum length is %d"
+msgstr "Enregistrement du gestionnaire de fichier : « %s » est trop long, la longueur maximum est %d"
 
 
 msgid "Script directory not found"
@@ -131034,6 +131112,26 @@ msgid "Outer Mask"
 msgstr "Masque externe"
 
 
+msgid "Path:"
+msgstr "Chemin :"
+
+
+msgid "Base Path:"
+msgstr "Chemin de base :"
+
+
+msgid "Add Input"
+msgstr "Ajouter une entrée"
+
+
+msgid "File Subpath:"
+msgstr "Sous-chemin de fichier :"
+
+
+msgid "Format:"
+msgstr "Format :"
+
+
 msgid "ID value"
 msgstr "Valeur ID"
 
@@ -131084,26 +131182,6 @@ msgstr "Dé-distorsion"
 
 msgid "Dot"
 msgstr "Produit scalaire"
-
-
-msgid "Path:"
-msgstr "Chemin :"
-
-
-msgid "Base Path:"
-msgstr "Chemin de base :"
-
-
-msgid "Add Input"
-msgstr "Ajouter une entrée"
-
-
-msgid "File Subpath:"
-msgstr "Sous-chemin de fichier :"
-
-
-msgid "Format:"
-msgstr "Format :"
 
 
 msgid "Degr"
@@ -133893,7 +133971,7 @@ msgstr "Enregistrement de la classe d’opérateur : « %s », bl_idname « 
 
 
 msgid "Registering operator class: '%s', invalid bl_idname '%s', is too long, maximum length is %d"
-msgstr "Enregistrement de la classe d’opérateur : « %s », bl_idname « %s » invalide, trop long, longueur maximum de %d"
+msgstr "Enregistrement de la classe d’opérateur : « %s », bl_idname « %s » invalide, trop long, la longueur maximale est %d"
 
 
 msgid "Registering operator class: '%s', invalid bl_idname '%s', must contain 1 '.' character"
