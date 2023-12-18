@@ -12,6 +12,7 @@
 #include "BKE_scene.h"
 
 #include "BLI_length_parameterize.hh"
+#include "BLI_math_color.h"
 #include "BLI_math_geom.h"
 
 #include "DEG_depsgraph_query.hh"
@@ -165,6 +166,7 @@ struct PaintOperationExecutor {
                                                      brush_->rgb[2],
                                                      settings_->vertex_factor) :
                                               float4(0.0f);
+    srgb_to_linearrgb_v4(vertex_color_, vertex_color_);
 
     // const bool use_vertex_color_fill = use_vertex_color && ELEM(
     //     brush->gpencil_settings->vertex_mode, GPPAINT_MODE_STROKE, GPPAINT_MODE_BOTH);
