@@ -974,9 +974,7 @@ static int recursive_operation(const char *startfrom,
 #  ifdef __HAIKU__
       {
         struct stat st_dir;
-        char filepath[FILE_MAX];
-        BLI_path_join(filepath, sizeof(filepath), startfrom, dirent->d_name, NULL);
-        lstat(filepath, &st_dir);
+        lstat(from_path, &st_dir);
         is_dir = S_ISDIR(st_dir.st_mode);
       }
 #  else
