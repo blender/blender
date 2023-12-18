@@ -1027,15 +1027,13 @@ class WM_OT_url_open(Operator):
     def _add_utm_param_to_url(url, utm_source):
         import urllib.parse
 
-        # Make sure we have a scheme otherwise we can't parse the url.
-        if not url.startswith(("http://", "https://")):
-            url = "https://" + url
-
         # Parse the URL to get its domain and query parameters.
+        if not urllib.parse.urlparse(url).scheme:
+            url = f'https://{url}'
         parsed_url = urllib.parse.urlparse(url)
-        domain = parsed_url.netloc
 
         # Only add a utm source if it points to a blender.org domain.
+        domain = parsed_url.netloc
         if not (domain.endswith(".blender.org") or domain == "blender.org"):
             return url
 
