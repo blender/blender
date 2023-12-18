@@ -669,7 +669,7 @@ void ARMATURE_OT_collection_unassign_named(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Remove Bone from Bone Collection";
   ot->idname = "ARMATURE_OT_collection_unassign_named";
-  ot->description = "Unassign the bone from this bone collection";
+  ot->description = "Unassign the named bone from this bone collection";
 
   /* api callbacks */
   ot->exec = bone_collection_unassign_named_exec;
