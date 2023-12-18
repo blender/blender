@@ -362,9 +362,11 @@ void update_normals(PBVH &pbvh, SubdivCCG *subdiv_ccg);
 }  // namespace blender::bke::pbvh
 
 blender::Bounds<blender::float3> BKE_pbvh_redraw_BB(PBVH *pbvh);
-blender::IndexMask BKE_pbvh_get_grid_updates(const PBVH *pbvh,
-                                             blender::Span<const PBVHNode *> nodes,
-                                             blender::IndexMaskMemory &memory);
+namespace blender::bke::pbvh {
+IndexMask nodes_to_face_selection_grids(const SubdivCCG &subdiv_ccg,
+                                        Span<const PBVHNode *> nodes,
+                                        IndexMaskMemory &memory);
+}
 void BKE_pbvh_grids_update(PBVH *pbvh, const CCGKey *key);
 void BKE_pbvh_subdiv_cgg_set(PBVH *pbvh, SubdivCCG *subdiv_ccg);
 

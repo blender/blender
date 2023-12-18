@@ -1202,6 +1202,7 @@ void multires_modifier_update_hidden(DerivedMesh *dm)
 
 void multires_stitch_grids(Object *ob)
 {
+  using namespace blender;
   if (ob == nullptr) {
     return;
   }
@@ -1209,21 +1210,12 @@ void multires_stitch_grids(Object *ob)
   if (sculpt_session == nullptr) {
     return;
   }
-  PBVH *pbvh = sculpt_session->pbvh;
   SubdivCCG *subdiv_ccg = sculpt_session->subdiv_ccg;
-  if (pbvh == nullptr || subdiv_ccg == nullptr) {
+  if (subdiv_ccg == nullptr) {
     return;
   }
   BLI_assert(BKE_pbvh_type(pbvh) == PBVH_GRIDS);
-  /* NOTE: Currently CCG does not keep track of faces, making it impossible
-   * to use BKE_pbvh_get_grid_updates().
-   */
-  blender::IndexMaskMemory memory;
-  blender::Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(pbvh, {});
-  const blender::IndexMask mask = BKE_pbvh_get_grid_updates(pbvh, nodes, memory);
-  if (!mask.is_empty()) {
-    BKE_subdiv_ccg_average_stitch_faces(*subdiv_ccg, mask);
-  }
+  BKE_subdiv_ccg_average_stitch_faces(*subdiv_ccg, IndexMask(subdiv_ccg->faces.size()));
 }
 
 DerivedMesh *multires_make_derived_from_derived(

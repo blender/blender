@@ -1258,7 +1258,7 @@ void update_normals(PBVH &pbvh, SubdivCCG *subdiv_ccg)
   }
   else if (pbvh.header.type == PBVH_GRIDS) {
     IndexMaskMemory memory;
-    const IndexMask faces_to_update = BKE_pbvh_get_grid_updates(&pbvh, nodes, memory);
+    const IndexMask faces_to_update = nodes_to_face_selection_grids(*subdiv_ccg, nodes, memory);
     BKE_subdiv_ccg_update_normals(*subdiv_ccg, faces_to_update);
     for (PBVHNode *node : nodes) {
       node->flag &= ~PBVH_UpdateNormals;
@@ -1586,16 +1586,17 @@ Bounds<float3> BKE_pbvh_redraw_BB(PBVH *pbvh)
   return bounds;
 }
 
-blender::IndexMask BKE_pbvh_get_grid_updates(const PBVH *pbvh,
-                                             const Span<const PBVHNode *> nodes,
-                                             blender::IndexMaskMemory &memory)
+namespace blender::bke::pbvh {
+
+IndexMask nodes_to_face_selection_grids(const SubdivCCG &subdiv_ccg,
+                                        const Span<const PBVHNode *> nodes,
+                                        IndexMaskMemory &memory)
 {
-  using namespace blender;
-  const Span<int> grid_to_face_map = pbvh->subdiv_ccg->grid_to_face_map;
+  const Span<int> grid_to_face_map = subdiv_ccg.grid_to_face_map;
   /* Using a #VectorSet for index deduplication would also work, but the performance gets much
    * worse with large selections since the loop would be single-threaded. A boolean array has an
    * overhead regardless of selection size, but that is small. */
-  Array<bool> faces_to_update(pbvh->faces_num, false);
+  Array<bool> faces_to_update(subdiv_ccg.faces.size(), false);
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (const PBVHNode *node : nodes.slice(range)) {
       for (const int grid : node->prim_indices) {
@@ -1605,6 +1606,8 @@ blender::IndexMask BKE_pbvh_get_grid_updates(const PBVH *pbvh,
   });
   return IndexMask::from_bools(faces_to_update, memory);
 }
+
+}  // namespace blender::bke::pbvh
 
 /***************************** PBVH Access ***********************************/
 
