@@ -1431,7 +1431,6 @@ static Node *bmesh_push(Object *ob, PBVHNode *node, Type type)
 {
   UndoSculpt *usculpt = get_nodes();
   SculptSession *ss = ob->sculpt;
-  PBVHVertexIter vd;
 
   Node *unode = usculpt->nodes.is_empty() ? nullptr : usculpt->nodes.first().get();
 
@@ -1465,26 +1464,29 @@ static Node *bmesh_push(Object *ob, PBVHNode *node, Type type)
   }
 
   if (node) {
+    const int cd_vert_mask_offset = CustomData_get_offset_named(
+        &ss->bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
+
     switch (type) {
       case Type::Position:
       case Type::Mask:
         /* Before any vertex values get modified, ensure their
          * original positions are logged. */
         for (BMVert *vert : BKE_pbvh_bmesh_node_unique_verts(node)) {
-          BM_log_vert_before_modified(ss->bm_log, vert, vd.cd_vert_mask_offset);
+          BM_log_vert_before_modified(ss->bm_log, vert, cd_vert_mask_offset);
         }
         for (BMVert *vert : BKE_pbvh_bmesh_node_other_verts(node)) {
-          BM_log_vert_before_modified(ss->bm_log, vert, vd.cd_vert_mask_offset);
+          BM_log_vert_before_modified(ss->bm_log, vert, cd_vert_mask_offset);
         }
         break;
 
       case Type::HideFace:
       case Type::HideVert: {
         for (BMVert *vert : BKE_pbvh_bmesh_node_unique_verts(node)) {
-          BM_log_vert_before_modified(ss->bm_log, vert, vd.cd_vert_mask_offset);
+          BM_log_vert_before_modified(ss->bm_log, vert, cd_vert_mask_offset);
         }
         for (BMVert *vert : BKE_pbvh_bmesh_node_other_verts(node)) {
-          BM_log_vert_before_modified(ss->bm_log, vert, vd.cd_vert_mask_offset);
+          BM_log_vert_before_modified(ss->bm_log, vert, cd_vert_mask_offset);
         }
 
         for (BMFace *f : BKE_pbvh_bmesh_node_faces(node)) {
