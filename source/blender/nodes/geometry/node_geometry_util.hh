@@ -94,6 +94,22 @@ class EvaluateAtIndexInput final : public bke::GeometryFieldInput {
   }
 };
 
+class EvaluateOnDomainInput final : public bke::GeometryFieldInput {
+ private:
+  GField src_field_;
+  eAttrDomain src_domain_;
+
+ public:
+  EvaluateOnDomainInput(GField field, eAttrDomain domain);
+
+  GVArray get_varray_for_context(const bke::GeometryFieldContext &context,
+                                 const IndexMask & /*mask*/) const final;
+  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override;
+
+  std::optional<eAttrDomain> preferred_domain(
+      const GeometryComponent & /*component*/) const override;
+};
+
 const CPPType &get_simulation_item_cpp_type(eNodeSocketDatatype socket_type);
 const CPPType &get_simulation_item_cpp_type(const NodeSimulationItem &item);
 
