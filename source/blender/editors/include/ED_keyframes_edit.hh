@@ -500,7 +500,12 @@ void bake_fcurve_segments(FCurve *fcu);
 void sample_fcurve_segment(
     FCurve *fcu, float start_frame, float sample_rate, float *r_samples, int sample_count);
 
-enum class BakeCurveRemove { REMOVE_NONE, REMOVE_IN_RANGE, REMOVE_OUT_RANGE, REMOVE_ALL };
+enum class BakeCurveRemove {
+  REMOVE_NONE = 0,
+  REMOVE_IN_RANGE = 1,
+  REMOVE_OUT_RANGE = 2,
+  REMOVE_ALL = 3,
+};
 /** Creates keyframes in the given range at the given step interval.
  * \param range: start and end frame to bake. Is inclusive on both ends.
  * \param remove_existing: choice which keys to remove in relation to the given range.
