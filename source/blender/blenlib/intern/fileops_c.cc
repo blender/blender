@@ -904,9 +904,11 @@ static int recursive_operation(const char *startfrom,
   struct stat st;
   char *from = nullptr, *to = nullptr;
   char *from_path = nullptr, *to_path = nullptr;
-  dirent **dirlist = nullptr;
   size_t from_alloc_len = -1, to_alloc_len = -1;
-  int i, n = 0, ret = 0;
+  int ret = 0;
+
+  dirent **dirlist = nullptr;
+  int dirlist_num = 0;
 
   do { /* once */
     /* ensure there's no trailing slash in file path */
@@ -935,8 +937,8 @@ static int recursive_operation(const char *startfrom,
       break;
     }
 
-    n = scandir(startfrom, &dirlist, nullptr, alphasort);
-    if (n < 0) {
+    dirlist_num = scandir(startfrom, &dirlist, nullptr, alphasort);
+    if (dirlist_num < 0) {
       /* error opening directory for listing */
       perror("scandir");
       ret = -1;
@@ -957,7 +959,7 @@ static int recursive_operation(const char *startfrom,
       }
     }
 
-    for (i = 0; i < n; i++) {
+    for (int i = 0; i < dirlist_num; i++) {
       const dirent *const dirent = dirlist[i];
 
       if (FILENAME_IS_CURRPAR(dirent->d_name)) {
@@ -1010,7 +1012,7 @@ static int recursive_operation(const char *startfrom,
   } while (false);
 
   if (dirlist != nullptr) {
-    for (i = 0; i < n; i++) {
+    for (int i = 0; i < dirlist_num; i++) {
       free(dirlist[i]);
     }
     free(dirlist);
