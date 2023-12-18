@@ -48,7 +48,7 @@ class DoubleEdgeMaskOperation : public NodeOperation {
                                             ReadBufferOperation *read_operation,
                                             rcti *output) override;
 
-  void set_adjecent_only(bool adjacent_only)
+  void set_adjacent_only(bool adjacent_only)
   {
     adjacent_only_ = adjacent_only;
   }

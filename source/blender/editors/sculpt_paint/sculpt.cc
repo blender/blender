@@ -734,7 +734,7 @@ static void sculpt_vertex_neighbors_get_faces(SculptSession *ss,
       continue;
     }
     const blender::IndexRange face = ss->faces[face_i];
-    const blender::int2 f_adj_v = blender::bke::mesh::face_find_adjecent_verts(
+    const blender::int2 f_adj_v = blender::bke::mesh::face_find_adjacent_verts(
         face, ss->corner_verts, vertex.i);
     for (int j = 0; j < 2; j++) {
       if (f_adj_v[j] != vertex.i) {

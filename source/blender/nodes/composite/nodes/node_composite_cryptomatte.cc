@@ -456,7 +456,7 @@ class CryptoMatteOperation : public NodeOperation {
     return output_matte;
   }
 
-  /* Computes the output image result by premultiplying the matte to the image. */
+  /* Computes the output image result by pre-multiplying the matte to the image. */
   void compute_image(Result &matte)
   {
     GPUShader *shader = context().get_shader("compositor_cryptomatte_image");

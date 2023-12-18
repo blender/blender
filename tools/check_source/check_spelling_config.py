@@ -392,6 +392,7 @@ dict_custom = {
     "triangulator",
     "trilinear",
     "tunable",
+    "uber",
     "unadjusted",
     "unalignable",
     "unallocated",

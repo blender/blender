@@ -100,7 +100,7 @@ void SubdivModifierDisabler::disable_modifiers()
     }
 
     /* This might disable more modifiers than necessary, as it doesn't take restrictions like
-     * "export selected objects only" into account. However, with the subdivs disabled,
+     * "export selected objects only" into account. However, with the subdivisions disabled,
      * moving to a different frame is also going to be faster, so in the end this is probably
      * a good thing to do. */
     disable_modifier(mod);

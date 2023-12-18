@@ -44,7 +44,7 @@ static void shortest_paths(const Mesh &mesh,
     queue.emplace(0.0f, start_vert_i);
   });
 
-  /* Though it uses more memory, calculating the adjecent vertex
+  /* Though it uses more memory, calculating the adjacent vertex
    * across each edge beforehand is noticeably faster. */
   Array<int> other_vertex(vert_to_edge.data.size());
   threading::parallel_for(vert_to_edge.index_range(), 2048, [&](const IndexRange range) {

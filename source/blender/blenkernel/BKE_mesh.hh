@@ -270,7 +270,7 @@ inline int face_find_corner_from_vert(const IndexRange face,
  * Return the vertex indices on either side of the given vertex, ordered based on the winding
  * direction of the face. The vertex must be in the face.
  */
-inline int2 face_find_adjecent_verts(const IndexRange face,
+inline int2 face_find_adjacent_verts(const IndexRange face,
                                      const Span<int> corner_verts,
                                      const int vert)
 {

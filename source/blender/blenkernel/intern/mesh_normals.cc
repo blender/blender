@@ -180,7 +180,7 @@ void normals_calc_verts(const Span<float3> vert_positions,
 
       float3 vert_normal(0);
       for (const int face : vert_faces) {
-        const int2 adjacent_verts = face_find_adjecent_verts(faces[face], corner_verts, vert);
+        const int2 adjacent_verts = face_find_adjacent_verts(faces[face], corner_verts, vert);
         const float3 dir_prev = math::normalize(positions[adjacent_verts[0]] - positions[vert]);
         const float3 dir_next = math::normalize(positions[adjacent_verts[1]] - positions[vert]);
         const float factor = math::safe_acos_approx(math::dot(dir_prev, dir_next));
