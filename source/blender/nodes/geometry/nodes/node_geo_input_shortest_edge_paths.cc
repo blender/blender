@@ -44,6 +44,18 @@ static void shortest_paths(const Mesh &mesh,
     queue.emplace(0.0f, start_vert_i);
   });
 
+  /* Though it uses more memory, calculating the adjecent vertex
+   * across each edge beforehand is noticeably faster. */
+  Array<int> other_vertex(vert_to_edge.data.size());
+  threading::parallel_for(vert_to_edge.index_range(), 2048, [&](const IndexRange range) {
+    for (const int vert_i : range) {
+      for (const int edge_i : vert_to_edge.offsets[vert_i]) {
+        other_vertex[edge_i] = bke::mesh::edge_other_vert(edges[vert_to_edge.data[edge_i]],
+                                                          vert_i);
+      }
+    }
+  });
+
   while (!queue.empty()) {
     const float cost_i = queue.top().first;
     const int vert_i = queue.top().second;
@@ -52,9 +64,9 @@ static void shortest_paths(const Mesh &mesh,
       continue;
     }
     visited[vert_i] = true;
-    for (const int edge_i : vert_to_edge[vert_i]) {
-      const int2 &edge = edges[edge_i];
-      const int neighbor_vert_i = bke::mesh::edge_other_vert(edge, vert_i);
+    for (const int index : vert_to_edge.offsets[vert_i]) {
+      const int edge_i = vert_to_edge.data[index];
+      const int neighbor_vert_i = other_vertex[index];
       if (visited[neighbor_vert_i]) {
         continue;
       }
