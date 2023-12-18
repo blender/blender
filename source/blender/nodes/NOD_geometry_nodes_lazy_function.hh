@@ -108,7 +108,14 @@ struct ReadInterpolated {
   bke::bake::BakeStateRef next_state;
 };
 
-using Behavior = std::variant<PassThrough, StoreNewState, ReadSingle, ReadInterpolated>;
+/**
+ * Used when there was some issue loading the baked data from disk.
+ */
+struct ReadError {
+  std::string message;
+};
+
+using Behavior = std::variant<PassThrough, StoreNewState, ReadSingle, ReadInterpolated, ReadError>;
 
 }  // namespace sim_output
 
@@ -126,6 +133,14 @@ class GeoNodesSimulationParams {
    * pointer should be returned in each call.
    */
   virtual SimulationZoneBehavior *get(const int zone_id) const = 0;
+};
+
+/** The set of possible behaviors are the same for both of these nodes currently. */
+using BakeNodeBehavior = sim_output::Behavior;
+
+class GeoNodesBakeParams {
+ public:
+  virtual BakeNodeBehavior *get(const int id) const = 0;
 };
 
 struct GeoNodesSideEffectNodes {
@@ -170,6 +185,10 @@ struct GeoNodesCallData {
    * Optional injected behavior for simulations.
    */
   GeoNodesSimulationParams *simulation_params = nullptr;
+  /**
+   * Optional injected behavior for bake nodes.
+   */
+  GeoNodesBakeParams *bake_params = nullptr;
   /**
    * Some nodes should be executed even when their output is not used (e.g. active viewer nodes and
    * the node groups they are contained in).
@@ -378,6 +397,8 @@ std::unique_ptr<LazyFunction> get_simulation_input_lazy_function(
     GeometryNodesLazyFunctionGraphInfo &own_lf_graph_info);
 std::unique_ptr<LazyFunction> get_switch_node_lazy_function(const bNode &node);
 std::unique_ptr<LazyFunction> get_index_switch_node_lazy_function(const bNode &node);
+std::unique_ptr<LazyFunction> get_bake_lazy_function(
+    const bNode &node, GeometryNodesLazyFunctionGraphInfo &own_lf_graph_info);
 
 /**
  * Outputs the default value of each output socket that has not been output yet. This needs the

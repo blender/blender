@@ -720,25 +720,24 @@ static void timeline_cache_draw_single(PTCacheID *pid, float y_offset, float hei
   GPU_matrix_pop();
 }
 
-struct SimulationRange {
+struct CacheRange {
   blender::IndexRange frames;
   blender::bke::bake::CacheStatus status;
 };
 
-static void timeline_cache_draw_simulation_nodes(
-    const blender::Span<SimulationRange> simulation_ranges,
-    const bool all_simulations_baked,
-    float *y_offset,
-    const float line_height,
-    const uint pos_id)
+static void timeline_cache_draw_geometry_nodes(const blender::Span<CacheRange> cache_ranges,
+                                               const bool all_simulations_baked,
+                                               float *y_offset,
+                                               const float line_height,
+                                               const uint pos_id)
 {
-  if (simulation_ranges.is_empty()) {
+  if (cache_ranges.is_empty()) {
     return;
   }
 
   bool has_bake = false;
 
-  for (const SimulationRange &sim_range : simulation_ranges) {
+  for (const CacheRange &sim_range : cache_ranges) {
     switch (sim_range.status) {
       case blender::bke::bake::CacheStatus::Invalid:
       case blender::bke::bake::CacheStatus::Valid:
@@ -750,7 +749,7 @@ static void timeline_cache_draw_simulation_nodes(
   }
 
   blender::Set<int> status_change_frames_set;
-  for (const SimulationRange &sim_range : simulation_ranges) {
+  for (const CacheRange &sim_range : cache_ranges) {
     status_change_frames_set.add(sim_range.frames.first());
     status_change_frames_set.add(sim_range.frames.one_after_last());
   }
@@ -781,7 +780,7 @@ static void timeline_cache_draw_simulation_nodes(
     bool has_bake_at_frame = false;
     bool has_valid_at_frame = false;
     bool has_invalid_at_frame = false;
-    for (const SimulationRange &sim_range : simulation_ranges) {
+    for (const CacheRange &sim_range : cache_ranges) {
       if (sim_range.frames.contains(start_frame)) {
         switch (sim_range.status) {
           case blender::bke::bake::CacheStatus::Invalid:
@@ -867,7 +866,7 @@ void timeline_draw_cache(const SpaceAction *saction, const Object *ob, const Sce
     y_offset += cache_draw_height;
   }
   if (saction->cache_display & TIME_CACHE_SIMULATION_NODES) {
-    blender::Vector<SimulationRange> simulation_ranges;
+    blender::Vector<CacheRange> cache_ranges;
     bool all_simulations_baked = true;
     LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
       if (md->type != eModifierType_Nodes) {
@@ -880,32 +879,43 @@ void timeline_draw_cache(const SpaceAction *saction, const Object *ob, const Sce
       if (!nmd->runtime->cache) {
         continue;
       }
-      if ((nmd->node_group->runtime->runtime_flag & NTREE_RUNTIME_FLAG_HAS_SIMULATION_ZONE) == 0) {
+      if (nmd->node_group->nested_node_refs_num == 0) {
+        /* Skip when there are no bake nodes or simulations. */
         continue;
       }
       const blender::bke::bake::ModifierCache &modifier_cache = *nmd->runtime->cache;
       {
         std::lock_guard lock{modifier_cache.mutex};
-        for (const std::unique_ptr<blender::bke::bake::SimulationNodeCache> &node_cache_ptr :
-             modifier_cache.simulation_cache_by_id.values())
-        {
-          const blender::bke::bake::SimulationNodeCache &node_cache = *node_cache_ptr;
-          if (node_cache.frame_caches.is_empty()) {
+        for (const auto item : modifier_cache.simulation_cache_by_id.items()) {
+          const blender::bke::bake::SimulationNodeCache &node_cache = *item.value;
+          if (node_cache.bake.frames.is_empty()) {
             all_simulations_baked = false;
             continue;
           }
           if (node_cache.cache_status != blender::bke::bake::CacheStatus::Baked) {
             all_simulations_baked = false;
           }
-          const int start_frame = node_cache.frame_caches.first()->frame.frame();
-          const int end_frame = node_cache.frame_caches.last()->frame.frame();
-          const blender::IndexRange frame_range{start_frame, end_frame - start_frame + 1};
-          simulation_ranges.append({frame_range, node_cache.cache_status});
+          cache_ranges.append({node_cache.bake.frame_range(), node_cache.cache_status});
+        }
+        for (const auto item : modifier_cache.bake_cache_by_id.items()) {
+          const NodesModifierBake *bake = nmd->find_bake(item.key);
+          if (!bake) {
+            continue;
+          }
+          if (bake->bake_mode == NODES_MODIFIER_BAKE_MODE_STILL) {
+            continue;
+          }
+          const blender::bke::bake::BakeNodeCache &node_cache = *item.value;
+          if (node_cache.bake.frames.is_empty()) {
+            continue;
+          }
+          cache_ranges.append(
+              {node_cache.bake.frame_range(), blender::bke::bake::CacheStatus::Baked});
         }
       }
     }
-    timeline_cache_draw_simulation_nodes(
-        simulation_ranges, all_simulations_baked, &y_offset, cache_draw_height, pos_id);
+    timeline_cache_draw_geometry_nodes(
+        cache_ranges, all_simulations_baked, &y_offset, cache_draw_height, pos_id);
   }
 
   GPU_blend(GPU_BLEND_NONE);

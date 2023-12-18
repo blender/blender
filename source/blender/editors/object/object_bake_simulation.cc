@@ -45,6 +45,8 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 
+#include "BLT_translation.h"
+
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
@@ -212,41 +214,53 @@ static bool bake_simulation_poll(bContext *C)
   Main *bmain = CTX_data_main(C);
   const StringRefNull path = BKE_main_blendfile_path(bmain);
   if (path.is_empty()) {
-    CTX_wm_operator_poll_msg_set(C, "File has to be saved");
+    CTX_wm_operator_poll_msg_set(C, "File must be saved before baking");
     return false;
   }
   return true;
 }
 
-struct NodeBakeData {
-  int id;
+struct NodeBakeRequest {
+  Object *object;
+  NodesModifierData *nmd;
+  int bake_id;
+  int node_type;
+
   bake::BakePath path;
   int frame_start;
   int frame_end;
   std::unique_ptr<bake::BlobSharing> blob_sharing;
 };
 
-struct ModifierBakeData {
-  NodesModifierData *nmd;
-  Vector<NodeBakeData> nodes;
-};
-
-struct ObjectBakeData {
-  Object *object;
-  Vector<ModifierBakeData> modifiers;
-};
-
-struct BakeSimulationJob {
+struct BakeGeometryNodesJob {
   wmWindowManager *wm;
   Main *bmain;
   Depsgraph *depsgraph;
   Scene *scene;
-  Vector<ObjectBakeData> objects;
+  Vector<NodeBakeRequest> bake_requests;
 };
 
-static void bake_simulation_job_startjob(void *customdata, wmJobWorkerStatus *worker_status)
+static void request_bakes_in_modifier_cache(BakeGeometryNodesJob &job)
 {
-  BakeSimulationJob &job = *static_cast<BakeSimulationJob *>(customdata);
+  for (NodeBakeRequest &request : job.bake_requests) {
+    request.nmd->runtime->cache->requested_bakes.add(request.bake_id);
+    /* Using #DEG_id_tag_update would tag this as user-modified which is not the case here and has
+     * the issue that it invalidates simulation caches. */
+    DEG_id_tag_update_for_side_effect_request(
+        job.depsgraph, &request.object->id, ID_RECALC_GEOMETRY);
+  }
+}
+
+static void clear_requested_bakes_in_modifier_cache(BakeGeometryNodesJob &job)
+{
+  for (NodeBakeRequest &request : job.bake_requests) {
+    request.nmd->runtime->cache->requested_bakes.clear();
+  }
+}
+
+static void bake_geometry_nodes_startjob(void *customdata, wmJobWorkerStatus *worker_status)
+{
+  BakeGeometryNodesJob &job = *static_cast<BakeGeometryNodesJob *>(customdata);
   G.is_rendering = true;
   G.is_break = false;
   WM_set_locked_interface(job.wm, true);
@@ -254,13 +268,9 @@ static void bake_simulation_job_startjob(void *customdata, wmJobWorkerStatus *wo
   int global_bake_start_frame = INT32_MAX;
   int global_bake_end_frame = INT32_MIN;
 
-  for (ObjectBakeData &object_bake : job.objects) {
-    for (ModifierBakeData &modifier_bake : object_bake.modifiers) {
-      for (NodeBakeData &node_bake : modifier_bake.nodes) {
-        global_bake_start_frame = std::min(global_bake_start_frame, node_bake.frame_start);
-        global_bake_end_frame = std::max(global_bake_end_frame, node_bake.frame_end);
-      }
-    }
+  for (NodeBakeRequest &request : job.bake_requests) {
+    global_bake_start_frame = std::min(global_bake_start_frame, request.frame_start);
+    global_bake_end_frame = std::max(global_bake_end_frame, request.frame_end);
   }
 
   worker_status->progress = 0.0f;
@@ -284,71 +294,67 @@ static void bake_simulation_job_startjob(void *customdata, wmJobWorkerStatus *wo
     job.scene->r.cfra = frame.frame();
     job.scene->r.subframe = frame.subframe();
 
+    request_bakes_in_modifier_cache(job);
+
     BKE_scene_graph_update_for_newframe(job.depsgraph);
+
+    clear_requested_bakes_in_modifier_cache(job);
 
     const std::string frame_file_name = bake::frame_to_file_name(frame);
 
-    for (ObjectBakeData &object_bake_data : job.objects) {
-      for (ModifierBakeData &modifier_bake_data : object_bake_data.modifiers) {
-        NodesModifierData &nmd = *modifier_bake_data.nmd;
-        const bake::ModifierCache &modifier_cache = *nmd.runtime->cache;
-        for (NodeBakeData &node_bake_data : modifier_bake_data.nodes) {
-          if (!modifier_cache.simulation_cache_by_id.contains(node_bake_data.id)) {
-            continue;
-          }
-          const bake::SimulationNodeCache &node_cache =
-              *modifier_cache.simulation_cache_by_id.lookup(node_bake_data.id);
-          if (node_cache.frame_caches.is_empty()) {
-            continue;
-          }
-          const bake::FrameCache &frame_cache = *node_cache.frame_caches.last();
-          if (frame_cache.frame != frame) {
-            continue;
-          }
-
-          const bake::BakePath path = node_bake_data.path;
-
-          const std::string blob_file_name = frame_file_name + ".blob";
-
-          char blob_path[FILE_MAX];
-          BLI_path_join(
-              blob_path, sizeof(blob_path), path.blobs_dir.c_str(), blob_file_name.c_str());
-          char meta_path[FILE_MAX];
-          BLI_path_join(meta_path,
-                        sizeof(meta_path),
-                        path.meta_dir.c_str(),
-                        (frame_file_name + ".json").c_str());
-          BLI_file_ensure_parent_dir_exists(meta_path);
-          BLI_file_ensure_parent_dir_exists(blob_path);
-          fstream blob_file{blob_path, std::ios::out | std::ios::binary};
-          bake::DiskBlobWriter blob_writer{blob_file_name, blob_file, 0};
-          fstream meta_file{meta_path, std::ios::out};
-          bake::serialize_bake(
-              frame_cache.state, blob_writer, *node_bake_data.blob_sharing, meta_file);
-        }
+    for (NodeBakeRequest &request : job.bake_requests) {
+      NodesModifierData &nmd = *request.nmd;
+      bake::ModifierCache &modifier_cache = *nmd.runtime->cache;
+      const bake::NodeBakeCache *bake_cache = modifier_cache.get_node_bake_cache(request.bake_id);
+      if (bake_cache == nullptr) {
+        continue;
       }
+      if (bake_cache->frames.is_empty()) {
+        continue;
+      }
+      const bake::FrameCache &frame_cache = *bake_cache->frames.last();
+      if (frame_cache.frame != frame) {
+        continue;
+      }
+
+      const bake::BakePath path = request.path;
+
+      const std::string blob_file_name = frame_file_name + ".blob";
+
+      char blob_path[FILE_MAX];
+      BLI_path_join(blob_path, sizeof(blob_path), path.blobs_dir.c_str(), blob_file_name.c_str());
+      char meta_path[FILE_MAX];
+      BLI_path_join(meta_path,
+                    sizeof(meta_path),
+                    path.meta_dir.c_str(),
+                    (frame_file_name + ".json").c_str());
+      BLI_file_ensure_parent_dir_exists(meta_path);
+      BLI_file_ensure_parent_dir_exists(blob_path);
+      fstream blob_file{blob_path, std::ios::out | std::ios::binary};
+      bake::DiskBlobWriter blob_writer{blob_file_name, blob_file, 0};
+      fstream meta_file{meta_path, std::ios::out};
+      bake::serialize_bake(frame_cache.state, blob_writer, *request.blob_sharing, meta_file);
     }
 
     worker_status->progress += progress_per_frame;
     worker_status->do_update = true;
   }
 
-  for (ObjectBakeData &object_bake_data : job.objects) {
-    for (ModifierBakeData &modifier_bake_data : object_bake_data.modifiers) {
-      NodesModifierData &nmd = *modifier_bake_data.nmd;
-      for (NodeBakeData &node_bake_data : modifier_bake_data.nodes) {
-        if (std::unique_ptr<bake::SimulationNodeCache> *node_cache_ptr =
-                nmd.runtime->cache->simulation_cache_by_id.lookup_ptr(node_bake_data.id))
-        {
-          bake::SimulationNodeCache &node_cache = **node_cache_ptr;
-          if (!node_cache.frame_caches.is_empty()) {
-            /* Tag the caches as being baked so that they are not changed anymore. */
-            node_cache.cache_status = bake::CacheStatus::Baked;
-          }
-        }
+  /* Tag simulations as being baked. */
+  for (NodeBakeRequest &request : job.bake_requests) {
+    if (request.node_type != GEO_NODE_SIMULATION_OUTPUT) {
+      continue;
+    }
+    NodesModifierData &nmd = *request.nmd;
+    if (bake::SimulationNodeCache *node_cache = nmd.runtime->cache->get_simulation_node_cache(
+            request.bake_id))
+    {
+      if (!node_cache->bake.frames.is_empty()) {
+        /* Tag the caches as being baked so that they are not changed anymore. */
+        node_cache->cache_status = bake::CacheStatus::Baked;
       }
     }
-    DEG_id_tag_update(&object_bake_data.object->id, ID_RECALC_GEOMETRY);
+    DEG_id_tag_update(&request.object->id, ID_RECALC_GEOMETRY);
   }
 
   job.scene->r.cfra = old_frame;
@@ -358,55 +364,81 @@ static void bake_simulation_job_startjob(void *customdata, wmJobWorkerStatus *wo
   worker_status->do_update = true;
 }
 
-static void bake_simulation_job_endjob(void *customdata)
+static void bake_geometry_nodes_endjob(void *customdata)
 {
-  BakeSimulationJob &job = *static_cast<BakeSimulationJob *>(customdata);
+  BakeGeometryNodesJob &job = *static_cast<BakeGeometryNodesJob *>(customdata);
   WM_set_locked_interface(job.wm, false);
   G.is_rendering = false;
   WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, nullptr);
 }
 
-static int start_bake_job(bContext *C, Vector<ObjectBakeData> objects_to_bake, wmOperator *op)
+static void reset_old_bake(NodeBakeRequest &request)
 {
-  BakeSimulationJob *job = MEM_new<BakeSimulationJob>(__func__);
+  switch (request.node_type) {
+    case GEO_NODE_SIMULATION_OUTPUT: {
+      if (bake::SimulationNodeCache *node_cache =
+              request.nmd->runtime->cache->get_simulation_node_cache(request.bake_id))
+      {
+        node_cache->reset();
+      }
+      break;
+    }
+    case GEO_NODE_BAKE: {
+      if (bake::BakeNodeCache *node_cache = request.nmd->runtime->cache->get_bake_node_cache(
+              request.bake_id))
+      {
+        node_cache->reset();
+      }
+      break;
+    }
+  }
+}
+
+static int start_bake_job(bContext *C, Vector<NodeBakeRequest> requests, wmOperator *op)
+{
+  for (NodeBakeRequest &request : requests) {
+    reset_old_bake(request);
+  }
+
+  BakeGeometryNodesJob *job = MEM_new<BakeGeometryNodesJob>(__func__);
   job->wm = CTX_wm_manager(C);
   job->bmain = CTX_data_main(C);
   job->depsgraph = CTX_data_depsgraph_pointer(C);
   job->scene = CTX_data_scene(C);
-  job->objects = std::move(objects_to_bake);
+  job->bake_requests = std::move(requests);
 
   wmJob *wm_job = WM_jobs_get(job->wm,
                               CTX_wm_window(C),
                               job->scene,
-                              "Bake Simulation Nodes",
+                              "Bake Nodes",
                               WM_JOB_PROGRESS,
-                              WM_JOB_TYPE_BAKE_SIMULATION_NODES);
+                              WM_JOB_TYPE_BAKE_GEOMETRY_NODES);
 
   WM_jobs_customdata_set(
-      wm_job, job, [](void *job) { MEM_delete(static_cast<BakeSimulationJob *>(job)); });
+      wm_job, job, [](void *job) { MEM_delete(static_cast<BakeGeometryNodesJob *>(job)); });
   WM_jobs_timer(wm_job, 0.1, NC_OBJECT | ND_MODIFIER, NC_OBJECT | ND_MODIFIER);
   WM_jobs_callbacks(
-      wm_job, bake_simulation_job_startjob, nullptr, nullptr, bake_simulation_job_endjob);
+      wm_job, bake_geometry_nodes_startjob, nullptr, nullptr, bake_geometry_nodes_endjob);
 
   WM_jobs_start(CTX_wm_manager(C), wm_job);
   WM_event_add_modal_handler(C, op);
   return OPERATOR_RUNNING_MODAL;
 }
 
-static Vector<ObjectBakeData> collect_nodes_to_bake(Main &bmain,
-                                                    Scene &scene,
-                                                    const Span<Object *> objects)
+static Vector<NodeBakeRequest> collect_simulations_to_bake(Main &bmain,
+                                                           Scene &scene,
+                                                           const Span<Object *> objects)
 {
-  Vector<ObjectBakeData> objects_to_bake;
+  Vector<NodeBakeRequest> requests;
   for (Object *object : objects) {
     if (!BKE_id_is_editable(&bmain, &object->id)) {
       continue;
     }
-
-    ObjectBakeData bake_data;
-    bake_data.object = object;
     LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
       if (md->type != eModifierType_Nodes) {
+        continue;
+      }
+      if (!BKE_modifier_is_enabled(&scene, md, eModifierMode_Realtime)) {
         continue;
       }
       NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
@@ -416,44 +448,36 @@ static Vector<ObjectBakeData> collect_nodes_to_bake(Main &bmain,
       if (!nmd->runtime->cache) {
         continue;
       }
-      ModifierBakeData modifier_bake_data;
-      modifier_bake_data.nmd = nmd;
-
-      for (auto item : nmd->runtime->cache->simulation_cache_by_id.items()) {
-        item.value->reset();
-      }
-
       for (const bNestedNodeRef &nested_node_ref : nmd->node_group->nested_node_refs_span()) {
-        NodeBakeData node_bake_data;
-        node_bake_data.id = nested_node_ref.id;
-        node_bake_data.blob_sharing = std::make_unique<bake::BlobSharing>();
-        std::optional<bake::BakePath> path = bake::get_node_bake_path(
-            bmain, *object, *nmd, nested_node_ref.id);
+        const int id = nested_node_ref.id;
+        const bNode *node = nmd->node_group->find_nested_node(id);
+        if (node->type != GEO_NODE_SIMULATION_OUTPUT) {
+          continue;
+        }
+        NodeBakeRequest request;
+        request.object = object;
+        request.nmd = nmd;
+        request.bake_id = id;
+        request.node_type = node->type;
+        request.blob_sharing = std::make_unique<bake::BlobSharing>();
+        std::optional<bake::BakePath> path = bake::get_node_bake_path(bmain, *object, *nmd, id);
         if (!path) {
           continue;
         }
         std::optional<IndexRange> frame_range = bake::get_node_bake_frame_range(
-            scene, *object, *nmd, nested_node_ref.id);
+            scene, *object, *nmd, id);
         if (!frame_range) {
           continue;
         }
-        node_bake_data.path = std::move(*path);
-        node_bake_data.frame_start = frame_range->first();
-        node_bake_data.frame_end = frame_range->last();
+        request.path = std::move(*path);
+        request.frame_start = frame_range->first();
+        request.frame_end = frame_range->last();
 
-        modifier_bake_data.nodes.append(std::move(node_bake_data));
+        requests.append(std::move(request));
       }
-      if (modifier_bake_data.nodes.is_empty()) {
-        continue;
-      }
-      bake_data.modifiers.append(std::move(modifier_bake_data));
     }
-    if (bake_data.modifiers.is_empty()) {
-      continue;
-    }
-    objects_to_bake.append(std::move(bake_data));
   }
-  return objects_to_bake;
+  return requests;
 }
 
 static int bake_simulation_exec(bContext *C, wmOperator *op)
@@ -474,8 +498,8 @@ static int bake_simulation_exec(bContext *C, wmOperator *op)
     }
   }
 
-  Vector<ObjectBakeData> objects_to_bake = collect_nodes_to_bake(*bmain, *scene, objects);
-  return start_bake_job(C, std::move(objects_to_bake), op);
+  Vector<NodeBakeRequest> requests = collect_simulations_to_bake(*bmain, *scene, objects);
+  return start_bake_job(C, std::move(requests), op);
 }
 
 struct PathStringHash {
@@ -534,14 +558,14 @@ static void bake_simulation_validate_paths(bContext *C,
       }
 
       NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
-      if (StringRef(nmd->simulation_bake_directory).is_empty()) {
+      if (StringRef(nmd->bake_directory).is_empty()) {
         BKE_reportf(op->reports,
                     RPT_INFO,
                     "Bake directory of object %s, modifier %s is empty, setting default path",
                     object->id.name + 2,
                     md->name);
 
-        nmd->simulation_bake_directory = BLI_strdup(
+        nmd->bake_directory = BLI_strdup(
             bake::get_default_modifier_bake_directory(*bmain, *object, *nmd).c_str());
       }
     }
@@ -569,12 +593,12 @@ static PathUsersMap bake_simulation_get_path_users(bContext *C, const Span<Objec
         continue;
       }
       const NodesModifierData *nmd = reinterpret_cast<const NodesModifierData *>(md);
-      if (StringRef(nmd->simulation_bake_directory).is_empty()) {
+      if (StringRef(nmd->bake_directory).is_empty()) {
         continue;
       }
 
       char absolute_bake_dir[FILE_MAX];
-      STRNCPY(absolute_bake_dir, nmd->simulation_bake_directory);
+      STRNCPY(absolute_bake_dir, nmd->bake_directory);
       BLI_path_abs(absolute_bake_dir, base_path);
       path_users.add_or_modify(
           absolute_bake_dir, [](int *value) { *value = 1; }, [](int *value) { ++(*value); });
@@ -634,7 +658,7 @@ static int bake_simulation_invoke(bContext *C, wmOperator *op, const wmEvent * /
 
 static int bake_simulation_modal(bContext *C, wmOperator * /*op*/, const wmEvent * /*event*/)
 {
-  if (!WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C), WM_JOB_TYPE_BAKE_SIMULATION_NODES)) {
+  if (!WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C), WM_JOB_TYPE_BAKE_GEOMETRY_NODES)) {
     return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
   }
   return OPERATOR_PASS_THROUGH;
@@ -649,11 +673,12 @@ static void try_delete_bake(
   }
   bake::ModifierCache &modifier_cache = *nmd.runtime->cache;
   std::lock_guard lock{modifier_cache.mutex};
-  if (!modifier_cache.simulation_cache_by_id.contains(bake_id)) {
-    return;
+  if (auto *node_cache = modifier_cache.simulation_cache_by_id.lookup_ptr(bake_id)) {
+    (*node_cache)->reset();
   }
-  bake::SimulationNodeCache &node_cache = *modifier_cache.simulation_cache_by_id.lookup(bake_id);
-  node_cache.reset();
+  else if (auto *node_cache = modifier_cache.bake_cache_by_id.lookup_ptr(bake_id)) {
+    (*node_cache)->reset();
+  }
   const std::optional<bake::BakePath> bake_path = bake::get_node_bake_path(
       *bmain, object, nmd, bake_id);
   if (!bake_path) {
@@ -721,7 +746,7 @@ static int delete_baked_simulation_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int bake_single_simulation_exec(bContext *C, wmOperator *op)
+static int bake_single_node_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
@@ -741,58 +766,82 @@ static int bake_single_simulation_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
   NodesModifierData &nmd = *reinterpret_cast<NodesModifierData *>(md);
+  if (nmd.node_group == nullptr) {
+    return OPERATOR_CANCELLED;
+  }
+  if (!BKE_modifier_is_enabled(scene, md, eModifierMode_Realtime)) {
+    BKE_report(op->reports, RPT_ERROR, "Modifier containing the node is disabled");
+    return OPERATOR_CANCELLED;
+  }
 
-  if (StringRef(nmd.simulation_bake_directory).is_empty()) {
+  if (StringRef(nmd.bake_directory).is_empty()) {
     const std::string directory = bake::get_default_modifier_bake_directory(*bmain, *object, nmd);
-    nmd.simulation_bake_directory = BLI_strdup(directory.c_str());
+    nmd.bake_directory = BLI_strdup(directory.c_str());
   }
 
   const int bake_id = RNA_int_get(op->ptr, "bake_id");
+  const bNode *node = nmd.node_group->find_nested_node(bake_id);
+  if (node == nullptr) {
+    return OPERATOR_CANCELLED;
+  }
+  if (!ELEM(node->type, GEO_NODE_SIMULATION_OUTPUT, GEO_NODE_BAKE)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  NodeBakeRequest request;
+  request.object = object;
+  request.nmd = &nmd;
+  request.bake_id = bake_id;
+  request.node_type = node->type;
+  request.blob_sharing = std::make_unique<bake::BlobSharing>();
+
+  const NodesModifierBake *bake = nmd.find_bake(bake_id);
+  if (!bake) {
+    return OPERATOR_CANCELLED;
+  }
   const std::optional<bake::BakePath> bake_path = bake::get_node_bake_path(
       *bmain, *object, nmd, bake_id);
   if (!bake_path.has_value()) {
+    BKE_report(op->reports, RPT_ERROR, "Can not determine bake location on disk");
     return OPERATOR_CANCELLED;
   }
-  const std::optional<IndexRange> frame_range = bake::get_node_bake_frame_range(
-      *scene, *object, nmd, bake_id);
-  if (!frame_range.has_value()) {
-    return OPERATOR_CANCELLED;
+  request.path = std::move(*bake_path);
+
+  if (bake->bake_mode == NODES_MODIFIER_BAKE_MODE_STILL) {
+    const int current_frame = scene->r.cfra;
+    request.frame_start = current_frame;
+    request.frame_end = current_frame;
+    /* Delete old bake because otherwise this wouldn't be a still frame bake. This is not done for
+     * other bakes to avoid loosing data when starting a bake. */
+    try_delete_bake(C, *object, nmd, bake_id, op->reports);
   }
-  if (frame_range->is_empty()) {
-    return OPERATOR_CANCELLED;
+  else {
+    const std::optional<IndexRange> frame_range = bake::get_node_bake_frame_range(
+        *scene, *object, nmd, bake_id);
+    if (!frame_range.has_value()) {
+      return OPERATOR_CANCELLED;
+    }
+    if (frame_range->is_empty()) {
+      return OPERATOR_CANCELLED;
+    }
+    request.frame_start = frame_range->first();
+    request.frame_end = frame_range->last();
   }
 
-  NodeBakeData node_bake_data;
-  node_bake_data.id = bake_id;
-  node_bake_data.path = std::move(*bake_path);
-  node_bake_data.frame_start = frame_range->first();
-  node_bake_data.frame_end = frame_range->last();
-  node_bake_data.blob_sharing = std::make_unique<bake::BlobSharing>();
-
-  ModifierBakeData modifier_bake_data;
-  modifier_bake_data.nmd = &nmd;
-  modifier_bake_data.nodes.append(std::move(node_bake_data));
-
-  ObjectBakeData object_bake_data;
-  object_bake_data.object = object;
-  object_bake_data.modifiers.append(std::move(modifier_bake_data));
-
-  Vector<ObjectBakeData> objects_to_bake;
-  objects_to_bake.append(std::move(object_bake_data));
-  return start_bake_job(C, std::move(objects_to_bake), op);
+  Vector<NodeBakeRequest> requests;
+  requests.append(std::move(request));
+  return start_bake_job(C, std::move(requests), op);
 }
 
-static int bake_single_simulation_modal(bContext *C,
-                                        wmOperator * /*op*/,
-                                        const wmEvent * /*event*/)
+static int bake_single_node_modal(bContext *C, wmOperator * /*op*/, const wmEvent * /*event*/)
 {
-  if (!WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C), WM_JOB_TYPE_BAKE_SIMULATION_NODES)) {
+  if (!WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C), WM_JOB_TYPE_BAKE_GEOMETRY_NODES)) {
     return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
   }
   return OPERATOR_PASS_THROUGH;
 }
 
-static int delete_baked_simulation_single_exec(bContext *C, wmOperator *op)
+static int delete_single_bake_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Object *object = reinterpret_cast<Object *>(
@@ -814,7 +863,32 @@ static int delete_baked_simulation_single_exec(bContext *C, wmOperator *op)
   const int bake_id = RNA_int_get(op->ptr, "bake_id");
 
   try_delete_bake(C, *object, nmd, bake_id, op->reports);
+
+  DEG_id_tag_update(&object->id, ID_RECALC_GEOMETRY);
+  WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, nullptr);
+  WM_main_add_notifier(NC_NODE, nullptr);
   return OPERATOR_FINISHED;
+}
+
+static bool bake_poll(bContext *C)
+{
+  Main *bmain = CTX_data_main(C);
+  if (BKE_main_blendfile_path(bmain)[0] == '\0') {
+    /* Saving the .blend file is not technically necessary in all cases but only when the bake path
+     * depends on the .blend file path (which is the case by default). */
+    CTX_wm_operator_poll_msg_set(C, "File must be saved before baking");
+    return false;
+  }
+  return true;
+}
+
+static bool bake_delete_poll(bContext *C)
+{
+  Main *bmain = CTX_data_main(C);
+  if (BKE_main_blendfile_path(bmain)[0] == '\0') {
+    return false;
+  }
+  return true;
 }
 
 }  // namespace blender::ed::object::bake_simulation
@@ -869,46 +943,8 @@ void OBJECT_OT_simulation_nodes_cache_delete(wmOperatorType *ot)
   RNA_def_boolean(ot->srna, "selected", false, "Selected", "Delete cache on all selected objects");
 }
 
-void OBJECT_OT_simulation_nodes_cache_bake_single(wmOperatorType *ot)
+static void single_bake_operator_props(wmOperatorType *ot)
 {
-  using namespace blender::ed::object::bake_simulation;
-
-  ot->name = "Bake Single Simulation Zone";
-  ot->description = "Bake a single simulation zone";
-  ot->idname = "OBJECT_OT_simulation_nodes_cache_bake_single";
-
-  ot->exec = bake_single_simulation_exec;
-  ot->modal = bake_single_simulation_modal;
-
-  WM_operator_properties_id_lookup(ot, false);
-
-  RNA_def_string(ot->srna,
-                 "modifier_name",
-                 nullptr,
-                 0,
-                 "Modifier Name",
-                 "Name of the modifier that contains the node to bake");
-  RNA_def_int(ot->srna,
-              "bake_id",
-              0,
-              0,
-              INT32_MAX,
-              "Bake ID",
-              "Nested node id of the node to bake",
-              0,
-              INT32_MAX);
-}
-
-void OBJECT_OT_simulation_nodes_cache_delete_single(wmOperatorType *ot)
-{
-  using namespace blender::ed::object::bake_simulation;
-
-  ot->name = "Delete Single Cached Simulation";
-  ot->description = "Delete simulation data of a single simulation zone";
-  ot->idname = "OBJECT_OT_simulation_nodes_cache_delete_single";
-
-  ot->exec = delete_baked_simulation_single_exec;
-
   WM_operator_properties_id_lookup(ot, false);
 
   RNA_def_string(ot->srna,
@@ -917,13 +953,35 @@ void OBJECT_OT_simulation_nodes_cache_delete_single(wmOperatorType *ot)
                  0,
                  "Modifier Name",
                  "Name of the modifier that contains the node");
-  RNA_def_int(ot->srna,
-              "bake_id",
-              0,
-              0,
-              INT32_MAX,
-              "Bake ID",
-              "Nested node id of the bake to delete",
-              0,
-              INT32_MAX);
+  RNA_def_int(
+      ot->srna, "bake_id", 0, 0, INT32_MAX, "Bake ID", "Nested node id of the node", 0, INT32_MAX);
+}
+
+void OBJECT_OT_geometry_node_bake_single(wmOperatorType *ot)
+{
+  using namespace blender::ed::object::bake_simulation;
+
+  ot->name = "Bake Geometry Node";
+  ot->description = "Bake a single bake node or simulation";
+  ot->idname = "OBJECT_OT_geometry_node_bake_single";
+
+  ot->poll = bake_poll;
+  ot->exec = bake_single_node_exec;
+  ot->modal = bake_single_node_modal;
+
+  single_bake_operator_props(ot);
+}
+
+void OBJECT_OT_geometry_node_bake_delete_single(wmOperatorType *ot)
+{
+  using namespace blender::ed::object::bake_simulation;
+
+  ot->name = "Delete Geometry Node Bake";
+  ot->description = "Delete baked data of a single bake node or simulation";
+  ot->idname = "OBJECT_OT_geometry_node_bake_delete_single";
+
+  ot->poll = bake_delete_poll;
+  ot->exec = delete_single_bake_exec;
+
+  single_bake_operator_props(ot);
 }

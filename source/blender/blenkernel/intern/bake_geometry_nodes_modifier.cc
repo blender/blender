@@ -29,6 +29,52 @@ void SimulationNodeCache::reset()
   std::destroy_at(this);
   new (this) SimulationNodeCache();
 }
+
+void BakeNodeCache::reset()
+{
+  std::destroy_at(this);
+  new (this) BakeNodeCache();
+}
+
+void NodeBakeCache::reset()
+{
+  std::destroy_at(this);
+  new (this) NodeBakeCache();
+}
+
+IndexRange NodeBakeCache::frame_range() const
+{
+  if (this->frames.is_empty()) {
+    return {};
+  }
+  const int start_frame = this->frames.first()->frame.frame();
+  const int end_frame = this->frames.last()->frame.frame();
+  return {start_frame, end_frame - start_frame + 1};
+}
+
+SimulationNodeCache *ModifierCache::get_simulation_node_cache(const int id)
+{
+  std::unique_ptr<SimulationNodeCache> *ptr = this->simulation_cache_by_id.lookup_ptr(id);
+  return ptr ? (*ptr).get() : nullptr;
+}
+
+BakeNodeCache *ModifierCache::get_bake_node_cache(const int id)
+{
+  std::unique_ptr<BakeNodeCache> *ptr = this->bake_cache_by_id.lookup_ptr(id);
+  return ptr ? (*ptr).get() : nullptr;
+}
+
+NodeBakeCache *ModifierCache::get_node_bake_cache(const int id)
+{
+  if (SimulationNodeCache *cache = this->get_simulation_node_cache(id)) {
+    return &cache->bake;
+  }
+  if (BakeNodeCache *cache = this->get_bake_node_cache(id)) {
+    return &cache->bake;
+  }
+  return nullptr;
+}
+
 void scene_simulation_states_reset(Scene &scene)
 {
   FOREACH_SCENE_OBJECT_BEGIN (&scene, ob) {
@@ -56,12 +102,12 @@ std::optional<std::string> get_modifier_bake_path(const Main &bmain,
   if (bmain_path.is_empty()) {
     return std::nullopt;
   }
-  if (StringRef(nmd.simulation_bake_directory).is_empty()) {
+  if (StringRef(nmd.bake_directory).is_empty()) {
     return std::nullopt;
   }
   const char *base_path = ID_BLEND_PATH(&bmain, &object.id);
   char absolute_bake_dir[FILE_MAX];
-  STRNCPY(absolute_bake_dir, nmd.simulation_bake_directory);
+  STRNCPY(absolute_bake_dir, nmd.bake_directory);
   BLI_path_abs(absolute_bake_dir, base_path);
   return absolute_bake_dir;
 }

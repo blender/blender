@@ -451,6 +451,8 @@ const char *update_source_as_string(eUpdateSource source)
       return "RELATIONS";
     case DEG_UPDATE_SOURCE_VISIBILITY:
       return "VISIBILITY";
+    case DEG_UPDATE_SOURCE_SIDE_EFFECT_REQUEST:
+      return "SIDE_EFFECT_REQUEST";
   }
   BLI_assert_msg(0, "Should never happen.");
   return "UNKNOWN";
@@ -800,6 +802,15 @@ void DEG_id_tag_update_ex(Main *bmain, ID *id, uint flags)
     return;
   }
   deg::id_tag_update(bmain, id, flags, deg::DEG_UPDATE_SOURCE_USER_EDIT);
+}
+
+void DEG_id_tag_update_for_side_effect_request(Depsgraph *depsgraph, ID *id, unsigned int flags)
+{
+  BLI_assert(depsgraph != nullptr);
+  BLI_assert(id != nullptr);
+  deg::Depsgraph *graph = (deg::Depsgraph *)depsgraph;
+  Main *bmain = DEG_get_bmain(depsgraph);
+  deg::graph_id_tag_update(bmain, graph, id, flags, deg::DEG_UPDATE_SOURCE_SIDE_EFFECT_REQUEST);
 }
 
 void DEG_graph_id_tag_update(Main *bmain, Depsgraph *depsgraph, ID *id, uint flags)

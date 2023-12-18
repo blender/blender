@@ -1086,7 +1086,13 @@ std::optional<BakeState> deserialize_bake(std::istream &stream,
                                           const BlobSharing &blob_sharing)
 {
   JsonFormatter formatter;
-  std::unique_ptr<io::serialize::Value> io_root_value = formatter.deserialize(stream);
+  std::unique_ptr<io::serialize::Value> io_root_value;
+  try {
+    io_root_value = formatter.deserialize(stream);
+  }
+  catch (...) {
+    return std::nullopt;
+  }
   if (!io_root_value) {
     return std::nullopt;
   }

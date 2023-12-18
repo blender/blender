@@ -490,6 +490,7 @@ class NodeTreeMainUpdater {
       if (node_field_inferencing::update_field_inferencing(ntree)) {
         result.interface_changed = true;
       }
+      this->update_from_field_inference(ntree);
       if (anonymous_attribute_inferencing::update_anonymous_attribute_relations(ntree)) {
         result.interface_changed = true;
       }
@@ -657,7 +658,12 @@ class NodeTreeMainUpdater {
     const bNodeSocket *selected_socket = nullptr;
     int selected_priority = -1;
     bool selected_is_linked = false;
-    for (const bNodeSocket *input_socket : output_socket->owner_node().input_sockets()) {
+    const bNode &node = output_socket->owner_node();
+    if (node.type == GEO_NODE_BAKE) {
+      /* Internal links should always map corresponding input and output sockets. */
+      return &node.input_by_identifier(output_socket->identifier);
+    }
+    for (const bNodeSocket *input_socket : node.input_sockets()) {
       if (!input_socket->is_available()) {
         continue;
       }
@@ -774,6 +780,23 @@ class NodeTreeMainUpdater {
       /* Check if there is a simulation zone. */
       if (!ntree.nodes_by_type("GeometryNodeSimulationOutput").is_empty()) {
         ntree.runtime->runtime_flag |= NTREE_RUNTIME_FLAG_HAS_SIMULATION_ZONE;
+      }
+    }
+  }
+
+  void update_from_field_inference(bNodeTree &ntree)
+  {
+    /* Automatically tag a bake item as attribute when the input is a field. The flag should not be
+     * removed automatically even when the field input is disconnected because the baked data may
+     * still contain attribute data instead of a single value. */
+    for (bNode *node : ntree.nodes_by_type("GeometryNodeBake")) {
+      NodeGeometryBake &storage = *static_cast<NodeGeometryBake *>(node->storage);
+      for (const int i : IndexRange(storage.items_num)) {
+        const bNodeSocket &socket = node->input_socket(i);
+        NodeGeometryBakeItem &item = storage.items[i];
+        if (socket.display_shape == SOCK_DISPLAY_SHAPE_DIAMOND) {
+          item.flag |= GEO_NODE_BAKE_ITEM_IS_ATTRIBUTE;
+        }
       }
     }
   }
@@ -1145,9 +1168,12 @@ class NodeTreeMainUpdater {
       }
     }
     if (ntree.type == NTREE_GEOMETRY) {
-      /* Create references for simulations in geometry nodes. */
-      for (const bNode *node : ntree.nodes_by_type("GeometryNodeSimulationOutput")) {
-        nested_node_paths.append({node->identifier, -1});
+      /* Create references for simulations and bake nodes in geometry nodes.
+       * Those are the nodes that we want to store settings for at a higher level. */
+      for (StringRefNull idname : {"GeometryNodeSimulationOutput", "GeometryNodeBake"}) {
+        for (const bNode *node : ntree.nodes_by_type(idname)) {
+          nested_node_paths.append({node->identifier, -1});
+        }
       }
     }
     /* Propagate references to nested nodes in group nodes. */

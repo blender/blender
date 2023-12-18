@@ -798,10 +798,9 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
     {
       const bke::bake::SimulationNodeCache &node_cache = **node_cache_ptr;
       if (node_cache.cache_status == bke::bake::CacheStatus::Baked &&
-          !node_cache.frame_caches.is_empty())
-      {
-        const int first_frame = node_cache.frame_caches.first()->frame.frame();
-        const int last_frame = node_cache.frame_caches.last()->frame.frame();
+          !node_cache.bake.frames.is_empty()) {
+        const int first_frame = node_cache.bake.frames.first()->frame.frame();
+        const int last_frame = node_cache.bake.frames.last()->frame.frame();
         baked_range = IndexRange(first_frame, last_frame - first_frame + 1);
       }
     }
@@ -819,7 +818,7 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
 
       PointerRNA ptr;
       uiItemFullO(row,
-                  "OBJECT_OT_simulation_nodes_cache_bake_single",
+                  "OBJECT_OT_geometry_node_bake_single",
                   bake_label,
                   ICON_NONE,
                   nullptr,
@@ -833,7 +832,7 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
     {
       PointerRNA ptr;
       uiItemFullO(row,
-                  "OBJECT_OT_simulation_nodes_cache_delete_single",
+                  "OBJECT_OT_geometry_node_bake_delete_single",
                   "",
                   ICON_TRASH,
                   nullptr,

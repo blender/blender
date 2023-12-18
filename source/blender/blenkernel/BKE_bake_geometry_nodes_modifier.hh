@@ -49,15 +49,11 @@ struct PrevCache {
 };
 
 /**
- * Stores the cached/baked data for simulation nodes in geometry nodes.
+ * Baked data that corresponds to either a Simulation Output or Bake node.
  */
-struct SimulationNodeCache {
-  CacheStatus cache_status = CacheStatus::Valid;
-
-  /** All cached frames. */
-  Vector<std::unique_ptr<FrameCache>> frame_caches;
-  /** Previous simulation state when only that is stored (instead of the state for every frame). */
-  std::optional<PrevCache> prev_cache;
+struct NodeBakeCache {
+  /** All cached frames sorted by frame. */
+  Vector<std::unique_ptr<FrameCache>> frames;
 
   /** Where to load blobs from disk when loading the baked data lazily. */
   std::optional<std::string> blobs_dir;
@@ -66,12 +62,42 @@ struct SimulationNodeCache {
   /** Used to avoid checking if a bake exists many times. */
   bool failed_finding_bake = false;
 
+  /** Range spanning from the first to the last baked frame. */
+  IndexRange frame_range() const;
+
+  void reset();
+};
+
+struct SimulationNodeCache {
+  NodeBakeCache bake;
+
+  CacheStatus cache_status = CacheStatus::Valid;
+
+  /** Previous simulation state when only that is stored (instead of the state for every frame). */
+  std::optional<PrevCache> prev_cache;
+
+  void reset();
+};
+
+struct BakeNodeCache {
+  NodeBakeCache bake;
+
   void reset();
 };
 
 struct ModifierCache {
   mutable std::mutex mutex;
+  /**
+   * Set of nested node IDs (see #bNestedNodeRef) that is expected to be baked in the next
+   * evaluation. This is filled and cleared by the bake operator.
+   */
+  Set<int> requested_bakes;
   Map<int, std::unique_ptr<SimulationNodeCache>> simulation_cache_by_id;
+  Map<int, std::unique_ptr<BakeNodeCache>> bake_cache_by_id;
+
+  SimulationNodeCache *get_simulation_node_cache(const int id);
+  BakeNodeCache *get_bake_node_cache(const int id);
+  NodeBakeCache *get_node_bake_cache(const int id);
 };
 
 /**

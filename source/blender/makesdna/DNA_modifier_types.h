@@ -2330,6 +2330,9 @@ typedef struct NodesModifierBake {
   int id;
   /** #NodesModifierBakeFlag. */
   uint32_t flag;
+  /** #NodesModifierBakeMode. */
+  uint8_t bake_mode;
+  char _pad[7];
   /**
    * Directory where the baked data should be stored. This is only used when
    * `NODES_MODIFIER_BAKE_CUSTOM_PATH` is set.
@@ -2348,6 +2351,11 @@ typedef enum NodesModifierBakeFlag {
   NODES_MODIFIER_BAKE_CUSTOM_PATH = 1 << 1,
 } NodesModifierBakeFlag;
 
+typedef enum NodesModifierBakeMode {
+  NODES_MODIFIER_BAKE_MODE_ANIMATION = 0,
+  NODES_MODIFIER_BAKE_MODE_STILL = 1,
+} NodesModifierBakeMode;
+
 typedef struct NodesModifierData {
   ModifierData modifier;
   struct bNodeTree *node_group;
@@ -2355,7 +2363,7 @@ typedef struct NodesModifierData {
   /**
    * Directory where baked simulation states are stored. This may be relative to the .blend file.
    */
-  char *simulation_bake_directory;
+  char *bake_directory;
   /** NodesModifierFlag. */
   int8_t flag;
 

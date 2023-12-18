@@ -292,6 +292,7 @@ DefNode(FunctionNode, FN_NODE_VALUE_TO_STRING, 0, "VALUE_TO_STRING", ValueToStri
 DefNode(GeometryNode, GEO_NODE_ACCUMULATE_FIELD, 0, "ACCUMULATE_FIELD", AccumulateField, "Accumulate Field", "Add the values of an evaluated field together and output the running total for each element")
 DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_DOMAIN_SIZE, 0, "ATTRIBUTE_DOMAIN_SIZE", AttributeDomainSize, "Domain Size", "Retrieve the number of elements in a geometry for each attribute domain")
 DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_STATISTIC, 0, "ATTRIBUTE_STATISTIC",AttributeStatistic, "Attribute Statistic", "Calculate statistics about a data set from a field evaluated on a geometry")
+DefNode(GeometryNode, GEO_NODE_BAKE, rna_def_geo_bake, "BAKE", Bake, "Bake", "Cache the incoming data so that it can be used without recomputation")
 DefNode(GeometryNode, GEO_NODE_BLUR_ATTRIBUTE, 0, "BLUR_ATTRIBUTE", BlurAttribute, "Blur Attribute", "Mix attribute values of neighboring elements")
 DefNode(GeometryNode, GEO_NODE_BOUNDING_BOX, 0, "BOUNDING_BOX", BoundBox, "Bounding Box", "Calculate the limits of a geometry's positions and generate a box mesh with those dimensions")
 DefNode(GeometryNode, GEO_NODE_CAPTURE_ATTRIBUTE, 0, "CAPTURE_ATTRIBUTE", CaptureAttribute, "Capture Attribute", "Store the result of a field on a geometry and output the data as a node socket. Allows remembering or interpolating data as the geometry changes, such as positions before deformation")

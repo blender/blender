@@ -7061,6 +7061,12 @@ static void rna_def_modifier_weightednormal(BlenderRNA *brna)
 
 static void rna_def_modifier_nodes_bake(BlenderRNA *brna)
 {
+  static EnumPropertyItem bake_mode_items[] = {
+      {NODES_MODIFIER_BAKE_MODE_ANIMATION, "ANIMATION", 0, "Animation", "Bake a frame range"},
+      {NODES_MODIFIER_BAKE_MODE_STILL, "STILL", 0, "Still", "Bake a single frame"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
   StructRNA *srna;
   PropertyRNA *prop;
 
@@ -7090,6 +7096,11 @@ static void rna_def_modifier_nodes_bake(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", NODES_MODIFIER_BAKE_CUSTOM_PATH);
   RNA_def_property_ui_text(
       prop, "Custom Path", "Specify a path where the baked data should be stored manually");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "bake_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, bake_mode_items);
+  RNA_def_property_ui_text(prop, "Bake Mode", "");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
 
@@ -7125,7 +7136,7 @@ static void rna_def_modifier_nodes(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_update(prop, 0, "rna_NodesModifier_node_group_update");
 
-  prop = RNA_def_property(srna, "simulation_bake_directory", PROP_STRING, PROP_DIRPATH);
+  prop = RNA_def_property(srna, "bake_directory", PROP_STRING, PROP_DIRPATH);
   RNA_def_property_ui_text(
       prop, "Simulation Bake Directory", "Location on disk where the bake data is stored");
   RNA_def_property_update(prop, 0, nullptr);
