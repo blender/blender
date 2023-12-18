@@ -218,6 +218,9 @@ void GeoTreeLog::ensure_node_warnings()
   }
   for (const ComputeContextHash &child_hash : children_hashes_) {
     GeoTreeLog &child_log = modifier_log_->get_tree_log(child_hash);
+    if (child_log.tree_loggers_.is_empty()) {
+      continue;
+    }
     child_log.ensure_node_warnings();
     const std::optional<int32_t> &group_node_id = child_log.tree_loggers_[0]->group_node_id;
     if (group_node_id.has_value()) {
@@ -242,6 +245,9 @@ void GeoTreeLog::ensure_node_run_time()
   }
   for (const ComputeContextHash &child_hash : children_hashes_) {
     GeoTreeLog &child_log = modifier_log_->get_tree_log(child_hash);
+    if (child_log.tree_loggers_.is_empty()) {
+      continue;
+    }
     child_log.ensure_node_run_time();
     const std::optional<int32_t> &group_node_id = child_log.tree_loggers_[0]->group_node_id;
     if (group_node_id.has_value()) {
@@ -332,6 +338,9 @@ void GeoTreeLog::ensure_used_named_attributes()
   }
   for (const ComputeContextHash &child_hash : children_hashes_) {
     GeoTreeLog &child_log = modifier_log_->get_tree_log(child_hash);
+    if (child_log.tree_loggers_.is_empty()) {
+      continue;
+    }
     child_log.ensure_used_named_attributes();
     if (const std::optional<int32_t> &group_node_id = child_log.tree_loggers_[0]->group_node_id) {
       for (const auto item : child_log.used_named_attributes.items()) {
