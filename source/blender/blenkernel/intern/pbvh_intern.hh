@@ -134,7 +134,6 @@ struct PBVH {
   blender::Array<int> prim_indices;
   int totprim;
   int totvert;
-  int faces_num; /* Do not use directly, use BKE_pbvh_num_faces. */
 
   int leaf_limit;
   int pixel_leaf_limit;

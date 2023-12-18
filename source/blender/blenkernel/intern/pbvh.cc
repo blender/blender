@@ -413,50 +413,36 @@ static bool leaf_needs_material_split(PBVH *pbvh,
 }
 
 #ifdef TEST_PBVH_FACE_SPLIT
-static void test_face_boundaries(PBVH *pbvh)
+static void test_face_boundaries(PBVH *pbvh, const Mesh &mesh)
 {
-  int faces_num = BKE_pbvh_num_faces(pbvh);
-  int *node_map = MEM_calloc_arrayN(faces_num, sizeof(int), __func__);
-  for (int i = 0; i < faces_num; i++) {
-    node_map[i] = -1;
-  }
-
-  for (int i = 0; i < pbvh->totnode; i++) {
-    PBVHNode *node = pbvh->nodes + i;
-
-    if (!(node->flag & PBVH_Leaf)) {
-      continue;
-    }
-
-    switch (BKE_pbvh_type(pbvh)) {
-      case PBVH_FACES: {
-        for (int j = 0; j < node->totprim; j++) {
-          int face_i = looptri_faces[node->prim_indices[j]];
-
-          if (node_map[face_i] >= 0 && node_map[face_i] != i) {
-            int old_i = node_map[face_i];
-            int prim_i = node->prim_indices - pbvh->prim_indices + j;
-
-            printf("PBVH split error; face: %d, prim_i: %d, node1: %d, node2: %d, totprim: %d\n",
-                   face_i,
-                   prim_i,
-                   old_i,
-                   i,
-                   node->totprim);
-          }
-
-          node_map[face_i] = i;
-        }
-        break;
+  if (BKE_pbvh_type(pbvh) == PBVH_FACES) {
+    int faces_num = mesh.faces_num;
+    Array<int> node_map(faces_num, -1);
+    for (int i = 0; i < pbvh->totnode; i++) {
+      PBVHNode *node = pbvh->nodes + i;
+      if (!(node->flag & PBVH_Leaf)) {
+        continue;
       }
-      case PBVH_GRIDS:
-        break;
-      case PBVH_BMESH:
-        break;
+
+      for (int j = 0; j < node->totprim; j++) {
+        int face_i = mesh.looptri_faces()[node->prim_indices[j]];
+
+        if (node_map[face_i] >= 0 && node_map[face_i] != i) {
+          int old_i = node_map[face_i];
+          int prim_i = node->prim_indices - pbvh->prim_indices + j;
+
+          printf("PBVH split error; face: %d, prim_i: %d, node1: %d, node2: %d, totprim: %d\n",
+                 face_i,
+                 prim_i,
+                 old_i,
+                 i,
+                 node->totprim);
+        }
+
+        node_map[face_i] = i;
+      }
     }
   }
-
-  MEM_SAFE_FREE(node_map);
 }
 #endif
 
@@ -752,8 +738,6 @@ PBVH *build_mesh(Mesh *mesh)
   pbvh->leaf_limit = LEAF_LIMIT;
 #endif
 
-  pbvh->faces_num = mesh->faces_num;
-
   /* For each face, store the AABB and the AABB centroid */
   Array<Bounds<float3>> prim_bounds(looptris_num);
   const Bounds<float3> cb = threading::parallel_reduce(
@@ -816,7 +800,6 @@ PBVH *build_grids(const CCGKey *key, Mesh *mesh, SubdivCCG *subdiv_ccg)
 
   pbvh->gridkey = *key;
   pbvh->subdiv_ccg = subdiv_ccg;
-  pbvh->faces_num = mesh->faces_num;
 
   /* Find maximum number of grids per face. */
   int max_grids = 1;
@@ -873,10 +856,6 @@ PBVH *build_grids(const CCGKey *key, Mesh *mesh, SubdivCCG *subdiv_ccg)
                &cb,
                prim_bounds,
                grids.size());
-
-#ifdef TEST_PBVH_FACE_SPLIT
-    test_face_boundaries(pbvh);
-#endif
   }
 
 #ifdef VALIDATE_UNIQUE_NODE_FACES
@@ -1619,15 +1598,6 @@ bool BKE_pbvh_get_color_layer(Mesh *mesh, CustomDataLayer **r_layer, eAttrDomain
   return *r_layer != nullptr;
 }
 
-bool BKE_pbvh_has_faces(const PBVH *pbvh)
-{
-  if (pbvh->header.type == PBVH_BMESH) {
-    return (pbvh->header.bm->totface != 0);
-  }
-
-  return (pbvh->totprim != 0);
-}
-
 Bounds<float3> BKE_pbvh_bounding_box(const PBVH *pbvh)
 {
   if (pbvh->nodes.is_empty()) {
@@ -1768,20 +1738,6 @@ void BKE_pbvh_vert_tag_update_normal(PBVH *pbvh, PBVHVertRef vertex)
 blender::Span<int> BKE_pbvh_node_get_loops(const PBVHNode *node)
 {
   return node->loop_indices;
-}
-
-int BKE_pbvh_num_faces(const PBVH *pbvh)
-{
-  switch (pbvh->header.type) {
-    case PBVH_GRIDS:
-    case PBVH_FACES:
-      return pbvh->faces_num;
-    case PBVH_BMESH:
-      return pbvh->header.bm->totface;
-  }
-
-  BLI_assert_unreachable();
-  return 0;
 }
 
 blender::Span<int> BKE_pbvh_node_get_vert_indices(const PBVHNode *node)
@@ -3070,11 +3026,6 @@ void BKE_pbvh_subdiv_cgg_set(PBVH *pbvh, SubdivCCG *subdiv_ccg)
 bool BKE_pbvh_is_drawing(const PBVH *pbvh)
 {
   return pbvh->is_drawing;
-}
-
-bool BKE_pbvh_draw_cache_invalid(const PBVH *pbvh)
-{
-  return pbvh->draw_cache_invalid;
 }
 
 void BKE_pbvh_is_drawing_set(PBVH *pbvh, bool val)

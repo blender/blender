@@ -219,10 +219,6 @@ void draw_cb(const Mesh &mesh,
 
 }  // namespace blender::bke::pbvh
 
-/* PBVH Access */
-
-bool BKE_pbvh_has_faces(const PBVH *pbvh);
-
 /**
  * Get the PBVH root's bounding box.
  */
@@ -321,11 +317,6 @@ Span<int> node_face_indices_calc_grids(const PBVH &pbvh, const PBVHNode &node, V
 }  // namespace blender::bke::pbvh
 
 blender::Vector<int> BKE_pbvh_node_calc_face_indices(const PBVH &pbvh, const PBVHNode &node);
-
-/* Get number of faces in the mesh; for PBVH_GRIDS the
- * number of base mesh faces is returned.
- */
-int BKE_pbvh_num_faces(const PBVH *pbvh);
 
 blender::Bounds<blender::float3> BKE_pbvh_node_get_BB(const PBVHNode *node);
 blender::Bounds<blender::float3> BKE_pbvh_node_get_original_BB(const PBVHNode *node);
@@ -564,7 +555,6 @@ void BKE_pbvh_vertex_color_set(PBVH *pbvh, PBVHVertRef vertex, const float color
 void BKE_pbvh_vertex_color_get(const PBVH *pbvh, PBVHVertRef vertex, float r_color[4]);
 
 void BKE_pbvh_ensure_node_loops(PBVH *pbvh);
-bool BKE_pbvh_draw_cache_invalid(const PBVH *pbvh);
 int BKE_pbvh_debug_draw_gen_get(PBVHNode *node);
 
 void BKE_pbvh_pmap_set(PBVH *pbvh, blender::GroupedSpan<int> pmap);
