@@ -1029,7 +1029,7 @@ class WM_OT_url_open(Operator):
 
         # Parse the URL to get its domain and query parameters.
         if not urllib.parse.urlparse(url).scheme:
-            url = f'https://{url}'
+            url = "https://" + url
         parsed_url = urllib.parse.urlparse(url)
 
         # Only add a utm source if it points to a blender.org domain.
