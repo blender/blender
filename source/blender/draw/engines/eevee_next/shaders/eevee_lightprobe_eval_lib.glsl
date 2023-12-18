@@ -216,14 +216,6 @@ struct LightProbeSample {
   int spherical_id;
 };
 
-#  if defined(GPU_FRAGMENT_SHADER)
-#    define UTIL_TEXEL vec2(gl_FragCoord)
-#  elif defined(GPU_COMPUTE_SHADER)
-#    define UTIL_TEXEL vec2(gl_GlobalInvocationID)
-#  else
-#    define UTIL_TEXEL vec2(gl_VertexID, 0)
-#  endif
-
 /**
  * Return cached light-probe data at P.
  * Ng and V are use for biases.

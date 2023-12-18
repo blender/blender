@@ -1478,9 +1478,9 @@ BLI_STATIC_ASSERT_ALIGN(UniformData, 16)
 #if !defined(__cplusplus) || defined(GPU_SHADER)
 
 #  if defined(GPU_FRAGMENT_SHADER)
-#    define UTIL_TEXEL vec2(gl_FragCoord)
+#    define UTIL_TEXEL vec2(gl_FragCoord.xy)
 #  elif defined(GPU_COMPUTE_SHADER)
-#    define UTIL_TEXEL vec2(gl_GlobalInvocationID)
+#    define UTIL_TEXEL vec2(gl_GlobalInvocationID.xy)
 #  else
 #    define UTIL_TEXEL vec2(gl_VertexID, 0)
 #  endif
