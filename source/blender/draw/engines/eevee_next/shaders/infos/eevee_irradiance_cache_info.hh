@@ -204,7 +204,8 @@ GPU_SHADER_CREATE_INFO(eevee_volume_probe_data)
     /* NOTE: Use uint instead of IrradianceBrickPacked because Metal needs to know the exact type.
      */
     .storage_buf(IRRADIANCE_BRICK_BUF_SLOT, Qualifier::READ, "uint", "bricks_infos_buf[]")
-    .sampler(IRRADIANCE_ATLAS_TEX_SLOT, ImageType::FLOAT_3D, "irradiance_atlas_tx");
+    .sampler(IRRADIANCE_ATLAS_TEX_SLOT, ImageType::FLOAT_3D, "irradiance_atlas_tx")
+    .define("IRRADIANCE_GRID_SAMPLING");
 
 GPU_SHADER_CREATE_INFO(eevee_lightprobe_data)
     .additional_info("eevee_reflection_probe_data", "eevee_volume_probe_data");

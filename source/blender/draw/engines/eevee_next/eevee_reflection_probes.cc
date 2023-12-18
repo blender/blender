@@ -216,6 +216,7 @@ void ReflectionProbeModule::begin_sync()
     pass.push_constant("reflection_probe_count", &reflection_probe_count_);
     pass.bind_ssbo("reflection_probe_buf", &data_buf_);
     instance_.irradiance_cache.bind_resources(pass);
+    instance_.sampling.bind_resources(pass);
     pass.dispatch(&dispatch_probe_select_);
     pass.barrier(GPU_BARRIER_UNIFORM);
   }

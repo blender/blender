@@ -1476,6 +1476,15 @@ BLI_STATIC_ASSERT_ALIGN(UniformData, 16)
 
 /* __cplusplus is true when compiling with MSL, so include if inside a shader. */
 #if !defined(__cplusplus) || defined(GPU_SHADER)
+
+#  if defined(GPU_FRAGMENT_SHADER)
+#    define UTIL_TEXEL vec2(gl_FragCoord)
+#  elif defined(GPU_COMPUTE_SHADER)
+#    define UTIL_TEXEL vec2(gl_GlobalInvocationID)
+#  else
+#    define UTIL_TEXEL vec2(gl_VertexID, 0)
+#  endif
+
 /* Fetch texel. Wrapping if above range. */
 float4 utility_tx_fetch(sampler2DArray util_tx, float2 texel, float layer)
 {
