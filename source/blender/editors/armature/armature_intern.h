@@ -74,6 +74,7 @@ void ARMATURE_OT_collection_add(struct wmOperatorType *ot);
 void ARMATURE_OT_collection_remove(struct wmOperatorType *ot);
 void ARMATURE_OT_collection_move(struct wmOperatorType *ot);
 void ARMATURE_OT_collection_assign(struct wmOperatorType *ot);
+void ARMATURE_OT_collection_create_and_assign(struct wmOperatorType *ot);
 void ARMATURE_OT_collection_unassign(struct wmOperatorType *ot);
 void ARMATURE_OT_collection_unassign_named(struct wmOperatorType *ot);
 void ARMATURE_OT_collection_select(struct wmOperatorType *ot);

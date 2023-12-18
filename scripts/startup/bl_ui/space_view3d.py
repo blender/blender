@@ -4117,7 +4117,7 @@ class VIEW3D_MT_bone_collections(Menu):
 
         layout.separator()
 
-        props = layout.operator("armature.collection_assign",
+        props = layout.operator("armature.collection_create_and_assign",
                                 text="Assign to New Collection")
         props.name = "New Collection"
 
