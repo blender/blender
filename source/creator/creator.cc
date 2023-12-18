@@ -42,7 +42,6 @@
 #include "BKE_global.h"
 #include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_idtype.h"
-#include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_modifier.hh"
 #include "BKE_node.h"
