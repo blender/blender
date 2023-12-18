@@ -11,14 +11,18 @@
 #include "DNA_armature_types.h"
 #include "DNA_object_types.h"
 
+#include "BLI_bounds.hh"
 #include "BLI_math_matrix.h"
+#include "BLI_math_matrix.hh"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector.hh"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
 #include "BKE_action.h"
 #include "BKE_armature.hh"
 #include "BKE_context.hh"
+#include "BKE_crazyspace.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_layer.h"
 #include "BKE_main.hh"
@@ -37,6 +41,7 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
+#include "ED_curves.hh"
 #include "ED_keyframing.hh"
 #include "ED_object.hh"
 #include "ED_screen.hh"
@@ -983,8 +988,32 @@ void VIEW3D_OT_snap_cursor_to_center(wmOperatorType *ot)
 /** \name Min/Max Object Vertices Utility
  * \{ */
 
+static std::optional<blender::Bounds<blender::float3>> bounds_min_max_with_transform(
+    const blender::float4x4 &transform,
+    const blender::Span<blender::float3> positions,
+    const blender::IndexMask &mask)
+{
+  using namespace blender;
+  if (mask.is_empty()) {
+    return std::nullopt;
+  }
+  return threading::parallel_reduce(
+      mask.index_range(),
+      1024,
+      Bounds<float3>(math::transform_point(transform, positions.first())),
+      [&](const IndexRange range, Bounds<float3> init) {
+        mask.slice(range).foreach_index([&](const int i) {
+          math::min_max(math::transform_point(transform, positions[i]), init.min, init.max);
+        });
+        return init;
+      },
+      [](const Bounds<float3> &a, const Bounds<float3> &b) { return bounds::merge(a, b); });
+}
+
 bool ED_view3d_minmax_verts(Object *obedit, float r_min[3], float r_max[3])
 {
+  using namespace blender;
+  using namespace blender::ed;
   TransVertStore tvs = {nullptr};
   TransVert *tv;
   float centroid[3], vec[3], bmat[3][3];
@@ -1004,6 +1033,27 @@ bool ED_view3d_minmax_verts(Object *obedit, float r_min[3], float r_max[3])
       minmax_v3v3_v3(r_min, r_max, ob_max);
     }
     return changed;
+  }
+  else if (obedit->type == OB_CURVES) {
+    const Object &ob_orig = *DEG_get_original_object(obedit);
+    const Curves &curves_id = *static_cast<const Curves *>(ob_orig.data);
+    const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
+
+    IndexMaskMemory memory;
+    const IndexMask mask = curves::retrieve_selected_points(curves, memory);
+
+    const bke::crazyspace::GeometryDeformation deformation =
+        bke::crazyspace::get_evaluated_curves_deformation(obedit, ob_orig);
+
+    const std::optional<Bounds<float3>> curves_bounds = bounds_min_max_with_transform(
+        float4x4(obedit->object_to_world), deformation.positions, mask);
+
+    if (curves_bounds) {
+      minmax_v3v3_v3(r_min, r_max, curves_bounds->min);
+      minmax_v3v3_v3(r_min, r_max, curves_bounds->max);
+      return true;
+    }
+    return false;
   }
 
   if (ED_transverts_check_obedit(obedit)) {
