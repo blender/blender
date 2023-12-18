@@ -78,9 +78,11 @@ MaterialModule::MaterialModule(Instance &inst) : inst_(inst)
     diffuse_mat->use_nodes = true;
     diffuse_mat->surface_render_method = MA_SURFACE_METHOD_FORWARD;
 
+    /* Use 0.18 as it is close to middle grey. Middle grey is typically defined as 18% reflectance
+     * of visible light and commonly used for vfx balls. */
     bNode *bsdf = nodeAddStaticNode(nullptr, ntree, SH_NODE_BSDF_DIFFUSE);
     bNodeSocket *base_color = nodeFindSocket(bsdf, SOCK_IN, "Color");
-    copy_v3_fl(((bNodeSocketValueRGBA *)base_color->default_value)->value, 0.8f);
+    copy_v3_fl(((bNodeSocketValueRGBA *)base_color->default_value)->value, 0.18f);
 
     bNode *output = nodeAddStaticNode(nullptr, ntree, SH_NODE_OUTPUT_MATERIAL);
 
