@@ -684,7 +684,9 @@ void DeferredLayer::render(View &main_view,
   inst_.shadows.set_view(render_view, inst_.render_buffers.depth_tx);
 
   if (/* FIXME(fclem): Vulkan doesn't implement load / store config yet. */
-      GPU_backend_get_type() == GPU_BACKEND_VULKAN)
+      GPU_backend_get_type() == GPU_BACKEND_VULKAN ||
+      /* FIXME(fclem): Metal has bug in backend. */
+      GPU_backend_get_type() == GPU_BACKEND_METAL)
   {
     inst_.gbuffer.header_tx.clear(int4(0));
   }
@@ -710,14 +712,21 @@ void DeferredLayer::render(View &main_view,
   tile_mask_tx_.ensure_2d_array(GPU_R8UI, tile_mask_size, 4, usage_rw);
   tile_mask_tx_.clear(uint4(0));
 
-  GPU_framebuffer_bind_ex(gbuffer_fb,
-                          {
-                              {GPU_LOADACTION_LOAD, GPU_STOREACTION_STORE},       /* Depth */
-                              {GPU_LOADACTION_LOAD, GPU_STOREACTION_STORE},       /* Combined */
-                              {GPU_LOADACTION_CLEAR, GPU_STOREACTION_STORE, {0}}, /* GBuf Header */
-                              {GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_STORE}, /* GBuf Closure */
-                              {GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_STORE}, /* GBuf Color */
-                          });
+  if (GPU_backend_get_type() == GPU_BACKEND_METAL) {
+    /* TODO(fclem): Load/store action is broken on Metal. */
+    GPU_framebuffer_bind(gbuffer_fb);
+  }
+  else {
+    GPU_framebuffer_bind_ex(
+        gbuffer_fb,
+        {
+            {GPU_LOADACTION_LOAD, GPU_STOREACTION_STORE},       /* Depth */
+            {GPU_LOADACTION_LOAD, GPU_STOREACTION_STORE},       /* Combined */
+            {GPU_LOADACTION_CLEAR, GPU_STOREACTION_STORE, {0}}, /* GBuf Header */
+            {GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_STORE},  /* GBuf Closure */
+            {GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_STORE},  /* GBuf Color */
+        });
+  }
 
   inst_.manager->submit(gbuffer_ps_, render_view);
 
