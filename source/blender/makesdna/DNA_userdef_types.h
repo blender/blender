@@ -630,6 +630,11 @@ typedef struct bUserExtensionRepo {
   char _pad0[4];
 } bUserExtensionRepo;
 
+typedef enum eUserExtensionRepo_Flag {
+  /** Maintain disk cache. */
+  USER_EXTENSION_REPO_FLAG_NO_CACHE = 1 << 0,
+} eUserExtensionRepo_Flag;
+
 typedef struct SolidLight {
   int flag;
   float smooth;
