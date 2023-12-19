@@ -63,6 +63,7 @@
 
 #ifdef WITH_FFMPEG
 #  include "BKE_global.h" /* ENDIAN_ORDER */
+#  include "BKE_writeffmpeg.hh"
 
 extern "C" {
 #  include <libavcodec/avcodec.h>
@@ -694,16 +695,12 @@ static int startffmpeg(anim *anim)
         1);
   }
 
-  anim->img_convert_ctx = sws_getContext(anim->x,
-                                         anim->y,
-                                         anim->pCodecCtx->pix_fmt,
-                                         anim->x,
-                                         anim->y,
-                                         AV_PIX_FMT_RGBA,
-                                         SWS_BILINEAR | SWS_PRINT_INFO | SWS_FULL_CHR_H_INT,
-                                         nullptr,
-                                         nullptr,
-                                         nullptr);
+  anim->img_convert_ctx = BKE_ffmpeg_sws_get_context(anim->x,
+                                                     anim->y,
+                                                     anim->pCodecCtx->pix_fmt,
+                                                     AV_PIX_FMT_RGBA,
+                                                     SWS_BILINEAR | SWS_PRINT_INFO |
+                                                         SWS_FULL_CHR_H_INT);
 
   if (!anim->img_convert_ctx) {
     fprintf(stderr, "Can't transform color space??? Bailing out...\n");
@@ -846,32 +843,48 @@ static void ffmpeg_postprocess(anim *anim, AVFrame *input, ImBuf *ibuf)
     }
   }
 
-  sws_scale(anim->img_convert_ctx,
-            (const uint8_t *const *)input->data,
-            input->linesize,
-            0,
-            anim->y,
-            anim->pFrameRGB->data,
-            anim->pFrameRGB->linesize);
+  /* If final destination image layout matches that of decoded RGB frame (including
+   * any line padding done by ffmpeg for SIMD alignment), we can directly
+   * decode into that, doing the vertical flip in the same step. Otherwise have
+   * to do a separate flip. */
+  const int ibuf_linesize = ibuf->x * 4;
+  const int rgb_linesize = anim->pFrameRGB->linesize[0];
+  bool scale_to_ibuf = (rgb_linesize == ibuf_linesize);
+  /* swscale on arm64 before ffmpeg 6.0 (libswscale major version 7)
+   * could not handle negative line sizes. That has been fixed in all major
+   * ffmpeg releases in early 2023, but easier to just check for "below 7". */
+#  if (defined(__aarch64__) || defined(_M_ARM64)) && (LIBSWSCALE_VERSION_MAJOR < 7)
+  scale_to_ibuf = false;
+#  endif
+  uint8_t *rgb_data = anim->pFrameRGB->data[0];
 
-  /* Copy the valid bytes from the aligned buffer vertically flipped into ImBuf */
-  int aligned_stride = anim->pFrameRGB->linesize[0];
-  const uint8_t *const src[4] = {
-      anim->pFrameRGB->data[0] + (anim->y - 1) * aligned_stride, nullptr, nullptr, nullptr};
-  /* NOTE: Negative linesize is used to copy and flip image at once with function
-   * `av_image_copy_to_buffer`. This could cause issues in future and image may need to be flipped
-   * explicitly. */
-  const int src_linesize[4] = {-anim->pFrameRGB->linesize[0], 0, 0, 0};
-  int dst_size = av_image_get_buffer_size(
-      AVPixelFormat(anim->pFrameRGB->format), anim->pFrameRGB->width, anim->pFrameRGB->height, 1);
-  av_image_copy_to_buffer((uint8_t *)ibuf->byte_buffer.data,
-                          dst_size,
-                          src,
-                          src_linesize,
-                          AV_PIX_FMT_RGBA,
-                          anim->x,
-                          anim->y,
-                          1);
+  if (scale_to_ibuf) {
+    /* Decode RGB and do vertical flip directly into destination image, by using negative
+     * line size. */
+    anim->pFrameRGB->linesize[0] = -ibuf_linesize;
+    anim->pFrameRGB->data[0] = ibuf->byte_buffer.data + (ibuf->y - 1) * ibuf_linesize;
+
+    BKE_ffmpeg_sws_scale_frame(anim->img_convert_ctx, anim->pFrameRGB, input);
+
+    anim->pFrameRGB->linesize[0] = rgb_linesize;
+    anim->pFrameRGB->data[0] = rgb_data;
+  }
+  else {
+    /* Decode, then do vertical flip into destination. */
+    BKE_ffmpeg_sws_scale_frame(anim->img_convert_ctx, anim->pFrameRGB, input);
+
+    /* Use negative line size to do vertical image flip. */
+    const int src_linesize[4] = {-rgb_linesize, 0, 0, 0};
+    const uint8_t *const src[4] = {
+        rgb_data + (anim->y - 1) * rgb_linesize, nullptr, nullptr, nullptr};
+    int dst_size = av_image_get_buffer_size(AVPixelFormat(anim->pFrameRGB->format),
+                                            anim->pFrameRGB->width,
+                                            anim->pFrameRGB->height,
+                                            1);
+    av_image_copy_to_buffer(
+        ibuf->byte_buffer.data, dst_size, src, src_linesize, AV_PIX_FMT_RGBA, anim->x, anim->y, 1);
+  }
+
   if (filter_y) {
     IMB_filtery(ibuf);
   }
