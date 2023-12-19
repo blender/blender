@@ -927,11 +927,15 @@ static void seq_update_sound_modifiers(Sequence *seq)
   BKE_sound_update_sequence_handle(seq->scene_sound, sound_handle);
 }
 
+static bool must_update_strip_sound(Scene *scene, Sequence *seq)
+{
+  return (scene->id.recalc & ID_RECALC_AUDIO | ID_RECALC_COPY_ON_WRITE) != 0 ||
+         (seq->sound->id.recalc & ID_RECALC_AUDIO | ID_RECALC_COPY_ON_WRITE) != 0;
+}
+
 static void seq_update_sound_strips(Scene *scene, Sequence *seq)
 {
-  if (seq->sound == nullptr || ((scene->id.recalc & ID_RECALC_AUDIO) == 0 &&
-                                (seq->sound->id.recalc & ID_RECALC_AUDIO) == 0))
-  {
+  if (seq->sound == nullptr || !must_update_strip_sound(scene, seq)) {
     return;
   }
   /* Ensure strip is playing correct sound. */
