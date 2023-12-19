@@ -267,7 +267,7 @@ static void editmesh_looptris_raycast_backface_culling_cb(void *userdata,
                                                           BVHTreeRayHit *hit)
 {
   BMEditMesh *em = static_cast<BMEditMesh *>(userdata);
-  const BMLoop **ltri = (const BMLoop **)em->looptris[index];
+  const BMLoop **ltri = const_cast<const BMLoop **>(em->looptris[index]);
 
   const float *t0, *t1, *t2;
   t0 = ltri[0]->v->co;

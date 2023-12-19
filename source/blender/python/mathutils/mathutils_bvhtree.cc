@@ -266,7 +266,7 @@ static void py_bvhtree_raycast_cb(void *userdata,
 {
   const PyBVHTree *self = static_cast<const PyBVHTree *>(userdata);
 
-  const float(*coords)[3] = (const float(*)[3])self->coords;
+  const float(*coords)[3] = self->coords;
   const uint *tri = self->tris[index];
   const float *tri_co[3] = {coords[tri[0]], coords[tri[1]], coords[tri[2]]};
   float dist;

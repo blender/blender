@@ -286,7 +286,7 @@ void BKE_editmesh_loop_tangent_calc(BMEditMesh *em,
         }
         BM_mesh_elem_index_ensure(bm, htype_index);
 
-        mesh2tangent->looptris = (const BMLoop *(*)[3])em->looptris;
+        mesh2tangent->looptris = const_cast<const BMLoop *(*)[3]>(em->looptris);
         mesh2tangent->tangent = static_cast<float(*)[4]>(loopdata_out->layers[index].data);
 
         BLI_task_pool_push(

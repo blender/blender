@@ -186,12 +186,14 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
           mesh->faces_num,
           mesh->corner_verts().data(),
           mesh->totvert,
-          reinterpret_cast<const float(*)[3]>(
-              mesh->vert_positions().data()), /* From the original Mesh. */
-          (const float(*)[3])vertexCos_Real,  /* the input we've been given (shape keys!) */
-          (const float(*)[3])vertexCos,       /* The result of this modifier. */
-          vertexCos_New                       /* The result of this function. */
-      );
+          /* From the original Mesh. */
+          reinterpret_cast<const float(*)[3]>(mesh->vert_positions().data()),
+          /* the input we've been given (shape keys!) */
+          const_cast<const float(*)[3]>(vertexCos_Real),
+          /* The result of this modifier. */
+          const_cast<const float(*)[3]>(vertexCos),
+          /* The result of this function. */
+          vertexCos_New);
 
       /* write the corrected locations back into the result */
       memcpy(vertexCos, vertexCos_New, sizeof(*vertexCos) * verts_num);

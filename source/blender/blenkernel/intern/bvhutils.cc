@@ -301,7 +301,7 @@ static void editmesh_corner_tris_nearest_point(void *userdata,
                                                BVHTreeNearest *nearest)
 {
   BMEditMesh *em = static_cast<BMEditMesh *>(userdata);
-  const BMLoop **ltri = (const BMLoop **)em->looptris[index];
+  const BMLoop **ltri = const_cast<const BMLoop **>(em->looptris[index]);
 
   const float *t0, *t1, *t2;
   t0 = ltri[0]->v->co;
@@ -404,7 +404,7 @@ static void editmesh_corner_tris_spherecast(void *userdata,
                                             BVHTreeRayHit *hit)
 {
   BMEditMesh *em = static_cast<BMEditMesh *>(userdata);
-  const BMLoop **ltri = (const BMLoop **)em->looptris[index];
+  const BMLoop **ltri = const_cast<const BMLoop **>(em->looptris[index]);
 
   const float *t0, *t1, *t2;
   t0 = ltri[0]->v->co;
@@ -959,7 +959,7 @@ static BVHTree *bvhtree_from_editmesh_corner_tris_create_tree(float epsilon,
     return nullptr;
   }
 
-  const BMLoop *(*corner_tris)[3] = (const BMLoop *(*)[3])em->looptris;
+  const BMLoop *(*corner_tris)[3] = const_cast<const BMLoop *(*)[3]>(em->looptris);
 
   /* Insert BMesh-tessellation triangles into the BVH-tree, unless they are hidden
    * and/or selected. Even if the faces themselves are not selected for the snapped
