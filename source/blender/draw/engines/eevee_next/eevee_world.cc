@@ -151,7 +151,7 @@ void World::sync_volume()
   }
 
   if (gpumat && (GPU_material_status(gpumat) == GPU_MAT_SUCCESS)) {
-    has_volume_ = true;
+    has_volume_ = GPU_material_has_volume_output(gpumat);
     has_volume_scatter_ = GPU_material_flag_get(gpumat, GPU_MATFLAG_VOLUME_SCATTER);
     has_volume_absorption_ = GPU_material_flag_get(gpumat, GPU_MATFLAG_VOLUME_ABSORPTION);
   }
