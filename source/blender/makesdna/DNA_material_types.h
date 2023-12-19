@@ -230,8 +230,8 @@ typedef struct Material {
   char _pad3[4];
 
   /**
-   * Cached slots for texture painting, must be refreshed in
-   * refresh_texpaint_image_cache before using.
+   * Cached slots for texture painting, must be refreshed via
+   * BKE_texpaint_slot_refresh_cache before using.
    */
   struct TexPaintSlot *texpaintslot;
 
