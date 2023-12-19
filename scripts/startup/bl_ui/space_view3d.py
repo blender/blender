@@ -7022,6 +7022,7 @@ class VIEW3D_PT_overlay_geometry(Panel):
 
         # sub.prop(overlay, "show_onion_skins")
 
+
 class VIEW3D_PT_overlay_viewer_node(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'HEADER'
@@ -7047,6 +7048,7 @@ class VIEW3D_PT_overlay_viewer_node(Panel):
         row = col.row(align=True)
         row.active = view.show_viewer
         row.prop(overlay, "show_viewer_text", text="Attribute Text")
+
 
 class VIEW3D_PT_overlay_motion_tracking(Panel):
     bl_space_type = 'VIEW_3D'
