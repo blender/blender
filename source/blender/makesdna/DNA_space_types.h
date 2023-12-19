@@ -623,6 +623,8 @@ typedef enum eSpaceSeq_SequencerTimelineOverlay_Flag {
   SEQ_TIMELINE_ALL_WAVEFORMS = (1 << 7),
   /** Draw no wave-forms. */
   SEQ_TIMELINE_NO_WAVEFORMS = (1 << 8),
+  /** Draw only upper part of the waveform, showing absolute signal value. */
+  SEQ_TIMELINE_WAVEFORMS_HALF = (1 << 9),
   SEQ_TIMELINE_SHOW_STRIP_NAME = (1 << 14),
   SEQ_TIMELINE_SHOW_STRIP_SOURCE = (1 << 15),
   SEQ_TIMELINE_SHOW_STRIP_DURATION = (1 << 16),
@@ -712,7 +714,6 @@ typedef enum eSpaceSeq_Flag {
   SPACE_SEQ_FLAG_UNUSED_4 = (1 << 4),
   SPACE_SEQ_FLAG_UNUSED_5 = (1 << 5),
   SEQ_USE_ALPHA = (1 << 6), /* use RGBA display mode for preview */
-  SPACE_SEQ_FLAG_UNUSED_9 = (1 << 9),
   SPACE_SEQ_FLAG_UNUSED_10 = (1 << 10),
   SEQ_SHOW_MARKERS = (1 << 11), /* show markers region */
   SEQ_ZOOM_TO_FIT = (1 << 12),

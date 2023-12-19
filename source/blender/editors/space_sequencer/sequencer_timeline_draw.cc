@@ -421,13 +421,18 @@ static void draw_seq_waveform_overlay(TimelineDrawContext *timeline_ctx,
   Scene *scene = timeline_ctx->scene;
   Sequence *seq = strip_ctx->seq;
 
+  const bool half_style = (timeline_ctx->sseq->timeline_overlay.flag &
+                           SEQ_TIMELINE_WAVEFORMS_HALF) != 0;
+
   const float frames_per_pixel = BLI_rctf_size_x(&v2d->cur) / timeline_ctx->region->winx;
   const float samples_per_frame = SOUND_WAVE_SAMPLES_PER_SECOND / FPS;
   const float samples_per_pixel = samples_per_frame * frames_per_pixel;
-  /* The y coordinate for the middle of the strip. */
-  const float y_zero = (strip_ctx->bottom + strip_ctx->strip_content_top) / 2.0f;
-  /* The length from the middle of the strip to the top/bottom. */
-  const float y_scale = (strip_ctx->strip_content_top - strip_ctx->bottom) / 2.0f;
+  /* The y coordinate of signal level zero. */
+  const float y_zero = half_style ? strip_ctx->bottom :
+                                    (strip_ctx->bottom + strip_ctx->strip_content_top) / 2.0f;
+  /* The y range of unit signal level. */
+  const float y_scale = half_style ? strip_ctx->strip_content_top - strip_ctx->bottom :
+                                     (strip_ctx->strip_content_top - strip_ctx->bottom) / 2.0f;
 
   /* Align strip start with nearest pixel to prevent waveform flickering. */
   const float strip_start_aligned = align_frame_with_pixel(strip_ctx->left_handle,
@@ -510,6 +515,25 @@ static void draw_seq_waveform_overlay(TimelineDrawContext *timeline_ctx,
 
       CLAMP_MAX(value_max, 1.0f);
       CLAMP_MIN(value_min, -1.0f);
+    }
+
+    /* We are drawing only half ot the waveform, mirroring the lower part upwards.
+     * If both min and max are on the same side of zero line, we want to draw a bar
+     * between them. If min and max cross zero, we want to fill bar from zero to max
+     * of those. */
+    if (half_style) {
+      bool pos_min = value_min > 0.0f;
+      bool pos_max = value_max > 0.0f;
+      float abs_min = std::abs(value_min);
+      float abs_max = std::abs(value_max);
+      if (pos_min == pos_max) {
+        value_min = std::min(abs_min, abs_max);
+        value_max = std::max(abs_min, abs_max);
+      }
+      else {
+        value_min = 0;
+        value_max = std::max(abs_min, abs_max);
+      }
     }
 
     float x1 = draw_start_frame + i * frames_per_pixel;

@@ -5787,6 +5787,22 @@ static void rna_def_space_sequencer_timeline_overlay(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Waveform Display", "How Waveforms are displayed");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, nullptr);
 
+  static const EnumPropertyItem waveform_style_display_items[] = {
+      {0, "FULL_WAVEFORMS", 0, "Full", "Display full waveform"},
+      {SEQ_TIMELINE_WAVEFORMS_HALF,
+       "HALF_WAVEFORMS",
+       0,
+       "Half",
+       "Display upper half of the absolute value waveform"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  prop = RNA_def_property(srna, "waveform_display_style", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_bitflag_sdna(prop, nullptr, "flag");
+  RNA_def_property_enum_items(prop, waveform_style_display_items);
+  RNA_def_property_ui_text(prop, "Waveform Style", "How Waveforms are displayed");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, nullptr);
+
   prop = RNA_def_property(srna, "show_fcurves", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", SEQ_TIMELINE_SHOW_FCURVES);
   RNA_def_property_ui_text(prop, "Show F-Curves", "Display strip opacity/volume curve");
