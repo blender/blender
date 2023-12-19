@@ -164,6 +164,13 @@ static PyObject *bpy_rna_context_temp_override_enter(BPyContextTempOverride *sel
   self->ctx_init.area_is_set = (self->ctx_init.area != area);
   self->ctx_init.region_is_set = (self->ctx_init.region != region);
 
+  /* When the screen isn't passed but a window is, match the screen to the window,
+   * it's important to do this after setting `self->ctx_init.screen_is_set` because the screen is
+   * *not* set, only the window, restoring the window will also restore its screen, see #116297. */
+  if ((self->ctx_temp.win_is_set == true) && (self->ctx_temp.screen_is_set == false)) {
+    screen = win ? WM_window_get_active_screen(win) : nullptr;
+  }
+
   /* NOTE(@ideasman42): Regarding sanity checks.
    * There are 3 different situations to be accounted for here regarding overriding windowing data.
    *
