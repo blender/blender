@@ -94,7 +94,9 @@ void PointCloudComponent::ensure_owns_direct_data()
 {
   BLI_assert(this->is_mutable());
   if (ownership_ != GeometryOwnershipType::Owned) {
-    pointcloud_ = BKE_pointcloud_copy_for_eval(pointcloud_);
+    if (pointcloud_) {
+      pointcloud_ = BKE_pointcloud_copy_for_eval(pointcloud_);
+    }
     ownership_ = GeometryOwnershipType::Owned;
   }
 }

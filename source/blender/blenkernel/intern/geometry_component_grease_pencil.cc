@@ -94,7 +94,9 @@ void GreasePencilComponent::ensure_owns_direct_data()
 {
   BLI_assert(this->is_mutable());
   if (ownership_ != GeometryOwnershipType::Owned) {
-    grease_pencil_ = BKE_grease_pencil_copy_for_eval(grease_pencil_);
+    if (grease_pencil_) {
+      grease_pencil_ = BKE_grease_pencil_copy_for_eval(grease_pencil_);
+    }
     ownership_ = GeometryOwnershipType::Owned;
   }
 }

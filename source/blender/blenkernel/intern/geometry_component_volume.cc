@@ -87,7 +87,9 @@ void VolumeComponent::ensure_owns_direct_data()
 {
   BLI_assert(this->is_mutable());
   if (ownership_ != GeometryOwnershipType::Owned) {
-    volume_ = BKE_volume_copy_for_eval(volume_);
+    if (volume_) {
+      volume_ = BKE_volume_copy_for_eval(volume_);
+    }
     ownership_ = GeometryOwnershipType::Owned;
   }
 }

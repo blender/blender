@@ -105,7 +105,9 @@ void MeshComponent::ensure_owns_direct_data()
 {
   BLI_assert(this->is_mutable());
   if (ownership_ != GeometryOwnershipType::Owned) {
-    mesh_ = BKE_mesh_copy_for_eval(mesh_);
+    if (mesh_) {
+      mesh_ = BKE_mesh_copy_for_eval(mesh_);
+    }
     ownership_ = GeometryOwnershipType::Owned;
   }
 }
