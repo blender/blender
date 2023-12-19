@@ -3760,7 +3760,7 @@ static int edbm_shape_propagate_to_all_exec(bContext *C, wmOperator *op)
     if (use_symmetry) {
       const bool use_topology = (mesh->editflag & ME_EDIT_MIRROR_TOPO) != 0;
 
-      EDBM_verts_mirror_cache_begin(em, 0, false, true, false, use_topology);
+      EDBM_verts_mirror_cache_begin(em, 0, false, false, false, use_topology);
     }
 
     if (shape_propagate(em, use_symmetry)) {
