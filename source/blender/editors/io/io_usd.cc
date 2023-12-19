@@ -306,16 +306,13 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
   const bool export_normals = RNA_boolean_get(op->ptr, "export_normals");
   const bool export_transforms = RNA_boolean_get(op->ptr, "export_transforms");
   const bool export_materials = RNA_boolean_get(op->ptr, "export_materials");
-<<<<<<< HEAD
+  const eSubdivExportMode export_subdiv = eSubdivExportMode(
+      RNA_enum_get(op->ptr, "export_subdivision"));
   const bool export_meshes = RNA_boolean_get(op->ptr, "export_meshes");
   const bool export_lights = RNA_boolean_get(op->ptr, "export_lights");
   const bool export_cameras = RNA_boolean_get(op->ptr, "export_cameras");
   const bool export_curves = RNA_boolean_get(op->ptr, "export_curves");
   const bool export_particles = RNA_boolean_get(op->ptr, "export_particles");
-=======
-  const eSubdivExportMode export_subdiv = eSubdivExportMode(
-      RNA_enum_get(op->ptr, "export_subdivision"));
->>>>>>> main
   const bool use_instancing = RNA_boolean_get(op->ptr, "use_instancing");
   const bool evaluation_mode = RNA_enum_get(op->ptr, "evaluation_mode");
   const bool generate_preview_surface = RNA_boolean_get(op->ptr, "generate_preview_surface");
@@ -327,7 +324,6 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
   const bool export_custom_properties = RNA_boolean_get(op->ptr, "export_custom_properties");
   const bool add_properties_namespace = RNA_boolean_get(op->ptr, "add_properties_namespace");
   const bool export_identity_transforms = RNA_boolean_get(op->ptr, "export_identity_transforms");
-  const bool apply_subdiv = RNA_boolean_get(op->ptr, "apply_subdiv");
   const bool author_blender_name = RNA_boolean_get(op->ptr, "author_blender_name");
   const bool vertex_data_as_face_varying = RNA_boolean_get(op->ptr, "vertex_data_as_face_varying");
   const float frame_step = RNA_float_get(op->ptr, "frame_step");
@@ -344,7 +340,6 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
   RNA_string_get(op->ptr, "root_prim_path", root_prim_path);
   process_prim_path(root_prim_path);
 
-<<<<<<< HEAD
   char default_prim_path[FILE_MAX];
   RNA_string_get(op->ptr, "default_prim_path", default_prim_path);
   process_prim_path(default_prim_path);
@@ -418,6 +413,7 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
                                    export_mesh_attributes,
                                    export_transforms,
                                    export_materials,
+                                   export_subdiv,
                                    export_meshes,
                                    export_lights,
                                    export_cameras,
@@ -438,7 +434,6 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
                                    export_custom_properties,
                                    add_properties_namespace,
                                    export_identity_transforms,
-                                   apply_subdiv,
                                    author_blender_name,
                                    vertex_data_as_face_varying,
                                    frame_step,
@@ -484,25 +479,6 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
       params.frame_end = scene->r.efra;
     }
   }
-=======
-  USDExportParams params = {
-      export_animation,
-      export_hair,
-      export_uvmaps,
-      export_normals,
-      export_mesh_colors,
-      export_materials,
-      export_subdiv,
-      selected_objects_only,
-      visible_objects_only,
-      use_instancing,
-      eEvaluationMode(evaluation_mode),
-      generate_preview_surface,
-      export_textures,
-      overwrite_textures,
-      relative_paths,
-  };
->>>>>>> main
 
   STRNCPY(params.root_prim_path, root_prim_path);
   STRNCPY(params.default_prim_path, default_prim_path);
@@ -528,18 +504,7 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
     RNA_boolean_set(ptr, "init_scene_frame_range", false);
   }
 
-<<<<<<< HEAD
   uiItemR(layout, ptr, "evaluation_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
-=======
-  col = uiLayoutColumn(box, true);
-  uiItemR(col, ptr, "export_animation", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "export_hair", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "export_uvmaps", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "export_normals", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "export_materials", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "export_subdivision", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "root_prim_path", UI_ITEM_NONE, nullptr, ICON_NONE);
->>>>>>> main
 
   /* Note: all other pertinent settings are shown through the panels below! */
 }
@@ -1562,7 +1527,7 @@ static void usd_export_panel_geometry_draw(const bContext *C, Panel *panel)
   uiLayout *col = uiLayoutColumn(panel->layout, false);
 
   uiLayoutSetPropSep(col, true);
-  uiItemR(col, ptr, "apply_subdiv", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "export_subdivision", UI_ITEM_NONE, nullptr, ICON_NONE);
   uiItemR(col, ptr, "export_mesh_colors", UI_ITEM_NONE, nullptr, ICON_NONE);
   uiItemR(col, ptr, "export_normals", UI_ITEM_NONE, nullptr, ICON_NONE);
   uiItemR(col, ptr, "export_mesh_attributes", UI_ITEM_NONE, nullptr, ICON_NONE);

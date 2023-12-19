@@ -74,7 +74,6 @@ typedef enum eUSDMtlNameCollisionMode {
   USD_MTL_NAME_COLLISION_REFERENCE_EXISTING = 1,
 } eUSDMtlNameCollisionMode;
 
-<<<<<<< HEAD
 typedef enum eUSDAttrImportMode {
   USD_ATTR_IMPORT_NONE = 0,
   USD_ATTR_IMPORT_USER = 1,
@@ -89,14 +88,10 @@ typedef enum eUSDDefaultPrimKind {
   USD_KIND_CUSTOM
 } eUSDDefaultPrimKind;
 
-/* Behavior when importing textures from a package
- * (e.g., USDZ archive) or from a URI path. */
-=======
 /**
- *  Behavior when importing textures from a package
+ * Behavior when importing textures from a package
  * (e.g., USDZ archive) or from a URI path.
  */
->>>>>>> main
 typedef enum eUSDTexImportMode {
   USD_TEX_IMPORT_NONE = 0,
   USD_TEX_IMPORT_PACK,
@@ -138,15 +133,12 @@ struct USDExportParams {
   bool export_mesh_attributes = true;
   bool export_transforms = true;
   bool export_materials = true;
-<<<<<<< HEAD
+  eSubdivExportMode export_subdiv = USD_SUBDIV_BEST_MATCH;
   bool export_meshes = true;
   bool export_lights = true;
   bool export_cameras = true;
   bool export_curves = true;
   bool export_particles = true;
-=======
-  eSubdivExportMode export_subdiv = USD_SUBDIV_BEST_MATCH;
->>>>>>> main
   bool selected_objects_only = false;
   bool visible_objects_only = true;
   bool use_instancing = false;
@@ -162,7 +154,6 @@ struct USDExportParams {
   bool export_custom_properties = true;
   bool add_properties_namespace = true;
   bool export_identity_transforms = true;
-  bool apply_subdiv = false;
   bool author_blender_name = true;
   bool vertex_data_as_face_varying = true;
   float frame_step = 1.0f;

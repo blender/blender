@@ -73,7 +73,7 @@ void ModifierDisabler::disable_modifiers()
 {
   /* We only handle the case where subdivision modifiers are to be
    * disabled. */
-  if (export_params_.apply_subdiv) {
+  if (export_params_.export_subdiv != USD_SUBDIV_TESSELLATE) {
     return;
   }
 

@@ -70,16 +70,10 @@ void USDCameraReader::read_object_data(Main *bmain, const double motionSampleTim
   bcam->shiftx = h_film_offset / apperture_x;
   bcam->shifty = v_film_offset / apperture_y / film_aspect;
 
-<<<<<<< HEAD
   pxr::GfRange1f usd_clip_range = usd_cam.GetClippingRange();
-  bcam->clip_start = usd_clip_range.GetMin() * settings_->scale;
+  /* Clamp to 1e-6 matching range defined in RNA. */
+  bcam->clip_start = max_ff(1e-6f, usd_clip_range.GetMin() * settings_->scale);
   bcam->clip_end = usd_clip_range.GetMax() * settings_->scale;
-=======
-  /* Call UncheckedGet() to silence compiler warnings.
-   * Clamp to 1e-6 matching range defined in RNA. */
-  bcam->clip_start = max_ff(1e-6f, clippingRangeVal.UncheckedGet<pxr::GfVec2f>()[0]);
-  bcam->clip_end = clippingRangeVal.UncheckedGet<pxr::GfVec2f>()[1];
->>>>>>> main
 
   bcam->dof.focus_distance = usd_cam.GetFocusDistance() * settings_->scale;
   bcam->dof.aperture_fstop = usd_cam.GetFStop();

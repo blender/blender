@@ -32,7 +32,7 @@
 #include "BKE_key.h"
 #include "BKE_customdata.hh"
 #include "BKE_lib_id.h"
-#include "BKE_library.h"
+#include "BKE_library.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
@@ -41,8 +41,8 @@
 #include "BKE_object.hh"
 #include "BKE_report.h"
 
-#include "bmesh.h"
-#include "bmesh_tools.h"
+#include "bmesh.hh"
+#include "bmesh_tools.hh"
 
 #include "DEG_depsgraph.hh"
 
@@ -644,12 +644,8 @@ void USDGenericMeshWriter::write_mesh(HierarchyContext &context,
         attr_corner_sharpnesses, pxr::VtValue(usd_mesh_data.crease_sharpnesses), timecode);
   }
 
-<<<<<<< HEAD
   write_custom_data(context.object, mesh, usd_mesh);
-=======
-  write_custom_data(mesh, usd_mesh);
   write_surface_velocity(mesh, usd_mesh);
->>>>>>> main
 
   const pxr::TfToken subdiv_scheme = get_subdiv_scheme(subsurfData);
 
@@ -666,18 +662,9 @@ void USDGenericMeshWriter::write_mesh(HierarchyContext &context,
     return;
   }
 
-<<<<<<< HEAD
-  if (usd_export_context_.export_params.export_vertices) {
-    const bool set_subdiv = !usd_export_context_.export_params.apply_subdiv &&
-                            export_as_subdiv(context.object);
-    usd_mesh.CreateSubdivisionSchemeAttr().Set(set_subdiv ? pxr::UsdGeomTokens->catmullClark :
-                                                            pxr::UsdGeomTokens->none);
-  }
-=======
   /* The subdivision scheme is a uniform according to spec,
    * so this value cannot be animated. */
   write_subdiv(subdiv_scheme, usd_mesh, subsurfData);
->>>>>>> main
 
   if (usd_export_context_.export_params.export_materials) {
     assign_materials(context, usd_mesh, usd_mesh_data.face_groups);
