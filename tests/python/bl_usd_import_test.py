@@ -126,7 +126,7 @@ class USDImportTest(AbstractUSDTest):
         objects = bpy.context.scene.collection.objects
         if "preview" in bpy.data.objects:
             bpy.data.objects.remove(bpy.data.objects["preview"])
-        self.assertEqual(1, len(objects), f"File {infile} should contain one object, found {len(objects)}")
+        self.assertEqual(2, len(objects), f"File {infile} should contain one object, found {len(objects)}")
 
         mesh = bpy.data.objects["uvmap_plane"].data
         self.assertEqual(len(mesh.uv_layers), 2,

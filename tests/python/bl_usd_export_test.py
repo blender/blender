@@ -97,17 +97,27 @@ class USDExportTest(AbstractUSDTest):
 
         # if prims are missing, the exporter must have skipped some objects
         stats = UsdUtils.ComputeUsdStageStats(str(export_path))
-        self.assertEqual(stats["totalPrimCount"], 16, "Unexpected number of prims")
+        self.assertEqual(stats["totalPrimCount"], 18, "Unexpected number of prims")
 
         # validate the overall world bounds of the scene
         stage = Usd.Stage.Open(str(export_path))
+
+        ## root may have scaling applied, so take that into account
+        root_xf = UsdGeom.Xformable(stage.GetPrimAtPath("/root"))
+        self.assertTrue(root_xf, "Unable to find root prim.")
+        xfs = [x for x in root_xf.GetOrderedXformOps() if x.GetOpName().endswith(":scale")]
+        scale = Gf.Vec3d(xfs[0].Get()) if len(xfs) else Gf.Vec3d(1.0, 1.0, 1.0)
+
         scenePrim = stage.GetPrimAtPath("/root/scene")
         bboxcache = UsdGeom.BBoxCache(Usd.TimeCode.Default(), [UsdGeom.Tokens.default_])
         bounds = bboxcache.ComputeWorldBound(scenePrim)
         bound_min = bounds.GetRange().GetMin()
         bound_max = bounds.GetRange().GetMax()
-        self.compareVec3d(bound_min, Gf.Vec3d(-5.752975881, -1, -2.798513651))
-        self.compareVec3d(bound_max, Gf.Vec3d(1, 2.9515805244, 2.7985136508))
+
+        min_point = Gf.Vec3d(-5.752975881 * scale[0], -1 * scale[1], -2.798513651 * scale[2])
+        self.compareVec3d(bound_min, min_point)
+        max_point = Gf.Vec3d(1 * scale[0], 2.9515805244 * scale[1], 2.7985136508 * scale[2])
+        self.compareVec3d(bound_max, max_point)
 
         # validate the locally authored extents
         prim = stage.GetPrimAtPath("/root/scene/BigCube/BigCubeMesh")
@@ -143,7 +153,7 @@ class USDExportTest(AbstractUSDTest):
 
         # Inspect and validate the exported USD for the opaque blend case.
         stage = Usd.Stage.Open(str(export_path))
-        shader_prim = stage.GetPrimAtPath("/root/_materials/Material/Principled_BSDF")
+        shader_prim = stage.GetPrimAtPath("/root/materials/Material/preview_Principled_BSDF")
         shader = UsdShade.Shader(shader_prim)
         opacity_input = shader.GetInput('opacity')
         self.assertEqual(opacity_input.HasConnectedSource(), False,
@@ -170,7 +180,7 @@ class USDExportTest(AbstractUSDTest):
 
         # Inspect and validate the exported USD for the alpha clip case.
         stage = Usd.Stage.Open(str(export_path))
-        shader_prim = stage.GetPrimAtPath("/root/_materials/Material/Principled_BSDF")
+        shader_prim = stage.GetPrimAtPath("/root/materials/Material/preview_Principled_BSDF")
         shader = UsdShade.Shader(shader_prim)
         opacity_input = shader.GetInput('opacity')
         opacity_thres_input = shader.GetInput('opacityThreshold')
@@ -189,7 +199,7 @@ class USDExportTest(AbstractUSDTest):
 
         # Inspect and validate the exported USD for the alpha blend case.
         stage = Usd.Stage.Open(str(export_path))
-        shader_prim = stage.GetPrimAtPath("/root/_materials/Material/Principled_BSDF")
+        shader_prim = stage.GetPrimAtPath("/root/materials/Material/preview_Principled_BSDF")
         shader = UsdShade.Shader(shader_prim)
         opacity_input = shader.GetInput('opacity')
         opacity_thres_input = shader.GetInput('opacityThreshold')

@@ -111,42 +111,37 @@ TEST_F(UsdCurvesTest, usd_export_curves)
   USDExportParams params;
 
   const bool result = USD_export(context, output_filename.c_str(), &params, false, nullptr);
-  EXPECT_TRUE(result) << "USD export should succed.";
+  EXPECT_TRUE(result) << "USD export should succeed.";
 
   pxr::UsdStageRefPtr stage = pxr::UsdStage::Open(output_filename);
   ASSERT_NE(stage, nullptr) << "Stage should not be null after opening usd file.";
 
   {
-    std::string prim_name = pxr::TfMakeValidIdentifier("BezierCurve");
-    pxr::UsdPrim test_prim = stage->GetPrimAtPath(pxr::SdfPath("/BezierCurve/" + prim_name));
+    pxr::UsdPrim test_prim = stage->GetPrimAtPath(pxr::SdfPath("/root/BezierCurve/BezierCurve"));
     EXPECT_TRUE(test_prim.IsValid());
     check_bezier_curve(test_prim, false, 7);
   }
 
   {
-    std::string prim_name = pxr::TfMakeValidIdentifier("BezierCircle");
-    pxr::UsdPrim test_prim = stage->GetPrimAtPath(pxr::SdfPath("/BezierCircle/" + prim_name));
+    pxr::UsdPrim test_prim = stage->GetPrimAtPath(pxr::SdfPath("/root/BezierCircle/BezierCircle"));
     EXPECT_TRUE(test_prim.IsValid());
     check_bezier_curve(test_prim, true, 13);
   }
 
   {
-    std::string prim_name = pxr::TfMakeValidIdentifier("NurbsCurve");
-    pxr::UsdPrim test_prim = stage->GetPrimAtPath(pxr::SdfPath("/NurbsCurve/" + prim_name));
+    pxr::UsdPrim test_prim = stage->GetPrimAtPath(pxr::SdfPath("/root/NurbsCurve/NurbsCurve"));
     EXPECT_TRUE(test_prim.IsValid());
     check_nurbs_curve(test_prim, 6, 20, 4);
   }
 
   {
-    std::string prim_name = pxr::TfMakeValidIdentifier("NurbsCircle");
-    pxr::UsdPrim test_prim = stage->GetPrimAtPath(pxr::SdfPath("/NurbsCircle/" + prim_name));
+    pxr::UsdPrim test_prim = stage->GetPrimAtPath(pxr::SdfPath("/root/NurbsCircle/NurbsCircle"));
     EXPECT_TRUE(test_prim.IsValid());
     check_nurbs_circle(test_prim, 8, 13, 3);
   }
 
   {
-    std::string prim_name = pxr::TfMakeValidIdentifier("Curves");
-    pxr::UsdPrim test_prim = stage->GetPrimAtPath(pxr::SdfPath("/Cube/Curves/" + prim_name));
+    pxr::UsdPrim test_prim = stage->GetPrimAtPath(pxr::SdfPath("/root/Cube/Curves/Curves"));
     EXPECT_TRUE(test_prim.IsValid());
     check_catmullRom_curve(test_prim, false, 8);
   }

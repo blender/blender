@@ -104,20 +104,16 @@ TEST_F(UsdUsdzExportTest, usdz_export)
   pxr::UsdStageRefPtr stage = pxr::UsdStage::Open(output_filepath);
   ASSERT_TRUE(bool(stage)) << "unable to open stage for the exported usdz file.";
 
-  std::string prim_name = pxr::TfMakeValidIdentifier("Cube");
-  pxr::UsdPrim test_prim = stage->GetPrimAtPath(pxr::SdfPath("/Cube/" + prim_name));
+  pxr::UsdPrim test_prim = stage->GetPrimAtPath(pxr::SdfPath("/root/Cube"));
   EXPECT_TRUE(bool(test_prim)) << "Cube prim should exist in exported usdz file.";
 
-  prim_name = pxr::TfMakeValidIdentifier("Cylinder");
-  test_prim = stage->GetPrimAtPath(pxr::SdfPath("/Cylinder/" + prim_name));
+  test_prim = stage->GetPrimAtPath(pxr::SdfPath("/root/Cylinder"));
   EXPECT_TRUE(bool(test_prim)) << "Cylinder prim should exist in exported usdz file.";
 
-  prim_name = pxr::TfMakeValidIdentifier("Icosphere");
-  test_prim = stage->GetPrimAtPath(pxr::SdfPath("/Icosphere/" + prim_name));
+  test_prim = stage->GetPrimAtPath(pxr::SdfPath("/root/Icosphere"));
   EXPECT_TRUE(bool(test_prim)) << "Icosphere prim should exist in exported usdz file.";
 
-  prim_name = pxr::TfMakeValidIdentifier("Sphere");
-  test_prim = stage->GetPrimAtPath(pxr::SdfPath("/Sphere/" + prim_name));
+  test_prim = stage->GetPrimAtPath(pxr::SdfPath("/root/Sphere"));
   EXPECT_TRUE(bool(test_prim)) << "Sphere prim should exist in exported usdz file.";
 
   char final_cwd_buff[FILE_MAX];

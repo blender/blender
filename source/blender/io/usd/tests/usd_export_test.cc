@@ -227,7 +227,7 @@ TEST_F(UsdExportTest, usd_export_rain_mesh)
     const Mesh *mesh = static_cast<Mesh *>(object->data);
     const StringRefNull object_name(object->id.name + 2);
 
-    const pxr::SdfPath sdf_path("/" + pxr::TfMakeValidIdentifier(object_name.c_str()));
+    const pxr::SdfPath sdf_path("/root/" + pxr::TfMakeValidIdentifier(object_name.c_str()));
     pxr::UsdPrim prim = stage->GetPrimAtPath(sdf_path);
     EXPECT_TRUE(bool(prim));
 
@@ -291,8 +291,9 @@ TEST_F(UsdExportTest, usd_export_material)
                                                        "ShaderNodeBsdfPrincipled");
 
   const std::string prim_name = pxr::TfMakeValidIdentifier(bsdf_node->name);
+  pxr::SdfPath path = pxr::SdfPath("/root/materials/Material/preview_" + prim_name);
   const pxr::UsdPrim bsdf_prim = stage->GetPrimAtPath(
-      pxr::SdfPath("/_materials/Material/" + prim_name));
+      pxr::SdfPath("/root/materials/Material/preview_" + prim_name));
 
   compare_blender_node_to_usd_prim(bsdf_node, bsdf_prim);
 
@@ -303,7 +304,7 @@ TEST_F(UsdExportTest, usd_export_material)
   const std::string image_prim_name = pxr::TfMakeValidIdentifier(image_node->name);
 
   const pxr::UsdPrim image_prim = stage->GetPrimAtPath(
-      pxr::SdfPath("/_materials/Material/" + image_prim_name));
+      pxr::SdfPath("/root/materials/Material/preview_" + image_prim_name));
 
   ASSERT_TRUE(bool(image_prim)) << "Unable to find Material prim from exported stage "
                                 << output_filename;

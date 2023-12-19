@@ -374,8 +374,8 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
   /* USDKind support. */
   const bool export_usd_kind = RNA_boolean_get(op->ptr, "export_usd_kind");
   const int default_prim_kind = RNA_enum_get(op->ptr, "default_prim_kind");
-  char *default_prim_custom_kind = RNA_string_get_alloc(
-      op->ptr, "default_prim_custom_kind", nullptr, 0, nullptr);
+  char default_prim_custom_kind[128];
+  RNA_string_get(op->ptr, "default_prim_custom_kind", default_prim_custom_kind);
 
   const double start = static_cast<double>(RNA_int_get(op->ptr, "start"));
   const double end = static_cast<double>(RNA_int_get(op->ptr, "end"));
@@ -443,8 +443,9 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
                                    quad_method,
                                    ngon_method,
                                    export_usd_kind,
-                                   eUSDDefaultPrimKind(default_prim_kind),
-                                   default_prim_custom_kind};
+                                   eUSDDefaultPrimKind(default_prim_kind)};
+
+  BLI_strncpy(params.default_prim_custom_kind, default_prim_custom_kind, 128);
 
   /* Take some defaults from the scene, if not specified explicitly. */
   Scene *scene = CTX_data_scene(C);

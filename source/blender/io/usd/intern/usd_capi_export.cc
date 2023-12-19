@@ -90,8 +90,7 @@ class MainThreadLock {
   MainThreadLock &operator=(const MainThreadLock &) = delete;
 };
 
-} // End anonymous namespace
-
+}  // End anonymous namespace
 
 namespace blender::io::usd {
 
@@ -490,9 +489,9 @@ static bool perform_usdz_conversion(const ExportJobData *data)
   {
     BKE_reportf(data->params.worker_status->reports,
                 RPT_ERROR,
-               "USD Export: Couldn't copy new usdz file from temporary location %s to %s",
-               usdz_temp_full_path,
-               data->usdz_filepath);
+                "USD Export: Couldn't copy new usdz file from temporary location %s to %s",
+                usdz_temp_full_path,
+                data->usdz_filepath);
     return false;
   }
 
@@ -709,17 +708,17 @@ static void export_startjob(void *customdata, wmJobWorkerStatus *worker_status)
      * USDC files, and creating a new UsdStage fails. */
     BKE_reportf(worker_status->reports,
                 RPT_ERROR,
-               "USD Export: unable to create a stage for writing %s",
-               data->unarchived_filepath);
+                "USD Export: unable to create a stage for writing %s",
+                data->unarchived_filepath);
 
     pxr::SdfLayerRefPtr existing_layer = pxr::SdfLayer::FindOrOpen(data->unarchived_filepath);
     if (existing_layer) {
       BKE_reportf(worker_status->reports,
                   RPT_ERROR,
-                 "USD Export: layer %s is currently open in the scene, "
-                 "possibly because it's referenced by modifiers, "
-                 "and can't be overwritten",
-                 data->unarchived_filepath);
+                  "USD Export: layer %s is currently open in the scene, "
+                  "possibly because it's referenced by modifiers, "
+                  "and can't be overwritten",
+                  data->unarchived_filepath);
     }
     return;
   }
@@ -754,8 +753,6 @@ static void export_endjob(void *customdata)
   ExportJobData *data = static_cast<ExportJobData *>(customdata);
 
   DEG_graph_free(data->depsgraph);
-
-  MEM_freeN(data->params.default_prim_custom_kind);
 
   if (data->targets_usdz()) {
     /* NOTE: call to #perform_usdz_conversion has to be done here instead of the main threaded

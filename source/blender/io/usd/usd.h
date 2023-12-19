@@ -6,6 +6,7 @@
 
 #include "DEG_depsgraph.hh"
 
+#include "DNA_modifier_types.h"
 #include "RNA_types.hh"
 
 #ifdef __cplusplus
@@ -101,75 +102,75 @@ typedef enum eUSDTexNameCollisionMode {
 } eUSDTexNameCollisionMode;
 
 struct USDExportParams {
-  double frame_start;
-  double frame_end;
+  double frame_start = 0.0;
+  double frame_end = 0.0;
 
-  bool export_animation;
-  bool export_hair;
-  bool export_vertices;
-  bool export_mesh_colors;
-  bool export_vertex_groups;
-  bool export_uvmaps;
-  bool export_normals;
-  bool export_mesh_attributes;
-  bool export_transforms;
-  bool export_materials;
-  bool export_meshes;
-  bool export_lights;
-  bool export_cameras;
-  bool export_curves;
-  bool export_particles;
-  bool selected_objects_only;
-  bool visible_objects_only;
-  bool use_instancing;
+  bool export_animation = false;
+  bool export_hair = true;
+  bool export_vertices = true;
+  bool export_mesh_colors = true;
+  bool export_vertex_groups = true;
+  bool export_uvmaps = true;
+  bool export_normals = true;
+  bool export_mesh_attributes = true;
+  bool export_transforms = true;
+  bool export_materials = true;
+  bool export_meshes = true;
+  bool export_lights = true;
+  bool export_cameras = true;
+  bool export_curves = true;
+  bool export_particles = true;
+  bool selected_objects_only = false;
+  bool visible_objects_only = true;
+  bool use_instancing = false;
   enum eEvaluationMode evaluation_mode = DAG_EVAL_VIEWPORT;
-  bool generate_preview_surface;
-  bool convert_uv_to_st;
-  bool convert_orientation;
-  enum USD_global_forward_axis forward_axis;
-  enum USD_global_up_axis up_axis;
-  bool export_child_particles;
-  bool export_as_overs;
-  bool merge_transform_and_shape;
-  bool export_custom_properties;
-  bool add_properties_namespace;
-  bool export_identity_transforms;
-  bool apply_subdiv;
-  bool author_blender_name;
-  bool vertex_data_as_face_varying;
-  float frame_step;
-  bool override_shutter;
-  double shutter_open;
-  double shutter_close;
-  bool export_textures;
-  bool relative_paths;
-  bool backward_compatible;
-  float light_intensity_scale;
-  bool generate_mdl;
-  bool convert_to_cm;
-  bool convert_light_to_nits;
-  bool scale_light_radius;
-  bool convert_world_material;
-  bool generate_cycles_shaders;
-  bool export_armatures;
-  eUSDXformOpMode xform_op_mode;
-  bool fix_skel_root;
-  bool overwrite_textures;
-  bool export_shapekeys;
-  bool use_deform;
-  eUSDZTextureDownscaleSize usdz_downscale_size;
-  int usdz_downscale_custom_size;
-  bool usdz_is_arkit;
-  bool export_blender_metadata;
-  bool triangulate_meshes;
-  int quad_method;
-  int ngon_method;
-  bool export_usd_kind;
-  eUSDDefaultPrimKind default_prim_kind;
-  char *default_prim_custom_kind;
-  char root_prim_path[1024] = "";     /* FILE_MAX */
-  char default_prim_path[1024] = "";  /* FILE_MAX */
-  char material_prim_path[1024] = ""; /* FILE_MAX */
+  bool generate_preview_surface = true;
+  bool convert_uv_to_st = true;
+  bool convert_orientation = false;
+  enum USD_global_forward_axis forward_axis = USD_global_forward_axis::USD_GLOBAL_FORWARD_MINUS_Z;
+  enum USD_global_up_axis up_axis = USD_global_up_axis::USD_GLOBAL_UP_Y;
+  bool export_child_particles = false;
+  bool export_as_overs = false;
+  bool merge_transform_and_shape = false;
+  bool export_custom_properties = true;
+  bool add_properties_namespace = true;
+  bool export_identity_transforms = true;
+  bool apply_subdiv = false;
+  bool author_blender_name = true;
+  bool vertex_data_as_face_varying = true;
+  float frame_step = 1.0f;
+  bool override_shutter = false;
+  double shutter_open = 0.25;
+  double shutter_close = 0.75;
+  bool export_textures = true;
+  bool relative_paths = true;
+  bool backward_compatible = true;
+  float light_intensity_scale = 1.0f;
+  bool generate_mdl = false;
+  bool convert_to_cm = true;
+  bool convert_light_to_nits = true;
+  bool scale_light_radius = true;
+  bool convert_world_material = true;
+  bool generate_cycles_shaders = false;
+  bool export_armatures = true;
+  eUSDXformOpMode xform_op_mode = eUSDXformOpMode::USD_XFORM_OP_SRT;
+  bool fix_skel_root = true;
+  bool overwrite_textures = false;
+  bool export_shapekeys = true;
+  bool use_deform = false;
+  eUSDZTextureDownscaleSize usdz_downscale_size = eUSDZTextureDownscaleSize::USD_TEXTURE_SIZE_KEEP;
+  int usdz_downscale_custom_size = 128;
+  bool usdz_is_arkit = false;
+  bool export_blender_metadata = true;
+  bool triangulate_meshes = false;
+  int quad_method = MOD_TRIANGULATE_QUAD_SHORTEDGE;
+  int ngon_method = MOD_TRIANGULATE_NGON_BEAUTY;
+  bool export_usd_kind = true;
+  eUSDDefaultPrimKind default_prim_kind = eUSDDefaultPrimKind::USD_KIND_NONE;
+  char default_prim_custom_kind[128] = "";
+  char root_prim_path[1024] = "/root";               /* FILE_MAX */
+  char default_prim_path[1024] = "/root";            /* FILE_MAX */
+  char material_prim_path[1024] = "/root/materials"; /* FILE_MAX */
 
   /** Communication structure between the wmJob management code and the worker code. Currently used
    * to generate safely reports from the worker thread. */
