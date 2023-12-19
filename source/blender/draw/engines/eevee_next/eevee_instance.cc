@@ -493,9 +493,8 @@ void Instance::render_frame(RenderLayer *render_layer, const char *view_name)
   this->render_read_result(render_layer, view_name);
 }
 
-void Instance::draw_viewport(DefaultFramebufferList *dfbl)
+void Instance::draw_viewport()
 {
-  UNUSED_VARS(dfbl);
   render_sample();
   velocity.step_swap();
 
@@ -516,6 +515,14 @@ void Instance::draw_viewport(DefaultFramebufferList *dfbl)
     ss << "Optimizing Shaders (" << materials.queued_optimize_shaders_count << " remaining)";
     info = ss.str();
   }
+}
+
+void Instance::draw_viewport_image_render()
+{
+  while (!sampling.finished_viewport()) {
+    this->render_sample();
+  }
+  velocity.step_swap();
 }
 
 void Instance::store_metadata(RenderResult *render_result)

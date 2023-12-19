@@ -180,7 +180,8 @@ class Instance {
 
   /* Viewport. */
 
-  void draw_viewport(DefaultFramebufferList *dfbl);
+  void draw_viewport();
+  void draw_viewport_image_render();
 
   /* Light bake. */
 
@@ -197,6 +198,11 @@ class Instance {
   bool is_viewport() const
   {
     return render == nullptr && !is_baking();
+  }
+
+  bool is_viewport_image_render() const
+  {
+    return DRW_state_is_viewport_image_render();
   }
 
   bool is_baking() const
