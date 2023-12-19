@@ -20,15 +20,24 @@
 #pragma BLENDER_REQUIRE(eevee_gbuffer_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
 
-shared vec3 cached_radiance[SUBSURFACE_GROUP_SIZE][SUBSURFACE_GROUP_SIZE];
-shared uint cached_sss_id[SUBSURFACE_GROUP_SIZE][SUBSURFACE_GROUP_SIZE];
-shared float cached_depth[SUBSURFACE_GROUP_SIZE][SUBSURFACE_GROUP_SIZE];
+/* Produces NaN tile artifacts on Metal (M1). */
+#ifndef GPU_METAL
+#  define GROUPSHARED_CACHE
+#endif
 
 struct SubSurfaceSample {
   vec3 radiance;
   float depth;
   uint sss_id;
 };
+
+/* TODO(fclem): These need to be outside the check because of MSL backend glue.
+ * This likely will contribute to register usage. Better get rid of if or make it working. */
+shared vec3 cached_radiance[SUBSURFACE_GROUP_SIZE][SUBSURFACE_GROUP_SIZE];
+shared uint cached_sss_id[SUBSURFACE_GROUP_SIZE][SUBSURFACE_GROUP_SIZE];
+shared float cached_depth[SUBSURFACE_GROUP_SIZE][SUBSURFACE_GROUP_SIZE];
+
+#ifdef GROUPSHARED_CACHE
 
 void cache_populate(vec2 local_uv)
 {
@@ -51,14 +60,17 @@ bool cache_sample(uvec2 texel, out SubSurfaceSample samp)
   samp.depth = cached_depth[texel.y][texel.x];
   return true;
 }
+#endif
 
 SubSurfaceSample sample_neighborhood(vec2 sample_uv)
 {
   SubSurfaceSample samp;
+#ifdef GROUPSHARED_CACHE
   uvec2 sample_texel = uvec2(sample_uv * vec2(textureSize(depth_tx, 0)));
   if (cache_sample(sample_texel, samp)) {
     return samp;
   }
+#endif
   samp.depth = texture(depth_tx, sample_uv).r;
   samp.sss_id = texture(object_id_tx, sample_uv).r;
   samp.radiance = texture(radiance_tx, sample_uv).rgb;
@@ -73,7 +85,9 @@ void main(void)
 
   vec2 center_uv = (vec2(texel) + 0.5) / vec2(textureSize(gbuf_header_tx, 0));
 
+#ifdef GROUPSHARED_CACHE
   cache_populate(center_uv);
+#endif
 
   float depth = texelFetch(depth_tx, texel, 0).r;
   vec3 vP = drw_point_screen_to_view(vec3(center_uv, depth));
