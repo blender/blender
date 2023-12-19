@@ -25,8 +25,6 @@ ClosureDiffuse g_diffuse_data;
 ClosureTranslucent g_translucent_data;
 ClosureReflection g_reflection_data;
 ClosureRefraction g_refraction_data;
-ClosureVolumeScatter g_volume_scatter_data;
-ClosureVolumeAbsorption g_volume_absorption_data;
 /* Random number per sampled closure type. */
 float g_diffuse_rand;
 float g_translucent_rand;
@@ -82,12 +80,9 @@ void closure_weights_reset()
   g_refraction_data.roughness = 0.0;
   g_refraction_data.ior = 0.0;
 
-  g_volume_scatter_data.weight = 0.0;
-  g_volume_scatter_data.scattering = vec3(0.0);
-  g_volume_scatter_data.anisotropy = 0.0;
-
-  g_volume_absorption_data.weight = 0.0;
-  g_volume_absorption_data.absorption = vec3(0.0);
+  g_volume_scattering = vec3(0.0);
+  g_volume_anisotropy = 0.0;
+  g_volume_absorption = vec3(0.0);
 
 #if defined(GPU_FRAGMENT_SHADER)
   g_diffuse_rand = g_translucent_rand = g_reflection_rand = g_refraction_rand = g_closure_rand;
@@ -143,14 +138,14 @@ Closure closure_eval(ClosureTransparency transparency)
 
 Closure closure_eval(ClosureVolumeScatter volume_scatter)
 {
-  g_volume_scattering += volume_scatter.scattering;
-  g_volume_anisotropy += volume_scatter.anisotropy;
+  g_volume_scattering += volume_scatter.scattering * volume_scatter.weight;
+  g_volume_anisotropy += volume_scatter.anisotropy * volume_scatter.weight;
   return Closure(0);
 }
 
 Closure closure_eval(ClosureVolumeAbsorption volume_absorption)
 {
-  g_volume_absorption += volume_absorption.absorption;
+  g_volume_absorption += volume_absorption.absorption * volume_absorption.weight;
   return Closure(0);
 }
 
