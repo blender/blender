@@ -1306,6 +1306,9 @@ void update_bounds(PBVH &pbvh, int flag)
 {
   Vector<PBVHNode *> nodes = search_gather(
       &pbvh, [&](PBVHNode &node) { return update_search(&node, flag); });
+  if (nodes.is_empty()) {
+    return;
+  }
 
   if (flag & (PBVH_UpdateBB | PBVH_UpdateOriginalBB | PBVH_UpdateRedraw)) {
     pbvh_update_BB_redraw(&pbvh, nodes, flag);
