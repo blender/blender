@@ -15,8 +15,6 @@
 #include "FN_field.hh"
 #include "FN_multi_function.hh"
 
-#include "DNA_meshdata_types.h"
-
 #include "BKE_attribute.h"
 #include "BKE_geometry_fields.hh"
 
@@ -30,37 +28,37 @@ class RandomNumberGenerator;
 namespace blender::bke::mesh_surface_sample {
 
 void sample_point_attribute(Span<int> corner_verts,
-                            Span<MLoopTri> looptris,
-                            Span<int> looptri_indices,
+                            Span<int3> corner_tris,
+                            Span<int> tri_indices,
                             Span<float3> bary_coords,
                             const GVArray &src,
                             const IndexMask &mask,
                             GMutableSpan dst);
 
 void sample_point_normals(Span<int> corner_verts,
-                          Span<MLoopTri> looptris,
-                          Span<int> looptri_indices,
+                          Span<int3> corner_tris,
+                          Span<int> tri_indices,
                           Span<float3> bary_coords,
                           Span<float3> src,
                           IndexMask mask,
                           MutableSpan<float3> dst);
 
-void sample_corner_attribute(Span<MLoopTri> looptris,
-                             Span<int> looptri_indices,
+void sample_corner_attribute(Span<int3> corner_tris,
+                             Span<int> tri_indices,
                              Span<float3> bary_coords,
                              const GVArray &src,
                              const IndexMask &mask,
                              GMutableSpan dst);
 
-void sample_corner_normals(Span<MLoopTri> looptris,
-                           Span<int> looptri_indices,
+void sample_corner_normals(Span<int3> corner_tris,
+                           Span<int> tri_indices,
                            Span<float3> bary_coords,
                            Span<float3> src,
                            const IndexMask &mask,
                            MutableSpan<float3> dst);
 
-void sample_face_attribute(Span<int> looptri_faces,
-                           Span<int> looptri_indices,
+void sample_face_attribute(Span<int> corner_tri_faces,
+                           Span<int> tri_indices,
                            const GVArray &src,
                            const IndexMask &mask,
                            GMutableSpan dst);
@@ -76,12 +74,12 @@ void sample_face_attribute(Span<int> looptri_faces,
  */
 int sample_surface_points_spherical(RandomNumberGenerator &rng,
                                     const Mesh &mesh,
-                                    Span<int> looptri_indices_to_sample,
+                                    Span<int> tris_to_sample,
                                     const float3 &sample_pos,
                                     float sample_radius,
                                     float approximate_density,
                                     Vector<float3> &r_bary_coords,
-                                    Vector<int> &r_looptri_indices,
+                                    Vector<int> &r_tri_indices,
                                     Vector<float3> &r_positions);
 
 /**
@@ -109,34 +107,34 @@ int sample_surface_points_projected(
     int tries_num,
     int max_points,
     Vector<float3> &r_bary_coords,
-    Vector<int> &r_looptri_indices,
+    Vector<int> &r_tri_indices,
     Vector<float3> &r_positions);
 
 float3 compute_bary_coord_in_triangle(Span<float3> vert_positions,
                                       Span<int> corner_verts,
-                                      const MLoopTri &lt,
+                                      const int3 &corner_tri,
                                       const float3 &position);
 
 template<typename T>
 inline T sample_corner_attribute_with_bary_coords(const float3 &bary_weights,
-                                                  const MLoopTri &lt,
+                                                  const int3 &corner_tri,
                                                   const Span<T> corner_attribute)
 {
   return attribute_math::mix3(bary_weights,
-                              corner_attribute[lt.tri[0]],
-                              corner_attribute[lt.tri[1]],
-                              corner_attribute[lt.tri[2]]);
+                              corner_attribute[corner_tri[0]],
+                              corner_attribute[corner_tri[1]],
+                              corner_attribute[corner_tri[2]]);
 }
 
 template<typename T>
 inline T sample_corner_attribute_with_bary_coords(const float3 &bary_weights,
-                                                  const MLoopTri &lt,
+                                                  const int3 &corner_tri,
                                                   const VArray<T> &corner_attribute)
 {
   return attribute_math::mix3(bary_weights,
-                              corner_attribute[lt.tri[0]],
-                              corner_attribute[lt.tri[1]],
-                              corner_attribute[lt.tri[2]]);
+                              corner_attribute[corner_tri[0]],
+                              corner_attribute[corner_tri[1]],
+                              corner_attribute[corner_tri[2]]);
 }
 
 /**
@@ -146,7 +144,7 @@ class BaryWeightFromPositionFn : public mf::MultiFunction {
   GeometrySet source_;
   Span<float3> vert_positions_;
   Span<int> corner_verts_;
-  Span<MLoopTri> looptris_;
+  Span<int3> corner_tris_;
 
  public:
   BaryWeightFromPositionFn(GeometrySet geometry);
@@ -161,7 +159,7 @@ class CornerBaryWeightFromPositionFn : public mf::MultiFunction {
   GeometrySet source_;
   Span<float3> vert_positions_;
   Span<int> corner_verts_;
-  Span<MLoopTri> looptris_;
+  Span<int3> corner_tris_;
 
  public:
   CornerBaryWeightFromPositionFn(GeometrySet geometry);
@@ -176,7 +174,7 @@ class BaryWeightSampleFn : public mf::MultiFunction {
   mf::Signature signature_;
 
   GeometrySet source_;
-  Span<MLoopTri> looptris_;
+  Span<int3> corner_tris_;
   std::optional<bke::MeshFieldContext> source_context_;
   std::unique_ptr<fn::FieldEvaluator> source_evaluator_;
   const GVArray *source_data_;

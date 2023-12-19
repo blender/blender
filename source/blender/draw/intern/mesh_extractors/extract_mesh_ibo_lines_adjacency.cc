@@ -125,23 +125,23 @@ static void extract_lines_adjacency_iter_looptri_bm(const MeshRenderData & /*mr*
   }
 }
 
-static void extract_lines_adjacency_iter_looptri_mesh(const MeshRenderData &mr,
-                                                      const MLoopTri *lt,
-                                                      const int elt_index,
-                                                      void *_data)
+static void extract_lines_adjacency_iter_corner_tri_mesh(const MeshRenderData &mr,
+                                                         const int3 &tri,
+                                                         const int elt_index,
+                                                         void *_data)
 {
   MeshExtract_LineAdjacency_Data *data = static_cast<MeshExtract_LineAdjacency_Data *>(_data);
-  const int face_i = mr.looptri_faces[elt_index];
+  const int face_i = mr.corner_tri_faces[elt_index];
   const bool hidden = mr.use_hide && !mr.hide_poly.is_empty() && mr.hide_poly[face_i];
   if (hidden) {
     return;
   }
-  lines_adjacency_triangle(mr.corner_verts[lt->tri[0]],
-                           mr.corner_verts[lt->tri[1]],
-                           mr.corner_verts[lt->tri[2]],
-                           lt->tri[0],
-                           lt->tri[1],
-                           lt->tri[2],
+  lines_adjacency_triangle(mr.corner_verts[tri[0]],
+                           mr.corner_verts[tri[1]],
+                           mr.corner_verts[tri[2]],
+                           tri[0],
+                           tri[1],
+                           tri[2],
                            data);
 }
 
@@ -251,7 +251,7 @@ constexpr MeshExtract create_extractor_lines_adjacency()
   MeshExtract extractor = {nullptr};
   extractor.init = extract_lines_adjacency_init;
   extractor.iter_looptri_bm = extract_lines_adjacency_iter_looptri_bm;
-  extractor.iter_looptri_mesh = extract_lines_adjacency_iter_looptri_mesh;
+  extractor.iter_corner_tri_mesh = extract_lines_adjacency_iter_corner_tri_mesh;
   extractor.finish = extract_lines_adjacency_finish;
   extractor.init_subdiv = extract_lines_adjacency_init_subdiv;
   extractor.iter_subdiv_bm = extract_lines_adjacency_iter_subdiv_bm;

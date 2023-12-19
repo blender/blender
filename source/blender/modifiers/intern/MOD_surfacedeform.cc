@@ -73,8 +73,8 @@ struct SDefBindCalcData {
   blender::OffsetIndices<int> polys;
   blender::Span<int> corner_verts;
   blender::Span<int> corner_edges;
-  blender::Span<MLoopTri> looptris;
-  blender::Span<int> looptri_faces;
+  blender::Span<blender::int3> corner_tris;
+  blender::Span<int> tri_faces;
 
   /** Coordinates to bind to, transformed into local space (compatible with `vertexCos`). */
   float (*targetCos)[3];
@@ -392,7 +392,7 @@ BLI_INLINE uint nearestVert(SDefBindCalcData *const data, const float point_co[3
   BLI_bvhtree_find_nearest(
       data->treeData->tree, t_point, &nearest, data->treeData->nearest_callback, data->treeData);
 
-  const blender::IndexRange face = data->polys[data->looptri_faces[nearest.index]];
+  const blender::IndexRange face = data->polys[data->tri_faces[nearest.index]];
 
   for (int i = 0; i < face.size(); i++) {
     const int edge_i = data->corner_edges[face.start() + i];
@@ -699,7 +699,7 @@ BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
           /* Compute the distance scale for the corner. The base value is the orthogonal
            * distance from the corner to the chord, scaled by `sqrt(2)` to preserve the old
            * values in case of a square grid. This doesn't use the centroid because the
-           * LOOPTRIS method only uses these three vertices. */
+           * corner_triS method only uses these three vertices. */
           bpoly->scale_mid = area_tri_v2(vert0_v2, corner_v2, vert1_v2) /
                              len_v2v2(vert0_v2, vert1_v2) * sqrtf(2);
 
@@ -1105,7 +1105,7 @@ static void bindVert(void *__restrict userdata,
           sdbind->influence = bpoly->weight * bpoly->dominant_angle_weight;
           sdbind->verts_num = bpoly->verts_num;
 
-          sdbind->mode = MOD_SDEF_MODE_LOOPTRIS;
+          sdbind->mode = MOD_SDEF_MODE_CORNER_TRIS;
           sdbind->vert_weights = static_cast<float *>(
               MEM_malloc_arrayN(3, sizeof(*sdbind->vert_weights), "SDefTriVertWeights"));
           if (sdbind->vert_weights == nullptr) {
@@ -1220,7 +1220,7 @@ static bool surfacedeformBind(Object *ob,
     return false;
   }
 
-  BKE_bvhtree_from_mesh_get(&treeData, target, BVHTREE_FROM_LOOPTRIS, 2);
+  BKE_bvhtree_from_mesh_get(&treeData, target, BVHTREE_FROM_CORNER_TRIS, 2);
   if (treeData.tree == nullptr) {
     BKE_modifier_set_error(ob, (ModifierData *)smd_eval, "Out of memory");
     freeAdjacencyMap(vert_edges, adj_array, edge_polys);
@@ -1259,8 +1259,8 @@ static bool surfacedeformBind(Object *ob,
   data.edges = edges;
   data.corner_verts = corner_verts;
   data.corner_edges = corner_edges;
-  data.looptris = target->looptris();
-  data.looptri_faces = target->looptri_faces();
+  data.corner_tris = target->corner_tris();
+  data.tri_faces = target->corner_tri_faces();
   data.targetCos = static_cast<float(*)[3]>(
       MEM_malloc_arrayN(target_verts_num, sizeof(float[3]), "SDefTargetBindVertArray"));
   data.bind_verts = smd_orig->verts;
@@ -1383,8 +1383,8 @@ static void deformVert(void *__restrict userdata,
     zero_v3(temp);
 
     switch (sdbind->mode) {
-      /* ---------- looptri mode ---------- */
-      case MOD_SDEF_MODE_LOOPTRIS: {
+      /* ---------- corner_tri mode ---------- */
+      case MOD_SDEF_MODE_CORNER_TRIS: {
         madd_v3_v3fl(temp, data->targetCos[sdbind->vert_inds[0]], sdbind->vert_weights[0]);
         madd_v3_v3fl(temp, data->targetCos[sdbind->vert_inds[1]], sdbind->vert_weights[1]);
         madd_v3_v3fl(temp, data->targetCos[sdbind->vert_inds[2]], sdbind->vert_weights[2]);
@@ -1670,7 +1670,8 @@ static void blend_write(BlendWriter *writer, const ID *id_owner, const ModifierD
           BLO_write_uint32_array(
               writer, bind_verts[i].binds[j].verts_num, bind_verts[i].binds[j].vert_inds);
 
-          if (ELEM(bind_verts[i].binds[j].mode, MOD_SDEF_MODE_CENTROID, MOD_SDEF_MODE_LOOPTRIS)) {
+          if (ELEM(bind_verts[i].binds[j].mode, MOD_SDEF_MODE_CENTROID, MOD_SDEF_MODE_CORNER_TRIS))
+          {
             BLO_write_float3_array(writer, 1, bind_verts[i].binds[j].vert_weights);
           }
           else {
@@ -1698,7 +1699,8 @@ static void blend_read(BlendDataReader *reader, ModifierData *md)
           BLO_read_uint32_array(
               reader, smd->verts[i].binds[j].verts_num, &smd->verts[i].binds[j].vert_inds);
 
-          if (ELEM(smd->verts[i].binds[j].mode, MOD_SDEF_MODE_CENTROID, MOD_SDEF_MODE_LOOPTRIS)) {
+          if (ELEM(smd->verts[i].binds[j].mode, MOD_SDEF_MODE_CENTROID, MOD_SDEF_MODE_CORNER_TRIS))
+          {
             BLO_read_float3_array(reader, 1, &smd->verts[i].binds[j].vert_weights);
           }
           else {

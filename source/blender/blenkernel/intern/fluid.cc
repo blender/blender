@@ -852,7 +852,7 @@ BLI_INLINE void apply_effector_fields(FluidEffectorSettings * /*fes*/,
 static void update_velocities(FluidEffectorSettings *fes,
                               const blender::Span<blender::float3> vert_positions,
                               const int *corner_verts,
-                              const MLoopTri *looptris,
+                              const blender::int3 *corner_tris,
                               float *velocity_map,
                               int index,
                               BVHTreeFromMesh *tree_data,
@@ -876,12 +876,12 @@ static void update_velocities(FluidEffectorSettings *fes,
           tree_data->tree, ray_start, &nearest, tree_data->nearest_callback, tree_data) != -1)
   {
     float weights[3];
-    int v1, v2, v3, lt_index = nearest.index;
+    int v1, v2, v3, tri_i = nearest.index;
 
     /* Calculate barycentric weights for nearest point. */
-    v1 = corner_verts[looptris[lt_index].tri[0]];
-    v2 = corner_verts[looptris[lt_index].tri[1]];
-    v3 = corner_verts[looptris[lt_index].tri[2]];
+    v1 = corner_verts[corner_tris[tri_i][0]];
+    v2 = corner_verts[corner_tris[tri_i][1]];
+    v3 = corner_verts[corner_tris[tri_i][2]];
     interp_weights_tri_v3(
         weights, vert_positions[v1], vert_positions[v2], vert_positions[v3], nearest.co);
 
@@ -952,7 +952,7 @@ struct ObstaclesFromDMData {
 
   blender::Span<blender::float3> vert_positions;
   blender::Span<int> corner_verts;
-  blender::Span<MLoopTri> looptris;
+  blender::Span<blender::int3> corner_tris;
 
   BVHTreeFromMesh *tree;
   FluidObjectBB *bb;
@@ -987,7 +987,7 @@ static void obstacles_from_mesh_task_cb(void *__restrict userdata,
       update_velocities(data->fes,
                         data->vert_positions,
                         data->corner_verts.data(),
-                        data->looptris.data(),
+                        data->corner_tris.data(),
                         bb->velocity,
                         index,
                         data->tree,
@@ -1022,7 +1022,7 @@ static void obstacles_from_mesh(Object *coll_ob,
     int min[3], max[3], res[3];
 
     const blender::Span<int> corner_verts = mesh->corner_verts();
-    const blender::Span<MLoopTri> looptris = mesh->looptris();
+    const blender::Span<blender::int3> corner_tris = mesh->corner_tris();
     numverts = mesh->totvert;
 
     /* TODO(sebbas): Make initialization of vertex velocities optional? */
@@ -1080,13 +1080,13 @@ static void obstacles_from_mesh(Object *coll_ob,
 
     /* Skip effector sampling loop if object has disabled effector. */
     bool use_effector = fes->flags & FLUID_EFFECTOR_USE_EFFEC;
-    if (use_effector && BKE_bvhtree_from_mesh_get(&tree_data, mesh, BVHTREE_FROM_LOOPTRIS, 4)) {
+    if (use_effector && BKE_bvhtree_from_mesh_get(&tree_data, mesh, BVHTREE_FROM_CORNER_TRIS, 4)) {
 
       ObstaclesFromDMData data{};
       data.fes = fes;
       data.vert_positions = positions;
       data.corner_verts = corner_verts;
-      data.looptris = looptris;
+      data.corner_tris = corner_tris;
       data.tree = &tree_data;
       data.bb = bb;
       data.has_velocity = has_velocity;
@@ -1801,7 +1801,7 @@ static void sample_mesh(FluidFlowSettings *ffs,
                         blender::Span<blender::float3> vert_positions,
                         const blender::Span<blender::float3> vert_normals,
                         const int *corner_verts,
-                        const MLoopTri *looptris,
+                        const blender::int3 *corner_tris,
                         const float (*mloopuv)[2],
                         float *influence_map,
                         float *velocity_map,
@@ -1882,13 +1882,13 @@ static void sample_mesh(FluidFlowSettings *ffs,
           tree_data->tree, ray_start, &nearest, tree_data->nearest_callback, tree_data) != -1)
   {
     float weights[3];
-    int v1, v2, v3, lt_index = nearest.index;
+    int v1, v2, v3, tri_i = nearest.index;
     float hit_normal[3];
 
     /* Calculate barycentric weights for nearest point. */
-    v1 = corner_verts[looptris[lt_index].tri[0]];
-    v2 = corner_verts[looptris[lt_index].tri[1]];
-    v3 = corner_verts[looptris[lt_index].tri[2]];
+    v1 = corner_verts[corner_tris[tri_i][0]];
+    v2 = corner_verts[corner_tris[tri_i][1]];
+    v3 = corner_verts[corner_tris[tri_i][2]];
     interp_weights_tri_v3(
         weights, vert_positions[v1], vert_positions[v2], vert_positions[v3], nearest.co);
 
@@ -1925,9 +1925,9 @@ static void sample_mesh(FluidFlowSettings *ffs,
         }
         else if (mloopuv) {
           const float *uv[3];
-          uv[0] = mloopuv[looptris[lt_index].tri[0]];
-          uv[1] = mloopuv[looptris[lt_index].tri[1]];
-          uv[2] = mloopuv[looptris[lt_index].tri[2]];
+          uv[0] = mloopuv[corner_tris[tri_i][0]];
+          uv[1] = mloopuv[corner_tris[tri_i][1]];
+          uv[2] = mloopuv[corner_tris[tri_i][2]];
 
           interp_v2_v2v2v2(tex_co, UNPACK3(uv), weights);
 
@@ -1999,7 +1999,7 @@ struct EmitFromDMData {
   blender::Span<blender::float3> vert_positions;
   blender::Span<blender::float3> vert_normals;
   blender::Span<int> corner_verts;
-  blender::Span<MLoopTri> looptris;
+  blender::Span<blender::int3> corner_tris;
   const float (*mloopuv)[2];
   const MDeformVert *dvert;
   int defgrp_index;
@@ -2033,7 +2033,7 @@ static void emit_from_mesh_task_cb(void *__restrict userdata,
                     data->vert_positions,
                     data->vert_normals,
                     data->corner_verts.data(),
-                    data->looptris.data(),
+                    data->corner_tris.data(),
                     data->mloopuv,
                     bb->influence,
                     bb->velocity,
@@ -2083,7 +2083,7 @@ static void emit_from_mesh(
     blender::MutableSpan<blender::float3> positions = mesh->vert_positions_for_write();
 
     const blender::Span<int> corner_verts = mesh->corner_verts();
-    const blender::Span<MLoopTri> looptris = mesh->looptris();
+    const blender::Span<blender::int3> corner_tris = mesh->corner_tris();
     const int numverts = mesh->totvert;
     const MDeformVert *dvert = mesh->deform_verts().data();
     const float(*mloopuv)[2] = static_cast<const float(*)[2]>(
@@ -2146,7 +2146,7 @@ static void emit_from_mesh(
 
     /* Skip flow sampling loop if object has disabled flow. */
     bool use_flow = ffs->flags & FLUID_FLOW_USE_INFLOW;
-    if (use_flow && BKE_bvhtree_from_mesh_get(&tree_data, mesh, BVHTREE_FROM_LOOPTRIS, 4)) {
+    if (use_flow && BKE_bvhtree_from_mesh_get(&tree_data, mesh, BVHTREE_FROM_CORNER_TRIS, 4)) {
 
       EmitFromDMData data{};
       data.fds = fds;
@@ -2154,7 +2154,7 @@ static void emit_from_mesh(
       data.vert_positions = positions;
       data.vert_normals = mesh->vert_normals();
       data.corner_verts = corner_verts;
-      data.looptris = looptris;
+      data.corner_tris = corner_tris;
       data.mloopuv = mloopuv;
       data.dvert = dvert;
       data.defgrp_index = defgrp_index;

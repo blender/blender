@@ -6,6 +6,8 @@
  * \ingroup draw
  */
 
+#include "DNA_meshdata_types.h"
+
 #include "extract_mesh.hh"
 
 #include "draw_cache_impl.hh"

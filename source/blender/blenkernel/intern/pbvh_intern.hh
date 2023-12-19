@@ -22,7 +22,6 @@ struct PBVHBatches;
 }
 
 struct PBVHGPUFormat;
-struct MLoopTri;
 struct BMVert;
 struct BMFace;
 
@@ -43,7 +42,7 @@ struct PBVHNode {
   /* List of primitives for this node. Semantics depends on
    * PBVH type:
    *
-   * - PBVH_FACES: Indices into the #PBVH::looptris array.
+   * - PBVH_FACES: Indices into the #PBVH::corner_tris array.
    * - PBVH_GRIDS: Multires grid indices.
    * - PBVH_BMESH: Unused.  See PBVHNode.bm_faces.
    *
@@ -84,7 +83,7 @@ struct PBVHNode {
    * array. The array is sized to match 'totprim', and each of
    * the face's corners gets an index into the vert_indices
    * array, in the same order as the corners in the original
-   * MLoopTri.
+   * triangle.
    *
    * Used for leaf nodes in a mesh-based PBVH (not multires.)
    */
@@ -157,8 +156,8 @@ struct PBVH {
   blender::OffsetIndices<int> faces;
   blender::Span<int> corner_verts;
   /* Owned by the #PBVH, because after deformations they have to be recomputed. */
-  blender::Array<MLoopTri> looptris;
-  blender::Span<int> looptri_faces;
+  blender::Array<blender::int3> corner_tris;
+  blender::Span<int> corner_tri_faces;
 
   /* Grid Data */
   CCGKey gridkey;

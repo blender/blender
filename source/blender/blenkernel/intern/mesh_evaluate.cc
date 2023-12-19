@@ -359,25 +359,24 @@ bool BKE_mesh_center_of_volume(const Mesh *mesh, float r_cent[3])
 
 static bool mesh_calc_center_centroid_ex(const float (*positions)[3],
                                          int /*mverts_num*/,
-                                         const MLoopTri *looptris,
-                                         int looptris_num,
+                                         const blender::int3 *corner_tris,
+                                         int corner_tris_num,
                                          const int *corner_verts,
                                          float r_center[3])
 {
 
   zero_v3(r_center);
 
-  if (looptris_num == 0) {
+  if (corner_tris_num == 0) {
     return false;
   }
 
   float totweight = 0.0f;
-  const MLoopTri *lt;
   int i;
-  for (i = 0, lt = looptris; i < looptris_num; i++, lt++) {
-    const float *v1 = positions[corner_verts[lt->tri[0]]];
-    const float *v2 = positions[corner_verts[lt->tri[1]]];
-    const float *v3 = positions[corner_verts[lt->tri[2]]];
+  for (i = 0; i < corner_tris_num; i++) {
+    const float *v1 = positions[corner_verts[corner_tris[i][0]]];
+    const float *v2 = positions[corner_verts[corner_tris[i][1]]];
+    const float *v3 = positions[corner_verts[corner_tris[i][2]]];
     float area;
 
     area = area_tri_v3(v1, v2, v3);
@@ -397,13 +396,12 @@ static bool mesh_calc_center_centroid_ex(const float (*positions)[3],
 
 void BKE_mesh_calc_volume(const float (*vert_positions)[3],
                           const int mverts_num,
-                          const MLoopTri *looptris,
-                          const int looptris_num,
+                          const blender::int3 *corner_tris,
+                          const int corner_tris_num,
                           const int *corner_verts,
                           float *r_volume,
                           float r_center[3])
 {
-  const MLoopTri *lt;
   float center[3];
   float totvol;
   int i;
@@ -415,22 +413,22 @@ void BKE_mesh_calc_volume(const float (*vert_positions)[3],
     zero_v3(r_center);
   }
 
-  if (looptris_num == 0) {
+  if (corner_tris_num == 0) {
     return;
   }
 
   if (!mesh_calc_center_centroid_ex(
-          vert_positions, mverts_num, looptris, looptris_num, corner_verts, center))
+          vert_positions, mverts_num, corner_tris, corner_tris_num, corner_verts, center))
   {
     return;
   }
 
   totvol = 0.0f;
 
-  for (i = 0, lt = looptris; i < looptris_num; i++, lt++) {
-    const float *v1 = vert_positions[corner_verts[lt->tri[0]]];
-    const float *v2 = vert_positions[corner_verts[lt->tri[1]]];
-    const float *v3 = vert_positions[corner_verts[lt->tri[2]]];
+  for (i = 0; i < corner_tris_num; i++) {
+    const float *v1 = vert_positions[corner_verts[corner_tris[i][0]]];
+    const float *v2 = vert_positions[corner_verts[corner_tris[i][1]]];
+    const float *v3 = vert_positions[corner_verts[corner_tris[i][2]]];
     float vol;
 
     vol = volume_tetrahedron_signed_v3(center, v1, v2, v3);

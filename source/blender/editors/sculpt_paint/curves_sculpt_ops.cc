@@ -1031,7 +1031,7 @@ static int min_distance_edit_invoke(bContext *C, wmOperator *op, const wmEvent *
   }
 
   BVHTreeFromMesh surface_bvh_eval;
-  BKE_bvhtree_from_mesh_get(&surface_bvh_eval, surface_me_eval, BVHTREE_FROM_LOOPTRIS, 2);
+  BKE_bvhtree_from_mesh_get(&surface_bvh_eval, surface_me_eval, BVHTREE_FROM_CORNER_TRIS, 2);
   BLI_SCOPED_DEFER([&]() { free_bvhtree_from_mesh(&surface_bvh_eval); });
 
   const int2 mouse_pos_int_re{event->mval};

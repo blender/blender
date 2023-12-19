@@ -423,15 +423,15 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
     BMFace *f = nullptr;
     /* Alternative to using `poly_to_tri_count(i, BM_elem_index_get(f->l_first))`
      * without having to add an extra loop. */
-    int looptri_index = 0;
+    int tri_index = 0;
     BM_ITER_MESH_INDEX (f, &iter, em->bm, BM_FACES_OF_MESH, i) {
-      const int f_looptris_len = f->len - 2;
+      const int f_corner_tris_len = f->len - 2;
       if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
         n = 0;
         area = 0;
         zero_v3(vmid);
-        BMLoop *(*l)[3] = &em->looptris[looptri_index];
-        for (int j = 0; j < f_looptris_len; j++) {
+        BMLoop *(*l)[3] = &em->looptris[tri_index];
+        for (int j = 0; j < f_corner_tris_len; j++) {
 
           if (use_coords) {
             copy_v3_v3(v1, vert_coords[BM_elem_index_get(l[j][0]->v)]);
@@ -477,7 +477,7 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
 
         DRW_text_cache_add(dt, vmid, numstr, numstr_len, 0, 0, txt_flag, col);
       }
-      looptri_index += f_looptris_len;
+      tri_index += f_corner_tris_len;
     }
   }
 

@@ -414,20 +414,20 @@ const CustomData *mesh_cd_vdata_get_from_mesh(const Mesh *mesh)
   return &mesh->vert_data;
 }
 
-void mesh_render_data_update_looptris(MeshRenderData &mr,
-                                      const eMRIterType iter_type,
-                                      const eMRDataType data_flag)
+void mesh_render_data_update_corner_tris(MeshRenderData &mr,
+                                         const eMRIterType iter_type,
+                                         const eMRDataType data_flag)
 {
   if (mr.extract_type != MR_EXTRACT_BMESH) {
     /* Mesh */
-    if ((iter_type & MR_ITER_LOOPTRI) || (data_flag & MR_DATA_LOOPTRI)) {
-      mr.looptris = mr.mesh->looptris();
-      mr.looptri_faces = mr.mesh->looptri_faces();
+    if ((iter_type & MR_ITER_CORNER_TRI) || (data_flag & MR_DATA_CORNER_TRI)) {
+      mr.corner_tris = mr.mesh->corner_tris();
+      mr.corner_tri_faces = mr.mesh->corner_tri_faces();
     }
   }
   else {
     /* #BMesh */
-    if ((iter_type & MR_ITER_LOOPTRI) || (data_flag & MR_DATA_LOOPTRI)) {
+    if ((iter_type & MR_ITER_CORNER_TRI) || (data_flag & MR_DATA_CORNER_TRI)) {
       /* Edit mode ensures this is valid, no need to calculate. */
       BLI_assert((mr.bm->totloop == 0) || (mr.edit_bmesh->looptris != nullptr));
     }

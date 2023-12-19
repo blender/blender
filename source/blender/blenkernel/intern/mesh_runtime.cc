@@ -230,9 +230,9 @@ void Mesh::tag_overlapping_none()
   this->flag |= ME_NO_OVERLAPPING_TOPOLOGY;
 }
 
-blender::Span<MLoopTri> Mesh::looptris() const
+blender::Span<blender::int3> Mesh::corner_tris() const
 {
-  this->runtime->looptris_cache.ensure([&](blender::Array<MLoopTri> &r_data) {
+  this->runtime->corner_tris_cache.ensure([&](blender::Array<blender::int3> &r_data) {
     const Span<float3> positions = this->vert_positions();
     const blender::OffsetIndices faces = this->faces();
     const Span<int> corner_verts = this->corner_verts();
@@ -240,43 +240,43 @@ blender::Span<MLoopTri> Mesh::looptris() const
     r_data.reinitialize(poly_to_tri_count(faces.size(), corner_verts.size()));
 
     if (BKE_mesh_face_normals_are_dirty(this)) {
-      blender::bke::mesh::looptris_calc(positions, faces, corner_verts, r_data);
+      blender::bke::mesh::corner_tris_calc(positions, faces, corner_verts, r_data);
     }
     else {
-      blender::bke::mesh::looptris_calc_with_normals(
+      blender::bke::mesh::corner_tris_calc_with_normals(
           positions, faces, corner_verts, this->face_normals(), r_data);
     }
   });
 
-  return this->runtime->looptris_cache.data();
+  return this->runtime->corner_tris_cache.data();
 }
 
-blender::Span<int> Mesh::looptri_faces() const
+blender::Span<int> Mesh::corner_tri_faces() const
 {
   using namespace blender;
-  this->runtime->looptri_faces_cache.ensure([&](blender::Array<int> &r_data) {
+  this->runtime->corner_tri_faces_cache.ensure([&](blender::Array<int> &r_data) {
     const OffsetIndices faces = this->faces();
     r_data.reinitialize(poly_to_tri_count(faces.size(), this->totloop));
-    bke::mesh::looptris_calc_face_indices(faces, r_data);
+    bke::mesh::corner_tris_calc_face_indices(faces, r_data);
   });
-  return this->runtime->looptri_faces_cache.data();
+  return this->runtime->corner_tri_faces_cache.data();
 }
 
-int BKE_mesh_runtime_looptris_len(const Mesh *mesh)
+int BKE_mesh_runtime_corner_tris_len(const Mesh *mesh)
 {
   /* Allow returning the size without calculating the cache. */
   return poly_to_tri_count(mesh->faces_num, mesh->totloop);
 }
 
-void BKE_mesh_runtime_verttris_from_looptris(MVertTri *r_verttri,
-                                             const int *corner_verts,
-                                             const MLoopTri *looptris,
-                                             int looptris_num)
+void BKE_mesh_runtime_verttris_from_corner_tris(MVertTri *r_verttri,
+                                                const int *corner_verts,
+                                                const blender::int3 *corner_tris,
+                                                int corner_tris_num)
 {
-  for (int i = 0; i < looptris_num; i++) {
-    r_verttri[i].tri[0] = corner_verts[looptris[i].tri[0]];
-    r_verttri[i].tri[1] = corner_verts[looptris[i].tri[1]];
-    r_verttri[i].tri[2] = corner_verts[looptris[i].tri[2]];
+  for (int i = 0; i < corner_tris_num; i++) {
+    r_verttri[i].tri[0] = corner_verts[corner_tris[i][0]];
+    r_verttri[i].tri[1] = corner_verts[corner_tris[i][1]];
+    r_verttri[i].tri[2] = corner_verts[corner_tris[i][2]];
   }
 }
 
@@ -311,8 +311,8 @@ void BKE_mesh_runtime_clear_geometry(Mesh *mesh)
   mesh->runtime->loose_edges_cache.tag_dirty();
   mesh->runtime->loose_verts_cache.tag_dirty();
   mesh->runtime->verts_no_face_cache.tag_dirty();
-  mesh->runtime->looptris_cache.tag_dirty();
-  mesh->runtime->looptri_faces_cache.tag_dirty();
+  mesh->runtime->corner_tris_cache.tag_dirty();
+  mesh->runtime->corner_tri_faces_cache.tag_dirty();
   mesh->runtime->subsurf_face_dot_tags.clear_and_shrink();
   mesh->runtime->subsurf_optimal_display_edges.clear_and_shrink();
   mesh->runtime->shrinkwrap_data.reset();
@@ -372,7 +372,7 @@ void Mesh::tag_positions_changed()
 void Mesh::tag_positions_changed_no_normals()
 {
   free_bvh_cache(*this->runtime);
-  this->runtime->looptris_cache.tag_dirty();
+  this->runtime->corner_tris_cache.tag_dirty();
   this->runtime->bounds_cache.tag_dirty();
 }
 

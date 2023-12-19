@@ -54,6 +54,7 @@
 using blender::Array;
 using blender::float3;
 using blender::IndexRange;
+using blender::int3;
 using blender::MutableSpan;
 using blender::Span;
 
@@ -69,14 +70,14 @@ static Mesh *remesh_quadriflow(const Mesh *input_mesh,
 {
   const Span<float3> input_positions = input_mesh->vert_positions();
   const Span<int> input_corner_verts = input_mesh->corner_verts();
-  const Span<MLoopTri> looptris = input_mesh->looptris();
+  const Span<int3> corner_tris = input_mesh->corner_tris();
 
   /* Gather the required data for export to the internal quadriflow mesh format. */
-  Array<MVertTri> verttri(looptris.size());
-  BKE_mesh_runtime_verttris_from_looptris(
-      verttri.data(), input_corner_verts.data(), looptris.data(), looptris.size());
+  Array<MVertTri> verttri(corner_tris.size());
+  BKE_mesh_runtime_verttris_from_corner_tris(
+      verttri.data(), input_corner_verts.data(), corner_tris.data(), corner_tris.size());
 
-  const int totfaces = looptris.size();
+  const int totfaces = corner_tris.size();
   const int totverts = input_mesh->totvert;
   Array<int> faces(totfaces * 3);
 
@@ -188,20 +189,20 @@ static openvdb::FloatGrid::Ptr remesh_voxel_level_set_create(const Mesh *mesh,
 {
   const Span<float3> positions = mesh->vert_positions();
   const Span<int> corner_verts = mesh->corner_verts();
-  const Span<MLoopTri> looptris = mesh->looptris();
+  const Span<int3> corner_tris = mesh->corner_tris();
 
   std::vector<openvdb::Vec3s> points(mesh->totvert);
-  std::vector<openvdb::Vec3I> triangles(looptris.size());
+  std::vector<openvdb::Vec3I> triangles(corner_tris.size());
 
   for (const int i : IndexRange(mesh->totvert)) {
     const float3 &co = positions[i];
     points[i] = openvdb::Vec3s(co.x, co.y, co.z);
   }
 
-  for (const int i : IndexRange(looptris.size())) {
-    const MLoopTri &lt = looptris[i];
+  for (const int i : IndexRange(corner_tris.size())) {
+    const int3 &tri = corner_tris[i];
     triangles[i] = openvdb::Vec3I(
-        corner_verts[lt.tri[0]], corner_verts[lt.tri[1]], corner_verts[lt.tri[2]]);
+        corner_verts[tri[0]], corner_verts[tri[1]], corner_verts[tri[2]]);
   }
 
   openvdb::math::Transform::Ptr transform = openvdb::math::Transform::createLinearTransform(
@@ -323,7 +324,7 @@ static void find_nearest_tris_parallel(const Span<float3> positions,
 
 static void find_nearest_verts(const Span<float3> positions,
                                const Span<int> corner_verts,
-                               const Span<MLoopTri> src_looptris,
+                               const Span<int3> src_corner_tris,
                                const Span<float3> dst_positions,
                                const Span<int> nearest_vert_tris,
                                MutableSpan<int> nearest_verts)
@@ -331,16 +332,16 @@ static void find_nearest_verts(const Span<float3> positions,
   threading::parallel_for(dst_positions.index_range(), 512, [&](const IndexRange range) {
     for (const int dst_vert : range) {
       const float3 &dst_position = dst_positions[dst_vert];
-      const MLoopTri &src_lt = src_looptris[nearest_vert_tris[dst_vert]];
+      const int3 &src_tri = src_corner_tris[nearest_vert_tris[dst_vert]];
 
       std::array<float, 3> distances;
       for (const int i : IndexRange(3)) {
-        const int src_vert = corner_verts[src_lt.tri[i]];
+        const int src_vert = corner_verts[src_tri[i]];
         distances[i] = math::distance_squared(positions[src_vert], dst_position);
       }
 
       const int min = std::min_element(distances.begin(), distances.end()) - distances.begin();
-      nearest_verts[dst_vert] = corner_verts[src_lt.tri[min]];
+      nearest_verts[dst_vert] = corner_verts[src_tri[min]];
     }
   });
 }
@@ -515,7 +516,7 @@ void mesh_remesh_reproject_attributes(const Mesh &src, Mesh &dst)
   const Span<float3> src_positions = src.vert_positions();
   const OffsetIndices src_faces = src.faces();
   const Span<int> src_corner_verts = src.corner_verts();
-  const Span<MLoopTri> src_looptris = src.looptris();
+  const Span<int3> src_corner_tris = src.corner_tris();
 
   /* The main idea in the following code is to trade some complexity in sampling for the benefit of
    * only using and building a single BVH tree. Since sculpt mode doesn't generally deal with loose
@@ -529,7 +530,7 @@ void mesh_remesh_reproject_attributes(const Mesh &src, Mesh &dst)
    * possibly improved performance from lower cache usage in the "complex" sampling part of the
    * algorithm and the copying itself. */
   BVHTreeFromMesh bvhtree{};
-  BKE_bvhtree_from_mesh_get(&bvhtree, &src, BVHTREE_FROM_LOOPTRIS, 2);
+  BKE_bvhtree_from_mesh_get(&bvhtree, &src, BVHTREE_FROM_CORNER_TRIS, 2);
 
   const Span<float3> dst_positions = dst.vert_positions();
   const OffsetIndices dst_faces = dst.faces();
@@ -544,12 +545,12 @@ void mesh_remesh_reproject_attributes(const Mesh &src, Mesh &dst)
     if (!point_ids.is_empty()) {
       Array<int> map(dst.totvert);
       find_nearest_verts(
-          src_positions, src_corner_verts, src_looptris, dst_positions, vert_nearest_tris, map);
+          src_positions, src_corner_verts, src_corner_tris, dst_positions, vert_nearest_tris, map);
       gather_attributes(point_ids, src_attributes, ATTR_DOMAIN_POINT, map, dst_attributes);
     }
 
     if (!corner_ids.is_empty()) {
-      const Span<int> src_tri_faces = src.looptri_faces();
+      const Span<int> src_tri_faces = src.corner_tri_faces();
       Array<int> map(dst.totloop);
       find_nearest_corners(src_positions,
                            src_faces,
@@ -566,7 +567,7 @@ void mesh_remesh_reproject_attributes(const Mesh &src, Mesh &dst)
   if (!edge_ids.is_empty()) {
     const Span<int2> src_edges = src.edges();
     const Span<int> src_corner_edges = src.corner_edges();
-    const Span<int> src_tri_faces = src.looptri_faces();
+    const Span<int> src_tri_faces = src.corner_tri_faces();
     const Span<int2> dst_edges = dst.edges();
     Array<int> map(dst.totedge);
     find_nearest_edges(src_positions,
@@ -582,7 +583,7 @@ void mesh_remesh_reproject_attributes(const Mesh &src, Mesh &dst)
   }
 
   if (!face_ids.is_empty()) {
-    const Span<int> src_tri_faces = src.looptri_faces();
+    const Span<int> src_tri_faces = src.corner_tri_faces();
     Array<int> map(dst.faces_num);
     find_nearest_faces(src_tri_faces, dst_positions, dst_faces, dst_corner_verts, bvhtree, map);
     gather_attributes(face_ids, src_attributes, ATTR_DOMAIN_FACE, map, dst_attributes);

@@ -49,8 +49,8 @@ struct ShrinkwrapBoundaryVertData {
 struct ShrinkwrapBoundaryData {
   /* True if the edge belongs to exactly one face. */
   blender::BitVector<> edge_is_boundary;
-  /* True if the looptri has any boundary edges. */
-  blender::BitVector<> looptri_has_boundary;
+  /* True if the triangle has any boundary edges. */
+  blender::BitVector<> tri_has_boundary;
 
   /* Mapping from vertex index to boundary vertex index, or -1.
    * Used for compact storage of data about boundary vertices. */
@@ -173,7 +173,7 @@ void BKE_shrinkwrap_find_nearest_surface(ShrinkwrapTreeData *tree,
  */
 void BKE_shrinkwrap_compute_smooth_normal(const ShrinkwrapTreeData *tree,
                                           const SpaceTransform *transform,
-                                          int looptri_idx,
+                                          int tri_idx,
                                           const float hit_co[3],
                                           const float hit_no[3],
                                           float r_no[3]);

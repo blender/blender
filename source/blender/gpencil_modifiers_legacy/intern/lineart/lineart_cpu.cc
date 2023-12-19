@@ -59,6 +59,8 @@
 
 #include <algorithm> /* For `min/max`. */
 
+using blender::int3;
+
 struct LineartIsecSingle {
   double v1[3], v2[3];
   LineartTriangle *tri1, *tri2;
@@ -1471,8 +1473,8 @@ struct EdgeFeatData {
   blender::Span<blender::int2> edges;
   blender::Span<int> corner_verts;
   blender::Span<int> corner_edges;
-  blender::Span<MLoopTri> looptris;
-  blender::Span<int> looptri_faces;
+  blender::Span<int3> corner_tris;
+  blender::Span<int> tri_faces;
   LineartTriangle *tri_array;
   blender::VArray<bool> sharp_edges;
   blender::VArray<bool> sharp_faces;
@@ -1499,17 +1501,17 @@ static void feat_data_sum_reduce(const void *__restrict /*userdata*/,
   feat_chunk_join->feat_edges += feat_chunk->feat_edges;
 }
 
-static void lineart_identify_looptri_feature_edges(void *__restrict userdata,
-                                                   const int i,
-                                                   const TaskParallelTLS *__restrict tls)
+static void lineart_identify_corner_tri_feature_edges(void *__restrict userdata,
+                                                      const int i,
+                                                      const TaskParallelTLS *__restrict tls)
 {
   EdgeFeatData *e_feat_data = (EdgeFeatData *)userdata;
   EdgeFeatReduceData *reduce_data = (EdgeFeatReduceData *)tls->userdata_chunk;
   Mesh *mesh = e_feat_data->mesh;
   Object *ob_eval = e_feat_data->ob_eval;
   LineartEdgeNeighbor *edge_nabr = e_feat_data->edge_nabr;
-  const blender::Span<MLoopTri> looptris = e_feat_data->looptris;
-  const blender::Span<int> looptri_faces = e_feat_data->looptri_faces;
+  const blender::Span<int3> corner_tris = e_feat_data->corner_tris;
+  const blender::Span<int> tri_faces = e_feat_data->tri_faces;
   const blender::Span<int> material_indices = e_feat_data->material_indices;
 
   uint16_t edge_flag_result = 0;
@@ -1528,11 +1530,10 @@ static void lineart_identify_looptri_feature_edges(void *__restrict userdata,
     FreestyleFace *ff1, *ff2;
     int index = e_feat_data->freestyle_face_index;
     if (index > -1) {
-      ff1 = &((FreestyleFace *)mesh->face_data.layers[index].data)[looptri_faces[i / 3]];
+      ff1 = &((FreestyleFace *)mesh->face_data.layers[index].data)[tri_faces[i / 3]];
     }
     if (edge_nabr[i].e > -1) {
-      ff2 = &(
-          (FreestyleFace *)mesh->face_data.layers[index].data)[looptri_faces[edge_nabr[i].e / 3]];
+      ff2 = &((FreestyleFace *)mesh->face_data.layers[index].data)[tri_faces[edge_nabr[i].e / 3]];
     }
     else {
       /* Handle mesh boundary cases: We want mesh boundaries to respect
@@ -1646,8 +1647,7 @@ static void lineart_identify_looptri_feature_edges(void *__restrict userdata,
     if (ld->conf.use_crease) {
       bool do_crease = true;
       if (!ld->conf.force_crease && !e_feat_data->use_auto_smooth &&
-          (!e_feat_data->sharp_faces[looptri_faces[f1]]) &&
-          (!e_feat_data->sharp_faces[looptri_faces[f2]]))
+          (!e_feat_data->sharp_faces[tri_faces[f1]]) && (!e_feat_data->sharp_faces[tri_faces[f2]]))
       {
         do_crease = false;
       }
@@ -1656,8 +1656,8 @@ static void lineart_identify_looptri_feature_edges(void *__restrict userdata,
       }
     }
 
-    int mat1 = material_indices.is_empty() ? 0 : material_indices[looptri_faces[f1]];
-    int mat2 = material_indices.is_empty() ? 0 : material_indices[looptri_faces[f2]];
+    int mat1 = material_indices.is_empty() ? 0 : material_indices[tri_faces[f1]];
+    int mat2 = material_indices.is_empty() ? 0 : material_indices[tri_faces[f2]];
 
     if (mat1 != mat2) {
       Material *m1 = BKE_object_material_get_eval(ob_eval, mat1 + 1);
@@ -1681,8 +1681,11 @@ static void lineart_identify_looptri_feature_edges(void *__restrict userdata,
     }
   }
 
-  const blender::int3 real_edges = blender::bke::mesh::looptri_get_real_edges(
-      e_feat_data->edges, e_feat_data->corner_verts, e_feat_data->corner_edges, looptris[i / 3]);
+  const blender::int3 real_edges = blender::bke::mesh::corner_tri_get_real_edges(
+      e_feat_data->edges,
+      e_feat_data->corner_verts,
+      e_feat_data->corner_edges,
+      corner_tris[i / 3]);
 
   if (real_edges[i % 3] >= 0) {
     if (ld->conf.use_crease && ld->conf.sharp_as_crease &&
@@ -1789,8 +1792,8 @@ struct TriData {
   LineartObjectInfo *ob_info;
   blender::Span<blender::float3> positions;
   blender::Span<int> corner_verts;
-  blender::Span<MLoopTri> looptris;
-  blender::Span<int> looptri_faces;
+  blender::Span<int3> corner_tris;
+  blender::Span<int> tri_faces;
   blender::Span<int> material_indices;
   LineartVert *vert_arr;
   LineartTriangle *tri_arr;
@@ -1806,8 +1809,8 @@ static void lineart_load_tri_task(void *__restrict userdata,
   LineartObjectInfo *ob_info = tri_task_data->ob_info;
   const blender::Span<blender::float3> positions = tri_task_data->positions;
   const blender::Span<int> corner_verts = tri_task_data->corner_verts;
-  const MLoopTri *lt = &tri_task_data->looptris[i];
-  const int face_i = tri_task_data->looptri_faces[i];
+  const int3 &corner_tri = tri_task_data->corner_tris[i];
+  const int face_i = tri_task_data->tri_faces[i];
   const blender::Span<int> material_indices = tri_task_data->material_indices;
 
   LineartVert *vert_arr = tri_task_data->vert_arr;
@@ -1815,9 +1818,9 @@ static void lineart_load_tri_task(void *__restrict userdata,
 
   tri = (LineartTriangle *)(((uchar *)tri) + tri_task_data->lineart_triangle_size * i);
 
-  int v1 = corner_verts[lt->tri[0]];
-  int v2 = corner_verts[lt->tri[1]];
-  int v3 = corner_verts[lt->tri[2]];
+  int v1 = corner_verts[corner_tri[0]];
+  int v2 = corner_verts[corner_tri[1]];
+  int v3 = corner_verts[corner_tri[2]];
 
   tri->v[0] = &vert_arr[v1];
   tri->v[1] = &vert_arr[v2];
@@ -1866,8 +1869,8 @@ struct EdgeNeighborData {
   LineartEdgeNeighbor *edge_nabr;
   LineartAdjacentEdge *adj_e;
   blender::Span<int> corner_verts;
-  blender::Span<MLoopTri> looptris;
-  blender::Span<int> looptri_faces;
+  blender::Span<int3> corner_tris;
+  blender::Span<int> tri_faces;
 };
 
 static void lineart_edge_neighbor_init_task(void *__restrict userdata,
@@ -1876,13 +1879,13 @@ static void lineart_edge_neighbor_init_task(void *__restrict userdata,
 {
   EdgeNeighborData *en_data = (EdgeNeighborData *)userdata;
   LineartAdjacentEdge *adj_e = &en_data->adj_e[i];
-  const MLoopTri *lt = &en_data->looptris[i / 3];
+  const int3 &tri = en_data->corner_tris[i / 3];
   LineartEdgeNeighbor *edge_nabr = &en_data->edge_nabr[i];
   const blender::Span<int> corner_verts = en_data->corner_verts;
 
   adj_e->e = i;
-  adj_e->v1 = corner_verts[lt->tri[i % 3]];
-  adj_e->v2 = corner_verts[lt->tri[(i + 1) % 3]];
+  adj_e->v1 = corner_verts[tri[i % 3]];
+  adj_e->v2 = corner_verts[tri[(i + 1) % 3]];
   if (adj_e->v1 > adj_e->v2) {
     std::swap(adj_e->v1, adj_e->v2);
   }
@@ -1929,8 +1932,8 @@ static LineartEdgeNeighbor *lineart_build_edge_neighbor(Mesh *mesh, int total_ed
   en_data.adj_e = adj_e;
   en_data.edge_nabr = edge_nabr;
   en_data.corner_verts = mesh->corner_verts();
-  en_data.looptris = mesh->looptris();
-  en_data.looptri_faces = mesh->looptri_faces();
+  en_data.corner_tris = mesh->corner_tris();
+  en_data.tri_faces = mesh->corner_tri_faces();
 
   BLI_task_parallel_range(0, total_edges, &en_data, lineart_edge_neighbor_init_task, &en_settings);
 
@@ -1959,7 +1962,7 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
   }
 
   /* Triangulate. */
-  const Span<MLoopTri> looptris = mesh->looptris();
+  const Span<int3> corner_tris = mesh->corner_tris();
   const bke::AttributeAccessor attributes = mesh->attributes();
   const VArraySpan material_indices = *attributes.lookup<int>("material_index", ATTR_DOMAIN_FACE);
 
@@ -1982,7 +1985,7 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
   LineartVert *la_v_arr = static_cast<LineartVert *>(
       lineart_mem_acquire_thread(&la_data->render_data_pool, sizeof(LineartVert) * mesh->totvert));
   LineartTriangle *la_tri_arr = static_cast<LineartTriangle *>(lineart_mem_acquire_thread(
-      &la_data->render_data_pool, looptris.size() * la_data->sizeof_triangle));
+      &la_data->render_data_pool, corner_tris.size() * la_data->sizeof_triangle));
 
   Object *orig_ob = ob_info->original_ob;
 
@@ -2024,15 +2027,15 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
 
   int usage = ob_info->usage;
 
-  elem_link_node->element_count = looptris.size();
+  elem_link_node->element_count = corner_tris.size();
   elem_link_node->object_ref = orig_ob;
   elem_link_node->flags = eLineArtElementNodeFlag(
       elem_link_node->flags |
       ((usage == OBJECT_LRT_NO_INTERSECTION) ? LRT_ELEMENT_NO_INTERSECTION : 0));
 
   /* Note this memory is not from pool, will be deleted after culling. */
-  LineartTriangleAdjacent *tri_adj = static_cast<LineartTriangleAdjacent *>(
-      MEM_callocN(sizeof(LineartTriangleAdjacent) * looptris.size(), "LineartTriangleAdjacent"));
+  LineartTriangleAdjacent *tri_adj = static_cast<LineartTriangleAdjacent *>(MEM_callocN(
+      sizeof(LineartTriangleAdjacent) * corner_tris.size(), "LineartTriangleAdjacent"));
   /* Link is minimal so we use pool anyway. */
   BLI_spin_lock(&la_data->lock_task);
   lineart_list_append_pointer_pool_thread(
@@ -2064,8 +2067,8 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
   TriData tri_data;
   tri_data.ob_info = ob_info;
   tri_data.positions = mesh->vert_positions();
-  tri_data.looptris = looptris;
-  tri_data.looptri_faces = mesh->looptri_faces();
+  tri_data.corner_tris = corner_tris;
+  tri_data.tri_faces = mesh->corner_tri_faces();
   tri_data.corner_verts = mesh->corner_verts();
   tri_data.material_indices = material_indices;
   tri_data.vert_arr = la_v_arr;
@@ -2073,9 +2076,9 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
   tri_data.lineart_triangle_size = la_data->sizeof_triangle;
   tri_data.tri_adj = tri_adj;
 
-  uint32_t total_edges = looptris.size() * 3;
+  uint32_t total_edges = corner_tris.size() * 3;
 
-  BLI_task_parallel_range(0, looptris.size(), &tri_data, lineart_load_tri_task, &tri_settings);
+  BLI_task_parallel_range(0, corner_tris.size(), &tri_data, lineart_load_tri_task, &tri_settings);
 
   /* Check for contour lines in the mesh.
    * IE check if the triangle edges lies in area where the triangles go from front facing to back
@@ -2103,8 +2106,8 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
   edge_feat_data.edges = mesh->edges();
   edge_feat_data.corner_verts = mesh->corner_verts();
   edge_feat_data.corner_edges = mesh->corner_edges();
-  edge_feat_data.looptris = looptris;
-  edge_feat_data.looptri_faces = mesh->looptri_faces();
+  edge_feat_data.corner_tris = corner_tris;
+  edge_feat_data.tri_faces = mesh->corner_tri_faces();
   edge_feat_data.sharp_edges = sharp_edges;
   edge_feat_data.sharp_faces = sharp_faces;
   edge_feat_data.edge_nabr = lineart_build_edge_neighbor(mesh, total_edges);
@@ -2126,14 +2129,14 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
   BLI_task_parallel_range(0,
                           total_edges,
                           &edge_feat_data,
-                          lineart_identify_looptri_feature_edges,
+                          lineart_identify_corner_tri_feature_edges,
                           &edge_feat_settings);
 
   LooseEdgeData loose_data = {0};
 
   if (la_data->conf.use_loose) {
     /* Only identifying floating edges at this point because other edges has been taken care of
-     * inside #lineart_identify_looptri_feature_edges function. */
+     * inside #lineart_identify_corner_tri_feature_edges function. */
     const bke::LooseEdgeCache &loose_edges = mesh->loose_edges();
     loose_data.loose_array = static_cast<int *>(
         MEM_malloc_arrayN(loose_edges.count, sizeof(int), __func__));

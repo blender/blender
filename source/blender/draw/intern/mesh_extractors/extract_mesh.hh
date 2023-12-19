@@ -13,7 +13,6 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_virtual_array.hh"
 
-#include "DNA_meshdata_types.h"
 #include "DNA_scene_types.h"
 
 #include "BKE_mesh.hh"
@@ -28,6 +27,7 @@
 struct DRWSubdivCache;
 struct BMVert;
 struct BMEdge;
+struct BMEditMesh;
 struct BMFace;
 struct BMLoop;
 
@@ -93,8 +93,8 @@ struct MeshRenderData {
   BMFace *efa_act;
   BMFace *efa_act_uv;
   /* The triangulation of #Mesh faces, owned by the mesh. */
-  blender::Span<MLoopTri> looptris;
-  blender::Span<int> looptri_faces;
+  blender::Span<blender::int3> corner_tris;
+  blender::Span<int> corner_tri_faces;
   blender::VArraySpan<int> material_indices;
 
   blender::bke::MeshNormalDomain normals_domain;
@@ -179,7 +179,7 @@ BLI_INLINE const float *bm_face_no_get(const MeshRenderData &mr, const BMFace *e
 
 using ExtractTriBMeshFn = void(const MeshRenderData &mr, BMLoop **elt, int elt_index, void *data);
 using ExtractTriMeshFn = void(const MeshRenderData &mr,
-                              const MLoopTri *lt,
+                              const blender::int3 &tri,
                               int elt_index,
                               void *data);
 using ExtractFaceBMeshFn = void(const MeshRenderData &mr,
@@ -240,7 +240,7 @@ struct MeshExtract {
   ExtractInitFn *init;
   /** Executed on one (or more if use_threading) worker thread(s). */
   ExtractTriBMeshFn *iter_looptri_bm;
-  ExtractTriMeshFn *iter_looptri_mesh;
+  ExtractTriMeshFn *iter_corner_tri_mesh;
   ExtractFaceBMeshFn *iter_face_bm;
   ExtractFaceMeshFn *iter_face_mesh;
   ExtractLEdgeBMeshFn *iter_loose_edge_bm;
@@ -297,9 +297,9 @@ void mesh_render_data_update_faces_sorted(MeshRenderData &mr,
 /**
  * Part of the creation of the #MeshRenderData that happens in a thread.
  */
-void mesh_render_data_update_looptris(MeshRenderData &mr,
-                                      eMRIterType iter_type,
-                                      eMRDataType data_flag);
+void mesh_render_data_update_corner_tris(MeshRenderData &mr,
+                                         eMRIterType iter_type,
+                                         eMRDataType data_flag);
 
 /* draw_cache_extract_mesh_extractors.c */
 

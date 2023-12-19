@@ -13,7 +13,6 @@
 
 struct BMLoop;
 struct MemArena;
-struct MLoopTri;
 
 /* UvVertMap */
 #define STD_UV_CONNECT_LIMIT 0.0001f
@@ -113,16 +112,16 @@ void BKE_mesh_uv_vert_map_free(UvVertMap *vmap);
 
 /**
  * Generates a map where the key is the edge and the value
- * is a list of looptris that use that edge.
+ * is a list of corner_tris that use that edge.
  * The lists are allocated from one memory pool.
  */
-void BKE_mesh_vert_looptri_map_create(MeshElemMap **r_map,
-                                      int **r_mem,
-                                      int totvert,
-                                      const MLoopTri *looptris,
-                                      int totlooptris,
-                                      const int *corner_verts,
-                                      int totloop);
+void BKE_mesh_vert_corner_tri_map_create(MeshElemMap **r_map,
+                                         int **r_mem,
+                                         int totvert,
+                                         const blender::int3 *corner_tris,
+                                         int tottris,
+                                         const int *corner_verts,
+                                         int totloop);
 /**
  * This function creates a map so the source-data (vert/edge/loop/face)
  * can loop over the destination data (using the destination arrays origindex).
@@ -140,14 +139,14 @@ void BKE_mesh_vert_looptri_map_create(MeshElemMap **r_map,
 void BKE_mesh_origindex_map_create(
     MeshElemMap **r_map, int **r_mem, int totsource, const int *final_origindex, int totfinal);
 /**
- * A version of #BKE_mesh_origindex_map_create that takes a #MLoopTri array.
- * Making a face -> #MLoopTri map.
+ * A version of #BKE_mesh_origindex_map_create that takes a corner tri array.
+ * Making a face -> corner tri map.
  */
-void BKE_mesh_origindex_map_create_looptri(MeshElemMap **r_map,
-                                           int **r_mem,
-                                           blender::OffsetIndices<int> faces,
-                                           const int *looptri_faces,
-                                           int looptris_num);
+void BKE_mesh_origindex_map_create_corner_tri(MeshElemMap **r_map,
+                                              int **r_mem,
+                                              blender::OffsetIndices<int> faces,
+                                              const int *corner_tri_faces,
+                                              int corner_tris_num);
 
 /* islands */
 
@@ -263,7 +262,7 @@ int *BKE_mesh_calc_smoothgroups(int edges_num,
                                 int *r_totgroup,
                                 bool use_bitflags);
 
-/* Use on #MLoopTri vertex values. */
+/* Use on corner_tri vertex values. */
 #define BKE_MESH_TESSTRI_VINDEX_ORDER(_tri, _v) \
   ((CHECK_TYPE_ANY( \
         _tri, unsigned int *, int *, int[3], const unsigned int *, const int *, const int[3]), \

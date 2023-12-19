@@ -6,6 +6,8 @@
  * \ingroup draw
  */
 
+#include "DNA_meshdata_types.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "BKE_deform.h"

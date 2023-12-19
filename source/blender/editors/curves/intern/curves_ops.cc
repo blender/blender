@@ -269,13 +269,13 @@ static void try_convert_single_object(Object &curves_ob,
   Mesh &surface_me = *static_cast<Mesh *>(surface_ob.data);
 
   BVHTreeFromMesh surface_bvh;
-  BKE_bvhtree_from_mesh_get(&surface_bvh, &surface_me, BVHTREE_FROM_LOOPTRIS, 2);
+  BKE_bvhtree_from_mesh_get(&surface_bvh, &surface_me, BVHTREE_FROM_CORNER_TRIS, 2);
   BLI_SCOPED_DEFER([&]() { free_bvhtree_from_mesh(&surface_bvh); });
 
   const Span<float3> positions_cu = curves.positions();
-  const Span<int> looptri_faces = surface_me.looptri_faces();
+  const Span<int> tri_faces = surface_me.corner_tri_faces();
 
-  if (looptri_faces.is_empty()) {
+  if (tri_faces.is_empty()) {
     *r_could_not_convert_some_curves = true;
   }
 
@@ -342,8 +342,8 @@ static void try_convert_single_object(Object &curves_ob,
         surface_bvh.tree, root_pos_su, &nearest, surface_bvh.nearest_callback, &surface_bvh);
     BLI_assert(nearest.index >= 0);
 
-    const int looptri_i = nearest.index;
-    const int face_i = looptri_faces[looptri_i];
+    const int tri_i = nearest.index;
+    const int face_i = tri_faces[tri_i];
 
     const int mface_i = find_mface_for_root_position(
         positions, mfaces, poly_to_mface_map[face_i], root_pos_su);
@@ -588,7 +588,7 @@ static void snap_curves_to_surface_exec_object(Object &curves_ob,
   const Mesh &surface_mesh = *static_cast<const Mesh *>(surface_ob.data);
   const Span<float3> surface_positions = surface_mesh.vert_positions();
   const Span<int> corner_verts = surface_mesh.corner_verts();
-  const Span<MLoopTri> surface_looptris = surface_mesh.looptris();
+  const Span<int3> surface_corner_tris = surface_mesh.corner_tris();
   VArraySpan<float2> surface_uv_map;
   if (curves_id.surface_uv_map != nullptr) {
     const bke::AttributeAccessor surface_attributes = surface_mesh.attributes();
@@ -605,7 +605,7 @@ static void snap_curves_to_surface_exec_object(Object &curves_ob,
   switch (attach_mode) {
     case AttachMode::Nearest: {
       BVHTreeFromMesh surface_bvh;
-      BKE_bvhtree_from_mesh_get(&surface_bvh, &surface_mesh, BVHTREE_FROM_LOOPTRIS, 2);
+      BKE_bvhtree_from_mesh_get(&surface_bvh, &surface_mesh, BVHTREE_FROM_CORNER_TRIS, 2);
       BLI_SCOPED_DEFER([&]() { free_bvhtree_from_mesh(&surface_bvh); });
 
       threading::parallel_for(curves.curves_range(), 256, [&](const IndexRange curves_range) {
@@ -624,8 +624,8 @@ static void snap_curves_to_surface_exec_object(Object &curves_ob,
                                    &nearest,
                                    surface_bvh.nearest_callback,
                                    &surface_bvh);
-          const int looptri_index = nearest.index;
-          if (looptri_index == -1) {
+          const int tri_index = nearest.index;
+          if (tri_index == -1) {
             continue;
           }
 
@@ -639,11 +639,11 @@ static void snap_curves_to_surface_exec_object(Object &curves_ob,
           }
 
           if (!surface_uv_map.is_empty()) {
-            const MLoopTri &lt = surface_looptris[looptri_index];
+            const int3 &tri = surface_corner_tris[tri_index];
             const float3 bary_coords = bke::mesh_surface_sample::compute_bary_coord_in_triangle(
-                surface_positions, corner_verts, lt, new_first_point_pos_su);
+                surface_positions, corner_verts, tri, new_first_point_pos_su);
             const float2 uv = bke::mesh_surface_sample::sample_corner_attribute_with_bary_coords(
-                bary_coords, lt, surface_uv_map);
+                bary_coords, tri, surface_uv_map);
             surface_uv_coords[curve_i] = uv;
           }
         }
@@ -656,7 +656,7 @@ static void snap_curves_to_surface_exec_object(Object &curves_ob,
         break;
       }
       using geometry::ReverseUVSampler;
-      ReverseUVSampler reverse_uv_sampler{surface_uv_map, surface_looptris};
+      ReverseUVSampler reverse_uv_sampler{surface_uv_map, surface_corner_tris};
 
       threading::parallel_for(curves.curves_range(), 256, [&](const IndexRange curves_range) {
         for (const int curve_i : curves_range) {
@@ -671,12 +671,12 @@ static void snap_curves_to_surface_exec_object(Object &curves_ob,
             continue;
           }
 
-          const MLoopTri &lt = surface_looptris[lookup_result.looptri_index];
+          const int3 &tri = surface_corner_tris[lookup_result.tri_index];
           const float3 &bary_coords = lookup_result.bary_weights;
 
-          const float3 &p0_su = surface_positions[corner_verts[lt.tri[0]]];
-          const float3 &p1_su = surface_positions[corner_verts[lt.tri[1]]];
-          const float3 &p2_su = surface_positions[corner_verts[lt.tri[2]]];
+          const float3 &p0_su = surface_positions[corner_verts[tri[0]]];
+          const float3 &p1_su = surface_positions[corner_verts[tri[1]]];
+          const float3 &p2_su = surface_positions[corner_verts[tri[2]]];
 
           float3 new_first_point_pos_su;
           interp_v3_v3v3v3(new_first_point_pos_su, p0_su, p1_su, p2_su, bary_coords);

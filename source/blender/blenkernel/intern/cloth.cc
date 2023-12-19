@@ -827,7 +827,7 @@ static bool cloth_from_object(
 static void cloth_from_mesh(ClothModifierData *clmd, const Object *ob, Mesh *mesh)
 {
   const blender::Span<int> corner_verts = mesh->corner_verts();
-  const blender::Span<MLoopTri> looptris = mesh->looptris();
+  const blender::Span<blender::int3> corner_tris = mesh->corner_tris();
   const uint mvert_num = mesh->totvert;
 
   /* Allocate our vertices. */
@@ -841,21 +841,21 @@ static void cloth_from_mesh(ClothModifierData *clmd, const Object *ob, Mesh *mes
 
   /* save face information */
   if (clmd->hairdata == nullptr) {
-    clmd->clothObject->primitive_num = looptris.size();
+    clmd->clothObject->primitive_num = corner_tris.size();
   }
   else {
     clmd->clothObject->primitive_num = mesh->totedge;
   }
 
   clmd->clothObject->tri = static_cast<MVertTri *>(
-      MEM_malloc_arrayN(looptris.size(), sizeof(MVertTri), __func__));
+      MEM_malloc_arrayN(corner_tris.size(), sizeof(MVertTri), __func__));
   if (clmd->clothObject->tri == nullptr) {
     cloth_free_modifier(clmd);
     BKE_modifier_set_error(ob, &(clmd->modifier), "Out of memory on allocating triangles");
     return;
   }
-  BKE_mesh_runtime_verttris_from_looptris(
-      clmd->clothObject->tri, corner_verts.data(), looptris.data(), looptris.size());
+  BKE_mesh_runtime_verttris_from_corner_tris(
+      clmd->clothObject->tri, corner_verts.data(), corner_tris.data(), corner_tris.size());
 
   clmd->clothObject->edges = mesh->edges().data();
 
@@ -1417,7 +1417,6 @@ static bool find_internal_spring_target_vertex(BVHTreeFromMesh *treedata,
 
   int vert_idx = -1;
   const int *corner_verts = treedata->corner_verts.data();
-  const MLoopTri *lt = nullptr;
 
   if (rayhit.index != -1 && rayhit.dist <= max_length) {
     if (check_normal && dot_v3v3(rayhit.no, no) < 0.0f) {
@@ -1426,10 +1425,10 @@ static bool find_internal_spring_target_vertex(BVHTreeFromMesh *treedata,
     }
 
     float min_len = FLT_MAX;
-    lt = &treedata->looptris[rayhit.index];
+    const blender::int3 &tri = treedata->corner_tris[rayhit.index];
 
     for (int i = 0; i < 3; i++) {
-      int tmp_vert_idx = corner_verts[lt->tri[i]];
+      int tmp_vert_idx = corner_verts[tri[i]];
       if (tmp_vert_idx == v_idx) {
         /* We managed to hit ourselves. */
         return false;
@@ -1513,7 +1512,7 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
     }
 
     Set<OrderedEdge> existing_vert_pairs;
-    BKE_bvhtree_from_mesh_get(&treedata, tmp_mesh ? tmp_mesh : mesh, BVHTREE_FROM_LOOPTRIS, 2);
+    BKE_bvhtree_from_mesh_get(&treedata, tmp_mesh ? tmp_mesh : mesh, BVHTREE_FROM_CORNER_TRIS, 2);
     rng = BLI_rng_new_srandom(0);
 
     const blender::Span<blender::float3> vert_normals = tmp_mesh ? tmp_mesh->vert_normals() :

@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
 #include "BLI_enumerable_thread_specific.hh"

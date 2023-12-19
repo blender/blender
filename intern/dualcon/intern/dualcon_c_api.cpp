@@ -22,7 +22,7 @@ static void veccopy(float dst[3], const float src[3])
 }
 
 #define GET_TRI(_mesh, _n) \
-  (*(DualConTri)(((char *)(_mesh)->looptris) + ((_n) * (_mesh)->tri_stride)))
+  (*(DualConTri)(((char *)(_mesh)->corner_tris) + ((_n) * (_mesh)->tri_stride)))
 
 #define GET_CO(_mesh, _n) (*(DualConCo)(((char *)(_mesh)->co) + ((_n) * (_mesh)->co_stride)))
 

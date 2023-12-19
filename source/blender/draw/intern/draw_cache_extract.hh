@@ -45,7 +45,7 @@ enum {
 };
 
 enum eMRIterType {
-  MR_ITER_LOOPTRI = 1 << 0,
+  MR_ITER_CORNER_TRI = 1 << 0,
   MR_ITER_POLY = 1 << 1,
   MR_ITER_LOOSE_EDGE = 1 << 2,
   MR_ITER_LOOSE_VERT = 1 << 3,
@@ -56,7 +56,7 @@ enum eMRDataType {
   MR_DATA_NONE = 0,
   MR_DATA_POLY_NOR = 1 << 1,
   MR_DATA_LOOP_NOR = 1 << 2,
-  MR_DATA_LOOPTRI = 1 << 3,
+  MR_DATA_CORNER_TRI = 1 << 3,
   MR_DATA_LOOSE_GEOM = 1 << 4,
   /** Force loop normals calculation. */
   MR_DATA_TAN_LOOP_NOR = 1 << 5,

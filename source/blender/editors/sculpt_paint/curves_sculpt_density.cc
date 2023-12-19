@@ -80,7 +80,7 @@ struct DensityAddOperationExecutor {
 
   Object *surface_ob_eval_ = nullptr;
   Mesh *surface_eval_ = nullptr;
-  Span<MLoopTri> surface_looptris_eval_;
+  Span<int3> surface_corner_tris_eval_;
   VArraySpan<float2> surface_uv_map_eval_;
   BVHTreeFromMesh surface_bvh_eval_;
 
@@ -131,9 +131,9 @@ struct DensityAddOperationExecutor {
       return;
     }
 
-    BKE_bvhtree_from_mesh_get(&surface_bvh_eval_, surface_eval_, BVHTREE_FROM_LOOPTRIS, 2);
+    BKE_bvhtree_from_mesh_get(&surface_bvh_eval_, surface_eval_, BVHTREE_FROM_CORNER_TRIS, 2);
     BLI_SCOPED_DEFER([&]() { free_bvhtree_from_mesh(&surface_bvh_eval_); });
-    surface_looptris_eval_ = surface_eval_->looptris();
+    surface_corner_tris_eval_ = surface_eval_->corner_tris();
     /* Find UV map. */
     VArraySpan<float2> surface_uv_map;
     if (curves_id_orig_->surface_uv_map != nullptr) {
@@ -258,8 +258,8 @@ struct DensityAddOperationExecutor {
     self_->new_deformed_root_positions_.extend(new_positions_cu);
 
     const Span<float3> corner_normals_su = surface_orig_->corner_normals();
-    const Span<MLoopTri> surface_looptris_orig = surface_orig_->looptris();
-    const geometry::ReverseUVSampler reverse_uv_sampler{surface_uv_map, surface_looptris_orig};
+    const Span<int3> surface_corner_tris_orig = surface_orig_->corner_tris();
+    const geometry::ReverseUVSampler reverse_uv_sampler{surface_uv_map, surface_corner_tris_orig};
 
     geometry::AddCurvesOnMeshInputs add_inputs;
     add_inputs.uvs = new_uvs;
@@ -275,7 +275,7 @@ struct DensityAddOperationExecutor {
     add_inputs.transforms = &transforms_;
     add_inputs.surface = surface_orig_;
     add_inputs.corner_normals_su = corner_normals_su;
-    add_inputs.surface_looptris = surface_looptris_orig;
+    add_inputs.surface_corner_tris = surface_corner_tris_orig;
     add_inputs.reverse_uv_sampler = &reverse_uv_sampler;
     add_inputs.old_roots_kdtree = self_->original_curve_roots_kdtree_;
 
@@ -341,7 +341,7 @@ struct DensityAddOperationExecutor {
                                  transforms_.world_to_curves;
       Vector<float3> positions_su;
       Vector<float3> bary_coords;
-      Vector<int> looptri_indices;
+      Vector<int> tri_indices;
       const int new_points = bke::mesh_surface_sample::sample_surface_points_projected(
           rng,
           *surface_eval_,
@@ -359,7 +359,7 @@ struct DensityAddOperationExecutor {
           brush_settings_->density_add_attempts,
           brush_settings_->density_add_attempts,
           bary_coords,
-          looptri_indices,
+          tri_indices,
           positions_su);
 
       /* Remove some sampled points randomly based on the brush falloff and strength. */
@@ -374,14 +374,14 @@ struct DensityAddOperationExecutor {
         const float weight = brush_strength_ * radius_falloff;
         if (rng.get_float() > weight) {
           bary_coords.remove_and_reorder(i);
-          looptri_indices.remove_and_reorder(i);
+          tri_indices.remove_and_reorder(i);
           positions_su.remove_and_reorder(i);
         }
       }
 
       for (const int i : bary_coords.index_range()) {
         const float2 uv = bke::mesh_surface_sample::sample_corner_attribute_with_bary_coords(
-            bary_coords[i], surface_looptris_eval_[looptri_indices[i]], surface_uv_map_eval_);
+            bary_coords[i], surface_corner_tris_eval_[tri_indices[i]], surface_uv_map_eval_);
         r_uvs.append(uv);
       }
       r_positions_su.extend(positions_su);
@@ -413,13 +413,13 @@ struct DensityAddOperationExecutor {
           transforms_.curves_to_surface, brush_pos_cu, brush_3d->radius_cu);
       const float brush_radius_sq_su = pow2f(brush_radius_su);
 
-      Vector<int> selected_looptri_indices;
+      Vector<int> selected_corner_tri_indices;
       BLI_bvhtree_range_query_cpp(
           *surface_bvh_eval_.tree,
           brush_pos_su,
           brush_radius_su,
           [&](const int index, const float3 & /*co*/, const float /*dist_sq*/) {
-            selected_looptri_indices.append(index);
+            selected_corner_tri_indices.append(index);
           });
 
       const float brush_plane_area_su = M_PI * brush_radius_sq_su;
@@ -428,16 +428,16 @@ struct DensityAddOperationExecutor {
 
       Vector<float3> positions_su;
       Vector<float3> bary_coords;
-      Vector<int> looptri_indices;
+      Vector<int> tri_indices;
       const int new_points = bke::mesh_surface_sample::sample_surface_points_spherical(
           rng,
           *surface_eval_,
-          selected_looptri_indices,
+          selected_corner_tri_indices,
           brush_pos_su,
           brush_radius_su,
           approximate_density_su,
           bary_coords,
-          looptri_indices,
+          tri_indices,
           positions_su);
 
       /* Remove some sampled points randomly based on the brush falloff and strength. */
@@ -450,14 +450,14 @@ struct DensityAddOperationExecutor {
         const float weight = brush_strength_ * radius_falloff;
         if (rng.get_float() > weight) {
           bary_coords.remove_and_reorder(i);
-          looptri_indices.remove_and_reorder(i);
+          tri_indices.remove_and_reorder(i);
           positions_su.remove_and_reorder(i);
         }
       }
 
       for (const int i : bary_coords.index_range()) {
         const float2 uv = bke::mesh_surface_sample::sample_corner_attribute_with_bary_coords(
-            bary_coords[i], surface_looptris_eval_[looptri_indices[i]], surface_uv_map_eval_);
+            bary_coords[i], surface_corner_tris_eval_[tri_indices[i]], surface_uv_map_eval_);
         r_uvs.append(uv);
       }
       r_positions_su.extend(positions_su);
@@ -550,7 +550,7 @@ struct DensitySubtractOperationExecutor {
     }
     surface_eval_ = BKE_object_get_evaluated_mesh(surface_ob_eval_);
 
-    BKE_bvhtree_from_mesh_get(&surface_bvh_eval_, surface_eval_, BVHTREE_FROM_LOOPTRIS, 2);
+    BKE_bvhtree_from_mesh_get(&surface_bvh_eval_, surface_eval_, BVHTREE_FROM_CORNER_TRIS, 2);
     BLI_SCOPED_DEFER([&]() { free_bvhtree_from_mesh(&surface_bvh_eval_); });
 
     curves_sculpt_ = ctx_.scene->toolsettings->curves_sculpt;
@@ -834,7 +834,7 @@ static bool use_add_density_mode(const BrushStrokeMode brush_mode,
 
   const CurvesSurfaceTransforms transforms(curves_ob_orig, curves_id_orig.surface);
   BVHTreeFromMesh surface_bvh_eval;
-  BKE_bvhtree_from_mesh_get(&surface_bvh_eval, surface_mesh_eval, BVHTREE_FROM_LOOPTRIS, 2);
+  BKE_bvhtree_from_mesh_get(&surface_bvh_eval, surface_mesh_eval, BVHTREE_FROM_CORNER_TRIS, 2);
   BLI_SCOPED_DEFER([&]() { free_bvhtree_from_mesh(&surface_bvh_eval); });
 
   const float2 brush_pos_re = stroke_start.mouse_position;

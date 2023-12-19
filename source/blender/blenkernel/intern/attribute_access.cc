@@ -13,7 +13,6 @@
 #include "BKE_type_conversions.hh"
 
 #include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_pointcloud_types.h"
 
 #include "BLI_array_utils.hh"

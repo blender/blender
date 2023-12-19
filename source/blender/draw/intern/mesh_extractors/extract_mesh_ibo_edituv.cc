@@ -54,18 +54,18 @@ static void extract_edituv_tris_iter_looptri_bm(const MeshRenderData & /*mr*/,
                  BM_elem_index_get(elt[2]));
 }
 
-static void extract_edituv_tris_iter_looptri_mesh(const MeshRenderData &mr,
-                                                  const MLoopTri *lt,
-                                                  const int elt_index,
-                                                  void *_data)
+static void extract_edituv_tris_iter_corner_tri_mesh(const MeshRenderData &mr,
+                                                     const int3 &tri,
+                                                     const int elt_index,
+                                                     void *_data)
 {
   MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(_data);
-  const int face_i = mr.looptri_faces[elt_index];
+  const int face_i = mr.corner_tri_faces[elt_index];
   const BMFace *efa = bm_original_face_get(mr, face_i);
   const bool mp_hidden = (efa) ? BM_elem_flag_test_bool(efa, BM_ELEM_HIDDEN) : true;
   const bool mp_select = (efa) ? BM_elem_flag_test_bool(efa, BM_ELEM_SELECT) : false;
 
-  edituv_tri_add(data, mp_hidden, mp_select, lt->tri[0], lt->tri[1], lt->tri[2]);
+  edituv_tri_add(data, mp_hidden, mp_select, tri[0], tri[1], tri[2]);
 }
 
 static void extract_edituv_tris_finish(const MeshRenderData & /*mr*/,
@@ -147,7 +147,7 @@ constexpr MeshExtract create_extractor_edituv_tris()
   MeshExtract extractor = {nullptr};
   extractor.init = extract_edituv_tris_init;
   extractor.iter_looptri_bm = extract_edituv_tris_iter_looptri_bm;
-  extractor.iter_looptri_mesh = extract_edituv_tris_iter_looptri_mesh;
+  extractor.iter_corner_tri_mesh = extract_edituv_tris_iter_corner_tri_mesh;
   extractor.finish = extract_edituv_tris_finish;
   extractor.init_subdiv = extract_edituv_tris_init_subdiv;
   extractor.iter_subdiv_bm = extract_edituv_tris_iter_subdiv_bm;

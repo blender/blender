@@ -26,7 +26,7 @@ class OpenVDBMeshAdapter {
  private:
   Span<float3> positions_;
   Span<int> corner_verts_;
-  Span<MLoopTri> looptris_;
+  Span<int3> corner_tris_;
   float4x4 transform_;
 
  public:
@@ -40,14 +40,14 @@ class OpenVDBMeshAdapter {
 OpenVDBMeshAdapter::OpenVDBMeshAdapter(const Mesh &mesh, float4x4 transform)
     : positions_(mesh.vert_positions()),
       corner_verts_(mesh.corner_verts()),
-      looptris_(mesh.looptris()),
+      corner_tris_(mesh.corner_tris()),
       transform_(transform)
 {
 }
 
 size_t OpenVDBMeshAdapter::polygonCount() const
 {
-  return size_t(looptris_.size());
+  return size_t(corner_tris_.size());
 }
 
 size_t OpenVDBMeshAdapter::pointCount() const
@@ -65,9 +65,9 @@ void OpenVDBMeshAdapter::getIndexSpacePoint(size_t polygon_index,
                                             size_t vertex_index,
                                             openvdb::Vec3d &pos) const
 {
-  const MLoopTri &lt = looptris_[polygon_index];
+  const int3 &tri = corner_tris_[polygon_index];
   const float3 transformed_co = math::transform_point(
-      transform_, positions_[corner_verts_[lt.tri[vertex_index]]]);
+      transform_, positions_[corner_verts_[tri[vertex_index]]]);
   pos = &transformed_co.x;
 }
 
@@ -150,10 +150,10 @@ static openvdb::FloatGrid::Ptr mesh_to_sdf_volume_grid(const Mesh &mesh,
 
   const Span<float3> positions = mesh.vert_positions();
   const Span<int> corner_verts = mesh.corner_verts();
-  const Span<MLoopTri> looptris = mesh.looptris();
+  const Span<int3> corner_tris = mesh.corner_tris();
 
   std::vector<openvdb::Vec3s> points(positions.size());
-  std::vector<openvdb::Vec3I> triangles(looptris.size());
+  std::vector<openvdb::Vec3I> triangles(corner_tris.size());
 
   threading::parallel_for(positions.index_range(), 2048, [&](const IndexRange range) {
     for (const int i : range) {
@@ -162,11 +162,11 @@ static openvdb::FloatGrid::Ptr mesh_to_sdf_volume_grid(const Mesh &mesh,
     }
   });
 
-  threading::parallel_for(looptris.index_range(), 2048, [&](const IndexRange range) {
+  threading::parallel_for(corner_tris.index_range(), 2048, [&](const IndexRange range) {
     for (const int i : range) {
-      const MLoopTri &lt = looptris[i];
+      const int3 &tri = corner_tris[i];
       triangles[i] = openvdb::Vec3I(
-          corner_verts[lt.tri[0]], corner_verts[lt.tri[1]], corner_verts[lt.tri[2]]);
+          corner_verts[tri[0]], corner_verts[tri[1]], corner_verts[tri[2]]);
     }
   });
 

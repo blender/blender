@@ -34,9 +34,12 @@ static void snap_object_data_mesh_get(const Mesh *me_eval,
                                       bool use_hide,
                                       BVHTreeFromMesh *r_treedata)
 {
-  /* The BVHTree from looptris is always required. */
-  BKE_bvhtree_from_mesh_get(
-      r_treedata, me_eval, use_hide ? BVHTREE_FROM_LOOPTRIS_NO_HIDDEN : BVHTREE_FROM_LOOPTRIS, 4);
+  /* The BVHTree from corner_tris is always required. */
+  BKE_bvhtree_from_mesh_get(r_treedata,
+                            me_eval,
+                            use_hide ? BVHTREE_FROM_CORNER_TRIS_NO_HIDDEN :
+                                       BVHTREE_FROM_CORNER_TRIS,
+                            4);
 }
 
 /** \} */
@@ -49,18 +52,18 @@ static void snap_object_data_mesh_get(const Mesh *me_eval,
  * Support for storing all depths, not just the first (ray-cast 'all'). */
 
 /* Callback to ray-cast with back-face culling (#Mesh). */
-static void mesh_looptris_raycast_backface_culling_cb(void *userdata,
-                                                      int index,
-                                                      const BVHTreeRay *ray,
-                                                      BVHTreeRayHit *hit)
+static void mesh_corner_tris_raycast_backface_culling_cb(void *userdata,
+                                                         int index,
+                                                         const BVHTreeRay *ray,
+                                                         BVHTreeRayHit *hit)
 {
   const BVHTreeFromMesh *data = (BVHTreeFromMesh *)userdata;
   const blender::Span<blender::float3> positions = data->vert_positions;
-  const MLoopTri *lt = &data->looptris[index];
+  const int3 &tri = data->corner_tris[index];
   const float *vtri_co[3] = {
-      positions[data->corner_verts[lt->tri[0]]],
-      positions[data->corner_verts[lt->tri[1]]],
-      positions[data->corner_verts[lt->tri[2]]],
+      positions[data->corner_verts[tri[0]]],
+      positions[data->corner_verts[tri[1]]],
+      positions[data->corner_verts[tri[2]]],
   };
   float dist = bvhtree_ray_tri_intersection(ray, hit->dist, UNPACK3(vtri_co));
 
@@ -131,7 +134,7 @@ static bool raycastMesh(SnapObjectContext *sctx,
   BVHTreeFromMesh treedata;
   snap_object_data_mesh_get(me_eval, use_hide, &treedata);
 
-  const blender::Span<int> looptri_faces = me_eval->looptri_faces();
+  const blender::Span<int> tri_faces = me_eval->corner_tri_faces();
 
   if (treedata.tree == nullptr) {
     return retval;
@@ -166,14 +169,14 @@ static bool raycastMesh(SnapObjectContext *sctx,
                              0.0f,
                              &hit,
                              sctx->runtime.params.use_backface_culling ?
-                                 mesh_looptris_raycast_backface_culling_cb :
+                                 mesh_corner_tris_raycast_backface_culling_cb :
                                  treedata.raycast_callback,
                              &treedata) != -1)
     {
       hit.dist += len_diff;
       hit.dist /= local_scale;
       if (hit.dist <= depth_max) {
-        hit.index = looptri_faces[hit.index];
+        hit.index = tri_faces[hit.index];
         retval = true;
       }
       SnapData::register_result_raycast(sctx, ob_eval, &me_eval->id, obmat, &hit, is_in_front);
@@ -224,7 +227,7 @@ class SnapData_Mesh : public SnapData {
   const int2 *edges; /* only used for #BVHTreeFromMeshEdges */
   const int *corner_verts;
   const int *corner_edges;
-  const MLoopTri *looptris;
+  const int3 *corner_tris;
 
   SnapData_Mesh(SnapObjectContext *sctx, const Mesh *mesh_eval, const float4x4 &obmat)
       : SnapData(sctx, obmat)
@@ -234,7 +237,7 @@ class SnapData_Mesh : public SnapData {
     this->edges = mesh_eval->edges().data();
     this->corner_verts = mesh_eval->corner_verts().data();
     this->corner_edges = mesh_eval->corner_edges().data();
-    this->looptris = mesh_eval->looptris().data();
+    this->corner_tris = mesh_eval->corner_tris().data();
   };
 
   void get_vert_co(const int index, const float **r_co)
@@ -286,10 +289,10 @@ static void cb_snap_tri_verts(void *userdata,
 
   int vindex[3];
   const int *corner_verts = data->corner_verts;
-  const MLoopTri *lt = &data->looptris[index];
-  vindex[0] = corner_verts[lt->tri[0]];
-  vindex[1] = corner_verts[lt->tri[1]];
-  vindex[2] = corner_verts[lt->tri[2]];
+  const int3 &tri = data->corner_tris[index];
+  vindex[0] = corner_verts[tri[0]];
+  vindex[1] = corner_verts[tri[1]];
+  vindex[2] = corner_verts[tri[2]];
 
   if (data->use_backface_culling) {
     const float3 *vert_positions = data->vert_positions;
@@ -319,13 +322,13 @@ static void cb_snap_tri_edges(void *userdata,
 {
   SnapData_Mesh *data = static_cast<SnapData_Mesh *>(userdata);
   const int *corner_verts = data->corner_verts;
-  const MLoopTri *lt = &data->looptris[index];
+  const int3 &tri = data->corner_tris[index];
 
   if (data->use_backface_culling) {
     const float3 *vert_positions = data->vert_positions;
-    const float3 &t0 = vert_positions[corner_verts[lt->tri[0]]];
-    const float3 &t1 = vert_positions[corner_verts[lt->tri[1]]];
-    const float3 &t2 = vert_positions[corner_verts[lt->tri[2]]];
+    const float3 &t0 = vert_positions[corner_verts[tri[0]]];
+    const float3 &t1 = vert_positions[corner_verts[tri[1]]];
+    const float3 &t2 = vert_positions[corner_verts[tri[2]]];
     float dummy[3];
     if (raycast_tri_backface_culling_test(precalc->ray_direction, t0, t1, t2, dummy)) {
       return;
@@ -335,9 +338,9 @@ static void cb_snap_tri_edges(void *userdata,
   const int2 *edges = data->edges;
   const int *corner_edges = data->corner_edges;
   for (int j = 2, j_next = 0; j_next < 3; j = j_next++) {
-    int eindex = corner_edges[lt->tri[j]];
+    int eindex = corner_edges[tri[j]];
     const int2 &edge = edges[eindex];
-    const int2 tri_edge = {corner_verts[lt->tri[j]], corner_verts[lt->tri[j_next]]};
+    const int2 tri_edge = {corner_verts[tri[j]], corner_verts[tri[j_next]]};
     if (ELEM(edge[0], tri_edge[0], tri_edge[1]) && ELEM(edge[1], tri_edge[0], tri_edge[1])) {
       if (eindex == nearest->index) {
         continue;
@@ -513,7 +516,7 @@ static eSnapMode snapMesh(SnapObjectContext *sctx,
     }
 
     if (treedata.tree) {
-      /* Snap to looptris. */
+      /* Snap to corner_tris. */
       BLI_bvhtree_find_nearest_projected(
           treedata.tree,
           nearest2d.pmat_local.ptr(),
@@ -547,7 +550,7 @@ static eSnapMode snapMesh(SnapObjectContext *sctx,
     }
 
     if (treedata.tree) {
-      /* Snap to looptris verts. */
+      /* Snap to corner_tris verts. */
       BLI_bvhtree_find_nearest_projected(
           treedata.tree,
           nearest2d.pmat_local.ptr(),

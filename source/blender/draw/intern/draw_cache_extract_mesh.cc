@@ -78,7 +78,7 @@ class ExtractorRunDatas : public Vector<ExtractorRunData> {
   {
     for (const ExtractorRunData &data : *this) {
       const MeshExtract *extractor = data.extractor;
-      if ((iter_type & MR_ITER_LOOPTRI) && *(&extractor->iter_looptri_bm + is_mesh)) {
+      if ((iter_type & MR_ITER_CORNER_TRI) && *(&extractor->iter_looptri_bm + is_mesh)) {
         result.append(data);
         continue;
       }
@@ -279,18 +279,18 @@ static void extract_range_iter_looptri_bm(void *__restrict userdata,
   }
 }
 
-static void extract_range_iter_looptri_mesh(void *__restrict userdata,
-                                            const int iter,
-                                            const TaskParallelTLS *__restrict tls)
+static void extract_range_iter_corner_tri_mesh(void *__restrict userdata,
+                                               const int iter,
+                                               const TaskParallelTLS *__restrict tls)
 {
   void *extract_data = tls->userdata_chunk;
 
   const ExtractorIterData *data = static_cast<ExtractorIterData *>(userdata);
   const MeshRenderData &mr = *data->mr;
-  const MLoopTri *lt = &((const MLoopTri *)data->elems)[iter];
+  const int3 &tri = ((const int3 *)data->elems)[iter];
   for (const ExtractorRunData &run_data : data->extractors) {
-    run_data.extractor->iter_looptri_mesh(
-        mr, lt, iter, POINTER_OFFSET(extract_data, run_data.data_offset));
+    run_data.extractor->iter_corner_tri_mesh(
+        mr, tri, iter, POINTER_OFFSET(extract_data, run_data.data_offset));
   }
 }
 
@@ -397,9 +397,9 @@ BLI_INLINE void extract_task_range_run_iter(const MeshRenderData &mr,
   TaskParallelRangeFunc func;
   int stop;
   switch (iter_type) {
-    case MR_ITER_LOOPTRI:
-      range_data.elems = is_mesh ? mr.looptris.data() : (void *)mr.edit_bmesh->looptris;
-      func = is_mesh ? extract_range_iter_looptri_mesh : extract_range_iter_looptri_bm;
+    case MR_ITER_CORNER_TRI:
+      range_data.elems = is_mesh ? mr.corner_tris.data() : (void *)mr.edit_bmesh->looptris;
+      func = is_mesh ? extract_range_iter_corner_tri_mesh : extract_range_iter_looptri_bm;
       stop = mr.tri_len;
       break;
     case MR_ITER_POLY:
@@ -447,8 +447,9 @@ static void extract_task_range_run(void *__restrict taskdata)
 
   extract_init(*data->mr, *data->cache, *data->extractors, data->mbuflist, userdata_chunk);
 
-  if (iter_type & MR_ITER_LOOPTRI) {
-    extract_task_range_run_iter(*data->mr, data->extractors, MR_ITER_LOOPTRI, is_mesh, &settings);
+  if (iter_type & MR_ITER_CORNER_TRI) {
+    extract_task_range_run_iter(
+        *data->mr, data->extractors, MR_ITER_CORNER_TRI, is_mesh, &settings);
   }
   if (iter_type & MR_ITER_POLY) {
     extract_task_range_run_iter(*data->mr, data->extractors, MR_ITER_POLY, is_mesh, &settings);
@@ -534,7 +535,7 @@ static void mesh_extract_render_data_node_exec(void *__restrict task_data)
   const eMRDataType data_flag = update_task_data->data_flag;
 
   mesh_render_data_update_normals(mr, data_flag);
-  mesh_render_data_update_looptris(mr, iter_type, data_flag);
+  mesh_render_data_update_corner_tris(mr, iter_type, data_flag);
   mesh_render_data_update_loose_geom(mr, *update_task_data->cache, iter_type, data_flag);
   mesh_render_data_update_faces_sorted(mr, *update_task_data->cache, data_flag);
 }
@@ -870,7 +871,7 @@ void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache &cache,
     return;
   }
 
-  mesh_render_data_update_looptris(mr, MR_ITER_LOOPTRI, MR_DATA_LOOPTRI);
+  mesh_render_data_update_corner_tris(mr, MR_ITER_CORNER_TRI, MR_DATA_CORNER_TRI);
   mesh_render_data_update_normals(mr, MR_DATA_TAN_LOOP_NOR);
   mesh_render_data_update_loose_geom(
       mr, mbc, MR_ITER_LOOSE_EDGE | MR_ITER_LOOSE_VERT, MR_DATA_LOOSE_GEOM);

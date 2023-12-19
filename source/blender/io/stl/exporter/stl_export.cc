@@ -93,10 +93,10 @@ void export_frame(Depsgraph *depsgraph,
     /* Write triangles. */
     const Span<float3> positions = mesh->vert_positions();
     const blender::Span<int> corner_verts = mesh->corner_verts();
-    for (const MLoopTri &loop_tri : mesh->looptris()) {
+    for (const int3 &tri : mesh->corner_tris()) {
       Triangle t;
       for (int i = 0; i < 3; i++) {
-        float3 pos = positions[corner_verts[loop_tri.tri[i]]];
+        float3 pos = positions[corner_verts[tri[i]]];
         mul_m4_v3(xform, pos);
         pos *= global_scale;
         t.vertices[i] = pos;

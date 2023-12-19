@@ -592,7 +592,7 @@ static void mesh_batch_cache_init(Object *object, Mesh *mesh)
 
   if (cache->is_editmode == false) {
     // cache->edge_len = mesh_render_edges_len_get(mesh);
-    // cache->tri_len = mesh_render_looptris_len_get(mesh);
+    // cache->tri_len = mesh_render_corner_tris_len_get(mesh);
     // cache->face_len = mesh_render_faces_len_get(mesh);
     // cache->vert_len = mesh_render_verts_len_get(mesh);
   }
@@ -649,7 +649,7 @@ static void mesh_batch_cache_request_surface_batches(MeshBatchCache &cache)
   }
 }
 
-/* Free batches with material-mapped looptris.
+/* Free batches with material-mapped corner_tris.
  * NOTE: The updating of the indices buffers (#tris_per_mat) is handled in the extractors.
  * No need to discard they here. */
 static void mesh_batch_cache_discard_surface_batches(MeshBatchCache &cache)

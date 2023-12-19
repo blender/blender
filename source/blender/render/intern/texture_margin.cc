@@ -498,11 +498,11 @@ static void generate_margin(ImBuf *ibuf,
                             const Span<float2> mloopuv,
                             const float uv_offset[2])
 {
-  Array<MLoopTri> looptris(poly_to_tri_count(faces.size(), corner_edges.size()));
-  bke::mesh::looptris_calc(vert_positions, faces, corner_verts, looptris);
+  Array<int3> corner_tris(poly_to_tri_count(faces.size(), corner_edges.size()));
+  bke::mesh::corner_tris_calc(vert_positions, faces, corner_verts, corner_tris);
 
-  Array<int> looptri_faces(looptris.size());
-  bke::mesh::looptris_calc_face_indices(faces, looptri_faces);
+  Array<int> tri_faces(corner_tris.size());
+  bke::mesh::corner_tris_calc_face_indices(faces, tri_faces);
 
   TextureMarginMap map(ibuf->x, ibuf->y, uv_offset, edges_num, faces, corner_edges, mloopuv);
 
@@ -517,12 +517,12 @@ static void generate_margin(ImBuf *ibuf,
     draw_new_mask = true;
   }
 
-  for (const int i : looptris.index_range()) {
-    const MLoopTri *lt = &looptris[i];
+  for (const int i : corner_tris.index_range()) {
+    const int3 tri = corner_tris[i];
     float vec[3][2];
 
     for (int a = 0; a < 3; a++) {
-      const float *uv = mloopuv[lt->tri[a]];
+      const float *uv = mloopuv[tri[a]];
 
       /* NOTE(@ideasman42): workaround for pixel aligned UVs which are common and can screw up
        * our intersection tests where a pixel gets in between 2 faces or the middle of a quad,
@@ -533,9 +533,9 @@ static void generate_margin(ImBuf *ibuf,
     }
 
     /* NOTE: we need the top bit for the dijkstra distance map. */
-    BLI_assert(looptri_faces[i] < 0x80000000);
+    BLI_assert(tri_faces[i] < 0x80000000);
 
-    map.rasterize_tri(vec[0], vec[1], vec[2], looptri_faces[i], mask, draw_new_mask);
+    map.rasterize_tri(vec[0], vec[1], vec[2], tri_faces[i], mask, draw_new_mask);
   }
 
   char *tmpmask = (char *)MEM_dupallocN(mask);

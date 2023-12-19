@@ -16,16 +16,16 @@ static int2 uv_to_cell_key(const float2 &uv, const int resolution)
   return int2{uv * resolution};
 }
 
-ReverseUVSampler::ReverseUVSampler(const Span<float2> uv_map, const Span<MLoopTri> looptris)
-    : uv_map_(uv_map), looptris_(looptris)
+ReverseUVSampler::ReverseUVSampler(const Span<float2> uv_map, const Span<int3> corner_tris)
+    : uv_map_(uv_map), corner_tris_(corner_tris)
 {
-  resolution_ = std::max<int>(3, std::sqrt(looptris.size()) * 2);
+  resolution_ = std::max<int>(3, std::sqrt(corner_tris.size()) * 2);
 
-  for (const int looptri_index : looptris.index_range()) {
-    const MLoopTri &lt = looptris[looptri_index];
-    const float2 &uv_0 = uv_map_[lt.tri[0]];
-    const float2 &uv_1 = uv_map_[lt.tri[1]];
-    const float2 &uv_2 = uv_map_[lt.tri[2]];
+  for (const int tri_i : corner_tris.index_range()) {
+    const int3 &tri = corner_tris[tri_i];
+    const float2 &uv_0 = uv_map_[tri[0]];
+    const float2 &uv_1 = uv_map_[tri[1]];
+    const float2 &uv_2 = uv_map_[tri[2]];
 
     const int2 key_0 = uv_to_cell_key(uv_0, resolution_);
     const int2 key_1 = uv_to_cell_key(uv_1, resolution_);
@@ -37,7 +37,7 @@ ReverseUVSampler::ReverseUVSampler(const Span<float2> uv_map, const Span<MLoopTr
     for (int key_x = min_key.x; key_x <= max_key.x; key_x++) {
       for (int key_y = min_key.y; key_y <= max_key.y; key_y++) {
         const int2 key{key_x, key_y};
-        looptris_by_cell_.add(key, looptri_index);
+        corner_tris_by_cell_.add(key, tri_i);
       }
     }
   }
@@ -46,22 +46,22 @@ ReverseUVSampler::ReverseUVSampler(const Span<float2> uv_map, const Span<MLoopTr
 ReverseUVSampler::Result ReverseUVSampler::sample(const float2 &query_uv) const
 {
   const int2 cell_key = uv_to_cell_key(query_uv, resolution_);
-  const Span<int> looptri_indices = looptris_by_cell_.lookup(cell_key);
+  const Span<int> tri_indices = corner_tris_by_cell_.lookup(cell_key);
 
   float best_dist = FLT_MAX;
   float3 best_bary_weights;
-  int best_looptri_index;
+  int best_tri_index;
 
   /* The distance to an edge that is allowed to be inside or outside the triangle. Without this,
    * the lookup can fail for floating point accuracy reasons when the uv is almost exact on an
    * edge. */
   const float edge_epsilon = 0.00001f;
 
-  for (const int looptri_index : looptri_indices) {
-    const MLoopTri &lt = looptris_[looptri_index];
-    const float2 &uv_0 = uv_map_[lt.tri[0]];
-    const float2 &uv_1 = uv_map_[lt.tri[1]];
-    const float2 &uv_2 = uv_map_[lt.tri[2]];
+  for (const int tri_i : tri_indices) {
+    const int3 &tri = corner_tris_[tri_i];
+    const float2 &uv_0 = uv_map_[tri[0]];
+    const float2 &uv_1 = uv_map_[tri[1]];
+    const float2 &uv_2 = uv_map_[tri[2]];
     float3 bary_weights;
     if (!barycentric_coords_v2(uv_0, uv_1, uv_2, query_uv, bary_weights)) {
       continue;
@@ -86,14 +86,14 @@ ReverseUVSampler::Result ReverseUVSampler::sample(const float2 &query_uv) const
     if (dist < best_dist) {
       best_dist = dist;
       best_bary_weights = bary_weights;
-      best_looptri_index = looptri_index;
+      best_tri_index = tri_i;
     }
   }
 
   /* Allow using the closest (but not intersecting) triangle if the uv is almost exactly on an
    * edge. */
   if (best_dist < edge_epsilon) {
-    return Result{ResultType::Ok, best_looptri_index, math::clamp(best_bary_weights, 0.0f, 1.0f)};
+    return Result{ResultType::Ok, best_tri_index, math::clamp(best_bary_weights, 0.0f, 1.0f)};
   }
 
   return Result{};

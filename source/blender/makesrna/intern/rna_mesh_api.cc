@@ -82,9 +82,9 @@ static void rna_Mesh_free_tangents(Mesh *mesh)
   CustomData_free_layers(&mesh->loop_data, CD_MLOOPTANGENT, mesh->totloop);
 }
 
-static void rna_Mesh_calc_looptri(Mesh *mesh)
+static void rna_Mesh_calc_corner_tri(Mesh *mesh)
 {
-  mesh->looptris();
+  mesh->corner_tris();
 }
 
 static void rna_Mesh_calc_smooth_groups(
@@ -260,7 +260,7 @@ void RNA_api_mesh(StructRNA *srna)
   func = RNA_def_function(srna, "free_tangents", "rna_Mesh_free_tangents");
   RNA_def_function_ui_description(func, "Free tangents");
 
-  func = RNA_def_function(srna, "calc_loop_triangles", "rna_Mesh_calc_looptri");
+  func = RNA_def_function(srna, "calc_loop_triangles", "rna_Mesh_calc_corner_tri");
   RNA_def_function_ui_description(func,
                                   "Calculate loop triangle tessellation (supports editmode too)");
 

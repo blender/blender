@@ -33,7 +33,7 @@ struct AddCurvesOnMeshInputs {
 
   /** Information about the surface that the new curves are attached to. */
   const Mesh *surface = nullptr;
-  Span<MLoopTri> surface_looptris;
+  Span<int3> surface_corner_tris;
   const ReverseUVSampler *reverse_uv_sampler = nullptr;
   Span<float3> corner_normals_su;
 
@@ -60,7 +60,7 @@ struct AddCurvesOnMeshOutputs {
 AddCurvesOnMeshOutputs add_curves_on_mesh(bke::CurvesGeometry &curves,
                                           const AddCurvesOnMeshInputs &inputs);
 
-float3 compute_surface_point_normal(const MLoopTri &lt,
+float3 compute_surface_point_normal(const int3 &tri,
                                     const float3 &bary_coord,
                                     Span<float3> corner_normals);
 

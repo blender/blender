@@ -52,7 +52,6 @@ struct ImagePool;
 struct ImageUser;
 struct KeyBlock;
 struct ListBase;
-struct MLoopTri;
 struct Main;
 struct Mesh;
 struct MDeformVert;

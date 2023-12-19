@@ -78,9 +78,9 @@ static void extract_tris_iter_face_mesh(const MeshRenderData &mr,
 
   int tri_len = face.size() - 2;
   for (int offs = 0; offs < tri_len; offs++) {
-    const MLoopTri *lt = &mr.looptris[tri_first_index_real + offs];
+    const int3 &tri = mr.corner_tris[tri_first_index_real + offs];
     int tri_index = tri_first_index + offs;
-    GPU_indexbuf_set_tri_verts(elb, tri_index, lt->tri[0], lt->tri[1], lt->tri[2]);
+    GPU_indexbuf_set_tri_verts(elb, tri_index, tri[0], tri[1], tri[2]);
   }
 }
 
@@ -148,7 +148,7 @@ constexpr MeshExtract create_extractor_tris()
   extractor.iter_face_mesh = extract_tris_iter_face_mesh;
   extractor.task_reduce = extract_tris_mat_task_reduce;
   extractor.finish = extract_tris_finish;
-  extractor.data_type = MR_DATA_LOOPTRI | MR_DATA_POLYS_SORTED;
+  extractor.data_type = MR_DATA_CORNER_TRI | MR_DATA_POLYS_SORTED;
   extractor.data_size = sizeof(GPUIndexBufBuilder);
   extractor.use_threading = true;
   extractor.mesh_buffer_offset = offsetof(MeshBufferList, ibo.tris);
@@ -187,19 +187,19 @@ static void extract_tris_single_mat_iter_looptri_bm(const MeshRenderData & /*mr*
   }
 }
 
-static void extract_tris_single_mat_iter_looptri_mesh(const MeshRenderData &mr,
-                                                      const MLoopTri *lt,
-                                                      const int lt_index,
-                                                      void *_data)
+static void extract_tris_single_mat_iter_corner_tri_mesh(const MeshRenderData &mr,
+                                                         const int3 &tri,
+                                                         const int tri_index,
+                                                         void *_data)
 {
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_data);
-  const int face_i = mr.looptri_faces[lt_index];
+  const int face_i = mr.corner_tri_faces[tri_index];
   const bool hidden = mr.use_hide && !mr.hide_poly.is_empty() && mr.hide_poly[face_i];
   if (hidden) {
-    GPU_indexbuf_set_tri_restart(elb, lt_index);
+    GPU_indexbuf_set_tri_restart(elb, tri_index);
   }
   else {
-    GPU_indexbuf_set_tri_verts(elb, lt_index, lt->tri[0], lt->tri[1], lt->tri[2]);
+    GPU_indexbuf_set_tri_verts(elb, tri_index, tri[0], tri[1], tri[2]);
   }
 }
 
@@ -234,7 +234,7 @@ constexpr MeshExtract create_extractor_tris_single_mat()
   extractor.init = extract_tris_single_mat_init;
   extractor.init_subdiv = extract_tris_init_subdiv;
   extractor.iter_looptri_bm = extract_tris_single_mat_iter_looptri_bm;
-  extractor.iter_looptri_mesh = extract_tris_single_mat_iter_looptri_mesh;
+  extractor.iter_corner_tri_mesh = extract_tris_single_mat_iter_corner_tri_mesh;
   extractor.task_reduce = extract_tris_mat_task_reduce;
   extractor.finish = extract_tris_single_mat_finish;
   extractor.data_type = MR_DATA_NONE;

@@ -16,7 +16,6 @@ struct DerivedMesh;
 struct MDisps;
 struct Mesh;
 struct ModifierData;
-struct MLoopTri;
 struct MultiresModifierData;
 struct Object;
 struct Scene;

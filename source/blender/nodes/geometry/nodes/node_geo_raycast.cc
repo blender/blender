@@ -100,7 +100,7 @@ static void raycast_to_mesh(const IndexMask &mask,
                             const MutableSpan<float> r_hit_distances)
 {
   BVHTreeFromMesh tree_data;
-  BKE_bvhtree_from_mesh_get(&tree_data, &mesh, BVHTREE_FROM_LOOPTRIS, 4);
+  BKE_bvhtree_from_mesh_get(&tree_data, &mesh, BVHTREE_FROM_CORNER_TRIS, 4);
   BLI_SCOPED_DEFER([&]() { free_bvhtree_from_mesh(&tree_data); });
 
   if (tree_data.tree == nullptr) {

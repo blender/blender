@@ -22,12 +22,12 @@ namespace blender::geometry {
 class ReverseUVSampler {
  private:
   Span<float2> uv_map_;
-  Span<MLoopTri> looptris_;
+  Span<int3> corner_tris_;
   int resolution_;
-  MultiValueMap<int2, int> looptris_by_cell_;
+  MultiValueMap<int2, int> corner_tris_by_cell_;
 
  public:
-  ReverseUVSampler(Span<float2> uv_map, Span<MLoopTri> looptris);
+  ReverseUVSampler(Span<float2> uv_map, Span<int3> corner_tris);
 
   enum class ResultType {
     None,
@@ -37,7 +37,7 @@ class ReverseUVSampler {
 
   struct Result {
     ResultType type = ResultType::None;
-    int looptri_index = -1;
+    int tri_index = -1;
     float3 bary_weights;
   };
 

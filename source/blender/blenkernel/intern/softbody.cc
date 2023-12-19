@@ -2769,7 +2769,6 @@ static void mesh_faces_to_scratch(Object *ob)
 {
   SoftBody *sb = ob->soft;
   const Mesh *mesh = static_cast<const Mesh *>(ob->data);
-  MLoopTri *lt;
   BodyFace *bodyface;
   int a;
   const blender::Span<int> corner_verts = mesh->corner_verts();
@@ -2777,19 +2776,17 @@ static void mesh_faces_to_scratch(Object *ob)
   /* Allocate and copy faces. */
 
   sb->scratch->bodyface_num = poly_to_tri_count(mesh->faces_num, mesh->totloop);
-  blender::Array<MLoopTri> looptris(sb->scratch->bodyface_num);
-  blender::bke::mesh::looptris_calc(
-      mesh->vert_positions(), mesh->faces(), mesh->corner_verts(), looptris);
-
-  lt = looptris.data();
+  blender::Array<blender::int3> corner_tris(sb->scratch->bodyface_num);
+  blender::bke::mesh::corner_tris_calc(
+      mesh->vert_positions(), mesh->faces(), mesh->corner_verts(), corner_tris);
 
   bodyface = sb->scratch->bodyface = static_cast<BodyFace *>(
       MEM_mallocN(sizeof(BodyFace) * sb->scratch->bodyface_num, "SB_body_Faces"));
 
-  for (a = 0; a < sb->scratch->bodyface_num; a++, lt++, bodyface++) {
-    bodyface->v1 = corner_verts[lt->tri[0]];
-    bodyface->v2 = corner_verts[lt->tri[1]];
-    bodyface->v3 = corner_verts[lt->tri[2]];
+  for (a = 0; a < sb->scratch->bodyface_num; a++, bodyface++) {
+    bodyface->v1 = corner_verts[corner_tris[a][0]];
+    bodyface->v2 = corner_verts[corner_tris[a][1]];
+    bodyface->v3 = corner_verts[corner_tris[a][2]];
     zero_v3(bodyface->ext_force);
     bodyface->ext_force[0] = bodyface->ext_force[1] = bodyface->ext_force[2] = 0.0f;
     bodyface->flag = 0;

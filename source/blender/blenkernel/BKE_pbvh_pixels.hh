@@ -11,7 +11,6 @@
 #include "BLI_vector.hh"
 
 #include "DNA_image_types.h"
-#include "DNA_meshdata_types.h"
 
 #include "BKE_image.h"
 #include "BKE_image_wrappers.hh"

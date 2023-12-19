@@ -181,7 +181,7 @@ static void get_vert2geom_distance(int verts_num,
   }
   if (dist_f) {
     /* Create a BVH-tree of the given target's faces. */
-    BKE_bvhtree_from_mesh_get(&treeData_f, target, BVHTREE_FROM_LOOPTRIS, 2);
+    BKE_bvhtree_from_mesh_get(&treeData_f, target, BVHTREE_FROM_CORNER_TRIS, 2);
     if (treeData_f.tree == nullptr) {
       OUT_OF_MEMORY();
       return;

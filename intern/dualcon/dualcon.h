@@ -26,7 +26,7 @@ typedef struct DualConInput {
   int co_stride;
   int totco;
 
-  DualConTri looptris;
+  DualConTri corner_tris;
   int tri_stride;
   int tottri;
 

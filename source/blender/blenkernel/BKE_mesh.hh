@@ -29,33 +29,31 @@ namespace mesh {
 /** Calculate the up direction for the face, depending on its winding direction. */
 float3 face_normal_calc(Span<float3> vert_positions, Span<int> face_verts);
 
+void corner_tris_calc(Span<float3> vert_positions,
+                      OffsetIndices<int> faces,
+                      Span<int> corner_verts,
+                      MutableSpan<int3> corner_tris);
+
 /**
- * Calculate tessellation into #MLoopTri which exist only for this purpose.
- */
-void looptris_calc(Span<float3> vert_positions,
-                   OffsetIndices<int> faces,
-                   Span<int> corner_verts,
-                   MutableSpan<MLoopTri> looptris);
-/**
- * A version of #looptris_calc which takes pre-calculated face normals
+ * A version of #corner_tris_calc which takes pre-calculated face normals
  * (used to avoid having to calculate the face normal for NGON tessellation).
  *
  * \note Only use this function if normals have already been calculated, there is no need
  * to calculate normals just to use this function.
  */
-void looptris_calc_with_normals(Span<float3> vert_positions,
-                                OffsetIndices<int> faces,
-                                Span<int> corner_verts,
-                                Span<float3> face_normals,
-                                MutableSpan<MLoopTri> looptris);
+void corner_tris_calc_with_normals(Span<float3> vert_positions,
+                                   OffsetIndices<int> faces,
+                                   Span<int> corner_verts,
+                                   Span<float3> face_normals,
+                                   MutableSpan<int3> corner_tris);
 
-void looptris_calc_face_indices(OffsetIndices<int> faces, MutableSpan<int> looptri_faces);
+void corner_tris_calc_face_indices(OffsetIndices<int> faces, MutableSpan<int> tri_faces);
 
 /** Return the triangle's three edge indices they are real edges, otherwise -1. */
-int3 looptri_get_real_edges(Span<int2> edges,
-                            Span<int> corner_verts,
-                            Span<int> corner_edges,
-                            const MLoopTri &lt);
+int3 corner_tri_get_real_edges(Span<int2> edges,
+                               Span<int> corner_verts,
+                               Span<int> corner_edges,
+                               const int3 &corner_tri);
 
 /** Calculate the average position of the vertices in the face. */
 float3 face_center_calc(Span<float3> vert_positions, Span<int> face_verts);

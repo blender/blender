@@ -95,7 +95,7 @@ struct AddOperationExecutor {
   Mesh *surface_eval_ = nullptr;
   Span<float3> surface_positions_eval_;
   Span<int> surface_corner_verts_eval_;
-  Span<MLoopTri> surface_looptris_eval_;
+  Span<int3> surface_corner_tris_eval_;
   VArraySpan<float2> surface_uv_map_eval_;
   BVHTreeFromMesh surface_bvh_eval_;
 
@@ -145,8 +145,8 @@ struct AddOperationExecutor {
     }
     surface_positions_eval_ = surface_eval_->vert_positions();
     surface_corner_verts_eval_ = surface_eval_->corner_verts();
-    surface_looptris_eval_ = surface_eval_->looptris();
-    BKE_bvhtree_from_mesh_get(&surface_bvh_eval_, surface_eval_, BVHTREE_FROM_LOOPTRIS, 2);
+    surface_corner_tris_eval_ = surface_eval_->corner_tris();
+    BKE_bvhtree_from_mesh_get(&surface_bvh_eval_, surface_eval_, BVHTREE_FROM_CORNER_TRIS, 2);
     BLI_SCOPED_DEFER([&]() { free_bvhtree_from_mesh(&surface_bvh_eval_); });
 
     curves_sculpt_ = ctx_.scene->toolsettings->curves_sculpt;
@@ -206,9 +206,9 @@ struct AddOperationExecutor {
       return;
     }
 
-    const Span<MLoopTri> surface_looptris_orig = surface_orig.looptris();
+    const Span<int3> surface_corner_tris_orig = surface_orig.corner_tris();
     const Span<float3> corner_normals_su = surface_orig.corner_normals();
-    const geometry::ReverseUVSampler reverse_uv_sampler{surface_uv_map, surface_looptris_orig};
+    const geometry::ReverseUVSampler reverse_uv_sampler{surface_uv_map, surface_corner_tris_orig};
 
     geometry::AddCurvesOnMeshInputs add_inputs;
     add_inputs.uvs = sampled_uvs;
@@ -222,7 +222,7 @@ struct AddOperationExecutor {
     add_inputs.fallback_curve_length = brush_settings_->curve_length;
     add_inputs.fallback_point_count = std::max(2, brush_settings_->points_per_curve);
     add_inputs.transforms = &transforms_;
-    add_inputs.surface_looptris = surface_looptris_orig;
+    add_inputs.surface_corner_tris = surface_corner_tris_orig;
     add_inputs.reverse_uv_sampler = &reverse_uv_sampler;
     add_inputs.surface = &surface_orig;
     add_inputs.corner_normals_su = corner_normals_su;
@@ -296,14 +296,14 @@ struct AddOperationExecutor {
       return;
     }
 
-    const int looptri_index = ray_hit.index;
-    const MLoopTri &lt = surface_looptris_eval_[looptri_index];
+    const int tri_index = ray_hit.index;
+    const int3 &tri = surface_corner_tris_eval_[tri_index];
     const float3 brush_pos_su = ray_hit.co;
     const float3 bary_coords = bke::mesh_surface_sample::compute_bary_coord_in_triangle(
-        surface_positions_eval_, surface_corner_verts_eval_, lt, brush_pos_su);
+        surface_positions_eval_, surface_corner_verts_eval_, tri, brush_pos_su);
 
     const float2 uv = bke::mesh_surface_sample::sample_corner_attribute_with_bary_coords(
-        bary_coords, lt, surface_uv_map_eval_);
+        bary_coords, tri, surface_uv_map_eval_);
     r_sampled_uvs.append(uv);
   }
 
@@ -331,7 +331,7 @@ struct AddOperationExecutor {
         break;
       }
       Vector<float3> bary_coords;
-      Vector<int> looptri_indices;
+      Vector<int> tri_indices;
       Vector<float3> positions_su;
 
       const int missing_amount = add_amount_ + old_amount - r_sampled_uvs.size();
@@ -356,12 +356,12 @@ struct AddOperationExecutor {
           add_amount_,
           missing_amount,
           bary_coords,
-          looptri_indices,
+          tri_indices,
           positions_su);
 
       for (const int i : IndexRange(new_points)) {
         const float2 uv = bke::mesh_surface_sample::sample_corner_attribute_with_bary_coords(
-            bary_coords[i], surface_looptris_eval_[looptri_indices[i]], surface_uv_map_eval_);
+            bary_coords[i], surface_corner_tris_eval_[tri_indices[i]], surface_uv_map_eval_);
         r_sampled_uvs.append(uv);
       }
     }
@@ -422,23 +422,23 @@ struct AddOperationExecutor {
     const float brush_radius_sq_su = pow2f(brush_radius_su);
 
     /* Find surface triangles within brush radius. */
-    Vector<int> selected_looptri_indices;
+    Vector<int> selected_tri_indices;
     if (use_front_face_) {
       BLI_bvhtree_range_query_cpp(
           *surface_bvh_eval_.tree,
           brush_pos_su,
           brush_radius_su,
           [&](const int index, const float3 & /*co*/, const float /*dist_sq*/) {
-            const MLoopTri &lt = surface_looptris_eval_[index];
-            const float3 &v0_su = surface_positions_eval_[surface_corner_verts_eval_[lt.tri[0]]];
-            const float3 &v1_su = surface_positions_eval_[surface_corner_verts_eval_[lt.tri[1]]];
-            const float3 &v2_su = surface_positions_eval_[surface_corner_verts_eval_[lt.tri[2]]];
+            const int3 &tri = surface_corner_tris_eval_[index];
+            const float3 &v0_su = surface_positions_eval_[surface_corner_verts_eval_[tri[0]]];
+            const float3 &v1_su = surface_positions_eval_[surface_corner_verts_eval_[tri[1]]];
+            const float3 &v2_su = surface_positions_eval_[surface_corner_verts_eval_[tri[2]]];
             float3 normal_su;
             normal_tri_v3(normal_su, v0_su, v1_su, v2_su);
             if (math::dot(normal_su, view_direction_su) >= 0.0f) {
               return;
             }
-            selected_looptri_indices.append(index);
+            selected_tri_indices.append(index);
           });
     }
     else {
@@ -447,7 +447,7 @@ struct AddOperationExecutor {
           brush_pos_su,
           brush_radius_su,
           [&](const int index, const float3 & /*co*/, const float /*dist_sq*/) {
-            selected_looptri_indices.append(index);
+            selected_tri_indices.append(index);
           });
     }
 
@@ -467,21 +467,21 @@ struct AddOperationExecutor {
         break;
       }
       Vector<float3> bary_coords;
-      Vector<int> looptri_indices;
+      Vector<int> tri_indices;
       Vector<float3> positions_su;
       const int new_points = bke::mesh_surface_sample::sample_surface_points_spherical(
           rng,
           *surface_eval_,
-          selected_looptri_indices,
+          selected_tri_indices,
           brush_pos_su,
           brush_radius_su,
           approximate_density_su,
           bary_coords,
-          looptri_indices,
+          tri_indices,
           positions_su);
       for (const int i : IndexRange(new_points)) {
         const float2 uv = bke::mesh_surface_sample::sample_corner_attribute_with_bary_coords(
-            bary_coords[i], surface_looptris_eval_[looptri_indices[i]], surface_uv_map_eval_);
+            bary_coords[i], surface_corner_tris_eval_[tri_indices[i]], surface_uv_map_eval_);
         r_sampled_uvs.append(uv);
       }
     }

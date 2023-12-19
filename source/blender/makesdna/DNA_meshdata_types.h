@@ -41,59 +41,58 @@ enum {
  * \{ */
 
 /**
- * #MLoopTri is runtime triangulation data for #Mesh, for functionality that doesn't support ngons.
+ * #Mesh::corner_tris() gives access to runtime triangulation data for #Mesh, for functionality
+ * that doesn't support ngons.
  *
  * Typical usage includes:
  * - Viewport drawing.
  * - #BVHTree creation.
  * - Physics/collision detection.
  *
- * A mesh's triangulation data is generally accessed via #Mesh::looptris(), which uses a cache that
- * is lazily calculated from faces, corner vert, and position arrays. In rare cases it is
- * calculated directly too, with #bke::mesh::looptris_calc. When the underlying mesh data changes,
- * the array is recalculated from scratch; there is no extra attempt to maintain the validity over
- * time.
+ * A mesh's triangulation data, which uses a cache that is lazily calculated from faces, corner
+ * vert, and position arrays. In rare cases it is calculated directly too, with
+ * #bke::mesh::corner_tris_calc. When the underlying mesh data changes, the array is recalculated
+ * from scratch; there is no extra attempt to maintain the validity over time.
  *
- * #MLoopTri is stored in an array, where triangles from each face are stored sequentially.
- * The triangles order is guaranteed to match the face order where the first triangle will always
- * be from the first face, and the last triangle from the last face.
- * The number of triangles for each polygon is guaranteed to be the corner count - 2, even for
- * degenerate geometry (see #bke::mesh::face_triangles_num).
+ * Triangles are stored in an array, where triangles from each face are stored sequentially. The
+ * triangles order is guaranteed to match the face order where the first triangle will always be
+ * from the first face, and the last triangle from the last face. The number of triangles for each
+ * polygon is guaranteed to be the corner count - 2, even for degenerate geometry (see
+ * #bke::mesh::face_triangles_num).
  *
  * Storing corner indices (instead of vertex indices) gives more flexibility for accessing mesh
  * data stored per-corner, though it does often add an extra level of indirection. The index of the
  * corresponding face for each triangle is stored in a separate array, accessed with
- * #Mesh::looptri_faces().
+ * #Mesh::corner_tri_faces().
  *
  * Examples:
  * \code{.cc}
  * // Access vertex locations.
  * std::array<float3, 3> tri_positions{
- *   positions[corner_verts[lt.tri[0]]],
- *   positions[corner_verts[lt.tri[1]]],
- *   positions[corner_verts[lt.tri[2]]],
+ *   positions[corner_verts[tri[0]]],
+ *   positions[corner_verts[tri[1]]],
+ *   positions[corner_verts[tri[2]]],
  * };
  *
  * // Access UV coordinates (works for all face corner data, vertex colors... etc).
  * std::array<float2, 3> tri_uvs{
- *   uv_map[lt.tri[0]],
- *   uv_map[lt.tri[1]],
- *   uv_map[lt.tri[2]],
+ *   uv_map[tri[0]],
+ *   uv_map[tri[1]],
+ *   uv_map[tri[2]],
  * };
  *
  * // Access all triangles in a given face.
  * const IndexRange face = faces[i];
- * const Span<MLoopTri> looptris = looptris.slice(poly_to_tri_count(i, face.start()),
+ * const Span<int3> corner_tris = corner_tris.slice(poly_to_tri_count(i, face.start()),
  *                                                bke::mesh::face_triangles_num(face.size()));
  * \endcode
  *
  * It may also be useful to check whether or not two vertices of a triangle form an edge in the
- * underlying mesh. See #bke::mesh::looptri_get_real_edges for a utility that does this. Note that
- * a #MLoopTri may be in the middle of an ngon and not reference **any** real edges.
+ * underlying mesh. See #bke::mesh::corner_tri for a utility that does this. Note
+ * that a triangle may be in the middle of an ngon and not reference **any**
+ * real edges.
  */
-typedef struct MLoopTri {
-  unsigned int tri[3];
-} MLoopTri;
+
 #
 #
 typedef struct MVertTri {

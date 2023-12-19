@@ -1075,14 +1075,14 @@ static void bake_targets_populate_pixels_color_attributes(BakeTargets *targets,
   }
 
   /* Populate through adjacent triangles, first triangle wins. */
-  const int looptris_num = poly_to_tri_count(me_eval->faces_num, me_eval->totloop);
-  MLoopTri *looptris = static_cast<MLoopTri *>(
-      MEM_mallocN(sizeof(*looptris) * looptris_num, __func__));
+  const int corner_tris_num = poly_to_tri_count(me_eval->faces_num, me_eval->totloop);
+  blender::int3 *corner_tris = static_cast<blender::int3 *>(
+      MEM_mallocN(sizeof(*corner_tris) * corner_tris_num, __func__));
 
   const blender::Span<int> corner_verts = me_eval->corner_verts();
-  blender::bke::mesh::looptris_calc(
-      me_eval->vert_positions(), me_eval->faces(), corner_verts, {looptris, looptris_num});
-  const blender::Span<int> looptri_faces = me_eval->looptri_faces();
+  blender::bke::mesh::corner_tris_calc(
+      me_eval->vert_positions(), me_eval->faces(), corner_verts, {corner_tris, corner_tris_num});
+  const blender::Span<int> tri_faces = me_eval->corner_tri_faces();
 
   /* For mapping back to original mesh in case there are modifiers. */
   const int *vert_origindex = static_cast<const int *>(
@@ -1092,12 +1092,12 @@ static void bake_targets_populate_pixels_color_attributes(BakeTargets *targets,
   const blender::OffsetIndices orig_faces = mesh->faces();
   const blender::Span<int> orig_corner_verts = mesh->corner_verts();
 
-  for (int i = 0; i < looptris_num; i++) {
-    const MLoopTri *lt = &looptris[i];
-    const int face_i = looptri_faces[i];
+  for (int i = 0; i < corner_tris_num; i++) {
+    const blender::int3 &tri = corner_tris[i];
+    const int face_i = tri_faces[i];
 
     for (int j = 0; j < 3; j++) {
-      uint l = lt->tri[j];
+      uint l = tri[j];
       const int v = corner_verts[l];
 
       /* Map back to original loop if there are modifiers. */
@@ -1138,7 +1138,7 @@ static void bake_targets_populate_pixels_color_attributes(BakeTargets *targets,
     }
   }
 
-  MEM_freeN(looptris);
+  MEM_freeN(corner_tris);
 }
 
 static void bake_result_add_to_rgba(float rgba[4], const float *result, const int channels_num)

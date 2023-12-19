@@ -347,7 +347,7 @@ static Mesh *rigidbody_get_mesh(Object *ob)
     case RBO_MESH_FINAL:
       return BKE_object_get_evaluated_mesh(ob);
     case RBO_MESH_BASE:
-      /* This mesh may be used for computing looptris, which should be done
+      /* This mesh may be used for computing corner_tris, which should be done
        * on the original; otherwise every time the CoW is recreated it will
        * have to be recomputed. */
       BLI_assert(ob->rigidbody_object->mesh_source == RBO_MESH_BASE);
@@ -405,8 +405,8 @@ static rbCollisionShape *rigidbody_get_shape_trimesh_from_mesh(Object *ob)
 
     const blender::Span<blender::float3> positions = mesh->vert_positions();
     const int totvert = mesh->totvert;
-    const blender::Span<MLoopTri> looptris = mesh->looptris();
-    const int tottri = looptris.size();
+    const blender::Span<blender::int3> corner_tris = mesh->corner_tris();
+    const int tottri = corner_tris.size();
     const blender::Span<int> corner_verts = mesh->corner_verts();
 
     /* sanity checking - potential case when no data will be present */
@@ -429,12 +429,12 @@ static rbCollisionShape *rigidbody_get_shape_trimesh_from_mesh(Object *ob)
       if (positions.data()) {
         for (i = 0; i < tottri; i++) {
           /* add first triangle - verts 1,2,3 */
-          const MLoopTri &lt = looptris[i];
+          const blender::int3 &tri = corner_tris[i];
           int vtri[3];
 
-          vtri[0] = corner_verts[lt.tri[0]];
-          vtri[1] = corner_verts[lt.tri[1]];
-          vtri[2] = corner_verts[lt.tri[2]];
+          vtri[0] = corner_verts[tri[0]];
+          vtri[1] = corner_verts[tri[1]];
+          vtri[2] = corner_verts[tri[2]];
 
           RB_trimesh_add_triangle_indices(mdata, i, UNPACK3(vtri));
         }
@@ -673,14 +673,14 @@ void BKE_rigidbody_calc_volume(Object *ob, float *r_vol)
         }
 
         const blender::Span<blender::float3> positions = mesh->vert_positions();
-        const blender::Span<MLoopTri> looptris = mesh->looptris();
+        const blender::Span<blender::int3> corner_tris = mesh->corner_tris();
         const blender::Span<int> corner_verts = mesh->corner_verts();
 
-        if (!positions.is_empty() && !looptris.is_empty()) {
+        if (!positions.is_empty() && !corner_tris.is_empty()) {
           BKE_mesh_calc_volume(reinterpret_cast<const float(*)[3]>(positions.data()),
                                positions.size(),
-                               looptris.data(),
-                               looptris.size(),
+                               corner_tris.data(),
+                               corner_tris.size(),
                                corner_verts.data(),
                                &volume,
                                nullptr);
@@ -747,13 +747,13 @@ void BKE_rigidbody_calc_center_of_mass(Object *ob, float r_center[3])
         }
 
         const blender::Span<blender::float3> positions = mesh->vert_positions();
-        const blender::Span<MLoopTri> looptris = mesh->looptris();
+        const blender::Span<blender::int3> corner_tris = mesh->corner_tris();
 
-        if (!positions.is_empty() && !looptris.is_empty()) {
+        if (!positions.is_empty() && !corner_tris.is_empty()) {
           BKE_mesh_calc_volume(reinterpret_cast<const float(*)[3]>(positions.data()),
                                positions.size(),
-                               looptris.data(),
-                               looptris.size(),
+                               corner_tris.data(),
+                               corner_tris.size(),
                                mesh->corner_verts().data(),
                                nullptr,
                                r_center);

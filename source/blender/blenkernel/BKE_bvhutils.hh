@@ -21,7 +21,6 @@ struct BVHCache;
 struct BVHTree;
 struct MFace;
 struct Mesh;
-struct MLoopTri;
 struct PointCloud;
 struct vec2i;
 
@@ -53,7 +52,7 @@ struct BVHTreeFromMesh {
   blender::Span<blender::float3> vert_positions;
   blender::Span<blender::int2> edges;
   blender::Span<int> corner_verts;
-  blender::Span<MLoopTri> looptris;
+  blender::Span<blender::int3> corner_tris;
 
   const MFace *face;
 
@@ -65,8 +64,8 @@ enum BVHCacheType {
   BVHTREE_FROM_VERTS,
   BVHTREE_FROM_EDGES,
   BVHTREE_FROM_FACES,
-  BVHTREE_FROM_LOOPTRIS,
-  BVHTREE_FROM_LOOPTRIS_NO_HIDDEN,
+  BVHTREE_FROM_CORNER_TRIS,
+  BVHTREE_FROM_CORNER_TRIS_NO_HIDDEN,
 
   BVHTREE_FROM_LOOSEVERTS,
   BVHTREE_FROM_LOOSEEDGES,
@@ -150,7 +149,7 @@ BVHTree *bvhtree_from_mesh_edges_ex(BVHTreeFromMesh *data,
                                     int tree_type,
                                     int axis);
 
-BVHTree *bvhtree_from_editmesh_looptris(
+BVHTree *bvhtree_from_editmesh_corner_tris(
     BVHTreeFromEditMesh *data, BMEditMesh *em, float epsilon, int tree_type, int axis);
 
 /**
@@ -158,8 +157,8 @@ BVHTree *bvhtree_from_editmesh_looptris(
  */
 BVHTree *bvhtree_from_editmesh_looptris_ex(BVHTreeFromEditMesh *data,
                                            BMEditMesh *em,
-                                           blender::BitSpan looptris_mask,
-                                           int looptris_num_active,
+                                           blender::BitSpan corner_tris_mask,
+                                           int corner_tris_num_active,
                                            float epsilon,
                                            int tree_type,
                                            int axis);
@@ -167,15 +166,15 @@ BVHTree *bvhtree_from_editmesh_looptris_ex(BVHTreeFromEditMesh *data,
 /**
  * Builds a BVH-tree where nodes are the triangle faces (#MLoopTri) of the given mesh.
  */
-BVHTree *bvhtree_from_mesh_looptris_ex(BVHTreeFromMesh *data,
-                                       blender::Span<blender::float3> vert_positions,
-                                       blender::Span<int> corner_verts,
-                                       blender::Span<MLoopTri> looptris,
-                                       blender::BitSpan looptris_mask,
-                                       int looptris_num_active,
-                                       float epsilon,
-                                       int tree_type,
-                                       int axis);
+BVHTree *bvhtree_from_mesh_corner_tris_ex(BVHTreeFromMesh *data,
+                                          blender::Span<blender::float3> vert_positions,
+                                          blender::Span<int> corner_verts,
+                                          blender::Span<blender::int3> corner_tris,
+                                          blender::BitSpan corner_tris_mask,
+                                          int corner_tris_num_active,
+                                          float epsilon,
+                                          int tree_type,
+                                          int axis);
 
 /**
  * Builds or queries a BVH-cache for the cache BVH-tree of the request type.
