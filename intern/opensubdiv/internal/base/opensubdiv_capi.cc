@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "opensubdiv_capi.h"
+#include "opensubdiv_capi.hh"
 #include "opensubdiv/version.h"
 #ifdef _MSC_VER
 #  include <iso646.h>

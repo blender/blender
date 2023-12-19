@@ -12,6 +12,10 @@
 
 struct bNodeInstanceHash;
 
+namespace blender::realtime_compositor {
+class RenderContext;
+}
+
 namespace blender::compositor {
 
 /**
@@ -69,6 +73,12 @@ class CompositorContext {
    * \brief active rendering view name
    */
   const char *view_name_;
+
+  /**
+   * \brief Render context that contains information about active render. Can be null if the
+   * compositor is not executing as part of the render pipeline.
+   */
+  realtime_compositor::RenderContext *render_context_;
 
  public:
   /**
@@ -190,6 +200,22 @@ class CompositorContext {
   bool has_explicit_view() const
   {
     return view_name_ && view_name_[0] != '\0';
+  }
+
+  /**
+   * \brief get the render context
+   */
+  realtime_compositor::RenderContext *get_render_context() const
+  {
+    return render_context_;
+  }
+
+  /**
+   * \brief set the render context
+   */
+  void set_render_context(realtime_compositor::RenderContext *render_context)
+  {
+    render_context_ = render_context;
   }
 
   /**

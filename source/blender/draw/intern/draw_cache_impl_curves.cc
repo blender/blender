@@ -722,7 +722,7 @@ void DRW_curves_batch_cache_free_old(Curves *curves, int ctime)
   }
 }
 
-int DRW_curves_material_count_get(Curves *curves)
+int DRW_curves_material_count_get(const Curves *curves)
 {
   return max_ii(1, curves->totcol);
 }

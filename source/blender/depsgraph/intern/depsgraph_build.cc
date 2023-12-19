@@ -23,7 +23,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_collection.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_scene.h"
 
 #include "DEG_depsgraph.hh"
@@ -81,6 +81,24 @@ void DEG_add_scene_relation(DepsNodeHandle *node_handle,
   deg::ComponentKey comp_key(&scene->id, type);
   deg::DepsNodeHandle *deg_node_handle = get_node_handle(node_handle);
   deg_node_handle->builder->add_node_handle_relation(comp_key, deg_node_handle, description);
+}
+
+void DEG_add_scene_camera_relation(DepsNodeHandle *node_handle,
+                                   Scene *scene,
+                                   eDepsObjectComponentType component,
+                                   const char *description)
+{
+  if (scene->camera != nullptr) {
+    DEG_add_object_relation(node_handle, scene->camera, component, description);
+  }
+
+  /* Like DepsgraphNodeBuilder::build_scene_camera(), we also need to account for other cameras
+   * referenced by markers. */
+  LISTBASE_FOREACH (TimeMarker *, marker, &scene->markers) {
+    if (!ELEM(marker->camera, nullptr, scene->camera)) {
+      DEG_add_object_relation(node_handle, marker->camera, component, description);
+    }
+  }
 }
 
 void DEG_add_object_relation(DepsNodeHandle *node_handle,

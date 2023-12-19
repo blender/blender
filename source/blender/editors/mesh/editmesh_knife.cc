@@ -186,7 +186,7 @@ struct KnifeUndoFrame {
 
 struct KnifeBVH {
   BVHTree *tree;          /* Knife Custom BVH Tree. */
-  BMLoop *(*looptris)[3]; /* Used by #knife_bvh_raycast_cb to store the intersecting looptri. */
+  BMLoop *(*looptris)[3]; /* Used by #knife_bvh_raycast_cb to store the intersecting triangles. */
   float uv[2];            /* Used by #knife_bvh_raycast_cb to store the intersecting uv. */
   uint ob_index;
 
@@ -1271,12 +1271,11 @@ static void knife_bvh_init(KnifeTool_OpData *kcd)
   f_test_prev = nullptr;
   test_fn_ret = false;
 
-  /* Add tri's for each object.
+  /* Add triangles for each object.
    * TODO:
    * test_fn can leave large gaps between bvh tree indices.
    * Compacting bvh tree indices may be possible.
-   * Don't forget to update #knife_bvh_intersect_plane!
-   */
+   * Don't forget to update #knife_bvh_intersect_plane! */
   tottri = 0;
   for (uint ob_index = 0; ob_index < kcd->objects_len; ob_index++) {
     ob = kcd->objects[ob_index];
@@ -4297,7 +4296,7 @@ static void knifetool_finish_single_post(KnifeTool_OpData * /*kcd*/, Object *ob)
   BMEditMesh *em = BKE_editmesh_from_object(ob);
   EDBM_selectmode_flush(em);
   EDBMUpdate_Params params{};
-  params.calc_looptri = true;
+  params.calc_looptris = true;
   params.calc_normals = true;
   params.is_destructive = true;
   EDBM_update(static_cast<Mesh *>(ob->data), &params);

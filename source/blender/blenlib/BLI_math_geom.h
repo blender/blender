@@ -580,7 +580,7 @@ bool isect_ray_plane_v3(const float ray_origin[3],
 /**
  * Check if a point is behind all planes.
  */
-bool isect_point_planes_v3(float (*planes)[4], int totplane, const float p[3]);
+bool isect_point_planes_v3(const float (*planes)[4], int totplane, const float p[3]);
 /**
  * Check if a point is in front all planes.
  * Same as isect_point_planes_v3 but with planes facing the opposite direction.

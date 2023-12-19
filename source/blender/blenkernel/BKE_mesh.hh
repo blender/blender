@@ -8,7 +8,14 @@
  * \ingroup bke
  */
 
-#include "BLI_index_mask.hh"
+namespace blender {
+namespace index_mask {
+class IndexMask;
+}
+using index_mask::IndexMask;
+}  // namespace blender
+
+#include "BLI_offset_indices.hh"
 
 #include "BKE_mesh.h"
 #include "BKE_mesh_types.hh"
@@ -22,33 +29,31 @@ namespace mesh {
 /** Calculate the up direction for the face, depending on its winding direction. */
 float3 face_normal_calc(Span<float3> vert_positions, Span<int> face_verts);
 
+void corner_tris_calc(Span<float3> vert_positions,
+                      OffsetIndices<int> faces,
+                      Span<int> corner_verts,
+                      MutableSpan<int3> corner_tris);
+
 /**
- * Calculate tessellation into #MLoopTri which exist only for this purpose.
- */
-void looptris_calc(Span<float3> vert_positions,
-                   OffsetIndices<int> faces,
-                   Span<int> corner_verts,
-                   MutableSpan<MLoopTri> looptris);
-/**
- * A version of #looptris_calc which takes pre-calculated face normals
+ * A version of #corner_tris_calc which takes pre-calculated face normals
  * (used to avoid having to calculate the face normal for NGON tessellation).
  *
  * \note Only use this function if normals have already been calculated, there is no need
  * to calculate normals just to use this function.
  */
-void looptris_calc_with_normals(Span<float3> vert_positions,
-                                OffsetIndices<int> faces,
-                                Span<int> corner_verts,
-                                Span<float3> face_normals,
-                                MutableSpan<MLoopTri> looptris);
+void corner_tris_calc_with_normals(Span<float3> vert_positions,
+                                   OffsetIndices<int> faces,
+                                   Span<int> corner_verts,
+                                   Span<float3> face_normals,
+                                   MutableSpan<int3> corner_tris);
 
-void looptris_calc_face_indices(OffsetIndices<int> faces, MutableSpan<int> looptri_faces);
+void corner_tris_calc_face_indices(OffsetIndices<int> faces, MutableSpan<int> tri_faces);
 
 /** Return the triangle's three edge indices they are real edges, otherwise -1. */
-int3 looptri_get_real_edges(Span<int2> edges,
-                            Span<int> corner_verts,
-                            Span<int> corner_edges,
-                            const MLoopTri &tri);
+int3 corner_tri_get_real_edges(Span<int2> edges,
+                               Span<int> corner_verts,
+                               Span<int> corner_edges,
+                               const int3 &corner_tri);
 
 /** Calculate the average position of the vertices in the face. */
 float3 face_center_calc(Span<float3> vert_positions, Span<int> face_verts);
@@ -155,6 +160,8 @@ short2 lnor_space_custom_normal_to_data(const CornerNormalSpace &lnor_space,
  *
  * \param sharp_edges: Optional array of sharp edge tags, used to split the evaluated normals on
  * each side of the edge.
+ * \param sharp_faces: Optional array of sharp face tags, used to split the evaluated normals on
+ * the face's edges.
  * \param r_lnors_spacearr: Optional return data filled with information about the custom
  * normals spaces for each grouped fan of face corners.
  */
@@ -166,12 +173,15 @@ void normals_calc_loop(Span<float3> vert_positions,
                        Span<int> loop_to_face_map,
                        Span<float3> vert_normals,
                        Span<float3> face_normals,
-                       const bool *sharp_edges,
-                       const bool *sharp_faces,
+                       Span<bool> sharp_edges,
+                       Span<bool> sharp_faces,
                        const short2 *clnors_data,
                        CornerNormalSpaceArray *r_lnors_spacearr,
                        MutableSpan<float3> r_loop_normals);
 
+/**
+ * \param sharp_faces: Optional array used to mark specific faces for sharp shading.
+ */
 void normals_loop_custom_set(Span<float3> vert_positions,
                              Span<int2> edges,
                              OffsetIndices<int> faces,
@@ -179,11 +189,14 @@ void normals_loop_custom_set(Span<float3> vert_positions,
                              Span<int> corner_edges,
                              Span<float3> vert_normals,
                              Span<float3> face_normals,
-                             const bool *sharp_faces,
+                             Span<bool> sharp_faces,
                              MutableSpan<bool> sharp_edges,
                              MutableSpan<float3> r_custom_loop_normals,
                              MutableSpan<short2> r_clnors_data);
 
+/**
+ * \param sharp_faces: Optional array used to mark specific faces for sharp shading.
+ */
 void normals_loop_custom_set_from_verts(Span<float3> vert_positions,
                                         Span<int2> edges,
                                         OffsetIndices<int> faces,
@@ -191,7 +204,7 @@ void normals_loop_custom_set_from_verts(Span<float3> vert_positions,
                                         Span<int> corner_edges,
                                         Span<float3> vert_normals,
                                         Span<float3> face_normals,
-                                        const bool *sharp_faces,
+                                        Span<bool> sharp_faces,
                                         MutableSpan<bool> sharp_edges,
                                         MutableSpan<float3> r_custom_vert_normals,
                                         MutableSpan<short2> r_clnors_data);
@@ -209,7 +222,7 @@ void edges_sharp_from_angle_set(OffsetIndices<int> faces,
                                 Span<int> corner_edges,
                                 Span<float3> face_normals,
                                 Span<int> loop_to_face,
-                                const bool *sharp_faces,
+                                Span<bool> sharp_faces,
                                 const float split_angle,
                                 MutableSpan<bool> sharp_edges);
 
@@ -255,7 +268,7 @@ inline int face_find_corner_from_vert(const IndexRange face,
  * Return the vertex indices on either side of the given vertex, ordered based on the winding
  * direction of the face. The vertex must be in the face.
  */
-inline int2 face_find_adjecent_verts(const IndexRange face,
+inline int2 face_find_adjacent_verts(const IndexRange face,
                                      const Span<int> corner_verts,
                                      const int vert)
 {
@@ -297,87 +310,19 @@ void mesh_vert_normals_assign(Mesh &mesh, Span<float3> vert_normals);
 /** Set mesh vertex normals to known-correct values, avoiding future lazy computation. */
 void mesh_vert_normals_assign(Mesh &mesh, Vector<float3> vert_normals);
 
+void mesh_smooth_set(Mesh &mesh, bool use_smooth);
+void mesh_sharp_edges_set_from_angle(Mesh &mesh, float angle);
+
+/** Make edge and face visibility consistent with vertices. */
+void mesh_hide_vert_flush(Mesh &mesh);
+/** Make vertex and edge visibility consistent with faces. */
+void mesh_hide_face_flush(Mesh &mesh);
+
+/** Make edge and face visibility consistent with vertices. */
+void mesh_select_vert_flush(Mesh &mesh);
+/** Make vertex and face visibility consistent with edges. */
+void mesh_select_edge_flush(Mesh &mesh);
+/** Make vertex and edge visibility consistent with faces. */
+void mesh_select_face_flush(Mesh &mesh);
+
 }  // namespace blender::bke
-
-/* -------------------------------------------------------------------- */
-/** \name Inline Mesh Data Access
- * \{ */
-
-inline blender::Span<blender::float3> Mesh::vert_positions() const
-{
-  return {static_cast<const blender::float3 *>(
-              CustomData_get_layer_named(&this->vert_data, CD_PROP_FLOAT3, "position")),
-          this->totvert};
-}
-inline blender::MutableSpan<blender::float3> Mesh::vert_positions_for_write()
-{
-  return {static_cast<blender::float3 *>(CustomData_get_layer_named_for_write(
-              &this->vert_data, CD_PROP_FLOAT3, "position", this->totvert)),
-          this->totvert};
-}
-
-inline blender::Span<blender::int2> Mesh::edges() const
-{
-  return {static_cast<const blender::int2 *>(
-              CustomData_get_layer_named(&this->edge_data, CD_PROP_INT32_2D, ".edge_verts")),
-          this->totedge};
-}
-inline blender::MutableSpan<blender::int2> Mesh::edges_for_write()
-{
-  return {static_cast<blender::int2 *>(CustomData_get_layer_named_for_write(
-              &this->edge_data, CD_PROP_INT32_2D, ".edge_verts", this->totedge)),
-          this->totedge};
-}
-
-inline blender::OffsetIndices<int> Mesh::faces() const
-{
-  return blender::Span(this->face_offset_indices, this->faces_num + 1);
-}
-inline blender::Span<int> Mesh::face_offsets() const
-{
-  if (this->faces_num == 0) {
-    return {};
-  }
-  return {this->face_offset_indices, this->faces_num + 1};
-}
-
-inline blender::Span<int> Mesh::corner_verts() const
-{
-  return {static_cast<const int *>(
-              CustomData_get_layer_named(&this->loop_data, CD_PROP_INT32, ".corner_vert")),
-          this->totloop};
-}
-inline blender::MutableSpan<int> Mesh::corner_verts_for_write()
-{
-  return {static_cast<int *>(CustomData_get_layer_named_for_write(
-              &this->loop_data, CD_PROP_INT32, ".corner_vert", this->totloop)),
-          this->totloop};
-}
-
-inline blender::Span<int> Mesh::corner_edges() const
-{
-  return {static_cast<const int *>(
-              CustomData_get_layer_named(&this->loop_data, CD_PROP_INT32, ".corner_edge")),
-          this->totloop};
-}
-inline blender::MutableSpan<int> Mesh::corner_edges_for_write()
-{
-  return {static_cast<int *>(CustomData_get_layer_named_for_write(
-              &this->loop_data, CD_PROP_INT32, ".corner_edge", this->totloop)),
-          this->totloop};
-}
-
-inline blender::Span<MDeformVert> Mesh::deform_verts() const
-{
-  const MDeformVert *dverts = BKE_mesh_deform_verts(this);
-  if (!dverts) {
-    return {};
-  }
-  return {dverts, this->totvert};
-}
-inline blender::MutableSpan<MDeformVert> Mesh::deform_verts_for_write()
-{
-  return {BKE_mesh_deform_verts_for_write(this), this->totvert};
-}
-
-/** \} */

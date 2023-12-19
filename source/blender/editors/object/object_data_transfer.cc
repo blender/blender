@@ -365,24 +365,24 @@ static void data_transfer_exec_preprocess_objects(bContext *C,
 
   LISTBASE_FOREACH (CollectionPointerLink *, ctx_ob, ctx_objects) {
     Object *ob = static_cast<Object *>(ctx_ob->ptr.data);
-    Mesh *me;
+    Mesh *mesh;
     if ((ob == ob_src) || (ob->type != OB_MESH)) {
       continue;
     }
 
-    me = static_cast<Mesh *>(ob->data);
-    if (ID_IS_LINKED(me) || ID_IS_OVERRIDE_LIBRARY(me)) {
+    mesh = static_cast<Mesh *>(ob->data);
+    if (ID_IS_LINKED(mesh) || ID_IS_OVERRIDE_LIBRARY(mesh)) {
       /* Do not transfer to linked/override data, not supported. */
       BKE_reportf(op->reports,
                   RPT_WARNING,
                   "Skipping object '%s', linked or override data '%s' cannot be modified",
                   ob->id.name + 2,
-                  me->id.name + 2);
-      me->id.tag &= ~LIB_TAG_DOIT;
+                  mesh->id.name + 2);
+      mesh->id.tag &= ~LIB_TAG_DOIT;
       continue;
     }
 
-    me->id.tag |= LIB_TAG_DOIT;
+    mesh->id.tag |= LIB_TAG_DOIT;
   }
 }
 
@@ -392,7 +392,7 @@ static bool data_transfer_exec_is_object_valid(wmOperator *op,
                                                Object *ob_dst,
                                                const bool reverse_transfer)
 {
-  Mesh *me;
+  Mesh *mesh;
   if ((ob_dst == ob_src) || (ob_src->type != OB_MESH) || (ob_dst->type != OB_MESH)) {
     return false;
   }
@@ -401,12 +401,12 @@ static bool data_transfer_exec_is_object_valid(wmOperator *op,
     return true;
   }
 
-  me = static_cast<Mesh *>(ob_dst->data);
-  if (me->id.tag & LIB_TAG_DOIT) {
-    me->id.tag &= ~LIB_TAG_DOIT;
+  mesh = static_cast<Mesh *>(ob_dst->data);
+  if (mesh->id.tag & LIB_TAG_DOIT) {
+    mesh->id.tag &= ~LIB_TAG_DOIT;
     return true;
   }
-  if (!ID_IS_LINKED(me) && !ID_IS_OVERRIDE_LIBRARY(me)) {
+  if (!ID_IS_LINKED(mesh) && !ID_IS_OVERRIDE_LIBRARY(mesh)) {
     /* Do not apply transfer operation more than once. */
     /* XXX This is not nice regarding vgroups, which are half-Object data... :/ */
     BKE_reportf(
@@ -414,7 +414,7 @@ static bool data_transfer_exec_is_object_valid(wmOperator *op,
         RPT_WARNING,
         "Skipping object '%s', data '%s' has already been processed with a previous object",
         ob_dst->id.name + 2,
-        me->id.name + 2);
+        mesh->id.name + 2);
   }
   return false;
 }

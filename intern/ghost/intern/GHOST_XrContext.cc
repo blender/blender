@@ -169,10 +169,10 @@ void GHOST_XrContext::printInstanceInfo()
 void GHOST_XrContext::printAvailableAPILayersAndExtensionsInfo()
 {
   puts("Available OpenXR API-layers/extensions:");
-  for (XrApiLayerProperties &layer_info : m_oxr->layers) {
+  for (const XrApiLayerProperties &layer_info : m_oxr->layers) {
     printf("Layer: %s\n", layer_info.layerName);
   }
-  for (XrExtensionProperties &ext_info : m_oxr->extensions) {
+  for (const XrExtensionProperties &ext_info : m_oxr->extensions) {
     printf("Extension: %s\n", ext_info.extensionName);
   }
 }
@@ -329,7 +329,7 @@ void GHOST_XrContext::initApiLayers()
   /* Actually get the layers. */
   CHECK_XR(xrEnumerateApiLayerProperties(layer_count, &layer_count, m_oxr->layers.data()),
            "Failed to query OpenXR runtime information. Do you have an active runtime set up?");
-  for (XrApiLayerProperties &layer : m_oxr->layers) {
+  for (const XrApiLayerProperties &layer : m_oxr->layers) {
     /* Each layer may have own extensions. */
     initExtensionsEx(m_oxr->extensions, layer.layerName);
   }

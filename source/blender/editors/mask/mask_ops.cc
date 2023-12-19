@@ -13,7 +13,7 @@
 #include "BLI_math_vector.h"
 
 #include "BKE_context.hh"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_mask.h"
 
 #include "DEG_depsgraph.hh"

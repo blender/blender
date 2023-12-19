@@ -307,7 +307,7 @@ Mesh *create_uv_sphere_mesh(const float radius,
   MutableSpan<int> face_offsets = mesh->face_offsets_for_write();
   MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
   MutableSpan<int> corner_edges = mesh->corner_edges_for_write();
-  BKE_mesh_smooth_flag_set(mesh, false);
+  bke::mesh_smooth_set(*mesh, false);
 
   threading::parallel_invoke(
       1024 < segments * rings,

@@ -17,10 +17,10 @@
 
 #include "DNA_meshdata_types.h"
 
-#include "bmesh.h"
-#include "bmesh_path_uv.h" /* own include */
-#include "intern/bmesh_query.h"
-#include "intern/bmesh_query_uv.h"
+#include "bmesh.hh"
+#include "bmesh_path_uv.hh" /* own include */
+#include "intern/bmesh_query.hh"
+#include "intern/bmesh_query_uv.hh"
 
 #define COST_INIT_MAX FLT_MAX
 

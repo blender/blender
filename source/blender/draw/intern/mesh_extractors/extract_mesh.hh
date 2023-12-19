@@ -11,20 +11,25 @@
 #pragma once
 
 #include "BLI_math_vector_types.hh"
+#include "BLI_virtual_array.hh"
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_customdata.hh"
-#include "BKE_editmesh.hh"
-#include "BKE_editmesh_cache.hh"
 #include "BKE_mesh.hh"
+
+#include "bmesh.hh"
+
+#include "GPU_vertex_buffer.h"
+#include "GPU_vertex_format.h"
 
 #include "draw_cache_extract.hh"
 
 struct DRWSubdivCache;
+struct BMVert;
+struct BMEdge;
+struct BMEditMesh;
+struct BMFace;
+struct BMLoop;
 
 #define MIN_RANGE_LEN 1024
 
@@ -51,6 +56,7 @@ struct MeshRenderData {
   bool use_subsurf_fdots;
   bool use_final_mesh;
   bool hide_unmapped_edges;
+  bool use_simplify_normals;
 
   /** Use for #MeshStatVis calculation which use world-space coords. */
   float obmat[4][4];
@@ -76,7 +82,7 @@ struct MeshRenderData {
   int freestyle_edge_ofs;
   int freestyle_face_ofs;
   /** Mesh */
-  Mesh *me;
+  Mesh *mesh;
   blender::Span<blender::float3> vert_positions;
   blender::Span<blender::int2> edges;
   blender::OffsetIndices<int> faces;
@@ -87,19 +93,22 @@ struct MeshRenderData {
   BMFace *efa_act;
   BMFace *efa_act_uv;
   /* The triangulation of #Mesh faces, owned by the mesh. */
-  blender::Span<MLoopTri> looptris;
-  blender::Span<int> looptri_faces;
-  const int *material_indices;
+  blender::Span<blender::int3> corner_tris;
+  blender::Span<int> corner_tri_faces;
+  blender::VArraySpan<int> material_indices;
+
+  blender::bke::MeshNormalDomain normals_domain;
   blender::Span<blender::float3> vert_normals;
   blender::Span<blender::float3> face_normals;
   blender::Span<blender::float3> loop_normals;
-  const bool *hide_vert;
-  const bool *hide_edge;
-  const bool *hide_poly;
-  const bool *select_vert;
-  const bool *select_edge;
-  const bool *select_poly;
-  const bool *sharp_faces;
+
+  blender::VArraySpan<bool> hide_vert;
+  blender::VArraySpan<bool> hide_edge;
+  blender::VArraySpan<bool> hide_poly;
+  blender::VArraySpan<bool> select_vert;
+  blender::VArraySpan<bool> select_edge;
+  blender::VArraySpan<bool> select_poly;
+  blender::VArraySpan<bool> sharp_faces;
 
   blender::Span<int> loose_verts;
   blender::Span<int> loose_edges;
@@ -109,81 +118,11 @@ struct MeshRenderData {
   const char *default_color_name;
 };
 
-BLI_INLINE const Mesh *editmesh_final_or_this(const Object *object, const Mesh *me)
-{
-  if (me->edit_mesh != nullptr) {
-    Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(object);
-    if (editmesh_eval_final != nullptr) {
-      return editmesh_eval_final;
-    }
-  }
-
-  return me;
-}
-
-BLI_INLINE const CustomData *mesh_cd_ldata_get_from_mesh(const Mesh *me)
-{
-  switch (me->runtime->wrapper_type) {
-    case ME_WRAPPER_TYPE_SUBD:
-    case ME_WRAPPER_TYPE_MDATA:
-      return &me->loop_data;
-      break;
-    case ME_WRAPPER_TYPE_BMESH:
-      return &me->edit_mesh->bm->ldata;
-      break;
-  }
-
-  BLI_assert(0);
-  return &me->loop_data;
-}
-
-BLI_INLINE const CustomData *mesh_cd_pdata_get_from_mesh(const Mesh *me)
-{
-  switch (me->runtime->wrapper_type) {
-    case ME_WRAPPER_TYPE_SUBD:
-    case ME_WRAPPER_TYPE_MDATA:
-      return &me->face_data;
-      break;
-    case ME_WRAPPER_TYPE_BMESH:
-      return &me->edit_mesh->bm->pdata;
-      break;
-  }
-
-  BLI_assert(0);
-  return &me->face_data;
-}
-
-BLI_INLINE const CustomData *mesh_cd_edata_get_from_mesh(const Mesh *me)
-{
-  switch (me->runtime->wrapper_type) {
-    case ME_WRAPPER_TYPE_SUBD:
-    case ME_WRAPPER_TYPE_MDATA:
-      return &me->edge_data;
-      break;
-    case ME_WRAPPER_TYPE_BMESH:
-      return &me->edit_mesh->bm->edata;
-      break;
-  }
-
-  BLI_assert(0);
-  return &me->edge_data;
-}
-
-BLI_INLINE const CustomData *mesh_cd_vdata_get_from_mesh(const Mesh *me)
-{
-  switch (me->runtime->wrapper_type) {
-    case ME_WRAPPER_TYPE_SUBD:
-    case ME_WRAPPER_TYPE_MDATA:
-      return &me->vert_data;
-      break;
-    case ME_WRAPPER_TYPE_BMESH:
-      return &me->edit_mesh->bm->vdata;
-      break;
-  }
-
-  BLI_assert(0);
-  return &me->vert_data;
-}
+const Mesh *editmesh_final_or_this(const Object *object, const Mesh *mesh);
+const CustomData *mesh_cd_vdata_get_from_mesh(const Mesh *mesh);
+const CustomData *mesh_cd_edata_get_from_mesh(const Mesh *mesh);
+const CustomData *mesh_cd_pdata_get_from_mesh(const Mesh *mesh);
+const CustomData *mesh_cd_ldata_get_from_mesh(const Mesh *mesh);
 
 BLI_INLINE BMFace *bm_original_face_get(const MeshRenderData &mr, int idx)
 {
@@ -240,7 +179,7 @@ BLI_INLINE const float *bm_face_no_get(const MeshRenderData &mr, const BMFace *e
 
 using ExtractTriBMeshFn = void(const MeshRenderData &mr, BMLoop **elt, int elt_index, void *data);
 using ExtractTriMeshFn = void(const MeshRenderData &mr,
-                              const MLoopTri *mlt,
+                              const blender::int3 &tri,
                               int elt_index,
                               void *data);
 using ExtractFaceBMeshFn = void(const MeshRenderData &mr,
@@ -301,7 +240,7 @@ struct MeshExtract {
   ExtractInitFn *init;
   /** Executed on one (or more if use_threading) worker thread(s). */
   ExtractTriBMeshFn *iter_looptri_bm;
-  ExtractTriMeshFn *iter_looptri_mesh;
+  ExtractTriMeshFn *iter_corner_tri_mesh;
   ExtractFaceBMeshFn *iter_face_bm;
   ExtractFaceMeshFn *iter_face_mesh;
   ExtractLEdgeBMeshFn *iter_loose_edge_bm;
@@ -338,7 +277,7 @@ struct MeshExtract {
  * otherwise don't use modifiers as they are not from this object.
  */
 MeshRenderData *mesh_render_data_create(Object *object,
-                                        Mesh *me,
+                                        Mesh *mesh,
                                         bool is_editmode,
                                         bool is_paint_mode,
                                         bool is_mode_active,
@@ -358,9 +297,9 @@ void mesh_render_data_update_faces_sorted(MeshRenderData &mr,
 /**
  * Part of the creation of the #MeshRenderData that happens in a thread.
  */
-void mesh_render_data_update_looptris(MeshRenderData &mr,
-                                      eMRIterType iter_type,
-                                      eMRDataType data_flag);
+void mesh_render_data_update_corner_tris(MeshRenderData &mr,
+                                         eMRIterType iter_type,
+                                         eMRDataType data_flag);
 
 /* draw_cache_extract_mesh_extractors.c */
 

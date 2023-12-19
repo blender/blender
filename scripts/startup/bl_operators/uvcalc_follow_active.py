@@ -32,7 +32,7 @@ def extend(obj, EXTEND_MODE, use_uv_selection):
         return STATUS_ERR_NOT_SELECTED  # Active face is not selected.
     if len(f_act.verts) != 4:
         return STATUS_ERR_NOT_QUAD  # Active face is not a quad
-    if not me.uv_layers:
+    if not bm.loops.layers.uv:
         return STATUS_ERR_MISSING_UV_LAYER  # Object's mesh doesn't have any UV layers.
 
     uv_act = bm.loops.layers.uv.active  # Always use the active UV layer.
@@ -240,6 +240,10 @@ def main(context, operator):
             operator.report({'ERROR'}, "Active face must be a quad")
         elif status & STATUS_ERR_NOT_SELECTED:
             operator.report({'ERROR'}, "Active face not selected")
+        elif status & STATUS_ERR_NO_FACES_SELECTED:
+            operator.report({'ERROR'}, "No selected faces")
+        elif status & STATUS_ERR_MISSING_UV_LAYER:
+            operator.report({'ERROR'}, "No UV layers")
         else:
             assert status & STATUS_ERR_ACTIVE_FACE != 0
             operator.report({'ERROR'}, "No active face")

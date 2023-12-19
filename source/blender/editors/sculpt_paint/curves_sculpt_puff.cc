@@ -77,7 +77,7 @@ struct PuffOperationExecutor {
   const Mesh *surface_ = nullptr;
   Span<float3> surface_positions_;
   Span<int> surface_corner_verts_;
-  Span<MLoopTri> surface_looptris_;
+  Span<int3> surface_corner_tris_;
   Span<float3> corner_normals_su_;
   BVHTreeFromMesh surface_bvh_;
 
@@ -119,9 +119,9 @@ struct PuffOperationExecutor {
 
     surface_positions_ = surface_->vert_positions();
     surface_corner_verts_ = surface_->corner_verts();
-    surface_looptris_ = surface_->looptris();
+    surface_corner_tris_ = surface_->corner_tris();
     corner_normals_su_ = surface_->corner_normals();
-    BKE_bvhtree_from_mesh_get(&surface_bvh_, surface_, BVHTREE_FROM_LOOPTRI, 2);
+    BKE_bvhtree_from_mesh_get(&surface_bvh_, surface_, BVHTREE_FROM_CORNER_TRIS, 2);
     BLI_SCOPED_DEFER([&]() { free_bvhtree_from_mesh(&surface_bvh_); });
 
     if (stroke_extension.is_first) {
@@ -181,8 +181,7 @@ struct PuffOperationExecutor {
   {
     const float4x4 brush_transform_inv = math::invert(brush_transform);
 
-    float4x4 projection;
-    ED_view3d_ob_project_mat_get(ctx_.rv3d, object_, projection.ptr());
+    const float4x4 projection = ED_view3d_ob_project_mat_get(ctx_.rv3d, object_);
 
     const float brush_radius_re = brush_radius_base_re_ * brush_radius_factor_;
     const float brush_radius_sq_re = pow2f(brush_radius_re);
@@ -195,14 +194,12 @@ struct PuffOperationExecutor {
       const IndexRange points = points_by_curve[curve_i];
       const float3 first_pos_cu = math::transform_point(brush_transform_inv,
                                                         deformation.positions[points[0]]);
-      float2 prev_pos_re;
-      ED_view3d_project_float_v2_m4(ctx_.region, first_pos_cu, prev_pos_re, projection.ptr());
+      float2 prev_pos_re = ED_view3d_project_float_v2_m4(ctx_.region, first_pos_cu, projection);
       float max_weight = 0.0f;
       for (const int point_i : points.drop_front(1)) {
         const float3 pos_cu = math::transform_point(brush_transform_inv,
                                                     deformation.positions[point_i]);
-        float2 pos_re;
-        ED_view3d_project_float_v2_m4(ctx_.region, pos_cu, pos_re, projection.ptr());
+        const float2 pos_re = ED_view3d_project_float_v2_m4(ctx_.region, pos_cu, projection);
         BLI_SCOPED_DEFER([&]() { prev_pos_re = pos_re; });
 
         const float dist_to_brush_sq_re = dist_squared_to_line_segment_v2(
@@ -216,15 +213,12 @@ struct PuffOperationExecutor {
             brush_, dist_to_brush_re, brush_radius_re);
         math::max_inplace(max_weight, radius_falloff);
       }
-      r_curve_weights[curve_i] = max_weight;
+      math::max_inplace(r_curve_weights[curve_i], max_weight);
     });
   }
 
   void find_curves_weights_spherical_with_symmetry(MutableSpan<float> r_curve_weights)
   {
-    float4x4 projection;
-    ED_view3d_ob_project_mat_get(ctx_.rv3d, object_, projection.ptr());
-
     float3 brush_pos_wo;
     ED_view3d_win_to_3d(
         ctx_.v3d,
@@ -298,15 +292,15 @@ struct PuffOperationExecutor {
                                  surface_bvh_.nearest_callback,
                                  &surface_bvh_);
 
-        const MLoopTri &looptri = surface_looptris_[nearest.index];
+        const int3 &tri = surface_corner_tris_[nearest.index];
         const float3 closest_pos_su = nearest.co;
-        const float3 &v0_su = surface_positions_[surface_corner_verts_[looptri.tri[0]]];
-        const float3 &v1_su = surface_positions_[surface_corner_verts_[looptri.tri[1]]];
-        const float3 &v2_su = surface_positions_[surface_corner_verts_[looptri.tri[2]]];
+        const float3 &v0_su = surface_positions_[surface_corner_verts_[tri[0]]];
+        const float3 &v1_su = surface_positions_[surface_corner_verts_[tri[1]]];
+        const float3 &v2_su = surface_positions_[surface_corner_verts_[tri[2]]];
         float3 bary_coords;
         interp_weights_tri_v3(bary_coords, v0_su, v1_su, v2_su, closest_pos_su);
         const float3 normal_su = geometry::compute_surface_point_normal(
-            looptri, bary_coords, corner_normals_su_);
+            tri, bary_coords, corner_normals_su_);
         const float3 normal_cu = math::normalize(
             math::transform_direction(transforms_.surface_to_curves_normal, normal_su));
 

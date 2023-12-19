@@ -16,7 +16,7 @@
 
 #include "internal/base/memory.h"
 
-#include "opensubdiv_capi_type.h"
+#include "opensubdiv_capi_type.hh"
 
 struct OpenSubdiv_Buffer;
 struct OpenSubdiv_EvaluatorCacheImpl;

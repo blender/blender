@@ -16,7 +16,7 @@
 #include "BKE_subdiv_eval.hh"
 
 #include "multires_reshape.hh"
-#include "opensubdiv_converter_capi.h"
+#include "opensubdiv_converter_capi.hh"
 #include "subdiv_converter.hh"
 
 static float simple_to_catmull_clark_get_edge_sharpness(const OpenSubdiv_Converter * /*converter*/,

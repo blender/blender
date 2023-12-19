@@ -141,40 +141,59 @@ BooleanMix booleans_mix_calc(const VArray<bool> &varray, const IndexRange range_
       [&](BooleanMix a, BooleanMix b) { return (a == b) ? a : BooleanMix::Mixed; });
 }
 
-int64_t count_booleans(const VArray<bool> &varray)
+int64_t count_booleans(const VArray<bool> &varray, const IndexMask &mask)
 {
-  if (varray.is_empty()) {
+  if (varray.is_empty() || mask.is_empty()) {
     return 0;
   }
-  const CommonVArrayInfo info = varray.common_info();
-  if (info.type == CommonVArrayInfo::Type::Single) {
-    return *static_cast<const bool *>(info.data) ? varray.size() : 0;
-  }
-  if (info.type == CommonVArrayInfo::Type::Span) {
-    const Span<bool> span(static_cast<const bool *>(info.data), varray.size());
+  /* Check if mask is full. */
+  if (varray.size() == mask.size()) {
+    const CommonVArrayInfo info = varray.common_info();
+    if (info.type == CommonVArrayInfo::Type::Single) {
+      return *static_cast<const bool *>(info.data) ? varray.size() : 0;
+    }
+    if (info.type == CommonVArrayInfo::Type::Span) {
+      const Span<bool> span(static_cast<const bool *>(info.data), varray.size());
+      return threading::parallel_reduce(
+          varray.index_range(),
+          4096,
+          0,
+          [&](const IndexRange range, const int64_t init) {
+            const Span<bool> slice = span.slice(range);
+            return init + std::count(slice.begin(), slice.end(), true);
+          },
+          std::plus<int64_t>());
+    }
     return threading::parallel_reduce(
         varray.index_range(),
-        4096,
+        2048,
         0,
         [&](const IndexRange range, const int64_t init) {
-          const Span<bool> slice = span.slice(range);
-          return init + std::count(slice.begin(), slice.end(), true);
+          int64_t value = init;
+          /* Alternatively, this could use #materialize to retrieve many values at once. */
+          for (const int64_t i : range) {
+            value += int64_t(varray[i]);
+          }
+          return value;
         },
         std::plus<int64_t>());
   }
-  return threading::parallel_reduce(
-      varray.index_range(),
-      2048,
-      0,
-      [&](const IndexRange range, const int64_t init) {
-        int64_t value = init;
-        /* Alternatively, this could use #materialize to retrieve many values at once. */
-        for (const int64_t i : range) {
-          value += int64_t(varray[i]);
-        }
-        return value;
-      },
-      std::plus<int64_t>());
+  const CommonVArrayInfo info = varray.common_info();
+  if (info.type == CommonVArrayInfo::Type::Single) {
+    return *static_cast<const bool *>(info.data) ? mask.size() : 0;
+  }
+  int64_t value = 0;
+  mask.foreach_segment([&](const IndexMaskSegment segment) {
+    for (const int64_t i : segment) {
+      value += int64_t(varray[i]);
+    }
+  });
+  return value;
+}
+
+int64_t count_booleans(const VArray<bool> &varray)
+{
+  return count_booleans(varray, IndexMask(varray.size()));
 }
 
 }  // namespace blender::array_utils

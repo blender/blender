@@ -206,8 +206,10 @@ BlendHandle *filelist_lib(FileList *filelist);
 bool filelist_islibrary(FileList *filelist, char *dir, char **r_group);
 void filelist_freelib(FileList *filelist);
 
-/** Return the total raw number of entries listed in the given `filelist`, whether they are
- * filtered out or not. */
+/**
+ * Return the total raw number of entries listed in the given `filelist`, whether they are
+ * filtered out or not.
+ */
 int filelist_files_num_entries(FileList *filelist);
 
 void filelist_readjob_start(FileList *filelist, int space_notifier, const bContext *C);

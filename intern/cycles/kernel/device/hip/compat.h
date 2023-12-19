@@ -38,6 +38,7 @@ typedef unsigned long long uint64_t;
 #define ccl_global
 #define ccl_inline_constant __constant__
 #define ccl_device_constant __constant__ __device__
+#define ccl_static_constexpr static constexpr
 #define ccl_constant const
 #define ccl_gpu_shared __shared__
 #define ccl_private

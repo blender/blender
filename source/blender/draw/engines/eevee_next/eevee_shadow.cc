@@ -735,7 +735,6 @@ void ShadowModule::init()
   ::Scene &scene = *inst_.scene;
   bool enabled = (scene.eevee.flag & SCE_EEVEE_SHADOW_ENABLED) != 0;
   if (assign_if_different(enabled_, enabled)) {
-    inst_.sampling.reset();
     /* Force light reset. */
     for (Light &light : inst_.lights.light_map_.values()) {
       light.initialized = false;
@@ -762,8 +761,10 @@ void ShadowModule::init()
   const int2 atlas_extent = shadow_page_size_ * int2(SHADOW_PAGE_PER_ROW);
   const int atlas_layers = divide_ceil_u(shadow_page_len_, SHADOW_PAGE_PER_LAYER);
 
-  eGPUTextureUsage tex_usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE |
-                               GPU_TEXTURE_USAGE_ATOMIC;
+  eGPUTextureUsage tex_usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE;
+  if (ShadowModule::shadow_technique == ShadowTechnique::ATOMIC_RASTER) {
+    tex_usage |= GPU_TEXTURE_USAGE_ATOMIC;
+  }
   if (atlas_tx_.ensure_2d_array(atlas_type, atlas_extent, atlas_layers, tex_usage)) {
     /* Global update. */
     do_full_update = true;
@@ -825,7 +826,6 @@ void ShadowModule::begin_sync()
 
   {
     Manager &manager = *inst_.manager;
-    RenderBuffers &render_buffers = inst_.render_buffers;
 
     PassMain &pass = tilemap_usage_ps_;
     pass.init();
@@ -862,7 +862,7 @@ void ShadowModule::begin_sync()
       sub.shader_set(inst_.shaders.static_shader_get(SHADOW_TILEMAP_TAG_USAGE_OPAQUE));
       sub.bind_ssbo("tilemaps_buf", &tilemap_pool.tilemaps_data);
       sub.bind_ssbo("tiles_buf", &tilemap_pool.tiles_data);
-      sub.bind_texture("depth_tx", &render_buffers.depth_tx);
+      sub.bind_texture("depth_tx", &src_depth_tx_);
       sub.push_constant("tilemap_projection_ratio", &tilemap_projection_ratio_);
       inst_.lights.bind_resources(sub);
       sub.dispatch(&dispatch_depth_scan_size_);
@@ -966,9 +966,6 @@ void ShadowModule::end_sync()
       /* Clear for next sync. */
       shadow_ob.used = false;
     }
-  }
-  if (!past_casters_updated_.is_empty() || !curr_casters_updated_.is_empty()) {
-    inst_.sampling.reset();
   }
   past_casters_updated_.push_update();
   curr_casters_updated_.push_update();
@@ -1267,15 +1264,15 @@ float ShadowModule::tilemap_pixel_radius()
   return cubeface_diagonal / pixel_count;
 }
 
-/* Update all shadow regions visible inside the view.
- * If called multiple time for the same view, it will only do the depth buffer scanning
- * to check any new opaque surfaces.
- * Needs to be called after `LightModule::set_view();`. */
-void ShadowModule::set_view(View &view)
+void ShadowModule::set_view(View &view, GPUTexture *depth_tx)
 {
   GPUFrameBuffer *prev_fb = GPU_framebuffer_active_get();
 
-  int3 target_size = inst_.render_buffers.depth_tx.size();
+  src_depth_tx_ = depth_tx;
+
+  int3 target_size(1);
+  GPU_texture_get_mipmap_size(depth_tx, 0, target_size);
+
   dispatch_depth_scan_size_ = math::divide_ceil(target_size, int3(SHADOW_DEPTH_SCAN_GROUP_SIZE));
 
   pixel_world_radius_ = screen_pixel_radius(view, int2(target_size));

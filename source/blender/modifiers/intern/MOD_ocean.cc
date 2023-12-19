@@ -453,7 +453,7 @@ static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mes
     }
   }
 
-  BKE_mesh_tag_positions_changed(mesh);
+  mesh->tag_positions_changed();
 
   if (allocated_ocean) {
     BKE_ocean_free(omd->ocean);

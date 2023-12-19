@@ -16,7 +16,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
 #include "bmesh_py_ops.h" /* own include */
 #include "bmesh_py_ops_call.h"

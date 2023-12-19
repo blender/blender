@@ -114,8 +114,6 @@ class LightModule {
   Map<ObjectKey, Light> light_map_;
   /** Flat array sent to GPU, populated from light_map_. Source buffer for light culling. */
   LightDataBuf light_buf_ = {"Lights_no_cull"};
-  /** Recorded size of light_map_ (after pruning) to detect deletion. */
-  int64_t light_map_size_ = 0;
   /** Luminous intensity to consider the light boundary at. Used for culling. */
   float light_threshold_ = 0.01f;
   /** If false, will prevent all scene lights from being synced. */

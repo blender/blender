@@ -6,6 +6,7 @@ set(INC
   .
   ../blenkernel
   ../blentranslation
+  ../functions
   ../makesrna
   ../../../intern/eigen
 )
@@ -73,7 +74,6 @@ set(LIB
   bf_blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna
-  PRIVATE bf::functions
   PRIVATE bf::intern::guardedalloc
 )
 

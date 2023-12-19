@@ -213,34 +213,27 @@ void Film::init(const int2 &extent, const rcti *output_rect)
 
   {
     /* Enable passes that need to be rendered. */
-    eViewLayerEEVEEPassType render_passes = eViewLayerEEVEEPassType(0);
-
     if (inst_.is_viewport()) {
       /* Viewport Case. */
-      render_passes = eViewLayerEEVEEPassType(inst_.v3d->shading.render_pass);
+      enabled_passes_ = eViewLayerEEVEEPassType(inst_.v3d->shading.render_pass);
 
       if (inst_.overlays_enabled() || inst_.gpencil_engine_enabled) {
         /* Overlays and Grease Pencil needs the depth for correct compositing.
          * Using the render pass ensure we store the center depth. */
-        render_passes |= EEVEE_RENDER_PASS_Z;
+        enabled_passes_ |= EEVEE_RENDER_PASS_Z;
       }
     }
     else {
       /* Render Case. */
-      render_passes = enabled_passes(inst_.view_layer);
+      enabled_passes_ = enabled_passes(inst_.view_layer);
     }
 
     /* Filter obsolete passes. */
-    render_passes &= ~(EEVEE_RENDER_PASS_UNUSED_8 | EEVEE_RENDER_PASS_BLOOM);
+    enabled_passes_ &= ~(EEVEE_RENDER_PASS_UNUSED_8 | EEVEE_RENDER_PASS_BLOOM);
 
     if (scene_eevee.flag & SCE_EEVEE_MOTION_BLUR_ENABLED) {
       /* Disable motion vector pass if motion blur is enabled. */
-      render_passes &= ~EEVEE_RENDER_PASS_VECTOR;
-    }
-
-    /* TODO(@fclem): Can't we rely on depsgraph update notification? */
-    if (assign_if_different(enabled_passes_, render_passes)) {
-      sampling.reset();
+      enabled_passes_ &= ~EEVEE_RENDER_PASS_VECTOR;
     }
   }
   {
@@ -252,35 +245,29 @@ void Film::init(const int2 &extent, const rcti *output_rect)
 
     display_extent = extent;
 
-    FilmData data = data_;
-    data.extent = int2(BLI_rcti_size_x(output_rect), BLI_rcti_size_y(output_rect));
-    data.offset = int2(output_rect->xmin, output_rect->ymin);
-    data.extent_inv = 1.0f / float2(data.extent);
+    data_.extent = int2(BLI_rcti_size_x(output_rect), BLI_rcti_size_y(output_rect));
+    data_.offset = int2(output_rect->xmin, output_rect->ymin);
+    data_.extent_inv = 1.0f / float2(data_.extent);
     /* TODO(fclem): parameter hidden in experimental.
      * We need to figure out LOD bias first in order to preserve texture crispiness. */
-    data.scaling_factor = 1;
-    data.render_extent = math::divide_ceil(extent, int2(data.scaling_factor));
-    data.render_offset = data.offset;
+    data_.scaling_factor = 1;
+    data_.render_extent = math::divide_ceil(extent, int2(data_.scaling_factor));
+    data_.render_offset = data_.offset;
 
     if (inst_.camera.overscan() != 0.0f) {
-      int2 overscan = int2(inst_.camera.overscan() * math::max(UNPACK2(data.render_extent)));
-      data.render_extent += overscan * 2;
-      data.render_offset += overscan;
+      int2 overscan = int2(inst_.camera.overscan() * math::max(UNPACK2(data_.render_extent)));
+      data_.render_extent += overscan * 2;
+      data_.render_offset += overscan;
     }
 
     /* Disable filtering if sample count is 1. */
-    data.filter_radius = (sampling.sample_count() == 1) ? 0.0f :
-                                                          clamp_f(scene.r.gauss, 0.0f, 100.0f);
-    data.cryptomatte_samples_len = inst_.view_layer->cryptomatte_levels;
+    data_.filter_radius = (sampling.sample_count() == 1) ? 0.0f :
+                                                           clamp_f(scene.r.gauss, 0.0f, 100.0f);
+    data_.cryptomatte_samples_len = inst_.view_layer->cryptomatte_levels;
 
-    data.background_opacity = (scene.r.alphamode == R_ALPHAPREMUL) ? 0.0f : 1.0f;
+    data_.background_opacity = (scene.r.alphamode == R_ALPHAPREMUL) ? 0.0f : 1.0f;
     if (inst_.is_viewport() && false /* TODO(fclem): StudioLight */) {
-      data.background_opacity = inst_.v3d->shading.studiolight_background;
-    }
-
-    FilmData &data_prev_ = data_;
-    if (assign_if_different(data_prev_, data)) {
-      sampling.reset();
+      data_.background_opacity = inst_.v3d->shading.studiolight_background;
     }
 
     const eViewLayerEEVEEPassType data_passes = EEVEE_RENDER_PASS_Z | EEVEE_RENDER_PASS_NORMAL |
@@ -402,7 +389,6 @@ void Film::init(const int2 &extent, const rcti *output_rect)
                                                                            1);
 
     if (reset > 0) {
-      sampling.reset();
       data_.use_history = 0;
       data_.use_reprojection = 0;
 

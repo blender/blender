@@ -4,7 +4,7 @@
  *
  * Author: Sergey Sharybin. */
 
-#include "opensubdiv_evaluator_capi.h"
+#include "opensubdiv_evaluator_capi.hh"
 
 #include <opensubdiv/osd/glslPatchShaderSource.h>
 

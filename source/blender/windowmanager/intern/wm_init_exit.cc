@@ -34,15 +34,15 @@
 #include "BLO_writefile.hh"
 
 #include "BKE_blender.h"
-#include "BKE_blendfile.h"
+#include "BKE_blendfile.hh"
 #include "BKE_callbacks.h"
 #include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_icons.h"
 #include "BKE_image.h"
 #include "BKE_keyconfig.h"
-#include "BKE_lib_remap.h"
-#include "BKE_main.h"
+#include "BKE_lib_remap.hh"
+#include "BKE_main.hh"
 #include "BKE_mball_tessellate.h"
 #include "BKE_node.hh"
 #include "BKE_preview_image.hh"
@@ -62,8 +62,6 @@
 
 #include "RE_engine.h"
 #include "RE_pipeline.h" /* RE_ free stuff */
-
-#include "SEQ_clipboard.hh" /* free seq clipboard */
 
 #include "IMB_thumbs.h"
 
@@ -581,7 +579,6 @@ void WM_exit_ex(bContext *C, const bool do_python_exit, const bool do_user_exit_
   ED_preview_restart_queue_free();
   ED_assetlist_storage_exit();
 
-  SEQ_clipboard_free(); /* `sequencer.cc` */
   BKE_tracking_clipboard_free();
   BKE_mask_clipboard_free();
   BKE_vfont_clipboard_free();

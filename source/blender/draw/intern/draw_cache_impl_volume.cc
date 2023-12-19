@@ -342,7 +342,7 @@ DRWVolumeGrid *DRW_volume_batch_cache_get_grid(Volume *volume, const VolumeGrid 
   return (grid->texture != nullptr) ? grid : nullptr;
 }
 
-int DRW_volume_material_count_get(Volume *volume)
+int DRW_volume_material_count_get(const Volume *volume)
 {
   return max_ii(1, volume->totcol);
 }

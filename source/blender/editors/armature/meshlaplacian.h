@@ -39,7 +39,7 @@ float laplacian_system_get_solution(LaplacianSystem *sys, int v);
 /* Heat Weighting */
 
 void heat_bone_weighting(struct Object *ob,
-                         struct Mesh *me,
+                         struct Mesh *mesh,
                          float (*verts)[3],
                          int numbones,
                          struct bDeformGroup **dgrouplist,

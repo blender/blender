@@ -29,7 +29,7 @@
 #include "BKE_subdiv.hh"
 #include "BKE_subsurf.hh"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
 #include "DEG_depsgraph_query.hh"
 

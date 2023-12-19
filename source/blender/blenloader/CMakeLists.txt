@@ -8,13 +8,14 @@ set(INC
   ../blentranslation
   ../draw
   ../editors/include
+  ../bmesh
   ../gpu
+  ../imbuf
   ../makesrna
   ../nodes
   ../render
   ../sequencer
   ../windowmanager
-  ../bmesh
 
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -62,7 +63,6 @@ set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
-  PRIVATE bf::imbuf
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
 )

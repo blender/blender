@@ -37,7 +37,7 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_main.h"
+#include "BKE_main.hh"
 
 #include "BKE_anim_data.h"
 #include "BKE_curve.hh"
@@ -652,7 +652,7 @@ void BKE_mball_data_update(Depsgraph *depsgraph, Scene *scene, Object *ob)
         0,
         nullptr,
         1.0f);
-    BKE_mesh_tag_positions_changed(mesh);
+    mesh->tag_positions_changed();
   }
 
   ob->runtime->geometry_set_eval = new GeometrySet(GeometrySet::from_mesh(mesh));

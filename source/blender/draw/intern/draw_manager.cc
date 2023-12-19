@@ -47,7 +47,7 @@ void Manager::begin_sync()
   acquired_textures.clear();
   layer_attributes.clear();
 
-#ifdef DEBUG
+#ifndef NDEBUG
   /* Detect uninitialized data. */
   memset(matrix_buf.current().data(),
          0xF0,
@@ -132,7 +132,7 @@ void Manager::end_sync()
 
 void Manager::debug_bind()
 {
-#ifdef DEBUG
+#ifdef _DEBUG
   if (DST.debug == nullptr) {
     return;
   }

@@ -44,7 +44,7 @@ FileWriter::FileWriter(const char *filepath, bool ascii) : tris_num_(0), ascii_(
     fmt::print(file_, "solid \n");
   }
   else {
-    char header[BINARY_HEADER_SIZE] = {};
+    const char header[BINARY_HEADER_SIZE] = {};
     fwrite(header, 1, BINARY_HEADER_SIZE, file_);
     /* Write placeholder for number of triangles, so that it can be updated later (after all
      * triangles have been written). */

@@ -19,9 +19,9 @@ extern "C" {
 /**
  * Definition of a callback routine that receives events.
  * \param event: The event received.
- * \param userdata: The callback's user data, supplied to #GHOST_CreateSystem.
+ * \param user_data: The callback's user data, supplied to #GHOST_CreateSystem.
  */
-typedef bool (*GHOST_EventCallbackProcPtr)(GHOST_EventHandle event, GHOST_TUserDataPtr userdata);
+typedef bool (*GHOST_EventCallbackProcPtr)(GHOST_EventHandle event, GHOST_TUserDataPtr user_data);
 
 /**
  * Creates the one and only system.
@@ -69,10 +69,10 @@ extern void GHOST_ShowMessageBox(GHOST_SystemHandle systemhandle,
 /**
  * Creates an event consumer object
  * \param eventCallback: The event callback routine.
- * \param userdata: Pointer to user data returned to the callback routine.
+ * \param user_data: Pointer to user data returned to the callback routine.
  */
 extern GHOST_EventConsumerHandle GHOST_CreateEventConsumer(
-    GHOST_EventCallbackProcPtr eventCallback, GHOST_TUserDataPtr userdata);
+    GHOST_EventCallbackProcPtr eventCallback, GHOST_TUserDataPtr user_data);
 
 /**
  * Disposes an event consumer object
@@ -105,7 +105,7 @@ extern GHOST_TimerTaskHandle GHOST_InstallTimer(GHOST_SystemHandle systemhandle,
                                                 uint64_t delay,
                                                 uint64_t interval,
                                                 GHOST_TimerProcPtr timerProc,
-                                                GHOST_TUserDataPtr userData);
+                                                GHOST_TUserDataPtr user_data);
 
 /**
  * Removes a timer.
@@ -207,9 +207,9 @@ extern GHOST_TUserDataPtr GHOST_GetWindowUserData(GHOST_WindowHandle windowhandl
 /**
  * Changes the window user data.
  * \param windowhandle: The handle to the window.
- * \param userdata: The window user data.
+ * \param user_data: The window user data.
  */
-extern void GHOST_SetWindowUserData(GHOST_WindowHandle windowhandle, GHOST_TUserDataPtr userdata);
+extern void GHOST_SetWindowUserData(GHOST_WindowHandle windowhandle, GHOST_TUserDataPtr user_data);
 
 extern bool GHOST_IsDialogWindow(GHOST_WindowHandle windowhandle);
 
@@ -537,10 +537,10 @@ extern GHOST_TUserDataPtr GHOST_GetTimerTaskUserData(GHOST_TimerTaskHandle timer
 /**
  * Changes the time user data.
  * \param timertaskhandle: The handle to the timer-task.
- * \param userdata: The timer user data.
+ * \param user_data: The timer user data.
  */
 extern void GHOST_SetTimerTaskUserData(GHOST_TimerTaskHandle timertaskhandle,
-                                       GHOST_TUserDataPtr userdata);
+                                       GHOST_TUserDataPtr user_data);
 
 /**
  * Returns indication as to whether the window is valid.
@@ -580,8 +580,8 @@ extern GHOST_ContextHandle GHOST_GetDrawingContext(GHOST_WindowHandle windowhand
 extern void GHOST_SetTitle(GHOST_WindowHandle windowhandle, const char *title);
 
 /**
- * Returns the title displayed in the title bar. The title
- * should be free'd with free().
+ * Returns the title displayed in the title bar.
+ * The title must be freed with free().
  *
  * \param windowhandle: The handle to the window.
  * \return The title, free with free().
@@ -717,11 +717,11 @@ extern GHOST_TSuccess GHOST_SetSwapInterval(GHOST_WindowHandle windowhandle, int
 /**
  * Gets the current swap interval for #swapBuffers.
  * \param windowhandle: The handle to the window
- * \param intervalOut: pointer to location to return swap interval
+ * \param r_interval: pointer to location to return swap interval
  * (left untouched if there is an error)
  * \return A boolean success indicator of if swap interval was successfully read.
  */
-extern GHOST_TSuccess GHOST_GetSwapInterval(GHOST_WindowHandle windowhandle, int *intervalOut);
+extern GHOST_TSuccess GHOST_GetSwapInterval(GHOST_WindowHandle windowhandle, int *r_interval);
 
 /**
  * Activates the drawing context of this window.
@@ -1165,7 +1165,7 @@ int GHOST_XrSyncActions(GHOST_XrContextHandle xr_context, const char *action_set
 /**
  * Apply an OpenXR haptic output action.
  */
-int GHOST_XrApplyHapticAction(GHOST_XrContextHandle xr_context,
+int GHOST_XrApplyHapticAction(GHOST_XrContextHandle xr_context_handle,
                               const char *action_set_name,
                               const char *action_name,
                               const char *subaction_path,
@@ -1176,7 +1176,7 @@ int GHOST_XrApplyHapticAction(GHOST_XrContextHandle xr_context,
 /**
  * Stop a previously applied OpenXR haptic output action.
  */
-void GHOST_XrStopHapticAction(GHOST_XrContextHandle xr_context,
+void GHOST_XrStopHapticAction(GHOST_XrContextHandle xr_context_handle,
                               const char *action_set_name,
                               const char *action_name,
                               const char *subaction_path);

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'd293f72ab6e7')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'0b00b360f7ae')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-27 10:28:34\n"
+"POT-Creation-Date: 2023-12-18 13:45:58\n"
 "PO-Revision-Date: 2023-11-15 02:54+0000\n"
 "Last-Translator: bitigchi <bitigchi@me.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -6254,6 +6254,10 @@ msgid "Save"
 msgstr "Kaydet"
 
 
+msgid "Operator"
+msgstr "Operatör"
+
+
 msgid "Environment"
 msgstr "Çevre"
 
@@ -7562,10 +7566,6 @@ msgid "Channel"
 msgstr "Kanal"
 
 
-msgid "Dope Sheet Channel"
-msgstr "Döküm Kağıdı Kanalı"
-
-
 msgid "Snap"
 msgstr "Yakala"
 
@@ -7939,6 +7939,10 @@ msgid "Rotation to Quaternion"
 msgstr "Döndürmeden Dördeye"
 
 
+msgid "Active Item Index"
+msgstr "Etkin Öge İndeksi"
+
+
 msgid "Original"
 msgstr "Özgün"
 
@@ -7956,10 +7960,6 @@ msgid "Mirror"
 msgstr "Yansıt"
 
 
-msgid "Signed Distance"
-msgstr "İmzalı Uzaklık"
-
-
 msgid "Is Viewport"
 msgstr "Görüş Alanı"
 
@@ -7970,10 +7970,6 @@ msgstr "Nesne Bilgisi"
 
 msgid "Points to Curves"
 msgstr "Noktalardan Eğriye"
-
-
-msgid "Active Item Index"
-msgstr "Etkin Öge İndeksi"
 
 
 msgid "Set Selection"
@@ -8934,6 +8930,10 @@ msgid "Duplicate Objects"
 msgstr "Nesneleri Çoğalt"
 
 
+msgid "Bake ID"
+msgstr "Pişirme Kimliği"
+
+
 msgid "Input Name"
 msgstr "Girdi Adı"
 
@@ -8989,10 +8989,6 @@ msgstr "Kıl Yarıçapı"
 msgctxt "Operator"
 msgid "Bake Simulation"
 msgstr "Pişirme Benzetimi"
-
-
-msgid "Bake ID"
-msgstr "Pişirme Kimliği"
 
 
 msgctxt "Operator"
@@ -9358,10 +9354,6 @@ msgstr "Betikleri Yeniden Yükle"
 
 msgid "Reload scripts"
 msgstr "Betikleri yeniden yükle"
-
-
-msgid "Operator"
-msgstr "Operatör"
 
 
 msgid "Sharpen"
@@ -10052,10 +10044,6 @@ msgstr "Yeni Dünya"
 
 msgid "UV Sculpting"
 msgstr "UV Yontması"
-
-
-msgid "Refraction"
-msgstr "Kırılma"
 
 
 msgid "Viewport Sampling Presets"
@@ -10927,6 +10915,10 @@ msgid "Active Channel Group"
 msgstr "Etkin Kanal Grubu"
 
 
+msgid "Dope Sheet Channel"
+msgstr "Döküm Kağıdı Kanalı"
+
+
 msgid "Dope Sheet Sub-channel"
 msgstr "Döküm Kağıdı Alt Kanalı"
 
@@ -11540,6 +11532,10 @@ msgstr "Tarih"
 
 msgid "Caps Type"
 msgstr "Başlık Türü"
+
+
+msgid "Refraction"
+msgstr "Kırılma"
 
 
 msgid "Render Engine"
@@ -12706,10 +12702,6 @@ msgstr "Boya Eğrisi"
 
 msgid " Materials,"
 msgstr " Malzemeler,"
-
-
-msgid " Textures,"
-msgstr " Dokular,"
 
 
 msgid "OK"

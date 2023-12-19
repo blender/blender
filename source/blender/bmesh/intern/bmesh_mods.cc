@@ -16,8 +16,8 @@
 
 #include "BKE_customdata.hh"
 
-#include "bmesh.h"
-#include "intern/bmesh_private.h"
+#include "bmesh.hh"
+#include "intern/bmesh_private.hh"
 
 using blender::Vector;
 
@@ -205,7 +205,7 @@ BMFace *BM_face_split(BMesh *bm,
 
   /* do we have a multires layer? */
   if (cd_loop_mdisp_offset != -1) {
-    f_tmp = BM_face_copy(bm, bm, f, false, false);
+    f_tmp = BM_face_copy(bm, f, false, false);
   }
 
 #ifdef USE_BMESH_HOLES
@@ -273,7 +273,7 @@ BMFace *BM_face_split_n(BMesh *bm,
     return nullptr;
   }
 
-  f_tmp = BM_face_copy(bm, bm, f, true, true);
+  f_tmp = BM_face_copy(bm, f, true, true);
 
 #ifdef USE_BMESH_HOLES
   f_new = bmesh_kernel_split_face_make_edge(bm, f, l_a, l_b, &l_new, nullptr, example, false);
@@ -467,7 +467,7 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float fac)
     /* flag existing faces so we can differentiate oldfaces from new faces */
     for (int64_t i = 0; i < oldfaces.size(); i++) {
       BM_ELEM_API_FLAG_ENABLE(oldfaces[i], _FLAG_OVERLAP);
-      oldfaces[i] = BM_face_copy(bm, bm, oldfaces[i], true, true);
+      oldfaces[i] = BM_face_copy(bm, oldfaces[i], true, true);
       BM_ELEM_API_FLAG_DISABLE(oldfaces[i], _FLAG_OVERLAP);
     }
   }
@@ -486,7 +486,7 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float fac)
   madd_v3_v3v3fl(v_new->co, v->co, v_new->co, fac);
 
   e_new->head.hflag = e->head.hflag;
-  BM_elem_attrs_copy(bm, bm, e, e_new);
+  BM_elem_attrs_copy(bm, e, e_new);
 
   /* v->v_new->v2 */
   BM_data_interp_face_vert_edge(bm, v_other, v, v_new, e, fac);

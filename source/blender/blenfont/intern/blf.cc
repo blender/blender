@@ -115,10 +115,10 @@ static int blf_search_by_mem_name(const char *mem_name)
 {
   for (int i = 0; i < BLF_MAX_FONT; i++) {
     const FontBLF *font = global_font[i];
-    if (font == nullptr || font->mem_name == nullptr) {
+    if ((font == nullptr) || (font->mem_name == nullptr)) {
       continue;
     }
-    if (font && STREQ(font->mem_name, mem_name)) {
+    if (STREQ(font->mem_name, mem_name)) {
       return i;
     }
   }
@@ -130,7 +130,10 @@ static int blf_search_by_filepath(const char *filepath)
 {
   for (int i = 0; i < BLF_MAX_FONT; i++) {
     const FontBLF *font = global_font[i];
-    if (font && (BLI_path_cmp(font->filepath, filepath) == 0)) {
+    if ((font == nullptr) || (font->filepath == nullptr)) {
+      continue;
+    }
+    if (BLI_path_cmp(font->filepath, filepath) == 0) {
       return i;
     }
   }
@@ -1005,10 +1008,7 @@ bool BLF_get_vfont_metrics(int fontid, float *ascend_ratio, float *em_ratio, flo
   return true;
 }
 
-float BLF_character_to_curves(int fontid,
-                              unsigned int unicode,
-                              ListBase *nurbsbase,
-                              const float scale)
+float BLF_character_to_curves(int fontid, uint unicode, ListBase *nurbsbase, const float scale)
 {
   FontBLF *font = blf_get(fontid);
   if (!font) {
@@ -1017,7 +1017,7 @@ float BLF_character_to_curves(int fontid,
   return blf_character_to_curves(font, unicode, nurbsbase, scale);
 }
 
-#ifdef DEBUG
+#ifndef NDEBUG
 void BLF_state_print(int fontid)
 {
   FontBLF *font = blf_get(fontid);

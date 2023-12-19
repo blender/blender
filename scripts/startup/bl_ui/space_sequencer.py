@@ -322,7 +322,10 @@ class SEQUENCER_PT_sequencer_overlay(Panel):
 
         layout.separator()
 
-        layout.prop_menu_enum(overlay_settings, "waveform_display_type")
+        layout.label(text="Waveforms")
+        layout.row().prop(overlay_settings, "waveform_display_type", expand=True)
+        layout.label(text="Waveform Style")
+        layout.row().prop(overlay_settings, "waveform_display_style", expand=True)
 
 
 class SEQUENCER_MT_view_cache(Menu):

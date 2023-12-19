@@ -8,9 +8,11 @@ set(INC
   ../../blenkernel
   ../../blentranslation
   ../../bmesh
+  ../../functions
   ../../gpencil_modifiers_legacy
   ../../gpu
   ../../ikplugin
+  ../../imbuf
   ../../makesrna
   ../../modifiers
   ../../python
@@ -66,8 +68,6 @@ set(LIB
   PRIVATE bf::dna
   bf_editor_mesh
   bf_editor_grease_pencil
-  PRIVATE bf::functions
-  PRIVATE bf::imbuf
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   bf_render

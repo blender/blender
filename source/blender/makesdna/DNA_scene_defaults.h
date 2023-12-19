@@ -237,12 +237,9 @@
     .shadow_step_count = 6, \
     .shadow_normal_bias = 0.02f, \
  \
-    .ray_split_settings = 0, \
     .ray_tracing_method = RAYTRACE_EEVEE_METHOD_SCREEN, \
  \
-    .reflection_options = _DNA_DEFAULT_RaytraceEEVEE, \
-    .refraction_options = _DNA_DEFAULT_RaytraceEEVEE, \
-    .diffuse_options = _DNA_DEFAULT_RaytraceEEVEE, \
+    .ray_tracing_options = _DNA_DEFAULT_RaytraceEEVEE, \
  \
     .light_cache_data = NULL, \
     .light_threshold = 0.01f, \

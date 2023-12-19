@@ -193,6 +193,10 @@ static void blf_batch_draw_init()
   g_batch.offset_loc = GPU_vertformat_attr_add(&format, "offset", GPU_COMP_I32, 1, GPU_FETCH_INT);
   g_batch.glyph_size_loc = GPU_vertformat_attr_add(
       &format, "glyph_size", GPU_COMP_I32, 2, GPU_FETCH_INT);
+  g_batch.glyph_comp_len_loc = GPU_vertformat_attr_add(
+      &format, "comp_len", GPU_COMP_I32, 1, GPU_FETCH_INT);
+  g_batch.glyph_mode_loc = GPU_vertformat_attr_add(
+      &format, "mode", GPU_COMP_I32, 1, GPU_FETCH_INT);
 
   g_batch.verts = GPU_vertbuf_create_with_format_ex(&format, GPU_USAGE_STREAM);
   GPU_vertbuf_data_alloc(g_batch.verts, BLF_BATCH_DRAW_LEN_MAX);
@@ -201,6 +205,9 @@ static void blf_batch_draw_init()
   GPU_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.col_loc, &g_batch.col_step);
   GPU_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.offset_loc, &g_batch.offset_step);
   GPU_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.glyph_size_loc, &g_batch.glyph_size_step);
+  GPU_vertbuf_attr_get_raw_data(
+      g_batch.verts, g_batch.glyph_comp_len_loc, &g_batch.glyph_comp_len_step);
+  GPU_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.glyph_mode_loc, &g_batch.glyph_mode_step);
   g_batch.glyph_len = 0;
 
   /* A dummy VBO containing 4 points, attributes are not used. */
@@ -347,6 +354,9 @@ void blf_batch_draw()
   GPU_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.col_loc, &g_batch.col_step);
   GPU_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.offset_loc, &g_batch.offset_step);
   GPU_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.glyph_size_loc, &g_batch.glyph_size_step);
+  GPU_vertbuf_attr_get_raw_data(
+      g_batch.verts, g_batch.glyph_comp_len_loc, &g_batch.glyph_comp_len_step);
+  GPU_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.glyph_mode_loc, &g_batch.glyph_mode_step);
   g_batch.glyph_len = 0;
 }
 
@@ -759,7 +769,7 @@ size_t blf_font_width_to_rstrlen(
 
   i_tmp = i;
   g = blf_glyph_from_utf8_and_step(font, gc, nullptr, str, str_len, &i_tmp, nullptr);
-  for (width_new = pen_x = 0; (s != nullptr);
+  for (width_new = pen_x = 0; (s != nullptr && i > 0);
        i = i_prev, s = s_prev, g = g_prev, g_prev = nullptr, width_new = pen_x)
   {
     s_prev = BLI_str_find_prev_char_utf8(s, str);

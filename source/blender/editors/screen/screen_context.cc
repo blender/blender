@@ -52,7 +52,7 @@
 #include "UI_interface.hh"
 #include "WM_api.hh"
 
-#include "ANIM_bone_collections.h"
+#include "ANIM_bone_collections.hh"
 
 #include "screen_intern.h"
 

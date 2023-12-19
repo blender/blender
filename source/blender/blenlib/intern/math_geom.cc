@@ -2054,7 +2054,7 @@ bool isect_ray_line_v3(const float ray_origin[3],
   return true;
 }
 
-bool isect_point_planes_v3(float (*planes)[4], int totplane, const float p[3])
+bool isect_point_planes_v3(const float (*planes)[4], int totplane, const float p[3])
 {
   int i;
 
@@ -2409,56 +2409,56 @@ static bool isect_tri_tri_v2_impl_vert(const float t_a0[2],
     if (line_point_side_v2(t_b2, t_b1, t_a1) <= 0.0f) {
       if (line_point_side_v2(t_a0, t_b0, t_a1) > 0.0f) {
         if (line_point_side_v2(t_a0, t_b1, t_a1) <= 0.0f) {
-          return 1;
+          return true;
         }
 
-        return 0;
+        return false;
       }
 
       if (line_point_side_v2(t_a0, t_b0, t_a2) >= 0.0f) {
         if (line_point_side_v2(t_a1, t_a2, t_b0) >= 0.0f) {
-          return 1;
+          return true;
         }
 
-        return 0;
+        return false;
       }
 
-      return 0;
+      return false;
     }
     if (line_point_side_v2(t_a0, t_b1, t_a1) <= 0.0f) {
       if (line_point_side_v2(t_b2, t_b1, t_a2) <= 0.0f) {
         if (line_point_side_v2(t_a1, t_a2, t_b1) >= 0.0f) {
-          return 1;
+          return true;
         }
 
-        return 0;
+        return false;
       }
 
-      return 0;
+      return false;
     }
 
-    return 0;
+    return false;
   }
   if (line_point_side_v2(t_b2, t_b0, t_a2) >= 0.0f) {
     if (line_point_side_v2(t_a1, t_a2, t_b2) >= 0.0f) {
       if (line_point_side_v2(t_a0, t_b0, t_a2) >= 0.0f) {
-        return 1;
+        return true;
       }
 
-      return 0;
+      return false;
     }
     if (line_point_side_v2(t_a1, t_a2, t_b1) >= 0.0f) {
       if (line_point_side_v2(t_b2, t_a2, t_b1) >= 0.0f) {
-        return 1;
+        return true;
       }
 
-      return 0;
+      return false;
     }
 
-    return 0;
+    return false;
   }
 
-  return 0;
+  return false;
 }
 
 static bool isect_tri_tri_v2_impl_edge(const float t_a0[2],
@@ -2473,40 +2473,40 @@ static bool isect_tri_tri_v2_impl_edge(const float t_a0[2],
   if (line_point_side_v2(t_b2, t_b0, t_a1) >= 0.0f) {
     if (line_point_side_v2(t_a0, t_b0, t_a1) >= 0.0f) {
       if (line_point_side_v2(t_a0, t_a1, t_b2) >= 0.0f) {
-        return 1;
+        return true;
       }
 
-      return 0;
+      return false;
     }
 
     if (line_point_side_v2(t_a1, t_a2, t_b0) >= 0.0f) {
       if (line_point_side_v2(t_a2, t_a0, t_b0) >= 0.0f) {
-        return 1;
+        return true;
       }
 
-      return 0;
+      return false;
     }
 
-    return 0;
+    return false;
   }
 
   if (line_point_side_v2(t_b2, t_b0, t_a2) >= 0.0f) {
     if (line_point_side_v2(t_a0, t_b0, t_a2) >= 0.0f) {
       if (line_point_side_v2(t_a0, t_a2, t_b2) >= 0.0f) {
-        return 1;
+        return true;
       }
 
       if (line_point_side_v2(t_a1, t_a2, t_b2) >= 0.0f) {
-        return 1;
+        return true;
       }
 
-      return 0;
+      return false;
     }
 
-    return 0;
+    return false;
   }
 
-  return 0;
+  return false;
 }
 
 static int isect_tri_tri_impl_ccw_v2(const float t_a0[2],
@@ -2701,7 +2701,7 @@ bool isect_sweeping_sphere_tri_v3(const float p1[3],
     z = x + y - (a * c - b * b);
 
     if (z <= 0.0f && (x >= 0.0f && y >= 0.0f)) {
-      //(((uint)z)& ~(((uint)x)|((uint)y))) & 0x80000000) {
+      // ((uint32_t(z) & ~(uint32_t(x) | uint32_t(y))) & 0x80000000)
       *r_lambda = t0;
       copy_v3_v3(ipoint, point);
       return true;
@@ -3589,7 +3589,7 @@ static bool barycentric_weights(const float v1[3],
 
   wtot = w[0] + w[1] + w[2];
 
-#ifdef DEBUG /* Avoid floating point exception when debugging. */
+#ifndef NDEBUG /* Avoid floating point exception when debugging. */
   if (wtot != 0.0f)
 #endif
   {
@@ -3686,7 +3686,7 @@ bool barycentric_coords_v2(
   const float x3 = v3[0], y3 = v3[1];
   const float det = (y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3);
 
-#ifdef DEBUG /* Avoid floating point exception when debugging. */
+#ifndef NDEBUG /* Avoid floating point exception when debugging. */
   if (det != 0.0f)
 #endif
   {
@@ -3711,7 +3711,7 @@ void barycentric_weights_v2(
   w[2] = cross_tri_v2(v1, v2, co);
   wtot = w[0] + w[1] + w[2];
 
-#ifdef DEBUG /* Avoid floating point exception when debugging. */
+#ifndef NDEBUG /* Avoid floating point exception when debugging. */
   if (wtot != 0.0f)
 #endif
   {
@@ -3734,7 +3734,7 @@ void barycentric_weights_v2_clamped(
   w[2] = max_ff(cross_tri_v2(v1, v2, co), 0.0f);
   wtot = w[0] + w[1] + w[2];
 
-#ifdef DEBUG /* Avoid floating point exception when debugging. */
+#ifndef NDEBUG /* Avoid floating point exception when debugging. */
   if (wtot != 0.0f)
 #endif
   {
@@ -3757,7 +3757,7 @@ void barycentric_weights_v2_persp(
   w[2] = cross_tri_v2(v1, v2, co) / v3[3];
   wtot = w[0] + w[1] + w[2];
 
-#ifdef DEBUG /* Avoid floating point exception when debugging. */
+#ifndef NDEBUG /* Avoid floating point exception when debugging. */
   if (wtot != 0.0f)
 #endif
   {
@@ -3849,7 +3849,7 @@ void barycentric_weights_v2_quad(const float v1[2],
 
     wtot = w[0] + w[1] + w[2] + w[3];
 
-#ifdef DEBUG /* Avoid floating point exception when debugging. */
+#ifndef NDEBUG /* Avoid floating point exception when debugging. */
     if (wtot != 0.0f)
 #endif
     {

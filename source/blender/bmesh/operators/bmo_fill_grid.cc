@@ -16,9 +16,9 @@
 
 #include "BKE_customdata.hh"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
-#include "intern/bmesh_operators_private.h" /* own include */
+#include "intern/bmesh_operators_private.hh" /* own include */
 
 #include "BLI_strict_flags.h"
 
@@ -378,7 +378,7 @@ static void bm_grid_fill_array(BMesh *bm,
           l_tmp = larr_y_a[y][0];
         }
 
-        BM_elem_attrs_copy(bm, bm, l_tmp->f, f);
+        BM_elem_attrs_copy(bm, l_tmp->f, f);
 
         BM_face_as_array_loop_quad(f, l_quad);
 
@@ -475,7 +475,7 @@ static void bm_grid_fill(BMesh *bm,
   const uint ytot = uint(BM_edgeloop_length_get(estore_rail_a));
   // BMVert *v;
   uint i;
-#ifdef DEBUG
+#ifndef NDEBUG
   uint x, y;
 #endif
   LinkData *el;
@@ -523,7 +523,7 @@ static void bm_grid_fill(BMesh *bm,
   for (el = static_cast<LinkData *>(lb_rail_b->first), i = 0; el; el = el->next, i++) {
     v_grid[(xtot * i) + (xtot - 1)] = static_cast<BMVert *>(el->data);
   }
-#ifdef DEBUG
+#ifndef NDEBUG
   for (x = 1; x < xtot - 1; x++) {
     for (y = 1; y < ytot - 1; y++) {
       BLI_assert(v_grid[(y * xtot) + x] == nullptr);

@@ -328,7 +328,7 @@ class Instance {
     }
 
     if (object_state.use_per_material_batches) {
-      for (SculptBatch &batch : sculpt_batches_get(ob_ref.object, true, features)) {
+      for (SculptBatch &batch : sculpt_batches_get(ob_ref.object, features)) {
         Material mat = get_material(ob_ref, object_state.color_type, batch.material_slot);
         if (SCULPT_DEBUG_DRAW) {
           mat.base_color = batch.debug_color();
@@ -346,7 +346,7 @@ class Instance {
     }
     else {
       Material mat = get_material(ob_ref, object_state.color_type);
-      for (SculptBatch &batch : sculpt_batches_get(ob_ref.object, false, features)) {
+      for (SculptBatch &batch : sculpt_batches_get(ob_ref.object, features)) {
         if (SCULPT_DEBUG_DRAW) {
           mat.base_color = batch.debug_color();
         }
@@ -641,7 +641,7 @@ static bool workbench_render_framebuffers_init()
          GPU_framebuffer_check_valid(dfbl->depth_only_fb, nullptr);
 }
 
-#ifdef DEBUG
+#ifdef _DEBUG
 /* This is just to ease GPU debugging when the frame delimiter is set to Finish */
 #  define GPU_FINISH_DELIMITER() GPU_finish()
 #else

@@ -14,12 +14,16 @@
 #include "BLI_span.hh"
 #include "BLI_stack.hh"
 
+#include "DNA_material_types.h"
+
 #include "BKE_context.hh"
 #include "BKE_curves_utils.hh"
 #include "BKE_grease_pencil.hh"
+#include "BKE_material.h"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 
 #include "DEG_depsgraph.hh"
 
@@ -28,6 +32,8 @@
 #include "ED_screen.hh"
 
 #include "WM_api.hh"
+
+#include "UI_resources.hh"
 
 namespace blender::ed::greasepencil {
 
@@ -261,7 +267,7 @@ static void smooth_curve_attribute(const OffsetIndices<int> points_by_curve,
                                    const bool keep_shape,
                                    GMutableSpan data)
 {
-  curves_to_smooth.foreach_index_optimized<int64_t>(GrainSize(512), [&](const int64_t curve_i) {
+  curves_to_smooth.foreach_index(GrainSize(512), [&](const int curve_i) {
     Vector<std::byte> orig_data;
     const IndexRange points = points_by_curve[curve_i];
 
@@ -271,8 +277,7 @@ static void smooth_curve_attribute(const OffsetIndices<int> points_by_curve,
       return;
     }
 
-    Vector<IndexRange> selection_ranges = selection_mask.to_ranges();
-    for (const IndexRange range : selection_ranges) {
+    selection_mask.foreach_range([&](const IndexRange range) {
       GMutableSpan dst_data = data.slice(range);
 
       orig_data.resize(dst_data.size_in_bytes());
@@ -281,7 +286,7 @@ static void smooth_curve_attribute(const OffsetIndices<int> points_by_curve,
 
       gaussian_blur_1D(
           src_data, iterations, influence, smooth_ends, keep_shape, cyclic[curve_i], dst_data);
-    }
+    });
   });
 }
 
@@ -611,7 +616,7 @@ static bke::CurvesGeometry remove_points_and_split(const bke::CurvesGeometry &cu
     const Vector<IndexRange> ranges_to_keep = array_utils::find_all_ranges(curve_points_to_delete,
                                                                            false);
 
-    if (ranges_to_keep.size() == 0) {
+    if (ranges_to_keep.is_empty()) {
       continue;
     }
 
@@ -671,7 +676,6 @@ static bke::CurvesGeometry remove_points_and_split(const bke::CurvesGeometry &cu
 
 static int grease_pencil_delete_exec(bContext *C, wmOperator * /*op*/)
 {
-  using namespace blender;
   const Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
@@ -1005,7 +1009,7 @@ static void GREASE_PENCIL_OT_stroke_material_set(wmOperatorType *ot)
 {
   ot->name = "Assign Material";
   ot->idname = "GREASE_PENCIL_OT_stroke_material_set";
-  ot->description = "Change Stroke material with selected material";
+  ot->description = "Assign the active material slot to the selected strokes";
 
   ot->exec = grease_pencil_stroke_material_set_exec;
   ot->poll = editable_grease_pencil_poll;
@@ -1111,11 +1115,11 @@ static void GREASE_PENCIL_OT_cyclical_set(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Set selected material as active material
+/** \name Set Active Material Operator
  * \{ */
+
 static int grease_pencil_set_active_material_exec(bContext *C, wmOperator * /*op*/)
 {
-  using namespace blender;
   const Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
@@ -1134,7 +1138,7 @@ static int grease_pencil_set_active_material_exec(bContext *C, wmOperator * /*op
     }
     bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
 
-    const blender::VArray<int> materials = *curves.attributes().lookup_or_default<int>(
+    const VArray<int> materials = *curves.attributes().lookup_or_default<int>(
         "material_index", ATTR_DOMAIN_CURVE, 0);
     object->actcol = materials[strokes.first()] + 1;
     break;
@@ -1159,7 +1163,7 @@ static void GREASE_PENCIL_OT_set_active_material(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Set stroke uniform Thickness
+/** \name Set Uniform Thickness Operator
  * \{ */
 
 static int grease_pencil_set_uniform_thickness_exec(bContext *C, wmOperator *op)
@@ -1217,7 +1221,7 @@ static void GREASE_PENCIL_OT_set_uniform_thickness(wmOperatorType *ot)
 
 /** \} */
 /* -------------------------------------------------------------------- */
-/** \name Set stroke uniform Opacity
+/** \name Set Uniform Opacity Operator
  * \{ */
 
 static int grease_pencil_set_uniform_opacity_exec(bContext *C, wmOperator *op)
@@ -1325,7 +1329,7 @@ static void GREASE_PENCIL_OT_stroke_switch_direction(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Caps mode Set Operator
+/** \name Set Curve Caps Operator
  * \{ */
 
 enum class CapsMode : int8_t {
@@ -1372,7 +1376,7 @@ static int grease_pencil_caps_set_exec(bContext *C, wmOperator *op)
 
     bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
 
-    if (mode == CapsMode::ROUND || mode == CapsMode::FLAT) {
+    if (ELEM(mode, CapsMode::ROUND, CapsMode::FLAT)) {
       bke::SpanAttributeWriter<int8_t> start_caps =
           attributes.lookup_or_add_for_write_span<int8_t>("start_cap", ATTR_DOMAIN_CURVE);
       bke::SpanAttributeWriter<int8_t> end_caps = attributes.lookup_or_add_for_write_span<int8_t>(
@@ -1448,6 +1452,190 @@ static void GREASE_PENCIL_OT_caps_set(wmOperatorType *ot)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Set Active Material Operator
+ * \{ */
+
+/* Retry enum items with object materials. */
+static const EnumPropertyItem *material_enum_itemf(bContext *C,
+                                                   PointerRNA * /*ptr*/,
+                                                   PropertyRNA * /*prop*/,
+                                                   bool *r_free)
+{
+  Object *ob = CTX_data_active_object(C);
+  EnumPropertyItem *item = nullptr, item_tmp = {0};
+  int totitem = 0;
+
+  if (ob == nullptr) {
+    return rna_enum_dummy_DEFAULT_items;
+  }
+
+  /* Existing materials */
+  for (const int i : IndexRange(ob->totcol)) {
+    if (Material *ma = BKE_object_material_get(ob, i + 1)) {
+      item_tmp.identifier = ma->id.name + 2;
+      item_tmp.name = ma->id.name + 2;
+      item_tmp.value = i + 1;
+      item_tmp.icon = ma->preview ? ma->preview->icon_id : ICON_NONE;
+
+      RNA_enum_item_add(&item, &totitem, &item_tmp);
+    }
+  }
+  RNA_enum_item_end(&item, &totitem);
+  *r_free = true;
+
+  return item;
+}
+
+static int grease_pencil_set_material_exec(bContext *C, wmOperator *op)
+{
+  Object *object = CTX_data_active_object(C);
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  const int slot = RNA_enum_get(op->ptr, "slot");
+
+  /* Try to get material slot. */
+  if ((slot < 1) || (slot > object->totcol)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  /* Set active material. */
+  object->actcol = slot;
+
+  WM_event_add_notifier(C, NC_GEOM | ND_DATA | NA_EDITED, &grease_pencil);
+
+  return OPERATOR_FINISHED;
+}
+
+static void GREASE_PENCIL_OT_set_material(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Set Active Material";
+  ot->idname = "GREASE_PENCIL_OT_set_material";
+  ot->description = "Set active material";
+
+  /* callbacks */
+  ot->exec = grease_pencil_set_material_exec;
+  ot->poll = active_grease_pencil_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* Material to use (dynamic enum) */
+  ot->prop = RNA_def_enum(ot->srna, "slot", rna_enum_dummy_DEFAULT_items, 0, "Material Slot", "");
+  RNA_def_enum_funcs(ot->prop, material_enum_itemf);
+}
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Duplicate Operator
+ * \{ */
+
+static int grease_pencil_duplicate_exec(bContext *C, wmOperator * /*op*/)
+{
+  const Scene *scene = CTX_data_scene(C);
+  Object *object = CTX_data_active_object(C);
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+
+  const eAttrDomain selection_domain = ED_grease_pencil_selection_domain_get(scene->toolsettings);
+
+  std::atomic<bool> changed = false;
+  const Array<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
+  threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
+    IndexMaskMemory memory;
+    const IndexMask elements = retrieve_editable_and_selected_elements(
+        *object, info.drawing, selection_domain, memory);
+    if (elements.is_empty()) {
+      return;
+    }
+
+    bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
+    if (selection_domain == ATTR_DOMAIN_CURVE) {
+      curves::duplicate_curves(curves, elements);
+    }
+    else if (selection_domain == ATTR_DOMAIN_POINT) {
+      curves::duplicate_points(curves, elements);
+    }
+    info.drawing.tag_topology_changed();
+    changed.store(true, std::memory_order_relaxed);
+  });
+
+  if (changed) {
+    DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GEOM | ND_DATA, &grease_pencil);
+  }
+  return OPERATOR_FINISHED;
+}
+
+static void GREASE_PENCIL_OT_duplicate(wmOperatorType *ot)
+{
+  /* Identifiers. */
+  ot->name = "Duplicate";
+  ot->idname = "GREASE_PENCIL_OT_duplicate";
+  ot->description = "Duplicate the selected points";
+
+  /* Callbacks. */
+  ot->exec = grease_pencil_duplicate_exec;
+  ot->poll = editable_grease_pencil_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+static int grease_pencil_clean_loose_exec(bContext *C, wmOperator *op)
+{
+  Object *object = CTX_data_active_object(C);
+  Scene &scene = *CTX_data_scene(C);
+  const int limit = RNA_int_get(op->ptr, "limit");
+
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  Array<MutableDrawingInfo> drawings = retrieve_editable_drawings(scene, grease_pencil);
+
+  threading::parallel_for_each(drawings, [&](MutableDrawingInfo &info) {
+    bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
+    const OffsetIndices<int> points_by_curve = curves.points_by_curve();
+
+    IndexMaskMemory memory;
+    const IndexMask editable_strokes = ed::greasepencil::retrieve_editable_strokes(
+        *object, info.drawing, memory);
+
+    const IndexMask curves_to_delete = IndexMask::from_predicate(
+        editable_strokes, GrainSize(4096), memory, [&](const int i) {
+          return points_by_curve[i].size() <= limit;
+        });
+
+    curves.remove_curves(curves_to_delete);
+  });
+
+  DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+  WM_event_add_notifier(C, NC_GEOM | ND_DATA, &grease_pencil);
+
+  return OPERATOR_FINISHED;
+}
+
+static void GREASE_PENCIL_OT_clean_loose(wmOperatorType *ot)
+{
+  ot->name = "Clean Loose Points";
+  ot->idname = "GREASE_PENCIL_OT_clean_loose";
+  ot->description = "Remove loose points";
+
+  ot->invoke = WM_operator_props_popup_confirm;
+  ot->exec = grease_pencil_clean_loose_exec;
+  ot->poll = editable_grease_pencil_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_int(ot->srna,
+              "limit",
+              1,
+              1,
+              INT_MAX,
+              "Limit",
+              "Number of points to consider stroke as loose",
+              1,
+              INT_MAX);
+}
+
+/** \} */
+
 }  // namespace blender::ed::greasepencil
 
 void ED_operatortypes_grease_pencil_edit()
@@ -1465,6 +1653,9 @@ void ED_operatortypes_grease_pencil_edit()
   WM_operatortype_append(GREASE_PENCIL_OT_set_uniform_thickness);
   WM_operatortype_append(GREASE_PENCIL_OT_set_uniform_opacity);
   WM_operatortype_append(GREASE_PENCIL_OT_caps_set);
+  WM_operatortype_append(GREASE_PENCIL_OT_duplicate);
+  WM_operatortype_append(GREASE_PENCIL_OT_set_material);
+  WM_operatortype_append(GREASE_PENCIL_OT_clean_loose);
 }
 
 void ED_keymap_grease_pencil(wmKeyConfig *keyconf)

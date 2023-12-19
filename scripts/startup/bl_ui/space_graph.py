@@ -295,6 +295,7 @@ class GRAPH_MT_channel(Menu):
         layout.operator("graph.keys_to_samples")
         layout.operator("graph.samples_to_keys")
         layout.operator("graph.sound_to_samples")
+        layout.operator("anim.channels_bake")
 
         layout.separator()
         layout.operator("graph.euler_filter", text="Discontinuity (Euler) Filter")

@@ -63,6 +63,7 @@ void ED_operatortypes_armature()
   WM_operatortype_append(ARMATURE_OT_collection_remove);
   WM_operatortype_append(ARMATURE_OT_collection_move);
   WM_operatortype_append(ARMATURE_OT_collection_assign);
+  WM_operatortype_append(ARMATURE_OT_collection_create_and_assign);
   WM_operatortype_append(ARMATURE_OT_collection_unassign);
   WM_operatortype_append(ARMATURE_OT_collection_unassign_named);
   WM_operatortype_append(ARMATURE_OT_collection_select);

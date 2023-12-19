@@ -87,7 +87,7 @@ static void createTransSeqRetimingData(bContext * /*C*/, TransInfo *t)
 
   const blender::Map selection = SEQ_retiming_selection_get(SEQ_editing_get(t->scene));
 
-  if (selection.size() == 0) {
+  if (selection.is_empty()) {
     return;
   }
 

@@ -223,7 +223,7 @@ static void node_shader_update_vector_math(bNodeTree *ntree, bNode *node)
       node_sock_label(sockB, "Increment");
       break;
     case NODE_VECTOR_MATH_REFRACT:
-      node_sock_label(sockScale, "Ior");
+      node_sock_label(sockScale, "IOR");
       break;
     case NODE_VECTOR_MATH_SCALE:
       node_sock_label(sockScale, "Scale");

@@ -42,8 +42,8 @@
 #include "BLF_api.h"
 #include "WM_api.hh"
 
-#include "draw_manager_text.h"
-#include "intern/bmesh_polygon.h"
+#include "draw_manager_text.hh"
+#include "intern/bmesh_polygon.hh"
 
 struct ViewCachedString {
   float vec[3];
@@ -227,8 +227,8 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
    */
   DRWTextStore *dt = DRW_text_cache_ensure();
   const short txt_flag = DRW_TEXT_CACHE_GLOBALSPACE;
-  Mesh *me = BKE_object_get_editmesh_eval_cage(ob);
-  BMEditMesh *em = me->edit_mesh;
+  Mesh *mesh = BKE_object_get_editmesh_eval_cage(ob);
+  BMEditMesh *em = mesh->edit_mesh;
   float v1[3], v2[3], v3[3], vmid[3], fvec[3];
   char numstr[32]; /* Stores the measurement display text here */
   size_t numstr_len;
@@ -241,7 +241,7 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
   float clip_planes[4][4];
   /* allow for displaying shape keys and deform mods */
   BMIter iter;
-  const float(*vert_coords)[3] = BKE_mesh_wrapper_vert_coords(me);
+  const float(*vert_coords)[3] = BKE_mesh_wrapper_vert_coords(mesh);
   const bool use_coords = (vert_coords != nullptr);
 
   /* when 2 or more edge-info options are enabled, space apart */
@@ -348,7 +348,7 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
     const float(*face_normals)[3] = nullptr;
     if (use_coords) {
       BM_mesh_elem_index_ensure(em->bm, BM_VERT | BM_FACE);
-      face_normals = BKE_mesh_wrapper_face_normals(me);
+      face_normals = BKE_mesh_wrapper_face_normals(mesh);
     }
 
     BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
@@ -423,15 +423,15 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
     BMFace *f = nullptr;
     /* Alternative to using `poly_to_tri_count(i, BM_elem_index_get(f->l_first))`
      * without having to add an extra loop. */
-    int looptri_index = 0;
+    int tri_index = 0;
     BM_ITER_MESH_INDEX (f, &iter, em->bm, BM_FACES_OF_MESH, i) {
-      const int f_looptri_len = f->len - 2;
+      const int f_corner_tris_len = f->len - 2;
       if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
         n = 0;
         area = 0;
         zero_v3(vmid);
-        BMLoop *(*l)[3] = &em->looptris[looptri_index];
-        for (int j = 0; j < f_looptri_len; j++) {
+        BMLoop *(*l)[3] = &em->looptris[tri_index];
+        for (int j = 0; j < f_corner_tris_len; j++) {
 
           if (use_coords) {
             copy_v3_v3(v1, vert_coords[BM_elem_index_get(l[j][0]->v)]);
@@ -477,7 +477,7 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
 
         DRW_text_cache_add(dt, vmid, numstr, numstr_len, 0, 0, txt_flag, col);
       }
-      looptri_index += f_looptri_len;
+      tri_index += f_corner_tris_len;
     }
   }
 

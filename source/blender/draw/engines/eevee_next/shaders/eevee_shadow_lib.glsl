@@ -8,7 +8,13 @@
 
 #define EEVEE_SHADOW_LIB
 
-float shadow_read_depth_at_tilemap_uv(usampler2DArray atlas_tx,
+#ifdef SHADOW_READ_ATOMIC
+#  define SHADOW_ATLAS_TYPE usampler2DArrayAtomic
+#else
+#  define SHADOW_ATLAS_TYPE usampler2DArray
+#endif
+
+float shadow_read_depth_at_tilemap_uv(SHADOW_ATLAS_TYPE atlas_tx,
                                       usampler2D tilemaps_tx,
                                       int tilemap_index,
                                       vec2 tilemap_uv)
@@ -86,7 +92,7 @@ float shadow_linear_occluder_distance(LightData light,
   return receiver_z - occluder_z;
 }
 
-ShadowEvalResult shadow_punctual_sample_get(usampler2DArray atlas_tx,
+ShadowEvalResult shadow_punctual_sample_get(SHADOW_ATLAS_TYPE atlas_tx,
                                             usampler2D tilemaps_tx,
                                             LightData light,
                                             vec3 P)
@@ -116,7 +122,7 @@ ShadowEvalResult shadow_punctual_sample_get(usampler2DArray atlas_tx,
   return result;
 }
 
-ShadowEvalResult shadow_directional_sample_get(usampler2DArray atlas_tx,
+ShadowEvalResult shadow_directional_sample_get(SHADOW_ATLAS_TYPE atlas_tx,
                                                usampler2D tilemaps_tx,
                                                LightData light,
                                                vec3 P)
@@ -159,7 +165,7 @@ ShadowEvalResult shadow_directional_sample_get(usampler2DArray atlas_tx,
 }
 
 ShadowEvalResult shadow_sample(const bool is_directional,
-                               usampler2DArray atlas_tx,
+                               SHADOW_ATLAS_TYPE atlas_tx,
                                usampler2D tilemaps_tx,
                                LightData light,
                                vec3 P)

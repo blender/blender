@@ -13,6 +13,7 @@
 #include "BLI_vector.hh"
 
 #include "BKE_DerivedMesh.hh"
+#include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
@@ -497,11 +498,11 @@ static void generate_margin(ImBuf *ibuf,
                             const Span<float2> mloopuv,
                             const float uv_offset[2])
 {
-  Array<MLoopTri> looptris(poly_to_tri_count(faces.size(), corner_edges.size()));
-  bke::mesh::looptris_calc(vert_positions, faces, corner_verts, looptris);
+  Array<int3> corner_tris(poly_to_tri_count(faces.size(), corner_edges.size()));
+  bke::mesh::corner_tris_calc(vert_positions, faces, corner_verts, corner_tris);
 
-  Array<int> looptri_faces(looptris.size());
-  bke::mesh::looptris_calc_face_indices(faces, looptri_faces);
+  Array<int> tri_faces(corner_tris.size());
+  bke::mesh::corner_tris_calc_face_indices(faces, tri_faces);
 
   TextureMarginMap map(ibuf->x, ibuf->y, uv_offset, edges_num, faces, corner_edges, mloopuv);
 
@@ -516,12 +517,12 @@ static void generate_margin(ImBuf *ibuf,
     draw_new_mask = true;
   }
 
-  for (const int i : looptris.index_range()) {
-    const MLoopTri *lt = &looptris[i];
+  for (const int i : corner_tris.index_range()) {
+    const int3 tri = corner_tris[i];
     float vec[3][2];
 
     for (int a = 0; a < 3; a++) {
-      const float *uv = mloopuv[lt->tri[a]];
+      const float *uv = mloopuv[tri[a]];
 
       /* NOTE(@ideasman42): workaround for pixel aligned UVs which are common and can screw up
        * our intersection tests where a pixel gets in between 2 faces or the middle of a quad,
@@ -532,9 +533,9 @@ static void generate_margin(ImBuf *ibuf,
     }
 
     /* NOTE: we need the top bit for the dijkstra distance map. */
-    BLI_assert(looptri_faces[i] < 0x80000000);
+    BLI_assert(tri_faces[i] < 0x80000000);
 
-    map.rasterize_tri(vec[0], vec[1], vec[2], looptri_faces[i], mask, draw_new_mask);
+    map.rasterize_tri(vec[0], vec[1], vec[2], tri_faces[i], mask, draw_new_mask);
   }
 
   char *tmpmask = (char *)MEM_dupallocN(mask);
@@ -567,15 +568,13 @@ void RE_generate_texturemargin_adjacentfaces(ImBuf *ibuf,
                                              char const *uv_layer,
                                              const float uv_offset[2])
 {
-  const blender::float2 *mloopuv;
-  if ((uv_layer == nullptr) || (uv_layer[0] == '\0')) {
-    mloopuv = static_cast<const blender::float2 *>(
-        CustomData_get_layer(&mesh->loop_data, CD_PROP_FLOAT2));
-  }
-  else {
-    mloopuv = static_cast<const blender::float2 *>(
-        CustomData_get_layer_named(&mesh->loop_data, CD_PROP_FLOAT2, uv_layer));
-  }
+  const blender::StringRef uv_map_name = (uv_layer && uv_layer[0]) ?
+                                             uv_layer :
+                                             CustomData_get_active_layer_name(&mesh->loop_data,
+                                                                              CD_PROP_FLOAT2);
+  const blender::bke::AttributeAccessor attributes = mesh->attributes();
+  const blender::VArraySpan<blender::float2> uv_map = *attributes.lookup<blender::float2>(
+      uv_map_name, ATTR_DOMAIN_CORNER);
 
   blender::render::texturemargin::generate_margin(ibuf,
                                                   mask,
@@ -585,7 +584,7 @@ void RE_generate_texturemargin_adjacentfaces(ImBuf *ibuf,
                                                   mesh->faces(),
                                                   mesh->corner_edges(),
                                                   mesh->corner_verts(),
-                                                  {mloopuv, mesh->totloop},
+                                                  uv_map,
                                                   uv_offset);
 }
 

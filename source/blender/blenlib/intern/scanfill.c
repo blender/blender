@@ -842,7 +842,7 @@ uint BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const float n
 
   BLI_assert(!nor_proj || len_squared_v3(nor_proj) > FLT_EPSILON);
 
-#ifdef DEBUG
+#ifndef NDEBUG
   for (eve = sf_ctx->fillvertbase.first; eve; eve = eve->next) {
     /* these values used to be set,
      * however they should always be zero'd so check instead */
@@ -984,7 +984,7 @@ uint BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const float n
     }
     if (eed) {
       /* otherwise it's impossible to be sure you can clear vertices */
-#ifdef DEBUG
+#ifndef NDEBUG
       printf("No vertices with 250 edges allowed!\n");
 #endif
       return 0;
@@ -1027,7 +1027,7 @@ uint BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const float n
       eed->v1->edge_count++;
       eed->v2->edge_count++;
     }
-#ifdef DEBUG
+#ifndef NDEBUG
     /* ensure we're right! */
     for (eed = sf_ctx->filledgebase.first; eed; eed = eed->next) {
       BLI_assert(eed->v1->edge_count != 1);

@@ -1401,7 +1401,7 @@ template<typename MatT, typename VectorT> [[nodiscard]] MatT from_up_axis(const 
   using T = typename MatT::base_type;
   using Vec3T = VecBase<T, 3>;
   /* Duff, Tom, et al. "Building an orthonormal basis, revisited." JCGT 6.1 (2017). */
-  T sign = math::sign(up.z);
+  T sign = up.z >= T(0) ? T(1) : T(-1);
   T a = T(-1) / (sign + up.z);
   T b = up.x * up.y * a;
 

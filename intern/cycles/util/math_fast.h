@@ -45,7 +45,7 @@ ccl_device_inline float4 madd4(const float4 a, const float4 b, const float4 c)
 /*
  * FAST & APPROXIMATE MATH
  *
- * The functions named "fast_*" provide a set of replacements to libm that
+ * The functions named "fast_*" provide a set of replacements to `libm` that
  * are much faster at the expense of some accuracy and robust handling of
  * extreme values. One design goal for these approximation was to avoid
  * branches as much as possible and operate on single precision values only

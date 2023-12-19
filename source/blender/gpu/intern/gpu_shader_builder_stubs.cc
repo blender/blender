@@ -29,7 +29,7 @@
 
 #include "DRW_engine.h"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
 #include "UI_resources.hh"
 
@@ -221,15 +221,6 @@ extern "C" void DRW_deferred_shader_remove(struct GPUMaterial * /*mat*/)
   BLI_assert_unreachable();
 }
 
-extern "C" void DRW_cdlayer_attr_aliases_add(struct GPUVertFormat * /*format*/,
-                                             const char * /*base_name*/,
-                                             const struct CustomData * /*data*/,
-                                             const struct CustomDataLayer * /*cl*/,
-                                             bool /*is_active_render*/,
-                                             bool /*is_active_layer*/)
-{
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -259,22 +250,6 @@ extern "C" bool IMB_saveiff(struct ImBuf * /*ibuf*/, const char * /*filepath*/, 
 {
   BLI_assert_unreachable();
   return false;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Stubs of BKE_pbvh.hh
- * \{ */
-
-int BKE_pbvh_count_grid_quads(BLI_bitmap ** /*grid_hidden*/,
-                              const int * /*grid_indices*/,
-                              int /*totgrid*/,
-                              int /*gridsize*/,
-                              int /*display_gridsize*/)
-{
-  BLI_assert_unreachable();
-  return 0;
 }
 
 /** \} */

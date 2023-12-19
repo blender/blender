@@ -38,7 +38,7 @@
 #include "ED_armature.hh"
 #include "ED_mesh.hh"
 
-#include "ANIM_bone_collections.h"
+#include "ANIM_bone_collections.hh"
 
 #include "armature_intern.h"
 #include "meshlaplacian.h"

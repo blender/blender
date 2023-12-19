@@ -27,7 +27,7 @@ struct Mesh *BKE_fluid_modifier_do(struct FluidModifierData *fmd,
                                    struct Depsgraph *depsgraph,
                                    struct Scene *scene,
                                    struct Object *ob,
-                                   struct Mesh *me);
+                                   struct Mesh *mesh);
 
 void BKE_fluid_modifier_free(struct FluidModifierData *fmd);
 void BKE_fluid_modifier_reset(struct FluidModifierData *fmd);

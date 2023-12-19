@@ -22,11 +22,11 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_blendfile_link_append.h"
+#include "BKE_blendfile_link_append.hh"
 #include "BKE_context.hh"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_report.h"
 
 #include "DNA_space_types.h" /* FILE_LINK, FILE_RELPATH */

@@ -60,7 +60,7 @@ class CPUKernels {
                                  int x,
                                  int y,
                                  float threshold,
-                                 bool reset,
+                                 int reset,
                                  int offset,
                                  int stride)>;
 

@@ -121,7 +121,7 @@ Mesh *convert_ply_to_mesh(PlyData &data, const PLYImportParams &params)
   }
   else {
     /* No vertex normals: set faces to sharp. */
-    BKE_mesh_smooth_flag_set(mesh, false);
+    bke::mesh_smooth_set(*mesh, false);
   }
 
   /* Custom attributes: add them after anything above. */

@@ -32,8 +32,6 @@ struct ColorBand;
 
 /* ************************ style definitions ******************** */
 
-#define MAX_STYLE_NAME 64
-
 /**
  * Default offered by Blender.
  * #uiFont.uifont_id
@@ -90,7 +88,7 @@ typedef struct uiFontStyle {
 typedef struct uiStyle {
   struct uiStyle *next, *prev;
 
-  /** MAX_STYLE_NAME. */
+  /** #MAX_NAME */
   char name[64];
 
   uiFontStyle paneltitle;
@@ -631,6 +629,12 @@ typedef struct bUserExtensionRepo {
   int flag;
   char _pad0[4];
 } bUserExtensionRepo;
+
+typedef enum eUserExtensionRepo_Flag {
+  /** Maintain disk cache. */
+  USER_EXTENSION_REPO_FLAG_NO_CACHE = 1 << 0,
+  USER_EXTENSION_REPO_FLAG_DISABLED = 1 << 1,
+} eUserExtensionRepo_Flag;
 
 typedef struct SolidLight {
   int flag;

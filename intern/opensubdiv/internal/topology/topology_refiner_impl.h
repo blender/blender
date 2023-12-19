@@ -15,7 +15,7 @@
 
 #include "internal/base/memory.h"
 #include "internal/topology/mesh_topology.h"
-#include "opensubdiv_topology_refiner_capi.h"
+#include "opensubdiv_topology_refiner_capi.hh"
 
 struct OpenSubdiv_Converter;
 

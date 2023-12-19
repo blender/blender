@@ -93,7 +93,8 @@ vec4 radiance_history_fetch(ivec2 texel, float bilinear_weight)
   if (!in_texture_range(texel, radiance_history_tx)) {
     return vec4(0.0);
   }
-  ivec2 history_tile = texel / RAYTRACE_GROUP_SIZE;
+  int closure_index = uniform_buf.raytrace.closure_index;
+  ivec3 history_tile = ivec3(texel / RAYTRACE_GROUP_SIZE, closure_index);
   /* Fetch previous tilemask to avoid loading invalid data. */
   bool is_valid_history = texelFetch(tilemask_history_tx, history_tile, 0).r != 0;
   /* Exclude unprocessed pixels. */
@@ -147,8 +148,9 @@ vec2 variance_history_sample(vec3 P)
 
   float history_variance = texture(variance_history_tx, uv).r;
 
+  int closure_index = uniform_buf.raytrace.closure_index;
   ivec2 history_texel = ivec2(floor(uv * vec2(textureSize(variance_history_tx, 0).xy)));
-  ivec2 history_tile = history_texel / RAYTRACE_GROUP_SIZE;
+  ivec3 history_tile = ivec3(history_texel / RAYTRACE_GROUP_SIZE, closure_index);
   /* Fetch previous tilemask to avoid loading invalid data. */
   bool is_valid_history = texelFetch(tilemask_history_tx, history_tile, 0).r != 0;
 

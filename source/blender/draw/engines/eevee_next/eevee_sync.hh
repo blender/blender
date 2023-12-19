@@ -49,10 +49,6 @@ class ObjectKey {
 
   ObjectKey(Object *ob, int sub_key = 0)
   {
-    /* Since we use `memcmp` for comparison,
-     * we have to ensure the padding bytes are initialized as well. */
-    memset(this, 0, sizeof(*this));
-
     ob_ = DEG_get_original_object(ob);
     hash_value_ = BLI_ghashutil_ptrhash(ob_);
 
@@ -81,12 +77,56 @@ class ObjectKey {
 
   bool operator<(const ObjectKey &k) const
   {
-    return memcmp(this, &k, sizeof(*this)) < 0;
+    if (hash_value_ != k.hash_value_) {
+      return hash_value_ < k.hash_value_;
+    }
+    if (ob_ != k.ob_) {
+      return (ob_ < k.ob_);
+    }
+    if (parent_ != k.parent_) {
+      return (parent_ < k.parent_);
+    }
+    if (sub_key_ != k.sub_key_) {
+      return (sub_key_ < k.sub_key_);
+    }
+    if (parent_) {
+      for (int i : IndexRange(MAX_DUPLI_RECUR)) {
+        if (id_[i] < k.id_[i]) {
+          return true;
+        }
+        if (id_[i] == INT_MAX) {
+          break;
+        }
+      }
+    }
+    return false;
   }
 
   bool operator==(const ObjectKey &k) const
   {
-    return memcmp(this, &k, sizeof(*this)) == 0;
+    if (hash_value_ != k.hash_value_) {
+      return false;
+    }
+    if (ob_ != k.ob_) {
+      return false;
+    }
+    if (parent_ != k.parent_) {
+      return false;
+    }
+    if (sub_key_ != k.sub_key_) {
+      return false;
+    }
+    if (parent_) {
+      for (int i : IndexRange(MAX_DUPLI_RECUR)) {
+        if (id_[i] != k.id_[i]) {
+          return false;
+        }
+        if (id_[i] == INT_MAX) {
+          break;
+        }
+      }
+    }
+    return true;
   }
 };
 
@@ -98,36 +138,17 @@ class ObjectKey {
  * \{ */
 
 struct BaseHandle {
-  /* Accumulated recalc flags, which corresponds to ID->recalc flags. */
   unsigned int recalc;
-  void reset_recalc_flag()
-  {
-    if (recalc != 0) {
-      recalc = 0;
-    }
-  }
 };
 
-struct ObjectHandle : public BaseHandle {
+struct ObjectHandle : BaseHandle {
   ObjectKey object_key;
 };
 
-struct WorldHandle : public DrawData {
-  void reset_recalc_flag()
-  {
-    if (recalc != 0) {
-      recalc = 0;
-    }
-  }
+struct WorldHandle : public BaseHandle {
 };
 
-struct SceneHandle : public DrawData {
-  void reset_recalc_flag()
-  {
-    if (recalc != 0) {
-      recalc = 0;
-    }
-  }
+struct SceneHandle : public BaseHandle {
 };
 
 class SyncModule {
@@ -136,13 +157,16 @@ class SyncModule {
 
   Map<ObjectKey, ObjectHandle> ob_handles = {};
 
+  bool world_updated_;
+
  public:
   SyncModule(Instance &inst) : inst_(inst){};
   ~SyncModule(){};
 
+  void view_update();
+
   ObjectHandle &sync_object(const ObjectRef &ob_ref);
-  WorldHandle &sync_world(::World *world);
-  SceneHandle &sync_scene(::Scene *scene);
+  WorldHandle sync_world();
 
   void sync_mesh(Object *ob,
                  ObjectHandle &ob_handle,

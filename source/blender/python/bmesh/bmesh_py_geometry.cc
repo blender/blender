@@ -15,7 +15,7 @@
 
 #include "../mathutils/mathutils.h"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 #include "bmesh_py_geometry.h" /* own include */
 #include "bmesh_py_types.h"
 

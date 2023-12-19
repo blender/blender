@@ -16,9 +16,9 @@
 #include "BLI_buffer.h"
 #include "BLI_utildefines.h"
 
-#include "bmesh.h"
-#include "bmesh_separate.h" /* own include */
-#include "intern/bmesh_private.h"
+#include "bmesh.hh"
+#include "bmesh_separate.hh" /* own include */
+#include "intern/bmesh_private.hh"
 
 void BM_mesh_separate_faces(BMesh *bm, BMFaceFilterFunc filter_fn, void *user_data)
 {

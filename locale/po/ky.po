@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'd293f72ab6e7')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'0b00b360f7ae')\n"
 "(b'0000000000000000000000000000000000000000')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-27 10:28:34\n"
+"POT-Creation-Date: 2023-12-18 13:45:58\n"
 "PO-Revision-Date: 2013-11-05 13:47+0600\n"
 "Last-Translator: Chyngyz Dzhumaliev <kyrgyzl10n@gmail.com>\n"
 "Language-Team: Kirghiz <kyrgyzl10n@gmail.com>\n"
@@ -785,6 +785,10 @@ msgstr "Ариптер"
 
 msgid "Save"
 msgstr "Сактоо"
+
+
+msgid "Operator"
+msgstr "Оператор"
 
 
 msgid "End"
@@ -1615,6 +1619,10 @@ msgid "Translate"
 msgstr "Жылдыруу"
 
 
+msgid "Bake"
+msgstr "Бышыруу"
+
+
 msgid "Background"
 msgstr "Фон"
 
@@ -2289,10 +2297,6 @@ msgid "Refresh"
 msgstr "Жаңылоо"
 
 
-msgid "Bake"
-msgstr "Бышыруу"
-
-
 msgctxt "Operator"
 msgid "Render"
 msgstr "Визуалдаштыруу"
@@ -2403,10 +2407,6 @@ msgstr "Темалар"
 
 msgid "Editing"
 msgstr "Оңдоо"
-
-
-msgid "Operator"
-msgstr "Оператор"
 
 
 msgctxt "Operator"
@@ -3281,6 +3281,11 @@ msgid "Image*"
 msgstr "Сүрөт*"
 
 
+msgctxt "Operator"
+msgid "Sound"
+msgstr "Үн"
+
+
 msgid "Gamma:"
 msgstr "Гамма:"
 
@@ -3288,11 +3293,6 @@ msgstr "Гамма:"
 msgctxt "Operator"
 msgid "Movie"
 msgstr "Тасма"
-
-
-msgctxt "Operator"
-msgid "Sound"
-msgstr "Үн"
 
 
 msgctxt "Operator"

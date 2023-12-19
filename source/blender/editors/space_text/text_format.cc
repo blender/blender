@@ -257,8 +257,7 @@ int text_format_string_literal_find(const Span<const char *> string_literals, co
 }
 
 #ifndef NDEBUG
-const bool text_format_string_literals_check_sorted_array(
-    const Span<const char *> &string_literals)
+const bool text_format_string_literals_check_sorted_array(const Span<const char *> string_literals)
 {
   return std::is_sorted(string_literals.begin(),
                         string_literals.end(),

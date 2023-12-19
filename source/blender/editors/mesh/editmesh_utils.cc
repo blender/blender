@@ -27,7 +27,7 @@
 #include "BKE_editmesh_bvh.h"
 #include "BKE_global.h"
 #include "BKE_layer.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
 #include "BKE_report.h"
@@ -61,7 +61,7 @@ BMBackup EDBM_redo_state_store(BMEditMesh *em)
   return backup;
 }
 
-void EDBM_redo_state_restore(BMBackup *backup, BMEditMesh *em, bool recalc_looptri)
+void EDBM_redo_state_restore(BMBackup *backup, BMEditMesh *em, bool recalc_looptris)
 {
   BM_mesh_data_free(em->bm);
   BMesh *tmpbm = BM_mesh_copy(backup->bmcopy);
@@ -69,19 +69,19 @@ void EDBM_redo_state_restore(BMBackup *backup, BMEditMesh *em, bool recalc_loopt
   MEM_freeN(tmpbm);
   tmpbm = nullptr;
 
-  if (recalc_looptri) {
-    BKE_editmesh_looptri_calc(em);
+  if (recalc_looptris) {
+    BKE_editmesh_looptris_calc(em);
   }
 }
 
-void EDBM_redo_state_restore_and_free(BMBackup *backup, BMEditMesh *em, bool recalc_looptri)
+void EDBM_redo_state_restore_and_free(BMBackup *backup, BMEditMesh *em, bool recalc_looptris)
 {
   BM_mesh_data_free(em->bm);
   *em->bm = *backup->bmcopy;
   MEM_freeN(backup->bmcopy);
   backup->bmcopy = nullptr;
-  if (recalc_looptri) {
-    BKE_editmesh_looptri_calc(em);
+  if (recalc_looptris) {
+    BKE_editmesh_looptris_calc(em);
   }
 }
 
@@ -265,43 +265,43 @@ bool EDBM_op_call_silentf(BMEditMesh *em, const char *fmt, ...)
 
 void EDBM_mesh_make(Object *ob, const int select_mode, const bool add_key_index)
 {
-  Mesh *me = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
   BMeshCreateParams create_params{};
   create_params.use_toolflags = true;
-  BMesh *bm = BKE_mesh_to_bmesh(me, ob, add_key_index, &create_params);
+  BMesh *bm = BKE_mesh_to_bmesh(mesh, ob, add_key_index, &create_params);
 
-  if (me->edit_mesh) {
+  if (mesh->edit_mesh) {
     /* this happens when switching shape keys */
-    EDBM_mesh_free_data(me->edit_mesh);
-    MEM_freeN(me->edit_mesh);
+    EDBM_mesh_free_data(mesh->edit_mesh);
+    MEM_freeN(mesh->edit_mesh);
   }
 
   /* Executing operators re-tessellates,
    * so we can avoid doing here but at some point it may need to be added back. */
-  me->edit_mesh = BKE_editmesh_create(bm);
+  mesh->edit_mesh = BKE_editmesh_create(bm);
 
-  me->edit_mesh->selectmode = me->edit_mesh->bm->selectmode = select_mode;
-  me->edit_mesh->mat_nr = (ob->actcol > 0) ? ob->actcol - 1 : 0;
+  mesh->edit_mesh->selectmode = mesh->edit_mesh->bm->selectmode = select_mode;
+  mesh->edit_mesh->mat_nr = (ob->actcol > 0) ? ob->actcol - 1 : 0;
 
   /* we need to flush selection because the mode may have changed from when last in editmode */
-  EDBM_selectmode_flush(me->edit_mesh);
+  EDBM_selectmode_flush(mesh->edit_mesh);
 }
 
 void EDBM_mesh_load_ex(Main *bmain, Object *ob, bool free_data)
 {
-  Mesh *me = static_cast<Mesh *>(ob->data);
-  BMesh *bm = me->edit_mesh->bm;
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  BMesh *bm = mesh->edit_mesh->bm;
 
   /* Workaround for #42360, 'ob->shapenr' should be 1 in this case.
    * however this isn't synchronized between objects at the moment. */
-  if (UNLIKELY((ob->shapenr == 0) && (me->key && !BLI_listbase_is_empty(&me->key->block)))) {
+  if (UNLIKELY((ob->shapenr == 0) && (mesh->key && !BLI_listbase_is_empty(&mesh->key->block)))) {
     bm->shapenr = 1;
   }
 
   BMeshToMeshParams params{};
   params.calc_object_remap = true;
   params.update_shapekey_indices = !free_data;
-  BM_mesh_bm_to_me(bmain, bm, me, &params);
+  BM_mesh_bm_to_me(bmain, bm, mesh, &params);
 }
 
 void EDBM_mesh_clear(BMEditMesh *em)
@@ -1662,17 +1662,17 @@ void EDBM_update(Mesh *mesh, const EDBMUpdate_Params *params)
   DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_GEOM | ND_DATA, &mesh->id);
 
-  if (params->calc_normals && params->calc_looptri) {
+  if (params->calc_normals && params->calc_looptris) {
     /* Calculating both has some performance gains. */
-    BKE_editmesh_looptri_and_normals_calc(em);
+    BKE_editmesh_looptris_and_normals_calc(em);
   }
   else {
     if (params->calc_normals) {
       EDBM_mesh_normals_update(em);
     }
 
-    if (params->calc_looptri) {
-      BKE_editmesh_looptri_calc(em);
+    if (params->calc_looptris) {
+      BKE_editmesh_looptris_calc(em);
     }
   }
 
@@ -1689,7 +1689,7 @@ void EDBM_update(Mesh *mesh, const EDBMUpdate_Params *params)
     em->bm->spacearr_dirty &= ~BM_SPACEARR_BMO_SET;
   }
 
-#ifdef DEBUG
+#ifndef NDEBUG
   {
     LISTBASE_FOREACH (BMEditSelection *, ese, &em->bm->selected) {
       BLI_assert(BM_elem_flag_test(ese->ele, BM_ELEM_SELECT));
@@ -1698,13 +1698,13 @@ void EDBM_update(Mesh *mesh, const EDBMUpdate_Params *params)
 #endif
 }
 
-void EDBM_update_extern(Mesh *me, const bool do_tessellation, const bool is_destructive)
+void EDBM_update_extern(Mesh *mesh, const bool do_tessellation, const bool is_destructive)
 {
   EDBMUpdate_Params params{};
-  params.calc_looptri = do_tessellation;
+  params.calc_looptris = do_tessellation;
   params.calc_normals = false;
   params.is_destructive = is_destructive;
-  EDBM_update(me, &params);
+  EDBM_update(mesh, &params);
 }
 
 /** \} */

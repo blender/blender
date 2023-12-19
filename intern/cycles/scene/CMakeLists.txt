@@ -108,8 +108,6 @@ if(WITH_CYCLES_OSL)
   list(APPEND LIB
     cycles_kernel_osl
   )
-
-  set_property(SOURCE osl.cpp PROPERTY COMPILE_FLAGS ${RTTI_DISABLE_FLAGS})
 endif()
 
 if(WITH_OPENCOLORIO)

@@ -14,7 +14,8 @@
 #  pragma GCC diagnostic ignored "-Wlogical-op"
 #endif
 
-#ifdef __EIGEN3_MATRIX_C_API_CC__ /* quiet warning */
+#ifdef __EIGEN3_MATRIX_C_API_CC__
+/* Quiet warning. */
 #endif
 
 #include <Eigen/Core>

@@ -198,7 +198,7 @@ static void ringsel_finish(bContext *C, wmOperator *op)
       /* When used in a macro the tessellation will be recalculated anyway,
        * this is needed here because modifiers depend on updated tessellation, see #45920 */
       EDBMUpdate_Params params{};
-      params.calc_looptri = true;
+      params.calc_looptris = true;
       params.calc_normals = false;
       params.is_destructive = true;
       EDBM_update(static_cast<Mesh *>(lcd->ob->data), &params);

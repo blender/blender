@@ -90,7 +90,7 @@ bool BPy_errors_to_report_ex(ReportList *reports,
   /* Create a temporary report list so none of the reports are printed (only stored).
    * In practically all cases printing should be handled by #PyErr_Print since this invokes
    * `sys.excepthook` as expected. */
-  ReportList _reports_buf = {{0}};
+  ReportList _reports_buf = {{nullptr}};
   ReportList *reports_orig = reports;
   if ((reports->flag & RPT_PRINT_HANDLED_BY_OWNER) == 0) {
     reports = &_reports_buf;

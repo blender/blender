@@ -131,8 +131,8 @@ typedef enum eCustomDataType {
   CD_PROP_BYTE_COLOR = 17,
   CD_TANGENT = 18,
   CD_MDISPS = 19,
-  CD_PREVIEW_MCOL = 20,           /* For displaying weight-paint colors. */
-                                  /*  CD_ID_MCOL          = 21, */
+  /* CD_PREVIEW_MCOL = 20, */ /* UNUSED */
+  /* CD_ID_MCOL = 21, */
   /* CD_TEXTURE_MLOOPCOL = 22, */ /* UNUSED */
   CD_CLOTH_ORCO = 23,
 /* CD_RECAST = 24, */ /* UNUSED */
@@ -148,7 +148,7 @@ typedef enum eCustomDataType {
   CD_CREASE = 30,
 #endif
   CD_ORIGSPACE_MLOOP = 31,
-  CD_PREVIEW_MLOOPCOL = 32,
+  /* CD_PREVIEW_MLOOPCOL = 32, */ /* UNUSED */
   CD_BM_ELEM_PYPTR = 33,
 
 #ifdef DNA_DEPRECATED_ALLOW
@@ -198,13 +198,11 @@ typedef enum eCustomDataType {
 #define CD_MASK_PROP_BYTE_COLOR (1 << CD_PROP_BYTE_COLOR)
 #define CD_MASK_TANGENT (1 << CD_TANGENT)
 #define CD_MASK_MDISPS (1 << CD_MDISPS)
-#define CD_MASK_PREVIEW_MCOL (1 << CD_PREVIEW_MCOL)
 #define CD_MASK_CLOTH_ORCO (1 << CD_CLOTH_ORCO)
 
 #define CD_MASK_SHAPE_KEYINDEX (1 << CD_SHAPE_KEYINDEX)
 #define CD_MASK_SHAPEKEY (1 << CD_SHAPEKEY)
 #define CD_MASK_ORIGSPACE_MLOOP (1LL << CD_ORIGSPACE_MLOOP)
-#define CD_MASK_PREVIEW_MLOOPCOL (1LL << CD_PREVIEW_MLOOPCOL)
 #define CD_MASK_BM_ELEM_PYPTR (1LL << CD_BM_ELEM_PYPTR)
 
 #define CD_MASK_GRID_PAINT_MASK (1LL << CD_GRID_PAINT_MASK)

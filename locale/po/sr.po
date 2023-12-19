@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'd293f72ab6e7')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'0b00b360f7ae')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-27 10:28:34\n"
+"POT-Creation-Date: 2023-12-18 13:45:58\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -4241,6 +4241,18 @@ msgid "Save"
 msgstr "Сачувај"
 
 
+msgid "File Extensions"
+msgstr "Наставци датотека"
+
+
+msgid "Operator"
+msgstr "Оператор"
+
+
+msgid "Label"
+msgstr "Назив"
+
+
 msgid "Relative Path"
 msgstr "Релативна путања"
 
@@ -6694,10 +6706,6 @@ msgid "Node tree consisting of linked nodes used for shading, textures and compo
 msgstr "Дрво чворова које чине повезани чворови сенчења, текстура и слагања"
 
 
-msgid "Label"
-msgstr "Назив"
-
-
 msgid "Grease Pencil Data"
 msgstr "Подаци скицирања"
 
@@ -9131,6 +9139,10 @@ msgid "Vertex Group Specials"
 msgstr "Специјална група темена"
 
 
+msgid "Strip"
+msgstr "Одстрани"
+
+
 msgid "Math"
 msgstr "Математика"
 
@@ -9189,10 +9201,6 @@ msgstr "Примени"
 
 msgid "Navigation"
 msgstr "Навигација"
-
-
-msgid "Strip"
-msgstr "Одстрани"
 
 
 msgid "Inputs"
@@ -11451,10 +11459,6 @@ msgid "Set Alpha"
 msgstr "Постави алфу"
 
 
-msgid "Split Viewer"
-msgstr "Подели прегледач"
-
-
 msgid "Stabilize 2D"
 msgstr "Стабилизуј 2D"
 
@@ -11565,6 +11569,10 @@ msgstr "Веће од"
 
 msgid "Component"
 msgstr "Компонента"
+
+
+msgid "Bake"
+msgstr "Испеци"
 
 
 msgid "Original"
@@ -13555,9 +13563,22 @@ msgid "Reset Original Length"
 msgstr "Врати оригиналну дужину"
 
 
+msgid "Duplicate"
+msgstr "Дуплирај"
+
+
 msgctxt "Operator"
 msgid "Select Random"
 msgstr "Изабери насумично"
+
+
+msgctxt "Operator"
+msgid "Clear Tilt"
+msgstr "Очисти увртање"
+
+
+msgid "Clear the tilt of selected control points"
+msgstr "Чисти увртање изабраних контролних тачака"
 
 
 msgid "Cyclic U"
@@ -13852,15 +13873,6 @@ msgstr "Раздвој изабране тачке од неизабраних �
 
 msgid "Subdivide selected segments"
 msgstr "Издели изабране сегменте"
-
-
-msgctxt "Operator"
-msgid "Clear Tilt"
-msgstr "Очисти увртање"
-
-
-msgid "Clear the tilt of selected control points"
-msgstr "Чисти увртање изабраних контролних тачака"
 
 
 msgid "Add a new control point (linked to only selected end-curve one, if any)"
@@ -15496,10 +15508,6 @@ msgstr "Ротирај извор"
 
 msgid "Duplicate mesh and move"
 msgstr "Дуплира и премеша меш"
-
-
-msgid "Duplicate"
-msgstr "Дуплирај"
 
 
 msgctxt "Operator"
@@ -18072,10 +18080,6 @@ msgid "Bake physics"
 msgstr "Пече физику"
 
 
-msgid "Bake"
-msgstr "Испеци"
-
-
 msgctxt "Operator"
 msgid "Bake All Physics"
 msgstr "Испеци сву физику"
@@ -18464,10 +18468,6 @@ msgstr "Игнориши клик на позадину"
 
 msgid "Falloff Type"
 msgstr "Врста опадања"
-
-
-msgid "Operator"
-msgstr "Оператор"
 
 
 msgid "Sharpen"
@@ -22133,10 +22133,6 @@ msgid "Process the render result through the compositing pipeline, if compositin
 msgstr "Обради резултат рендеровања кроз процес слагање, ако су омогућени чворови слагања"
 
 
-msgid "File Extensions"
-msgstr "Наставци датотека"
-
-
 msgid "Draw stylized strokes using Freestyle"
 msgstr "Цртај слободоручне стилизоване потезе"
 
@@ -25101,13 +25097,13 @@ msgstr "Распакуј"
 
 
 msgctxt "Operator"
-msgid "Track Ordering..."
-msgstr "Редослед праћења..."
+msgid "Sound"
+msgstr "Звук"
 
 
 msgctxt "Operator"
-msgid "Add Tracks Above Selected"
-msgstr "Додаје стазе изнад изабране"
+msgid "Track Ordering..."
+msgstr "Редослед праћења..."
 
 
 msgctxt "Operator"
@@ -25154,11 +25150,6 @@ msgstr "Груписано"
 msgctxt "Operator"
 msgid "Movie"
 msgstr "Филм"
-
-
-msgctxt "Operator"
-msgid "Sound"
-msgstr "Звук"
 
 
 msgid "Storage"
@@ -27148,10 +27139,6 @@ msgstr "Препиши %s"
 
 msgid "UV Vertex"
 msgstr "UV теме"
-
-
-msgid "Cannot open file: %s"
-msgstr "Не могу да отворим датотеку: %s"
 
 
 msgctxt "Action"

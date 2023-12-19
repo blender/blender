@@ -685,7 +685,7 @@ Mesh *create_cylinder_or_cone_mesh(const float radius_top,
   MutableSpan<int> face_offsets = mesh->face_offsets_for_write();
   MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
   MutableSpan<int> corner_edges = mesh->corner_edges_for_write();
-  BKE_mesh_smooth_flag_set(mesh, false);
+  bke::mesh_smooth_set(*mesh, false);
 
   calculate_cone_verts(config, positions);
   calculate_cone_edges(config, edges);

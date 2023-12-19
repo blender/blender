@@ -63,7 +63,10 @@ void main()
         continue;
       }
 
-      uint tile_mask = imageLoad(tile_mask_img, tile_coord_neighbor).r;
+      int closure_index = uniform_buf.raytrace.closure_index;
+      ivec3 sample_tile = ivec3(tile_coord_neighbor, closure_index);
+
+      uint tile_mask = imageLoad(tile_mask_img, sample_tile).r;
       bool tile_is_unused = !flag_test(tile_mask, 1u << 0u);
       if (tile_is_unused) {
         ivec2 texel_fullres_neighbor = texel_fullres + ivec2(x, y) * int(tile_size);
@@ -76,8 +79,8 @@ void main()
   }
 
   bool valid_texel = in_texture_range(texel_fullres, gbuf_header_tx);
-  uint closure_bits = (!valid_texel) ? 0u : texelFetch(gbuf_header_tx, texel_fullres, 0).r;
-  if (!flag_test(closure_bits, CLOSURE_ACTIVE)) {
+  uint header = (!valid_texel) ? 0u : texelFetch(gbuf_header_tx, texel_fullres, 0).r;
+  if (!gbuffer_has_closure(header, eClosureBits(CLOSURE_ACTIVE))) {
     imageStore(out_radiance_img, texel_fullres, vec4(FLT_11_11_10_MAX, 0.0));
     imageStore(out_variance_img, texel_fullres, vec4(0.0));
     imageStore(out_hit_depth_img, texel_fullres, vec4(0.0));

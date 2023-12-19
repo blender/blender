@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'd293f72ab6e7')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'0b00b360f7ae')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-27 10:28:34\n"
+"POT-Creation-Date: 2023-12-18 13:45:58\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Martin Reininger <martinreininger@gmx.net>\n"
 "Language-Team: German translation team\n"
@@ -9759,6 +9759,18 @@ msgid "Save"
 msgstr "Speichern"
 
 
+msgid "File Extensions"
+msgstr "Dateiendungen"
+
+
+msgid "Operator"
+msgstr "Operator"
+
+
+msgid "Label"
+msgstr "Beschriftung"
+
+
 msgid "File Select Entry"
 msgstr "Eintrag zur Dateiauswahl"
 
@@ -15435,10 +15447,6 @@ msgid "Node tree consisting of linked nodes used for shading, textures and compo
 msgstr "Knotenbaum beinhaltet verknüpfte Knoten, die für Shading, Texturen und Kompositionen verwendet wurden"
 
 
-msgid "Label"
-msgstr "Beschriftung"
-
-
 msgid "Grease Pencil Data"
 msgstr "Wachsstift-Daten"
 
@@ -20356,10 +20364,6 @@ msgid "Channel"
 msgstr "Kanal"
 
 
-msgid "Dope Sheet Channel"
-msgstr "DopeSheet-Kanal"
-
-
 msgid "Snap"
 msgstr "Einrasten"
 
@@ -20407,6 +20411,10 @@ msgstr "Auspacken"
 msgctxt "Operator"
 msgid "Add"
 msgstr "Hinzufügen"
+
+
+msgid "Strip"
+msgstr "Streifen"
 
 
 msgid "Math"
@@ -20516,10 +20524,6 @@ msgstr "Kanäle auswählen"
 
 msgid "Select Handle"
 msgstr "Griff auswählen"
-
-
-msgid "Strip"
-msgstr "Streifen"
 
 
 msgid "Inputs"
@@ -25225,10 +25229,6 @@ msgid "Replace Alpha"
 msgstr "Alpha ersetzen"
 
 
-msgid "Split Viewer"
-msgstr "Ansicht teilen"
-
-
 msgid "Stabilize 2D"
 msgstr "2D stabilisieren"
 
@@ -25523,6 +25523,10 @@ msgstr "Wirkungsraum"
 
 msgid "Component"
 msgstr "Komponente"
+
+
+msgid "Bake"
+msgstr "Backen"
 
 
 msgid "Collection Info"
@@ -26483,6 +26487,14 @@ msgid "Value to Normal"
 msgstr "Wert zu Normale"
 
 
+msgid "Attribute Domain"
+msgstr "Attributdomäne"
+
+
+msgid "Socket Type"
+msgstr "Buchsentype"
+
+
 msgid "Node Inputs"
 msgstr "Knoteneingaben"
 
@@ -26643,20 +26655,12 @@ msgid "Vector Node Socket"
 msgstr "Vektor-Knotenbuchse"
 
 
-msgid "Attribute Domain"
-msgstr "Attributdomäne"
-
-
 msgid "Default Attribute"
 msgstr "Standardattribut"
 
 
 msgid "Layer Selection"
 msgstr "Layer Auswahl"
-
-
-msgid "Socket Type"
-msgstr "Buchsentype"
 
 
 msgid "Maximum value"
@@ -29123,6 +29127,10 @@ msgstr "Originallänge zurücksetzen"
 msgctxt "Operator"
 msgid "Convert Particle System to Curves"
 msgstr "Partikelsysteme zu Kurven konvertieren"
+
+
+msgid "Duplicate"
+msgstr "Duplizieren"
 
 
 msgid "(De)select all control points"
@@ -32957,10 +32965,6 @@ msgid "Reverse Colors"
 msgstr "Farben umkehren"
 
 
-msgid "Flip direction of vertex colors inside faces"
-msgstr "Umkehrrichtung der Punktfarben innerhalb von Flächen"
-
-
 msgctxt "Operator"
 msgid "Rotate Colors"
 msgstr "Farben drehen"
@@ -33061,10 +33065,6 @@ msgstr "Ausgewählte Eckpunkte, Kanten oder Flächen zum Mauszeiger duplizieren 
 
 msgid "Duplicate mesh and move"
 msgstr "Masche duplizieren und bewegen"
-
-
-msgid "Duplicate"
-msgstr "Duplizieren"
 
 
 msgctxt "Operator"
@@ -37612,10 +37612,6 @@ msgid "Bake physics"
 msgstr "Physik backen"
 
 
-msgid "Bake"
-msgstr "Backen"
-
-
 msgctxt "Operator"
 msgid "Bake All Physics"
 msgstr "Jede Physik backen"
@@ -38495,10 +38491,6 @@ msgstr "Contrast erhöhen"
 
 msgid "Decrease Contrast"
 msgstr "Kontrast verringern"
-
-
-msgid "Operator"
-msgstr "Operator"
 
 
 msgctxt "Operator"
@@ -42140,14 +42132,6 @@ msgid "Active Palette Color"
 msgstr "Aktive Farbpalette"
 
 
-msgid "Refraction"
-msgstr "Strahlenbrechnung"
-
-
-msgid "Denoising"
-msgstr "Rauschreduzierung"
-
-
 msgid "Integrator Presets"
 msgstr "Integrator-Voreinstellungen"
 
@@ -42750,6 +42734,10 @@ msgstr "Zähigkeit"
 
 msgid "Indirect Lighting"
 msgstr "Indirekte Beleuchtung"
+
+
+msgid "Denoising"
+msgstr "Rauschreduzierung"
 
 
 msgid "Shadows"
@@ -44560,10 +44548,6 @@ msgstr "Zieh-Schwellenwert"
 
 msgid "Mouse Drag Threshold"
 msgstr "Maus Schwellwert ziehen"
-
-
-msgid "Number of pixels to drag before a drag event is triggered for mouse/track-pad input (otherwise click events are detected)"
-msgstr "Anzahl der Pixel, die gezogen werden müssen, bevor ein Ziehereignis für die Maus-/Trackpad-Eingabe ausgelöst wird (andernfalls werden Klickereignisse erkannt)"
 
 
 msgid "Tablet Drag Threshold"
@@ -46684,10 +46668,6 @@ msgstr "Auf Renderbereich beschneiden"
 
 msgid "Crop the rendered frame to the defined render region size"
 msgstr "Beschneidet den gerenderten Rahmen auf die definierte Größe des Renderbereichs"
-
-
-msgid "File Extensions"
-msgstr "Dateiendungen"
 
 
 msgid "Add the file format extensions to the rendered file name (eg: filename + .jpg)"
@@ -49727,10 +49707,6 @@ msgid "Stereo Mode"
 msgstr "Stereomodus"
 
 
-msgid "SH Cache Path"
-msgstr "SH Pufferpfad"
-
-
 msgid "Map X and Y coordinates directly"
 msgstr "Direkte Textur X und Y Koordinaten"
 
@@ -50109,6 +50085,10 @@ msgstr "Kanalgruppe"
 
 msgid "Channels Selected"
 msgstr "Ausgewählte Kanäle"
+
+
+msgid "Dope Sheet Channel"
+msgstr "DopeSheet-Kanal"
 
 
 msgid "Interpolation Line"
@@ -54337,13 +54317,13 @@ msgstr "Materialien maskieren"
 
 
 msgctxt "Operator"
-msgid "Lock Unused"
-msgstr "Sperre unbenutztes"
+msgid "Lock Unselected"
+msgstr "Sperre unausgewähltes"
 
 
 msgctxt "Operator"
-msgid "Lock Unselected"
-msgstr "Sperre unausgewähltes"
+msgid "Lock Unused"
+msgstr "Sperre unbenutztes"
 
 
 msgctxt "Operator"
@@ -54938,6 +54918,10 @@ msgstr "Minimale Schrittweite"
 
 msgid "Auto-Step"
 msgstr "Auto-Schritt"
+
+
+msgid "Refraction"
+msgstr "Strahlenbrechnung"
 
 
 msgctxt "Operator"
@@ -55901,8 +55885,8 @@ msgstr "Vollbildbereich umschalten"
 
 
 msgctxt "Operator"
-msgid "Track Ordering..."
-msgstr "Spurenreihenfolge..."
+msgid "Sound"
+msgstr "Klang"
 
 
 msgctxt "Operator"
@@ -55911,8 +55895,8 @@ msgstr "Umbenennen..."
 
 
 msgctxt "Operator"
-msgid "Add Tracks Above Selected"
-msgstr "Spur über Auswahl hinzufügen"
+msgid "Track Ordering..."
+msgstr "Spurenreihenfolge..."
 
 
 msgctxt "Operator"
@@ -56161,11 +56145,6 @@ msgstr "Springe zum nächsten Streifen (Zentrum)"
 msgctxt "Operator"
 msgid "Movie"
 msgstr "Film"
-
-
-msgctxt "Operator"
-msgid "Sound"
-msgstr "Klang"
 
 
 msgctxt "Operator"
@@ -58678,10 +58657,6 @@ msgstr "Farbe"
 
 msgid "Int"
 msgstr "Int"
-
-
-msgid "PreviewCol"
-msgstr "Vorschaufarbe"
 
 
 msgid "TexturedCol"
@@ -61698,20 +61673,20 @@ msgid "File '%s' could not be loaded"
 msgstr "Datei '%s' konnte nicht geladen werden"
 
 
-msgid "Cannot apply effects to audio sequence strips"
-msgstr "Effekt kann nicht auf Audio-Sequenzstreifen angewandt werden"
-
-
-msgid "Cannot apply effect to more than 3 sequence strips"
-msgstr "Effekt kann nicht auf mehr als 3 Sequenzstreifen angewandt werden"
-
-
 msgid "Please select all related strips"
 msgstr "Bitte alle beziehenden Streifen auswählen"
 
 
 msgid "No strips to paste"
 msgstr "Keine Streifen zum einfügen"
+
+
+msgid "Cannot apply effects to audio sequence strips"
+msgstr "Effekt kann nicht auf Audio-Sequenzstreifen angewandt werden"
+
+
+msgid "Cannot apply effect to more than 3 sequence strips"
+msgstr "Effekt kann nicht auf mehr als 3 Sequenzstreifen angewandt werden"
 
 
 msgid "Please select two strips"
@@ -62291,10 +62266,6 @@ msgid "UV Vertex"
 msgstr "UV Knoten"
 
 
-msgid "Cannot open file: %s"
-msgstr "Datei kann nicht geöffnet werden: %s"
-
-
 msgid "Bind To"
 msgstr "Binden an"
 
@@ -62778,6 +62749,26 @@ msgid "Buffer Edge:"
 msgstr "Pufferkante:"
 
 
+msgid "Path:"
+msgstr "Pfad:"
+
+
+msgid "Base Path:"
+msgstr "Basispfad:"
+
+
+msgid "Add Input"
+msgstr "Eingang hinzufügen"
+
+
+msgid "File Subpath:"
+msgstr "Datei Unterpfad:"
+
+
+msgid "Format:"
+msgstr "Format:"
+
+
 msgid "From Min"
 msgstr "Von Minimum"
 
@@ -62804,26 +62795,6 @@ msgstr "Entzerren"
 
 msgid "Dot"
 msgstr "Punkt"
-
-
-msgid "Path:"
-msgstr "Pfad:"
-
-
-msgid "Base Path:"
-msgstr "Basispfad:"
-
-
-msgid "Add Input"
-msgstr "Eingang hinzufügen"
-
-
-msgid "File Subpath:"
-msgstr "Datei Unterpfad:"
-
-
-msgid "Format:"
-msgstr "Format:"
 
 
 msgid "Val"

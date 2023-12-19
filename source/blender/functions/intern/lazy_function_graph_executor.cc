@@ -927,7 +927,7 @@ class Executor {
 
     this->with_locked_node(
         node, node_state, current_task, local_data, [&](LockedNode &locked_node) {
-#ifdef DEBUG
+#ifndef NDEBUG
           if (node_needs_execution) {
             this->assert_expected_outputs_have_been_computed(locked_node, local_data);
           }
@@ -1128,7 +1128,7 @@ class Executor {
       const int input_index = target_socket->index();
       InputState &input_state = node_state.inputs[input_index];
       const bool is_last_target = target_socket == targets.last();
-#ifdef DEBUG
+#ifndef NDEBUG
       if (input_state.value != nullptr) {
         if (self_.logger_ != nullptr) {
           self_.logger_->dump_when_input_is_set_twice(*target_socket, from_socket, local_context);

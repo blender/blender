@@ -48,7 +48,7 @@
  * See:
  * http://docs.python.org/py3k/reference/lexical_analysis.html#keywords
  */
-static const char *text_format_py_literals_builtinfunc_data[]{
+static const char *text_format_py_literals_builtinfunc_data[] = {
     /* Force single column, sorted list. */
     /* clang-format off */
     "and",
@@ -90,7 +90,7 @@ static const Span<const char *> text_format_py_literals_builtinfunc(
     ARRAY_SIZE(text_format_py_literals_builtinfunc_data));
 
 /** Python special name. */
-static const char *text_format_py_literals_specialvar_data[]{
+static const char *text_format_py_literals_specialvar_data[] = {
     /* Force single column, sorted list. */
     /* clang-format off */
     "class",
@@ -101,7 +101,7 @@ static const Span<const char *> text_format_py_literals_specialvar(
     text_format_py_literals_specialvar_data, ARRAY_SIZE(text_format_py_literals_specialvar_data));
 
 /** Python bool values. */
-static const char *text_format_py_literals_bool_data[]{
+static const char *text_format_py_literals_bool_data[] = {
     /* Force single column, sorted list. */
     /* clang-format off */
     "False",

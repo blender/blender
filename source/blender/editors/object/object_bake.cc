@@ -23,6 +23,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_DerivedMesh.hh"
+#include "BKE_attribute.hh"
 #include "BKE_blender.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_context.hh"
@@ -114,9 +115,10 @@ struct MultiresBakeJob {
 
 static bool multiresbake_check(bContext *C, wmOperator *op)
 {
+  using namespace blender;
   Scene *scene = CTX_data_scene(C);
   Object *ob;
-  Mesh *me;
+  Mesh *mesh;
   MultiresModifierData *mmd;
   bool ok = true;
   int a;
@@ -132,7 +134,7 @@ static bool multiresbake_check(bContext *C, wmOperator *op)
       break;
     }
 
-    me = (Mesh *)ob->data;
+    mesh = (Mesh *)ob->data;
     mmd = get_multires_modifier(scene, ob, false);
 
     /* Multi-resolution should be and be last in the stack */
@@ -157,16 +159,19 @@ static bool multiresbake_check(bContext *C, wmOperator *op)
       break;
     }
 
-    if (!CustomData_has_layer(&me->loop_data, CD_PROP_FLOAT2)) {
+    if (!CustomData_has_layer(&mesh->loop_data, CD_PROP_FLOAT2)) {
       BKE_report(op->reports, RPT_ERROR, "Mesh should be unwrapped before multires data baking");
 
       ok = false;
     }
     else {
-      const int *material_indices = BKE_mesh_material_indices(me);
-      a = me->faces_num;
+      const bke::AttributeAccessor attributes = mesh->attributes();
+      const VArraySpan material_indices = *attributes.lookup<int>("material_index",
+                                                                  ATTR_DOMAIN_FACE);
+      a = mesh->faces_num;
       while (ok && a--) {
-        Image *ima = bake_object_image_get(ob, material_indices ? material_indices[a] : 0);
+        Image *ima = bake_object_image_get(ob,
+                                           material_indices.is_empty() ? 0 : material_indices[a]);
 
         if (!ima) {
           BKE_report(
@@ -221,18 +226,18 @@ static DerivedMesh *multiresbake_create_loresdm(Scene *scene, Object *ob, int *l
 {
   DerivedMesh *dm;
   MultiresModifierData *mmd = get_multires_modifier(scene, ob, false);
-  Mesh *me = (Mesh *)ob->data;
+  Mesh *mesh = (Mesh *)ob->data;
   MultiresModifierData tmp_mmd = blender::dna::shallow_copy(*mmd);
 
   *lvl = mmd->lvl;
 
   if (mmd->lvl == 0) {
-    DerivedMesh *cddm = CDDM_from_mesh(me);
+    DerivedMesh *cddm = CDDM_from_mesh(mesh);
     DM_set_only_copy(cddm, &CD_MASK_BAREMESH);
     return cddm;
   }
 
-  DerivedMesh *cddm = CDDM_from_mesh(me);
+  DerivedMesh *cddm = CDDM_from_mesh(mesh);
   DM_set_only_copy(cddm, &CD_MASK_BAREMESH);
   tmp_mmd.lvl = mmd->lvl;
   tmp_mmd.sculptlvl = mmd->lvl;
@@ -245,10 +250,10 @@ static DerivedMesh *multiresbake_create_loresdm(Scene *scene, Object *ob, int *l
 
 static DerivedMesh *multiresbake_create_hiresdm(Scene *scene, Object *ob, int *lvl)
 {
-  Mesh *me = (Mesh *)ob->data;
+  Mesh *mesh = (Mesh *)ob->data;
   MultiresModifierData *mmd = get_multires_modifier(scene, ob, false);
   MultiresModifierData tmp_mmd = blender::dna::shallow_copy(*mmd);
-  DerivedMesh *cddm = CDDM_from_mesh(me);
+  DerivedMesh *cddm = CDDM_from_mesh(mesh);
   DerivedMesh *dm;
 
   DM_set_only_copy(cddm, &CD_MASK_BAREMESH);
@@ -347,7 +352,7 @@ static int multiresbake_image_exec_locked(bContext *C, wmOperator *op)
       ClearFlag clear_flag = ClearFlag(0);
 
       ob = base->object;
-      // me = (Mesh *)ob->data;
+      // mesh = (Mesh *)ob->data;
 
       if (scene->r.bake_mode == RE_BAKE_NORMALS) {
         clear_flag = CLEAR_TANGENT_NORMAL;

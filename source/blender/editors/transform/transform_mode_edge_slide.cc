@@ -296,7 +296,7 @@ static BMLoop *get_next_loop(
   return nullptr;
 }
 
-static void edge_slide_projmat_get(TransInfo *t, TransDataContainer *tc, float r_projectMat[4][4])
+static blender::float4x4 edge_slide_projmat_get(TransInfo *t, TransDataContainer *tc)
 {
   RegionView3D *rv3d = nullptr;
 
@@ -307,16 +307,14 @@ static void edge_slide_projmat_get(TransInfo *t, TransDataContainer *tc, float r
 
   if (!rv3d) {
     /* Ok, let's try to survive this. */
-    unit_m4(r_projectMat);
+    return blender::float4x4::identity();
   }
-  else {
-    ED_view3d_ob_project_mat_get(rv3d, tc->obedit, r_projectMat);
-  }
+  return ED_view3d_ob_project_mat_get(rv3d, tc->obedit);
 }
 
 static void edge_slide_pair_project(TransDataEdgeSlideVert *sv,
                                     ARegion *region,
-                                    float projectMat[4][4],
+                                    const float projectMat[4][4],
                                     float r_sco_a[3],
                                     float r_sco_b[3])
 {
@@ -379,7 +377,6 @@ static void calcEdgeSlide_mval_range(TransInfo *t,
   BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
   ARegion *region = t->region;
   View3D *v3d = nullptr;
-  float projectMat[4][4];
   BMBVHTree *bmbvh;
 
   /* only for use_calc_direction */
@@ -392,7 +389,7 @@ static void calcEdgeSlide_mval_range(TransInfo *t,
     v3d = static_cast<View3D *>(t->area ? t->area->spacedata.first : nullptr);
   }
 
-  edge_slide_projmat_get(t, tc, projectMat);
+  const blender::float4x4 projection = edge_slide_projmat_get(t, tc);
 
   if (use_occlude_geometry) {
     bmbvh = BKE_bmbvh_new_from_editmesh(em, BMBVH_RESPECT_HIDDEN, nullptr, false);
@@ -441,7 +438,7 @@ static void calcEdgeSlide_mval_range(TransInfo *t,
         continue;
       }
 
-      edge_slide_pair_project(sv, region, projectMat, sco_a, sco_b);
+      edge_slide_pair_project(sv, region, projection.ptr(), sco_a, sco_b);
 
       /* global direction */
       dist_sq = dist_squared_to_line_segment_v2(mval, sco_b, sco_a);
@@ -498,22 +495,19 @@ static void calcEdgeSlide_even(TransInfo *t,
 
   if (sld->totsv > 0) {
     ARegion *region = t->region;
-    float projectMat[4][4];
 
     int i = 0;
 
-    float v_proj[2];
-    float dist_sq = 0;
     float dist_min_sq = FLT_MAX;
 
-    edge_slide_projmat_get(t, tc, projectMat);
+    const blender::float4x4 projection = edge_slide_projmat_get(t, tc);
 
     for (i = 0; i < sld->totsv; i++, sv++) {
       /* Set length */
       sv->edge_len = len_v3v3(sv->dir_side[0], sv->dir_side[1]);
 
-      ED_view3d_project_float_v2_m4(region, sv->v->co, v_proj, projectMat);
-      dist_sq = len_squared_v2v2(mval, v_proj);
+      const blender::float2 v_proj = ED_view3d_project_float_v2_m4(region, sv->v->co, projection);
+      const float dist_sq = len_squared_v2v2(mval, v_proj);
       if (dist_sq < dist_min_sq) {
         dist_min_sq = dist_sq;
         sld->curr_sv_index = i;
@@ -1604,13 +1598,12 @@ void transform_mode_edge_slide_reproject_input(TransInfo *t)
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     EdgeSlideData *sld = static_cast<EdgeSlideData *>(tc->custom.mode.data);
     if (sld) {
-      float projectMat[4][4];
-      edge_slide_projmat_get(t, tc, projectMat);
+      const blender::float4x4 projection = edge_slide_projmat_get(t, tc);
 
       TransDataEdgeSlideVert *curr_sv = &sld->sv[sld->curr_sv_index];
 
       float mval_dir[3], sco_a[3], sco_b[3];
-      edge_slide_pair_project(curr_sv, region, projectMat, sco_a, sco_b);
+      edge_slide_pair_project(curr_sv, region, projection.ptr(), sco_a, sco_b);
       sub_v3_v3v3(mval_dir, sco_b, sco_a);
       edge_slide_data_init_mval(&t->mouse, sld, mval_dir);
     }

@@ -22,7 +22,7 @@
 
 #include "BKE_global.h"
 #include "BKE_lib_query.h"
-#include "BKE_lib_remap.h"
+#include "BKE_lib_remap.hh"
 #include "BKE_screen.hh"
 #include "BKE_sequencer_offscreen.h"
 

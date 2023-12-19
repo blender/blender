@@ -6,6 +6,10 @@
 
 #include <memory>
 
+namespace blender::realtime_compositor {
+class RenderContext;
+}
+
 struct bNodeTree;
 struct Depsgraph;
 struct Render;
@@ -29,7 +33,8 @@ void RE_compositor_execute(Render &render,
                            const RenderData &render_data,
                            const bNodeTree &node_tree,
                            const bool use_file_output,
-                           const char *view_name);
+                           const char *view_name,
+                           blender::realtime_compositor::RenderContext *render_context);
 
 /* Free compositor caches. */
 void RE_compositor_free(Render &render);

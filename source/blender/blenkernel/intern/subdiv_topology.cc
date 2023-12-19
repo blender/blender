@@ -10,7 +10,7 @@
 
 #include "BKE_subdiv.hh"
 
-#include "opensubdiv_topology_refiner_capi.h"
+#include "opensubdiv_topology_refiner_capi.hh"
 
 int BKE_subdiv_topology_num_fvar_layers_get(const Subdiv *subdiv)
 {

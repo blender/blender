@@ -12,7 +12,7 @@
 
 #include "DRW_gpu_wrapper.hh"
 
-#include "GPU_select.h"
+#include "GPU_select.hh"
 
 #include "../intern/gpu_select_private.h"
 
@@ -88,7 +88,7 @@ struct SelectMap {
 
   /** Mapping between internal IDs and `object->runtime->select_id`. */
   Vector<uint> select_id_map;
-#ifdef DEBUG
+#ifndef NDEBUG
   /** Debug map containing a copy of the object name. */
   Vector<std::string> map_names;
 #endif
@@ -113,7 +113,7 @@ struct SelectMap {
 
     uint object_id = ob_ref.object->runtime->select_id;
     uint id = select_id_map.append_and_get_index(object_id | sub_object_id);
-#ifdef DEBUG
+#ifndef NDEBUG
     map_names.append(ob_ref.object->id.name);
 #endif
     return {id};
@@ -153,7 +153,7 @@ struct SelectMap {
     info_buf.push_update();
 
     select_id_map.clear();
-#ifdef DEBUG
+#ifndef NDEBUG
     map_names.clear();
 #endif
   }
@@ -218,14 +218,17 @@ struct SelectMap {
     GPU_memory_barrier(GPU_BARRIER_BUFFER_UPDATE);
     select_output_buf.read();
 
-    Vector<GPUSelectResult> result;
+    Vector<GPUSelectResult> hit_results;
 
     /* Convert raw data from GPU to #GPUSelectResult. */
     switch (info_buf.mode) {
       case SelectType::SELECT_ALL:
         for (auto i : IndexRange(select_id_map.size())) {
           if (((select_output_buf[i / 32] >> (i % 32)) & 1) != 0) {
-            result.append({select_id_map[i], 0xFFFFu});
+            GPUSelectResult hit_result{};
+            hit_result.id = select_id_map[i];
+            hit_result.depth = 0xFFFF;
+            hit_results.append(hit_result);
           }
         }
         break;
@@ -236,13 +239,16 @@ struct SelectMap {
           if (select_output_buf[i] != 0xFFFFFFFFu) {
             /* NOTE: For `SELECT_PICK_NEAREST`, `select_output_buf` also contains the screen
              * distance to cursor in the lowest bits. */
-            result.append({select_id_map[i], select_output_buf[i]});
+            GPUSelectResult hit_result{};
+            hit_result.id = select_id_map[i];
+            hit_result.depth = select_output_buf[i];
+            hit_results.append(hit_result);
           }
         }
         break;
     }
 
-    gpu_select_next_set_result(result.data(), result.size());
+    gpu_select_next_set_result(hit_results.data(), hit_results.size());
   }
 };
 

@@ -10,7 +10,9 @@
 
 /* Can cast different mathutils types to this, use for generic functions. */
 
+#include "BLI_array.hh"
 #include "BLI_compiler_attrs.h"
+#include "BLI_vector.hh"
 
 struct DynStr;
 
@@ -187,14 +189,11 @@ int mathutils_array_parse_alloc_vi(int **array,
                                    PyObject *value,
                                    const char *error_prefix);
 /**
- * Parse sequence of variable-length sequences of int and return allocated
- * triple of arrays to represent the result:
- * The flattened sequences are put into *array.
- * The start index of each sequence goes into start_table.
- * The length of each index goes into len_table.
+ * Parse sequence of variable-length sequences of integers and fill r_data with their values.
  */
-int mathutils_array_parse_alloc_viseq(
-    int **array, int **start_table, int **len_table, PyObject *value, const char *error_prefix);
+bool mathutils_array_parse_alloc_viseq(PyObject *value,
+                                       const char *error_prefix,
+                                       blender::Array<blender::Vector<int>> &r_data);
 int mathutils_any_to_rotmat(float rmat[3][3], PyObject *value, const char *error_prefix);
 
 /**

@@ -59,7 +59,7 @@
 #include "BKE_image.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 #include "BKE_node.hh"
@@ -325,8 +325,8 @@ Material *BKE_gpencil_material_add(Main *bmain, const char *name)
 Material ***BKE_object_material_array_p(Object *ob)
 {
   if (ob->type == OB_MESH) {
-    Mesh *me = static_cast<Mesh *>(ob->data);
-    return &(me->mat);
+    Mesh *mesh = static_cast<Mesh *>(ob->data);
+    return &(mesh->mat);
   }
   if (ELEM(ob->type, OB_CURVES_LEGACY, OB_FONT, OB_SURF)) {
     Curve *cu = static_cast<Curve *>(ob->data);
@@ -362,8 +362,8 @@ Material ***BKE_object_material_array_p(Object *ob)
 short *BKE_object_material_len_p(Object *ob)
 {
   if (ob->type == OB_MESH) {
-    Mesh *me = static_cast<Mesh *>(ob->data);
-    return &(me->totcol);
+    Mesh *mesh = static_cast<Mesh *>(ob->data);
+    return &(mesh->totcol);
   }
   if (ELEM(ob->type, OB_CURVES_LEGACY, OB_FONT, OB_SURF)) {
     Curve *cu = static_cast<Curve *>(ob->data);
@@ -1638,6 +1638,14 @@ static bool texpaint_slot_node_find_cb(bNode *node, void *userdata)
 
 bNode *BKE_texpaint_slot_material_find_node(Material *ma, short texpaint_slot)
 {
+  if (ma->texpaintslot == nullptr) {
+    return nullptr;
+  }
+
+  if (texpaint_slot >= ma->tot_slots) {
+    return nullptr;
+  }
+
   TexPaintSlot *slot = &ma->texpaintslot[texpaint_slot];
   FindTexPaintNodeData find_data = {slot, nullptr};
   ntree_foreach_texnode_recursive(ma->nodetree,

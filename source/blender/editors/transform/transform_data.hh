@@ -96,9 +96,11 @@ struct TransDataExtension {
 struct TransData2D {
   /** Location of data used to transform (x,y,0). */
   float loc[3];
-  /** Pointer to real 2d location of data. */
-  float *loc2d;
-
+  union {
+    /** Pointer to real 2d location of data. */
+    float *loc2d;
+    int *loc2d_i;
+  };
   /** Pointer to handle locations, if handles aren't being moved independently. */
   float *h1, *h2;
   float ih1[2], ih2[2];
@@ -168,7 +170,6 @@ enum {
    * need their keyframes tagged with this.
    */
   TD_INTVALUES = 1 << 11,
-#define TD_MIRROR_AXIS_SHIFT 12
   /** For edit-mode mirror. */
   TD_MIRROR_X = 1 << 12,
   TD_MIRROR_Y = 1 << 13,

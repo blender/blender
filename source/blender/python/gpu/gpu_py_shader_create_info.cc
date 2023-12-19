@@ -38,7 +38,7 @@ using blender::gpu::shader::Qualifier;
     "      - ``NO_RESTRICT``\n" \
     "      - ``READ``\n" \
     "      - ``WRITE``\n"
-static const struct PyC_FlagSet pygpu_qualifiers[] = {
+static const PyC_FlagSet pygpu_qualifiers[] = {
     {int(Qualifier::NO_RESTRICT), "NO_RESTRICT"},
     {int(Qualifier::READ), "READ"},
     {int(Qualifier::WRITE), "WRITE"},
@@ -131,6 +131,9 @@ static const PyC_StringEnumItems pygpu_imagetype_items[] = {
     {int(ImageType::INT_3D), "INT_3D"},
     {int(ImageType::INT_CUBE), "INT_CUBE"},
     {int(ImageType::INT_CUBE_ARRAY), "INT_CUBE_ARRAY"},
+    {int(ImageType::INT_2D_ATOMIC), "INT_2D_ATOMIC"},
+    {int(ImageType::INT_2D_ARRAY_ATOMIC), "INT_2D_ARRAY_ATOMIC"},
+    {int(ImageType::INT_3D_ATOMIC), "INT_3D_ATOMIC"},
     {int(ImageType::UINT_BUFFER), "UINT_BUFFER"},
     {int(ImageType::UINT_1D), "UINT_1D"},
     {int(ImageType::UINT_1D_ARRAY), "UINT_1D_ARRAY"},
@@ -139,6 +142,9 @@ static const PyC_StringEnumItems pygpu_imagetype_items[] = {
     {int(ImageType::UINT_3D), "UINT_3D"},
     {int(ImageType::UINT_CUBE), "UINT_CUBE"},
     {int(ImageType::UINT_CUBE_ARRAY), "UINT_CUBE_ARRAY"},
+    {int(ImageType::UINT_2D_ATOMIC), "UINT_2D_ATOMIC"},
+    {int(ImageType::UINT_2D_ARRAY_ATOMIC), "UINT_2D_ARRAY_ATOMIC"},
+    {int(ImageType::UINT_3D_ATOMIC), "UINT_3D_ATOMIC"},
     {int(ImageType::SHADOW_2D), "SHADOW_2D"},
     {int(ImageType::SHADOW_2D_ARRAY), "SHADOW_2D_ARRAY"},
     {int(ImageType::SHADOW_CUBE), "SHADOW_CUBE"},
@@ -674,8 +680,8 @@ static PyObject *pygpu_shader_info_image(BPyGPUShaderCreateInfo *self,
                                          PyObject *kwds)
 {
   int slot;
-  struct PyC_StringEnum pygpu_texformat = {pygpu_textureformat_items};
-  struct PyC_StringEnum pygpu_imagetype = {pygpu_imagetype_items};
+  PyC_StringEnum pygpu_texformat = {pygpu_textureformat_items};
+  PyC_StringEnum pygpu_imagetype = {pygpu_imagetype_items};
   const char *name;
   PyObject *py_qualifiers = nullptr;
   Qualifier qualifier = Qualifier::NO_RESTRICT;

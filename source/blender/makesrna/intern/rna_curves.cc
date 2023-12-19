@@ -183,12 +183,10 @@ static void rna_CurvePoint_location_set(PointerRNA *ptr, const float value[3])
 
 static float rna_CurvePoint_radius_get(PointerRNA *ptr)
 {
+  using namespace blender;
   const Curves *curves = rna_curves(ptr);
-  const float *radii = static_cast<const float *>(
-      CustomData_get_layer_named(&curves->geometry.point_data, CD_PROP_FLOAT, "radius"));
-  if (radii == nullptr) {
-    return 0.0f;
-  }
+  const bke::AttributeAccessor attributes = curves->geometry.wrap().attributes();
+  const VArray radii = *attributes.lookup_or_default<float>("radius", ATTR_DOMAIN_POINT, 0.0f);
   return radii[rna_CurvePoint_index_get_const(ptr)];
 }
 

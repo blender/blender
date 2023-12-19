@@ -177,7 +177,7 @@ static const EnumPropertyItem rna_enum_preference_gpu_backend_items[] = {
 #  include "BKE_global.h"
 #  include "BKE_idprop.h"
 #  include "BKE_image.h"
-#  include "BKE_main.h"
+#  include "BKE_main.hh"
 #  include "BKE_mesh_runtime.hh"
 #  include "BKE_object.hh"
 #  include "BKE_paint.hh"
@@ -187,7 +187,7 @@ static const EnumPropertyItem rna_enum_preference_gpu_backend_items[] = {
 #  include "DEG_depsgraph.hh"
 
 #  include "GPU_capabilities.h"
-#  include "GPU_select.h"
+#  include "GPU_select.hh"
 #  include "GPU_texture.h"
 
 #  include "BLF_api.h"
@@ -371,6 +371,15 @@ static void rna_userdef_extension_repo_directory_set(PointerRNA *ptr, const char
   bUserExtensionRepo *repo = (bUserExtensionRepo *)ptr->data;
   BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_PRE);
   BKE_preferences_extension_repo_path_set(repo, value);
+  BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_POST);
+}
+
+static void rna_userdef_extension_repo_enabled_set(PointerRNA *ptr, bool value)
+{
+  Main *bmain = G.main;
+  bUserExtensionRepo *repo = (bUserExtensionRepo *)ptr->data;
+  BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_PRE);
+  SET_FLAG_FROM_TEST(repo->flag, !value, USER_EXTENSION_REPO_FLAG_DISABLED);
   BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_POST);
 }
 
@@ -1118,48 +1127,6 @@ static int rna_UserDef_studiolight_path_length(PointerRNA *ptr)
   return strlen(sl->filepath);
 }
 
-/* StudioLight.path_irr_cache */
-static void rna_UserDef_studiolight_path_irr_cache_get(PointerRNA *ptr, char *value)
-{
-  StudioLight *sl = (StudioLight *)ptr->data;
-  if (sl->path_irr_cache) {
-    strcpy(value, sl->path_irr_cache);
-  }
-  else {
-    value[0] = '\0';
-  }
-}
-
-static int rna_UserDef_studiolight_path_irr_cache_length(PointerRNA *ptr)
-{
-  StudioLight *sl = (StudioLight *)ptr->data;
-  if (sl->path_irr_cache) {
-    return strlen(sl->path_irr_cache);
-  }
-  return 0;
-}
-
-/* StudioLight.path_sh_cache */
-static void rna_UserDef_studiolight_path_sh_cache_get(PointerRNA *ptr, char *value)
-{
-  StudioLight *sl = (StudioLight *)ptr->data;
-  if (sl->path_sh_cache) {
-    strcpy(value, sl->path_sh_cache);
-  }
-  else {
-    value[0] = '\0';
-  }
-}
-
-static int rna_UserDef_studiolight_path_sh_cache_length(PointerRNA *ptr)
-{
-  StudioLight *sl = (StudioLight *)ptr->data;
-  if (sl->path_sh_cache) {
-    return strlen(sl->path_sh_cache);
-  }
-  return 0;
-}
-
 /* StudioLight.index */
 static int rna_UserDef_studiolight_index_get(PointerRNA *ptr)
 {
@@ -1187,17 +1154,6 @@ static int rna_UserDef_studiolight_type_get(PointerRNA *ptr)
 {
   StudioLight *sl = (StudioLight *)ptr->data;
   return sl->flag & STUDIOLIGHT_FLAG_ORIENTATIONS;
-}
-
-static void rna_UserDef_studiolight_spherical_harmonics_coefficients_get(PointerRNA *ptr,
-                                                                         float *values)
-{
-  StudioLight *sl = (StudioLight *)ptr->data;
-  float *value = values;
-  for (int i = 0; i < STUDIOLIGHT_SH_EFFECTIVE_COEFS_LEN; i++) {
-    copy_v3_v3(value, sl->spherical_harmonics_coefs[i]);
-    value += 3;
-  }
 }
 
 /* StudioLight.solid_lights */
@@ -4527,31 +4483,6 @@ static void rna_def_userdef_studiolight(BlenderRNA *brna)
       prop, "Ambient Color", "Color of the ambient light that uniformly lit the scene");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
-  prop = RNA_def_property(srna, "path_irr_cache", PROP_STRING, PROP_DIRPATH);
-  RNA_def_property_string_funcs(prop,
-                                "rna_UserDef_studiolight_path_irr_cache_get",
-                                "rna_UserDef_studiolight_path_irr_cache_length",
-                                nullptr);
-  RNA_def_property_ui_text(
-      prop, "Irradiance Cache Path", "Path where the irradiance cache is stored");
-  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-
-  prop = RNA_def_property(srna, "path_sh_cache", PROP_STRING, PROP_DIRPATH);
-  RNA_def_property_string_funcs(prop,
-                                "rna_UserDef_studiolight_path_sh_cache_get",
-                                "rna_UserDef_studiolight_path_sh_cache_length",
-                                nullptr);
-  RNA_def_property_ui_text(
-      prop, "SH Cache Path", "Path where the spherical harmonics cache is stored");
-  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-
-  const int spherical_harmonics_dim[] = {STUDIOLIGHT_SH_EFFECTIVE_COEFS_LEN, 3};
-  prop = RNA_def_property(srna, "spherical_harmonics_coefficients", PROP_FLOAT, PROP_COLOR);
-  RNA_def_property_multi_array(prop, 2, spherical_harmonics_dim);
-  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_property_float_funcs(
-      prop, "rna_UserDef_studiolight_spherical_harmonics_coefficients_get", nullptr, nullptr);
-
   RNA_define_verify_sdna(true);
 }
 
@@ -6317,7 +6248,7 @@ static void rna_def_userdef_input(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Mouse Drag Threshold",
                            "Number of pixels to drag before a drag event is triggered "
-                           "for mouse/track-pad input "
+                           "for mouse/trackpad input "
                            "(otherwise click events are detected)");
 
   prop = RNA_def_property(srna, "drag_threshold_tablet", PROP_INT, PROP_PIXEL);
@@ -6622,12 +6553,17 @@ static void rna_def_userdef_filepaths_extension_repo(BlenderRNA *brna)
   /* NOTE(@ideasman42): this is intended to be used by a package manger component
    * which is not yet integrated. */
   prop = RNA_def_property(srna, "use_cache", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_negative_sdna(prop, nullptr, "flag", USER_EXTENSION_FLAG_NO_CACHE);
+  RNA_def_property_boolean_negative_sdna(prop, nullptr, "flag", USER_EXTENSION_REPO_FLAG_NO_CACHE);
   RNA_def_property_ui_text(
       prop,
       "Local Cache",
       "Store packages in local cache, "
       "otherwise downloaded package files are immediately deleted after installation");
+
+  prop = RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, nullptr, "flag", USER_EXTENSION_REPO_FLAG_DISABLED);
+  RNA_def_property_ui_text(prop, "Enabled", "Enable the repository");
+  RNA_def_property_boolean_funcs(prop, nullptr, "rna_userdef_extension_repo_enabled_set");
 }
 
 static void rna_def_userdef_script_directory(BlenderRNA *brna)

@@ -198,8 +198,7 @@ ModifierTypeInfo modifierType_DynamicPaint = {
     /*srna*/ &RNA_DynamicPaintModifier,
     /*type*/ ModifierTypeType::Constructive,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
-        eModifierTypeFlag_UsesPointCache | eModifierTypeFlag_Single |
-        eModifierTypeFlag_UsesPreview,
+        eModifierTypeFlag_UsesPointCache | eModifierTypeFlag_Single,
     /*icon*/ ICON_MOD_DYNAMICPAINT,
 
     /*copy_data*/ copy_data,

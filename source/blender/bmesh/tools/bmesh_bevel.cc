@@ -31,10 +31,10 @@
 
 #include "eigen_capi.h"
 
-#include "bmesh.h"
-#include "bmesh_bevel.h" /* own include */
+#include "bmesh.hh"
+#include "bmesh_bevel.hh" /* own include */
 
-#include "./intern/bmesh_private.h"
+#include "./intern/bmesh_private.hh"
 
 using blender::Vector;
 
@@ -331,7 +331,7 @@ struct BevelParams {
   BMesh *bm;
   /** Blender units to offset each side of a beveled edge. */
   float offset;
-  /** How offset is measured; enum defined in bmesh_operators.h. */
+  /** How offset is measured; enum defined in bmesh_operators.hh. */
   int offset_type;
   /** Profile type: radius, superellipse, or custom */
   int profile_type;
@@ -684,7 +684,7 @@ static BMFace *bev_create_ngon(BMesh *bm,
   BMFace *f = BM_face_create_verts(bm, vert_arr, totv, facerep, BM_CREATE_NOP, true);
 
   if ((facerep || (face_arr && face_arr[0])) && f) {
-    BM_elem_attrs_copy(bm, bm, facerep ? facerep : face_arr[0], f);
+    BM_elem_attrs_copy(bm, facerep ? facerep : face_arr[0], f);
     if (do_interp) {
       int i = 0;
       BMIter iter;
@@ -6740,7 +6740,7 @@ static bool bev_rebuild_polygon(BMesh *bm, BevelParams *bp, BMFace *f)
       BMEdge *bme_new = BM_edge_exists(vv[k], vv[(k + 1) % n]);
       BLI_assert(ee[k] && bme_new);
       if (ee[k] != bme_new) {
-        BM_elem_attrs_copy(bm, bm, ee[k], bme_new);
+        BM_elem_attrs_copy(bm, ee[k], bme_new);
         /* Want to undo seam and smooth for corner segments
          * if those attrs aren't contiguous around face. */
         if (k < n - 1 && ee[k] == ee[k + 1]) {
@@ -6924,7 +6924,7 @@ static void weld_cross_attrs_copy(BMesh *bm, BevVert *bv, VMesh *vm, int vmindex
     BMEdge *bme = BM_edge_exists(mesh_vert(vm, vmindex, 0, i)->v,
                                  mesh_vert(vm, vmindex, 0, i + 1)->v);
     BLI_assert(bme);
-    BM_elem_attrs_copy(bm, bm, bme_prev, bme);
+    BM_elem_attrs_copy(bm, bme_prev, bme);
     if (disable_seam) {
       BM_elem_flag_disable(bme, BM_ELEM_SEAM);
     }
@@ -7094,8 +7094,8 @@ static void bevel_build_edge_polygons(BMesh *bm, BevelParams *bp, BMEdge *bme)
   BMEdge *bme1 = BM_edge_exists(bmv1, bmv2);
   BMEdge *bme2 = BM_edge_exists(bmv3, bmv4);
   BLI_assert(bme1 && bme2);
-  BM_elem_attrs_copy(bm, bm, bme, bme1);
-  BM_elem_attrs_copy(bm, bm, bme, bme2);
+  BM_elem_attrs_copy(bm, bme, bme1);
+  BM_elem_attrs_copy(bm, bme, bme2);
 
   /* If either end is a "weld cross", want continuity of edge attributes across end edge(s). */
   if (bevvert_is_weld_cross(bv1)) {

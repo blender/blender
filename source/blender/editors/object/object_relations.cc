@@ -62,10 +62,10 @@
 #include "BKE_lib_id.h"
 #include "BKE_lib_override.hh"
 #include "BKE_lib_query.h"
-#include "BKE_lib_remap.h"
+#include "BKE_lib_remap.hh"
 #include "BKE_light.h"
 #include "BKE_lightprobe.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_mball.h"
 #include "BKE_mesh.hh"
@@ -106,6 +106,7 @@
 #include "ED_view3d.hh"
 
 #include "ANIM_action.hh"
+#include "ANIM_animdata.hh"
 
 #include "MOD_nodes.hh"
 
@@ -137,7 +138,7 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
   /* we need 1 to 3 selected vertices */
 
   if (obedit->type == OB_MESH) {
-    Mesh *me = static_cast<Mesh *>(obedit->data);
+    Mesh *mesh = static_cast<Mesh *>(obedit->data);
     BMEditMesh *em;
 
     EDBM_mesh_load(bmain, obedit);
@@ -145,9 +146,9 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 
     DEG_id_tag_update(static_cast<ID *>(obedit->data), 0);
 
-    em = me->edit_mesh;
+    em = mesh->edit_mesh;
 
-    BKE_editmesh_looptri_and_normals_calc(em);
+    BKE_editmesh_looptris_and_normals_calc(em);
 
     /* Make sure the evaluated mesh is updated.
      *
@@ -563,7 +564,7 @@ bool ED_object_parent_set(ReportList *reports,
       /* if follow, add F-Curve for ctime (i.e. "eval_time") so that path-follow works */
       if (partype == PAR_FOLLOW) {
         /* get or create F-Curve */
-        bAction *act = ED_id_action_ensure(bmain, &cu->id);
+        bAction *act = blender::animrig::id_action_ensure(bmain, &cu->id);
         FCurve *fcu = blender::animrig::action_fcurve_ensure(
             bmain, act, nullptr, nullptr, "eval_time", 0);
 
@@ -1849,7 +1850,7 @@ static void single_obdata_users(
   Light *la;
   Curve *cu;
   Camera *cam;
-  Mesh *me;
+  Mesh *mesh;
   Lattice *lat;
   ID *id;
 
@@ -1886,7 +1887,7 @@ static void single_obdata_users(
             break;
           case OB_MESH:
             /* Needed to remap texcomesh below. */
-            ob->data = me = static_cast<Mesh *>(
+            ob->data = mesh = static_cast<Mesh *>(
                 ID_NEW_SET(ob->data,
                            BKE_id_copy_ex(bmain,
                                           static_cast<const ID *>(ob->data),
@@ -1993,10 +1994,10 @@ static void single_obdata_users(
   }
   FOREACH_OBJECT_FLAG_END;
 
-  me = static_cast<Mesh *>(bmain->meshes.first);
-  while (me) {
-    ID_NEW_REMAP(me->texcomesh);
-    me = static_cast<Mesh *>(me->id.next);
+  mesh = static_cast<Mesh *>(bmain->meshes.first);
+  while (mesh) {
+    ID_NEW_REMAP(mesh->texcomesh);
+    mesh = static_cast<Mesh *>(mesh->id.next);
   }
 }
 
@@ -2842,7 +2843,7 @@ static int make_single_user_exec(bContext *C, wmOperator *op)
   if (RNA_boolean_get(op->ptr, "obdata")) {
     single_obdata_users(bmain, scene, view_layer, v3d, flag);
 
-    /* Needed since some IDs were remapped? (incl. me->texcomesh, see #73797). */
+    /* Needed since some IDs were remapped? (incl. mesh->texcomesh, see #73797). */
     update_deps = true;
   }
 

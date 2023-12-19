@@ -23,9 +23,12 @@ void HiZBuffer::sync()
   int2 dispatch_size = math::divide_ceil(hiz_extent, int2(HIZ_GROUP_SIZE));
 
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE;
-  hiz_tx_.ensure_2d(GPU_R32F, hiz_extent, usage, nullptr, HIZ_MIP_COUNT);
-  hiz_tx_.ensure_mip_views();
-  GPU_texture_mipmap_mode(hiz_tx_, true, false);
+  for ([[maybe_unused]] const int i : IndexRange(hiz_tx_.size())) {
+    hiz_tx_.current().ensure_2d(GPU_R32F, hiz_extent, usage, nullptr, HIZ_MIP_COUNT);
+    hiz_tx_.current().ensure_mip_views();
+    GPU_texture_mipmap_mode(hiz_tx_.current(), true, false);
+    hiz_tx_.swap();
+  }
 
   data_.uv_scale = float2(render_extent) / float2(hiz_extent);
 
@@ -36,13 +39,13 @@ void HiZBuffer::sync()
     pass.bind_ssbo("finished_tile_counter", atomic_tile_counter_);
     /* TODO(fclem): Should be a parameter to avoid confusion. */
     pass.bind_texture("depth_tx", &src_tx_, with_filter);
-    pass.bind_image("out_mip_0", hiz_tx_.mip_view(0));
-    pass.bind_image("out_mip_1", hiz_tx_.mip_view(1));
-    pass.bind_image("out_mip_2", hiz_tx_.mip_view(2));
-    pass.bind_image("out_mip_3", hiz_tx_.mip_view(3));
-    pass.bind_image("out_mip_4", hiz_tx_.mip_view(4));
-    pass.bind_image("out_mip_5", hiz_tx_.mip_view(5));
-    pass.bind_image("out_mip_6", hiz_tx_.mip_view(6));
+    pass.bind_image("out_mip_0", &hiz_mip_ref_[0]);
+    pass.bind_image("out_mip_1", &hiz_mip_ref_[1]);
+    pass.bind_image("out_mip_2", &hiz_mip_ref_[2]);
+    pass.bind_image("out_mip_3", &hiz_mip_ref_[3]);
+    pass.bind_image("out_mip_4", &hiz_mip_ref_[4]);
+    pass.bind_image("out_mip_5", &hiz_mip_ref_[5]);
+    pass.bind_image("out_mip_6", &hiz_mip_ref_[6]);
     /* TODO(@fclem): There might be occasions where we might not want to
      * copy mip 0 for performance reasons if there is no need for it. */
     pass.push_constant("update_mip_0", true);
@@ -56,13 +59,13 @@ void HiZBuffer::sync()
     pass.bind_ssbo("finished_tile_counter", atomic_tile_counter_);
     /* TODO(fclem): Should be a parameter to avoid confusion. */
     pass.bind_texture("depth_layered_tx", &src_tx_, with_filter);
-    pass.bind_image("out_mip_0", hiz_tx_.mip_view(0));
-    pass.bind_image("out_mip_1", hiz_tx_.mip_view(1));
-    pass.bind_image("out_mip_2", hiz_tx_.mip_view(2));
-    pass.bind_image("out_mip_3", hiz_tx_.mip_view(3));
-    pass.bind_image("out_mip_4", hiz_tx_.mip_view(4));
-    pass.bind_image("out_mip_5", hiz_tx_.mip_view(5));
-    pass.bind_image("out_mip_6", hiz_tx_.mip_view(6));
+    pass.bind_image("out_mip_0", &hiz_mip_ref_[0]);
+    pass.bind_image("out_mip_1", &hiz_mip_ref_[1]);
+    pass.bind_image("out_mip_2", &hiz_mip_ref_[2]);
+    pass.bind_image("out_mip_3", &hiz_mip_ref_[3]);
+    pass.bind_image("out_mip_4", &hiz_mip_ref_[4]);
+    pass.bind_image("out_mip_5", &hiz_mip_ref_[5]);
+    pass.bind_image("out_mip_6", &hiz_mip_ref_[6]);
     /* TODO(@fclem): There might be occasions where we might not want to
      * copy mip 0 for performance reasons if there is no need for it. */
     pass.push_constant("update_mip_0", true);
@@ -87,6 +90,9 @@ void HiZBuffer::update()
   }
 
   src_tx_ = *src_tx_ptr_;
+  for (const int i : IndexRange(HIZ_MIP_COUNT)) {
+    hiz_mip_ref_[i] = hiz_tx_.current().mip_view(i);
+  }
 
   if (layer_id_ == -1) {
     inst_.manager->submit(hiz_update_ps_);

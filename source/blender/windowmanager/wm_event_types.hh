@@ -58,7 +58,7 @@ enum {
   /* More mouse buttons - can't use 9 and 10 here (wheel) */
   BUTTON6MOUSE = 0x0012,
   BUTTON7MOUSE = 0x0013,
-  /* Extra track-pad gestures (check #WM_EVENT_IS_CONSECUTIVE to detect motion events). */
+  /* Extra trackpad gestures (check #WM_EVENT_IS_CONSECUTIVE to detect motion events). */
   MOUSEPAN = 0x000e,
   MOUSEZOOM = 0x000f,
   MOUSEROTATE = 0x0010,
@@ -415,7 +415,7 @@ enum {
         BUTTON7MOUSE))
 /** Test whether the event is a mouse wheel. */
 #define ISMOUSE_WHEEL(event_type) ((event_type) >= WHEELUPMOUSE && (event_type) <= WHEELOUTMOUSE)
-/** Test whether the event is a mouse (track-pad) gesture. */
+/** Test whether the event is a mouse (trackpad) gesture. */
 #define ISMOUSE_GESTURE(event_type) ((event_type) >= MOUSEPAN && (event_type) <= MOUSESMARTZOOM)
 
 /** Test whether the event is a NDOF event. */

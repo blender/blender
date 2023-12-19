@@ -28,7 +28,7 @@ class DummyContext : public Context {
   void flush() override {}
   void finish() override {}
 
-  void memory_statistics_get(int * /*total_mem*/, int * /*free_mem*/) override {}
+  void memory_statistics_get(int * /*r_total_mem*/, int * /*r_free_mem*/) override {}
 
   void debug_group_begin(const char *, int) override {}
   void debug_group_end() override {}

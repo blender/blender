@@ -72,7 +72,7 @@ struct GPUBatch **DRW_cache_object_surface_material_get(struct Object *ob,
                                                         struct GPUMaterial **gpumat_array,
                                                         uint gpumat_array_len);
 struct GPUBatch *DRW_cache_object_face_wireframe_get(struct Object *ob);
-int DRW_cache_object_material_count_get(struct Object *ob);
+int DRW_cache_object_material_count_get(const struct Object *ob);
 
 /**
  * Returns the vertbuf used by shaded surface batch.
@@ -268,7 +268,7 @@ struct GPUBatch *DRW_cache_gpencil_sbuffer_get(struct Object *ob, bool show_fill
 struct GPUVertBuf *DRW_cache_gpencil_sbuffer_position_buffer_get(struct Object *ob,
                                                                  bool show_fill);
 struct GPUVertBuf *DRW_cache_gpencil_sbuffer_color_buffer_get(struct Object *ob, bool show_fill);
-int DRW_gpencil_material_count_get(struct bGPdata *gpd);
+int DRW_gpencil_material_count_get(const struct bGPdata *gpd);
 
 struct GPUBatch *DRW_cache_gpencil_face_wireframe_get(struct Object *ob);
 

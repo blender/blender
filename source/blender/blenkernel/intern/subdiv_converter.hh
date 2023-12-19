@@ -12,7 +12,7 @@
 
 /* NOTE: Was initially used to get proper enumerator types, but this makes
  * it tricky to compile without OpenSubdiv. */
-/* #include "opensubdiv_converter_capi.h" */
+/* #include "opensubdiv_converter_capi.hh" */
 
 struct Mesh;
 struct OpenSubdiv_Converter;

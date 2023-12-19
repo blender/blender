@@ -43,7 +43,7 @@ using eCustomDataMask = uint64_t;
 
 /**
  * UV map related customdata offsets into BMesh attribute blocks. See #BM_uv_map_get_offsets.
- * Defined in #BKE_customdata.hh to avoid including bmesh.h in many unrelated areas.
+ * Defined in #BKE_customdata.hh to avoid including bmesh.hh in many unrelated areas.
  * An offset of -1 means that the corresponding layer does not exist.
  */
 struct BMUVOffsets {
@@ -90,6 +90,8 @@ void customData_mask_layers__print(const CustomData_MeshMasks *mask);
 typedef void (*cd_interp)(
     const void **sources, const float *weights, const float *sub_weights, int count, void *dest);
 typedef void (*cd_copy)(const void *source, void *dest, int count);
+typedef void (*cd_set_default_value)(void *data, int count);
+typedef void (*cd_free)(void *data, int count);
 typedef bool (*cd_validate)(void *item, uint totitems, bool do_fixes);
 
 /**
@@ -343,15 +345,57 @@ void CustomData_copy_elements(eCustomDataType type,
                               void *src_data_ofs,
                               void *dst_data_ofs,
                               int count);
-void CustomData_bmesh_copy_data(const CustomData *source,
-                                CustomData *dest,
-                                void *src_block,
-                                void **dest_block);
-void CustomData_bmesh_copy_data_exclude_by_type(const CustomData *source,
-                                                CustomData *dest,
-                                                void *src_block,
-                                                void **dest_block,
-                                                eCustomDataMask mask_exclude);
+
+/**
+ * Copy all layers from the source to the destination block.
+ * Allocate the result block if necessary, otherwise free its existing layer data.
+ */
+void CustomData_bmesh_copy_block(CustomData &data, void *src_block, void **dst_block);
+
+/** Holds the minimal data necessary to copy data blocks from one custom data format to another. */
+struct BMCustomDataCopyMap {
+  struct TrivialCopy {
+    int size;
+    int src_offset;
+    int dst_offset;
+  };
+  struct Copy {
+    cd_copy fn;
+    int src_offset;
+    int dst_offset;
+  };
+  struct TrivialDefault {
+    int size;
+    int dst_offset;
+  };
+  struct Default {
+    cd_set_default_value fn;
+    int dst_offset;
+  };
+  struct Free {
+    cd_free fn;
+    int dst_offset;
+  };
+  blender::Vector<TrivialCopy> trivial_copies;
+  blender::Vector<Copy> copies;
+  blender::Vector<TrivialDefault> trivial_defaults;
+  blender::Vector<Default> defaults;
+  blender::Vector<Free> free;
+};
+
+/** Precalculate a map for more efficient copying between custom data formats. */
+BMCustomDataCopyMap CustomData_bmesh_copy_map_calc(const CustomData &src,
+                                                   const CustomData &dst,
+                                                   eCustomDataMask mask_exclude = 0);
+
+/**
+ * Copy custom data layers for one element between two potentially different formats with a
+ * precalculated map.
+ */
+void CustomData_bmesh_copy_block(CustomData &dst_data,
+                                 const BMCustomDataCopyMap &map,
+                                 const void *src_block,
+                                 void **dest_block);
 
 /**
  * Copies data of a single layer of a given type.
@@ -508,11 +552,6 @@ const char *CustomData_get_active_layer_name(const CustomData *data, eCustomData
 const char *CustomData_get_render_layer_name(const CustomData *data, eCustomDataType type);
 
 bool CustomData_layer_is_anonymous(const CustomData *data, eCustomDataType type, int n);
-
-void CustomData_bmesh_set(const CustomData *data,
-                          void *block,
-                          eCustomDataType type,
-                          const void *source);
 
 void CustomData_bmesh_set_n(
     CustomData *data, void *block, eCustomDataType type, int n, const void *source);
@@ -757,7 +796,7 @@ size_t CustomData_get_elem_size(const CustomDataLayer *layer);
 struct DynStr;
 /** Use to inspect mesh data when debugging. */
 void CustomData_debug_info_from_layers(const CustomData *data, const char *indent, DynStr *dynstr);
-#endif /* NDEBUG */
+#endif /* !NDEBUG */
 
 namespace blender::bke {
 const CPPType *custom_data_type_to_cpp_type(eCustomDataType type);

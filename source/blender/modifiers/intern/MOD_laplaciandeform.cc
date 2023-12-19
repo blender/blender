@@ -65,18 +65,34 @@ struct LaplacianSystem {
   int tris_num;
   int anchors_num;
   int repeat;
-  char anchor_grp_name[64]; /* Vertex Group name */
-  float (*co)[3];           /* Original vertex coordinates */
-  float (*no)[3];           /* Original vertex normal */
-  float (*delta)[3];        /* Differential Coordinates */
-  uint (*tris)[3];          /* Copy of MLoopTri (tessellation triangle) v1-v3 */
-  int *index_anchors;       /* Static vertex index list */
-  int *unit_verts;          /* Unit vectors of projected edges onto the plane orthogonal to n */
-  int *ringf_indices;       /* Indices of faces per vertex */
-  int *ringv_indices;       /* Indices of neighbors(vertex) per vertex */
-  LinearSolver *context;    /* System for solve general implicit rotations */
-  MeshElemMap *ringf_map;   /* Map of faces per vertex */
-  MeshElemMap *ringv_map;   /* Map of vertex per vertex */
+  /** Vertex Group name */
+  char anchor_grp_name[64];
+  /** Original vertex coordinates. */
+  float (*co)[3];
+  /** Original vertex normal. */
+  float (*no)[3];
+  /** Differential Coordinates. */
+  float (*delta)[3];
+  /**
+   * An array of triangles, each triangle represents 3 vertex indices.
+   *
+   * \note This is derived from the Mesh::corner_tris() array.
+   */
+  uint (*tris)[3];
+  /** Static vertex index list. */
+  int *index_anchors;
+  /** Unit vectors of projected edges onto the plane orthogonal to n. */
+  int *unit_verts;
+  /** Indices of faces per vertex. */
+  int *ringf_indices;
+  /** Indices of neighbors(vertex) per vertex. */
+  int *ringv_indices;
+  /** System for solve general implicit rotations. */
+  LinearSolver *context;
+  /** Map of faces per vertex. */
+  MeshElemMap *ringf_map;
+  /** Map of vertex per vertex. */
+  MeshElemMap *ringv_map;
 };
 
 static LaplacianSystem *newLaplacianSystem()
@@ -141,7 +157,7 @@ static void deleteLaplacianSystem(LaplacianSystem *sys)
 }
 
 static void createFaceRingMap(const int mvert_tot,
-                              blender::Span<MLoopTri> looptris,
+                              blender::Span<blender::int3> corner_tris,
                               blender::Span<int> corner_verts,
                               MeshElemMap **r_map,
                               int **r_indices)
@@ -150,10 +166,10 @@ static void createFaceRingMap(const int mvert_tot,
   int *indices, *index_iter;
   MeshElemMap *map = MEM_cnew_array<MeshElemMap>(mvert_tot, __func__);
 
-  for (const int i : looptris.index_range()) {
-    const MLoopTri &mlt = looptris[i];
+  for (const int i : corner_tris.index_range()) {
+    const blender::int3 &tri = corner_tris[i];
     for (int j = 0; j < 3; j++) {
-      const int v_index = corner_verts[mlt.tri[j]];
+      const int v_index = corner_verts[tri[j]];
       map[v_index].count++;
       indices_num++;
     }
@@ -165,10 +181,10 @@ static void createFaceRingMap(const int mvert_tot,
     index_iter += map[i].count;
     map[i].count = 0;
   }
-  for (const int i : looptris.index_range()) {
-    const MLoopTri &mlt = looptris[i];
+  for (const int i : corner_tris.index_range()) {
+    const blender::int3 &tri = corner_tris[i];
     for (int j = 0; j < 3; j++) {
-      const int v_index = corner_verts[mlt.tri[j]];
+      const int v_index = corner_verts[tri[j]];
       map[v_index].indices[map[v_index].count] = i;
       map[v_index].count++;
     }
@@ -551,11 +567,15 @@ static void initSystem(
 
     const blender::Span<blender::int2> edges = mesh->edges();
     const blender::Span<int> corner_verts = mesh->corner_verts();
-    const blender::Span<MLoopTri> looptris = mesh->looptris();
+    const blender::Span<blender::int3> corner_tris = mesh->corner_tris();
 
     anchors_num = STACK_SIZE(index_anchors);
-    lmd->cache_system = initLaplacianSystem(
-        verts_num, edges.size(), looptris.size(), anchors_num, lmd->anchor_grp_name, lmd->repeat);
+    lmd->cache_system = initLaplacianSystem(verts_num,
+                                            edges.size(),
+                                            corner_tris.size(),
+                                            anchors_num,
+                                            lmd->anchor_grp_name,
+                                            lmd->repeat);
     sys = (LaplacianSystem *)lmd->cache_system;
     memcpy(sys->index_anchors, index_anchors, sizeof(int) * anchors_num);
     memcpy(sys->co, vertexCos, sizeof(float[3]) * verts_num);
@@ -564,13 +584,14 @@ static void initSystem(
     memcpy(lmd->vertexco, vertexCos, sizeof(float[3]) * verts_num);
     lmd->verts_num = verts_num;
 
-    createFaceRingMap(mesh->totvert, looptris, corner_verts, &sys->ringf_map, &sys->ringf_indices);
+    createFaceRingMap(
+        mesh->totvert, corner_tris, corner_verts, &sys->ringf_map, &sys->ringf_indices);
     createVertRingMap(mesh->totvert, edges, &sys->ringv_map, &sys->ringv_indices);
 
     for (i = 0; i < sys->tris_num; i++) {
-      sys->tris[i][0] = corner_verts[looptris[i].tri[0]];
-      sys->tris[i][1] = corner_verts[looptris[i].tri[1]];
-      sys->tris[i][2] = corner_verts[looptris[i].tri[2]];
+      sys->tris[i][0] = corner_verts[corner_tris[i][0]];
+      sys->tris[i][1] = corner_verts[corner_tris[i][1]];
+      sys->tris[i][2] = corner_verts[corner_tris[i][2]];
     }
   }
 }

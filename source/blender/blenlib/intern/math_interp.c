@@ -7,11 +7,17 @@
  */
 
 #include <math.h>
+#include <string.h>
 
 #include "BLI_math_base.h"
 #include "BLI_math_interp.h"
 #include "BLI_math_vector.h"
+#include "BLI_simd.h"
 #include "BLI_strict_flags.h"
+
+#if BLI_HAVE_SSE2 && defined(__SSE4_1__)
+#  include <smmintrin.h> /* _mm_floor_ps */
+#endif
 
 /**************************************************************************
  *                            INTERPOLATIONS
@@ -236,221 +242,298 @@ void BLI_bicubic_interpolation_fl(
 }
 
 void BLI_bicubic_interpolation_char(
-    const uchar *buffer, uchar *output, int width, int height, int components, float u, float v)
+    const uchar *buffer, uchar *output, int width, int height, float u, float v)
 {
-  bicubic_interpolation(buffer, NULL, output, NULL, width, height, components, u, v);
+  bicubic_interpolation(buffer, NULL, output, NULL, width, height, 4, u, v);
 }
 
 /* BILINEAR INTERPOLATION */
-BLI_INLINE void bilinear_interpolation(const uchar *byte_buffer,
-                                       const float *float_buffer,
-                                       uchar *byte_output,
-                                       float *float_output,
-                                       int width,
-                                       int height,
-                                       int components,
-                                       float u,
-                                       float v,
-                                       bool wrap_x,
-                                       bool wrap_y)
+BLI_INLINE void bilinear_interpolation_fl(const float *float_buffer,
+                                          float *float_output,
+                                          int width,
+                                          int height,
+                                          int components,
+                                          float u,
+                                          float v,
+                                          bool wrap_x,
+                                          bool wrap_y)
 {
   float a, b;
   float a_b, ma_b, a_mb, ma_mb;
   int y1, y2, x1, x2;
 
-  /* ImBuf in must have a valid rect or rect_float, assume this is already checked */
+  float uf = floorf(u);
+  float vf = floorf(v);
 
-  x1 = (int)floor(u);
-  x2 = (int)ceil(u);
-  y1 = (int)floor(v);
-  y2 = (int)ceil(v);
+  x1 = (int)uf;
+  x2 = x1 + 1;
+  y1 = (int)vf;
+  y2 = y1 + 1;
 
-  if (float_output) {
-    const float *row1, *row2, *row3, *row4;
-    const float empty[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+  const float *row1, *row2, *row3, *row4;
+  const float empty[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
-    /* pixel value must be already wrapped, however values at boundaries may flip */
-    if (wrap_x) {
-      if (x1 < 0) {
-        x1 = width - 1;
-      }
-      if (x2 >= width) {
-        x2 = 0;
-      }
+  /* pixel value must be already wrapped, however values at boundaries may flip */
+  if (wrap_x) {
+    if (x1 < 0) {
+      x1 = width - 1;
     }
-    else if (x2 < 0 || x1 >= width) {
-      copy_vn_fl(float_output, components, 0.0f);
-      return;
+    if (x2 >= width) {
+      x2 = 0;
     }
+  }
+  else if (x2 < 0 || x1 >= width) {
+    copy_vn_fl(float_output, components, 0.0f);
+    return;
+  }
 
-    if (wrap_y) {
-      if (y1 < 0) {
-        y1 = height - 1;
-      }
-      if (y2 >= height) {
-        y2 = 0;
-      }
+  if (wrap_y) {
+    if (y1 < 0) {
+      y1 = height - 1;
     }
-    else if (y2 < 0 || y1 >= height) {
-      copy_vn_fl(float_output, components, 0.0f);
-      return;
+    if (y2 >= height) {
+      y2 = 0;
     }
+  }
+  else if (y2 < 0 || y1 >= height) {
+    copy_vn_fl(float_output, components, 0.0f);
+    return;
+  }
 
-    /* sample including outside of edges of image */
-    if (x1 < 0 || y1 < 0) {
-      row1 = empty;
-    }
-    else {
-      row1 = float_buffer + width * y1 * components + components * x1;
-    }
-
-    if (x1 < 0 || y2 > height - 1) {
-      row2 = empty;
-    }
-    else {
-      row2 = float_buffer + width * y2 * components + components * x1;
-    }
-
-    if (x2 > width - 1 || y1 < 0) {
-      row3 = empty;
-    }
-    else {
-      row3 = float_buffer + width * y1 * components + components * x2;
-    }
-
-    if (x2 > width - 1 || y2 > height - 1) {
-      row4 = empty;
-    }
-    else {
-      row4 = float_buffer + width * y2 * components + components * x2;
-    }
-
-    a = u - floorf(u);
-    b = v - floorf(v);
-    a_b = a * b;
-    ma_b = (1.0f - a) * b;
-    a_mb = a * (1.0f - b);
-    ma_mb = (1.0f - a) * (1.0f - b);
-
-    if (components == 1) {
-      float_output[0] = ma_mb * row1[0] + a_mb * row3[0] + ma_b * row2[0] + a_b * row4[0];
-    }
-    else if (components == 3) {
-      float_output[0] = ma_mb * row1[0] + a_mb * row3[0] + ma_b * row2[0] + a_b * row4[0];
-      float_output[1] = ma_mb * row1[1] + a_mb * row3[1] + ma_b * row2[1] + a_b * row4[1];
-      float_output[2] = ma_mb * row1[2] + a_mb * row3[2] + ma_b * row2[2] + a_b * row4[2];
-    }
-    else {
-      float_output[0] = ma_mb * row1[0] + a_mb * row3[0] + ma_b * row2[0] + a_b * row4[0];
-      float_output[1] = ma_mb * row1[1] + a_mb * row3[1] + ma_b * row2[1] + a_b * row4[1];
-      float_output[2] = ma_mb * row1[2] + a_mb * row3[2] + ma_b * row2[2] + a_b * row4[2];
-      float_output[3] = ma_mb * row1[3] + a_mb * row3[3] + ma_b * row2[3] + a_b * row4[3];
-    }
+  /* sample including outside of edges of image */
+  if (x1 < 0 || y1 < 0) {
+    row1 = empty;
   }
   else {
-    const uchar *row1, *row2, *row3, *row4;
-    uchar empty[4] = {0, 0, 0, 0};
-
-    /* pixel value must be already wrapped, however values at boundaries may flip */
-    if (wrap_x) {
-      if (x1 < 0) {
-        x1 = width - 1;
-      }
-      if (x2 >= width) {
-        x2 = 0;
-      }
-    }
-    else if (x2 < 0 || x1 >= width) {
-      copy_vn_uchar(byte_output, components, 0);
-      return;
-    }
-
-    if (wrap_y) {
-      if (y1 < 0) {
-        y1 = height - 1;
-      }
-      if (y2 >= height) {
-        y2 = 0;
-      }
-    }
-    else if (y2 < 0 || y1 >= height) {
-      copy_vn_uchar(byte_output, components, 0);
-      return;
-    }
-
-    /* sample including outside of edges of image */
-    if (x1 < 0 || y1 < 0) {
-      row1 = empty;
-    }
-    else {
-      row1 = byte_buffer + width * y1 * components + components * x1;
-    }
-
-    if (x1 < 0 || y2 > height - 1) {
-      row2 = empty;
-    }
-    else {
-      row2 = byte_buffer + width * y2 * components + components * x1;
-    }
-
-    if (x2 > width - 1 || y1 < 0) {
-      row3 = empty;
-    }
-    else {
-      row3 = byte_buffer + width * y1 * components + components * x2;
-    }
-
-    if (x2 > width - 1 || y2 > height - 1) {
-      row4 = empty;
-    }
-    else {
-      row4 = byte_buffer + width * y2 * components + components * x2;
-    }
-
-    a = u - floorf(u);
-    b = v - floorf(v);
-    a_b = a * b;
-    ma_b = (1.0f - a) * b;
-    a_mb = a * (1.0f - b);
-    ma_mb = (1.0f - a) * (1.0f - b);
-
-    if (components == 1) {
-      byte_output[0] = (uchar)(ma_mb * row1[0] + a_mb * row3[0] + ma_b * row2[0] + a_b * row4[0] +
-                               0.5f);
-    }
-    else if (components == 3) {
-      byte_output[0] = (uchar)(ma_mb * row1[0] + a_mb * row3[0] + ma_b * row2[0] + a_b * row4[0] +
-                               0.5f);
-      byte_output[1] = (uchar)(ma_mb * row1[1] + a_mb * row3[1] + ma_b * row2[1] + a_b * row4[1] +
-                               0.5f);
-      byte_output[2] = (uchar)(ma_mb * row1[2] + a_mb * row3[2] + ma_b * row2[2] + a_b * row4[2] +
-                               0.5f);
-    }
-    else {
-      byte_output[0] = (uchar)(ma_mb * row1[0] + a_mb * row3[0] + ma_b * row2[0] + a_b * row4[0] +
-                               0.5f);
-      byte_output[1] = (uchar)(ma_mb * row1[1] + a_mb * row3[1] + ma_b * row2[1] + a_b * row4[1] +
-                               0.5f);
-      byte_output[2] = (uchar)(ma_mb * row1[2] + a_mb * row3[2] + ma_b * row2[2] + a_b * row4[2] +
-                               0.5f);
-      byte_output[3] = (uchar)(ma_mb * row1[3] + a_mb * row3[3] + ma_b * row2[3] + a_b * row4[3] +
-                               0.5f);
-    }
+    row1 = float_buffer + width * y1 * components + components * x1;
   }
+
+  if (x1 < 0 || y2 > height - 1) {
+    row2 = empty;
+  }
+  else {
+    row2 = float_buffer + width * y2 * components + components * x1;
+  }
+
+  if (x2 > width - 1 || y1 < 0) {
+    row3 = empty;
+  }
+  else {
+    row3 = float_buffer + width * y1 * components + components * x2;
+  }
+
+  if (x2 > width - 1 || y2 > height - 1) {
+    row4 = empty;
+  }
+  else {
+    row4 = float_buffer + width * y2 * components + components * x2;
+  }
+
+  a = u - uf;
+  b = v - vf;
+  a_b = a * b;
+  ma_b = (1.0f - a) * b;
+  a_mb = a * (1.0f - b);
+  ma_mb = (1.0f - a) * (1.0f - b);
+
+  if (components == 1) {
+    float_output[0] = ma_mb * row1[0] + a_mb * row3[0] + ma_b * row2[0] + a_b * row4[0];
+  }
+  else if (components == 3) {
+    float_output[0] = ma_mb * row1[0] + a_mb * row3[0] + ma_b * row2[0] + a_b * row4[0];
+    float_output[1] = ma_mb * row1[1] + a_mb * row3[1] + ma_b * row2[1] + a_b * row4[1];
+    float_output[2] = ma_mb * row1[2] + a_mb * row3[2] + ma_b * row2[2] + a_b * row4[2];
+  }
+  else {
+#if BLI_HAVE_SSE2
+    __m128 rgba1 = _mm_loadu_ps(row1);
+    __m128 rgba2 = _mm_loadu_ps(row2);
+    __m128 rgba3 = _mm_loadu_ps(row3);
+    __m128 rgba4 = _mm_loadu_ps(row4);
+    rgba1 = _mm_mul_ps(_mm_set1_ps(ma_mb), rgba1);
+    rgba2 = _mm_mul_ps(_mm_set1_ps(ma_b), rgba2);
+    rgba3 = _mm_mul_ps(_mm_set1_ps(a_mb), rgba3);
+    rgba4 = _mm_mul_ps(_mm_set1_ps(a_b), rgba4);
+    __m128 rgba13 = _mm_add_ps(rgba1, rgba3);
+    __m128 rgba24 = _mm_add_ps(rgba2, rgba4);
+    __m128 rgba = _mm_add_ps(rgba13, rgba24);
+    _mm_storeu_ps(float_output, rgba);
+#else
+    float_output[0] = ma_mb * row1[0] + a_mb * row3[0] + ma_b * row2[0] + a_b * row4[0];
+    float_output[1] = ma_mb * row1[1] + a_mb * row3[1] + ma_b * row2[1] + a_b * row4[1];
+    float_output[2] = ma_mb * row1[2] + a_mb * row3[2] + ma_b * row2[2] + a_b * row4[2];
+    float_output[3] = ma_mb * row1[3] + a_mb * row3[3] + ma_b * row2[3] + a_b * row4[3];
+#endif
+  }
+}
+
+void BLI_bilinear_interpolation_char(
+    const uchar *buffer, uchar *output, int width, int height, float u, float v)
+{
+#if BLI_HAVE_SSE2
+  /* Bilinear interpolation needs to read and blend four image pixels, while
+   * also handling conditions of sample coordinate being outside of the
+   * image, in which case black (all zeroes) should be used as the sample
+   * contribution.
+   *
+   * Code below does all that without any branches, by making outside the
+   * image sample locations still read the first pixel of the image, but
+   * later making sure that the result is set to zero for that sample. */
+
+  __m128 uvuv = _mm_set_ps(v, u, v, u);
+
+#  if defined(__SSE4_1__) || defined(__ARM_NEON) && defined(WITH_SSE2NEON)
+  /* If we're on SSE4 or ARM NEON, just use the simple floor() way. */
+  __m128 uvuv_floor = _mm_floor_ps(uvuv);
+#  else
+  /* The hard way: truncate, for negative inputs this will round towards zero.
+   * Then compare with input UV, and subtract 1 for the inputs that were
+   * negative. */
+  __m128 uv_trunc = _mm_cvtepi32_ps(_mm_cvttps_epi32(uvuv));
+  __m128 uv_neg = _mm_cmplt_ps(uvuv, uv_trunc);
+  __m128 uvuv_floor = _mm_sub_ps(uv_trunc, _mm_and_ps(uv_neg, _mm_set1_ps(1.0f)));
+#  endif
+
+  /* x1, y1, x2, y2 */
+  __m128i xy12 = _mm_add_epi32(_mm_cvttps_epi32(uvuv_floor), _mm_set_epi32(1, 1, 0, 0));
+  /* Check whether any of the coordinates are outside of the image. */
+  __m128i size_minus_1 = _mm_sub_epi32(_mm_set_epi32(height, width, height, width),
+                                       _mm_set1_epi32(1));
+  __m128i too_lo_xy12 = _mm_cmplt_epi32(xy12, _mm_setzero_si128());
+  __m128i too_hi_xy12 = _mm_cmplt_epi32(size_minus_1, xy12);
+  __m128i invalid_xy12 = _mm_or_si128(too_lo_xy12, too_hi_xy12);
+
+  /* Samples 1,2,3,4 are in this order: x1y1, x1y2, x2y1, x2y2 */
+  __m128i x1234 = _mm_shuffle_epi32(xy12, _MM_SHUFFLE(2, 2, 0, 0));
+  __m128i y1234 = _mm_shuffle_epi32(xy12, _MM_SHUFFLE(3, 1, 3, 1));
+  __m128i invalid_1234 = _mm_or_si128(_mm_shuffle_epi32(invalid_xy12, _MM_SHUFFLE(2, 2, 0, 0)),
+                                      _mm_shuffle_epi32(invalid_xy12, _MM_SHUFFLE(3, 1, 3, 1)));
+  /* Set x & y to zero for invalid samples. */
+  x1234 = _mm_andnot_si128(invalid_1234, x1234);
+  y1234 = _mm_andnot_si128(invalid_1234, y1234);
+
+  /* Read the four sample values. Do address calculations in C, since SSE
+   * before 4.1 makes it very cumbersome to do full integer multiplies. */
+  int xcoord[4];
+  int ycoord[4];
+  _mm_storeu_ps((float *)xcoord, _mm_castsi128_ps(x1234));
+  _mm_storeu_ps((float *)ycoord, _mm_castsi128_ps(y1234));
+  int sample1 = ((const int *)buffer)[ycoord[0] * (int64_t)width + xcoord[0]];
+  int sample2 = ((const int *)buffer)[ycoord[1] * (int64_t)width + xcoord[1]];
+  int sample3 = ((const int *)buffer)[ycoord[2] * (int64_t)width + xcoord[2]];
+  int sample4 = ((const int *)buffer)[ycoord[3] * (int64_t)width + xcoord[3]];
+  __m128i samples1234 = _mm_set_epi32(sample4, sample3, sample2, sample1);
+  /* Set samples to black for the ones that were actually invalid. */
+  samples1234 = _mm_andnot_si128(invalid_1234, samples1234);
+
+  /* Expand samples from packed 8-bit RGBA to full floats:
+   * spread to 16 bit values. */
+  __m128i rgba16_12 = _mm_unpacklo_epi8(samples1234, _mm_setzero_si128());
+  __m128i rgba16_34 = _mm_unpackhi_epi8(samples1234, _mm_setzero_si128());
+  /* Spread to 32 bit values and convert to float. */
+  __m128 rgba1 = _mm_cvtepi32_ps(_mm_unpacklo_epi16(rgba16_12, _mm_setzero_si128()));
+  __m128 rgba2 = _mm_cvtepi32_ps(_mm_unpackhi_epi16(rgba16_12, _mm_setzero_si128()));
+  __m128 rgba3 = _mm_cvtepi32_ps(_mm_unpacklo_epi16(rgba16_34, _mm_setzero_si128()));
+  __m128 rgba4 = _mm_cvtepi32_ps(_mm_unpackhi_epi16(rgba16_34, _mm_setzero_si128()));
+
+  /* Calculate interpolation factors: (1-a)*(1-b), (1-a)*b, a*(1-b), a*b */
+  __m128 abab = _mm_sub_ps(uvuv, uvuv_floor);
+  __m128 m_abab = _mm_sub_ps(_mm_set1_ps(1.0f), abab);
+  __m128 ab_mab = _mm_shuffle_ps(abab, m_abab, _MM_SHUFFLE(3, 2, 1, 0));
+  __m128 factors = _mm_mul_ps(_mm_shuffle_ps(ab_mab, ab_mab, _MM_SHUFFLE(0, 0, 2, 2)),
+                              _mm_shuffle_ps(ab_mab, ab_mab, _MM_SHUFFLE(1, 3, 1, 3)));
+
+  /* Blend the samples. */
+  rgba1 = _mm_mul_ps(_mm_shuffle_ps(factors, factors, _MM_SHUFFLE(0, 0, 0, 0)), rgba1);
+  rgba2 = _mm_mul_ps(_mm_shuffle_ps(factors, factors, _MM_SHUFFLE(1, 1, 1, 1)), rgba2);
+  rgba3 = _mm_mul_ps(_mm_shuffle_ps(factors, factors, _MM_SHUFFLE(2, 2, 2, 2)), rgba3);
+  rgba4 = _mm_mul_ps(_mm_shuffle_ps(factors, factors, _MM_SHUFFLE(3, 3, 3, 3)), rgba4);
+  __m128 rgba13 = _mm_add_ps(rgba1, rgba3);
+  __m128 rgba24 = _mm_add_ps(rgba2, rgba4);
+  __m128 rgba = _mm_add_ps(rgba13, rgba24);
+  rgba = _mm_add_ps(rgba, _mm_set1_ps(0.5f));
+  /* Pack and write to destination: pack to 16 bit signed, then to 8 bit
+   * unsigned, then write resulting 32-bit value. */
+  __m128i rgba32 = _mm_cvttps_epi32(rgba);
+  __m128i rgba16 = _mm_packs_epi32(rgba32, _mm_setzero_si128());
+  __m128i rgba8 = _mm_packus_epi16(rgba16, _mm_setzero_si128());
+  _mm_store_ss((float *)output, _mm_castsi128_ps(rgba8));
+
+#else
+
+  float a, b;
+  float a_b, ma_b, a_mb, ma_mb;
+  int y1, y2, x1, x2;
+
+  float uf = floorf(u);
+  float vf = floorf(v);
+
+  x1 = (int)uf;
+  x2 = x1 + 1;
+  y1 = (int)vf;
+  y2 = y1 + 1;
+
+  const uchar *row1, *row2, *row3, *row4;
+  uchar empty[4] = {0, 0, 0, 0};
+
+  /* completely outside of the image? */
+  if (x2 < 0 || x1 >= width) {
+    copy_vn_uchar(output, 4, 0);
+    return;
+  }
+
+  if (y2 < 0 || y1 >= height) {
+    copy_vn_uchar(output, 4, 0);
+    return;
+  }
+
+  /* sample including outside of edges of image */
+  if (x1 < 0 || y1 < 0) {
+    row1 = empty;
+  }
+  else {
+    row1 = buffer + width * y1 * 4 + 4 * x1;
+  }
+
+  if (x1 < 0 || y2 > height - 1) {
+    row2 = empty;
+  }
+  else {
+    row2 = buffer + width * y2 * 4 + 4 * x1;
+  }
+
+  if (x2 > width - 1 || y1 < 0) {
+    row3 = empty;
+  }
+  else {
+    row3 = buffer + width * y1 * 4 + 4 * x2;
+  }
+
+  if (x2 > width - 1 || y2 > height - 1) {
+    row4 = empty;
+  }
+  else {
+    row4 = buffer + width * y2 * 4 + 4 * x2;
+  }
+
+  a = u - uf;
+  b = v - vf;
+  a_b = a * b;
+  ma_b = (1.0f - a) * b;
+  a_mb = a * (1.0f - b);
+  ma_mb = (1.0f - a) * (1.0f - b);
+
+  output[0] = (uchar)(ma_mb * row1[0] + a_mb * row3[0] + ma_b * row2[0] + a_b * row4[0] + 0.5f);
+  output[1] = (uchar)(ma_mb * row1[1] + a_mb * row3[1] + ma_b * row2[1] + a_b * row4[1] + 0.5f);
+  output[2] = (uchar)(ma_mb * row1[2] + a_mb * row3[2] + ma_b * row2[2] + a_b * row4[2] + 0.5f);
+  output[3] = (uchar)(ma_mb * row1[3] + a_mb * row3[3] + ma_b * row2[3] + a_b * row4[3] + 0.5f);
+#endif
 }
 
 void BLI_bilinear_interpolation_fl(
     const float *buffer, float *output, int width, int height, int components, float u, float v)
 {
-  bilinear_interpolation(
-      NULL, buffer, NULL, output, width, height, components, u, v, false, false);
-}
-
-void BLI_bilinear_interpolation_char(
-    const uchar *buffer, uchar *output, int width, int height, int components, float u, float v)
-{
-  bilinear_interpolation(
-      buffer, NULL, output, NULL, width, height, components, u, v, false, false);
+  bilinear_interpolation_fl(buffer, output, width, height, components, u, v, false, false);
 }
 
 void BLI_bilinear_interpolation_wrap_fl(const float *buffer,
@@ -463,22 +546,7 @@ void BLI_bilinear_interpolation_wrap_fl(const float *buffer,
                                         bool wrap_x,
                                         bool wrap_y)
 {
-  bilinear_interpolation(
-      NULL, buffer, NULL, output, width, height, components, u, v, wrap_x, wrap_y);
-}
-
-void BLI_bilinear_interpolation_wrap_char(const uchar *buffer,
-                                          uchar *output,
-                                          int width,
-                                          int height,
-                                          int components,
-                                          float u,
-                                          float v,
-                                          bool wrap_x,
-                                          bool wrap_y)
-{
-  bilinear_interpolation(
-      buffer, NULL, output, NULL, width, height, components, u, v, wrap_x, wrap_y);
+  bilinear_interpolation_fl(buffer, output, width, height, components, u, v, wrap_x, wrap_y);
 }
 
 /**************************************************************************

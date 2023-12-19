@@ -44,7 +44,6 @@ class AntiAliasing {
   Framebuffer blend_weight_fb_ = {"blend_weight_fb"};
   PassSimple blend_weight_ps_ = {"blend_weight_ps"};
 
-  Framebuffer output_fb_ = {"output_fb"};
   PassSimple resolve_ps_ = {"resolve_ps"};
 
   bool draw_wireframe_ = false;
@@ -71,7 +70,7 @@ class AntiAliasing {
     anti_aliasing_enabled_ = true;  // GPENCIL_SIMPLIFY_AA(scene);
   }
 
-  void begin_sync(TextureFromPool &color_tx, TextureFromPool &reveal_tx)
+  void begin_sync(TextureFromPool &color_tx, Framebuffer &scene_fb, TextureFromPool &reveal_tx)
   {
     /* TODO(fclem): No global access. */
     const float *size = DRW_viewport_size_get();
@@ -83,7 +82,7 @@ class AntiAliasing {
     /* Resolve pass. */
     PassSimple &pass = resolve_ps_;
     pass.init();
-    pass.framebuffer_set(&output_fb_);
+    pass.framebuffer_set(&scene_fb);
     pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_CUSTOM);
     pass.shader_set(shaders_.static_shader_get(ANTIALIASING_RESOLVE));
     /** \note use color_tx as dummy if AA is disabled. */
@@ -96,24 +95,21 @@ class AntiAliasing {
     pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);
   }
 
-  void draw(Manager &manager, GPUTexture *dst_color_tx)
+  void draw(Manager &manager, const int2 render_resolution)
   {
-    int2 render_size = {GPU_texture_width(dst_color_tx), GPU_texture_height(dst_color_tx)};
-
     DRW_stats_group_start("Anti-Aliasing");
 
     if (anti_aliasing_enabled_) {
-      edge_detect_tx_.acquire(render_size, GPU_RG8);
+      edge_detect_tx_.acquire(render_resolution, GPU_RG8);
       edge_detect_fb_.ensure(GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(edge_detect_tx_));
       manager.submit(edge_detect_ps_);
 
-      blend_weight_tx_.acquire(render_size, GPU_RGBA8);
+      blend_weight_tx_.acquire(render_resolution, GPU_RGBA8);
       blend_weight_fb_.ensure(GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(blend_weight_tx_));
       manager.submit(blend_weight_ps_);
       edge_detect_tx_.release();
     }
 
-    output_fb_.ensure(GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(dst_color_tx));
     manager.submit(resolve_ps_);
     blend_weight_tx_.release();
 

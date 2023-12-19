@@ -20,7 +20,7 @@
 #include "GPU_capabilities.h"
 #include "GPU_context.h"
 
-#include "opensubdiv_capi.h"
+#include "opensubdiv_capi.hh"
 
 SubdivSettings BKE_subsurf_modifier_settings_init(const SubsurfModifierData *smd,
                                                   const bool use_render_params)

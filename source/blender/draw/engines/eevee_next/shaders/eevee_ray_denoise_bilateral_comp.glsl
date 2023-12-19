@@ -154,12 +154,11 @@ void main()
     vec2 offset_f = (fract(hammersley_2d(i, sample_count) + noise) - 0.5) * filter_size;
     ivec2 offset = ivec2(floor(offset_f + 0.5));
 
+    int closure_index = uniform_buf.raytrace.closure_index;
     ivec2 sample_texel = texel_fullres + offset;
-    ivec2 sample_tile = sample_texel / RAYTRACE_GROUP_SIZE;
+    ivec3 sample_tile = ivec3(sample_texel / RAYTRACE_GROUP_SIZE, closure_index);
     /* Make sure the sample has been processed and do not contain garbage data. */
-    uint tile_mask = imageLoad(tile_mask_img, sample_tile).r;
-    bool unprocessed_tile = !flag_test(tile_mask, 1u << 0u);
-    if (unprocessed_tile) {
+    if (imageLoad(tile_mask_img, sample_tile).r == 0u) {
       continue;
     }
 

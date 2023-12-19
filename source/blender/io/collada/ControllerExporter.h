@@ -111,7 +111,7 @@ class ControllerExporter : public COLLADASW::LibraryControllers,
 
   bool is_bone_defgroup(Object *ob_arm, const bDeformGroup *def);
 
-  std::string add_weights_source(Mesh *me,
+  std::string add_weights_source(Mesh *mesh,
                                  const std::string &controller_id,
                                  const std::list<float> &weights);
 

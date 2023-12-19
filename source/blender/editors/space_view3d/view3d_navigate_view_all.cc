@@ -303,6 +303,7 @@ void VIEW3D_OT_view_all(wmOperatorType *ot)
 
 static int viewselected_exec(bContext *C, wmOperator *op)
 {
+  using namespace blender;
   ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
   View3D *v3d = CTX_wm_view3d(C);
@@ -412,27 +413,12 @@ static int viewselected_exec(bContext *C, wmOperator *op)
     ok = PE_minmax(depsgraph, scene, CTX_data_view_layer(C), min, max);
   }
   else if (ob_eval && (ob_eval->mode & OB_MODE_SCULPT_CURVES)) {
-    BLI_assert(ob_eval->type == OB_CURVES);
-    BLI_assert(ob_eval->data != nullptr);
-    using namespace blender;
-    using namespace blender::bke;
-    using namespace blender::bke::crazyspace;
-    const Object &ob_orig = *DEG_get_original_object(ob_eval);
-    const GeometryDeformation deformation = get_evaluated_curves_deformation(ob_eval, ob_orig);
-    BLI_assert(ob_eval->data);
-    const Curves &curves_id = *static_cast<const Curves *>(ob_orig.data);
-    IndexMaskMemory memory;
-    const blender::bke::CurvesGeometry &curves = curves_id.geometry.wrap();
-    const IndexMask mask = ed::curves::retrieve_selected_points(curves, memory);
-    const std::optional<Bounds<float3>> curves_bounds = bounds::min_max(mask,
-                                                                        deformation.positions);
-    if (curves_bounds.has_value()) {
-      ok = true;
-      copy_v3_v3(min, curves_bounds->min);
-      copy_v3_v3(max, curves_bounds->max);
-      mul_m4_v3(ob_eval->object_to_world, min);
-      mul_m4_v3(ob_eval->object_to_world, max);
+    FOREACH_OBJECT_IN_MODE_BEGIN (
+        scene_eval, view_layer_eval, v3d, ob_eval->type, ob_eval->mode, ob_eval_iter)
+    {
+      ok |= ED_view3d_minmax_verts(ob_eval_iter, min, max);
     }
+    FOREACH_OBJECT_IN_MODE_END;
   }
   else if (ob_eval && (ob_eval->mode & (OB_MODE_SCULPT | OB_MODE_VERTEX_PAINT |
                                         OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT)))

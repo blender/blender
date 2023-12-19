@@ -4,6 +4,7 @@
 
 set(INC
   PUBLIC .
+  ../../source/blender/imbuf
 )
 
 set(INC_SYS
@@ -71,7 +72,6 @@ set(SRC
 set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::dna
-  PRIVATE bf::imbuf
   PRIVATE bf::intern::clog
 )
 
@@ -345,6 +345,14 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
     check_symbol_exists(poll "poll.h" HAVE_POLL)
     if(HAVE_POLL)
       add_definitions(-DHAVE_POLL)
+    endif()
+
+    if(WITH_GHOST_WAYLAND_LIBDECOR)
+      # See code-comment for `USE_LIBDECOR_CONFIG_COPY_WORKAROUND`.
+      check_symbol_exists(malloc_usable_size "malloc.h" HAVE_MALLOC_USABLE_SIZE)
+      if(HAVE_MALLOC_USABLE_SIZE)
+        add_definitions(-DHAVE_MALLOC_USABLE_SIZE)
+      endif()
     endif()
 
     list(APPEND SRC

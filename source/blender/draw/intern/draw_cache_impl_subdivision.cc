@@ -37,11 +37,11 @@
 #include "GPU_state.h"
 #include "GPU_vertex_buffer.h"
 
-#include "opensubdiv_capi.h"
-#include "opensubdiv_capi_type.h"
-#include "opensubdiv_converter_capi.h"
-#include "opensubdiv_evaluator_capi.h"
-#include "opensubdiv_topology_refiner_capi.h"
+#include "opensubdiv_capi.hh"
+#include "opensubdiv_capi_type.hh"
+#include "opensubdiv_converter_capi.hh"
+#include "opensubdiv_evaluator_capi.hh"
+#include "opensubdiv_topology_refiner_capi.hh"
 
 #include "draw_cache_extract.hh"
 #include "draw_cache_impl.hh"
@@ -354,7 +354,9 @@ static GPUShader *get_subdiv_custom_data_shader(int comp_type, int dimensions)
 }
 
 /* -------------------------------------------------------------------- */
-/** Vertex formats used for data transfer from OpenSubdiv, and for data processing on our side.
+/** \name Vertex Formats
+ *
+ * Used for data transfer from OpenSubdiv, and for data processing on our side.
  * \{ */
 
 static GPUVertFormat *get_uvs_format()
@@ -754,13 +756,15 @@ static void draw_subdiv_cache_extra_coarse_face_data_mesh(const MeshRenderData &
   const blender::OffsetIndices faces = mesh->faces();
   for (const int i : faces.index_range()) {
     uint32_t flag = 0;
-    if (!(mr.sharp_faces && mr.sharp_faces[i])) {
+    if (!(mr.normals_domain == blender::bke::MeshNormalDomain::Face ||
+          (!mr.sharp_faces.is_empty() && mr.sharp_faces[i])))
+    {
       flag |= SUBDIV_COARSE_FACE_FLAG_SMOOTH;
     }
-    if (mr.select_poly && mr.select_poly[i]) {
+    if (!mr.select_poly.is_empty() && mr.select_poly[i]) {
       flag |= SUBDIV_COARSE_FACE_FLAG_SELECT;
     }
-    if (mr.hide_poly && mr.hide_poly[i]) {
+    if (!mr.hide_poly.is_empty() && mr.hide_poly[i]) {
       flag |= SUBDIV_COARSE_FACE_FLAG_HIDDEN;
     }
     flags_data[i] = uint(faces[i].start()) | (flag << SUBDIV_COARSE_FACE_FLAG_OFFSET);
@@ -783,7 +787,9 @@ static void draw_subdiv_cache_extra_coarse_face_data_mapped(Mesh *mesh,
     /* Selection and hiding from bmesh. */
     uint32_t flag = (f) ? compute_coarse_face_flag_bm(f, mr.efa_act) : 0;
     /* Smooth from mesh. */
-    if (!(mr.sharp_faces && mr.sharp_faces[i])) {
+    if (!(mr.normals_domain == blender::bke::MeshNormalDomain::Face ||
+          (!mr.sharp_faces.is_empty() && mr.sharp_faces[i])))
+    {
       flag |= SUBDIV_COARSE_FACE_FLAG_SMOOTH;
     }
     flags_data[i] = uint(faces[i].start()) | (flag << SUBDIV_COARSE_FACE_FLAG_OFFSET);

@@ -332,7 +332,7 @@ static bool sort_vertex_faces(const Span<int2> edges,
                               MutableSpan<int> r_shared_edges,
                               MutableSpan<int> r_sorted_corners)
 {
-  if (connected_faces.size() <= 2 && (!boundary_vertex || connected_faces.size() == 0)) {
+  if (connected_faces.size() <= 2 && (!boundary_vertex || connected_faces.is_empty())) {
     return true;
   }
 
@@ -890,7 +890,7 @@ static Mesh *calc_dual_mesh(const Mesh &src_mesh,
   }
   Mesh *mesh_out = BKE_mesh_new_nomain(
       vert_positions.size(), new_edges.size(), loop_lengths.size(), loops.size());
-  BKE_mesh_smooth_flag_set(mesh_out, false);
+  bke::mesh_smooth_set(*mesh_out, false);
 
   transfer_attributes(vertex_types,
                       keep_boundaries,

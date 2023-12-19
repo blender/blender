@@ -20,7 +20,7 @@
 #ifdef RNA_RUNTIME
 
 #  include "BKE_global.h"
-#  include "BKE_main.h"
+#  include "BKE_main.hh"
 #  include "BKE_mesh.hh"
 
 /* all the list begin functions are added manually here, Main is not in SDNA */

@@ -129,18 +129,14 @@ class PackIsland {
   /** Unchanged by #pack_islands, used by caller. */
   int caller_index;
 
-  void add_triangle(const float2 uv0, const float2 uv1, const float2 uv2);
-  void add_polygon(const Span<float2> uvs, MemArena *arena, Heap *heap);
+  void add_triangle(float2 uv0, float2 uv1, float2 uv2);
+  void add_polygon(Span<float2> uvs, MemArena *arena, Heap *heap);
 
-  void build_transformation(const float scale, const double rotation, float r_matrix[2][2]) const;
-  void build_inverse_transformation(const float scale,
-                                    const double rotation,
-                                    float r_matrix[2][2]) const;
+  void build_transformation(float scale, double rotation, float r_matrix[2][2]) const;
+  void build_inverse_transformation(float scale, double rotation, float r_matrix[2][2]) const;
 
-  float2 get_diagonal_support(const float scale, const float rotation, const float margin) const;
-  float2 get_diagonal_support_d4(const float scale,
-                                 const float rotation,
-                                 const float margin) const;
+  float2 get_diagonal_support(float scale, float rotation, float margin) const;
+  float2 get_diagonal_support_d4(float scale, float rotation, float margin) const;
 
   /** Center of AABB and inside-or-touching the convex hull. */
   float2 pivot_;
@@ -148,7 +144,7 @@ class PackIsland {
   float2 half_diagonal_;
   float pre_rotate_;
 
-  void place_(const float scale, const UVPhi phi);
+  void place_(float scale, UVPhi phi);
   void finalize_geometry_(const UVPackIsland_Params &params, MemArena *arena, Heap *heap);
 
   bool can_rotate_(const UVPackIsland_Params &params) const;
@@ -165,7 +161,7 @@ class PackIsland {
   friend class OverlapMerger;
 };
 
-float pack_islands(const Span<PackIsland *> &islands, const UVPackIsland_Params &params);
+float pack_islands(Span<PackIsland *> islands, const UVPackIsland_Params &params);
 
 /** Compute `r = mat * (a + b)` with high precision. */
 void mul_v2_m2_add_v2v2(float r[2], const float mat[2][2], const float a[2], const float b[2]);

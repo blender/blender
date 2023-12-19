@@ -19,6 +19,10 @@ void main()
 
   GBufferData gbuf = gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_color_tx, texel);
 
+  if (!gbuf.has_reflection && !gbuf.has_reflection && !gbuf.has_refraction) {
+    return;
+  }
+
   ClosureLightStack stack;
   stack.cl[0].N = gbuf.has_diffuse ? gbuf.diffuse.N : gbuf.reflection.N;
   stack.cl[0].ltc_mat = LTC_LAMBERT_MAT;

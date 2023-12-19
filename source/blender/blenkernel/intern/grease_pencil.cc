@@ -232,6 +232,8 @@ namespace blender::bke::greasepencil {
 
 DrawingTransforms::DrawingTransforms(const Object &grease_pencil_ob)
 {
+  /* TODO: For now layer space = object space. This needs to change once the layers have a
+   * transform. */
   this->layer_space_to_world_space = float4x4_view(grease_pencil_ob.object_to_world);
   this->world_space_to_layer_space = math::invert(this->layer_space_to_world_space);
 }
@@ -769,7 +771,7 @@ FramesMapKey Layer::frame_key_at(const int frame_number) const
 {
   Span<int> sorted_keys = this->sorted_keys();
   /* No keyframes, return no drawing. */
-  if (sorted_keys.size() == 0) {
+  if (sorted_keys.is_empty()) {
     return -1;
   }
   /* Before the first drawing, return no drawing. */
@@ -1659,7 +1661,7 @@ static void remove_drawings_unchecked(GreasePencil &grease_pencil,
                                       Span<int64_t> sorted_indices_to_remove)
 {
   using namespace blender::bke::greasepencil;
-  if (grease_pencil.drawing_array_num == 0 || sorted_indices_to_remove.size() == 0) {
+  if (grease_pencil.drawing_array_num == 0 || sorted_indices_to_remove.is_empty()) {
     return;
   }
   const int64_t drawings_to_remove = sorted_indices_to_remove.size();

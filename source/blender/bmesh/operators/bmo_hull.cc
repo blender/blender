@@ -21,9 +21,9 @@
 /* XXX: using 128 for totelem and `pchunk` of `mempool`, no idea what good
  * values would be though */
 
-#  include "bmesh.h"
+#  include "bmesh.hh"
 
-#  include "intern/bmesh_operators_private.h" /* own include */
+#  include "intern/bmesh_operators_private.hh" /* own include */
 
 using blender::Vector;
 

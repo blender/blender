@@ -10,7 +10,7 @@
 
 #include "BKE_appdir.h"
 #include "BKE_context.hh"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
 #include "BLO_readfile.h"

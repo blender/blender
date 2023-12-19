@@ -378,8 +378,7 @@ static void data_transfer_dtdata_type_postprocess(Mesh *me_dst,
     bke::MutableAttributeAccessor attributes = me_dst->attributes_for_write();
     bke::SpanAttributeWriter<bool> sharp_edges = attributes.lookup_or_add_for_write_span<bool>(
         "sharp_edge", ATTR_DOMAIN_EDGE);
-    const bool *sharp_faces = static_cast<const bool *>(
-        CustomData_get_layer_named(&me_dst->face_data, CD_PROP_BOOL, "sharp_face"));
+    const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", ATTR_DOMAIN_FACE);
     /* Note loop_nors_dst contains our custom normals as transferred from source... */
     blender::bke::mesh::normals_loop_custom_set(me_dst->vert_positions(),
                                                 me_dst->edges(),

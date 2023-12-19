@@ -671,11 +671,11 @@ bool closest_point_on_surface(SurfaceModifierData *surmd,
 
     if (surface_vel) {
       const int *corner_verts = bvhtree->corner_verts.data();
-      const MLoopTri *lt = &bvhtree->looptris[nearest.index];
+      const blender::int3 &tri = bvhtree->corner_tris[nearest.index];
 
-      copy_v3_v3(surface_vel, surmd->runtime.vert_velocities[corner_verts[lt->tri[0]]]);
-      add_v3_v3(surface_vel, surmd->runtime.vert_velocities[corner_verts[lt->tri[1]]]);
-      add_v3_v3(surface_vel, surmd->runtime.vert_velocities[corner_verts[lt->tri[2]]]);
+      copy_v3_v3(surface_vel, surmd->runtime.vert_velocities[corner_verts[tri[0]]]);
+      add_v3_v3(surface_vel, surmd->runtime.vert_velocities[corner_verts[tri[1]]]);
+      add_v3_v3(surface_vel, surmd->runtime.vert_velocities[corner_verts[tri[2]]]);
 
       mul_v3_fl(surface_vel, (1.0f / 3.0f));
     }

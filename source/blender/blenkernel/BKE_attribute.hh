@@ -784,15 +784,15 @@ struct AttributeTransferData {
   /* Expect that if an attribute exists, it is stored as a contiguous array internally anyway. */
   GVArraySpan src;
   AttributeMetaData meta_data;
-  bke::GSpanAttributeWriter dst;
+  GSpanAttributeWriter dst;
 };
 /**
  * Retrieve attribute arrays and writers for attributes that should be transferred between
  * data-blocks of the same type.
  */
 Vector<AttributeTransferData> retrieve_attributes_for_transfer(
-    const bke::AttributeAccessor src_attributes,
-    bke::MutableAttributeAccessor dst_attributes,
+    const AttributeAccessor src_attributes,
+    MutableAttributeAccessor dst_attributes,
     eAttrDomainMask domain_mask,
     const AnonymousAttributePropagationInfo &propagation_info,
     const Set<std::string> &skip = {});
@@ -874,7 +874,7 @@ void gather_attributes(AttributeAccessor src_attributes,
                        eAttrDomain domain,
                        const AnonymousAttributePropagationInfo &propagation_info,
                        const Set<std::string> &skip,
-                       const Span<int> indices,
+                       Span<int> indices,
                        MutableAttributeAccessor dst_attributes);
 
 /**
@@ -913,5 +913,10 @@ void copy_attributes_group_to_group(AttributeAccessor src_attributes,
                                     OffsetIndices<int> dst_offsets,
                                     const IndexMask &selection,
                                     MutableAttributeAccessor dst_attributes);
+
+void fill_attribute_range_default(MutableAttributeAccessor dst_attributes,
+                                  eAttrDomain domain,
+                                  const Set<std::string> &skip,
+                                  IndexRange range);
 
 }  // namespace blender::bke

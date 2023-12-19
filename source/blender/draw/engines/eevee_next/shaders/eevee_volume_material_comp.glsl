@@ -85,10 +85,10 @@ void main()
   attrib_load();
   nodetree_volume();
 
-  vec3 scattering = g_volume_scatter_data.scattering;
-  vec3 absorption = g_volume_absorption_data.absorption;
+  vec3 scattering = g_volume_scattering;
+  float anisotropy = g_volume_anisotropy;
+  vec3 absorption = g_volume_absorption;
   vec3 emission = g_emission;
-  float anisotropy = g_volume_scatter_data.anisotropy;
   vec2 phase = vec2(anisotropy, 1.0);
 
 #ifdef MAT_GEOM_VOLUME_OBJECT

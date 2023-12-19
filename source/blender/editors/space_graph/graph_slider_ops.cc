@@ -20,6 +20,7 @@
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 
+#include "DEG_depsgraph.hh"
 #include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
 
@@ -283,6 +284,20 @@ static void graph_slider_exit(bContext *C, wmOperator *op)
   op->customdata = nullptr;
 }
 
+static void update_depsgraph(tGraphSliderOp *gso)
+{
+  ListBase anim_data = {nullptr, nullptr};
+
+  bAnimContext *ac = &gso->ac;
+  ANIM_animdata_filter(
+      ac, &anim_data, OPERATOR_DATA_FILTER, ac->data, eAnimCont_Types(ac->datatype));
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+    DEG_id_tag_update(ale->fcurve_owner_id, ID_RECALC_ANIMATION);
+  }
+
+  ANIM_animdata_freelist(&anim_data);
+}
+
 static int graph_slider_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   tGraphSliderOp *gso = static_cast<tGraphSliderOp *>(op->customdata);
@@ -309,6 +324,10 @@ static int graph_slider_modal(bContext *C, wmOperator *op, const wmEvent *event)
     case RIGHTMOUSE: {
       if (event->val == KM_PRESS) {
         reset_bezts(gso);
+
+        /* The owner id's of the FCurves need to be updated, else the animation will be stuck in
+         * the state prior to calling reset_bezt. */
+        update_depsgraph(gso);
 
         WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
 

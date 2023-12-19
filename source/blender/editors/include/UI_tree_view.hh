@@ -98,9 +98,11 @@ class TreeViewItemContainer {
 ENUM_OPERATORS(TreeViewItemContainer::IterOptions,
                TreeViewItemContainer::IterOptions::SkipCollapsed);
 
-/** The container class is the base for both the tree-view and the items. This alias gives it a
+/**
+ * The container class is the base for both the tree-view and the items. This alias gives it a
  * clearer name for handles that accept both. Use whenever something wants to act on child-items,
- * irrespective of if they are stored at root level or as children of some other item. */
+ * irrespective of if they are stored at root level or as children of some other item.
+ */
 using TreeViewOrItem = TreeViewItemContainer;
 
 /** \} */

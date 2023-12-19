@@ -50,7 +50,7 @@ static void extract_fdots_uv_init(const MeshRenderData &mr,
     data->cd_ofs = CustomData_get_offset(&mr.bm->ldata, CD_PROP_FLOAT2);
   }
   else {
-    data->uv_data = (const float(*)[2])CustomData_get_layer(&mr.me->loop_data, CD_PROP_FLOAT2);
+    data->uv_data = (const float(*)[2])CustomData_get_layer(&mr.mesh->loop_data, CD_PROP_FLOAT2);
   }
 }
 
@@ -74,7 +74,7 @@ static void extract_fdots_uv_iter_face_mesh(const MeshRenderData &mr,
                                             void *_data)
 {
   MeshExtract_FdotUV_Data *data = static_cast<MeshExtract_FdotUV_Data *>(_data);
-  const BitSpan facedot_tags = mr.me->runtime->subsurf_face_dot_tags;
+  const BitSpan facedot_tags = mr.mesh->runtime->subsurf_face_dot_tags;
 
   for (const int ml_index : mr.faces[face_index]) {
     const int vert = mr.corner_verts[ml_index];

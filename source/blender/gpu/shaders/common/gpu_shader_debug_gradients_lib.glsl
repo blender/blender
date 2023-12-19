@@ -26,3 +26,7 @@ vec3 hue_gradient(float t)
   vec3 p = abs(fract(t + vec3(1.0, 2.0 / 3.0, 1.0 / 3.0)) * 6.0 - 3.0);
   return (clamp(p - 1.0, 0.0, 1.0));
 }
+vec3 green_to_red_gradient(float t)
+{
+  return mix(vec3(0.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), t);
+}

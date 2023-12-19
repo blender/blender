@@ -10,6 +10,7 @@
 #include "UI_resources.hh"
 
 #include "BKE_attribute_math.hh"
+#include "BKE_geometry_fields.hh"
 #include "BKE_grease_pencil.hh"
 
 #include "BLI_task.hh"
@@ -17,6 +18,71 @@
 #include "RNA_enum_types.hh"
 
 #include "NOD_socket_search_link.hh"
+
+namespace blender::nodes {
+
+EvaluateOnDomainInput::EvaluateOnDomainInput(GField field, eAttrDomain domain)
+    : bke::GeometryFieldInput(field.cpp_type(), "Evaluate on Domain"),
+      src_field_(std::move(field)),
+      src_domain_(domain)
+{
+}
+
+GVArray EvaluateOnDomainInput::get_varray_for_context(const bke::GeometryFieldContext &context,
+                                                      const IndexMask & /*mask*/) const
+{
+  const eAttrDomain dst_domain = context.domain();
+  const int dst_domain_size = context.attributes()->domain_size(dst_domain);
+  const CPPType &cpp_type = src_field_.cpp_type();
+
+  if (context.type() == GeometryComponent::Type::GreasePencil &&
+      (src_domain_ == ATTR_DOMAIN_LAYER) != (dst_domain == ATTR_DOMAIN_LAYER))
+  {
+    /* Evaluate field just for the current layer. */
+    if (src_domain_ == ATTR_DOMAIN_LAYER) {
+      const bke::GeometryFieldContext src_domain_context{context, ATTR_DOMAIN_LAYER};
+      const int layer_index = context.grease_pencil_layer_index();
+
+      const IndexMask single_layer_mask = IndexRange(layer_index, 1);
+      FieldEvaluator value_evaluator{src_domain_context, &single_layer_mask};
+      value_evaluator.add(src_field_);
+      value_evaluator.evaluate();
+
+      const GVArray &values = value_evaluator.get_evaluated(0);
+
+      BUFFER_FOR_CPP_TYPE_VALUE(cpp_type, value);
+      BLI_SCOPED_DEFER([&]() { cpp_type.destruct(value); });
+      values.get_to_uninitialized(layer_index, value);
+      return GVArray::ForSingle(cpp_type, dst_domain_size, value);
+    }
+    /* We don't adapt from curve to layer domain currently. */
+    return GVArray::ForSingleDefault(cpp_type, dst_domain_size);
+  }
+
+  const bke::AttributeAccessor attributes = *context.attributes();
+
+  const bke::GeometryFieldContext other_domain_context{context, src_domain_};
+  const int64_t src_domain_size = attributes.domain_size(src_domain_);
+  GArray<> values(cpp_type, src_domain_size);
+  FieldEvaluator value_evaluator{other_domain_context, src_domain_size};
+  value_evaluator.add_with_destination(src_field_, values.as_mutable_span());
+  value_evaluator.evaluate();
+  return attributes.adapt_domain(GVArray::ForGArray(std::move(values)), src_domain_, dst_domain);
+}
+
+void EvaluateOnDomainInput::for_each_field_input_recursive(
+    FunctionRef<void(const FieldInput &)> fn) const
+{
+  src_field_.node().for_each_field_input_recursive(fn);
+}
+
+std::optional<eAttrDomain> EvaluateOnDomainInput::preferred_domain(
+    const GeometryComponent & /*component*/) const
+{
+  return src_domain_;
+}
+
+}  // namespace blender::nodes
 
 namespace blender::nodes::node_geo_evaluate_on_domain_cc {
 
@@ -57,73 +123,6 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
     });
   }
 }
-
-class EvaluateOnDomainInput final : public bke::GeometryFieldInput {
- private:
-  GField src_field_;
-  eAttrDomain src_domain_;
-
- public:
-  EvaluateOnDomainInput(GField field, eAttrDomain domain)
-      : bke::GeometryFieldInput(field.cpp_type(), "Evaluate on Domain"),
-        src_field_(std::move(field)),
-        src_domain_(domain)
-  {
-  }
-
-  GVArray get_varray_for_context(const bke::GeometryFieldContext &context,
-                                 const IndexMask & /*mask*/) const final
-  {
-    const eAttrDomain dst_domain = context.domain();
-    const int dst_domain_size = context.attributes()->domain_size(dst_domain);
-    const CPPType &cpp_type = src_field_.cpp_type();
-
-    if (context.type() == GeometryComponent::Type::GreasePencil &&
-        (src_domain_ == ATTR_DOMAIN_LAYER) != (dst_domain == ATTR_DOMAIN_LAYER))
-    {
-      /* Evaluate field just for the current layer. */
-      if (src_domain_ == ATTR_DOMAIN_LAYER) {
-        const bke::GeometryFieldContext src_domain_context{context, ATTR_DOMAIN_LAYER};
-        const int layer_index = context.grease_pencil_layer_index();
-
-        const IndexMask single_layer_mask = IndexRange(layer_index, 1);
-        FieldEvaluator value_evaluator{src_domain_context, &single_layer_mask};
-        value_evaluator.add(src_field_);
-        value_evaluator.evaluate();
-
-        const GVArray &values = value_evaluator.get_evaluated(0);
-
-        BUFFER_FOR_CPP_TYPE_VALUE(cpp_type, value);
-        BLI_SCOPED_DEFER([&]() { cpp_type.destruct(value); });
-        values.get_to_uninitialized(layer_index, value);
-        return GVArray::ForSingle(cpp_type, dst_domain_size, value);
-      }
-      /* We don't adapt from curve to layer domain currently. */
-      return GVArray::ForSingleDefault(cpp_type, dst_domain_size);
-    }
-
-    const bke::AttributeAccessor attributes = *context.attributes();
-
-    const bke::GeometryFieldContext other_domain_context{context, src_domain_};
-    const int64_t src_domain_size = attributes.domain_size(src_domain_);
-    GArray<> values(cpp_type, src_domain_size);
-    FieldEvaluator value_evaluator{other_domain_context, src_domain_size};
-    value_evaluator.add_with_destination(src_field_, values.as_mutable_span());
-    value_evaluator.evaluate();
-    return attributes.adapt_domain(GVArray::ForGArray(std::move(values)), src_domain_, dst_domain);
-  }
-
-  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override
-  {
-    src_field_.node().for_each_field_input_recursive(fn);
-  }
-
-  std::optional<eAttrDomain> preferred_domain(
-      const GeometryComponent & /*component*/) const override
-  {
-    return src_domain_;
-  }
-};
 
 static void node_geo_exec(GeoNodeExecParams params)
 {

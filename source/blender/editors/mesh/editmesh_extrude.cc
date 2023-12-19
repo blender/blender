@@ -308,7 +308,7 @@ static int edbm_extrude_repeat_exec(bContext *C, wmOperator *op)
     }
 
     EDBMUpdate_Params params{};
-    params.calc_looptri = true;
+    params.calc_looptris = true;
     params.calc_normals = true;
     params.is_destructive = true;
     EDBM_update(static_cast<Mesh *>(obedit->data), &params);
@@ -449,7 +449,7 @@ static int edbm_extrude_region_exec(bContext *C, wmOperator *op)
     /* This normally happens when pushing undo but modal operators
      * like this one don't push undo data until after modal mode is done. */
     EDBMUpdate_Params params{};
-    params.calc_looptri = true;
+    params.calc_looptris = true;
     params.calc_normals = true;
     params.is_destructive = true;
     EDBM_update(static_cast<Mesh *>(obedit->data), &params);
@@ -507,7 +507,7 @@ static int edbm_extrude_context_exec(bContext *C, wmOperator *op)
     /* This normally happens when pushing undo but modal operators
      * like this one don't push undo data until after modal mode is done. */
     EDBMUpdate_Params params{};
-    params.calc_looptri = true;
+    params.calc_looptris = true;
     params.calc_normals = true;
     params.is_destructive = true;
     EDBM_update(static_cast<Mesh *>(obedit->data), &params);
@@ -559,7 +559,7 @@ static int edbm_extrude_verts_exec(bContext *C, wmOperator *op)
     edbm_extrude_verts_indiv(em, op, BM_ELEM_SELECT);
 
     EDBMUpdate_Params params{};
-    params.calc_looptri = true;
+    params.calc_looptris = true;
     params.calc_normals = false;
     params.is_destructive = true;
     EDBM_update(static_cast<Mesh *>(obedit->data), &params);
@@ -612,7 +612,7 @@ static int edbm_extrude_edges_exec(bContext *C, wmOperator *op)
     edbm_extrude_edges_indiv(em, op, BM_ELEM_SELECT, use_normal_flip);
 
     EDBMUpdate_Params params{};
-    params.calc_looptri = true;
+    params.calc_looptris = true;
     params.calc_normals = false;
     params.is_destructive = true;
     EDBM_update(static_cast<Mesh *>(obedit->data), &params);
@@ -665,7 +665,7 @@ static int edbm_extrude_faces_exec(bContext *C, wmOperator *op)
     edbm_extrude_discrete_faces(em, op, BM_ELEM_SELECT);
 
     EDBMUpdate_Params params{};
-    params.calc_looptri = true;
+    params.calc_looptris = true;
     params.calc_normals = false;
     params.is_destructive = true;
     EDBM_update(static_cast<Mesh *>(obedit->data), &params);
@@ -904,7 +904,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const w
     /* This normally happens when pushing undo but modal operators
      * like this one don't push undo data until after modal mode is done. */
     EDBMUpdate_Params params{};
-    params.calc_looptri = true;
+    params.calc_looptris = true;
     params.calc_normals = true;
     params.is_destructive = true;
     EDBM_update(static_cast<Mesh *>(vc.obedit->data), &params);

@@ -227,6 +227,8 @@ struct MSLBufferBlock {
   uint slot;
   uint location;
   shader::Qualifier qualifiers;
+  /* Flag for use with texture atomic fallback. */
+  bool is_texture_buffer = false;
 
   bool operator==(const MSLBufferBlock &right) const
   {
@@ -253,6 +255,9 @@ struct MSLTextureResource {
   uint slot;
   /* Explicit bind index provided by ShaderCreateInfo. */
   uint location;
+
+  /* Atomic fallback buffer information. */
+  int atomic_fallback_buffer_ssbo_id = -1;
 
   eGPUTextureType get_texture_binding_type() const;
   eGPUSamplerFormat get_sampler_format() const;

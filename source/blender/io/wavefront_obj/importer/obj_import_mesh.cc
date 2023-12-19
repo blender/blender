@@ -41,7 +41,8 @@ Object *MeshFromGeometry::create_mesh(Main *bmain,
     /* Empty mesh */
     return nullptr;
   }
-  std::string ob_name{mesh_geometry_.geometry_name_};
+  std::string ob_name = get_geometry_name(mesh_geometry_.geometry_name_,
+                                          import_params.collection_separator);
   if (ob_name.empty()) {
     ob_name = "Untitled";
   }
@@ -66,7 +67,7 @@ Object *MeshFromGeometry::create_mesh(Main *bmain,
 
   if (import_params.validate_meshes || mesh_geometry_.has_invalid_faces_) {
     bool verbose_validate = false;
-#ifdef DEBUG
+#ifndef NDEBUG
     verbose_validate = true;
 #endif
     BKE_mesh_validate(mesh, verbose_validate, false);

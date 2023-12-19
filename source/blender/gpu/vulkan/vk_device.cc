@@ -6,18 +6,24 @@
  * \ingroup gpu
  */
 
-#include "vk_device.hh"
+#include <sstream>
+
 #include "vk_backend.hh"
 #include "vk_context.hh"
+#include "vk_device.hh"
 #include "vk_memory.hh"
 #include "vk_state_manager.hh"
 #include "vk_storage_buffer.hh"
 #include "vk_texture.hh"
 #include "vk_vertex_buffer.hh"
 
+#include "GPU_capabilities.h"
+
 #include "BLI_math_matrix_types.hh"
 
 #include "GHOST_C-api.h"
+
+extern "C" char datatoc_glsl_shader_defines_glsl[];
 
 namespace blender::gpu {
 
@@ -48,6 +54,7 @@ void VKDevice::deinit()
   vk_queue_family_ = 0;
   vk_queue_ = VK_NULL_HANDLE;
   vk_physical_device_properties_ = {};
+  glsl_patch_.clear();
 }
 
 bool VKDevice::is_initialized() const
@@ -79,6 +86,7 @@ void VKDevice::init(void *ghost_context)
 
   debug::object_label(device_get(), "LogicalDevice");
   debug::object_label(queue_get(), "GenericQueue");
+  init_glsl_patch();
 }
 
 void VKDevice::init_debug_callbacks()
@@ -159,6 +167,45 @@ void VKDevice::init_dummy_color_attachment()
   BLI_assert(texture);
   VKTexture &vk_texture = *unwrap(unwrap(texture));
   dummy_color_attachment_ = std::make_optional(std::reference_wrapper(vk_texture));
+}
+
+void VKDevice::init_glsl_patch()
+{
+  std::stringstream ss;
+
+  ss << "#version 450\n";
+  if (GPU_shader_draw_parameters_support()) {
+    ss << "#extension GL_ARB_shader_draw_parameters : enable\n";
+    ss << "#define GPU_ARB_shader_draw_parameters\n";
+    ss << "#define gpu_BaseInstance (gl_BaseInstanceARB)\n";
+  }
+
+  ss << "#define gl_VertexID gl_VertexIndex\n";
+  ss << "#define gpu_InstanceIndex (gl_InstanceIndex)\n";
+  ss << "#define GPU_ARB_texture_cube_map_array\n";
+  ss << "#define gl_InstanceID (gpu_InstanceIndex - gpu_BaseInstance)\n";
+
+  /* TODO(fclem): This creates a validation error and should be already part of Vulkan 1.2. */
+  ss << "#extension GL_ARB_shader_viewport_layer_array: enable\n";
+  if (!workarounds_.shader_output_layer) {
+    ss << "#define gpu_Layer gl_Layer\n";
+  }
+  if (!workarounds_.shader_output_viewport_index) {
+    ss << "#define gpu_ViewportIndex gl_ViewportIndex\n";
+  }
+
+  ss << "#define DFDX_SIGN 1.0\n";
+  ss << "#define DFDY_SIGN 1.0\n";
+
+  /* GLSL Backend Lib. */
+  ss << datatoc_glsl_shader_defines_glsl;
+  glsl_patch_ = ss.str();
+}
+
+const char *VKDevice::glsl_patch_get() const
+{
+  BLI_assert(!glsl_patch_.empty());
+  return glsl_patch_.c_str();
 }
 
 /* -------------------------------------------------------------------- */

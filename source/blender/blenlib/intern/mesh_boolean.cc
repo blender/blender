@@ -15,7 +15,7 @@
 
 #  include "BLI_array.hh"
 #  include "BLI_assert.h"
-#  include "BLI_delaunay_2d.h"
+#  include "BLI_delaunay_2d.hh"
 #  include "BLI_hash.hh"
 #  include "BLI_kdopbvh.h"
 #  include "BLI_map.hh"
@@ -51,7 +51,7 @@ namespace blender::meshintersect {
  * that yield predictable results from run-to-run and machine-to-machine.
  */
 class Edge {
-  const Vert *v_[2]{nullptr, nullptr};
+  const Vert *v_[2] = {nullptr, nullptr};
 
  public:
   Edge() = default;
@@ -981,7 +981,7 @@ static Array<int> sort_tris_around_edge(
    * be only 3 or 4 - so OK to make copies of arrays instead of swapping
    * around in a single array. */
   const int dbg_level = 0;
-  if (tris.size() == 0) {
+  if (tris.is_empty()) {
     return Array<int>();
   }
   if (dbg_level > 0) {
@@ -1306,7 +1306,7 @@ static bool patch_cell_graph_ok(const CellsInfo &cinfo, const PatchesInfo &pinfo
     if (cell.merged_to() != NO_INDEX) {
       continue;
     }
-    if (cell.patches().size() == 0) {
+    if (cell.patches().is_empty()) {
       std::cout << "Patch/Cell graph disconnected at Cell " << c << " with no patches\n";
       return false;
     }
@@ -2132,7 +2132,7 @@ static void finish_patch_cell_graph(const IMesh &tm,
   /* For nested components, merge their ambient cell with the nearest containing cell. */
   Vector<int> outer_components;
   for (int comp : comp_cont.index_range()) {
-    if (comp_cont[comp].size() == 0) {
+    if (comp_cont[comp].is_empty()) {
       outer_components.append(comp);
     }
     else {
@@ -2557,7 +2557,7 @@ static void inside_shape_callback(void *userdata,
   if (isect_ray_tri_epsilon_v3(
           ray->origin, ray->direction, fv0, fv1, fv2, &dist, nullptr, FLT_EPSILON))
   {
-    /* Count parity as +1 if ray is in the same direction as tri's normal,
+    /* Count parity as +1 if ray is in the same direction as triangle's normal,
      * and -1 if the directions are opposite. */
     double3 o_db{double(ray->origin[0]), double(ray->origin[1]), double(ray->origin[2])};
     int parity = orient3d(tri.vert[0]->co, tri.vert[1]->co, tri.vert[2]->co, o_db);
@@ -3217,7 +3217,7 @@ static void do_dissolve(FaceMergeState *fms)
       dissolve_edges.append(e);
     }
   }
-  if (dissolve_edges.size() == 0) {
+  if (dissolve_edges.is_empty()) {
     return;
   }
   /* Things look nicer if we dissolve the longer edges first. */

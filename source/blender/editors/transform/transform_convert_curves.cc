@@ -105,7 +105,11 @@ static void createTransCurvesVerts(bContext * /*C*/, TransInfo *t)
           "radius",
           ATTR_DOMAIN_POINT,
           bke::AttributeInitVArray(VArray<float>::ForSingle(0.01f, curves.points_num())));
-
+      value_attribute = attribute_writer.span;
+    }
+    else if (t->mode == TFM_TILT) {
+      bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
+      attribute_writer = attributes.lookup_or_add_for_write_span<float>("tilt", ATTR_DOMAIN_POINT);
       value_attribute = attribute_writer.span;
     }
 
@@ -117,6 +121,8 @@ static void createTransCurvesVerts(bContext * /*C*/, TransInfo *t)
                                       curves.curves_range(),
                                       use_connected_only,
                                       0 /* No data offset for curves. */);
+
+    /* TODO: This is wrong. The attribute writer should live at least as long as the span. */
     attribute_writer.finish();
   }
 }
@@ -127,9 +133,16 @@ static void recalcData_curves(TransInfo *t)
   for (const TransDataContainer &tc : trans_data_contrainers) {
     Curves *curves_id = static_cast<Curves *>(tc.obedit->data);
     bke::CurvesGeometry &curves = curves_id->geometry.wrap();
-
-    curves.calculate_bezier_auto_handles();
-    curves.tag_positions_changed();
+    if (t->mode == TFM_CURVE_SHRINKFATTEN) {
+      /* No cache to update currently. */
+    }
+    else if (t->mode == TFM_TILT) {
+      curves.tag_normals_changed();
+    }
+    else {
+      curves.tag_positions_changed();
+      curves.calculate_bezier_auto_handles();
+    }
     DEG_id_tag_update(&curves_id->id, ID_RECALC_GEOMETRY);
   }
 }

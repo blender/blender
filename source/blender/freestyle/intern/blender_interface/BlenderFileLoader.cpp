@@ -390,14 +390,14 @@ int BlenderFileLoader::testDegenerateTriangle(float v1[3], float v2[3], float v3
   return 0;
 }
 
-static bool testEdgeMark(Mesh *me, const FreestyleEdge *fed, const MLoopTri *lt, int i)
+static bool testEdgeMark(Mesh *mesh, const FreestyleEdge *fed, const blender::int3 &tri, int i)
 {
-  const Span<blender::int2> edges = me->edges();
-  const Span<int> corner_verts = me->corner_verts();
-  const Span<int> corner_edges = me->corner_edges();
+  const Span<blender::int2> edges = mesh->edges();
+  const Span<int> corner_verts = mesh->corner_verts();
+  const Span<int> corner_edges = mesh->corner_edges();
 
-  const int corner = lt->tri[i];
-  const int corner_next = lt->tri[(i + 1) % 3];
+  const int corner = tri[i];
+  const int corner_next = tri[(i + 1) % 3];
   const blender::int2 &edge = edges[corner_edges[corner]];
 
   if (!ELEM(corner_verts[corner_next], edge[0], edge[1])) {
@@ -408,26 +408,28 @@ static bool testEdgeMark(Mesh *me, const FreestyleEdge *fed, const MLoopTri *lt,
   return (fed[corner_edges[corner]].flag & FREESTYLE_EDGE_MARK) != 0;
 }
 
-void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
+void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *mesh, int id)
 {
   using namespace blender;
   char *name = ob->id.name + 2;
 
-  const Span<float3> vert_positions = me->vert_positions();
-  const OffsetIndices mesh_polys = me->faces();
-  const Span<int> corner_verts = me->corner_verts();
+  const Span<float3> vert_positions = mesh->vert_positions();
+  const OffsetIndices mesh_polys = mesh->faces();
+  const Span<int> corner_verts = mesh->corner_verts();
 
   // Compute loop triangles
-  int tottri = poly_to_tri_count(me->faces_num, me->totloop);
-  MLoopTri *mlooptri = (MLoopTri *)MEM_malloc_arrayN(tottri, sizeof(*mlooptri), __func__);
-  blender::bke::mesh::looptris_calc(vert_positions, mesh_polys, corner_verts, {mlooptri, tottri});
-  const blender::Span<int> looptri_faces = me->looptri_faces();
-  const blender::Span<blender::float3> lnors = me->corner_normals();
+  int tottri = poly_to_tri_count(mesh->faces_num, mesh->totloop);
+  blender::int3 *corner_tris = (blender::int3 *)MEM_malloc_arrayN(
+      tottri, sizeof(*corner_tris), __func__);
+  blender::bke::mesh::corner_tris_calc(
+      vert_positions, mesh_polys, corner_verts, {corner_tris, tottri});
+  const blender::Span<int> tri_faces = mesh->corner_tri_faces();
+  const blender::Span<blender::float3> lnors = mesh->corner_normals();
 
   // Get other mesh data
-  const FreestyleEdge *fed = (const FreestyleEdge *)CustomData_get_layer(&me->edge_data,
+  const FreestyleEdge *fed = (const FreestyleEdge *)CustomData_get_layer(&mesh->edge_data,
                                                                          CD_FREESTYLE_EDGE);
-  const FreestyleFace *ffa = (const FreestyleFace *)CustomData_get_layer(&me->face_data,
+  const FreestyleFace *ffa = (const FreestyleFace *)CustomData_get_layer(&mesh->face_data,
                                                                          CD_FREESTYLE_FACE);
 
   // Compute view matrix
@@ -449,11 +451,11 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
   float n1[3], n2[3], n3[3], facenormal[3];
   int clip[3];
   for (int a = 0; a < tottri; a++) {
-    const MLoopTri *lt = &mlooptri[a];
+    const int3 &tri = corner_tris[a];
 
-    copy_v3_v3(v1, vert_positions[corner_verts[lt->tri[0]]]);
-    copy_v3_v3(v2, vert_positions[corner_verts[lt->tri[1]]]);
-    copy_v3_v3(v3, vert_positions[corner_verts[lt->tri[2]]]);
+    copy_v3_v3(v1, vert_positions[corner_verts[tri[0]]]);
+    copy_v3_v3(v2, vert_positions[corner_verts[tri[1]]]);
+    copy_v3_v3(v3, vert_positions[corner_verts[tri[2]]]);
 
     mul_m4_v3(obmat, v1);
     mul_m4_v3(obmat, v2);
@@ -471,7 +473,7 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
   }
 #endif
   if (numFaces == 0) {
-    MEM_freeN(mlooptri);
+    MEM_freeN(corner_tris);
     return;
   }
 
@@ -514,7 +516,7 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
 
   FrsMaterial tmpMat;
 
-  const bke::AttributeAccessor attributes = me->attributes();
+  const bke::AttributeAccessor attributes = mesh->attributes();
   const VArray<int> material_indices = *attributes.lookup_or_default<int>(
       "material_index", ATTR_DOMAIN_FACE, 0);
   const VArray<bool> sharp_faces = *attributes.lookup_or_default<bool>(
@@ -523,13 +525,13 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
   // We parse the vlak nodes again and import meshes while applying the clipping
   // by the near and far view planes.
   for (int a = 0; a < tottri; a++) {
-    const MLoopTri *lt = &mlooptri[a];
-    const int poly_i = looptri_faces[a];
+    const int3 &tri = corner_tris[a];
+    const int poly_i = tri_faces[a];
     Material *mat = BKE_object_material_get(ob, material_indices[poly_i] + 1);
 
-    copy_v3_v3(v1, vert_positions[corner_verts[lt->tri[0]]]);
-    copy_v3_v3(v2, vert_positions[corner_verts[lt->tri[1]]]);
-    copy_v3_v3(v3, vert_positions[corner_verts[lt->tri[2]]]);
+    copy_v3_v3(v1, vert_positions[corner_verts[tri[0]]]);
+    copy_v3_v3(v2, vert_positions[corner_verts[tri[1]]]);
+    copy_v3_v3(v3, vert_positions[corner_verts[tri[2]]]);
 
     mul_m4_v3(obmat, v1);
     mul_m4_v3(obmat, v2);
@@ -540,9 +542,9 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
     v3[2] += _z_offset;
 
     if (_smooth && (!sharp_faces[poly_i])) {
-      copy_v3_v3(n1, lnors[lt->tri[0]]);
-      copy_v3_v3(n2, lnors[lt->tri[1]]);
-      copy_v3_v3(n3, lnors[lt->tri[2]]);
+      copy_v3_v3(n1, lnors[tri[0]]);
+      copy_v3_v3(n2, lnors[tri[1]]);
+      copy_v3_v3(n3, lnors[tri[2]]);
 
       mul_mat3_m4_v3(nmat, n1);
       mul_mat3_m4_v3(nmat, n2);
@@ -569,9 +571,9 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
     bool em1 = false, em2 = false, em3 = false;
 
     if (fed) {
-      em1 = testEdgeMark(me, fed, lt, 0);
-      em2 = testEdgeMark(me, fed, lt, 1);
-      em3 = testEdgeMark(me, fed, lt, 2);
+      em1 = testEdgeMark(mesh, fed, tri, 0);
+      em2 = testEdgeMark(mesh, fed, tri, 1);
+      em3 = testEdgeMark(mesh, fed, tri, 2);
     }
 
     if (mat) {
@@ -631,7 +633,7 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
     }
   }
 
-  MEM_freeN(mlooptri);
+  MEM_freeN(corner_tris);
 
   // We might have several times the same vertex. We want a clean
   // shape with no real-vertex. Here, we are making a cleaning pass.

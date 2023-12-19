@@ -34,7 +34,7 @@
 #include "BKE_grease_pencil.hh"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_particle.h"
@@ -67,7 +67,7 @@
 #include "RNA_define.hh"
 #include "RNA_prototypes.h"
 
-#include "ANIM_bone_collections.h"
+#include "ANIM_bone_collections.hh"
 
 #include "outliner_intern.hh"
 #include "tree/tree_display.hh"
@@ -328,7 +328,7 @@ static void tree_element_object_activate(bContext *C,
   }
 
   /* find associated base in current scene */
-  BKE_view_layer_synced_ensure(sce, view_layer);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   base = BKE_view_layer_base_find(view_layer, ob);
 
   if (scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK) {
@@ -2034,15 +2034,15 @@ static TreeElement *do_outliner_select_walk(SpaceOutliner *space_outliner,
 
 /* Find the active element to walk from, or set one if none exists.
  * Changed is set to true if the active element is found, or false if it was set */
-static TreeElement *find_walk_select_start_element(SpaceOutliner *space_outliner, bool *changed)
+static TreeElement *find_walk_select_start_element(SpaceOutliner *space_outliner, bool *r_changed)
 {
   TreeElement *active_te = outliner_find_element_with_flag(&space_outliner->tree, TSE_ACTIVE);
-  *changed = false;
+  *r_changed = false;
 
   /* If no active element exists, use the first element in the tree */
   if (!active_te) {
     active_te = static_cast<TreeElement *>(space_outliner->tree.first);
-    *changed = true;
+    *r_changed = true;
   }
 
   /* If the active element is not visible, activate the first visible parent element */
@@ -2050,7 +2050,7 @@ static TreeElement *find_walk_select_start_element(SpaceOutliner *space_outliner
     while (!outliner_is_element_visible(active_te)) {
       active_te = active_te->parent;
     }
-    *changed = true;
+    *r_changed = true;
   }
 
   return active_te;

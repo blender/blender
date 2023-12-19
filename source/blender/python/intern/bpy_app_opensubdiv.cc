@@ -14,7 +14,7 @@
 #include "../generic/py_capi_utils.h"
 
 #ifdef WITH_OPENSUBDIV
-#  include "opensubdiv_capi.h"
+#  include "opensubdiv_capi.hh"
 #endif
 
 static PyTypeObject BlenderAppOpenSubdivType;

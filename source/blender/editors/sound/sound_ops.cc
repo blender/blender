@@ -26,7 +26,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_lib_id.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_packedFile.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -731,7 +731,7 @@ static void SOUND_OT_mixdown(wmOperatorType *ot)
   RNA_def_int(ot->srna, "bitrate", 192, 32, 512, "Bitrate", "Bitrate in kbit/s", 32, 512);
   RNA_def_boolean(ot->srna,
                   "split_channels",
-                  0,
+                  false,
                   "Split channels",
                   "Each channel will be rendered into a mono file");
 #endif /* WITH_AUDASPACE */

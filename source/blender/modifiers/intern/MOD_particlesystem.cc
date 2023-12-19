@@ -148,7 +148,7 @@ static void deform_verts(ModifierData *md,
   /* make new mesh */
   psmd->mesh_final = BKE_mesh_copy_for_eval(mesh);
   psmd->mesh_final->vert_positions_for_write().copy_from(positions);
-  BKE_mesh_tag_positions_changed(psmd->mesh_final);
+  psmd->mesh_final->tag_positions_changed();
 
   BKE_mesh_tessface_ensure(psmd->mesh_final);
 

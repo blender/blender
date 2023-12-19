@@ -23,9 +23,9 @@
 #include "BKE_customdata.hh"
 #include "BKE_object.hh"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
-#include "intern/bmesh_operators_private.h" /* own include */
+#include "intern/bmesh_operators_private.hh" /* own include */
 
 #define ELE_NEW 1
 

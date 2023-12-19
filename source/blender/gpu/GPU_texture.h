@@ -1009,7 +1009,7 @@ bool GPU_texture_has_signed_format(const GPUTexture *tex);
  * \a size is expected to be a pointer to a vector of dimension matching the texture's dimension
  * (including the array dimension).
  */
-void GPU_texture_get_mipmap_size(GPUTexture *texture, int mip_level, int *size);
+void GPU_texture_get_mipmap_size(GPUTexture *texture, int mip_level, int *r_size);
 
 /** \} */
 

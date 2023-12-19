@@ -22,14 +22,14 @@
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_lib_id.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 
 #include "DEG_depsgraph.hh"
 
 #include "ED_armature.hh"
 #include "ED_util.hh"
 
-#include "ANIM_bone_collections.h"
+#include "ANIM_bone_collections.hh"
 
 #include "armature_intern.h"
 

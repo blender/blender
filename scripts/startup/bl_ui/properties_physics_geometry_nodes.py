@@ -5,7 +5,10 @@
 from bpy.types import (
     Panel,
 )
-from bpy.app.translations import pgettext_iface as iface_
+from bpy.app.translations import (
+    pgettext_iface as iface_,
+    contexts as i18n_contexts,
+)
 
 
 class PHYSICS_PT_geometry_nodes(Panel):
@@ -35,16 +38,16 @@ class PHYSICS_PT_geometry_nodes(Panel):
             calc_text = iface_("Calculate to Frame")
             bake_text = iface_("Bake")
 
-        layout.operator("object.simulation_nodes_cache_calculate_to_frame", text=calc_text).selected = True
+        layout.operator("object.simulation_nodes_cache_calculate_to_frame", text=calc_text, translate=False).selected = True
 
         row = layout.row(align=True)
-        row.operator("object.simulation_nodes_cache_bake", text=bake_text).selected = True
+        row.operator("object.simulation_nodes_cache_bake", text=bake_text, translate=False).selected = True
         row.operator("object.simulation_nodes_cache_delete", text="", icon='TRASH').selected = True
 
         layout.use_property_split = True
         layout.use_property_decorate = False
         ob = context.object
-        layout.prop(ob, "use_simulation_cache", text="Cache")
+        layout.prop(ob, "use_simulation_cache", text="Cache", text_ctxt=i18n_contexts.id_simulation)
 
 
 classes = (

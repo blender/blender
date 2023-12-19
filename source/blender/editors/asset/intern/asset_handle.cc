@@ -10,7 +10,7 @@
 
 #include "AS_asset_representation.hh"
 
-#include "BKE_blendfile.h"
+#include "BKE_blendfile.hh"
 
 #include "BLI_string.h"
 

@@ -17,11 +17,8 @@
 #include "BKE_attribute.h"
 
 #include "BLI_sys_types.h"
-#include "BLI_threads.h"
-#include "BLI_utildefines.h"
 
 #include "GPU_shader.h"
-#include "GPU_vertex_format.h"
 
 struct DRW_AttributeRequest {
   eCustomDataType cd_type;
@@ -50,7 +47,7 @@ struct DRW_MeshCDMask {
 /* Keep `DRW_MeshCDMask` struct within a `uint32_t`.
  * bit-wise and atomic operations are used to compare and update the struct.
  * See `mesh_cd_layers_type_*` functions. */
-BLI_STATIC_ASSERT(sizeof(DRW_MeshCDMask) <= sizeof(uint32_t), "DRW_MeshCDMask exceeds 32 bits")
+static_assert(sizeof(DRW_MeshCDMask) <= sizeof(uint32_t), "DRW_MeshCDMask exceeds 32 bits");
 
 void drw_attributes_clear(DRW_Attributes *attributes);
 

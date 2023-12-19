@@ -19,7 +19,12 @@
 #elif defined(__APPLE__)
 #  include "GHOST_SystemCocoa.hh"
 #else
-#  include "GHOST_SystemX11.hh"
+#  ifdef WITH_GHOST_X11
+#    include "GHOST_SystemX11.hh"
+#  else
+#    define Display void
+#    define Window void *
+#  endif
 #  ifdef WITH_GHOST_WAYLAND
 #    include "GHOST_SystemWayland.hh"
 #  else
@@ -40,9 +45,11 @@
 #endif
 
 typedef enum {
+#ifdef WITH_GHOST_X11
   GHOST_kVulkanPlatformX11 = 0,
+#endif
 #ifdef WITH_GHOST_WAYLAND
-  GHOST_kVulkanPlatformWayland,
+  GHOST_kVulkanPlatformWayland = 1,
 #endif
 } GHOST_TVulkanPlatformType;
 
@@ -73,7 +80,7 @@ class GHOST_ContextVK : public GHOST_Context {
 #endif
                   int contextMajorVersion,
                   int contextMinorVersion,
-                  int m_debug);
+                  int debug);
 
   /**
    * Destructor.

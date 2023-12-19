@@ -61,13 +61,6 @@ GHOST_TSuccess GHOST_System::putClipboardImage(uint * /*rgba*/,
   return GHOST_kFailure;
 }
 
-uint64_t GHOST_System::getMilliSeconds() const
-{
-  return std::chrono::duration_cast<std::chrono::milliseconds>(
-             std::chrono::steady_clock::now().time_since_epoch())
-      .count();
-}
-
 GHOST_ITimerTask *GHOST_System::installTimer(uint64_t delay,
                                              uint64_t interval,
                                              GHOST_TimerProcPtr timerProc,

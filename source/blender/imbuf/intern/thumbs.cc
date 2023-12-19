@@ -11,7 +11,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_blendfile.h"
+#include "BKE_blendfile.hh"
 
 #include "BLI_fileops.h"
 #include "BLI_ghash.h"

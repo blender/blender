@@ -16,7 +16,6 @@ struct DerivedMesh;
 struct MDisps;
 struct Mesh;
 struct ModifierData;
-struct MLoopTri;
 struct MultiresModifierData;
 struct Object;
 struct Scene;
@@ -27,7 +26,7 @@ struct SubdivToMeshSettings;
 /**
  * Delete mesh mdisps and grid paint masks.
  */
-void multires_customdata_delete(Mesh *me);
+void multires_customdata_delete(Mesh *mesh);
 
 void multires_set_tot_level(Object *ob, MultiresModifierData *mmd, int lvl);
 
@@ -112,7 +111,7 @@ int multires_mdisp_corners(const MDisps *s);
 /**
  * Update multi-res data after topology changing.
  */
-void multires_topology_changed(Mesh *me);
+void multires_topology_changed(Mesh *mesh);
 
 /**
  * Makes sure data from an external file is fully read.

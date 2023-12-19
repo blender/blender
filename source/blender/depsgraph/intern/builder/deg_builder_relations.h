@@ -17,6 +17,7 @@
 
 #include "RNA_path.hh"
 
+#include "BLI_span.hh"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
@@ -226,7 +227,7 @@ class DepsgraphRelationBuilder : public DepsgraphBuilder {
   virtual void build_shapekeys(Key *key);
   virtual void build_armature(bArmature *armature);
   virtual void build_armature_bones(ListBase *bones);
-  virtual void build_armature_bone_collections(ListBase *collections);
+  virtual void build_armature_bone_collections(blender::Span<BoneCollection *> collections);
   virtual void build_camera(Camera *camera);
   virtual void build_light(Light *lamp);
   virtual void build_nodetree(bNodeTree *ntree);

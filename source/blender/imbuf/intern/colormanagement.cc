@@ -32,6 +32,7 @@
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_task.h"
+#include "BLI_task.hh"
 #include "BLI_threads.h"
 
 #include "BKE_appdir.h"
@@ -39,7 +40,7 @@
 #include "BKE_context.hh"
 #include "BKE_image.h"
 #include "BKE_image_format.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 
 #include "GPU_capabilities.h"
 
@@ -2081,25 +2082,31 @@ void IMB_colormanagement_transform_from_byte_threaded(float *float_buffer,
                                                       const char *from_colorspace,
                                                       const char *to_colorspace)
 {
+  using namespace blender;
   ColormanageProcessor *cm_processor;
   if (from_colorspace == nullptr || from_colorspace[0] == '\0') {
     return;
   }
-  if (STREQ(from_colorspace, to_colorspace)) {
-    /* Because this function always takes a byte buffer and returns a float buffer, it must
-     * always do byte-to-float conversion of some kind. To avoid threading overhead
-     * IMB_buffer_float_from_byte is used when color spaces are identical. See #51002.
-     */
-    IMB_buffer_float_from_byte(float_buffer,
-                               byte_buffer,
-                               IB_PROFILE_SRGB,
-                               IB_PROFILE_SRGB,
-                               false,
-                               width,
-                               height,
-                               width,
-                               width);
-    IMB_premultiply_rect_float(float_buffer, 4, width, height);
+  if (STREQ(from_colorspace, to_colorspace) && channels == 4) {
+    /* Color spaces are the same, just do a simple byte->float conversion. */
+    int64_t pixel_count = int64_t(width) * height;
+    threading::parallel_for(IndexRange(pixel_count), 256 * 1024, [&](IndexRange pix_range) {
+      float *dst_ptr = float_buffer + pix_range.first() * channels;
+      uchar *src_ptr = byte_buffer + pix_range.first() * channels;
+      for ([[maybe_unused]] const int i : pix_range) {
+        /* Equivalent of rgba_uchar_to_float + premultiply. */
+        float cr = float(src_ptr[0]) * (1.0f / 255.0f);
+        float cg = float(src_ptr[1]) * (1.0f / 255.0f);
+        float cb = float(src_ptr[2]) * (1.0f / 255.0f);
+        float ca = float(src_ptr[3]) * (1.0f / 255.0f);
+        dst_ptr[0] = cr * ca;
+        dst_ptr[1] = cg * ca;
+        dst_ptr[2] = cb * ca;
+        dst_ptr[3] = ca;
+        src_ptr += 4;
+        dst_ptr += 4;
+      }
+    });
     return;
   }
   cm_processor = IMB_colormanagement_colorspace_processor_new(from_colorspace, to_colorspace);
@@ -4333,6 +4340,19 @@ static void blackbody_temperature_to_rec709(float rec709[3], float t)
   }
 }
 
+void IMB_colormanagement_blackbody_temperature_to_rgb(float r_dest[4], float value)
+{
+  float rec709[3];
+  blackbody_temperature_to_rec709(rec709, value);
+
+  float rgb[3];
+  IMB_colormanagement_rec709_to_scene_linear(rgb, rec709);
+  clamp_v3(rgb, 0.0f, FLT_MAX);
+
+  copy_v3_v3(r_dest, rgb);
+  r_dest[3] = 1.0f;
+}
+
 void IMB_colormanagement_blackbody_temperature_to_rgb_table(float *r_table,
                                                             const int width,
                                                             const float min,
@@ -4340,16 +4360,7 @@ void IMB_colormanagement_blackbody_temperature_to_rgb_table(float *r_table,
 {
   for (int i = 0; i < width; i++) {
     float temperature = min + (max - min) / float(width) * float(i);
-
-    float rec709[3];
-    blackbody_temperature_to_rec709(rec709, temperature);
-
-    float rgb[3];
-    IMB_colormanagement_rec709_to_scene_linear(rgb, rec709);
-    clamp_v3(rgb, 0.0f, FLT_MAX);
-
-    copy_v3_v3(&r_table[i * 4], rgb);
-    r_table[i * 4 + 3] = 0.0f;
+    IMB_colormanagement_blackbody_temperature_to_rgb(&r_table[i * 4], temperature);
   }
 }
 
@@ -4413,20 +4424,24 @@ static void wavelength_to_xyz(float xyz[3], float lambda_nm)
   }
 }
 
+void IMB_colormanagement_wavelength_to_rgb(float r_dest[4], float value)
+{
+  float xyz[3];
+  wavelength_to_xyz(xyz, value);
+
+  float rgb[3];
+  IMB_colormanagement_xyz_to_scene_linear(rgb, xyz);
+  clamp_v3(rgb, 0.0f, FLT_MAX);
+
+  copy_v3_v3(r_dest, rgb);
+  r_dest[3] = 1.0f;
+}
+
 void IMB_colormanagement_wavelength_to_rgb_table(float *r_table, const int width)
 {
   for (int i = 0; i < width; i++) {
-    float temperature = 380 + 400 / float(width) * float(i);
-
-    float xyz[3];
-    wavelength_to_xyz(xyz, temperature);
-
-    float rgb[3];
-    IMB_colormanagement_xyz_to_scene_linear(rgb, xyz);
-    clamp_v3(rgb, 0.0f, FLT_MAX);
-
-    copy_v3_v3(&r_table[i * 4], rgb);
-    r_table[i * 4 + 3] = 0.0f;
+    float wavelength = 380 + 400 / float(width) * float(i);
+    IMB_colormanagement_wavelength_to_rgb(&r_table[i * 4], wavelength);
   }
 }
 

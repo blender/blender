@@ -16,9 +16,9 @@
 
 namespace blender::bke::pbvh::pixels {
 
-void BKE_pbvh_pixels_copy_update(PBVH &pbvh,
-                                 Image &image,
-                                 ImageUser &image_user,
-                                 const uv_islands::MeshData &mesh_data);
+void copy_update(PBVH &pbvh,
+                 Image &image,
+                 ImageUser &image_user,
+                 const uv_islands::MeshData &mesh_data);
 
 }  // namespace blender::bke::pbvh::pixels

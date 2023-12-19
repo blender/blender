@@ -12,7 +12,7 @@
 
 #include "internal/base/type.h"
 
-#include "opensubdiv_converter_capi.h"
+#include "opensubdiv_converter_capi.hh"
 
 namespace blender {
 namespace opensubdiv {

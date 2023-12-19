@@ -140,7 +140,7 @@ class AssetLibrary {
   bool remove_asset(AssetRepresentation &asset);
 
   /**
-   * Remap ID pointers for local ID assets, see #BKE_lib_remap.h. When an ID pointer would be
+   * Remap ID pointers for local ID assets, see #BKE_lib_remap.hh. When an ID pointer would be
    * mapped to null (typically when an ID gets removed), the asset is removed, because we don't
    * support such empty/null assets.
    */

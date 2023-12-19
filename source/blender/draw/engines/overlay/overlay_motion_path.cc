@@ -19,7 +19,7 @@
 
 #include "UI_resources.hh"
 
-#include "draw_manager_text.h"
+#include "draw_manager_text.hh"
 
 #include "overlay_private.hh"
 

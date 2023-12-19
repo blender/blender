@@ -31,7 +31,7 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_lib_id.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
@@ -156,7 +156,7 @@ static void read_mverts(CDStreamConfig &config, const AbcMeshData &mesh_data)
 
     const double weight = mesh_data.interpolation_settings->weight;
     read_mverts_interp(vert_positions, positions, mesh_data.ceil_positions, weight);
-    BKE_mesh_tag_positions_changed(config.mesh);
+    config.mesh->tag_positions_changed();
     return;
   }
 
@@ -171,7 +171,7 @@ void read_mverts(Mesh &mesh, const P3fArraySamplePtr positions, const N3fArraySa
 
     copy_zup_from_yup(vert_positions[i], pos_in.getValue());
   }
-  BKE_mesh_tag_positions_changed(&mesh);
+  mesh.tag_positions_changed();
 
   if (normals) {
     Vector<float3> vert_normals(mesh.totvert);

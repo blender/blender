@@ -19,7 +19,7 @@
 #include "internal/base/type_convert.h"
 #include "internal/topology/mesh_topology.h"
 
-#include "opensubdiv_converter_capi.h"
+#include "opensubdiv_converter_capi.hh"
 
 using blender::opensubdiv::min;
 using blender::opensubdiv::stack;

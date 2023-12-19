@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'd293f72ab6e7')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'0b00b360f7ae')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-27 10:28:34\n"
+"POT-Creation-Date: 2023-12-18 13:45:58\n"
 "PO-Revision-Date: 2019-12-08 17:40+0700\n"
 "Last-Translator: gongpha <gongpha@gmail.com>\n"
 "Language-Team: Thai Translation Team <gongpha@gmail.com>\n"
@@ -1100,6 +1100,14 @@ msgid "Save"
 msgstr "บันทึก"
 
 
+msgid "File Extensions"
+msgstr "ส่วนขยายไฟล์"
+
+
+msgid "Label"
+msgstr "ข้อความ"
+
+
 msgid "Miscellaneous"
 msgstr "เบ็ดเตล็ด"
 
@@ -1639,10 +1647,6 @@ msgstr "อัปเดต"
 
 msgid "Movie File"
 msgstr "ไฟล์ภาพยนตร์"
-
-
-msgid "Label"
-msgstr "ข้อความ"
 
 
 msgid "Interface"
@@ -2564,6 +2568,10 @@ msgid "Report"
 msgstr "รายงาน"
 
 
+msgid "Duplicate"
+msgstr "ทำซ้ำ"
+
+
 msgctxt "Operator"
 msgid "Add Bezier Circle"
 msgstr "เพิ่มวงกลมเบซิเยร์"
@@ -2811,10 +2819,6 @@ msgstr "วัสดุใหม่"
 
 msgid "Add a new material"
 msgstr "เพิ่มวัสดุใหม่"
-
-
-msgid "Duplicate"
-msgstr "ทำซ้ำ"
 
 
 msgid "Cut"
@@ -3672,10 +3676,6 @@ msgid "Render Region"
 msgstr "ขอบเขตการเรนเดอร์"
 
 
-msgid "File Extensions"
-msgstr "ส่วนขยายไฟล์"
-
-
 msgid "Stamp Render Time"
 msgstr "เวลาการเรนเดอร์"
 
@@ -4324,6 +4324,11 @@ msgstr "สะท้อน Y"
 
 
 msgctxt "Operator"
+msgid "Sound"
+msgstr "เสียง"
+
+
+msgctxt "Operator"
 msgid "Rename..."
 msgstr "เปลี่ยนชื่อ..."
 
@@ -4341,11 +4346,6 @@ msgstr "แสดง"
 msgctxt "Operator"
 msgid "Movie"
 msgstr "ภาพยนตร์"
-
-
-msgctxt "Operator"
-msgid "Sound"
-msgstr "เสียง"
 
 
 msgctxt "Operator"

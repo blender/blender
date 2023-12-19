@@ -55,7 +55,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_lib_id.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.hh"
 #include "BKE_multires.hh"
@@ -846,7 +846,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
               me->totloop,
               me->face_offsets_for_write().data(),
               me->faces_num,
-              BKE_mesh_deform_verts_for_write(me),
+              me->deform_verts_for_write().data(),
               false,
               true,
               &changed);

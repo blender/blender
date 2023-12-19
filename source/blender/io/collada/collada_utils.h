@@ -39,7 +39,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_idprop.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_node.h"
 #include "BKE_object.hh"
 #include "BKE_scene.h"
@@ -233,7 +233,7 @@ extern void bc_rotate_from_reference_quat(float quat_to[4],
                                           float quat_from[4],
                                           float mat_to[4][4]);
 
-extern void bc_triangulate_mesh(Mesh *me);
+extern void bc_triangulate_mesh(Mesh *mesh);
 /**
  * A bone is a leaf when it has no children or all children are not connected.
  */

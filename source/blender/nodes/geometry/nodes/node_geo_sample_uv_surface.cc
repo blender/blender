@@ -122,7 +122,7 @@ class ReverseUVSampleFunction : public mf::MultiFunction {
         is_valid[i] = result.type == ReverseUVSampler::ResultType::Ok;
       }
       if (!tri_index.is_empty()) {
-        tri_index[i] = result.looptri_index;
+        tri_index[i] = result.tri_index;
       }
       if (!bary_weights.is_empty()) {
         bary_weights[i] = result.bary_weights;
@@ -140,7 +140,7 @@ class ReverseUVSampleFunction : public mf::MultiFunction {
     source_evaluator_->evaluate();
     source_uv_map_ = source_evaluator_->get_evaluated<float2>(0);
 
-    reverse_uv_sampler_.emplace(source_uv_map_, mesh.looptris());
+    reverse_uv_sampler_.emplace(source_uv_map_, mesh.corner_tris());
   }
 };
 

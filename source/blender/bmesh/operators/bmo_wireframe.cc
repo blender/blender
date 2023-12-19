@@ -13,11 +13,11 @@
 #include "BLI_sys_types.h"
 #include "BLI_utildefines.h"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
-#include "tools/bmesh_wireframe.h"
+#include "tools/bmesh_wireframe.hh"
 
-#include "intern/bmesh_operators_private.h" /* own include */
+#include "intern/bmesh_operators_private.hh" /* own include */
 
 void bmo_wireframe_exec(BMesh *bm, BMOperator *op)
 {

@@ -46,7 +46,7 @@
 #include "BKE_appdir.h"
 #include "BKE_context.hh"
 #include "BKE_global.h" /* Only for script checking. */
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_text.h"
 
 #ifdef WITH_CYCLES

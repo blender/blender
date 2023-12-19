@@ -9,6 +9,7 @@
 #include <cstdio>
 
 #include "ANIM_action.hh"
+#include "ANIM_animdata.hh"
 #include "ANIM_keyframing.hh"
 
 #include "MEM_guardedalloc.h"
@@ -58,7 +59,7 @@
 #include "BKE_grease_pencil.hh"
 #include "BKE_key.h"
 #include "BKE_lib_id.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_nla.h"
 
 #include "GPU_immediate.h"
@@ -1189,7 +1190,7 @@ static int acf_nla_controls_icon(bAnimListElem * /*ale*/)
 /** NLA Control F-Curves expander type define. */
 static bAnimChannelType ACF_NLACONTROLS = {
     /*channel_type_name*/ "NLA Controls Expander",
-    /*track_role*/ ACHANNEL_ROLE_EXPANDER,
+    /*channel_role*/ ACHANNEL_ROLE_EXPANDER,
 
     /*get_backdrop_color*/ acf_nla_controls_color,
     /*get_channel_color*/ nullptr,
@@ -2585,20 +2586,20 @@ static void *acf_dsmesh_setting_ptr(bAnimListElem *ale,
                                     eAnimChannel_Settings setting,
                                     short *r_type)
 {
-  Mesh *me = (Mesh *)ale->data;
+  Mesh *mesh = (Mesh *)ale->data;
 
   /* Clear extra return data first. */
   *r_type = 0;
 
   switch (setting) {
     case ACHANNEL_SETTING_EXPAND: /* expanded */
-      return GET_ACF_FLAG_PTR(me->flag, r_type);
+      return GET_ACF_FLAG_PTR(mesh->flag, r_type);
 
     case ACHANNEL_SETTING_SELECT:  /* selected */
     case ACHANNEL_SETTING_MUTE:    /* muted (for NLA only) */
     case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
-      if (me->adt) {
-        return GET_ACF_FLAG_PTR(me->adt->flag, r_type);
+      if (mesh->adt) {
+        return GET_ACF_FLAG_PTR(mesh->adt->flag, r_type);
       }
       return nullptr;
 
@@ -5094,7 +5095,7 @@ static void achannel_setting_slider_shapekey_cb(bContext *C, void *key_poin, voi
   if (RNA_path_resolve_property(&id_ptr, rna_path, &ptr, &prop)) {
     /* find or create new F-Curve */
     /* XXX is the group name for this ok? */
-    bAction *act = ED_id_action_ensure(bmain, (ID *)key);
+    bAction *act = blender::animrig::id_action_ensure(bmain, (ID *)key);
     FCurve *fcu = blender::animrig::action_fcurve_ensure(bmain, act, nullptr, &ptr, rna_path, 0);
 
     /* set the special 'replace' flag if on a keyframe */

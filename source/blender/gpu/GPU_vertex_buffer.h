@@ -129,7 +129,7 @@ typedef struct GPUVertBufRaw {
   uint stride;
   unsigned char *data;
   unsigned char *data_init;
-#ifdef DEBUG
+#ifndef NDEBUG
   /* Only for overflow check */
   unsigned char *_data_end;
 #endif
@@ -139,7 +139,7 @@ GPU_INLINE void *GPU_vertbuf_raw_step(GPUVertBufRaw *a)
 {
   unsigned char *data = a->data;
   a->data += a->stride;
-#ifdef DEBUG
+#ifndef NDEBUG
   BLI_assert(data < a->_data_end);
 #endif
   return (void *)data;

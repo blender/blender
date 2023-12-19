@@ -1055,6 +1055,7 @@ int PathTraceWorkGPU::adaptive_sampling_convergence_check_count_active(float thr
   queue_->zero_to_device(num_active_pixels);
 
   const int work_size = effective_buffer_params_.width * effective_buffer_params_.height;
+  const int reset_int = reset; /* No bool kernel arguments. */
 
   DeviceKernelArguments args(&buffers_->buffer.device_pointer,
                              &effective_buffer_params_.full_x,
@@ -1062,7 +1063,7 @@ int PathTraceWorkGPU::adaptive_sampling_convergence_check_count_active(float thr
                              &effective_buffer_params_.width,
                              &effective_buffer_params_.height,
                              &threshold,
-                             &reset,
+                             &reset_int,
                              &effective_buffer_params_.offset,
                              &effective_buffer_params_.stride,
                              &num_active_pixels.device_pointer);

@@ -69,6 +69,11 @@ class TestIdPropertyCreation(TestHelper, unittest.TestCase):
         self.assertEqual(self.id["a"], b"Hello World")
         self.assertTrue(isinstance(self.id["a"], bytes))
 
+    def test_enum(self):
+        self.id["a"] = 5
+        self.assertEqual(self.id["a"], 5)
+        self.assertTrue(isinstance(self.id["a"], int))
+
     def test_sequence_double_list(self):
         mylist = [1.2, 3.4, 5.6]
         self.id["a"] = mylist
@@ -348,6 +353,24 @@ class TestRNAData(TestHelper, unittest.TestCase):
         ui_data_test_prop_array.update(default=[1, 2])
         rna_data = ui_data_test_prop_array.as_dict()
         self.assertEqual(rna_data["default"], [1, 2])
+
+        # Test RNA data for enum property.
+        test_object.id_properties_clear()
+        test_object["test_enum_prop"] = 2
+        ui_data_test_prop_enum = test_object.id_properties_ui("test_enum_prop")
+        ui_data_test_prop_enum_items = [
+            ("TOMATOES", "Tomatoes", "Solanum lycopersicum"),
+            ("CUCUMBERS", "Cucumbers", "Cucumis sativus"),
+            ("RADISHES", "Radishes", "Raphanus raphanistrum"),
+        ]
+        ui_data_test_prop_enum.update(items=ui_data_test_prop_enum_items)
+        ui_data_test_prop_enum_items_full = [
+            ("TOMATOES", "Tomatoes", "Solanum lycopersicum", 0, 0),
+            ("CUCUMBERS", "Cucumbers", "Cucumis sativus", 0, 1),
+            ("RADISHES", "Radishes", "Raphanus raphanistrum", 0, 2),
+        ]
+        rna_data = ui_data_test_prop_enum.as_dict()
+        self.assertEqual(rna_data["items"], ui_data_test_prop_enum_items_full)
 
 
 if __name__ == '__main__':

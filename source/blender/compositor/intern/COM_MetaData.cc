@@ -51,6 +51,14 @@ void MetaData::add_to_render_result(RenderResult *render_result) const
   }
 }
 
+void MetaData::for_each_entry(
+    FunctionRef<void(const std::string &, const std::string &)> callback) const
+{
+  for (MapItem<std::string, std::string> entry : entries_.items()) {
+    callback(entry.key, entry.value);
+  }
+}
+
 void MetaDataExtractCallbackData::add_meta_data(blender::StringRef key,
                                                 blender::StringRefNull value)
 {

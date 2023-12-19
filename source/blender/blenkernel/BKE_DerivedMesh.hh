@@ -65,17 +65,6 @@ struct ModifierData;
 struct Object;
 struct Scene;
 
-/*
- * NOTE: all #MFace interfaces now officially operate on tessellated data.
- *       Also, the #MFace orig-index layer indexes polys, not #MFace.
- */
-
-/* keep in sync with MFace type */
-struct DMFlagMat {
-  short mat_nr;
-  bool sharp;
-};
-
 enum DerivedMeshType {
   DM_TYPE_CDDM,
   DM_TYPE_CCGDM,
@@ -137,7 +126,6 @@ struct DerivedMesh {
   struct CCGElem **(*getGridData)(DerivedMesh *dm);
   int *(*getGridOffset)(DerivedMesh *dm);
   void (*getGridKey)(DerivedMesh *dm, struct CCGKey *key);
-  DMFlagMat *(*getGridFlagMats)(DerivedMesh *dm);
   unsigned int **(*getGridHidden)(DerivedMesh *dm);
 
   /* Direct Access Operations

@@ -11,9 +11,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "bmesh.h"
-#include "bmesh_tools.h"
-#include "intern/bmesh_operators_private.h"
+#include "bmesh.hh"
+#include "bmesh_tools.hh"
+#include "intern/bmesh_operators_private.hh"
 
 #define ELE_NEW 1
 #define FACE_MARK 2

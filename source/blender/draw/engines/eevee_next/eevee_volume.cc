@@ -28,14 +28,14 @@ void VolumeModule::init()
 
   const Scene *scene_eval = inst_.scene;
 
-  const float2 viewport_size = float2(inst_.film.render_extent_get());
+  const int2 extent = inst_.film.render_extent_get();
   const int tile_size = scene_eval->eevee.volumetric_tile_size;
 
   data_.tile_size = tile_size;
   data_.tile_size_lod = int(log2(tile_size));
 
   /* Find Froxel Texture resolution. */
-  int3 tex_size = int3(math::ceil(math::max(float2(1.0f), viewport_size / float(tile_size))), 0);
+  int3 tex_size = int3(math::divide_ceil(extent, int2(tile_size)), 0);
   tex_size.z = std::max(1, scene_eval->eevee.volumetric_samples);
 
   /* Clamp 3D texture size based on device maximum. */
@@ -43,8 +43,8 @@ void VolumeModule::init()
   BLI_assert(tex_size == math::min(tex_size, max_size));
   tex_size = math::min(tex_size, max_size);
 
-  data_.coord_scale = viewport_size / float2(tile_size * tex_size);
-  data_.viewport_size_inv = 1.0f / viewport_size;
+  data_.coord_scale = float2(extent) / float2(tile_size * tex_size);
+  data_.viewport_size_inv = 1.0f / float2(extent);
 
   /* TODO: compute snap to maxZBuffer for clustered rendering. */
   if (data_.tex_size != tex_size) {

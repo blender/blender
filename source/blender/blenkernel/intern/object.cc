@@ -102,11 +102,11 @@
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
-#include "BKE_lib_remap.h"
+#include "BKE_lib_remap.hh"
 #include "BKE_light.h"
 #include "BKE_lightprobe.h"
 #include "BKE_linestyle.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_mball.h"
 #include "BKE_mesh.hh"
@@ -411,7 +411,8 @@ static void object_foreach_id(ID *id, LibraryForeachIDData *data)
     }
   }
 
-  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, object->parent, IDWALK_CB_NEVER_SELF);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(
+      data, object->parent, IDWALK_CB_NEVER_SELF | IDWALK_CB_OVERRIDE_LIBRARY_HIERARCHY_DEFAULT);
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, object->track, IDWALK_CB_NEVER_SELF);
 
   for (int i = 0; i < object->totcol; i++) {
@@ -1526,7 +1527,7 @@ static void object_update_from_subsurf_ccg(Object *object)
   if (mesh_eval == nullptr) {
     return;
   }
-  SubdivCCG *subdiv_ccg = mesh_eval->runtime->subdiv_ccg;
+  SubdivCCG *subdiv_ccg = mesh_eval->runtime->subdiv_ccg.get();
   if (subdiv_ccg == nullptr) {
     return;
   }
@@ -1834,9 +1835,9 @@ char *BKE_object_data_editmode_flush_ptr_get(ID *id)
 bool BKE_object_is_in_wpaint_select_vert(const Object *ob)
 {
   if (ob->type == OB_MESH) {
-    Mesh *me = (Mesh *)ob->data;
-    return ((ob->mode & OB_MODE_WEIGHT_PAINT) && (me->edit_mesh == nullptr) &&
-            (ME_EDIT_PAINT_SEL_MODE(me) == SCE_SELECT_VERTEX));
+    Mesh *mesh = (Mesh *)ob->data;
+    return ((ob->mode & OB_MODE_WEIGHT_PAINT) && (mesh->edit_mesh == nullptr) &&
+            (ME_EDIT_PAINT_SEL_MODE(mesh) == SCE_SELECT_VERTEX));
   }
 
   return false;
@@ -3080,8 +3081,8 @@ static void give_parvert(Object *par, int nr, float vec[3])
   zero_v3(vec);
 
   if (par->type == OB_MESH) {
-    Mesh *me = (Mesh *)par->data;
-    BMEditMesh *em = me->edit_mesh;
+    Mesh *mesh = (Mesh *)par->data;
+    BMEditMesh *em = mesh->edit_mesh;
     Mesh *me_eval = (em) ? BKE_object_get_editmesh_eval_final(par) :
                            BKE_object_get_evaluated_mesh(par);
 
@@ -3514,13 +3515,6 @@ void BKE_object_apply_parent_inverse(Object *ob)
 /** \name Object Bounding Box API
  * \{ */
 
-BoundBox *BKE_boundbox_alloc_unit()
-{
-  BoundBox *bb = MEM_cnew<BoundBox>(__func__);
-  BKE_boundbox_init_from_minmax(bb, float3(-1), float3(1));
-  return bb;
-}
-
 void BKE_boundbox_init_from_minmax(BoundBox *bb, const float min[3], const float max[3])
 {
   bb->vec[0][0] = bb->vec[1][0] = bb->vec[2][0] = bb->vec[3][0] = min[0];
@@ -3531,20 +3525,6 @@ void BKE_boundbox_init_from_minmax(BoundBox *bb, const float min[3], const float
 
   bb->vec[0][2] = bb->vec[3][2] = bb->vec[4][2] = bb->vec[7][2] = min[2];
   bb->vec[1][2] = bb->vec[2][2] = bb->vec[5][2] = bb->vec[6][2] = max[2];
-}
-
-void BKE_boundbox_calc_center_aabb(const BoundBox *bb, float r_cent[3])
-{
-  r_cent[0] = 0.5f * (bb->vec[0][0] + bb->vec[4][0]);
-  r_cent[1] = 0.5f * (bb->vec[0][1] + bb->vec[2][1]);
-  r_cent[2] = 0.5f * (bb->vec[0][2] + bb->vec[1][2]);
-}
-
-void BKE_boundbox_calc_size_aabb(const BoundBox *bb, float r_size[3])
-{
-  r_size[0] = 0.5f * fabsf(bb->vec[0][0] - bb->vec[4][0]);
-  r_size[1] = 0.5f * fabsf(bb->vec[0][1] - bb->vec[2][1]);
-  r_size[2] = 0.5f * fabsf(bb->vec[0][2] - bb->vec[1][2]);
 }
 
 void BKE_boundbox_minmax(const BoundBox *bb,
@@ -3676,8 +3656,10 @@ void BKE_object_minmax(Object *ob, float r_min[3], float r_max[3])
 {
   using namespace blender;
   if (const std::optional<Bounds<float3>> bounds = BKE_object_boundbox_get(ob)) {
-    copy_v3_v3(r_min, math::transform_point(float4x4(ob->object_to_world), bounds->min));
-    copy_v3_v3(r_max, math::transform_point(float4x4(ob->object_to_world), bounds->max));
+    minmax_v3v3_v3(
+        r_min, r_max, math::transform_point(float4x4(ob->object_to_world), bounds->min));
+    minmax_v3v3_v3(
+        r_min, r_max, math::transform_point(float4x4(ob->object_to_world), bounds->max));
     return;
   }
   float3 size = ob->scale;
@@ -4351,13 +4333,13 @@ void BKE_object_delete_ptcache(Object *ob, int index)
 /** Mesh */
 static KeyBlock *insert_meshkey(Main *bmain, Object *ob, const char *name, const bool from_mix)
 {
-  Mesh *me = (Mesh *)ob->data;
-  Key *key = me->key;
+  Mesh *mesh = (Mesh *)ob->data;
+  Key *key = mesh->key;
   KeyBlock *kb;
   int newkey = 0;
 
   if (key == nullptr) {
-    key = me->key = BKE_key_add(bmain, (ID *)me);
+    key = mesh->key = BKE_key_add(bmain, (ID *)mesh);
     key->type = KEY_RELATIVE;
     newkey = 1;
   }
@@ -4365,7 +4347,7 @@ static KeyBlock *insert_meshkey(Main *bmain, Object *ob, const char *name, const
   if (newkey || from_mix == false) {
     /* create from mesh */
     kb = BKE_keyblock_add_ctime(key, name, false);
-    BKE_keyblock_convert_from_mesh(me, key, kb);
+    BKE_keyblock_convert_from_mesh(mesh, key, kb);
   }
   else {
     /* copy from current values */
@@ -5045,7 +5027,7 @@ KDTree_3d *BKE_object_as_kdtree(Object *ob, int *r_tot)
 
   switch (ob->type) {
     case OB_MESH: {
-      Mesh *me = (Mesh *)ob->data;
+      Mesh *mesh = (Mesh *)ob->data;
       uint i;
 
       Mesh *me_eval = ob->runtime->mesh_deform_eval ? ob->runtime->mesh_deform_eval :
@@ -5054,7 +5036,7 @@ KDTree_3d *BKE_object_as_kdtree(Object *ob, int *r_tot)
 
       if (me_eval &&
           (index = (const int *)CustomData_get_layer(&me_eval->vert_data, CD_ORIGINDEX))) {
-        const Span<float3> positions = me->vert_positions();
+        const Span<float3> positions = mesh->vert_positions();
 
         /* Tree over-allocates in case where some verts have #ORIGINDEX_NONE. */
         tot = 0;
@@ -5071,7 +5053,7 @@ KDTree_3d *BKE_object_as_kdtree(Object *ob, int *r_tot)
         }
       }
       else {
-        const Span<float3> positions = me->vert_positions();
+        const Span<float3> positions = mesh->vert_positions();
 
         tot = positions.size();
         tree = BLI_kdtree_3d_new(tot);

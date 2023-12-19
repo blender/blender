@@ -24,7 +24,7 @@
 #include <iomanip>
 #include <sstream>
 
-#if defined(DEBUG) || defined(WITH_DRAW_DEBUG)
+#if defined(_DEBUG) || defined(WITH_DRAW_DEBUG)
 #  define DRAW_DEBUG
 #else
 /* Uncomment to forcibly enable debug draw in release mode. */

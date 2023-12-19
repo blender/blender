@@ -10,8 +10,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "bmesh.h"
-#include "bmesh_decimate.h" /* own include */
+#include "bmesh.hh"
+#include "bmesh_decimate.hh" /* own include */
 
 static bool bm_vert_dissolve_fan_test(BMVert *v)
 {

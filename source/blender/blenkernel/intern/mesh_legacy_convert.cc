@@ -35,7 +35,7 @@
 #include "BKE_customdata.hh"
 #include "BKE_global.h"
 #include "BKE_idprop.hh"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.hh"
 #include "BKE_modifier.hh"
@@ -214,59 +214,60 @@ static void mesh_calc_edges_mdata(const MVert * /*allvert*/,
   *r_totedge = totedge_final;
 }
 
-void BKE_mesh_calc_edges_legacy(Mesh *me)
+void BKE_mesh_calc_edges_legacy(Mesh *mesh)
 {
   using namespace blender;
   MEdge *edges;
   int totedge = 0;
   const Span<MVert> verts(
-      static_cast<const MVert *>(CustomData_get_layer(&me->vert_data, CD_MVERT)), me->totvert);
+      static_cast<const MVert *>(CustomData_get_layer(&mesh->vert_data, CD_MVERT)), mesh->totvert);
 
   mesh_calc_edges_mdata(
       verts.data(),
-      me->mface,
-      static_cast<MLoop *>(CustomData_get_layer_for_write(&me->loop_data, CD_MLOOP, me->totloop)),
-      static_cast<const MPoly *>(CustomData_get_layer(&me->face_data, CD_MPOLY)),
+      mesh->mface,
+      static_cast<MLoop *>(
+          CustomData_get_layer_for_write(&mesh->loop_data, CD_MLOOP, mesh->totloop)),
+      static_cast<const MPoly *>(CustomData_get_layer(&mesh->face_data, CD_MPOLY)),
       verts.size(),
-      me->totface_legacy,
-      me->totloop,
-      me->faces_num,
+      mesh->totface_legacy,
+      mesh->totloop,
+      mesh->faces_num,
       &edges,
       &totedge);
 
   if (totedge == 0) {
     /* flag that mesh has edges */
-    me->totedge = 0;
+    mesh->totedge = 0;
     return;
   }
 
   edges = (MEdge *)CustomData_add_layer_with_data(
-      &me->edge_data, CD_MEDGE, edges, totedge, nullptr);
-  me->totedge = totedge;
+      &mesh->edge_data, CD_MEDGE, edges, totedge, nullptr);
+  mesh->totedge = totedge;
 
-  BKE_mesh_tag_topology_changed(me);
-  BKE_mesh_strip_loose_faces(me);
+  mesh->tag_topology_changed();
+  BKE_mesh_strip_loose_faces(mesh);
 }
 
-void BKE_mesh_strip_loose_faces(Mesh *me)
+void BKE_mesh_strip_loose_faces(Mesh *mesh)
 {
   /* NOTE: We need to keep this for edge creation (for now?), and some old `readfile.cc` code. */
   MFace *f;
   int a, b;
-  MFace *mfaces = me->mface;
+  MFace *mfaces = mesh->mface;
 
-  for (a = b = 0, f = mfaces; a < me->totface_legacy; a++, f++) {
+  for (a = b = 0, f = mfaces; a < mesh->totface_legacy; a++, f++) {
     if (f->v3) {
       if (a != b) {
         memcpy(&mfaces[b], f, sizeof(mfaces[b]));
-        CustomData_copy_data(&me->fdata_legacy, &me->fdata_legacy, a, b, 1);
+        CustomData_copy_data(&mesh->fdata_legacy, &mesh->fdata_legacy, a, b, 1);
       }
       b++;
     }
   }
   if (a != b) {
-    CustomData_free_elem(&me->fdata_legacy, b, a - b);
-    me->totface_legacy = b;
+    CustomData_free_elem(&mesh->fdata_legacy, b, a - b);
+    mesh->totface_legacy = b;
   }
 }
 
@@ -634,9 +635,6 @@ static bool check_matching_legacy_layer_counts(CustomData *fdata_legacy,
   if (!LAYER_CMP(ldata, CD_PROP_BYTE_COLOR, fdata_legacy, CD_MCOL)) {
     return false;
   }
-  if (!LAYER_CMP(ldata, CD_PREVIEW_MLOOPCOL, fdata_legacy, CD_PREVIEW_MCOL)) {
-    return false;
-  }
   if (!LAYER_CMP(ldata, CD_ORIGSPACE_MLOOP, fdata_legacy, CD_ORIGSPACE)) {
     return false;
   }
@@ -653,7 +651,7 @@ static bool check_matching_legacy_layer_counts(CustomData *fdata_legacy,
    * then there was nothing to do... */
   return a_num ? true : fallback;
 }
-#endif
+#endif /* !NDEBUG */
 
 static void add_mface_layers(Mesh &mesh, CustomData *fdata_legacy, CustomData *ldata, int total)
 {
@@ -668,10 +666,6 @@ static void add_mface_layers(Mesh &mesh, CustomData *fdata_legacy, CustomData *l
     if (ldata->layers[i].type == CD_PROP_BYTE_COLOR) {
       CustomData_add_layer_named(
           fdata_legacy, CD_MCOL, CD_SET_DEFAULT, total, ldata->layers[i].name);
-    }
-    else if (ldata->layers[i].type == CD_PREVIEW_MLOOPCOL) {
-      CustomData_add_layer_named(
-          fdata_legacy, CD_PREVIEW_MCOL, CD_SET_DEFAULT, total, ldata->layers[i].name);
     }
     else if (ldata->layers[i].type == CD_ORIGSPACE_MLOOP) {
       CustomData_add_layer_named(
@@ -690,25 +684,25 @@ static void add_mface_layers(Mesh &mesh, CustomData *fdata_legacy, CustomData *l
   update_active_fdata_layers(mesh, fdata_legacy, ldata);
 }
 
-static void mesh_ensure_tessellation_customdata(Mesh *me)
+static void mesh_ensure_tessellation_customdata(Mesh *mesh)
 {
-  if (UNLIKELY((me->totface_legacy != 0) && (me->faces_num == 0))) {
+  if (UNLIKELY((mesh->totface_legacy != 0) && (mesh->faces_num == 0))) {
     /* Pass, otherwise this function  clears 'mface' before
      * versioning 'mface -> mpoly' code kicks in #30583.
      *
      * Callers could also check but safer to do here - campbell */
   }
   else {
-    const int tottex_original = CustomData_number_of_layers(&me->loop_data, CD_PROP_FLOAT2);
-    const int totcol_original = CustomData_number_of_layers(&me->loop_data, CD_PROP_BYTE_COLOR);
+    const int tottex_original = CustomData_number_of_layers(&mesh->loop_data, CD_PROP_FLOAT2);
+    const int totcol_original = CustomData_number_of_layers(&mesh->loop_data, CD_PROP_BYTE_COLOR);
 
-    const int tottex_tessface = CustomData_number_of_layers(&me->fdata_legacy, CD_MTFACE);
-    const int totcol_tessface = CustomData_number_of_layers(&me->fdata_legacy, CD_MCOL);
+    const int tottex_tessface = CustomData_number_of_layers(&mesh->fdata_legacy, CD_MTFACE);
+    const int totcol_tessface = CustomData_number_of_layers(&mesh->fdata_legacy, CD_MCOL);
 
     if (tottex_tessface != tottex_original || totcol_tessface != totcol_original) {
-      BKE_mesh_tessface_clear(me);
+      BKE_mesh_tessface_clear(mesh);
 
-      add_mface_layers(*me, &me->fdata_legacy, &me->loop_data, me->totface_legacy);
+      add_mface_layers(*mesh, &mesh->fdata_legacy, &mesh->loop_data, mesh->totface_legacy);
 
       /* TODO: add some `--debug-mesh` option. */
       if (G.debug & G_DEBUG) {
@@ -854,7 +848,6 @@ static void mesh_loops_to_tessdata(CustomData *fdata_legacy,
    * there's not much ways to solve this. Better IMHO to live with it for now (sigh). */
   const int numUV = CustomData_number_of_layers(loop_data, CD_PROP_FLOAT2);
   const int numCol = CustomData_number_of_layers(loop_data, CD_PROP_BYTE_COLOR);
-  const bool hasPCol = CustomData_has_layer(loop_data, CD_PREVIEW_MLOOPCOL);
   const bool hasOrigSpace = CustomData_has_layer(loop_data, CD_ORIGSPACE_MLOOP);
   const bool hasLoopNormal = CustomData_has_layer(loop_data, CD_NORMAL);
   const bool hasLoopTangent = CustomData_has_layer(loop_data, CD_TANGENT);
@@ -882,18 +875,6 @@ static void mesh_loops_to_tessdata(CustomData *fdata_legacy,
         fdata_legacy, CD_MCOL, i, num_faces);
     const MLoopCol *mloopcol = (const MLoopCol *)CustomData_get_layer_n(
         loop_data, CD_PROP_BYTE_COLOR, i);
-
-    for (findex = 0, lidx = loopindices; findex < num_faces; lidx++, findex++, mcol++) {
-      for (j = (mface ? mface[findex].v4 : (*lidx)[3]) ? 4 : 3; j--;) {
-        MESH_MLOOPCOL_TO_MCOL(&mloopcol[(*lidx)[j]], &(*mcol)[j]);
-      }
-    }
-  }
-
-  if (hasPCol) {
-    MCol(*mcol)[4] = (MCol(*)[4])CustomData_get_layer(fdata_legacy, CD_PREVIEW_MCOL);
-    const MLoopCol *mloopcol = (const MLoopCol *)CustomData_get_layer(loop_data,
-                                                                      CD_PREVIEW_MLOOPCOL);
 
     for (findex = 0, lidx = loopindices; findex < num_faces; lidx++, findex++, mcol++) {
       for (j = (mface ? mface[findex].v4 : (*lidx)[3]) ? 4 : 3; j--;) {
@@ -1027,7 +1008,7 @@ static int mesh_tessface_calc(Mesh &mesh,
 /* We abuse #MFace.edcode to tag quad faces. See below for details. */
 #define TESSFACE_IS_QUAD 1
 
-  const int looptri_num = poly_to_tri_count(faces_num, totloop);
+  const int corner_tris_num = poly_to_tri_count(faces_num, totloop);
 
   MFace *mface, *mf;
   MemArena *arena = nullptr;
@@ -1047,9 +1028,9 @@ static int mesh_tessface_calc(Mesh &mesh,
    * if all faces are triangles it will be correct, `quads == 2x` allocations. */
   /* Take care since memory is _not_ zeroed so be sure to initialize each field. */
   mface_to_poly_map = (int *)MEM_malloc_arrayN(
-      size_t(looptri_num), sizeof(*mface_to_poly_map), __func__);
-  mface = (MFace *)MEM_malloc_arrayN(size_t(looptri_num), sizeof(*mface), __func__);
-  lindices = (uint(*)[4])MEM_malloc_arrayN(size_t(looptri_num), sizeof(*lindices), __func__);
+      size_t(corner_tris_num), sizeof(*mface_to_poly_map), __func__);
+  mface = (MFace *)MEM_malloc_arrayN(size_t(corner_tris_num), sizeof(*mface), __func__);
+  lindices = (uint(*)[4])MEM_malloc_arrayN(size_t(corner_tris_num), sizeof(*lindices), __func__);
 
   mface_index = 0;
   for (poly_index = 0; poly_index < faces_num; poly_index++) {
@@ -1206,10 +1187,10 @@ static int mesh_tessface_calc(Mesh &mesh,
   CustomData_free(fdata_legacy, totface);
   totface = mface_index;
 
-  BLI_assert(totface <= looptri_num);
+  BLI_assert(totface <= corner_tris_num);
 
   /* Not essential but without this we store over-allocated memory in the #CustomData layers. */
-  if (LIKELY(looptri_num != totface)) {
+  if (LIKELY(corner_tris_num != totface)) {
     mface = (MFace *)MEM_reallocN(mface, sizeof(*mface) * size_t(totface));
     mface_to_poly_map = (int *)MEM_reallocN(mface_to_poly_map,
                                             sizeof(*mface_to_poly_map) * size_t(totface));

@@ -20,6 +20,10 @@
 #include "DNA_scene_types.h"
 #include "DNA_vec_types.h"
 
+namespace blender::realtime_compositor {
+class RenderContext;
+}
+
 namespace blender::compositor {
 
 /**
@@ -161,7 +165,8 @@ class ExecutionSystem {
                   bNodeTree *editingtree,
                   bool rendering,
                   bool fastcalculation,
-                  const char *view_name);
+                  const char *view_name,
+                  realtime_compositor::RenderContext *render_context);
 
   /**
    * Destructor

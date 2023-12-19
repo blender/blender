@@ -431,6 +431,17 @@ TEST(vector, RemoveIf)
   EXPECT_EQ_ARRAY(vec.data(), expected_vec.data(), size_t(vec.size()));
 }
 
+TEST(vector, RemoveIfNonTrivialDestructible)
+{
+  Vector<Vector<int, 0, GuardedAllocator>> vec;
+  for ([[maybe_unused]] const int64_t i : IndexRange(10)) {
+    /* This test relies on leak detection to run after tests. */
+    vec.append(Vector<int, 0, GuardedAllocator>(100));
+  }
+  vec.remove_if([&](const auto & /*value*/) { return true; });
+  EXPECT_TRUE(vec.is_empty());
+}
+
 TEST(vector, ExtendSmallVector)
 {
   Vector<int> a = {2, 3, 4};

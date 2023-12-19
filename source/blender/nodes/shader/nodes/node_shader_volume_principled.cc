@@ -56,16 +56,6 @@ static void attribute_post_process(GPUMaterial *mat,
   }
 }
 
-#define socket_not_zero(sock) (in[sock].link || (clamp_f(in[sock].vec[0], 0.0f, 1.0f) > 1e-5f))
-#define socket_not_black(sock) \
-  (in[sock].link || (clamp_f(in[sock].vec[0], 0.0f, 1.0f) > 1e-5f && \
-                     clamp_f(in[sock].vec[1], 0.0f, 1.0f) > 1e-5f && \
-                     clamp_f(in[sock].vec[2], 0.0f, 1.0f) > 1e-5f))
-#define socket_not_white(sock) \
-  (in[sock].link || \
-   (clamp_f(in[sock].vec[0], 0.0f, 1.0f) < 1.0f && clamp_f(in[sock].vec[1], 0.0f, 1.0f) < 1.0f && \
-    clamp_f(in[sock].vec[2], 0.0f, 1.0f) < 1.0f))
-
 static int node_shader_gpu_volume_principled(GPUMaterial *mat,
                                              bNode *node,
                                              bNodeExecData * /*execdata*/,
@@ -73,14 +63,16 @@ static int node_shader_gpu_volume_principled(GPUMaterial *mat,
                                              GPUNodeStack *out)
 {
   /* Test if blackbody intensity is enabled. */
-  bool use_blackbody = socket_not_zero(SOCK_BLACKBODY_INTENSITY_ID);
+  bool use_blackbody = node_socket_not_zero(in[SOCK_BLACKBODY_INTENSITY_ID]);
 
-  if (socket_not_zero(SOCK_DENSITY_ID) && socket_not_black(SOCK_COLOR_ID)) {
+  if (node_socket_not_zero(in[SOCK_DENSITY_ID]) && node_socket_not_black(in[SOCK_COLOR_ID])) {
     /* Consider there is absorption phenomenon when there is scattering since
      * `extinction = scattering + absorption`. */
     GPU_material_flag_set(mat, GPU_MATFLAG_VOLUME_SCATTER | GPU_MATFLAG_VOLUME_ABSORPTION);
   }
-  if (socket_not_zero(SOCK_DENSITY_ID) && socket_not_white(SOCK_ABSORPTION_COLOR_ID)) {
+  if (node_socket_not_zero(in[SOCK_DENSITY_ID]) &&
+      node_socket_not_white(in[SOCK_ABSORPTION_COLOR_ID]))
+  {
     GPU_material_flag_set(mat, GPU_MATFLAG_VOLUME_ABSORPTION);
   }
 

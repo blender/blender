@@ -9,8 +9,12 @@
 #include <pxr/usd/ar/resolver.h>
 #include <pxr/usd/ar/writableAsset.h>
 
+<<<<<<< HEAD
 #include "BKE_appdir.h"
 #include "BKE_main.h"
+=======
+#include "BKE_main.hh"
+>>>>>>> main
 #include "BKE_report.h"
 
 #include "BLI_fileops.h"

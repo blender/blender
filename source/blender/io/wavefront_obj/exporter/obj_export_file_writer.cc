@@ -669,7 +669,7 @@ void MTLWriter::write_materials(const char *blen_filepath,
                                 const char *dest_dir,
                                 bool write_pbr)
 {
-  if (mtlmaterials_.size() == 0) {
+  if (mtlmaterials_.is_empty()) {
     return;
   }
 

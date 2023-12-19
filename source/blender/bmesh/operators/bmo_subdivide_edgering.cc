@@ -31,9 +31,9 @@
 
 #include "BKE_curve.hh"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
-#include "intern/bmesh_operators_private.h" /* own include */
+#include "intern/bmesh_operators_private.hh" /* own include */
 
 #define VERT_SHARED (1 << 0)
 

@@ -103,7 +103,7 @@ class DenoiserGPU : public Denoiser {
     int denoised_offset;
 
     int num_components;
-    bool use_compositing;
+    int use_compositing;
     bool use_denoising_albedo;
   };
 

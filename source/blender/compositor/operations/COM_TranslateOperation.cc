@@ -18,8 +18,7 @@ TranslateOperation::TranslateOperation(DataType data_type, ResizeMode resize_mod
   input_xoperation_ = nullptr;
   input_yoperation_ = nullptr;
   is_delta_set_ = false;
-  factor_x_ = 1.0f;
-  factor_y_ = 1.0f;
+  is_relative_ = false;
   this->x_extend_mode_ = MemoryBufferExtend::Clip;
   this->y_extend_mode_ = MemoryBufferExtend::Clip;
 
@@ -47,8 +46,8 @@ void TranslateOperation::execute_pixel_sampled(float output[4],
 {
   ensure_delta();
 
-  float original_xpos = x - this->getDeltaX();
-  float original_ypos = y - this->getDeltaY();
+  float original_xpos = x - this->get_delta_x();
+  float original_ypos = y - this->get_delta_y();
 
   input_operation_->read_sampled(output, original_xpos, original_ypos, PixelSampler::Bilinear);
 }
@@ -61,18 +60,12 @@ bool TranslateOperation::determine_depending_area_of_interest(rcti *input,
 
   ensure_delta();
 
-  new_input.xmin = input->xmin - this->getDeltaX();
-  new_input.xmax = input->xmax - this->getDeltaX();
-  new_input.ymin = input->ymin - this->getDeltaY();
-  new_input.ymax = input->ymax - this->getDeltaY();
+  new_input.xmin = input->xmin - this->get_delta_x();
+  new_input.xmax = input->xmax - this->get_delta_x();
+  new_input.ymin = input->ymin - this->get_delta_y();
+  new_input.ymax = input->ymax - this->get_delta_y();
 
   return NodeOperation::determine_depending_area_of_interest(&new_input, read_operation, output);
-}
-
-void TranslateOperation::setFactorXY(float factorX, float factorY)
-{
-  factor_x_ = factorX;
-  factor_y_ = factorY;
 }
 
 void TranslateOperation::set_wrapping(int wrapping_type)
@@ -101,11 +94,11 @@ void TranslateOperation::get_area_of_interest(const int input_idx,
     ensure_delta();
     r_input_area = output_area;
     if (x_extend_mode_ == MemoryBufferExtend::Clip) {
-      const int delta_x = this->getDeltaX();
+      const int delta_x = this->get_delta_x();
       BLI_rcti_translate(&r_input_area, -delta_x, 0);
     }
     if (y_extend_mode_ == MemoryBufferExtend::Clip) {
-      const int delta_y = this->getDeltaY();
+      const int delta_y = this->get_delta_y();
       BLI_rcti_translate(&r_input_area, 0, -delta_y);
     }
   }
@@ -119,8 +112,8 @@ void TranslateOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                       Span<MemoryBuffer *> inputs)
 {
   MemoryBuffer *input = inputs[0];
-  const int delta_x = this->getDeltaX();
-  const int delta_y = this->getDeltaY();
+  const int delta_x = this->get_delta_x();
+  const int delta_y = this->get_delta_y();
   for (int y = area.ymin; y < area.ymax; y++) {
     float *out = output->get_elem(area.xmin, y);
     for (int x = area.xmin; x < area.xmax; x++) {
@@ -149,8 +142,8 @@ void TranslateCanvasOperation::determine_canvas(const rcti &preferred_area, rcti
     y_socket->determine_canvas(r_area, unused);
 
     ensure_delta();
-    const float delta_x = x_extend_mode_ == MemoryBufferExtend::Clip ? getDeltaX() : 0.0f;
-    const float delta_y = y_extend_mode_ == MemoryBufferExtend::Clip ? getDeltaY() : 0.0f;
+    const float delta_x = x_extend_mode_ == MemoryBufferExtend::Clip ? get_delta_x() : 0.0f;
+    const float delta_y = y_extend_mode_ == MemoryBufferExtend::Clip ? get_delta_y() : 0.0f;
     BLI_rcti_translate(&r_area, delta_x, delta_y);
   }
 }

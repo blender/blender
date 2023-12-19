@@ -7,6 +7,7 @@ set(INC
   ../blenkernel
   ../bmesh
   ../draw
+  ../functions
   ../makesrna
   ../modifiers
   ../sequencer
@@ -151,7 +152,6 @@ set(LIB
   bf_blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna
-  PRIVATE bf::functions
   PRIVATE bf::intern::atomic
   PRIVATE bf::intern::guardedalloc
 )

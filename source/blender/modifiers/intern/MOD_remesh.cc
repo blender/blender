@@ -69,9 +69,9 @@ static void init_dualcon_mesh(DualConInput *input, Mesh *mesh)
   input->mloop = (DualConLoop)mesh->corner_verts().data();
   input->loop_stride = sizeof(int);
 
-  input->looptri = (DualConTri)mesh->looptris().data();
-  input->tri_stride = sizeof(MLoopTri);
-  input->tottri = BKE_mesh_runtime_looptri_len(mesh);
+  input->corner_tris = (DualConTri)mesh->corner_tris().data();
+  input->tri_stride = sizeof(blender::int3);
+  input->tottri = BKE_mesh_runtime_corner_tris_len(mesh);
 
   const blender::Bounds<blender::float3> bounds = *mesh->bounds_min_max();
   copy_v3_v3(input->min, bounds.min);
@@ -134,6 +134,7 @@ static void dualcon_add_quad(void *output_v, const int vert_indices[4])
 
 static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, Mesh *mesh)
 {
+  using namespace blender;
   RemeshModifierData *rmd;
   DualConOutput *output;
   DualConInput input;
@@ -196,7 +197,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, 
     MEM_freeN(output);
   }
 
-  BKE_mesh_smooth_flag_set(result, rmd->flag & MOD_REMESH_SMOOTH_SHADING);
+  bke::mesh_smooth_set(*result, rmd->flag & MOD_REMESH_SMOOTH_SHADING);
 
   BKE_mesh_copy_parameters_for_eval(result, mesh);
   BKE_mesh_calc_edges(result, true, false);

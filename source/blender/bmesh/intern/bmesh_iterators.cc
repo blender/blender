@@ -15,8 +15,8 @@
 #include "BLI_bitmap.h"
 #include "BLI_utildefines.h"
 
-#include "bmesh.h"
-#include "intern/bmesh_private.h"
+#include "bmesh.hh"
+#include "intern/bmesh_private.hh"
 
 const char bm_iter_itype_htype_map[BM_ITYPE_MAX] = {
     '\0',
@@ -360,7 +360,7 @@ int BM_iter_mesh_count_flag(const char itype, BMesh *bm, const char hflag, const
  * allow adding but not removing, this isn't _totally_ safe since
  * you could add/remove within the same loop, but catches common cases
  */
-#ifdef DEBUG
+#ifndef NDEBUG
 #  define USE_IMMUTABLE_ASSERT
 #endif
 

@@ -142,6 +142,10 @@ struct MTLShaderTexture {
   ShaderStage stage_mask;
   /* Whether texture resource is expected to be image or sampler. */
   bool is_texture_sampler;
+  /* SSBO index for texture buffer binding. */
+  int texture_buffer_ssbo_location = -1;
+  /* Uniform location for texture buffer metadata. */
+  int buffer_metadata_uniform_loc = -1;
 };
 
 struct MTLShaderSampler {
@@ -234,7 +238,8 @@ class MTLShaderInterface : public ShaderInterface {
                    eGPUTextureType tex_binding_type,
                    eGPUSamplerFormat sampler_format,
                    bool is_texture_sampler,
-                   ShaderStage stage_mask = ShaderStage::FRAGMENT);
+                   ShaderStage stage_mask = ShaderStage::FRAGMENT,
+                   int tex_buffer_ssbo_location = -1);
   void add_push_constant_block(uint32_t name_offset);
 
   /* Resolve and cache locations of builtin uniforms and uniform blocks. */

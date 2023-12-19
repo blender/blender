@@ -221,8 +221,8 @@ const IDFilterEnumPropertyItem rna_enum_id_type_filter_items[] = {
 #  include "BKE_idtype.h"
 #  include "BKE_lib_override.hh"
 #  include "BKE_lib_query.h"
-#  include "BKE_lib_remap.h"
-#  include "BKE_library.h"
+#  include "BKE_lib_remap.hh"
+#  include "BKE_library.hh"
 #  include "BKE_material.h"
 #  include "BKE_preview_image.hh"
 #  include "BKE_vfont.hh"
@@ -1584,6 +1584,11 @@ static void rna_def_ID_properties(BlenderRNA *brna)
   prop = RNA_def_property(srna, "bool_array", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_flag(prop, PROP_IDPROPERTY);
   RNA_def_property_array(prop, 1);
+
+  /* IDP_ENUM */
+  prop = RNA_def_property(srna, "enum", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_enum_dummy_DEFAULT_items);
+  RNA_def_property_flag(prop, PROP_IDPROPERTY);
 
   /* IDP_GROUP */
   prop = RNA_def_property(srna, "group", PROP_POINTER, PROP_NONE);

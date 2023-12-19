@@ -692,8 +692,7 @@ static void select_grow_invoke_per_curve(const Curves &curves_id,
   float4x4 curves_to_world_mat = float4x4(curves_ob.object_to_world);
   float4x4 world_to_curves_mat = math::invert(curves_to_world_mat);
 
-  float4x4 projection;
-  ED_view3d_ob_project_mat_get(&rv3d, &curves_ob, projection.ptr());
+  const float4x4 projection = ED_view3d_ob_project_mat_get(&rv3d, &curves_ob);
 
   /* Compute how mouse movements in screen space are converted into grow/shrink distances in
    * object space. */
@@ -706,8 +705,7 @@ static void select_grow_invoke_per_curve(const Curves &curves_id,
           const int point_i = curve_op_data.selected_points[i];
           const float3 &pos_cu = positions[point_i];
 
-          float2 pos_re;
-          ED_view3d_project_float_v2_m4(&region, pos_cu, pos_re, projection.ptr());
+          const float2 pos_re = ED_view3d_project_float_v2_m4(&region, pos_cu, projection);
           if (pos_re.x < 0 || pos_re.y < 0 || pos_re.x > region.winx || pos_re.y > region.winy) {
             continue;
           }
@@ -1033,7 +1031,7 @@ static int min_distance_edit_invoke(bContext *C, wmOperator *op, const wmEvent *
   }
 
   BVHTreeFromMesh surface_bvh_eval;
-  BKE_bvhtree_from_mesh_get(&surface_bvh_eval, surface_me_eval, BVHTREE_FROM_LOOPTRI, 2);
+  BKE_bvhtree_from_mesh_get(&surface_bvh_eval, surface_me_eval, BVHTREE_FROM_CORNER_TRIS, 2);
   BLI_SCOPED_DEFER([&]() { free_bvhtree_from_mesh(&surface_bvh_eval); });
 
   const int2 mouse_pos_int_re{event->mval};

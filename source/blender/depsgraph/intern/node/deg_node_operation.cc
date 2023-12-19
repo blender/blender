@@ -246,6 +246,7 @@ void OperationNode::tag_update(Depsgraph *graph, eUpdateSource source)
     case DEG_UPDATE_SOURCE_TIME:
     case DEG_UPDATE_SOURCE_RELATIONS:
     case DEG_UPDATE_SOURCE_VISIBILITY:
+    case DEG_UPDATE_SOURCE_SIDE_EFFECT_REQUEST:
       /* Currently nothing. */
       break;
     case DEG_UPDATE_SOURCE_USER_EDIT:

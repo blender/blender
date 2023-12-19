@@ -26,7 +26,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_lib_id.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_report.h"
 #include "BKE_text.h"
 
@@ -878,7 +878,7 @@ static int text_run_script_exec(bContext *C, wmOperator *op)
   return OPERATOR_CANCELLED;
 #else
   return text_run_script(C, op->reports);
-#endif
+#endif /* WITH_PYTHON */
 }
 
 void TEXT_OT_run_script(wmOperatorType *ot)

@@ -679,8 +679,9 @@ class VIEW3D_PT_slots_vertex_groups(Panel):
 
     def draw_header(self, context):
         ob = context.object
+        groups = ob.vertex_groups
         self.bl_label = (
-            iface_("%s") % (ob.vertex_groups.active.name) if ob.vertex_groups else
+            iface_("%s") % (groups.active.name) if groups and groups.active else
             iface_("Vertex Groups")
         )
 

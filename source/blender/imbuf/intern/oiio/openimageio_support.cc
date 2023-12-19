@@ -302,7 +302,7 @@ bool imb_oiio_write(const WriteContext &ctx, const char *filepath, const ImageSp
   /* Grayscale images need to be based on luminance weights rather than only
    * using a single channel from the source. */
   if (ctx.ibuf->channels > 1 && file_spec.nchannels == 1) {
-    float weights[4]{};
+    float weights[4] = {};
     IMB_colormanagement_get_luminance_coefficients(weights);
     ImageBufAlgo::channel_sum(final_buf, orig_buf, {weights, orig_buf.nchannels()});
   }

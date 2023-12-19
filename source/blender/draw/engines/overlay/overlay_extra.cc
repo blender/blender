@@ -48,7 +48,7 @@
 #include "overlay_private.hh"
 
 #include "draw_common.h"
-#include "draw_manager_text.h"
+#include "draw_manager_text.hh"
 
 void OVERLAY_extra_cache_init(OVERLAY_Data *vedata)
 {
@@ -364,9 +364,9 @@ static void OVERLAY_bounds(OVERLAY_ExtraCallBuffers *cb,
   }
 
   const Bounds<float3> bounds = BKE_object_boundbox_get(ob).value_or(
-      Bounds<float3>{float3(-1.0f), float3(1.0f)});
+      Bounds(float3(-1.0f), float3(1.0f)));
 
-  float3 size = bounds.max - bounds.min;
+  float3 size = (bounds.max - bounds.min) * 0.5f;
   const float3 center = around_origin ? float3(0) : math::midpoint(bounds.min, bounds.max);
 
   switch (boundtype) {

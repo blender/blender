@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'd293f72ab6e7')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'0b00b360f7ae')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-27 10:28:34\n"
+"POT-Creation-Date: 2023-12-18 13:45:58\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Ainhize & Miriam <agoenaga006@ikasle.ehu.eus>\n"
 "Language-Team: Euskara <agoenaga006@ikasle.ehu.eus>\n"
@@ -1706,10 +1706,6 @@ msgid "Save System Info"
 msgstr "Sistemaren Informazioa Gorde"
 
 
-msgid "Refraction"
-msgstr "Errefrakzioa"
-
-
 msgctxt "Operator"
 msgid "Scale"
 msgstr "Eskalatu"
@@ -1906,6 +1902,10 @@ msgstr "Baxua"
 
 msgid "Upper"
 msgstr "Altua"
+
+
+msgid "Refraction"
+msgstr "Errefrakzioa"
 
 
 msgctxt "Image"

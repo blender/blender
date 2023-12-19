@@ -223,9 +223,9 @@ bool GPU_mem_stats_supported()
   return GCaps.mem_stats_support;
 }
 
-void GPU_mem_stats_get(int *totalmem, int *freemem)
+void GPU_mem_stats_get(int *r_totalmem, int *r_freemem)
 {
-  Context::get()->memory_statistics_get(totalmem, freemem);
+  Context::get()->memory_statistics_get(r_totalmem, r_freemem);
 }
 
 bool GPU_stereo_quadbuffer_support()

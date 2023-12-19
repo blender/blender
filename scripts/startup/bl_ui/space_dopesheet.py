@@ -732,7 +732,7 @@ class DOPESHEET_MT_context_menu(Menu):
 
 
 class DOPESHEET_MT_channel_context_menu(Menu):
-    bl_label = "Dope Sheet Channel"
+    bl_label = "Channel"
 
     def draw(self, context):
         layout = self.layout

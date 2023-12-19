@@ -55,7 +55,7 @@ static void rna_Mesh_sharp_from_angle_set(Mesh *mesh, const float angle)
 {
   mesh->attributes_for_write().remove("sharp_edge");
   mesh->attributes_for_write().remove("sharp_face");
-  BKE_mesh_sharp_edges_set_from_angle(mesh, angle);
+  blender::bke::mesh_sharp_edges_set_from_angle(*mesh, angle);
   DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);
 }
 
@@ -82,19 +82,19 @@ static void rna_Mesh_free_tangents(Mesh *mesh)
   CustomData_free_layers(&mesh->loop_data, CD_MLOOPTANGENT, mesh->totloop);
 }
 
-static void rna_Mesh_calc_looptri(Mesh *mesh)
+static void rna_Mesh_calc_corner_tri(Mesh *mesh)
 {
-  mesh->looptris();
+  mesh->corner_tris();
 }
 
 static void rna_Mesh_calc_smooth_groups(
     Mesh *mesh, bool use_bitflags, int **r_poly_group, int *r_poly_group_num, int *r_group_total)
 {
+  using namespace blender;
   *r_poly_group_num = mesh->faces_num;
-  const bool *sharp_edges = (const bool *)CustomData_get_layer_named(
-      &mesh->edge_data, CD_PROP_BOOL, "sharp_edge");
-  const bool *sharp_faces = (const bool *)CustomData_get_layer_named(
-      &mesh->face_data, CD_PROP_BOOL, "sharp_face");
+  const bke::AttributeAccessor attributes = mesh->attributes();
+  const VArraySpan sharp_edges = *attributes.lookup<bool>("sharp_edge", ATTR_DOMAIN_EDGE);
+  const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", ATTR_DOMAIN_FACE);
   *r_poly_group = BKE_mesh_calc_smoothgroups(mesh->totedge,
                                              mesh->faces(),
                                              mesh->corner_edges(),
@@ -250,17 +250,17 @@ void RNA_api_mesh(StructRNA *srna)
       "Compute tangents and bitangent signs, to be used together with the split normals "
       "to get a complete tangent space for normal mapping "
       "(split normals are also computed if not yet present)");
-  parm = RNA_def_string(func,
-                        "uvmap",
-                        nullptr,
-                        MAX_CUSTOMDATA_LAYER_NAME_NO_PREFIX,
-                        "",
-                        "Name of the UV map to use for tangent space computation");
+  RNA_def_string(func,
+                 "uvmap",
+                 nullptr,
+                 MAX_CUSTOMDATA_LAYER_NAME_NO_PREFIX,
+                 "",
+                 "Name of the UV map to use for tangent space computation");
 
   func = RNA_def_function(srna, "free_tangents", "rna_Mesh_free_tangents");
   RNA_def_function_ui_description(func, "Free tangents");
 
-  func = RNA_def_function(srna, "calc_loop_triangles", "rna_Mesh_calc_looptri");
+  func = RNA_def_function(srna, "calc_loop_triangles", "rna_Mesh_calc_corner_tri");
   RNA_def_function_ui_description(func,
                                   "Calculate loop triangle tessellation (supports editmode too)");
 

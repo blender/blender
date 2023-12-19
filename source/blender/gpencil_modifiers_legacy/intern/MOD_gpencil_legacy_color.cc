@@ -26,7 +26,7 @@
 #include "BKE_context.hh"
 #include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_lib_query.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_screen.hh"
 

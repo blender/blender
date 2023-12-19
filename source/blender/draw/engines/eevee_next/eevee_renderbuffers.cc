@@ -69,7 +69,7 @@ void RenderBuffers::acquire(int2 extent)
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
 
   /* Depth and combined are always needed. */
-  depth_tx.ensure_2d(GPU_DEPTH24_STENCIL8, extent, usage | GPU_TEXTURE_USAGE_FORMAT_VIEW);
+  depth_tx.ensure_2d(GPU_DEPTH24_STENCIL8, extent, usage);
   /* TODO(fclem): depth_tx should ideally be a texture from pool but we need stencil_view
    * which is currently unsupported by pool textures. */
   // depth_tx.acquire(extent, GPU_DEPTH24_STENCIL8);

@@ -107,7 +107,18 @@ void init_globals()
   g_data.hair_time = 0.0;
   g_data.hair_thickness = 0.0;
   g_data.hair_strand_id = 0;
-  g_data.ray_type = RAY_TYPE_CAMERA; /* TODO */
+#if defined(MAT_SHADOW)
+  g_data.ray_type = RAY_TYPE_SHADOW;
+#elif defined(MAT_CAPTURE)
+  g_data.ray_type = RAY_TYPE_DIFFUSE;
+#else
+  if (uniform_buf.pipeline.is_probe_reflection) {
+    g_data.ray_type = RAY_TYPE_GLOSSY;
+  }
+  else {
+    g_data.ray_type = RAY_TYPE_CAMERA;
+  }
+#endif
   g_data.ray_depth = 0.0;
   g_data.ray_length = distance(g_data.P, drw_view_position());
   g_data.barycentric_coords = vec2(0.0);

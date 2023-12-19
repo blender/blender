@@ -316,8 +316,8 @@ static void mesh_merge_transform(Mesh *result,
   }
 
   /* remap the vertex groups if necessary */
-  if (BKE_mesh_deform_verts(result) != nullptr) {
-    MDeformVert *dvert = BKE_mesh_deform_verts_for_write(result);
+  if (!result->deform_verts().is_empty()) {
+    MDeformVert *dvert = result->deform_verts_for_write().data();
     BKE_object_defgroup_index_map_apply(&dvert[cap_verts_index], cap_nverts, remap, remap_len);
   }
 
@@ -599,7 +599,9 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
   Vector<float3> dst_vert_normals;
   if (!use_recalc_normals) {
     src_vert_normals = mesh->vert_normals();
-    dst_vert_normals.reinitialize(result->totvert);
+    dst_vert_normals.as_mutable_span()
+        .take_front(src_vert_normals.size())
+        .copy_from(src_vert_normals);
   }
 
   for (c = 1; c < count; c++) {

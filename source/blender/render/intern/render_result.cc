@@ -30,7 +30,7 @@
 #include "BKE_image.h"
 #include "BKE_image_format.h"
 #include "BKE_image_save.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 
@@ -448,9 +448,9 @@ GPUTexture *RE_pass_ensure_gpu_texture_cache(Render *re, RenderPass *rpass)
     return nullptr;
   }
 
-  const eGPUTextureFormat format = (rpass->channels == 1) ? GPU_R16F :
-                                   (rpass->channels == 3) ? GPU_RGB16F :
-                                                            GPU_RGBA16F;
+  const eGPUTextureFormat format = (rpass->channels == 1) ? GPU_R32F :
+                                   (rpass->channels == 3) ? GPU_RGB32F :
+                                                            GPU_RGBA32F;
 
   /* TODO(sergey): Use utility to assign the texture. */
   ibuf->gpu.texture = GPU_texture_create_2d("RenderBuffer.gpu_texture",
@@ -1055,6 +1055,7 @@ ImBuf *RE_render_result_rect_to_ibuf(RenderResult *rr,
   if (rv->ibuf) {
     IMB_assign_byte_buffer(ibuf, rv->ibuf->byte_buffer.data, IB_DO_NOT_TAKE_OWNERSHIP);
     IMB_assign_float_buffer(ibuf, rv->ibuf->float_buffer.data, IB_DO_NOT_TAKE_OWNERSHIP);
+    ibuf->channels = rv->ibuf->channels;
   }
 
   /* float factor for random dither, imbuf takes care of it */

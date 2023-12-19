@@ -8,6 +8,7 @@ set(INC
   ../../blenloader
   ../../blentranslation
   ../../bmesh
+  ../../functions
   ../../gpu
   ../../makesrna
   ../../nodes
@@ -52,7 +53,6 @@ set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
-  PRIVATE bf::functions
   PRIVATE bf::intern::guardedalloc
 )
 

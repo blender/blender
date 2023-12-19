@@ -12,7 +12,7 @@
 #include "BLI_listbase_wrapper.hh"
 #include "BLI_mempool.h"
 
-#include "BKE_main.h"
+#include "BKE_main.hh"
 
 #include "../outliner_intern.hh"
 #include "common.hh"

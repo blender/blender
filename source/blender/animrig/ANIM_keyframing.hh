@@ -32,6 +32,9 @@ namespace blender::animrig {
 /** \name Key-Framing Management
  * \{ */
 
+/* Set the FCurve flag based on the property type of `prop`. */
+void update_autoflags_fcurve_direct(FCurve *fcu, PropertyRNA *prop);
+
 /**
  * \brief Main Insert Key-framing API call.
  *
@@ -139,12 +142,9 @@ bool is_autokey_flag(const Scene *scene, eKeyInsert_Flag flag);
  */
 bool autokeyframe_cfra_can_key(const Scene *scene, ID *id);
 
-void autokeyframe_object(
-    bContext *C, Scene *scene, ViewLayer *view_layer, Object *ob, eTfmMode tmode);
+void autokeyframe_object(bContext *C, Scene *scene, Object *ob);
 /**
  * Auto-keyframing feature - for objects
- *
- * \param tmode: A transform mode.
  *
  * \note Context may not always be available,
  * so must check before using it as it's a luxury for a few cases.
@@ -154,14 +154,12 @@ bool autokeyframe_pchan(bContext *C, Scene *scene, Object *ob, bPoseChannel *pch
 /**
  * Auto-keyframing feature - for poses/pose-channels
  *
- * \param tmode: A transform mode.
- *
  * targetless_ik: has targetless ik been done on any channels?
  *
  * \note Context may not always be available,
  * so must check before using it as it's a luxury for a few cases.
  */
-void autokeyframe_pose(bContext *C, Scene *scene, Object *ob, int tmode, short targetless_ik);
+void autokeyframe_pose(bContext *C, Scene *scene, Object *ob, short targetless_ik);
 /**
  * Use for auto-key-framing.
  * \param only_if_property_keyed: if true, auto-key-framing only creates keyframes on already keyed
@@ -181,7 +179,7 @@ bool autokeyframe_property(bContext *C,
 /**
  * Insert keys for the given rna_path in the given action. The length of the values Span is
  * expected to be the size of the property array.
- * \param frame is expected to be in the local time of the action, meaning it has to be NLA mapped
+ * \param frame: is expected to be in the local time of the action, meaning it has to be NLA mapped
  * already.
  * \returns The number of keys inserted.
  */
@@ -190,13 +188,14 @@ int insert_key_action(Main *bmain,
                       PointerRNA *ptr,
                       const std::string &rna_path,
                       float frame,
-                      const Span<float> values,
+                      Span<float> values,
                       eInsertKeyFlags insert_key_flag,
                       eBezTriple_KeyframeType key_type);
 
-/** Insert keys to the ID of the given PointerRNA for the given RNA paths. Tries to create an
+/**
+ * Insert keys to the ID of the given PointerRNA for the given RNA paths. Tries to create an
  * action if none exists yet.
- * \param scene_frame is expected to be not NLA mapped as that happens within the function.
+ * \param scene_frame: is expected to be not NLA mapped as that happens within the function.
  */
 void insert_key_rna(PointerRNA *rna_pointer,
                     const blender::Span<std::string> rna_paths,

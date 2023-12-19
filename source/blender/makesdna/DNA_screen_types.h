@@ -822,3 +822,9 @@ typedef enum AssetShelfSettings_DisplayFlag {
   ASSETSHELF_SHOW_NAMES = (1 << 0),
 } AssetShelfSettings_DisplayFlag;
 ENUM_OPERATORS(AssetShelfSettings_DisplayFlag, ASSETSHELF_SHOW_NAMES);
+
+typedef struct FileHandler {
+  DNA_DEFINE_CXX_METHODS(FileHandler)
+  /** Runtime. */
+  struct FileHandlerType *type;
+} FileHandler;

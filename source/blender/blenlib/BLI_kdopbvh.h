@@ -197,8 +197,10 @@ BVHTreeOverlap *BLI_bvhtree_overlap(const BVHTree *tree1,
                                     unsigned int *r_overlap_num,
                                     BVHTree_OverlapCallback callback,
                                     void *userdata);
-/** Compute overlaps of the tree with itself. This is faster than BLI_bvhtree_overlap
- *  because it only tests and returns each symmetrical pair once. */
+/**
+ * Compute overlaps of the tree with itself. This is faster than #BLI_bvhtree_overlap
+ * because it only tests and returns each symmetrical pair once.
+ */
 BVHTreeOverlap *BLI_bvhtree_overlap_self(const BVHTree *tree,
                                          unsigned int *r_overlap_num,
                                          BVHTree_OverlapCallback callback,

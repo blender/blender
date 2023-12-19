@@ -14,7 +14,7 @@
 #include "BKE_attribute_math.hh"
 #include "BKE_geometry_fields.hh"
 #include "BKE_geometry_set.hh"
-#include "BKE_node_socket_value_cpp_type.hh"
+#include "BKE_node_socket_value.hh"
 
 #include "DNA_node_types.h"
 
@@ -46,8 +46,8 @@ using bke::InstancesComponent;
 using bke::MeshComponent;
 using bke::MutableAttributeAccessor;
 using bke::PointCloudComponent;
+using bke::SocketValueVariant;
 using bke::SpanAttributeWriter;
-using bke::ValueOrField;
 using bke::VolumeComponent;
 using fn::Field;
 using fn::FieldContext;
@@ -95,32 +95,24 @@ class GeoNodeExecParams {
    */
   template<typename T> T extract_input(StringRef identifier)
   {
-    if constexpr (is_field_base_type_v<T>) {
-      ValueOrField<T> value_or_field = this->extract_input<ValueOrField<T>>(identifier);
-      return value_or_field.as_value();
-    }
-    else if constexpr (fn::is_field_v<T>) {
-      using BaseType = typename T::base_type;
-      ValueOrField<BaseType> value_or_field = this->extract_input<ValueOrField<BaseType>>(
-          identifier);
-      return value_or_field.as_field();
-    }
-    else if constexpr (std::is_same_v<std::decay_t<T>, GField>) {
-      const int index = this->get_input_index(identifier);
-      const bNodeSocket &input_socket = node_.input_by_identifier(identifier);
-      const CPPType &value_type = *input_socket.typeinfo->geometry_nodes_cpp_type;
-      const bke::ValueOrFieldCPPType &value_or_field_type =
-          *bke::ValueOrFieldCPPType::get_from_self(value_type);
-      return value_or_field_type.as_field(params_.try_get_input_data_ptr(index));
+    if constexpr (is_field_base_type_v<T> || fn::is_field_v<T> ||
+                  std::is_same_v<std::decay_t<T>, GField>)
+    {
+      SocketValueVariant value_variant = this->extract_input<SocketValueVariant>(identifier);
+      return value_variant.extract<T>();
     }
     else {
-#ifdef DEBUG
+#ifndef NDEBUG
       this->check_input_access(identifier, &CPPType::get<T>());
 #endif
       const int index = this->get_input_index(identifier);
       T value = params_.extract_input<T>(index);
       if constexpr (std::is_same_v<T, GeometrySet>) {
         this->check_input_geometry_set(identifier, value);
+      }
+      if constexpr (std::is_same_v<T, SocketValueVariant>) {
+        BLI_assert(value.valid_for_socket(
+            eNodeSocketDatatype(node_.input_by_identifier(identifier).type)));
       }
       return value;
     }
@@ -134,23 +126,24 @@ class GeoNodeExecParams {
    */
   template<typename T> T get_input(StringRef identifier) const
   {
-    if constexpr (is_field_base_type_v<T>) {
-      ValueOrField<T> value_or_field = this->get_input<ValueOrField<T>>(identifier);
-      return value_or_field.as_value();
-    }
-    else if constexpr (fn::is_field_v<T>) {
-      using BaseType = typename T::base_type;
-      ValueOrField<BaseType> value_or_field = this->get_input<ValueOrField<BaseType>>(identifier);
-      return value_or_field.as_field();
+    if constexpr (is_field_base_type_v<T> || fn::is_field_v<T> ||
+                  std::is_same_v<std::decay_t<T>, GField>)
+    {
+      auto value_variant = this->get_input<SocketValueVariant>(identifier);
+      return value_variant.extract<T>();
     }
     else {
-#ifdef DEBUG
+#ifndef NDEBUG
       this->check_input_access(identifier, &CPPType::get<T>());
 #endif
       const int index = this->get_input_index(identifier);
       const T &value = params_.get_input<T>(index);
       if constexpr (std::is_same_v<T, GeometrySet>) {
         this->check_input_geometry_set(identifier, value);
+      }
+      if constexpr (std::is_same_v<T, SocketValueVariant>) {
+        BLI_assert(value.valid_for_socket(
+            eNodeSocketDatatype(node_.input_by_identifier(identifier).type)));
       }
       return value;
     }
@@ -162,24 +155,20 @@ class GeoNodeExecParams {
   template<typename T> void set_output(StringRef identifier, T &&value)
   {
     using StoredT = std::decay_t<T>;
-    if constexpr (is_field_base_type_v<StoredT>) {
-      this->set_output(identifier, ValueOrField<StoredT>(std::forward<T>(value)));
-    }
-    else if constexpr (fn::is_field_v<StoredT>) {
-      using BaseType = typename StoredT::base_type;
-      this->set_output(identifier, ValueOrField<BaseType>(std::forward<T>(value)));
-    }
-    else if constexpr (std::is_same_v<std::decay_t<StoredT>, GField>) {
-      bke::attribute_math::convert_to_static_type(value.cpp_type(), [&](auto dummy) {
-        using ValueT = decltype(dummy);
-        Field<ValueT> value_typed(std::forward<T>(value));
-        this->set_output(identifier, ValueOrField<ValueT>(std::move(value_typed)));
-      });
+    if constexpr (is_field_base_type_v<StoredT> || fn::is_field_v<StoredT> ||
+                  std::is_same_v<StoredT, GField>)
+    {
+      SocketValueVariant value_variant(std::forward<T>(value));
+      this->set_output(identifier, std::move(value_variant));
     }
     else {
-#ifdef DEBUG
+#ifndef NDEBUG
       const CPPType &type = CPPType::get<StoredT>();
       this->check_output_access(identifier, type);
+      if constexpr (std::is_same_v<StoredT, SocketValueVariant>) {
+        BLI_assert(value.valid_for_socket(
+            eNodeSocketDatatype(node_.output_by_identifier(identifier).type)));
+      }
 #endif
       if constexpr (std::is_same_v<StoredT, GeometrySet>) {
         this->check_output_geometry_set(value);

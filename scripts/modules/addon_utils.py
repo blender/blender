@@ -62,9 +62,10 @@ def _paths_with_extension_repos():
 
     import os
     addon_paths = [(path, "") for path in paths()]
-
     if _preferences.experimental.use_extension_repos:
         for repo in _preferences.filepaths.extension_repos:
+            if not repo.enabled:
+                continue
             dirpath = repo.directory
             if not os.path.isdir(dirpath):
                 continue
@@ -601,6 +602,8 @@ def _extension_preferences_idmap():
     repos_idmap = {}
     if _preferences.experimental.use_extension_repos:
         for repo in _preferences.filepaths.extension_repos:
+            if not repo.enabled:
+                continue
             repos_idmap[repo.as_pointer()] = repo.module
     return repos_idmap
 
@@ -609,6 +612,8 @@ def _extension_dirpath_from_preferences():
     repos_dict = {}
     if _preferences.experimental.use_extension_repos:
         for repo in _preferences.filepaths.extension_repos:
+            if not repo.enabled:
+                continue
             repos_dict[repo.module] = repo.directory
     return repos_dict
 

@@ -203,6 +203,26 @@ uint64_t GHOST_SystemWin32::getMilliSeconds() const
   return performanceCounterToMillis(count);
 }
 
+/**
+ * Returns the number of milliseconds since the start of the Blender process to the time of the
+ * last message, using the high frequency timer if available. This should be used instead of
+ * getMilliSeconds when you need the time a message was delivered versus collected, so for all
+ * event creation that are in response to receiving a Windows message.
+ */
+static uint64_t getMessageTime(GHOST_SystemWin32 *system)
+{
+  /* Get difference between last message time and now. */
+  int64_t t_delta = GetMessageTime() - GetTickCount();
+
+  /* Handle 32-bit rollover. */
+  if (t_delta > 0) {
+    t_delta -= int64_t(UINT32_MAX) + 1;
+  }
+
+  /* Return message time as 64-bit milliseconds since Blender start. */
+  return system->getMilliSeconds() + t_delta;
+}
+
 uint8_t GHOST_SystemWin32::getNumDisplays() const
 {
   GHOST_ASSERT(m_displayManager, "GHOST_SystemWin32::getNumDisplays(): m_displayManager==0\n");
@@ -863,6 +883,7 @@ GHOST_EventButton *GHOST_SystemWin32::processButtonEvent(GHOST_TEventType type,
   GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)getSystem();
 
   GHOST_TabletData td = window->getTabletData();
+  const uint64_t event_ms = getMessageTime(system);
 
   /* Move mouse to button event position. */
   if (window->getTabletData().Active != GHOST_kTabletModeNone) {
@@ -870,8 +891,8 @@ GHOST_EventButton *GHOST_SystemWin32::processButtonEvent(GHOST_TEventType type,
     DWORD msgPos = ::GetMessagePos();
     int msgPosX = GET_X_LPARAM(msgPos);
     int msgPosY = GET_Y_LPARAM(msgPos);
-    system->pushEvent(new GHOST_EventCursor(
-        ::GetMessageTime(), GHOST_kEventCursorMove, window, msgPosX, msgPosY, td));
+    system->pushEvent(
+        new GHOST_EventCursor(event_ms, GHOST_kEventCursorMove, window, msgPosX, msgPosY, td));
 
     if (type == GHOST_kEventButtonDown) {
       WINTAB_PRINTF("HWND %p OS button down\n", window->getHWND());
@@ -882,7 +903,7 @@ GHOST_EventButton *GHOST_SystemWin32::processButtonEvent(GHOST_TEventType type,
   }
 
   window->updateMouseCapture(type == GHOST_kEventButtonDown ? MousePressed : MouseReleased);
-  return new GHOST_EventButton(system->getMilliSeconds(), type, window, mask, td);
+  return new GHOST_EventButton(event_ms, type, window, mask, td);
 }
 
 void GHOST_SystemWin32::processWintabEvent(GHOST_WindowWin32 *window)
@@ -1026,8 +1047,8 @@ void GHOST_SystemWin32::processWintabEvent(GHOST_WindowWin32 *window)
     int y = GET_Y_LPARAM(pos);
     GHOST_TabletData td = wt->getLastTabletData();
 
-    system->pushEvent(new GHOST_EventCursor(
-        system->getMilliSeconds(), GHOST_kEventCursorMove, window, x, y, td));
+    system->pushEvent(
+        new GHOST_EventCursor(getMessageTime(system), GHOST_kEventCursorMove, window, x, y, td));
   }
 }
 
@@ -1181,7 +1202,7 @@ GHOST_EventCursor *GHOST_SystemWin32::processCursorEvent(GHOST_WindowWin32 *wind
     y_screen += y_accum;
   }
 
-  return new GHOST_EventCursor(system->getMilliSeconds(),
+  return new GHOST_EventCursor(getMessageTime(system),
                                GHOST_kEventCursorMove,
                                window,
                                x_screen,
@@ -1207,7 +1228,7 @@ void GHOST_SystemWin32::processWheelEvent(GHOST_WindowWin32 *window,
   acc = abs(acc);
 
   while (acc >= WHEEL_DELTA) {
-    system->pushEvent(new GHOST_EventWheel(system->getMilliSeconds(), window, direction));
+    system->pushEvent(new GHOST_EventWheel(getMessageTime(system), window, direction));
     acc -= WHEEL_DELTA;
   }
   system->m_wheelDeltaAccum = acc * direction;
@@ -1286,7 +1307,7 @@ GHOST_EventKey *GHOST_SystemWin32::processKeyEvent(GHOST_WindowWin32 *window, RA
     }
 #endif /* WITH_INPUT_IME */
 
-    event = new GHOST_EventKey(system->getMilliSeconds(),
+    event = new GHOST_EventKey(getMessageTime(system),
                                key_down ? GHOST_kEventKeyDown : GHOST_kEventKeyUp,
                                window,
                                key,
@@ -1307,8 +1328,7 @@ GHOST_EventKey *GHOST_SystemWin32::processKeyEvent(GHOST_WindowWin32 *window, RA
 GHOST_Event *GHOST_SystemWin32::processWindowSizeEvent(GHOST_WindowWin32 *window)
 {
   GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)getSystem();
-  GHOST_Event *sizeEvent = new GHOST_Event(
-      system->getMilliSeconds(), GHOST_kEventWindowSize, window);
+  GHOST_Event *sizeEvent = new GHOST_Event(getMessageTime(system), GHOST_kEventWindowSize, window);
 
   /* We get WM_SIZE before we fully init. Do not dispatch before we are continuously resizing. */
   if (window->m_inLiveResize) {
@@ -1328,7 +1348,7 @@ GHOST_Event *GHOST_SystemWin32::processWindowEvent(GHOST_TEventType type,
     system->getWindowManager()->setActiveWindow(window);
   }
 
-  return new GHOST_Event(system->getMilliSeconds(), type, window);
+  return new GHOST_Event(getMessageTime(system), type, window);
 }
 
 #ifdef WITH_INPUT_IME
@@ -1337,7 +1357,7 @@ GHOST_Event *GHOST_SystemWin32::processImeEvent(GHOST_TEventType type,
                                                 GHOST_TEventImeData *data)
 {
   GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)getSystem();
-  return new GHOST_EventIME(system->getMilliSeconds(), type, window, data);
+  return new GHOST_EventIME(getMessageTime(system), type, window, data);
 }
 #endif
 
@@ -1350,7 +1370,7 @@ GHOST_TSuccess GHOST_SystemWin32::pushDragDropEvent(GHOST_TEventType eventType,
 {
   GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)getSystem();
   return system->pushEvent(new GHOST_EventDragnDrop(
-      system->getMilliSeconds(), eventType, draggedObjectType, window, mouseX, mouseY, data));
+      getMessageTime(system), eventType, draggedObjectType, window, mouseX, mouseY, data));
 }
 
 void GHOST_SystemWin32::setTabletAPI(GHOST_TTabletAPI api)
@@ -1479,7 +1499,7 @@ void GHOST_SystemWin32::processTrackpad()
   system->getCursorPosition(cursor_x, cursor_y);
 
   if (trackpad_info.x != 0 || trackpad_info.y != 0) {
-    system->pushEvent(new GHOST_EventTrackpad(system->getMilliSeconds(),
+    system->pushEvent(new GHOST_EventTrackpad(getMessageTime(system),
                                               active_window,
                                               GHOST_kTrackpadEventScroll,
                                               cursor_x,
@@ -1489,7 +1509,7 @@ void GHOST_SystemWin32::processTrackpad()
                                               trackpad_info.isScrollDirectionInverted));
   }
   if (trackpad_info.scale != 0) {
-    system->pushEvent(new GHOST_EventTrackpad(system->getMilliSeconds(),
+    system->pushEvent(new GHOST_EventTrackpad(getMessageTime(system),
                                               active_window,
                                               GHOST_kTrackpadEventMagnify,
                                               cursor_x,

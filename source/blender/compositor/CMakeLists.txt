@@ -10,8 +10,10 @@ if(WITH_COMPOSITOR_CPU)
     intern
     nodes
     operations
+    realtime_compositor
     ../blenkernel
     ../blentranslation
+    ../imbuf
     ../makesrna
     ../nodes
     ../windowmanager
@@ -116,12 +118,12 @@ if(WITH_COMPOSITOR_CPU)
     nodes/COM_MaskNode.h
     nodes/COM_MovieClipNode.cc
     nodes/COM_MovieClipNode.h
-    nodes/COM_OutputFileNode.cc
-    nodes/COM_OutputFileNode.h
     nodes/COM_RenderLayersNode.cc
     nodes/COM_RenderLayersNode.h
     nodes/COM_SceneTimeNode.cc
     nodes/COM_SceneTimeNode.h
+    nodes/COM_SplitNode.cc
+    nodes/COM_SplitNode.h
     nodes/COM_SwitchNode.cc
     nodes/COM_SwitchNode.h
     nodes/COM_SwitchViewNode.cc
@@ -136,8 +138,8 @@ if(WITH_COMPOSITOR_CPU)
     # output nodes
     nodes/COM_CompositorNode.cc
     nodes/COM_CompositorNode.h
-    nodes/COM_SplitViewerNode.cc
-    nodes/COM_SplitViewerNode.h
+    nodes/COM_FileOutputNode.cc
+    nodes/COM_FileOutputNode.h
     nodes/COM_ViewLevelsNode.cc
     nodes/COM_ViewLevelsNode.h
     nodes/COM_ViewerNode.cc
@@ -418,10 +420,8 @@ if(WITH_COMPOSITOR_CPU)
     operations/COM_CompositorOperation.h
     operations/COM_ConvertDepthToRadiusOperation.cc
     operations/COM_ConvertDepthToRadiusOperation.h
-    operations/COM_OutputFileMultiViewOperation.cc
-    operations/COM_OutputFileMultiViewOperation.h
-    operations/COM_OutputFileOperation.cc
-    operations/COM_OutputFileOperation.h
+    operations/COM_FileOutputOperation.cc
+    operations/COM_FileOutputOperation.h
     operations/COM_PreviewOperation.cc
     operations/COM_PreviewOperation.h
     operations/COM_SplitOperation.cc
@@ -599,9 +599,9 @@ if(WITH_COMPOSITOR_CPU)
     PRIVATE bf::blenlib
     PRIVATE bf::depsgraph
     PRIVATE bf::dna
-    PRIVATE bf::imbuf
     PRIVATE bf::intern::clog
     PRIVATE bf::intern::guardedalloc
+    bf_realtime_compositor
     extern_clew
     PRIVATE bf::intern::atomic
   )

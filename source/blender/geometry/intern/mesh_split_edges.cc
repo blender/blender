@@ -595,7 +595,7 @@ void split_edges(Mesh &mesh,
   const Array<int> vert_map = offsets_to_map(affected_verts, new_verts_by_affected_vert);
   propagate_vert_attributes(mesh, vert_map);
 
-  BKE_mesh_tag_edges_split(&mesh);
+  mesh.tag_edges_split();
 
   debug_randomize_vert_order(&mesh);
   debug_randomize_edge_order(&mesh);

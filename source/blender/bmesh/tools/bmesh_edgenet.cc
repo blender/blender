@@ -17,8 +17,8 @@
 #include "BLI_mempool.h"
 #include "BLI_utildefines.h"
 
-#include "bmesh.h"
-#include "bmesh_edgenet.h" /* own include */
+#include "bmesh.hh"
+#include "bmesh_edgenet.hh" /* own include */
 
 #include "BLI_strict_flags.h" /* keep last */
 

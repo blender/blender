@@ -14,14 +14,44 @@ def keyconfig_update(keyconfig_data, keyconfig_version):
 
     # Version the key-map.
     import copy
+
     # Only copy once.
     has_copy = False
 
     def get_transform_modal_map():
-        for km_name, _km_parms, km_items_data in keyconfig_data:
+        for km_name, _km_params, km_items_data in keyconfig_data:
             if km_name == "Transform Modal Map":
                 return km_items_data
-        print("not found")
+
+    def remove_properties(op_prop_map):
+        nonlocal keyconfig_data
+        nonlocal has_copy
+
+        changed_items = []
+        for kmi_index, (km_name, _km_parms, km_items_data) in enumerate(keyconfig_data):
+            for kmi_item_index, (item_op, item_event, item_prop) in enumerate(km_items_data["items"]):
+                if item_prop and item_op in op_prop_map:
+                    properties = item_prop.get("properties", [])
+                    filtered_properties = [
+                        prop for prop in properties if not any(
+                            key in prop for key in op_prop_map[item_op])
+                    ]
+
+                    if not filtered_properties:
+                        filtered_properties = None
+
+                    if filtered_properties is None or len(filtered_properties) < len(properties):
+                        changed_items.append((kmi_index, kmi_item_index, filtered_properties))
+
+        if changed_items:
+            if not has_copy:
+                keyconfig_data = copy.deepcopy(keyconfig_data)
+                has_copy = True
+
+            for kmi_index, kmi_item_index, filtered_properties in changed_items:
+                item_op, item_event, item_prop = keyconfig_data[kmi_index][2]["items"][kmi_item_index]
+                item_prop["properties"] = filtered_properties
+                keyconfig_data[kmi_index][2]["items"][kmi_item_index] = (item_op, item_event, item_prop)
 
     # Default repeat to false.
     if keyconfig_version <= (2, 92, 0):
@@ -97,6 +127,20 @@ def keyconfig_update(keyconfig_data, keyconfig_version):
             km_items_data["items"].append(("EDIT_SNAP_SOURCE_OFF", {"type": 'B', "value": 'PRESS'}, None))
 
     if keyconfig_version <= (4, 1, 5):
+        remove_properties({
+            "transform.translate": ["alt_navigation"],
+            "transform.rotate": ["alt_navigation"],
+            "transform.resize": ["alt_navigation"],
+            "view3d.edit_mesh_extrude_move_normal": ["alt_navigation"],
+            "armature.extrude_move": ["TRANSFORM_OT_translate"],
+            "curve.extrude_move": ["TRANSFORM_OT_translate"],
+            "gpencil.extrude_move": ["TRANSFORM_OT_translate"],
+            "mesh.rip_edge_move": ["TRANSFORM_OT_translate"],
+            "mesh.duplicate_move": ["TRANSFORM_OT_translate"],
+            "object.duplicate_move": ["TRANSFORM_OT_translate"],
+            "object.duplicate_move_linked": ["TRANSFORM_OT_translate"],
+        })
+
         if km_items_data := get_transform_modal_map():
             def use_alt_navigate():
                 km_item = next((i for i in km_items_data["items"] if i[0] ==

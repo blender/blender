@@ -667,9 +667,9 @@ static void correctivesmooth_modifier_do(ModifierData *md,
         is_rest_coords_alloc = true;
       }
       else {
-        const Mesh *me = static_cast<const Mesh *>(ob->data);
-        rest_coords = reinterpret_cast<const float(*)[3]>(me->vert_positions().data());
-        me_numVerts = me->totvert;
+        const Mesh *object_mesh = static_cast<const Mesh *>(ob->data);
+        rest_coords = reinterpret_cast<const float(*)[3]>(object_mesh->vert_positions().data());
+        me_numVerts = object_mesh->totvert;
       }
 
       BLI_assert(me_numVerts == int(vertexCos.size()));

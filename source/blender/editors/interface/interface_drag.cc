@@ -64,7 +64,7 @@ void UI_but_drag_set_path(uiBut *but, const char *path)
   if (but->dragflag & UI_BUT_DRAGPOIN_FREE) {
     WM_drag_data_free(but->dragtype, but->dragpoin);
   }
-  but->dragpoin = WM_drag_create_path_data(path);
+  but->dragpoin = WM_drag_create_path_data(blender::Span(&path, 1));
   but->dragflag |= UI_BUT_DRAGPOIN_FREE;
 }
 

@@ -52,7 +52,7 @@
 #include "RE_pipeline.h"
 
 #ifdef WITH_FFMPEG
-#  include "BKE_writeffmpeg.h"
+#  include "BKE_writeffmpeg.hh"
 #  include "ffmpeg_compat.h"
 #  include <libavcodec/avcodec.h>
 #  include <libavformat/avformat.h>
@@ -734,7 +734,7 @@ const EnumPropertyItem rna_enum_grease_pencil_selectmode_items[] = {
 #  include "BKE_image.h"
 #  include "BKE_image_format.h"
 #  include "BKE_layer.h"
-#  include "BKE_main.h"
+#  include "BKE_main.hh"
 #  include "BKE_mesh.hh"
 #  include "BKE_node.h"
 #  include "BKE_pointcache.h"
@@ -1973,10 +1973,10 @@ static void rna_Scene_editmesh_select_mode_set(PointerRNA *ptr, const bool *valu
         BKE_view_layer_synced_ensure(scene, view_layer);
         Object *object = BKE_view_layer_active_object_get(view_layer);
         if (object) {
-          Mesh *me = BKE_mesh_from_object(object);
-          if (me && me->edit_mesh && me->edit_mesh->selectmode != flag) {
-            me->edit_mesh->selectmode = flag;
-            EDBM_selectmode_set(me->edit_mesh);
+          Mesh *mesh = BKE_mesh_from_object(object);
+          if (mesh && mesh->edit_mesh && mesh->edit_mesh->selectmode != flag) {
+            mesh->edit_mesh->selectmode = flag;
+            EDBM_selectmode_set(mesh->edit_mesh);
           }
         }
       }
@@ -1988,19 +1988,19 @@ static void rna_Scene_editmesh_select_mode_update(bContext *C, PointerRNA * /*pt
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Mesh *me = nullptr;
+  Mesh *mesh = nullptr;
 
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *object = BKE_view_layer_active_object_get(view_layer);
   if (object) {
-    me = BKE_mesh_from_object(object);
-    if (me && me->edit_mesh == nullptr) {
-      me = nullptr;
+    mesh = BKE_mesh_from_object(object);
+    if (mesh && mesh->edit_mesh == nullptr) {
+      mesh = nullptr;
     }
   }
 
-  if (me) {
-    DEG_id_tag_update(&me->id, ID_RECALC_SELECT);
+  if (mesh) {
+    DEG_id_tag_update(&mesh->id, ID_RECALC_SELECT);
     WM_main_add_notifier(NC_SCENE | ND_TOOLSETTINGS, nullptr);
   }
 }
@@ -2012,7 +2012,7 @@ static void rna_Scene_uv_select_mode_update(bContext *C, PointerRNA * /*ptr*/)
   ED_uvedit_selectmode_clean_multi(C);
 }
 
-static void object_simplify_update(Object *ob)
+static void object_simplify_update(Scene *scene, Object *ob, bool update_normals)
 {
   ModifierData *md;
   ParticleSystem *psys;
@@ -2037,7 +2037,7 @@ static void object_simplify_update(Object *ob)
 
   if (ob->instance_collection) {
     FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (ob->instance_collection, ob_collection) {
-      object_simplify_update(ob_collection);
+      object_simplify_update(scene, ob_collection, update_normals);
     }
     FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
   }
@@ -2045,22 +2045,27 @@ static void object_simplify_update(Object *ob)
   if (ob->type == OB_VOLUME) {
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   }
+
+  if (scene->r.mode & R_SIMPLIFY_NORMALS || update_normals) {
+    if (OB_TYPE_IS_GEOMETRY(ob->type)) {
+      DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+    }
+  }
 }
 
-static void rna_Scene_use_simplify_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
+static void rna_Scene_simplify_update_impl(Main *bmain, Scene *sce, bool update_normals)
 {
-  Scene *sce = (Scene *)ptr->owner_id;
   Scene *sce_iter;
   Base *base;
 
   BKE_main_id_tag_listbase(&bmain->objects, LIB_TAG_DOIT, true);
   FOREACH_SCENE_OBJECT_BEGIN (sce, ob) {
-    object_simplify_update(ob);
+    object_simplify_update(sce, ob, update_normals);
   }
   FOREACH_SCENE_OBJECT_END;
 
   for (SETLOOPER_SET_ONLY(sce, sce_iter, base)) {
-    object_simplify_update(base->object);
+    object_simplify_update(sce, base->object, update_normals);
   }
 
   WM_main_add_notifier(NC_GEOM | ND_DATA, nullptr);
@@ -2068,12 +2073,25 @@ static void rna_Scene_use_simplify_update(Main *bmain, Scene * /*scene*/, Pointe
   DEG_id_tag_update(&sce->id, ID_RECALC_COPY_ON_WRITE);
 }
 
-static void rna_Scene_simplify_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Scene_use_simplify_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
   Scene *sce = (Scene *)ptr->owner_id;
+  rna_Scene_simplify_update_impl(bmain, sce, false);
+}
 
-  if (sce->r.mode & R_SIMPLIFY) {
-    rna_Scene_use_simplify_update(bmain, scene, ptr);
+static void rna_Scene_simplify_update(Main *bmain, Scene *scene, PointerRNA * /*ptr*/)
+{
+  if (scene->r.mode & R_SIMPLIFY) {
+    rna_Scene_simplify_update_impl(bmain, scene, false);
+  }
+}
+
+static void rna_Scene_use_simplify_normals_update(Main *bmain, Scene *scene, PointerRNA * /*ptr*/)
+{
+  /* NOTE: Ideally this would just force recalculation of the draw batch cache normals.
+   * That's complicated enough to not be worth it here. */
+  if (scene->r.mode & R_SIMPLIFY) {
+    rna_Scene_simplify_update_impl(bmain, scene, true);
   }
 }
 
@@ -2341,10 +2359,10 @@ static void rna_EditMesh_update(bContext *C, PointerRNA * /*ptr*/)
       scene, view_layer, CTX_wm_view3d(C), &objects_len);
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];
-    Mesh *me = BKE_mesh_from_object(obedit);
+    Mesh *mesh = BKE_mesh_from_object(obedit);
 
-    DEG_id_tag_update(&me->id, ID_RECALC_GEOMETRY);
-    WM_main_add_notifier(NC_GEOM | ND_DATA, me);
+    DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);
+    WM_main_add_notifier(NC_GEOM | ND_DATA, mesh);
   }
 
   MEM_freeN(objects);
@@ -3678,6 +3696,13 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Only Endpoints", "Only use the first and last parts of the stroke for snapping");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, nullptr);
+
+  prop = RNA_def_property(srna, "gpencil_surface_offset", PROP_FLOAT, PROP_DISTANCE);
+  RNA_def_property_float_sdna(prop, nullptr, "gpencil_surface_offset");
+  RNA_def_property_ui_text(prop, "Surface Offset", "Offset along normal when drawing on surfaces");
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1f, 3);
+  RNA_def_property_float_default(prop, 0.150f);
 
   /* Grease Pencil - Select mode Edit */
   prop = RNA_def_property(srna, "gpencil_selectmode_edit", PROP_ENUM, PROP_NONE);
@@ -7073,6 +7098,14 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
       prop, "Simplify Volumes", "Resolution percentage of volume objects in viewport");
   RNA_def_property_update(prop, 0, "rna_Scene_simplify_update");
 
+  prop = RNA_def_property(srna, "use_simplify_normals", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "mode", R_SIMPLIFY_NORMALS);
+  RNA_def_property_ui_text(prop,
+                           "Mesh Normals",
+                           "Skip computing custom normals and face corner normals for displaying "
+                           "meshes in the viewport");
+  RNA_def_property_update(prop, 0, "rna_Scene_use_simplify_normals_update");
+
   /* EEVEE - Simplify Options */
   prop = RNA_def_property(srna, "simplify_shadows_render", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_default(prop, 1.0);
@@ -7568,12 +7601,6 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
-  static const EnumPropertyItem ray_split_settings_items[] = {
-      {0, "UNIFIED", 0, "Unified", "All ray types use the same settings"},
-      {1, "SPLIT", 0, "Split", "Settings are individual to each ray type"},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
   static const EnumPropertyItem ray_tracing_method_items[] = {
       {RAYTRACE_EEVEE_METHOD_NONE, "NONE", 0, "None", "No intersection with scene geometry"},
       {RAYTRACE_EEVEE_METHOD_SCREEN,
@@ -7774,11 +7801,6 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Clamp", "Clamp pixel intensity to remove noise (0 to disable)");
   RNA_def_property_range(prop, 0.0f, FLT_MAX);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
-  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
-
-  prop = RNA_def_property(srna, "ray_split_settings", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(prop, ray_split_settings_items);
-  RNA_def_property_ui_text(prop, "Options Split", "Split settings per ray type");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
 
   prop = RNA_def_property(srna, "ray_tracing_method", PROP_ENUM, PROP_NONE);
@@ -8140,7 +8162,7 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
   prop = RNA_def_property(srna, "shadow_normal_bias", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_range(prop, 0.0f, FLT_MAX);
   RNA_def_property_ui_range(prop, 0.001f, 0.1f, 0.001, 3);
-  RNA_def_property_ui_text(prop, "Shadow Normal Bias", "Move along their normal");
+  RNA_def_property_ui_text(prop, "Shadow Normal Bias", "Move shadows along their normal");
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
 
@@ -8185,20 +8207,10 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
   RNA_def_property_ui_range(prop, 0.0f, 10.0f, 1, 2);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
-  prop = RNA_def_property(srna, "reflection_options", PROP_POINTER, PROP_NONE);
+  prop = RNA_def_property(srna, "ray_tracing_options", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "RaytraceEEVEE");
   RNA_def_property_ui_text(
       prop, "Reflection Trace Options", "EEVEE settings for tracing reflections");
-
-  prop = RNA_def_property(srna, "refraction_options", PROP_POINTER, PROP_NONE);
-  RNA_def_property_struct_type(prop, "RaytraceEEVEE");
-  RNA_def_property_ui_text(
-      prop, "Refraction Trace Options", "EEVEE settings for tracing refractions");
-
-  prop = RNA_def_property(srna, "diffuse_options", PROP_POINTER, PROP_NONE);
-  RNA_def_property_struct_type(prop, "RaytraceEEVEE");
-  RNA_def_property_ui_text(
-      prop, "Diffuse Trace Options", "EEVEE settings for tracing diffuse reflections");
 }
 
 static void rna_def_scene_gpencil(BlenderRNA *brna)

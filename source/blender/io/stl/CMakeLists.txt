@@ -4,8 +4,8 @@
 
 set(INC
   .
-  importer
   exporter
+  importer
   ../common
   ../../blenkernel
   ../../bmesh
@@ -35,8 +35,8 @@ set(SRC
   importer/stl_import_ascii_reader.hh
   importer/stl_import_binary_reader.hh
   importer/stl_import_mesh.hh
-  exporter/stl_export_writer.hh
   exporter/stl_export.hh
+  exporter/stl_export_writer.hh
 )
 
 set(LIB

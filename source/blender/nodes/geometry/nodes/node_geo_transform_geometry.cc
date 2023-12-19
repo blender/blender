@@ -63,7 +63,7 @@ static void transform_positions(MutableSpan<float3> positions, const float4x4 &m
 static void transform_mesh(Mesh &mesh, const float4x4 &transform)
 {
   transform_positions(mesh.vert_positions_for_write(), transform);
-  BKE_mesh_tag_positions_changed(&mesh);
+  mesh.tag_positions_changed();
 }
 
 static void translate_pointcloud(PointCloud &pointcloud, const float3 translation)

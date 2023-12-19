@@ -30,7 +30,7 @@
 #include "BKE_deform.h"
 #include "BKE_editmesh.hh"
 #include "BKE_layer.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_report.h"
@@ -131,8 +131,8 @@ static bool return_editmesh_vgroup(Object *obedit, BMEditMesh *em, char *r_name,
 
 static void select_editbmesh_hook(Object *ob, HookModifierData *hmd)
 {
-  Mesh *me = static_cast<Mesh *>(ob->data);
-  BMEditMesh *em = me->edit_mesh;
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  BMEditMesh *em = mesh->edit_mesh;
   BMVert *eve;
   BMIter iter;
   int index = 0, nr = 0;
@@ -333,7 +333,7 @@ static bool object_hook_index_array(Main *bmain,
 
   switch (obedit->type) {
     case OB_MESH: {
-      Mesh *me = static_cast<Mesh *>(obedit->data);
+      Mesh *mesh = static_cast<Mesh *>(obedit->data);
 
       BMEditMesh *em;
 
@@ -342,9 +342,9 @@ static bool object_hook_index_array(Main *bmain,
 
       DEG_id_tag_update(static_cast<ID *>(obedit->data), 0);
 
-      em = me->edit_mesh;
+      em = mesh->edit_mesh;
 
-      BKE_editmesh_looptri_and_normals_calc(em);
+      BKE_editmesh_looptris_and_normals_calc(em);
 
       /* check selected vertices first */
       if (return_editmesh_indexar(em, r_indexar_num, r_indexar, r_cent) == 0) {

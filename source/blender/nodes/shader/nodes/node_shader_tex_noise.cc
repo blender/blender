@@ -50,8 +50,8 @@ static void sh_node_tex_noise_declare(NodeDeclarationBuilder &b)
 static void node_shader_buts_tex_noise(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "noise_dimensions", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
-  uiItemR(layout, ptr, "type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
-  if (ELEM(RNA_enum_get(ptr, "type"), SHD_NOISE_FBM)) {
+  uiItemR(layout, ptr, "noise_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  if (ELEM(RNA_enum_get(ptr, "noise_type"), SHD_NOISE_FBM)) {
     uiItemR(layout, ptr, "normalize", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
   }
 }

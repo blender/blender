@@ -86,8 +86,10 @@ struct ShaderGlobals {
   ccl_private void *tracedata;
   ccl_private void *objdata;
   void *context;
-#if OSL_LIBRARY_VERSION_CODE >= 11302
+#if OSL_LIBRARY_VERSION_CODE >= 11304
   void *shadingStateUniform;
+  int thread_index;
+  int shade_index;
 #endif
   void *renderer;
   ccl_private void *object2common;

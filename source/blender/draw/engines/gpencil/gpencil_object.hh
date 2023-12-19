@@ -110,6 +110,7 @@ class ObjectModule {
   void sync_grease_pencil(Manager &manager,
                           ObjectRef &object_ref,
                           Framebuffer &main_fb,
+                          Framebuffer &scene_fb,
                           TextureFromPool &depth_tx,
                           PassSortable &main_ps)
   {
@@ -128,7 +129,7 @@ class ObjectModule {
     bool object_has_vfx = false; /* TODO: `vfx.object_has_vfx(gpd);`. */
 
     uint material_offset = materials_.object_offset_get();
-    for (auto i : IndexRange(BKE_object_material_count_eval(object))) {
+    for (const int i : IndexRange(BKE_object_material_count_eval(object))) {
       materials_.sync(object, i, do_material_holdout);
     }
 
@@ -196,9 +197,10 @@ class ObjectModule {
       object_subpass.draw(geom, handle);
     }
 
+    /** Merging the object depth buffer into the scene depth buffer. */
     float4x4 plane_mat = get_object_plane_mat(*object);
     ResourceHandle handle_plane_mat = manager.resource_handle(plane_mat);
-    object_subpass.framebuffer_set(&DRW_viewport_framebuffer_list_get()->depth_only_fb);
+    object_subpass.framebuffer_set(&scene_fb);
     object_subpass.state_set(DRW_STATE_DEPTH_LESS | DRW_STATE_WRITE_DEPTH);
     object_subpass.shader_set(shaders_.static_shader_get(DEPTH_MERGE));
     object_subpass.bind_texture("depthBuf", (object_has_vfx) ? nullptr : &depth_tx);
@@ -266,6 +268,10 @@ class ObjectModule {
     return objects_buf_.size() > 0;
   }
 
+  /**
+   * Define a matrix that will be used to render a triangle to merge the depth of the rendered
+   * gpencil object with the rest of the scene.
+   */
   float4x4 get_object_plane_mat(const Object &object)
   {
     using namespace math;
@@ -307,8 +313,6 @@ class ObjectModule {
     plane_normal = normalize(transform_direction(bbox_mat_inv, plane_normal));
     plane_normal = normalize(transform_direction(bbox_mat_inv_t, plane_normal));
 
-    /* Define a matrix that will be used to render a triangle to merge the depth of the rendered
-     * gpencil object with the rest of the scene. */
     float4x4 plane_mat = from_up_axis<float4x4>(plane_normal);
     float radius = length(transform_direction(object_to_world, size));
     plane_mat = scale(plane_mat, float3(radius));

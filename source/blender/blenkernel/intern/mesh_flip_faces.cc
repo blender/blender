@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 
 #include "BLI_task.hh"
 
@@ -92,7 +93,7 @@ void mesh_flip_faces(Mesh &mesh, const IndexMask &selection)
         return true;
       });
 
-  BKE_mesh_tag_face_winding_changed(&mesh);
+  mesh.tag_face_winding_changed();
 }
 
 }  // namespace blender::bke

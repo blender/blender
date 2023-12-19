@@ -28,7 +28,7 @@ class Instance;
  * \{ */
 
 /**
- * Contain persistent buffer that need to be stored per view.
+ * Contain persistent buffer that need to be stored per view, per layer.
  */
 struct RayTraceBuffer {
   /** Set of buffers that need to be allocated for each ray type. */
@@ -62,7 +62,7 @@ struct RayTraceBuffer {
  * The result buffer is usually short lived and is kept in a TextureFromPool managed by the mode.
  * This structure contains a reference to it so that it can be freed after use by the caller.
  */
-class RayTraceResult {
+class RayTraceResultTexture {
  private:
   /** Result is in a temporary texture that needs to be released. */
   TextureFromPool *result_ = nullptr;
@@ -70,9 +70,9 @@ class RayTraceResult {
   Texture *history_ = nullptr;
 
  public:
-  RayTraceResult() = default;
-  RayTraceResult(TextureFromPool &result) : result_(result.ptr()){};
-  RayTraceResult(TextureFromPool &result, Texture &history)
+  RayTraceResultTexture() = default;
+  RayTraceResultTexture(TextureFromPool &result) : result_(result.ptr()){};
+  RayTraceResultTexture(TextureFromPool &result, Texture &history)
       : result_(result.ptr()), history_(history.ptr()){};
 
   GPUTexture *get()
@@ -88,6 +88,19 @@ class RayTraceResult {
     }
     /* NOTE: This releases the previous history. */
     result_->release();
+  }
+};
+
+struct RayTraceResult {
+  RayTraceResultTexture diffuse;
+  RayTraceResultTexture reflect;
+  RayTraceResultTexture refract;
+
+  void release()
+  {
+    diffuse.release();
+    reflect.release();
+    refract.release();
   }
 };
 
@@ -129,22 +142,26 @@ class RayTraceModule {
   int3 tile_compact_dispatch_size_ = int3(1);
   /** Dispatch with enough tiles for the tracing resolution. */
   int3 tracing_dispatch_size_ = int3(1);
-  /** 2D tile mask to check which unused adjacent tile we need to clear. */
-  TextureFromPool tile_mask_tx_ = {"tile_mask_tx"};
+  /** 2D tile mask to check which unused adjacent tile we need to clear and which tile we need to
+   * dispatch for each work type. */
+  Texture tile_raytrace_denoise_tx_ = {"tile_raytrace_denoise_tx_"};
+  Texture tile_raytrace_tracing_tx_ = {"tile_raytrace_tracing_tx_"};
+  Texture tile_horizon_denoise_tx_ = {"tile_horizon_denoise_tx_"};
+  Texture tile_horizon_tracing_tx_ = {"tile_horizon_tracing_tx_"};
   /** Indirect dispatch rays. Avoid dispatching work-groups that will not trace anything.*/
-  DispatchIndirectBuf ray_dispatch_buf_ = {"ray_dispatch_buf_"};
+  DispatchIndirectBuf raytrace_tracing_dispatch_buf_ = {"raytrace_tracing_dispatch_buf_"};
   /** Indirect dispatch denoise full-resolution tiles. */
-  DispatchIndirectBuf ray_denoise_dispatch_buf_ = {"ray_denoise_dispatch_buf_"};
+  DispatchIndirectBuf raytrace_denoise_dispatch_buf_ = {"raytrace_denoise_dispatch_buf_"};
   /** Indirect dispatch horizon scan. Avoid dispatching work-groups that will not scan anything.*/
-  DispatchIndirectBuf horizon_dispatch_buf_ = {"horizon_dispatch_buf_"};
+  DispatchIndirectBuf horizon_tracing_dispatch_buf_ = {"horizon_tracing_dispatch_buf_"};
   /** Indirect dispatch denoise full-resolution tiles. */
   DispatchIndirectBuf horizon_denoise_dispatch_buf_ = {"horizon_denoise_dispatch_buf_"};
   /** Pointer to the texture to store the result of horizon scan in. */
   GPUTexture *horizon_scan_output_tx_ = nullptr;
   /** Tile buffer that contains tile coordinates. */
-  RayTraceTileBuf ray_tiles_buf_ = {"ray_tiles_buf_"};
-  RayTraceTileBuf ray_denoise_tiles_buf_ = {"ray_denoise_tiles_buf_"};
-  RayTraceTileBuf horizon_tiles_buf_ = {"horizon_tiles_buf_"};
+  RayTraceTileBuf raytrace_tracing_tiles_buf_ = {"raytrace_tracing_tiles_buf_"};
+  RayTraceTileBuf raytrace_denoise_tiles_buf_ = {"raytrace_denoise_tiles_buf_"};
+  RayTraceTileBuf horizon_tracing_tiles_buf_ = {"horizon_tracing_tiles_buf_"};
   RayTraceTileBuf horizon_denoise_tiles_buf_ = {"horizon_denoise_tiles_buf_"};
   /** Texture containing the ray direction and PDF. */
   TextureFromPool ray_data_tx_ = {"ray_data_tx"};
@@ -179,15 +196,11 @@ class RayTraceModule {
 
   /** Dummy texture when the tracing is disabled. */
   TextureFromPool dummy_result_tx_ = {"dummy_result_tx"};
-  /** Pointer to `inst_.render_buffers.depth_tx.stencil_view()` updated before submission. */
-  GPUTexture *renderbuf_stencil_view_ = nullptr;
   /** Pointer to `inst_.render_buffers.depth_tx` updated before submission. */
   GPUTexture *renderbuf_depth_view_ = nullptr;
 
   /** Copy of the scene options to avoid changing parameters during motion blur. */
-  RaytraceEEVEE reflection_options_;
-  RaytraceEEVEE refraction_options_;
-  RaytraceEEVEE diffuse_options_;
+  RaytraceEEVEE ray_tracing_options_;
 
   RaytraceEEVEE_Method tracing_method_ = RAYTRACE_EEVEE_METHOD_NONE;
 
@@ -201,31 +214,47 @@ class RayTraceModule {
   void sync();
 
   /**
-   * RayTrace the scene and resolve a radiance buffer for the corresponding `closure_bit` into the
-   * given `out_radiance_tx`.
+   * RayTrace the scene and resolve radiance buffer for the corresponding `closure_bit`.
    *
    * IMPORTANT: Should not be conditionally executed as it manages the RayTraceResult.
-   * IMPORTANT: The screen tracing will use the Hierarchical-Z Buffer in its current state.
+   * IMPORTANT: The screen tracing will be using the front and back Hierarchical-Z Buffer in its
+   * current state.
    *
-   * \arg screen_radiance_tx is the texture used for screen space rays.
-   * \arg screen_radiance_persmat is the view projection matrix used to render screen_radiance_tx.
+   * \arg rt_buffer is the layer's permanent storage.
+   * \arg screen_radiance_back_tx is the texture used for screen space transmission rays.
+   * \arg screen_radiance_front_tx is the texture used for screen space reflection rays.
+   * \arg screen_radiance_persmat is the view projection matrix used for screen_radiance_front_tx.
    * \arg active_closures is a mask of all active closures in a deferred layer.
-   * \arg raytrace_closure is type of closure the rays are to be casted for.
    * \arg main_view is the un-jittered view.
    * \arg render_view is the TAA jittered view.
    * \arg force_no_tracing will run the pipeline without any tracing, relying only on local probes.
    */
-  RayTraceResult trace(RayTraceBuffer &rt_buffer,
-                       GPUTexture *screen_radiance_tx,
-                       const float4x4 &screen_radiance_persmat,
-                       eClosureBits active_closures,
-                       eClosureBits raytrace_closure,
-                       View &main_view,
-                       View &render_view,
-                       bool force_no_tracing = false);
+  RayTraceResult render(RayTraceBuffer &rt_buffer,
+                        GPUTexture *screen_radiance_back_tx,
+                        GPUTexture *screen_radiance_front_tx,
+                        const float4x4 &screen_radiance_persmat,
+                        eClosureBits active_closures,
+                        /* TODO(fclem): Maybe wrap these two in some other class. */
+                        View &main_view,
+                        View &render_view,
+                        bool do_refraction_tracing);
 
   void debug_pass_sync();
   void debug_draw(View &view, GPUFrameBuffer *view_fb);
+
+ private:
+  RayTraceResultTexture trace(const char *debug_pass_name,
+                              RaytraceEEVEE options,
+                              RayTraceBuffer &rt_buffer,
+                              GPUTexture *screen_radiance_tx,
+                              const float4x4 &screen_radiance_persmat,
+                              eClosureBits active_closures,
+                              eClosureBits raytrace_closure,
+                              /* TODO(fclem): Maybe wrap these two in some other class. */
+                              View &main_view,
+                              View &render_view,
+                              bool use_horizon_scan,
+                              bool force_no_tracing);
 };
 
 /** \} */

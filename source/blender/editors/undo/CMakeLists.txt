@@ -8,9 +8,9 @@ set(INC
   ../../blenkernel
   ../../blenloader
   ../../blentranslation
+  ../../bmesh
   ../../makesrna
   ../../windowmanager
-  ../../bmesh
 )
 
 set(INC_SYS

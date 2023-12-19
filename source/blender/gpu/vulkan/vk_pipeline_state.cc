@@ -44,6 +44,9 @@ VKPipelineStateManager::VKPipelineStateManager()
   current_.clip_distances = 0;
   current_.polygon_smooth = false;
   current_.line_smooth = false;
+
+  /* Suppress CLANG `-Wunused-private-field` warning. */
+  (void)current_mutable_;
 }
 
 void VKPipelineStateManager::set_state(const GPUState &state, const GPUStateMutable &mutable_state)

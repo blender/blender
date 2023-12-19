@@ -72,7 +72,7 @@ GPU_SHADER_CREATE_INFO(eevee_volume_occupancy_convert)
     .image(VOLUME_OCCUPANCY_SLOT,
            GPU_R32UI,
            Qualifier::READ_WRITE,
-           ImageType::UINT_3D,
+           ImageType::UINT_3D_ATOMIC,
            "occupancy_img")
     .fragment_source("eevee_occupancy_convert_frag.glsl")
     .do_static_compilation(true);

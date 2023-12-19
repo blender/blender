@@ -36,8 +36,8 @@
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
-#include "BKE_lib_remap.h"
-#include "BKE_main.h"
+#include "BKE_lib_remap.hh"
+#include "BKE_main.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
@@ -902,7 +902,7 @@ bool BKE_volume_load(const Volume *volume, const Main *bmain)
     }
   }
 
-  BLI_strncpy(grids.filepath, filepath, FILE_MAX);
+  STRNCPY(grids.filepath, filepath);
 
   return grids.error_msg.empty();
 #else

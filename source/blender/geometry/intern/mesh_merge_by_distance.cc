@@ -384,7 +384,7 @@ static void weld_edge_find_doubles(Span<WeldEdge> weld_edges,
   /* Setup Edge Overlap. */
   int edge_double_kill_len = 0;
 
-  if (weld_edges.size() == 0) {
+  if (weld_edges.is_empty()) {
     *r_edge_double_kill_len = edge_double_kill_len;
     return;
   }
@@ -1041,7 +1041,7 @@ static int poly_find_doubles(const OffsetIndices<int> poly_corners_offsets,
 
   /* Use a reverse for loop to ensure that indexes are assigned in ascending order. */
   for (int face_index = poly_num; face_index--;) {
-    if (poly_corners_offsets[face_index].size() == 0) {
+    if (poly_corners_offsets[face_index].is_empty()) {
       continue;
     }
 

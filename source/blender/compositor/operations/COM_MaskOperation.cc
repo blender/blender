@@ -132,7 +132,7 @@ void MaskOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                  Span<MemoryBuffer *> /*inputs*/)
 {
   Vector<MaskRasterHandle *> handles = get_non_null_handles();
-  if (handles.size() == 0) {
+  if (handles.is_empty()) {
     output->fill(area, COM_VALUE_ZERO);
     return;
   }

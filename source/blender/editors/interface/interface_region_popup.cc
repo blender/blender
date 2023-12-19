@@ -595,7 +595,7 @@ uiBlock *ui_popup_block_refresh(bContext *C,
 
   BLI_assert(!handle->refresh || handle->can_refresh);
 
-#ifdef DEBUG
+#ifndef NDEBUG
   wmEvent *event_back = window->eventstate;
   wmEvent *event_last_back = window->event_last_handled;
 #endif
@@ -618,7 +618,7 @@ uiBlock *ui_popup_block_refresh(bContext *C,
   BLI_assert(!block->endblock);
 
   /* ensure we don't use mouse coords here! */
-#ifdef DEBUG
+#ifndef NDEBUG
   window->eventstate = nullptr;
 #endif
 
@@ -783,7 +783,7 @@ uiBlock *ui_popup_block_refresh(bContext *C,
 
   ED_region_update_rect(region);
 
-#ifdef DEBUG
+#ifndef NDEBUG
   window->eventstate = event_back;
   window->event_last_handled = event_last_back;
 #endif

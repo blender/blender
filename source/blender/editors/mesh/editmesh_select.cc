@@ -24,6 +24,7 @@
 #include "BLI_utildefines_stack.h"
 #include "BLI_vector.hh"
 
+#include "BKE_attribute.h"
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
 #include "BKE_deform.h"
@@ -55,7 +56,7 @@
 
 #include "UI_resources.hh"
 
-#include "bmesh_tools.h"
+#include "bmesh_tools.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
@@ -72,7 +73,7 @@
  * \{ */
 
 void EDBM_select_mirrored(BMEditMesh *em,
-                          const Mesh *me,
+                          const Mesh *mesh,
                           const int axis,
                           const bool extend,
                           int *r_totmirr,
@@ -82,7 +83,7 @@ void EDBM_select_mirrored(BMEditMesh *em,
   BMIter iter;
   int totmirr = 0;
   int totfail = 0;
-  bool use_topology = me->editflag & ME_EDIT_MIRROR_TOPO;
+  bool use_topology = mesh->editflag & ME_EDIT_MIRROR_TOPO;
 
   *r_totmirr = *r_totfail = 0;
 
@@ -4349,7 +4350,7 @@ static int edbm_select_nth_exec(bContext *C, wmOperator *op)
     if (edbm_deselect_nth(em, &op_params) == true) {
       found_active_elt = true;
       EDBMUpdate_Params params{};
-      params.calc_looptri = false;
+      params.calc_looptris = false;
       params.calc_normals = false;
       params.is_destructive = false;
       EDBM_update(static_cast<Mesh *>(obedit->data), &params);

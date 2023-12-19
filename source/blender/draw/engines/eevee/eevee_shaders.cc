@@ -1384,11 +1384,13 @@ static GPUMaterial *eevee_material_get_ex(
 
   if (ma) {
     bNodeTree *ntree = !is_default ? ma->nodetree : EEVEE_shader_default_surface_nodetree(ma);
-    mat = DRW_shader_from_material(ma, ntree, options, is_volume, deferred, cbfn, nullptr);
+    mat = DRW_shader_from_material(
+        ma, ntree, GPU_MAT_EEVEE_LEGACY, options, is_volume, deferred, cbfn, nullptr);
   }
   else {
     bNodeTree *ntree = !is_default ? wo->nodetree : EEVEE_shader_default_world_nodetree(wo);
-    mat = DRW_shader_from_world(wo, ntree, options, is_volume, deferred, cbfn, nullptr);
+    mat = DRW_shader_from_world(
+        wo, ntree, GPU_MAT_EEVEE_LEGACY, options, is_volume, deferred, cbfn, nullptr);
   }
   return mat;
 }

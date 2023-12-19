@@ -8,6 +8,7 @@ set(INC
   ../../blenloader
   ../../blentranslation
   ../../gpu
+  ../../imbuf
   ../../makesrna
   ../../sequencer
   ../../windowmanager
@@ -134,7 +135,6 @@ set(LIB
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   bf_editor_undo
-  PRIVATE bf::imbuf
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
 )

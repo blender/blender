@@ -76,7 +76,8 @@ void main()
                     1.0e16,
                     uniform_buf.ao.thickness,
                     uniform_buf.ao.angle_bias,
-                    8);
+                    8,
+                    false);
 
   float occlusion = 0.0;
   vec4 radiance = vec4(1.0, 0.0, 1.0, 1.0);

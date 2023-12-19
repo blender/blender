@@ -78,6 +78,14 @@ enum eDebugMode : uint32_t {
    * Show random color for each tile. Verify distribution and LOD transitions.
    */
   DEBUG_SHADOW_TILEMAP_RANDOM_COLOR = 13u,
+  /**
+   * Show storage cost of each pixel in the gbuffer.
+   */
+  DEBUG_GBUFFER_STORAGE = 14u,
+  /**
+   * Show evaluation cost of each pixel.
+   */
+  DEBUG_GBUFFER_EVALUATION = 15u,
 };
 
 /** \} */
@@ -741,10 +749,10 @@ struct LightData {
 #define _clipmap_origin_y object_mat[3][3]
   /** Aliases for axes. */
 #ifndef USE_GPU_SHADER_CREATE_INFO
-#  define _right object_mat[0].xyz()
-#  define _up object_mat[1].xyz()
-#  define _back object_mat[2].xyz()
-#  define _position object_mat[3].xyz()
+#  define _right object_mat[0]
+#  define _up object_mat[1]
+#  define _back object_mat[2]
+#  define _position object_mat[3]
 #else
 #  define _right object_mat[0].xyz
 #  define _up object_mat[1].xyz
@@ -1170,17 +1178,36 @@ BLI_STATIC_ASSERT_ALIGN(HiZData, 16)
 
 enum eClosureBits : uint32_t {
   CLOSURE_NONE = 0u,
-  /** NOTE: These are used as stencil bits. So we are limited to 8bits. */
   CLOSURE_DIFFUSE = (1u << 0u),
   CLOSURE_SSS = (1u << 1u),
   CLOSURE_REFLECTION = (1u << 2u),
   CLOSURE_REFRACTION = (1u << 3u),
-  /* Non-stencil bits. */
+  CLOSURE_TRANSLUCENT = (1u << 4u),
   CLOSURE_TRANSPARENCY = (1u << 8u),
   CLOSURE_EMISSION = (1u << 9u),
   CLOSURE_HOLDOUT = (1u << 10u),
   CLOSURE_VOLUME = (1u << 11u),
   CLOSURE_AMBIENT_OCCLUSION = (1u << 12u),
+  CLOSURE_SHADER_TO_RGBA = (1u << 13u),
+};
+
+enum GBufferMode : uint32_t {
+  /** None mode for pixels not rendered. */
+  GBUF_NONE = 0u,
+
+  GBUF_REFLECTION = 1u,
+  GBUF_REFRACTION = 2u,
+  GBUF_DIFFUSE = 3u,
+  GBUF_SSS = 4u,
+  GBUF_TRANSLUCENT = 5u,
+
+  /** Special configurations. Packs multiple closures into 1 layer. */
+  GBUF_OPAQUE_DIELECTRIC = 14u,
+
+  /** Set for surfaces without lit closures. This stores only the normal to the surface. */
+  GBUF_UNLIT = 15u,
+
+  /** IMPORTANT: Needs to be less than 16 for correct packing in g-buffer header. */
 };
 
 struct RayTraceData {
@@ -1208,7 +1235,7 @@ struct RayTraceData {
   bool1 skip_denoise;
   /** Closure being ray-traced. */
   eClosureBits closure_active;
-  int _pad0;
+  int closure_index;
   int _pad1;
 };
 BLI_STATIC_ASSERT_ALIGN(RayTraceData, 16)
@@ -1394,7 +1421,19 @@ struct ProbePlanarDisplayData {
 BLI_STATIC_ASSERT_ALIGN(ProbePlanarDisplayData, 16)
 
 /** \} */
+/* -------------------------------------------------------------------- */
+/** \name Pipeline Data
+ * \{ */
 
+struct PipelineInfoData {
+  float alpha_hash_scale;
+  bool1 is_probe_reflection;
+  float _pad1;
+  float _pad2;
+};
+BLI_STATIC_ASSERT_ALIGN(PipelineInfoData, 16)
+
+/** \} */
 /* -------------------------------------------------------------------- */
 /** \name Uniform Data
  * \{ */
@@ -1410,6 +1449,7 @@ struct UniformData {
   ShadowSceneData shadow;
   SubsurfaceData subsurface;
   VolumesInfoData volumes;
+  PipelineInfoData pipeline;
 };
 BLI_STATIC_ASSERT_ALIGN(UniformData, 16)
 
@@ -1436,6 +1476,15 @@ BLI_STATIC_ASSERT_ALIGN(UniformData, 16)
 
 /* __cplusplus is true when compiling with MSL, so include if inside a shader. */
 #if !defined(__cplusplus) || defined(GPU_SHADER)
+
+#  if defined(GPU_FRAGMENT_SHADER)
+#    define UTIL_TEXEL vec2(gl_FragCoord.xy)
+#  elif defined(GPU_COMPUTE_SHADER)
+#    define UTIL_TEXEL vec2(gl_GlobalInvocationID.xy)
+#  else
+#    define UTIL_TEXEL vec2(gl_VertexID, 0)
+#  endif
+
 /* Fetch texel. Wrapping if above range. */
 float4 utility_tx_fetch(sampler2DArray util_tx, float2 texel, float layer)
 {
@@ -1491,6 +1540,7 @@ float4 utility_tx_sample_lut(sampler2DArray util_tx, float cos_theta, float roug
 
 using AOVsInfoDataBuf = draw::StorageBuffer<AOVsInfoData>;
 using CameraDataBuf = draw::UniformBuffer<CameraData>;
+using ClosureTileBuf = draw::StorageArrayBuffer<uint, 1024, true>;
 using DepthOfFieldDataBuf = draw::UniformBuffer<DepthOfFieldData>;
 using DepthOfFieldScatterListBuf = draw::StorageArrayBuffer<ScatterRect, 16, true>;
 using DrawIndirectBuf = draw::StorageBuffer<DrawCommand, true>;

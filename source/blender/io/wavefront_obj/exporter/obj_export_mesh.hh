@@ -11,6 +11,7 @@
 #include <optional>
 
 #include "BLI_math_vector_types.hh"
+#include "BLI_offset_indices.hh"
 #include "BLI_utility_mixins.hh"
 #include "BLI_vector.hh"
 #include "BLI_virtual_array.hh"

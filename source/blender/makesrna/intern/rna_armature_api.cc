@@ -237,7 +237,7 @@ void RNA_api_bone(StructRNA *srna)
   RNA_def_property_multi_array(parm, 2, rna_matrix_dimsize_4x4);
   RNA_def_property_ui_text(
       parm, "", "The custom rest matrix of the parent bone (Bone.matrix_local)");
-  parm = RNA_def_boolean(func, "invert", false, "", "Convert from Pose to Local space");
+  RNA_def_boolean(func, "invert", false, "", "Convert from Pose to Local space");
 
   /* Conversions between Matrix and Axis + Roll representations. */
   func = RNA_def_function(srna, "MatrixFromAxisRoll", "rna_Bone_MatrixFromAxisRoll");

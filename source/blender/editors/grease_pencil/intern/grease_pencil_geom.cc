@@ -117,10 +117,15 @@ Array<float2> polyline_fit_curve(Span<float2> points,
     return {};
   }
 
+  if (r_cubic_array == nullptr) {
+    return {};
+  }
+
   Span<float2> r_cubic_array_span(reinterpret_cast<float2 *>(r_cubic_array),
                                   r_cubic_array_len * 3);
-
   Array<float2> curve_positions(r_cubic_array_span);
+  /* Free the c-style array. */
+  free(r_cubic_array);
   return curve_positions;
 }
 
@@ -152,9 +157,17 @@ IndexMask polyline_detect_corners(Span<float2> points,
     /* Error occurred, return. */
     return IndexMask();
   }
+
+  if (r_corners == nullptr) {
+    return IndexMask();
+  }
+
   BLI_assert(samples_max < std::numeric_limits<int>::max());
   Span<int> indices(reinterpret_cast<int *>(r_corners), r_corner_len);
-  return IndexMask::from_indices<int>(indices, memory);
+  const IndexMask corner_mask = IndexMask::from_indices<int>(indices, memory);
+  /* Free the c-style array. */
+  free(r_corners);
+  return corner_mask;
 }
 
 }  // namespace blender::ed::greasepencil

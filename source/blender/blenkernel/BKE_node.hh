@@ -330,6 +330,8 @@ extern bNodeSocketType NodeSocketTypeUndefined;
 
 std::optional<eCustomDataType> socket_type_to_custom_data_type(eNodeSocketDatatype type);
 std::optional<eNodeSocketDatatype> custom_data_type_to_socket_type(eCustomDataType type);
+const CPPType *socket_type_to_geo_nodes_base_cpp_type(eNodeSocketDatatype type);
+std::optional<eNodeSocketDatatype> geo_nodes_base_cpp_type_to_socket_type(const CPPType &type);
 
 /**
  * Contains information about a specific kind of zone (e.g. simulation or repeat zone in geometry
