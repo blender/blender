@@ -1638,6 +1638,14 @@ static bool texpaint_slot_node_find_cb(bNode *node, void *userdata)
 
 bNode *BKE_texpaint_slot_material_find_node(Material *ma, short texpaint_slot)
 {
+  if (ma->texpaintslot == nullptr) {
+    return nullptr;
+  }
+
+  if (texpaint_slot >= ma->tot_slots) {
+    return nullptr;
+  }
+
   TexPaintSlot *slot = &ma->texpaintslot[texpaint_slot];
   FindTexPaintNodeData find_data = {slot, nullptr};
   ntree_foreach_texnode_recursive(ma->nodetree,
