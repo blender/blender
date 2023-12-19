@@ -307,11 +307,23 @@ GBufferData gbuffer_read(usampler2D header_tx,
 
   gbuf.header = texelFetch(header_tx, texel, 0).r;
   gbuf.has_any_surface = (gbuf.header != 0u);
+  gbuf.has_diffuse = false;
+  gbuf.has_reflection = false;
+  gbuf.has_refraction = false;
+  gbuf.has_translucent = false;
+  gbuf.has_sss = false;
+  /* Default values. */
+  gbuf.refraction.color = vec3(0.0);
+  gbuf.refraction.N = vec3(0.0, 0.0, 1.0);
+  gbuf.refraction.roughness = 0.0;
+  gbuf.refraction.ior = 1.1;
+  gbuf.has_refraction = false;
+
+  /* Default values. */
+  gbuf.diffuse.sss_radius = vec3(0.0, 0.0, 0.0);
+  gbuf.diffuse.sss_id = 0u;
 
   if (!gbuf.has_any_surface) {
-    gbuf.has_diffuse = false;
-    gbuf.has_reflection = false;
-    gbuf.has_refraction = false;
     return gbuf;
   }
 
@@ -336,17 +348,6 @@ GBufferData gbuffer_read(usampler2D header_tx,
     gbuf.reflection.N = gbuf.diffuse.N = gbuffer_normal_unpack(closure_packed.xy);
     gbuf.reflection.roughness = closure_packed.z;
     gbuf.has_reflection = true;
-
-    /* Default values. */
-    gbuf.refraction.color = vec3(0.0);
-    gbuf.refraction.N = vec3(0.0, 0.0, 1.0);
-    gbuf.refraction.roughness = 0.0;
-    gbuf.refraction.ior = 1.1;
-    gbuf.has_refraction = false;
-
-    /* Default values. */
-    gbuf.diffuse.sss_radius = vec3(0.0, 0.0, 0.0);
-    gbuf.diffuse.sss_id = 0u;
 
     gbuf.closure_count = 2u;
 
