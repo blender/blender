@@ -71,6 +71,7 @@
 
 #include "GPU_framebuffer.h"
 #include "GPU_matrix.h"
+#include "GPU_viewport.h"
 
 #include "render_intern.hh"
 
@@ -114,6 +115,8 @@ struct OGLRender {
   GPUOffScreen *ofs;
   int sizex, sizey;
   int write_still;
+
+  GPUViewport *viewport;
 
   ReportList *reports;
   bMovieHandle *mh;
@@ -348,6 +351,7 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
                                                  viewname,
                                                  true,
                                                  oglrender->ofs,
+                                                 oglrender->viewport,
                                                  err_out);
 
       /* for stamp only */
@@ -368,6 +372,7 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
                                                         alpha_mode,
                                                         viewname,
                                                         oglrender->ofs,
+                                                        oglrender->viewport,
                                                         err_out);
       camera = scene->camera;
     }
@@ -469,6 +474,7 @@ static void screen_opengl_render_apply(const bContext *C, OGLRender *oglrender)
     for (view_id = 0; view_id < oglrender->views_len; view_id++) {
       context.view_id = view_id;
       context.gpu_offscreen = oglrender->ofs;
+      context.gpu_viewport = oglrender->viewport;
       oglrender->seq_data.ibufs_arr[view_id] = SEQ_render_give_ibuf(
           &context, scene->r.cfra, chanshown);
     }
@@ -759,6 +765,7 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
   oglrender->ofs = ofs;
   oglrender->sizex = sizex;
   oglrender->sizey = sizey;
+  oglrender->viewport = GPU_viewport_create();
   oglrender->bmain = CTX_data_main(C);
   oglrender->scene = scene;
   oglrender->workspace = workspace;
@@ -921,6 +928,7 @@ static void screen_opengl_render_end(bContext *C, OGLRender *oglrender)
 
   DRW_gpu_context_enable();
   GPU_offscreen_free(oglrender->ofs);
+  GPU_viewport_free(oglrender->viewport);
   DRW_gpu_context_disable();
 
   if (oglrender->is_sequencer) {

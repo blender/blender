@@ -1753,6 +1753,10 @@ void ED_view3d_draw_offscreen(Depsgraph *depsgraph,
     view3d_main_region_setup_offscreen(depsgraph, scene, v3d, region, viewmat, winmat);
   }
 
+  if (viewport) {
+    GPU_viewport_tag_update(viewport);
+  }
+
   /* main drawing call */
   DRW_draw_render_loop_offscreen(depsgraph,
                                  engine_type,
@@ -1905,8 +1909,9 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Depsgraph *depsgraph,
                                       int alpha_mode,
                                       const char *viewname,
                                       const bool restore_rv3d_mats,
-                                      /* output vars */
                                       GPUOffScreen *ofs,
+                                      GPUViewport *viewport,
+                                      /* output vars */
                                       char err_out[256])
 {
   RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
@@ -2024,7 +2029,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Depsgraph *depsgraph,
                            do_color_management,
                            restore_rv3d_mats,
                            ofs,
-                           nullptr);
+                           viewport);
 
   if (ibuf->float_buffer.data) {
     GPU_offscreen_read_color(ofs, GPU_DATA_FLOAT, ibuf->float_buffer.data);
@@ -2065,6 +2070,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Depsgraph *depsgraph,
                                              int alpha_mode,
                                              const char *viewname,
                                              GPUOffScreen *ofs,
+                                             GPUViewport *viewport,
                                              char err_out[256])
 {
   View3D v3d = blender::dna::shallow_zero_initialize();
@@ -2159,6 +2165,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Depsgraph *depsgraph,
                                         viewname,
                                         true,
                                         ofs,
+                                        viewport,
                                         err_out);
 }
 

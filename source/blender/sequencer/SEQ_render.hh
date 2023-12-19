@@ -12,6 +12,7 @@
 
 struct Depsgraph;
 struct GPUOffScreen;
+struct GPUViewport;
 struct ImBuf;
 struct ListBase;
 struct Main;
@@ -45,6 +46,7 @@ struct SeqRenderData {
 
   /* special case for OpenGL render */
   GPUOffScreen *gpu_offscreen;
+  GPUViewport *gpu_viewport;
   // int gpu_samples;
   // bool gpu_full_samples;
 };

@@ -890,6 +890,7 @@ static void object_preview_render(IconPreview *preview, IconPreviewSize *preview
       R_ALPHAPREMUL,
       nullptr,
       nullptr,
+      nullptr,
       err_out);
   /* TODO: color-management? */
 
@@ -1023,6 +1024,7 @@ static void action_preview_render(IconPreview *preview, IconPreviewSize *preview
                                                       IB_rect,
                                                       V3D_OFSDRAW_NONE,
                                                       R_ADDSKY,
+                                                      nullptr,
                                                       nullptr,
                                                       nullptr,
                                                       err_out);
