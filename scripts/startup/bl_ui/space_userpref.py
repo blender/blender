@@ -1591,6 +1591,7 @@ class USERPREF_UL_extension_repos(bpy.types.UIList):
         elif self.layout_type == 'GRID':
             layout.alignment = 'CENTER'
             layout.prop(repo, "name", text="", emboss=False)
+        layout.prop(repo, "enabled", text="", emboss=False, icon='CHECKBOX_HLT' if repo.enabled else 'CHECKBOX_DEHLT')
 
 
 # -----------------------------------------------------------------------------

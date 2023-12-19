@@ -374,6 +374,15 @@ static void rna_userdef_extension_repo_directory_set(PointerRNA *ptr, const char
   BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_POST);
 }
 
+static void rna_userdef_extension_repo_enabled_set(PointerRNA *ptr, bool value)
+{
+  Main *bmain = G.main;
+  bUserExtensionRepo *repo = (bUserExtensionRepo *)ptr->data;
+  BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_PRE);
+  SET_FLAG_FROM_TEST(repo->flag, !value, USER_EXTENSION_REPO_FLAG_DISABLED);
+  BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_POST);
+}
+
 static void rna_userdef_script_autoexec_update(Main * /*bmain*/,
                                                Scene * /*scene*/,
                                                PointerRNA *ptr)
@@ -6550,6 +6559,11 @@ static void rna_def_userdef_filepaths_extension_repo(BlenderRNA *brna)
       "Local Cache",
       "Store packages in local cache, "
       "otherwise downloaded package files are immediately deleted after installation");
+
+  prop = RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, nullptr, "flag", USER_EXTENSION_REPO_FLAG_DISABLED);
+  RNA_def_property_ui_text(prop, "Enabled", "Enable the repository");
+  RNA_def_property_boolean_funcs(prop, nullptr, "rna_userdef_extension_repo_enabled_set");
 }
 
 static void rna_def_userdef_script_directory(BlenderRNA *brna)
