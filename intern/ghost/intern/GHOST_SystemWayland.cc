@@ -8272,8 +8272,10 @@ uint64_t GHOST_SystemWayland::ms_from_input_time(const uint32_t timestamp_as_uin
   GWL_DisplayTimeStamp &input_timestamp = display_->input_timestamp;
   if (UNLIKELY(timestamp_as_uint < input_timestamp.last)) {
     /* NOTE(@ideasman42): Sometimes event times are out of order,
-     * while this should _never_ happen, it occasionally does when resizing the window then
-     * clicking on the window with GNOME+LIBDECOR.
+     * while this should _never_ happen, it occasionally does:
+     * - When resizing the window then clicking on the window with GNOME+LIBDECOR.
+     * - With accepting IME text with GNOME-v45.2 the timestamp is in seconds, see:
+     *   https://gitlab.gnome.org/GNOME/mutter/-/issues/3214
      * Accept events must occur within ~25 days, out-of-order time-stamps above this time-frame
      * will be treated as a wrapped integer. */
     if (input_timestamp.last - timestamp_as_uint > std::numeric_limits<uint32_t>::max() / 2) {
