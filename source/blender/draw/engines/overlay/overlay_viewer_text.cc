@@ -45,8 +45,7 @@ static void add_values_to_text_cache(const GVArray &values,
       const T &value = values_typed[i];
 
       char numstr[32];
-      size_t numstr_len;
-
+      size_t numstr_len = 0;
       if constexpr (std::is_same_v<T, bool>) {
         numstr_len = SNPRINTF_RLEN(numstr, "%s", value ? "True" : "False");
       }
