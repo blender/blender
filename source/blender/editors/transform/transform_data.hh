@@ -96,9 +96,11 @@ struct TransDataExtension {
 struct TransData2D {
   /** Location of data used to transform (x,y,0). */
   float loc[3];
-  /** Pointer to real 2d location of data. */
-  float *loc2d;
-
+  union {
+    /** Pointer to real 2d location of data. */
+    float *loc2d;
+    int *loc2d_i;
+  };
   /** Pointer to handle locations, if handles aren't being moved independently. */
   float *h1, *h2;
   float ih1[2], ih2[2];
