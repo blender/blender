@@ -294,7 +294,7 @@ void AssetCatalogTreeViewItem::build_context_menu(bContext &C, uiLayout &column)
 
   uiItemFullO(&column,
               "ASSET_OT_catalog_new",
-              "New Catalog",
+              IFACE_("New Catalog"),
               ICON_NONE,
               nullptr,
               WM_OP_INVOKE_DEFAULT,
@@ -306,14 +306,14 @@ void AssetCatalogTreeViewItem::build_context_menu(bContext &C, uiLayout &column)
   BLI_uuid_format(catalog_id_str_buffer, catalog_item_.get_catalog_id());
   uiItemFullO(&column,
               "ASSET_OT_catalog_delete",
-              "Delete Catalog",
+              IFACE_("Delete Catalog"),
               ICON_NONE,
               nullptr,
               WM_OP_INVOKE_DEFAULT,
               UI_ITEM_NONE,
               &props);
   RNA_string_set(&props, "catalog_id", catalog_id_str_buffer);
-  uiItemO(&column, "Rename", ICON_NONE, "UI_OT_view_item_rename");
+  uiItemO(&column, IFACE_("Rename"), ICON_NONE, "UI_OT_view_item_rename");
 
   /* Doesn't actually exist right now, but could be defined in Python. Reason that this isn't done
    * in Python yet is that catalogs are not exposed in BPY, and we'd somehow pass the clicked on

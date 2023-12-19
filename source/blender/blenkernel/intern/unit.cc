@@ -81,7 +81,10 @@
 
 /* clang-format on */
 
-/* Define a single unit. */
+/* Define a single unit.
+ * When changing the format, please check that the PYGETTEXT_KEYWORDS regex
+ * used to extract the unit names for translation still works
+ * in scripts/modules/bl_i18n_utils/settings.py. */
 struct bUnitDef {
   const char *name;
   /** Abused a bit for the display name. */
