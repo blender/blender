@@ -404,6 +404,10 @@ static void OVERLAY_cache_populate(void *vedata, Object *ob)
     }
   }
 
+  if (is_preview && (pd->overlay.flag & V3D_OVERLAY_VIEWER_ATTRIBUTE_TEXT) != 0) {
+    OVERLAY_viewer_attribute_text(*ob);
+  }
+
   if (ob->type == OB_VOLUME) {
     OVERLAY_volume_cache_populate(data, ob);
   }

@@ -221,6 +221,7 @@ set(SRC
   engines/overlay/overlay_sculpt_curves.cc
   engines/overlay/overlay_shader.cc
   engines/overlay/overlay_viewer_attribute.cc
+  engines/overlay/overlay_viewer_text.cc
   engines/overlay/overlay_volume.cc
   engines/overlay/overlay_wireframe.cc
 

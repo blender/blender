@@ -709,6 +709,8 @@ void OVERLAY_viewer_attribute_cache_init(OVERLAY_Data *vedata);
 void OVERLAY_viewer_attribute_cache_populate(OVERLAY_Data *vedata, Object *object);
 void OVERLAY_viewer_attribute_draw(OVERLAY_Data *vedata);
 
+void OVERLAY_viewer_attribute_text(const Object &object);
+
 void OVERLAY_wireframe_init(OVERLAY_Data *vedata);
 void OVERLAY_wireframe_cache_init(OVERLAY_Data *vedata);
 void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
