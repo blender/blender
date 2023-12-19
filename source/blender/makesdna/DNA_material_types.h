@@ -224,7 +224,7 @@ typedef struct Material {
   /* Volume. */
   char volume_intersection_method;
 
-  /* Displacement*/
+  /* Displacement. */
   float inflate_bounds;
 
   char _pad3[4];
