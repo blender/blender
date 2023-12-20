@@ -673,6 +673,17 @@ static void ui_searchbox_region_draw_fn(const bContext *C, ARegion *region)
       }
     }
   }
+  else {
+    rcti rect;
+    ui_searchbox_butrect(&rect, data, 0);
+    ui_draw_menu_item(&data->fstyle,
+                      &rect,
+                      IFACE_("No results found"),
+                      0,
+                      0,
+                      UI_MENU_ITEM_SEPARATOR_NONE,
+                      nullptr);
+  }
 }
 
 static void ui_searchbox_region_free_fn(ARegion *region)
@@ -1024,6 +1035,17 @@ static void ui_searchbox_region_draw_cb__operator(const bContext * /*C*/, ARegio
       UI_icon_draw(BLI_rcti_size_x(&rect) / 2, rect.ymax - 7, ICON_TRIA_UP);
       GPU_blend(GPU_BLEND_NONE);
     }
+  }
+  else {
+    rcti rect;
+    ui_searchbox_butrect(&rect, data, 0);
+    ui_draw_menu_item(&data->fstyle,
+                      &rect,
+                      IFACE_("No results found"),
+                      0,
+                      0,
+                      UI_MENU_ITEM_SEPARATOR_NONE,
+                      nullptr);
   }
 }
 

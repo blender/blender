@@ -1166,6 +1166,29 @@ void file_draw_list(const bContext *C, ARegion *region)
     }
   }
 
+  if (numfiles == 0) {
+    const rcti tile_draw_rect = tile_draw_rect_get(
+        v2d, layout, eFileDisplayType(params->display), 0, 0);
+    const uiStyle *style = UI_style_get();
+
+    const bool is_filtered = params->filter_search[0] != '\0';
+
+    uchar text_col[4];
+    UI_GetThemeColor4ubv(TH_TEXT, text_col);
+    if (!is_filtered) {
+      text_col[3] /= 2;
+    }
+
+    const char *message = is_filtered ? IFACE_("No results match the search filter") :
+                                        IFACE_("No items");
+
+    UI_fontstyle_draw_simple(&style->widget,
+                             tile_draw_rect.xmin + UI_UNIT_X,
+                             tile_draw_rect.ymax - UI_UNIT_Y,
+                             message,
+                             text_col);
+  }
+
   BLF_batch_draw_end();
 
   UI_block_end(C, block);
