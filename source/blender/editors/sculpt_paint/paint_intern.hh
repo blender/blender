@@ -35,6 +35,7 @@ struct SpaceImage;
 struct VPaint;
 struct ViewContext;
 struct bContext;
+struct ReportList;
 struct wmEvent;
 struct wmKeyConfig;
 struct wmKeyMap;

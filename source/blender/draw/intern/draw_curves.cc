@@ -13,6 +13,7 @@
 
 #include "DNA_curves_types.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_curves.hh"
 
 #include "GPU_batch.h"

@@ -8,9 +8,12 @@
 
 #include "BLI_map.hh"
 
-#include "BKE_attribute.hh"
-
 #include <pxr/usd/usdGeom/mesh.h>
+
+namespace blender::bke {
+class AttributeIDRef;
+struct AttributeMetaData;
+}  // namespace blender::bke
 
 namespace blender::io::usd {
 

@@ -8,6 +8,7 @@
 
 #include "BLI_vector_set.hh"
 
+#include "BKE_attribute.hh"
 #include "BKE_context.hh"
 #include "BKE_grease_pencil.hh"
 

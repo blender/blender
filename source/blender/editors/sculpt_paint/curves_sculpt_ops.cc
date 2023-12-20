@@ -8,6 +8,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_vector_set.hh"
 
+#include "BKE_attribute.hh"
 #include "BKE_brush.hh"
 #include "BKE_bvhutils.hh"
 #include "BKE_context.hh"

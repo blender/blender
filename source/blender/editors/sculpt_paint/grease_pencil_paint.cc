@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BKE_attribute.hh"
 #include "BKE_brush.hh"
 #include "BKE_colortools.h"
 #include "BKE_context.hh"
@@ -516,7 +517,7 @@ void PaintOperation::simplify_stroke(bke::greasepencil::Drawing &drawing, const 
 
   if (total_points_to_delete > 0) {
     IndexMaskMemory memory;
-    curves.remove_points(IndexMask::from_bools(points_to_delete, memory));
+    curves.remove_points(IndexMask::from_bools(points_to_delete, memory), {});
   }
 }
 

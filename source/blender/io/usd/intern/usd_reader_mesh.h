@@ -5,7 +5,6 @@
  * Modifications Copyright 2021 Tangent Animation and. NVIDIA Corporation. All rights reserved. */
 #pragma once
 
-#include "BKE_attribute.hh"
 #include "BLI_span.hh"
 
 #include "usd.h"

@@ -8,6 +8,7 @@
 
 #include "DNA_material_types.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_context.hh"
 #include "BKE_curves_utils.hh"
 #include "BKE_grease_pencil.hh"

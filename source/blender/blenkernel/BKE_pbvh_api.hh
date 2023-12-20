@@ -25,7 +25,6 @@
 #include "DNA_customdata_types.h"
 
 /* For embedding CCGKey in iterator. */
-#include "BKE_attribute.h"
 #include "BKE_ccg.h"
 #include "BKE_pbvh.hh"
 
@@ -43,10 +42,15 @@ struct PBVHNode;
 struct SubdivCCG;
 struct Image;
 struct ImageUser;
-namespace blender::draw::pbvh {
+namespace blender {
+namespace bke {
+enum class AttrDomain : int8_t;
+}
+namespace draw::pbvh {
 struct PBVHBatches;
 struct PBVH_GPU_Args;
-}  // namespace blender::draw::pbvh
+}  // namespace draw::pbvh
+}  // namespace blender
 
 struct PBVHProxyNode {
   blender::Vector<blender::float3> co;

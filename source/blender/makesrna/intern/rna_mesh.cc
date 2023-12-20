@@ -21,7 +21,7 @@
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_attribute.h"
+#include "BKE_attribute.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_mesh_types.hh"
 

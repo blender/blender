@@ -22,7 +22,6 @@
 #include "DNA_brush_enums.h"
 #include "DNA_object_enums.h"
 
-#include "BKE_attribute.h"
 #include "BKE_pbvh.hh"
 
 #include "bmesh.hh"
@@ -36,7 +35,11 @@ struct Brush;
 struct CurveMapping;
 struct Depsgraph;
 struct EnumPropertyItem;
-namespace blender::ed::sculpt_paint {
+namespace blender {
+namespace bke {
+enum class AttrDomain : int8_t;
+}
+namespace ed::sculpt_paint {
 namespace expand {
 struct Cache;
 }
@@ -44,7 +47,8 @@ namespace filter {
 struct Cache;
 }
 struct StrokeCache;
-}  // namespace blender::ed::sculpt_paint
+}  // namespace ed::sculpt_paint
+}  // namespace blender
 struct GHash;
 struct GridPaintMask;
 struct Image;

@@ -27,7 +27,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_DerivedMesh.hh"
-#include "BKE_attribute.h"
+#include "BKE_attribute.hh"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_lattice.hh"
 #include "BKE_lib_id.h"

@@ -13,6 +13,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_span.hh"
 
+#include "BKE_attribute.hh"
 #include "BKE_curves.hh"
 
 #include "ED_curves.hh"

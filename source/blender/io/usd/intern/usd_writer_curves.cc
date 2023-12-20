@@ -14,6 +14,7 @@
 #include "usd_hierarchy_iterator.h"
 #include "usd_writer_curves.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_curve_legacy_convert.hh"
 #include "BKE_curves.hh"
 #include "BKE_lib_id.h"

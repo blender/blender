@@ -14,11 +14,13 @@
 
 #include "DNA_customdata_types.h"
 
-#include "BKE_attribute.hh"
-
 #include "BLI_sys_types.h"
 
 #include "GPU_shader.h"
+
+namespace blender::bke {
+enum class AttrDomain : int8_t;
+}
 
 struct DRW_AttributeRequest {
   eCustomDataType cd_type;

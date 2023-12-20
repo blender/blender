@@ -21,11 +21,16 @@
 #include "BLI_vector.hh"
 #include "BLI_virtual_array.hh"
 
-#include "BKE_attribute.hh"
 #include "BKE_attribute_math.hh"
 #include "BKE_curves.h"
 
 struct MDeformVert;
+namespace blender::bke {
+class AnonymousAttributePropagationInfo;
+class AttributeAccessor;
+class MutableAttributeAccessor;
+enum class AttrDomain : int8_t;
+}  // namespace blender::bke
 
 namespace blender::bke {
 
@@ -372,9 +377,9 @@ class CurvesGeometry : public ::CurvesGeometry {
   void calculate_bezier_auto_handles();
 
   void remove_points(const IndexMask &points_to_delete,
-                     const AnonymousAttributePropagationInfo &propagation_info = {});
+                     const AnonymousAttributePropagationInfo &propagation_info);
   void remove_curves(const IndexMask &curves_to_delete,
-                     const AnonymousAttributePropagationInfo &propagation_info = {});
+                     const AnonymousAttributePropagationInfo &propagation_info);
 
   /**
    * Change the direction of selected curves (switch the start and end) without changing their

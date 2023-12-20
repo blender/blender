@@ -13,9 +13,11 @@
 
 #include "BLI_bounds_types.hh"
 #include "BLI_function_ref.hh"
+#include "BLI_implicit_sharing_ptr.hh"
 #include "BLI_map.hh"
 #include "BLI_math_vector_types.hh"
 
+/* For #Map. */
 #include "BKE_attribute.hh"
 
 struct Curves;
@@ -25,11 +27,18 @@ struct PointCloud;
 struct Volume;
 struct GreasePencil;
 namespace blender::bke {
+class AnonymousAttributePropagationInfo;
+class AttributeIDRef;
+class AttributeKind;
+class AttributeAccessor;
+class AttributeMetaData;
 class ComponentAttributeProviders;
 class CurvesEditHints;
 class Instances;
 class GeometryComponent;
 class GreasePencilEditHints;
+class MutableAttributeAccessor;
+enum class AttrDomain : int8_t;
 }  // namespace blender::bke
 
 namespace blender::bke {

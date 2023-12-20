@@ -21,7 +21,7 @@
 #include "BLI_string.h"
 #include "BLI_task.h"
 
-#include "BKE_attribute.h"
+#include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
 #include "BKE_multires.hh"
 

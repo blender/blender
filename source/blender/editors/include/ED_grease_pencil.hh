@@ -8,7 +8,6 @@
 
 #pragma once
 
-#include "BKE_attribute.hh"
 #include "BKE_grease_pencil.hh"
 
 #include "BLI_generic_span.hh"
@@ -26,6 +25,11 @@ struct ToolSettings;
 struct Scene;
 struct ViewDepths;
 struct View3D;
+namespace blender {
+namespace bke {
+enum class AttrDomain : int8_t;
+}
+}  // namespace blender
 
 enum {
   LAYER_REORDER_ABOVE,

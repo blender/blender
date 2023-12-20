@@ -8,7 +8,6 @@
 
 #pragma once
 
-#include "BKE_attribute.h"
 #include "GPU_shader.h"
 
 #include "draw_attributes.hh"

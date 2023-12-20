@@ -24,6 +24,7 @@
 
 #include "DNA_curves_types.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_attribute_math.hh"
 #include "BKE_curves.hh"
 #include "BKE_curves_utils.hh"

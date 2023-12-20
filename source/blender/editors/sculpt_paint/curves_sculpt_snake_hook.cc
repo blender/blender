@@ -17,6 +17,7 @@
 
 #include "DEG_depsgraph.hh"
 
+#include "BKE_attribute.hh"
 #include "BKE_attribute_math.hh"
 #include "BKE_brush.hh"
 #include "BKE_bvhutils.hh"

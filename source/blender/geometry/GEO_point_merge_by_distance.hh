@@ -4,12 +4,12 @@
 
 #include "BLI_index_mask.hh"
 
-#include "BKE_attribute.hh"
-
 #pragma once
 
 struct PointCloud;
-class PointCloudComponent;
+namespace blender::bke {
+class AnonymousAttributePropagationInfo;
+}
 
 /** \file
  * \ingroup geo

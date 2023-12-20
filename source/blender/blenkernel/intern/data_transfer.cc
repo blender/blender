@@ -18,7 +18,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_attribute.h"
+#include "BKE_attribute.hh"
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
 #include "BKE_data_transfer.h"

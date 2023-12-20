@@ -9,6 +9,7 @@
 #include "BLI_math_base_safe.h"
 #include "BLI_rand.hh"
 
+#include "BKE_attribute.hh"
 #include "BKE_context.hh"
 #include "BKE_curves.hh"
 #include "BKE_node.hh"

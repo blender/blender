@@ -10,6 +10,7 @@
 
 #include "ED_grease_pencil.hh"
 
+#include "BKE_attribute.hh"
 #include "BKE_grease_pencil.hh"
 
 #include "overlay_private.hh"

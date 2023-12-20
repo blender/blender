@@ -9,6 +9,7 @@
 #include <array>
 #include <iomanip>
 
+#include "BKE_attribute.hh"
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
 

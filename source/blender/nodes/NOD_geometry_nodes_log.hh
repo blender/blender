@@ -35,7 +35,6 @@
 #include "BLI_generic_pointer.hh"
 #include "BLI_multi_value_map.hh"
 
-#include "BKE_attribute.h"
 #include "BKE_geometry_set.hh"
 #include "BKE_node_tree_zones.hh"
 #include "BKE_viewer_path.hh"

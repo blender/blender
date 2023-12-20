@@ -8,7 +8,6 @@
 
 #pragma once
 
-#include "BKE_attribute.hh"
 #include "BKE_crazyspace.hh"
 #include "BKE_curves.hh"
 
@@ -26,6 +25,10 @@ struct ViewContext;
 struct rcti;
 struct TransVertStore;
 struct wmKeyConfig;
+namespace blender::bke {
+enum class AttrDomain : int8_t;
+class GSpanAttributeWriter;
+}  // namespace blender::bke
 
 /* -------------------------------------------------------------------- */
 /** \name C Wrappers

@@ -16,6 +16,7 @@
 
 #include "DNA_material_types.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_context.hh"
 #include "BKE_curves_utils.hh"
 #include "BKE_grease_pencil.hh"
@@ -547,7 +548,7 @@ static int grease_pencil_stroke_simplify_exec(bContext *C, wmOperator *op)
 
     if (total_points_to_delete > 0) {
       IndexMaskMemory memory;
-      curves.remove_points(IndexMask::from_bools(points_to_delete, memory));
+      curves.remove_points(IndexMask::from_bools(points_to_delete, memory), {});
       info.drawing.tag_topology_changed();
       changed = true;
     }
@@ -696,7 +697,7 @@ static int grease_pencil_delete_exec(bContext *C, wmOperator * /*op*/)
 
     bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
     if (selection_domain == bke::AttrDomain::Curve) {
-      curves.remove_curves(elements);
+      curves.remove_curves(elements, {});
     }
     else if (selection_domain == bke::AttrDomain::Point) {
       curves = remove_points_and_split(curves, elements);
@@ -844,7 +845,7 @@ static int grease_pencil_dissolve_exec(bContext *C, wmOperator *op)
 
     const Array<bool> points_to_dissolve = get_points_to_dissolve(curves, points, mode);
     if (points_to_dissolve.as_span().contains(true)) {
-      curves.remove_points(IndexMask::from_bools(points_to_dissolve, memory));
+      curves.remove_points(IndexMask::from_bools(points_to_dissolve, memory), {});
       info.drawing.tag_topology_changed();
       changed = true;
     }
@@ -1605,7 +1606,7 @@ static int grease_pencil_clean_loose_exec(bContext *C, wmOperator *op)
           return points_by_curve[i].size() <= limit;
         });
 
-    curves.remove_curves(curves_to_delete);
+    curves.remove_curves(curves_to_delete, {});
   });
 
   DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);

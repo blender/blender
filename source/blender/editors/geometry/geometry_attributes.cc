@@ -14,7 +14,7 @@
 
 #include "BLI_color.hh"
 
-#include "BKE_attribute.h"
+#include "BKE_attribute.hh"
 #include "BKE_context.hh"
 #include "BKE_deform.h"
 #include "BKE_geometry_set.hh"

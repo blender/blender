@@ -6,6 +6,7 @@
  * \ingroup bke
  */
 
+#include "BKE_attribute.hh"
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_material.h"

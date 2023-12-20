@@ -4,6 +4,8 @@
 
 #include "BLI_string.h"
 
+#include "BKE_attribute.hh"
+
 #include "draw_attributes.hh"
 
 /* Return true if the given DRW_AttributeRequest is already in the requests. */
@@ -40,7 +42,7 @@ static void drw_attributes_merge_requests(const DRW_Attributes *src_requests,
 
 void drw_attributes_clear(DRW_Attributes *attributes)
 {
-  memset(attributes, 0, sizeof(DRW_Attributes));
+  *attributes = {};
 }
 
 void drw_attributes_merge(DRW_Attributes *dst, const DRW_Attributes *src, std::mutex &render_mutex)

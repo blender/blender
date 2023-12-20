@@ -10,6 +10,7 @@
 #include "BLI_math_geom.h"
 #include "BLI_task.hh"
 
+#include "BKE_attribute.hh"
 #include "BKE_brush.hh"
 #include "BKE_colortools.h"
 #include "BKE_context.hh"

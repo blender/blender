@@ -9,7 +9,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_mempool.h"
 
-#include "BKE_attribute.h"
+#include "BKE_attribute.hh"
 #include "BKE_context.hh"
 #include "BKE_curves.hh"
 #include "BKE_report.h"

@@ -8,6 +8,7 @@
 
 #include "BLI_rand.hh"
 
+#include "BKE_attribute.hh"
 #include "BKE_curves.hh"
 
 #include "ED_curves.hh"

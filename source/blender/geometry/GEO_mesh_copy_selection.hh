@@ -8,16 +8,15 @@
 
 #include "BLI_index_mask.hh"
 
-#include "BKE_attribute.h"
-
 struct Mesh;
 namespace blender {
 namespace fn {
 template<typename T> class Field;
 }
 namespace bke {
+enum class AttrDomain : int8_t;
 class AnonymousAttributePropagationInfo;
-}
+}  // namespace bke
 }  // namespace blender
 
 namespace blender::geometry {

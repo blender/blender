@@ -12,6 +12,7 @@
 #include "draw_manager.h"
 #include "draw_pbvh.hh"
 
+#include "BKE_attribute.hh"
 #include "BKE_curve.hh"
 #include "BKE_duplilist.h"
 #include "BKE_global.h"

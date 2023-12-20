@@ -20,6 +20,7 @@
 #include "util/hash.h"
 #include "util/log.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_curves.hh"
 
 CCL_NAMESPACE_BEGIN

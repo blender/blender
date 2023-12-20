@@ -8,6 +8,7 @@
 
 #include "BLI_array_utils.hh"
 
+#include "BKE_attribute.hh"
 #include "BKE_curves.hh"
 
 #include "ED_curves.hh"
@@ -24,10 +25,10 @@ bool remove_selection(bke::CurvesGeometry &curves, const bke::AttrDomain selecti
   const IndexMask mask = IndexMask::from_bools(selection, memory);
   switch (selection_domain) {
     case bke::AttrDomain::Point:
-      curves.remove_points(mask);
+      curves.remove_points(mask, {});
       break;
     case bke::AttrDomain::Curve:
-      curves.remove_curves(mask);
+      curves.remove_curves(mask, {});
       break;
     default:
       BLI_assert_unreachable();
