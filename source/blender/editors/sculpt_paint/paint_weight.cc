@@ -32,7 +32,6 @@
 #include "RNA_access.hh"
 
 #include "BKE_attribute.hh"
-#include "BKE_attribute.hh"
 #include "BKE_brush.hh"
 #include "BKE_colortools.h"
 #include "BKE_context.hh"

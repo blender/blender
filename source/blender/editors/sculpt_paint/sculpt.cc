@@ -38,7 +38,6 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_attribute.hh"
-#include "BKE_attribute.hh"
 #include "BKE_brush.hh"
 #include "BKE_ccg.h"
 #include "BKE_colortools.h"

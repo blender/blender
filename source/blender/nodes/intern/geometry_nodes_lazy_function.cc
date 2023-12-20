@@ -819,8 +819,8 @@ class LazyFunctionForViewerNode : public LazyFunction {
               GeometryComponent &component = geometry.get_component_for_write(type);
               AttrDomain used_domain = domain;
               if (used_domain == AttrDomain::Auto) {
-                if (const std::optional<AttrDomain> detected_domain =
-                        bke::try_detect_field_domain(component, field))
+                if (const std::optional<AttrDomain> detected_domain = bke::try_detect_field_domain(
+                        component, field))
                 {
                   used_domain = *detected_domain;
                 }

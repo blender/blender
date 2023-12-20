@@ -335,7 +335,7 @@ static ResultOffsets calculate_result_offsets(const CurvesInfo &info, const bool
 }
 
 static AttrDomain get_attribute_domain_for_mesh(const AttributeAccessor &mesh_attributes,
-                                                 const AttributeIDRef &attribute_id)
+                                                const AttributeIDRef &attribute_id)
 {
   /* Only use a different domain if it is builtin and must only exist on one domain. */
   if (!mesh_attributes.is_builtin(attribute_id)) {

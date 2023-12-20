@@ -642,7 +642,8 @@ static void get_loops_polys(const Mesh *mesh, USDMeshData &usd_mesh_data)
 static void get_edge_creases(const Mesh *mesh, USDMeshData &usd_mesh_data)
 {
   const bke::AttributeAccessor attributes = mesh->attributes();
-  const bke::AttributeReader attribute = attributes.lookup<float>("crease_edge", bke::AttrDomain::Edge);
+  const bke::AttributeReader attribute = attributes.lookup<float>("crease_edge",
+                                                                  bke::AttrDomain::Edge);
   if (!attribute) {
     return;
   }

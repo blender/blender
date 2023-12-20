@@ -800,7 +800,7 @@ bool try_capture_field_on_geometry(GeometryComponent &component,
 }
 
 std::optional<AttrDomain> try_detect_field_domain(const GeometryComponent &component,
-                                                   const fn::GField &field)
+                                                  const fn::GField &field)
 {
   const GeometryComponent::Type component_type = component.type();
   if (component_type == GeometryComponent::Type::PointCloud) {

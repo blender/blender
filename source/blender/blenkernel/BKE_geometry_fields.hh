@@ -438,6 +438,6 @@ bool try_capture_field_on_geometry(GeometryComponent &component,
  * which domain is correct, none is returned.
  */
 std::optional<AttrDomain> try_detect_field_domain(const GeometryComponent &component,
-                                                   const fn::GField &field);
+                                                  const fn::GField &field);
 
 }  // namespace blender::bke

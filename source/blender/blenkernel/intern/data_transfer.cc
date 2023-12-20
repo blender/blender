@@ -19,7 +19,6 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_attribute.hh"
-#include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
 #include "BKE_data_transfer.h"
 #include "BKE_deform.h"
