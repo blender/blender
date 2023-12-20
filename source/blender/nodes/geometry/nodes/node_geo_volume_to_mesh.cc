@@ -15,7 +15,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
 #include "BKE_volume.hh"
-#include "BKE_volume_openvdb.hh"
+#include "BKE_volume_grid.hh"
 #include "BKE_volume_to_mesh.hh"
 
 #include "DNA_mesh_types.h"
@@ -105,7 +105,7 @@ static bke::VolumeToMeshResolution get_resolution_param(const GeoNodeExecParams 
   return resolution;
 }
 
-static Mesh *create_mesh_from_volume_grids(Span<openvdb::GridBase::ConstPtr> grids,
+static Mesh *create_mesh_from_volume_grids(Span<const openvdb::GridBase *> grids,
                                            const float threshold,
                                            const float adaptivity,
                                            const bke::VolumeToMeshResolution &resolution)
@@ -183,11 +183,12 @@ static Mesh *create_mesh_from_volume(GeometrySet &geometry_set, GeoNodeExecParam
   const Main *bmain = DEG_get_bmain(params.depsgraph());
   BKE_volume_load(volume, bmain);
 
-  Vector<openvdb::GridBase::ConstPtr> grids;
+  Vector<bke::VolumeTreeAccessToken> access_tokens;
+  Vector<const openvdb::GridBase *> grids;
   for (const int i : IndexRange(BKE_volume_num_grids(volume))) {
-    const VolumeGrid *volume_grid = BKE_volume_grid_get_for_read(volume, i);
-    openvdb::GridBase::ConstPtr grid = BKE_volume_grid_openvdb_for_read(volume, volume_grid);
-    grids.append(std::move(grid));
+    const bke::VolumeGridData *volume_grid = BKE_volume_grid_get(volume, i);
+    access_tokens.append(volume_grid->tree_access_token());
+    grids.append(&volume_grid->grid(access_tokens.last()));
   }
 
   if (grids.is_empty()) {

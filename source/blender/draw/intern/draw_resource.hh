@@ -103,10 +103,12 @@ inline void ObjectInfos::sync(const blender::draw::ObjectRef ref, bool is_active
 
   switch (GS(reinterpret_cast<ID *>(ref.object->data)->name)) {
     case ID_VO: {
-      const blender::Bounds<float3> bounds = *BKE_volume_min_max(
+      std::optional<const blender::Bounds<float3>> bounds = BKE_volume_min_max(
           static_cast<const Volume *>(ref.object->data));
-      orco_add = blender::math::midpoint(bounds.min, bounds.max);
-      orco_mul = (bounds.max - bounds.min) * 0.5f;
+      if (bounds) {
+        orco_add = blender::math::midpoint(bounds->min, bounds->max);
+        orco_mul = (bounds->max - bounds->min) * 0.5f;
+      }
       break;
     }
     case ID_ME: {

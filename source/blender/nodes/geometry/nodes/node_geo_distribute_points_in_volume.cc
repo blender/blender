@@ -13,7 +13,7 @@
 
 #include "BKE_pointcloud.h"
 #include "BKE_volume.hh"
-#include "BKE_volume_openvdb.hh"
+#include "BKE_volume_grid.hh"
 
 #include "NOD_rna_define.hh"
 
@@ -220,29 +220,25 @@ static void node_geo_exec(GeoNodeExecParams params)
     Vector<float3> positions;
 
     for (const int i : IndexRange(BKE_volume_num_grids(volume))) {
-      const VolumeGrid *volume_grid = BKE_volume_grid_get_for_read(volume, i);
+      const bke::VolumeGridData *volume_grid = BKE_volume_grid_get(volume, i);
       if (volume_grid == nullptr) {
         continue;
       }
 
-      openvdb::GridBase::ConstPtr base_grid = BKE_volume_grid_openvdb_for_read(volume,
-                                                                               volume_grid);
-      if (!base_grid) {
+      bke::VolumeTreeAccessToken access_token = volume_grid->tree_access_token();
+      const openvdb::GridBase &base_grid = volume_grid->grid(access_token);
+
+      if (!base_grid.isType<openvdb::FloatGrid>()) {
         continue;
       }
 
-      if (!base_grid->isType<openvdb::FloatGrid>()) {
-        continue;
-      }
-
-      const openvdb::FloatGrid::ConstPtr grid = openvdb::gridConstPtrCast<openvdb::FloatGrid>(
-          base_grid);
+      const openvdb::FloatGrid &grid = static_cast<const openvdb::FloatGrid &>(base_grid);
 
       if (mode == GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_RANDOM) {
-        point_scatter_density_random(*grid, density, seed, positions);
+        point_scatter_density_random(grid, density, seed, positions);
       }
       else if (mode == GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_GRID) {
-        point_scatter_density_grid(*grid, spacing, threshold, positions);
+        point_scatter_density_grid(grid, spacing, threshold, positions);
       }
     }
 

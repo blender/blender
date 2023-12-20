@@ -137,7 +137,7 @@ static DRWShadingGroup *drw_volume_object_grids_init(Object *ob,
   /* Bind volume grid textures. */
   int grid_id = 0, grids_len = 0;
   LISTBASE_FOREACH (GPUMaterialAttribute *, attr, attrs) {
-    const VolumeGrid *volume_grid = BKE_volume_grid_find_for_read(volume, attr->name);
+    const blender::bke::VolumeGridData *volume_grid = BKE_volume_grid_find(volume, attr->name);
     const DRWVolumeGrid *drw_grid = (volume_grid) ?
                                         DRW_volume_batch_cache_get_grid(volume, volume_grid) :
                                         nullptr;
@@ -312,7 +312,7 @@ PassType *volume_object_grids_init(PassType &ps,
 
   bool has_grids = false;
   for (const GPUMaterialAttribute *attr : attrs) {
-    if (BKE_volume_grid_find_for_read(volume, attr->name) != nullptr) {
+    if (BKE_volume_grid_find(volume, attr->name) != nullptr) {
       has_grids = true;
       break;
     }
@@ -328,7 +328,7 @@ PassType *volume_object_grids_init(PassType &ps,
   /* Bind volume grid textures. */
   int grid_id = 0;
   for (const GPUMaterialAttribute *attr : attrs) {
-    const VolumeGrid *volume_grid = BKE_volume_grid_find_for_read(volume, attr->name);
+    const blender::bke::VolumeGridData *volume_grid = BKE_volume_grid_find(volume, attr->name);
     const DRWVolumeGrid *drw_grid = (volume_grid) ?
                                         DRW_volume_batch_cache_get_grid(volume, volume_grid) :
                                         nullptr;

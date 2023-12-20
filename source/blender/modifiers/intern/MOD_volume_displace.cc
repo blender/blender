@@ -13,6 +13,7 @@
 #include "BKE_object.hh"
 #include "BKE_texture.h"
 #include "BKE_volume.hh"
+#include "BKE_volume_grid.hh"
 #include "BKE_volume_openvdb.hh"
 
 #include "BLT_translation.h"
@@ -286,13 +287,14 @@ static void displace_volume(ModifierData *md, const ModifierEvalContext *ctx, Vo
   BKE_volume_load(volume, DEG_get_bmain(ctx->depsgraph));
   const int grid_amount = BKE_volume_num_grids(volume);
   for (int grid_index = 0; grid_index < grid_amount; grid_index++) {
-    VolumeGrid *volume_grid = BKE_volume_grid_get_for_write(volume, grid_index);
-    BLI_assert(volume_grid != nullptr);
+    blender::bke::VolumeGridData *volume_grid = BKE_volume_grid_get_for_write(volume, grid_index);
+    BLI_assert(volume_grid);
 
-    openvdb::GridBase::Ptr grid = BKE_volume_grid_openvdb_for_write(volume, volume_grid, false);
-    VolumeGridType grid_type = BKE_volume_grid_type(volume_grid);
+    blender::bke::VolumeTreeAccessToken access_token = volume_grid->tree_access_token();
+    openvdb::GridBase &grid = volume_grid->grid_for_write(access_token);
+    VolumeGridType grid_type = volume_grid->grid_type();
 
-    DisplaceGridOp displace_grid_op{*grid, *vdmd, *ctx};
+    DisplaceGridOp displace_grid_op{grid, *vdmd, *ctx};
     BKE_volume_grid_type_operation(grid_type, displace_grid_op);
   }
 
