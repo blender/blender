@@ -1075,6 +1075,13 @@ static bool region_azone_edge_poll(const ARegion *region, const bool is_fullscre
     return false;
   }
 
+  /* Don't use edge if the region hides with previous region which is now hidden. See #116196. */
+  if ((region->alignment & (RGN_SPLIT_PREV | RGN_ALIGN_HIDE_WITH_PREV) && region->prev) &&
+      region->prev->flag & (RGN_FLAG_HIDDEN | RGN_FLAG_TOO_SMALL))
+  {
+    return false;
+  }
+
   const bool is_hidden = (region->flag & (RGN_FLAG_HIDDEN | RGN_FLAG_TOO_SMALL));
 
   if (is_hidden && is_fullscreen) {
