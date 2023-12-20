@@ -685,16 +685,11 @@ static int override_remove_button_exec(bContext *C, wmOperator *op)
   BLI_assert(oprop != nullptr);
   BLI_assert(id != nullptr && id->override_library != nullptr);
 
-  const bool is_template = ID_IS_OVERRIDE_LIBRARY_TEMPLATE(id);
-
-  /* We need source (i.e. linked data) to restore values of deleted overrides...
-   * If this is an override template, we obviously do not need to restore anything. */
-  if (!is_template) {
-    PropertyRNA *src_prop;
-    PointerRNA id_refptr = RNA_id_pointer_create(id->override_library->reference);
-    if (!RNA_path_resolve_property(&id_refptr, oprop->rna_path, &src, &src_prop)) {
-      BLI_assert_msg(0, "Failed to create matching source (linked data) RNA pointer");
-    }
+  /* The source (i.e. linked data) is required to restore values of deleted overrides. */
+  PropertyRNA *src_prop;
+  PointerRNA id_refptr = RNA_id_pointer_create(id->override_library->reference);
+  if (!RNA_path_resolve_property(&id_refptr, oprop->rna_path, &src, &src_prop)) {
+    BLI_assert_msg(0, "Failed to create matching source (linked data) RNA pointer");
   }
 
   if (!all && index != -1) {
@@ -716,9 +711,7 @@ static int override_remove_button_exec(bContext *C, wmOperator *op)
       }
     }
     BKE_lib_override_library_property_operation_delete(oprop, opop);
-    if (!is_template) {
-      RNA_property_copy(bmain, &ptr, &src, prop, index);
-    }
+    RNA_property_copy(bmain, &ptr, &src, prop, index);
     if (BLI_listbase_is_empty(&oprop->operations)) {
       BKE_lib_override_library_property_delete(id->override_library, oprop);
     }
@@ -726,9 +719,7 @@ static int override_remove_button_exec(bContext *C, wmOperator *op)
   else {
     /* Just remove whole generic override operation of this property. */
     BKE_lib_override_library_property_delete(id->override_library, oprop);
-    if (!is_template) {
-      RNA_property_copy(bmain, &ptr, &src, prop, -1);
-    }
+    RNA_property_copy(bmain, &ptr, &src, prop, -1);
   }
 
   /* Outliner e.g. has to be aware of this change. */
