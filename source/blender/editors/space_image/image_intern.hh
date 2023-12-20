@@ -18,7 +18,9 @@ struct wmOperatorType;
 
 /* `space_image.cc` */
 
-extern "C" extern const char *image_context_dir[]; /* doc access */
+extern "C" {
+extern const char *image_context_dir[]; /* doc access */
+}
 
 /* `image_draw.cc` */
 
