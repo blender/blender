@@ -291,25 +291,10 @@ static void rna_Curves_add_curves(Curves *curves_id,
 
   /* Initialize new attribute values, since #CurvesGeometry::resize() doesn't do that. */
   bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
-  attributes.for_all(
-      [&](const bke::AttributeIDRef &id, const bke::AttributeMetaData /*meta_data*/) {
-        bke::GSpanAttributeWriter attribute = attributes.lookup_for_write_span(id);
-        GMutableSpan new_data;
-        switch (attribute.domain) {
-          case ATTR_DOMAIN_POINT:
-            new_data = attribute.span.drop_front(orig_points_num);
-            break;
-          case ATTR_DOMAIN_CURVE:
-            new_data = attribute.span.drop_front(orig_curves_num);
-            break;
-          default:
-            BLI_assert_unreachable();
-        }
-        const CPPType &type = attribute.span.type();
-        type.fill_construct_n(type.default_value(), new_data.data(), new_data.size());
-        attribute.finish();
-        return true;
-      });
+  bke::fill_attribute_range_default(
+      attributes, ATTR_DOMAIN_POINT, {}, curves.points_range().drop_front(orig_points_num));
+  bke::fill_attribute_range_default(
+      attributes, ATTR_DOMAIN_CURVE, {}, curves.curves_range().drop_front(orig_curves_num));
 
   curves.update_curve_types();
 
