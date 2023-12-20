@@ -29,9 +29,9 @@ struct GreasePencil;
 namespace blender::bke {
 class AnonymousAttributePropagationInfo;
 class AttributeIDRef;
-class AttributeKind;
+struct AttributeKind;
 class AttributeAccessor;
-class AttributeMetaData;
+struct AttributeMetaData;
 class ComponentAttributeProviders;
 class CurvesEditHints;
 class Instances;
