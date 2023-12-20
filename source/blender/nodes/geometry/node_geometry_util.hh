@@ -157,4 +157,6 @@ const EnumPropertyItem *domain_without_corner_experimental_grease_pencil_version
 
 }  // namespace enums
 
+void node_geo_exec_with_missing_openvdb(GeoNodeExecParams &params);
+
 }  // namespace blender::nodes
