@@ -385,12 +385,6 @@ struct SculptClothSimulation {
   eSculptClothNodeSimState *node_state;
 };
 
-struct SculptPersistentBase {
-  blender::float3 co;
-  blender::float3 no;
-  float disp;
-};
-
 struct SculptVertexInfo {
   /* Indexed by base mesh vertex index, stores if that vertex is a boundary. */
   blender::BitVector<> boundary;
@@ -863,9 +857,7 @@ bool BKE_sculptsession_use_pbvh_draw(const Object *ob, const RegionView3D *rv3d)
 /**
  * Fills the object's active color attribute layer with the fill color.
  *
- * \param[in] ob: The object.
- * \param[in] fill_color: The fill color.
- * \param[in] only_selected: Limit the fill to selected faces or vertices.
+ * \param only_selected: Limit the fill to selected faces or vertices.
  *
  * \return #true if successful.
  */
