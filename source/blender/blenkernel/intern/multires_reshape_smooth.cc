@@ -852,7 +852,7 @@ static void geometry_init_loose_information(MultiresReshapeSmoothContext *reshap
   reshape_smooth_context->loose_base_edges = loose_edges.is_loose_bits;
 
   int num_used_edges = 0;
-  for (const int edge : blender::IndexRange(base_mesh->totedge)) {
+  for (const int edge : blender::IndexRange(base_mesh->edges_num)) {
     if (loose_edges.count > 0 && loose_edges.is_loose_bits[edge]) {
       continue;
     }

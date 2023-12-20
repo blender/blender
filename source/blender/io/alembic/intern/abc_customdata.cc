@@ -254,7 +254,7 @@ void write_generated_coordinates(const OCompoundProperty &prop, CDStreamConfig &
   /* ORCOs are always stored in the normalized 0..1 range in Blender, but Alembic stores them
    * unnormalized, so we need to unnormalize (invert transform) them. */
   BKE_mesh_orco_verts_transform(
-      mesh, reinterpret_cast<float(*)[3]>(coords.data()), mesh->totvert, true);
+      mesh, reinterpret_cast<float(*)[3]>(coords.data()), mesh->verts_num, true);
 
   if (!config.abc_orco.valid()) {
     /* Create the Alembic property and keep a reference so future frames can reuse it. */
@@ -527,7 +527,7 @@ void read_generated_coordinates(const ICompoundProperty &prop,
   const size_t totvert = abc_orco.get()->size();
   Mesh *mesh = config.mesh;
 
-  if (totvert != mesh->totvert) {
+  if (totvert != mesh->verts_num) {
     /* Either the data is somehow corrupted, or we have a dynamic simulation where only the ORCOs
      * for the first frame were exported. */
     return;
@@ -535,7 +535,7 @@ void read_generated_coordinates(const ICompoundProperty &prop,
 
   void *cd_data;
   if (CustomData_has_layer(&mesh->vert_data, CD_ORCO)) {
-    cd_data = CustomData_get_layer_for_write(&mesh->vert_data, CD_ORCO, mesh->totvert);
+    cd_data = CustomData_get_layer_for_write(&mesh->vert_data, CD_ORCO, mesh->verts_num);
   }
   else {
     cd_data = CustomData_add_layer(&mesh->vert_data, CD_ORCO, CD_CONSTRUCT, totvert);
@@ -549,7 +549,7 @@ void read_generated_coordinates(const ICompoundProperty &prop,
 
   /* ORCOs are always stored in the normalized 0..1 range in Blender, but Alembic stores them
    * unnormalized, so we need to normalize them. */
-  BKE_mesh_orco_verts_transform(mesh, orcodata, mesh->totvert, false);
+  BKE_mesh_orco_verts_transform(mesh, orcodata, mesh->verts_num, false);
 }
 
 void read_custom_data(const std::string &iobject_full_name,

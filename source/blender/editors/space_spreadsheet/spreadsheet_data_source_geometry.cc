@@ -117,7 +117,8 @@ static std::unique_ptr<ColumnValues> build_mesh_debug_columns(const Mesh &mesh,
         const int *data = static_cast<const int *>(
             CustomData_get_layer(&mesh.vert_data, CD_ORIGINDEX));
         if (data) {
-          return std::make_unique<ColumnValues>(name, VArray<int>::ForSpan({data, mesh.totvert}));
+          return std::make_unique<ColumnValues>(name,
+                                                VArray<int>::ForSpan({data, mesh.verts_num}));
         }
       }
       return {};
@@ -127,7 +128,8 @@ static std::unique_ptr<ColumnValues> build_mesh_debug_columns(const Mesh &mesh,
         const int *data = static_cast<const int *>(
             CustomData_get_layer(&mesh.edge_data, CD_ORIGINDEX));
         if (data) {
-          return std::make_unique<ColumnValues>(name, VArray<int>::ForSpan({data, mesh.totedge}));
+          return std::make_unique<ColumnValues>(name,
+                                                VArray<int>::ForSpan({data, mesh.edges_num}));
         }
       }
       if (name == "Vertices") {
@@ -381,7 +383,7 @@ IndexMask GeometryDataSource::apply_selection_filter(IndexMaskMemory &memory) co
       if (orig_indices != nullptr) {
         /* Use CD_ORIGINDEX layer if it exists. */
         VArray<bool> selection = attributes_eval.adapt_domain<bool>(
-            VArray<bool>::ForFunc(mesh_eval->totvert,
+            VArray<bool>::ForFunc(mesh_eval->verts_num,
                                   [bm, orig_indices](int vertex_index) -> bool {
                                     const int i_orig = orig_indices[vertex_index];
                                     if (i_orig < 0) {
@@ -398,10 +400,10 @@ IndexMask GeometryDataSource::apply_selection_filter(IndexMaskMemory &memory) co
         return IndexMask::from_bools(selection, memory);
       }
 
-      if (mesh_eval->totvert == bm->totvert) {
+      if (mesh_eval->verts_num == bm->totvert) {
         /* Use a simple heuristic to match original vertices to evaluated ones. */
         VArray<bool> selection = attributes_eval.adapt_domain<bool>(
-            VArray<bool>::ForFunc(mesh_eval->totvert,
+            VArray<bool>::ForFunc(mesh_eval->verts_num,
                                   [bm](int vertex_index) -> bool {
                                     const BMVert *vert = BM_vert_at_index(bm, vertex_index);
                                     return BM_elem_flag_test(vert, BM_ELEM_SELECT);

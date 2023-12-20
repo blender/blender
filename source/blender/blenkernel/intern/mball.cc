@@ -648,7 +648,7 @@ void BKE_mball_data_update(Depsgraph *depsgraph, Scene *scene, Object *ob)
         ob->parent,
         ob,
         reinterpret_cast<float(*)[3]>(mesh->vert_positions_for_write().data()),
-        mesh->totvert,
+        mesh->verts_num,
         0,
         nullptr,
         1.0f);

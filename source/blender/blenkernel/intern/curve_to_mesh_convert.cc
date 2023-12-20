@@ -457,7 +457,7 @@ static void build_mesh_positions(const CurvesInfo &curves_info,
   const bool ignore_profile_position = profile_positions.size() == 1 &&
                                        math::is_equal(profile_positions.first(), float3(0.0f));
   if (ignore_profile_position) {
-    if (mesh.totvert == curves_info.main.points_num()) {
+    if (mesh.verts_num == curves_info.main.points_num()) {
       const GAttributeReader src = curves_info.main.attributes().lookup("position");
       if (src.sharing_info && src.varray.is_span()) {
         const AttributeInitShared init(src.varray.get_internal_span().data(), *src.sharing_info);
@@ -802,7 +802,7 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
   Mesh *mesh = BKE_mesh_new_nomain(
       0, offsets.edge.last(), offsets.face.last(), offsets.loop.last());
   CustomData_free_layer_named(&mesh->vert_data, "position", 0);
-  mesh->totvert = offsets.vert.last();
+  mesh->verts_num = offsets.vert.last();
 
   MutableSpan<int2> edges = mesh->edges_for_write();
   MutableSpan<int> face_offsets = mesh->face_offsets_for_write();

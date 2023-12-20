@@ -1008,12 +1008,12 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
   vwpaint::init_session_data(ts, ob);
 
   if (ELEM(vp->paint.brush->weightpaint_tool, WPAINT_TOOL_SMEAR, WPAINT_TOOL_BLUR)) {
-    wpd->precomputed_weight = (float *)MEM_mallocN(sizeof(float) * mesh->totvert, __func__);
+    wpd->precomputed_weight = (float *)MEM_mallocN(sizeof(float) * mesh->verts_num, __func__);
   }
 
   if (ob->sculpt->mode.wpaint.dvert_prev != nullptr) {
     MDeformVert *dv = ob->sculpt->mode.wpaint.dvert_prev;
-    for (int i = 0; i < mesh->totvert; i++, dv++) {
+    for (int i = 0; i < mesh->verts_num; i++, dv++) {
       /* Use to show this isn't initialized, never apply to the mesh data. */
       dv->flag = 1;
     }
@@ -1051,7 +1051,7 @@ static void precompute_weight_values(
     return;
   }
 
-  threading::parallel_for(IndexRange(mesh->totvert), 512, [&](const IndexRange range) {
+  threading::parallel_for(IndexRange(mesh->verts_num), 512, [&](const IndexRange range) {
     for (const int i : range) {
       const MDeformVert *dv = &wpi->dvert[i];
       wpd->precomputed_weight[i] = wpaint_get_active_weight(dv, wpi);

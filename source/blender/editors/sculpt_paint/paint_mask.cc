@@ -1775,7 +1775,7 @@ static void sculpt_gesture_trim_apply_for_symmetry_pass(bContext * /*C*/,
   SculptGestureTrimOperation *trim_operation = (SculptGestureTrimOperation *)sgcontext->operation;
   Mesh *trim_mesh = trim_operation->mesh;
   MutableSpan<float3> positions = trim_mesh->vert_positions_for_write();
-  for (int i = 0; i < trim_mesh->totvert; i++) {
+  for (int i = 0; i < trim_mesh->verts_num; i++) {
     flip_v3_v3(positions[i], trim_operation->true_mesh_co[i], sgcontext->symmpass);
   }
   sculpt_gesture_trim_normals_update(sgcontext);

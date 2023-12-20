@@ -105,7 +105,7 @@ static void createFacepa(ExplodeModifierData *emd, ParticleSystemModifierData *p
   blender::MutableSpan<blender::float3> positions = mesh->vert_positions_for_write();
   mface = (MFace *)CustomData_get_layer_for_write(
       &mesh->fdata_legacy, CD_MFACE, mesh->totface_legacy);
-  totvert = mesh->totvert;
+  totvert = mesh->verts_num;
   totface = mesh->totface_legacy;
   totpart = psmd->psys->totpart;
 
@@ -659,7 +659,7 @@ static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
   MFace *mface = static_cast<MFace *>(
       CustomData_get_layer_for_write(&mesh->fdata_legacy, CD_MFACE, mesh->totface_legacy));
   float *dupve;
-  int totvert = mesh->totvert;
+  int totvert = mesh->verts_num;
   int totface = mesh->totface_legacy;
 
   int *facesplit = static_cast<int *>(MEM_calloc_arrayN(totface, sizeof(int), __func__));
@@ -918,7 +918,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
   uint mindex = 0;
 
   totface = mesh->totface_legacy;
-  totvert = mesh->totvert;
+  totvert = mesh->verts_num;
   mface = static_cast<MFace *>(
       CustomData_get_layer_for_write(&mesh->fdata_legacy, CD_MFACE, mesh->totface_legacy));
   totpart = psmd->psys->totpart;

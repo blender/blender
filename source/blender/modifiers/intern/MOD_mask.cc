@@ -162,11 +162,11 @@ static void computed_masked_edges(const Mesh *mesh,
                                   MutableSpan<int> r_edge_map,
                                   uint *r_edges_masked_num)
 {
-  BLI_assert(mesh->totedge == r_edge_map.size());
+  BLI_assert(mesh->edges_num == r_edge_map.size());
   const Span<int2> edges = mesh->edges();
 
   uint edges_masked_num = 0;
-  for (int i : IndexRange(mesh->totedge)) {
+  for (int i : IndexRange(mesh->edges_num)) {
     const int2 &edge = edges[i];
 
     /* only add if both verts will be in new mesh */
@@ -188,12 +188,12 @@ static void computed_masked_edges_smooth(const Mesh *mesh,
                                          uint *r_edges_masked_num,
                                          uint *r_verts_add_num)
 {
-  BLI_assert(mesh->totedge == r_edge_map.size());
+  BLI_assert(mesh->edges_num == r_edge_map.size());
   const Span<int2> edges = mesh->edges();
 
   uint edges_masked_num = 0;
   uint verts_add_num = 0;
-  for (int i : IndexRange(mesh->totedge)) {
+  for (int i : IndexRange(mesh->edges_num)) {
     const int2 &edge = edges[i];
 
     /* only add if both verts will be in new mesh */
@@ -224,7 +224,7 @@ static void computed_masked_faces(const Mesh *mesh,
                                   uint *r_faces_masked_num,
                                   uint *r_loops_masked_num)
 {
-  BLI_assert(mesh->totvert == vertex_mask.size());
+  BLI_assert(mesh->verts_num == vertex_mask.size());
   const blender::OffsetIndices faces = mesh->faces();
   const Span<int> corner_verts = mesh->corner_verts();
 
@@ -264,7 +264,7 @@ static void compute_interpolated_faces(const Mesh *mesh,
                                        uint *r_faces_add_num,
                                        uint *r_loops_add_num)
 {
-  BLI_assert(mesh->totvert == vertex_mask.size());
+  BLI_assert(mesh->verts_num == vertex_mask.size());
 
   /* Can't really know ahead of time how much space to use exactly. Estimate limit instead. */
   /* NOTE: this reserve can only lift the capacity if there are ngons, which get split. */
@@ -330,7 +330,7 @@ static void copy_masked_verts_to_new_mesh(const Mesh &src_mesh,
                                           Mesh &dst_mesh,
                                           Span<int> vertex_map)
 {
-  BLI_assert(src_mesh.totvert == vertex_map.size());
+  BLI_assert(src_mesh.verts_num == vertex_map.size());
   for (const int i_src : vertex_map.index_range()) {
     const int i_dst = vertex_map[i_src];
     if (i_dst == -1) {
@@ -362,14 +362,14 @@ static void add_interp_verts_copy_edges_to_new_mesh(const Mesh &src_mesh,
                                                     uint verts_add_num,
                                                     MutableSpan<int> r_edge_map)
 {
-  BLI_assert(src_mesh.totvert == vertex_mask.size());
-  BLI_assert(src_mesh.totedge == r_edge_map.size());
+  BLI_assert(src_mesh.verts_num == vertex_mask.size());
+  BLI_assert(src_mesh.edges_num == r_edge_map.size());
   const Span<int2> src_edges = src_mesh.edges();
   MutableSpan<int2> dst_edges = dst_mesh.edges_for_write();
 
-  uint vert_index = dst_mesh.totvert - verts_add_num;
+  uint vert_index = dst_mesh.verts_num - verts_add_num;
   uint edge_index = edges_masked_num - verts_add_num;
-  for (int i_src : IndexRange(src_mesh.totedge)) {
+  for (int i_src : IndexRange(src_mesh.edges_num)) {
     if (r_edge_map[i_src] != -1) {
       int i_dst = r_edge_map[i_src];
       if (i_dst == -2) {
@@ -412,7 +412,7 @@ static void add_interp_verts_copy_edges_to_new_mesh(const Mesh &src_mesh,
       vert_index++;
     }
   }
-  BLI_assert(vert_index == dst_mesh.totvert);
+  BLI_assert(vert_index == dst_mesh.verts_num);
   BLI_assert(edge_index == edges_masked_num);
 }
 
@@ -424,9 +424,9 @@ static void copy_masked_edges_to_new_mesh(const Mesh &src_mesh,
   const Span<int2> src_edges = src_mesh.edges();
   MutableSpan<int2> dst_edges = dst_mesh.edges_for_write();
 
-  BLI_assert(src_mesh.totvert == vertex_map.size());
-  BLI_assert(src_mesh.totedge == edge_map.size());
-  for (const int i_src : IndexRange(src_mesh.totedge)) {
+  BLI_assert(src_mesh.verts_num == vertex_map.size());
+  BLI_assert(src_mesh.edges_num == edge_map.size());
+  for (const int i_src : IndexRange(src_mesh.edges_num)) {
     const int i_dst = edge_map[i_src];
     if (ELEM(i_dst, -1, -2)) {
       continue;
@@ -494,7 +494,7 @@ static void add_interpolated_faces_to_new_mesh(const Mesh &src_mesh,
   MutableSpan<int> dst_corner_verts = dst_mesh.corner_verts_for_write();
   MutableSpan<int> dst_corner_edges = dst_mesh.corner_edges_for_write();
 
-  int edge_index = dst_mesh.totedge - edges_add_num;
+  int edge_index = dst_mesh.edges_num - edges_add_num;
   int sub_face_index = 0;
   int last_i_src = -1;
   for (const int i_dst :
@@ -537,7 +537,7 @@ static void add_interpolated_faces_to_new_mesh(const Mesh &src_mesh,
     }
 
     BLI_assert(start >= 0);
-    BLI_assert(edge_index < dst_mesh.totedge);
+    BLI_assert(edge_index < dst_mesh.edges_num);
 
     int last_index = start;
     bool v_loop_in_mask_last = vertex_mask[face_verts_src[last_index]];
@@ -598,7 +598,7 @@ static void add_interpolated_faces_to_new_mesh(const Mesh &src_mesh,
       v_loop_in_mask_last = v_loop_in_mask;
     }
   }
-  BLI_assert(edge_index == dst_mesh.totedge);
+  BLI_assert(edge_index == dst_mesh.edges_num);
 }
 
 /* Components of the algorithm:
@@ -620,7 +620,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, 
   }
 
   /* Quick test to see if we can return early. */
-  if (!ELEM(mmd->mode, MOD_MASK_MODE_ARM, MOD_MASK_MODE_VGROUP) || (mesh->totvert == 0) ||
+  if (!ELEM(mmd->mode, MOD_MASK_MODE_ARM, MOD_MASK_MODE_VGROUP) || (mesh->verts_num == 0) ||
       BLI_listbase_is_empty(&mesh->vertex_group_names))
   {
     return mesh;
@@ -637,7 +637,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, 
       return mesh;
     }
 
-    vertex_mask = Array<bool>(mesh->totvert);
+    vertex_mask = Array<bool>(mesh->verts_num);
     compute_vertex_mask__armature_mode(
         dverts.data(), mesh, armature_ob, mmd->threshold, vertex_mask);
   }
@@ -650,7 +650,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, 
       return mesh;
     }
 
-    vertex_mask = Array<bool>(mesh->totvert);
+    vertex_mask = Array<bool>(mesh->verts_num);
     compute_vertex_mask__vertex_group_mode(
         dverts.data(), defgrp_index, mmd->threshold, vertex_mask);
   }
@@ -659,11 +659,11 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, 
     blender::array_utils::invert_booleans(vertex_mask);
   }
 
-  Array<int> vertex_map(mesh->totvert);
+  Array<int> vertex_map(mesh->verts_num);
   uint verts_masked_num;
   compute_masked_verts(vertex_mask, vertex_map, &verts_masked_num);
 
-  Array<int> edge_map(mesh->totedge);
+  Array<int> edge_map(mesh->edges_num);
   uint edges_masked_num;
   uint verts_add_num;
   if (use_interpolation) {

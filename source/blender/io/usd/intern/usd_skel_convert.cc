@@ -989,7 +989,7 @@ void import_mesh_skel_bindings(Main *bmain,
 
   /* Sanity check: make sure we have the expected number of values for the interpolation type. */
   if (interp == pxr::UsdGeomTokens->vertex &&
-      joint_weights.size() != mesh->totvert * joint_weights_elem_size)
+      joint_weights.size() != mesh->verts_num * joint_weights_elem_size)
   {
     BKE_reportf(reports,
                 RPT_WARNING,
@@ -1052,7 +1052,7 @@ void import_mesh_skel_bindings(Main *bmain,
   }
 
   /* Set the deform group verts and weights. */
-  for (int i = 0; i < mesh->totvert; ++i) {
+  for (int i = 0; i < mesh->verts_num; ++i) {
     /* Offset into the weights array, which is
      * always 0 for constant interpolation. */
     int offset = 0;

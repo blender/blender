@@ -83,10 +83,10 @@ void multires_customdata_delete(Mesh *mesh)
     }
   }
   else {
-    CustomData_external_remove(&mesh->loop_data, &mesh->id, CD_MDISPS, mesh->totloop);
-    CustomData_free_layer_active(&mesh->loop_data, CD_MDISPS, mesh->totloop);
+    CustomData_external_remove(&mesh->loop_data, &mesh->id, CD_MDISPS, mesh->corners_num);
+    CustomData_free_layer_active(&mesh->loop_data, CD_MDISPS, mesh->corners_num);
 
-    CustomData_free_layer_active(&mesh->loop_data, CD_GRID_PAINT_MASK, mesh->totloop);
+    CustomData_free_layer_active(&mesh->loop_data, CD_GRID_PAINT_MASK, mesh->corners_num);
   }
 }
 
@@ -470,7 +470,7 @@ void multires_force_external_reload(Object *object)
 {
   Mesh *mesh = BKE_mesh_from_object(object);
 
-  CustomData_external_reload(&mesh->loop_data, &mesh->id, CD_MASK_MDISPS, mesh->totloop);
+  CustomData_external_reload(&mesh->loop_data, &mesh->id, CD_MASK_MDISPS, mesh->corners_num);
   multires_force_sculpt_rebuild(object);
 }
 
@@ -536,11 +536,11 @@ void multiresModifier_set_levels_from_disps(MultiresModifierData *mmd, Object *o
 static void multires_set_tot_mdisps(Mesh *mesh, int lvl)
 {
   MDisps *mdisps = static_cast<MDisps *>(
-      CustomData_get_layer_for_write(&mesh->loop_data, CD_MDISPS, mesh->totloop));
+      CustomData_get_layer_for_write(&mesh->loop_data, CD_MDISPS, mesh->corners_num));
   int i;
 
   if (mdisps) {
-    for (i = 0; i < mesh->totloop; i++, mdisps++) {
+    for (i = 0; i < mesh->corners_num; i++, mdisps++) {
       mdisps->totdisp = multires_grid_tot[lvl];
       mdisps->level = lvl;
     }
@@ -656,9 +656,9 @@ static void multires_del_higher(MultiresModifierData *mmd, Object *ob, int lvl)
   multires_set_tot_mdisps(mesh, mmd->totlvl);
   multiresModifier_ensure_external_read(mesh, mmd);
   mdisps = static_cast<MDisps *>(
-      CustomData_get_layer_for_write(&mesh->loop_data, CD_MDISPS, mesh->totloop));
+      CustomData_get_layer_for_write(&mesh->loop_data, CD_MDISPS, mesh->corners_num));
   gpm = static_cast<GridPaintMask *>(
-      CustomData_get_layer_for_write(&mesh->loop_data, CD_GRID_PAINT_MASK, mesh->totloop));
+      CustomData_get_layer_for_write(&mesh->loop_data, CD_GRID_PAINT_MASK, mesh->corners_num));
 
   multires_force_sculpt_rebuild(ob);
 
@@ -720,7 +720,7 @@ void multiresModifier_del_levels(MultiresModifierData *mmd,
   multires_set_tot_mdisps(mesh, mmd->totlvl);
   multiresModifier_ensure_external_read(mesh, mmd);
   MDisps *mdisps = static_cast<MDisps *>(
-      CustomData_get_layer_for_write(&mesh->loop_data, CD_MDISPS, mesh->totloop));
+      CustomData_get_layer_for_write(&mesh->loop_data, CD_MDISPS, mesh->corners_num));
 
   multires_force_sculpt_rebuild(ob);
 
@@ -958,7 +958,7 @@ static void multiresModifier_disp_run(
   CCGKey key;
   blender::OffsetIndices faces = mesh->faces();
   MDisps *mdisps = static_cast<MDisps *>(
-      CustomData_get_layer_for_write(&mesh->loop_data, CD_MDISPS, mesh->totloop));
+      CustomData_get_layer_for_write(&mesh->loop_data, CD_MDISPS, mesh->corners_num));
   GridPaintMask *grid_paint_mask = nullptr;
   int *gridOffset;
   int i, gridSize, dGridSize, dSkip;
@@ -974,14 +974,14 @@ static void multiresModifier_disp_run(
     faces_num = dm2->numPolyData;
   }
   else {
-    totloop = mesh->totloop;
+    totloop = mesh->corners_num;
     faces_num = mesh->faces_num;
   }
 
   if (!mdisps) {
     if (op == CALC_DISPLACEMENTS) {
       mdisps = static_cast<MDisps *>(
-          CustomData_add_layer(&mesh->loop_data, CD_MDISPS, CD_SET_DEFAULT, mesh->totloop));
+          CustomData_add_layer(&mesh->loop_data, CD_MDISPS, CD_SET_DEFAULT, mesh->corners_num));
     }
     else {
       return;
@@ -1001,7 +1001,7 @@ static void multiresModifier_disp_run(
   /* multires paint masks */
   if (key.has_mask) {
     grid_paint_mask = static_cast<GridPaintMask *>(
-        CustomData_get_layer_for_write(&mesh->loop_data, CD_GRID_PAINT_MASK, mesh->totloop));
+        CustomData_get_layer_for_write(&mesh->loop_data, CD_GRID_PAINT_MASK, mesh->corners_num));
   }
 
   /* when adding new faces in edit mode, need to allocate disps */
@@ -1173,14 +1173,14 @@ void multires_modifier_update_hidden(DerivedMesh *dm)
   BLI_bitmap **grid_hidden = ccgdm->gridHidden;
   Mesh *mesh = static_cast<Mesh *>(ccgdm->multires.ob->data);
   MDisps *mdisps = static_cast<MDisps *>(
-      CustomData_get_layer_for_write(&mesh->loop_data, CD_MDISPS, mesh->totloop));
+      CustomData_get_layer_for_write(&mesh->loop_data, CD_MDISPS, mesh->corners_num));
   int totlvl = ccgdm->multires.totlvl;
   int lvl = ccgdm->multires.lvl;
 
   if (mdisps) {
     int i;
 
-    for (i = 0; i < mesh->totloop; i++) {
+    for (i = 0; i < mesh->corners_num; i++) {
       MDisps *md = &mdisps[i];
       BLI_bitmap *gh = grid_hidden[i];
 
@@ -1384,8 +1384,8 @@ static void multires_apply_uniform_scale(Object *object, const float scale)
 {
   Mesh *mesh = (Mesh *)object->data;
   MDisps *mdisps = static_cast<MDisps *>(
-      CustomData_get_layer_for_write(&mesh->loop_data, CD_MDISPS, mesh->totloop));
-  for (int i = 0; i < mesh->totloop; i++) {
+      CustomData_get_layer_for_write(&mesh->loop_data, CD_MDISPS, mesh->corners_num));
+  for (int i = 0; i < mesh->corners_num; i++) {
     MDisps *grid = &mdisps[i];
     for (int j = 0; j < grid->totdisp; j++) {
       mul_v3_fl(grid->disps[j], scale);
@@ -1464,16 +1464,16 @@ void multires_topology_changed(Mesh *mesh)
   MDisps *mdisp = nullptr, *cur = nullptr;
   int i, grid = 0;
 
-  CustomData_external_read(&mesh->loop_data, &mesh->id, CD_MASK_MDISPS, mesh->totloop);
+  CustomData_external_read(&mesh->loop_data, &mesh->id, CD_MASK_MDISPS, mesh->corners_num);
   mdisp = static_cast<MDisps *>(
-      CustomData_get_layer_for_write(&mesh->loop_data, CD_MDISPS, mesh->totloop));
+      CustomData_get_layer_for_write(&mesh->loop_data, CD_MDISPS, mesh->corners_num));
 
   if (!mdisp) {
     return;
   }
 
   cur = mdisp;
-  for (i = 0; i < mesh->totloop; i++, cur++) {
+  for (i = 0; i < mesh->corners_num; i++, cur++) {
     if (cur->totdisp) {
       grid = mdisp->totdisp;
 
@@ -1481,7 +1481,7 @@ void multires_topology_changed(Mesh *mesh)
     }
   }
 
-  for (i = 0; i < mesh->totloop; i++, mdisp++) {
+  for (i = 0; i < mesh->corners_num; i++, mdisp++) {
     /* allocate memory for mdisp, the whole disp layer would be erased otherwise */
     if (!mdisp->totdisp || !mdisp->disps) {
       if (grid) {
@@ -1507,10 +1507,10 @@ void multires_ensure_external_read(Mesh *mesh, int top_level)
       static_cast<const MDisps *>(CustomData_get_layer(&mesh->loop_data, CD_MDISPS)));
   if (mdisps == nullptr) {
     mdisps = static_cast<MDisps *>(
-        CustomData_add_layer(&mesh->loop_data, CD_MDISPS, CD_SET_DEFAULT, mesh->totloop));
+        CustomData_add_layer(&mesh->loop_data, CD_MDISPS, CD_SET_DEFAULT, mesh->corners_num));
   }
 
-  const int totloop = mesh->totloop;
+  const int totloop = mesh->corners_num;
 
   for (int i = 0; i < totloop; ++i) {
     if (mdisps[i].level != top_level) {
@@ -1525,7 +1525,7 @@ void multires_ensure_external_read(Mesh *mesh, int top_level)
     mdisps[i].level = top_level;
   }
 
-  CustomData_external_read(&mesh->loop_data, &mesh->id, CD_MASK_MDISPS, mesh->totloop);
+  CustomData_external_read(&mesh->loop_data, &mesh->id, CD_MASK_MDISPS, mesh->corners_num);
 }
 void multiresModifier_ensure_external_read(Mesh *mesh, const MultiresModifierData *mmd)
 {

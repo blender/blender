@@ -324,9 +324,9 @@ bool USDMeshReader::topology_changed(const Mesh *existing_mesh, const double mot
     normal_interpolation_ = mesh_prim_.GetNormalsInterpolation();
   }
 
-  return positions_.size() != existing_mesh->totvert ||
+  return positions_.size() != existing_mesh->verts_num ||
          face_counts_.size() != existing_mesh->faces_num ||
-         face_indices_.size() != existing_mesh->totloop;
+         face_indices_.size() != existing_mesh->corners_num;
 }
 
 void USDMeshReader::read_mpolys(Mesh *mesh)
@@ -406,9 +406,9 @@ void USDMeshReader::read_color_data_primvar(Mesh *mesh,
 
   pxr::TfToken interp = primvar.GetInterpolation();
 
-  if ((interp == pxr::UsdGeomTokens->faceVarying && usd_colors.size() != mesh->totloop) ||
-      (interp == pxr::UsdGeomTokens->varying && usd_colors.size() != mesh->totloop) ||
-      (interp == pxr::UsdGeomTokens->vertex && usd_colors.size() != mesh->totvert) ||
+  if ((interp == pxr::UsdGeomTokens->faceVarying && usd_colors.size() != mesh->corners_num) ||
+      (interp == pxr::UsdGeomTokens->varying && usd_colors.size() != mesh->corners_num) ||
+      (interp == pxr::UsdGeomTokens->vertex && usd_colors.size() != mesh->verts_num) ||
       (interp == pxr::UsdGeomTokens->constant && usd_colors.size() != 1) ||
       (interp == pxr::UsdGeomTokens->uniform && usd_colors.size() != mesh->faces_num))
   {
@@ -527,9 +527,9 @@ void USDMeshReader::read_uv_data_primvar(Mesh *mesh,
                   pxr::UsdGeomTokens->faceVarying,
                   pxr::UsdGeomTokens->varying));
 
-  if ((varying_type == pxr::UsdGeomTokens->faceVarying && usd_uvs.size() != mesh->totloop) ||
-      (varying_type == pxr::UsdGeomTokens->vertex && usd_uvs.size() != mesh->totvert) ||
-      (varying_type == pxr::UsdGeomTokens->varying && usd_uvs.size() != mesh->totloop))
+  if ((varying_type == pxr::UsdGeomTokens->faceVarying && usd_uvs.size() != mesh->corners_num) ||
+      (varying_type == pxr::UsdGeomTokens->vertex && usd_uvs.size() != mesh->verts_num) ||
+      (varying_type == pxr::UsdGeomTokens->varying && usd_uvs.size() != mesh->corners_num))
   {
     BKE_reportf(reports(),
                 RPT_WARNING,
@@ -571,7 +571,7 @@ void USDMeshReader::read_uv_data_primvar(Mesh *mesh,
   else {
     /* Handle vertex interpolation. */
     const Span<int> corner_verts = mesh->corner_verts();
-    BLI_assert(mesh->totvert == usd_uvs.size());
+    BLI_assert(mesh->verts_num == usd_uvs.size());
     for (int i = 0; i < uv_data.span.size(); ++i) {
       /* Get the vertex index for this corner. */
       int vi = corner_verts[i];
@@ -727,7 +727,7 @@ void USDMeshReader::read_vertex_creases(Mesh *mesh, const double motionSampleTim
   }
 
   /* It is fine to have fewer indices than vertices, but never the other way other. */
-  if (corner_indices.size() > mesh->totvert) {
+  if (corner_indices.size() > mesh->verts_num) {
     std::cerr << "WARNING: too many vertex crease for mesh " << prim_path_ << std::endl;
     return;
   }
@@ -758,7 +758,7 @@ void USDMeshReader::process_normals_vertex_varying(Mesh *mesh)
     return;
   }
 
-  if (normals_.size() != mesh->totvert) {
+  if (normals_.size() != mesh->verts_num) {
     std::cerr << "WARNING: vertex varying normals count mismatch for mesh " << prim_path_
               << std::endl;
     return;
@@ -776,7 +776,7 @@ void USDMeshReader::process_normals_face_varying(Mesh *mesh)
   }
 
   /* Check for normals count mismatches to prevent crashes. */
-  if (normals_.size() != mesh->totloop) {
+  if (normals_.size() != mesh->corners_num) {
     std::cerr << "WARNING: loop normal count mismatch for mesh " << mesh->id.name << std::endl;
     return;
   }
@@ -823,7 +823,7 @@ void USDMeshReader::process_normals_uniform(Mesh *mesh)
   }
 
   float(*lnors)[3] = static_cast<float(*)[3]>(
-      MEM_malloc_arrayN(mesh->totloop, sizeof(float[3]), "USD::FaceNormals"));
+      MEM_malloc_arrayN(mesh->corners_num, sizeof(float[3]), "USD::FaceNormals"));
 
   const OffsetIndices faces = mesh->faces();
   for (const int i : faces.index_range()) {
@@ -889,7 +889,7 @@ void USDMeshReader::read_custom_data(const ImportSettings *settings,
                                      const double motionSampleTime,
                                      const bool new_mesh)
 {
-  if (!(mesh && mesh_prim_ && mesh->totloop > 0)) {
+  if (!(mesh && mesh_prim_ && mesh->corners_num > 0)) {
     return;
   }
 

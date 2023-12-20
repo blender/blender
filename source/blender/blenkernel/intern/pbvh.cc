@@ -710,8 +710,8 @@ PBVH *build_mesh(Mesh *mesh)
   std::unique_ptr<PBVH> pbvh = std::make_unique<PBVH>();
   pbvh->header.type = PBVH_FACES;
 
-  const int totvert = mesh->totvert;
-  const int corner_tris_num = poly_to_tri_count(mesh->faces_num, mesh->totloop);
+  const int totvert = mesh->verts_num;
+  const int corner_tris_num = poly_to_tri_count(mesh->faces_num, mesh->corners_num);
   MutableSpan<float3> vert_positions = mesh->vert_positions_for_write();
   const OffsetIndices<int> faces = mesh->faces();
   const Span<int> corner_verts = mesh->corner_verts();

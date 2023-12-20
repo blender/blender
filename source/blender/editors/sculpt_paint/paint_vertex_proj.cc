@@ -85,7 +85,7 @@ static void vpaint_proj_dm_map_cosnos_init(Depsgraph *depsgraph,
   const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
   const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
 
-  memset(vp_handle->vcosnos, 0, sizeof(*vp_handle->vcosnos) * mesh->totvert);
+  memset(vp_handle->vcosnos, 0, sizeof(*vp_handle->vcosnos) * mesh->verts_num);
   BKE_mesh_foreach_mapped_vert(
       me_eval, vpaint_proj_dm_map_cosnos_init__map_cb, vp_handle, MESH_FOREACH_USE_NORMAL);
 }
@@ -149,7 +149,7 @@ static void vpaint_proj_dm_map_cosnos_update(Depsgraph *depsgraph,
   /* quick sanity check - we shouldn't have to run this if there are no modifiers */
   BLI_assert(BLI_listbase_is_empty(&ob->modifiers) == false);
 
-  copy_vn_fl(vp_handle->dists_sq, mesh->totvert, FLT_MAX);
+  copy_vn_fl(vp_handle->dists_sq, mesh->verts_num, FLT_MAX);
   BKE_mesh_foreach_mapped_vert(
       me_eval, vpaint_proj_dm_map_cosnos_update__map_cb, &vp_update, MESH_FOREACH_USE_NORMAL);
 }
@@ -168,7 +168,7 @@ VertProjHandle *ED_vpaint_proj_handle_create(Depsgraph *depsgraph,
 
   /* setup the handle */
   vp_handle->vcosnos = static_cast<CoNo *>(
-      MEM_mallocN(sizeof(CoNo) * mesh->totvert, "vertexcosnos map"));
+      MEM_mallocN(sizeof(CoNo) * mesh->verts_num, "vertexcosnos map"));
   vp_handle->use_update = false;
 
   /* sets 'use_update' if needed */
@@ -176,7 +176,7 @@ VertProjHandle *ED_vpaint_proj_handle_create(Depsgraph *depsgraph,
 
   if (vp_handle->use_update) {
     vp_handle->dists_sq = static_cast<float *>(
-        MEM_mallocN(sizeof(float) * mesh->totvert, __func__));
+        MEM_mallocN(sizeof(float) * mesh->verts_num, __func__));
 
     vp_handle->ob = ob;
     vp_handle->scene = scene;

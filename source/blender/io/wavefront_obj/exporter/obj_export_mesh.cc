@@ -162,7 +162,7 @@ void OBJMesh::set_world_axes_transform(const Object &obj_eval,
 
 int OBJMesh::tot_vertices() const
 {
-  return export_mesh_->totvert;
+  return export_mesh_->verts_num;
 }
 
 int OBJMesh::tot_faces() const
@@ -177,7 +177,7 @@ int OBJMesh::tot_uv_vertices() const
 
 int OBJMesh::tot_edges() const
 {
-  return export_mesh_->totedge;
+  return export_mesh_->edges_num;
 }
 
 int16_t OBJMesh::tot_materials() const
@@ -284,8 +284,8 @@ void OBJMesh::store_uv_coords_and_indices()
   Map<float2, int> uv_to_index;
 
   /* We don't know how many unique UVs there will be, but this is a guess. */
-  uv_to_index.reserve(export_mesh_->totvert);
-  uv_coords_.reserve(export_mesh_->totvert);
+  uv_to_index.reserve(export_mesh_->verts_num);
+  uv_coords_.reserve(export_mesh_->verts_num);
 
   loop_to_uv_index_.resize(uv_map.size());
 
@@ -347,7 +347,7 @@ void OBJMesh::store_normal_coords_and_indices()
   Map<float3, int> normal_to_index;
   /* We don't know how many unique normals there will be, but this is a guess. */
   normal_to_index.reserve(export_mesh_->faces_num);
-  loop_to_normal_index_.resize(export_mesh_->totloop);
+  loop_to_normal_index_.resize(export_mesh_->corners_num);
   loop_to_normal_index_.fill(-1);
 
   Span<float3> corner_normals;
@@ -364,7 +364,7 @@ void OBJMesh::store_normal_coords_and_indices()
     if (need_per_loop_normals) {
       for (const int corner : face) {
         float3 loop_normal;
-        BLI_assert(corner < export_mesh_->totloop);
+        BLI_assert(corner < export_mesh_->corners_num);
         copy_v3_v3(loop_normal, corner_normals[corner]);
         mul_m3_v3(world_and_axes_normal_transform_, loop_normal);
         normalize_v3(loop_normal);
@@ -388,7 +388,7 @@ void OBJMesh::store_normal_coords_and_indices()
         normal_coords_.append(rounded_poly_normal);
       }
       for (const int corner : face) {
-        BLI_assert(corner < export_mesh_->totloop);
+        BLI_assert(corner < export_mesh_->corners_num);
         loop_to_normal_index_[corner] = poly_norm_index;
       }
     }

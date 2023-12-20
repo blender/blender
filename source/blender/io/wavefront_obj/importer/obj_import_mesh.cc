@@ -174,7 +174,7 @@ void MeshFromGeometry::create_vertices(Mesh *mesh)
       continue;
     }
     int local_vi = int(mesh_geometry_.global_to_local_vertices_.size());
-    BLI_assert(local_vi >= 0 && local_vi < mesh->totvert);
+    BLI_assert(local_vi >= 0 && local_vi < mesh->verts_num);
     copy_v3_v3(positions[local_vi], global_vertices_.vertices[vi]);
     mesh_geometry_.global_to_local_vertices_.add_new(vi, local_vi);
   }

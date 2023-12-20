@@ -1252,7 +1252,7 @@ static void weld_mesh_context_create(const Mesh &mesh,
   Vector<WeldEdge> wedge = weld_edge_ctx_alloc_and_find_collapsed(
       edges, vert_dest_map, r_weld_mesh->edge_dest_map, &edge_collapsed_len);
 
-  weld_edge_find_doubles(wedge, mesh.totvert, r_weld_mesh->edge_dest_map, &edge_double_kill_len);
+  weld_edge_find_doubles(wedge, mesh.verts_num, r_weld_mesh->edge_dest_map, &edge_double_kill_len);
 
   r_weld_mesh->edge_kill_len = edge_collapsed_len + edge_double_kill_len;
 
@@ -1549,8 +1549,8 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
   const OffsetIndices src_faces = mesh.faces();
   const Span<int> src_corner_verts = mesh.corner_verts();
   const Span<int> src_corner_edges = mesh.corner_edges();
-  const int totvert = mesh.totvert;
-  const int totedge = mesh.totedge;
+  const int totvert = mesh.verts_num;
+  const int totedge = mesh.edges_num;
 
   WeldMesh weld_mesh;
   weld_mesh_context_create(mesh, vert_dest_map, removed_vertex_count, do_mix_data, &weld_mesh);
@@ -1696,7 +1696,7 @@ std::optional<Mesh *> mesh_merge_by_distance_all(const Mesh &mesh,
                                                  const IndexMask &selection,
                                                  const float merge_distance)
 {
-  Array<int> vert_dest_map(mesh.totvert, OUT_OF_CONTEXT);
+  Array<int> vert_dest_map(mesh.verts_num, OUT_OF_CONTEXT);
 
   KDTree_3d *tree = BLI_kdtree_3d_new(selection.size());
 
@@ -1732,9 +1732,9 @@ std::optional<Mesh *> mesh_merge_by_distance_connected(const Mesh &mesh,
 
   /* From the original index of the vertex.
    * This indicates which vert it is or is going to be merged. */
-  Array<int> vert_dest_map(mesh.totvert, OUT_OF_CONTEXT);
+  Array<int> vert_dest_map(mesh.verts_num, OUT_OF_CONTEXT);
 
-  Array<WeldVertexCluster> vert_clusters(mesh.totvert);
+  Array<WeldVertexCluster> vert_clusters(mesh.verts_num);
 
   for (const int i : positions.index_range()) {
     WeldVertexCluster &vc = vert_clusters[i];
@@ -1743,7 +1743,7 @@ std::optional<Mesh *> mesh_merge_by_distance_connected(const Mesh &mesh,
   }
   const float merge_dist_sq = square_f(merge_distance);
 
-  range_vn_i(vert_dest_map.data(), mesh.totvert, 0);
+  range_vn_i(vert_dest_map.data(), mesh.verts_num, 0);
 
   /* Collapse Edges that are shorter than the threshold. */
   const bke::LooseEdgeCache *loose_edges = nullptr;
@@ -1797,7 +1797,7 @@ std::optional<Mesh *> mesh_merge_by_distance_connected(const Mesh &mesh,
     return std::nullopt;
   }
 
-  for (const int i : IndexRange(mesh.totvert)) {
+  for (const int i : IndexRange(mesh.verts_num)) {
     if (i == vert_dest_map[i]) {
       vert_dest_map[i] = OUT_OF_CONTEXT;
     }

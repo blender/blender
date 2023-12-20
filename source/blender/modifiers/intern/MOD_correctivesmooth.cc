@@ -168,7 +168,7 @@ static void smooth_iter__simple(CorrectiveSmoothModifierData *csmd,
   const float lambda = csmd->lambda;
   int i;
 
-  const int edges_num = mesh->totedge;
+  const int edges_num = mesh->edges_num;
   const blender::Span<blender::int2> edges = mesh->edges();
 
   struct SmoothingData_Simple {
@@ -243,7 +243,7 @@ static void smooth_iter__length_weight(CorrectiveSmoothModifierData *csmd,
                                        uint iterations)
 {
   const float eps = FLT_EPSILON * 10.0f;
-  const uint edges_num = uint(mesh->totedge);
+  const uint edges_num = uint(mesh->edges_num);
   /* NOTE: the way this smoothing method works, its approx half as strong as the simple-smooth,
    * and 2.0 rarely spikes, double the value for consistent behavior. */
   const float lambda = csmd->lambda * 2.0f;
@@ -431,7 +431,7 @@ static void calc_tangent_spaces(const Mesh *mesh,
                                 float *r_tangent_weights,
                                 float *r_tangent_weights_per_vertex)
 {
-  const uint mvert_num = uint(mesh->totvert);
+  const uint mvert_num = uint(mesh->verts_num);
   const blender::OffsetIndices faces = mesh->faces();
   blender::Span<int> corner_verts = mesh->corner_verts();
 
@@ -633,7 +633,7 @@ static void correctivesmooth_modifier_do(ModifierData *md,
       goto error;
     }
     else {
-      const int me_numVerts = (em) ? em->bm->totvert : ((Mesh *)ob->data)->totvert;
+      const int me_numVerts = (em) ? em->bm->totvert : ((Mesh *)ob->data)->verts_num;
 
       if (me_numVerts != vertexCos.size()) {
         BKE_modifier_set_error(ob,
@@ -669,7 +669,7 @@ static void correctivesmooth_modifier_do(ModifierData *md,
       else {
         const Mesh *object_mesh = static_cast<const Mesh *>(ob->data);
         rest_coords = reinterpret_cast<const float(*)[3]>(object_mesh->vert_positions().data());
-        me_numVerts = object_mesh->totvert;
+        me_numVerts = object_mesh->verts_num;
       }
 
       BLI_assert(me_numVerts == int(vertexCos.size()));

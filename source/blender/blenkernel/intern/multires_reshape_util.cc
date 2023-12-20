@@ -109,9 +109,9 @@ static void context_init_grid_pointers(MultiresReshapeContext *reshape_context)
 {
   Mesh *base_mesh = reshape_context->base_mesh;
   reshape_context->mdisps = static_cast<MDisps *>(
-      CustomData_get_layer_for_write(&base_mesh->loop_data, CD_MDISPS, base_mesh->totloop));
+      CustomData_get_layer_for_write(&base_mesh->loop_data, CD_MDISPS, base_mesh->corners_num));
   reshape_context->grid_paint_masks = static_cast<GridPaintMask *>(CustomData_get_layer_for_write(
-      &base_mesh->loop_data, CD_GRID_PAINT_MASK, base_mesh->totloop));
+      &base_mesh->loop_data, CD_GRID_PAINT_MASK, base_mesh->corners_num));
 }
 
 static void context_init_commoon(MultiresReshapeContext *reshape_context)
@@ -573,9 +573,9 @@ static void ensure_displacement_grid(MDisps *displacement_grid, const int level)
 
 static void ensure_displacement_grids(Mesh *mesh, const int grid_level)
 {
-  const int num_grids = mesh->totloop;
+  const int num_grids = mesh->corners_num;
   MDisps *mdisps = static_cast<MDisps *>(
-      CustomData_get_layer_for_write(&mesh->loop_data, CD_MDISPS, mesh->totloop));
+      CustomData_get_layer_for_write(&mesh->loop_data, CD_MDISPS, mesh->corners_num));
   for (int grid_index = 0; grid_index < num_grids; grid_index++) {
     ensure_displacement_grid(&mdisps[grid_index], grid_level);
   }
@@ -584,11 +584,11 @@ static void ensure_displacement_grids(Mesh *mesh, const int grid_level)
 static void ensure_mask_grids(Mesh *mesh, const int level)
 {
   GridPaintMask *grid_paint_masks = static_cast<GridPaintMask *>(
-      CustomData_get_layer_for_write(&mesh->loop_data, CD_GRID_PAINT_MASK, mesh->totloop));
+      CustomData_get_layer_for_write(&mesh->loop_data, CD_GRID_PAINT_MASK, mesh->corners_num));
   if (grid_paint_masks == nullptr) {
     return;
   }
-  const int num_grids = mesh->totloop;
+  const int num_grids = mesh->corners_num;
   const int grid_size = BKE_subdiv_grid_size_from_level(level);
   const int grid_area = grid_size * grid_size;
   for (int grid_index = 0; grid_index < num_grids; grid_index++) {

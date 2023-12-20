@@ -139,8 +139,8 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
   Mesh *result;
   const SolidifyModifierData *smd = (SolidifyModifierData *)md;
 
-  const uint verts_num = uint(mesh->totvert);
-  const uint edges_num = uint(mesh->totedge);
+  const uint verts_num = uint(mesh->verts_num);
+  const uint edges_num = uint(mesh->edges_num);
   const uint faces_num = uint(mesh->faces_num);
 
   if (faces_num == 0 && verts_num != 0) {
@@ -2000,15 +2000,18 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
   blender::MutableSpan<int> corner_edges = result->corner_edges_for_write();
 
   int *origindex_edge = static_cast<int *>(
-      CustomData_get_layer_for_write(&result->edge_data, CD_ORIGINDEX, result->totedge));
+      CustomData_get_layer_for_write(&result->edge_data, CD_ORIGINDEX, result->edges_num));
   int *origindex_face = static_cast<int *>(
       CustomData_get_layer_for_write(&result->face_data, CD_ORIGINDEX, result->faces_num));
 
   float *result_edge_bweight = static_cast<float *>(CustomData_get_layer_named_for_write(
-      &result->edge_data, CD_PROP_FLOAT, "bevel_weight_edge", result->totedge));
+      &result->edge_data, CD_PROP_FLOAT, "bevel_weight_edge", result->edges_num));
   if (!result_edge_bweight && (bevel_convex != 0.0f || orig_vert_bweight != nullptr)) {
-    result_edge_bweight = static_cast<float *>(CustomData_add_layer_named(
-        &result->edge_data, CD_PROP_FLOAT, CD_SET_DEFAULT, result->totedge, "bevel_weight_edge"));
+    result_edge_bweight = static_cast<float *>(CustomData_add_layer_named(&result->edge_data,
+                                                                          CD_PROP_FLOAT,
+                                                                          CD_SET_DEFAULT,
+                                                                          result->edges_num,
+                                                                          "bevel_weight_edge"));
   }
 
   /* Checks that result has dvert data. */
@@ -2024,14 +2027,14 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
   float *result_edge_crease = nullptr;
   if (vertex_crease || orig_edge_crease) {
     result_edge_crease = static_cast<float *>(CustomData_get_layer_named_for_write(
-        &result->edge_data, CD_PROP_FLOAT, "crease_edge", result->totedge));
+        &result->edge_data, CD_PROP_FLOAT, "crease_edge", result->edges_num));
     if (!result_edge_crease) {
       result_edge_crease = (float *)CustomData_add_layer_named(
-          &result->edge_data, CD_PROP_FLOAT, CD_SET_DEFAULT, result->totedge, "crease_edge");
+          &result->edge_data, CD_PROP_FLOAT, CD_SET_DEFAULT, result->edges_num, "crease_edge");
     }
     /* delete all vertex creases in the result if a rim is used. */
     if (do_rim) {
-      CustomData_free_layer_named(&result->vert_data, "crease_vert", result->totvert);
+      CustomData_free_layer_named(&result->vert_data, "crease_vert", result->verts_num);
     }
   }
 

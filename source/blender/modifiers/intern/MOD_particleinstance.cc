@@ -282,10 +282,10 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
       break;
   }
 
-  totvert = mesh->totvert;
+  totvert = mesh->verts_num;
   faces_num = mesh->faces_num;
-  totloop = mesh->totloop;
-  totedge = mesh->totedge;
+  totloop = mesh->corners_num;
+  totedge = mesh->edges_num;
 
   /* count particles */
   maxvert = 0;
@@ -325,9 +325,9 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   blender::MutableSpan<int> corner_edges = result->corner_edges_for_write();
 
   MLoopCol *mloopcols_index = static_cast<MLoopCol *>(CustomData_get_layer_named_for_write(
-      &result->loop_data, CD_PROP_BYTE_COLOR, pimd->index_layer_name, result->totloop));
+      &result->loop_data, CD_PROP_BYTE_COLOR, pimd->index_layer_name, result->corners_num));
   MLoopCol *mloopcols_value = static_cast<MLoopCol *>(CustomData_get_layer_named_for_write(
-      &result->loop_data, CD_PROP_BYTE_COLOR, pimd->value_layer_name, result->totloop));
+      &result->loop_data, CD_PROP_BYTE_COLOR, pimd->value_layer_name, result->corners_num));
   int *vert_part_index = nullptr;
   float *vert_part_value = nullptr;
   if (mloopcols_index != nullptr) {

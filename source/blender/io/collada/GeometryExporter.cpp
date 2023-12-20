@@ -129,7 +129,7 @@ void GeometryExporter::operator()(Object *ob)
       kb = kb->next;
       for (; kb; kb = kb->next) {
         BKE_keyblock_convert_to_mesh(
-            kb, reinterpret_cast<float(*)[3]>(positions.data()), mesh->totvert);
+            kb, reinterpret_cast<float(*)[3]>(positions.data()), mesh->verts_num);
         export_key_mesh(ob, mesh, kb);
       }
     }
@@ -497,7 +497,7 @@ void GeometryExporter::createVertexColorSource(std::string geom_id, Mesh *mesh)
     source.setNodeName(layer_name);
 
     source.setArrayId(layer_id + ARRAY_ID_SUFFIX);
-    source.setAccessorCount(mesh->totloop);
+    source.setAccessorCount(mesh->corners_num);
     source.setAccessorStride(4);
 
     COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
@@ -536,7 +536,7 @@ std::string GeometryExporter::makeTexcoordSourceId(std::string &geom_id,
 
 void GeometryExporter::createTexcoordsSource(std::string geom_id, Mesh *mesh)
 {
-  int totuv = mesh->totloop;
+  int totuv = mesh->corners_num;
   const blender::OffsetIndices faces = mesh->faces();
 
   int num_layers = CustomData_number_of_layers(&mesh->loop_data, CD_PROP_FLOAT2);

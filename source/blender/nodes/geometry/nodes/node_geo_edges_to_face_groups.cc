@@ -47,7 +47,7 @@ class FaceSetFromBoundariesInput final : public bke::MeshFieldInput {
                                  const IndexMask & /*mask*/) const final
   {
     const bke::MeshFieldContext context{mesh, ATTR_DOMAIN_EDGE};
-    fn::FieldEvaluator evaluator{context, mesh.totedge};
+    fn::FieldEvaluator evaluator{context, mesh.edges_num};
     evaluator.add(non_boundary_edge_field_);
     evaluator.evaluate();
     const IndexMask non_boundary_edges = evaluator.get_evaluated_as_mask(0);
@@ -57,7 +57,7 @@ class FaceSetFromBoundariesInput final : public bke::MeshFieldInput {
     Array<int> edge_to_face_offsets;
     Array<int> edge_to_face_indices;
     const GroupedSpan<int> edge_to_face_map = bke::mesh::build_edge_to_face_map(
-        faces, mesh.corner_edges(), mesh.totedge, edge_to_face_offsets, edge_to_face_indices);
+        faces, mesh.corner_edges(), mesh.edges_num, edge_to_face_offsets, edge_to_face_indices);
 
     AtomicDisjointSet islands(faces.size());
     non_boundary_edges.foreach_index(

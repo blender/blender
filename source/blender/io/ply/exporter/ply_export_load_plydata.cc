@@ -101,17 +101,17 @@ static void generate_vertex_map(const Mesh *mesh,
   }
 
   const Span<int> corner_verts = mesh->corner_verts();
-  r_vertex_to_ply.resize(mesh->totvert, -1);
-  r_loop_to_ply.resize(mesh->totloop, -1);
+  r_vertex_to_ply.resize(mesh->verts_num, -1);
+  r_loop_to_ply.resize(mesh->corners_num, -1);
 
   /* If we do not export or have UVs, then mapping of vertex indices is simple. */
   if (!export_uv) {
-    r_ply_to_vertex.resize(mesh->totvert);
-    for (int index = 0; index < mesh->totvert; index++) {
+    r_ply_to_vertex.resize(mesh->verts_num);
+    for (int index = 0; index < mesh->verts_num; index++) {
       r_vertex_to_ply[index] = index;
       r_ply_to_vertex[index] = index;
     }
-    for (int index = 0; index < mesh->totloop; index++) {
+    for (int index = 0; index < mesh->corners_num; index++) {
       r_loop_to_ply[index] = corner_verts[index];
     }
     return;
@@ -120,9 +120,9 @@ static void generate_vertex_map(const Mesh *mesh,
   /* We are exporting UVs. Need to build mappings of what
    * any unique (vertex, UV) values will map into the PLY data. */
   Map<uv_vertex_key, int> vertex_map;
-  vertex_map.reserve(mesh->totvert);
-  r_ply_to_vertex.reserve(mesh->totvert);
-  r_uvs.reserve(mesh->totvert);
+  vertex_map.reserve(mesh->verts_num);
+  r_ply_to_vertex.reserve(mesh->verts_num);
+  r_uvs.reserve(mesh->verts_num);
 
   for (int loop_index = 0; loop_index < int(corner_verts.size()); loop_index++) {
     int vertex_index = corner_verts[loop_index];
@@ -137,7 +137,7 @@ static void generate_vertex_map(const Mesh *mesh,
   }
 
   /* Add zero UVs for any loose vertices. */
-  for (int vertex_index = 0; vertex_index < mesh->totvert; vertex_index++) {
+  for (int vertex_index = 0; vertex_index < mesh->verts_num; vertex_index++) {
     if (r_vertex_to_ply[vertex_index] != -1) {
       continue;
     }
@@ -387,8 +387,8 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
                              world_and_axes_normal_transform);
 
     /* Face data. */
-    plyData.face_vertices.reserve(plyData.face_vertices.size() + mesh->totloop);
-    for (const int corner : IndexRange(mesh->totloop)) {
+    plyData.face_vertices.reserve(plyData.face_vertices.size() + mesh->corners_num);
+    for (const int corner : IndexRange(mesh->corners_num)) {
       int ply_index = loop_to_ply[corner];
       BLI_assert(ply_index >= 0 && ply_index < ply_to_vertex.size());
       plyData.face_vertices.append_unchecked(ply_index + vertex_offset);

@@ -190,10 +190,10 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
     mesh = mesh_bisect;
   }
 
-  const int src_verts_num = mesh->totvert;
-  const int src_edges_num = mesh->totedge;
+  const int src_verts_num = mesh->verts_num;
+  const int src_edges_num = mesh->edges_num;
   const blender::OffsetIndices src_faces = mesh->faces();
-  const int src_loops_num = mesh->totloop;
+  const int src_loops_num = mesh->corners_num;
 
   Mesh *result = BKE_mesh_new_nomain_from_template(
       mesh, src_verts_num * 2, src_edges_num * 2, src_faces.size() * 2, src_loops_num * 2);
@@ -286,8 +286,8 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
   totshape = CustomData_number_of_layers(&result->vert_data, CD_SHAPEKEY);
   for (a = 0; a < totshape; a++) {
     float(*cos)[3] = static_cast<float(*)[3]>(
-        CustomData_get_layer_n_for_write(&result->vert_data, CD_SHAPEKEY, a, result->totvert));
-    for (int i = src_verts_num; i < result->totvert; i++) {
+        CustomData_get_layer_n_for_write(&result->vert_data, CD_SHAPEKEY, a, result->verts_num));
+    for (int i = src_verts_num; i < result->verts_num; i++) {
       mul_m4_v3(mtx, cos[i]);
     }
   }
@@ -342,7 +342,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
 
   if (!mesh->runtime->subsurf_optimal_display_edges.is_empty()) {
     const blender::BoundedBitSpan src = mesh->runtime->subsurf_optimal_display_edges;
-    result->runtime->subsurf_optimal_display_edges.resize(result->totedge);
+    result->runtime->subsurf_optimal_display_edges.resize(result->edges_num);
     blender::MutableBoundedBitSpan dst = result->runtime->subsurf_optimal_display_edges;
     dst.take_front(src.size()).copy_from(src);
     dst.take_back(src.size()).copy_from(src);
@@ -362,7 +362,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
 
     for (a = 0; a < totuv; a++) {
       float(*dmloopuv)[2] = static_cast<float(*)[2]>(CustomData_get_layer_n_for_write(
-          &result->loop_data, CD_PROP_FLOAT2, a, result->totloop));
+          &result->loop_data, CD_PROP_FLOAT2, a, result->corners_num));
       int j = src_loops_num;
       dmloopuv += j; /* second set of loops only */
       for (; j-- > 0; dmloopuv++) {
@@ -395,8 +395,8 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
       result->faces_num > 0)
   {
     blender::Array<blender::float3> loop_normals(result_corner_verts.size());
-    blender::short2 *clnors = static_cast<blender::short2 *>(
-        CustomData_get_layer_for_write(&result->loop_data, CD_CUSTOMLOOPNORMAL, result->totloop));
+    blender::short2 *clnors = static_cast<blender::short2 *>(CustomData_get_layer_for_write(
+        &result->loop_data, CD_CUSTOMLOOPNORMAL, result->corners_num));
     blender::bke::mesh::CornerNormalSpaceArray lnors_spacearr;
 
     /* The transform matrix of a normal must be

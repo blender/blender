@@ -59,7 +59,7 @@ static void generate_vert_coordinates(Mesh *mesh,
   INIT_MINMAX(min_co, max_co);
 
   const Span<float3> positions = mesh->vert_positions();
-  for (int i = 0; i < mesh->totvert; i++) {
+  for (int i = 0; i < mesh->verts_num; i++) {
     copy_v3_v3(r_cos[i], positions[i]);
     if (r_size != nullptr && ob_center == nullptr) {
       minmax_v3v3_v3(min_co, max_co, r_cos[i]);
@@ -475,7 +475,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
                                     (enmd->mix_limit == float(M_PI)));
 
   /* Do not run that modifier at all if auto-smooth is disabled! */
-  if (!is_valid_target_with_error(ctx->object, enmd) || mesh->totloop == 0) {
+  if (!is_valid_target_with_error(ctx->object, enmd) || mesh->corners_num == 0) {
     return mesh;
   }
 
@@ -541,7 +541,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
                                  ctx,
                                  ob,
                                  result,
-                                 {clnors, result->totloop},
+                                 {clnors, result->corners_num},
                                  loop_normals,
                                  enmd->mix_mode,
                                  enmd->mix_factor,
@@ -561,7 +561,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
                                       ctx,
                                       ob,
                                       result,
-                                      {clnors, result->totloop},
+                                      {clnors, result->corners_num},
                                       loop_normals,
                                       enmd->mix_mode,
                                       enmd->mix_factor,

@@ -279,7 +279,7 @@ static void pointdensity_cache_vertex_color(PointDensity *pd,
                                             float *data_color)
 {
   const blender::Span<int> corner_verts = mesh->corner_verts();
-  const int totloop = mesh->totloop;
+  const int totloop = mesh->corners_num;
   char layername[MAX_CUSTOMDATA_LAYER_NAME];
   int i;
 
@@ -332,7 +332,7 @@ static void pointdensity_cache_vertex_weight(PointDensity *pd,
                                              Mesh *mesh,
                                              float *data_color)
 {
-  const int totvert = mesh->totvert;
+  const int totvert = mesh->verts_num;
   int mdef_index;
   int i;
 
@@ -369,7 +369,7 @@ static void pointdensity_cache_vertex_normal(Mesh *mesh, float *data_color)
 {
   BLI_assert(data_color);
   const blender::Span<blender::float3> normals = mesh->vert_normals();
-  memcpy(data_color, normals.data(), sizeof(float[3]) * mesh->totvert);
+  memcpy(data_color, normals.data(), sizeof(float[3]) * mesh->verts_num);
 }
 
 static void pointdensity_cache_object(PointDensity *pd, Object *ob)
@@ -392,7 +392,7 @@ static void pointdensity_cache_object(PointDensity *pd, Object *ob)
 #endif
 
   const blender::Span<blender::float3> positions = mesh->vert_positions(); /* local object space */
-  pd->totpoints = mesh->totvert;
+  pd->totpoints = mesh->verts_num;
   if (pd->totpoints == 0) {
     return;
   }

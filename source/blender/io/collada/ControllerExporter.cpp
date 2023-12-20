@@ -207,7 +207,7 @@ void ControllerExporter::export_skin_controller(Object *ob, Object *ob_arm)
 
     const MDeformVert *dvert = mesh->deform_verts().data();
     int oob_counter = 0;
-    for (i = 0; i < mesh->totvert; i++) {
+    for (i = 0; i < mesh->verts_num; i++) {
       const MDeformVert *vert = &dvert[i];
       std::map<int, float> jw;
 

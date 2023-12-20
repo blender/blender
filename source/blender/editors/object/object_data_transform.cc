@@ -342,11 +342,11 @@ XFormObjectData *ED_object_data_xform_create_ex(ID *id, bool is_edit_mode)
         }
       }
       else {
-        const int elem_array_len = mesh->totvert;
+        const int elem_array_len = mesh->verts_num;
         XFormObjectData_Mesh *xod = static_cast<XFormObjectData_Mesh *>(
             MEM_mallocN(sizeof(*xod) + (sizeof(*xod->elem_array) * elem_array_len), __func__));
         memset(xod, 0x0, sizeof(*xod));
-        blender::MutableSpan(reinterpret_cast<blender::float3 *>(xod->elem_array), mesh->totvert)
+        blender::MutableSpan(reinterpret_cast<blender::float3 *>(xod->elem_array), mesh->verts_num)
             .copy_from(mesh->vert_positions());
 
         xod_base = &xod->base;
@@ -660,7 +660,7 @@ void ED_object_data_xform_restore(XFormObjectData *xod_base)
       }
       else {
         mesh->vert_positions_for_write().copy_from(
-            {reinterpret_cast<const blender::float3 *>(xod->elem_array), mesh->totvert});
+            {reinterpret_cast<const blender::float3 *>(xod->elem_array), mesh->verts_num});
         mesh->tag_positions_changed();
       }
 

@@ -19,11 +19,12 @@ namespace blender::geometry {
 static void propagate_vert_attributes(Mesh &mesh, const Span<int> new_to_old_verts_map)
 {
   /* These types aren't supported for interpolation below. */
-  CustomData_free_layers(&mesh.vert_data, CD_SHAPEKEY, mesh.totvert);
-  CustomData_free_layers(&mesh.vert_data, CD_CLOTH_ORCO, mesh.totvert);
-  CustomData_free_layers(&mesh.vert_data, CD_MVERT_SKIN, mesh.totvert);
-  CustomData_realloc(&mesh.vert_data, mesh.totvert, mesh.totvert + new_to_old_verts_map.size());
-  mesh.totvert += new_to_old_verts_map.size();
+  CustomData_free_layers(&mesh.vert_data, CD_SHAPEKEY, mesh.verts_num);
+  CustomData_free_layers(&mesh.vert_data, CD_CLOTH_ORCO, mesh.verts_num);
+  CustomData_free_layers(&mesh.vert_data, CD_MVERT_SKIN, mesh.verts_num);
+  CustomData_realloc(
+      &mesh.vert_data, mesh.verts_num, mesh.verts_num + new_to_old_verts_map.size());
+  mesh.verts_num += new_to_old_verts_map.size();
 
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
   for (const bke::AttributeIDRef &id : attributes.all_ids()) {
@@ -42,27 +43,27 @@ static void propagate_vert_attributes(Mesh &mesh, const Span<int> new_to_old_ver
     attribute.finish();
   }
   if (float3 *orco = static_cast<float3 *>(
-          CustomData_get_layer_for_write(&mesh.vert_data, CD_ORCO, mesh.totvert)))
+          CustomData_get_layer_for_write(&mesh.vert_data, CD_ORCO, mesh.verts_num)))
   {
-    array_utils::gather(Span(orco, mesh.totvert),
+    array_utils::gather(Span(orco, mesh.verts_num),
                         new_to_old_verts_map,
-                        MutableSpan(orco, mesh.totvert).take_back(new_to_old_verts_map.size()));
+                        MutableSpan(orco, mesh.verts_num).take_back(new_to_old_verts_map.size()));
   }
   if (int *orig_indices = static_cast<int *>(
-          CustomData_get_layer_for_write(&mesh.vert_data, CD_ORIGINDEX, mesh.totvert)))
+          CustomData_get_layer_for_write(&mesh.vert_data, CD_ORIGINDEX, mesh.verts_num)))
   {
     array_utils::gather(
-        Span(orig_indices, mesh.totvert),
+        Span(orig_indices, mesh.verts_num),
         new_to_old_verts_map,
-        MutableSpan(orig_indices, mesh.totvert).take_back(new_to_old_verts_map.size()));
+        MutableSpan(orig_indices, mesh.verts_num).take_back(new_to_old_verts_map.size()));
   }
 }
 
 static void propagate_edge_attributes(Mesh &mesh, const Span<int> new_to_old_edge_map)
 {
-  CustomData_free_layers(&mesh.edge_data, CD_FREESTYLE_EDGE, mesh.totedge);
-  CustomData_realloc(&mesh.edge_data, mesh.totedge, mesh.totedge + new_to_old_edge_map.size());
-  mesh.totedge += new_to_old_edge_map.size();
+  CustomData_free_layers(&mesh.edge_data, CD_FREESTYLE_EDGE, mesh.edges_num);
+  CustomData_realloc(&mesh.edge_data, mesh.edges_num, mesh.edges_num + new_to_old_edge_map.size());
+  mesh.edges_num += new_to_old_edge_map.size();
 
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
   for (const bke::AttributeIDRef &id : attributes.all_ids()) {
@@ -83,12 +84,12 @@ static void propagate_edge_attributes(Mesh &mesh, const Span<int> new_to_old_edg
   }
 
   if (int *orig_indices = static_cast<int *>(
-          CustomData_get_layer_for_write(&mesh.edge_data, CD_ORIGINDEX, mesh.totedge)))
+          CustomData_get_layer_for_write(&mesh.edge_data, CD_ORIGINDEX, mesh.edges_num)))
   {
     array_utils::gather(
-        Span(orig_indices, mesh.totedge),
+        Span(orig_indices, mesh.edges_num),
         new_to_old_edge_map,
-        MutableSpan(orig_indices, mesh.totedge).take_back(new_to_old_edge_map.size()));
+        MutableSpan(orig_indices, mesh.edges_num).take_back(new_to_old_edge_map.size()));
   }
 }
 
@@ -512,7 +513,7 @@ void split_edges(Mesh &mesh,
                  const IndexMask &selected_edges,
                  const bke::AnonymousAttributePropagationInfo & /*propagation_info*/)
 {
-  const int orig_verts_num = mesh.totvert;
+  const int orig_verts_num = mesh.verts_num;
   const Span<int2> orig_edges = mesh.edges();
   const OffsetIndices faces = mesh.faces();
 

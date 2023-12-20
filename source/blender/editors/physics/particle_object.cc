@@ -749,7 +749,7 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
   /* BMESH_ONLY, deform dm may not have tessface */
   BKE_mesh_tessface_ensure(mesh);
 
-  numverts = mesh->totvert;
+  numverts = mesh->verts_num;
   blender::MutableSpan<blender::float3> positions = mesh->vert_positions_for_write();
 
   /* convert to global coordinates */
@@ -761,7 +761,7 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
     mface = static_cast<const MFace *>(CustomData_get_layer(&mesh->fdata_legacy, CD_MFACE));
     BKE_bvhtree_from_mesh_get(&bvhtree, mesh, BVHTREE_FROM_FACES, 2);
   }
-  else if (mesh->totedge != 0) {
+  else if (mesh->edges_num != 0) {
     edges = static_cast<const vec2i *>(
         CustomData_get_layer_named(&mesh->edge_data, CD_PROP_INT32_2D, ".edge_verts"));
     BKE_bvhtree_from_mesh_get(&bvhtree, mesh, BVHTREE_FROM_EDGES, 2);

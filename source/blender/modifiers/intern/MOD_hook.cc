@@ -367,7 +367,7 @@ static void deformVerts_do(HookModifierData *hmd,
       int verts_orig_num = positions.size();
       if (ob->type == OB_MESH) {
         const Mesh *me_orig = static_cast<const Mesh *>(ob->data);
-        verts_orig_num = me_orig->totvert;
+        verts_orig_num = me_orig->verts_num;
       }
       BLI_bitmap *indexar_used = hook_index_array_to_bitmap(hmd, verts_orig_num);
       for (i = 0; i < positions.size(); i++) {

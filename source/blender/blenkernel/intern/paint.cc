@@ -1568,7 +1568,7 @@ static MultiresModifierData *sculpt_multires_modifier_get(const Scene *scene,
 
       if (mmd->sculptlvl > 0 && !(mmd->flags & eMultiresModifierFlag_UseSculptBaseMesh)) {
         if (need_mdisps) {
-          CustomData_add_layer(&mesh->loop_data, CD_MDISPS, CD_SET_DEFAULT, mesh->totloop);
+          CustomData_add_layer(&mesh->loop_data, CD_MDISPS, CD_SET_DEFAULT, mesh->corners_num);
         }
 
         return mmd;
@@ -1683,7 +1683,7 @@ static void sculpt_update_object(Depsgraph *depsgraph,
     ss->multires.active = true;
     ss->multires.modifier = mmd;
     ss->multires.level = mmd->sculptlvl;
-    ss->totvert = me_eval->totvert;
+    ss->totvert = me_eval->verts_num;
     ss->faces_num = me_eval->faces_num;
     ss->totfaces = mesh->faces_num;
 
@@ -1694,7 +1694,7 @@ static void sculpt_update_object(Depsgraph *depsgraph,
     ss->corner_verts = mesh->corner_verts();
   }
   else {
-    ss->totvert = mesh->totvert;
+    ss->totvert = mesh->verts_num;
     ss->faces_num = mesh->faces_num;
     ss->totfaces = mesh->faces_num;
     ss->vert_positions = mesh->vert_positions_for_write();
@@ -1767,12 +1767,12 @@ static void sculpt_update_object(Depsgraph *depsgraph,
        * This matters because crazyspace evaluation is very restrictive and excludes even modifiers
        * that simply recompute vertex weights (which can even include Geometry Nodes). */
       if (me_eval_deform->faces_num == me_eval->faces_num &&
-          me_eval_deform->totloop == me_eval->totloop &&
-          me_eval_deform->totvert == me_eval->totvert)
+          me_eval_deform->corners_num == me_eval->corners_num &&
+          me_eval_deform->verts_num == me_eval->verts_num)
       {
         BKE_sculptsession_free_deformMats(ss);
 
-        BLI_assert(me_eval_deform->totvert == mesh->totvert);
+        BLI_assert(me_eval_deform->verts_num == mesh->verts_num);
 
         ss->deform_cos = me_eval->vert_positions();
         BKE_pbvh_vert_coords_apply(ss->pbvh, ss->deform_cos);
@@ -1786,7 +1786,7 @@ static void sculpt_update_object(Depsgraph *depsgraph,
 
       ss->orig_cos = (ss->shapekey_active) ?
                          Span(static_cast<const float3 *>(ss->shapekey_active->data),
-                              mesh->totvert) :
+                              mesh->verts_num) :
                          mesh->vert_positions();
 
       BKE_crazyspace_build_sculpt(depsgraph, scene, ob, ss->deform_imats, ss->deform_cos);
@@ -1802,14 +1802,14 @@ static void sculpt_update_object(Depsgraph *depsgraph,
   }
 
   if (ss->shapekey_active != nullptr && ss->deform_cos.is_empty()) {
-    ss->deform_cos = Span(static_cast<const float3 *>(ss->shapekey_active->data), mesh->totvert);
+    ss->deform_cos = Span(static_cast<const float3 *>(ss->shapekey_active->data), mesh->verts_num);
   }
 
   /* if pbvh is deformed, key block is already applied to it */
   if (ss->shapekey_active) {
     bool pbvh_deformed = BKE_pbvh_is_deformed(ss->pbvh);
     if (!pbvh_deformed || ss->deform_cos.is_empty()) {
-      const Span key_data(static_cast<const float3 *>(ss->shapekey_active->data), mesh->totvert);
+      const Span key_data(static_cast<const float3 *>(ss->shapekey_active->data), mesh->verts_num);
 
       if (key_data.data() != nullptr) {
         if (!pbvh_deformed) {
@@ -1957,10 +1957,10 @@ void BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
     int gridsize = BKE_ccg_gridsize(level);
     int gridarea = gridsize * gridsize;
 
-    GridPaintMask *gmask = static_cast<GridPaintMask *>(
-        CustomData_add_layer(&mesh->loop_data, CD_GRID_PAINT_MASK, CD_SET_DEFAULT, mesh->totloop));
+    GridPaintMask *gmask = static_cast<GridPaintMask *>(CustomData_add_layer(
+        &mesh->loop_data, CD_GRID_PAINT_MASK, CD_SET_DEFAULT, mesh->corners_num));
 
-    for (int i = 0; i < mesh->totloop; i++) {
+    for (int i = 0; i < mesh->corners_num; i++) {
       GridPaintMask *gpm = &gmask[i];
 
       gpm->level = level;

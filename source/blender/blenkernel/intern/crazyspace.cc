@@ -191,7 +191,7 @@ void BKE_crazyspace_set_quats_mesh(Mesh *mesh,
 {
   using namespace blender;
   using namespace blender::bke;
-  BitVector<> vert_tag(mesh->totvert);
+  BitVector<> vert_tag(mesh->verts_num);
 
   /* first store two sets of tangent vectors in vertices, we derive it just from the face-edges */
   const Span<float3> positions = mesh->vert_positions();
@@ -376,7 +376,7 @@ int BKE_sculpt_get_first_deform_matrices(Depsgraph *depsgraph,
         Mesh *mesh = static_cast<Mesh *>(object_eval.data);
         me_eval = BKE_mesh_copy_for_eval(mesh);
         deformcos = mesh->vert_positions();
-        deformmats.reinitialize(mesh->totvert);
+        deformmats.reinitialize(mesh->verts_num);
         deformmats.fill(blender::float3x3::identity());
       }
 
@@ -427,7 +427,7 @@ void BKE_crazyspace_build_sculpt(Depsgraph *depsgraph,
 
     if (deformcos.is_empty()) {
       deformcos = mesh->vert_positions();
-      deformmats.reinitialize(mesh->totvert);
+      deformmats.reinitialize(mesh->verts_num);
       deformmats.fill(blender::float3x3::identity());
     }
 
@@ -465,11 +465,11 @@ void BKE_crazyspace_build_sculpt(Depsgraph *depsgraph,
       }
     }
 
-    quats = static_cast<float(*)[4]>(MEM_mallocN(mesh->totvert * sizeof(*quats), "crazy quats"));
+    quats = static_cast<float(*)[4]>(MEM_mallocN(mesh->verts_num * sizeof(*quats), "crazy quats"));
 
     BKE_crazyspace_set_quats_mesh(mesh, origVerts, deformedVerts, quats);
 
-    for (i = 0; i < mesh->totvert; i++) {
+    for (i = 0; i < mesh->verts_num; i++) {
       float qmat[3][3], tmat[3][3];
 
       quat_to_mat3(qmat, quats[i]);
@@ -488,7 +488,7 @@ void BKE_crazyspace_build_sculpt(Depsgraph *depsgraph,
     Mesh *mesh = (Mesh *)object->data;
 
     deformcos = mesh->vert_positions();
-    deformmats.reinitialize(mesh->totvert);
+    deformmats.reinitialize(mesh->verts_num);
     deformmats.fill(blender::float3x3::identity());
   }
 }

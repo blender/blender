@@ -86,7 +86,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (Mesh *mesh = geometry_set.get_mesh_for_write()) {
       if (mesh->faces_num == 0) {
-        if (mesh->totvert > 0) {
+        if (mesh->verts_num > 0) {
           no_faces_warning = true;
         }
       }

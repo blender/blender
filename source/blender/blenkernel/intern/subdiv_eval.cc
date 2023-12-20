@@ -237,7 +237,7 @@ bool BKE_subdiv_eval_refine_from_mesh(Subdiv *subdiv,
   set_coarse_positions(
       subdiv,
       coarse_vertex_cos ?
-          Span(reinterpret_cast<const float3 *>(coarse_vertex_cos), mesh->totvert) :
+          Span(reinterpret_cast<const float3 *>(coarse_vertex_cos), mesh->verts_num) :
           mesh->vert_positions(),
       mesh->verts_no_face());
 

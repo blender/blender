@@ -91,7 +91,7 @@ static void subdiv_mesh_ctx_cache_uv_layers(SubdivMeshContext *ctx)
       CustomData_number_of_layers(&subdiv_mesh->loop_data, CD_PROP_FLOAT2), MAX_MTFACE);
   for (int layer_index = 0; layer_index < ctx->num_uv_layers; layer_index++) {
     ctx->uv_layers[layer_index] = static_cast<float2 *>(CustomData_get_layer_n_for_write(
-        &subdiv_mesh->loop_data, CD_PROP_FLOAT2, layer_index, subdiv_mesh->totloop));
+        &subdiv_mesh->loop_data, CD_PROP_FLOAT2, layer_index, subdiv_mesh->corners_num));
   }
 }
 
@@ -104,21 +104,21 @@ static void subdiv_mesh_ctx_cache_custom_data_layers(SubdivMeshContext *ctx)
   ctx->subdiv_corner_verts = subdiv_mesh->corner_verts_for_write();
   ctx->subdiv_corner_edges = subdiv_mesh->corner_edges_for_write();
   /* Pointers to original indices layers. */
-  ctx->vert_origindex = static_cast<int *>(
-      CustomData_get_layer_for_write(&subdiv_mesh->vert_data, CD_ORIGINDEX, subdiv_mesh->totvert));
-  ctx->edge_origindex = static_cast<int *>(
-      CustomData_get_layer_for_write(&subdiv_mesh->edge_data, CD_ORIGINDEX, subdiv_mesh->totedge));
-  ctx->loop_origindex = static_cast<int *>(
-      CustomData_get_layer_for_write(&subdiv_mesh->loop_data, CD_ORIGINDEX, subdiv_mesh->totloop));
+  ctx->vert_origindex = static_cast<int *>(CustomData_get_layer_for_write(
+      &subdiv_mesh->vert_data, CD_ORIGINDEX, subdiv_mesh->verts_num));
+  ctx->edge_origindex = static_cast<int *>(CustomData_get_layer_for_write(
+      &subdiv_mesh->edge_data, CD_ORIGINDEX, subdiv_mesh->edges_num));
+  ctx->loop_origindex = static_cast<int *>(CustomData_get_layer_for_write(
+      &subdiv_mesh->loop_data, CD_ORIGINDEX, subdiv_mesh->corners_num));
   ctx->face_origindex = static_cast<int *>(CustomData_get_layer_for_write(
       &subdiv_mesh->face_data, CD_ORIGINDEX, subdiv_mesh->faces_num));
   /* UV layers interpolation. */
   subdiv_mesh_ctx_cache_uv_layers(ctx);
   /* Orco interpolation. */
   ctx->orco = static_cast<float(*)[3]>(
-      CustomData_get_layer_for_write(&subdiv_mesh->vert_data, CD_ORCO, subdiv_mesh->totvert));
+      CustomData_get_layer_for_write(&subdiv_mesh->vert_data, CD_ORCO, subdiv_mesh->verts_num));
   ctx->cloth_orco = static_cast<float(*)[3]>(CustomData_get_layer_for_write(
-      &subdiv_mesh->vert_data, CD_CLOTH_ORCO, subdiv_mesh->totvert));
+      &subdiv_mesh->vert_data, CD_CLOTH_ORCO, subdiv_mesh->verts_num));
 }
 
 static void subdiv_mesh_prepare_accumulator(SubdivMeshContext *ctx, int num_vertices)
@@ -1169,7 +1169,7 @@ Mesh *BKE_subdiv_to_mesh(Subdiv *subdiv,
   if (coarse_mesh->loose_edges().count > 0) {
     subdiv_context.vert_to_edge_map = bke::mesh::build_vert_to_edge_map(
         subdiv_context.coarse_edges,
-        coarse_mesh->totvert,
+        coarse_mesh->verts_num,
         subdiv_context.vert_to_edge_offsets,
         subdiv_context.vert_to_edge_indices);
   }

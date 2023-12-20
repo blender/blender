@@ -764,11 +764,11 @@ static void attr_create_random_per_island(Scene *scene,
     return;
   }
 
-  if (b_mesh.totvert == 0) {
+  if (b_mesh.verts_num == 0) {
     return;
   }
 
-  DisjointSet vertices_sets(b_mesh.totvert);
+  DisjointSet vertices_sets(b_mesh.verts_num);
 
   const blender::Span<blender::int2> edges = b_mesh.edges();
   const blender::Span<int> corner_verts = b_mesh.corner_verts();
@@ -1205,7 +1205,7 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph b_depsgraph,
   /* TODO(sergey): Perform preliminary check for number of vertices. */
   if (b_mesh_rna) {
     const ::Mesh &b_mesh = *static_cast<const ::Mesh *>(b_mesh_rna.ptr.data);
-    const int b_verts_num = b_mesh.totvert;
+    const int b_verts_num = b_mesh.verts_num;
     const blender::Span<blender::float3> positions = b_mesh.vert_positions();
     if (positions.is_empty()) {
       free_object_to_mesh(b_data, b_ob_info, b_mesh_rna);

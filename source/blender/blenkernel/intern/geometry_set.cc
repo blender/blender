@@ -225,10 +225,10 @@ std::ostream &operator<<(std::ostream &stream, const GeometrySet &geometry_set)
 {
   Vector<std::string> parts;
   if (const Mesh *mesh = geometry_set.get_mesh()) {
-    parts.append(std::to_string(mesh->totvert) + " verts");
-    parts.append(std::to_string(mesh->totedge) + " edges");
+    parts.append(std::to_string(mesh->verts_num) + " verts");
+    parts.append(std::to_string(mesh->edges_num) + " edges");
     parts.append(std::to_string(mesh->faces_num) + " faces");
-    parts.append(std::to_string(mesh->totloop) + " corners");
+    parts.append(std::to_string(mesh->corners_num) + " corners");
   }
   if (const Curves *curves = geometry_set.get_curves()) {
     parts.append(std::to_string(curves->geometry.point_num) + " control points");

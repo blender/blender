@@ -207,12 +207,12 @@ static void precalc_uv_layer(const OpenSubdiv_Converter *converter, const int la
   const Mesh *mesh = storage->mesh;
   const float(*mloopuv)[2] = static_cast<const float(*)[2]>(
       CustomData_get_layer_n(&mesh->loop_data, CD_PROP_FLOAT2, layer_index));
-  const int num_vert = mesh->totvert;
+  const int num_vert = mesh->verts_num;
   const float limit[2] = {STD_UV_CONNECT_LIMIT, STD_UV_CONNECT_LIMIT};
   /* Initialize memory required for the operations. */
   if (storage->loop_uv_indices == nullptr) {
     storage->loop_uv_indices = static_cast<int *>(
-        MEM_malloc_arrayN(mesh->totloop, sizeof(int), "loop uv vertex index"));
+        MEM_malloc_arrayN(mesh->corners_num, sizeof(int), "loop uv vertex index"));
   }
   UvVertMap *uv_vert_map = BKE_mesh_uv_vert_map_create(storage->faces,
                                                        nullptr,
@@ -355,20 +355,20 @@ static void initialize_manifold_indices(ConverterStorage *storage)
   const bke::LooseVertCache &loose_verts = mesh->verts_no_face();
   const bke::LooseEdgeCache &loose_edges = mesh->loose_edges();
   initialize_manifold_index_array(loose_verts.is_loose_bits,
-                                  mesh->totvert,
+                                  mesh->verts_num,
                                   &storage->manifold_vertex_index,
                                   &storage->manifold_vertex_index_reverse,
                                   &storage->num_manifold_vertices);
   initialize_manifold_index_array(loose_edges.is_loose_bits,
-                                  mesh->totedge,
+                                  mesh->edges_num,
                                   nullptr,
                                   &storage->manifold_edge_index_reverse,
                                   &storage->num_manifold_edges);
   /* Initialize infinite sharp mapping. */
   if (loose_edges.count > 0) {
     const Span<int2> edges = storage->edges;
-    storage->infinite_sharp_vertices_map.resize(mesh->totvert, false);
-    for (int edge_index = 0; edge_index < mesh->totedge; edge_index++) {
+    storage->infinite_sharp_vertices_map.resize(mesh->verts_num, false);
+    for (int edge_index = 0; edge_index < mesh->edges_num; edge_index++) {
       if (loose_edges.is_loose_bits[edge_index]) {
         const int2 edge = edges[edge_index];
         storage->infinite_sharp_vertices_map[edge[0]].set();

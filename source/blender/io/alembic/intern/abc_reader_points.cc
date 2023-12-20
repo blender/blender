@@ -136,7 +136,7 @@ Mesh *AbcPointsReader::read_mesh(Mesh *existing_mesh,
 
   Mesh *new_mesh = nullptr;
 
-  if (existing_mesh->totvert != positions->size()) {
+  if (existing_mesh->verts_num != positions->size()) {
     new_mesh = BKE_mesh_new_nomain(positions->size(), 0, 0, 0);
   }
 

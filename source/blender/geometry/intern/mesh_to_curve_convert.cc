@@ -203,7 +203,7 @@ BLI_NOINLINE static bke::CurvesGeometry edges_to_curves_convert(
     const Span<int2> edges,
     const bke::AnonymousAttributePropagationInfo &propagation_info)
 {
-  CurveFromEdgesOutput output = edges_to_curve_point_indices(mesh.totvert, edges);
+  CurveFromEdgesOutput output = edges_to_curve_point_indices(mesh.verts_num, edges);
   return create_curve_from_vert_indices(mesh.attributes(),
                                         output.vert_indices,
                                         output.curve_offsets,

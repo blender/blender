@@ -78,7 +78,7 @@ static Mesh *remesh_quadriflow(const Mesh *input_mesh,
       verttri.data(), input_corner_verts.data(), corner_tris.data(), corner_tris.size());
 
   const int totfaces = corner_tris.size();
-  const int totverts = input_mesh->totvert;
+  const int totverts = input_mesh->verts_num;
   Array<int> faces(totfaces * 3);
 
   for (const int i : IndexRange(totfaces)) {
@@ -191,10 +191,10 @@ static openvdb::FloatGrid::Ptr remesh_voxel_level_set_create(const Mesh *mesh,
   const Span<int> corner_verts = mesh->corner_verts();
   const Span<int3> corner_tris = mesh->corner_tris();
 
-  std::vector<openvdb::Vec3s> points(mesh->totvert);
+  std::vector<openvdb::Vec3s> points(mesh->verts_num);
   std::vector<openvdb::Vec3I> triangles(corner_tris.size());
 
-  for (const int i : IndexRange(mesh->totvert)) {
+  for (const int i : IndexRange(mesh->verts_num)) {
     const float3 &co = positions[i];
     points[i] = openvdb::Vec3s(co.x, co.y, co.z);
   }
@@ -543,7 +543,7 @@ void mesh_remesh_reproject_attributes(const Mesh &src, Mesh &dst)
     find_nearest_tris_parallel(dst_positions, bvhtree, vert_nearest_tris);
 
     if (!point_ids.is_empty()) {
-      Array<int> map(dst.totvert);
+      Array<int> map(dst.verts_num);
       find_nearest_verts(
           src_positions, src_corner_verts, src_corner_tris, dst_positions, vert_nearest_tris, map);
       gather_attributes(point_ids, src_attributes, ATTR_DOMAIN_POINT, map, dst_attributes);
@@ -551,7 +551,7 @@ void mesh_remesh_reproject_attributes(const Mesh &src, Mesh &dst)
 
     if (!corner_ids.is_empty()) {
       const Span<int> src_tri_faces = src.corner_tri_faces();
-      Array<int> map(dst.totloop);
+      Array<int> map(dst.corners_num);
       find_nearest_corners(src_positions,
                            src_faces,
                            src_corner_verts,
@@ -569,7 +569,7 @@ void mesh_remesh_reproject_attributes(const Mesh &src, Mesh &dst)
     const Span<int> src_corner_edges = src.corner_edges();
     const Span<int> src_tri_faces = src.corner_tri_faces();
     const Span<int2> dst_edges = dst.edges();
-    Array<int> map(dst.totedge);
+    Array<int> map(dst.edges_num);
     find_nearest_edges(src_positions,
                        src_edges,
                        src_faces,

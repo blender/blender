@@ -267,7 +267,7 @@ void BKE_mesh_remap_find_best_match_from_mesh(const float (*vert_positions_dst)[
   float mat_src[4][4], mat_dst[4][4], best_mat_dst[4][4];
   float best_match = FLT_MAX, match;
 
-  const int numverts_src = me_src->totvert;
+  const int numverts_src = me_src->verts_num;
   const blender::Span<blender::float3> positions_src = me_src->vert_positions();
   mesh_calc_eigen_matrix(
       nullptr, reinterpret_cast<const float(*)[3]>(positions_src.data()), numverts_src, mat_src);
@@ -468,7 +468,7 @@ void BKE_mesh_remap_calc_verts_from_mesh(const int mode,
   BKE_mesh_remap_init(r_map, numverts_dst);
 
   if (mode == MREMAP_MODE_TOPOLOGY) {
-    BLI_assert(numverts_dst == me_src->totvert);
+    BLI_assert(numverts_dst == me_src->verts_num);
     for (i = 0; i < numverts_dst; i++) {
       mesh_remap_item_define(r_map, i, FLT_MAX, 0, 1, &i, &full_weight);
     }
@@ -694,7 +694,7 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
   BKE_mesh_remap_init(r_map, numedges_dst);
 
   if (mode == MREMAP_MODE_TOPOLOGY) {
-    BLI_assert(numedges_dst == me_src->totedge);
+    BLI_assert(numedges_dst == me_src->edges_num);
     for (i = 0; i < numedges_dst; i++) {
       mesh_remap_item_define(r_map, i, FLT_MAX, 0, 1, &i, &full_weight);
     }
@@ -707,7 +707,7 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
     float tmp_co[3], tmp_no[3];
 
     if (mode == MREMAP_MODE_EDGE_VERT_NEAREST) {
-      const int num_verts_src = me_src->totvert;
+      const int num_verts_src = me_src->verts_num;
       const blender::Span<blender::int2> edges_src = me_src->edges();
       const blender::Span<blender::float3> positions_src = me_src->vert_positions();
 
@@ -908,7 +908,7 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
     }
     else if (mode == MREMAP_MODE_EDGE_EDGEINTERP_VNORPROJ) {
       const int num_rays_min = 5, num_rays_max = 100;
-      const int numedges_src = me_src->totedge;
+      const int numedges_src = me_src->edges_num;
 
       /* Subtleness - this one we can allocate only max number of cast rays per edges! */
       int *indices = static_cast<int *>(
@@ -1234,7 +1234,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
 
   if (mode == MREMAP_MODE_TOPOLOGY) {
     /* In topology mapping, we assume meshes are identical, islands included! */
-    BLI_assert(numloops_dst == me_src->totloop);
+    BLI_assert(numloops_dst == me_src->corners_num);
     for (int i = 0; i < numloops_dst; i++) {
       mesh_remap_item_define(r_map, i, FLT_MAX, 0, 1, &i, &full_weight);
     }
@@ -1281,7 +1281,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
     blender::Span<int> loop_to_face_map_src;
 
     const blender::Span<blender::float3> positions_src = me_src->vert_positions();
-    const int num_verts_src = me_src->totvert;
+    const int num_verts_src = me_src->verts_num;
     const blender::Span<blender::int2> edges_src = me_src->edges();
     const blender::OffsetIndices faces_src = me_src->faces();
     const blender::Span<int> corner_verts_src = me_src->corner_verts();

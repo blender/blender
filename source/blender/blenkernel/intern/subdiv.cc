@@ -127,7 +127,7 @@ Subdiv *BKE_subdiv_new_from_converter(const SubdivSettings *settings,
 
 Subdiv *BKE_subdiv_new_from_mesh(const SubdivSettings *settings, const Mesh *mesh)
 {
-  if (mesh->totvert == 0) {
+  if (mesh->verts_num == 0) {
     return nullptr;
   }
   OpenSubdiv_Converter converter;

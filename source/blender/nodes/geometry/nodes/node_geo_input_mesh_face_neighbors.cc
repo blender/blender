@@ -25,7 +25,7 @@ static VArray<int> construct_neighbor_count_varray(const Mesh &mesh, const eAttr
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_edges = mesh.corner_edges();
 
-  Array<int> edge_count(mesh.totedge, 0);
+  Array<int> edge_count(mesh.edges_num, 0);
   array_utils::count_indices(corner_edges, edge_count);
 
   Array<int> face_count(faces.size(), 0);

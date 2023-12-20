@@ -554,7 +554,7 @@ static void gather_realize_tasks_recursive(GatherTasksInfo &gather_info,
         const bke::MeshComponent &mesh_component = *static_cast<const bke::MeshComponent *>(
             component);
         const Mesh *mesh = mesh_component.get();
-        if (mesh != nullptr && mesh->totvert > 0) {
+        if (mesh != nullptr && mesh->verts_num > 0) {
           const int mesh_index = gather_info.meshes.order.index_of(mesh);
           const MeshRealizeInfo &mesh_info = gather_info.meshes.realize_info[mesh_index];
           gather_info.r_tasks.mesh_tasks.append({gather_info.r_offsets.mesh_offsets,
@@ -562,9 +562,9 @@ static void gather_realize_tasks_recursive(GatherTasksInfo &gather_info,
                                                  base_transform,
                                                  base_instance_context.meshes,
                                                  base_instance_context.id});
-          gather_info.r_offsets.mesh_offsets.vertex += mesh->totvert;
-          gather_info.r_offsets.mesh_offsets.edge += mesh->totedge;
-          gather_info.r_offsets.mesh_offsets.loop += mesh->totloop;
+          gather_info.r_offsets.mesh_offsets.vertex += mesh->verts_num;
+          gather_info.r_offsets.mesh_offsets.edge += mesh->edges_num;
+          gather_info.r_offsets.mesh_offsets.loop += mesh->corners_num;
           gather_info.r_offsets.mesh_offsets.face += mesh->faces_num;
         }
         break;
@@ -879,7 +879,7 @@ static void gather_meshes_to_realize(const bke::GeometrySet &geometry_set,
                                      VectorSet<const Mesh *> &r_meshes)
 {
   if (const Mesh *mesh = geometry_set.get_mesh()) {
-    if (mesh->totvert > 0) {
+    if (mesh->verts_num > 0) {
       r_meshes.add(mesh);
     }
   }
@@ -1060,7 +1060,7 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
     create_result_ids(options,
                       mesh_info.stored_vertex_ids,
                       task.id,
-                      all_dst_vertex_ids.slice(task.start_indices.vertex, mesh.totvert));
+                      all_dst_vertex_ids.slice(task.start_indices.vertex, mesh.verts_num));
   }
 
   copy_generic_attributes_to_result(
@@ -1098,9 +1098,9 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
 
   const RealizeMeshTask &last_task = tasks.last();
   const Mesh &last_mesh = *last_task.mesh_info->mesh;
-  const int tot_vertices = last_task.start_indices.vertex + last_mesh.totvert;
-  const int tot_edges = last_task.start_indices.edge + last_mesh.totedge;
-  const int tot_loops = last_task.start_indices.loop + last_mesh.totloop;
+  const int tot_vertices = last_task.start_indices.vertex + last_mesh.verts_num;
+  const int tot_edges = last_task.start_indices.edge + last_mesh.edges_num;
+  const int tot_loops = last_task.start_indices.loop + last_mesh.corners_num;
   const int tot_faces = last_task.start_indices.face + last_mesh.faces_num;
 
   Mesh *dst_mesh = BKE_mesh_new_nomain(tot_vertices, tot_edges, tot_faces, tot_loops);

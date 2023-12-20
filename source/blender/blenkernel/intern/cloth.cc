@@ -338,7 +338,8 @@ void clothModifier_do(ClothModifierData *clmd,
   clmd->sim_parms->timescale = timescale * clmd->sim_parms->time_scale;
 
   if (clmd->sim_parms->reset ||
-      (clmd->clothObject && mesh->totvert != clmd->clothObject->mvert_num)) {
+      (clmd->clothObject && mesh->verts_num != clmd->clothObject->mvert_num))
+  {
     clmd->sim_parms->reset = 0;
     cache->flag |= PTCACHE_OUTDATED;
     BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
@@ -604,7 +605,7 @@ static void cloth_apply_vgroup(ClothModifierData *clmd, Mesh *mesh)
     return;
   }
 
-  int mvert_num = mesh->totvert;
+  int mvert_num = mesh->verts_num;
 
   ClothVertex *verts = clmd->clothObject->verts;
 
@@ -755,7 +756,7 @@ static bool cloth_from_object(
   verts = clmd->clothObject->verts;
 
   /* set initial values */
-  for (i = 0; i < mesh->totvert; i++, verts++) {
+  for (i = 0; i < mesh->verts_num; i++, verts++) {
     if (first) {
       copy_v3_v3(verts->x, positions[i]);
 
@@ -828,7 +829,7 @@ static void cloth_from_mesh(ClothModifierData *clmd, const Object *ob, Mesh *mes
 {
   const blender::Span<int> corner_verts = mesh->corner_verts();
   const blender::Span<blender::int3> corner_tris = mesh->corner_tris();
-  const uint mvert_num = mesh->totvert;
+  const uint mvert_num = mesh->verts_num;
 
   /* Allocate our vertices. */
   clmd->clothObject->mvert_num = mvert_num;
@@ -844,7 +845,7 @@ static void cloth_from_mesh(ClothModifierData *clmd, const Object *ob, Mesh *mes
     clmd->clothObject->primitive_num = corner_tris.size();
   }
   else {
-    clmd->clothObject->primitive_num = mesh->totedge;
+    clmd->clothObject->primitive_num = mesh->edges_num;
   }
 
   clmd->clothObject->tri = static_cast<MVertTri *>(
@@ -1151,7 +1152,7 @@ static void cloth_update_verts(Object *ob, ClothModifierData *clmd, Mesh *mesh)
   ClothVertex *verts = clmd->clothObject->verts;
 
   /* vertex count is already ensured to match */
-  for (i = 0; i < mesh->totvert; i++, verts++) {
+  for (i = 0; i < mesh->verts_num; i++, verts++) {
     copy_v3_v3(verts->xrest, positions[i]);
     mul_m4_v3(ob->object_to_world, verts->xrest);
   }
@@ -1181,7 +1182,7 @@ static void cloth_update_spring_lengths(ClothModifierData *clmd, Mesh *mesh)
   LinkNode *search = cloth->springs;
   uint struct_springs = 0;
   uint i = 0;
-  uint mvert_num = uint(mesh->totvert);
+  uint mvert_num = uint(mesh->verts_num);
   float shrink_factor;
 
   clmd->sim_parms->avg_spring_len = 0.0f;
@@ -1455,8 +1456,8 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
   Cloth *cloth = clmd->clothObject;
   ClothSpring *spring = nullptr, *tspring = nullptr, *tspring2 = nullptr;
   uint struct_springs = 0, shear_springs = 0, bend_springs = 0, struct_springs_real = 0;
-  uint mvert_num = uint(mesh->totvert);
-  uint numedges = uint(mesh->totedge);
+  uint mvert_num = uint(mesh->verts_num);
+  uint numedges = uint(mesh->edges_num);
   uint numface = uint(mesh->faces_num);
   float shrink_factor;
   const blender::Span<int2> edges = mesh->edges();

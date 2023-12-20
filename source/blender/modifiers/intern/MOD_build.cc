@@ -69,7 +69,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   /* maps edge indices in old mesh to indices in new mesh */
   GHash *edgeHash2 = BLI_ghash_int_new("build ed apply gh");
 
-  const int vert_src_num = mesh->totvert;
+  const int vert_src_num = mesh->verts_num;
   const blender::Span<blender::int2> edges_src = mesh->edges();
   const blender::OffsetIndices faces_src = mesh->faces();
   const blender::Span<int> corner_verts_src = mesh->corner_verts();

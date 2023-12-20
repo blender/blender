@@ -332,14 +332,14 @@ void psys_calc_dmcache(Object *ob, Mesh *mesh_final, Mesh *mesh_original, Partic
     const int *origindex;
     const int *origindex_poly = nullptr;
     if (psys->part->from == PART_FROM_VERT) {
-      totdmelem = mesh_final->totvert;
+      totdmelem = mesh_final->verts_num;
 
       if (use_modifier_stack) {
         totelem = totdmelem;
         origindex = nullptr;
       }
       else {
-        totelem = mesh->totvert;
+        totelem = mesh->verts_num;
         origindex = static_cast<const int *>(
             CustomData_get_layer(&mesh_final->vert_data, CD_ORIGINDEX));
       }
@@ -3495,7 +3495,7 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
   realloc_roots = false;
   if (psys->hair_in_mesh) {
     Mesh *mesh = psys->hair_in_mesh;
-    if (totpoint != mesh->totvert || totedge != mesh->totedge) {
+    if (totpoint != mesh->verts_num || totedge != mesh->edges_num) {
       BKE_id_free(nullptr, mesh);
       psys->hair_in_mesh = nullptr;
       realloc_roots = true;

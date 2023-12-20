@@ -51,9 +51,9 @@ class BoundaryFieldInput final : public bke::MeshFieldInput {
       return {};
     }
 
-    Array<bool> boundary(mesh.totedge, false);
+    Array<bool> boundary(mesh.edges_num, false);
 
-    Array<std::atomic<int>> edge_states(mesh.totedge);
+    Array<std::atomic<int>> edge_states(mesh.edges_num);
     /* State is index of face or one of invalid values: */
     static constexpr int no_face_yet = -1;
     static constexpr int is_boundary = -2;

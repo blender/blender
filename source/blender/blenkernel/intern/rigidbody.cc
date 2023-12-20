@@ -373,7 +373,7 @@ static rbCollisionShape *rigidbody_get_shape_convexhull_from_mesh(Object *ob,
     mesh = rigidbody_get_mesh(ob);
     positions = (mesh) ? reinterpret_cast<float(*)[3]>(mesh->vert_positions_for_write().data()) :
                          nullptr;
-    totvert = (mesh) ? mesh->totvert : 0;
+    totvert = (mesh) ? mesh->verts_num : 0;
   }
   else {
     CLOG_ERROR(&LOG, "cannot make Convex Hull collision shape for non-Mesh object");
@@ -404,7 +404,7 @@ static rbCollisionShape *rigidbody_get_shape_trimesh_from_mesh(Object *ob)
     }
 
     const blender::Span<blender::float3> positions = mesh->vert_positions();
-    const int totvert = mesh->totvert;
+    const int totvert = mesh->verts_num;
     const blender::Span<blender::int3> corner_tris = mesh->corner_tris();
     const int tottri = corner_tris.size();
     const blender::Span<int> corner_verts = mesh->corner_verts();
@@ -1766,7 +1766,7 @@ static void rigidbody_update_sim_ob(Depsgraph *depsgraph, Object *ob, RigidBodyO
     if (mesh) {
       float(*positions)[3] = reinterpret_cast<float(*)[3]>(
           mesh->vert_positions_for_write().data());
-      int totvert = mesh->totvert;
+      int totvert = mesh->verts_num;
       const std::optional<blender::Bounds<blender::float3>> bounds = BKE_object_boundbox_get(ob);
 
       RB_shape_trimesh_update(static_cast<rbCollisionShape *>(rbo->shared->physics_shape),

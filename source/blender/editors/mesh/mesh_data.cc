@@ -68,7 +68,7 @@ static CustomData *mesh_customdata_get_type(Mesh *mesh, const char htype, int *r
       }
       else {
         data = &mesh->vert_data;
-        tot = mesh->totvert;
+        tot = mesh->verts_num;
       }
       break;
     case BM_EDGE:
@@ -78,7 +78,7 @@ static CustomData *mesh_customdata_get_type(Mesh *mesh, const char htype, int *r
       }
       else {
         data = &mesh->edge_data;
-        tot = mesh->totedge;
+        tot = mesh->edges_num;
       }
       break;
     case BM_LOOP:
@@ -88,7 +88,7 @@ static CustomData *mesh_customdata_get_type(Mesh *mesh, const char htype, int *r
       }
       else {
         data = &mesh->loop_data;
-        tot = mesh->totloop;
+        tot = mesh->corners_num;
       }
       break;
     case BM_FACE:
@@ -205,7 +205,7 @@ void ED_mesh_uv_loop_reset_ex(Mesh *mesh, const int layernum)
     /* Collect Mesh UVs */
     BLI_assert(CustomData_has_layer(&mesh->loop_data, CD_PROP_FLOAT2));
     float2 *mloopuv = static_cast<float2 *>(CustomData_get_layer_n_for_write(
-        &mesh->loop_data, CD_PROP_FLOAT2, layernum, mesh->totloop));
+        &mesh->loop_data, CD_PROP_FLOAT2, layernum, mesh->corners_num));
 
     const blender::OffsetIndices polys = mesh->faces();
     for (const int i : polys.index_range()) {
@@ -276,7 +276,7 @@ int ED_mesh_uv_add(
           &mesh->loop_data,
           CD_PROP_FLOAT2,
           MEM_dupallocN(CustomData_get_layer(&mesh->loop_data, CD_PROP_FLOAT2)),
-          mesh->totloop,
+          mesh->corners_num,
           unique_name,
           nullptr);
 
@@ -284,7 +284,7 @@ int ED_mesh_uv_add(
     }
     else {
       CustomData_add_layer_named(
-          &mesh->loop_data, CD_PROP_FLOAT2, CD_SET_DEFAULT, mesh->totloop, unique_name);
+          &mesh->loop_data, CD_PROP_FLOAT2, CD_SET_DEFAULT, mesh->corners_num, unique_name);
     }
 
     if (active_set || layernum_dst == 0) {
@@ -341,7 +341,7 @@ const bool *ED_mesh_uv_map_pin_layer_get(const Mesh *mesh, const int uv_index)
 static bool *ensure_corner_boolean_attribute(Mesh &mesh, const blender::StringRefNull name)
 {
   bool *data = static_cast<bool *>(CustomData_get_layer_named_for_write(
-      &mesh.loop_data, CD_PROP_BOOL, name.c_str(), mesh.totloop));
+      &mesh.loop_data, CD_PROP_BOOL, name.c_str(), mesh.corners_num));
   if (!data) {
     data = static_cast<bool *>(CustomData_add_layer_named(
         &mesh.loop_data, CD_PROP_BOOL, CD_SET_DEFAULT, mesh.faces_num, name.c_str()));
@@ -414,7 +414,8 @@ int ED_mesh_color_add(
         BM_data_layer_copy(&bm, &bm.ldata, CD_PROP_BYTE_COLOR, src_i, dst_i);
       }
       else {
-        memcpy(layer->data, active_layer->data, CustomData_get_elem_size(layer) * mesh->totloop);
+        memcpy(
+            layer->data, active_layer->data, CustomData_get_elem_size(layer) * mesh->corners_num);
       }
     }
   }
@@ -729,7 +730,7 @@ static int mesh_customdata_custom_splitnormals_add_exec(bContext *C, wmOperator 
     BM_data_layer_add(&bm, &bm.ldata, CD_CUSTOMLOOPNORMAL);
   }
   else {
-    CustomData_add_layer(&mesh->loop_data, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, mesh->totloop);
+    CustomData_add_layer(&mesh->loop_data, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, mesh->corners_num);
   }
 
   DEG_id_tag_update(&mesh->id, 0);
@@ -789,22 +790,22 @@ static void mesh_add_verts(Mesh *mesh, int len)
     return;
   }
 
-  int totvert = mesh->totvert + len;
+  int totvert = mesh->verts_num + len;
   CustomData vert_data;
   CustomData_copy_layout(
       &mesh->vert_data, &vert_data, CD_MASK_MESH.vmask, CD_SET_DEFAULT, totvert);
-  CustomData_copy_data(&mesh->vert_data, &vert_data, 0, 0, mesh->totvert);
+  CustomData_copy_data(&mesh->vert_data, &vert_data, 0, 0, mesh->verts_num);
 
   if (!CustomData_has_layer_named(&vert_data, CD_PROP_FLOAT3, "position")) {
     CustomData_add_layer_named(&vert_data, CD_PROP_FLOAT3, CD_SET_DEFAULT, totvert, "position");
   }
 
-  CustomData_free(&mesh->vert_data, mesh->totvert);
+  CustomData_free(&mesh->vert_data, mesh->verts_num);
   mesh->vert_data = vert_data;
 
   BKE_mesh_runtime_clear_cache(mesh);
 
-  mesh->totvert = totvert;
+  mesh->verts_num = totvert;
 
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::SpanAttributeWriter<bool> select_vert = attributes.lookup_or_add_for_write_span<bool>(
@@ -823,24 +824,24 @@ static void mesh_add_edges(Mesh *mesh, int len)
     return;
   }
 
-  totedge = mesh->totedge + len;
+  totedge = mesh->edges_num + len;
 
   /* Update custom-data. */
   CustomData_copy_layout(
       &mesh->edge_data, &edge_data, CD_MASK_MESH.emask, CD_SET_DEFAULT, totedge);
-  CustomData_copy_data(&mesh->edge_data, &edge_data, 0, 0, mesh->totedge);
+  CustomData_copy_data(&mesh->edge_data, &edge_data, 0, 0, mesh->edges_num);
 
   if (!CustomData_has_layer_named(&edge_data, CD_PROP_INT32_2D, ".edge_verts")) {
     CustomData_add_layer_named(
         &edge_data, CD_PROP_INT32_2D, CD_SET_DEFAULT, totedge, ".edge_verts");
   }
 
-  CustomData_free(&mesh->edge_data, mesh->totedge);
+  CustomData_free(&mesh->edge_data, mesh->edges_num);
   mesh->edge_data = edge_data;
 
   BKE_mesh_runtime_clear_cache(mesh);
 
-  mesh->totedge = totedge;
+  mesh->edges_num = totedge;
 
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::SpanAttributeWriter<bool> select_edge = attributes.lookup_or_add_for_write_span<bool>(
@@ -858,11 +859,11 @@ static void mesh_add_loops(Mesh *mesh, int len)
     return;
   }
 
-  totloop = mesh->totloop + len; /* new face count */
+  totloop = mesh->corners_num + len; /* new face count */
 
   /* update customdata */
   CustomData_copy_layout(&mesh->loop_data, &ldata, CD_MASK_MESH.lmask, CD_SET_DEFAULT, totloop);
-  CustomData_copy_data(&mesh->loop_data, &ldata, 0, 0, mesh->totloop);
+  CustomData_copy_data(&mesh->loop_data, &ldata, 0, 0, mesh->corners_num);
 
   if (!CustomData_has_layer_named(&ldata, CD_PROP_INT32, ".corner_vert")) {
     CustomData_add_layer_named(&ldata, CD_PROP_INT32, CD_SET_DEFAULT, totloop, ".corner_vert");
@@ -873,15 +874,15 @@ static void mesh_add_loops(Mesh *mesh, int len)
 
   BKE_mesh_runtime_clear_cache(mesh);
 
-  CustomData_free(&mesh->loop_data, mesh->totloop);
+  CustomData_free(&mesh->loop_data, mesh->corners_num);
   mesh->loop_data = ldata;
 
-  mesh->totloop = totloop;
+  mesh->corners_num = totloop;
 
   /* Keep the last face offset up to date with the corner total (they must be the same). We have
    * to be careful here though, since the mesh may not be in a valid state at this point. */
   if (mesh->face_offset_indices) {
-    mesh->face_offsets_for_write().last() = mesh->totloop;
+    mesh->face_offsets_for_write().last() = mesh->corners_num;
   }
 }
 
@@ -908,7 +909,7 @@ static void mesh_add_faces(Mesh *mesh, int len)
                                          faces_num + 1);
   /* Set common values for convenience. */
   mesh->face_offset_indices[0] = 0;
-  mesh->face_offset_indices[faces_num] = mesh->totloop;
+  mesh->face_offset_indices[faces_num] = mesh->corners_num;
 
   CustomData_free(&mesh->face_data, mesh->faces_num);
   mesh->face_data = face_data;
@@ -975,10 +976,10 @@ static void mesh_remove_verts(Mesh *mesh, int len)
   if (len == 0) {
     return;
   }
-  CustomData_ensure_layers_are_mutable(&mesh->vert_data, mesh->totvert);
-  const int totvert = mesh->totvert - len;
+  CustomData_ensure_layers_are_mutable(&mesh->vert_data, mesh->verts_num);
+  const int totvert = mesh->verts_num - len;
   CustomData_free_elem(&mesh->vert_data, totvert, len);
-  mesh->totvert = totvert;
+  mesh->verts_num = totvert;
 }
 
 static void mesh_remove_edges(Mesh *mesh, int len)
@@ -986,10 +987,10 @@ static void mesh_remove_edges(Mesh *mesh, int len)
   if (len == 0) {
     return;
   }
-  CustomData_ensure_layers_are_mutable(&mesh->edge_data, mesh->totedge);
-  const int totedge = mesh->totedge - len;
+  CustomData_ensure_layers_are_mutable(&mesh->edge_data, mesh->edges_num);
+  const int totedge = mesh->edges_num - len;
   CustomData_free_elem(&mesh->edge_data, totedge, len);
-  mesh->totedge = totedge;
+  mesh->edges_num = totedge;
 }
 
 static void mesh_remove_loops(Mesh *mesh, int len)
@@ -997,10 +998,10 @@ static void mesh_remove_loops(Mesh *mesh, int len)
   if (len == 0) {
     return;
   }
-  CustomData_ensure_layers_are_mutable(&mesh->loop_data, mesh->totloop);
-  const int totloop = mesh->totloop - len;
+  CustomData_ensure_layers_are_mutable(&mesh->loop_data, mesh->corners_num);
+  const int totloop = mesh->corners_num - len;
   CustomData_free_elem(&mesh->loop_data, totloop, len);
-  mesh->totloop = totloop;
+  mesh->corners_num = totloop;
 }
 
 static void mesh_remove_faces(Mesh *mesh, int len)
@@ -1020,7 +1021,7 @@ void ED_mesh_verts_remove(Mesh *mesh, ReportList *reports, int count)
     BKE_report(reports, RPT_ERROR, "Cannot remove vertices in edit mode");
     return;
   }
-  if (count > mesh->totvert) {
+  if (count > mesh->verts_num) {
     BKE_report(reports, RPT_ERROR, "Cannot remove more vertices than the mesh contains");
     return;
   }
@@ -1034,7 +1035,7 @@ void ED_mesh_edges_remove(Mesh *mesh, ReportList *reports, int count)
     BKE_report(reports, RPT_ERROR, "Cannot remove edges in edit mode");
     return;
   }
-  if (count > mesh->totedge) {
+  if (count > mesh->edges_num) {
     BKE_report(reports, RPT_ERROR, "Cannot remove more edges than the mesh contains");
     return;
   }
@@ -1048,7 +1049,7 @@ void ED_mesh_loops_remove(Mesh *mesh, ReportList *reports, int count)
     BKE_report(reports, RPT_ERROR, "Cannot remove loops in edit mode");
     return;
   }
-  if (count > mesh->totloop) {
+  if (count > mesh->corners_num) {
     BKE_report(reports, RPT_ERROR, "Cannot remove more loops than the mesh contains");
     return;
   }
@@ -1072,9 +1073,9 @@ void ED_mesh_faces_remove(Mesh *mesh, ReportList *reports, int count)
 
 void ED_mesh_geometry_clear(Mesh *mesh)
 {
-  mesh_remove_verts(mesh, mesh->totvert);
-  mesh_remove_edges(mesh, mesh->totedge);
-  mesh_remove_loops(mesh, mesh->totloop);
+  mesh_remove_verts(mesh, mesh->verts_num);
+  mesh_remove_edges(mesh, mesh->edges_num);
+  mesh_remove_loops(mesh, mesh->corners_num);
   mesh_remove_faces(mesh, mesh->faces_num);
 }
 
@@ -1139,7 +1140,7 @@ void ED_mesh_split_faces(Mesh *mesh)
   const bool *sharp_faces = static_cast<const bool *>(
       CustomData_get_layer_named(&mesh->face_data, CD_PROP_BOOL, "sharp_face"));
 
-  Array<bool> sharp_edges(mesh->totedge);
+  Array<bool> sharp_edges(mesh->edges_num);
   mesh_sharp_edges.materialize(sharp_edges);
 
   threading::parallel_for(polys.index_range(), 1024, [&](const IndexRange range) {

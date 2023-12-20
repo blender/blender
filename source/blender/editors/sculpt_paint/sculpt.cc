@@ -120,7 +120,7 @@ SculptMaskWriteInfo SCULPT_mask_get_for_write(SculptSession *ss)
     case PBVH_FACES: {
       Mesh *mesh = BKE_pbvh_get_mesh(ss->pbvh);
       info.layer = static_cast<float *>(CustomData_get_layer_named_for_write(
-          &mesh->vert_data, CD_PROP_FLOAT, ".sculpt_mask", mesh->totvert));
+          &mesh->vert_data, CD_PROP_FLOAT, ".sculpt_mask", mesh->verts_num));
       break;
     }
     case PBVH_BMESH:
@@ -3162,7 +3162,7 @@ void SCULPT_vertcos_to_key(Object *ob, KeyBlock *kb, const Span<float3> vertCos)
     ofs = BKE_keyblock_convert_to_vertcos(ob, kb);
 
     /* Calculate key coord offsets (from previous location). */
-    for (a = 0; a < mesh->totvert; a++) {
+    for (a = 0; a < mesh->verts_num; a++) {
       sub_v3_v3v3(ofs[a], vertCos[a], ofs[a]);
     }
 
@@ -5935,8 +5935,8 @@ void SCULPT_boundary_info_ensure(Object *object)
 
   Mesh *base_mesh = BKE_mesh_from_object(object);
 
-  ss->vertex_info.boundary.resize(base_mesh->totvert);
-  Array<int> adjacent_faces_edge_count(base_mesh->totedge, 0);
+  ss->vertex_info.boundary.resize(base_mesh->verts_num);
+  Array<int> adjacent_faces_edge_count(base_mesh->edges_num, 0);
   array_utils::count_indices(base_mesh->corner_edges(), adjacent_faces_edge_count);
 
   const blender::Span<int2> edges = base_mesh->edges();

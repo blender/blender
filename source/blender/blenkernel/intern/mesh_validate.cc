@@ -213,17 +213,17 @@ static int search_polyloop_cmp(const void *v1, const void *v2)
 /* NOLINTNEXTLINE: readability-function-size */
 bool BKE_mesh_validate_arrays(Mesh *mesh,
                               float (*vert_positions)[3],
-                              uint totvert,
+                              uint verts_num,
                               blender::int2 *edges,
-                              uint totedge,
-                              MFace *mfaces,
-                              uint totface,
+                              uint edges_num,
+                              MFace *legacy_faces,
+                              uint legacy_faces_num,
                               int *corner_verts,
                               int *corner_edges,
-                              uint totloop,
+                              uint corners_num,
                               int *face_offsets,
                               uint faces_num,
-                              MDeformVert *dverts, /* assume totvert length */
+                              MDeformVert *dverts, /* assume verts_num length */
                               const bool do_verbose,
                               const bool do_fixes,
                               bool *r_changed)
@@ -289,7 +289,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
   } recalc_flag;
 
   Map<OrderedEdge, int> edge_hash;
-  edge_hash.reserve(totedge);
+  edge_hash.reserve(edges_num);
 
   BLI_assert(!(do_fixes && mesh == nullptr));
 
@@ -297,14 +297,18 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
   free_flag.as_flag = 0;
   recalc_flag.as_flag = 0;
 
-  PRINT_MSG("verts(%u), edges(%u), loops(%u), polygons(%u)", totvert, totedge, totloop, faces_num);
+  PRINT_MSG("verts(%u), edges(%u), loops(%u), polygons(%u)",
+            verts_num,
+            edges_num,
+            corners_num,
+            faces_num);
 
-  if (totedge == 0 && faces_num != 0) {
+  if (edges_num == 0 && faces_num != 0) {
     PRINT_ERR("\tLogical error, %u polygons and 0 edges", faces_num);
     recalc_flag.edges = do_fixes;
   }
 
-  for (i = 0; i < totvert; i++) {
+  for (i = 0; i < verts_num; i++) {
     for (j = 0; j < 3; j++) {
       if (!isfinite(vert_positions[i][j])) {
         PRINT_ERR("\tVertex %u: has invalid coordinate", i);
@@ -318,7 +322,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
     }
   }
 
-  for (i = 0; i < totedge; i++) {
+  for (i = 0; i < edges_num; i++) {
     blender::int2 &edge = edges[i];
     bool remove = false;
 
@@ -326,11 +330,11 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
       PRINT_ERR("\tEdge %u: has matching verts, both %d", i, edge[0]);
       remove = do_fixes;
     }
-    if (edge[0] >= totvert) {
+    if (edge[0] >= verts_num) {
       PRINT_ERR("\tEdge %u: v1 index out of range, %d", i, edge[0]);
       remove = do_fixes;
     }
-    if (edge[1] >= totvert) {
+    if (edge[1] >= verts_num) {
       PRINT_ERR("\tEdge %u: v2 index out of range, %d", i, edge[1]);
       remove = do_fixes;
     }
@@ -350,7 +354,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
     }
   }
 
-  if (mfaces && !face_offsets) {
+  if (legacy_faces && !face_offsets) {
 #define REMOVE_FACE_TAG(_mf) \
   { \
     _mf->v3 = 0; \
@@ -376,14 +380,15 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
     MFace *mf;
     MFace *mf_prev;
 
-    SortFace *sort_faces = (SortFace *)MEM_callocN(sizeof(SortFace) * totface, "search faces");
+    SortFace *sort_faces = (SortFace *)MEM_callocN(sizeof(SortFace) * legacy_faces_num,
+                                                   "search faces");
     SortFace *sf;
     SortFace *sf_prev;
     uint totsortface = 0;
 
     PRINT_ERR("No Polys, only tessellated Faces");
 
-    for (i = 0, mf = mfaces, sf = sort_faces; i < totface; i++, mf++) {
+    for (i = 0, mf = legacy_faces, sf = sort_faces; i < legacy_faces_num; i++, mf++) {
       bool remove = false;
       int fidx;
       uint fv[4];
@@ -391,7 +396,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
       fidx = mf->v4 ? 3 : 2;
       do {
         fv[fidx] = *(&(mf->v1) + fidx);
-        if (fv[fidx] >= totvert) {
+        if (fv[fidx] >= verts_num) {
           PRINT_ERR("\tFace %u: 'v%d' index out of range, %u", i, fidx + 1, fv[fidx]);
           remove = do_fixes;
         }
@@ -416,7 +421,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
         }
 
         if (remove == false) {
-          if (totedge) {
+          if (edges_num) {
             if (mf->v4) {
               CHECK_FACE_EDGE(v1, v2);
               CHECK_FACE_EDGE(v2, v3);
@@ -463,10 +468,10 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
 
       /* on a valid mesh, code below will never run */
       if (memcmp(sf->es, sf_prev->es, sizeof(sf_prev->es)) == 0) {
-        mf = mfaces + sf->index;
+        mf = legacy_faces + sf->index;
 
         if (do_verbose) {
-          mf_prev = mfaces + sf_prev->index;
+          mf_prev = legacy_faces + sf_prev->index;
 
           if (mf->v4) {
             PRINT_ERR("\tFace %u & %u: are duplicates (%u,%u,%u,%u) (%u,%u,%u,%u)",
@@ -516,7 +521,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
    *
    * Polys must have:
    * - a valid loopstart value.
-   * - a valid totloop value (>= 3 and loopstart+totloop < mesh.totloop).
+   * - a valid corners_num value (>= 3 and loopstart+corners_num < mesh.corners_num).
    *
    * Loops must have:
    * - a valid v value.
@@ -527,7 +532,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
    * so be sure to leave at most one face per loop!
    */
   {
-    BLI_bitmap *vert_tag = BLI_BITMAP_NEW(mesh->totvert, __func__);
+    BLI_bitmap *vert_tag = BLI_BITMAP_NEW(mesh->verts_num, __func__);
 
     SortPoly *sort_polys = (SortPoly *)MEM_callocN(sizeof(SortPoly) * faces_num,
                                                    "mesh validate's sort_polys");
@@ -551,11 +556,13 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
 
       if (poly_start < 0 || poly_size < 3) {
         /* Invalid loop data. */
-        PRINT_ERR(
-            "\tPoly %u is invalid (loopstart: %d, totloop: %d)", sp->index, poly_start, poly_size);
+        PRINT_ERR("\tPoly %u is invalid (loopstart: %d, corners_num: %d)",
+                  sp->index,
+                  poly_start,
+                  poly_size);
         sp->invalid = true;
       }
-      else if (poly_start + poly_size > totloop) {
+      else if (poly_start + poly_size > corners_num) {
         /* Invalid loop data. */
         PRINT_ERR(
             "\tPoly %u uses loops out of range "
@@ -563,7 +570,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
             sp->index,
             poly_start,
             poly_start + poly_size - 1,
-            totloop - 1);
+            corners_num - 1);
         sp->invalid = true;
       }
       else {
@@ -579,7 +586,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
          * so we have to ensure here all verts of current face are cleared. */
         for (j = 0; j < poly_size; j++) {
           const int vert = corner_verts[sp->loopstart + j];
-          if (vert < totvert) {
+          if (vert < verts_num) {
             BLI_BITMAP_DISABLE(vert_tag, vert);
           }
         }
@@ -587,7 +594,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
         /* Test all face's loops' vert idx. */
         for (j = 0; j < poly_size; j++, v++) {
           const int vert = corner_verts[sp->loopstart + j];
-          if (vert >= totvert) {
+          if (vert >= verts_num) {
             /* Invalid vert idx. */
             PRINT_ERR("\tLoop %u has invalid vert reference (%d)", sp->loopstart + j, vert);
             sp->invalid = true;
@@ -624,7 +631,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
               sp->invalid = true;
             }
           }
-          else if (edge_i >= totedge) {
+          else if (edge_i >= edges_num) {
             /* Invalid edge idx.
              * We already know from previous text that a valid edge exists, use it (if allowed)! */
             if (do_fixes) {
@@ -776,9 +783,9 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
       }
     }
     /* We may have some remaining unused loops to get rid of! */
-    if (prev_end < totloop) {
+    if (prev_end < corners_num) {
       int corner;
-      for (j = prev_end, corner = prev_end; j < totloop; j++, corner++) {
+      for (j = prev_end, corner = prev_end; j < corners_num; j++, corner++) {
         PRINT_ERR("\tLoop %u is unused.", j);
         if (do_fixes) {
           REMOVE_LOOP_TAG(corner);
@@ -792,7 +799,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
   /* fix deform verts */
   if (dverts) {
     MDeformVert *dv;
-    for (i = 0, dv = dverts; i < totvert; i++, dv++) {
+    for (i = 0, dv = dverts; i < verts_num; i++, dv++) {
       MDeformWeight *dw;
 
       for (j = 0, dw = dv->dw; j < dv->totweight; j++, dw++) {
@@ -876,10 +883,10 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
 
       switch (msel->type) {
         case ME_VSEL:
-          tot_elem = mesh->totvert;
+          tot_elem = mesh->verts_num;
           break;
         case ME_ESEL:
-          tot_elem = mesh->totedge;
+          tot_elem = mesh->edges_num;
           break;
         case ME_FSEL:
           tot_elem = mesh->faces_num;
@@ -1020,11 +1027,11 @@ static bool mesh_validate_customdata(CustomData *data,
 }
 
 bool BKE_mesh_validate_all_customdata(CustomData *vert_data,
-                                      const uint totvert,
+                                      const uint verts_num,
                                       CustomData *edge_data,
-                                      const uint totedge,
+                                      const uint edges_num,
                                       CustomData *loop_data,
-                                      const uint totloop,
+                                      const uint corners_num,
                                       CustomData *face_data,
                                       const uint faces_num,
                                       const bool check_meshmask,
@@ -1040,11 +1047,11 @@ bool BKE_mesh_validate_all_customdata(CustomData *vert_data,
   }
 
   is_valid &= mesh_validate_customdata(
-      vert_data, mask.vmask, totvert, do_verbose, do_fixes, &is_change_v);
+      vert_data, mask.vmask, verts_num, do_verbose, do_fixes, &is_change_v);
   is_valid &= mesh_validate_customdata(
-      edge_data, mask.emask, totedge, do_verbose, do_fixes, &is_change_e);
+      edge_data, mask.emask, edges_num, do_verbose, do_fixes, &is_change_e);
   is_valid &= mesh_validate_customdata(
-      loop_data, mask.lmask, totloop, do_verbose, do_fixes, &is_change_l);
+      loop_data, mask.lmask, corners_num, do_verbose, do_fixes, &is_change_l);
   is_valid &= mesh_validate_customdata(
       face_data, mask.pmask, faces_num, do_verbose, do_fixes, &is_change_p);
 
@@ -1081,11 +1088,11 @@ bool BKE_mesh_validate(Mesh *mesh, const bool do_verbose, const bool cddata_chec
   }
 
   BKE_mesh_validate_all_customdata(&mesh->vert_data,
-                                   mesh->totvert,
+                                   mesh->verts_num,
                                    &mesh->edge_data,
-                                   mesh->totedge,
+                                   mesh->edges_num,
                                    &mesh->loop_data,
-                                   mesh->totloop,
+                                   mesh->corners_num,
                                    &mesh->face_data,
                                    mesh->faces_num,
                                    cddata_check_mask,
@@ -1134,11 +1141,11 @@ bool BKE_mesh_is_valid(Mesh *mesh)
 
   is_valid &= BKE_mesh_validate_all_customdata(
       &mesh->vert_data,
-      mesh->totvert,
+      mesh->verts_num,
       &mesh->edge_data,
-      mesh->totedge,
+      mesh->edges_num,
       &mesh->loop_data,
-      mesh->totloop,
+      mesh->corners_num,
       &mesh->face_data,
       mesh->faces_num,
       false, /* setting mask here isn't useful, gives false positives */
@@ -1213,7 +1220,7 @@ void strip_loose_facesloops(Mesh *mesh, blender::BitSpan faces_to_remove)
 
   int a, b;
   /* New loops idx! */
-  int *new_idx = (int *)MEM_mallocN(sizeof(int) * mesh->totloop, __func__);
+  int *new_idx = (int *)MEM_mallocN(sizeof(int) * mesh->corners_num, __func__);
 
   for (a = b = 0; a < mesh->faces_num; a++) {
     bool invalid = false;
@@ -1224,7 +1231,7 @@ void strip_loose_facesloops(Mesh *mesh, blender::BitSpan faces_to_remove)
     if (faces_to_remove[a]) {
       invalid = true;
     }
-    else if (stop > mesh->totloop || stop < start || size < 0) {
+    else if (stop > mesh->corners_num || stop < start || size < 0) {
       invalid = true;
     }
     else {
@@ -1249,7 +1256,7 @@ void strip_loose_facesloops(Mesh *mesh, blender::BitSpan faces_to_remove)
 
   /* And now, get rid of invalid loops. */
   int corner = 0;
-  for (a = b = 0; a < mesh->totloop; a++, corner++) {
+  for (a = b = 0; a < mesh->corners_num; a++, corner++) {
     if (corner_edges[corner] != INVALID_LOOP_EDGE_MARKER) {
       if (a != b) {
         CustomData_copy_data(&mesh->loop_data, &mesh->loop_data, a, b, 1);
@@ -1265,10 +1272,10 @@ void strip_loose_facesloops(Mesh *mesh, blender::BitSpan faces_to_remove)
   }
   if (a != b) {
     CustomData_free_elem(&mesh->loop_data, b, a - b);
-    mesh->totloop = b;
+    mesh->corners_num = b;
   }
 
-  face_offsets[mesh->faces_num] = mesh->totloop;
+  face_offsets[mesh->faces_num] = mesh->corners_num;
 
   /* And now, update faces' start loop index. */
   /* NOTE: At this point, there should never be any face using a striped loop! */
@@ -1284,10 +1291,10 @@ void mesh_strip_edges(Mesh *mesh)
 {
   blender::int2 *e;
   int a, b;
-  uint *new_idx = (uint *)MEM_mallocN(sizeof(int) * mesh->totedge, __func__);
+  uint *new_idx = (uint *)MEM_mallocN(sizeof(int) * mesh->edges_num, __func__);
   MutableSpan<blender::int2> edges = mesh->edges_for_write();
 
-  for (a = b = 0, e = edges.data(); a < mesh->totedge; a++, e++) {
+  for (a = b = 0, e = edges.data(); a < mesh->edges_num; a++, e++) {
     if ((*e)[0] != (*e)[1]) {
       if (a != b) {
         memcpy(&edges[b], e, sizeof(edges[b]));
@@ -1302,7 +1309,7 @@ void mesh_strip_edges(Mesh *mesh)
   }
   if (a != b) {
     CustomData_free_elem(&mesh->edge_data, b, a - b);
-    mesh->totedge = b;
+    mesh->edges_num = b;
   }
 
   /* And now, update loops' edge indices. */
@@ -1324,14 +1331,14 @@ void mesh_strip_edges(Mesh *mesh)
 
 void BKE_mesh_calc_edges_tessface(Mesh *mesh)
 {
-  const int numFaces = mesh->totface_legacy;
+  const int nulegacy_faces = mesh->totface_legacy;
   blender::VectorSet<blender::OrderedEdge> eh;
-  eh.reserve(numFaces);
-  MFace *mfaces = (MFace *)CustomData_get_layer_for_write(
+  eh.reserve(nulegacy_faces);
+  MFace *legacy_faces = (MFace *)CustomData_get_layer_for_write(
       &mesh->fdata_legacy, CD_MFACE, mesh->totface_legacy);
 
-  MFace *mf = mfaces;
-  for (int i = 0; i < numFaces; i++, mf++) {
+  MFace *mf = legacy_faces;
+  for (int i = 0; i < nulegacy_faces; i++, mf++) {
     eh.add({mf->v1, mf->v2});
     eh.add({mf->v2, mf->v3});
 
@@ -1353,16 +1360,16 @@ void BKE_mesh_calc_edges_tessface(Mesh *mesh)
   CustomData_add_layer(&edgeData, CD_ORIGINDEX, CD_SET_DEFAULT, numEdges);
 
   blender::int2 *ege = (blender::int2 *)CustomData_get_layer_named_for_write(
-      &edgeData, CD_PROP_INT32_2D, ".edge_verts", mesh->totedge);
-  int *index = (int *)CustomData_get_layer_for_write(&edgeData, CD_ORIGINDEX, mesh->totedge);
+      &edgeData, CD_PROP_INT32_2D, ".edge_verts", mesh->edges_num);
+  int *index = (int *)CustomData_get_layer_for_write(&edgeData, CD_ORIGINDEX, mesh->edges_num);
 
   memset(index, ORIGINDEX_NONE, sizeof(int) * numEdges);
   MutableSpan(ege, numEdges).copy_from(eh.as_span().cast<blender::int2>());
 
   /* free old CustomData and assign new one */
-  CustomData_free(&mesh->edge_data, mesh->totedge);
+  CustomData_free(&mesh->edge_data, mesh->edges_num);
   mesh->edge_data = edgeData;
-  mesh->totedge = numEdges;
+  mesh->edges_num = numEdges;
 }
 
 /** \} */

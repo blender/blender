@@ -472,7 +472,7 @@ static void duplicate_faces(GeometrySet &geometry_set,
   MutableSpan<int> new_corner_verts = new_mesh->corner_verts_for_write();
   MutableSpan<int> new_corner_edges = new_mesh->corner_edges_for_write();
 
-  Array<int> vert_mapping(new_mesh->totvert);
+  Array<int> vert_mapping(new_mesh->verts_num);
   Array<int> edge_mapping(new_edges.size());
   Array<int> loop_mapping(total_loops);
 
@@ -784,7 +784,7 @@ static void duplicate_points_mesh(GeometrySet &geometry_set,
   const Mesh &mesh = *geometry_set.get_mesh();
 
   const bke::MeshFieldContext field_context{mesh, ATTR_DOMAIN_POINT};
-  FieldEvaluator evaluator{field_context, mesh.totvert};
+  FieldEvaluator evaluator{field_context, mesh.verts_num};
   evaluator.add(count_field);
   evaluator.set_selection(selection_field);
   evaluator.evaluate();

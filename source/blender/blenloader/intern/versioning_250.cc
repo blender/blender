@@ -961,9 +961,9 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
           key->refkey)
       {
         data = static_cast<const float *>(key->refkey->data);
-        tot = std::min(me->totvert, key->refkey->totelem);
+        tot = std::min(me->verts_num, key->refkey->totelem);
         MVert *verts = (MVert *)CustomData_get_layer_for_write(
-            &me->vert_data, CD_MVERT, me->totvert);
+            &me->vert_data, CD_MVERT, me->verts_num);
         for (a = 0; a < tot; a++, data += 3) {
           copy_v3_v3(verts[a].co_legacy, data);
         }

@@ -768,7 +768,7 @@ void USDGenericMeshWriter::write_normals(const Mesh *mesh, pxr::UsdGeomMesh usd_
   pxr::UsdTimeCode timecode = get_export_time_code();
 
   pxr::VtVec3fArray loop_normals;
-  loop_normals.resize(mesh->totloop);
+  loop_normals.resize(mesh->corners_num);
 
   MutableSpan dst_normals(reinterpret_cast<float3 *>(loop_normals.data()), loop_normals.size());
 
@@ -814,9 +814,9 @@ void USDGenericMeshWriter::write_surface_velocity(const Mesh *mesh, pxr::UsdGeom
 
   /* Export per-vertex velocity vectors. */
   pxr::VtVec3fArray usd_velocities;
-  usd_velocities.reserve(mesh->totvert);
+  usd_velocities.reserve(mesh->verts_num);
 
-  for (int vertex_idx = 0, totvert = mesh->totvert; vertex_idx < totvert; ++vertex_idx) {
+  for (int vertex_idx = 0, totvert = mesh->verts_num; vertex_idx < totvert; ++vertex_idx) {
     usd_velocities.push_back(pxr::GfVec3f(velocities[vertex_idx]));
   }
 

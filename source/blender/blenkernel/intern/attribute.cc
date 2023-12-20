@@ -72,11 +72,11 @@ static void get_domains(const ID *id, DomainInfo info[ATTR_DOMAIN_NUM])
       }
       else {
         info[ATTR_DOMAIN_POINT].customdata = &mesh->vert_data;
-        info[ATTR_DOMAIN_POINT].length = mesh->totvert;
+        info[ATTR_DOMAIN_POINT].length = mesh->verts_num;
         info[ATTR_DOMAIN_EDGE].customdata = &mesh->edge_data;
-        info[ATTR_DOMAIN_EDGE].length = mesh->totedge;
+        info[ATTR_DOMAIN_EDGE].length = mesh->edges_num;
         info[ATTR_DOMAIN_CORNER].customdata = &mesh->loop_data;
-        info[ATTR_DOMAIN_CORNER].length = mesh->totloop;
+        info[ATTR_DOMAIN_CORNER].length = mesh->corners_num;
         info[ATTR_DOMAIN_FACE].customdata = &mesh->face_data;
         info[ATTR_DOMAIN_FACE].length = mesh->faces_num;
       }

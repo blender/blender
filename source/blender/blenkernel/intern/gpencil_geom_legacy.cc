@@ -2449,7 +2449,7 @@ static void gpencil_generate_edgeloops(Object *ob,
 {
   using namespace blender;
   Mesh *mesh = (Mesh *)ob->data;
-  if (mesh->totedge == 0) {
+  if (mesh->edges_num == 0) {
     return;
   }
   const Span<float3> vert_positions = mesh->vert_positions();
@@ -2462,14 +2462,14 @@ static void gpencil_generate_edgeloops(Object *ob,
 
   /* Arrays for all edge vertices (forward and backward) that form a edge loop.
    * This is reused for each edge-loop to create gpencil stroke. */
-  uint *stroke = (uint *)MEM_mallocN(sizeof(uint) * mesh->totedge * 2, __func__);
-  uint *stroke_fw = (uint *)MEM_mallocN(sizeof(uint) * mesh->totedge, __func__);
-  uint *stroke_bw = (uint *)MEM_mallocN(sizeof(uint) * mesh->totedge, __func__);
+  uint *stroke = (uint *)MEM_mallocN(sizeof(uint) * mesh->edges_num * 2, __func__);
+  uint *stroke_fw = (uint *)MEM_mallocN(sizeof(uint) * mesh->edges_num, __func__);
+  uint *stroke_bw = (uint *)MEM_mallocN(sizeof(uint) * mesh->edges_num, __func__);
 
   /* Create array with all edges. */
-  GpEdge *gp_edges = (GpEdge *)MEM_callocN(sizeof(GpEdge) * mesh->totedge, __func__);
+  GpEdge *gp_edges = (GpEdge *)MEM_callocN(sizeof(GpEdge) * mesh->edges_num, __func__);
   GpEdge *gped = nullptr;
-  for (int i = 0; i < mesh->totedge; i++) {
+  for (int i = 0; i < mesh->edges_num; i++) {
     const blender::int2 &edge = edges[i];
     gped = &gp_edges[i];
     copy_v3_v3(gped->n1, vert_normals[edge[0]]);
@@ -2497,7 +2497,7 @@ static void gpencil_generate_edgeloops(Object *ob,
     /* Look first unused edge. */
     if (gped->flag != 0) {
       e++;
-      if (e == mesh->totedge) {
+      if (e == mesh->edges_num) {
         pending = false;
       }
       continue;
@@ -2510,9 +2510,10 @@ static void gpencil_generate_edgeloops(Object *ob,
     /* Hash used to avoid loop over same vertices. */
     GHash *v_table = BLI_ghash_int_new(__func__);
     /* Look forward edges. */
-    int totedges = gpencil_walk_edge(v_table, gp_edges, mesh->totedge, stroke_fw, e, angle, false);
+    int totedges = gpencil_walk_edge(
+        v_table, gp_edges, mesh->edges_num, stroke_fw, e, angle, false);
     /* Look backward edges. */
-    int totbw = gpencil_walk_edge(v_table, gp_edges, mesh->totedge, stroke_bw, e, angle, true);
+    int totbw = gpencil_walk_edge(v_table, gp_edges, mesh->edges_num, stroke_bw, e, angle, true);
 
     BLI_ghash_free(v_table, nullptr, nullptr);
 
@@ -2673,7 +2674,7 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
   char element_name[200];
 
   /* Need at least an edge. */
-  if (me_eval->totedge < 1) {
+  if (me_eval->edges_num < 1) {
     return false;
   }
 

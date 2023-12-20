@@ -28,13 +28,13 @@ static Curves *edge_paths_to_curves_convert(
 {
   Vector<int> vert_indices;
   Vector<int> curve_offsets;
-  Array<bool> visited(mesh.totvert, false);
+  Array<bool> visited(mesh.verts_num, false);
   start_verts_mask.foreach_index([&](const int first_vert) {
     const int second_vert = next_indices[first_vert];
     if (first_vert == second_vert) {
       return;
     }
-    if (second_vert < 0 || second_vert >= mesh.totvert) {
+    if (second_vert < 0 || second_vert >= mesh.verts_num) {
       return;
     }
 
@@ -46,7 +46,7 @@ static Curves *edge_paths_to_curves_convert(
       visited[current_vert] = true;
       vert_indices.append(current_vert);
       const int next_vert = next_indices[current_vert];
-      if (next_vert < 0 || next_vert >= mesh.totvert) {
+      if (next_vert < 0 || next_vert >= mesh.verts_num) {
         break;
       }
       current_vert = next_vert;
@@ -79,7 +79,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
 
     const bke::MeshFieldContext context{*mesh, ATTR_DOMAIN_POINT};
-    fn::FieldEvaluator evaluator{context, mesh->totvert};
+    fn::FieldEvaluator evaluator{context, mesh->verts_num};
     evaluator.add(params.get_input<Field<int>>("Next Vertex Index"));
     evaluator.add(params.get_input<Field<bool>>("Start Vertices"));
     evaluator.evaluate();

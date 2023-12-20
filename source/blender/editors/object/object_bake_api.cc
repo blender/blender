@@ -1013,7 +1013,7 @@ static bool bake_targets_init_vertex_colors(Main *bmain,
   targets->materials_num = ob->totcol;
 
   BakeImage *bk_image = &targets->images[0];
-  bk_image->width = mesh->totloop;
+  bk_image->width = mesh->corners_num;
   bk_image->height = 1;
   bk_image->offset = 0;
   bk_image->image = nullptr;
@@ -1075,7 +1075,7 @@ static void bake_targets_populate_pixels_color_attributes(BakeTargets *targets,
   }
 
   /* Populate through adjacent triangles, first triangle wins. */
-  const int corner_tris_num = poly_to_tri_count(me_eval->faces_num, me_eval->totloop);
+  const int corner_tris_num = poly_to_tri_count(me_eval->faces_num, me_eval->corners_num);
   blender::int3 *corner_tris = static_cast<blender::int3 *>(
       MEM_mallocN(sizeof(*corner_tris) * corner_tris_num, __func__));
 
@@ -1104,7 +1104,7 @@ static void bake_targets_populate_pixels_color_attributes(BakeTargets *targets,
       if (vert_origindex != nullptr && poly_origindex != nullptr) {
         l = find_original_loop(
             orig_faces, orig_corner_verts, vert_origindex, poly_origindex, face_i, v);
-        if (l == ORIGINDEX_NONE || l >= mesh->totloop) {
+        if (l == ORIGINDEX_NONE || l >= mesh->corners_num) {
           continue;
         }
       }
@@ -1189,16 +1189,16 @@ static bool bake_targets_output_vertex_colors(BakeTargets *targets, Object *ob)
   const float *result = targets->result;
 
   if (domain == ATTR_DOMAIN_POINT) {
-    const int totvert = mesh->totvert;
-    const int totloop = mesh->totloop;
+    const int totvert = mesh->verts_num;
+    const int totloop = mesh->corners_num;
 
     MPropCol *mcol = static_cast<MPropCol *>(
         MEM_malloc_arrayN(totvert, sizeof(MPropCol), __func__));
 
     /* Accumulate float vertex colors in scene linear color space. */
     int *num_loops_for_vertex = static_cast<int *>(
-        MEM_callocN(sizeof(int) * mesh->totvert, "num_loops_for_vertex"));
-    memset(mcol, 0, sizeof(MPropCol) * mesh->totvert);
+        MEM_callocN(sizeof(int) * mesh->verts_num, "num_loops_for_vertex"));
+    memset(mcol, 0, sizeof(MPropCol) * mesh->verts_num);
 
     const blender::Span<int> corner_verts = mesh->corner_verts();
     for (int i = 0; i < totloop; i++) {
@@ -1236,7 +1236,7 @@ static bool bake_targets_output_vertex_colors(BakeTargets *targets, Object *ob)
     else {
       /* Copy to mesh. */
       if (active_color_layer->type == CD_PROP_COLOR) {
-        memcpy(active_color_layer->data, mcol, sizeof(MPropCol) * mesh->totvert);
+        memcpy(active_color_layer->data, mcol, sizeof(MPropCol) * mesh->verts_num);
       }
       else {
         convert_float_color_to_byte_color(
@@ -1280,14 +1280,14 @@ static bool bake_targets_output_vertex_colors(BakeTargets *targets, Object *ob)
       /* Copy to mesh. */
       if (active_color_layer->type == CD_PROP_COLOR) {
         MPropCol *colors = static_cast<MPropCol *>(active_color_layer->data);
-        for (int i = 0; i < mesh->totloop; i++) {
+        for (int i = 0; i < mesh->corners_num; i++) {
           zero_v4(colors[i].color);
           bake_result_add_to_rgba(colors[i].color, &result[i * channels_num], channels_num);
         }
       }
       else {
         MLoopCol *colors = static_cast<MLoopCol *>(active_color_layer->data);
-        for (int i = 0; i < mesh->totloop; i++) {
+        for (int i = 0; i < mesh->corners_num; i++) {
           MPropCol color;
           zero_v4(color.color);
           bake_result_add_to_rgba(color.color, &result[i * channels_num], channels_num);
@@ -1512,7 +1512,7 @@ static int bake(const BakeAPIRender *bkr,
     if (ob_cage) {
       me_cage_eval = bake_mesh_new_from_object(depsgraph, ob_cage_eval, preserve_origindex);
       if ((me_low_eval->faces_num != me_cage_eval->faces_num) ||
-          (me_low_eval->totloop != me_cage_eval->totloop))
+          (me_low_eval->corners_num != me_cage_eval->corners_num))
       {
         BKE_report(reports,
                    RPT_ERROR,

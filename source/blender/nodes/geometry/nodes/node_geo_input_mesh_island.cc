@@ -39,14 +39,14 @@ class IslandFieldInput final : public bke::MeshFieldInput {
   {
     const Span<int2> edges = mesh.edges();
 
-    AtomicDisjointSet islands(mesh.totvert);
+    AtomicDisjointSet islands(mesh.verts_num);
     threading::parallel_for(edges.index_range(), 1024, [&](const IndexRange range) {
       for (const int2 &edge : edges.slice(range)) {
         islands.join(edge[0], edge[1]);
       }
     });
 
-    Array<int> output(mesh.totvert);
+    Array<int> output(mesh.verts_num);
     islands.calc_reduced_ids(output);
 
     return mesh.attributes().adapt_domain<int>(
@@ -83,7 +83,7 @@ class IslandCountFieldInput final : public bke::MeshFieldInput {
   {
     const Span<int2> edges = mesh.edges();
 
-    AtomicDisjointSet islands(mesh.totvert);
+    AtomicDisjointSet islands(mesh.verts_num);
     threading::parallel_for(edges.index_range(), 1024, [&](const IndexRange range) {
       for (const int2 &edge : edges.slice(range)) {
         islands.join(edge[0], edge[1]);

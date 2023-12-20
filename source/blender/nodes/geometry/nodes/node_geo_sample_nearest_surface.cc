@@ -126,7 +126,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     params.set_default_remaining_outputs();
     return;
   }
-  if (mesh->totvert == 0) {
+  if (mesh->verts_num == 0) {
     params.set_default_remaining_outputs();
     return;
   }

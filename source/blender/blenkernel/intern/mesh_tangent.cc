@@ -140,12 +140,12 @@ void BKE_mesh_calc_loop_tangent_single(Mesh *mesh,
 
   BKE_mesh_calc_loop_tangent_single_ex(
       reinterpret_cast<const float(*)[3]>(mesh->vert_positions().data()),
-      mesh->totvert,
+      mesh->verts_num,
       mesh->corner_verts().data(),
       r_looptangents,
       reinterpret_cast<const float(*)[3]>(mesh->corner_normals().data()),
       reinterpret_cast<const float(*)[2]>(uv_map.data()),
-      mesh->totloop,
+      mesh->corners_num,
       mesh->faces(),
       reports);
 }
@@ -606,7 +606,7 @@ void BKE_mesh_calc_loop_tangents(Mesh *me_eval,
       static_cast<const float(*)[3]>(CustomData_get_layer(&me_eval->vert_data, CD_ORCO)),
       /* result */
       &me_eval->loop_data,
-      uint(me_eval->totloop),
+      uint(me_eval->corners_num),
       &tangent_mask);
 }
 

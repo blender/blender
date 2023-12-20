@@ -360,7 +360,7 @@ static bool edbm_backbuf_check_and_select_verts_obmode(Mesh *mesh,
   const VArray<bool> hide_vert = *attributes.lookup_or_default<bool>(
       ".hide_vert", ATTR_DOMAIN_POINT, false);
 
-  for (int index = 0; index < mesh->totvert; index++) {
+  for (int index = 0; index < mesh->verts_num; index++) {
     if (!hide_vert[index]) {
       const bool is_select = select_vert.span[index];
       const bool is_inside = BLI_BITMAP_TEST_BOOL(select_bitmap, index);
@@ -1262,7 +1262,7 @@ static bool do_lasso_select_paintvert(ViewContext *vc,
   Mesh *mesh = static_cast<Mesh *>(ob->data);
   rcti rect;
 
-  if (mesh == nullptr || mesh->totvert == 0) {
+  if (mesh == nullptr || mesh->verts_num == 0) {
     return false;
   }
 
@@ -3550,7 +3550,7 @@ static bool do_paintvert_box_select(ViewContext *vc,
   const bool use_zbuf = !XRAY_ENABLED(vc->v3d);
 
   Mesh *mesh = static_cast<Mesh *>(vc->obact->data);
-  if ((mesh == nullptr) || (mesh->totvert == 0)) {
+  if ((mesh == nullptr) || (mesh->verts_num == 0)) {
     return false;
   }
 

@@ -137,7 +137,7 @@ struct CornerNormalSpaceArray {
 
   /**
    * The index of the data in the #spaces array for each face corner (the array size is the
-   * same as #Mesh::totloop). Rare -1 values define face corners without a coordinate space.
+   * same as #Mesh::corners_num). Rare -1 values define face corners without a coordinate space.
    */
   Array<int> corner_space_indices;
 

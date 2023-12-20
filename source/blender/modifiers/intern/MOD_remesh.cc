@@ -64,7 +64,7 @@ static void init_dualcon_mesh(DualConInput *input, Mesh *mesh)
 
   input->co = (DualConCo)mesh->vert_positions().data();
   input->co_stride = sizeof(blender::float3);
-  input->totco = mesh->totvert;
+  input->totco = mesh->verts_num;
 
   input->mloop = (DualConLoop)mesh->corner_verts().data();
   input->loop_stride = sizeof(int);
@@ -109,7 +109,7 @@ static void dualcon_add_vert(void *output_v, const float co[3])
 {
   DualConOutput *output = static_cast<DualConOutput *>(output_v);
 
-  BLI_assert(output->curvert < output->mesh->totvert);
+  BLI_assert(output->curvert < output->mesh->verts_num);
 
   copy_v3_v3(output->vert_positions[output->curvert], co);
   output->curvert++;

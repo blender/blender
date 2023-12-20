@@ -105,11 +105,11 @@ static void join_mesh_single(Depsgraph *depsgraph,
   int *corner_verts = *corner_verts_pp;
   int *corner_edges = *corner_edges_pp;
 
-  if (mesh->totvert) {
+  if (mesh->verts_num) {
     /* standard data */
     CustomData_merge_layout(
         &mesh->vert_data, vert_data, CD_MASK_MESH.vmask, CD_SET_DEFAULT, totvert);
-    CustomData_copy_data_named(&mesh->vert_data, vert_data, 0, *vertofs, mesh->totvert);
+    CustomData_copy_data_named(&mesh->vert_data, vert_data, 0, *vertofs, mesh->verts_num);
 
     /* vertex groups */
     MDeformVert *dvert = (MDeformVert *)CustomData_get_for_write(
@@ -127,7 +127,7 @@ static void join_mesh_single(Depsgraph *depsgraph,
       vgroup_index_map = BKE_object_defgroup_index_map_create(
           ob_src, ob_dst, &vgroup_index_map_len);
       BKE_object_defgroup_index_map_apply(
-          dvert, mesh->totvert, vgroup_index_map, vgroup_index_map_len);
+          dvert, mesh->verts_num, vgroup_index_map, vgroup_index_map_len);
       if (vgroup_index_map != nullptr) {
         MEM_freeN(vgroup_index_map);
       }
@@ -141,7 +141,7 @@ static void join_mesh_single(Depsgraph *depsgraph,
       mul_m4_m4m4(cmat, imat, ob_src->object_to_world);
 
       /* transform vertex coordinates into new space */
-      for (a = 0; a < mesh->totvert; a++) {
+      for (a = 0; a < mesh->verts_num; a++) {
         mul_m4_v3(cmat, vert_positions[a]);
       }
 
@@ -163,14 +163,14 @@ static void join_mesh_single(Depsgraph *depsgraph,
             /* copy this mesh's shape-key to the destination shape-key
              * (need to transform first) */
             float(*ocos)[3] = static_cast<float(*)[3]>(okb->data);
-            for (a = 0; a < mesh->totvert; a++, cos++, ocos++) {
+            for (a = 0; a < mesh->verts_num; a++, cos++, ocos++) {
               copy_v3_v3(*cos, *ocos);
               mul_m4_v3(cmat, *cos);
             }
           }
           else {
             /* Copy this mesh's vertex coordinates to the destination shape-key. */
-            for (a = 0; a < mesh->totvert; a++, cos++) {
+            for (a = 0; a < mesh->verts_num; a++, cos++) {
               copy_v3_v3(*cos, vert_positions[a]);
             }
           }
@@ -192,13 +192,13 @@ static void join_mesh_single(Depsgraph *depsgraph,
           if (okb) {
             /* copy this mesh's shape-key to the destination shape-key */
             float(*ocos)[3] = static_cast<float(*)[3]>(okb->data);
-            for (a = 0; a < mesh->totvert; a++, cos++, ocos++) {
+            for (a = 0; a < mesh->verts_num; a++, cos++, ocos++) {
               copy_v3_v3(*cos, *ocos);
             }
           }
           else {
             /* Copy base-coordinates to the destination shape-key. */
-            for (a = 0; a < mesh->totvert; a++, cos++) {
+            for (a = 0; a < mesh->verts_num; a++, cos++) {
               copy_v3_v3(*cos, vert_positions[a]);
             }
           }
@@ -207,17 +207,17 @@ static void join_mesh_single(Depsgraph *depsgraph,
     }
   }
 
-  if (mesh->totedge) {
+  if (mesh->edges_num) {
     CustomData_merge_layout(
         &mesh->edge_data, edge_data, CD_MASK_MESH.emask, CD_SET_DEFAULT, totedge);
-    CustomData_copy_data_named(&mesh->edge_data, edge_data, 0, *edgeofs, mesh->totedge);
+    CustomData_copy_data_named(&mesh->edge_data, edge_data, 0, *edgeofs, mesh->edges_num);
 
-    for (a = 0; a < mesh->totedge; a++, edge++) {
+    for (a = 0; a < mesh->edges_num; a++, edge++) {
       (*edge) += *vertofs;
     }
   }
 
-  if (mesh->totloop) {
+  if (mesh->corners_num) {
     if (ob_src != ob_dst) {
       MultiresModifierData *mmd;
 
@@ -230,9 +230,9 @@ static void join_mesh_single(Depsgraph *depsgraph,
     }
 
     CustomData_merge_layout(&mesh->loop_data, ldata, CD_MASK_MESH.lmask, CD_SET_DEFAULT, totloop);
-    CustomData_copy_data_named(&mesh->loop_data, ldata, 0, *loopofs, mesh->totloop);
+    CustomData_copy_data_named(&mesh->loop_data, ldata, 0, *loopofs, mesh->corners_num);
 
-    for (a = 0; a < mesh->totloop; a++) {
+    for (a = 0; a < mesh->corners_num; a++) {
       corner_verts[a] += *vertofs;
       corner_edges[a] += *edgeofs;
     }
@@ -279,13 +279,13 @@ static void join_mesh_single(Depsgraph *depsgraph,
   }
 
   /* these are used for relinking (cannot be set earlier, or else reattaching goes wrong) */
-  *vertofs += mesh->totvert;
-  *vert_positions_pp += mesh->totvert;
-  *edgeofs += mesh->totedge;
-  *medge_pp += mesh->totedge;
-  *loopofs += mesh->totloop;
-  *corner_verts_pp += mesh->totloop;
-  *corner_edges_pp += mesh->totloop;
+  *vertofs += mesh->verts_num;
+  *vert_positions_pp += mesh->verts_num;
+  *edgeofs += mesh->edges_num;
+  *medge_pp += mesh->edges_num;
+  *loopofs += mesh->corners_num;
+  *corner_verts_pp += mesh->corners_num;
+  *corner_edges_pp += mesh->corners_num;
   *polyofs += mesh->faces_num;
 }
 
@@ -348,9 +348,9 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
     if (ob_iter->type == OB_MESH) {
       mesh = static_cast<Mesh *>(ob_iter->data);
 
-      totvert += mesh->totvert;
-      totedge += mesh->totedge;
-      totloop += mesh->totloop;
+      totvert += mesh->verts_num;
+      totedge += mesh->edges_num;
+      totloop += mesh->corners_num;
       faces_num += mesh->faces_num;
       totmat += ob_iter->totcol;
 
@@ -388,7 +388,7 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
   mesh = (Mesh *)ob->data;
   key = mesh->key;
 
-  if (ELEM(totvert, 0, mesh->totvert)) {
+  if (ELEM(totvert, 0, mesh->verts_num)) {
     BKE_report(op->reports, RPT_WARNING, "No mesh data to join");
     return OPERATOR_CANCELLED;
   }
@@ -470,7 +470,7 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
 
       mesh_join_offset_face_sets_ID(mesh, &face_set_id_offset);
 
-      if (mesh->totvert) {
+      if (mesh->verts_num) {
         /* Add this object's materials to the base one's if they don't exist already
          * (but only if limits not exceeded yet) */
         if (totcol < MAXMAT) {
@@ -657,9 +657,9 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
         face_offsets);
   }
 
-  mesh->totvert = totvert;
-  mesh->totedge = totedge;
-  mesh->totloop = totloop;
+  mesh->verts_num = totvert;
+  mesh->edges_num = totedge;
+  mesh->corners_num = totloop;
   mesh->faces_num = faces_num;
 
   mesh->vert_data = vert_data;
@@ -748,7 +748,7 @@ int ED_mesh_shapes_join_objects_exec(bContext *C, wmOperator *op)
     if (ob_iter->type == OB_MESH) {
       selme = (Mesh *)ob_iter->data;
 
-      if (selme->totvert == mesh->totvert) {
+      if (selme->verts_num == mesh->verts_num) {
         ok = true;
       }
       else {
@@ -788,7 +788,7 @@ int ED_mesh_shapes_join_objects_exec(bContext *C, wmOperator *op)
     if (ob_iter->type == OB_MESH) {
       selme = (Mesh *)ob_iter->data;
 
-      if (selme->totvert == mesh->totvert) {
+      if (selme->verts_num == mesh->verts_num) {
         Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
         Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob_iter);
 
@@ -1106,7 +1106,7 @@ int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em, Mesh *me_eval)
   BLI_assert(em == nullptr); /* Does not work otherwise, currently... */
 
   const bool use_topology = (mesh->editflag & ME_EDIT_MIRROR_TOPO) != 0;
-  const int totvert = me_eval ? me_eval->totvert : mesh->totvert;
+  const int totvert = me_eval ? me_eval->verts_num : mesh->verts_num;
   const int totface = me_eval ? me_eval->totface_legacy : mesh->totface_legacy;
   int a;
 
@@ -1286,7 +1286,7 @@ bool ED_mesh_pick_face_vert(
       }
     }
 
-    if ((v_idx_best != ORIGINDEX_NONE) && (v_idx_best < mesh->totvert)) {
+    if ((v_idx_best != ORIGINDEX_NONE) && (v_idx_best < mesh->verts_num)) {
       *r_index = v_idx_best;
       return true;
     }
@@ -1339,7 +1339,7 @@ bool ED_mesh_pick_vert(
 
   BLI_assert(mesh && GS(mesh->id.name) == ID_ME);
 
-  if (!mesh || mesh->totvert == 0) {
+  if (!mesh || mesh->verts_num == 0) {
     return false;
   }
 
@@ -1352,14 +1352,14 @@ bool ED_mesh_pick_vert(
       /* Sample rectangle to increase chances of selecting, so that when clicking
        * on an face in the back-buffer, we can still select a vert. */
       *r_index = DRW_select_buffer_find_nearest_to_point(
-          vc.depsgraph, vc.region, vc.v3d, mval, 1, mesh->totvert + 1, &dist_px);
+          vc.depsgraph, vc.region, vc.v3d, mval, 1, mesh->verts_num + 1, &dist_px);
     }
     else {
       /* sample only on the exact position */
       *r_index = DRW_select_buffer_sample_point(vc.depsgraph, vc.region, vc.v3d, mval);
     }
 
-    if ((*r_index) == 0 || (*r_index) > uint(mesh->totvert)) {
+    if ((*r_index) == 0 || (*r_index) > uint(mesh->verts_num)) {
       return false;
     }
 

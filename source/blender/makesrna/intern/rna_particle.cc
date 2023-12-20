@@ -534,7 +534,7 @@ static int rna_ParticleSystem_tessfaceidx_on_emitter(ParticleSystem *particlesys
 
   BKE_mesh_tessface_ensure(modifier->mesh_final); /* BMESH - UNTIL MODIFIER IS UPDATED FOR POLYS */
   totface = modifier->mesh_final->totface_legacy;
-  totvert = modifier->mesh_final->totvert;
+  totvert = modifier->mesh_final->verts_num;
 
   /* 1. check that everything is ok & updated */
   if (!particlesystem || !totface) {

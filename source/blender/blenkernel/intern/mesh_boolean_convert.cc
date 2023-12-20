@@ -195,7 +195,7 @@ void MeshesToIMeshInfo::input_mvert_for_orig_index(int orig_index,
   BLI_assert(0 <= orig_mesh_index && orig_mesh_index < meshes.size());
   const Mesh *mesh = meshes[orig_mesh_index];
   int index_in_mesh = orig_index - mesh_vert_offset[orig_mesh_index];
-  BLI_assert(0 <= index_in_mesh && index_in_mesh < mesh->totvert);
+  BLI_assert(0 <= index_in_mesh && index_in_mesh < mesh->verts_num);
   if (r_orig_mesh) {
     *r_orig_mesh = mesh;
   }
@@ -213,7 +213,7 @@ void MeshesToIMeshInfo::input_medge_for_orig_index(int orig_index,
   BLI_assert(0 <= orig_mesh_index && orig_mesh_index < meshes.size());
   const Mesh *mesh = meshes[orig_mesh_index];
   int index_in_mesh = orig_index - mesh_edge_offset[orig_mesh_index];
-  BLI_assert(0 <= index_in_mesh && index_in_mesh < mesh->totedge);
+  BLI_assert(0 <= index_in_mesh && index_in_mesh < mesh->edges_num);
   if (r_orig_mesh) {
     *r_orig_mesh = mesh;
   }
@@ -250,8 +250,8 @@ static IMesh meshes_to_imesh(Span<const Mesh *> meshes,
   int &totedge = r_info->tot_meshes_edges;
   int &faces_num = r_info->tot_meshes_polys;
   for (const Mesh *mesh : meshes) {
-    totvert += mesh->totvert;
-    totedge += mesh->totedge;
+    totvert += mesh->verts_num;
+    totedge += mesh->edges_num;
     faces_num += mesh->faces_num;
   }
 
@@ -307,7 +307,7 @@ static IMesh meshes_to_imesh(Span<const Mesh *> meshes,
      * that would have a negative transform if you do that. */
     bool need_face_flip = r_info->has_negative_transform[mi] != r_info->has_negative_transform[0];
 
-    Vector<Vert *> verts(mesh->totvert);
+    Vector<Vert *> verts(mesh->verts_num);
     const Span<float3> vert_positions = mesh->vert_positions();
     const OffsetIndices faces = mesh->faces();
     const Span<int> corner_verts = mesh->corner_verts();
@@ -364,7 +364,7 @@ static IMesh meshes_to_imesh(Span<const Mesh *> meshes,
       r_info->mesh_to_imesh_face[f] = arena.add_face(face_vert, f, face_edge_orig);
       ++f;
     }
-    e += mesh->totedge;
+    e += mesh->edges_num;
   }
   return IMesh(r_info->mesh_to_imesh_face);
 }
@@ -495,7 +495,7 @@ static int fill_orig_loops(const Face *f,
   }
   int orig_me_vert_offset = mim.mesh_vert_offset[orig_me_index];
   int first_orig_v_in_orig_me = first_orig_v - orig_me_vert_offset;
-  BLI_assert(0 <= first_orig_v_in_orig_me && first_orig_v_in_orig_me < orig_me->totvert);
+  BLI_assert(0 <= first_orig_v_in_orig_me && first_orig_v_in_orig_me < orig_me->verts_num);
   /* Assume all vertices in each face is unique. */
   int offset = -1;
   for (int i = 0; i < orig_mplen; ++i) {
@@ -515,7 +515,7 @@ static int fill_orig_loops(const Face *f,
     int fv_orig = f->vert[mp_loop_index]->orig;
     if (fv_orig != NO_INDEX) {
       fv_orig -= orig_me_vert_offset;
-      if (fv_orig < 0 || fv_orig >= orig_me->totvert) {
+      if (fv_orig < 0 || fv_orig >= orig_me->verts_num) {
         fv_orig = NO_INDEX;
       }
     }
@@ -525,7 +525,7 @@ static int fill_orig_loops(const Face *f,
       int fvnext_orig = f->vert[(mp_loop_index + 1) % orig_mplen]->orig;
       if (fvnext_orig != NO_INDEX) {
         fvnext_orig -= orig_me_vert_offset;
-        if (fvnext_orig < 0 || fvnext_orig >= orig_me->totvert) {
+        if (fvnext_orig < 0 || fvnext_orig >= orig_me->verts_num) {
           fvnext_orig = NO_INDEX;
         }
       }
@@ -639,7 +639,7 @@ static void copy_or_interp_loop_attributes(Mesh *dest_mesh,
           src_blocks_ofs[j] = POINTER_OFFSET(layer, size * (orig_face[j]));
         }
         void *dst_layer = CustomData_get_layer_n_for_write(
-            target_cd, ty, target_layer_type_index, dest_mesh->totloop);
+            target_cd, ty, target_layer_type_index, dest_mesh->corners_num);
         void *dst_block_ofs = POINTER_OFFSET(dst_layer, size * loop_index);
         CustomData_bmesh_interp_n(target_cd,
                                   src_blocks_ofs.data(),
@@ -663,19 +663,19 @@ static void merge_vertex_loop_face_customdata_layers(Mesh *target, MeshesToIMesh
 {
   for (int mesh_index = 1; mesh_index < mim.meshes.size(); ++mesh_index) {
     const Mesh *mesh = mim.meshes[mesh_index];
-    if (mesh->totvert) {
+    if (mesh->verts_num) {
       CustomData_merge_layout(&mesh->vert_data,
                               &target->vert_data,
                               CD_MASK_MESH.vmask,
                               CD_SET_DEFAULT,
-                              target->totvert);
+                              target->verts_num);
     }
-    if (mesh->totloop) {
+    if (mesh->corners_num) {
       CustomData_merge_layout(&mesh->loop_data,
                               &target->loop_data,
                               CD_MASK_MESH.lmask,
                               CD_SET_DEFAULT,
-                              target->totloop);
+                              target->corners_num);
     }
     if (mesh->faces_num) {
       CustomData_merge_layout(&mesh->face_data,
@@ -691,12 +691,12 @@ static void merge_edge_customdata_layers(Mesh *target, MeshesToIMeshInfo &mim)
 {
   for (int mesh_index = 0; mesh_index < mim.meshes.size(); ++mesh_index) {
     const Mesh *mesh = mim.meshes[mesh_index];
-    if (mesh->totedge) {
+    if (mesh->edges_num) {
       CustomData_merge_layout(&mesh->edge_data,
                               &target->edge_data,
                               CD_MASK_MESH.emask,
                               CD_SET_DEFAULT,
-                              target->totedge);
+                              target->edges_num);
     }
   }
 }

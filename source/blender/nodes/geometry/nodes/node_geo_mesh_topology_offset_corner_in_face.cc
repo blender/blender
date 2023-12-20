@@ -41,7 +41,7 @@ class OffsetCornerInFaceFieldInput final : public bke::MeshFieldInput {
                                  const eAttrDomain domain,
                                  const IndexMask &mask) const final
   {
-    const IndexRange corner_range(mesh.totloop);
+    const IndexRange corner_range(mesh.corners_num);
     const OffsetIndices faces = mesh.faces();
 
     const bke::MeshFieldContext context{mesh, domain};

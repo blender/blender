@@ -174,7 +174,7 @@ void read_mverts(Mesh &mesh, const P3fArraySamplePtr positions, const N3fArraySa
   mesh.tag_positions_changed();
 
   if (normals) {
-    Vector<float3> vert_normals(mesh.totvert);
+    Vector<float3> vert_normals(mesh.verts_num);
     for (const int64_t i : IndexRange(normals->size())) {
       Imath::V3f nor_in = (*normals)[i];
       copy_zup_from_yup(vert_normals[i], nor_in.getValue());
@@ -265,7 +265,7 @@ static void process_loop_normals(CDStreamConfig &config, const N3fArraySamplePtr
   }
 
   Mesh *mesh = config.mesh;
-  if (loop_count != mesh->totloop) {
+  if (loop_count != mesh->corners_num) {
     /* This happens in certain Houdini exports. When a mesh is animated and then replaced by a
      * fluid simulation, Houdini will still write the original mesh's loop normals, but the mesh
      * verts/loops/faces are from the simulation. In such cases the normals cannot be mapped to the
@@ -390,14 +390,14 @@ static void *add_customdata_cb(Mesh *mesh, const char *name, int data_type)
   }
 
   void *cd_ptr = CustomData_get_layer_named_for_write(
-      &mesh->loop_data, cd_data_type, name, mesh->totloop);
+      &mesh->loop_data, cd_data_type, name, mesh->corners_num);
   if (cd_ptr != nullptr) {
     /* layer already exists, so just return it. */
     return cd_ptr;
   }
 
   /* Create a new layer. */
-  int numloops = mesh->totloop;
+  int numloops = mesh->corners_num;
   cd_ptr = CustomData_add_layer_named(
       &mesh->loop_data, cd_data_type, CD_SET_DEFAULT, numloops, name);
   return cd_ptr;
@@ -443,7 +443,7 @@ static void read_velocity(const V3fArraySamplePtr &velocities,
                           const float velocity_scale)
 {
   const int num_velocity_vectors = int(velocities->size());
-  if (num_velocity_vectors != config.mesh->totvert) {
+  if (num_velocity_vectors != config.mesh->verts_num) {
     /* Files containing videogrammetry data may be malformed and export velocity data on missing
      * frames (most likely by copying the last valid data). */
     return;
@@ -554,8 +554,8 @@ CDStreamConfig get_config(Mesh *mesh)
   config.positions = mesh->vert_positions_for_write().data();
   config.corner_verts = mesh->corner_verts_for_write().data();
   config.face_offsets = mesh->face_offsets_for_write().data();
-  config.totvert = mesh->totvert;
-  config.totloop = mesh->totloop;
+  config.totvert = mesh->verts_num;
+  config.totloop = mesh->corners_num;
   config.faces_num = mesh->faces_num;
   config.loopdata = &mesh->loop_data;
   config.add_customdata_cb = add_customdata_cb;
@@ -703,9 +703,9 @@ bool AbcMeshReader::topology_changed(const Mesh *existing_mesh, const ISampleSel
   const Alembic::Abc::Int32ArraySamplePtr &face_counts = sample.getFaceCounts();
 
   /* It the counters are different, we can be sure the topology is different. */
-  const bool different_counters = positions->size() != existing_mesh->totvert ||
+  const bool different_counters = positions->size() != existing_mesh->verts_num ||
                                   face_counts->size() != existing_mesh->faces_num ||
-                                  face_indices->size() != existing_mesh->totloop;
+                                  face_indices->size() != existing_mesh->corners_num;
   if (different_counters) {
     return true;
   }
@@ -806,7 +806,7 @@ Mesh *AbcMeshReader::read_mesh(Mesh *existing_mesh,
      * This prevents crash from #49813.
      * TODO(kevin): perhaps find a better way to do this? */
     if (face_counts->size() != existing_mesh->faces_num ||
-        face_indices->size() != existing_mesh->totloop)
+        face_indices->size() != existing_mesh->corners_num)
     {
       settings.read_flag = MOD_MESHSEQ_READ_VERT;
 
@@ -969,8 +969,8 @@ static void read_vertex_creases(Mesh *mesh,
   }
 
   float *vertex_crease_data = (float *)CustomData_add_layer_named(
-      &mesh->vert_data, CD_PROP_FLOAT, CD_SET_DEFAULT, mesh->totvert, "crease_vert");
-  const int totvert = mesh->totvert;
+      &mesh->vert_data, CD_PROP_FLOAT, CD_SET_DEFAULT, mesh->verts_num, "crease_vert");
+  const int totvert = mesh->verts_num;
 
   for (int i = 0, v = indices->size(); i < v; ++i) {
     const int idx = (*indices)[i];
@@ -1124,7 +1124,7 @@ Mesh *AbcSubDReader::read_mesh(Mesh *existing_mesh,
   settings.velocity_name = velocity_name;
   settings.velocity_scale = velocity_scale;
 
-  if (existing_mesh->totvert != positions->size()) {
+  if (existing_mesh->verts_num != positions->size()) {
     new_mesh = BKE_mesh_new_nomain_from_template(
         existing_mesh, positions->size(), 0, face_counts->size(), face_indices->size());
 
@@ -1135,7 +1135,7 @@ Mesh *AbcSubDReader::read_mesh(Mesh *existing_mesh,
      * This prevents crash from #49813.
      * TODO(kevin): perhaps find a better way to do this? */
     if (face_counts->size() != existing_mesh->faces_num ||
-        face_indices->size() != existing_mesh->totloop)
+        face_indices->size() != existing_mesh->corners_num)
     {
       settings.read_flag = MOD_MESHSEQ_READ_VERT;
 

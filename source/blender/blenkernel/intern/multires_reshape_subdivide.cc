@@ -36,7 +36,7 @@ static void multires_subdivide_create_object_space_linear_grids(Mesh *mesh)
   const blender::Span<int> corner_verts = mesh->corner_verts();
 
   MDisps *mdisps = static_cast<MDisps *>(
-      CustomData_get_layer_for_write(&mesh->loop_data, CD_MDISPS, mesh->totloop));
+      CustomData_get_layer_for_write(&mesh->loop_data, CD_MDISPS, mesh->corners_num));
   for (const int p : faces.index_range()) {
     const blender::IndexRange face = faces[p];
     const float3 face_center = mesh::face_center_calc(positions, corner_verts.slice(face));
@@ -74,7 +74,8 @@ void multires_subdivide_create_tangent_displacement_linear_grids(Object *object,
 
   const bool has_mdisps = CustomData_has_layer(&coarse_mesh->loop_data, CD_MDISPS);
   if (!has_mdisps) {
-    CustomData_add_layer(&coarse_mesh->loop_data, CD_MDISPS, CD_SET_DEFAULT, coarse_mesh->totloop);
+    CustomData_add_layer(
+        &coarse_mesh->loop_data, CD_MDISPS, CD_SET_DEFAULT, coarse_mesh->corners_num);
   }
 
   if (new_top_level == 1) {

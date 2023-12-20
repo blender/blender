@@ -48,7 +48,7 @@ class CornersOfVertInput final : public bke::MeshFieldInput {
                                  const eAttrDomain domain,
                                  const IndexMask &mask) const final
   {
-    const IndexRange vert_range(mesh.totvert);
+    const IndexRange vert_range(mesh.verts_num);
     const GroupedSpan<int> vert_to_corner_map = mesh.vert_to_corner_map();
 
     const bke::MeshFieldContext context{mesh, domain};
@@ -60,7 +60,7 @@ class CornersOfVertInput final : public bke::MeshFieldInput {
     const VArray<int> indices_in_sort = evaluator.get_evaluated<int>(1);
 
     const bke::MeshFieldContext corner_context{mesh, ATTR_DOMAIN_CORNER};
-    fn::FieldEvaluator corner_evaluator{corner_context, mesh.totloop};
+    fn::FieldEvaluator corner_evaluator{corner_context, mesh.corners_num};
     corner_evaluator.add(sort_weight_);
     corner_evaluator.evaluate();
     const VArray<float> all_sort_weights = corner_evaluator.get_evaluated<float>(0);
@@ -155,7 +155,7 @@ class CornersOfVertCountInput final : public bke::MeshFieldInput {
     if (domain != ATTR_DOMAIN_POINT) {
       return {};
     }
-    Array<int> counts(mesh.totvert, 0);
+    Array<int> counts(mesh.verts_num, 0);
     array_utils::count_indices(mesh.corner_verts(), counts);
     return VArray<int>::ForContainer(std::move(counts));
   }

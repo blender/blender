@@ -27,9 +27,9 @@ static void edge_paths_to_selection(const Mesh &src_mesh,
                                     const Span<int> next_indices,
                                     MutableSpan<bool> r_edge_selection)
 {
-  Array<bool> vert_selection(src_mesh.totvert, false);
+  Array<bool> vert_selection(src_mesh.verts_num, false);
 
-  const IndexRange vert_range(src_mesh.totvert);
+  const IndexRange vert_range(src_mesh.verts_num);
   start_selection.foreach_index(GrainSize(2048), [&](const int start_vert) {
     /* If vertex is selected, all next is already selected too. */
     for (int current_vert = start_vert; !vert_selection[current_vert];
@@ -75,7 +75,7 @@ class PathToEdgeSelectionFieldInput final : public bke::MeshFieldInput {
                                  const IndexMask & /*mask*/) const final
   {
     const bke::MeshFieldContext context{mesh, ATTR_DOMAIN_POINT};
-    fn::FieldEvaluator evaluator{context, mesh.totvert};
+    fn::FieldEvaluator evaluator{context, mesh.verts_num};
     evaluator.add(next_vertex_);
     evaluator.add(start_vertices_);
     evaluator.evaluate();
@@ -85,7 +85,7 @@ class PathToEdgeSelectionFieldInput final : public bke::MeshFieldInput {
       return {};
     }
 
-    Array<bool> selection(mesh.totedge, false);
+    Array<bool> selection(mesh.edges_num, false);
     edge_paths_to_selection(mesh, start_verts, next_vert, selection);
 
     return mesh.attributes().adapt_domain<bool>(

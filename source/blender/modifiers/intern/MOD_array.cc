@@ -352,13 +352,13 @@ static void mesh_merge_transform(Mesh *result,
 
   /* Set #CD_ORIGINDEX. */
   index_orig = static_cast<int *>(
-      CustomData_get_layer_for_write(&result->vert_data, CD_ORIGINDEX, result->totvert));
+      CustomData_get_layer_for_write(&result->vert_data, CD_ORIGINDEX, result->verts_num));
   if (index_orig) {
     copy_vn_i(index_orig + cap_verts_index, cap_nverts, ORIGINDEX_NONE);
   }
 
   index_orig = static_cast<int *>(
-      CustomData_get_layer_for_write(&result->edge_data, CD_ORIGINDEX, result->totedge));
+      CustomData_get_layer_for_write(&result->edge_data, CD_ORIGINDEX, result->edges_num));
   if (index_orig) {
     copy_vn_i(index_orig + cap_edges_index, cap_nedges, ORIGINDEX_NONE);
   }
@@ -370,7 +370,7 @@ static void mesh_merge_transform(Mesh *result,
   }
 
   index_orig = static_cast<int *>(
-      CustomData_get_layer_for_write(&result->loop_data, CD_ORIGINDEX, result->totloop));
+      CustomData_get_layer_for_write(&result->loop_data, CD_ORIGINDEX, result->corners_num));
   if (index_orig) {
     copy_vn_i(index_orig + cap_loops_index, cap_nloops, ORIGINDEX_NONE);
   }
@@ -381,7 +381,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
                                    Mesh *mesh)
 {
   using namespace blender;
-  if (mesh->totvert == 0) {
+  if (mesh->verts_num == 0) {
     /* Output just the start cap even if the mesh is empty. */
     Object *start_cap_ob = amd->start_cap;
     if (start_cap_ob && start_cap_ob != ctx->object) {
@@ -423,9 +423,9 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
   int *vgroup_end_cap_remap = nullptr;
   int vgroup_end_cap_remap_len = 0;
 
-  chunk_nverts = mesh->totvert;
-  chunk_nedges = mesh->totedge;
-  chunk_nloops = mesh->totloop;
+  chunk_nverts = mesh->verts_num;
+  chunk_nedges = mesh->edges_num;
+  chunk_nloops = mesh->corners_num;
   chunk_nfaces = mesh->faces_num;
 
   count = amd->count;
@@ -440,9 +440,9 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
     start_cap_mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(start_cap_ob);
     if (start_cap_mesh) {
       BKE_mesh_wrapper_ensure_mdata(start_cap_mesh);
-      start_cap_nverts = start_cap_mesh->totvert;
-      start_cap_nedges = start_cap_mesh->totedge;
-      start_cap_nloops = start_cap_mesh->totloop;
+      start_cap_nverts = start_cap_mesh->verts_num;
+      start_cap_nedges = start_cap_mesh->edges_num;
+      start_cap_nloops = start_cap_mesh->corners_num;
       start_cap_nfaces = start_cap_mesh->faces_num;
     }
   }
@@ -456,9 +456,9 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
     end_cap_mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(end_cap_ob);
     if (end_cap_mesh) {
       BKE_mesh_wrapper_ensure_mdata(end_cap_mesh);
-      end_cap_nverts = end_cap_mesh->totvert;
-      end_cap_nedges = end_cap_mesh->totedge;
-      end_cap_nloops = end_cap_mesh->totloop;
+      end_cap_nverts = end_cap_mesh->verts_num;
+      end_cap_nedges = end_cap_mesh->edges_num;
+      end_cap_nloops = end_cap_mesh->corners_num;
       end_cap_nfaces = end_cap_mesh->faces_num;
     }
   }
@@ -692,7 +692,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
     const int totuv = CustomData_number_of_layers(&result->loop_data, CD_PROP_FLOAT2);
     for (i = 0; i < totuv; i++) {
       blender::float2 *dmloopuv = static_cast<blender::float2 *>(CustomData_get_layer_n_for_write(
-          &result->loop_data, CD_PROP_FLOAT2, i, result->totloop));
+          &result->loop_data, CD_PROP_FLOAT2, i, result->corners_num));
       dmloopuv += chunk_nloops;
       for (c = 1; c < count; c++) {
         const float uv_offset[2] = {
@@ -711,15 +711,15 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
   if (!use_merge && !mesh->runtime->subsurf_optimal_display_edges.is_empty()) {
     const BoundedBitSpan src = mesh->runtime->subsurf_optimal_display_edges;
 
-    result->runtime->subsurf_optimal_display_edges.resize(result->totedge);
+    result->runtime->subsurf_optimal_display_edges.resize(result->edges_num);
     MutableBoundedBitSpan dst = result->runtime->subsurf_optimal_display_edges;
     for (const int i : IndexRange(count)) {
-      dst.slice({i * mesh->totedge, mesh->totedge}).copy_from(src);
+      dst.slice({i * mesh->edges_num, mesh->edges_num}).copy_from(src);
     }
 
     if (start_cap_mesh) {
       MutableBitSpan cap_bits = dst.slice(
-          {result_nedges - start_cap_nedges - end_cap_nedges, start_cap_mesh->totedge});
+          {result_nedges - start_cap_nedges - end_cap_nedges, start_cap_mesh->edges_num});
       if (start_cap_mesh->runtime->subsurf_optimal_display_edges.is_empty()) {
         cap_bits.set_all(true);
       }
@@ -728,7 +728,8 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
       }
     }
     if (end_cap_mesh) {
-      MutableBitSpan cap_bits = dst.slice({result_nedges - end_cap_nedges, end_cap_mesh->totedge});
+      MutableBitSpan cap_bits = dst.slice(
+          {result_nedges - end_cap_nedges, end_cap_mesh->edges_num});
       if (end_cap_mesh->runtime->subsurf_optimal_display_edges.is_empty()) {
         cap_bits.set_all(true);
       }
@@ -844,7 +845,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
     if (tot_doubles > 0) {
       Mesh *tmp = result;
       result = geometry::mesh_merge_verts(
-          *tmp, MutableSpan<int>{full_doubles_map, result->totvert}, tot_doubles, false);
+          *tmp, MutableSpan<int>{full_doubles_map, result->verts_num}, tot_doubles, false);
       BKE_id_free(nullptr, tmp);
     }
     MEM_freeN(full_doubles_map);

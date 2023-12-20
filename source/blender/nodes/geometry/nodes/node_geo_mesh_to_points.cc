@@ -89,7 +89,7 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
     /* Create an empty point cloud so the positions can be shared. */
     pointcloud = BKE_pointcloud_new_nomain(0);
     CustomData_free_layer_named(&pointcloud->pdata, "position", pointcloud->totpoint);
-    pointcloud->totpoint = mesh->totvert;
+    pointcloud->totpoint = mesh->verts_num;
     const bke::AttributeReader src = src_attributes.lookup<float3>("position");
     const bke::AttributeInitShared init(src.varray.get_internal_span().data(), *src.sharing_info);
     pointcloud->attributes_for_write().add<float3>("position", ATTR_DOMAIN_POINT, init);

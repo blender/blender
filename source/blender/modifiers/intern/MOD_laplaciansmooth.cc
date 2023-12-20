@@ -365,7 +365,7 @@ static void laplaciansmoothModifier_do(
   int defgrp_index;
   const bool invert_vgroup = (smd->flag & MOD_LAPLACIANSMOOTH_INVERT_VGROUP) != 0;
 
-  sys = init_laplacian_system(mesh->totedge, mesh->totloop, verts_num);
+  sys = init_laplacian_system(mesh->edges_num, mesh->corners_num, verts_num);
   if (!sys) {
     return;
   }

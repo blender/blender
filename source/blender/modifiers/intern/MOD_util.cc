@@ -65,7 +65,7 @@ void MOD_get_texture_coords(MappingInfoModifierData *dmd,
   /* TODO: to be renamed to `get_texture_coords` once we are done with moving modifiers to Mesh. */
 
   using namespace blender;
-  const int verts_num = mesh->totvert;
+  const int verts_num = mesh->verts_num;
   int i;
   int texmapping = dmd->texmapping;
   float mapref_imat[4][4];

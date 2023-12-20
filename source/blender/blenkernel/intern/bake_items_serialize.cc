@@ -522,10 +522,10 @@ static Mesh *try_load_mesh(const DictionaryValue &io_geometry,
   CustomData_free_layer_named(&mesh->edge_data, ".edge_verts", 0);
   CustomData_free_layer_named(&mesh->loop_data, ".corner_vert", 0);
   CustomData_free_layer_named(&mesh->loop_data, ".corner_edge", 0);
-  mesh->totvert = io_mesh->lookup_int("num_vertices").value_or(0);
-  mesh->totedge = io_mesh->lookup_int("num_edges").value_or(0);
+  mesh->verts_num = io_mesh->lookup_int("num_vertices").value_or(0);
+  mesh->edges_num = io_mesh->lookup_int("num_edges").value_or(0);
   mesh->faces_num = io_mesh->lookup_int("num_polygons").value_or(0);
-  mesh->totloop = io_mesh->lookup_int("num_corners").value_or(0);
+  mesh->corners_num = io_mesh->lookup_int("num_corners").value_or(0);
 
   auto cancel = [&]() {
     BKE_id_free(nullptr, mesh);
@@ -694,10 +694,10 @@ static std::shared_ptr<DictionaryValue> serialize_geometry_set(const GeometrySet
     const Mesh &mesh = *geometry.get_mesh();
     auto io_mesh = io_geometry->append_dict("mesh");
 
-    io_mesh->append_int("num_vertices", mesh.totvert);
-    io_mesh->append_int("num_edges", mesh.totedge);
+    io_mesh->append_int("num_vertices", mesh.verts_num);
+    io_mesh->append_int("num_edges", mesh.edges_num);
     io_mesh->append_int("num_polygons", mesh.faces_num);
-    io_mesh->append_int("num_corners", mesh.totloop);
+    io_mesh->append_int("num_corners", mesh.corners_num);
 
     if (mesh.faces_num > 0) {
       io_mesh->append("poly_offsets",

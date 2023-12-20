@@ -72,7 +72,7 @@ class AngleFieldInput final : public bke::MeshFieldInput {
     const OffsetIndices faces = mesh.faces();
     const Span<int> corner_verts = mesh.corner_verts();
     const Span<int> corner_edges = mesh.corner_edges();
-    Array<EdgeMapEntry> edge_map = create_edge_map(faces, corner_edges, mesh.totedge);
+    Array<EdgeMapEntry> edge_map = create_edge_map(faces, corner_edges, mesh.edges_num);
 
     auto angle_fn =
         [edge_map = std::move(edge_map), positions, faces, corner_verts](const int i) -> float {
@@ -86,7 +86,7 @@ class AngleFieldInput final : public bke::MeshFieldInput {
       return angle_normalized_v3v3(normal_1, normal_2);
     };
 
-    VArray<float> angles = VArray<float>::ForFunc(mesh.totedge, angle_fn);
+    VArray<float> angles = VArray<float>::ForFunc(mesh.edges_num, angle_fn);
     return mesh.attributes().adapt_domain<float>(std::move(angles), ATTR_DOMAIN_EDGE, domain);
   }
 
@@ -123,7 +123,7 @@ class SignedAngleFieldInput final : public bke::MeshFieldInput {
     const OffsetIndices faces = mesh.faces();
     const Span<int> corner_verts = mesh.corner_verts();
     const Span<int> corner_edges = mesh.corner_edges();
-    Array<EdgeMapEntry> edge_map = create_edge_map(faces, corner_edges, mesh.totedge);
+    Array<EdgeMapEntry> edge_map = create_edge_map(faces, corner_edges, mesh.edges_num);
 
     auto angle_fn = [edge_map = std::move(edge_map), positions, edges, faces, corner_verts](
                         const int i) -> float {
@@ -158,7 +158,7 @@ class SignedAngleFieldInput final : public bke::MeshFieldInput {
       return -angle;
     };
 
-    VArray<float> angles = VArray<float>::ForFunc(mesh.totedge, angle_fn);
+    VArray<float> angles = VArray<float>::ForFunc(mesh.edges_num, angle_fn);
     return mesh.attributes().adapt_domain<float>(std::move(angles), ATTR_DOMAIN_EDGE, domain);
   }
 

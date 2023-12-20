@@ -4103,9 +4103,9 @@ static bool proj_paint_state_mesh_eval_init(const bContext *C, ProjPaintState *p
   ps->sharp_faces_eval = static_cast<const bool *>(
       CustomData_get_layer_named(&ps->me_eval->face_data, CD_PROP_BOOL, "sharp_face"));
 
-  ps->totvert_eval = ps->me_eval->totvert;
+  ps->totvert_eval = ps->me_eval->verts_num;
   ps->faces_num_eval = ps->me_eval->faces_num;
-  ps->totloop_eval = ps->me_eval->totloop;
+  ps->totloop_eval = ps->me_eval->corners_num;
 
   ps->corner_tris_eval = ps->me_eval->corner_tris();
   ps->corner_tri_faces_eval = ps->me_eval->corner_tri_faces();

@@ -34,7 +34,7 @@ void ED_mesh_mirror_spatial_table_begin(Object *ob, BMEditMesh *em, Mesh *me_eva
 {
   Mesh *mesh = static_cast<Mesh *>(ob->data);
   const bool use_em = (!me_eval && em && mesh->edit_mesh == em);
-  const int totvert = use_em ? em->bm->totvert : me_eval ? me_eval->totvert : mesh->totvert;
+  const int totvert = use_em ? em->bm->totvert : me_eval ? me_eval->verts_num : mesh->verts_num;
 
   if (MirrKdStore.tree) { /* happens when entering this call without ending it */
     ED_mesh_mirror_spatial_table_end(ob);
@@ -142,8 +142,8 @@ bool ED_mesh_mirrtopo_recalc_check(BMEditMesh *em, Mesh *mesh, MirrTopoStore_t *
     totedge = em->bm->totedge;
   }
   else {
-    totvert = mesh->totvert;
-    totedge = mesh->totedge;
+    totvert = mesh->verts_num;
+    totedge = mesh->edges_num;
   }
 
   if ((mesh_topo_store->index_lookup == nullptr) ||
@@ -187,7 +187,7 @@ void ED_mesh_mirrtopo_init(BMEditMesh *em,
     totvert = em->bm->totvert;
   }
   else {
-    totvert = mesh->totvert;
+    totvert = mesh->verts_num;
   }
 
   MirrTopoHash_t *topo_hash = static_cast<MirrTopoHash_t *>(
@@ -204,7 +204,7 @@ void ED_mesh_mirrtopo_init(BMEditMesh *em,
     }
   }
   else {
-    totedge = mesh->totedge;
+    totedge = mesh->edges_num;
     for (const blender::int2 &edge : mesh->edges()) {
       topo_hash[edge[0]]++;
       topo_hash[edge[1]]++;

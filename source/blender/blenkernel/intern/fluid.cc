@@ -411,7 +411,7 @@ static void manta_set_domain_from_mesh(FluidDomainSettings *fds,
   res = fds->maxres;
 
   /* Set minimum and maximum coordinates of BB. */
-  for (i = 0; i < mesh->totvert; i++) {
+  for (i = 0; i < mesh->verts_num; i++) {
     minmax_v3v3_v3(min, max, positions[i]);
   }
 
@@ -1023,7 +1023,7 @@ static void obstacles_from_mesh(Object *coll_ob,
 
     const blender::Span<int> corner_verts = mesh->corner_verts();
     const blender::Span<blender::int3> corner_tris = mesh->corner_tris();
-    numverts = mesh->totvert;
+    numverts = mesh->verts_num;
 
     /* TODO(sebbas): Make initialization of vertex velocities optional? */
     {
@@ -2084,7 +2084,7 @@ static void emit_from_mesh(
 
     const blender::Span<int> corner_verts = mesh->corner_verts();
     const blender::Span<blender::int3> corner_tris = mesh->corner_tris();
-    const int numverts = mesh->totvert;
+    const int numverts = mesh->verts_num;
     const MDeformVert *dvert = mesh->deform_verts().data();
     const float(*mloopuv)[2] = static_cast<const float(*)[2]>(
         CustomData_get_layer_named(&mesh->loop_data, CD_PROP_FLOAT2, ffs->uvlayer_name));

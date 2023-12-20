@@ -118,7 +118,7 @@ static void deform_verts(ModifierData *md,
       printf("current_time %f, collmd->time_xnew %f\n", current_time, collmd->time_xnew);
     }
 
-    mvert_num = mesh->totvert;
+    mvert_num = mesh->verts_num;
 
     if (current_time < collmd->time_xnew) {
       free_data((ModifierData *)collmd);
@@ -136,7 +136,7 @@ static void deform_verts(ModifierData *md,
 
     if (collmd->time_xnew == -1000) { /* first time */
 
-      mvert_num = mesh->totvert;
+      mvert_num = mesh->verts_num;
       collmd->x = static_cast<float(*)[3]>(
           MEM_malloc_arrayN(mvert_num, sizeof(float[3]), __func__));
       blender::MutableSpan(reinterpret_cast<blender::float3 *>(collmd->x), mvert_num)

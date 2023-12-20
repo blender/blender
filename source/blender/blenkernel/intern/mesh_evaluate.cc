@@ -252,10 +252,10 @@ bool BKE_mesh_center_median(const Mesh *mesh, float r_cent[3])
     add_v3_v3(r_cent, positions[i]);
   }
   /* otherwise we get NAN for 0 verts */
-  if (mesh->totvert) {
-    mul_v3_fl(r_cent, 1.0f / float(mesh->totvert));
+  if (mesh->verts_num) {
+    mul_v3_fl(r_cent, 1.0f / float(mesh->verts_num));
   }
-  return (mesh->totvert != 0);
+  return (mesh->verts_num != 0);
 }
 
 bool BKE_mesh_center_median_from_faces(const Mesh *mesh, float r_cent[3])

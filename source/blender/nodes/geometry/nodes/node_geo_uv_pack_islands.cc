@@ -48,8 +48,8 @@ static VArray<float3> construct_uv_gvarray(const Mesh &mesh,
   }
 
   const bke::MeshFieldContext corner_context{mesh, ATTR_DOMAIN_CORNER};
-  FieldEvaluator evaluator{corner_context, mesh.totloop};
-  Array<float3> uv(mesh.totloop);
+  FieldEvaluator evaluator{corner_context, mesh.corners_num};
+  Array<float3> uv(mesh.corners_num);
   evaluator.add_with_destination(uv_field, uv.as_mutable_span());
   evaluator.evaluate();
 

@@ -197,7 +197,7 @@ static int rna_KeyBlock_normals_vert_len(const PointerRNA *ptr,
 {
   const Mesh *mesh = rna_KeyBlock_normals_get_mesh(ptr, nullptr);
 
-  length[0] = mesh ? mesh->totvert : 0;
+  length[0] = mesh ? mesh->verts_num : 0;
   length[1] = 3;
 
   return (length[0] * length[1]);
@@ -210,9 +210,9 @@ static void rna_KeyBlock_normals_vert_calc(ID *id,
 {
   Mesh *mesh = rna_KeyBlock_normals_get_mesh(nullptr, id);
 
-  *normals_num = (mesh ? mesh->totvert : 0) * 3;
+  *normals_num = (mesh ? mesh->verts_num : 0) * 3;
 
-  if (ELEM(nullptr, mesh, data) || (mesh->totvert == 0)) {
+  if (ELEM(nullptr, mesh, data) || (mesh->verts_num == 0)) {
     *normals = nullptr;
     return;
   }
@@ -257,7 +257,7 @@ static int rna_KeyBlock_normals_loop_len(const PointerRNA *ptr,
 {
   const Mesh *mesh = rna_KeyBlock_normals_get_mesh(ptr, nullptr);
 
-  length[0] = mesh ? mesh->totloop : 0;
+  length[0] = mesh ? mesh->corners_num : 0;
   length[1] = 3;
 
   return (length[0] * length[1]);
@@ -270,9 +270,9 @@ static void rna_KeyBlock_normals_loop_calc(ID *id,
 {
   Mesh *mesh = rna_KeyBlock_normals_get_mesh(nullptr, id);
 
-  *normals_num = (mesh ? mesh->totloop : 0) * 3;
+  *normals_num = (mesh ? mesh->corners_num : 0) * 3;
 
-  if (ELEM(nullptr, mesh, data) || (mesh->totloop == 0)) {
+  if (ELEM(nullptr, mesh, data) || (mesh->corners_num == 0)) {
     *normals = nullptr;
     return;
   }

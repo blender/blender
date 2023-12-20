@@ -579,22 +579,22 @@ void BlenderStrokeRenderer::GenerateStrokeMesh(StrokeGroup *group, bool hasTex)
 #endif
   Mesh *mesh = (Mesh *)object_mesh->data;
 
-  mesh->totvert = group->totvert;
-  mesh->totedge = group->totedge;
+  mesh->verts_num = group->totvert;
+  mesh->edges_num = group->totedge;
   mesh->faces_num = group->faces_num;
-  mesh->totloop = group->totloop;
+  mesh->corners_num = group->totloop;
   mesh->totcol = group->materials.size();
   BKE_mesh_face_offsets_ensure_alloc(mesh);
 
   float3 *vert_positions = (float3 *)CustomData_add_layer_named(
-      &mesh->vert_data, CD_PROP_FLOAT3, CD_SET_DEFAULT, mesh->totvert, "position");
+      &mesh->vert_data, CD_PROP_FLOAT3, CD_SET_DEFAULT, mesh->verts_num, "position");
   blender::int2 *edges = (blender::int2 *)CustomData_add_layer_named(
-      &mesh->edge_data, CD_PROP_INT32_2D, CD_CONSTRUCT, mesh->totedge, ".edge_verts");
+      &mesh->edge_data, CD_PROP_INT32_2D, CD_CONSTRUCT, mesh->edges_num, ".edge_verts");
   blender::MutableSpan<int> face_offsets = mesh->face_offsets_for_write();
   int *corner_verts = (int *)CustomData_add_layer_named(
-      &mesh->loop_data, CD_PROP_INT32, CD_SET_DEFAULT, mesh->totloop, ".corner_vert");
+      &mesh->loop_data, CD_PROP_INT32, CD_SET_DEFAULT, mesh->corners_num, ".corner_vert");
   int *corner_edges = (int *)CustomData_add_layer_named(
-      &mesh->loop_data, CD_PROP_INT32, CD_SET_DEFAULT, mesh->totloop, ".corner_edge");
+      &mesh->loop_data, CD_PROP_INT32, CD_SET_DEFAULT, mesh->corners_num, ".corner_edge");
   int *material_indices = (int *)CustomData_add_layer_named(
       &mesh->face_data, CD_PROP_INT32, CD_SET_DEFAULT, mesh->faces_num, "material_index");
   blender::float2 *loopsuv[2] = {nullptr};
@@ -602,20 +602,20 @@ void BlenderStrokeRenderer::GenerateStrokeMesh(StrokeGroup *group, bool hasTex)
   if (hasTex) {
     // First UV layer
     loopsuv[0] = static_cast<blender::float2 *>(CustomData_add_layer_named(
-        &mesh->loop_data, CD_PROP_FLOAT2, CD_SET_DEFAULT, mesh->totloop, uvNames[0]));
+        &mesh->loop_data, CD_PROP_FLOAT2, CD_SET_DEFAULT, mesh->corners_num, uvNames[0]));
     CustomData_set_layer_active(&mesh->loop_data, CD_PROP_FLOAT2, 0);
 
     // Second UV layer
     loopsuv[1] = static_cast<blender::float2 *>(CustomData_add_layer_named(
-        &mesh->loop_data, CD_PROP_FLOAT2, CD_SET_DEFAULT, mesh->totloop, uvNames[1]));
+        &mesh->loop_data, CD_PROP_FLOAT2, CD_SET_DEFAULT, mesh->corners_num, uvNames[1]));
     CustomData_set_layer_active(&mesh->loop_data, CD_PROP_FLOAT2, 1);
   }
 
   // colors and transparency (the latter represented by grayscale colors)
   MLoopCol *colors = (MLoopCol *)CustomData_add_layer_named(
-      &mesh->loop_data, CD_PROP_BYTE_COLOR, CD_SET_DEFAULT, mesh->totloop, "Color");
+      &mesh->loop_data, CD_PROP_BYTE_COLOR, CD_SET_DEFAULT, mesh->corners_num, "Color");
   MLoopCol *transp = (MLoopCol *)CustomData_add_layer_named(
-      &mesh->loop_data, CD_PROP_BYTE_COLOR, CD_SET_DEFAULT, mesh->totloop, "Alpha");
+      &mesh->loop_data, CD_PROP_BYTE_COLOR, CD_SET_DEFAULT, mesh->corners_num, "Alpha");
   BKE_id_attributes_active_color_set(
       &mesh->id, CustomData_get_layer_name(&mesh->loop_data, CD_PROP_BYTE_COLOR, 0));
 
@@ -805,9 +805,9 @@ void BlenderStrokeRenderer::GenerateStrokeMesh(StrokeGroup *group, bool hasTex)
   BKE_object_materials_test(freestyle_bmain, object_mesh, (ID *)mesh);
 
 #if 0  // XXX
-  BLI_assert(mesh->totvert == vertex_index);
-  BLI_assert(mesh->totedge == edge_index);
-  BLI_assert(mesh->totloop == loop_index);
+  BLI_assert(mesh->verts_num == vertex_index);
+  BLI_assert(mesh->edges_num == edge_index);
+  BLI_assert(mesh->corners_num == loop_index);
   BKE_mesh_validate(mesh, true, true);
 #endif
 }

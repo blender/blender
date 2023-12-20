@@ -165,9 +165,9 @@ static void mesh_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int 
   mesh_dst->default_color_attribute = static_cast<char *>(
       MEM_dupallocN(mesh_src->default_color_attribute));
 
-  CustomData_copy(&mesh_src->vert_data, &mesh_dst->vert_data, mask.vmask, mesh_dst->totvert);
-  CustomData_copy(&mesh_src->edge_data, &mesh_dst->edge_data, mask.emask, mesh_dst->totedge);
-  CustomData_copy(&mesh_src->loop_data, &mesh_dst->loop_data, mask.lmask, mesh_dst->totloop);
+  CustomData_copy(&mesh_src->vert_data, &mesh_dst->vert_data, mask.vmask, mesh_dst->verts_num);
+  CustomData_copy(&mesh_src->edge_data, &mesh_dst->edge_data, mask.emask, mesh_dst->edges_num);
+  CustomData_copy(&mesh_src->loop_data, &mesh_dst->loop_data, mask.lmask, mesh_dst->corners_num);
   CustomData_copy(&mesh_src->face_data, &mesh_dst->face_data, mask.pmask, mesh_dst->faces_num);
   blender::implicit_sharing::copy_shared_pointer(mesh_src->face_offset_indices,
                                                  mesh_src->runtime->face_offsets_sharing_info,
@@ -263,13 +263,13 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
 
   /* Do not store actual geometry data in case this is a library override ID. */
   if (ID_IS_OVERRIDE_LIBRARY(mesh) && !is_undo) {
-    mesh->totvert = 0;
+    mesh->verts_num = 0;
     memset(&mesh->vert_data, 0, sizeof(mesh->vert_data));
 
-    mesh->totedge = 0;
+    mesh->edges_num = 0;
     memset(&mesh->edge_data, 0, sizeof(mesh->edge_data));
 
-    mesh->totloop = 0;
+    mesh->corners_num = 0;
     memset(&mesh->loop_data, 0, sizeof(mesh->loop_data));
 
     mesh->faces_num = 0;
@@ -299,14 +299,14 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
   BLO_write_raw(writer, sizeof(MSelect) * mesh->totselect, mesh->mselect);
 
   CustomData_blend_write(
-      writer, &mesh->vert_data, vert_layers, mesh->totvert, CD_MASK_MESH.vmask, &mesh->id);
+      writer, &mesh->vert_data, vert_layers, mesh->verts_num, CD_MASK_MESH.vmask, &mesh->id);
   CustomData_blend_write(
-      writer, &mesh->edge_data, edge_layers, mesh->totedge, CD_MASK_MESH.emask, &mesh->id);
+      writer, &mesh->edge_data, edge_layers, mesh->edges_num, CD_MASK_MESH.emask, &mesh->id);
   /* `fdata` is cleared above but written so slots align. */
   CustomData_blend_write(
       writer, &mesh->fdata_legacy, {}, mesh->totface_legacy, CD_MASK_MESH.fmask, &mesh->id);
   CustomData_blend_write(
-      writer, &mesh->loop_data, loop_layers, mesh->totloop, CD_MASK_MESH.lmask, &mesh->id);
+      writer, &mesh->loop_data, loop_layers, mesh->corners_num, CD_MASK_MESH.lmask, &mesh->id);
   CustomData_blend_write(
       writer, &mesh->face_data, face_layers, mesh->faces_num, CD_MASK_MESH.pmask, &mesh->id);
 
@@ -338,15 +338,15 @@ static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
 
   BLO_read_list(reader, &mesh->vertex_group_names);
 
-  CustomData_blend_read(reader, &mesh->vert_data, mesh->totvert);
-  CustomData_blend_read(reader, &mesh->edge_data, mesh->totedge);
+  CustomData_blend_read(reader, &mesh->vert_data, mesh->verts_num);
+  CustomData_blend_read(reader, &mesh->edge_data, mesh->edges_num);
   CustomData_blend_read(reader, &mesh->fdata_legacy, mesh->totface_legacy);
-  CustomData_blend_read(reader, &mesh->loop_data, mesh->totloop);
+  CustomData_blend_read(reader, &mesh->loop_data, mesh->corners_num);
   CustomData_blend_read(reader, &mesh->face_data, mesh->faces_num);
   if (mesh->deform_verts().is_empty()) {
     /* Vertex group data was also an owning pointer in old Blender versions.
      * Don't read them again if they were read as part of #CustomData. */
-    BKE_defvert_blend_read(reader, mesh->totvert, mesh->dvert);
+    BKE_defvert_blend_read(reader, mesh->verts_num, mesh->dvert);
   }
   BLO_read_data_address(reader, &mesh->active_color_attribute);
   BLO_read_data_address(reader, &mesh->default_color_attribute);
@@ -431,7 +431,7 @@ void BKE_mesh_ensure_skin_customdata(Mesh *mesh)
   else {
     if (!CustomData_has_layer(&mesh->vert_data, CD_MVERT_SKIN)) {
       vs = (MVertSkin *)CustomData_add_layer(
-          &mesh->vert_data, CD_MVERT_SKIN, CD_SET_DEFAULT, mesh->totvert);
+          &mesh->vert_data, CD_MVERT_SKIN, CD_SET_DEFAULT, mesh->verts_num);
 
       /* Mark an arbitrary vertex as root */
       if (vs) {
@@ -469,10 +469,10 @@ void BKE_mesh_free_data_for_undo(Mesh *mesh)
  */
 static void mesh_clear_geometry(Mesh &mesh)
 {
-  CustomData_free(&mesh.vert_data, mesh.totvert);
-  CustomData_free(&mesh.edge_data, mesh.totedge);
+  CustomData_free(&mesh.vert_data, mesh.verts_num);
+  CustomData_free(&mesh.edge_data, mesh.edges_num);
   CustomData_free(&mesh.fdata_legacy, mesh.totface_legacy);
-  CustomData_free(&mesh.loop_data, mesh.totloop);
+  CustomData_free(&mesh.loop_data, mesh.corners_num);
   CustomData_free(&mesh.face_data, mesh.faces_num);
   if (mesh.face_offset_indices) {
     blender::implicit_sharing::free_shared_data(&mesh.face_offset_indices,
@@ -480,10 +480,10 @@ static void mesh_clear_geometry(Mesh &mesh)
   }
   MEM_SAFE_FREE(mesh.mselect);
 
-  mesh.totvert = 0;
-  mesh.totedge = 0;
+  mesh.verts_num = 0;
+  mesh.edges_num = 0;
   mesh.totface_legacy = 0;
-  mesh.totloop = 0;
+  mesh.corners_num = 0;
   mesh.faces_num = 0;
   mesh.act_face = -1;
   mesh.totselect = 0;
@@ -544,33 +544,33 @@ void BKE_mesh_face_offsets_ensure_alloc(Mesh *mesh)
 #endif
   /* Set common values for convenience. */
   mesh->face_offset_indices[0] = 0;
-  mesh->face_offset_indices[mesh->faces_num] = mesh->totloop;
+  mesh->face_offset_indices[mesh->faces_num] = mesh->corners_num;
 }
 
 Span<float3> Mesh::vert_positions() const
 {
   return {static_cast<const float3 *>(
               CustomData_get_layer_named(&this->vert_data, CD_PROP_FLOAT3, "position")),
-          this->totvert};
+          this->verts_num};
 }
 MutableSpan<float3> Mesh::vert_positions_for_write()
 {
   return {static_cast<float3 *>(CustomData_get_layer_named_for_write(
-              &this->vert_data, CD_PROP_FLOAT3, "position", this->totvert)),
-          this->totvert};
+              &this->vert_data, CD_PROP_FLOAT3, "position", this->verts_num)),
+          this->verts_num};
 }
 
 Span<int2> Mesh::edges() const
 {
   return {static_cast<const int2 *>(
               CustomData_get_layer_named(&this->edge_data, CD_PROP_INT32_2D, ".edge_verts")),
-          this->totedge};
+          this->edges_num};
 }
 MutableSpan<int2> Mesh::edges_for_write()
 {
   return {static_cast<int2 *>(CustomData_get_layer_named_for_write(
-              &this->edge_data, CD_PROP_INT32_2D, ".edge_verts", this->totedge)),
-          this->totedge};
+              &this->edge_data, CD_PROP_INT32_2D, ".edge_verts", this->edges_num)),
+          this->edges_num};
 }
 
 OffsetIndices<int> Mesh::faces() const
@@ -598,26 +598,26 @@ Span<int> Mesh::corner_verts() const
 {
   return {static_cast<const int *>(
               CustomData_get_layer_named(&this->loop_data, CD_PROP_INT32, ".corner_vert")),
-          this->totloop};
+          this->corners_num};
 }
 MutableSpan<int> Mesh::corner_verts_for_write()
 {
   return {static_cast<int *>(CustomData_get_layer_named_for_write(
-              &this->loop_data, CD_PROP_INT32, ".corner_vert", this->totloop)),
-          this->totloop};
+              &this->loop_data, CD_PROP_INT32, ".corner_vert", this->corners_num)),
+          this->corners_num};
 }
 
 Span<int> Mesh::corner_edges() const
 {
   return {static_cast<const int *>(
               CustomData_get_layer_named(&this->loop_data, CD_PROP_INT32, ".corner_edge")),
-          this->totloop};
+          this->corners_num};
 }
 MutableSpan<int> Mesh::corner_edges_for_write()
 {
   return {static_cast<int *>(CustomData_get_layer_named_for_write(
-              &this->loop_data, CD_PROP_INT32, ".corner_edge", this->totloop)),
-          this->totloop};
+              &this->loop_data, CD_PROP_INT32, ".corner_edge", this->corners_num)),
+          this->corners_num};
 }
 
 Span<MDeformVert> Mesh::deform_verts() const
@@ -627,18 +627,18 @@ Span<MDeformVert> Mesh::deform_verts() const
   if (!dverts) {
     return {};
   }
-  return {dverts, this->totvert};
+  return {dverts, this->verts_num};
 }
 MutableSpan<MDeformVert> Mesh::deform_verts_for_write()
 {
   MDeformVert *dvert = static_cast<MDeformVert *>(
-      CustomData_get_layer_for_write(&this->vert_data, CD_MDEFORMVERT, this->totvert));
+      CustomData_get_layer_for_write(&this->vert_data, CD_MDEFORMVERT, this->verts_num));
   if (dvert) {
-    return {dvert, this->totvert};
+    return {dvert, this->verts_num};
   }
   return {static_cast<MDeformVert *>(CustomData_add_layer(
-              &this->vert_data, CD_MDEFORMVERT, CD_SET_DEFAULT, this->totvert)),
-          this->totvert};
+              &this->vert_data, CD_MDEFORMVERT, CD_SET_DEFAULT, this->verts_num)),
+          this->verts_num};
 }
 
 static void mesh_ensure_cdlayers_primary(Mesh &mesh)
@@ -656,16 +656,16 @@ static void mesh_ensure_cdlayers_primary(Mesh &mesh)
 Mesh *BKE_mesh_new_nomain(const int verts_num,
                           const int edges_num,
                           const int faces_num,
-                          const int loops_num)
+                          const int corners_num)
 {
   Mesh *mesh = static_cast<Mesh *>(BKE_libblock_alloc(
       nullptr, ID_ME, BKE_idtype_idcode_to_name(ID_ME), LIB_ID_CREATE_LOCALIZE));
   BKE_libblock_init_empty(&mesh->id);
 
-  mesh->totvert = verts_num;
-  mesh->totedge = edges_num;
+  mesh->verts_num = verts_num;
+  mesh->edges_num = edges_num;
   mesh->faces_num = faces_num;
-  mesh->totloop = loops_num;
+  mesh->corners_num = corners_num;
 
   mesh_ensure_cdlayers_primary(*mesh);
   BKE_mesh_face_offsets_ensure_alloc(mesh);
@@ -743,10 +743,10 @@ Mesh *BKE_mesh_new_nomain_from_template_ex(const Mesh *me_src,
 
   me_dst->mselect = (MSelect *)MEM_dupallocN(me_src->mselect);
 
-  me_dst->totvert = verts_num;
-  me_dst->totedge = edges_num;
+  me_dst->verts_num = verts_num;
+  me_dst->edges_num = edges_num;
   me_dst->faces_num = faces_num;
-  me_dst->totloop = loops_num;
+  me_dst->corners_num = loops_num;
   me_dst->totface_legacy = tessface_num;
 
   BKE_mesh_copy_parameters_for_eval(me_dst, me_src);
@@ -867,8 +867,8 @@ void BKE_mesh_ensure_default_orig_index_customdata(Mesh *mesh)
 
 void BKE_mesh_ensure_default_orig_index_customdata_no_check(Mesh *mesh)
 {
-  ensure_orig_index_layer(mesh->vert_data, mesh->totvert);
-  ensure_orig_index_layer(mesh->edge_data, mesh->totedge);
+  ensure_orig_index_layer(mesh->vert_data, mesh->verts_num);
+  ensure_orig_index_layer(mesh->edge_data, mesh->edges_num);
   ensure_orig_index_layer(mesh->face_data, mesh->faces_num);
 }
 
@@ -950,10 +950,10 @@ float (*BKE_mesh_orco_verts_get(Object *ob))[3]
   Mesh *tme = mesh->texcomesh ? mesh->texcomesh : mesh;
 
   /* Get appropriate vertex coordinates */
-  float(*vcos)[3] = (float(*)[3])MEM_calloc_arrayN(mesh->totvert, sizeof(*vcos), "orco mesh");
+  float(*vcos)[3] = (float(*)[3])MEM_calloc_arrayN(mesh->verts_num, sizeof(*vcos), "orco mesh");
   const Span<float3> positions = tme->vert_positions();
 
-  int totvert = min_ii(tme->totvert, mesh->totvert);
+  int totvert = min_ii(tme->verts_num, mesh->verts_num);
 
   for (int a = 0; a < totvert; a++) {
     copy_v3_v3(vcos[a], positions[a]);
@@ -993,8 +993,8 @@ void BKE_mesh_orco_ensure(Object *ob, Mesh *mesh)
 
   /* Orcos are stored in normalized 0..1 range by convention. */
   float(*orcodata)[3] = BKE_mesh_orco_verts_get(ob);
-  BKE_mesh_orco_verts_transform(mesh, orcodata, mesh->totvert, false);
-  CustomData_add_layer_with_data(&mesh->vert_data, CD_ORCO, orcodata, mesh->totvert, nullptr);
+  BKE_mesh_orco_verts_transform(mesh, orcodata, mesh->verts_num, false);
+  CustomData_add_layer_with_data(&mesh->vert_data, CD_ORCO, orcodata, mesh->verts_num, nullptr);
 }
 
 Mesh *BKE_mesh_from_object(Object *ob)

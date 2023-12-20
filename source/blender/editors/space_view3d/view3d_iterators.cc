@@ -590,7 +590,7 @@ void mesh_foreachScreenFace(
   BM_mesh_elem_table_ensure(vc->em->bm, BM_FACE);
 
   const int face_dot_tags_num = mesh->runtime->subsurf_face_dot_tags.size();
-  if (face_dot_tags_num && (face_dot_tags_num != mesh->totvert)) {
+  if (face_dot_tags_num && (face_dot_tags_num != mesh->verts_num)) {
     BKE_mesh_foreach_mapped_subdiv_face_center(
         mesh, mesh_foreachScreenFace__mapFunc, &data, MESH_FOREACH_NOP);
   }

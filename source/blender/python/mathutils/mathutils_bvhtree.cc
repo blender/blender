@@ -1150,13 +1150,13 @@ static PyObject *C_BVHTree_FromObject(PyObject * /*cls*/, PyObject *args, PyObje
 
   /* Get data for tessellation */
 
-  const uint coords_len = uint(mesh->totvert);
+  const uint coords_len = uint(mesh->verts_num);
 
   float(*coords)[3] = static_cast<float(*)[3]>(
       MEM_mallocN(sizeof(*coords) * size_t(coords_len), __func__));
   uint(*tris)[3] = static_cast<uint(*)[3]>(
       MEM_mallocN(sizeof(*tris) * size_t(corner_tris.size()), __func__));
-  memcpy(coords, mesh->vert_positions().data(), sizeof(float[3]) * size_t(mesh->totvert));
+  memcpy(coords, mesh->vert_positions().data(), sizeof(float[3]) * size_t(mesh->verts_num));
 
   BVHTree *tree;
 

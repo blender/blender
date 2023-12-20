@@ -75,15 +75,15 @@ Mesh *BKE_mesh_wrapper_from_editmesh(BMEditMesh *em,
 
   /* Make sure we crash if these are ever used. */
 #ifndef NDEBUG
-  mesh->totvert = INT_MAX;
-  mesh->totedge = INT_MAX;
+  mesh->verts_num = INT_MAX;
+  mesh->edges_num = INT_MAX;
   mesh->faces_num = INT_MAX;
-  mesh->totloop = INT_MAX;
+  mesh->corners_num = INT_MAX;
 #else
-  mesh->totvert = 0;
-  mesh->totedge = 0;
+  mesh->verts_num = 0;
+  mesh->edges_num = 0;
   mesh->faces_num = 0;
-  mesh->totloop = 0;
+  mesh->corners_num = 0;
 #endif
 
   return mesh;
@@ -104,10 +104,10 @@ void BKE_mesh_wrapper_ensure_mdata(Mesh *mesh)
         break; /* Quiet warning. */
       }
       case ME_WRAPPER_TYPE_BMESH: {
-        mesh->totvert = 0;
-        mesh->totedge = 0;
+        mesh->verts_num = 0;
+        mesh->edges_num = 0;
         mesh->faces_num = 0;
-        mesh->totloop = 0;
+        mesh->corners_num = 0;
 
         BLI_assert(mesh->edit_mesh != nullptr);
         BLI_assert(mesh->runtime->edit_data != nullptr);
@@ -253,7 +253,7 @@ void BKE_mesh_wrapper_vert_coords_copy_with_mat4(const Mesh *mesh,
     }
     case ME_WRAPPER_TYPE_MDATA:
     case ME_WRAPPER_TYPE_SUBD: {
-      BLI_assert(vert_coords_len == mesh->totvert);
+      BLI_assert(vert_coords_len == mesh->verts_num);
       const Span<float3> positions = mesh->vert_positions();
       for (int i = 0; i < vert_coords_len; i++) {
         mul_v3_m4v3(vert_coords[i], mat, positions[i]);
@@ -277,7 +277,7 @@ int BKE_mesh_wrapper_vert_len(const Mesh *mesh)
       return mesh->edit_mesh->bm->totvert;
     case ME_WRAPPER_TYPE_MDATA:
     case ME_WRAPPER_TYPE_SUBD:
-      return mesh->totvert;
+      return mesh->verts_num;
   }
   BLI_assert_unreachable();
   return -1;
@@ -290,7 +290,7 @@ int BKE_mesh_wrapper_edge_len(const Mesh *mesh)
       return mesh->edit_mesh->bm->totedge;
     case ME_WRAPPER_TYPE_MDATA:
     case ME_WRAPPER_TYPE_SUBD:
-      return mesh->totedge;
+      return mesh->edges_num;
   }
   BLI_assert_unreachable();
   return -1;
@@ -303,7 +303,7 @@ int BKE_mesh_wrapper_loop_len(const Mesh *mesh)
       return mesh->edit_mesh->bm->totloop;
     case ME_WRAPPER_TYPE_MDATA:
     case ME_WRAPPER_TYPE_SUBD:
-      return mesh->totloop;
+      return mesh->corners_num;
   }
   BLI_assert_unreachable();
   return -1;
@@ -355,7 +355,8 @@ static Mesh *mesh_wrapper_ensure_subdivision(Mesh *mesh)
   if (use_clnors) {
     /* If custom normals are present and the option is turned on calculate the split
      * normals and clear flag so the normals get interpolated to the result mesh. */
-    void *data = CustomData_add_layer(&mesh->loop_data, CD_NORMAL, CD_CONSTRUCT, mesh->totloop);
+    void *data = CustomData_add_layer(
+        &mesh->loop_data, CD_NORMAL, CD_CONSTRUCT, mesh->corners_num);
     memcpy(data, mesh->corner_normals().data(), mesh->corner_normals().size_in_bytes());
   }
 
@@ -364,8 +365,8 @@ static Mesh *mesh_wrapper_ensure_subdivision(Mesh *mesh)
   if (use_clnors) {
     BKE_mesh_set_custom_normals(subdiv_mesh,
                                 static_cast<float(*)[3]>(CustomData_get_layer_for_write(
-                                    &subdiv_mesh->loop_data, CD_NORMAL, mesh->totloop)));
-    CustomData_free_layers(&subdiv_mesh->loop_data, CD_NORMAL, mesh->totloop);
+                                    &subdiv_mesh->loop_data, CD_NORMAL, mesh->corners_num)));
+    CustomData_free_layers(&subdiv_mesh->loop_data, CD_NORMAL, mesh->corners_num);
   }
 
   if (!ELEM(subdiv, runtime_data->subdiv_cpu, runtime_data->subdiv_gpu)) {

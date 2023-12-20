@@ -585,8 +585,8 @@ static void initSystem(
     lmd->verts_num = verts_num;
 
     createFaceRingMap(
-        mesh->totvert, corner_tris, corner_verts, &sys->ringf_map, &sys->ringf_indices);
-    createVertRingMap(mesh->totvert, edges, &sys->ringv_map, &sys->ringv_indices);
+        mesh->verts_num, corner_tris, corner_verts, &sys->ringf_map, &sys->ringf_indices);
+    createVertRingMap(mesh->verts_num, edges, &sys->ringv_map, &sys->ringv_indices);
 
     for (i = 0; i < sys->tris_num; i++) {
       sys->tris[i][0] = corner_verts[corner_tris[i][0]];
@@ -613,7 +613,7 @@ static int isSystemDifferent(LaplacianDeformModifierData *lmd,
   if (sys->verts_num != verts_num) {
     return LAPDEFORM_SYSTEM_CHANGE_VERTEXES;
   }
-  if (sys->edges_num != mesh->totedge) {
+  if (sys->edges_num != mesh->edges_num) {
     return LAPDEFORM_SYSTEM_CHANGE_EDGES;
   }
   if (!STREQ(lmd->anchor_grp_name, sys->anchor_grp_name)) {
@@ -682,7 +682,7 @@ static void LaplacianDeformModifier_do(
         }
         else if (sysdif == LAPDEFORM_SYSTEM_CHANGE_EDGES) {
           BKE_modifier_set_error(
-              ob, &lmd->modifier, "Edges changed from %d to %d", sys->edges_num, mesh->totedge);
+              ob, &lmd->modifier, "Edges changed from %d to %d", sys->edges_num, mesh->edges_num);
         }
         else if (sysdif == LAPDEFORM_SYSTEM_CHANGE_NOT_VALID_GROUP) {
           BKE_modifier_set_error(ob,

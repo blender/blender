@@ -141,7 +141,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
       MOD_get_vgroup(ctx->object, mesh, dmd->defgrp_name, &dvert, &defgrp_index);
 
       if (dvert) {
-        const uint vert_tot = mesh->totvert;
+        const uint vert_tot = mesh->verts_num;
         uint i;
 
         vweights = static_cast<float *>(MEM_malloc_arrayN(vert_tot, sizeof(float), __func__));

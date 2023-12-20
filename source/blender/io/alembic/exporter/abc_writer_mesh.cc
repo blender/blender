@@ -179,8 +179,8 @@ void ABCGenericMeshWriter::do_write(HierarchyContext &context)
   m_custom_data_config.face_offsets = mesh->face_offsets_for_write().data();
   m_custom_data_config.corner_verts = mesh->corner_verts_for_write().data();
   m_custom_data_config.faces_num = mesh->faces_num;
-  m_custom_data_config.totloop = mesh->totloop;
-  m_custom_data_config.totvert = mesh->totvert;
+  m_custom_data_config.totloop = mesh->corners_num;
+  m_custom_data_config.totvert = mesh->verts_num;
   m_custom_data_config.timesample_index = timesample_index_;
 
   try {
@@ -376,7 +376,7 @@ bool ABCGenericMeshWriter::get_velocities(Mesh *mesh, std::vector<Imath::V3f> &v
     return false;
   }
 
-  const int totverts = mesh->totvert;
+  const int totverts = mesh->verts_num;
   const float(*mesh_velocities)[3] = reinterpret_cast<float(*)[3]>(velocity_layer->data);
 
   vels.clear();
@@ -436,10 +436,10 @@ void ABCGenericMeshWriter::get_geo_groups(Object *object,
 static void get_vertices(Mesh *mesh, std::vector<Imath::V3f> &points)
 {
   points.clear();
-  points.resize(mesh->totvert);
+  points.resize(mesh->verts_num);
 
   const Span<float3> positions = mesh->vert_positions();
-  for (int i = 0, e = mesh->totvert; i < e; i++) {
+  for (int i = 0, e = mesh->verts_num; i < e; i++) {
     copy_yup_from_zup(points[i].getValue(), positions[i]);
   }
 }
@@ -532,7 +532,7 @@ static void get_loop_normals(const Mesh *mesh, std::vector<Imath::V3f> &normals)
       break;
     }
     case blender::bke::MeshNormalDomain::Face: {
-      normals.resize(mesh->totloop);
+      normals.resize(mesh->corners_num);
       MutableSpan dst_normals(reinterpret_cast<float3 *>(normals.data()), normals.size());
 
       const OffsetIndices faces = mesh->faces();
@@ -547,7 +547,7 @@ static void get_loop_normals(const Mesh *mesh, std::vector<Imath::V3f> &normals)
       break;
     }
     case blender::bke::MeshNormalDomain::Corner: {
-      normals.resize(mesh->totloop);
+      normals.resize(mesh->corners_num);
       MutableSpan dst_normals(reinterpret_cast<float3 *>(normals.data()), normals.size());
 
       /* NOTE: data needs to be written in the reverse order. */

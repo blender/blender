@@ -312,7 +312,7 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
       BKE_mesh_normals_loop_to_vertex(
           positions.size(),
           mesh->corner_verts().data(),
-          mesh->totloop,
+          mesh->corners_num,
           reinterpret_cast<const float(*)[3]>(mesh->corner_normals().data()),
           vert_clnors);
     }

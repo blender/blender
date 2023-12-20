@@ -42,7 +42,8 @@ static void reserve_hash_maps(const Mesh *mesh,
                               const bool keep_existing_edges,
                               MutableSpan<EdgeMap> edge_maps)
 {
-  const int totedge_guess = std::max(keep_existing_edges ? mesh->totedge : 0, mesh->faces_num * 2);
+  const int totedge_guess = std::max(keep_existing_edges ? mesh->edges_num : 0,
+                                     mesh->faces_num * 2);
   threading::parallel_for_each(
       edge_maps, [&](EdgeMap &edge_map) { edge_map.reserve(totedge_guess / edge_maps.size()); });
 }
@@ -217,9 +218,9 @@ void BKE_mesh_calc_edges(Mesh *mesh, bool keep_existing_edges, const bool select
                                                 mesh->corner_edges_for_write());
 
   /* Free old CustomData and assign new one. */
-  CustomData_free(&mesh->edge_data, mesh->totedge);
+  CustomData_free(&mesh->edge_data, mesh->edges_num);
   CustomData_reset(&mesh->edge_data);
-  mesh->totedge = new_totedge;
+  mesh->edges_num = new_totedge;
   attributes.add<int2>(".edge_verts", ATTR_DOMAIN_EDGE, AttributeInitMoveArray(new_edges.data()));
 
   if (select_new_edges) {

@@ -147,10 +147,10 @@ static void SCULPT_dynamic_topology_disable_ex(
 
     /* Copy over stored custom data. */
     undo::NodeGeometry *geometry = &unode->geometry_bmesh_enter;
-    mesh->totvert = geometry->totvert;
-    mesh->totloop = geometry->totloop;
+    mesh->verts_num = geometry->totvert;
+    mesh->corners_num = geometry->totloop;
     mesh->faces_num = geometry->faces_num;
-    mesh->totedge = geometry->totedge;
+    mesh->edges_num = geometry->totedge;
     mesh->totface_legacy = 0;
     CustomData_copy(&geometry->vert_data, &mesh->vert_data, CD_MASK_MESH.vmask, geometry->totvert);
     CustomData_copy(&geometry->edge_data, &mesh->edge_data, CD_MASK_MESH.emask, geometry->totedge);
@@ -167,9 +167,9 @@ static void SCULPT_dynamic_topology_disable_ex(
 
     /* Sync the visibility to vertices manually as the `pmap` is still not initialized. */
     bool *hide_vert = (bool *)CustomData_get_layer_named_for_write(
-        &mesh->vert_data, CD_PROP_BOOL, ".hide_vert", mesh->totvert);
+        &mesh->vert_data, CD_PROP_BOOL, ".hide_vert", mesh->verts_num);
     if (hide_vert != nullptr) {
-      memset(hide_vert, 0, sizeof(bool) * mesh->totvert);
+      memset(hide_vert, 0, sizeof(bool) * mesh->verts_num);
     }
   }
 

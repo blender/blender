@@ -193,7 +193,7 @@ static int geometry_extract_apply(bContext *C,
   BKE_editmesh_free_data(em);
   MEM_freeN(em);
 
-  if (new_mesh->totvert == 0) {
+  if (new_mesh->verts_num == 0) {
     BKE_id_free(bmain, new_mesh);
     return OPERATOR_FINISHED;
   }

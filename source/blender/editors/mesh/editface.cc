@@ -222,7 +222,7 @@ void paintface_reveal(bContext *C, Object *ob, const bool select)
 /**
  * Join all edges of each face in the #AtomicDisjointSet. This can be used to find out which faces
  * are connected to each other.
- * \param islands: Is expected to be of length `mesh->totedge`.
+ * \param islands: Is expected to be of length `mesh->edges_num`.
  * \param skip_seams: Faces separated by a seam will be treated as not connected.
  */
 static void build_poly_connections(blender::AtomicDisjointSet &islands,
@@ -276,7 +276,7 @@ static void paintface_select_linked_faces(Mesh &mesh,
 {
   using namespace blender;
 
-  AtomicDisjointSet islands(mesh.totedge);
+  AtomicDisjointSet islands(mesh.edges_num);
   build_poly_connections(islands, mesh);
 
   const OffsetIndices faces = mesh.faces();
@@ -487,7 +487,7 @@ void paintface_select_loop(bContext *C, Object *ob, const int mval[2], const boo
   Array<int> edge_to_face_offsets;
   Array<int> edge_to_face_indices;
   const GroupedSpan<int> edge_to_face_map = bke::mesh::build_edge_to_face_map(
-      faces, corner_edges, mesh->totedge, edge_to_face_offsets, edge_to_face_indices);
+      faces, corner_edges, mesh->edges_num, edge_to_face_offsets, edge_to_face_indices);
 
   VectorSet<int> faces_to_select;
 
@@ -623,7 +623,7 @@ void paintface_select_less(Mesh *mesh, const bool face_step)
   const Span<int> corner_edges = mesh->corner_edges();
   const Span<int2> edges = mesh->edges();
 
-  BitVector<> verts_of_unselected_faces(mesh->totvert);
+  BitVector<> verts_of_unselected_faces(mesh->verts_num);
 
   /* Find all vertices of unselected faces to help find neighboring faces after. */
   for (const int i : faces.index_range()) {
@@ -887,7 +887,7 @@ static void paintvert_select_linked_vertices(bContext *C,
   }
 
   /* AtomicDisjointSet is used to store connection information in vertex indices. */
-  AtomicDisjointSet islands(mesh->totvert);
+  AtomicDisjointSet islands(mesh->verts_num);
   const Span<int2> edges = mesh->edges();
 
   /* By calling join() on the vertices of all edges, the AtomicDisjointSet contains information on
@@ -982,12 +982,12 @@ void paintvert_select_more(Mesh *mesh, const bool face_step)
   GroupedSpan<int> edge_to_face_map;
   if (face_step) {
     edge_to_face_map = bke::mesh::build_edge_to_face_map(
-        faces, corner_edges, mesh->totedge, edge_to_face_offsets, edge_to_face_indices);
+        faces, corner_edges, mesh->edges_num, edge_to_face_offsets, edge_to_face_indices);
   }
 
   /* Need a copy of the selected verts that we can read from and is not modified. */
-  BitVector<> select_vert_original(mesh->totvert, false);
-  for (int i = 0; i < mesh->totvert; i++) {
+  BitVector<> select_vert_original(mesh->verts_num, false);
+  for (int i = 0; i < mesh->verts_num; i++) {
     select_vert_original[i].set(select_vert.span[i]);
   }
 
@@ -1044,8 +1044,8 @@ void paintvert_select_less(Mesh *mesh, const bool face_step)
   }
 
   /* Need a copy of the selected verts that we can read from and is not modified. */
-  BitVector<> select_vert_original(mesh->totvert);
-  for (int i = 0; i < mesh->totvert; i++) {
+  BitVector<> select_vert_original(mesh->verts_num);
+  for (int i = 0; i < mesh->verts_num; i++) {
     select_vert_original[i].set(select_vert.span[i]);
   }
 
@@ -1096,7 +1096,7 @@ bool paintvert_deselect_all_visible(Object *ob, int action, bool flush_flags)
   if (action == SEL_TOGGLE) {
     action = SEL_SELECT;
 
-    for (int i = 0; i < mesh->totvert; i++) {
+    for (int i = 0; i < mesh->verts_num; i++) {
       if (!hide_vert[i] && select_vert.span[i]) {
         action = SEL_DESELECT;
         break;
@@ -1105,7 +1105,7 @@ bool paintvert_deselect_all_visible(Object *ob, int action, bool flush_flags)
   }
 
   bool changed = false;
-  for (int i = 0; i < mesh->totvert; i++) {
+  for (int i = 0; i < mesh->verts_num; i++) {
     if (hide_vert[i]) {
       continue;
     }
@@ -1189,7 +1189,7 @@ void paintvert_hide(bContext *C, Object *ob, const bool unselected)
 {
   using namespace blender;
   Mesh *mesh = BKE_mesh_from_object(ob);
-  if (mesh == nullptr || mesh->totvert == 0) {
+  if (mesh == nullptr || mesh->verts_num == 0) {
     return;
   }
 
@@ -1223,7 +1223,7 @@ void paintvert_reveal(bContext *C, Object *ob, const bool select)
 {
   using namespace blender;
   Mesh *mesh = BKE_mesh_from_object(ob);
-  if (mesh == nullptr || mesh->totvert == 0) {
+  if (mesh == nullptr || mesh->verts_num == 0) {
     return;
   }
 

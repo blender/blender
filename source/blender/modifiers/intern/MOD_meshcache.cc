@@ -171,7 +171,7 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
     if (UNLIKELY(ob->type != OB_MESH)) {
       BKE_modifier_set_error(ob, &mcmd->modifier, "'Integrate' only valid for Mesh objects");
     }
-    else if (UNLIKELY(mesh->totvert != verts_num)) {
+    else if (UNLIKELY(mesh->verts_num != verts_num)) {
       BKE_modifier_set_error(ob, &mcmd->modifier, "'Integrate' original mesh vertex mismatch");
     }
     else if (UNLIKELY(mesh->faces_num == 0)) {
@@ -185,7 +185,7 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
           mesh->face_offsets().data(),
           mesh->faces_num,
           mesh->corner_verts().data(),
-          mesh->totvert,
+          mesh->verts_num,
           /* From the original Mesh. */
           reinterpret_cast<const float(*)[3]>(mesh->vert_positions().data()),
           /* the input we've been given (shape keys!) */

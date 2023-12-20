@@ -135,7 +135,7 @@ static void extract_sculpt_data_init_subdiv(const DRWSubdivCache &subdiv_cache,
 
     mask_vbo = GPU_vertbuf_calloc();
     GPU_vertbuf_init_with_format(mask_vbo, &mask_format);
-    GPU_vertbuf_data_alloc(mask_vbo, coarse_mesh->totloop);
+    GPU_vertbuf_data_alloc(mask_vbo, coarse_mesh->corners_num);
     float *v_mask = static_cast<float *>(GPU_vertbuf_get_data(mask_vbo));
 
     for (int i = 0; i < coarse_mesh->faces_num; i++) {

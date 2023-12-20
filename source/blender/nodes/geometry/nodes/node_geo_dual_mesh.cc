@@ -218,8 +218,8 @@ static void calc_boundaries(const Mesh &mesh,
                             MutableSpan<VertexType> r_vertex_types,
                             MutableSpan<EdgeType> r_edge_types)
 {
-  BLI_assert(r_vertex_types.size() == mesh.totvert);
-  BLI_assert(r_edge_types.size() == mesh.totedge);
+  BLI_assert(r_vertex_types.size() == mesh.verts_num);
+  BLI_assert(r_edge_types.size() == mesh.edges_num);
   const Span<int2> edges = mesh.edges();
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_edges = mesh.corner_edges();
@@ -235,7 +235,7 @@ static void calc_boundaries(const Mesh &mesh,
   }
 
   /* Update vertices. */
-  for (const int i : IndexRange(mesh.totedge)) {
+  for (const int i : IndexRange(mesh.edges_num)) {
     const EdgeType edge_type = r_edge_types[i];
     if (edge_type == EdgeType::Loose) {
       continue;
@@ -252,7 +252,7 @@ static void calc_boundaries(const Mesh &mesh,
   }
 
   /* Normal verts are on a normal edge, and not on boundary edges or non-manifold edges. */
-  for (const int i : IndexRange(mesh.totedge)) {
+  for (const int i : IndexRange(mesh.edges_num)) {
     const EdgeType edge_type = r_edge_types[i];
     if (edge_type == EdgeType::Normal) {
       const int2 &edge = edges[i];
@@ -626,8 +626,8 @@ static Mesh *calc_dual_mesh(const Mesh &src_mesh,
   const Span<int> src_corner_verts = src_mesh.corner_verts();
   const Span<int> src_corner_edges = src_mesh.corner_edges();
 
-  Array<VertexType> vertex_types(src_mesh.totvert);
-  Array<EdgeType> edge_types(src_mesh.totedge);
+  Array<VertexType> vertex_types(src_mesh.verts_num);
+  Array<EdgeType> edge_types(src_mesh.edges_num);
   calc_boundaries(src_mesh, vertex_types, edge_types);
   /* Stores the indices of the faces connected to the vertex. Because the faces are looped
    * over in order of their indices, the face's indices will be sorted in ascending order.
@@ -635,8 +635,8 @@ static Mesh *calc_dual_mesh(const Mesh &src_mesh,
   Array<int> vert_to_face_indices = src_mesh.vert_to_face_map().data;
   const OffsetIndices<int> vert_to_face_offsets = src_mesh.vert_to_face_map().offsets;
 
-  Array<Array<int>> vertex_shared_edges(src_mesh.totvert);
-  Array<Array<int>> vertex_corners(src_mesh.totvert);
+  Array<Array<int>> vertex_shared_edges(src_mesh.verts_num);
+  Array<Array<int>> vertex_corners(src_mesh.verts_num);
   threading::parallel_for(src_positions.index_range(), 512, [&](IndexRange range) {
     for (const int i : range) {
       if (vertex_types[i] == VertexType::Loose || vertex_types[i] >= VertexType::NonManifold ||
@@ -698,9 +698,9 @@ static Mesh *calc_dual_mesh(const Mesh &src_mesh,
   Array<int> boundary_edge_midpoint_index;
   if (keep_boundaries) {
     /* Only initialize when we actually need it. */
-    boundary_edge_midpoint_index.reinitialize(src_mesh.totedge);
+    boundary_edge_midpoint_index.reinitialize(src_mesh.edges_num);
     /* We need to add vertices at the centers of boundary edges. */
-    for (const int i : IndexRange(src_mesh.totedge)) {
+    for (const int i : IndexRange(src_mesh.edges_num)) {
       if (edge_types[i] == EdgeType::Boundary) {
         const int2 &edge = src_edges[i];
         const float3 mid = math::midpoint(src_positions[edge[0]], src_positions[edge[1]]);
@@ -724,7 +724,7 @@ static Mesh *calc_dual_mesh(const Mesh &src_mesh,
    * needs to be created or not. If it's not -1 it gives the index in `new_edges` of the dual
    * edge. The edges coming from preserving the boundaries only get added once anyway, so we
    * don't need a hash-map for that. */
-  Array<int> old_to_new_edges_map(src_mesh.totedge);
+  Array<int> old_to_new_edges_map(src_mesh.edges_num);
   old_to_new_edges_map.fill(-1);
 
   /* This is necessary to prevent duplicate edges from being created, but will likely not do
@@ -738,7 +738,7 @@ static Mesh *calc_dual_mesh(const Mesh &src_mesh,
                            new_edges,
                            new_to_old_edges_map);
 
-  for (const int i : IndexRange(src_mesh.totvert)) {
+  for (const int i : IndexRange(src_mesh.verts_num)) {
     if (vertex_types[i] == VertexType::Loose || vertex_types[i] >= VertexType::NonManifold ||
         (!keep_boundaries && vertex_types[i] == VertexType::Boundary))
     {

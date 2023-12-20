@@ -166,8 +166,8 @@ static void subdiv_foreach_ctx_count(SubdivForeachTaskContext *ctx)
   const int num_inner_vertices_per_noquad_patch = (no_quad_patch_resolution - 2) *
                                                   (no_quad_patch_resolution - 2);
   const Mesh *coarse_mesh = ctx->coarse_mesh;
-  ctx->num_subdiv_vertices = coarse_mesh->totvert;
-  ctx->num_subdiv_edges = coarse_mesh->totedge * (num_subdiv_vertices_per_coarse_edge + 1);
+  ctx->num_subdiv_vertices = coarse_mesh->verts_num;
+  ctx->num_subdiv_edges = coarse_mesh->edges_num * (num_subdiv_vertices_per_coarse_edge + 1);
   /* Calculate extra vertices and edges created by non-loose geometry. */
   for (int face_index = 0; face_index < coarse_mesh->faces_num; face_index++) {
     const IndexRange coarse_face = ctx->coarse_faces[face_index];
@@ -195,7 +195,7 @@ static void subdiv_foreach_ctx_count(SubdivForeachTaskContext *ctx)
   }
 
   /* Add vertices used by outer edges on subdivided faces and loose edges. */
-  ctx->num_subdiv_vertices += num_subdiv_vertices_per_coarse_edge * coarse_mesh->totedge;
+  ctx->num_subdiv_vertices += num_subdiv_vertices_per_coarse_edge * coarse_mesh->edges_num;
 
   ctx->num_subdiv_loops = ctx->num_subdiv_faces * 4;
 }
@@ -213,12 +213,12 @@ static void subdiv_foreach_ctx_init_offsets(SubdivForeachTaskContext *ctx)
   const int num_subdiv_edges_per_coarse_edge = resolution - 1;
   /* Constant offsets in arrays. */
   ctx->vertices_corner_offset = 0;
-  ctx->vertices_edge_offset = coarse_mesh->totvert;
+  ctx->vertices_edge_offset = coarse_mesh->verts_num;
   ctx->vertices_inner_offset = ctx->vertices_edge_offset +
-                               coarse_mesh->totedge * num_subdiv_vertices_per_coarse_edge;
+                               coarse_mesh->edges_num * num_subdiv_vertices_per_coarse_edge;
   ctx->edge_boundary_offset = 0;
   ctx->edge_inner_offset = ctx->edge_boundary_offset +
-                           coarse_mesh->totedge * num_subdiv_edges_per_coarse_edge;
+                           coarse_mesh->edges_num * num_subdiv_edges_per_coarse_edge;
   /* "Indexed" offsets. */
   int vertex_offset = 0;
   int edge_offset = 0;
@@ -252,8 +252,8 @@ static void subdiv_foreach_ctx_init(Subdiv *subdiv, SubdivForeachTaskContext *ct
 {
   const Mesh *coarse_mesh = ctx->coarse_mesh;
   /* Allocate maps and offsets. */
-  ctx->coarse_vertices_used_map = BLI_BITMAP_NEW(coarse_mesh->totvert, "vertices used map");
-  ctx->coarse_edges_used_map = BLI_BITMAP_NEW(coarse_mesh->totedge, "edges used map");
+  ctx->coarse_vertices_used_map = BLI_BITMAP_NEW(coarse_mesh->verts_num, "vertices used map");
+  ctx->coarse_edges_used_map = BLI_BITMAP_NEW(coarse_mesh->edges_num, "edges used map");
   ctx->subdiv_vertex_offset = static_cast<int *>(MEM_malloc_arrayN(
       coarse_mesh->faces_num, sizeof(*ctx->subdiv_vertex_offset), "vertex_offset"));
   ctx->subdiv_edge_offset = static_cast<int *>(MEM_malloc_arrayN(
@@ -1846,21 +1846,21 @@ bool BKE_subdiv_foreach_subdiv_geometry(Subdiv *subdiv,
       0, coarse_mesh->faces_num, &ctx, subdiv_foreach_task, &parallel_range_settings);
   if (context->vertex_loose != nullptr) {
     BLI_task_parallel_range(0,
-                            coarse_mesh->totvert,
+                            coarse_mesh->verts_num,
                             &ctx,
                             subdiv_foreach_loose_vertices_task,
                             &parallel_range_settings);
   }
   if (context->vertex_of_loose_edge != nullptr) {
     BLI_task_parallel_range(0,
-                            coarse_mesh->totedge,
+                            coarse_mesh->edges_num,
                             &ctx,
                             subdiv_foreach_vertices_of_loose_edges_task,
                             &parallel_range_settings);
   }
   if (context->edge != nullptr) {
     BLI_task_parallel_range(0,
-                            coarse_mesh->totedge,
+                            coarse_mesh->edges_num,
                             &ctx,
                             subdiv_foreach_boundary_edges_task,
                             &parallel_range_settings);

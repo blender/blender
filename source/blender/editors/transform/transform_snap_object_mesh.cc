@@ -432,7 +432,7 @@ static eSnapMode mesh_snap_mode_supported(const Mesh *mesh)
   if (mesh->faces_num) {
     snap_mode_supported |= SCE_SNAP_TO_FACE | SCE_SNAP_INDIVIDUAL_NEAREST | SNAP_TO_EDGE_ELEMENTS;
   }
-  else if (mesh->totedge) {
+  else if (mesh->edges_num) {
     snap_mode_supported |= SNAP_TO_EDGE_ELEMENTS;
   }
 

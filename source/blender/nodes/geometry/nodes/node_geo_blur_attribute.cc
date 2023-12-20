@@ -208,14 +208,14 @@ static GroupedSpan<int> create_mesh_map(const Mesh &mesh,
 {
   switch (domain) {
     case ATTR_DOMAIN_POINT:
-      build_vert_to_vert_by_edge_map(mesh.edges(), mesh.totvert, r_offsets, r_indices);
+      build_vert_to_vert_by_edge_map(mesh.edges(), mesh.verts_num, r_offsets, r_indices);
       break;
     case ATTR_DOMAIN_EDGE:
-      build_edge_to_edge_by_vert_map(mesh.edges(), mesh.totvert, r_offsets, r_indices);
+      build_edge_to_edge_by_vert_map(mesh.edges(), mesh.verts_num, r_offsets, r_indices);
       break;
     case ATTR_DOMAIN_FACE:
       build_face_to_face_by_edge_map(
-          mesh.faces(), mesh.corner_edges(), mesh.totedge, r_offsets, r_indices);
+          mesh.faces(), mesh.corner_edges(), mesh.edges_num, r_offsets, r_indices);
       break;
     default:
       BLI_assert_unreachable();

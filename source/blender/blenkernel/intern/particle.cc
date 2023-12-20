@@ -1954,7 +1954,7 @@ static int psys_map_index_on_dm(Mesh *mesh,
     /* for meshes that are either only deformed or for child particles, the
      * index and fw do not require any mapping, so we can directly use it */
     if (from == PART_FROM_VERT) {
-      if (index >= mesh->totvert) {
+      if (index >= mesh->verts_num) {
         return 0;
       }
 
@@ -1974,7 +1974,7 @@ static int psys_map_index_on_dm(Mesh *mesh,
      * to their new location, which means a different index, and for faces
      * also a new face interpolation weights */
     if (from == PART_FROM_VERT) {
-      if (index_dmcache == DMCACHE_NOTFOUND || index_dmcache >= mesh->totvert) {
+      if (index_dmcache == DMCACHE_NOTFOUND || index_dmcache >= mesh->verts_num) {
         return 0;
       }
 
@@ -2577,7 +2577,7 @@ float *psys_cache_vgroup(Mesh *mesh, ParticleSystem *psys, int vgroup)
   else if (psys->vgroup[vgroup]) {
     const MDeformVert *dvert = mesh->deform_verts().data();
     if (dvert) {
-      int totvert = mesh->totvert, i;
+      int totvert = mesh->verts_num, i;
       vg = static_cast<float *>(MEM_callocN(sizeof(float) * totvert, "vg_cache"));
       if (psys->vg_neg & (1 << vgroup)) {
         for (i = 0; i < totvert; i++) {
@@ -4163,7 +4163,7 @@ static int get_particle_uv(Mesh *mesh,
 
   if (pa) {
     i = ELEM(pa->num_dmcache, DMCACHE_NOTFOUND, DMCACHE_ISCHILD) ? pa->num : pa->num_dmcache;
-    if ((!from_vert && i >= mesh->totface_legacy) || (from_vert && i >= mesh->totvert)) {
+    if ((!from_vert && i >= mesh->totface_legacy) || (from_vert && i >= mesh->verts_num)) {
       i = -1;
     }
   }

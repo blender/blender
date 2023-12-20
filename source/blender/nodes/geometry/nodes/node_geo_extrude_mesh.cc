@@ -110,15 +110,15 @@ static void remove_non_propagated_attributes(
 
 static void remove_unsupported_vert_data(Mesh &mesh)
 {
-  CustomData_free_layers(&mesh.vert_data, CD_ORCO, mesh.totvert);
-  CustomData_free_layers(&mesh.vert_data, CD_SHAPEKEY, mesh.totvert);
-  CustomData_free_layers(&mesh.vert_data, CD_CLOTH_ORCO, mesh.totvert);
-  CustomData_free_layers(&mesh.vert_data, CD_MVERT_SKIN, mesh.totvert);
+  CustomData_free_layers(&mesh.vert_data, CD_ORCO, mesh.verts_num);
+  CustomData_free_layers(&mesh.vert_data, CD_SHAPEKEY, mesh.verts_num);
+  CustomData_free_layers(&mesh.vert_data, CD_CLOTH_ORCO, mesh.verts_num);
+  CustomData_free_layers(&mesh.vert_data, CD_MVERT_SKIN, mesh.verts_num);
 }
 
 static void remove_unsupported_edge_data(Mesh &mesh)
 {
-  CustomData_free_layers(&mesh.edge_data, CD_FREESTYLE_EDGE, mesh.totedge);
+  CustomData_free_layers(&mesh.edge_data, CD_FREESTYLE_EDGE, mesh.edges_num);
 }
 
 static void remove_unsupported_face_data(Mesh &mesh)
@@ -128,11 +128,11 @@ static void remove_unsupported_face_data(Mesh &mesh)
 
 static void remove_unsupported_corner_data(Mesh &mesh)
 {
-  CustomData_free_layers(&mesh.loop_data, CD_MDISPS, mesh.totloop);
-  CustomData_free_layers(&mesh.loop_data, CD_TANGENT, mesh.totloop);
-  CustomData_free_layers(&mesh.loop_data, CD_MLOOPTANGENT, mesh.totloop);
-  CustomData_free_layers(&mesh.loop_data, CD_GRID_PAINT_MASK, mesh.totloop);
-  CustomData_free_layers(&mesh.loop_data, CD_CUSTOMLOOPNORMAL, mesh.totloop);
+  CustomData_free_layers(&mesh.loop_data, CD_MDISPS, mesh.corners_num);
+  CustomData_free_layers(&mesh.loop_data, CD_TANGENT, mesh.corners_num);
+  CustomData_free_layers(&mesh.loop_data, CD_MLOOPTANGENT, mesh.corners_num);
+  CustomData_free_layers(&mesh.loop_data, CD_GRID_PAINT_MASK, mesh.corners_num);
+  CustomData_free_layers(&mesh.loop_data, CD_CUSTOMLOOPNORMAL, mesh.corners_num);
 }
 
 static void expand_mesh(Mesh &mesh,
@@ -143,18 +143,18 @@ static void expand_mesh(Mesh &mesh,
 {
   /* Remove types that aren't supported for interpolation in this node. */
   if (vert_expand != 0) {
-    const int old_verts_num = mesh.totvert;
-    mesh.totvert += vert_expand;
-    CustomData_realloc(&mesh.vert_data, old_verts_num, mesh.totvert);
+    const int old_verts_num = mesh.verts_num;
+    mesh.verts_num += vert_expand;
+    CustomData_realloc(&mesh.vert_data, old_verts_num, mesh.verts_num);
   }
   if (edge_expand != 0) {
-    if (mesh.totedge == 0) {
+    if (mesh.edges_num == 0) {
       mesh.attributes_for_write().add(
           ".edge_verts", ATTR_DOMAIN_EDGE, CD_PROP_INT32_2D, bke::AttributeInitConstruct());
     }
-    const int old_edges_num = mesh.totedge;
-    mesh.totedge += edge_expand;
-    CustomData_realloc(&mesh.edge_data, old_edges_num, mesh.totedge);
+    const int old_edges_num = mesh.edges_num;
+    mesh.edges_num += edge_expand;
+    CustomData_realloc(&mesh.edge_data, old_edges_num, mesh.edges_num);
   }
   if (face_expand != 0) {
     const int old_faces_num = mesh.faces_num;
@@ -166,12 +166,12 @@ static void expand_mesh(Mesh &mesh,
                                            mesh.faces_num + 1);
     /* Set common values for convenience. */
     mesh.face_offset_indices[0] = 0;
-    mesh.face_offset_indices[mesh.faces_num] = mesh.totloop + loop_expand;
+    mesh.face_offset_indices[mesh.faces_num] = mesh.corners_num + loop_expand;
   }
   if (loop_expand != 0) {
-    const int old_loops_num = mesh.totloop;
-    mesh.totloop += loop_expand;
-    CustomData_realloc(&mesh.loop_data, old_loops_num, mesh.totloop);
+    const int old_loops_num = mesh.corners_num;
+    mesh.corners_num += loop_expand;
+    CustomData_realloc(&mesh.loop_data, old_loops_num, mesh.corners_num);
   }
 }
 
@@ -313,14 +313,14 @@ static void extrude_mesh_vertices(Mesh &mesh,
                                   const AttributeOutputs &attribute_outputs,
                                   const AnonymousAttributePropagationInfo &propagation_info)
 {
-  const int orig_vert_size = mesh.totvert;
-  const int orig_edge_size = mesh.totedge;
+  const int orig_vert_size = mesh.verts_num;
+  const int orig_edge_size = mesh.edges_num;
 
   /* Use an array for the result of the evaluation because the mesh is reallocated before
    * the vertices are moved, and the evaluated result might reference an attribute. */
   Array<float3> offsets(orig_vert_size);
   const bke::MeshFieldContext context{mesh, ATTR_DOMAIN_POINT};
-  FieldEvaluator evaluator{context, mesh.totvert};
+  FieldEvaluator evaluator{context, mesh.verts_num};
   evaluator.add_with_destination(offset_field, offsets.as_mutable_span());
   evaluator.set_selection(selection_field);
   evaluator.evaluate();
@@ -494,13 +494,13 @@ static void extrude_mesh_edges(Mesh &mesh,
                                const AttributeOutputs &attribute_outputs,
                                const AnonymousAttributePropagationInfo &propagation_info)
 {
-  const int orig_vert_size = mesh.totvert;
+  const int orig_vert_size = mesh.verts_num;
   const Span<int2> orig_edges = mesh.edges();
   const OffsetIndices orig_faces = mesh.faces();
-  const int orig_loop_size = mesh.totloop;
+  const int orig_loop_size = mesh.corners_num;
 
   const bke::MeshFieldContext edge_context{mesh, ATTR_DOMAIN_EDGE};
-  FieldEvaluator edge_evaluator{edge_context, mesh.totedge};
+  FieldEvaluator edge_evaluator{edge_context, mesh.edges_num};
   edge_evaluator.set_selection(selection_field);
   edge_evaluator.add(offset_field);
   edge_evaluator.evaluate();
@@ -548,7 +548,7 @@ static void extrude_mesh_edges(Mesh &mesh,
   Array<int> edge_to_face_offsets;
   Array<int> edge_to_face_indices;
   const GroupedSpan<int> edge_to_face_map = bke::mesh::build_edge_to_face_map(
-      orig_faces, mesh.corner_edges(), mesh.totedge, edge_to_face_offsets, edge_to_face_indices);
+      orig_faces, mesh.corner_edges(), mesh.edges_num, edge_to_face_offsets, edge_to_face_indices);
 
   Array<int> vert_to_edge_offsets;
   Array<int> vert_to_edge_indices;
@@ -775,7 +775,7 @@ static void extrude_mesh_face_regions(Mesh &mesh,
                                       const AttributeOutputs &attribute_outputs,
                                       const AnonymousAttributePropagationInfo &propagation_info)
 {
-  const int orig_vert_size = mesh.totvert;
+  const int orig_vert_size = mesh.verts_num;
   const Span<int2> orig_edges = mesh.edges();
   const OffsetIndices orig_faces = mesh.faces();
   const Span<int> orig_corner_verts = mesh.corner_verts();
@@ -815,7 +815,7 @@ static void extrude_mesh_face_regions(Mesh &mesh,
   Array<int> edge_to_face_offsets;
   Array<int> edge_to_face_indices;
   const GroupedSpan<int> edge_to_face_map = bke::mesh::build_edge_to_face_map(
-      orig_faces, mesh.corner_edges(), mesh.totedge, edge_to_face_offsets, edge_to_face_indices);
+      orig_faces, mesh.corner_edges(), mesh.edges_num, edge_to_face_offsets, edge_to_face_indices);
 
   /* All vertices that are connected to the selected faces. */
   IndexMaskMemory memory;
@@ -1021,7 +1021,7 @@ static void extrude_mesh_face_regions(Mesh &mesh,
     Array<int> vert_to_edge_offsets;
     Array<int> vert_to_edge_indices;
     const GroupedSpan<int> vert_to_boundary_edge_map = build_vert_to_edge_map(
-        edges, boundary_edge_mask, mesh.totvert, vert_to_edge_offsets, vert_to_edge_indices);
+        edges, boundary_edge_mask, mesh.verts_num, vert_to_edge_offsets, vert_to_edge_indices);
 
     for (const AttributeIDRef &id : ids_by_domain[ATTR_DOMAIN_EDGE]) {
       GSpanAttributeWriter attribute = attributes.lookup_for_write_span(id);
@@ -1152,8 +1152,8 @@ static void extrude_individual_mesh_faces(
     const AttributeOutputs &attribute_outputs,
     const AnonymousAttributePropagationInfo &propagation_info)
 {
-  const int orig_vert_size = mesh.totvert;
-  const int orig_edge_size = mesh.totedge;
+  const int orig_vert_size = mesh.verts_num;
+  const int orig_edge_size = mesh.edges_num;
   const OffsetIndices orig_faces = mesh.faces();
   const Span<int> orig_corner_verts = mesh.corner_verts();
   const int orig_loop_size = orig_corner_verts.size();

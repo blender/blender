@@ -98,10 +98,10 @@ class obj_importer_test : public BlendfileLoadingBaseTest {
           Mesh *mesh = BKE_object_get_evaluated_mesh(object);
           const Span<float3> positions = mesh->vert_positions();
           printf("OB_MESH, %i, %i, %i, %i, float3(%g, %g, %g), float3(%g, %g, %g)",
-                 mesh->totvert,
-                 mesh->totedge,
+                 mesh->verts_num,
+                 mesh->edges_num,
                  mesh->faces_num,
-                 mesh->totloop,
+                 mesh->corners_num,
                  positions.first().x,
                  positions.first().y,
                  positions.first().z,
@@ -130,10 +130,10 @@ class obj_importer_test : public BlendfileLoadingBaseTest {
       EXPECT_V3_NEAR(object->scale, float3(1, 1, 1), 0.0001f);
       if (object->type == OB_MESH) {
         Mesh *mesh = BKE_object_get_evaluated_mesh(object);
-        EXPECT_EQ(mesh->totvert, exp.totvert);
-        EXPECT_EQ(mesh->totedge, exp.mesh_totedge_or_curve_endp);
+        EXPECT_EQ(mesh->verts_num, exp.totvert);
+        EXPECT_EQ(mesh->edges_num, exp.mesh_totedge_or_curve_endp);
         EXPECT_EQ(mesh->faces_num, exp.mesh_faces_num_or_curve_order);
-        EXPECT_EQ(mesh->totloop, exp.mesh_totloop_or_curve_cyclic);
+        EXPECT_EQ(mesh->corners_num, exp.mesh_totloop_or_curve_cyclic);
         const Span<float3> positions = mesh->vert_positions();
         EXPECT_V3_NEAR(positions.first(), exp.vert_first, 0.0001f);
         EXPECT_V3_NEAR(positions.last(), exp.vert_last, 0.0001f);

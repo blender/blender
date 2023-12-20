@@ -270,7 +270,7 @@ static void extract_attr_init_subdiv(const DRWSubdivCache &subdiv_cache,
   GPUVertBuf *src_data = GPU_vertbuf_calloc();
   GPUVertFormat coarse_format = draw::init_format_for_attribute(request.cd_type, "data");
   GPU_vertbuf_init_with_format_ex(src_data, &coarse_format, GPU_USAGE_STATIC);
-  GPU_vertbuf_data_alloc(src_data, uint32_t(coarse_mesh->totloop));
+  GPU_vertbuf_data_alloc(src_data, uint32_t(coarse_mesh->corners_num));
 
   extract_attr(mr, request, *src_data);
 

@@ -48,12 +48,12 @@ class EdgesOfVertInput final : public bke::MeshFieldInput {
                                  const eAttrDomain domain,
                                  const IndexMask &mask) const final
   {
-    const IndexRange vert_range(mesh.totvert);
+    const IndexRange vert_range(mesh.verts_num);
     const Span<int2> edges = mesh.edges();
     Array<int> map_offsets;
     Array<int> map_indices;
     const GroupedSpan<int> vert_to_edge_map = bke::mesh::build_vert_to_edge_map(
-        edges, mesh.totvert, map_offsets, map_indices);
+        edges, mesh.verts_num, map_offsets, map_indices);
 
     const bke::MeshFieldContext context{mesh, domain};
     fn::FieldEvaluator evaluator{context, &mask};
@@ -64,7 +64,7 @@ class EdgesOfVertInput final : public bke::MeshFieldInput {
     const VArray<int> indices_in_sort = evaluator.get_evaluated<int>(1);
 
     const bke::MeshFieldContext edge_context{mesh, ATTR_DOMAIN_EDGE};
-    fn::FieldEvaluator edge_evaluator{edge_context, mesh.totedge};
+    fn::FieldEvaluator edge_evaluator{edge_context, mesh.edges_num};
     edge_evaluator.add(sort_weight_);
     edge_evaluator.evaluate();
     const VArray<float> all_sort_weights = edge_evaluator.get_evaluated<float>(0);
@@ -160,7 +160,7 @@ class EdgesOfVertCountInput final : public bke::MeshFieldInput {
     if (domain != ATTR_DOMAIN_POINT) {
       return {};
     }
-    Array<int> counts(mesh.totvert, 0);
+    Array<int> counts(mesh.verts_num, 0);
     array_utils::count_indices(mesh.edges().cast<int>(), counts);
     return VArray<int>::ForContainer(std::move(counts));
   }

@@ -828,7 +828,7 @@ static void get_effector_tot(
   if (eff->pd->shape == PFIELD_SHAPE_POINTS) {
     /* TODO: hair and points object support */
     const Mesh *me_eval = BKE_object_get_evaluated_mesh(eff->ob);
-    *tot = me_eval != nullptr ? me_eval->totvert : 1;
+    *tot = me_eval != nullptr ? me_eval->verts_num : 1;
 
     if (*tot && eff->pd->forcefield == PFIELD_HARMONIC && point->index >= 0) {
       *p = point->index % *tot;

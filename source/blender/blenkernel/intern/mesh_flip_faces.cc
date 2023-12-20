@@ -63,7 +63,7 @@ void mesh_flip_faces(Mesh &mesh, const IndexMask &selection)
   flip_custom_data_type<OrigSpaceLoop>(faces, mesh.loop_data, selection, CD_ORIGSPACE_MLOOP);
   flip_custom_data_type<MDisps>(faces, mesh.loop_data, selection, CD_MDISPS);
   if (MDisps *mdisp = static_cast<MDisps *>(
-          CustomData_get_layer_for_write(&mesh.loop_data, CD_MDISPS, mesh.totloop)))
+          CustomData_get_layer_for_write(&mesh.loop_data, CD_MDISPS, mesh.corners_num)))
   {
     selection.foreach_index(GrainSize(512), [&](const int i) {
       for (const int corner : faces[i]) {

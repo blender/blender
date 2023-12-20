@@ -241,7 +241,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
       sculpt_session->multires.active = true;
       sculpt_session->multires.modifier = mmd;
       sculpt_session->multires.level = mmd->sculptlvl;
-      sculpt_session->totvert = mesh->totvert;
+      sculpt_session->totvert = mesh->verts_num;
       sculpt_session->faces_num = mesh->faces_num;
       sculpt_session->vert_positions = {};
       sculpt_session->faces = {};
@@ -251,7 +251,8 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   }
   else {
     if (use_clnors) {
-      void *data = CustomData_add_layer(&mesh->loop_data, CD_NORMAL, CD_CONSTRUCT, mesh->totloop);
+      void *data = CustomData_add_layer(
+          &mesh->loop_data, CD_NORMAL, CD_CONSTRUCT, mesh->corners_num);
       memcpy(data, mesh->corner_normals().data(), mesh->corner_normals().size_in_bytes());
     }
 
@@ -259,9 +260,9 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
     if (use_clnors) {
       float(*lnors)[3] = static_cast<float(*)[3]>(
-          CustomData_get_layer_for_write(&result->loop_data, CD_NORMAL, result->totloop));
+          CustomData_get_layer_for_write(&result->loop_data, CD_NORMAL, result->corners_num));
       BKE_mesh_set_custom_normals(result, lnors);
-      CustomData_free_layers(&result->loop_data, CD_NORMAL, result->totloop);
+      CustomData_free_layers(&result->loop_data, CD_NORMAL, result->corners_num);
     }
     // BKE_subdiv_stats_print(&subdiv->stats);
     if (subdiv != runtime_data->subdiv) {

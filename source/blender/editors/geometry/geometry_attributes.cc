@@ -431,7 +431,7 @@ static int geometry_attribute_convert_exec(bContext *C, wmOperator *op)
       break;
     }
     case ConvertAttributeMode::VertexGroup: {
-      Array<float> src_weights(mesh->totvert);
+      Array<float> src_weights(mesh->verts_num);
       VArray<float> src_varray = *attributes.lookup_or_default<float>(
           name, ATTR_DOMAIN_POINT, 0.0f);
       src_varray.materialize(src_weights);
@@ -440,7 +440,7 @@ static int geometry_attribute_convert_exec(bContext *C, wmOperator *op)
       bDeformGroup *defgroup = BKE_object_defgroup_new(ob, name.c_str());
       const int defgroup_index = BLI_findindex(BKE_id_defgroup_list_get(&mesh->id), defgroup);
       MDeformVert *dverts = BKE_object_defgroup_data_create(&mesh->id);
-      for (const int i : IndexRange(mesh->totvert)) {
+      for (const int i : IndexRange(mesh->verts_num)) {
         const float weight = src_weights[i];
         if (weight > 0.0f) {
           BKE_defvert_add_index_notest(dverts + i, defgroup_index, weight);

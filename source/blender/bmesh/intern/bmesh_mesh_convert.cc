@@ -241,26 +241,29 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *mesh, const BMeshFromMeshParams *
     BKE_uv_map_vert_select_name_get(
         CustomData_get_layer_name(&mesh_ldata, CD_PROP_FLOAT2, layer_index), name);
     if (CustomData_get_named_layer_index(&mesh_ldata, CD_PROP_BOOL, name) < 0) {
-      CustomData_add_layer_named(&mesh_ldata, CD_PROP_BOOL, CD_SET_DEFAULT, mesh->totloop, name);
+      CustomData_add_layer_named(
+          &mesh_ldata, CD_PROP_BOOL, CD_SET_DEFAULT, mesh->corners_num, name);
       temporary_layers_to_delete.append(std::string(name));
     }
     BKE_uv_map_edge_select_name_get(
         CustomData_get_layer_name(&mesh_ldata, CD_PROP_FLOAT2, layer_index), name);
     if (CustomData_get_named_layer_index(&mesh_ldata, CD_PROP_BOOL, name) < 0) {
-      CustomData_add_layer_named(&mesh_ldata, CD_PROP_BOOL, CD_SET_DEFAULT, mesh->totloop, name);
+      CustomData_add_layer_named(
+          &mesh_ldata, CD_PROP_BOOL, CD_SET_DEFAULT, mesh->corners_num, name);
       temporary_layers_to_delete.append(std::string(name));
     }
     BKE_uv_map_pin_name_get(CustomData_get_layer_name(&mesh_ldata, CD_PROP_FLOAT2, layer_index),
                             name);
     if (CustomData_get_named_layer_index(&mesh_ldata, CD_PROP_BOOL, name) < 0) {
-      CustomData_add_layer_named(&mesh_ldata, CD_PROP_BOOL, CD_SET_DEFAULT, mesh->totloop, name);
+      CustomData_add_layer_named(
+          &mesh_ldata, CD_PROP_BOOL, CD_SET_DEFAULT, mesh->corners_num, name);
       temporary_layers_to_delete.append(std::string(name));
     }
   }
 
   BLI_SCOPED_DEFER([&]() {
     for (const std::string &name : temporary_layers_to_delete) {
-      CustomData_free_layer_named(&mesh_ldata, name.c_str(), mesh->totloop);
+      CustomData_free_layer_named(&mesh_ldata, name.c_str(), mesh->corners_num);
     }
 
     MEM_SAFE_FREE(mesh_vdata.layers);
@@ -269,7 +272,7 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *mesh, const BMeshFromMeshParams *
     MEM_SAFE_FREE(mesh_ldata.layers);
   });
 
-  if (mesh->totvert == 0) {
+  if (mesh->verts_num == 0) {
     if (is_new) {
       /* No verts? still copy custom-data layout. */
       CustomData_copy_layout(&mesh_vdata, &bm->vdata, mask.vmask, CD_CONSTRUCT, 0);
@@ -277,9 +280,9 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *mesh, const BMeshFromMeshParams *
       CustomData_copy_layout(&mesh_pdata, &bm->pdata, mask.pmask, CD_CONSTRUCT, 0);
       CustomData_copy_layout(&mesh_ldata, &bm->ldata, mask.lmask, CD_CONSTRUCT, 0);
 
-      CustomData_bmesh_init_pool(&bm->vdata, mesh->totvert, BM_VERT);
-      CustomData_bmesh_init_pool(&bm->edata, mesh->totedge, BM_EDGE);
-      CustomData_bmesh_init_pool(&bm->ldata, mesh->totloop, BM_LOOP);
+      CustomData_bmesh_init_pool(&bm->vdata, mesh->verts_num, BM_VERT);
+      CustomData_bmesh_init_pool(&bm->edata, mesh->edges_num, BM_EDGE);
+      CustomData_bmesh_init_pool(&bm->ldata, mesh->corners_num, BM_LOOP);
       CustomData_bmesh_init_pool(&bm->pdata, mesh->faces_num, BM_FACE);
     }
     return;
@@ -371,7 +374,7 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *mesh, const BMeshFromMeshParams *
       }
     }
 
-    if (actkey && actkey->totelem == mesh->totvert) {
+    if (actkey && actkey->totelem == mesh->verts_num) {
       keyco = params->use_shapekey ? static_cast<float(*)[3]>(actkey->data) : nullptr;
       if (is_new) {
         bm->shapenr = params->active_shapekey;
@@ -397,9 +400,9 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *mesh, const BMeshFromMeshParams *
   const Vector<MeshToBMeshLayerInfo> poly_info = mesh_to_bm_copy_info_calc(mesh_pdata, bm->pdata);
   const Vector<MeshToBMeshLayerInfo> loop_info = mesh_to_bm_copy_info_calc(mesh_ldata, bm->ldata);
   if (is_new) {
-    CustomData_bmesh_init_pool(&bm->vdata, mesh->totvert, BM_VERT);
-    CustomData_bmesh_init_pool(&bm->edata, mesh->totedge, BM_EDGE);
-    CustomData_bmesh_init_pool(&bm->ldata, mesh->totloop, BM_LOOP);
+    CustomData_bmesh_init_pool(&bm->vdata, mesh->verts_num, BM_VERT);
+    CustomData_bmesh_init_pool(&bm->edata, mesh->edges_num, BM_EDGE);
+    CustomData_bmesh_init_pool(&bm->ldata, mesh->corners_num, BM_LOOP);
     CustomData_bmesh_init_pool(&bm->pdata, mesh->faces_num, BM_FACE);
   }
 
@@ -424,7 +427,7 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *mesh, const BMeshFromMeshParams *
   const VArraySpan uv_seams = *attributes.lookup<bool>(".uv_seam", ATTR_DOMAIN_EDGE);
 
   const Span<float3> positions = mesh->vert_positions();
-  Array<BMVert *> vtable(mesh->totvert);
+  Array<BMVert *> vtable(mesh->verts_num);
   for (const int i : positions.index_range()) {
     BMVert *v = vtable[i] = BM_vert_create(
         bm, keyco ? keyco[i] : positions[i], nullptr, BM_CREATE_SKIP_CD);
@@ -461,7 +464,7 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *mesh, const BMeshFromMeshParams *
   }
 
   const Span<blender::int2> edges = mesh->edges();
-  Array<BMEdge *> etable(mesh->totedge);
+  Array<BMEdge *> etable(mesh->edges_num);
   for (const int i : edges.index_range()) {
     BMEdge *e = etable[i] = BM_edge_create(
         bm, vtable[edges[i][0]], vtable[edges[i][1]], nullptr, BM_CREATE_SKIP_CD);
@@ -1253,7 +1256,7 @@ static void bm_to_mesh_verts(const BMesh &bm,
                              MutableSpan<bool> hide_vert)
 {
   CustomData_add_layer_named(
-      &mesh.vert_data, CD_PROP_FLOAT3, CD_CONSTRUCT, mesh.totvert, "position");
+      &mesh.vert_data, CD_PROP_FLOAT3, CD_CONSTRUCT, mesh.verts_num, "position");
   const Vector<BMeshToMeshLayerInfo> info = bm_to_mesh_copy_info_calc(bm.vdata, mesh.vert_data);
   MutableSpan<float3> dst_vert_positions = mesh.vert_positions_for_write();
 
@@ -1295,7 +1298,7 @@ static void bm_to_mesh_edges(const BMesh &bm,
                              MutableSpan<bool> uv_seams)
 {
   CustomData_add_layer_named(
-      &mesh.edge_data, CD_PROP_INT32_2D, CD_CONSTRUCT, mesh.totedge, ".edge_verts");
+      &mesh.edge_data, CD_PROP_INT32_2D, CD_CONSTRUCT, mesh.edges_num, ".edge_verts");
   const Vector<BMeshToMeshLayerInfo> info = bm_to_mesh_copy_info_calc(bm.edata, mesh.edge_data);
   MutableSpan<int2> dst_edges = mesh.edges_for_write();
 
@@ -1402,14 +1405,14 @@ static void bm_to_mesh_loops(const BMesh &bm, const Span<const BMLoop *> bm_loop
 void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *mesh, const BMeshToMeshParams *params)
 {
   using namespace blender;
-  const int old_verts_num = mesh->totvert;
+  const int old_verts_num = mesh->verts_num;
 
   BKE_mesh_clear_geometry(mesh);
 
-  mesh->totvert = bm->totvert;
-  mesh->totedge = bm->totedge;
+  mesh->verts_num = bm->totvert;
+  mesh->edges_num = bm->totedge;
   mesh->totface_legacy = 0;
-  mesh->totloop = bm->totloop;
+  mesh->corners_num = bm->totloop;
   mesh->faces_num = bm->totface;
   mesh->act_face = -1;
 
@@ -1429,7 +1432,7 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *mesh, const BMeshToMeshParam
   Array<const BMLoop *> loop_table;
   Vector<int> loop_layers_not_to_copy;
   threading::parallel_invoke(
-      (mesh->faces_num + mesh->totedge) > 1024,
+      (mesh->faces_num + mesh->edges_num) > 1024,
       [&]() {
         vert_table.reinitialize(bm->totvert);
         bm_vert_table_build(*bm, vert_table, need_select_vert, need_hide_vert);
@@ -1459,9 +1462,12 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *mesh, const BMeshToMeshParam
   {
     CustomData_MeshMasks mask = CD_MASK_MESH;
     CustomData_MeshMasks_update(&mask, &params->cd_mask_extra);
-    CustomData_copy_layout(&bm->vdata, &mesh->vert_data, mask.vmask, CD_CONSTRUCT, mesh->totvert);
-    CustomData_copy_layout(&bm->edata, &mesh->edge_data, mask.emask, CD_CONSTRUCT, mesh->totedge);
-    CustomData_copy_layout(&bm->ldata, &mesh->loop_data, mask.lmask, CD_CONSTRUCT, mesh->totloop);
+    CustomData_copy_layout(
+        &bm->vdata, &mesh->vert_data, mask.vmask, CD_CONSTRUCT, mesh->verts_num);
+    CustomData_copy_layout(
+        &bm->edata, &mesh->edge_data, mask.emask, CD_CONSTRUCT, mesh->edges_num);
+    CustomData_copy_layout(
+        &bm->ldata, &mesh->loop_data, mask.lmask, CD_CONSTRUCT, mesh->corners_num);
     CustomData_copy_layout(
         &bm->pdata, &mesh->face_data, mask.pmask, CD_CONSTRUCT, mesh->faces_num);
   }
@@ -1513,7 +1519,7 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *mesh, const BMeshToMeshParam
 
   /* Loop over all elements in parallel, copying attributes and building the Mesh topology. */
   threading::parallel_invoke(
-      (mesh->faces_num + mesh->totedge) > 1024,
+      (mesh->faces_num + mesh->edges_num) > 1024,
       [&]() {
         bm_to_mesh_verts(*bm, vert_table, *mesh, select_vert.span, hide_vert.span);
         if (mesh->key) {
@@ -1617,15 +1623,15 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *mesh, const CustomData_MeshMasks
 
   using namespace blender;
   /* Must be an empty mesh. */
-  BLI_assert(mesh->totvert == 0);
+  BLI_assert(mesh->verts_num == 0);
   BLI_assert(cd_mask_extra == nullptr || (cd_mask_extra->vmask & CD_MASK_SHAPEKEY) == 0);
   /* Just in case, clear the derived geometry caches from the input mesh. */
   BKE_mesh_runtime_clear_geometry(mesh);
 
-  mesh->totvert = bm->totvert;
-  mesh->totedge = bm->totedge;
+  mesh->verts_num = bm->totvert;
+  mesh->edges_num = bm->totedge;
   mesh->totface_legacy = 0;
-  mesh->totloop = bm->totloop;
+  mesh->corners_num = bm->totloop;
   mesh->faces_num = bm->totface;
 
   mesh->runtime->deformed_only = true;
@@ -1649,7 +1655,7 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *mesh, const CustomData_MeshMasks
   Array<const BMLoop *> loop_table;
   Vector<int> loop_layers_not_to_copy;
   threading::parallel_invoke(
-      (mesh->faces_num + mesh->totedge) > 1024,
+      (mesh->faces_num + mesh->edges_num) > 1024,
       [&]() {
         vert_table.reinitialize(bm->totvert);
         bm_vert_table_build(*bm, vert_table, need_select_vert, need_hide_vert);
@@ -1683,9 +1689,10 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *mesh, const CustomData_MeshMasks
     CustomData_MeshMasks_update(&mask, cd_mask_extra);
   }
   mask.vmask &= ~CD_MASK_SHAPEKEY;
-  CustomData_merge_layout(&bm->vdata, &mesh->vert_data, mask.vmask, CD_CONSTRUCT, mesh->totvert);
-  CustomData_merge_layout(&bm->edata, &mesh->edge_data, mask.emask, CD_CONSTRUCT, mesh->totedge);
-  CustomData_merge_layout(&bm->ldata, &mesh->loop_data, mask.lmask, CD_CONSTRUCT, mesh->totloop);
+  CustomData_merge_layout(&bm->vdata, &mesh->vert_data, mask.vmask, CD_CONSTRUCT, mesh->verts_num);
+  CustomData_merge_layout(&bm->edata, &mesh->edge_data, mask.emask, CD_CONSTRUCT, mesh->edges_num);
+  CustomData_merge_layout(
+      &bm->ldata, &mesh->loop_data, mask.lmask, CD_CONSTRUCT, mesh->corners_num);
   CustomData_merge_layout(&bm->pdata, &mesh->face_data, mask.pmask, CD_CONSTRUCT, mesh->faces_num);
 
   /* Add optional mesh attributes before parallel iteration. */
@@ -1735,7 +1742,7 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *mesh, const CustomData_MeshMasks
 
   /* Loop over all elements in parallel, copying attributes and building the Mesh topology. */
   threading::parallel_invoke(
-      (mesh->faces_num + mesh->totedge) > 1024,
+      (mesh->faces_num + mesh->edges_num) > 1024,
       [&]() { bm_to_mesh_verts(*bm, vert_table, *mesh, select_vert.span, hide_vert.span); },
       [&]() {
         bm_to_mesh_edges(*bm,

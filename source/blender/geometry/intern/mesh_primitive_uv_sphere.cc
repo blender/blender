@@ -312,7 +312,7 @@ Mesh *create_uv_sphere_mesh(const float radius,
   threading::parallel_invoke(
       1024 < segments * rings,
       [&]() {
-        Vector<float3> vert_normals(mesh->totvert);
+        Vector<float3> vert_normals(mesh->verts_num);
         calculate_sphere_vertex_data(positions, vert_normals, radius, segments, rings);
         bke::mesh_vert_normals_assign(*mesh, std::move(vert_normals));
       },

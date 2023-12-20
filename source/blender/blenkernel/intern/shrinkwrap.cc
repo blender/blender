@@ -112,7 +112,7 @@ bool BKE_shrinkwrap_init_tree(
    * Convert mesh data since this isn't typically used in edit-mode. */
   BKE_mesh_wrapper_ensure_mdata(mesh);
 
-  if (mesh->totvert <= 0) {
+  if (mesh->verts_num <= 0) {
     return false;
   }
 
@@ -192,9 +192,9 @@ static std::unique_ptr<ShrinkwrapBoundaryData> shrinkwrap_build_boundary_data(Me
 
   /* Count faces per edge (up to 2). */
   char *edge_mode = static_cast<char *>(
-      MEM_calloc_arrayN(size_t(mesh->totedge), sizeof(char), __func__));
+      MEM_calloc_arrayN(size_t(mesh->edges_num), sizeof(char), __func__));
 
-  for (int i = 0; i < mesh->totloop; i++) {
+  for (int i = 0; i < mesh->corners_num; i++) {
     const int eidx = corner_edges[i];
 
     if (edge_mode[eidx] < 2) {
@@ -203,10 +203,10 @@ static std::unique_ptr<ShrinkwrapBoundaryData> shrinkwrap_build_boundary_data(Me
   }
 
   /* Build the boundary edge bitmask. */
-  blender::BitVector<> edge_is_boundary(mesh->totedge, false);
+  blender::BitVector<> edge_is_boundary(mesh->edges_num, false);
   uint num_boundary_edges = 0;
 
-  for (int i = 0; i < mesh->totedge; i++) {
+  for (int i = 0; i < mesh->edges_num; i++) {
     edge_mode[i] = (edge_mode[i] == 1);
 
     if (edge_mode[i]) {
@@ -246,9 +246,9 @@ static std::unique_ptr<ShrinkwrapBoundaryData> shrinkwrap_build_boundary_data(Me
   data->tri_has_boundary = std::move(tri_has_boundary);
 
   /* Find boundary vertices and build a mapping table for compact storage of data. */
-  Array<int> vert_boundary_id(mesh->totvert, 0);
+  Array<int> vert_boundary_id(mesh->verts_num, 0);
 
-  for (int i = 0; i < mesh->totedge; i++) {
+  for (int i = 0; i < mesh->edges_num; i++) {
     if (edge_mode[i]) {
       const blender::int2 &edge = edges[i];
 
@@ -259,7 +259,7 @@ static std::unique_ptr<ShrinkwrapBoundaryData> shrinkwrap_build_boundary_data(Me
 
   uint num_boundary_verts = 0;
 
-  for (int i = 0; i < mesh->totvert; i++) {
+  for (int i = 0; i < mesh->verts_num; i++) {
     vert_boundary_id[i] = (vert_boundary_id[i] != 0) ? int(num_boundary_verts++) : -1;
   }
 
@@ -271,7 +271,7 @@ static std::unique_ptr<ShrinkwrapBoundaryData> shrinkwrap_build_boundary_data(Me
   signed char *vert_status = static_cast<signed char *>(
       MEM_calloc_arrayN(num_boundary_verts, sizeof(char), __func__));
 
-  for (int i = 0; i < mesh->totedge; i++) {
+  for (int i = 0; i < mesh->edges_num; i++) {
     if (edge_mode[i]) {
       const blender::int2 &edge = edges[i];
 
@@ -288,7 +288,7 @@ static std::unique_ptr<ShrinkwrapBoundaryData> shrinkwrap_build_boundary_data(Me
 
   /* Finalize average direction and compute normal. */
   const blender::Span<blender::float3> vert_normals = mesh->vert_normals();
-  for (int i = 0; i < mesh->totvert; i++) {
+  for (int i = 0; i < mesh->verts_num; i++) {
     int bidx = vert_boundary_id[i];
 
     if (bidx >= 0) {
@@ -1545,7 +1545,7 @@ void BKE_shrinkwrap_mesh_nearest_surface_deform(Depsgraph *depsgraph,
       nullptr,
       -1,
       reinterpret_cast<float(*)[3]>(src_me->vert_positions_for_write().data()),
-      src_me->totvert);
+      src_me->verts_num);
   src_me->tag_positions_changed();
 }
 
@@ -1567,7 +1567,7 @@ void BKE_shrinkwrap_remesh_target_project(Mesh *src_me, Mesh *target_me, Object 
   ShrinkwrapCalcData calc = NULL_ShrinkwrapCalcData;
 
   calc.smd = &ssmd;
-  calc.numVerts = src_me->totvert;
+  calc.numVerts = src_me->verts_num;
   calc.vertexCos = reinterpret_cast<float(*)[3]>(src_me->vert_positions_for_write().data());
   calc.vert_normals = src_me->vert_normals();
   calc.vgroup = -1;

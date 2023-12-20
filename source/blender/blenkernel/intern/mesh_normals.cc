@@ -274,7 +274,7 @@ blender::Span<blender::float3> Mesh::corner_normals() const
   using namespace blender;
   using namespace blender::bke;
   this->runtime->corner_normals_cache.ensure([&](Vector<float3> &r_data) {
-    r_data.reinitialize(this->totloop);
+    r_data.reinitialize(this->corners_num);
     const OffsetIndices<int> faces = this->faces();
     switch (this->normals_domain()) {
       case MeshNormalDomain::Point: {
@@ -1548,32 +1548,32 @@ void normals_loop_custom_set_from_verts(const Span<float3> vert_positions,
 static void mesh_set_custom_normals(Mesh *mesh, float (*r_custom_nors)[3], const bool use_vertices)
 {
   short2 *clnors = static_cast<short2 *>(
-      CustomData_get_layer_for_write(&mesh->loop_data, CD_CUSTOMLOOPNORMAL, mesh->totloop));
+      CustomData_get_layer_for_write(&mesh->loop_data, CD_CUSTOMLOOPNORMAL, mesh->corners_num));
   if (clnors != nullptr) {
-    memset(clnors, 0, sizeof(*clnors) * mesh->totloop);
+    memset(clnors, 0, sizeof(*clnors) * mesh->corners_num);
   }
   else {
     clnors = static_cast<short2 *>(CustomData_add_layer(
-        &mesh->loop_data, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, mesh->totloop));
+        &mesh->loop_data, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, mesh->corners_num));
   }
   MutableAttributeAccessor attributes = mesh->attributes_for_write();
   SpanAttributeWriter<bool> sharp_edges = attributes.lookup_or_add_for_write_span<bool>(
       "sharp_edge", ATTR_DOMAIN_EDGE);
   const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", ATTR_DOMAIN_FACE);
 
-  mesh_normals_loop_custom_set(
-      mesh->vert_positions(),
-      mesh->edges(),
-      mesh->faces(),
-      mesh->corner_verts(),
-      mesh->corner_edges(),
-      mesh->vert_normals(),
-      mesh->face_normals(),
-      sharp_faces,
-      use_vertices,
-      {reinterpret_cast<float3 *>(r_custom_nors), use_vertices ? mesh->totvert : mesh->totloop},
-      sharp_edges.span,
-      {clnors, mesh->totloop});
+  mesh_normals_loop_custom_set(mesh->vert_positions(),
+                               mesh->edges(),
+                               mesh->faces(),
+                               mesh->corner_verts(),
+                               mesh->corner_edges(),
+                               mesh->vert_normals(),
+                               mesh->face_normals(),
+                               sharp_faces,
+                               use_vertices,
+                               {reinterpret_cast<float3 *>(r_custom_nors),
+                                use_vertices ? mesh->verts_num : mesh->corners_num},
+                               sharp_edges.span,
+                               {clnors, mesh->corners_num});
 
   sharp_edges.finish();
 }

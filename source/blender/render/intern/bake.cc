@@ -458,7 +458,7 @@ static TriTessFace *mesh_calc_tri_tessface(Mesh *mesh, bool tangent, Mesh *me_ev
   using namespace blender;
   int i;
 
-  const int tottri = poly_to_tri_count(mesh->faces_num, mesh->totloop);
+  const int tottri = poly_to_tri_count(mesh->faces_num, mesh->corners_num);
   TriTessFace *triangles;
 
   /* calculate normal for each face only once */
@@ -750,7 +750,7 @@ void RE_bake_pixels_populate(Mesh *mesh,
     zbuf_alloc_span(&bd.zspan[i], targets->images[i].width, targets->images[i].height);
   }
 
-  const int tottri = poly_to_tri_count(mesh->faces_num, mesh->totloop);
+  const int tottri = poly_to_tri_count(mesh->faces_num, mesh->corners_num);
   blender::int3 *corner_tris = static_cast<blender::int3 *>(
       MEM_mallocN(sizeof(*corner_tris) * tottri, __func__));
 

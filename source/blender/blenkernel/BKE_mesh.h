@@ -112,15 +112,15 @@ void BKE_mesh_ensure_skin_customdata(struct Mesh *mesh);
 /** Add face offsets to describe faces to a new mesh. */
 void BKE_mesh_face_offsets_ensure_alloc(struct Mesh *mesh);
 
-struct Mesh *BKE_mesh_new_nomain(int verts_num, int edges_num, int faces_num, int loops_num);
+struct Mesh *BKE_mesh_new_nomain(int verts_num, int edges_num, int faces_num, int corners_num);
 struct Mesh *BKE_mesh_new_nomain_from_template(
-    const struct Mesh *me_src, int verts_num, int edges_num, int faces_num, int loops_num);
+    const struct Mesh *me_src, int verts_num, int edges_num, int faces_num, int corners_num);
 struct Mesh *BKE_mesh_new_nomain_from_template_ex(const struct Mesh *me_src,
                                                   int verts_num,
                                                   int edges_num,
                                                   int tessface_num,
                                                   int faces_num,
-                                                  int loops_num,
+                                                  int corners_num,
                                                   struct CustomData_MeshMasks mask);
 
 void BKE_mesh_eval_delete(struct Mesh *mesh_eval);
@@ -481,14 +481,14 @@ bool BKE_mesh_validate_material_indices(struct Mesh *mesh);
  */
 bool BKE_mesh_validate_arrays(struct Mesh *mesh,
                               float (*vert_positions)[3],
-                              unsigned int totvert,
+                              unsigned int verts_num,
                               blender::int2 *edges,
-                              unsigned int totedge,
-                              struct MFace *mfaces,
-                              unsigned int totface,
+                              unsigned int edges_num,
+                              struct MFace *legacy_faces,
+                              unsigned int legacy_faces_num,
                               int *corner_verts,
                               int *corner_edges,
-                              unsigned int totloop,
+                              unsigned int corners_num,
                               int *face_offsets,
                               unsigned int faces_num,
                               struct MDeformVert *dverts, /* assume totvert length */
@@ -504,9 +504,9 @@ bool BKE_mesh_validate_arrays(struct Mesh *mesh,
 bool BKE_mesh_validate_all_customdata(struct CustomData *vert_data,
                                       uint totvert,
                                       struct CustomData *edge_data,
-                                      uint totedge,
+                                      uint edges_num,
                                       struct CustomData *loop_data,
-                                      uint totloop,
+                                      uint corners_num,
                                       struct CustomData *pdata,
                                       uint faces_num,
                                       bool check_meshmask,

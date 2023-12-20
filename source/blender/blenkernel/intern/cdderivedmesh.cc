@@ -158,29 +158,29 @@ static DerivedMesh *cdDM_from_mesh_ex(Mesh *mesh, const CustomData_MeshMasks *ma
 
   DM_init(dm,
           DM_TYPE_CDDM,
-          mesh->totvert,
-          mesh->totedge,
+          mesh->verts_num,
+          mesh->edges_num,
           0 /* `mesh->totface` */,
-          mesh->totloop,
+          mesh->corners_num,
           mesh->faces_num);
 
-  CustomData_merge(&mesh->vert_data, &dm->vertData, cddata_masks.vmask, mesh->totvert);
-  CustomData_merge(&mesh->edge_data, &dm->edgeData, cddata_masks.emask, mesh->totedge);
+  CustomData_merge(&mesh->vert_data, &dm->vertData, cddata_masks.vmask, mesh->verts_num);
+  CustomData_merge(&mesh->edge_data, &dm->edgeData, cddata_masks.emask, mesh->edges_num);
   CustomData_merge(&mesh->fdata_legacy,
                    &dm->faceData,
                    cddata_masks.fmask | CD_MASK_ORIGINDEX,
                    0 /* `mesh->totface` */);
-  CustomData_merge(&mesh->loop_data, &dm->loopData, cddata_masks.lmask, mesh->totloop);
+  CustomData_merge(&mesh->loop_data, &dm->loopData, cddata_masks.lmask, mesh->corners_num);
   CustomData_merge(&mesh->face_data, &dm->polyData, cddata_masks.pmask, mesh->faces_num);
 
   cddm->vert_positions = static_cast<float(*)[3]>(CustomData_get_layer_named_for_write(
-      &dm->vertData, CD_PROP_FLOAT3, "position", mesh->totvert));
+      &dm->vertData, CD_PROP_FLOAT3, "position", mesh->verts_num));
   cddm->medge = static_cast<vec2i *>(CustomData_get_layer_named_for_write(
-      &dm->edgeData, CD_PROP_INT32_2D, ".edge_verts", mesh->totedge));
+      &dm->edgeData, CD_PROP_INT32_2D, ".edge_verts", mesh->edges_num));
   cddm->corner_verts = static_cast<int *>(CustomData_get_layer_named_for_write(
-      &dm->loopData, CD_PROP_INT32, ".corner_vert", mesh->totloop));
+      &dm->loopData, CD_PROP_INT32, ".corner_vert", mesh->corners_num));
   cddm->corner_edges = static_cast<int *>(CustomData_get_layer_named_for_write(
-      &dm->loopData, CD_PROP_INT32, ".corner_edge", mesh->totloop));
+      &dm->loopData, CD_PROP_INT32, ".corner_edge", mesh->corners_num));
   dm->face_offsets = static_cast<int *>(MEM_dupallocN(mesh->face_offset_indices));
 #if 0
   cddm->mface = CustomData_get_layer(&dm->faceData, CD_MFACE);

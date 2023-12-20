@@ -60,7 +60,7 @@ static Mesh *hull_from_bullet(const Mesh *mesh, Span<float3> coords)
     if (original_index >= 0 && original_index < coords.size()) {
 #  if 0 /* Disabled because it only works for meshes, not predictable enough. */
       /* Copy custom data on vertices, like vertex groups etc. */
-      if (mesh && original_index < mesh->totvert) {
+      if (mesh && original_index < mesh->verts_num) {
         CustomData_copy_data(&mesh->vert_data, &result->vert_data, int(original_index), int(i), 1);
       }
 #  endif

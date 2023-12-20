@@ -176,7 +176,7 @@ Mesh *USDShapeReader::mesh_from_prim(Mesh *existing_mesh,
 
   const bool poly_counts_match = existing_mesh ? face_counts.size() == existing_mesh->faces_num :
                                                  false;
-  const bool position_counts_match = existing_mesh ? positions.size() == existing_mesh->totvert :
+  const bool position_counts_match = existing_mesh ? positions.size() == existing_mesh->verts_num :
                                                      false;
 
   Mesh *active_mesh = nullptr;

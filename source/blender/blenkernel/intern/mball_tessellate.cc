@@ -1488,7 +1488,7 @@ Mesh *BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob)
   }
   MEM_freeN(process.indices);
 
-  for (int i = 0; i < mesh->totvert; i++) {
+  for (int i = 0; i < mesh->verts_num; i++) {
     normalize_v3(process.no[i]);
   }
   blender::bke::mesh_vert_normals_assign(*mesh, std::move(process.no));

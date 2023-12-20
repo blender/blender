@@ -49,12 +49,12 @@ class CornersOfEdgeInput final : public bke::MeshFieldInput {
                                  const eAttrDomain domain,
                                  const IndexMask &mask) const final
   {
-    const IndexRange edge_range(mesh.totedge);
+    const IndexRange edge_range(mesh.edges_num);
     Array<int> map_offsets;
     Array<int> map_indices;
     const Span<int> corner_edges = mesh.corner_edges();
     const GroupedSpan<int> edge_to_loop_map = bke::mesh::build_edge_to_loop_map(
-        mesh.corner_edges(), mesh.totedge, map_offsets, map_indices);
+        mesh.corner_edges(), mesh.edges_num, map_offsets, map_indices);
 
     const bke::MeshFieldContext context{mesh, domain};
     fn::FieldEvaluator evaluator{context, &mask};
@@ -147,7 +147,7 @@ class CornersOfEdgeCountInput final : public bke::MeshFieldInput {
     if (domain != ATTR_DOMAIN_EDGE) {
       return {};
     }
-    Array<int> counts(mesh.totedge, 0);
+    Array<int> counts(mesh.edges_num, 0);
     array_utils::count_indices(mesh.corner_edges(), counts);
     return VArray<int>::ForContainer(std::move(counts));
   }

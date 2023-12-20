@@ -131,7 +131,7 @@ blender::OffsetIndices<int> Mesh::vert_to_face_map_offsets() const
 {
   using namespace blender;
   this->runtime->vert_to_face_offset_cache.ensure([&](Array<int> &r_data) {
-    r_data = Array<int>(this->totvert + 1, 0);
+    r_data = Array<int>(this->verts_num + 1, 0);
     offset_indices::build_reverse_offsets(this->corner_verts(), r_data);
   });
   return OffsetIndices<int>(this->runtime->vert_to_face_offset_cache.data());
@@ -142,7 +142,7 @@ blender::GroupedSpan<int> Mesh::vert_to_face_map() const
   using namespace blender;
   const OffsetIndices offsets = this->vert_to_face_map_offsets();
   this->runtime->vert_to_face_map_cache.ensure([&](Array<int> &r_data) {
-    r_data.reinitialize(this->totloop);
+    r_data.reinitialize(this->corners_num);
     if (this->runtime->vert_to_corner_map_cache.is_cached() &&
         this->runtime->corner_to_face_map_cache.is_cached())
     {
@@ -174,7 +174,8 @@ const blender::bke::LooseVertCache &Mesh::loose_verts() const
   using namespace blender::bke;
   this->runtime->loose_verts_cache.ensure([&](LooseVertCache &r_data) {
     const Span<int> verts = this->edges().cast<int>();
-    bit_vector_with_reset_bits_or_empty(verts, this->totvert, r_data.is_loose_bits, r_data.count);
+    bit_vector_with_reset_bits_or_empty(
+        verts, this->verts_num, r_data.is_loose_bits, r_data.count);
   });
   return this->runtime->loose_verts_cache.data();
 }
@@ -184,7 +185,8 @@ const blender::bke::LooseVertCache &Mesh::verts_no_face() const
   using namespace blender::bke;
   this->runtime->verts_no_face_cache.ensure([&](LooseVertCache &r_data) {
     const Span<int> verts = this->corner_verts();
-    bit_vector_with_reset_bits_or_empty(verts, this->totvert, r_data.is_loose_bits, r_data.count);
+    bit_vector_with_reset_bits_or_empty(
+        verts, this->verts_num, r_data.is_loose_bits, r_data.count);
   });
   return this->runtime->verts_no_face_cache.data();
 }
@@ -199,7 +201,8 @@ const blender::bke::LooseEdgeCache &Mesh::loose_edges() const
   using namespace blender::bke;
   this->runtime->loose_edges_cache.ensure([&](LooseEdgeCache &r_data) {
     const Span<int> edges = this->corner_edges();
-    bit_vector_with_reset_bits_or_empty(edges, this->totedge, r_data.is_loose_bits, r_data.count);
+    bit_vector_with_reset_bits_or_empty(
+        edges, this->edges_num, r_data.is_loose_bits, r_data.count);
   });
   return this->runtime->loose_edges_cache.data();
 }
@@ -256,7 +259,7 @@ blender::Span<int> Mesh::corner_tri_faces() const
   using namespace blender;
   this->runtime->corner_tri_faces_cache.ensure([&](blender::Array<int> &r_data) {
     const OffsetIndices faces = this->faces();
-    r_data.reinitialize(poly_to_tri_count(faces.size(), this->totloop));
+    r_data.reinitialize(poly_to_tri_count(faces.size(), this->corners_num));
     bke::mesh::corner_tris_calc_face_indices(faces, r_data);
   });
   return this->runtime->corner_tri_faces_cache.data();
@@ -265,7 +268,7 @@ blender::Span<int> Mesh::corner_tri_faces() const
 int BKE_mesh_runtime_corner_tris_len(const Mesh *mesh)
 {
   /* Allow returning the size without calculating the cache. */
-  return poly_to_tri_count(mesh->faces_num, mesh->totloop);
+  return poly_to_tri_count(mesh->faces_num, mesh->corners_num);
 }
 
 void BKE_mesh_runtime_verttris_from_corner_tris(MVertTri *r_verttri,
@@ -438,11 +441,11 @@ bool BKE_mesh_runtime_is_valid(Mesh *me_eval)
 
   is_valid &= BKE_mesh_validate_all_customdata(
       &me_eval->vert_data,
-      me_eval->totvert,
+      me_eval->verts_num,
       &me_eval->edge_data,
-      me_eval->totedge,
+      me_eval->edges_num,
       &me_eval->loop_data,
-      me_eval->totloop,
+      me_eval->corners_num,
       &me_eval->face_data,
       me_eval->faces_num,
       false, /* setting mask here isn't useful, gives false positives */

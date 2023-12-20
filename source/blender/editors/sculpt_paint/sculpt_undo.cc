@@ -594,7 +594,7 @@ static bool restore_color(Object *ob, Node &unode, MutableSpan<bool> modified_ve
 
   Mesh *mesh = BKE_object_get_original_mesh(ob);
 
-  if (!unode.loop_col.is_empty() && unode.mesh_corners_num == mesh->totloop) {
+  if (!unode.loop_col.is_empty() && unode.mesh_corners_num == mesh->corners_num) {
     BKE_pbvh_swap_colors(ss->pbvh, unode.corner_indices, unode.loop_col);
     modified = true;
   }
@@ -751,18 +751,18 @@ static void store_geometry_data(NodeGeometry *geometry, Object *object)
   BLI_assert(!geometry->is_initialized);
   geometry->is_initialized = true;
 
-  CustomData_copy(&mesh->vert_data, &geometry->vert_data, CD_MASK_MESH.vmask, mesh->totvert);
-  CustomData_copy(&mesh->edge_data, &geometry->edge_data, CD_MASK_MESH.emask, mesh->totedge);
-  CustomData_copy(&mesh->loop_data, &geometry->loop_data, CD_MASK_MESH.lmask, mesh->totloop);
+  CustomData_copy(&mesh->vert_data, &geometry->vert_data, CD_MASK_MESH.vmask, mesh->verts_num);
+  CustomData_copy(&mesh->edge_data, &geometry->edge_data, CD_MASK_MESH.emask, mesh->edges_num);
+  CustomData_copy(&mesh->loop_data, &geometry->loop_data, CD_MASK_MESH.lmask, mesh->corners_num);
   CustomData_copy(&mesh->face_data, &geometry->face_data, CD_MASK_MESH.pmask, mesh->faces_num);
   implicit_sharing::copy_shared_pointer(mesh->face_offset_indices,
                                         mesh->runtime->face_offsets_sharing_info,
                                         &geometry->face_offset_indices,
                                         &geometry->face_offsets_sharing_info);
 
-  geometry->totvert = mesh->totvert;
-  geometry->totedge = mesh->totedge;
-  geometry->totloop = mesh->totloop;
+  geometry->totvert = mesh->verts_num;
+  geometry->totedge = mesh->edges_num;
+  geometry->totloop = mesh->corners_num;
   geometry->faces_num = mesh->faces_num;
 }
 
@@ -774,9 +774,9 @@ static void restore_geometry_data(NodeGeometry *geometry, Object *object)
 
   BKE_mesh_clear_geometry(mesh);
 
-  mesh->totvert = geometry->totvert;
-  mesh->totedge = geometry->totedge;
-  mesh->totloop = geometry->totloop;
+  mesh->verts_num = geometry->totvert;
+  mesh->edges_num = geometry->totedge;
+  mesh->corners_num = geometry->totloop;
   mesh->faces_num = geometry->faces_num;
   mesh->totface_legacy = 0;
 
@@ -1194,7 +1194,7 @@ static Node *alloc_node(Object *ob, PBVHNode *node, Type type)
 
   if (need_loops) {
     unode->corner_indices = BKE_pbvh_node_get_loops(node);
-    unode->mesh_corners_num = static_cast<Mesh *>(ob->data)->totloop;
+    unode->mesh_corners_num = static_cast<Mesh *>(ob->data)->corners_num;
 
     usculpt->undo_size += unode->corner_indices.as_span().size_in_bytes();
   }

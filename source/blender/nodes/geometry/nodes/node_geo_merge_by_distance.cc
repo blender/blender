@@ -66,9 +66,9 @@ static std::optional<Mesh *> mesh_merge_by_distance_connected(const Mesh &mesh,
                                                               const float merge_distance,
                                                               const Field<bool> &selection_field)
 {
-  Array<bool> selection(mesh.totvert);
+  Array<bool> selection(mesh.verts_num);
   const bke::MeshFieldContext context{mesh, ATTR_DOMAIN_POINT};
-  FieldEvaluator evaluator{context, mesh.totvert};
+  FieldEvaluator evaluator{context, mesh.verts_num};
   evaluator.add_with_destination(selection_field, selection.as_mutable_span());
   evaluator.evaluate();
 
@@ -80,7 +80,7 @@ static std::optional<Mesh *> mesh_merge_by_distance_all(const Mesh &mesh,
                                                         const Field<bool> &selection_field)
 {
   const bke::MeshFieldContext context{mesh, ATTR_DOMAIN_POINT};
-  FieldEvaluator evaluator{context, mesh.totvert};
+  FieldEvaluator evaluator{context, mesh.verts_num};
   evaluator.add(selection_field);
   evaluator.evaluate();
 

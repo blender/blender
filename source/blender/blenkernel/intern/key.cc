@@ -1275,7 +1275,7 @@ static float *get_weights_array(Object *ob, char *vgroup, WeightsArrayCache *cac
   if (ob->type == OB_MESH) {
     Mesh *mesh = static_cast<Mesh *>(ob->data);
     dvert = mesh->deform_verts().data();
-    totvert = mesh->totvert;
+    totvert = mesh->verts_num;
 
     if (mesh->edit_mesh && mesh->edit_mesh->bm->totvert == totvert) {
       em = mesh->edit_mesh;
@@ -1526,7 +1526,7 @@ float *BKE_key_evaluate_object_ex(
   if (ob->type == OB_MESH) {
     Mesh *mesh = static_cast<Mesh *>(ob->data);
 
-    tot = mesh->totvert;
+    tot = mesh->verts_num;
     size = tot * sizeof(float[KEYELEM_FLOAT_LEN_COORD]);
   }
   else if (ob->type == OB_LATTICE) {
@@ -1604,7 +1604,7 @@ float *BKE_key_evaluate_object_ex(
     switch (GS(obdata->name)) {
       case ID_ME: {
         Mesh *mesh = (Mesh *)obdata;
-        const int totvert = min_ii(tot, mesh->totvert);
+        const int totvert = min_ii(tot, mesh->verts_num);
         mesh->vert_positions_for_write().take_front(totvert).copy_from(
             {reinterpret_cast<const blender::float3 *>(out), totvert});
         mesh->tag_positions_changed();
@@ -2184,9 +2184,9 @@ void BKE_keyblock_convert_to_curve(KeyBlock *kb, Curve * /*cu*/, ListBase *nurb)
 
 void BKE_keyblock_update_from_mesh(const Mesh *mesh, KeyBlock *kb)
 {
-  BLI_assert(mesh->totvert == kb->totelem);
+  BLI_assert(mesh->verts_num == kb->totelem);
 
-  const int tot = mesh->totvert;
+  const int tot = mesh->verts_num;
   if (tot == 0) {
     return;
   }
@@ -2197,9 +2197,9 @@ void BKE_keyblock_update_from_mesh(const Mesh *mesh, KeyBlock *kb)
 
 void BKE_keyblock_convert_from_mesh(const Mesh *mesh, const Key *key, KeyBlock *kb)
 {
-  const int len = mesh->totvert;
+  const int len = mesh->verts_num;
 
-  if (mesh->totvert == 0) {
+  if (mesh->verts_num == 0) {
     return;
   }
 
@@ -2231,7 +2231,8 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
   }
 
   blender::Array<blender::float3> positions(mesh->vert_positions());
-  BKE_keyblock_convert_to_mesh(kb, reinterpret_cast<float(*)[3]>(positions.data()), mesh->totvert);
+  BKE_keyblock_convert_to_mesh(
+      kb, reinterpret_cast<float(*)[3]>(positions.data()), mesh->verts_num);
   const blender::Span<blender::int2> edges = mesh->edges();
   const blender::OffsetIndices faces = mesh->faces();
   const blender::Span<int> corner_verts = mesh->corner_verts();
@@ -2248,7 +2249,7 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
   bool free_face_normals = false;
   if (vert_normals_needed && r_vert_normals == nullptr) {
     vert_normals = static_cast<float(*)[3]>(
-        MEM_malloc_arrayN(mesh->totvert, sizeof(float[3]), __func__));
+        MEM_malloc_arrayN(mesh->verts_num, sizeof(float[3]), __func__));
     free_vert_normals = true;
   }
   if (face_normals_needed && r_face_normals == nullptr) {
@@ -2271,7 +2272,7 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
         corner_verts,
         mesh->vert_to_face_map(),
         {reinterpret_cast<const blender::float3 *>(face_normals), faces.size()},
-        {reinterpret_cast<blender::float3 *>(vert_normals), mesh->totvert});
+        {reinterpret_cast<blender::float3 *>(vert_normals), mesh->verts_num});
   }
   if (loop_normals_needed) {
     const blender::short2 *clnors = static_cast<const blender::short2 *>(
@@ -2286,7 +2287,7 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
         corner_verts,
         corner_edges,
         mesh->corner_to_face_map(),
-        {reinterpret_cast<blender::float3 *>(vert_normals), mesh->totvert},
+        {reinterpret_cast<blender::float3 *>(vert_normals), mesh->verts_num},
         {reinterpret_cast<blender::float3 *>(face_normals), faces.size()},
         sharp_edges,
         sharp_faces,
@@ -2322,7 +2323,7 @@ void BKE_keyblock_update_from_vertcos(const Object *ob, KeyBlock *kb, const floa
   }
   else if (ob->type == OB_MESH) {
     Mesh *mesh = static_cast<Mesh *>(ob->data);
-    BLI_assert(mesh->totvert == kb->totelem);
+    BLI_assert(mesh->verts_num == kb->totelem);
   }
   else {
     BLI_assert(0 == kb->totelem);
@@ -2373,7 +2374,7 @@ void BKE_keyblock_convert_from_vertcos(const Object *ob, KeyBlock *kb, const flo
   /* Count of vertex coords in array */
   if (ob->type == OB_MESH) {
     const Mesh *mesh = (const Mesh *)ob->data;
-    tot = mesh->totvert;
+    tot = mesh->verts_num;
     elemsize = mesh->key->elemsize;
   }
   else if (ob->type == OB_LATTICE) {
@@ -2406,7 +2407,7 @@ float (*BKE_keyblock_convert_to_vertcos(const Object *ob, const KeyBlock *kb))[3
   /* Count of vertex coords in array */
   if (ob->type == OB_MESH) {
     const Mesh *mesh = (const Mesh *)ob->data;
-    tot = mesh->totvert;
+    tot = mesh->verts_num;
   }
   else if (ob->type == OB_LATTICE) {
     const Lattice *lt = (const Lattice *)ob->data;

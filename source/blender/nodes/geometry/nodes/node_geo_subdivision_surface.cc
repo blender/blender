@@ -102,12 +102,12 @@ static Mesh *mesh_subsurf_calc(const Mesh *mesh,
                                const int uv_smooth)
 {
   const bke::MeshFieldContext point_context{*mesh, ATTR_DOMAIN_POINT};
-  FieldEvaluator point_evaluator(point_context, mesh->totvert);
+  FieldEvaluator point_evaluator(point_context, mesh->verts_num);
   point_evaluator.add(clamp_crease(vert_crease_field));
   point_evaluator.evaluate();
 
   const bke::MeshFieldContext edge_context{*mesh, ATTR_DOMAIN_EDGE};
-  FieldEvaluator edge_evaluator(edge_context, mesh->totedge);
+  FieldEvaluator edge_evaluator(edge_context, mesh->edges_num);
   edge_evaluator.add(clamp_crease(edge_crease_field));
   edge_evaluator.evaluate();
 

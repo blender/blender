@@ -249,7 +249,7 @@ static Vector<ElementIsland> prepare_face_islands(const Mesh &mesh,
   const Span<int> corner_verts = mesh.corner_verts();
 
   /* Use the disjoint set data structure to determine which vertices have to be scaled together. */
-  DisjointSet<int> disjoint_set(mesh.totvert);
+  DisjointSet<int> disjoint_set(mesh.verts_num);
   face_selection.foreach_index([&](const int face_index) {
     const Span<int> face_verts = corner_verts.slice(faces[face_index]);
     for (const int loop_index : face_verts.index_range().drop_back(1)) {
@@ -340,7 +340,7 @@ static Vector<ElementIsland> prepare_edge_islands(const Mesh &mesh,
   const Span<int2> edges = mesh.edges();
 
   /* Use the disjoint set data structure to determine which vertices have to be scaled together. */
-  DisjointSet<int> disjoint_set(mesh.totvert);
+  DisjointSet<int> disjoint_set(mesh.verts_num);
   edge_selection.foreach_index([&](const int edge_index) {
     const int2 &edge = edges[edge_index];
     disjoint_set.join(edge[0], edge[1]);
@@ -380,7 +380,7 @@ static void get_edge_verts(const Span<int2> edges,
 static void scale_edges_uniformly(Mesh &mesh, const UniformScaleFields &fields)
 {
   const bke::MeshFieldContext field_context{mesh, ATTR_DOMAIN_EDGE};
-  FieldEvaluator evaluator{field_context, mesh.totedge};
+  FieldEvaluator evaluator{field_context, mesh.edges_num};
   UniformScaleParams params = evaluate_uniform_scale_fields(evaluator, fields);
 
   Vector<ElementIsland> island = prepare_edge_islands(mesh, params.selection);
@@ -390,7 +390,7 @@ static void scale_edges_uniformly(Mesh &mesh, const UniformScaleFields &fields)
 static void scale_edges_on_axis(Mesh &mesh, const AxisScaleFields &fields)
 {
   const bke::MeshFieldContext field_context{mesh, ATTR_DOMAIN_EDGE};
-  FieldEvaluator evaluator{field_context, mesh.totedge};
+  FieldEvaluator evaluator{field_context, mesh.edges_num};
   AxisScaleParams params = evaluate_axis_scale_fields(evaluator, fields);
 
   Vector<ElementIsland> island = prepare_edge_islands(mesh, params.selection);

@@ -75,7 +75,7 @@ bool multiresModifier_reshapeFromObject(Depsgraph *depsgraph,
       dst,
       mmd,
       reinterpret_cast<const float(*)[3]>(src_mesh_eval->vert_positions().data()),
-      src_mesh_eval->totvert);
+      src_mesh_eval->verts_num);
 }
 
 /** \} */
@@ -173,7 +173,7 @@ void multiresModifier_subdivide_to_level(Object *object,
   }
 
   Mesh *coarse_mesh = static_cast<Mesh *>(object->data);
-  if (coarse_mesh->totloop == 0) {
+  if (coarse_mesh->corners_num == 0) {
     /* If there are no loops in the mesh implies there is no CD_MDISPS as well. So can early output
      * from here as there is nothing to subdivide. */
     return;
@@ -185,7 +185,8 @@ void multiresModifier_subdivide_to_level(Object *object,
    * are allocated at a proper level and return. */
   const bool has_mdisps = CustomData_has_layer(&coarse_mesh->loop_data, CD_MDISPS);
   if (!has_mdisps) {
-    CustomData_add_layer(&coarse_mesh->loop_data, CD_MDISPS, CD_SET_DEFAULT, coarse_mesh->totloop);
+    CustomData_add_layer(
+        &coarse_mesh->loop_data, CD_MDISPS, CD_SET_DEFAULT, coarse_mesh->corners_num);
   }
 
   /* NOTE: Subdivision happens from the top level of the existing multires modifier. If it is set

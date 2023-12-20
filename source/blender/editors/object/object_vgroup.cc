@@ -205,21 +205,21 @@ bool ED_vgroup_parray_alloc(ID *id,
         if (!mesh->deform_verts().is_empty()) {
           MutableSpan<MDeformVert> dverts = mesh->deform_verts_for_write();
 
-          *dvert_tot = mesh->totvert;
+          *dvert_tot = mesh->verts_num;
           *dvert_arr = static_cast<MDeformVert **>(
-              MEM_mallocN(sizeof(void *) * mesh->totvert, __func__));
+              MEM_mallocN(sizeof(void *) * mesh->verts_num, __func__));
 
           if (use_vert_sel) {
             const bke::AttributeAccessor attributes = mesh->attributes();
             const VArray<bool> select_vert = *attributes.lookup_or_default<bool>(
                 ".select_vert", ATTR_DOMAIN_POINT, false);
 
-            for (int i = 0; i < mesh->totvert; i++) {
+            for (int i = 0; i < mesh->verts_num; i++) {
               (*dvert_arr)[i] = select_vert[i] ? &dverts[i] : nullptr;
             }
           }
           else {
-            for (int i = 0; i < mesh->totvert; i++) {
+            for (int i = 0; i < mesh->verts_num; i++) {
               (*dvert_arr)[i] = &dverts[i];
             }
           }
@@ -683,7 +683,7 @@ static void vgroup_copy_active_to_sel(Object *ob, eVGroupSelect subset_type)
     dvert_act = ED_mesh_active_dvert_get_ob(ob, &v_act);
     if (dvert_act) {
       MutableSpan<MDeformVert> dverts = mesh->deform_verts_for_write();
-      for (i = 0; i < mesh->totvert; i++) {
+      for (i = 0; i < mesh->verts_num; i++) {
         if (select_vert[i] && &dverts[i] != dvert_act) {
           BKE_defvert_copy_subset(&dverts[i], dvert_act, vgroup_validmap, vgroup_tot);
           if (mesh->symmetry & ME_SYMMETRY_X) {
@@ -963,7 +963,7 @@ static float get_vert_def_nr(Object *ob, const int def_nr, const int vertnum)
     else {
       const Span<MDeformVert> dverts = mesh->deform_verts();
       if (!dverts.is_empty()) {
-        if (vertnum >= mesh->totvert) {
+        if (vertnum >= mesh->verts_num) {
           return 0.0f;
         }
         dv = &dverts[vertnum];
@@ -1584,7 +1584,7 @@ static void vgroup_smooth_subset(Object *ob,
   }
   else {
     emap = blender::bke::mesh::build_vert_to_edge_map(
-        mesh->edges(), mesh->totvert, vert_to_edge_offsets, vert_to_edge_indices);
+        mesh->edges(), mesh->verts_num, vert_to_edge_offsets, vert_to_edge_indices);
   }
 
   weight_accum_prev = static_cast<float *>(
@@ -2104,13 +2104,13 @@ void ED_vgroup_mirror(Object *ob,
         goto cleanup;
       }
 
-      BLI_bitmap *vert_tag = BLI_BITMAP_NEW(mesh->totvert, __func__);
+      BLI_bitmap *vert_tag = BLI_BITMAP_NEW(mesh->verts_num, __func__);
       MutableSpan<MDeformVert> dverts = mesh->deform_verts_for_write();
       const bke::AttributeAccessor attributes = mesh->attributes();
       const VArray<bool> select_vert = *attributes.lookup_or_default<bool>(
           ".select_vert", ATTR_DOMAIN_POINT, false);
 
-      for (int vidx = 0; vidx < mesh->totvert; vidx++) {
+      for (int vidx = 0; vidx < mesh->verts_num; vidx++) {
         if (!BLI_BITMAP_TEST(vert_tag, vidx)) {
           int vidx_mirr;
           if ((vidx_mirr = mesh_get_x_mirror_vert(ob, nullptr, vidx, use_topology)) != -1) {
@@ -2272,7 +2272,7 @@ static void vgroup_assign_verts(Object *ob, const float weight)
 
       MutableSpan<MDeformVert> dverts = mesh->deform_verts_for_write();
 
-      for (int i = 0; i < mesh->totvert; i++) {
+      for (int i = 0; i < mesh->verts_num; i++) {
         if (select_vert[i]) {
           MDeformWeight *dw;
           dw = BKE_defvert_ensure_index(&dverts[i], def_nr);
@@ -3927,7 +3927,7 @@ static void vgroup_copy_active_to_sel_single(Object *ob, const int def_nr)
     const VArray<bool> select_vert = *attributes.lookup_or_default<bool>(
         ".select_vert", ATTR_DOMAIN_POINT, false);
 
-    for (i = 0; i < mesh->totvert; i++) {
+    for (i = 0; i < mesh->verts_num; i++) {
       if (select_vert[i] && (&dverts[i] != dvert_act)) {
         BKE_defvert_copy_index(&dverts[i], def_nr, dvert_act, def_nr);
 

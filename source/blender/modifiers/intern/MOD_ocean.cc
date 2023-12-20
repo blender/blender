@@ -430,7 +430,7 @@ static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mes
   /* NOTE: tried to parallelized that one and previous foam loop,
    * but gives 20% slower results... odd. */
   {
-    const int verts_num = result->totvert;
+    const int verts_num = result->verts_num;
 
     for (i = 0; i < verts_num; i++) {
       float *vco = positions[i];

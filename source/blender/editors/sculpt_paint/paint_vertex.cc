@@ -249,14 +249,14 @@ void init_session_data(const ToolSettings *ts, Object *ob)
   if (ob->mode == OB_MODE_WEIGHT_PAINT) {
     if (!vwpaint::brush_use_accumulate(ts->wpaint)) {
       if (ob->sculpt->mode.wpaint.alpha_weight == nullptr) {
-        ob->sculpt->mode.wpaint.alpha_weight = (float *)MEM_callocN(mesh->totvert * sizeof(float),
-                                                                    __func__);
+        ob->sculpt->mode.wpaint.alpha_weight = (float *)MEM_callocN(
+            mesh->verts_num * sizeof(float), __func__);
       }
       if (ob->sculpt->mode.wpaint.dvert_prev == nullptr) {
         ob->sculpt->mode.wpaint.dvert_prev = (MDeformVert *)MEM_callocN(
-            mesh->totvert * sizeof(MDeformVert), __func__);
+            mesh->verts_num * sizeof(MDeformVert), __func__);
         MDeformVert *dv = ob->sculpt->mode.wpaint.dvert_prev;
-        for (int i = 0; i < mesh->totvert; i++, dv++) {
+        for (int i = 0; i < mesh->verts_num; i++, dv++) {
           /* Use to show this isn't initialized, never apply to the mesh data. */
           dv->flag = 1;
         }
@@ -265,7 +265,7 @@ void init_session_data(const ToolSettings *ts, Object *ob)
     else {
       MEM_SAFE_FREE(ob->sculpt->mode.wpaint.alpha_weight);
       if (ob->sculpt->mode.wpaint.dvert_prev != nullptr) {
-        BKE_defvert_array_free_elems(ob->sculpt->mode.wpaint.dvert_prev, mesh->totvert);
+        BKE_defvert_array_free_elems(ob->sculpt->mode.wpaint.dvert_prev, mesh->verts_num);
         MEM_freeN(ob->sculpt->mode.wpaint.dvert_prev);
         ob->sculpt->mode.wpaint.dvert_prev = nullptr;
       }
