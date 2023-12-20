@@ -96,7 +96,12 @@ void WorldPipeline::sync(GPUMaterial *gpumat)
 
 void WorldPipeline::render(View &view)
 {
+  /* TODO(Miguel Pozo): All world probes are rendered as RAY_TYPE_GLOSSY. */
+  inst_.pipelines.data.is_probe_reflection = true;
+  inst_.push_uniform_data();
   inst_.manager->submit(cubemap_face_ps_, view);
+  inst_.pipelines.data.is_probe_reflection = false;
+  inst_.push_uniform_data();
 }
 
 /** \} */
