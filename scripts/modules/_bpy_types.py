@@ -1200,7 +1200,7 @@ class Menu(_StructRNA, _GenericUI, metaclass=_RNAMeta):
     def path_menu(self, searchpaths, operator, *,
                   props_default=None, prop_filepath="filepath",
                   filter_ext=None, filter_path=None, display_name=None,
-                  add_operator=None, add_operator_props=None):
+                  add_operator=None, add_operator_props=None, translate=True):
         """
         Populate a menu from a list of paths.
 
@@ -1261,7 +1261,7 @@ class Menu(_StructRNA, _GenericUI, metaclass=_RNAMeta):
             name = display_name(filepath) if display_name else bpy.path.display_name(f)
             props = row.operator(
                 operator,
-                text=iface_(name),
+                text=(iface_(name) if translate else name),
                 translate=False,
             )
 
