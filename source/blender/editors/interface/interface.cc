@@ -774,6 +774,13 @@ static bool ui_but_equals_old(const uiBut *but, const uiBut *oldbut)
     return false;
   }
 
+  /* If the old button is active for interaction, but the new one isn't interactive,
+   * do not consider them matching. Avoids incorrect matches with label buttons, which
+   * usually do not have data that can be used for comparison. See #114461. */
+  if (oldbut->active && !ui_but_is_interactive(but, false)) {
+    return false;
+  }
+
   if ((but->type == UI_BTYPE_VIEW_ITEM) && (oldbut->type == UI_BTYPE_VIEW_ITEM)) {
     uiButViewItem *but_item = (uiButViewItem *)but;
     uiButViewItem *oldbut_item = (uiButViewItem *)oldbut;
