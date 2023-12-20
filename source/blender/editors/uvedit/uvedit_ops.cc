@@ -91,7 +91,7 @@ static int UNUSED_FUNCTION(ED_operator_uvmap_mesh)(bContext *C)
   if (ob && ob->type == OB_MESH) {
     Mesh *mesh = static_cast<Mesh *>(ob->data);
 
-    if (CustomData_get_layer(&mesh->loop_data, CD_PROP_FLOAT2) != nullptr) {
+    if (CustomData_get_layer(&mesh->corner_data, CD_PROP_FLOAT2) != nullptr) {
       return 1;
     }
   }

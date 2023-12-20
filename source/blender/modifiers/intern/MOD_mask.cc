@@ -460,8 +460,8 @@ static void copy_masked_faces_to_new_mesh(const Mesh &src_mesh,
     dst_face_offsets[i_dst] = new_loop_starts[i_dst];
 
     CustomData_copy_data(&src_mesh.face_data, &dst_mesh.face_data, i_src, i_dst, 1);
-    CustomData_copy_data(&src_mesh.loop_data,
-                         &dst_mesh.loop_data,
+    CustomData_copy_data(&src_mesh.corner_data,
+                         &dst_mesh.corner_data,
                          src_face.start(),
                          dst_face_offsets[i_dst],
                          src_face.size());
@@ -551,13 +551,13 @@ static void add_interpolated_faces_to_new_mesh(const Mesh &src_mesh,
         float weights[2] = {1.0f - fac, fac};
         int indices[2] = {i_ml_src + last_index, i_ml_src + index};
         CustomData_interp(
-            &src_mesh.loop_data, &dst_mesh.loop_data, indices, weights, nullptr, 2, i_ml_dst);
+            &src_mesh.corner_data, &dst_mesh.corner_data, indices, weights, nullptr, 2, i_ml_dst);
         dst_corner_edges[i_ml_dst] = edge_map[face_edges_src[last_index]];
         dst_corner_verts[i_ml_dst] = dst_edges[dst_corner_edges[i_ml_dst]][0];
         i_ml_dst++;
 
         CustomData_copy_data(
-            &src_mesh.loop_data, &dst_mesh.loop_data, i_ml_src + index, i_ml_dst, 1);
+            &src_mesh.corner_data, &dst_mesh.corner_data, i_ml_src + index, i_ml_dst, 1);
         dst_corner_verts[i_ml_dst] = vertex_map[face_verts_src[index]];
         dst_corner_edges[i_ml_dst] = edge_map[face_edges_src[index]];
         i_ml_dst++;
@@ -570,7 +570,7 @@ static void add_interpolated_faces_to_new_mesh(const Mesh &src_mesh,
         float weights[2] = {1.0f - fac, fac};
         int indices[2] = {i_ml_src + last_index, i_ml_src + index};
         CustomData_interp(
-            &src_mesh.loop_data, &dst_mesh.loop_data, indices, weights, nullptr, 2, i_ml_dst);
+            &src_mesh.corner_data, &dst_mesh.corner_data, indices, weights, nullptr, 2, i_ml_dst);
         dst_corner_edges[i_ml_dst] = edge_index;
         dst_corner_verts[i_ml_dst] = dst_edges[edge_map[face_edges_src[last_index]]][0];
 
@@ -589,7 +589,7 @@ static void add_interpolated_faces_to_new_mesh(const Mesh &src_mesh,
         BLI_assert(i_ml_dst != dst_face_offsets[i_dst]);
         /* Extend active face. */
         CustomData_copy_data(
-            &src_mesh.loop_data, &dst_mesh.loop_data, i_ml_src + index, i_ml_dst, 1);
+            &src_mesh.corner_data, &dst_mesh.corner_data, i_ml_src + index, i_ml_dst, 1);
         dst_corner_verts[i_ml_dst] = vertex_map[face_verts_src[index]];
         dst_corner_edges[i_ml_dst] = edge_map[face_edges_src[index]];
         i_ml_dst++;

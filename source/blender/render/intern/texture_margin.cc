@@ -570,7 +570,7 @@ void RE_generate_texturemargin_adjacentfaces(ImBuf *ibuf,
 {
   const blender::StringRef uv_map_name = (uv_layer && uv_layer[0]) ?
                                              uv_layer :
-                                             CustomData_get_active_layer_name(&mesh->loop_data,
+                                             CustomData_get_active_layer_name(&mesh->corner_data,
                                                                               CD_PROP_FLOAT2);
   const blender::bke::AttributeAccessor attributes = mesh->attributes();
   const blender::VArraySpan<blender::float2> uv_map = *attributes.lookup<blender::float2>(

@@ -54,7 +54,7 @@ static Mesh *triangulate_mesh(Mesh *mesh,
 
   if (keep_clnors) {
     void *data = CustomData_add_layer(
-        &mesh->loop_data, CD_NORMAL, CD_CONSTRUCT, mesh->corners_num);
+        &mesh->corner_data, CD_NORMAL, CD_CONSTRUCT, mesh->corners_num);
     memcpy(data, mesh->corner_normals().data(), mesh->corner_normals().size_in_bytes());
     cd_mask_extra.lmask |= CD_MASK_NORMAL;
   }
@@ -75,9 +75,9 @@ static Mesh *triangulate_mesh(Mesh *mesh,
 
   if (keep_clnors) {
     float(*lnors)[3] = static_cast<float(*)[3]>(
-        CustomData_get_layer_for_write(&result->loop_data, CD_NORMAL, result->corners_num));
+        CustomData_get_layer_for_write(&result->corner_data, CD_NORMAL, result->corners_num));
     BKE_mesh_set_custom_normals(result, lnors);
-    CustomData_free_layers(&result->loop_data, CD_NORMAL, result->corners_num);
+    CustomData_free_layers(&result->corner_data, CD_NORMAL, result->corners_num);
   }
 
   return result;

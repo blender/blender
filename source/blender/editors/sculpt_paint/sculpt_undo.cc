@@ -753,7 +753,8 @@ static void store_geometry_data(NodeGeometry *geometry, Object *object)
 
   CustomData_copy(&mesh->vert_data, &geometry->vert_data, CD_MASK_MESH.vmask, mesh->verts_num);
   CustomData_copy(&mesh->edge_data, &geometry->edge_data, CD_MASK_MESH.emask, mesh->edges_num);
-  CustomData_copy(&mesh->loop_data, &geometry->loop_data, CD_MASK_MESH.lmask, mesh->corners_num);
+  CustomData_copy(
+      &mesh->corner_data, &geometry->corner_data, CD_MASK_MESH.lmask, mesh->corners_num);
   CustomData_copy(&mesh->face_data, &geometry->face_data, CD_MASK_MESH.pmask, mesh->faces_num);
   implicit_sharing::copy_shared_pointer(mesh->face_offset_indices,
                                         mesh->runtime->face_offsets_sharing_info,
@@ -782,7 +783,8 @@ static void restore_geometry_data(NodeGeometry *geometry, Object *object)
 
   CustomData_copy(&geometry->vert_data, &mesh->vert_data, CD_MASK_MESH.vmask, geometry->totvert);
   CustomData_copy(&geometry->edge_data, &mesh->edge_data, CD_MASK_MESH.emask, geometry->totedge);
-  CustomData_copy(&geometry->loop_data, &mesh->loop_data, CD_MASK_MESH.lmask, geometry->totloop);
+  CustomData_copy(
+      &geometry->corner_data, &mesh->corner_data, CD_MASK_MESH.lmask, geometry->totloop);
   CustomData_copy(&geometry->face_data, &mesh->face_data, CD_MASK_MESH.pmask, geometry->faces_num);
   implicit_sharing::copy_shared_pointer(geometry->face_offset_indices,
                                         geometry->face_offsets_sharing_info,
@@ -794,7 +796,7 @@ static void geometry_free_data(NodeGeometry *geometry)
 {
   CustomData_free(&geometry->vert_data, geometry->totvert);
   CustomData_free(&geometry->edge_data, geometry->totedge);
-  CustomData_free(&geometry->loop_data, geometry->totloop);
+  CustomData_free(&geometry->corner_data, geometry->totloop);
   CustomData_free(&geometry->face_data, geometry->faces_num);
   implicit_sharing::free_shared_data(&geometry->face_offset_indices,
                                      &geometry->face_offsets_sharing_info);

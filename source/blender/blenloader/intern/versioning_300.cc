@@ -3585,18 +3585,18 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
 
         if (step) {
           vact1 = CustomData_get_render_layer_index(&me->vert_data, CD_PROP_COLOR);
-          vact2 = CustomData_get_render_layer_index(&me->loop_data, CD_PROP_BYTE_COLOR);
+          vact2 = CustomData_get_render_layer_index(&me->corner_data, CD_PROP_BYTE_COLOR);
         }
         else {
           vact1 = CustomData_get_active_layer_index(&me->vert_data, CD_PROP_COLOR);
-          vact2 = CustomData_get_active_layer_index(&me->loop_data, CD_PROP_BYTE_COLOR);
+          vact2 = CustomData_get_active_layer_index(&me->corner_data, CD_PROP_BYTE_COLOR);
         }
 
         if (vact1 != -1) {
           actlayer = me->vert_data.layers + vact1;
         }
         else if (vact2 != -1) {
-          actlayer = me->loop_data.layers + vact2;
+          actlayer = me->corner_data.layers + vact2;
         }
 
         if (actlayer) {
@@ -3750,18 +3750,18 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
 
         if (step) {
           vact1 = CustomData_get_render_layer_index(&me->vert_data, CD_PROP_COLOR);
-          vact2 = CustomData_get_render_layer_index(&me->loop_data, CD_PROP_BYTE_COLOR);
+          vact2 = CustomData_get_render_layer_index(&me->corner_data, CD_PROP_BYTE_COLOR);
         }
         else {
           vact1 = CustomData_get_active_layer_index(&me->vert_data, CD_PROP_COLOR);
-          vact2 = CustomData_get_active_layer_index(&me->loop_data, CD_PROP_BYTE_COLOR);
+          vact2 = CustomData_get_active_layer_index(&me->corner_data, CD_PROP_BYTE_COLOR);
         }
 
         if (vact1 != -1) {
           actlayer = me->vert_data.layers + vact1;
         }
         else if (vact2 != -1) {
-          actlayer = me->loop_data.layers + vact2;
+          actlayer = me->corner_data.layers + vact2;
         }
 
         if (actlayer) {

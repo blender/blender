@@ -87,7 +87,7 @@ static CustomData *mesh_customdata_get_type(Mesh *mesh, const char htype, int *r
         tot = bm->totloop;
       }
       else {
-        data = &mesh->loop_data;
+        data = &mesh->corner_data;
         tot = mesh->corners_num;
       }
       break;
@@ -203,9 +203,9 @@ void ED_mesh_uv_loop_reset_ex(Mesh *mesh, const int layernum)
   }
   else {
     /* Collect Mesh UVs */
-    BLI_assert(CustomData_has_layer(&mesh->loop_data, CD_PROP_FLOAT2));
+    BLI_assert(CustomData_has_layer(&mesh->corner_data, CD_PROP_FLOAT2));
     float2 *mloopuv = static_cast<float2 *>(CustomData_get_layer_n_for_write(
-        &mesh->loop_data, CD_PROP_FLOAT2, layernum, mesh->corners_num));
+        &mesh->corner_data, CD_PROP_FLOAT2, layernum, mesh->corners_num));
 
     const blender::OffsetIndices polys = mesh->faces();
     for (const int i : polys.index_range()) {
@@ -265,17 +265,17 @@ int ED_mesh_uv_add(
     }
   }
   else {
-    layernum_dst = CustomData_number_of_layers(&mesh->loop_data, CD_PROP_FLOAT2);
+    layernum_dst = CustomData_number_of_layers(&mesh->corner_data, CD_PROP_FLOAT2);
     if (layernum_dst >= MAX_MTFACE) {
       BKE_reportf(reports, RPT_WARNING, "Cannot add more than %i UV maps", MAX_MTFACE);
       return -1;
     }
 
-    if (CustomData_has_layer(&mesh->loop_data, CD_PROP_FLOAT2) && do_init) {
+    if (CustomData_has_layer(&mesh->corner_data, CD_PROP_FLOAT2) && do_init) {
       CustomData_add_layer_named_with_data(
-          &mesh->loop_data,
+          &mesh->corner_data,
           CD_PROP_FLOAT2,
-          MEM_dupallocN(CustomData_get_layer(&mesh->loop_data, CD_PROP_FLOAT2)),
+          MEM_dupallocN(CustomData_get_layer(&mesh->corner_data, CD_PROP_FLOAT2)),
           mesh->corners_num,
           unique_name,
           nullptr);
@@ -284,11 +284,11 @@ int ED_mesh_uv_add(
     }
     else {
       CustomData_add_layer_named(
-          &mesh->loop_data, CD_PROP_FLOAT2, CD_SET_DEFAULT, mesh->corners_num, unique_name);
+          &mesh->corner_data, CD_PROP_FLOAT2, CD_SET_DEFAULT, mesh->corners_num, unique_name);
     }
 
     if (active_set || layernum_dst == 0) {
-      CustomData_set_layer_active(&mesh->loop_data, CD_PROP_FLOAT2, layernum_dst);
+      CustomData_set_layer_active(&mesh->corner_data, CD_PROP_FLOAT2, layernum_dst);
     }
   }
 
@@ -306,14 +306,14 @@ int ED_mesh_uv_add(
 static const bool *mesh_loop_boolean_custom_data_get_by_name(const Mesh &mesh, const char *name)
 {
   return static_cast<const bool *>(
-      CustomData_get_layer_named(&mesh.loop_data, CD_PROP_BOOL, name));
+      CustomData_get_layer_named(&mesh.corner_data, CD_PROP_BOOL, name));
 }
 
 const bool *ED_mesh_uv_map_vert_select_layer_get(const Mesh *mesh, const int uv_index)
 {
   using namespace blender::bke;
   char buffer[MAX_CUSTOMDATA_LAYER_NAME];
-  const char *uv_name = CustomData_get_layer_name(&mesh->loop_data, CD_PROP_FLOAT2, uv_index);
+  const char *uv_name = CustomData_get_layer_name(&mesh->corner_data, CD_PROP_FLOAT2, uv_index);
   return mesh_loop_boolean_custom_data_get_by_name(
       *mesh, BKE_uv_map_vert_select_name_get(uv_name, buffer));
 }
@@ -324,7 +324,7 @@ const bool *ED_mesh_uv_map_edge_select_layer_get(const Mesh *mesh, const int uv_
 
   using namespace blender::bke;
   char buffer[MAX_CUSTOMDATA_LAYER_NAME];
-  const char *uv_name = CustomData_get_layer_name(&mesh->loop_data, CD_PROP_FLOAT2, uv_index);
+  const char *uv_name = CustomData_get_layer_name(&mesh->corner_data, CD_PROP_FLOAT2, uv_index);
   return mesh_loop_boolean_custom_data_get_by_name(
       *mesh, BKE_uv_map_edge_select_name_get(uv_name, buffer));
 }
@@ -333,7 +333,7 @@ const bool *ED_mesh_uv_map_pin_layer_get(const Mesh *mesh, const int uv_index)
 {
   using namespace blender::bke;
   char buffer[MAX_CUSTOMDATA_LAYER_NAME];
-  const char *uv_name = CustomData_get_layer_name(&mesh->loop_data, CD_PROP_FLOAT2, uv_index);
+  const char *uv_name = CustomData_get_layer_name(&mesh->corner_data, CD_PROP_FLOAT2, uv_index);
   return mesh_loop_boolean_custom_data_get_by_name(*mesh,
                                                    BKE_uv_map_pin_name_get(uv_name, buffer));
 }
@@ -341,10 +341,10 @@ const bool *ED_mesh_uv_map_pin_layer_get(const Mesh *mesh, const int uv_index)
 static bool *ensure_corner_boolean_attribute(Mesh &mesh, const blender::StringRefNull name)
 {
   bool *data = static_cast<bool *>(CustomData_get_layer_named_for_write(
-      &mesh.loop_data, CD_PROP_BOOL, name.c_str(), mesh.corners_num));
+      &mesh.corner_data, CD_PROP_BOOL, name.c_str(), mesh.corners_num));
   if (!data) {
     data = static_cast<bool *>(CustomData_add_layer_named(
-        &mesh.loop_data, CD_PROP_BOOL, CD_SET_DEFAULT, mesh.faces_num, name.c_str()));
+        &mesh.corner_data, CD_PROP_BOOL, CD_SET_DEFAULT, mesh.faces_num, name.c_str()));
   }
   return data;
 }
@@ -353,21 +353,21 @@ bool *ED_mesh_uv_map_vert_select_layer_ensure(Mesh *mesh, const int uv_index)
 {
   using namespace blender::bke;
   char buffer[MAX_CUSTOMDATA_LAYER_NAME];
-  const char *uv_name = CustomData_get_layer_name(&mesh->loop_data, CD_PROP_FLOAT2, uv_index);
+  const char *uv_name = CustomData_get_layer_name(&mesh->corner_data, CD_PROP_FLOAT2, uv_index);
   return ensure_corner_boolean_attribute(*mesh, BKE_uv_map_vert_select_name_get(uv_name, buffer));
 }
 bool *ED_mesh_uv_map_edge_select_layer_ensure(Mesh *mesh, const int uv_index)
 {
   using namespace blender::bke;
   char buffer[MAX_CUSTOMDATA_LAYER_NAME];
-  const char *uv_name = CustomData_get_layer_name(&mesh->loop_data, CD_PROP_FLOAT2, uv_index);
+  const char *uv_name = CustomData_get_layer_name(&mesh->corner_data, CD_PROP_FLOAT2, uv_index);
   return ensure_corner_boolean_attribute(*mesh, BKE_uv_map_edge_select_name_get(uv_name, buffer));
 }
 bool *ED_mesh_uv_map_pin_layer_ensure(Mesh *mesh, const int uv_index)
 {
   using namespace blender::bke;
   char buffer[MAX_CUSTOMDATA_LAYER_NAME];
-  const char *uv_name = CustomData_get_layer_name(&mesh->loop_data, CD_PROP_FLOAT2, uv_index);
+  const char *uv_name = CustomData_get_layer_name(&mesh->corner_data, CD_PROP_FLOAT2, uv_index);
   return ensure_corner_boolean_attribute(*mesh, BKE_uv_map_pin_name_get(uv_name, buffer));
 }
 
@@ -385,7 +385,7 @@ void ED_mesh_uv_ensure(Mesh *mesh, const char *name)
     }
   }
   else {
-    layernum_dst = CustomData_number_of_layers(&mesh->loop_data, CD_PROP_FLOAT2);
+    layernum_dst = CustomData_number_of_layers(&mesh->corner_data, CD_PROP_FLOAT2);
     if (layernum_dst == 0) {
       ED_mesh_uv_add(mesh, name, true, true, nullptr);
     }
@@ -730,7 +730,8 @@ static int mesh_customdata_custom_splitnormals_add_exec(bContext *C, wmOperator 
     BM_data_layer_add(&bm, &bm.ldata, CD_CUSTOMLOOPNORMAL);
   }
   else {
-    CustomData_add_layer(&mesh->loop_data, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, mesh->corners_num);
+    CustomData_add_layer(
+        &mesh->corner_data, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, mesh->corners_num);
   }
 
   DEG_id_tag_update(&mesh->id, 0);
@@ -862,8 +863,8 @@ static void mesh_add_loops(Mesh *mesh, int len)
   totloop = mesh->corners_num + len; /* new face count */
 
   /* update customdata */
-  CustomData_copy_layout(&mesh->loop_data, &ldata, CD_MASK_MESH.lmask, CD_SET_DEFAULT, totloop);
-  CustomData_copy_data(&mesh->loop_data, &ldata, 0, 0, mesh->corners_num);
+  CustomData_copy_layout(&mesh->corner_data, &ldata, CD_MASK_MESH.lmask, CD_SET_DEFAULT, totloop);
+  CustomData_copy_data(&mesh->corner_data, &ldata, 0, 0, mesh->corners_num);
 
   if (!CustomData_has_layer_named(&ldata, CD_PROP_INT32, ".corner_vert")) {
     CustomData_add_layer_named(&ldata, CD_PROP_INT32, CD_SET_DEFAULT, totloop, ".corner_vert");
@@ -874,8 +875,8 @@ static void mesh_add_loops(Mesh *mesh, int len)
 
   BKE_mesh_runtime_clear_cache(mesh);
 
-  CustomData_free(&mesh->loop_data, mesh->corners_num);
-  mesh->loop_data = ldata;
+  CustomData_free(&mesh->corner_data, mesh->corners_num);
+  mesh->corner_data = ldata;
 
   mesh->corners_num = totloop;
 
@@ -998,9 +999,9 @@ static void mesh_remove_loops(Mesh *mesh, int len)
   if (len == 0) {
     return;
   }
-  CustomData_ensure_layers_are_mutable(&mesh->loop_data, mesh->corners_num);
+  CustomData_ensure_layers_are_mutable(&mesh->corner_data, mesh->corners_num);
   const int totloop = mesh->corners_num - len;
-  CustomData_free_elem(&mesh->loop_data, totloop, len);
+  CustomData_free_elem(&mesh->corner_data, totloop, len);
   mesh->corners_num = totloop;
 }
 

@@ -233,7 +233,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
   /* UV Coords */
   const uint mloopuv_layers_tot = uint(
-      CustomData_number_of_layers(&mesh->loop_data, CD_PROP_FLOAT2));
+      CustomData_number_of_layers(&mesh->corner_data, CD_PROP_FLOAT2));
   blender::Array<blender::float2 *> mloopuv_layers(mloopuv_layers_tot);
   float uv_u_scale;
   float uv_v_minmax[2] = {FLT_MAX, -FLT_MAX};
@@ -436,7 +436,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
     uint uv_lay;
     for (uv_lay = 0; uv_lay < mloopuv_layers_tot; uv_lay++) {
       mloopuv_layers[uv_lay] = static_cast<blender::float2 *>(CustomData_get_layer_n_for_write(
-          &result->loop_data, CD_PROP_FLOAT2, int(uv_lay), result->corners_num));
+          &result->corner_data, CD_PROP_FLOAT2, int(uv_lay), result->corners_num));
     }
 
     if (ltmd->flag & MOD_SCREW_UV_STRETCH_V) {
@@ -897,14 +897,26 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
       /* Loop-Custom-Data */
       if (has_mloop_orig) {
 
-        CustomData_copy_data(
-            &mesh->loop_data, &result->loop_data, int(mloop_index_orig[0]), new_loop_index + 0, 1);
-        CustomData_copy_data(
-            &mesh->loop_data, &result->loop_data, int(mloop_index_orig[1]), new_loop_index + 1, 1);
-        CustomData_copy_data(
-            &mesh->loop_data, &result->loop_data, int(mloop_index_orig[1]), new_loop_index + 2, 1);
-        CustomData_copy_data(
-            &mesh->loop_data, &result->loop_data, int(mloop_index_orig[0]), new_loop_index + 3, 1);
+        CustomData_copy_data(&mesh->corner_data,
+                             &result->corner_data,
+                             int(mloop_index_orig[0]),
+                             new_loop_index + 0,
+                             1);
+        CustomData_copy_data(&mesh->corner_data,
+                             &result->corner_data,
+                             int(mloop_index_orig[1]),
+                             new_loop_index + 1,
+                             1);
+        CustomData_copy_data(&mesh->corner_data,
+                             &result->corner_data,
+                             int(mloop_index_orig[1]),
+                             new_loop_index + 2,
+                             1);
+        CustomData_copy_data(&mesh->corner_data,
+                             &result->corner_data,
+                             int(mloop_index_orig[0]),
+                             new_loop_index + 3,
+                             1);
 
         if (mloopuv_layers_tot) {
           uint uv_lay;

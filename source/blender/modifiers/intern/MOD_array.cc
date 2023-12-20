@@ -300,7 +300,8 @@ static void mesh_merge_transform(Mesh *result,
 
   CustomData_copy_data(&cap_mesh->vert_data, &result->vert_data, 0, cap_verts_index, cap_nverts);
   CustomData_copy_data(&cap_mesh->edge_data, &result->edge_data, 0, cap_edges_index, cap_nedges);
-  CustomData_copy_data(&cap_mesh->loop_data, &result->loop_data, 0, cap_loops_index, cap_nloops);
+  CustomData_copy_data(
+      &cap_mesh->corner_data, &result->corner_data, 0, cap_loops_index, cap_nloops);
   CustomData_copy_data(&cap_mesh->face_data, &result->face_data, 0, cap_faces_index, cap_nfaces);
 
   for (i = 0; i < cap_nverts; i++) {
@@ -370,7 +371,7 @@ static void mesh_merge_transform(Mesh *result,
   }
 
   index_orig = static_cast<int *>(
-      CustomData_get_layer_for_write(&result->loop_data, CD_ORIGINDEX, result->corners_num));
+      CustomData_get_layer_for_write(&result->corner_data, CD_ORIGINDEX, result->corners_num));
   if (index_orig) {
     copy_vn_i(index_orig + cap_loops_index, cap_nloops, ORIGINDEX_NONE);
   }
@@ -585,7 +586,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
   /* copy customdata to original geometry */
   CustomData_copy_data(&mesh->vert_data, &result->vert_data, 0, 0, chunk_nverts);
   CustomData_copy_data(&mesh->edge_data, &result->edge_data, 0, 0, chunk_nedges);
-  CustomData_copy_data(&mesh->loop_data, &result->loop_data, 0, 0, chunk_nloops);
+  CustomData_copy_data(&mesh->corner_data, &result->corner_data, 0, 0, chunk_nloops);
   CustomData_copy_data(&mesh->face_data, &result->face_data, 0, 0, chunk_nfaces);
 
   result_face_offsets.take_front(mesh->faces_num).copy_from(mesh->face_offsets().drop_back(1));
@@ -608,7 +609,8 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
     /* copy customdata to new geometry */
     CustomData_copy_data(&mesh->vert_data, &result->vert_data, 0, c * chunk_nverts, chunk_nverts);
     CustomData_copy_data(&mesh->edge_data, &result->edge_data, 0, c * chunk_nedges, chunk_nedges);
-    CustomData_copy_data(&mesh->loop_data, &result->loop_data, 0, c * chunk_nloops, chunk_nloops);
+    CustomData_copy_data(
+        &mesh->corner_data, &result->corner_data, 0, c * chunk_nloops, chunk_nloops);
     CustomData_copy_data(&mesh->face_data, &result->face_data, 0, c * chunk_nfaces, chunk_nfaces);
 
     const int vert_offset = c * chunk_nverts;
@@ -689,10 +691,10 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
 
   /* handle UVs */
   if (chunk_nloops > 0 && is_zero_v2(amd->uv_offset) == false) {
-    const int totuv = CustomData_number_of_layers(&result->loop_data, CD_PROP_FLOAT2);
+    const int totuv = CustomData_number_of_layers(&result->corner_data, CD_PROP_FLOAT2);
     for (i = 0; i < totuv; i++) {
       blender::float2 *dmloopuv = static_cast<blender::float2 *>(CustomData_get_layer_n_for_write(
-          &result->loop_data, CD_PROP_FLOAT2, i, result->corners_num));
+          &result->corner_data, CD_PROP_FLOAT2, i, result->corners_num));
       dmloopuv += chunk_nloops;
       for (c = 1; c < count; c++) {
         const float uv_offset[2] = {

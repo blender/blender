@@ -993,10 +993,10 @@ void USDMeshReader::read_custom_data(const ImportSettings *settings,
 
   if (!active_uv_set_name.IsEmpty()) {
     int layer_index = CustomData_get_named_layer_index(
-        &mesh->loop_data, CD_PROP_FLOAT2, active_uv_set_name.GetText());
+        &mesh->corner_data, CD_PROP_FLOAT2, active_uv_set_name.GetText());
     if (layer_index > -1) {
-      CustomData_set_layer_active_index(&mesh->loop_data, CD_PROP_FLOAT2, layer_index);
-      CustomData_set_layer_render_index(&mesh->loop_data, CD_PROP_FLOAT2, layer_index);
+      CustomData_set_layer_active_index(&mesh->corner_data, CD_PROP_FLOAT2, layer_index);
+      CustomData_set_layer_render_index(&mesh->corner_data, CD_PROP_FLOAT2, layer_index);
     }
   }
 }

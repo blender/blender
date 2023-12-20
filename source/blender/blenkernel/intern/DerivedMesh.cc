@@ -807,9 +807,11 @@ static void mesh_calc_modifiers(Depsgraph *depsgraph,
 
       /* add an origspace layer if needed */
       if ((md_datamask->mask.lmask) & CD_MASK_ORIGSPACE_MLOOP) {
-        if (!CustomData_has_layer(&mesh_final->loop_data, CD_ORIGSPACE_MLOOP)) {
-          CustomData_add_layer(
-              &mesh_final->loop_data, CD_ORIGSPACE_MLOOP, CD_SET_DEFAULT, mesh_final->corners_num);
+        if (!CustomData_has_layer(&mesh_final->corner_data, CD_ORIGSPACE_MLOOP)) {
+          CustomData_add_layer(&mesh_final->corner_data,
+                               CD_ORIGSPACE_MLOOP,
+                               CD_SET_DEFAULT,
+                               mesh_final->corners_num);
           mesh_init_origspace(mesh_final);
         }
       }
@@ -1204,9 +1206,11 @@ static void editbmesh_calc_modifiers(Depsgraph *depsgraph,
       mesh_set_only_copy(mesh_final, &mask);
 
       if (mask.lmask & CD_MASK_ORIGSPACE_MLOOP) {
-        if (!CustomData_has_layer(&mesh_final->loop_data, CD_ORIGSPACE_MLOOP)) {
-          CustomData_add_layer(
-              &mesh_final->loop_data, CD_ORIGSPACE_MLOOP, CD_SET_DEFAULT, mesh_final->corners_num);
+        if (!CustomData_has_layer(&mesh_final->corner_data, CD_ORIGSPACE_MLOOP)) {
+          CustomData_add_layer(&mesh_final->corner_data,
+                               CD_ORIGSPACE_MLOOP,
+                               CD_SET_DEFAULT,
+                               mesh_final->corners_num);
           mesh_init_origspace(mesh_final);
         }
       }
@@ -1622,7 +1626,7 @@ static void mesh_init_origspace(Mesh *mesh)
   const float default_osf[4][2] = {{0, 0}, {1, 0}, {1, 1}, {0, 1}};
 
   OrigSpaceLoop *lof_array = (OrigSpaceLoop *)CustomData_get_layer_for_write(
-      &mesh->loop_data, CD_ORIGSPACE_MLOOP, mesh->corners_num);
+      &mesh->corner_data, CD_ORIGSPACE_MLOOP, mesh->corners_num);
   const Span<float3> positions = mesh->vert_positions();
   const blender::OffsetIndices faces = mesh->faces();
   const Span<int> corner_verts = mesh->corner_verts();

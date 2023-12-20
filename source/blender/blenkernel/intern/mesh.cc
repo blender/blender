@@ -92,7 +92,7 @@ static void mesh_init_data(ID *id)
   CustomData_reset(&mesh->edge_data);
   CustomData_reset(&mesh->fdata_legacy);
   CustomData_reset(&mesh->face_data);
-  CustomData_reset(&mesh->loop_data);
+  CustomData_reset(&mesh->corner_data);
 
   mesh->runtime = new blender::bke::MeshRuntime();
 
@@ -167,7 +167,8 @@ static void mesh_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int 
 
   CustomData_copy(&mesh_src->vert_data, &mesh_dst->vert_data, mask.vmask, mesh_dst->verts_num);
   CustomData_copy(&mesh_src->edge_data, &mesh_dst->edge_data, mask.emask, mesh_dst->edges_num);
-  CustomData_copy(&mesh_src->loop_data, &mesh_dst->loop_data, mask.lmask, mesh_dst->corners_num);
+  CustomData_copy(
+      &mesh_src->corner_data, &mesh_dst->corner_data, mask.lmask, mesh_dst->corners_num);
   CustomData_copy(&mesh_src->face_data, &mesh_dst->face_data, mask.pmask, mesh_dst->faces_num);
   blender::implicit_sharing::copy_shared_pointer(mesh_src->face_offset_indices,
                                                  mesh_src->runtime->face_offsets_sharing_info,
@@ -237,10 +238,10 @@ static void mesh_foreach_id(ID *id, LibraryForeachIDData *data)
 static void mesh_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 {
   Mesh *mesh = reinterpret_cast<Mesh *>(id);
-  if (mesh->loop_data.external) {
+  if (mesh->corner_data.external) {
     BKE_bpath_foreach_path_fixed_process(bpath_data,
-                                         mesh->loop_data.external->filepath,
-                                         sizeof(mesh->loop_data.external->filepath));
+                                         mesh->corner_data.external->filepath,
+                                         sizeof(mesh->corner_data.external->filepath));
   }
 }
 
@@ -270,7 +271,7 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
     memset(&mesh->edge_data, 0, sizeof(mesh->edge_data));
 
     mesh->corners_num = 0;
-    memset(&mesh->loop_data, 0, sizeof(mesh->loop_data));
+    memset(&mesh->corner_data, 0, sizeof(mesh->corner_data));
 
     mesh->faces_num = 0;
     memset(&mesh->face_data, 0, sizeof(mesh->face_data));
@@ -279,7 +280,7 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
   else {
     CustomData_blend_write_prepare(mesh->vert_data, vert_layers, {});
     CustomData_blend_write_prepare(mesh->edge_data, edge_layers, {});
-    CustomData_blend_write_prepare(mesh->loop_data, loop_layers, {});
+    CustomData_blend_write_prepare(mesh->corner_data, loop_layers, {});
     CustomData_blend_write_prepare(mesh->face_data, face_layers, {});
     if (!is_undo) {
       mesh_sculpt_mask_to_legacy(vert_layers);
@@ -306,7 +307,7 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
   CustomData_blend_write(
       writer, &mesh->fdata_legacy, {}, mesh->totface_legacy, CD_MASK_MESH.fmask, &mesh->id);
   CustomData_blend_write(
-      writer, &mesh->loop_data, loop_layers, mesh->corners_num, CD_MASK_MESH.lmask, &mesh->id);
+      writer, &mesh->corner_data, loop_layers, mesh->corners_num, CD_MASK_MESH.lmask, &mesh->id);
   CustomData_blend_write(
       writer, &mesh->face_data, face_layers, mesh->faces_num, CD_MASK_MESH.pmask, &mesh->id);
 
@@ -341,7 +342,7 @@ static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
   CustomData_blend_read(reader, &mesh->vert_data, mesh->verts_num);
   CustomData_blend_read(reader, &mesh->edge_data, mesh->edges_num);
   CustomData_blend_read(reader, &mesh->fdata_legacy, mesh->totface_legacy);
-  CustomData_blend_read(reader, &mesh->loop_data, mesh->corners_num);
+  CustomData_blend_read(reader, &mesh->corner_data, mesh->corners_num);
   CustomData_blend_read(reader, &mesh->face_data, mesh->faces_num);
   if (mesh->deform_verts().is_empty()) {
     /* Vertex group data was also an owning pointer in old Blender versions.
@@ -447,7 +448,7 @@ bool BKE_mesh_has_custom_loop_normals(Mesh *mesh)
     return CustomData_has_layer(&mesh->edit_mesh->bm->ldata, CD_CUSTOMLOOPNORMAL);
   }
 
-  return CustomData_has_layer(&mesh->loop_data, CD_CUSTOMLOOPNORMAL);
+  return CustomData_has_layer(&mesh->corner_data, CD_CUSTOMLOOPNORMAL);
 }
 
 void BKE_mesh_free_data_for_undo(Mesh *mesh)
@@ -472,7 +473,7 @@ static void mesh_clear_geometry(Mesh &mesh)
   CustomData_free(&mesh.vert_data, mesh.verts_num);
   CustomData_free(&mesh.edge_data, mesh.edges_num);
   CustomData_free(&mesh.fdata_legacy, mesh.totface_legacy);
-  CustomData_free(&mesh.loop_data, mesh.corners_num);
+  CustomData_free(&mesh.corner_data, mesh.corners_num);
   CustomData_free(&mesh.face_data, mesh.faces_num);
   if (mesh.face_offset_indices) {
     blender::implicit_sharing::free_shared_data(&mesh.face_offset_indices,
@@ -597,26 +598,26 @@ MutableSpan<int> Mesh::face_offsets_for_write()
 Span<int> Mesh::corner_verts() const
 {
   return {static_cast<const int *>(
-              CustomData_get_layer_named(&this->loop_data, CD_PROP_INT32, ".corner_vert")),
+              CustomData_get_layer_named(&this->corner_data, CD_PROP_INT32, ".corner_vert")),
           this->corners_num};
 }
 MutableSpan<int> Mesh::corner_verts_for_write()
 {
   return {static_cast<int *>(CustomData_get_layer_named_for_write(
-              &this->loop_data, CD_PROP_INT32, ".corner_vert", this->corners_num)),
+              &this->corner_data, CD_PROP_INT32, ".corner_vert", this->corners_num)),
           this->corners_num};
 }
 
 Span<int> Mesh::corner_edges() const
 {
   return {static_cast<const int *>(
-              CustomData_get_layer_named(&this->loop_data, CD_PROP_INT32, ".corner_edge")),
+              CustomData_get_layer_named(&this->corner_data, CD_PROP_INT32, ".corner_edge")),
           this->corners_num};
 }
 MutableSpan<int> Mesh::corner_edges_for_write()
 {
   return {static_cast<int *>(CustomData_get_layer_named_for_write(
-              &this->loop_data, CD_PROP_INT32, ".corner_edge", this->corners_num)),
+              &this->corner_data, CD_PROP_INT32, ".corner_edge", this->corners_num)),
           this->corners_num};
 }
 
@@ -758,7 +759,7 @@ Mesh *BKE_mesh_new_nomain_from_template_ex(const Mesh *me_src,
   CustomData_copy_layout(
       &me_src->face_data, &me_dst->face_data, mask.pmask, CD_SET_DEFAULT, faces_num);
   CustomData_copy_layout(
-      &me_src->loop_data, &me_dst->loop_data, mask.lmask, CD_SET_DEFAULT, loops_num);
+      &me_src->corner_data, &me_dst->corner_data, mask.lmask, CD_SET_DEFAULT, loops_num);
   if (do_tessface) {
     CustomData_copy_layout(
         &me_src->fdata_legacy, &me_dst->fdata_legacy, mask.fmask, CD_SET_DEFAULT, tessface_num);

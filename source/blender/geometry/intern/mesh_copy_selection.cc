@@ -82,8 +82,8 @@ static Mesh *create_mesh_no_attributes(const Mesh &params_mesh,
   mesh->corners_num = corners_num;
   CustomData_free_layer_named(&mesh->vert_data, "position", 0);
   CustomData_free_layer_named(&mesh->edge_data, ".edge_verts", 0);
-  CustomData_free_layer_named(&mesh->loop_data, ".corner_vert", 0);
-  CustomData_free_layer_named(&mesh->loop_data, ".corner_edge", 0);
+  CustomData_free_layer_named(&mesh->corner_data, ".corner_vert", 0);
+  CustomData_free_layer_named(&mesh->corner_data, ".corner_edge", 0);
   BKE_mesh_copy_parameters_for_eval(mesh, &params_mesh);
   return mesh;
 }

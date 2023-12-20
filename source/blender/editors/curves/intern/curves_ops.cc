@@ -1154,7 +1154,7 @@ static int surface_set_exec(bContext *C, wmOperator *op)
   Object &new_surface_ob = *CTX_data_active_object(C);
 
   Mesh &new_surface_mesh = *static_cast<Mesh *>(new_surface_ob.data);
-  const char *new_uv_map_name = CustomData_get_active_layer_name(&new_surface_mesh.loop_data,
+  const char *new_uv_map_name = CustomData_get_active_layer_name(&new_surface_mesh.corner_data,
                                                                  CD_PROP_FLOAT2);
 
   CTX_DATA_BEGIN (C, Object *, selected_ob, selected_objects) {

@@ -987,8 +987,8 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
     return mesh->NAME; \
   }
 
-  static CustomDataAccessInfo corner_access = {MAKE_MUTABLE_CUSTOM_DATA_GETTER(loop_data),
-                                               MAKE_CONST_CUSTOM_DATA_GETTER(loop_data),
+  static CustomDataAccessInfo corner_access = {MAKE_MUTABLE_CUSTOM_DATA_GETTER(corner_data),
+                                               MAKE_CONST_CUSTOM_DATA_GETTER(corner_data),
                                                MAKE_GET_ELEMENT_NUM_GETTER(corners_num)};
   static CustomDataAccessInfo point_access = {MAKE_MUTABLE_CUSTOM_DATA_GETTER(vert_data),
                                               MAKE_CONST_CUSTOM_DATA_GETTER(vert_data),

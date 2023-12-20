@@ -173,7 +173,7 @@ void debug_randomize_face_order(Mesh *mesh)
   Array<int> new_face_offsets = make_new_offset_indices(old_faces, old_by_new_map);
   const OffsetIndices<int> new_faces = new_face_offsets.as_span();
 
-  reorder_customdata_groups(mesh->loop_data, old_faces, new_faces, new_by_old_map);
+  reorder_customdata_groups(mesh->corner_data, old_faces, new_faces, new_by_old_map);
 
   mesh->face_offsets_for_write().copy_from(new_face_offsets);
 

@@ -87,7 +87,7 @@ static CustomData *rna_mesh_vdata_helper(Mesh *mesh)
 
 static CustomData *rna_mesh_ldata_helper(Mesh *mesh)
 {
-  return (mesh->edit_mesh) ? &mesh->edit_mesh->bm->ldata : &mesh->loop_data;
+  return (mesh->edit_mesh) ? &mesh->edit_mesh->bm->ldata : &mesh->corner_data;
 }
 
 static CustomData *rna_mesh_vdata(const PointerRNA *ptr)
@@ -499,7 +499,7 @@ static void rna_MeshLoop_tangent_get(PointerRNA *ptr, float *values)
   Mesh *mesh = rna_mesh(ptr);
   const int index = rna_MeshLoop_index_get(ptr);
   const float(*layer)[4] = static_cast<const float(*)[4]>(
-      CustomData_get_layer(&mesh->loop_data, CD_MLOOPTANGENT));
+      CustomData_get_layer(&mesh->corner_data, CD_MLOOPTANGENT));
 
   if (!layer) {
     zero_v3(values);
@@ -514,7 +514,7 @@ static float rna_MeshLoop_bitangent_sign_get(PointerRNA *ptr)
   Mesh *mesh = rna_mesh(ptr);
   const int index = rna_MeshLoop_index_get(ptr);
   const float(*vec)[4] = static_cast<const float(*)[4]>(
-      CustomData_get_layer(&mesh->loop_data, CD_MLOOPTANGENT));
+      CustomData_get_layer(&mesh->corner_data, CD_MLOOPTANGENT));
 
   return (vec) ? vec[index][3] : 0.0f;
 }
@@ -524,7 +524,7 @@ static void rna_MeshLoop_bitangent_get(PointerRNA *ptr, float *values)
   Mesh *mesh = rna_mesh(ptr);
   const int index = rna_MeshLoop_index_get(ptr);
   const float(*vec)[4] = static_cast<const float(*)[4]>(
-      CustomData_get_layer(&mesh->loop_data, CD_MLOOPTANGENT));
+      CustomData_get_layer(&mesh->corner_data, CD_MLOOPTANGENT));
 
   if (vec) {
     cross_v3_v3v3(values, mesh->corner_normals()[index], vec[index]);
@@ -952,10 +952,10 @@ static int rna_MeshUVLoopLayer_data_length(PointerRNA *ptr)
 static MBoolProperty *MeshUVLoopLayer_get_bool_layer(Mesh *mesh, char const *name)
 {
   void *layer = CustomData_get_layer_named_for_write(
-      &mesh->loop_data, CD_PROP_BOOL, name, mesh->corners_num);
+      &mesh->corner_data, CD_PROP_BOOL, name, mesh->corners_num);
   if (layer == nullptr) {
     layer = CustomData_add_layer_named(
-        &mesh->loop_data, CD_PROP_BOOL, CD_SET_DEFAULT, mesh->corners_num, name);
+        &mesh->corner_data, CD_PROP_BOOL, CD_SET_DEFAULT, mesh->corners_num, name);
   }
 
   BLI_assert(layer);
@@ -1715,10 +1715,10 @@ static bool get_uv_index_and_layer(const PointerRNA *ptr,
   const blender::float2 *uv_coord = static_cast<const blender::float2 *>(ptr->data);
 
   /* We don't know from which attribute the RNA pointer is from, so we need to scan them all. */
-  const int uv_layers_num = CustomData_number_of_layers(&mesh->loop_data, CD_PROP_FLOAT2);
+  const int uv_layers_num = CustomData_number_of_layers(&mesh->corner_data, CD_PROP_FLOAT2);
   for (int layer_i = 0; layer_i < uv_layers_num; layer_i++) {
     const blender::float2 *layer_data = static_cast<const blender::float2 *>(
-        CustomData_get_layer_n(&mesh->loop_data, CD_PROP_FLOAT2, layer_i));
+        CustomData_get_layer_n(&mesh->corner_data, CD_PROP_FLOAT2, layer_i));
     const ptrdiff_t index = uv_coord - layer_data;
     if (index >= 0 && index < mesh->corners_num) {
       *r_uv_map_index = layer_i;
@@ -3054,7 +3054,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 
   /* UV loop layers */
   prop = RNA_def_property(srna, "uv_layers", PROP_COLLECTION, PROP_NONE);
-  RNA_def_property_collection_sdna(prop, nullptr, "loop_data.layers", "loop_data.totlayer");
+  RNA_def_property_collection_sdna(prop, nullptr, "corner_data.layers", "corner_data.totlayer");
   RNA_def_property_collection_funcs(prop,
                                     "rna_Mesh_uv_layers_begin",
                                     nullptr,
@@ -3104,7 +3104,7 @@ static void rna_def_mesh(BlenderRNA *brna)
   /* Vertex colors */
 
   prop = RNA_def_property(srna, "vertex_colors", PROP_COLLECTION, PROP_NONE);
-  RNA_def_property_collection_sdna(prop, nullptr, "loop_data.layers", "loop_data.totlayer");
+  RNA_def_property_collection_sdna(prop, nullptr, "corner_data.layers", "corner_data.totlayer");
   RNA_def_property_collection_funcs(prop,
                                     "rna_Mesh_vertex_colors_begin",
                                     nullptr,

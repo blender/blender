@@ -188,7 +188,7 @@ static const CustomData *get_loop_custom_data(const Mesh *mesh)
     BLI_assert(mesh->edit_mesh->bm != nullptr);
     return &mesh->edit_mesh->bm->ldata;
   }
-  return &mesh->loop_data;
+  return &mesh->corner_data;
 }
 
 static const CustomData *get_vert_custom_data(const Mesh *mesh)

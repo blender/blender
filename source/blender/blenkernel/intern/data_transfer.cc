@@ -363,7 +363,7 @@ static void data_transfer_dtdata_type_postprocess(Mesh *me_dst,
       return;
     }
     /* Bake edited destination loop normals into custom normals again. */
-    CustomData *ldata_dst = &me_dst->loop_data;
+    CustomData *ldata_dst = &me_dst->corner_data;
 
     blender::float3 *loop_nors_dst = static_cast<blender::float3 *>(
         CustomData_get_layer_for_write(ldata_dst, CD_NORMAL, me_dst->corners_num));
@@ -1052,8 +1052,8 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
       cddata_type = CD_PROP_FLOAT2;
     }
     else if (cddata_type == CD_FAKE_LNOR) {
-      if (!CustomData_get_layer(&me_dst->loop_data, CD_PROP_FLOAT)) {
-        CustomData_add_layer(&me_dst->loop_data, CD_NORMAL, CD_SET_DEFAULT, me_dst->corners_num);
+      if (!CustomData_get_layer(&me_dst->corner_data, CD_PROP_FLOAT)) {
+        CustomData_add_layer(&me_dst->corner_data, CD_NORMAL, CD_SET_DEFAULT, me_dst->corners_num);
       }
       /* Post-process will convert it back to CD_CUSTOMLOOPNORMAL. */
       data_transfer_layersmapping_add_item_cd(
@@ -1063,15 +1063,15 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
           mix_factor,
           mix_weights,
           me_src->corner_normals().data(),
-          CustomData_get_layer_for_write(&me_dst->loop_data, CD_NORMAL, me_dst->corners_num),
+          CustomData_get_layer_for_write(&me_dst->corner_data, CD_NORMAL, me_dst->corners_num),
           customdata_data_transfer_interp_normal_normals,
           space_transform);
       return true;
     }
 
     if (!(cddata_type & CD_FAKE)) {
-      cd_src = &me_src->loop_data;
-      cd_dst = &me_dst->loop_data;
+      cd_src = &me_src->corner_data;
+      cd_dst = &me_dst->corner_data;
 
       if (!data_transfer_layersmapping_cdlayers(r_map,
                                                 eCustomDataType(cddata_type),

@@ -242,10 +242,10 @@ bool BKE_subdiv_eval_refine_from_mesh(Subdiv *subdiv,
       mesh->verts_no_face());
 
   /* Set face-varying data to UV maps. */
-  const int num_uv_layers = CustomData_number_of_layers(&mesh->loop_data, CD_PROP_FLOAT2);
+  const int num_uv_layers = CustomData_number_of_layers(&mesh->corner_data, CD_PROP_FLOAT2);
   for (int layer_index = 0; layer_index < num_uv_layers; layer_index++) {
     const float(*mloopuv)[2] = static_cast<const float(*)[2]>(
-        CustomData_get_layer_n(&mesh->loop_data, CD_PROP_FLOAT2, layer_index));
+        CustomData_get_layer_n(&mesh->corner_data, CD_PROP_FLOAT2, layer_index));
     set_face_varying_data_from_uv(subdiv, mesh, mloopuv, layer_index);
   }
   /* Set vertex data to orco. */

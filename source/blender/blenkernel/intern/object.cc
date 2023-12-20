@@ -1493,8 +1493,8 @@ static void copy_ccg_data(Mesh *mesh_destination,
                           const eCustomDataType layer_type)
 {
   BLI_assert(mesh_destination->corners_num == mesh_source->corners_num);
-  CustomData *data_destination = &mesh_destination->loop_data;
-  CustomData *data_source = &mesh_source->loop_data;
+  CustomData *data_destination = &mesh_destination->corner_data;
+  CustomData *data_source = &mesh_source->corner_data;
   const int num_elements = mesh_source->corners_num;
   if (!CustomData_has_layer(data_source, layer_type)) {
     return;

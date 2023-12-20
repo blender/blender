@@ -1543,7 +1543,7 @@ static MultiresModifierData *sculpt_multires_modifier_get(const Scene *scene,
 
   bool need_mdisps = false;
 
-  if (!CustomData_get_layer(&mesh->loop_data, CD_MDISPS)) {
+  if (!CustomData_get_layer(&mesh->corner_data, CD_MDISPS)) {
     if (!auto_create_mdisps) {
       /* Multires can't work without displacement layer. */
       return nullptr;
@@ -1568,7 +1568,7 @@ static MultiresModifierData *sculpt_multires_modifier_get(const Scene *scene,
 
       if (mmd->sculptlvl > 0 && !(mmd->flags & eMultiresModifierFlag_UseSculptBaseMesh)) {
         if (need_mdisps) {
-          CustomData_add_layer(&mesh->loop_data, CD_MDISPS, CD_SET_DEFAULT, mesh->corners_num);
+          CustomData_add_layer(&mesh->corner_data, CD_MDISPS, CD_SET_DEFAULT, mesh->corners_num);
         }
 
         return mmd;
@@ -1952,13 +1952,13 @@ void BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
 
   /* if multires is active, create a grid paint mask layer if there
    * isn't one already */
-  if (mmd && !CustomData_has_layer(&mesh->loop_data, CD_GRID_PAINT_MASK)) {
+  if (mmd && !CustomData_has_layer(&mesh->corner_data, CD_GRID_PAINT_MASK)) {
     int level = max_ii(1, mmd->sculptlvl);
     int gridsize = BKE_ccg_gridsize(level);
     int gridarea = gridsize * gridsize;
 
     GridPaintMask *gmask = static_cast<GridPaintMask *>(CustomData_add_layer(
-        &mesh->loop_data, CD_GRID_PAINT_MASK, CD_SET_DEFAULT, mesh->corners_num));
+        &mesh->corner_data, CD_GRID_PAINT_MASK, CD_SET_DEFAULT, mesh->corners_num));
 
     for (int i = 0; i < mesh->corners_num; i++) {
       GridPaintMask *gpm = &gmask[i];

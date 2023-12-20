@@ -268,7 +268,7 @@ Span<int> OBJMesh::calc_poly_vertex_indices(const int face_index) const
 
 void OBJMesh::store_uv_coords_and_indices()
 {
-  const StringRef active_uv_name = CustomData_get_active_layer_name(&export_mesh_->loop_data,
+  const StringRef active_uv_name = CustomData_get_active_layer_name(&export_mesh_->corner_data,
                                                                     CD_PROP_FLOAT2);
   if (active_uv_name.is_empty()) {
     uv_coords_.clear();

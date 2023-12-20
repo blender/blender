@@ -502,7 +502,7 @@ static bool bake_object_check(const Scene *scene,
     }
   }
   else if (target == R_BAKE_TARGET_IMAGE_TEXTURES) {
-    if (CustomData_get_active_layer_index(&mesh->loop_data, CD_PROP_FLOAT2) == -1) {
+    if (CustomData_get_active_layer_index(&mesh->corner_data, CD_PROP_FLOAT2) == -1) {
       BKE_reportf(
           reports, RPT_ERROR, "No active UV layer found in the object \"%s\"", ob->id.name + 2);
       return false;
@@ -1434,7 +1434,7 @@ static int bake(const BakeAPIRender *bkr,
 
   if (bkr->uv_layer[0] != '\0') {
     Mesh *mesh = (Mesh *)ob_low->data;
-    if (CustomData_get_named_layer(&mesh->loop_data, CD_PROP_FLOAT2, bkr->uv_layer) == -1) {
+    if (CustomData_get_named_layer(&mesh->corner_data, CD_PROP_FLOAT2, bkr->uv_layer) == -1) {
       BKE_reportf(reports,
                   RPT_ERROR,
                   "No UV layer named \"%s\" found in the object \"%s\"",

@@ -325,9 +325,9 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   blender::MutableSpan<int> corner_edges = result->corner_edges_for_write();
 
   MLoopCol *mloopcols_index = static_cast<MLoopCol *>(CustomData_get_layer_named_for_write(
-      &result->loop_data, CD_PROP_BYTE_COLOR, pimd->index_layer_name, result->corners_num));
+      &result->corner_data, CD_PROP_BYTE_COLOR, pimd->index_layer_name, result->corners_num));
   MLoopCol *mloopcols_value = static_cast<MLoopCol *>(CustomData_get_layer_named_for_write(
-      &result->loop_data, CD_PROP_BYTE_COLOR, pimd->value_layer_name, result->corners_num));
+      &result->corner_data, CD_PROP_BYTE_COLOR, pimd->value_layer_name, result->corners_num));
   int *vert_part_index = nullptr;
   float *vert_part_value = nullptr;
   if (mloopcols_index != nullptr) {
@@ -492,7 +492,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
         int j = in_face.size();
 
         CustomData_copy_data(
-            &mesh->loop_data, &result->loop_data, in_face.start(), dst_face_start, j);
+            &mesh->corner_data, &result->corner_data, in_face.start(), dst_face_start, j);
         for (; j; j--, orig_corner_i++, dst_corner_i++) {
           corner_verts[dst_corner_i] = orig_corner_verts[orig_corner_i] + (p_skip * totvert);
           corner_edges[dst_corner_i] = orig_corner_edges[orig_corner_i] + (p_skip * totedge);

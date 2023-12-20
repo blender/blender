@@ -321,15 +321,15 @@ static void imapaint_pick_uv(const Mesh *me_eval,
 
         if (!(slot && slot->uvname &&
               (mloopuv = static_cast<const float(*)[2]>(CustomData_get_layer_named(
-                   &me_eval->loop_data, CD_PROP_FLOAT2, slot->uvname)))))
+                   &me_eval->corner_data, CD_PROP_FLOAT2, slot->uvname)))))
         {
           mloopuv = static_cast<const float(*)[2]>(
-              CustomData_get_layer(&me_eval->loop_data, CD_PROP_FLOAT2));
+              CustomData_get_layer(&me_eval->corner_data, CD_PROP_FLOAT2));
         }
       }
       else {
         mloopuv = static_cast<const float(*)[2]>(
-            CustomData_get_layer(&me_eval->loop_data, CD_PROP_FLOAT2));
+            CustomData_get_layer(&me_eval->corner_data, CD_PROP_FLOAT2));
       }
 
       tri_uv[0] = mloopuv[tris[i][0]];
@@ -417,7 +417,7 @@ void paint_sample_color(
       uint faceindex;
       uint faces_num = mesh->faces_num;
 
-      if (CustomData_has_layer(&me_eval->loop_data, CD_PROP_FLOAT2)) {
+      if (CustomData_has_layer(&me_eval->corner_data, CD_PROP_FLOAT2)) {
         ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
 
         view3d_operator_needs_opengl(C);

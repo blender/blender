@@ -2087,7 +2087,7 @@ static void emit_from_mesh(
     const int numverts = mesh->verts_num;
     const MDeformVert *dvert = mesh->deform_verts().data();
     const float(*mloopuv)[2] = static_cast<const float(*)[2]>(
-        CustomData_get_layer_named(&mesh->loop_data, CD_PROP_FLOAT2, ffs->uvlayer_name));
+        CustomData_get_layer_named(&mesh->corner_data, CD_PROP_FLOAT2, ffs->uvlayer_name));
 
     if (ffs->flags & FLUID_FLOW_INITVELOCITY) {
       vert_vel = static_cast<float *>(

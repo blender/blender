@@ -504,15 +504,15 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
     weight = (weight - 1) * 25;
   }
 
-  blender::short2 *clnors = static_cast<blender::short2 *>(
-      CustomData_get_layer_for_write(&result->loop_data, CD_CUSTOMLOOPNORMAL, mesh->corners_num));
+  blender::short2 *clnors = static_cast<blender::short2 *>(CustomData_get_layer_for_write(
+      &result->corner_data, CD_CUSTOMLOOPNORMAL, mesh->corners_num));
 
   /* Keep info whether we had clnors,
    * it helps when generating clnor spaces and default normals. */
   const bool has_clnors = clnors != nullptr;
   if (!clnors) {
     clnors = static_cast<blender::short2 *>(CustomData_add_layer(
-        &result->loop_data, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, corner_verts.size()));
+        &result->corner_data, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, corner_verts.size()));
   }
 
   const MDeformVert *dvert;

@@ -154,7 +154,8 @@ static void SCULPT_dynamic_topology_disable_ex(
     mesh->totface_legacy = 0;
     CustomData_copy(&geometry->vert_data, &mesh->vert_data, CD_MASK_MESH.vmask, geometry->totvert);
     CustomData_copy(&geometry->edge_data, &mesh->edge_data, CD_MASK_MESH.emask, geometry->totedge);
-    CustomData_copy(&geometry->loop_data, &mesh->loop_data, CD_MASK_MESH.lmask, geometry->totloop);
+    CustomData_copy(
+        &geometry->corner_data, &mesh->corner_data, CD_MASK_MESH.lmask, geometry->totloop);
     CustomData_copy(
         &geometry->face_data, &mesh->face_data, CD_MASK_MESH.pmask, geometry->faces_num);
     implicit_sharing::copy_shared_pointer(geometry->face_offset_indices,
@@ -328,7 +329,8 @@ enum WarnFlag check_attribute_warning(Scene *scene, Object *ob)
   if (!dyntopo_supports_customdata_layers({mesh->face_data.layers, mesh->face_data.totlayer})) {
     flag |= LDATA;
   }
-  if (!dyntopo_supports_customdata_layers({mesh->loop_data.layers, mesh->loop_data.totlayer})) {
+  if (!dyntopo_supports_customdata_layers({mesh->corner_data.layers, mesh->corner_data.totlayer}))
+  {
     flag |= LDATA;
   }
 

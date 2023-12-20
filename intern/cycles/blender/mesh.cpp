@@ -437,7 +437,7 @@ static void attr_create_uv_map(Scene *scene,
 {
   const blender::Span<blender::int3> corner_tris = b_mesh.corner_tris();
   const blender::bke::AttributeAccessor b_attributes = b_mesh.attributes();
-  const ustring render_name(CustomData_get_render_layer_name(&b_mesh.loop_data, CD_PROP_FLOAT2));
+  const ustring render_name(CustomData_get_render_layer_name(&b_mesh.corner_data, CD_PROP_FLOAT2));
   if (!blender_uv_names.empty()) {
     for (const ustring &uv_name : blender_uv_names) {
       const bool active_render = uv_name == render_name;
@@ -512,7 +512,8 @@ static void attr_create_subd_uv_map(Scene *scene,
 
   if (!blender_uv_names.empty()) {
     const blender::bke::AttributeAccessor b_attributes = b_mesh.attributes();
-    const ustring render_name(CustomData_get_render_layer_name(&b_mesh.loop_data, CD_PROP_FLOAT2));
+    const ustring render_name(
+        CustomData_get_render_layer_name(&b_mesh.corner_data, CD_PROP_FLOAT2));
     for (const ustring &uv_name : blender_uv_names) {
       const bool active_render = uv_name == render_name;
       AttributeStandard uv_std = (active_render) ? ATTR_STD_UV : ATTR_STD_NONE;

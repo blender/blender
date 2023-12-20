@@ -76,7 +76,7 @@ typedef struct Mesh {
   int edges_num;
   /** The number of polygons/faces in the mesh, and the size of #face_data. */
   int faces_num;
-  /** The number of face corners in the mesh, and the size of #loop_data. */
+  /** The number of face corners in the mesh, and the size of #corner_data. */
   int corners_num;
 
   /**
@@ -90,7 +90,7 @@ typedef struct Mesh {
   CustomData vert_data;
   CustomData edge_data;
   CustomData face_data;
-  CustomData loop_data;
+  CustomData corner_data;
 
   /**
    * List of vertex group (#bDeformGroup) names and flags only. Actual weights are stored in dvert.

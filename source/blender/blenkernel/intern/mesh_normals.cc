@@ -209,7 +209,7 @@ blender::bke::MeshNormalDomain Mesh::normals_domain() const
     return MeshNormalDomain::Point;
   }
 
-  if (CustomData_has_layer(&this->loop_data, CD_CUSTOMLOOPNORMAL)) {
+  if (CustomData_has_layer(&this->corner_data, CD_CUSTOMLOOPNORMAL)) {
     return MeshNormalDomain::Corner;
   }
 
@@ -295,7 +295,7 @@ blender::Span<blender::float3> Mesh::corner_normals() const
         const VArraySpan sharp_edges = *attributes.lookup<bool>("sharp_edge", ATTR_DOMAIN_EDGE);
         const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", ATTR_DOMAIN_FACE);
         const short2 *custom_normals = static_cast<const short2 *>(
-            CustomData_get_layer(&this->loop_data, CD_CUSTOMLOOPNORMAL));
+            CustomData_get_layer(&this->corner_data, CD_CUSTOMLOOPNORMAL));
         mesh::normals_calc_loop(this->vert_positions(),
                                 this->edges(),
                                 this->faces(),
@@ -1548,13 +1548,13 @@ void normals_loop_custom_set_from_verts(const Span<float3> vert_positions,
 static void mesh_set_custom_normals(Mesh *mesh, float (*r_custom_nors)[3], const bool use_vertices)
 {
   short2 *clnors = static_cast<short2 *>(
-      CustomData_get_layer_for_write(&mesh->loop_data, CD_CUSTOMLOOPNORMAL, mesh->corners_num));
+      CustomData_get_layer_for_write(&mesh->corner_data, CD_CUSTOMLOOPNORMAL, mesh->corners_num));
   if (clnors != nullptr) {
     memset(clnors, 0, sizeof(*clnors) * mesh->corners_num);
   }
   else {
     clnors = static_cast<short2 *>(CustomData_add_layer(
-        &mesh->loop_data, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, mesh->corners_num));
+        &mesh->corner_data, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, mesh->corners_num));
   }
   MutableAttributeAccessor attributes = mesh->attributes_for_write();
   SpanAttributeWriter<bool> sharp_edges = attributes.lookup_or_add_for_write_span<bool>(

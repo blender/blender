@@ -285,13 +285,13 @@ static void pointdensity_cache_vertex_color(PointDensity *pd,
 
   BLI_assert(data_color);
 
-  if (!CustomData_has_layer(&mesh->loop_data, CD_PROP_BYTE_COLOR)) {
+  if (!CustomData_has_layer(&mesh->corner_data, CD_PROP_BYTE_COLOR)) {
     return;
   }
   CustomData_validate_layer_name(
-      &mesh->loop_data, CD_PROP_BYTE_COLOR, pd->vertex_attribute_name, layername);
+      &mesh->corner_data, CD_PROP_BYTE_COLOR, pd->vertex_attribute_name, layername);
   const MLoopCol *mcol = static_cast<const MLoopCol *>(
-      CustomData_get_layer_named(&mesh->loop_data, CD_PROP_BYTE_COLOR, layername));
+      CustomData_get_layer_named(&mesh->corner_data, CD_PROP_BYTE_COLOR, layername));
   if (!mcol) {
     return;
   }

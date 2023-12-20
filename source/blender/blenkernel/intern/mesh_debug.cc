@@ -55,7 +55,7 @@ char *BKE_mesh_debug_info(const Mesh *mesh)
   BLI_dynstr_append(dynstr, "    ),\n");
 
   BLI_dynstr_append(dynstr, "    'loop_layers': (\n");
-  CustomData_debug_info_from_layers(&mesh->loop_data, indent8, dynstr);
+  CustomData_debug_info_from_layers(&mesh->corner_data, indent8, dynstr);
   BLI_dynstr_append(dynstr, "    ),\n");
 
   BLI_dynstr_append(dynstr, "    'poly_layers': (\n");

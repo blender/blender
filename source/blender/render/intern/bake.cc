@@ -495,7 +495,7 @@ static TriTessFace *mesh_calc_tri_tessface(Mesh *mesh, bool tangent, Mesh *me_ev
   if (tangent) {
     BKE_mesh_calc_loop_tangents(me_eval, true, nullptr, 0);
 
-    tspace = static_cast<const TSpace *>(CustomData_get_layer(&me_eval->loop_data, CD_TANGENT));
+    tspace = static_cast<const TSpace *>(CustomData_get_layer(&me_eval->corner_data, CD_TANGENT));
     BLI_assert(tspace);
 
     corner_normals = me_eval->corner_normals();
@@ -724,12 +724,12 @@ void RE_bake_pixels_populate(Mesh *mesh,
   const float(*mloopuv)[2];
   if ((uv_layer == nullptr) || (uv_layer[0] == '\0')) {
     mloopuv = static_cast<const float(*)[2]>(
-        CustomData_get_layer(&mesh->loop_data, CD_PROP_FLOAT2));
+        CustomData_get_layer(&mesh->corner_data, CD_PROP_FLOAT2));
   }
   else {
-    int uv_id = CustomData_get_named_layer(&mesh->loop_data, CD_PROP_FLOAT2, uv_layer);
+    int uv_id = CustomData_get_named_layer(&mesh->corner_data, CD_PROP_FLOAT2, uv_layer);
     mloopuv = static_cast<const float(*)[2]>(
-        CustomData_get_layer_n(&mesh->loop_data, CD_PROP_FLOAT2, uv_id));
+        CustomData_get_layer_n(&mesh->corner_data, CD_PROP_FLOAT2, uv_id));
   }
 
   if (mloopuv == nullptr) {

@@ -390,7 +390,7 @@ static void *add_customdata_cb(Mesh *mesh, const char *name, int data_type)
   }
 
   void *cd_ptr = CustomData_get_layer_named_for_write(
-      &mesh->loop_data, cd_data_type, name, mesh->corners_num);
+      &mesh->corner_data, cd_data_type, name, mesh->corners_num);
   if (cd_ptr != nullptr) {
     /* layer already exists, so just return it. */
     return cd_ptr;
@@ -399,7 +399,7 @@ static void *add_customdata_cb(Mesh *mesh, const char *name, int data_type)
   /* Create a new layer. */
   int numloops = mesh->corners_num;
   cd_ptr = CustomData_add_layer_named(
-      &mesh->loop_data, cd_data_type, CD_SET_DEFAULT, numloops, name);
+      &mesh->corner_data, cd_data_type, CD_SET_DEFAULT, numloops, name);
   return cd_ptr;
 }
 
@@ -557,7 +557,7 @@ CDStreamConfig get_config(Mesh *mesh)
   config.totvert = mesh->verts_num;
   config.totloop = mesh->corners_num;
   config.faces_num = mesh->faces_num;
-  config.loopdata = &mesh->loop_data;
+  config.loopdata = &mesh->corner_data;
   config.add_customdata_cb = add_customdata_cb;
 
   return config;

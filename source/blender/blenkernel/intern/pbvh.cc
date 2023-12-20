@@ -2586,7 +2586,7 @@ static blender::draw::pbvh::PBVH_GPU_Args pbvh_draw_args_init(const Mesh &mesh,
   switch (pbvh.header.type) {
     case PBVH_FACES:
       args.vert_data = &mesh.vert_data;
-      args.loop_data = &mesh.loop_data;
+      args.corner_data = &mesh.corner_data;
       args.face_data = &mesh.face_data;
       args.mesh = pbvh.mesh;
       args.vert_positions = pbvh.vert_positions;
@@ -2604,7 +2604,7 @@ static blender::draw::pbvh::PBVH_GPU_Args pbvh_draw_args_init(const Mesh &mesh,
       break;
     case PBVH_GRIDS:
       args.vert_data = &pbvh.mesh->vert_data;
-      args.loop_data = &pbvh.mesh->loop_data;
+      args.corner_data = &pbvh.mesh->corner_data;
       args.face_data = &pbvh.mesh->face_data;
       args.ccg_key = pbvh.gridkey;
       args.mesh = pbvh.mesh;
@@ -2616,7 +2616,7 @@ static blender::draw::pbvh::PBVH_GPU_Args pbvh_draw_args_init(const Mesh &mesh,
     case PBVH_BMESH:
       args.bm = pbvh.header.bm;
       args.vert_data = &args.bm->vdata;
-      args.loop_data = &args.bm->ldata;
+      args.corner_data = &args.bm->ldata;
       args.face_data = &args.bm->pdata;
       args.bm_faces = &node.bm_faces;
       args.cd_mask_layer = CustomData_get_offset_named(

@@ -229,8 +229,9 @@ static void join_mesh_single(Depsgraph *depsgraph,
       }
     }
 
-    CustomData_merge_layout(&mesh->loop_data, ldata, CD_MASK_MESH.lmask, CD_SET_DEFAULT, totloop);
-    CustomData_copy_data_named(&mesh->loop_data, ldata, 0, *loopofs, mesh->corners_num);
+    CustomData_merge_layout(
+        &mesh->corner_data, ldata, CD_MASK_MESH.lmask, CD_SET_DEFAULT, totloop);
+    CustomData_copy_data_named(&mesh->corner_data, ldata, 0, *loopofs, mesh->corners_num);
 
     for (a = 0; a < mesh->corners_num; a++) {
       corner_verts[a] += *vertofs;
@@ -664,7 +665,7 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
 
   mesh->vert_data = vert_data;
   mesh->edge_data = edge_data;
-  mesh->loop_data = ldata;
+  mesh->corner_data = ldata;
   mesh->face_data = face_data;
 
   /* old material array */

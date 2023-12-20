@@ -229,7 +229,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
     CustomData_copy_data(&mesh->face_data, &result->face_data, faceMap[i], i, 1);
 
     CustomData_copy_data(
-        &mesh->loop_data, &result->loop_data, src_face.start(), k, src_face.size());
+        &mesh->corner_data, &result->corner_data, src_face.start(), k, src_face.size());
 
     for (j = 0; j < src_face.size(); j++, k++) {
       const int vert_src = corner_verts_src[src_face[j]];

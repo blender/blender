@@ -146,7 +146,7 @@ Vector<SculptBatch> sculpt_batches_get(const Object *ob, SculptBatchFeature feat
   }
 
   if (features & SCULPT_BATCH_UV) {
-    if (const char *name = CustomData_get_active_layer_name(&mesh->loop_data, CD_PROP_FLOAT2)) {
+    if (const char *name = CustomData_get_active_layer_name(&mesh->corner_data, CD_PROP_FLOAT2)) {
       attrs.append(pbvh::GenericRequest{name, CD_PROP_FLOAT2, ATTR_DOMAIN_CORNER});
     }
   }
@@ -177,8 +177,8 @@ Vector<SculptBatch> sculpt_batches_per_material_get(const Object *ob,
   /* UV maps are not in attribute requests. */
   for (uint i = 0; i < 32; i++) {
     if (cd_needed.uv & (1 << i)) {
-      int layer_i = CustomData_get_layer_index_n(&mesh->loop_data, CD_PROP_FLOAT2, i);
-      CustomDataLayer *layer = layer_i != -1 ? mesh->loop_data.layers + layer_i : nullptr;
+      int layer_i = CustomData_get_layer_index_n(&mesh->corner_data, CD_PROP_FLOAT2, i);
+      CustomDataLayer *layer = layer_i != -1 ? mesh->corner_data.layers + layer_i : nullptr;
       if (layer) {
         attrs.append(pbvh::GenericRequest{layer->name, CD_PROP_FLOAT2, ATTR_DOMAIN_CORNER});
       }

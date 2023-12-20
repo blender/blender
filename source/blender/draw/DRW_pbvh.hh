@@ -61,7 +61,7 @@ struct PBVH_GPU_Args {
   Span<int> corner_verts;
   Span<int> corner_edges;
   const CustomData *vert_data;
-  const CustomData *loop_data;
+  const CustomData *corner_data;
   const CustomData *face_data;
   Span<float3> vert_normals;
   Span<float3> face_normals;

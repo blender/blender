@@ -2416,7 +2416,7 @@ static int multires_external_save_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if (CustomData_external_test(&mesh->loop_data, CD_MDISPS)) {
+  if (CustomData_external_test(&mesh->corner_data, CD_MDISPS)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -2426,8 +2426,9 @@ static int multires_external_save_exec(bContext *C, wmOperator *op)
     BLI_path_rel(filepath, BKE_main_blendfile_path(bmain));
   }
 
-  CustomData_external_add(&mesh->loop_data, &mesh->id, CD_MDISPS, mesh->corners_num, filepath);
-  CustomData_external_write(&mesh->loop_data, &mesh->id, CD_MASK_MESH.lmask, mesh->corners_num, 0);
+  CustomData_external_add(&mesh->corner_data, &mesh->id, CD_MDISPS, mesh->corners_num, filepath);
+  CustomData_external_write(
+      &mesh->corner_data, &mesh->id, CD_MASK_MESH.lmask, mesh->corners_num, 0);
 
   return OPERATOR_FINISHED;
 }
@@ -2449,7 +2450,7 @@ static int multires_external_save_invoke(bContext *C, wmOperator *op, const wmEv
     return OPERATOR_CANCELLED;
   }
 
-  if (CustomData_external_test(&mesh->loop_data, CD_MDISPS)) {
+  if (CustomData_external_test(&mesh->corner_data, CD_MDISPS)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -2502,12 +2503,12 @@ static int multires_external_pack_exec(bContext *C, wmOperator * /*op*/)
   Object *ob = ED_object_active_context(C);
   Mesh *mesh = static_cast<Mesh *>(ob->data);
 
-  if (!CustomData_external_test(&mesh->loop_data, CD_MDISPS)) {
+  if (!CustomData_external_test(&mesh->corner_data, CD_MDISPS)) {
     return OPERATOR_CANCELLED;
   }
 
   /* XXX don't remove. */
-  CustomData_external_remove(&mesh->loop_data, &mesh->id, CD_MDISPS, mesh->corners_num);
+  CustomData_external_remove(&mesh->corner_data, &mesh->id, CD_MDISPS, mesh->corners_num);
 
   return OPERATOR_FINISHED;
 }

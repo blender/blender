@@ -592,13 +592,13 @@ static void copy_or_interp_loop_attributes(Mesh *dest_mesh,
     src_blocks_ofs = Array<const void *>(orig_face.size());
     get_poly2d_cos(orig_me, orig_face, cos_2d, mim.to_target_transform[orig_me_index], axis_mat);
   }
-  CustomData *target_cd = &dest_mesh->loop_data;
+  CustomData *target_cd = &dest_mesh->corner_data;
   const Span<float3> dst_positions = dest_mesh->vert_positions();
   const Span<int> dst_corner_verts = dest_mesh->corner_verts();
   for (int i = 0; i < face.size(); ++i) {
     int loop_index = face[i];
     int orig_loop_index = norig > 0 ? orig_loops[i] : -1;
-    const CustomData *source_cd = &orig_me->loop_data;
+    const CustomData *source_cd = &orig_me->corner_data;
     if (orig_loop_index == -1) {
       /* Will need interpolation weights for this loop's vertex's coordinates.
        * The coordinate needs to be projected into 2d,  just like the interpolating face's
@@ -671,8 +671,8 @@ static void merge_vertex_loop_face_customdata_layers(Mesh *target, MeshesToIMesh
                               target->verts_num);
     }
     if (mesh->corners_num) {
-      CustomData_merge_layout(&mesh->loop_data,
-                              &target->loop_data,
+      CustomData_merge_layout(&mesh->corner_data,
+                              &target->corner_data,
                               CD_MASK_MESH.lmask,
                               CD_SET_DEFAULT,
                               target->corners_num);

@@ -307,7 +307,7 @@ static const CustomData *get_cdata(eAttrDomain domain, const PBVH_GPU_Args &args
     case ATTR_DOMAIN_POINT:
       return args.vert_data;
     case ATTR_DOMAIN_CORNER:
-      return args.loop_data;
+      return args.corner_data;
     case ATTR_DOMAIN_FACE:
       return args.face_data;
     default:

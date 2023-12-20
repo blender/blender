@@ -170,7 +170,7 @@ struct NodeGeometry {
 
   CustomData vert_data;
   CustomData edge_data;
-  CustomData loop_data;
+  CustomData corner_data;
   CustomData face_data;
   int *face_offset_indices;
   const ImplicitSharingInfo *face_offsets_sharing_info;

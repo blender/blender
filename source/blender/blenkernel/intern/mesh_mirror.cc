@@ -202,7 +202,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
   CustomData_copy_data(&mesh->vert_data, &result->vert_data, 0, 0, src_verts_num);
   CustomData_copy_data(&mesh->edge_data, &result->edge_data, 0, 0, src_edges_num);
   CustomData_copy_data(&mesh->face_data, &result->face_data, 0, 0, src_faces.size());
-  CustomData_copy_data(&mesh->loop_data, &result->loop_data, 0, 0, src_loops_num);
+  CustomData_copy_data(&mesh->corner_data, &result->corner_data, 0, 0, src_loops_num);
 
   /* Copy custom data to mirrored geometry. Loops are copied later. */
   CustomData_copy_data(&mesh->vert_data, &result->vert_data, 0, src_verts_num, src_verts_num);
@@ -317,11 +317,11 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
     /* reverse the loop, but we keep the first vertex in the face the same,
      * to ensure that quads are split the same way as on the other side */
     CustomData_copy_data(
-        &mesh->loop_data, &result->loop_data, src_face.start(), mirror_face.start(), 1);
+        &mesh->corner_data, &result->corner_data, src_face.start(), mirror_face.start(), 1);
 
     for (int j = 1; j < mirror_face.size(); j++) {
       CustomData_copy_data(
-          &mesh->loop_data, &result->loop_data, src_face[j], mirror_face.last(j - 1), 1);
+          &mesh->corner_data, &result->corner_data, src_face[j], mirror_face.last(j - 1), 1);
     }
 
     blender::MutableSpan<int> mirror_face_edges = result_corner_edges.slice(mirror_face);
@@ -358,11 +358,11 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
     /* If set, flip around center of each tile. */
     const bool do_mirr_udim = (mmd->flag & MOD_MIR_MIRROR_UDIM) != 0;
 
-    const int totuv = CustomData_number_of_layers(&result->loop_data, CD_PROP_FLOAT2);
+    const int totuv = CustomData_number_of_layers(&result->corner_data, CD_PROP_FLOAT2);
 
     for (a = 0; a < totuv; a++) {
       float(*dmloopuv)[2] = static_cast<float(*)[2]>(CustomData_get_layer_n_for_write(
-          &result->loop_data, CD_PROP_FLOAT2, a, result->corners_num));
+          &result->corner_data, CD_PROP_FLOAT2, a, result->corners_num));
       int j = src_loops_num;
       dmloopuv += j; /* second set of loops only */
       for (; j-- > 0; dmloopuv++) {
@@ -391,12 +391,12 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
   }
 
   /* handle custom split normals */
-  if (ob->type == OB_MESH && CustomData_has_layer(&result->loop_data, CD_CUSTOMLOOPNORMAL) &&
+  if (ob->type == OB_MESH && CustomData_has_layer(&result->corner_data, CD_CUSTOMLOOPNORMAL) &&
       result->faces_num > 0)
   {
     blender::Array<blender::float3> loop_normals(result_corner_verts.size());
     blender::short2 *clnors = static_cast<blender::short2 *>(CustomData_get_layer_for_write(
-        &result->loop_data, CD_CUSTOMLOOPNORMAL, result->corners_num));
+        &result->corner_data, CD_CUSTOMLOOPNORMAL, result->corners_num));
     blender::bke::mesh::CornerNormalSpaceArray lnors_spacearr;
 
     /* The transform matrix of a normal must be

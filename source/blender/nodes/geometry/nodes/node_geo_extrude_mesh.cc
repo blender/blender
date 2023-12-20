@@ -128,11 +128,11 @@ static void remove_unsupported_face_data(Mesh &mesh)
 
 static void remove_unsupported_corner_data(Mesh &mesh)
 {
-  CustomData_free_layers(&mesh.loop_data, CD_MDISPS, mesh.corners_num);
-  CustomData_free_layers(&mesh.loop_data, CD_TANGENT, mesh.corners_num);
-  CustomData_free_layers(&mesh.loop_data, CD_MLOOPTANGENT, mesh.corners_num);
-  CustomData_free_layers(&mesh.loop_data, CD_GRID_PAINT_MASK, mesh.corners_num);
-  CustomData_free_layers(&mesh.loop_data, CD_CUSTOMLOOPNORMAL, mesh.corners_num);
+  CustomData_free_layers(&mesh.corner_data, CD_MDISPS, mesh.corners_num);
+  CustomData_free_layers(&mesh.corner_data, CD_TANGENT, mesh.corners_num);
+  CustomData_free_layers(&mesh.corner_data, CD_MLOOPTANGENT, mesh.corners_num);
+  CustomData_free_layers(&mesh.corner_data, CD_GRID_PAINT_MASK, mesh.corners_num);
+  CustomData_free_layers(&mesh.corner_data, CD_CUSTOMLOOPNORMAL, mesh.corners_num);
 }
 
 static void expand_mesh(Mesh &mesh,
@@ -171,7 +171,7 @@ static void expand_mesh(Mesh &mesh,
   if (loop_expand != 0) {
     const int old_loops_num = mesh.corners_num;
     mesh.corners_num += loop_expand;
-    CustomData_realloc(&mesh.loop_data, old_loops_num, mesh.corners_num);
+    CustomData_realloc(&mesh.corner_data, old_loops_num, mesh.corners_num);
   }
 }
 
@@ -185,7 +185,7 @@ static CustomData &mesh_custom_data_for_domain(Mesh &mesh, const eAttrDomain dom
     case ATTR_DOMAIN_FACE:
       return mesh.face_data;
     case ATTR_DOMAIN_CORNER:
-      return mesh.loop_data;
+      return mesh.corner_data;
     default:
       BLI_assert_unreachable();
       return mesh.vert_data;

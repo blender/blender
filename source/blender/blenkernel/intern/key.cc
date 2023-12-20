@@ -2276,7 +2276,7 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
   }
   if (loop_normals_needed) {
     const blender::short2 *clnors = static_cast<const blender::short2 *>(
-        CustomData_get_layer(&mesh->loop_data, CD_CUSTOMLOOPNORMAL));
+        CustomData_get_layer(&mesh->corner_data, CD_CUSTOMLOOPNORMAL));
     const bke::AttributeAccessor attributes = mesh->attributes();
     const VArraySpan sharp_edges = *attributes.lookup<bool>("sharp_edge", ATTR_DOMAIN_EDGE);
     const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", ATTR_DOMAIN_FACE);

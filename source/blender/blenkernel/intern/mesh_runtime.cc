@@ -444,7 +444,7 @@ bool BKE_mesh_runtime_is_valid(Mesh *me_eval)
       me_eval->verts_num,
       &me_eval->edge_data,
       me_eval->edges_num,
-      &me_eval->loop_data,
+      &me_eval->corner_data,
       me_eval->corners_num,
       &me_eval->face_data,
       me_eval->faces_num,

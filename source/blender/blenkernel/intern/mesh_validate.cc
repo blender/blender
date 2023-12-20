@@ -1030,7 +1030,7 @@ bool BKE_mesh_validate_all_customdata(CustomData *vert_data,
                                       const uint verts_num,
                                       CustomData *edge_data,
                                       const uint edges_num,
-                                      CustomData *loop_data,
+                                      CustomData *corner_data,
                                       const uint corners_num,
                                       CustomData *face_data,
                                       const uint faces_num,
@@ -1051,11 +1051,11 @@ bool BKE_mesh_validate_all_customdata(CustomData *vert_data,
   is_valid &= mesh_validate_customdata(
       edge_data, mask.emask, edges_num, do_verbose, do_fixes, &is_change_e);
   is_valid &= mesh_validate_customdata(
-      loop_data, mask.lmask, corners_num, do_verbose, do_fixes, &is_change_l);
+      corner_data, mask.lmask, corners_num, do_verbose, do_fixes, &is_change_l);
   is_valid &= mesh_validate_customdata(
       face_data, mask.pmask, faces_num, do_verbose, do_fixes, &is_change_p);
 
-  const int tot_uvloop = CustomData_number_of_layers(loop_data, CD_PROP_FLOAT2);
+  const int tot_uvloop = CustomData_number_of_layers(corner_data, CD_PROP_FLOAT2);
   if (tot_uvloop > MAX_MTFACE) {
     PRINT_ERR(
         "\tMore UV layers than %d allowed, %d last ones won't be available for render, shaders, "
@@ -1065,12 +1065,12 @@ bool BKE_mesh_validate_all_customdata(CustomData *vert_data,
   }
 
   /* check indices of clone/stencil */
-  if (do_fixes && CustomData_get_clone_layer(loop_data, CD_PROP_FLOAT2) >= tot_uvloop) {
-    CustomData_set_layer_clone(loop_data, CD_PROP_FLOAT2, 0);
+  if (do_fixes && CustomData_get_clone_layer(corner_data, CD_PROP_FLOAT2) >= tot_uvloop) {
+    CustomData_set_layer_clone(corner_data, CD_PROP_FLOAT2, 0);
     is_change_l = true;
   }
-  if (do_fixes && CustomData_get_stencil_layer(loop_data, CD_PROP_FLOAT2) >= tot_uvloop) {
-    CustomData_set_layer_stencil(loop_data, CD_PROP_FLOAT2, 0);
+  if (do_fixes && CustomData_get_stencil_layer(corner_data, CD_PROP_FLOAT2) >= tot_uvloop) {
+    CustomData_set_layer_stencil(corner_data, CD_PROP_FLOAT2, 0);
     is_change_l = true;
   }
 
@@ -1091,7 +1091,7 @@ bool BKE_mesh_validate(Mesh *mesh, const bool do_verbose, const bool cddata_chec
                                    mesh->verts_num,
                                    &mesh->edge_data,
                                    mesh->edges_num,
-                                   &mesh->loop_data,
+                                   &mesh->corner_data,
                                    mesh->corners_num,
                                    &mesh->face_data,
                                    mesh->faces_num,
@@ -1144,7 +1144,7 @@ bool BKE_mesh_is_valid(Mesh *mesh)
       mesh->verts_num,
       &mesh->edge_data,
       mesh->edges_num,
-      &mesh->loop_data,
+      &mesh->corner_data,
       mesh->corners_num,
       &mesh->face_data,
       mesh->faces_num,
@@ -1259,7 +1259,7 @@ void strip_loose_facesloops(Mesh *mesh, blender::BitSpan faces_to_remove)
   for (a = b = 0; a < mesh->corners_num; a++, corner++) {
     if (corner_edges[corner] != INVALID_LOOP_EDGE_MARKER) {
       if (a != b) {
-        CustomData_copy_data(&mesh->loop_data, &mesh->loop_data, a, b, 1);
+        CustomData_copy_data(&mesh->corner_data, &mesh->corner_data, a, b, 1);
       }
       new_idx[a] = b;
       b++;
@@ -1271,7 +1271,7 @@ void strip_loose_facesloops(Mesh *mesh, blender::BitSpan faces_to_remove)
     }
   }
   if (a != b) {
-    CustomData_free_elem(&mesh->loop_data, b, a - b);
+    CustomData_free_elem(&mesh->corner_data, b, a - b);
     mesh->corners_num = b;
   }
 

@@ -125,7 +125,7 @@ void BKE_mesh_calc_loop_tangent_single(Mesh *mesh,
   using namespace blender::bke;
 
   if (!uvmap) {
-    uvmap = CustomData_get_active_layer_name(&mesh->loop_data, CD_PROP_FLOAT2);
+    uvmap = CustomData_get_active_layer_name(&mesh->corner_data, CD_PROP_FLOAT2);
   }
 
   const AttributeAccessor attributes = mesh->attributes();
@@ -595,7 +595,7 @@ void BKE_mesh_calc_loop_tangents(Mesh *me_eval,
       me_eval->corner_tri_faces().data(),
       uint(corner_tris.size()),
       sharp_face,
-      &me_eval->loop_data,
+      &me_eval->corner_data,
       calc_active_tangent,
       tangent_names,
       tangent_names_len,
@@ -605,7 +605,7 @@ void BKE_mesh_calc_loop_tangents(Mesh *me_eval,
       /* may be nullptr */
       static_cast<const float(*)[3]>(CustomData_get_layer(&me_eval->vert_data, CD_ORCO)),
       /* result */
-      &me_eval->loop_data,
+      &me_eval->corner_data,
       uint(me_eval->corners_num),
       &tangent_mask);
 }

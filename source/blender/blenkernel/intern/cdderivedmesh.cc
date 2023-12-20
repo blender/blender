@@ -170,7 +170,7 @@ static DerivedMesh *cdDM_from_mesh_ex(Mesh *mesh, const CustomData_MeshMasks *ma
                    &dm->faceData,
                    cddata_masks.fmask | CD_MASK_ORIGINDEX,
                    0 /* `mesh->totface` */);
-  CustomData_merge(&mesh->loop_data, &dm->loopData, cddata_masks.lmask, mesh->corners_num);
+  CustomData_merge(&mesh->corner_data, &dm->loopData, cddata_masks.lmask, mesh->corners_num);
   CustomData_merge(&mesh->face_data, &dm->polyData, cddata_masks.pmask, mesh->faces_num);
 
   cddm->vert_positions = static_cast<float(*)[3]>(CustomData_get_layer_named_for_write(

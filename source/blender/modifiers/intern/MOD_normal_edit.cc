@@ -501,7 +501,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
 
   blender::Array<blender::float3> loop_normals;
 
-  CustomData *ldata = &result->loop_data;
+  CustomData *ldata = &result->corner_data;
 
   bke::MutableAttributeAccessor attributes = result->attributes_for_write();
   bke::SpanAttributeWriter<bool> sharp_edges = attributes.lookup_or_add_for_write_span<bool>(

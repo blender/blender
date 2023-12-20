@@ -1218,9 +1218,9 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
                                                                 mesh->edge_data.layers) /
                                                             sizeof(CustomDataLayer);
       /* We can be sure that mesh->fdata is empty for files written by 2.90. */
-      mesh->loop_data.totlayer = mesh->loop_data.maxlayer = MEM_allocN_len(
-                                                                mesh->loop_data.layers) /
-                                                            sizeof(CustomDataLayer);
+      mesh->corner_data.totlayer = mesh->corner_data.maxlayer = MEM_allocN_len(
+                                                                    mesh->corner_data.layers) /
+                                                                sizeof(CustomDataLayer);
       mesh->face_data.totlayer = mesh->face_data.maxlayer = MEM_allocN_len(
                                                                 mesh->face_data.layers) /
                                                             sizeof(CustomDataLayer);

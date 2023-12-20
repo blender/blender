@@ -386,7 +386,7 @@ static void um_arraystore_compact_ex(UndoMesh *um, const UndoMesh *um_ref, bool 
                                  &um->store.edata);
       },
       [&]() {
-        um_arraystore_cd_compact(&mesh->loop_data,
+        um_arraystore_cd_compact(&mesh->corner_data,
                                  mesh->corners_num,
                                  create,
                                  ARRAY_STORE_INDEX_LOOP,
@@ -565,7 +565,7 @@ static void um_arraystore_expand(UndoMesh *um)
 
   um_arraystore_cd_expand(um->store.vdata, &mesh->vert_data, mesh->verts_num);
   um_arraystore_cd_expand(um->store.edata, &mesh->edge_data, mesh->edges_num);
-  um_arraystore_cd_expand(um->store.ldata, &mesh->loop_data, mesh->corners_num);
+  um_arraystore_cd_expand(um->store.ldata, &mesh->corner_data, mesh->corners_num);
   um_arraystore_cd_expand(um->store.pdata, &mesh->face_data, mesh->faces_num);
 
   if (um->store.keyblocks) {

@@ -1074,7 +1074,8 @@ void BKE_mesh_nomain_to_mesh(Mesh *mesh_src, Mesh *mesh_dst, Object *ob)
   CustomData_copy(&mesh_src->vert_data, &mesh_dst->vert_data, mask.vmask, mesh_src->verts_num);
   CustomData_copy(&mesh_src->edge_data, &mesh_dst->edge_data, mask.emask, mesh_src->edges_num);
   CustomData_copy(&mesh_src->face_data, &mesh_dst->face_data, mask.pmask, mesh_src->faces_num);
-  CustomData_copy(&mesh_src->loop_data, &mesh_dst->loop_data, mask.lmask, mesh_src->corners_num);
+  CustomData_copy(
+      &mesh_src->corner_data, &mesh_dst->corner_data, mask.lmask, mesh_src->corners_num);
   std::swap(mesh_dst->face_offset_indices, mesh_src->face_offset_indices);
   std::swap(mesh_dst->runtime->face_offsets_sharing_info,
             mesh_src->runtime->face_offsets_sharing_info);

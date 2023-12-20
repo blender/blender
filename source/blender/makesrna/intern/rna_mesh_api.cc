@@ -63,15 +63,15 @@ static void rna_Mesh_calc_tangents(Mesh *mesh, ReportList *reports, const char *
 {
   float(*r_looptangents)[4];
 
-  if (CustomData_has_layer(&mesh->loop_data, CD_MLOOPTANGENT)) {
+  if (CustomData_has_layer(&mesh->corner_data, CD_MLOOPTANGENT)) {
     r_looptangents = static_cast<float(*)[4]>(
-        CustomData_get_layer_for_write(&mesh->loop_data, CD_MLOOPTANGENT, mesh->corners_num));
+        CustomData_get_layer_for_write(&mesh->corner_data, CD_MLOOPTANGENT, mesh->corners_num));
     memset(r_looptangents, 0, sizeof(float[4]) * mesh->corners_num);
   }
   else {
     r_looptangents = static_cast<float(*)[4]>(CustomData_add_layer(
-        &mesh->loop_data, CD_MLOOPTANGENT, CD_SET_DEFAULT, mesh->corners_num));
-    CustomData_set_layer_flag(&mesh->loop_data, CD_MLOOPTANGENT, CD_FLAG_TEMPORARY);
+        &mesh->corner_data, CD_MLOOPTANGENT, CD_SET_DEFAULT, mesh->corners_num));
+    CustomData_set_layer_flag(&mesh->corner_data, CD_MLOOPTANGENT, CD_FLAG_TEMPORARY);
   }
 
   BKE_mesh_calc_loop_tangent_single(mesh, uvmap, r_looptangents, reports);
@@ -79,7 +79,7 @@ static void rna_Mesh_calc_tangents(Mesh *mesh, ReportList *reports, const char *
 
 static void rna_Mesh_free_tangents(Mesh *mesh)
 {
-  CustomData_free_layers(&mesh->loop_data, CD_MLOOPTANGENT, mesh->corners_num);
+  CustomData_free_layers(&mesh->corner_data, CD_MLOOPTANGENT, mesh->corners_num);
 }
 
 static void rna_Mesh_calc_corner_tri(Mesh *mesh)
