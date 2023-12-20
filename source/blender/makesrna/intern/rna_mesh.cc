@@ -2119,6 +2119,7 @@ static void rna_def_mlooptri(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "loops", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_int_sdna(prop, nullptr, "x");
+  RNA_def_property_array(prop, 3);
   RNA_def_property_ui_text(prop, "Loops", "Indices of mesh loops that make up the triangle");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
