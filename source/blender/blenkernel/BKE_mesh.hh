@@ -302,6 +302,9 @@ inline int edge_other_vert(const int2 edge, const int vert)
 
 }  // namespace mesh
 
+/** Calculate edges from faces. */
+void mesh_calc_edges(Mesh &mesh, bool keep_existing_edges, bool select_new_edges);
+
 void mesh_flip_faces(Mesh &mesh, const IndexMask &selection);
 
 /** Set mesh vertex normals to known-correct values, avoiding future lazy computation. */

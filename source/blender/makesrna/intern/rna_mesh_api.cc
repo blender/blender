@@ -168,7 +168,7 @@ static void rna_Mesh_update(Mesh *mesh,
                             const bool calc_edges_loose)
 {
   if (calc_edges || ((mesh->faces_num || mesh->totface_legacy) && mesh->edges_num == 0)) {
-    BKE_mesh_calc_edges(mesh, calc_edges, true);
+    blender::bke::mesh_calc_edges(*mesh, calc_edges, true);
   }
 
   if (calc_edges_loose) {

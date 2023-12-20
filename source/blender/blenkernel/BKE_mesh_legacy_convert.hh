@@ -116,6 +116,11 @@ void BKE_mesh_do_versions_cd_flag_init(Mesh *mesh);
 
 void BKE_main_mesh_legacy_convert_auto_smooth(Main &bmain);
 
+/**
+ * Calculate/create edges from tessface data
+ */
+void BKE_mesh_calc_edges_tessface(Mesh *mesh);
+
 /* Inlines */
 
 /* NOTE(@sybren): Instead of -1 that function uses ORIGINDEX_NONE as defined in BKE_customdata.hh,

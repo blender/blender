@@ -357,7 +357,7 @@ void USDMeshReader::read_mpolys(Mesh *mesh)
     }
   }
 
-  BKE_mesh_calc_edges(mesh, false, false);
+  bke::mesh_calc_edges(*mesh, false, false);
 }
 
 template<typename T>

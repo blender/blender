@@ -150,7 +150,7 @@ static Mesh *create_mesh_from_volume_grids(Span<const openvdb::GridBase *> grids
                                      corner_verts);
   }
 
-  BKE_mesh_calc_edges(mesh, false, false);
+  bke::mesh_calc_edges(*mesh, false, false);
   bke::mesh_smooth_set(*mesh, false);
 
   mesh->tag_overlapping_none();

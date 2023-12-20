@@ -1648,8 +1648,7 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
   }
 
   bke::mesh_smooth_set(*trim_operation->mesh, false);
-
-  BKE_mesh_calc_edges(trim_operation->mesh, false, false);
+  bke::mesh_calc_edges(*trim_operation->mesh, false, false);
   sculpt_gesture_trim_normals_update(sgcontext);
 }
 

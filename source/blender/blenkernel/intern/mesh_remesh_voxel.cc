@@ -67,6 +67,8 @@ static Mesh *remesh_quadriflow(const Mesh *input_mesh,
                                void (*update_cb)(void *, float progress, int *cancel),
                                void *update_cb_data)
 {
+  using namespace blender;
+  using namespace blender::bke;
   const Span<float3> input_positions = input_mesh->vert_positions();
   const Span<int> input_corner_verts = input_mesh->corner_verts();
   const Span<int3> corner_tris = input_mesh->corner_tris();
@@ -139,7 +141,7 @@ static Mesh *remesh_quadriflow(const Mesh *input_mesh,
     corner_verts[loopstart + 3] = qrd.out_faces[loopstart + 3];
   }
 
-  BKE_mesh_calc_edges(mesh, false, false);
+  mesh_calc_edges(*mesh, false, false);
 
   MEM_freeN(qrd.out_faces);
   MEM_freeN(qrd.out_verts);
@@ -217,6 +219,8 @@ static Mesh *remesh_voxel_volume_to_mesh(const openvdb::FloatGrid::Ptr level_set
                                          const float adaptivity,
                                          const bool relax_disoriented_triangles)
 {
+  using namespace blender;
+  using namespace blender::bke;
   std::vector<openvdb::Vec3s> vertices;
   std::vector<openvdb::Vec4I> quads;
   std::vector<openvdb::Vec3I> tris;
@@ -255,7 +259,7 @@ static Mesh *remesh_voxel_volume_to_mesh(const openvdb::FloatGrid::Ptr level_set
     mesh_corner_verts[loopstart + 2] = tris[i][0];
   }
 
-  BKE_mesh_calc_edges(mesh, false, false);
+  mesh_calc_edges(*mesh, false, false);
 
   return mesh;
 }

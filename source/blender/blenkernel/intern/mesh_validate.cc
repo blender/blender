@@ -229,6 +229,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
                               bool *r_changed)
 {
   using namespace blender;
+  using namespace blender::bke;
 #define REMOVE_EDGE_TAG(_me) \
   { \
     _me[0] = _me[1]; \
@@ -861,7 +862,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
     }
 
     if (recalc_flag.edges) {
-      BKE_mesh_calc_edges(mesh, true, false);
+      mesh_calc_edges(*mesh, true, false);
     }
   }
 
@@ -1321,55 +1322,6 @@ void mesh_strip_edges(Mesh *mesh)
   }
 
   MEM_freeN(new_idx);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Mesh Edge Calculation
- * \{ */
-
-void BKE_mesh_calc_edges_tessface(Mesh *mesh)
-{
-  const int nulegacy_faces = mesh->totface_legacy;
-  blender::VectorSet<blender::OrderedEdge> eh;
-  eh.reserve(nulegacy_faces);
-  MFace *legacy_faces = (MFace *)CustomData_get_layer_for_write(
-      &mesh->fdata_legacy, CD_MFACE, mesh->totface_legacy);
-
-  MFace *mf = legacy_faces;
-  for (int i = 0; i < nulegacy_faces; i++, mf++) {
-    eh.add({mf->v1, mf->v2});
-    eh.add({mf->v2, mf->v3});
-
-    if (mf->v4) {
-      eh.add({mf->v3, mf->v4});
-      eh.add({mf->v4, mf->v1});
-    }
-    else {
-      eh.add({mf->v3, mf->v1});
-    }
-  }
-
-  const int numEdges = eh.size();
-
-  /* write new edges into a temporary CustomData */
-  CustomData edgeData;
-  CustomData_reset(&edgeData);
-  CustomData_add_layer_named(&edgeData, CD_PROP_INT32_2D, CD_CONSTRUCT, numEdges, ".edge_verts");
-  CustomData_add_layer(&edgeData, CD_ORIGINDEX, CD_SET_DEFAULT, numEdges);
-
-  blender::int2 *ege = (blender::int2 *)CustomData_get_layer_named_for_write(
-      &edgeData, CD_PROP_INT32_2D, ".edge_verts", mesh->edges_num);
-  int *index = (int *)CustomData_get_layer_for_write(&edgeData, CD_ORIGINDEX, mesh->edges_num);
-
-  memset(index, ORIGINDEX_NONE, sizeof(int) * numEdges);
-  MutableSpan(ege, numEdges).copy_from(eh.as_span().cast<blender::int2>());
-
-  /* free old CustomData and assign new one */
-  CustomData_free(&mesh->edge_data, mesh->edges_num);
-  mesh->edge_data = edgeData;
-  mesh->edges_num = numEdges;
 }
 
 /** \} */

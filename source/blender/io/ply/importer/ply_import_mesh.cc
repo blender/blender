@@ -71,8 +71,8 @@ Mesh *convert_ply_to_mesh(PlyData &data, const PLYImportParams &params)
   /* Vertex colors */
   if (!data.vertex_colors.is_empty() && params.vertex_colors != PLY_VERTEX_COLOR_NONE) {
     /* Create a data layer for vertex colors and set them. */
-    bke::SpanAttributeWriter<ColorGeometry4f> colors =
-        attributes.lookup_or_add_for_write_span<ColorGeometry4f>("Col", bke::AttrDomain::Point);
+    bke::SpanAttributeWriter colors = attributes.lookup_or_add_for_write_span<ColorGeometry4f>(
+        "Col", bke::AttrDomain::Point);
 
     if (params.vertex_colors == PLY_VERTEX_COLOR_SRGB) {
       for (const int i : data.vertex_colors.index_range()) {
@@ -100,7 +100,7 @@ Mesh *convert_ply_to_mesh(PlyData &data, const PLYImportParams &params)
   }
 
   /* Calculate edges from the rest of the mesh. */
-  BKE_mesh_calc_edges(mesh, true, false);
+  bke::mesh_calc_edges(*mesh, true, false);
 
   /* If we have custom vertex normals, set them (note: important to do this
    * after initializing the loops). */

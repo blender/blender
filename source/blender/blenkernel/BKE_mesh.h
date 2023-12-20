@@ -313,8 +313,6 @@ void BKE_lnor_spacearr_tls_join(MLoopNorSpaceArray *lnors_spacearr,
 
 MLoopNorSpace *BKE_lnor_space_create(MLoopNorSpaceArray *lnors_spacearr);
 
-#ifdef __cplusplus
-
 /**
  * Should only be called once.
  * Beware, this modifies ref_vec and other_vec in place!
@@ -326,8 +324,6 @@ void BKE_lnor_space_define(MLoopNorSpace *lnor_space,
                            const float vec_ref[3],
                            const float vec_other[3],
                            blender::Span<blender::float3> edge_vectors);
-
-#endif
 
 /**
  * Add a new given loop to given lnor_space.
@@ -516,17 +512,6 @@ bool BKE_mesh_validate_all_customdata(struct CustomData *vert_data,
 
 void BKE_mesh_strip_loose_faces(struct Mesh *mesh);
 
-/**
- * Calculate edges from faces.
- */
-void BKE_mesh_calc_edges(struct Mesh *mesh, bool keep_existing_edges, bool select_new_edges);
-/**
- * Calculate/create edges from tessface data
- *
- * \param mesh: The mesh to add edges into
- */
-void BKE_mesh_calc_edges_tessface(struct Mesh *mesh);
-
 /* In DerivedMesh.cc */
 void BKE_mesh_wrapper_deferred_finalize_mdata(struct Mesh *me_eval);
 
@@ -548,9 +533,3 @@ char *BKE_mesh_debug_info(const struct Mesh *mesh)
     ATTR_NONNULL(1) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
 void BKE_mesh_debug_print(const struct Mesh *mesh) ATTR_NONNULL(1);
 #endif
-
-/* -------------------------------------------------------------------- */
-/** \name Inline Mesh Data Access
- * \{ */
-
-/** \} */

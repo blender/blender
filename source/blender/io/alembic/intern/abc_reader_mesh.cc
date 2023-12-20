@@ -241,7 +241,7 @@ static void read_mpolys(CDStreamConfig &config, const AbcMeshData &mesh_data)
     }
   }
 
-  BKE_mesh_calc_edges(config.mesh, false, false);
+  bke::mesh_calc_edges(*config.mesh, false, false);
   if (seen_invalid_geometry) {
     if (config.modifier_error_message) {
       *config.modifier_error_message = "Mesh hash invalid geometry; more details on the console";

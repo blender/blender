@@ -181,7 +181,7 @@ Mesh *volume_to_mesh(const openvdb::GridBase &grid,
                               mesh->face_offsets_for_write(),
                               mesh->corner_verts_for_write());
 
-  BKE_mesh_calc_edges(mesh, false, false);
+  mesh_calc_edges(*mesh, false, false);
   mesh_smooth_set(*mesh, false);
 
   mesh->tag_overlapping_none();

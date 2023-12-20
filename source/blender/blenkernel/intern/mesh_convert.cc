@@ -302,7 +302,7 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
   }
 
   if (faces_num) {
-    BKE_mesh_calc_edges(mesh, true, false);
+    mesh_calc_edges(*mesh, true, false);
   }
 
   material_indices.finish();

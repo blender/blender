@@ -82,7 +82,7 @@ Mesh *STLMeshHelper::to_mesh()
   array_utils::copy(tris_.as_span().cast<int>(), mesh->corner_verts_for_write());
 
   /* NOTE: edges must be calculated first before setting custom normals. */
-  BKE_mesh_calc_edges(mesh, false, false);
+  bke::mesh_calc_edges(*mesh, false, false);
 
   if (use_custom_normals_ && loop_normals_.size() == mesh->corners_num) {
     BKE_mesh_set_custom_normals(mesh, reinterpret_cast<float(*)[3]>(loop_normals_.data()));

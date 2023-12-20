@@ -271,7 +271,7 @@ static Mesh *generate_ocean_geometry(OceanModifierData *omd, Mesh *mesh_orig, co
   /* create faces */
   BLI_task_parallel_range(0, gogd.res_y, &gogd, generate_ocean_geometry_faces, &settings);
 
-  BKE_mesh_calc_edges(result, false, false);
+  blender::bke::mesh_calc_edges(*result, false, false);
 
   /* add uvs */
   if (CustomData_number_of_layers(&result->corner_data, CD_PROP_FLOAT2) < MAX_MTFACE) {
