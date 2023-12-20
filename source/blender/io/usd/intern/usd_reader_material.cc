@@ -546,13 +546,14 @@ void USDMaterialReader::import_usd_preview(Material *mtl,
 
   BKE_ntree_update_main_tree(bmain_, ntree, nullptr);
 
-  /* Optionally, set the material blend mode. */
+  /* Optionally, set the material blend and shadow modes. */
 
   if (params_.set_material_blend) {
     if (needs_blend(usd_shader)) {
       float opacity_threshold = get_opacity_threshold(usd_shader, 0.0f);
       if (opacity_threshold > 0.0f) {
         mtl->blend_method = MA_BM_CLIP;
+        mtl->blend_shadow = MA_BS_CLIP;
         mtl->alpha_threshold = opacity_threshold;
       }
       else {
