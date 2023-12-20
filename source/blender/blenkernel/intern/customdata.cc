@@ -5324,6 +5324,22 @@ const blender::CPPType *custom_data_type_to_cpp_type(const eCustomDataType type)
   }
 }
 
+std::optional<VolumeGridType> custom_data_type_to_volume_grid_type(const eCustomDataType type)
+{
+  switch (type) {
+    case CD_PROP_FLOAT:
+      return VOLUME_GRID_FLOAT;
+    case CD_PROP_FLOAT3:
+      return VOLUME_GRID_VECTOR_FLOAT;
+    case CD_PROP_INT32:
+      return VOLUME_GRID_INT;
+    case CD_PROP_BOOL:
+      return VOLUME_GRID_BOOLEAN;
+    default:
+      return std::nullopt;
+  }
+}
+
 eCustomDataType cpp_type_to_custom_data_type(const blender::CPPType &type)
 {
   if (type.is<float>()) {

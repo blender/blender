@@ -18,6 +18,8 @@
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
+#include "BKE_volume_enums.hh"
+
 #include "DNA_customdata_types.h"
 
 struct BlendDataReader;
@@ -801,4 +803,5 @@ void CustomData_debug_info_from_layers(const CustomData *data, const char *inden
 namespace blender::bke {
 const CPPType *custom_data_type_to_cpp_type(eCustomDataType type);
 eCustomDataType cpp_type_to_custom_data_type(const CPPType &type);
+std::optional<VolumeGridType> custom_data_type_to_volume_grid_type(eCustomDataType type);
 }  // namespace blender::bke

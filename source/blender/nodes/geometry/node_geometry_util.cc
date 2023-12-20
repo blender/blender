@@ -95,6 +95,45 @@ const EnumPropertyItem *domain_without_corner_experimental_grease_pencil_version
 
 }  // namespace enums
 
+bool grid_type_supported(const eCustomDataType data_type)
+{
+  return ELEM(data_type, CD_PROP_FLOAT, CD_PROP_FLOAT3);
+}
+
+bool grid_type_supported(eNodeSocketDatatype socket_type)
+{
+  if (const std::optional<eCustomDataType> data_type = bke::socket_type_to_custom_data_type(
+          socket_type))
+  {
+    return grid_type_supported(*data_type);
+  }
+  return false;
+}
+
+const EnumPropertyItem *grid_custom_data_type_items_filter_fn(bContext * /*C*/,
+                                                              PointerRNA * /*ptr*/,
+                                                              PropertyRNA * /*prop*/,
+                                                              bool *r_free)
+{
+  *r_free = true;
+  return enum_items_filter(rna_enum_attribute_type_items,
+                           [](const EnumPropertyItem &item) -> bool {
+                             return grid_type_supported(eCustomDataType(item.value));
+                           });
+}
+
+const EnumPropertyItem *grid_socket_type_items_filter_fn(bContext * /*C*/,
+                                                         PointerRNA * /*ptr*/,
+                                                         PropertyRNA * /*prop*/,
+                                                         bool *r_free)
+{
+  *r_free = true;
+  return enum_items_filter(rna_enum_node_socket_data_type_items,
+                           [](const EnumPropertyItem &item) -> bool {
+                             return grid_type_supported(eNodeSocketDatatype(item.value));
+                           });
+}
+
 void node_geo_exec_with_missing_openvdb(GeoNodeExecParams &params)
 {
   params.set_default_remaining_outputs();

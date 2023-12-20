@@ -142,6 +142,17 @@ const EnumPropertyItem *domain_without_corner_experimental_grease_pencil_version
 
 }  // namespace enums
 
+bool grid_type_supported(eCustomDataType data_type);
+bool grid_type_supported(eNodeSocketDatatype socket_type);
+const EnumPropertyItem *grid_custom_data_type_items_filter_fn(bContext *C,
+                                                              PointerRNA *ptr,
+                                                              PropertyRNA *prop,
+                                                              bool *r_free);
+const EnumPropertyItem *grid_socket_type_items_filter_fn(bContext *C,
+                                                         PointerRNA *ptr,
+                                                         PropertyRNA *prop,
+                                                         bool *r_free);
+
 void node_geo_exec_with_missing_openvdb(GeoNodeExecParams &params);
 
 }  // namespace blender::nodes
