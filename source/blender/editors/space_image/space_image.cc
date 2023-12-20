@@ -56,7 +56,7 @@
 
 #include "DRW_engine.h"
 
-#include "image_intern.h"
+#include "image_intern.hh"
 
 /**************************** common state *****************************/
 

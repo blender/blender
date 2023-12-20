@@ -44,7 +44,7 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "image_intern.h"
+#include "image_intern.hh"
 
 #define B_NOP -1
 #define MAX_IMAGE_INFO_LEN 128

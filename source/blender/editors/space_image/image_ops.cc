@@ -86,7 +86,7 @@
 
 #include "RE_engine.h"
 
-#include "image_intern.h"
+#include "image_intern.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name View Navigation Utilities
