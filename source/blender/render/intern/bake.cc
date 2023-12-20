@@ -470,7 +470,7 @@ static TriTessFace *mesh_calc_tri_tessface(Mesh *mesh, bool tangent, Mesh *me_ev
   const blender::Span<int> corner_verts = mesh->corner_verts();
   const bke::AttributeAccessor attributes = mesh->attributes();
   const VArray<bool> sharp_faces =
-      attributes.lookup_or_default<bool>("sharp_face", ATTR_DOMAIN_FACE, false).varray;
+      attributes.lookup_or_default<bool>("sharp_face", bke::AttrDomain::Face, false).varray;
 
   blender::int3 *corner_tris = static_cast<blender::int3 *>(
       MEM_mallocN(sizeof(*corner_tris) * tottri, __func__));
@@ -759,7 +759,8 @@ void RE_bake_pixels_populate(Mesh *mesh,
 
   const blender::Span<int> tri_faces = mesh->corner_tri_faces();
   const bke::AttributeAccessor attributes = mesh->attributes();
-  const VArraySpan material_indices = *attributes.lookup<int>("material_index", ATTR_DOMAIN_FACE);
+  const VArraySpan material_indices = *attributes.lookup<int>("material_index",
+                                                              bke::AttrDomain::Face);
 
   const int materials_num = targets->materials_num;
 

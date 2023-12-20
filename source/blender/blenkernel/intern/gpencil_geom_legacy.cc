@@ -2448,6 +2448,7 @@ static void gpencil_generate_edgeloops(Object *ob,
                                        const bool use_vgroups)
 {
   using namespace blender;
+  using namespace blender::bke;
   Mesh *mesh = (Mesh *)ob->data;
   if (mesh->edges_num == 0) {
     return;
@@ -2458,7 +2459,7 @@ static void gpencil_generate_edgeloops(Object *ob,
   const blender::Span<blender::float3> vert_normals = mesh->vert_normals();
   const bke::AttributeAccessor attributes = mesh->attributes();
   const VArray<bool> uv_seams = *attributes.lookup_or_default<bool>(
-      ".uv_seam", ATTR_DOMAIN_EDGE, false);
+      ".uv_seam", AttrDomain::Edge, false);
 
   /* Arrays for all edge vertices (forward and backward) that form a edge loop.
    * This is reused for each edge-loop to create gpencil stroke. */
@@ -2707,7 +2708,7 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
     int i;
 
     const VArray<int> mesh_material_indices = *me_eval->attributes().lookup_or_default<int>(
-        "material_index", ATTR_DOMAIN_FACE, 0);
+        "material_index", AttrDomain::Face, 0);
     for (i = 0; i < faces_len; i++) {
       const IndexRange face = faces[i];
 

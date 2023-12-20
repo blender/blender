@@ -518,9 +518,9 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *mesh, int id)
 
   const bke::AttributeAccessor attributes = mesh->attributes();
   const VArray<int> material_indices = *attributes.lookup_or_default<int>(
-      "material_index", ATTR_DOMAIN_FACE, 0);
+      "material_index", bke::AttrDomain::Face, 0);
   const VArray<bool> sharp_faces = *attributes.lookup_or_default<bool>(
-      "sharp_face", ATTR_DOMAIN_FACE, false);
+      "sharp_face", bke::AttrDomain::Face, false);
 
   // We parse the vlak nodes again and import meshes while applying the clipping
   // by the near and far view planes.

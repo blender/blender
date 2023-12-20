@@ -668,7 +668,7 @@ bool ED_object_modifier_convert_psys_to_mesh(ReportList * /*reports*/,
 
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::SpanAttributeWriter<bool> select_vert = attributes.lookup_or_add_for_write_span<bool>(
-      ".select_vert", ATTR_DOMAIN_POINT);
+      ".select_vert", bke::AttrDomain::Point);
 
   int edge_index = 0;
 
@@ -911,7 +911,7 @@ static bool modifier_apply_shape(Main *bmain,
 }
 
 static bool meta_data_matches(const std::optional<blender::bke::AttributeMetaData> meta_data,
-                              const eAttrDomainMask domains,
+                              const AttrDomainMask domains,
                               const eCustomDataMask types)
 {
   if (!meta_data) {

@@ -71,10 +71,10 @@ class PathToEdgeSelectionFieldInput final : public bke::MeshFieldInput {
   }
 
   GVArray get_varray_for_context(const Mesh &mesh,
-                                 const eAttrDomain domain,
+                                 const AttrDomain domain,
                                  const IndexMask & /*mask*/) const final
   {
-    const bke::MeshFieldContext context{mesh, ATTR_DOMAIN_POINT};
+    const bke::MeshFieldContext context{mesh, AttrDomain::Point};
     fn::FieldEvaluator evaluator{context, mesh.verts_num};
     evaluator.add(next_vertex_);
     evaluator.add(start_vertices_);
@@ -89,7 +89,7 @@ class PathToEdgeSelectionFieldInput final : public bke::MeshFieldInput {
     edge_paths_to_selection(mesh, start_verts, next_vert, selection);
 
     return mesh.attributes().adapt_domain<bool>(
-        VArray<bool>::ForContainer(std::move(selection)), ATTR_DOMAIN_EDGE, domain);
+        VArray<bool>::ForContainer(std::move(selection)), AttrDomain::Edge, domain);
   }
 
   void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override
@@ -114,9 +114,9 @@ class PathToEdgeSelectionFieldInput final : public bke::MeshFieldInput {
     return false;
   }
 
-  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
+  std::optional<AttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
   {
-    return ATTR_DOMAIN_EDGE;
+    return AttrDomain::Edge;
   }
 };
 

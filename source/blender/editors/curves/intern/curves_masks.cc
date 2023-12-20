@@ -44,7 +44,7 @@ IndexMask end_points(const bke::CurvesGeometry &curves,
 
 IndexMask random_mask(const bke::CurvesGeometry &curves,
                       const IndexMask &mask,
-                      const eAttrDomain selection_domain,
+                      const bke::AttrDomain selection_domain,
                       const uint32_t random_seed,
                       const float probability,
                       IndexMaskMemory &memory)
@@ -62,7 +62,7 @@ IndexMask random_mask(const bke::CurvesGeometry &curves,
 }
 
 IndexMask random_mask(const bke::CurvesGeometry &curves,
-                      const eAttrDomain selection_domain,
+                      const bke::AttrDomain selection_domain,
                       const uint32_t random_seed,
                       const float probability,
                       IndexMaskMemory &memory)

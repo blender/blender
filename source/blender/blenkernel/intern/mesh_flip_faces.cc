@@ -78,7 +78,7 @@ void mesh_flip_faces(Mesh &mesh, const IndexMask &selection)
         if (meta_data.data_type == CD_PROP_STRING) {
           return true;
         }
-        if (meta_data.domain != ATTR_DOMAIN_CORNER) {
+        if (meta_data.domain != AttrDomain::Corner) {
           return true;
         }
         if (ELEM(attribute_id.name(), ".corner_vert", ".corner_edge")) {

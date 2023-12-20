@@ -45,7 +45,7 @@ class CornersOfFaceInput final : public bke::MeshFieldInput {
   }
 
   GVArray get_varray_for_context(const Mesh &mesh,
-                                 const eAttrDomain domain,
+                                 const AttrDomain domain,
                                  const IndexMask &mask) const final
   {
     const OffsetIndices faces = mesh.faces();
@@ -58,7 +58,7 @@ class CornersOfFaceInput final : public bke::MeshFieldInput {
     const VArray<int> face_indices = evaluator.get_evaluated<int>(0);
     const VArray<int> indices_in_sort = evaluator.get_evaluated<int>(1);
 
-    const bke::MeshFieldContext corner_context{mesh, ATTR_DOMAIN_CORNER};
+    const bke::MeshFieldContext corner_context{mesh, AttrDomain::Corner};
     fn::FieldEvaluator corner_evaluator{corner_context, mesh.corners_num};
     corner_evaluator.add(sort_weight_);
     corner_evaluator.evaluate();
@@ -129,9 +129,9 @@ class CornersOfFaceInput final : public bke::MeshFieldInput {
     return false;
   }
 
-  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const final
+  std::optional<AttrDomain> preferred_domain(const Mesh & /*mesh*/) const final
   {
-    return ATTR_DOMAIN_FACE;
+    return AttrDomain::Face;
   }
 };
 
@@ -143,10 +143,10 @@ class CornersOfFaceCountInput final : public bke::MeshFieldInput {
   }
 
   GVArray get_varray_for_context(const Mesh &mesh,
-                                 const eAttrDomain domain,
+                                 const AttrDomain domain,
                                  const IndexMask & /*mask*/) const final
   {
-    if (domain != ATTR_DOMAIN_FACE) {
+    if (domain != AttrDomain::Face) {
       return {};
     }
     const OffsetIndices faces = mesh.faces();
@@ -164,9 +164,9 @@ class CornersOfFaceCountInput final : public bke::MeshFieldInput {
     return dynamic_cast<const CornersOfFaceCountInput *>(&other) != nullptr;
   }
 
-  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const final
+  std::optional<AttrDomain> preferred_domain(const Mesh & /*mesh*/) const final
   {
-    return ATTR_DOMAIN_FACE;
+    return AttrDomain::Face;
   }
 };
 
@@ -178,7 +178,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                       Field<int>(std::make_shared<EvaluateAtIndexInput>(
                           face_index,
                           Field<int>(std::make_shared<CornersOfFaceCountInput>()),
-                          ATTR_DOMAIN_FACE)));
+                          AttrDomain::Face)));
   }
   if (params.output_is_required("Corner Index")) {
     params.set_output("Corner Index",

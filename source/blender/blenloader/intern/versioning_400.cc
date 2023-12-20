@@ -47,7 +47,7 @@
 #include "BKE_anim_data.h"
 #include "BKE_animsys.h"
 #include "BKE_armature.hh"
-#include "BKE_attribute.h"
+#include "BKE_attribute.hh"
 #include "BKE_collection.h"
 #include "BKE_curve.hh"
 #include "BKE_effect.h"
@@ -2159,7 +2159,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
       if (ntree->type == NTREE_GEOMETRY) {
         LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
           if (node->type == GEO_NODE_SET_SHADE_SMOOTH) {
-            node->custom1 = ATTR_DOMAIN_FACE;
+            node->custom1 = int8_t(blender::bke::AttrDomain::Face);
           }
         }
       }

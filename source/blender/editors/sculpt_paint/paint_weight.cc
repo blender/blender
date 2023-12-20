@@ -1074,6 +1074,7 @@ static void do_wpaint_brush_blur_task(const Scene *scene,
                                       Mesh *mesh,
                                       PBVHNode *node)
 {
+  using namespace blender;
   SculptSession *ss = ob->sculpt;
   const PBVHType pbvh_type = BKE_pbvh_type(ss->pbvh);
   const bool has_grids = (pbvh_type == PBVH_GRIDS);
@@ -1096,7 +1097,7 @@ static void do_wpaint_brush_blur_task(const Scene *scene,
 
   const blender::bke::AttributeAccessor attributes = mesh->attributes();
   const blender::VArray<bool> select_vert = *attributes.lookup_or_default<bool>(
-      ".select_vert", ATTR_DOMAIN_POINT, false);
+      ".select_vert", bke::AttrDomain::Point, false);
 
   /* For each vertex */
   PBVHVertexIter vd;
@@ -1168,6 +1169,7 @@ static void do_wpaint_brush_smear_task(const Scene *scene,
                                        Mesh *mesh,
                                        PBVHNode *node)
 {
+  using namespace blender;
   SculptSession *ss = ob->sculpt;
   const PBVHType pbvh_type = BKE_pbvh_type(ss->pbvh);
   const bool has_grids = (pbvh_type == PBVH_GRIDS);
@@ -1192,9 +1194,9 @@ static void do_wpaint_brush_smear_task(const Scene *scene,
     return;
   }
 
-  const blender::bke::AttributeAccessor attributes = mesh->attributes();
-  const blender::VArray<bool> select_vert = *attributes.lookup_or_default<bool>(
-      ".select_vert", ATTR_DOMAIN_POINT, false);
+  const bke::AttributeAccessor attributes = mesh->attributes();
+  const VArray<bool> select_vert = *attributes.lookup_or_default<bool>(
+      ".select_vert", bke::AttrDomain::Point, false);
 
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
@@ -1287,6 +1289,7 @@ static void do_wpaint_brush_draw_task(const Scene *scene,
                                       const float strength,
                                       PBVHNode *node)
 {
+  using namespace blender;
   SculptSession *ss = ob->sculpt;
   const PBVHType pbvh_type = BKE_pbvh_type(ss->pbvh);
   const bool has_grids = (pbvh_type == PBVH_GRIDS);
@@ -1308,9 +1311,9 @@ static void do_wpaint_brush_draw_task(const Scene *scene,
   const float *sculpt_normal_frontface = SCULPT_brush_frontface_normal_from_falloff_shape(
       ss, brush->falloff_shape);
 
-  const blender::bke::AttributeAccessor attributes = mesh->attributes();
-  const blender::VArray<bool> select_vert = *attributes.lookup_or_default<bool>(
-      ".select_vert", ATTR_DOMAIN_POINT, false);
+  const bke::AttributeAccessor attributes = mesh->attributes();
+  const VArray<bool> select_vert = *attributes.lookup_or_default<bool>(
+      ".select_vert", bke::AttrDomain::Point, false);
 
   /* For each vertex */
   PBVHVertexIter vd;
@@ -1362,6 +1365,7 @@ static WPaintAverageAccum do_wpaint_brush_calc_average_weight(Object *ob,
                                                               WeightPaintInfo *wpi,
                                                               PBVHNode *node)
 {
+  using namespace blender;
   SculptSession *ss = ob->sculpt;
   StrokeCache *cache = ss->cache;
   const PBVHType pbvh_type = BKE_pbvh_type(ss->pbvh);
@@ -1381,9 +1385,9 @@ static WPaintAverageAccum do_wpaint_brush_calc_average_weight(Object *ob,
   const float *sculpt_normal_frontface = SCULPT_brush_frontface_normal_from_falloff_shape(
       ss, brush->falloff_shape);
 
-  const blender::bke::AttributeAccessor attributes = mesh->attributes();
-  const blender::VArray<bool> select_vert = *attributes.lookup_or_default<bool>(
-      ".select_vert", ATTR_DOMAIN_POINT, false);
+  const bke::AttributeAccessor attributes = mesh->attributes();
+  const VArray<bool> select_vert = *attributes.lookup_or_default<bool>(
+      ".select_vert", bke::AttrDomain::Point, false);
 
   /* For each vertex */
   PBVHVertexIter vd;

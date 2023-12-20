@@ -1897,13 +1897,14 @@ static const EnumPropertyItem *rna_GeometryNodeAttributeType_type_with_socket_it
 static const EnumPropertyItem *rna_GeometryNodeAttributeDomain_attribute_domain_itemf(
     bContext * /*C*/, PointerRNA * /*ptr*/, PropertyRNA * /*prop*/, bool *r_free)
 {
+  using namespace blender;
   EnumPropertyItem *item_array = nullptr;
   int items_len = 0;
 
   for (const EnumPropertyItem *item = rna_enum_attribute_domain_items; item->identifier != nullptr;
        item++)
   {
-    if (!U.experimental.use_grease_pencil_version3 && item->value == ATTR_DOMAIN_LAYER) {
+    if (!U.experimental.use_grease_pencil_version3 && item->value == int(bke::AttrDomain::Layer)) {
       continue;
     }
     RNA_enum_item_add(&item_array, &items_len, item);
@@ -9265,6 +9266,7 @@ static void def_fn_rotate_euler(StructRNA *srna)
 
 static void def_geo_sample_index(StructRNA *srna)
 {
+  using namespace blender;
   PropertyRNA *prop;
 
   RNA_def_struct_sdna_from(srna, "NodeGeometrySampleIndex", "storage");
@@ -9281,7 +9283,7 @@ static void def_geo_sample_index(StructRNA *srna)
   RNA_def_property_enum_items(prop, rna_enum_attribute_domain_items);
   RNA_def_property_enum_funcs(
       prop, nullptr, nullptr, "rna_GeometryNodeAttributeDomain_attribute_domain_itemf");
-  RNA_def_property_enum_default(prop, ATTR_DOMAIN_POINT);
+  RNA_def_property_enum_default(prop, int(bke::AttrDomain::Point));
   RNA_def_property_ui_text(prop, "Domain", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 

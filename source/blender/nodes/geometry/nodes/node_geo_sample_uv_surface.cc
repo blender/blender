@@ -134,7 +134,7 @@ class ReverseUVSampleFunction : public mf::MultiFunction {
   void evaluate_source()
   {
     const Mesh &mesh = *source_.get_mesh();
-    source_context_.emplace(bke::MeshFieldContext{mesh, ATTR_DOMAIN_CORNER});
+    source_context_.emplace(bke::MeshFieldContext{mesh, AttrDomain::Corner});
     source_evaluator_ = std::make_unique<FieldEvaluator>(*source_context_, mesh.corners_num);
     source_evaluator_->add(src_uv_map_field_);
     source_evaluator_->evaluate();

@@ -621,7 +621,7 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh,
 
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::SpanAttributeWriter material_indices = attributes.lookup_or_add_for_write_span<int>(
-      "material_index", ATTR_DOMAIN_FACE);
+      "material_index", bke::AttrDomain::Face);
 
   bool *sharp_faces = static_cast<bool *>(CustomData_get_layer_named_for_write(
       &mesh->face_data, CD_PROP_BOOL, "sharp_face", mesh->faces_num));

@@ -168,9 +168,9 @@ struct AddOperationExecutor {
     VArraySpan<float2> surface_uv_map;
     if (curves_id_orig_->surface_uv_map != nullptr) {
       surface_uv_map = *surface_orig.attributes().lookup<float2>(curves_id_orig_->surface_uv_map,
-                                                                 ATTR_DOMAIN_CORNER);
+                                                                 bke::AttrDomain::Corner);
       surface_uv_map_eval_ = *surface_eval_->attributes().lookup<float2>(
-          curves_id_orig_->surface_uv_map, ATTR_DOMAIN_CORNER);
+          curves_id_orig_->surface_uv_map, bke::AttrDomain::Corner);
     }
 
     if (surface_uv_map.is_empty()) {
@@ -238,7 +238,7 @@ struct AddOperationExecutor {
         *curves_orig_, add_inputs);
     bke::MutableAttributeAccessor attributes = curves_orig_->attributes_for_write();
     if (bke::GSpanAttributeWriter selection = attributes.lookup_for_write_span(".selection")) {
-      curves::fill_selection_true(selection.span.slice(selection.domain == ATTR_DOMAIN_POINT ?
+      curves::fill_selection_true(selection.span.slice(selection.domain == bke::AttrDomain::Point ?
                                                            add_outputs.new_points_range :
                                                            add_outputs.new_curves_range));
       selection.finish();

@@ -29,7 +29,7 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  node->custom1 = ATTR_DOMAIN_POINT;
+  node->custom1 = int16_t(AttrDomain::Point);
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -45,36 +45,36 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
   const Field<bool> selection = params.extract_input<Field<bool>>("Selection");
-  const eAttrDomain domain = eAttrDomain(params.node().custom1);
+  const AttrDomain domain = AttrDomain(params.node().custom1);
   geometry.modify_geometry_sets([&](GeometrySet &geometry) {
     if (Mesh *mesh = geometry.get_mesh_for_write()) {
       switch (domain) {
-        case ATTR_DOMAIN_POINT:
+        case AttrDomain::Point:
           /* Remove attributes in case they are on the wrong domain, which can happen after
            * conversion to and from other geometry types. */
           mesh->attributes_for_write().remove(".select_edge");
           mesh->attributes_for_write().remove(".select_poly");
           bke::try_capture_field_on_geometry(geometry.get_component_for_write<MeshComponent>(),
                                              ".select_vert",
-                                             ATTR_DOMAIN_POINT,
+                                             AttrDomain::Point,
                                              selection);
           bke::mesh_select_vert_flush(*mesh);
           break;
-        case ATTR_DOMAIN_EDGE:
+        case AttrDomain::Edge:
           bke::try_capture_field_on_geometry(geometry.get_component_for_write<MeshComponent>(),
                                              ".select_edge",
-                                             ATTR_DOMAIN_EDGE,
+                                             AttrDomain::Edge,
                                              selection);
           bke::mesh_select_edge_flush(*mesh);
           break;
-        case ATTR_DOMAIN_FACE:
+        case AttrDomain::Face:
           /* Remove attributes in case they are on the wrong domain, which can happen after
            * conversion to and from other geometry types. */
           mesh->attributes_for_write().remove(".select_vert");
           mesh->attributes_for_write().remove(".select_edge");
           bke::try_capture_field_on_geometry(geometry.get_component_for_write<MeshComponent>(),
                                              ".select_poly",
-                                             ATTR_DOMAIN_FACE,
+                                             AttrDomain::Face,
                                              selection);
           bke::mesh_select_face_flush(*mesh);
           break;
@@ -83,13 +83,13 @@ static void node_geo_exec(GeoNodeExecParams params)
       }
     }
     if (geometry.has_curves()) {
-      if (ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE)) {
+      if (ELEM(domain, AttrDomain::Point, AttrDomain::Curve)) {
         bke::try_capture_field_on_geometry(
             geometry.get_component_for_write<CurveComponent>(), ".selection", domain, selection);
       }
     }
     if (geometry.has_pointcloud()) {
-      if (domain == ATTR_DOMAIN_POINT) {
+      if (domain == AttrDomain::Point) {
         bke::try_capture_field_on_geometry(geometry.get_component_for_write<PointCloudComponent>(),
                                            ".selection",
                                            domain,
@@ -108,7 +108,7 @@ static void node_rna(StructRNA *srna)
                     "",
                     rna_enum_attribute_domain_point_edge_face_curve_items,
                     NOD_inline_enum_accessors(custom1),
-                    ATTR_DOMAIN_POINT);
+                    int(AttrDomain::Point));
 }
 
 static void node_register()

@@ -287,7 +287,7 @@ static void attr_create_generic(Scene *scene,
 
     if (need_motion && name == u_velocity) {
       const blender::VArraySpan b_attribute = *b_attributes.lookup<blender::float3>(
-          id, ATTR_DOMAIN_POINT);
+          id, blender::bke::AttrDomain::Point);
       attr_create_motion(mesh, b_attribute, motion_scale);
     }
 
@@ -300,10 +300,10 @@ static void attr_create_generic(Scene *scene,
       return true;
     }
 
-    eAttrDomain b_domain = meta_data.domain;
-    if (b_domain == ATTR_DOMAIN_EDGE) {
+    blender::bke::AttrDomain b_domain = meta_data.domain;
+    if (b_domain == blender::bke::AttrDomain::Edge) {
       /* Blender's attribute API handles edge to vertex attribute domain interpolation. */
-      b_domain = ATTR_DOMAIN_POINT;
+      b_domain = blender::bke::AttrDomain::Point;
     }
 
     const blender::bke::GAttributeReader b_attr = b_attributes.lookup(id, b_domain);
@@ -311,7 +311,8 @@ static void attr_create_generic(Scene *scene,
       return true;
     }
 
-    if (b_attr.domain == ATTR_DOMAIN_CORNER && meta_data.data_type == CD_PROP_BYTE_COLOR) {
+    if (b_attr.domain == blender::bke::AttrDomain::Corner &&
+        meta_data.data_type == CD_PROP_BYTE_COLOR) {
       Attribute *attr = attributes.add(name, TypeRGBA, ATTR_ELEMENT_CORNER_BYTE);
       if (is_render_color) {
         attr->std = ATTR_STD_VERTEX_COLOR;
@@ -340,13 +341,13 @@ static void attr_create_generic(Scene *scene,
 
     AttributeElement element = ATTR_ELEMENT_NONE;
     switch (b_domain) {
-      case ATTR_DOMAIN_CORNER:
+      case blender::bke::AttrDomain::Corner:
         element = ATTR_ELEMENT_CORNER;
         break;
-      case ATTR_DOMAIN_POINT:
+      case blender::bke::AttrDomain::Point:
         element = ATTR_ELEMENT_VERTEX;
         break;
-      case ATTR_DOMAIN_FACE:
+      case blender::bke::AttrDomain::Face:
         element = ATTR_ELEMENT_FACE;
         break;
       default:
@@ -368,7 +369,7 @@ static void attr_create_generic(Scene *scene,
 
         const blender::VArraySpan src = b_attr.varray.typed<BlenderT>();
         switch (b_attr.domain) {
-          case ATTR_DOMAIN_CORNER: {
+          case blender::bke::AttrDomain::Corner: {
             if (subdivision) {
               for (const int i : src.index_range()) {
                 data[i] = Converter::convert(src[i]);
@@ -384,13 +385,13 @@ static void attr_create_generic(Scene *scene,
             }
             break;
           }
-          case ATTR_DOMAIN_POINT: {
+          case blender::bke::AttrDomain::Point: {
             for (const int i : src.index_range()) {
               data[i] = Converter::convert(src[i]);
             }
             break;
           }
-          case ATTR_DOMAIN_FACE: {
+          case blender::bke::AttrDomain::Face: {
             if (subdivision) {
               for (const int i : src.index_range()) {
                 data[i] = Converter::convert(src[i]);
@@ -419,7 +420,8 @@ static set<ustring> get_blender_uv_names(const ::Mesh &b_mesh)
   set<ustring> uv_names;
   b_mesh.attributes().for_all([&](const blender::bke::AttributeIDRef &id,
                                   const blender::bke::AttributeMetaData meta_data) {
-    if (meta_data.domain == ATTR_DOMAIN_CORNER && meta_data.data_type == CD_PROP_FLOAT2) {
+    if (meta_data.domain == blender::bke::AttrDomain::Corner &&
+        meta_data.data_type == CD_PROP_FLOAT2) {
       if (!id.is_anonymous()) {
         uv_names.emplace(std::string_view(id.name()));
       }
@@ -466,7 +468,7 @@ static void attr_create_uv_map(Scene *scene,
         }
 
         const blender::VArraySpan b_uv_map = *b_attributes.lookup<blender::float2>(
-            uv_name.c_str(), ATTR_DOMAIN_CORNER);
+            uv_name.c_str(), blender::bke::AttrDomain::Corner);
         float2 *fdata = uv_attr->data_float2();
         for (const int i : corner_tris.index_range()) {
           const blender::int3 &tri = corner_tris[i];
@@ -543,7 +545,7 @@ static void attr_create_subd_uv_map(Scene *scene,
         }
 
         const blender::VArraySpan b_uv_map = *b_attributes.lookup<blender::float2>(
-            uv_name.c_str(), ATTR_DOMAIN_CORNER);
+            uv_name.c_str(), blender::bke::AttrDomain::Corner);
         float2 *fdata = uv_attr->data_float2();
 
         for (const int i : faces.index_range()) {
@@ -828,10 +830,10 @@ static void create_mesh(Scene *scene,
     return;
   }
 
-  const blender::VArraySpan material_indices = *b_attributes.lookup<int>("material_index",
-                                                                         ATTR_DOMAIN_FACE);
-  const blender::VArraySpan sharp_faces = *b_attributes.lookup<bool>("sharp_face",
-                                                                     ATTR_DOMAIN_FACE);
+  const blender::VArraySpan material_indices = *b_attributes.lookup<int>(
+      "material_index", blender::bke::AttrDomain::Face);
+  const blender::VArraySpan sharp_faces = *b_attributes.lookup<bool>(
+      "sharp_face", blender::bke::AttrDomain::Face);
   blender::Span<blender::float3> corner_normals;
   if (use_loop_normals) {
     corner_normals = b_mesh.corner_normals();
@@ -1054,8 +1056,8 @@ static void create_subd_mesh(Scene *scene,
 
   create_mesh(scene, mesh, b_mesh, used_shaders, need_motion, motion_scale, true, subdivide_uvs);
 
-  const blender::VArraySpan creases = *b_mesh.attributes().lookup<float>("crease_edge",
-                                                                         ATTR_DOMAIN_EDGE);
+  const blender::VArraySpan creases = *b_mesh.attributes().lookup<float>(
+      "crease_edge", blender::bke::AttrDomain::Edge);
   if (!creases.is_empty()) {
     size_t num_creases = 0;
     for (const int i : creases.index_range()) {
@@ -1076,8 +1078,8 @@ static void create_subd_mesh(Scene *scene,
     }
   }
 
-  const blender::VArraySpan vert_creases = *b_mesh.attributes().lookup<float>("crease_vert",
-                                                                              ATTR_DOMAIN_POINT);
+  const blender::VArraySpan vert_creases = *b_mesh.attributes().lookup<float>(
+      "crease_vert", blender::bke::AttrDomain::Point);
   if (!vert_creases.is_empty()) {
     for (const int i : vert_creases.index_range()) {
       if (vert_creases[i] != 0.0f) {

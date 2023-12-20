@@ -186,7 +186,8 @@ static float rna_CurvePoint_radius_get(PointerRNA *ptr)
   using namespace blender;
   const Curves *curves = rna_curves(ptr);
   const bke::AttributeAccessor attributes = curves->geometry.wrap().attributes();
-  const VArray radii = *attributes.lookup_or_default<float>("radius", ATTR_DOMAIN_POINT, 0.0f);
+  const VArray radii = *attributes.lookup_or_default<float>(
+      "radius", bke::AttrDomain::Point, 0.0f);
   return radii[rna_CurvePoint_index_get_const(ptr)];
 }
 
@@ -292,9 +293,9 @@ static void rna_Curves_add_curves(Curves *curves_id,
   /* Initialize new attribute values, since #CurvesGeometry::resize() doesn't do that. */
   bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
   bke::fill_attribute_range_default(
-      attributes, ATTR_DOMAIN_POINT, {}, curves.points_range().drop_front(orig_points_num));
+      attributes, bke::AttrDomain::Point, {}, curves.points_range().drop_front(orig_points_num));
   bke::fill_attribute_range_default(
-      attributes, ATTR_DOMAIN_CURVE, {}, curves.curves_range().drop_front(orig_curves_num));
+      attributes, bke::AttrDomain::Curve, {}, curves.curves_range().drop_front(orig_curves_num));
 
   curves.update_curve_types();
 

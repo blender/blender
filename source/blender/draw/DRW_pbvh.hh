@@ -33,8 +33,8 @@ class GenericRequest {
  public:
   std::string name;
   eCustomDataType type;
-  eAttrDomain domain;
-  GenericRequest(const StringRef name, const eCustomDataType type, const eAttrDomain domain)
+  bke::AttrDomain domain;
+  GenericRequest(const StringRef name, const eCustomDataType type, const bke::AttrDomain domain)
       : name(name), type(type), domain(domain)
   {
   }

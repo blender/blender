@@ -20,7 +20,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description("Number of faces which share an edge with the face");
 }
 
-static VArray<int> construct_neighbor_count_varray(const Mesh &mesh, const eAttrDomain domain)
+static VArray<int> construct_neighbor_count_varray(const Mesh &mesh, const AttrDomain domain)
 {
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_edges = mesh.corner_edges();
@@ -36,7 +36,7 @@ static VArray<int> construct_neighbor_count_varray(const Mesh &mesh, const eAttr
   }
 
   return mesh.attributes().adapt_domain<int>(
-      VArray<int>::ForContainer(std::move(face_count)), ATTR_DOMAIN_FACE, domain);
+      VArray<int>::ForContainer(std::move(face_count)), AttrDomain::Face, domain);
 }
 
 class FaceNeighborCountFieldInput final : public bke::MeshFieldInput {
@@ -48,7 +48,7 @@ class FaceNeighborCountFieldInput final : public bke::MeshFieldInput {
   }
 
   GVArray get_varray_for_context(const Mesh &mesh,
-                                 const eAttrDomain domain,
+                                 const AttrDomain domain,
                                  const IndexMask & /*mask*/) const final
   {
     return construct_neighbor_count_varray(mesh, domain);
@@ -65,19 +65,19 @@ class FaceNeighborCountFieldInput final : public bke::MeshFieldInput {
     return dynamic_cast<const FaceNeighborCountFieldInput *>(&other) != nullptr;
   }
 
-  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
+  std::optional<AttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
   {
-    return ATTR_DOMAIN_FACE;
+    return AttrDomain::Face;
   }
 };
 
-static VArray<int> construct_vertex_count_varray(const Mesh &mesh, const eAttrDomain domain)
+static VArray<int> construct_vertex_count_varray(const Mesh &mesh, const AttrDomain domain)
 {
   const OffsetIndices faces = mesh.faces();
   return mesh.attributes().adapt_domain<int>(
       VArray<int>::ForFunc(faces.size(),
                            [faces](const int i) -> float { return faces[i].size(); }),
-      ATTR_DOMAIN_FACE,
+      AttrDomain::Face,
       domain);
 }
 
@@ -89,7 +89,7 @@ class FaceVertexCountFieldInput final : public bke::MeshFieldInput {
   }
 
   GVArray get_varray_for_context(const Mesh &mesh,
-                                 const eAttrDomain domain,
+                                 const AttrDomain domain,
                                  const IndexMask & /*mask*/) const final
   {
     return construct_vertex_count_varray(mesh, domain);
@@ -106,9 +106,9 @@ class FaceVertexCountFieldInput final : public bke::MeshFieldInput {
     return dynamic_cast<const FaceVertexCountFieldInput *>(&other) != nullptr;
   }
 
-  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
+  std::optional<AttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
   {
-    return ATTR_DOMAIN_FACE;
+    return AttrDomain::Face;
   }
 };
 

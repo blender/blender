@@ -1122,6 +1122,8 @@ BVHTree *BKE_bvhtree_from_mesh_get(BVHTreeFromMesh *data,
                                    const BVHCacheType bvh_cache_type,
                                    const int tree_type)
 {
+  using namespace blender;
+  using namespace blender::bke;
   BVHCache **bvh_cache_p = (BVHCache **)&mesh->runtime->bvh_cache;
 
   Span<int3> corner_tris;
@@ -1196,7 +1198,7 @@ BVHTree *BKE_bvhtree_from_mesh_get(BVHTreeFromMesh *data,
       int mask_bits_act_len = -1;
       const BitVector<> mask = corner_tris_no_hidden_map_get(
           mesh->faces(),
-          *attributes.lookup_or_default(".hide_poly", ATTR_DOMAIN_FACE, false),
+          *attributes.lookup_or_default(".hide_poly", AttrDomain::Face, false),
           corner_tris.size(),
           &mask_bits_act_len);
       data->tree = bvhtree_from_mesh_corner_tris_create_tree(

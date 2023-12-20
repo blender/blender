@@ -120,7 +120,7 @@ struct SelectionPaintOperationExecutor {
       }
     }
 
-    if (selection_.domain == ATTR_DOMAIN_POINT) {
+    if (selection_.domain == bke::AttrDomain::Point) {
       if (falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
         this->paint_point_selection_projected_with_symmetry(selection_.span);
       }

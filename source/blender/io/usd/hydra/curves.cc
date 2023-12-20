@@ -157,7 +157,7 @@ void CurvesData::write_curves(const Curves *curves_id)
   MutableSpan(vertices_.data(), vertices_.size()).copy_from(positions.cast<pxr::GfVec3f>());
 
   const VArray<float> radii = *curves.attributes().lookup_or_default<float>(
-      "radius", ATTR_DOMAIN_POINT, 0.01f);
+      "radius", bke::AttrDomain::Point, 0.01f);
   widths_.resize(curves.points_num());
   for (const int i : curves.points_range()) {
     widths_[i] = radii[i] * 2.0f;

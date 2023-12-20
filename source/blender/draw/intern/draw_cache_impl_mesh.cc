@@ -30,7 +30,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_attribute.h"
+#include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
 #include "BKE_deform.h"
 #include "BKE_editmesh.hh"
@@ -277,6 +277,7 @@ static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Object *object,
                                                    int gpumat_array_len,
                                                    DRW_Attributes *attributes)
 {
+  using namespace blender;
   const Mesh *me_final = editmesh_final_or_this(object, mesh);
   const CustomData *cd_ldata = mesh_cd_ldata_get_from_mesh(me_final);
   const CustomData *cd_pdata = mesh_cd_pdata_get_from_mesh(me_final);
@@ -301,7 +302,7 @@ static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Object *object,
       const char *name = gpu_attr->name;
       eCustomDataType type = static_cast<eCustomDataType>(gpu_attr->type);
       int layer = -1;
-      std::optional<eAttrDomain> domain;
+      std::optional<bke::AttrDomain> domain;
 
       if (gpu_attr->is_default_color) {
         name = default_color_name.c_str();
@@ -326,16 +327,16 @@ static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Object *object,
             /* Try to match a generic attribute, we use the first attribute domain with a
              * matching name. */
             if (drw_custom_data_match_attribute(cd_vdata, name, &layer, &type)) {
-              domain = ATTR_DOMAIN_POINT;
+              domain = bke::AttrDomain::Point;
             }
             else if (drw_custom_data_match_attribute(cd_ldata, name, &layer, &type)) {
-              domain = ATTR_DOMAIN_CORNER;
+              domain = bke::AttrDomain::Corner;
             }
             else if (drw_custom_data_match_attribute(cd_pdata, name, &layer, &type)) {
-              domain = ATTR_DOMAIN_FACE;
+              domain = bke::AttrDomain::Face;
             }
             else if (drw_custom_data_match_attribute(cd_edata, name, &layer, &type)) {
-              domain = ATTR_DOMAIN_EDGE;
+              domain = bke::AttrDomain::Edge;
             }
             else {
               layer = -1;
@@ -867,6 +868,7 @@ static void request_active_and_default_color_attributes(const Object &object,
                                                         const Mesh &mesh,
                                                         DRW_Attributes &attributes)
 {
+  using namespace blender;
   const Mesh *me_final = editmesh_final_or_this(&object, &mesh);
   const CustomData *cd_vdata = mesh_cd_vdata_get_from_mesh(me_final);
   const CustomData *cd_ldata = mesh_cd_ldata_get_from_mesh(me_final);
@@ -876,10 +878,10 @@ static void request_active_and_default_color_attributes(const Object &object,
       int layer_index;
       eCustomDataType type;
       if (drw_custom_data_match_attribute(cd_vdata, name, &layer_index, &type)) {
-        drw_attributes_add_request(&attributes, name, type, layer_index, ATTR_DOMAIN_POINT);
+        drw_attributes_add_request(&attributes, name, type, layer_index, bke::AttrDomain::Point);
       }
       else if (drw_custom_data_match_attribute(cd_ldata, name, &layer_index, &type)) {
-        drw_attributes_add_request(&attributes, name, type, layer_index, ATTR_DOMAIN_CORNER);
+        drw_attributes_add_request(&attributes, name, type, layer_index, bke::AttrDomain::Corner);
       }
     }
   };

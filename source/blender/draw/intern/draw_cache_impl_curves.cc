@@ -271,7 +271,7 @@ static void curves_batch_cache_ensure_edit_points_selection(const bke::CurvesGeo
                           curves.points_num());
 
   const VArray<float> attribute = *curves.attributes().lookup_or_default<float>(
-      ".selection", ATTR_DOMAIN_POINT, true);
+      ".selection", bke::AttrDomain::Point, true);
   attribute.materialize(data);
 }
 
@@ -335,8 +335,8 @@ static void curves_batch_ensure_attribute(const Curves &curves,
   GPUVertBuf *attr_vbo = cache.proc_attributes_buf[index];
 
   GPU_vertbuf_data_alloc(attr_vbo,
-                         request.domain == ATTR_DOMAIN_POINT ? curves.geometry.point_num :
-                                                               curves.geometry.curve_num);
+                         request.domain == bke::AttrDomain::Point ? curves.geometry.point_num :
+                                                                    curves.geometry.curve_num);
 
   const bke::AttributeAccessor attributes = curves.geometry.wrap().attributes();
 
@@ -359,7 +359,7 @@ static void curves_batch_ensure_attribute(const Curves &curves,
   GPU_VERTBUF_DISCARD_SAFE(cache.final[subdiv].attributes_buf[index]);
 
   /* Ensure final data for points. */
-  if (request.domain == ATTR_DOMAIN_POINT) {
+  if (request.domain == bke::AttrDomain::Point) {
     curves_batch_cache_ensure_procedural_final_attr(cache, &format, subdiv, index, sampler_name);
   }
 }
@@ -537,12 +537,12 @@ static bool curves_ensure_attributes(const Curves &curves,
 
       int layer_index;
       eCustomDataType type;
-      eAttrDomain domain;
+      bke::AttrDomain domain;
       if (drw_custom_data_match_attribute(cd_curve, name, &layer_index, &type)) {
-        domain = ATTR_DOMAIN_CURVE;
+        domain = bke::AttrDomain::Curve;
       }
       else if (drw_custom_data_match_attribute(cd_point, name, &layer_index, &type)) {
-        domain = ATTR_DOMAIN_POINT;
+        domain = bke::AttrDomain::Point;
       }
       else {
         continue;
@@ -570,7 +570,7 @@ static bool curves_ensure_attributes(const Curves &curves,
       continue;
     }
 
-    if (request.domain == ATTR_DOMAIN_POINT) {
+    if (request.domain == bke::AttrDomain::Point) {
       need_tf_update = true;
     }
 
@@ -596,10 +596,10 @@ static void request_attribute(Curves &curves, const char *name)
   if (!meta_data) {
     return;
   }
-  const eAttrDomain domain = meta_data->domain;
+  const bke::AttrDomain domain = meta_data->domain;
   const eCustomDataType type = meta_data->data_type;
-  const CustomData &custom_data = domain == ATTR_DOMAIN_POINT ? curves.geometry.point_data :
-                                                                curves.geometry.curve_data;
+  const CustomData &custom_data = domain == bke::AttrDomain::Point ? curves.geometry.point_data :
+                                                                     curves.geometry.curve_data;
 
   drw_attributes_add_request(
       &attributes, name, type, CustomData_get_named_layer(&custom_data, type, name), domain);
@@ -745,6 +745,7 @@ GPUVertBuf **DRW_curves_texture_for_evaluated_attribute(Curves *curves,
                                                         const char *name,
                                                         bool *r_is_point_domain)
 {
+  using namespace blender;
   using namespace blender::draw;
   CurvesBatchCache &cache = curves_batch_cache_get(*curves);
   const DRWContextState *draw_ctx = DRW_context_state_get();
@@ -766,10 +767,10 @@ GPUVertBuf **DRW_curves_texture_for_evaluated_attribute(Curves *curves,
     return nullptr;
   }
   switch (final_cache.attr_used.requests[request_i].domain) {
-    case ATTR_DOMAIN_POINT:
+    case bke::AttrDomain::Point:
       *r_is_point_domain = true;
       return &final_cache.attributes_buf[request_i];
-    case ATTR_DOMAIN_CURVE:
+    case bke::AttrDomain::Curve:
       *r_is_point_domain = false;
       return &cache.curves_cache.proc_attributes_buf[request_i];
     default:

@@ -149,7 +149,7 @@ static bool try_remove_mask_mesh(Object &object, const Span<PBVHNode *> nodes)
 {
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
-  const VArraySpan mask = *attributes.lookup<float>(".sculpt_mask", ATTR_DOMAIN_POINT);
+  const VArraySpan mask = *attributes.lookup<float>(".sculpt_mask", bke::AttrDomain::Point);
   if (mask.is_empty()) {
     return true;
   }
@@ -157,7 +157,7 @@ static bool try_remove_mask_mesh(Object &object, const Span<PBVHNode *> nodes)
   /* If there are any hidden vertices that shouldn't be affected with a mask value set, the
    * attribute cannot be removed. This could also be done by building an IndexMask in the full
    * vertex domain. */
-  const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", ATTR_DOMAIN_POINT);
+  const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
   threading::EnumerableThreadSpecific<Vector<int>> all_index_data;
   const bool hidden_masked_verts = threading::parallel_reduce(
       nodes.index_range(),
@@ -201,7 +201,7 @@ static void fill_mask_mesh(Object &object, const float value, const Span<PBVHNod
 {
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
-  const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", ATTR_DOMAIN_POINT);
+  const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
   if (value == 0.0f) {
     if (try_remove_mask_mesh(object, nodes)) {
       return;
@@ -209,7 +209,7 @@ static void fill_mask_mesh(Object &object, const float value, const Span<PBVHNod
   }
 
   bke::SpanAttributeWriter<float> mask = attributes.lookup_or_add_for_write_only_span<float>(
-      ".sculpt_mask", ATTR_DOMAIN_POINT);
+      ".sculpt_mask", bke::AttrDomain::Point);
 
   threading::EnumerableThreadSpecific<Vector<int>> all_index_data;
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
@@ -356,9 +356,9 @@ static void invert_mask_mesh(Object &object, const Span<PBVHNode *> nodes)
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
 
-  const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", ATTR_DOMAIN_POINT);
+  const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
   bke::SpanAttributeWriter<float> mask = attributes.lookup_or_add_for_write_span<float>(
-      ".sculpt_mask", ATTR_DOMAIN_POINT);
+      ".sculpt_mask", bke::AttrDomain::Point);
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (PBVHNode *node : nodes.slice(range)) {
       undo::push_node(&object, node, undo::Type::Mask);

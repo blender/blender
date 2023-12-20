@@ -301,13 +301,13 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
   const VArraySpan uv_map_orig = *mesh_attributes_orig.lookup<float2>(uv_map_name,
-                                                                      ATTR_DOMAIN_CORNER);
+                                                                      AttrDomain::Corner);
   const VArraySpan uv_map_eval = *mesh_attributes_eval.lookup<float2>(uv_map_name,
-                                                                      ATTR_DOMAIN_CORNER);
+                                                                      AttrDomain::Corner);
   const VArraySpan rest_positions = *mesh_attributes_eval.lookup<float3>(rest_position_name,
-                                                                         ATTR_DOMAIN_POINT);
+                                                                         AttrDomain::Point);
   const VArraySpan surface_uv_coords = *curves.attributes().lookup_or_default<float2>(
-      "surface_uv_coordinate", ATTR_DOMAIN_CURVE, float2(0));
+      "surface_uv_coordinate", AttrDomain::Curve, float2(0));
 
   const Span<int3> corner_tris_orig = surface_mesh_orig->corner_tris();
   const Span<int3> corner_tris_eval = surface_mesh_eval->corner_tris();
@@ -372,7 +372,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     /* Then also deform edit curve information for use in sculpt mode. */
     const CurvesGeometry &curves_orig = edit_hints->curves_id_orig.geometry.wrap();
     const VArraySpan<float2> surface_uv_coords_orig = *curves_orig.attributes().lookup_or_default(
-        "surface_uv_coordinate", ATTR_DOMAIN_CURVE, float2(0));
+        "surface_uv_coordinate", AttrDomain::Curve, float2(0));
     if (!surface_uv_coords_orig.is_empty()) {
       deform_curves(curves_orig,
                     *surface_mesh_orig,

@@ -323,18 +323,18 @@ static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
     faces_check_flip(*mesh, nos, mesh->face_normals());
   }
   const bke::AttributeAccessor attributes = mesh->attributes();
-  const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", ATTR_DOMAIN_FACE);
-  blender::bke::mesh::normals_loop_custom_set(vert_positions,
-                                              edges,
-                                              faces,
-                                              corner_verts,
-                                              corner_edges,
-                                              mesh->vert_normals(),
-                                              mesh->face_normals(),
-                                              sharp_faces,
-                                              sharp_edges,
-                                              nos,
-                                              clnors);
+  const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", bke::AttrDomain::Face);
+  bke::mesh::normals_loop_custom_set(vert_positions,
+                                     edges,
+                                     faces,
+                                     corner_verts,
+                                     corner_edges,
+                                     mesh->vert_normals(),
+                                     mesh->face_normals(),
+                                     sharp_faces,
+                                     sharp_edges,
+                                     nos,
+                                     clnors);
 
   MEM_freeN(cos);
   MEM_freeN(done_verts);
@@ -429,18 +429,18 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
     faces_check_flip(*mesh, nos, mesh->face_normals());
   }
   const bke::AttributeAccessor attributes = mesh->attributes();
-  const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", ATTR_DOMAIN_FACE);
-  blender::bke::mesh::normals_loop_custom_set(positions,
-                                              edges,
-                                              faces,
-                                              corner_verts,
-                                              corner_edges,
-                                              mesh->vert_normals(),
-                                              mesh->face_normals(),
-                                              sharp_faces,
-                                              sharp_edges,
-                                              nos,
-                                              clnors);
+  const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", bke::AttrDomain::Face);
+  bke::mesh::normals_loop_custom_set(positions,
+                                     edges,
+                                     faces,
+                                     corner_verts,
+                                     corner_edges,
+                                     mesh->vert_normals(),
+                                     mesh->face_normals(),
+                                     sharp_faces,
+                                     sharp_edges,
+                                     nos,
+                                     clnors);
 }
 
 static bool is_valid_target(NormalEditModifierData *enmd)
@@ -505,7 +505,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
 
   bke::MutableAttributeAccessor attributes = result->attributes_for_write();
   bke::SpanAttributeWriter<bool> sharp_edges = attributes.lookup_or_add_for_write_span<bool>(
-      "sharp_edge", ATTR_DOMAIN_EDGE);
+      "sharp_edge", bke::AttrDomain::Edge);
 
   blender::short2 *clnors = static_cast<blender::short2 *>(
       CustomData_get_layer_for_write(ldata, CD_CUSTOMLOOPNORMAL, corner_verts.size()));
@@ -513,7 +513,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
     clnors = static_cast<blender::short2 *>(
         CustomData_get_layer_for_write(ldata, CD_CUSTOMLOOPNORMAL, corner_verts.size()));
     loop_normals.reinitialize(corner_verts.size());
-    const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", ATTR_DOMAIN_FACE);
+    const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", bke::AttrDomain::Face);
     blender::bke::mesh::normals_calc_loop(positions,
                                           edges,
                                           faces,

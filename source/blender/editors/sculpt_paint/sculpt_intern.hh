@@ -896,7 +896,7 @@ bool SCULPT_vertex_is_occluded(SculptSession *ss, PBVHVertRef vertex, bool origi
 /** Returns true if a color attribute exists in the current sculpt session. */
 bool SCULPT_has_colors(const SculptSession *ss);
 
-/** Returns true if the active color attribute is on loop (ATTR_DOMAIN_CORNER) domain. */
+/** Returns true if the active color attribute is on loop (AttrDomain::Corner) domain. */
 bool SCULPT_has_loop_colors(const Object *ob);
 
 const float *SCULPT_vertex_persistent_co_get(SculptSession *ss, PBVHVertRef vertex);

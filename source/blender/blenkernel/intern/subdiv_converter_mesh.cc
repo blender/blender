@@ -383,6 +383,7 @@ static void init_user_data(OpenSubdiv_Converter *converter,
                            const Mesh *mesh)
 {
   using namespace blender;
+  using namespace blender::bke;
   ConverterStorage *user_data = MEM_new<ConverterStorage>(__func__);
   user_data->settings = *settings;
   user_data->mesh = mesh;
@@ -393,8 +394,8 @@ static void init_user_data(OpenSubdiv_Converter *converter,
   user_data->corner_edges = mesh->corner_edges();
   if (settings->use_creases) {
     const bke::AttributeAccessor attributes = mesh->attributes();
-    user_data->cd_vertex_crease = *attributes.lookup<float>("crease_vert", ATTR_DOMAIN_POINT);
-    user_data->cd_edge_crease = *attributes.lookup<float>("crease_edge", ATTR_DOMAIN_EDGE);
+    user_data->cd_vertex_crease = *attributes.lookup<float>("crease_vert", AttrDomain::Point);
+    user_data->cd_edge_crease = *attributes.lookup<float>("crease_edge", AttrDomain::Edge);
   }
   user_data->loop_uv_indices = nullptr;
   initialize_manifold_indices(user_data);

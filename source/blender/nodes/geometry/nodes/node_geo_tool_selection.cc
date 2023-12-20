@@ -23,7 +23,7 @@ class ToolSelectionFieldInput final : public bke::GeometryFieldInput {
   GVArray get_varray_for_context(const bke::GeometryFieldContext &context,
                                  const IndexMask & /*mask*/) const final
   {
-    const eAttrDomain domain = context.domain();
+    const AttrDomain domain = context.domain();
     const AttributeAccessor attributes = *context.attributes();
     switch (context.type()) {
       case GeometryComponent::Type::Curve:
@@ -31,12 +31,12 @@ class ToolSelectionFieldInput final : public bke::GeometryFieldInput {
         return *attributes.lookup_or_default<bool>(".selection", domain, true);
       case GeometryComponent::Type::Mesh:
         switch (domain) {
-          case ATTR_DOMAIN_POINT:
+          case AttrDomain::Point:
             return *attributes.lookup_or_default<bool>(".select_vert", domain, false);
-          case ATTR_DOMAIN_EDGE:
+          case AttrDomain::Edge:
             return *attributes.lookup_or_default<bool>(".select_edge", domain, false);
-          case ATTR_DOMAIN_FACE:
-          case ATTR_DOMAIN_CORNER:
+          case AttrDomain::Face:
+          case AttrDomain::Corner:
             return *attributes.lookup_or_default<bool>(".select_poly", domain, false);
           default:
             BLI_assert_unreachable();

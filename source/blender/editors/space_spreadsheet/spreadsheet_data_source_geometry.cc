@@ -75,29 +75,29 @@ std::unique_ptr<ColumnValues> ExtraColumns::get_column_values(
 
 static void add_mesh_debug_column_names(
     const Mesh &mesh,
-    const eAttrDomain domain,
+    const bke::AttrDomain domain,
     FunctionRef<void(const SpreadsheetColumnID &, bool is_extra)> fn)
 {
   switch (domain) {
-    case ATTR_DOMAIN_POINT:
+    case bke::AttrDomain::Point:
       if (CustomData_has_layer(&mesh.vert_data, CD_ORIGINDEX)) {
         fn({(char *)"Original Index"}, false);
       }
       break;
-    case ATTR_DOMAIN_EDGE:
+    case bke::AttrDomain::Edge:
       if (CustomData_has_layer(&mesh.edge_data, CD_ORIGINDEX)) {
         fn({(char *)"Original Index"}, false);
       }
       fn({(char *)"Vertices"}, false);
       break;
-    case ATTR_DOMAIN_FACE:
+    case bke::AttrDomain::Face:
       if (CustomData_has_layer(&mesh.face_data, CD_ORIGINDEX)) {
         fn({(char *)"Original Index"}, false);
       }
       fn({(char *)"Corner Start"}, false);
       fn({(char *)"Corner Size"}, false);
       break;
-    case ATTR_DOMAIN_CORNER:
+    case bke::AttrDomain::Corner:
       fn({(char *)"Vertex"}, false);
       fn({(char *)"Edge"}, false);
       break;
@@ -108,11 +108,11 @@ static void add_mesh_debug_column_names(
 }
 
 static std::unique_ptr<ColumnValues> build_mesh_debug_columns(const Mesh &mesh,
-                                                              const eAttrDomain domain,
+                                                              const bke::AttrDomain domain,
                                                               const StringRef name)
 {
   switch (domain) {
-    case ATTR_DOMAIN_POINT: {
+    case bke::AttrDomain::Point: {
       if (name == "Original Index") {
         const int *data = static_cast<const int *>(
             CustomData_get_layer(&mesh.vert_data, CD_ORIGINDEX));
@@ -123,7 +123,7 @@ static std::unique_ptr<ColumnValues> build_mesh_debug_columns(const Mesh &mesh,
       }
       return {};
     }
-    case ATTR_DOMAIN_EDGE: {
+    case bke::AttrDomain::Edge: {
       if (name == "Original Index") {
         const int *data = static_cast<const int *>(
             CustomData_get_layer(&mesh.edge_data, CD_ORIGINDEX));
@@ -137,7 +137,7 @@ static std::unique_ptr<ColumnValues> build_mesh_debug_columns(const Mesh &mesh,
       }
       return {};
     }
-    case ATTR_DOMAIN_FACE: {
+    case bke::AttrDomain::Face: {
       if (name == "Original Index") {
         const int *data = static_cast<const int *>(
             CustomData_get_layer(&mesh.face_data, CD_ORIGINDEX));
@@ -159,7 +159,7 @@ static std::unique_ptr<ColumnValues> build_mesh_debug_columns(const Mesh &mesh,
       }
       return {};
     }
-    case ATTR_DOMAIN_CORNER: {
+    case bke::AttrDomain::Corner: {
       if (name == "Vertex") {
         return std::make_unique<ColumnValues>(name, VArray<int>::ForSpan(mesh.corner_verts()));
       }
@@ -277,7 +277,7 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
     if (const GreasePencil *grease_pencil =
             static_cast<const bke::GreasePencilComponent &>(*component_).get())
     {
-      if (domain_ == ATTR_DOMAIN_LAYER && STREQ(column_id.name, "Name")) {
+      if (domain_ == bke::AttrDomain::Layer && STREQ(column_id.name, "Name")) {
         const Span<const bke::greasepencil::Layer *> layers = grease_pencil->layers();
         return std::make_unique<ColumnValues>(
             column_id.name, VArray<std::string>::ForFunc(domain_num, [layers](int64_t index) {
@@ -395,7 +395,7 @@ IndexMask GeometryDataSource::apply_selection_filter(IndexMaskMemory &memory) co
                                     const BMVert *vert = BM_vert_at_index(bm, i_orig);
                                     return BM_elem_flag_test(vert, BM_ELEM_SELECT);
                                   }),
-            ATTR_DOMAIN_POINT,
+            bke::AttrDomain::Point,
             domain_);
         return IndexMask::from_bools(selection, memory);
       }
@@ -408,7 +408,7 @@ IndexMask GeometryDataSource::apply_selection_filter(IndexMaskMemory &memory) co
                                     const BMVert *vert = BM_vert_at_index(bm, vertex_index);
                                     return BM_elem_flag_test(vert, BM_ELEM_SELECT);
                                   }),
-            ATTR_DOMAIN_POINT,
+            bke::AttrDomain::Point,
             domain_);
         return IndexMask::from_bools(selection, memory);
       }
@@ -420,9 +420,9 @@ IndexMask GeometryDataSource::apply_selection_filter(IndexMaskMemory &memory) co
       const bke::CurveComponent &component = static_cast<const bke::CurveComponent &>(*component_);
       const Curves &curves_id = *component.get();
       switch (domain_) {
-        case ATTR_DOMAIN_POINT:
+        case bke::AttrDomain::Point:
           return curves::retrieve_selected_points(curves_id, memory);
-        case ATTR_DOMAIN_CURVE:
+        case bke::AttrDomain::Curve:
           return curves::retrieve_selected_curves(curves_id, memory);
         default:
           BLI_assert_unreachable();
@@ -433,7 +433,7 @@ IndexMask GeometryDataSource::apply_selection_filter(IndexMaskMemory &memory) co
       BLI_assert(object_eval_->type == OB_POINTCLOUD);
       const bke::AttributeAccessor attributes = *component_->attributes();
       const VArray<bool> &selection = *attributes.lookup_or_default(
-          ".selection", ATTR_DOMAIN_POINT, false);
+          ".selection", bke::AttrDomain::Point, false);
       return IndexMask::from_bools(selection, memory);
     }
     default:
@@ -450,7 +450,7 @@ std::optional<const bke::AttributeAccessor> GeometryDataSource::get_component_at
   if (!grease_pencil) {
     return {};
   }
-  if (domain_ == ATTR_DOMAIN_LAYER) {
+  if (domain_ == bke::AttrDomain::Layer) {
     return grease_pencil->attributes();
   }
   if (layer_index_ >= 0 && layer_index_ < grease_pencil->layers().size()) {
@@ -599,7 +599,7 @@ bke::GeometrySet spreadsheet_get_display_geometry_set(const SpaceSpreadsheet *ss
 std::unique_ptr<DataSource> data_source_from_geometry(const bContext *C, Object *object_eval)
 {
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
-  const eAttrDomain domain = (eAttrDomain)sspreadsheet->attribute_domain;
+  const bke::AttrDomain domain = (bke::AttrDomain)sspreadsheet->attribute_domain;
   const auto component_type = bke::GeometryComponent::Type(sspreadsheet->geometry_component_type);
   const int active_layer_index = sspreadsheet->active_layer_index;
   bke::GeometrySet geometry_set = spreadsheet_get_display_geometry_set(sspreadsheet, object_eval);

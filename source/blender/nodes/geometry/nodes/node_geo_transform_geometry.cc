@@ -78,7 +78,7 @@ static void translate_pointcloud(PointCloud &pointcloud, const float3 translatio
 
   MutableAttributeAccessor attributes = pointcloud.attributes_for_write();
   SpanAttributeWriter position = attributes.lookup_or_add_for_write_span<float3>(
-      "position", ATTR_DOMAIN_POINT);
+      "position", AttrDomain::Point);
   translate_positions(position.span, translation);
   position.finish();
 
@@ -93,7 +93,7 @@ static void transform_pointcloud(PointCloud &pointcloud, const float4x4 &transfo
 {
   MutableAttributeAccessor attributes = pointcloud.attributes_for_write();
   SpanAttributeWriter position = attributes.lookup_or_add_for_write_span<float3>(
-      "position", ATTR_DOMAIN_POINT);
+      "position", AttrDomain::Point);
   transform_positions(position.span, transform);
   position.finish();
 }

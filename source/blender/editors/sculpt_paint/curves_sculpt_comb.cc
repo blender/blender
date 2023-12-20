@@ -135,7 +135,7 @@ struct CombOperationExecutor {
     transforms_ = CurvesSurfaceTransforms(*curves_ob_orig_, curves_id_orig_->surface);
 
     point_factors_ = *curves_orig_->attributes().lookup_or_default<float>(
-        ".selection", ATTR_DOMAIN_POINT, 1.0f);
+        ".selection", bke::AttrDomain::Point, 1.0f);
     curve_selection_ = curves::retrieve_selected_curves(*curves_id_orig_, selected_curve_memory_);
 
     brush_pos_prev_re_ = self_->brush_pos_last_re_;

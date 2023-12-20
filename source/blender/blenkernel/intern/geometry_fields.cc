@@ -23,13 +23,13 @@
 
 namespace blender::bke {
 
-MeshFieldContext::MeshFieldContext(const Mesh &mesh, const eAttrDomain domain)
+MeshFieldContext::MeshFieldContext(const Mesh &mesh, const AttrDomain domain)
     : mesh_(mesh), domain_(domain)
 {
   BLI_assert(mesh.attributes().domain_supported(domain_));
 }
 
-CurvesFieldContext::CurvesFieldContext(const CurvesGeometry &curves, const eAttrDomain domain)
+CurvesFieldContext::CurvesFieldContext(const CurvesGeometry &curves, const AttrDomain domain)
     : curves_(curves), domain_(domain)
 {
   BLI_assert(curves.attributes().domain_supported(domain));
@@ -57,7 +57,7 @@ GVArray GreasePencilLayerFieldContext::get_varray_for_input(const fn::FieldInput
 }
 
 GeometryFieldContext::GeometryFieldContext(const GeometryFieldContext &other,
-                                           const eAttrDomain domain)
+                                           const AttrDomain domain)
     : geometry_(other.geometry_),
       type_(other.type_),
       domain_(domain),
@@ -67,7 +67,7 @@ GeometryFieldContext::GeometryFieldContext(const GeometryFieldContext &other,
 
 GeometryFieldContext::GeometryFieldContext(const void *geometry,
                                            const GeometryComponent::Type type,
-                                           const eAttrDomain domain,
+                                           const AttrDomain domain,
                                            const int grease_pencil_layer_index)
     : geometry_(geometry),
       type_(type),
@@ -83,7 +83,7 @@ GeometryFieldContext::GeometryFieldContext(const void *geometry,
 }
 
 GeometryFieldContext::GeometryFieldContext(const GeometryComponent &component,
-                                           const eAttrDomain domain)
+                                           const AttrDomain domain)
     : type_(component.type()), domain_(domain)
 {
   switch (component.type()) {
@@ -109,7 +109,7 @@ GeometryFieldContext::GeometryFieldContext(const GeometryComponent &component,
           static_cast<const GreasePencilComponent &>(component);
       geometry_ = grease_pencil_component.get();
       /* Need to use another constructor for other domains. */
-      BLI_assert(domain == ATTR_DOMAIN_LAYER);
+      BLI_assert(domain == AttrDomain::Layer);
       break;
     }
     case GeometryComponent::Type::Instance: {
@@ -125,26 +125,26 @@ GeometryFieldContext::GeometryFieldContext(const GeometryComponent &component,
   }
 }
 
-GeometryFieldContext::GeometryFieldContext(const Mesh &mesh, eAttrDomain domain)
+GeometryFieldContext::GeometryFieldContext(const Mesh &mesh, AttrDomain domain)
     : geometry_(&mesh), type_(GeometryComponent::Type::Mesh), domain_(domain)
 {
 }
-GeometryFieldContext::GeometryFieldContext(const CurvesGeometry &curves, eAttrDomain domain)
+GeometryFieldContext::GeometryFieldContext(const CurvesGeometry &curves, AttrDomain domain)
     : geometry_(&curves), type_(GeometryComponent::Type::Curve), domain_(domain)
 {
 }
 GeometryFieldContext::GeometryFieldContext(const PointCloud &points)
-    : geometry_(&points), type_(GeometryComponent::Type::PointCloud), domain_(ATTR_DOMAIN_POINT)
+    : geometry_(&points), type_(GeometryComponent::Type::PointCloud), domain_(AttrDomain::Point)
 {
 }
 GeometryFieldContext::GeometryFieldContext(const GreasePencil &grease_pencil)
     : geometry_(&grease_pencil),
       type_(GeometryComponent::Type::GreasePencil),
-      domain_(ATTR_DOMAIN_LAYER)
+      domain_(AttrDomain::Layer)
 {
 }
 GeometryFieldContext::GeometryFieldContext(const GreasePencil &grease_pencil,
-                                           const eAttrDomain domain,
+                                           const AttrDomain domain,
                                            const int layer_index)
     : geometry_(&grease_pencil),
       type_(GeometryComponent::Type::GreasePencil),
@@ -155,7 +155,7 @@ GeometryFieldContext::GeometryFieldContext(const GreasePencil &grease_pencil,
 GeometryFieldContext::GeometryFieldContext(const Instances &instances)
     : geometry_(&instances),
       type_(GeometryComponent::Type::Instance),
-      domain_(ATTR_DOMAIN_INSTANCE)
+      domain_(AttrDomain::Instance)
 {
 }
 
@@ -171,7 +171,7 @@ std::optional<AttributeAccessor> GeometryFieldContext::attributes() const
     return pointcloud->attributes();
   }
   if (const GreasePencil *grease_pencil = this->grease_pencil()) {
-    if (domain_ == ATTR_DOMAIN_LAYER) {
+    if (domain_ == AttrDomain::Layer) {
       return grease_pencil->attributes();
     }
     else if (const greasepencil::Drawing *drawing =
@@ -213,7 +213,7 @@ const GreasePencil *GeometryFieldContext::grease_pencil() const
 const greasepencil::Drawing *GeometryFieldContext::grease_pencil_layer_drawing() const
 {
   if (!(this->type() == GeometryComponent::Type::GreasePencil) ||
-      !ELEM(domain_, ATTR_DOMAIN_CURVE, ATTR_DOMAIN_POINT))
+      !ELEM(domain_, AttrDomain::Curve, AttrDomain::Point))
   {
     return nullptr;
   }
@@ -279,7 +279,7 @@ GVArray GeometryFieldInput::get_varray_for_context(const fn::FieldContext &conte
   return {};
 }
 
-std::optional<eAttrDomain> GeometryFieldInput::preferred_domain(
+std::optional<AttrDomain> GeometryFieldInput::preferred_domain(
     const GeometryComponent & /*component*/) const
 {
   return std::nullopt;
@@ -302,7 +302,7 @@ GVArray MeshFieldInput::get_varray_for_context(const fn::FieldContext &context,
   return {};
 }
 
-std::optional<eAttrDomain> MeshFieldInput::preferred_domain(const Mesh & /*mesh*/) const
+std::optional<AttrDomain> MeshFieldInput::preferred_domain(const Mesh & /*mesh*/) const
 {
   return std::nullopt;
 }
@@ -325,7 +325,7 @@ GVArray CurvesFieldInput::get_varray_for_context(const fn::FieldContext &context
   return {};
 }
 
-std::optional<eAttrDomain> CurvesFieldInput::preferred_domain(
+std::optional<AttrDomain> CurvesFieldInput::preferred_domain(
     const CurvesGeometry & /*curves*/) const
 {
   return std::nullopt;
@@ -373,13 +373,13 @@ GVArray AttributeFieldInput::get_varray_for_context(const GeometryFieldContext &
                                                     const IndexMask & /*mask*/) const
 {
   const eCustomDataType data_type = cpp_type_to_custom_data_type(*type_);
-  const eAttrDomain domain = context.domain();
+  const AttrDomain domain = context.domain();
   if (const GreasePencil *grease_pencil = context.grease_pencil()) {
     const AttributeAccessor layer_attributes = grease_pencil->attributes();
-    if (domain == ATTR_DOMAIN_LAYER) {
+    if (domain == AttrDomain::Layer) {
       return *layer_attributes.lookup(name_, data_type);
     }
-    else if (ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE)) {
+    else if (ELEM(domain, AttrDomain::Point, AttrDomain::Curve)) {
       const int layer_index = context.grease_pencil_layer_index();
       const AttributeAccessor curves_attributes = *context.attributes();
       if (const GAttributeReader reader = curves_attributes.lookup(name_, domain, data_type)) {
@@ -428,7 +428,7 @@ bool AttributeFieldInput::is_equal_to(const fn::FieldNode &other) const
   return false;
 }
 
-std::optional<eAttrDomain> AttributeFieldInput::preferred_domain(
+std::optional<AttrDomain> AttributeFieldInput::preferred_domain(
     const GeometryComponent &component) const
 {
   const std::optional<AttributeAccessor> attributes = component.attributes();
@@ -442,11 +442,11 @@ std::optional<eAttrDomain> AttributeFieldInput::preferred_domain(
   return meta_data->domain;
 }
 
-static StringRef get_random_id_attribute_name(const eAttrDomain domain)
+static StringRef get_random_id_attribute_name(const AttrDomain domain)
 {
   switch (domain) {
-    case ATTR_DOMAIN_POINT:
-    case ATTR_DOMAIN_INSTANCE:
+    case AttrDomain::Point:
+    case AttrDomain::Instance:
       return "id";
     default:
       return "";
@@ -512,7 +512,7 @@ bool AnonymousAttributeFieldInput::is_equal_to(const fn::FieldNode &other) const
   return false;
 }
 
-std::optional<eAttrDomain> AnonymousAttributeFieldInput::preferred_domain(
+std::optional<AttrDomain> AnonymousAttributeFieldInput::preferred_domain(
     const GeometryComponent &component) const
 {
   const std::optional<AttributeAccessor> attributes = component.attributes();
@@ -530,8 +530,8 @@ GVArray NamedLayerSelectionFieldInput::get_varray_for_context(
     const bke::GeometryFieldContext &context, const IndexMask &mask) const
 {
   using namespace bke::greasepencil;
-  const eAttrDomain domain = context.domain();
-  if (!ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE, ATTR_DOMAIN_LAYER)) {
+  const AttrDomain domain = context.domain();
+  if (!ELEM(domain, AttrDomain::Point, AttrDomain::Curve, AttrDomain::Layer)) {
     return {};
   }
 
@@ -546,7 +546,7 @@ GVArray NamedLayerSelectionFieldInput::get_varray_for_context(
     return {};
   }
 
-  if (domain == ATTR_DOMAIN_LAYER) {
+  if (domain == AttrDomain::Layer) {
     Array<bool> selection(mask.min_array_size());
     layer_indices.to_bools(selection);
     return VArray<bool>::ForContainer(std::move(selection));
@@ -574,10 +574,10 @@ bool NamedLayerSelectionFieldInput::is_equal_to(const fn::FieldNode &other) cons
   return false;
 }
 
-std::optional<eAttrDomain> NamedLayerSelectionFieldInput::preferred_domain(
+std::optional<AttrDomain> NamedLayerSelectionFieldInput::preferred_domain(
     const bke::GeometryComponent & /*component*/) const
 {
-  return ATTR_DOMAIN_LAYER;
+  return AttrDomain::Layer;
 }
 
 }  // namespace blender::bke
@@ -627,7 +627,7 @@ static std::optional<AttributeIDRef> try_get_field_direct_attribute_id(const fn:
 }
 
 static bool attribute_kind_matches(const AttributeMetaData meta_data,
-                                   const eAttrDomain domain,
+                                   const AttrDomain domain,
                                    const eCustomDataType data_type)
 {
   return meta_data.domain == domain && meta_data.data_type == data_type;
@@ -639,7 +639,7 @@ static bool attribute_kind_matches(const AttributeMetaData meta_data,
  */
 static bool try_add_shared_field_attribute(MutableAttributeAccessor attributes,
                                            const AttributeIDRef &id_to_create,
-                                           const eAttrDomain domain,
+                                           const AttrDomain domain,
                                            const fn::GField &field)
 {
   const std::optional<AttributeIDRef> field_id = try_get_field_direct_attribute_id(field);
@@ -667,7 +667,7 @@ static bool try_add_shared_field_attribute(MutableAttributeAccessor attributes,
 static bool try_capture_field_on_geometry(MutableAttributeAccessor attributes,
                                           const GeometryFieldContext &field_context,
                                           const AttributeIDRef &attribute_id,
-                                          const eAttrDomain domain,
+                                          const AttrDomain domain,
                                           const fn::Field<bool> &selection,
                                           const fn::GField &field)
 {
@@ -747,12 +747,12 @@ static bool try_capture_field_on_geometry(MutableAttributeAccessor attributes,
 
 bool try_capture_field_on_geometry(GeometryComponent &component,
                                    const AttributeIDRef &attribute_id,
-                                   const eAttrDomain domain,
+                                   const AttrDomain domain,
                                    const fn::Field<bool> &selection,
                                    const fn::GField &field)
 {
   if (component.type() == GeometryComponent::Type::GreasePencil &&
-      ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE))
+      ELEM(domain, AttrDomain::Point, AttrDomain::Curve))
   {
     /* Capture the field on every layer individually. */
     auto &grease_pencil_component = static_cast<GreasePencilComponent &>(component);
@@ -792,32 +792,32 @@ bool try_capture_field_on_geometry(GeometryComponent &component,
 
 bool try_capture_field_on_geometry(GeometryComponent &component,
                                    const AttributeIDRef &attribute_id,
-                                   const eAttrDomain domain,
+                                   const AttrDomain domain,
                                    const fn::GField &field)
 {
   const fn::Field<bool> selection = fn::make_constant_field<bool>(true);
   return try_capture_field_on_geometry(component, attribute_id, domain, selection, field);
 }
 
-std::optional<eAttrDomain> try_detect_field_domain(const GeometryComponent &component,
+std::optional<AttrDomain> try_detect_field_domain(const GeometryComponent &component,
                                                    const fn::GField &field)
 {
   const GeometryComponent::Type component_type = component.type();
   if (component_type == GeometryComponent::Type::PointCloud) {
-    return ATTR_DOMAIN_POINT;
+    return AttrDomain::Point;
   }
   if (component_type == GeometryComponent::Type::GreasePencil) {
-    return ATTR_DOMAIN_LAYER;
+    return AttrDomain::Layer;
   }
   if (component_type == GeometryComponent::Type::Instance) {
-    return ATTR_DOMAIN_INSTANCE;
+    return AttrDomain::Instance;
   }
   const std::shared_ptr<const fn::FieldInputs> &field_inputs = field.node().field_inputs();
   if (!field_inputs) {
     return std::nullopt;
   }
-  std::optional<eAttrDomain> output_domain;
-  auto handle_domain = [&](const std::optional<eAttrDomain> domain) {
+  std::optional<AttrDomain> output_domain;
+  auto handle_domain = [&](const std::optional<AttrDomain> domain) {
     if (!domain.has_value()) {
       return false;
     }

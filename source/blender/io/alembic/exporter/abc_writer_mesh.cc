@@ -370,7 +370,7 @@ bool ABCGenericMeshWriter::get_velocities(Mesh *mesh, std::vector<Imath::V3f> &v
   /* Export velocity attribute output by fluid sim, sequence cache modifier
    * and geometry nodes. */
   const CustomDataLayer *velocity_layer = BKE_id_attribute_find(
-      &mesh->id, "velocity", CD_PROP_FLOAT3, ATTR_DOMAIN_POINT);
+      &mesh->id, "velocity", CD_PROP_FLOAT3, bke::AttrDomain::Point);
 
   if (velocity_layer == nullptr) {
     return false;
@@ -395,7 +395,7 @@ void ABCGenericMeshWriter::get_geo_groups(Object *object,
 {
   const bke::AttributeAccessor attributes = mesh->attributes();
   const VArraySpan<int> material_indices = *attributes.lookup_or_default<int>(
-      "material_index", ATTR_DOMAIN_FACE, 0);
+      "material_index", bke::AttrDomain::Face, 0);
 
   for (const int i : material_indices.index_range()) {
     short mnr = material_indices[i];
@@ -478,7 +478,8 @@ static void get_edge_creases(Mesh *mesh,
   sharpnesses.clear();
 
   const bke::AttributeAccessor attributes = mesh->attributes();
-  const bke::AttributeReader attribute = attributes.lookup<float>("crease_edge", ATTR_DOMAIN_EDGE);
+  const bke::AttributeReader attribute = attributes.lookup<float>("crease_edge",
+                                                                  bke::AttrDomain::Edge);
   if (!attribute) {
     return;
   }
@@ -506,7 +507,7 @@ static void get_vert_creases(Mesh *mesh,
 
   const bke::AttributeAccessor attributes = mesh->attributes();
   const bke::AttributeReader attribute = attributes.lookup<float>("crease_vert",
-                                                                  ATTR_DOMAIN_POINT);
+                                                                  bke::AttrDomain::Point);
   if (!attribute) {
     return;
   }

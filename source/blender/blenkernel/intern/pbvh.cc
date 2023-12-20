@@ -53,6 +53,7 @@ using blender::float3;
 using blender::MutableSpan;
 using blender::Span;
 using blender::Vector;
+using blender::bke::AttrDomain;
 
 #define LEAF_LIMIT 10000
 
@@ -760,9 +761,9 @@ PBVH *build_mesh(Mesh *mesh)
 
   if (corner_tris_num) {
     const AttributeAccessor attributes = mesh->attributes();
-    const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", ATTR_DOMAIN_FACE);
-    const VArraySpan material_index = *attributes.lookup<int>("material_index", ATTR_DOMAIN_FACE);
-    const VArraySpan sharp_face = *attributes.lookup<bool>("sharp_face", ATTR_DOMAIN_FACE);
+    const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", AttrDomain::Face);
+    const VArraySpan material_index = *attributes.lookup<int>("material_index", AttrDomain::Face);
+    const VArraySpan sharp_face = *attributes.lookup<bool>("sharp_face", AttrDomain::Face);
     pbvh_build(pbvh.get(),
                corner_verts,
                corner_tris,
@@ -842,8 +843,8 @@ PBVH *build_grids(const CCGKey *key, Mesh *mesh, SubdivCCG *subdiv_ccg)
 
   if (!grids.is_empty()) {
     const AttributeAccessor attributes = mesh->attributes();
-    const VArraySpan material_index = *attributes.lookup<int>("material_index", ATTR_DOMAIN_FACE);
-    const VArraySpan sharp_face = *attributes.lookup<bool>("sharp_face", ATTR_DOMAIN_FACE);
+    const VArraySpan material_index = *attributes.lookup<int>("material_index", AttrDomain::Face);
+    const VArraySpan sharp_face = *attributes.lookup<bool>("sharp_face", AttrDomain::Face);
     pbvh_build(pbvh.get(),
                {},
                {},
@@ -1335,7 +1336,7 @@ void node_update_mask_mesh(const Span<float> mask, PBVHNode &node)
 static void update_mask_mesh(const Mesh &mesh, const Span<PBVHNode *> nodes)
 {
   const AttributeAccessor attributes = mesh.attributes();
-  const VArraySpan<float> mask = *attributes.lookup<float>(".sculpt_mask", ATTR_DOMAIN_POINT);
+  const VArraySpan<float> mask = *attributes.lookup<float>(".sculpt_mask", AttrDomain::Point);
   if (mask.is_empty()) {
     for (PBVHNode *node : nodes) {
       node->flag &= ~PBVH_FullyMasked;
@@ -1457,7 +1458,7 @@ void node_update_visibility_mesh(const Span<bool> hide_vert, PBVHNode &node)
 static void update_visibility_faces(const Mesh &mesh, const Span<PBVHNode *> nodes)
 {
   const AttributeAccessor attributes = mesh.attributes();
-  const VArraySpan<bool> hide_vert = *attributes.lookup<bool>(".hide_vert", ATTR_DOMAIN_POINT);
+  const VArraySpan<bool> hide_vert = *attributes.lookup<bool>(".hide_vert", AttrDomain::Point);
   if (hide_vert.is_empty()) {
     for (PBVHNode *node : nodes) {
       node->flag &= ~PBVH_FullyHidden;
@@ -1592,11 +1593,11 @@ IndexMask nodes_to_face_selection_grids(const SubdivCCG &subdiv_ccg,
 
 /***************************** PBVH Access ***********************************/
 
-bool BKE_pbvh_get_color_layer(Mesh *mesh, CustomDataLayer **r_layer, eAttrDomain *r_domain)
+bool BKE_pbvh_get_color_layer(Mesh *mesh, CustomDataLayer **r_layer, AttrDomain *r_domain)
 {
   *r_layer = BKE_id_attribute_search_for_write(
       &mesh->id, mesh->active_color_attribute, CD_MASK_COLOR_ALL, ATTR_DOMAIN_MASK_COLOR);
-  *r_domain = *r_layer ? BKE_id_attribute_domain(&mesh->id, *r_layer) : ATTR_DOMAIN_POINT;
+  *r_domain = *r_layer ? BKE_id_attribute_domain(&mesh->id, *r_layer) : AttrDomain::Point;
   return *r_layer != nullptr;
 }
 
@@ -2597,7 +2598,7 @@ static blender::draw::pbvh::PBVH_GPU_Args pbvh_draw_args_init(const Mesh &mesh,
       args.face_normals = pbvh.face_normals;
       /* Retrieve data from the original mesh. Ideally that would be passed to this function to
        * make it clearer when each is used. */
-      args.hide_poly = *pbvh.mesh->attributes().lookup<bool>(".hide_poly", ATTR_DOMAIN_FACE);
+      args.hide_poly = *pbvh.mesh->attributes().lookup<bool>(".hide_poly", AttrDomain::Face);
 
       args.prim_indices = node.prim_indices;
       args.tri_faces = mesh.corner_tri_faces();
@@ -3164,7 +3165,7 @@ void BKE_pbvh_sync_visibility_from_verts(PBVH *pbvh, Mesh *mesh)
       }
       else {
         SpanAttributeWriter<bool> hide_poly = attributes.lookup_or_add_for_write_span<bool>(
-            ".hide_poly", ATTR_DOMAIN_FACE, AttributeInitConstruct());
+            ".hide_poly", AttrDomain::Face, AttributeInitConstruct());
         hide_poly.span.fill(false);
         index_mask::masked_fill(hide_poly.span, true, hidden_faces);
         hide_poly.finish();

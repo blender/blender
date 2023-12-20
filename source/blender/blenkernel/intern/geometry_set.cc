@@ -60,7 +60,7 @@ GeometryComponentPtr GeometryComponent::create(Type component_type)
   return {};
 }
 
-int GeometryComponent::attribute_domain_size(const eAttrDomain domain) const
+int GeometryComponent::attribute_domain_size(const AttrDomain domain) const
 {
   if (this->is_empty()) {
     return 0;
@@ -608,15 +608,15 @@ void GeometrySet::propagate_attributes_from_layer_to_instances(
     if (id.is_anonymous() && !propagation_info.propagate(id.anonymous_id())) {
       return true;
     }
-    const GAttributeReader src = src_attributes.lookup(id, ATTR_DOMAIN_LAYER);
+    const GAttributeReader src = src_attributes.lookup(id, AttrDomain::Layer);
     if (src.sharing_info && src.varray.is_span()) {
       const AttributeInitShared init(src.varray.get_internal_span().data(), *src.sharing_info);
-      if (dst_attributes.add(id, ATTR_DOMAIN_INSTANCE, meta_data.data_type, init)) {
+      if (dst_attributes.add(id, AttrDomain::Instance, meta_data.data_type, init)) {
         return true;
       }
     }
     GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
-        id, ATTR_DOMAIN_INSTANCE, meta_data.data_type);
+        id, AttrDomain::Instance, meta_data.data_type);
     if (!dst) {
       return true;
     }
@@ -658,10 +658,10 @@ void GeometrySet::gather_attributes_for_propagation(
           return;
         }
 
-        eAttrDomain domain = meta_data.domain;
+        AttrDomain domain = meta_data.domain;
         if (dst_component_type != GeometryComponent::Type::Instance &&
-            domain == ATTR_DOMAIN_INSTANCE) {
-          domain = ATTR_DOMAIN_POINT;
+            domain == AttrDomain::Instance) {
+          domain = AttrDomain::Point;
         }
 
         auto add_info = [&](AttributeKind *attribute_kind) {

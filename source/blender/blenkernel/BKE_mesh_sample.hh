@@ -178,7 +178,7 @@ class BaryWeightSampleFn : public mf::MultiFunction {
   std::optional<bke::MeshFieldContext> source_context_;
   std::unique_ptr<fn::FieldEvaluator> source_evaluator_;
   const GVArray *source_data_;
-  eAttrDomain domain_;
+  AttrDomain domain_;
 
  public:
   BaryWeightSampleFn(GeometrySet geometry, fn::GField src_field);

@@ -56,7 +56,7 @@ void ED_operatortypes_geometry();
 bool ED_geometry_attribute_convert(Mesh *mesh,
                                    const char *name,
                                    eCustomDataType dst_type,
-                                   eAttrDomain dst_domain,
+                                   blender::bke::AttrDomain dst_domain,
                                    ReportList *reports);
 
 namespace blender::ed::geometry {

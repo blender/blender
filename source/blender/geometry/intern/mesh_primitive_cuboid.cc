@@ -293,7 +293,7 @@ static void calculate_uvs(const CuboidConfig &config, Mesh *mesh, const bke::Att
 {
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::SpanAttributeWriter<float2> uv_attribute =
-      attributes.lookup_or_add_for_write_only_span<float2>(uv_id, ATTR_DOMAIN_CORNER);
+      attributes.lookup_or_add_for_write_only_span<float2>(uv_id, bke::AttrDomain::Corner);
   MutableSpan<float2> uvs = uv_attribute.span;
 
   int loop_index = 0;

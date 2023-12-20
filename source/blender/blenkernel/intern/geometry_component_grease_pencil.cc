@@ -117,15 +117,15 @@ static ComponentAttributeProviders create_attribute_providers_for_grease_pencil(
         return grease_pencil.layers().size();
       }};
 
-  static CustomDataAttributeProvider layer_custom_data(ATTR_DOMAIN_LAYER, layers_access);
+  static CustomDataAttributeProvider layer_custom_data(AttrDomain::Layer, layers_access);
 
   return ComponentAttributeProviders({}, {&layer_custom_data});
 }
 
 static GVArray adapt_grease_pencil_attribute_domain(const GreasePencil & /*grease_pencil*/,
                                                     const GVArray &varray,
-                                                    const eAttrDomain from,
-                                                    const eAttrDomain to)
+                                                    const AttrDomain from,
+                                                    const AttrDomain to)
 {
   if (from == to) {
     return varray;
@@ -139,25 +139,25 @@ static AttributeAccessorFunctions get_grease_pencil_accessor_functions()
       create_attribute_providers_for_grease_pencil();
   AttributeAccessorFunctions fn =
       attribute_accessor_functions::accessor_functions_for_providers<providers>();
-  fn.domain_size = [](const void *owner, const eAttrDomain domain) {
+  fn.domain_size = [](const void *owner, const AttrDomain domain) {
     if (owner == nullptr) {
       return 0;
     }
     const GreasePencil &grease_pencil = *static_cast<const GreasePencil *>(owner);
     switch (domain) {
-      case ATTR_DOMAIN_LAYER:
+      case AttrDomain::Layer:
         return int(grease_pencil.layers().size());
       default:
         return 0;
     }
   };
-  fn.domain_supported = [](const void * /*owner*/, const eAttrDomain domain) {
-    return domain == ATTR_DOMAIN_LAYER;
+  fn.domain_supported = [](const void * /*owner*/, const AttrDomain domain) {
+    return domain == AttrDomain::Layer;
   };
   fn.adapt_domain = [](const void *owner,
                        const GVArray &varray,
-                       const eAttrDomain from_domain,
-                       const eAttrDomain to_domain) -> GVArray {
+                       const AttrDomain from_domain,
+                       const AttrDomain to_domain) -> GVArray {
     if (owner == nullptr) {
       return {};
     }

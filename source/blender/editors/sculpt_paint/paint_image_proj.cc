@@ -49,7 +49,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_attribute.h"
+#include "BKE_attribute.hh"
 #include "BKE_brush.hh"
 #include "BKE_camera.h"
 #include "BKE_colorband.h"
@@ -6585,15 +6585,16 @@ static Image *proj_paint_image_create(wmOperator *op, Main *bmain, bool is_data)
  */
 static const char *proj_paint_color_attribute_create(wmOperator *op, Object *ob)
 {
+  using namespace blender;
   char name[MAX_NAME] = "";
   float color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
-  eAttrDomain domain = ATTR_DOMAIN_POINT;
+  bke::AttrDomain domain = bke::AttrDomain::Point;
   eCustomDataType type = CD_PROP_COLOR;
 
   if (op) {
     RNA_string_get(op->ptr, "name", name);
     RNA_float_get_array(op->ptr, "color", color);
-    domain = (eAttrDomain)RNA_enum_get(op->ptr, "domain");
+    domain = bke::AttrDomain(RNA_enum_get(op->ptr, "domain"));
     type = (eCustomDataType)RNA_enum_get(op->ptr, "data_type");
   }
 
@@ -6916,6 +6917,7 @@ static void texture_paint_add_texture_paint_slot_ui(bContext *C, wmOperator *op)
 
 void PAINT_OT_add_texture_paint_slot(wmOperatorType *ot)
 {
+  using namespace blender;
   PropertyRNA *prop;
   static float default_color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
 
@@ -6986,7 +6988,7 @@ void PAINT_OT_add_texture_paint_slot(wmOperatorType *ot)
   RNA_def_enum(ot->srna,
                "domain",
                rna_enum_color_attribute_domain_items,
-               ATTR_DOMAIN_POINT,
+               int(bke::AttrDomain::Point),
                "Domain",
                "Type of element that attribute is stored on");
 

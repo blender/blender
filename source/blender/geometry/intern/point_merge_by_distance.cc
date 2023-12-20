@@ -108,9 +108,9 @@ PointCloud *point_merge_by_distance(const PointCloud &src_points,
 
   /* Transfer the ID attribute if it exists, using the ID of the first merged point. */
   if (attribute_ids.contains("id")) {
-    VArraySpan<int> src = *src_attributes.lookup_or_default<int>("id", ATTR_DOMAIN_POINT, 0);
+    VArraySpan<int> src = *src_attributes.lookup_or_default<int>("id", bke::AttrDomain::Point, 0);
     bke::SpanAttributeWriter<int> dst = dst_attributes.lookup_or_add_for_write_only_span<int>(
-        "id", ATTR_DOMAIN_POINT);
+        "id", bke::AttrDomain::Point);
 
     threading::parallel_for(IndexRange(dst_size), 1024, [&](IndexRange range) {
       for (const int i_dst : range) {
@@ -133,7 +133,7 @@ PointCloud *point_merge_by_distance(const PointCloud &src_points,
       using T = decltype(dummy);
       if constexpr (!std::is_void_v<bke::attribute_math::DefaultMixer<T>>) {
         bke::SpanAttributeWriter<T> dst_attribute =
-            dst_attributes.lookup_or_add_for_write_only_span<T>(id, ATTR_DOMAIN_POINT);
+            dst_attributes.lookup_or_add_for_write_only_span<T>(id, bke::AttrDomain::Point);
         VArraySpan<T> src = src_attribute.varray.typed<T>();
 
         threading::parallel_for(IndexRange(dst_size), 1024, [&](IndexRange range) {

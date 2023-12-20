@@ -73,7 +73,7 @@ static void populate_curve_widths(const bke::CurvesGeometry &geometry, pxr::VtAr
 {
   const bke::AttributeAccessor curve_attributes = geometry.attributes();
   const bke::AttributeReader<float> radii = curve_attributes.lookup<float>("radius",
-                                                                           ATTR_DOMAIN_POINT);
+                                                                           bke::AttrDomain::Point);
 
   widths.resize(radii.varray.size());
 

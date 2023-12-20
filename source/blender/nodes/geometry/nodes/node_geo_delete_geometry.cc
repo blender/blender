@@ -29,7 +29,7 @@ static std::optional<bke::CurvesGeometry> separate_curves_selection(
     const bke::CurvesGeometry &src_curves,
     const fn::FieldContext &field_context,
     const Field<bool> &selection_field,
-    const eAttrDomain domain,
+    const AttrDomain domain,
     const bke::AnonymousAttributePropagationInfo &propagation_info)
 {
   const int domain_size = src_curves.attributes().domain_size(domain);
@@ -44,10 +44,10 @@ static std::optional<bke::CurvesGeometry> separate_curves_selection(
     return bke::CurvesGeometry();
   }
 
-  if (domain == ATTR_DOMAIN_POINT) {
+  if (domain == AttrDomain::Point) {
     return bke::curves_copy_point_selection(src_curves, selection, propagation_info);
   }
-  else if (domain == ATTR_DOMAIN_CURVE) {
+  else if (domain == AttrDomain::Curve) {
     return bke::curves_copy_curve_selection(src_curves, selection, propagation_info);
   }
   BLI_assert_unreachable();
@@ -74,7 +74,7 @@ static std::optional<PointCloud *> separate_point_cloud_selection(
 
   PointCloud *pointcloud = BKE_pointcloud_new_nomain(selection.size());
   bke::gather_attributes(src_pointcloud.attributes(),
-                         ATTR_DOMAIN_POINT,
+                         AttrDomain::Point,
                          propagation_info,
                          {},
                          selection,
@@ -104,7 +104,7 @@ static void delete_selected_instances(GeometrySet &geometry_set,
 static std::optional<Mesh *> separate_mesh_selection(
     const Mesh &mesh,
     const Field<bool> &selection_field,
-    const eAttrDomain selection_domain,
+    const AttrDomain selection_domain,
     const GeometryNodeDeleteGeometryMode mode,
     const AnonymousAttributePropagationInfo &propagation_info)
 {
@@ -136,12 +136,12 @@ static std::optional<GreasePencil *> separate_grease_pencil_layer_selection(
   const bke::AttributeAccessor attributes = src_grease_pencil.attributes();
   const bke::GeometryFieldContext context(src_grease_pencil);
 
-  fn::FieldEvaluator evaluator(context, attributes.domain_size(ATTR_DOMAIN_LAYER));
+  fn::FieldEvaluator evaluator(context, attributes.domain_size(AttrDomain::Layer));
   evaluator.set_selection(selection_field);
   evaluator.evaluate();
 
   const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
-  if (selection.size() == attributes.domain_size(ATTR_DOMAIN_LAYER)) {
+  if (selection.size() == attributes.domain_size(AttrDomain::Layer)) {
     return std::nullopt;
   }
   if (selection.is_empty()) {
@@ -157,7 +157,7 @@ static std::optional<GreasePencil *> separate_grease_pencil_layer_selection(
   dst_grease_pencil->remove_drawings_with_no_users();
 
   bke::gather_attributes(src_grease_pencil.attributes(),
-                         ATTR_DOMAIN_LAYER,
+                         AttrDomain::Layer,
                          propagation_info,
                          {},
                          selection,
@@ -171,7 +171,7 @@ static std::optional<GreasePencil *> separate_grease_pencil_layer_selection(
 namespace blender::nodes {
 
 void separate_geometry(GeometrySet &geometry_set,
-                       const eAttrDomain domain,
+                       const AttrDomain domain,
                        const GeometryNodeDeleteGeometryMode mode,
                        const Field<bool> &selection,
                        const AnonymousAttributePropagationInfo &propagation_info,
@@ -181,7 +181,7 @@ void separate_geometry(GeometrySet &geometry_set,
 
   bool some_valid_domain = false;
   if (const PointCloud *points = geometry_set.get_pointcloud()) {
-    if (domain == ATTR_DOMAIN_POINT) {
+    if (domain == AttrDomain::Point) {
       std::optional<PointCloud *> dst_points = file_ns::separate_point_cloud_selection(
           *points, selection, propagation_info);
       if (dst_points) {
@@ -191,7 +191,7 @@ void separate_geometry(GeometrySet &geometry_set,
     }
   }
   if (const Mesh *mesh = geometry_set.get_mesh()) {
-    if (ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_EDGE, ATTR_DOMAIN_FACE, ATTR_DOMAIN_CORNER)) {
+    if (ELEM(domain, AttrDomain::Point, AttrDomain::Edge, AttrDomain::Face, AttrDomain::Corner)) {
       std::optional<Mesh *> dst_mesh = file_ns::separate_mesh_selection(
           *mesh, selection, domain, mode, propagation_info);
       if (dst_mesh) {
@@ -201,7 +201,7 @@ void separate_geometry(GeometrySet &geometry_set,
     }
   }
   if (const Curves *src_curves_id = geometry_set.get_curves()) {
-    if (ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE)) {
+    if (ELEM(domain, AttrDomain::Point, AttrDomain::Curve)) {
       const bke::CurvesGeometry &src_curves = src_curves_id->geometry.wrap();
       const bke::CurvesFieldContext field_context{src_curves, domain};
       std::optional<bke::CurvesGeometry> dst_curves = file_ns::separate_curves_selection(
@@ -221,7 +221,7 @@ void separate_geometry(GeometrySet &geometry_set,
   }
   if (geometry_set.get_grease_pencil()) {
     using namespace blender::bke::greasepencil;
-    if (domain == ATTR_DOMAIN_LAYER) {
+    if (domain == AttrDomain::Layer) {
       const GreasePencil &grease_pencil = *geometry_set.get_grease_pencil();
       std::optional<GreasePencil *> dst_grease_pencil =
           file_ns::separate_grease_pencil_layer_selection(
@@ -231,7 +231,7 @@ void separate_geometry(GeometrySet &geometry_set,
       }
       some_valid_domain = true;
     }
-    else if (ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE)) {
+    else if (ELEM(domain, AttrDomain::Point, AttrDomain::Curve)) {
       GreasePencil &grease_pencil = *geometry_set.get_grease_pencil_for_write();
       for (const int layer_index : grease_pencil.layers().index_range()) {
         Drawing *drawing = get_eval_grease_pencil_layer_drawing_for_write(grease_pencil,
@@ -241,7 +241,7 @@ void separate_geometry(GeometrySet &geometry_set,
         }
         const bke::CurvesGeometry &src_curves = drawing->strokes();
         const bke::GreasePencilLayerFieldContext field_context(
-            grease_pencil, ATTR_DOMAIN_CURVE, layer_index);
+            grease_pencil, AttrDomain::Curve, layer_index);
         std::optional<bke::CurvesGeometry> dst_curves = file_ns::separate_curves_selection(
             src_curves, field_context, selection, domain, propagation_info);
         if (!dst_curves) {
@@ -254,7 +254,7 @@ void separate_geometry(GeometrySet &geometry_set,
     }
   }
   if (geometry_set.has_instances()) {
-    if (domain == ATTR_DOMAIN_INSTANCE) {
+    if (domain == AttrDomain::Instance) {
       file_ns::delete_selected_instances(geometry_set, selection, propagation_info);
       some_valid_domain = true;
     }
@@ -283,11 +283,11 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   const bNode *node = static_cast<bNode *>(ptr->data);
   const NodeGeometryDeleteGeometry &storage = node_storage(*node);
-  const eAttrDomain domain = eAttrDomain(storage.domain);
+  const AttrDomain domain = AttrDomain(storage.domain);
 
   uiItemR(layout, ptr, "domain", UI_ITEM_NONE, "", ICON_NONE);
   /* Only show the mode when it is relevant. */
-  if (ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_EDGE, ATTR_DOMAIN_FACE)) {
+  if (ELEM(domain, AttrDomain::Point, AttrDomain::Edge, AttrDomain::Face)) {
     uiItemR(layout, ptr, "mode", UI_ITEM_NONE, "", ICON_NONE);
   }
 }
@@ -295,7 +295,7 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeGeometryDeleteGeometry *data = MEM_cnew<NodeGeometryDeleteGeometry>(__func__);
-  data->domain = ATTR_DOMAIN_POINT;
+  data->domain = int(AttrDomain::Point);
   data->mode = GEO_NODE_DELETE_GEOMETRY_MODE_ALL;
 
   node->storage = data;
@@ -312,13 +312,13 @@ static void node_geo_exec(GeoNodeExecParams params)
       params.extract_input<Field<bool>>("Selection"));
 
   const NodeGeometryDeleteGeometry &storage = node_storage(params.node());
-  const eAttrDomain domain = eAttrDomain(storage.domain);
+  const AttrDomain domain = AttrDomain(storage.domain);
   const GeometryNodeDeleteGeometryMode mode = (GeometryNodeDeleteGeometryMode)storage.mode;
 
   const AnonymousAttributePropagationInfo &propagation_info = params.get_output_propagation_info(
       "Geometry");
 
-  if (domain == ATTR_DOMAIN_INSTANCE) {
+  if (domain == AttrDomain::Instance) {
     bool is_error;
     separate_geometry(geometry_set, domain, mode, selection, propagation_info, is_error);
   }
@@ -356,7 +356,7 @@ static void node_rna(StructRNA *srna)
                     "Which domain to delete in",
                     rna_enum_attribute_domain_without_corner_items,
                     NOD_storage_enum_accessors(domain),
-                    ATTR_DOMAIN_POINT,
+                    int(AttrDomain::Point),
                     enums::domain_experimental_grease_pencil_version3_fn);
 }
 

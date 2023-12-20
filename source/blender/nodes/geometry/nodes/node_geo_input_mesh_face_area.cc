@@ -19,7 +19,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description("The surface area of each of the mesh's faces");
 }
 
-static VArray<float> construct_face_area_varray(const Mesh &mesh, const eAttrDomain domain)
+static VArray<float> construct_face_area_varray(const Mesh &mesh, const AttrDomain domain)
 {
   const Span<float3> positions = mesh.vert_positions();
   const OffsetIndices faces = mesh.faces();
@@ -30,7 +30,7 @@ static VArray<float> construct_face_area_varray(const Mesh &mesh, const eAttrDom
   };
 
   return mesh.attributes().adapt_domain<float>(
-      VArray<float>::ForFunc(faces.size(), area_fn), ATTR_DOMAIN_FACE, domain);
+      VArray<float>::ForFunc(faces.size(), area_fn), AttrDomain::Face, domain);
 }
 
 class FaceAreaFieldInput final : public bke::MeshFieldInput {
@@ -41,7 +41,7 @@ class FaceAreaFieldInput final : public bke::MeshFieldInput {
   }
 
   GVArray get_varray_for_context(const Mesh &mesh,
-                                 const eAttrDomain domain,
+                                 const AttrDomain domain,
                                  const IndexMask & /*mask*/) const final
   {
     return construct_face_area_varray(mesh, domain);
@@ -58,9 +58,9 @@ class FaceAreaFieldInput final : public bke::MeshFieldInput {
     return dynamic_cast<const FaceAreaFieldInput *>(&other) != nullptr;
   }
 
-  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
+  std::optional<AttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
   {
-    return ATTR_DOMAIN_FACE;
+    return AttrDomain::Face;
   }
 };
 

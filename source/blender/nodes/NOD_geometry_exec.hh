@@ -31,6 +31,7 @@ using bke::AttributeAccessor;
 using bke::AttributeFieldInput;
 using bke::AttributeIDRef;
 using bke::AttributeKind;
+using bke::AttrDomain;
 using bke::AttributeMetaData;
 using bke::AttributeReader;
 using bke::AttributeWriter;

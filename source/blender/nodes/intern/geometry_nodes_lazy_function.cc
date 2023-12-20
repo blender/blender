@@ -799,14 +799,14 @@ class LazyFunctionForViewerNode : public LazyFunction {
       SocketValueVariant *value_variant = params.try_get_input_data_ptr<SocketValueVariant>(1);
       BLI_assert(value_variant != nullptr);
       GField field = value_variant->extract<GField>();
-      const eAttrDomain domain = eAttrDomain(storage->domain);
+      const AttrDomain domain = AttrDomain(storage->domain);
       const StringRefNull viewer_attribute_name = ".viewer";
-      if (domain == ATTR_DOMAIN_INSTANCE) {
+      if (domain == AttrDomain::Instance) {
         if (geometry.has_instances()) {
           GeometryComponent &component = geometry.get_component_for_write(
               bke::GeometryComponent::Type::Instance);
           bke::try_capture_field_on_geometry(
-              component, viewer_attribute_name, ATTR_DOMAIN_INSTANCE, field);
+              component, viewer_attribute_name, AttrDomain::Instance, field);
         }
       }
       else {
@@ -817,15 +817,15 @@ class LazyFunctionForViewerNode : public LazyFunction {
           {
             if (geometry.has(type)) {
               GeometryComponent &component = geometry.get_component_for_write(type);
-              eAttrDomain used_domain = domain;
-              if (used_domain == ATTR_DOMAIN_AUTO) {
-                if (const std::optional<eAttrDomain> detected_domain =
+              AttrDomain used_domain = domain;
+              if (used_domain == AttrDomain::Auto) {
+                if (const std::optional<AttrDomain> detected_domain =
                         bke::try_detect_field_domain(component, field))
                 {
                   used_domain = *detected_domain;
                 }
                 else {
-                  used_domain = ATTR_DOMAIN_POINT;
+                  used_domain = AttrDomain::Point;
                 }
               }
               bke::try_capture_field_on_geometry(

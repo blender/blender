@@ -478,11 +478,11 @@ static void interpolate_curve_attributes(bke::CurvesGeometry &child_curves,
       return true;
     }
 
-    if (meta_data.domain == ATTR_DOMAIN_CURVE) {
-      const GVArraySpan src_generic = *guide_curve_attributes.lookup(id, ATTR_DOMAIN_CURVE, type);
+    if (meta_data.domain == AttrDomain::Curve) {
+      const GVArraySpan src_generic = *guide_curve_attributes.lookup(id, AttrDomain::Curve, type);
 
       GSpanAttributeWriter dst_generic = children_attributes.lookup_or_add_for_write_only_span(
-          id, ATTR_DOMAIN_CURVE, type);
+          id, AttrDomain::Curve, type);
       if (!dst_generic) {
         return true;
       }
@@ -512,10 +512,10 @@ static void interpolate_curve_attributes(bke::CurvesGeometry &child_curves,
       dst_generic.finish();
     }
     else {
-      BLI_assert(meta_data.domain == ATTR_DOMAIN_POINT);
-      const GVArraySpan src_generic = *guide_curve_attributes.lookup(id, ATTR_DOMAIN_POINT, type);
+      BLI_assert(meta_data.domain == AttrDomain::Point);
+      const GVArraySpan src_generic = *guide_curve_attributes.lookup(id, AttrDomain::Point, type);
       GSpanAttributeWriter dst_generic = children_attributes.lookup_or_add_for_write_only_span(
-          id, ATTR_DOMAIN_POINT, type);
+          id, AttrDomain::Point, type);
       if (!dst_generic) {
         return true;
       }
@@ -615,11 +615,11 @@ static void interpolate_curve_attributes(bke::CurvesGeometry &child_curves,
     if (src.sharing_info && src.varray.is_span()) {
       const bke::AttributeInitShared init(src.varray.get_internal_span().data(),
                                           *src.sharing_info);
-      children_attributes.add(id, ATTR_DOMAIN_CURVE, meta_data.data_type, init);
+      children_attributes.add(id, AttrDomain::Curve, meta_data.data_type, init);
     }
     else {
       children_attributes.add(
-          id, ATTR_DOMAIN_CURVE, meta_data.data_type, bke::AttributeInitVArray(src.varray));
+          id, AttrDomain::Curve, meta_data.data_type, bke::AttributeInitVArray(src.varray));
     }
     return true;
   });
@@ -640,12 +640,12 @@ static void store_output_attributes(bke::CurvesGeometry &child_curves,
   if (weight_attribute_id) {
     weight_attribute =
         child_curves.attributes_for_write().lookup_or_add_for_write_only_span<float>(
-            *weight_attribute_id, ATTR_DOMAIN_CURVE);
+            *weight_attribute_id, AttrDomain::Curve);
   }
   SpanAttributeWriter<int> index_attribute;
   if (index_attribute_id) {
     index_attribute = child_curves.attributes_for_write().lookup_or_add_for_write_only_span<int>(
-        *index_attribute_id, ATTR_DOMAIN_CURVE);
+        *index_attribute_id, AttrDomain::Curve);
   }
   threading::parallel_for(child_curves.curves_range(), 512, [&](const IndexRange range) {
     for (const int child_curve_i : range) {
@@ -708,7 +708,7 @@ static GeometrySet generate_interpolated_curves(
   });
 
   const VArraySpan point_positions = *point_attributes.lookup<float3>("position");
-  const int num_child_curves = point_attributes.domain_size(ATTR_DOMAIN_POINT);
+  const int num_child_curves = point_attributes.domain_size(AttrDomain::Point);
 
   /* The set of guides per child are stored in a flattened array to allow fast access, reduce
    * memory consumption and reduce number of allocations. */
@@ -829,7 +829,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   const Curves &guide_curves_id = *guide_curves_geometry.get_curves();
 
-  const bke::CurvesFieldContext curves_context{guide_curves_id.geometry.wrap(), ATTR_DOMAIN_CURVE};
+  const bke::CurvesFieldContext curves_context{guide_curves_id.geometry.wrap(), AttrDomain::Curve};
   fn::FieldEvaluator curves_evaluator{curves_context, guide_curves_id.geometry.curve_num};
   curves_evaluator.add(guides_up_field);
   curves_evaluator.add(guide_group_field);
@@ -837,9 +837,9 @@ static void node_geo_exec(GeoNodeExecParams params)
   const VArray<float3> guides_up = curves_evaluator.get_evaluated<float3>(0);
   const VArray<int> guide_group_ids = curves_evaluator.get_evaluated<int>(1);
 
-  const bke::GeometryFieldContext points_context(*points_component, ATTR_DOMAIN_POINT);
+  const bke::GeometryFieldContext points_context(*points_component, AttrDomain::Point);
   fn::FieldEvaluator points_evaluator{points_context,
-                                      points_component->attribute_domain_size(ATTR_DOMAIN_POINT)};
+                                      points_component->attribute_domain_size(AttrDomain::Point)};
   points_evaluator.add(points_up_field);
   points_evaluator.add(point_group_field);
   points_evaluator.evaluate();

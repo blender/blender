@@ -63,7 +63,7 @@ CurvesGeometry::CurvesGeometry(const int point_num, const int curve_num)
   BLI_listbase_clear(&this->vertex_group_names);
 
   this->attributes_for_write().add<float3>(
-      "position", ATTR_DOMAIN_POINT, AttributeInitConstruct());
+      "position", AttrDomain::Point, AttributeInitConstruct());
 
   this->runtime = MEM_new<CurvesGeometryRuntime>(__func__);
 
@@ -185,24 +185,24 @@ CurvesGeometry::~CurvesGeometry()
 /** \name Accessors
  * \{ */
 
-static int domain_num(const CurvesGeometry &curves, const eAttrDomain domain)
+static int domain_num(const CurvesGeometry &curves, const AttrDomain domain)
 {
-  return domain == ATTR_DOMAIN_POINT ? curves.points_num() : curves.curves_num();
+  return domain == AttrDomain::Point ? curves.points_num() : curves.curves_num();
 }
 
-static CustomData &domain_custom_data(CurvesGeometry &curves, const eAttrDomain domain)
+static CustomData &domain_custom_data(CurvesGeometry &curves, const AttrDomain domain)
 {
-  return domain == ATTR_DOMAIN_POINT ? curves.point_data : curves.curve_data;
+  return domain == AttrDomain::Point ? curves.point_data : curves.curve_data;
 }
 
-static const CustomData &domain_custom_data(const CurvesGeometry &curves, const eAttrDomain domain)
+static const CustomData &domain_custom_data(const CurvesGeometry &curves, const AttrDomain domain)
 {
-  return domain == ATTR_DOMAIN_POINT ? curves.point_data : curves.curve_data;
+  return domain == AttrDomain::Point ? curves.point_data : curves.curve_data;
 }
 
 template<typename T>
 static VArray<T> get_varray_attribute(const CurvesGeometry &curves,
-                                      const eAttrDomain domain,
+                                      const AttrDomain domain,
                                       const StringRefNull name,
                                       const T default_value)
 {
@@ -219,7 +219,7 @@ static VArray<T> get_varray_attribute(const CurvesGeometry &curves,
 
 template<typename T>
 static Span<T> get_span_attribute(const CurvesGeometry &curves,
-                                  const eAttrDomain domain,
+                                  const AttrDomain domain,
                                   const StringRefNull name)
 {
   const int num = domain_num(curves, domain);
@@ -235,7 +235,7 @@ static Span<T> get_span_attribute(const CurvesGeometry &curves,
 
 template<typename T>
 static MutableSpan<T> get_mutable_attribute(CurvesGeometry &curves,
-                                            const eAttrDomain domain,
+                                            const AttrDomain domain,
                                             const StringRefNull name,
                                             const T default_value = T())
 {
@@ -258,12 +258,12 @@ static MutableSpan<T> get_mutable_attribute(CurvesGeometry &curves,
 VArray<int8_t> CurvesGeometry::curve_types() const
 {
   return get_varray_attribute<int8_t>(
-      *this, ATTR_DOMAIN_CURVE, ATTR_CURVE_TYPE, CURVE_TYPE_CATMULL_ROM);
+      *this, AttrDomain::Curve, ATTR_CURVE_TYPE, CURVE_TYPE_CATMULL_ROM);
 }
 
 MutableSpan<int8_t> CurvesGeometry::curve_types_for_write()
 {
-  return get_mutable_attribute<int8_t>(*this, ATTR_DOMAIN_CURVE, ATTR_CURVE_TYPE);
+  return get_mutable_attribute<int8_t>(*this, AttrDomain::Curve, ATTR_CURVE_TYPE);
 }
 
 void CurvesGeometry::fill_curve_types(const CurveType type)
@@ -338,11 +338,11 @@ void CurvesGeometry::update_curve_types()
 
 Span<float3> CurvesGeometry::positions() const
 {
-  return get_span_attribute<float3>(*this, ATTR_DOMAIN_POINT, ATTR_POSITION);
+  return get_span_attribute<float3>(*this, AttrDomain::Point, ATTR_POSITION);
 }
 MutableSpan<float3> CurvesGeometry::positions_for_write()
 {
-  return get_mutable_attribute<float3>(*this, ATTR_DOMAIN_POINT, ATTR_POSITION);
+  return get_mutable_attribute<float3>(*this, AttrDomain::Point, ATTR_POSITION);
 }
 
 Span<int> CurvesGeometry::offsets() const
@@ -361,111 +361,111 @@ MutableSpan<int> CurvesGeometry::offsets_for_write()
 
 VArray<bool> CurvesGeometry::cyclic() const
 {
-  return get_varray_attribute<bool>(*this, ATTR_DOMAIN_CURVE, ATTR_CYCLIC, false);
+  return get_varray_attribute<bool>(*this, AttrDomain::Curve, ATTR_CYCLIC, false);
 }
 MutableSpan<bool> CurvesGeometry::cyclic_for_write()
 {
-  return get_mutable_attribute<bool>(*this, ATTR_DOMAIN_CURVE, ATTR_CYCLIC, false);
+  return get_mutable_attribute<bool>(*this, AttrDomain::Curve, ATTR_CYCLIC, false);
 }
 
 VArray<int> CurvesGeometry::resolution() const
 {
-  return get_varray_attribute<int>(*this, ATTR_DOMAIN_CURVE, ATTR_RESOLUTION, 12);
+  return get_varray_attribute<int>(*this, AttrDomain::Curve, ATTR_RESOLUTION, 12);
 }
 MutableSpan<int> CurvesGeometry::resolution_for_write()
 {
-  return get_mutable_attribute<int>(*this, ATTR_DOMAIN_CURVE, ATTR_RESOLUTION, 12);
+  return get_mutable_attribute<int>(*this, AttrDomain::Curve, ATTR_RESOLUTION, 12);
 }
 
 VArray<int8_t> CurvesGeometry::normal_mode() const
 {
-  return get_varray_attribute<int8_t>(*this, ATTR_DOMAIN_CURVE, ATTR_NORMAL_MODE, 0);
+  return get_varray_attribute<int8_t>(*this, AttrDomain::Curve, ATTR_NORMAL_MODE, 0);
 }
 MutableSpan<int8_t> CurvesGeometry::normal_mode_for_write()
 {
-  return get_mutable_attribute<int8_t>(*this, ATTR_DOMAIN_CURVE, ATTR_NORMAL_MODE);
+  return get_mutable_attribute<int8_t>(*this, AttrDomain::Curve, ATTR_NORMAL_MODE);
 }
 
 VArray<float> CurvesGeometry::tilt() const
 {
-  return get_varray_attribute<float>(*this, ATTR_DOMAIN_POINT, ATTR_TILT, 0.0f);
+  return get_varray_attribute<float>(*this, AttrDomain::Point, ATTR_TILT, 0.0f);
 }
 MutableSpan<float> CurvesGeometry::tilt_for_write()
 {
-  return get_mutable_attribute<float>(*this, ATTR_DOMAIN_POINT, ATTR_TILT);
+  return get_mutable_attribute<float>(*this, AttrDomain::Point, ATTR_TILT);
 }
 
 VArray<int8_t> CurvesGeometry::handle_types_left() const
 {
-  return get_varray_attribute<int8_t>(*this, ATTR_DOMAIN_POINT, ATTR_HANDLE_TYPE_LEFT, 0);
+  return get_varray_attribute<int8_t>(*this, AttrDomain::Point, ATTR_HANDLE_TYPE_LEFT, 0);
 }
 MutableSpan<int8_t> CurvesGeometry::handle_types_left_for_write()
 {
-  return get_mutable_attribute<int8_t>(*this, ATTR_DOMAIN_POINT, ATTR_HANDLE_TYPE_LEFT, 0);
+  return get_mutable_attribute<int8_t>(*this, AttrDomain::Point, ATTR_HANDLE_TYPE_LEFT, 0);
 }
 
 VArray<int8_t> CurvesGeometry::handle_types_right() const
 {
-  return get_varray_attribute<int8_t>(*this, ATTR_DOMAIN_POINT, ATTR_HANDLE_TYPE_RIGHT, 0);
+  return get_varray_attribute<int8_t>(*this, AttrDomain::Point, ATTR_HANDLE_TYPE_RIGHT, 0);
 }
 MutableSpan<int8_t> CurvesGeometry::handle_types_right_for_write()
 {
-  return get_mutable_attribute<int8_t>(*this, ATTR_DOMAIN_POINT, ATTR_HANDLE_TYPE_RIGHT, 0);
+  return get_mutable_attribute<int8_t>(*this, AttrDomain::Point, ATTR_HANDLE_TYPE_RIGHT, 0);
 }
 
 Span<float3> CurvesGeometry::handle_positions_left() const
 {
-  return get_span_attribute<float3>(*this, ATTR_DOMAIN_POINT, ATTR_HANDLE_POSITION_LEFT);
+  return get_span_attribute<float3>(*this, AttrDomain::Point, ATTR_HANDLE_POSITION_LEFT);
 }
 MutableSpan<float3> CurvesGeometry::handle_positions_left_for_write()
 {
-  return get_mutable_attribute<float3>(*this, ATTR_DOMAIN_POINT, ATTR_HANDLE_POSITION_LEFT);
+  return get_mutable_attribute<float3>(*this, AttrDomain::Point, ATTR_HANDLE_POSITION_LEFT);
 }
 
 Span<float3> CurvesGeometry::handle_positions_right() const
 {
-  return get_span_attribute<float3>(*this, ATTR_DOMAIN_POINT, ATTR_HANDLE_POSITION_RIGHT);
+  return get_span_attribute<float3>(*this, AttrDomain::Point, ATTR_HANDLE_POSITION_RIGHT);
 }
 MutableSpan<float3> CurvesGeometry::handle_positions_right_for_write()
 {
-  return get_mutable_attribute<float3>(*this, ATTR_DOMAIN_POINT, ATTR_HANDLE_POSITION_RIGHT);
+  return get_mutable_attribute<float3>(*this, AttrDomain::Point, ATTR_HANDLE_POSITION_RIGHT);
 }
 
 VArray<int8_t> CurvesGeometry::nurbs_orders() const
 {
-  return get_varray_attribute<int8_t>(*this, ATTR_DOMAIN_CURVE, ATTR_NURBS_ORDER, 4);
+  return get_varray_attribute<int8_t>(*this, AttrDomain::Curve, ATTR_NURBS_ORDER, 4);
 }
 MutableSpan<int8_t> CurvesGeometry::nurbs_orders_for_write()
 {
-  return get_mutable_attribute<int8_t>(*this, ATTR_DOMAIN_CURVE, ATTR_NURBS_ORDER, 4);
+  return get_mutable_attribute<int8_t>(*this, AttrDomain::Curve, ATTR_NURBS_ORDER, 4);
 }
 
 Span<float> CurvesGeometry::nurbs_weights() const
 {
-  return get_span_attribute<float>(*this, ATTR_DOMAIN_POINT, ATTR_NURBS_WEIGHT);
+  return get_span_attribute<float>(*this, AttrDomain::Point, ATTR_NURBS_WEIGHT);
 }
 MutableSpan<float> CurvesGeometry::nurbs_weights_for_write()
 {
-  return get_mutable_attribute<float>(*this, ATTR_DOMAIN_POINT, ATTR_NURBS_WEIGHT);
+  return get_mutable_attribute<float>(*this, AttrDomain::Point, ATTR_NURBS_WEIGHT);
 }
 
 VArray<int8_t> CurvesGeometry::nurbs_knots_modes() const
 {
-  return get_varray_attribute<int8_t>(*this, ATTR_DOMAIN_CURVE, ATTR_NURBS_KNOTS_MODE, 0);
+  return get_varray_attribute<int8_t>(*this, AttrDomain::Curve, ATTR_NURBS_KNOTS_MODE, 0);
 }
 MutableSpan<int8_t> CurvesGeometry::nurbs_knots_modes_for_write()
 {
-  return get_mutable_attribute<int8_t>(*this, ATTR_DOMAIN_CURVE, ATTR_NURBS_KNOTS_MODE, 0);
+  return get_mutable_attribute<int8_t>(*this, AttrDomain::Curve, ATTR_NURBS_KNOTS_MODE, 0);
 }
 
 Span<float2> CurvesGeometry::surface_uv_coords() const
 {
-  return get_span_attribute<float2>(*this, ATTR_DOMAIN_CURVE, ATTR_SURFACE_UV_COORDINATE);
+  return get_span_attribute<float2>(*this, AttrDomain::Curve, ATTR_SURFACE_UV_COORDINATE);
 }
 
 MutableSpan<float2> CurvesGeometry::surface_uv_coords_for_write()
 {
-  return get_mutable_attribute<float2>(*this, ATTR_DOMAIN_CURVE, ATTR_SURFACE_UV_COORDINATE);
+  return get_mutable_attribute<float2>(*this, AttrDomain::Curve, ATTR_SURFACE_UV_COORDINATE);
 }
 
 Span<MDeformVert> CurvesGeometry::deform_verts() const
@@ -1166,13 +1166,13 @@ CurvesGeometry curves_copy_point_selection(
       },
       [&]() {
         gather_attributes(curves.attributes(),
-                          ATTR_DOMAIN_POINT,
+                          AttrDomain::Point,
                           propagation_info,
                           {},
                           points_to_copy,
                           dst_curves.attributes_for_write());
         gather_attributes(curves.attributes(),
-                          ATTR_DOMAIN_CURVE,
+                          AttrDomain::Curve,
                           propagation_info,
                           {},
                           curves_to_copy,
@@ -1219,7 +1219,7 @@ CurvesGeometry curves_copy_curve_selection(
   MutableAttributeAccessor dst_attributes = dst_curves.attributes_for_write();
 
   gather_attributes_group_to_group(src_attributes,
-                                   ATTR_DOMAIN_POINT,
+                                   AttrDomain::Point,
                                    propagation_info,
                                    {},
                                    points_by_curve,
@@ -1228,7 +1228,7 @@ CurvesGeometry curves_copy_curve_selection(
                                    dst_attributes);
 
   gather_attributes(
-      src_attributes, ATTR_DOMAIN_CURVE, propagation_info, {}, curves_to_copy, dst_attributes);
+      src_attributes, AttrDomain::Curve, propagation_info, {}, curves_to_copy, dst_attributes);
 
   dst_curves.update_curve_types();
   dst_curves.remove_attributes_based_on_types();
@@ -1294,7 +1294,7 @@ void CurvesGeometry::reverse_curves(const IndexMask &curves_to_reverse)
   MutableAttributeAccessor attributes = this->attributes_for_write();
 
   attributes.for_all([&](const AttributeIDRef &id, AttributeMetaData meta_data) {
-    if (meta_data.domain != ATTR_DOMAIN_POINT) {
+    if (meta_data.domain != AttrDomain::Point) {
       return true;
     }
     if (meta_data.data_type == CD_PROP_STRING) {
@@ -1457,8 +1457,8 @@ static GVArray adapt_curve_domain_curve_to_point(const CurvesGeometry &curves,
 }
 
 GVArray CurvesGeometry::adapt_domain(const GVArray &varray,
-                                     const eAttrDomain from,
-                                     const eAttrDomain to) const
+                                     const AttrDomain from,
+                                     const AttrDomain to) const
 {
   if (!varray) {
     return {};
@@ -1475,10 +1475,10 @@ GVArray CurvesGeometry::adapt_domain(const GVArray &varray,
     return GVArray::ForSingle(varray.type(), this->attributes().domain_size(to), value);
   }
 
-  if (from == ATTR_DOMAIN_POINT && to == ATTR_DOMAIN_CURVE) {
+  if (from == AttrDomain::Point && to == AttrDomain::Curve) {
     return adapt_curve_domain_point_to_curve(*this, varray);
   }
-  if (from == ATTR_DOMAIN_CURVE && to == ATTR_DOMAIN_POINT) {
+  if (from == AttrDomain::Curve && to == AttrDomain::Point) {
     return adapt_curve_domain_curve_to_point(*this, varray);
   }
 

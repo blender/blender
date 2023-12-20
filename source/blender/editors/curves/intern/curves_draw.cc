@@ -775,7 +775,7 @@ static int curves_draw_exec(bContext *C, wmOperator *op)
       const IndexRange new_points = curves.points_by_curve()[curve_index];
 
       bke::SpanAttributeWriter<float> radii = attributes.lookup_or_add_for_write_only_span<float>(
-          "radius", ATTR_DOMAIN_POINT);
+          "radius", bke::AttrDomain::Point);
 
       float *co = cubic_spline;
 
@@ -819,7 +819,7 @@ static int curves_draw_exec(bContext *C, wmOperator *op)
       radii.finish();
 
       bke::AttributeWriter<bool> selection = attributes.lookup_or_add_for_write<bool>(
-          ".selection", ATTR_DOMAIN_CURVE);
+          ".selection", bke::AttrDomain::Curve);
       selection.varray.set(curve_index, true);
       selection.finish();
 
@@ -832,7 +832,7 @@ static int curves_draw_exec(bContext *C, wmOperator *op)
       }
 
       bke::fill_attribute_range_default(attributes,
-                                        ATTR_DOMAIN_POINT,
+                                        bke::AttrDomain::Point,
                                         {"position",
                                          "radius",
                                          "handle_left",
@@ -842,7 +842,7 @@ static int curves_draw_exec(bContext *C, wmOperator *op)
                                          ".selection"},
                                         new_points);
       bke::fill_attribute_range_default(attributes,
-                                        ATTR_DOMAIN_CURVE,
+                                        bke::AttrDomain::Curve,
                                         {"curve_type", "resolution", "cyclic", ".selection"},
                                         IndexRange(curve_index, 1));
     }
@@ -861,7 +861,7 @@ static int curves_draw_exec(bContext *C, wmOperator *op)
 
     MutableSpan<float3> positions = curves.positions_for_write();
     bke::SpanAttributeWriter<float> radii = attributes.lookup_or_add_for_write_only_span<float>(
-        "radius", ATTR_DOMAIN_POINT);
+        "radius", bke::AttrDomain::Point);
 
     const IndexRange new_points = curves.points_by_curve()[curve_index];
 
@@ -885,14 +885,16 @@ static int curves_draw_exec(bContext *C, wmOperator *op)
     radii.finish();
 
     bke::AttributeWriter<bool> selection = attributes.lookup_or_add_for_write<bool>(
-        ".selection", ATTR_DOMAIN_CURVE);
+        ".selection", bke::AttrDomain::Curve);
     selection.varray.set(curve_index, true);
     selection.finish();
 
     bke::fill_attribute_range_default(
-        attributes, ATTR_DOMAIN_POINT, {"position", "radius", ".selection"}, new_points);
-    bke::fill_attribute_range_default(
-        attributes, ATTR_DOMAIN_CURVE, {"curve_type", ".selection"}, IndexRange(curve_index, 1));
+        attributes, bke::AttrDomain::Point, {"position", "radius", ".selection"}, new_points);
+    bke::fill_attribute_range_default(attributes,
+                                      bke::AttrDomain::Curve,
+                                      {"curve_type", ".selection"},
+                                      IndexRange(curve_index, 1));
   }
 
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);

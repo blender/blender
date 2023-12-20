@@ -73,6 +73,7 @@
 #include "sculpt_intern.hh"
 
 using blender::IndexRange;
+using blender::bke::AttrDomain;
 using namespace blender;
 using namespace blender::color;
 using namespace blender::ed::sculpt_paint; /* For vwpaint namespace. */
@@ -927,7 +928,7 @@ static void to_static_color_type(const eCustomDataType type, const Func &func)
 
 struct VPaintData {
   ViewContext vc;
-  eAttrDomain domain;
+  AttrDomain domain;
   eCustomDataType type;
 
   NormalAnglePrecalc normal_angle_precalc;
@@ -953,7 +954,7 @@ static VPaintData *vpaint_init_vpaint(bContext *C,
                                       VPaint *vp,
                                       Object *ob,
                                       Mesh *mesh,
-                                      const eAttrDomain domain,
+                                      const AttrDomain domain,
                                       const eCustomDataType type,
                                       const Brush *brush)
 {
@@ -1064,9 +1065,9 @@ static void do_vpaint_brush_blur_loops(bContext *C,
   GMutableSpan g_previous_color = ss->cache->prev_colors_vpaint;
 
   const blender::VArray<bool> select_vert = *mesh->attributes().lookup_or_default<bool>(
-      ".select_vert", ATTR_DOMAIN_POINT, false);
+      ".select_vert", AttrDomain::Point, false);
   const blender::VArray<bool> select_poly = *mesh->attributes().lookup_or_default<bool>(
-      ".select_poly", ATTR_DOMAIN_FACE, false);
+      ".select_poly", AttrDomain::Face, false);
 
   blender::threading::parallel_for(nodes.index_range(), 1LL, [&](IndexRange range) {
     SculptBrushTest test = test_init;
@@ -1215,9 +1216,9 @@ static void do_vpaint_brush_blur_verts(bContext *C,
   GMutableSpan g_previous_color = ss->cache->prev_colors_vpaint;
 
   const blender::VArray<bool> select_vert = *mesh->attributes().lookup_or_default<bool>(
-      ".select_vert", ATTR_DOMAIN_POINT, false);
+      ".select_vert", AttrDomain::Point, false);
   const blender::VArray<bool> select_poly = *mesh->attributes().lookup_or_default<bool>(
-      ".select_poly", ATTR_DOMAIN_FACE, false);
+      ".select_poly", AttrDomain::Face, false);
 
   blender::threading::parallel_for(nodes.index_range(), 1LL, [&](IndexRange range) {
     SculptBrushTest test = test_init;
@@ -1364,9 +1365,9 @@ static void do_vpaint_brush_smear(bContext *C,
       ss, brush->falloff_shape);
 
   const blender::VArray<bool> select_vert = *mesh->attributes().lookup_or_default<bool>(
-      ".select_vert", ATTR_DOMAIN_POINT, false);
+      ".select_vert", AttrDomain::Point, false);
   const blender::VArray<bool> select_poly = *mesh->attributes().lookup_or_default<bool>(
-      ".select_poly", ATTR_DOMAIN_FACE, false);
+      ".select_poly", AttrDomain::Face, false);
 
   blender::threading::parallel_for(nodes.index_range(), 1LL, [&](IndexRange range) {
     SculptBrushTest test = test_init;
@@ -1447,7 +1448,7 @@ static void do_vpaint_brush_smear(bContext *C,
               const float stroke_dot = dot_v3v3(other_dir, brush_dir);
               int elem_index;
 
-              if (vpd->domain == ATTR_DOMAIN_POINT) {
+              if (vpd->domain == AttrDomain::Point) {
                 elem_index = v_other_index;
               }
               else {
@@ -1475,7 +1476,7 @@ static void do_vpaint_brush_smear(bContext *C,
             const int p_index = gmap->vert_to_face[v_index][j];
 
             int elem_index;
-            if (vpd->domain == ATTR_DOMAIN_POINT) {
+            if (vpd->domain == AttrDomain::Point) {
               elem_index = v_index;
             }
             else {
@@ -1536,7 +1537,7 @@ static void calculate_average_color(VPaintData *vpd,
       ss, &test_init, brush->falloff_shape);
 
   const blender::VArray<bool> select_vert = *mesh->attributes().lookup_or_default<bool>(
-      ".select_vert", ATTR_DOMAIN_POINT, false);
+      ".select_vert", AttrDomain::Point, false);
 
   to_static_color_type(vpd->type, [&](auto dummy) {
     using T = decltype(dummy);
@@ -1576,7 +1577,7 @@ static void calculate_average_color(VPaintData *vpd,
           for (int j = 0; j < gmap->vert_to_face[v_index].size(); j++) {
             int elem_index;
 
-            if (vpd->domain == ATTR_DOMAIN_CORNER) {
+            if (vpd->domain == AttrDomain::Corner) {
               elem_index = gmap->vert_to_loop[v_index][j];
             }
             else {
@@ -1669,9 +1670,9 @@ static void vpaint_do_draw(bContext *C,
   GMutableSpan g_previous_color = ss->cache->prev_colors_vpaint;
 
   const blender::VArray<bool> select_vert = *mesh->attributes().lookup_or_default<bool>(
-      ".select_vert", ATTR_DOMAIN_POINT, false);
+      ".select_vert", AttrDomain::Point, false);
   const blender::VArray<bool> select_poly = *mesh->attributes().lookup_or_default<bool>(
-      ".select_poly", ATTR_DOMAIN_FACE, false);
+      ".select_poly", AttrDomain::Face, false);
 
   blender::threading::parallel_for(nodes.index_range(), 1LL, [&](IndexRange range) {
     for (int n : range) {
@@ -1726,7 +1727,7 @@ static void vpaint_do_draw(bContext *C,
 
           Color color_orig(0, 0, 0, 0);
 
-          if (vpd->domain == ATTR_DOMAIN_POINT) {
+          if (vpd->domain == AttrDomain::Point) {
             int v_index = vd.index;
 
             if (!previous_color.is_empty()) {
@@ -1792,7 +1793,7 @@ static void vpaint_do_blur(bContext *C,
                            Span<PBVHNode *> nodes,
                            GMutableSpan attribute)
 {
-  if (vpd->domain == ATTR_DOMAIN_POINT) {
+  if (vpd->domain == AttrDomain::Point) {
     do_vpaint_brush_blur_verts(C, sd, vp, vpd, ob, mesh, nodes, attribute);
   }
   else {
@@ -2098,7 +2099,7 @@ void PAINT_OT_vertex_paint(wmOperatorType *ot)
 template<typename T>
 static void fill_bm_face_or_corner_attribute(BMesh &bm,
                                              const T &value,
-                                             const eAttrDomain domain,
+                                             const AttrDomain domain,
                                              const int cd_offset,
                                              const bool use_vert_sel)
 {
@@ -2108,10 +2109,10 @@ static void fill_bm_face_or_corner_attribute(BMesh &bm,
     BMLoop *l = f->l_first;
     do {
       if (!(use_vert_sel && !BM_elem_flag_test(l->v, BM_ELEM_SELECT))) {
-        if (domain == ATTR_DOMAIN_CORNER) {
+        if (domain == AttrDomain::Corner) {
           *static_cast<T *>(BM_ELEM_CD_GET_VOID_P(l, cd_offset)) = value;
         }
-        else if (domain == ATTR_DOMAIN_POINT) {
+        else if (domain == AttrDomain::Point) {
           *static_cast<T *>(BM_ELEM_CD_GET_VOID_P(l->v, cd_offset)) = value;
         }
       }
@@ -2122,16 +2123,16 @@ static void fill_bm_face_or_corner_attribute(BMesh &bm,
 template<typename T>
 static void fill_mesh_face_or_corner_attribute(Mesh &mesh,
                                                const T &value,
-                                               const eAttrDomain domain,
+                                               const AttrDomain domain,
                                                const MutableSpan<T> data,
                                                const bool use_vert_sel,
                                                const bool use_face_sel,
                                                const bool affect_alpha)
 {
   const VArray<bool> select_vert = *mesh.attributes().lookup_or_default<bool>(
-      ".select_vert", ATTR_DOMAIN_POINT, false);
+      ".select_vert", AttrDomain::Point, false);
   const VArray<bool> select_poly = *mesh.attributes().lookup_or_default<bool>(
-      ".select_poly", ATTR_DOMAIN_FACE, false);
+      ".select_poly", AttrDomain::Face, false);
 
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
@@ -2145,7 +2146,7 @@ static void fill_mesh_face_or_corner_attribute(Mesh &mesh,
       if (use_vert_sel && !select_vert[vert]) {
         continue;
       }
-      const int data_index = domain == ATTR_DOMAIN_CORNER ? corner : vert;
+      const int data_index = domain == AttrDomain::Corner ? corner : vert;
       data[data_index].r = value.r;
       data[data_index].g = value.g;
       data[data_index].b = value.b;
@@ -2169,7 +2170,7 @@ static void fill_mesh_color(Mesh &mesh,
     BMesh *bm = mesh.edit_mesh->bm;
     const std::string name = attribute_name;
     const CustomDataLayer *layer = BKE_id_attributes_color_find(&mesh.id, name.c_str());
-    const eAttrDomain domain = BKE_id_attribute_domain(&mesh.id, layer);
+    const AttrDomain domain = BKE_id_attribute_domain(&mesh.id, layer);
     if (layer->type == CD_PROP_COLOR) {
       fill_bm_face_or_corner_attribute<ColorPaint4f>(
           *bm, color, domain, layer->offset, use_vert_sel);

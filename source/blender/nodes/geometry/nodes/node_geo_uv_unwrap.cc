@@ -60,14 +60,14 @@ static VArray<float3> construct_uv_gvarray(const Mesh &mesh,
                                            const bool fill_holes,
                                            const float margin,
                                            const GeometryNodeUVUnwrapMethod method,
-                                           const eAttrDomain domain)
+                                           const AttrDomain domain)
 {
   const Span<float3> positions = mesh.vert_positions();
   const Span<int2> edges = mesh.edges();
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
 
-  const bke::MeshFieldContext face_context{mesh, ATTR_DOMAIN_FACE};
+  const bke::MeshFieldContext face_context{mesh, AttrDomain::Face};
   FieldEvaluator face_evaluator{face_context, faces.size()};
   face_evaluator.add(selection_field);
   face_evaluator.evaluate();
@@ -76,7 +76,7 @@ static VArray<float3> construct_uv_gvarray(const Mesh &mesh,
     return {};
   }
 
-  const bke::MeshFieldContext edge_context{mesh, ATTR_DOMAIN_EDGE};
+  const bke::MeshFieldContext edge_context{mesh, AttrDomain::Edge};
   FieldEvaluator edge_evaluator{edge_context, edges.size()};
   edge_evaluator.add(seam_field);
   edge_evaluator.evaluate();
@@ -130,7 +130,7 @@ static VArray<float3> construct_uv_gvarray(const Mesh &mesh,
   delete (handle);
 
   return mesh.attributes().adapt_domain<float3>(
-      VArray<float3>::ForContainer(std::move(uv)), ATTR_DOMAIN_CORNER, domain);
+      VArray<float3>::ForContainer(std::move(uv)), AttrDomain::Corner, domain);
 }
 
 class UnwrapFieldInput final : public bke::MeshFieldInput {
@@ -158,7 +158,7 @@ class UnwrapFieldInput final : public bke::MeshFieldInput {
   }
 
   GVArray get_varray_for_context(const Mesh &mesh,
-                                 const eAttrDomain domain,
+                                 const AttrDomain domain,
                                  const IndexMask & /*mask*/) const final
   {
     return construct_uv_gvarray(mesh, selection_, seam_, fill_holes_, margin_, method_, domain);
@@ -170,9 +170,9 @@ class UnwrapFieldInput final : public bke::MeshFieldInput {
     seam_.node().for_each_field_input_recursive(fn);
   }
 
-  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
+  std::optional<AttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
   {
-    return ATTR_DOMAIN_CORNER;
+    return AttrDomain::Corner;
   }
 };
 

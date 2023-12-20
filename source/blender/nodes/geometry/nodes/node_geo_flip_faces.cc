@@ -23,7 +23,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (Mesh *mesh = geometry_set.get_mesh_for_write()) {
-      const bke::MeshFieldContext field_context(*mesh, ATTR_DOMAIN_FACE);
+      const bke::MeshFieldContext field_context(*mesh, AttrDomain::Face);
       fn::FieldEvaluator evaluator(field_context, mesh->faces_num);
       evaluator.add(selection_field);
       evaluator.evaluate();

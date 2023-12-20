@@ -66,7 +66,7 @@ static bool pbvh_attr_supported(const AttributeRequest &request)
     return true;
   }
   const GenericRequest &attr = std::get<GenericRequest>(request);
-  if (!ELEM(attr.domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_FACE, ATTR_DOMAIN_CORNER)) {
+  if (!ELEM(attr.domain, bke::AttrDomain::Point, bke::AttrDomain::Face, bke::AttrDomain::Corner)) {
     /* PBVH drawing does not support edge domain attributes. */
     return false;
   }
@@ -91,7 +91,7 @@ static std::string calc_request_key(const AttributeRequest &request)
   else {
     const GenericRequest &attr = std::get<GenericRequest>(request);
     const StringRefNull name = attr.name;
-    const eAttrDomain domain = attr.domain;
+    const bke::AttrDomain domain = attr.domain;
     const eCustomDataType data_type = attr.type;
     SNPRINTF(buf, "%d:%d:%s", int(data_type), int(domain), name.c_str());
   }
@@ -301,14 +301,14 @@ struct PBVHBatch {
   }
 };
 
-static const CustomData *get_cdata(eAttrDomain domain, const PBVH_GPU_Args &args)
+static const CustomData *get_cdata(bke::AttrDomain domain, const PBVH_GPU_Args &args)
 {
   switch (domain) {
-    case ATTR_DOMAIN_POINT:
+    case bke::AttrDomain::Point:
       return args.vert_data;
-    case ATTR_DOMAIN_CORNER:
+    case bke::AttrDomain::Corner:
       return args.corner_data;
-    case ATTR_DOMAIN_FACE:
+    case bke::AttrDomain::Face:
       return args.face_data;
     default:
       return nullptr;
@@ -438,7 +438,7 @@ struct PBVHBatches {
   void fill_vbo_normal_faces(const PBVH_GPU_Args &args, GPUVertBuf &vert_buf)
   {
     const bke::AttributeAccessor attributes = args.mesh->attributes();
-    const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", ATTR_DOMAIN_FACE);
+    const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", bke::AttrDomain::Face);
 
     short4 *data = static_cast<short4 *>(GPU_vertbuf_get_data(&vert_buf));
 
@@ -500,7 +500,8 @@ struct PBVHBatches {
         case CustomRequest::Normal: {
           const Span<int> grid_to_face_map = args.subdiv_ccg->grid_to_face_map;
           const bke::AttributeAccessor attributes = args.mesh->attributes();
-          const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", ATTR_DOMAIN_FACE);
+          const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face",
+                                                                  bke::AttrDomain::Face);
 
           foreach_grids([&](int /*x*/, int /*y*/, int grid_index, CCGElem *elems[4], int /*i*/) {
             float3 no(0.0f, 0.0f, 0.0f);
@@ -545,7 +546,8 @@ struct PBVHBatches {
         case CustomRequest::FaceSet: {
           const bke::AttributeAccessor attributes = args.mesh->attributes();
           if (const VArray<int> face_sets = *attributes.lookup<int>(".sculpt_face_set",
-                                                                    ATTR_DOMAIN_FACE)) {
+                                                                    bke::AttrDomain::Face))
+          {
             const VArraySpan<int> face_sets_span(face_sets);
             foreach_grids(
                 [&](int /*x*/, int /*y*/, int grid_index, CCGElem * /*elems*/[4], int /*i*/) {
@@ -681,7 +683,7 @@ struct PBVHBatches {
         case CustomRequest::Mask: {
           float *data = static_cast<float *>(GPU_vertbuf_get_data(&vert_buf));
           if (const VArray<float> mask = *attributes.lookup<float>(".sculpt_mask",
-                                                                   ATTR_DOMAIN_POINT)) {
+                                                                   bke::AttrDomain::Point)) {
             const VArraySpan<float> mask_span(mask);
             const Span<int> corner_verts = args.corner_verts;
             const Span<int3> corner_tris = args.corner_tris;
@@ -707,7 +709,8 @@ struct PBVHBatches {
         case CustomRequest::FaceSet: {
           uchar4 *data = static_cast<uchar4 *>(GPU_vertbuf_get_data(vbo.vert_buf));
           if (const VArray<int> face_sets = *attributes.lookup<int>(".sculpt_face_set",
-                                                                    ATTR_DOMAIN_FACE)) {
+                                                                    bke::AttrDomain::Face))
+          {
             const VArraySpan<int> face_sets_span(face_sets);
             int last_face = -1;
             uchar4 fset_color(UCHAR_MAX);
@@ -746,19 +749,19 @@ struct PBVHBatches {
       const bke::AttributeAccessor attributes = args.mesh->attributes();
       const GenericRequest &request = std::get<GenericRequest>(vbo.request);
       const StringRef name = request.name;
-      const eAttrDomain domain = request.domain;
+      const bke::AttrDomain domain = request.domain;
       const eCustomDataType data_type = request.type;
       const GVArraySpan attribute = *attributes.lookup_or_default(name, domain, data_type);
       bke::attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
         using T = decltype(dummy);
         switch (domain) {
-          case ATTR_DOMAIN_POINT:
+          case bke::AttrDomain::Point:
             extract_data_vert_faces<T>(args, attribute.typed<T>(), vert_buf);
             break;
-          case ATTR_DOMAIN_FACE:
+          case bke::AttrDomain::Face:
             extract_data_face_faces<T>(args, attribute.typed<T>(), vert_buf);
             break;
-          case ATTR_DOMAIN_CORNER:
+          case bke::AttrDomain::Corner:
             extract_data_corner_faces<T>(args, attribute.typed<T>(), vert_buf);
             break;
           default:
@@ -912,20 +915,20 @@ struct PBVHBatches {
     else {
       const GenericRequest &request = std::get<GenericRequest>(vbo.request);
       const StringRefNull name = request.name;
-      const eAttrDomain domain = request.domain;
+      const bke::AttrDomain domain = request.domain;
       const eCustomDataType data_type = request.type;
       const CustomData &custom_data = *get_cdata(domain, args);
       const int cd_offset = CustomData_get_offset_named(&custom_data, data_type, name.c_str());
       bke::attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
         using T = decltype(dummy);
         switch (domain) {
-          case ATTR_DOMAIN_POINT:
+          case bke::AttrDomain::Point:
             extract_data_vert_bmesh<T>(args, cd_offset, *vbo.vert_buf);
             break;
-          case ATTR_DOMAIN_FACE:
+          case bke::AttrDomain::Face:
             extract_data_face_bmesh<T>(args, cd_offset, *vbo.vert_buf);
             break;
-          case ATTR_DOMAIN_CORNER:
+          case bke::AttrDomain::Corner:
             extract_data_corner_bmesh<T>(args, cd_offset, *vbo.vert_buf);
             break;
           default:
@@ -974,7 +977,7 @@ struct PBVHBatches {
     else {
       const GenericRequest &attr = std::get<GenericRequest>(request);
       const StringRefNull name = attr.name;
-      const eAttrDomain domain = attr.domain;
+      const bke::AttrDomain domain = attr.domain;
       const eCustomDataType data_type = attr.type;
 
       format = draw::init_format_for_attribute(data_type, "data");
@@ -1030,7 +1033,7 @@ struct PBVHBatches {
   {
     const bke::AttributeAccessor attributes = args.mesh->attributes();
     const VArray material_indices = *attributes.lookup_or_default<int>(
-        "material_index", ATTR_DOMAIN_FACE, 0);
+        "material_index", bke::AttrDomain::Face, 0);
     material_index = material_indices[args.tri_faces[args.prim_indices.first()]];
 
     const Span<int2> edges = args.mesh->edges();
@@ -1113,9 +1116,9 @@ struct PBVHBatches {
   void create_index_grids(const PBVH_GPU_Args &args, bool do_coarse)
   {
     const bke::AttributeAccessor attributes = args.mesh->attributes();
-    const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", ATTR_DOMAIN_FACE);
+    const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", bke::AttrDomain::Face);
     const VArray material_indices = *attributes.lookup_or_default<int>(
-        "material_index", ATTR_DOMAIN_FACE, 0);
+        "material_index", bke::AttrDomain::Face, 0);
     const BitGroupVector<> &grid_hidden = args.subdiv_ccg->grid_hidden;
     const Span<int> grid_to_face_map = args.subdiv_ccg->grid_to_face_map;
 

@@ -132,21 +132,21 @@ void USDGenericMeshWriter::write_custom_data(const Mesh *mesh, pxr::UsdGeomMesh 
          * edge domain because USD doesn't have a good
          * conversion for them. */
         if (attribute_id.name()[0] == '.' || attribute_id.is_anonymous() ||
-            meta_data.domain == ATTR_DOMAIN_EDGE ||
+            meta_data.domain == bke::AttrDomain::Edge ||
             ELEM(attribute_id.name(), "position", "material_index"))
         {
           return true;
         }
 
         /* UV Data. */
-        if (meta_data.domain == ATTR_DOMAIN_CORNER && meta_data.data_type == CD_PROP_FLOAT2) {
+        if (meta_data.domain == bke::AttrDomain::Corner && meta_data.data_type == CD_PROP_FLOAT2) {
           if (usd_export_context_.export_params.export_uvmaps) {
             write_uv_data(mesh, usd_mesh, attribute_id, active_set_name);
           }
         }
 
         /* Color data. */
-        else if (ELEM(meta_data.domain, ATTR_DOMAIN_CORNER, ATTR_DOMAIN_POINT) &&
+        else if (ELEM(meta_data.domain, bke::AttrDomain::Corner, bke::AttrDomain::Point) &&
                  ELEM(meta_data.data_type, CD_PROP_BYTE_COLOR, CD_PROP_COLOR))
         {
           if (usd_export_context_.export_params.export_mesh_colors) {
@@ -188,14 +188,14 @@ static std::optional<pxr::SdfValueTypeName> convert_blender_type_to_usd(
 }
 
 static const std::optional<pxr::TfToken> convert_blender_domain_to_usd(
-    const eAttrDomain blender_domain, ReportList *reports)
+    const bke::AttrDomain blender_domain, ReportList *reports)
 {
   switch (blender_domain) {
-    case ATTR_DOMAIN_CORNER:
+    case bke::AttrDomain::Corner:
       return pxr::UsdGeomTokens->faceVarying;
-    case ATTR_DOMAIN_POINT:
+    case bke::AttrDomain::Point:
       return pxr::UsdGeomTokens->vertex;
-    case ATTR_DOMAIN_FACE:
+    case bke::AttrDomain::Face:
       return pxr::UsdGeomTokens->uniform;
 
     /* Notice: Edge types are not supported in USD! */
@@ -334,7 +334,7 @@ void USDGenericMeshWriter::write_uv_data(const Mesh *mesh,
       primvar_name, pxr::SdfValueTypeNames->TexCoord2fArray, pxr::UsdGeomTokens->faceVarying);
 
   const VArraySpan<float2> buffer = *mesh->attributes().lookup<float2>(attribute_id,
-                                                                       ATTR_DOMAIN_CORNER);
+                                                                       bke::AttrDomain::Corner);
   if (buffer.is_empty()) {
     return;
   }
@@ -352,7 +352,7 @@ void USDGenericMeshWriter::write_color_data(const Mesh *mesh,
   const pxr::UsdGeomPrimvarsAPI pvApi = pxr::UsdGeomPrimvarsAPI(usd_mesh);
 
   /* Varying type depends on original domain. */
-  const pxr::TfToken prim_varying = meta_data.domain == ATTR_DOMAIN_CORNER ?
+  const pxr::TfToken prim_varying = meta_data.domain == bke::AttrDomain::Corner ?
                                         pxr::UsdGeomTokens->faceVarying :
                                         pxr::UsdGeomTokens->vertex;
 
@@ -366,8 +366,8 @@ void USDGenericMeshWriter::write_color_data(const Mesh *mesh,
   }
 
   switch (meta_data.domain) {
-    case ATTR_DOMAIN_CORNER:
-    case ATTR_DOMAIN_POINT:
+    case bke::AttrDomain::Corner:
+    case bke::AttrDomain::Point:
       copy_blender_buffer_to_prim<ColorGeometry4f, pxr::GfVec3f>(buffer, timecode, colors_pv);
       break;
     default:
@@ -620,7 +620,7 @@ static void get_loops_polys(const Mesh *mesh, USDMeshData &usd_mesh_data)
    * assignments. */
   const bke::AttributeAccessor attributes = mesh->attributes();
   const VArray<int> material_indices = *attributes.lookup_or_default<int>(
-      "material_index", ATTR_DOMAIN_FACE, 0);
+      "material_index", bke::AttrDomain::Face, 0);
   if (!material_indices.is_single() && mesh->totcol > 1) {
     const VArraySpan<int> indices_span(material_indices);
     for (const int i : indices_span.index_range()) {
@@ -642,7 +642,7 @@ static void get_loops_polys(const Mesh *mesh, USDMeshData &usd_mesh_data)
 static void get_edge_creases(const Mesh *mesh, USDMeshData &usd_mesh_data)
 {
   const bke::AttributeAccessor attributes = mesh->attributes();
-  const bke::AttributeReader attribute = attributes.lookup<float>("crease_edge", ATTR_DOMAIN_EDGE);
+  const bke::AttributeReader attribute = attributes.lookup<float>("crease_edge", bke::AttrDomain::Edge);
   if (!attribute) {
     return;
   }
@@ -667,7 +667,7 @@ static void get_vert_creases(const Mesh *mesh, USDMeshData &usd_mesh_data)
 {
   const bke::AttributeAccessor attributes = mesh->attributes();
   const bke::AttributeReader attribute = attributes.lookup<float>("crease_vert",
-                                                                  ATTR_DOMAIN_POINT);
+                                                                  bke::AttrDomain::Point);
   if (!attribute) {
     return;
   }
@@ -804,7 +804,7 @@ void USDGenericMeshWriter::write_surface_velocity(const Mesh *mesh, pxr::UsdGeom
   /* Export velocity attribute output by fluid sim, sequence cache modifier
    * and geometry nodes. */
   CustomDataLayer *velocity_layer = BKE_id_attribute_find(
-      &mesh->id, "velocity", CD_PROP_FLOAT3, ATTR_DOMAIN_POINT);
+      &mesh->id, "velocity", CD_PROP_FLOAT3, bke::AttrDomain::Point);
 
   if (velocity_layer == nullptr) {
     return;

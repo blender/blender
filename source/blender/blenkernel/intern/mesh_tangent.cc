@@ -123,13 +123,12 @@ void BKE_mesh_calc_loop_tangent_single(Mesh *mesh,
 {
   using namespace blender;
   using namespace blender::bke;
-
   if (!uvmap) {
     uvmap = CustomData_get_active_layer_name(&mesh->corner_data, CD_PROP_FLOAT2);
   }
 
   const AttributeAccessor attributes = mesh->attributes();
-  const VArraySpan uv_map = *attributes.lookup<float2>(uvmap, ATTR_DOMAIN_CORNER);
+  const VArraySpan uv_map = *attributes.lookup<float2>(uvmap, AttrDomain::Corner);
   if (uv_map.is_empty()) {
     BKE_reportf(reports,
                 RPT_ERROR,
@@ -585,7 +584,7 @@ void BKE_mesh_calc_loop_tangents(Mesh *me_eval,
   using namespace blender::bke;
   const blender::Span<int3> corner_tris = me_eval->corner_tris();
   const bke::AttributeAccessor attributes = me_eval->attributes();
-  const VArraySpan sharp_face = *attributes.lookup<bool>("sharp_face", ATTR_DOMAIN_FACE);
+  const VArraySpan sharp_face = *attributes.lookup<bool>("sharp_face", AttrDomain::Face);
   short tangent_mask = 0;
   BKE_mesh_calc_loop_tangent_ex(
       reinterpret_cast<const float(*)[3]>(me_eval->vert_positions().data()),

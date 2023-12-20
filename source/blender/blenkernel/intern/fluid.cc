@@ -3220,15 +3220,16 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
                                     Object *ob)
 {
   using namespace blender;
+  using namespace blender::bke;
   Mesh *mesh;
   float min[3];
   float max[3];
   float size[3];
   float cell_size_scaled[3];
 
-  const bke::AttributeAccessor orig_attributes = orgmesh->attributes();
+  const AttributeAccessor orig_attributes = orgmesh->attributes();
   const VArraySpan orig_material_indices = *orig_attributes.lookup<int>("material_index",
-                                                                        ATTR_DOMAIN_FACE);
+                                                                        AttrDomain::Face);
   const short mp_mat_nr = orig_material_indices.is_empty() ? 0 : orig_material_indices[0];
 
   int i;
@@ -3259,9 +3260,9 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
   blender::MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
 
   const bool is_sharp = orgmesh->attributes()
-                            .lookup_or_default<bool>("sharp_face", ATTR_DOMAIN_FACE, false)
+                            .lookup_or_default<bool>("sharp_face", AttrDomain::Face, false)
                             .varray[0];
-  bke::mesh_smooth_set(*mesh, !is_sharp);
+  mesh_smooth_set(*mesh, !is_sharp);
 
   /* Get size (dimension) but considering scaling. */
   copy_v3_v3(cell_size_scaled, fds->cell_size);
@@ -3291,7 +3292,7 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
 
   if (use_speedvectors) {
     CustomDataLayer *velocity_layer = BKE_id_attribute_new(
-        &mesh->id, "velocity", CD_PROP_FLOAT3, ATTR_DOMAIN_POINT, nullptr);
+        &mesh->id, "velocity", CD_PROP_FLOAT3, AttrDomain::Point, nullptr);
     velarray = static_cast<float(*)[3]>(velocity_layer->data);
   }
 
@@ -3346,7 +3347,7 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
 
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::SpanAttributeWriter material_indices = attributes.lookup_or_add_for_write_span<int>(
-      "material_index", ATTR_DOMAIN_FACE);
+      "material_index", AttrDomain::Face);
 
   /* Loop for triangles. */
   for (const int i : face_offsets.index_range().drop_back(1)) {

@@ -110,7 +110,7 @@ static bool vertex_paint_from_weight(Object *ob)
    * attribute, in order to let the attribute API handle both conversions. */
   const GVArray vertex_group = *attributes.lookup(
       deform_group->name,
-      ATTR_DOMAIN_POINT,
+      bke::AttrDomain::Point,
       bke::cpp_type_to_custom_data_type(color_attribute.varray.type()));
   if (!vertex_group) {
     BLI_assert_unreachable();
@@ -118,7 +118,7 @@ static bool vertex_paint_from_weight(Object *ob)
   }
 
   GVArraySpan interpolated{
-      attributes.adapt_domain(vertex_group, ATTR_DOMAIN_POINT, color_attribute.domain)};
+      attributes.adapt_domain(vertex_group, bke::AttrDomain::Point, color_attribute.domain)};
 
   color_attribute.varray.set_all(interpolated.data());
   color_attribute.finish();
@@ -161,7 +161,7 @@ void PAINT_OT_vertex_color_from_weight(wmOperatorType *ot)
  * \{ */
 
 static IndexMask get_selected_indices(const Mesh &mesh,
-                                      const eAttrDomain domain,
+                                      const blender::bke::AttrDomain domain,
                                       IndexMaskMemory &memory)
 {
   using namespace blender;
@@ -190,19 +190,20 @@ static void face_corner_color_equalize_verts(Mesh &mesh, const IndexMask selecti
     BLI_assert_unreachable();
     return;
   }
-  if (attribute.domain == ATTR_DOMAIN_POINT) {
+  if (attribute.domain == bke::AttrDomain::Point) {
     return;
   }
 
-  GVArray color_attribute_point = *attributes.lookup(name, ATTR_DOMAIN_POINT);
+  GVArray color_attribute_point = *attributes.lookup(name, bke::AttrDomain::Point);
   GVArray color_attribute_corner = attributes.adapt_domain(
-      color_attribute_point, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CORNER);
+      color_attribute_point, bke::AttrDomain::Point, bke::AttrDomain::Corner);
   color_attribute_corner.materialize(selection, attribute.span.data());
   attribute.finish();
 }
 
 static bool vertex_color_smooth(Object *ob)
 {
+  using namespace blender;
   Mesh *mesh;
   if (((mesh = BKE_mesh_from_object(ob)) == nullptr) ||
       (ED_mesh_color_ensure(mesh, nullptr) == false))
@@ -211,7 +212,7 @@ static bool vertex_color_smooth(Object *ob)
   }
 
   IndexMaskMemory memory;
-  const IndexMask selection = get_selected_indices(*mesh, ATTR_DOMAIN_CORNER, memory);
+  const IndexMask selection = get_selected_indices(*mesh, bke::AttrDomain::Corner, memory);
 
   face_corner_color_equalize_verts(*mesh, selection);
 

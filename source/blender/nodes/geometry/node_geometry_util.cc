@@ -75,8 +75,8 @@ const EnumPropertyItem *domain_experimental_grease_pencil_version3_fn(bContext *
   *r_free = true;
   return enum_items_filter(
       rna_enum_attribute_domain_items, [](const EnumPropertyItem &item) -> bool {
-        return (item.value == ATTR_DOMAIN_LAYER) ? U.experimental.use_grease_pencil_version3 :
-                                                   true;
+        return (bke::AttrDomain(item.value) == bke::AttrDomain::Layer) ? U.experimental.use_grease_pencil_version3 :
+                                                        true;
       });
 }
 
@@ -86,7 +86,7 @@ const EnumPropertyItem *domain_without_corner_experimental_grease_pencil_version
   *r_free = true;
   return enum_items_filter(
       rna_enum_attribute_domain_without_corner_items, [](const EnumPropertyItem &item) -> bool {
-        return (item.value == ATTR_DOMAIN_LAYER) ? U.experimental.use_grease_pencil_version3 :
+        return (bke::AttrDomain(item.value) == bke::AttrDomain::Layer) ? U.experimental.use_grease_pencil_version3 :
                                                    true;
       });
 }

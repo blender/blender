@@ -52,7 +52,7 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
                                         const Field<float3> &position_field,
                                         const Field<float> &radius_field,
                                         const Field<bool> &selection_field,
-                                        const eAttrDomain domain,
+                                        const AttrDomain domain,
                                         const AnonymousAttributePropagationInfo &propagation_info)
 {
   const Mesh *mesh = geometry_set.get_mesh();
@@ -92,7 +92,7 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
     pointcloud->totpoint = mesh->verts_num;
     const bke::AttributeReader src = src_attributes.lookup<float3>("position");
     const bke::AttributeInitShared init(src.varray.get_internal_span().data(), *src.sharing_info);
-    pointcloud->attributes_for_write().add<float3>("position", ATTR_DOMAIN_POINT, init);
+    pointcloud->attributes_for_write().add<float3>("position", AttrDomain::Point, init);
   }
   else {
     pointcloud = BKE_pointcloud_new_nomain(selection.size());
@@ -101,7 +101,7 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
 
   MutableAttributeAccessor dst_attributes = pointcloud->attributes_for_write();
   GSpanAttributeWriter radius = dst_attributes.lookup_or_add_for_write_only_span(
-      "radius", ATTR_DOMAIN_POINT, CD_PROP_FLOAT);
+      "radius", AttrDomain::Point, CD_PROP_FLOAT);
   array_utils::gather(evaluator.get_evaluated(1), selection, radius.span);
   radius.finish();
 
@@ -126,11 +126,11 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
     if (share_arrays && src.domain == domain && src.sharing_info && src.varray.is_span()) {
       const bke::AttributeInitShared init(src.varray.get_internal_span().data(),
                                           *src.sharing_info);
-      dst_attributes.add(attribute_id, ATTR_DOMAIN_POINT, data_type, init);
+      dst_attributes.add(attribute_id, AttrDomain::Point, data_type, init);
     }
     else {
       GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
-          attribute_id, ATTR_DOMAIN_POINT, data_type);
+          attribute_id, AttrDomain::Point, data_type);
       array_utils::gather(src.varray, selection, dst.span);
       dst.finish();
     }
@@ -168,7 +168,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                                     position,
                                     positive_radius,
                                     selection,
-                                    ATTR_DOMAIN_POINT,
+                                    AttrDomain::Point,
                                     propagation_info);
         break;
       case GEO_NODE_MESH_TO_POINTS_EDGES:
@@ -176,7 +176,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                                     position,
                                     positive_radius,
                                     selection,
-                                    ATTR_DOMAIN_EDGE,
+                                    AttrDomain::Edge,
                                     propagation_info);
         break;
       case GEO_NODE_MESH_TO_POINTS_FACES:
@@ -184,7 +184,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                                     position,
                                     positive_radius,
                                     selection,
-                                    ATTR_DOMAIN_FACE,
+                                    AttrDomain::Face,
                                     propagation_info);
         break;
       case GEO_NODE_MESH_TO_POINTS_CORNERS:
@@ -192,7 +192,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                                     position,
                                     positive_radius,
                                     selection,
-                                    ATTR_DOMAIN_CORNER,
+                                    AttrDomain::Corner,
                                     propagation_info);
         break;
     }

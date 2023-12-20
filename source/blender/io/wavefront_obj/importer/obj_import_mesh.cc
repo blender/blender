@@ -192,9 +192,9 @@ void MeshFromGeometry::create_faces_loops(Mesh *mesh, bool use_vertex_groups)
   MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::SpanAttributeWriter<int> material_indices =
-      attributes.lookup_or_add_for_write_only_span<int>("material_index", ATTR_DOMAIN_FACE);
+      attributes.lookup_or_add_for_write_only_span<int>("material_index", bke::AttrDomain::Face);
   bke::SpanAttributeWriter<bool> sharp_faces = attributes.lookup_or_add_for_write_span<bool>(
-      "sharp_face", ATTR_DOMAIN_FACE);
+      "sharp_face", bke::AttrDomain::Face);
 
   const int64_t tot_face_elems{mesh->faces_num};
   int tot_loop_idx = 0;
@@ -279,7 +279,7 @@ void MeshFromGeometry::create_uv_verts(Mesh *mesh)
 
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::SpanAttributeWriter<float2> uv_map = attributes.lookup_or_add_for_write_only_span<float2>(
-      "UVMap", ATTR_DOMAIN_CORNER);
+      "UVMap", bke::AttrDomain::Corner);
 
   int tot_loop_idx = 0;
   bool added_uv = false;
@@ -405,7 +405,7 @@ void MeshFromGeometry::create_colors(Mesh *mesh)
     {
       /* This block is suitable, use colors from it. */
       CustomDataLayer *color_layer = BKE_id_attribute_new(
-          &mesh->id, "Color", CD_PROP_COLOR, ATTR_DOMAIN_POINT, nullptr);
+          &mesh->id, "Color", CD_PROP_COLOR, bke::AttrDomain::Point, nullptr);
       BKE_id_attributes_active_color_set(&mesh->id, color_layer->name);
       BKE_id_attributes_default_color_set(&mesh->id, color_layer->name);
       float4 *colors = (float4 *)color_layer->data;

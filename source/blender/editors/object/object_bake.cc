@@ -167,7 +167,7 @@ static bool multiresbake_check(bContext *C, wmOperator *op)
     else {
       const bke::AttributeAccessor attributes = mesh->attributes();
       const VArraySpan material_indices = *attributes.lookup<int>("material_index",
-                                                                  ATTR_DOMAIN_FACE);
+                                                                  bke::AttrDomain::Face);
       a = mesh->faces_num;
       while (ok && a--) {
         Image *ima = bake_object_image_get(ob,

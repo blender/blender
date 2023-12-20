@@ -58,38 +58,38 @@ void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
   MutableSpan<float> radii = drawing.radii_for_write();
   MutableSpan<float> opacities = drawing.opacities_for_write();
   SpanAttributeWriter<float> delta_times = attributes.lookup_or_add_for_write_span<float>(
-      "delta_time", ATTR_DOMAIN_POINT);
+      "delta_time", AttrDomain::Point);
   SpanAttributeWriter<float> rotations = attributes.lookup_or_add_for_write_span<float>(
-      "rotation", ATTR_DOMAIN_POINT);
+      "rotation", AttrDomain::Point);
   SpanAttributeWriter<ColorGeometry4f> vertex_colors =
-      attributes.lookup_or_add_for_write_span<ColorGeometry4f>("vertex_color", ATTR_DOMAIN_POINT);
+      attributes.lookup_or_add_for_write_span<ColorGeometry4f>("vertex_color", AttrDomain::Point);
   SpanAttributeWriter<bool> selection = attributes.lookup_or_add_for_write_span<bool>(
-      ".selection", ATTR_DOMAIN_POINT);
+      ".selection", AttrDomain::Point);
 
   /* Curve Attributes. */
   SpanAttributeWriter<bool> stroke_cyclic = attributes.lookup_or_add_for_write_span<bool>(
-      "cyclic", ATTR_DOMAIN_CURVE);
+      "cyclic", AttrDomain::Curve);
   /* TODO: This should be a `double` attribute. */
   SpanAttributeWriter<float> stroke_init_times = attributes.lookup_or_add_for_write_span<float>(
-      "init_time", ATTR_DOMAIN_CURVE);
+      "init_time", AttrDomain::Curve);
   SpanAttributeWriter<int8_t> stroke_start_caps = attributes.lookup_or_add_for_write_span<int8_t>(
-      "start_cap", ATTR_DOMAIN_CURVE);
+      "start_cap", AttrDomain::Curve);
   SpanAttributeWriter<int8_t> stroke_end_caps = attributes.lookup_or_add_for_write_span<int8_t>(
-      "end_cap", ATTR_DOMAIN_CURVE);
+      "end_cap", AttrDomain::Curve);
   SpanAttributeWriter<float> stroke_hardnesses = attributes.lookup_or_add_for_write_span<float>(
-      "hardness", ATTR_DOMAIN_CURVE);
+      "hardness", AttrDomain::Curve);
   SpanAttributeWriter<float> stroke_point_aspect_ratios =
-      attributes.lookup_or_add_for_write_span<float>("point_aspect_ratio", ATTR_DOMAIN_CURVE);
+      attributes.lookup_or_add_for_write_span<float>("point_aspect_ratio", AttrDomain::Curve);
   SpanAttributeWriter<float2> stroke_fill_translations =
-      attributes.lookup_or_add_for_write_span<float2>("fill_translation", ATTR_DOMAIN_CURVE);
+      attributes.lookup_or_add_for_write_span<float2>("fill_translation", AttrDomain::Curve);
   SpanAttributeWriter<float> stroke_fill_rotations =
-      attributes.lookup_or_add_for_write_span<float>("fill_rotation", ATTR_DOMAIN_CURVE);
+      attributes.lookup_or_add_for_write_span<float>("fill_rotation", AttrDomain::Curve);
   SpanAttributeWriter<float2> stroke_fill_scales = attributes.lookup_or_add_for_write_span<float2>(
-      "fill_scale", ATTR_DOMAIN_CURVE);
+      "fill_scale", AttrDomain::Curve);
   SpanAttributeWriter<ColorGeometry4f> stroke_fill_colors =
-      attributes.lookup_or_add_for_write_span<ColorGeometry4f>("fill_color", ATTR_DOMAIN_CURVE);
+      attributes.lookup_or_add_for_write_span<ColorGeometry4f>("fill_color", AttrDomain::Curve);
   SpanAttributeWriter<int> stroke_materials = attributes.lookup_or_add_for_write_span<int>(
-      "material_index", ATTR_DOMAIN_CURVE);
+      "material_index", AttrDomain::Curve);
 
   int stroke_i = 0;
   LISTBASE_FOREACH_INDEX (bGPDstroke *, gps, &gpf.strokes, stroke_i) {

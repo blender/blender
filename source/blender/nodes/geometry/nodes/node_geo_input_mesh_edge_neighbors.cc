@@ -26,13 +26,13 @@ class EdgeNeighborCountFieldInput final : public bke::MeshFieldInput {
   }
 
   GVArray get_varray_for_context(const Mesh &mesh,
-                                 const eAttrDomain domain,
+                                 const AttrDomain domain,
                                  const IndexMask & /*mask*/) const final
   {
     Array<int> counts(mesh.edges_num, 0);
     array_utils::count_indices(mesh.corner_edges(), counts);
     return mesh.attributes().adapt_domain<int>(
-        VArray<int>::ForContainer(std::move(counts)), ATTR_DOMAIN_EDGE, domain);
+        VArray<int>::ForContainer(std::move(counts)), AttrDomain::Edge, domain);
   }
 
   uint64_t hash() const override
@@ -46,9 +46,9 @@ class EdgeNeighborCountFieldInput final : public bke::MeshFieldInput {
     return dynamic_cast<const EdgeNeighborCountFieldInput *>(&other) != nullptr;
   }
 
-  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
+  std::optional<AttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
   {
-    return ATTR_DOMAIN_EDGE;
+    return AttrDomain::Edge;
   }
 };
 

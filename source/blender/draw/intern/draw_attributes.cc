@@ -64,7 +64,7 @@ void drw_attributes_add_request(DRW_Attributes *attrs,
                                 const char *name,
                                 const eCustomDataType type,
                                 const int layer_index,
-                                const eAttrDomain domain)
+                                const blender::bke::AttrDomain domain)
 {
   if (attrs->num_requests >= GPU_MAX_ATTR ||
       drw_attributes_has_request(attrs, {type, layer_index, domain}))

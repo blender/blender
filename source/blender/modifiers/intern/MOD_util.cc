@@ -104,7 +104,7 @@ void MOD_get_texture_coords(MappingInfoModifierData *dmd,
           &mesh->corner_data, CD_PROP_FLOAT2, dmd->uvlayer_name, uvname);
       const bke::AttributeAccessor attributes = mesh->attributes();
       const VArraySpan uv_map = *attributes.lookup_or_default<float2>(
-          uvname, ATTR_DOMAIN_CORNER, float2(0));
+          uvname, bke::AttrDomain::Corner, float2(0));
 
       /* verts are given the UV from the first face that uses them */
       for (const int i : faces.index_range()) {

@@ -14,7 +14,7 @@
 
 #include "DNA_customdata_types.h"
 
-#include "BKE_attribute.h"
+#include "BKE_attribute.hh"
 
 #include "BLI_sys_types.h"
 
@@ -23,7 +23,7 @@
 struct DRW_AttributeRequest {
   eCustomDataType cd_type;
   int layer_index;
-  eAttrDomain domain;
+  blender::bke::AttrDomain domain;
   char attribute_name[64];
 };
 
@@ -62,7 +62,7 @@ void drw_attributes_add_request(DRW_Attributes *attrs,
                                 const char *name,
                                 eCustomDataType data_type,
                                 int layer_index,
-                                eAttrDomain domain);
+                                blender::bke::AttrDomain domain);
 
 bool drw_custom_data_match_attribute(const CustomData *custom_data,
                                      const char *name,

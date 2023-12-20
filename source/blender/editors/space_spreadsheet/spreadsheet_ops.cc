@@ -82,14 +82,14 @@ static void SPREADSHEET_OT_remove_row_filter_rule(wmOperatorType *ot)
 
 static int select_component_domain_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
+  using namespace blender;
   const auto component_type = blender::bke::GeometryComponent::Type(
       RNA_int_get(op->ptr, "component_type"));
-  eAttrDomain attribute_domain = static_cast<eAttrDomain>(
-      RNA_int_get(op->ptr, "attribute_domain_type"));
+  bke::AttrDomain domain = bke::AttrDomain(RNA_int_get(op->ptr, "attribute_domain_type"));
 
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
   sspreadsheet->geometry_component_type = uint8_t(component_type);
-  sspreadsheet->attribute_domain = attribute_domain;
+  sspreadsheet->attribute_domain = uint8_t(domain);
 
   /* Refresh header and main region. */
   WM_main_add_notifier(NC_SPACE | ND_SPACE_SPREADSHEET, nullptr);

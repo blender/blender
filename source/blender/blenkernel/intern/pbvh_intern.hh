@@ -188,7 +188,7 @@ struct PBVH {
   blender::GroupedSpan<int> pmap;
 
   CustomDataLayer *color_layer;
-  eAttrDomain color_domain;
+  blender::bke::AttrDomain color_domain;
 
   /* Initialize this to true, instead of waiting for a draw engine
    * to set it. Prevents a crash in draw manager instancing code.

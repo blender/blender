@@ -202,18 +202,18 @@ static void build_face_to_face_by_edge_map(const OffsetIndices<int> faces,
 }
 
 static GroupedSpan<int> create_mesh_map(const Mesh &mesh,
-                                        const eAttrDomain domain,
+                                        const AttrDomain domain,
                                         Array<int> &r_offsets,
                                         Array<int> &r_indices)
 {
   switch (domain) {
-    case ATTR_DOMAIN_POINT:
+    case AttrDomain::Point:
       build_vert_to_vert_by_edge_map(mesh.edges(), mesh.verts_num, r_offsets, r_indices);
       break;
-    case ATTR_DOMAIN_EDGE:
+    case AttrDomain::Edge:
       build_edge_to_edge_by_vert_map(mesh.edges(), mesh.verts_num, r_offsets, r_indices);
       break;
-    case ATTR_DOMAIN_FACE:
+    case AttrDomain::Face:
       build_face_to_face_by_edge_map(
           mesh.faces(), mesh.corner_edges(), mesh.edges_num, r_offsets, r_indices);
       break;
@@ -256,7 +256,7 @@ static Span<T> blur_on_mesh_exec(const Span<float> neighbor_weights,
 }
 
 static GSpan blur_on_mesh(const Mesh &mesh,
-                          const eAttrDomain domain,
+                          const AttrDomain domain,
                           const int iterations,
                           const Span<float> neighbor_weights,
                           const GMutableSpan buffer_a,
@@ -396,7 +396,7 @@ class BlurAttributeFieldInput final : public bke::GeometryFieldInput {
     GSpan result_buffer = buffer_a.as_span();
     switch (context.type()) {
       case GeometryComponent::Type::Mesh:
-        if (ELEM(context.domain(), ATTR_DOMAIN_POINT, ATTR_DOMAIN_EDGE, ATTR_DOMAIN_FACE)) {
+        if (ELEM(context.domain(), AttrDomain::Point, AttrDomain::Edge, AttrDomain::Face)) {
           if (const Mesh *mesh = context.mesh()) {
             result_buffer = blur_on_mesh(
                 *mesh, context.domain(), iterations_, neighbor_weights, buffer_a, buffer_b);
@@ -405,7 +405,7 @@ class BlurAttributeFieldInput final : public bke::GeometryFieldInput {
         break;
       case GeometryComponent::Type::Curve:
       case GeometryComponent::Type::GreasePencil:
-        if (context.domain() == ATTR_DOMAIN_POINT) {
+        if (context.domain() == AttrDomain::Point) {
           if (const bke::CurvesGeometry *curves = context.curves_or_strokes()) {
             result_buffer = blur_on_curves(
                 *curves, iterations_, neighbor_weights, buffer_a, buffer_b);
@@ -445,12 +445,12 @@ class BlurAttributeFieldInput final : public bke::GeometryFieldInput {
     return false;
   }
 
-  std::optional<eAttrDomain> preferred_domain(const GeometryComponent &component) const override
+  std::optional<AttrDomain> preferred_domain(const GeometryComponent &component) const override
   {
-    const std::optional<eAttrDomain> domain = bke::try_detect_field_domain(component,
+    const std::optional<AttrDomain> domain = bke::try_detect_field_domain(component,
                                                                            value_field_);
-    if (domain.has_value() && *domain == ATTR_DOMAIN_CORNER) {
-      return ATTR_DOMAIN_POINT;
+    if (domain.has_value() && *domain == AttrDomain::Corner) {
+      return AttrDomain::Point;
     }
     return domain;
   }

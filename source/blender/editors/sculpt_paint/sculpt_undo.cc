@@ -125,7 +125,7 @@ namespace blender::ed::sculpt_paint::undo {
  * End of dynamic topology and symmetrize in this mode are handled in a special
  * manner as well. */
 
-#define NO_ACTIVE_LAYER ATTR_DOMAIN_AUTO
+#define NO_ACTIVE_LAYER bke::AttrDomain::Auto
 
 struct UndoSculpt {
   Vector<std::unique_ptr<Node>> nodes;
@@ -134,7 +134,7 @@ struct UndoSculpt {
 };
 
 struct SculptAttrRef {
-  eAttrDomain domain;
+  bke::AttrDomain domain;
   eCustomDataType type;
   char name[MAX_CUSTOMDATA_LAYER_NAME];
   bool was_set;
@@ -520,7 +520,7 @@ static bool restore_hidden(Object *ob, Node &unode, MutableSpan<bool> modified_v
     Mesh &mesh = *static_cast<Mesh *>(ob->data);
     bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
     bke::SpanAttributeWriter<bool> hide_vert = attributes.lookup_or_add_for_write_span<bool>(
-        ".hide_vert", ATTR_DOMAIN_POINT);
+        ".hide_vert", bke::AttrDomain::Point);
     for (const int i : unode.vert_indices.index_range().take_front(unode.unique_verts_num)) {
       const int vert = unode.vert_indices[i];
       if (unode.vert_hidden[i].test() != hide_vert.span[vert]) {
@@ -560,7 +560,7 @@ static bool restore_hidden_face(Object &object, Node &unode, MutableSpan<bool> m
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
   bke::SpanAttributeWriter hide_poly = attributes.lookup_or_add_for_write_span<bool>(
-      ".hide_poly", ATTR_DOMAIN_FACE);
+      ".hide_poly", bke::AttrDomain::Face);
 
   const Span<int> face_indices = unode.face_indices;
 
@@ -615,7 +615,7 @@ static bool restore_mask(Object *ob, Node &unode, MutableSpan<bool> modified_ver
   if (unode.mesh_verts_num) {
     bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
     bke::SpanAttributeWriter<float> mask = attributes.lookup_or_add_for_write_span<float>(
-        ".sculpt_mask", ATTR_DOMAIN_POINT);
+        ".sculpt_mask", bke::AttrDomain::Point);
 
     const Span<int> index = unode.vert_indices.as_span().take_front(unode.unique_verts_num);
 
@@ -1244,7 +1244,7 @@ static Node *alloc_node(Object *ob, PBVHNode *node, Type type)
       usculpt->undo_size += unode->col.as_span().size_in_bytes();
 
       /* Allocate loop colors separately too. */
-      if (ss->vcol_domain == ATTR_DOMAIN_CORNER) {
+      if (ss->vcol_domain == bke::AttrDomain::Corner) {
         unode->loop_col.reinitialize(unode->corner_indices.size());
         unode->undo_size += unode->loop_col.as_span().size_in_bytes();
       }
@@ -1324,7 +1324,8 @@ static void store_hidden(Object *ob, Node *unode)
 
   const Mesh &mesh = *static_cast<const Mesh *>(ob->data);
   const bke::AttributeAccessor attributes = mesh.attributes();
-  const VArraySpan<bool> hide_vert = *attributes.lookup<bool>(".hide_vert", ATTR_DOMAIN_POINT);
+  const VArraySpan<bool> hide_vert = *attributes.lookup<bool>(".hide_vert",
+                                                              bke::AttrDomain::Point);
   if (hide_vert.is_empty()) {
     return;
   }
@@ -1339,7 +1340,7 @@ static void store_face_hidden(Object &object, Node &unode)
 {
   const Mesh &mesh = *static_cast<const Mesh *>(object.data);
   const bke::AttributeAccessor attributes = mesh.attributes();
-  const VArraySpan<bool> hide_poly = *attributes.lookup<bool>(".hide_poly", ATTR_DOMAIN_FACE);
+  const VArraySpan<bool> hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
   if (hide_poly.is_empty()) {
     unode.face_hidden.fill(false);
     return;
@@ -1374,7 +1375,7 @@ static void store_mask(Object *ob, Node *unode)
   else {
     const Mesh &mesh = *static_cast<const Mesh *>(ob->data);
     const bke::AttributeAccessor attributes = mesh.attributes();
-    if (const VArray mask = *attributes.lookup<float>(".sculpt_mask", ATTR_DOMAIN_POINT)) {
+    if (const VArray mask = *attributes.lookup<float>(".sculpt_mask", bke::AttrDomain::Point)) {
       array_utils::gather(mask, unode->vert_indices.as_span(), unode->mask.as_mutable_span());
     }
     else {
@@ -1424,7 +1425,7 @@ static Node *geometry_push(Object *object, Type type)
 static void store_face_sets(const Mesh &mesh, Node &unode)
 {
   array_utils::gather(
-      *mesh.attributes().lookup_or_default<int>(".sculpt_face_set", ATTR_DOMAIN_FACE, 0),
+      *mesh.attributes().lookup_or_default<int>(".sculpt_face_set", bke::AttrDomain::Face, 0),
       unode.face_indices.as_span(),
       unode.face_sets.as_mutable_span());
 }
@@ -1692,7 +1693,7 @@ void push_end_ex(Object *ob, const bool use_nested_undo)
 
 static void set_active_layer(bContext *C, SculptAttrRef *attr)
 {
-  if (attr->domain == ATTR_DOMAIN_AUTO) {
+  if (attr->domain == bke::AttrDomain::Auto) {
     return;
   }
 

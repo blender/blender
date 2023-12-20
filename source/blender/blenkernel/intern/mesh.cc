@@ -642,17 +642,21 @@ MutableSpan<MDeformVert> Mesh::deform_verts_for_write()
           this->verts_num};
 }
 
+namespace blender::bke {
+
 static void mesh_ensure_cdlayers_primary(Mesh &mesh)
 {
-  blender::bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
-  blender::bke::AttributeInitConstruct attribute_init;
+  MutableAttributeAccessor attributes = mesh.attributes_for_write();
+  AttributeInitConstruct attribute_init;
 
   /* Try to create attributes if they do not exist. */
-  attributes.add("position", ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, attribute_init);
-  attributes.add(".edge_verts", ATTR_DOMAIN_EDGE, CD_PROP_INT32_2D, attribute_init);
-  attributes.add(".corner_vert", ATTR_DOMAIN_CORNER, CD_PROP_INT32, attribute_init);
-  attributes.add(".corner_edge", ATTR_DOMAIN_CORNER, CD_PROP_INT32, attribute_init);
+  attributes.add("position", AttrDomain::Point, CD_PROP_FLOAT3, attribute_init);
+  attributes.add(".edge_verts", AttrDomain::Edge, CD_PROP_INT32_2D, attribute_init);
+  attributes.add(".corner_vert", AttrDomain::Corner, CD_PROP_INT32, attribute_init);
+  attributes.add(".corner_edge", AttrDomain::Corner, CD_PROP_INT32, attribute_init);
 }
+
+}  // namespace blender::bke
 
 Mesh *BKE_mesh_new_nomain(const int verts_num,
                           const int edges_num,
@@ -668,7 +672,7 @@ Mesh *BKE_mesh_new_nomain(const int verts_num,
   mesh->faces_num = faces_num;
   mesh->corners_num = corners_num;
 
-  mesh_ensure_cdlayers_primary(*mesh);
+  blender::bke::mesh_ensure_cdlayers_primary(*mesh);
   BKE_mesh_face_offsets_ensure_alloc(mesh);
 
   return mesh;
@@ -770,7 +774,7 @@ Mesh *BKE_mesh_new_nomain_from_template_ex(const Mesh *me_src,
 
   /* The destination mesh should at least have valid primary CD layers,
    * even in cases where the source mesh does not. */
-  mesh_ensure_cdlayers_primary(*me_dst);
+  blender::bke::mesh_ensure_cdlayers_primary(*me_dst);
   BKE_mesh_face_offsets_ensure_alloc(me_dst);
   if (do_tessface && !CustomData_get_layer(&me_dst->fdata_legacy, CD_MFACE)) {
     CustomData_add_layer(&me_dst->fdata_legacy, CD_MFACE, CD_SET_DEFAULT, me_dst->totface_legacy);
@@ -1043,7 +1047,7 @@ void BKE_mesh_material_index_remove(Mesh *mesh, short index)
   if (!material_indices) {
     return;
   }
-  if (material_indices.domain != ATTR_DOMAIN_FACE) {
+  if (material_indices.domain != AttrDomain::Face) {
     BLI_assert_unreachable();
     return;
   }
@@ -1065,7 +1069,7 @@ bool BKE_mesh_material_index_used(Mesh *mesh, short index)
   using namespace blender::bke;
   const AttributeAccessor attributes = mesh->attributes();
   const VArray<int> material_indices = *attributes.lookup_or_default<int>(
-      "material_index", ATTR_DOMAIN_FACE, 0);
+      "material_index", AttrDomain::Face, 0);
   if (material_indices.is_single()) {
     return material_indices.get_internal_single() == index;
   }
@@ -1108,7 +1112,7 @@ void BKE_mesh_material_remap(Mesh *mesh, const uint *remap, uint remap_len)
   else {
     MutableAttributeAccessor attributes = mesh->attributes_for_write();
     SpanAttributeWriter<int> material_indices = attributes.lookup_or_add_for_write_span<int>(
-        "material_index", ATTR_DOMAIN_FACE);
+        "material_index", AttrDomain::Face);
     if (!material_indices) {
       return;
     }
@@ -1134,7 +1138,7 @@ void mesh_smooth_set(Mesh &mesh, const bool use_smooth)
   else {
     attributes.remove("sharp_edge");
     SpanAttributeWriter<bool> sharp_faces = attributes.lookup_or_add_for_write_only_span<bool>(
-        "sharp_face", ATTR_DOMAIN_FACE);
+        "sharp_face", AttrDomain::Face);
     sharp_faces.span.fill(true);
     sharp_faces.finish();
   }
@@ -1153,8 +1157,8 @@ void mesh_sharp_edges_set_from_angle(Mesh &mesh, const float angle)
     return;
   }
   SpanAttributeWriter<bool> sharp_edges = attributes.lookup_or_add_for_write_span<bool>(
-      "sharp_edge", ATTR_DOMAIN_EDGE);
-  const VArraySpan<bool> sharp_faces = *attributes.lookup<bool>("sharp_face", ATTR_DOMAIN_FACE);
+      "sharp_edge", AttrDomain::Edge);
+  const VArraySpan<bool> sharp_faces = *attributes.lookup<bool>("sharp_face", AttrDomain::Face);
   mesh::edges_sharp_from_angle_set(mesh.faces(),
                                    mesh.corner_verts(),
                                    mesh.corner_edges(),
@@ -1283,11 +1287,11 @@ void BKE_mesh_mselect_validate(Mesh *mesh)
 
   const AttributeAccessor attributes = mesh->attributes();
   const VArray<bool> select_vert = *attributes.lookup_or_default<bool>(
-      ".select_vert", ATTR_DOMAIN_POINT, false);
+      ".select_vert", AttrDomain::Point, false);
   const VArray<bool> select_edge = *attributes.lookup_or_default<bool>(
-      ".select_edge", ATTR_DOMAIN_EDGE, false);
+      ".select_edge", AttrDomain::Edge, false);
   const VArray<bool> select_poly = *attributes.lookup_or_default<bool>(
-      ".select_poly", ATTR_DOMAIN_FACE, false);
+      ".select_poly", AttrDomain::Face, false);
 
   for (i_src = 0, i_dst = 0; i_src < mesh->totselect; i_src++) {
     int index = mselect_src[i_src].index;

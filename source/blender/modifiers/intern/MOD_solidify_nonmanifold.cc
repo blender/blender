@@ -2153,10 +2153,10 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
 #endif
   const bke::AttributeAccessor src_attributes = mesh->attributes();
   const VArraySpan src_material_index = *src_attributes.lookup<int>("material_index",
-                                                                    ATTR_DOMAIN_FACE);
+                                                                    bke::AttrDomain::Face);
   bke::MutableAttributeAccessor dst_attributes = result->attributes_for_write();
   bke::SpanAttributeWriter dst_material_index = dst_attributes.lookup_or_add_for_write_span<int>(
-      "material_index", ATTR_DOMAIN_FACE);
+      "material_index", bke::AttrDomain::Face);
 
   /* Make boundary edges/faces. */
   {

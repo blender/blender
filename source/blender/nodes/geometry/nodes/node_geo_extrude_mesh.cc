@@ -77,7 +77,7 @@ struct AttributeOutputs {
 
 static void save_selection_as_attribute(MutableAttributeAccessor attributes,
                                         const AnonymousAttributeID *id,
-                                        const eAttrDomain domain,
+                                        const AttrDomain domain,
                                         const IndexMask &selection)
 {
   BLI_assert(!attributes.contains(id));
@@ -150,7 +150,7 @@ static void expand_mesh(Mesh &mesh,
   if (edge_expand != 0) {
     if (mesh.edges_num == 0) {
       mesh.attributes_for_write().add(
-          ".edge_verts", ATTR_DOMAIN_EDGE, CD_PROP_INT32_2D, bke::AttributeInitConstruct());
+          ".edge_verts", AttrDomain::Edge, CD_PROP_INT32_2D, bke::AttributeInitConstruct());
     }
     const int old_edges_num = mesh.edges_num;
     mesh.edges_num += edge_expand;
@@ -175,16 +175,16 @@ static void expand_mesh(Mesh &mesh,
   }
 }
 
-static CustomData &mesh_custom_data_for_domain(Mesh &mesh, const eAttrDomain domain)
+static CustomData &mesh_custom_data_for_domain(Mesh &mesh, const AttrDomain domain)
 {
   switch (domain) {
-    case ATTR_DOMAIN_POINT:
+    case AttrDomain::Point:
       return mesh.vert_data;
-    case ATTR_DOMAIN_EDGE:
+    case AttrDomain::Edge:
       return mesh.edge_data;
-    case ATTR_DOMAIN_FACE:
+    case AttrDomain::Face:
       return mesh.face_data;
-    case ATTR_DOMAIN_CORNER:
+    case AttrDomain::Corner:
       return mesh.corner_data;
     default:
       BLI_assert_unreachable();
@@ -192,7 +192,7 @@ static CustomData &mesh_custom_data_for_domain(Mesh &mesh, const eAttrDomain dom
   }
 }
 
-static std::optional<MutableSpan<int>> get_orig_index_layer(Mesh &mesh, const eAttrDomain domain)
+static std::optional<MutableSpan<int>> get_orig_index_layer(Mesh &mesh, const AttrDomain domain)
 {
   const bke::AttributeAccessor attributes = mesh.attributes();
   CustomData &custom_data = mesh_custom_data_for_domain(mesh, domain);
@@ -277,7 +277,7 @@ static IDsByDomain attribute_ids_by_domain(const AttributeAccessor attributes,
     if (skip.contains(id.name())) {
       return true;
     }
-    map[meta_data.domain].append(id);
+    map[int(meta_data.domain)].append(id);
     return true;
   });
   return map;
@@ -319,7 +319,7 @@ static void extrude_mesh_vertices(Mesh &mesh,
   /* Use an array for the result of the evaluation because the mesh is reallocated before
    * the vertices are moved, and the evaluated result might reference an attribute. */
   Array<float3> offsets(orig_vert_size);
-  const bke::MeshFieldContext context{mesh, ATTR_DOMAIN_POINT};
+  const bke::MeshFieldContext context{mesh, AttrDomain::Point};
   FieldEvaluator evaluator{context, mesh.verts_num};
   evaluator.add_with_destination(offset_field, offsets.as_mutable_span());
   evaluator.set_selection(selection_field);
@@ -338,7 +338,7 @@ static void extrude_mesh_vertices(Mesh &mesh,
   Array<int> vert_to_edge_offsets;
   Array<int> vert_to_edge_indices;
   GroupedSpan<int> vert_to_edge_map;
-  if (!ids_by_domain[ATTR_DOMAIN_EDGE].is_empty()) {
+  if (!ids_by_domain[int(AttrDomain::Edge)].is_empty()) {
     vert_to_edge_map = bke::mesh::build_vert_to_edge_map(
         mesh.edges(), orig_vert_size, vert_to_edge_offsets, vert_to_edge_indices);
   }
@@ -357,10 +357,10 @@ static void extrude_mesh_vertices(Mesh &mesh,
       });
 
   /* New vertices copy the attribute values from their source vertex. */
-  gather_attributes(attributes, ids_by_domain[ATTR_DOMAIN_POINT], selection, new_vert_range);
+  gather_attributes(attributes, ids_by_domain[int(AttrDomain::Point)], selection, new_vert_range);
 
   /* New edge values are mixed from of all the edges connected to the source vertex. */
-  for (const AttributeIDRef &id : ids_by_domain[ATTR_DOMAIN_EDGE]) {
+  for (const AttributeIDRef &id : ids_by_domain[int(AttrDomain::Edge)]) {
     GSpanAttributeWriter attribute = attributes.lookup_for_write_span(id);
     copy_with_mixing(
         attribute.span, vert_to_edge_map, selection, attribute.span.slice(new_edge_range));
@@ -373,20 +373,20 @@ static void extrude_mesh_vertices(Mesh &mesh,
     new_positions[i] = positions[index] + offsets[index];
   });
 
-  if (std::optional<MutableSpan<int>> indices = get_orig_index_layer(mesh, ATTR_DOMAIN_POINT)) {
+  if (std::optional<MutableSpan<int>> indices = get_orig_index_layer(mesh, AttrDomain::Point)) {
     array_utils::gather(indices->as_span(), selection, indices->slice(new_vert_range));
   }
-  if (std::optional<MutableSpan<int>> indices = get_orig_index_layer(mesh, ATTR_DOMAIN_EDGE)) {
+  if (std::optional<MutableSpan<int>> indices = get_orig_index_layer(mesh, AttrDomain::Edge)) {
     indices->slice(new_edge_range).fill(ORIGINDEX_NONE);
   }
 
   if (attribute_outputs.top_id) {
     save_selection_as_attribute(
-        attributes, attribute_outputs.top_id.get(), ATTR_DOMAIN_POINT, new_vert_range);
+        attributes, attribute_outputs.top_id.get(), AttrDomain::Point, new_vert_range);
   }
   if (attribute_outputs.side_id) {
     save_selection_as_attribute(
-        attributes, attribute_outputs.side_id.get(), ATTR_DOMAIN_EDGE, new_edge_range);
+        attributes, attribute_outputs.side_id.get(), AttrDomain::Edge, new_edge_range);
   }
 
   const bool no_loose_vert_hint = mesh.runtime->loose_verts_cache.is_cached() &&
@@ -499,7 +499,7 @@ static void extrude_mesh_edges(Mesh &mesh,
   const OffsetIndices orig_faces = mesh.faces();
   const int orig_loop_size = mesh.corners_num;
 
-  const bke::MeshFieldContext edge_context{mesh, ATTR_DOMAIN_EDGE};
+  const bke::MeshFieldContext edge_context{mesh, AttrDomain::Edge};
   FieldEvaluator edge_evaluator{edge_context, mesh.edges_num};
   edge_evaluator.set_selection(selection_field);
   edge_evaluator.add(offset_field);
@@ -553,7 +553,7 @@ static void extrude_mesh_edges(Mesh &mesh,
   Array<int> vert_to_edge_offsets;
   Array<int> vert_to_edge_indices;
   GroupedSpan<int> vert_to_selected_edge_map;
-  if (!ids_by_domain[ATTR_DOMAIN_EDGE].is_empty()) {
+  if (!ids_by_domain[int(AttrDomain::Edge)].is_empty()) {
     vert_to_selected_edge_map = build_vert_to_edge_map(
         orig_edges, edge_selection, orig_vert_size, vert_to_edge_offsets, vert_to_edge_indices);
   }
@@ -631,14 +631,14 @@ static void extrude_mesh_edges(Mesh &mesh,
   });
 
   /* New vertices copy the attribute values from their source vertex. */
-  gather_attributes(attributes, ids_by_domain[ATTR_DOMAIN_POINT], new_verts, new_vert_range);
+  gather_attributes(attributes, ids_by_domain[int(AttrDomain::Point)], new_verts, new_vert_range);
 
   /* Edges parallel to original edges copy the edge attributes from the original edges. */
   gather_attributes(
-      attributes, ids_by_domain[ATTR_DOMAIN_EDGE], edge_selection, duplicate_edge_range);
+      attributes, ids_by_domain[int(AttrDomain::Edge)], edge_selection, duplicate_edge_range);
 
   /* Edges connected to original vertices mix values of selected connected edges. */
-  for (const AttributeIDRef &id : ids_by_domain[ATTR_DOMAIN_EDGE]) {
+  for (const AttributeIDRef &id : ids_by_domain[int(AttrDomain::Edge)]) {
     GSpanAttributeWriter attribute = attributes.lookup_for_write_span(id);
     copy_with_mixing(attribute.span,
                      vert_to_selected_edge_map,
@@ -648,7 +648,7 @@ static void extrude_mesh_edges(Mesh &mesh,
   }
 
   /* Attribute values for new faces are a mix of values connected to its original edge. */
-  for (const AttributeIDRef &id : ids_by_domain[ATTR_DOMAIN_FACE]) {
+  for (const AttributeIDRef &id : ids_by_domain[int(AttrDomain::Face)]) {
     GSpanAttributeWriter attribute = attributes.lookup_for_write_span(id);
     copy_with_mixing(
         attribute.span, edge_to_face_map, edge_selection, attribute.span.slice(new_face_range));
@@ -657,7 +657,7 @@ static void extrude_mesh_edges(Mesh &mesh,
 
   /* New corners get the average value of all adjacent corners on original faces connected
    * to the original edge of their face. */
-  for (const AttributeIDRef &id : ids_by_domain[ATTR_DOMAIN_CORNER]) {
+  for (const AttributeIDRef &id : ids_by_domain[int(AttrDomain::Corner)]) {
     GSpanAttributeWriter attribute = attributes.lookup_for_write_span(id);
     bke::attribute_math::convert_to_static_type(attribute.span.type(), [&](auto dummy) {
       using T = decltype(dummy);
@@ -728,24 +728,24 @@ static void extrude_mesh_edges(Mesh &mesh,
     });
   }
 
-  if (std::optional<MutableSpan<int>> indices = get_orig_index_layer(mesh, ATTR_DOMAIN_POINT)) {
+  if (std::optional<MutableSpan<int>> indices = get_orig_index_layer(mesh, AttrDomain::Point)) {
     array_utils::gather(indices->as_span(), new_verts, indices->slice(new_vert_range));
   }
-  if (std::optional<MutableSpan<int>> indices = get_orig_index_layer(mesh, ATTR_DOMAIN_EDGE)) {
+  if (std::optional<MutableSpan<int>> indices = get_orig_index_layer(mesh, AttrDomain::Edge)) {
     indices->slice(connect_edge_range).fill(ORIGINDEX_NONE);
     array_utils::gather(indices->as_span(), edge_selection, indices->slice(duplicate_edge_range));
   }
-  if (std::optional<MutableSpan<int>> indices = get_orig_index_layer(mesh, ATTR_DOMAIN_FACE)) {
+  if (std::optional<MutableSpan<int>> indices = get_orig_index_layer(mesh, AttrDomain::Face)) {
     indices->slice(new_face_range).fill(ORIGINDEX_NONE);
   }
 
   if (attribute_outputs.top_id) {
     save_selection_as_attribute(
-        attributes, attribute_outputs.top_id.get(), ATTR_DOMAIN_EDGE, duplicate_edge_range);
+        attributes, attribute_outputs.top_id.get(), AttrDomain::Edge, duplicate_edge_range);
   }
   if (attribute_outputs.side_id) {
     save_selection_as_attribute(
-        attributes, attribute_outputs.side_id.get(), ATTR_DOMAIN_FACE, new_face_range);
+        attributes, attribute_outputs.side_id.get(), AttrDomain::Face, new_face_range);
   }
 
   tag_mesh_added_faces(mesh);
@@ -781,7 +781,7 @@ static void extrude_mesh_face_regions(Mesh &mesh,
   const Span<int> orig_corner_verts = mesh.corner_verts();
   const int orig_loop_size = orig_corner_verts.size();
 
-  const bke::MeshFieldContext face_context{mesh, ATTR_DOMAIN_FACE};
+  const bke::MeshFieldContext face_context{mesh, AttrDomain::Face};
   FieldEvaluator face_evaluator{face_context, mesh.faces_num};
   face_evaluator.set_selection(selection_field);
   face_evaluator.add(offset_field);
@@ -1007,13 +1007,15 @@ static void extrude_mesh_face_regions(Mesh &mesh,
 
   /* New vertices copy the attributes from their original vertices. */
   gather_attributes(
-      attributes, ids_by_domain[ATTR_DOMAIN_POINT], new_vert_indices, new_vert_range);
+      attributes, ids_by_domain[int(AttrDomain::Point)], new_vert_indices, new_vert_range);
 
   /* New faces on the side of extrusions get the values from the corresponding selected face. */
-  gather_attributes(
-      attributes, ids_by_domain[ATTR_DOMAIN_FACE], edge_extruded_face_indices, side_face_range);
+  gather_attributes(attributes,
+                    ids_by_domain[int(AttrDomain::Face)],
+                    edge_extruded_face_indices,
+                    side_face_range);
 
-  if (!ids_by_domain[ATTR_DOMAIN_EDGE].is_empty()) {
+  if (!ids_by_domain[int(AttrDomain::Edge)].is_empty()) {
     IndexMaskMemory memory;
     const IndexMask boundary_edge_mask = IndexMask::from_indices<int>(boundary_edge_indices,
                                                                       memory);
@@ -1023,7 +1025,7 @@ static void extrude_mesh_face_regions(Mesh &mesh,
     const GroupedSpan<int> vert_to_boundary_edge_map = build_vert_to_edge_map(
         edges, boundary_edge_mask, mesh.verts_num, vert_to_edge_offsets, vert_to_edge_indices);
 
-    for (const AttributeIDRef &id : ids_by_domain[ATTR_DOMAIN_EDGE]) {
+    for (const AttributeIDRef &id : ids_by_domain[int(AttrDomain::Edge)]) {
       GSpanAttributeWriter attribute = attributes.lookup_for_write_span(id);
 
       /* Edges parallel to original edges copy the edge attributes from the original edges. */
@@ -1044,7 +1046,7 @@ static void extrude_mesh_face_regions(Mesh &mesh,
   }
 
   /* New corners get the values from the corresponding corner on the extruded face. */
-  if (!ids_by_domain[ATTR_DOMAIN_CORNER].is_empty()) {
+  if (!ids_by_domain[int(AttrDomain::Corner)].is_empty()) {
     Array<int> orig_corners(side_loop_range.size());
     threading::parallel_for(boundary_edge_indices.index_range(), 256, [&](const IndexRange range) {
       for (const int i_boundary_edge : range) {
@@ -1084,7 +1086,7 @@ static void extrude_mesh_face_regions(Mesh &mesh,
       }
     });
     gather_attributes(
-        attributes, ids_by_domain[ATTR_DOMAIN_CORNER], orig_corners, side_loop_range);
+        attributes, ids_by_domain[int(AttrDomain::Corner)], orig_corners, side_loop_range);
   }
 
   /* Translate vertices based on the offset. If the vertex is used by a selected edge, it will
@@ -1116,11 +1118,11 @@ static void extrude_mesh_face_regions(Mesh &mesh,
     });
   }
 
-  if (std::optional<MutableSpan<int>> indices = get_orig_index_layer(mesh, ATTR_DOMAIN_POINT)) {
+  if (std::optional<MutableSpan<int>> indices = get_orig_index_layer(mesh, AttrDomain::Point)) {
     array_utils::gather(
         indices->as_span(), new_vert_indices.as_span(), indices->slice(new_vert_range));
   }
-  if (std::optional<MutableSpan<int>> indices = get_orig_index_layer(mesh, ATTR_DOMAIN_EDGE)) {
+  if (std::optional<MutableSpan<int>> indices = get_orig_index_layer(mesh, AttrDomain::Edge)) {
     indices->slice(connect_edge_range).fill(ORIGINDEX_NONE);
     array_utils::gather(indices->as_span(),
                         new_inner_edge_indices.as_span(),
@@ -1128,18 +1130,18 @@ static void extrude_mesh_face_regions(Mesh &mesh,
     array_utils::gather(
         indices->as_span(), boundary_edge_indices.as_span(), indices->slice(boundary_edge_range));
   }
-  if (std::optional<MutableSpan<int>> indices = get_orig_index_layer(mesh, ATTR_DOMAIN_FACE)) {
+  if (std::optional<MutableSpan<int>> indices = get_orig_index_layer(mesh, AttrDomain::Face)) {
     array_utils::gather(
         indices->as_span(), edge_extruded_face_indices.as_span(), indices->slice(side_face_range));
   }
 
   if (attribute_outputs.top_id) {
     save_selection_as_attribute(
-        attributes, attribute_outputs.top_id.get(), ATTR_DOMAIN_FACE, face_selection);
+        attributes, attribute_outputs.top_id.get(), AttrDomain::Face, face_selection);
   }
   if (attribute_outputs.side_id) {
     save_selection_as_attribute(
-        attributes, attribute_outputs.side_id.get(), ATTR_DOMAIN_FACE, side_face_range);
+        attributes, attribute_outputs.side_id.get(), AttrDomain::Face, side_face_range);
   }
 
   tag_mesh_added_faces(mesh);
@@ -1161,7 +1163,7 @@ static void extrude_individual_mesh_faces(
   /* Use an array for the result of the evaluation because the mesh is reallocated before
    * the vertices are moved, and the evaluated result might reference an attribute. */
   Array<float3> face_offset(orig_faces.size());
-  const bke::MeshFieldContext face_context{mesh, ATTR_DOMAIN_FACE};
+  const bke::MeshFieldContext face_context{mesh, AttrDomain::Face};
   FieldEvaluator face_evaluator{face_context, mesh.faces_num};
   face_evaluator.set_selection(selection_field);
   face_evaluator.add_with_destination(offset_field, face_offset.as_mutable_span());
@@ -1275,14 +1277,16 @@ static void extrude_individual_mesh_faces(
 
   /* New vertices copy the attributes from their original vertices. */
   gather_attributes(
-      attributes, ids_by_domain[ATTR_DOMAIN_POINT], new_vert_indices, new_vert_range);
+      attributes, ids_by_domain[int(AttrDomain::Point)], new_vert_indices, new_vert_range);
 
   /* The data for the duplicate edge is simply a copy of the original edge's data. */
-  gather_attributes(
-      attributes, ids_by_domain[ATTR_DOMAIN_EDGE], duplicate_edge_indices, duplicate_edge_range);
+  gather_attributes(attributes,
+                    ids_by_domain[int(AttrDomain::Edge)],
+                    duplicate_edge_indices,
+                    duplicate_edge_range);
 
   /* For extruded edges, mix the data from the two neighboring original edges of the face. */
-  if (!ids_by_domain[ATTR_DOMAIN_EDGE].is_empty()) {
+  if (!ids_by_domain[int(AttrDomain::Edge)].is_empty()) {
     Array<int2> neighbor_edges(connect_edge_range.size());
     face_selection.foreach_index(
         GrainSize(1024), [&](const int64_t index, const int64_t i_selection) {
@@ -1298,7 +1302,7 @@ static void extrude_individual_mesh_faces(
           }
         });
 
-    for (const AttributeIDRef &id : ids_by_domain[ATTR_DOMAIN_EDGE]) {
+    for (const AttributeIDRef &id : ids_by_domain[int(AttrDomain::Edge)]) {
       GSpanAttributeWriter attribute = attributes.lookup_for_write_span(id);
       bke::attribute_math::convert_to_static_type(attribute.span.type(), [&](auto dummy) {
         using T = decltype(dummy);
@@ -1322,7 +1326,7 @@ static void extrude_individual_mesh_faces(
   }
 
   /* Each side face gets the values from the corresponding new face. */
-  for (const AttributeIDRef &id : ids_by_domain[ATTR_DOMAIN_FACE]) {
+  for (const AttributeIDRef &id : ids_by_domain[int(AttrDomain::Face)]) {
     GSpanAttributeWriter attribute = attributes.lookup_for_write_span(id);
     bke::attribute_math::gather_to_groups(
         group_per_face, face_selection, attribute.span, attribute.span.slice(side_face_range));
@@ -1330,7 +1334,7 @@ static void extrude_individual_mesh_faces(
   }
 
   /* Each corner on a side face gets its value from the matching corner on an extruded face. */
-  if (!ids_by_domain[ATTR_DOMAIN_CORNER].is_empty()) {
+  if (!ids_by_domain[int(AttrDomain::Corner)].is_empty()) {
     Array<int> orig_corners(side_loop_range.size());
     face_selection.foreach_index(
         GrainSize(256), [&](const int64_t index, const int64_t i_selection) {
@@ -1351,7 +1355,7 @@ static void extrude_individual_mesh_faces(
           }
         });
     gather_attributes(
-        attributes, ids_by_domain[ATTR_DOMAIN_CORNER], orig_corners, side_loop_range);
+        attributes, ids_by_domain[int(AttrDomain::Corner)], orig_corners, side_loop_range);
   }
 
   /* Offset the new vertices. */
@@ -1364,28 +1368,28 @@ static void extrude_individual_mesh_faces(
                                  }
                                });
 
-  if (std::optional<MutableSpan<int>> indices = get_orig_index_layer(mesh, ATTR_DOMAIN_POINT)) {
+  if (std::optional<MutableSpan<int>> indices = get_orig_index_layer(mesh, AttrDomain::Point)) {
     array_utils::gather(
         indices->as_span(), new_vert_indices.as_span(), indices->slice(new_vert_range));
   }
-  if (std::optional<MutableSpan<int>> indices = get_orig_index_layer(mesh, ATTR_DOMAIN_EDGE)) {
+  if (std::optional<MutableSpan<int>> indices = get_orig_index_layer(mesh, AttrDomain::Edge)) {
     indices->slice(connect_edge_range).fill(ORIGINDEX_NONE);
     array_utils::gather(indices->as_span(),
                         duplicate_edge_indices.as_span(),
                         indices->slice(duplicate_edge_range));
   }
-  if (std::optional<MutableSpan<int>> indices = get_orig_index_layer(mesh, ATTR_DOMAIN_FACE)) {
+  if (std::optional<MutableSpan<int>> indices = get_orig_index_layer(mesh, AttrDomain::Face)) {
     array_utils::gather_to_groups(
         group_per_face, face_selection, indices->as_span(), indices->slice(side_face_range));
   }
 
   if (attribute_outputs.top_id) {
     save_selection_as_attribute(
-        attributes, attribute_outputs.top_id.get(), ATTR_DOMAIN_FACE, face_selection);
+        attributes, attribute_outputs.top_id.get(), AttrDomain::Face, face_selection);
   }
   if (attribute_outputs.side_id) {
     save_selection_as_attribute(
-        attributes, attribute_outputs.side_id.get(), ATTR_DOMAIN_FACE, side_face_range);
+        attributes, attribute_outputs.side_id.get(), AttrDomain::Face, side_face_range);
   }
 
   tag_mesh_added_faces(mesh);

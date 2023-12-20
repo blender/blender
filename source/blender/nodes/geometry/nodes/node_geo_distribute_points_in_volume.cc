@@ -246,7 +246,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     bke::MutableAttributeAccessor point_attributes = pointcloud->attributes_for_write();
     pointcloud->positions_for_write().copy_from(positions);
     bke::SpanAttributeWriter<float> point_radii =
-        point_attributes.lookup_or_add_for_write_only_span<float>("radius", ATTR_DOMAIN_POINT);
+        point_attributes.lookup_or_add_for_write_only_span<float>("radius", AttrDomain::Point);
 
     point_radii.span.fill(0.05f);
     point_radii.finish();

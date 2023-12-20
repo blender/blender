@@ -161,10 +161,10 @@ static StringRefNull get_endian_io_name(const int endian)
   return "big";
 }
 
-static StringRefNull get_domain_io_name(const eAttrDomain domain)
+static StringRefNull get_domain_io_name(const AttrDomain domain)
 {
   const char *io_name = "unknown";
-  RNA_enum_id_from_value(rna_enum_attribute_domain_items, domain, &io_name);
+  RNA_enum_id_from_value(rna_enum_attribute_domain_items, int(domain), &io_name);
   return io_name;
 }
 
@@ -175,13 +175,13 @@ static StringRefNull get_data_type_io_name(const eCustomDataType data_type)
   return io_name;
 }
 
-static std::optional<eAttrDomain> get_domain_from_io_name(const StringRefNull io_name)
+static std::optional<AttrDomain> get_domain_from_io_name(const StringRefNull io_name)
 {
   int domain;
   if (!RNA_enum_value_from_identifier(rna_enum_attribute_domain_items, io_name.c_str(), &domain)) {
     return std::nullopt;
   }
-  return eAttrDomain(domain);
+  return AttrDomain(domain);
 }
 
 static std::optional<eCustomDataType> get_data_type_from_io_name(const StringRefNull io_name)
@@ -382,7 +382,7 @@ template<typename T>
       return false;
     }
 
-    const std::optional<eAttrDomain> domain = get_domain_from_io_name(*domain_str);
+    const std::optional<AttrDomain> domain = get_domain_from_io_name(*domain_str);
     const std::optional<eCustomDataType> data_type = get_data_type_from_io_name(*type_str);
     if (!domain || !data_type) {
       return false;

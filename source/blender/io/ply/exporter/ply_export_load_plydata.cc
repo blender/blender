@@ -95,7 +95,7 @@ static void generate_vertex_map(const Mesh *mesh,
     const StringRef uv_name = CustomData_get_active_layer_name(&mesh->corner_data, CD_PROP_FLOAT2);
     if (!uv_name.is_empty()) {
       const bke::AttributeAccessor attributes = mesh->attributes();
-      uv_map = *attributes.lookup<float2>(uv_name, ATTR_DOMAIN_CORNER);
+      uv_map = *attributes.lookup<float2>(uv_name, bke::AttrDomain::Corner);
       export_uv = !uv_map.is_empty();
     }
   }
@@ -179,7 +179,7 @@ static void load_custom_attributes(const Mesh *mesh,
   attributes.for_all([&](const bke::AttributeIDRef &attribute_id,
                          const bke::AttributeMetaData &meta_data) {
     /* Skip internal, standard and non-vertex domain attributes. */
-    if (meta_data.domain != ATTR_DOMAIN_POINT || attribute_id.name()[0] == '.' ||
+    if (meta_data.domain != bke::AttrDomain::Point || attribute_id.name()[0] == '.' ||
         attribute_id.is_anonymous() || ELEM(attribute_id.name(), "position", color_name, uv_name))
     {
       return true;
@@ -435,9 +435,8 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
       const StringRef name = mesh->active_color_attribute;
       if (!name.is_empty()) {
         const bke::AttributeAccessor attributes = mesh->attributes();
-        const VArray<ColorGeometry4f> color_attribute =
-            *attributes.lookup_or_default<ColorGeometry4f>(
-                name, ATTR_DOMAIN_POINT, {0.0f, 0.0f, 0.0f, 0.0f});
+        const VArray color_attribute = *attributes.lookup_or_default<ColorGeometry4f>(
+            name, bke::AttrDomain::Point, {0.0f, 0.0f, 0.0f, 0.0f});
         if (!color_attribute.is_empty()) {
           if (plyData.vertex_colors.size() != vertex_offset) {
             plyData.vertex_colors.resize(vertex_offset, float4(0));

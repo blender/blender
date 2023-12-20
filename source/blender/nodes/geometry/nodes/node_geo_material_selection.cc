@@ -27,7 +27,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 static VArray<bool> select_by_material(const Span<Material *> materials,
                                        const Material *material,
                                        const AttributeAccessor &attributes,
-                                       const eAttrDomain domain,
+                                       const AttrDomain domain,
                                        const IndexMask &domain_mask)
 {
   const int domain_size = attributes.domain_size(domain);
@@ -76,34 +76,34 @@ class MaterialSelectionFieldInput final : public bke::GeometryFieldInput {
         if (!mesh) {
           return {};
         }
-        const eAttrDomain domain = context.domain();
-        const IndexMask domain_mask = (domain == ATTR_DOMAIN_FACE) ? mask :
+        const AttrDomain domain = context.domain();
+        const IndexMask domain_mask = (domain == AttrDomain::Face) ? mask :
                                                                      IndexMask(mesh->faces_num);
         const AttributeAccessor attributes = mesh->attributes();
         VArray<bool> selection = select_by_material(
-            {mesh->mat, mesh->totcol}, material_, attributes, ATTR_DOMAIN_FACE, domain_mask);
-        return attributes.adapt_domain<bool>(std::move(selection), ATTR_DOMAIN_FACE, domain);
+            {mesh->mat, mesh->totcol}, material_, attributes, AttrDomain::Face, domain_mask);
+        return attributes.adapt_domain<bool>(std::move(selection), AttrDomain::Face, domain);
       }
       case GeometryComponent::Type::GreasePencil: {
         const bke::CurvesGeometry *curves = context.curves_or_strokes();
         if (!curves) {
           return {};
         }
-        const eAttrDomain domain = context.domain();
-        const IndexMask domain_mask = (domain == ATTR_DOMAIN_CURVE) ?
+        const AttrDomain domain = context.domain();
+        const IndexMask domain_mask = (domain == AttrDomain::Curve) ?
                                           mask :
                                           IndexMask(curves->curves_num());
         const AttributeAccessor attributes = curves->attributes();
         const VArray<int> material_indices = *attributes.lookup_or_default<int>(
-            "material_index", ATTR_DOMAIN_CURVE, 0);
+            "material_index", AttrDomain::Curve, 0);
         const GreasePencil &grease_pencil = *context.grease_pencil();
         VArray<bool> selection = select_by_material(
             {grease_pencil.material_array, grease_pencil.material_array_num},
             material_,
             attributes,
-            ATTR_DOMAIN_CURVE,
+            AttrDomain::Curve,
             domain_mask);
-        return attributes.adapt_domain<bool>(std::move(selection), ATTR_DOMAIN_CURVE, domain);
+        return attributes.adapt_domain<bool>(std::move(selection), AttrDomain::Curve, domain);
       }
       default:
         return {};
@@ -125,10 +125,10 @@ class MaterialSelectionFieldInput final : public bke::GeometryFieldInput {
     return false;
   }
 
-  std::optional<eAttrDomain> preferred_domain(
+  std::optional<AttrDomain> preferred_domain(
       const GeometryComponent & /*component*/) const override
   {
-    return ATTR_DOMAIN_FACE;
+    return AttrDomain::Face;
   }
 };
 

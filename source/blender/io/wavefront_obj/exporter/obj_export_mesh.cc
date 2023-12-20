@@ -48,7 +48,7 @@ OBJMesh::OBJMesh(Depsgraph *depsgraph, const OBJExportParams &export_params, Obj
     mesh_faces_ = export_mesh_->faces();
     mesh_corner_verts_ = export_mesh_->corner_verts();
     sharp_faces_ = *export_mesh_->attributes().lookup_or_default<bool>(
-        "sharp_face", ATTR_DOMAIN_FACE, false);
+        "sharp_face", bke::AttrDomain::Face, false);
   }
   else {
     /* Curves and NURBS surfaces need a new mesh when they're
@@ -88,7 +88,7 @@ void OBJMesh::set_mesh(Mesh *mesh)
   mesh_faces_ = mesh->faces();
   mesh_corner_verts_ = mesh->corner_verts();
   sharp_faces_ = *export_mesh_->attributes().lookup_or_default<bool>(
-      "sharp_face", ATTR_DOMAIN_FACE, false);
+      "sharp_face", bke::AttrDomain::Face, false);
 }
 
 void OBJMesh::clear()
@@ -201,8 +201,8 @@ int OBJMesh::ith_smooth_group(const int face_index) const
 void OBJMesh::calc_smooth_groups(const bool use_bitflags)
 {
   const bke::AttributeAccessor attributes = export_mesh_->attributes();
-  const VArraySpan sharp_edges = *attributes.lookup<bool>("sharp_edge", ATTR_DOMAIN_EDGE);
-  const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", ATTR_DOMAIN_FACE);
+  const VArraySpan sharp_edges = *attributes.lookup<bool>("sharp_edge", bke::AttrDomain::Edge);
+  const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", bke::AttrDomain::Face);
   poly_smooth_groups_ = BKE_mesh_calc_smoothgroups(mesh_edges_.size(),
                                                    mesh_faces_,
                                                    export_mesh_->corner_edges(),
@@ -216,7 +216,7 @@ void OBJMesh::calc_poly_order()
 {
   const bke::AttributeAccessor attributes = export_mesh_->attributes();
   const VArray<int> material_indices = *attributes.lookup_or_default<int>(
-      "material_index", ATTR_DOMAIN_FACE, 0);
+      "material_index", bke::AttrDomain::Face, 0);
   if (material_indices.is_single() && material_indices.get_internal_single() == 0) {
     return;
   }
@@ -275,7 +275,7 @@ void OBJMesh::store_uv_coords_and_indices()
     return;
   }
   const bke::AttributeAccessor attributes = export_mesh_->attributes();
-  const VArraySpan uv_map = *attributes.lookup<float2>(active_uv_name, ATTR_DOMAIN_CORNER);
+  const VArraySpan uv_map = *attributes.lookup<float2>(active_uv_name, bke::AttrDomain::Corner);
   if (uv_map.is_empty()) {
     uv_coords_.clear();
     return;

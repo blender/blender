@@ -187,7 +187,7 @@ bool SCULPT_has_loop_colors(const Object *ob)
   if (!meta_data) {
     return false;
   }
-  if (meta_data->domain != ATTR_DOMAIN_CORNER) {
+  if (meta_data->domain != bke::AttrDomain::Corner) {
     return false;
   }
   if (!(CD_TYPE_AS_MASK(meta_data->data_type) & CD_MASK_COLOR_ALL)) {
@@ -300,7 +300,7 @@ float SCULPT_vertex_mask_get(SculptSession *ss, PBVHVertRef vertex)
       const Mesh *mesh = BKE_pbvh_get_mesh(ss->pbvh);
       const bke::AttributeAccessor attributes = mesh->attributes();
       const VArray mask = *attributes.lookup_or_default<float>(
-          ".sculpt_mask", ATTR_DOMAIN_POINT, 0.0f);
+          ".sculpt_mask", bke::AttrDomain::Point, 0.0f);
       return mask[vertex.i];
     }
     case PBVH_BMESH: {
@@ -412,7 +412,7 @@ bool vert_visible_get(const SculptSession *ss, PBVHVertRef vertex)
       const Mesh *mesh = BKE_pbvh_get_mesh(ss->pbvh);
       const bke::AttributeAccessor attributes = mesh->attributes();
       const VArray hide_vert = *attributes.lookup_or_default<bool>(
-          ".hide_vert", ATTR_DOMAIN_POINT, false);
+          ".hide_vert", bke::AttrDomain::Point, false);
       return !hide_vert[vertex.i];
     }
     case PBVH_BMESH:
@@ -1338,7 +1338,7 @@ static void paint_mesh_restore_node(Object *ob, const undo::Type type, PBVHNode 
           Mesh &mesh = *static_cast<Mesh *>(ob->data);
           bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
           bke::SpanAttributeWriter<float> mask = attributes.lookup_or_add_for_write_span<float>(
-              ".sculpt_mask", ATTR_DOMAIN_POINT);
+              ".sculpt_mask", bke::AttrDomain::Point);
           array_utils::scatter(
               unode->mask.as_span(), BKE_pbvh_node_get_unique_vert_indices(node), mask.span);
           mask.finish();
@@ -4927,7 +4927,7 @@ bool SCULPT_cursor_geometry_info_update(bContext *C,
     const Mesh &mesh = *static_cast<const Mesh *>(ob->data);
     srd.corner_verts = mesh.corner_verts();
     const bke::AttributeAccessor attributes = mesh.attributes();
-    srd.hide_poly = *attributes.lookup<bool>(".hide_poly", ATTR_DOMAIN_FACE);
+    srd.hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
   }
   srd.ray_start = ray_start;
   srd.ray_normal = ray_normal;
@@ -5080,7 +5080,7 @@ bool SCULPT_stroke_get_location_ex(bContext *C,
       const Mesh &mesh = *static_cast<const Mesh *>(ob->data);
       srd.corner_verts = mesh.corner_verts();
       const bke::AttributeAccessor attributes = mesh.attributes();
-      srd.hide_poly = *attributes.lookup<bool>(".hide_poly", ATTR_DOMAIN_FACE);
+      srd.hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
     }
     srd.depth = depth;
     srd.original = original;
@@ -5113,7 +5113,7 @@ bool SCULPT_stroke_get_location_ex(bContext *C,
     const Mesh &mesh = *static_cast<const Mesh *>(ob->data);
     srd.corner_verts = mesh.corner_verts();
     const bke::AttributeAccessor attributes = mesh.attributes();
-    srd.hide_poly = *attributes.lookup<bool>(".hide_poly", ATTR_DOMAIN_FACE);
+    srd.hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
   }
   srd.ray_start = ray_start;
   srd.ray_normal = ray_normal;
@@ -6079,13 +6079,14 @@ void SCULPT_stroke_id_next(Object *ob)
 
 void SCULPT_stroke_id_ensure(Object *ob)
 {
+  using namespace blender;
   SculptSession *ss = ob->sculpt;
 
   if (!ss->attrs.automasking_stroke_id) {
     SculptAttributeParams params = {0};
     ss->attrs.automasking_stroke_id = BKE_sculpt_attribute_ensure(
         ob,
-        ATTR_DOMAIN_POINT,
+        bke::AttrDomain::Point,
         CD_PROP_INT8,
         SCULPT_ATTRIBUTE_NAME(automasking_stroke_id),
         &params);
@@ -6108,6 +6109,7 @@ void SCULPT_topology_islands_invalidate(SculptSession *ss)
 
 void SCULPT_topology_islands_ensure(Object *ob)
 {
+  using namespace blender;
   using namespace blender::ed::sculpt_paint;
   SculptSession *ss = ob->sculpt;
 
@@ -6120,7 +6122,11 @@ void SCULPT_topology_islands_ensure(Object *ob)
   params.permanent = params.stroke_only = params.simple_array = false;
 
   ss->attrs.topology_island_key = BKE_sculpt_attribute_ensure(
-      ob, ATTR_DOMAIN_POINT, CD_PROP_INT8, SCULPT_ATTRIBUTE_NAME(topology_island_key), &params);
+      ob,
+      bke::AttrDomain::Point,
+      CD_PROP_INT8,
+      SCULPT_ATTRIBUTE_NAME(topology_island_key),
+      &params);
   SCULPT_vertex_random_access_ensure(ss);
 
   int totvert = SCULPT_vertex_count_get(ss);

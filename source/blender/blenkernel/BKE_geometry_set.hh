@@ -78,7 +78,7 @@ class GeometryComponent : public ImplicitSharingMixin {
   virtual ~GeometryComponent() = default;
   static GeometryComponentPtr create(Type component_type);
 
-  int attribute_domain_size(eAttrDomain domain) const;
+  int attribute_domain_size(AttrDomain domain) const;
 
   /**
    * Get access to the attributes in this geometry component. May return none if the geometry does

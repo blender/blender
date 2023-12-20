@@ -155,12 +155,12 @@ static void transfer_attributes(
   for (const AttributeIDRef &id : attribute_ids) {
     GAttributeReader src = src_attributes.lookup(id);
 
-    eAttrDomain out_domain;
-    if (src.domain == ATTR_DOMAIN_FACE) {
-      out_domain = ATTR_DOMAIN_POINT;
+    AttrDomain out_domain;
+    if (src.domain == AttrDomain::Face) {
+      out_domain = AttrDomain::Point;
     }
-    else if (src.domain == ATTR_DOMAIN_POINT) {
-      out_domain = ATTR_DOMAIN_FACE;
+    else if (src.domain == AttrDomain::Point) {
+      out_domain = AttrDomain::Face;
     }
     else {
       /* Edges and Face Corners. */
@@ -174,7 +174,7 @@ static void transfer_attributes(
     }
 
     switch (src.domain) {
-      case ATTR_DOMAIN_POINT: {
+      case AttrDomain::Point: {
         const GVArraySpan src_span(*src);
         bke::attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
           using T = decltype(dummy);
@@ -183,10 +183,10 @@ static void transfer_attributes(
         });
         break;
       }
-      case ATTR_DOMAIN_EDGE:
+      case AttrDomain::Edge:
         bke::attribute_math::gather(*src, new_to_old_edges_map, dst.span);
         break;
-      case ATTR_DOMAIN_FACE: {
+      case AttrDomain::Face: {
         const GVArraySpan src_span(*src);
         dst.span.take_front(src_span.size()).copy_from(src_span);
         bke::attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
@@ -198,7 +198,7 @@ static void transfer_attributes(
         });
         break;
       }
-      case ATTR_DOMAIN_CORNER:
+      case AttrDomain::Corner:
         bke::attribute_math::gather(*src, new_to_old_face_corners_map, dst.span);
         break;
       default:

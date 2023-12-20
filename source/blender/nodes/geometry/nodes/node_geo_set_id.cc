@@ -18,9 +18,9 @@ static void set_id_in_component(GeometryComponent &component,
                                 const Field<bool> &selection_field,
                                 const Field<int> &id_field)
 {
-  const eAttrDomain domain = (component.type() == GeometryComponent::Type::Instance) ?
-                                 ATTR_DOMAIN_INSTANCE :
-                                 ATTR_DOMAIN_POINT;
+  const AttrDomain domain = (component.type() == GeometryComponent::Type::Instance) ?
+                                 AttrDomain::Instance :
+                                 AttrDomain::Point;
   const int domain_size = component.attribute_domain_size(domain);
   if (domain_size == 0) {
     return;

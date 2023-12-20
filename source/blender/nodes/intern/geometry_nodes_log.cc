@@ -88,29 +88,29 @@ GeometryInfoLog::GeometryInfoLog(const bke::GeometrySet &geometry_set)
       case bke::GeometryComponent::Type::Mesh: {
         const auto &mesh_component = *static_cast<const bke::MeshComponent *>(component);
         MeshInfo &info = this->mesh_info.emplace();
-        info.verts_num = mesh_component.attribute_domain_size(ATTR_DOMAIN_POINT);
-        info.edges_num = mesh_component.attribute_domain_size(ATTR_DOMAIN_EDGE);
-        info.faces_num = mesh_component.attribute_domain_size(ATTR_DOMAIN_FACE);
+        info.verts_num = mesh_component.attribute_domain_size(bke::AttrDomain::Point);
+        info.edges_num = mesh_component.attribute_domain_size(bke::AttrDomain::Edge);
+        info.faces_num = mesh_component.attribute_domain_size(bke::AttrDomain::Face);
         break;
       }
       case bke::GeometryComponent::Type::Curve: {
         const auto &curve_component = *static_cast<const bke::CurveComponent *>(component);
         CurveInfo &info = this->curve_info.emplace();
-        info.points_num = curve_component.attribute_domain_size(ATTR_DOMAIN_POINT);
-        info.splines_num = curve_component.attribute_domain_size(ATTR_DOMAIN_CURVE);
+        info.points_num = curve_component.attribute_domain_size(bke::AttrDomain::Point);
+        info.splines_num = curve_component.attribute_domain_size(bke::AttrDomain::Curve);
         break;
       }
       case bke::GeometryComponent::Type::PointCloud: {
         const auto &pointcloud_component = *static_cast<const bke::PointCloudComponent *>(
             component);
         PointCloudInfo &info = this->pointcloud_info.emplace();
-        info.points_num = pointcloud_component.attribute_domain_size(ATTR_DOMAIN_POINT);
+        info.points_num = pointcloud_component.attribute_domain_size(bke::AttrDomain::Point);
         break;
       }
       case bke::GeometryComponent::Type::Instance: {
         const auto &instances_component = *static_cast<const bke::InstancesComponent *>(component);
         InstancesInfo &info = this->instances_info.emplace();
-        info.instances_num = instances_component.attribute_domain_size(ATTR_DOMAIN_INSTANCE);
+        info.instances_num = instances_component.attribute_domain_size(bke::AttrDomain::Instance);
         break;
       }
       case bke::GeometryComponent::Type::Edit: {
@@ -131,7 +131,7 @@ GeometryInfoLog::GeometryInfoLog(const bke::GeometrySet &geometry_set)
         const auto &grease_pencil_component = *static_cast<const bke::GreasePencilComponent *>(
             component);
         GreasePencilInfo &info = this->grease_pencil_info.emplace();
-        info.layers_num = grease_pencil_component.attribute_domain_size(ATTR_DOMAIN_LAYER);
+        info.layers_num = grease_pencil_component.attribute_domain_size(bke::AttrDomain::Layer);
         break;
       }
     }

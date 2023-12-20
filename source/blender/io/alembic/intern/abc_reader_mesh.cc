@@ -450,7 +450,7 @@ static void read_velocity(const V3fArraySamplePtr &velocities,
   }
 
   CustomDataLayer *velocity_layer = BKE_id_attribute_new(
-      &config.mesh->id, "velocity", CD_PROP_FLOAT3, ATTR_DOMAIN_POINT, nullptr);
+      &config.mesh->id, "velocity", CD_PROP_FLOAT3, bke::AttrDomain::Point, nullptr);
   float(*velocity)[3] = (float(*)[3])velocity_layer->data;
 
   for (int i = 0; i < num_velocity_vectors; i++) {
@@ -834,7 +834,7 @@ Mesh *AbcMeshReader::read_mesh(Mesh *existing_mesh,
       std::map<std::string, int> mat_map;
       bke::MutableAttributeAccessor attributes = new_mesh->attributes_for_write();
       bke::SpanAttributeWriter<int> material_indices =
-          attributes.lookup_or_add_for_write_span<int>("material_index", ATTR_DOMAIN_FACE);
+          attributes.lookup_or_add_for_write_span<int>("material_index", bke::AttrDomain::Face);
       assign_facesets_to_material_indices(sample_sel, material_indices.span, mat_map);
       material_indices.finish();
     }
@@ -895,7 +895,7 @@ void AbcMeshReader::readFaceSetsSample(Main *bmain, Mesh *mesh, const ISampleSel
   std::map<std::string, int> mat_map;
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::SpanAttributeWriter<int> material_indices = attributes.lookup_or_add_for_write_span<int>(
-      "material_index", ATTR_DOMAIN_FACE);
+      "material_index", bke::AttrDomain::Face);
   assign_facesets_to_material_indices(sample_sel, material_indices.span, mat_map);
   material_indices.finish();
   utils::assign_materials(bmain, m_object, mat_map);

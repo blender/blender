@@ -54,7 +54,7 @@ static bool everything_selected(const Curves &curves_id)
   using namespace blender;
   const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
   const VArray<bool> selection = *curves.attributes().lookup_or_default<bool>(
-      ".selection", ATTR_DOMAIN_POINT, true);
+      ".selection", bke::AttrDomain::Point, true);
   return selection.is_single() && selection.get_internal_single();
 }
 

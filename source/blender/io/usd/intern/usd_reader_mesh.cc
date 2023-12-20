@@ -213,24 +213,24 @@ static std::optional<eCustomDataType> convert_usd_type_to_blender(
   return *value;
 }
 
-static const std::optional<eAttrDomain> convert_usd_varying_to_blender(
+static const std::optional<bke::AttrDomain> convert_usd_varying_to_blender(
     const pxr::TfToken usd_domain, ReportList *reports)
 {
-  static const blender::Map<pxr::TfToken, eAttrDomain> domain_map = []() {
-    blender::Map<pxr::TfToken, eAttrDomain> map;
-    map.add_new(pxr::UsdGeomTokens->faceVarying, ATTR_DOMAIN_CORNER);
-    map.add_new(pxr::UsdGeomTokens->vertex, ATTR_DOMAIN_POINT);
-    map.add_new(pxr::UsdGeomTokens->varying, ATTR_DOMAIN_POINT);
-    map.add_new(pxr::UsdGeomTokens->face, ATTR_DOMAIN_FACE);
+  static const blender::Map<pxr::TfToken, bke::AttrDomain> domain_map = []() {
+    blender::Map<pxr::TfToken, bke::AttrDomain> map;
+    map.add_new(pxr::UsdGeomTokens->faceVarying, bke::AttrDomain::Corner);
+    map.add_new(pxr::UsdGeomTokens->vertex, bke::AttrDomain::Point);
+    map.add_new(pxr::UsdGeomTokens->varying, bke::AttrDomain::Point);
+    map.add_new(pxr::UsdGeomTokens->face, bke::AttrDomain::Face);
     /* As there's no "constant" type in Blender, for now we're
      * translating into a point Attribute. */
-    map.add_new(pxr::UsdGeomTokens->constant, ATTR_DOMAIN_POINT);
-    map.add_new(pxr::UsdGeomTokens->uniform, ATTR_DOMAIN_FACE);
+    map.add_new(pxr::UsdGeomTokens->constant, bke::AttrDomain::Point);
+    map.add_new(pxr::UsdGeomTokens->uniform, bke::AttrDomain::Face);
     /* Notice: Edge types are not supported! */
     return map;
   }();
 
-  const eAttrDomain *value = domain_map.lookup_ptr(usd_domain);
+  const bke::AttrDomain *value = domain_map.lookup_ptr(usd_domain);
 
   if (value == nullptr) {
     BKE_reportf(
@@ -423,14 +423,14 @@ void USDMeshReader::read_color_data_primvar(Mesh *mesh,
   const StringRef primvar_name(primvar.GetBaseName().GetString());
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
 
-  eAttrDomain color_domain = ATTR_DOMAIN_POINT;
+  bke::AttrDomain color_domain = bke::AttrDomain::Point;
 
   if (ELEM(interp,
            pxr::UsdGeomTokens->varying,
            pxr::UsdGeomTokens->faceVarying,
            pxr::UsdGeomTokens->uniform))
   {
-    color_domain = ATTR_DOMAIN_CORNER;
+    color_domain = bke::AttrDomain::Corner;
   }
 
   bke::SpanAttributeWriter<ColorGeometry4f> color_data;
@@ -540,7 +540,7 @@ void USDMeshReader::read_uv_data_primvar(Mesh *mesh,
 
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::SpanAttributeWriter<float2> uv_data = attributes.lookup_or_add_for_write_only_span<float2>(
-      primvar_name, ATTR_DOMAIN_CORNER);
+      primvar_name, bke::AttrDomain::Corner);
 
   if (!uv_data) {
     BKE_reportf(reports(),
@@ -667,8 +667,8 @@ void USDMeshReader::read_generic_data_primvar(Mesh *mesh,
   const pxr::TfToken varying_type = primvar.GetInterpolation();
   const pxr::TfToken name = pxr::UsdGeomPrimvar::StripPrimvarsName(primvar.GetPrimvarName());
 
-  const std::optional<eAttrDomain> domain = convert_usd_varying_to_blender(varying_type,
-                                                                           reports());
+  const std::optional<bke::AttrDomain> domain = convert_usd_varying_to_blender(varying_type,
+                                                                               reports());
   const std::optional<eCustomDataType> type = convert_usd_type_to_blender(sdf_type, reports());
 
   if (!domain.has_value() || !type.has_value()) {
@@ -740,7 +740,7 @@ void USDMeshReader::read_vertex_creases(Mesh *mesh, const double motionSampleTim
 
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::SpanAttributeWriter creases = attributes.lookup_or_add_for_write_span<float>(
-      "crease_vert", ATTR_DOMAIN_POINT);
+      "crease_vert", bke::AttrDomain::Point);
 
   for (size_t i = 0; i < corner_indices.size(); i++) {
     creases.span[corner_indices[i]] = corner_sharpnesses[i];
@@ -1072,7 +1072,7 @@ void USDMeshReader::readFaceSetsSample(Main *bmain, Mesh *mesh, const double mot
 
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::SpanAttributeWriter<int> material_indices = attributes.lookup_or_add_for_write_span<int>(
-      "material_index", ATTR_DOMAIN_FACE);
+      "material_index", bke::AttrDomain::Face);
   this->assign_facesets_to_material_indices(motionSampleTime, material_indices.span, &mat_map);
   material_indices.finish();
   /* Build material name map if it's not built yet. */
@@ -1127,7 +1127,7 @@ Mesh *USDMeshReader::read_mesh(Mesh *existing_mesh,
       std::map<pxr::SdfPath, int> mat_map;
       bke::MutableAttributeAccessor attributes = active_mesh->attributes_for_write();
       bke::SpanAttributeWriter<int> material_indices =
-          attributes.lookup_or_add_for_write_span<int>("material_index", ATTR_DOMAIN_FACE);
+          attributes.lookup_or_add_for_write_span<int>("material_index", bke::AttrDomain::Face);
       assign_facesets_to_material_indices(
           params.motion_sample_time, material_indices.span, &mat_map);
       material_indices.finish();

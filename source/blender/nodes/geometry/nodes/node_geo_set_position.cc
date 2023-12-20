@@ -56,9 +56,9 @@ static void set_computed_position_and_offset(GeometryComponent &component,
         Curves &curves_id = *curve_component.get_for_write();
         bke::CurvesGeometry &curves = curves_id.geometry.wrap();
         SpanAttributeWriter<float3> handle_right_attribute =
-            attributes.lookup_or_add_for_write_span<float3>("handle_right", ATTR_DOMAIN_POINT);
+            attributes.lookup_or_add_for_write_span<float3>("handle_right", AttrDomain::Point);
         SpanAttributeWriter<float3> handle_left_attribute =
-            attributes.lookup_or_add_for_write_span<float3>("handle_left", ATTR_DOMAIN_POINT);
+            attributes.lookup_or_add_for_write_span<float3>("handle_left", AttrDomain::Point);
 
         AttributeWriter<float3> positions = attributes.lookup_for_write<float3>("position");
         MutableVArraySpan<float3> out_positions_span = positions.varray;
@@ -123,7 +123,7 @@ static void set_position_in_grease_pencil(GreasePencilComponent &grease_pencil_c
       continue;
     }
     bke::GreasePencilLayerFieldContext field_context(
-        grease_pencil, ATTR_DOMAIN_POINT, layer_index);
+        grease_pencil, AttrDomain::Point, layer_index);
     fn::FieldEvaluator evaluator{field_context, drawing->strokes().points_num()};
     evaluator.set_selection(selection_field);
     evaluator.add(position_field);
@@ -151,9 +151,9 @@ static void set_position_in_component(GeometrySet &geometry,
                                       const Field<float3> &offset_field)
 {
   const GeometryComponent &component = *geometry.get_component(component_type);
-  const eAttrDomain domain = component.type() == GeometryComponent::Type::Instance ?
-                                 ATTR_DOMAIN_INSTANCE :
-                                 ATTR_DOMAIN_POINT;
+  const AttrDomain domain = component.type() == GeometryComponent::Type::Instance ?
+                                 AttrDomain::Instance :
+                                 AttrDomain::Point;
   const int domain_size = component.attribute_domain_size(domain);
   if (domain_size == 0) {
     return;

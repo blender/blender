@@ -28,7 +28,7 @@ static void set_curve_tilt(bke::CurvesGeometry &curves,
   }
   MutableAttributeAccessor attributes = curves.attributes_for_write();
   AttributeWriter<float> tilts = attributes.lookup_or_add_for_write<float>("tilt",
-                                                                           ATTR_DOMAIN_POINT);
+                                                                           AttrDomain::Point);
   fn::FieldEvaluator evaluator{field_context, curves.points_num()};
   evaluator.set_selection(selection_field);
   evaluator.add_with_destination(tilt_field, tilts.varray);
@@ -49,7 +49,7 @@ static void set_grease_pencil_tilt(GreasePencil &grease_pencil,
     }
     bke::CurvesGeometry &curves = drawing->strokes_for_write();
     const bke::GreasePencilLayerFieldContext field_context(
-        grease_pencil, ATTR_DOMAIN_POINT, layer_index);
+        grease_pencil, AttrDomain::Point, layer_index);
     set_curve_tilt(curves, field_context, selection_field, tilt_field);
   }
 }
@@ -63,7 +63,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (Curves *curves_id = geometry_set.get_curves_for_write()) {
       bke::CurvesGeometry &curves = curves_id->geometry.wrap();
-      const bke::CurvesFieldContext field_context{curves, ATTR_DOMAIN_POINT};
+      const bke::CurvesFieldContext field_context{curves, AttrDomain::Point};
       set_curve_tilt(curves, field_context, selection_field, tilt_field);
     }
     if (geometry_set.has_grease_pencil()) {

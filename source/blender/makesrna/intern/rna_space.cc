@@ -13,7 +13,7 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_attribute.h"
+#include "BKE_attribute.hh"
 #include "BKE_context.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_image.h"
@@ -3242,33 +3242,37 @@ static void rna_SpaceSpreadsheet_geometry_component_type_update(Main * /*bmain*/
                                                                 Scene * /*scene*/,
                                                                 PointerRNA *ptr)
 {
+  using namespace blender;
   SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)ptr->data;
   switch (sspreadsheet->geometry_component_type) {
-    case int(blender::bke::GeometryComponent::Type::Mesh): {
-      if (!ELEM(sspreadsheet->attribute_domain,
-                ATTR_DOMAIN_POINT,
-                ATTR_DOMAIN_EDGE,
-                ATTR_DOMAIN_FACE,
-                ATTR_DOMAIN_CORNER))
+    case int(bke::GeometryComponent::Type::Mesh): {
+      if (!ELEM(bke::AttrDomain(sspreadsheet->attribute_domain),
+                bke::AttrDomain::Point,
+                bke::AttrDomain::Edge,
+                bke::AttrDomain::Face,
+                bke::AttrDomain::Corner))
       {
-        sspreadsheet->attribute_domain = ATTR_DOMAIN_POINT;
+        sspreadsheet->attribute_domain = uint8_t(bke::AttrDomain::Point);
       }
       break;
     }
-    case int(blender::bke::GeometryComponent::Type::PointCloud): {
-      sspreadsheet->attribute_domain = ATTR_DOMAIN_POINT;
+    case int(bke::GeometryComponent::Type::PointCloud): {
+      sspreadsheet->attribute_domain = uint8_t(bke::AttrDomain::Point);
       break;
     }
-    case int(blender::bke::GeometryComponent::Type::Instance): {
-      sspreadsheet->attribute_domain = ATTR_DOMAIN_INSTANCE;
+    case int(bke::GeometryComponent::Type::Instance): {
+      sspreadsheet->attribute_domain = uint8_t(bke::AttrDomain::Instance);
       break;
     }
-    case int(blender::bke::GeometryComponent::Type::Volume): {
+    case int(bke::GeometryComponent::Type::Volume): {
       break;
     }
-    case int(blender::bke::GeometryComponent::Type::Curve): {
-      if (!ELEM(sspreadsheet->attribute_domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE)) {
-        sspreadsheet->attribute_domain = ATTR_DOMAIN_POINT;
+    case int(bke::GeometryComponent::Type::Curve): {
+      if (!ELEM(bke::AttrDomain(sspreadsheet->attribute_domain),
+                bke::AttrDomain::Point,
+                bke::AttrDomain::Curve))
+      {
+        sspreadsheet->attribute_domain = uint8_t(bke::AttrDomain::Point);
       }
       break;
     }
@@ -3280,56 +3284,59 @@ const EnumPropertyItem *rna_SpaceSpreadsheet_attribute_domain_itemf(bContext * /
                                                                     PropertyRNA * /*prop*/,
                                                                     bool *r_free)
 {
+  using namespace blender;
   SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)ptr->data;
-  auto component_type = blender::bke::GeometryComponent::Type(
-      sspreadsheet->geometry_component_type);
+  auto component_type = bke::GeometryComponent::Type(sspreadsheet->geometry_component_type);
   if (sspreadsheet->object_eval_state == SPREADSHEET_OBJECT_EVAL_STATE_ORIGINAL) {
     ID *used_id = ED_spreadsheet_get_current_id(sspreadsheet);
     if (used_id != nullptr) {
       if (GS(used_id->name) == ID_OB) {
         Object *used_object = (Object *)used_id;
         if (used_object->type == OB_POINTCLOUD) {
-          component_type = blender::bke::GeometryComponent::Type::PointCloud;
+          component_type = bke::GeometryComponent::Type::PointCloud;
         }
         else {
-          component_type = blender::bke::GeometryComponent::Type::Mesh;
+          component_type = bke::GeometryComponent::Type::Mesh;
         }
       }
     }
   }
 
   static EnumPropertyItem mesh_vertex_domain_item = {
-      ATTR_DOMAIN_POINT, "POINT", 0, "Vertex", "Attribute per point/vertex"};
+      int(bke::AttrDomain::Point), "POINT", 0, "Vertex", "Attribute per point/vertex"};
 
   EnumPropertyItem *item_array = nullptr;
   int items_len = 0;
   for (const EnumPropertyItem *item = rna_enum_attribute_domain_items; item->identifier != nullptr;
        item++)
   {
-    if (component_type == blender::bke::GeometryComponent::Type::Mesh) {
-      if (!ELEM(item->value,
-                ATTR_DOMAIN_CORNER,
-                ATTR_DOMAIN_EDGE,
-                ATTR_DOMAIN_POINT,
-                ATTR_DOMAIN_FACE)) {
+    if (component_type == bke::GeometryComponent::Type::Mesh) {
+      if (!ELEM(bke::AttrDomain(item->value),
+                bke::AttrDomain::Corner,
+                bke::AttrDomain::Edge,
+                bke::AttrDomain::Point,
+                bke::AttrDomain::Face))
+      {
         continue;
       }
     }
-    if (component_type == blender::bke::GeometryComponent::Type::PointCloud) {
-      if (item->value != ATTR_DOMAIN_POINT) {
+    if (component_type == bke::GeometryComponent::Type::PointCloud) {
+      if (bke::AttrDomain(item->value) != bke::AttrDomain::Point) {
         continue;
       }
     }
-    if (component_type == blender::bke::GeometryComponent::Type::Curve) {
-      if (!ELEM(item->value, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE)) {
+    if (component_type == bke::GeometryComponent::Type::Curve) {
+      if (!ELEM(bke::AttrDomain(item->value), bke::AttrDomain::Point, bke::AttrDomain::Curve)) {
         continue;
       }
     }
-    if (!U.experimental.use_grease_pencil_version3 && item->value == ATTR_DOMAIN_LAYER) {
+    if (!U.experimental.use_grease_pencil_version3 &&
+        bke::AttrDomain(item->value) == bke::AttrDomain::Layer)
+    {
       continue;
     }
-    if (item->value == ATTR_DOMAIN_POINT &&
-        component_type == blender::bke::GeometryComponent::Type::Mesh)
+    if (bke::AttrDomain(item->value) == bke::AttrDomain::Point &&
+        component_type == bke::GeometryComponent::Type::Mesh)
     {
       RNA_enum_item_add(&item_array, &items_len, &mesh_vertex_domain_item);
     }

@@ -2023,6 +2023,7 @@ static void draw_subdiv_cache_ensure_mat_offsets(DRWSubdivCache &cache,
                                                  Mesh *mesh_eval,
                                                  uint mat_len)
 {
+  using namespace blender;
   draw_subdiv_cache_free_material_data(cache);
 
   const int number_of_quads = cache.num_subdiv_loops / 4;
@@ -2037,7 +2038,7 @@ static void draw_subdiv_cache_ensure_mat_offsets(DRWSubdivCache &cache,
 
   const blender::bke::AttributeAccessor attributes = mesh_eval->attributes();
   const blender::VArraySpan<int> material_indices = *attributes.lookup_or_default<int>(
-      "material_index", ATTR_DOMAIN_FACE, 0);
+      "material_index", bke::AttrDomain::Face, 0);
 
   /* Count number of subdivided polygons for each material. */
   int *mat_start = static_cast<int *>(MEM_callocN(sizeof(int) * mat_len, "subdiv mat_start"));

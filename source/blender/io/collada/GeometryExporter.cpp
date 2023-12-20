@@ -294,10 +294,11 @@ static bool collect_vertex_counts_per_poly(Mesh *mesh,
                                            int material_index,
                                            std::vector<ulong> &vcount_list)
 {
+  using namespace blender;
   const blender::OffsetIndices faces = mesh->faces();
   const blender::bke::AttributeAccessor attributes = mesh->attributes();
   const blender::VArray<int> material_indices = *attributes.lookup_or_default<int>(
-      "material_index", ATTR_DOMAIN_FACE, 0);
+      "material_index", bke::AttrDomain::Face, 0);
   bool is_triangulated = true;
 
   /* Expecting that the material index is always 0 if the mesh has no materials assigned */
@@ -328,6 +329,7 @@ void GeometryExporter::create_mesh_primitive_list(short material_index,
                                                   std::string &geom_id,
                                                   std::vector<BCPolygonNormalsIndices> &norind)
 {
+  using namespace blender;
   const blender::OffsetIndices faces = mesh->faces();
   const Span<int> corner_verts = mesh->corner_verts();
 
@@ -407,7 +409,7 @@ void GeometryExporter::create_mesh_primitive_list(short material_index,
 
   const blender::bke::AttributeAccessor attributes = mesh->attributes();
   const blender::VArray<int> material_indices = *attributes.lookup_or_default<int>(
-      "material_index", ATTR_DOMAIN_FACE, 0);
+      "material_index", bke::AttrDomain::Face, 0);
 
   /* <p> */
   int texindex = 0;
@@ -627,7 +629,7 @@ void GeometryExporter::create_normals(std::vector<Normal> &normals,
 
   const bke::AttributeAccessor attributes = mesh->attributes();
   const VArray<bool> sharp_faces = *attributes.lookup_or_default<bool>(
-      "sharp_face", ATTR_DOMAIN_FACE, false);
+      "sharp_face", bke::AttrDomain::Face, false);
 
   blender::Span<blender::float3> corner_normals;
   if (mesh->normals_domain() == blender::bke::MeshNormalDomain::Corner) {

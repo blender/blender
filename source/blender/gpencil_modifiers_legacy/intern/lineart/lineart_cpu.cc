@@ -1964,7 +1964,8 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
   /* Triangulate. */
   const Span<int3> corner_tris = mesh->corner_tris();
   const bke::AttributeAccessor attributes = mesh->attributes();
-  const VArraySpan material_indices = *attributes.lookup<int>("material_index", ATTR_DOMAIN_FACE);
+  const VArraySpan material_indices = *attributes.lookup<int>("material_index",
+                                                              bke::AttrDomain::Face);
 
   /* Check if we should look for custom data tags like Freestyle edges or faces. */
   bool can_find_freestyle_edge = false;
@@ -2094,9 +2095,9 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
   edge_feat_settings.func_reduce = feat_data_sum_reduce;
 
   const VArray<bool> sharp_edges = *attributes.lookup_or_default<bool>(
-      "sharp_edge", ATTR_DOMAIN_EDGE, false);
+      "sharp_edge", bke::AttrDomain::Edge, false);
   const VArray<bool> sharp_faces = *attributes.lookup_or_default<bool>(
-      "sharp_face", ATTR_DOMAIN_FACE, false);
+      "sharp_face", bke::AttrDomain::Face, false);
 
   EdgeFeatData edge_feat_data = {nullptr};
   edge_feat_data.ld = la_data;

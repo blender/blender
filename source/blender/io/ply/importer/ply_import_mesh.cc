@@ -73,7 +73,7 @@ Mesh *convert_ply_to_mesh(PlyData &data, const PLYImportParams &params)
   if (!data.vertex_colors.is_empty() && params.vertex_colors != PLY_VERTEX_COLOR_NONE) {
     /* Create a data layer for vertex colors and set them. */
     bke::SpanAttributeWriter<ColorGeometry4f> colors =
-        attributes.lookup_or_add_for_write_span<ColorGeometry4f>("Col", ATTR_DOMAIN_POINT);
+        attributes.lookup_or_add_for_write_span<ColorGeometry4f>("Col", bke::AttrDomain::Point);
 
     if (params.vertex_colors == PLY_VERTEX_COLOR_SRGB) {
       for (const int i : data.vertex_colors.index_range()) {
@@ -93,7 +93,7 @@ Mesh *convert_ply_to_mesh(PlyData &data, const PLYImportParams &params)
   /* Uvmap */
   if (!data.uv_coordinates.is_empty()) {
     bke::SpanAttributeWriter<float2> uv_map = attributes.lookup_or_add_for_write_only_span<float2>(
-        "UVMap", ATTR_DOMAIN_CORNER);
+        "UVMap", bke::AttrDomain::Corner);
     for (const int i : data.face_vertices.index_range()) {
       uv_map.span[i] = data.uv_coordinates[data.face_vertices[i]];
     }
@@ -115,7 +115,7 @@ Mesh *convert_ply_to_mesh(PlyData &data, const PLYImportParams &params)
       /* If we have no faces, add vertex normals as custom attribute. */
       attributes.add<float3>(
           "normal",
-          ATTR_DOMAIN_POINT,
+          bke::AttrDomain::Point,
           bke::AttributeInitVArray(VArray<float3>::ForSpan(data.vertex_normals)));
     }
   }
@@ -128,7 +128,7 @@ Mesh *convert_ply_to_mesh(PlyData &data, const PLYImportParams &params)
   if (params.import_attributes && !data.vertex_custom_attr.is_empty()) {
     for (const PlyCustomAttribute &attr : data.vertex_custom_attr) {
       attributes.add<float>(attr.name,
-                            ATTR_DOMAIN_POINT,
+                            bke::AttrDomain::Point,
                             bke::AttributeInitVArray(VArray<float>::ForSpan(attr.data)));
     }
   }

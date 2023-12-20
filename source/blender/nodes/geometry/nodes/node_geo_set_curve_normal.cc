@@ -59,7 +59,7 @@ static void set_grease_pencil_normal(GreasePencil &grease_pencil,
     }
     bke::CurvesGeometry &curves = drawing->strokes_for_write();
     const bke::GreasePencilLayerFieldContext field_context(
-        grease_pencil, ATTR_DOMAIN_CURVE, layer_index);
+        grease_pencil, AttrDomain::Curve, layer_index);
     set_curve_normal(curves, mode, field_context, selection_field);
   }
 }
@@ -74,7 +74,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (Curves *curves_id = geometry_set.get_curves_for_write()) {
       bke::CurvesGeometry &curves = curves_id->geometry.wrap();
-      const bke::CurvesFieldContext field_context{curves, ATTR_DOMAIN_CURVE};
+      const bke::CurvesFieldContext field_context{curves, AttrDomain::Curve};
       set_curve_normal(curves, mode, field_context, selection_field);
     }
     if (geometry_set.has_grease_pencil()) {

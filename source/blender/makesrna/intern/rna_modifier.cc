@@ -23,7 +23,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_animsys.h"
-#include "BKE_attribute.h"
+#include "BKE_attribute.hh"
 #include "BKE_curveprofile.h"
 #include "BKE_data_transfer.h"
 #include "BKE_dynamicpaint.h"
@@ -1298,6 +1298,7 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_src_itemf(
                                                                                 PropertyRNA *prop,
                                                                                 bool *r_free)
 {
+  using namespace blender;
   DataTransferModifierData *dtmd = (DataTransferModifierData *)ptr->data;
   EnumPropertyItem *item = nullptr, tmp_item = {0};
   int totitem = 0;
@@ -1377,9 +1378,10 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_src_itemf(
     Object *ob_src = dtmd->ob_source;
 
     if (ob_src) {
-      eAttrDomain domain = STREQ(RNA_property_identifier(prop), "layers_vcol_vert_select_src") ?
-                               ATTR_DOMAIN_POINT :
-                               ATTR_DOMAIN_CORNER;
+      bke::AttrDomain domain = STREQ(RNA_property_identifier(prop),
+                                     "layers_vcol_vert_select_src") ?
+                                   bke::AttrDomain::Point :
+                                   bke::AttrDomain::Corner;
 
       Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
       const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob_src);
@@ -1396,7 +1398,7 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_src_itemf(
       }
 
       const CustomData *cdata;
-      if (domain == ATTR_DOMAIN_POINT) {
+      if (domain == bke::AttrDomain::Point) {
         cdata = &mesh_eval->vert_data;
       }
       else {

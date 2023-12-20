@@ -84,7 +84,7 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeGeometrySampleIndex *data = MEM_cnew<NodeGeometrySampleIndex>(__func__);
   data->data_type = CD_PROP_FLOAT;
-  data->domain = ATTR_DOMAIN_POINT;
+  data->domain = int8_t(AttrDomain::Point);
   data->clamp = 0;
   node->storage = data;
 }
@@ -108,7 +108,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 
 static bool component_is_available(const GeometrySet &geometry,
                                    const GeometryComponent::Type type,
-                                   const eAttrDomain domain)
+                                   const AttrDomain domain)
 {
   if (!geometry.has(type)) {
     return false;
@@ -118,7 +118,7 @@ static bool component_is_available(const GeometrySet &geometry,
 }
 
 static const GeometryComponent *find_source_component(const GeometrySet &geometry,
-                                                      const eAttrDomain domain)
+                                                      const AttrDomain domain)
 {
   /* Choose the other component based on a consistent order, rather than some more complicated
    * heuristic. This is the same order visible in the spreadsheet and used in the ray-cast node. */
@@ -159,7 +159,7 @@ void copy_with_clamped_indices(const VArray<T> &src,
 class SampleIndexFunction : public mf::MultiFunction {
   GeometrySet src_geometry_;
   GField src_field_;
-  eAttrDomain domain_;
+  AttrDomain domain_;
   bool clamp_;
 
   mf::Signature signature_;
@@ -171,7 +171,7 @@ class SampleIndexFunction : public mf::MultiFunction {
  public:
   SampleIndexFunction(GeometrySet geometry,
                       GField src_field,
-                      const eAttrDomain domain,
+                      const AttrDomain domain,
                       const bool clamp)
       : src_geometry_(std::move(geometry)),
         src_field_(std::move(src_field)),
@@ -229,7 +229,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry = params.extract_input<GeometrySet>("Geometry");
   const NodeGeometrySampleIndex &storage = node_storage(params.node());
-  const eAttrDomain domain = eAttrDomain(storage.domain);
+  const AttrDomain domain = AttrDomain(storage.domain);
   const bool use_clamp = bool(storage.clamp);
 
   GField value_field = params.extract_input<GField>("Value");

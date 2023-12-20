@@ -356,9 +356,9 @@ static bool edbm_backbuf_check_and_select_verts_obmode(Mesh *mesh,
 
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::SpanAttributeWriter<bool> select_vert = attributes.lookup_or_add_for_write_span<bool>(
-      ".select_vert", ATTR_DOMAIN_POINT);
+      ".select_vert", bke::AttrDomain::Point);
   const VArray<bool> hide_vert = *attributes.lookup_or_default<bool>(
-      ".hide_vert", ATTR_DOMAIN_POINT, false);
+      ".hide_vert", bke::AttrDomain::Point, false);
 
   for (int index = 0; index < mesh->verts_num; index++) {
     if (!hide_vert[index]) {
@@ -387,9 +387,9 @@ static bool edbm_backbuf_check_and_select_faces_obmode(Mesh *mesh,
 
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::SpanAttributeWriter<bool> select_poly = attributes.lookup_or_add_for_write_span<bool>(
-      ".select_poly", ATTR_DOMAIN_FACE);
+      ".select_poly", bke::AttrDomain::Face);
   const VArray<bool> hide_poly = *attributes.lookup_or_default<bool>(
-      ".hide_poly", ATTR_DOMAIN_FACE, false);
+      ".hide_poly", bke::AttrDomain::Face, false);
 
   for (int index = 0; index < mesh->faces_num; index++) {
     if (!hide_poly[index]) {
@@ -1190,7 +1190,7 @@ static bool do_lasso_select_grease_pencil(ViewContext *vc,
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(vc->obedit->data);
 
   /* Get selection domain from tool settings. */
-  const eAttrDomain selection_domain = ED_grease_pencil_selection_domain_get(
+  const bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(
       vc->scene->toolsettings);
 
   bool changed = false;
@@ -1292,7 +1292,7 @@ static bool do_lasso_select_paintvert(ViewContext *vc,
   else {
     bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
     bke::SpanAttributeWriter<bool> select_vert = attributes.lookup_or_add_for_write_span<bool>(
-        ".select_vert", ATTR_DOMAIN_POINT);
+        ".select_vert", bke::AttrDomain::Point);
 
     LassoSelectUserData_ForMeshVert data;
     data.select_vert = select_vert.span;
@@ -1429,7 +1429,7 @@ static bool view3d_lasso_select(bContext *C,
           bke::CurvesGeometry &curves = curves_id.geometry.wrap();
           bke::crazyspace::GeometryDeformation deformation =
               bke::crazyspace::get_evaluated_curves_deformation(*vc->depsgraph, *vc->obedit);
-          const eAttrDomain selection_domain = eAttrDomain(curves_id.selection_domain);
+          const bke::AttrDomain selection_domain = bke::AttrDomain(curves_id.selection_domain);
           const IndexRange elements(curves.attributes().domain_size(selection_domain));
           changed = ed::curves::select_lasso(
               *vc,
@@ -3010,7 +3010,7 @@ static bool ed_wpaint_vertex_select_pick(bContext *C,
 
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::AttributeWriter<bool> select_vert = attributes.lookup_or_add_for_write<bool>(
-      ".select_vert", ATTR_DOMAIN_POINT);
+      ".select_vert", bke::AttrDomain::Point);
 
   if (params->sel_op == SEL_OP_SET) {
     if ((found && params->select_passthrough) && select_vert.varray[index]) {
@@ -3095,7 +3095,7 @@ static bool ed_curves_select_pick(bContext &C, const int mval[2], const SelectPi
   Span<Base *> bases(bases_ptr, bases_len);
 
   Curves &active_curves_id = *static_cast<Curves *>(vc.obedit->data);
-  const eAttrDomain selection_domain = eAttrDomain(active_curves_id.selection_domain);
+  const bke::AttrDomain selection_domain = bke::AttrDomain(active_curves_id.selection_domain);
 
   const ClosestCurveDataBlock closest = threading::parallel_reduce(
       bases.index_range(),
@@ -3200,7 +3200,7 @@ static bool ed_grease_pencil_select_pick(bContext *C,
       ed::greasepencil::retrieve_editable_drawings(*vc.scene, grease_pencil);
 
   /* Get selection domain from tool settings. */
-  const eAttrDomain selection_domain = ED_grease_pencil_selection_domain_get(
+  const bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(
       vc.scene->toolsettings);
 
   const ClosestGreasePencilDrawing closest = threading::parallel_reduce(
@@ -3577,7 +3577,7 @@ static bool do_paintvert_box_select(ViewContext *vc,
   else {
     bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
     bke::SpanAttributeWriter<bool> select_vert = attributes.lookup_or_add_for_write_span<bool>(
-        ".select_vert", ATTR_DOMAIN_POINT);
+        ".select_vert", bke::AttrDomain::Point);
 
     BoxSelectUserData_ForMeshVert data;
     data.select_vert = select_vert.span;
@@ -4217,7 +4217,8 @@ static bool do_grease_pencil_box_select(ViewContext *vc, const rcti *rect, const
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(vc->obedit->data);
 
   /* Get selection domain from tool settings. */
-  const eAttrDomain selection_domain = ED_grease_pencil_selection_domain_get(scene->toolsettings);
+  const bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(
+      scene->toolsettings);
 
   bool changed = false;
   const Array<ed::greasepencil::MutableDrawingInfo> drawings =
@@ -4319,7 +4320,7 @@ static int view3d_box_select_exec(bContext *C, wmOperator *op)
           bke::CurvesGeometry &curves = curves_id.geometry.wrap();
           bke::crazyspace::GeometryDeformation deformation =
               bke::crazyspace::get_evaluated_curves_deformation(*vc.depsgraph, *vc.obedit);
-          const eAttrDomain selection_domain = eAttrDomain(curves_id.selection_domain);
+          const bke::AttrDomain selection_domain = bke::AttrDomain(curves_id.selection_domain);
           const IndexRange elements(curves.attributes().domain_size(selection_domain));
           changed = ed::curves::select_box(
               vc, curves, deformation.positions, elements, selection_domain, rect, sel_op);
@@ -4661,7 +4662,7 @@ static bool paint_vertsel_circle_select(ViewContext *vc,
   else {
     bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
     bke::SpanAttributeWriter<bool> select_vert = attributes.lookup_or_add_for_write_span<bool>(
-        ".select_vert", ATTR_DOMAIN_POINT);
+        ".select_vert", bke::AttrDomain::Point);
 
     CircleSelectUserData_ForMeshVert data;
     data.select_vert = select_vert.span;
@@ -5070,7 +5071,7 @@ static bool grease_pencil_circle_select(ViewContext *vc,
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(vc->obedit->data);
 
   /* Get selection domain from tool settings. */
-  const eAttrDomain selection_domain = ED_grease_pencil_selection_domain_get(
+  const bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(
       vc->scene->toolsettings);
 
   bool changed = false;
@@ -5144,7 +5145,7 @@ static bool obedit_circle_select(bContext *C,
       bke::CurvesGeometry &curves = curves_id.geometry.wrap();
       bke::crazyspace::GeometryDeformation deformation =
           bke::crazyspace::get_evaluated_curves_deformation(*vc->depsgraph, *vc->obedit);
-      const eAttrDomain selection_domain = eAttrDomain(curves_id.selection_domain);
+      const bke::AttrDomain selection_domain = bke::AttrDomain(curves_id.selection_domain);
       const IndexRange elements(curves.attributes().domain_size(selection_domain));
       changed = ed::curves::select_circle(
           *vc, curves, deformation.positions, elements, selection_domain, mval, rad, sel_op);

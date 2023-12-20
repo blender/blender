@@ -71,7 +71,7 @@ struct SplitGroups {
  */
 [[nodiscard]] static bool do_common_split(
     const GeometryComponent &src_component,
-    const eAttrDomain domain,
+    const AttrDomain domain,
     const Field<bool> &selection_field,
     const Field<int> &group_id_field,
     Map<int, std::unique_ptr<GeometrySet>> &geometry_by_group_id,
@@ -115,7 +115,7 @@ struct SplitGroups {
 }
 
 static void split_mesh_groups(const MeshComponent &component,
-                              const eAttrDomain domain,
+                              const AttrDomain domain,
                               const Field<bool> &selection_field,
                               const Field<int> &group_id_field,
                               const AnonymousAttributePropagationInfo &propagation_info,
@@ -174,7 +174,7 @@ static void split_pointcloud_groups(const PointCloudComponent &component,
 {
   SplitGroups split_groups;
   if (do_common_split(component,
-                      ATTR_DOMAIN_POINT,
+                      AttrDomain::Point,
                       selection_field,
                       group_id_field,
                       geometry_by_group_id,
@@ -193,7 +193,7 @@ static void split_pointcloud_groups(const PointCloudComponent &component,
       const AttributeAccessor src_attributes = src_pointcloud.attributes();
       MutableAttributeAccessor dst_attributes = group_pointcloud->attributes_for_write();
       bke::gather_attributes(
-          src_attributes, ATTR_DOMAIN_POINT, propagation_info, {}, mask, dst_attributes);
+          src_attributes, AttrDomain::Point, propagation_info, {}, mask, dst_attributes);
 
       GeometrySet &group_geometry = *geometry_by_group_id.lookup(group_id);
       group_geometry.replace_pointcloud(group_pointcloud);
@@ -202,7 +202,7 @@ static void split_pointcloud_groups(const PointCloudComponent &component,
 }
 
 static void split_curve_groups(const bke::CurveComponent &component,
-                               const eAttrDomain domain,
+                               const AttrDomain domain,
                                const Field<bool> &selection_field,
                                const Field<int> &group_id_field,
                                const AnonymousAttributePropagationInfo &propagation_info,
@@ -221,7 +221,7 @@ static void split_curve_groups(const bke::CurveComponent &component,
       const int group_id = split_groups.group_ids[group_index];
 
       bke::CurvesGeometry group_curves;
-      if (domain == ATTR_DOMAIN_POINT) {
+      if (domain == AttrDomain::Point) {
         group_curves = bke::curves_copy_point_selection(src_curves, mask, propagation_info);
       }
       else {
@@ -242,7 +242,7 @@ static void split_instance_groups(const InstancesComponent &component,
 {
   SplitGroups split_groups;
   if (do_common_split(component,
-                      ATTR_DOMAIN_INSTANCE,
+                      AttrDomain::Instance,
                       selection_field,
                       group_id_field,
                       geometry_by_group_id,
@@ -267,7 +267,7 @@ static void split_instance_groups(const InstancesComponent &component,
       array_utils::gather(
           src_instances.reference_handles(), mask, group_instances->reference_handles());
       bke::gather_attributes(src_instances.attributes(),
-                             ATTR_DOMAIN_INSTANCE,
+                             AttrDomain::Instance,
                              propagation_info,
                              {},
                              mask,
@@ -283,7 +283,7 @@ static void split_instance_groups(const InstancesComponent &component,
 static void node_geo_exec(GeoNodeExecParams params)
 {
   const bNode &node = params.node();
-  const eAttrDomain domain = eAttrDomain(node.custom1);
+  const AttrDomain domain = AttrDomain(node.custom1);
 
   GeometrySet src_geometry = params.extract_input<GeometrySet>("Geometry");
   const Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
@@ -295,7 +295,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   Map<int, std::unique_ptr<GeometrySet>> geometry_by_group_id;
 
   if (src_geometry.has_mesh() &&
-      ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_EDGE, ATTR_DOMAIN_FACE)) {
+      ELEM(domain, AttrDomain::Point, AttrDomain::Edge, AttrDomain::Face)) {
     const auto &component = *src_geometry.get_component<MeshComponent>();
     split_mesh_groups(component,
                       domain,
@@ -304,12 +304,12 @@ static void node_geo_exec(GeoNodeExecParams params)
                       propagation_info,
                       geometry_by_group_id);
   }
-  if (src_geometry.has_pointcloud() && domain == ATTR_DOMAIN_POINT) {
+  if (src_geometry.has_pointcloud() && domain == AttrDomain::Point) {
     const auto &component = *src_geometry.get_component<PointCloudComponent>();
     split_pointcloud_groups(
         component, selection_field, group_id_field, propagation_info, geometry_by_group_id);
   }
-  if (src_geometry.has_curves() && ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE)) {
+  if (src_geometry.has_curves() && ELEM(domain, AttrDomain::Point, AttrDomain::Curve)) {
     const auto &component = *src_geometry.get_component<bke::CurveComponent>();
     split_curve_groups(component,
                        domain,
@@ -318,7 +318,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                        propagation_info,
                        geometry_by_group_id);
   }
-  if (src_geometry.has_instances() && domain == ATTR_DOMAIN_INSTANCE) {
+  if (src_geometry.has_instances() && domain == AttrDomain::Instance) {
     const auto &component = *src_geometry.get_component<bke::InstancesComponent>();
     split_instance_groups(
         component, selection_field, group_id_field, propagation_info, geometry_by_group_id);
@@ -334,7 +334,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   if (dst_group_id_attribute_id) {
     SpanAttributeWriter<int> dst_group_id =
         dst_instances->attributes_for_write().lookup_or_add_for_write_span<int>(
-            *dst_group_id_attribute_id, ATTR_DOMAIN_INSTANCE);
+            *dst_group_id_attribute_id, AttrDomain::Instance);
     std::copy(geometry_by_group_id.keys().begin(),
               geometry_by_group_id.keys().end(),
               dst_group_id.span.begin());
@@ -362,7 +362,7 @@ static void node_rna(StructRNA *srna)
                     "Attribute domain for the Selection and Group ID inputs",
                     rna_enum_attribute_domain_without_corner_items,
                     NOD_inline_enum_accessors(custom1),
-                    ATTR_DOMAIN_POINT,
+                    int(AttrDomain::Point),
                     enums::domain_without_corner_experimental_grease_pencil_version3_fn);
 }
 

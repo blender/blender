@@ -250,12 +250,12 @@ BLI_NOINLINE static void eliminate_points_based_on_mask(const Span<bool> elimina
 BLI_NOINLINE static void interpolate_attribute(const Mesh &mesh,
                                                const Span<float3> bary_coords,
                                                const Span<int> tri_indices,
-                                               const eAttrDomain source_domain,
+                                               const AttrDomain source_domain,
                                                const GVArray &source_data,
                                                GMutableSpan output_data)
 {
   switch (source_domain) {
-    case ATTR_DOMAIN_POINT: {
+    case AttrDomain::Point: {
       bke::mesh_surface_sample::sample_point_attribute(mesh.corner_verts(),
                                                        mesh.corner_tris(),
                                                        tri_indices,
@@ -265,7 +265,7 @@ BLI_NOINLINE static void interpolate_attribute(const Mesh &mesh,
                                                        output_data);
       break;
     }
-    case ATTR_DOMAIN_CORNER: {
+    case AttrDomain::Corner: {
       bke::mesh_surface_sample::sample_corner_attribute(mesh.corner_tris(),
                                                         tri_indices,
                                                         bary_coords,
@@ -274,7 +274,7 @@ BLI_NOINLINE static void interpolate_attribute(const Mesh &mesh,
                                                         output_data);
       break;
     }
-    case ATTR_DOMAIN_FACE: {
+    case AttrDomain::Face: {
       bke::mesh_surface_sample::sample_face_attribute(mesh.corner_tri_faces(),
                                                       tri_indices,
                                                       source_data,
@@ -307,12 +307,12 @@ BLI_NOINLINE static void propagate_existing_attributes(
     if (!src) {
       continue;
     }
-    if (src.domain == ATTR_DOMAIN_EDGE) {
+    if (src.domain == AttrDomain::Edge) {
       continue;
     }
 
     GSpanAttributeWriter dst = point_attributes.lookup_or_add_for_write_only_span(
-        attribute_id, ATTR_DOMAIN_POINT, output_data_type);
+        attribute_id, AttrDomain::Point, output_data_type);
     if (!dst) {
       continue;
     }
@@ -412,18 +412,18 @@ BLI_NOINLINE static void compute_attribute_outputs(const Mesh &mesh,
   MutableAttributeAccessor point_attributes = points.attributes_for_write();
 
   SpanAttributeWriter<int> ids = point_attributes.lookup_or_add_for_write_only_span<int>(
-      "id", ATTR_DOMAIN_POINT);
+      "id", AttrDomain::Point);
 
   SpanAttributeWriter<float3> normals;
   SpanAttributeWriter<math::Quaternion> rotations;
 
   if (attribute_outputs.normal_id) {
     normals = point_attributes.lookup_or_add_for_write_only_span<float3>(
-        attribute_outputs.normal_id.get(), ATTR_DOMAIN_POINT);
+        attribute_outputs.normal_id.get(), AttrDomain::Point);
   }
   if (attribute_outputs.rotation_id) {
     rotations = point_attributes.lookup_or_add_for_write_only_span<math::Quaternion>(
-        attribute_outputs.rotation_id.get(), ATTR_DOMAIN_POINT);
+        attribute_outputs.rotation_id.get(), AttrDomain::Point);
   }
 
   threading::parallel_for(bary_coords.index_range(), 1024, [&](const IndexRange range) {
@@ -456,7 +456,7 @@ static Array<float> calc_full_density_factors_with_selection(const Mesh &mesh,
                                                              const Field<float> &density_field,
                                                              const Field<bool> &selection_field)
 {
-  const eAttrDomain domain = ATTR_DOMAIN_CORNER;
+  const AttrDomain domain = AttrDomain::Corner;
   const int domain_size = mesh.attributes().domain_size(domain);
   Array<float> densities(domain_size, 0.0f);
 
@@ -553,7 +553,7 @@ static void point_distribution_calculate(GeometrySet &geometry_set,
   PointCloud *pointcloud = BKE_pointcloud_new_nomain(positions.size());
   bke::MutableAttributeAccessor point_attributes = pointcloud->attributes_for_write();
   bke::SpanAttributeWriter<float> point_radii =
-      point_attributes.lookup_or_add_for_write_only_span<float>("radius", ATTR_DOMAIN_POINT);
+      point_attributes.lookup_or_add_for_write_only_span<float>("radius", AttrDomain::Point);
   pointcloud->positions_for_write().copy_from(positions);
   point_radii.span.fill(0.05f);
   point_radii.finish();

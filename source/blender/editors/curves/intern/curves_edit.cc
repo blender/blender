@@ -14,7 +14,7 @@
 
 namespace blender::ed::curves {
 
-bool remove_selection(bke::CurvesGeometry &curves, const eAttrDomain selection_domain)
+bool remove_selection(bke::CurvesGeometry &curves, const bke::AttrDomain selection_domain)
 {
   const bke::AttributeAccessor attributes = curves.attributes();
   const VArray<bool> selection = *attributes.lookup_or_default<bool>(
@@ -23,10 +23,10 @@ bool remove_selection(bke::CurvesGeometry &curves, const eAttrDomain selection_d
   IndexMaskMemory memory;
   const IndexMask mask = IndexMask::from_bools(selection, memory);
   switch (selection_domain) {
-    case ATTR_DOMAIN_POINT:
+    case bke::AttrDomain::Point:
       curves.remove_points(mask);
       break;
-    case ATTR_DOMAIN_CURVE:
+    case bke::AttrDomain::Curve:
       curves.remove_curves(mask);
       break;
     default:
@@ -122,7 +122,7 @@ void duplicate_points(bke::CurvesGeometry &curves, const IndexMask &mask)
     }
 
     switch (meta_data.domain) {
-      case ATTR_DOMAIN_CURVE: {
+      case bke::AttrDomain::Curve: {
         if (id.name() == "cyclic") {
           return true;
         }
@@ -132,7 +132,7 @@ void duplicate_points(bke::CurvesGeometry &curves, const IndexMask &mask)
             attribute.span.slice(IndexRange(old_curves_num, num_curves_to_add)));
         break;
       }
-      case ATTR_DOMAIN_POINT: {
+      case bke::AttrDomain::Point: {
         bke::attribute_math::gather(
             attribute.span,
             dst_to_src_point,
@@ -159,7 +159,7 @@ void duplicate_points(bke::CurvesGeometry &curves, const IndexMask &mask)
   curves.tag_topology_changed();
 
   bke::SpanAttributeWriter<bool> selection = attributes.lookup_or_add_for_write_span<bool>(
-      ".selection", ATTR_DOMAIN_POINT);
+      ".selection", bke::AttrDomain::Point);
   selection.span.take_back(num_points_to_add).fill(true);
   selection.finish();
 }
@@ -192,14 +192,14 @@ void duplicate_curves(bke::CurvesGeometry &curves, const IndexMask &mask)
   attributes.for_all([&](const bke::AttributeIDRef &id, const bke::AttributeMetaData meta_data) {
     bke::GSpanAttributeWriter attribute = attributes.lookup_for_write_span(id);
     switch (meta_data.domain) {
-      case ATTR_DOMAIN_POINT:
+      case bke::AttrDomain::Point:
         bke::attribute_math::gather_group_to_group(points_by_curve.slice(orig_curves_range),
                                                    points_by_curve.slice(new_curves_range),
                                                    mask,
                                                    attribute.span,
                                                    attribute.span);
         break;
-      case ATTR_DOMAIN_CURVE:
+      case bke::AttrDomain::Curve:
         array_utils::gather(attribute.span, mask, attribute.span.take_back(mask.size()));
         break;
       default:
@@ -214,7 +214,7 @@ void duplicate_curves(bke::CurvesGeometry &curves, const IndexMask &mask)
   curves.tag_topology_changed();
 
   bke::SpanAttributeWriter<bool> selection = attributes.lookup_or_add_for_write_span<bool>(
-      ".selection", ATTR_DOMAIN_CURVE);
+      ".selection", bke::AttrDomain::Curve);
   selection.span.take_back(mask.size()).fill(true);
   selection.finish();
 }

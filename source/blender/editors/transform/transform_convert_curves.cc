@@ -103,13 +103,14 @@ static void createTransCurvesVerts(bContext * /*C*/, TransInfo *t)
       bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
       attribute_writer = attributes.lookup_or_add_for_write_span<float>(
           "radius",
-          ATTR_DOMAIN_POINT,
+          bke::AttrDomain::Point,
           bke::AttributeInitVArray(VArray<float>::ForSingle(0.01f, curves.points_num())));
       value_attribute = attribute_writer.span;
     }
     else if (t->mode == TFM_TILT) {
       bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
-      attribute_writer = attributes.lookup_or_add_for_write_span<float>("tilt", ATTR_DOMAIN_POINT);
+      attribute_writer = attributes.lookup_or_add_for_write_span<float>("tilt",
+                                                                        bke::AttrDomain::Point);
       value_attribute = attribute_writer.span;
     }
 
@@ -168,7 +169,7 @@ void curve_populate_trans_data_structs(TransDataContainer &tc,
   if (use_proportional_edit) {
     const OffsetIndices<int> points_by_curve = curves.points_by_curve();
     const VArray<bool> selection = *curves.attributes().lookup_or_default<bool>(
-        ".selection", ATTR_DOMAIN_POINT, true);
+        ".selection", bke::AttrDomain::Point, true);
     affected_curves.foreach_segment(GrainSize(512), [&](const IndexMaskSegment segment) {
       Vector<float> closest_distances;
       for (const int curve_i : segment) {

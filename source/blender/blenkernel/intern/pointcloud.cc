@@ -66,7 +66,7 @@ static void pointcloud_init_data(ID *id)
 
   CustomData_reset(&pointcloud->pdata);
   pointcloud->attributes_for_write().add<float3>(
-      "position", ATTR_DOMAIN_POINT, blender::bke::AttributeInitConstruct());
+      "position", blender::bke::AttrDomain::Point, blender::bke::AttributeInitConstruct());
 
   pointcloud->runtime = new blender::bke::PointCloudRuntime();
 }
@@ -183,7 +183,7 @@ static void pointcloud_random(PointCloud *pointcloud)
   blender::MutableSpan<float3> positions = pointcloud->positions_for_write();
   blender::bke::SpanAttributeWriter<float> radii =
       attributes.lookup_or_add_for_write_only_span<float>(POINTCLOUD_ATTR_RADIUS,
-                                                          ATTR_DOMAIN_POINT);
+                                                          blender::bke::AttrDomain::Point);
 
   for (const int i : positions.index_range()) {
     positions[i] = float3(BLI_rng_get_float(rng), BLI_rng_get_float(rng), BLI_rng_get_float(rng)) *

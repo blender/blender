@@ -1148,19 +1148,19 @@ static bke::CurvesGeometry create_drawing_data(const Span<float3> positions,
   curves.transform(matrix);
 
   SpanAttributeWriter<float> point_radii = attributes.lookup_or_add_for_write_only_span<float>(
-      "radius", ATTR_DOMAIN_POINT);
+      "radius", AttrDomain::Point);
   point_radii.span.copy_from(radii);
 
   SpanAttributeWriter<float> point_opacities = attributes.lookup_or_add_for_write_span<float>(
-      "opacity", ATTR_DOMAIN_POINT);
+      "opacity", AttrDomain::Point);
   point_opacities.span.copy_from(opacities);
 
   SpanAttributeWriter<bool> stroke_cyclic = attributes.lookup_or_add_for_write_span<bool>(
-      "cyclic", ATTR_DOMAIN_CURVE);
+      "cyclic", AttrDomain::Curve);
   stroke_cyclic.span.fill(false);
 
   SpanAttributeWriter<int> stroke_materials = attributes.lookup_or_add_for_write_span<int>(
-      "material_index", ATTR_DOMAIN_CURVE);
+      "material_index", AttrDomain::Curve);
   stroke_materials.span.copy_from(materials);
 
   point_radii.finish();

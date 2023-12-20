@@ -2226,6 +2226,7 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
                                     float (*r_loop_normals)[3])
 {
   using namespace blender;
+  using namespace blender::bke;
   if (r_vert_normals == nullptr && r_face_normals == nullptr && r_loop_normals == nullptr) {
     return;
   }
@@ -2278,8 +2279,8 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
     const blender::short2 *clnors = static_cast<const blender::short2 *>(
         CustomData_get_layer(&mesh->corner_data, CD_CUSTOMLOOPNORMAL));
     const bke::AttributeAccessor attributes = mesh->attributes();
-    const VArraySpan sharp_edges = *attributes.lookup<bool>("sharp_edge", ATTR_DOMAIN_EDGE);
-    const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", ATTR_DOMAIN_FACE);
+    const VArraySpan sharp_edges = *attributes.lookup<bool>("sharp_edge", AttrDomain::Edge);
+    const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", AttrDomain::Face);
     blender::bke::mesh::normals_calc_loop(
         positions,
         edges,

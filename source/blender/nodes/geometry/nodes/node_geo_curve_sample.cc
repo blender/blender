@@ -446,7 +446,7 @@ class SampleCurveFunction : public mf::MultiFunction {
   {
     const Curves &curves_id = *geometry_set_.get_curves();
     const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
-    source_context_.emplace(bke::CurvesFieldContext{curves, ATTR_DOMAIN_POINT});
+    source_context_.emplace(bke::CurvesFieldContext{curves, AttrDomain::Point});
     source_evaluator_ = std::make_unique<FieldEvaluator>(*source_context_, curves.points_num());
     source_evaluator_->add(src_field_);
     source_evaluator_->evaluate();

@@ -960,7 +960,7 @@ static int apply_objects_internal(bContext *C,
       PointCloud &pointcloud = *static_cast<PointCloud *>(ob->data);
       bke::MutableAttributeAccessor attributes = pointcloud.attributes_for_write();
       bke::SpanAttributeWriter position = attributes.lookup_or_add_for_write_span<float3>(
-          "position", ATTR_DOMAIN_POINT);
+          "position", bke::AttrDomain::Point);
       transform_positions(position.span, float4x4(mat));
       position.finish();
     }
@@ -1723,7 +1723,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
       PointCloud &pointcloud = *static_cast<PointCloud *>(ob->data);
       bke::MutableAttributeAccessor attributes = pointcloud.attributes_for_write();
       bke::SpanAttributeWriter positions = attributes.lookup_or_add_for_write_span<float3>(
-          "position", ATTR_DOMAIN_POINT);
+          "position", bke::AttrDomain::Point);
       if (ELEM(centermode, ORIGIN_TO_CENTER_OF_MASS_SURFACE, ORIGIN_TO_CENTER_OF_MASS_VOLUME) ||
           !ELEM(around, V3D_AROUND_CENTER_BOUNDS, V3D_AROUND_CENTER_MEDIAN))
       {

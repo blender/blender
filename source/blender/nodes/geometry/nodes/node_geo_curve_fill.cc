@@ -125,7 +125,7 @@ static Array<meshintersect::CDT_result<double>> do_group_aware_cdt(
     const CDT_output_type output_type,
     const Field<int> &group_index_field)
 {
-  const bke::GeometryFieldContext field_context{curves, ATTR_DOMAIN_CURVE};
+  const bke::GeometryFieldContext field_context{curves, AttrDomain::Curve};
   fn::FieldEvaluator data_evaluator{field_context, curves.curves_num()};
   data_evaluator.add(group_index_field);
   data_evaluator.evaluate();

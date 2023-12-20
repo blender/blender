@@ -523,7 +523,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
   bke::MutableAttributeAccessor attributes = result->attributes_for_write();
   bke::SpanAttributeWriter<bool> sharp_edges = attributes.lookup_or_add_for_write_span<bool>(
-      "sharp_edge", ATTR_DOMAIN_EDGE);
+      "sharp_edge", bke::AttrDomain::Edge);
 
   WeightedNormalData wn_data{};
   wn_data.verts_num = verts_num;
@@ -541,7 +541,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
   wn_data.faces = faces;
   wn_data.face_normals = mesh->face_normals();
-  wn_data.sharp_faces = *attributes.lookup<bool>("sharp_face", ATTR_DOMAIN_FACE);
+  wn_data.sharp_faces = *attributes.lookup<bool>("sharp_face", bke::AttrDomain::Face);
   wn_data.face_strength = static_cast<const int *>(CustomData_get_layer_named(
       &result->face_data, CD_PROP_INT32, MOD_WEIGHTEDNORMALS_FACEWEIGHT_CDLAYER_ID));
 

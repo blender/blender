@@ -21,7 +21,7 @@ namespace blender::nodes {
 
 EvaluateAtIndexInput::EvaluateAtIndexInput(Field<int> index_field,
                                            GField value_field,
-                                           eAttrDomain value_field_domain)
+                                           AttrDomain value_field_domain)
     : bke::GeometryFieldInput(value_field.cpp_type(), "Evaluate at Index"),
       index_field_(std::move(index_field)),
       value_field_(std::move(value_field)),
@@ -78,7 +78,7 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  node->custom1 = ATTR_DOMAIN_POINT;
+  node->custom1 = int(AttrDomain::Point);
   node->custom2 = CD_PROP_FLOAT;
 }
 
@@ -107,7 +107,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 static void node_geo_exec(GeoNodeExecParams params)
 {
   const bNode &node = params.node();
-  const eAttrDomain domain = eAttrDomain(node.custom1);
+  const AttrDomain domain = AttrDomain(node.custom1);
 
   GField output_field{std::make_shared<EvaluateAtIndexInput>(
       params.extract_input<Field<int>>("Index"), params.extract_input<GField>("Value"), domain)};
@@ -122,7 +122,7 @@ static void node_rna(StructRNA *srna)
                     "Domain the field is evaluated in",
                     rna_enum_attribute_domain_items,
                     NOD_inline_enum_accessors(custom1),
-                    ATTR_DOMAIN_POINT,
+                    int(AttrDomain::Point),
                     enums::domain_experimental_grease_pencil_version3_fn);
 
   RNA_def_node_enum(srna,

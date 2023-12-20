@@ -65,7 +65,7 @@ class AngleFieldInput final : public bke::MeshFieldInput {
   }
 
   GVArray get_varray_for_context(const Mesh &mesh,
-                                 const eAttrDomain domain,
+                                 const AttrDomain domain,
                                  const IndexMask & /*mask*/) const final
   {
     const Span<float3> positions = mesh.vert_positions();
@@ -87,7 +87,7 @@ class AngleFieldInput final : public bke::MeshFieldInput {
     };
 
     VArray<float> angles = VArray<float>::ForFunc(mesh.edges_num, angle_fn);
-    return mesh.attributes().adapt_domain<float>(std::move(angles), ATTR_DOMAIN_EDGE, domain);
+    return mesh.attributes().adapt_domain<float>(std::move(angles), AttrDomain::Edge, domain);
   }
 
   uint64_t hash() const override
@@ -101,9 +101,9 @@ class AngleFieldInput final : public bke::MeshFieldInput {
     return dynamic_cast<const AngleFieldInput *>(&other) != nullptr;
   }
 
-  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
+  std::optional<AttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
   {
-    return ATTR_DOMAIN_EDGE;
+    return AttrDomain::Edge;
   }
 };
 
@@ -115,7 +115,7 @@ class SignedAngleFieldInput final : public bke::MeshFieldInput {
   }
 
   GVArray get_varray_for_context(const Mesh &mesh,
-                                 const eAttrDomain domain,
+                                 const AttrDomain domain,
                                  const IndexMask & /*mask*/) const final
   {
     const Span<float3> positions = mesh.vert_positions();
@@ -159,7 +159,7 @@ class SignedAngleFieldInput final : public bke::MeshFieldInput {
     };
 
     VArray<float> angles = VArray<float>::ForFunc(mesh.edges_num, angle_fn);
-    return mesh.attributes().adapt_domain<float>(std::move(angles), ATTR_DOMAIN_EDGE, domain);
+    return mesh.attributes().adapt_domain<float>(std::move(angles), AttrDomain::Edge, domain);
   }
 
   uint64_t hash() const override
@@ -173,9 +173,9 @@ class SignedAngleFieldInput final : public bke::MeshFieldInput {
     return dynamic_cast<const SignedAngleFieldInput *>(&other) != nullptr;
   }
 
-  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
+  std::optional<AttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
   {
-    return ATTR_DOMAIN_EDGE;
+    return AttrDomain::Edge;
   }
 };
 

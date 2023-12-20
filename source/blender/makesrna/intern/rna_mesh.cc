@@ -633,7 +633,7 @@ static int rna_MeshPolygon_material_index_get(PointerRNA *ptr)
   const Mesh *mesh = rna_mesh(ptr);
   const bke::AttributeAccessor attributes = mesh->attributes();
   const VArray material_index = *attributes.lookup_or_default<int>(
-      "material_index", ATTR_DOMAIN_FACE, 0);
+      "material_index", bke::AttrDomain::Face, 0);
   return material_index[rna_MeshPolygon_index_get(ptr)];
 }
 
@@ -642,8 +642,8 @@ static void rna_MeshPolygon_material_index_set(PointerRNA *ptr, int value)
   using namespace blender;
   Mesh *mesh = rna_mesh(ptr);
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
-  bke::AttributeWriter material_index = attributes.lookup_or_add_for_write<int>("material_index",
-                                                                                ATTR_DOMAIN_FACE);
+  bke::AttributeWriter material_index = attributes.lookup_or_add_for_write<int>(
+      "material_index", bke::AttrDomain::Face);
   material_index.varray.set(rna_MeshPolygon_index_get(ptr), max_ii(0, value));
   material_index.finish();
 }
@@ -1394,7 +1394,7 @@ static int rna_MeshLoopTriangle_material_index_get(PointerRNA *ptr)
   const Mesh *mesh = rna_mesh(ptr);
   const bke::AttributeAccessor attributes = mesh->attributes();
   const VArray material_indices = *attributes.lookup_or_default<int>(
-      "material_index", ATTR_DOMAIN_FACE, 0);
+      "material_index", bke::AttrDomain::Face, 0);
   return material_indices[rna_MeshLoopTriangle_polygon_index_get(ptr)];
 }
 
@@ -1891,7 +1891,8 @@ static PointerRNA rna_Mesh_uv_layers_new(Mesh *mesh,
 
 static void rna_Mesh_uv_layers_remove(Mesh *mesh, ReportList *reports, CustomDataLayer *layer)
 {
-  if (!BKE_id_attribute_find(&mesh->id, layer->name, CD_PROP_FLOAT2, ATTR_DOMAIN_CORNER)) {
+  using namespace blender;
+  if (!BKE_id_attribute_find(&mesh->id, layer->name, CD_PROP_FLOAT2, bke::AttrDomain::Corner)) {
     BKE_reportf(reports, RPT_ERROR, "UV map '%s' not found", layer->name);
     return;
   }

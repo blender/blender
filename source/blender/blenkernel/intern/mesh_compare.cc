@@ -530,7 +530,7 @@ static std::optional<MeshMismatch> verify_attributes_compatible(
 static std::optional<MeshMismatch> sort_domain_using_attributes(
     const AttributeAccessor &mesh1_attributes,
     const AttributeAccessor &mesh2_attributes,
-    const eAttrDomain domain,
+    const AttrDomain domain,
     const Span<StringRef> excluded_attributes,
     IndexMapping &maps,
     const float threshold)
@@ -587,16 +587,16 @@ static std::optional<MeshMismatch> sort_domain_using_attributes(
                                                        component_i);
         if (!attributes_line_up) {
           switch (domain) {
-            case ATTR_DOMAIN_POINT:
+            case AttrDomain::Point:
               mismatch = MeshMismatch::VertexAttributes;
               return;
-            case ATTR_DOMAIN_EDGE:
+            case AttrDomain::Edge:
               mismatch = MeshMismatch::EdgeAttributes;
               return;
-            case ATTR_DOMAIN_CORNER:
+            case AttrDomain::Corner:
               mismatch = MeshMismatch::CornerAttributes;
               return;
-            case ATTR_DOMAIN_FACE:
+            case AttrDomain::Face:
               mismatch = MeshMismatch::FaceAttributes;
               return;
             default:
@@ -792,7 +792,7 @@ std::optional<MeshMismatch> compare_meshes(const Mesh &mesh1,
 
   IndexMapping verts(mesh1.verts_num);
   mismatch = sort_domain_using_attributes(
-      mesh1_attributes, mesh2_attributes, ATTR_DOMAIN_POINT, {}, verts, threshold);
+      mesh1_attributes, mesh2_attributes, AttrDomain::Point, {}, verts, threshold);
   if (mismatch) {
     return mismatch;
   };
@@ -806,7 +806,7 @@ std::optional<MeshMismatch> compare_meshes(const Mesh &mesh1,
   }
 
   mismatch = sort_domain_using_attributes(
-      mesh1_attributes, mesh2_attributes, ATTR_DOMAIN_EDGE, {".edge_verts"}, edges, threshold);
+      mesh1_attributes, mesh2_attributes, AttrDomain::Edge, {".edge_verts"}, edges, threshold);
   if (mismatch) {
     return mismatch;
   };
@@ -825,7 +825,7 @@ std::optional<MeshMismatch> compare_meshes(const Mesh &mesh1,
 
   mismatch = sort_domain_using_attributes(mesh1_attributes,
                                           mesh2_attributes,
-                                          ATTR_DOMAIN_CORNER,
+                                          AttrDomain::Corner,
                                           {".corner_vert", ".corner_edge"},
                                           corners,
                                           threshold);
@@ -842,7 +842,7 @@ std::optional<MeshMismatch> compare_meshes(const Mesh &mesh1,
   }
 
   mismatch = sort_domain_using_attributes(
-      mesh1_attributes, mesh2_attributes, ATTR_DOMAIN_FACE, {}, faces, threshold);
+      mesh1_attributes, mesh2_attributes, AttrDomain::Face, {}, faces, threshold);
   if (mismatch) {
     return mismatch;
   };

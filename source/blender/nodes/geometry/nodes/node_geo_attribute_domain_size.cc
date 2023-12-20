@@ -88,10 +88,10 @@ static void node_geo_exec(GeoNodeExecParams params)
     case GeometryComponent::Type::Mesh: {
       if (const MeshComponent *component = geometry_set.get_component<MeshComponent>()) {
         const AttributeAccessor attributes = *component->attributes();
-        params.set_output("Point Count", attributes.domain_size(ATTR_DOMAIN_POINT));
-        params.set_output("Edge Count", attributes.domain_size(ATTR_DOMAIN_EDGE));
-        params.set_output("Face Count", attributes.domain_size(ATTR_DOMAIN_FACE));
-        params.set_output("Face Corner Count", attributes.domain_size(ATTR_DOMAIN_CORNER));
+        params.set_output("Point Count", attributes.domain_size(AttrDomain::Point));
+        params.set_output("Edge Count", attributes.domain_size(AttrDomain::Edge));
+        params.set_output("Face Count", attributes.domain_size(AttrDomain::Face));
+        params.set_output("Face Corner Count", attributes.domain_size(AttrDomain::Corner));
       }
       else {
         params.set_default_remaining_outputs();
@@ -101,8 +101,8 @@ static void node_geo_exec(GeoNodeExecParams params)
     case GeometryComponent::Type::Curve: {
       if (const CurveComponent *component = geometry_set.get_component<CurveComponent>()) {
         const AttributeAccessor attributes = *component->attributes();
-        params.set_output("Point Count", attributes.domain_size(ATTR_DOMAIN_POINT));
-        params.set_output("Spline Count", attributes.domain_size(ATTR_DOMAIN_CURVE));
+        params.set_output("Point Count", attributes.domain_size(AttrDomain::Point));
+        params.set_output("Spline Count", attributes.domain_size(AttrDomain::Curve));
       }
       else {
         params.set_default_remaining_outputs();
@@ -113,7 +113,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       if (const PointCloudComponent *component = geometry_set.get_component<PointCloudComponent>())
       {
         const AttributeAccessor attributes = *component->attributes();
-        params.set_output("Point Count", attributes.domain_size(ATTR_DOMAIN_POINT));
+        params.set_output("Point Count", attributes.domain_size(AttrDomain::Point));
       }
       else {
         params.set_default_remaining_outputs();
@@ -123,7 +123,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     case GeometryComponent::Type::Instance: {
       if (const InstancesComponent *component = geometry_set.get_component<InstancesComponent>()) {
         const AttributeAccessor attributes = *component->attributes();
-        params.set_output("Instance Count", attributes.domain_size(ATTR_DOMAIN_INSTANCE));
+        params.set_output("Instance Count", attributes.domain_size(AttrDomain::Instance));
       }
       else {
         params.set_default_remaining_outputs();
@@ -134,7 +134,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       if (const GreasePencilComponent *component =
               geometry_set.get_component<GreasePencilComponent>()) {
         const AttributeAccessor attributes = *component->attributes();
-        params.set_output("Layer Count", attributes.domain_size(ATTR_DOMAIN_LAYER));
+        params.set_output("Layer Count", attributes.domain_size(AttrDomain::Layer));
       }
       else {
         params.set_default_remaining_outputs();

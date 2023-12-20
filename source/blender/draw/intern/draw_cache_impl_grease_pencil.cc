@@ -258,7 +258,7 @@ static void grease_pencil_edit_batch_ensure(Object &object,
 
     /* Assumes that if the ".selection" attribute does not exist, all points are selected. */
     const VArray<float> selection_float = *attributes.lookup_or_default<float>(
-        ".selection", ATTR_DOMAIN_POINT, true);
+        ".selection", bke::AttrDomain::Point, true);
 
     edit_points.slice(drawing_start_offset, curves.points_num()).copy_from(curves.positions());
     MutableSpan<float> selection_slice = edit_points_selection.slice(drawing_start_offset,
@@ -289,7 +289,7 @@ static void grease_pencil_edit_batch_ensure(Object &object,
     }
 
     const VArray<bool> selection = *attributes.lookup_or_default<bool>(
-        ".selection", ATTR_DOMAIN_POINT, true);
+        ".selection", bke::AttrDomain::Point, true);
 
     editable_strokes.foreach_index([&](const int curve_i) {
       const IndexRange points = points_by_curve[curve_i];
@@ -340,7 +340,7 @@ static void grease_pencil_edit_batch_ensure(Object &object,
 
     /* Assumes that if the ".selection" attribute does not exist, all points are selected. */
     const VArray<bool> selection = *curves.attributes().lookup_or_default<bool>(
-        ".selection", ATTR_DOMAIN_POINT, true);
+        ".selection", bke::AttrDomain::Point, true);
 
     /* Fill point indices. */
     if (!layer->is_locked()) {
@@ -486,16 +486,16 @@ static void grease_pencil_geom_batch_ensure(Object &object,
     const VArray<float> radii = info.drawing.radii();
     const VArray<float> opacities = info.drawing.opacities();
     const VArray<ColorGeometry4f> vertex_colors = *attributes.lookup_or_default<ColorGeometry4f>(
-        "vertex_color", ATTR_DOMAIN_POINT, ColorGeometry4f(0.0f, 0.0f, 0.0f, 0.0f));
+        "vertex_color", bke::AttrDomain::Point, ColorGeometry4f(0.0f, 0.0f, 0.0f, 0.0f));
     /* Assumes that if the ".selection" attribute does not exist, all points are selected. */
     const VArray<float> selection_float = *attributes.lookup_or_default<float>(
-        ".selection", ATTR_DOMAIN_POINT, true);
+        ".selection", bke::AttrDomain::Point, true);
     const VArray<int8_t> start_caps = *attributes.lookup_or_default<int8_t>(
-        "start_cap", ATTR_DOMAIN_CURVE, 0);
+        "start_cap", bke::AttrDomain::Curve, 0);
     const VArray<int8_t> end_caps = *attributes.lookup_or_default<int8_t>(
-        "end_cap", ATTR_DOMAIN_CURVE, 0);
+        "end_cap", bke::AttrDomain::Curve, 0);
     const VArray<int> materials = *attributes.lookup_or_default<int>(
-        "material_index", ATTR_DOMAIN_CURVE, 0);
+        "material_index", bke::AttrDomain::Curve, 0);
     const Span<uint3> triangles = info.drawing.triangles();
     const Span<int> verts_start_offsets = verts_start_offsets_per_visible_drawing[drawing_i];
     const Span<int> tris_start_offsets = tris_start_offsets_per_visible_drawing[drawing_i];

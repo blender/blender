@@ -31,10 +31,10 @@ class HandlePositionFieldInput final : public bke::CurvesFieldInput {
   }
 
   GVArray get_varray_for_context(const bke::CurvesGeometry &curves,
-                                 const eAttrDomain domain,
+                                 const AttrDomain domain,
                                  const IndexMask &mask) const final
   {
-    const bke::CurvesFieldContext field_context{curves, ATTR_DOMAIN_POINT};
+    const bke::CurvesFieldContext field_context{curves, AttrDomain::Point};
     fn::FieldEvaluator evaluator(field_context, &mask);
     evaluator.add(relative_);
     evaluator.evaluate();
@@ -45,7 +45,7 @@ class HandlePositionFieldInput final : public bke::CurvesFieldInput {
     const AttributeAccessor attributes = curves.attributes();
     StringRef side = left_ ? "handle_left" : "handle_right";
     VArray<float3> handles = *attributes.lookup_or_default<float3>(
-        side, ATTR_DOMAIN_POINT, {0, 0, 0});
+        side, AttrDomain::Point, {0, 0, 0});
 
     if (relative.is_single()) {
       if (relative.get_internal_single()) {
@@ -54,9 +54,9 @@ class HandlePositionFieldInput final : public bke::CurvesFieldInput {
           output[i] = handles[i] - positions[i];
         }
         return attributes.adapt_domain<float3>(
-            VArray<float3>::ForContainer(std::move(output)), ATTR_DOMAIN_POINT, domain);
+            VArray<float3>::ForContainer(std::move(output)), AttrDomain::Point, domain);
       }
-      return attributes.adapt_domain<float3>(handles, ATTR_DOMAIN_POINT, domain);
+      return attributes.adapt_domain<float3>(handles, AttrDomain::Point, domain);
     }
 
     Array<float3> output(positions.size());
@@ -69,7 +69,7 @@ class HandlePositionFieldInput final : public bke::CurvesFieldInput {
       }
     }
     return attributes.adapt_domain<float3>(
-        VArray<float3>::ForContainer(std::move(output)), ATTR_DOMAIN_POINT, domain);
+        VArray<float3>::ForContainer(std::move(output)), AttrDomain::Point, domain);
   }
 
   void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override
@@ -92,9 +92,9 @@ class HandlePositionFieldInput final : public bke::CurvesFieldInput {
     return false;
   }
 
-  std::optional<eAttrDomain> preferred_domain(const CurvesGeometry & /*curves*/) const
+  std::optional<AttrDomain> preferred_domain(const CurvesGeometry & /*curves*/) const
   {
-    return ATTR_DOMAIN_POINT;
+    return AttrDomain::Point;
   }
 };
 

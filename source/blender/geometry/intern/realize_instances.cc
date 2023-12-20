@@ -28,6 +28,7 @@
 
 namespace blender::geometry {
 
+using blender::bke::AttrDomain;
 using blender::bke::AttributeIDRef;
 using blender::bke::AttributeKind;
 using blender::bke::AttributeMetaData;
@@ -314,13 +315,13 @@ static void copy_generic_attributes_to_result(
     const Span<std::optional<GVArraySpan>> src_attributes,
     const AttributeFallbacksArray &attribute_fallbacks,
     const OrderedAttributes &ordered_attributes,
-    const FunctionRef<IndexRange(eAttrDomain)> &range_fn,
+    const FunctionRef<IndexRange(bke::AttrDomain)> &range_fn,
     MutableSpan<GSpanAttributeWriter> dst_attribute_writers)
 {
   threading::parallel_for(
       dst_attribute_writers.index_range(), 10, [&](const IndexRange attribute_range) {
         for (const int attribute_index : attribute_range) {
-          const eAttrDomain domain = ordered_attributes.kinds[attribute_index].domain;
+          const bke::AttrDomain domain = ordered_attributes.kinds[attribute_index].domain;
           const IndexRange element_slice = range_fn(domain);
 
           GMutableSpan dst_span = dst_attribute_writers[attribute_index].span.slice(element_slice);
@@ -708,7 +709,7 @@ static AllPointCloudsInfo preprocess_pointclouds(const bke::GeometrySet &geometr
     for (const int attribute_index : info.attributes.index_range()) {
       const AttributeIDRef &attribute_id = info.attributes.ids[attribute_index];
       const eCustomDataType data_type = info.attributes.kinds[attribute_index].data_type;
-      const eAttrDomain domain = info.attributes.kinds[attribute_index].domain;
+      const bke::AttrDomain domain = info.attributes.kinds[attribute_index].domain;
       if (attributes.contains(attribute_id)) {
         GVArray attribute = *attributes.lookup_or_default(attribute_id, domain, data_type);
         pointcloud_info.attributes[attribute_index].emplace(std::move(attribute));
@@ -721,10 +722,11 @@ static AllPointCloudsInfo preprocess_pointclouds(const bke::GeometrySet &geometr
       }
     }
     if (info.create_radius_attribute) {
-      pointcloud_info.radii = *attributes.lookup_or_default("radius", ATTR_DOMAIN_POINT, 0.01f);
+      pointcloud_info.radii = *attributes.lookup_or_default(
+          "radius", bke::AttrDomain::Point, 0.01f);
     }
     const VArray<float3> position_attribute = *attributes.lookup_or_default<float3>(
-        "position", ATTR_DOMAIN_POINT, float3(0));
+        "position", bke::AttrDomain::Point, float3(0));
     pointcloud_info.positions = position_attribute.get_internal_span();
   }
   return info;
@@ -759,8 +761,8 @@ static void execute_realize_pointcloud_task(
       pointcloud_info.attributes,
       task.attribute_fallbacks,
       ordered_attributes,
-      [&](const eAttrDomain domain) {
-        BLI_assert(domain == ATTR_DOMAIN_POINT);
+      [&](const bke::AttrDomain domain) {
+        BLI_assert(domain == bke::AttrDomain::Point);
         UNUSED_VARS_NDEBUG(domain);
         return point_slice;
       },
@@ -792,17 +794,18 @@ static void execute_realize_pointcloud_tasks(const RealizeInstancesOptions &opti
   dst_pointcloud->totcol = first_pointcloud.totcol;
 
   SpanAttributeWriter<float3> positions = dst_attributes.lookup_or_add_for_write_only_span<float3>(
-      "position", ATTR_DOMAIN_POINT);
+      "position", bke::AttrDomain::Point);
 
   /* Prepare id attribute. */
   SpanAttributeWriter<int> point_ids;
   if (all_pointclouds_info.create_id_attribute) {
-    point_ids = dst_attributes.lookup_or_add_for_write_only_span<int>("id", ATTR_DOMAIN_POINT);
+    point_ids = dst_attributes.lookup_or_add_for_write_only_span<int>("id",
+                                                                      bke::AttrDomain::Point);
   }
   SpanAttributeWriter<float> point_radii;
   if (all_pointclouds_info.create_radius_attribute) {
     point_radii = dst_attributes.lookup_or_add_for_write_only_span<float>("radius",
-                                                                          ATTR_DOMAIN_POINT);
+                                                                          bke::AttrDomain::Point);
   }
 
   /* Prepare generic output attributes. */
@@ -811,7 +814,7 @@ static void execute_realize_pointcloud_tasks(const RealizeInstancesOptions &opti
     const AttributeIDRef &attribute_id = ordered_attributes.ids[attribute_index];
     const eCustomDataType data_type = ordered_attributes.kinds[attribute_index].data_type;
     dst_attribute_writers.append(dst_attributes.lookup_or_add_for_write_only_span(
-        attribute_id, ATTR_DOMAIN_POINT, data_type));
+        attribute_id, bke::AttrDomain::Point, data_type));
   }
 
   /* Actually execute all tasks. */
@@ -941,7 +944,7 @@ static AllMeshesInfo preprocess_meshes(const bke::GeometrySet &geometry_set,
     for (const int attribute_index : info.attributes.index_range()) {
       const AttributeIDRef &attribute_id = info.attributes.ids[attribute_index];
       const eCustomDataType data_type = info.attributes.kinds[attribute_index].data_type;
-      const eAttrDomain domain = info.attributes.kinds[attribute_index].domain;
+      const bke::AttrDomain domain = info.attributes.kinds[attribute_index].domain;
       if (attributes.contains(attribute_id)) {
         GVArray attribute = *attributes.lookup_or_default(attribute_id, domain, data_type);
         mesh_info.attributes[attribute_index].emplace(std::move(attribute));
@@ -954,7 +957,7 @@ static AllMeshesInfo preprocess_meshes(const bke::GeometrySet &geometry_set,
       }
     }
     mesh_info.material_indices = *attributes.lookup_or_default<int>(
-        "material_index", ATTR_DOMAIN_FACE, 0);
+        "material_index", bke::AttrDomain::Face, 0);
   }
 
   info.no_loose_edges_hint = std::all_of(
@@ -1067,15 +1070,15 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
       mesh_info.attributes,
       task.attribute_fallbacks,
       ordered_attributes,
-      [&](const eAttrDomain domain) {
+      [&](const bke::AttrDomain domain) {
         switch (domain) {
-          case ATTR_DOMAIN_POINT:
+          case bke::AttrDomain::Point:
             return dst_vert_range;
-          case ATTR_DOMAIN_EDGE:
+          case bke::AttrDomain::Edge:
             return dst_edge_range;
-          case ATTR_DOMAIN_FACE:
+          case bke::AttrDomain::Face:
             return dst_face_range;
-          case ATTR_DOMAIN_CORNER:
+          case bke::AttrDomain::Corner:
             return dst_loop_range;
           default:
             BLI_assert_unreachable();
@@ -1129,20 +1132,21 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
   /* Prepare id attribute. */
   SpanAttributeWriter<int> vertex_ids;
   if (all_meshes_info.create_id_attribute) {
-    vertex_ids = dst_attributes.lookup_or_add_for_write_only_span<int>("id", ATTR_DOMAIN_POINT);
+    vertex_ids = dst_attributes.lookup_or_add_for_write_only_span<int>("id",
+                                                                       bke::AttrDomain::Point);
   }
   /* Prepare material indices. */
   SpanAttributeWriter<int> material_indices;
   if (all_meshes_info.create_material_index_attribute) {
-    material_indices = dst_attributes.lookup_or_add_for_write_only_span<int>("material_index",
-                                                                             ATTR_DOMAIN_FACE);
+    material_indices = dst_attributes.lookup_or_add_for_write_only_span<int>(
+        "material_index", bke::AttrDomain::Face);
   }
 
   /* Prepare generic output attributes. */
   Vector<GSpanAttributeWriter> dst_attribute_writers;
   for (const int attribute_index : ordered_attributes.index_range()) {
     const AttributeIDRef &attribute_id = ordered_attributes.ids[attribute_index];
-    const eAttrDomain domain = ordered_attributes.kinds[attribute_index].domain;
+    const bke::AttrDomain domain = ordered_attributes.kinds[attribute_index].domain;
     const eCustomDataType data_type = ordered_attributes.kinds[attribute_index].data_type;
     dst_attribute_writers.append(
         dst_attributes.lookup_or_add_for_write_only_span(attribute_id, domain, data_type));
@@ -1256,7 +1260,7 @@ static AllCurvesInfo preprocess_curves(const bke::GeometrySet &geometry_set,
     bke::AttributeAccessor attributes = curves.attributes();
     curve_info.attributes.reinitialize(info.attributes.size());
     for (const int attribute_index : info.attributes.index_range()) {
-      const eAttrDomain domain = info.attributes.kinds[attribute_index].domain;
+      const bke::AttrDomain domain = info.attributes.kinds[attribute_index].domain;
       const AttributeIDRef &attribute_id = info.attributes.ids[attribute_index];
       const eCustomDataType data_type = info.attributes.kinds[attribute_index].data_type;
       if (attributes.contains(attribute_id)) {
@@ -1273,12 +1277,12 @@ static AllCurvesInfo preprocess_curves(const bke::GeometrySet &geometry_set,
 
     if (attributes.contains("radius")) {
       curve_info.radius =
-          attributes.lookup<float>("radius", ATTR_DOMAIN_POINT).varray.get_internal_span();
+          attributes.lookup<float>("radius", bke::AttrDomain::Point).varray.get_internal_span();
       info.create_radius_attribute = true;
     }
     if (attributes.contains("nurbs_weight")) {
-      curve_info.nurbs_weight =
-          attributes.lookup<float>("nurbs_weight", ATTR_DOMAIN_POINT).varray.get_internal_span();
+      curve_info.nurbs_weight = attributes.lookup<float>("nurbs_weight", bke::AttrDomain::Point)
+                                    .varray.get_internal_span();
       info.create_nurbs_weight_attribute = true;
     }
     curve_info.resolution = curves.resolution();
@@ -1286,10 +1290,10 @@ static AllCurvesInfo preprocess_curves(const bke::GeometrySet &geometry_set,
       info.create_resolution_attribute = true;
     }
     if (attributes.contains("handle_right")) {
-      curve_info.handle_left =
-          attributes.lookup<float3>("handle_left", ATTR_DOMAIN_POINT).varray.get_internal_span();
-      curve_info.handle_right =
-          attributes.lookup<float3>("handle_right", ATTR_DOMAIN_POINT).varray.get_internal_span();
+      curve_info.handle_left = attributes.lookup<float3>("handle_left", bke::AttrDomain::Point)
+                                   .varray.get_internal_span();
+      curve_info.handle_right = attributes.lookup<float3>("handle_right", bke::AttrDomain::Point)
+                                    .varray.get_internal_span();
       info.create_handle_postion_attributes = true;
     }
   }
@@ -1375,11 +1379,11 @@ static void execute_realize_curve_task(const RealizeInstancesOptions &options,
       curves_info.attributes,
       task.attribute_fallbacks,
       ordered_attributes,
-      [&](const eAttrDomain domain) {
+      [&](const bke::AttrDomain domain) {
         switch (domain) {
-          case ATTR_DOMAIN_POINT:
+          case bke::AttrDomain::Point:
             return IndexRange(task.start_indices.point, curves.points_num());
-          case ATTR_DOMAIN_CURVE:
+          case bke::AttrDomain::Curve:
             return IndexRange(task.start_indices.curve, curves.curves_num());
           default:
             BLI_assert_unreachable();
@@ -1419,14 +1423,15 @@ static void execute_realize_curve_tasks(const RealizeInstancesOptions &options,
   /* Prepare id attribute. */
   SpanAttributeWriter<int> point_ids;
   if (all_curves_info.create_id_attribute) {
-    point_ids = dst_attributes.lookup_or_add_for_write_only_span<int>("id", ATTR_DOMAIN_POINT);
+    point_ids = dst_attributes.lookup_or_add_for_write_only_span<int>("id",
+                                                                      bke::AttrDomain::Point);
   }
 
   /* Prepare generic output attributes. */
   Vector<GSpanAttributeWriter> dst_attribute_writers;
   for (const int attribute_index : ordered_attributes.index_range()) {
     const AttributeIDRef &attribute_id = ordered_attributes.ids[attribute_index];
-    const eAttrDomain domain = ordered_attributes.kinds[attribute_index].domain;
+    const bke::AttrDomain domain = ordered_attributes.kinds[attribute_index].domain;
     const eCustomDataType data_type = ordered_attributes.kinds[attribute_index].data_type;
     dst_attribute_writers.append(
         dst_attributes.lookup_or_add_for_write_only_span(attribute_id, domain, data_type));
@@ -1437,24 +1442,25 @@ static void execute_realize_curve_tasks(const RealizeInstancesOptions &options,
   SpanAttributeWriter<float3> handle_right;
   if (all_curves_info.create_handle_postion_attributes) {
     handle_left = dst_attributes.lookup_or_add_for_write_only_span<float3>("handle_left",
-                                                                           ATTR_DOMAIN_POINT);
-    handle_right = dst_attributes.lookup_or_add_for_write_only_span<float3>("handle_right",
-                                                                            ATTR_DOMAIN_POINT);
+                                                                           bke::AttrDomain::Point);
+    handle_right = dst_attributes.lookup_or_add_for_write_only_span<float3>(
+        "handle_right", bke::AttrDomain::Point);
   }
 
   SpanAttributeWriter<float> radius;
   if (all_curves_info.create_radius_attribute) {
-    radius = dst_attributes.lookup_or_add_for_write_only_span<float>("radius", ATTR_DOMAIN_POINT);
+    radius = dst_attributes.lookup_or_add_for_write_only_span<float>("radius",
+                                                                     bke::AttrDomain::Point);
   }
   SpanAttributeWriter<float> nurbs_weight;
   if (all_curves_info.create_nurbs_weight_attribute) {
     nurbs_weight = dst_attributes.lookup_or_add_for_write_only_span<float>("nurbs_weight",
-                                                                           ATTR_DOMAIN_POINT);
+                                                                           bke::AttrDomain::Point);
   }
   SpanAttributeWriter<int> resolution;
   if (all_curves_info.create_resolution_attribute) {
     resolution = dst_attributes.lookup_or_add_for_write_only_span<int>("resolution",
-                                                                       ATTR_DOMAIN_CURVE);
+                                                                       bke::AttrDomain::Curve);
   }
 
   /* Actually execute all tasks. */

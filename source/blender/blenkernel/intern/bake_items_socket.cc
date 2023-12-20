@@ -61,7 +61,7 @@ Array<std::unique_ptr<BakeItem>> move_socket_values_to_bake_items(const Span<voi
         auto &value_variant = *static_cast<SocketValueVariant *>(socket_value);
         if (value_variant.is_context_dependent_field()) {
           const fn::GField &field = value_variant.get<fn::GField>();
-          const eAttrDomain domain = config.domains[i];
+          const AttrDomain domain = config.domains[i];
           const std::string attribute_name = ".bake_" + std::to_string(i);
           const Span<int> geometry_indices = config.geometries_by_attribute[i];
           for (const int geometry_i : geometry_indices) {

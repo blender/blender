@@ -493,7 +493,7 @@ struct SculptAttributeParams {
 
 struct SculptAttribute {
   /* Domain, data type and name */
-  eAttrDomain domain;
+  blender::bke::AttrDomain domain;
   eCustomDataType proptype;
   char name[MAX_CUSTOMDATA_LAYER_NAME];
 
@@ -580,7 +580,7 @@ struct SculptSession {
   MPropCol *vcol;
   MLoopCol *mcol;
 
-  eAttrDomain vcol_domain;
+  blender::bke::AttrDomain vcol_domain;
   eCustomDataType vcol_type;
 
   /* Mesh connectivity maps. */
@@ -762,14 +762,14 @@ int BKE_sculptsession_vertex_count(const SculptSession *ss);
 
 /* Ensure an attribute layer exists. */
 SculptAttribute *BKE_sculpt_attribute_ensure(Object *ob,
-                                             eAttrDomain domain,
+                                             blender::bke::AttrDomain domain,
                                              eCustomDataType proptype,
                                              const char *name,
                                              const SculptAttributeParams *params);
 
 /* Returns nullptr if attribute does not exist. */
 SculptAttribute *BKE_sculpt_attribute_get(Object *ob,
-                                          eAttrDomain domain,
+                                          blender::bke::AttrDomain domain,
                                           eCustomDataType proptype,
                                           const char *name);
 

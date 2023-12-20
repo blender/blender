@@ -34,7 +34,7 @@ static int select_all_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
-  eAttrDomain selection_domain = ED_grease_pencil_selection_domain_get(scene->toolsettings);
+  bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(scene->toolsettings);
 
   const Array<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
@@ -191,7 +191,7 @@ static int select_random_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
-  eAttrDomain selection_domain = ED_grease_pencil_selection_domain_get(scene->toolsettings);
+  bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(scene->toolsettings);
 
   const Array<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
@@ -310,7 +310,7 @@ static int select_ends_exec(bContext *C, wmOperator *op)
     const bool was_anything_selected = ed::curves::has_anything_selected(curves,
                                                                          selectable_points);
     bke::GSpanAttributeWriter selection = ed::curves::ensure_selection_attribute(
-        curves, ATTR_DOMAIN_POINT, CD_PROP_BOOL);
+        curves, bke::AttrDomain::Point, CD_PROP_BOOL);
     if (!was_anything_selected) {
       ed::curves::fill_selection_true(selection.span, selectable_points);
     }
@@ -375,7 +375,7 @@ static int select_set_mode_exec(bContext *C, wmOperator *op)
   ts->gpencil_selectmode_edit = mode_new;
 
   /* Convert all drawings of the active GP to the new selection domain. */
-  const eAttrDomain domain = ED_grease_pencil_selection_domain_get(ts);
+  const bke::AttrDomain domain = ED_grease_pencil_selection_domain_get(ts);
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
   Span<GreasePencilDrawingBase *> drawings = grease_pencil.drawings();
@@ -403,7 +403,7 @@ static int select_set_mode_exec(bContext *C, wmOperator *op)
 
     /* When the new selection domain is 'curve', ensure all curves with a point selection
      * are selected. */
-    if (domain == ATTR_DOMAIN_CURVE) {
+    if (domain == bke::AttrDomain::Curve) {
       blender::ed::curves::select_linked(curves);
     }
 
@@ -461,20 +461,17 @@ static void GREASE_PENCIL_OT_set_selection_mode(wmOperatorType *ot)
 
 }  // namespace blender::ed::greasepencil
 
-eAttrDomain ED_grease_pencil_selection_domain_get(const ToolSettings *tool_settings)
+blender::bke::AttrDomain ED_grease_pencil_selection_domain_get(const ToolSettings *tool_settings)
 {
   switch (tool_settings->gpencil_selectmode_edit) {
     case GP_SELECTMODE_POINT:
-      return ATTR_DOMAIN_POINT;
-      break;
+      return blender::bke::AttrDomain::Point;
     case GP_SELECTMODE_STROKE:
-      return ATTR_DOMAIN_CURVE;
-      break;
+      return blender::bke::AttrDomain::Curve;
     case GP_SELECTMODE_SEGMENT:
-      return ATTR_DOMAIN_POINT;
-      break;
+      return blender::bke::AttrDomain::Point;
   }
-  return ATTR_DOMAIN_POINT;
+  return blender::bke::AttrDomain::Point;
 }
 
 void ED_operatortypes_grease_pencil_select()

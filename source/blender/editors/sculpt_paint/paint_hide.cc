@@ -158,7 +158,8 @@ void mesh_show_all(Object &object, const Span<PBVHNode *> nodes)
 {
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
-  if (const VArray<bool> attribute = *attributes.lookup<bool>(".hide_vert", ATTR_DOMAIN_POINT)) {
+  if (const VArray<bool> attribute = *attributes.lookup<bool>(".hide_vert",
+                                                              bke::AttrDomain::Point)) {
     const VArraySpan hide_vert(attribute);
     threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
       for (PBVHNode *node : nodes.slice(range)) {
@@ -184,7 +185,7 @@ static void vert_hide_update(Object &object,
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
   bke::SpanAttributeWriter<bool> hide_vert = attributes.lookup_or_add_for_write_span<bool>(
-      ".hide_vert", ATTR_DOMAIN_POINT);
+      ".hide_vert", bke::AttrDomain::Point);
 
   bool any_changed = false;
   threading::EnumerableThreadSpecific<Vector<bool>> all_new_hide;
@@ -256,7 +257,8 @@ static void partialvis_update_mesh(Object &object,
       }
       break;
     case VisArea::Masked: {
-      const VArraySpan<float> mask = *attributes.lookup<float>(".sculpt_mask", ATTR_DOMAIN_POINT);
+      const VArraySpan<float> mask = *attributes.lookup<float>(".sculpt_mask",
+                                                               bke::AttrDomain::Point);
       if (action == VisAction::Show && mask.is_empty()) {
         mesh_show_all(object, nodes);
       }
@@ -675,7 +677,7 @@ static void invert_visibility_mesh(Object &object, const Span<PBVHNode *> nodes)
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
   bke::SpanAttributeWriter<bool> hide_vert = attributes.lookup_or_add_for_write_span<bool>(
-      ".hide_vert", ATTR_DOMAIN_POINT);
+      ".hide_vert", bke::AttrDomain::Point);
 
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (PBVHNode *node : nodes.slice(range)) {

@@ -379,8 +379,8 @@ static int select_random_exec(bContext *C, wmOperator *op)
       selection.fill(1.0f);
     }
     const OffsetIndices points_by_curve = curves.points_by_curve();
-    switch (curves_id->selection_domain) {
-      case ATTR_DOMAIN_POINT: {
+    switch (bke::AttrDomain(curves_id->selection_domain)) {
+      case bke::AttrDomain::Point: {
         if (partial) {
           if (constant_per_curve) {
             for (const int curve_i : curves.curves_range()) {
@@ -419,7 +419,7 @@ static int select_random_exec(bContext *C, wmOperator *op)
         }
         break;
       }
-      case ATTR_DOMAIN_CURVE: {
+      case bke::AttrDomain::Curve: {
         if (partial) {
           for (const int curve_i : curves.curves_range()) {
             const float random_value = next_partial_random_value();
@@ -436,6 +436,9 @@ static int select_random_exec(bContext *C, wmOperator *op)
         }
         break;
       }
+      default:
+        BLI_assert_unreachable();
+        break;
     }
     const bool was_any_selected = std::any_of(
         selection.begin(), selection.end(), [](const float v) { return v > 0.0f; });
@@ -585,11 +588,11 @@ static int select_grow_update(bContext *C, wmOperator *op, const float mouse_dif
 
     /* Grow or shrink selection based on precomputed distances. */
     switch (selection.domain) {
-      case ATTR_DOMAIN_POINT: {
+      case bke::AttrDomain::Point: {
         update_points_selection(*curve_op_data, distance, selection.span);
         break;
       }
-      case ATTR_DOMAIN_CURVE: {
+      case bke::AttrDomain::Curve: {
         Array<float> new_points_selection(curves.points_num());
         update_points_selection(*curve_op_data, distance, new_points_selection);
         /* Propagate grown point selection to the curve selection. */
@@ -777,7 +780,7 @@ static int select_grow_modal(bContext *C, wmOperator *op, const wmEvent *event)
         if (!curve_op_data->original_selection.is_empty()) {
           attributes.add(
               ".selection",
-              eAttrDomain(curves_id.selection_domain),
+              bke::AttrDomain(curves_id.selection_domain),
               bke::cpp_type_to_custom_data_type(curve_op_data->original_selection.type()),
               bke::AttributeInitVArray(GVArray::ForSpan(curve_op_data->original_selection)));
         }

@@ -79,10 +79,11 @@ using blender::float3;
 using blender::MutableSpan;
 using blender::Span;
 using blender::Vector;
+using blender::bke::AttrDomain;
 
 static void sculpt_attribute_update_refs(Object *ob);
 static SculptAttribute *sculpt_attribute_ensure_ex(Object *ob,
-                                                   eAttrDomain domain,
+                                                   AttrDomain domain,
                                                    eCustomDataType proptype,
                                                    const char *name,
                                                    const SculptAttributeParams *params,
@@ -1639,11 +1640,11 @@ static void sculpt_update_persistent_base(Object *ob)
   SculptSession *ss = ob->sculpt;
 
   ss->attrs.persistent_co = BKE_sculpt_attribute_get(
-      ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, SCULPT_ATTRIBUTE_NAME(persistent_co));
+      ob, AttrDomain::Point, CD_PROP_FLOAT3, SCULPT_ATTRIBUTE_NAME(persistent_co));
   ss->attrs.persistent_no = BKE_sculpt_attribute_get(
-      ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, SCULPT_ATTRIBUTE_NAME(persistent_no));
+      ob, AttrDomain::Point, CD_PROP_FLOAT3, SCULPT_ATTRIBUTE_NAME(persistent_no));
   ss->attrs.persistent_disp = BKE_sculpt_attribute_get(
-      ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT, SCULPT_ATTRIBUTE_NAME(persistent_disp));
+      ob, AttrDomain::Point, CD_PROP_FLOAT, SCULPT_ATTRIBUTE_NAME(persistent_disp));
 }
 
 static void sculpt_update_object(Depsgraph *depsgraph,
@@ -1705,7 +1706,7 @@ static void sculpt_update_object(Depsgraph *depsgraph,
     ss->multires.level = 0;
 
     CustomDataLayer *layer;
-    eAttrDomain domain;
+    AttrDomain domain;
     if (BKE_pbvh_get_color_layer(mesh, &layer, &domain)) {
       if (layer->type == CD_PROP_COLOR) {
         ss->vcol = static_cast<MPropCol *>(layer->data);
@@ -1722,7 +1723,7 @@ static void sculpt_update_object(Depsgraph *depsgraph,
       ss->mcol = nullptr;
 
       ss->vcol_type = (eCustomDataType)-1;
-      ss->vcol_domain = ATTR_DOMAIN_POINT;
+      ss->vcol_domain = AttrDomain::Point;
     }
   }
 
@@ -1824,7 +1825,7 @@ static void sculpt_update_object(Depsgraph *depsgraph,
   }
 
   if (is_paint_tool) {
-    if (ss->vcol_domain == ATTR_DOMAIN_CORNER) {
+    if (ss->vcol_domain == AttrDomain::Corner) {
       /* Ensure pbvh nodes have loop indices; the sculpt undo system
        * needs them for color attributes.
        */
@@ -1907,7 +1908,7 @@ void BKE_sculpt_color_layer_create_if_needed(Object *object)
   char unique_name[MAX_CUSTOMDATA_LAYER_NAME];
   BKE_id_attribute_calc_unique_name(&orig_me->id, "Color", unique_name);
   if (!orig_me->attributes_for_write().add(
-          unique_name, ATTR_DOMAIN_POINT, CD_PROP_COLOR, AttributeInitDefaultValue()))
+          unique_name, AttrDomain::Point, CD_PROP_COLOR, AttributeInitDefaultValue()))
   {
     return;
   }
@@ -1969,7 +1970,7 @@ void BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
     }
 
     /* If vertices already have mask, copy into multires data. */
-    if (const VArray<float> mask = *attributes.lookup<float>(".sculpt_mask", ATTR_DOMAIN_POINT)) {
+    if (const VArray<float> mask = *attributes.lookup<float>(".sculpt_mask", AttrDomain::Point)) {
       const VArraySpan<float> mask_span(mask);
       for (const int i : faces.index_range()) {
         const IndexRange face = faces[i];
@@ -2003,7 +2004,7 @@ void BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
   }
 
   /* Create vertex paint mask layer if there isn't one already. */
-  if (attributes.add<float>(".sculpt_mask", ATTR_DOMAIN_POINT, AttributeInitDefaultValue())) {
+  if (attributes.add<float>(".sculpt_mask", AttrDomain::Point, AttributeInitDefaultValue())) {
     /* The evaluated mesh must be updated to contain the new data. */
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   }
@@ -2087,7 +2088,7 @@ void BKE_sculpt_sync_face_visibility_to_grids(Mesh *mesh, SubdivCCG *subdiv_ccg)
 
   const AttributeAccessor attributes = mesh->attributes();
   const VArray<bool> hide_poly = *attributes.lookup_or_default<bool>(
-      ".hide_poly", ATTR_DOMAIN_FACE, false);
+      ".hide_poly", AttrDomain::Face, false);
   if (hide_poly.is_single() && !hide_poly.get_internal_single()) {
     BKE_subdiv_ccg_grid_hidden_free(*subdiv_ccg);
     return;
@@ -2273,17 +2274,17 @@ int BKE_sculptsession_vertex_count(const SculptSession *ss)
 /**
  * Returns pointer to a CustomData associated with a given domain, if
  * one exists.  If not nullptr is returned (this may happen with e.g.
- * multires and #ATTR_DOMAIN_POINT).
+ * multires and #AttrDomain::Point).
  */
-static CustomData *sculpt_get_cdata(Object *ob, eAttrDomain domain)
+static CustomData *sculpt_get_cdata(Object *ob, AttrDomain domain)
 {
   SculptSession *ss = ob->sculpt;
 
   if (ss->bm) {
     switch (domain) {
-      case ATTR_DOMAIN_POINT:
+      case AttrDomain::Point:
         return &ss->bm->vdata;
-      case ATTR_DOMAIN_FACE:
+      case AttrDomain::Face:
         return &ss->bm->pdata;
       default:
         BLI_assert_unreachable();
@@ -2294,14 +2295,14 @@ static CustomData *sculpt_get_cdata(Object *ob, eAttrDomain domain)
     Mesh *mesh = BKE_object_get_original_mesh(ob);
 
     switch (domain) {
-      case ATTR_DOMAIN_POINT:
+      case AttrDomain::Point:
         /* Cannot get vertex domain for multires grids. */
         if (ss->pbvh && BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
           return nullptr;
         }
 
         return &mesh->vert_data;
-      case ATTR_DOMAIN_FACE:
+      case AttrDomain::Face:
         return &mesh->face_data;
       default:
         BLI_assert_unreachable();
@@ -2310,15 +2311,15 @@ static CustomData *sculpt_get_cdata(Object *ob, eAttrDomain domain)
   }
 }
 
-static int sculpt_attr_elem_count_get(Object *ob, eAttrDomain domain)
+static int sculpt_attr_elem_count_get(Object *ob, AttrDomain domain)
 {
   SculptSession *ss = ob->sculpt;
 
   switch (domain) {
-    case ATTR_DOMAIN_POINT:
+    case AttrDomain::Point:
       return BKE_sculptsession_vertex_count(ss);
       break;
-    case ATTR_DOMAIN_FACE:
+    case AttrDomain::Face:
       return ss->totfaces;
       break;
     default:
@@ -2329,7 +2330,7 @@ static int sculpt_attr_elem_count_get(Object *ob, eAttrDomain domain)
 
 static bool sculpt_attribute_create(SculptSession *ss,
                                     Object *ob,
-                                    eAttrDomain domain,
+                                    AttrDomain domain,
                                     eCustomDataType proptype,
                                     const char *name,
                                     SculptAttribute *out,
@@ -2389,10 +2390,10 @@ static bool sculpt_attribute_create(SculptSession *ss,
     out->data_for_bmesh = true;
 
     switch (domain) {
-      case ATTR_DOMAIN_POINT:
+      case AttrDomain::Point:
         cdata = &bm->vdata;
         break;
-      case ATTR_DOMAIN_FACE:
+      case AttrDomain::Face:
         cdata = &bm->pdata;
         break;
       default:
@@ -2418,10 +2419,10 @@ static bool sculpt_attribute_create(SculptSession *ss,
     CustomData *cdata = nullptr;
 
     switch (domain) {
-      case ATTR_DOMAIN_POINT:
+      case AttrDomain::Point:
         cdata = &mesh->vert_data;
         break;
-      case ATTR_DOMAIN_FACE:
+      case AttrDomain::Face:
         cdata = &mesh->face_data;
         break;
       default:
@@ -2504,7 +2505,7 @@ static bool sculpt_attr_update(Object *ob, SculptAttribute *attr)
 }
 
 static SculptAttribute *sculpt_get_cached_layer(SculptSession *ss,
-                                                eAttrDomain domain,
+                                                AttrDomain domain,
                                                 eCustomDataType proptype,
                                                 const char *name)
 {
@@ -2537,7 +2538,7 @@ static SculptAttribute *sculpt_alloc_attr(SculptSession *ss)
 }
 
 SculptAttribute *BKE_sculpt_attribute_get(Object *ob,
-                                          eAttrDomain domain,
+                                          AttrDomain domain,
                                           eCustomDataType proptype,
                                           const char *name)
 {
@@ -2563,10 +2564,10 @@ SculptAttribute *BKE_sculpt_attribute_get(Object *ob,
       int totelem = 0;
 
       switch (domain) {
-        case ATTR_DOMAIN_POINT:
+        case AttrDomain::Point:
           totelem = BKE_sculptsession_vertex_count(ss);
           break;
-        case ATTR_DOMAIN_FACE:
+        case AttrDomain::Face:
           totelem = ss->totfaces;
           break;
         default:
@@ -2594,7 +2595,7 @@ SculptAttribute *BKE_sculpt_attribute_get(Object *ob,
 }
 
 static SculptAttribute *sculpt_attribute_ensure_ex(Object *ob,
-                                                   eAttrDomain domain,
+                                                   AttrDomain domain,
                                                    eCustomDataType proptype,
                                                    const char *name,
                                                    const SculptAttributeParams *params,
@@ -2626,7 +2627,7 @@ static SculptAttribute *sculpt_attribute_ensure_ex(Object *ob,
 }
 
 SculptAttribute *BKE_sculpt_attribute_ensure(Object *ob,
-                                             eAttrDomain domain,
+                                             AttrDomain domain,
                                              eCustomDataType proptype,
                                              const char *name,
                                              const SculptAttributeParams *params)
@@ -2658,7 +2659,7 @@ static void sculptsession_bmesh_add_layers(Object *ob)
 
   ss->attrs.dyntopo_node_id_vertex = sculpt_attribute_ensure_ex(
       ob,
-      ATTR_DOMAIN_POINT,
+      AttrDomain::Point,
       CD_PROP_INT32,
       SCULPT_ATTRIBUTE_NAME(dyntopo_node_id_vertex),
       &params,
@@ -2667,7 +2668,7 @@ static void sculptsession_bmesh_add_layers(Object *ob)
 
   ss->attrs.dyntopo_node_id_face = sculpt_attribute_ensure_ex(
       ob,
-      ATTR_DOMAIN_FACE,
+      AttrDomain::Face,
       CD_PROP_INT32,
       SCULPT_ATTRIBUTE_NAME(dyntopo_node_id_face),
       &params,
@@ -2730,7 +2731,7 @@ void BKE_sculpt_attribute_destroy_temporary_all(Object *ob)
 bool BKE_sculpt_attribute_destroy(Object *ob, SculptAttribute *attr)
 {
   SculptSession *ss = ob->sculpt;
-  eAttrDomain domain = attr->domain;
+  AttrDomain domain = attr->domain;
 
   BLI_assert(attr->used);
 
@@ -2762,7 +2763,7 @@ bool BKE_sculpt_attribute_destroy(Object *ob, SculptAttribute *attr)
     MEM_SAFE_FREE(attr->data);
   }
   else if (ss->bm) {
-    CustomData *cdata = attr->domain == ATTR_DOMAIN_POINT ? &ss->bm->vdata : &ss->bm->pdata;
+    CustomData *cdata = attr->domain == AttrDomain::Point ? &ss->bm->vdata : &ss->bm->pdata;
 
     BM_data_layer_free_named(ss->bm, cdata, attr->name);
   }
@@ -2771,11 +2772,11 @@ bool BKE_sculpt_attribute_destroy(Object *ob, SculptAttribute *attr)
     int totelem = 0;
 
     switch (domain) {
-      case ATTR_DOMAIN_POINT:
+      case AttrDomain::Point:
         cdata = ss->bm ? &ss->bm->vdata : &mesh->vert_data;
         totelem = ss->totvert;
         break;
-      case ATTR_DOMAIN_FACE:
+      case AttrDomain::Face:
         cdata = ss->bm ? &ss->bm->pdata : &mesh->face_data;
         totelem = ss->totfaces;
         break;

@@ -107,18 +107,6 @@ void UI_GetThemeColorShadeAlpha4ubv(int /*colorid*/,
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Stubs of BKE_attribute.h
- * \{ */
-
-extern "C" eAttrDomain BKE_id_attribute_domain(const struct ID * /*id*/,
-                                               const struct CustomDataLayer * /*layer*/)
-{
-  return ATTR_DOMAIN_AUTO;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Stubs of BKE_paint.hh
  * \{ */
 

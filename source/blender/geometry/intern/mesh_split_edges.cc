@@ -28,7 +28,7 @@ static void propagate_vert_attributes(Mesh &mesh, const Span<int> new_to_old_ver
 
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
   for (const bke::AttributeIDRef &id : attributes.all_ids()) {
-    if (attributes.lookup_meta_data(id)->domain != ATTR_DOMAIN_POINT) {
+    if (attributes.lookup_meta_data(id)->domain != bke::AttrDomain::Point) {
       continue;
     }
     bke::GSpanAttributeWriter attribute = attributes.lookup_for_write_span(id);
@@ -67,7 +67,7 @@ static void propagate_edge_attributes(Mesh &mesh, const Span<int> new_to_old_edg
 
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
   for (const bke::AttributeIDRef &id : attributes.all_ids()) {
-    if (attributes.lookup_meta_data(id)->domain != ATTR_DOMAIN_EDGE) {
+    if (attributes.lookup_meta_data(id)->domain != bke::AttrDomain::Edge) {
       continue;
     }
     if (id.name() == ".edge_verts") {

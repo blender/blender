@@ -695,6 +695,7 @@ static bool do_versions_sequencer_init_retiming_tool_data(Sequence *seq, void *u
 static void version_geometry_nodes_replace_transfer_attribute_node(bNodeTree *ntree)
 {
   using namespace blender;
+  using namespace blender::bke;
   /* Otherwise `ntree->typeInfo` is null. */
   ntreeSetTypes(nullptr, ntree);
   LISTBASE_FOREACH_MUTABLE (bNode *, node, &ntree->nodes) {
@@ -728,16 +729,18 @@ static void version_geometry_nodes_replace_transfer_attribute_node(bNodeTree *nt
       }
       case GEO_NODE_ATTRIBUTE_TRANSFER_NEAREST: {
         /* These domains weren't supported by the index transfer mode, but were selectable. */
-        const eAttrDomain domain = ELEM(storage->domain, ATTR_DOMAIN_INSTANCE, ATTR_DOMAIN_CURVE) ?
-                                       ATTR_DOMAIN_POINT :
-                                       eAttrDomain(storage->domain);
+        const AttrDomain domain = ELEM(AttrDomain(storage->domain),
+                                       AttrDomain::Instance,
+                                       AttrDomain::Curve) ?
+                                      AttrDomain::Point :
+                                      AttrDomain(storage->domain);
 
         /* Use a sample index node to retrieve the data with this node's index output. */
         bNode *sample_index = nodeAddStaticNode(nullptr, ntree, GEO_NODE_SAMPLE_INDEX);
         NodeGeometrySampleIndex *sample_storage = static_cast<NodeGeometrySampleIndex *>(
             sample_index->storage);
         sample_storage->data_type = storage->data_type;
-        sample_storage->domain = domain;
+        sample_storage->domain = int8_t(domain);
         sample_index->parent = node->parent;
         sample_index->locx = node->locx + 25.0f;
         sample_index->locy = node->locy;
@@ -752,7 +755,7 @@ static void version_geometry_nodes_replace_transfer_attribute_node(bNodeTree *nt
         bNode *sample_nearest = nodeAddStaticNode(nullptr, ntree, GEO_NODE_SAMPLE_NEAREST);
         sample_nearest->parent = node->parent;
         sample_nearest->custom1 = storage->data_type;
-        sample_nearest->custom2 = domain;
+        sample_nearest->custom2 = int8_t(domain);
         sample_nearest->locx = node->locx - 25.0f;
         sample_nearest->locy = node->locy;
         if (old_geometry_socket->link) {
@@ -878,7 +881,7 @@ static void version_geometry_nodes_primitive_uv_maps(bNodeTree &ntree)
     store_attribute_node->offsety = node->offsety;
     NodeGeometryStoreNamedAttribute &storage = *static_cast<NodeGeometryStoreNamedAttribute *>(
         store_attribute_node->storage);
-    storage.domain = ATTR_DOMAIN_CORNER;
+    storage.domain = int8_t(blender::bke::AttrDomain::Corner);
     /* Intentionally use 3D instead of 2D vectors, because 2D vectors did not exist in older
      * releases and would make the file crash when trying to open it. */
     storage.data_type = CD_PROP_FLOAT3;
@@ -965,7 +968,8 @@ static void version_geometry_nodes_extrude_smooth_propagation(bNodeTree &ntree)
       bNode *capture_node = geometry_in_link->fromnode;
       const NodeGeometryAttributeCapture &capture_storage =
           *static_cast<const NodeGeometryAttributeCapture *>(capture_node->storage);
-      if (capture_storage.data_type != CD_PROP_BOOL || capture_storage.domain != ATTR_DOMAIN_FACE)
+      if (capture_storage.data_type != CD_PROP_BOOL ||
+          bke::AttrDomain(capture_storage.domain) != bke::AttrDomain::Face)
       {
         return false;
       }
@@ -1005,7 +1009,8 @@ static void version_geometry_nodes_extrude_smooth_propagation(bNodeTree &ntree)
     capture_node->locy = node->locy;
     new_nodes.append(capture_node);
     static_cast<NodeGeometryAttributeCapture *>(capture_node->storage)->data_type = CD_PROP_BOOL;
-    static_cast<NodeGeometryAttributeCapture *>(capture_node->storage)->domain = ATTR_DOMAIN_FACE;
+    static_cast<NodeGeometryAttributeCapture *>(capture_node->storage)->domain = int8_t(
+        bke::AttrDomain::Face);
 
     bNode *is_smooth_node = nodeAddNode(nullptr, &ntree, "GeometryNodeInputShadeSmooth");
     is_smooth_node->parent = node->parent;

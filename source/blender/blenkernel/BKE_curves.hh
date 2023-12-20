@@ -394,9 +394,9 @@ class CurvesGeometry : public ::CurvesGeometry {
    * Attributes.
    */
 
-  GVArray adapt_domain(const GVArray &varray, eAttrDomain from, eAttrDomain to) const;
+  GVArray adapt_domain(const GVArray &varray, AttrDomain from, AttrDomain to) const;
   template<typename T>
-  VArray<T> adapt_domain(const VArray<T> &varray, eAttrDomain from, eAttrDomain to) const
+  VArray<T> adapt_domain(const VArray<T> &varray, AttrDomain from, AttrDomain to) const
   {
     return this->adapt_domain(GVArray(varray), from, to).typed<T>();
   }

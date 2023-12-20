@@ -112,7 +112,7 @@ class FieldInfoLog : public ValueLog {
 struct GeometryAttributeInfo {
   std::string name;
   /** Can be empty when #name does not actually exist on a geometry yet. */
-  std::optional<eAttrDomain> domain;
+  std::optional<bke::AttrDomain> domain;
   std::optional<eCustomDataType> data_type;
 };
 

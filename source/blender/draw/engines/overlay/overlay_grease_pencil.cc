@@ -16,10 +16,11 @@
 
 void OVERLAY_edit_grease_pencil_cache_init(OVERLAY_Data *vedata)
 {
+  using namespace blender;
   OVERLAY_PassList *psl = vedata->psl;
   OVERLAY_PrivateData *pd = vedata->stl->pd;
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  const eAttrDomain selection_domain = ED_grease_pencil_selection_domain_get(
+  const bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(
       draw_ctx->scene->toolsettings);
   const View3D *v3d = draw_ctx->v3d;
 
@@ -30,7 +31,7 @@ void OVERLAY_edit_grease_pencil_cache_init(OVERLAY_Data *vedata)
                    DRW_STATE_BLEND_ALPHA;
   DRW_PASS_CREATE(psl->edit_grease_pencil_ps, (state | pd->clipping_state));
 
-  const bool show_points = selection_domain == ATTR_DOMAIN_POINT;
+  const bool show_points = selection_domain == bke::AttrDomain::Point;
   const bool show_lines = (v3d->gp_flag & V3D_GP_SHOW_EDIT_LINES) != 0;
 
   if (show_lines) {

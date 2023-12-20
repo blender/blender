@@ -334,17 +334,17 @@ static ResultOffsets calculate_result_offsets(const CurvesInfo &info, const bool
   return result;
 }
 
-static eAttrDomain get_attribute_domain_for_mesh(const AttributeAccessor &mesh_attributes,
+static AttrDomain get_attribute_domain_for_mesh(const AttributeAccessor &mesh_attributes,
                                                  const AttributeIDRef &attribute_id)
 {
   /* Only use a different domain if it is builtin and must only exist on one domain. */
   if (!mesh_attributes.is_builtin(attribute_id)) {
-    return ATTR_DOMAIN_POINT;
+    return AttrDomain::Point;
   }
 
   std::optional<AttributeMetaData> meta_data = mesh_attributes.lookup_meta_data(attribute_id);
   if (!meta_data) {
-    return ATTR_DOMAIN_POINT;
+    return AttrDomain::Point;
   }
 
   return meta_data->domain;
@@ -461,14 +461,14 @@ static void build_mesh_positions(const CurvesInfo &curves_info,
       const GAttributeReader src = curves_info.main.attributes().lookup("position");
       if (src.sharing_info && src.varray.is_span()) {
         const AttributeInitShared init(src.varray.get_internal_span().data(), *src.sharing_info);
-        if (mesh.attributes_for_write().add<float3>("position", ATTR_DOMAIN_POINT, init)) {
+        if (mesh.attributes_for_write().add<float3>("position", AttrDomain::Point, init)) {
           return;
         }
       }
     }
   }
   const Span<float3> main_positions = curves_info.main.evaluated_positions();
-  mesh.attributes_for_write().add<float3>("position", ATTR_DOMAIN_POINT, AttributeInitConstruct());
+  mesh.attributes_for_write().add<float3>("position", AttrDomain::Point, AttributeInitConstruct());
   MutableSpan<float3> positions = mesh.vert_positions_for_write();
   if (ignore_profile_position) {
     array_utils::copy(main_positions, positions);
@@ -477,7 +477,7 @@ static void build_mesh_positions(const CurvesInfo &curves_info,
   const Span<float3> tangents = curves_info.main.evaluated_tangents();
   const Span<float3> normals = curves_info.main.evaluated_normals();
   Span<float> radii_eval = {};
-  if (const GVArray radii = *curves_info.main.attributes().lookup("radius", ATTR_DOMAIN_POINT)) {
+  if (const GVArray radii = *curves_info.main.attributes().lookup("radius", AttrDomain::Point)) {
     radii_eval = evaluate_attribute(radii, curves_info.main, eval_buffer).typed<float>();
   }
   foreach_curve_combination(curves_info, offsets, [&](const CombinationInfo &info) {
@@ -534,7 +534,7 @@ static bool try_sharing_point_data(const CurvesGeometry &main,
                                    const GAttributeReader &src,
                                    MutableAttributeAccessor mesh_attributes)
 {
-  if (mesh_attributes.domain_size(ATTR_DOMAIN_POINT) != main.points_num()) {
+  if (mesh_attributes.domain_size(AttrDomain::Point) != main.points_num()) {
     return false;
   }
   if (!src.sharing_info || !src.varray.is_span()) {
@@ -542,7 +542,7 @@ static bool try_sharing_point_data(const CurvesGeometry &main,
   }
   return mesh_attributes.add(
       id,
-      ATTR_DOMAIN_POINT,
+      AttrDomain::Point,
       bke::cpp_type_to_custom_data_type(src.varray.type()),
       AttributeInitShared(src.varray.get_internal_span().data(), *src.sharing_info));
 }
@@ -564,12 +564,12 @@ static bool try_direct_evaluate_point_data(const CurvesGeometry &main,
 static void copy_main_point_domain_attribute_to_mesh(const CurvesInfo &curves_info,
                                                      const AttributeIDRef &id,
                                                      const ResultOffsets &offsets,
-                                                     const eAttrDomain dst_domain,
+                                                     const AttrDomain dst_domain,
                                                      const GAttributeReader &src_attribute,
                                                      Vector<std::byte> &eval_buffer,
                                                      MutableAttributeAccessor mesh_attributes)
 {
-  if (dst_domain == ATTR_DOMAIN_POINT) {
+  if (dst_domain == AttrDomain::Point) {
     if (try_sharing_point_data(curves_info.main, id, src_attribute, mesh_attributes)) {
       return;
     }
@@ -579,7 +579,7 @@ static void copy_main_point_domain_attribute_to_mesh(const CurvesInfo &curves_in
   if (!dst_attribute) {
     return;
   }
-  if (dst_domain == ATTR_DOMAIN_POINT) {
+  if (dst_domain == AttrDomain::Point) {
     if (try_direct_evaluate_point_data(curves_info.main, src_attribute, dst_attribute.span)) {
       dst_attribute.finish();
       return;
@@ -591,13 +591,13 @@ static void copy_main_point_domain_attribute_to_mesh(const CurvesInfo &curves_in
     const Span<T> src = src_all.typed<T>();
     MutableSpan<T> dst = dst_attribute.span.typed<T>();
     switch (dst_domain) {
-      case ATTR_DOMAIN_POINT:
+      case AttrDomain::Point:
         foreach_curve_combination(curves_info, offsets, [&](const CombinationInfo &info) {
           copy_main_point_data_to_mesh_verts(
               src.slice(info.main_points), info.profile_points.size(), dst.slice(info.vert_range));
         });
         break;
-      case ATTR_DOMAIN_EDGE:
+      case AttrDomain::Edge:
         foreach_curve_combination(curves_info, offsets, [&](const CombinationInfo &info) {
           copy_main_point_data_to_mesh_edges(src.slice(info.main_points),
                                              info.profile_points.size(),
@@ -606,7 +606,7 @@ static void copy_main_point_domain_attribute_to_mesh(const CurvesInfo &curves_in
                                              dst.slice(info.edge_range));
         });
         break;
-      case ATTR_DOMAIN_FACE:
+      case AttrDomain::Face:
         foreach_curve_combination(curves_info, offsets, [&](const CombinationInfo &info) {
           copy_main_point_data_to_mesh_faces(src.slice(info.main_points),
                                              info.main_segment_num,
@@ -614,7 +614,7 @@ static void copy_main_point_domain_attribute_to_mesh(const CurvesInfo &curves_in
                                              dst.slice(info.face_range));
         });
         break;
-      case ATTR_DOMAIN_CORNER:
+      case AttrDomain::Corner:
         /* Unsupported for now, since there are no builtin attributes to convert into. */
         break;
       default:
@@ -665,7 +665,7 @@ static void copy_profile_point_data_to_mesh_faces(const Span<T> src,
 
 static void copy_profile_point_domain_attribute_to_mesh(const CurvesInfo &curves_info,
                                                         const ResultOffsets &offsets,
-                                                        const eAttrDomain dst_domain,
+                                                        const AttrDomain dst_domain,
                                                         const GSpan src_all,
                                                         GMutableSpan dst_all)
 {
@@ -674,19 +674,19 @@ static void copy_profile_point_domain_attribute_to_mesh(const CurvesInfo &curves
     const Span<T> src = src_all.typed<T>();
     MutableSpan<T> dst = dst_all.typed<T>();
     switch (dst_domain) {
-      case ATTR_DOMAIN_POINT:
+      case AttrDomain::Point:
         foreach_curve_combination(curves_info, offsets, [&](const CombinationInfo &info) {
           copy_profile_point_data_to_mesh_verts(
               src.slice(info.profile_points), info.main_points.size(), dst.slice(info.vert_range));
         });
         break;
-      case ATTR_DOMAIN_EDGE:
+      case AttrDomain::Edge:
         foreach_curve_combination(curves_info, offsets, [&](const CombinationInfo &info) {
           copy_profile_point_data_to_mesh_edges(
               src.slice(info.profile_points), info.main_segment_num, dst.slice(info.edge_range));
         });
         break;
-      case ATTR_DOMAIN_FACE:
+      case AttrDomain::Face:
         foreach_curve_combination(curves_info, offsets, [&](const CombinationInfo &info) {
           copy_profile_point_data_to_mesh_faces(src.slice(info.profile_points),
                                                 info.main_segment_num,
@@ -694,7 +694,7 @@ static void copy_profile_point_domain_attribute_to_mesh(const CurvesInfo &curves
                                                 dst.slice(info.face_range));
         });
         break;
-      case ATTR_DOMAIN_CORNER:
+      case AttrDomain::Corner:
         /* Unsupported for now, since there are no builtin attributes to convert into. */
         break;
       default:
@@ -724,22 +724,22 @@ static void copy_indices_to_offset_ranges(const VArray<T> &src,
 
 static void copy_curve_domain_attribute_to_mesh(const ResultOffsets &mesh_offsets,
                                                 const Span<int> curve_indices,
-                                                const eAttrDomain dst_domain,
+                                                const AttrDomain dst_domain,
                                                 const GVArray &src,
                                                 GMutableSpan dst)
 {
   Span<int> offsets;
   switch (dst_domain) {
-    case ATTR_DOMAIN_POINT:
+    case AttrDomain::Point:
       offsets = mesh_offsets.vert;
       break;
-    case ATTR_DOMAIN_EDGE:
+    case AttrDomain::Edge:
       offsets = mesh_offsets.edge;
       break;
-    case ATTR_DOMAIN_FACE:
+    case AttrDomain::Face:
       offsets = mesh_offsets.face;
       break;
-    case ATTR_DOMAIN_CORNER:
+    case AttrDomain::Corner:
       offsets = mesh_offsets.loop;
       break;
     default:
@@ -769,7 +769,7 @@ static void write_sharp_bezier_edges(const CurvesInfo &curves_info,
     return;
   }
 
-  sharp_edges = mesh_attributes.lookup_or_add_for_write_span<bool>("sharp_edge", ATTR_DOMAIN_EDGE);
+  sharp_edges = mesh_attributes.lookup_or_add_for_write_span<bool>("sharp_edge", AttrDomain::Edge);
 
   const OffsetIndices profile_points_by_curve = profile.points_by_curve();
   const VArray<int8_t> types = profile.curve_types();
@@ -830,7 +830,7 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
     /* TODO: This is used to keep the tests passing after refactoring mesh shade smooth flags. It
      * can be removed if the tests are updated and the final shading results will be the same. */
     SpanAttributeWriter<bool> sharp_faces = mesh_attributes.lookup_or_add_for_write_span<bool>(
-        "sharp_face", ATTR_DOMAIN_FACE);
+        "sharp_face", AttrDomain::Face);
     foreach_curve_combination(curves_info, offsets, [&](const CombinationInfo &info) {
       const bool has_caps = fill_caps && !info.main_cyclic && info.profile_cyclic;
       if (has_caps) {
@@ -862,7 +862,7 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
   if (fill_caps) {
     if (!sharp_edges) {
       sharp_edges = mesh_attributes.lookup_or_add_for_write_span<bool>("sharp_edge",
-                                                                       ATTR_DOMAIN_EDGE);
+                                                                       AttrDomain::Edge);
     }
     foreach_curve_combination(curves_info, offsets, [&](const CombinationInfo &info) {
       if (info.main_cyclic || !info.profile_cyclic) {
@@ -889,16 +889,16 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
       return true;
     }
 
-    const eAttrDomain src_domain = meta_data.domain;
+    const AttrDomain src_domain = meta_data.domain;
     const eCustomDataType type = meta_data.data_type;
     const GAttributeReader src = main_attributes.lookup(id, src_domain, type);
-    const eAttrDomain dst_domain = get_attribute_domain_for_mesh(mesh_attributes, id);
+    const AttrDomain dst_domain = get_attribute_domain_for_mesh(mesh_attributes, id);
 
-    if (src_domain == ATTR_DOMAIN_POINT) {
+    if (src_domain == AttrDomain::Point) {
       copy_main_point_domain_attribute_to_mesh(
           curves_info, id, offsets, dst_domain, src, eval_buffer, mesh_attributes);
     }
-    else if (src_domain == ATTR_DOMAIN_CURVE) {
+    else if (src_domain == AttrDomain::Curve) {
       GSpanAttributeWriter dst = mesh_attributes.lookup_or_add_for_write_only_span(
           id, dst_domain, type);
       if (dst) {
@@ -921,25 +921,25 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
     {
       return true;
     }
-    const eAttrDomain src_domain = meta_data.domain;
+    const AttrDomain src_domain = meta_data.domain;
     const eCustomDataType type = meta_data.data_type;
     const GVArray src = *profile_attributes.lookup(id, src_domain, type);
 
-    const eAttrDomain dst_domain = get_attribute_domain_for_mesh(mesh_attributes, id);
+    const AttrDomain dst_domain = get_attribute_domain_for_mesh(mesh_attributes, id);
     GSpanAttributeWriter dst = mesh_attributes.lookup_or_add_for_write_only_span(
         id, dst_domain, type);
     if (!dst) {
       return true;
     }
 
-    if (src_domain == ATTR_DOMAIN_POINT) {
+    if (src_domain == AttrDomain::Point) {
       copy_profile_point_domain_attribute_to_mesh(curves_info,
                                                   offsets,
                                                   dst_domain,
                                                   evaluate_attribute(src, profile, eval_buffer),
                                                   dst.span);
     }
-    else if (src_domain == ATTR_DOMAIN_CURVE) {
+    else if (src_domain == AttrDomain::Curve) {
       copy_curve_domain_attribute_to_mesh(
           offsets, offsets.profile_indices, dst_domain, src, dst.span);
     }

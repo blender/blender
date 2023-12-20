@@ -262,7 +262,7 @@ void OBJWriter::write_vertex_coords(FormatHandler &fh,
   if (write_colors && !name.is_empty()) {
     const bke::AttributeAccessor attributes = mesh->attributes();
     const VArray<ColorGeometry4f> attribute = *attributes.lookup_or_default<ColorGeometry4f>(
-        name, ATTR_DOMAIN_POINT, {0.0f, 0.0f, 0.0f, 0.0f});
+        name, bke::AttrDomain::Point, {0.0f, 0.0f, 0.0f, 0.0f});
 
     BLI_assert(tot_count == attribute.size());
     obj_parallel_chunked_output(fh, tot_count, [&](FormatHandler &buf, int i) {
@@ -346,7 +346,7 @@ void OBJWriter::write_poly_elements(FormatHandler &fh,
   threading::EnumerableThreadSpecific<Vector<float>> group_weights;
   const bke::AttributeAccessor attributes = obj_mesh_data.get_mesh()->attributes();
   const VArray<int> material_indices = *attributes.lookup_or_default<int>(
-      "material_index", ATTR_DOMAIN_FACE, 0);
+      "material_index", bke::AttrDomain::Face, 0);
 
   obj_parallel_chunked_output(fh, tot_faces, [&](FormatHandler &buf, int idx) {
     /* Polygon order for writing into the file is not necessarily the same

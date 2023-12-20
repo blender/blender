@@ -528,7 +528,9 @@ blender::Span<blender::float3> BKE_pbvh_get_vert_normals(const PBVH *pbvh);
 
 PBVHColorBufferNode *BKE_pbvh_node_color_buffer_get(PBVHNode *node);
 void BKE_pbvh_node_color_buffer_free(PBVH *pbvh);
-bool BKE_pbvh_get_color_layer(Mesh *mesh, CustomDataLayer **r_layer, eAttrDomain *r_domain);
+bool BKE_pbvh_get_color_layer(Mesh *mesh,
+                              CustomDataLayer **r_layer,
+                              blender::bke::AttrDomain *r_domain);
 
 /* Swaps colors at each element in indices (of domain pbvh->vcol_domain)
  * with values in colors. */

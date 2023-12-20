@@ -67,14 +67,14 @@ static void write_vert_creases(Mesh &mesh, const VArray<float> &creases)
 {
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
   attributes.remove("crease_vert");
-  attributes.add<float>("crease_vert", ATTR_DOMAIN_POINT, bke::AttributeInitVArray(creases));
+  attributes.add<float>("crease_vert", AttrDomain::Point, bke::AttributeInitVArray(creases));
 }
 
 static void write_edge_creases(Mesh &mesh, const VArray<float> &creases)
 {
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
   attributes.remove("crease_edge");
-  attributes.add<float>("crease_edge", ATTR_DOMAIN_EDGE, bke::AttributeInitVArray(creases));
+  attributes.add<float>("crease_edge", AttrDomain::Edge, bke::AttributeInitVArray(creases));
 }
 
 static bool varray_is_single_zero(const VArray<float> &varray)
@@ -101,12 +101,12 @@ static Mesh *mesh_subsurf_calc(const Mesh *mesh,
                                const int boundary_smooth,
                                const int uv_smooth)
 {
-  const bke::MeshFieldContext point_context{*mesh, ATTR_DOMAIN_POINT};
+  const bke::MeshFieldContext point_context{*mesh, AttrDomain::Point};
   FieldEvaluator point_evaluator(point_context, mesh->verts_num);
   point_evaluator.add(clamp_crease(vert_crease_field));
   point_evaluator.evaluate();
 
-  const bke::MeshFieldContext edge_context{*mesh, ATTR_DOMAIN_EDGE};
+  const bke::MeshFieldContext edge_context{*mesh, AttrDomain::Edge};
   FieldEvaluator edge_evaluator(edge_context, mesh->edges_num);
   edge_evaluator.add(clamp_crease(edge_crease_field));
   edge_evaluator.evaluate();

@@ -46,7 +46,7 @@ void transform_geometry_set(GeoNodeExecParams &params,
  * component. If no component can work with the domain, then `error_message` is set to true.
  */
 void separate_geometry(GeometrySet &geometry_set,
-                       eAttrDomain domain,
+                       AttrDomain domain,
                        GeometryNodeDeleteGeometryMode mode,
                        const Field<bool> &selection_field,
                        const AnonymousAttributePropagationInfo &propagation_info,
@@ -65,15 +65,15 @@ class EvaluateAtIndexInput final : public bke::GeometryFieldInput {
  private:
   Field<int> index_field_;
   GField value_field_;
-  eAttrDomain value_field_domain_;
+  AttrDomain value_field_domain_;
 
  public:
-  EvaluateAtIndexInput(Field<int> index_field, GField value_field, eAttrDomain value_field_domain);
+  EvaluateAtIndexInput(Field<int> index_field, GField value_field, AttrDomain value_field_domain);
 
   GVArray get_varray_for_context(const bke::GeometryFieldContext &context,
                                  const IndexMask &mask) const final;
 
-  std::optional<eAttrDomain> preferred_domain(const GeometryComponent & /*component*/) const final
+  std::optional<AttrDomain> preferred_domain(const GeometryComponent & /*component*/) const final
   {
     return value_field_domain_;
   }
@@ -82,16 +82,16 @@ class EvaluateAtIndexInput final : public bke::GeometryFieldInput {
 class EvaluateOnDomainInput final : public bke::GeometryFieldInput {
  private:
   GField src_field_;
-  eAttrDomain src_domain_;
+  AttrDomain src_domain_;
 
  public:
-  EvaluateOnDomainInput(GField field, eAttrDomain domain);
+  EvaluateOnDomainInput(GField field, AttrDomain domain);
 
   GVArray get_varray_for_context(const bke::GeometryFieldContext &context,
                                  const IndexMask & /*mask*/) const final;
   void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override;
 
-  std::optional<eAttrDomain> preferred_domain(
+  std::optional<AttrDomain> preferred_domain(
       const GeometryComponent & /*component*/) const override;
 };
 

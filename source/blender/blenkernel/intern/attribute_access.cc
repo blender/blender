@@ -132,22 +132,22 @@ eCustomDataType attribute_data_type_highest_complexity(Span<eCustomDataType> dat
  * \note Generally the order should mirror the order of the domains
  * established in each component's ComponentAttributeProviders.
  */
-static int attribute_domain_priority(const eAttrDomain domain)
+static int attribute_domain_priority(const AttrDomain domain)
 {
   switch (domain) {
-    case ATTR_DOMAIN_INSTANCE:
+    case AttrDomain::Instance:
       return 0;
-    case ATTR_DOMAIN_LAYER:
+    case AttrDomain::Layer:
       return 1;
-    case ATTR_DOMAIN_CURVE:
+    case AttrDomain::Curve:
       return 2;
-    case ATTR_DOMAIN_FACE:
+    case AttrDomain::Face:
       return 3;
-    case ATTR_DOMAIN_EDGE:
+    case AttrDomain::Edge:
       return 4;
-    case ATTR_DOMAIN_POINT:
+    case AttrDomain::Point:
       return 5;
-    case ATTR_DOMAIN_CORNER:
+    case AttrDomain::Corner:
       return 6;
     default:
       /* Domain not supported in nodes yet. */
@@ -156,12 +156,12 @@ static int attribute_domain_priority(const eAttrDomain domain)
   }
 }
 
-eAttrDomain attribute_domain_highest_priority(Span<eAttrDomain> domains)
+AttrDomain attribute_domain_highest_priority(Span<AttrDomain> domains)
 {
   int highest_priority = INT_MIN;
-  eAttrDomain highest_priority_domain = ATTR_DOMAIN_CORNER;
+  AttrDomain highest_priority_domain = AttrDomain::Corner;
 
-  for (const eAttrDomain domain : domains) {
+  for (const AttrDomain domain : domains) {
     const int priority = attribute_domain_priority(domain);
     if (priority > highest_priority) {
       highest_priority = priority;
@@ -539,7 +539,7 @@ bool CustomDataAttributeProvider::try_delete(void *owner, const AttributeIDRef &
 
 bool CustomDataAttributeProvider::try_create(void *owner,
                                              const AttributeIDRef &attribute_id,
-                                             const eAttrDomain domain,
+                                             const AttrDomain domain,
                                              const eCustomDataType data_type,
                                              const AttributeInit &initializer) const
 {
@@ -595,7 +595,7 @@ static GVArray try_adapt_data_type(GVArray varray, const CPPType &to_type)
 }
 
 GAttributeReader AttributeAccessor::lookup(const AttributeIDRef &attribute_id,
-                                           const std::optional<eAttrDomain> domain,
+                                           const std::optional<AttrDomain> domain,
                                            const std::optional<eCustomDataType> data_type) const
 {
   GAttributeReader attribute = this->lookup(attribute_id);
@@ -626,7 +626,7 @@ GAttributeReader AttributeAccessor::lookup(const AttributeIDRef &attribute_id,
 }
 
 GAttributeReader AttributeAccessor::lookup_or_default(const AttributeIDRef &attribute_id,
-                                                      const eAttrDomain domain,
+                                                      const AttrDomain domain,
                                                       const eCustomDataType data_type,
                                                       const void *default_value) const
 {
@@ -716,7 +716,7 @@ GSpanAttributeWriter MutableAttributeAccessor::lookup_for_write_span(
 
 GAttributeWriter MutableAttributeAccessor::lookup_or_add_for_write(
     const AttributeIDRef &attribute_id,
-    const eAttrDomain domain,
+    const AttrDomain domain,
     const eCustomDataType data_type,
     const AttributeInit &initializer)
 {
@@ -735,7 +735,7 @@ GAttributeWriter MutableAttributeAccessor::lookup_or_add_for_write(
 
 GSpanAttributeWriter MutableAttributeAccessor::lookup_or_add_for_write_span(
     const AttributeIDRef &attribute_id,
-    const eAttrDomain domain,
+    const AttrDomain domain,
     const eCustomDataType data_type,
     const AttributeInit &initializer)
 {
@@ -748,7 +748,7 @@ GSpanAttributeWriter MutableAttributeAccessor::lookup_or_add_for_write_span(
 }
 
 GSpanAttributeWriter MutableAttributeAccessor::lookup_or_add_for_write_only_span(
-    const AttributeIDRef &attribute_id, const eAttrDomain domain, const eCustomDataType data_type)
+    const AttributeIDRef &attribute_id, const AttrDomain domain, const eCustomDataType data_type)
 {
   GAttributeWriter attribute = this->lookup_or_add_for_write(
       attribute_id, domain, data_type, AttributeInitConstruct());
@@ -807,7 +807,7 @@ fn::GField AttributeValidator::validate_field_if_necessary(const fn::GField &fie
 Vector<AttributeTransferData> retrieve_attributes_for_transfer(
     const AttributeAccessor src_attributes,
     MutableAttributeAccessor dst_attributes,
-    const eAttrDomainMask domain_mask,
+    const AttrDomainMask domain_mask,
     const AnonymousAttributePropagationInfo &propagation_info,
     const Set<std::string> &skip)
 {
@@ -836,7 +836,7 @@ Vector<AttributeTransferData> retrieve_attributes_for_transfer(
 /** \} */
 
 void gather_attributes(const AttributeAccessor src_attributes,
-                       const eAttrDomain domain,
+                       const AttrDomain domain,
                        const AnonymousAttributePropagationInfo &propagation_info,
                        const Set<std::string> &skip,
                        const IndexMask &selection,
@@ -895,7 +895,7 @@ static bool indices_are_range(const Span<int> indices, const IndexRange range)
 }
 
 void gather_attributes(const AttributeAccessor src_attributes,
-                       const eAttrDomain domain,
+                       const AttrDomain domain,
                        const AnonymousAttributePropagationInfo &propagation_info,
                        const Set<std::string> &skip,
                        const Span<int> indices,
@@ -929,7 +929,7 @@ void gather_attributes(const AttributeAccessor src_attributes,
 }
 
 void gather_attributes_group_to_group(const AttributeAccessor src_attributes,
-                                      const eAttrDomain domain,
+                                      const AttrDomain domain,
                                       const AnonymousAttributePropagationInfo &propagation_info,
                                       const Set<std::string> &skip,
                                       const OffsetIndices<int> src_offsets,
@@ -960,7 +960,7 @@ void gather_attributes_group_to_group(const AttributeAccessor src_attributes,
 }
 
 void gather_attributes_to_groups(const AttributeAccessor src_attributes,
-                                 const eAttrDomain domain,
+                                 const AttrDomain domain,
                                  const AnonymousAttributePropagationInfo &propagation_info,
                                  const Set<std::string> &skip,
                                  const OffsetIndices<int> dst_offsets,
@@ -990,7 +990,7 @@ void gather_attributes_to_groups(const AttributeAccessor src_attributes,
 }
 
 void copy_attributes(const AttributeAccessor src_attributes,
-                     const eAttrDomain domain,
+                     const AttrDomain domain,
                      const AnonymousAttributePropagationInfo &propagation_info,
                      const Set<std::string> &skip,
                      MutableAttributeAccessor dst_attributes)
@@ -1005,7 +1005,7 @@ void copy_attributes(const AttributeAccessor src_attributes,
 }
 
 void copy_attributes_group_to_group(const AttributeAccessor src_attributes,
-                                    const eAttrDomain domain,
+                                    const AttrDomain domain,
                                     const AnonymousAttributePropagationInfo &propagation_info,
                                     const Set<std::string> &skip,
                                     const OffsetIndices<int> src_offsets,
@@ -1039,7 +1039,7 @@ void copy_attributes_group_to_group(const AttributeAccessor src_attributes,
 }
 
 void fill_attribute_range_default(MutableAttributeAccessor attributes,
-                                  const eAttrDomain domain,
+                                  const AttrDomain domain,
                                   const Set<std::string> &skip,
                                   const IndexRange range)
 {

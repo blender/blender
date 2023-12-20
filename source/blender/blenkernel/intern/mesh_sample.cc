@@ -483,7 +483,7 @@ void BaryWeightSampleFn::evaluate_source(fn::GField src_field)
   /* Use the most complex domain for now, ensuring no information is lost. In the future, it should
    * be possible to use the most complex domain required by the field inputs, to simplify sampling
    * and avoid domain conversions. */
-  domain_ = ATTR_DOMAIN_CORNER;
+  domain_ = AttrDomain::Corner;
   source_context_.emplace(bke::MeshFieldContext(mesh, domain_));
   const int domain_size = mesh.attributes().domain_size(domain_);
   source_evaluator_ = std::make_unique<fn::FieldEvaluator>(*source_context_, domain_size);

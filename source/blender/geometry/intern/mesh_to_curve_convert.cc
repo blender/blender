@@ -47,12 +47,16 @@ BLI_NOINLINE bke::CurvesGeometry create_curve_from_vert_indices(
     }
   }
 
-  bke::gather_attributes(
-      mesh_attributes, ATTR_DOMAIN_POINT, propagation_info, skip, vert_indices, curves_attributes);
+  bke::gather_attributes(mesh_attributes,
+                         bke::AttrDomain::Point,
+                         propagation_info,
+                         skip,
+                         vert_indices,
+                         curves_attributes);
 
   mesh_attributes.for_all(
       [&](const bke::AttributeIDRef &id, const bke::AttributeMetaData meta_data) {
-        if (meta_data.domain == ATTR_DOMAIN_POINT) {
+        if (meta_data.domain == bke::AttrDomain::Point) {
           return true;
         }
         if (skip.contains(id.name())) {
@@ -62,14 +66,14 @@ BLI_NOINLINE bke::CurvesGeometry create_curve_from_vert_indices(
           return true;
         }
 
-        const bke::GAttributeReader src = mesh_attributes.lookup(id, ATTR_DOMAIN_POINT);
+        const bke::GAttributeReader src = mesh_attributes.lookup(id, bke::AttrDomain::Point);
         /* Some attributes might not exist if they were builtin on domains that don't have
          * any elements, i.e. a face attribute on the output of the line primitive node. */
         if (!src) {
           return true;
         }
         bke::GSpanAttributeWriter dst = curves_attributes.lookup_or_add_for_write_only_span(
-            id, ATTR_DOMAIN_POINT, meta_data.data_type);
+            id, bke::AttrDomain::Point, meta_data.data_type);
         bke::attribute_math::gather(*src, vert_indices, dst.span);
         dst.finish();
         return true;

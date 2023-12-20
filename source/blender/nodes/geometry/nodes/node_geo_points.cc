@@ -72,7 +72,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   PointCloud *points = BKE_pointcloud_new_nomain(count);
   MutableAttributeAccessor attributes = points->attributes_for_write();
   AttributeWriter<float> output_radii = attributes.lookup_or_add_for_write<float>(
-      "radius", ATTR_DOMAIN_POINT);
+      "radius", AttrDomain::Point);
 
   PointsFieldContext context{count};
   fn::FieldEvaluator evaluator{context, count};

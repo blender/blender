@@ -395,13 +395,14 @@ void ED_mesh_uv_ensure(Mesh *mesh, const char *name)
 int ED_mesh_color_add(
     Mesh *mesh, const char *name, const bool active_set, const bool do_init, ReportList *reports)
 {
+  using namespace blender;
   /* If no name is supplied, provide a backwards compatible default. */
   if (!name) {
     name = "Col";
   }
 
   CustomDataLayer *layer = BKE_id_attribute_new(
-      &mesh->id, name, CD_PROP_BYTE_COLOR, ATTR_DOMAIN_CORNER, reports);
+      &mesh->id, name, CD_PROP_BYTE_COLOR, bke::AttrDomain::Corner, reports);
 
   if (do_init) {
     const char *active_name = mesh->active_color_attribute;
@@ -442,8 +443,10 @@ bool ED_mesh_color_ensure(Mesh *mesh, const char *name)
 
   char unique_name[MAX_CUSTOMDATA_LAYER_NAME];
   BKE_id_attribute_calc_unique_name(&mesh->id, name, unique_name);
-  if (!mesh->attributes_for_write().add(
-          unique_name, ATTR_DOMAIN_CORNER, CD_PROP_BYTE_COLOR, bke::AttributeInitDefaultValue()))
+  if (!mesh->attributes_for_write().add(unique_name,
+                                        bke::AttrDomain::Corner,
+                                        CD_PROP_BYTE_COLOR,
+                                        bke::AttributeInitDefaultValue()))
   {
     return false;
   }
@@ -810,7 +813,7 @@ static void mesh_add_verts(Mesh *mesh, int len)
 
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::SpanAttributeWriter<bool> select_vert = attributes.lookup_or_add_for_write_span<bool>(
-      ".select_vert", ATTR_DOMAIN_POINT);
+      ".select_vert", bke::AttrDomain::Point);
   select_vert.span.take_back(len).fill(true);
   select_vert.finish();
 }
@@ -846,7 +849,7 @@ static void mesh_add_edges(Mesh *mesh, int len)
 
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::SpanAttributeWriter<bool> select_edge = attributes.lookup_or_add_for_write_span<bool>(
-      ".select_edge", ATTR_DOMAIN_EDGE);
+      ".select_edge", bke::AttrDomain::Edge);
   select_edge.span.take_back(len).fill(true);
   select_edge.finish();
 }
@@ -921,7 +924,7 @@ static void mesh_add_faces(Mesh *mesh, int len)
 
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::SpanAttributeWriter<bool> select_poly = attributes.lookup_or_add_for_write_span<bool>(
-      ".select_poly", ATTR_DOMAIN_FACE);
+      ".select_poly", bke::AttrDomain::Face);
   select_poly.span.take_back(len).fill(true);
   select_poly.finish();
 }
@@ -1137,7 +1140,7 @@ void ED_mesh_split_faces(Mesh *mesh)
   const Span<int> corner_edges = mesh->corner_edges();
   const bke::AttributeAccessor attributes = mesh->attributes();
   const VArray<bool> mesh_sharp_edges = *attributes.lookup_or_default<bool>(
-      "sharp_edge", ATTR_DOMAIN_EDGE, false);
+      "sharp_edge", bke::AttrDomain::Edge, false);
   const bool *sharp_faces = static_cast<const bool *>(
       CustomData_get_layer_named(&mesh->face_data, CD_PROP_BOOL, "sharp_face"));
 

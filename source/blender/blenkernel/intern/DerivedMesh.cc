@@ -537,13 +537,13 @@ static void set_rest_position(Mesh &mesh)
   if (positions) {
     if (positions.sharing_info && positions.varray.is_span()) {
       attributes.add<float3>("rest_position",
-                             ATTR_DOMAIN_POINT,
+                             AttrDomain::Point,
                              AttributeInitShared(positions.varray.get_internal_span().data(),
                                                  *positions.sharing_info));
     }
     else {
       attributes.add<float3>(
-          "rest_position", ATTR_DOMAIN_POINT, AttributeInitVArray(positions.varray));
+          "rest_position", AttrDomain::Point, AttributeInitVArray(positions.varray));
     }
   }
 }

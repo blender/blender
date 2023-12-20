@@ -50,7 +50,7 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  node->custom1 = ATTR_DOMAIN_FACE;
+  node->custom1 = int16_t(AttrDomain::Face);
   node->custom2 = GEO_NODE_SCALE_ELEMENTS_UNIFORM;
 }
 
@@ -304,7 +304,7 @@ static AxisScaleParams evaluate_axis_scale_fields(FieldEvaluator &evaluator,
 
 static void scale_faces_on_axis(Mesh &mesh, const AxisScaleFields &fields)
 {
-  const bke::MeshFieldContext field_context{mesh, ATTR_DOMAIN_FACE};
+  const bke::MeshFieldContext field_context{mesh, AttrDomain::Face};
   FieldEvaluator evaluator{field_context, mesh.faces_num};
   AxisScaleParams params = evaluate_axis_scale_fields(evaluator, fields);
 
@@ -326,7 +326,7 @@ static UniformScaleParams evaluate_uniform_scale_fields(FieldEvaluator &evaluato
 
 static void scale_faces_uniformly(Mesh &mesh, const UniformScaleFields &fields)
 {
-  const bke::MeshFieldContext field_context{mesh, ATTR_DOMAIN_FACE};
+  const bke::MeshFieldContext field_context{mesh, AttrDomain::Face};
   FieldEvaluator evaluator{field_context, mesh.faces_num};
   UniformScaleParams params = evaluate_uniform_scale_fields(evaluator, fields);
 
@@ -379,7 +379,7 @@ static void get_edge_verts(const Span<int2> edges,
 
 static void scale_edges_uniformly(Mesh &mesh, const UniformScaleFields &fields)
 {
-  const bke::MeshFieldContext field_context{mesh, ATTR_DOMAIN_EDGE};
+  const bke::MeshFieldContext field_context{mesh, AttrDomain::Edge};
   FieldEvaluator evaluator{field_context, mesh.edges_num};
   UniformScaleParams params = evaluate_uniform_scale_fields(evaluator, fields);
 
@@ -389,7 +389,7 @@ static void scale_edges_uniformly(Mesh &mesh, const UniformScaleFields &fields)
 
 static void scale_edges_on_axis(Mesh &mesh, const AxisScaleFields &fields)
 {
-  const bke::MeshFieldContext field_context{mesh, ATTR_DOMAIN_EDGE};
+  const bke::MeshFieldContext field_context{mesh, AttrDomain::Edge};
   FieldEvaluator evaluator{field_context, mesh.edges_num};
   AxisScaleParams params = evaluate_axis_scale_fields(evaluator, fields);
 
@@ -400,7 +400,7 @@ static void scale_edges_on_axis(Mesh &mesh, const AxisScaleFields &fields)
 static void node_geo_exec(GeoNodeExecParams params)
 {
   const bNode &node = params.node();
-  const eAttrDomain domain = eAttrDomain(node.custom1);
+  const AttrDomain domain = AttrDomain(node.custom1);
   const GeometryNodeScaleElementsMode scale_mode = GeometryNodeScaleElementsMode(node.custom2);
 
   GeometrySet geometry = params.extract_input<GeometrySet>("Geometry");
@@ -416,7 +416,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   geometry.modify_geometry_sets([&](GeometrySet &geometry) {
     if (Mesh *mesh = geometry.get_mesh_for_write()) {
       switch (domain) {
-        case ATTR_DOMAIN_FACE: {
+        case AttrDomain::Face: {
           switch (scale_mode) {
             case GEO_NODE_SCALE_ELEMENTS_UNIFORM: {
               scale_faces_uniformly(*mesh, {selection_field, scale_field, center_field});
@@ -429,7 +429,7 @@ static void node_geo_exec(GeoNodeExecParams params)
           }
           break;
         }
-        case ATTR_DOMAIN_EDGE: {
+        case AttrDomain::Edge: {
           switch (scale_mode) {
             case GEO_NODE_SCALE_ELEMENTS_UNIFORM: {
               scale_edges_uniformly(*mesh, {selection_field, scale_field, center_field});
@@ -455,12 +455,12 @@ static void node_geo_exec(GeoNodeExecParams params)
 static void node_rna(StructRNA *srna)
 {
   static const EnumPropertyItem domain_items[] = {
-      {ATTR_DOMAIN_FACE,
+      {int(AttrDomain::Face),
        "FACE",
        ICON_NONE,
        "Face",
        "Scale individual faces or neighboring face islands"},
-      {ATTR_DOMAIN_EDGE,
+      {int(AttrDomain::Edge),
        "EDGE",
        ICON_NONE,
        "Edge",
@@ -488,7 +488,7 @@ static void node_rna(StructRNA *srna)
                     "Element type to transform",
                     domain_items,
                     NOD_inline_enum_accessors(custom1),
-                    ATTR_DOMAIN_FACE);
+                    int(AttrDomain::Face));
 
   RNA_def_node_enum(
       srna, "scale_mode", "Scale Mode", "", scale_mode_items, NOD_inline_enum_accessors(custom2));

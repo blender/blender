@@ -215,7 +215,7 @@ blender::bke::MeshNormalDomain Mesh::normals_domain() const
 
   const AttributeAccessor attributes = this->attributes();
   const VArray<bool> sharp_faces = *attributes.lookup_or_default<bool>(
-      "sharp_face", ATTR_DOMAIN_FACE, false);
+      "sharp_face", AttrDomain::Face, false);
 
   const array_utils::BooleanMix face_mix = array_utils::booleans_mix_calc(sharp_faces);
   if (face_mix == array_utils::BooleanMix::AllTrue) {
@@ -223,7 +223,7 @@ blender::bke::MeshNormalDomain Mesh::normals_domain() const
   }
 
   const VArray<bool> sharp_edges = *attributes.lookup_or_default<bool>(
-      "sharp_edge", ATTR_DOMAIN_EDGE, false);
+      "sharp_edge", AttrDomain::Edge, false);
   const array_utils::BooleanMix edge_mix = array_utils::booleans_mix_calc(sharp_edges);
   if (edge_mix == array_utils::BooleanMix::AllTrue) {
     return MeshNormalDomain::Face;
@@ -292,8 +292,8 @@ blender::Span<blender::float3> Mesh::corner_normals() const
       }
       case MeshNormalDomain::Corner: {
         const AttributeAccessor attributes = this->attributes();
-        const VArraySpan sharp_edges = *attributes.lookup<bool>("sharp_edge", ATTR_DOMAIN_EDGE);
-        const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", ATTR_DOMAIN_FACE);
+        const VArraySpan sharp_edges = *attributes.lookup<bool>("sharp_edge", AttrDomain::Edge);
+        const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", AttrDomain::Face);
         const short2 *custom_normals = static_cast<const short2 *>(
             CustomData_get_layer(&this->corner_data, CD_CUSTOMLOOPNORMAL));
         mesh::normals_calc_loop(this->vert_positions(),
@@ -1558,8 +1558,8 @@ static void mesh_set_custom_normals(Mesh *mesh, float (*r_custom_nors)[3], const
   }
   MutableAttributeAccessor attributes = mesh->attributes_for_write();
   SpanAttributeWriter<bool> sharp_edges = attributes.lookup_or_add_for_write_span<bool>(
-      "sharp_edge", ATTR_DOMAIN_EDGE);
-  const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", ATTR_DOMAIN_FACE);
+      "sharp_edge", AttrDomain::Edge);
+  const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", AttrDomain::Face);
 
   mesh_normals_loop_custom_set(mesh->vert_positions(),
                                mesh->edges(),

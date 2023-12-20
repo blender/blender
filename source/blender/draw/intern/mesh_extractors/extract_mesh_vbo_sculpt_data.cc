@@ -81,8 +81,9 @@ static void extract_sculpt_data_init(const MeshRenderData &mr,
   }
   else {
     const bke::AttributeAccessor attributes = mr.mesh->attributes();
-    const VArray<float> mask = *attributes.lookup<float>(".sculpt_mask", ATTR_DOMAIN_POINT);
-    const VArray<int> face_set = *attributes.lookup<int>(".sculpt_face_set", ATTR_DOMAIN_FACE);
+    const VArray<float> mask = *attributes.lookup<float>(".sculpt_mask", bke::AttrDomain::Point);
+    const VArray<int> face_set = *attributes.lookup<int>(".sculpt_face_set",
+                                                         bke::AttrDomain::Face);
 
     for (int face_index = 0; face_index < mr.face_len; face_index++) {
       for (const int corner : mr.faces[face_index]) {
@@ -123,7 +124,7 @@ static void extract_sculpt_data_init_subdiv(const DRWSubdivCache &subdiv_cache,
   GPUVertBuf *subdiv_mask_vbo = nullptr;
 
   const bke::AttributeAccessor attributes = coarse_mesh->attributes();
-  const VArray<float> mask = *attributes.lookup<float>(".sculpt_mask", ATTR_DOMAIN_POINT);
+  const VArray<float> mask = *attributes.lookup<float>(".sculpt_mask", bke::AttrDomain::Point);
 
   const OffsetIndices coarse_faces = coarse_mesh->faces();
   const Span<int> coarse_corner_verts = coarse_mesh->corner_verts();
@@ -163,7 +164,8 @@ static void extract_sculpt_data_init_subdiv(const DRWSubdivCache &subdiv_cache,
   };
 
   gpuFaceSet *face_sets = (gpuFaceSet *)GPU_vertbuf_get_data(face_set_vbo);
-  const VArray<int> cd_face_sets = *attributes.lookup<int>(".sculpt_face_set", ATTR_DOMAIN_FACE);
+  const VArray<int> cd_face_sets = *attributes.lookup<int>(".sculpt_face_set",
+                                                           bke::AttrDomain::Face);
 
   GPUVertFormat *format = get_sculpt_data_format();
   GPU_vertbuf_init_build_on_device(vbo, format, subdiv_cache.num_subdiv_loops);

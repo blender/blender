@@ -120,7 +120,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
   /* Create a new layer if no UV Maps are available
    * (e.g. if a preceding modifier could not preserve it). */
   mesh->attributes_for_write().add<float2>(
-      umd->uvlayer_name, ATTR_DOMAIN_CORNER, bke::AttributeInitDefaultValue());
+      umd->uvlayer_name, bke::AttrDomain::Corner, bke::AttributeInitDefaultValue());
 
   /* make sure we're using an existing layer */
   CustomData_validate_layer_name(&mesh->corner_data, CD_PROP_FLOAT2, umd->uvlayer_name, uvname);

@@ -168,6 +168,7 @@ static void drw_curves_cache_update_compute(CurvesEvalCache *cache,
 
 static void drw_curves_cache_update_compute(CurvesEvalCache *cache, const int subdiv)
 {
+  using namespace blender;
   const int strands_len = cache->strands_len;
   const int final_points_len = cache->final[subdiv].strands_res * strands_len;
   if (final_points_len == 0) {
@@ -180,7 +181,7 @@ static void drw_curves_cache_update_compute(CurvesEvalCache *cache, const int su
   const DRW_Attributes &attrs = cache->final[subdiv].attr_used;
   for (int i = 0; i < attrs.num_requests; i++) {
     /* Only refine point attributes. */
-    if (attrs.requests[i].domain == ATTR_DOMAIN_CURVE) {
+    if (attrs.requests[i].domain == bke::AttrDomain::Curve) {
       continue;
     }
 
@@ -225,6 +226,7 @@ static void drw_curves_cache_update_transform_feedback(CurvesEvalCache *cache,
 
 static void drw_curves_cache_update_transform_feedback(CurvesEvalCache *cache, const int subdiv)
 {
+  using namespace blender;
   const int final_points_len = cache->final[subdiv].strands_res * cache->strands_len;
   if (final_points_len == 0) {
     return;
@@ -236,7 +238,7 @@ static void drw_curves_cache_update_transform_feedback(CurvesEvalCache *cache, c
   const DRW_Attributes &attrs = cache->final[subdiv].attr_used;
   for (int i = 0; i < attrs.num_requests; i++) {
     /* Only refine point attributes. */
-    if (attrs.requests[i].domain == ATTR_DOMAIN_CURVE) {
+    if (attrs.requests[i].domain == bke::AttrDomain::Curve) {
       continue;
     }
 
@@ -339,7 +341,7 @@ DRWShadingGroup *DRW_shgroup_curves_create_sub(Object *object,
   const blender::bke::CurvesGeometry &curves = curves_id.geometry.wrap();
   if (curves.curves_num() >= 1) {
     blender::VArray<float> radii = *curves.attributes().lookup_or_default(
-        "radius", ATTR_DOMAIN_POINT, 0.005f);
+        "radius", bke::AttrDomain::Point, 0.005f);
     const blender::IndexRange first_curve_points = curves.points_by_curve()[0];
     const float first_radius = radii[first_curve_points.first()];
     const float last_radius = radii[first_curve_points.last()];
@@ -364,7 +366,7 @@ DRWShadingGroup *DRW_shgroup_curves_create_sub(Object *object,
     char sampler_name[32];
     drw_curves_get_attribute_sampler_name(request.attribute_name, sampler_name);
 
-    if (request.domain == ATTR_DOMAIN_CURVE) {
+    if (request.domain == bke::AttrDomain::Curve) {
       if (!curves_cache->proc_attributes_buf[i]) {
         continue;
       }
@@ -385,7 +387,7 @@ DRWShadingGroup *DRW_shgroup_curves_create_sub(Object *object,
      * attributes. */
     const int index = attribute_index_in_material(gpu_material, request.attribute_name);
     if (index != -1) {
-      curves_infos.is_point_attribute[index][0] = request.domain == ATTR_DOMAIN_POINT;
+      curves_infos.is_point_attribute[index][0] = request.domain == bke::AttrDomain::Point;
     }
   }
 
@@ -616,7 +618,7 @@ static CurvesEvalCache *curves_cache_get(Curves &curves,
     const DRW_Attributes &attrs = cache->final[subdiv].attr_used;
     for (int i : IndexRange(attrs.num_requests)) {
       /* Only refine point attributes. */
-      if (attrs.requests[i].domain != ATTR_DOMAIN_CURVE) {
+      if (attrs.requests[i].domain != bke::AttrDomain::Curve) {
         cache_update(cache->final[subdiv].attributes_buf[i], cache->proc_attributes_buf[i]);
       }
     }
@@ -685,7 +687,7 @@ GPUBatch *curves_sub_pass_setup_implementation(PassT &sub_ps,
   const blender::bke::CurvesGeometry &curves = curves_id.geometry.wrap();
   if (curves.curves_num() >= 1) {
     blender::VArray<float> radii = *curves.attributes().lookup_or_default(
-        "radius", ATTR_DOMAIN_POINT, 0.005f);
+        "radius", bke::AttrDomain::Point, 0.005f);
     const blender::IndexRange first_curve_points = curves.points_by_curve()[0];
     const float first_radius = radii[first_curve_points.first()];
     const float last_radius = radii[first_curve_points.last()];
@@ -710,7 +712,7 @@ GPUBatch *curves_sub_pass_setup_implementation(PassT &sub_ps,
     char sampler_name[32];
     drw_curves_get_attribute_sampler_name(request.attribute_name, sampler_name);
 
-    if (request.domain == ATTR_DOMAIN_CURVE) {
+    if (request.domain == bke::AttrDomain::Curve) {
       if (!curves_cache->proc_attributes_buf[i]) {
         continue;
       }
@@ -729,7 +731,7 @@ GPUBatch *curves_sub_pass_setup_implementation(PassT &sub_ps,
      * attributes. */
     const int index = attribute_index_in_material(gpu_material, request.attribute_name);
     if (index != -1) {
-      curves_infos.is_point_attribute[index][0] = request.domain == ATTR_DOMAIN_POINT;
+      curves_infos.is_point_attribute[index][0] = request.domain == bke::AttrDomain::Point;
     }
   }
 

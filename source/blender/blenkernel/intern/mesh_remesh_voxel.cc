@@ -462,7 +462,7 @@ static void find_nearest_edges(const Span<float3> src_positions,
 
 static void gather_attributes(const Span<AttributeIDRef> ids,
                               const AttributeAccessor src_attributes,
-                              const eAttrDomain domain,
+                              const AttrDomain domain,
                               const Span<int> index_map,
                               MutableAttributeAccessor dst_attributes)
 {
@@ -489,16 +489,16 @@ void mesh_remesh_reproject_attributes(const Mesh &src, Mesh &dst)
       return true;
     }
     switch (meta_data.domain) {
-      case ATTR_DOMAIN_POINT:
+      case AttrDomain::Point:
         point_ids.append(id);
         break;
-      case ATTR_DOMAIN_EDGE:
+      case AttrDomain::Edge:
         edge_ids.append(id);
         break;
-      case ATTR_DOMAIN_FACE:
+      case AttrDomain::Face:
         face_ids.append(id);
         break;
-      case ATTR_DOMAIN_CORNER:
+      case AttrDomain::Corner:
         corner_ids.append(id);
         break;
       default:
@@ -546,7 +546,7 @@ void mesh_remesh_reproject_attributes(const Mesh &src, Mesh &dst)
       Array<int> map(dst.verts_num);
       find_nearest_verts(
           src_positions, src_corner_verts, src_corner_tris, dst_positions, vert_nearest_tris, map);
-      gather_attributes(point_ids, src_attributes, ATTR_DOMAIN_POINT, map, dst_attributes);
+      gather_attributes(point_ids, src_attributes, AttrDomain::Point, map, dst_attributes);
     }
 
     if (!corner_ids.is_empty()) {
@@ -560,7 +560,7 @@ void mesh_remesh_reproject_attributes(const Mesh &src, Mesh &dst)
                            dst_corner_verts,
                            vert_nearest_tris,
                            map);
-      gather_attributes(corner_ids, src_attributes, ATTR_DOMAIN_CORNER, map, dst_attributes);
+      gather_attributes(corner_ids, src_attributes, AttrDomain::Corner, map, dst_attributes);
     }
   }
 
@@ -579,14 +579,14 @@ void mesh_remesh_reproject_attributes(const Mesh &src, Mesh &dst)
                        dst_edges,
                        bvhtree,
                        map);
-    gather_attributes(edge_ids, src_attributes, ATTR_DOMAIN_EDGE, map, dst_attributes);
+    gather_attributes(edge_ids, src_attributes, AttrDomain::Edge, map, dst_attributes);
   }
 
   if (!face_ids.is_empty()) {
     const Span<int> src_tri_faces = src.corner_tri_faces();
     Array<int> map(dst.faces_num);
     find_nearest_faces(src_tri_faces, dst_positions, dst_faces, dst_corner_verts, bvhtree, map);
-    gather_attributes(face_ids, src_attributes, ATTR_DOMAIN_FACE, map, dst_attributes);
+    gather_attributes(face_ids, src_attributes, AttrDomain::Face, map, dst_attributes);
   }
 
   if (src.active_color_attribute) {

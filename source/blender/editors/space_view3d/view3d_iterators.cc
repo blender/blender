@@ -295,12 +295,13 @@ void meshobject_foreachScreenVert(ViewContext *vc,
                                   void *user_data,
                                   eV3DProjTest clip_flag)
 {
+  using namespace blender;
   BLI_assert((clip_flag & V3D_PROJ_TEST_CLIP_CONTENT) == 0);
   foreachScreenObjectVert_userData data;
 
   const Object *ob_eval = DEG_get_evaluated_object(vc->depsgraph, vc->obact);
   const Mesh *mesh = BKE_object_get_evaluated_mesh(ob_eval);
-  const blender::bke::AttributeAccessor attributes = mesh->attributes();
+  const bke::AttributeAccessor attributes = mesh->attributes();
 
   ED_view3d_check_mats_rv3d(vc->rv3d);
 
@@ -308,7 +309,7 @@ void meshobject_foreachScreenVert(ViewContext *vc,
   data.func = func;
   data.user_data = user_data;
   data.clip_flag = clip_flag;
-  data.hide_vert = *attributes.lookup<bool>(".hide_vert", ATTR_DOMAIN_POINT);
+  data.hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
 
   if (clip_flag & V3D_PROJ_TEST_CLIP_BB) {
     ED_view3d_clipping_local(vc->rv3d, vc->obact->object_to_world);

@@ -472,7 +472,7 @@ static void calculate_selection_outputs(const ConeConfig &config,
   if (attribute_outputs.top_id) {
     const bool face = !config.top_is_point && config.fill_type != ConeFillType::None;
     bke::SpanAttributeWriter<bool> selection = attributes.lookup_or_add_for_write_span<bool>(
-        attribute_outputs.top_id.get(), face ? ATTR_DOMAIN_FACE : ATTR_DOMAIN_POINT);
+        attribute_outputs.top_id.get(), face ? bke::AttrDomain::Face : bke::AttrDomain::Point);
 
     if (config.top_is_point) {
       selection.span[config.first_vert] = true;
@@ -487,7 +487,7 @@ static void calculate_selection_outputs(const ConeConfig &config,
   if (attribute_outputs.bottom_id) {
     const bool face = !config.bottom_is_point && config.fill_type != ConeFillType::None;
     bke::SpanAttributeWriter<bool> selection = attributes.lookup_or_add_for_write_span<bool>(
-        attribute_outputs.bottom_id.get(), face ? ATTR_DOMAIN_FACE : ATTR_DOMAIN_POINT);
+        attribute_outputs.bottom_id.get(), face ? bke::AttrDomain::Face : bke::AttrDomain::Point);
 
     if (config.bottom_is_point) {
       selection.span[config.last_vert] = true;
@@ -504,7 +504,7 @@ static void calculate_selection_outputs(const ConeConfig &config,
   /* Populate "Side" selection output. */
   if (attribute_outputs.side_id) {
     bke::SpanAttributeWriter<bool> selection = attributes.lookup_or_add_for_write_span<bool>(
-        attribute_outputs.side_id.get(), ATTR_DOMAIN_FACE);
+        attribute_outputs.side_id.get(), bke::AttrDomain::Face);
 
     selection.span.slice(config.side_faces_start, config.side_faces_len).fill(true);
     selection.finish();
@@ -526,7 +526,7 @@ static void calculate_cone_uvs(const ConeConfig &config,
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
 
   bke::SpanAttributeWriter<float2> uv_attribute =
-      attributes.lookup_or_add_for_write_only_span<float2>(uv_map_id, ATTR_DOMAIN_CORNER);
+      attributes.lookup_or_add_for_write_only_span<float2>(uv_map_id, bke::AttrDomain::Corner);
   MutableSpan<float2> uvs = uv_attribute.span;
 
   Array<float2> circle(config.circle_segments);

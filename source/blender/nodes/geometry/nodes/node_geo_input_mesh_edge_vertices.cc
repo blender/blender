@@ -31,10 +31,10 @@ enum class VertNumber { V1, V2 };
 
 static VArray<int> construct_edge_verts_gvarray(const Mesh &mesh,
                                                 const VertNumber vertex,
-                                                const eAttrDomain domain)
+                                                const AttrDomain domain)
 {
   const Span<int2> edges = mesh.edges();
-  if (domain == ATTR_DOMAIN_EDGE) {
+  if (domain == AttrDomain::Edge) {
     if (vertex == VertNumber::V1) {
       return VArray<int>::ForFunc(edges.size(), [edges](const int i) { return edges[i][0]; });
     }
@@ -55,7 +55,7 @@ class EdgeVertsInput final : public bke::MeshFieldInput {
   }
 
   GVArray get_varray_for_context(const Mesh &mesh,
-                                 const eAttrDomain domain,
+                                 const AttrDomain domain,
                                  const IndexMask & /*mask*/) const final
   {
     return construct_edge_verts_gvarray(mesh, vertex_, domain);
@@ -74,15 +74,15 @@ class EdgeVertsInput final : public bke::MeshFieldInput {
     return false;
   }
 
-  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
+  std::optional<AttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
   {
-    return ATTR_DOMAIN_EDGE;
+    return AttrDomain::Edge;
   }
 };
 
 static VArray<float3> construct_edge_positions_gvarray(const Mesh &mesh,
                                                        const VertNumber vertex,
-                                                       const eAttrDomain domain)
+                                                       const AttrDomain domain)
 {
   const Span<float3> positions = mesh.vert_positions();
   const Span<int2> edges = mesh.edges();
@@ -91,13 +91,13 @@ static VArray<float3> construct_edge_positions_gvarray(const Mesh &mesh,
     return mesh.attributes().adapt_domain<float3>(
         VArray<float3>::ForFunc(
             edges.size(), [positions, edges](const int i) { return positions[edges[i][0]]; }),
-        ATTR_DOMAIN_EDGE,
+        AttrDomain::Edge,
         domain);
   }
   return mesh.attributes().adapt_domain<float3>(
       VArray<float3>::ForFunc(edges.size(),
                               [positions, edges](const int i) { return positions[edges[i][1]]; }),
-      ATTR_DOMAIN_EDGE,
+      AttrDomain::Edge,
       domain);
 }
 
@@ -113,7 +113,7 @@ class EdgePositionFieldInput final : public bke::MeshFieldInput {
   }
 
   GVArray get_varray_for_context(const Mesh &mesh,
-                                 const eAttrDomain domain,
+                                 const AttrDomain domain,
                                  const IndexMask & /*mask*/) const final
   {
     return construct_edge_positions_gvarray(mesh, vertex_, domain);
@@ -134,9 +134,9 @@ class EdgePositionFieldInput final : public bke::MeshFieldInput {
     return false;
   }
 
-  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
+  std::optional<AttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
   {
-    return ATTR_DOMAIN_EDGE;
+    return AttrDomain::Edge;
   }
 };
 

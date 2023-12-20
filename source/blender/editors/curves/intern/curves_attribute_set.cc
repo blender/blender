@@ -62,13 +62,13 @@ static bool active_attribute_poll(bContext *C)
 }
 
 static IndexMask retrieve_selected_elements(const Curves &curves_id,
-                                            const eAttrDomain domain,
+                                            const bke::AttrDomain domain,
                                             IndexMaskMemory &memory)
 {
   switch (domain) {
-    case ATTR_DOMAIN_POINT:
+    case bke::AttrDomain::Point:
       return retrieve_selected_points(curves_id, memory);
-    case ATTR_DOMAIN_CURVE:
+    case bke::AttrDomain::Curve:
       return retrieve_selected_curves(curves_id, memory);
     default:
       BLI_assert_unreachable();
@@ -161,7 +161,7 @@ static int set_attribute_invoke(bContext *C, wmOperator *op, const wmEvent *even
   const bke::CurvesGeometry &curves = active_curves_id.geometry.wrap();
   const bke::AttributeAccessor attributes = curves.attributes();
   const bke::GAttributeReader attribute = attributes.lookup(active_attribute->name);
-  const eAttrDomain domain = attribute.domain;
+  const bke::AttrDomain domain = attribute.domain;
 
   IndexMaskMemory memory;
   const IndexMask selection = retrieve_selected_elements(active_curves_id, domain, memory);
