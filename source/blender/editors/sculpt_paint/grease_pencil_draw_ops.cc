@@ -141,6 +141,8 @@ static int grease_pencil_stroke_invoke(bContext *C, wmOperator *op, const wmEven
   }
 
   const int current_frame = scene->r.cfra;
+  // bke::greasepencil::Layer &active_layer = *grease_pencil.get_active_layer();
+  // grease_pencil.get_editable_drawing_at()
 
   if (!grease_pencil.get_active_layer()->frames().contains(current_frame)) {
     if (!blender::animrig::is_autokey_on(scene)) {
@@ -148,7 +150,7 @@ static int grease_pencil_stroke_invoke(bContext *C, wmOperator *op, const wmEven
       return OPERATOR_CANCELLED;
     }
     const ToolSettings *ts = CTX_data_tool_settings(C);
-    bke::greasepencil::Layer &active_layer = *grease_pencil.get_active_layer_for_write();
+    bke::greasepencil::Layer &active_layer = *grease_pencil.get_active_layer();
     if ((ts->gpencil_flags & GP_TOOL_FLAG_RETAIN_LAST) != 0) {
       /* For additive drawing, we duplicate the frame that's currently visible and insert it at the
        * current frame. */

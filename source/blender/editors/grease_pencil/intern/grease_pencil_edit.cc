@@ -922,7 +922,7 @@ static int grease_pencil_delete_frame_exec(bContext *C, wmOperator *op)
 
   bool changed = false;
   if (mode == DeleteFrameMode::ACTIVE_FRAME && grease_pencil.has_active_layer()) {
-    bke::greasepencil::Layer &layer = *grease_pencil.get_active_layer_for_write();
+    bke::greasepencil::Layer &layer = *grease_pencil.get_active_layer();
     if (layer.is_editable()) {
       changed |= grease_pencil.remove_frames(layer, {layer.frame_key_at(current_frame)});
     }

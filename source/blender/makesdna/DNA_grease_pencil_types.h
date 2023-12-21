@@ -465,7 +465,7 @@ typedef struct GreasePencil {
   /* Active layer functions. */
   bool has_active_layer() const;
   const blender::bke::greasepencil::Layer *get_active_layer() const;
-  blender::bke::greasepencil::Layer *get_active_layer_for_write();
+  blender::bke::greasepencil::Layer *get_active_layer();
   void set_active_layer(const blender::bke::greasepencil::Layer *layer);
   bool is_layer_active(const blender::bke::greasepencil::Layer *layer) const;
 

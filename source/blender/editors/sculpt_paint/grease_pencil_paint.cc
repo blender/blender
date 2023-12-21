@@ -553,7 +553,7 @@ void PaintOperation::on_stroke_done(const bContext &C)
 
   /* Grease Pencil should have an active layer. */
   BLI_assert(grease_pencil.has_active_layer());
-  bke::greasepencil::Layer &active_layer = *grease_pencil.get_active_layer_for_write();
+  bke::greasepencil::Layer &active_layer = *grease_pencil.get_active_layer();
   const int drawing_index = active_layer.drawing_index_at(scene->r.cfra);
 
   /* Drawing should exist. */
