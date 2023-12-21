@@ -656,12 +656,11 @@ static void mesh_edges_sharp_tag(const OffsetIndices<int> faces,
                                  const Span<float3> face_normals,
                                  const Span<bool> sharp_faces,
                                  const Span<bool> sharp_edges,
-                                 const bool check_angle,
                                  const float split_angle,
                                  MutableSpan<int2> edge_to_loops,
                                  MutableSpan<bool> r_sharp_edges)
 {
-  const float split_angle_cos = check_angle ? cosf(split_angle) : -1.0f;
+  const float split_angle_cos = cosf(split_angle);
   auto face_is_smooth = [&](const int face_i) {
     return sharp_faces.is_empty() || !sharp_faces[face_i];
   };
@@ -681,9 +680,8 @@ static void mesh_edges_sharp_tag(const OffsetIndices<int> faces,
         e2l[1] = face_is_smooth(face_i) ? INDEX_UNSET : INDEX_INVALID;
       }
       else if (e2l[1] == INDEX_UNSET) {
-        const bool is_angle_sharp = (check_angle &&
-                                     math::dot(face_normals[loop_to_face_map[e2l[0]]],
-                                               face_normals[face_i]) < split_angle_cos);
+        const bool is_angle_sharp = math::dot(face_normals[loop_to_face_map[e2l[0]]],
+                                              face_normals[face_i]) < split_angle_cos;
 
         /* Second loop using this edge, time to test its sharpness.
          * An edge is sharp if it is tagged as such, or its face is not smooth,
@@ -796,7 +794,6 @@ void edges_sharp_from_angle_set(const OffsetIndices<int> faces,
                        face_normals,
                        sharp_faces,
                        sharp_edges,
-                       true,
                        split_angle,
                        edge_to_loops,
                        sharp_edges);
