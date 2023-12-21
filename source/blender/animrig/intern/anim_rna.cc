@@ -70,7 +70,7 @@ Vector<float> get_rna_values(PointerRNA *ptr, PropertyRNA *prop)
   return values;
 }
 
-std::string get_rotation_mode_path(const eRotationModes rotation_mode)
+StringRef get_rotation_mode_path(const eRotationModes rotation_mode)
 {
   switch (rotation_mode) {
     case ROT_MODE_QUAT:
