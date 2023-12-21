@@ -1166,7 +1166,7 @@ void file_draw_list(const bContext *C, ARegion *region)
     }
   }
 
-  if (numfiles == 0) {
+  if (numfiles < 1) {
     const rcti tile_draw_rect = tile_draw_rect_get(
         v2d, layout, eFileDisplayType(params->display), 0, 0);
     const uiStyle *style = UI_style_get();
