@@ -26,6 +26,7 @@
 #include "BKE_animsys.h"
 #include "BKE_idprop.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_override.hh"
 
 #include "ANIM_armature_iter.hh"
 #include "ANIM_bone_collections.hh"
@@ -287,7 +288,14 @@ bool ANIM_armature_bonecoll_is_editable(const bArmature *armature, const BoneCol
   if (ID_IS_LINKED(armature) && !is_override) {
     return false;
   }
+
+  if (is_override && BKE_lib_override_library_is_system_defined(nullptr, &armature->id)) {
+    /* A system override is still not editable. */
+    return false;
+  }
+
   if (is_override && (bcoll->flags & BONE_COLLECTION_OVERRIDE_LIBRARY_LOCAL) == 0) {
+    /* This particular collection was not added in the local override, so not editable. */
     return false;
   }
   return true;
