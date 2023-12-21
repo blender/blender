@@ -1765,10 +1765,10 @@ static void versioning_nodes_dynamic_sockets(bNodeTree &ntree)
   }
 }
 
-static void versioning_switch_node_dynamic_socket(bNodeTree &ntree)
+static void versioning_nodes_dynamic_sockets_2(bNodeTree &ntree)
 {
   LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
-    if (node->type != GEO_NODE_SWITCH) {
+    if (!ELEM(node->type, GEO_NODE_SWITCH, GEO_NODE_SAMPLE_CURVE)) {
       continue;
     }
     version_socket_identifier_suffixes_for_dynamic_types(node->inputs, "_");
@@ -2586,7 +2586,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
       if (ntree->type == NTREE_GEOMETRY) {
         version_geometry_nodes_use_rotation_socket(*ntree);
-        versioning_switch_node_dynamic_socket(*ntree);
+        versioning_nodes_dynamic_sockets_2(*ntree);
       }
     }
   }
