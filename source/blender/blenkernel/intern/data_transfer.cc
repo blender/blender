@@ -863,6 +863,7 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
                                                  const int tolayers,
                                                  SpaceTransform *space_transform)
 {
+  using namespace blender;
   const CustomData *cd_src;
   CustomData *cd_dst;
 
@@ -1051,20 +1052,25 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
       cddata_type = CD_PROP_FLOAT2;
     }
     else if (cddata_type == CD_FAKE_LNOR) {
-      if (!CustomData_get_layer(&me_dst->corner_data, CD_PROP_FLOAT)) {
-        CustomData_add_layer(&me_dst->corner_data, CD_NORMAL, CD_SET_DEFAULT, me_dst->corners_num);
+      /* Use #CD_NORMAL as a temporary storage for custom normals in 3D vector form.
+       * A post-process step will convert this layer to #CD_CUSTOMLOOPNORMAL. */
+      float3 *dst_data = static_cast<float3 *>(
+          CustomData_get_layer_for_write(&me_dst->corner_data, CD_NORMAL, me_dst->corners_num));
+      if (!dst_data) {
+        dst_data = static_cast<float3 *>(CustomData_add_layer(
+            &me_dst->corner_data, CD_NORMAL, CD_SET_DEFAULT, me_dst->corners_num));
       }
+      MutableSpan(dst_data, me_dst->corners_num).copy_from(me_dst->corner_normals());
       /* Post-process will convert it back to CD_CUSTOMLOOPNORMAL. */
-      data_transfer_layersmapping_add_item_cd(
-          r_map,
-          CD_NORMAL,
-          mix_mode,
-          mix_factor,
-          mix_weights,
-          me_src->corner_normals().data(),
-          CustomData_get_layer_for_write(&me_dst->corner_data, CD_NORMAL, me_dst->corners_num),
-          customdata_data_transfer_interp_normal_normals,
-          space_transform);
+      data_transfer_layersmapping_add_item_cd(r_map,
+                                              CD_NORMAL,
+                                              mix_mode,
+                                              mix_factor,
+                                              mix_weights,
+                                              me_src->corner_normals().data(),
+                                              dst_data,
+                                              customdata_data_transfer_interp_normal_normals,
+                                              space_transform);
       return true;
     }
 
