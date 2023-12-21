@@ -26,6 +26,7 @@
 #include "ED_transform.hh"
 
 #include "ANIM_keyframing.hh"
+#include "ANIM_rna.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -82,19 +83,7 @@ bool autokeyframe_cfra_can_key(const Scene *scene, ID *id)
   return true;
 }
 
-static std::string get_rotation_mode_path(const eRotationModes rotmode)
-{
-  switch (rotmode) {
-    case ROT_MODE_QUAT:
-      return "rotation_quaternion";
-    case ROT_MODE_AXISANGLE:
-      return "rotation_axis_angle";
-    default:
-      return "rotation_euler";
-  }
-}
-
-void autokeyframe_object(bContext *C, Scene *scene, Object *ob)
+void autokeyframe_object(bContext *C, Scene *scene, Object *ob, Span<std::string> rna_paths)
 {
   ID *id = &ob->id;
   if (!autokeyframe_cfra_can_key(scene, id)) {
@@ -148,13 +137,11 @@ void autokeyframe_object(bContext *C, Scene *scene, Object *ob)
   }
 
   const float scene_frame = BKE_scene_frame_get(scene);
-  std::string rotation_rna_path = get_rotation_mode_path(eRotationModes(ob->rotmode));
-  Vector<std::string> rna_paths = {"location", rotation_rna_path, "scale"};
   Main *bmain = CTX_data_main(C);
 
   for (PointerRNA ptr : sources) {
     insert_key_rna(&ptr,
-                   rna_paths.as_span(),
+                   rna_paths,
                    scene_frame,
                    flag,
                    eBezTriple_KeyframeType(scene->toolsettings->keyframe_type),
@@ -199,13 +186,17 @@ bool autokeyframe_pchan(bContext *C, Scene *scene, Object *ob, bPoseChannel *pch
   return true;
 }
 
-void autokeyframe_pose(bContext *C, Scene *scene, Object *ob, short targetless_ik)
+void autokeyframe_pose_channel(bContext *C,
+                               Scene *scene,
+                               Object *ob,
+                               bPoseChannel *pose_channel,
+                               Span<std::string> rna_paths,
+                               short targetless_ik)
 {
   Main *bmain = CTX_data_main(C);
   ID *id = &ob->id;
   AnimData *adt = ob->adt;
   bAction *act = (adt) ? adt->action : nullptr;
-  bPose *pose = ob->pose;
 
   if (!blender::animrig::autokeyframe_cfra_can_key(scene, id)) {
     return;
@@ -230,68 +221,57 @@ void autokeyframe_pose(bContext *C, Scene *scene, Object *ob, short targetless_i
     flag |= INSERTKEY_MATRIX;
   }
 
-  LISTBASE_FOREACH (bPoseChannel *, pchan, &pose->chanbase) {
-    if ((pchan->bone->flag & BONE_TRANSFORM) == 0 &&
-        !((pose->flag & POSE_MIRROR_EDIT) && (pchan->bone->flag & BONE_TRANSFORM_MIRROR)))
-    {
-      continue;
+  blender::Vector<PointerRNA> sources;
+  /* Add data-source override for the camera object. */
+  ANIM_relative_keyingset_add_source(sources, id, &RNA_PoseBone, pose_channel);
+
+  /* only insert into active keyingset? */
+  if (blender::animrig::is_autokey_flag(scene, AUTOKEY_FLAG_ONLYKEYINGSET) && (active_ks)) {
+    /* Run the active Keying Set on the current data-source. */
+    ANIM_apply_keyingset(
+        C, &sources, active_ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
+    return;
+  }
+
+  /* only insert into available channels? */
+  if (blender::animrig::is_autokey_flag(scene, AUTOKEY_FLAG_INSERTAVAILABLE)) {
+    if (!act) {
+      return;
     }
-
-    blender::Vector<PointerRNA> sources;
-    /* Add data-source override for the camera object. */
-    ANIM_relative_keyingset_add_source(sources, id, &RNA_PoseBone, pchan);
-
-    /* only insert into active keyingset? */
-    if (blender::animrig::is_autokey_flag(scene, AUTOKEY_FLAG_ONLYKEYINGSET) && (active_ks)) {
-      /* Run the active Keying Set on the current data-source. */
-      ANIM_apply_keyingset(
-          C, &sources, active_ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
-      continue;
-    }
-
-    /* only insert into available channels? */
-    if (blender::animrig::is_autokey_flag(scene, AUTOKEY_FLAG_INSERTAVAILABLE)) {
-      if (!act) {
+    LISTBASE_FOREACH (FCurve *, fcu, &act->curves) {
+      /* only insert keyframes for this F-Curve if it affects the current bone */
+      char pchan_name[sizeof(pose_channel->name)];
+      if (!BLI_str_quoted_substr(fcu->rna_path, "bones[", pchan_name, sizeof(pchan_name))) {
         continue;
       }
-      LISTBASE_FOREACH (FCurve *, fcu, &act->curves) {
-        /* only insert keyframes for this F-Curve if it affects the current bone */
-        char pchan_name[sizeof(pchan->name)];
-        if (!BLI_str_quoted_substr(fcu->rna_path, "bones[", pchan_name, sizeof(pchan_name))) {
-          continue;
-        }
 
-        /* only if bone name matches too...
-         * NOTE: this will do constraints too, but those are ok to do here too?
-         */
-        if (STREQ(pchan_name, pchan->name)) {
-          blender::animrig::insert_keyframe(bmain,
-                                            reports,
-                                            id,
-                                            act,
-                                            ((fcu->grp) ? (fcu->grp->name) : (nullptr)),
-                                            fcu->rna_path,
-                                            fcu->array_index,
-                                            &anim_eval_context,
-                                            eBezTriple_KeyframeType(ts->keyframe_type),
-                                            flag);
-        }
+      /* only if bone name matches too...
+       * NOTE: this will do constraints too, but those are ok to do here too?
+       */
+      if (STREQ(pchan_name, pose_channel->name)) {
+        blender::animrig::insert_keyframe(bmain,
+                                          reports,
+                                          id,
+                                          act,
+                                          ((fcu->grp) ? (fcu->grp->name) : (nullptr)),
+                                          fcu->rna_path,
+                                          fcu->array_index,
+                                          &anim_eval_context,
+                                          eBezTriple_KeyframeType(ts->keyframe_type),
+                                          flag);
       }
-      continue;
     }
+    return;
+  }
 
-    Main *bmain = CTX_data_main(C);
-    std::string rotation_rna_path = get_rotation_mode_path(eRotationModes(pchan->rotmode));
-    Vector<std::string> rna_paths = {"location", rotation_rna_path, "scale"};
-    for (PointerRNA &ptr : sources) {
-      insert_key_rna(&ptr,
-                     rna_paths,
-                     scene_frame,
-                     flag,
-                     eBezTriple_KeyframeType(scene->toolsettings->keyframe_type),
-                     bmain,
-                     reports);
-    }
+  for (PointerRNA &ptr : sources) {
+    insert_key_rna(&ptr,
+                   rna_paths,
+                   scene_frame,
+                   flag,
+                   eBezTriple_KeyframeType(scene->toolsettings->keyframe_type),
+                   bmain,
+                   reports);
   }
 }
 

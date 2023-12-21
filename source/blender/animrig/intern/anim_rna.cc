@@ -8,6 +8,7 @@
 
 #include "ANIM_rna.hh"
 #include "BLI_vector.hh"
+#include "DNA_action_types.h"
 #include "RNA_access.hh"
 
 namespace blender::animrig {
@@ -67,5 +68,17 @@ Vector<float> get_rna_values(PointerRNA *ptr, PropertyRNA *prop)
   }
 
   return values;
+}
+
+std::string get_rotation_mode_path(const eRotationModes rotation_mode)
+{
+  switch (rotation_mode) {
+    case ROT_MODE_QUAT:
+      return "rotation_quaternion";
+    case ROT_MODE_AXISANGLE:
+      return "rotation_axis_angle";
+    default:
+      return "rotation_euler";
+  }
 }
 }  // namespace blender::animrig

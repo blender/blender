@@ -9,11 +9,15 @@
  */
 
 #include "BLI_vector.hh"
+#include "DNA_action_types.h"
 #include "RNA_types.hh"
 
 namespace blender::animrig {
 
 /** Get the values of the given property. Casts non-float properties to float. */
 Vector<float> get_rna_values(PointerRNA *ptr, PropertyRNA *prop);
+
+/** Get the rna path for the given rotation mode. */
+std::string get_rotation_mode_path(eRotationModes rotation_mode);
 
 }  // namespace blender::animrig
