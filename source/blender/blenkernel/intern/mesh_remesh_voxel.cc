@@ -74,9 +74,6 @@ static Mesh *remesh_quadriflow(const Mesh *input_mesh,
   Array<int3> vert_tris(corner_tris.size());
   mesh::vert_tris_from_corner_tris(input_corner_verts, corner_tris, vert_tris);
 
-  const int totfaces = corner_tris.size();
-  const int totverts = input_mesh->verts_num;
-
   /* Fill out the required input data */
   QuadriflowRemeshData qrd;
 
