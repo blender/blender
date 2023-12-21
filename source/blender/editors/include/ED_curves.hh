@@ -27,7 +27,7 @@ struct TransVertStore;
 struct wmKeyConfig;
 namespace blender::bke {
 enum class AttrDomain : int8_t;
-class GSpanAttributeWriter;
+struct GSpanAttributeWriter;
 }  // namespace blender::bke
 
 /* -------------------------------------------------------------------- */
