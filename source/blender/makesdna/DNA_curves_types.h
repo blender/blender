@@ -86,6 +86,8 @@ typedef enum NormalMode {
    * is vertical, the X axis is used.
    */
   NORMAL_MODE_Z_UP = 1,
+  /** Interpolate the stored "custom_normal" attribute for the final normals. */
+  NORMAL_MODE_FREE = 2,
 } NormalMode;
 
 /**

@@ -664,12 +664,12 @@ static bool try_add_shared_field_attribute(MutableAttributeAccessor attributes,
   return attributes.add(id_to_create, domain, data_type, init);
 }
 
-static bool try_capture_field_on_geometry(MutableAttributeAccessor attributes,
-                                          const GeometryFieldContext &field_context,
-                                          const AttributeIDRef &attribute_id,
-                                          const AttrDomain domain,
-                                          const fn::Field<bool> &selection,
-                                          const fn::GField &field)
+bool try_capture_field_on_geometry(MutableAttributeAccessor attributes,
+                                   const fn::FieldContext &field_context,
+                                   const AttributeIDRef &attribute_id,
+                                   const AttrDomain domain,
+                                   const fn::Field<bool> &selection,
+                                   const fn::GField &field)
 {
   const int domain_size = attributes.domain_size(domain);
   const CPPType &type = field.cpp_type();

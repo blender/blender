@@ -37,6 +37,11 @@ const EnumPropertyItem rna_enum_curve_normal_mode_items[] = {
      "Z Up",
      "Calculate normals perpendicular to the Z axis and the curve tangent. If a series of points "
      "is vertical, the X axis is used"},
+    {NORMAL_MODE_FREE,
+     "FREE",
+     ICON_NONE,
+     "Free",
+     "Use the stored custom normal attribute as the final normals"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 

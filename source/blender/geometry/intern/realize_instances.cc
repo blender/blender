@@ -11,6 +11,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.hh"
+#include "BLI_math_rotation.hh"
 #include "BLI_noise.hh"
 #include "BLI_task.hh"
 
@@ -158,6 +159,9 @@ struct RealizeCurveInfo {
    * curves.
    */
   Span<float> nurbs_weight;
+
+  /** Custom normals are rotated based on each instance's transformation. */
+  Span<float3> custom_normal;
 };
 
 /** Start indices in the final output curves data-block. */
@@ -218,6 +222,7 @@ struct AllCurvesInfo {
   bool create_radius_attribute = false;
   bool create_resolution_attribute = false;
   bool create_nurbs_weight_attribute = false;
+  bool create_custom_normal_attribute = false;
 };
 
 /** Collects all tasks that need to be executed to realize all instances. */
@@ -290,6 +295,23 @@ static void copy_transformed_positions(const Span<float3> src,
       dst[i] = math::transform_point(transform, src[i]);
     }
   });
+}
+
+static void copy_transformed_normals(const Span<float3> src,
+                                     const float4x4 &transform,
+                                     MutableSpan<float3> dst)
+{
+  const float3x3 normal_transform = math::transpose(math::invert(float3x3(transform)));
+  if (math::is_equal(normal_transform, float3x3::identity(), 1e-6f)) {
+    dst.copy_from(src);
+  }
+  else {
+    threading::parallel_for(src.index_range(), 1024, [&](const IndexRange range) {
+      for (const int i : range) {
+        dst[i] = normal_transform * src[i];
+      }
+    });
+  }
 }
 
 static void threaded_copy(const GSpan src, GMutableSpan dst)
@@ -1215,6 +1237,7 @@ static OrderedAttributes gather_generic_curve_attributes_to_propagate(
   attributes_to_propagate.remove("resolution");
   attributes_to_propagate.remove("handle_right");
   attributes_to_propagate.remove("handle_left");
+  attributes_to_propagate.remove("custom_normal");
   r_create_id = attributes_to_propagate.pop_try("id").has_value();
   OrderedAttributes ordered_attributes;
   for (const auto item : attributes_to_propagate.items()) {
@@ -1294,6 +1317,11 @@ static AllCurvesInfo preprocess_curves(const bke::GeometrySet &geometry_set,
                                     .varray.get_internal_span();
       info.create_handle_postion_attributes = true;
     }
+    if (attributes.contains("custom_normal")) {
+      curve_info.custom_normal = attributes.lookup<float3>("custom_normal", bke::AttrDomain::Point)
+                                     .varray.get_internal_span();
+      info.create_custom_normal_attribute = true;
+    }
   }
   return info;
 }
@@ -1309,7 +1337,8 @@ static void execute_realize_curve_task(const RealizeInstancesOptions &options,
                                        MutableSpan<float3> all_handle_right,
                                        MutableSpan<float> all_radii,
                                        MutableSpan<float> all_nurbs_weights,
-                                       MutableSpan<int> all_resolutions)
+                                       MutableSpan<int> all_resolutions,
+                                       MutableSpan<float3> all_custom_normals)
 {
   const RealizeCurveInfo &curves_info = *task.curve_info;
   const Curves &curves_id = *curves_info.curves;
@@ -1357,6 +1386,16 @@ static void execute_realize_curve_task(const RealizeInstancesOptions &options,
 
   if (all_curves_info.create_resolution_attribute) {
     curves_info.resolution.materialize(all_resolutions.slice(dst_curve_range));
+  }
+
+  if (all_curves_info.create_custom_normal_attribute) {
+    if (curves_info.custom_normal.is_empty()) {
+      all_custom_normals.slice(dst_point_range).fill(float3(0, 0, 1));
+    }
+    else {
+      copy_transformed_normals(
+          curves_info.custom_normal, task.transform, all_custom_normals.slice(dst_point_range));
+    }
   }
 
   /* Copy curve offsets. */
@@ -1460,6 +1499,11 @@ static void execute_realize_curve_tasks(const RealizeInstancesOptions &options,
     resolution = dst_attributes.lookup_or_add_for_write_only_span<int>("resolution",
                                                                        bke::AttrDomain::Curve);
   }
+  SpanAttributeWriter<float3> custom_normal;
+  if (all_curves_info.create_custom_normal_attribute) {
+    custom_normal = dst_attributes.lookup_or_add_for_write_only_span<float3>(
+        "custom_normal", bke::AttrDomain::Point);
+  }
 
   /* Actually execute all tasks. */
   threading::parallel_for(tasks.index_range(), 100, [&](const IndexRange task_range) {
@@ -1476,7 +1520,8 @@ static void execute_realize_curve_tasks(const RealizeInstancesOptions &options,
                                  handle_right.span,
                                  radius.span,
                                  nurbs_weight.span,
-                                 resolution.span);
+                                 resolution.span,
+                                 custom_normal.span);
     }
   });
 
@@ -1499,6 +1544,7 @@ static void execute_realize_curve_tasks(const RealizeInstancesOptions &options,
   nurbs_weight.finish();
   handle_left.finish();
   handle_right.finish();
+  custom_normal.finish();
 }
 
 /** \} */
