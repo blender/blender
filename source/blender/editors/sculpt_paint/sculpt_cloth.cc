@@ -17,7 +17,6 @@
 
 #include "DNA_brush_types.h"
 #include "DNA_customdata_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -633,13 +632,13 @@ static void cloth_brush_collision_cb(void *userdata,
 {
   ClothBrushCollision *col = (ClothBrushCollision *)userdata;
   CollisionModifierData *col_data = col->col_data;
-  MVertTri *verttri = &col_data->tri[index];
+  const int3 vert_tri = col_data->vert_tris[index];
   float(*positions)[3] = col_data->x;
   float *tri[3], no[3], co[3];
 
-  tri[0] = positions[verttri->tri[0]];
-  tri[1] = positions[verttri->tri[1]];
-  tri[2] = positions[verttri->tri[2]];
+  tri[0] = positions[vert_tri[0]];
+  tri[1] = positions[vert_tri[1]];
+  tri[2] = positions[vert_tri[2]];
   float dist = 0.0f;
 
   bool tri_hit = isect_ray_tri_watertight_v3(

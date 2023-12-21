@@ -23,8 +23,6 @@
 #include "BLI_span.hh"
 #include "BLI_task.hh"
 
-#include "DNA_meshdata_types.h"
-
 #include "BKE_attribute.hh"
 #include "BKE_attribute_math.hh"
 #include "BKE_bvhutils.hh"
@@ -73,28 +71,19 @@ static Mesh *remesh_quadriflow(const Mesh *input_mesh,
   const Span<int3> corner_tris = input_mesh->corner_tris();
 
   /* Gather the required data for export to the internal quadriflow mesh format. */
-  Array<MVertTri> verttri(corner_tris.size());
-  BKE_mesh_runtime_verttris_from_corner_tris(
-      verttri.data(), input_corner_verts.data(), corner_tris.data(), corner_tris.size());
+  Array<int3> vert_tris(corner_tris.size());
+  mesh::vert_tris_from_corner_tris(input_corner_verts, corner_tris, vert_tris);
 
   const int totfaces = corner_tris.size();
   const int totverts = input_mesh->verts_num;
-  Array<int> faces(totfaces * 3);
-
-  for (const int i : IndexRange(totfaces)) {
-    MVertTri &vt = verttri[i];
-    faces[i * 3] = vt.tri[0];
-    faces[i * 3 + 1] = vt.tri[1];
-    faces[i * 3 + 2] = vt.tri[2];
-  }
 
   /* Fill out the required input data */
   QuadriflowRemeshData qrd;
 
-  qrd.totfaces = totfaces;
-  qrd.totverts = totverts;
-  qrd.verts = (float *)input_positions.data();
-  qrd.faces = faces.data();
+  qrd.totfaces = corner_tris.size();
+  qrd.totverts = input_positions.size();
+  qrd.verts = input_positions.cast<float>().data();
+  qrd.faces = vert_tris.as_span().cast<int>().data();
   qrd.target_faces = target_faces;
 
   qrd.preserve_sharp = preserve_sharp;

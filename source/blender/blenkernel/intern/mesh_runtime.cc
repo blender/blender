@@ -10,7 +10,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
 #include "BLI_array_utils.hh"
@@ -268,18 +267,6 @@ int BKE_mesh_runtime_corner_tris_len(const Mesh *mesh)
 {
   /* Allow returning the size without calculating the cache. */
   return poly_to_tri_count(mesh->faces_num, mesh->corners_num);
-}
-
-void BKE_mesh_runtime_verttris_from_corner_tris(MVertTri *r_verttri,
-                                                const int *corner_verts,
-                                                const blender::int3 *corner_tris,
-                                                int corner_tris_num)
-{
-  for (int i = 0; i < corner_tris_num; i++) {
-    r_verttri[i].tri[0] = corner_verts[corner_tris[i][0]];
-    r_verttri[i].tri[1] = corner_verts[corner_tris[i][1]];
-    r_verttri[i].tri[2] = corner_verts[corner_tris[i][2]];
-  }
 }
 
 void BKE_mesh_runtime_ensure_edit_data(Mesh *mesh)

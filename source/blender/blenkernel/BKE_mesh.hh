@@ -49,6 +49,13 @@ void corner_tris_calc_with_normals(Span<float3> vert_positions,
 
 void corner_tris_calc_face_indices(OffsetIndices<int> faces, MutableSpan<int> tri_faces);
 
+/**
+ * Convert triangles encoded as face corner indices to triangles encoded as vertex indices.
+ */
+void vert_tris_from_corner_tris(Span<int> corner_verts,
+                                Span<int3> corner_tris,
+                                MutableSpan<int3> vert_tris);
+
 /** Return the triangle's three edge indices they are real edges, otherwise -1. */
 int3 corner_tri_get_real_edges(Span<int2> edges,
                                Span<int> corner_verts,

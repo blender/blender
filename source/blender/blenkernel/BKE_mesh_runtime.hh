@@ -9,12 +9,9 @@
  * This file contains access functions for the Mesh.runtime struct.
  */
 
-#include "BKE_mesh_types.hh"
-
 struct CustomData_MeshMasks;
 struct Depsgraph;
 struct KeyBlock;
-struct MVertTri;
 struct Mesh;
 struct Object;
 struct Scene;
@@ -43,14 +40,6 @@ void BKE_mesh_runtime_clear_geometry(Mesh *mesh);
  * more data.
  */
 void BKE_mesh_runtime_clear_cache(Mesh *mesh);
-
-/**
- * Convert triangles encoded as face corner indices to triangles encoded as vertex indices.
- */
-void BKE_mesh_runtime_verttris_from_corner_tris(MVertTri *r_verttri,
-                                                const int *corner_verts,
-                                                const blender::int3 *corner_tris,
-                                                int corner_tris_num);
 
 /* NOTE: the functions below are defined in DerivedMesh.cc, and are intended to be moved
  * to a more suitable location when that file is removed.

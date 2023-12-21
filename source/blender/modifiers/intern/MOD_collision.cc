@@ -15,8 +15,6 @@
 #include "BLT_translation.h"
 
 #include "DNA_defaults.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_object_force_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
@@ -73,7 +71,7 @@ static void free_data(ModifierData *md)
     MEM_SAFE_FREE(collmd->current_xnew);
     MEM_SAFE_FREE(collmd->current_v);
 
-    MEM_SAFE_FREE(collmd->tri);
+    MEM_SAFE_FREE(collmd->vert_tris);
 
     collmd->time_x = collmd->time_xnew = -1000;
     collmd->mvert_num = 0;
@@ -157,16 +155,21 @@ static void deform_verts(ModifierData *md,
       {
         const blender::Span<blender::int3> corner_tris = mesh->corner_tris();
         collmd->tri_num = corner_tris.size();
-        MVertTri *tri = static_cast<MVertTri *>(
-            MEM_mallocN(sizeof(*tri) * collmd->tri_num, __func__));
-        BKE_mesh_runtime_verttris_from_corner_tris(
-            tri, mesh->corner_verts().data(), corner_tris.data(), collmd->tri_num);
-        collmd->tri = tri;
+        int(*vert_tris)[3] = static_cast<int(*)[3]>(
+            MEM_malloc_arrayN(collmd->tri_num, sizeof(int[3]), __func__));
+        blender::bke::mesh::vert_tris_from_corner_tris(
+            mesh->corner_verts(),
+            corner_tris,
+            {reinterpret_cast<blender::int3 *>(vert_tris), collmd->tri_num});
+        collmd->vert_tris = vert_tris;
       }
 
       /* create bounding box hierarchy */
       collmd->bvhtree = bvhtree_build_from_mvert(
-          collmd->x, collmd->tri, collmd->tri_num, ob->pd->pdef_sboft);
+          collmd->x,
+          reinterpret_cast<blender::int3 *>(collmd->vert_tris),
+          collmd->tri_num,
+          ob->pd->pdef_sboft);
 
       collmd->time_x = collmd->time_xnew = current_time;
       collmd->is_static = true;
@@ -198,21 +201,27 @@ static void deform_verts(ModifierData *md,
         if (ob->pd->pdef_sboft != BLI_bvhtree_get_epsilon(collmd->bvhtree)) {
           BLI_bvhtree_free(collmd->bvhtree);
           collmd->bvhtree = bvhtree_build_from_mvert(
-              collmd->current_x, collmd->tri, collmd->tri_num, ob->pd->pdef_sboft);
+              collmd->current_x,
+              reinterpret_cast<const blender::int3 *>(collmd->vert_tris),
+              collmd->tri_num,
+              ob->pd->pdef_sboft);
         }
       }
 
       /* Happens on file load (ONLY when I un-comment changes in `readfile.cc`). */
       if (!collmd->bvhtree) {
         collmd->bvhtree = bvhtree_build_from_mvert(
-            collmd->current_x, collmd->tri, collmd->tri_num, ob->pd->pdef_sboft);
+            collmd->current_x,
+            reinterpret_cast<const blender::int3 *>(collmd->vert_tris),
+            collmd->tri_num,
+            ob->pd->pdef_sboft);
       }
       else if (!collmd->is_static || !is_static) {
         /* recalc static bounding boxes */
         bvhtree_update_from_mvert(collmd->bvhtree,
                                   collmd->current_x,
                                   collmd->current_xnew,
-                                  collmd->tri,
+                                  reinterpret_cast<const blender::int3 *>(collmd->vert_tris),
                                   collmd->tri_num,
                                   true);
       }
@@ -272,7 +281,7 @@ static void blend_read(BlendDataReader * /*reader*/, ModifierData *md)
   collmd->tri_num = 0;
   collmd->is_static = false;
   collmd->bvhtree = nullptr;
-  collmd->tri = nullptr;
+  collmd->vert_tris = nullptr;
 }
 
 ModifierTypeInfo modifierType_Collision = {

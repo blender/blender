@@ -2803,19 +2803,19 @@ void BKE_psys_collision_neartest_cb(void *userdata,
 {
   ParticleCollision *col = (ParticleCollision *)userdata;
   ParticleCollisionElement pce;
-  const MVertTri *vt = &col->md->tri[index];
+  const blender::int3 vert_tri = &col->md->vert_tris[index];
   float(*x)[3] = col->md->x;
   float(*v)[3] = col->md->current_v;
   float t = hit->dist / col->original_ray_length;
   int collision = 0;
 
-  pce.x[0] = x[vt->tri[0]];
-  pce.x[1] = x[vt->tri[1]];
-  pce.x[2] = x[vt->tri[2]];
+  pce.x[0] = x[vert_tri[0]];
+  pce.x[1] = x[vert_tri[1]];
+  pce.x[2] = x[vert_tri[2]];
 
-  pce.v[0] = v[vt->tri[0]];
-  pce.v[1] = v[vt->tri[1]];
-  pce.v[2] = v[vt->tri[2]];
+  pce.v[0] = v[vert_tri[0]];
+  pce.v[1] = v[vert_tri[1]];
+  pce.v[2] = v[vert_tri[2]];
 
   pce.tot = 3;
   pce.inside = 0;

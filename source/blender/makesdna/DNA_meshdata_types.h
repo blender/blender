@@ -93,12 +93,6 @@ enum {
  * real edges.
  */
 
-#
-#
-typedef struct MVertTri {
-  unsigned int tri[3];
-} MVertTri;
-
 /** \} */
 
 /* -------------------------------------------------------------------- */

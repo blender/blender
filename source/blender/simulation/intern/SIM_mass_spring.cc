@@ -9,7 +9,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_cloth_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_force_types.h"
 #include "DNA_object_types.h"
@@ -59,7 +58,7 @@ static int cloth_count_nondiag_blocks(Cloth *cloth)
 }
 
 static bool cloth_get_pressure_weights(ClothModifierData *clmd,
-                                       const MVertTri *vt,
+                                       const blender::int3 &vert_tri,
                                        float *r_weights)
 {
   /* We have custom vertex weights for pressure. */
@@ -68,7 +67,7 @@ static bool cloth_get_pressure_weights(ClothModifierData *clmd,
     ClothVertex *verts = cloth->verts;
 
     for (uint j = 0; j < 3; j++) {
-      r_weights[j] = verts[vt->tri[j]].pressure_factor;
+      r_weights[j] = verts[vert_tri[j]].pressure_factor;
 
       /* Skip the entire triangle if it has a zero weight. */
       if (r_weights[j] == 0.0f) {
@@ -99,7 +98,7 @@ static float cloth_calc_volume(ClothModifierData *clmd)
 {
   /* Calculate the (closed) cloth volume. */
   Cloth *cloth = clmd->clothObject;
-  const MVertTri *tri = cloth->tri;
+  const blender::int3 *vert_tris = cloth->vert_tris;
   Implicit_Data *data = cloth->implicit;
   float weights[3] = {1.0f, 1.0f, 1.0f};
   float vol = 0;
@@ -110,10 +109,10 @@ static float cloth_calc_volume(ClothModifierData *clmd)
   }
 
   for (uint i = 0; i < cloth->primitive_num; i++) {
-    const MVertTri *vt = &tri[i];
+    const blender::int3 tri = vert_tris[i];
 
-    if (cloth_get_pressure_weights(clmd, vt, weights)) {
-      vol += SIM_tri_tetra_volume_signed_6x(data, vt->tri[0], vt->tri[1], vt->tri[2]);
+    if (cloth_get_pressure_weights(clmd, tri, weights)) {
+      vol += SIM_tri_tetra_volume_signed_6x(data, tri[0], tri[1], tri[2]);
     }
   }
 
@@ -127,7 +126,7 @@ static float cloth_calc_rest_volume(ClothModifierData *clmd)
 {
   /* Calculate the (closed) cloth volume. */
   Cloth *cloth = clmd->clothObject;
-  const MVertTri *tri = cloth->tri;
+  const blender::int3 *vert_tris = cloth->vert_tris;
   const ClothVertex *v = cloth->verts;
   float weights[3] = {1.0f, 1.0f, 1.0f};
   float vol = 0;
@@ -138,11 +137,11 @@ static float cloth_calc_rest_volume(ClothModifierData *clmd)
   }
 
   for (uint i = 0; i < cloth->primitive_num; i++) {
-    const MVertTri *vt = &tri[i];
+    const blender::int3 tri = vert_tris[i];
 
-    if (cloth_get_pressure_weights(clmd, vt, weights)) {
+    if (cloth_get_pressure_weights(clmd, tri, weights)) {
       vol += volume_tri_tetrahedron_signed_v3_6x(
-          v[vt->tri[0]].xrest, v[vt->tri[1]].xrest, v[vt->tri[2]].xrest);
+          v[tri[0]].xrest, v[tri[1]].xrest, v[tri[2]].xrest);
     }
   }
 
@@ -155,20 +154,20 @@ static float cloth_calc_rest_volume(ClothModifierData *clmd)
 static float cloth_calc_average_pressure(ClothModifierData *clmd, const float *vertex_pressure)
 {
   Cloth *cloth = clmd->clothObject;
-  const MVertTri *tri = cloth->tri;
+  const blender::int3 *vert_tris = cloth->vert_tris;
   Implicit_Data *data = cloth->implicit;
   float weights[3] = {1.0f, 1.0f, 1.0f};
   float total_force = 0;
   float total_area = 0;
 
   for (uint i = 0; i < cloth->primitive_num; i++) {
-    const MVertTri *vt = &tri[i];
+    const blender::int3 tri = vert_tris[i];
 
-    if (cloth_get_pressure_weights(clmd, vt, weights)) {
-      float area = SIM_tri_area(data, vt->tri[0], vt->tri[1], vt->tri[2]);
+    if (cloth_get_pressure_weights(clmd, tri, weights)) {
+      float area = SIM_tri_area(data, tri[0], tri[1], tri[2]);
 
-      total_force += (vertex_pressure[vt->tri[0]] + vertex_pressure[vt->tri[1]] +
-                      vertex_pressure[vt->tri[2]]) *
+      total_force += (vertex_pressure[tri[0]] + vertex_pressure[tri[1]] +
+                      vertex_pressure[tri[2]]) *
                      area / 3.0f;
       total_area += area;
     }
@@ -573,7 +572,7 @@ static void cloth_calc_force(
   uint i = 0;
   float drag = clmd->sim_parms->Cvi * 0.01f; /* viscosity of air scaled in percent */
   float gravity[3] = {0.0f, 0.0f, 0.0f};
-  const MVertTri *tri = cloth->tri;
+  const blender::int3 *vert_tris = cloth->vert_tris;
   uint mvert_num = cloth->mvert_num;
   ClothVertex *vert;
 
@@ -680,16 +679,11 @@ static void cloth_calc_force(
       float weights[3] = {1.0f, 1.0f, 1.0f};
 
       for (i = 0; i < cloth->primitive_num; i++) {
-        const MVertTri *vt = &tri[i];
+        const blender::int3 tri = vert_tris[i];
 
-        if (cloth_get_pressure_weights(clmd, vt, weights)) {
-          SIM_mass_spring_force_pressure(data,
-                                         vt->tri[0],
-                                         vt->tri[1],
-                                         vt->tri[2],
-                                         pressure_difference,
-                                         hydrostatic_pressure,
-                                         weights);
+        if (cloth_get_pressure_weights(clmd, tri, weights)) {
+          SIM_mass_spring_force_pressure(
+              data, tri[0], tri[1], tri[2], pressure_difference, hydrostatic_pressure, weights);
         }
       }
     }
@@ -730,12 +724,12 @@ static void cloth_calc_force(
     /* Hair has only edges. */
     if (is_not_hair) {
       for (i = 0; i < cloth->primitive_num; i++) {
-        const MVertTri *vt = &tri[i];
+        const blender::int3 tri = vert_tris[i];
         if (has_wind) {
-          SIM_mass_spring_force_face_wind(data, vt->tri[0], vt->tri[1], vt->tri[2], winvec);
+          SIM_mass_spring_force_face_wind(data, tri[0], tri[1], tri[2], winvec);
         }
         if (has_force) {
-          SIM_mass_spring_force_face_extern(data, vt->tri[0], vt->tri[1], vt->tri[2], forcevec);
+          SIM_mass_spring_force_face_extern(data, tri[0], tri[1], tri[2], forcevec);
         }
       }
     }

@@ -879,7 +879,7 @@ typedef struct CollisionModifierData {
   /** (xnew - x) at the actual inter-frame step. */
   float (*current_v)[3];
 
-  struct MVertTri *tri;
+  int (*vert_tris)[3];
 
   unsigned int mvert_num;
   unsigned int tri_num;
