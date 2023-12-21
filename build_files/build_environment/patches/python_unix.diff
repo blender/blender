@@ -2,31 +2,6 @@ diff --git a/setup.py.orig b/setup.py
 index a97a755..07ce853 100644
 --- a/setup.py.orig
 +++ b/setup.py
-@@ -1603,13 +1603,13 @@
-                         version = line.split()[2]
-                         break
-             if version >= version_req:
--                if (self.compiler.find_library_file(self.lib_dirs, 'z')):
-+                if (self.compiler.find_library_file(self.lib_dirs, 'z_pic')):
-                     if MACOS:
-                         zlib_extra_link_args = ('-Wl,-search_paths_first',)
-                     else:
-                         zlib_extra_link_args = ()
-                     self.add(Extension('zlib', ['zlibmodule.c'],
--                                       libraries=['z'],
-+                                       libraries=['z_pic'],
-                                        extra_link_args=zlib_extra_link_args))
-                     have_zlib = True
-                 else:
-@@ -1623,7 +1623,7 @@
-         # crc32 if we have it.  Otherwise binascii uses its own.
-         if have_zlib:
-             extra_compile_args = ['-DUSE_ZLIB_CRC32']
--            libraries = ['z']
-+            libraries = ['z_pic']
-             extra_link_args = zlib_extra_link_args
-         else:
-             extra_compile_args = []
 @@ -2168,7 +2168,7 @@
                  ffi_inc = None
                  print('Header file {} does not exist'.format(ffi_h))
@@ -36,39 +11,32 @@ index a97a755..07ce853 100644
                  if (self.compiler.find_library_file(self.lib_dirs, lib_name)):
                      ffi_lib = lib_name
                      break
---- a/Modules/posixmodule.c	2022-12-09 21:44:03
-+++ b/Modules/posixmodule.c	2022-12-09 21:39:46
-@@ -10564,10 +10564,15 @@
-         Py_BEGIN_ALLOW_THREADS
- #ifdef HAVE_MKFIFOAT
-         if (dir_fd != DEFAULT_DIR_FD) {
-+// BLENDER: disable also at compile time for compatibility when linking with older Xcode.
-+// https://github.com/python/cpython/issues/97897
-+#ifndef __APPLE__
-             if (HAVE_MKFIFOAT_RUNTIME) {
-                 result = mkfifoat(dir_fd, path->narrow, mode);
+--- a/configure	2023-12-10 05:22:18.130767840 +0100
++++ b/configure	2023-12-10 05:22:05.210521365 +0100
+@@ -11258,7 +11258,7 @@
+ #define HAVE_LIBDL 1
+ _ACEOF
  
-+            } else
-+#endif
-+            {
--            } else {
-                 mkfifoat_unavailable = 1;
-                 result = 0;
-             }
-@@ -10638,10 +10633,15 @@
-         Py_BEGIN_ALLOW_THREADS
- #ifdef HAVE_MKNODAT
-         if (dir_fd != DEFAULT_DIR_FD) {
-+// BLENDER: disable also at compile time for compatibility when linking with older Xcode.
-+// https://github.com/python/cpython/issues/97897
-+#ifndef __APPLE__
-             if (HAVE_MKNODAT_RUNTIME) {
-                 result = mknodat(dir_fd, path->narrow, mode, device);
+-  LIBS="-ldl $LIBS"
++  LIBS="-ldl -lm $LIBS"
  
-+            } else
-+#endif
-+            {
--            } else {
-                 mknodat_unavailable = 1;
-                 result = 0;
-             }
+ fi
+ 	# Dynamic linking for SunOS/Solaris and SYSV
+@@ -23231,7 +23231,7 @@
+ save_LIBS=$LIBS
+ 
+ 
+-  LIBS="$LIBS $OPENSSL_LIBS"
++  LIBS="$OPENSSL_LIBS $LIBS"
+   CFLAGS="$CFLAGS $OPENSSL_INCLUDES"
+   LDFLAGS="$LDFLAGS $OPENSSL_LDFLAGS $OPENSSL_LDFLAGS_RPATH"
+ 
+@@ -23292,7 +23292,7 @@
+ save_LIBS=$LIBS
+ 
+ 
+-  LIBS="$LIBS $LIBCRYPTO_LIBS"
++  LIBS="$LIBCRYPTO_LIBS $LIBS"
+   CFLAGS="$CFLAGS $OPENSSL_INCLUDES"
+   LDFLAGS="$LDFLAGS $OPENSSL_LDFLAGS $OPENSSL_LDFLAGS_RPATH"
+ 

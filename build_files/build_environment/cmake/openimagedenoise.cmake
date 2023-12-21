@@ -64,6 +64,14 @@ add_dependencies(
   external_python
 )
 
+if(UNIX AND NOT APPLE)
+  add_dependencies(
+    external_openimagedenoise
+    external_dpcpp
+    external_ocloc
+  )
+endif()
+
 if(BUILD_MODE STREQUAL Release AND WIN32)
     ExternalProject_Add_Step(external_openimagedenoise after_install
       COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/openimagedenoise/bin ${HARVEST_TARGET}/openimagedenoise/bin

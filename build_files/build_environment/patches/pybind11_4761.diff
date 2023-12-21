@@ -1,0 +1,113 @@
+diff --git a/tools/FindPythonLibsNew.cmake b/tools/FindPythonLibsNew.cmake
+index ce558d4ece..104448597f 100644
+--- a/tools/FindPythonLibsNew.cmake
++++ b/tools/FindPythonLibsNew.cmake
+@@ -172,13 +172,20 @@ _pybind11_get_if_undef(_PYTHON_VALUES 0 _PYTHON_VERSION_LIST)
+ _pybind11_get_if_undef(_PYTHON_VALUES 1 PYTHON_PREFIX)
+ _pybind11_get_if_undef(_PYTHON_VALUES 2 PYTHON_INCLUDE_DIR)
+ _pybind11_get_if_undef(_PYTHON_VALUES 3 PYTHON_SITE_PACKAGES)
+-_pybind11_get_if_undef(_PYTHON_VALUES 4 PYTHON_MODULE_EXTENSION)
+ _pybind11_get_if_undef(_PYTHON_VALUES 5 PYTHON_IS_DEBUG)
+ _pybind11_get_if_undef(_PYTHON_VALUES 6 PYTHON_SIZEOF_VOID_P)
+ _pybind11_get_if_undef(_PYTHON_VALUES 7 PYTHON_LIBRARY_SUFFIX)
+ _pybind11_get_if_undef(_PYTHON_VALUES 8 PYTHON_LIBDIR)
+ _pybind11_get_if_undef(_PYTHON_VALUES 9 PYTHON_MULTIARCH)
+ 
++list(GET _PYTHON_VALUES 4 _PYTHON_MODULE_EXT_SUFFIX)
++if(PYBIND11_PYTHONLIBS_OVERWRITE OR NOT DEFINED PYTHON_MODULE_DEBUG_POSTFIX)
++  get_filename_component(PYTHON_MODULE_DEBUG_POSTFIX "${_PYTHON_MODULE_EXT_SUFFIX}" NAME_WE)
++endif()
++if(PYBIND11_PYTHONLIBS_OVERWRITE OR NOT DEFINED PYTHON_MODULE_EXTENSION)
++  get_filename_component(PYTHON_MODULE_EXTENSION "${_PYTHON_MODULE_EXT_SUFFIX}" EXT)
++endif()
++
+ # Make sure the Python has the same pointer-size as the chosen compiler
+ # Skip if CMAKE_SIZEOF_VOID_P is not defined
+ # This should be skipped for (non-Apple) cross-compiles (like EMSCRIPTEN)
+diff --git a/tools/pybind11NewTools.cmake b/tools/pybind11NewTools.cmake
+index 7d7424a790..07bd2f90eb 100644
+--- a/tools/pybind11NewTools.cmake
++++ b/tools/pybind11NewTools.cmake
+@@ -95,25 +95,36 @@ endif()
+ 
+ # Get the suffix - SO is deprecated, should use EXT_SUFFIX, but this is
+ # required for PyPy3 (as of 7.3.1)
+-if(NOT DEFINED PYTHON_MODULE_EXTENSION)
++if(NOT DEFINED PYTHON_MODULE_EXTENSION OR NOT DEFINED PYTHON_MODULE_DEBUG_POSTFIX)
+   execute_process(
+     COMMAND
+       "${${_Python}_EXECUTABLE}" "-c"
+       "import sys, importlib; s = importlib.import_module('distutils.sysconfig' if sys.version_info < (3, 10) else 'sysconfig'); print(s.get_config_var('EXT_SUFFIX') or s.get_config_var('SO'))"
+-    OUTPUT_VARIABLE _PYTHON_MODULE_EXTENSION
+-    ERROR_VARIABLE _PYTHON_MODULE_EXTENSION_ERR
++    OUTPUT_VARIABLE _PYTHON_MODULE_EXT_SUFFIX
++    ERROR_VARIABLE _PYTHON_MODULE_EXT_SUFFIX_ERR
+     OUTPUT_STRIP_TRAILING_WHITESPACE)
+ 
+-  if(_PYTHON_MODULE_EXTENSION STREQUAL "")
++  if(_PYTHON_MODULE_EXT_SUFFIX STREQUAL "")
+     message(
+       FATAL_ERROR "pybind11 could not query the module file extension, likely the 'distutils'"
+-                  "package is not installed. Full error message:\n${_PYTHON_MODULE_EXTENSION_ERR}")
++                  "package is not installed. Full error message:\n${_PYTHON_MODULE_EXT_SUFFIX_ERR}"
++    )
+   endif()
+ 
+   # This needs to be available for the pybind11_extension function
+-  set(PYTHON_MODULE_EXTENSION
+-      "${_PYTHON_MODULE_EXTENSION}"
+-      CACHE INTERNAL "")
++  if(NOT DEFINED PYTHON_MODULE_DEBUG_POSTFIX)
++    get_filename_component(_PYTHON_MODULE_DEBUG_POSTFIX "${_PYTHON_MODULE_EXT_SUFFIX}" NAME_WE)
++    set(PYTHON_MODULE_DEBUG_POSTFIX
++        "${_PYTHON_MODULE_DEBUG_POSTFIX}"
++        CACHE INTERNAL "")
++  endif()
++
++  if(NOT DEFINED PYTHON_MODULE_EXTENSION)
++    get_filename_component(_PYTHON_MODULE_EXTENSION "${_PYTHON_MODULE_EXT_SUFFIX}" EXT)
++    set(PYTHON_MODULE_EXTENSION
++        "${_PYTHON_MODULE_EXTENSION}"
++        CACHE INTERNAL "")
++  endif()
+ endif()
+ 
+ # Python debug libraries expose slightly different objects before 3.8
+@@ -251,6 +262,9 @@ endfunction()
+ 
+ function(pybind11_extension name)
+   # The extension is precomputed
+-  set_target_properties(${name} PROPERTIES PREFIX "" SUFFIX "${PYTHON_MODULE_EXTENSION}")
+-
++  set_target_properties(
++    ${name}
++    PROPERTIES PREFIX ""
++               DEBUG_POSTFIX "${PYTHON_MODULE_DEBUG_POSTFIX}"
++               SUFFIX "${PYTHON_MODULE_EXTENSION}")
+ endfunction()
+diff --git a/tools/pybind11Tools.cmake b/tools/pybind11Tools.cmake
+index 66ad00a478..874fc39ebb 100644
+--- a/tools/pybind11Tools.cmake
++++ b/tools/pybind11Tools.cmake
+@@ -65,6 +65,7 @@ _pybind11_promote_to_cache(PYTHON_INCLUDE_DIRS)
+ _pybind11_promote_to_cache(PYTHON_LIBRARIES)
+ _pybind11_promote_to_cache(PYTHON_MODULE_PREFIX)
+ _pybind11_promote_to_cache(PYTHON_MODULE_EXTENSION)
++_pybind11_promote_to_cache(PYTHON_MODULE_DEBUG_POSTFIX)
+ _pybind11_promote_to_cache(PYTHON_VERSION_MAJOR)
+ _pybind11_promote_to_cache(PYTHON_VERSION_MINOR)
+ _pybind11_promote_to_cache(PYTHON_VERSION)
+@@ -148,8 +149,11 @@ endif()
+ 
+ function(pybind11_extension name)
+   # The prefix and extension are provided by FindPythonLibsNew.cmake
+-  set_target_properties(${name} PROPERTIES PREFIX "${PYTHON_MODULE_PREFIX}"
+-                                           SUFFIX "${PYTHON_MODULE_EXTENSION}")
++  set_target_properties(
++    ${name}
++    PROPERTIES PREFIX "${PYTHON_MODULE_PREFIX}"
++               DEBUG_POSTFIX "${PYTHON_MODULE_DEBUG_POSTFIX}"
++               SUFFIX "${PYTHON_MODULE_EXTENSION}")
+ endfunction()
+ 
+ # Build a Python extension module:

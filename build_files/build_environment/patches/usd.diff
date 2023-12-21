@@ -99,18 +99,3 @@ diff -Naur orig/pxr/usdImaging/CMakeLists.txt external_usd/pxr/usdImaging/CMakeL
      plugin
  )
  
-diff -Naur orig/cmake/macros/Private.cmake external_usd/cmake/macros/Private.cmake
---- orig/cmake/macros/Private.cmake     2022-02-18 14:49:09 -0700
-+++ external_usd/cmake/macros/Private.cmake     2022-08-05 10:42:03 -0600
-@@ -900,8 +900,10 @@
-         return()
-     endif()
-
--    if (WIN32 AND PXR_USE_DEBUG_PYTHON)
-+    if (WIN32 AND PXR_USE_DEBUG_PYTHON AND NOT CMAKE_DEBUG_POSTFIX)
-         # On Windows when compiling with debug python the library must be named with _d.
-+        # Blender: but this can be skipped if CMAKE_DEBUG_POSTFIX is set, it knows
-+        # what it is doing and we don't want libraries ending in _d_d.pyd 
-         set(LIBRARY_NAME "_${NAME}_d")
-     else()
-         set(LIBRARY_NAME "_${NAME}")

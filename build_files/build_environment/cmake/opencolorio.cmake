@@ -11,7 +11,7 @@ set(OPENCOLORIO_EXTRA_ARGS
   -DOCIO_BUILD_DOCS=OFF
   -DOCIO_BUILD_TESTS=OFF
   -DOCIO_BUILD_GPU_TESTS=OFF
-  -DOCIO_USE_SSE=ON
+  -DOCIO_USE_SIMD=ON
 
   -DOCIO_INSTALL_EXT_PACKAGES=NONE
 
@@ -21,7 +21,7 @@ set(OPENCOLORIO_EXTRA_ARGS
   -Dpystring_ROOT=${LIBDIR}/pystring
   -DImath_ROOT=${LIBDIR}/imath
   -Dminizip-ng_ROOT=${LIBDIR}/minizipng
-  -Dminizip-ng_INCLUDE_DIR=${LIBDIR}/minizipng/include
+  -Dminizip-ng_INCLUDE_DIR=${LIBDIR}/minizipng/include/minizip-ng
   -Dminizip-ng_LIBRARY=${LIBDIR}/minizipng/lib/libminizip${LIBEXT}
   -DZLIB_LIBRARY=${LIBDIR}/zlib/lib/${ZLIB_LIBRARY}
   -DZLIB_INCLUDE_DIR=${LIBDIR}/zlib/include/
@@ -30,14 +30,10 @@ set(OPENCOLORIO_EXTRA_ARGS
 )
 
 if(APPLE)
+  # Work around issue where minizip-ng_LIBRARY assumes -ng in file name.
   set(OPENCOLORIO_EXTRA_ARGS
     ${OPENCOLORIO_EXTRA_ARGS}
-    "-DCMAKE_SHARED_LINKER_FLAGS=-liconv ${LIBDIR}/bzip2/lib/${LIBPREFIX}bz2${LIBEXT}"
-  )
-elseif(UNIX)
-  set(OPENCOLORIO_EXTRA_ARGS
-    ${OPENCOLORIO_EXTRA_ARGS}
-    "-DCMAKE_SHARED_LINKER_FLAGS=${LIBDIR}/bzip2/lib/${LIBPREFIX}bz2${LIBEXT}"
+    -Dminizip_LIBRARY=${LIBDIR}/minizipng/lib/libminizip${LIBEXT}
   )
 endif()
 
@@ -72,7 +68,6 @@ ExternalProject_Add(external_opencolorio
   URL_HASH ${OPENCOLORIO_HASH_TYPE}=${OPENCOLORIO_HASH}
   CMAKE_GENERATOR ${PLATFORM_ALT_GENERATOR}
   PREFIX ${BUILD_DIR}/opencolorio
-  PATCH_COMMAND ${PATCH_CMD} -p 1 -N -d ${BUILD_DIR}/opencolorio/src/external_opencolorio < ${PATCH_DIR}/opencolorio.diff
   CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/opencolorio ${DEFAULT_CMAKE_FLAGS} ${OPENCOLORIO_EXTRA_ARGS}
   INSTALL_DIR ${LIBDIR}/opencolorio
 )
@@ -93,14 +88,14 @@ if(WIN32)
   if(BUILD_MODE STREQUAL Release)
     ExternalProject_Add_Step(external_opencolorio after_install
       COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/opencolorio/include ${HARVEST_TARGET}/opencolorio/include
-      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/opencolorio/bin/OpenColorIO_2_2.dll ${HARVEST_TARGET}/opencolorio/bin/OpenColorIO_2_2.dll
+      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/opencolorio/bin/OpenColorIO_2_3.dll ${HARVEST_TARGET}/opencolorio/bin/OpenColorIO_2_3.dll
       COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/opencolorio/lib ${HARVEST_TARGET}/opencolorio/lib
       DEPENDEES install
     )
   endif()
   if(BUILD_MODE STREQUAL Debug)
     ExternalProject_Add_Step(external_opencolorio after_install
-      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/opencolorio/bin/OpenColorIO_d_2_2.dll ${HARVEST_TARGET}/opencolorio/bin/OpenColorIO_d_2_2.dll
+      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/opencolorio/bin/OpenColorIO_d_2_3.dll ${HARVEST_TARGET}/opencolorio/bin/OpenColorIO_d_2_3.dll
       COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/opencolorio/lib/Opencolorio_d.lib ${HARVEST_TARGET}/opencolorio/lib/OpenColorIO_d.lib
       COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/opencolorio/lib/site-packages ${HARVEST_TARGET}/opencolorio/lib/site-packages-debug
       DEPENDEES install

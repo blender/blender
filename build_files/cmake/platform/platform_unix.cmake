@@ -355,6 +355,7 @@ if(WITH_CYCLES AND WITH_CYCLES_OSL)
     endif()
   endif()
 endif()
+add_bundled_libraries(osl/lib)
 
 if(WITH_CYCLES AND WITH_CYCLES_DEVICE_ONEAPI)
   set(CYCLES_LEVEL_ZERO ${LIBDIR}/level-zero CACHE PATH "Path to Level Zero installation")

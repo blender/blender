@@ -15,6 +15,7 @@ ExternalProject_Add(external_imath
   PREFIX ${BUILD_DIR}/imath
   CMAKE_GENERATOR ${PLATFORM_ALT_GENERATOR}
   CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/imath ${DEFAULT_CMAKE_FLAGS} ${IMATH_EXTRA_ARGS}
+  PATCH_COMMAND ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/imath/src/external_imath < ${PATCH_DIR}/imath_358.diff
   INSTALL_DIR ${LIBDIR}/imath
 )
 
