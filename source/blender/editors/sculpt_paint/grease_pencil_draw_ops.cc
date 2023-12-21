@@ -141,16 +141,19 @@ static int grease_pencil_stroke_invoke(bContext *C, wmOperator *op, const wmEven
   }
 
   const int current_frame = scene->r.cfra;
-  // bke::greasepencil::Layer &active_layer = *grease_pencil.get_active_layer();
-  // grease_pencil.get_editable_drawing_at()
+  bke::greasepencil::Layer &active_layer = *grease_pencil.get_active_layer();
+  /* If there is no drawing at the current frame and auto-key is off, then */
+  if (!active_layer.has_drawing_at(current_frame) && !blender::animrig::is_autokey_on(scene)) {
+    BKE_report(op->reports, RPT_ERROR, "No Grease Pencil frame to draw on");
+    return OPERATOR_CANCELLED;
+  }
 
-  if (!grease_pencil.get_active_layer()->frames().contains(current_frame)) {
-    if (!blender::animrig::is_autokey_on(scene)) {
-      BKE_report(op->reports, RPT_ERROR, "No Grease Pencil frame to draw on");
-      return OPERATOR_CANCELLED;
-    }
+  /* If auto-key is on and the drawing at the current frame starts before the current frame a new
+   * keyframe needs to be inserted. */
+  if (blender::animrig::is_autokey_on(scene) &&
+      active_layer.frame_key_at(current_frame) < current_frame)
+  {
     const ToolSettings *ts = CTX_data_tool_settings(C);
-    bke::greasepencil::Layer &active_layer = *grease_pencil.get_active_layer();
     if ((ts->gpencil_flags & GP_TOOL_FLAG_RETAIN_LAST) != 0) {
       /* For additive drawing, we duplicate the frame that's currently visible and insert it at the
        * current frame. */
@@ -158,10 +161,12 @@ static int grease_pencil_stroke_invoke(bContext *C, wmOperator *op, const wmEven
           active_layer, active_layer.frame_key_at(current_frame), current_frame, false);
     }
     else {
-      /* Otherwise we just insert a blank keyframe. */
+      /* Otherwise we just insert a blank keyframe at the current frame. */
       grease_pencil.insert_blank_frame(active_layer, current_frame, 0, BEZT_KEYTYPE_KEYFRAME);
     }
   }
+  /* There should now always be a drawing at the current frame. */
+  BLI_assert(active_layer.has_drawing_at(current_frame));
 
   op->customdata = paint_stroke_new(C,
                                     op,

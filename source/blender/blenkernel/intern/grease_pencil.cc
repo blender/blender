@@ -808,6 +808,11 @@ int Layer::drawing_index_at(const int frame_number) const
   return (frame != nullptr) ? frame->drawing_index : -1;
 }
 
+bool Layer::has_drawing_at(const int frame_number) const
+{
+  return frame_at(frame_number) != nullptr;
+}
+
 int Layer::get_frame_duration_at(const int frame_number) const
 {
   const FramesMapKey frame_key = this->frame_key_at(frame_number);
