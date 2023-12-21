@@ -194,14 +194,14 @@ TEST_F(ANIM_armature_bone_collections, bcoll_is_editable)
       << "Expecting local armature to be editable";
 
   /* Fake that the armature is linked from another blend file. */
-  Library fake_lib;
+  Library fake_lib = {};
   arm.id.lib = &fake_lib;
   EXPECT_FALSE(ANIM_armature_bonecoll_is_editable(&arm, bcoll1))
       << "Expecting local armature to not be editable";
 
   /* Fake that the armature is an override, but linked from another blend file. */
-  IDOverrideLibrary fake_override;
-  bArmature fake_reference;
+  IDOverrideLibrary fake_override = {};
+  bArmature fake_reference = {};
   fake_override.reference = &fake_reference.id;
   arm.id.override_library = &fake_override;
   EXPECT_FALSE(ANIM_armature_bonecoll_is_editable(&arm, bcoll1))
