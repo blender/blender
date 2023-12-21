@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include "BKE_colortools.h"
 #include "BLI_system.h"
 #include "BLI_vector.hh"
 #include "DNA_scene_types.h"

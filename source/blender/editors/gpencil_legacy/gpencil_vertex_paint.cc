@@ -21,7 +21,7 @@
 #include "DNA_material_types.h"
 
 #include "BKE_brush.hh"
-#include "BKE_colortools.h"
+#include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_material.h"

@@ -46,7 +46,7 @@
 #include "BKE_animsys.h"
 #include "BKE_boids.h"
 #include "BKE_collision.h"
-#include "BKE_colortools.h"
+#include "BKE_colortools.hh"
 #include "BKE_effect.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"

@@ -357,8 +357,8 @@ set(SRC
   BKE_cloth.hh
   BKE_collection.h
   BKE_collision.h
-  BKE_colorband.h
-  BKE_colortools.h
+  BKE_colorband.hh
+  BKE_colortools.hh
   BKE_compute_contexts.hh
   BKE_constraint.h
   BKE_context.hh

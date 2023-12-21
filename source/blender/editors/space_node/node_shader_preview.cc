@@ -31,7 +31,7 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
-#include "BKE_colortools.h"
+#include "BKE_colortools.hh"
 #include "BKE_compute_contexts.hh"
 #include "BKE_context.hh"
 #include "BKE_global.h"

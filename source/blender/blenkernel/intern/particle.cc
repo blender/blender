@@ -51,7 +51,7 @@
 #include "BKE_boids.h"
 #include "BKE_cloth.hh"
 #include "BKE_collection.h"
-#include "BKE_colortools.h"
+#include "BKE_colortools.hh"
 #include "BKE_deform.h"
 #include "BKE_displist.h"
 #include "BKE_effect.h"

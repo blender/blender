@@ -26,7 +26,7 @@
 #include "DNA_screen_types.h"
 
 #include "BKE_bvhutils.hh"
-#include "BKE_colortools.h" /* CurveMapping. */
+#include "BKE_colortools.hh" /* CurveMapping. */
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
 #include "BKE_customdata.hh"

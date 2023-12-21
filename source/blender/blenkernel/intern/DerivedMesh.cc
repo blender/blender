@@ -34,7 +34,6 @@
 
 #include "BKE_DerivedMesh.hh"
 #include "BKE_bvhutils.hh"
-#include "BKE_colorband.h"
 #include "BKE_deform.h"
 #include "BKE_editmesh.hh"
 #include "BKE_editmesh_cache.hh"

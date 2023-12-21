@@ -56,7 +56,6 @@
 
 #  include "BKE_bvhutils.hh"
 #  include "BKE_collision.h"
-#  include "BKE_colortools.h"
 #  include "BKE_customdata.hh"
 #  include "BKE_deform.h"
 #  include "BKE_mesh.hh"

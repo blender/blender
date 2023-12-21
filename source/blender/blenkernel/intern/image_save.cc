@@ -26,7 +26,7 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_openexr.h"
 
-#include "BKE_colortools.h"
+#include "BKE_colortools.hh"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_image_format.h"

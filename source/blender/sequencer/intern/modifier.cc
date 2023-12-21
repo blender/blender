@@ -22,7 +22,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 
-#include "BKE_colortools.h"
+#include "BKE_colortools.hh"
 
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"

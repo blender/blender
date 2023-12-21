@@ -29,8 +29,8 @@
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
 
-#include "BKE_colorband.h"
-#include "BKE_colortools.h"
+#include "BKE_colorband.hh"
+#include "BKE_colortools.hh"
 #include "BKE_customdata.hh"
 #include "BKE_deform.h"
 #include "BKE_lattice.hh"

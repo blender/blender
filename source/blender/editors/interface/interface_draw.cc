@@ -23,8 +23,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_colorband.h"
-#include "BKE_colortools.h"
+#include "BKE_colorband.hh"
+#include "BKE_colortools.hh"
 #include "BKE_curveprofile.h"
 #include "BKE_node.hh"
 #include "BKE_tracking.h"

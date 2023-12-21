@@ -60,7 +60,7 @@
 #include "BKE_asset.hh"
 #include "BKE_attribute.hh"
 #include "BKE_collection.h"
-#include "BKE_colortools.h"
+#include "BKE_colortools.hh"
 #include "BKE_curve.hh"
 #include "BKE_curves.hh"
 #include "BKE_data_transfer.h"

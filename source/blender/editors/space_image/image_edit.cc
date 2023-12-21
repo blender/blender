@@ -14,7 +14,7 @@
 #include "BLI_listbase.h"
 #include "BLI_rect.h"
 
-#include "BKE_colortools.h"
+#include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_global.h"

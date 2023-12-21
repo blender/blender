@@ -18,7 +18,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_threads.h"
 
-#include "BKE_colortools.h"
+#include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_image.h"
 #include "BKE_layer.h"

@@ -14,7 +14,7 @@
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 
-#include "BKE_colortools.h"
+#include "BKE_colortools.hh"
 #include "BKE_particle.h"
 
 #include "particle_private.h"

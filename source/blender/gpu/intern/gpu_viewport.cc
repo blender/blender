@@ -13,7 +13,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_rect.h"
 
-#include "BKE_colortools.h"
+#include "BKE_colortools.hh"
 
 #include "IMB_colormanagement.h"
 
