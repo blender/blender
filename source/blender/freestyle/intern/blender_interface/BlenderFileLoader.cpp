@@ -8,6 +8,8 @@
 
 #include "BlenderFileLoader.h"
 
+#include "DNA_meshdata_types.h"
+
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"

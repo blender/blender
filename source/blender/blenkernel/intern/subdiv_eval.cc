@@ -8,9 +8,6 @@
 
 #include "BKE_subdiv_eval.hh"
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-
 #include "BLI_math_vector.h"
 #include "BLI_task.h"
 #include "BLI_timeit.hh"

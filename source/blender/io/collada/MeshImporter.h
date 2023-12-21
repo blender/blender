@@ -29,9 +29,10 @@
 
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+
+struct MLoopCol;
 
 /* only for ArmatureImporter to "see" MeshImporter::get_object_by_geom_uid */
 class MeshImporterBase {

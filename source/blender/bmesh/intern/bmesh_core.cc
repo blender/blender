@@ -18,8 +18,6 @@
 
 #include "BLT_translation.h"
 
-#include "DNA_meshdata_types.h"
-
 #include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
 

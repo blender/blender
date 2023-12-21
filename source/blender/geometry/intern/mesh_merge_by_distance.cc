@@ -14,11 +14,9 @@
 #include "BLI_offset_indices.hh"
 #include "BLI_vector.hh"
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-
 #include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
+#include "DNA_meshdata_types.h"
 
 #include "GEO_mesh_merge_by_distance.hh"
 #include "GEO_randomize.hh"

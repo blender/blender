@@ -10,7 +10,6 @@
 
 #include "DNA_curves_types.h"
 #include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_pointcloud_types.h"
 
 #include "BKE_attribute.hh"

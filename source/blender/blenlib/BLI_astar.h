@@ -9,6 +9,8 @@
  * \brief An implementation of the A* (AStar) algorithm to solve shortest path problem.
  */
 
+#include "DNA_listBase.h"
+
 #include "BLI_utildefines.h"
 
 #include "BLI_bitmap.h"

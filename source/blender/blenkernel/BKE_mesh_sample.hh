@@ -15,6 +15,7 @@
 #include "FN_field.hh"
 #include "FN_multi_function.hh"
 
+#include "BKE_attribute_math.hh"
 #include "BKE_geometry_fields.hh"
 
 struct Mesh;

@@ -9,9 +9,6 @@
 #include "BLI_vector.hh"
 #include "BLI_vector_set.hh"
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 

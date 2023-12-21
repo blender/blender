@@ -8,8 +8,6 @@
 
 #pragma once
 
-#include "DNA_meshdata_types.h"
-
 #include "BLI_map.hh"
 #include "BLI_set.hh"
 #include "BLI_vector.hh"

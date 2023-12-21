@@ -13,8 +13,6 @@
 #include "BLI_math_vector.h"
 #include "BLI_vector.hh"
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
 #include "BKE_lib_id.h"

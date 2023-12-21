@@ -9,7 +9,6 @@
 #include "BKE_subdiv.hh"
 
 #include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 
 #include "BLI_utildefines.h"

@@ -7,16 +7,15 @@
 #include "BLI_math_matrix_types.hh"
 #include "BLI_string_ref.hh"
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 
 #include "BKE_volume_grid_fwd.hh"
 
 #pragma once
 
-struct Volume;
 struct Depsgraph;
+struct Mesh;
+struct Volume;
 
 /** \file
  * \ingroup geo

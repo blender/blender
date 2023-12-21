@@ -16,8 +16,6 @@
 #include "DEG_depsgraph.hh"
 
 #include "DNA_brush_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 
 #include "WM_api.hh"
 

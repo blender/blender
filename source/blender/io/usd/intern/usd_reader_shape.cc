@@ -9,8 +9,6 @@
 #include "BKE_report.h"
 
 #include "DNA_cachefile_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_windowmanager_types.h"
 

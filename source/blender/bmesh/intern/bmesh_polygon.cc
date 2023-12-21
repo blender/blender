@@ -10,7 +10,6 @@
  */
 
 #include "DNA_listBase.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 
 #include "MEM_guardedalloc.h"

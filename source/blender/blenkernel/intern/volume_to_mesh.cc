@@ -8,8 +8,6 @@
 #include "BLI_span.hh"
 #include "BLI_utildefines.h"
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_volume_types.h"
 
 #include "BKE_mesh.hh"

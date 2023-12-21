@@ -11,8 +11,6 @@
  * \see mesh_tessellate.cc for the #Mesh equivalent of this file.
  */
 
-#include "DNA_meshdata_types.h"
-
 #include "MEM_guardedalloc.h"
 
 #include "BLI_alloca.h"

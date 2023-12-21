@@ -8,9 +8,6 @@
 
 #include "BKE_subdiv_ccg.hh"
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-
 #include "MEM_guardedalloc.h"
 
 #include "BLI_enumerable_thread_specific.hh"

@@ -5,8 +5,6 @@
 #include "node_geometry_util.hh"
 #include "node_util.hh"
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_space_types.h"
 
 #include "BKE_context.hh"

@@ -20,7 +20,6 @@
 #include "DNA_image_types.h"
 #include "DNA_light_types.h"
 #include "DNA_material_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_texture_types.h"

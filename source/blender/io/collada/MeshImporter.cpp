@@ -27,6 +27,8 @@
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
 
+#include "DNA_meshdata_types.h"
+
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 

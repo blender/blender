@@ -8,9 +8,6 @@
  * Functions for iterating mesh features.
  */
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-
 #include "BKE_customdata.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_editmesh_cache.hh"

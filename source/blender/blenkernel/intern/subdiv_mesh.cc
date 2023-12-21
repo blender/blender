@@ -12,7 +12,6 @@
 
 #include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 
 #include "BLI_array.hh"
 #include "BLI_bitmap.h"

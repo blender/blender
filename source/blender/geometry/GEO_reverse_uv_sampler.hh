@@ -6,11 +6,9 @@
 
 #include <optional>
 
-#include "BLI_math_vector.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_multi_value_map.hh"
 #include "BLI_span.hh"
-
-#include "DNA_meshdata_types.h"
 
 namespace blender::geometry {
 

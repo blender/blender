@@ -4,9 +4,6 @@
 
 #include "BLI_math_vector.hh"
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-
 #include "BKE_mesh.hh"
 
 #include "node_geometry_util.hh"

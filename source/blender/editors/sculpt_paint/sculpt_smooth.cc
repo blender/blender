@@ -12,7 +12,6 @@
 #include "BLI_task.h"
 
 #include "DNA_brush_types.h"
-#include "DNA_meshdata_types.h"
 
 #include "BKE_context.hh"
 #include "BKE_paint.hh"

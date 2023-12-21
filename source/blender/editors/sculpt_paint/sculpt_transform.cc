@@ -14,8 +14,6 @@
 #include "BLI_span.hh"
 #include "BLI_task.h"
 
-#include "DNA_meshdata_types.h"
-
 #include "BKE_brush.hh"
 #include "BKE_context.hh"
 #include "BKE_kelvinlet.h"

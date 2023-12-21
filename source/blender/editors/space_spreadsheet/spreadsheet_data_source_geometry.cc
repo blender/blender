@@ -25,8 +25,6 @@
 #include "BKE_volume_grid.hh"
 
 #include "DNA_ID.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_pointcloud_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"

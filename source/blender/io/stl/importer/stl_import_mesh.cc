@@ -19,9 +19,6 @@
 #include "BLI_math_vector.hh"
 #include "BLI_task.hh"
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-
 #include "stl_import_mesh.hh"
 
 namespace blender::io::stl {

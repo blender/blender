@@ -18,8 +18,6 @@
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
 
-#include "DNA_meshdata_types.h"
-
 #include "bmesh.hh"
 #include "intern/bmesh_private.hh"
 

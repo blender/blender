@@ -11,8 +11,6 @@
 #include "BLI_span.hh"
 #include "BLI_vector.hh"
 
-#include "DNA_meshdata_types.h"
-
 /** \file
  * \ingroup bke
  */

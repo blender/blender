@@ -6,9 +6,6 @@
 #include "BLI_delaunay_2d.hh"
 #include "BLI_math_vector_types.hh"
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_instances.hh"

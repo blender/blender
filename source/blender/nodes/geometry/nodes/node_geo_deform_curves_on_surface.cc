@@ -18,9 +18,6 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-
 #include "NOD_socket_search_link.hh"
 
 #include "GEO_reverse_uv_sampler.hh"

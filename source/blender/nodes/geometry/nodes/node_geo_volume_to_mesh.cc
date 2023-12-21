@@ -18,9 +18,6 @@
 #include "BKE_volume_grid.hh"
 #include "BKE_volume_to_mesh.hh"
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-
 #include "NOD_rna_define.hh"
 
 #include "UI_interface.hh"

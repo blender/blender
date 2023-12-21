@@ -12,7 +12,6 @@
 #include "COLLADASWSource.h"
 
 #include "DNA_action_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 
 #include "BKE_action.h"
