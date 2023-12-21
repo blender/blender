@@ -395,7 +395,6 @@ class InsertAvailableTest(AbstractKeyframingTest, unittest.TestCase):
         bpy.data.objects.remove(keyed_object, do_unlink=True)
 
 
-
 def main():
     global args
     import argparse
