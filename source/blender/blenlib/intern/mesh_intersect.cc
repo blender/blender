@@ -2087,7 +2087,7 @@ static Array<Face *> exact_triangulate_poly(Face *f, IMeshArena *arena)
 {
   int flen = f->size();
   Array<mpq2> in_verts(flen);
-  Array<Vector<int>> faces;
+  Array<Vector<int>> faces(1);
   faces.first().resize(flen);
   std::iota(faces.first().begin(), faces.first().end(), 0);
 
