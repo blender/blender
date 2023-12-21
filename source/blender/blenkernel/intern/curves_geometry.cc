@@ -951,7 +951,7 @@ void CurvesGeometry::interpolate_to_evaluated(const int curve_index,
       this->nurbs_orders(),
       this->nurbs_weights(),
   };
-  BLI_assert(src.size() == this->points_by_curve().size());
+  BLI_assert(src.size() == this->points_by_curve()[curve_index].size());
   BLI_assert(dst.size() == this->evaluated_points_by_curve()[curve_index].size());
   evaluate_generic_data_for_curve(eval_data, curve_index, src, dst);
 }
