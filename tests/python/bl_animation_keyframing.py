@@ -276,27 +276,6 @@ class AutoKeyframingTest(AbstractKeyframingTest, unittest.TestCase):
         self.assertTrue(_fcurve_paths_match(action.fcurves, ["location", "rotation_euler", "scale"]))
         bpy.data.objects.remove(keyed_object, do_unlink=True)
 
-    def test_autokey_available(self):
-        keyed_object = _create_animation_object()
-
-        bpy.context.scene.tool_settings.use_keyframe_insert_auto = True
-        bpy.context.preferences.edit.use_keyframe_insert_available = True
-
-        with bpy.context.temp_override(**_get_view3d_context()):
-            bpy.context.scene.frame_set(1)
-            bpy.ops.anim.keyframe_insert_by_name(type="Location")
-            bpy.context.scene.frame_set(5)
-            bpy.ops.transform.translate(value=(1, 0, 0))
-
-        action = keyed_object.animation_data.action
-        self.assertTrue(_fcurve_paths_match(action.fcurves, ["location"]))
-
-        for fcurve in action.fcurves:
-            self.assertEqual(len(fcurve.keyframe_points), 2)
-
-        bpy.context.preferences.edit.use_keyframe_insert_available = False
-        bpy.data.objects.remove(keyed_object, do_unlink=True)
-
     def test_autokey_bone(self):
         armature_obj = _create_armature()
         bpy.context.scene.tool_settings.use_keyframe_insert_auto = True
@@ -314,6 +293,107 @@ class AutoKeyframingTest(AbstractKeyframingTest, unittest.TestCase):
         self.assertTrue(_fcurve_paths_match(action.fcurves, expected_paths))
 
         bpy.data.objects.remove(armature_obj, do_unlink=True)
+
+
+class InsertAvailableTest(AbstractKeyframingTest, unittest.TestCase):
+
+    def test_autokey_available_object(self):
+        keyed_object = _create_animation_object()
+
+        bpy.context.scene.tool_settings.use_keyframe_insert_auto = True
+        bpy.context.preferences.edit.use_keyframe_insert_available = True
+
+        with bpy.context.temp_override(**_get_view3d_context()):
+            bpy.context.scene.frame_set(1)
+            bpy.ops.anim.keyframe_insert_by_name(type="Rotation")
+            bpy.context.scene.frame_set(5)
+            bpy.ops.transform.translate(value=(1, 0, 0))
+
+        # Test that no new keyframes have been added.
+        action = keyed_object.animation_data.action
+        self.assertTrue(_fcurve_paths_match(action.fcurves, ["rotation_euler"]))
+
+        with bpy.context.temp_override(**_get_view3d_context()):
+            bpy.context.scene.frame_set(1)
+            bpy.ops.anim.keyframe_insert_by_name(type="Location")
+            bpy.context.scene.frame_set(5)
+            bpy.ops.transform.translate(value=(1, 0, 0))
+
+        action = keyed_object.animation_data.action
+        self.assertTrue(_fcurve_paths_match(action.fcurves, ["location", "rotation_euler"]))
+
+        for fcurve in action.fcurves:
+            # Translating the bone would also add rotation keys as long as "Only Insert Needed" is off.
+            if "location" in fcurve.data_path or "rotation" in fcurve.data_path:
+                self.assertEqual(len(fcurve.keyframe_points), 2)
+            else:
+                raise AssertionError(f"Did not expect keys other than location and rotation, got {fcurve.data_path}.")
+
+        bpy.context.preferences.edit.use_keyframe_insert_available = False
+        bpy.data.objects.remove(keyed_object, do_unlink=True)
+
+    def test_autokey_available_bone(self):
+        armature_obj = _create_armature()
+        bpy.context.scene.tool_settings.use_keyframe_insert_auto = True
+        bpy.context.preferences.edit.use_keyframe_insert_available = True
+
+        bpy.ops.object.mode_set(mode='POSE')
+        with bpy.context.temp_override(**_get_view3d_context()):
+            bpy.context.scene.frame_set(1)
+            bpy.ops.anim.keyframe_insert_by_name(type="Rotation")
+            bpy.context.scene.frame_set(5)
+            bpy.ops.transform.translate(value=(1, 0, 0))
+
+        # Test that no new keyframes have been added.
+        action = armature_obj.animation_data.action
+        bone_path = f"pose.bones[\"{_BONE_NAME}\"]"
+        expected_paths = [f"{bone_path}.rotation_euler"]
+        self.assertTrue(_fcurve_paths_match(action.fcurves, expected_paths))
+
+        with bpy.context.temp_override(**_get_view3d_context()):
+            bpy.context.scene.frame_set(1)
+            bpy.ops.anim.keyframe_insert_by_name(type="Location")
+            bpy.context.scene.frame_set(5)
+            bpy.ops.transform.translate(value=(1, 0, 0))
+
+        expected_paths = [f"{bone_path}.location", f"{bone_path}.rotation_euler"]
+        self.assertTrue(_fcurve_paths_match(action.fcurves, expected_paths))
+
+        for fcurve in action.fcurves:
+            # Translating the bone would also add rotation keys as long as "Only Insert Needed" is off.
+            if "location" in fcurve.data_path or "rotation" in fcurve.data_path:
+                self.assertEqual(len(fcurve.keyframe_points), 2)
+            else:
+                raise AssertionError(f"Did not expect keys other than location and rotation, got {fcurve.data_path}.")
+
+        bpy.data.objects.remove(armature_obj, do_unlink=True)
+
+    def test_insert_available_keying_set(self):
+        keyed_object = _create_animation_object()
+
+        bpy.context.scene.tool_settings.use_keyframe_insert_auto = True
+        bpy.context.preferences.edit.use_keyframe_insert_available = False
+
+        with bpy.context.temp_override(**_get_view3d_context()):
+            self.assertRaises(RuntimeError, bpy.ops.anim.keyframe_insert_by_name, type="Available")
+
+        self.assertIsNone(keyed_object.animation_data)
+
+        with bpy.context.temp_override(**_get_view3d_context()):
+            bpy.context.scene.frame_set(1)
+            bpy.ops.anim.keyframe_insert_by_name(type="Location")
+            bpy.context.scene.frame_set(5)
+            bpy.ops.anim.keyframe_insert_by_name(type="Available")
+
+        action = keyed_object.animation_data.action
+        self.assertTrue(_fcurve_paths_match(action.fcurves, ["location"]))
+
+        for fcurve in action.fcurves:
+            self.assertEqual(len(fcurve.keyframe_points), 2)
+
+        bpy.context.preferences.edit.use_keyframe_insert_available = False
+        bpy.data.objects.remove(keyed_object, do_unlink=True)
+
 
 
 def main():
