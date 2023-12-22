@@ -123,3 +123,16 @@ if(UNIX AND
   message(STATUS "Auto updating CMake configuration for dynamic OpenShadingLanguage")
   unset_cache_variables("^OSL_")
 endif()
+
+# Detect Python 3.10 to 3.11 upgrade for Blender 4.1.
+if(UNIX AND
+  (NOT APPLE) AND
+  LIBDIR AND
+  EXISTS ${LIBDIR} AND
+  EXISTS ${LIBDIR}/python/bin/python3.11 AND
+  DEFINED PYTHON_VERSION AND
+  PYTHON_VERSION VERSION_LESS "3.11")
+
+  message(STATUS "Auto updating CMake configuration for Python 3.11")
+  unset_cache_variables("^PYTHON_")
+endif()

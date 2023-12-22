@@ -36,7 +36,7 @@ else()
   set(PYTHON_ROOT_DIR "")
 endif()
 
-set(_PYTHON_VERSION_SUPPORTED 3.10)
+set(_PYTHON_VERSION_SUPPORTED 3.11)
 set(PYTHON_VERSION ${_PYTHON_VERSION_SUPPORTED} CACHE STRING "Python Version (major and minor only)")
 mark_as_advanced(PYTHON_VERSION)
 
