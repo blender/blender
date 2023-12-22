@@ -537,7 +537,7 @@ static bool idprop_ui_data_update_string(IDProperty *idprop, PyObject *args, PyO
 {
   const char *rna_subtype = nullptr;
   const char *description = nullptr;
-  const char *default_value;
+  const char *default_value = nullptr;
   const char *kwlist[] = {"default", "subtype", "description", nullptr};
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kwargs,
