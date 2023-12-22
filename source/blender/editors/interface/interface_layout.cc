@@ -4206,7 +4206,7 @@ static void ui_litem_layout_panel_header(uiLayout *litem)
   int w, h;
   ui_item_size(item, &w, &h);
   litem->y -= h;
-  ui_item_position(item, litem->x, litem->y, w, h);
+  ui_item_position(item, litem->x, litem->y, litem->w, h);
 
   panel->runtime->layout_panels.headers.append({float(litem->y),
                                                 float(litem->y + litem->h),
@@ -4993,14 +4993,16 @@ uiLayout *uiLayoutPanel(const bContext *C,
     UI_block_layout_set_current(layout->root->block, litem);
 
     uiBlock *block = uiLayoutGetBlock(layout);
+    const int icon = is_open ? ICON_DOWNARROW_HLT : ICON_RIGHTARROW;
+    const int width = ui_text_icon_width(layout, name, icon, false);
     uiDefIconTextBut(block,
                      UI_BTYPE_LABEL,
                      0,
-                     is_open ? ICON_DOWNARROW_HLT : ICON_RIGHTARROW,
-                     IFACE_(name),
+                     icon,
+                     name,
                      0,
                      0,
-                     UI_UNIT_X * 4,
+                     width,
                      UI_UNIT_Y * 1.2f,
                      nullptr,
                      0.0,
