@@ -311,17 +311,9 @@ static bool bone_collection_assign_mode_specific(bContext *C,
     }
 
     case CTX_MODE_EDIT_ARMATURE: {
-      uint objects_len = 0;
-      Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-          CTX_data_scene(C), CTX_data_view_layer(C), CTX_wm_view3d(C), &objects_len);
+      bone_collection_assign_editbones(
+          C, ob, bcoll, assign_ebone_func, made_any_changes, had_bones_to_assign);
 
-      for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-        Object *ob = objects[ob_index];
-        bone_collection_assign_editbones(
-            C, ob, bcoll, assign_ebone_func, made_any_changes, had_bones_to_assign);
-      }
-
-      MEM_freeN(objects);
       ED_outliner_select_sync_from_edit_bone_tag(C);
       return true;
     }
