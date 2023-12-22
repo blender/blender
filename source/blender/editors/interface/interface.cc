@@ -4384,7 +4384,7 @@ static void ui_def_but_rna__menu(bContext *C, uiLayout *layout, void *but_p)
   }
 
   /* If the estimated width is greater than available size, collapse to one column. */
-  if (columns > 1 && text_width > win->sizex) {
+  if (columns > 1 && text_width > WM_window_pixels_x(win)) {
     columns = 1;
     rows = totitems;
   }
