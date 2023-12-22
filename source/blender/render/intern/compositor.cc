@@ -5,6 +5,7 @@
 #include <cstring>
 #include <string>
 
+#include "BLI_math_vector_types.hh"
 #include "BLI_threads.h"
 #include "BLI_vector.hh"
 
@@ -26,6 +27,7 @@
 #include "DEG_depsgraph_query.hh"
 
 #include "COM_context.hh"
+#include "COM_domain.hh"
 #include "COM_evaluator.hh"
 #include "COM_render_context.hh"
 
@@ -237,9 +239,10 @@ class Context : public realtime_compositor::Context {
     return output_texture_;
   }
 
-  GPUTexture *get_viewer_output_texture(int2 size) override
+  GPUTexture *get_viewer_output_texture(realtime_compositor::Domain domain) override
   {
     /* Re-create texture if the viewer size changes. */
+    const int2 size = domain.size;
     if (viewer_output_texture_) {
       const int current_width = GPU_texture_width(viewer_output_texture_);
       const int current_height = GPU_texture_height(viewer_output_texture_);
@@ -263,6 +266,11 @@ class Context : public realtime_compositor::Context {
           GPU_TEXTURE_USAGE_GENERAL,
           nullptr);
     }
+
+    Image *image = BKE_image_ensure_viewer(G.main, IMA_TYPE_COMPOSITE, "Viewer Node");
+    const float2 translation = domain.transformation.location();
+    image->offset_x = int(translation.x);
+    image->offset_y = int(translation.y);
 
     return viewer_output_texture_;
   }
