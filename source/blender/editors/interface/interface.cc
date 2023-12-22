@@ -2070,11 +2070,17 @@ void ui_fontscale(float *points, float aspect)
 
 void ui_but_to_pixelrect(rcti *rect, const ARegion *region, const uiBlock *block, const uiBut *but)
 {
-  rctf rectf;
+  *rect = ui_to_pixelrect(region, block, (but) ? &but->rect : &block->rect);
+}
 
-  ui_block_to_window_rctf(region, block, &rectf, (but) ? &but->rect : &block->rect);
-  BLI_rcti_rctf_copy_round(rect, &rectf);
-  BLI_rcti_translate(rect, -region->winrct.xmin, -region->winrct.ymin);
+rcti ui_to_pixelrect(const ARegion *region, const uiBlock *block, const rctf *src_rect)
+{
+  rctf rectf;
+  ui_block_to_window_rctf(region, block, &rectf, src_rect);
+  rcti recti;
+  BLI_rcti_rctf_copy_round(&recti, &rectf);
+  BLI_rcti_translate(&recti, -region->winrct.xmin, -region->winrct.ymin);
+  return recti;
 }
 
 static bool ui_but_pixelrect_in_view(const ARegion *region, const rcti *rect)
@@ -2129,7 +2135,8 @@ void UI_block_draw(const bContext *C, uiBlock *block)
     ui_draw_menu_back(&style, block, &rect);
   }
   else if (block->panel) {
-    ui_draw_aligned_panel(&style,
+    ui_draw_aligned_panel(region,
+                          &style,
                           block,
                           &rect,
                           UI_panel_category_is_visible(region),

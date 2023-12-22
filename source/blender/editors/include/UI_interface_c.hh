@@ -2284,6 +2284,33 @@ bool uiLayoutGetPropDecorate(uiLayout *layout);
 /* Layout create functions. */
 
 uiLayout *uiLayoutRow(uiLayout *layout, bool align);
+
+/**
+ * Create a "layout panel" which is a panel that is defined as part of the `uiLayout`. This allows
+ * creating expandable sections which can also be nested.
+ *
+ * The open-state of the panel is defined by an RNA property which is passed in as a pointer +
+ * property name pair. This gives the caller flexibility to decide who should own the open-state.
+ *
+ * \param C: The context is necessary because sometimes the panel may be forced to be open by the
+ *   context even of the open-property is `false`. This can happen with e.g. property search.
+ * \param layout: The `uiLayout` that should contain the subpanel. Only layouts that span the full
+ *   width of the region are supported for now.
+ * \param name: Text that's shown in the panel header. It should already be translated.
+ * \param open_prop_owner: Data that contains the open-property.
+ * \param open_prop_name: Name of the open-property in `open_prop_owner`.
+ *
+ * \return NULL if the panel is closed and should not be drawn, otherwise the layout where the
+ * sub-panel should be inserted into.
+ */
+uiLayout *uiLayoutPanel(const bContext *C,
+                        uiLayout *layout,
+                        const char *name,
+                        PointerRNA *open_prop_owner,
+                        const char *open_prop_name);
+
+bool uiLayoutEndsWithPanelHeader(const uiLayout &layout);
+
 /**
  * See #uiLayoutColumnWithHeading().
  */
