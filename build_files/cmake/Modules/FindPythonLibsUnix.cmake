@@ -36,7 +36,13 @@ else()
   set(PYTHON_ROOT_DIR "")
 endif()
 
-set(_PYTHON_VERSION_SUPPORTED 3.11)
+# Temporary, keep until Python 3.11 libraries are committed for macOS.
+if(APPLE)
+  set(_PYTHON_VERSION_SUPPORTED 3.10)
+else()
+  set(_PYTHON_VERSION_SUPPORTED 3.11)
+endif()
+
 set(PYTHON_VERSION ${_PYTHON_VERSION_SUPPORTED} CACHE STRING "Python Version (major and minor only)")
 mark_as_advanced(PYTHON_VERSION)
 
