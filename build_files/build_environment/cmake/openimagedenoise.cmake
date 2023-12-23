@@ -15,7 +15,7 @@ if(NOT APPLE)
     -DOIDN_DEVICE_SYCL=ON
     -DOIDN_DEVICE_SYCL_AOT=OFF
     -DOIDN_DEVICE_HIP=ON
-    -DLEVEL_ZERO_ROOT=${LIBDIR}/level-zero/lib
+    -DLEVEL_ZERO_ROOT=${LIBDIR}/level-zero
   )
 endif()
 
@@ -69,6 +69,13 @@ if(UNIX AND NOT APPLE)
     external_openimagedenoise
     external_dpcpp
     external_ocloc
+  )
+endif()
+
+if(NOT APPLE)
+  add_dependencies(
+    external_openimagedenoise
+    external_level-zero
   )
 endif()
 
