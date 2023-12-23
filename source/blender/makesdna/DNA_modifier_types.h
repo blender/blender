@@ -120,6 +120,14 @@ typedef struct ModifierData {
   short flag;
   /** An "expand" bit for each of the modifier's (sub)panels (#uiPanelDataExpansion). */
   short ui_expand_flag;
+  /**
+   * Bits that can be used for open-states of layout panels in the modifier. This can replace
+   * `ui_expand_flag` once all modifiers use layout panels. Currently, trying to reuse the same
+   * flags is problematic, because the bits in `ui_expand_flag` are mapped to panels automatically
+   * and easily conflict with the explicit mapping of bits to panels here.
+   */
+  uint16_t layout_panel_open_flag;
+  char _pad[6];
   /** MAX_NAME. */
   char name[64];
 
@@ -2346,6 +2354,17 @@ typedef struct NodesModifierBake {
   int frame_end;
 } NodesModifierBake;
 
+typedef struct NodesModifierPanel {
+  /** ID of the corresponding panel from #bNodeTreeInterfacePanel::identifier. */
+  int id;
+  /** #NodesModifierPanelFlag. */
+  uint32_t flag;
+} NodesModifierPanel;
+
+typedef enum NodesModifierPanelFlag {
+  NODES_MODIFIER_PANEL_OPEN = 1 << 0,
+} NodesModifierPanelFlag;
+
 typedef enum NodesModifierBakeFlag {
   NODES_MODIFIER_BAKE_CUSTOM_SIMULATION_FRAME_RANGE = 1 << 0,
   NODES_MODIFIER_BAKE_CUSTOM_PATH = 1 << 1,
@@ -2370,7 +2389,9 @@ typedef struct NodesModifierData {
   char _pad[3];
   int bakes_num;
   NodesModifierBake *bakes;
-  void *_pad2;
+  char _pad2[4];
+  int panels_num;
+  NodesModifierPanel *panels;
 
   NodesModifierRuntimeHandle *runtime;
 
