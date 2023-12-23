@@ -104,7 +104,7 @@ void main()
 
   /* Output remaining closures using image store. */
   /* NOTE: The image view start at layer 2 so all destination layer is `layer - 2`. */
-  for (int layer = 2; layer < GBUFFER_LAYER_MAX && layer < gbuf.layer_data; layer++) {
+  for (int layer = 2; layer < GBUFFER_DATA_MAX && layer < gbuf.layer_data; layer++) {
     imageStore(out_gbuf_closure_img, ivec3(out_texel, layer - 2), gbuf.data[layer]);
   }
   /* NOTE: The image view start at layer 1 so all destination layer is `layer - 1`. */

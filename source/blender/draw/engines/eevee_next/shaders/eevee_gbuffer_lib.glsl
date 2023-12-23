@@ -17,8 +17,9 @@
  *
  * \{ */
 
-#define GBUFFER_LAYER_MAX 8
-#define GBUFFER_NORMAL_MAX 4
+#define GBUFFER_LAYER_MAX 4
+#define GBUFFER_NORMAL_MAX GBUFFER_LAYER_MAX
+#define GBUFFER_DATA_MAX (GBUFFER_LAYER_MAX * 2)
 
 /* Structure used as input and output of the packing & read functions. */
 struct GBufferData {
@@ -52,7 +53,7 @@ struct GBufferDataUndetermined {
 struct GBufferWriter {
   uint header;
   /* TODO(fclem): Better packing. */
-  vec4 data[GBUFFER_LAYER_MAX];
+  vec4 data[GBUFFER_DATA_MAX];
   vec2 N[GBUFFER_NORMAL_MAX];
 
   /* Only used for book-keeping. Not actually written. Can be derived from header. */
@@ -65,6 +66,8 @@ struct GBufferWriter {
 struct GBufferReader {
   GBufferData data;
 
+  ClosureUndetermined closures[GBUFFER_LAYER_MAX];
+
   bool has_diffuse;
   bool has_translucent;
   bool has_reflection;
@@ -72,7 +75,7 @@ struct GBufferReader {
   bool has_sss;
   bool has_any_surface;
   uint header;
-  uint closure_count;
+  int closure_count;
   /* Only used for book-keeping when reading. */
   int layer_data;
   int layer_normal;
@@ -297,6 +300,8 @@ void gbuffer_append_closure(inout GBufferWriter gbuf, GBufferMode closure_type)
 }
 void gbuffer_register_closure(inout GBufferReader gbuf, ClosureUndetermined cl)
 {
+  gbuf.closures[gbuf.closure_count] = cl;
+  gbuf.closure_count++;
   switch (cl.type) {
     case CLOSURE_NONE_ID:
       /* TODO(fclem): Assert. */
@@ -333,7 +338,6 @@ void gbuffer_register_closure(inout GBufferReader gbuf, ClosureUndetermined cl)
       gbuf.has_refraction = true;
       break;
   }
-  gbuf.closure_count++;
 }
 
 void gbuffer_append_data(inout GBufferWriter gbuf, vec4 data)
@@ -666,7 +670,7 @@ GBufferReader gbuffer_read_header(uint header)
   gbuf.has_refraction = false;
   gbuf.has_translucent = false;
   gbuf.has_sss = false;
-  gbuf.closure_count = 0u;
+  gbuf.closure_count = 0;
 
   for (int layer = 0; layer < 4; layer++) {
     GBufferMode mode = gbuffer_header_unpack(gbuf.header, layer);
@@ -744,7 +748,11 @@ GBufferReader gbuffer_read(samplerGBufferHeader header_tx,
 
   gbuf.data.thickness = 0.0;
 
-  for (int layer = 0; layer < 4; layer++) {
+  for (int layer = 0; layer < GBUFFER_LAYER_MAX; layer++) {
+    gbuf.closures[layer].type = CLOSURE_NONE_ID;
+  }
+
+  for (int layer = 0; layer < GBUFFER_LAYER_MAX; layer++) {
     GBufferMode mode = gbuffer_header_unpack(gbuf.header, layer);
     switch (mode) {
       case GBUF_NONE:
