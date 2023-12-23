@@ -16,21 +16,21 @@ void main()
 {
   ivec2 texel = ivec2(gl_FragCoord.xy);
 
-  GBufferData gbuf = gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_color_tx, texel);
+  GBufferReader gbuf = gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, texel);
 
   if (gbuf.header == 0u) {
     discard;
     return;
   }
 
-  float shade = saturate(drw_normal_world_to_view(gbuf.surface_N).z);
+  float shade = saturate(drw_normal_world_to_view(gbuf.data.surface_N).z);
 
   uvec4 closure_types = (uvec4(gbuf.header) >> uvec4(0u, 4u, 8u, 12u)) & 15u;
   float storage_cost = reduce_add(vec4(not(equal(closure_types, uvec4(0u)))));
   float eval_cost = reduce_add(vec4(equal(closure_types, uvec4(GBUF_REFLECTION)))) * 1.0 +
                     reduce_add(vec4(equal(closure_types, uvec4(GBUF_REFRACTION)))) * 1.0 +
                     reduce_add(vec4(equal(closure_types, uvec4(GBUF_DIFFUSE)))) * 1.0 +
-                    reduce_add(vec4(equal(closure_types, uvec4(GBUF_SSS)))) * 1.0;
+                    reduce_add(vec4(equal(closure_types, uvec4(GBUF_SUBSURFACE)))) * 1.0;
 
   switch (eDebugMode(debug_mode)) {
     default:

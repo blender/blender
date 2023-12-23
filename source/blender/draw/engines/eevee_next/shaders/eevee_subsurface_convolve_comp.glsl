@@ -92,13 +92,13 @@ void main(void)
   float depth = texelFetch(depth_tx, texel, 0).r;
   vec3 vP = drw_point_screen_to_view(vec3(center_uv, depth));
 
-  GBufferData gbuf = gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_color_tx, texel);
+  GBufferReader gbuf = gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, texel);
 
-  if (gbuf.diffuse.sss_id == 0u) {
+  if (gbuf.data.diffuse.sss_id == 0u) {
     return;
   }
 
-  float max_radius = reduce_max(gbuf.diffuse.sss_radius);
+  float max_radius = reduce_max(gbuf.data.diffuse.sss_radius);
 
   float homcoord = ProjectionMatrix[2][3] * vP.z + ProjectionMatrix[3][3];
   vec2 sample_scale = vec2(ProjectionMatrix[0][0], ProjectionMatrix[1][1]) *
@@ -111,9 +111,10 @@ void main(void)
   }
 
   /* Avoid too small radii that have float imprecision. */
-  vec3 clamped_sss_radius = max(vec3(1e-4), gbuf.diffuse.sss_radius / max_radius) * max_radius;
+  vec3 clamped_sss_radius = max(vec3(1e-4), gbuf.data.diffuse.sss_radius / max_radius) *
+                            max_radius;
   /* Scale albedo because we can have HDR value caused by BSDF sampling. */
-  vec3 albedo = gbuf.diffuse.color / max(1e-6, reduce_max(gbuf.diffuse.color));
+  vec3 albedo = gbuf.data.diffuse.color / max(1e-6, reduce_max(gbuf.data.diffuse.color));
   vec3 d = burley_setup(clamped_sss_radius, albedo);
 
   /* Do not rotate too much to avoid too much cache misses. */
@@ -131,7 +132,7 @@ void main(void)
 
     SubSurfaceSample samp = sample_neighborhood(sample_uv);
     /* Reject radiance from other surfaces. Avoids light leak between objects. */
-    if (samp.sss_id != gbuf.diffuse.sss_id) {
+    if (samp.sss_id != gbuf.data.diffuse.sss_id) {
       continue;
     }
     /* Slide 34. */

@@ -32,7 +32,8 @@ void main()
     return;
   }
 
-  GBufferData gbuf = gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_color_tx, texel_fullres);
+  GBufferReader gbuf = gbuffer_read(
+      gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, texel_fullres);
 
   HorizonScanContext ctx;
 #ifdef HORIZON_DIFFUSE
@@ -40,8 +41,8 @@ void main()
     imageStore(horizon_radiance_img, texel, vec4(0.0));
     return;
   }
-  vec3 Ng = gbuf.diffuse.N;
-  ctx.diffuse = gbuf.diffuse;
+  vec3 Ng = gbuf.data.diffuse.N;
+  ctx.diffuse = gbuf.data.diffuse;
   ctx.diffuse.N = drw_normal_world_to_view(ctx.diffuse.N);
 #endif
 #ifdef HORIZON_REFLECT
@@ -49,8 +50,8 @@ void main()
     imageStore(horizon_radiance_img, texel, vec4(0.0));
     return;
   }
-  vec3 Ng = gbuf.reflection.N;
-  ctx.reflection = gbuf.reflection;
+  vec3 Ng = gbuf.data.reflection.N;
+  ctx.reflection = gbuf.data.reflection;
   ctx.reflection.roughness = max(ctx.reflection.roughness, 0.1);
   ctx.reflection.N = drw_normal_world_to_view(ctx.reflection.N);
 #endif
@@ -59,8 +60,8 @@ void main()
     imageStore(horizon_radiance_img, texel, vec4(0.0));
     return;
   }
-  vec3 Ng = gbuf.refraction.N;
-  ctx.refraction = gbuf.refraction;
+  vec3 Ng = gbuf.data.refraction.N;
+  ctx.refraction = gbuf.data.refraction;
   ctx.refraction.N = drw_normal_world_to_view(ctx.refraction.N);
 #endif
 

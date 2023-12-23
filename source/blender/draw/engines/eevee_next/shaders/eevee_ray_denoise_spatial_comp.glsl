@@ -80,7 +80,16 @@ void main()
 
   bool valid_texel = in_texture_range(texel_fullres, gbuf_header_tx);
   uint header = (!valid_texel) ? 0u : texelFetch(gbuf_header_tx, texel_fullres, 0).r;
-  if (!gbuffer_has_closure(header, eClosureBits(CLOSURE_ACTIVE))) {
+  GBufferReader gbuf_header = gbuffer_read_header(header);
+
+#if defined(RAYTRACE_DIFFUSE)
+  bool has_closure = gbuf_header.has_diffuse;
+#elif defined(RAYTRACE_REFRACT)
+  bool has_closure = gbuf_header.has_refraction;
+#elif defined(RAYTRACE_REFLECT)
+  bool has_closure = gbuf_header.has_reflection;
+#endif
+  if (!has_closure) {
     imageStore(out_radiance_img, texel_fullres, vec4(FLT_11_11_10_MAX, 0.0));
     imageStore(out_variance_img, texel_fullres, vec4(0.0));
     imageStore(out_hit_depth_img, texel_fullres, vec4(0.0));
@@ -92,14 +101,15 @@ void main()
   vec3 P = drw_point_screen_to_world(vec3(uv, 0.5));
   vec3 V = drw_world_incident_vector(P);
 
-  GBufferData gbuf = gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_color_tx, texel_fullres);
+  GBufferReader gbuf = gbuffer_read(
+      gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, texel_fullres);
 
 #if defined(RAYTRACE_DIFFUSE)
-  ClosureDiffuse closure = gbuf.diffuse;
+  ClosureDiffuse closure = gbuf.data.diffuse;
 #elif defined(RAYTRACE_REFRACT)
-  ClosureRefraction closure = gbuf.refraction;
+  ClosureRefraction closure = gbuf.data.refraction;
 #elif defined(RAYTRACE_REFLECT)
-  ClosureReflection closure = gbuf.reflection;
+  ClosureReflection closure = gbuf.data.reflection;
 #else
 #  error
 #endif

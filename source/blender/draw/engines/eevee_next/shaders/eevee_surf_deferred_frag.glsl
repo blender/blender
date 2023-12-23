@@ -82,31 +82,31 @@ void main()
 
   /* ----- GBuffer output ----- */
 
-  GBufferDataPacked gbuf = gbuffer_pack(g_diffuse_data,
-                                        g_translucent_data,
-                                        g_reflection_data,
-                                        g_refraction_data,
-                                        out_normal,
-                                        thickness);
+  GBufferDataUndetermined gbuf_data;
+  gbuf_data.diffuse = g_diffuse_data;
+  gbuf_data.translucent = g_translucent_data;
+  gbuf_data.reflection = g_reflection_data;
+  gbuf_data.refraction = g_refraction_data;
+  gbuf_data.surface_N = g_data.N;
+  gbuf_data.thickness = thickness;
+  gbuf_data.object_id = resource_id;
+
+  GBufferWriter gbuf = gbuffer_pack(gbuf_data);
 
   /* Output header and first closure using frame-buffer attachment. */
   out_gbuf_header = gbuf.header;
-  out_gbuf_color = gbuf.color[0];
-  out_gbuf_closure = gbuf.closure[0];
+  out_gbuf_closure1 = gbuf.data[0];
+  out_gbuf_closure2 = gbuf.data[1];
+  out_gbuf_normal = gbuf.N[0];
 
   /* Output remaining closures using image store. */
-  /* NOTE: The image view start at layer 1 so all destination layer is `closure_index - 1`. */
-  if (gbuffer_header_unpack(gbuf.header, 1) != GBUF_NONE) {
-    imageStore(out_gbuf_color_img, ivec3(out_texel, 1 - 1), gbuf.color[1]);
-    imageStore(out_gbuf_closure_img, ivec3(out_texel, 1 - 1), gbuf.closure[1]);
+  /* NOTE: The image view start at layer 2 so all destination layer is `layer - 2`. */
+  for (int layer = 2; layer < GBUFFER_LAYER_MAX && layer < gbuf.layer_data; layer++) {
+    imageStore(out_gbuf_closure_img, ivec3(out_texel, layer - 2), gbuf.data[layer]);
   }
-  if (gbuffer_header_unpack(gbuf.header, 2) != GBUF_NONE) {
-    imageStore(out_gbuf_color_img, ivec3(out_texel, 2 - 1), gbuf.color[2]);
-    imageStore(out_gbuf_closure_img, ivec3(out_texel, 2 - 1), gbuf.closure[2]);
-  }
-  if (gbuffer_header_unpack(gbuf.header, 3) != GBUF_NONE) {
-    /* No color for SSS. */
-    imageStore(out_gbuf_closure_img, ivec3(out_texel, 3 - 1), gbuf.closure[3]);
+  /* NOTE: The image view start at layer 1 so all destination layer is `layer - 1`. */
+  for (int layer = 1; layer < GBUFFER_NORMAL_MAX && layer < gbuf.layer_normal; layer++) {
+    imageStore(out_gbuf_normal_img, ivec3(out_texel, layer - 1), gbuf.N[layer].xyyy);
   }
 
   /* ----- Radiance output ----- */

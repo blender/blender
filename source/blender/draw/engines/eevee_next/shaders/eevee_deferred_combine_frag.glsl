@@ -15,7 +15,7 @@ void main()
 {
   ivec2 texel = ivec2(gl_FragCoord.xy);
 
-  GBufferData gbuf = gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_color_tx, texel);
+  GBufferReader gbuf = gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, texel);
 
   vec3 glossy_reflect_light = vec3(0.0);
   vec3 glossy_refract_light = vec3(0.0);
@@ -49,10 +49,10 @@ void main()
   output_renderpass_color(uniform_buf.render_pass.specular_light_id, vec4(specular_light, 1.0));
   /* Combine. */
   out_combined = vec4(0.0);
-  out_combined.xyz += diffuse_reflect_light * gbuf.diffuse.color;
-  out_combined.xyz += diffuse_refract_light * gbuf.translucent.color;
-  out_combined.xyz += glossy_reflect_light * gbuf.reflection.color;
-  out_combined.xyz += glossy_refract_light * gbuf.refraction.color;
+  out_combined.xyz += diffuse_reflect_light * gbuf.data.diffuse.color;
+  out_combined.xyz += diffuse_refract_light * gbuf.data.translucent.color;
+  out_combined.xyz += glossy_reflect_light * gbuf.data.reflection.color;
+  out_combined.xyz += glossy_refract_light * gbuf.data.refraction.color;
 
   if (any(isnan(out_combined))) {
     out_combined = vec4(1.0, 0.0, 1.0, 0.0);

@@ -1195,17 +1195,19 @@ enum GBufferMode : uint32_t {
   /** None mode for pixels not rendered. */
   GBUF_NONE = 0u,
 
-  GBUF_REFLECTION = 1u,
-  GBUF_REFRACTION = 2u,
-  GBUF_DIFFUSE = 3u,
-  GBUF_SSS = 4u,
-  GBUF_TRANSLUCENT = 5u,
+  GBUF_DIFFUSE = 1u,
+  GBUF_TRANSLUCENT = 2u,
+  GBUF_REFLECTION = 3u,
+  GBUF_REFRACTION = 4u,
+  GBUF_SUBSURFACE = 5u,
 
-  /** Special configurations. Packs multiple closures into 1 layer. */
-  GBUF_OPAQUE_DIELECTRIC = 14u,
+  /** Parameter Optimized. Packs one closure into less layer. */
+  GBUF_REFLECTION_COLORLESS = 12u,
+  GBUF_REFRACTION_COLORLESS = 13u,
 
-  /** Set for surfaces without lit closures. This stores only the normal to the surface. */
-  GBUF_UNLIT = 15u,
+  /** Special configurations. Packs multiple closures into less layer. */
+  /* TODO(fclem): This is isn't currently working due to monolitic nature of the evaluation. */
+  GBUF_METAL_CLEARCOAT = 15u,
 
   /** IMPORTANT: Needs to be less than 16 for correct packing in g-buffer header. */
 };
