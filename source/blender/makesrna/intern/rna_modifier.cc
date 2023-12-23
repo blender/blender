@@ -1714,7 +1714,8 @@ static void rna_def_modifier_panel_open_prop(StructRNA *srna, const char *identi
   PropertyRNA *prop;
   prop = RNA_def_property(srna, identifier, PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "modifier.layout_panel_open_flag", (1 << id));
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "modifier.layout_panel_open_flag", (int64_t(1) << id));
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, nullptr);
 }
 
