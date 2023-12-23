@@ -19,12 +19,12 @@ void main()
 
   GBufferReader gbuf = gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, texel);
 
-  if (!gbuf.has_reflection && !gbuf.has_reflection && !gbuf.has_refraction) {
+  if (!gbuf.has_any_surface) {
     return;
   }
 
   ClosureLightStack stack;
-  stack.cl[0].N = gbuf.has_diffuse ? gbuf.data.diffuse.N : gbuf.data.reflection.N;
+  stack.cl[0].N = gbuf.surface_N;
   stack.cl[0].ltc_mat = LTC_LAMBERT_MAT;
   stack.cl[0].type = LIGHT_DIFFUSE;
 
@@ -41,7 +41,8 @@ void main()
 
   vec3 radiance = stack.cl[0].light_shadowed + spherical_harmonics_evaluate_lambert(Ng, sh);
 
-  vec3 albedo = gbuf.data.diffuse.color + gbuf.data.reflection.color + gbuf.data.refraction.color;
+  vec3 albedo = gbuf.data.diffuse.color + gbuf.data.reflection.color + gbuf.data.refraction.color +
+                gbuf.data.translucent.color;
 
   out_radiance = vec4(radiance * albedo, 0.0);
 }
