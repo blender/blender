@@ -610,6 +610,16 @@ GBufferWriter gbuffer_pack(GBufferDataUndetermined data_in)
 
   /* Check special configurations first. */
 
+  if (has_diffuse) {
+    if (has_sss) {
+      /* Subsurface need to be first to be outputed in first lighting texture. */
+      gbuffer_closure_subsurface_pack(gbuf, data_in.diffuse);
+    }
+    else {
+      gbuffer_closure_diffuse_pack(gbuf, data_in.diffuse);
+    }
+  }
+
   if (has_refraction) {
     if (color_is_grayscale(data_in.refraction.color)) {
       gbuffer_closure_refraction_colorless_pack(gbuf, data_in.refraction);
@@ -625,15 +635,6 @@ GBufferWriter gbuffer_pack(GBufferDataUndetermined data_in)
     }
     else {
       gbuffer_closure_reflection_pack(gbuf, data_in.reflection);
-    }
-  }
-
-  if (has_diffuse) {
-    if (has_sss) {
-      gbuffer_closure_subsurface_pack(gbuf, data_in.diffuse);
-    }
-    else {
-      gbuffer_closure_diffuse_pack(gbuf, data_in.diffuse);
     }
   }
 
@@ -712,7 +713,7 @@ GBufferReader gbuffer_read(samplerGBufferHeader header_tx,
   gbuf.has_translucent = false;
   gbuf.has_sss = false;
   gbuf.data.thickness = 0.0;
-  gbuf.closure_count = 0u;
+  gbuf.closure_count = 0;
   gbuf.layer_data = 0;
   gbuf.layer_normal = 0;
 

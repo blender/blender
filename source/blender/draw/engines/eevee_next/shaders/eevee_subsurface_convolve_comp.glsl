@@ -94,7 +94,7 @@ void main(void)
 
   GBufferReader gbuf = gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, texel);
 
-  if (gbuf.data.diffuse.sss_id == 0u) {
+  if (!gbuf.has_sss) {
     return;
   }
 
@@ -132,7 +132,7 @@ void main(void)
 
     SubSurfaceSample samp = sample_neighborhood(sample_uv);
     /* Reject radiance from other surfaces. Avoids light leak between objects. */
-    if (samp.sss_id != gbuf.data.diffuse.sss_id) {
+    if (samp.sss_id != gbuf.data.object_id) {
       continue;
     }
     /* Slide 34. */
