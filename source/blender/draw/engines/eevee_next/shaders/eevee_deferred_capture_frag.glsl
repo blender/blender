@@ -24,7 +24,7 @@ void main()
   }
 
   ClosureLightStack stack;
-  stack.cl[0].N = gbuf.surface_N;
+  stack.cl[0].N = gbuf.data.surface_N;
   stack.cl[0].ltc_mat = LTC_LAMBERT_MAT;
   stack.cl[0].type = LIGHT_DIFFUSE;
 
