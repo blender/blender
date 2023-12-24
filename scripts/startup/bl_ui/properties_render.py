@@ -3,13 +3,13 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 from bpy.types import Panel
+from bl_ui.properties_grease_pencil_common import GreasePencilSimplifyPanel
 from bl_ui.space_view3d import (
     VIEW3D_PT_shading_lighting,
     VIEW3D_PT_shading_color,
     VIEW3D_PT_shading_options,
 )
-
-from bl_ui.properties_grease_pencil_common import GreasePencilSimplifyPanel
+from bl_ui.utils import PresetPanel
 
 
 class RenderButtonsPanel:
@@ -555,6 +555,13 @@ class RENDER_PT_eevee_screen_space_reflections(RenderButtonsPanel, Panel):
         col.prop(props, "ssr_firefly_fac")
 
 
+class RENDER_PT_eevee_next_raytracing_presets(PresetPanel, Panel):
+    bl_label = "Raytracing Presets"
+    preset_subdir = "eevee/raytracing"
+    preset_operator = "script.execute_preset"
+    preset_add_operator = "render.eevee_raytracing_preset_add"
+
+
 class RENDER_PT_eevee_next_raytracing(RenderButtonsPanel, Panel):
     bl_label = "Raytracing"
     bl_options = {'DEFAULT_CLOSED'}
@@ -563,6 +570,9 @@ class RENDER_PT_eevee_next_raytracing(RenderButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         return (context.engine in cls.COMPAT_ENGINES)
+
+    def draw_header_preset(self, _context):
+        RENDER_PT_eevee_next_raytracing_presets.draw_panel_header(self.layout)
 
     def draw(self, context):
         layout = self.layout
@@ -1243,6 +1253,7 @@ classes = (
     RENDER_PT_eevee_subsurface_scattering,
     RENDER_PT_eevee_screen_space_reflections,
     RENDER_PT_eevee_next_horizon_scan,
+    RENDER_PT_eevee_next_raytracing_presets,
     RENDER_PT_eevee_next_raytracing,
     RENDER_PT_eevee_next_screen_trace,
     RENDER_PT_eevee_next_denoise,
