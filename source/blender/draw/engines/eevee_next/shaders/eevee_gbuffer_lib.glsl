@@ -202,23 +202,6 @@ float gbuffer_thickness_unpack(float thickness_packed)
   return gbuffer_ior_unpack(thickness_packed);
 }
 
-vec4 gbuffer_sss_radii_pack(vec3 sss_radii)
-{
-  /* TODO(fclem): Something better. */
-  return gbuffer_closure_color_pack(vec3(gbuffer_ior_pack(sss_radii.x),
-                                         gbuffer_ior_pack(sss_radii.y),
-                                         gbuffer_ior_pack(sss_radii.z)));
-}
-
-vec3 gbuffer_sss_radii_unpack(vec4 sss_radii_packed)
-{
-  /* TODO(fclem): Something better. */
-  vec3 radii_packed = gbuffer_closure_color_unpack(sss_radii_packed);
-  return vec3(gbuffer_ior_unpack(radii_packed.x),
-              gbuffer_ior_unpack(radii_packed.y),
-              gbuffer_ior_unpack(radii_packed.z));
-}
-
 /**
  * Pack color with values in the range of [0..8] using a 2 bit shared exponent.
  * This allows values up to 8 with some color degradation.
@@ -236,6 +219,22 @@ vec3 gbuffer_closure_color_unpack(vec4 color_packed)
 {
   float exponent = color_packed.a * 3.0;
   return color_packed.rgb * exp2(exponent);
+}
+
+vec4 gbuffer_sss_radii_pack(vec3 sss_radii)
+{
+  /* TODO(fclem): Something better. */
+  return gbuffer_closure_color_pack(vec3(gbuffer_ior_pack(sss_radii.x),
+                                         gbuffer_ior_pack(sss_radii.y),
+                                         gbuffer_ior_pack(sss_radii.z)));
+}
+vec3 gbuffer_sss_radii_unpack(vec4 sss_radii_packed)
+{
+  /* TODO(fclem): Something better. */
+  vec3 radii_packed = gbuffer_closure_color_unpack(sss_radii_packed);
+  return vec3(gbuffer_ior_unpack(radii_packed.x),
+              gbuffer_ior_unpack(radii_packed.y),
+              gbuffer_ior_unpack(radii_packed.z));
 }
 
 /**
