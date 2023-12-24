@@ -1287,19 +1287,10 @@ void ShadowModule::set_view(View &view, GPUTexture *depth_tx)
   int fb_layers = SHADOW_VIEW_MAX;
 
   if (shadow_technique == ShadowTechnique::ATOMIC_RASTER) {
-    if (GPU_backend_get_type() == GPU_BACKEND_METAL) {
-      /* Metal requires a memoryless attachment to create an empty framebuffer.
-       * Might as well make use of it. */
-      shadow_depth_fb_tx_.ensure_2d_array(GPU_DEPTH_COMPONENT32F, fb_size, fb_layers, usage);
-      shadow_depth_accum_tx_.free();
-      render_fb_.ensure(GPU_ATTACHMENT_TEXTURE(shadow_depth_fb_tx_));
-    }
-    else {
-      /* Create attachment-less framebuffer. */
-      shadow_depth_fb_tx_.free();
-      shadow_depth_accum_tx_.free();
-      render_fb_.ensure(fb_size);
-    }
+    /* Create attachment-less framebuffer. */
+    shadow_depth_fb_tx_.free();
+    shadow_depth_accum_tx_.free();
+    render_fb_.ensure(fb_size);
   }
   else if (shadow_technique == ShadowTechnique::TILE_COPY) {
     /* Create memoryless depth attachment for on-tile surface depth accumulation.*/
