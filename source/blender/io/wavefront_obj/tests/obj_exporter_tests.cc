@@ -97,8 +97,8 @@ TEST_F(obj_exporter_test, filter_objects_selected)
 TEST(obj_exporter_utils, append_negative_frame_to_filename)
 {
   const char path_original[FILE_MAX] = SEP_STR "my_file.obj";
-  const char path_truth[FILE_MAX] = SEP_STR "my_file-123.obj";
-  const int frame = -123;
+  const char path_truth[FILE_MAX] = SEP_STR "my_file-0012.obj";
+  const int frame = -12;
   char path_with_frame[FILE_MAX] = {0};
   const bool ok = append_frame_to_filename(path_original, frame, path_with_frame);
   EXPECT_TRUE(ok);
@@ -108,8 +108,19 @@ TEST(obj_exporter_utils, append_negative_frame_to_filename)
 TEST(obj_exporter_utils, append_positive_frame_to_filename)
 {
   const char path_original[FILE_MAX] = SEP_STR "my_file.obj";
-  const char path_truth[FILE_MAX] = SEP_STR "my_file123.obj";
-  const int frame = 123;
+  const char path_truth[FILE_MAX] = SEP_STR "my_file0012.obj";
+  const int frame = 12;
+  char path_with_frame[FILE_MAX] = {0};
+  const bool ok = append_frame_to_filename(path_original, frame, path_with_frame);
+  EXPECT_TRUE(ok);
+  EXPECT_STREQ(path_with_frame, path_truth);
+}
+
+TEST(obj_exporter_utils, append_large_positive_frame_to_filename)
+{
+  const char path_original[FILE_MAX] = SEP_STR "my_file.obj";
+  const char path_truth[FILE_MAX] = SEP_STR "my_file1234567.obj";
+  const int frame = 1234567;
   char path_with_frame[FILE_MAX] = {0};
   const bool ok = append_frame_to_filename(path_original, frame, path_with_frame);
   EXPECT_TRUE(ok);
