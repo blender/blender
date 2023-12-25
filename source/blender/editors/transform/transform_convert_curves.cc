@@ -181,7 +181,7 @@ void curve_populate_trans_data_structs(TransDataContainer &tc,
             TransData &td = tc.data[point_i + trans_data_offset];
             td.flag |= TD_SKIP;
           }
-          return;
+          continue;
         }
 
         closest_distances.reinitialize(points.size());
