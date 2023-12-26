@@ -8,6 +8,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_brush_types.h"
+
 #include "BLI_hash.h"
 #include "BLI_math_color_blend.h"
 #include "BLI_task.h"

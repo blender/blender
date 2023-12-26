@@ -15,7 +15,6 @@
 #include "BLI_math_base_safe.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_set.hh"
-#include "BLI_task.h"
 #include "BLI_vector.hh"
 
 #include "DNA_brush_types.h"
