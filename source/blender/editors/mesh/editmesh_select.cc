@@ -32,6 +32,7 @@
 #include "BKE_layer.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.hh"
+#include "BKE_object.hh"
 #include "BKE_report.h"
 
 #include "WM_api.hh"
@@ -1082,8 +1083,8 @@ bool EDBM_unified_findnearest_from_raycast(ViewContext *vc,
 
       const float(*coords)[3] = nullptr;
       {
-        Mesh *me_eval = (Mesh *)DEG_get_evaluated_id(vc->depsgraph,
-                                                     static_cast<ID *>(obedit->data));
+        Object *obedit_eval = DEG_get_evaluated_object(vc->depsgraph, obedit);
+        Mesh *me_eval = BKE_object_get_editmesh_eval_cage(obedit_eval);
         if (BKE_mesh_wrapper_vert_len(me_eval) == bm->totvert) {
           coords = BKE_mesh_wrapper_vert_coords(me_eval);
         }
