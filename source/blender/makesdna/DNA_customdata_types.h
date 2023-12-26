@@ -68,17 +68,24 @@ typedef struct CustomDataExternal {
 } CustomDataExternal;
 
 /**
- * Structure which stores custom element data associated with mesh elements
- * (vertices, edges or faces). The custom data is organized into a series of
- * layers, each with a data type (e.g. MTFace, MDeformVert, etc.).
+ * #CustomData stores an arbitrary number of typed data "layers" for multiple elements.
+ * The layers are typically geometry attributes, and the elements are typically geometry
+ * elements like vertices, edges, or curves.
+ *
+ * Each layer has a type, often with certain semantics beyond the type of the raw data. However,
+ * a subset of the layer types are exposed as attributes and accessed with a higher level API
+ * built around #AttributeAccessor.
+ *
+ * For #BMesh, #CustomData is adapted to store the data from all layers in a single "block" which
+ * is allocated for each element. Each layer's data is stored at a certain offset into every
+ * block's data.
  */
 typedef struct CustomData {
-  /** CustomDataLayers, ordered by type. */
+  /** Layers ordered by type. */
   CustomDataLayer *layers;
   /**
-   * runtime only! - maps types to indices of first layer of that type,
-   * MUST be >= CD_NUMTYPES, but we can't use a define here.
-   * Correct size is ensured in CustomData_update_typemap assert().
+   * Runtime only map from types to indices of first layer of that type,
+   * Correct size of #CD_NUMTYPES is ensured by CustomData_update_typemap.
    */
   int typemap[53];
   /** Number of layers, size of layers array. */
@@ -91,11 +98,11 @@ typedef struct CustomData {
   CustomDataExternal *external;
 } CustomData;
 
-/** #CustomData.type */
+/** #CustomDataLayer.type */
 typedef enum eCustomDataType {
-  /* Used by GLSL attributes in the cases when we need a delayed CD type
-   * assignment (in the cases when we don't know in advance which layer
-   * we are addressing).
+  /**
+   * Used by GPU attributes in the cases when we don't know which layer
+   * we are addressing in advance.
    */
   CD_AUTO_FROM_NAME = -1,
 
@@ -103,7 +110,7 @@ typedef enum eCustomDataType {
   CD_MVERT = 0,
   CD_MSTICKY = 1,
 #endif
-  CD_MDEFORMVERT = 2, /* Array of `MDeformVert`. */
+  CD_MDEFORMVERT = 2, /* Array of #MDeformVert. */
 #ifdef DNA_DEPRECATED_ALLOW
   CD_MEDGE = 3,
 #endif
@@ -112,8 +119,8 @@ typedef enum eCustomDataType {
   CD_MCOL = 6,
   CD_ORIGINDEX = 7,
   /**
-   * Used for derived face corner normals on mesh `ldata`, since currently they are not computed
-   * lazily. Derived vertex and polygon normals are stored in #Mesh_Runtime.
+   * Used as temporary storage for some areas that support interpolating custom normals.
+   * Using a separate type from generic 3D vectors is a simple way of keeping values normalized.
    */
   CD_NORMAL = 8,
 #ifdef DNA_DEPRECATED_ALLOW
