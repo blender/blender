@@ -308,8 +308,8 @@ static void sculpt_boundary_edit_data_init(SculptSession *ss,
     boundary->edit_info[i].propagation_steps_num = BOUNDARY_STEPS_NONE;
   }
 
-  GSQueue *current_iteration = BLI_gsqueue_new(sizeof(PBVHVertRef));
-  GSQueue *next_iteration = BLI_gsqueue_new(sizeof(PBVHVertRef));
+  std::queue<PBVHVertRef> current_iteration;
+  std::queue<PBVHVertRef> next_iteration;
 
   /* Initialized the first iteration with the vertices already in the boundary. This is propagation
    * step 0. */
@@ -334,7 +334,7 @@ static void sculpt_boundary_edit_data_init(SculptSession *ss,
       SCULPT_VERTEX_NEIGHBORS_ITER_END(ni_duplis);
     }
 
-    BLI_gsqueue_push(current_iteration, &boundary->verts[i]);
+    current_iteration.push(boundary->verts[i]);
   }
 
   int propagation_steps_num = 0;
@@ -343,14 +343,14 @@ static void sculpt_boundary_edit_data_init(SculptSession *ss,
   while (true) {
     /* Stop adding steps to edit info. This happens when a steps is further away from the boundary
      * than the brush radius or when the entire mesh was already processed. */
-    if (accum_distance > radius || BLI_gsqueue_is_empty(current_iteration)) {
+    if (accum_distance > radius || current_iteration.empty()) {
       boundary->max_propagation_steps = propagation_steps_num;
       break;
     }
 
-    while (!BLI_gsqueue_is_empty(current_iteration)) {
-      PBVHVertRef from_v;
-      BLI_gsqueue_pop(current_iteration, &from_v);
+    while (!current_iteration.empty()) {
+      PBVHVertRef from_v = current_iteration.front();
+      current_iteration.pop();
 
       int from_v_i = BKE_pbvh_vertex_to_index(ss->pbvh, from_v);
 
@@ -375,7 +375,7 @@ static void sculpt_boundary_edit_data_init(SculptSession *ss,
           boundary->edit_info[ni.index].propagation_steps_num =
               boundary->edit_info[from_v_i].propagation_steps_num + 1;
 
-          BLI_gsqueue_push(next_iteration, &ni.vertex);
+          next_iteration.push(ni.vertex);
 
           /* When copying the data to the neighbor for the next iteration, it has to be copied to
            * all its duplicates too. This is because it is not possible to know if the updated
@@ -410,19 +410,16 @@ static void sculpt_boundary_edit_data_init(SculptSession *ss,
     }
 
     /* Copy the new vertices to the queue to be processed in the next iteration. */
-    while (!BLI_gsqueue_is_empty(next_iteration)) {
-      PBVHVertRef next_v;
-      BLI_gsqueue_pop(next_iteration, &next_v);
-      BLI_gsqueue_push(current_iteration, &next_v);
+    while (!next_iteration.empty()) {
+      PBVHVertRef next_v = next_iteration.front();
+      next_iteration.pop();
+      current_iteration.push(next_v);
     }
 
     propagation_steps_num++;
   }
 
   MEM_SAFE_FREE(visited_verts);
-
-  BLI_gsqueue_free(current_iteration);
-  BLI_gsqueue_free(next_iteration);
 }
 
 /* This functions assigns a falloff factor to each one of the SculptBoundaryEditInfo structs based

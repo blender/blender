@@ -637,7 +637,7 @@ static float *sculpt_expand_boundary_topology_falloff_create(Object *ob, const P
   const int totvert = SCULPT_vertex_count_get(ss);
   float *dists = static_cast<float *>(MEM_calloc_arrayN(totvert, sizeof(float), __func__));
   BitVector<> visited_verts(totvert);
-  GSQueue *queue = BLI_gsqueue_new(sizeof(PBVHVertRef));
+  std::queue<PBVHVertRef> queue;
 
   /* Search and initialize a boundary per symmetry pass, then mark those vertices as visited. */
   const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
@@ -655,22 +655,22 @@ static float *sculpt_expand_boundary_topology_falloff_create(Object *ob, const P
     }
 
     for (int i = 0; i < boundary->verts_num; i++) {
-      BLI_gsqueue_push(queue, &boundary->verts[i]);
+      queue.push(boundary->verts[i]);
       visited_verts[BKE_pbvh_vertex_to_index(ss->pbvh, boundary->verts[i])].set();
     }
     boundary::data_free(boundary);
   }
 
   /* If there are no boundaries, return a falloff with all values set to 0. */
-  if (BLI_gsqueue_is_empty(queue)) {
+  if (queue.empty()) {
     return dists;
   }
 
   /* Propagate the values from the boundaries to the rest of the mesh. */
-  while (!BLI_gsqueue_is_empty(queue)) {
-    PBVHVertRef v_next;
+  while (!queue.empty()) {
+    PBVHVertRef v_next = queue.front();
+    queue.pop();
 
-    BLI_gsqueue_pop(queue, &v_next);
     int v_next_i = BKE_pbvh_vertex_to_index(ss->pbvh, v_next);
 
     SculptVertexNeighborIter ni;
@@ -680,12 +680,11 @@ static float *sculpt_expand_boundary_topology_falloff_create(Object *ob, const P
       }
       dists[ni.index] = dists[v_next_i] + 1.0f;
       visited_verts[ni.index].set();
-      BLI_gsqueue_push(queue, &ni.vertex);
+      queue.push(ni.vertex);
     }
     SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
   }
 
-  BLI_gsqueue_free(queue);
   return dists;
 }
 
@@ -709,7 +708,7 @@ static float *sculpt_expand_diagonals_falloff_create(Object *ob, const PBVHVertR
 
   /* Search and mask as visited the initial vertices using the enabled symmetry passes. */
   BitVector<> visited_verts(totvert);
-  GSQueue *queue = BLI_gsqueue_new(sizeof(PBVHVertRef));
+  std::queue<PBVHVertRef> queue;
   const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
   for (char symm_it = 0; symm_it <= symm; symm_it++) {
     if (!SCULPT_is_symmetry_iteration_valid(symm_it, symm)) {
@@ -720,18 +719,18 @@ static float *sculpt_expand_diagonals_falloff_create(Object *ob, const PBVHVertR
         ob, symm_it, v);
     int symm_vertex_i = BKE_pbvh_vertex_to_index(ss->pbvh, symm_vertex);
 
-    BLI_gsqueue_push(queue, &symm_vertex);
+    queue.push(symm_vertex);
     visited_verts[symm_vertex_i].set();
   }
 
-  if (BLI_gsqueue_is_empty(queue)) {
+  if (queue.empty()) {
     return dists;
   }
 
   /* Propagate the falloff increasing the value by 1 each time a new vertex is visited. */
-  while (!BLI_gsqueue_is_empty(queue)) {
-    PBVHVertRef v_next;
-    BLI_gsqueue_pop(queue, &v_next);
+  while (!queue.empty()) {
+    PBVHVertRef v_next = queue.front();
+    queue.pop();
 
     int v_next_i = BKE_pbvh_vertex_to_index(ss->pbvh, v_next);
 
@@ -743,12 +742,11 @@ static float *sculpt_expand_diagonals_falloff_create(Object *ob, const PBVHVertR
         }
         dists[neighbor_v.i] = dists[v_next_i] + 1.0f;
         visited_verts[neighbor_v.i].set();
-        BLI_gsqueue_push(queue, &neighbor_v);
+        queue.push(neighbor_v);
       }
     }
   }
 
-  BLI_gsqueue_free(queue);
   return dists;
 }
 

@@ -9,6 +9,7 @@
 #pragma once
 
 #include <memory>
+#include <queue>
 
 #include "DNA_brush_types.h"
 #include "DNA_key_types.h"
@@ -26,7 +27,6 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_compiler_compat.h"
 #include "BLI_generic_array.hh"
-#include "BLI_gsqueue.h"
 #include "BLI_implicit_sharing.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
@@ -134,7 +134,7 @@ struct SculptOrigFaceData {
 
 /* Flood Fill. */
 struct SculptFloodFill {
-  GSQueue *queue;
+  std::queue<PBVHVertRef> queue;
   BLI_bitmap *visited_verts;
 };
 

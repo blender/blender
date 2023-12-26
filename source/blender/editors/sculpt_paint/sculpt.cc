@@ -19,7 +19,6 @@
 #include "BLI_blenlib.h"
 #include "BLI_dial_2d.h"
 #include "BLI_ghash.h"
-#include "BLI_gsqueue.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_set.hh"
@@ -1013,18 +1012,17 @@ void init_fill(SculptSession *ss, SculptFloodFill *flood)
   int vertex_count = SCULPT_vertex_count_get(ss);
   SCULPT_vertex_random_access_ensure(ss);
 
-  flood->queue = BLI_gsqueue_new(sizeof(intptr_t));
   flood->visited_verts = BLI_BITMAP_NEW(vertex_count, "visited verts");
 }
 
 void add_initial(SculptFloodFill *flood, PBVHVertRef vertex)
 {
-  BLI_gsqueue_push(flood->queue, &vertex);
+  flood->queue.push(vertex);
 }
 
 void add_and_skip_initial(SculptFloodFill *flood, PBVHVertRef vertex)
 {
-  BLI_gsqueue_push(flood->queue, &vertex);
+  flood->queue.push(vertex);
   BLI_BITMAP_ENABLE(flood->visited_verts, vertex.i);
 }
 
@@ -1094,10 +1092,10 @@ void execute(SculptSession *ss,
                           void *userdata),
              void *userdata)
 {
-  while (!BLI_gsqueue_is_empty(flood->queue)) {
-    PBVHVertRef from_v;
+  while (!flood->queue.empty()) {
+    PBVHVertRef from_v = flood->queue.front();
+    flood->queue.pop();
 
-    BLI_gsqueue_pop(flood->queue, &from_v);
     SculptVertexNeighborIter ni;
     SCULPT_VERTEX_DUPLICATES_AND_NEIGHBORS_ITER_BEGIN (ss, from_v, ni) {
       const PBVHVertRef to_v = ni.vertex;
@@ -1114,7 +1112,7 @@ void execute(SculptSession *ss,
       BLI_BITMAP_ENABLE(flood->visited_verts, BKE_pbvh_vertex_to_index(ss->pbvh, to_v));
 
       if (func(ss, from_v, to_v, ni.is_duplicate, userdata)) {
-        BLI_gsqueue_push(flood->queue, &to_v);
+        flood->queue.push(to_v);
       }
     }
     SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
@@ -1124,8 +1122,6 @@ void execute(SculptSession *ss,
 void free_fill(SculptFloodFill *flood)
 {
   MEM_SAFE_FREE(flood->visited_verts);
-  BLI_gsqueue_free(flood->queue);
-  flood->queue = nullptr;
 }
 
 }  // namespace blender::ed::sculpt_paint::flood_fill

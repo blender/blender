@@ -10,7 +10,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_ghash.h"
-#include "BLI_gsqueue.h"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_task.h"
@@ -595,14 +594,13 @@ void SCULPT_geometry_preview_lines_update(bContext *C, SculptSession *ss, float 
     ss->preview_vert_list = MEM_cnew_array<PBVHVertRef>(max_preview_verts, __func__);
   }
 
-  GSQueue *non_visited_verts = BLI_gsqueue_new(sizeof(PBVHVertRef));
-  PBVHVertRef active_v = SCULPT_active_vertex_get(ss);
-  BLI_gsqueue_push(non_visited_verts, &active_v);
+  std::queue<PBVHVertRef> non_visited_verts;
+  non_visited_verts.push(SCULPT_active_vertex_get(ss));
 
-  while (!BLI_gsqueue_is_empty(non_visited_verts)) {
-    PBVHVertRef from_v;
+  while (!non_visited_verts.empty()) {
+    PBVHVertRef from_v = non_visited_verts.front();
+    non_visited_verts.pop();
 
-    BLI_gsqueue_pop(non_visited_verts, &from_v);
     SculptVertexNeighborIter ni;
     SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, from_v, ni) {
       if (totpoints + (ni.size * 2) < max_preview_verts) {
@@ -618,14 +616,12 @@ void SCULPT_geometry_preview_lines_update(bContext *C, SculptSession *ss, float 
         BLI_BITMAP_ENABLE(visited_verts, to_v_i);
         const float *co = SCULPT_vertex_co_for_grab_active_get(ss, to_v);
         if (len_squared_v3v3(brush_co, co) < radius * radius) {
-          BLI_gsqueue_push(non_visited_verts, &to_v);
+          non_visited_verts.push(to_v);
         }
       }
     }
     SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
   }
-
-  BLI_gsqueue_free(non_visited_verts);
 
   MEM_freeN(visited_verts);
 
