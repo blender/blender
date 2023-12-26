@@ -1,0 +1,28 @@
+diff --git a/src/include/OpenImageIO/simd.h b/src/include/OpenImageIO/simd.h
+index f888b29fe..e0cdebdc1 100644
+--- a/src/include/OpenImageIO/simd.h
++++ b/src/include/OpenImageIO/simd.h
+@@ -46,10 +46,6 @@
+ 
+ #include <OpenImageIO/detail/fmt.h>
+ 
+-// Without SSE, we need to fall back on Imath for matrix44 invert
+-#if !OIIO_SIMD_SSE
+-#   include <OpenImageIO/Imath.h>
+-#endif
+ 
+ 
+ //////////////////////////////////////////////////////////////////////////
+@@ -279,6 +275,12 @@
+ #endif
+ 
+ 
++// Without SSE, we need to fall back on Imath for matrix44 invert
++#if !OIIO_SIMD_SSE
++#   include <OpenImageIO/Imath.h>
++#endif
++
++
+ OIIO_NAMESPACE_BEGIN
+ 
+ namespace simd {
