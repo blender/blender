@@ -503,7 +503,6 @@ static float *sculpt_expand_topology_falloff_create(Sculpt *sd, Object *ob, cons
   fdata.dists = dists;
 
   flood_fill::execute(ss, &flood, expand_topology_floodfill_cb, &fdata);
-  flood_fill::free_fill(&flood);
 
   return dists;
 }
@@ -564,7 +563,6 @@ static float *sculpt_expand_normal_falloff_create(Sculpt *sd,
   SCULPT_vertex_normal_get(ss, v, fdata.original_normal);
 
   flood_fill::execute(ss, &flood, mask_expand_normal_floodfill_cb, &fdata);
-  flood_fill::free_fill(&flood);
 
   for (int repeat = 0; repeat < blur_steps; repeat++) {
     for (int i = 0; i < totvert; i++) {
@@ -925,7 +923,6 @@ static void sculpt_expand_topology_from_state_boundary(Object *ob,
   ExpandFloodFillData fdata;
   fdata.dists = dists;
   flood_fill::execute(ss, &flood, expand_topology_floodfill_cb, &fdata);
-  flood_fill::free_fill(&flood);
 
   expand_cache->vert_falloff = dists;
 }

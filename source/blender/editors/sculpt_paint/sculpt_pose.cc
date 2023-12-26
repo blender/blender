@@ -361,7 +361,7 @@ struct PoseFloodFillData {
   GSet *visited_face_sets;
 
   /* In face sets origin mode, each vertex can only be assigned to one face set. */
-  BLI_bitmap *is_weighted;
+  MutableBoundedBitSpan is_weighted;
 
   bool is_first_iteration;
 
@@ -435,7 +435,7 @@ static bool pose_face_sets_floodfill_cb(
   if (data->current_face_set == SCULPT_FACE_SET_NONE) {
 
     data->pose_factor[index] = 1.0f;
-    BLI_BITMAP_ENABLE(data->is_weighted, index);
+    data->is_weighted[index].set();
 
     if (sculpt_pose_brush_is_vertex_inside_brush_radius(
             co, data->pose_initial_co, data->radius, data->symm))
@@ -469,9 +469,9 @@ static bool pose_face_sets_floodfill_cb(
     return visit_next;
   }
 
-  if (!BLI_BITMAP_TEST(data->is_weighted, index)) {
+  if (!data->is_weighted[index]) {
     data->pose_factor[index] = 1.0f;
-    BLI_BITMAP_ENABLE(data->is_weighted, index);
+    data->is_weighted[index].set();
     visit_next = true;
   }
 
@@ -543,7 +543,6 @@ void calc_pose_data(Sculpt *sd,
   copy_v3_v3(fdata.pose_initial_co, initial_location);
   copy_v3_v3(fdata.fallback_floodfill_origin, initial_location);
   flood_fill::execute(ss, &flood, pose_topology_floodfill_cb, &fdata);
-  flood_fill::free_fill(&flood);
 
   if (fdata.tot_co > 0) {
     mul_v3_fl(fdata.pose_origin, 1.0f / float(fdata.tot_co));
@@ -728,7 +727,7 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets(
 
   GSet *visited_face_sets = BLI_gset_int_new_ex("visited_face_sets", ik_chain->tot_segments);
 
-  BLI_bitmap *is_weighted = BLI_BITMAP_NEW(totvert, "weighted");
+  BitVector<> is_weighted(totvert);
 
   int current_face_set = SCULPT_FACE_SET_NONE;
   int prev_face_set = SCULPT_FACE_SET_NONE;
@@ -760,7 +759,6 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets(
     zero_v3(fdata.fallback_origin);
     copy_v3_v3(fdata.pose_initial_co, SCULPT_vertex_co_get(ss, current_vertex));
     flood_fill::execute(ss, &flood, pose_face_sets_floodfill_cb, &fdata);
-    flood_fill::free_fill(&flood);
 
     if (fdata.tot_co > 0) {
       mul_v3_fl(fdata.pose_origin, 1.0f / float(fdata.tot_co));
@@ -782,8 +780,6 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets(
   BLI_gset_free(visited_face_sets, nullptr);
 
   pose_ik_chain_origin_heads_init(ik_chain, SCULPT_active_vertex_co_get(ss));
-
-  MEM_SAFE_FREE(is_weighted);
 
   return ik_chain;
 }
@@ -864,7 +860,6 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets_fk(
   fdata.masked_face_set_it = 0;
   fdata.visited_face_sets = BLI_gset_int_new_ex("visited_face_sets", 3);
   flood_fill::execute(ss, &flood, pose_face_sets_fk_find_masked_floodfill_cb, &fdata);
-  flood_fill::free_fill(&flood);
   BLI_gset_free(fdata.visited_face_sets, nullptr);
 
   int origin_count = 0;
@@ -920,7 +915,6 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets_fk(
   flood_fill::add_active(sd, ob, ss, &flood, radius);
   fdata.fk_weights = ik_chain->segments[0].weights;
   flood_fill::execute(ss, &flood, pose_face_sets_fk_set_weights_floodfill_cb, &fdata);
-  flood_fill::free_fill(&flood);
 
   pose_ik_chain_origin_heads_init(ik_chain, ik_chain->segments[0].head);
   return ik_chain;

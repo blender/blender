@@ -534,7 +534,7 @@ struct LassoGestureData {
   int width;
 
   /* 2D bitmap to test if a vertex is affected by the lasso shape. */
-  BLI_bitmap *mask_px;
+  blender::BitVector<> mask_px;
 };
 
 struct LineGestureData {
@@ -668,7 +668,7 @@ static void sculpt_gesture_lasso_px_cb(int x, int x_end, int y, void *user_data)
   int index = (y * lasso->width) + x;
   int index_end = (y * lasso->width) + x_end;
   do {
-    BLI_BITMAP_ENABLE(lasso->mask_px, index);
+    lasso->mask_px[index].set();
   } while (++index != index_end);
 }
 
@@ -692,7 +692,7 @@ static SculptGestureContext *sculpt_gesture_init_from_lasso(bContext *C, wmOpera
   const int lasso_width = 1 + sgcontext->lasso.boundbox.xmax - sgcontext->lasso.boundbox.xmin;
   const int lasso_height = 1 + sgcontext->lasso.boundbox.ymax - sgcontext->lasso.boundbox.ymin;
   sgcontext->lasso.width = lasso_width;
-  sgcontext->lasso.mask_px = BLI_BITMAP_NEW(lasso_width * lasso_height, __func__);
+  sgcontext->lasso.mask_px.resize(lasso_width * lasso_height);
 
   BLI_bitmap_draw_2d_poly_v2i_n(sgcontext->lasso.boundbox.xmin,
                                 sgcontext->lasso.boundbox.ymin,
@@ -847,7 +847,6 @@ static SculptGestureContext *sculpt_gesture_init_from_line(bContext *C, wmOperat
 
 static void sculpt_gesture_context_free(SculptGestureContext *sgcontext)
 {
-  MEM_SAFE_FREE(sgcontext->lasso.mask_px);
   MEM_SAFE_FREE(sgcontext->gesture_points);
   MEM_SAFE_FREE(sgcontext->operation);
   MEM_delete(sgcontext);
@@ -964,7 +963,7 @@ static bool sculpt_gesture_is_effected_lasso(SculptGestureContext *sgcontext, co
   scr_co_s[0] -= lasso->boundbox.xmin;
   scr_co_s[1] -= lasso->boundbox.ymin;
 
-  return BLI_BITMAP_TEST_BOOL(lasso->mask_px, scr_co_s[1] * lasso->width + scr_co_s[0]);
+  return lasso->mask_px[scr_co_s[1] * lasso->width + scr_co_s[0]].test();
 }
 
 static bool sculpt_gesture_is_effected(SculptGestureContext *sgcontext,

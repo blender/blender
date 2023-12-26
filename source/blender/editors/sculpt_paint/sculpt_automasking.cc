@@ -653,7 +653,6 @@ static void SCULPT_topology_automasking_init(Sculpt *sd, Object *ob)
 
   copy_v3_v3(fdata.location, SCULPT_active_vertex_co_get(ss));
   flood_fill::execute(ss, &flood, automask_floodfill_cb, &fdata);
-  flood_fill::free_fill(&flood);
 }
 
 static void sculpt_face_sets_automasking_init(Sculpt *sd, Object *ob)

@@ -101,7 +101,6 @@ static PBVHVertRef sculpt_boundary_get_closest_boundary_vertex(SculptSession *ss
   fdata.floodfill_steps = MEM_cnew_array<int>(SCULPT_vertex_count_get(ss), __func__);
 
   flood_fill::execute(ss, &flood, boundary_initial_vertex_floodfill_cb, &fdata);
-  flood_fill::free_fill(&flood);
 
   MEM_freeN(fdata.floodfill_steps);
   return fdata.boundary_initial_vertex;
@@ -264,7 +263,6 @@ static void sculpt_boundary_indices_init(SculptSession *ss,
   fdata.last_visited_vertex = {BOUNDARY_VERTEX_NONE};
 
   flood_fill::execute(ss, &flood, boundary_floodfill_cb, &fdata);
-  flood_fill::free_fill(&flood);
 
   /* Check if the boundary loops into itself and add the extra preview edge to close the loop. */
   if (fdata.last_visited_vertex.i != BOUNDARY_VERTEX_NONE &&
@@ -311,9 +309,6 @@ static void sculpt_boundary_edit_data_init(SculptSession *ss,
   std::queue<PBVHVertRef> current_iteration;
   std::queue<PBVHVertRef> next_iteration;
 
-  /* Initialized the first iteration with the vertices already in the boundary. This is propagation
-   * step 0. */
-  BLI_bitmap *visited_verts = BLI_BITMAP_NEW(SCULPT_vertex_count_get(ss), "visited_verts");
   for (int i = 0; i < boundary->verts_num; i++) {
     int index = BKE_pbvh_vertex_to_index(ss->pbvh, boundary->verts[i]);
 
@@ -363,8 +358,6 @@ static void sculpt_boundary_edit_data_init(SculptSession *ss,
         }
         boundary->edit_info[ni.index].original_vertex_i =
             boundary->edit_info[from_v_i].original_vertex_i;
-
-        BLI_BITMAP_ENABLE(visited_verts, ni.index);
 
         if (ni.is_duplicate) {
           /* Grids duplicates handling. */
@@ -418,8 +411,6 @@ static void sculpt_boundary_edit_data_init(SculptSession *ss,
 
     propagation_steps_num++;
   }
-
-  MEM_SAFE_FREE(visited_verts);
 }
 
 /* This functions assigns a falloff factor to each one of the SculptBoundaryEditInfo structs based

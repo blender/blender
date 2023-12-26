@@ -585,7 +585,7 @@ void SCULPT_geometry_preview_lines_update(bContext *C, SculptSession *ss, float 
   float brush_co[3];
   copy_v3_v3(brush_co, SCULPT_active_vertex_co_get(ss));
 
-  BLI_bitmap *visited_verts = BLI_BITMAP_NEW(SCULPT_vertex_count_get(ss), "visited_verts");
+  blender::BitVector<> visited_verts(SCULPT_vertex_count_get(ss));
 
   /* Assuming an average of 6 edges per vertex in a triangulated mesh. */
   const int max_preview_verts = SCULPT_vertex_count_get(ss) * 3 * 2;
@@ -610,10 +610,10 @@ void SCULPT_geometry_preview_lines_update(bContext *C, SculptSession *ss, float 
         totpoints++;
         ss->preview_vert_list[totpoints] = to_v;
         totpoints++;
-        if (BLI_BITMAP_TEST(visited_verts, to_v_i)) {
+        if (visited_verts[to_v_i]) {
           continue;
         }
-        BLI_BITMAP_ENABLE(visited_verts, to_v_i);
+        visited_verts[to_v_i].set();
         const float *co = SCULPT_vertex_co_for_grab_active_get(ss, to_v);
         if (len_squared_v3v3(brush_co, co) < radius * radius) {
           non_visited_verts.push(to_v);
@@ -622,8 +622,6 @@ void SCULPT_geometry_preview_lines_update(bContext *C, SculptSession *ss, float 
     }
     SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
   }
-
-  MEM_freeN(visited_verts);
 
   ss->preview_vert_count = totpoints;
 }
@@ -826,7 +824,6 @@ static void sculpt_mask_by_color_contiguous(Object *object,
   copy_v3_v3(ffd.initial_color, color);
 
   flood_fill::execute(ss, &flood, sculpt_mask_by_color_contiguous_floodfill, &ffd);
-  flood_fill::free_fill(&flood);
 
   Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, {});
   const SculptMaskWriteInfo mask_write = SCULPT_mask_get_for_write(ss);

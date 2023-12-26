@@ -135,7 +135,7 @@ struct SculptOrigFaceData {
 /* Flood Fill. */
 struct SculptFloodFill {
   std::queue<PBVHVertRef> queue;
-  BLI_bitmap *visited_verts;
+  blender::BitVector<> visited_verts;
 };
 
 enum eBoundaryAutomaskMode {
@@ -1249,7 +1249,6 @@ void execute(SculptSession *ss,
                           bool is_duplicate,
                           void *userdata),
              void *userdata);
-void free_fill(SculptFloodFill *flood);
 
 }
 

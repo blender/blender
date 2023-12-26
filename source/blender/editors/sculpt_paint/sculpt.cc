@@ -1009,10 +1009,8 @@ namespace blender::ed::sculpt_paint::flood_fill {
 
 void init_fill(SculptSession *ss, SculptFloodFill *flood)
 {
-  int vertex_count = SCULPT_vertex_count_get(ss);
   SCULPT_vertex_random_access_ensure(ss);
-
-  flood->visited_verts = BLI_BITMAP_NEW(vertex_count, "visited verts");
+  flood->visited_verts.resize(SCULPT_vertex_count_get(ss));
 }
 
 void add_initial(SculptFloodFill *flood, PBVHVertRef vertex)
@@ -1023,7 +1021,7 @@ void add_initial(SculptFloodFill *flood, PBVHVertRef vertex)
 void add_and_skip_initial(SculptFloodFill *flood, PBVHVertRef vertex)
 {
   flood->queue.push(vertex);
-  BLI_BITMAP_ENABLE(flood->visited_verts, vertex.i);
+  flood->visited_verts[vertex.i].set(vertex.i);
 }
 
 void add_initial_with_symmetry(Sculpt *sd,
@@ -1101,7 +1099,7 @@ void execute(SculptSession *ss,
       const PBVHVertRef to_v = ni.vertex;
       int to_v_i = BKE_pbvh_vertex_to_index(ss->pbvh, to_v);
 
-      if (BLI_BITMAP_TEST(flood->visited_verts, to_v_i)) {
+      if (flood->visited_verts[to_v_i]) {
         continue;
       }
 
@@ -1109,7 +1107,7 @@ void execute(SculptSession *ss,
         continue;
       }
 
-      BLI_BITMAP_ENABLE(flood->visited_verts, BKE_pbvh_vertex_to_index(ss->pbvh, to_v));
+      flood->visited_verts[BKE_pbvh_vertex_to_index(ss->pbvh, to_v)].set();
 
       if (func(ss, from_v, to_v, ni.is_duplicate, userdata)) {
         flood->queue.push(to_v);
@@ -1117,11 +1115,6 @@ void execute(SculptSession *ss,
     }
     SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
   }
-}
-
-void free_fill(SculptFloodFill *flood)
-{
-  MEM_SAFE_FREE(flood->visited_verts);
 }
 
 }  // namespace blender::ed::sculpt_paint::flood_fill

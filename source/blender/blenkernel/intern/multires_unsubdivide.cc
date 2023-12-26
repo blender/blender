@@ -164,8 +164,7 @@ static bool is_vertex_diagonal(BMVert *from_v, BMVert *to_v)
  */
 static void unsubdivide_face_center_vertex_tag(BMesh *bm, BMVert *initial_vertex)
 {
-  bool *visited_verts = static_cast<bool *>(
-      MEM_calloc_arrayN(bm->totvert, sizeof(bool), "visited vertices"));
+  blender::BitVector<> visited_verts(bm->totvert);
   std::queue<BMVert *> queue;
 
   /* Add and tag the vertices connected by a diagonal to initial_vertex to the flood fill queue. If
@@ -180,7 +179,7 @@ static void unsubdivide_face_center_vertex_tag(BMesh *bm, BMVert *initial_vertex
       int neighbor_vertex_index = BM_elem_index_get(neighbor_v);
       if (neighbor_v != initial_vertex && is_vertex_diagonal(neighbor_v, initial_vertex)) {
         queue.push(neighbor_v);
-        visited_verts[neighbor_vertex_index] = true;
+        visited_verts[neighbor_vertex_index].set();
         BM_elem_flag_set(neighbor_v, BM_ELEM_TAG, true);
       }
     }
@@ -217,15 +216,13 @@ static void unsubdivide_face_center_vertex_tag(BMesh *bm, BMVert *initial_vertex
               is_vertex_diagonal(neighbor_v, diagonal_v))
           {
             queue.push(neighbor_v);
-            visited_verts[neighbor_vertex_index] = true;
+            visited_verts[neighbor_vertex_index].set();
             BM_elem_flag_set(neighbor_v, BM_ELEM_TAG, true);
           }
         }
       }
     }
   }
-
-  MEM_freeN(visited_verts);
 }
 
 /**
