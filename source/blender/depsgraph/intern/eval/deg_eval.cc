@@ -8,13 +8,14 @@
  * Evaluation engine entry-points for Depsgraph Engine.
  */
 
+#include <queue>
+
 #include "intern/eval/deg_eval.h"
 
 #include "PIL_time.h"
 
 #include "BLI_compiler_attrs.h"
 #include "BLI_function_ref.hh"
-#include "BLI_gsqueue.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 
@@ -335,21 +336,18 @@ void evaluate_graph_single_threaded_if_needed(DepsgraphEvalState *state)
 
   state->stage = EvaluationStage::SINGLE_THREADED_WORKAROUND;
 
-  GSQueue *evaluation_queue = BLI_gsqueue_new(sizeof(OperationNode *));
-  auto schedule_node_to_queue = [&](OperationNode *node) {
-    BLI_gsqueue_push(evaluation_queue, &node);
-  };
+  std::queue<OperationNode *> evaluation_queue;
+  auto schedule_node_to_queue = [&](OperationNode *node) { evaluation_queue.push(node); };
+
   schedule_graph(state, schedule_node_to_queue);
 
-  while (!BLI_gsqueue_is_empty(evaluation_queue)) {
-    OperationNode *operation_node;
-    BLI_gsqueue_pop(evaluation_queue, &operation_node);
+  while (!evaluation_queue.empty()) {
+    OperationNode *operation_node = evaluation_queue.front();
+    evaluation_queue.pop();
 
     evaluate_node(state, operation_node);
     schedule_children(state, operation_node, schedule_node_to_queue);
   }
-
-  BLI_gsqueue_free(evaluation_queue);
 }
 
 void depsgraph_ensure_view_layer(Depsgraph *graph)
