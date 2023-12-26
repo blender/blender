@@ -81,7 +81,7 @@ BokehKernel::BokehKernel(Context &context,
       size.y,
       1,
       Result::texture_format(ResultType::Color, context.get_precision()),
-      GPU_TEXTURE_USAGE_SHADER_READ,
+      GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE,
       nullptr);
 
   GPUShader *shader = context.get_shader("compositor_bokeh_image");
