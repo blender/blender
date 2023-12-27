@@ -60,6 +60,7 @@ set(SRC_BLENLIB
   ../../blenlib/intern/hash_mm2a.c
 
   # Dependencies of BLI_mempool.c when ASAN is enabled.
+  ../../blenlib/intern/gsqueue.c
   ../../blenlib/intern/threads.cc
   ../../blenlib/intern/time.c
 )

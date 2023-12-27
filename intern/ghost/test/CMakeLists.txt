@@ -165,6 +165,7 @@ add_definitions(-DMATH_STANDALONE)
 
 add_library(bli_lib
   "../../../source/blender/blenlib/intern/fileops.c"
+  "../../../source/blender/blenlib/intern/gsqueue.c"
   "../../../source/blender/blenlib/intern/rct.c"
   "../../../source/blender/blenlib/intern/string.c"
   "../../../source/blender/blenlib/intern/string_utf8.c"

@@ -9,10 +9,10 @@
 #include <cerrno>
 #include <cstdlib>
 #include <cstring>
-#include <queue>
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_gsqueue.h"
 #include "BLI_listbase.h"
 #include "BLI_system.h"
 #include "BLI_task.h"
@@ -578,7 +578,7 @@ void BLI_condition_end(ThreadCondition *cond)
 /* ************************************************ */
 
 struct ThreadQueue {
-  std::queue<void *> queue;
+  GSQueue *queue;
   pthread_mutex_t mutex;
   pthread_cond_t push_cond;
   pthread_cond_t finish_cond;
@@ -588,7 +588,11 @@ struct ThreadQueue {
 
 ThreadQueue *BLI_thread_queue_init()
 {
-  ThreadQueue *queue = MEM_new<ThreadQueue>(__func__);
+  ThreadQueue *queue;
+
+  queue = static_cast<ThreadQueue *>(MEM_callocN(sizeof(ThreadQueue), "ThreadQueue"));
+  queue->queue = BLI_gsqueue_new(sizeof(void *));
+
   pthread_mutex_init(&queue->mutex, nullptr);
   pthread_cond_init(&queue->push_cond, nullptr);
   pthread_cond_init(&queue->finish_cond, nullptr);
@@ -603,14 +607,16 @@ void BLI_thread_queue_free(ThreadQueue *queue)
   pthread_cond_destroy(&queue->push_cond);
   pthread_mutex_destroy(&queue->mutex);
 
-  MEM_delete(queue);
+  BLI_gsqueue_free(queue->queue);
+
+  MEM_freeN(queue);
 }
 
 void BLI_thread_queue_push(ThreadQueue *queue, void *work)
 {
   pthread_mutex_lock(&queue->mutex);
 
-  queue->queue.push(work);
+  BLI_gsqueue_push(queue->queue, &work);
 
   /* signal threads waiting to pop */
   pthread_cond_signal(&queue->push_cond);
@@ -623,16 +629,15 @@ void *BLI_thread_queue_pop(ThreadQueue *queue)
 
   /* wait until there is work */
   pthread_mutex_lock(&queue->mutex);
-  while (queue->queue.empty() && !queue->nowait) {
+  while (BLI_gsqueue_is_empty(queue->queue) && !queue->nowait) {
     pthread_cond_wait(&queue->push_cond, &queue->mutex);
   }
 
   /* if we have something, pop it */
-  if (!queue->queue.empty()) {
-    work = queue->queue.front();
-    queue->queue.pop();
+  if (!BLI_gsqueue_is_empty(queue->queue)) {
+    BLI_gsqueue_pop(queue->queue, &work);
 
-    if (queue->queue.empty()) {
+    if (BLI_gsqueue_is_empty(queue->queue)) {
       pthread_cond_broadcast(&queue->finish_cond);
     }
   }
@@ -688,7 +693,7 @@ void *BLI_thread_queue_pop_timeout(ThreadQueue *queue, int ms)
 
   /* wait until there is work */
   pthread_mutex_lock(&queue->mutex);
-  while (queue->queue.empty() && !queue->nowait) {
+  while (BLI_gsqueue_is_empty(queue->queue) && !queue->nowait) {
     if (pthread_cond_timedwait(&queue->push_cond, &queue->mutex, &timeout) == ETIMEDOUT) {
       break;
     }
@@ -698,11 +703,10 @@ void *BLI_thread_queue_pop_timeout(ThreadQueue *queue, int ms)
   }
 
   /* if we have something, pop it */
-  if (!queue->queue.empty()) {
-    work = queue->queue.front();
-    queue->queue.pop();
+  if (!BLI_gsqueue_is_empty(queue->queue)) {
+    BLI_gsqueue_pop(queue->queue, &work);
 
-    if (queue->queue.empty()) {
+    if (BLI_gsqueue_is_empty(queue->queue)) {
       pthread_cond_broadcast(&queue->finish_cond);
     }
   }
@@ -717,7 +721,7 @@ int BLI_thread_queue_len(ThreadQueue *queue)
   int size;
 
   pthread_mutex_lock(&queue->mutex);
-  size = queue->queue.size();
+  size = BLI_gsqueue_len(queue->queue);
   pthread_mutex_unlock(&queue->mutex);
 
   return size;
@@ -728,7 +732,7 @@ bool BLI_thread_queue_is_empty(ThreadQueue *queue)
   bool is_empty;
 
   pthread_mutex_lock(&queue->mutex);
-  is_empty = queue->queue.empty();
+  is_empty = BLI_gsqueue_is_empty(queue->queue);
   pthread_mutex_unlock(&queue->mutex);
 
   return is_empty;
@@ -750,7 +754,7 @@ void BLI_thread_queue_wait_finish(ThreadQueue *queue)
   /* wait for finish condition */
   pthread_mutex_lock(&queue->mutex);
 
-  while (!queue->queue.empty()) {
+  while (!BLI_gsqueue_is_empty(queue->queue)) {
     pthread_cond_wait(&queue->finish_cond, &queue->mutex);
   }
 

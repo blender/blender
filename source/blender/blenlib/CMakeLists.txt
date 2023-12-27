@@ -76,6 +76,7 @@ set(SRC
   intern/generic_vector_array.cc
   intern/generic_virtual_array.cc
   intern/generic_virtual_vector_array.cc
+  intern/gsqueue.c
   intern/hash_md5.c
   intern/hash_mm2a.c
   intern/hash_mm3.c
@@ -238,6 +239,7 @@ set(SRC
   BLI_generic_virtual_array.hh
   BLI_generic_virtual_vector_array.hh
   BLI_ghash.h
+  BLI_gsqueue.h
   BLI_hash.h
   BLI_hash.hh
   BLI_hash_md5.h
