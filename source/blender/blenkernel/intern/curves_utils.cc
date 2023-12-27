@@ -7,6 +7,7 @@
  */
 
 #include "BKE_curves_utils.hh"
+#include "BKE_customdata.hh"
 
 namespace blender::bke::curves {
 

@@ -9,6 +9,7 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_attribute_math.hh"
+#include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
 
 namespace blender::bke {

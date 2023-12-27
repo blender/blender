@@ -190,6 +190,10 @@ typedef enum eCustomDataType {
   CD_NUMTYPES = 53,
 } eCustomDataType;
 
+#ifdef __cplusplus
+using eCustomDataMask = uint64_t;
+#endif
+
 /* Bits for eCustomDataMask */
 #define CD_MASK_MDEFORMVERT (1 << CD_MDEFORMVERT)
 #define CD_MASK_MFACE (1 << CD_MFACE)

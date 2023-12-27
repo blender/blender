@@ -5,6 +5,7 @@
 #include "BKE_bake_items.hh"
 #include "BKE_bake_items_serialize.hh"
 #include "BKE_curves.hh"
+#include "BKE_customdata.hh"
 #include "BKE_instances.hh"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"

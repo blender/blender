@@ -32,6 +32,7 @@
 #include "BKE_bvhutils.hh"
 #include "BKE_context.hh"
 #include "BKE_curves.hh"
+#include "BKE_customdata.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"

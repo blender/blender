@@ -8,10 +8,11 @@
  */
 #include "BLI_compiler_attrs.h"
 #include "BLI_math_matrix_types.hh"
+#include "BLI_span.hh"
 
 #include "DNA_modifier_types.h" /* Needed for all enum type definitions. */
 
-#include "BKE_customdata.hh"
+#include "DNA_customdata_types.h"
 
 namespace blender::bke {
 struct GeometrySet;

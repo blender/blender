@@ -55,6 +55,7 @@
 #include "BKE_anim_visualization.h"
 #include "BKE_armature.hh"
 #include "BKE_colortools.hh"
+#include "BKE_customdata.hh"
 #include "BKE_global.h" /* for G */
 #include "BKE_lib_id.h"
 #include "BKE_main.hh"

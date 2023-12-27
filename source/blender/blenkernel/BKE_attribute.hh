@@ -76,6 +76,9 @@ class AttributeIDRef {
   friend std::ostream &operator<<(std::ostream &stream, const AttributeIDRef &attribute_id);
 };
 
+const CPPType *custom_data_type_to_cpp_type(eCustomDataType type);
+eCustomDataType cpp_type_to_custom_data_type(const CPPType &type);
+
 /**
  * Contains information about an attribute in a geometry component.
  * More information can be added in the future. E.g. whether the attribute is builtin and how it is

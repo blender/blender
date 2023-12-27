@@ -27,6 +27,7 @@
 #include "DNA_screen_types.h"
 
 #include "BKE_context.hh"
+#include "BKE_customdata.hh"
 #include "BKE_deform.h"
 #include "BKE_lattice.hh"
 #include "BKE_lib_id.h"

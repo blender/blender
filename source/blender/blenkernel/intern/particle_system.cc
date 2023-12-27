@@ -47,6 +47,7 @@
 #include "BKE_boids.h"
 #include "BKE_collision.h"
 #include "BKE_colortools.hh"
+#include "BKE_customdata.hh"
 #include "BKE_effect.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"

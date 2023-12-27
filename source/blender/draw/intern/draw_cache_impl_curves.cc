@@ -28,6 +28,7 @@
 
 #include "BKE_crazyspace.hh"
 #include "BKE_curves.hh"
+#include "BKE_customdata.hh"
 #include "BKE_geometry_set.hh"
 
 #include "GPU_batch.h"

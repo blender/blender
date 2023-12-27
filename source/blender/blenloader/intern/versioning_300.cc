@@ -63,6 +63,7 @@
 #include "BKE_colortools.hh"
 #include "BKE_curve.hh"
 #include "BKE_curves.hh"
+#include "BKE_customdata.hh"
 #include "BKE_data_transfer.h"
 #include "BKE_deform.h"
 #include "BKE_fcurve.h"

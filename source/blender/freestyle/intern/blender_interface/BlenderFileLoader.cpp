@@ -16,6 +16,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_attribute.hh"
+#include "BKE_customdata.hh"
 #include "BKE_global.h"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"

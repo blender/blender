@@ -52,6 +52,7 @@
 #include "BKE_collection.h"
 #include "BKE_collision.h"
 #include "BKE_curve.hh"
+#include "BKE_customdata.hh"
 #include "BKE_deform.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
@@ -2678,7 +2679,7 @@ static void mesh_to_softbody(Object *ob)
 {
   SoftBody *sb;
   Mesh *mesh = static_cast<Mesh *>(ob->data);
-  const vec2i *edge = static_cast<const vec2i *>(
+  const blender::int2 *edge = static_cast<const blender::int2 *>(
       CustomData_get_layer_named(&mesh->edge_data, CD_PROP_INT32_2D, ".edge_verts"));
   BodyPoint *bp;
   BodySpring *bs;

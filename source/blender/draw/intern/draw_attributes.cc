@@ -5,6 +5,7 @@
 #include "BLI_string.h"
 
 #include "BKE_attribute.hh"
+#include "BKE_customdata.hh"
 
 #include "draw_attributes.hh"
 

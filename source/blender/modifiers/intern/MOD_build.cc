@@ -25,6 +25,7 @@
 #include "DEG_depsgraph_query.hh"
 
 #include "BKE_context.hh"
+#include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
 #include "BKE_particle.h"

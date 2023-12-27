@@ -25,6 +25,7 @@
 
 #include "BLT_translation.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_bvhutils.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
@@ -641,6 +642,7 @@ void heat_bone_weighting(Object *ob,
                          const int *selected,
                          const char **error_str)
 {
+  using namespace blender;
   LaplacianSystem *sys;
   blender::int3 *corner_tris;
   float solution, weight;
@@ -651,6 +653,7 @@ void heat_bone_weighting(Object *ob,
   const blender::Span<blender::float3> vert_positions = mesh->vert_positions();
   const blender::OffsetIndices faces = mesh->faces();
   const blender::Span<int> corner_verts = mesh->corner_verts();
+  const bke::AttributeAccessor attributes = mesh->attributes();
   bool use_vert_sel = (mesh->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
   bool use_face_sel = (mesh->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
 
@@ -666,8 +669,8 @@ void heat_bone_weighting(Object *ob,
 
     /*  (added selectedVerts content for vertex mask, they used to just equal 1) */
     if (use_vert_sel) {
-      const bool *select_vert = (const bool *)CustomData_get_layer_named(
-          &mesh->vert_data, CD_PROP_BOOL, ".select_vert");
+      const VArray select_vert = *attributes.lookup_or_default<bool>(
+          ".select_vert", bke::AttrDomain::Point, false);
       if (select_vert) {
         for (const int i : faces.index_range()) {
           for (const int vert : corner_verts.slice(faces[i])) {
@@ -677,8 +680,8 @@ void heat_bone_weighting(Object *ob,
       }
     }
     else if (use_face_sel) {
-      const bool *select_poly = (const bool *)CustomData_get_layer_named(
-          &mesh->face_data, CD_PROP_BOOL, ".select_poly");
+      const VArray select_poly = *attributes.lookup_or_default<bool>(
+          ".select_poly", bke::AttrDomain::Face, false);
       if (select_poly) {
         for (const int i : faces.index_range()) {
           if (select_poly[i]) {

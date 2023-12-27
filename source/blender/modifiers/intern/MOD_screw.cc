@@ -28,6 +28,7 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_context.hh"
+#include "BKE_customdata.hh"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_mesh.hh"

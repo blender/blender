@@ -198,13 +198,15 @@ static float rna_CurvePoint_radius_get(PointerRNA *ptr)
 
 static void rna_CurvePoint_radius_set(PointerRNA *ptr, float value)
 {
+  using namespace blender;
   Curves *curves = rna_curves(ptr);
-  float *radii = static_cast<float *>(CustomData_get_layer_named_for_write(
-      &curves->geometry.point_data, CD_PROP_FLOAT, "radius", curves->geometry.point_num));
-  if (radii == nullptr) {
+  bke::MutableAttributeAccessor attributes = curves->geometry.wrap().attributes_for_write();
+  bke::AttributeWriter radii = attributes.lookup_or_add_for_write<float>("radius",
+                                                                         bke::AttrDomain::Point);
+  if (!radii) {
     return;
   }
-  radii[rna_CurvePoint_index_get_const(ptr)] = value;
+  radii.varray.set(rna_CurvePoint_index_get_const(ptr), value);
 }
 
 static char *rna_CurvePoint_path(const PointerRNA *ptr)

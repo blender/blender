@@ -47,6 +47,7 @@
 
 using blender::float3;
 using blender::IndexRange;
+using blender::MutableSpan;
 using blender::Span;
 using blender::Vector;
 
@@ -195,6 +196,20 @@ static void pointcloud_random(PointCloud *pointcloud)
   radii.finish();
 
   BLI_rng_free(rng);
+}
+
+Span<float3> PointCloud::positions() const
+{
+  return {static_cast<const float3 *>(
+              CustomData_get_layer_named(&this->pdata, CD_PROP_FLOAT3, "position")),
+          this->totpoint};
+}
+
+MutableSpan<float3> PointCloud::positions_for_write()
+{
+  return {static_cast<float3 *>(CustomData_get_layer_named_for_write(
+              &this->pdata, CD_PROP_FLOAT3, "position", this->totpoint)),
+          this->totpoint};
 }
 
 void *BKE_pointcloud_add(Main *bmain, const char *name)

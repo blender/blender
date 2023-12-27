@@ -11,7 +11,7 @@
 
 #include "BLI_sys_types.h"
 
-#include "BKE_customdata.hh"
+#include "DNA_customdata_types.h"
 
 namespace blender::bke {
 enum class AttrDomain : int8_t;

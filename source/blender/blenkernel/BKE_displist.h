@@ -8,8 +8,6 @@
  * \ingroup bke
  * \brief display list (or rather multi purpose list) stuff.
  */
-#include "BKE_customdata.hh"
-#include "DNA_customdata_types.h"
 
 #ifdef __cplusplus
 extern "C" {

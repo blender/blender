@@ -7,6 +7,7 @@
 #include "BLI_string.h"
 
 #include "BKE_curves.hh"
+#include "BKE_customdata.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"

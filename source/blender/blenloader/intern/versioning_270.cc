@@ -51,6 +51,7 @@
 #include "BKE_anim_data.h"
 #include "BKE_animsys.h"
 #include "BKE_colortools.hh"
+#include "BKE_customdata.hh"
 #include "BKE_fcurve_driver.h"
 #include "BKE_main.hh"
 #include "BKE_mask.h"

@@ -27,6 +27,7 @@
 
 #include "BKE_cloth.hh"
 #include "BKE_context.hh"
+#include "BKE_customdata.hh"
 #include "BKE_effect.h"
 #include "BKE_global.h"
 #include "BKE_key.h"
