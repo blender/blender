@@ -321,7 +321,6 @@ static void detect_workarounds()
     GLContext::base_instance_support = false;
     GLContext::copy_image_support = false;
     GLContext::debug_layer_support = false;
-    GLContext::fixed_restart_index_support = false;
     GLContext::geometry_shader_invocations = false;
     GLContext::texture_cube_map_array_support = false;
     GLContext::texture_gather_support = false;
@@ -529,7 +528,6 @@ bool GLContext::direct_state_access_support = false;
 bool GLContext::explicit_location_support = false;
 bool GLContext::framebuffer_fetch_support = false;
 bool GLContext::geometry_shader_invocations = false;
-bool GLContext::fixed_restart_index_support = false;
 bool GLContext::layered_rendering_support = false;
 bool GLContext::native_barycentric_support = false;
 bool GLContext::multi_bind_support = false;
@@ -623,7 +621,6 @@ void GLBackend::capabilities_init()
   GLContext::direct_state_access_support = epoxy_has_gl_extension("GL_ARB_direct_state_access");
   GLContext::explicit_location_support = epoxy_gl_version() >= 43;
   GLContext::geometry_shader_invocations = epoxy_has_gl_extension("GL_ARB_gpu_shader5");
-  GLContext::fixed_restart_index_support = epoxy_has_gl_extension("GL_ARB_ES3_compatibility");
   GLContext::framebuffer_fetch_support = epoxy_has_gl_extension("GL_EXT_shader_framebuffer_fetch");
   GLContext::texture_barrier_support = epoxy_has_gl_extension("GL_ARB_texture_barrier");
   GLContext::layered_rendering_support = epoxy_has_gl_extension(

@@ -54,7 +54,6 @@ class GLContext : public Context {
   static bool direct_state_access_support;
   static bool explicit_location_support;
   static bool geometry_shader_invocations;
-  static bool fixed_restart_index_support;
   static bool framebuffer_fetch_support;
   static bool layered_rendering_support;
   static bool native_barycentric_support;
