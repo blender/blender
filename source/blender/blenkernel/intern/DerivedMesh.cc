@@ -631,7 +631,7 @@ static void mesh_calc_modifiers(Depsgraph *depsgraph,
       }
 
       if (mti->type == ModifierTypeType::OnlyDeform && !sculpt_dyntopo) {
-        blender::bke::ScopedModifierTimer modifier_timer{*md};
+        ScopedModifierTimer modifier_timer{*md};
         if (!mesh_final) {
           mesh_final = BKE_mesh_copy_for_eval(mesh_input);
           ASSERT_IS_VALID_MESH(mesh_final);

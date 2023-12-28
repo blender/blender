@@ -1132,7 +1132,7 @@ BVHTree *BKE_bvhtree_from_mesh_get(BVHTreeFromMesh *data,
   }
 
   const Span<float3> positions = mesh->vert_positions();
-  const Span<blender::int2> edges = mesh->edges();
+  const Span<int2> edges = mesh->edges();
   const Span<int> corner_verts = mesh->corner_verts();
 
   /* Setup BVHTreeFromMesh */
@@ -1160,7 +1160,7 @@ BVHTree *BKE_bvhtree_from_mesh_get(BVHTreeFromMesh *data,
 
   switch (bvh_cache_type) {
     case BVHTREE_FROM_LOOSEVERTS: {
-      const blender::bke::LooseVertCache &loose_verts = mesh->loose_verts();
+      const LooseVertCache &loose_verts = mesh->loose_verts();
       data->tree = bvhtree_from_mesh_verts_create_tree(
           0.0f, tree_type, 6, positions, loose_verts.is_loose_bits, loose_verts.count);
       break;
@@ -1170,7 +1170,7 @@ BVHTree *BKE_bvhtree_from_mesh_get(BVHTreeFromMesh *data,
       break;
     }
     case BVHTREE_FROM_LOOSEEDGES: {
-      const blender::bke::LooseEdgeCache &loose_edges = mesh->loose_edges();
+      const LooseEdgeCache &loose_edges = mesh->loose_edges();
       data->tree = bvhtree_from_mesh_edges_create_tree(
           positions, edges, loose_edges.is_loose_bits, loose_edges.count, 0.0f, tree_type, 6);
       break;
@@ -1194,7 +1194,7 @@ BVHTree *BKE_bvhtree_from_mesh_get(BVHTreeFromMesh *data,
       break;
     }
     case BVHTREE_FROM_CORNER_TRIS_NO_HIDDEN: {
-      blender::bke::AttributeAccessor attributes = mesh->attributes();
+      AttributeAccessor attributes = mesh->attributes();
       int mask_bits_act_len = -1;
       const BitVector<> mask = corner_tris_no_hidden_map_get(
           mesh->faces(),

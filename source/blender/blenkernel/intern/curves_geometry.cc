@@ -557,7 +557,7 @@ static void calculate_evaluated_offsets(const CurvesGeometry &curves,
 
 OffsetIndices<int> CurvesGeometry::evaluated_points_by_curve() const
 {
-  const bke::CurvesGeometryRuntime &runtime = *this->runtime;
+  const CurvesGeometryRuntime &runtime = *this->runtime;
   if (this->is_single_type(CURVE_TYPE_POLY)) {
     /* When all the curves are poly curves, the evaluated offsets are the same as the control
      * point offsets, so it's possible to completely avoid building a new offsets array. */
@@ -607,7 +607,7 @@ Array<int> CurvesGeometry::point_to_curve_map() const
 
 void CurvesGeometry::ensure_nurbs_basis_cache() const
 {
-  const bke::CurvesGeometryRuntime &runtime = *this->runtime;
+  const CurvesGeometryRuntime &runtime = *this->runtime;
   runtime.nurbs_basis_cache.ensure([&](Vector<curves::nurbs::BasisCache> &r_data) {
     IndexMaskMemory memory;
     const IndexMask nurbs_mask = this->indices_for_curve_type(CURVE_TYPE_NURBS, memory);
@@ -650,7 +650,7 @@ void CurvesGeometry::ensure_nurbs_basis_cache() const
 
 Span<float3> CurvesGeometry::evaluated_positions() const
 {
-  const bke::CurvesGeometryRuntime &runtime = *this->runtime;
+  const CurvesGeometryRuntime &runtime = *this->runtime;
   if (this->is_single_type(CURVE_TYPE_POLY)) {
     runtime.evaluated_position_cache.ensure(
         [&](Vector<float3> &r_data) { r_data.clear_and_shrink(); });
@@ -729,7 +729,7 @@ Span<float3> CurvesGeometry::evaluated_positions() const
 
 Span<float3> CurvesGeometry::evaluated_tangents() const
 {
-  const bke::CurvesGeometryRuntime &runtime = *this->runtime;
+  const CurvesGeometryRuntime &runtime = *this->runtime;
   runtime.evaluated_tangent_cache.ensure([&](Vector<float3> &r_data) {
     const OffsetIndices<int> evaluated_points_by_curve = this->evaluated_points_by_curve();
     const Span<float3> evaluated_positions = this->evaluated_positions();
@@ -843,7 +843,7 @@ static void evaluate_generic_data_for_curve(const EvalData &eval_data,
 
 Span<float3> CurvesGeometry::evaluated_normals() const
 {
-  const bke::CurvesGeometryRuntime &runtime = *this->runtime;
+  const CurvesGeometryRuntime &runtime = *this->runtime;
   this->ensure_nurbs_basis_cache();
   runtime.evaluated_normal_cache.ensure([&](Vector<float3> &r_data) {
     const OffsetIndices<int> points_by_curve = this->points_by_curve();
@@ -940,7 +940,7 @@ void CurvesGeometry::interpolate_to_evaluated(const int curve_index,
                                               const GSpan src,
                                               GMutableSpan dst) const
 {
-  const bke::CurvesGeometryRuntime &runtime = *this->runtime;
+  const CurvesGeometryRuntime &runtime = *this->runtime;
   const EvalData eval_data{
       this->points_by_curve(),
       this->curve_types(),
@@ -958,7 +958,7 @@ void CurvesGeometry::interpolate_to_evaluated(const int curve_index,
 
 void CurvesGeometry::interpolate_to_evaluated(const GSpan src, GMutableSpan dst) const
 {
-  const bke::CurvesGeometryRuntime &runtime = *this->runtime;
+  const CurvesGeometryRuntime &runtime = *this->runtime;
   const OffsetIndices points_by_curve = this->points_by_curve();
   const EvalData eval_data{
       points_by_curve,
@@ -984,7 +984,7 @@ void CurvesGeometry::interpolate_to_evaluated(const GSpan src, GMutableSpan dst)
 
 void CurvesGeometry::ensure_evaluated_lengths() const
 {
-  const bke::CurvesGeometryRuntime &runtime = *this->runtime;
+  const CurvesGeometryRuntime &runtime = *this->runtime;
   runtime.evaluated_length_cache.ensure([&](Vector<float> &r_data) {
     /* Use an extra length value for the final cyclic segment for a consistent size
      * (see comment on #evaluated_length_cache). */
