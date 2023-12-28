@@ -143,11 +143,23 @@ bool ANIM_armature_bonecoll_is_editable(const struct bArmature *armature,
                                         const struct BoneCollection *bcoll);
 
 /**
- * Moves the bone collection at from_index to to_index.
+ * Move the bone collection at from_index to its sibling at to_index.
+ *
+ * The element at `to_index` is shifted to make space; it is not overwritten.
+ * This shift happens towards `from_index`.
+ *
+ * This operation does not change the total number of elements in the array.
  *
  * \return true if the collection was successfully moved, false otherwise.
  * The latter happens if either index is out of bounds, or if the indices
  * are equal.
+ * \note This function ensures that the element at index `from_index` (before
+ * the call) will end up at `to_index` (after the call). The element at
+ * `to_index` before the call will shift towards `from_index`; in other words,
+ * depending on the direction of movement, the moved element will end up either
+ * before or after that one.
+ *
+ * TODO: add ASCII-art illustration of left & right movement.
  */
 bool ANIM_armature_bonecoll_move_to_index(bArmature *armature, int from_index, int to_index);
 
