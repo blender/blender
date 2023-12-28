@@ -432,7 +432,6 @@ set(GLSL_SRC
   engines/eevee/shaders/bsdf_common_lib.glsl
   engines/eevee/shaders/irradiance_lib.glsl
   engines/eevee/shaders/octahedron_lib.glsl
-  engines/eevee/shaders/cubemap_lib.glsl
   engines/eevee/shaders/bsdf_sampling_lib.glsl
   engines/eevee/shaders/random_lib.glsl
   engines/eevee/shaders/raytrace_lib.glsl
@@ -469,7 +468,6 @@ set(GLSL_SRC
   engines/eevee_next/shaders/eevee_closure_lib.glsl
   engines/eevee_next/shaders/eevee_colorspace_lib.glsl
   engines/eevee_next/shaders/eevee_cryptomatte_lib.glsl
-  engines/eevee_next/shaders/eevee_cubemap_lib.glsl
   engines/eevee_next/shaders/eevee_debug_gbuffer_frag.glsl
   engines/eevee_next/shaders/eevee_debug_surfels_vert.glsl
   engines/eevee_next/shaders/eevee_debug_surfels_frag.glsl

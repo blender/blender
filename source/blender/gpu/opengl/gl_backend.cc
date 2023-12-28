@@ -319,7 +319,6 @@ static void detect_workarounds()
      * These code paths should be removed. */
     GLContext::debug_layer_support = false;
     GLContext::geometry_shader_invocations = false;
-    GLContext::texture_cube_map_array_support = false;
     GLContext::texture_gather_support = false;
 #endif
 
@@ -389,13 +388,6 @@ static void detect_workarounds()
       (strstr(renderer, "HD Graphics 620") || strstr(renderer, "HD Graphics 630")))
   {
     GCaps.mip_render_workaround = true;
-  }
-  /* Intel Ivy Bridge GPU's seems to have buggy cube-map array support. (see #75943) */
-  if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_WIN, GPU_DRIVER_OFFICIAL) &&
-      (strstr(renderer, "HD Graphics 4000") || strstr(renderer, "HD Graphics 4400") ||
-       strstr(renderer, "HD Graphics 2500")))
-  {
-    GLContext::texture_cube_map_array_support = false;
   }
   /* Maybe not all of these drivers have problems with `GL_ARB_base_instance`.
    * But it's hard to test each case.
@@ -507,7 +499,6 @@ bool GLContext::multi_draw_indirect_support = false;
 bool GLContext::shader_draw_parameters_support = false;
 bool GLContext::stencil_texturing_support = false;
 bool GLContext::texture_barrier_support = false;
-bool GLContext::texture_cube_map_array_support = false;
 bool GLContext::texture_filter_anisotropic_support = false;
 bool GLContext::texture_gather_support = false;
 
@@ -599,8 +590,6 @@ void GLBackend::capabilities_init()
   GLContext::shader_draw_parameters_support = epoxy_has_gl_extension(
       "GL_ARB_shader_draw_parameters");
   GLContext::stencil_texturing_support = epoxy_gl_version() >= 43;
-  GLContext::texture_cube_map_array_support = epoxy_has_gl_extension(
-      "GL_ARB_texture_cube_map_array");
   GLContext::texture_filter_anisotropic_support = epoxy_has_gl_extension(
       "GL_EXT_texture_filter_anisotropic");
   GLContext::texture_gather_support = epoxy_has_gl_extension("GL_ARB_texture_gather");

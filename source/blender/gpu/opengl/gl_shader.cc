@@ -1092,10 +1092,6 @@ static const char *glsl_patch_default_get()
     ss << "#extension GL_ARB_gpu_shader5 : enable\n";
     ss << "#define GPU_ARB_gpu_shader5\n";
   }
-  if (GLContext::texture_cube_map_array_support) {
-    ss << "#extension GL_ARB_texture_cube_map_array : enable\n";
-    ss << "#define GPU_ARB_texture_cube_map_array\n";
-  }
   if (epoxy_has_gl_extension("GL_ARB_conservative_depth")) {
     ss << "#extension GL_ARB_conservative_depth : enable\n";
   }
@@ -1150,11 +1146,6 @@ static const char *glsl_patch_compute_get()
   /* Version need to go first. */
   ss << "#version 430\n";
   ss << "#extension GL_ARB_compute_shader :enable\n";
-
-  if (GLContext::texture_cube_map_array_support) {
-    ss << "#extension GL_ARB_texture_cube_map_array : enable\n";
-    ss << "#define GPU_ARB_texture_cube_map_array\n";
-  }
 
   /* Array compatibility. */
   ss << "#define gpu_Array(_type) _type[]\n";

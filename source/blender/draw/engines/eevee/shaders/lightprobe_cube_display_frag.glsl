@@ -17,5 +17,5 @@ void main()
 
   vec3 view_nor = vec3(quadCoord, sqrt(max(0.0, 1.0 - dist_sqr)));
   vec3 world_ref = mat3(ViewMatrixInverse) * reflect(vec3(0.0, 0.0, -1.0), view_nor);
-  FragColor = vec4(textureLod_cubemapArray(probeCubes, vec4(world_ref, pid), 0.0).rgb, 1.0);
+  FragColor = vec4(textureLod(probeCubes, vec4(world_ref, pid), 0.0).rgb, 1.0);
 }
