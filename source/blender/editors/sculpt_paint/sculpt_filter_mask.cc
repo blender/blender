@@ -23,6 +23,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+#include "paint_intern.hh"
 #include "sculpt_intern.hh"
 
 #include "RNA_access.hh"
@@ -64,7 +65,7 @@ static EnumPropertyItem prop_mask_filter_types[] = {
 
 static void mask_filter_task(SculptSession *ss,
                              const int mode,
-                             float *prev_mask,
+                             const Span<float> prev_mask,
                              const SculptMaskWriteInfo mask_write,
                              PBVHNode *node)
 {
@@ -184,7 +185,7 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
     undo::push_node(ob, node, undo::Type::Mask);
   }
 
-  float *prev_mask = nullptr;
+  Array<float> prev_mask;
   int iterations = RNA_int_get(op->ptr, "iterations");
 
   /* Auto iteration count calculates the number of iteration based on the vertices of the mesh to
@@ -199,11 +200,7 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
 
   for (int i = 0; i < iterations; i++) {
     if (ELEM(filter_type, MASK_FILTER_GROW, MASK_FILTER_SHRINK)) {
-      prev_mask = static_cast<float *>(MEM_mallocN(num_verts * sizeof(float), __func__));
-      for (int j = 0; j < num_verts; j++) {
-        PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, j);
-        prev_mask[j] = SCULPT_vertex_mask_get(ss, vertex);
-      }
+      prev_mask = duplicate_mask(*ob);
     }
 
     threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
@@ -211,10 +208,6 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
         mask_filter_task(ss, filter_type, prev_mask, mask_write, nodes[i]);
       }
     });
-
-    if (ELEM(filter_type, MASK_FILTER_GROW, MASK_FILTER_SHRINK)) {
-      MEM_freeN(prev_mask);
-    }
   }
 
   undo::push_end(ob);

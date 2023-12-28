@@ -468,6 +468,9 @@ void PAINT_OT_visibility_invert(wmOperatorType *ot);
 /* `paint_mask.cc` */
 
 namespace blender::ed::sculpt_paint::mask {
+
+Array<float> duplicate_mask(const Object &object);
+
 void PAINT_OT_mask_flood_fill(wmOperatorType *ot);
 void PAINT_OT_mask_lasso_gesture(wmOperatorType *ot);
 void PAINT_OT_mask_box_gesture(wmOperatorType *ot);

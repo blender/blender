@@ -1143,7 +1143,6 @@ static void sculpt_expand_cache_data_free(Cache *expand_cache)
 {
   MEM_SAFE_FREE(expand_cache->vert_falloff);
   MEM_SAFE_FREE(expand_cache->face_falloff);
-  MEM_SAFE_FREE(expand_cache->original_mask);
   MEM_SAFE_FREE(expand_cache->original_colors);
   MEM_delete<Cache>(expand_cache);
 }
@@ -1240,7 +1239,7 @@ static void sculpt_expand_restore_original_state(bContext *C, Object *ob, Cache 
   SculptSession *ss = ob->sculpt;
   switch (expand_cache->target) {
     case SCULPT_EXPAND_TARGET_MASK:
-      write_mask_data(ss, {expand_cache->original_mask, SCULPT_vertex_count_get(ss)});
+      write_mask_data(ss, expand_cache->original_mask);
       SCULPT_flush_update_step(C, SCULPT_UPDATE_MASK);
       SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
       SCULPT_tag_update_overlays(C);
@@ -1439,13 +1438,7 @@ static void sculpt_expand_original_state_store(Object *ob, Cache *expand_cache)
   expand_cache->original_face_sets = face_set::duplicate_face_sets(mesh);
 
   if (expand_cache->target == SCULPT_EXPAND_TARGET_MASK) {
-    expand_cache->original_mask = static_cast<float *>(
-        MEM_malloc_arrayN(totvert, sizeof(float), "initial mask"));
-    for (int i = 0; i < totvert; i++) {
-      PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
-
-      expand_cache->original_mask[i] = SCULPT_vertex_mask_get(ss, vertex);
-    }
+    expand_cache->original_mask = mask::duplicate_mask(*ob);
   }
 
   if (expand_cache->target == SCULPT_EXPAND_TARGET_COLORS) {

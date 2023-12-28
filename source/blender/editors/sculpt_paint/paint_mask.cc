@@ -62,6 +62,55 @@
 
 namespace blender::ed::sculpt_paint::mask {
 
+Array<float> duplicate_mask(const Object &object)
+{
+  const SculptSession &ss = *object.sculpt;
+  switch (BKE_pbvh_type(ss.pbvh)) {
+    case PBVH_FACES: {
+      const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+      const bke::AttributeAccessor attributes = mesh.attributes();
+      const VArray mask = *attributes.lookup_or_default<float>(
+          ".sculpt_mask", bke::AttrDomain::Point, 0.0f);
+      Array<float> result(mask.size());
+      mask.materialize(result);
+      return result;
+    }
+    case PBVH_GRIDS: {
+      const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
+      const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
+      const Span<CCGElem *> grids = subdiv_ccg.grids;
+
+      Array<float> result(grids.size() * key.grid_area);
+      int index = 0;
+      for (const int grid : grids.index_range()) {
+        CCGElem *elem = grids[grid];
+        for (const int i : IndexRange(key.grid_area)) {
+          result[index] = *CCG_elem_offset_mask(&key, elem, i);
+          index++;
+        }
+      }
+      return result;
+    }
+    case PBVH_BMESH: {
+      BMesh &bm = *ss.bm;
+      const int offset = CustomData_get_offset_named(&bm.vdata, CD_PROP_FLOAT, ".sculpt_mask");
+      Array<float> result(bm.totvert);
+      if (offset == -1) {
+        result.fill(0.0f);
+      }
+      else {
+        BM_mesh_elem_table_ensure(&bm, BM_VERT);
+        for (const int i : result.index_range()) {
+          result[i] = BM_ELEM_CD_GET_FLOAT(BM_vert_at_index(&bm, i), offset);
+        }
+      }
+      return result;
+    }
+  }
+  BLI_assert_unreachable();
+  return {};
+}
+
 /* The gesture API doesn't write to this enum type,
  * it writes to eSelectOp from ED_select_utils.hh.
  * We must thus map the modes here to the desired

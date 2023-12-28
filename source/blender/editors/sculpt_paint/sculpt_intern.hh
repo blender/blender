@@ -709,7 +709,7 @@ struct Cache {
   Array<int> initial_face_sets;
 
   /* Original data of the sculpt as it was before running the Expand operator. */
-  float *original_mask;
+  Array<float> original_mask;
   Array<int> original_face_sets;
   float (*original_colors)[4];
 
