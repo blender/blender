@@ -264,6 +264,12 @@ void ANIM_armature_bonecoll_show_from_pchan(struct bArmature *armature,
 
 namespace blender::animrig {
 
+/**
+ * Return the index of the given collection in the armature's collection array,
+ * or -1 if not found.
+ */
+int armature_bonecoll_find_index(const bArmature *armature, const ::BoneCollection *bcoll);
+
 /* --------------------------------------------------------------------
  * The following functions are only used by edit-mode Armature undo:
  */

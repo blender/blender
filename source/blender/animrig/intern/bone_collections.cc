@@ -179,23 +179,6 @@ static void bonecoll_append(bArmature *armature, BoneCollection *bcoll)
   bonecoll_insert_at_index(armature, bcoll, armature->collection_array_num);
 }
 
-/**
- * Returns the index of the given collection in the armature's collection array,
- * or -1 if not found.
- */
-static int bonecoll_find_index(const bArmature *armature, const BoneCollection *bcoll)
-{
-  int index = 0;
-  for (const BoneCollection *arm_bcoll : armature->collections_span()) {
-    if (arm_bcoll == bcoll) {
-      return index;
-    }
-    index++;
-  }
-
-  return -1;
-}
-
 BoneCollection *ANIM_armature_bonecoll_new(bArmature *armature, const char *name)
 {
   BoneCollection *bcoll = ANIM_bonecoll_new(name);
@@ -230,7 +213,7 @@ BoneCollection *ANIM_armature_bonecoll_insert_copy_after(bArmature *armature,
                                       0 /*do_id_user ? 0 : LIB_ID_CREATE_NO_USER_REFCOUNT*/);
   }
 
-  const int anchor_index = bonecoll_find_index(armature, anchor);
+  const int anchor_index = armature_bonecoll_find_index(armature, anchor);
   bonecoll_insert_at_index(armature, bcoll, anchor_index + 1);
   bonecoll_ensure_name_unique(armature, bcoll);
   add_reverse_pointers(bcoll);
@@ -252,7 +235,7 @@ void ANIM_armature_bonecoll_active_set(bArmature *armature, BoneCollection *bcol
     return;
   }
 
-  const int index = bonecoll_find_index(armature, bcoll);
+  const int index = armature_bonecoll_find_index(armature, bcoll);
   if (index == -1) {
     /* TODO: print warning? Or just ignore this case? */
     armature_bonecoll_active_clear(armature);
@@ -374,7 +357,7 @@ bool ANIM_armature_bonecoll_move(bArmature *armature, BoneCollection *bcoll, con
     return false;
   }
 
-  const int bcoll_index = bonecoll_find_index(armature, bcoll);
+  const int bcoll_index = armature_bonecoll_find_index(armature, bcoll);
   const int to_index = bcoll_index + step;
   if (bcoll_index < 0 || to_index < 0 || to_index >= armature->collection_array_num) {
     return false;
@@ -453,7 +436,8 @@ void ANIM_armature_bonecoll_remove_from_index(bArmature *armature, const int ind
 
 void ANIM_armature_bonecoll_remove(bArmature *armature, BoneCollection *bcoll)
 {
-  ANIM_armature_bonecoll_remove_from_index(armature, bonecoll_find_index(armature, bcoll));
+  ANIM_armature_bonecoll_remove_from_index(armature,
+                                           armature_bonecoll_find_index(armature, bcoll));
 }
 
 BoneCollection *ANIM_armature_bonecoll_get_by_name(bArmature *armature, const char *name)
@@ -705,6 +689,19 @@ void ANIM_armature_bonecoll_show_from_pchan(bArmature *armature, const bPoseChan
 /* ********* */
 /* C++ only. */
 namespace blender::animrig {
+
+int armature_bonecoll_find_index(const bArmature *armature, const BoneCollection *bcoll)
+{
+  int index = 0;
+  for (const BoneCollection *arm_bcoll : armature->collections_span()) {
+    if (arm_bcoll == bcoll) {
+      return index;
+    }
+    index++;
+  }
+
+  return -1;
+}
 
 /* Utility functions for Armature edit-mode undo. */
 
