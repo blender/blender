@@ -91,7 +91,7 @@ static void mask_filter_task(SculptSession *ss,
     switch (mode) {
       case MASK_FILTER_SMOOTH:
       case MASK_FILTER_SHARPEN: {
-        float val = smooth::neighbor_mask_average(ss, vd.vertex);
+        float val = smooth::neighbor_mask_average(ss, mask_write, vd.vertex);
 
         val -= mask;
 

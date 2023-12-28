@@ -303,33 +303,6 @@ float SCULPT_mask_get_at_grids_vert_index(const SubdivCCG &subdiv_ccg,
   return *CCG_elem_offset_mask(&key, elem, index_in_grid);
 }
 
-float SCULPT_vertex_mask_get(SculptSession *ss, PBVHVertRef vertex)
-{
-  using namespace blender;
-  switch (BKE_pbvh_type(ss->pbvh)) {
-    case PBVH_FACES: {
-      const Mesh *mesh = BKE_pbvh_get_mesh(ss->pbvh);
-      const bke::AttributeAccessor attributes = mesh->attributes();
-      const VArray mask = *attributes.lookup_or_default<float>(
-          ".sculpt_mask", bke::AttrDomain::Point, 0.0f);
-      return mask[vertex.i];
-    }
-    case PBVH_BMESH: {
-      BMVert *v;
-      int cd_mask = CustomData_get_offset_named(&ss->bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
-
-      v = (BMVert *)vertex.i;
-      return cd_mask != -1 ? BM_ELEM_CD_GET_FLOAT(v, cd_mask) : 0.0f;
-    }
-    case PBVH_GRIDS: {
-      return SCULPT_mask_get_at_grids_vert_index(
-          *ss->subdiv_ccg, *BKE_pbvh_get_grid_key(ss->pbvh), vertex.i);
-    }
-  }
-
-  return 0.0f;
-}
-
 PBVHVertRef SCULPT_active_vertex_get(SculptSession *ss)
 {
   if (ELEM(BKE_pbvh_type(ss->pbvh), PBVH_FACES, PBVH_BMESH, PBVH_GRIDS)) {

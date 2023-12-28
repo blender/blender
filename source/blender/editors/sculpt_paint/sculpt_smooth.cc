@@ -134,22 +134,40 @@ void neighbor_coords_average(SculptSession *ss, float result[3], PBVHVertRef ver
   }
 }
 
-float neighbor_mask_average(SculptSession *ss, PBVHVertRef vertex)
+float neighbor_mask_average(SculptSession *ss,
+                            const SculptMaskWriteInfo mask_write,
+                            PBVHVertRef vertex)
 {
   float avg = 0.0f;
   int total = 0;
-
   SculptVertexNeighborIter ni;
-  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
-    avg += SCULPT_vertex_mask_get(ss, ni.vertex);
-    total++;
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_FACES:
+      SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
+        avg += mask_write.layer[ni.vertex.i];
+        total++;
+      }
+      SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+      break;
+    case PBVH_GRIDS:
+      SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
+        avg += SCULPT_mask_get_at_grids_vert_index(
+            *ss->subdiv_ccg, *BKE_pbvh_get_grid_key(ss->pbvh), vertex.i);
+        total++;
+      }
+      SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+      break;
+    case PBVH_BMESH:
+      SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
+        BMVert *vert = reinterpret_cast<BMVert *>(vertex.i);
+        avg += BM_ELEM_CD_GET_FLOAT(vert, mask_write.bm_offset);
+        total++;
+      }
+      SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+      break;
   }
-  SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
-
-  if (total > 0) {
-    return avg / total;
-  }
-  return SCULPT_vertex_mask_get(ss, vertex);
+  BLI_assert(total > 0);
+  return avg / total;
 }
 
 void neighbor_color_average(SculptSession *ss, float result[4], PBVHVertRef vertex)
@@ -289,7 +307,7 @@ static void smooth_mask_node(Object *ob,
                                                                 vd.vertex,
                                                                 thread_id,
                                                                 &automask_data);
-    float val = neighbor_mask_average(ss, vd.vertex) - vd.mask;
+    float val = neighbor_mask_average(ss, mask_write, vd.vertex) - vd.mask;
     val *= fade * bstrength;
     float new_mask = vd.mask + val;
     CLAMP(new_mask, 0.0f, 1.0f);

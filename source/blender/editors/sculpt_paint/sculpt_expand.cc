@@ -2105,6 +2105,54 @@ static void sculpt_expand_undo_push(Object *ob, Cache *expand_cache)
   }
 }
 
+static bool any_nonzero_mask(const Object &object)
+{
+  const SculptSession &ss = *object.sculpt;
+  switch (BKE_pbvh_type(ss.pbvh)) {
+    case PBVH_FACES: {
+      const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+      const bke::AttributeAccessor attributes = mesh.attributes();
+      const VArraySpan mask = *attributes.lookup<float>(".sculpt_mask");
+      if (mask.is_empty()) {
+        return false;
+      }
+      return std::any_of(
+          mask.begin(), mask.end(), [&](const float value) { return value > 0.0f; });
+    }
+    case PBVH_GRIDS: {
+      const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
+      const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
+      if (!key.has_mask) {
+        return false;
+      }
+      return std::any_of(subdiv_ccg.grids.begin(), subdiv_ccg.grids.end(), [&](CCGElem *elem) {
+        for (const int i : IndexRange(key.grid_area)) {
+          if (*CCG_elem_offset_mask(&key, elem, i) > 0.0f) {
+            return true;
+          }
+        }
+        return false;
+      });
+    }
+    case PBVH_BMESH: {
+      BMesh &bm = *ss.bm;
+      const int offset = CustomData_get_offset_named(&bm.vdata, CD_PROP_FLOAT, ".sculpt_mask");
+      if (offset == -1) {
+        return false;
+      }
+      BMIter iter;
+      BMVert *vert;
+      BM_ITER_MESH (vert, &iter, &bm, BM_VERTS_OF_MESH) {
+        if (BM_ELEM_CD_GET_FLOAT(vert, offset) > 0.0f) {
+          return true;
+        }
+      }
+      return false;
+    }
+  }
+  return false;
+}
+
 static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
@@ -2134,19 +2182,7 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
     BKE_sculpt_mask_layers_ensure(depsgraph, CTX_data_main(C), ob, mmd);
 
     if (RNA_boolean_get(op->ptr, "use_auto_mask")) {
-      int verts_num = SCULPT_vertex_count_get(ss);
-      bool ok = true;
-
-      for (int i = 0; i < verts_num; i++) {
-        PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
-
-        if (SCULPT_vertex_mask_get(ss, vertex) != 0.0f) {
-          ok = false;
-          break;
-        }
-      }
-
-      if (ok) {
+      if (any_nonzero_mask(*ob)) {
         write_mask_data(ss, Array<float>(SCULPT_vertex_count_get(ss), 1.0f));
       }
     }

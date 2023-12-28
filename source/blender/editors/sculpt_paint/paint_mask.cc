@@ -372,14 +372,11 @@ static void fill_mask_bmesh(Object &object, const float value, const Span<PBVHNo
   });
 }
 
-static void fill_mask(Main &bmain,
-                      const Scene &scene,
-                      Depsgraph &depsgraph,
-                      Object &object,
-                      const float value,
-                      const Span<PBVHNode *> nodes)
+static void fill_mask(
+    Main &bmain, const Scene &scene, Depsgraph &depsgraph, Object &object, const float value)
 {
   PBVH &pbvh = *object.sculpt->pbvh;
+  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(&pbvh, {});
   switch (BKE_pbvh_type(&pbvh)) {
     case PBVH_FACES:
       fill_mask_mesh(object, value, nodes);
@@ -489,12 +486,9 @@ static void invert_mask_bmesh(Object &object, const Span<PBVHNode *> nodes)
   });
 }
 
-static void invert_mask(Main &bmain,
-                        const Scene &scene,
-                        Depsgraph &depsgraph,
-                        Object &object,
-                        const Span<PBVHNode *> nodes)
+static void invert_mask(Main &bmain, const Scene &scene, Depsgraph &depsgraph, Object &object)
 {
+  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(object.sculpt->pbvh, {});
   switch (BKE_pbvh_type(object.sculpt->pbvh)) {
     case PBVH_FACES:
       invert_mask_mesh(object, nodes);
@@ -521,16 +515,15 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
   BKE_sculpt_update_object_for_edit(&depsgraph, &object, false);
 
   undo::push_begin(&object, op);
-  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(object.sculpt->pbvh, {});
   switch (mode) {
     case PAINT_MASK_FLOOD_VALUE:
-      fill_mask(bmain, scene, depsgraph, object, value, nodes);
+      fill_mask(bmain, scene, depsgraph, object, value);
       break;
     case PAINT_MASK_FLOOD_VALUE_INVERSE:
-      fill_mask(bmain, scene, depsgraph, object, 1.0f - value, nodes);
+      fill_mask(bmain, scene, depsgraph, object, 1.0f - value);
       break;
     case PAINT_MASK_INVERT:
-      invert_mask(bmain, scene, depsgraph, object, nodes);
+      invert_mask(bmain, scene, depsgraph, object);
       break;
   }
 
