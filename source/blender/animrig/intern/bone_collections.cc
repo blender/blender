@@ -108,6 +108,11 @@ void ANIM_armature_runtime_free(bArmature *armature)
                              [&](Bone *bone) { BLI_freelistN(&bone->runtime.collections); });
 }
 
+/**
+ * Ensure the bone collection's name is unique within the armature.
+ *
+ * This assumes that the bone collection has already been inserted into the array.
+ */
 static void bonecoll_ensure_name_unique(bArmature *armature, BoneCollection *bcoll)
 {
   struct DupNameCheckData {
