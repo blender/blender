@@ -1144,11 +1144,7 @@ std::string USDMeshReader::get_skeleton_path() const
     return "";
   }
 
-  pxr::UsdSkelBindingAPI skel_api = pxr::UsdSkelBindingAPI::Apply(prim_);
-
-  if (!skel_api) {
-    return "";
-  }
+  pxr::UsdSkelBindingAPI skel_api(prim_);
 
   if (pxr::UsdSkelSkeleton skel = skel_api.GetInheritedSkeleton()) {
     return skel.GetPath().GetAsString();
@@ -1166,8 +1162,9 @@ std::optional<XformResult> USDMeshReader::get_local_usd_xform(const float time) 
     return USDXformReader::get_local_usd_xform(time);
   }
 
-  if (pxr::UsdSkelBindingAPI skel_api = pxr::UsdSkelBindingAPI::Apply(prim_)) {
-    if (skel_api.GetGeomBindTransformAttr().HasAuthoredValue()) {
+  pxr::UsdSkelBindingAPI skel_api = pxr::UsdSkelBindingAPI(prim_);
+  if (pxr::UsdAttribute xf_attr = skel_api.GetGeomBindTransformAttr()) {
+    if (xf_attr.HasAuthoredValue()) {
       pxr::GfMatrix4d bind_xf;
       if (skel_api.GetGeomBindTransformAttr().Get(&bind_xf)) {
         /* The USD bind transform is a matrix of doubles,
