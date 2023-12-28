@@ -401,8 +401,7 @@ static void read_bone_collections(BlendDataReader *reader, bArmature *arm)
   }
   BLI_listbase_clear(&arm->collections_legacy);
 
-  /* Bone collections added via an override can be edited, but ones that already exist in
-  another
+  /* Bone collections added via an override can be edited, but ones that already exist in another
    * blend file (so on the linked Armature) should not be touched. */
   const bool reset_bcoll_override_flag = ID_IS_LINKED(&arm->id);
   for (BoneCollection *bcoll : arm->collections_span()) {
