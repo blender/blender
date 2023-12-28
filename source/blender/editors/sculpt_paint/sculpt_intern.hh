@@ -1523,9 +1523,10 @@ void neighbor_color_average(SculptSession *ss, float result[4], PBVHVertRef vert
  */
 void neighbor_coords_average_interior(SculptSession *ss, float result[3], PBVHVertRef vertex);
 
-void do_smooth_brush(
-    Sculpt *sd, Object *ob, blender::Span<PBVHNode *> nodes, float bstrength, bool smooth_mask);
-void do_smooth_brush(Sculpt *sd, Object *ob, blender::Span<PBVHNode *> nodes);
+void do_smooth_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes, float bstrength);
+void do_smooth_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes);
+
+void do_smooth_mask_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes, float bstrength);
 
 /* Surface Smooth Brush. */
 
@@ -1542,7 +1543,7 @@ void surface_smooth_displace_step(SculptSession *ss,
                                   PBVHVertRef vertex,
                                   float beta,
                                   float fade);
-void do_surface_smooth_brush(Sculpt *sd, Object *ob, blender::Span<PBVHNode *> nodes);
+void do_surface_smooth_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes);
 
 /* Slide/Relax */
 void relax_vertex(SculptSession *ss,

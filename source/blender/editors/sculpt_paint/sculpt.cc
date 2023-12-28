@@ -3569,10 +3569,10 @@ static void do_brush_action(Sculpt *sd,
   {
     if (brush->flag & BRUSH_INVERSE_SMOOTH_PRESSURE) {
       smooth::do_smooth_brush(
-          sd, ob, nodes, brush->autosmooth_factor * (1.0f - ss->cache->pressure), false);
+          sd, ob, nodes, brush->autosmooth_factor * (1.0f - ss->cache->pressure));
     }
     else {
-      smooth::do_smooth_brush(sd, ob, nodes, brush->autosmooth_factor, false);
+      smooth::do_smooth_brush(sd, ob, nodes, brush->autosmooth_factor);
     }
   }
 
