@@ -121,7 +121,6 @@ static int bone_collection_add_exec(bContext *C, wmOperator *op)
   bArmature *armature = static_cast<bArmature *>(ob->data);
 
   const int parent_index = RNA_int_get(op->ptr, "parent_index");
-  printf("Adding bone collection to parent index %d\n", parent_index);
   if (parent_index < -1) {
     BKE_reportf(
         op->reports, RPT_ERROR, "parent_index should not be less than -1: %d", parent_index);
