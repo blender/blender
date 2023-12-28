@@ -466,7 +466,7 @@ void ARMATURE_OT_collection_assign(wmOperatorType *ot)
   ot->poll = bone_collection_assign_poll;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_UNDO;
 
   /* properties */
   RNA_def_string(ot->srna,
@@ -624,7 +624,7 @@ void ARMATURE_OT_collection_unassign(wmOperatorType *ot)
   ot->poll = bone_collection_assign_poll;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_UNDO;
 
   RNA_def_string(ot->srna,
                  "name",
@@ -694,7 +694,7 @@ void ARMATURE_OT_collection_unassign_named(wmOperatorType *ot)
   ot->poll = bone_collection_assign_poll;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_UNDO;
 
   RNA_def_string(ot->srna,
                  "name",
