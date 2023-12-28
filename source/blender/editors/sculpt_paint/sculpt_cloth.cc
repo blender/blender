@@ -794,6 +794,25 @@ static void do_cloth_brush_solve_simulation_task(Object *ob,
   cloth_sim->node_state[node_index] = SCULPT_CLOTH_NODE_INACTIVE;
 }
 
+static float get_vert_mask(const SculptSession &ss,
+                           const SimulationData &cloth_sim,
+                           const int vert_index)
+{
+  switch (BKE_pbvh_type(ss.pbvh)) {
+    case PBVH_FACES:
+      return cloth_sim.mask_mesh.is_empty() ? 0.0f : cloth_sim.mask_mesh[vert_index];
+    case PBVH_BMESH:
+      return cloth_sim.mask_cd_offset_bmesh == -1 ?
+                 0.0f :
+                 BM_ELEM_CD_GET_FLOAT(BM_vert_at_index(BKE_pbvh_get_bmesh(ss.pbvh), vert_index),
+                                      cloth_sim.mask_cd_offset_bmesh);
+    case PBVH_GRIDS:
+      return SCULPT_mask_get_at_grids_vert_index(*ss.subdiv_ccg, cloth_sim.grid_key, vert_index);
+  }
+  BLI_assert_unreachable();
+  return 0.0f;
+}
+
 static void cloth_brush_satisfy_constraints(SculptSession *ss,
                                             Brush *brush,
                                             SimulationData *cloth_sim)
@@ -843,12 +862,12 @@ static void cloth_brush_satisfy_constraints(SculptSession *ss,
 
       automask_data.orig_data.co = cloth_sim->init_pos[v1];
       automask_data.orig_data.no = cloth_sim->init_no[v1];
-      const float mask_v1 = (1.0f - SCULPT_vertex_mask_get(ss, vertex1)) *
+      const float mask_v1 = (1.0f - get_vert_mask(*ss, *cloth_sim, v1)) *
                             auto_mask::factor_get(automasking, ss, vertex1, &automask_data);
 
       automask_data.orig_data.co = cloth_sim->init_pos[v2];
       automask_data.orig_data.no = cloth_sim->init_no[v2];
-      const float mask_v2 = (1.0f - SCULPT_vertex_mask_get(ss, vertex2)) *
+      const float mask_v2 = (1.0f - get_vert_mask(*ss, *cloth_sim, v2)) *
                             auto_mask::factor_get(automasking, ss, vertex2, &automask_data);
 
       float sim_location[3];
@@ -1006,9 +1025,7 @@ SimulationData *brush_simulation_create(Object *ob,
 {
   SculptSession *ss = ob->sculpt;
   const int totverts = SCULPT_vertex_count_get(ss);
-  SimulationData *cloth_sim;
-
-  cloth_sim = MEM_new<SimulationData>(__func__);
+  SimulationData *cloth_sim = MEM_new<SimulationData>(__func__);
 
   cloth_sim->length_constraints = MEM_cnew_array<LengthConstraint>(CLOTH_LENGTH_CONSTRAINTS_BLOCK,
                                                                    __func__);
@@ -1040,6 +1057,22 @@ SimulationData *brush_simulation_create(Object *ob,
   }
 
   cloth_sim_initialize_default_node_state(ss, cloth_sim);
+
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_FACES: {
+      const Mesh *mesh = static_cast<const Mesh *>(ob->data);
+      const bke::AttributeAccessor attributes = mesh->attributes();
+      cloth_sim->mask_mesh = *attributes.lookup<float>(".sculpt_mask", bke::AttrDomain::Point);
+      break;
+    }
+    case PBVH_BMESH:
+      cloth_sim->mask_cd_offset_bmesh = CustomData_get_offset_named(
+          &ss->bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
+      break;
+    case PBVH_GRIDS:
+      cloth_sim->grid_key = *BKE_pbvh_get_grid_key(ss->pbvh);
+      break;
+  }
 
   return cloth_sim;
 }

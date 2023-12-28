@@ -874,6 +874,9 @@ const float *SCULPT_vertex_co_get(const SculptSession *ss, PBVHVertRef vertex);
 /** Get the normal for a given sculpt vertex; do not modify the result */
 void SCULPT_vertex_normal_get(const SculptSession *ss, PBVHVertRef vertex, float no[3]);
 
+float SCULPT_mask_get_at_grids_vert_index(const SubdivCCG &subdiv_ccg,
+                                          const CCGKey &key,
+                                          int vert_index);
 float SCULPT_vertex_mask_get(SculptSession *ss, PBVHVertRef vertex);
 void SCULPT_vertex_color_get(const SculptSession *ss, PBVHVertRef vertex, float r_color[4]);
 void SCULPT_vertex_color_set(SculptSession *ss, PBVHVertRef vertex, const float color[4]);
@@ -1448,6 +1451,10 @@ struct SimulationData {
   /** #PBVHNode pointer as a key, index in #SimulationData.node_state as value. */
   GHash *node_state_index;
   NodeSimState *node_state;
+
+  VArraySpan<float> mask_mesh;
+  int mask_cd_offset_bmesh;
+  CCGKey grid_key;
 };
 
 /* Main cloth brush function */

@@ -290,6 +290,19 @@ void SCULPT_vertex_persistent_normal_get(SculptSession *ss, PBVHVertRef vertex, 
   SCULPT_vertex_normal_get(ss, vertex, no);
 }
 
+float SCULPT_mask_get_at_grids_vert_index(const SubdivCCG &subdiv_ccg,
+                                          const CCGKey &key,
+                                          const int vert_index)
+{
+  if (key.mask_offset == -1) {
+    return 0.0f;
+  }
+  const int grid_index = vert_index / key.grid_area;
+  const int index_in_grid = vert_index - grid_index * key.grid_area;
+  CCGElem *elem = subdiv_ccg.grids[grid_index];
+  return *CCG_elem_offset_mask(&key, elem, index_in_grid);
+}
+
 float SCULPT_vertex_mask_get(SculptSession *ss, PBVHVertRef vertex)
 {
   using namespace blender;
@@ -309,16 +322,8 @@ float SCULPT_vertex_mask_get(SculptSession *ss, PBVHVertRef vertex)
       return cd_mask != -1 ? BM_ELEM_CD_GET_FLOAT(v, cd_mask) : 0.0f;
     }
     case PBVH_GRIDS: {
-      const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
-
-      if (key->mask_offset == -1) {
-        return 0.0f;
-      }
-
-      const int grid_index = vertex.i / key->grid_area;
-      const int vertex_index = vertex.i - grid_index * key->grid_area;
-      CCGElem *elem = ss->subdiv_ccg->grids[grid_index];
-      return *CCG_elem_mask(key, CCG_elem_offset(key, elem, vertex_index));
+      return SCULPT_mask_get_at_grids_vert_index(
+          *ss->subdiv_ccg, *BKE_pbvh_get_grid_key(ss->pbvh), vertex.i);
     }
   }
 
