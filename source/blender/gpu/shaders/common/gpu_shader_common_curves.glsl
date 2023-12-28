@@ -30,28 +30,24 @@ vec3 extrapolate_if_needed(vec3 parameters, vec3 values, vec3 start_slopes, vec3
   return values + parameters * slopes;
 }
 
-/* Curve maps are stored in texture samplers that are evaluated in the [0, 1] range, so normalize
- * the parameters accordingly. Additionally, ensure that the parameters evaluate the sampler at the
- * center of the pixels, because samplers are evaluated using linear interpolation. */
-float normalize_parameter(float parameter, float minimum, float range_divider)
+/* Curve maps are stored in texture samplers, so ensure that the parameters evaluate the sampler at
+ * the center of the pixels, because samplers are evaluated using linear interpolation. Given the
+ * parameter in the [0, 1] range. */
+float compute_curve_map_coordinates(float parameter)
 {
-  float normalized_parameter = (parameter - minimum) * range_divider;
-
   /* Curve maps have a fixed width of 257. We offset by the equivalent of half a pixel and scale
    * down such that the normalized parameter 1.0 corresponds to the center of the last pixel. */
   float sampler_offset = 0.5 / 257.0;
   float sampler_scale = 1.0 - (1.0 / 257.0);
-  return normalized_parameter * sampler_scale + sampler_offset;
+  return parameter * sampler_scale + sampler_offset;
 }
 
-/* Same as normalize_parameter but vectorized. */
-vec3 normalize_parameters(vec3 parameters, vec3 minimums, vec3 range_dividers)
+/* Same as compute_curve_map_coordinates but vectorized. */
+vec3 compute_curve_map_coordinates(vec3 parameters)
 {
-  vec3 normalized_parameters = (parameters - minimums) * range_dividers;
-
   float sampler_offset = 0.5 / 257.0;
   float sampler_scale = 1.0 - (1.0 / 257.0);
-  return normalized_parameters * sampler_scale + sampler_offset;
+  return parameters * sampler_scale + sampler_offset;
 }
 
 void curves_combined_rgb(float factor,
@@ -69,20 +65,23 @@ void curves_combined_rgb(float factor,
   vec4 balanced = white_balance(color, black_level, white_level);
 
   /* First, evaluate alpha curve map at all channels. The alpha curve is the Combined curve in the
-   * UI. */
-  vec3 parameters = normalize_parameters(balanced.rgb, range_minimums.aaa, range_dividers.aaa);
-  result.r = texture(curve_map, vec2(parameters.x, layer)).a;
-  result.g = texture(curve_map, vec2(parameters.y, layer)).a;
-  result.b = texture(curve_map, vec2(parameters.z, layer)).a;
+   * UI. The channels are first normalized into the [0, 1] range. */
+  vec3 parameters = (balanced.rgb - range_minimums.aaa) * range_dividers.aaa;
+  vec3 coordinates = compute_curve_map_coordinates(parameters);
+  result.r = texture(curve_map, vec2(coordinates.x, layer)).a;
+  result.g = texture(curve_map, vec2(coordinates.y, layer)).a;
+  result.b = texture(curve_map, vec2(coordinates.z, layer)).a;
 
   /* Then, extrapolate if needed. */
   result.rgb = extrapolate_if_needed(parameters, result.rgb, start_slopes.aaa, end_slopes.aaa);
 
-  /* Then, evaluate each channel on its curve map. */
-  parameters = normalize_parameters(result.rgb, range_minimums.rgb, range_dividers.rgb);
-  result.r = texture(curve_map, vec2(parameters.r, layer)).r;
-  result.g = texture(curve_map, vec2(parameters.g, layer)).g;
-  result.b = texture(curve_map, vec2(parameters.b, layer)).b;
+  /* Then, evaluate each channel on its curve map. The channels are first normalized into the
+   * [0, 1] range. */
+  parameters = (result.rgb - range_minimums.rgb) * range_dividers.rgb;
+  coordinates = compute_curve_map_coordinates(parameters);
+  result.r = texture(curve_map, vec2(coordinates.r, layer)).r;
+  result.g = texture(curve_map, vec2(coordinates.g, layer)).g;
+  result.b = texture(curve_map, vec2(coordinates.b, layer)).b;
 
   /* Then, extrapolate again if needed. */
   result.rgb = extrapolate_if_needed(parameters, result.rgb, start_slopes.rgb, end_slopes.rgb);
@@ -107,11 +106,12 @@ void curves_combined_only(float factor,
   vec4 balanced = white_balance(color, black_level, white_level);
 
   /* Evaluate alpha curve map at all channels. The alpha curve is the Combined curve in the
-   * UI. */
-  vec3 parameters = normalize_parameters(balanced.rgb, vec3(range_minimum), vec3(range_divider));
-  result.r = texture(curve_map, vec2(parameters.x, layer)).a;
-  result.g = texture(curve_map, vec2(parameters.y, layer)).a;
-  result.b = texture(curve_map, vec2(parameters.z, layer)).a;
+   * UI. The channels are first normalized into the [0, 1] range. */
+  vec3 parameters = (balanced.rgb - vec3(range_minimum)) * vec3(range_divider);
+  vec3 coordinates = compute_curve_map_coordinates(parameters);
+  result.r = texture(curve_map, vec2(coordinates.x, layer)).a;
+  result.g = texture(curve_map, vec2(coordinates.y, layer)).a;
+  result.b = texture(curve_map, vec2(coordinates.z, layer)).a;
 
   /* Then, extrapolate if needed. */
   result.rgb = extrapolate_if_needed(parameters, result.rgb, vec3(start_slope), vec3(end_slope));
@@ -172,11 +172,13 @@ void curves_film_like(float factor,
   float median = max(min(balanced.r, balanced.g), min(balanced.b, max(balanced.r, balanced.g)));
 
   /* Evaluate alpha curve map at the maximum and minimum channels. The alpha curve is the Combined
-   * curve in the UI. */
-  float min_parameter = normalize_parameter(minimum, range_minimum, range_divider);
-  float max_parameter = normalize_parameter(maximum, range_minimum, range_divider);
-  float new_min = texture(curve_map, vec2(min_parameter, layer)).a;
-  float new_max = texture(curve_map, vec2(max_parameter, layer)).a;
+   * curve in the UI. The channels are first normalized into the [0, 1] range. */
+  float min_parameter = (minimum - range_minimum) * range_divider;
+  float max_parameter = (maximum - range_minimum) * range_divider;
+  float min_coordinates = compute_curve_map_coordinates(min_parameter);
+  float max_coordinates = compute_curve_map_coordinates(max_parameter);
+  float new_min = texture(curve_map, vec2(min_coordinates, layer)).a;
+  float new_max = texture(curve_map, vec2(max_coordinates, layer)).a;
 
   /* Then, extrapolate if needed. */
   new_min = extrapolate_if_needed(min_parameter, new_min, start_slope, end_slope);
@@ -206,11 +208,13 @@ void curves_vector(vec3 vector,
                    vec3 end_slopes,
                    out vec3 result)
 {
-  /* Evaluate each component on its curve map. */
-  vec3 parameters = normalize_parameters(vector, range_minimums, range_dividers);
-  result.x = texture(curve_map, vec2(parameters.x, layer)).x;
-  result.y = texture(curve_map, vec2(parameters.y, layer)).y;
-  result.z = texture(curve_map, vec2(parameters.z, layer)).z;
+  /* Evaluate each component on its curve map. The componenets are first normalized into the [0, 1]
+   * range. */
+  vec3 parameters = (vector - range_minimums) * range_dividers;
+  vec3 coordinates = compute_curve_map_coordinates(parameters);
+  result.x = texture(curve_map, vec2(coordinates.x, layer)).x;
+  result.y = texture(curve_map, vec2(coordinates.y, layer)).y;
+  result.z = texture(curve_map, vec2(coordinates.z, layer)).z;
 
   /* Then, extrapolate if needed. */
   result = extrapolate_if_needed(parameters, result, start_slopes, end_slopes);
@@ -241,8 +245,9 @@ void curves_float(float value,
                   out float result)
 {
   /* Evaluate the normalized value on the first curve map. */
-  float parameter = normalize_parameter(value, range_minimum, range_divider);
-  result = texture(curve_map, vec2(parameter, layer)).x;
+  float parameter = (value - range_minimum) * range_divider;
+  float coordinates = compute_curve_map_coordinates(parameter);
+  result = texture(curve_map, vec2(coordinates, layer)).x;
 
   /* Then, extrapolate if needed. */
   result = extrapolate_if_needed(parameter, result, start_slope, end_slope);
