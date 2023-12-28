@@ -58,8 +58,15 @@ void light_shadow_single(uint l_idx,
   if (attenuation < LIGHT_ATTENUATION_THRESHOLD) {
     return;
   }
+
+  /* TODO(fclem): Enable for OpenGL and Vulkan once they fully support specialization constants. */
+#if defined(SPECIALIZED_SHADOW_PARAMS) && defined(GPU_METAL)
+  int ray_count = shadow_ray_count;
+  int ray_step_count = shadow_ray_step_count;
+#else
   int ray_count = uniform_buf.shadow.ray_count;
   int ray_step_count = uniform_buf.shadow.step_count;
+#endif
 
   ShadowEvalResult result = shadow_eval(
       light, is_directional, P, Ng, thickness, ray_count, ray_step_count);
@@ -131,8 +138,15 @@ void light_eval_single(uint l_idx,
                        inout uint shift)
 {
   LightData light = light_buf[l_idx];
+
+  /* TODO(fclem): Enable for OpenGL and Vulkan once they fully support specialization constants. */
+#if defined(SPECIALIZED_SHADOW_PARAMS) && defined(GPU_METAL)
+  int ray_count = shadow_ray_count;
+  int ray_step_count = shadow_ray_step_count;
+#else
   int ray_count = uniform_buf.shadow.ray_count;
   int ray_step_count = uniform_buf.shadow.step_count;
+#endif
 
   bool use_subsurface = thickness > 0.0;
   LightVector lv = light_vector_get(light, is_directional, P);

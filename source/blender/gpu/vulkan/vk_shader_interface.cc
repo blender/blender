@@ -22,6 +22,7 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
 
   attr_len_ = info.vertex_inputs_.size();
   uniform_len_ = info.push_constants_.size();
+  constant_len_ = info.specialization_constants_.size();
   ssbo_len_ = 0;
   ubo_len_ = 0;
   image_offset_ = -1;
@@ -65,7 +66,7 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
     image_offset_ = image_max_binding + 1;
   }
 
-  int32_t input_tot_len = attr_len_ + ubo_len_ + uniform_len_ + ssbo_len_;
+  int32_t input_tot_len = attr_len_ + ubo_len_ + uniform_len_ + ssbo_len_ + constant_len_;
   inputs_ = static_cast<ShaderInput *>(
       MEM_calloc_arrayN(input_tot_len, sizeof(ShaderInput), __func__));
   ShaderInput *input = inputs_;
@@ -133,6 +134,14 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
       input->location = input->binding = res.slot;
       input++;
     }
+  }
+
+  /* Constants */
+  int constant_id = 0;
+  for (const ShaderCreateInfo::SpecializationConstant &constant : info.specialization_constants_) {
+    copy_input_name(input, constant.name, name_buffer_, name_buffer_offset);
+    input->location = constant_id++;
+    input++;
   }
 
   sort_inputs();

@@ -161,6 +161,8 @@ static inline std::ostream &operator<<(std::ostream &stream, const Type type)
       return stream << "short3";
     case Type::SHORT4:
       return stream << "short4";
+    case Type::BOOL:
+      return stream << "bool";
     default:
       BLI_assert(0);
       return stream;
@@ -495,6 +497,34 @@ struct ShaderCreateInfo {
   using SubpassIn = FragOut;
   Vector<SubpassIn> subpass_inputs_;
 
+  struct SpecializationConstant {
+    struct Value {
+      union {
+        uint32_t u;
+        int32_t i;
+        float f;
+      };
+
+      bool operator==(const Value &other) const
+      {
+        return u == other.u;
+      }
+    };
+
+    Type type;
+    StringRefNull name;
+    Value default_value;
+
+    bool operator==(const SpecializationConstant &b) const
+    {
+      TEST_EQUAL(*this, b, type);
+      TEST_EQUAL(*this, b, name);
+      TEST_EQUAL(*this, b, default_value);
+      return true;
+    }
+  };
+  Vector<SpecializationConstant> specialization_constants_;
+
   struct Sampler {
     ImageType type;
     GPUSamplerState sampler;
@@ -710,6 +740,62 @@ struct ShaderCreateInfo {
     subpass_inputs_.append({slot, type, DualBlend::NONE, name, raster_order_group});
     return *(Self *)this;
   }
+
+  /** \} */
+
+  /* -------------------------------------------------------------------- */
+  /** \name Shader specialization constants
+   * \{ */
+
+  /* Adds a specialization constant which is a dynamically modifiable value, which will be
+   * statically compiled into a PSO configuration to provide optimal runtime performance,
+   * with a reduced re-compilation cost vs Macro's with easier generation of unique permutations
+   * based on run-time values.
+   *
+   * Tip: To evaluate use-cases of where specialization constants can provide a performance
+   * gain, benchmark a given shader in its default case. Attempt to statically disable branches or
+   * conditions which rely on uniform look-ups and measure if there is a marked improvement in
+   * performance and/or reduction in memory bandwidth/register pressure.
+   *
+   * NOTE: Specialization constants will incur new compilation of PSOs and thus can incur an
+   * unexpected cost. Specialization constants should be reserved for infrequently changing
+   * parameters (e.g. user setting parameters such as toggling of features or quality level
+   * presets), or those with a low set of possible runtime permutations.
+   *
+   * Specialization constants are assigned at runtime using:
+   *  - `GPU_shader_constant_*(shader, name, value)`
+   * or
+   *  - `DrawPass::specialize_constant(shader, name, value)`
+   *
+   * All constants **MUST** be specified before binding a shader.
+   */
+  Self &specialization_constant(Type type, StringRefNull name, double default_value)
+  {
+    SpecializationConstant constant;
+    constant.type = type;
+    constant.name = name;
+    switch (type) {
+      case Type::INT:
+        constant.default_value.i = static_cast<int>(default_value);
+        break;
+      case Type::BOOL:
+      case Type::UINT:
+        constant.default_value.u = static_cast<uint>(default_value);
+        break;
+      case Type::FLOAT:
+        constant.default_value.f = static_cast<float>(default_value);
+        break;
+      default:
+        BLI_assert_msg(0, "Only scalar types can be used as constants");
+        break;
+    }
+    specialization_constants_.append(constant);
+    return *(Self *)this;
+  }
+
+  /* TODO: Add API to specify unique specialization config permutations in CreateInfo, allowing
+   * specialized compilation to be primed and handled in the background at start-up, rather than
+   * waiting for a given permutation to occur dynamically. */
 
   /** \} */
 

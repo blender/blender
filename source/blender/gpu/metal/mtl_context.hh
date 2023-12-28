@@ -839,13 +839,13 @@ class MTLContext : public Context {
                               const MTLRenderPipelineStateInstance *pipeline_state_instance);
   bool ensure_buffer_bindings(id<MTLComputeCommandEncoder> rec,
                               const MTLShaderInterface *shader_interface,
-                              const MTLComputePipelineStateInstance &pipeline_state_instance);
+                              const MTLComputePipelineStateInstance *pipeline_state_instance);
   void ensure_texture_bindings(id<MTLRenderCommandEncoder> rec,
                                MTLShaderInterface *shader_interface,
                                const MTLRenderPipelineStateInstance *pipeline_state_instance);
   void ensure_texture_bindings(id<MTLComputeCommandEncoder> rec,
                                MTLShaderInterface *shader_interface,
-                               const MTLComputePipelineStateInstance &pipeline_state_instance);
+                               const MTLComputePipelineStateInstance *pipeline_state_instance);
   void ensure_depth_stencil_state(MTLPrimitiveType prim_type);
 
   id<MTLBuffer> get_null_buffer();
@@ -854,7 +854,8 @@ class MTLContext : public Context {
   void free_dummy_resources();
 
   /* Compute. */
-  bool ensure_compute_pipeline_state();
+  /* Ensure compute pipeline state for current config is compiled and return PSO instance. */
+  const MTLComputePipelineStateInstance *ensure_compute_pipeline_state();
   void compute_dispatch(int groups_x_len, int groups_y_len, int groups_z_len);
   void compute_dispatch_indirect(StorageBuf *indirect_buf);
 

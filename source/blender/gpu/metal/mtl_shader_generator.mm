@@ -869,6 +869,18 @@ char *MSLGeneratorInterface::msl_patch_default_get()
   return msl_patch_default;
 }
 
+/* Specialization constants will evaluate using a dynamic value if provided at PSO compile time. */
+static void generate_specialization_constant_declarations(const shader::ShaderCreateInfo *info,
+                                                          std::stringstream &ss)
+{
+  uint index = MTL_SHADER_SPECIALIZATION_CONSTANT_BASE_ID;
+  for (const ShaderCreateInfo::SpecializationConstant &sc : info->specialization_constants_) {
+    /* TODO(Metal): Output specialization constant chain. */
+    ss << "constant " << sc.type << " " << sc.name << " [[function_constant(" << index << ")]];\n";
+    index++;
+  }
+}
+
 bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
 {
   /* Verify if create-info is available.
@@ -1047,6 +1059,10 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
   /* Setup `stringstream` for populating generated MSL shader vertex/frag shaders. */
   std::stringstream ss_vertex;
   std::stringstream ss_fragment;
+
+  /* Generate specialization constants. */
+  generate_specialization_constant_declarations(info, ss_vertex);
+  generate_specialization_constant_declarations(info, ss_fragment);
 
   /*** Generate VERTEX Stage ***/
   /* Conditional defines. */
@@ -1506,6 +1522,8 @@ bool MTLShader::generate_msl_from_glsl_compute(const shader::ShaderCreateInfo *i
   ss_compute << "#define GPU_ARB_texture_cube_map_array 1\n"
                 "#define GPU_ARB_shader_draw_parameters 1\n";
 
+  generate_specialization_constant_declarations(info, ss_compute);
+
 #ifndef NDEBUG
   extract_global_scope_constants(shd_builder_->glsl_compute_source_, ss_compute);
 #endif
@@ -1664,7 +1682,7 @@ bool MTLShader::generate_msl_from_glsl_compute(const shader::ShaderCreateInfo *i
   this->set_interface(msl_iface.bake_shader_interface(this->name));
 
   /* Compute dims. */
-  this->compute_pso_instance_.set_compute_workgroup_size(
+  this->compute_pso_common_state_.set_compute_workgroup_size(
       max_ii(info->compute_layout_.local_size_x, 1),
       max_ii(info->compute_layout_.local_size_y, 1),
       max_ii(info->compute_layout_.local_size_z, 1));
@@ -1790,6 +1808,11 @@ void MSLGeneratorInterface::prepare_from_createinfo(const shader::ShaderCreateIn
                        bool(push_constant.array_size > 1),
                        push_constant.array_size);
     uniforms.append(uniform);
+  }
+
+  /** Prepare Constants. */
+  for (const auto &constant : create_info_->specialization_constants_) {
+    constants.append(MSLConstant(constant.type, constant.name));
   }
 
   /* Prepare textures and uniform blocks.
@@ -3720,6 +3743,12 @@ MTLShaderInterface *MSLGeneratorInterface::bake_shader_interface(const char *nam
                            input_texture.is_texture_sampler,
                            input_texture.stage,
                            tex_buf_ssbo_location);
+  }
+
+  /* Specialization Constants. */
+  for (const MSLConstant &constant : this->constants) {
+    interface->add_constant(name_buffer_copystr(
+        &interface->name_buffer_, constant.name.c_str(), name_buffer_size, name_buffer_offset));
   }
 
   /* Sampler Parameters. */

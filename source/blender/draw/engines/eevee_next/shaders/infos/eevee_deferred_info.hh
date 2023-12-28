@@ -63,6 +63,10 @@ GPU_SHADER_CREATE_INFO(eevee_deferred_light)
     .image_out(2, DEFERRED_RADIANCE_FORMAT, "direct_radiance_1_img")
     .image_out(3, DEFERRED_RADIANCE_FORMAT, "direct_radiance_2_img")
     .image_out(4, DEFERRED_RADIANCE_FORMAT, "direct_radiance_3_img")
+    .specialization_constant(Type::BOOL, "render_pass_shadow_enabled", true)
+    .define("SPECIALIZED_SHADOW_PARAMS")
+    .specialization_constant(Type::INT, "shadow_ray_count", 1)
+    .specialization_constant(Type::INT, "shadow_ray_step_count", 6)
     .additional_info("eevee_shared",
                      "eevee_gbuffer_data",
                      "eevee_utility_texture",
@@ -107,6 +111,10 @@ GPU_SHADER_CREATE_INFO(eevee_deferred_combine)
                      "eevee_render_pass_out",
                      "draw_fullscreen")
     .fragment_source("eevee_deferred_combine_frag.glsl")
+    /* NOTE: Both light IDs have a valid specialized assignment of '-1' so only when default is
+     * present will we instead dynamically look-up ID from the uniform buffer. */
+    .specialization_constant(Type::BOOL, "render_pass_diffuse_light_enabled", true)
+    .specialization_constant(Type::BOOL, "render_pass_specular_light_enabled", true)
     .do_static_compilation(true);
 
 GPU_SHADER_CREATE_INFO(eevee_deferred_capture_eval)

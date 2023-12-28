@@ -503,6 +503,8 @@ void DeferredLayer::end_sync()
   eClosureBits evaluated_closures = CLOSURE_DIFFUSE | CLOSURE_TRANSLUCENT | CLOSURE_REFLECTION |
                                     CLOSURE_REFRACTION;
   if (closure_bits_ & evaluated_closures) {
+    RenderBuffersInfoData &rbuf_data = inst_.render_buffers.data;
+
     /* Add the tile classification step at the end of the GBuffer pass. */
     {
       /* Fill tile mask texture with the collected closure present in a tile. */
@@ -568,7 +570,15 @@ void DeferredLayer::end_sync()
         /* Submit the more costly ones first to avoid long tail in occupancy.
          * See page 78 of "SIGGRAPH 2023: Unreal Engine Substrate" by Hillaire & de Rousiers. */
         for (int i = ARRAY_SIZE(closure_bufs_) - 1; i >= 0; i--) {
-          sub.shader_set(inst_.shaders.static_shader_get(eShaderType(DEFERRED_LIGHT_SINGLE + i)));
+          GPUShader *sh = inst_.shaders.static_shader_get(eShaderType(DEFERRED_LIGHT_SINGLE + i));
+          /* TODO(fclem): Could specialize directly with the pass index but this would break it for
+           * OpenGL and Vulkan implementation which aren't fully supporting the specialize
+           * constant. */
+          sub.specialize_constant(sh, "render_pass_shadow_enabled", rbuf_data.shadow_id != -1);
+          const ShadowSceneData &shadow_scene = inst_.shadows.get_data();
+          sub.specialize_constant(sh, "shadow_ray_count", &shadow_scene.ray_count);
+          sub.specialize_constant(sh, "shadow_ray_step_count", &shadow_scene.step_count);
+          sub.shader_set(sh);
           sub.bind_image("direct_radiance_1_img", &direct_radiance_txs_[0]);
           sub.bind_image("direct_radiance_2_img", &direct_radiance_txs_[1]);
           sub.bind_image("direct_radiance_3_img", &direct_radiance_txs_[2]);
@@ -596,9 +606,17 @@ void DeferredLayer::end_sync()
     {
       PassSimple &pass = combine_ps_;
       pass.init();
+      GPUShader *sh = inst_.shaders.static_shader_get(DEFERRED_COMBINE);
+      /* TODO(fclem): Could specialize directly with the pass index but this would break it for
+       * OpenGL and Vulkan implementation which aren't fully supporting the specialize
+       * constant. */
+      pass.specialize_constant(
+          sh, "render_pass_diffuse_light_enabled", rbuf_data.diffuse_light_id != -1);
+      pass.specialize_constant(
+          sh, "render_pass_specular_light_enabled", rbuf_data.specular_light_id != -1);
+      pass.shader_set(sh);
       /* Use depth test to reject background pixels. */
       pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_GREATER | DRW_STATE_BLEND_ADD_FULL);
-      pass.shader_set(inst_.shaders.static_shader_get(DEFERRED_COMBINE));
       pass.bind_image("direct_radiance_1_img", &direct_radiance_txs_[0]);
       pass.bind_image("direct_radiance_2_img", &direct_radiance_txs_[1]);
       pass.bind_image("direct_radiance_3_img", &direct_radiance_txs_[2]);
