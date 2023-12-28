@@ -30,11 +30,6 @@ class HiZBuffer {
 
   /** Contains depth pyramid of the current pass and the previous pass. */
   SwapChain<Texture, 2> hiz_tx_;
-  /** References to the textures in the swap-chain. */
-  /* Closest surface depth of the current layer. */
-  GPUTexture *hiz_front_ref_tx_ = nullptr;
-  /* Closest surface depth of the layer below. */
-  GPUTexture *hiz_back_ref_tx_ = nullptr;
   /** References to the mip views of the current (front) HiZ texture. */
   std::array<GPUTexture *, HIZ_MIP_COUNT> hiz_mip_ref_;
 
@@ -87,8 +82,8 @@ class HiZBuffer {
   void swap_layer()
   {
     hiz_tx_.swap();
-    hiz_back_ref_tx_ = hiz_tx_.previous();
-    hiz_front_ref_tx_ = hiz_tx_.current();
+    back.ref_tx_ = hiz_tx_.previous();
+    front.ref_tx_ = hiz_tx_.current();
     set_dirty();
   }
 
@@ -109,18 +104,16 @@ class HiZBuffer {
 
   void debug_draw(View &view, GPUFrameBuffer *view_fb);
 
-  enum class Type {
-    /* Previous layer depth (ex: For refraction). */
-    BACK,
-    /* Previous layer depth. */
-    FRONT,
-  };
+  /* Back is Previous layer depth (ex: For refraction). Front for current layer depth. */
+  struct {
+    /** References to the textures in the swap-chain. */
+    GPUTexture *ref_tx_ = nullptr;
 
-  template<typename PassType> void bind_resources(PassType &pass, Type type = Type::FRONT)
-  {
-    pass.bind_texture(HIZ_TEX_SLOT,
-                      (type == Type::FRONT) ? &hiz_front_ref_tx_ : &hiz_back_ref_tx_);
-  }
+    template<typename PassType> void bind_resources(PassType &pass)
+    {
+      pass.bind_texture(HIZ_TEX_SLOT, &ref_tx_);
+    }
+  } front, back;
 };
 
 /** \} */

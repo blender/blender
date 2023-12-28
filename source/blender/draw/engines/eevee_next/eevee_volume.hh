@@ -90,11 +90,7 @@ class VolumeModule {
   /* Full-screen Resolve */
   PassSimple resolve_ps_ = {"Volumes.Resolve"};
   Framebuffer resolve_fb_;
-  /* Used in the forward transparent pass (ForwardPipeline).
-   * The forward transparent pass must perform its own resolve step for correct composition between
-   * volumes and transparent surfaces. */
-  GPUTexture *transparent_pass_scatter_tx_;
-  GPUTexture *transparent_pass_transmit_tx_;
+
   Texture dummy_scatter_tx_;
   Texture dummy_transmit_tx_;
 
@@ -106,30 +102,6 @@ class VolumeModule {
   };
 
   ~VolumeModule(){};
-
-  /* Bind resources needed by external passes to perform their own resolve. */
-  template<typename PassType> void bind_resources(PassType &pass)
-  {
-    pass.bind_texture(VOLUME_SCATTERING_TEX_SLOT, &transparent_pass_scatter_tx_);
-    pass.bind_texture(VOLUME_TRANSMITTANCE_TEX_SLOT, &transparent_pass_transmit_tx_);
-  }
-
-  /* Bind the common resources needed by all volumetric passes. */
-  template<typename PassType> void bind_properties_buffers(PassType &pass)
-  {
-    pass.bind_image(VOLUME_PROP_SCATTERING_IMG_SLOT, &prop_scattering_tx_);
-    pass.bind_image(VOLUME_PROP_EXTINCTION_IMG_SLOT, &prop_extinction_tx_);
-    pass.bind_image(VOLUME_PROP_EMISSION_IMG_SLOT, &prop_emission_tx_);
-    pass.bind_image(VOLUME_PROP_PHASE_IMG_SLOT, &prop_phase_tx_);
-    pass.bind_image(VOLUME_OCCUPANCY_SLOT, &occupancy_tx_);
-  }
-
-  template<typename PassType> void bind_occupancy_buffers(PassType &pass)
-  {
-    pass.bind_image(VOLUME_OCCUPANCY_SLOT, &occupancy_tx_);
-    pass.bind_image(VOLUME_HIT_DEPTH_SLOT, &hit_depth_tx_);
-    pass.bind_image(VOLUME_HIT_COUNT_SLOT, &hit_count_tx_);
-  }
 
   bool needs_shadow_tagging()
   {
@@ -153,5 +125,52 @@ class VolumeModule {
   void draw_compute(View &view);
   /* Final image compositing. */
   void draw_resolve(View &view);
+
+  /* Final occupancy after resolve. Used by object volume material evaluation. */
+  struct {
+    /** References to the textures in the module. */
+    GPUTexture *scattering_tx_ = nullptr;
+    GPUTexture *transmittance_tx_ = nullptr;
+
+    template<typename PassType> void bind_resources(PassType &pass)
+    {
+      pass.bind_texture(VOLUME_SCATTERING_TEX_SLOT, &scattering_tx_);
+      pass.bind_texture(VOLUME_TRANSMITTANCE_TEX_SLOT, &transmittance_tx_);
+    }
+  } result;
+
+  /* Volume property buffers that are populated by objects or world volume shaders. */
+  struct {
+    /** References to the textures in the module. */
+    GPUTexture *scattering_tx_ = nullptr;
+    GPUTexture *extinction_tx_ = nullptr;
+    GPUTexture *emission_tx_ = nullptr;
+    GPUTexture *phase_tx_ = nullptr;
+    GPUTexture *occupancy_tx_ = nullptr;
+
+    template<typename PassType> void bind_resources(PassType &pass)
+    {
+      pass.bind_image(VOLUME_PROP_SCATTERING_IMG_SLOT, &scattering_tx_);
+      pass.bind_image(VOLUME_PROP_EXTINCTION_IMG_SLOT, &extinction_tx_);
+      pass.bind_image(VOLUME_PROP_EMISSION_IMG_SLOT, &emission_tx_);
+      pass.bind_image(VOLUME_PROP_PHASE_IMG_SLOT, &phase_tx_);
+      pass.bind_image(VOLUME_OCCUPANCY_SLOT, &occupancy_tx_);
+    }
+  } properties;
+
+  /* Textures used for object volume occupancy computation. */
+  struct {
+    /** References to the textures in the module. */
+    GPUTexture *occupancy_tx_ = nullptr;
+    GPUTexture *hit_depth_tx_ = nullptr;
+    GPUTexture *hit_count_tx_ = nullptr;
+
+    template<typename PassType> void bind_resources(PassType &pass)
+    {
+      pass.bind_image(VOLUME_OCCUPANCY_SLOT, &occupancy_tx_);
+      pass.bind_image(VOLUME_HIT_DEPTH_SLOT, &hit_depth_tx_);
+      pass.bind_image(VOLUME_HIT_COUNT_SLOT, &hit_count_tx_);
+    }
+  } occupancy;
 };
 }  // namespace blender::eevee

@@ -292,7 +292,7 @@ void Instance::end_sync()
   reflection_probes.end_sync();
   planar_probes.end_sync();
 
-  global_ubo_.push_update();
+  uniform_data.push_update();
 
   depsgraph_last_update_ = DEG_get_update_count(depsgraph);
 }

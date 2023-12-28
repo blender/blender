@@ -384,6 +384,17 @@ class PassBase {
   void specialize_constant(GPUShader *shader, const char *name, const bool *data);
 
   /**
+   * Custom resource binding.
+   * Syntactic sugar to avoid calling `resources.bind_resources(pass)` which is semantically less
+   * pleasing.
+   * `U` type must have a `bind_resources<Pass<T> &pass>()` method.
+   */
+  template<class U> void bind_resources(U &resources)
+  {
+    resources.bind_resources(*this);
+  }
+
+  /**
    * Turn the pass into a string for inspection.
    */
   std::string serialize(std::string line_prefix = "") const;

@@ -80,7 +80,7 @@ void HiZBuffer::sync()
     debug_draw_ps_.init();
     debug_draw_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_CUSTOM);
     debug_draw_ps_.shader_set(inst_.shaders.static_shader_get(HIZ_DEBUG));
-    this->bind_resources(debug_draw_ps_);
+    debug_draw_ps_.bind_resources(this->front);
     debug_draw_ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
   }
 }
