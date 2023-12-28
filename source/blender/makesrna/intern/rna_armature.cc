@@ -1946,7 +1946,7 @@ static void rna_def_armature(BlenderRNA *brna)
 
   RNA_define_lib_overridable(true);
 
-  /* Collections */
+  /* Collection Properties */
   prop = RNA_def_property(srna, "bones", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_sdna(prop, nullptr, "bonebase", nullptr);
   RNA_def_property_collection_funcs(prop,
