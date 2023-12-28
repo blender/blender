@@ -31,6 +31,8 @@
 #include "ANIM_armature_iter.hh"
 #include "ANIM_bone_collections.hh"
 
+#include "intern/bone_collections_internal.hh"
+
 #include <cstring>
 #include <string>
 
@@ -44,6 +46,7 @@ namespace {
 constexpr eBoneCollection_Flag default_flags = BONE_COLLECTION_VISIBLE |
                                                BONE_COLLECTION_SELECTABLE;
 constexpr auto bonecoll_default_name = "Bones";
+
 }  // namespace
 
 BoneCollection *ANIM_bonecoll_new(const char *name)
@@ -155,15 +158,13 @@ static void bonecoll_insert_at_index(bArmature *armature, BoneCollection *bcoll,
       sizeof(BoneCollection *) * (armature->collection_array_num + 1),
       __func__);
 
-  /* Shift over the collections to make room at the given index. */
-  if (index < armature->collection_array_num) {
-    BoneCollection **start = armature->collection_array + index;
-    const size_t count = armature->collection_array_num - index;
-    memmove((void *)(start + 1), (void *)start, count * sizeof(BoneCollection *));
-  }
-
-  armature->collection_array[index] = bcoll;
+  /* To keep the memory consistent, insert the new element at the end of the
+   * now-grown array, then rotate it into place. */
+  armature->collection_array[armature->collection_array_num] = bcoll;
   armature->collection_array_num++;
+
+  const int rotate_count = armature->collection_array_num - index - 1;
+  internal::bonecolls_rotate_block(armature, index, rotate_count, +1);
 
   if (armature->runtime.active_collection_index >= index) {
     ANIM_armature_bonecoll_active_index_set(armature,
@@ -171,15 +172,41 @@ static void bonecoll_insert_at_index(bArmature *armature, BoneCollection *bcoll,
   }
 }
 
-/**
- * Appends bcoll to the end of armature's array of bone collections.
- */
-static void bonecoll_append(bArmature *armature, BoneCollection *bcoll)
+static void bonecoll_insert_as_root(bArmature *armature, BoneCollection *bcoll, int at_index)
 {
-  bonecoll_insert_at_index(armature, bcoll, armature->collection_array_num);
+  BLI_assert(at_index >= -1);
+  BLI_assert(at_index <= armature->collection_root_count);
+  if (at_index < 0) {
+    at_index = armature->collection_root_count;
+  }
+
+  bonecoll_insert_at_index(armature, bcoll, at_index);
+  armature->collection_root_count++;
 }
 
-BoneCollection *ANIM_armature_bonecoll_new(bArmature *armature, const char *name)
+static int bonecoll_insert_as_child(bArmature *armature,
+                                    BoneCollection *bcoll,
+                                    const int parent_index)
+{
+  BLI_assert_msg(parent_index >= 0, "Armature bone collection index should be 0 or larger");
+  BLI_assert_msg(parent_index < armature->collection_array_num,
+                 "Parent bone collection index should not point beyond the end of the array");
+
+  BoneCollection *parent = armature->collection_array[parent_index];
+  if (parent->child_index == 0) {
+    /* This parent doesn't have any children yet, so place them at the end of the array. */
+    parent->child_index = armature->collection_array_num;
+  }
+  const int insert_at_index = parent->child_index + parent->child_count;
+  bonecoll_insert_at_index(armature, bcoll, insert_at_index);
+  parent->child_count++;
+
+  return insert_at_index;
+}
+
+BoneCollection *ANIM_armature_bonecoll_new(bArmature *armature,
+                                           const char *name,
+                                           const int parent_index)
 {
   BoneCollection *bcoll = ANIM_bonecoll_new(name);
 
@@ -189,35 +216,162 @@ BoneCollection *ANIM_armature_bonecoll_new(bArmature *armature, const char *name
   }
 
   bonecoll_ensure_name_unique(armature, bcoll);
-  bonecoll_append(armature, bcoll);
+
+  if (parent_index < 0) {
+    bonecoll_insert_as_root(armature, bcoll, -1);
+  }
+  else {
+    bonecoll_insert_as_child(armature, bcoll, parent_index);
+  }
 
   return bcoll;
 }
 
-BoneCollection *ANIM_armature_bonecoll_insert_copy_after(bArmature *armature,
-                                                         BoneCollection *anchor,
-                                                         const BoneCollection *bcoll_to_copy)
+/**
+ * Copy a BoneCollection to a new armature, updating its internal pointers to
+ * point to the new armature.
+ *
+ * This *only* updates the cloned BoneCollection, and does *not* actually add it
+ * to the armature.
+ *
+ * Child collections are not taken into account; the returned bone collection is
+ * without children, regardless of `bcoll_to_copy`.
+ */
+static BoneCollection *copy_and_update_ownership(const bArmature *armature_dst,
+                                                 const BoneCollection *bcoll_to_copy)
 {
   BoneCollection *bcoll = static_cast<BoneCollection *>(MEM_dupallocN(bcoll_to_copy));
 
-  /* Remap the bone pointers to the given armature, as `bcoll_to_copy` will
-   * likely be owned by another copy of the armature. */
-  BLI_duplicatelist(&bcoll->bones, &bcoll->bones);
-  BLI_assert_msg(armature->bonehash, "Expected armature bone hash to be there");
-  LISTBASE_FOREACH (BoneCollectionMember *, member, &bcoll->bones) {
-    member->bone = BKE_armature_find_bone_name(armature, member->bone->name);
-  }
+  /* Reset the child_index and child_count properties. These are unreliable when
+   * coming from an override, as the original array might have been completely
+   * reshuffled. Children will have to be copied separately. */
+  bcoll->child_index = 0;
+  bcoll->child_count = 0;
 
-  if (bcoll_to_copy->prop) {
+  if (bcoll->prop) {
     bcoll->prop = IDP_CopyProperty_ex(bcoll_to_copy->prop,
                                       0 /*do_id_user ? 0 : LIB_ID_CREATE_NO_USER_REFCOUNT*/);
   }
 
-  const int anchor_index = armature_bonecoll_find_index(armature, anchor);
-  bonecoll_insert_at_index(armature, bcoll, anchor_index + 1);
-  bonecoll_ensure_name_unique(armature, bcoll);
+  /* Remap the bone pointers to the given armature, as `bcoll_to_copy` is
+   * assumed to be owned by another armature. */
+  BLI_duplicatelist(&bcoll->bones, &bcoll->bones);
+  BLI_assert_msg(armature_dst->bonehash, "Expected armature bone hash to be there");
+  LISTBASE_FOREACH (BoneCollectionMember *, member, &bcoll->bones) {
+    member->bone = BKE_armature_find_bone_name(const_cast<bArmature *>(armature_dst),
+                                               member->bone->name);
+  }
+
+  /* Now that the collection points to the right bones, these bones can be
+   * updated to point to this collection. */
   add_reverse_pointers(bcoll);
 
+  return bcoll;
+}
+
+/**
+ * Copy all the child collections of the specified parent, from `armature_src` to `armature_dst`.
+ *
+ * This assumes that the parent itself has already been copied.
+ */
+static void liboverride_recursively_add_children(bArmature *armature_dst,
+                                                 const bArmature *armature_src,
+                                                 const int parent_bcoll_dst_index,
+                                                 const BoneCollection *parent_bcoll_src)
+{
+  BLI_assert_msg(parent_bcoll_dst_index >= 0,
+                 "this function can only add children to another collection, it cannot add roots");
+
+  /* Iterate over the children in `armature_src`, and clone them one by one into `armature_dst`.
+   *
+   * This uses two loops. The first one adds all the children, the second loop iterates over those
+   * children for the recursion step. As this performs a "breadth-first insertion", it requires
+   * considerably less shuffling of the array as when the recursion was done immediately after
+   * inserting a child. */
+  BoneCollection *parent_bcoll_dst = armature_dst->collection_array[parent_bcoll_dst_index];
+
+  /* Big Fat Assumption: because this code runs as part of the library override system, it is
+   * assumed that the parent is either a newly added root, or another child that was also added by
+   * the liboverride system. Because this would never add a child to an original "sequence of
+   * siblings", insertions of children always happen at the end of the array. This means that
+   * `parent_bcoll_dst_index` remains constant during this entire function. */
+
+  /* Copy & insert all the children. */
+  for (int bcoll_src_index = parent_bcoll_src->child_index;
+       bcoll_src_index < parent_bcoll_src->child_index + parent_bcoll_src->child_count;
+       bcoll_src_index++)
+  {
+    const BoneCollection *bcoll_src = armature_src->collection_array[bcoll_src_index];
+    BoneCollection *bcoll_dst = copy_and_update_ownership(armature_dst, bcoll_src);
+
+    const int bcoll_index_dst = bonecoll_insert_as_child(
+        armature_dst, bcoll_dst, parent_bcoll_dst_index);
+
+#ifndef NDEBUG
+    /* Check that the above Big Fat Assumption holds. */
+    BLI_assert_msg(bcoll_index_dst > parent_bcoll_dst_index,
+                   "expecting children to be added to the array AFTER their parent");
+#else
+    (void)bcoll_index_dst;
+#endif
+
+    bonecoll_ensure_name_unique(armature_dst, bcoll_dst);
+  }
+
+  /* Double-check that the above Big Fat Assumption holds. */
+#ifndef NDEBUG
+  const int new_parent_bcoll_dst_index = armature_bonecoll_find_index(armature_dst,
+                                                                      parent_bcoll_dst);
+  BLI_assert_msg(new_parent_bcoll_dst_index == parent_bcoll_dst_index,
+                 "did not expect parent_bcoll_dst_index to change");
+#endif
+
+  /* Recurse into the children to copy grandchildren. */
+  BLI_assert_msg(parent_bcoll_dst->child_count == parent_bcoll_src->child_count,
+                 "all children should have been copied");
+  for (int child_num = 0; child_num < parent_bcoll_dst->child_count; child_num++) {
+    const int bcoll_src_index = parent_bcoll_src->child_index + child_num;
+    const int bcoll_dst_index = parent_bcoll_dst->child_index + child_num;
+
+    const BoneCollection *bcoll_src = armature_src->collection_array[bcoll_src_index];
+    liboverride_recursively_add_children(armature_dst, armature_src, bcoll_dst_index, bcoll_src);
+  }
+}
+
+BoneCollection *ANIM_armature_bonecoll_insert_copy_after(bArmature *armature_dst,
+                                                         const bArmature *armature_src,
+                                                         const BoneCollection *anchor_in_dst,
+                                                         const BoneCollection *bcoll_to_copy)
+{
+#ifndef NDEBUG
+  /* Check that this bone collection is really a root, as this is assumed by the
+   * rest of this function. This is an O(n) check, though, so that's why it's
+   * only running in debug builds. */
+  const int bcoll_index_src = armature_bonecoll_find_index(armature_src, bcoll_to_copy);
+  if (!armature_bonecoll_is_root(armature_src, bcoll_index_src)) {
+    printf(
+        "Armature \"%s\" has library override operation that adds non-root bone collection "
+        "\"%s\". This is unexpected, please file a bug report.\n",
+        armature_src->id.name + 2,
+        bcoll_to_copy->name);
+  }
+#endif
+
+  BoneCollection *bcoll = copy_and_update_ownership(armature_dst, bcoll_to_copy);
+
+  const int anchor_index = armature_bonecoll_find_index(armature_dst, anchor_in_dst);
+  const int bcoll_index = anchor_index + 1;
+  BLI_assert_msg(
+      bcoll_index <= armature_dst->collection_root_count,
+      "did not expect library override to add a child bone collection, only roots are expected");
+  bonecoll_insert_as_root(armature_dst, bcoll, bcoll_index);
+  bonecoll_ensure_name_unique(armature_dst, bcoll);
+
+  /* Library override operations are only constructed for the root bones. This means that handling
+   * this operation should also include copying the children. */
+  liboverride_recursively_add_children(armature_dst, armature_src, bcoll_index, bcoll_to_copy);
+
+  ANIM_armature_bonecoll_active_runtime_refresh(armature_dst);
   return bcoll;
 }
 
@@ -318,37 +472,86 @@ bool ANIM_armature_bonecoll_move_to_index(bArmature *armature,
     return false;
   }
 
-  BoneCollection *bcoll = armature->collection_array[from_index];
-
-  /* Shift collections over to fill the gap at from_index and make room at to_index. */
-  if (from_index < to_index) {
-    BoneCollection **start = armature->collection_array + from_index + 1;
-    const size_t count = to_index - from_index;
-    memmove((void *)(start - 1), (void *)start, count * sizeof(BoneCollection *));
-  }
-  else {
-    BoneCollection **start = armature->collection_array + to_index;
-    const size_t count = from_index - to_index;
-    memmove((void *)(start + 1), (void *)start, count * sizeof(BoneCollection *));
+  /* Only allow moving within the same parent. This is written a bit awkwardly to avoid two calls
+   * to `armature_bonecoll_find_parent_index()` as that is O(n) in the number of bone collections.
+   */
+  const int parent_index = armature_bonecoll_find_parent_index(armature, from_index);
+  if (!armature_bonecoll_is_child_of(armature, parent_index, to_index)) {
+    return false;
   }
 
-  armature->collection_array[to_index] = bcoll;
+  if (parent_index < 0) {
+    /* Roots can just be moved around, as there is no `child_index` to update in this case. */
+    internal::bonecolls_move_to_index(armature, from_index, to_index);
+    return true;
+  }
 
-  /* Adjust the active collection index. */
-  if (from_index == armature->runtime.active_collection_index) {
-    /* If the active collection is the collection we moved. */
-    ANIM_armature_bonecoll_active_index_set(armature, to_index);
-  }
-  else if (from_index <= armature->runtime.active_collection_index &&
-           armature->runtime.active_collection_index <= to_index)
-  {
-    /* If the active collection is within the span of shifted collections. */
-    const int offset = from_index < to_index ? -1 : 1;
-    ANIM_armature_bonecoll_active_index_set(armature,
-                                            armature->runtime.active_collection_index + offset);
-  }
+  /* Store the parent's child_index, as that might move if to_index is the first child
+   * (bonecolls_move_to_index() will keep it pointing at that first child). */
+  BoneCollection *parent_bcoll = armature->collection_array[parent_index];
+  const int old_parent_child_index = parent_bcoll->child_index;
+
+  internal::bonecolls_move_to_index(armature, from_index, to_index);
+
+  parent_bcoll->child_index = old_parent_child_index;
 
   return true;
+}
+
+static int bonecoll_child_number(const bArmature *armature,
+                                 const int parent_bcoll_index,
+                                 const int bcoll_index)
+{
+  if (parent_bcoll_index < 0) {
+    /* Root bone collections are always at the start of the array, and thus their index is the
+     * 'child number'. */
+    return bcoll_index;
+  }
+
+  const BoneCollection *parent_bcoll = armature->collection_array[parent_bcoll_index];
+  return bcoll_index - parent_bcoll->child_index;
+}
+
+int ANIM_armature_bonecoll_move_before_after_index(bArmature *armature,
+                                                   const int from_index,
+                                                   int to_index,
+                                                   const MoveLocation before_after)
+{
+  const int from_parent_index = armature_bonecoll_find_parent_index(armature, from_index);
+  const int to_parent_index = armature_bonecoll_find_parent_index(armature, to_index);
+
+  if (from_parent_index != to_parent_index) {
+    /* Moving between parents. */
+    int to_child_num = bonecoll_child_number(armature, to_parent_index, to_index);
+    if (before_after == MoveLocation::After) {
+      to_child_num++;
+    }
+
+    return armature_bonecoll_move_to_parent(
+        armature, from_index, to_child_num, from_parent_index, to_parent_index);
+  }
+
+  /* Moving between siblings. */
+  switch (before_after) {
+    case MoveLocation::Before:
+      if (to_index > from_index) {
+        /* Moving to the right, but needs to go before that one, so needs a decrement. */
+        to_index--;
+      }
+      break;
+
+    case MoveLocation::After:
+      if (to_index < from_index) {
+        /* Moving to the left, but needs to go after that one, so needs a decrement. */
+        to_index++;
+      }
+      break;
+  }
+
+  if (!ANIM_armature_bonecoll_move_to_index(armature, from_index, to_index)) {
+    return -1;
+  }
+  return to_index;
 }
 
 bool ANIM_armature_bonecoll_move(bArmature *armature, BoneCollection *bcoll, const int step)
@@ -388,30 +591,61 @@ void ANIM_armature_bonecoll_name_set(bArmature *armature, BoneCollection *bcoll,
   BKE_animdata_fix_paths_rename_all(&armature->id, "collections", old_name, bcoll->name);
 }
 
-void ANIM_armature_bonecoll_remove_from_index(bArmature *armature, const int index)
+void ANIM_armature_bonecoll_remove_from_index(bArmature *armature, int index)
 {
   BLI_assert(0 <= index && index < armature->collection_array_num);
 
   BoneCollection *bcoll = armature->collection_array[index];
 
-  /* Remove bone membership. */
-  LISTBASE_FOREACH_MUTABLE (BoneCollectionMember *, member, &bcoll->bones) {
-    ANIM_armature_bonecoll_unassign(bcoll, member->bone);
+  /* The parent needs updating, so better to find it before this bone collection is removed. */
+  int parent_bcoll_index = armature_bonecoll_find_parent_index(armature, index);
+  BoneCollection *parent_bcoll = parent_bcoll_index >= 0 ?
+                                     armature->collection_array[parent_bcoll_index] :
+                                     nullptr;
+
+  /* Move all the children of the to-be-removed bone collection to their grandparent. */
+  int move_to_child_num = bonecoll_child_number(armature, parent_bcoll_index, index);
+  while (bcoll->child_count > 0) {
+    /* Move the child to its grandparent, at the same spot as the to-be-removed
+     * bone collection. The latter thus (potentially) shifts by 1 in the array.
+     * After removal, this effectively makes it appear like the removed bone
+     * collection is replaced by all its children. */
+    armature_bonecoll_move_to_parent(armature,
+                                     bcoll->child_index, /* Move from index... */
+                                     move_to_child_num,  /* to this child number. */
+                                     index,              /* From this parent... */
+                                     parent_bcoll_index  /* to that parent. */
+    );
+
+    /* Both 'index' and 'parent_bcoll_index' can change each iteration. */
+    index = internal::bonecolls_find_index_near(armature, bcoll, index);
+    BLI_assert_msg(index >= 0, "could not find bone collection after moving things around");
+
+    if (parent_bcoll_index >= 0) { /* If there is no parent, its index should stay -1. */
+      parent_bcoll_index = internal::bonecolls_find_index_near(
+          armature, parent_bcoll, parent_bcoll_index);
+      BLI_assert_msg(parent_bcoll_index >= 0,
+                     "could not find bone collection parent after moving things around");
+    }
+
+    move_to_child_num++;
   }
-  if (armature->edbo) {
-    LISTBASE_FOREACH (EditBone *, ebone, armature->edbo) {
-      ANIM_armature_bonecoll_unassign_editbone(bcoll, ebone);
+
+  /* Adjust the parent for the removal of its child. */
+  if (parent_bcoll_index < 0) {
+    /* Removing a root, so the armature itself needs to be updated. */
+    armature->collection_root_count--;
+    BLI_assert_msg(armature->collection_root_count >= 0, "armature root count cannot be negative");
+  }
+  else {
+    parent_bcoll->child_count--;
+    if (parent_bcoll->child_count == 0) {
+      parent_bcoll->child_index = 0;
     }
   }
 
-  ANIM_bonecoll_free(bcoll);
-
-  /* Shift over the collections to fill the gap. */
-  if (index < (armature->collection_array_num - 1)) {
-    BoneCollection **start = armature->collection_array + index;
-    const size_t count = armature->collection_array_num - index - 1;
-    memmove((void *)start, (void *)(start + 1), count * sizeof(BoneCollection *));
-  }
+  /* Rotate the to-be-removed collection to the last array element. */
+  internal::bonecolls_move_to_index(armature, index, armature->collection_array_num - 1);
 
   /* Note: we don't bother to shrink the allocation.  It's okay if the
    * capacity has extra space, because the number of valid items is tracked. */
@@ -419,19 +653,31 @@ void ANIM_armature_bonecoll_remove_from_index(bArmature *armature, const int ind
   armature->collection_array[armature->collection_array_num] = nullptr;
 
   /* Update the active BoneCollection. */
-  if (index <= armature->runtime.active_collection_index) {
-    int active_index = armature->runtime.active_collection_index;
-
-    if (index == armature->collection_array_num) {
-      /* Removing the last element: activate the now-last element. */
-      active_index--;
+  const int active_collection_index = armature->runtime.active_collection_index;
+  if (active_collection_index >= 0) {
+    /* Default: select the next sibling.
+     * If there is none: select the previous sibling.
+     * If there is none: select the parent.
+     */
+    if (armature_bonecoll_is_child_of(armature, parent_bcoll_index, active_collection_index)) {
+      /* active_collection_index still points to a sibling of the removed collection. */
+      ANIM_armature_bonecoll_active_index_set(armature, active_collection_index);
     }
-    else if (index < active_index) {
-      /* The active collection shifted, because a collection before it was removed. */
-      active_index--;
+    else if (active_collection_index > 0 &&
+             armature_bonecoll_is_child_of(
+                 armature, parent_bcoll_index, active_collection_index - 1))
+    {
+      /* The child preceeding active_collection_index is a sibling of the removed collection. */
+      ANIM_armature_bonecoll_active_index_set(armature, active_collection_index - 1);
     }
-    ANIM_armature_bonecoll_active_index_set(armature, active_index);
+    else {
+      /* Select the parent, or nothing if this was a root collection. In that case, if there are no
+       * siblings either, this just means all bone collections have been removed. */
+      ANIM_armature_bonecoll_active_index_set(armature, parent_bcoll_index);
+    }
   }
+
+  internal::bonecoll_unassign_and_free(armature, bcoll);
 }
 
 void ANIM_armature_bonecoll_remove(bArmature *armature, BoneCollection *bcoll)
@@ -448,6 +694,17 @@ BoneCollection *ANIM_armature_bonecoll_get_by_name(bArmature *armature, const ch
     }
   }
   return nullptr;
+}
+
+int ANIM_armature_bonecoll_get_index_by_name(bArmature *armature, const char *name)
+{
+  for (int index = 0; index < armature->collection_array_num; index++) {
+    const BoneCollection *bcoll = armature->collection_array[index];
+    if (STREQ(bcoll->name, name)) {
+      return index;
+    }
+  }
+  return -1;
 }
 
 void ANIM_bonecoll_show(BoneCollection *bcoll)
@@ -642,13 +899,37 @@ void ANIM_armature_bonecoll_assign_active(const bArmature *armature, EditBone *e
 {
   if (armature->runtime.active_collection == nullptr) {
     /* No active collection, do not assign to any. */
-    printf("ANIM_armature_bonecoll_assign_active(%s, %s): no active collection\n",
-           ebone->name,
-           armature->id.name);
     return;
   }
 
   ANIM_armature_bonecoll_assign_editbone(armature->runtime.active_collection, ebone);
+}
+
+static bool bcoll_list_contains(const ListBase /*BoneCollectionRef*/ *collection_refs,
+                                const BoneCollection *bcoll)
+{
+  LISTBASE_FOREACH (const BoneCollectionReference *, bcoll_ref, collection_refs) {
+    if (bcoll == bcoll_ref->bcoll) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool ANIM_armature_bonecoll_contains_active_bone(const struct bArmature *armature,
+                                                 const struct BoneCollection *bcoll)
+{
+  if (armature->edbo) {
+    if (!armature->act_edbone) {
+      return false;
+    }
+    return bcoll_list_contains(&armature->act_edbone->bone_collections, bcoll);
+  }
+
+  if (!armature->act_bone) {
+    return false;
+  }
+  return bcoll_list_contains(&armature->act_bone->runtime.collections, bcoll);
 }
 
 void ANIM_armature_bonecoll_show_from_bone(bArmature *armature, const Bone *bone)
@@ -701,6 +982,170 @@ int armature_bonecoll_find_index(const bArmature *armature, const BoneCollection
   }
 
   return -1;
+}
+
+int armature_bonecoll_find_parent_index(const bArmature *armature, const int bcoll_index)
+{
+  if (bcoll_index < armature->collection_root_count) {
+    /* Don't bother iterating all collections when it's known to be a root. */
+    return -1;
+  }
+
+  int index = 0;
+  for (const BoneCollection *potential_parent : armature->collections_span()) {
+    if (potential_parent->child_index <= bcoll_index &&
+        bcoll_index < potential_parent->child_index + potential_parent->child_count)
+    {
+      return index;
+    }
+
+    index++;
+  }
+
+  return -1;
+}
+
+bool armature_bonecoll_is_root(const bArmature *armature, const int bcoll_index)
+{
+  BLI_assert(bcoll_index >= 0);
+  return bcoll_index < armature->collection_root_count;
+}
+
+bool armature_bonecoll_is_child_of(const bArmature *armature,
+                                   const int potential_parent_index,
+                                   const int potential_child_index)
+{
+  /* Check for roots, before we try and access collection_array[-1]. */
+  const bool is_root = armature_bonecoll_is_root(armature, potential_child_index);
+  if (is_root) {
+    return potential_parent_index == -1;
+  }
+  if (potential_parent_index < 0) {
+    return is_root;
+  }
+
+  const BoneCollection *potential_parent = armature->collection_array[potential_parent_index];
+  const int upper_bound = potential_parent->child_index + potential_parent->child_count;
+
+  return potential_parent->child_index <= potential_child_index &&
+         potential_child_index < upper_bound;
+}
+
+bool armature_bonecoll_is_decendent_of(const bArmature *armature,
+                                       const int potential_parent_index,
+                                       const int potential_decendent_index)
+{
+  if (armature_bonecoll_is_child_of(armature, potential_parent_index, potential_decendent_index)) {
+    /* Found a direct child. */
+    return true;
+  }
+
+  const BoneCollection *potential_parent = armature->collection_array[potential_parent_index];
+  const int upper_bound = potential_parent->child_index + potential_parent->child_count;
+
+  for (int visit_index = potential_parent->child_index; visit_index < upper_bound; visit_index++) {
+    if (armature_bonecoll_is_decendent_of(armature, visit_index, potential_decendent_index)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+bool bonecoll_has_children(const BoneCollection *bcoll)
+{
+  return bcoll->child_count > 0;
+}
+
+int armature_bonecoll_move_to_parent(bArmature *armature,
+                                     const int from_bcoll_index,
+                                     int to_child_num,
+                                     const int from_parent_index,
+                                     const int to_parent_index)
+{
+  BLI_assert(0 <= from_bcoll_index && from_bcoll_index < armature->collection_array_num);
+  BLI_assert(-1 <= from_parent_index && from_parent_index < armature->collection_array_num);
+  BLI_assert(-1 <= to_parent_index && to_parent_index < armature->collection_array_num);
+
+  if (from_parent_index == to_parent_index) {
+    /* TODO: use `to_child_num` to still move the child to the desired position. */
+    return from_bcoll_index;
+  }
+
+  /* The Armature itself acts like some sort of 'parent' for the root collections. By having this
+   * as a 'fake' BoneCollection, all the code below can just be blissfully unaware of the special
+   * 'all root collections should be at the start of the array' rule. */
+  BoneCollection armature_root;
+  armature_root.child_count = armature->collection_root_count;
+  armature_root.child_index = 0;
+
+  BoneCollection *from_parent = from_parent_index >= 0 ?
+                                    armature->collection_array[from_parent_index] :
+                                    &armature_root;
+  BoneCollection *to_parent = to_parent_index >= 0 ? armature->collection_array[to_parent_index] :
+                                                     &armature_root;
+
+  BLI_assert_msg(-1 <= to_child_num && to_child_num <= to_parent->child_count,
+                 "to_child_num must point to an index of a child of the new parent, or the index "
+                 "of the last child + 1, or be -1 to indicate 'after last child'");
+  if (to_child_num < 0) {
+    to_child_num = to_parent->child_count;
+  }
+
+  /* The new parent might not have children yet. */
+  int to_bcoll_index;
+  if (to_parent->child_count == 0) {
+    /* New parents always get their children at the end of the array. */
+    to_bcoll_index = armature->collection_array_num - 1;
+  }
+  else {
+    to_bcoll_index = to_parent->child_index + to_child_num;
+
+    /* Check whether the new parent's children are to the left or right of bcoll_index.
+     * This determines which direction the collections have to shift, and thus which index to
+     * move the bcoll to. */
+    if (to_bcoll_index > from_bcoll_index) {
+      to_bcoll_index--;
+    }
+  }
+
+  /* In certain cases the 'from_parent' gets its first child removed, and needs to have its
+   * child_index incremented. This needs to be done by comparing these fields before the actual
+   * move happens (as that could also change the child_index). */
+  const bool needs_post_move_child_index_bump = from_parent->child_index == from_bcoll_index &&
+                                                to_bcoll_index <= from_bcoll_index;
+  /* bonecolls_move_to_index() will try and keep the hierarchy correct, and thus change
+   * to_parent->child_index to keep pointing to its current-first child. */
+  const bool becomes_new_first_child = to_child_num == 0 || to_parent->child_count == 0;
+  internal::bonecolls_move_to_index(armature, from_bcoll_index, to_bcoll_index);
+
+  /* Update child index & count of the old parent. */
+  from_parent->child_count--;
+  if (from_parent->child_count == 0) {
+    /* Clean up the child index when the parent has no more children. */
+    from_parent->child_index = 0;
+  }
+  else if (needs_post_move_child_index_bump) {
+    /* The start of the block of children of the old parent has moved, because
+     * we took out the first child. This only needs to be compensated for when
+     * moving it to the left (or staying put), as then its old siblings stay in
+     * place.
+     *
+     * This only needs to be done if there are any children left, though. */
+    from_parent->child_index++;
+  }
+
+  /* Update child index & count of the new parent. */
+  if (becomes_new_first_child) {
+    to_parent->child_index = to_bcoll_index;
+  }
+  to_parent->child_count++;
+
+  /* Copy the information from the 'fake' BoneCollection back to the armature. */
+  armature->collection_root_count = armature_root.child_count;
+  BLI_assert(armature_root.child_index == 0);
+
+  return to_bcoll_index;
 }
 
 /* Utility functions for Armature edit-mode undo. */
@@ -765,5 +1210,132 @@ void ANIM_bonecoll_array_free(BoneCollection ***bcoll_array,
   *bcoll_array = nullptr;
   *bcoll_array_num = 0;
 }
+
+/** Functions declared in bone_collections_internal.hh. */
+namespace internal {
+
+void bonecolls_rotate_block(bArmature *armature,
+                            const int start_index,
+                            const int count,
+                            const int direction)
+{
+  BLI_assert_msg(direction == 1 || direction == -1, "`direction` must be either -1 or +1");
+
+  if (count == 0) {
+    return;
+  }
+
+  /* When the block [start_index:start_index+count] is moved, it causes a duplication of one
+   * element and overwrites another element. For example: given an array [0, 1, 2, 3, 4], moving
+   * indices [1, 2] by +1 would result in one double element (1) and one missing element (3): [0,
+   * 1, 1, 2, 4].
+   *
+   * This is resolved by moving that element to the other side of the block, so the result will be
+   * [0, 3, 1, 2, 4]. This breaks the hierarchical information, so it's up to the caller to update
+   * this one moved element.
+   */
+
+  const int move_from_index = (direction > 0 ? start_index + count : start_index - 1);
+  const int move_to_index = (direction > 0 ? start_index : start_index + count - 1);
+  BoneCollection *bcoll_to_move = armature->collection_array[move_from_index];
+
+  BoneCollection **start = armature->collection_array + start_index;
+  memmove((void *)(start + direction), (void *)start, count * sizeof(BoneCollection *));
+
+  armature->collection_array[move_to_index] = bcoll_to_move;
+
+  /* Update all child indices that reference something in the moved block. */
+  for (BoneCollection *bcoll : armature->collections_span()) {
+    /* Having both child_index and child_count zeroed out just means "no children"; these shouldn't
+     * be updated at all, as here child_index is not really referencing the element at index 0. */
+    if (bcoll->child_index == 0 && bcoll->child_count == 0) {
+      continue;
+    }
+
+    /* Compare to the original start & end of the block (i.e. pre-move). If a
+     * child_index is within this range, it'll need updating. */
+    if (start_index <= bcoll->child_index && bcoll->child_index < start_index + count) {
+      bcoll->child_index += direction;
+    }
+  }
+}
+
+void bonecolls_move_to_index(bArmature *armature, const int from_index, const int to_index)
+{
+  if (from_index == to_index) {
+    return;
+  }
+
+  BLI_assert(0 <= from_index);
+  BLI_assert(from_index < armature->collection_array_num);
+  BLI_assert(0 <= to_index);
+  BLI_assert(to_index < armature->collection_array_num);
+
+  if (from_index < to_index) {
+    const int block_start_index = from_index + 1;
+    const int block_count = to_index - from_index;
+    bonecolls_rotate_block(armature, block_start_index, block_count, -1);
+  }
+  else {
+    const int block_start_index = to_index;
+    const int block_count = from_index - to_index;
+    bonecolls_rotate_block(armature, block_start_index, block_count, +1);
+  }
+}
+
+int bonecolls_find_index_near(bArmature *armature, BoneCollection *bcoll, const int index)
+{
+  BoneCollection **collections = armature->collection_array;
+
+  if (collections[index] == bcoll) {
+    return index;
+  }
+  if (index > 0 && collections[index - 1] == bcoll) {
+    return index - 1;
+  }
+  if (index < armature->collection_array_num - 1 && collections[index + 1] == bcoll) {
+    return index + 1;
+  }
+  return -1;
+}
+
+void bonecolls_debug_list(const bArmature *armature)
+{
+  printf("\033[38;5;214mBone collections of armature \"%s\":\033[0m\n", armature->id.name + 2);
+  constexpr int root_ansi_color = 95;
+  printf(
+      "    - \033[%dmroot\033[0m count: %d\n", root_ansi_color, armature->collection_root_count);
+  for (int i = 0; i < armature->collection_array_num; ++i) {
+    const BoneCollection *bcoll = armature->collection_array[i];
+    printf("    - \033[%dmcolls[%d] = %24s\033[0m ",
+           i < armature->collection_root_count ? root_ansi_color : 0,
+           i,
+           bcoll->name);
+    if (bcoll->child_index == 0 && bcoll->child_count == 0) {
+      printf("(leaf)");
+    }
+    else {
+      printf("(child index: %d, count: %d)", bcoll->child_index, bcoll->child_count);
+    }
+    printf("\n");
+  }
+}
+
+void bonecoll_unassign_and_free(bArmature *armature, BoneCollection *bcoll)
+{
+  /* Remove bone membership. */
+  LISTBASE_FOREACH_MUTABLE (BoneCollectionMember *, member, &bcoll->bones) {
+    ANIM_armature_bonecoll_unassign(bcoll, member->bone);
+  }
+  if (armature->edbo) {
+    LISTBASE_FOREACH (EditBone *, ebone, armature->edbo) {
+      ANIM_armature_bonecoll_unassign_editbone(bcoll, ebone);
+    }
+  }
+
+  ANIM_bonecoll_free(bcoll);
+}
+
+}  // namespace internal
 
 }  // namespace blender::animrig

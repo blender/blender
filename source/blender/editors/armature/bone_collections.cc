@@ -9,6 +9,8 @@
 
 #include <cstring>
 
+#include "BLI_string.h"
+
 #include "ANIM_bone_collections.hh"
 
 #include "DNA_ID.h"
@@ -109,7 +111,7 @@ static bool active_bone_collection_poll(bContext *C)
   return true;
 }
 
-static int bone_collection_add_exec(bContext *C, wmOperator * /*op*/)
+static int bone_collection_add_exec(bContext *C, wmOperator *op)
 {
   Object *ob = ED_object_context(C);
   if (ob == nullptr) {
@@ -117,7 +119,24 @@ static int bone_collection_add_exec(bContext *C, wmOperator * /*op*/)
   }
 
   bArmature *armature = static_cast<bArmature *>(ob->data);
-  BoneCollection *bcoll = ANIM_armature_bonecoll_new(armature, nullptr);
+
+  const int parent_index = RNA_int_get(op->ptr, "parent_index");
+  printf("Adding bone collection to parent index %d\n", parent_index);
+  if (parent_index < -1) {
+    BKE_reportf(
+        op->reports, RPT_ERROR, "parent_index should not be less than -1: %d", parent_index);
+    return OPERATOR_CANCELLED;
+  }
+  if (parent_index >= armature->collection_array_num) {
+    BKE_reportf(op->reports,
+                RPT_ERROR,
+                "parent_index (%d) should be less than the number of bone collections (%d)",
+                parent_index,
+                armature->collection_array_num);
+    return OPERATOR_CANCELLED;
+  }
+
+  BoneCollection *bcoll = ANIM_armature_bonecoll_new(armature, nullptr, parent_index);
   ANIM_armature_bonecoll_active_set(armature, bcoll);
 
   WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
@@ -137,6 +156,19 @@ void ARMATURE_OT_collection_add(wmOperatorType *ot)
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  PropertyRNA *prop;
+  prop = RNA_def_int(
+      ot->srna,
+      "parent_index",
+      -1,
+      -1,
+      INT_MAX,
+      "Parent Index",
+      "Index of the parent bone collection, or -1 if the new bone collection should be a root",
+      -1,
+      INT_MAX);
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 static int bone_collection_remove_exec(bContext *C, wmOperator * /*op*/)
@@ -189,7 +221,9 @@ static int bone_collection_move_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
+  ANIM_armature_bonecoll_active_runtime_refresh(armature);
+
+  WM_event_add_notifier(C, NC_OBJECT | ND_BONE_COLLECTION, ob);
   return OPERATOR_FINISHED;
 }
 
@@ -460,8 +494,6 @@ void ARMATURE_OT_collection_assign(wmOperatorType *ot)
   ot->description = "Add selected bones to the chosen bone collection";
 
   /* api callbacks */
-  // TODO: reinstate the menu?
-  // ot->invoke = bone_collections_menu_invoke;
   ot->exec = bone_collection_assign_exec;
   ot->poll = bone_collection_assign_poll;
 
@@ -861,14 +893,15 @@ void ARMATURE_OT_collection_deselect(wmOperatorType *ot)
 
 static BoneCollection *add_or_move_to_collection_bcoll(wmOperator *op, bArmature *arm)
 {
-  const int collection_index = RNA_enum_get(op->ptr, "collection");
+  const int collection_index = RNA_int_get(op->ptr, "collection_index");
   BoneCollection *target_bcoll;
 
-  if (collection_index < 0) {
+  PropertyRNA *prop = RNA_struct_find_property(op->ptr, "new_collection_name");
+  if (RNA_property_is_set(op->ptr, prop)) {
     /* TODO: check this with linked, non-overridden armatures. */
     char new_collection_name[MAX_NAME];
     RNA_string_get(op->ptr, "new_collection_name", new_collection_name);
-    target_bcoll = ANIM_armature_bonecoll_new(arm, new_collection_name);
+    target_bcoll = ANIM_armature_bonecoll_new(arm, new_collection_name, collection_index);
     BLI_assert_msg(target_bcoll,
                    "It should always be possible to create a new bone collection on an armature");
     ANIM_armature_bonecoll_active_set(arm, target_bcoll);
@@ -988,98 +1021,164 @@ static bool move_to_collection_poll(bContext *C)
   return true;
 }
 
-static bool bone_collection_enum_itemf_for_object(Object *ob,
-                                                  EnumPropertyItem **item,
-                                                  int *totitem)
+/**
+ * Encode the parameters into an integer, and return as void*.
+ *
+ * This makes it possible to use these values and pass them directly as 'custom data' pointer to
+ * `uiItemMenuF()`. This makes it possible to give every menu a unique bone collection index for
+ * which it should show the child collections, without having to allocate memory or use static
+ * variables. See `move_to_collection_invoke()` in `object_edit.cc` for the alternative that I
+ * (Sybren) wanted to avoid. */
+static void *menu_custom_data_encode(const int bcoll_index, const bool is_move_operation)
 {
-  EnumPropertyItem item_tmp = {0};
-  bArmature *arm = static_cast<bArmature *>(ob->data);
-
-  for (int bcoll_index = 0; bcoll_index < arm->collection_array_num; bcoll_index++) {
-    BoneCollection *bcoll = arm->collection_array[bcoll_index];
-    if (!ANIM_armature_bonecoll_is_editable(arm, bcoll)) {
-      /* Skip bone collections that cannot be assigned to because they're
-       * linked and thus uneditable. If there is a way to still show these, but in a disabled
-       * state, that would be preferred. */
-      continue;
-    }
-    item_tmp.identifier = bcoll->name;
-    item_tmp.name = bcoll->name;
-    item_tmp.value = bcoll_index;
-    RNA_enum_item_add(item, totitem, &item_tmp);
-  }
-
-  return true;
+  /* Add 1 to the index, so that it's never negative (it can be -1 to indicate 'all roots'). */
+  const uintptr_t index_and_move_bit = ((bcoll_index + 1) << 1) | (is_move_operation << 0);
+  return reinterpret_cast<void *>(index_and_move_bit);
 }
 
-static const EnumPropertyItem *bone_collection_enum_itemf(bContext *C,
-                                                          PointerRNA * /*ptr*/,
-                                                          PropertyRNA * /*prop*/,
-                                                          bool *r_free)
+/**
+ * Decode the `void*` back into a bone collection index and a boolean `is_move_operation`.
+ *
+ * \see menu_custom_data_encode for rationale.
+ */
+static std::pair<int, bool> menu_custom_data_decode(void *menu_custom_data)
 {
-  *r_free = false;
+  const uintptr_t index_and_move_bit = reinterpret_cast<intptr_t>(menu_custom_data);
+  const bool is_move_operation = (index_and_move_bit & 1) == 1;
+  const int bcoll_index = int(index_and_move_bit >> 1) - 1;
+  return std::make_pair(bcoll_index, is_move_operation);
+}
 
-  if (!C) {
-    /* This happens when operators are being tested, and not during normal invocation. */
-    return rna_enum_dummy_NULL_items;
+static int icon_for_bone_collection(const bool collection_contains_active_bone)
+{
+  return collection_contains_active_bone ? ICON_REMOVE : ICON_ADD;
+}
+
+static void menu_add_item_for_move_assign_unassign(uiLayout *layout,
+                                                   const bArmature *arm,
+                                                   const BoneCollection *bcoll,
+                                                   const int bcoll_index,
+                                                   const bool is_move_operation)
+{
+  if (is_move_operation) {
+    uiItemIntO(layout,
+               bcoll->name,
+               ICON_NONE,
+               "ARMATURE_OT_move_to_collection",
+               "collection_index",
+               bcoll_index);
+    return;
   }
 
-  Object *ob = ED_object_context(C);
-  if (!ob || ob->type != OB_ARMATURE) {
-    return rna_enum_dummy_NULL_items;
+  const bool contains_active_bone = ANIM_armature_bonecoll_contains_active_bone(arm, bcoll);
+  const int icon = icon_for_bone_collection(contains_active_bone);
+
+  if (contains_active_bone) {
+    uiItemStringO(
+        layout, bcoll->name, icon, "ARMATURE_OT_collection_unassign", "name", bcoll->name);
+  }
+  else {
+    uiItemStringO(layout, bcoll->name, icon, "ARMATURE_OT_collection_assign", "name", bcoll->name);
+  }
+}
+
+/**
+ * Add menu items to the layout, for a set of bone collections.
+ *
+ * \param menu_custom_data contains two values, encoded as void* to match the signature required by
+ * `uiItemMenuF`. It contains the parent bone collection index (either -1 to show all roots, or
+ * another value to show the children of that collection), as well as a boolean that indicates
+ * whether the menu is created for the "move to collection" or "assign to collection" operator.
+ *
+ * \see menu_custom_data_encode
+ */
+static void move_to_collection_menu_create(bContext *C, uiLayout *layout, void *menu_custom_data)
+{
+  int parent_bcoll_index;
+  bool is_move_operation;
+  std::tie(parent_bcoll_index, is_move_operation) = menu_custom_data_decode(menu_custom_data);
+
+  const Object *ob = ED_object_context(C);
+  const bArmature *arm = static_cast<bArmature *>(ob->data);
+
+  /* The "Create a new collection" mode of this operator has its own menu, and should thus be
+   * invoked. */
+  uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
+  uiItemIntO(layout,
+             "New Bone Collection",
+             ICON_NONE,
+             is_move_operation ? "ARMATURE_OT_move_to_collection" :
+                                 "ARMATURE_OT_assign_to_collection",
+             "collection_index",
+             parent_bcoll_index);
+
+  /* The remaining operators in this menu should be executed on click. Invoking
+   * them would show this same menu again. */
+  uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
+
+  int child_index, child_count;
+  if (parent_bcoll_index == -1) {
+    child_index = 0;
+    child_count = arm->collection_root_count;
+  }
+  else {
+    /* Add a menu item to assign to the parent first, before listing the children. */
+    const BoneCollection *parent = arm->collection_array[parent_bcoll_index];
+    menu_add_item_for_move_assign_unassign(
+        layout, arm, parent, parent_bcoll_index, is_move_operation);
+    uiItemS(layout);
+
+    child_index = parent->child_index;
+    child_count = parent->child_count;
   }
 
-  EnumPropertyItem *item = nullptr;
-  int totitem = 0;
-  switch (ob->mode) {
-    case OB_MODE_POSE: {
-      Object *obpose = ED_pose_object_from_context(C);
-      if (!obpose) {
-        return nullptr;
-      }
-      bone_collection_enum_itemf_for_object(obpose, &item, &totitem);
-      break;
+  /* Loop over the children. There should be at least one, otherwise this parent
+   * bone collection wouldn't have been drawn as a menu.*/
+  for (int index = child_index; index < child_index + child_count; index++) {
+    const BoneCollection *bcoll = arm->collection_array[index];
+
+    if (blender::animrig::bonecoll_has_children(bcoll)) {
+      uiItemMenuF(layout,
+                  bcoll->name,
+                  ICON_NONE,
+                  move_to_collection_menu_create,
+                  menu_custom_data_encode(index, is_move_operation));
     }
-    case OB_MODE_EDIT:
-      bone_collection_enum_itemf_for_object(ob, &item, &totitem);
-      break;
-    default:
-      return rna_enum_dummy_NULL_items;
+    else {
+      menu_add_item_for_move_assign_unassign(layout, arm, bcoll, index, is_move_operation);
+    }
   }
+}
 
-  /* New Collection. */
-  EnumPropertyItem item_tmp = {0};
-  item_tmp.identifier = "__NEW__";
-  item_tmp.name = CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "New Collection");
-  item_tmp.value = -1;
-  RNA_enum_item_add(&item, &totitem, &item_tmp);
+static int move_to_collection_regular_invoke(bContext *C, wmOperator *op)
+{
+  const char *title = CTX_IFACE_(op->type->translation_context, op->type->name);
+  uiPopupMenu *pup = UI_popup_menu_begin(C, title, ICON_NONE);
+  uiLayout *layout = UI_popup_menu_layout(pup);
 
-  RNA_enum_item_end(&item, &totitem);
-  *r_free = true;
+  const bool is_move_operation = STREQ(op->type->idname, "ARMATURE_OT_move_to_collection");
+  move_to_collection_menu_create(C, layout, menu_custom_data_encode(-1, is_move_operation));
 
-  return item;
+  UI_popup_menu_end(C, pup);
+
+  return OPERATOR_INTERFACE;
+}
+
+static int move_to_new_collection_invoke(bContext *C, wmOperator *op)
+{
+  return WM_operator_props_dialog_popup(C, op, 200);
 }
 
 static int move_to_collection_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
-  PropertyRNA *prop = RNA_struct_find_property(op->ptr, "collection");
+  /* Invoking with `collection_index` set has a special meaning: show the menu to create a new bone
+   * collection as the child of this one. */
+  PropertyRNA *prop = RNA_struct_find_property(op->ptr, "collection_index");
   if (RNA_property_is_set(op->ptr, prop)) {
-    const int collection_index = RNA_property_enum_get(op->ptr, prop);
-    if (collection_index < 0) {
-      return WM_operator_props_dialog_popup(C, op, 200);
-    }
-    /* Either call move_to_collection_exec() or assign_to_collection_exec(), depending on which
-     * operator got invoked. */
-    return op->type->exec(C, op);
+    return move_to_new_collection_invoke(C, op);
   }
 
-  const char *title = CTX_IFACE_(op->type->translation_context, op->type->name);
-  uiPopupMenu *pup = UI_popup_menu_begin(C, title, ICON_NONE);
-  uiLayout *layout = UI_popup_menu_layout(pup);
-  uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
-  uiItemsEnumO(layout, op->idname, "collection");
-  UI_popup_menu_end(C, pup);
-  return OPERATOR_INTERFACE;
+  return move_to_collection_regular_invoke(C, op);
 }
 
 void ARMATURE_OT_move_to_collection(wmOperatorType *ot)
@@ -1102,24 +1201,28 @@ void ARMATURE_OT_move_to_collection(wmOperatorType *ot)
    * 'Name' property, without any choice for another collection. */
   ot->flag = OPTYPE_UNDO;
 
-  prop = RNA_def_enum(ot->srna,
-                      "collection",
-                      rna_enum_dummy_DEFAULT_items,
-                      0,
-                      "Collection",
-                      "The bone collection to move the selected bones to");
-  RNA_def_enum_funcs(prop, bone_collection_enum_itemf);
-  /* Translation of items is handled by bone_collection_enum_itemf if needed, most are actually
-   * data (bone collections) names and therefore should not be translated at all. So disable
-   * automatic translation. */
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN | PROP_ENUM_NO_TRANSLATE);
+  prop = RNA_def_int(
+      ot->srna,
+      "collection_index",
+      -1,
+      -1,
+      INT_MAX,
+      "Collection Index",
+      "Index of the collection to move selected bones to. When the operator should create a new "
+      "bone collection, do not include this parameter and pass new_collection_name",
+      -1,
+      INT_MAX);
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 
-  prop = RNA_def_string(ot->srna,
-                        "new_collection_name",
-                        nullptr,
-                        MAX_NAME,
-                        "Name",
-                        "Name of the newly added bone collection");
+  prop = RNA_def_string(
+      ot->srna,
+      "new_collection_name",
+      nullptr,
+      MAX_NAME,
+      "Name",
+      "Name of a to-be-added bone collection. Only pass this if you want to create a new bone "
+      "collection and move the selected bones to it. To move to an existing collection, do not "
+      "include this parameter and use collection_index");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   ot->prop = prop;
 }
@@ -1130,7 +1233,9 @@ void ARMATURE_OT_assign_to_collection(wmOperatorType *ot)
 
   /* identifiers */
   ot->name = "Assign to Collection";
-  ot->description = "Assign bones to a collection";
+  ot->description =
+      "Assign all selected bones to a collection, or unassign them, depending on whether the "
+      "active bone is already assigned or not";
   ot->idname = "ARMATURE_OT_assign_to_collection";
 
   /* api callbacks */
@@ -1144,21 +1249,29 @@ void ARMATURE_OT_assign_to_collection(wmOperatorType *ot)
    * 'Name' property, without any choice for another collection. */
   ot->flag = OPTYPE_UNDO;
 
-  prop = RNA_def_enum(ot->srna,
-                      "collection",
-                      rna_enum_dummy_DEFAULT_items,
-                      0,
-                      "Collection",
-                      "The bone collection to move the selected bones to");
-  RNA_def_enum_funcs(prop, bone_collection_enum_itemf);
+  prop = RNA_def_int(
+      ot->srna,
+      "collection_index",
+      -1,
+      -1,
+      INT_MAX,
+      "Collection Index",
+      "Index of the collection to assign selected bones to. When the operator should create a new "
+      "bone collection, use new_collection_name to define the collection name, and set this "
+      "parameter to the parent index of the new bone collection",
+      -1,
+      INT_MAX);
   RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 
-  prop = RNA_def_string(ot->srna,
-                        "new_collection_name",
-                        nullptr,
-                        MAX_NAME,
-                        "Name",
-                        "Name of the newly added bone collection");
+  prop = RNA_def_string(
+      ot->srna,
+      "new_collection_name",
+      nullptr,
+      MAX_NAME,
+      "Name",
+      "Name of a to-be-added bone collection. Only pass this if you want to create a new bone "
+      "collection and assign the selected bones to it. To assign to an existing collection, do "
+      "not include this parameter and use collection_index");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   ot->prop = prop;
 }

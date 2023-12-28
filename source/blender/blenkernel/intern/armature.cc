@@ -388,8 +388,26 @@ static void read_bone_collections(BlendDataReader *reader, bArmature *arm)
       arm->collection_array_num, sizeof(BoneCollection *), __func__);
   {
     int i;
+    int min_child_index = 0;
     LISTBASE_FOREACH_INDEX (BoneCollection *, bcoll, &arm->collections_legacy, i) {
       arm->collection_array[i] = bcoll;
+
+      if (bcoll->child_index > 0) {
+        min_child_index = min_ii(min_child_index, bcoll->child_index);
+      }
+    }
+
+    if (arm->collection_root_count == 0 && arm->collection_array_num > 0) {
+      /* There cannot be zero roots when there are any bone collections. This means the root count
+       * likely got lost for some reason, and should be reconstructed to avoid data corruption when
+       * modifying the array. */
+      if (min_child_index == 0) {
+        /* None of the bone collections had any children, so all are roots. */
+        arm->collection_root_count = arm->collection_array_num;
+      }
+      else {
+        arm->collection_root_count = min_child_index;
+      }
     }
   }
 
