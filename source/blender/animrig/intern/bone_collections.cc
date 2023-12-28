@@ -93,10 +93,7 @@ static void add_reverse_pointers(BoneCollection *bcoll)
 void ANIM_armature_runtime_refresh(bArmature *armature)
 {
   ANIM_armature_runtime_free(armature);
-
-  BoneCollection *active = ANIM_armature_bonecoll_get_by_name(armature,
-                                                              armature->active_collection_name);
-  ANIM_armature_bonecoll_active_set(armature, active);
+  ANIM_armature_bonecoll_active_runtime_refresh(armature);
 
   /* Construct the bone-to-collections mapping. */
   for (BoneCollection *bcoll : armature->collections_span()) {
@@ -280,6 +277,28 @@ void ANIM_armature_bonecoll_active_name_set(bArmature *armature, const char *nam
 {
   BoneCollection *bcoll = ANIM_armature_bonecoll_get_by_name(armature, name);
   ANIM_armature_bonecoll_active_set(armature, bcoll);
+}
+
+void ANIM_armature_bonecoll_active_runtime_refresh(struct bArmature *armature)
+{
+  const std::string_view active_name = armature->active_collection_name;
+  if (active_name.empty()) {
+    armature_bonecoll_active_clear(armature);
+    return;
+  }
+
+  int index = 0;
+  for (BoneCollection *bcoll : armature->collections_span()) {
+    if (bcoll->name == active_name) {
+      armature->runtime.active_collection_index = index;
+      armature->runtime.active_collection = bcoll;
+      return;
+    }
+    index++;
+  }
+
+  /* No bone collection with the name was found, so better to clear everything.*/
+  armature_bonecoll_active_clear(armature);
 }
 
 bool ANIM_armature_bonecoll_is_editable(const bArmature *armature, const BoneCollection *bcoll)

@@ -123,6 +123,17 @@ void ANIM_armature_bonecoll_active_index_set(struct bArmature *armature,
 void ANIM_armature_bonecoll_active_name_set(struct bArmature *armature, const char *name);
 
 /**
+ * Refresh the Armature runtime info about the active bone collection.
+ *
+ * The ground truth for the active bone collection is the collection's name,
+ * whereas the runtime info also contains the active collection's index and
+ * pointer. This function updates the runtime info to point to the named
+ * collection. If that named collection cannot be found, the name will be
+ * cleared.
+ */
+void ANIM_armature_bonecoll_active_runtime_refresh(struct bArmature *armature);
+
+/**
  * Determine whether the given bone collection is editable.
  *
  * Bone collections are editable when they are local, so either on a local Armature or added to a
