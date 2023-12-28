@@ -318,7 +318,6 @@ static void detect_workarounds()
     /* Do not alter OpenGL 4.3 features.
      * These code paths should be removed. */
     GCaps.shader_image_load_store_support = false;
-    GLContext::base_instance_support = false;
     GLContext::copy_image_support = false;
     GLContext::debug_layer_support = false;
     GLContext::geometry_shader_invocations = false;
@@ -337,16 +336,6 @@ static void detect_workarounds()
     GCaps.use_main_context_workaround = true;
   }
 
-  /* Limit support for GL_ARB_base_instance to OpenGL 4.0 and higher. NVIDIA Quadro FX 4800
-   * (TeraScale) report that they support GL_ARB_base_instance, but the driver does not support
-   * GLEW_ARB_draw_indirect as it has an OpenGL3 context what also matches the minimum needed
-   * requirements.
-   *
-   * We use it as a target for glMapBuffer(Range) what is part of the OpenGL 4 API. So better
-   * disable it when we don't have an OpenGL4 context (See #77657) */
-  if (!(epoxy_gl_version() >= 40)) {
-    GLContext::base_instance_support = false;
-  }
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_WIN, GPU_DRIVER_OFFICIAL) &&
       (strstr(version, "4.5.13399") || strstr(version, "4.5.13417") ||
        strstr(version, "4.5.13422") || strstr(version, "4.5.13467")))
@@ -432,7 +421,6 @@ static void detect_workarounds()
        strstr(version, "Build 10.18.10.5") || strstr(version, "Build 10.18.14.4") ||
        strstr(version, "Build 10.18.14.5")))
   {
-    GLContext::base_instance_support = false;
     GCaps.use_main_context_workaround = true;
   }
   /* Somehow fixes armature display issues (see #69743). */
@@ -520,7 +508,6 @@ GLint GLContext::max_ssbo_binds = 0;
 
 /** Extensions. */
 
-bool GLContext::base_instance_support = false;
 bool GLContext::clear_texture_support = false;
 bool GLContext::copy_image_support = false;
 bool GLContext::debug_layer_support = false;
@@ -612,7 +599,6 @@ void GLBackend::capabilities_init()
   GLContext::max_ssbo_binds = min_ii(GLContext::max_ssbo_binds, max_ssbo_binds);
   glGetIntegerv(GL_MAX_COMPUTE_SHADER_STORAGE_BLOCKS, &max_ssbo_binds);
   GLContext::max_ssbo_binds = min_ii(GLContext::max_ssbo_binds, max_ssbo_binds);
-  GLContext::base_instance_support = epoxy_has_gl_extension("GL_ARB_base_instance");
   GLContext::clear_texture_support = epoxy_has_gl_extension("GL_ARB_clear_texture");
   GLContext::copy_image_support = epoxy_has_gl_extension("GL_ARB_copy_image");
   GLContext::debug_layer_support = epoxy_gl_version() >= 43 ||

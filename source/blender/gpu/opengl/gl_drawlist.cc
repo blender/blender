@@ -182,7 +182,7 @@ void GLDrawList::submit()
     data_ = nullptr; /* Unmapped */
     data_offset_ += command_offset_;
 
-    batch_->bind(0);
+    batch_->bind();
 
     if (MDI_INDEXED) {
       GLenum gl_type = to_gl(batch_->elem_()->index_type_);
