@@ -67,6 +67,11 @@ class Instance {
   friend VelocityModule;
   friend MotionBlurModule;
 
+  /** Debug scopes. */
+  static void *debug_scope_render_sample;
+  static void *debug_scope_irradiance_setup;
+  static void *debug_scope_irradiance_sample;
+
   uint64_t depsgraph_last_update_ = 0;
   bool overlays_enabled_;
 
@@ -287,6 +292,24 @@ class Instance {
   void update_eval_members();
 
   void set_time(float time);
+
+  struct DebugScope {
+    void *scope;
+
+    DebugScope(void *&scope_p, const char *name)
+    {
+      if (scope_p == nullptr) {
+        scope_p = GPU_debug_capture_scope_create(name);
+      }
+      scope = scope_p;
+      GPU_debug_capture_scope_begin(scope);
+    }
+
+    ~DebugScope()
+    {
+      GPU_debug_capture_scope_end(scope);
+    }
+  };
 };
 
 }  // namespace blender::eevee
