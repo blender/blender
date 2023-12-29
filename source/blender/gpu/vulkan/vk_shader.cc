@@ -1004,20 +1004,20 @@ std::string VKShader::resources_declare(const shader::ShaderCreateInfo &info) co
   /* TODO: Add support for specialization constants at compile time. */
   ss << "\n/* Specialization Constants (pass-through). */\n";
   for (const ShaderCreateInfo::SpecializationConstant &sc : info.specialization_constants_) {
-    ss << "#define " << sc.name;
     switch (sc.type) {
       case Type::INT:
-        ss << " " << std::to_string(sc.default_value.i) << "\n";
+        ss << "const int " << sc.name << "=" << std::to_string(sc.default_value.i) << ";\n";
         break;
       case Type::UINT:
-        ss << " " << std::to_string(sc.default_value.u) << "u\n";
+        ss << "const uint " << sc.name << "=" << std::to_string(sc.default_value.u) << "u;\n";
         break;
       case Type::BOOL:
-        ss << " bool(" << std::to_string(sc.default_value.u) << ")\n";
+        ss << "const bool " << sc.name << "=" << (sc.default_value.u ? "true" : "false") << ";\n";
         break;
       case Type::FLOAT:
         /* Use uint representation to allow exact same bit pattern even if NaN. */
-        ss << " uintBitsToFloat(" << std::to_string(sc.default_value.u) << ")\n";
+        ss << "const float " << sc.name << "= uintBitsToFloat("
+           << std::to_string(sc.default_value.u) << "u);\n";
         break;
       default:
         BLI_assert_unreachable();
