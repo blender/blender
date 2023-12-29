@@ -571,6 +571,10 @@ class RENDER_PT_eevee_next_raytracing(RenderButtonsPanel, Panel):
     def poll(cls, context):
         return (context.engine in cls.COMPAT_ENGINES)
 
+    def draw_header(self, context):
+        props = context.scene.eevee
+        self.layout.prop(props, "use_raytracing", text="")
+
     def draw_header_preset(self, _context):
         RENDER_PT_eevee_next_raytracing_presets.draw_panel_header(self.layout)
 

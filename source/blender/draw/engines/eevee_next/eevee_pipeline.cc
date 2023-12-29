@@ -502,6 +502,9 @@ void DeferredLayer::end_sync()
 {
   eClosureBits evaluated_closures = CLOSURE_DIFFUSE | CLOSURE_TRANSLUCENT | CLOSURE_REFLECTION |
                                     CLOSURE_REFRACTION;
+
+  use_combined_lightprobe_eval = inst_.pipelines.data.use_combined_lightprobe_eval;
+
   if (closure_bits_ & evaluated_closures) {
     RenderBuffersInfoData &rbuf_data = inst_.render_buffers.data;
 
@@ -558,7 +561,7 @@ void DeferredLayer::end_sync()
         }
       }
       {
-        PassSimple::Sub &sub = pass.sub("Eval");
+        PassSimple::Sub &sub = pass.sub("Eval.Light");
         /* Use depth test to reject background pixels which have not been stencil cleared. */
         /* WORKAROUND: Avoid rasterizer discard by enabling stencil write, but the shaders actually
          * use no fragment output. */
@@ -575,6 +578,7 @@ void DeferredLayer::end_sync()
            * OpenGL and Vulkan implementation which aren't fully supporting the specialize
            * constant. */
           sub.specialize_constant(sh, "render_pass_shadow_enabled", rbuf_data.shadow_id != -1);
+          sub.specialize_constant(sh, "use_lightprobe_eval", use_combined_lightprobe_eval);
           const ShadowSceneData &shadow_scene = inst_.shadows.get_data();
           sub.specialize_constant(sh, "shadow_ray_count", &shadow_scene.ray_count);
           sub.specialize_constant(sh, "shadow_ray_step_count", &shadow_scene.step_count);
@@ -588,6 +592,8 @@ void DeferredLayer::end_sync()
           sub.bind_resources(inst_.shadows);
           sub.bind_resources(inst_.sampling);
           sub.bind_resources(inst_.hiz_buffer.front);
+          sub.bind_resources(inst_.reflection_probes);
+          sub.bind_resources(inst_.irradiance_cache);
           sub.state_stencil(0xFFu, 1u << i, 0xFFu);
           if (GPU_backend_get_type() == GPU_BACKEND_METAL) {
             /* WORKAROUND: On Apple silicon the stencil test is broken. Only issue one expensive
@@ -614,15 +620,16 @@ void DeferredLayer::end_sync()
           sh, "render_pass_diffuse_light_enabled", rbuf_data.diffuse_light_id != -1);
       pass.specialize_constant(
           sh, "render_pass_specular_light_enabled", rbuf_data.specular_light_id != -1);
+      pass.specialize_constant(sh, "use_combined_lightprobe_eval", use_combined_lightprobe_eval);
       pass.shader_set(sh);
       /* Use depth test to reject background pixels. */
       pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_GREATER | DRW_STATE_BLEND_ADD_FULL);
-      pass.bind_image("direct_radiance_1_img", &direct_radiance_txs_[0]);
-      pass.bind_image("direct_radiance_2_img", &direct_radiance_txs_[1]);
-      pass.bind_image("direct_radiance_3_img", &direct_radiance_txs_[2]);
-      pass.bind_image("indirect_diffuse_img", &indirect_diffuse_tx_);
-      pass.bind_image("indirect_reflect_img", &indirect_reflect_tx_);
-      pass.bind_image("indirect_refract_img", &indirect_refract_tx_);
+      pass.bind_texture("direct_radiance_1_tx", &direct_radiance_txs_[0]);
+      pass.bind_texture("direct_radiance_2_tx", &direct_radiance_txs_[1]);
+      pass.bind_texture("direct_radiance_3_tx", &direct_radiance_txs_[2]);
+      pass.bind_texture("indirect_diffuse_tx", &indirect_diffuse_tx_);
+      pass.bind_texture("indirect_reflect_tx", &indirect_reflect_tx_);
+      pass.bind_texture("indirect_refract_tx", &indirect_refract_tx_);
       pass.bind_image(RBUFS_COLOR_SLOT, &inst_.render_buffers.rp_color_tx);
       pass.bind_image(RBUFS_VALUE_SLOT, &inst_.render_buffers.rp_value_tx);
       pass.bind_resources(inst_.gbuffer);
@@ -767,24 +774,36 @@ void DeferredLayer::render(View &main_view,
                                    (CLOSURE_REFLECTION | CLOSURE_DIFFUSE | CLOSURE_TRANSLUCENT));
   for (int i = 0; i < ARRAY_SIZE(direct_radiance_txs_); i++) {
     direct_radiance_txs_[i].acquire(
-        (closure_count > 1) ? extent : int2(1), GPU_R11F_G11F_B10F, usage_rw);
+        (closure_count > i) ? extent : int2(1), DEFERRED_RADIANCE_FORMAT, usage_rw);
+  }
+
+  RayTraceResult indirect_result;
+
+  if (use_combined_lightprobe_eval) {
+    float4 data(0.0f);
+    dummy_black_tx.ensure_2d(
+        RAYTRACE_RADIANCE_FORMAT, int2(1), GPU_TEXTURE_USAGE_SHADER_READ, data);
+    indirect_diffuse_tx_ = dummy_black_tx;
+    indirect_reflect_tx_ = dummy_black_tx;
+    indirect_refract_tx_ = dummy_black_tx;
+  }
+  else {
+    indirect_result = inst_.raytracing.render(rt_buffer,
+                                              radiance_behind_tx_,
+                                              radiance_feedback_tx_,
+                                              radiance_feedback_persmat_,
+                                              closure_bits_,
+                                              main_view,
+                                              render_view,
+                                              do_screen_space_refraction);
+
+    indirect_diffuse_tx_ = indirect_result.diffuse.get();
+    indirect_reflect_tx_ = indirect_result.reflect.get();
+    indirect_refract_tx_ = indirect_result.refract.get();
   }
 
   GPU_framebuffer_bind(combined_fb);
   inst_.manager->submit(eval_light_ps_, render_view);
-
-  RayTraceResult indirect_result = inst_.raytracing.render(rt_buffer,
-                                                           radiance_behind_tx_,
-                                                           radiance_feedback_tx_,
-                                                           radiance_feedback_persmat_,
-                                                           closure_bits_,
-                                                           main_view,
-                                                           render_view,
-                                                           do_screen_space_refraction);
-
-  indirect_diffuse_tx_ = indirect_result.diffuse.get();
-  indirect_reflect_tx_ = indirect_result.reflect.get();
-  indirect_refract_tx_ = indirect_result.refract.get();
 
   inst_.subsurface.render(
       direct_radiance_txs_[0], indirect_diffuse_tx_, closure_bits_, render_view);
@@ -792,7 +811,9 @@ void DeferredLayer::render(View &main_view,
   GPU_framebuffer_bind(combined_fb);
   inst_.manager->submit(combine_ps_);
 
-  indirect_result.release();
+  if (!use_combined_lightprobe_eval) {
+    indirect_result.release();
+  }
 
   for (int i = 0; i < ARRAY_SIZE(direct_radiance_txs_); i++) {
     direct_radiance_txs_[i].release();
@@ -816,6 +837,12 @@ void DeferredLayer::render(View &main_view,
 
 void DeferredPipeline::begin_sync()
 {
+  Instance &inst = opaque_layer_.inst_;
+
+  const bool use_raytracing = (inst.scene->eevee.flag & SCE_EEVEE_SSR_ENABLED);
+  inst.pipelines.data.use_combined_lightprobe_eval = !use_raytracing;
+  use_combined_lightprobe_eval = !use_raytracing;
+
   opaque_layer_.begin_sync();
   refraction_layer_.begin_sync();
 }
@@ -877,7 +904,7 @@ PassMain::Sub *DeferredPipeline::prepass_add(::Material *blender_mat,
                                              GPUMaterial *gpumat,
                                              bool has_motion)
 {
-  if (blender_mat->blend_flag & MA_BL_SS_REFRACTION) {
+  if (!use_combined_lightprobe_eval && (blender_mat->blend_flag & MA_BL_SS_REFRACTION)) {
     return refraction_layer_.prepass_add(blender_mat, gpumat, has_motion);
   }
   else {
@@ -887,7 +914,7 @@ PassMain::Sub *DeferredPipeline::prepass_add(::Material *blender_mat,
 
 PassMain::Sub *DeferredPipeline::material_add(::Material *blender_mat, GPUMaterial *gpumat)
 {
-  if (blender_mat->blend_flag & MA_BL_SS_REFRACTION) {
+  if (!use_combined_lightprobe_eval && (blender_mat->blend_flag & MA_BL_SS_REFRACTION)) {
     return refraction_layer_.material_add(blender_mat, gpumat);
   }
   else {

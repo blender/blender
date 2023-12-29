@@ -12,6 +12,7 @@
 #pragma BLENDER_REQUIRE(eevee_light_eval_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_thickness_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_subsurface_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_lightprobe_eval_lib.glsl)
 
 ClosureLight closure_light_new(ClosureUndetermined cl, vec3 V)
 {
@@ -19,6 +20,7 @@ ClosureLight closure_light_new(ClosureUndetermined cl, vec3 V)
   cl_light.N = cl.N;
   cl_light.ltc_mat = LTC_LAMBERT_MAT;
   cl_light.type = LIGHT_DIFFUSE;
+  cl_light.light_shadowed = vec3(0.0);
   switch (cl.type) {
     case CLOSURE_BSDF_TRANSLUCENT_ID:
       cl_light.N = -cl.N;
@@ -82,19 +84,14 @@ void main()
   light_eval(stack, P, Ng, V, vPz, thickness);
 
 #ifdef MAT_SUBSURFACE
-  if (gbuf.has_sss) {
-    for (int i = 0; i < LIGHT_CLOSURE_EVAL_COUNT && i < gbuf.closure_count; i++) {
-      /* Add to diffuse light for processing inside the Screen Space SSS pass.
-       * The tranlucent light is not outputed as a separate quantity because
-       * it is over the closure_count. */
-      if (gbuf.closures[i].type == CLOSURE_BSSRDF_BURLEY_ID) {
-        /* Apply absorption per closure. */
-        vec3 sss_profile = subsurface_transmission(gbuf.closures[i].data.rgb, thickness);
-        stack.cl[i].light_shadowed += stack.cl[gbuf.closure_count].light_shadowed * sss_profile;
-        stack.cl[i].light_unshadowed += stack.cl[gbuf.closure_count].light_unshadowed *
-                                        sss_profile;
-      }
-    }
+  /* NOTE: BSSRDF is supposed to always be the first closure. */
+  if (gbuf.closures[0].type == CLOSURE_BSSRDF_BURLEY_ID) {
+    /* Add to diffuse light for processing inside the Screen Space SSS pass.
+     * The tranlucent light is not outputed as a separate quantity because
+     * it is over the closure_count. */
+    vec3 sss_profile = subsurface_transmission(gbuf.closures[0].data.rgb, thickness);
+    stack.cl[0].light_shadowed += stack.cl[gbuf.closure_count].light_shadowed * sss_profile;
+    stack.cl[0].light_unshadowed += stack.cl[gbuf.closure_count].light_unshadowed * sss_profile;
   }
 #endif
 
@@ -108,6 +105,42 @@ void main()
     /* TODO(fclem): Change shadow pass to be colored. */
     vec3 shadows = radiance_shadowed * safe_rcp(radiance_unshadowed);
     output_renderpass_value(uniform_buf.render_pass.shadow_id, average(shadows));
+  }
+
+  /* TODO(fclem): Enable for OpenGL and Vulkan once they fully support specialization constants. */
+#ifndef GPU_METAL
+  bool use_lightprobe_eval = uniform_buf.pipeline.use_combined_lightprobe_eval;
+#endif
+  if (use_lightprobe_eval) {
+    vec2 noise_probe = interlieved_gradient_noise(gl_FragCoord.xy, vec2(0, 1), vec2(0.0));
+    LightProbeSample samp = lightprobe_load(P, Ng, V);
+
+    for (int i = 0; i < LIGHT_CLOSURE_EVAL_COUNT && i < gbuf.closure_count; i++) {
+      switch (gbuf.closures[i].type) {
+        case CLOSURE_BSDF_TRANSLUCENT_ID:
+          /* TODO: Support in ray tracing first. Otherwise we have a discrepancy. */
+          stack.cl[i].light_shadowed += lightprobe_eval(
+              samp, to_closure_translucent(gbuf.closures[i]), P, V, noise_probe);
+          break;
+        case CLOSURE_BSSRDF_BURLEY_ID:
+          /* TODO: Support translucency in ray tracing first. Otherwise we have a discrepancy. */
+        case CLOSURE_BSDF_DIFFUSE_ID:
+          stack.cl[i].light_shadowed += lightprobe_eval(
+              samp, to_closure_diffuse(gbuf.closures[i]), P, V, noise_probe);
+          break;
+        case CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID:
+          stack.cl[i].light_shadowed += lightprobe_eval(
+              samp, to_closure_reflection(gbuf.closures[i]), P, V, noise_probe);
+          break;
+        case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
+          stack.cl[i].light_shadowed += lightprobe_eval(
+              samp, to_closure_refraction(gbuf.closures[i]), P, V, noise_probe);
+          break;
+        case CLOSURE_NONE_ID:
+          /* TODO(fclem): Assert. */
+          break;
+      }
+    }
   }
 
   for (int i = 0; i < LIGHT_CLOSURE_EVAL_COUNT && i < gbuf.closure_count; i++) {

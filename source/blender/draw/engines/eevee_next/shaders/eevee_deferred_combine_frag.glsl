@@ -16,11 +16,11 @@ vec3 load_radiance_direct(ivec2 texel, int i)
   /* TODO(fclem): Layered texture. */
   switch (i) {
     case 0:
-      return imageLoad(direct_radiance_1_img, texel).rgb;
+      return texelFetch(direct_radiance_1_tx, texel, 0).rgb;
     case 1:
-      return imageLoad(direct_radiance_2_img, texel).rgb;
+      return texelFetch(direct_radiance_2_tx, texel, 0).rgb;
     case 2:
-      return imageLoad(direct_radiance_3_img, texel).rgb;
+      return texelFetch(direct_radiance_3_tx, texel, 0).rgb;
     default:
       return vec3(0);
   }
@@ -33,11 +33,11 @@ vec3 load_radiance_indirect(ivec2 texel, ClosureType closure_type)
   switch (closure_type) {
     case CLOSURE_BSSRDF_BURLEY_ID:
     case CLOSURE_BSDF_DIFFUSE_ID:
-      return imageLoad(indirect_diffuse_img, texel).rgb;
+      return texelFetch(indirect_diffuse_tx, texel, 0).rgb;
     case CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID:
-      return imageLoad(indirect_reflect_img, texel).rgb;
+      return texelFetch(indirect_reflect_tx, texel, 0).rgb;
     case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
-      return imageLoad(indirect_refract_img, texel).rgb;
+      return texelFetch(indirect_refract_tx, texel, 0).rgb;
     default:
       return vec3(0);
   }
@@ -50,13 +50,26 @@ void main()
 
   GBufferReader gbuf = gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, texel);
 
+  /* TODO: use stencil buffer to avoid fragment invocations here. */
   out_combined = vec4(0.0, 0.0, 0.0, 0.0);
+  if (gbuf.closure_count == 0) {
+    return;
+  }
+
   vec3 out_diffuse = vec3(0.0);
   vec3 out_specular = vec3(0.0);
 
   for (int i = 0; i < GBUFFER_LAYER_MAX && i < gbuf.closure_count; i++) {
-    vec3 closure_light = load_radiance_direct(texel, i) +
-                         load_radiance_indirect(texel, gbuf.closures[i].type);
+    vec3 closure_light = load_radiance_direct(texel, i);
+
+    /* TODO(fclem): Enable for OpenGL and Vulkan once they fully support specialization constants.
+     */
+#ifndef GPU_METAL
+    bool use_combined_lightprobe_eval = uniform_buf.pipeline.use_combined_lightprobe_eval;
+#endif
+    if (!use_combined_lightprobe_eval) {
+      closure_light += load_radiance_indirect(texel, gbuf.closures[i].type);
+    }
 
     closure_light *= gbuf.closures[i].color;
     out_combined.rgb += closure_light;

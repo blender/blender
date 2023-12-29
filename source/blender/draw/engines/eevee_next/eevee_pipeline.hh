@@ -241,6 +241,7 @@ class DeferredLayer : DeferredLayerBase {
    */
   TextureFromPool direct_radiance_txs_[3] = {
       {"direct_radiance_1"}, {"direct_radiance_2"}, {"direct_radiance_3"}};
+  Texture dummy_black_tx = {"dummy_black_tx"};
   /* Reference to ray-tracing result. */
   GPUTexture *indirect_diffuse_tx_ = nullptr;
   GPUTexture *indirect_reflect_tx_ = nullptr;
@@ -264,6 +265,8 @@ class DeferredLayer : DeferredLayerBase {
   /* TODO(fclem): This shouldn't be part of the pipeline but of the view. */
   Texture radiance_feedback_tx_ = {"radiance_feedback_tx"};
   float4x4 radiance_feedback_persmat_;
+
+  bool use_combined_lightprobe_eval = true;
 
  public:
   DeferredLayer(Instance &inst) : inst_(inst){};
@@ -293,6 +296,8 @@ class DeferredPipeline {
   DeferredLayer volumetric_layer_;
 
   PassSimple debug_draw_ps_ = {"debug_gbuffer"};
+
+  bool use_combined_lightprobe_eval;
 
  public:
   DeferredPipeline(Instance &inst)
