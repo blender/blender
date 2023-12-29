@@ -21,6 +21,10 @@ from typing import (
     Tuple,
 )
 
+from rna_prop_ui import (
+    rna_idprop_value_to_python,
+)
+
 FCurveKey = Tuple[
     # `fcurve.data_path`.
     str,
@@ -66,6 +70,9 @@ class BakeOptions:
 
     do_bbone: bool
     """Bake b-bone channels"""
+
+    do_custom_props: bool
+    """Bake custom properties."""
 
 
 def bake_action(
@@ -195,9 +202,29 @@ def bake_action_iter(
         "bbone_easeout": 1,
     }
 
+    # Convert rna_prop types (IDPropertyArray, etc) to python types.
+    def clean_custom_properties(obj):
+        clean_props = {
+            key: rna_idprop_value_to_python(value)
+            for key, value in obj.items()
+        }
+        return clean_props
+
+    def bake_custom_properties(obj, *, custom_props, frame, group_name=""):
+        if frame is None or not custom_props:
+            return
+        for key, value in custom_props.items():
+            obj[key] = value
+            try:
+                obj.keyframe_insert(f'["{bpy.utils.escape_identifier(key)}"]', frame=frame, group=group_name)
+            except TypeError:
+                # Non animatable properties (datablocks, etc) cannot be keyed.
+                continue
+
     def pose_frame_info(obj):
         matrix = {}
         bbones = {}
+        custom_props = {}
         for name, pbone in obj.pose.bones.items():
             if bake_options.do_visual_keying:
                 # Get the final transform of the bone in its own local space...
@@ -209,32 +236,41 @@ def bake_action_iter(
             # Bendy Bones
             if pbone.bone.bbone_segments > 1:
                 bbones[name] = {bb_prop: getattr(pbone, bb_prop) for bb_prop in BBONE_PROPS}
-        return matrix, bbones
+
+            # Custom Properties
+            custom_props[name] = clean_custom_properties(pbone)
+
+        return matrix, bbones, custom_props
+
+    def armature_frame_info(obj):
+        if obj.type != 'ARMATURE':
+            return {}
+        return clean_custom_properties(obj)
 
     if bake_options.do_parents_clear:
         if bake_options.do_visual_keying:
             def obj_frame_info(obj):
-                return obj.matrix_world.copy()
+                return obj.matrix_world.copy(), clean_custom_properties(obj)
         else:
             def obj_frame_info(obj):
                 parent = obj.parent
                 matrix = obj.matrix_basis
                 if parent:
-                    return parent.matrix_world @ matrix
+                    return parent.matrix_world @ matrix, clean_custom_properties(obj)
                 else:
-                    return matrix.copy()
+                    return matrix.copy(), clean_custom_properties(obj)
     else:
         if bake_options.do_visual_keying:
             def obj_frame_info(obj):
                 parent = obj.parent
                 matrix = obj.matrix_world
                 if parent:
-                    return parent.matrix_world.inverted_safe() @ matrix
+                    return parent.matrix_world.inverted_safe() @ matrix, clean_custom_properties(obj)
                 else:
-                    return matrix.copy()
+                    return matrix.copy(), clean_custom_properties(obj)
         else:
             def obj_frame_info(obj):
-                return obj.matrix_basis.copy()
+                return obj.matrix_basis.copy(), clean_custom_properties(obj)
 
     # -------------------------------------------------------------------------
     # Setup the Context
@@ -246,6 +282,7 @@ def bake_action_iter(
         raise Exception("Pose and object baking is disabled, no action needed")
 
     pose_info = []
+    armature_info = []
     obj_info = []
 
     # -------------------------------------------------------------------------
@@ -258,11 +295,11 @@ def bake_action_iter(
         # Signal we're done!
         if frame is None:
             break
-
         if bake_options.do_pose:
             pose_info.append((frame, *pose_frame_info(obj)))
+            armature_info.append((frame, armature_frame_info(obj)))
         if bake_options.do_object:
-            obj_info.append((frame, obj_frame_info(obj)))
+            obj_info.append((frame, *obj_frame_info(obj)))
 
     # -------------------------------------------------------------------------
     # Clean (store initial data)
@@ -298,6 +335,9 @@ def bake_action_iter(
     # pose
     lookup_fcurves = {(fcurve.data_path, fcurve.array_index): fcurve for fcurve in action.fcurves}
     if bake_options.do_pose:
+        for f, armature_custom_properties in armature_info:
+            bake_custom_properties(obj, custom_props = armature_custom_properties, frame = f)
+
         for name, pbone in obj.pose.bones.items():
             if bake_options.only_selected and not pbone.bone.select:
                 continue
@@ -335,7 +375,7 @@ def bake_action_iter(
 
             rotation_mode = pbone.rotation_mode
             total_new_keys = len(pose_info)
-            for (f, matrix, bbones) in pose_info:
+            for (f, matrix, bbones, custom_props) in pose_info:
                 pbone.matrix_basis = matrix[name].copy()
 
                 if bake_options.do_location:
@@ -378,6 +418,9 @@ def bake_action_iter(
                             keyframes.extend_co_value(
                                 paths_bbprops[prop_index], f, bbone_shape[prop_name]
                             )
+                # Custom Properties
+                if bake_options.do_custom_props:
+                    bake_custom_properties(pbone, custom_props = custom_props[name], frame = f, group_name = name)
 
             if is_new_action:
                 keyframes.insert_keyframes_into_new_action(total_new_keys, action, name)
@@ -412,7 +455,7 @@ def bake_action_iter(
 
         rotation_mode = obj.rotation_mode
         total_new_keys = len(obj_info)
-        for (f, matrix) in obj_info:
+        for (f, matrix, custom_props) in obj_info:
             name = "Action Bake"  # XXX: placeholder
             obj.matrix_basis = matrix
 
@@ -441,6 +484,9 @@ def bake_action_iter(
 
             if bake_options.do_scale:
                 keyframes.extend_co_values(path_scale, 3, f, obj.scale)
+
+            if bake_options.do_custom_props:
+                bake_custom_properties(obj, custom_props = custom_props, frame = f, group_name = name)
 
         if is_new_action:
             keyframes.insert_keyframes_into_new_action(total_new_keys, action, name)

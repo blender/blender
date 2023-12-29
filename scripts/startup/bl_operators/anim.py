@@ -259,8 +259,9 @@ class NLA_OT_bake(Operator):
             ('ROTATION', "Rotation", "Bake rotation channels"),
             ('SCALE', "Scale", "Bake scale channels"),
             ('BBONE', "B-Bone", "Bake B-Bone channels"),
+            ('PROPS', "Custom Properties", "Bake custom properties")
         ),
-        default={'LOCATION', 'ROTATION', 'SCALE', 'BBONE'},
+        default={'LOCATION', 'ROTATION', 'SCALE', 'BBONE', 'PROPS'},
     )
 
     def execute(self, context):
@@ -278,6 +279,7 @@ class NLA_OT_bake(Operator):
             do_rotation='ROTATION' in self.channel_types,
             do_scale='SCALE' in self.channel_types,
             do_bbone='BBONE' in self.channel_types,
+            do_custom_props='PROPS' in self.channel_types
         )
 
         if bake_options.do_pose and self.only_selected:
