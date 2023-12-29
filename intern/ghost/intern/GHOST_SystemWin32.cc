@@ -603,7 +603,7 @@ GHOST_TSuccess GHOST_SystemWin32::init()
 #ifdef INW32_COMPISITING
         (HBRUSH)CreateSolidBrush
 #endif
-        (HBRUSH) GetStockObject(DKGRAY_BRUSH);
+        (0x00000000);
     wc.lpszMenuName = 0;
     wc.lpszClassName = L"GHOST_WindowClass";
 
