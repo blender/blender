@@ -18,6 +18,7 @@ TonemapOperation::TonemapOperation()
   data_ = nullptr;
   cached_instance_ = nullptr;
   flags_.complex = true;
+  flags_.can_be_constant = true;
 }
 void TonemapOperation::init_execution()
 {
@@ -171,10 +172,16 @@ static Luminance calc_area_luminance(const MemoryBuffer *input, const rcti &area
   return lum;
 }
 
-void TonemapOperation::update_memory_buffer_started(MemoryBuffer * /*output*/,
+void TonemapOperation::update_memory_buffer_started(MemoryBuffer * output,
                                                     const rcti & /*area*/,
                                                     Span<MemoryBuffer *> inputs)
 {
+  MemoryBuffer *input_img = inputs[0];
+  if(input_img->is_a_single_elem()) {
+    copy_v4_v4(output->get_elem(0, 0), input_img->get_elem(0, 0));
+    return;
+  }
+
   if (cached_instance_ == nullptr) {
     Luminance lum = {0};
     const MemoryBuffer *input = inputs[0];
@@ -209,6 +216,12 @@ void TonemapOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                     const rcti &area,
                                                     Span<MemoryBuffer *> inputs)
 {
+  MemoryBuffer *input_img = inputs[0];
+
+  if(input_img->is_a_single_elem()) {
+    return;
+  }
+
   AvgLogLum *avg = cached_instance_;
   const float igm = avg->igm;
   const float offset = data_->offset;
@@ -233,6 +246,12 @@ void PhotoreceptorTonemapOperation::update_memory_buffer_partial(MemoryBuffer *o
                                                                  const rcti &area,
                                                                  Span<MemoryBuffer *> inputs)
 {
+  MemoryBuffer *input_img = inputs[0];
+  if(input_img->is_a_single_elem()) {
+    copy_v4_v4(output->get_elem(0, 0), input_img->get_elem(0, 0));
+    return;
+  }
+
   AvgLogLum *avg = cached_instance_;
   const NodeTonemap *ntm = data_;
   const float f = expf(-data_->f);

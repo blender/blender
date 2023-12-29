@@ -22,6 +22,7 @@ KuwaharaClassicOperation::KuwaharaClassicOperation()
   this->add_output_socket(DataType::Color);
 
   this->flags_.is_fullframe_operation = true;
+  this->flags_.can_be_constant = true;
 }
 
 void KuwaharaClassicOperation::init_execution()
@@ -152,6 +153,10 @@ void KuwaharaClassicOperation::update_memory_buffer_partial(MemoryBuffer *output
                                                             Span<MemoryBuffer *> inputs)
 {
   MemoryBuffer *image = inputs[0];
+  if (image->is_a_single_elem()) {
+    copy_v4_v4(output->get_elem(0, 0), image->get_elem(0, 0));
+    return;
+  }
   MemoryBuffer *size_image = inputs[1];
   MemoryBuffer *sat = inputs[2];
   MemoryBuffer *sat_squared = inputs[3];
