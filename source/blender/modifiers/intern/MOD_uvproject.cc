@@ -93,6 +93,20 @@ struct Projector {
   void *uci;           /* optional uv-project info (panorama projection) */
 };
 
+static blender::bke::SpanAttributeWriter<blender::float2> get_uv_attribute(
+    Mesh &mesh, const blender::StringRef md_name)
+{
+  using namespace blender;
+  bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
+  if (md_name.is_empty()) {
+    const StringRef name = CustomData_get_active_layer_name(&mesh.corner_data, CD_PROP_FLOAT2);
+    return attributes.lookup_or_add_for_write_span<float2>(name.is_empty() ? "Float2" : name,
+                                                           bke::AttrDomain::Corner);
+  }
+  const std::string name = BKE_id_attribute_calc_unique_name(mesh.id, md_name);
+  return attributes.lookup_or_add_for_write_span<float2>(name, bke::AttrDomain::Corner);
+}
+
 static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
                                   const ModifierEvalContext * /*ctx*/,
                                   Object *ob,
@@ -101,12 +115,11 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
   using namespace blender;
   Projector projectors[MOD_UVPROJECT_MAXPROJECTORS];
   int projectors_num = 0;
-  char uvname[MAX_CUSTOMDATA_LAYER_NAME];
   float aspx = umd->aspectx ? umd->aspectx : 1.0f;
   float aspy = umd->aspecty ? umd->aspecty : 1.0f;
   float scax = umd->scalex ? umd->scalex : 1.0f;
   float scay = umd->scaley ? umd->scaley : 1.0f;
-  int free_uci = 0;
+  bool free_uci = false;
 
   for (int i = 0; i < umd->projectors_num; i++) {
     if (umd->projectors[i] != nullptr) {
@@ -118,13 +131,10 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
     return mesh;
   }
 
-  /* Create a new layer if no UV Maps are available
-   * (e.g. if a preceding modifier could not preserve it). */
-  mesh->attributes_for_write().add<float2>(
-      umd->uvlayer_name, bke::AttrDomain::Corner, bke::AttributeInitDefaultValue());
-
-  /* make sure we're using an existing layer */
-  CustomData_validate_layer_name(&mesh->corner_data, CD_PROP_FLOAT2, umd->uvlayer_name, uvname);
+  bke::SpanAttributeWriter uv_attribute = get_uv_attribute(*mesh, umd->uvlayer_name);
+  if (!uv_attribute) {
+    return mesh;
+  }
 
   /* calculate a projection matrix and normal for each projector */
   for (int i = 0; i < projectors_num; i++) {
@@ -142,7 +152,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
         projectors[i].uci = BLI_uvproject_camera_info(projectors[i].ob, nullptr, aspx, aspy);
         BLI_uvproject_camera_info_scale(
             static_cast<ProjCameraInfo *>(projectors[i].uci), scax, scay);
-        free_uci = 1;
+        free_uci = true;
       }
       else {
         CameraParams params;
@@ -184,13 +194,10 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
   const Span<float3> positions = mesh->vert_positions();
   const OffsetIndices faces = mesh->faces();
   const Span<int> corner_verts = mesh->corner_verts();
-
-  float(*mloop_uv)[2] = static_cast<float(*)[2]>(CustomData_get_layer_named_for_write(
-      &mesh->corner_data, CD_PROP_FLOAT2, uvname, corner_verts.size()));
-
-  Array<float3> coords(positions.size());
+  MutableSpan<float2> mloop_uv = uv_attribute.span;
 
   /* Convert coords to world-space. */
+  Array<float3> coords(positions.size());
   for (int64_t i = 0; i < positions.size(); i++) {
     mul_v3_m4v3(coords[i], ob->object_to_world, positions[i]);
   }
@@ -269,6 +276,8 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
       }
     }
   }
+
+  uv_attribute.finish();
 
   mesh->runtime->is_original_bmesh = false;
 
