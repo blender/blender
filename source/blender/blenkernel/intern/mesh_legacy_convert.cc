@@ -1765,35 +1765,36 @@ void BKE_mesh_legacy_convert_uvs_to_generic(Mesh *mesh)
 
     CustomData_free_layer_named(&mesh->corner_data, uv_names[i].c_str(), mesh->corners_num);
 
-    char new_name[MAX_CUSTOMDATA_LAYER_NAME];
-    BKE_id_attribute_calc_unique_name(&mesh->id, uv_names[i].c_str(), new_name);
+    const std::string new_name = BKE_id_attribute_calc_unique_name(mesh->id, uv_names[i].c_str());
     uv_names[i] = new_name;
 
     CustomData_add_layer_named_with_data(
-        &mesh->corner_data, CD_PROP_FLOAT2, coords, mesh->corners_num, new_name, nullptr);
+        &mesh->corner_data, CD_PROP_FLOAT2, coords, mesh->corners_num, new_name.c_str(), nullptr);
     char buffer[MAX_CUSTOMDATA_LAYER_NAME];
     if (vert_selection) {
-      CustomData_add_layer_named_with_data(&mesh->corner_data,
-                                           CD_PROP_BOOL,
-                                           vert_selection,
-                                           mesh->corners_num,
-                                           BKE_uv_map_vert_select_name_get(new_name, buffer),
-                                           nullptr);
+      CustomData_add_layer_named_with_data(
+          &mesh->corner_data,
+          CD_PROP_BOOL,
+          vert_selection,
+          mesh->corners_num,
+          BKE_uv_map_vert_select_name_get(new_name.c_str(), buffer),
+          nullptr);
     }
     if (edge_selection) {
-      CustomData_add_layer_named_with_data(&mesh->corner_data,
-                                           CD_PROP_BOOL,
-                                           edge_selection,
-                                           mesh->corners_num,
-                                           BKE_uv_map_edge_select_name_get(new_name, buffer),
-                                           nullptr);
+      CustomData_add_layer_named_with_data(
+          &mesh->corner_data,
+          CD_PROP_BOOL,
+          edge_selection,
+          mesh->corners_num,
+          BKE_uv_map_edge_select_name_get(new_name.c_str(), buffer),
+          nullptr);
     }
     if (pin) {
       CustomData_add_layer_named_with_data(&mesh->corner_data,
                                            CD_PROP_BOOL,
                                            pin,
                                            mesh->corners_num,
-                                           BKE_uv_map_pin_name_get(new_name, buffer),
+                                           BKE_uv_map_pin_name_get(new_name.c_str(), buffer),
                                            nullptr);
     }
   }

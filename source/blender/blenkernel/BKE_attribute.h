@@ -9,6 +9,8 @@
 
 #pragma once
 
+#include <string>
+
 #include "BLI_sys_types.h"
 
 #include "DNA_customdata_types.h"
@@ -111,7 +113,7 @@ void BKE_id_attributes_default_color_set(struct ID *id, const char *name);
 
 const struct CustomDataLayer *BKE_id_attributes_color_find(const struct ID *id, const char *name);
 
-void BKE_id_attribute_calc_unique_name(struct ID *id, const char *name, char *outname);
+std::string BKE_id_attribute_calc_unique_name(const struct ID &id, const blender::StringRef name);
 
 const char *BKE_uv_map_vert_select_name_get(const char *uv_map_name, char *buffer);
 const char *BKE_uv_map_edge_select_name_get(const char *uv_map_name, char *buffer);
