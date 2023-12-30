@@ -1008,7 +1008,7 @@ static uiTooltipData *ui_tooltip_data_from_button_or_extra_icon(bContext *C,
       call_params.opcontext = opcontext;
       CTX_wm_operator_poll_msg_clear(C);
       ui_but_context_poll_operator_ex(C, but, &call_params);
-      disabled_msg = CTX_wm_operator_poll_msg_get(C, &disabled_msg_free);
+      disabled_msg = TIP_(CTX_wm_operator_poll_msg_get(C, &disabled_msg_free));
     }
     /* Alternatively, buttons can store some reasoning too. */
     else if (!extra_icon && but->disabled_info) {

@@ -3173,6 +3173,7 @@ class VIEW3D_MT_object_parent(Menu):
 
 class VIEW3D_MT_object_track(Menu):
     bl_label = "Track"
+    bl_translation_context = i18n_contexts.constraint
 
     def draw(self, _context):
         layout = self.layout

@@ -576,6 +576,7 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
         ("pgettext_tip", ("tip_",)),
         ("pgettext_rpt", ("rpt_",)),
         ("pgettext_data", ("data_",)),
+        ("poll_message_set", ()),
     )
     pgettext_variants_args = {"msgid": (0, {"msgctxt": 1})}
 
