@@ -522,6 +522,33 @@ enum class CreateMode {
   Selection = 3,
 };
 
+static void clear_face_sets(Object &object, const Span<PBVHNode *> nodes)
+{
+  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
+  if (!attributes.contains(".sculpt_face_set")) {
+    return;
+  }
+  const PBVH &pbvh = *object.sculpt->pbvh;
+  const int default_face_set = mesh.face_sets_color_default;
+  const VArraySpan face_sets = *attributes.lookup<int>(".sculpt_face_set", bke::AttrDomain::Face);
+  threading::EnumerableThreadSpecific<Vector<int>> all_face_indices;
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    Vector<int> &face_indices = all_face_indices.local();
+    for (PBVHNode *node : nodes.slice(range)) {
+      const Span<int> faces = bke::pbvh::node_face_indices_calc_mesh(pbvh, *node, face_indices);
+      if (std::any_of(faces.begin(), faces.end(), [&](const int face) {
+            return face_sets[face] != default_face_set;
+          }))
+      {
+        undo::push_node(&object, node, undo::Type::FaceSet);
+        BKE_pbvh_node_mark_update_face_sets(node);
+      }
+    }
+  });
+  attributes.remove(".sculpt_face_set");
+}
+
 static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
 {
   Object &object = *CTX_data_active_object(C);
@@ -581,7 +608,7 @@ static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
           /* If all vertices in the sculpt are visible, remove face sets and update the default
            * color. This way the new face set will be white, and it is a quick way of disabling all
            * face sets and the performance hit of rendering the overlay. */
-          mesh.attributes_for_write().remove(".sculpt_face_set");
+          clear_face_sets(object, nodes);
           break;
         case array_utils::BooleanMix::Mixed:
           const VArraySpan<bool> hide_poly_span(hide_poly);
@@ -1206,8 +1233,6 @@ static void sculpt_face_set_grow_shrink(Object &object,
   const VArraySpan<bool> hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
   Array<int> prev_face_sets = duplicate_face_sets(mesh);
 
-  bke::SpanAttributeWriter face_sets = ensure_face_sets_mesh(object);
-
   undo::push_begin(&object, op);
 
   const Vector<PBVHNode *> nodes = bke::pbvh::search_gather(ss.pbvh, {});
@@ -1245,7 +1270,7 @@ static void sculpt_face_set_grow_shrink(Object &object,
       }
     }
   });
-  face_sets.finish();
+
   undo::push_end(&object);
 }
 
