@@ -336,7 +336,7 @@ def bake_action_iter(
     lookup_fcurves = {(fcurve.data_path, fcurve.array_index): fcurve for fcurve in action.fcurves}
     if bake_options.do_pose:
         for f, armature_custom_properties in armature_info:
-            bake_custom_properties(obj, custom_props = armature_custom_properties, frame = f)
+            bake_custom_properties(obj, custom_props=armature_custom_properties, frame=f)
 
         for name, pbone in obj.pose.bones.items():
             if bake_options.only_selected and not pbone.bone.select:
@@ -420,7 +420,7 @@ def bake_action_iter(
                             )
                 # Custom Properties
                 if bake_options.do_custom_props:
-                    bake_custom_properties(pbone, custom_props = custom_props[name], frame = f, group_name = name)
+                    bake_custom_properties(pbone, custom_props=custom_props[name], frame=f, group_name=name)
 
             if is_new_action:
                 keyframes.insert_keyframes_into_new_action(total_new_keys, action, name)
@@ -486,7 +486,7 @@ def bake_action_iter(
                 keyframes.extend_co_values(path_scale, 3, f, obj.scale)
 
             if bake_options.do_custom_props:
-                bake_custom_properties(obj, custom_props = custom_props, frame = f, group_name = name)
+                bake_custom_properties(obj, custom_props=custom_props, frame=f, group_name=name)
 
         if is_new_action:
             keyframes.insert_keyframes_into_new_action(total_new_keys, action, name)

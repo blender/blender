@@ -172,12 +172,12 @@ static Luminance calc_area_luminance(const MemoryBuffer *input, const rcti &area
   return lum;
 }
 
-void TonemapOperation::update_memory_buffer_started(MemoryBuffer * output,
+void TonemapOperation::update_memory_buffer_started(MemoryBuffer *output,
                                                     const rcti & /*area*/,
                                                     Span<MemoryBuffer *> inputs)
 {
   MemoryBuffer *input_img = inputs[0];
-  if(input_img->is_a_single_elem()) {
+  if (input_img->is_a_single_elem()) {
     copy_v4_v4(output->get_elem(0, 0), input_img->get_elem(0, 0));
     return;
   }
@@ -218,7 +218,7 @@ void TonemapOperation::update_memory_buffer_partial(MemoryBuffer *output,
 {
   MemoryBuffer *input_img = inputs[0];
 
-  if(input_img->is_a_single_elem()) {
+  if (input_img->is_a_single_elem()) {
     return;
   }
 
@@ -247,7 +247,7 @@ void PhotoreceptorTonemapOperation::update_memory_buffer_partial(MemoryBuffer *o
                                                                  Span<MemoryBuffer *> inputs)
 {
   MemoryBuffer *input_img = inputs[0];
-  if(input_img->is_a_single_elem()) {
+  if (input_img->is_a_single_elem()) {
     copy_v4_v4(output->get_elem(0, 0), input_img->get_elem(0, 0));
     return;
   }
