@@ -335,7 +335,7 @@ void do_smooth_mask_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes, float 
 
   SculptMaskWriteInfo mask_write = SCULPT_mask_get_for_write(ss);
 
-  for (const int iteration : IndexRange(count)) {
+  for (const int iteration : IndexRange(count + 1)) {
     const float strength = (iteration != count) ? 1.0f : last;
     threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
       for (const int i : range) {
@@ -407,7 +407,7 @@ void do_smooth_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes, float bstre
   SCULPT_vertex_random_access_ensure(ss);
   SCULPT_boundary_info_ensure(ob);
 
-  for (const int iteration : IndexRange(count)) {
+  for (const int iteration : IndexRange(count + 1)) {
     const float strength = (iteration != count) ? 1.0f : last;
     threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
       for (const int i : range) {
