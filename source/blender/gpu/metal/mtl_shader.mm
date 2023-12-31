@@ -220,7 +220,7 @@ void MTLShader::fragment_shader_from_glsl(MutableSpan<const char *> sources)
 
     ss << sources[i] << '\n';
   }
-  ss << "#line 1 \"msl_wrapper_code\"";
+  ss << "#line 1 \"msl_wrapper_code\"\n";
   shd_builder_->glsl_fragment_source_ = ss.str();
 }
 
