@@ -17,7 +17,7 @@ void main(void)
 {
   ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
 
-  if (all(equal(gl_LocalInvocationID.xy, uvec2(0)))) {
+  if (gl_LocalInvocationIndex == 0u) {
     has_visible_sss = 0u;
   }
 
@@ -53,7 +53,7 @@ void main(void)
 
   barrier();
 
-  if (all(equal(gl_LocalInvocationID.xy, uvec2(0)))) {
+  if (gl_LocalInvocationIndex == 0u) {
     if (has_visible_sss > 0u) {
       uint tile_id = atomicAdd(convolve_dispatch_buf.num_groups_x, 1u);
       convolve_tile_buf[tile_id] = packUvec2x16(gl_WorkGroupID.xy);

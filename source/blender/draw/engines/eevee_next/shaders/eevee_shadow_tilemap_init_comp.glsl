@@ -34,7 +34,7 @@ void main()
 
   barrier();
 
-  if (all(equal(gl_LocalInvocationID, uvec3(0)))) {
+  if (gl_LocalInvocationIndex == 0u) {
     /* Reset shift to not tag for update more than once per sync cycle. */
     tilemaps_buf[tilemap_index].grid_shift = ivec2(0);
 
