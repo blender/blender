@@ -1406,7 +1406,7 @@ PointerRNA *UI_but_operator_ptr_get(uiBut *but);
 void UI_but_context_ptr_set(uiBlock *block, uiBut *but, const char *name, const PointerRNA *ptr);
 const PointerRNA *UI_but_context_ptr_get(const uiBut *but,
                                          const char *name,
-                                         const StructRNA *type CPP_ARG_DEFAULT(nullptr));
+                                         const StructRNA *type = nullptr);
 const bContextStore *UI_but_context_get(const uiBut *but);
 
 void UI_but_unit_type_set(uiBut *but, int unit_type);
@@ -1864,9 +1864,9 @@ PointerRNA *UI_but_extra_operator_icon_opptr_get(uiButExtraOpIcon *extra_icon);
  * Get the scaled size for a preview button (typically #UI_BTyPE_PREVIEW_TILE) based on \a
  * size_px plus padding.
  */
-int UI_preview_tile_size_x(const int size_px CPP_ARG_DEFAULT(96));
-int UI_preview_tile_size_y(const int size_px CPP_ARG_DEFAULT(96));
-int UI_preview_tile_size_y_no_label(const int size_px CPP_ARG_DEFAULT(96));
+int UI_preview_tile_size_x(const int size_px = 96);
+int UI_preview_tile_size_y(const int size_px = 96);
+int UI_preview_tile_size_y_no_label(const int size_px = 96);
 
 /* Autocomplete
  *
