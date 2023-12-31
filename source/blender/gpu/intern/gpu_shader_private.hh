@@ -152,6 +152,7 @@ struct LogCursor {
   int source = -1;
   int row = -1;
   int column = -1;
+  StringRef file_name_and_error_line = {};
 };
 
 struct GPULogItem {
@@ -162,7 +163,9 @@ struct GPULogItem {
 
 class GPULogParser {
  public:
-  virtual const char *parse_line(const char *log_line, GPULogItem &log_item) = 0;
+  virtual const char *parse_line(const char *source_combined,
+                                 const char *log_line,
+                                 GPULogItem &log_item) = 0;
 
  protected:
   const char *skip_severity(const char *log_line,

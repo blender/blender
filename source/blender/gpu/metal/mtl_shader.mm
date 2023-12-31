@@ -25,6 +25,7 @@
 #include "GPU_platform.h"
 #include "GPU_vertex_format.h"
 
+#include "gpu_shader_dependency_private.h"
 #include "mtl_common.hh"
 #include "mtl_context.hh"
 #include "mtl_debug.hh"
@@ -206,9 +207,20 @@ void MTLShader::fragment_shader_from_glsl(MutableSpan<const char *> sources)
 
   /* Consolidate GLSL fragment sources. */
   std::stringstream ss;
-  for (int i = 0; i < sources.size(); i++) {
-    ss << sources[i] << std::endl;
+  int i;
+  for (i = 0; i < sources.size(); i++) {
+    /* Output preprocessor directive to improve shader log. */
+    StringRefNull name = shader::gpu_shader_dependency_get_filename_from_source_string(sources[i]);
+    if (name.is_empty()) {
+      ss << "#line 1 \"generated_code_" << i << "\"\n";
+    }
+    else {
+      ss << "#line 1 \"" << name << "\"\n";
+    }
+
+    ss << sources[i] << '\n';
   }
+  ss << "#line 1 \"msl_wrapper_code\"";
   shd_builder_->glsl_fragment_source_ = ss.str();
 }
 
