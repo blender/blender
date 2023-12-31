@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BLI_function_ref.hh"
+
 #include "DRW_gpu_wrapper.hh"
 #include "DRW_render.h"
 #include "UI_resources.hh"
@@ -129,7 +131,7 @@ class ShaderModule {
   }
   ShaderPtr selectable_shader(const char *create_info_name);
   ShaderPtr selectable_shader(const char *create_info_name,
-                              std::function<void(gpu::shader::ShaderCreateInfo &info)> patch);
+                              FunctionRef<void(gpu::shader::ShaderCreateInfo &info)> patch);
 };
 
 struct Resources : public select::SelectMap {

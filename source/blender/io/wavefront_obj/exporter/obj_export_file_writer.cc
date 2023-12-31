@@ -336,7 +336,7 @@ static int get_smooth_group(const OBJMesh &mesh, const OBJExportParams &params, 
 void OBJWriter::write_poly_elements(FormatHandler &fh,
                                     const IndexOffsets &offsets,
                                     const OBJMesh &obj_mesh_data,
-                                    std::function<const char *(int)> matname_fn)
+                                    FunctionRef<const char *(int)> matname_fn)
 {
   const func_vert_uv_normal_indices poly_element_writer = get_poly_element_writer(
       obj_mesh_data.tot_uv_vertices());

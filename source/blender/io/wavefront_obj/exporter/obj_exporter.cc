@@ -213,7 +213,7 @@ static void write_mesh_objects(Vector<std::unique_ptr<OBJMesh>> exportable_as_me
         /* This function takes a 0-indexed slot index for the obj_mesh object and
          * returns the material name that we are using in the .obj file for it. */
         const auto *obj_mtlindices = mtlindices.is_empty() ? nullptr : &mtlindices[i];
-        std::function<const char *(int)> matname_fn = [&](int s) -> const char * {
+        auto matname_fn = [&](int s) -> const char * {
           if (!obj_mtlindices || s < 0 || s >= obj_mtlindices->size()) {
             return nullptr;
           }
