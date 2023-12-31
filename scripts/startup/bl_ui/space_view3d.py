@@ -5186,38 +5186,39 @@ class VIEW3D_MT_edit_font_chars(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("font.text_insert", text="Copyright").text = "\u00A9"
-        layout.operator("font.text_insert", text="Registered Trademark").text = "\u00AE"
+        layout.operator("font.text_insert", text="Copyright \u00A9").text = "\u00A9"
+        layout.operator("font.text_insert", text="Registered Trademark \u00AE").text = "\u00AE"
 
         layout.separator()
 
-        layout.operator("font.text_insert", text="Degree Sign").text = "\u00B0"
-        layout.operator("font.text_insert", text="Multiplication Sign").text = "\u00D7"
-        layout.operator("font.text_insert", text="Circle").text = "\u008A"
+        layout.operator("font.text_insert", text="Degree \u00B0").text = "\u00B0"
+        layout.operator("font.text_insert", text="Multiplication \u00D7").text = "\u00D7"
+        layout.operator("font.text_insert", text="Circle \u2022").text = "\u2022"
 
         layout.separator()
 
-        layout.operator("font.text_insert", text="Superscript 1").text = "\u00B9"
-        layout.operator("font.text_insert", text="Superscript 2").text = "\u00B2"
-        layout.operator("font.text_insert", text="Superscript 3").text = "\u00B3"
+        layout.operator("font.text_insert", text="Superscript \u00B9").text = "\u00B9"
+        layout.operator("font.text_insert", text="Superscript \u00B2").text = "\u00B2"
+        layout.operator("font.text_insert", text="Superscript \u00B3").text = "\u00B3"
 
         layout.separator()
 
-        layout.operator("font.text_insert", text="Double >>").text = "\u00BB"
-        layout.operator("font.text_insert", text="Double <<").text = "\u00AB"
-        layout.operator("font.text_insert", text="Promillage").text = "\u2030"
+        layout.operator("font.text_insert", text="Guillemet \u00BB").text = "\u00BB"
+        layout.operator("font.text_insert", text="Guillemet \u00AB").text = "\u00AB"
+        layout.operator("font.text_insert", text="Per Mille \u2030").text = "\u2030"
 
         layout.separator()
 
-        layout.operator("font.text_insert", text="Dutch Florin").text = "\u00A4"
-        layout.operator("font.text_insert", text="British Pound").text = "\u00A3"
-        layout.operator("font.text_insert", text="Japanese Yen").text = "\u00A5"
+        layout.operator("font.text_insert", text="Euro \u20AC").text = "\u20AC"
+        layout.operator("font.text_insert", text="Florin \u0192").text = "\u0192"
+        layout.operator("font.text_insert", text="Pound \u00A3").text = "\u00A3"
+        layout.operator("font.text_insert", text="Yen \u00A5").text = "\u00A5"
 
         layout.separator()
 
-        layout.operator("font.text_insert", text="German S").text = "\u00DF"
-        layout.operator("font.text_insert", text="Spanish Question Mark").text = "\u00BF"
-        layout.operator("font.text_insert", text="Spanish Exclamation Mark").text = "\u00A1"
+        layout.operator("font.text_insert", text="German Eszett \u00DF").text = "\u00DF"
+        layout.operator("font.text_insert", text="Inverted Question Mark \u00BF").text = "\u00BF"
+        layout.operator("font.text_insert", text="Inverted Exclamation Mark \u00A1").text = "\u00A1"
 
 
 class VIEW3D_MT_edit_font_kerning(Menu):
