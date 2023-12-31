@@ -13,13 +13,6 @@
 #pragma clang diagnostic ignored "-Wunused-variable"
 #pragma clang diagnostic ignored "-Wcomment"
 
-/** Feature support. */
-/* Native texture atomics supported in Metal 3.1+. Without these, we will use a fallback
- * implementation based on SSBOS.*/
-#if __METAL_VERSION__ >= 310
-#  define MTL_SUPPORTS_TEXTURE_ATOMICS 1
-#endif
-
 /* Base instance with offsets. */
 #define gpu_BaseInstance gl_BaseInstanceARB
 #define gpu_InstanceIndex (gl_InstanceID + gpu_BaseInstance)

@@ -50,6 +50,8 @@ char *MSLGeneratorInterface::msl_patch_default = nullptr;
 #define FRAGMENT_OUT_STRUCT_NAME "FragmentOut"
 #define FRAGMENT_TILE_IN_STRUCT_NAME "FragmentTileIn"
 
+#define ATOMIC_DEFINE_STR "#define MTL_SUPPORTS_TEXTURE_ATOMICS 1\n"
+
 /* -------------------------------------------------------------------- */
 /** \name Shader Translation utility functions.
  * \{ */
@@ -1060,6 +1062,13 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
   std::stringstream ss_vertex;
   std::stringstream ss_fragment;
 
+  if (bool(info->builtins_ & BuiltinBits::TEXTURE_ATOMIC) &&
+      MTLBackend::get_capabilities().supports_texture_atomics)
+  {
+    ss_vertex << ATOMIC_DEFINE_STR;
+    ss_fragment << ATOMIC_DEFINE_STR;
+  }
+
   /* Generate specialization constants. */
   generate_specialization_constant_declarations(info, ss_vertex);
   generate_specialization_constant_declarations(info, ss_fragment);
@@ -1521,6 +1530,11 @@ bool MTLShader::generate_msl_from_glsl_compute(const shader::ShaderCreateInfo *i
 
   ss_compute << "#define GPU_ARB_texture_cube_map_array 1\n"
                 "#define GPU_ARB_shader_draw_parameters 1\n";
+  if (bool(info->builtins_ & BuiltinBits::TEXTURE_ATOMIC) &&
+      MTLBackend::get_capabilities().supports_texture_atomics)
+  {
+    ss_compute << ATOMIC_DEFINE_STR;
+  }
 
   generate_specialization_constant_declarations(info, ss_compute);
 
@@ -4027,7 +4041,7 @@ std::string MSLTextureResource::get_msl_wrapper_type_str() const
     case ImageType::INT_2D_ARRAY_ATOMIC:
     case ImageType::UINT_2D_ARRAY_ATOMIC: {
       if (supports_native_atomics) {
-        return "_mtl_combined_image_sampler_2d";
+        return "_mtl_combined_image_sampler_2d_array";
       }
       else {
         return "_mtl_combined_image_sampler_2d_array_atomic_fallback";
