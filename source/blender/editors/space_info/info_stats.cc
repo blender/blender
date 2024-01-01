@@ -47,7 +47,7 @@
 #include "BKE_grease_pencil.hh"
 #include "BKE_key.h"
 #include "BKE_layer.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
@@ -105,11 +105,10 @@ static bool stats_mesheval(const Mesh *me_eval, bool is_selected, SceneStats *st
 
   int totvert, totedge, totface, totloop;
 
-  const SubdivCCG *subdiv_ccg = me_eval->runtime->subdiv_ccg;
   const SubsurfRuntimeData *subsurf_runtime_data = me_eval->runtime->subsurf_runtime_data;
 
-  if (subdiv_ccg != nullptr) {
-    BKE_subdiv_ccg_topology_counters(subdiv_ccg, &totvert, &totedge, &totface, &totloop);
+  if (const std::unique_ptr<SubdivCCG> &subdiv_ccg = me_eval->runtime->subdiv_ccg) {
+    BKE_subdiv_ccg_topology_counters(*subdiv_ccg, totvert, totedge, totface, totloop);
   }
   else if (subsurf_runtime_data && subsurf_runtime_data->resolution != 0) {
     totvert = subsurf_runtime_data->stats_totvert;
@@ -118,10 +117,10 @@ static bool stats_mesheval(const Mesh *me_eval, bool is_selected, SceneStats *st
     totloop = subsurf_runtime_data->stats_totloop;
   }
   else {
-    totvert = me_eval->totvert;
-    totedge = me_eval->totedge;
+    totvert = me_eval->verts_num;
+    totedge = me_eval->edges_num;
     totface = me_eval->faces_num;
-    totloop = me_eval->totloop;
+    totloop = me_eval->corners_num;
   }
 
   stats->totvert += totvert;

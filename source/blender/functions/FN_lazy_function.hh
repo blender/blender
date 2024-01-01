@@ -49,7 +49,7 @@
 #include <atomic>
 #include <thread>
 
-#ifdef DEBUG
+#ifndef NDEBUG
 #  define FN_LAZY_FUNCTION_DEBUG_THREADS
 #endif
 
@@ -196,11 +196,6 @@ class Params {
   template<typename T> T *try_get_input_data_ptr(int index) const;
   template<typename T> T *try_get_input_data_ptr_or_request(int index);
   template<typename T> void set_output(int index, T &&value);
-
-  /**
-   * Utility to initialize all outputs that haven't been set yet.
-   */
-  void set_default_remaining_outputs();
 
   /**
    * Returns true when the lazy-function is now allowed to use multi-threading when interacting

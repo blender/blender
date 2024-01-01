@@ -19,17 +19,17 @@ static void node_declare(NodeDeclarationBuilder &b)
  */
 
 static VArray<int> construct_curve_point_count_gvarray(const bke::CurvesGeometry &curves,
-                                                       const eAttrDomain domain)
+                                                       const AttrDomain domain)
 {
   const OffsetIndices points_by_curve = curves.points_by_curve();
   auto count_fn = [points_by_curve](int64_t i) { return points_by_curve[i].size(); };
 
-  if (domain == ATTR_DOMAIN_CURVE) {
+  if (domain == AttrDomain::Curve) {
     return VArray<int>::ForFunc(curves.curves_num(), count_fn);
   }
-  if (domain == ATTR_DOMAIN_POINT) {
+  if (domain == AttrDomain::Point) {
     VArray<int> count = VArray<int>::ForFunc(curves.curves_num(), count_fn);
-    return curves.adapt_domain<int>(std::move(count), ATTR_DOMAIN_CURVE, ATTR_DOMAIN_POINT);
+    return curves.adapt_domain<int>(std::move(count), AttrDomain::Curve, AttrDomain::Point);
   }
 
   return {};
@@ -43,7 +43,7 @@ class SplineCountFieldInput final : public bke::CurvesFieldInput {
   }
 
   GVArray get_varray_for_context(const bke::CurvesGeometry &curves,
-                                 const eAttrDomain domain,
+                                 const AttrDomain domain,
                                  const IndexMask & /*mask*/) const final
   {
     return construct_curve_point_count_gvarray(curves, domain);
@@ -60,9 +60,9 @@ class SplineCountFieldInput final : public bke::CurvesFieldInput {
     return dynamic_cast<const SplineCountFieldInput *>(&other) != nullptr;
   }
 
-  std::optional<eAttrDomain> preferred_domain(const bke::CurvesGeometry & /*curves*/) const final
+  std::optional<AttrDomain> preferred_domain(const bke::CurvesGeometry & /*curves*/) const final
   {
-    return ATTR_DOMAIN_CURVE;
+    return AttrDomain::Curve;
   }
 };
 

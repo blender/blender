@@ -37,8 +37,8 @@
 #include "BKE_animsys.h"
 #include "BKE_blender_undo.h"
 #include "BKE_brush.hh"
-#include "BKE_colorband.h"
-#include "BKE_colortools.h"
+#include "BKE_colorband.hh"
+#include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_curveprofile.h"
 #include "BKE_movieclip.h"
@@ -46,7 +46,7 @@
 #include "BKE_report.h"
 #include "BKE_screen.hh"
 #include "BKE_tracking.h"
-#include "BKE_unit.h"
+#include "BKE_unit.hh"
 
 #include "GHOST_C-api.h"
 
@@ -6017,6 +6017,10 @@ static int ui_do_but_SCROLL(
       const bool is_motion = (event->type == MOUSEMOVE);
       if (ui_numedit_but_SLI(
               but, data, (horizontal) ? mx : my, horizontal, is_motion, false, false)) {
+        /* Scroll-bars in popups need UI layout refresh to update the right items to show. */
+        if (ui_block_is_popup_any(but->block)) {
+          ED_region_tag_refresh_ui(data->region);
+        }
         ui_numedit_apply(C, block, but, data);
       }
     }
@@ -9218,7 +9222,7 @@ static bool ui_handle_button_activate_by_type(bContext *C, ARegion *region, uiBu
     ui_handle_button_activate(C, region, but, BUTTON_ACTIVATE);
   }
   else {
-#ifdef DEBUG
+#ifndef NDEBUG
     printf("%s: error, unhandled type: %d\n", __func__, but->type);
 #endif
     return false;

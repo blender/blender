@@ -15,7 +15,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_image.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 
 #include "ED_gizmo_library.hh"
 #include "ED_screen.hh"
@@ -103,7 +103,7 @@ static bool WIDGETGROUP_node_transform_poll(const bContext *C, wmGizmoGroupType 
   if (snode && snode->edittree && snode->edittree->type == NTREE_COMPOSIT) {
     bNode *node = nodeGetActive(snode->edittree);
 
-    if (node && ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
+    if (node && ELEM(node->type, CMP_NODE_VIEWER)) {
       return true;
     }
   }

@@ -20,7 +20,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_lib_query.h"
-#include "BKE_lib_remap.h"
+#include "BKE_lib_remap.hh"
 #include "BKE_outliner_treehash.hh"
 #include "BKE_screen.hh"
 
@@ -123,11 +123,14 @@ static void outliner_main_region_listener(const wmRegionListenerParams *params)
             ED_region_tag_redraw_no_rebuild(region);
           }
           break;
+        case ND_FRAME:
+          /* Rebuilding the outliner tree is expensive and shouldn't be done when scrubbing. */
+          ED_region_tag_redraw_no_rebuild(region);
+          break;
         case ND_OB_VISIBLE:
         case ND_OB_RENDER:
         case ND_MODE:
         case ND_KEYINGSET:
-        case ND_FRAME:
         case ND_RENDER_OPTIONS:
         case ND_SEQUENCER:
         case ND_LAYER_CONTENT:
@@ -211,8 +214,12 @@ static void outliner_main_region_listener(const wmRegionListenerParams *params)
     case NC_GEOM:
       switch (wmn->data) {
         case ND_VERTEX_GROUP:
-        case ND_DATA:
           ED_region_tag_redraw(region);
+          break;
+        case ND_DATA:
+          if (wmn->action == NA_RENAME) {
+            ED_region_tag_redraw(region);
+          }
           break;
       }
       break;
@@ -263,6 +270,13 @@ static void outliner_main_region_listener(const wmRegionListenerParams *params)
       }
       break;
     case NC_NODE:
+      if (ELEM(wmn->action, NA_ADDED, NA_REMOVED) &&
+          ELEM(space_outliner->outlinevis, SO_LIBRARIES, SO_DATA_API))
+      {
+        ED_region_tag_redraw(region);
+      }
+      break;
+    case NC_IMAGE:
       if (ELEM(wmn->action, NA_ADDED, NA_REMOVED) &&
           ELEM(space_outliner->outlinevis, SO_LIBRARIES, SO_DATA_API))
       {

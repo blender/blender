@@ -10,15 +10,16 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_vec_types.h"
 
+#include "BLI_array_utils.hh"
+#include "BLI_bit_span_ops.hh"
 #include "BLI_bitmap_draw_2d.h"
-#include "BLI_index_range.hh"
+#include "BLI_enumerable_thread_specific.hh"
 #include "BLI_lasso_2d.h"
+#include "BLI_math_base.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_polyfill_2d.h"
@@ -27,16 +28,17 @@
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
+#include "BKE_attribute.hh"
 #include "BKE_brush.hh"
 #include "BKE_ccg.h"
 #include "BKE_context.hh"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_mapping.hh"
 #include "BKE_multires.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 #include "BKE_scene.h"
+#include "BKE_subdiv_ccg.hh"
 #include "BKE_subsurf.hh"
 
 #include "DEG_depsgraph.hh"
@@ -50,20 +52,28 @@
 #include "ED_sculpt.hh"
 #include "ED_view3d.hh"
 
-#include "bmesh.h"
-#include "bmesh_idmap.hh"
-#include "tools/bmesh_boolean.h"
+#include "bmesh.hh"
+#include "tools/bmesh_boolean.hh"
 
 #include "paint_intern.hh"
 
 /* For undo push. */
 #include "sculpt_intern.hh"
 
-using blender::float3;
-using blender::IndexRange;
-using blender::OffsetIndices;
-using blender::Span;
-using blender::Vector;
+namespace blender::ed::sculpt_paint::mask {
+
+/* The gesture API doesn't write to this enum type,
+ * it writes to eSelectOp from ED_select_utils.hh.
+ * We must thus map the modes here to the desired
+ * eSelectOp modes.
+ *
+ * Fixes #102349.
+ */
+enum PaintMaskFloodMode {
+  PAINT_MASK_FLOOD_VALUE = SEL_OP_SUB,
+  PAINT_MASK_FLOOD_VALUE_INVERSE = SEL_OP_ADD,
+  PAINT_MASK_INVERT = SEL_OP_XOR,
+};
 
 static const EnumPropertyItem mode_items[] = {
     {PAINT_MASK_FLOOD_VALUE,
@@ -95,61 +105,387 @@ static float mask_flood_fill_get_new_value_for_elem(const float elem,
   return 0.0f;
 }
 
-static int mask_flood_fill_exec(bContext *C, wmOperator *op)
+static Span<int> get_visible_verts(const PBVHNode &node,
+                                   const Span<bool> hide_vert,
+                                   Vector<int> &indices)
 {
-  using namespace blender;
-  const Scene *scene = CTX_data_scene(C);
-  Object *ob = CTX_data_active_object(C);
-  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  if (BKE_pbvh_node_fully_hidden_get(&node)) {
+    return {};
+  }
+  const Span<int> verts = BKE_pbvh_node_get_unique_vert_indices(&node);
+  if (hide_vert.is_empty()) {
+    return verts;
+  }
+  indices.resize(verts.size());
+  const int *end = std::copy_if(verts.begin(), verts.end(), indices.begin(), [&](const int vert) {
+    return !hide_vert[vert];
+  });
+  indices.resize(end - indices.begin());
+  return indices;
+}
 
-  PaintMaskFloodMode mode = PaintMaskFloodMode(RNA_enum_get(op->ptr, "mode"));
-  const float value = RNA_float_get(op->ptr, "value");
+static Span<int> get_hidden_verts(const PBVHNode &node,
+                                  const Span<bool> hide_vert,
+                                  Vector<int> &indices)
+{
+  if (hide_vert.is_empty()) {
+    return {};
+  }
+  const Span<int> verts = BKE_pbvh_node_get_unique_vert_indices(&node);
+  if (BKE_pbvh_node_fully_hidden_get(&node)) {
+    return verts;
+  }
+  indices.resize(verts.size());
+  const int *end = std::copy_if(verts.begin(), verts.end(), indices.begin(), [&](const int vert) {
+    return hide_vert[vert];
+  });
+  indices.resize(end - indices.begin());
+  return indices;
+}
 
-  MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
-  BKE_sculpt_mask_layers_ensure(depsgraph, CTX_data_main(C), ob, mmd);
+static bool try_remove_mask_mesh(Object &object, const Span<PBVHNode *> nodes)
+{
+  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
+  const VArraySpan mask = *attributes.lookup<float>(".sculpt_mask", bke::AttrDomain::Point);
+  if (mask.is_empty()) {
+    return true;
+  }
 
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, false, true, false);
-  PBVH *pbvh = ob->sculpt->pbvh;
-  const bool multires = (BKE_pbvh_type(pbvh) == PBVH_GRIDS);
+  /* If there are any hidden vertices that shouldn't be affected with a mask value set, the
+   * attribute cannot be removed. This could also be done by building an IndexMask in the full
+   * vertex domain. */
+  const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
+  threading::EnumerableThreadSpecific<Vector<int>> all_index_data;
+  const bool hidden_masked_verts = threading::parallel_reduce(
+      nodes.index_range(),
+      1,
+      false,
+      [&](const IndexRange range, bool init) {
+        if (init) {
+          return init;
+        }
+        Vector<int> &index_data = all_index_data.local();
+        for (const PBVHNode *node : nodes.slice(range)) {
+          const Span<int> verts = get_hidden_verts(*node, hide_vert, index_data);
+          if (std::any_of(verts.begin(), verts.end(), [&](int i) { return mask[i] > 0.0f; })) {
+            return true;
+          }
+        }
+        return false;
+      },
+      std::logical_or());
+  if (hidden_masked_verts) {
+    return false;
+  }
 
-  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(pbvh, {});
-  const SculptMaskWriteInfo mask_write = SCULPT_mask_get_for_write(ob->sculpt);
-
-  SCULPT_undo_push_begin(ob, op);
-
+  /* Store undo data for nodes with changed mask. */
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-    for (const int i : range) {
-      PBVHNode *node = nodes[i];
-      SCULPT_undo_push_node(ob, node, SCULPT_UNDO_MASK);
-
-      bool redraw = false;
-      PBVHVertexIter vi;
-      BKE_pbvh_vertex_iter_begin (pbvh, node, vi, PBVH_ITER_UNIQUE) {
-        float prevmask = vi.mask;
-        const float new_mask = mask_flood_fill_get_new_value_for_elem(prevmask, mode, value);
-        if (prevmask != new_mask) {
-          SCULPT_mask_vert_set(BKE_pbvh_type(ob->sculpt->pbvh), mask_write, new_mask, vi);
-          redraw = true;
-        }
+    for (PBVHNode *node : nodes.slice(range)) {
+      const Span<int> verts = BKE_pbvh_node_get_unique_vert_indices(node);
+      if (std::all_of(verts.begin(), verts.end(), [&](const int i) { return mask[i] == 0.0f; })) {
+        continue;
       }
-      BKE_pbvh_vertex_iter_end;
-
-      if (redraw) {
-        BKE_pbvh_node_mark_update_mask(node);
-        if (multires) {
-          BKE_pbvh_node_mark_normals_update(node);
-        }
-      }
+      undo::push_node(&object, node, undo::Type::Mask);
+      BKE_pbvh_node_mark_redraw(node);
     }
   });
 
-  if (multires) {
-    multires_mark_as_modified(depsgraph, ob, MULTIRES_COORDS_MODIFIED);
+  attributes.remove(".sculpt_mask");
+  return true;
+}
+
+static void fill_mask_mesh(Object &object, const float value, const Span<PBVHNode *> nodes)
+{
+  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
+  const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
+  if (value == 0.0f) {
+    if (try_remove_mask_mesh(object, nodes)) {
+      return;
+    }
   }
 
-  BKE_pbvh_update_mask(pbvh);
+  bke::SpanAttributeWriter<float> mask = attributes.lookup_or_add_for_write_only_span<float>(
+      ".sculpt_mask", bke::AttrDomain::Point);
 
-  SCULPT_undo_push_end(ob);
+  threading::EnumerableThreadSpecific<Vector<int>> all_index_data;
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    Vector<int> &index_data = all_index_data.local();
+    for (PBVHNode *node : nodes.slice(range)) {
+      const Span<int> verts = get_visible_verts(*node, hide_vert, index_data);
+      if (std::all_of(verts.begin(), verts.end(), [&](int i) { return mask.span[i] == value; })) {
+        continue;
+      }
+      undo::push_node(&object, node, undo::Type::Mask);
+      mask.span.fill_indices(verts, value);
+      BKE_pbvh_node_mark_redraw(node);
+    }
+  });
+
+  mask.finish();
+}
+
+static void fill_mask_grids(Main &bmain,
+                            const Scene &scene,
+                            Depsgraph &depsgraph,
+                            Object &object,
+                            const float value,
+                            const Span<PBVHNode *> nodes)
+{
+  SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
+
+  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
+  if (value == 0.0f && !key.has_mask) {
+    /* Unlike meshes, don't dynamically remove masks since it is interleaved with other data. */
+    return;
+  }
+
+  MultiresModifierData &mmd = *BKE_sculpt_multires_active(&scene, &object);
+  BKE_sculpt_mask_layers_ensure(&depsgraph, &bmain, &object, &mmd);
+
+  const BitGroupVector<> &grid_hidden = subdiv_ccg.grid_hidden;
+
+  const Span<CCGElem *> grids = subdiv_ccg.grids;
+  bool any_changed = false;
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    for (PBVHNode *node : nodes.slice(range)) {
+      const Span<int> grid_indices = BKE_pbvh_node_get_grid_indices(*node);
+      if (std::all_of(grid_indices.begin(), grid_indices.end(), [&](const int grid) {
+            CCGElem *elem = grids[grid];
+            for (const int i : IndexRange(key.grid_area)) {
+              if (*CCG_elem_offset_mask(&key, elem, i) != value) {
+                return false;
+              }
+            }
+            return true;
+          }))
+      {
+        continue;
+      }
+      undo::push_node(&object, node, undo::Type::Mask);
+
+      if (grid_hidden.is_empty()) {
+        for (const int grid : grid_indices) {
+          CCGElem *elem = grids[grid];
+          for (const int i : IndexRange(key.grid_area)) {
+            *CCG_elem_offset_mask(&key, elem, i) = value;
+          }
+        }
+      }
+      else {
+        for (const int grid : grid_indices) {
+          CCGElem *elem = grids[grid];
+          bits::foreach_0_index(grid_hidden[grid], [&](const int i) {
+            *CCG_elem_offset_mask(&key, elem, i) = value;
+          });
+        }
+      }
+      BKE_pbvh_node_mark_redraw(node);
+      any_changed = true;
+    }
+  });
+
+  if (any_changed) {
+    multires_mark_as_modified(&depsgraph, &object, MULTIRES_COORDS_MODIFIED);
+  }
+}
+
+static void fill_mask_bmesh(Object &object, const float value, const Span<PBVHNode *> nodes)
+{
+  BMesh &bm = *object.sculpt->bm;
+  const int offset = CustomData_get_offset_named(&bm.vdata, CD_PROP_FLOAT, ".sculpt_mask");
+  if (value == 0.0f && offset == -1) {
+    return;
+  }
+  if (offset == -1) {
+    /* Mask is not dynamically added or removed for dynamic topology sculpting. */
+    BLI_assert_unreachable();
+    return;
+  }
+
+  undo::push_node(&object, nodes.first(), undo::Type::Mask);
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    for (PBVHNode *node : nodes.slice(range)) {
+      bool redraw = false;
+      for (BMVert *vert : BKE_pbvh_bmesh_node_unique_verts(node)) {
+        if (!BM_elem_flag_test(vert, BM_ELEM_HIDDEN)) {
+          if (BM_ELEM_CD_GET_FLOAT(vert, offset) != value) {
+            BM_ELEM_CD_SET_FLOAT(vert, offset, value);
+            redraw = true;
+          }
+        }
+      }
+      if (redraw) {
+        BKE_pbvh_node_mark_redraw(node);
+      }
+    }
+  });
+}
+
+static void fill_mask(Main &bmain,
+                      const Scene &scene,
+                      Depsgraph &depsgraph,
+                      Object &object,
+                      const float value,
+                      const Span<PBVHNode *> nodes)
+{
+  PBVH &pbvh = *object.sculpt->pbvh;
+  switch (BKE_pbvh_type(&pbvh)) {
+    case PBVH_FACES:
+      fill_mask_mesh(object, value, nodes);
+      break;
+    case PBVH_GRIDS:
+      fill_mask_grids(bmain, scene, depsgraph, object, value, nodes);
+      break;
+    case PBVH_BMESH:
+      fill_mask_bmesh(object, value, nodes);
+      break;
+  }
+  /* Avoid calling #BKE_pbvh_node_mark_update_mask by doing that update here. */
+  for (PBVHNode *node : nodes) {
+    BKE_pbvh_node_fully_masked_set(node, value == 1.0f);
+    BKE_pbvh_node_fully_unmasked_set(node, value == 0.0f);
+  }
+}
+
+static void invert_mask_mesh(Object &object, const Span<PBVHNode *> nodes)
+{
+  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
+
+  const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
+  bke::SpanAttributeWriter<float> mask = attributes.lookup_or_add_for_write_span<float>(
+      ".sculpt_mask", bke::AttrDomain::Point);
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    for (PBVHNode *node : nodes.slice(range)) {
+      undo::push_node(&object, node, undo::Type::Mask);
+      for (const int vert : BKE_pbvh_node_get_unique_vert_indices(node)) {
+        if (!hide_vert.is_empty() && hide_vert[vert]) {
+          continue;
+        }
+        mask.span[vert] = 1.0f - mask.span[vert];
+      }
+      BKE_pbvh_node_mark_redraw(node);
+      bke::pbvh::node_update_mask_mesh(mask.span, *node);
+    }
+  });
+  mask.finish();
+}
+
+static void invert_mask_grids(Main &bmain,
+                              const Scene &scene,
+                              Depsgraph &depsgraph,
+                              Object &object,
+                              const Span<PBVHNode *> nodes)
+{
+  SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
+
+  MultiresModifierData &mmd = *BKE_sculpt_multires_active(&scene, &object);
+  BKE_sculpt_mask_layers_ensure(&depsgraph, &bmain, &object, &mmd);
+
+  const BitGroupVector<> &grid_hidden = subdiv_ccg.grid_hidden;
+
+  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
+  const Span<CCGElem *> grids = subdiv_ccg.grids;
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    for (PBVHNode *node : nodes.slice(range)) {
+      undo::push_node(&object, node, undo::Type::Mask);
+
+      const Span<int> grid_indices = BKE_pbvh_node_get_grid_indices(*node);
+      if (grid_hidden.is_empty()) {
+        for (const int grid : grid_indices) {
+          CCGElem *elem = grids[grid];
+          for (const int i : IndexRange(key.grid_area)) {
+            *CCG_elem_offset_mask(&key, elem, i) = 1.0f - *CCG_elem_offset_mask(&key, elem, i);
+          }
+        }
+      }
+      else {
+        for (const int grid : grid_indices) {
+          CCGElem *elem = grids[grid];
+          bits::foreach_0_index(grid_hidden[grid], [&](const int i) {
+            *CCG_elem_offset_mask(&key, elem, i) = 1.0f - *CCG_elem_offset_mask(&key, elem, i);
+          });
+        }
+      }
+      BKE_pbvh_node_mark_update_mask(node);
+      bke::pbvh::node_update_mask_grids(key, grids, *node);
+    }
+  });
+
+  multires_mark_as_modified(&depsgraph, &object, MULTIRES_COORDS_MODIFIED);
+}
+
+static void invert_mask_bmesh(Object &object, const Span<PBVHNode *> nodes)
+{
+  BMesh &bm = *object.sculpt->bm;
+  const int offset = CustomData_get_offset_named(&bm.vdata, CD_PROP_FLOAT, ".sculpt_mask");
+  if (offset == -1) {
+    BLI_assert_unreachable();
+    return;
+  }
+
+  undo::push_node(&object, nodes.first(), undo::Type::Mask);
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    for (PBVHNode *node : nodes.slice(range)) {
+      for (BMVert *vert : BKE_pbvh_bmesh_node_unique_verts(node)) {
+        if (!BM_elem_flag_test(vert, BM_ELEM_HIDDEN)) {
+          BM_ELEM_CD_SET_FLOAT(vert, offset, 1.0f - BM_ELEM_CD_GET_FLOAT(vert, offset));
+        }
+      }
+      BKE_pbvh_node_mark_update_mask(node);
+      bke::pbvh::node_update_mask_bmesh(offset, *node);
+    }
+  });
+}
+
+static void invert_mask(Main &bmain,
+                        const Scene &scene,
+                        Depsgraph &depsgraph,
+                        Object &object,
+                        const Span<PBVHNode *> nodes)
+{
+  switch (BKE_pbvh_type(object.sculpt->pbvh)) {
+    case PBVH_FACES:
+      invert_mask_mesh(object, nodes);
+      break;
+    case PBVH_GRIDS:
+      invert_mask_grids(bmain, scene, depsgraph, object, nodes);
+      break;
+    case PBVH_BMESH:
+      invert_mask_bmesh(object, nodes);
+      break;
+  }
+}
+
+static int mask_flood_fill_exec(bContext *C, wmOperator *op)
+{
+  Main &bmain = *CTX_data_main(C);
+  const Scene &scene = *CTX_data_scene(C);
+  Object &object = *CTX_data_active_object(C);
+  Depsgraph &depsgraph = *CTX_data_ensure_evaluated_depsgraph(C);
+
+  const PaintMaskFloodMode mode = PaintMaskFloodMode(RNA_enum_get(op->ptr, "mode"));
+  const float value = RNA_float_get(op->ptr, "value");
+
+  BKE_sculpt_update_object_for_edit(&depsgraph, &object, false);
+
+  undo::push_begin(&object, op);
+  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(object.sculpt->pbvh, {});
+  switch (mode) {
+    case PAINT_MASK_FLOOD_VALUE:
+      fill_mask(bmain, scene, depsgraph, object, value, nodes);
+      break;
+    case PAINT_MASK_FLOOD_VALUE_INVERSE:
+      fill_mask(bmain, scene, depsgraph, object, 1.0f - value, nodes);
+      break;
+    case PAINT_MASK_INVERT:
+      invert_mask(bmain, scene, depsgraph, object, nodes);
+      break;
+  }
+
+  undo::push_end(&object);
 
   SCULPT_tag_update_overlays(C);
 
@@ -192,7 +528,7 @@ enum eSculptGestureShapeType {
 };
 
 struct LassoGestureData {
-  float projviewobjmat[4][4];
+  float4x4 projviewobjmat;
 
   rcti boundbox;
   int width;
@@ -350,8 +686,8 @@ static SculptGestureContext *sculpt_gesture_init_from_lasso(bContext *C, wmOpera
     return nullptr;
   }
 
-  ED_view3d_ob_project_mat_get(
-      sgcontext->vc.rv3d, sgcontext->vc.obact, sgcontext->lasso.projviewobjmat);
+  sgcontext->lasso.projviewobjmat = ED_view3d_ob_project_mat_get(sgcontext->vc.rv3d,
+                                                                 sgcontext->vc.obact);
   BLI_lasso_boundbox(&sgcontext->lasso.boundbox, mcoords, mcoords_len);
   const int lasso_width = 1 + sgcontext->lasso.boundbox.xmax - sgcontext->lasso.boundbox.xmin;
   const int lasso_height = 1 + sgcontext->lasso.boundbox.ymax - sgcontext->lasso.boundbox.ymin;
@@ -571,7 +907,7 @@ static Vector<PBVHNode *> sculpt_gesture_update_effected_nodes_by_line_plane(
   frustum.planes = clip_planes;
   frustum.num_planes = sgcontext->line.use_side_planes ? 3 : 1;
 
-  return sgcontext->nodes = blender::bke::pbvh::search_gather(ss->pbvh, [&](PBVHNode &node) {
+  return sgcontext->nodes = bke::pbvh::search_gather(ss->pbvh, [&](PBVHNode &node) {
            return BKE_pbvh_node_frustum_contain_AABB(&node, &frustum);
          });
 }
@@ -587,7 +923,7 @@ static void sculpt_gesture_update_effected_nodes_by_clip_planes(SculptGestureCon
   frustum.planes = clip_planes;
   frustum.num_planes = 4;
 
-  sgcontext->nodes = blender::bke::pbvh::search_gather(ss->pbvh, [&](PBVHNode &node) {
+  sgcontext->nodes = bke::pbvh::search_gather(ss->pbvh, [&](PBVHNode &node) {
     return BKE_pbvh_node_frustum_contain_AABB(&node, &frustum);
   });
 }
@@ -607,18 +943,17 @@ static void sculpt_gesture_update_effected_nodes(SculptGestureContext *sgcontext
 
 static bool sculpt_gesture_is_effected_lasso(SculptGestureContext *sgcontext, const float co[3])
 {
-  float scr_co_f[2];
   int scr_co_s[2];
   float co_final[3];
 
   flip_v3_v3(co_final, co, sgcontext->symmpass);
 
   /* First project point to 2d space. */
-  ED_view3d_project_float_v2_m4(
-      sgcontext->vc.region, co_final, scr_co_f, sgcontext->lasso.projviewobjmat);
+  const float2 scr_co_f = ED_view3d_project_float_v2_m4(
+      sgcontext->vc.region, co_final, sgcontext->lasso.projviewobjmat);
 
-  scr_co_s[0] = (int)scr_co_f[0];
-  scr_co_s[1] = (int)scr_co_f[1];
+  scr_co_s[0] = scr_co_f[0];
+  scr_co_s[1] = scr_co_f[1];
 
   /* Clip against lasso boundbox. */
   LassoGestureData *lasso = &sgcontext->lasso;
@@ -662,7 +997,7 @@ static bool sculpt_gesture_is_effected(SculptGestureContext *sgcontext,
 static void sculpt_gesture_apply(bContext *C, SculptGestureContext *sgcontext, wmOperator *op)
 {
   SculptGestureOperation *operation = sgcontext->operation;
-  SCULPT_undo_push_begin(CTX_data_active_object(C), op);
+  undo::push_begin(CTX_data_active_object(C), op);
 
   operation->sculpt_gesture_begin(C, sgcontext);
 
@@ -678,7 +1013,7 @@ static void sculpt_gesture_apply(bContext *C, SculptGestureContext *sgcontext, w
   operation->sculpt_gesture_end(C, sgcontext);
 
   Object *ob = CTX_data_active_object(C);
-  SCULPT_undo_push_end(ob);
+  undo::push_end(ob);
 
   SCULPT_tag_update_overlays(C);
 }
@@ -694,100 +1029,108 @@ struct SculptGestureFaceSetOperation {
 static void sculpt_gesture_face_set_begin(bContext *C, SculptGestureContext *sgcontext)
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-  BKE_sculpt_update_object_for_edit(depsgraph, sgcontext->vc.obact, true, false, false);
+  BKE_sculpt_update_object_for_edit(depsgraph, sgcontext->vc.obact, false);
 }
 
-static bool sculpt_gesture_is_vertex_effected(SculptGestureContext *sgcontext, PBVHVertRef vertex)
-{
-  float vertex_normal[3];
-  const float *co = SCULPT_vertex_co_get(sgcontext->ss, vertex);
-  SCULPT_vertex_normal_get(sgcontext->ss, vertex, vertex_normal);
-  float dot = dot_v3v3(sgcontext->view_normal, vertex_normal);
-  const bool is_effected_front_face = !(sgcontext->front_faces_only && dot < 0.0f);
-
-  if (!is_effected_front_face) {
-    return false;
-  }
-
-  switch (sgcontext->shape_type) {
-    case SCULPT_GESTURE_SHAPE_BOX:
-      return isect_point_planes_v3(sgcontext->clip_planes, 4, co);
-    case SCULPT_GESTURE_SHAPE_LASSO:
-      return sculpt_gesture_is_effected_lasso(sgcontext, co);
-    case SCULPT_GESTURE_SHAPE_LINE:
-      if (sgcontext->line.use_side_planes) {
-        return plane_point_side_v3(sgcontext->line.plane, co) > 0.0f &&
-               plane_point_side_v3(sgcontext->line.side_plane[0], co) > 0.0f &&
-               plane_point_side_v3(sgcontext->line.side_plane[1], co) > 0.0f;
-      }
-      return plane_point_side_v3(sgcontext->line.plane, co) > 0.0f;
-  }
-  return false;
-}
-
-static bool sculpt_gesture_is_face_effected(SculptGestureContext *sgcontext, PBVHFaceIter *fd)
-{
-  for (int i = 0; i < fd->verts_num; i++) {
-    if (sculpt_gesture_is_vertex_effected(sgcontext, fd->verts[i])) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-static void face_set_gesture_apply_task(SculptGestureContext *sgcontext, PBVHNode *node)
+static void face_set_gesture_apply_mesh(SculptGestureContext *sgcontext,
+                                        const Span<PBVHNode *> nodes)
 {
   SculptGestureFaceSetOperation *face_set_operation = (SculptGestureFaceSetOperation *)
                                                           sgcontext->operation;
-  bool any_updated = false;
+  const int new_face_set = face_set_operation->new_face_set_id;
+  Object &object = *sgcontext->vc.obact;
+  SculptSession &ss = *sgcontext->ss;
+  const PBVH &pbvh = *sgcontext->ss->pbvh;
 
-  SCULPT_undo_push_node(sgcontext->vc.obact, node, SCULPT_UNDO_FACE_SETS);
+  const Span<float3> positions = ss.vert_positions;
+  const OffsetIndices<int> faces = ss.faces;
+  const Span<int> corner_verts = ss.corner_verts;
+  const bool *hide_poly = ss.hide_poly;
+  bke::SpanAttributeWriter<int> face_sets = face_set::ensure_face_sets_mesh(object);
 
-  PBVHFaceIter fd;
-  BKE_pbvh_face_iter_begin (sgcontext->ss->pbvh, node, fd) {
-    if (sculpt_gesture_is_face_effected(sgcontext, &fd)) {
-      if (sgcontext->ss->hide_poly && sgcontext->ss->hide_poly[fd.face.i]) {
-        continue;
+  threading::parallel_for(sgcontext->nodes.index_range(), 1, [&](const IndexRange range) {
+    for (PBVHNode *node : nodes.slice(range)) {
+      undo::push_node(sgcontext->vc.obact, node, undo::Type::FaceSet);
+
+      bool any_updated = false;
+      for (const int face : BKE_pbvh_node_calc_face_indices(pbvh, *node)) {
+        if (hide_poly && hide_poly[face]) {
+          continue;
+        }
+        const Span<int> face_verts = corner_verts.slice(faces[face]);
+        const float3 face_center = bke::mesh::face_center_calc(positions, face_verts);
+        const float3 face_normal = bke::mesh::face_normal_calc(positions, face_verts);
+        if (!sculpt_gesture_is_effected(sgcontext, face_center, face_normal)) {
+          continue;
+        }
+        face_sets.span[face] = new_face_set;
+        any_updated = true;
       }
-      SCULPT_face_set_set(sgcontext->ss, fd.face, face_set_operation->new_face_set_id);
-      for (int i : IndexRange(fd.verts_num)) {
-        BKE_sculpt_boundary_flag_update(sgcontext->ss, fd.verts[i], true);
+      if (any_updated) {
+        BKE_pbvh_node_mark_update_face_sets(node);
       }
-      any_updated = true;
     }
-  }
-  BKE_pbvh_face_iter_end(fd);
+  });
 
-  if (any_updated) {
-    BKE_pbvh_vert_tag_update_normal_visibility(node);
-  }
+  face_sets.finish();
+}
+
+static void face_set_gesture_apply_bmesh(SculptGestureContext *sgcontext,
+                                         const Span<PBVHNode *> nodes)
+{
+  SculptGestureFaceSetOperation *face_set_operation = (SculptGestureFaceSetOperation *)
+                                                          sgcontext->operation;
+  const int new_face_set = face_set_operation->new_face_set_id;
+  SculptSession &ss = *sgcontext->ss;
+  BMesh *bm = ss.bm;
+  const int offset = CustomData_get_offset_named(&bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
+
+  threading::parallel_for(sgcontext->nodes.index_range(), 1, [&](const IndexRange range) {
+    for (PBVHNode *node : nodes.slice(range)) {
+      undo::push_node(sgcontext->vc.obact, node, undo::Type::FaceSet);
+
+      bool any_updated = false;
+      for (BMFace *face : BKE_pbvh_bmesh_node_faces(node)) {
+        if (BM_elem_flag_test(face, BM_ELEM_HIDDEN)) {
+          continue;
+        }
+        float3 center;
+        BM_face_calc_center_median(face, center);
+        if (!sculpt_gesture_is_effected(sgcontext, center, face->no)) {
+          continue;
+        }
+        BM_ELEM_CD_SET_INT(face, offset, new_face_set);
+        any_updated = true;
+      }
+
+      if (any_updated) {
+        BKE_pbvh_node_mark_update_visibility(node);
+      }
+    }
+  });
 }
 
 static void sculpt_gesture_face_set_apply_for_symmetry_pass(bContext * /*C*/,
                                                             SculptGestureContext *sgcontext)
 {
-  using namespace blender;
-  threading::parallel_for(sgcontext->nodes.index_range(), 1, [&](const IndexRange range) {
-    for (const int i : range) {
-      face_set_gesture_apply_task(sgcontext, sgcontext->nodes[i]);
-    }
-  });
+  switch (BKE_pbvh_type(sgcontext->ss->pbvh)) {
+    case PBVH_GRIDS:
+    case PBVH_FACES:
+      face_set_gesture_apply_mesh(sgcontext, sgcontext->nodes);
+      break;
+    case PBVH_BMESH:
+      face_set_gesture_apply_bmesh(sgcontext, sgcontext->nodes);
+  }
 }
 
-static void sculpt_gesture_face_set_end(bContext * /*C*/, SculptGestureContext *sgcontext)
-{
-  BKE_pbvh_update_visibility(sgcontext->ss->pbvh);
-}
+static void sculpt_gesture_face_set_end(bContext * /*C*/, SculptGestureContext * /*sgcontext*/) {}
 
 static void sculpt_gesture_init_face_set_properties(SculptGestureContext *sgcontext,
                                                     wmOperator * /*op*/)
 {
-  Mesh *mesh = BKE_mesh_from_object(sgcontext->vc.obact);
+  Object &object = *sgcontext->vc.obact;
   sgcontext->operation = reinterpret_cast<SculptGestureOperation *>(
       MEM_cnew<SculptGestureFaceSetOperation>(__func__));
-
-  sgcontext->ss->face_sets = BKE_sculpt_face_sets_ensure(sgcontext->vc.obact);
 
   SculptGestureFaceSetOperation *face_set_operation = (SculptGestureFaceSetOperation *)
                                                           sgcontext->operation;
@@ -797,7 +1140,7 @@ static void sculpt_gesture_init_face_set_properties(SculptGestureContext *sgcont
       sculpt_gesture_face_set_apply_for_symmetry_pass;
   face_set_operation->op.sculpt_gesture_end = sculpt_gesture_face_set_end;
 
-  face_set_operation->new_face_set_id = ED_sculpt_face_sets_find_next_available_id(mesh);
+  face_set_operation->new_face_set_id = face_set::find_next_available_id(object);
 }
 
 /* Mask Gesture Operation. */
@@ -812,7 +1155,7 @@ struct SculptGestureMaskOperation {
 static void sculpt_gesture_mask_begin(bContext *C, SculptGestureContext *sgcontext)
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-  BKE_sculpt_update_object_for_edit(depsgraph, sgcontext->vc.obact, false, true, false);
+  BKE_sculpt_update_object_for_edit(depsgraph, sgcontext->vc.obact, false);
 }
 
 static void mask_gesture_apply_task(SculptGestureContext *sgcontext,
@@ -838,7 +1181,7 @@ static void mask_gesture_apply_task(SculptGestureContext *sgcontext,
       if (!any_masked) {
         any_masked = true;
 
-        SCULPT_undo_push_node(ob, node, SCULPT_UNDO_MASK);
+        undo::push_node(ob, node, undo::Type::Mask);
 
         if (is_multires) {
           BKE_pbvh_node_mark_normals_update(node);
@@ -862,7 +1205,6 @@ static void mask_gesture_apply_task(SculptGestureContext *sgcontext,
 static void sculpt_gesture_mask_apply_for_symmetry_pass(bContext * /*C*/,
                                                         SculptGestureContext *sgcontext)
 {
-  using namespace blender;
   const SculptMaskWriteInfo mask_write = SCULPT_mask_get_for_write(sgcontext->ss);
   threading::parallel_for(sgcontext->nodes.index_range(), 1, [&](const IndexRange range) {
     for (const int i : range) {
@@ -877,7 +1219,7 @@ static void sculpt_gesture_mask_end(bContext *C, SculptGestureContext *sgcontext
   if (BKE_pbvh_type(sgcontext->ss->pbvh) == PBVH_GRIDS) {
     multires_mark_as_modified(depsgraph, sgcontext->vc.obact, MULTIRES_COORDS_MODIFIED);
   }
-  BKE_pbvh_update_mask(sgcontext->ss->pbvh);
+  blender::bke::pbvh::update_mask(*sgcontext->ss->pbvh);
 }
 
 static void sculpt_gesture_init_mask_properties(bContext *C,
@@ -962,24 +1304,6 @@ static EnumPropertyItem prop_trim_orientation_types[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-typedef enum eSculptTrimLocationType {
-  SCULPT_GESTURE_TRIM_LOCATION_DEPTH_SURFACE,
-  SCULPT_GESTURE_TRIM_LOCATION_DEPTH_VOLUME,
-} eSculptTrimLocationType;
-static EnumPropertyItem prop_trim_location_types[] = {
-    {SCULPT_GESTURE_TRIM_LOCATION_DEPTH_SURFACE,
-     "DEPTH_SURFACE",
-     0,
-     "Surface",
-     "Use the surface under the cursor to locate the trimming shape"},
-    {SCULPT_GESTURE_TRIM_LOCATION_DEPTH_VOLUME,
-     "DEPTH_VOLUME",
-     0,
-     "Volume",
-     "Use the volume of the mesh to locate the trimming shape in the center of the volume"},
-    {0, NULL, 0, NULL, NULL},
-};
-
 enum eSculptTrimExtrudeMode {
   SCULPT_GESTURE_TRIM_EXTRUDE_PROJECT,
   SCULPT_GESTURE_TRIM_EXTRUDE_FIXED
@@ -1003,13 +1327,11 @@ struct SculptGestureTrimOperation {
 
   float depth_front;
   float depth_back;
-  float avg_edge_len;
 
   bool use_cursor_depth;
 
   eSculptTrimOperationType mode;
   eSculptTrimOrientationType orientation;
-  eSculptTrimLocationType location;
   eSculptTrimExtrudeMode extrude_mode;
 };
 
@@ -1096,7 +1418,6 @@ static void sculpt_gesture_trim_calculate_depth(SculptGestureContext *sgcontext)
     PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
     const float *vco = SCULPT_vertex_co_get(ss, vertex);
-
     /* Convert the coordinates to world space to calculate the depth. When generating the trimming
      * mesh, coordinates are first calculated in world space, then converted to object space to
      * store them. */
@@ -1109,20 +1430,9 @@ static void sculpt_gesture_trim_calculate_depth(SculptGestureContext *sgcontext)
 
   if (trim_operation->use_cursor_depth) {
     float world_space_gesture_initial_location[3];
-
-    switch (trim_operation->location) {
-      case SCULPT_GESTURE_TRIM_LOCATION_DEPTH_SURFACE: {
-        mul_v3_m4v3(world_space_gesture_initial_location,
-                    vc->obact->object_to_world,
-                    ss->gesture_initial_location);
-
-      } break;
-      case SCULPT_GESTURE_TRIM_LOCATION_DEPTH_VOLUME: {
-        float center_co[3];
-        mid_v3_v3v3(center_co, ss->gesture_initial_location, ss->gesture_initial_back_location);
-        mul_v3_m4v3(world_space_gesture_initial_location, vc->obact->object_to_world, center_co);
-      } break;
-    }
+    mul_v3_m4v3(world_space_gesture_initial_location,
+                vc->obact->object_to_world,
+                ss->gesture_initial_location);
 
     float mid_point_depth;
     if (trim_operation->orientation == SCULPT_GESTURE_TRIM_ORIENTATION_VIEW) {
@@ -1135,17 +1445,6 @@ static void sculpt_gesture_trim_calculate_depth(SculptGestureContext *sgcontext)
       /* When using normal orientation, if the stroke started over the mesh, position the mid point
        * at 0 distance from the shape plane. This positions the trimming shape half inside of the
        * surface. */
-      if (SCULPT_GESTURE_TRIM_LOCATION_DEPTH_VOLUME) {
-        mid_point_depth = ss->gesture_initial_hit ?
-                              dist_signed_to_plane_v3(world_space_gesture_initial_location,
-                                                      shape_plane) :
-                              (trim_operation->depth_back + trim_operation->depth_front) * 0.5f;
-      }
-      else {
-        mid_point_depth = ss->gesture_initial_hit ?
-                              0.0f :
-                              (trim_operation->depth_back + trim_operation->depth_front) * 0.5f;
-      }
       mid_point_depth = ss->gesture_initial_hit ?
                             0.0f :
                             (trim_operation->depth_back + trim_operation->depth_front) * 0.5f;
@@ -1219,8 +1518,7 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
   const float(*ob_imat)[4] = vc->obact->world_to_object;
 
   /* Write vertices coordinatesSCULPT_GESTURE_TRIM_DIFFERENCE for the front face. */
-  blender::MutableSpan<blender::float3> positions =
-      trim_operation->mesh->vert_positions_for_write();
+  MutableSpan<float3> positions = trim_operation->mesh->vert_positions_for_write();
 
   float depth_point[3];
 
@@ -1252,17 +1550,6 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
 
     copy_v3_v3(positions[i], new_point);
   }
-
-  float avg_elen = 0.0f;
-
-  for (int i = 0; i < tot_screen_points; i++) {
-    float *v1 = trim_operation->true_mesh_co[i];
-    float *v2 = trim_operation->true_mesh_co[((i + 1) % tot_screen_points)];
-
-    avg_elen += len_v3v3(v1, v2);
-  }
-
-  trim_operation->avg_edge_len = avg_elen / (float)tot_screen_points;
 
   /* Write vertices coordinates for the back face. */
   madd_v3_v3v3fl(depth_point, shape_origin, shape_normal, depth_back);
@@ -1297,15 +1584,15 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
     mul_v3_m4v3(trim_operation->true_mesh_co[i], ob_imat, new_point);
   }
 
-  /* Get the triangulation for the front/back face. */
+  /* Get the triangulation for the front/back poly. */
   const int tot_tris_face = tot_screen_points - 2;
   uint(*r_tris)[3] = static_cast<uint(*)[3]>(
       MEM_malloc_arrayN(tot_tris_face, sizeof(uint[3]), "tris"));
   BLI_polyfill_calc(screen_points, tot_screen_points, 0, r_tris);
 
   /* Write the front face triangle indices. */
-  blender::MutableSpan<int> face_offsets = trim_operation->mesh->face_offsets_for_write();
-  blender::MutableSpan<int> corner_verts = trim_operation->mesh->corner_verts_for_write();
+  MutableSpan<int> face_offsets = trim_operation->mesh->face_offsets_for_write();
+  MutableSpan<int> corner_verts = trim_operation->mesh->corner_verts_for_write();
   int face_index = 0;
   int loop_index = 0;
   for (int i = 0; i < tot_tris_face; i++) {
@@ -1358,44 +1645,11 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
     loop_index += 3;
   }
 
-  BKE_mesh_smooth_flag_set(trim_operation->mesh, false);
-
-  BKE_mesh_calc_edges(trim_operation->mesh, false, false);
+  bke::mesh_smooth_set(*trim_operation->mesh, false);
+  bke::mesh_calc_edges(*trim_operation->mesh, false, false);
   sculpt_gesture_trim_normals_update(sgcontext);
-
-  bool *sharp_edge = (bool *)CustomData_get_layer_named_for_write(
-      &trim_operation->mesh->edge_data, CD_PROP_BOOL, "sharp_edge", trim_operation->mesh->totedge);
-
-  if (!sharp_edge) {
-    CustomData_add_layer_named(&trim_operation->mesh->edge_data,
-                               CD_PROP_BOOL,
-                               CD_CONSTRUCT,
-                               trim_operation->mesh->totedge,
-                               "sharp_edge");
-    sharp_edge = (bool *)CustomData_get_layer_named_for_write(&trim_operation->mesh->edge_data,
-                                                              CD_PROP_BOOL,
-                                                              "sharp_edge",
-                                                              trim_operation->mesh->totedge);
-  }
-
-  const blender::Span<int> &corner_edges = trim_operation->mesh->corner_edges();
-  const OffsetIndices<int> &faces = trim_operation->mesh->faces();
-  Span<float3> face_normals = trim_operation->mesh->face_normals();
-  const blender::Array<int> loop_to_face = blender::bke::mesh::build_loop_to_face_map(faces);
-
-  for (int i = 0; i < trim_operation->mesh->totedge; i++) {
-    sharp_edge[i] = false;
-  }
-  const float angle = 80.0f / 180.0f * M_PI;
-  blender::bke::mesh::edges_sharp_from_angle_set(faces,
-                                                 corner_verts,
-                                                 corner_edges,
-                                                 face_normals,
-                                                 loop_to_face,
-                                                 nullptr,
-                                                 angle,
-                                                 {sharp_edge, trim_operation->mesh->totedge});
 }
+
 static void sculpt_gesture_trim_geometry_free(SculptGestureContext *sgcontext)
 {
   SculptGestureTrimOperation *trim_operation = (SculptGestureTrimOperation *)sgcontext->operation;
@@ -1405,62 +1659,33 @@ static void sculpt_gesture_trim_geometry_free(SculptGestureContext *sgcontext)
 
 static int bm_face_isect_pair(BMFace *f, void * /*user_data*/)
 {
-  return BM_elem_flag_test(f, BM_ELEM_DRAW) ? 0 : 1;
+  return BM_elem_flag_test(f, BM_ELEM_DRAW) ? 1 : 0;
 }
 
 static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
 {
-  SculptSession *ss = sgcontext->ss;
-  Object *ob = sgcontext->vc.obact;
   SculptGestureTrimOperation *trim_operation = (SculptGestureTrimOperation *)sgcontext->operation;
-  Mesh *sculpt_mesh = BKE_mesh_from_object(ob);
+  Mesh *sculpt_mesh = BKE_mesh_from_object(sgcontext->vc.obact);
   Mesh *trim_mesh = trim_operation->mesh;
 
   const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(sculpt_mesh, trim_mesh);
-  BMeshCreateParams create_params = {};
-  create_params.use_toolflags = false;
 
-  BMeshFromMeshParams convert_params = {};
-  convert_params.calc_face_normal = true;
+  BMeshCreateParams bm_create_params{};
+  bm_create_params.use_toolflags = false;
+  BMesh *bm = BM_mesh_create(&allocsize, &bm_create_params);
 
-  BMesh *bm;
+  BMeshFromMeshParams bm_from_me_params{};
+  bm_from_me_params.calc_face_normal = true;
+  bm_from_me_params.calc_vert_normal = true;
+  BM_mesh_bm_from_me(bm, trim_mesh, &bm_from_me_params);
+  BM_mesh_bm_from_me(bm, sculpt_mesh, &bm_from_me_params);
 
-  if (ss->bm) {
-    bm = BM_mesh_copy(ss->bm);
-  }
-  else {
-    bm = BM_mesh_create(&allocsize, &create_params);
-    BM_mesh_bm_from_me(bm, sculpt_mesh, &convert_params);
-  }
-
-  BM_mesh_toolflags_set(bm, true);
-  BM_mesh_elem_toolflags_ensure(bm);
+  const int corner_tris_tot = poly_to_tri_count(bm->totface, bm->totloop);
+  BMLoop *(*corner_tris)[3] = static_cast<BMLoop *(*)[3]>(
+      MEM_malloc_arrayN(corner_tris_tot, sizeof(*corner_tris), __func__));
+  BM_mesh_calc_tessellation_beauty(bm, corner_tris);
 
   BMIter iter;
-  BMFace *efa;
-  BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
-    BM_elem_flag_enable(efa, BM_ELEM_DRAW);
-  }
-
-  /* Create trim bmesh. */
-  BMesh *trimbm = BM_mesh_create(&allocsize, &create_params);
-
-  convert_params.calc_face_normal = convert_params.calc_vert_normal = true;
-  BM_mesh_bm_from_me(trimbm, trim_mesh, &convert_params);
-  BM_mesh_normals_update(bm);
-
-  BM_mesh_toolflags_set(trimbm, true);
-
-  /* Add trim geometry to bm. */
-  BMO_op_callf(trimbm, BMO_FLAG_DEFAULTS, "duplicate geom=%avef dest=%p", bm, 3);
-  BM_mesh_free(trimbm);
-
-  /* Calculate tesselation. */
-  const int looptris_tot = poly_to_tri_count(bm->totface, bm->totloop);
-  BMLoop *(*looptris)[3] = static_cast<BMLoop *(*)[3]>(
-      MEM_malloc_arrayN(looptris_tot, sizeof(*looptris), __func__));
-  BM_mesh_calc_tessellation_beauty(bm, looptris);
-
   int i;
   const int i_faces_end = trim_mesh->faces_num;
 
@@ -1468,11 +1693,15 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
    * we could calculate on the fly too (before calling split). */
 
   const short ob_src_totcol = trim_mesh->totcol;
-  blender::Array<short> material_remap(ob_src_totcol ? ob_src_totcol : 1);
+  Array<short> material_remap(ob_src_totcol ? ob_src_totcol : 1);
 
+  BMFace *efa;
   i = 0;
   BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
     normalize_v3(efa->no);
+
+    /* Temp tag to test which side split faces are from. */
+    BM_elem_flag_enable(efa, BM_ELEM_DRAW);
 
     /* Remap material. */
     if (efa->mat_nr < ob_src_totcol) {
@@ -1502,8 +1731,8 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
         break;
     }
     BM_mesh_boolean(bm,
-                    looptris,
-                    looptris_tot,
+                    corner_tris,
+                    corner_tris_tot,
                     bm_face_isect_pair,
                     nullptr,
                     2,
@@ -1513,54 +1742,28 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
                     boolean_mode);
   }
 
-  MEM_freeN(looptris);
-  BKE_sculptsession_update_attr_refs(ob);
+  MEM_freeN(corner_tris);
 
-  /* Flag intersection edges as sharp.*/
-  BMEdge *e;
-  BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
-    BMLoop *l = e->l;
+  BMeshToMeshParams convert_params{};
+  convert_params.calc_object_remap = false;
+  Mesh *result = BKE_mesh_from_bmesh_nomain(bm, &convert_params, sculpt_mesh);
 
-    /* At least two surrounding faces? */
-    if (!l || l->f == l->radial_next->f) {
-      continue;
-    }
-
-    /* Did they come from different meshes? */
-    BMFace *f1 = l->f, *f2 = l->radial_next->f;
-    if (BM_elem_flag_test(f1, BM_ELEM_DRAW) == BM_elem_flag_test(f2, BM_ELEM_DRAW)) {
-      continue;
-    }
-
-    BM_elem_flag_disable(e, BM_ELEM_SMOOTH);
-  }
-
-  if (ss && ss->bm) { /* Swap out sculpt bmesh. */
-    BKE_sculpt_set_bmesh(ob, bm, true);
-  }
-  else {  // save result to mesh
-    BMeshToMeshParams params = {0};
-    params.calc_object_remap = false;
-
-    Mesh *result = BKE_mesh_from_bmesh_nomain(bm, &params, sculpt_mesh);
-    BM_mesh_free(bm);
-
-    BKE_mesh_nomain_to_mesh(result, (Mesh *)ob->data, ob);
-  }
+  BM_mesh_free(bm);
+  BKE_mesh_nomain_to_mesh(
+      result, static_cast<Mesh *>(sgcontext->vc.obact->data), sgcontext->vc.obact);
 }
 
 static void sculpt_gesture_trim_begin(bContext *C, SculptGestureContext *sgcontext)
 {
   Object *object = sgcontext->vc.obact;
   SculptSession *ss = object->sculpt;
-  ss->face_sets = BKE_sculpt_face_sets_ensure(object);
 
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   sculpt_gesture_trim_calculate_depth(sgcontext);
   sculpt_gesture_trim_geometry_generate(sgcontext);
   SCULPT_topology_islands_invalidate(ss);
-  BKE_sculpt_update_object_for_edit(depsgraph, sgcontext->vc.obact, true, false, false);
-  SCULPT_undo_push_node(sgcontext->vc.obact, nullptr, SCULPT_UNDO_GEOMETRY);
+  BKE_sculpt_update_object_for_edit(depsgraph, sgcontext->vc.obact, false);
+  undo::push_node(sgcontext->vc.obact, nullptr, undo::Type::Geometry);
 }
 
 static void sculpt_gesture_trim_apply_for_symmetry_pass(bContext * /*C*/,
@@ -1568,8 +1771,8 @@ static void sculpt_gesture_trim_apply_for_symmetry_pass(bContext * /*C*/,
 {
   SculptGestureTrimOperation *trim_operation = (SculptGestureTrimOperation *)sgcontext->operation;
   Mesh *trim_mesh = trim_operation->mesh;
-  blender::MutableSpan<blender::float3> positions = trim_mesh->vert_positions_for_write();
-  for (int i = 0; i < trim_mesh->totvert; i++) {
+  MutableSpan<float3> positions = trim_mesh->vert_positions_for_write();
+  for (int i = 0; i < trim_mesh->verts_num; i++) {
     flip_v3_v3(positions[i], trim_operation->true_mesh_co[i], sgcontext->symmpass);
   }
   sculpt_gesture_trim_normals_update(sgcontext);
@@ -1579,20 +1782,17 @@ static void sculpt_gesture_trim_apply_for_symmetry_pass(bContext * /*C*/,
 static void sculpt_gesture_trim_end(bContext * /*C*/, SculptGestureContext *sgcontext)
 {
   Object *object = sgcontext->vc.obact;
-  SculptSession *ss = object->sculpt;
   Mesh *mesh = (Mesh *)object->data;
-
-  ss->face_sets = static_cast<int *>(CustomData_get_layer_named_for_write(
-      &mesh->face_data, CD_PROP_INT32, ".sculpt_face_set", mesh->faces_num));
-  if (ss->face_sets) {
+  const bke::AttributeAccessor attributes = mesh->attributes_for_write();
+  if (attributes.contains(".sculpt_face_set")) {
     /* Assign a new Face Set ID to the new faces created by the trim operation. */
-    const int next_face_set_id = ED_sculpt_face_sets_find_next_available_id(mesh);
-    ED_sculpt_face_sets_initialize_none_to_id(mesh, next_face_set_id);
+    const int next_face_set_id = face_set::find_next_available_id(*object);
+    face_set::initialize_none_to_id(mesh, next_face_set_id);
   }
 
   sculpt_gesture_trim_geometry_free(sgcontext);
 
-  SCULPT_undo_push_node(sgcontext->vc.obact, nullptr, SCULPT_UNDO_GEOMETRY);
+  undo::push_node(sgcontext->vc.obact, nullptr, undo::Type::Geometry);
   BKE_mesh_batch_cache_dirty_tag(mesh, BKE_MESH_BATCH_DIRTY_ALL);
   DEG_id_tag_update(&sgcontext->vc.obact->id, ID_RECALC_GEOMETRY);
 }
@@ -1611,7 +1811,6 @@ static void sculpt_gesture_init_trim_properties(SculptGestureContext *sgcontext,
 
   trim_operation->mode = eSculptTrimOperationType(RNA_enum_get(op->ptr, "trim_mode"));
   trim_operation->use_cursor_depth = RNA_boolean_get(op->ptr, "use_cursor_depth");
-  trim_operation->location = (eSculptTrimLocationType)RNA_enum_get(op->ptr, "trim_location");
   trim_operation->orientation = eSculptTrimOrientationType(
       RNA_enum_get(op->ptr, "trim_orientation"));
   trim_operation->extrude_mode = eSculptTrimExtrudeMode(
@@ -1643,13 +1842,6 @@ static void sculpt_trim_gesture_operator_properties(wmOperatorType *ot)
                SCULPT_GESTURE_TRIM_ORIENTATION_VIEW,
                "Shape Orientation",
                nullptr);
-
-  RNA_def_enum(ot->srna,
-               "trim_location",
-               prop_trim_location_types,
-               SCULPT_GESTURE_TRIM_LOCATION_DEPTH_SURFACE,
-               "Shape Location",
-               nullptr);
   RNA_def_enum(ot->srna,
                "trim_extrude_mode",
                prop_trim_extrude_modes,
@@ -1667,7 +1859,7 @@ struct SculptGestureProjectOperation {
 static void sculpt_gesture_project_begin(bContext *C, SculptGestureContext *sgcontext)
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-  BKE_sculpt_update_object_for_edit(depsgraph, sgcontext->vc.obact, false, false, false);
+  BKE_sculpt_update_object_for_edit(depsgraph, sgcontext->vc.obact, false);
 }
 
 static void project_line_gesture_apply_task(SculptGestureContext *sgcontext, PBVHNode *node)
@@ -1675,7 +1867,7 @@ static void project_line_gesture_apply_task(SculptGestureContext *sgcontext, PBV
   PBVHVertexIter vd;
   bool any_updated = false;
 
-  SCULPT_undo_push_node(sgcontext->vc.obact, node, SCULPT_UNDO_COORDS);
+  undo::push_node(sgcontext->vc.obact, node, undo::Type::Position);
 
   BKE_pbvh_vertex_iter_begin (sgcontext->ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     float vertex_normal[3];
@@ -1714,7 +1906,6 @@ static void sculpt_gesture_project_apply_for_symmetry_pass(bContext * /*C*/,
 {
   switch (sgcontext->shape_type) {
     case SCULPT_GESTURE_SHAPE_LINE:
-      using namespace blender;
       threading::parallel_for(sgcontext->nodes.index_range(), 1, [&](const IndexRange range) {
         for (const int i : range) {
           project_line_gesture_apply_task(sgcontext, sgcontext->nodes[i]);
@@ -1820,8 +2011,8 @@ static int sculpt_trim_gesture_box_exec(bContext *C, wmOperator *op)
 {
   Object *object = CTX_data_active_object(C);
   SculptSession *ss = object->sculpt;
-  if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
-    /* Not supported in Multires. */
+  if (BKE_pbvh_type(ss->pbvh) != PBVH_FACES) {
+    /* Not supported in Multires and Dyntopo. */
     return OPERATOR_CANCELLED;
   }
 
@@ -1849,7 +2040,7 @@ static int sculpt_trim_gesture_box_invoke(bContext *C, wmOperator *op, const wmE
   SculptCursorGeometryInfo sgi;
   const float mval_fl[2] = {float(event->mval[0]), float(event->mval[1])};
   SCULPT_vertex_random_access_ensure(ss);
-  ss->gesture_initial_hit = SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false, false);
+  ss->gesture_initial_hit = SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, true);
   if (ss->gesture_initial_hit) {
     copy_v3_v3(ss->gesture_initial_location, sgi.location);
     copy_v3_v3(ss->gesture_initial_normal, sgi.normal);
@@ -1863,11 +2054,10 @@ static int sculpt_trim_gesture_lasso_exec(bContext *C, wmOperator *op)
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object *object = CTX_data_active_object(C);
 
-  BKE_sculpt_update_object_for_edit(depsgraph, object, false, true, false);
+  BKE_sculpt_update_object_for_edit(depsgraph, object, false);
 
   SculptSession *ss = object->sculpt;
-
-  if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
+  if (BKE_pbvh_type(ss->pbvh) != PBVH_FACES) {
     /* Not supported in Multires and Dyntopo. */
     return OPERATOR_CANCELLED;
   }
@@ -1895,10 +2085,9 @@ static int sculpt_trim_gesture_lasso_invoke(bContext *C, wmOperator *op, const w
   SculptCursorGeometryInfo sgi;
   const float mval_fl[2] = {float(event->mval[0]), float(event->mval[1])};
   SCULPT_vertex_random_access_ensure(ss);
-  ss->gesture_initial_hit = SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false, true);
+  ss->gesture_initial_hit = SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, true);
   if (ss->gesture_initial_hit) {
     copy_v3_v3(ss->gesture_initial_location, sgi.location);
-    copy_v3_v3(ss->gesture_initial_back_location, sgi.back_location);
     copy_v3_v3(ss->gesture_initial_normal, sgi.normal);
   }
 
@@ -2078,3 +2267,5 @@ void SCULPT_OT_project_line_gesture(wmOperatorType *ot)
   WM_operator_properties_gesture_straightline(ot, WM_CURSOR_EDIT);
   sculpt_gesture_operator_properties(ot);
 }
+
+}  // namespace blender::ed::sculpt_paint::mask

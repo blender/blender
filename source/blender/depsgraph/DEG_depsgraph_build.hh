@@ -120,6 +120,10 @@ void DEG_add_scene_relation(DepsNodeHandle *node_handle,
                             Scene *scene,
                             eDepsSceneComponentType component,
                             const char *description);
+void DEG_add_scene_camera_relation(DepsNodeHandle *node_handle,
+                                   Scene *scene,
+                                   eDepsObjectComponentType component,
+                                   const char *description);
 void DEG_add_object_relation(DepsNodeHandle *node_handle,
                              Object *object,
                              eDepsObjectComponentType component,

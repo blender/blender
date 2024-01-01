@@ -29,7 +29,7 @@ bke::SpanAttributeWriter<float> float_selection_ensure(Curves &curves_id)
     }
   }
   else {
-    const eAttrDomain domain = eAttrDomain(curves_id.selection_domain);
+    const bke::AttrDomain domain = bke::AttrDomain(curves_id.selection_domain);
     const int64_t size = attributes.domain_size(domain);
     attributes.add(".selection",
                    domain,

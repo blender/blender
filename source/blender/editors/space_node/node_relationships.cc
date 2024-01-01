@@ -19,7 +19,7 @@
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
 #include "BKE_lib_id.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.hh"
@@ -122,11 +122,12 @@ static void pick_input_link_by_link_intersect(const bContext &C,
                                               const float2 &cursor)
 {
   SpaceNode *snode = CTX_wm_space_node(&C);
+  ARegion *region = CTX_wm_region(&C);
   bNodeTree &node_tree = *snode->edittree;
 
   float2 drag_start;
   RNA_float_get_array(op.ptr, "drag_start", drag_start);
-  bNodeSocket *socket = node_find_indicated_socket(*snode, drag_start, SOCK_IN);
+  bNodeSocket *socket = node_find_indicated_socket(*snode, *region, drag_start, SOCK_IN);
   bNode &node = socket->owner_node();
 
   /* Distance to test overlapping of cursor on link. */
@@ -163,7 +164,7 @@ static void pick_input_link_by_link_intersect(const bContext &C,
     link_to_pick->flag |= NODE_LINK_TEMP_HIGHLIGHT;
     ED_area_tag_redraw(CTX_wm_area(&C));
 
-    if (!node_find_indicated_socket(*snode, cursor, SOCK_IN)) {
+    if (!node_find_indicated_socket(*snode, *region, cursor, SOCK_IN)) {
       pick_link(nldrag, *snode, &node, *link_to_pick);
     }
   }
@@ -470,7 +471,7 @@ static bNodeSocket *node_link_viewer_get_socket(bNodeTree &ntree,
 
 static bool is_viewer_node(const bNode &node)
 {
-  return ELEM(node.type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER, GEO_NODE_VIEWER);
+  return ELEM(node.type, CMP_NODE_VIEWER, GEO_NODE_VIEWER);
 }
 
 static bool is_viewer_socket_in_viewer(const bNodeSocket &socket)
@@ -1110,10 +1111,11 @@ static void node_link_cancel(bContext *C, wmOperator *op)
 static void node_link_find_socket(bContext &C, wmOperator &op, const float2 &cursor)
 {
   SpaceNode &snode = *CTX_wm_space_node(&C);
+  ARegion &region = *CTX_wm_region(&C);
   bNodeLinkDrag &nldrag = *static_cast<bNodeLinkDrag *>(op.customdata);
 
   if (nldrag.in_out == SOCK_OUT) {
-    if (bNodeSocket *tsock = node_find_indicated_socket(snode, cursor, SOCK_IN)) {
+    if (bNodeSocket *tsock = node_find_indicated_socket(snode, region, cursor, SOCK_IN)) {
       nldrag.hovered_socket = tsock;
       bNode &tnode = tsock->owner_node();
       for (bNodeLink &link : nldrag.links) {
@@ -1158,7 +1160,7 @@ static void node_link_find_socket(bContext &C, wmOperator &op, const float2 &cur
     }
   }
   else {
-    if (bNodeSocket *tsock = node_find_indicated_socket(snode, cursor, SOCK_OUT)) {
+    if (bNodeSocket *tsock = node_find_indicated_socket(snode, region, cursor, SOCK_OUT)) {
       nldrag.hovered_socket = tsock;
       bNode &node = tsock->owner_node();
       for (bNodeLink &link : nldrag.links) {
@@ -1187,10 +1189,10 @@ static void node_link_find_socket(bContext &C, wmOperator &op, const float2 &cur
 }
 
 enum class NodeLinkAction : int {
-  Begin,
-  Cancel,
-  Swap,
-  Confirm,
+  Begin = 0,
+  Cancel = 1,
+  Swap = 2,
+  Confirm = 3,
 };
 
 wmKeyMap *node_link_modal_keymap(wmKeyConfig *keyconf)
@@ -1283,11 +1285,12 @@ static int node_link_modal(bContext *C, wmOperator *op, const wmEvent *event)
   return OPERATOR_RUNNING_MODAL;
 }
 
-static std::unique_ptr<bNodeLinkDrag> node_link_init(SpaceNode &snode,
+static std::unique_ptr<bNodeLinkDrag> node_link_init(ARegion &region,
+                                                     SpaceNode &snode,
                                                      const float2 cursor,
                                                      const bool detach)
 {
-  if (bNodeSocket *sock = node_find_indicated_socket(snode, cursor, SOCK_OUT)) {
+  if (bNodeSocket *sock = node_find_indicated_socket(snode, region, cursor, SOCK_OUT)) {
     bNode &node = sock->owner_node();
 
     std::unique_ptr<bNodeLinkDrag> nldrag = std::make_unique<bNodeLinkDrag>();
@@ -1318,7 +1321,7 @@ static std::unique_ptr<bNodeLinkDrag> node_link_init(SpaceNode &snode,
     return nldrag;
   }
 
-  if (bNodeSocket *sock = node_find_indicated_socket(snode, cursor, SOCK_IN)) {
+  if (bNodeSocket *sock = node_find_indicated_socket(snode, region, cursor, SOCK_IN)) {
     bNode &node = sock->owner_node();
     std::unique_ptr<bNodeLinkDrag> nldrag = std::make_unique<bNodeLinkDrag>();
     nldrag->last_node_hovered_while_dragging_a_link = &node;
@@ -1377,7 +1380,7 @@ static int node_link_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
   ED_preview_kill_jobs(CTX_wm_manager(C), &bmain);
 
-  std::unique_ptr<bNodeLinkDrag> nldrag = node_link_init(snode, cursor, detach);
+  std::unique_ptr<bNodeLinkDrag> nldrag = node_link_init(region, snode, cursor, detach);
   if (!nldrag) {
     return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }

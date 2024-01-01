@@ -26,7 +26,7 @@
 #include "BKE_displist.h"
 #include "BKE_geometry_set.hh"
 #include "BKE_object_types.hh"
-#include "BKE_vfont.h"
+#include "BKE_vfont.hh"
 
 #include "GPU_batch.h"
 #include "GPU_capabilities.h"
@@ -500,7 +500,7 @@ static void curve_create_attribute(CurveRenderData *rdata, GPUVertBuf *vbo_attr)
   const bke::CurvesGeometry &curves = rdata->curve_eval->geometry.wrap();
   curves.ensure_can_interpolate_to_evaluated();
   const VArraySpan colors = *curves.attributes().lookup<ColorGeometry4f>(".viewer",
-                                                                         ATTR_DOMAIN_POINT);
+                                                                         bke::AttrDomain::Point);
   ColorGeometry4f *vbo_data = static_cast<ColorGeometry4f *>(GPU_vertbuf_get_data(vbo_attr));
   curves.interpolate_to_evaluated(colors, MutableSpan<ColorGeometry4f>{vbo_data, vert_len});
 }
@@ -827,7 +827,7 @@ GPUBatch *DRW_curve_batch_cache_get_edit_verts(Curve *cu)
   return DRW_batch_request(&cache->batch.edit_verts);
 }
 
-int DRW_curve_material_count_get(Curve *cu)
+int DRW_curve_material_count_get(const Curve *cu)
 {
   return max_ii(1, cu->totcol);
 }
@@ -916,7 +916,7 @@ void DRW_curve_batch_cache_create_requested(Object *ob, const Scene *scene)
 
   curve_render_data_free(rdata);
 
-#ifdef DEBUG
+#ifndef NDEBUG
   /* Make sure all requested batches have been setup. */
   for (int i = 0; i < sizeof(cache->batch) / sizeof(void *); i++) {
     BLI_assert(!DRW_batch_requested(((GPUBatch **)&cache->batch)[i], (GPUPrimType)0));

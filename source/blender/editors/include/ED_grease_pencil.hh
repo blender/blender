@@ -8,7 +8,6 @@
 
 #pragma once
 
-#include "BKE_attribute.h"
 #include "BKE_grease_pencil.hh"
 
 #include "BLI_generic_span.hh"
@@ -23,6 +22,14 @@ struct Object;
 struct KeyframeEditData;
 struct wmKeyConfig;
 struct ToolSettings;
+struct Scene;
+struct ViewDepths;
+struct View3D;
+namespace blender {
+namespace bke {
+enum class AttrDomain : int8_t;
+}
+}  // namespace blender
 
 enum {
   LAYER_REORDER_ABOVE,
@@ -40,15 +47,56 @@ void ED_operatortypes_grease_pencil_layers();
 void ED_operatortypes_grease_pencil_select();
 void ED_operatortypes_grease_pencil_edit();
 void ED_operatortypes_grease_pencil_material();
+void ED_operatormacros_grease_pencil();
 void ED_keymap_grease_pencil(wmKeyConfig *keyconf);
 /**
  * Get the selection mode for Grease Pencil selection operators: point, stroke, segment.
  */
-eAttrDomain ED_grease_pencil_selection_domain_get(const ToolSettings *tool_settings);
+blender::bke::AttrDomain ED_grease_pencil_selection_domain_get(const ToolSettings *tool_settings);
 
 /** \} */
 
 namespace blender::ed::greasepencil {
+
+enum class DrawingPlacementDepth { ObjectOrigin, Cursor, Surface, NearestStroke };
+
+enum class DrawingPlacementPlane { View, Front, Side, Top, Cursor };
+
+class DrawingPlacement {
+  const ARegion *region_;
+  const View3D *view3d_;
+
+  DrawingPlacementDepth depth_;
+  DrawingPlacementPlane plane_;
+  bke::greasepencil::DrawingTransforms transforms_;
+  ViewDepths *depth_cache_ = nullptr;
+  float surface_offset_;
+
+  float3 placement_loc_;
+  float3 placement_normal_;
+  float4 placement_plane_;
+
+ public:
+  DrawingPlacement() = default;
+  DrawingPlacement(const Scene &scene,
+                   const ARegion &region,
+                   const View3D &view3d,
+                   const Object &object);
+  ~DrawingPlacement();
+
+ public:
+  bool use_project_to_surface() const;
+  bool use_project_to_nearest_stroke() const;
+
+  void cache_viewport_depths(Depsgraph *depsgraph, ARegion *region, View3D *view3d);
+  void set_origin_to_nearest_stroke(float2 co);
+
+  /**
+   * Projects a screen space coordinate to the local drawing space.
+   */
+  float3 project(float2 co) const;
+  void project(Span<float2> src, MutableSpan<float3> dst) const;
+};
 
 void set_selected_frames_type(bke::greasepencil::Layer &layer,
                               const eBezTriple_KeyframeType key_type);
@@ -134,8 +182,12 @@ IndexMask retrieve_editable_points(Object &object,
                                    IndexMaskMemory &memory);
 IndexMask retrieve_editable_elements(Object &object,
                                      const bke::greasepencil::Drawing &drawing,
-                                     eAttrDomain selection_domain,
+                                     bke::AttrDomain selection_domain,
                                      IndexMaskMemory &memory);
+
+IndexMask retrieve_visible_strokes(Object &grease_pencil_object,
+                                   const bke::greasepencil::Drawing &drawing,
+                                   IndexMaskMemory &memory);
 
 IndexMask retrieve_editable_and_selected_strokes(Object &grease_pencil_object,
                                                  const bke::greasepencil::Drawing &drawing,
@@ -145,7 +197,7 @@ IndexMask retrieve_editable_and_selected_points(Object &object,
                                                 IndexMaskMemory &memory);
 IndexMask retrieve_editable_and_selected_elements(Object &object,
                                                   const bke::greasepencil::Drawing &drawing,
-                                                  eAttrDomain selection_domain,
+                                                  bke::AttrDomain selection_domain,
                                                   IndexMaskMemory &memory);
 
 void create_blank(Main &bmain, Object &object, int frame_number);

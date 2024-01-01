@@ -13,7 +13,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_rect.h"
 
-#include "BKE_colortools.h"
+#include "BKE_colortools.hh"
 
 #include "IMB_colormanagement.h"
 
@@ -168,7 +168,7 @@ static void gpu_viewport_textures_create(GPUViewport *viewport)
                                                1,
                                                GPU_DEPTH24_STENCIL8,
                                                usage | GPU_TEXTURE_USAGE_HOST_READ |
-                                                   GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW,
+                                                   GPU_TEXTURE_USAGE_FORMAT_VIEW,
                                                nullptr);
     if (GPU_clear_viewport_workaround()) {
       static int depth_clear = 0;

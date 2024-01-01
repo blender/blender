@@ -31,6 +31,7 @@
 #include "BKE_anim_data.h"
 #include "BKE_global.h"
 #include "BKE_idtype.h"
+#include "BKE_lib_override.hh"
 #include "BKE_node.hh"
 #include "BKE_scene.h"
 #include "BKE_screen.hh"
@@ -450,6 +451,8 @@ const char *update_source_as_string(eUpdateSource source)
       return "RELATIONS";
     case DEG_UPDATE_SOURCE_VISIBILITY:
       return "VISIBILITY";
+    case DEG_UPDATE_SOURCE_SIDE_EFFECT_REQUEST:
+      return "SIDE_EFFECT_REQUEST";
   }
   BLI_assert_msg(0, "Should never happen.");
   return "UNKNOWN";
@@ -556,7 +559,14 @@ void graph_tag_ids_for_visible_update(Depsgraph *graph)
     if (id_type == ID_OB) {
       flags |= ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY;
     }
-    graph_id_tag_update(bmain, graph, id_node->id_orig, flags, DEG_UPDATE_SOURCE_VISIBILITY);
+    /* For non-COW datablocks like images, there is no need to update when
+     * they just got added to the depsgraph and there is no flag indicating
+     * a specific change that was made to them. Unlike COW datablocks which
+     * have just been copied.
+     * This helps preserve cached image draw data for the compositor. */
+    if (ID_TYPE_IS_COW(id_type) || flags != 0) {
+      graph_id_tag_update(bmain, graph, id_node->id_orig, flags, DEG_UPDATE_SOURCE_VISIBILITY);
+    }
     if (id_type == ID_SCE) {
       /* Make sure collection properties are up to date. */
       id_node->tag_update(graph, DEG_UPDATE_SOURCE_VISIBILITY);
@@ -634,6 +644,10 @@ void id_tag_update(Main *bmain, ID *id, uint flags, eUpdateSource update_source)
   graph_id_tag_update(bmain, nullptr, id, flags, update_source);
   for (deg::Depsgraph *depsgraph : deg::get_all_registered_graphs(bmain)) {
     graph_id_tag_update(bmain, depsgraph, id, flags, update_source);
+  }
+
+  if (update_source & DEG_UPDATE_SOURCE_USER_EDIT) {
+    BKE_lib_override_id_tag_on_deg_tag_from_user(id);
   }
 
   /* Accumulate all tags for an ID between two undo steps, so they can be
@@ -788,6 +802,15 @@ void DEG_id_tag_update_ex(Main *bmain, ID *id, uint flags)
     return;
   }
   deg::id_tag_update(bmain, id, flags, deg::DEG_UPDATE_SOURCE_USER_EDIT);
+}
+
+void DEG_id_tag_update_for_side_effect_request(Depsgraph *depsgraph, ID *id, unsigned int flags)
+{
+  BLI_assert(depsgraph != nullptr);
+  BLI_assert(id != nullptr);
+  deg::Depsgraph *graph = (deg::Depsgraph *)depsgraph;
+  Main *bmain = DEG_get_bmain(depsgraph);
+  deg::graph_id_tag_update(bmain, graph, id, flags, deg::DEG_UPDATE_SOURCE_SIDE_EFFECT_REQUEST);
 }
 
 void DEG_graph_id_tag_update(Main *bmain, Depsgraph *depsgraph, ID *id, uint flags)

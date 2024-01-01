@@ -11,7 +11,7 @@
 #include "internal/topology/mesh_topology.h"
 #include "internal/topology/topology_refiner_impl.h"
 
-#include "opensubdiv_converter_capi.h"
+#include "opensubdiv_converter_capi.hh"
 
 namespace blender {
 namespace opensubdiv {

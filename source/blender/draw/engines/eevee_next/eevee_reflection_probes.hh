@@ -137,7 +137,7 @@ class ReflectionProbeModule {
 
   void init();
   void begin_sync();
-  void sync_world(::World *world, WorldHandle &ob_handle);
+  void sync_world(::World *world);
   void sync_world_lookdev();
   void sync_object(Object *ob, ObjectHandle &ob_handle);
   void end_sync();

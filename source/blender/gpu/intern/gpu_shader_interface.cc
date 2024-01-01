@@ -29,7 +29,7 @@ ShaderInterface::~ShaderInterface()
 
 static void sort_input_list(MutableSpan<ShaderInput> dst)
 {
-  if (dst.size() == 0) {
+  if (dst.is_empty()) {
     return;
   }
 

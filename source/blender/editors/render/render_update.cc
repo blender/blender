@@ -29,7 +29,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_icons.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_node.hh"
 #include "BKE_paint.hh"

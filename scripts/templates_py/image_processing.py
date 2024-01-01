@@ -1,4 +1,4 @@
-# This sample shows the an efficient way of doing image processing
+# This sample shows an efficient way of doing image processing
 # over Blender's images using Python.
 
 import bpy
@@ -19,7 +19,7 @@ pixel_data = np.zeros((w, h, 4), 'f')
 input_image.pixels.foreach_get(pixel_data.ravel())
 
 # Do whatever image processing you want using numpy here:
-# Example 1: Inverse red green and blue channels.
+# Example 1: Invert red green and blue channels.
 pixel_data[:, :, :3] = 1.0 - pixel_data[:, :, :3]
 # Example 2: Change gamma on the red channel.
 pixel_data[:, :, 0] = np.power(pixel_data[:, :, 0], 1.5)

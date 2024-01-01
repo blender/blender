@@ -110,7 +110,7 @@ void GeoNodeExecParams::check_input_geometry_set(StringRef identifier,
 void GeoNodeExecParams::check_output_geometry_set(const GeometrySet &geometry_set) const
 {
   UNUSED_VARS_NDEBUG(geometry_set);
-#ifdef DEBUG
+#ifndef NDEBUG
   if (const bke::CurvesEditHints *curve_edit_hints = geometry_set.get_curve_edit_hints()) {
     /* If this is not valid, it's likely that the number of stored deformed points does not match
      * the number of points in the original data. */
@@ -132,7 +132,7 @@ const bNodeSocket *GeoNodeExecParams::find_available_socket(const StringRef name
 
 void GeoNodeExecParams::set_default_remaining_outputs()
 {
-  params_.set_default_remaining_outputs();
+  set_default_remaining_node_outputs(params_, node_);
 }
 
 void GeoNodeExecParams::check_input_access(StringRef identifier,

@@ -16,6 +16,7 @@
 #include "vk_debug.hh"
 #include "vk_descriptor_pools.hh"
 #include "vk_samplers.hh"
+#include "vk_timeline_semaphore.hh"
 
 namespace blender::gpu {
 class VKBackend;
@@ -61,6 +62,9 @@ class VKDevice : public NonCopyable {
 
   VKSamplers samplers_;
 
+  /* Semaphore for CPU GPU synchronization when submitting commands to the queue. */
+  VKTimelineSemaphore timeline_semaphore_;
+
   /**
    * Available Contexts for this device.
    *
@@ -74,6 +78,7 @@ class VKDevice : public NonCopyable {
 
   /** Allocator used for texture and buffers and other resources. */
   VmaAllocator mem_allocator_ = VK_NULL_HANDLE;
+  VkPipelineCache vk_pipeline_cache_ = VK_NULL_HANDLE;
 
   /** Limits of the device linked to this context. */
   VkPhysicalDeviceProperties vk_physical_device_properties_ = {};
@@ -98,6 +103,8 @@ class VKDevice : public NonCopyable {
   Vector<VkRenderPass> discarded_render_passes_;
   Vector<VkFramebuffer> discarded_frame_buffers_;
   Vector<VkImageView> discarded_image_views_;
+
+  std::string glsl_patch_;
 
  public:
   VkPhysicalDevice physical_device_get() const
@@ -150,6 +157,11 @@ class VKDevice : public NonCopyable {
     return mem_allocator_;
   }
 
+  VkPipelineCache vk_pipeline_cache_get() const
+  {
+    return vk_pipeline_cache_;
+  }
+
   debug::VKDebuggingTools &debugging_tools_get()
   {
     return debugging_tools_;
@@ -186,6 +198,9 @@ class VKDevice : public NonCopyable {
     return workarounds_;
   }
 
+  const char *glsl_patch_get() const;
+  void init_glsl_patch();
+
   /* -------------------------------------------------------------------- */
   /** \name Resource management
    * \{ */
@@ -216,12 +231,28 @@ class VKDevice : public NonCopyable {
 
   /** \} */
 
+  /* -------------------------------------------------------------------- */
+  /** \name Queue management
+   * \{ */
+
+  VKTimelineSemaphore &timeline_semaphore_get()
+  {
+    return timeline_semaphore_;
+  }
+  const VKTimelineSemaphore &timeline_semaphore_get() const
+  {
+    return timeline_semaphore_;
+  }
+
+  /** \} */
+
  private:
   void init_physical_device_properties();
   void init_physical_device_memory_properties();
   void init_physical_device_features();
   void init_debug_callbacks();
   void init_memory_allocator();
+  void init_pipeline_cache();
 
   /* During initialization the backend requires access to update the workarounds. */
   friend VKBackend;

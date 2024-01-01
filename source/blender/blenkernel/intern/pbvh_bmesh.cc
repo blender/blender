@@ -45,8 +45,11 @@ Topology rake:
 #include "BLI_timeit.hh"
 #include "BLI_utildefines.h"
 
+#include "BLI_bounds.hh"
+#include "BLI_bounds_types.hh"
 #include "BLI_index_range.hh"
 #include "BLI_map.hh"
+#include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_set.hh"
 #include "BLI_vector.hh"
@@ -60,14 +63,17 @@ Topology rake:
 #include "BKE_DerivedMesh.hh"
 #include "BKE_ccg.h"
 #include "BKE_context.hh"
+#include "BKE_dyntopo.hh"
+#include "BKE_dyntopo_set.hh"
 #include "BKE_global.h"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
+#include "BKE_sculpt.hh"
 
 #include "DRW_pbvh.hh"
 
 #include "atomic_ops.h"
-#include "bmesh.h"
+#include "bmesh.hh"
 #include "bmesh_log.hh"
 #include "dyntopo_intern.hh"
 #include "pbvh_intern.hh"
@@ -80,6 +86,7 @@ using blender::Span;
 
 #include <cstdarg>
 
+using blender::Bounds;
 using blender::float2;
 using blender::float3;
 using blender::IndexRange;
@@ -87,6 +94,9 @@ using blender::Map;
 using blender::Set;
 using blender::Vector;
 using blender::bke::dyntopo::DyntopoSet;
+using namespace blender;
+
+using blender::bke::AttrDomain;
 
 template<typename T> T *c_array_from_vector(Vector<T> &array)
 {
@@ -492,7 +502,7 @@ BMVert *BKE_pbvh_vert_create_bmesh(
       bool ok = true;
 
       for (int j = 0; j < 3; j++) {
-        if (co[j] < node2->vb.bmin[j] || co[j] >= node2->vb.bmax[j]) {
+        if (co[j] < node2->vb.min[j] || co[j] >= node2->vb.max[j]) {
           continue;
         }
       }
@@ -567,7 +577,7 @@ BMFace *BKE_pbvh_face_create_bmesh(PBVH *pbvh,
         bool ok = true;
 
         for (int k = 0; k < 3; k++) {
-          if (v->co[k] < node->vb.bmin[k] || v->co[k] >= node->vb.bmax[k]) {
+          if (v->co[k] < node->vb.min[k] || v->co[k] >= node->vb.max[k]) {
             ok = false;
           }
         }
@@ -735,6 +745,12 @@ void pbvh_bmesh_face_remove(
 
 /****************************** Building ******************************/
 
+/** Create invalid bounds for use with #math::min_max. */
+static Bounds<float3> negative_bounds()
+{
+  return {float3(std::numeric_limits<float>::max()), float3(std::numeric_limits<float>::lowest())};
+}
+
 /* Update node data after splitting */
 static void pbvh_bmesh_node_finalize(PBVH *pbvh,
                                      const int node_index,
@@ -753,8 +769,8 @@ static void pbvh_bmesh_node_finalize(PBVH *pbvh,
   }
   n->bm_other_verts = MEM_new<DyntopoSet<BMVert>>("bm_other_verts");
 
-  BB_reset(&n->vb);
-  BB_reset(&n->orig_vb);
+  n->vb = negative_bounds();
+  n->orig_vb = negative_bounds();
 
   for (BMFace *f : *n->bm_faces) {
     /* Update ownership of faces */
@@ -781,8 +797,8 @@ static void pbvh_bmesh_node_finalize(PBVH *pbvh,
       }
 
       /* Update node bounding box */
-      BB_expand(&n->vb, v->co);
-      BB_expand(&n->orig_vb, BM_ELEM_CD_PTR<float *>(v, pbvh->cd_origco));
+      n->vb = bounds::expand(n->vb, float3(v->co));
+      n->orig_vb = bounds::expand(n->orig_vb, float3(BM_ELEM_CD_PTR<float *>(v, pbvh->cd_origco)));
     } while ((l_iter = l_iter->next) != l_first);
 
     if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
@@ -899,7 +915,7 @@ static void pbvh_bmesh_node_split(
   /* Add two new child nodes */
   const int children = pbvh->nodes.size();
   n->children_offset = children;
-  pbvh_grow_nodes(pbvh, pbvh->nodes.size() + 2);
+  pbvh->nodes.reserve(pbvh->nodes.size() + 2);
 
   /* Array reallocated, update current node pointer */
   n = &pbvh->nodes[node_index];
@@ -982,7 +998,7 @@ static void pbvh_bmesh_node_split(
   n->layer_disp = nullptr;
 
   if (n->draw_batches) {
-    DRW_pbvh_node_free(n->draw_batches);
+    draw::pbvh::node_free(n->draw_batches);
     n->draw_batches = nullptr;
   }
   n->flag &= ~PBVH_Leaf;
@@ -995,9 +1011,8 @@ static void pbvh_bmesh_node_split(
   n = &pbvh->nodes[node_index];
 
   /* Update bounding box */
-  BB_reset(&n->vb);
-  BB_expand_with_bb(&n->vb, &pbvh->nodes[n->children_offset].vb);
-  BB_expand_with_bb(&n->vb, &pbvh->nodes[n->children_offset + 1].vb);
+  n->vb = blender::bounds::merge(pbvh->nodes[n->children_offset].vb,
+                                 pbvh->nodes[n->children_offset + 1].vb);
   n->orig_vb = n->vb;
 }
 
@@ -1052,8 +1067,8 @@ bool pbvh_bmesh_node_limit_ensure(PBVH *pbvh, int node_index)
 
 static bool point_in_node(const PBVHNode *node, const float co[3])
 {
-  return co[0] >= node->vb.bmin[0] && co[0] <= node->vb.bmax[0] && co[1] >= node->vb.bmin[1] &&
-         co[1] <= node->vb.bmax[1] && co[2] >= node->vb.bmin[2] && co[2] <= node->vb.bmax[2];
+  return co[0] >= node->vb.min[0] && co[0] <= node->vb.max[0] && co[1] >= node->vb.min[1] &&
+         co[1] <= node->vb.max[1] && co[2] >= node->vb.min[2] && co[2] <= node->vb.max[2];
 }
 
 void bke_pbvh_insert_face_finalize(PBVH *pbvh, BMFace *f, const int ni)
@@ -1087,8 +1102,9 @@ void bke_pbvh_insert_face_finalize(PBVH *pbvh, BMFace *f, const int ni)
       ni2 = DYNTOPO_NODE_NONE;
     }
 
-    BB_expand(&node->vb, l->v->co);
-    BB_expand(&node->orig_vb, BM_ELEM_CD_PTR<float *>(l->v, pbvh->cd_origco));
+    node->vb = bounds::expand(node->vb, float3(l->v->co));
+    node->orig_vb = bounds::expand(node->orig_vb,
+                                   float3(BM_ELEM_CD_PTR<float *>(l->v, pbvh->cd_origco)));
 
     if (ni2 == DYNTOPO_NODE_NONE) {
       node->bm_unique_verts->add(l->v);
@@ -1101,8 +1117,9 @@ void bke_pbvh_insert_face_finalize(PBVH *pbvh, BMFace *f, const int ni)
     if (ni2 != ni) {
       node->bm_other_verts->add(l->v);
 
-      BB_expand(&node2->vb, l->v->co);
-      BB_expand(&node2->orig_vb, BM_ELEM_CD_PTR<float *>(l->v, pbvh->cd_origco));
+      node2->vb = bounds::expand(node2->vb, float3(l->v->co));
+      node2->orig_vb = bounds::expand(node2->orig_vb,
+                                      *BM_ELEM_CD_PTR<float3 *>(l->v, pbvh->cd_origco));
 
       node2->flag |= updateflag;
     }
@@ -1183,7 +1200,7 @@ void bke_pbvh_insert_face(PBVH *pbvh, struct BMFace *f)
       }
 
       float cent[3];
-      add_v3_v3v3(cent, node->vb.bmin, node->vb.bmax);
+      add_v3_v3v3(cent, node->vb.min, node->vb.max);
       mul_v3_fl(cent, 0.5f);
 
       float dis = len_squared_v3v3(co, cent);
@@ -1384,7 +1401,6 @@ bool pbvh_bmesh_node_raycast(SculptSession *ss,
                              struct IsectRayPrecalc *isect_precalc,
                              int *hit_count,
                              float *depth,
-                             float *back_depth,
                              bool use_original,
                              PBVHVertRef *r_active_vertex,
                              PBVHFaceRef *r_active_face,
@@ -1427,7 +1443,7 @@ bool pbvh_bmesh_node_raycast(SculptSession *ss,
     }
 
     if (ray_face_intersection_depth_tri(
-            ray_start, isect_precalc, cos[0], cos[1], cos[2], depth, back_depth, hit_count))
+            ray_start, isect_precalc, cos[0], cos[1], cos[2], depth, hit_count))
     {
       hit = true;
 
@@ -1478,7 +1494,7 @@ bool BKE_pbvh_bmesh_node_raycast_detail(PBVH *pbvh,
       continue;
     }
 
-    bool hit_local = ray_face_intersection_tri(
+    bool hit_local = bke::pbvh::ray_face_intersection_tri(
         ray_start, isect_precalc, v1->co, v2->co, v3->co, depth);
 
     if (hit_local) {
@@ -1807,11 +1823,9 @@ struct LeafBuilderThreadData {
   Vector<FastNodeBuildInfo *> leaves;
 };
 
-static void pbvh_bmesh_create_leaf_fast_task_cb(void *__restrict userdata,
-                                                const int i,
-                                                const TaskParallelTLS *__restrict /* tls */)
+ATTR_NO_OPT static void pbvh_bmesh_create_leaf_fast_task_cb(LeafBuilderThreadData *data,
+                                                            const int i)
 {
-  LeafBuilderThreadData *data = (LeafBuilderThreadData *)userdata;
   PBVH *pbvh = data->pbvh;
   BMFace **nodeinfo = data->nodeinfo;
   BBC *bbc_array = data->bbc_array;
@@ -1840,7 +1854,7 @@ static void pbvh_bmesh_create_leaf_fast_task_cb(void *__restrict userdata,
   n->bm_unique_verts = MEM_new<DyntopoSet<BMVert>>("bm_unique_verts", node->totface * 3);
   n->bm_other_verts = MEM_new<DyntopoSet<BMVert>>("bm_other_verts", node->totface * 3);
 
-  BB_reset(&n->vb);
+  n->vb = negative_bounds();
 
   const int end = node->start + node->totface;
 
@@ -1884,7 +1898,7 @@ static void pbvh_bmesh_create_leaf_fast_task_cb(void *__restrict userdata,
       has_visible = true;
     }
 
-    BB_expand_with_bb(&n->vb, (BB *)bbc);
+    n->vb = bounds::merge(n->vb, *(Bounds<float3> *)bbc);
   }
 
   BLI_assert(n->vb.bmin[0] <= n->vb.bmax[0] && n->vb.bmin[1] <= n->vb.bmax[1] &&
@@ -1896,14 +1910,12 @@ static void pbvh_bmesh_create_leaf_fast_task_cb(void *__restrict userdata,
   n->flag |= PBVH_UpdateNormals | PBVH_UpdateCurvatureDir;
 }
 
-static void pbvh_bmesh_create_nodes_fast_recursive_create(PBVH *pbvh,
-                                                          BMFace **nodeinfo,
-                                                          BBC *bbc_array,
-                                                          struct FastNodeBuildInfo *node)
+ATTR_NO_OPT static void pbvh_bmesh_create_nodes_fast_recursive_create(
+    PBVH *pbvh, BMFace **nodeinfo, BBC *bbc_array, struct FastNodeBuildInfo *node)
 {
   if (node->child1) {
     int children_offset = pbvh->nodes.size();
-    pbvh_grow_nodes(pbvh, pbvh->nodes.size() + 2);
+    pbvh->nodes.resize(pbvh->nodes.size() + 2);
 
     PBVHNode *n = &pbvh->nodes[node->node_index];
     n->children_offset = children_offset;
@@ -1920,10 +1932,8 @@ static void pbvh_bmesh_create_nodes_fast_recursive_create(PBVH *pbvh,
   }
 }
 
-static void pbvh_bmesh_create_nodes_fast_recursive_final(PBVH *pbvh,
-                                                         BMFace **nodeinfo,
-                                                         BBC *bbc_array,
-                                                         struct FastNodeBuildInfo *node)
+ATTR_NO_OPT static void pbvh_bmesh_create_nodes_fast_recursive_final(
+    PBVH *pbvh, BMFace **nodeinfo, BBC *bbc_array, struct FastNodeBuildInfo *node)
 {
   /* two cases, node does not have children or does have children */
   if (node->child1) {
@@ -1933,9 +1943,8 @@ static void pbvh_bmesh_create_nodes_fast_recursive_final(PBVH *pbvh,
     PBVHNode *n = &pbvh->nodes[node->node_index];
 
     /* Update bounding box */
-    BB_reset(&n->vb);
-    BB_expand_with_bb(&n->vb, &pbvh->nodes[node->child1->node_index].vb);
-    BB_expand_with_bb(&n->vb, &pbvh->nodes[node->child2->node_index].vb);
+    n->vb = bounds::merge(pbvh->nodes[node->child1->node_index].vb,
+                          pbvh->nodes[node->child2->node_index].vb);
     n->orig_vb = n->vb;
   }
 }
@@ -1993,7 +2002,7 @@ static void update_edge_boundary_bmesh_uv(BMEdge *e, int cd_edge_boundary, const
     BMLoop *l = e->l;
 
     int cd_uv = layer.offset;
-    float limit = blender::bke::sculpt::calc_uv_snap_limit(l, cd_uv);
+    float limit = sculpt::calc_uv_snap_limit(l, cd_uv);
     limit *= limit;
 
     float2 a1 = BM_ELEM_CD_PTR<float *>((l->v == e->v1 ? l : l->next), cd_uv);
@@ -2203,8 +2212,7 @@ void update_vert_boundary_bmesh(int cd_faceset_offset,
 
     if (update_sharp_angle) {
       if (e->l && e->l != e->l->radial_next) {
-        if (blender::bke::pbvh::test_sharp_faces_bmesh(
-                e->l->f, e->l->radial_next->f, sharp_angle_limit)) {
+        if (test_sharp_faces_bmesh(e->l->f, e->l->radial_next->f, sharp_angle_limit)) {
           boundflag |= SCULPT_BOUNDARY_SHARP_ANGLE;
           sharp_angle_num++;
         }
@@ -2341,10 +2349,12 @@ void BKE_pbvh_recalc_bmesh_boundary(PBVH *pbvh)
   }
 }
 
-void BKE_pbvh_set_idmap(PBVH *pbvh, BMIdMap *idmap)
+namespace blender::bke::pbvh {
+void set_idmap(PBVH *pbvh, BMIdMap *idmap)
 {
   pbvh->bm_idmap = idmap;
 }
+}  // namespace blender::bke::pbvh
 
 #if 0
 PBVH *global_debug_pbvh = nullptr;
@@ -2378,21 +2388,23 @@ void debug_pbvh_on_vert_kill(BMVert *v)
 }
 #endif
 
+namespace blender::bke::pbvh {
+
 /* Build a PBVH from a BMesh */
-void BKE_pbvh_build_bmesh(PBVH *pbvh,
-                          Mesh *me,
-                          BMesh *bm,
-                          BMLog *log,
-                          BMIdMap *idmap,
-                          const int cd_vert_node_offset,
-                          const int cd_face_node_offset,
-                          const int cd_face_areas,
-                          const int cd_boundary_flag,
-                          const int cd_edge_boundary,
-                          const int cd_flag_offset,
-                          const int cd_valence_offset,
-                          const int cd_origco,
-                          const int cd_origno)
+ATTR_NO_OPT void build_bmesh(PBVH *pbvh,
+                             Mesh *me,
+                             BMesh *bm,
+                             BMLog *log,
+                             BMIdMap *idmap,
+                             const int cd_vert_node_offset,
+                             const int cd_face_node_offset,
+                             const int cd_face_areas,
+                             const int cd_boundary_flag,
+                             const int cd_edge_boundary,
+                             const int cd_flag_offset,
+                             const int cd_valence_offset,
+                             const int cd_origco,
+                             const int cd_origno)
 {
   pbvh->bm_idmap = idmap;
   pbvh->header.bm = bm;
@@ -2414,7 +2426,7 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
 
   pbvh->header.bm = bm;
 
-  blender::bke::dyntopo::detail_size_set(pbvh, 0.75f, 0.4f);
+  dyntopo::detail_size_set(pbvh, 0.75f, 0.4f);
 
   pbvh->header.type = PBVH_BMESH;
   pbvh->bm_log = log;
@@ -2480,7 +2492,7 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
   /* start recursion, assign faces to nodes accordingly */
   pbvh_bmesh_node_limit_ensure_fast(pbvh, nodeinfo, bbc_array, &rootnode, leaves, arena);
 
-  pbvh_grow_nodes(pbvh, 1);
+  pbvh->nodes.reserve(pbvh->nodes.size() + 1);
   rootnode.node_index = 0;
 
   pbvh_bmesh_create_nodes_fast_recursive_create(pbvh, nodeinfo, bbc_array, &rootnode);
@@ -2498,9 +2510,9 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
   tdata.bbc_array = bbc_array;
   tdata.leaves = leaves;
 
-  TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, totleaf);
-  BLI_task_parallel_range(0, totleaf, &tdata, pbvh_bmesh_create_leaf_fast_task_cb, &settings);
+  for (int i : IndexRange(totleaf)) {
+    pbvh_bmesh_create_leaf_fast_task_cb(&tdata, i);
+  }
 
   /* take root node and visit and populate children recursively */
   pbvh_bmesh_create_nodes_fast_recursive_final(pbvh, nodeinfo, bbc_array, &rootnode);
@@ -2511,7 +2523,7 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
 
   if (me) { /* Ensure pbvh->vcol_type, vcol_domain and cd_vcol_offset are up to date. */
     CustomDataLayer *cl;
-    eAttrDomain domain;
+    AttrDomain domain;
 
     BKE_pbvh_get_color_layer(pbvh, me, &cl, &domain);
   }
@@ -2539,16 +2551,16 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
 
   /* Update boundary flags. */
   BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-    blender::bke::pbvh::update_vert_boundary_bmesh(pbvh->cd_faceset_offset,
-                                                   pbvh->cd_vert_node_offset,
-                                                   pbvh->cd_face_node_offset,
-                                                   -1,
-                                                   pbvh->cd_boundary_flag,
-                                                   pbvh->cd_flag,
-                                                   pbvh->cd_valence,
-                                                   v,
-                                                   &bm->ldata,
-                                                   pbvh->sharp_angle_limit);
+    update_vert_boundary_bmesh(pbvh->cd_faceset_offset,
+                               pbvh->cd_vert_node_offset,
+                               pbvh->cd_face_node_offset,
+                               -1,
+                               pbvh->cd_boundary_flag,
+                               pbvh->cd_flag,
+                               pbvh->cd_valence,
+                               v,
+                               &bm->ldata,
+                               pbvh->sharp_angle_limit);
   }
 
   /* update face areas */
@@ -2577,6 +2589,8 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
 
   pbvh_bmesh_check_nodes(pbvh);
 }
+
+}  // namespace blender::bke::pbvh
 
 void BKE_pbvh_set_bm_log(PBVH *pbvh, BMLog *log)
 {
@@ -3141,14 +3155,14 @@ static void BKE_pbvh_bmesh_correct_tree(PBVH *pbvh, PBVHNode *node, PBVHNode * /
     MEM_delete(node->bm_other_verts);
     node->bm_other_verts = other;
 
-    BB_reset(&node->vb);
+    node->vb = negative_bounds();
 
     for (BMVert *v : *node->bm_unique_verts) {
-      BB_expand(&node->vb, v->co);
+      node->vb = bounds::expand(node->vb, float3(v->co));
     }
 
     for (BMVert *v : *node->bm_other_verts) {
-      BB_expand(&node->vb, v->co);
+      node->vb = bounds::expand(node->vb, float3(v->co));
     }
 
     node->orig_vb = node->vb;
@@ -3223,7 +3237,7 @@ static void pbvh_bmesh_compact_tree(PBVH *bvh)
         n->layer_disp = nullptr;
       }
 
-      pbvh_free_draw_buffers(bvh, n);
+      blender::bke::pbvh::free_draw_buffers(bvh, n);
 
       if (n->tribuf || n->tri_buffers) {
         BKE_pbvh_bmesh_free_tris(bvh, n);
@@ -3394,20 +3408,20 @@ static void pbvh_bmesh_balance_tree(PBVH *pbvh)
 
   while (stack.size() > 0) {
     PBVHNode *node = stack.pop_last();
-    BB clip;
+    Bounds<float3> clip;
 
     if (!(node->flag & PBVH_Leaf) && node->children_offset > 0) {
       PBVHNode *child1 = &pbvh->nodes[node->children_offset];
       PBVHNode *child2 = &pbvh->nodes[node->children_offset + 1];
 
-      float volume = BB_volume(&child1->vb) + BB_volume(&child2->vb);
+      float volume = bounds::volume<float3>(child1->vb) + bounds::volume<float3>(child2->vb);
 
       /* dissolve nodes whose children overlap by more then a percentage
         of the total volume.  we use a simple huerstic to calculate the
         cutoff threshold.*/
 
-      BB_intersect(&clip, &child1->vb, &child2->vb);
-      float overlap = BB_volume(&clip);
+      clip = bounds::intersect(child1->vb, child2->vb);
+      float overlap = bounds::volume(clip);
       float factor;
 
       factor = 0.2f;
@@ -3620,7 +3634,7 @@ static void pbvh_bmesh_join_nodes(PBVH *pbvh)
         n->layer_disp = nullptr;
       }
 
-      pbvh_free_draw_buffers(pbvh, n);
+      blender::bke::pbvh::free_draw_buffers(pbvh, n);
 
       if (n->tribuf || n->tri_buffers) {
         BKE_pbvh_bmesh_free_tris(pbvh, n);
@@ -3742,13 +3756,15 @@ static void pbvh_bmesh_join_nodes(PBVH *pbvh)
 namespace blender::bke::dyntopo {
 void after_stroke(PBVH *pbvh, bool force_balance)
 {
-  BKE_pbvh_update_bounds(pbvh, (PBVH_UpdateBB | PBVH_UpdateOriginalBB | PBVH_UpdateRedraw));
+  blender::bke::pbvh::update_bounds(*pbvh,
+                                    (PBVH_UpdateBB | PBVH_UpdateOriginalBB | PBVH_UpdateRedraw));
 
   pbvh_bmesh_check_nodes(pbvh);
   pbvh_bmesh_join_nodes(pbvh);
   pbvh_bmesh_check_nodes(pbvh);
 
-  BKE_pbvh_update_bounds(pbvh, (PBVH_UpdateBB | PBVH_UpdateOriginalBB | PBVH_UpdateRedraw));
+  blender::bke::pbvh::update_bounds(*pbvh,
+                                    (PBVH_UpdateBB | PBVH_UpdateOriginalBB | PBVH_UpdateRedraw));
 
   if (force_balance || pbvh->balance_counter++ == 10) {
     pbvh_bmesh_balance_tree(pbvh);
@@ -3783,35 +3799,37 @@ void BKE_pbvh_node_mark_topology_update(PBVHNode *node)
   node->flag |= PBVH_UpdateTopology;
 }
 
-DyntopoSet<BMVert> *BKE_pbvh_bmesh_node_unique_verts(PBVHNode *node)
+DyntopoSet<BMVert> &BKE_pbvh_bmesh_node_unique_verts(PBVHNode *node)
 {
-  return node->bm_unique_verts;
+  return *node->bm_unique_verts;
 }
 
-DyntopoSet<BMVert> *BKE_pbvh_bmesh_node_other_verts(PBVHNode *node)
+DyntopoSet<BMVert> &BKE_pbvh_bmesh_node_other_verts(PBVHNode *node)
 {
   pbvh_bmesh_check_other_verts(node);
-  return node->bm_other_verts;
+  return *node->bm_other_verts;
 }
 
-DyntopoSet<BMFace> *BKE_pbvh_bmesh_node_faces(PBVHNode *node)
+DyntopoSet<BMFace> &BKE_pbvh_bmesh_node_faces(PBVHNode *node)
 {
-  return node->bm_faces;
+  return *node->bm_faces;
 }
 
 /****************************** Debugging *****************************/
 
-void BKE_pbvh_update_offsets(PBVH *pbvh,
-                             const int cd_vert_node_offset,
-                             const int cd_face_node_offset,
-                             const int cd_face_areas,
-                             const int cd_boundary_flag,
-                             const int cd_edge_boundary,
-                             const int cd_flag,
-                             const int cd_valence,
-                             const int cd_origco,
-                             const int cd_origno,
-                             const int cd_curvature_dir)
+namespace blender::bke::pbvh {
+
+void update_offsets(PBVH *pbvh,
+                    const int cd_vert_node_offset,
+                    const int cd_face_node_offset,
+                    const int cd_face_areas,
+                    const int cd_boundary_flag,
+                    const int cd_edge_boundary,
+                    const int cd_flag,
+                    const int cd_valence,
+                    const int cd_origco,
+                    const int cd_origno,
+                    const int cd_curvature_dir)
 {
   pbvh->cd_face_node_offset = cd_face_node_offset;
   pbvh->cd_vert_node_offset = cd_vert_node_offset;
@@ -3845,12 +3863,10 @@ void BKE_pbvh_update_offsets(PBVH *pbvh,
   pbvh->cd_origno = cd_origno;
 }
 
-float BKE_pbvh_bmesh_detail_size_avg_get(PBVH *pbvh)
+float bmesh_detail_size_avg_get(PBVH *pbvh)
 {
   return (pbvh->bm_max_edge_len + pbvh->bm_min_edge_len) * 0.5f;
 }
-
-namespace blender::bke::pbvh {
 
 void update_sharp_vertex_bmesh(BMVert *v, int cd_boundary_flag, const float sharp_angle_limit)
 {
@@ -3871,8 +3887,7 @@ void update_sharp_vertex_bmesh(BMVert *v, int cd_boundary_flag, const float shar
       continue;
     }
 
-    if (blender::bke::pbvh::test_sharp_faces_bmesh(
-            e->l->f, e->l->radial_next->f, sharp_angle_limit)) {
+    if (test_sharp_faces_bmesh(e->l->f, e->l->radial_next->f, sharp_angle_limit)) {
       flag |= SCULPT_BOUNDARY_SHARP_ANGLE;
       sharp_num++;
     }

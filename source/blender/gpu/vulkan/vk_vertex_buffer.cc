@@ -12,6 +12,7 @@
 #include "vk_memory.hh"
 #include "vk_shader.hh"
 #include "vk_shader_interface.hh"
+#include "vk_staging_buffer.hh"
 #include "vk_state_manager.hh"
 #include "vk_vertex_buffer.hh"
 
@@ -92,7 +93,14 @@ void VKVertexBuffer::read(void *data) const
 {
   VKContext &context = *VKContext::get();
   context.flush();
-  buffer_.read(data);
+  if (buffer_.is_mapped()) {
+    buffer_.read(data);
+    return;
+  }
+
+  VKStagingBuffer staging_buffer(buffer_, VKStagingBuffer::Direction::DeviceToHost);
+  staging_buffer.copy_from_device(context);
+  staging_buffer.host_buffer_get().read(data);
 }
 
 void VKVertexBuffer::acquire_data()
@@ -128,6 +136,25 @@ void VKVertexBuffer::release_data()
   MEM_SAFE_FREE(data);
 }
 
+void VKVertexBuffer::upload_data_direct(const VKBuffer &host_buffer)
+{
+  device_format_ensure();
+  if (vertex_format_converter.needs_conversion()) {
+    vertex_format_converter.convert(host_buffer.mapped_memory_get(), data, vertex_len);
+    host_buffer.flush();
+  }
+  else {
+    host_buffer.update(data);
+  }
+}
+
+void VKVertexBuffer::upload_data_via_staging_buffer(VKContext &context)
+{
+  VKStagingBuffer staging_buffer(buffer_, VKStagingBuffer::Direction::HostToDevice);
+  upload_data_direct(staging_buffer.host_buffer_get());
+  staging_buffer.copy_to_device(context);
+}
+
 void VKVertexBuffer::upload_data()
 {
   if (!buffer_.is_allocated()) {
@@ -139,12 +166,12 @@ void VKVertexBuffer::upload_data()
 
   if (flag & GPU_VERTBUF_DATA_DIRTY) {
     device_format_ensure();
-    if (vertex_format_converter.needs_conversion()) {
-      vertex_format_converter.convert(buffer_.mapped_memory_get(), data, vertex_len);
-      buffer_.flush();
+    if (buffer_.is_mapped()) {
+      upload_data_direct(buffer_);
     }
     else {
-      buffer_.update(data);
+      VKContext &context = *VKContext::get();
+      upload_data_via_staging_buffer(context);
     }
     if (usage_ == GPU_USAGE_STATIC) {
       MEM_SAFE_FREE(data);
@@ -175,10 +202,15 @@ const GPUVertFormat &VKVertexBuffer::device_format_get() const
 
 void VKVertexBuffer::allocate()
 {
-  buffer_.create(size_alloc_get(),
-                 usage_,
-                 VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
-                     VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT);
+  const bool is_host_visible = ELEM(usage_, GPU_USAGE_DYNAMIC, GPU_USAGE_STREAM);
+  VkBufferUsageFlags vk_buffer_usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT |
+                                       VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
+                                       VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
+                                       VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT;
+  if (!is_host_visible) {
+    vk_buffer_usage |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+  }
+  buffer_.create(size_alloc_get(), usage_, vk_buffer_usage, is_host_visible);
   debug::object_label(buffer_.vk_handle(), "VertexBuffer");
 }
 

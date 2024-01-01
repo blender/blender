@@ -17,7 +17,7 @@
 /******************************** Quaternions ********************************/
 
 /* used to test is a quat is not normalized (only used for debug prints) */
-#ifdef DEBUG
+#ifndef NDEBUG
 #  define QUAT_EPSILON 0.0001
 #endif
 
@@ -216,7 +216,7 @@ static void quat_to_mat3_no_error(float m[3][3], const float q[4])
 
 void quat_to_mat3(float m[3][3], const float q[4])
 {
-#ifdef DEBUG
+#ifndef NDEBUG
   float f;
   if (!((f = dot_qtqt(q, q)) == 0.0f || (fabsf(f - 1.0f) < (float)QUAT_EPSILON))) {
     fprintf(stderr,
@@ -232,7 +232,7 @@ void quat_to_mat4(float m[4][4], const float q[4])
 {
   double q0, q1, q2, q3, qda, qdb, qdc, qaa, qab, qac, qbb, qbc, qcc;
 
-#ifdef DEBUG
+#ifndef NDEBUG
   if (!((q0 = dot_qtqt(q, q)) == 0.0 || (fabs(q0 - 1.0) < QUAT_EPSILON))) {
     fprintf(stderr,
             "Warning! quat_to_mat4() called with non-normalized: size %.8f *** report a bug ***\n",
@@ -1065,7 +1065,7 @@ void quat_to_axis_angle(float axis[3], float *angle, const float q[4])
 {
   float ha, si;
 
-#ifdef DEBUG
+#ifndef NDEBUG
   if (!((ha = dot_qtqt(q, q)) == 0.0f || (fabsf(ha - 1.0f) < (float)QUAT_EPSILON))) {
     fprintf(stderr,
             "Warning! quat_to_axis_angle() called with non-normalized: size %.8f *** report a bug "

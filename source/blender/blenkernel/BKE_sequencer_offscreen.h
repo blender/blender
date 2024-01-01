@@ -29,6 +29,7 @@ typedef struct ImBuf *(*SequencerDrawView)(struct Depsgraph *depsgraph,
                                            int alpha_mode,
                                            const char *viewname,
                                            struct GPUOffScreen *ofs,
+                                           struct GPUViewport *viewport,
                                            char err_out[256]);
 extern SequencerDrawView sequencer_view3d_fn;
 

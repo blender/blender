@@ -15,7 +15,7 @@
 
 #include "draw_instance_data.h"
 
-#include "draw_manager_text.h"
+#include "draw_manager_text.hh"
 
 #include "draw_manager.h"
 #include "draw_manager.hh"

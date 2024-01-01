@@ -209,7 +209,7 @@ static PyObject *Color_from_rec709_linear_to_scene_linear(ColorObject *self)
   return Color_CreatePyObject(col, Py_TYPE(self));
 }
 
-#endif /* MATH_STANDALONE */
+#endif /* !MATH_STANDALONE */
 
 /** \} */
 
@@ -1115,7 +1115,7 @@ static PyMethodDef Color_methods[] = {
      (PyCFunction)Color_from_rec709_linear_to_scene_linear,
      METH_NOARGS,
      Color_from_rec709_linear_to_scene_linear_doc},
-#endif /* MATH_STANDALONE */
+#endif /* !MATH_STANDALONE */
 
     {nullptr, nullptr, 0, nullptr},
 };

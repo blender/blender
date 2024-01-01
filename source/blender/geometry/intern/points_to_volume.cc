@@ -59,12 +59,12 @@ static openvdb::FloatGrid::Ptr points_to_sdf_grid(const Span<float3> positions,
   return new_grid;
 }
 
-VolumeGrid *fog_volume_grid_add_from_points(Volume *volume,
-                                            const StringRefNull name,
-                                            const Span<float3> positions,
-                                            const Span<float> radii,
-                                            const float voxel_size,
-                                            const float density)
+bke::VolumeGridData *fog_volume_grid_add_from_points(Volume *volume,
+                                                     const StringRefNull name,
+                                                     const Span<float3> positions,
+                                                     const Span<float> radii,
+                                                     const float voxel_size,
+                                                     const float density)
 {
   openvdb::FloatGrid::Ptr new_grid = points_to_sdf_grid(positions, radii);
   new_grid->transform().postScale(voxel_size);
@@ -83,11 +83,11 @@ VolumeGrid *fog_volume_grid_add_from_points(Volume *volume,
   return BKE_volume_grid_add_vdb(*volume, name, std::move(new_grid));
 }
 
-VolumeGrid *sdf_volume_grid_add_from_points(Volume *volume,
-                                            const StringRefNull name,
-                                            const Span<float3> positions,
-                                            const Span<float> radii,
-                                            const float voxel_size)
+bke::VolumeGridData *sdf_volume_grid_add_from_points(Volume *volume,
+                                                     const StringRefNull name,
+                                                     const Span<float3> positions,
+                                                     const Span<float> radii,
+                                                     const float voxel_size)
 {
   openvdb::FloatGrid::Ptr new_grid = points_to_sdf_grid(positions, radii);
   new_grid->transform().postScale(voxel_size);

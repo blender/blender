@@ -28,10 +28,12 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
 #include <cmath>
 #include <cstdlib>
+
+namespace blender::ed::sculpt_paint::mask {
 
 enum eSculptMaskFilterTypes {
   MASK_FILTER_SMOOTH = 0,
@@ -88,7 +90,7 @@ static void mask_filter_task(SculptSession *ss,
     switch (mode) {
       case MASK_FILTER_SMOOTH:
       case MASK_FILTER_SHARPEN: {
-        float val = SCULPT_neighbor_mask_average(ss, vd.vertex);
+        float val = smooth::neighbor_mask_average(ss, vd.vertex);
 
         val -= mask;
 
@@ -158,7 +160,6 @@ static void mask_filter_task(SculptSession *ss,
 
 static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
 {
-  using namespace blender;
   Object *ob = CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   const Scene *scene = CTX_data_scene(C);
@@ -167,7 +168,7 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
   MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
   BKE_sculpt_mask_layers_ensure(CTX_data_depsgraph_pointer(C), CTX_data_main(C), ob, mmd);
 
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, false);
 
   SculptSession *ss = ob->sculpt;
   PBVH *pbvh = ob->sculpt->pbvh;
@@ -176,11 +177,11 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
 
   int num_verts = SCULPT_vertex_count_get(ss);
 
-  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(pbvh, {});
-  SCULPT_undo_push_begin(ob, op);
+  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(pbvh, {});
+  undo::push_begin(ob, op);
 
   for (PBVHNode *node : nodes) {
-    SCULPT_undo_push_node(ob, node, SCULPT_UNDO_MASK);
+    undo::push_node(ob, node, undo::Type::Mask);
   }
 
   float *prev_mask = nullptr;
@@ -216,27 +217,11 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
     }
   }
 
-  SCULPT_undo_push_end(ob);
+  undo::push_end(ob);
 
   SCULPT_tag_update_overlays(C);
 
   return OPERATOR_FINISHED;
-}
-
-void SCULPT_mask_filter_smooth_apply(Sculpt * /*sd*/,
-                                     Object *ob,
-                                     Span<PBVHNode *> nodes,
-                                     const int smooth_iterations)
-{
-  using namespace blender;
-  const SculptMaskWriteInfo mask_write = SCULPT_mask_get_for_write(ob->sculpt);
-  for (int i = 0; i < smooth_iterations; i++) {
-    threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-      for (const int i : range) {
-        mask_filter_task(ob->sculpt, MASK_FILTER_SMOOTH, nullptr, mask_write, nodes[i]);
-      }
-    });
-  }
 }
 
 void SCULPT_OT_mask_filter(wmOperatorType *ot)
@@ -275,3 +260,5 @@ void SCULPT_OT_mask_filter(wmOperatorType *ot)
       "Auto Iteration Count",
       "Use a automatic number of iterations based on the number of vertices of the sculpt");
 }
+
+}  // namespace blender::ed::sculpt_paint::mask

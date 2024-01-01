@@ -16,7 +16,7 @@
 
 #include "RNA_enum_types.hh"
 
-#include "BKE_node_socket_value_cpp_type.hh"
+#include "BKE_node_socket_value.hh"
 
 namespace blender::nodes::node_geo_index_switch_cc {
 
@@ -32,12 +32,12 @@ static void node_declare(NodeDeclarationBuilder &b)
   const eNodeSocketDatatype data_type = eNodeSocketDatatype(storage.data_type);
   const bool supports_fields = socket_type_supports_fields(data_type);
 
-  auto &index = b.add_input<decl::Int>("Index");
+  const Span<IndexSwitchItem> items = storage.items_span();
+  auto &index = b.add_input<decl::Int>("Index").min(0).max(std::max<int>(0, items.size() - 1));
   if (supports_fields) {
     index.supports_field();
   }
 
-  const Span<IndexSwitchItem> items = storage.items_span();
   for (const int i : items.index_range()) {
     const std::string identifier = IndexSwitchItemsAccessor::socket_identifier_for_item(items[i]);
     auto &input = b.add_input(data_type, std::to_string(i), std::move(identifier));
@@ -71,9 +71,12 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
   data->next_identifier = 0;
 
   BLI_assert(data->items == nullptr);
-  data->items = MEM_cnew_array<IndexSwitchItem>(1, __func__);
-  data->items[0].identifier = data->next_identifier++;
-  data->items_num = 1;
+  const int default_items_num = 2;
+  data->items = MEM_cnew_array<IndexSwitchItem>(default_items_num, __func__);
+  for (const int i : IndexRange(default_items_num)) {
+    data->items[i].identifier = data->next_identifier++;
+  }
+  data->items_num = default_items_num;
 
   node->storage = data;
 }
@@ -118,7 +121,7 @@ class IndexSwitchFunction : public mf::MultiFunction {
     this->set_signature(&signature_);
   }
 
-  void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const
+  void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const override
   {
     const int inputs_num = signature_.params.size() - 2;
     const VArray<int> indices = params.readonly_single_input<int>(0, "Index");
@@ -171,19 +174,23 @@ class IndexSwitchFunction : public mf::MultiFunction {
 
 class LazyFunctionForIndexSwitchNode : public LazyFunction {
  private:
+  const bNode &node_;
   bool can_be_field_ = false;
+  const CPPType *field_base_type_;
 
  public:
-  LazyFunctionForIndexSwitchNode(const bNode &node)
+  LazyFunctionForIndexSwitchNode(const bNode &node) : node_(node)
   {
     const NodeIndexSwitch &storage = node_storage(node);
     const eNodeSocketDatatype data_type = eNodeSocketDatatype(storage.data_type);
     can_be_field_ = socket_type_supports_fields(data_type);
 
-    const CPPType &cpp_type = *node.output_socket(0).typeinfo->geometry_nodes_cpp_type;
+    const bNodeSocket &output_socket = node.output_socket(0);
+    const CPPType &cpp_type = *output_socket.typeinfo->geometry_nodes_cpp_type;
+    field_base_type_ = output_socket.typeinfo->base_cpp_type;
 
     debug_name_ = node.name;
-    inputs_.append_as("Index", CPPType::get<ValueOrField<int>>(), lf::ValueUsage::Used);
+    inputs_.append_as("Index", CPPType::get<SocketValueVariant>(), lf::ValueUsage::Used);
     for (const int i : storage.items_span().index_range()) {
       const bNodeSocket &input = node.input_socket(value_inputs_start + i);
       inputs_.append_as(input.identifier, cpp_type, lf::ValueUsage::Maybe);
@@ -193,18 +200,12 @@ class LazyFunctionForIndexSwitchNode : public LazyFunction {
 
   void execute_impl(lf::Params &params, const lf::Context & /*context*/) const override
   {
-    const ValueOrField<int> index = params.get_input<ValueOrField<int>>(0);
-    if (index.is_field() && can_be_field_) {
-      Field<int> index_field = index.as_field();
-      if (index_field.node().depends_on_input()) {
-        this->execute_field(index.as_field(), params);
-      }
-      else {
-        this->execute_single(fn::evaluate_constant_field(index_field), params);
-      }
+    SocketValueVariant index_variant = params.get_input<SocketValueVariant>(0);
+    if (index_variant.is_context_dependent_field() && can_be_field_) {
+      this->execute_field(index_variant.get<Field<int>>(), params);
     }
     else {
-      this->execute_single(index.as_value(), params);
+      this->execute_single(index_variant.get<int>(), params);
     }
   }
 
@@ -224,7 +225,7 @@ class LazyFunctionForIndexSwitchNode : public LazyFunction {
 
     /* Check for an invalid index. */
     if (!IndexRange(values_num).contains(index)) {
-      params.set_default_remaining_outputs();
+      set_default_remaining_node_outputs(params, node_);
       return;
     }
 
@@ -243,30 +244,27 @@ class LazyFunctionForIndexSwitchNode : public LazyFunction {
   void execute_field(Field<int> index, lf::Params &params) const
   {
     const int values_num = this->values_num();
-    Array<void *, 8> input_values(values_num);
+    Array<SocketValueVariant *, 8> input_values(values_num);
     for (const int i : IndexRange(values_num)) {
-      input_values[i] = params.try_get_input_data_ptr_or_request(value_inputs_start + i);
+      input_values[i] = params.try_get_input_data_ptr_or_request<SocketValueVariant>(
+          value_inputs_start + i);
     }
     if (input_values.as_span().contains(nullptr)) {
       /* Try again when inputs are available. */
       return;
     }
 
-    const CPPType &type = *outputs_[0].type;
-    const auto &value_or_field_type = *bke::ValueOrFieldCPPType::get_from_self(type);
-    const CPPType &value_type = value_or_field_type.value;
-
     Vector<GField> input_fields({std::move(index)});
     for (const int i : IndexRange(values_num)) {
-      input_fields.append(value_or_field_type.as_field(input_values[i]));
+      input_fields.append(input_values[i]->extract<GField>());
     }
 
     std::unique_ptr<mf::MultiFunction> switch_fn = std::make_unique<IndexSwitchFunction>(
-        value_type, values_num);
+        *field_base_type_, values_num);
     GField output_field(FieldOperation::Create(std::move(switch_fn), std::move(input_fields)));
 
     void *output_ptr = params.get_output_data_ptr(0);
-    value_or_field_type.construct_from_field(output_ptr, std::move(output_field));
+    new (output_ptr) SocketValueVariant(std::move(output_field));
     params.output_set(0);
   }
 };

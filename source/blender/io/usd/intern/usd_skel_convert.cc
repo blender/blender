@@ -16,8 +16,6 @@
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_key_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_scene_types.h"
 
@@ -41,6 +39,7 @@
 #include "ED_keyframing.hh"
 #include "ED_mesh.hh"
 
+#include "ANIM_animdata.hh"
 #include "ANIM_fcurve.hh"
 
 #include "WM_api.hh"
@@ -141,7 +140,7 @@ void import_skeleton_curves(Main *bmain,
   const size_t num_samples = samples.size();
 
   /* Create the action on the armature. */
-  bAction *act = ED_id_action_ensure(bmain, (ID *)&arm_obj->id);
+  bAction *act = blender::animrig::id_action_ensure(bmain, (ID *)&arm_obj->id);
 
   /* Create the curves. */
 
@@ -590,7 +589,7 @@ void import_blendshapes(Main *bmain,
   const size_t num_samples = times.size();
 
   /* Create the animation and curves. */
-  bAction *act = ED_id_action_ensure(bmain, (ID *)&key->id);
+  bAction *act = blender::animrig::id_action_ensure(bmain, (ID *)&key->id);
   std::vector<FCurve *> curves;
 
   for (auto blendshape_name : blendshapes) {
@@ -988,7 +987,7 @@ void import_mesh_skel_bindings(Main *bmain,
 
   /* Sanity check: make sure we have the expected number of values for the interpolation type. */
   if (interp == pxr::UsdGeomTokens->vertex &&
-      joint_weights.size() != mesh->totvert * joint_weights_elem_size)
+      joint_weights.size() != mesh->verts_num * joint_weights_elem_size)
   {
     BKE_reportf(reports,
                 RPT_WARNING,
@@ -1051,7 +1050,7 @@ void import_mesh_skel_bindings(Main *bmain,
   }
 
   /* Set the deform group verts and weights. */
-  for (int i = 0; i < mesh->totvert; ++i) {
+  for (int i = 0; i < mesh->verts_num; ++i) {
     /* Offset into the weights array, which is
      * always 0 for constant interpolation. */
     int offset = 0;

@@ -87,10 +87,10 @@ class HandleTypeFieldInput final : public bke::CurvesFieldInput {
   }
 
   GVArray get_varray_for_context(const bke::CurvesGeometry &curves,
-                                 const eAttrDomain domain,
+                                 const AttrDomain domain,
                                  const IndexMask &mask) const final
   {
-    if (domain != ATTR_DOMAIN_POINT) {
+    if (domain != AttrDomain::Point) {
       return {};
     }
     Array<bool> selection(mask.min_array_size());
@@ -113,9 +113,9 @@ class HandleTypeFieldInput final : public bke::CurvesFieldInput {
     return false;
   }
 
-  std::optional<eAttrDomain> preferred_domain(const CurvesGeometry & /*curves*/) const
+  std::optional<AttrDomain> preferred_domain(const CurvesGeometry & /*curves*/) const
   {
-    return ATTR_DOMAIN_POINT;
+    return AttrDomain::Point;
   }
 };
 

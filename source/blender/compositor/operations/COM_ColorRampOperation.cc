@@ -4,7 +4,7 @@
 
 #include "COM_ColorRampOperation.h"
 
-#include "BKE_colorband.h"
+#include "BKE_colorband.hh"
 
 namespace blender::compositor {
 

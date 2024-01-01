@@ -19,8 +19,6 @@
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_userdef_types.h"
 
@@ -31,7 +29,7 @@
 #include "BKE_customdata.hh"
 #include "BKE_global.h"
 #include "BKE_lib_id.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mirror.hh"
 #include "BKE_mesh_remesh_voxel.hh"
@@ -41,8 +39,8 @@
 #include "BKE_paint.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_shrinkwrap.h"
-#include "BKE_unit.h"
+#include "BKE_shrinkwrap.hh"
+#include "BKE_unit.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
@@ -118,6 +116,7 @@ static bool object_remesh_poll(bContext *C)
 static int voxel_remesh_exec(bContext *C, wmOperator *op)
 {
   using namespace blender;
+  using namespace blender::ed;
   Object *ob = CTX_data_active_object(C);
 
   Mesh *mesh = static_cast<Mesh *>(ob->data);
@@ -138,9 +137,17 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
 
   bool is_dyntopo = false;
 
+  Mesh *new_mesh = BKE_mesh_remesh_voxel(
+      mesh, mesh->remesh_voxel_size, mesh->remesh_voxel_adaptivity, isovalue);
+
+  if (!new_mesh) {
+    BKE_report(op->reports, RPT_ERROR, "Voxel remesher failed to create mesh");
+    return OPERATOR_CANCELLED;
+  }
+
   if (ob->mode == OB_MODE_SCULPT) {
-    BKE_sculpt_update_object_for_edit(CTX_data_depsgraph_pointer(C), ob, false, false, false);
-    ED_sculpt_undo_geometry_begin(ob, op);
+    BKE_sculpt_update_object_for_edit(CTX_data_depsgraph_pointer(C), ob, false);
+    sculpt_paint::undo::geometry_begin(ob, op);
 
     if (ob->sculpt->bm) {
       is_dyntopo = true;
@@ -149,14 +156,6 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
       /* Destroy dyntopo IDs so we don't waste time reprojecting them. */
       BM_idmap_clear_attributes_mesh(mesh);
     }
-  }
-
-  Mesh *new_mesh = BKE_mesh_remesh_voxel(
-      mesh, mesh->remesh_voxel_size, mesh->remesh_voxel_adaptivity, isovalue);
-
-  if (!new_mesh) {
-    BKE_report(op->reports, RPT_ERROR, "Voxel remesher failed to create mesh");
-    return OPERATOR_CANCELLED;
   }
 
   if (mesh->flag & ME_REMESH_FIX_POLES && mesh->remesh_voxel_adaptivity <= 0.0f) {
@@ -171,6 +170,11 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
 
   if (mesh->flag & ME_REMESH_REPROJECT_ATTRIBUTES) {
     bke::mesh_remesh_reproject_attributes(*mesh, *new_mesh);
+  }
+  else {
+    const VArray<bool> sharp_face = *mesh->attributes().lookup_or_default<bool>(
+        "sharp_face", bke::AttrDomain::Face, false);
+    bke::mesh_smooth_set(*new_mesh, !sharp_face[0]);
   }
 
   BKE_mesh_nomain_to_mesh(new_mesh, mesh, ob);
@@ -192,7 +196,7 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
       BKE_sculpt_ensure_idmap(ob);
     }
 
-    ED_sculpt_undo_geometry_end(ob);
+    sculpt_paint::undo::geometry_end(ob);
   }
 
   BKE_mesh_batch_cache_dirty_tag(static_cast<Mesh *>(ob->data), BKE_MESH_BATCH_DIRTY_ALL);
@@ -697,11 +701,11 @@ static bool mesh_is_manifold_consistent(Mesh *mesh)
   const Span<int> corner_edges = mesh->corner_edges();
 
   bool is_manifold_consistent = true;
-  char *edge_faces = (char *)MEM_callocN(mesh->totedge * sizeof(char), "remesh_manifold_check");
+  char *edge_faces = (char *)MEM_callocN(mesh->edges_num * sizeof(char), "remesh_manifold_check");
   int *edge_vert = (int *)MEM_malloc_arrayN(
-      mesh->totedge, sizeof(uint), "remesh_consistent_check");
+      mesh->edges_num, sizeof(uint), "remesh_consistent_check");
 
-  for (uint i = 0; i < mesh->totedge; i++) {
+  for (uint i = 0; i < mesh->edges_num; i++) {
     edge_vert[i] = -1;
   }
 
@@ -849,6 +853,8 @@ static Mesh *remesh_symmetry_mirror(Object *ob, Mesh *mesh, eSymmetryAxes symmet
 
 static void quadriflow_start_job(void *customdata, wmJobWorkerStatus *worker_status)
 {
+  using namespace blender;
+  using namespace blender::ed;
   QuadriFlowJob *qj = static_cast<QuadriFlowJob *>(customdata);
 
   qj->stop = &worker_status->stop;
@@ -907,7 +913,7 @@ static void quadriflow_start_job(void *customdata, wmJobWorkerStatus *worker_sta
   new_mesh = remesh_symmetry_mirror(qj->owner, new_mesh, qj->symmetry_axes);
 
   if (ob->mode == OB_MODE_SCULPT) {
-    ED_sculpt_undo_geometry_begin(ob, qj->op);
+    sculpt_paint::undo::geometry_begin(ob, qj->op);
   }
 
   if (qj->preserve_attributes) {
@@ -916,10 +922,10 @@ static void quadriflow_start_job(void *customdata, wmJobWorkerStatus *worker_sta
 
   BKE_mesh_nomain_to_mesh(new_mesh, mesh, ob);
 
-  BKE_mesh_smooth_flag_set(static_cast<Mesh *>(ob->data), qj->smooth_normals);
+  bke::mesh_smooth_set(*static_cast<Mesh *>(ob->data), qj->smooth_normals);
 
   if (ob->mode == OB_MODE_SCULPT) {
-    ED_sculpt_undo_geometry_end(ob);
+    sculpt_paint::undo::geometry_end(ob);
   }
 
   BKE_mesh_batch_cache_dirty_tag(static_cast<Mesh *>(ob->data), BKE_MESH_BATCH_DIRTY_ALL);

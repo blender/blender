@@ -109,6 +109,21 @@ static void ui_popup_block_position(wmWindow *window,
     }
   }
 
+  /* Trim the popup and its contents to the width of the button if the size difference
+   * is small. This avoids cases where the rounded corner clips underneath the button. */
+  const int delta = BLI_rctf_size_x(&block->rect) - BLI_rctf_size_x(&butrct);
+  const float max_radius = (0.5f * U.widget_unit);
+
+  if (delta >= 0 && delta < max_radius) {
+    LISTBASE_FOREACH (uiBut *, bt, &block->buttons) {
+      /* Only trim the right most buttons in multi-column popovers. */
+      if (bt->rect.xmax == block->rect.xmax) {
+        bt->rect.xmax -= delta;
+      }
+    }
+    block->rect.xmax -= delta;
+  }
+
   ui_block_to_window_rctf(butregion, but->block, &block->rect, &block->rect);
 
   /* Compute direction relative to button, based on available space. */
@@ -339,7 +354,26 @@ static void ui_popup_block_position(wmWindow *window,
         block->safety.xmin = block->rect.xmin - s2;
       }
     }
-    block->direction = dir1;
+
+    const bool fully_aligned_with_button = BLI_rctf_size_x(&block->rect) <=
+                                           BLI_rctf_size_x(&butrct) + 1;
+    const bool off_screen_left = (block->rect.xmin < 0);
+    const bool off_screen_right = (block->rect.xmax > win_x);
+
+    if (fully_aligned_with_button) {
+      /* Popup is neither left or right from the button. */
+      dir2 &= ~(UI_DIR_LEFT | UI_DIR_RIGHT);
+    }
+    else if (off_screen_left || off_screen_right) {
+      /* Popup is both left and right from the button. */
+      dir2 |= (UI_DIR_LEFT | UI_DIR_RIGHT);
+    }
+
+    /* Popovers don't need secondary direction. Pull-downs to
+     * the left or right are currently not supported. */
+    const bool no_2nd_dir = (but->type == UI_BTYPE_POPOVER || ui_but_menu_draw_as_popover(but) ||
+                             dir1 & (UI_DIR_RIGHT | UI_DIR_LEFT));
+    block->direction = no_2nd_dir ? dir1 : (dir1 | dir2);
   }
 
   /* Keep a list of these, needed for pull-down menus. */
@@ -561,7 +595,7 @@ uiBlock *ui_popup_block_refresh(bContext *C,
 
   BLI_assert(!handle->refresh || handle->can_refresh);
 
-#ifdef DEBUG
+#ifndef NDEBUG
   wmEvent *event_back = window->eventstate;
   wmEvent *event_last_back = window->event_last_handled;
 #endif
@@ -584,7 +618,7 @@ uiBlock *ui_popup_block_refresh(bContext *C,
   BLI_assert(!block->endblock);
 
   /* ensure we don't use mouse coords here! */
-#ifdef DEBUG
+#ifndef NDEBUG
   window->eventstate = nullptr;
 #endif
 
@@ -749,7 +783,7 @@ uiBlock *ui_popup_block_refresh(bContext *C,
 
   ED_region_update_rect(region);
 
-#ifdef DEBUG
+#ifndef NDEBUG
   window->eventstate = event_back;
   window->event_last_handled = event_last_back;
 #endif

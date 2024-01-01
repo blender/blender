@@ -30,30 +30,24 @@
 
 #include "sculpt_intern.hh"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
 #include <cmath>
 #include <cstdlib>
 
-using blender::float2;
-using blender::float3;
-using blender::float4;
-using blender::IndexRange;
-using blender::MutableSpan;
-using blender::Set;
-using blender::Span;
-using blender::Vector;
+using namespace blender;
 
 #define SMOOTH_FACE_CORNERS
 
-float BKE_pbvh_bmesh_detail_size_avg_get(PBVH *pbvh);
+namespace blender::ed::sculpt_paint::smooth {
 
 #if 0
 static void SCULPT_neighbor_coors_average_for_detail(SculptSession *ss,
                                                      float result[3],
                                                      PBVHVertRef vertex)
+
 {
-  float detail = BKE_pbvh_bmesh_detail_size_avg_get(ss->pbvh);
+  float detail = bke::pbvh::bmesh_detail_size_avg_get(ss->pbvh);
 
   float original_vertex_co[3];
   copy_v3_v3(original_vertex_co, SCULPT_vertex_co_get(ss, vertex));
@@ -292,14 +286,14 @@ static void SCULPT_neighbor_coords_average_interior_ex(SculptSession *ss,
   }
 }
 
-void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
-                                             float result[3],
-                                             PBVHVertRef vertex,
-                                             float projection,
-                                             float hard_corner_pin,
-                                             bool use_area_weights,
-                                             bool smooth_origco,
-                                             float factor)
+void neighbor_coords_average_interior(SculptSession *ss,
+                                      float result[3],
+                                      PBVHVertRef vertex,
+                                      float projection,
+                                      float hard_corner_pin,
+                                      bool use_area_weights,
+                                      bool smooth_origco,
+                                      float factor)
 {
   eSculptBoundary bound_type = ss->smooth_boundary_flag;
   eSculptCorner corner_type;
@@ -439,17 +433,17 @@ void SCULPT_get_normal_average(
   }
 }
 
-void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
-                                        float avg[3],
-                                        float direction_in[3],
-                                        BMVert *v,
-                                        float projection,
-                                        float hard_corner_pin,
-                                        int cd_temp,
-                                        bool weighted,
-                                        bool do_origco,
-                                        float factor,
-                                        bool reproject_uvs)
+void bmesh_four_neighbor_average(SculptSession *ss,
+                                 float avg[3],
+                                 float direction_in[3],
+                                 BMVert *v,
+                                 float projection,
+                                 float hard_corner_pin,
+                                 int cd_temp,
+                                 bool weighted,
+                                 bool do_origco,
+                                 float factor,
+                                 bool reproject_uvs)
 {
   float avg_co[3] = {0.0f, 0.0f, 0.0f};
   float tot_co = 0.0f;
@@ -756,13 +750,13 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
 /* Generic functions for laplacian smoothing. These functions do not take boundary vertices into
  * account. */
 
-void SCULPT_neighbor_coords_average(SculptSession *ss,
-                                    float result[3],
-                                    PBVHVertRef vertex,
-                                    float projection,
-                                    float hard_corner_pin,
-                                    bool weighted,
-                                    float factor)
+void neighbor_coords_average(SculptSession *ss,
+                             float result[3],
+                             PBVHVertRef vertex,
+                             float projection,
+                             float hard_corner_pin,
+                             bool weighted,
+                             float factor)
 {
   eSculptCorner corner_type = SCULPT_CORNER_SHARP_MARK | SCULPT_CORNER_FACE_SET;
   eSculptBoundary bound_type = SCULPT_BOUNDARY_SHARP_MARK | SCULPT_BOUNDARY_SEAM |
@@ -780,7 +774,7 @@ void SCULPT_neighbor_coords_average(SculptSession *ss,
                                                     factor);
 }
 
-float SCULPT_neighbor_mask_average(SculptSession *ss, PBVHVertRef vertex)
+float neighbor_mask_average(SculptSession *ss, PBVHVertRef vertex)
 {
   float avg = 0.0f;
   int total = 0;
@@ -798,7 +792,7 @@ float SCULPT_neighbor_mask_average(SculptSession *ss, PBVHVertRef vertex)
   return SCULPT_vertex_mask_get(ss, vertex);
 }
 
-void SCULPT_neighbor_color_average(SculptSession *ss, float result[4], PBVHVertRef vertex)
+void neighbor_color_average(SculptSession *ss, float result[4], PBVHVertRef vertex)
 {
   float avg[4] = {0.0f, 0.0f, 0.0f, 0.0f};
   int total = 0;
@@ -839,15 +833,14 @@ static void do_enhance_details_brush_task(Object *ob,
       ss, &test, brush->falloff_shape);
 
   const int thread_id = BLI_task_parallel_thread_id(nullptr);
-  AutomaskingNodeData automask_data;
-  SCULPT_automasking_node_begin(ob, ss->cache->automasking, &automask_data, node);
+  auto_mask::NodeData automask_data = auto_mask::node_begin(*ob, ss->cache->automasking, *node);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
     }
 
-    SCULPT_automasking_node_update(&automask_data, &vd);
+    auto_mask::node_update(automask_data, vd);
 
     const float fade = bstrength * SCULPT_brush_strength_factor(ss,
                                                                 brush,
@@ -874,13 +867,12 @@ static void do_enhance_details_brush_task(Object *ob,
   BKE_pbvh_vertex_iter_end;
 }
 
-static void SCULPT_enhance_details_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
+static void enhance_details_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
 {
-  using namespace blender;
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
 
-  SCULPT_smooth_undo_push(sd, ob, nodes, brush);
+  smooth_undo_push(sd, ob, nodes, brush);
 
   SCULPT_vertex_random_access_ensure(ss);
   SCULPT_boundary_info_ensure(ob);
@@ -897,15 +889,14 @@ static void SCULPT_enhance_details_brush(Sculpt *sd, Object *ob, Span<PBVHNode *
       params.stroke_only = true;
 
       ss->attrs.detail_directions = BKE_sculpt_attribute_ensure(
-          ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, SCULPT_ATTRIBUTE_NAME(laplacian_disp), &params);
+          ob, AttrDomain::Point, CD_PROP_FLOAT3, SCULPT_ATTRIBUTE_NAME(laplacian_disp), &params);
     }
 
     for (int i = 0; i < totvert; i++) {
       PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
       float avg[3];
-      SCULPT_neighbor_coords_average(
-          ss, avg, vertex, projection, hard_corner_pin, use_area_weights);
+      neighbor_coords_average(ss, avg, vertex, projection, hard_corner_pin, use_area_weights);
       float *detail_dir = blender::bke::paint::vertex_attr_ptr<float>(vertex,
                                                                       ss->attrs.detail_directions);
 
@@ -932,7 +923,7 @@ static void do_smooth_brush_task(Object *ob,
   SculptSession *ss = ob->sculpt;
 
   PBVHVertexIter vd;
-  const bool do_reproject = SCULPT_need_reproject(ss);
+  const bool do_reproject = need_reproject(ss);
 
   CLAMP(bstrength, 0.0f, 1.0f);
 
@@ -941,8 +932,7 @@ static void do_smooth_brush_task(Object *ob,
       ss, &test, brush->falloff_shape);
 
   const int thread_id = BLI_task_parallel_thread_id(nullptr);
-  AutomaskingNodeData automask_data;
-  SCULPT_automasking_node_begin(ob, ss->cache->automasking, &automask_data, node);
+  auto_mask::NodeData automask_data = auto_mask::node_begin(*ob, ss->cache->automasking, *node);
 
   float projection = brush->autosmooth_projection;
   bool weighted = brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT;
@@ -957,7 +947,7 @@ static void do_smooth_brush_task(Object *ob,
 
     modified = true;
 
-    SCULPT_automasking_node_update(&automask_data, &vd);
+    auto_mask::node_update(automask_data, vd);
 
     float fade = bstrength * SCULPT_brush_strength_factor(ss,
                                                           brush,
@@ -971,7 +961,7 @@ static void do_smooth_brush_task(Object *ob,
                                                           &automask_data);
 
     if (smooth_mask) {
-      float val = SCULPT_neighbor_mask_average(ss, vd.vertex) - vd.mask;
+      float val = neighbor_mask_average(ss, vd.vertex) - vd.mask;
       val *= fade * bstrength;
       float new_mask = vd.mask + val;
       CLAMP(new_mask, 0.0f, 1.0f);
@@ -985,13 +975,13 @@ static void do_smooth_brush_task(Object *ob,
       SCULPT_vertex_normal_get(ss, vd.vertex, oldno);
 
       float avg[3], val[3];
-      SCULPT_neighbor_coords_average_interior(
+      neighbor_coords_average_interior(
           ss, avg, vd.vertex, projection, hard_corner_pin, weighted, false, fade);
 
       if (smooth_origco) {
         float origco_avg[3];
 
-        SCULPT_neighbor_coords_average_interior(
+        neighbor_coords_average_interior(
             ss, origco_avg, vd.vertex, projection, hard_corner_pin, weighted, true, fade);
 
         float *origco = blender::bke::paint::vertex_attr_ptr<float>(vd.vertex, ss->attrs.orig_co);
@@ -1019,12 +1009,12 @@ static void do_smooth_brush_task(Object *ob,
   }
 }
 
-void SCULPT_smooth_undo_push(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes, Brush *brush)
+void smooth_undo_push(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes, Brush *brush)
 {
   SculptSession *ss = ob->sculpt;
 
-  if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH && SCULPT_need_reproject(ss)) {
-    bool have_dyntopo = SCULPT_stroke_is_dynamic_topology(ss, sd, brush);
+  if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH && need_reproject(ss)) {
+    bool have_dyntopo = dyntopo::stroke_is_dyntopo(ss, sd, brush);
 
     for (PBVHNode *node : nodes) {
       PBVHFaceIter fd;
@@ -1044,10 +1034,9 @@ void SCULPT_smooth_undo_push(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes, Bru
   }
 }
 
-void SCULPT_smooth(
+void do_smooth_brush(
     Sculpt *sd, Object *ob, Span<PBVHNode *> nodes, float bstrength, const bool smooth_mask)
 {
-  using namespace blender;
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
 
@@ -1057,7 +1046,7 @@ void SCULPT_smooth(
   float last;
 
   SCULPT_boundary_info_ensure(ob);
-  SCULPT_smooth_undo_push(sd, ob, nodes, brush);
+  smooth_undo_push(sd, ob, nodes, brush);
 
   /* PBVH_FACES needs ss->epmap. */
   if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES && ss->epmap.is_empty()) {
@@ -1102,7 +1091,7 @@ void SCULPT_smooth(
   }
 }
 
-void SCULPT_do_smooth_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
+void do_smooth_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
 {
   SculptSession *ss = ob->sculpt;
 
@@ -1112,39 +1101,39 @@ void SCULPT_do_smooth_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
    * the middle of the stroke. */
   if (ss->cache->bstrength < 0.0f) {
     /* Invert mode, intensify details. */
-    SCULPT_enhance_details_brush(sd, ob, nodes);
+    enhance_details_brush(sd, ob, nodes);
   }
   else {
     /* Regular mode, smooth. */
-    SCULPT_smooth(sd, ob, nodes, ss->cache->bstrength, false);
+    do_smooth_brush(sd, ob, nodes, ss->cache->bstrength, false);
   }
 }
 
-void SCULPT_surface_smooth_laplacian_init(Object *ob)
+void surface_smooth_laplacian_init(Object *ob)
 {
   SculptAttributeParams params = {};
 
   params.stroke_only = true;
 
   ob->sculpt->attrs.laplacian_disp = BKE_sculpt_attribute_ensure(
-      ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, SCULPT_ATTRIBUTE_NAME(laplacian_disp), &params);
+      ob, AttrDomain::Point, CD_PROP_FLOAT3, SCULPT_ATTRIBUTE_NAME(laplacian_disp), &params);
 }
 
 /* HC Smooth Algorithm. */
 /* From: Improved Laplacian Smoothing of Noisy Surface Meshes */
 
-void SCULPT_surface_smooth_laplacian_step(SculptSession *ss,
-                                          float *disp,
-                                          const float co[3],
-                                          const PBVHVertRef vertex,
-                                          const float origco[3],
-                                          const float alpha,
-                                          bool use_area_weights)
+void surface_smooth_laplacian_step(SculptSession *ss,
+                                   float *disp,
+                                   const float co[3],
+                                   const PBVHVertRef vertex,
+                                   const float origco[3],
+                                   const float alpha,
+                                   bool use_area_weights)
 {
   float laplacian_smooth_co[3];
   float weigthed_o[3], weigthed_q[3], d[3];
 
-  SCULPT_neighbor_coords_average(ss, laplacian_smooth_co, vertex, 0.0f, 0.0f, use_area_weights);
+  neighbor_coords_average(ss, laplacian_smooth_co, vertex, 0.0f, 0.0f, use_area_weights);
 
   mul_v3_v3fl(weigthed_o, origco, alpha);
   mul_v3_v3fl(weigthed_q, co, 1.0f - alpha);
@@ -1157,7 +1146,7 @@ void SCULPT_surface_smooth_laplacian_step(SculptSession *ss,
   sub_v3_v3v3(disp, laplacian_smooth_co, co);
 }
 
-void SCULPT_surface_smooth_displace_step(
+void surface_smooth_displace_step(
     SculptSession *ss, float *co, const PBVHVertRef vertex, const float beta, const float fade)
 {
   float b_avg[3] = {0.0f, 0.0f, 0.0f};
@@ -1197,9 +1186,8 @@ static void do_surface_smooth_brush_laplacian_task(Object *ob, const Brush *brus
       ss, &test, brush->falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(nullptr);
 
-  SCULPT_orig_vert_data_init(&orig_data, ob, node, SCULPT_UNDO_COORDS);
-  AutomaskingNodeData automask_data;
-  SCULPT_automasking_node_begin(ob, ss->cache->automasking, &automask_data, node);
+  SCULPT_orig_vert_data_init(&orig_data, ob, node, undo::Type::Position);
+  auto_mask::NodeData automask_data = auto_mask::node_begin(*ob, ss->cache->automasking, *node);
 
   bool weighted = brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT;
 
@@ -1209,7 +1197,7 @@ static void do_surface_smooth_brush_laplacian_task(Object *ob, const Brush *brus
       continue;
     }
 
-    SCULPT_automasking_node_update(&automask_data, &vd);
+    auto_mask::node_update(automask_data, vd);
 
     const float fade = bstrength * SCULPT_brush_strength_factor(ss,
                                                                 brush,
@@ -1223,8 +1211,7 @@ static void do_surface_smooth_brush_laplacian_task(Object *ob, const Brush *brus
                                                                 &automask_data);
 
     float disp[3];
-    SCULPT_surface_smooth_laplacian_step(
-        ss, disp, vd.co, vd.vertex, orig_data.co, alpha, weighted);
+    surface_smooth_laplacian_step(ss, disp, vd.co, vd.vertex, orig_data.co, alpha, weighted);
     madd_v3_v3fl(vd.co, disp, clamp_f(fade, 0.0f, 1.0f));
     if (vd.is_mesh) {
       BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
@@ -1245,15 +1232,14 @@ static void do_surface_smooth_brush_displace_task(Object *ob, const Brush *brush
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
       ss, &test, brush->falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(nullptr);
-  AutomaskingNodeData automask_data;
-  SCULPT_automasking_node_begin(ob, ss->cache->automasking, &automask_data, node);
+  auto_mask::NodeData automask_data = auto_mask::node_begin(*ob, ss->cache->automasking, *node);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
     }
 
-    SCULPT_automasking_node_update(&automask_data, &vd);
+    auto_mask::node_update(automask_data, vd);
 
     const float fade = bstrength * SCULPT_brush_strength_factor(ss,
                                                                 brush,
@@ -1265,19 +1251,18 @@ static void do_surface_smooth_brush_displace_task(Object *ob, const Brush *brush
                                                                 vd.vertex,
                                                                 thread_id,
                                                                 &automask_data);
-    SCULPT_surface_smooth_displace_step(ss, vd.co, vd.vertex, beta, fade);
+    surface_smooth_displace_step(ss, vd.co, vd.vertex, beta, fade);
     BKE_sculpt_sharp_boundary_flag_update(ss, vd.vertex);
   }
   BKE_pbvh_vertex_iter_end;
 }
 
-void SCULPT_do_surface_smooth_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
+void do_surface_smooth_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
 {
-  using namespace blender;
   Brush *brush = BKE_paint_brush(&sd->paint);
 
   SCULPT_boundary_info_ensure(ob);
-  SCULPT_smooth_undo_push(sd, ob, nodes, brush);
+  smooth_undo_push(sd, ob, nodes, brush);
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
@@ -1294,3 +1279,5 @@ void SCULPT_do_surface_smooth_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nod
     });
   }
 }
+
+}  // namespace blender::ed::sculpt_paint::smooth

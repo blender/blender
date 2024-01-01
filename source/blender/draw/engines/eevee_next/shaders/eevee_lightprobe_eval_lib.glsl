@@ -7,11 +7,15 @@
  * - grids_infos_buf
  * - bricks_infos_buf
  * - irradiance_atlas_tx
+ * Needed for sampling (not for upload):
+ * - util_tx
+ * - sampling_buf
  */
 
 #pragma BLENDER_REQUIRE(gpu_shader_codegen_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_lightprobe_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_spherical_harmonics_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_reflection_probe_eval_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_math_base_lib.glsl)
 
@@ -126,19 +130,35 @@ SphericalHarmonicL1 lightprobe_irradiance_sample(
     sampler3D atlas_tx, vec3 P, vec3 V, vec3 Ng, const bool do_bias)
 {
   vec3 lP;
-  int index = 0;
+  int index = -1;
+  int i = 0;
 #ifdef IRRADIANCE_GRID_UPLOAD
-  index = grid_start_index;
+  i = grid_start_index;
 #endif
-  for (; index < IRRADIANCE_GRID_MAX; index++) {
+#ifdef IRRADIANCE_GRID_SAMPLING
+  float random = interlieved_gradient_noise(UTIL_TEXEL, 0.0, 0.0);
+  random = fract(random + sampling_rng_1D_get(SAMPLING_LIGHTPROBE));
+#endif
+  for (; i < IRRADIANCE_GRID_MAX; i++) {
     /* Last grid is tagged as invalid to stop the iteration. */
-    if (grids_infos_buf[index].grid_size.x == -1) {
+    if (grids_infos_buf[i].grid_size.x == -1) {
       /* Sample the last grid instead. */
-      index -= 1;
+      index = i - 1;
       break;
     }
+
     /* If sample fall inside the grid, step out of the loop. */
-    if (lightprobe_irradiance_grid_local_coord(grids_infos_buf[index], P, lP)) {
+    if (lightprobe_irradiance_grid_local_coord(grids_infos_buf[i], P, lP)) {
+      index = i;
+#ifdef IRRADIANCE_GRID_SAMPLING
+      float distance_to_border = reduce_min(min(lP, vec3(grids_infos_buf[i].grid_size) - lP));
+      if (distance_to_border < random) {
+        /* Remap random to the remaining interval. */
+        random = (random - distance_to_border) / (1.0 - distance_to_border);
+        /* Try to sample another grid to get smooth transitions at borders. */
+        continue;
+      }
+#endif
       break;
     }
   }
@@ -195,14 +215,6 @@ struct LightProbeSample {
   SphericalHarmonicL1 volume_irradiance;
   int spherical_id;
 };
-
-#  if defined(GPU_FRAGMENT_SHADER)
-#    define UTIL_TEXEL vec2(gl_FragCoord)
-#  elif defined(GPU_COMPUTE_SHADER)
-#    define UTIL_TEXEL vec2(gl_GlobalInvocationID)
-#  else
-#    define UTIL_TEXEL vec2(gl_VertexID, 0)
-#  endif
 
 /**
  * Return cached light-probe data at P.
@@ -282,9 +294,15 @@ float lightprobe_roughness_to_lod(float roughness)
   return sqrt(roughness) * 11.0;
 }
 
-vec3 lightprobe_eval(LightProbeSample samp, ClosureDiffuse diffuse, vec3 P, vec3 V, vec2 noise)
+vec3 lightprobe_eval(LightProbeSample samp, ClosureDiffuse cl, vec3 P, vec3 V, vec2 noise)
 {
-  vec3 radiance_sh = spherical_harmonics_evaluate_lambert(diffuse.N, samp.volume_irradiance);
+  vec3 radiance_sh = spherical_harmonics_evaluate_lambert(cl.N, samp.volume_irradiance);
+  return radiance_sh;
+}
+
+vec3 lightprobe_eval(LightProbeSample samp, ClosureTranslucent cl, vec3 P, vec3 V, vec2 noise)
+{
+  vec3 radiance_sh = spherical_harmonics_evaluate_lambert(-cl.N, samp.volume_irradiance);
   return radiance_sh;
 }
 

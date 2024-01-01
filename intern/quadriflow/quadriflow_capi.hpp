@@ -10,8 +10,8 @@ extern "C" {
 #endif
 
 typedef struct QuadriflowRemeshData {
-  float *verts;
-  int *faces;
+  const float *verts;
+  const int *faces;
   int totfaces;
   int totverts;
 

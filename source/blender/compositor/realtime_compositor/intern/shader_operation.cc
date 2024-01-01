@@ -41,7 +41,8 @@ using namespace nodes::derived_node_tree_types;
 ShaderOperation::ShaderOperation(Context &context, ShaderCompileUnit &compile_unit)
     : Operation(context), compile_unit_(compile_unit)
 {
-  material_ = GPU_material_from_callbacks(&construct_material, &generate_code, this);
+  material_ = GPU_material_from_callbacks(
+      GPU_MAT_COMPOSITOR, &construct_material, &generate_code, this);
   GPU_material_status_set(material_, GPU_MAT_QUEUED);
   GPU_material_compile(material_);
 }

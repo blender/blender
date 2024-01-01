@@ -9,7 +9,6 @@ set(INC
   ../../editors/include
   ../../blenkernel
   ../../blentranslation
-  ../../depsgraph
   ../../functions
   ../../gpu
   ../../imbuf
@@ -60,6 +59,7 @@ set(SRC
   nodes/node_composite_double_edge_mask.cc
   nodes/node_composite_ellipsemask.cc
   nodes/node_composite_exposure.cc
+  nodes/node_composite_file_output.cc
   nodes/node_composite_filter.cc
   nodes/node_composite_flip.cc
   nodes/node_composite_gamma.cc
@@ -86,7 +86,6 @@ set(SRC
   nodes/node_composite_moviedistortion.cc
   nodes/node_composite_normal.cc
   nodes/node_composite_normalize.cc
-  nodes/node_composite_output_file.cc
   nodes/node_composite_pixelate.cc
   nodes/node_composite_planetrackdeform.cc
   nodes/node_composite_posterize.cc
@@ -102,7 +101,7 @@ set(SRC
   nodes/node_composite_sepcomb_ycca.cc
   nodes/node_composite_sepcomb_yuva.cc
   nodes/node_composite_setalpha.cc
-  nodes/node_composite_split_viewer.cc
+  nodes/node_composite_split.cc
   nodes/node_composite_stabilize2d.cc
   nodes/node_composite_sunbeams.cc
   nodes/node_composite_switch.cc
@@ -128,6 +127,7 @@ set(SRC
 
 set(LIB
   PRIVATE bf::blenlib
+  PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
   bf_realtime_compositor

@@ -100,7 +100,7 @@ static void distribute_grid(Mesh *mesh, ParticleSystem *psys)
   ParticleData *pa = nullptr;
   float min[3], max[3], delta[3], d;
   const blender::Span<blender::float3> positions = mesh->vert_positions();
-  int totvert = mesh->totvert, from = psys->part->from;
+  int totvert = mesh->verts_num, from = psys->part->from;
   int i, j, k, p, res = psys->part->grid_res, size[3], axis;
 
   /* find bounding box of dm */
@@ -475,7 +475,7 @@ static void distribute_from_verts_exec(ParticleTask *thread, ParticleData *pa, i
 
   zero_v4(pa->fuv);
 
-  if (pa->num != DMCACHE_NOTFOUND && pa->num < ctx->mesh->totvert) {
+  if (pa->num != DMCACHE_NOTFOUND && pa->num < ctx->mesh->verts_num) {
 
     /* This finds the first face to contain the emitting vertex,
      * this is not ideal, but is mostly fine as UV seams generally
@@ -1024,7 +1024,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
       const blender::Span<blender::float3> positions = mesh->vert_positions();
       const float(*orcodata)[3] = static_cast<const float(*)[3]>(
           CustomData_get_layer(&mesh->vert_data, CD_ORCO));
-      int totvert = mesh->totvert;
+      int totvert = mesh->verts_num;
 
       tree = BLI_kdtree_3d_new(totvert);
 
@@ -1044,7 +1044,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
   }
 
   /* Get total number of emission elements and allocate needed arrays */
-  totelem = (from == PART_FROM_VERT) ? mesh->totvert : mesh->totface_legacy;
+  totelem = (from == PART_FROM_VERT) ? mesh->verts_num : mesh->totface_legacy;
 
   if (totelem == 0) {
     distribute_invalid(sim, children ? PART_FROM_CHILD : 0);
@@ -1260,7 +1260,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
     const int *orig_index = nullptr;
 
     if (from == PART_FROM_VERT) {
-      if (mesh->totvert) {
+      if (mesh->verts_num) {
         orig_index = static_cast<const int *>(
             CustomData_get_layer(&mesh->vert_data, CD_ORIGINDEX));
       }

@@ -13,7 +13,7 @@
  * A typical example is a field that computes a displacement vector for every vertex on a mesh
  * based on its position.
  *
- * Fields can be build, composed and evaluated at run-time. They are stored in a directed tree
+ * Fields can be built, composed and evaluated at run-time. They are stored in a directed tree
  * graph data structure, whereby each node is a #FieldNode and edges are dependencies. A #FieldNode
  * has an arbitrary number of inputs and at least one output and a #Field references a specific
  * output of a #FieldNode. The inputs of a #FieldNode are other fields.
@@ -337,7 +337,6 @@ class FieldContext {
  * Utility class that makes it easier to evaluate fields.
  */
 class FieldEvaluator : NonMovable, NonCopyable {
- private:
   struct OutputPointerInfo {
     void *dst = nullptr;
     /* When a destination virtual array is provided for an input, this is

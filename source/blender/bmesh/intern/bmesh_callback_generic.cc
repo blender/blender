@@ -10,9 +10,9 @@
 
 #include "BLI_utildefines.h"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
-#include "intern/bmesh_callback_generic.h"
+#include "intern/bmesh_callback_generic.hh"
 
 bool BM_elem_cb_check_hflag_ex(BMElem *ele, void *user_data)
 {

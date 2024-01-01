@@ -2,11 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_math_matrix.hh"
 #include "BLI_math_vector.h"
-
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 
 #include "BKE_mesh.hh"
 
@@ -65,14 +61,14 @@ class AngleFieldInput final : public bke::MeshFieldInput {
   }
 
   GVArray get_varray_for_context(const Mesh &mesh,
-                                 const eAttrDomain domain,
+                                 const AttrDomain domain,
                                  const IndexMask & /*mask*/) const final
   {
     const Span<float3> positions = mesh.vert_positions();
     const OffsetIndices faces = mesh.faces();
     const Span<int> corner_verts = mesh.corner_verts();
     const Span<int> corner_edges = mesh.corner_edges();
-    Array<EdgeMapEntry> edge_map = create_edge_map(faces, corner_edges, mesh.totedge);
+    Array<EdgeMapEntry> edge_map = create_edge_map(faces, corner_edges, mesh.edges_num);
 
     auto angle_fn =
         [edge_map = std::move(edge_map), positions, faces, corner_verts](const int i) -> float {
@@ -86,8 +82,8 @@ class AngleFieldInput final : public bke::MeshFieldInput {
       return angle_normalized_v3v3(normal_1, normal_2);
     };
 
-    VArray<float> angles = VArray<float>::ForFunc(mesh.totedge, angle_fn);
-    return mesh.attributes().adapt_domain<float>(std::move(angles), ATTR_DOMAIN_EDGE, domain);
+    VArray<float> angles = VArray<float>::ForFunc(mesh.edges_num, angle_fn);
+    return mesh.attributes().adapt_domain<float>(std::move(angles), AttrDomain::Edge, domain);
   }
 
   uint64_t hash() const override
@@ -101,9 +97,9 @@ class AngleFieldInput final : public bke::MeshFieldInput {
     return dynamic_cast<const AngleFieldInput *>(&other) != nullptr;
   }
 
-  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
+  std::optional<AttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
   {
-    return ATTR_DOMAIN_EDGE;
+    return AttrDomain::Edge;
   }
 };
 
@@ -115,7 +111,7 @@ class SignedAngleFieldInput final : public bke::MeshFieldInput {
   }
 
   GVArray get_varray_for_context(const Mesh &mesh,
-                                 const eAttrDomain domain,
+                                 const AttrDomain domain,
                                  const IndexMask & /*mask*/) const final
   {
     const Span<float3> positions = mesh.vert_positions();
@@ -123,7 +119,7 @@ class SignedAngleFieldInput final : public bke::MeshFieldInput {
     const OffsetIndices faces = mesh.faces();
     const Span<int> corner_verts = mesh.corner_verts();
     const Span<int> corner_edges = mesh.corner_edges();
-    Array<EdgeMapEntry> edge_map = create_edge_map(faces, corner_edges, mesh.totedge);
+    Array<EdgeMapEntry> edge_map = create_edge_map(faces, corner_edges, mesh.edges_num);
 
     auto angle_fn = [edge_map = std::move(edge_map), positions, edges, faces, corner_verts](
                         const int i) -> float {
@@ -158,8 +154,8 @@ class SignedAngleFieldInput final : public bke::MeshFieldInput {
       return -angle;
     };
 
-    VArray<float> angles = VArray<float>::ForFunc(mesh.totedge, angle_fn);
-    return mesh.attributes().adapt_domain<float>(std::move(angles), ATTR_DOMAIN_EDGE, domain);
+    VArray<float> angles = VArray<float>::ForFunc(mesh.edges_num, angle_fn);
+    return mesh.attributes().adapt_domain<float>(std::move(angles), AttrDomain::Edge, domain);
   }
 
   uint64_t hash() const override
@@ -173,9 +169,9 @@ class SignedAngleFieldInput final : public bke::MeshFieldInput {
     return dynamic_cast<const SignedAngleFieldInput *>(&other) != nullptr;
   }
 
-  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
+  std::optional<AttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
   {
-    return ATTR_DOMAIN_EDGE;
+    return AttrDomain::Edge;
   }
 };
 

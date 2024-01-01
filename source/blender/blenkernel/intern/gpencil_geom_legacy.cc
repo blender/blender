@@ -25,6 +25,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_polyfill_2d.h"
 #include "BLI_span.hh"
@@ -46,7 +47,7 @@
 #include "BKE_gpencil_curve_legacy.h"
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
@@ -89,97 +90,41 @@ bool BKE_gpencil_stroke_minmax(const bGPDstroke *gps,
   return changed;
 }
 
-bool BKE_gpencil_data_minmax(const bGPdata *gpd, float r_min[3], float r_max[3])
+std::optional<blender::Bounds<blender::float3>> BKE_gpencil_data_minmax(const bGPdata *gpd)
 {
   bool changed = false;
 
-  INIT_MINMAX(r_min, r_max);
-
-  if (gpd == nullptr) {
-    return changed;
-  }
-
+  float3 min;
+  float3 max;
+  INIT_MINMAX(min, max);
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
     bGPDframe *gpf = gpl->actframe;
 
     if (gpf != nullptr) {
       LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
-        changed |= BKE_gpencil_stroke_minmax(gps, false, r_min, r_max);
+        changed |= BKE_gpencil_stroke_minmax(gps, false, min, max);
       }
     }
   }
 
-  return changed;
+  if (!changed) {
+    return std::nullopt;
+  }
+
+  return blender::Bounds<blender::float3>{min, max};
 }
 
 void BKE_gpencil_centroid_3d(bGPdata *gpd, float r_centroid[3])
 {
-  float3 min;
-  float3 max;
-  BKE_gpencil_data_minmax(gpd, min, max);
-
-  const float3 tot = min + max;
-  mul_v3_v3fl(r_centroid, tot, 0.5f);
+  using namespace blender;
+  const Bounds<float3> bounds = BKE_gpencil_data_minmax(gpd).value_or(Bounds(float3(0)));
+  copy_v3_v3(r_centroid, math::midpoint(bounds.min, bounds.max));
 }
 
 void BKE_gpencil_stroke_boundingbox_calc(bGPDstroke *gps)
 {
   INIT_MINMAX(gps->boundbox_min, gps->boundbox_max);
   BKE_gpencil_stroke_minmax(gps, false, gps->boundbox_min, gps->boundbox_max);
-}
-
-/**
- * Create bounding box values.
- * \param ob: Grease pencil object
- */
-static void boundbox_gpencil(Object *ob)
-{
-  if (ob->runtime->bb == nullptr) {
-    ob->runtime->bb = MEM_cnew<BoundBox>("GPencil boundbox");
-  }
-
-  BoundBox *bb = ob->runtime->bb;
-  bGPdata *gpd = (bGPdata *)ob->data;
-
-  float3 min;
-  float3 max;
-  if (!BKE_gpencil_data_minmax(gpd, min, max)) {
-    min = float3(-1);
-    max = float3(1);
-  }
-
-  BKE_boundbox_init_from_minmax(bb, min, max);
-
-  bb->flag &= ~BOUNDBOX_DIRTY;
-}
-
-BoundBox *BKE_gpencil_boundbox_get(Object *ob)
-{
-  if (ELEM(nullptr, ob, ob->data)) {
-    return nullptr;
-  }
-
-  bGPdata *gpd = (bGPdata *)ob->data;
-  if ((ob->runtime->bb) && ((gpd->flag & GP_DATA_CACHE_IS_DIRTY) == 0)) {
-    return ob->runtime->bb;
-  }
-
-  boundbox_gpencil(ob);
-
-  Object *ob_orig = (Object *)DEG_get_original_id(&ob->id);
-  /* Update orig object's boundbox with re-computed evaluated values. This function can be
-   * called with the evaluated object and need update the original object bound box data
-   * to keep both values synchronized. */
-  if (!ELEM(ob_orig, nullptr, ob)) {
-    if (ob_orig->runtime->bb == nullptr) {
-      ob_orig->runtime->bb = MEM_cnew<BoundBox>("GPencil boundbox");
-    }
-    for (int i = 0; i < 8; i++) {
-      copy_v3_v3(ob_orig->runtime->bb->vec[i], ob->runtime->bb->vec[i]);
-    }
-  }
-
-  return ob->runtime->bb;
 }
 
 /** \} */
@@ -2503,28 +2448,29 @@ static void gpencil_generate_edgeloops(Object *ob,
                                        const bool use_vgroups)
 {
   using namespace blender;
-  Mesh *me = (Mesh *)ob->data;
-  if (me->totedge == 0) {
+  using namespace blender::bke;
+  Mesh *mesh = (Mesh *)ob->data;
+  if (mesh->edges_num == 0) {
     return;
   }
-  const Span<float3> vert_positions = me->vert_positions();
-  const Span<int2> edges = me->edges();
-  const Span<MDeformVert> dverts = me->deform_verts();
-  const blender::Span<blender::float3> vert_normals = me->vert_normals();
-  const bke::AttributeAccessor attributes = me->attributes();
+  const Span<float3> vert_positions = mesh->vert_positions();
+  const Span<int2> edges = mesh->edges();
+  const Span<MDeformVert> dverts = mesh->deform_verts();
+  const blender::Span<blender::float3> vert_normals = mesh->vert_normals();
+  const bke::AttributeAccessor attributes = mesh->attributes();
   const VArray<bool> uv_seams = *attributes.lookup_or_default<bool>(
-      ".uv_seam", ATTR_DOMAIN_EDGE, false);
+      ".uv_seam", AttrDomain::Edge, false);
 
   /* Arrays for all edge vertices (forward and backward) that form a edge loop.
    * This is reused for each edge-loop to create gpencil stroke. */
-  uint *stroke = (uint *)MEM_mallocN(sizeof(uint) * me->totedge * 2, __func__);
-  uint *stroke_fw = (uint *)MEM_mallocN(sizeof(uint) * me->totedge, __func__);
-  uint *stroke_bw = (uint *)MEM_mallocN(sizeof(uint) * me->totedge, __func__);
+  uint *stroke = (uint *)MEM_mallocN(sizeof(uint) * mesh->edges_num * 2, __func__);
+  uint *stroke_fw = (uint *)MEM_mallocN(sizeof(uint) * mesh->edges_num, __func__);
+  uint *stroke_bw = (uint *)MEM_mallocN(sizeof(uint) * mesh->edges_num, __func__);
 
   /* Create array with all edges. */
-  GpEdge *gp_edges = (GpEdge *)MEM_callocN(sizeof(GpEdge) * me->totedge, __func__);
+  GpEdge *gp_edges = (GpEdge *)MEM_callocN(sizeof(GpEdge) * mesh->edges_num, __func__);
   GpEdge *gped = nullptr;
-  for (int i = 0; i < me->totedge; i++) {
+  for (int i = 0; i < mesh->edges_num; i++) {
     const blender::int2 &edge = edges[i];
     gped = &gp_edges[i];
     copy_v3_v3(gped->n1, vert_normals[edge[0]]);
@@ -2552,7 +2498,7 @@ static void gpencil_generate_edgeloops(Object *ob,
     /* Look first unused edge. */
     if (gped->flag != 0) {
       e++;
-      if (e == me->totedge) {
+      if (e == mesh->edges_num) {
         pending = false;
       }
       continue;
@@ -2565,9 +2511,10 @@ static void gpencil_generate_edgeloops(Object *ob,
     /* Hash used to avoid loop over same vertices. */
     GHash *v_table = BLI_ghash_int_new(__func__);
     /* Look forward edges. */
-    int totedges = gpencil_walk_edge(v_table, gp_edges, me->totedge, stroke_fw, e, angle, false);
+    int totedges = gpencil_walk_edge(
+        v_table, gp_edges, mesh->edges_num, stroke_fw, e, angle, false);
     /* Look backward edges. */
-    int totbw = gpencil_walk_edge(v_table, gp_edges, me->totedge, stroke_bw, e, angle, true);
+    int totbw = gpencil_walk_edge(v_table, gp_edges, mesh->edges_num, stroke_bw, e, angle, true);
 
     BLI_ghash_free(v_table, nullptr, nullptr);
 
@@ -2728,7 +2675,7 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
   char element_name[200];
 
   /* Need at least an edge. */
-  if (me_eval->totedge < 1) {
+  if (me_eval->edges_num < 1) {
     return false;
   }
 
@@ -2761,7 +2708,7 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
     int i;
 
     const VArray<int> mesh_material_indices = *me_eval->attributes().lookup_or_default<int>(
-        "material_index", ATTR_DOMAIN_FACE, 0);
+        "material_index", AttrDomain::Face, 0);
     for (i = 0; i < faces_len; i++) {
       const IndexRange face = faces[i];
 

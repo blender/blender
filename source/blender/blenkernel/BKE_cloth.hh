@@ -21,7 +21,6 @@ struct Implicit_Data;
 struct Depsgraph;
 struct LinkNode;
 struct Mesh;
-struct MVertTri;
 struct Object;
 struct Scene;
 
@@ -77,7 +76,7 @@ struct Cloth {
   short pad3;
   BVHTree *bvhtree;     /* collision tree for this cloth object */
   BVHTree *bvhselftree; /* collision tree for this cloth object (may be same as bvhtree) */
-  MVertTri *tri;
+  blender::int3 *vert_tris;
   Implicit_Data *implicit;                    /* our implicit solver connects to this pointer */
   blender::Set<blender::OrderedEdge> edgeset; /* used for selfcollisions */
   int last_frame;
@@ -228,7 +227,7 @@ void clothModifier_do(ClothModifierData *clmd,
                       Depsgraph *depsgraph,
                       Scene *scene,
                       Object *ob,
-                      Mesh *me,
+                      Mesh *mesh,
                       float (*vertexCos)[3]);
 
 int cloth_uses_vgroup(ClothModifierData *clmd);

@@ -20,6 +20,7 @@ KeyingClipOperation::KeyingClipOperation()
   is_edge_matte_ = false;
 
   flags_.complex = true;
+  flags_.can_be_constant = true;
 }
 
 void *KeyingClipOperation::initialize_tile_data(rcti *rect)

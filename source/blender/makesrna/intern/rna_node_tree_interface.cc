@@ -28,7 +28,7 @@ static const EnumPropertyItem node_tree_interface_socket_in_out_items[] = {
 
 #ifdef RNA_RUNTIME
 
-#  include "BKE_attribute.h"
+#  include "BKE_attribute.hh"
 #  include "BKE_node.h"
 #  include "BKE_node_runtime.hh"
 #  include "BKE_node_tree_interface.hh"
@@ -194,15 +194,13 @@ static void rna_NodeTreeInterfaceSocket_init_socket_custom(
 
   PointerRNA ptr = RNA_pointer_create(
       id, &RNA_NodeTreeInterfaceSocket, const_cast<bNodeTreeInterfaceSocket *>(interface_socket));
-  PointerRNA node_ptr = RNA_pointer_create(id, &RNA_Node, node);
-  PointerRNA socket_ptr = RNA_pointer_create(id, &RNA_NodeSocket, socket);
 
   FunctionRNA *func = &rna_NodeTreeInterfaceSocket_init_socket_func;
 
   ParameterList list;
   RNA_parameter_list_create(&list, &ptr, func);
-  RNA_parameter_set_lookup(&list, "node", &node_ptr);
-  RNA_parameter_set_lookup(&list, "socket", &socket_ptr);
+  RNA_parameter_set_lookup(&list, "node", node);
+  RNA_parameter_set_lookup(&list, "socket", socket);
   RNA_parameter_set_lookup(&list, "data_path", &data_path);
   typeinfo->ext_interface.call(nullptr, &ptr, func, &list);
 
@@ -230,16 +228,13 @@ static void rna_NodeTreeInterfaceSocket_from_socket_custom(
   }
 
   PointerRNA ptr = RNA_pointer_create(id, &RNA_NodeTreeInterfaceSocket, interface_socket);
-  PointerRNA node_ptr = RNA_pointer_create(id, &RNA_Node, const_cast<bNode *>(node));
-  PointerRNA socket_ptr = RNA_pointer_create(
-      id, &RNA_NodeSocket, const_cast<bNodeSocket *>(socket));
 
   FunctionRNA *func = &rna_NodeTreeInterfaceSocket_from_socket_func;
 
   ParameterList list;
   RNA_parameter_list_create(&list, &ptr, func);
-  RNA_parameter_set_lookup(&list, "node", &node_ptr);
-  RNA_parameter_set_lookup(&list, "socket", &socket_ptr);
+  RNA_parameter_set_lookup(&list, "node", node);
+  RNA_parameter_set_lookup(&list, "socket", socket);
   typeinfo->ext_interface.call(nullptr, &ptr, func, &list);
 
   RNA_parameter_list_free(&list);
@@ -451,13 +446,14 @@ static const EnumPropertyItem *rna_NodeTreeInterfaceSocket_default_input_itemf(
 static const EnumPropertyItem *rna_NodeTreeInterfaceSocket_attribute_domain_itemf(
     bContext * /*C*/, PointerRNA * /*ptr*/, PropertyRNA * /*prop*/, bool *r_free)
 {
+  using namespace blender;
   EnumPropertyItem *item_array = nullptr;
   int items_len = 0;
 
   for (const EnumPropertyItem *item = rna_enum_attribute_domain_items; item->identifier != nullptr;
        item++)
   {
-    if (!U.experimental.use_grease_pencil_version3 && item->value == ATTR_DOMAIN_LAYER) {
+    if (!U.experimental.use_grease_pencil_version3 && item->value == int(bke::AttrDomain::Layer)) {
       continue;
     }
     RNA_enum_item_add(&item_array, &items_len, item);

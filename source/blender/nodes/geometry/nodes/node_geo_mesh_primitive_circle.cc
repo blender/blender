@@ -2,9 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 
@@ -128,7 +125,7 @@ static Mesh *create_circle_mesh(const float radius,
   MutableSpan<int> face_offsets = mesh->face_offsets_for_write();
   MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
   MutableSpan<int> corner_edges = mesh->corner_edges_for_write();
-  BKE_mesh_smooth_flag_set(mesh, false);
+  bke::mesh_smooth_set(*mesh, false);
 
   /* Assign vertex coordinates. */
   const float angle_delta = 2.0f * (M_PI / float(verts_num));

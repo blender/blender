@@ -21,10 +21,6 @@ if(WIN32)
       # PNG.
       ${CMAKE_COMMAND} -E copy ${LIBDIR}/png/lib/libpng16_static.lib ${HARVEST_TARGET}/png/lib/libpng.lib &&
       ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/png/include/ ${HARVEST_TARGET}/png/include/ &&
-      # FREEGLUT -> OPENGL.
-      ${CMAKE_COMMAND} -E copy ${LIBDIR}/freeglut/lib/freeglut_static.lib ${HARVEST_TARGET}/opengl/lib/freeglut_static.lib &&
-      ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/freeglut/include/ ${HARVEST_TARGET}/opengl/include/ &&
-
       DEPENDS
     )
   endif()
@@ -249,7 +245,7 @@ else()
   harvest(xr_openxr_sdk/lib xr_openxr_sdk/lib "*.a")
   harvest_rpath_bin(osl/bin osl/bin "oslc")
   harvest(osl/include osl/include "*.h")
-  harvest(osl/lib osl/lib "*.a")
+  harvest_rpath_lib(osl/lib osl/lib "*${SHAREDLIBEXT}*")
   harvest(osl/share/OSL/shaders osl/share/OSL/shaders "*.h")
   harvest(png/include png/include "*.h")
   harvest(png/lib png/lib "*.a")
@@ -277,6 +273,7 @@ else()
   harvest(webp/lib webp/lib "*.a")
   harvest(webp/include webp/include "*.h")
   harvest(usd/include usd/include "*.h")
+  harvest(usd/include usd/include "*.hpp")
   harvest_rpath_lib(usd/lib usd/lib "libusd_ms${SHAREDLIBEXT}")
   harvest(usd/lib/usd usd/lib/usd "*")
   harvest_rpath_python(

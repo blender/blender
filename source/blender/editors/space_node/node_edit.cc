@@ -22,7 +22,7 @@
 #include "BKE_image.h"
 #include "BKE_image_format.h"
 #include "BKE_lib_id.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
@@ -62,6 +62,7 @@
 
 #include "UI_view2d.hh"
 
+#include "GPU_capabilities.h"
 #include "GPU_material.h"
 
 #include "IMB_imbuf_types.h"
@@ -132,7 +133,7 @@ static void compo_tag_output_nodes(bNodeTree *nodetree, int recalc_flags)
         node->flag |= NODE_DO_OUTPUT_RECALC;
       }
     }
-    else if (ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
+    else if (node->type == CMP_NODE_VIEWER) {
       if (recalc_flags & COM_RECALC_VIEWER) {
         node->flag |= NODE_DO_OUTPUT_RECALC;
       }
@@ -295,14 +296,15 @@ static void compo_startjob(void *cjv, wmJobWorkerStatus *worker_status)
   BKE_callback_exec_id(cj->bmain, &scene->id, BKE_CB_EVT_COMPOSITE_PRE);
 
   if ((cj->scene->r.scemode & R_MULTIVIEW) == 0) {
-    ntreeCompositExecTree(cj->re, cj->scene, ntree, &cj->scene->r, false, true, "");
+    ntreeCompositExecTree(cj->re, cj->scene, ntree, &cj->scene->r, false, true, "", nullptr);
   }
   else {
     LISTBASE_FOREACH (SceneRenderView *, srv, &scene->r.views) {
       if (BKE_scene_multiview_is_render_view_active(&scene->r, srv) == false) {
         continue;
       }
-      ntreeCompositExecTree(cj->re, cj->scene, ntree, &cj->scene->r, false, true, srv->name);
+      ntreeCompositExecTree(
+          cj->re, cj->scene, ntree, &cj->scene->r, false, true, srv->name, nullptr);
     }
   }
 
@@ -336,6 +338,33 @@ static void compo_completejob(void *cjv)
 /** \name Composite Job C API
  * \{ */
 
+/* Identify if the compositor can run. Currently, this only checks if the compositor is set to GPU
+ * and the render size exceeds what can be allocated as a texture in it. */
+static bool is_compositing_possible(const bContext *C)
+{
+  Scene *scene = CTX_data_scene(C);
+  /* CPU compositor can always run. */
+  if (!U.experimental.use_full_frame_compositor ||
+      scene->nodetree->execution_mode != NTREE_EXECUTION_MODE_REALTIME)
+  {
+    return true;
+  }
+
+  int width, height;
+  BKE_render_resolution(&scene->r, false, &width, &height);
+  const int max_texture_size = GPU_max_texture_size();
+
+  /* There is no way to know if the render size is too large except if we actually allocate a test
+   * texture, which we want to avoid due its cost. So we employ a heuristic that so far has worked
+   * with all known GPU drivers. */
+  if (size_t(width) * height > (size_t(max_texture_size) * max_texture_size) / 4) {
+    WM_report(RPT_ERROR, "Render size too large for GPU, use CPU compositor instead");
+    return false;
+  }
+
+  return true;
+}
+
 void ED_node_composite_job(const bContext *C, bNodeTree *nodetree, Scene *scene_owner)
 {
   using namespace blender::ed::space_node;
@@ -343,6 +372,10 @@ void ED_node_composite_job(const bContext *C, bNodeTree *nodetree, Scene *scene_
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+
+  if (!is_compositing_possible(C)) {
+    return;
+  }
 
   /* See #32272. */
   if (G.is_rendering) {
@@ -593,12 +626,12 @@ void ED_node_composit_default(const bContext *C, Scene *sce)
   sce->nodetree->render_quality = NTREE_QUALITY_HIGH;
 
   bNode *out = nodeAddStaticNode(C, sce->nodetree, CMP_NODE_COMPOSITE);
-  out->locx = 300.0f;
-  out->locy = 400.0f;
+  out->locx = 200.0f;
+  out->locy = 200.0f;
 
   bNode *in = nodeAddStaticNode(C, sce->nodetree, CMP_NODE_R_LAYERS);
-  in->locx = 10.0f;
-  in->locy = 400.0f;
+  in->locx = -200.0f;
+  in->locy = 200.0f;
   nodeSetActive(sce->nodetree, in);
 
   /* Links from color to color. */
@@ -781,9 +814,9 @@ void ED_node_set_active(
   }
   else if (ntree->type == NTREE_COMPOSIT) {
     /* Make active viewer, currently only one is supported. */
-    if (ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
+    if (node->type == CMP_NODE_VIEWER) {
       for (bNode *node_iter : ntree->all_nodes()) {
-        if (ELEM(node_iter->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
+        if (node_iter->type == CMP_NODE_VIEWER) {
           node_iter->flag &= ~NODE_DO_OUTPUT;
         }
       }
@@ -1162,70 +1195,75 @@ static bool cursor_isect_multi_input_socket(const float2 &cursor, const bNodeSoc
 }
 
 bNodeSocket *node_find_indicated_socket(SpaceNode &snode,
+                                        ARegion &region,
                                         const float2 &cursor,
                                         const eNodeSocketInOut in_out)
 {
-  rctf rect;
-  const float size_sock_padded = NODE_SOCKSIZE + 4;
+  const float view2d_scale = UI_view2d_scale_get_x(&region.v2d);
+  const float max_distance = NODE_SOCKSIZE + std::clamp(20.0f / view2d_scale, 5.0f, 30.0f);
+  const float padded_socket_size = NODE_SOCKSIZE + 4;
 
-  bNodeTree &node_tree = *snode.edittree;
-  node_tree.ensure_topology_cache();
+  bNodeTree &tree = *snode.edittree;
+  tree.ensure_topology_cache();
 
-  const Array<bNode *> sorted_nodes = tree_draw_order_calc_nodes_reversed(*snode.edittree);
+  const Array<bNode *> sorted_nodes = tree_draw_order_calc_nodes_reversed(tree);
   if (sorted_nodes.is_empty()) {
     return nullptr;
   }
 
-  for (const int i : sorted_nodes.index_range()) {
-    bNode &node = *sorted_nodes[i];
+  float best_distance = FLT_MAX;
+  bNodeSocket *best_socket = nullptr;
 
-    BLI_rctf_init_pt_radius(&rect, cursor, size_sock_padded);
-    if (!(node.flag & NODE_HIDDEN)) {
-      /* Extra padding inside and out - allow dragging on the text areas too. */
-      if (in_out == SOCK_IN) {
-        rect.xmax += NODE_SOCKSIZE;
-        rect.xmin -= NODE_SOCKSIZE * 4;
-      }
-      else if (in_out == SOCK_OUT) {
-        rect.xmax += NODE_SOCKSIZE * 4;
-        rect.xmin -= NODE_SOCKSIZE;
-      }
+  auto update_best_socket = [&](bNodeSocket *socket, const float distance) {
+    if (socket_is_occluded(socket->runtime->location, socket->owner_node(), sorted_nodes)) {
+      return;
     }
+    if (distance < best_distance) {
+      best_distance = distance;
+      best_socket = socket;
+    }
+  };
 
+  for (bNode *node : sorted_nodes) {
     if (in_out & SOCK_IN) {
-      for (bNodeSocket *sock : node.input_sockets()) {
-        if (node.is_socket_icon_drawn(*sock)) {
-          const float2 location = sock->runtime->location;
-          if (sock->flag & SOCK_MULTI_INPUT && !(node.flag & NODE_HIDDEN)) {
-            if (cursor_isect_multi_input_socket(cursor, *sock)) {
-              if (!socket_is_occluded(location, node, sorted_nodes)) {
-                return sock;
-              }
-            }
+      for (bNodeSocket *sock : node->input_sockets()) {
+        if (!node->is_socket_icon_drawn(*sock)) {
+          continue;
+        }
+        const float2 location = sock->runtime->location;
+        const float distance = math::distance(location, cursor);
+        if (sock->flag & SOCK_MULTI_INPUT && !(node->flag & NODE_HIDDEN)) {
+          if (cursor_isect_multi_input_socket(cursor, *sock)) {
+            update_best_socket(sock, distance);
+            continue;
           }
-          else if (BLI_rctf_isect_pt(&rect, location.x, location.y)) {
-            if (!socket_is_occluded(location, node, sorted_nodes)) {
-              return sock;
-            }
-          }
+        }
+        if (distance < max_distance) {
+          update_best_socket(sock, distance);
         }
       }
     }
     if (in_out & SOCK_OUT) {
-      for (bNodeSocket *sock : node.output_sockets()) {
-        if (node.is_socket_icon_drawn(*sock)) {
-          const float2 location = sock->runtime->location;
-          if (BLI_rctf_isect_pt(&rect, location.x, location.y)) {
-            if (!socket_is_occluded(location, node, sorted_nodes)) {
-              return sock;
+      for (bNodeSocket *sock : node->output_sockets()) {
+        if (!node->is_socket_icon_drawn(*sock)) {
+          continue;
+        }
+        const float2 location = sock->runtime->location;
+        const float distance = math::distance(location, cursor);
+        if (distance < max_distance) {
+          if (node->flag & NODE_HIDDEN) {
+            if (location.x - cursor.x > padded_socket_size) {
+              /* Needed to be able to resize collapsed nodes. */
+              continue;
             }
           }
+          update_best_socket(sock, distance);
         }
       }
     }
   }
 
-  return nullptr;
+  return best_socket;
 }
 
 /** \} */
@@ -1469,8 +1507,8 @@ static int node_read_viewlayers_exec(bContext *C, wmOperator * /*op*/)
   }
 
   for (bNode *node : edit_tree.all_nodes()) {
-    if ((node->type == CMP_NODE_R_LAYERS) ||
-        (node->type == CMP_NODE_CRYPTOMATTE && node->custom1 == CMP_CRYPTOMATTE_SRC_RENDER))
+    if ((node->type == CMP_NODE_R_LAYERS) || (node->type == CMP_NODE_CRYPTOMATTE &&
+                                              node->custom1 == CMP_NODE_CRYPTOMATTE_SOURCE_RENDER))
     {
       ID *id = node->id;
       if (id == nullptr) {

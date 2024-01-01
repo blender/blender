@@ -6,7 +6,7 @@
 
 #include "BLT_translation.h"
 
-#include "ANIM_bone_collections.h"
+#include "ANIM_bone_collections.hh"
 
 #include "testing/testing.h"
 
@@ -56,13 +56,19 @@ class ANIM_armature_bone_collections : public testing::Test {
     BLI_addtail(&arm.bonebase, &bone1);    /* bone1 is root bone. */
     BLI_addtail(&arm.bonebase, &bone2);    /* bone2 is root bone. */
     BLI_addtail(&bone2.childbase, &bone3); /* bone3 has bone2 as parent. */
+
+    BKE_armature_bone_hash_make(&arm);
   }
 
   void TearDown() override
   {
-    LISTBASE_FOREACH_BACKWARD_MUTABLE (BoneCollection *, bcoll, &arm.collections) {
-      ANIM_armature_bonecoll_remove(&arm, bcoll);
+    while (arm.collection_array_num > 0) {
+      ANIM_armature_bonecoll_remove_from_index(&arm, arm.collection_array_num - 1);
     }
+    if (arm.collection_array) {
+      MEM_freeN(arm.collection_array);
+    }
+    BKE_armature_bone_hash_free(&arm);
   }
 };
 
@@ -188,14 +194,14 @@ TEST_F(ANIM_armature_bone_collections, bcoll_is_editable)
       << "Expecting local armature to be editable";
 
   /* Fake that the armature is linked from another blend file. */
-  Library fake_lib;
+  Library fake_lib = {};
   arm.id.lib = &fake_lib;
   EXPECT_FALSE(ANIM_armature_bonecoll_is_editable(&arm, bcoll1))
       << "Expecting local armature to not be editable";
 
   /* Fake that the armature is an override, but linked from another blend file. */
-  IDOverrideLibrary fake_override;
-  bArmature fake_reference;
+  IDOverrideLibrary fake_override = {};
+  bArmature fake_reference = {};
   fake_override.reference = &fake_reference.id;
   arm.id.override_library = &fake_override;
   EXPECT_FALSE(ANIM_armature_bonecoll_is_editable(&arm, bcoll1))
@@ -208,6 +214,51 @@ TEST_F(ANIM_armature_bone_collections, bcoll_is_editable)
       << "Expecting linked bone collection on local armature override to not be editable";
   EXPECT_TRUE(ANIM_armature_bonecoll_is_editable(&arm, bcoll2))
       << "Expecting local bone collection on local armature override to be editable";
+}
+
+TEST_F(ANIM_armature_bone_collections, bcoll_insert_copy_after)
+{
+  BoneCollection *bcoll1 = ANIM_armature_bonecoll_new(&arm, "collection");
+  BoneCollection *bcoll2 = ANIM_armature_bonecoll_new(&arm, "collection");
+  BoneCollection *bcoll3 = ANIM_armature_bonecoll_new(&arm, "collection");
+
+  EXPECT_EQ(arm.collection_array[0], bcoll1);
+  EXPECT_EQ(arm.collection_array[1], bcoll2);
+  EXPECT_EQ(arm.collection_array[2], bcoll3);
+
+  BoneCollection *bcoll4 = ANIM_armature_bonecoll_insert_copy_after(&arm, bcoll2, bcoll2);
+
+  EXPECT_EQ(arm.collection_array[0], bcoll1);
+  EXPECT_EQ(arm.collection_array[1], bcoll2);
+  EXPECT_EQ(arm.collection_array[2], bcoll4);
+  EXPECT_EQ(arm.collection_array[3], bcoll3);
+}
+
+TEST_F(ANIM_armature_bone_collections, bcoll_move_to_index)
+{
+  BoneCollection *bcoll1 = ANIM_armature_bonecoll_new(&arm, "collection");
+  BoneCollection *bcoll2 = ANIM_armature_bonecoll_new(&arm, "collection");
+  BoneCollection *bcoll3 = ANIM_armature_bonecoll_new(&arm, "collection");
+  BoneCollection *bcoll4 = ANIM_armature_bonecoll_new(&arm, "collection");
+
+  EXPECT_EQ(arm.collection_array[0], bcoll1);
+  EXPECT_EQ(arm.collection_array[1], bcoll2);
+  EXPECT_EQ(arm.collection_array[2], bcoll3);
+  EXPECT_EQ(arm.collection_array[3], bcoll4);
+
+  ANIM_armature_bonecoll_move_to_index(&arm, 2, 1);
+
+  EXPECT_EQ(arm.collection_array[0], bcoll1);
+  EXPECT_EQ(arm.collection_array[1], bcoll3);
+  EXPECT_EQ(arm.collection_array[2], bcoll2);
+  EXPECT_EQ(arm.collection_array[3], bcoll4);
+
+  ANIM_armature_bonecoll_move_to_index(&arm, 0, 3);
+
+  EXPECT_EQ(arm.collection_array[0], bcoll3);
+  EXPECT_EQ(arm.collection_array[1], bcoll2);
+  EXPECT_EQ(arm.collection_array[2], bcoll4);
+  EXPECT_EQ(arm.collection_array[3], bcoll1);
 }
 
 }  // namespace blender::animrig::tests

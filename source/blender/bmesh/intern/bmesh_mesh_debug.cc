@@ -21,9 +21,9 @@
 
 #  include "BKE_customdata.hh"
 
-#  include "bmesh.h"
+#  include "bmesh.hh"
 
-#  include "bmesh_mesh_debug.h"
+#  include "bmesh_mesh_debug.hh"
 
 #  include "BLI_dynstr.h"
 
@@ -71,4 +71,4 @@ void BM_mesh_debug_print(BMesh *bm)
   MEM_freeN(str);
 }
 
-#endif /* NDEBUG */
+#endif /* !NDEBUG */

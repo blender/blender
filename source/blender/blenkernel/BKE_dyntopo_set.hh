@@ -16,6 +16,8 @@
 
 #include <utility>
 
+#include <cstdio>
+
 namespace blender::bke::dyntopo {
 template<typename T> class DyntopoSet {
  public:
@@ -26,6 +28,10 @@ template<typename T> class DyntopoSet {
   }
   DyntopoSet() {}
   DyntopoSet(const DyntopoSet &) = delete;
+  ATTR_NO_OPT ~DyntopoSet()
+  {
+    printf("~DyntopoSet()");
+  }
 
   struct iterator {
     iterator() : set_(nullptr), i_(-1) {}

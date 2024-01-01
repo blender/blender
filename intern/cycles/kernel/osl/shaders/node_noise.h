@@ -213,35 +213,35 @@ float safe_snoise(vector4 p)
     return value; \
   }
 
-/* Noise fBM */
+/* Noise fBM. */
 
 NOISE_FBM(float)
 NOISE_FBM(vector2)
 NOISE_FBM(vector3)
 NOISE_FBM(vector4)
 
-/* Noise Multifractal */
+/* Noise Multi-fractal. */
 
 NOISE_MULTI_FRACTAL(float)
 NOISE_MULTI_FRACTAL(vector2)
 NOISE_MULTI_FRACTAL(vector3)
 NOISE_MULTI_FRACTAL(vector4)
 
-/* Noise Hetero Terrain */
+/* Noise Hetero Terrain. */
 
 NOISE_HETERO_TERRAIN(float)
 NOISE_HETERO_TERRAIN(vector2)
 NOISE_HETERO_TERRAIN(vector3)
 NOISE_HETERO_TERRAIN(vector4)
 
-/* Noise Hybrid Multifractal */
+/* Noise Hybrid Multi-fractal. */
 
 NOISE_HYBRID_MULTI_FRACTAL(float)
 NOISE_HYBRID_MULTI_FRACTAL(vector2)
 NOISE_HYBRID_MULTI_FRACTAL(vector3)
 NOISE_HYBRID_MULTI_FRACTAL(vector4)
 
-/* Noise Ridged Multifractal */
+/* Noise Ridged Multi-fractal. */
 
 NOISE_RIDGED_MULTI_FRACTAL(float)
 NOISE_RIDGED_MULTI_FRACTAL(vector2)

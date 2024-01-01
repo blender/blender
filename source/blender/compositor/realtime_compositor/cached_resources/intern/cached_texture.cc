@@ -74,9 +74,18 @@ CachedTexture::CachedTexture(Context &context,
         TexResult texture_result;
         BKE_texture_get_value_ex(
             texture, coordinates, &texture_result, image_pool, use_color_management);
-        color_pixels[y * size.x + x] = float4(texture_result.trgba);
-        value_pixels[y * size.x + x] = texture_result.talpha ? texture_result.trgba[3] :
-                                                               texture_result.tin;
+
+        float4 color = float4(texture_result.trgba);
+        float value = texture_result.tin;
+        if (texture_result.talpha) {
+          value = texture_result.trgba[3];
+        }
+        else {
+          color.w = 1.0f;
+        }
+
+        color_pixels[y * size.x + x] = color;
+        value_pixels[y * size.x + x] = value;
       }
     }
   });

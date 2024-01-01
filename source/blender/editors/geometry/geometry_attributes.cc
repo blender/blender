@@ -14,7 +14,7 @@
 
 #include "BLI_color.hh"
 
-#include "BKE_attribute.h"
+#include "BKE_attribute.hh"
 #include "BKE_context.hh"
 #include "BKE_deform.h"
 #include "BKE_geometry_set.hh"
@@ -229,17 +229,17 @@ static int geometry_attribute_add_exec(bContext *C, wmOperator *op)
   ID *id = static_cast<ID *>(ob->data);
 
   if (ob->type == OB_MESH && ob->mode & OB_MODE_SCULPT && ob->sculpt && ob->sculpt->pbvh) {
-    ED_sculpt_undo_geometry_begin(ob, op);
+    sculpt_paint::undo::geometry_begin(ob, op);
   }
 
   char name[MAX_NAME];
   RNA_string_get(op->ptr, "name", name);
   eCustomDataType type = (eCustomDataType)RNA_enum_get(op->ptr, "data_type");
-  eAttrDomain domain = (eAttrDomain)RNA_enum_get(op->ptr, "domain");
+  bke::AttrDomain domain = bke::AttrDomain(RNA_enum_get(op->ptr, "domain"));
   CustomDataLayer *layer = BKE_id_attribute_new(id, name, type, domain, op->reports);
 
   if (layer == nullptr) {
-    ED_sculpt_undo_geometry_end(ob);
+    sculpt_paint::undo::geometry_end(ob);
     return OPERATOR_CANCELLED;
   }
 
@@ -248,7 +248,7 @@ static int geometry_attribute_add_exec(bContext *C, wmOperator *op)
   if (ob->type == OB_MESH && ob->mode == OB_MODE_SCULPT && ob->sculpt && ob->sculpt->pbvh) {
     /* Push attribute into sculpt mesh. */
     BKE_sculptsession_sync_attributes(ob, static_cast<Mesh *>(ob->data), false);
-    ED_sculpt_undo_geometry_end(ob);
+    sculpt_paint::undo::geometry_end(ob);
   }
 
   DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
@@ -294,7 +294,7 @@ void GEOMETRY_OT_attribute_add(wmOperatorType *ot)
   prop = RNA_def_enum(ot->srna,
                       "domain",
                       rna_enum_attribute_domain_items,
-                      ATTR_DOMAIN_POINT,
+                      int(bke::AttrDomain::Point),
                       "Domain",
                       "Type of element that attribute is stored on");
   RNA_def_enum_funcs(prop, geometry_attribute_domain_itemf);
@@ -316,7 +316,7 @@ static int geometry_attribute_remove_exec(bContext *C, wmOperator *op)
   CustomDataLayer *layer = BKE_id_attributes_active_get(id);
 
   if (ob->type == OB_MESH && ob->mode & OB_MODE_SCULPT && ob->sculpt && ob->sculpt->pbvh) {
-    ED_sculpt_undo_geometry_end(ob);
+    sculpt_paint::undo::geometry_end(ob);
   }
 
   if (!BKE_id_attribute_remove(id, layer->name, op->reports)) {
@@ -331,7 +331,7 @@ static int geometry_attribute_remove_exec(bContext *C, wmOperator *op)
   if (ob->type == OB_MESH && ob->mode == OB_MODE_SCULPT && ob->sculpt && ob->sculpt->pbvh) {
     /* Push attribute into sculpt mesh. */
     BKE_sculptsession_sync_attributes(ob, static_cast<Mesh *>(ob->data), false);
-    ED_sculpt_undo_geometry_end(ob);
+    sculpt_paint::undo::geometry_end(ob);
   }
 
   DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
@@ -362,20 +362,20 @@ static int geometry_color_attribute_add_exec(bContext *C, wmOperator *op)
   bool is_sculpt = ob->sculpt && ob->mode == OB_MODE_SCULPT && ob->sculpt->pbvh;
 
   if (is_sculpt) {
-    ED_sculpt_undo_geometry_begin(ob, op);
+    sculpt_paint::undo::geometry_begin(ob, op);
   }
 
   char name[MAX_NAME];
   RNA_string_get(op->ptr, "name", name);
   eCustomDataType type = (eCustomDataType)RNA_enum_get(op->ptr, "data_type");
-  eAttrDomain domain = (eAttrDomain)RNA_enum_get(op->ptr, "domain");
+  bke::AttrDomain domain = bke::AttrDomain(RNA_enum_get(op->ptr, "domain"));
   CustomDataLayer *layer = BKE_id_attribute_new(id, name, type, domain, op->reports);
 
   float color[4];
   RNA_float_get_array(op->ptr, "color", color);
 
   if (layer == nullptr) {
-    ED_sculpt_undo_geometry_end(ob);
+    sculpt_paint::undo::geometry_end(ob);
     return OPERATOR_CANCELLED;
   }
 
@@ -388,7 +388,7 @@ static int geometry_color_attribute_add_exec(bContext *C, wmOperator *op)
   BKE_object_attributes_active_color_fill(ob, color, false);
 
   if (is_sculpt) {
-    ED_sculpt_undo_geometry_end(ob);
+    sculpt_paint::undo::geometry_end(ob);
   }
 
   DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
@@ -408,8 +408,8 @@ static int geometry_color_attribute_add_invoke(bContext *C, wmOperator *op, cons
 }
 
 enum class ConvertAttributeMode {
-  Generic,
-  VertexGroup,
+  Generic = 0,
+  VertexGroup = 1,
 };
 
 static bool geometry_attribute_convert_poll(bContext *C)
@@ -455,7 +455,7 @@ static int geometry_attribute_convert_exec(bContext *C, wmOperator *op)
       if (!ED_geometry_attribute_convert(mesh,
                                          name.c_str(),
                                          eCustomDataType(RNA_enum_get(op->ptr, "data_type")),
-                                         eAttrDomain(RNA_enum_get(op->ptr, "domain")),
+                                         bke::AttrDomain(RNA_enum_get(op->ptr, "domain")),
                                          op->reports))
       {
         return OPERATOR_CANCELLED;
@@ -463,16 +463,16 @@ static int geometry_attribute_convert_exec(bContext *C, wmOperator *op)
       break;
     }
     case ConvertAttributeMode::VertexGroup: {
-      Array<float> src_weights(mesh->totvert);
+      Array<float> src_weights(mesh->verts_num);
       VArray<float> src_varray = *attributes.lookup_or_default<float>(
-          name, ATTR_DOMAIN_POINT, 0.0f);
+          name, bke::AttrDomain::Point, 0.0f);
       src_varray.materialize(src_weights);
       attributes.remove(name);
 
       bDeformGroup *defgroup = BKE_object_defgroup_new(ob, name.c_str());
       const int defgroup_index = BLI_findindex(BKE_id_defgroup_list_get(&mesh->id), defgroup);
       MDeformVert *dverts = BKE_object_defgroup_data_create(&mesh->id);
-      for (const int i : IndexRange(mesh->totvert)) {
+      for (const int i : IndexRange(mesh->verts_num)) {
         const float weight = src_weights[i];
         if (weight > 0.0f) {
           BKE_defvert_add_index_notest(dverts + i, defgroup_index, weight);
@@ -532,7 +532,7 @@ void GEOMETRY_OT_color_attribute_add(wmOperatorType *ot)
   prop = RNA_def_enum(ot->srna,
                       "domain",
                       rna_enum_color_attribute_domain_items,
-                      ATTR_DOMAIN_POINT,
+                      int(bke::AttrDomain::Point),
                       "Domain",
                       "Type of element that attribute is stored on");
 
@@ -711,7 +711,7 @@ static int geometry_attribute_convert_invoke(bContext *C,
 
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "domain");
   if (!RNA_property_is_set(op->ptr, prop)) {
-    RNA_property_enum_set(op->ptr, prop, meta_data.domain);
+    RNA_property_enum_set(op->ptr, prop, int(meta_data.domain));
   }
   prop = RNA_struct_find_property(op->ptr, "data_type");
   if (!RNA_property_is_set(op->ptr, prop)) {
@@ -778,7 +778,7 @@ static int geometry_color_attribute_convert_exec(bContext *C, wmOperator *op)
   ED_geometry_attribute_convert(mesh,
                                 name,
                                 eCustomDataType(RNA_enum_get(op->ptr, "data_type")),
-                                eAttrDomain(RNA_enum_get(op->ptr, "domain")),
+                                bke::AttrDomain(RNA_enum_get(op->ptr, "domain")),
                                 op->reports);
   return OPERATOR_FINISHED;
 }
@@ -794,7 +794,7 @@ static int geometry_color_attribute_convert_invoke(bContext *C,
 
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "domain");
   if (!RNA_property_is_set(op->ptr, prop)) {
-    RNA_property_enum_set(op->ptr, prop, meta_data.domain);
+    RNA_property_enum_set(op->ptr, prop, int(meta_data.domain));
   }
   prop = RNA_struct_find_property(op->ptr, "data_type");
   if (!RNA_property_is_set(op->ptr, prop)) {
@@ -832,7 +832,7 @@ void GEOMETRY_OT_color_attribute_convert(wmOperatorType *ot)
   prop = RNA_def_enum(ot->srna,
                       "domain",
                       rna_enum_color_attribute_domain_items,
-                      ATTR_DOMAIN_POINT,
+                      int(bke::AttrDomain::Point),
                       "Domain",
                       "Type of element that attribute is stored on");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
@@ -872,7 +872,7 @@ void GEOMETRY_OT_attribute_convert(wmOperatorType *ot)
   prop = RNA_def_enum(ot->srna,
                       "domain",
                       rna_enum_attribute_domain_items,
-                      ATTR_DOMAIN_POINT,
+                      int(bke::AttrDomain::Point),
                       "Domain",
                       "Which geometry element to move the attribute to");
   RNA_def_enum_funcs(prop, geometry_attribute_domain_itemf);
@@ -886,7 +886,7 @@ void GEOMETRY_OT_attribute_convert(wmOperatorType *ot)
 bool ED_geometry_attribute_convert(Mesh *mesh,
                                    const char *name,
                                    const eCustomDataType dst_type,
-                                   const eAttrDomain dst_domain,
+                                   const blender::bke::AttrDomain dst_domain,
                                    ReportList *reports)
 {
   using namespace blender;

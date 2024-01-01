@@ -172,7 +172,9 @@ void Light::shape_parameters_set(const ::Light *la, const float scale[3])
       _area_size_x = tanf(min_ff(la->sun_angle, DEG2RADF(179.9f)) / 2.0f);
     }
     else {
-      _area_size_x = la->radius;
+      /* Ensure a minimum radius/energy ratio to avoid harsh cut-offs. (See 114284) */
+      float min_radius = la->energy * 2e-05f;
+      _area_size_x = std::max(la->radius, min_radius);
     }
     _area_size_y = _area_size_x = max_ff(0.001f, _area_size_x);
     radius_squared = square_f(_area_size_x);
@@ -237,8 +239,8 @@ float Light::point_radiance_get(const ::Light *la)
 
 void Light::debug_draw()
 {
-#ifdef DEBUG
-  drw_debug_sphere(_position, influence_radius_max, float4(0.8f, 0.3f, 0.0f, 1.0f));
+#ifndef NDEBUG
+  drw_debug_sphere(float3(_position), influence_radius_max, float4(0.8f, 0.3f, 0.0f, 1.0f));
 #endif
 }
 
@@ -259,10 +261,18 @@ LightModule::~LightModule()
 void LightModule::begin_sync()
 {
   use_scene_lights_ = inst_.use_scene_lights();
+  /* Disable sunlight if world has a volume shader as we consider the light cannot go through an
+   * infinite opaque medium. */
+  use_sun_lights_ = (inst_.world.has_volume_absorption() == false);
 
   /* In begin_sync so it can be animated. */
   if (assign_if_different(light_threshold_, max_ff(1e-16f, inst_.scene->eevee.light_threshold))) {
-    inst_.sampling.reset();
+    /* All local lights need to be re-sync. */
+    for (Light &light : light_map_.values()) {
+      if (!ELEM(light.type, LIGHT_SUN, LIGHT_SUN_ORTHO)) {
+        light.initialized = false;
+      }
+    }
   }
 
   sun_lights_len_ = 0;
@@ -274,6 +284,13 @@ void LightModule::sync_light(const Object *ob, ObjectHandle &handle)
   if (use_scene_lights_ == false) {
     return;
   }
+
+  if (use_sun_lights_ == false) {
+    if (static_cast<const ::Light *>(ob->data)->type == LA_SUN) {
+      return;
+    }
+  }
+
   Light &light = light_map_.lookup_or_add_default(handle.object_key);
   light.used = true;
   if (handle.recalc != 0 || !light.initialized) {
@@ -314,11 +331,6 @@ void LightModule::end_sync()
   }
   /* This scene data buffer is then immutable after this point. */
   light_buf_.push_update();
-
-  /* Update sampling on deletion or un-hiding (use_scene_lights). */
-  if (assign_if_different(light_map_size_, light_map_.size())) {
-    inst_.sampling.reset();
-  }
 
   /* If exceeding the limit, just trim off the excess to avoid glitchy rendering. */
   if (sun_lights_len_ + local_lights_len_ > CULLING_MAX_ITEM) {

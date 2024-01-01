@@ -25,7 +25,7 @@
 #include "BKE_context.hh"
 #include "BKE_lib_id.h"
 #include "BKE_screen.hh"
-#include "BKE_unit.h"
+#include "BKE_unit.hh"
 
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"

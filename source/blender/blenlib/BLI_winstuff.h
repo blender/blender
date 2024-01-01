@@ -46,8 +46,6 @@ extern "C" {
 #  define _USE_MATH_DEFINES
 #endif
 
-#define MAXPATHLEN MAX_PATH
-
 #ifndef S_ISREG
 #  define S_ISREG(x) (((x)&_S_IFREG) == _S_IFREG)
 #endif

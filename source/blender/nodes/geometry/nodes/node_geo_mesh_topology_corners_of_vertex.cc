@@ -45,10 +45,10 @@ class CornersOfVertInput final : public bke::MeshFieldInput {
   }
 
   GVArray get_varray_for_context(const Mesh &mesh,
-                                 const eAttrDomain domain,
+                                 const AttrDomain domain,
                                  const IndexMask &mask) const final
   {
-    const IndexRange vert_range(mesh.totvert);
+    const IndexRange vert_range(mesh.verts_num);
     const GroupedSpan<int> vert_to_corner_map = mesh.vert_to_corner_map();
 
     const bke::MeshFieldContext context{mesh, domain};
@@ -59,8 +59,8 @@ class CornersOfVertInput final : public bke::MeshFieldInput {
     const VArray<int> vert_indices = evaluator.get_evaluated<int>(0);
     const VArray<int> indices_in_sort = evaluator.get_evaluated<int>(1);
 
-    const bke::MeshFieldContext corner_context{mesh, ATTR_DOMAIN_CORNER};
-    fn::FieldEvaluator corner_evaluator{corner_context, mesh.totloop};
+    const bke::MeshFieldContext corner_context{mesh, AttrDomain::Corner};
+    fn::FieldEvaluator corner_evaluator{corner_context, mesh.corners_num};
     corner_evaluator.add(sort_weight_);
     corner_evaluator.evaluate();
     const VArray<float> all_sort_weights = corner_evaluator.get_evaluated<float>(0);
@@ -135,9 +135,9 @@ class CornersOfVertInput final : public bke::MeshFieldInput {
     return false;
   }
 
-  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const final
+  std::optional<AttrDomain> preferred_domain(const Mesh & /*mesh*/) const final
   {
-    return ATTR_DOMAIN_POINT;
+    return AttrDomain::Point;
   }
 };
 
@@ -149,13 +149,13 @@ class CornersOfVertCountInput final : public bke::MeshFieldInput {
   }
 
   GVArray get_varray_for_context(const Mesh &mesh,
-                                 const eAttrDomain domain,
+                                 const AttrDomain domain,
                                  const IndexMask & /*mask*/) const final
   {
-    if (domain != ATTR_DOMAIN_POINT) {
+    if (domain != AttrDomain::Point) {
       return {};
     }
-    Array<int> counts(mesh.totvert, 0);
+    Array<int> counts(mesh.verts_num, 0);
     array_utils::count_indices(mesh.corner_verts(), counts);
     return VArray<int>::ForContainer(std::move(counts));
   }
@@ -170,9 +170,9 @@ class CornersOfVertCountInput final : public bke::MeshFieldInput {
     return dynamic_cast<const CornersOfVertCountInput *>(&other) != nullptr;
   }
 
-  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const final
+  std::optional<AttrDomain> preferred_domain(const Mesh & /*mesh*/) const final
   {
-    return ATTR_DOMAIN_POINT;
+    return AttrDomain::Point;
   }
 };
 
@@ -184,7 +184,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                       Field<int>(std::make_shared<EvaluateAtIndexInput>(
                           vert_index,
                           Field<int>(std::make_shared<CornersOfVertCountInput>()),
-                          ATTR_DOMAIN_POINT)));
+                          AttrDomain::Point)));
   }
   if (params.output_is_required("Corner Index")) {
     params.set_output("Corner Index",

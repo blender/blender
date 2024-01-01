@@ -1165,7 +1165,18 @@ bool OSLRenderServices::get_userdata(
   return false; /* disabled by lockgeom */
 }
 
-#if OSL_LIBRARY_VERSION_CODE >= 11100
+#if OSL_LIBRARY_VERSION_CODE >= 11304
+TextureSystem::TextureHandle *OSLRenderServices::get_texture_handle(OSLUStringHash filename,
+                                                                    OSL::ShadingContext *context,
+                                                                    const TextureOpt *opt)
+{
+  return get_texture_handle(to_ustring(filename), context, opt);
+}
+
+TextureSystem::TextureHandle *OSLRenderServices::get_texture_handle(OSL::ustring filename,
+                                                                    OSL::ShadingContext *,
+                                                                    const TextureOpt *)
+#elif OSL_LIBRARY_VERSION_CODE >= 11100
 TextureSystem::TextureHandle *OSLRenderServices::get_texture_handle(OSLUStringHash filename,
                                                                     OSL::ShadingContext *)
 #else
@@ -1616,7 +1627,17 @@ bool OSLRenderServices::environment(OSLUStringHash filename,
   return status;
 }
 
-#if OSL_LIBRARY_VERSION_CODE >= 11100
+#if OSL_LIBRARY_VERSION_CODE >= 11304
+bool OSLRenderServices::get_texture_info(OSLUStringHash filename,
+                                         TextureHandle *texture_handle,
+                                         TexturePerthread *texture_thread_info,
+                                         OSL::ShaderGlobals *,
+                                         int subimage,
+                                         OSLUStringHash dataname,
+                                         TypeDesc datatype,
+                                         void *data,
+                                         OSLUStringHash *)
+#elif OSL_LIBRARY_VERSION_CODE >= 11100
 bool OSLRenderServices::get_texture_info(OSLUStringHash filename,
                                          TextureHandle *texture_handle,
                                          TexturePerthread *texture_thread_info,
@@ -1627,7 +1648,7 @@ bool OSLRenderServices::get_texture_info(OSLUStringHash filename,
                                          void *data,
                                          OSLUStringHash *)
 #else
-bool OSLRenderServices::get_texture_info(OSL::ShaderGlobals *sg,
+bool OSLRenderServices::get_texture_info(OSL::ShaderGlobals *,
                                          OSLUStringHash filename,
                                          TextureHandle *texture_handle,
                                          int subimage,

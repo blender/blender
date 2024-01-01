@@ -303,7 +303,7 @@ class BaseSocketDeclarationBuilder {
 
   /** The input is evaluated on a subset of the geometry inputs. */
   BaseSocketDeclarationBuilder &implicit_field_on(ImplicitInputValueFn fn,
-                                                  const Span<int> input_indices);
+                                                  Span<int> input_indices);
 
   /** For inputs that are evaluated or available on a subset of the geometry sockets. */
   BaseSocketDeclarationBuilder &field_on(Span<int> indices);

@@ -488,7 +488,7 @@ static EnumPropertyItem rna_enum_brush_dyntopo_inherit[] = {
 #  include "RNA_access.hh"
 
 #  include "BKE_brush.hh"
-#  include "BKE_colorband.h"
+#  include "BKE_colorband.hh"
 #  include "BKE_gpencil_legacy.h"
 #  include "BKE_icons.h"
 #  include "BKE_material.h"

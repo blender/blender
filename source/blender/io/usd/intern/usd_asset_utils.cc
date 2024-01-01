@@ -9,7 +9,7 @@
 #include <pxr/usd/ar/resolver.h>
 #include <pxr/usd/ar/writableAsset.h>
 
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_report.h"
 
 #include "BLI_fileops.h"

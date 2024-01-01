@@ -35,6 +35,7 @@
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
+#include "BLI_math_rotation_types.hh"
 #include "BLI_path_util.h"
 #include "BLI_rand.hh"
 #include "BLI_set.hh"
@@ -53,7 +54,7 @@
 #include "BKE_animsys.h"
 #include "BKE_asset.hh"
 #include "BKE_bpath.h"
-#include "BKE_colortools.h"
+#include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_cryptomatte.h"
 #include "BKE_global.h"
@@ -63,7 +64,7 @@
 #include "BKE_image_format.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_anonymous_attributes.hh"
@@ -791,6 +792,9 @@ void ntreeBlendWrite(BlendWriter *writer, bNodeTree *ntree)
     if (node->type == GEO_NODE_INDEX_SWITCH) {
       blender::nodes::IndexSwitchItemsAccessor::blend_write(writer, *node);
     }
+    if (node->type == GEO_NODE_BAKE) {
+      blender::nodes::BakeItemsAccessor::blend_write(writer, *node);
+    }
   }
 
   LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
@@ -993,8 +997,7 @@ void ntreeBlendReadData(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree)
         }
         case CMP_NODE_IMAGE:
         case CMP_NODE_R_LAYERS:
-        case CMP_NODE_VIEWER:
-        case CMP_NODE_SPLITVIEWER: {
+        case CMP_NODE_VIEWER: {
           ImageUser *iuser = static_cast<ImageUser *>(node->storage);
           iuser->scene = nullptr;
           break;
@@ -1032,6 +1035,10 @@ void ntreeBlendReadData(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree)
         }
         case GEO_NODE_INDEX_SWITCH: {
           blender::nodes::IndexSwitchItemsAccessor::blend_read_data(reader, *node);
+          break;
+        }
+        case GEO_NODE_BAKE: {
+          blender::nodes::BakeItemsAccessor::blend_read_data(reader, *node);
           break;
         }
 
@@ -2433,7 +2440,11 @@ bNode *nodeAddNode(const bContext *C, bNodeTree *ntree, const char *idname)
 
   BKE_ntree_update_tag_node_new(ntree, node);
 
-  if (ELEM(node->type, GEO_NODE_INPUT_SCENE_TIME, GEO_NODE_SELF_OBJECT, GEO_NODE_SIMULATION_INPUT))
+  if (ELEM(node->type,
+           GEO_NODE_INPUT_SCENE_TIME,
+           GEO_NODE_INPUT_ACTIVE_CAMERA,
+           GEO_NODE_SELF_OBJECT,
+           GEO_NODE_SIMULATION_INPUT))
   {
     DEG_relations_tag_update(CTX_data_main(C));
   }
@@ -3407,7 +3418,7 @@ static void free_localized_node_groups(bNodeTree *ntree)
 {
   /* Only localized node trees store a copy for each node group tree.
    * Each node group tree in a localized node tree can be freed,
-   * since it is a localized copy itself (no risk of accessing free'd
+   * since it is a localized copy itself (no risk of accessing freed
    * data in main, see #37939). */
   if (!(ntree->id.tag & LIB_TAG_LOCALIZED)) {
     return;
@@ -3458,7 +3469,7 @@ void ntreeSetOutput(bNodeTree *ntree)
       if (ELEM(node->type, CMP_NODE_OUTPUT_FILE, GEO_NODE_VIEWER)) {
         continue;
       }
-      const bool node_is_output = ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER);
+      const bool node_is_output = node->type == CMP_NODE_VIEWER;
 
       int output = 0;
       /* there is more types having output class, each one is checked */
@@ -3469,7 +3480,7 @@ void ntreeSetOutput(bNodeTree *ntree)
         }
 
         /* same type, exception for viewer */
-        const bool tnode_is_output = ELEM(tnode->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER);
+        const bool tnode_is_output = tnode->type == CMP_NODE_VIEWER;
         const bool compositor_case = is_compositor && tnode_is_output && node_is_output;
         if (tnode->type == node->type || compositor_case) {
           if (tnode->flag & NODE_DO_OUTPUT) {
@@ -4186,6 +4197,101 @@ std::optional<eNodeSocketDatatype> custom_data_type_to_socket_type(eCustomDataTy
       return SOCK_RGBA;
     case CD_PROP_QUATERNION:
       return SOCK_ROTATION;
+    default:
+      return std::nullopt;
+  }
+}
+
+static const CPPType *slow_socket_type_to_geo_nodes_base_cpp_type(const eNodeSocketDatatype type)
+{
+  const char *socket_idname = nodeStaticSocketType(type, 0);
+  const bNodeSocketType *typeinfo = nodeSocketTypeFind(socket_idname);
+  return typeinfo->base_cpp_type;
+}
+
+const CPPType *socket_type_to_geo_nodes_base_cpp_type(const eNodeSocketDatatype type)
+{
+  const CPPType *cpp_type;
+  switch (type) {
+    case SOCK_FLOAT:
+      cpp_type = &CPPType::get<float>();
+      break;
+    case SOCK_INT:
+      cpp_type = &CPPType::get<int>();
+      break;
+    case SOCK_RGBA:
+      cpp_type = &CPPType::get<ColorGeometry4f>();
+      break;
+    case SOCK_BOOLEAN:
+      cpp_type = &CPPType::get<bool>();
+      break;
+    case SOCK_VECTOR:
+      cpp_type = &CPPType::get<float3>();
+      break;
+    case SOCK_ROTATION:
+      cpp_type = &CPPType::get<math::Quaternion>();
+      break;
+    default:
+      cpp_type = slow_socket_type_to_geo_nodes_base_cpp_type(type);
+      break;
+  }
+  BLI_assert(cpp_type == slow_socket_type_to_geo_nodes_base_cpp_type(type));
+  return cpp_type;
+}
+
+std::optional<eNodeSocketDatatype> geo_nodes_base_cpp_type_to_socket_type(const CPPType &type)
+{
+  if (type.is<float>()) {
+    return SOCK_FLOAT;
+  }
+  if (type.is<int>()) {
+    return SOCK_INT;
+  }
+  if (type.is<float3>()) {
+    return SOCK_VECTOR;
+  }
+  if (type.is<ColorGeometry4f>()) {
+    return SOCK_RGBA;
+  }
+  if (type.is<bool>()) {
+    return SOCK_BOOLEAN;
+  }
+  if (type.is<math::Quaternion>()) {
+    return SOCK_ROTATION;
+  }
+  if (type.is<std::string>()) {
+    return SOCK_STRING;
+  }
+  return std::nullopt;
+}
+
+std::optional<VolumeGridType> socket_type_to_grid_type(const eNodeSocketDatatype type)
+{
+  switch (type) {
+    case SOCK_BOOLEAN:
+      return VOLUME_GRID_BOOLEAN;
+    case SOCK_FLOAT:
+      return VOLUME_GRID_FLOAT;
+    case SOCK_INT:
+      return VOLUME_GRID_INT;
+    case SOCK_VECTOR:
+      return VOLUME_GRID_VECTOR_FLOAT;
+    default:
+      return std::nullopt;
+  }
+}
+
+std::optional<eNodeSocketDatatype> grid_type_to_socket_type(const VolumeGridType type)
+{
+  switch (type) {
+    case VOLUME_GRID_BOOLEAN:
+      return SOCK_BOOLEAN;
+    case VOLUME_GRID_FLOAT:
+      return SOCK_FLOAT;
+    case VOLUME_GRID_INT:
+      return SOCK_INT;
+    case VOLUME_GRID_VECTOR_FLOAT:
+      return SOCK_VECTOR;
     default:
       return std::nullopt;
   }

@@ -14,7 +14,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-void OSLGlobals::thread_init(KernelGlobalsCPU *kg, OSLGlobals *osl_globals)
+void OSLGlobals::thread_init(KernelGlobalsCPU *kg, OSLGlobals *osl_globals, const int thread_index)
 {
   /* no osl used? */
   if (!osl_globals->use) {
@@ -37,6 +37,7 @@ void OSLGlobals::thread_init(KernelGlobalsCPU *kg, OSLGlobals *osl_globals)
 
   kg->osl_ss = (OSLShadingSystem *)ss;
   kg->osl_tdata = tdata;
+  kg->osl_thread_index = thread_index;
 }
 
 void OSLGlobals::thread_free(KernelGlobalsCPU *kg)

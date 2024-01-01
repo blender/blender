@@ -93,9 +93,9 @@ static void idmap_grow_map(BMIdMap *idmap, int newid)
 
 void BM_idmap_clear_attributes_mesh(Mesh *me)
 {
-  CustomData_free_layer_named(&me->vert_data, BM_idmap_attr_name_get(BM_VERT), me->totvert);
-  CustomData_free_layer_named(&me->edge_data, BM_idmap_attr_name_get(BM_EDGE), me->totedge);
-  CustomData_free_layer_named(&me->loop_data, BM_idmap_attr_name_get(BM_LOOP), me->totloop);
+  CustomData_free_layer_named(&me->vert_data, BM_idmap_attr_name_get(BM_VERT), me->verts_num);
+  CustomData_free_layer_named(&me->edge_data, BM_idmap_attr_name_get(BM_EDGE), me->edges_num);
+  CustomData_free_layer_named(&me->corner_data, BM_idmap_attr_name_get(BM_LOOP), me->corners_num);
   CustomData_free_layer_named(&me->face_data, BM_idmap_attr_name_get(BM_FACE), me->faces_num);
 }
 

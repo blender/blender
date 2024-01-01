@@ -77,7 +77,7 @@ void Shader::print_log(Span<const char *> sources,
     }
 #endif
   }
-  if (sources_end_line.size() == 0) {
+  if (sources_end_line.is_empty()) {
     sources_end_line.append(0);
   }
 

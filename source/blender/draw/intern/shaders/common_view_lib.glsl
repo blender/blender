@@ -71,7 +71,7 @@ vec4 pack_line_data(vec2 frag_co, vec2 edge_start, vec2 edge_pos)
 /* Temporary until we fully make the switch. */
 #ifndef USE_GPU_SHADER_CREATE_INFO
 uniform int drw_resourceChunk;
-#endif /* USE_GPU_SHADER_CREATE_INFO */
+#endif /* !USE_GPU_SHADER_CREATE_INFO */
 
 #ifdef GPU_VERTEX_SHADER
 
@@ -176,7 +176,7 @@ struct ObjectMatrices {
   mat4 model;
   mat4 model_inverse;
 };
-#  endif /* DRW_SHADER_SHARED_H */
+#  endif /* !DRW_SHADER_SHARED_H */
 
 #  ifndef USE_GPU_SHADER_CREATE_INFO
 layout(std140) uniform modelBlock
@@ -198,7 +198,7 @@ layout(std140) uniform modelBlock
  * and older AMD driver on windows. */
 uniform mat4 ModelMatrix;
 uniform mat4 ModelMatrixInverse;
-#  endif /* USE_GPU_SHADER_CREATE_INFO */
+#  endif /* !USE_GPU_SHADER_CREATE_INFO */
 
 #endif
 

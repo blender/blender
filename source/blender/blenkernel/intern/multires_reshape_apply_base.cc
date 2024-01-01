@@ -75,12 +75,12 @@ void multires_reshape_apply_base_refit_base_mesh(MultiresReshapeContext *reshape
   const blender::GroupedSpan<int> pmap = base_mesh->vert_to_face_map();
 
   float(*origco)[3] = static_cast<float(*)[3]>(
-      MEM_calloc_arrayN(base_mesh->totvert, sizeof(float[3]), __func__));
-  for (int i = 0; i < base_mesh->totvert; i++) {
+      MEM_calloc_arrayN(base_mesh->verts_num, sizeof(float[3]), __func__));
+  for (int i = 0; i < base_mesh->verts_num; i++) {
     copy_v3_v3(origco[i], base_positions[i]);
   }
 
-  for (int i = 0; i < base_mesh->totvert; i++) {
+  for (int i = 0; i < base_mesh->verts_num; i++) {
     float avg_no[3] = {0, 0, 0}, center[3] = {0, 0, 0}, push[3];
 
     /* Don't adjust vertices not used by at least one face. */
@@ -142,7 +142,7 @@ void multires_reshape_apply_base_refit_base_mesh(MultiresReshapeContext *reshape
   /* Vertices were moved around, need to update normals after all the vertices are updated
    * Probably this is possible to do in the loop above, but this is rather tricky because
    * we don't know all needed vertices' coordinates there yet. */
-  BKE_mesh_tag_positions_changed(base_mesh);
+  base_mesh->tag_positions_changed();
 }
 
 void multires_reshape_apply_base_refine_from_base(MultiresReshapeContext *reshape_context)
@@ -159,11 +159,10 @@ void multires_reshape_apply_base_refine_from_deform(MultiresReshapeContext *resh
   BLI_assert(object != nullptr);
   BLI_assert(mmd != nullptr);
 
-  float(*deformed_verts)[3] = BKE_multires_create_deformed_base_mesh_vert_coords(
-      depsgraph, object, mmd, nullptr);
+  blender::Array<blender::float3> deformed_verts =
+      BKE_multires_create_deformed_base_mesh_vert_coords(depsgraph, object, mmd);
 
-  BKE_subdiv_eval_refine_from_mesh(
-      reshape_context->subdiv, reshape_context->base_mesh, deformed_verts);
-
-  MEM_freeN(deformed_verts);
+  BKE_subdiv_eval_refine_from_mesh(reshape_context->subdiv,
+                                   reshape_context->base_mesh,
+                                   reinterpret_cast<float(*)[3]>(deformed_verts.data()));
 }

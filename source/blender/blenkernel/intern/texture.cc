@@ -38,11 +38,11 @@
 
 #include "IMB_imbuf.h"
 
-#include "BKE_main.h"
+#include "BKE_main.hh"
 
 #include "BKE_anim_data.h"
-#include "BKE_colorband.h"
-#include "BKE_colortools.h"
+#include "BKE_colorband.hh"
+#include "BKE_colortools.hh"
 #include "BKE_icons.h"
 #include "BKE_idtype.h"
 #include "BKE_image.h"

@@ -408,7 +408,7 @@ typedef struct GreasePencil {
   GreasePencilLayerTreeGroup *root_group_ptr;
 
   /**
-   * All attributes stored on the grease pencil layers (#ATTR_DOMAIN_LAYER).
+   * All attributes stored on the grease pencil layers (#AttrDomain::Layer).
    */
   CustomData layers_data;
   /**
@@ -465,7 +465,7 @@ typedef struct GreasePencil {
   /* Active layer functions. */
   bool has_active_layer() const;
   const blender::bke::greasepencil::Layer *get_active_layer() const;
-  blender::bke::greasepencil::Layer *get_active_layer_for_write();
+  blender::bke::greasepencil::Layer *get_active_layer();
   void set_active_layer(const blender::bke::greasepencil::Layer *layer);
   bool is_layer_active(const blender::bke::greasepencil::Layer *layer) const;
 
@@ -536,11 +536,11 @@ typedef struct GreasePencil {
   /**
    * Moves and/or inserts duplicates of a set of frames in a \a layer.
    *
-   * \param frame_number_destination describes all transformations that should be applied on the
+   * \param frame_number_destination: describes all transformations that should be applied on the
    * frame keys.
-   * \param duplicate_frames the frames that should be duplicated instead of moved. Keys of the map
-   * are the keys of the corresponding source frames. Frames will be inserted at the key given by
-   * the map \a frame_number_destination.
+   * \param duplicate_frames: the frames that should be duplicated instead of moved.
+   * Keys of the map are the keys of the corresponding source frames.
+   * Frames will be inserted at the key given by the map \a frame_number_destination.
    *
    * If a transformation overlaps another frames, the frame will be overwritten, and the
    * corresponding drawing may be removed, if it no longer has users.
@@ -577,7 +577,8 @@ typedef struct GreasePencil {
   blender::bke::greasepencil::Drawing *get_editable_drawing_at(
       const blender::bke::greasepencil::Layer *layer, int frame_number);
 
-  std::optional<blender::Bounds<blender::float3>> bounds_min_max() const;
+  std::optional<blender::Bounds<blender::float3>> bounds_min_max(int frame) const;
+  std::optional<blender::Bounds<blender::float3>> bounds_min_max_eval() const;
 
   blender::bke::AttributeAccessor attributes() const;
   blender::bke::MutableAttributeAccessor attributes_for_write();

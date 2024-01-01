@@ -372,7 +372,7 @@ static void lattice_deform_coords_impl(const Object *ob_lattice,
         dvert = ((Lattice *)ob_target->data)->dvert;
       }
       else {
-        dvert = BKE_mesh_deform_verts((Mesh *)ob_target->data);
+        dvert = ((Mesh *)ob_target->data)->deform_verts().data();
       }
     }
   }

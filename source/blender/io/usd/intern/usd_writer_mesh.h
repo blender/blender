@@ -3,13 +3,17 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
+#include "DNA_modifier_types.h"
 #include "usd_writer_abstract.h"
 
 #include "BLI_map.hh"
 
-#include "BKE_attribute.hh"
-
 #include <pxr/usd/usdGeom/mesh.h>
+
+namespace blender::bke {
+class AttributeIDRef;
+struct AttributeMetaData;
+}  // namespace blender::bke
 
 namespace blender::io::usd {
 
@@ -31,7 +35,11 @@ class USDGenericMeshWriter : public USDAbstractWriter {
   /* Mapping from material slot number to array of face indices with that material. */
   using MaterialFaceGroups = Map<short, pxr::VtIntArray>;
 
-  void write_mesh(HierarchyContext &context, Mesh *mesh);
+  void write_mesh(HierarchyContext &context, Mesh *mesh, const SubsurfModifierData *subsurfData);
+  pxr::TfToken get_subdiv_scheme(const SubsurfModifierData *subsurfData);
+  void write_subdiv(const pxr::TfToken &subdiv_scheme,
+                    pxr::UsdGeomMesh &usd_mesh,
+                    const SubsurfModifierData *subsurfData);
   void get_geometry_data(const Mesh *mesh, struct USDMeshData &usd_mesh_data);
   void assign_materials(const HierarchyContext &context,
                         pxr::UsdGeomMesh usd_mesh,

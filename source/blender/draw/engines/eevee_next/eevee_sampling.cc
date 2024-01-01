@@ -8,6 +8,8 @@
  * Random number generator, contains persistent state and sample count logic.
  */
 
+#include "BKE_colortools.hh"
+
 #include "BLI_rand.h"
 
 #include "BLI_math_base.hh"
@@ -75,7 +77,8 @@ void Sampling::end_sync()
 
     interactive_mode_ = viewport_sample_ < interactive_mode_threshold;
 
-    bool interactive_mode_disabled = (inst_.scene->eevee.flag & SCE_EEVEE_TAA_REPROJECTION) == 0;
+    bool interactive_mode_disabled = (inst_.scene->eevee.flag & SCE_EEVEE_TAA_REPROJECTION) == 0 ||
+                                     inst_.is_viewport_image_render();
     if (interactive_mode_disabled) {
       interactive_mode_ = false;
       sample_ = viewport_sample_;

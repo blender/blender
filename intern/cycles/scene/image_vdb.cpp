@@ -11,6 +11,7 @@
 #  include <openvdb/tools/Dense.h>
 #endif
 #ifdef WITH_NANOVDB
+#  define NANOVDB_USE_OPENVDB
 #  include <nanovdb/util/OpenToNanoVDB.h>
 #endif
 
@@ -52,23 +53,49 @@ struct ToNanoOp {
   {
     if constexpr (!std::is_same_v<GridType, openvdb::MaskGrid>) {
       try {
-        FloatGridType floatgrid(*openvdb::gridConstPtrCast<GridType>(grid));
+#    if NANOVDB_MAJOR_VERSION_NUMBER > 32 || \
+        (NANOVDB_MAJOR_VERSION_NUMBER == 32 && NANOVDB_MINOR_VERSION_NUMBER >= 6)
+        /* OpenVDB 11. */
         if constexpr (std::is_same_v<FloatGridType, openvdb::FloatGrid>) {
+          openvdb::FloatGrid floatgrid(*openvdb::gridConstPtrCast<GridType>(grid));
           if (precision == 0) {
-            nanogrid = nanovdb::openToNanoVDB<nanovdb::HostBuffer,
-                                              typename FloatGridType::TreeType,
-                                              nanovdb::FpN>(floatgrid);
-            return true;
+            nanogrid = nanovdb::createNanoGrid<openvdb::FloatGrid, nanovdb::FpN>(floatgrid);
           }
           else if (precision == 16) {
-            nanogrid = nanovdb::openToNanoVDB<nanovdb::HostBuffer,
-                                              typename FloatGridType::TreeType,
-                                              nanovdb::Fp16>(floatgrid);
-            return true;
+            nanogrid = nanovdb::createNanoGrid<openvdb::FloatGrid, nanovdb::Fp16>(floatgrid);
+          }
+          else {
+            nanogrid = nanovdb::createNanoGrid<openvdb::FloatGrid, float>(floatgrid);
           }
         }
-
-        nanogrid = nanovdb::openToNanoVDB(floatgrid);
+        else if constexpr (std::is_same_v<FloatGridType, openvdb::Vec3fGrid>) {
+          openvdb::Vec3fGrid floatgrid(*openvdb::gridConstPtrCast<GridType>(grid));
+          nanogrid = nanovdb::createNanoGrid<openvdb::Vec3fGrid, nanovdb::Vec3f>(
+              floatgrid, nanovdb::StatsMode::Disable);
+        }
+#    else
+        /* OpenVDB 10. */
+        if constexpr (std::is_same_v<FloatGridType, openvdb::FloatGrid>) {
+          openvdb::FloatGrid floatgrid(*openvdb::gridConstPtrCast<GridType>(grid));
+          if (precision == 0) {
+            nanogrid =
+                nanovdb::openToNanoVDB<nanovdb::HostBuffer, openvdb::FloatTree, nanovdb::FpN>(
+                    floatgrid);
+          }
+          else if (precision == 16) {
+            nanogrid =
+                nanovdb::openToNanoVDB<nanovdb::HostBuffer, openvdb::FloatTree, nanovdb::Fp16>(
+                    floatgrid);
+          }
+          else {
+            nanogrid = nanovdb::openToNanoVDB(floatgrid);
+          }
+        }
+        else if constexpr (std::is_same_v<FloatGridType, openvdb::Vec3fGrid>) {
+          openvdb::Vec3fGrid floatgrid(*openvdb::gridConstPtrCast<GridType>(grid));
+          nanogrid = nanovdb::openToNanoVDB(floatgrid);
+        }
+#    endif
       }
       catch (const std::exception &e) {
         VLOG_WARNING << "Error converting OpenVDB to NanoVDB grid: " << e.what();

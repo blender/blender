@@ -27,8 +27,8 @@
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
-#include "BKE_lib_remap.h"
-#include "BKE_main.h"
+#include "BKE_lib_remap.hh"
+#include "BKE_main.hh"
 #include "BKE_object.hh"
 #include "BKE_preview_image.hh"
 #include "BKE_rigidbody.h"
@@ -185,7 +185,8 @@ static void collection_foreach_id(ID *id, LibraryForeachIDData *data)
   LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
     Object *cob_ob_old = cob->ob;
 
-    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, cob->ob, IDWALK_CB_USER);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(
+        data, cob->ob, IDWALK_CB_USER | IDWALK_CB_OVERRIDE_LIBRARY_HIERARCHY_DEFAULT);
 
     if (collection->runtime.gobject_hash) {
       /* If the remapping does not create inconsistent data (nullptr object pointer or duplicate
@@ -200,8 +201,10 @@ static void collection_foreach_id(ID *id, LibraryForeachIDData *data)
     }
   }
   LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
-    BKE_LIB_FOREACHID_PROCESS_IDSUPER(
-        data, child->collection, IDWALK_CB_NEVER_SELF | IDWALK_CB_USER);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data,
+                                      child->collection,
+                                      IDWALK_CB_NEVER_SELF | IDWALK_CB_USER |
+                                          IDWALK_CB_OVERRIDE_LIBRARY_HIERARCHY_DEFAULT);
   }
   LISTBASE_FOREACH (CollectionParent *, parent, &collection->runtime.parents) {
     /* XXX This is very weak. The whole idea of keeping pointers to private IDs is very bad
@@ -1047,8 +1050,10 @@ static void collection_gobject_hash_ensure(Collection *collection)
   collection_gobject_assert_internal_consistency(collection, true);
 }
 
-/** Similar to #collection_gobject_hash_ensure/#collection_gobject_hash_create, but does fix
- * inconsistencies in the collection objects list. */
+/**
+ * Similar to #collection_gobject_hash_ensure/#collection_gobject_hash_create, but does fix
+ * inconsistencies in the collection objects list.
+ */
 static void collection_gobject_hash_ensure_fix(Collection *collection)
 {
   bool changed = false;

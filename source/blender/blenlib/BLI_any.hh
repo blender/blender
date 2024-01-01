@@ -311,20 +311,29 @@ class Any {
    * Get a reference to the stored value. This invokes undefined behavior when #T does not have the
    * correct type.
    */
-  template<typename T> std::decay_t<T> &get()
+  template<typename T> T &get()
   {
-    BLI_assert(this->is<T>());
-    return *static_cast<std::decay_t<T> *>(this->get());
+    /* Use const-cast to be able to reuse the const method above. */
+    return const_cast<T &>(const_cast<const Any *>(this)->get<T>());
   }
 
   /**
    * Get a reference to the stored value. This invokes undefined behavior when #T does not have the
    * correct type.
    */
-  template<typename T> const std::decay_t<T> &get() const
+  template<typename T> const T &get() const
   {
     BLI_assert(this->is<T>());
-    return *static_cast<const std::decay_t<T> *>(this->get());
+    const void *buffer;
+    /* Can avoid the `info_->get == nullptr` check because the result is known statically. */
+    if constexpr (is_inline_v<T>) {
+      buffer = &buffer_;
+    }
+    else {
+      BLI_assert(info_->get != nullptr);
+      buffer = info_->get(&buffer_);
+    }
+    return *static_cast<const T *>(buffer);
   }
 
   /**

@@ -97,6 +97,8 @@ struct GPUPass {
   uint refcount;
   /** The last time the refcount was greater than 0. */
   int gc_timestamp;
+  /** The engine type this pass is compiled for. */
+  eGPUMaterialEngine engine;
   /** Identity hash generated from all GLSL code. */
   uint32_t hash;
   /** Did we already tried to compile the attached GPUShader. */
@@ -122,12 +124,12 @@ static SpinLock pass_cache_spin;
 
 /* Search by hash only. Return first pass with the same hash.
  * There is hash collision if (pass->next && pass->next->hash == hash) */
-static GPUPass *gpu_pass_cache_lookup(uint32_t hash)
+static GPUPass *gpu_pass_cache_lookup(eGPUMaterialEngine engine, uint32_t hash)
 {
   BLI_spin_lock(&pass_cache_spin);
   /* Could be optimized with a Lookup table. */
   for (GPUPass *pass = pass_cache; pass; pass = pass->next) {
-    if (pass->hash == hash) {
+    if (pass->hash == hash && pass->engine == engine) {
       BLI_spin_unlock(&pass_cache_spin);
       return pass;
     }
@@ -157,10 +159,12 @@ static GPUPass *gpu_pass_cache_resolve_collision(GPUPass *pass,
                                                  GPUShaderCreateInfo *info,
                                                  uint32_t hash)
 {
+  eGPUMaterialEngine engine = pass->engine;
   BLI_spin_lock(&pass_cache_spin);
   for (; pass && (pass->hash == hash); pass = pass->next) {
     if (*reinterpret_cast<ShaderCreateInfo *>(info) ==
-        *reinterpret_cast<ShaderCreateInfo *>(pass->create_info))
+            *reinterpret_cast<ShaderCreateInfo *>(pass->create_info) &&
+        pass->engine == engine)
     {
       BLI_spin_unlock(&pass_cache_spin);
       return pass;
@@ -732,6 +736,7 @@ void GPUCodegen::generate_graphs()
 
 GPUPass *GPU_generate_pass(GPUMaterial *material,
                            GPUNodeGraph *graph,
+                           eGPUMaterialEngine engine,
                            GPUCodegenCallbackFn finalize_source_cb,
                            void *thunk,
                            bool optimize_graph)
@@ -763,7 +768,7 @@ GPUPass *GPU_generate_pass(GPUMaterial *material,
      * NOTE: We only perform cache look-up for non-optimized shader
      * graphs, as baked constant data among other optimizations will generate too many
      * shader source permutations, with minimal re-usability. */
-    pass_hash = gpu_pass_cache_lookup(codegen.hash_get());
+    pass_hash = gpu_pass_cache_lookup(engine, codegen.hash_get());
 
     /* FIXME(fclem): This is broken. Since we only check for the hash and not the full source
      * there is no way to have a collision currently. Some advocated to only use a bigger hash. */
@@ -813,6 +818,7 @@ GPUPass *GPU_generate_pass(GPUMaterial *material,
     pass->shader = nullptr;
     pass->refcount = 1;
     pass->create_info = codegen.create_info;
+    pass->engine = engine;
     pass->hash = codegen.hash_get();
     pass->compiled = false;
     pass->cached = false;

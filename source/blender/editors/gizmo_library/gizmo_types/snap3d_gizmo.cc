@@ -20,7 +20,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_global.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 
 #include "ED_gizmo_library.hh"
 #include "ED_screen.hh"

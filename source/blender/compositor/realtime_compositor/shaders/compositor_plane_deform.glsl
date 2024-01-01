@@ -23,6 +23,14 @@ void main()
 
   vec4 sampled_color = textureGrad(input_tx, projected_coordinates, x_gradient, y_gradient);
 
+  /* The plane mask is 1 if it is inside the plane and 0 otherwise. However, we use the alpha value
+   * of the sampled color for pixels outside of the plane to utilize the anti-aliasing effect of
+   * the anisotropic filtering. Therefore, the input_tx sampler should use anisotropic filtering
+   * and be clamped to zero border color. */
+  bool is_inside_plane = all(greaterThanEqual(projected_coordinates, vec2(0.0))) &&
+                         all(lessThanEqual(projected_coordinates, vec2(1.0)));
+  float mask_value = is_inside_plane ? 1.0 : sampled_color.a;
+
   imageStore(output_img, texel, sampled_color);
-  imageStore(mask_img, texel, sampled_color.aaaa);
+  imageStore(mask_img, texel, vec4(mask_value));
 }

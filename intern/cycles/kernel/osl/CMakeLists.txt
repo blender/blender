@@ -36,9 +36,6 @@ set(LIB
   ${LLVM_LIBRARY}
 )
 
-# OSL and LLVM are built without RTTI
-string(APPEND CMAKE_CXX_FLAGS " ${RTTI_DISABLE_FLAGS}")
-
 if(APPLE)
   # Disable allocation warning on macOS prior to 10.14: the OSLRenderServices
   # contains member which is 64 bytes aligned (cache inside of OIIO's

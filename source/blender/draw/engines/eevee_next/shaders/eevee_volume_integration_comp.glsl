@@ -51,21 +51,27 @@ void main()
     float cell_depth = volume_z_to_view_z((float(i) + 1.0) / tex_size.z);
     float ray_len = orig_ray_len * cell_depth;
 
-    /* Emission does not work if there is no extinction because
-     * froxel_transmittance evaluates to 1.0 leading to froxel_scattering = 0.0. (See #65771) */
-    extinction = max(vec3(1e-7) * step(1e-5, froxel_scattering), extinction);
-
     /* Evaluate Scattering. */
     float step_len = abs(ray_len - prev_ray_len);
     prev_ray_len = ray_len;
     vec3 froxel_transmittance = exp(-extinction * step_len);
-
-    /* Integrate along the current step segment. */
     /** NOTE: Original calculation carries precision issues when compiling for AMD GPUs
      * and running Metal. This version of the equation retains precision well for all
-     * macOS HW configurations. */
-    froxel_scattering = (froxel_scattering * (1.0f - froxel_transmittance)) /
-                        max(vec3(1e-8), extinction);
+     * macOS HW configurations.
+     * Here is the original for reference:
+     * `Lscat = (Lscat - Lscat * Tr) / safe_rcp(s_extinction)` */
+    vec3 froxel_opacity = 1.0 - froxel_transmittance;
+    vec3 froxel_step_opacity = froxel_opacity * safe_rcp(extinction);
+
+    /* Emission does not work if there is no extinction because
+     * `froxel_transmittance` evaluates to 1.0 leading to `froxel_opacity = 0.0`. (See #65771)
+     * To avoid fiddling with numerical values, take the limit of `froxel_step_opacity` as
+     * `extinction` approaches zero which is simply `step_len`. */
+    bvec3 is_invalid_extinction = equal(extinction, vec3(0.0));
+    froxel_step_opacity = mix(froxel_step_opacity, vec3(step_len), is_invalid_extinction);
+
+    /* Integrate along the current step segment. */
+    froxel_scattering = froxel_scattering * froxel_step_opacity;
 
     /* Accumulate and also take into account the transmittance from previous steps. */
     scattering += transmittance * froxel_scattering;

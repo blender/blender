@@ -11,8 +11,6 @@
 #include "BLI_task.hh"
 #include "BLI_timeit.hh"
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_pointcloud_types.h"
 
 #include "BKE_attribute_math.hh"
@@ -112,43 +110,44 @@ static void sample_mesh_surface(const Mesh &mesh,
                                 const int seed,
                                 Vector<float3> &r_positions,
                                 Vector<float3> &r_bary_coords,
-                                Vector<int> &r_looptri_indices)
+                                Vector<int> &r_tri_indices)
 {
   const Span<float3> positions = mesh.vert_positions();
   const Span<int> corner_verts = mesh.corner_verts();
-  const Span<MLoopTri> looptris = mesh.looptris();
+  const Span<int3> corner_tris = mesh.corner_tris();
 
-  for (const int looptri_index : looptris.index_range()) {
-    const MLoopTri &looptri = looptris[looptri_index];
-    const int v0_loop = looptri.tri[0];
-    const int v1_loop = looptri.tri[1];
-    const int v2_loop = looptri.tri[2];
+  for (const int tri_i : corner_tris.index_range()) {
+    const int3 &tri = corner_tris[tri_i];
+    const int v0_loop = tri[0];
+    const int v1_loop = tri[1];
+    const int v2_loop = tri[2];
     const float3 &v0_pos = positions[corner_verts[v0_loop]];
     const float3 &v1_pos = positions[corner_verts[v1_loop]];
     const float3 &v2_pos = positions[corner_verts[v2_loop]];
 
-    float looptri_density_factor = 1.0f;
+    float corner_tri_density_factor = 1.0f;
     if (!density_factors.is_empty()) {
       const float v0_density_factor = std::max(0.0f, density_factors[v0_loop]);
       const float v1_density_factor = std::max(0.0f, density_factors[v1_loop]);
       const float v2_density_factor = std::max(0.0f, density_factors[v2_loop]);
-      looptri_density_factor = (v0_density_factor + v1_density_factor + v2_density_factor) / 3.0f;
+      corner_tri_density_factor = (v0_density_factor + v1_density_factor + v2_density_factor) /
+                                  3.0f;
     }
     const float area = area_tri_v3(v0_pos, v1_pos, v2_pos);
 
-    const int looptri_seed = noise::hash(looptri_index, seed);
-    RandomNumberGenerator looptri_rng(looptri_seed);
+    const int corner_tri_seed = noise::hash(tri_i, seed);
+    RandomNumberGenerator corner_tri_rng(corner_tri_seed);
 
-    const int point_amount = looptri_rng.round_probabilistic(area * base_density *
-                                                             looptri_density_factor);
+    const int point_amount = corner_tri_rng.round_probabilistic(area * base_density *
+                                                                corner_tri_density_factor);
 
     for (int i = 0; i < point_amount; i++) {
-      const float3 bary_coord = looptri_rng.get_barycentric_coordinates();
+      const float3 bary_coord = corner_tri_rng.get_barycentric_coordinates();
       float3 point_pos;
       interp_v3_v3v3v3(point_pos, v0_pos, v1_pos, v2_pos, bary_coord);
       r_positions.append(point_pos);
       r_bary_coords.append(bary_coord);
-      r_looptri_indices.append(looptri_index);
+      r_tri_indices.append(tri_i);
     }
   }
 }
@@ -206,25 +205,21 @@ BLI_NOINLINE static void update_elimination_mask_based_on_density_factors(
     const Mesh &mesh,
     const Span<float> density_factors,
     const Span<float3> bary_coords,
-    const Span<int> looptri_indices,
+    const Span<int> tri_indices,
     const MutableSpan<bool> elimination_mask)
 {
-  const Span<MLoopTri> looptris = mesh.looptris();
+  const Span<int3> corner_tris = mesh.corner_tris();
   for (const int i : bary_coords.index_range()) {
     if (elimination_mask[i]) {
       continue;
     }
 
-    const MLoopTri &looptri = looptris[looptri_indices[i]];
+    const int3 &tri = corner_tris[tri_indices[i]];
     const float3 bary_coord = bary_coords[i];
 
-    const int v0_loop = looptri.tri[0];
-    const int v1_loop = looptri.tri[1];
-    const int v2_loop = looptri.tri[2];
-
-    const float v0_density_factor = std::max(0.0f, density_factors[v0_loop]);
-    const float v1_density_factor = std::max(0.0f, density_factors[v1_loop]);
-    const float v2_density_factor = std::max(0.0f, density_factors[v2_loop]);
+    const float v0_density_factor = std::max(0.0f, density_factors[tri[0]]);
+    const float v1_density_factor = std::max(0.0f, density_factors[tri[1]]);
+    const float v2_density_factor = std::max(0.0f, density_factors[tri[2]]);
 
     const float probability = v0_density_factor * bary_coord.x + v1_density_factor * bary_coord.y +
                               v2_density_factor * bary_coord.z;
@@ -239,47 +234,47 @@ BLI_NOINLINE static void update_elimination_mask_based_on_density_factors(
 BLI_NOINLINE static void eliminate_points_based_on_mask(const Span<bool> elimination_mask,
                                                         Vector<float3> &positions,
                                                         Vector<float3> &bary_coords,
-                                                        Vector<int> &looptri_indices)
+                                                        Vector<int> &tri_indices)
 {
   for (int i = positions.size() - 1; i >= 0; i--) {
     if (elimination_mask[i]) {
       positions.remove_and_reorder(i);
       bary_coords.remove_and_reorder(i);
-      looptri_indices.remove_and_reorder(i);
+      tri_indices.remove_and_reorder(i);
     }
   }
 }
 
 BLI_NOINLINE static void interpolate_attribute(const Mesh &mesh,
                                                const Span<float3> bary_coords,
-                                               const Span<int> looptri_indices,
-                                               const eAttrDomain source_domain,
+                                               const Span<int> tri_indices,
+                                               const AttrDomain source_domain,
                                                const GVArray &source_data,
                                                GMutableSpan output_data)
 {
   switch (source_domain) {
-    case ATTR_DOMAIN_POINT: {
+    case AttrDomain::Point: {
       bke::mesh_surface_sample::sample_point_attribute(mesh.corner_verts(),
-                                                       mesh.looptris(),
-                                                       looptri_indices,
+                                                       mesh.corner_tris(),
+                                                       tri_indices,
                                                        bary_coords,
                                                        source_data,
                                                        IndexMask(output_data.size()),
                                                        output_data);
       break;
     }
-    case ATTR_DOMAIN_CORNER: {
-      bke::mesh_surface_sample::sample_corner_attribute(mesh.looptris(),
-                                                        looptri_indices,
+    case AttrDomain::Corner: {
+      bke::mesh_surface_sample::sample_corner_attribute(mesh.corner_tris(),
+                                                        tri_indices,
                                                         bary_coords,
                                                         source_data,
                                                         IndexMask(output_data.size()),
                                                         output_data);
       break;
     }
-    case ATTR_DOMAIN_FACE: {
-      bke::mesh_surface_sample::sample_face_attribute(mesh.looptri_faces(),
-                                                      looptri_indices,
+    case AttrDomain::Face: {
+      bke::mesh_surface_sample::sample_face_attribute(mesh.corner_tri_faces(),
+                                                      tri_indices,
                                                       source_data,
                                                       IndexMask(output_data.size()),
                                                       output_data);
@@ -297,7 +292,7 @@ BLI_NOINLINE static void propagate_existing_attributes(
     const Map<AttributeIDRef, AttributeKind> &attributes,
     PointCloud &points,
     const Span<float3> bary_coords,
-    const Span<int> looptri_indices)
+    const Span<int> tri_indices)
 {
   const AttributeAccessor mesh_attributes = mesh.attributes();
   MutableAttributeAccessor point_attributes = points.attributes_for_write();
@@ -310,17 +305,17 @@ BLI_NOINLINE static void propagate_existing_attributes(
     if (!src) {
       continue;
     }
-    if (src.domain == ATTR_DOMAIN_EDGE) {
+    if (src.domain == AttrDomain::Edge) {
       continue;
     }
 
     GSpanAttributeWriter dst = point_attributes.lookup_or_add_for_write_only_span(
-        attribute_id, ATTR_DOMAIN_POINT, output_data_type);
+        attribute_id, AttrDomain::Point, output_data_type);
     if (!dst) {
       continue;
     }
 
-    interpolate_attribute(mesh, bary_coords, looptri_indices, src.domain, src.varray, dst.span);
+    interpolate_attribute(mesh, bary_coords, tri_indices, src.domain, src.varray, dst.span);
     dst.finish();
   }
 }
@@ -334,35 +329,35 @@ struct AttributeOutputs {
 
 static void compute_normal_outputs(const Mesh &mesh,
                                    const Span<float3> bary_coords,
-                                   const Span<int> looptri_indices,
+                                   const Span<int> tri_indices,
                                    MutableSpan<float3> r_normals)
 {
   switch (mesh.normals_domain()) {
     case bke::MeshNormalDomain::Point: {
       const Span<int> corner_verts = mesh.corner_verts();
-      const Span<MLoopTri> looptris = mesh.looptris();
+      const Span<int3> corner_tris = mesh.corner_tris();
       const Span<float3> vert_normals = mesh.vert_normals();
       threading::parallel_for(bary_coords.index_range(), 512, [&](const IndexRange range) {
         bke::mesh_surface_sample::sample_point_normals(
-            corner_verts, looptris, looptri_indices, bary_coords, vert_normals, range, r_normals);
+            corner_verts, corner_tris, tri_indices, bary_coords, vert_normals, range, r_normals);
       });
       break;
     }
     case bke::MeshNormalDomain::Face: {
-      const Span<int> looptri_faces = mesh.looptri_faces();
+      const Span<int> tri_faces = mesh.corner_tri_faces();
       VArray<float3> face_normals = VArray<float3>::ForSpan(mesh.face_normals());
       threading::parallel_for(bary_coords.index_range(), 512, [&](const IndexRange range) {
         bke::mesh_surface_sample::sample_face_attribute(
-            looptri_faces, looptri_indices, face_normals, range, r_normals);
+            tri_faces, tri_indices, face_normals, range, r_normals);
       });
       break;
     }
     case bke::MeshNormalDomain::Corner: {
-      const Span<MLoopTri> looptris = mesh.looptris();
+      const Span<int3> corner_tris = mesh.corner_tris();
       const Span<float3> corner_normals = mesh.corner_normals();
       threading::parallel_for(bary_coords.index_range(), 512, [&](const IndexRange range) {
         bke::mesh_surface_sample::sample_corner_normals(
-            looptris, looptri_indices, bary_coords, corner_normals, range, r_normals);
+            corner_tris, tri_indices, bary_coords, corner_normals, range, r_normals);
       });
       break;
     }
@@ -371,20 +366,20 @@ static void compute_normal_outputs(const Mesh &mesh,
 
 static void compute_legacy_normal_outputs(const Mesh &mesh,
                                           const Span<float3> bary_coords,
-                                          const Span<int> looptri_indices,
+                                          const Span<int> tri_indices,
                                           MutableSpan<float3> r_normals)
 {
   const Span<float3> positions = mesh.vert_positions();
   const Span<int> corner_verts = mesh.corner_verts();
-  const Span<MLoopTri> looptris = mesh.looptris();
+  const Span<int3> corner_tris = mesh.corner_tris();
 
   for (const int i : bary_coords.index_range()) {
-    const int looptri_index = looptri_indices[i];
-    const MLoopTri &looptri = looptris[looptri_index];
+    const int tri_i = tri_indices[i];
+    const int3 &tri = corner_tris[tri_i];
 
-    const int v0_index = corner_verts[looptri.tri[0]];
-    const int v1_index = corner_verts[looptri.tri[1]];
-    const int v2_index = corner_verts[looptri.tri[2]];
+    const int v0_index = corner_verts[tri[0]];
+    const int v1_index = corner_verts[tri[1]];
+    const int v2_index = corner_verts[tri[2]];
     const float3 v0_pos = positions[v0_index];
     const float3 v1_pos = positions[v1_index];
     const float3 v2_pos = positions[v2_index];
@@ -408,41 +403,41 @@ static void compute_rotation_output(const Span<float3> normals,
 BLI_NOINLINE static void compute_attribute_outputs(const Mesh &mesh,
                                                    PointCloud &points,
                                                    const Span<float3> bary_coords,
-                                                   const Span<int> looptri_indices,
+                                                   const Span<int> tri_indices,
                                                    const AttributeOutputs &attribute_outputs,
                                                    const bool use_legacy_normal)
 {
   MutableAttributeAccessor point_attributes = points.attributes_for_write();
 
   SpanAttributeWriter<int> ids = point_attributes.lookup_or_add_for_write_only_span<int>(
-      "id", ATTR_DOMAIN_POINT);
+      "id", AttrDomain::Point);
 
   SpanAttributeWriter<float3> normals;
   SpanAttributeWriter<math::Quaternion> rotations;
 
   if (attribute_outputs.normal_id) {
     normals = point_attributes.lookup_or_add_for_write_only_span<float3>(
-        attribute_outputs.normal_id.get(), ATTR_DOMAIN_POINT);
+        attribute_outputs.normal_id.get(), AttrDomain::Point);
   }
   if (attribute_outputs.rotation_id) {
     rotations = point_attributes.lookup_or_add_for_write_only_span<math::Quaternion>(
-        attribute_outputs.rotation_id.get(), ATTR_DOMAIN_POINT);
+        attribute_outputs.rotation_id.get(), AttrDomain::Point);
   }
 
   threading::parallel_for(bary_coords.index_range(), 1024, [&](const IndexRange range) {
     for (const int i : range) {
-      const int looptri_index = looptri_indices[i];
+      const int tri_i = tri_indices[i];
       const float3 &bary_coord = bary_coords[i];
-      ids.span[i] = noise::hash(noise::hash_float(bary_coord), looptri_index);
+      ids.span[i] = noise::hash(noise::hash_float(bary_coord), tri_i);
     }
   });
 
   if (normals) {
     if (use_legacy_normal) {
-      compute_legacy_normal_outputs(mesh, bary_coords, looptri_indices, normals.span);
+      compute_legacy_normal_outputs(mesh, bary_coords, tri_indices, normals.span);
     }
     else {
-      compute_normal_outputs(mesh, bary_coords, looptri_indices, normals.span);
+      compute_normal_outputs(mesh, bary_coords, tri_indices, normals.span);
     }
 
     if (rotations) {
@@ -459,7 +454,7 @@ static Array<float> calc_full_density_factors_with_selection(const Mesh &mesh,
                                                              const Field<float> &density_field,
                                                              const Field<bool> &selection_field)
 {
-  const eAttrDomain domain = ATTR_DOMAIN_CORNER;
+  const AttrDomain domain = AttrDomain::Corner;
   const int domain_size = mesh.attributes().domain_size(domain);
   Array<float> densities(domain_size, 0.0f);
 
@@ -477,11 +472,11 @@ static void distribute_points_random(const Mesh &mesh,
                                      const int seed,
                                      Vector<float3> &positions,
                                      Vector<float3> &bary_coords,
-                                     Vector<int> &looptri_indices)
+                                     Vector<int> &tri_indices)
 {
   const Array<float> densities = calc_full_density_factors_with_selection(
       mesh, density_field, selection_field);
-  sample_mesh_surface(mesh, 1.0f, densities, seed, positions, bary_coords, looptri_indices);
+  sample_mesh_surface(mesh, 1.0f, densities, seed, positions, bary_coords, tri_indices);
 }
 
 static void distribute_points_poisson_disk(const Mesh &mesh,
@@ -492,9 +487,9 @@ static void distribute_points_poisson_disk(const Mesh &mesh,
                                            const int seed,
                                            Vector<float3> &positions,
                                            Vector<float3> &bary_coords,
-                                           Vector<int> &looptri_indices)
+                                           Vector<int> &tri_indices)
 {
-  sample_mesh_surface(mesh, max_density, {}, seed, positions, bary_coords, looptri_indices);
+  sample_mesh_surface(mesh, max_density, {}, seed, positions, bary_coords, tri_indices);
 
   Array<bool> elimination_mask(positions.size(), false);
   update_elimination_mask_for_close_points(positions, minimum_distance, elimination_mask);
@@ -503,10 +498,9 @@ static void distribute_points_poisson_disk(const Mesh &mesh,
       mesh, density_factor_field, selection_field);
 
   update_elimination_mask_based_on_density_factors(
-      mesh, density_factors, bary_coords, looptri_indices, elimination_mask.as_mutable_span());
+      mesh, density_factors, bary_coords, tri_indices, elimination_mask.as_mutable_span());
 
-  eliminate_points_based_on_mask(
-      elimination_mask.as_span(), positions, bary_coords, looptri_indices);
+  eliminate_points_based_on_mask(elimination_mask.as_span(), positions, bary_coords, tri_indices);
 }
 
 static void point_distribution_calculate(GeometrySet &geometry_set,
@@ -524,13 +518,13 @@ static void point_distribution_calculate(GeometrySet &geometry_set,
 
   Vector<float3> positions;
   Vector<float3> bary_coords;
-  Vector<int> looptri_indices;
+  Vector<int> tri_indices;
 
   switch (method) {
     case GEO_NODE_POINT_DISTRIBUTE_POINTS_ON_FACES_RANDOM: {
       const Field<float> density_field = params.get_input<Field<float>>("Density");
       distribute_points_random(
-          mesh, density_field, selection_field, seed, positions, bary_coords, looptri_indices);
+          mesh, density_field, selection_field, seed, positions, bary_coords, tri_indices);
       break;
     }
     case GEO_NODE_POINT_DISTRIBUTE_POINTS_ON_FACES_POISSON: {
@@ -545,7 +539,7 @@ static void point_distribution_calculate(GeometrySet &geometry_set,
                                      seed,
                                      positions,
                                      bary_coords,
-                                     looptri_indices);
+                                     tri_indices);
       break;
     }
   }
@@ -557,7 +551,7 @@ static void point_distribution_calculate(GeometrySet &geometry_set,
   PointCloud *pointcloud = BKE_pointcloud_new_nomain(positions.size());
   bke::MutableAttributeAccessor point_attributes = pointcloud->attributes_for_write();
   bke::SpanAttributeWriter<float> point_radii =
-      point_attributes.lookup_or_add_for_write_only_span<float>("radius", ATTR_DOMAIN_POINT);
+      point_attributes.lookup_or_add_for_write_only_span<float>("radius", AttrDomain::Point);
   pointcloud->positions_for_write().copy_from(positions);
   point_radii.span.fill(0.05f);
   point_radii.finish();
@@ -574,11 +568,11 @@ static void point_distribution_calculate(GeometrySet &geometry_set,
   /* Position is set separately. */
   attributes.remove("position");
 
-  propagate_existing_attributes(mesh, attributes, *pointcloud, bary_coords, looptri_indices);
+  propagate_existing_attributes(mesh, attributes, *pointcloud, bary_coords, tri_indices);
 
   const bool use_legacy_normal = params.node().custom2 != 0;
   compute_attribute_outputs(
-      mesh, *pointcloud, bary_coords, looptri_indices, attribute_outputs, use_legacy_normal);
+      mesh, *pointcloud, bary_coords, tri_indices, attribute_outputs, use_legacy_normal);
 
   geometry::debug_randomize_point_order(pointcloud);
 }

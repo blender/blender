@@ -46,8 +46,9 @@ class ShadingView {
   RayTraceBuffer rt_buffer_refract_;
   DepthOfFieldBuffer dof_buffer_;
 
-  Framebuffer prepass_fb_;
-  Framebuffer combined_fb_;
+  Framebuffer prepass_fb_ = {"prepass_fb_"};
+  Framebuffer combined_fb_ = {"combined_fb_"};
+  Framebuffer gbuffer_fb_ = {"gbuffer_fb_"};
   Framebuffer transparent_fb_ = {"transparent"};
   TextureFromPool postfx_tx_;
 
@@ -153,7 +154,8 @@ class MainView {
 class CaptureView {
  private:
   Instance &inst_;
-  Framebuffer capture_fb_ = {"World.Capture"};
+  Framebuffer combined_fb_ = {"Capture.Combined"};
+  Framebuffer gbuffer_fb_ = {"Capture.Gbuffer"};
 
  public:
   CaptureView(Instance &inst) : inst_(inst) {}
@@ -164,19 +166,20 @@ class CaptureView {
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Capture Planar View
+/** \name Lookdev View
  *
- * View for capturing planar probes outside a ShadingView.
+ * View for rendering the lookdev HDRI spheres.
  * \{ */
 
-class CapturePlanarView {
+class LookdevView {
  private:
   Instance &inst_;
-  Framebuffer capture_fb_ = {"Planar.Capture"};
+
+  View view_ = {"Lookdev.View"};
 
  public:
-  CapturePlanarView(Instance &inst) : inst_(inst) {}
-  void render_probes();
+  LookdevView(Instance &inst) : inst_(inst) {}
+  void render();
 };
 
 /** \} */

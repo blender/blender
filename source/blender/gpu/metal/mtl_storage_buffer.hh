@@ -33,6 +33,7 @@ class MTLStorageBuf : public StorageBuf {
     MTL_STORAGE_BUF_TYPE_UNIFORMBUF = 1,
     MTL_STORAGE_BUF_TYPE_VERTBUF = 2,
     MTL_STORAGE_BUF_TYPE_INDEXBUF = 3,
+    MTL_STORAGE_BUF_TYPE_TEXTURE = 4,
   } storage_source_ = MTL_STORAGE_BUF_TYPE_DEFAULT;
 
   union {
@@ -42,6 +43,7 @@ class MTLStorageBuf : public StorageBuf {
     MTLUniformBuf *uniform_buffer_;
     MTLVertBuf *vertex_buffer_;
     MTLIndexBuf *index_buffer_;
+    gpu::MTLTexture *texture_;
   };
 
   /* Whether buffer has contents, if false, no GPU buffer will
@@ -65,6 +67,7 @@ class MTLStorageBuf : public StorageBuf {
   MTLStorageBuf(MTLUniformBuf *uniform_buf, size_t size);
   MTLStorageBuf(MTLVertBuf *uniform_buf, size_t size);
   MTLStorageBuf(MTLIndexBuf *uniform_buf, size_t size);
+  MTLStorageBuf(MTLTexture *texture, size_t size);
 
   void update(const void *data) override;
   void bind(int slot) override;

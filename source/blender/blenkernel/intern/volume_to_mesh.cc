@@ -8,12 +8,11 @@
 #include "BLI_span.hh"
 #include "BLI_utildefines.h"
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_volume_types.h"
 
 #include "BKE_mesh.hh"
 #include "BKE_volume.hh"
+#include "BKE_volume_grid.hh"
 #include "BKE_volume_openvdb.hh"
 
 #ifdef WITH_OPENVDB
@@ -149,7 +148,7 @@ bke::OpenVDBMeshData volume_to_mesh_data(const openvdb::GridBase &grid,
                                          const float threshold,
                                          const float adaptivity)
 {
-  const VolumeGridType grid_type = BKE_volume_grid_type_openvdb(grid);
+  const VolumeGridType grid_type = bke::volume_grid::get_type(grid);
 
   VolumeToMeshOp to_mesh_op{grid, resolution, threshold, adaptivity};
   if (!BKE_volume_grid_type_operation(grid_type, to_mesh_op)) {
@@ -163,8 +162,8 @@ Mesh *volume_to_mesh(const openvdb::GridBase &grid,
                      const float threshold,
                      const float adaptivity)
 {
-  const bke::OpenVDBMeshData mesh_data = volume_to_mesh_data(
-      grid, resolution, threshold, adaptivity);
+  using namespace blender::bke;
+  const OpenVDBMeshData mesh_data = volume_to_mesh_data(grid, resolution, threshold, adaptivity);
 
   const int tot_loops = 3 * mesh_data.tris.size() + 4 * mesh_data.quads.size();
   const int tot_faces = mesh_data.tris.size() + mesh_data.quads.size();
@@ -180,8 +179,8 @@ Mesh *volume_to_mesh(const openvdb::GridBase &grid,
                               mesh->face_offsets_for_write(),
                               mesh->corner_verts_for_write());
 
-  BKE_mesh_calc_edges(mesh, false, false);
-  BKE_mesh_smooth_flag_set(mesh, false);
+  mesh_calc_edges(*mesh, false, false);
+  mesh_smooth_set(*mesh, false);
 
   mesh->tag_overlapping_none();
 

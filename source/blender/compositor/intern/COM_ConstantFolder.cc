@@ -119,7 +119,7 @@ Vector<MemoryBuffer *> ConstantFolder::get_constant_input_buffers(NodeOperation 
 Vector<ConstantOperation *> ConstantFolder::try_fold_operations(Span<NodeOperation *> operations)
 {
   Set<NodeOperation *> foldable_ops = find_constant_foldable_operations(operations);
-  if (foldable_ops.size() == 0) {
+  if (foldable_ops.is_empty()) {
     return Vector<ConstantOperation *>();
   }
 

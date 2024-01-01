@@ -74,7 +74,7 @@ static void extract_edge_fac_init(const MeshRenderData &mr,
   MeshExtract_EdgeFac_Data *data = static_cast<MeshExtract_EdgeFac_Data *>(tls_data);
 
   if (mr.extract_type == MR_EXTRACT_MESH) {
-    data->use_edge_render = !mr.me->runtime->subsurf_optimal_display_edges.is_empty();
+    data->use_edge_render = !mr.mesh->runtime->subsurf_optimal_display_edges.is_empty();
     data->edge_loop_count = MEM_cnew_array<uint8_t>(mr.edge_len, __func__);
     data->edge_pdata = (MEdgeDataPrev *)MEM_malloc_arrayN(
         mr.edge_len, sizeof(MEdgeDataPrev), __func__);
@@ -115,7 +115,7 @@ static void extract_edge_fac_iter_face_mesh(const MeshRenderData &mr,
 {
   MeshExtract_EdgeFac_Data *data = static_cast<MeshExtract_EdgeFac_Data *>(_data);
   const IndexRange face = mr.faces[face_index];
-  const BitSpan optimal_display_edges = mr.me->runtime->subsurf_optimal_display_edges;
+  const BitSpan optimal_display_edges = mr.mesh->runtime->subsurf_optimal_display_edges;
 
   for (const int ml_index : face) {
     const int edge = mr.corner_edges[ml_index];

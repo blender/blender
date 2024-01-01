@@ -114,12 +114,12 @@ class LightModule {
   Map<ObjectKey, Light> light_map_;
   /** Flat array sent to GPU, populated from light_map_. Source buffer for light culling. */
   LightDataBuf light_buf_ = {"Lights_no_cull"};
-  /** Recorded size of light_map_ (after pruning) to detect deletion. */
-  int64_t light_map_size_ = 0;
   /** Luminous intensity to consider the light boundary at. Used for culling. */
   float light_threshold_ = 0.01f;
-  /** If false, will prevent all scene light from being synced. */
+  /** If false, will prevent all scene lights from being synced. */
   bool use_scene_lights_ = false;
+  /** If false, will prevent all sun lights from being synced. */
+  bool use_sun_lights_ = false;
   /** Number of sun lights synced during the last sync. Used as offset. */
   int sun_lights_len_ = 0;
   int local_lights_len_ = 0;

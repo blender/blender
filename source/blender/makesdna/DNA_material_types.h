@@ -224,14 +224,14 @@ typedef struct Material {
   /* Volume. */
   char volume_intersection_method;
 
-  /* Displacement*/
+  /* Displacement. */
   float inflate_bounds;
 
   char _pad3[4];
 
   /**
-   * Cached slots for texture painting, must be refreshed in
-   * refresh_texpaint_image_cache before using.
+   * Cached slots for texture painting, must be refreshed via
+   * BKE_texpaint_slot_refresh_cache before using.
    */
   struct TexPaintSlot *texpaintslot;
 

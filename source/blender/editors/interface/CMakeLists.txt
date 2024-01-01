@@ -6,11 +6,9 @@ set(INC
   .
   ../include
   ../../asset_system
-  ../../blenfont
   ../../blenkernel
   ../../blenloader
   ../../blentranslation
-  ../../depsgraph
   ../../draw
   ../../functions
   ../../gpu
@@ -97,8 +95,10 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::blenfont
   bf_blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::depsgraph
   PRIVATE bf::dna
   bf_editor_datafiles
   PRIVATE bf::intern::guardedalloc

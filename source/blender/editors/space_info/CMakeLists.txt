@@ -4,12 +4,10 @@
 
 set(INC
   ../include
-  ../../blenfont
   ../../blenkernel
   ../../blenloader
   ../../blentranslation
   ../../bmesh
-  ../../depsgraph
   ../../gpu
   ../../imbuf
   ../../makesrna
@@ -35,7 +33,9 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::blenfont
   PRIVATE bf::blenlib
+  PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
 )

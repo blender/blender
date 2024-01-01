@@ -41,10 +41,10 @@ using blender::Vector;
 #include <type_traits>
 #include <utility>
 
-#include "bmesh.h"
+#include "bmesh.hh"
 #include "bmesh_collapse.hh"
-#include "bmesh_private.h"
-#include "bmesh_structure.h"
+#include "bmesh_private.hh"
+#include "bmesh_structure.hh"
 
 void bmesh_disk_edge_append(BMEdge *e, BMVert *v);
 void bmesh_radial_loop_append(BMEdge *e, BMLoop *l);
@@ -436,7 +436,7 @@ static bool cleanup_vert(BMesh *bm, BMVert *v, CollapseCallbacks *callbacks)
         l2 = l2->next;
       }
 
-      CustomData_bmesh_copy_data(&bm->ldata, &bm->ldata, l2->head.data, &l->head.data);
+      CustomData_bmesh_copy_block(bm->ldata, l2->head.data, &l->head.data);
     }
   } while ((l = l->next) != f->l_first);
 
@@ -783,10 +783,7 @@ int bmesh_elem_check_all(void *elem, char htype)
 #endif
 }  // namespace blender::bmesh
 
-extern "C" BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
-                                                    BMEdge *e,
-                                                    BMVert *v_kill,
-                                                    const bool do_del)
+BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm, BMEdge *e, BMVert *v_kill, const bool do_del)
 {
   return blender::bmesh::join_vert_kill_edge(bm, e, v_kill, do_del, nullptr);
 }

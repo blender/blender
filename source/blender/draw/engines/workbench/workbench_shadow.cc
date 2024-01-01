@@ -183,11 +183,13 @@ void ShadowPass::ShadowView::setup(View &view, float3 light_direction, bool forc
 bool ShadowPass::ShadowView::debug_object_culling(Object *ob)
 {
   printf("Test %s\n", ob->id.name);
-  const BoundBox _bbox = *BKE_object_boundbox_get(ob);
+  const Bounds<float3> bounds = *BKE_object_boundbox_get(ob);
+  BoundBox bb;
+  BKE_boundbox_init_from_minmax(&bb, bounds.min, bounds.max);
   for (int p : IndexRange(extruded_frustum_.planes_count)) {
     float4 plane = extruded_frustum_.planes[p];
     bool separating_axis = true;
-    for (float3 corner : _bbox.vec) {
+    for (float3 corner : bb.vec) {
       corner = math::transform_point(float4x4(ob->object_to_world), corner);
       float signed_distance = math::dot(corner, float3(plane)) - plane.w;
       if (signed_distance <= 0) {

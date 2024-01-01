@@ -184,7 +184,7 @@ void Instances::remove(const IndexMask &mask,
   array_utils::gather(transforms_.as_span(), mask, new_instances.transforms_.as_mutable_span());
 
   gather_attributes(this->attributes(),
-                    ATTR_DOMAIN_INSTANCE,
+                    AttrDomain::Instance,
                     propagation_info,
                     {"position"},
                     mask,

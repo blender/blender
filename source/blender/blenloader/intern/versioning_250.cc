@@ -54,10 +54,10 @@
 #include "BKE_anim_data.h"
 #include "BKE_anim_visualization.h"
 #include "BKE_armature.hh"
-#include "BKE_colortools.h"
+#include "BKE_colortools.hh"
 #include "BKE_global.h" /* for G */
 #include "BKE_lib_id.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
 #include "BKE_multires.hh"
@@ -961,9 +961,9 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
           key->refkey)
       {
         data = static_cast<const float *>(key->refkey->data);
-        tot = std::min(me->totvert, key->refkey->totelem);
+        tot = std::min(me->verts_num, key->refkey->totelem);
         MVert *verts = (MVert *)CustomData_get_layer_for_write(
-            &me->vert_data, CD_MVERT, me->totvert);
+            &me->vert_data, CD_MVERT, me->verts_num);
         for (a = 0; a < tot; a++, data += 3) {
           copy_v3_v3(verts[a].co_legacy, data);
         }

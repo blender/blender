@@ -10,8 +10,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
 #include "BKE_editmesh.hh"
@@ -32,9 +30,9 @@ static struct {
 
 void ED_mesh_mirror_spatial_table_begin(Object *ob, BMEditMesh *em, Mesh *me_eval)
 {
-  Mesh *me = static_cast<Mesh *>(ob->data);
-  const bool use_em = (!me_eval && em && me->edit_mesh == em);
-  const int totvert = use_em ? em->bm->totvert : me_eval ? me_eval->totvert : me->totvert;
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  const bool use_em = (!me_eval && em && mesh->edit_mesh == em);
+  const int totvert = use_em ? em->bm->totvert : me_eval ? me_eval->verts_num : mesh->verts_num;
 
   if (MirrKdStore.tree) { /* happens when entering this call without ending it */
     ED_mesh_mirror_spatial_table_end(ob);
@@ -56,7 +54,7 @@ void ED_mesh_mirror_spatial_table_begin(Object *ob, BMEditMesh *em, Mesh *me_eva
   }
   else {
     const blender::Span<blender::float3> positions = me_eval ? me_eval->vert_positions() :
-                                                               me->vert_positions();
+                                                               mesh->vert_positions();
     for (int i = 0; i < totvert; i++) {
       BLI_kdtree_3d_insert(MirrKdStore.tree, i, positions[i]);
     }
@@ -131,7 +129,7 @@ static int mirrtopo_vert_sort(const void *v1, const void *v2)
   return 0;
 }
 
-bool ED_mesh_mirrtopo_recalc_check(BMEditMesh *em, Mesh *me, MirrTopoStore_t *mesh_topo_store)
+bool ED_mesh_mirrtopo_recalc_check(BMEditMesh *em, Mesh *mesh, MirrTopoStore_t *mesh_topo_store)
 {
   const bool is_editmode = em != nullptr;
   int totvert;
@@ -142,8 +140,8 @@ bool ED_mesh_mirrtopo_recalc_check(BMEditMesh *em, Mesh *me, MirrTopoStore_t *me
     totedge = em->bm->totedge;
   }
   else {
-    totvert = me->totvert;
-    totedge = me->totedge;
+    totvert = mesh->verts_num;
+    totedge = mesh->edges_num;
   }
 
   if ((mesh_topo_store->index_lookup == nullptr) ||
@@ -156,12 +154,12 @@ bool ED_mesh_mirrtopo_recalc_check(BMEditMesh *em, Mesh *me, MirrTopoStore_t *me
 }
 
 void ED_mesh_mirrtopo_init(BMEditMesh *em,
-                           Mesh *me,
+                           Mesh *mesh,
                            MirrTopoStore_t *mesh_topo_store,
                            const bool skip_em_vert_array_init)
 {
   if (em) {
-    BLI_assert(me == nullptr);
+    BLI_assert(mesh == nullptr);
   }
   const bool is_editmode = (em != nullptr);
 
@@ -187,7 +185,7 @@ void ED_mesh_mirrtopo_init(BMEditMesh *em,
     totvert = em->bm->totvert;
   }
   else {
-    totvert = me->totvert;
+    totvert = mesh->verts_num;
   }
 
   MirrTopoHash_t *topo_hash = static_cast<MirrTopoHash_t *>(
@@ -204,8 +202,8 @@ void ED_mesh_mirrtopo_init(BMEditMesh *em,
     }
   }
   else {
-    totedge = me->totedge;
-    for (const blender::int2 &edge : me->edges()) {
+    totedge = mesh->edges_num;
+    for (const blender::int2 &edge : mesh->edges()) {
       topo_hash[edge[0]]++;
       topo_hash[edge[1]]++;
     }
@@ -230,7 +228,7 @@ void ED_mesh_mirrtopo_init(BMEditMesh *em,
       }
     }
     else {
-      for (const blender::int2 &edge : me->edges()) {
+      for (const blender::int2 &edge : mesh->edges()) {
         const int i1 = edge[0], i2 = edge[1];
         topo_hash[i1] += topo_hash_prev[i2] * topo_pass;
         topo_hash[i2] += topo_hash_prev[i1] * topo_pass;

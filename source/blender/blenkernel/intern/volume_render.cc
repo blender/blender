@@ -17,6 +17,7 @@
 #include "DNA_volume_types.h"
 
 #include "BKE_volume.hh"
+#include "BKE_volume_grid.hh"
 #include "BKE_volume_openvdb.hh"
 #include "BKE_volume_render.hh"
 
@@ -92,14 +93,15 @@ static void create_texture_to_object_matrix(const openvdb::Mat4d &grid_transform
 #endif
 
 bool BKE_volume_grid_dense_floats(const Volume *volume,
-                                  const VolumeGrid *volume_grid,
+                                  const blender::bke::VolumeGridData *volume_grid,
                                   DenseFloatVolumeGrid *r_dense_grid)
 {
 #ifdef WITH_OPENVDB
-  const VolumeGridType grid_type = BKE_volume_grid_type(volume_grid);
-  openvdb::GridBase::ConstPtr grid = BKE_volume_grid_openvdb_for_read(volume, volume_grid);
+  const VolumeGridType grid_type = volume_grid->grid_type();
+  blender::bke::VolumeTreeAccessToken access_token = volume_grid->tree_access_token();
+  const openvdb::GridBase &grid = volume_grid->grid(access_token);
 
-  const openvdb::CoordBBox bbox = grid->evalActiveVoxelBoundingBox();
+  const openvdb::CoordBBox bbox = grid.evalActiveVoxelBoundingBox();
   if (bbox.empty()) {
     return false;
   }
@@ -107,15 +109,15 @@ bool BKE_volume_grid_dense_floats(const Volume *volume,
   const openvdb::Vec3i resolution = bbox.dim().asVec3i();
   const int64_t num_voxels = int64_t(resolution[0]) * int64_t(resolution[1]) *
                              int64_t(resolution[2]);
-  const int channels = BKE_volume_grid_channels(volume_grid);
+  const int channels = blender::bke::volume_grid::get_channels_num(grid_type);
   const int elem_size = sizeof(float) * channels;
   float *voxels = static_cast<float *>(MEM_malloc_arrayN(num_voxels, elem_size, __func__));
   if (voxels == nullptr) {
     return false;
   }
 
-  extract_dense_float_voxels(grid_type, *grid, bbox, voxels);
-  create_texture_to_object_matrix(grid->transform().baseMap()->getAffineMap()->getMat4(),
+  extract_dense_float_voxels(grid_type, grid, bbox, voxels);
+  create_texture_to_object_matrix(grid.transform().baseMap()->getAffineMap()->getMat4(),
                                   bbox,
                                   r_dense_grid->texture_to_object);
 
@@ -321,7 +323,7 @@ static void boxes_to_cube_mesh(blender::Span<openvdb::CoordBBox> boxes,
 #endif
 
 void BKE_volume_grid_wireframe(const Volume *volume,
-                               const VolumeGrid *volume_grid,
+                               const blender::bke::VolumeGridData *volume_grid,
                                BKE_volume_wireframe_cb cb,
                                void *cb_userdata)
 {
@@ -331,15 +333,16 @@ void BKE_volume_grid_wireframe(const Volume *volume,
   }
 
 #ifdef WITH_OPENVDB
-  openvdb::GridBase::ConstPtr grid = BKE_volume_grid_openvdb_for_read(volume, volume_grid);
+  blender::bke::VolumeTreeAccessToken access_token = volume_grid->tree_access_token();
+  const openvdb::GridBase &grid = volume_grid->grid(access_token);
 
   if (volume->display.wireframe_type == VOLUME_WIREFRAME_BOUNDS) {
     /* Bounding box. */
     openvdb::CoordBBox box;
     blender::Vector<blender::float3> verts;
     blender::Vector<std::array<int, 2>> edges;
-    if (grid->baseTree().evalLeafBoundingBox(box)) {
-      boxes_to_edge_mesh({box}, grid->transform(), verts, edges);
+    if (grid.baseTree().evalLeafBoundingBox(box)) {
+      boxes_to_edge_mesh({box}, grid.transform(), verts, edges);
     }
     cb(cb_userdata,
        (float(*)[3])verts.data(),
@@ -349,8 +352,8 @@ void BKE_volume_grid_wireframe(const Volume *volume,
   }
   else {
     blender::Vector<openvdb::CoordBBox> boxes = get_bounding_boxes(
-        BKE_volume_grid_type(volume_grid),
-        *grid,
+        volume_grid->grid_type(),
+        grid,
         volume->display.wireframe_detail == VOLUME_WIREFRAME_COARSE);
 
     blender::Vector<blender::float3> verts;
@@ -358,10 +361,10 @@ void BKE_volume_grid_wireframe(const Volume *volume,
 
     if (volume->display.wireframe_type == VOLUME_WIREFRAME_POINTS) {
       verts.resize(boxes.size());
-      boxes_to_center_points(boxes, grid->transform(), verts);
+      boxes_to_center_points(boxes, grid.transform(), verts);
     }
     else {
-      boxes_to_edge_mesh(boxes, grid->transform(), verts, edges);
+      boxes_to_edge_mesh(boxes, grid.transform(), verts, edges);
     }
 
     cb(cb_userdata,
@@ -403,19 +406,20 @@ static void grow_triangles(blender::MutableSpan<blender::float3> verts,
 }
 #endif /* WITH_OPENVDB */
 
-void BKE_volume_grid_selection_surface(const Volume *volume,
-                                       const VolumeGrid *volume_grid,
+void BKE_volume_grid_selection_surface(const Volume * /*volume*/,
+                                       const blender::bke::VolumeGridData *volume_grid,
                                        BKE_volume_selection_surface_cb cb,
                                        void *cb_userdata)
 {
 #ifdef WITH_OPENVDB
-  openvdb::GridBase::ConstPtr grid = BKE_volume_grid_openvdb_for_read(volume, volume_grid);
+  blender::bke::VolumeTreeAccessToken access_token = volume_grid->tree_access_token();
+  const openvdb::GridBase &grid = volume_grid->grid(access_token);
   blender::Vector<openvdb::CoordBBox> boxes = get_bounding_boxes(
-      BKE_volume_grid_type(volume_grid), *grid, true);
+      volume_grid->grid_type(), grid, true);
 
   blender::Vector<blender::float3> verts;
   blender::Vector<std::array<int, 3>> tris;
-  boxes_to_cube_mesh(boxes, grid->transform(), verts, tris);
+  boxes_to_cube_mesh(boxes, grid.transform(), verts, tris);
 
   /* By slightly scaling the individual boxes up, we can avoid some artifacts when drawing the
    * selection outline. */
@@ -424,7 +428,7 @@ void BKE_volume_grid_selection_surface(const Volume *volume,
 
   cb(cb_userdata, (float(*)[3])verts.data(), (int(*)[3])tris.data(), verts.size(), tris.size());
 #else
-  UNUSED_VARS(volume, volume_grid);
+  UNUSED_VARS(volume_grid);
   cb(cb_userdata, nullptr, nullptr, 0, 0);
 #endif
 }

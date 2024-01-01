@@ -27,7 +27,7 @@ ccl_device_noinline void svm_node_wavelength(KernelGlobals kg,
   }
   else {
     ii -= i;
-    ccl_constant float *c = cie_colour_match[i];
+    ccl_constant float *c = cie_color_match[i];
     color = interp(make_float3(c[0], c[1], c[2]), make_float3(c[3], c[4], c[5]), ii);
   }
 

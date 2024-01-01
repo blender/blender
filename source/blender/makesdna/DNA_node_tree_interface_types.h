@@ -79,7 +79,7 @@ typedef struct bNodeTreeInterfaceSocket {
   /* NodeTreeInterfaceSocketFlag */
   int flag;
 
-  /* eAttrDomain */
+  /* AttrDomain */
   int16_t attribute_domain;
   /** GeometryNodeDefaultInputType. */
   int16_t default_input;

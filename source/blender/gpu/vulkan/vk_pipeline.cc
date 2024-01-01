@@ -57,7 +57,7 @@ VKPipeline VKPipeline::create_compute_pipeline(
 
   VkPipeline vk_pipeline;
   if (vkCreateComputePipelines(device.device_get(),
-                               nullptr,
+                               device.vk_pipeline_cache_get(),
                                1,
                                &pipeline_info,
                                vk_allocation_callbacks,
@@ -182,7 +182,7 @@ void VKPipeline::finalize(VKContext &context,
 
   const VKDevice &device = VKBackend::get().device_get();
   vkCreateGraphicsPipelines(device.device_get(),
-                            VK_NULL_HANDLE,
+                            device.vk_pipeline_cache_get(),
                             1,
                             &pipeline_create_info,
                             vk_allocation_callbacks,

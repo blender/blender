@@ -88,7 +88,7 @@ static void sculpt_gradient_apply_task_cb(void *__restrict userdata,
   SculptOrigVertData orig_data;
   AutomaskingNodeData automask_data;
 
-  SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n], SCULPT_UNDO_COORDS);
+  SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n], undo::Type::Position);
   SCULPT_automasking_node_begin(
       data->ob, ss, ss->filter_cache->automasking, &automask_data, data->nodes[n]);
 
@@ -204,7 +204,7 @@ static void sculpt_gradient_context_init_common(bContext *C,
   /* Depth */
   SculptCursorGeometryInfo sgi;
   float mouse[2] = {event->mval[0], event->mval[1]};
-  const bool hit = SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false, false);
+  const bool hit = SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false);
   if (hit) {
     copy_v3_v3(gcontext->depth_point, sgi.location);
   }
@@ -232,7 +232,7 @@ static int sculpt_mask_gradient_invoke(bContext *C, wmOperator *op, const wmEven
   BKE_sculpt_update_object_for_edit(depsgraph, ob, false, true, false);
 
   // XXX get area_normal_radius argument properly
-  SCULPT_filter_cache_init(C, ob, sd, SCULPT_UNDO_MASK, event->mval, 0.25f, 1.0f);
+  SCULPT_filter_cache_init(C, ob, sd, undo::Type::Mask, event->mval, 0.25f, 1.0f);
 
   ss->filter_cache->gradient_context = sculpt_mask_gradient_context_create(ob, op);
   sculpt_gradient_context_init_common(C, op, event, ss->filter_cache->gradient_context);

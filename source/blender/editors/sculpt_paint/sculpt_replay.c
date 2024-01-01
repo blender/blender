@@ -795,7 +795,7 @@ void SCULPT_replay_make_cube(struct bContext *C, int steps)
   BLI_rng_free(rng);
 #endif
 
-  BKE_pbvh_free(ss->pbvh);
+  bke::pbvh::free(ss->pbvh);
   ss->pbvh = NULL;
 
   // XXX call BKE_sculptsession_update_attr_refs here?

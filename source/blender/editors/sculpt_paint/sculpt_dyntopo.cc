@@ -30,10 +30,10 @@
 #include "DNA_modifier_types.h"
 
 #include "BKE_brush.hh"
-#include "BKE_colortools.h"
+#include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_global.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
 #include "BKE_modifier.hh"
@@ -57,161 +57,20 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 #include "bmesh_idmap.hh"
 #include "bmesh_log.hh"
-#include "bmesh_tools.h"
+#include "bmesh_tools.hh"
 
 #include <math.h>
 #include <stdlib.h>
 
-using blender::IndexRange;
-using blender::int2;
-using blender::Vector;
+using namespace blender::ed::sculpt_paint;
+using namespace blender;
 
 BMesh *SCULPT_dyntopo_empty_bmesh()
 {
   return BKE_sculptsession_empty_bmesh_create();
-}
-
-void SCULPT_pbvh_clear(Object *ob)
-{
-  SculptSession *ss = ob->sculpt;
-
-  ss->pmap = {};
-  ss->epmap = {};
-  ss->edge_to_face_indices = {};
-  ss->edge_to_face_offsets = {};
-  ss->vemap = {};
-
-  /* Clear out any existing DM and PBVH. */
-  if (ss->pbvh) {
-    BKE_pbvh_free(ss->pbvh);
-    ss->pbvh = nullptr;
-  }
-
-  BKE_object_free_derived_caches(ob);
-
-  /* Tag to rebuild PBVH in depsgraph. */
-  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-}
-
-static void customdata_strip_templayers(CustomData *cdata, int totelem)
-{
-  for (int i = 0; i < cdata->totlayer; i++) {
-    CustomDataLayer *layer = cdata->layers + i;
-
-    if (layer->flag & CD_FLAG_TEMPORARY) {
-      CustomData_free_layer(cdata, eCustomDataType(layer->type), totelem, i);
-      i--;
-    }
-  }
-}
-
-void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Object *ob)
-{
-  SculptSession *ss = ob->sculpt;
-  Mesh *me = BKE_object_get_original_mesh(ob);
-
-  customdata_strip_templayers(&me->vert_data, me->totvert);
-  customdata_strip_templayers(&me->face_data, me->faces_num);
-
-  if (!ss->pmap.is_empty()) {
-    ss->pmap = {};
-    ss->epmap = {};
-    ss->edge_to_face_indices = {};
-    ss->edge_to_face_offsets = {};
-    ss->vemap = {};
-  }
-
-  if (!ss->bm || !ss->pbvh || BKE_pbvh_type(ss->pbvh) != PBVH_BMESH) {
-    SCULPT_pbvh_clear(ob);
-  }
-
-  PBVH *pbvh = ss->pbvh;
-
-  if (pbvh) {
-    BMesh *bm = BKE_pbvh_get_bmesh(pbvh);
-
-    if (!ss->bm) {
-      ss->bm = bm;
-    }
-    else if (ss->bm != bm) {
-      printf("%s: bmesh differed!\n", __func__);
-      SCULPT_pbvh_clear(ob);
-    }
-  }
-
-  /* Dynamic topology doesn't ensure selection state is valid, so remove #36280. */
-  BKE_mesh_mselect_clear(me);
-  bool tag_update = false;
-
-  if (!ss->bm) {
-    ss->bm = BKE_sculptsession_empty_bmesh_create();
-
-    BMeshFromMeshParams params = {};
-    params.use_shapekey = true;
-    params.active_shapekey = ob->shapenr;
-
-    BM_mesh_bm_from_me(ss->bm, me, &params);
-    tag_update = true;
-  }
-
-#ifndef DYNTOPO_DYNAMIC_TESS
-  SCULPT_dynamic_topology_triangulate(ss, ss->bm);
-#endif
-
-  if (ss->pbvh) {
-    BKE_sculptsession_update_attr_refs(ob);
-  }
-
-  /* XXX Delete this block of code? Might be old fake quadrangulation edge hiding. */
-  BMIter iter;
-  BMEdge *e;
-  BM_ITER_MESH (e, &iter, ss->bm, BM_EDGES_OF_MESH) {
-    e->head.hflag |= BM_ELEM_DRAW;
-  }
-
-  /* Calculate normals. */
-  BM_mesh_normals_update(ss->bm);
-
-  /* Enable dynamic topology. */
-  me->flag |= ME_SCULPT_DYNAMIC_TOPOLOGY;
-
-  BKE_sculpt_ensure_idmap(ob);
-
-  /* Enable logging for undo/redo. */
-  if (!ss->bm_log) {
-    ss->bm_log = BM_log_create(ss->bm, ss->bm_idmap);
-  }
-
-  tag_update |= !ss->pbvh || BKE_pbvh_type(ss->pbvh) != PBVH_BMESH;
-
-  /* Update dependency graph, so modifiers that depend on dyntopo being enabled
-   * are re-evaluated and the PBVH is re-created. */
-  if (tag_update) {
-    DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-    BKE_scene_graph_update_tagged(depsgraph, bmain);
-  }
-
-  /* ss->pbvh should exist by this point. */
-
-  if (ss->pbvh) {
-    BKE_sculpt_ensure_sculpt_layers(ob);
-    BKE_sculpt_ensure_origco(ob);
-    blender::bke::paint::load_all_original(ob);
-  }
-
-  SCULPT_update_all_valence_boundary(ob);
-
-  if (ss->pbvh && SCULPT_has_persistent_base(ss)) {
-    SCULPT_ensure_persistent_layers(ss, ob);
-  }
-
-  if (!CustomData_has_layer_named(&ss->bm->vdata, CD_PROP_FLOAT, ".sculpt_mask")) {
-    BM_data_layer_add_named(ss->bm, &ss->bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
-    BKE_sculptsession_update_attr_refs(ob);
-  }
 }
 
 void SCULPT_update_all_valence_boundary(Object *ob)
@@ -267,15 +126,174 @@ void SCULPT_update_all_valence_boundary(Object *ob)
   }
 }
 
+void SCULPT_pbvh_clear(Object *ob)
+{
+  using namespace blender;
+  SculptSession *ss = ob->sculpt;
+
+  /* Clear out any existing DM and PBVH. */
+  if (ss->pbvh) {
+    bke::pbvh::free(ss->pbvh);
+    ss->pbvh = nullptr;
+  }
+
+  BKE_object_free_derived_caches(ob);
+
+  /* Tag to rebuild PBVH in depsgraph. */
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+}
+
+namespace blender::ed::sculpt_paint::dyntopo {
+
+void enable_ex(Main *bmain, Depsgraph *depsgraph, Object *ob)
+{
+  SculptSession *ss = ob->sculpt;
+
+  ss->pmap = {};
+  ss->epmap = {};
+  ss->edge_to_face_indices = {};
+  ss->edge_to_face_offsets = {};
+  ss->vemap = {};
+
+  /* Clear out any existing DM and PBVH. */
+  if (ss->pbvh) {
+    bke::pbvh::free(ss->pbvh);
+    ss->pbvh = nullptr;
+  }
+
+  BKE_object_free_derived_caches(ob);
+
+  /* Tag to rebuild PBVH in depsgraph. */
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+}
+
+static void customdata_strip_templayers(CustomData *cdata, int totelem)
+{
+  for (int i = 0; i < cdata->totlayer; i++) {
+    CustomDataLayer *layer = cdata->layers + i;
+
+    if (layer->flag & CD_FLAG_TEMPORARY) {
+      CustomData_free_layer(cdata, eCustomDataType(layer->type), totelem, i);
+      i--;
+    }
+  }
+}
+
+void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Object *ob)
+{
+  SculptSession *ss = ob->sculpt;
+  Mesh *mesh = BKE_object_get_original_mesh(ob);
+
+  customdata_strip_templayers(&mesh->vert_data, mesh->verts_num);
+  customdata_strip_templayers(&mesh->face_data, mesh->faces_num);
+
+  if (!ss->pmap.is_empty()) {
+    ss->pmap = {};
+    ss->epmap = {};
+    ss->edge_to_face_indices = {};
+    ss->edge_to_face_offsets = {};
+    ss->vemap = {};
+  }
+
+  if (!ss->bm || !ss->pbvh || BKE_pbvh_type(ss->pbvh) != PBVH_BMESH) {
+    SCULPT_pbvh_clear(ob);
+  }
+
+  PBVH *pbvh = ss->pbvh;
+
+  if (pbvh) {
+    BMesh *bm = BKE_pbvh_get_bmesh(pbvh);
+
+    if (!ss->bm) {
+      ss->bm = bm;
+    }
+    else if (ss->bm != bm) {
+      printf("%s: bmesh differed!\n", __func__);
+      SCULPT_pbvh_clear(ob);
+    }
+  }
+
+  /* Dynamic topology doesn't ensure selection state is valid, so remove #36280. */
+  BKE_mesh_mselect_clear(mesh);
+  bool tag_update = false;
+
+  if (!ss->bm) {
+    ss->bm = BKE_sculptsession_empty_bmesh_create();
+
+    BMeshFromMeshParams params = {};
+    params.use_shapekey = true;
+    params.active_shapekey = ob->shapenr;
+
+    BM_mesh_bm_from_me(ss->bm, mesh, &params);
+    tag_update = true;
+  }
+
+#ifndef DYNTOPO_DYNAMIC_TESS
+  SCULPT_dynamic_topology_triangulate(ss, ss->bm);
+#endif
+
+  if (ss->pbvh) {
+    BKE_sculptsession_update_attr_refs(ob);
+  }
+
+  /* XXX Delete this block of code? Might be old fake quadrangulation edge hiding. */
+  BMIter iter;
+  BMEdge *e;
+  BM_ITER_MESH (e, &iter, ss->bm, BM_EDGES_OF_MESH) {
+    e->head.hflag |= BM_ELEM_DRAW;
+  }
+
+  /* Calculate normals. */
+  BM_mesh_normals_update(ss->bm);
+
+  /* Enable dynamic topology. */
+  mesh->flag |= ME_SCULPT_DYNAMIC_TOPOLOGY;
+
+  BKE_sculpt_ensure_idmap(ob);
+
+  /* Enable logging for undo/redo. */
+  if (!ss->bm_log) {
+    ss->bm_log = BM_log_create(ss->bm, ss->bm_idmap);
+  }
+
+  tag_update |= !ss->pbvh || BKE_pbvh_type(ss->pbvh) != PBVH_BMESH;
+
+  /* Update dependency graph, so modifiers that depend on dyntopo being enabled
+   * are re-evaluated and the PBVH is re-created. */
+  if (tag_update) {
+    DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+    BKE_scene_graph_update_tagged(depsgraph, bmain);
+  }
+
+  /* ss->pbvh should exist by this point. */
+
+  if (ss->pbvh) {
+    BKE_sculpt_ensure_sculpt_layers(ob);
+    BKE_sculpt_ensure_origco(ob);
+    blender::bke::paint::load_all_original(ob);
+  }
+
+  SCULPT_update_all_valence_boundary(ob);
+
+  if (ss->pbvh && SCULPT_has_persistent_base(ss)) {
+    SCULPT_ensure_persistent_layers(ss, ob);
+  }
+
+  if (!CustomData_has_layer_named(&ss->bm->vdata, CD_PROP_FLOAT, ".sculpt_mask")) {
+    BM_data_layer_add_named(ss->bm, &ss->bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
+    BKE_sculptsession_update_attr_refs(ob);
+  }
+}
+
 /* Free the sculpt BMesh and BMLog
  *
  * If 'unode' is given, the BMesh's data is copied out to the unode
  * before the BMesh is deleted so that it can be restored from. */
 static void SCULPT_dynamic_topology_disable_ex(
-    Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob, SculptUndoNode * /*unode*/)
+    Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob, undo::Node * /*unode*/)
 {
   SculptSession *ss = ob->sculpt;
-  Mesh *me = BKE_object_get_original_mesh(ob);
+  Mesh *mesh = BKE_object_get_original_mesh(ob);
 
   /* Destroy temporary layers. */
   BKE_sculpt_attribute_destroy_temporary_all(ob);
@@ -294,13 +312,13 @@ static void SCULPT_dynamic_topology_disable_ex(
 
   /* Sync the visibility to vertices manually as the pmap is still not initialized. */
   bool *hide_vert = (bool *)CustomData_get_layer_named_for_write(
-      &me->vert_data, CD_PROP_BOOL, ".hide_vert", me->totvert);
+      &mesh->vert_data, CD_PROP_BOOL, ".hide_vert", mesh->verts_num);
   if (hide_vert != nullptr) {
-    memset(static_cast<void *>(hide_vert), 0, sizeof(bool) * me->totvert);
+    memset(static_cast<void *>(hide_vert), 0, sizeof(bool) * mesh->verts_num);
   }
 
   /* Clear data. */
-  me->flag &= ~ME_SCULPT_DYNAMIC_TOPOLOGY;
+  mesh->flag &= ~ME_SCULPT_DYNAMIC_TOPOLOGY;
 
   if (ss->bm_idmap) {
     BM_idmap_destroy(ss->bm_idmap);
@@ -329,7 +347,7 @@ static void SCULPT_dynamic_topology_disable_ex(
   BKE_scene_graph_update_tagged(depsgraph, bmain);
 }
 
-void SCULPT_dynamic_topology_disable(bContext *C, SculptUndoNode *unode)
+void disable(bContext *C, undo::Node *unode)
 {
   Main *bmain = CTX_data_main(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
@@ -338,22 +356,19 @@ void SCULPT_dynamic_topology_disable(bContext *C, SculptUndoNode *unode)
   SCULPT_dynamic_topology_disable_ex(bmain, depsgraph, scene, ob, unode);
 }
 
-void sculpt_dynamic_topology_disable_with_undo(Main *bmain,
-                                               Depsgraph *depsgraph,
-                                               Scene *scene,
-                                               Object *ob)
+void disable_with_undo(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
   SculptSession *ss = ob->sculpt;
   if (ss->bm != nullptr) {
     /* May be false in background mode. */
     const bool use_undo = G.background ? (ED_undo_stack_get() != nullptr) : true;
     if (use_undo) {
-      SCULPT_undo_push_begin_ex(ob, "Dynamic topology disable");
-      SCULPT_undo_push_node(ob, nullptr, SCULPT_UNDO_DYNTOPO_END);
+      undo::push_begin_ex(ob, "Dynamic topology disable");
+      undo::push_node(ob, nullptr, undo::Type::DyntopoEnd);
     }
     SCULPT_dynamic_topology_disable_ex(bmain, depsgraph, scene, ob, nullptr);
     if (use_undo) {
-      SCULPT_undo_push_end(ob);
+      undo::push_end(ob);
     }
 
     ss->active_vertex.i = ss->active_face.i = PBVH_REF_NONE;
@@ -368,12 +383,12 @@ static void sculpt_dynamic_topology_enable_with_undo(Main *bmain, Depsgraph *dep
     /* May be false in background mode. */
     const bool use_undo = G.background ? (ED_undo_stack_get() != nullptr) : true;
     if (use_undo) {
-      SCULPT_undo_push_begin_ex(ob, "Dynamic topology enable");
+      undo::push_begin_ex(ob, "Dynamic topology enable");
     }
-    SCULPT_dynamic_topology_enable_ex(bmain, depsgraph, ob);
+    enable_ex(bmain, depsgraph, ob);
     if (use_undo) {
-      SCULPT_undo_push_node(ob, nullptr, SCULPT_UNDO_DYNTOPO_BEGIN);
-      SCULPT_undo_push_end(ob);
+      undo::push_node(ob, nullptr, undo::Type::DyntopoBegin);
+      undo::push_end(ob);
     }
 
     ss->active_vertex.i = ss->active_face.i = 0;
@@ -391,7 +406,7 @@ static int sculpt_dynamic_topology_toggle_exec(bContext *C, wmOperator * /*op*/)
   WM_cursor_wait(true);
 
   if (ss->bm) {
-    sculpt_dynamic_topology_disable_with_undo(bmain, depsgraph, scene, ob);
+    disable_with_undo(bmain, depsgraph, scene, ob);
   }
   else {
     sculpt_dynamic_topology_enable_with_undo(bmain, depsgraph, ob);
@@ -403,12 +418,12 @@ static int sculpt_dynamic_topology_toggle_exec(bContext *C, wmOperator * /*op*/)
   return OPERATOR_FINISHED;
 }
 
-static int dyntopo_error_popup(bContext *C, wmOperatorType * /*ot*/, enum eDynTopoWarnFlag flag)
+static int dyntopo_error_popup(bContext *C, wmOperatorType * /*ot*/, enum WarnFlag flag)
 {
   uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("Error!"), ICON_ERROR);
   uiLayout *layout = UI_popup_menu_layout(pup);
 
-  if (flag & DYNTOPO_ERROR_MULTIRES) {
+  if (flag & MULTIRES) {
     const char *msg_error = TIP_("Multires modifier detected; cannot enable dyntopo.");
     const char *msg = TIP_("Dyntopo and multires cannot be mixed.");
 
@@ -422,20 +437,12 @@ static int dyntopo_error_popup(bContext *C, wmOperatorType * /*ot*/, enum eDynTo
   return OPERATOR_INTERFACE;
 }
 
-static int dyntopo_warning_popup(bContext *C, wmOperatorType *ot, enum eDynTopoWarnFlag flag)
+static int dyntopo_warning_popup(bContext *C, wmOperatorType *ot, enum WarnFlag flag)
 {
   uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("Warning!"), ICON_ERROR);
   uiLayout *layout = UI_popup_menu_layout(pup);
 
-  if (flag & (DYNTOPO_WARN_EDATA)) {
-    const char *msg_error = TIP_("Edge Data Detected!");
-    const char *msg = TIP_("Dyntopo will not preserve custom edge attributes");
-    uiItemL(layout, msg_error, ICON_INFO);
-    uiItemL(layout, msg, ICON_NONE);
-    uiItemS(layout);
-  }
-
-  if (flag & DYNTOPO_WARN_MODIFIER) {
+  if (flag & MODIFIER) {
     const char *msg_error = TIP_("Generative Modifiers Detected!");
     const char *msg = TIP_(
         "Keeping the modifiers will increase polycount when returning to object mode");
@@ -453,11 +460,11 @@ static int dyntopo_warning_popup(bContext *C, wmOperatorType *ot, enum eDynTopoW
   return OPERATOR_INTERFACE;
 }
 
-enum eDynTopoWarnFlag SCULPT_dynamic_topology_check(Scene *scene, Object *ob)
+enum WarnFlag check_attribute_warning(Scene *scene, Object *ob)
 {
   SculptSession *ss = ob->sculpt;
 
-  enum eDynTopoWarnFlag flag = eDynTopoWarnFlag(0);
+  WarnFlag flag = WarnFlag(0);
 
   BLI_assert(ss->bm == nullptr);
   UNUSED_VARS_NDEBUG(ss);
@@ -474,11 +481,11 @@ enum eDynTopoWarnFlag SCULPT_dynamic_topology_check(Scene *scene, Object *ob)
       }
 
       if (md->type == eModifierType_Multires) {
-        flag |= DYNTOPO_ERROR_MULTIRES;
+        flag |= MULTIRES;
       }
 
       if (mti->type == ModifierTypeType::Constructive) {
-        flag |= DYNTOPO_WARN_MODIFIER;
+        flag |= MODIFIER;
         break;
       }
     }
@@ -496,9 +503,9 @@ static int sculpt_dynamic_topology_toggle_invoke(bContext *C,
 
   if (!ss->bm) {
     Scene *scene = CTX_data_scene(C);
-    enum eDynTopoWarnFlag flag = SCULPT_dynamic_topology_check(scene, ob);
+    const WarnFlag flag = check_attribute_warning(scene, ob);
 
-    if (flag & DYNTOPO_ERROR_MULTIRES) {
+    if (flag & MULTIRES) {
       return dyntopo_error_popup(C, op->type, flag);
     }
     else if (flag) {
@@ -527,3 +534,5 @@ void SCULPT_OT_dynamic_topology_toggle(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+}  // namespace blender::ed::sculpt_paint::dyntopo

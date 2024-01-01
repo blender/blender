@@ -8,21 +8,20 @@
 
 #pragma once
 
+#include "BLI_generic_pointer.hh"
 #include "BLI_string_ref.hh"
 
 #include "DNA_customdata_types.h"
 
-#include "BKE_attribute.h"
 #include "BKE_screen.hh"
 
 struct Mesh;
 struct ReportList;
-
-#include "BLI_generic_pointer.hh"
-#include "BLI_string_ref.hh"
-
 struct PointerRNA;
 struct PropertyRNA;
+namespace blender::bke {
+enum class AttrDomain : int8_t;
+}
 
 namespace blender::ed::geometry {
 
@@ -56,7 +55,7 @@ void ED_operatortypes_geometry();
 bool ED_geometry_attribute_convert(Mesh *mesh,
                                    const char *name,
                                    eCustomDataType dst_type,
-                                   eAttrDomain dst_domain,
+                                   blender::bke::AttrDomain dst_domain,
                                    ReportList *reports);
 
 namespace blender::ed::geometry {

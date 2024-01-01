@@ -35,7 +35,7 @@
 #include "BKE_customdata.hh"
 #include "BKE_global.h"
 #include "BKE_idprop.hh"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.hh"
 #include "BKE_modifier.hh"
@@ -214,59 +214,61 @@ static void mesh_calc_edges_mdata(const MVert * /*allvert*/,
   *r_totedge = totedge_final;
 }
 
-void BKE_mesh_calc_edges_legacy(Mesh *me)
+void BKE_mesh_calc_edges_legacy(Mesh *mesh)
 {
   using namespace blender;
   MEdge *edges;
   int totedge = 0;
   const Span<MVert> verts(
-      static_cast<const MVert *>(CustomData_get_layer(&me->vert_data, CD_MVERT)), me->totvert);
+      static_cast<const MVert *>(CustomData_get_layer(&mesh->vert_data, CD_MVERT)),
+      mesh->verts_num);
 
   mesh_calc_edges_mdata(
       verts.data(),
-      me->mface,
-      static_cast<MLoop *>(CustomData_get_layer_for_write(&me->loop_data, CD_MLOOP, me->totloop)),
-      static_cast<const MPoly *>(CustomData_get_layer(&me->face_data, CD_MPOLY)),
+      mesh->mface,
+      static_cast<MLoop *>(
+          CustomData_get_layer_for_write(&mesh->corner_data, CD_MLOOP, mesh->corners_num)),
+      static_cast<const MPoly *>(CustomData_get_layer(&mesh->face_data, CD_MPOLY)),
       verts.size(),
-      me->totface_legacy,
-      me->totloop,
-      me->faces_num,
+      mesh->totface_legacy,
+      mesh->corners_num,
+      mesh->faces_num,
       &edges,
       &totedge);
 
   if (totedge == 0) {
     /* flag that mesh has edges */
-    me->totedge = 0;
+    mesh->edges_num = 0;
     return;
   }
 
   edges = (MEdge *)CustomData_add_layer_with_data(
-      &me->edge_data, CD_MEDGE, edges, totedge, nullptr);
-  me->totedge = totedge;
+      &mesh->edge_data, CD_MEDGE, edges, totedge, nullptr);
+  mesh->edges_num = totedge;
 
-  BKE_mesh_tag_topology_changed(me);
-  BKE_mesh_strip_loose_faces(me);
+  mesh->tag_topology_changed();
+  BKE_mesh_strip_loose_faces(mesh);
 }
 
-void BKE_mesh_strip_loose_faces(Mesh *me)
+void BKE_mesh_strip_loose_faces(Mesh *mesh)
 {
   /* NOTE: We need to keep this for edge creation (for now?), and some old `readfile.cc` code. */
   MFace *f;
   int a, b;
-  MFace *mfaces = me->mface;
+  MFace *mfaces = mesh->mface;
 
-  for (a = b = 0, f = mfaces; a < me->totface_legacy; a++, f++) {
+  for (a = b = 0, f = mfaces; a < mesh->totface_legacy; a++, f++) {
     if (f->v3) {
       if (a != b) {
         memcpy(&mfaces[b], f, sizeof(mfaces[b]));
-        CustomData_copy_data(&me->fdata_legacy, &me->fdata_legacy, a, b, 1);
+        CustomData_copy_data(&mesh->fdata_legacy, &mesh->fdata_legacy, a, b, 1);
       }
       b++;
     }
   }
   if (a != b) {
-    CustomData_free_elem(&me->fdata_legacy, b, a - b);
-    me->totface_legacy = b;
+    CustomData_free_elem(&mesh->fdata_legacy, b, a - b);
+    mesh->totface_legacy = b;
   }
 }
 
@@ -284,9 +286,11 @@ void BKE_mesh_do_versions_cd_flag_init(Mesh *mesh)
   }
 
   const Span<MVert> verts(
-      static_cast<const MVert *>(CustomData_get_layer(&mesh->vert_data, CD_MVERT)), mesh->totvert);
+      static_cast<const MVert *>(CustomData_get_layer(&mesh->vert_data, CD_MVERT)),
+      mesh->verts_num);
   const Span<MEdge> edges(
-      static_cast<const MEdge *>(CustomData_get_layer(&mesh->edge_data, CD_MEDGE)), mesh->totedge);
+      static_cast<const MEdge *>(CustomData_get_layer(&mesh->edge_data, CD_MEDGE)),
+      mesh->edges_num);
 
   for (const MVert &vert : verts) {
     if (vert.bweight_legacy != 0) {
@@ -634,9 +638,6 @@ static bool check_matching_legacy_layer_counts(CustomData *fdata_legacy,
   if (!LAYER_CMP(ldata, CD_PROP_BYTE_COLOR, fdata_legacy, CD_MCOL)) {
     return false;
   }
-  if (!LAYER_CMP(ldata, CD_PREVIEW_MLOOPCOL, fdata_legacy, CD_PREVIEW_MCOL)) {
-    return false;
-  }
   if (!LAYER_CMP(ldata, CD_ORIGSPACE_MLOOP, fdata_legacy, CD_ORIGSPACE)) {
     return false;
   }
@@ -653,7 +654,7 @@ static bool check_matching_legacy_layer_counts(CustomData *fdata_legacy,
    * then there was nothing to do... */
   return a_num ? true : fallback;
 }
-#endif
+#endif /* !NDEBUG */
 
 static void add_mface_layers(Mesh &mesh, CustomData *fdata_legacy, CustomData *ldata, int total)
 {
@@ -668,10 +669,6 @@ static void add_mface_layers(Mesh &mesh, CustomData *fdata_legacy, CustomData *l
     if (ldata->layers[i].type == CD_PROP_BYTE_COLOR) {
       CustomData_add_layer_named(
           fdata_legacy, CD_MCOL, CD_SET_DEFAULT, total, ldata->layers[i].name);
-    }
-    else if (ldata->layers[i].type == CD_PREVIEW_MLOOPCOL) {
-      CustomData_add_layer_named(
-          fdata_legacy, CD_PREVIEW_MCOL, CD_SET_DEFAULT, total, ldata->layers[i].name);
     }
     else if (ldata->layers[i].type == CD_ORIGSPACE_MLOOP) {
       CustomData_add_layer_named(
@@ -690,25 +687,26 @@ static void add_mface_layers(Mesh &mesh, CustomData *fdata_legacy, CustomData *l
   update_active_fdata_layers(mesh, fdata_legacy, ldata);
 }
 
-static void mesh_ensure_tessellation_customdata(Mesh *me)
+static void mesh_ensure_tessellation_customdata(Mesh *mesh)
 {
-  if (UNLIKELY((me->totface_legacy != 0) && (me->faces_num == 0))) {
+  if (UNLIKELY((mesh->totface_legacy != 0) && (mesh->faces_num == 0))) {
     /* Pass, otherwise this function  clears 'mface' before
      * versioning 'mface -> mpoly' code kicks in #30583.
      *
      * Callers could also check but safer to do here - campbell */
   }
   else {
-    const int tottex_original = CustomData_number_of_layers(&me->loop_data, CD_PROP_FLOAT2);
-    const int totcol_original = CustomData_number_of_layers(&me->loop_data, CD_PROP_BYTE_COLOR);
+    const int tottex_original = CustomData_number_of_layers(&mesh->corner_data, CD_PROP_FLOAT2);
+    const int totcol_original = CustomData_number_of_layers(&mesh->corner_data,
+                                                            CD_PROP_BYTE_COLOR);
 
-    const int tottex_tessface = CustomData_number_of_layers(&me->fdata_legacy, CD_MTFACE);
-    const int totcol_tessface = CustomData_number_of_layers(&me->fdata_legacy, CD_MCOL);
+    const int tottex_tessface = CustomData_number_of_layers(&mesh->fdata_legacy, CD_MTFACE);
+    const int totcol_tessface = CustomData_number_of_layers(&mesh->fdata_legacy, CD_MCOL);
 
     if (tottex_tessface != tottex_original || totcol_tessface != totcol_original) {
-      BKE_mesh_tessface_clear(me);
+      BKE_mesh_tessface_clear(mesh);
 
-      add_mface_layers(*me, &me->fdata_legacy, &me->loop_data, me->totface_legacy);
+      add_mface_layers(*mesh, &mesh->fdata_legacy, &mesh->corner_data, mesh->totface_legacy);
 
       /* TODO: add some `--debug-mesh` option. */
       if (G.debug & G_DEBUG) {
@@ -735,15 +733,15 @@ void BKE_mesh_convert_mfaces_to_mpolys(Mesh *mesh)
 {
   convert_mfaces_to_mpolys(&mesh->id,
                            &mesh->fdata_legacy,
-                           &mesh->loop_data,
+                           &mesh->corner_data,
                            &mesh->face_data,
-                           mesh->totedge,
+                           mesh->edges_num,
                            mesh->totface_legacy,
-                           mesh->totloop,
+                           mesh->corners_num,
                            mesh->faces_num,
                            mesh->edges_for_write().data(),
                            (MFace *)CustomData_get_layer(&mesh->fdata_legacy, CD_MFACE),
-                           &mesh->totloop,
+                           &mesh->corners_num,
                            &mesh->faces_num);
   BKE_mesh_legacy_convert_loops_to_corners(mesh);
   BKE_mesh_legacy_convert_polys_to_offsets(mesh);
@@ -758,36 +756,36 @@ void BKE_mesh_convert_mfaces_to_mpolys(Mesh *mesh)
  * meshes and needed to preserve active/render/clone/stencil flags set in pre-bmesh files.
  */
 static void CustomData_bmesh_do_versions_update_active_layers(CustomData *fdata_legacy,
-                                                              CustomData *loop_data)
+                                                              CustomData *corner_data)
 {
   int act;
 
   if (CustomData_has_layer(fdata_legacy, CD_MTFACE)) {
     act = CustomData_get_active_layer(fdata_legacy, CD_MTFACE);
-    CustomData_set_layer_active(loop_data, CD_PROP_FLOAT2, act);
+    CustomData_set_layer_active(corner_data, CD_PROP_FLOAT2, act);
 
     act = CustomData_get_render_layer(fdata_legacy, CD_MTFACE);
-    CustomData_set_layer_render(loop_data, CD_PROP_FLOAT2, act);
+    CustomData_set_layer_render(corner_data, CD_PROP_FLOAT2, act);
 
     act = CustomData_get_clone_layer(fdata_legacy, CD_MTFACE);
-    CustomData_set_layer_clone(loop_data, CD_PROP_FLOAT2, act);
+    CustomData_set_layer_clone(corner_data, CD_PROP_FLOAT2, act);
 
     act = CustomData_get_stencil_layer(fdata_legacy, CD_MTFACE);
-    CustomData_set_layer_stencil(loop_data, CD_PROP_FLOAT2, act);
+    CustomData_set_layer_stencil(corner_data, CD_PROP_FLOAT2, act);
   }
 
   if (CustomData_has_layer(fdata_legacy, CD_MCOL)) {
     act = CustomData_get_active_layer(fdata_legacy, CD_MCOL);
-    CustomData_set_layer_active(loop_data, CD_PROP_BYTE_COLOR, act);
+    CustomData_set_layer_active(corner_data, CD_PROP_BYTE_COLOR, act);
 
     act = CustomData_get_render_layer(fdata_legacy, CD_MCOL);
-    CustomData_set_layer_render(loop_data, CD_PROP_BYTE_COLOR, act);
+    CustomData_set_layer_render(corner_data, CD_PROP_BYTE_COLOR, act);
 
     act = CustomData_get_clone_layer(fdata_legacy, CD_MCOL);
-    CustomData_set_layer_clone(loop_data, CD_PROP_BYTE_COLOR, act);
+    CustomData_set_layer_clone(corner_data, CD_PROP_BYTE_COLOR, act);
 
     act = CustomData_get_stencil_layer(fdata_legacy, CD_MCOL);
-    CustomData_set_layer_stencil(loop_data, CD_PROP_BYTE_COLOR, act);
+    CustomData_set_layer_stencil(corner_data, CD_PROP_BYTE_COLOR, act);
   }
 }
 
@@ -795,20 +793,20 @@ void BKE_mesh_do_versions_convert_mfaces_to_mpolys(Mesh *mesh)
 {
   convert_mfaces_to_mpolys(&mesh->id,
                            &mesh->fdata_legacy,
-                           &mesh->loop_data,
+                           &mesh->corner_data,
                            &mesh->face_data,
-                           mesh->totedge,
+                           mesh->edges_num,
                            mesh->totface_legacy,
-                           mesh->totloop,
+                           mesh->corners_num,
                            mesh->faces_num,
                            mesh->edges_for_write().data(),
                            (MFace *)CustomData_get_layer(&mesh->fdata_legacy, CD_MFACE),
-                           &mesh->totloop,
+                           &mesh->corners_num,
                            &mesh->faces_num);
   BKE_mesh_legacy_convert_loops_to_corners(mesh);
   BKE_mesh_legacy_convert_polys_to_offsets(mesh);
 
-  CustomData_bmesh_do_versions_update_active_layers(&mesh->fdata_legacy, &mesh->loop_data);
+  CustomData_bmesh_do_versions_update_active_layers(&mesh->fdata_legacy, &mesh->corner_data);
 
   mesh_ensure_tessellation_customdata(mesh);
 }
@@ -842,7 +840,7 @@ void BKE_mesh_do_versions_convert_mfaces_to_mpolys(Mesh *mesh)
  * is used to test quads, else, loopindices[face_index][3] is used.
  */
 static void mesh_loops_to_tessdata(CustomData *fdata_legacy,
-                                   CustomData *loop_data,
+                                   CustomData *corner_data,
                                    MFace *mface,
                                    const int *polyindices,
                                    uint (*loopindices)[4],
@@ -852,12 +850,11 @@ static void mesh_loops_to_tessdata(CustomData *fdata_legacy,
    * we could be ~25% quicker with dedicated code.
    * The issue is, unless having two different functions with nearly the same code,
    * there's not much ways to solve this. Better IMHO to live with it for now (sigh). */
-  const int numUV = CustomData_number_of_layers(loop_data, CD_PROP_FLOAT2);
-  const int numCol = CustomData_number_of_layers(loop_data, CD_PROP_BYTE_COLOR);
-  const bool hasPCol = CustomData_has_layer(loop_data, CD_PREVIEW_MLOOPCOL);
-  const bool hasOrigSpace = CustomData_has_layer(loop_data, CD_ORIGSPACE_MLOOP);
-  const bool hasLoopNormal = CustomData_has_layer(loop_data, CD_NORMAL);
-  const bool hasLoopTangent = CustomData_has_layer(loop_data, CD_TANGENT);
+  const int numUV = CustomData_number_of_layers(corner_data, CD_PROP_FLOAT2);
+  const int numCol = CustomData_number_of_layers(corner_data, CD_PROP_BYTE_COLOR);
+  const bool hasOrigSpace = CustomData_has_layer(corner_data, CD_ORIGSPACE_MLOOP);
+  const bool hasLoopNormal = CustomData_has_layer(corner_data, CD_NORMAL);
+  const bool hasLoopTangent = CustomData_has_layer(corner_data, CD_TANGENT);
   int findex, i, j;
   const int *pidx;
   uint(*lidx)[4];
@@ -866,7 +863,7 @@ static void mesh_loops_to_tessdata(CustomData *fdata_legacy,
     MTFace *texface = (MTFace *)CustomData_get_layer_n_for_write(
         fdata_legacy, CD_MTFACE, i, num_faces);
     const blender::float2 *uv = static_cast<const blender::float2 *>(
-        CustomData_get_layer_n(loop_data, CD_PROP_FLOAT2, i));
+        CustomData_get_layer_n(corner_data, CD_PROP_FLOAT2, i));
 
     for (findex = 0, pidx = polyindices, lidx = loopindices; findex < num_faces;
          pidx++, lidx++, findex++, texface++)
@@ -881,19 +878,7 @@ static void mesh_loops_to_tessdata(CustomData *fdata_legacy,
     MCol(*mcol)[4] = (MCol(*)[4])CustomData_get_layer_n_for_write(
         fdata_legacy, CD_MCOL, i, num_faces);
     const MLoopCol *mloopcol = (const MLoopCol *)CustomData_get_layer_n(
-        loop_data, CD_PROP_BYTE_COLOR, i);
-
-    for (findex = 0, lidx = loopindices; findex < num_faces; lidx++, findex++, mcol++) {
-      for (j = (mface ? mface[findex].v4 : (*lidx)[3]) ? 4 : 3; j--;) {
-        MESH_MLOOPCOL_TO_MCOL(&mloopcol[(*lidx)[j]], &(*mcol)[j]);
-      }
-    }
-  }
-
-  if (hasPCol) {
-    MCol(*mcol)[4] = (MCol(*)[4])CustomData_get_layer(fdata_legacy, CD_PREVIEW_MCOL);
-    const MLoopCol *mloopcol = (const MLoopCol *)CustomData_get_layer(loop_data,
-                                                                      CD_PREVIEW_MLOOPCOL);
+        corner_data, CD_PROP_BYTE_COLOR, i);
 
     for (findex = 0, lidx = loopindices; findex < num_faces; lidx++, findex++, mcol++) {
       for (j = (mface ? mface[findex].v4 : (*lidx)[3]) ? 4 : 3; j--;) {
@@ -904,7 +889,7 @@ static void mesh_loops_to_tessdata(CustomData *fdata_legacy,
 
   if (hasOrigSpace) {
     OrigSpaceFace *of = (OrigSpaceFace *)CustomData_get_layer(fdata_legacy, CD_ORIGSPACE);
-    const OrigSpaceLoop *lof = (const OrigSpaceLoop *)CustomData_get_layer(loop_data,
+    const OrigSpaceLoop *lof = (const OrigSpaceLoop *)CustomData_get_layer(corner_data,
                                                                            CD_ORIGSPACE_MLOOP);
 
     for (findex = 0, lidx = loopindices; findex < num_faces; lidx++, findex++, of++) {
@@ -917,7 +902,8 @@ static void mesh_loops_to_tessdata(CustomData *fdata_legacy,
   if (hasLoopNormal) {
     short(*face_normals)[4][3] = (short(*)[4][3])CustomData_get_layer(fdata_legacy,
                                                                       CD_TESSLOOPNORMAL);
-    const float(*loop_normals)[3] = (const float(*)[3])CustomData_get_layer(loop_data, CD_NORMAL);
+    const float(*loop_normals)[3] = (const float(*)[3])CustomData_get_layer(corner_data,
+                                                                            CD_NORMAL);
 
     for (findex = 0, lidx = loopindices; findex < num_faces; lidx++, findex++, face_normals++) {
       for (j = (mface ? mface[findex].v4 : (*lidx)[3]) ? 4 : 3; j--;) {
@@ -929,7 +915,7 @@ static void mesh_loops_to_tessdata(CustomData *fdata_legacy,
   if (hasLoopTangent) {
     /* Need to do for all UV maps at some point. */
     float(*ftangents)[4] = (float(*)[4])CustomData_get_layer(fdata_legacy, CD_TANGENT);
-    const float(*ltangents)[4] = (const float(*)[4])CustomData_get_layer(loop_data, CD_TANGENT);
+    const float(*ltangents)[4] = (const float(*)[4])CustomData_get_layer(corner_data, CD_TANGENT);
 
     for (findex = 0, pidx = polyindices, lidx = loopindices; findex < num_faces;
          pidx++, lidx++, findex++)
@@ -1027,7 +1013,7 @@ static int mesh_tessface_calc(Mesh &mesh,
 /* We abuse #MFace.edcode to tag quad faces. See below for details. */
 #define TESSFACE_IS_QUAD 1
 
-  const int looptri_num = poly_to_tri_count(faces_num, totloop);
+  const int corner_tris_num = poly_to_tri_count(faces_num, totloop);
 
   MFace *mface, *mf;
   MemArena *arena = nullptr;
@@ -1047,9 +1033,9 @@ static int mesh_tessface_calc(Mesh &mesh,
    * if all faces are triangles it will be correct, `quads == 2x` allocations. */
   /* Take care since memory is _not_ zeroed so be sure to initialize each field. */
   mface_to_poly_map = (int *)MEM_malloc_arrayN(
-      size_t(looptri_num), sizeof(*mface_to_poly_map), __func__);
-  mface = (MFace *)MEM_malloc_arrayN(size_t(looptri_num), sizeof(*mface), __func__);
-  lindices = (uint(*)[4])MEM_malloc_arrayN(size_t(looptri_num), sizeof(*lindices), __func__);
+      size_t(corner_tris_num), sizeof(*mface_to_poly_map), __func__);
+  mface = (MFace *)MEM_malloc_arrayN(size_t(corner_tris_num), sizeof(*mface), __func__);
+  lindices = (uint(*)[4])MEM_malloc_arrayN(size_t(corner_tris_num), sizeof(*lindices), __func__);
 
   mface_index = 0;
   for (poly_index = 0; poly_index < faces_num; poly_index++) {
@@ -1206,10 +1192,10 @@ static int mesh_tessface_calc(Mesh &mesh,
   CustomData_free(fdata_legacy, totface);
   totface = mface_index;
 
-  BLI_assert(totface <= looptri_num);
+  BLI_assert(totface <= corner_tris_num);
 
   /* Not essential but without this we store over-allocated memory in the #CustomData layers. */
-  if (LIKELY(looptri_num != totface)) {
+  if (LIKELY(corner_tris_num != totface)) {
     mface = (MFace *)MEM_reallocN(mface, sizeof(*mface) * size_t(totface));
     mface_to_poly_map = (int *)MEM_reallocN(mface_to_poly_map,
                                             sizeof(*mface_to_poly_map) * size_t(totface));
@@ -1261,11 +1247,11 @@ void BKE_mesh_tessface_calc(Mesh *mesh)
   mesh->totface_legacy = mesh_tessface_calc(
       *mesh,
       &mesh->fdata_legacy,
-      &mesh->loop_data,
+      &mesh->corner_data,
       &mesh->face_data,
       reinterpret_cast<float(*)[3]>(mesh->vert_positions_for_write().data()),
       mesh->totface_legacy,
-      mesh->totloop,
+      mesh->corners_num,
       mesh->faces_num);
 
   mesh_ensure_tessellation_customdata(mesh);
@@ -1300,7 +1286,7 @@ void BKE_mesh_legacy_sharp_faces_from_flags(Mesh *mesh)
       }))
   {
     SpanAttributeWriter<bool> sharp_faces = attributes.lookup_or_add_for_write_only_span<bool>(
-        "sharp_face", ATTR_DOMAIN_FACE);
+        "sharp_face", AttrDomain::Face);
     threading::parallel_for(polys.index_range(), 4096, [&](const IndexRange range) {
       for (const int i : range) {
         sharp_faces.span[i] = !(polys[i].flag_legacy & ME_SMOOTH);
@@ -1398,7 +1384,7 @@ static void move_face_map_data_to_attributes(Mesh *mesh)
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   for (const auto item : groups.items()) {
     bke::SpanAttributeWriter<bool> attribute = attributes.lookup_or_add_for_write_span<bool>(
-        ".temp_face_map_" + std::to_string(item.key), ATTR_DOMAIN_FACE);
+        ".temp_face_map_" + std::to_string(item.key), bke::AttrDomain::Face);
     if (attribute) {
       attribute.span.fill_indices(item.value.as_span(), true);
       attribute.finish();
@@ -1435,7 +1421,7 @@ void BKE_mesh_legacy_bevel_weight_to_layers(Mesh *mesh)
 {
   using namespace blender;
   if (mesh->mvert && !CustomData_has_layer(&mesh->vert_data, CD_BWEIGHT)) {
-    const Span<MVert> verts(mesh->mvert, mesh->totvert);
+    const Span<MVert> verts(mesh->mvert, mesh->verts_num);
     if (mesh->cd_flag & ME_CDFLAG_VERT_BWEIGHT) {
       float *weights = static_cast<float *>(
           CustomData_add_layer(&mesh->vert_data, CD_BWEIGHT, CD_CONSTRUCT, verts.size()));
@@ -1446,7 +1432,7 @@ void BKE_mesh_legacy_bevel_weight_to_layers(Mesh *mesh)
   }
 
   if (mesh->medge && !CustomData_has_layer(&mesh->edge_data, CD_BWEIGHT)) {
-    const Span<MEdge> edges(mesh->medge, mesh->totedge);
+    const Span<MEdge> edges(mesh->medge, mesh->edges_num);
     if (mesh->cd_flag & ME_CDFLAG_EDGE_BWEIGHT) {
       float *weights = static_cast<float *>(
           CustomData_add_layer(&mesh->edge_data, CD_BWEIGHT, CD_CONSTRUCT, edges.size()));
@@ -1490,11 +1476,11 @@ void BKE_mesh_legacy_bevel_weight_to_generic(Mesh *mesh)
 {
   if (!mesh->attributes().contains("bevel_weight_vert")) {
     replace_custom_data_layer_with_named(
-        mesh->vert_data, CD_BWEIGHT, CD_PROP_FLOAT, mesh->totvert, "bevel_weight_vert");
+        mesh->vert_data, CD_BWEIGHT, CD_PROP_FLOAT, mesh->verts_num, "bevel_weight_vert");
   }
   if (!mesh->attributes().contains("bevel_weight_edge")) {
     replace_custom_data_layer_with_named(
-        mesh->edge_data, CD_BWEIGHT, CD_PROP_FLOAT, mesh->totedge, "bevel_weight_edge");
+        mesh->edge_data, CD_BWEIGHT, CD_PROP_FLOAT, mesh->edges_num, "bevel_weight_edge");
   }
 }
 
@@ -1513,7 +1499,7 @@ void BKE_mesh_legacy_edge_crease_to_layers(Mesh *mesh)
   if (CustomData_has_layer(&mesh->edge_data, CD_CREASE)) {
     return;
   }
-  const Span<MEdge> edges(mesh->medge, mesh->totedge);
+  const Span<MEdge> edges(mesh->medge, mesh->edges_num);
   if (mesh->cd_flag & ME_CDFLAG_EDGE_CREASE) {
     float *creases = static_cast<float *>(
         CustomData_add_layer(&mesh->edge_data, CD_CREASE, CD_CONSTRUCT, edges.size()));
@@ -1527,11 +1513,11 @@ void BKE_mesh_legacy_crease_to_generic(Mesh *mesh)
 {
   if (!mesh->attributes().contains("crease_vert")) {
     replace_custom_data_layer_with_named(
-        mesh->vert_data, CD_CREASE, CD_PROP_FLOAT, mesh->totvert, "crease_vert");
+        mesh->vert_data, CD_CREASE, CD_PROP_FLOAT, mesh->verts_num, "crease_vert");
   }
   if (!mesh->attributes().contains("crease_edge")) {
     replace_custom_data_layer_with_named(
-        mesh->edge_data, CD_CREASE, CD_PROP_FLOAT, mesh->totedge, "crease_edge");
+        mesh->edge_data, CD_CREASE, CD_PROP_FLOAT, mesh->edges_num, "crease_edge");
   }
 }
 
@@ -1548,7 +1534,7 @@ void BKE_mesh_legacy_sharp_edges_from_flags(Mesh *mesh)
   if (!mesh->medge) {
     return;
   }
-  const Span<MEdge> edges(mesh->medge, mesh->totedge);
+  const Span<MEdge> edges(mesh->medge, mesh->edges_num);
   MutableAttributeAccessor attributes = mesh->attributes_for_write();
   if (attributes.contains("sharp_edge")) {
     return;
@@ -1558,7 +1544,7 @@ void BKE_mesh_legacy_sharp_edges_from_flags(Mesh *mesh)
       }))
   {
     SpanAttributeWriter<bool> sharp_edges = attributes.lookup_or_add_for_write_only_span<bool>(
-        "sharp_edge", ATTR_DOMAIN_EDGE);
+        "sharp_edge", AttrDomain::Edge);
     threading::parallel_for(edges.index_range(), 4096, [&](const IndexRange range) {
       for (const int i : range) {
         sharp_edges.span[i] = edges[i].flag_legacy & ME_SHARP;
@@ -1581,7 +1567,7 @@ void BKE_mesh_legacy_uv_seam_from_flags(Mesh *mesh)
   if (!mesh->medge) {
     return;
   }
-  MutableSpan<MEdge> edges(mesh->medge, mesh->totedge);
+  MutableSpan<MEdge> edges(mesh->medge, mesh->edges_num);
   MutableAttributeAccessor attributes = mesh->attributes_for_write();
   if (attributes.contains(".uv_seam")) {
     return;
@@ -1591,7 +1577,7 @@ void BKE_mesh_legacy_uv_seam_from_flags(Mesh *mesh)
       }))
   {
     SpanAttributeWriter<bool> uv_seams = attributes.lookup_or_add_for_write_only_span<bool>(
-        ".uv_seam", ATTR_DOMAIN_EDGE);
+        ".uv_seam", AttrDomain::Edge);
     threading::parallel_for(edges.index_range(), 4096, [&](const IndexRange range) {
       for (const int i : range) {
         uv_seams.span[i] = edges[i].flag_legacy & ME_SEAM;
@@ -1617,13 +1603,13 @@ void BKE_mesh_legacy_convert_flags_to_hide_layers(Mesh *mesh)
   {
     return;
   }
-  const Span<MVert> verts(mesh->mvert, mesh->totvert);
+  const Span<MVert> verts(mesh->mvert, mesh->verts_num);
   if (std::any_of(verts.begin(), verts.end(), [](const MVert &vert) {
         return vert.flag_legacy & ME_HIDE;
       }))
   {
     SpanAttributeWriter<bool> hide_vert = attributes.lookup_or_add_for_write_only_span<bool>(
-        ".hide_vert", ATTR_DOMAIN_POINT);
+        ".hide_vert", AttrDomain::Point);
     threading::parallel_for(verts.index_range(), 4096, [&](IndexRange range) {
       for (const int i : range) {
         hide_vert.span[i] = verts[i].flag_legacy & ME_HIDE;
@@ -1633,13 +1619,13 @@ void BKE_mesh_legacy_convert_flags_to_hide_layers(Mesh *mesh)
   }
 
   if (mesh->medge) {
-    const Span<MEdge> edges(mesh->medge, mesh->totedge);
+    const Span<MEdge> edges(mesh->medge, mesh->edges_num);
     if (std::any_of(edges.begin(), edges.end(), [](const MEdge &edge) {
           return edge.flag_legacy & ME_HIDE;
         }))
     {
       SpanAttributeWriter<bool> hide_edge = attributes.lookup_or_add_for_write_only_span<bool>(
-          ".hide_edge", ATTR_DOMAIN_EDGE);
+          ".hide_edge", AttrDomain::Edge);
       threading::parallel_for(edges.index_range(), 4096, [&](IndexRange range) {
         for (const int i : range) {
           hide_edge.span[i] = edges[i].flag_legacy & ME_HIDE;
@@ -1657,7 +1643,7 @@ void BKE_mesh_legacy_convert_flags_to_hide_layers(Mesh *mesh)
       }))
   {
     SpanAttributeWriter<bool> hide_poly = attributes.lookup_or_add_for_write_only_span<bool>(
-        ".hide_poly", ATTR_DOMAIN_FACE);
+        ".hide_poly", AttrDomain::Face);
     threading::parallel_for(polys.index_range(), 4096, [&](IndexRange range) {
       for (const int i : range) {
         hide_poly.span[i] = polys[i].flag_legacy & ME_HIDE;
@@ -1688,7 +1674,7 @@ void BKE_mesh_legacy_convert_mpoly_to_material_indices(Mesh *mesh)
           polys.begin(), polys.end(), [](const MPoly &poly) { return poly.mat_nr_legacy != 0; }))
   {
     SpanAttributeWriter<int> material_indices = attributes.lookup_or_add_for_write_only_span<int>(
-        "material_index", ATTR_DOMAIN_FACE);
+        "material_index", AttrDomain::Face);
     threading::parallel_for(polys.index_range(), 4096, [&](IndexRange range) {
       for (const int i : range) {
         material_indices.span[i] = polys[i].mat_nr_legacy;
@@ -1708,27 +1694,27 @@ void BKE_mesh_legacy_convert_uvs_to_generic(Mesh *mesh)
 {
   using namespace blender;
   using namespace blender::bke;
-  if (!CustomData_has_layer(&mesh->loop_data, CD_MLOOPUV)) {
+  if (!CustomData_has_layer(&mesh->corner_data, CD_MLOOPUV)) {
     return;
   }
 
   /* Store layer names since they will be removed, used to set the active status of new layers.
    * Use intermediate #StringRef because the names can be null. */
 
-  Array<std::string> uv_names(CustomData_number_of_layers(&mesh->loop_data, CD_MLOOPUV));
+  Array<std::string> uv_names(CustomData_number_of_layers(&mesh->corner_data, CD_MLOOPUV));
   for (const int i : uv_names.index_range()) {
-    uv_names[i] = CustomData_get_layer_name(&mesh->loop_data, CD_MLOOPUV, i);
+    uv_names[i] = CustomData_get_layer_name(&mesh->corner_data, CD_MLOOPUV, i);
   }
   const int active_name_i = uv_names.as_span().first_index_try(
-      StringRef(CustomData_get_active_layer_name(&mesh->loop_data, CD_MLOOPUV)));
+      StringRef(CustomData_get_active_layer_name(&mesh->corner_data, CD_MLOOPUV)));
   const int default_name_i = uv_names.as_span().first_index_try(
-      StringRef(CustomData_get_render_layer_name(&mesh->loop_data, CD_MLOOPUV)));
+      StringRef(CustomData_get_render_layer_name(&mesh->corner_data, CD_MLOOPUV)));
 
   for (const int i : uv_names.index_range()) {
     const MLoopUV *mloopuv = static_cast<const MLoopUV *>(
-        CustomData_get_layer_named(&mesh->loop_data, CD_MLOOPUV, uv_names[i].c_str()));
+        CustomData_get_layer_named(&mesh->corner_data, CD_MLOOPUV, uv_names[i].c_str()));
     const uint32_t needed_boolean_attributes = threading::parallel_reduce(
-        IndexRange(mesh->totloop),
+        IndexRange(mesh->corners_num),
         4096,
         0,
         [&](const IndexRange range, uint32_t init) {
@@ -1740,23 +1726,23 @@ void BKE_mesh_legacy_convert_uvs_to_generic(Mesh *mesh)
         [](const uint32_t a, const uint32_t b) { return a | b; });
 
     float2 *coords = static_cast<float2 *>(
-        MEM_malloc_arrayN(mesh->totloop, sizeof(float2), __func__));
+        MEM_malloc_arrayN(mesh->corners_num, sizeof(float2), __func__));
     bool *vert_selection = nullptr;
     bool *edge_selection = nullptr;
     bool *pin = nullptr;
     if (needed_boolean_attributes & MLOOPUV_VERTSEL) {
       vert_selection = static_cast<bool *>(
-          MEM_malloc_arrayN(mesh->totloop, sizeof(bool), __func__));
+          MEM_malloc_arrayN(mesh->corners_num, sizeof(bool), __func__));
     }
     if (needed_boolean_attributes & MLOOPUV_EDGESEL) {
       edge_selection = static_cast<bool *>(
-          MEM_malloc_arrayN(mesh->totloop, sizeof(bool), __func__));
+          MEM_malloc_arrayN(mesh->corners_num, sizeof(bool), __func__));
     }
     if (needed_boolean_attributes & MLOOPUV_PINNED) {
-      pin = static_cast<bool *>(MEM_malloc_arrayN(mesh->totloop, sizeof(bool), __func__));
+      pin = static_cast<bool *>(MEM_malloc_arrayN(mesh->corners_num, sizeof(bool), __func__));
     }
 
-    threading::parallel_for(IndexRange(mesh->totloop), 4096, [&](IndexRange range) {
+    threading::parallel_for(IndexRange(mesh->corners_num), 4096, [&](IndexRange range) {
       for (const int i : range) {
         coords[i] = mloopuv[i].uv;
       }
@@ -1777,36 +1763,36 @@ void BKE_mesh_legacy_convert_uvs_to_generic(Mesh *mesh)
       }
     });
 
-    CustomData_free_layer_named(&mesh->loop_data, uv_names[i].c_str(), mesh->totloop);
+    CustomData_free_layer_named(&mesh->corner_data, uv_names[i].c_str(), mesh->corners_num);
 
     char new_name[MAX_CUSTOMDATA_LAYER_NAME];
     BKE_id_attribute_calc_unique_name(&mesh->id, uv_names[i].c_str(), new_name);
     uv_names[i] = new_name;
 
     CustomData_add_layer_named_with_data(
-        &mesh->loop_data, CD_PROP_FLOAT2, coords, mesh->totloop, new_name, nullptr);
+        &mesh->corner_data, CD_PROP_FLOAT2, coords, mesh->corners_num, new_name, nullptr);
     char buffer[MAX_CUSTOMDATA_LAYER_NAME];
     if (vert_selection) {
-      CustomData_add_layer_named_with_data(&mesh->loop_data,
+      CustomData_add_layer_named_with_data(&mesh->corner_data,
                                            CD_PROP_BOOL,
                                            vert_selection,
-                                           mesh->totloop,
+                                           mesh->corners_num,
                                            BKE_uv_map_vert_select_name_get(new_name, buffer),
                                            nullptr);
     }
     if (edge_selection) {
-      CustomData_add_layer_named_with_data(&mesh->loop_data,
+      CustomData_add_layer_named_with_data(&mesh->corner_data,
                                            CD_PROP_BOOL,
                                            edge_selection,
-                                           mesh->totloop,
+                                           mesh->corners_num,
                                            BKE_uv_map_edge_select_name_get(new_name, buffer),
                                            nullptr);
     }
     if (pin) {
-      CustomData_add_layer_named_with_data(&mesh->loop_data,
+      CustomData_add_layer_named_with_data(&mesh->corner_data,
                                            CD_PROP_BOOL,
                                            pin,
-                                           mesh->totloop,
+                                           mesh->corners_num,
                                            BKE_uv_map_pin_name_get(new_name, buffer),
                                            nullptr);
     }
@@ -1814,17 +1800,17 @@ void BKE_mesh_legacy_convert_uvs_to_generic(Mesh *mesh)
 
   if (active_name_i != -1) {
     CustomData_set_layer_active_index(
-        &mesh->loop_data,
+        &mesh->corner_data,
         CD_PROP_FLOAT2,
         CustomData_get_named_layer_index(
-            &mesh->loop_data, CD_PROP_FLOAT2, uv_names[active_name_i].c_str()));
+            &mesh->corner_data, CD_PROP_FLOAT2, uv_names[active_name_i].c_str()));
   }
   if (default_name_i != -1) {
     CustomData_set_layer_render_index(
-        &mesh->loop_data,
+        &mesh->corner_data,
         CD_PROP_FLOAT2,
         CustomData_get_named_layer_index(
-            &mesh->loop_data, CD_PROP_FLOAT2, uv_names[default_name_i].c_str()));
+            &mesh->corner_data, CD_PROP_FLOAT2, uv_names[default_name_i].c_str()));
   }
 }
 
@@ -1844,12 +1830,12 @@ void BKE_mesh_legacy_convert_flags_to_selection_layers(Mesh *mesh)
     return;
   }
 
-  const Span<MVert> verts(mesh->mvert, mesh->totvert);
+  const Span<MVert> verts(mesh->mvert, mesh->verts_num);
   if (std::any_of(
           verts.begin(), verts.end(), [](const MVert &vert) { return vert.flag_legacy & SELECT; }))
   {
     SpanAttributeWriter<bool> select_vert = attributes.lookup_or_add_for_write_only_span<bool>(
-        ".select_vert", ATTR_DOMAIN_POINT);
+        ".select_vert", AttrDomain::Point);
     threading::parallel_for(verts.index_range(), 4096, [&](IndexRange range) {
       for (const int i : range) {
         select_vert.span[i] = verts[i].flag_legacy & SELECT;
@@ -1859,13 +1845,13 @@ void BKE_mesh_legacy_convert_flags_to_selection_layers(Mesh *mesh)
   }
 
   if (mesh->medge) {
-    const Span<MEdge> edges(mesh->medge, mesh->totedge);
+    const Span<MEdge> edges(mesh->medge, mesh->edges_num);
     if (std::any_of(edges.begin(), edges.end(), [](const MEdge &edge) {
           return edge.flag_legacy & SELECT;
         }))
     {
       SpanAttributeWriter<bool> select_edge = attributes.lookup_or_add_for_write_only_span<bool>(
-          ".select_edge", ATTR_DOMAIN_EDGE);
+          ".select_edge", AttrDomain::Edge);
       threading::parallel_for(edges.index_range(), 4096, [&](IndexRange range) {
         for (const int i : range) {
           select_edge.span[i] = edges[i].flag_legacy & SELECT;
@@ -1883,7 +1869,7 @@ void BKE_mesh_legacy_convert_flags_to_selection_layers(Mesh *mesh)
       }))
   {
     SpanAttributeWriter<bool> select_poly = attributes.lookup_or_add_for_write_only_span<bool>(
-        ".select_poly", ATTR_DOMAIN_FACE);
+        ".select_poly", AttrDomain::Face);
     threading::parallel_for(polys.index_range(), 4096, [&](IndexRange range) {
       for (const int i : range) {
         select_poly.span[i] = polys[i].flag_legacy & ME_FACE_SEL;
@@ -1909,18 +1895,18 @@ void BKE_mesh_legacy_convert_verts_to_positions(Mesh *mesh)
     return;
   }
 
-  const Span<MVert> verts(mvert, mesh->totvert);
+  const Span<MVert> verts(mvert, mesh->verts_num);
   MutableSpan<float3> positions(
       static_cast<float3 *>(CustomData_add_layer_named(
-          &mesh->vert_data, CD_PROP_FLOAT3, CD_CONSTRUCT, mesh->totvert, "position")),
-      mesh->totvert);
+          &mesh->vert_data, CD_PROP_FLOAT3, CD_CONSTRUCT, mesh->verts_num, "position")),
+      mesh->verts_num);
   threading::parallel_for(verts.index_range(), 2048, [&](IndexRange range) {
     for (const int i : range) {
       positions[i] = verts[i].co_legacy;
     }
   });
 
-  CustomData_free_layers(&mesh->vert_data, CD_MVERT, mesh->totvert);
+  CustomData_free_layers(&mesh->vert_data, CD_MVERT, mesh->verts_num);
   mesh->mvert = nullptr;
 }
 
@@ -1940,18 +1926,18 @@ void BKE_mesh_legacy_convert_edges_to_generic(Mesh *mesh)
     return;
   }
 
-  const Span<MEdge> legacy_edges(medge, mesh->totedge);
+  const Span<MEdge> legacy_edges(medge, mesh->edges_num);
   MutableSpan<int2> edges(
       static_cast<int2 *>(CustomData_add_layer_named(
-          &mesh->edge_data, CD_PROP_INT32_2D, CD_CONSTRUCT, mesh->totedge, ".edge_verts")),
-      mesh->totedge);
+          &mesh->edge_data, CD_PROP_INT32_2D, CD_CONSTRUCT, mesh->edges_num, ".edge_verts")),
+      mesh->edges_num);
   threading::parallel_for(legacy_edges.index_range(), 2048, [&](IndexRange range) {
     for (const int i : range) {
       edges[i] = int2(legacy_edges[i].v1, legacy_edges[i].v2);
     }
   });
 
-  CustomData_free_layers(&mesh->edge_data, CD_MEDGE, mesh->totedge);
+  CustomData_free_layers(&mesh->edge_data, CD_MEDGE, mesh->edges_num);
   mesh->medge = nullptr;
 }
 
@@ -2015,14 +2001,14 @@ void BKE_mesh_legacy_attribute_flags_to_strings(Mesh *mesh)
   };
 
   active_from_flags(mesh->vert_data);
-  active_from_flags(mesh->loop_data);
+  active_from_flags(mesh->corner_data);
   active_from_indices(mesh->vert_data);
-  active_from_indices(mesh->loop_data);
+  active_from_indices(mesh->corner_data);
 
   default_from_flags(mesh->vert_data);
-  default_from_flags(mesh->loop_data);
+  default_from_flags(mesh->corner_data);
   default_from_indices(mesh->vert_data);
-  default_from_indices(mesh->loop_data);
+  default_from_indices(mesh->corner_data);
 }
 
 /** \} */
@@ -2034,21 +2020,22 @@ void BKE_mesh_legacy_attribute_flags_to_strings(Mesh *mesh)
 void BKE_mesh_legacy_convert_loops_to_corners(Mesh *mesh)
 {
   using namespace blender;
-  if (CustomData_has_layer_named(&mesh->loop_data, CD_PROP_INT32, ".corner_vert") &&
-      CustomData_has_layer_named(&mesh->loop_data, CD_PROP_INT32, ".corner_edge"))
+  if (CustomData_has_layer_named(&mesh->corner_data, CD_PROP_INT32, ".corner_vert") &&
+      CustomData_has_layer_named(&mesh->corner_data, CD_PROP_INT32, ".corner_edge"))
   {
     return;
   }
   const Span<MLoop> loops(
-      static_cast<const MLoop *>(CustomData_get_layer(&mesh->loop_data, CD_MLOOP)), mesh->totloop);
+      static_cast<const MLoop *>(CustomData_get_layer(&mesh->corner_data, CD_MLOOP)),
+      mesh->corners_num);
   MutableSpan<int> corner_verts(
       static_cast<int *>(CustomData_add_layer_named(
-          &mesh->loop_data, CD_PROP_INT32, CD_CONSTRUCT, mesh->totloop, ".corner_vert")),
-      mesh->totloop);
+          &mesh->corner_data, CD_PROP_INT32, CD_CONSTRUCT, mesh->corners_num, ".corner_vert")),
+      mesh->corners_num);
   MutableSpan<int> corner_edges(
       static_cast<int *>(CustomData_add_layer_named(
-          &mesh->loop_data, CD_PROP_INT32, CD_CONSTRUCT, mesh->totloop, ".corner_edge")),
-      mesh->totloop);
+          &mesh->corner_data, CD_PROP_INT32, CD_CONSTRUCT, mesh->corners_num, ".corner_edge")),
+      mesh->corners_num);
   threading::parallel_for(loops.index_range(), 2048, [&](IndexRange range) {
     for (const int i : range) {
       corner_verts[i] = loops[i].v;
@@ -2056,7 +2043,7 @@ void BKE_mesh_legacy_convert_loops_to_corners(Mesh *mesh)
     }
   });
 
-  CustomData_free_layers(&mesh->loop_data, CD_MLOOP, mesh->totloop);
+  CustomData_free_layers(&mesh->corner_data, CD_MLOOP, mesh->corners_num);
 }
 
 /** \} */
@@ -2131,6 +2118,7 @@ void BKE_mesh_legacy_convert_polys_to_offsets(Mesh *mesh)
 
 static bNodeTree *add_auto_smooth_node_tree(Main &bmain)
 {
+  using namespace blender;
   bNodeTree *group = ntreeAddTree(&bmain, DATA_("Auto Smooth"), "GeometryNodeTree");
   if (!group->geometry_node_asset_traits) {
     group->geometry_node_asset_traits = MEM_new<GeometryNodeAssetTraits>(__func__);
@@ -2169,11 +2157,11 @@ static bNodeTree *add_auto_smooth_node_tree(Main &bmain)
     }
   }
   bNode *shade_smooth_edge = nodeAddNode(nullptr, group, "GeometryNodeSetShadeSmooth");
-  shade_smooth_edge->custom1 = ATTR_DOMAIN_EDGE;
+  shade_smooth_edge->custom1 = int16_t(bke::AttrDomain::Edge);
   shade_smooth_edge->locx = 120.0f;
   shade_smooth_edge->locy = -100.0f;
   bNode *shade_smooth_face = nodeAddNode(nullptr, group, "GeometryNodeSetShadeSmooth");
-  shade_smooth_face->custom1 = ATTR_DOMAIN_FACE;
+  shade_smooth_face->custom1 = int16_t(bke::AttrDomain::Face);
   shade_smooth_face->locx = 300.0f;
   shade_smooth_face->locy = -100.0f;
   bNode *edge_angle = nodeAddNode(nullptr, group, "GeometryNodeInputMeshEdgeAngle");
@@ -2260,7 +2248,7 @@ void BKE_main_mesh_legacy_convert_auto_smooth(Main &bmain)
     if (!(mesh->flag & ME_AUTOSMOOTH_LEGACY)) {
       continue;
     }
-    if (CustomData_has_layer(&mesh->loop_data, CD_CUSTOMLOOPNORMAL)) {
+    if (CustomData_has_layer(&mesh->corner_data, CD_CUSTOMLOOPNORMAL)) {
       continue;
     }
     if (!auto_smooth_node_tree) {
@@ -2271,6 +2259,8 @@ void BKE_main_mesh_legacy_convert_auto_smooth(Main &bmain)
     STRNCPY(md->modifier.name, DATA_("Auto Smooth"));
     BKE_modifier_unique_name(&object->modifiers, &md->modifier);
     md->node_group = auto_smooth_node_tree;
+    mesh->flag &= ~ME_AUTOSMOOTH_LEGACY;
+
     if (!BLI_listbase_is_empty(&object->modifiers) &&
         static_cast<ModifierData *>(object->modifiers.last)->type == eModifierType_Subsurf)
     {
@@ -2335,13 +2325,13 @@ void mesh_sculpt_mask_to_generic(Mesh &mesh)
       sharing_info = layer.sharing_info;
       layer.data = nullptr;
       layer.sharing_info = nullptr;
-      CustomData_free_layer(&mesh.vert_data, CD_PAINT_MASK, mesh.totvert, i);
+      CustomData_free_layer(&mesh.vert_data, CD_PAINT_MASK, mesh.verts_num, i);
       break;
     }
   }
   if (data != nullptr) {
     CustomData_add_layer_named_with_data(
-        &mesh.vert_data, CD_PROP_FLOAT, data, mesh.totvert, ".sculpt_mask", sharing_info);
+        &mesh.vert_data, CD_PROP_FLOAT, data, mesh.verts_num, ".sculpt_mask", sharing_info);
   }
   if (sharing_info != nullptr) {
     sharing_info->remove_user_and_delete_if_last();
@@ -2352,3 +2342,46 @@ void mesh_sculpt_mask_to_generic(Mesh &mesh)
 }  // namespace blender::bke
 
 /** \} */
+
+void BKE_mesh_calc_edges_tessface(Mesh *mesh)
+{
+  const int nulegacy_faces = mesh->totface_legacy;
+  blender::VectorSet<blender::OrderedEdge> eh;
+  eh.reserve(nulegacy_faces);
+  MFace *legacy_faces = (MFace *)CustomData_get_layer_for_write(
+      &mesh->fdata_legacy, CD_MFACE, mesh->totface_legacy);
+
+  MFace *mf = legacy_faces;
+  for (int i = 0; i < nulegacy_faces; i++, mf++) {
+    eh.add({mf->v1, mf->v2});
+    eh.add({mf->v2, mf->v3});
+
+    if (mf->v4) {
+      eh.add({mf->v3, mf->v4});
+      eh.add({mf->v4, mf->v1});
+    }
+    else {
+      eh.add({mf->v3, mf->v1});
+    }
+  }
+
+  const int numEdges = eh.size();
+
+  /* write new edges into a temporary CustomData */
+  CustomData edgeData;
+  CustomData_reset(&edgeData);
+  CustomData_add_layer_named(&edgeData, CD_PROP_INT32_2D, CD_CONSTRUCT, numEdges, ".edge_verts");
+  CustomData_add_layer(&edgeData, CD_ORIGINDEX, CD_SET_DEFAULT, numEdges);
+
+  blender::int2 *ege = (blender::int2 *)CustomData_get_layer_named_for_write(
+      &edgeData, CD_PROP_INT32_2D, ".edge_verts", mesh->edges_num);
+  int *index = (int *)CustomData_get_layer_for_write(&edgeData, CD_ORIGINDEX, mesh->edges_num);
+
+  memset(index, ORIGINDEX_NONE, sizeof(int) * numEdges);
+  MutableSpan(ege, numEdges).copy_from(eh.as_span().cast<blender::int2>());
+
+  /* free old CustomData and assign new one */
+  CustomData_free(&mesh->edge_data, mesh->edges_num);
+  mesh->edge_data = edgeData;
+  mesh->edges_num = numEdges;
+}

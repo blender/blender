@@ -12,7 +12,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
 #include "BKE_volume.hh"
-#include "BKE_volume_openvdb.hh"
+#include "BKE_volume_grid.hh"
 #include "BKE_volume_to_mesh.hh"
 
 #include "BLT_translation.h"
@@ -20,8 +20,6 @@
 #include "MOD_modifiertypes.hh"
 #include "MOD_ui_common.hh"
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
@@ -131,6 +129,7 @@ static Mesh *create_empty_mesh(const Mesh *input_mesh)
 
 static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *input_mesh)
 {
+  using namespace blender;
 #ifdef WITH_OPENVDB
   VolumeToMeshModifierData *vmmd = reinterpret_cast<VolumeToMeshModifierData *>(md);
   if (vmmd->object == nullptr) {
@@ -152,16 +151,16 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   const Volume *volume = static_cast<Volume *>(vmmd->object->data);
 
   BKE_volume_load(volume, DEG_get_bmain(ctx->depsgraph));
-  const VolumeGrid *volume_grid = BKE_volume_grid_find_for_read(volume, vmmd->grid_name);
+  const blender::bke::VolumeGridData *volume_grid = BKE_volume_grid_find(volume, vmmd->grid_name);
   if (volume_grid == nullptr) {
     BKE_modifier_set_error(ctx->object, md, "Cannot find '%s' grid", vmmd->grid_name);
     return create_empty_mesh(input_mesh);
   }
 
-  const openvdb::GridBase::ConstPtr local_grid = BKE_volume_grid_openvdb_for_read(volume,
-                                                                                  volume_grid);
+  const blender::bke::VolumeTreeAccessToken access_token = volume_grid->tree_access_token();
+  const openvdb::GridBase &local_grid = volume_grid->grid(access_token);
 
-  openvdb::math::Transform::Ptr transform = local_grid->transform().copy();
+  openvdb::math::Transform::Ptr transform = local_grid.transform().copy();
   transform->postMult(openvdb::Mat4d((float *)vmmd->object->object_to_world));
   openvdb::Mat4d imat = openvdb::Mat4d((float *)ctx->object->world_to_object);
   /* `imat` had floating point issues and wasn't affine. */
@@ -169,9 +168,9 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   transform->postMult(imat);
 
   /* Create a temporary transformed grid. The underlying tree is shared. */
-  openvdb::GridBase::ConstPtr transformed_grid = local_grid->copyGridReplacingTransform(transform);
+  openvdb::GridBase::ConstPtr transformed_grid = local_grid.copyGridReplacingTransform(transform);
 
-  blender::bke::VolumeToMeshResolution resolution;
+  bke::VolumeToMeshResolution resolution;
   resolution.mode = (VolumeToMeshResolutionMode)vmmd->resolution_mode;
   if (resolution.mode == VOLUME_TO_MESH_RESOLUTION_MODE_VOXEL_AMOUNT) {
     resolution.settings.voxel_amount = vmmd->voxel_amount;
@@ -180,7 +179,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
     resolution.settings.voxel_size = vmmd->voxel_size;
   }
 
-  Mesh *mesh = blender::bke::volume_to_mesh(
+  Mesh *mesh = bke::volume_to_mesh(
       *transformed_grid, resolution, vmmd->threshold, vmmd->adaptivity);
   if (mesh == nullptr) {
     BKE_modifier_set_error(ctx->object, md, "Could not generate mesh from grid");
@@ -188,7 +187,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   }
 
   BKE_mesh_copy_parameters_for_eval(mesh, input_mesh);
-  BKE_mesh_smooth_flag_set(mesh, vmmd->flag & VOLUME_TO_MESH_USE_SMOOTH_SHADE);
+  bke::mesh_smooth_set(*mesh, vmmd->flag & VOLUME_TO_MESH_USE_SMOOTH_SHADE);
   return mesh;
 #else
   UNUSED_VARS(md);

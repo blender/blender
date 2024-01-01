@@ -20,6 +20,7 @@
 
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
+#include "BLI_vector.hh"
 
 #include "BKE_anim_data.h"
 #include "BKE_asset.hh"
@@ -29,11 +30,11 @@
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_override.hh"
-#include "BKE_lib_remap.h"
-#include "BKE_main.h"
-#include "BKE_main_namemap.h"
+#include "BKE_lib_remap.hh"
+#include "BKE_main.hh"
+#include "BKE_main_namemap.hh"
 
-#include "lib_intern.h"
+#include "lib_intern.hh"
 
 #include "DEG_depsgraph.hh"
 
@@ -302,10 +303,10 @@ static size_t id_delete(Main *bmain,
     }
 
     /* Since we removed IDs from Main, their own other IDs usages need to be removed 'manually'. */
-    LinkNode *cleanup_ids = nullptr;
+    blender::Vector<ID *> cleanup_ids;
     for (ID *id = static_cast<ID *>(tagged_deleted_ids.first); id;
          id = static_cast<ID *>(id->next)) {
-      BLI_linklist_prepend(&cleanup_ids, id);
+      cleanup_ids.append(id);
     }
     BKE_libblock_relink_multiple(bmain,
                                  cleanup_ids,
@@ -313,9 +314,8 @@ static size_t id_delete(Main *bmain,
                                  id_remapper,
                                  ID_REMAP_FORCE_INTERNAL_RUNTIME_POINTERS |
                                      ID_REMAP_SKIP_USER_CLEAR);
-
+    cleanup_ids.clear();
     BKE_id_remapper_free(id_remapper);
-    BLI_linklist_free(cleanup_ids, nullptr);
 
     BKE_layer_collection_resync_allow();
     BKE_main_collection_sync_remap(bmain);

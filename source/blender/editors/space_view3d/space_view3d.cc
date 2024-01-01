@@ -28,6 +28,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector.hh"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -43,8 +44,8 @@
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
-#include "BKE_lib_remap.h"
-#include "BKE_main.h"
+#include "BKE_lib_remap.hh"
+#include "BKE_main.hh"
 #include "BKE_mball.h"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
@@ -153,7 +154,7 @@ void ED_view3d_init_mats_rv3d_gl(const Object *ob, RegionView3D *rv3d)
   GPU_matrix_mul(ob->object_to_world);
 }
 
-#ifdef DEBUG
+#ifndef NDEBUG
 void ED_view3d_clear_mats_rv3d(RegionView3D *rv3d)
 {
   zero_m4(rv3d->viewmatob);
@@ -739,6 +740,7 @@ static void view3d_ob_drop_matrix_from_snap(V3DSnapCursorState *snap_state,
                                             Object *ob,
                                             float obmat_final[4][4])
 {
+  using namespace blender;
   V3DSnapCursorData *snap_data = ED_view3d_cursor_snap_data_get();
   BLI_assert(snap_state->draw_box || snap_state->draw_plane);
   UNUSED_VARS_NDEBUG(snap_state);
@@ -749,10 +751,9 @@ static void view3d_ob_drop_matrix_from_snap(V3DSnapCursorState *snap_state,
   mat4_to_size(scale, ob->object_to_world);
   rescale_m4(obmat_final, scale);
 
-  if (const std::optional<BoundBox> bb = BKE_object_boundbox_get(ob)) {
-    float offset[3];
-    BKE_boundbox_calc_center_aabb(&bb.value(), offset);
-    offset[2] = bb->vec[0][2];
+  if (const std::optional<Bounds<float3>> bb = BKE_object_boundbox_get(ob)) {
+    float3 offset = math::midpoint(bb->min, bb->max);
+    offset[2] = bb->min[2];
     mul_mat3_m4_v3(obmat_final, offset);
     sub_v3_v3(obmat_final[3], offset);
   }
@@ -892,7 +893,7 @@ static void view3d_id_path_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
     RNA_struct_property_unset(drop->ptr, "filepath");
     return;
   }
-  const char *path = WM_drag_get_path(drag);
+  const char *path = WM_drag_get_single_path(drag);
   if (path) {
     RNA_string_set(drop->ptr, "filepath", path);
     RNA_struct_property_unset(drop->ptr, "image");

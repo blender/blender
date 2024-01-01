@@ -195,7 +195,7 @@
     .current_xnew = NULL, \
     .current_x = NULL, \
     .current_v = NULL, \
-    .tri = NULL, \
+    .vert_tris = NULL, \
     .mvert_num = 0, \
     .tri_num = 0, \
     .time_x = -1000.0f, \

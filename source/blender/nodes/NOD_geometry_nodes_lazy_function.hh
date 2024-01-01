@@ -108,7 +108,14 @@ struct ReadInterpolated {
   bke::bake::BakeStateRef next_state;
 };
 
-using Behavior = std::variant<PassThrough, StoreNewState, ReadSingle, ReadInterpolated>;
+/**
+ * Used when there was some issue loading the baked data from disk.
+ */
+struct ReadError {
+  std::string message;
+};
+
+using Behavior = std::variant<PassThrough, StoreNewState, ReadSingle, ReadInterpolated, ReadError>;
 
 }  // namespace sim_output
 
@@ -128,6 +135,14 @@ class GeoNodesSimulationParams {
   virtual SimulationZoneBehavior *get(const int zone_id) const = 0;
 };
 
+/** The set of possible behaviors are the same for both of these nodes currently. */
+using BakeNodeBehavior = sim_output::Behavior;
+
+class GeoNodesBakeParams {
+ public:
+  virtual BakeNodeBehavior *get(const int id) const = 0;
+};
+
 struct GeoNodesSideEffectNodes {
   MultiValueMap<ComputeContextHash, const lf::FunctionNode *> nodes_by_context;
   /**
@@ -145,11 +160,35 @@ struct GeoNodesModifierData {
   const Object *self_object = nullptr;
   /** Depsgraph that is evaluating the modifier. */
   Depsgraph *depsgraph = nullptr;
-  /** Optional logger. */
+};
+
+struct GeoNodesOperatorData {
+  eObjectMode mode;
+  /** The object currently effected by the operator. */
+  const Object *self_object = nullptr;
+  /** Current evaluated depsgraph. */
+  Depsgraph *depsgraph = nullptr;
+  Scene *scene = nullptr;
+};
+
+struct GeoNodesCallData {
+  /**
+   * Top-level node tree of the current evaluation.
+   */
+  const bNodeTree *root_ntree = nullptr;
+  /**
+   * Optional logger that keeps track of data generated during evaluation to allow for better
+   * debugging afterwards.
+   */
   geo_eval_log::GeoModifierLog *eval_log = nullptr;
-
+  /**
+   * Optional injected behavior for simulations.
+   */
   GeoNodesSimulationParams *simulation_params = nullptr;
-
+  /**
+   * Optional injected behavior for bake nodes.
+   */
+  GeoNodesBakeParams *bake_params = nullptr;
   /**
    * Some nodes should be executed even when their output is not used (e.g. active viewer nodes and
    * the node groups they are contained in).
@@ -163,24 +202,7 @@ struct GeoNodesModifierData {
    * If this is null, all socket values will be logged.
    */
   const Set<ComputeContextHash> *socket_log_contexts = nullptr;
-};
 
-struct GeoNodesOperatorData {
-  eObjectMode mode;
-  /** The object currently effected by the operator. */
-  const Object *self_object = nullptr;
-  /** Current evaluated depsgraph. */
-  Depsgraph *depsgraph = nullptr;
-  Scene *scene = nullptr;
-
-  /** Optional logger. */
-  geo_eval_log::GeoModifierLog *eval_log = nullptr;
-};
-
-/**
- * Custom user data that is passed to every geometry nodes related lazy-function evaluation.
- */
-struct GeoNodesLFUserData : public lf::UserData {
   /**
    * Data from the modifier that is being evaluated.
    */
@@ -189,6 +211,22 @@ struct GeoNodesLFUserData : public lf::UserData {
    * Data from execution as operator in 3D viewport.
    */
   GeoNodesOperatorData *operator_data = nullptr;
+
+  /**
+   * Self object has slightly different semantics depending on how geometry nodes is called.
+   * Therefor, it is not stored directly in the global data.
+   */
+  const Object *self_object() const;
+};
+
+/**
+ * Custom user data that is passed to every geometry nodes related lazy-function evaluation.
+ */
+struct GeoNodesLFUserData : public lf::UserData {
+  /**
+   * Data provided by the root caller of geometry nodes.
+   */
+  const GeoNodesCallData *call_data = nullptr;
   /**
    * Current compute context. This is different depending in the (nested) node group that is being
    * evaluated.
@@ -198,10 +236,6 @@ struct GeoNodesLFUserData : public lf::UserData {
    * Log socket values in the current compute context. Child contexts might use logging again.
    */
   bool log_socket_values = true;
-  /**
-   * Top-level node tree of the current evaluation.
-   */
-  const bNodeTree *root_ntree = nullptr;
 
   destruct_ptr<lf::LocalUserData> get_local(LinearAllocator<> &allocator) override;
 };
@@ -363,6 +397,16 @@ std::unique_ptr<LazyFunction> get_simulation_input_lazy_function(
     GeometryNodesLazyFunctionGraphInfo &own_lf_graph_info);
 std::unique_ptr<LazyFunction> get_switch_node_lazy_function(const bNode &node);
 std::unique_ptr<LazyFunction> get_index_switch_node_lazy_function(const bNode &node);
+std::unique_ptr<LazyFunction> get_bake_lazy_function(
+    const bNode &node, GeometryNodesLazyFunctionGraphInfo &own_lf_graph_info);
+
+/**
+ * Outputs the default value of each output socket that has not been output yet. This needs the
+ * #bNode because otherwise the default values for the outputs are not known. The lazy-function
+ * parameters do not differentiate between e.g. float and vector sockets. The #SocketValueVariant
+ * type is used for both.
+ */
+void set_default_remaining_node_outputs(lf::Params &params, const bNode &node);
 
 struct FoundNestedNodeID {
   int id;

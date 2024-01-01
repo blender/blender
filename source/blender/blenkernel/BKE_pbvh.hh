@@ -14,8 +14,13 @@
 #include "BLI_utildefines.h"
 
 struct PBVHNode;
-struct PBVHBatches;
 struct BMesh;
+
+namespace blender::draw::pbvh {
+struct PBVHBatches;
+}
+
+using blender::draw::pbvh::PBVHBatches;
 
 enum PBVHType {
   PBVH_FACES,

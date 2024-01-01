@@ -485,7 +485,7 @@ class TOPBAR_MT_file_import(Menu):
         if bpy.app.build_options.io_ply:
             self.layout.operator("wm.ply_import", text="Stanford PLY (.ply)")
         if bpy.app.build_options.io_stl:
-            self.layout.operator("wm.stl_import", text="STL (.stl) (experimental)")
+            self.layout.operator("wm.stl_import", text="STL (.stl)")
 
 
 class TOPBAR_MT_file_export(Menu):
@@ -515,7 +515,7 @@ class TOPBAR_MT_file_export(Menu):
         if bpy.app.build_options.io_ply:
             self.layout.operator("wm.ply_export", text="Stanford PLY (.ply)")
         if bpy.app.build_options.io_stl:
-            self.layout.operator("wm.stl_export", text="STL (.stl) (experimental)")
+            self.layout.operator("wm.stl_export", text="STL (.stl)")
 
 
 class TOPBAR_MT_file_external_data(Menu):

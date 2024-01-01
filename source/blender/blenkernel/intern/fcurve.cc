@@ -22,6 +22,7 @@
 #include "BLI_easing.h"
 #include "BLI_ghash.h"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector_types.hh"
 #include "BLI_sort_utils.h"
 #include "BLI_string_utils.hh"
 
@@ -1703,6 +1704,81 @@ void BKE_fcurve_delete_key(FCurve *fcu, int index)
   if (fcu->totvert == 0) {
     fcurve_bezt_free(fcu);
   }
+}
+
+void BKE_fcurve_delete_keys(FCurve *fcu, blender::uint2 index_range)
+{
+  BLI_assert(fcu != nullptr);
+  BLI_assert(fcu->bezt != nullptr);
+  BLI_assert(index_range[1] > index_range[0]);
+  BLI_assert(index_range[1] <= fcu->totvert);
+
+  const int removed_index_count = index_range[1] - index_range[0];
+  memmove(&fcu->bezt[index_range[0]],
+          &fcu->bezt[index_range[1]],
+          sizeof(BezTriple) * (fcu->totvert - index_range[1]));
+  fcu->totvert -= removed_index_count;
+
+  if (fcu->totvert == 0) {
+    fcurve_bezt_free(fcu);
+  }
+}
+
+BezTriple *BKE_bezier_array_merge(
+    const BezTriple *a, const int size_a, const BezTriple *b, const int size_b, int *r_merged_size)
+{
+  BezTriple *large_array = static_cast<BezTriple *>(
+      MEM_callocN((size_a + size_b) * sizeof(BezTriple), "beztriple"));
+
+  int iterator_a = 0;
+  int iterator_b = 0;
+  *r_merged_size = 0;
+
+  /* For comparing if keyframes are at the same x-value. */
+  const int max_ulps = 32;
+
+  while (iterator_a < size_a || iterator_b < size_b) {
+    if (iterator_a >= size_a) {
+      const int remaining_keys = size_b - iterator_b;
+      memcpy(&large_array[*r_merged_size], &b[iterator_b], sizeof(BezTriple) * remaining_keys);
+      (*r_merged_size) += remaining_keys;
+      break;
+    }
+    if (iterator_b >= size_b) {
+      const int remaining_keys = size_a - iterator_a;
+      memcpy(&large_array[*r_merged_size], &a[iterator_a], sizeof(BezTriple) * remaining_keys);
+      (*r_merged_size) += remaining_keys;
+      break;
+    }
+
+    if (compare_ff_relative(
+            a[iterator_a].vec[1][0], b[iterator_b].vec[1][0], BEZT_BINARYSEARCH_THRESH, max_ulps))
+    {
+      memcpy(&large_array[*r_merged_size], &a[iterator_a], sizeof(BezTriple));
+      iterator_a++;
+      iterator_b++;
+    }
+    else if (a[iterator_a].vec[1][0] < b[iterator_b].vec[1][0]) {
+      memcpy(&large_array[*r_merged_size], &a[iterator_a], sizeof(BezTriple));
+      iterator_a++;
+    }
+    else {
+      memcpy(&large_array[*r_merged_size], &b[iterator_b], sizeof(BezTriple));
+      iterator_b++;
+    }
+    (*r_merged_size)++;
+  }
+
+  BezTriple *minimal_array;
+  if (*r_merged_size < size_a + size_b) {
+    minimal_array = static_cast<BezTriple *>(
+        MEM_reallocN(large_array, sizeof(BezTriple) * (*r_merged_size)));
+  }
+  else {
+    minimal_array = large_array;
+  }
+
+  return minimal_array;
 }
 
 bool BKE_fcurve_delete_keys_selected(FCurve *fcu)

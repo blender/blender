@@ -23,7 +23,7 @@
 #include "BLI_bitmap_draw_2d.h"
 #include "BLI_math_vector.h"
 
-#include "BKE_colorband.h"
+#include "BKE_colorband.hh"
 #include "BKE_context.hh"
 
 #include "RNA_access.hh"

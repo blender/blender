@@ -242,7 +242,7 @@ static int retiming_key_add_to_editable_strips(bContext *C,
   bool inserted = false;
 
   blender::Map selection = SEQ_retiming_selection_get(ed);
-  if (selection.size() == 0) {
+  if (selection.is_empty()) {
     return OPERATOR_CANCELLED;
   }
 
@@ -553,7 +553,7 @@ static int strip_speed_set_exec(bContext *C, const wmOperator *op)
       continue;
     }
     /* TODO: it would be nice to multiply speed with complex retiming by a factor. */
-    SEQ_retiming_key_speed_set(scene, seq, key, RNA_float_get(op->ptr, "speed"));
+    SEQ_retiming_key_speed_set(scene, seq, key, RNA_float_get(op->ptr, "speed"), false);
     SEQ_relations_invalidate_cache_raw(scene, seq);
   }
 
@@ -566,9 +566,19 @@ static int segment_speed_set_exec(const bContext *C,
                                   blender::Map<SeqRetimingKey *, Sequence *> selection)
 {
   Scene *scene = CTX_data_scene(C);
+  ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(scene));
 
   for (auto item : selection.items()) {
-    SEQ_retiming_key_speed_set(scene, item.value, item.key, RNA_float_get(op->ptr, "speed"));
+    SEQ_retiming_key_speed_set(scene,
+                               item.value,
+                               item.key,
+                               RNA_float_get(op->ptr, "speed"),
+                               RNA_boolean_get(op->ptr, "keep_retiming"));
+
+    if (SEQ_transform_test_overlap(scene, seqbase, item.value)) {
+      SEQ_transform_seqbase_shuffle(seqbase, item.value, scene);
+    }
+
     SEQ_relations_invalidate_cache_raw(scene, item.value);
   }
 
@@ -631,6 +641,12 @@ void SEQUENCER_OT_retiming_segment_speed_set(wmOperatorType *ot)
                 "New speed of retimed segment",
                 0.1f,
                 FLT_MAX);
+
+  RNA_def_boolean(ot->srna,
+                  "keep_retiming",
+                  true,
+                  "Preserve Current retiming",
+                  "Keep speed of other segments unchanged, change strip length instead");
 }
 
 /** \} */
@@ -660,8 +676,34 @@ static bool select_key(const Editing *ed,
   return true;
 }
 
+int sequencer_retiming_select_linked_time(bContext *C, wmOperator *op)
+{
+  Scene *scene = CTX_data_scene(C);
+  Editing *ed = SEQ_editing_get(scene);
+  const int mval[2] = {RNA_int_get(op->ptr, "mouse_x"), RNA_int_get(op->ptr, "mouse_y")};
+
+  Sequence *seq_key_owner = nullptr;
+  SeqRetimingKey *key = retiming_mousover_key_get(C, mval, &seq_key_owner);
+
+  if (key == nullptr) {
+    return OPERATOR_CANCELLED;
+  }
+  if (!RNA_boolean_get(op->ptr, "extend")) {
+    SEQ_retiming_selection_clear(ed);
+  }
+  for (; key <= SEQ_retiming_last_key_get(seq_key_owner); key++) {
+    select_key(ed, key, false, false);
+  }
+  WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
+  return OPERATOR_FINISHED;
+}
+
 int sequencer_retiming_key_select_exec(bContext *C, wmOperator *op)
 {
+  if (RNA_boolean_get(op->ptr, "linked_time")) {
+    return sequencer_retiming_select_linked_time(C, op);
+  }
+
   Scene *scene = CTX_data_scene(C);
   Editing *ed = SEQ_editing_get(scene);
   const int mval[2] = {RNA_int_get(op->ptr, "mouse_x"), RNA_int_get(op->ptr, "mouse_y")};
@@ -690,7 +732,7 @@ int sequencer_retiming_key_select_exec(bContext *C, wmOperator *op)
   }
 
   /* Click on strip, do strip selection. */
-  const Sequence *seq_click_exact = find_nearest_seq(scene, UI_view2d_fromcontext(C), &hand, mval);
+  const Sequence *seq_click_exact = find_nearest_seq(scene, UI_view2d_fromcontext(C), mval, &hand);
   if (seq_click_exact != nullptr && key == nullptr) {
     SEQ_retiming_selection_clear(ed);
     return sequencer_select_exec(C, op);

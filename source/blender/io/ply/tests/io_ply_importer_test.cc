@@ -113,6 +113,13 @@ TEST_F(ply_import_test, PLYImportWireframeCube)
   import_and_check("wireframe_cube.ply", expect);
 }
 
+TEST_F(ply_import_test, PlyImportBinaryDataStartsWithLF)
+{
+  Expectation expect = {4, 1, 4, 0, 37235, 0, float3(-1, -1, 0), float3(-1, 1, 0)};
+  import_and_check("bin_data_starts_with_lf.ply", expect);
+  import_and_check("bin_data_starts_with_lf_header_crlf.ply", expect);
+}
+
 TEST_F(ply_import_test, PLYImportBunny)
 {
   Expectation expect = {1623,

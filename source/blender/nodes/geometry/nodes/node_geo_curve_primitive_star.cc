@@ -65,7 +65,7 @@ static void create_selection_output(CurveComponent &component,
 {
   SpanAttributeWriter<bool> selection =
       component.attributes_for_write()->lookup_or_add_for_write_only_span<bool>(*r_attribute,
-                                                                                ATTR_DOMAIN_POINT);
+                                                                                AttrDomain::Point);
   for (int i : selection.span.index_range()) {
     selection.span[i] = i % 2 == 0;
   }

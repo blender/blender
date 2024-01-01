@@ -17,9 +17,8 @@ static void calculate_uvs(Mesh *mesh,
                           const bke::AttributeIDRef &uv_map_id)
 {
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
-
-  bke::SpanAttributeWriter<float2> uv_attribute =
-      attributes.lookup_or_add_for_write_only_span<float2>(uv_map_id, ATTR_DOMAIN_CORNER);
+  bke::SpanAttributeWriter uv_attribute = attributes.lookup_or_add_for_write_only_span<float2>(
+      uv_map_id, bke::AttrDomain::Corner);
 
   const float dx = (size_x == 0.0f) ? 0.0f : 1.0f / size_x;
   const float dy = (size_y == 0.0f) ? 0.0f : 1.0f / size_y;
@@ -51,7 +50,7 @@ Mesh *create_grid_mesh(const int verts_x,
   MutableSpan<int2> edges = mesh->edges_for_write();
   MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
   MutableSpan<int> corner_edges = mesh->corner_edges_for_write();
-  BKE_mesh_smooth_flag_set(mesh, false);
+  bke::mesh_smooth_set(*mesh, false);
 
   offset_indices::fill_constant_group_size(4, 0, mesh->face_offsets_for_write());
 

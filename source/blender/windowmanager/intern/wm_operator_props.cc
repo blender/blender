@@ -13,7 +13,7 @@
 #include "DNA_space_types.h"
 
 #include "BKE_lib_id.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 
 #include "BLI_math_base.h"
 #include "BLI_rect.h"

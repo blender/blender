@@ -26,7 +26,7 @@
 #include "BLI_set.hh"
 #include "BLI_vector.hh"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 #include "bmesh_idmap.hh"
 #include "bmesh_log.hh"
 
@@ -1826,6 +1826,8 @@ void BM_log_set_current_entry(BMLog *log, BMLogEntry *entry)
 
 bool BM_log_entry_drop(BMLogEntry *entry)
 {
+  printf("%s\n", __func__);
+
   if (entry->prev) {
     entry->prev->next = entry->next;
   }

@@ -31,7 +31,6 @@ class TransformOperation : public MultiThreadedOperation {
   float translate_factor_x_;
   float translate_factor_y_;
   bool invert_;
-  Size2f max_scale_canvas_size_;
 
  public:
   TransformOperation();
@@ -56,8 +55,6 @@ class TransformOperation : public MultiThreadedOperation {
   {
     invert_ = value;
   }
-
-  void set_scale_canvas_max_size(Size2f size);
 
   void init_data() override;
   void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;

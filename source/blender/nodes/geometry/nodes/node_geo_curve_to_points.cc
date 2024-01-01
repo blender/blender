@@ -94,14 +94,14 @@ static void copy_curve_domain_attributes(const AttributeAccessor curve_attribute
         if (curve_attributes.is_builtin(id)) {
           return true;
         }
-        if (meta_data.domain != ATTR_DOMAIN_CURVE) {
+        if (meta_data.domain != AttrDomain::Curve) {
           return true;
         }
         point_attributes.add(
             id,
-            ATTR_DOMAIN_POINT,
+            AttrDomain::Point,
             meta_data.data_type,
-            bke::AttributeInitVArray(*curve_attributes.lookup(id, ATTR_DOMAIN_POINT)));
+            bke::AttributeInitVArray(*curve_attributes.lookup(id, AttrDomain::Point)));
         return true;
       });
 }
@@ -116,10 +116,10 @@ static PointCloud *pointcloud_from_curves(bke::CurvesGeometry curves,
 
   if (rotation_id) {
     MutableAttributeAccessor attributes = curves.attributes_for_write();
-    const VArraySpan tangents = *attributes.lookup<float3>(tangent_id, ATTR_DOMAIN_POINT);
-    const VArraySpan normals = *attributes.lookup<float3>(normal_id, ATTR_DOMAIN_POINT);
+    const VArraySpan tangents = *attributes.lookup<float3>(tangent_id, AttrDomain::Point);
+    const VArraySpan normals = *attributes.lookup<float3>(normal_id, AttrDomain::Point);
     SpanAttributeWriter<float3> rotations = attributes.lookup_or_add_for_write_only_span<float3>(
-        rotation_id, ATTR_DOMAIN_POINT);
+        rotation_id, AttrDomain::Point);
     fill_rotation_attribute(tangents, normals, rotations.span);
     rotations.finish();
   }
@@ -146,7 +146,7 @@ static void curve_to_points(GeometrySet &geometry_set,
       geometry_set.modify_geometry_sets([&](GeometrySet &geometry) {
         if (const Curves *src_curves_id = geometry.get_curves()) {
           const bke::CurvesGeometry &src_curves = src_curves_id->geometry.wrap();
-          const bke::CurvesFieldContext field_context{src_curves, ATTR_DOMAIN_CURVE};
+          const bke::CurvesFieldContext field_context{src_curves, AttrDomain::Curve};
           bke::CurvesGeometry dst_curves = geometry::resample_to_count(
               src_curves,
               field_context,
@@ -168,7 +168,7 @@ static void curve_to_points(GeometrySet &geometry_set,
       geometry_set.modify_geometry_sets([&](GeometrySet &geometry) {
         if (const Curves *src_curves_id = geometry.get_curves()) {
           const bke::CurvesGeometry &src_curves = src_curves_id->geometry.wrap();
-          const bke::CurvesFieldContext field_context{src_curves, ATTR_DOMAIN_CURVE};
+          const bke::CurvesFieldContext field_context{src_curves, AttrDomain::Curve};
           bke::CurvesGeometry dst_curves = geometry::resample_to_length(
               src_curves,
               field_context,
@@ -189,7 +189,7 @@ static void curve_to_points(GeometrySet &geometry_set,
       geometry_set.modify_geometry_sets([&](GeometrySet &geometry) {
         if (const Curves *src_curves_id = geometry.get_curves()) {
           const bke::CurvesGeometry &src_curves = src_curves_id->geometry.wrap();
-          const bke::CurvesFieldContext field_context{src_curves, ATTR_DOMAIN_CURVE};
+          const bke::CurvesFieldContext field_context{src_curves, AttrDomain::Curve};
           bke::CurvesGeometry dst_curves = geometry::resample_to_evaluated(
               src_curves, field_context, fn::make_constant_field<bool>(true), resample_attributes);
           PointCloud *pointcloud = pointcloud_from_curves(std::move(dst_curves),
@@ -238,7 +238,7 @@ static void grease_pencil_to_points(GeometrySet &geometry_set,
         }
         const bke::CurvesGeometry &src_curves = drawing->strokes();
         bke::GreasePencilLayerFieldContext field_context(
-            grease_pencil, ATTR_DOMAIN_CURVE, layer_index);
+            grease_pencil, AttrDomain::Curve, layer_index);
 
         bke::CurvesGeometry dst_curves;
         switch (mode) {

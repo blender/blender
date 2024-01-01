@@ -1,0 +1,81 @@
+diff --git a/openvdb/openvdb/python/pyGrid.h b/openvdb/openvdb/python/pyGrid.h
+index 9249eaf6d..f4c859110 100644
+--- a/openvdb/openvdb/python/pyGrid.h
++++ b/openvdb/openvdb/python/pyGrid.h
+@@ -322,7 +322,7 @@ copyToArray(GridType&, const py::object&, py::object)
+ 
+ #else // if defined(PY_OPENVDB_USE_NUMPY)
+ 
+-using ArrayDimVec = std::vector<ssize_t>;
++using ArrayDimVec = std::vector<Py_ssize_t>;
+ 
+ // ID numbers for supported value types
+ enum class DtId { NONE, FLOAT, DOUBLE, BOOL, INT16, INT32, INT64, UINT32, UINT64/*, HALF*/ };
+@@ -768,12 +768,12 @@ template<typename GridType>
+ inline typename GridType::Ptr
+ meshToLevelSet(py::array_t<float> pointsObj, py::array_t<Index32> trianglesObj, py::array_t<Index32> quadsObj, math::Transform::Ptr xform, float halfWidth)
+ {
+-    auto validate2DArray = [](py::array array, ssize_t N) {
++    auto validate2DArray = [](py::array array, Py_ssize_t N) {
+         if (array.ndim() != 2 || array.shape(1) != N) {
+             std::ostringstream os;
+             os << "Expected a 2-dimensional numpy.ndarray with shape(1) = "<< N;
+             os << ", found " << array.ndim() << "-dimensional array with shape = (";
+-            for (ssize_t i = 0; i < array.ndim(); ++i) {
++            for (Py_ssize_t i = 0; i < array.ndim(); ++i) {
+                 os << array.shape(i);
+                 if (i != array.ndim() - 1)
+                     os << ", ";
+@@ -826,12 +826,12 @@ volumeToQuadMesh(const GridType& grid, double isovalue)
+     std::vector<Vec4I> quads;
+     tools::volumeToMesh(grid, points, quads, isovalue);
+ 
+-    std::vector<ssize_t> shape = { static_cast<ssize_t>(points.size()), 3 };
+-    std::vector<ssize_t> strides = { 3 * static_cast<ssize_t>(sizeof(float)), static_cast<ssize_t>(sizeof(float))};
++    std::vector<Py_ssize_t> shape = { static_cast<Py_ssize_t>(points.size()), 3 };
++    std::vector<Py_ssize_t> strides = { 3 * static_cast<Py_ssize_t>(sizeof(float)), static_cast<Py_ssize_t>(sizeof(float))};
+     py::array_t<float> pointArrayObj(py::buffer_info(points.data(), sizeof(float), py::format_descriptor<float>::format(), 2, shape, strides));
+ 
+-    shape = { static_cast<ssize_t>(quads.size()), 4 };
+-    strides = { 4 * static_cast<ssize_t>(sizeof(Index32)), static_cast<ssize_t>(sizeof(Index32))};
++    shape = { static_cast<Py_ssize_t>(quads.size()), 4 };
++    strides = { 4 * static_cast<Py_ssize_t>(sizeof(Index32)), static_cast<Py_ssize_t>(sizeof(Index32))};
+     py::array_t<Index32> quadArrayObj(py::buffer_info(quads.data(), sizeof(Index32), py::format_descriptor<Index32>::format(), 2, shape, strides));
+ 
+     return std::make_tuple(pointArrayObj, quadArrayObj);
+@@ -857,18 +857,18 @@ volumeToMesh(const GridType& grid, double isovalue, double adaptivity)
+     // Create a deep copy of the array (because the point vector will be destroyed
+     // when this function returns).
+ 
+-    std::vector<ssize_t> shape = { static_cast<ssize_t>(points.size()), 3 };
+-    std::vector<ssize_t> strides = { 3 * static_cast<ssize_t>(sizeof(float)), static_cast<ssize_t>(sizeof(float))};
++    std::vector<Py_ssize_t> shape = { static_cast<Py_ssize_t>(points.size()), 3 };
++    std::vector<Py_ssize_t> strides = { 3 * static_cast<Py_ssize_t>(sizeof(float)), static_cast<Py_ssize_t>(sizeof(float))};
+     py::buffer_info pointInfo(points.data(), sizeof(float), py::format_descriptor<float>::format(), 2, shape, strides);
+     py::array_t<float> pointArray(pointInfo);
+ 
+-    shape = { static_cast<ssize_t>(triangles.size()), 3 };
+-    strides = { 3 * static_cast<ssize_t>(sizeof(Index32)), static_cast<ssize_t>(sizeof(Index32))};
++    shape = { static_cast<Py_ssize_t>(triangles.size()), 3 };
++    strides = { 3 * static_cast<Py_ssize_t>(sizeof(Index32)), static_cast<Py_ssize_t>(sizeof(Index32))};
+     py::buffer_info triangleInfo(triangles.data(), sizeof(Index32), py::format_descriptor<Index32>::format(), 2, shape, strides);
+     py::array_t<Index32> triangleArray(triangleInfo);
+ 
+-    shape = { static_cast<ssize_t>(quads.size()), 4 };
+-    strides = { 4 * static_cast<ssize_t>(sizeof(Index32)), static_cast<ssize_t>(sizeof(Index32))};
++    shape = { static_cast<Py_ssize_t>(quads.size()), 4 };
++    strides = { 4 * static_cast<Py_ssize_t>(sizeof(Index32)), static_cast<Py_ssize_t>(sizeof(Index32))};
+     py::buffer_info quadInfo(quads.data(), sizeof(Index32), py::format_descriptor<Index32>::format(), 2, shape, strides);
+     py::array_t<Index32> quadArray(quadInfo);
+ 
+@@ -1590,8 +1590,8 @@ exportGrid(py::module_ m)
+             &pyGrid::meshToLevelSet<GridType>,
+             py::arg("points"),
+ #ifdef PY_OPENVDB_USE_NUMPY
+-            py::arg("triangles")=py::array_t<Index32>({ 0, 3 }, { 3 * static_cast<ssize_t>(sizeof(Index32)), static_cast<ssize_t>(sizeof(Index32))} ),
+-            py::arg("quads")=py::array_t<Index32>({ 0, 4 }, { 4 * static_cast<ssize_t>(sizeof(Index32)), static_cast<ssize_t>(sizeof(Index32))} ),
++            py::arg("triangles")=py::array_t<Index32>({ 0, 3 }, { 3 * static_cast<Py_ssize_t>(sizeof(Index32)), static_cast<Py_ssize_t>(sizeof(Index32))} ),
++            py::arg("quads")=py::array_t<Index32>({ 0, 4 }, { 4 * static_cast<Py_ssize_t>(sizeof(Index32)), static_cast<Py_ssize_t>(sizeof(Index32))} ),
+ #else
+             py::arg("triangles")=std::vector<Index32>(),
+             py::arg("quads")=std::vector<Index32>(),

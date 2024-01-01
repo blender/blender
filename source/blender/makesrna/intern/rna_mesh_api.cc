@@ -27,6 +27,7 @@
 #  include "BKE_attribute.hh"
 #  include "BKE_mesh.h"
 #  include "BKE_mesh.hh"
+#  include "BKE_mesh_compare.hh"
 #  include "BKE_mesh_mapping.hh"
 #  include "BKE_mesh_runtime.hh"
 #  include "BKE_mesh_tangent.hh"
@@ -40,20 +41,21 @@
 
 static const char *rna_Mesh_unit_test_compare(Mesh *mesh, Mesh *mesh2, float threshold)
 {
-  const char *ret = BKE_mesh_cmp(mesh, mesh2, threshold);
+  using namespace blender::bke::compare_meshes;
+  const std::optional<MeshMismatch> mismatch = compare_meshes(*mesh, *mesh2, threshold);
 
-  if (!ret) {
-    ret = "Same";
+  if (!mismatch) {
+    return "Same";
   }
 
-  return ret;
+  return mismatch_to_string(mismatch.value());
 }
 
 static void rna_Mesh_sharp_from_angle_set(Mesh *mesh, const float angle)
 {
   mesh->attributes_for_write().remove("sharp_edge");
   mesh->attributes_for_write().remove("sharp_face");
-  BKE_mesh_sharp_edges_set_from_angle(mesh, angle);
+  blender::bke::mesh_sharp_edges_set_from_angle(*mesh, angle);
   DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);
 }
 
@@ -61,15 +63,15 @@ static void rna_Mesh_calc_tangents(Mesh *mesh, ReportList *reports, const char *
 {
   float(*r_looptangents)[4];
 
-  if (CustomData_has_layer(&mesh->loop_data, CD_MLOOPTANGENT)) {
+  if (CustomData_has_layer(&mesh->corner_data, CD_MLOOPTANGENT)) {
     r_looptangents = static_cast<float(*)[4]>(
-        CustomData_get_layer_for_write(&mesh->loop_data, CD_MLOOPTANGENT, mesh->totloop));
-    memset(r_looptangents, 0, sizeof(float[4]) * mesh->totloop);
+        CustomData_get_layer_for_write(&mesh->corner_data, CD_MLOOPTANGENT, mesh->corners_num));
+    memset(r_looptangents, 0, sizeof(float[4]) * mesh->corners_num);
   }
   else {
-    r_looptangents = static_cast<float(*)[4]>(
-        CustomData_add_layer(&mesh->loop_data, CD_MLOOPTANGENT, CD_SET_DEFAULT, mesh->totloop));
-    CustomData_set_layer_flag(&mesh->loop_data, CD_MLOOPTANGENT, CD_FLAG_TEMPORARY);
+    r_looptangents = static_cast<float(*)[4]>(CustomData_add_layer(
+        &mesh->corner_data, CD_MLOOPTANGENT, CD_SET_DEFAULT, mesh->corners_num));
+    CustomData_set_layer_flag(&mesh->corner_data, CD_MLOOPTANGENT, CD_FLAG_TEMPORARY);
   }
 
   BKE_mesh_calc_loop_tangent_single(mesh, uvmap, r_looptangents, reports);
@@ -77,23 +79,23 @@ static void rna_Mesh_calc_tangents(Mesh *mesh, ReportList *reports, const char *
 
 static void rna_Mesh_free_tangents(Mesh *mesh)
 {
-  CustomData_free_layers(&mesh->loop_data, CD_MLOOPTANGENT, mesh->totloop);
+  CustomData_free_layers(&mesh->corner_data, CD_MLOOPTANGENT, mesh->corners_num);
 }
 
-static void rna_Mesh_calc_looptri(Mesh *mesh)
+static void rna_Mesh_calc_corner_tri(Mesh *mesh)
 {
-  mesh->looptris();
+  mesh->corner_tris();
 }
 
 static void rna_Mesh_calc_smooth_groups(
     Mesh *mesh, bool use_bitflags, int **r_poly_group, int *r_poly_group_num, int *r_group_total)
 {
+  using namespace blender;
   *r_poly_group_num = mesh->faces_num;
-  const bool *sharp_edges = (const bool *)CustomData_get_layer_named(
-      &mesh->edge_data, CD_PROP_BOOL, "sharp_edge");
-  const bool *sharp_faces = (const bool *)CustomData_get_layer_named(
-      &mesh->face_data, CD_PROP_BOOL, "sharp_face");
-  *r_poly_group = BKE_mesh_calc_smoothgroups(mesh->totedge,
+  const bke::AttributeAccessor attributes = mesh->attributes();
+  const VArraySpan sharp_edges = *attributes.lookup<bool>("sharp_edge", bke::AttrDomain::Edge);
+  const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", bke::AttrDomain::Face);
+  *r_poly_group = BKE_mesh_calc_smoothgroups(mesh->edges_num,
                                              mesh->faces(),
                                              mesh->corner_edges(),
                                              sharp_edges,
@@ -108,7 +110,7 @@ static void rna_Mesh_normals_split_custom_set(Mesh *mesh,
                                               int normals_num)
 {
   float(*loop_normals)[3] = (float(*)[3])normals;
-  const int numloops = mesh->totloop;
+  const int numloops = mesh->corners_num;
   if (normals_num != numloops * 3) {
     BKE_reportf(reports,
                 RPT_ERROR,
@@ -129,7 +131,7 @@ static void rna_Mesh_normals_split_custom_set_from_vertices(Mesh *mesh,
                                                             int normals_num)
 {
   float(*vert_normals)[3] = (float(*)[3])normals;
-  const int numverts = mesh->totvert;
+  const int numverts = mesh->verts_num;
   if (normals_num != numverts * 3) {
     BKE_reportf(reports,
                 RPT_ERROR,
@@ -165,8 +167,8 @@ static void rna_Mesh_update(Mesh *mesh,
                             const bool calc_edges,
                             const bool calc_edges_loose)
 {
-  if (calc_edges || ((mesh->faces_num || mesh->totface_legacy) && mesh->totedge == 0)) {
-    BKE_mesh_calc_edges(mesh, calc_edges, true);
+  if (calc_edges || ((mesh->faces_num || mesh->totface_legacy) && mesh->edges_num == 0)) {
+    blender::bke::mesh_calc_edges(*mesh, calc_edges, true);
   }
 
   if (calc_edges_loose) {
@@ -248,17 +250,17 @@ void RNA_api_mesh(StructRNA *srna)
       "Compute tangents and bitangent signs, to be used together with the split normals "
       "to get a complete tangent space for normal mapping "
       "(split normals are also computed if not yet present)");
-  parm = RNA_def_string(func,
-                        "uvmap",
-                        nullptr,
-                        MAX_CUSTOMDATA_LAYER_NAME_NO_PREFIX,
-                        "",
-                        "Name of the UV map to use for tangent space computation");
+  RNA_def_string(func,
+                 "uvmap",
+                 nullptr,
+                 MAX_CUSTOMDATA_LAYER_NAME_NO_PREFIX,
+                 "",
+                 "Name of the UV map to use for tangent space computation");
 
   func = RNA_def_function(srna, "free_tangents", "rna_Mesh_free_tangents");
   RNA_def_function_ui_description(func, "Free tangents");
 
-  func = RNA_def_function(srna, "calc_loop_triangles", "rna_Mesh_calc_looptri");
+  func = RNA_def_function(srna, "calc_loop_triangles", "rna_Mesh_calc_corner_tri");
   RNA_def_function_ui_description(func,
                                   "Calculate loop triangle tessellation (supports editmode too)");
 

@@ -30,14 +30,7 @@ void TranslateNode::convert_to_operations(NodeConverter &converter,
                                       new TranslateOperation() :
                                       new TranslateCanvasOperation();
   operation->set_wrapping(data->wrap_axis);
-  if (data->relative) {
-    const RenderData *rd = context.get_render_data();
-    const float render_size_factor = context.get_render_percentage_as_factor();
-    float fx = rd->xsch * render_size_factor;
-    float fy = rd->ysch * render_size_factor;
-
-    operation->setFactorXY(fx, fy);
-  }
+  operation->set_is_relative(data->relative);
 
   converter.add_operation(operation);
   converter.map_input_socket(input_xsocket, operation->get_input_socket(1));

@@ -269,7 +269,7 @@ void IrradianceCache::set_view(View & /*view*/)
     draw::Texture irradiance_d_tx = {"irradiance_d_tx"};
     draw::Texture validity_tx = {"validity_tx"};
 
-    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW;
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ;
     int3 grid_size = int3(cache->size);
     if (cache->baking.L0) {
       irradiance_a_tx.ensure_3d(GPU_RGBA16F, grid_size, usage, (float *)cache->baking.L0);
@@ -1012,10 +1012,8 @@ void IrradianceBake::surfels_lights_eval()
   /* TODO(fclem): Remove this. It is only present to avoid crash inside `shadows.set_view` */
   inst_.render_buffers.acquire(int2(1));
   inst_.hiz_buffer.set_source(&inst_.render_buffers.depth_tx);
-  inst_.hiz_buffer.set_dirty();
-
   inst_.lights.set_view(view_z_, grid_pixel_extent_.xy());
-  inst_.shadows.set_view(view_z_);
+  inst_.shadows.set_view(view_z_, inst_.render_buffers.depth_tx);
   inst_.render_buffers.release();
 
   inst_.manager->submit(surfel_light_eval_ps_, view_z_);

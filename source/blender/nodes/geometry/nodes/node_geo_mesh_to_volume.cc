@@ -14,9 +14,6 @@
 
 #include "GEO_mesh_to_volume.hh"
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-
 #include "NOD_rna_define.hh"
 
 #include "UI_interface.hh"
@@ -98,7 +95,7 @@ static Volume *create_volume_from_mesh(const Mesh &mesh, GeoNodeExecParams &para
     }
   }
 
-  if (mesh.totvert == 0 || mesh.faces_num == 0) {
+  if (mesh.verts_num == 0 || mesh.faces_num == 0) {
     return nullptr;
   }
 
@@ -140,9 +137,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   });
   params.set_output("Volume", std::move(geometry_set));
 #else
-  params.set_default_remaining_outputs();
-  params.error_message_add(NodeWarningType::Error,
-                           TIP_("Disabled, Blender was compiled without OpenVDB"));
+  node_geo_exec_with_missing_openvdb(params);
   return;
 #endif
 }

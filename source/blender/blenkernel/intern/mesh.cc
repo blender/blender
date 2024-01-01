@@ -52,7 +52,7 @@
 #include "BKE_key.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.hh"
@@ -70,7 +70,9 @@
 #include "BLO_read_write.hh"
 
 using blender::float3;
+using blender::int2;
 using blender::MutableSpan;
+using blender::OffsetIndices;
 using blender::Span;
 using blender::StringRef;
 using blender::VArray;
@@ -90,7 +92,7 @@ static void mesh_init_data(ID *id)
   CustomData_reset(&mesh->edge_data);
   CustomData_reset(&mesh->fdata_legacy);
   CustomData_reset(&mesh->face_data);
-  CustomData_reset(&mesh->loop_data);
+  CustomData_reset(&mesh->corner_data);
 
   mesh->runtime = new blender::bke::MeshRuntime();
 
@@ -138,8 +140,8 @@ static void mesh_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int 
   mesh_dst->runtime->loose_verts_cache = mesh_src->runtime->loose_verts_cache;
   mesh_dst->runtime->verts_no_face_cache = mesh_src->runtime->verts_no_face_cache;
   mesh_dst->runtime->loose_edges_cache = mesh_src->runtime->loose_edges_cache;
-  mesh_dst->runtime->looptris_cache = mesh_src->runtime->looptris_cache;
-  mesh_dst->runtime->looptri_faces_cache = mesh_src->runtime->looptri_faces_cache;
+  mesh_dst->runtime->corner_tris_cache = mesh_src->runtime->corner_tris_cache;
+  mesh_dst->runtime->corner_tri_faces_cache = mesh_src->runtime->corner_tri_faces_cache;
   mesh_dst->runtime->vert_to_face_offset_cache = mesh_src->runtime->vert_to_face_offset_cache;
   mesh_dst->runtime->vert_to_face_map_cache = mesh_src->runtime->vert_to_face_map_cache;
   mesh_dst->runtime->vert_to_corner_map_cache = mesh_src->runtime->vert_to_corner_map_cache;
@@ -163,9 +165,10 @@ static void mesh_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int 
   mesh_dst->default_color_attribute = static_cast<char *>(
       MEM_dupallocN(mesh_src->default_color_attribute));
 
-  CustomData_copy(&mesh_src->vert_data, &mesh_dst->vert_data, mask.vmask, mesh_dst->totvert);
-  CustomData_copy(&mesh_src->edge_data, &mesh_dst->edge_data, mask.emask, mesh_dst->totedge);
-  CustomData_copy(&mesh_src->loop_data, &mesh_dst->loop_data, mask.lmask, mesh_dst->totloop);
+  CustomData_copy(&mesh_src->vert_data, &mesh_dst->vert_data, mask.vmask, mesh_dst->verts_num);
+  CustomData_copy(&mesh_src->edge_data, &mesh_dst->edge_data, mask.emask, mesh_dst->edges_num);
+  CustomData_copy(
+      &mesh_src->corner_data, &mesh_dst->corner_data, mask.lmask, mesh_dst->corners_num);
   CustomData_copy(&mesh_src->face_data, &mesh_dst->face_data, mask.pmask, mesh_dst->faces_num);
   blender::implicit_sharing::copy_shared_pointer(mesh_src->face_offset_indices,
                                                  mesh_src->runtime->face_offsets_sharing_info,
@@ -234,10 +237,11 @@ static void mesh_foreach_id(ID *id, LibraryForeachIDData *data)
 
 static void mesh_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 {
-  Mesh *me = reinterpret_cast<Mesh *>(id);
-  if (me->loop_data.external) {
-    BKE_bpath_foreach_path_fixed_process(
-        bpath_data, me->loop_data.external->filepath, sizeof(me->loop_data.external->filepath));
+  Mesh *mesh = reinterpret_cast<Mesh *>(id);
+  if (mesh->corner_data.external) {
+    BKE_bpath_foreach_path_fixed_process(bpath_data,
+                                         mesh->corner_data.external->filepath,
+                                         sizeof(mesh->corner_data.external->filepath));
   }
 }
 
@@ -260,14 +264,14 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
 
   /* Do not store actual geometry data in case this is a library override ID. */
   if (ID_IS_OVERRIDE_LIBRARY(mesh) && !is_undo) {
-    mesh->totvert = 0;
+    mesh->verts_num = 0;
     memset(&mesh->vert_data, 0, sizeof(mesh->vert_data));
 
-    mesh->totedge = 0;
+    mesh->edges_num = 0;
     memset(&mesh->edge_data, 0, sizeof(mesh->edge_data));
 
-    mesh->totloop = 0;
-    memset(&mesh->loop_data, 0, sizeof(mesh->loop_data));
+    mesh->corners_num = 0;
+    memset(&mesh->corner_data, 0, sizeof(mesh->corner_data));
 
     mesh->faces_num = 0;
     memset(&mesh->face_data, 0, sizeof(mesh->face_data));
@@ -276,9 +280,11 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
   else {
     CustomData_blend_write_prepare(mesh->vert_data, vert_layers, {});
     CustomData_blend_write_prepare(mesh->edge_data, edge_layers, {});
-    CustomData_blend_write_prepare(mesh->loop_data, loop_layers, {});
+    CustomData_blend_write_prepare(mesh->corner_data, loop_layers, {});
     CustomData_blend_write_prepare(mesh->face_data, face_layers, {});
-    mesh_sculpt_mask_to_legacy(vert_layers);
+    if (!is_undo) {
+      mesh_sculpt_mask_to_legacy(vert_layers);
+    }
   }
 
   mesh->runtime = nullptr;
@@ -294,14 +300,14 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
   BLO_write_raw(writer, sizeof(MSelect) * mesh->totselect, mesh->mselect);
 
   CustomData_blend_write(
-      writer, &mesh->vert_data, vert_layers, mesh->totvert, CD_MASK_MESH.vmask, &mesh->id);
+      writer, &mesh->vert_data, vert_layers, mesh->verts_num, CD_MASK_MESH.vmask, &mesh->id);
   CustomData_blend_write(
-      writer, &mesh->edge_data, edge_layers, mesh->totedge, CD_MASK_MESH.emask, &mesh->id);
+      writer, &mesh->edge_data, edge_layers, mesh->edges_num, CD_MASK_MESH.emask, &mesh->id);
   /* `fdata` is cleared above but written so slots align. */
   CustomData_blend_write(
       writer, &mesh->fdata_legacy, {}, mesh->totface_legacy, CD_MASK_MESH.fmask, &mesh->id);
   CustomData_blend_write(
-      writer, &mesh->loop_data, loop_layers, mesh->totloop, CD_MASK_MESH.lmask, &mesh->id);
+      writer, &mesh->corner_data, loop_layers, mesh->corners_num, CD_MASK_MESH.lmask, &mesh->id);
   CustomData_blend_write(
       writer, &mesh->face_data, face_layers, mesh->faces_num, CD_MASK_MESH.pmask, &mesh->id);
 
@@ -333,15 +339,15 @@ static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
 
   BLO_read_list(reader, &mesh->vertex_group_names);
 
-  CustomData_blend_read(reader, &mesh->vert_data, mesh->totvert);
-  CustomData_blend_read(reader, &mesh->edge_data, mesh->totedge);
+  CustomData_blend_read(reader, &mesh->vert_data, mesh->verts_num);
+  CustomData_blend_read(reader, &mesh->edge_data, mesh->edges_num);
   CustomData_blend_read(reader, &mesh->fdata_legacy, mesh->totface_legacy);
-  CustomData_blend_read(reader, &mesh->loop_data, mesh->totloop);
+  CustomData_blend_read(reader, &mesh->corner_data, mesh->corners_num);
   CustomData_blend_read(reader, &mesh->face_data, mesh->faces_num);
   if (mesh->deform_verts().is_empty()) {
     /* Vertex group data was also an owning pointer in old Blender versions.
      * Don't read them again if they were read as part of #CustomData. */
-    BKE_defvert_blend_read(reader, mesh->totvert, mesh->dvert);
+    BKE_defvert_blend_read(reader, mesh->verts_num, mesh->dvert);
   }
   BLO_read_data_address(reader, &mesh->active_color_attribute);
   BLO_read_data_address(reader, &mesh->default_color_attribute);
@@ -398,388 +404,14 @@ IDTypeInfo IDType_ID_ME = {
     /*lib_override_apply_post*/ nullptr,
 };
 
-enum {
-  MESHCMP_DVERT_WEIGHTMISMATCH = 1,
-  MESHCMP_DVERT_GROUPMISMATCH,
-  MESHCMP_DVERT_TOTGROUPMISMATCH,
-  MESHCMP_LOOPCOLMISMATCH,
-  MESHCMP_LOOPUVMISMATCH,
-  MESHCMP_LOOPMISMATCH,
-  MESHCMP_POLYVERTMISMATCH,
-  MESHCMP_POLYMISMATCH,
-  MESHCMP_EDGEUNKNOWN,
-  MESHCMP_VERTCOMISMATCH,
-  MESHCMP_CDLAYERS_MISMATCH,
-  MESHCMP_ATTRIBUTE_VALUE_MISMATCH,
-};
-
-static const char *cmpcode_to_str(int code)
-{
-  switch (code) {
-    case MESHCMP_DVERT_WEIGHTMISMATCH:
-      return "Vertex Weight Mismatch";
-    case MESHCMP_DVERT_GROUPMISMATCH:
-      return "Vertex Group Mismatch";
-    case MESHCMP_DVERT_TOTGROUPMISMATCH:
-      return "Vertex Doesn't Belong To Same Number Of Groups";
-    case MESHCMP_LOOPCOLMISMATCH:
-      return "Color Attribute Mismatch";
-    case MESHCMP_LOOPUVMISMATCH:
-      return "UV Mismatch";
-    case MESHCMP_LOOPMISMATCH:
-      return "Loop Mismatch";
-    case MESHCMP_POLYVERTMISMATCH:
-      return "Loop Vert Mismatch In Poly Test";
-    case MESHCMP_POLYMISMATCH:
-      return "Loop Vert Mismatch";
-    case MESHCMP_EDGEUNKNOWN:
-      return "Edge Mismatch";
-    case MESHCMP_VERTCOMISMATCH:
-      return "Vertex Coordinate Mismatch";
-    case MESHCMP_CDLAYERS_MISMATCH:
-      return "CustomData Layer Count Mismatch";
-    case MESHCMP_ATTRIBUTE_VALUE_MISMATCH:
-      return "Attribute Value Mismatch";
-    default:
-      return "Mesh Comparison Code Unknown";
-  }
-}
-
-static bool is_sublayer_name(char const *sublayer_name, char const *name)
-{
-  BLI_assert(strlen(sublayer_name) == 2);
-  if (name[1] != sublayer_name[0]) {
-    return false;
-  }
-  if (name[2] != sublayer_name[1]) {
-    return false;
-  }
-  if (name[3] != '.') {
-    return false;
-  }
-  return true;
-}
-
-static bool is_uv_bool_sublayer(const CustomDataLayer &layer)
-{
-  char const *name = layer.name;
-
-  if (name[0] != '.') {
-    return false;
-  }
-
-  return is_sublayer_name(UV_VERTSEL_NAME, name) || is_sublayer_name(UV_EDGESEL_NAME, name) ||
-         is_sublayer_name(UV_PINNED_NAME, name);
-}
-
-/** Thresh is threshold for comparing vertices, UVs, vertex colors, weights, etc. */
-static int customdata_compare(
-    CustomData *c1, CustomData *c2, const int total_length, Mesh *m1, const float thresh)
-{
-  using namespace blender;
-  CustomDataLayer *l1, *l2;
-  int layer_count1 = 0, layer_count2 = 0, j;
-  const uint64_t cd_mask_non_generic = CD_MASK_MDEFORMVERT;
-  const uint64_t cd_mask_all_attr = CD_MASK_PROP_ALL | cd_mask_non_generic;
-
-  /* The uv selection / pin layers are ignored in the comparisons because
-   * the original flags they replace were ignored as well. Because of the
-   * lazy creation of these layers it would need careful handling of the
-   * test files to compare these layers. For now it has been decided to
-   * skip them.
-   */
-
-  for (int i = 0; i < c1->totlayer; i++) {
-    l1 = &c1->layers[i];
-    if ((CD_TYPE_AS_MASK(l1->type) & cd_mask_all_attr) && l1->anonymous_id == nullptr &&
-        !is_uv_bool_sublayer(*l1))
-    {
-      layer_count1++;
-    }
-  }
-
-  for (int i = 0; i < c2->totlayer; i++) {
-    l2 = &c2->layers[i];
-    if ((CD_TYPE_AS_MASK(l2->type) & cd_mask_all_attr) && l2->anonymous_id == nullptr &&
-        !is_uv_bool_sublayer(*l2))
-    {
-      layer_count2++;
-    }
-  }
-
-  if (layer_count1 != layer_count2) {
-    /* TODO(@HooglyBoogly): Re-enable after tests are updated for material index refactor and UV as
-     * generic attribute refactor. */
-    // return MESHCMP_CDLAYERS_MISMATCH;
-  }
-
-  l1 = c1->layers;
-  l2 = c2->layers;
-
-  for (int i1 = 0; i1 < c1->totlayer; i1++) {
-    l1 = c1->layers + i1;
-    if (l1->anonymous_id != nullptr || is_uv_bool_sublayer(*l1)) {
-      continue;
-    }
-    bool found_corresponding_layer = false;
-    for (int i2 = 0; i2 < c2->totlayer; i2++) {
-      l2 = c2->layers + i2;
-      if (l1->type != l2->type || !STREQ(l1->name, l2->name) || l2->anonymous_id != nullptr) {
-        continue;
-      }
-      /* At this point `l1` and `l2` have the same name and type, so they should be compared. */
-
-      found_corresponding_layer = true;
-
-      if (StringRef(l1->name) == ".corner_edge") {
-        /* TODO(Hans): This attribute wasn't tested before loops were refactored into separate
-         * corner edges and corner verts attributes. Remove after updating tests. */
-        continue;
-      }
-
-      switch (l1->type) {
-        case CD_PROP_INT32_2D: {
-          blender::int2 *e1 = (blender::int2 *)l1->data;
-          blender::int2 *e2 = (blender::int2 *)l2->data;
-
-          if (StringRef(l1->name) == ".edge_verts") {
-            int etot = m1->totedge;
-            Set<OrderedEdge> ordered_edges;
-            ordered_edges.reserve(etot);
-            for (const int2 value : Span(e1, etot)) {
-              ordered_edges.add(value);
-            }
-
-            for (j = 0; j < etot; j++) {
-              if (!ordered_edges.contains(e2[j])) {
-                return MESHCMP_EDGEUNKNOWN;
-              }
-            }
-          }
-          else {
-            for (j = 0; j < total_length; j++) {
-              if (e1[j] != e2[j]) {
-                return MESHCMP_ATTRIBUTE_VALUE_MISMATCH;
-              }
-            }
-          }
-          break;
-        }
-        case CD_PROP_BYTE_COLOR: {
-          MLoopCol *lp1 = (MLoopCol *)l1->data;
-          MLoopCol *lp2 = (MLoopCol *)l2->data;
-          int ltot = m1->totloop;
-
-          for (j = 0; j < ltot; j++, lp1++, lp2++) {
-            if (lp1->r != lp2->r || lp1->g != lp2->g || lp1->b != lp2->b || lp1->a != lp2->a) {
-              return MESHCMP_LOOPCOLMISMATCH;
-            }
-          }
-          break;
-        }
-        case CD_MDEFORMVERT: {
-          MDeformVert *dv1 = (MDeformVert *)l1->data;
-          MDeformVert *dv2 = (MDeformVert *)l2->data;
-          int dvtot = m1->totvert;
-
-          for (j = 0; j < dvtot; j++, dv1++, dv2++) {
-            int k;
-            MDeformWeight *dw1 = dv1->dw, *dw2 = dv2->dw;
-
-            if (dv1->totweight != dv2->totweight) {
-              return MESHCMP_DVERT_TOTGROUPMISMATCH;
-            }
-
-            for (k = 0; k < dv1->totweight; k++, dw1++, dw2++) {
-              if (dw1->def_nr != dw2->def_nr) {
-                return MESHCMP_DVERT_GROUPMISMATCH;
-              }
-              if (fabsf(dw1->weight - dw2->weight) > thresh) {
-                return MESHCMP_DVERT_WEIGHTMISMATCH;
-              }
-            }
-          }
-          break;
-        }
-        case CD_PROP_FLOAT: {
-          const float *l1_data = (float *)l1->data;
-          const float *l2_data = (float *)l2->data;
-
-          for (int i = 0; i < total_length; i++) {
-            if (compare_threshold_relative(l1_data[i], l2_data[i], thresh)) {
-              return MESHCMP_ATTRIBUTE_VALUE_MISMATCH;
-            }
-          }
-          break;
-        }
-        case CD_PROP_FLOAT2: {
-          const float(*l1_data)[2] = (float(*)[2])l1->data;
-          const float(*l2_data)[2] = (float(*)[2])l2->data;
-
-          for (int i = 0; i < total_length; i++) {
-            if (compare_threshold_relative(l1_data[i][0], l2_data[i][0], thresh)) {
-              return MESHCMP_ATTRIBUTE_VALUE_MISMATCH;
-            }
-            if (compare_threshold_relative(l1_data[i][1], l2_data[i][1], thresh)) {
-              return MESHCMP_ATTRIBUTE_VALUE_MISMATCH;
-            }
-          }
-          break;
-        }
-        case CD_PROP_FLOAT3: {
-          const float(*l1_data)[3] = (float(*)[3])l1->data;
-          const float(*l2_data)[3] = (float(*)[3])l2->data;
-
-          for (int i = 0; i < total_length; i++) {
-            if (compare_threshold_relative(l1_data[i][0], l2_data[i][0], thresh)) {
-              return MESHCMP_ATTRIBUTE_VALUE_MISMATCH;
-            }
-            if (compare_threshold_relative(l1_data[i][1], l2_data[i][1], thresh)) {
-              return MESHCMP_ATTRIBUTE_VALUE_MISMATCH;
-            }
-            if (compare_threshold_relative(l1_data[i][2], l2_data[i][2], thresh)) {
-              return MESHCMP_ATTRIBUTE_VALUE_MISMATCH;
-            }
-          }
-          break;
-        }
-        case CD_PROP_QUATERNION: {
-          const float(*l1_data)[4] = (float(*)[4])l1->data;
-          const float(*l2_data)[4] = (float(*)[4])l2->data;
-
-          for (int i = 0; i < total_length; i++) {
-            if (compare_threshold_relative(l1_data[i][0], l2_data[i][0], thresh)) {
-              return MESHCMP_ATTRIBUTE_VALUE_MISMATCH;
-            }
-            if (compare_threshold_relative(l1_data[i][1], l2_data[i][1], thresh)) {
-              return MESHCMP_ATTRIBUTE_VALUE_MISMATCH;
-            }
-            if (compare_threshold_relative(l1_data[i][2], l2_data[i][2], thresh)) {
-              return MESHCMP_ATTRIBUTE_VALUE_MISMATCH;
-            }
-            if (compare_threshold_relative(l1_data[i][3], l2_data[i][3], thresh)) {
-              return MESHCMP_ATTRIBUTE_VALUE_MISMATCH;
-            }
-          }
-          break;
-        }
-        case CD_PROP_INT32: {
-          const int *l1_data = (int *)l1->data;
-          const int *l2_data = (int *)l2->data;
-
-          for (int i = 0; i < total_length; i++) {
-            if (l1_data[i] != l2_data[i]) {
-              return MESHCMP_ATTRIBUTE_VALUE_MISMATCH;
-            }
-          }
-          break;
-        }
-        case CD_PROP_INT8: {
-          const int8_t *l1_data = (int8_t *)l1->data;
-          const int8_t *l2_data = (int8_t *)l2->data;
-
-          for (int i = 0; i < total_length; i++) {
-            if (l1_data[i] != l2_data[i]) {
-              return MESHCMP_ATTRIBUTE_VALUE_MISMATCH;
-            }
-          }
-          break;
-        }
-        case CD_PROP_BOOL: {
-          const bool *l1_data = (bool *)l1->data;
-          const bool *l2_data = (bool *)l2->data;
-          for (int i = 0; i < total_length; i++) {
-            if (l1_data[i] != l2_data[i]) {
-              return MESHCMP_ATTRIBUTE_VALUE_MISMATCH;
-            }
-          }
-          break;
-        }
-        case CD_PROP_COLOR: {
-          const MPropCol *l1_data = (MPropCol *)l1->data;
-          const MPropCol *l2_data = (MPropCol *)l2->data;
-
-          for (int i = 0; i < total_length; i++) {
-            for (j = 0; j < 4; j++) {
-              if (compare_threshold_relative(l1_data[i].color[j], l2_data[i].color[j], thresh)) {
-                return MESHCMP_ATTRIBUTE_VALUE_MISMATCH;
-              }
-            }
-          }
-          break;
-        }
-        default: {
-          break;
-        }
-      }
-    }
-    if (!found_corresponding_layer) {
-      if ((uint64_t(1) << l1->type) & CD_MASK_PROP_ALL) {
-        return MESHCMP_CDLAYERS_MISMATCH;
-      }
-    }
-  }
-
-  return 0;
-}
-
-const char *BKE_mesh_cmp(Mesh *me1, Mesh *me2, float thresh)
-{
-  int c;
-
-  if (!me1 || !me2) {
-    return "Requires two input meshes";
-  }
-
-  if (me1->totvert != me2->totvert) {
-    return "Number of verts don't match";
-  }
-
-  if (me1->totedge != me2->totedge) {
-    return "Number of edges don't match";
-  }
-
-  if (me1->faces_num != me2->faces_num) {
-    return "Number of faces don't match";
-  }
-
-  if (me1->totloop != me2->totloop) {
-    return "Number of loops don't match";
-  }
-
-  if (!std::equal(
-          me1->face_offsets().begin(), me1->face_offsets().end(), me2->face_offsets().begin()))
-  {
-    return "Face sizes don't match";
-  }
-
-  if ((c = customdata_compare(&me1->vert_data, &me2->vert_data, me1->totvert, me1, thresh))) {
-    return cmpcode_to_str(c);
-  }
-
-  if ((c = customdata_compare(&me1->edge_data, &me2->edge_data, me1->totedge, me1, thresh))) {
-    return cmpcode_to_str(c);
-  }
-
-  if ((c = customdata_compare(&me1->loop_data, &me2->loop_data, me1->totloop, me1, thresh))) {
-    return cmpcode_to_str(c);
-  }
-
-  if ((c = customdata_compare(&me1->face_data, &me2->face_data, me1->faces_num, me1, thresh))) {
-    return cmpcode_to_str(c);
-  }
-
-  return nullptr;
-}
-
 bool BKE_mesh_attribute_required(const char *name)
 {
   return ELEM(StringRef(name), "position", ".corner_vert", ".corner_edge", ".edge_verts");
 }
 
-void BKE_mesh_ensure_skin_customdata(Mesh *me)
+void BKE_mesh_ensure_skin_customdata(Mesh *mesh)
 {
-  BMesh *bm = me->edit_mesh ? me->edit_mesh->bm : nullptr;
+  BMesh *bm = mesh->edit_mesh ? mesh->edit_mesh->bm : nullptr;
   MVertSkin *vs;
 
   if (bm) {
@@ -798,9 +430,9 @@ void BKE_mesh_ensure_skin_customdata(Mesh *me)
     }
   }
   else {
-    if (!CustomData_has_layer(&me->vert_data, CD_MVERT_SKIN)) {
+    if (!CustomData_has_layer(&mesh->vert_data, CD_MVERT_SKIN)) {
       vs = (MVertSkin *)CustomData_add_layer(
-          &me->vert_data, CD_MVERT_SKIN, CD_SET_DEFAULT, me->totvert);
+          &mesh->vert_data, CD_MVERT_SKIN, CD_SET_DEFAULT, mesh->verts_num);
 
       /* Mark an arbitrary vertex as root */
       if (vs) {
@@ -810,18 +442,18 @@ void BKE_mesh_ensure_skin_customdata(Mesh *me)
   }
 }
 
-bool BKE_mesh_has_custom_loop_normals(Mesh *me)
+bool BKE_mesh_has_custom_loop_normals(Mesh *mesh)
 {
-  if (me->edit_mesh) {
-    return CustomData_has_layer(&me->edit_mesh->bm->ldata, CD_CUSTOMLOOPNORMAL);
+  if (mesh->edit_mesh) {
+    return CustomData_has_layer(&mesh->edit_mesh->bm->ldata, CD_CUSTOMLOOPNORMAL);
   }
 
-  return CustomData_has_layer(&me->loop_data, CD_CUSTOMLOOPNORMAL);
+  return CustomData_has_layer(&mesh->corner_data, CD_CUSTOMLOOPNORMAL);
 }
 
-void BKE_mesh_free_data_for_undo(Mesh *me)
+void BKE_mesh_free_data_for_undo(Mesh *mesh)
 {
-  mesh_free_data(&me->id);
+  mesh_free_data(&mesh->id);
 }
 
 /**
@@ -838,10 +470,10 @@ void BKE_mesh_free_data_for_undo(Mesh *me)
  */
 static void mesh_clear_geometry(Mesh &mesh)
 {
-  CustomData_free(&mesh.vert_data, mesh.totvert);
-  CustomData_free(&mesh.edge_data, mesh.totedge);
+  CustomData_free(&mesh.vert_data, mesh.verts_num);
+  CustomData_free(&mesh.edge_data, mesh.edges_num);
   CustomData_free(&mesh.fdata_legacy, mesh.totface_legacy);
-  CustomData_free(&mesh.loop_data, mesh.totloop);
+  CustomData_free(&mesh.corner_data, mesh.corners_num);
   CustomData_free(&mesh.face_data, mesh.faces_num);
   if (mesh.face_offset_indices) {
     blender::implicit_sharing::free_shared_data(&mesh.face_offset_indices,
@@ -849,10 +481,10 @@ static void mesh_clear_geometry(Mesh &mesh)
   }
   MEM_SAFE_FREE(mesh.mselect);
 
-  mesh.totvert = 0;
-  mesh.totedge = 0;
+  mesh.verts_num = 0;
+  mesh.edges_num = 0;
   mesh.totface_legacy = 0;
-  mesh.totloop = 0;
+  mesh.corners_num = 0;
   mesh.faces_num = 0;
   mesh.act_face = -1;
   mesh.totselect = 0;
@@ -907,15 +539,52 @@ void BKE_mesh_face_offsets_ensure_alloc(Mesh *mesh)
   mesh->runtime->face_offsets_sharing_info = blender::implicit_sharing::info_for_mem_free(
       mesh->face_offset_indices);
 
-#ifdef DEBUG
+#ifndef NDEBUG
   /* Fill offsets with obviously bad values to simplify finding missing initialization. */
   mesh->face_offsets_for_write().fill(-1);
 #endif
   /* Set common values for convenience. */
   mesh->face_offset_indices[0] = 0;
-  mesh->face_offset_indices[mesh->faces_num] = mesh->totloop;
+  mesh->face_offset_indices[mesh->faces_num] = mesh->corners_num;
 }
 
+Span<float3> Mesh::vert_positions() const
+{
+  return {static_cast<const float3 *>(
+              CustomData_get_layer_named(&this->vert_data, CD_PROP_FLOAT3, "position")),
+          this->verts_num};
+}
+MutableSpan<float3> Mesh::vert_positions_for_write()
+{
+  return {static_cast<float3 *>(CustomData_get_layer_named_for_write(
+              &this->vert_data, CD_PROP_FLOAT3, "position", this->verts_num)),
+          this->verts_num};
+}
+
+Span<int2> Mesh::edges() const
+{
+  return {static_cast<const int2 *>(
+              CustomData_get_layer_named(&this->edge_data, CD_PROP_INT32_2D, ".edge_verts")),
+          this->edges_num};
+}
+MutableSpan<int2> Mesh::edges_for_write()
+{
+  return {static_cast<int2 *>(CustomData_get_layer_named_for_write(
+              &this->edge_data, CD_PROP_INT32_2D, ".edge_verts", this->edges_num)),
+          this->edges_num};
+}
+
+OffsetIndices<int> Mesh::faces() const
+{
+  return Span(this->face_offset_indices, this->faces_num + 1);
+}
+Span<int> Mesh::face_offsets() const
+{
+  if (this->faces_num == 0) {
+    return {};
+  }
+  return {this->face_offset_indices, this->faces_num + 1};
+}
 MutableSpan<int> Mesh::face_offsets_for_write()
 {
   if (this->faces_num == 0) {
@@ -926,33 +595,84 @@ MutableSpan<int> Mesh::face_offsets_for_write()
   return {this->face_offset_indices, this->faces_num + 1};
 }
 
+Span<int> Mesh::corner_verts() const
+{
+  return {static_cast<const int *>(
+              CustomData_get_layer_named(&this->corner_data, CD_PROP_INT32, ".corner_vert")),
+          this->corners_num};
+}
+MutableSpan<int> Mesh::corner_verts_for_write()
+{
+  return {static_cast<int *>(CustomData_get_layer_named_for_write(
+              &this->corner_data, CD_PROP_INT32, ".corner_vert", this->corners_num)),
+          this->corners_num};
+}
+
+Span<int> Mesh::corner_edges() const
+{
+  return {static_cast<const int *>(
+              CustomData_get_layer_named(&this->corner_data, CD_PROP_INT32, ".corner_edge")),
+          this->corners_num};
+}
+MutableSpan<int> Mesh::corner_edges_for_write()
+{
+  return {static_cast<int *>(CustomData_get_layer_named_for_write(
+              &this->corner_data, CD_PROP_INT32, ".corner_edge", this->corners_num)),
+          this->corners_num};
+}
+
+Span<MDeformVert> Mesh::deform_verts() const
+{
+  const MDeformVert *dverts = static_cast<const MDeformVert *>(
+      CustomData_get_layer(&this->vert_data, CD_MDEFORMVERT));
+  if (!dverts) {
+    return {};
+  }
+  return {dverts, this->verts_num};
+}
+MutableSpan<MDeformVert> Mesh::deform_verts_for_write()
+{
+  MDeformVert *dvert = static_cast<MDeformVert *>(
+      CustomData_get_layer_for_write(&this->vert_data, CD_MDEFORMVERT, this->verts_num));
+  if (dvert) {
+    return {dvert, this->verts_num};
+  }
+  return {static_cast<MDeformVert *>(CustomData_add_layer(
+              &this->vert_data, CD_MDEFORMVERT, CD_SET_DEFAULT, this->verts_num)),
+          this->verts_num};
+}
+
+namespace blender::bke {
+
 static void mesh_ensure_cdlayers_primary(Mesh &mesh)
 {
-  blender::bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
-  blender::bke::AttributeInitConstruct attribute_init;
+  MutableAttributeAccessor attributes = mesh.attributes_for_write();
+  AttributeInitConstruct attribute_init;
 
   /* Try to create attributes if they do not exist. */
-  attributes.add("position", ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, attribute_init);
-  attributes.add(".edge_verts", ATTR_DOMAIN_EDGE, CD_PROP_INT32_2D, attribute_init);
-  attributes.add(".corner_vert", ATTR_DOMAIN_CORNER, CD_PROP_INT32, attribute_init);
-  attributes.add(".corner_edge", ATTR_DOMAIN_CORNER, CD_PROP_INT32, attribute_init);
+  attributes.add("position", AttrDomain::Point, CD_PROP_FLOAT3, attribute_init);
+  attributes.add(".edge_verts", AttrDomain::Edge, CD_PROP_INT32_2D, attribute_init);
+  attributes.add(".corner_vert", AttrDomain::Corner, CD_PROP_INT32, attribute_init);
+  attributes.add(".corner_edge", AttrDomain::Corner, CD_PROP_INT32, attribute_init);
 }
+
+}  // namespace blender::bke
 
 Mesh *BKE_mesh_new_nomain(const int verts_num,
                           const int edges_num,
                           const int faces_num,
-                          const int loops_num)
+                          const int corners_num)
 {
   Mesh *mesh = static_cast<Mesh *>(BKE_libblock_alloc(
       nullptr, ID_ME, BKE_idtype_idcode_to_name(ID_ME), LIB_ID_CREATE_LOCALIZE));
   BKE_libblock_init_empty(&mesh->id);
 
-  mesh->totvert = verts_num;
-  mesh->totedge = edges_num;
+  mesh->verts_num = verts_num;
+  mesh->edges_num = edges_num;
   mesh->faces_num = faces_num;
-  mesh->totloop = loops_num;
+  mesh->corners_num = corners_num;
 
-  mesh_ensure_cdlayers_primary(*mesh);
+  blender::bke::mesh_ensure_cdlayers_primary(*mesh);
   BKE_mesh_face_offsets_ensure_alloc(mesh);
 
   return mesh;
@@ -1028,10 +748,10 @@ Mesh *BKE_mesh_new_nomain_from_template_ex(const Mesh *me_src,
 
   me_dst->mselect = (MSelect *)MEM_dupallocN(me_src->mselect);
 
-  me_dst->totvert = verts_num;
-  me_dst->totedge = edges_num;
+  me_dst->verts_num = verts_num;
+  me_dst->edges_num = edges_num;
   me_dst->faces_num = faces_num;
-  me_dst->totloop = loops_num;
+  me_dst->corners_num = loops_num;
   me_dst->totface_legacy = tessface_num;
 
   BKE_mesh_copy_parameters_for_eval(me_dst, me_src);
@@ -1043,7 +763,7 @@ Mesh *BKE_mesh_new_nomain_from_template_ex(const Mesh *me_src,
   CustomData_copy_layout(
       &me_src->face_data, &me_dst->face_data, mask.pmask, CD_SET_DEFAULT, faces_num);
   CustomData_copy_layout(
-      &me_src->loop_data, &me_dst->loop_data, mask.lmask, CD_SET_DEFAULT, loops_num);
+      &me_src->corner_data, &me_dst->corner_data, mask.lmask, CD_SET_DEFAULT, loops_num);
   if (do_tessface) {
     CustomData_copy_layout(
         &me_src->fdata_legacy, &me_dst->fdata_legacy, mask.fmask, CD_SET_DEFAULT, tessface_num);
@@ -1054,7 +774,7 @@ Mesh *BKE_mesh_new_nomain_from_template_ex(const Mesh *me_src,
 
   /* The destination mesh should at least have valid primary CD layers,
    * even in cases where the source mesh does not. */
-  mesh_ensure_cdlayers_primary(*me_dst);
+  blender::bke::mesh_ensure_cdlayers_primary(*me_dst);
   BKE_mesh_face_offsets_ensure_alloc(me_dst);
   if (do_tessface && !CustomData_get_layer(&me_dst->fdata_legacy, CD_MFACE)) {
     CustomData_add_layer(&me_dst->fdata_legacy, CD_MFACE, CD_SET_DEFAULT, me_dst->totface_legacy);
@@ -1088,19 +808,19 @@ Mesh *BKE_mesh_copy_for_eval(const Mesh *source)
       BKE_id_copy_ex(nullptr, &source->id, nullptr, LIB_ID_COPY_LOCALIZE));
 }
 
-BMesh *BKE_mesh_to_bmesh_ex(const Mesh *me,
+BMesh *BKE_mesh_to_bmesh_ex(const Mesh *mesh,
                             const BMeshCreateParams *create_params,
                             const BMeshFromMeshParams *convert_params)
 {
-  const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(me);
+  const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(mesh);
 
   BMesh *bm = BM_mesh_create(&allocsize, create_params);
-  BM_mesh_bm_from_me(bm, me, convert_params);
+  BM_mesh_bm_from_me(bm, mesh, convert_params);
 
   return bm;
 }
 
-BMesh *BKE_mesh_to_bmesh(Mesh *me,
+BMesh *BKE_mesh_to_bmesh(Mesh *mesh,
                          Object *ob,
                          const bool add_key_index,
                          const BMeshCreateParams *params)
@@ -1111,7 +831,7 @@ BMesh *BKE_mesh_to_bmesh(Mesh *me,
   bmesh_from_mesh_params.add_key_index = add_key_index;
   bmesh_from_mesh_params.use_shapekey = true;
   bmesh_from_mesh_params.active_shapekey = ob->shapenr;
-  return BKE_mesh_to_bmesh_ex(me, params, &bmesh_from_mesh_params);
+  return BKE_mesh_to_bmesh_ex(mesh, params, &bmesh_from_mesh_params);
 }
 
 Mesh *BKE_mesh_from_bmesh_nomain(BMesh *bm,
@@ -1156,29 +876,17 @@ void BKE_mesh_ensure_default_orig_index_customdata(Mesh *mesh)
 
 void BKE_mesh_ensure_default_orig_index_customdata_no_check(Mesh *mesh)
 {
-  ensure_orig_index_layer(mesh->vert_data, mesh->totvert);
-  ensure_orig_index_layer(mesh->edge_data, mesh->totedge);
+  ensure_orig_index_layer(mesh->vert_data, mesh->verts_num);
+  ensure_orig_index_layer(mesh->edge_data, mesh->edges_num);
   ensure_orig_index_layer(mesh->face_data, mesh->faces_num);
 }
 
-BoundBox BKE_mesh_boundbox_get(Object *ob)
+void BKE_mesh_texspace_calc(Mesh *mesh)
 {
   using namespace blender;
-  Mesh *me = static_cast<Mesh *>(ob->data);
-  const Bounds<float3> bounds = me->bounds_min_max().value_or(
-      Bounds<float3>{float3(-1.0f), float3(1.0f)});
-
-  BoundBox bb;
-  BKE_boundbox_init_from_minmax(&bb, bounds.min, bounds.max);
-  return bb;
-}
-
-void BKE_mesh_texspace_calc(Mesh *me)
-{
-  using namespace blender;
-  if (me->texspace_flag & ME_TEXSPACE_FLAG_AUTO) {
-    const Bounds<float3> bounds = me->bounds_min_max().value_or(
-        Bounds<float3>{float3(-1.0f), float3(1.0f)});
+  if (mesh->texspace_flag & ME_TEXSPACE_FLAG_AUTO) {
+    const Bounds<float3> bounds = mesh->bounds_min_max().value_or(
+        Bounds(float3(-1.0f), float3(1.0f)));
 
     float texspace_location[3], texspace_size[3];
     mid_v3_v3v3(texspace_location, bounds.min, bounds.max);
@@ -1199,62 +907,62 @@ void BKE_mesh_texspace_calc(Mesh *me)
       }
     }
 
-    copy_v3_v3(me->texspace_location, texspace_location);
-    copy_v3_v3(me->texspace_size, texspace_size);
+    copy_v3_v3(mesh->texspace_location, texspace_location);
+    copy_v3_v3(mesh->texspace_size, texspace_size);
 
-    me->texspace_flag |= ME_TEXSPACE_FLAG_AUTO_EVALUATED;
+    mesh->texspace_flag |= ME_TEXSPACE_FLAG_AUTO_EVALUATED;
   }
 }
 
-void BKE_mesh_texspace_ensure(Mesh *me)
+void BKE_mesh_texspace_ensure(Mesh *mesh)
 {
-  if ((me->texspace_flag & ME_TEXSPACE_FLAG_AUTO) &&
-      !(me->texspace_flag & ME_TEXSPACE_FLAG_AUTO_EVALUATED))
+  if ((mesh->texspace_flag & ME_TEXSPACE_FLAG_AUTO) &&
+      !(mesh->texspace_flag & ME_TEXSPACE_FLAG_AUTO_EVALUATED))
   {
-    BKE_mesh_texspace_calc(me);
+    BKE_mesh_texspace_calc(mesh);
   }
 }
 
-void BKE_mesh_texspace_get(Mesh *me, float r_texspace_location[3], float r_texspace_size[3])
+void BKE_mesh_texspace_get(Mesh *mesh, float r_texspace_location[3], float r_texspace_size[3])
 {
-  BKE_mesh_texspace_ensure(me);
+  BKE_mesh_texspace_ensure(mesh);
 
   if (r_texspace_location) {
-    copy_v3_v3(r_texspace_location, me->texspace_location);
+    copy_v3_v3(r_texspace_location, mesh->texspace_location);
   }
   if (r_texspace_size) {
-    copy_v3_v3(r_texspace_size, me->texspace_size);
+    copy_v3_v3(r_texspace_size, mesh->texspace_size);
   }
 }
 
-void BKE_mesh_texspace_get_reference(Mesh *me,
+void BKE_mesh_texspace_get_reference(Mesh *mesh,
                                      char **r_texspace_flag,
                                      float **r_texspace_location,
                                      float **r_texspace_size)
 {
-  BKE_mesh_texspace_ensure(me);
+  BKE_mesh_texspace_ensure(mesh);
 
   if (r_texspace_flag != nullptr) {
-    *r_texspace_flag = &me->texspace_flag;
+    *r_texspace_flag = &mesh->texspace_flag;
   }
   if (r_texspace_location != nullptr) {
-    *r_texspace_location = me->texspace_location;
+    *r_texspace_location = mesh->texspace_location;
   }
   if (r_texspace_size != nullptr) {
-    *r_texspace_size = me->texspace_size;
+    *r_texspace_size = mesh->texspace_size;
   }
 }
 
 float (*BKE_mesh_orco_verts_get(Object *ob))[3]
 {
-  Mesh *me = static_cast<Mesh *>(ob->data);
-  Mesh *tme = me->texcomesh ? me->texcomesh : me;
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *tme = mesh->texcomesh ? mesh->texcomesh : mesh;
 
   /* Get appropriate vertex coordinates */
-  float(*vcos)[3] = (float(*)[3])MEM_calloc_arrayN(me->totvert, sizeof(*vcos), "orco mesh");
+  float(*vcos)[3] = (float(*)[3])MEM_calloc_arrayN(mesh->verts_num, sizeof(*vcos), "orco mesh");
   const Span<float3> positions = tme->vert_positions();
 
-  int totvert = min_ii(tme->totvert, me->totvert);
+  int totvert = min_ii(tme->verts_num, mesh->verts_num);
 
   for (int a = 0; a < totvert; a++) {
     copy_v3_v3(vcos[a], positions[a]);
@@ -1263,11 +971,12 @@ float (*BKE_mesh_orco_verts_get(Object *ob))[3]
   return vcos;
 }
 
-void BKE_mesh_orco_verts_transform(Mesh *me, float (*orco)[3], int totvert, const bool invert)
+void BKE_mesh_orco_verts_transform(Mesh *mesh, float (*orco)[3], int totvert, const bool invert)
 {
   float texspace_location[3], texspace_size[3];
 
-  BKE_mesh_texspace_get(me->texcomesh ? me->texcomesh : me, texspace_location, texspace_size);
+  BKE_mesh_texspace_get(
+      mesh->texcomesh ? mesh->texcomesh : mesh, texspace_location, texspace_size);
 
   if (invert) {
     for (int a = 0; a < totvert; a++) {
@@ -1293,8 +1002,8 @@ void BKE_mesh_orco_ensure(Object *ob, Mesh *mesh)
 
   /* Orcos are stored in normalized 0..1 range by convention. */
   float(*orcodata)[3] = BKE_mesh_orco_verts_get(ob);
-  BKE_mesh_orco_verts_transform(mesh, orcodata, mesh->totvert, false);
-  CustomData_add_layer_with_data(&mesh->vert_data, CD_ORCO, orcodata, mesh->totvert, nullptr);
+  BKE_mesh_orco_verts_transform(mesh, orcodata, mesh->verts_num, false);
+  CustomData_add_layer_with_data(&mesh->vert_data, CD_ORCO, orcodata, mesh->verts_num, nullptr);
 }
 
 Mesh *BKE_mesh_from_object(Object *ob)
@@ -1309,7 +1018,7 @@ Mesh *BKE_mesh_from_object(Object *ob)
   return nullptr;
 }
 
-void BKE_mesh_assign_object(Main *bmain, Object *ob, Mesh *me)
+void BKE_mesh_assign_object(Main *bmain, Object *ob, Mesh *mesh)
 {
   Mesh *old = nullptr;
 
@@ -1324,25 +1033,25 @@ void BKE_mesh_assign_object(Main *bmain, Object *ob, Mesh *me)
     if (old) {
       id_us_min(&old->id);
     }
-    ob->data = me;
-    id_us_plus((ID *)me);
+    ob->data = mesh;
+    id_us_plus((ID *)mesh);
   }
 
-  BKE_object_materials_test(bmain, ob, (ID *)me);
+  BKE_object_materials_test(bmain, ob, (ID *)mesh);
 
   BKE_modifiers_test_object(ob);
 }
 
-void BKE_mesh_material_index_remove(Mesh *me, short index)
+void BKE_mesh_material_index_remove(Mesh *mesh, short index)
 {
   using namespace blender;
   using namespace blender::bke;
-  MutableAttributeAccessor attributes = me->attributes_for_write();
+  MutableAttributeAccessor attributes = mesh->attributes_for_write();
   AttributeWriter<int> material_indices = attributes.lookup_for_write<int>("material_index");
   if (!material_indices) {
     return;
   }
-  if (material_indices.domain != ATTR_DOMAIN_FACE) {
+  if (material_indices.domain != AttrDomain::Face) {
     BLI_assert_unreachable();
     return;
   }
@@ -1355,16 +1064,16 @@ void BKE_mesh_material_index_remove(Mesh *me, short index)
   indices_span.save();
   material_indices.finish();
 
-  BKE_mesh_tessface_clear(me);
+  BKE_mesh_tessface_clear(mesh);
 }
 
-bool BKE_mesh_material_index_used(Mesh *me, short index)
+bool BKE_mesh_material_index_used(Mesh *mesh, short index)
 {
   using namespace blender;
   using namespace blender::bke;
-  const AttributeAccessor attributes = me->attributes();
+  const AttributeAccessor attributes = mesh->attributes();
   const VArray<int> material_indices = *attributes.lookup_or_default<int>(
-      "material_index", ATTR_DOMAIN_FACE, 0);
+      "material_index", AttrDomain::Face, 0);
   if (material_indices.is_single()) {
     return material_indices.get_internal_single() == index;
   }
@@ -1372,17 +1081,17 @@ bool BKE_mesh_material_index_used(Mesh *me, short index)
   return indices_span.contains(index);
 }
 
-void BKE_mesh_material_index_clear(Mesh *me)
+void BKE_mesh_material_index_clear(Mesh *mesh)
 {
   using namespace blender;
   using namespace blender::bke;
-  MutableAttributeAccessor attributes = me->attributes_for_write();
+  MutableAttributeAccessor attributes = mesh->attributes_for_write();
   attributes.remove("material_index");
 
-  BKE_mesh_tessface_clear(me);
+  BKE_mesh_tessface_clear(mesh);
 }
 
-void BKE_mesh_material_remap(Mesh *me, const uint *remap, uint remap_len)
+void BKE_mesh_material_remap(Mesh *mesh, const uint *remap, uint remap_len)
 {
   using namespace blender;
   using namespace blender::bke;
@@ -1395,8 +1104,8 @@ void BKE_mesh_material_remap(Mesh *me, const uint *remap, uint remap_len)
   } \
   ((void)0)
 
-  if (me->edit_mesh) {
-    BMEditMesh *em = me->edit_mesh;
+  if (mesh->edit_mesh) {
+    BMEditMesh *em = mesh->edit_mesh;
     BMIter iter;
     BMFace *efa;
 
@@ -1405,9 +1114,9 @@ void BKE_mesh_material_remap(Mesh *me, const uint *remap, uint remap_len)
     }
   }
   else {
-    MutableAttributeAccessor attributes = me->attributes_for_write();
+    MutableAttributeAccessor attributes = mesh->attributes_for_write();
     SpanAttributeWriter<int> material_indices = attributes.lookup_or_add_for_write_span<int>(
-        "material_index", ATTR_DOMAIN_FACE);
+        "material_index", AttrDomain::Face);
     if (!material_indices) {
       return;
     }
@@ -1421,11 +1130,11 @@ void BKE_mesh_material_remap(Mesh *me, const uint *remap, uint remap_len)
 #undef MAT_NR_REMAP
 }
 
-void BKE_mesh_smooth_flag_set(Mesh *me, const bool use_smooth)
+namespace blender::bke {
+
+void mesh_smooth_set(Mesh &mesh, const bool use_smooth)
 {
-  using namespace blender;
-  using namespace blender::bke;
-  MutableAttributeAccessor attributes = me->attributes_for_write();
+  MutableAttributeAccessor attributes = mesh.attributes_for_write();
   if (use_smooth) {
     attributes.remove("sharp_edge");
     attributes.remove("sharp_face");
@@ -1433,61 +1142,39 @@ void BKE_mesh_smooth_flag_set(Mesh *me, const bool use_smooth)
   else {
     attributes.remove("sharp_edge");
     SpanAttributeWriter<bool> sharp_faces = attributes.lookup_or_add_for_write_only_span<bool>(
-        "sharp_face", ATTR_DOMAIN_FACE);
+        "sharp_face", AttrDomain::Face);
     sharp_faces.span.fill(true);
     sharp_faces.finish();
   }
 }
 
-void BKE_mesh_sharp_edges_set_from_angle(Mesh *me, const float angle)
+void mesh_sharp_edges_set_from_angle(Mesh &mesh, const float angle)
 {
-  using namespace blender;
-  using namespace blender::bke;
-  bke::MutableAttributeAccessor attributes = me->attributes_for_write();
+  MutableAttributeAccessor attributes = mesh.attributes_for_write();
   if (angle >= M_PI) {
     attributes.remove("sharp_edge");
     attributes.remove("sharp_face");
     return;
   }
   if (angle == 0.0f) {
-    BKE_mesh_smooth_flag_set(me, false);
+    mesh_smooth_set(mesh, false);
     return;
   }
-  bke::SpanAttributeWriter<bool> sharp_edges = attributes.lookup_or_add_for_write_span<bool>(
-      "sharp_edge", ATTR_DOMAIN_EDGE);
-  const bool *sharp_faces = static_cast<const bool *>(
-      CustomData_get_layer_named(&me->face_data, CD_PROP_BOOL, "sharp_face"));
-  bke::mesh::edges_sharp_from_angle_set(me->faces(),
-                                        me->corner_verts(),
-                                        me->corner_edges(),
-                                        me->face_normals(),
-                                        me->corner_to_face_map(),
-                                        sharp_faces,
-                                        angle,
-                                        sharp_edges.span);
+  SpanAttributeWriter<bool> sharp_edges = attributes.lookup_or_add_for_write_span<bool>(
+      "sharp_edge", AttrDomain::Edge);
+  const VArraySpan<bool> sharp_faces = *attributes.lookup<bool>("sharp_face", AttrDomain::Face);
+  mesh::edges_sharp_from_angle_set(mesh.faces(),
+                                   mesh.corner_verts(),
+                                   mesh.corner_edges(),
+                                   mesh.face_normals(),
+                                   mesh.corner_to_face_map(),
+                                   sharp_faces,
+                                   angle,
+                                   sharp_edges.span);
   sharp_edges.finish();
 }
 
-void BKE_mesh_looptri_get_real_edges(const blender::int2 *edges,
-                                     const int *corner_verts,
-                                     const int *corner_edges,
-                                     const MLoopTri *tri,
-                                     int r_edges[3])
-{
-  for (int i = 2, i_next = 0; i_next < 3; i = i_next++) {
-    const int corner_1 = tri->tri[i];
-    const int corner_2 = tri->tri[i_next];
-    const int vert_1 = corner_verts[corner_1];
-    const int vert_2 = corner_verts[corner_2];
-    const int edge_i = corner_edges[corner_1];
-    const blender::int2 &edge = edges[edge_i];
-
-    bool is_real = (vert_1 == edge[0] && vert_2 == edge[1]) ||
-                   (vert_1 == edge[1] && vert_2 == edge[0]);
-
-    r_edges[i] = is_real ? edge_i : -1;
-  }
-}
+}  // namespace blender::bke
 
 std::optional<blender::Bounds<blender::float3>> Mesh::bounds_min_max() const
 {
@@ -1499,7 +1186,7 @@ std::optional<blender::Bounds<blender::float3>> Mesh::bounds_min_max() const
   this->runtime->bounds_cache.ensure([&](Bounds<float3> &r_bounds) {
     switch (this->runtime->wrapper_type) {
       case ME_WRAPPER_TYPE_BMESH:
-        r_bounds = *BKE_editmesh_cache_calc_minmax(this->edit_mesh, this->runtime->edit_data);
+        r_bounds = *BKE_editmesh_cache_calc_minmax(*this->edit_mesh, *this->runtime->edit_data);
         break;
       case ME_WRAPPER_TYPE_MDATA:
       case ME_WRAPPER_TYPE_SUBD:
@@ -1515,16 +1202,16 @@ void Mesh::bounds_set_eager(const blender::Bounds<float3> &bounds)
   this->runtime->bounds_cache.ensure([&](blender::Bounds<float3> &r_data) { r_data = bounds; });
 }
 
-void BKE_mesh_transform(Mesh *me, const float mat[4][4], bool do_keys)
+void BKE_mesh_transform(Mesh *mesh, const float mat[4][4], bool do_keys)
 {
-  MutableSpan<float3> positions = me->vert_positions_for_write();
+  MutableSpan<float3> positions = mesh->vert_positions_for_write();
 
   for (float3 &position : positions) {
     mul_m4_v3(mat, position);
   }
 
-  if (do_keys && me->key) {
-    LISTBASE_FOREACH (KeyBlock *, kb, &me->key->block) {
+  if (do_keys && mesh->key) {
+    LISTBASE_FOREACH (KeyBlock *, kb, &mesh->key->block) {
       float *fp = (float *)kb->data;
       for (int i = kb->totelem; i--; fp += 3) {
         mul_m4_v3(mat, fp);
@@ -1532,7 +1219,7 @@ void BKE_mesh_transform(Mesh *me, const float mat[4][4], bool do_keys)
     }
   }
 
-  BKE_mesh_tag_positions_changed(me);
+  mesh->tag_positions_changed();
 }
 
 static void translate_positions(MutableSpan<float3> positions, const float3 &translation)
@@ -1564,7 +1251,7 @@ void BKE_mesh_translate(Mesh *mesh, const float offset[3], const bool do_keys)
     }
   }
 
-  BKE_mesh_tag_positions_changed_uniformly(mesh);
+  mesh->tag_positions_changed_uniformly();
 
   if (bounds) {
     bounds->min += offset;
@@ -1581,36 +1268,36 @@ void BKE_mesh_tessface_clear(Mesh *mesh)
 /* -------------------------------------------------------------------- */
 /* MSelect functions (currently used in weight paint mode) */
 
-void BKE_mesh_mselect_clear(Mesh *me)
+void BKE_mesh_mselect_clear(Mesh *mesh)
 {
-  MEM_SAFE_FREE(me->mselect);
-  me->totselect = 0;
+  MEM_SAFE_FREE(mesh->mselect);
+  mesh->totselect = 0;
 }
 
-void BKE_mesh_mselect_validate(Mesh *me)
+void BKE_mesh_mselect_validate(Mesh *mesh)
 {
   using namespace blender;
   using namespace blender::bke;
   MSelect *mselect_src, *mselect_dst;
   int i_src, i_dst;
 
-  if (me->totselect == 0) {
+  if (mesh->totselect == 0) {
     return;
   }
 
-  mselect_src = me->mselect;
+  mselect_src = mesh->mselect;
   mselect_dst = (MSelect *)MEM_malloc_arrayN(
-      (me->totselect), sizeof(MSelect), "Mesh selection history");
+      (mesh->totselect), sizeof(MSelect), "Mesh selection history");
 
-  const AttributeAccessor attributes = me->attributes();
+  const AttributeAccessor attributes = mesh->attributes();
   const VArray<bool> select_vert = *attributes.lookup_or_default<bool>(
-      ".select_vert", ATTR_DOMAIN_POINT, false);
+      ".select_vert", AttrDomain::Point, false);
   const VArray<bool> select_edge = *attributes.lookup_or_default<bool>(
-      ".select_edge", ATTR_DOMAIN_EDGE, false);
+      ".select_edge", AttrDomain::Edge, false);
   const VArray<bool> select_poly = *attributes.lookup_or_default<bool>(
-      ".select_poly", ATTR_DOMAIN_FACE, false);
+      ".select_poly", AttrDomain::Face, false);
 
-  for (i_src = 0, i_dst = 0; i_src < me->totselect; i_src++) {
+  for (i_src = 0, i_dst = 0; i_src < mesh->totselect; i_src++) {
     int index = mselect_src[i_src].index;
     switch (mselect_src[i_src].type) {
       case ME_VSEL: {
@@ -1647,20 +1334,20 @@ void BKE_mesh_mselect_validate(Mesh *me)
     MEM_freeN(mselect_dst);
     mselect_dst = nullptr;
   }
-  else if (i_dst != me->totselect) {
+  else if (i_dst != mesh->totselect) {
     mselect_dst = (MSelect *)MEM_reallocN(mselect_dst, sizeof(MSelect) * i_dst);
   }
 
-  me->totselect = i_dst;
-  me->mselect = mselect_dst;
+  mesh->totselect = i_dst;
+  mesh->mselect = mselect_dst;
 }
 
-int BKE_mesh_mselect_find(Mesh *me, int index, int type)
+int BKE_mesh_mselect_find(Mesh *mesh, int index, int type)
 {
   BLI_assert(ELEM(type, ME_VSEL, ME_ESEL, ME_FSEL));
 
-  for (int i = 0; i < me->totselect; i++) {
-    if ((me->mselect[i].index == index) && (me->mselect[i].type == type)) {
+  for (int i = 0; i < mesh->totselect; i++) {
+    if ((mesh->mselect[i].index == index) && (mesh->mselect[i].type == type)) {
       return i;
     }
   }
@@ -1668,36 +1355,37 @@ int BKE_mesh_mselect_find(Mesh *me, int index, int type)
   return -1;
 }
 
-int BKE_mesh_mselect_active_get(Mesh *me, int type)
+int BKE_mesh_mselect_active_get(Mesh *mesh, int type)
 {
   BLI_assert(ELEM(type, ME_VSEL, ME_ESEL, ME_FSEL));
 
-  if (me->totselect) {
-    if (me->mselect[me->totselect - 1].type == type) {
-      return me->mselect[me->totselect - 1].index;
+  if (mesh->totselect) {
+    if (mesh->mselect[mesh->totselect - 1].type == type) {
+      return mesh->mselect[mesh->totselect - 1].index;
     }
   }
   return -1;
 }
 
-void BKE_mesh_mselect_active_set(Mesh *me, int index, int type)
+void BKE_mesh_mselect_active_set(Mesh *mesh, int index, int type)
 {
-  const int msel_index = BKE_mesh_mselect_find(me, index, type);
+  const int msel_index = BKE_mesh_mselect_find(mesh, index, type);
 
   if (msel_index == -1) {
     /* add to the end */
-    me->mselect = (MSelect *)MEM_reallocN(me->mselect, sizeof(MSelect) * (me->totselect + 1));
-    me->mselect[me->totselect].index = index;
-    me->mselect[me->totselect].type = type;
-    me->totselect++;
+    mesh->mselect = (MSelect *)MEM_reallocN(mesh->mselect,
+                                            sizeof(MSelect) * (mesh->totselect + 1));
+    mesh->mselect[mesh->totselect].index = index;
+    mesh->mselect[mesh->totselect].type = type;
+    mesh->totselect++;
   }
-  else if (msel_index != me->totselect - 1) {
+  else if (msel_index != mesh->totselect - 1) {
     /* move to the end */
-    std::swap(me->mselect[msel_index], me->mselect[me->totselect - 1]);
+    std::swap(mesh->mselect[msel_index], mesh->mselect[mesh->totselect - 1]);
   }
 
-  BLI_assert((me->mselect[me->totselect - 1].index == index) &&
-             (me->mselect[me->totselect - 1].type == type));
+  BLI_assert((mesh->mselect[mesh->totselect - 1].index == index) &&
+             (mesh->mselect[mesh->totselect - 1].type == type));
 }
 
 void BKE_mesh_count_selected_items(const Mesh *mesh, int r_count[3])
@@ -1710,37 +1398,6 @@ void BKE_mesh_count_selected_items(const Mesh *mesh, int r_count[3])
     r_count[2] = bm->totfacesel;
   }
   /* We could support faces in paint modes. */
-}
-
-float (*BKE_mesh_vert_coords_alloc(const Mesh *mesh, int *r_vert_len))[3]
-{
-  float(*vert_coords)[3] = (float(*)[3])MEM_mallocN(sizeof(float[3]) * mesh->totvert, __func__);
-  MutableSpan(reinterpret_cast<float3 *>(vert_coords), mesh->totvert)
-      .copy_from(mesh->vert_positions());
-  if (r_vert_len) {
-    *r_vert_len = mesh->totvert;
-  }
-  return vert_coords;
-}
-
-void BKE_mesh_vert_coords_apply(Mesh *mesh, const float (*vert_coords)[3])
-{
-  MutableSpan<float3> positions = mesh->vert_positions_for_write();
-  for (const int i : positions.index_range()) {
-    copy_v3_v3(positions[i], vert_coords[i]);
-  }
-  BKE_mesh_tag_positions_changed(mesh);
-}
-
-void BKE_mesh_vert_coords_apply_with_mat4(Mesh *mesh,
-                                          const float (*vert_coords)[3],
-                                          const float mat[4][4])
-{
-  MutableSpan<float3> positions = mesh->vert_positions_for_write();
-  for (const int i : positions.index_range()) {
-    mul_v3_m4v3(positions[i], mat, vert_coords[i]);
-  }
-  BKE_mesh_tag_positions_changed(mesh);
 }
 
 /* **** Depsgraph evaluation **** */

@@ -28,7 +28,7 @@ void main()
   float distance_to_boundary = distance(vec2(texel), vec2(closest_boundary_texel));
   imageStore(distance_to_boundary_img, texel, vec4(distance_to_boundary));
 
-  /* We follow this shader by a blur shader that smoothes out the inpainting region, where the blur
+  /* We follow this shader by a blur shader that smooths out the inpainting region, where the blur
    * radius is the radius of the circle that touches the boundary. We can imagine the blur window
    * to be inscribed in that circle and thus the blur radius is the distance to the boundary
    * divided by square root two. As a performance optimization, we limit the blurring to areas that

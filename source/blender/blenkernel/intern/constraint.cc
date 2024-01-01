@@ -66,7 +66,7 @@
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
 #include "BKE_scene.h"
-#include "BKE_shrinkwrap.h"
+#include "BKE_shrinkwrap.hh"
 #include "BKE_tracking.h"
 
 #include "BIK_api.h"
@@ -354,7 +354,8 @@ void BKE_constraint_mat_convertspace(Object *ob,
         /* local to pose - do inverse procedure that was done for pose to local */
         else {
           if (pchan->bone) {
-            /* we need the posespace_matrix = local_matrix + (parent_posespace_matrix + restpos) */
+            /* We need the:
+             *  `posespace_matrix = local_matrix + (parent_posespace_matrix + restpos)`. */
             BKE_armature_mat_bone_to_pose(pchan, mat, mat);
           }
 
@@ -3828,6 +3829,7 @@ static void clampto_get_tarmat(Depsgraph * /*depsgraph*/,
 
 static void clampto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *targets)
 {
+  using namespace blender;
   bClampToConstraint *data = static_cast<bClampToConstraint *>(con->data);
   bConstraintTarget *ct = static_cast<bConstraintTarget *>(targets->first);
 
@@ -3842,12 +3844,10 @@ static void clampto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
 
     unit_m4(targetMatrix);
     INIT_MINMAX(curveMin, curveMax);
-    /* XXX(@ideasman42): don't think this is good calling this here because
-     * the other object's data is lazily initializing bounding-box information.
-     * This could cause issues when evaluating from a thread.
-     * If the depsgraph ensures the bound-box is always available, a code-path could
-     * be used that doesn't lazy initialize to avoid thread safety issues in the future. */
-    BKE_object_minmax(ct->tar, curveMin, curveMax, true);
+    if (const std::optional<Bounds<float3>> bounds = BKE_object_boundbox_get(ct->tar)) {
+      copy_v3_v3(curveMin, bounds->min);
+      copy_v3_v3(curveMax, bounds->max);
+    }
 
     /* Get target-matrix. */
     if (data->tar->runtime->curve_cache && data->tar->runtime->curve_cache->anim_path_accum_length)
@@ -5077,7 +5077,7 @@ static void followtrack_project_to_depth_object_if_needed(FollowTrackContext *co
   normalize_v3(ray_direction);
 
   BVHTreeFromMesh tree_data = NULL_BVHTreeFromMesh;
-  BKE_bvhtree_from_mesh_get(&tree_data, depth_mesh, BVHTREE_FROM_LOOPTRI, 4);
+  BKE_bvhtree_from_mesh_get(&tree_data, depth_mesh, BVHTREE_FROM_CORNER_TRIS, 4);
 
   BVHTreeRayHit hit;
   hit.dist = BVH_RAYCAST_DIST_MAX;
@@ -5615,12 +5615,12 @@ bool BKE_constraint_remove(ListBase *list, bConstraint *con)
   return false;
 }
 
-bool BKE_constraint_remove_ex(ListBase *list, Object *ob, bConstraint *con, bool clear_dep)
+bool BKE_constraint_remove_ex(ListBase *list, Object *ob, bConstraint *con)
 {
   const short type = con->type;
   if (BKE_constraint_remove(list, con)) {
     /* ITASC needs to be rebuilt once a constraint is removed #26920. */
-    if (clear_dep && ELEM(type, CONSTRAINT_TYPE_KINEMATIC, CONSTRAINT_TYPE_SPLINEIK)) {
+    if (ELEM(type, CONSTRAINT_TYPE_KINEMATIC, CONSTRAINT_TYPE_SPLINEIK)) {
       BIK_clear_data(ob->pose);
     }
     return true;
@@ -5680,7 +5680,7 @@ bool BKE_constraint_apply_and_remove_for_object(Depsgraph *depsgraph,
     return false;
   }
 
-  return BKE_constraint_remove_ex(constraints, ob, con, true);
+  return BKE_constraint_remove_ex(constraints, ob, con);
 }
 
 bool BKE_constraint_apply_for_pose(
@@ -5743,7 +5743,7 @@ bool BKE_constraint_apply_and_remove_for_pose(Depsgraph *depsgraph,
     return false;
   }
 
-  return BKE_constraint_remove_ex(constraints, ob, con, true);
+  return BKE_constraint_remove_ex(constraints, ob, con);
 }
 
 void BKE_constraint_panel_expand(bConstraint *con)

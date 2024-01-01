@@ -47,15 +47,15 @@
 
 #include "BKE_animsys.h"
 #include "BKE_armature.hh"
-#include "BKE_attribute.h"
+#include "BKE_attribute.hh"
 #include "BKE_collection.h"
-#include "BKE_colortools.h"
+#include "BKE_colortools.hh"
 #include "BKE_cryptomatte.h"
 #include "BKE_curve.hh"
 #include "BKE_fcurve.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_lib_id.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.hh"
 #include "BKE_multires.hh"
@@ -835,18 +835,18 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
           BKE_mesh_validate_arrays(
               me,
               reinterpret_cast<float(*)[3]>(me->vert_positions_for_write().data()),
-              me->totvert,
+              me->verts_num,
               me->edges_for_write().data(),
-              me->totedge,
+              me->edges_num,
               (MFace *)CustomData_get_layer_for_write(
                   &me->fdata_legacy, CD_MFACE, me->totface_legacy),
               me->totface_legacy,
               me->corner_verts_for_write().data(),
               me->corner_edges_for_write().data(),
-              me->totloop,
+              me->corners_num,
               me->face_offsets_for_write().data(),
               me->faces_num,
-              BKE_mesh_deform_verts_for_write(me),
+              me->deform_verts_for_write().data(),
               false,
               true,
               &changed);
@@ -1218,9 +1218,9 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
                                                                 mesh->edge_data.layers) /
                                                             sizeof(CustomDataLayer);
       /* We can be sure that mesh->fdata is empty for files written by 2.90. */
-      mesh->loop_data.totlayer = mesh->loop_data.maxlayer = MEM_allocN_len(
-                                                                mesh->loop_data.layers) /
-                                                            sizeof(CustomDataLayer);
+      mesh->corner_data.totlayer = mesh->corner_data.maxlayer = MEM_allocN_len(
+                                                                    mesh->corner_data.layers) /
+                                                                sizeof(CustomDataLayer);
       mesh->face_data.totlayer = mesh->face_data.maxlayer = MEM_allocN_len(
                                                                 mesh->face_data.layers) /
                                                             sizeof(CustomDataLayer);

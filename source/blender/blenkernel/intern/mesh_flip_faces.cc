@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 
 #include "BLI_task.hh"
 
@@ -23,14 +24,14 @@ static void flip_corner_data(const OffsetIndices<int> faces,
 
 template<typename T>
 static void flip_custom_data_type(const OffsetIndices<int> faces,
-                                  CustomData &loop_data,
+                                  CustomData &corner_data,
                                   const IndexMask &face_selection,
                                   const eCustomDataType data_type)
 {
   BLI_assert(sizeof(T) == CustomData_sizeof(data_type));
-  for (const int i : IndexRange(CustomData_number_of_layers(&loop_data, data_type))) {
+  for (const int i : IndexRange(CustomData_number_of_layers(&corner_data, data_type))) {
     T *data = static_cast<T *>(
-        CustomData_get_layer_n_for_write(&loop_data, data_type, i, faces.total_size()));
+        CustomData_get_layer_n_for_write(&corner_data, data_type, i, faces.total_size()));
     flip_corner_data(faces, face_selection, MutableSpan(data, faces.total_size()));
   }
 }
@@ -55,14 +56,14 @@ void mesh_flip_faces(Mesh &mesh, const IndexMask &selection)
     }
   });
 
-  flip_custom_data_type<float4x4>(faces, mesh.loop_data, selection, CD_TANGENT);
-  flip_custom_data_type<float4>(faces, mesh.loop_data, selection, CD_MLOOPTANGENT);
-  flip_custom_data_type<short2>(faces, mesh.loop_data, selection, CD_CUSTOMLOOPNORMAL);
-  flip_custom_data_type<GridPaintMask>(faces, mesh.loop_data, selection, CD_GRID_PAINT_MASK);
-  flip_custom_data_type<OrigSpaceLoop>(faces, mesh.loop_data, selection, CD_ORIGSPACE_MLOOP);
-  flip_custom_data_type<MDisps>(faces, mesh.loop_data, selection, CD_MDISPS);
+  flip_custom_data_type<float4x4>(faces, mesh.corner_data, selection, CD_TANGENT);
+  flip_custom_data_type<float4>(faces, mesh.corner_data, selection, CD_MLOOPTANGENT);
+  flip_custom_data_type<short2>(faces, mesh.corner_data, selection, CD_CUSTOMLOOPNORMAL);
+  flip_custom_data_type<GridPaintMask>(faces, mesh.corner_data, selection, CD_GRID_PAINT_MASK);
+  flip_custom_data_type<OrigSpaceLoop>(faces, mesh.corner_data, selection, CD_ORIGSPACE_MLOOP);
+  flip_custom_data_type<MDisps>(faces, mesh.corner_data, selection, CD_MDISPS);
   if (MDisps *mdisp = static_cast<MDisps *>(
-          CustomData_get_layer_for_write(&mesh.loop_data, CD_MDISPS, mesh.totloop)))
+          CustomData_get_layer_for_write(&mesh.corner_data, CD_MDISPS, mesh.corners_num)))
   {
     selection.foreach_index(GrainSize(512), [&](const int i) {
       for (const int corner : faces[i]) {
@@ -77,7 +78,7 @@ void mesh_flip_faces(Mesh &mesh, const IndexMask &selection)
         if (meta_data.data_type == CD_PROP_STRING) {
           return true;
         }
-        if (meta_data.domain != ATTR_DOMAIN_CORNER) {
+        if (meta_data.domain != AttrDomain::Corner) {
           return true;
         }
         if (ELEM(attribute_id.name(), ".corner_vert", ".corner_edge")) {
@@ -92,7 +93,7 @@ void mesh_flip_faces(Mesh &mesh, const IndexMask &selection)
         return true;
       });
 
-  BKE_mesh_tag_face_winding_changed(&mesh);
+  mesh.tag_face_winding_changed();
 }
 
 }  // namespace blender::bke

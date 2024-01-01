@@ -645,9 +645,13 @@ class USERPREF_PT_system_cycles_devices(SystemPanel, CenterAlignMixIn, Panel):
 
         if bpy.app.build_options.cycles:
             addon = prefs.addons.get("cycles")
-            if addon is not None:
+            if addon is None:
+                layout.label(text="Enable Cycles Render Engine add-on to use Cycles", icon='INFO')
+            else:
                 addon.preferences.draw_impl(col, context)
             del addon
+        else:
+            layout.label(text="Cycles is disabled in this build", icon='INFO')
 
 
 class USERPREF_PT_system_os_settings(SystemPanel, CenterAlignMixIn, Panel):
@@ -1591,6 +1595,7 @@ class USERPREF_UL_extension_repos(bpy.types.UIList):
         elif self.layout_type == 'GRID':
             layout.alignment = 'CENTER'
             layout.prop(repo, "name", text="", emboss=False)
+        layout.prop(repo, "enabled", text="", emboss=False, icon='CHECKBOX_HLT' if repo.enabled else 'CHECKBOX_DEHLT')
 
 
 # -----------------------------------------------------------------------------

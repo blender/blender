@@ -12,9 +12,9 @@
 
 #include "BLI_listbase.h"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
-#include "intern/bmesh_operators_private.h" /* own include */
+#include "intern/bmesh_operators_private.hh" /* own include */
 
 #define VERT_USED 1
 #define EDGE_MARK 2

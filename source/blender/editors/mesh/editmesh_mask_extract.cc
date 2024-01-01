@@ -9,6 +9,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
+#include "DNA_meshdata_types.h"
 
 #include "BLT_translation.h"
 
@@ -22,7 +23,7 @@
 #include "BKE_paint.hh"
 #include "BKE_report.h"
 #include "BKE_screen.hh"
-#include "BKE_shrinkwrap.h"
+#include "BKE_shrinkwrap.hh"
 
 #include "BLI_math_vector.h"
 
@@ -42,7 +43,7 @@
 #include "ED_undo.hh"
 #include "ED_view3d.hh"
 
-#include "bmesh_tools.h"
+#include "bmesh_tools.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -200,7 +201,7 @@ static int geometry_extract_apply(bContext *C,
   BKE_editmesh_free_data(em);
   MEM_freeN(em);
 
-  if (new_mesh->totvert == 0) {
+  if (new_mesh->verts_num == 0) {
     BKE_id_free(bmain, new_mesh);
     return OPERATOR_FINISHED;
   }
@@ -225,7 +226,7 @@ static int geometry_extract_apply(bContext *C,
   BKE_mesh_copy_parameters_for_eval(new_ob_mesh, mesh);
 
   if (params->apply_shrinkwrap) {
-    BKE_shrinkwrap_mesh_nearest_surface_deform(C, new_ob, ob);
+    BKE_shrinkwrap_mesh_nearest_surface_deform(CTX_data_depsgraph_pointer(C), scene, new_ob, ob);
   }
 
   if (params->add_solidify) {
@@ -373,6 +374,7 @@ void MESH_OT_paint_mask_extract(wmOperatorType *ot)
 
 static int face_set_extract_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
+  using namespace blender::ed;
   if (!CTX_wm_region_view3d(C)) {
     return OPERATOR_CANCELLED;
   }
@@ -382,7 +384,7 @@ static int face_set_extract_invoke(bContext *C, wmOperator *op, const wmEvent *e
                          float(event->xy[1] - region->winrct.ymin)};
 
   Object *ob = CTX_data_active_object(C);
-  const int face_set_id = ED_sculpt_face_sets_active_update_and_get(C, ob, mval);
+  const int face_set_id = sculpt_paint::face_set::active_update_and_get(C, ob, mval);
   if (face_set_id == SCULPT_FACE_SET_NONE) {
     return OPERATOR_CANCELLED;
   }
@@ -465,6 +467,8 @@ static void slice_paint_mask(BMesh *bm, bool invert, bool fill_holes, float mask
 
 static int paint_mask_slice_exec(bContext *C, wmOperator *op)
 {
+  using namespace blender;
+  using namespace blender::ed;
   Main *bmain = CTX_data_main(C);
   Object *ob = CTX_data_active_object(C);
   View3D *v3d = CTX_wm_view3d(C);
@@ -475,7 +479,7 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
   Mesh *new_mesh = (Mesh *)BKE_id_copy(bmain, &mesh->id);
 
   if (ob->mode == OB_MODE_SCULPT) {
-    ED_sculpt_undo_geometry_begin(ob, op);
+    sculpt_paint::undo::geometry_begin(ob, op);
   }
 
   BMesh *bm;
@@ -555,12 +559,10 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
     switch (BKE_pbvh_type(ss->pbvh)) {
       case PBVH_GRIDS:
       case PBVH_FACES:
-        ss->face_sets = (int *)CustomData_get_layer_named(
-            &mesh->face_data, CD_PROP_INT32, ".sculpt_face_set");
-
-        if (ss->face_sets) {
-          const int next_face_set_id = ED_sculpt_face_sets_find_next_available_id(mesh);
-          ED_sculpt_face_sets_initialize_none_to_id(mesh, next_face_set_id);
+        if (mesh->attributes().contains(".sculpt_face_set")) {
+          /* Assign a new Face Set ID to the new faces created by the slice operation. */
+          const int next_face_set_id = sculpt_paint::face_set::find_next_available_id(*ob);
+          sculpt_paint::face_set::initialize_none_to_id(mesh, next_face_set_id);
         }
         break;
       case PBVH_BMESH: {
@@ -576,7 +578,7 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
           BMVert *v;
           BMIter iter;
 
-          const int next_face_set_id = SCULPT_face_set_next_available_get(ss);
+          const int next_face_set_id = sculpt_paint::face_set::find_next_available_id(*ob);
 
           const int updateflag = SCULPTFLAG_NEED_VALENCE | SCULPTFLAG_NEED_TRIANGULATE;
 
@@ -606,7 +608,7 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
     ss->needs_pbvh_rebuild = true;
   }
 
-  ED_sculpt_undo_geometry_end(ob);
+  sculpt_paint::undo::geometry_end(ob);
 
   BKE_mesh_batch_cache_dirty_tag(mesh, BKE_MESH_BATCH_DIRTY_ALL);
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);

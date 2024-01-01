@@ -32,8 +32,6 @@ struct ColorBand;
 
 /* ************************ style definitions ******************** */
 
-#define MAX_STYLE_NAME 64
-
 /**
  * Default offered by Blender.
  * #uiFont.uifont_id
@@ -90,7 +88,7 @@ typedef struct uiFontStyle {
 typedef struct uiStyle {
   struct uiStyle *next, *prev;
 
-  /** MAX_STYLE_NAME. */
+  /** #MAX_NAME */
   char name[64];
 
   uiFontStyle paneltitle;
@@ -632,6 +630,12 @@ typedef struct bUserExtensionRepo {
   char _pad0[4];
 } bUserExtensionRepo;
 
+typedef enum eUserExtensionRepo_Flag {
+  /** Maintain disk cache. */
+  USER_EXTENSION_REPO_FLAG_NO_CACHE = 1 << 0,
+  USER_EXTENSION_REPO_FLAG_DISABLED = 1 << 1,
+} eUserExtensionRepo_Flag;
+
 typedef struct SolidLight {
   int flag;
   float smooth;
@@ -704,7 +708,6 @@ typedef struct UserDef_Experimental {
   char use_full_frame_compositor;
   char use_sculpt_tools_tilt;
   char use_extended_asset_browser;
-  char use_override_templates;
   char use_sculpt_texture_paint;
   char use_grease_pencil_version3;
   char enable_overlay_next;
@@ -712,7 +715,7 @@ typedef struct UserDef_Experimental {
   char use_shader_node_previews;
   char use_extension_repos;
 
-  char _pad[3];
+  char _pad[4];
   /** `makesdna` does not allow empty structs. */
 } UserDef_Experimental;
 

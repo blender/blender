@@ -31,8 +31,8 @@
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
-#include "BKE_lib_remap.h"
-#include "BKE_main.h"
+#include "BKE_lib_remap.hh"
+#include "BKE_main.hh"
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
@@ -66,7 +66,7 @@ static void pointcloud_init_data(ID *id)
 
   CustomData_reset(&pointcloud->pdata);
   pointcloud->attributes_for_write().add<float3>(
-      "position", ATTR_DOMAIN_POINT, blender::bke::AttributeInitConstruct());
+      "position", blender::bke::AttrDomain::Point, blender::bke::AttributeInitConstruct());
 
   pointcloud->runtime = new blender::bke::PointCloudRuntime();
 }
@@ -183,7 +183,7 @@ static void pointcloud_random(PointCloud *pointcloud)
   blender::MutableSpan<float3> positions = pointcloud->positions_for_write();
   blender::bke::SpanAttributeWriter<float> radii =
       attributes.lookup_or_add_for_write_only_span<float>(POINTCLOUD_ATTR_RADIUS,
-                                                          ATTR_DOMAIN_POINT);
+                                                          blender::bke::AttrDomain::Point);
 
   for (const int i : positions.index_range()) {
     positions[i] = float3(BLI_rng_get_float(rng), BLI_rng_get_float(rng), BLI_rng_get_float(rng)) *
@@ -258,31 +258,6 @@ std::optional<blender::Bounds<blender::float3>> PointCloud::bounds_min_max() con
     }
   });
   return this->runtime->bounds_cache.data();
-}
-
-BoundBox BKE_pointcloud_boundbox_get(Object *ob)
-{
-  using namespace blender;
-  BLI_assert(ob->type == OB_POINTCLOUD);
-
-  std::optional<Bounds<float3>> bounds;
-  if (ob->runtime->geometry_set_eval) {
-    bounds = ob->runtime->geometry_set_eval->compute_boundbox_without_instances();
-  }
-  else {
-    const PointCloud *pointcloud = static_cast<PointCloud *>(ob->data);
-    bounds = pointcloud->bounds_min_max();
-  }
-
-  BoundBox bb;
-  if (bounds) {
-    BKE_boundbox_init_from_minmax(&bb, bounds->min, bounds->max);
-  }
-  else {
-    BKE_boundbox_init_from_minmax(&bb, float3(-1), float3(1));
-  }
-
-  return bb;
 }
 
 bool BKE_pointcloud_attribute_required(const PointCloud * /*pointcloud*/, const char *name)

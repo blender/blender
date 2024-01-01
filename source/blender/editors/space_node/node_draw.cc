@@ -40,7 +40,7 @@
 #include "BKE_global.h"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.hh"
@@ -85,13 +85,12 @@
 #include "NOD_geometry_exec.hh"
 #include "NOD_geometry_nodes_log.hh"
 #include "NOD_node_declaration.hh"
+#include "NOD_node_extra_info.hh"
 #include "NOD_socket_declarations_geometry.hh"
 
 #include "FN_field.hh"
 
 #include "GEO_fillet_curves.hh"
-
-#include "../interface/interface_intern.hh" /* TODO: Remove */
 
 #include "node_intern.hh" /* own include */
 
@@ -102,6 +101,7 @@ namespace geo_log = blender::nodes::geo_eval_log;
 using blender::bke::bNodeTreeZone;
 using blender::bke::bNodeTreeZones;
 using blender::ed::space_node::NestedTreePreviews;
+using blender::nodes::NodeExtraInfoRow;
 
 /**
  * This is passed to many functions which draw the node editor.
@@ -1857,7 +1857,20 @@ static void node_draw_shadow(const SpaceNode &snode,
 {
   const rctf &rct = node.runtime->totr;
   UI_draw_roundbox_corner_set(UI_CNR_ALL);
-  ui_draw_dropshadow(&rct, radius, snode.runtime->aspect, alpha, node.flag & SELECT);
+
+  const float shadow_width = 0.6f * U.widget_unit;
+  const float shadow_alpha = 0.5f * alpha;
+
+  ui_draw_dropshadow(&rct, radius, shadow_width, snode.runtime->aspect, shadow_alpha);
+
+  /* Outline emphasis. Slight darkening _inside_ the outline. */
+  const float color[4] = {0.0f, 0.0f, 0.0f, 0.4f};
+  rctf rect{};
+  rect.xmin = rct.xmin - 0.5f;
+  rect.xmax = rct.xmax + 0.5f;
+  rect.ymin = rct.ymin - 0.5f;
+  rect.ymax = rct.ymax + 0.5f;
+  UI_draw_roundbox_4fv(&rect, false, radius + 0.5f, color);
 }
 
 static void node_draw_sockets(const View2D &v2d,
@@ -2480,16 +2493,6 @@ static std::string node_get_execution_time_label(TreeDrawContext &tree_draw_ctx,
   return stream.str() + " ms";
 }
 
-struct NodeExtraInfoRow {
-  std::string text;
-  int icon;
-  const char *tooltip = nullptr;
-
-  uiButToolTipFunc tooltip_fn = nullptr;
-  void *tooltip_fn_arg = nullptr;
-  void (*tooltip_fn_free_arg)(void *) = nullptr;
-};
-
 struct NamedAttributeTooltipArg {
   Map<StringRefNull, geo_log::NamedAttributeUsage> usage_by_attribute;
 };
@@ -2598,11 +2601,18 @@ static std::optional<NodeExtraInfoRow> node_get_accessed_attributes_row(
   return row_from_used_named_attribute(node_log->used_named_attributes);
 }
 
-static Vector<NodeExtraInfoRow> node_get_extra_info(TreeDrawContext &tree_draw_ctx,
+static Vector<NodeExtraInfoRow> node_get_extra_info(const bContext &C,
+                                                    TreeDrawContext &tree_draw_ctx,
                                                     const SpaceNode &snode,
                                                     const bNode &node)
 {
   Vector<NodeExtraInfoRow> rows;
+
+  if (node.typeinfo->get_extra_info) {
+    nodes::NodeExtraInfoParams params{rows, node, C};
+    node.typeinfo->get_extra_info(params);
+  }
+
   if (!(snode.edittree->type == NTREE_GEOMETRY)) {
     /* Currently geometry nodes are the only nodes to have extra infos per nodes. */
     return rows;
@@ -2743,13 +2753,14 @@ static void node_draw_extra_info_panel_back(const bNode &node, const rctf &extra
       &panel_back_rect, color, nullptr, 0.0f, color_outline, outline_width, BASIS_RAD);
 }
 
-static void node_draw_extra_info_panel(const Scene *scene,
+static void node_draw_extra_info_panel(const bContext &C,
                                        TreeDrawContext &tree_draw_ctx,
                                        const SpaceNode &snode,
                                        const bNode &node,
                                        ImBuf *preview,
                                        uiBlock &block)
 {
+  const Scene *scene = CTX_data_scene(&C);
   if (!(snode.overlay.flag & SN_OVERLAY_SHOW_OVERLAYS)) {
     return;
   }
@@ -2757,8 +2768,8 @@ static void node_draw_extra_info_panel(const Scene *scene,
     /* If the preview has an non-drawable size, just don't draw it. */
     preview = nullptr;
   }
-  Vector<NodeExtraInfoRow> extra_info_rows = node_get_extra_info(tree_draw_ctx, snode, node);
-  if (extra_info_rows.size() == 0 && !preview) {
+  Vector<NodeExtraInfoRow> extra_info_rows = node_get_extra_info(C, tree_draw_ctx, snode, node);
+  if (extra_info_rows.is_empty() && !preview) {
     return;
   }
 
@@ -2868,7 +2879,7 @@ static void node_draw_basis(const bContext &C,
 
       if (previews_shader) {
         ImBuf *preview = node_preview_acquire_ibuf(ntree, *previews_shader, node);
-        node_draw_extra_info_panel(CTX_data_scene(&C), tree_draw_ctx, snode, node, preview, block);
+        node_draw_extra_info_panel(C, tree_draw_ctx, snode, node, preview, block);
         node_release_preview_ibuf(*previews_shader);
         drawn_with_previews = true;
       }
@@ -2877,14 +2888,14 @@ static void node_draw_basis(const bContext &C,
             BKE_node_instance_hash_lookup(previews_compo, key));
         if (preview_compositor) {
           node_draw_extra_info_panel(
-              CTX_data_scene(&C), tree_draw_ctx, snode, node, preview_compositor->ibuf, block);
+              C, tree_draw_ctx, snode, node, preview_compositor->ibuf, block);
           drawn_with_previews = true;
         }
       }
     }
 
     if (drawn_with_previews == false) {
-      node_draw_extra_info_panel(CTX_data_scene(&C), tree_draw_ctx, snode, node, nullptr, block);
+      node_draw_extra_info_panel(C, tree_draw_ctx, snode, node, nullptr, block);
     }
   }
 
@@ -3201,7 +3212,7 @@ static void node_draw_hidden(const bContext &C,
 
   const int color_id = node_get_colorid(tree_draw_ctx, node);
 
-  node_draw_extra_info_panel(nullptr, tree_draw_ctx, snode, node, nullptr, block);
+  node_draw_extra_info_panel(C, tree_draw_ctx, snode, node, nullptr, block);
 
   /* Shadow. */
   node_draw_shadow(snode, node, hiddenrad, 1.0f);
@@ -3388,14 +3399,14 @@ static const bNode *find_node_under_cursor(SpaceNode &snode, const float2 &curso
   return nullptr;
 }
 
-void node_set_cursor(wmWindow &win, SpaceNode &snode, const float2 &cursor)
+void node_set_cursor(wmWindow &win, ARegion &region, SpaceNode &snode, const float2 &cursor)
 {
   const bNodeTree *ntree = snode.edittree;
   if (ntree == nullptr) {
     WM_cursor_set(&win, WM_CURSOR_DEFAULT);
     return;
   }
-  if (node_find_indicated_socket(snode, cursor, SOCK_IN | SOCK_OUT)) {
+  if (node_find_indicated_socket(snode, region, cursor, SOCK_IN | SOCK_OUT)) {
     WM_cursor_set(&win, WM_CURSOR_DEFAULT);
     return;
   }
@@ -3683,7 +3694,7 @@ static void frame_node_draw(const bContext &C,
   /* Label and text. */
   frame_node_draw_label(tree_draw_ctx, ntree, node, snode);
 
-  node_draw_extra_info_panel(nullptr, tree_draw_ctx, snode, node, nullptr, block);
+  node_draw_extra_info_panel(C, tree_draw_ctx, snode, node, nullptr, block);
 
   UI_block_end(&C, &block);
   UI_block_draw(&C, &block);

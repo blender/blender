@@ -18,7 +18,6 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_userdef_types.h"
 
-#include "BKE_colorband.h"
 #include "BKE_deform.h"
 #include "BKE_lattice.hh"
 

@@ -8,7 +8,6 @@ set(INC
 
   ../blenkernel
   ../blentranslation
-  ../depsgraph
   ../editors/include
   ../makesrna
   ../windowmanager
@@ -33,7 +32,6 @@ set(SRC
   ANIM_action.hh
   ANIM_animdata.hh
   ANIM_armature_iter.hh
-  ANIM_bone_collections.h
   ANIM_bone_collections.hh
   ANIM_bonecolor.hh
   ANIM_fcurve.hh
@@ -45,6 +43,7 @@ set(SRC
 set(LIB
   bf_blenkernel
   bf::blenlib
+  PRIVATE bf::depsgraph
   bf::dna
   PRIVATE bf_editor_interface
   PRIVATE bf::intern::guardedalloc

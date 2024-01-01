@@ -300,15 +300,15 @@ def do_versions(self):
 
             if version <= (2, 79, 2):
                 cmat = mat.cycles
-                if not cmat.is_property_set("displacement_method"):
-                    cmat.displacement_method = 'BUMP'
+                if cmat.get("displacement_method", -1) == -1:
+                    cmat['displacement_method'] = 0
 
             # Change default to bump again.
             if version <= (2, 79, 6) or \
                (version >= (2, 80, 0) and version <= (2, 80, 41)):
                 cmat = mat.cycles
-                if not cmat.is_property_set("displacement_method"):
-                    cmat.displacement_method = 'DISPLACEMENT'
+                if cmat.get("displacement_method", -1) == -1:
+                    cmat['displacement_method'] = 1
 
             if version <= (3, 5, 3):
                 cmat = mat.cycles

@@ -29,9 +29,9 @@
 #include "BLI_mempool.h"
 #include "MEM_guardedalloc.h"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
-#include "tools/bmesh_region_match.h" /* own include */
+#include "tools/bmesh_region_match.hh" /* own include */
 
 /* avoid re-creating ghash and pools for each search */
 #define USE_WALKER_REUSE

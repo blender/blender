@@ -41,8 +41,8 @@
 
 #include "GEO_randomize.hh"
 
-#include "bmesh.h"
-#include "bmesh_tools.h"
+#include "bmesh.hh"
+#include "bmesh_tools.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -218,7 +218,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
   result = BKE_mesh_from_bmesh_for_eval_nomain(bm, nullptr, mesh);
 
-  /* Make sure we never alloc'd these. */
+  /* Make sure we never allocated these. */
   BLI_assert(bm->vtoolflagpool == nullptr && bm->etoolflagpool == nullptr &&
              bm->ftoolflagpool == nullptr);
 

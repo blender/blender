@@ -46,7 +46,7 @@
 #include "ED_screen.hh"
 
 #include "ANIM_animdata.hh"
-#include "ANIM_bone_collections.h"
+#include "ANIM_bone_collections.hh"
 #include "ANIM_fcurve.hh"
 #include "ANIM_keyframing.hh"
 #include "ANIM_rna.hh"
@@ -91,11 +91,6 @@ eInsertKeyFlags ANIM_get_keyframing_flags(Scene *scene, const bool use_autokey_m
     if (is_autokey_flag(scene, AUTOKEY_FLAG_INSERTNEEDED)) {
       flag |= INSERTKEY_NEEDED;
     }
-
-    /* default F-Curve color mode - RGB from XYZ indices */
-    if (is_autokey_flag(scene, AUTOKEY_FLAG_XYZ2RGB)) {
-      flag |= INSERTKEY_XYZ2RGB;
-    }
   }
 
   /* only if including settings from the autokeying mode... */
@@ -119,70 +114,6 @@ eInsertKeyFlags ANIM_get_keyframing_flags(Scene *scene, const bool use_autokey_m
 
 /* ******************************************* */
 /* Animation Data Validation */
-
-bAction *ED_id_action_ensure(Main *bmain, ID *id)
-{
-  AnimData *adt;
-
-  /* init animdata if none available yet */
-  adt = BKE_animdata_from_id(id);
-  if (adt == nullptr) {
-    adt = BKE_animdata_ensure_id(id);
-  }
-  if (adt == nullptr) {
-    /* if still none (as not allowed to add, or ID doesn't have animdata for some reason) */
-    printf("ERROR: Couldn't add AnimData (ID = %s)\n", (id) ? (id->name) : "<None>");
-    return nullptr;
-  }
-
-  /* init action if none available yet */
-  /* TODO: need some wizardry to handle NLA stuff correct */
-  if (adt->action == nullptr) {
-    /* init action name from name of ID block */
-    char actname[sizeof(id->name) - 2];
-    SNPRINTF(actname, "%sAction", id->name + 2);
-
-    /* create action */
-    adt->action = BKE_action_add(bmain, actname);
-
-    /* set ID-type from ID-block that this is going to be assigned to
-     * so that users can't accidentally break actions by assigning them
-     * to the wrong places
-     */
-    BKE_animdata_action_ensure_idroot(id, adt->action);
-
-    /* Tag depsgraph to be rebuilt to include time dependency. */
-    DEG_relations_tag_update(bmain);
-  }
-
-  DEG_id_tag_update(&adt->action->id, ID_RECALC_ANIMATION_NO_FLUSH);
-
-  /* return the action */
-  return adt->action;
-}
-
-/** Helper for #update_autoflags_fcurve(). */
-void update_autoflags_fcurve_direct(FCurve *fcu, PropertyRNA *prop)
-{
-  /* set additional flags for the F-Curve (i.e. only integer values) */
-  fcu->flag &= ~(FCURVE_INT_VALUES | FCURVE_DISCRETE_VALUES);
-  switch (RNA_property_type(prop)) {
-    case PROP_FLOAT:
-      /* do nothing */
-      break;
-    case PROP_INT:
-      /* do integer (only 'whole' numbers) interpolation between all points */
-      fcu->flag |= FCURVE_INT_VALUES;
-      break;
-    default:
-      /* do 'discrete' (i.e. enum, boolean values which cannot take any intermediate
-       * values at all) interpolation between all points
-       *    - however, we must also ensure that evaluated values are only integers still
-       */
-      fcu->flag |= (FCURVE_DISCRETE_VALUES | FCURVE_INT_VALUES);
-      break;
-  }
-}
 
 void update_autoflags_fcurve(FCurve *fcu, bContext *C, ReportList *reports, PointerRNA *ptr)
 {
@@ -210,7 +141,7 @@ void update_autoflags_fcurve(FCurve *fcu, bContext *C, ReportList *reports, Poin
   }
 
   /* update F-Curve flags */
-  update_autoflags_fcurve_direct(fcu, prop);
+  blender::animrig::update_autoflags_fcurve_direct(fcu, prop);
 
   if (old_flag != fcu->flag) {
     /* Same as if keyframes had been changed */
@@ -395,84 +326,6 @@ static blender::Vector<std::string> construct_rna_paths(PointerRNA *ptr)
   return paths;
 }
 
-static blender::Vector<float> get_keyframe_values(PointerRNA *ptr,
-                                                  PropertyRNA *prop,
-                                                  const bool visual_key)
-{
-  using namespace blender;
-  Vector<float> values;
-
-  if (visual_key && animrig::visualkey_can_use(ptr, prop)) {
-    /* Visual-keying is only available for object and pchan datablocks, as
-     * it works by keyframing using a value extracted from the final matrix
-     * instead of using the kt system to extract a value.
-     */
-    values = animrig::visualkey_get_values(ptr, prop);
-  }
-  else {
-    values = animrig::get_rna_values(ptr, prop);
-  }
-  return values;
-}
-
-static void insert_key_rna(PointerRNA *rna_pointer,
-                           const blender::Span<std::string> rna_paths,
-                           const float scene_frame,
-                           const eInsertKeyFlags insert_key_flags,
-                           const eBezTriple_KeyframeType key_type,
-                           Main *bmain,
-                           ReportList *reports)
-{
-  using namespace blender;
-
-  ID *id = rna_pointer->owner_id;
-  bAction *action = ED_id_action_ensure(bmain, id);
-  if (action == nullptr) {
-    BKE_reportf(reports,
-                RPT_ERROR,
-                "Could not insert keyframe, as this type does not support animation data (ID = "
-                "%s)",
-                id->name);
-    return;
-  }
-
-  AnimData *adt = BKE_animdata_from_id(id);
-  const float nla_frame = BKE_nla_tweakedit_remap(adt, scene_frame, NLATIME_CONVERT_UNMAP);
-  const bool visual_keyframing = insert_key_flags & INSERTKEY_MATRIX;
-
-  int insert_key_count = 0;
-  for (const std::string &rna_path : rna_paths) {
-    PointerRNA ptr;
-    PropertyRNA *prop = nullptr;
-    const bool path_resolved = RNA_path_resolve_property(
-        rna_pointer, rna_path.c_str(), &ptr, &prop);
-    if (!path_resolved) {
-      BKE_reportf(reports,
-                  RPT_ERROR,
-                  "Could not insert keyframe, as this property does not exist (ID = "
-                  "%s, path = %s)",
-                  id->name,
-                  rna_path.c_str());
-      continue;
-    }
-    std::string rna_path_id_to_prop = RNA_path_from_ID_to_property(&ptr, prop);
-    Vector<float> rna_values = get_keyframe_values(&ptr, prop, visual_keyframing);
-
-    insert_key_count += animrig::insert_key_action(bmain,
-                                                   action,
-                                                   rna_pointer,
-                                                   rna_path_id_to_prop,
-                                                   nla_frame,
-                                                   rna_values.as_span(),
-                                                   insert_key_flags,
-                                                   key_type);
-  }
-
-  if (insert_key_count == 0) {
-    BKE_reportf(reports, RPT_ERROR, "Failed to insert any keys");
-  }
-}
-
 /* Fill the list with CollectionPointerLink depending on the mode of the context. */
 static bool get_selection(bContext *C, ListBase *r_selection)
 {
@@ -523,7 +376,7 @@ static int insert_key(bContext *C, wmOperator *op)
     PointerRNA id_ptr = collection_ptr_link->ptr;
     Vector<std::string> rna_paths = construct_rna_paths(&collection_ptr_link->ptr);
 
-    insert_key_rna(
+    animrig::insert_key_rna(
         &id_ptr, rna_paths.as_span(), scene_frame, insert_key_flags, key_type, bmain, op->reports);
   }
 

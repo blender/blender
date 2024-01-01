@@ -15,10 +15,10 @@
 #include "BLI_utildefines.h"
 #include "BLI_utildefines_stack.h"
 
-#include "bmesh.h"
-#include "bmesh_tools.h"
+#include "bmesh.hh"
+#include "bmesh_tools.hh"
 
-#include "intern/bmesh_operators_private.h" /* own include */
+#include "intern/bmesh_operators_private.hh" /* own include */
 
 #define ELE_NEW 1
 #define ELE_CUT 2

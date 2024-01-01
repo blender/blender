@@ -27,7 +27,7 @@
 #include "BKE_global.h"
 #include "BKE_mesh.hh"
 
-#include "intern/bmesh_private.h"
+#include "intern/bmesh_private.hh"
 
 /* Smooth angle to use when tagging edges is disabled entirely. */
 #define EDGE_TAG_FROM_SPLIT_ANGLE_BYPASS -FLT_MAX
@@ -96,7 +96,7 @@ static void bm_vert_calc_normals_impl(BMVert *v)
    * so face loops that share an edge would not calculate it multiple times.
    * From my tests the performance improvements are so small they're difficult to measure,
    * the time saved removing `sqrtf` calls is lost on storing and looking up the information,
-   * even in the case of `BLI_smallhash.h` & small inline lookup tables.
+   * even in the case of small inline lookup tables.
    *
    * Further, local data structures would need to support cases where
    * stack memory isn't sufficient - adding additional complexity for corner-cases
@@ -212,7 +212,7 @@ static void bm_mesh_verts_calc_normals(BMesh *bm,
 
   TaskParallelSettings settings;
   BLI_parallel_mempool_settings_defaults(&settings);
-  settings.use_threading = bm->totvert >= BM_OMP_LIMIT;
+  settings.use_threading = bm->totvert >= BM_THREAD_LIMIT;
 
   if (vcos == nullptr) {
     BM_iter_parallel(bm, BM_VERTS_OF_MESH, bm_vert_calc_normals_cb, nullptr, &settings);
@@ -242,7 +242,7 @@ void BM_mesh_normals_update_ex(BMesh *bm, const BMeshNormalsUpdate_Params *param
     /* Calculate all face normals. */
     TaskParallelSettings settings;
     BLI_parallel_mempool_settings_defaults(&settings);
-    settings.use_threading = bm->totedge >= BM_OMP_LIMIT;
+    settings.use_threading = bm->totedge >= BM_THREAD_LIMIT;
 
     BM_iter_parallel(bm, BM_FACES_OF_MESH, bm_face_calc_normals_cb, nullptr, &settings);
   }
@@ -1356,7 +1356,7 @@ static void bm_mesh_loops_calc_normals(BMesh *bm,
                                        const bool do_rebuild,
                                        const float split_angle_cos)
 {
-  if (bm->totloop < BM_OMP_LIMIT) {
+  if (bm->totloop < BM_THREAD_LIMIT) {
     bm_mesh_loops_calc_normals__single_threaded(bm,
                                                 vcos,
                                                 fnos,

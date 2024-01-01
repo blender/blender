@@ -39,7 +39,7 @@
 #include "BKE_global.h"
 #include "BKE_icons.h"
 #include "BKE_lib_id.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_mask.h"
 #include "BKE_object.hh"
 #include "BKE_report.h"
@@ -1443,6 +1443,7 @@ static void area_dupli_fn(bScreen * /*screen*/, ScrArea *area, void *user_data)
 {
   ScrArea *area_src = static_cast<ScrArea *>(user_data);
   ED_area_data_copy(area, area_src, true);
+  ED_area_tag_redraw(area);
 };
 
 /* operator callback */
@@ -3778,7 +3779,7 @@ static int screen_area_options_invoke(bContext *C, wmOperator *op, const wmEvent
     uiItemFullO(layout,
                 "SCREEN_OT_area_join",
                 IFACE_("Join Areas"),
-                ICON_NONE,
+                ICON_AREA_JOIN,
                 nullptr,
                 WM_OP_INVOKE_DEFAULT,
                 UI_ITEM_NONE,
@@ -3791,7 +3792,7 @@ static int screen_area_options_invoke(bContext *C, wmOperator *op, const wmEvent
     uiItemFullO(layout,
                 "SCREEN_OT_area_swap",
                 IFACE_("Swap Areas"),
-                ICON_NONE,
+                ICON_AREA_SWAP,
                 nullptr,
                 WM_OP_EXEC_DEFAULT,
                 UI_ITEM_NONE,
@@ -5943,7 +5944,7 @@ static bool blend_file_drop_poll(bContext * /*C*/, wmDrag *drag, const wmEvent *
 static void blend_file_drop_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *drop)
 {
   /* copy drag path to properties */
-  RNA_string_set(drop->ptr, "filepath", WM_drag_get_path(drag));
+  RNA_string_set(drop->ptr, "filepath", WM_drag_get_single_path(drag));
 }
 
 void ED_keymap_screen(wmKeyConfig *keyconf)

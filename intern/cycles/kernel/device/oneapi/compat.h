@@ -40,7 +40,8 @@
 #define ccl_device_inline inline
 #define ccl_noinline __attribute__((noinline))
 #define ccl_inline_constant const constexpr
-#define ccl_static_constant const
+#define ccl_device_constant static constexpr
+#define ccl_static_constexpr static constexpr
 #define ccl_device_forceinline __attribute__((always_inline))
 #define ccl_device_noinline ccl_device ccl_noinline
 #define ccl_device_noinline_cpu ccl_device

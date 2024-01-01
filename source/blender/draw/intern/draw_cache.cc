@@ -98,7 +98,7 @@ struct VertShaded {
   }
 };
 
-/* Batch's only (free'd as an array) */
+/* Batch's only (freed as an array). */
 static struct DRWShapeCache {
   GPUBatch *drw_procedural_verts;
   GPUBatch *drw_procedural_lines;
@@ -925,24 +925,24 @@ GPUBatch *DRW_cache_object_surface_get(Object *ob)
 
 GPUVertBuf *DRW_cache_object_pos_vertbuf_get(Object *ob)
 {
-  Mesh *me = BKE_object_get_evaluated_mesh_no_subsurf(ob);
-  short type = (me != nullptr) ? short(OB_MESH) : ob->type;
+  Mesh *mesh = BKE_object_get_evaluated_mesh_no_subsurf(ob);
+  short type = (mesh != nullptr) ? short(OB_MESH) : ob->type;
 
   switch (type) {
     case OB_MESH:
       return DRW_mesh_batch_cache_pos_vertbuf_get(
-          static_cast<Mesh *>((me != nullptr) ? me : ob->data));
+          static_cast<Mesh *>((mesh != nullptr) ? mesh : ob->data));
     default:
       return nullptr;
   }
 }
 
-int DRW_cache_object_material_count_get(Object *ob)
+int DRW_cache_object_material_count_get(const Object *ob)
 {
   short type = ob->type;
 
-  Mesh *me = BKE_object_get_evaluated_mesh_no_subsurf(ob);
-  if (me != nullptr && type != OB_POINTCLOUD) {
+  Mesh *mesh = BKE_object_get_evaluated_mesh_no_subsurf(ob);
+  if (mesh != nullptr && type != OB_POINTCLOUD) {
     /* Some object types can have one data type in ob->data, but will be rendered as mesh.
      * For point clouds this never happens. Ideally this check would happen at another level
      * and we would just have to care about ob->data here. */
@@ -952,19 +952,19 @@ int DRW_cache_object_material_count_get(Object *ob)
   switch (type) {
     case OB_MESH:
       return DRW_mesh_material_count_get(
-          ob, static_cast<const Mesh *>((me != nullptr) ? me : ob->data));
+          ob, static_cast<const Mesh *>((mesh != nullptr) ? mesh : ob->data));
     case OB_CURVES_LEGACY:
     case OB_SURF:
     case OB_FONT:
-      return DRW_curve_material_count_get(static_cast<Curve *>(ob->data));
+      return DRW_curve_material_count_get(static_cast<const Curve *>(ob->data));
     case OB_CURVES:
-      return DRW_curves_material_count_get(static_cast<Curves *>(ob->data));
+      return DRW_curves_material_count_get(static_cast<const Curves *>(ob->data));
     case OB_POINTCLOUD:
-      return DRW_pointcloud_material_count_get(static_cast<PointCloud *>(ob->data));
+      return DRW_pointcloud_material_count_get(static_cast<const PointCloud *>(ob->data));
     case OB_VOLUME:
-      return DRW_volume_material_count_get(static_cast<Volume *>(ob->data));
+      return DRW_volume_material_count_get(static_cast<const Volume *>(ob->data));
     case OB_GPENCIL_LEGACY:
-      return DRW_gpencil_material_count_get(static_cast<bGPdata *>(ob->data));
+      return DRW_gpencil_material_count_get(static_cast<const bGPdata *>(ob->data));
     default:
       BLI_assert(0);
       return 0;
@@ -3431,14 +3431,12 @@ void DRW_batch_cache_free_old(Object *ob, int ctime)
 
 void DRW_cdlayer_attr_aliases_add(GPUVertFormat *format,
                                   const char *base_name,
-                                  const CustomData * /*data*/,
-                                  const CustomDataLayer *cl,
+                                  const int data_type,
+                                  const char *layer_name,
                                   bool is_active_render,
                                   bool is_active_layer)
 {
   char attr_name[32], attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
-  const char *layer_name = cl->name;
-
   GPU_vertformat_safe_attr_name(layer_name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
 
   /* Attribute layer name. */
@@ -3451,7 +3449,7 @@ void DRW_cdlayer_attr_aliases_add(GPUVertFormat *format,
 
   /* Active render layer name. */
   if (is_active_render) {
-    GPU_vertformat_alias_add(format, cl->type == CD_PROP_FLOAT2 ? "a" : base_name);
+    GPU_vertformat_alias_add(format, data_type == CD_PROP_FLOAT2 ? "a" : base_name);
   }
 
   /* Active display layer name. */

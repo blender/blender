@@ -40,7 +40,7 @@
 #include "MOD_ui_common.hh"
 #include "MOD_util.hh"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
 #define CLNORS_VALID_VEC_LEN (1e-6f)
 
@@ -86,7 +86,7 @@ struct WeightedNormalData {
 
   blender::OffsetIndices<int> faces;
   blender::Span<blender::float3> face_normals;
-  const bool *sharp_faces;
+  blender::VArraySpan<bool> sharp_faces;
   const int *face_strength;
 
   const MDeformVert *dvert;
@@ -228,7 +228,7 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
                                  loop_to_face,
                                  wn_data->vert_normals,
                                  wn_data->face_normals,
-                                 wn_data->sharp_edges.data(),
+                                 wn_data->sharp_edges,
                                  wn_data->sharp_faces,
                                  has_clnors ? clnors.data() : nullptr,
                                  &lnors_spacearr,
@@ -356,7 +356,7 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
                                             loop_to_face,
                                             wn_data->vert_normals,
                                             face_normals,
-                                            wn_data->sharp_edges.data(),
+                                            wn_data->sharp_edges,
                                             wn_data->sharp_faces,
                                             has_clnors ? clnors.data() : nullptr,
                                             nullptr,
@@ -480,7 +480,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   Mesh *result;
   result = (Mesh *)BKE_id_copy_ex(nullptr, &mesh->id, nullptr, LIB_ID_COPY_LOCALIZE);
 
-  const int verts_num = result->totvert;
+  const int verts_num = result->verts_num;
   const blender::Span<blender::float3> positions = mesh->vert_positions();
   const blender::Span<int2> edges = mesh->edges();
   const OffsetIndices faces = result->faces();
@@ -504,15 +504,15 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
     weight = (weight - 1) * 25;
   }
 
-  blender::short2 *clnors = static_cast<blender::short2 *>(
-      CustomData_get_layer_for_write(&result->loop_data, CD_CUSTOMLOOPNORMAL, mesh->totloop));
+  blender::short2 *clnors = static_cast<blender::short2 *>(CustomData_get_layer_for_write(
+      &result->corner_data, CD_CUSTOMLOOPNORMAL, mesh->corners_num));
 
   /* Keep info whether we had clnors,
    * it helps when generating clnor spaces and default normals. */
   const bool has_clnors = clnors != nullptr;
   if (!clnors) {
     clnors = static_cast<blender::short2 *>(CustomData_add_layer(
-        &result->loop_data, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, corner_verts.size()));
+        &result->corner_data, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, corner_verts.size()));
   }
 
   const MDeformVert *dvert;
@@ -523,7 +523,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
   bke::MutableAttributeAccessor attributes = result->attributes_for_write();
   bke::SpanAttributeWriter<bool> sharp_edges = attributes.lookup_or_add_for_write_span<bool>(
-      "sharp_edge", ATTR_DOMAIN_EDGE);
+      "sharp_edge", bke::AttrDomain::Edge);
 
   WeightedNormalData wn_data{};
   wn_data.verts_num = verts_num;
@@ -536,13 +536,12 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   wn_data.corner_verts = corner_verts;
   wn_data.corner_edges = corner_edges;
   wn_data.loop_to_face = loop_to_face_map;
-  wn_data.clnors = {clnors, mesh->totloop};
+  wn_data.clnors = {clnors, mesh->corners_num};
   wn_data.has_clnors = has_clnors;
 
   wn_data.faces = faces;
   wn_data.face_normals = mesh->face_normals();
-  wn_data.sharp_faces = static_cast<const bool *>(
-      CustomData_get_layer_named(&mesh->face_data, CD_PROP_BOOL, "sharp_face"));
+  wn_data.sharp_faces = *attributes.lookup<bool>("sharp_face", bke::AttrDomain::Face);
   wn_data.face_strength = static_cast<const int *>(CustomData_get_layer_named(
       &result->face_data, CD_PROP_INT32, MOD_WEIGHTEDNORMALS_FACEWEIGHT_CDLAYER_ID));
 

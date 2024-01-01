@@ -53,7 +53,7 @@
 
 #include "BKE_anim_visualization.h"
 #include "BKE_image.h"
-#include "BKE_main.h"  /* for Main */
+#include "BKE_main.hh" /* for Main */
 #include "BKE_mesh.hh" /* for ME_ defines (patching) */
 #include "BKE_mesh_legacy_convert.hh"
 #include "BKE_modifier.hh"
@@ -72,7 +72,7 @@
 #include "SEQ_utils.hh"
 
 #ifdef WITH_FFMPEG
-#  include "BKE_writeffmpeg.h"
+#  include "BKE_writeffmpeg.hh"
 #endif
 
 #include "IMB_imbuf.h" /* for proxy / time-code versioning stuff. */
@@ -350,14 +350,14 @@ static void do_versions_nodetree_multi_file_output_format_2_62_1(Scene *sce, bNo
 }
 
 /* blue and red are swapped pre 2.62.1, be sane (red == red) now! */
-static void do_versions_mesh_mloopcol_swap_2_62_1(Mesh *me)
+static void do_versions_mesh_mloopcol_swap_2_62_1(Mesh *mesh)
 {
-  for (int a = 0; a < me->loop_data.totlayer; a++) {
-    CustomDataLayer *layer = &me->loop_data.layers[a];
+  for (int a = 0; a < mesh->corner_data.totlayer; a++) {
+    CustomDataLayer *layer = &mesh->corner_data.layers[a];
 
     if (layer->type == CD_PROP_BYTE_COLOR) {
       MLoopCol *mloopcol = static_cast<MLoopCol *>(layer->data);
-      for (int i = 0; i < me->totloop; i++, mloopcol++) {
+      for (int i = 0; i < mesh->corners_num; i++, mloopcol++) {
         SWAP(uchar, mloopcol->r, mloopcol->b);
       }
     }
@@ -708,7 +708,7 @@ static const char *node_get_static_idname(int type, int treetype)
         return "CompositorNodeChannelMatte";
       case CMP_NODE_FLIP:
         return "CompositorNodeFlip";
-      case CMP_NODE_SPLITVIEWER:
+      case CMP_NODE_SPLITVIEWER__DEPRECATED:
         return "CompositorNodeSplitViewer";
       case CMP_NODE_MAP_UV:
         return "CompositorNodeMapUV";
@@ -1908,7 +1908,7 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
     {
       LISTBASE_FOREACH (Mesh *, me, &bmain->meshes) {
         CustomData_update_typemap(&me->vert_data);
-        CustomData_free_layers(&me->vert_data, CD_MSTICKY, me->totvert);
+        CustomData_free_layers(&me->vert_data, CD_MSTICKY, me->verts_num);
       }
     }
   }

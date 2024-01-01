@@ -19,7 +19,7 @@
 #include "BKE_context.hh"
 
 #include "GPU_matrix.h"
-#include "GPU_select.h"
+#include "GPU_select.hh"
 
 #include "DEG_depsgraph.hh"
 

@@ -155,8 +155,8 @@ typedef struct IDTypeInfo {
   IDTypeInitDataFunction init_data;
 
   /**
-   * Copy the given data-block's data from source to destination. May be NULL if mere memcopy of
-   * the ID struct itself is enough.
+   * Copy the given data-block's data from source to destination.
+   * May be NULL if mere memory-copy of the ID struct itself is enough.
    */
   IDTypeCopyDataFunction copy_data;
 

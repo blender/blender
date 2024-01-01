@@ -18,7 +18,8 @@
 
 #include "BLF_api.h"
 
-#include "BKE_colortools.h"
+#include "BLT_translation.h"
+
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
 #include "BKE_curves.h"
@@ -28,7 +29,7 @@
 #include "BKE_gpencil_legacy.h"
 #include "BKE_grease_pencil.h"
 #include "BKE_lattice.hh"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_mball.h"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
@@ -45,7 +46,6 @@
 
 #include "DNA_camera_types.h"
 #include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
@@ -80,7 +80,7 @@
 #include "draw_manager.h"
 #include "draw_manager_profiling.hh"
 #include "draw_manager_testing.h"
-#include "draw_manager_text.h"
+#include "draw_manager_text.hh"
 #include "draw_shader.h"
 #include "draw_subdivision.hh"
 #include "draw_texture_pool.h"
@@ -123,12 +123,12 @@ static void drw_state_prepare_clean_for_draw(DRWManager *dst)
  * where we don't re-use data by accident across different
  * draw calls.
  */
-#ifdef DEBUG
+#ifndef NDEBUG
 static void drw_state_ensure_not_reused(DRWManager *dst)
 {
   memset(dst, 0xff, offsetof(DRWManager, system_gpu_context));
 }
-#endif
+#endif /* !NDEBUG */
 
 static bool drw_draw_show_annotation()
 {
@@ -645,7 +645,7 @@ static void drw_manager_exit(DRWManager *dst)
   }
   dst->vmempool = nullptr;
   dst->viewport = nullptr;
-#ifdef DEBUG
+#ifndef NDEBUG
   /* Avoid accidental reuse. */
   drw_state_ensure_not_reused(dst);
 #endif
@@ -746,10 +746,8 @@ static void duplidata_key_free(void *key)
     temp_object.runtime = &runtime;
 
     /* Do not modify the original bound-box. */
-    temp_object.runtime->bb = nullptr;
     BKE_object_replace_data_on_shallow_copy(&temp_object, dupli_key->ob_data);
     drw_batch_cache_generate_requested(&temp_object);
-    MEM_SAFE_FREE(temp_object.runtime->bb);
   }
   MEM_freeN(key);
 }
@@ -844,6 +842,7 @@ static bool id_type_can_have_drawdata(const short id_type)
     case ID_TE:
     case ID_MSK:
     case ID_MC:
+    case ID_IM:
       return true;
 
     /* no DrawData */
@@ -1152,7 +1151,7 @@ void DRW_draw_region_engine_info(int xoffset, int *yoffset, int line_height)
       BLF_shadow(font_id, 5, blender::float4{0.0f, 0.0f, 0.0f, 1.0f});
       BLF_shadow_offset(font_id, 1, -1);
 
-      const char *buf_step = data->info;
+      const char *buf_step = IFACE_(data->info);
       do {
         const char *buf = buf_step;
         buf_step = BLI_strchr_or_end(buf, '\n');
@@ -2888,16 +2887,16 @@ void DRW_draw_depth_object(
     case OB_MESH: {
       GPUBatch *batch;
 
-      Mesh *me = static_cast<Mesh *>(object->data);
+      Mesh *mesh = static_cast<Mesh *>(object->data);
 
       if (object->mode & OB_MODE_EDIT) {
-        batch = DRW_mesh_batch_cache_get_edit_triangles(me);
+        batch = DRW_mesh_batch_cache_get_edit_triangles(mesh);
       }
       else {
-        batch = DRW_mesh_batch_cache_get_surface(me);
+        batch = DRW_mesh_batch_cache_get_surface(mesh);
       }
       TaskGraph *task_graph = BLI_task_graph_create();
-      DRW_mesh_batch_cache_create_requested(task_graph, object, me, scene, false, true);
+      DRW_mesh_batch_cache_create_requested(task_graph, object, mesh, scene, false, true);
       BLI_task_graph_work_and_wait(task_graph);
       BLI_task_graph_free(task_graph);
 
@@ -3376,7 +3375,7 @@ void DRW_xr_drawing_end()
 /** \name Internal testing API for gtests
  * \{ */
 
-#ifdef WITH_OPENGL_DRAW_TESTS
+#ifdef WITH_GPU_DRAW_TESTS
 
 void DRW_draw_state_init_gtests(eGPUShaderConfig sh_cfg)
 {

@@ -5,11 +5,9 @@
 set(INC
   .
   ../asset_system
-  ../blenfont
   ../blenloader
   ../blentranslation
   ../bmesh
-  ../depsgraph
   ../draw
   ../functions
   ../gpencil_modifiers_legacy
@@ -26,7 +24,6 @@ set(INC
   ../../../intern/eigen
   ../../../intern/ghost
   ../../../intern/iksolver/extern
-  ../../../intern/clog
   ../../../intern/libmv
   ../../../intern/mantaflow/extern
   ../../../intern/memutil
@@ -136,6 +133,7 @@ set(SRC
   intern/fcurve.cc
   intern/fcurve_cache.cc
   intern/fcurve_driver.cc
+  intern/file_handler.cc
   intern/fluid.cc
   intern/fmodifier.cc
   intern/freestyle.cc
@@ -203,6 +201,7 @@ set(SRC
   intern/mesh.cc
   intern/mesh_boolean_convert.cc
   intern/mesh_calc_edges.cc
+  intern/mesh_compare.cc
   intern/mesh_convert.cc
   intern/mesh_debug.cc
   intern/mesh_evaluate.cc
@@ -238,7 +237,7 @@ set(SRC
   intern/nla.cc
   intern/node.cc
   intern/node_runtime.cc
-  intern/node_socket_value_cpp_type.cc
+  intern/node_socket_value.cc
   intern/node_tree_anonymous_attributes.cc
   intern/node_tree_dot_export.cc
   intern/node_tree_field_inferencing.cc
@@ -284,7 +283,6 @@ set(SRC
   intern/subdiv.cc
   intern/subdiv_ccg.cc
   intern/subdiv_ccg_mask.cc
-  intern/subdiv_ccg_material.cc
   intern/subdiv_converter.cc
   intern/subdiv_converter_mesh.cc
   intern/subdiv_deform.cc
@@ -315,6 +313,8 @@ set(SRC
   intern/vfontdata_freetype.cc
   intern/viewer_path.cc
   intern/volume.cc
+  intern/volume_grid.cc
+  intern/volume_grid_file_cache.cc
   intern/volume_render.cc
   intern/volume_to_mesh.cc
   intern/workspace.cc
@@ -347,8 +347,8 @@ set(SRC
   BKE_blender_undo.h
   BKE_blender_user_menu.h
   BKE_blender_version.h
-  BKE_blendfile.h
-  BKE_blendfile_link_append.h
+  BKE_blendfile.hh
+  BKE_blendfile_link_append.hh
   BKE_boids.h
   BKE_bpath.h
   BKE_brush.hh
@@ -361,8 +361,8 @@ set(SRC
   BKE_cloth.hh
   BKE_collection.h
   BKE_collision.h
-  BKE_colorband.h
-  BKE_colortools.h
+  BKE_colorband.hh
+  BKE_colortools.hh
   BKE_compute_contexts.hh
   BKE_constraint.h
   BKE_context.hh
@@ -394,6 +394,7 @@ set(SRC
   BKE_effect.h
   BKE_fcurve.h
   BKE_fcurve_driver.h
+  BKE_file_handler.hh
   BKE_fluid.h
   BKE_freestyle.h
   BKE_geometry_fields.hh
@@ -426,15 +427,15 @@ set(SRC
   BKE_lib_id.h
   BKE_lib_override.hh
   BKE_lib_query.h
-  BKE_lib_remap.h
-  BKE_library.h
+  BKE_lib_remap.hh
+  BKE_library.hh
   BKE_light.h
   BKE_light_linking.h
   BKE_lightprobe.h
   BKE_linestyle.h
-  BKE_main.h
-  BKE_main_idmap.h
-  BKE_main_namemap.h
+  BKE_main.hh
+  BKE_main_idmap.hh
+  BKE_main_namemap.hh
   BKE_mask.h
   BKE_material.h
   BKE_mball.h
@@ -442,6 +443,7 @@ set(SRC
   BKE_mesh.h
   BKE_mesh.hh
   BKE_mesh_boolean_convert.hh
+  BKE_mesh_compare.hh
   BKE_mesh_fair.hh
   BKE_mesh_iterators.hh
   BKE_mesh_legacy_convert.hh
@@ -462,15 +464,14 @@ set(SRC
   BKE_node.hh
   BKE_node_runtime.hh
   BKE_node_socket_value.hh
-  BKE_node_socket_value_cpp_type.hh
   BKE_node_tree_anonymous_attributes.hh
   BKE_node_tree_dot_export.hh
   BKE_node_tree_interface.hh
   BKE_node_tree_update.hh
   BKE_node_tree_zones.hh
   BKE_object.hh
-  BKE_object_types.hh
   BKE_object_deform.h
+  BKE_object_types.hh
   BKE_ocean.h
   BKE_outliner_treehash.hh
   BKE_packedFile.h
@@ -492,7 +493,7 @@ set(SRC
   BKE_screen.hh
   BKE_sequencer_offscreen.h
   BKE_shader_fx.h
-  BKE_shrinkwrap.h
+  BKE_shrinkwrap.hh
   BKE_softbody.h
   BKE_sound.h
   BKE_speaker.h
@@ -512,11 +513,14 @@ set(SRC
   BKE_tracking.h
   BKE_type_conversions.hh
   BKE_undo_system.h
-  BKE_unit.h
-  BKE_vfont.h
-  BKE_vfontdata.h
+  BKE_unit.hh
+  BKE_vfont.hh
+  BKE_vfontdata.hh
   BKE_viewer_path.hh
   BKE_volume.hh
+  BKE_volume_enums.hh
+  BKE_volume_grid.hh
+  BKE_volume_grid_file_cache.hh
   BKE_volume_openvdb.hh
   BKE_volume_render.hh
   BKE_volume_to_mesh.hh
@@ -534,7 +538,7 @@ set(SRC
   intern/dyntopo_intern.hh
   intern/attribute_access_intern.hh
   intern/data_transfer_intern.h
-  intern/lib_intern.h
+  intern/lib_intern.hh
   intern/multires_inline.hh
   intern/multires_reshape.hh
   intern/multires_unsubdivide.hh
@@ -549,12 +553,12 @@ set(SRC
 set(LIB
   PRIVATE bf::animrig
   bf_asset_system
-  bf_blenfont
+  PRIVATE bf::blenfont
   PRIVATE bf::blenlib
   bf_blenloader
   bf_blentranslation
   bf_bmesh
-  bf_depsgraph
+  PRIVATE bf::depsgraph
   PRIVATE bf::dna
   bf_draw
   PRIVATE bf::extern::curve_fit_nd
@@ -563,7 +567,7 @@ set(LIB
   bf_gpu
   bf_ikplugin
   bf_imbuf
-  bf_intern_clog
+  PRIVATE bf::intern::clog
   bf_intern_ghost
   PRIVATE bf::intern::guardedalloc
   bf_intern_libmv  # Uses stub when disabled.
@@ -650,8 +654,8 @@ endif()
 
 if(WITH_CODEC_FFMPEG)
   list(APPEND SRC
-    intern/writeffmpeg.c
-    BKE_writeffmpeg.h
+    intern/writeffmpeg.cc
+    BKE_writeffmpeg.hh
   )
   list(APPEND INC
     ../../../intern/ffmpeg
@@ -850,6 +854,7 @@ if(WITH_GTESTS)
     intern/cryptomatte_test.cc
     intern/curves_geometry_test.cc
     intern/fcurve_test.cc
+    intern/file_handler_test.cc
     intern/grease_pencil_test.cc
     intern/idprop_serialize_test.cc
     intern/image_partial_update_test.cc
@@ -859,8 +864,10 @@ if(WITH_GTESTS)
     intern/lib_id_remapper_test.cc
     intern/lib_id_test.cc
     intern/lib_remap_test.cc
+    intern/main_test.cc
     intern/nla_test.cc
     intern/tracking_test.cc
+    intern/volume_test.cc
   )
   set(TEST_INC
     ../editors/include

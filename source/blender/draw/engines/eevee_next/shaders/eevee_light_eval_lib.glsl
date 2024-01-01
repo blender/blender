@@ -25,6 +25,7 @@
 
 #if !defined(LIGHT_CLOSURE_EVAL_COUNT)
 #  define LIGHT_CLOSURE_EVAL_COUNT 1
+#  define SKIP_LIGHT_EVAL
 #endif
 
 uint shadow_pack(float visibility, uint bit_depth, uint shift)
@@ -192,7 +193,7 @@ void light_eval(inout ClosureLightStack stack, vec3 P, vec3 Ng, vec3 V, float vP
   light_eval(stack, P, Ng, V, vPz, thickness, 0u);
 }
 
-#  if !defined(SSS_TRANSMITTANCE) && defined(LIGHT_ITER_FORCE_NO_CULLING)
+#  if !defined(SHADOW_SUBSURFACE) && defined(LIGHT_ITER_FORCE_NO_CULLING)
 void light_eval(inout ClosureLightStack stack, vec3 P, vec3 Ng, vec3 V)
 {
   light_eval(stack, P, Ng, V, 0.0, 0.0, 0u);

@@ -19,6 +19,7 @@ ScreenLensDistortionOperation::ScreenLensDistortionOperation()
   this->add_input_socket(DataType::Value);
   this->add_output_socket(DataType::Color);
   flags_.complex = true;
+  flags_.can_be_constant = true;
   input_program_ = nullptr;
   distortion_ = 0.0f;
   dispersion_ = 0.0f;

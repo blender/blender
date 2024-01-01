@@ -9,6 +9,7 @@
 #  include <array>
 
 #  include "device/device.h"
+#  include "device/oneapi/device_impl.h"
 #  include "device/queue.h"
 #  include "integrator/pass_accessor_cpu.h"
 #  include "session/buffers.h"
@@ -27,27 +28,50 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* Ideally, this would be dynamic and adaptively change when the runtime runs out of memory.  */
-constexpr int prefilter_max_mem = 1024;
-
-thread_mutex OIDNDenoiserGPU::mutex_;
-bool OIDNDenoiserGPU::is_device_type_supported(const DeviceType &type)
+bool OIDNDenoiserGPU::is_device_supported(const DeviceInfo &device)
 {
-  switch (type) {
+  int device_type = OIDN_DEVICE_TYPE_DEFAULT;
+  switch (device.type) {
 #  ifdef OIDN_DEVICE_SYCL
-    /* Assume all devices with Cycles support are also supported by OIDN2. */
     case DEVICE_ONEAPI:
-      return true;
+      device_type = OIDN_DEVICE_TYPE_SYCL;
+      break;
 #  endif
+#  ifdef OIDN_DEVICE_HIP
+    case DEVICE_HIP:
+      device_type = OIDN_DEVICE_TYPE_HIP;
+      break;
+#  endif
+#  ifdef OIDN_DEVICE_CUDA
+    case DEVICE_CUDA:
+    case DEVICE_OPTIX:
+      device_type = OIDN_DEVICE_TYPE_CUDA;
+      break;
+#  endif
+    case DEVICE_CPU:
+      /* This is the GPU denoiser - CPU devices shouldn't end up here. */
+      assert(0);
     default:
       return false;
   }
-}
 
-bool OIDNDenoiserGPU::is_device_supported(const DeviceInfo &device)
-{
-  /* Currently falls back to checking just the device type, can be improved. */
-  return is_device_type_supported(device.type);
+  /* Match GPUs by their PCI ID. */
+  const int num_devices = oidnGetNumPhysicalDevices();
+  for (int i = 0; i < num_devices; i++) {
+    if (oidnGetPhysicalDeviceInt(i, "type") == device_type) {
+      if (oidnGetPhysicalDeviceBool(i, "pciAddressSupported")) {
+        unsigned int pci_domain = oidnGetPhysicalDeviceInt(i, "pciDomain");
+        unsigned int pci_bus = oidnGetPhysicalDeviceInt(i, "pciBus");
+        unsigned int pci_device = oidnGetPhysicalDeviceInt(i, "pciDevice");
+        string pci_id = string_printf("%04x:%02x:%02x", pci_domain, pci_bus, pci_device);
+        if (device.id.find(pci_id) != string::npos) {
+          return true;
+        }
+      }
+    }
+  }
+
+  return false;
 }
 
 OIDNDenoiserGPU::OIDNDenoiserGPU(Device *path_trace_device, const DenoiseParams &params)
@@ -87,6 +111,9 @@ uint OIDNDenoiserGPU::get_device_type_mask() const
 #  ifdef OIDN_DEVICE_SYCL
   device_mask |= DEVICE_MASK_ONEAPI;
 #  endif
+#  ifdef OIDN_DEVICE_HIP
+  device_mask |= DEVICE_MASK_HIP;
+#  endif
   return device_mask;
 }
 
@@ -123,18 +150,32 @@ bool OIDNDenoiserGPU::denoise_create_if_needed(DenoiseContext &context)
   }
 
   switch (denoiser_device_->info.type) {
-#  if defined(OIDN_DEVICE_SYCL)
+#  if defined(OIDN_DEVICE_SYCL) && defined(WITH_ONEAPI)
     case DEVICE_ONEAPI:
-      oidn_device_ = oidnNewDevice(OIDN_DEVICE_TYPE_SYCL);
+      oidn_device_ = oidnNewSYCLDevice(
+          (const sycl::queue *)reinterpret_cast<OneapiDevice *>(denoiser_device_)->sycl_queue(),
+          1);
       denoiser_queue_->init_execution();
       break;
+#  endif
+#  if defined(OIDN_DEVICE_HIP) && defined(WITH_HIP)
+    case DEVICE_HIP: {
+      hipStream_t stream = nullptr;
+      oidn_device_ = oidnNewHIPDevice(&denoiser_device_->info.num, &stream, 1);
+      break;
+    }
 #  endif
     default:
       break;
   }
+
   if (!oidn_device_) {
     denoiser_device_->set_error("Failed to create OIDN device");
     return false;
+  }
+
+  if (denoiser_queue_) {
+    denoiser_queue_->init_execution();
   }
 
   oidnCommitDevice(oidn_device_);
@@ -156,7 +197,6 @@ bool OIDNDenoiserGPU::denoise_create_if_needed(DenoiseContext &context)
   if (context.use_pass_albedo) {
     albedo_filter_ = create_filter();
     if (albedo_filter_ == nullptr) {
-      oidnSetFilterInt(oidn_filter_, "maxMemoryMB", prefilter_max_mem);
       return false;
     }
   }
@@ -164,7 +204,6 @@ bool OIDNDenoiserGPU::denoise_create_if_needed(DenoiseContext &context)
   if (context.use_pass_normal) {
     normal_filter_ = create_filter();
     if (normal_filter_ == nullptr) {
-      oidnSetFilterInt(oidn_filter_, "maxMemoryMB", prefilter_max_mem);
       return false;
     }
   }

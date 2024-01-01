@@ -110,7 +110,17 @@ void osl_eval_nodes<SHADER_TYPE_SURFACE>(const KernelGlobalsCPU *kg,
   if (sd->object == OBJECT_NONE && sd->lamp == LAMP_NONE) {
     /* background */
     if (kg->osl->background_state) {
+#if OSL_LIBRARY_VERSION_CODE >= 11304
+      ss->execute(*octx,
+                  *(kg->osl->background_state),
+                  kg->osl_thread_index,
+                  0,
+                  *globals,
+                  nullptr,
+                  nullptr);
+#else
       ss->execute(octx, *(kg->osl->background_state), *globals);
+#endif
     }
   }
   else {
@@ -150,8 +160,18 @@ void osl_eval_nodes<SHADER_TYPE_SURFACE>(const KernelGlobalsCPU *kg,
         globals->dPdy = TO_VEC3(tmp_dP.dy);
       }
 
-      /* execute bump shader */
+/* execute bump shader */
+#if OSL_LIBRARY_VERSION_CODE >= 11304
+      ss->execute(*octx,
+                  *(kg->osl->bump_state[shader]),
+                  kg->osl_thread_index,
+                  0,
+                  *globals,
+                  nullptr,
+                  nullptr);
+#else
       ss->execute(octx, *(kg->osl->bump_state[shader]), *globals);
+#endif
 
       /* reset state */
       sd->P = P;
@@ -164,7 +184,17 @@ void osl_eval_nodes<SHADER_TYPE_SURFACE>(const KernelGlobalsCPU *kg,
 
     /* surface shader */
     if (kg->osl->surface_state[shader]) {
+#if OSL_LIBRARY_VERSION_CODE >= 11304
+      ss->execute(*octx,
+                  *(kg->osl->surface_state[shader]),
+                  kg->osl_thread_index,
+                  0,
+                  *globals,
+                  nullptr,
+                  nullptr);
+#else
       ss->execute(octx, *(kg->osl->surface_state[shader]), *globals);
+#endif
     }
   }
 
@@ -208,7 +238,17 @@ void osl_eval_nodes<SHADER_TYPE_VOLUME>(const KernelGlobalsCPU *kg,
   int shader = sd->shader & SHADER_MASK;
 
   if (kg->osl->volume_state[shader]) {
+#if OSL_LIBRARY_VERSION_CODE >= 11304
+    ss->execute(*octx,
+                *(kg->osl->volume_state[shader]),
+                kg->osl_thread_index,
+                0,
+                *globals,
+                nullptr,
+                nullptr);
+#else
     ss->execute(octx, *(kg->osl->volume_state[shader]), *globals);
+#endif
   }
 
   /* flatten closure tree */
@@ -245,7 +285,17 @@ void osl_eval_nodes<SHADER_TYPE_DISPLACEMENT>(const KernelGlobalsCPU *kg,
   int shader = sd->shader & SHADER_MASK;
 
   if (kg->osl->displacement_state[shader]) {
+#if OSL_LIBRARY_VERSION_CODE >= 11304
+    ss->execute(*octx,
+                *(kg->osl->displacement_state[shader]),
+                kg->osl_thread_index,
+                0,
+                *globals,
+                nullptr,
+                nullptr);
+#else
     ss->execute(octx, *(kg->osl->displacement_state[shader]), *globals);
+#endif
   }
 
   /* get back position */

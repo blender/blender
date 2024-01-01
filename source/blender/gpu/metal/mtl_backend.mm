@@ -392,6 +392,14 @@ void MTLBackend::capabilities_init(MTLContext *ctx)
    * with Apple Silicon GPUs. Disabling for now to avoid erroneous rendering. */
   MTLBackend::capabilities.supports_texture_gather = [device hasUnifiedMemory];
 
+  /* Texture atomics supported in Metal 3.1. */
+  MTLBackend::capabilities.supports_texture_atomics = false;
+#if defined(MAC_OS_VERSION_14_0)
+  if (@available(macOS 14.0, *)) {
+    MTLBackend::capabilities.supports_texture_atomics = true;
+  }
+#endif
+
   /* Common Global Capabilities. */
   GCaps.max_texture_size = ([device supportsFamily:MTLGPUFamilyApple3] ||
                             MTLBackend::capabilities.supports_family_mac1) ?

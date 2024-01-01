@@ -45,7 +45,9 @@ struct OSLGlobals {
   }
 
   /* per thread data */
-  static void thread_init(struct KernelGlobalsCPU *kg, OSLGlobals *osl_globals);
+  static void thread_init(struct KernelGlobalsCPU *kg,
+                          OSLGlobals *osl_globals,
+                          const int thread_init);
   static void thread_free(struct KernelGlobalsCPU *kg);
 
   bool use;

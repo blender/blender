@@ -20,9 +20,9 @@
 
 #include "BKE_customdata.hh"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
-#include "intern/bmesh_operators_private.h" /* own include */
+#include "intern/bmesh_operators_private.hh" /* own include */
 
 /* Merge loop-data that diverges, see: #41445 */
 #define USE_LOOP_CUSTOMDATA_MERGE
@@ -75,12 +75,12 @@ static void bm_interp_face_store(InterpFace *iface, BMesh *bm, BMFace *f, MemAre
   do {
     mul_v2_m3v3(cos_2d[i], static_cast<const float(*)[3]>(axis_mat), l_iter->v->co);
     blocks_l[i] = nullptr;
-    CustomData_bmesh_copy_data(&bm->ldata, &bm->ldata, l_iter->head.data, &blocks_l[i]);
+    CustomData_bmesh_copy_block(bm->ldata, l_iter->head.data, &blocks_l[i]);
     /* if we were not modifying the loops later we would do... */
     // blocks[i] = l_iter->head.data;
 
     blocks_v[i] = nullptr;
-    CustomData_bmesh_copy_data(&bm->vdata, &bm->vdata, l_iter->v->head.data, &blocks_v[i]);
+    CustomData_bmesh_copy_block(bm->vdata, l_iter->v->head.data, &blocks_v[i]);
 
     /* use later for index lookups */
     BM_elem_index_set(l_iter, i); /* set_dirty */
@@ -310,12 +310,12 @@ static void bmo_face_inset_individual(BMesh *bm,
 
     /* copy loop data */
     l_other = l_iter->radial_next;
-    BM_elem_attrs_copy(bm, bm, l_iter->next, l_other->prev);
-    BM_elem_attrs_copy(bm, bm, l_iter, l_other->next->next);
+    BM_elem_attrs_copy(bm, l_iter->next, l_other->prev);
+    BM_elem_attrs_copy(bm, l_iter, l_other->next->next);
 
     if (use_interpolate == false) {
-      BM_elem_attrs_copy(bm, bm, l_iter->next, l_other);
-      BM_elem_attrs_copy(bm, bm, l_iter, l_other->next);
+      BM_elem_attrs_copy(bm, l_iter->next, l_other);
+      BM_elem_attrs_copy(bm, l_iter, l_other->next);
     }
   } while ((void)i++, ((l_iter = l_iter->next) != l_first));
 
@@ -393,8 +393,8 @@ static void bmo_face_inset_individual(BMesh *bm,
       /* copy loop data */
       l_other = l_iter->radial_next;
 
-      BM_elem_attrs_copy(bm, bm, l_iter->next, l_other);
-      BM_elem_attrs_copy(bm, bm, l_iter, l_other->next);
+      BM_elem_attrs_copy(bm, l_iter->next, l_other);
+      BM_elem_attrs_copy(bm, l_iter, l_other->next);
     } while ((l_iter = l_iter->next) != l_first);
 
     bm_interp_face_free(iface, bm);
@@ -1220,8 +1220,8 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
       /* we know this side has a radial_next because of the order of created verts in the quad */
       l_a_other = BM_edge_other_loop(l_a->e, l_a);
       l_b_other = BM_edge_other_loop(l_a->e, l_b);
-      BM_elem_attrs_copy(bm, bm, l_a_other, l_a);
-      BM_elem_attrs_copy(bm, bm, l_b_other, l_b);
+      BM_elem_attrs_copy(bm, l_a_other, l_a);
+      BM_elem_attrs_copy(bm, l_b_other, l_b);
 
       BLI_assert(l_a->f != l_a_other->f);
       BLI_assert(l_b->f != l_b_other->f);
@@ -1258,8 +1258,8 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
         const int i_b = BM_elem_index_get(l_b_other);
         CustomData_bmesh_free_block_data(&bm->ldata, l_b->head.data);
         CustomData_bmesh_free_block_data(&bm->ldata, l_a->head.data);
-        CustomData_bmesh_copy_data(&bm->ldata, &bm->ldata, iface->blocks_l[i_a], &l_b->head.data);
-        CustomData_bmesh_copy_data(&bm->ldata, &bm->ldata, iface->blocks_l[i_b], &l_a->head.data);
+        CustomData_bmesh_copy_block(bm->ldata, iface->blocks_l[i_a], &l_b->head.data);
+        CustomData_bmesh_copy_block(bm->ldata, iface->blocks_l[i_b], &l_a->head.data);
 
 #ifdef USE_LOOP_CUSTOMDATA_MERGE
         if (has_math_ldata) {
@@ -1291,8 +1291,8 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 #endif /* USE_LOOP_CUSTOMDATA_MERGE */
       }
       else {
-        BM_elem_attrs_copy(bm, bm, l_a_other, l_b);
-        BM_elem_attrs_copy(bm, bm, l_b_other, l_a);
+        BM_elem_attrs_copy(bm, l_a_other, l_b);
+        BM_elem_attrs_copy(bm, l_b_other, l_a);
       }
     }
   }

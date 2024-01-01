@@ -79,7 +79,7 @@
   [[maybe_unused]] static void rna_Mesh_##collection_name##_##active_type##_set( \
       PointerRNA *ptr, PointerRNA value, ReportList *) \
   { \
-    Mesh *me = rna_mesh(ptr); \
+    Mesh *mesh = rna_mesh(ptr); \
     CustomData *data = rna_mesh_##customdata_type(ptr); \
     int a; \
     if (data) { \
@@ -89,7 +89,7 @@
            layer++, a++) { \
         if (value.data == layer) { \
           CustomData_set_layer_##active_type(data, layer_type, a); \
-          BKE_mesh_tessface_clear(me); \
+          BKE_mesh_tessface_clear(mesh); \
           return; \
         } \
       } \
@@ -111,7 +111,7 @@
   [[maybe_unused]] static void rna_Mesh_##collection_name##_##active_type##_index_set( \
       PointerRNA *ptr, int value) \
   { \
-    Mesh *me = rna_mesh(ptr); \
+    Mesh *mesh = rna_mesh(ptr); \
     CustomData *data = rna_mesh_##customdata_type(ptr); \
     if (data) { \
       if (UNLIKELY(value < 0)) { \
@@ -121,6 +121,6 @@
         value = min_ii(value, CustomData_number_of_layers(data, layer_type) - 1); \
       } \
       CustomData_set_layer_##active_type(data, layer_type, value); \
-      BKE_mesh_tessface_clear(me); \
+      BKE_mesh_tessface_clear(mesh); \
     } \
   }

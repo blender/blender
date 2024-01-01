@@ -11,7 +11,6 @@
 #include <cstring>
 
 #include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
@@ -107,7 +106,7 @@ static bool subdiv_mesh_topology_info(const SubdivForeachContext *foreach_contex
 {
   SubdivDeformContext *subdiv_context = static_cast<SubdivDeformContext *>(
       foreach_context->user_data);
-  subdiv_mesh_prepare_accumulator(subdiv_context, subdiv_context->coarse_mesh->totvert);
+  subdiv_mesh_prepare_accumulator(subdiv_context, subdiv_context->coarse_mesh->verts_num);
   return true;
 }
 

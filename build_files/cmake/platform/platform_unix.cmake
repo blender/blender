@@ -173,6 +173,14 @@ if(NOT WITH_SYSTEM_FREETYPE)
   check_freetype_for_brotli()
 endif()
 
+if(WITH_HARFBUZZ)
+  find_package(Harfbuzz)
+endif()
+
+if(WITH_FRIBIDI)
+  find_package(Fribidi)
+endif()
+
 if(WITH_PYTHON)
   # This could be used, see: D14954 for details.
   # `find_package(PythonLibs)`
@@ -347,6 +355,7 @@ if(WITH_CYCLES AND WITH_CYCLES_OSL)
     endif()
   endif()
 endif()
+add_bundled_libraries(osl/lib)
 
 if(WITH_CYCLES AND WITH_CYCLES_DEVICE_ONEAPI)
   set(CYCLES_LEVEL_ZERO ${LIBDIR}/level-zero CACHE PATH "Path to Level Zero installation")

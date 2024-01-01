@@ -31,6 +31,10 @@
 #ifdef RAYTRACE_REFRACT
 #  define HORIZON_REFRACT
 #endif
+#if defined(MAT_DEFERRED) || defined(MAT_FORWARD)
+/* Enable AO node computation for material shaders. */
+#  define HORIZON_OCCLUSION
+#endif
 
 vec3 horizon_scan_sample_radiance(vec2 uv)
 {
@@ -167,26 +171,26 @@ void horizon_scan_context_sample_finish(
   vec3 sample_radiance = horizon_scan_sample_radiance(sample_uv);
   /* Take emitter surface normal into consideration. */
   vec3 sample_normal = horizon_scan_sample_normal(sample_uv);
-  /* Discard backfacing samples.
+  /* Discard back-facing samples.
    * The paper suggests a smooth test which is not physically correct since we
    * already consider the sample reflected radiance.
    * Set the weight to allow energy conservation. If we modulate the radiance, we loose energy. */
-  float weight = step(dot(sample_normal, -L), 0.0);
+  float weight = step(dot(sample_normal, L), 0.0);
 
 #ifdef HORIZON_OCCLUSION
   horizon_scan_context_sample_finish(ctx.occlusion_common, sample_radiance, 1.0, theta, bias);
 #endif
 #ifdef HORIZON_DIFFUSE
-  weight = bxdf_eval(ctx.diffuse, L, V);
+  weight *= bxdf_eval(ctx.diffuse, L, V);
   horizon_scan_context_sample_finish(ctx.diffuse_common, sample_radiance, weight, theta, bias);
 #endif
 #ifdef HORIZON_REFLECT
-  weight = bxdf_eval(ctx.reflection, L, V);
+  weight *= bxdf_eval(ctx.reflection, L, V);
   horizon_scan_context_sample_finish(ctx.reflection_common, sample_radiance, weight, theta, bias);
 #endif
 #ifdef HORIZON_REFRACT
   /* TODO(fclem): Broken: Black. */
-  weight = bxdf_eval(ctx.refraction, L, V);
+  weight *= bxdf_eval(ctx.refraction, L, V);
   horizon_scan_context_sample_finish(ctx.refraction_common, sample_radiance, weight, theta, bias);
 #endif
 }
@@ -275,6 +279,7 @@ void horizon_scan_occluder_intersection_ray_sphere_clip(Ray ray,
 /**
  * Scans the horizon in many directions and returns the indirect lighting radiance.
  * Returned lighting is stored inside the context in `_accum` members already normalized.
+ * If `reversed` is set to true, the input normal must be negated.
  */
 void horizon_scan_eval(vec3 vP,
                        inout HorizonScanContext context,
@@ -283,7 +288,8 @@ void horizon_scan_eval(vec3 vP,
                        float search_distance,
                        float global_thickness,
                        float angle_bias,
-                       const int sample_count)
+                       const int sample_count,
+                       const bool reversed)
 {
   vec3 vV = drw_view_incident_vector(vP);
 
@@ -318,33 +324,44 @@ void horizon_scan_eval(vec3 vP,
         /* Always cross at least one pixel. */
         float time = 1.0 + square((float(j) + noise.y) / float(sample_count)) * ssray.max_time;
 
+        if (reversed) {
+          /* We need to cross at least 2 pixels to avoid artifacts form the HiZ storing only the
+           * max depth. The HiZ would need to contain the min depth instead to avoid this. */
+          time += 1.0;
+        }
+
         float lod = 1.0 + (float(j >> 2) / (1.0 + uniform_buf.ao.quality));
 
         vec2 sample_uv = ssray.origin.xy + ssray.direction.xy * time;
         float sample_depth = textureLod(hiz_tx, sample_uv * uniform_buf.hiz.uv_scale, lod).r;
 
-        if (sample_depth == 1.0) {
+        if (sample_depth == 1.0 && !reversed) {
           /* Skip background. Avoids making shadow on the geometry near the far plane. */
           continue;
         }
 
-        /* TODO(fclem): Re-introduce bias. But this is difficult to do per closure. */
-        bool front_facing = true;  // vN.z > 0.0;
-
         /* Bias depth a bit to avoid self shadowing issues. */
         const float bias = 2.0 * 2.4e-7;
-        sample_depth += front_facing ? bias : -bias;
+        sample_depth += reversed ? -bias : bias;
 
         vec3 vP_sample = drw_point_screen_to_view(vec3(sample_uv, sample_depth));
+        vec3 vV_sample = drw_view_incident_vector(vP_sample);
 
         Ray ray;
         ray.origin = vP_sample;
-        ray.direction = -vV;
+        ray.direction = -vV_sample;
         ray.max_time = global_thickness;
+
+        if (reversed) {
+          /* Make the ray start above the surface and end exactly at the surface. */
+          ray.max_time = 2.0 * distance(vP, vP_sample);
+          ray.origin = vP_sample + vV_sample * ray.max_time;
+          ray.direction = -vV_sample;
+        }
 
         Sphere sphere = shape_sphere(vP, search_distance);
 
-        vec3 vP_front, vP_back;
+        vec3 vP_front = ray.origin, vP_back = ray.origin + ray.direction * ray.max_time;
         horizon_scan_occluder_intersection_ray_sphere_clip(ray, sphere, vP_front, vP_back);
 
         vec3 vL_front = normalize(vP_front - vP);

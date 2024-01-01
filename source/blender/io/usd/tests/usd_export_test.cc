@@ -22,7 +22,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_lib_id.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_mesh.hh"
 #include "BKE_node.hh"
 #include "BLI_fileops.h"
@@ -191,10 +191,10 @@ class UsdExportTest : public BlendfileLoadingBaseTest {
     mesh_prim.GetPointsAttr().Get(&positions, 0.0);
     mesh_prim.GetNormalsAttr().Get(&normals, 0.0);
 
-    EXPECT_EQ(mesh->totvert, positions.size());
+    EXPECT_EQ(mesh->verts_num, positions.size());
     EXPECT_EQ(mesh->faces_num, face_counts.size());
-    EXPECT_EQ(mesh->totloop, face_indices.size());
-    EXPECT_EQ(mesh->totloop, normals.size());
+    EXPECT_EQ(mesh->corners_num, face_indices.size());
+    EXPECT_EQ(mesh->corners_num, normals.size());
   }
 };
 

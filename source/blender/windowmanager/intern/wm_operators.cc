@@ -47,7 +47,7 @@
 
 #include "BKE_anim_data.h"
 #include "BKE_brush.hh"
-#include "BKE_colortools.h"
+#include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
@@ -55,13 +55,13 @@
 #include "BKE_image_format.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_preview_image.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_screen.hh" /* BKE_ST_MAXNAME */
-#include "BKE_unit.h"
+#include "BKE_unit.hh"
 
 #include "BKE_idtype.h"
 
@@ -2384,8 +2384,7 @@ static void radial_control_set_tex(RadialControl *rc)
                                             ibuf->y,
                                             1,
                                             GPU_R8,
-                                            GPU_TEXTURE_USAGE_SHADER_READ |
-                                                GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW,
+                                            GPU_TEXTURE_USAGE_SHADER_READ,
                                             ibuf->float_buffer.data);
 
         GPU_texture_filter_mode(rc->texture, true);

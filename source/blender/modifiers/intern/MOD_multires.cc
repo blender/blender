@@ -162,7 +162,7 @@ static void multires_ccg_settings_init(SubdivToCCGSettings *settings,
                                        const ModifierEvalContext *ctx,
                                        Mesh *mesh)
 {
-  const bool has_mask = CustomData_has_layer(&mesh->loop_data, CD_GRID_PAINT_MASK);
+  const bool has_mask = CustomData_has_layer(&mesh->corner_data, CD_GRID_PAINT_MASK);
   const bool use_render_params = (ctx->flag & MOD_APPLY_RENDER);
   const bool ignore_simplify = (ctx->flag & MOD_APPLY_IGNORE_SIMPLIFY);
   const Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
@@ -185,7 +185,7 @@ static Mesh *multires_as_ccg(MultiresModifierData *mmd,
     return result;
   }
   BKE_subdiv_displacement_attach_from_multires(subdiv, mesh, mmd);
-  result = BKE_subdiv_to_ccg_mesh(subdiv, &ccg_settings, mesh);
+  result = BKE_subdiv_to_ccg_mesh(*subdiv, ccg_settings, *mesh);
 
   /* NOTE: CCG becomes an owner of Subdiv descriptor, so can not share
    * this pointer. Not sure if it's needed, but might have a second look
@@ -237,11 +237,11 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
      * surely there is a better way of solving this. */
     if (ctx->object->sculpt != nullptr) {
       SculptSession *sculpt_session = ctx->object->sculpt;
-      sculpt_session->subdiv_ccg = result->runtime->subdiv_ccg;
+      sculpt_session->subdiv_ccg = result->runtime->subdiv_ccg.get();
       sculpt_session->multires.active = true;
       sculpt_session->multires.modifier = mmd;
       sculpt_session->multires.level = mmd->sculptlvl;
-      sculpt_session->totvert = mesh->totvert;
+      sculpt_session->totvert = mesh->verts_num;
       sculpt_session->faces_num = mesh->faces_num;
       sculpt_session->vert_positions = {};
       sculpt_session->faces = {};
@@ -251,7 +251,8 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   }
   else {
     if (use_clnors) {
-      void *data = CustomData_add_layer(&mesh->loop_data, CD_NORMAL, CD_CONSTRUCT, mesh->totloop);
+      void *data = CustomData_add_layer(
+          &mesh->corner_data, CD_NORMAL, CD_CONSTRUCT, mesh->corners_num);
       memcpy(data, mesh->corner_normals().data(), mesh->corner_normals().size_in_bytes());
     }
 
@@ -259,9 +260,9 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
     if (use_clnors) {
       float(*lnors)[3] = static_cast<float(*)[3]>(
-          CustomData_get_layer_for_write(&result->loop_data, CD_NORMAL, result->totloop));
+          CustomData_get_layer_for_write(&result->corner_data, CD_NORMAL, result->corners_num));
       BKE_mesh_set_custom_normals(result, lnors);
-      CustomData_free_layers(&result->loop_data, CD_NORMAL, result->totloop);
+      CustomData_free_layers(&result->corner_data, CD_NORMAL, result->corners_num);
     }
     // BKE_subdiv_stats_print(&subdiv->stats);
     if (subdiv != runtime_data->subdiv) {

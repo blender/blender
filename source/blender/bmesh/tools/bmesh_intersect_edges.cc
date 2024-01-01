@@ -17,9 +17,9 @@
 
 #include "atomic_ops.h"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
-#include "bmesh_intersect_edges.h" /* own include */
+#include "bmesh_intersect_edges.hh" /* own include */
 
 //#define INTERSECT_EDGES_DEBUG
 

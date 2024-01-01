@@ -33,8 +33,8 @@
 #include "BKE_idprop.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
-#include "BKE_library.h"
-#include "BKE_main.h"
+#include "BKE_library.hh"
+#include "BKE_main.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -47,7 +47,7 @@
 #include "ED_screen.hh"
 #include "ED_view3d.hh"
 
-#include "ANIM_bone_collections.h"
+#include "ANIM_bone_collections.hh"
 
 #include "DEG_depsgraph.hh"
 
@@ -82,6 +82,12 @@ EditBone *ED_armature_ebone_add(bArmature *arm, const char *name)
   bone->curve_out_z = 0.0f;
   bone->ease1 = 1.0f;
   bone->ease2 = 1.0f;
+
+  /* Prevent custom bone colors from having alpha zero.
+   * Part of the fix for issue #115434. */
+  bone->color.custom.solid[3] = 255;
+  bone->color.custom.select[3] = 255;
+  bone->color.custom.active[3] = 255;
 
   copy_v3_fl(bone->scale_in, 1.0f);
   copy_v3_fl(bone->scale_out, 1.0f);
@@ -1521,6 +1527,8 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
                 newbone->flag |= BONE_CONNECTED;
               }
             }
+
+            newbone->color = ebone->color;
 
             newbone->weight = ebone->weight;
             newbone->dist = ebone->dist;

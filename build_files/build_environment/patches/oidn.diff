@@ -22,15 +22,23 @@ diff -Naur oidn-2.0.1/core/module.cpp external_openimagedenoise/core/module.cpp
    #if defined(_WIN32)
      filename += ".dll";
    #else
-diff -Naur oidn-2.0.1/devices/CMakeLists.txt external_openimagedenoise/devices/CMakeLists.txt
---- oidn-2.0.1/devices/CMakeLists.txt   2023-06-26 09:06:31.000000000 -0600
-+++ external_openimagedenoise/devices/CMakeLists.txt    2023-07-01 10:57:36.987238700 -0600
+diff -Naur oidn-2.1.0/devices/CMakeLists.txt external_openimagedenoise/devices/CMakeLists.txt
+--- oidn-2.1.0/devices/CMakeLists.txt	2023-10-11 14:04:08 -0600
++++ external_openimagedenoise/devices/CMakeLists.txt	2023-12-23 09:34:17 -0700
 @@ -59,6 +59,8 @@
        -DOIDN_API_NAMESPACE:STRING=${OIDN_API_NAMESPACE}
        -DOIDN_WARN_AS_ERRORS:BOOL=${OIDN_WARN_AS_ERRORS}
        -DOIDN_SANITIZER:STRING=${OIDN_SANITIZER}
-+      -DPYTHON_EXECUTABLE:STRING=${PYTHON_EXECUTABLE}
++      -DPython_EXECUTABLE:STRING=${Python_EXECUTABLE}
 +      -DCMAKE_DEBUG_POSTFIX:STRING=${CMAKE_DEBUG_POSTFIX}
+     BUILD_ALWAYS TRUE
+     DEPENDS
+       OpenImageDenoise_core
+@@ -149,6 +151,7 @@
+       -DOIDN_API_NAMESPACE:STRING=${OIDN_API_NAMESPACE}
+       -DOIDN_WARN_AS_ERRORS:BOOL=${OIDN_WARN_AS_ERRORS}
+       -DOIDN_SANITIZER:STRING=${OIDN_SANITIZER}
++      -DPython_EXECUTABLE:STRING=${Python_EXECUTABLE}
      BUILD_ALWAYS TRUE
      DEPENDS
        OpenImageDenoise_core

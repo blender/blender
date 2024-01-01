@@ -4,19 +4,18 @@
 
 #include "testing/testing.h"
 
+#include "BKE_global.h"
+
 #include "GHOST_C-api.h"
+
 #include "GPU_platform.h"
 
 struct GPUContext;
 
 namespace blender::gpu {
 
-/* Test class that setups a GPUContext for test cases.
- *
- * Usage:
- *   TEST_F(GPUTest, my_gpu_test) {
- *     ...
- *   }
+/**
+ * Test class that setups a GPUContext for test cases.
  */
 class GPUTest : public ::testing::Test {
  private:
@@ -26,11 +25,16 @@ class GPUTest : public ::testing::Test {
   GHOST_ContextHandle ghost_context;
   GPUContext *context;
 
+  int32_t g_debug_flags_;
   int32_t prev_g_debug_;
 
  protected:
-  GPUTest(GHOST_TDrawingContextType draw_context_type, eGPUBackendType gpu_backend_type)
-      : draw_context_type(draw_context_type), gpu_backend_type(gpu_backend_type)
+  GPUTest(GHOST_TDrawingContextType draw_context_type,
+          eGPUBackendType gpu_backend_type,
+          int32_t g_debug_flags)
+      : draw_context_type(draw_context_type),
+        gpu_backend_type(gpu_backend_type),
+        g_debug_flags_(g_debug_flags)
   {
   }
 
@@ -41,7 +45,12 @@ class GPUTest : public ::testing::Test {
 #ifdef WITH_OPENGL_BACKEND
 class GPUOpenGLTest : public GPUTest {
  public:
-  GPUOpenGLTest() : GPUTest(GHOST_kDrawingContextTypeOpenGL, GPU_BACKEND_OPENGL) {}
+  GPUOpenGLTest()
+      : GPUTest(GHOST_kDrawingContextTypeOpenGL,
+                GPU_BACKEND_OPENGL,
+                G_DEBUG_GPU | G_DEBUG_GPU_RENDERDOC)
+  {
+  }
 };
 #  define GPU_OPENGL_TEST(test_name) \
     TEST_F(GPUOpenGLTest, test_name) \
@@ -55,10 +64,24 @@ class GPUOpenGLTest : public GPUTest {
 #ifdef WITH_METAL_BACKEND
 class GPUMetalTest : public GPUTest {
  public:
-  GPUMetalTest() : GPUTest(GHOST_kDrawingContextTypeMetal, GPU_BACKEND_METAL) {}
+  GPUMetalTest() : GPUTest(GHOST_kDrawingContextTypeMetal, GPU_BACKEND_METAL, G_DEBUG_GPU) {}
+};
+
+class GPUMetalWorkaroundsTest : public GPUTest {
+ public:
+  GPUMetalWorkaroundsTest()
+      : GPUTest(GHOST_kDrawingContextTypeMetal,
+                GPU_BACKEND_METAL,
+                G_DEBUG_GPU | G_DEBUG_GPU_FORCE_WORKAROUNDS)
+  {
+  }
 };
 #  define GPU_METAL_TEST(test_name) \
     TEST_F(GPUMetalTest, test_name) \
+    { \
+      test_##test_name(); \
+    } \
+    TEST_F(GPUMetalWorkaroundsTest, test_name) \
     { \
       test_##test_name(); \
     }
@@ -69,10 +92,29 @@ class GPUMetalTest : public GPUTest {
 #ifdef WITH_VULKAN_BACKEND
 class GPUVulkanTest : public GPUTest {
  public:
-  GPUVulkanTest() : GPUTest(GHOST_kDrawingContextTypeVulkan, GPU_BACKEND_VULKAN) {}
+  GPUVulkanTest()
+      : GPUTest(GHOST_kDrawingContextTypeVulkan,
+                GPU_BACKEND_VULKAN,
+                G_DEBUG_GPU | G_DEBUG_GPU_RENDERDOC)
+  {
+  }
+};
+
+class GPUVulkanWorkaroundsTest : public GPUTest {
+ public:
+  GPUVulkanWorkaroundsTest()
+      : GPUTest(GHOST_kDrawingContextTypeVulkan,
+                GPU_BACKEND_VULKAN,
+                G_DEBUG_GPU | G_DEBUG_GPU_RENDERDOC | G_DEBUG_GPU_FORCE_WORKAROUNDS)
+  {
+  }
 };
 #  define GPU_VULKAN_TEST(test_name) \
     TEST_F(GPUVulkanTest, test_name) \
+    { \
+      test_##test_name(); \
+    } \
+    TEST_F(GPUVulkanWorkaroundsTest, test_name) \
     { \
       test_##test_name(); \
     }

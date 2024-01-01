@@ -7,6 +7,7 @@
  */
 
 // #include "BLI_map.hh"
+#include "BKE_colortools.hh"
 #include "DEG_depsgraph_query.hh"
 
 #include "eevee_instance.hh"

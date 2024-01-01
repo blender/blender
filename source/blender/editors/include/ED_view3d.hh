@@ -8,8 +8,10 @@
 
 #pragma once
 
-#include "BKE_attribute.h"
+#include "BLI_math_matrix_types.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_utildefines.h"
+
 #include "DNA_scene_types.h"
 
 /* ********* exports for space_view3d/ module ********** */
@@ -27,7 +29,7 @@ struct Camera;
 struct CustomData_MeshMasks;
 struct Depsgraph;
 struct EditBone;
-struct GPUSelectResult;
+struct GPUSelectBuffer;
 struct ID;
 struct Main;
 struct MetaElem;
@@ -440,10 +442,9 @@ void pose_foreachScreenBone(ViewContext *vc,
 /**
  * \note use #ED_view3d_ob_project_mat_get to get the projection matrix
  */
-void ED_view3d_project_float_v2_m4(const ARegion *region,
-                                   const float co[3],
-                                   float r_co[2],
-                                   const float mat[4][4]);
+blender::float2 ED_view3d_project_float_v2_m4(const ARegion *region,
+                                              const float co[3],
+                                              const blender::float4x4 &mat);
 /**
  * \note use #ED_view3d_ob_project_mat_get to get projecting mat
  */
@@ -704,7 +705,7 @@ bool ED_view3d_win_to_segment_clipped(const Depsgraph *depsgraph,
                                       float r_ray_start[3],
                                       float r_ray_end[3],
                                       bool do_clip_planes);
-void ED_view3d_ob_project_mat_get(const RegionView3D *rv3d, const Object *ob, float r_pmat[4][4]);
+blender::float4x4 ED_view3d_ob_project_mat_get(const RegionView3D *rv3d, const Object *ob);
 void ED_view3d_ob_project_mat_get_from_obmat(const RegionView3D *rv3d,
                                              const float obmat[4][4],
                                              float r_pmat[4][4]);
@@ -877,15 +878,6 @@ bool ED_view3d_autodist_simple(ARegion *region,
 bool ED_view3d_depth_read_cached_seg(
     const ViewDepths *vd, const int mval_sta[2], const int mval_end[2], int margin, float *depth);
 
-/**
- * The default value for the maximum number of elements that can be selected at once
- * using view-port selection.
- *
- * \note in many cases this defines the size of fixed-size stack buffers,
- * so take care increasing this value.
- */
-#define MAXPICKELEMS 2500
-
 enum eV3DSelectMode {
   /* all elements in the region, ignore depth */
   VIEW3D_SELECT_ALL = 0,
@@ -915,28 +907,21 @@ void view3d_opengl_select_cache_begin();
 void view3d_opengl_select_cache_end();
 
 /**
- * \warning be sure to account for a negative return value
- * This is an error, "Too many objects in select buffer"
- * and no action should be taken (can crash blender) if this happens
- *
  * \note (vc->obedit == NULL) can be set to explicitly skip edit-object selection.
  */
 int view3d_opengl_select_ex(ViewContext *vc,
-                            GPUSelectResult *buffer,
-                            unsigned int buffer_len,
+                            GPUSelectBuffer *buffer,
                             const rcti *input,
                             eV3DSelectMode select_mode,
                             eV3DSelectObjectFilter select_filter,
                             bool do_material_slot_selection);
 int view3d_opengl_select(ViewContext *vc,
-                         GPUSelectResult *buffer,
-                         unsigned int buffer_len,
+                         GPUSelectBuffer *buffer,
                          const rcti *input,
                          eV3DSelectMode select_mode,
                          eV3DSelectObjectFilter select_filter);
 int view3d_opengl_select_with_id_filter(ViewContext *vc,
-                                        GPUSelectResult *buffer,
-                                        unsigned int buffer_len,
+                                        GPUSelectBuffer *buffer,
                                         const rcti *input,
                                         eV3DSelectMode select_mode,
                                         eV3DSelectObjectFilter select_filter,
@@ -1006,7 +991,7 @@ bool ED_operator_rv3d_user_region_poll(bContext *C);
  */
 void ED_view3d_init_mats_rv3d(const Object *ob, RegionView3D *rv3d);
 void ED_view3d_init_mats_rv3d_gl(const Object *ob, RegionView3D *rv3d);
-#ifdef DEBUG
+#ifndef NDEBUG
 /**
  * Ensure we correctly initialize.
  */

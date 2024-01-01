@@ -40,7 +40,7 @@ class OneapiDeviceQueue : public DeviceQueue {
   virtual void copy_to_device(device_memory &mem) override;
   virtual void copy_from_device(device_memory &mem) override;
 
-  virtual bool supports_local_atomic_sort() const
+  virtual bool supports_local_atomic_sort() const override
   {
     return true;
   }

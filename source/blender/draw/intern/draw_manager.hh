@@ -14,8 +14,9 @@
  * \note It is currently work in progress and should replace the old global draw manager.
  */
 
-#include "BLI_listbase_wrapper.hh"
+#include "BLI_map.hh"
 #include "BLI_sys_types.h"
+
 #include "GPU_material.h"
 
 #include "draw_resource.hh"

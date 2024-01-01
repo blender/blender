@@ -29,7 +29,6 @@
 
 #include "DNA_brush_types.h"
 #include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
 #include "BKE_ccg.h"
@@ -43,20 +42,14 @@
 #include "paint_intern.hh"
 #include "sculpt_intern.hh"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
 #define SCULPT_GEODESIC_VERTEX_NONE -1
 
-using blender::float2;
-using blender::float3;
-using blender::IndexRange;
-using blender::Map;
-using blender::Set;
-using blender::uint3;
-using blender::Vector;
+namespace blender::ed::sculpt_paint::geodesic {
 
 /* Propagate distance from v1 and v2 to v0. */
-static bool sculpt_geodesic_mesh_test_dist_add(blender::Span<blender::float3> vert_positions,
+static bool sculpt_geodesic_mesh_test_dist_add(Span<float3> vert_positions,
                                                const int v0,
                                                const int v1,
                                                const int v2,
@@ -288,8 +281,8 @@ static float *geodesic_mesh_create(Object *ob,
   SculptSession *ss = ob->sculpt;
   Mesh *mesh = BKE_object_get_original_mesh(ob);
 
-  const int totvert = mesh->totvert;
-  const int totedge = mesh->totedge;
+  const int totvert = mesh->verts_num;
+  const int totedge = mesh->edges_num;
 
   const float limit_radius_sq = limit_radius * limit_radius;
 
@@ -297,21 +290,23 @@ static float *geodesic_mesh_create(Object *ob,
     vert_positions = SCULPT_mesh_deformed_positions_get(ss);
   }
 
-  const blender::Span<blender::int2> edges = mesh->edges();
-  const blender::OffsetIndices faces = mesh->faces();
-  const blender::Span<int> corner_verts = mesh->corner_verts();
-  const blender::Span<int> corner_edges = mesh->corner_edges();
+  const Span<int2> edges = mesh->edges();
+  const OffsetIndices faces = mesh->faces();
+  const Span<int> corner_verts = mesh->corner_verts();
+  const Span<int> corner_edges = mesh->corner_edges();
+  const bke::AttributeAccessor attributes = mesh->attributes();
+  const VArraySpan<bool> hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
 
   float *dists = static_cast<float *>(MEM_malloc_arrayN(totvert, sizeof(float), __func__));
   BLI_bitmap *edge_tag = BLI_BITMAP_NEW(totedge, "edge tag");
 
   if (ss->epmap.is_empty()) {
-    ss->epmap = blender::bke::mesh::build_edge_to_face_map(
+    ss->epmap = bke::mesh::build_edge_to_face_map(
         faces, corner_edges, edges.size(), ss->edge_to_face_offsets, ss->edge_to_face_indices);
   }
   if (ss->vemap.is_empty()) {
-    ss->vemap = blender::bke::mesh::build_vert_to_edge_map(
-        edges, mesh->totvert, ss->vert_to_edge_offsets, ss->vert_to_edge_indices);
+    ss->vemap = bke::mesh::build_vert_to_edge_map(
+        edges, mesh->verts_num, ss->vert_to_edge_offsets, ss->vert_to_edge_indices);
   }
 
   /* Both contain edge indices encoded as *void. */
@@ -397,7 +392,7 @@ static float *geodesic_mesh_create(Object *ob,
       if (ss->epmap[e].size() != 0) {
         for (int face_map_index = 0; face_map_index < ss->epmap[e].size(); face_map_index++) {
           const int face = ss->epmap[e][face_map_index];
-          if (ss->hide_poly && ss->hide_poly[face]) {
+          if (!hide_poly.is_empty() && hide_poly[face]) {
             continue;
           }
           for (const int v_other : corner_verts.slice(faces[face])) {
@@ -419,7 +414,7 @@ static float *geodesic_mesh_create(Object *ob,
                 }
 
                 if (e_other != e && !BLI_BITMAP_TEST(edge_tag, e_other) &&
-                    (ss->epmap[e_other].size() == 0 || dists[ev_other] != FLT_MAX))
+                    (ss->epmap[e_other].is_empty() || dists[ev_other] != FLT_MAX))
                 {
                   if (BLI_BITMAP_TEST(affected_vertex, v_other) ||
                       BLI_BITMAP_TEST(affected_vertex, ev_other)) {
@@ -949,10 +944,9 @@ static float *geodesic_grids_create(Object *ob,
  * calculate the distance. */
 static float *geodesic_fallback_create(Object *ob, GSet *initial_verts)
 {
-
   SculptSession *ss = ob->sculpt;
   Mesh *mesh = BKE_object_get_original_mesh(ob);
-  const int totvert = mesh->totvert;
+  const int totvert = mesh->verts_num;
   float *dists = static_cast<float *>(MEM_malloc_arrayN(totvert, sizeof(float), __func__));
   int first_affected = SCULPT_GEODESIC_VERTEX_NONE;
 
@@ -979,11 +973,11 @@ static float *geodesic_fallback_create(Object *ob, GSet *initial_verts)
   return dists;
 }
 
-float *SCULPT_geodesic_distances_create(Object *ob,
-                                        GSet *initial_verts,
-                                        const float limit_radius,
-                                        PBVHVertRef *r_closest_verts,
-                                        Span<float3> vertco_override)
+float *distances_create(Object *ob,
+                        GSet *initial_verts,
+                        const float limit_radius,
+                        PBVHVertRef *r_closest_verts,
+                        Span<float3> vertco_override)
 {
   SculptSession *ss = ob->sculpt;
   switch (BKE_pbvh_type(ss->pbvh)) {
@@ -1002,10 +996,10 @@ float *SCULPT_geodesic_distances_create(Object *ob,
   return nullptr;
 }
 
-float *SCULPT_geodesic_from_vertex_and_symm(struct Sculpt *sd,
-                                            Object *ob,
-                                            const PBVHVertRef vertex,
-                                            const float limit_radius)
+float *distances_create_from_vert_and_symm(Sculpt *sd,
+                                           Object *ob,
+                                           const PBVHVertRef vertex,
+                                           const float limit_radius)
 {
   SculptSession *ss = ob->sculpt;
   GSet *initial_verts = BLI_gset_int_new("initial_verts");
@@ -1029,7 +1023,7 @@ float *SCULPT_geodesic_from_vertex_and_symm(struct Sculpt *sd,
     }
   }
 
-  float *dists = SCULPT_geodesic_distances_create(ob, initial_verts, limit_radius, nullptr, {});
+  float *dists = distances_create(ob, initial_verts, limit_radius, nullptr, {});
   BLI_gset_free(initial_verts, nullptr);
   return dists;
 }
@@ -1044,8 +1038,10 @@ float *SCULPT_geodesic_from_vertex(Object *ob, const PBVHVertRef vertex, const f
 
   BLI_gset_add(initial_verts, POINTER_FROM_INT(BKE_pbvh_vertex_to_index(ss->pbvh, vertex)));
 
-  float *dists = SCULPT_geodesic_distances_create(ob, initial_verts, limit_radius, nullptr, {});
+  float *dists = geodesic::distances_create(ob, initial_verts, limit_radius, nullptr, {});
   BLI_gset_free(initial_verts, nullptr);
 
   return dists;
 }
+
+}  // namespace blender::ed::sculpt_paint::geodesic

@@ -333,10 +333,12 @@ static void nlastrip_overlap_reorder(TransDataNla *tdn, NlaStrip *strip)
   }
 }
 
-/** Flag overlaps with adjacent strips.
+/**
+ * Flag overlaps with adjacent strips.
  *
  * Since the strips are re-ordered as they're transformed, we only have to check adjacent
- * strips for overlap instead of all of them. */
+ * strips for overlap instead of all of them.
+ */
 static void nlastrip_flag_overlaps(NlaStrip *strip)
 {
 

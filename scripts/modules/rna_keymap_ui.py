@@ -336,17 +336,14 @@ def draw_filtered(display_keymaps, filter_type, filter_text, layout):
         if filtered_items:
             col = layout.column()
 
-            row = col.row()
+            row = col.row(align=True)
             row.label(text=km.name, icon='DOT',
                       text_ctxt=i18n_contexts.id_windowmanager)
 
-            row.label()
-            row.label()
-
             if km.is_user_modified:
-                row.operator("preferences.keymap_restore", text="Restore")
-            else:
-                row.label()
+                subrow = row.row()
+                subrow.alignment = 'RIGHT'
+                subrow.operator("preferences.keymap_restore", text="Restore")
 
             for kmi in filtered_items:
                 draw_kmi(display_keymaps, kc, km, kmi, col, 1)

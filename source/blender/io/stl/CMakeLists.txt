@@ -4,13 +4,12 @@
 
 set(INC
   .
-  importer
   exporter
+  importer
   ../common
   ../../blenkernel
   ../../bmesh
   ../../bmesh/intern
-  ../../depsgraph
   ../../editors/include
   ../../makesrna
   ../../nodes
@@ -36,13 +35,14 @@ set(SRC
   importer/stl_import_ascii_reader.hh
   importer/stl_import_binary_reader.hh
   importer/stl_import_mesh.hh
-  exporter/stl_export_writer.hh
   exporter/stl_export.hh
+  exporter/stl_export_writer.hh
 )
 
 set(LIB
   bf_blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
   bf_io_common

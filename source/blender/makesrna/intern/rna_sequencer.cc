@@ -1517,13 +1517,10 @@ static void rna_Sequence_separate(ID *id, Sequence *seqm, Main *bmain)
 /* Find channel owner. If nullptr, owner is `Editing`, otherwise it's `Sequence`. */
 static Sequence *rna_SeqTimelineChannel_owner_get(Editing *ed, SeqTimelineChannel *channel)
 {
-  blender::VectorSet strips = SEQ_query_all_strips_recursive(&ed->seqbase);
+  blender::VectorSet strips = SEQ_query_all_meta_strips_recursive(&ed->seqbase);
 
   Sequence *channel_owner = nullptr;
   for (Sequence *seq : strips) {
-    if (seq->type != SEQ_TYPE_META) {
-      continue;
-    }
     if (BLI_findindex(&seq->channels, channel) != -1) {
       channel_owner = seq;
       break;
@@ -1664,7 +1661,6 @@ static void rna_def_retiming_key(BlenderRNA *brna)
   RNA_def_struct_sdna(srna, "SeqRetimingKey");
 
   prop = RNA_def_property(srna, "timeline_frame", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, nullptr, "strip_frame_index");
   RNA_def_property_int_funcs(
       prop, "rna_Sequence_retiming_key_frame_get", "rna_Sequence_retiming_key_frame_set", nullptr);
   RNA_def_property_ui_text(prop, "Timeline Frame", "Position of retiming key in timeline");

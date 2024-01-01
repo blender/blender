@@ -122,7 +122,7 @@ static int sculpt_face_set_by_topology_invoke(bContext *C, wmOperator *op, const
    * tool without brush cursor. */
   SculptCursorGeometryInfo sgi;
   const float mouse[2] = {event->mval[0], event->mval[1]};
-  if (!SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false, false)) {
+  if (!SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false)) {
     /* The cursor is not over the mesh. Cancel to avoid editing the last updated Face Set ID. */
     return OPERATOR_CANCELLED;
   }
@@ -131,7 +131,7 @@ static int sculpt_face_set_by_topology_invoke(bContext *C, wmOperator *op, const
   int totnode;
   BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
   SCULPT_undo_push_begin(ob, op);
-  SCULPT_undo_push_node(ob, nodes[0], SCULPT_UNDO_FACE_SETS);
+  SCULPT_undo_push_node(ob, nodes[0], undo::Type::FaceSet);
 
   const PBVHFaceRef initial_poly = ss->active_face;
   const PBVHEdgeRef initial_edge = sculpt_poly_loop_initial_edge_from_cursor(ob);
@@ -167,7 +167,7 @@ static int sculpt_face_set_by_topology_invoke(bContext *C, wmOperator *op, const
     BKE_pbvh_vert_tag_update_normal_visibility(nodes[i]);
   }
 
-  BKE_pbvh_update_vertex_data(ss->pbvh, PBVH_UpdateVisibility);
+  bke::pbvh::update_vertex_data(ss->pbvh, PBVH_UpdateVisibility);
 
   if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
     BKE_mesh_flush_hidden_from_verts(ob->data);

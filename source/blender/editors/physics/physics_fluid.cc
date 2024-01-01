@@ -26,7 +26,7 @@
 #include "BKE_context.hh"
 #include "BKE_fluid.h"
 #include "BKE_global.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_modifier.hh"
 #include "BKE_report.h"
 #include "BKE_screen.hh"

@@ -95,7 +95,7 @@ Closure closure_eval(ClosureTranslucent translucent)
   /* Glue with the old system. */
   CLOSURE_VARS_DECLARE_1(Translucent);
 
-  in_Translucent_0.N = translucent.N;
+  in_Translucent_0.N = -translucent.N;
 
   CLOSURE_EVAL_FUNCTION_1(TranslucentBSDF, Translucent);
 

@@ -49,14 +49,14 @@
 #endif
 
 #include "BKE_asset.hh"
-#include "BKE_blendfile.h"
+#include "BKE_blendfile.hh"
 #include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_icons.h"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
-#include "BKE_main.h"
-#include "BKE_main_idmap.h"
+#include "BKE_main.hh"
+#include "BKE_main_idmap.hh"
 #include "BKE_preferences.h"
 #include "BKE_preview_image.hh"
 

@@ -73,10 +73,10 @@
 #include "BKE_lib_id.h"
 #include "BKE_lib_override.hh"
 #include "BKE_lib_query.h"
-#include "BKE_lib_remap.h"
-#include "BKE_main.h" /* for Main */
-#include "BKE_main_idmap.h"
-#include "BKE_main_namemap.h"
+#include "BKE_lib_remap.hh"
+#include "BKE_main.hh" /* for Main */
+#include "BKE_main_idmap.hh"
+#include "BKE_main_namemap.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
@@ -99,7 +99,6 @@
 #include "BLO_readfile.h"
 #include "BLO_undofile.hh"
 
-#include "SEQ_clipboard.hh"
 #include "SEQ_iterator.hh"
 #include "SEQ_modifier.hh"
 #include "SEQ_sequencer.hh"
@@ -3544,8 +3543,10 @@ static void read_undo_remap_noundo_data(FileData *fd)
   FOREACH_MAIN_ID_END;
 }
 
-/** Contains sanity/debug checks to be performed at the very end of the reading process (i.e. after
- * data, liblink, linked data, etc. has been done). */
+/**
+ * Contains sanity/debug checks to be performed at the very end of the reading process (i.e. after
+ * data, liblink, linked data, etc. has been done).
+ */
 static void blo_read_file_checks(Main *bmain)
 {
 #ifndef NDEBUG

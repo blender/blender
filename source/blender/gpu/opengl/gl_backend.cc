@@ -396,7 +396,7 @@ static void detect_workarounds()
    */
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)) {
     const Vector<std::string> matches = {
-        "RX550/550", "(TM) 520", "(TM) 530", "(TM) 535", "R5", "R7", "R9"};
+        "RX550/550", "(TM) 520", "(TM) 530", "(TM) 535", "R5", "R7", "R9", "HD"};
 
     if (match_renderer(renderer, matches)) {
       GCaps.use_hq_normals_workaround = true;

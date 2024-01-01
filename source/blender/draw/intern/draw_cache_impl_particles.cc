@@ -848,22 +848,22 @@ static void particle_batch_cache_ensure_procedural_strand_data(PTCacheEdit *edit
   ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
 
   if (psmd != nullptr && psmd->mesh_final != nullptr) {
-    if (CustomData_has_layer(&psmd->mesh_final->loop_data, CD_PROP_FLOAT2)) {
-      cache->num_uv_layers = CustomData_number_of_layers(&psmd->mesh_final->loop_data,
+    if (CustomData_has_layer(&psmd->mesh_final->corner_data, CD_PROP_FLOAT2)) {
+      cache->num_uv_layers = CustomData_number_of_layers(&psmd->mesh_final->corner_data,
                                                          CD_PROP_FLOAT2);
-      active_uv = CustomData_get_active_layer(&psmd->mesh_final->loop_data, CD_PROP_FLOAT2);
-      render_uv = CustomData_get_render_layer(&psmd->mesh_final->loop_data, CD_PROP_FLOAT2);
+      active_uv = CustomData_get_active_layer(&psmd->mesh_final->corner_data, CD_PROP_FLOAT2);
+      render_uv = CustomData_get_render_layer(&psmd->mesh_final->corner_data, CD_PROP_FLOAT2);
     }
-    if (CustomData_has_layer(&psmd->mesh_final->loop_data, CD_PROP_BYTE_COLOR)) {
-      cache->num_col_layers = CustomData_number_of_layers(&psmd->mesh_final->loop_data,
+    if (CustomData_has_layer(&psmd->mesh_final->corner_data, CD_PROP_BYTE_COLOR)) {
+      cache->num_col_layers = CustomData_number_of_layers(&psmd->mesh_final->corner_data,
                                                           CD_PROP_BYTE_COLOR);
       if (psmd->mesh_final->active_color_attribute != nullptr) {
-        active_col = CustomData_get_named_layer(&psmd->mesh_final->loop_data,
+        active_col = CustomData_get_named_layer(&psmd->mesh_final->corner_data,
                                                 CD_PROP_BYTE_COLOR,
                                                 psmd->mesh_final->active_color_attribute);
       }
       if (psmd->mesh_final->default_color_attribute != nullptr) {
-        render_col = CustomData_get_named_layer(&psmd->mesh_final->loop_data,
+        render_col = CustomData_get_named_layer(&psmd->mesh_final->corner_data,
                                                 CD_PROP_BYTE_COLOR,
                                                 psmd->mesh_final->default_color_attribute);
       }
@@ -913,7 +913,8 @@ static void particle_batch_cache_ensure_procedural_strand_data(PTCacheEdit *edit
     GPU_vertbuf_attr_get_raw_data(cache->proc_uv_buf[i], uv_id, &uv_step[i]);
 
     char attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
-    const char *name = CustomData_get_layer_name(&psmd->mesh_final->loop_data, CD_PROP_FLOAT2, i);
+    const char *name = CustomData_get_layer_name(
+        &psmd->mesh_final->corner_data, CD_PROP_FLOAT2, i);
     GPU_vertformat_safe_attr_name(name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
 
     int n = 0;
@@ -950,7 +951,7 @@ static void particle_batch_cache_ensure_procedural_strand_data(PTCacheEdit *edit
 
     char attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
     const char *name = CustomData_get_layer_name(
-        &psmd->mesh_final->loop_data, CD_PROP_BYTE_COLOR, i);
+        &psmd->mesh_final->corner_data, CD_PROP_BYTE_COLOR, i);
     GPU_vertformat_safe_attr_name(name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
 
     int n = 0;
@@ -1196,15 +1197,15 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
   MCol **parent_mcol = nullptr;
 
   if (psmd != nullptr) {
-    if (CustomData_has_layer(&psmd->mesh_final->loop_data, CD_PROP_FLOAT2)) {
-      num_uv_layers = CustomData_number_of_layers(&psmd->mesh_final->loop_data, CD_PROP_FLOAT2);
-      active_uv = CustomData_get_active_layer(&psmd->mesh_final->loop_data, CD_PROP_FLOAT2);
+    if (CustomData_has_layer(&psmd->mesh_final->corner_data, CD_PROP_FLOAT2)) {
+      num_uv_layers = CustomData_number_of_layers(&psmd->mesh_final->corner_data, CD_PROP_FLOAT2);
+      active_uv = CustomData_get_active_layer(&psmd->mesh_final->corner_data, CD_PROP_FLOAT2);
     }
-    if (CustomData_has_layer(&psmd->mesh_final->loop_data, CD_PROP_BYTE_COLOR)) {
-      num_col_layers = CustomData_number_of_layers(&psmd->mesh_final->loop_data,
+    if (CustomData_has_layer(&psmd->mesh_final->corner_data, CD_PROP_BYTE_COLOR)) {
+      num_col_layers = CustomData_number_of_layers(&psmd->mesh_final->corner_data,
                                                    CD_PROP_BYTE_COLOR);
       if (psmd->mesh_final->active_color_attribute != nullptr) {
-        active_col = CustomData_get_named_layer(&psmd->mesh_final->loop_data,
+        active_col = CustomData_get_named_layer(&psmd->mesh_final->corner_data,
                                                 CD_PROP_BYTE_COLOR,
                                                 psmd->mesh_final->active_color_attribute);
       }
@@ -1226,7 +1227,7 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
 
       char uuid[32], attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
       const char *name = CustomData_get_layer_name(
-          &psmd->mesh_final->loop_data, CD_PROP_FLOAT2, i);
+          &psmd->mesh_final->corner_data, CD_PROP_FLOAT2, i);
       GPU_vertformat_safe_attr_name(name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
 
       SNPRINTF(uuid, "a%s", attr_safe_name);
@@ -1240,7 +1241,7 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
     for (int i = 0; i < num_col_layers; i++) {
       char uuid[32], attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
       const char *name = CustomData_get_layer_name(
-          &psmd->mesh_final->loop_data, CD_PROP_BYTE_COLOR, i);
+          &psmd->mesh_final->corner_data, CD_PROP_BYTE_COLOR, i);
       GPU_vertformat_safe_attr_name(name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
 
       SNPRINTF(uuid, "a%s", attr_safe_name);

@@ -30,7 +30,6 @@
 #include "DNA_ID.h"
 #include "DNA_collection_types.h"
 #include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_object_force_types.h"
 #include "DNA_object_types.h"
 #include "DNA_rigidbody_types.h"
@@ -40,7 +39,7 @@
 #include "BKE_effect.h"
 #include "BKE_global.h"
 #include "BKE_layer.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
 #include "BKE_object.hh"
@@ -67,7 +66,7 @@ struct rbCollisionShape;
 struct rbConstraint;
 struct rbDynamicsWorld;
 struct rbRigidBody;
-#endif
+#endif /* !WITH_BULLET */
 
 /* ************************************** */
 /* Memory Management */
@@ -347,7 +346,7 @@ static Mesh *rigidbody_get_mesh(Object *ob)
     case RBO_MESH_FINAL:
       return BKE_object_get_evaluated_mesh(ob);
     case RBO_MESH_BASE:
-      /* This mesh may be used for computing looptris, which should be done
+      /* This mesh may be used for computing corner_tris, which should be done
        * on the original; otherwise every time the CoW is recreated it will
        * have to be recomputed. */
       BLI_assert(ob->rigidbody_object->mesh_source == RBO_MESH_BASE);
@@ -373,7 +372,7 @@ static rbCollisionShape *rigidbody_get_shape_convexhull_from_mesh(Object *ob,
     mesh = rigidbody_get_mesh(ob);
     positions = (mesh) ? reinterpret_cast<float(*)[3]>(mesh->vert_positions_for_write().data()) :
                          nullptr;
-    totvert = (mesh) ? mesh->totvert : 0;
+    totvert = (mesh) ? mesh->verts_num : 0;
   }
   else {
     CLOG_ERROR(&LOG, "cannot make Convex Hull collision shape for non-Mesh object");
@@ -404,9 +403,9 @@ static rbCollisionShape *rigidbody_get_shape_trimesh_from_mesh(Object *ob)
     }
 
     const blender::Span<blender::float3> positions = mesh->vert_positions();
-    const int totvert = mesh->totvert;
-    const blender::Span<MLoopTri> looptris = mesh->looptris();
-    const int tottri = looptris.size();
+    const int totvert = mesh->verts_num;
+    const blender::Span<blender::int3> corner_tris = mesh->corner_tris();
+    const int tottri = corner_tris.size();
     const blender::Span<int> corner_verts = mesh->corner_verts();
 
     /* sanity checking - potential case when no data will be present */
@@ -429,12 +428,12 @@ static rbCollisionShape *rigidbody_get_shape_trimesh_from_mesh(Object *ob)
       if (positions.data()) {
         for (i = 0; i < tottri; i++) {
           /* add first triangle - verts 1,2,3 */
-          const MLoopTri &lt = looptris[i];
+          const blender::int3 &tri = corner_tris[i];
           int vtri[3];
 
-          vtri[0] = corner_verts[lt.tri[0]];
-          vtri[1] = corner_verts[lt.tri[1]];
-          vtri[2] = corner_verts[lt.tri[2]];
+          vtri[0] = corner_verts[tri[0]];
+          vtri[1] = corner_verts[tri[1]];
+          vtri[2] = corner_verts[tri[2]];
 
           RB_trimesh_add_triangle_indices(mdata, i, UNPACK3(vtri));
         }
@@ -493,10 +492,8 @@ static rbCollisionShape *rigidbody_validate_sim_shape_helper(RigidBodyWorld *rbw
    */
   /* XXX: all dimensions are auto-determined now... later can add stored settings for this */
   /* get object dimensions without scaling */
-  if (const std::optional<BoundBox> bb = BKE_object_boundbox_get(ob)) {
-    size[0] = (bb->vec[4][0] - bb->vec[0][0]);
-    size[1] = (bb->vec[2][1] - bb->vec[0][1]);
-    size[2] = (bb->vec[1][2] - bb->vec[0][2]);
+  if (const std::optional<blender::Bounds<blender::float3>> bounds = BKE_object_boundbox_get(ob)) {
+    copy_v3_v3(size, bounds->max - bounds->min);
   }
   mul_v3_fl(size, 0.5f);
 
@@ -675,15 +672,15 @@ void BKE_rigidbody_calc_volume(Object *ob, float *r_vol)
         }
 
         const blender::Span<blender::float3> positions = mesh->vert_positions();
-        const blender::Span<MLoopTri> looptris = mesh->looptris();
-        const int *corner_verts = BKE_mesh_corner_verts(mesh);
+        const blender::Span<blender::int3> corner_tris = mesh->corner_tris();
+        const blender::Span<int> corner_verts = mesh->corner_verts();
 
-        if (!positions.is_empty() && !looptris.is_empty()) {
+        if (!positions.is_empty() && !corner_tris.is_empty()) {
           BKE_mesh_calc_volume(reinterpret_cast<const float(*)[3]>(positions.data()),
                                positions.size(),
-                               looptris.data(),
-                               looptris.size(),
-                               corner_verts,
+                               corner_tris.data(),
+                               corner_tris.size(),
+                               corner_verts.data(),
                                &volume,
                                nullptr);
           const float volume_scale = mat4_to_volume_scale(ob->object_to_world);
@@ -749,13 +746,13 @@ void BKE_rigidbody_calc_center_of_mass(Object *ob, float r_center[3])
         }
 
         const blender::Span<blender::float3> positions = mesh->vert_positions();
-        const blender::Span<MLoopTri> looptris = mesh->looptris();
+        const blender::Span<blender::int3> corner_tris = mesh->corner_tris();
 
-        if (!positions.is_empty() && !looptris.is_empty()) {
+        if (!positions.is_empty() && !corner_tris.is_empty()) {
           BKE_mesh_calc_volume(reinterpret_cast<const float(*)[3]>(positions.data()),
                                positions.size(),
-                               looptris.data(),
-                               looptris.size(),
+                               corner_tris.data(),
+                               corner_tris.size(),
                                mesh->corner_verts().data(),
                                nullptr,
                                r_center);
@@ -1768,15 +1765,15 @@ static void rigidbody_update_sim_ob(Depsgraph *depsgraph, Object *ob, RigidBodyO
     if (mesh) {
       float(*positions)[3] = reinterpret_cast<float(*)[3]>(
           mesh->vert_positions_for_write().data());
-      int totvert = mesh->totvert;
-      const std::optional<BoundBox> bb = BKE_object_boundbox_get(ob);
+      int totvert = mesh->verts_num;
+      const std::optional<blender::Bounds<blender::float3>> bounds = BKE_object_boundbox_get(ob);
 
       RB_shape_trimesh_update(static_cast<rbCollisionShape *>(rbo->shared->physics_shape),
                               (float *)positions,
                               totvert,
                               sizeof(float[3]),
-                              bb->vec[0],
-                              bb->vec[6]);
+                              bounds->min,
+                              bounds->max);
     }
   }
 

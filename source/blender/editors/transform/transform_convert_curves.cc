@@ -13,6 +13,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_span.hh"
 
+#include "BKE_attribute.hh"
 #include "BKE_curves.hh"
 
 #include "ED_curves.hh"
@@ -103,9 +104,14 @@ static void createTransCurvesVerts(bContext * /*C*/, TransInfo *t)
       bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
       attribute_writer = attributes.lookup_or_add_for_write_span<float>(
           "radius",
-          ATTR_DOMAIN_POINT,
+          bke::AttrDomain::Point,
           bke::AttributeInitVArray(VArray<float>::ForSingle(0.01f, curves.points_num())));
-
+      value_attribute = attribute_writer.span;
+    }
+    else if (t->mode == TFM_TILT) {
+      bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
+      attribute_writer = attributes.lookup_or_add_for_write_span<float>("tilt",
+                                                                        bke::AttrDomain::Point);
       value_attribute = attribute_writer.span;
     }
 
@@ -117,6 +123,8 @@ static void createTransCurvesVerts(bContext * /*C*/, TransInfo *t)
                                       curves.curves_range(),
                                       use_connected_only,
                                       0 /* No data offset for curves. */);
+
+    /* TODO: This is wrong. The attribute writer should live at least as long as the span. */
     attribute_writer.finish();
   }
 }
@@ -127,9 +135,16 @@ static void recalcData_curves(TransInfo *t)
   for (const TransDataContainer &tc : trans_data_contrainers) {
     Curves *curves_id = static_cast<Curves *>(tc.obedit->data);
     bke::CurvesGeometry &curves = curves_id->geometry.wrap();
-
-    curves.calculate_bezier_auto_handles();
-    curves.tag_positions_changed();
+    if (t->mode == TFM_CURVE_SHRINKFATTEN) {
+      /* No cache to update currently. */
+    }
+    else if (t->mode == TFM_TILT) {
+      curves.tag_normals_changed();
+    }
+    else {
+      curves.tag_positions_changed();
+      curves.calculate_bezier_auto_handles();
+    }
     DEG_id_tag_update(&curves_id->id, ID_RECALC_GEOMETRY);
   }
 }
@@ -155,7 +170,7 @@ void curve_populate_trans_data_structs(TransDataContainer &tc,
   if (use_proportional_edit) {
     const OffsetIndices<int> points_by_curve = curves.points_by_curve();
     const VArray<bool> selection = *curves.attributes().lookup_or_default<bool>(
-        ".selection", ATTR_DOMAIN_POINT, true);
+        ".selection", bke::AttrDomain::Point, true);
     affected_curves.foreach_segment(GrainSize(512), [&](const IndexMaskSegment segment) {
       Vector<float> closest_distances;
       for (const int curve_i : segment) {
@@ -166,7 +181,7 @@ void curve_populate_trans_data_structs(TransDataContainer &tc,
             TransData &td = tc.data[point_i + trans_data_offset];
             td.flag |= TD_SKIP;
           }
-          return;
+          continue;
         }
 
         closest_distances.reinitialize(points.size());

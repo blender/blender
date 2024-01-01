@@ -26,7 +26,7 @@
 #include "DNA_view3d_types.h"
 
 #include "BKE_brush.hh"
-#include "BKE_colortools.h"
+#include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
 #include "BKE_grease_pencil.hh"
@@ -61,6 +61,9 @@
 /* still needed for sculpt_stroke_get_location, should be
  * removed eventually (TODO) */
 #include "sculpt_intern.hh"
+
+using namespace blender;
+using namespace blender::ed::sculpt_paint;
 
 /* TODOs:
  *
@@ -345,8 +348,7 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
 
     if (!target->overlay_texture) {
       eGPUTextureFormat format = col ? GPU_RGBA8 : GPU_R8;
-      eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT |
-                               GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW;
+      eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
       target->overlay_texture = GPU_texture_create_2d(
           "paint_cursor_overlay", size, size, 1, format, usage, nullptr);
       GPU_texture_update(target->overlay_texture, GPU_DATA_UBYTE, buffer);
@@ -465,8 +467,7 @@ static int load_tex_cursor(Brush *br, ViewContext *vc, float zoom)
     BLI_task_parallel_range(0, size, &data, load_tex_cursor_task_cb, &settings);
 
     if (!cursor_snap.overlay_texture) {
-      eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT |
-                               GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW;
+      eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
       cursor_snap.overlay_texture = GPU_texture_create_2d(
           "cursor_snap_overaly", size, size, 1, GPU_R8, usage, nullptr);
       GPU_texture_update(cursor_snap.overlay_texture, GPU_DATA_UBYTE, buffer);
@@ -1411,7 +1412,7 @@ static void paint_cursor_sculpt_session_update_and_init(PaintCursorContext *pcon
   pcontext->prev_active_vertex = ss->active_vertex;
   if (!ups->stroke_active) {
     pcontext->is_cursor_over_mesh = SCULPT_cursor_geometry_info_update(
-        C, &gi, mval_fl, (pcontext->brush->falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE), false);
+        C, &gi, mval_fl, (pcontext->brush->falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE));
     copy_v3_v3(pcontext->location, gi.location);
     copy_v3_v3(pcontext->normal, gi.normal);
   }
@@ -1652,7 +1653,7 @@ static void sculpt_cursor_draw_active_face_set_color_set(PaintCursorContext *pco
     return;
   }
 
-  const int active_face_set = SCULPT_active_face_set_get(ss);
+  const int active_face_set = face_set::active_face_set_get(ss);
   uchar color[4] = {UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX};
   Object *ob = CTX_data_active_object(pcontext->C);
   Mesh *mesh = (Mesh *)ob->data;
@@ -1821,6 +1822,7 @@ static void paint_cursor_preview_boundary_data_pivot_draw(PaintCursorContext *pc
 static void paint_cursor_preview_boundary_data_update(PaintCursorContext *pcontext,
                                                       const bool update_previews)
 {
+  using namespace blender::ed::sculpt_paint;
   SculptSession *ss = pcontext->ss;
   if (!(update_previews || !ss->boundary_preview)) {
     return;
@@ -1828,18 +1830,19 @@ static void paint_cursor_preview_boundary_data_update(PaintCursorContext *pconte
 
   /* Needed for updating the necessary SculptSession data in order to initialize the
    * boundary data for the preview. */
-  BKE_sculpt_update_object_for_edit(pcontext->depsgraph, pcontext->vc.obact, true, false, false);
+  BKE_sculpt_update_object_for_edit(pcontext->depsgraph, pcontext->vc.obact, false);
 
   if (ss->boundary_preview) {
-    SCULPT_boundary_data_free(ss->boundary_preview);
+    boundary::data_free(ss->boundary_preview);
   }
 
-  ss->boundary_preview = SCULPT_boundary_data_init(
+  ss->boundary_preview = boundary::data_init(
       pcontext->sd, pcontext->vc.obact, pcontext->brush, ss->active_vertex, pcontext->radius);
 }
 
 static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *pcontext)
 {
+  using namespace blender::ed::sculpt_paint;
   Brush *brush = pcontext->brush;
 
   /* 2D falloff is better represented with the default 2D cursor,
@@ -1900,16 +1903,15 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
      * nullptr before drawing it. */
     SculptSession *ss = pcontext->ss;
     if (update_previews || !ss->pose_ik_chain_preview) {
-      BKE_sculpt_update_object_for_edit(
-          pcontext->depsgraph, pcontext->vc.obact, true, false, false);
+      BKE_sculpt_update_object_for_edit(pcontext->depsgraph, pcontext->vc.obact, false);
 
       /* Free the previous pose brush preview. */
       if (ss->pose_ik_chain_preview) {
-        SCULPT_pose_ik_chain_free(ss->pose_ik_chain_preview);
+        pose::ik_chain_free(ss->pose_ik_chain_preview);
       }
 
       /* Generate a new pose brush preview from the current cursor location. */
-      ss->pose_ik_chain_preview = SCULPT_pose_ik_chain_init(
+      ss->pose_ik_chain_preview = pose::ik_chain_init(
           pcontext->sd, pcontext->vc.obact, ss, brush, pcontext->location, pcontext->radius);
     }
 
@@ -1970,9 +1972,9 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
   }
 
   if (is_brush_tool && brush->sculpt_tool == SCULPT_TOOL_BOUNDARY) {
-    SCULPT_boundary_edges_preview_draw(
+    boundary::edges_preview_draw(
         pcontext->pos, pcontext->ss, pcontext->outline_col, pcontext->outline_alpha);
-    SCULPT_boundary_pivot_line_preview_draw(pcontext->pos, pcontext->ss);
+    boundary::pivot_line_preview_draw(pcontext->pos, pcontext->ss);
   }
 
   /* Face Set Preview. */
@@ -1996,16 +1998,8 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
     /* This functions sets its own drawing space in order to draw the simulation limits when the
      * cursor is active. When used here, this cursor overlay is already in cursor space, so its
      * position and normal should be set to 0. */
-    SCULPT_cloth_simulation_limits_draw(pcontext->ss,
-                                        pcontext->sd,
-                                        pcontext->pos,
-                                        brush,
-                                        zero_v,
-                                        zero_v,
-                                        pcontext->radius,
-                                        1.0f,
-                                        white,
-                                        0.25f);
+    cloth::simulation_limits_draw(
+        pcontext->pos, brush, zero_v, zero_v, pcontext->radius, 1.0f, white, 0.25f);
   }
 
   /* Layer brush height. */
@@ -2027,6 +2021,7 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
 
 static void paint_cursor_cursor_draw_3d_view_brush_cursor_active(PaintCursorContext *pcontext)
 {
+  using namespace blender::ed::sculpt_paint;
   BLI_assert(pcontext->ss != nullptr);
   BLI_assert(pcontext->mode == PAINT_MODE_SCULPT);
 
@@ -2073,7 +2068,7 @@ static void paint_cursor_cursor_draw_3d_view_brush_cursor_active(PaintCursorCont
 
   if (brush->sculpt_tool == SCULPT_TOOL_CLOTH) {
     if (brush->cloth_force_falloff_type == BRUSH_CLOTH_FORCE_FALLOFF_PLANE) {
-      SCULPT_cloth_plane_falloff_preview_draw(
+      cloth::plane_falloff_preview_draw(
           pcontext->pos, ss, pcontext->outline_col, pcontext->outline_alpha);
     }
     else if (brush->cloth_force_falloff_type == BRUSH_CLOTH_FORCE_FALLOFF_RADIAL &&
@@ -2086,16 +2081,14 @@ static void paint_cursor_cursor_draw_3d_view_brush_cursor_active(PaintCursorCont
           ss->cache->radius * (1.0f + brush->cloth_sim_limit))
       {
         const float red[3] = {1.0f, 0.2f, 0.2f};
-        SCULPT_cloth_simulation_limits_draw(pcontext->ss,
-                                            pcontext->sd,
-                                            pcontext->pos,
-                                            brush,
-                                            ss->cache->true_initial_location,
-                                            ss->cache->true_initial_normal,
-                                            ss->cache->radius,
-                                            2.0f,
-                                            red,
-                                            0.8f);
+        cloth::simulation_limits_draw(pcontext->pos,
+                                      brush,
+                                      ss->cache->true_initial_location,
+                                      ss->cache->true_initial_normal,
+                                      ss->cache->radius,
+                                      2.0f,
+                                      red,
+                                      0.8f);
       }
     }
   }

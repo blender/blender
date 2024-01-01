@@ -32,7 +32,7 @@
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_screen.hh"
 
 #include "GHOST_C-api.h"
@@ -60,12 +60,16 @@
 #include "wm_event_system.h"
 #include "wm_window.hh"
 
+#include <fmt/format.h>
 /* ****************************************************** */
 
 static ListBase dropboxes = {nullptr, nullptr};
 
 static void wm_drag_free_asset_data(wmDragAsset **asset_data);
 static void wm_drag_free_path_data(wmDragPath **path_data);
+
+wmDragActiveDropState::wmDragActiveDropState() = default;
+wmDragActiveDropState::~wmDragActiveDropState() = default;
 
 /* drop box maps are stored global for now */
 /* these are part of blender's UI/space specs, and not like keymaps */
@@ -759,29 +763,80 @@ const ListBase *WM_drag_asset_list_get(const wmDrag *drag)
   return &drag->asset_items;
 }
 
-wmDragPath *WM_drag_create_path_data(const char *path)
+wmDragPath *WM_drag_create_path_data(blender::Span<const char *> paths)
 {
+  BLI_assert(!paths.is_empty());
   wmDragPath *path_data = MEM_new<wmDragPath>("wmDragPath");
-  path_data->path = BLI_strdup(path);
-  path_data->file_type = ED_path_extension_type(path);
+
+  for (const char *path : paths) {
+    path_data->paths.append(path);
+    path_data->file_types_bit_flag |= ED_path_extension_type(path);
+    path_data->file_types.append(ED_path_extension_type(path));
+  }
+
+  path_data->tooltip = path_data->paths[0];
+
+  if (path_data->paths.size() > 1) {
+    std::string path_count = std::to_string(path_data->paths.size());
+    path_data->tooltip = fmt::format(TIP_("Dragging {} files"), path_count);
+  }
+
   return path_data;
 }
 
 static void wm_drag_free_path_data(wmDragPath **path_data)
 {
-  MEM_freeN((*path_data)->path);
   MEM_delete(*path_data);
   *path_data = nullptr;
 }
 
-const char *WM_drag_get_path(const wmDrag *drag)
+const char *WM_drag_get_single_path(const wmDrag *drag)
 {
   if (drag->type != WM_DRAG_PATH) {
     return nullptr;
   }
 
   const wmDragPath *path_data = static_cast<const wmDragPath *>(drag->poin);
-  return path_data->path;
+  return path_data->paths[0].c_str();
+}
+
+const char *WM_drag_get_single_path(const wmDrag *drag, int file_type)
+{
+  if (drag->type != WM_DRAG_PATH) {
+    return nullptr;
+  }
+  const wmDragPath *path_data = static_cast<const wmDragPath *>(drag->poin);
+  auto const file_types = path_data->file_types;
+
+  auto itr = std::find_if(
+      file_types.begin(), file_types.end(), [file_type](const int file_fype_test) {
+        return file_fype_test & file_type;
+      });
+
+  if (itr == file_types.end()) {
+    return nullptr;
+  }
+  const int index = itr - file_types.begin();
+  return path_data->paths[index].c_str();
+}
+
+bool WM_drag_has_path_file_type(const wmDrag *drag, int file_type)
+{
+  if (drag->type != WM_DRAG_PATH) {
+    return false;
+  }
+  const wmDragPath *path_data = static_cast<const wmDragPath *>(drag->poin);
+  return bool(path_data->file_types_bit_flag & file_type);
+}
+
+blender::Span<std::string> WM_drag_get_paths(const wmDrag *drag)
+{
+  if (drag->type != WM_DRAG_PATH) {
+    return blender::Span<std::string>();
+  }
+
+  const wmDragPath *path_data = static_cast<const wmDragPath *>(drag->poin);
+  return path_data->paths.as_span();
 }
 
 int WM_drag_get_path_file_type(const wmDrag *drag)
@@ -791,7 +846,7 @@ int WM_drag_get_path_file_type(const wmDrag *drag)
   }
 
   const wmDragPath *path_data = static_cast<const wmDragPath *>(drag->poin);
-  return path_data->file_type;
+  return path_data->file_types[0];
 }
 
 /* ************** draw ***************** */
@@ -845,7 +900,7 @@ const char *WM_drag_get_item_name(wmDrag *drag)
     }
     case WM_DRAG_PATH: {
       const wmDragPath *path_drag_data = static_cast<const wmDragPath *>(drag->poin);
-      return path_drag_data->path;
+      return path_drag_data->tooltip.c_str();
     }
     case WM_DRAG_NAME:
       return static_cast<const char *>(drag->poin);

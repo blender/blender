@@ -24,7 +24,7 @@
 #include "BKE_context.hh"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
-#include "BKE_lib_remap.h"
+#include "BKE_lib_remap.hh"
 #include "BKE_movieclip.h"
 #include "BKE_screen.hh"
 #include "BKE_tracking.h"
@@ -536,7 +536,7 @@ static void clip_drop_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *drop)
   PointerRNA itemptr;
   char dir[FILE_MAX], file[FILE_MAX];
 
-  BLI_path_split_dir_file(WM_drag_get_path(drag), dir, sizeof(dir), file, sizeof(file));
+  BLI_path_split_dir_file(WM_drag_get_single_path(drag), dir, sizeof(dir), file, sizeof(file));
 
   RNA_string_set(drop->ptr, "directory", dir);
 

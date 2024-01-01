@@ -30,7 +30,7 @@ static void node_declare(NodeDeclarationBuilder &b)
         const StringRef side = node_storage(node).mode == GEO_NODE_CURVE_HANDLE_LEFT ?
                                    "handle_left" :
                                    "handle_right";
-        new (r_value) ValueOrField<float3>(bke::AttributeFieldInput::Create<float3>(side));
+        new (r_value) SocketValueVariant(bke::AttributeFieldInput::Create<float3>(side));
       });
   b.add_input<decl::Vector>("Offset").default_value(float3(0.0f, 0.0f, 0.0f)).field_on_all();
   b.add_output<decl::Geometry>("Curve").propagate_all();
@@ -92,7 +92,7 @@ static void set_position_in_component(bke::CurvesGeometry &curves,
     return;
   }
 
-  const bke::CurvesFieldContext field_context{curves, ATTR_DOMAIN_POINT};
+  const bke::CurvesFieldContext field_context{curves, AttrDomain::Point};
   fn::FieldEvaluator evaluator{field_context, curves.points_num()};
   evaluator.set_selection(selection_field);
   evaluator.add(position_field);

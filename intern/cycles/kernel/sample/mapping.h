@@ -43,6 +43,21 @@ ccl_device void make_orthonormals_tangent(const float3 N,
   *a = cross(*b, N);
 }
 
+ccl_device void make_orthonormals_safe_tangent(const float3 N,
+                                               const float3 T,
+                                               ccl_private float3 *a,
+                                               ccl_private float3 *b)
+{
+  *b = safe_normalize(cross(N, T));
+  if (len_squared(*b) < 0.99f) {
+    /* Normalization failed, so fall back to basic orthonormals. */
+    make_orthonormals(N, a, b);
+  }
+  else {
+    *a = cross(*b, N);
+  }
+}
+
 /* sample direction with cosine weighted distributed in hemisphere */
 ccl_device_inline void sample_cos_hemisphere(const float3 N,
                                              float2 rand_in,

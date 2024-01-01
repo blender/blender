@@ -7,7 +7,6 @@ set(INC
   ../../blenkernel
   ../../blentranslation
   ../../bmesh
-  ../../depsgraph
   ../../gpu
   ../../imbuf
   ../../makesrna
@@ -35,6 +34,7 @@ set(SRC
 set(LIB
   bf_blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
   extern_curve_fit_nd

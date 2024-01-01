@@ -8,6 +8,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_vector_set.hh"
 
+#include "BKE_attribute.hh"
 #include "BKE_brush.hh"
 #include "BKE_bvhutils.hh"
 #include "BKE_context.hh"
@@ -379,8 +380,8 @@ static int select_random_exec(bContext *C, wmOperator *op)
       selection.fill(1.0f);
     }
     const OffsetIndices points_by_curve = curves.points_by_curve();
-    switch (curves_id->selection_domain) {
-      case ATTR_DOMAIN_POINT: {
+    switch (bke::AttrDomain(curves_id->selection_domain)) {
+      case bke::AttrDomain::Point: {
         if (partial) {
           if (constant_per_curve) {
             for (const int curve_i : curves.curves_range()) {
@@ -419,7 +420,7 @@ static int select_random_exec(bContext *C, wmOperator *op)
         }
         break;
       }
-      case ATTR_DOMAIN_CURVE: {
+      case bke::AttrDomain::Curve: {
         if (partial) {
           for (const int curve_i : curves.curves_range()) {
             const float random_value = next_partial_random_value();
@@ -436,6 +437,9 @@ static int select_random_exec(bContext *C, wmOperator *op)
         }
         break;
       }
+      default:
+        BLI_assert_unreachable();
+        break;
     }
     const bool was_any_selected = std::any_of(
         selection.begin(), selection.end(), [](const float v) { return v > 0.0f; });
@@ -585,11 +589,11 @@ static int select_grow_update(bContext *C, wmOperator *op, const float mouse_dif
 
     /* Grow or shrink selection based on precomputed distances. */
     switch (selection.domain) {
-      case ATTR_DOMAIN_POINT: {
+      case bke::AttrDomain::Point: {
         update_points_selection(*curve_op_data, distance, selection.span);
         break;
       }
-      case ATTR_DOMAIN_CURVE: {
+      case bke::AttrDomain::Curve: {
         Array<float> new_points_selection(curves.points_num());
         update_points_selection(*curve_op_data, distance, new_points_selection);
         /* Propagate grown point selection to the curve selection. */
@@ -692,8 +696,7 @@ static void select_grow_invoke_per_curve(const Curves &curves_id,
   float4x4 curves_to_world_mat = float4x4(curves_ob.object_to_world);
   float4x4 world_to_curves_mat = math::invert(curves_to_world_mat);
 
-  float4x4 projection;
-  ED_view3d_ob_project_mat_get(&rv3d, &curves_ob, projection.ptr());
+  const float4x4 projection = ED_view3d_ob_project_mat_get(&rv3d, &curves_ob);
 
   /* Compute how mouse movements in screen space are converted into grow/shrink distances in
    * object space. */
@@ -706,8 +709,7 @@ static void select_grow_invoke_per_curve(const Curves &curves_id,
           const int point_i = curve_op_data.selected_points[i];
           const float3 &pos_cu = positions[point_i];
 
-          float2 pos_re;
-          ED_view3d_project_float_v2_m4(&region, pos_cu, pos_re, projection.ptr());
+          const float2 pos_re = ED_view3d_project_float_v2_m4(&region, pos_cu, projection);
           if (pos_re.x < 0 || pos_re.y < 0 || pos_re.x > region.winx || pos_re.y > region.winy) {
             continue;
           }
@@ -779,7 +781,7 @@ static int select_grow_modal(bContext *C, wmOperator *op, const wmEvent *event)
         if (!curve_op_data->original_selection.is_empty()) {
           attributes.add(
               ".selection",
-              eAttrDomain(curves_id.selection_domain),
+              bke::AttrDomain(curves_id.selection_domain),
               bke::cpp_type_to_custom_data_type(curve_op_data->original_selection.type()),
               bke::AttributeInitVArray(GVArray::ForSpan(curve_op_data->original_selection)));
         }
@@ -1033,7 +1035,7 @@ static int min_distance_edit_invoke(bContext *C, wmOperator *op, const wmEvent *
   }
 
   BVHTreeFromMesh surface_bvh_eval;
-  BKE_bvhtree_from_mesh_get(&surface_bvh_eval, surface_me_eval, BVHTREE_FROM_LOOPTRI, 2);
+  BKE_bvhtree_from_mesh_get(&surface_bvh_eval, surface_me_eval, BVHTREE_FROM_CORNER_TRIS, 2);
   BLI_SCOPED_DEFER([&]() { free_bvhtree_from_mesh(&surface_bvh_eval); });
 
   const int2 mouse_pos_int_re{event->mval};

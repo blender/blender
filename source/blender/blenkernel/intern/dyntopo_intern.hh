@@ -12,7 +12,7 @@
 #include "BLI_set.hh"
 #include "BLI_utildefines.h"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 #include "pbvh_intern.hh"
 
 #include <queue>

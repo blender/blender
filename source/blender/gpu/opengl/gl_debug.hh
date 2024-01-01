@@ -61,7 +61,7 @@
 #define ARG_LIST_CALL(...) VA_NARGS_CALL_OVERLOAD(_VA_ARG_LIST_CALL, __VA_ARGS__)
 /* clang-format on */
 
-#ifdef DEBUG
+#ifndef NDEBUG
 #  define GL_CHECK_RESOURCES(info) debug::check_gl_resources(info)
 #else
 #  define GL_CHECK_RESOURCES(info)

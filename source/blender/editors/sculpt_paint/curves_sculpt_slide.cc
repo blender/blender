@@ -25,8 +25,6 @@
 
 #include "DNA_brush_enums.h"
 #include "DNA_curves_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
@@ -100,7 +98,7 @@ struct SlideOperationExecutor {
 
   Object *surface_ob_orig_ = nullptr;
   const Mesh *surface_orig_ = nullptr;
-  Span<MLoopTri> surface_looptris_orig_;
+  Span<int3> surface_corner_tris_orig_;
   VArraySpan<float2> surface_uv_map_orig_;
   Span<float3> corner_normals_orig_su_;
 
@@ -108,7 +106,7 @@ struct SlideOperationExecutor {
   Mesh *surface_eval_ = nullptr;
   Span<float3> surface_positions_eval_;
   Span<int> surface_corner_verts_eval_;
-  Span<MLoopTri> surface_looptris_eval_;
+  Span<int3> surface_corner_tris_eval_;
   VArraySpan<float2> surface_uv_map_eval_;
   BVHTreeFromMesh surface_bvh_eval_;
 
@@ -158,7 +156,7 @@ struct SlideOperationExecutor {
     brush_strength_ = brush_strength_get(*ctx_.scene, *brush_, stroke_extension);
 
     curve_factors_ = *curves_orig_->attributes().lookup_or_default(
-        ".selection", ATTR_DOMAIN_CURVE, 1.0f);
+        ".selection", bke::AttrDomain::Curve, 1.0f);
     curve_selection_ = curves::retrieve_selected_curves(*curves_id_orig_, selected_curve_memory_);
 
     brush_pos_re_ = stroke_extension.mouse_position;
@@ -171,10 +169,10 @@ struct SlideOperationExecutor {
       report_empty_original_surface(stroke_extension.reports);
       return;
     }
-    surface_looptris_orig_ = surface_orig_->looptris();
+    surface_corner_tris_orig_ = surface_orig_->corner_tris();
     corner_normals_orig_su_ = surface_orig_->corner_normals();
     surface_uv_map_orig_ = *surface_orig_->attributes().lookup<float2>(uv_map_name,
-                                                                       ATTR_DOMAIN_CORNER);
+                                                                       bke::AttrDomain::Corner);
     if (surface_uv_map_orig_.is_empty()) {
       report_missing_uv_map_on_original_surface(stroke_extension.reports);
       return;
@@ -191,16 +189,16 @@ struct SlideOperationExecutor {
       report_empty_evaluated_surface(stroke_extension.reports);
       return;
     }
-    surface_looptris_eval_ = surface_eval_->looptris();
+    surface_corner_tris_eval_ = surface_eval_->corner_tris();
     surface_positions_eval_ = surface_eval_->vert_positions();
     surface_corner_verts_eval_ = surface_eval_->corner_verts();
     surface_uv_map_eval_ = *surface_eval_->attributes().lookup<float2>(uv_map_name,
-                                                                       ATTR_DOMAIN_CORNER);
+                                                                       bke::AttrDomain::Corner);
     if (surface_uv_map_eval_.is_empty()) {
       report_missing_uv_map_on_evaluated_surface(stroke_extension.reports);
       return;
     }
-    BKE_bvhtree_from_mesh_get(&surface_bvh_eval_, surface_eval_, BVHTREE_FROM_LOOPTRI, 2);
+    BKE_bvhtree_from_mesh_get(&surface_bvh_eval_, surface_eval_, BVHTREE_FROM_CORNER_TRIS, 2);
     BLI_SCOPED_DEFER([&]() { free_bvhtree_from_mesh(&surface_bvh_eval_); });
 
     if (stroke_extension.is_first) {
@@ -244,7 +242,8 @@ struct SlideOperationExecutor {
     if (!brush_3d.has_value()) {
       return;
     }
-    const ReverseUVSampler reverse_uv_sampler_orig{surface_uv_map_orig_, surface_looptris_orig_};
+    const ReverseUVSampler reverse_uv_sampler_orig{surface_uv_map_orig_,
+                                                   surface_corner_tris_orig_};
     for (const float4x4 &brush_transform : brush_transforms) {
       self_->slide_info_.append_as();
       SlideInfo &slide_info = self_->slide_info_.last();
@@ -287,7 +286,7 @@ struct SlideOperationExecutor {
         }
         /* Compute the normal at the initial surface position. */
         const float3 point_no = geometry::compute_surface_point_normal(
-            surface_looptris_orig_[result.looptri_index],
+            surface_corner_tris_orig_[result.tri_index],
             result.bary_weights,
             corner_normals_orig_su_);
         const float3 normal_cu = math::normalize(
@@ -300,7 +299,8 @@ struct SlideOperationExecutor {
 
   void slide_with_symmetry()
   {
-    const ReverseUVSampler reverse_uv_sampler_orig{surface_uv_map_orig_, surface_looptris_orig_};
+    const ReverseUVSampler reverse_uv_sampler_orig{surface_uv_map_orig_,
+                                                   surface_corner_tris_orig_};
     for (const SlideInfo &slide_info : self_->slide_info_) {
       this->slide(slide_info.curves_to_slide, reverse_uv_sampler_orig, slide_info.brush_transform);
     }
@@ -319,8 +319,7 @@ struct SlideOperationExecutor {
     MutableSpan<float3> positions_orig_cu = curves_orig_->positions_for_write();
     MutableSpan<float2> surface_uv_coords = curves_orig_->surface_uv_coords_for_write();
 
-    float4x4 projection;
-    ED_view3d_ob_project_mat_get(ctx_.rv3d, curves_ob_orig_, projection.ptr());
+    const float4x4 projection = ED_view3d_ob_project_mat_get(ctx_.rv3d, curves_ob_orig_);
 
     const float2 brush_pos_diff_re = brush_pos_re_ - self_->initial_brush_pos_re_;
 
@@ -341,9 +340,8 @@ struct SlideOperationExecutor {
         const float3 old_first_pos_eval_su = math::transform_point(transforms_.curves_to_surface,
                                                                    old_first_pos_eval_cu);
 
-        float2 old_first_symm_pos_eval_re;
-        ED_view3d_project_float_v2_m4(
-            ctx_.region, old_first_symm_pos_eval_cu, old_first_symm_pos_eval_re, projection.ptr());
+        const float2 old_first_symm_pos_eval_re = ED_view3d_project_float_v2_m4(
+            ctx_.region, old_first_symm_pos_eval_cu, projection);
 
         const float radius_falloff = slide_curve_info.radius_falloff;
         const float curve_weight = brush_strength_ * radius_falloff * curve_factors_[curve_i];
@@ -366,25 +364,25 @@ struct SlideOperationExecutor {
         const float3 ray_direction_su = math::normalize(ray_end_su - ray_start_su);
 
         /* Find the ray hit that is closest to the initial curve root position. */
-        int looptri_index_eval;
+        int tri_index_eval;
         float3 hit_pos_eval_su;
         if (!this->find_closest_ray_hit(ray_start_su,
                                         ray_direction_su,
                                         old_first_pos_eval_su,
-                                        looptri_index_eval,
+                                        tri_index_eval,
                                         hit_pos_eval_su))
         {
           continue;
         }
 
         /* Compute the uv of the new surface position on the evaluated mesh. */
-        const MLoopTri &looptri_eval = surface_looptris_eval_[looptri_index_eval];
+        const int3 &tri_eval = surface_corner_tris_eval_[tri_index_eval];
         const float3 bary_weights_eval = bke::mesh_surface_sample::compute_bary_coord_in_triangle(
-            surface_positions_eval_, surface_corner_verts_eval_, looptri_eval, hit_pos_eval_su);
+            surface_positions_eval_, surface_corner_verts_eval_, tri_eval, hit_pos_eval_su);
         const float2 uv = bke::attribute_math::mix3(bary_weights_eval,
-                                                    surface_uv_map_eval_[looptri_eval.tri[0]],
-                                                    surface_uv_map_eval_[looptri_eval.tri[1]],
-                                                    surface_uv_map_eval_[looptri_eval.tri[2]]);
+                                                    surface_uv_map_eval_[tri_eval[0]],
+                                                    surface_uv_map_eval_[tri_eval[1]],
+                                                    surface_uv_map_eval_[tri_eval[2]]);
 
         /* Try to find the same uv on the original surface. */
         const ReverseUVSampler::Result result = reverse_uv_sampler_orig.sample(uv);
@@ -392,22 +390,22 @@ struct SlideOperationExecutor {
           found_invalid_uv_mapping_.store(true);
           continue;
         }
-        const MLoopTri &looptri_orig = surface_looptris_orig_[result.looptri_index];
+        const int3 &tri_orig = surface_corner_tris_orig_[result.tri_index];
         const float3 &bary_weights_orig = result.bary_weights;
 
         /* Gather old and new surface normal. */
         const float3 &initial_normal_cu = slide_curve_info.initial_normal_cu;
-        const float3 new_normal_cu = math::normalize(math::transform_point(
-            transforms_.surface_to_curves_normal,
-            geometry::compute_surface_point_normal(
-                looptri_orig, result.bary_weights, corner_normals_orig_su_)));
+        const float3 new_normal_cu = math::normalize(
+            math::transform_point(transforms_.surface_to_curves_normal,
+                                  geometry::compute_surface_point_normal(
+                                      tri_orig, result.bary_weights, corner_normals_orig_su_)));
 
         /* Gather old and new surface position. */
         const float3 new_first_pos_orig_su = bke::attribute_math::mix3<float3>(
             bary_weights_orig,
-            positions_orig_su[corner_verts_orig[looptri_orig.tri[0]]],
-            positions_orig_su[corner_verts_orig[looptri_orig.tri[1]]],
-            positions_orig_su[corner_verts_orig[looptri_orig.tri[2]]]);
+            positions_orig_su[corner_verts_orig[tri_orig[0]]],
+            positions_orig_su[corner_verts_orig[tri_orig[1]]],
+            positions_orig_su[corner_verts_orig[tri_orig[2]]]);
         const float3 old_first_pos_orig_cu = self_->initial_positions_cu_[first_point_i];
         const float3 new_first_pos_orig_cu = math::transform_point(transforms_.surface_to_curves,
                                                                    new_first_pos_orig_su);
@@ -427,11 +425,11 @@ struct SlideOperationExecutor {
   bool find_closest_ray_hit(const float3 &ray_start_su,
                             const float3 &ray_direction_su,
                             const float3 &point_su,
-                            int &r_looptri_index,
+                            int &r_tri_index,
                             float3 &r_hit_pos)
   {
     float best_dist_sq_su = FLT_MAX;
-    int best_looptri_index_eval;
+    int best_tri_index_eval;
     float3 best_hit_pos_su;
     BLI_bvhtree_ray_cast_all_cpp(
         *surface_bvh_eval_.tree,
@@ -439,8 +437,8 @@ struct SlideOperationExecutor {
         ray_direction_su,
         0.0f,
         FLT_MAX,
-        [&](const int looptri_index, const BVHTreeRay &ray, BVHTreeRayHit &hit) {
-          surface_bvh_eval_.raycast_callback(&surface_bvh_eval_, looptri_index, &ray, &hit);
+        [&](const int tri_index, const BVHTreeRay &ray, BVHTreeRayHit &hit) {
+          surface_bvh_eval_.raycast_callback(&surface_bvh_eval_, tri_index, &ray, &hit);
           if (hit.index < 0) {
             return;
           }
@@ -449,14 +447,14 @@ struct SlideOperationExecutor {
           if (dist_sq_su < best_dist_sq_su) {
             best_dist_sq_su = dist_sq_su;
             best_hit_pos_su = hit_pos_su;
-            best_looptri_index_eval = hit.index;
+            best_tri_index_eval = hit.index;
           }
         });
 
     if (best_dist_sq_su == FLT_MAX) {
       return false;
     }
-    r_looptri_index = best_looptri_index_eval;
+    r_tri_index = best_tri_index_eval;
     r_hit_pos = best_hit_pos_su;
     return true;
   }

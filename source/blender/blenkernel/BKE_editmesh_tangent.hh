@@ -16,7 +16,7 @@ struct BMEditMesh;
  * \see #BKE_mesh_calc_loop_tangent, same logic but used arrays instead of #BMesh data.
  *
  * \note This function is not so normal, its using #BMesh.ldata as input,
- * but output's to #Mesh.loop_data.
+ * but output's to #Mesh.corner_data.
  * This is done because #CD_TANGENT is cache data used only for drawing.
  */
 void BKE_editmesh_loop_tangent_calc(BMEditMesh *em,

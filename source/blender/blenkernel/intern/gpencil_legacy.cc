@@ -37,7 +37,7 @@
 #include "BKE_action.h"
 #include "BKE_anim_data.h"
 #include "BKE_collection.h"
-#include "BKE_colortools.h"
+#include "BKE_colortools.hh"
 #include "BKE_deform.h"
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
@@ -47,7 +47,7 @@
 #include "BKE_image.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_paint.hh"
 

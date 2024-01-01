@@ -70,10 +70,10 @@
 #include "BKE_lib_id.h"
 #include "BKE_lib_override.hh"
 #include "BKE_lib_query.h"
-#include "BKE_lib_remap.h"
+#include "BKE_lib_remap.hh"
 #include "BKE_light.h"
 #include "BKE_lightprobe.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_mball.h"
 #include "BKE_mesh.hh"
@@ -87,7 +87,7 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_speaker.h"
-#include "BKE_vfont.h"
+#include "BKE_vfont.hh"
 #include "BKE_volume.hh"
 
 #include "DEG_depsgraph.hh"
@@ -120,7 +120,7 @@
 #include "ED_transform.hh"
 #include "ED_view3d.hh"
 
-#include "ANIM_bone_collections.h"
+#include "ANIM_bone_collections.hh"
 
 #include "UI_resources.hh"
 
@@ -2242,7 +2242,8 @@ static int object_curves_empty_hair_add_exec(bContext *C, wmOperator *op)
 
   /* Decide which UV map to use for attachment. */
   Mesh *surface_mesh = static_cast<Mesh *>(surface_ob->data);
-  const char *uv_name = CustomData_get_active_layer_name(&surface_mesh->loop_data, CD_PROP_FLOAT2);
+  const char *uv_name = CustomData_get_active_layer_name(&surface_mesh->corner_data,
+                                                         CD_PROP_FLOAT2);
   if (uv_name != nullptr) {
     curves_id->surface_uv_map = BLI_strdup(uv_name);
   }
@@ -3153,11 +3154,11 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         newob = basen->object;
 
         /* Decrement original mesh's usage count. */
-        Mesh *me = static_cast<Mesh *>(newob->data);
-        id_us_min(&me->id);
+        Mesh *mesh = static_cast<Mesh *>(newob->data);
+        id_us_min(&mesh->id);
 
         /* Make a new copy of the mesh. */
-        newob->data = BKE_id_copy(bmain, &me->id);
+        newob->data = BKE_id_copy(bmain, &mesh->id);
       }
       else {
         newob = ob;
@@ -3294,11 +3295,11 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         newob = basen->object;
 
         /* Decrement original mesh's usage count. */
-        Mesh *me = static_cast<Mesh *>(newob->data);
-        id_us_min(&me->id);
+        Mesh *mesh = static_cast<Mesh *>(newob->data);
+        id_us_min(&mesh->id);
 
         /* Make a new copy of the mesh. */
-        newob->data = BKE_id_copy(bmain, &me->id);
+        newob->data = BKE_id_copy(bmain, &mesh->id);
       }
       else {
         newob = ob;
@@ -3319,11 +3320,11 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         newob = basen->object;
 
         /* Decrement original mesh's usage count. */
-        Mesh *me = static_cast<Mesh *>(newob->data);
-        id_us_min(&me->id);
+        Mesh *mesh = static_cast<Mesh *>(newob->data);
+        id_us_min(&mesh->id);
 
         /* Make a new copy of the mesh. */
-        newob->data = BKE_id_copy(bmain, &me->id);
+        newob->data = BKE_id_copy(bmain, &mesh->id);
       }
       else {
         newob = ob;

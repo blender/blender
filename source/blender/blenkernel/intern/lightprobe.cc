@@ -22,7 +22,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_lightprobe.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 
 #include "BLT_translation.h"
 

@@ -352,7 +352,7 @@ void HydraSceneDelegate::check_updates()
     do_update_collection = true;
   }
 
-  DEGIDIterData data = {0};
+  DEGIDIterData data = {nullptr};
   data.graph = depsgraph;
   data.only_updated = true;
   ITER_BEGIN (DEG_iterator_ids_begin, DEG_iterator_ids_next, DEG_iterator_ids_end, &data, ID *, id)
@@ -411,10 +411,10 @@ void HydraSceneDelegate::update_collection()
 {
   Set<std::string> available_objects;
 
-  DEGObjectIterSettings settings = {0};
+  DEGObjectIterSettings settings = {nullptr};
   settings.depsgraph = depsgraph;
   settings.flags = DEG_OBJECT_ITER_FOR_RENDER_ENGINE_FLAGS;
-  DEGObjectIterData data = {0};
+  DEGObjectIterData data = {nullptr};
   data.settings = &settings;
   data.graph = settings.depsgraph;
   data.flag = settings.flags;

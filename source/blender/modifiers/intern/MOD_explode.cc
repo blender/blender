@@ -105,7 +105,7 @@ static void createFacepa(ExplodeModifierData *emd, ParticleSystemModifierData *p
   blender::MutableSpan<blender::float3> positions = mesh->vert_positions_for_write();
   mface = (MFace *)CustomData_get_layer_for_write(
       &mesh->fdata_legacy, CD_MFACE, mesh->totface_legacy);
-  totvert = mesh->totvert;
+  totvert = mesh->verts_num;
   totface = mesh->totface_legacy;
   totpart = psmd->psys->totpart;
 
@@ -128,7 +128,7 @@ static void createFacepa(ExplodeModifierData *emd, ParticleSystemModifierData *p
 
   /* set protected verts */
   if (emd->vgroup) {
-    const MDeformVert *dvert = BKE_mesh_deform_verts(mesh);
+    const MDeformVert *dvert = mesh->deform_verts().data();
     if (dvert) {
       const int defgrp_index = emd->vgroup - 1;
       for (i = 0; i < totvert; i++, dvert++) {
@@ -659,7 +659,7 @@ static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
   MFace *mface = static_cast<MFace *>(
       CustomData_get_layer_for_write(&mesh->fdata_legacy, CD_MFACE, mesh->totface_legacy));
   float *dupve;
-  int totvert = mesh->totvert;
+  int totvert = mesh->verts_num;
   int totface = mesh->totface_legacy;
 
   int *facesplit = static_cast<int *>(MEM_calloc_arrayN(totface, sizeof(int), __func__));
@@ -749,7 +749,7 @@ static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
   /* override original facepa (original pointer is saved in caller function) */
 
   /* TODO(@ideasman42): `(totfsplit * 2)` over allocation is used since the quads are
-   * later interpreted as tri's, for this to work right I think we probably
+   * later interpreted as triangles, for this to work right I think we probably
    * have to stop using tessface. */
 
   facepa = static_cast<int *>(
@@ -918,7 +918,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
   uint mindex = 0;
 
   totface = mesh->totface_legacy;
-  totvert = mesh->totvert;
+  totvert = mesh->verts_num;
   mface = static_cast<MFace *>(
       CustomData_get_layer_for_write(&mesh->fdata_legacy, CD_MFACE, mesh->totface_legacy));
   totpart = psmd->psys->totpart;

@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'7ce745a76b47')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'0b00b360f7ae')\n"
 "(b'0000000000000000000000000000000000000000')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-20 11:21:26\n"
+"POT-Creation-Date: 2023-12-18 13:45:58\n"
 "PO-Revision-Date: 2013-11-05 13:47+0600\n"
 "Last-Translator: Chyngyz Dzhumaliev <kyrgyzl10n@gmail.com>\n"
 "Language-Team: Kirghiz <kyrgyzl10n@gmail.com>\n"
@@ -139,6 +139,10 @@ msgstr "Активдүү сөөк"
 
 msgid "Description"
 msgstr "Баяндама"
+
+
+msgid "All"
+msgstr "Баары"
 
 
 msgid "Data Type"
@@ -319,10 +323,6 @@ msgstr "Чоку түсү"
 
 msgid "Normal"
 msgstr "Нормаль"
-
-
-msgid "All"
-msgstr "Баары"
 
 
 msgid "Simplify"
@@ -787,6 +787,10 @@ msgid "Save"
 msgstr "Сактоо"
 
 
+msgid "Operator"
+msgstr "Оператор"
+
+
 msgid "End"
 msgstr "Соңу"
 
@@ -924,12 +928,52 @@ msgid "Blue"
 msgstr "Көк"
 
 
-msgid "Users"
-msgstr "Колдонуучулар"
-
-
 msgid "Brush"
 msgstr "Чачы"
+
+
+msgid "Font"
+msgstr "Арип"
+
+
+msgid "Key"
+msgstr "Ачкыч"
+
+
+msgid "Mask"
+msgstr "Маска"
+
+
+msgid "Mesh"
+msgstr "Политор"
+
+
+msgid "Particle"
+msgstr "Бөлүкчө"
+
+
+msgid "Sound"
+msgstr "Үн"
+
+
+msgid "Speaker"
+msgstr "Үн булагы"
+
+
+msgid "Text"
+msgstr "Текст"
+
+
+msgid "Window Manager"
+msgstr "Терезе менеджери"
+
+
+msgid "World"
+msgstr "Дүйнө"
+
+
+msgid "Users"
+msgstr "Колдонуучулар"
 
 
 msgid "Rate"
@@ -990,10 +1034,6 @@ msgstr "Жартысы"
 
 msgid "Text Curve"
 msgstr "Текст ийриси"
-
-
-msgid "Font"
-msgstr "Арип"
 
 
 msgid "Font Size"
@@ -1128,10 +1168,6 @@ msgid "Tool"
 msgstr "Аспап"
 
 
-msgid "Mesh"
-msgstr "Политор"
-
-
 msgid "Active Material"
 msgstr "Активдүү материал"
 
@@ -1158,10 +1194,6 @@ msgstr "Скульптинг режими"
 
 msgid "Mass"
 msgstr "Масса"
-
-
-msgid "Particle"
-msgstr "Бөлүкчө"
 
 
 msgid "Halo"
@@ -1199,10 +1231,6 @@ msgstr "Көрсөтүү ырастоолору"
 msgctxt "Sound"
 msgid "Pitch"
 msgstr "Бийиктик"
-
-
-msgid "Sound"
-msgstr "Үн"
 
 
 msgid "Clouds"
@@ -1285,10 +1313,6 @@ msgid "(x*x+y*y+z*z)"
 msgstr "(x*x+y*y+z*z)"
 
 
-msgid "Window Manager"
-msgstr "Терезе менеджери"
-
-
 msgid "Category"
 msgstr "Категориясы"
 
@@ -1369,10 +1393,6 @@ msgid "Mask Layers"
 msgstr "Маска каттары"
 
 
-msgid "Mask"
-msgstr "Маска"
-
-
 msgctxt "MovieClip"
 msgid "Clip"
 msgstr "Видеофрагмент"
@@ -1398,10 +1418,6 @@ msgid "Channel"
 msgstr "Канал"
 
 
-msgid "Key"
-msgstr "Ачкыч"
-
-
 msgid "Files"
 msgstr "Файлдар"
 
@@ -1413,10 +1429,6 @@ msgstr "Түздөө"
 msgctxt "Operator"
 msgid "Add"
 msgstr "Кошуу"
-
-
-msgid "Text"
-msgstr "Текст"
 
 
 msgid "Tracking"
@@ -1531,10 +1543,6 @@ msgid "Copy"
 msgstr "Көчүрүү"
 
 
-msgid "World"
-msgstr "Дүйнө"
-
-
 msgid "Origin"
 msgstr "Таяныч чекити"
 
@@ -1609,6 +1617,10 @@ msgstr "Айлантуу"
 
 msgid "Translate"
 msgstr "Жылдыруу"
+
+
+msgid "Bake"
+msgstr "Бышыруу"
 
 
 msgid "Background"
@@ -2285,10 +2297,6 @@ msgid "Refresh"
 msgstr "Жаңылоо"
 
 
-msgid "Bake"
-msgstr "Бышыруу"
-
-
 msgctxt "Operator"
 msgid "Render"
 msgstr "Визуалдаштыруу"
@@ -2399,10 +2407,6 @@ msgstr "Темалар"
 
 msgid "Editing"
 msgstr "Оңдоо"
-
-
-msgid "Operator"
-msgstr "Оператор"
 
 
 msgctxt "Operator"
@@ -2649,10 +2653,6 @@ msgstr "Blender файлын ачуу"
 
 msgid "Trusted Source"
 msgstr "Ишеничтүү булак"
-
-
-msgid "Speaker"
-msgstr "Үн булагы"
 
 
 msgctxt "Operator"
@@ -3281,6 +3281,11 @@ msgid "Image*"
 msgstr "Сүрөт*"
 
 
+msgctxt "Operator"
+msgid "Sound"
+msgstr "Үн"
+
+
 msgid "Gamma:"
 msgstr "Гамма:"
 
@@ -3288,11 +3293,6 @@ msgstr "Гамма:"
 msgctxt "Operator"
 msgid "Movie"
 msgstr "Тасма"
-
-
-msgctxt "Operator"
-msgid "Sound"
-msgstr "Үн"
 
 
 msgctxt "Operator"
@@ -3483,11 +3483,6 @@ msgstr "Камера"
 msgctxt "Operator"
 msgid "Speaker"
 msgstr "Үн булагы"
-
-
-msgctxt "Operator"
-msgid "Insert Keyframe..."
-msgstr "Ачкыч кадрын кошуу..."
 
 
 msgctxt "Operator"

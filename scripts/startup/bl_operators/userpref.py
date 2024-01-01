@@ -1099,13 +1099,9 @@ class PREFERENCES_OT_studiolight_uninstall(Operator):
         prefs = context.preferences
         for studio_light in prefs.studio_lights:
             if studio_light.index == self.index:
-                for filepath in (
-                        studio_light.path,
-                        studio_light.path_irr_cache,
-                        studio_light.path_sh_cache,
-                ):
-                    if filepath and os.path.exists(filepath):
-                        os.unlink(filepath)
+                filepath = studio_light.path
+                if filepath and os.path.exists(filepath):
+                    os.unlink(filepath)
                 prefs.studio_lights.remove(studio_light)
                 return {'FINISHED'}
         return {'CANCELLED'}

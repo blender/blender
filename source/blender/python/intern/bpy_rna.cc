@@ -54,7 +54,7 @@
 #include "BKE_global.h" /* evil G.* */
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_report.h"
 
 /* Only for types. */
@@ -6277,13 +6277,17 @@ static PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *dat
  */
 static PyObject *small_dict_get_item_string(PyObject *dict, const char *key_lookup)
 {
+  /* Comparing the size then `memcmp` the string gives ~20-30% speedup. */
+  const Py_ssize_t key_lookup_len = strlen(key_lookup);
   PyObject *key = nullptr;
   Py_ssize_t pos = 0;
   PyObject *value = nullptr;
 
   while (PyDict_Next(dict, &pos, &key, &value)) {
     if (PyUnicode_Check(key)) {
-      if (STREQ(key_lookup, PyUnicode_AsUTF8(key))) {
+      Py_ssize_t key_buf_len;
+      const char *key_buf = PyUnicode_AsUTF8AndSize(key, &key_buf_len);
+      if ((key_lookup_len == key_buf_len) && (memcmp(key_lookup, key_buf, key_lookup_len) == 0)) {
         return value;
       }
     }
@@ -8781,19 +8785,8 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
       reports = CTX_wm_reports(C);
     }
 
-    /* Typically null reports are sent to the output,
-     * in this case however PyErr_Print is responsible for that,
-     * so only run this if reports are non-null. */
     if (reports) {
-      /* Create a temporary report list so none of the reports are printed (only stored).
-       * Only do this when reports is non-null because the error is printed to the `stderr`
-       * #PyErr_Print below. */
-      ReportList reports_temp = {{0}};
-      BKE_reports_init(&reports_temp, reports->flag | RPT_PRINT_HANDLED_BY_OWNER);
-      reports_temp.storelevel = reports->storelevel;
-      BPy_errors_to_report(&reports_temp);
-      BKE_reports_move_to_reports(reports, &reports_temp);
-      BKE_reports_free(&reports_temp);
+      BPy_errors_to_report(reports);
     }
 
     /* Also print in the console for Python. */
@@ -8840,7 +8833,7 @@ void pyrna_alloc_types()
    * But keep running in debug mode so we get immediate notification of bad class hierarchy
    * or any errors in "bpy_types.py" at load time, so errors don't go unnoticed. */
 
-#ifdef DEBUG
+#ifndef NDEBUG
   PyGILState_STATE gilstate;
 
   PropertyRNA *prop;
@@ -8866,7 +8859,7 @@ void pyrna_alloc_types()
   RNA_PROP_END;
 
   PyGILState_Release(gilstate);
-#endif /* DEBUG */
+#endif /* !NDEBUG */
 }
 
 void pyrna_free_types()
@@ -8911,7 +8904,8 @@ PyDoc_STRVAR(pyrna_register_class_doc,
              "      :class:`bpy.types.Panel`, :class:`bpy.types.UIList`,\n"
              "      :class:`bpy.types.Menu`, :class:`bpy.types.Header`,\n"
              "      :class:`bpy.types.Operator`, :class:`bpy.types.KeyingSetInfo`,\n"
-             "      :class:`bpy.types.RenderEngine`, :class:`bpy.types.AssetShelf`\n"
+             "      :class:`bpy.types.RenderEngine`, :class:`bpy.types.AssetShelf`,\n"
+             "      :class:`bpy.types.FileHandler`\n"
              "   :type cls: class\n"
              "   :raises ValueError:\n"
              "      if the class is not a subclass of a registerable blender class.\n"

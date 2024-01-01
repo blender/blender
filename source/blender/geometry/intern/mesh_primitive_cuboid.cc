@@ -292,8 +292,8 @@ static void calculate_corner_verts(const CuboidConfig &config, MutableSpan<int> 
 static void calculate_uvs(const CuboidConfig &config, Mesh *mesh, const bke::AttributeIDRef &uv_id)
 {
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
-  bke::SpanAttributeWriter<float2> uv_attribute =
-      attributes.lookup_or_add_for_write_only_span<float2>(uv_id, ATTR_DOMAIN_CORNER);
+  bke::SpanAttributeWriter uv_attribute = attributes.lookup_or_add_for_write_only_span<float2>(
+      uv_id, bke::AttrDomain::Corner);
   MutableSpan<float2> uvs = uv_attribute.span;
 
   int loop_index = 0;
@@ -376,12 +376,12 @@ Mesh *create_cuboid_mesh(const float3 &size,
   Mesh *mesh = BKE_mesh_new_nomain(config.vertex_count, 0, config.face_count, config.loop_count);
   MutableSpan<float3> positions = mesh->vert_positions_for_write();
   MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
-  BKE_mesh_smooth_flag_set(mesh, false);
+  bke::mesh_smooth_set(*mesh, false);
 
   calculate_positions(config, positions);
   offset_indices::fill_constant_group_size(4, 0, mesh->face_offsets_for_write());
   calculate_corner_verts(config, corner_verts);
-  BKE_mesh_calc_edges(mesh, false, false);
+  bke::mesh_calc_edges(*mesh, false, false);
 
   if (uv_id) {
     calculate_uvs(config, mesh, uv_id);

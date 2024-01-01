@@ -29,6 +29,7 @@
 void ED_undosys_type_init()
 {
   /* Edit Modes */
+  using namespace blender;
   BKE_undosys_type_append(ED_armature_undosys_type);
   BKE_undosys_type_append(ED_curve_undosys_type);
   BKE_undosys_type_append(ED_font_undosys_type);
@@ -40,7 +41,7 @@ void ED_undosys_type_init()
   /* Paint Modes */
   BKE_UNDOSYS_TYPE_IMAGE = BKE_undosys_type_append(ED_image_undosys_type);
 
-  BKE_UNDOSYS_TYPE_SCULPT = BKE_undosys_type_append(ED_sculpt_undosys_type);
+  BKE_UNDOSYS_TYPE_SCULPT = BKE_undosys_type_append(ed::sculpt_paint::undo::register_type);
 
   BKE_UNDOSYS_TYPE_PARTICLE = BKE_undosys_type_append(ED_particle_undosys_type);
 

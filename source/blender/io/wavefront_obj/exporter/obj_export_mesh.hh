@@ -11,13 +11,12 @@
 #include <optional>
 
 #include "BLI_math_vector_types.hh"
+#include "BLI_offset_indices.hh"
 #include "BLI_utility_mixins.hh"
 #include "BLI_vector.hh"
 #include "BLI_virtual_array.hh"
 
 #include "DNA_material_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
 #include "IO_wavefront_obj.hh"

@@ -7,12 +7,10 @@ set(INC
   gizmo
   gizmo/intern
   ../asset_system
-  ../blenfont
   ../blenkernel
   ../blenloader
   ../blentranslation
   ../compositor
-  ../depsgraph
   ../editors/include
   ../draw
   ../gpu
@@ -21,7 +19,6 @@ set(INC
   ../nodes
   ../render
   ../sequencer
-  ../../../intern/clog
   ../../../intern/memutil
   ../../../extern/fmtlib/include
   ../bmesh
@@ -99,9 +96,12 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::blenfont
   PRIVATE bf::blenlib
+  PRIVATE bf::depsgraph
   PRIVATE bf::dna
   bf_editor_screen
+  PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::animrig
   bf_sequencer
@@ -210,3 +210,13 @@ blender_add_lib_nolist(bf_windowmanager "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
 # RNA_prototypes.h
 add_dependencies(bf_windowmanager bf_rna)
+
+if(WITH_GTESTS)
+  set(TEST_INC
+  )
+  set(TEST_SRC
+    intern/wm_dragdrop_test.cc
+  )
+  include(GTestTesting)
+  blender_add_test_lib(bf_wm_tests "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB}")
+endif()

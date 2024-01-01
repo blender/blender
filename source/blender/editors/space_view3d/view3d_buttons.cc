@@ -57,7 +57,7 @@
 #include "ED_object.hh"
 #include "ED_screen.hh"
 
-#include "ANIM_bone_collections.h"
+#include "ANIM_bone_collections.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -186,7 +186,7 @@ static void editmesh_partial_update_update_fn(bContext *C,
 
   BMEditMesh *em = static_cast<BMEditMesh *>(arg1);
 
-  BKE_editmesh_looptri_and_normals_calc_with_partial(em, bmpinfo);
+  BKE_editmesh_looptris_and_normals_calc_with_partial(em, bmpinfo);
 }
 
 /** \} */
@@ -307,8 +307,8 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 
   if (ob->type == OB_MESH) {
     TransformMedian_Mesh *median = &median_basis.mesh;
-    Mesh *me = static_cast<Mesh *>(ob->data);
-    BMEditMesh *em = me->edit_mesh;
+    Mesh *mesh = static_cast<Mesh *>(ob->data);
+    BMEditMesh *em = mesh->edit_mesh;
     BMesh *bm = em->bm;
     BMVert *eve;
     BMEdge *eed;
@@ -952,8 +952,8 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
     UI_block_align_end(block);
 
     if (ob->type == OB_MESH) {
-      Mesh *me = static_cast<Mesh *>(ob->data);
-      BMEditMesh *em = me->edit_mesh;
+      Mesh *mesh = static_cast<Mesh *>(ob->data);
+      BMEditMesh *em = mesh->edit_mesh;
       if (em != nullptr) {
         uiBlockInteraction_CallbackData callback_data{};
         callback_data.begin_fn = editmesh_partial_update_begin_fn;
@@ -986,8 +986,8 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
          median_basis.mesh.e_crease))
     {
       const TransformMedian_Mesh *median = &median_basis.mesh, *ve_median = &ve_median_basis.mesh;
-      Mesh *me = static_cast<Mesh *>(ob->data);
-      BMEditMesh *em = me->edit_mesh;
+      Mesh *mesh = static_cast<Mesh *>(ob->data);
+      BMEditMesh *em = mesh->edit_mesh;
       BMesh *bm = em->bm;
       BMIter iter;
       BMVert *eve;

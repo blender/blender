@@ -44,7 +44,7 @@
 #include "BKE_pbvh_api.hh"
 #include "BKE_sculpt.hh"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 #include "bmesh_log.hh"
 
 #include "dyntopo_intern.hh"
@@ -2207,7 +2207,7 @@ void EdgeQueueContext::finish()
   }
 
   if (modified) {
-    BKE_pbvh_update_bounds(pbvh, PBVH_UpdateBB | PBVH_UpdateOriginalBB);
+    blender::bke::pbvh::update_bounds(*pbvh, PBVH_UpdateBB | PBVH_UpdateOriginalBB);
   }
 
   /* Push a subentry. */
@@ -3737,7 +3737,7 @@ template<typename T = double>  // myinterp::TestFloat<double>>
 static bool reproject_bm_data(BMesh *bm,
                               BMLoop *l_dst,
                               const BMFace *f_src,
-                              eAttrDomainMask domain_mask,
+                              AttrDomainMask domain_mask,
                               eCustomDataMask typemask)
 {
   using namespace myinterp;
@@ -3755,7 +3755,7 @@ static bool reproject_bm_data(BMesh *bm,
   float axis_mat[3][3]; /* use normal to transform into 2d xy coords */
   float co[2];
 
-  if (domain_mask == eAttrDomainMask(0)) {
+  if (domain_mask == AttrDomainMask(0)) {
     return false;
   }
 
@@ -4016,7 +4016,7 @@ void BKE_sculpt_reproject_cdata(SculptSession *ss,
   Vector<BMLoop *, 16> loops;
   Vector<CustomDataLayer *, 16> layers;
   eCustomDataMask snap_typemask = CD_MASK_PROP_FLOAT2;
-  eAttrDomainMask domain_mask = eAttrDomainMask(0);
+  AttrDomainMask domain_mask = AttrDomainMask(0);
   if (undistort_mode & UNDISTORT_REPROJECT_VERTS) {
     domain_mask |= ATTR_DOMAIN_MASK_POINT;
   }

@@ -17,6 +17,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_span.hh"
 #include "BLI_utildefines.h"
 
 #include "DNA_action_types.h"
@@ -79,7 +80,7 @@
 #include "BKE_pointcache.h"
 #include "BKE_rigidbody.h"
 #include "BKE_shader_fx.h"
-#include "BKE_shrinkwrap.h"
+#include "BKE_shrinkwrap.hh"
 #include "BKE_sound.h"
 #include "BKE_tracking.h"
 #include "BKE_world.h"
@@ -1014,7 +1015,8 @@ void DepsgraphRelationBuilder::build_object_data(Object *object)
   Material ***materials_ptr = BKE_object_material_array_p(object);
   if (materials_ptr != nullptr) {
     short *num_materials_ptr = BKE_object_material_len_p(object);
-    build_materials(*materials_ptr, *num_materials_ptr);
+    ID *obdata = (ID *)object->data;
+    build_materials(obdata, *materials_ptr, *num_materials_ptr);
   }
 }
 
@@ -1034,6 +1036,8 @@ void DepsgraphRelationBuilder::build_object_data_light(Object *object)
   ComponentKey lamp_parameters_key(&lamp->id, NodeType::PARAMETERS);
   ComponentKey object_parameters_key(&object->id, NodeType::PARAMETERS);
   add_relation(lamp_parameters_key, object_parameters_key, "Light -> Object");
+  OperationKey object_shading_key(&object->id, NodeType::SHADING, OperationCode::SHADING);
+  add_relation(lamp_parameters_key, object_shading_key, "Light -> Object Shading");
 }
 
 void DepsgraphRelationBuilder::build_object_data_lightprobe(Object *object)
@@ -1043,6 +1047,8 @@ void DepsgraphRelationBuilder::build_object_data_lightprobe(Object *object)
   OperationKey probe_key(&probe->id, NodeType::PARAMETERS, OperationCode::LIGHT_PROBE_EVAL);
   OperationKey object_key(&object->id, NodeType::PARAMETERS, OperationCode::LIGHT_PROBE_EVAL);
   add_relation(probe_key, object_key, "LightProbe Update");
+  OperationKey object_shading_key(&object->id, NodeType::SHADING, OperationCode::SHADING);
+  add_relation(probe_key, object_shading_key, "LightProbe -> Object Shading");
 }
 
 void DepsgraphRelationBuilder::build_object_data_speaker(Object *object)
@@ -2499,7 +2505,7 @@ void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
     }
   }
   /* Materials. */
-  build_materials(object->mat, object->totcol);
+  build_materials(&object->id, object->mat, object->totcol);
   /* Geometry collision. */
   if (ELEM(object->type, OB_MESH, OB_CURVES_LEGACY, OB_LATTICE)) {
     // add geometry collider relations
@@ -2564,6 +2570,10 @@ void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
   add_relation(object_data_select_key, object_select_key, "Data Selection -> Object Selection");
   add_relation(
       geom_key, object_select_key, "Object Geometry -> Select Update", RELATION_FLAG_NO_FLUSH);
+  /* Shading. */
+  ComponentKey geometry_shading_key(obdata, NodeType::SHADING);
+  OperationKey object_shading_key(&object->id, NodeType::SHADING, OperationCode::SHADING);
+  add_relation(geometry_shading_key, object_shading_key, "Geometry Shading -> Object Shading");
 }
 
 void DepsgraphRelationBuilder::build_object_data_geometry_datablock(ID *obdata)
@@ -2713,7 +2723,7 @@ void DepsgraphRelationBuilder::build_armature(bArmature *armature)
   build_animdata(&armature->id);
   build_parameters(&armature->id);
   build_armature_bones(&armature->bonebase);
-  build_armature_bone_collections(&armature->collections);
+  build_armature_bone_collections(armature->collections_span());
 }
 
 void DepsgraphRelationBuilder::build_armature_bones(ListBase *bones)
@@ -2724,9 +2734,10 @@ void DepsgraphRelationBuilder::build_armature_bones(ListBase *bones)
   }
 }
 
-void DepsgraphRelationBuilder::build_armature_bone_collections(ListBase *collections)
+void DepsgraphRelationBuilder::build_armature_bone_collections(
+    blender::Span<BoneCollection *> collections)
 {
-  LISTBASE_FOREACH (BoneCollection *, bcoll, collections) {
+  for (BoneCollection *bcoll : collections) {
     build_idproperties(bcoll->prop);
   }
 }
@@ -2953,8 +2964,14 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
 }
 
 /* Recursively build graph for material */
-void DepsgraphRelationBuilder::build_material(Material *material)
+void DepsgraphRelationBuilder::build_material(Material *material, ID *owner)
 {
+  if (owner) {
+    ComponentKey material_key(&material->id, NodeType::SHADING);
+    OperationKey owner_shading_key(owner, NodeType::SHADING, OperationCode::SHADING);
+    add_relation(material_key, owner_shading_key, "Material -> Owner Shading");
+  }
+
   if (built_map_.checkIsBuiltAndTag(material)) {
     return;
   }
@@ -2981,13 +2998,13 @@ void DepsgraphRelationBuilder::build_material(Material *material)
   }
 }
 
-void DepsgraphRelationBuilder::build_materials(Material **materials, int num_materials)
+void DepsgraphRelationBuilder::build_materials(ID *owner, Material **materials, int num_materials)
 {
   for (int i = 0; i < num_materials; i++) {
     if (materials[i] == nullptr) {
       continue;
     }
-    build_material(materials[i]);
+    build_material(materials[i], owner);
   }
 }
 

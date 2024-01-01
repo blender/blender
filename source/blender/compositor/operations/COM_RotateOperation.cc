@@ -19,6 +19,7 @@ RotateOperation::RotateOperation()
   do_degree2_rad_conversion_ = false;
   is_degree_set_ = false;
   sampler_ = PixelSampler::Bilinear;
+  flags_.can_be_constant = true;
 }
 
 void RotateOperation::get_rotation_center(const rcti &area, float &r_x, float &r_y)

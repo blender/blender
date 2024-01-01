@@ -29,10 +29,9 @@
 #include "DNA_object_enums.h"
 #include "DNA_scene_enums.h"
 
-#include "BKE_attribute.h"
 #include "BKE_pbvh.hh"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
 #include <type_traits>
 
@@ -48,8 +47,20 @@ struct Brush;
 struct CurveMapping;
 struct Depsgraph;
 struct EnumPropertyItem;
-struct ExpandCache;
-struct FilterCache;
+namespace blender {
+namespace bke {
+enum class AttrDomain : int8_t;
+}
+namespace ed::sculpt_paint {
+namespace expand {
+struct Cache;
+}
+namespace filter {
+struct Cache;
+}
+struct StrokeCache;
+}  // namespace ed::sculpt_paint
+}  // namespace blender
 struct GHash;
 struct GridPaintMask;
 struct Image;
@@ -57,7 +68,6 @@ struct ImagePool;
 struct ImageUser;
 struct KeyBlock;
 struct ListBase;
-struct MLoopTri;
 struct Main;
 struct Mesh;
 struct MDeformVert;
@@ -73,7 +83,6 @@ struct Palette;
 struct PaletteColor;
 struct RegionView3D;
 struct Scene;
-struct StrokeCache;
 struct Sculpt;
 struct SculptSession;
 struct SubdivCCG;
@@ -186,7 +195,7 @@ void BKE_paint_free(Paint *p);
  * #id_us_plus(), rather than if we were copying between 2 existing scenes where a matching
  * value should decrease the existing user count as with #paint_brush_set()
  */
-void BKE_paint_copy(Paint *src, Paint *tar, int flag);
+void BKE_paint_copy(const Paint *src, Paint *tar, int flag);
 
 void BKE_paint_runtime_init(const ToolSettings *ts, Paint *paint);
 
@@ -208,27 +217,26 @@ const Brush *BKE_paint_brush_for_read(const Paint *p);
 void BKE_paint_brush_set(Paint *paint, Brush *br);
 Palette *BKE_paint_palette(Paint *paint);
 void BKE_paint_palette_set(Paint *p, Palette *palette);
-void BKE_paint_curve_set(Brush *br, PaintCurve *pc);
 void BKE_paint_curve_clamp_endpoint_add_index(PaintCurve *pc, int add_index);
 
 /**
  * Return true when in vertex/weight/texture paint + face-select mode?
  */
-bool BKE_paint_select_face_test(Object *ob);
+bool BKE_paint_select_face_test(const Object *ob);
 /**
  * Return true when in vertex/weight paint + vertex-select mode?
  */
-bool BKE_paint_select_vert_test(Object *ob);
+bool BKE_paint_select_vert_test(const Object *ob);
 /**
  * used to check if selection is possible
  * (when we don't care if its face or vert)
  */
-bool BKE_paint_select_elem_test(Object *ob);
+bool BKE_paint_select_elem_test(const Object *ob);
 /**
  * Checks if face/vertex hiding is always applied in the current mode.
  * Returns true in vertex/weight paint.
  */
-bool BKE_paint_always_hide_test(Object *ob);
+bool BKE_paint_always_hide_test(const Object *ob);
 
 /* Partial visibility. */
 
@@ -236,11 +244,11 @@ bool BKE_paint_always_hide_test(Object *ob);
  * Returns non-zero if any of the corners of the grid
  * face whose inner corner is at (x, y) are hidden, zero otherwise.
  */
-bool paint_is_grid_face_hidden(const unsigned int *grid_hidden, int gridsize, int x, int y);
+bool paint_is_grid_face_hidden(blender::BoundedBitSpan grid_hidden, int gridsize, int x, int y);
 /**
  * Return true if face is visible.
  */
-bool paint_is_bmesh_face_hidden(BMFace *f);
+bool paint_is_bmesh_face_hidden(const BMFace *f);
 
 /* Paint masks. */
 
@@ -258,7 +266,7 @@ bool paint_calculate_rake_rotation(UnifiedPaintSettings *ups,
                                    bool stroke_has_started);
 void paint_update_brush_rake_rotation(UnifiedPaintSettings *ups, Brush *brush, float rotation);
 
-void BKE_paint_stroke_get_average(Scene *scene, Object *ob, float stroke[3]);
+void BKE_paint_stroke_get_average(const Scene *scene, const Object *ob, float stroke[3]);
 
 /* Tool slot API. */
 
@@ -519,7 +527,7 @@ struct SculptAttributeParams {
 
 struct SculptAttribute {
   /* Domain, data type and name */
-  eAttrDomain domain;
+  blender::bke::AttrDomain domain;
   eCustomDataType proptype;
   char name[MAX_CUSTOMDATA_LAYER_NAME];
 
@@ -579,7 +587,7 @@ struct SculptAttributePointers {
   SculptAttribute *layer_displayment;
 
   /* Precomputed auto-mask factor indexed by vertex, owned by the auto-masking system and
-   * initialized in #SCULPT_automasking_cache_init when needed. */
+   * initialized in #auto_mask::cache_init when needed. */
   SculptAttribute *automasking_factor;    /* Stroke only. */
   SculptAttribute *automasking_occlusion; /* CD_PROP_INT8, stroke only */
   SculptAttribute *automasking_stroke_id;
@@ -658,7 +666,7 @@ struct SculptSession {
   MPropCol *vcol;
   MLoopCol *mcol;
 
-  eAttrDomain vcol_domain;
+  blender::bke::AttrDomain vcol_domain;
   eCustomDataType vcol_type;
 
   /* Mesh connectivity maps. */
@@ -740,9 +748,9 @@ struct SculptSession {
   /* Pool for texture evaluations. */
   ImagePool *tex_pool;
 
-  StrokeCache *cache;
-  FilterCache *filter_cache;
-  ExpandCache *expand_cache;
+  blender::ed::sculpt_paint::StrokeCache *cache;
+  blender::ed::sculpt_paint::filter::Cache *filter_cache;
+  blender::ed::sculpt_paint::expand::Cache *expand_cache;
 
   /* Cursor data and active vertex for tools */
   PBVHVertRef active_vertex;
@@ -900,21 +908,16 @@ void BKE_sculpt_ensure_sculpt_layers(Object *ob);
 
 /* Ensure an attribute layer exists. */
 SculptAttribute *BKE_sculpt_attribute_ensure(Object *ob,
-                                             eAttrDomain domain,
+                                             blender::bke::AttrDomain domain,
                                              eCustomDataType proptype,
                                              const char *name,
                                              const SculptAttributeParams *params);
 
 /* Returns nullptr if attribute does not exist. */
 SculptAttribute *BKE_sculpt_attribute_get(Object *ob,
-                                          eAttrDomain domain,
+                                          blender::bke::AttrDomain domain,
                                           eCustomDataType proptype,
                                           const char *name);
-
-bool BKE_sculpt_attribute_exists(Object *ob,
-                                 eAttrDomain domain,
-                                 eCustomDataType proptype,
-                                 const char *name);
 
 bool BKE_sculpt_attribute_destroy(Object *ob, SculptAttribute *attr);
 
@@ -957,8 +960,7 @@ void BKE_sculpt_color_layer_create_if_needed(Object *object);
 /**
  * \warning Expects a fully evaluated depsgraph.
  */
-void BKE_sculpt_update_object_for_edit(
-    Depsgraph *depsgraph, Object *ob_orig, bool need_pmap, bool need_mask, bool is_paint_tool);
+void BKE_sculpt_update_object_for_edit(Depsgraph *depsgraph, Object *ob_orig, bool is_paint_tool);
 void BKE_sculpt_update_object_before_eval(Object *ob_eval);
 void BKE_sculpt_update_object_after_eval(Depsgraph *depsgraph, Object *ob_eval);
 
@@ -967,13 +969,12 @@ void BKE_sculpt_update_object_after_eval(Depsgraph *depsgraph, Object *ob_eval);
  * it's the last modifier on the stack and it is not on the first level.
  */
 MultiresModifierData *BKE_sculpt_multires_active(const Scene *scene, Object *ob);
-int *BKE_sculpt_face_sets_ensure(Object *ob);
 /**
- * Create the attribute used to store face visibility and retrieve its data.
- * Note that changes to the face visibility have to be propagated to other domains
- * (see #SCULPT_visibility_sync_all_from_faces).
+ * Update the pointer to the ".hide_poly" attribute. This is necessary because it is dynamically
+ * created, removed, and made mutable.
  */
 bool *BKE_sculpt_hide_poly_ensure(Object *ob);
+void BKE_sculpt_hide_poly_pointer_update(Object &object);
 
 /**
  * Ensures a mask layer exists. If depsgraph and bmain are non-null,
@@ -993,7 +994,6 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob);
 
 void BKE_sculpt_bvh_update_from_ccg(PBVH *pbvh, SubdivCCG *subdiv_ccg);
 
-void BKE_sculpt_ensure_orig_mesh_data(Scene *scene, Object *object);
 void BKE_sculpt_sync_face_visibility_to_grids(Mesh *mesh, SubdivCCG *subdiv_ccg);
 
 /**
@@ -1024,9 +1024,7 @@ enum {
 /**
  * Fills the object's active color attribute layer with the fill color.
  *
- * \param[in] ob: The object.
- * \param[in] fill_color: The fill color.
- * \param[in] only_selected: Limit the fill to selected faces or vertices.
+ * \param only_selected: Limit the fill to selected faces or vertices.
  *
  * \return #true if successful.
  */
@@ -1284,3 +1282,5 @@ inline void BKE_sculpt_sharp_boundary_flag_update(SculptSession *ss,
     }
   }
 }
+
+int *BKE_sculpt_face_sets_ensure(Object *ob);

@@ -10,6 +10,10 @@
 
 #include "BKE_node.h"
 
+namespace blender::realtime_compositor {
+class RenderContext;
+}
+
 struct bNodeTreeType;
 struct CryptomatteSession;
 struct Scene;
@@ -36,7 +40,8 @@ void ntreeCompositExecTree(Render *render,
                            RenderData *rd,
                            bool rendering,
                            int do_previews,
-                           const char *view_name);
+                           const char *view_name,
+                           blender::realtime_compositor::RenderContext *render_context);
 
 /**
  * Called from render pipeline, to tag render input and output.

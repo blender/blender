@@ -40,8 +40,8 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "bmesh.h"
-#include "bmesh_tools.h"
+#include "bmesh.hh"
+#include "bmesh_tools.hh"
 
 #include "DEG_depsgraph.hh"
 
@@ -149,7 +149,7 @@ static bool path_select_poll_property(const bContext *C,
 
 struct UserData {
   BMesh *bm;
-  Mesh *me;
+  Mesh *mesh;
   int cd_offset;
   const PathSelectParams *op_params;
 };
@@ -273,7 +273,7 @@ static void mouse_mesh_shortest_path_vert(Scene * /*scene*/,
   }
 
   EDBMUpdate_Params params{};
-  params.calc_looptri = false;
+  params.calc_looptris = false;
   params.calc_normals = false;
   params.is_destructive = false;
   EDBM_update(static_cast<Mesh *>(obedit->data), &params);
@@ -353,9 +353,9 @@ static void edgetag_set_cb(BMEdge *e, bool val, void *user_data_v)
   }
 }
 
-static void edgetag_ensure_cd_flag(Mesh *me, const char edge_mode)
+static void edgetag_ensure_cd_flag(Mesh *mesh, const char edge_mode)
 {
-  BMesh *bm = me->edit_mesh->bm;
+  BMesh *bm = mesh->edit_mesh->bm;
 
   switch (edge_mode) {
     case EDGE_MODE_TAG_CREASE:
@@ -494,7 +494,7 @@ static void mouse_mesh_shortest_path_edge(
   }
 
   EDBMUpdate_Params params{};
-  params.calc_looptri = false;
+  params.calc_looptris = false;
   params.calc_normals = false;
   params.is_destructive = false;
   EDBM_update(static_cast<Mesh *>(obedit->data), &params);
@@ -628,7 +628,7 @@ static void mouse_mesh_shortest_path_face(Scene * /*scene*/,
   }
 
   EDBMUpdate_Params params{};
-  params.calc_looptri = false;
+  params.calc_looptris = false;
   params.calc_normals = false;
   params.is_destructive = false;
   EDBM_update(static_cast<Mesh *>(obedit->data), &params);

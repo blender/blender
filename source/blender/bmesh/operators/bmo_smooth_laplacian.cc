@@ -15,9 +15,9 @@
 
 #include "eigen_capi.h"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
-#include "intern/bmesh_operators_private.h" /* own include */
+#include "intern/bmesh_operators_private.hh" /* own include */
 
 // #define SMOOTH_LAPLACIAN_AREA_FACTOR 4.0f  /* UNUSED */
 // #define SMOOTH_LAPLACIAN_EDGE_FACTOR 2.0f  /* UNUSED */

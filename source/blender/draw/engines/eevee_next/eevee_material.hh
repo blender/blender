@@ -125,6 +125,9 @@ static inline eClosureBits shader_closure_bits_from_flag(const GPUMaterial *gpum
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSPARENT)) {
     closure_bits |= CLOSURE_TRANSPARENCY;
   }
+  if (GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSLUCENT)) {
+    closure_bits |= CLOSURE_TRANSLUCENT;
+  }
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_EMISSION)) {
     closure_bits |= CLOSURE_EMISSION;
   }
@@ -142,6 +145,9 @@ static inline eClosureBits shader_closure_bits_from_flag(const GPUMaterial *gpum
   }
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_AO)) {
     closure_bits |= CLOSURE_AMBIENT_OCCLUSION;
+  }
+  if (GPU_material_flag_get(gpumat, GPU_MATFLAG_SHADER_TO_RGBA)) {
+    closure_bits |= CLOSURE_SHADER_TO_RGBA;
   }
   return closure_bits;
 }
@@ -170,10 +176,17 @@ struct MaterialKey {
   ::Material *mat;
   uint64_t options;
 
-  MaterialKey(::Material *mat_, eMaterialGeometry geometry, eMaterialPipeline pipeline) : mat(mat_)
+  MaterialKey(::Material *mat_,
+              eMaterialGeometry geometry,
+              eMaterialPipeline pipeline,
+              short visibility_flags)
+      : mat(mat_)
   {
     options = shader_uuid_from_material_type(
         pipeline, geometry, to_displacement_type(mat_->displacement_method), mat_->blend_flag);
+    options = (options << 1) | (visibility_flags & OB_HIDE_SHADOW ? 0 : 1);
+    options = (options << 1) | (visibility_flags & OB_HIDE_PROBE_CUBEMAP ? 0 : 1);
+    options = (options << 1) | (visibility_flags & OB_HIDE_PROBE_PLANAR ? 0 : 1);
   }
 
   uint64_t hash() const
@@ -298,7 +311,7 @@ struct MaterialArray {
 class MaterialModule {
  public:
   ::Material *diffuse_mat;
-  ::Material *glossy_mat;
+  ::Material *metallic_mat;
 
   int64_t queued_shaders_count = 0;
   int64_t queued_optimize_shaders_count = 0;

@@ -53,15 +53,11 @@ endif()
 # quiet output for Makefiles, 'make -s' helps too
 # set_property(GLOBAL PROPERTY RULE_MESSAGES OFF)
 
-# global compile definitions since add_definitions() adds for all.
+# Global compile definitions since add_definitions() adds for all.
+# _DEBUG is a Visual Studio define, enabled for all platforms.
 set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS
-  $<$<CONFIG:Debug>:DEBUG;_DEBUG>
-  $<$<CONFIG:Release>:NDEBUG>
-  $<$<CONFIG:MinSizeRel>:NDEBUG>
-  $<$<CONFIG:RelWithDebInfo>:NDEBUG>
+  $<$<CONFIG:Debug>:_DEBUG>
 )
-
-
 # -----------------------------------------------------------------------------
 # Set policy
 
@@ -98,7 +94,6 @@ endif()
 # Load Blender's Local Macros
 
 include(build_files/cmake/macros.cmake)
-
 
 # -----------------------------------------------------------------------------
 # Initialize Project
@@ -419,6 +414,10 @@ option(WITH_MATERIALX "Enable MaterialX Support" ON)
 # Hydra render engine
 option(WITH_HYDRA "Enable Hydra render engine" ON)
 
+# RTL Languages, Complex Shaping, OpenType Features
+option(WITH_FRIBIDI "Enable features relying on fribidi" OFF)
+option(WITH_HARFBUZZ "Enable features relying on harfbuzz" OFF)
+
 # 3D format support
 # Disable opencollada when we don't have precompiled libs
 option(WITH_OPENCOLLADA "Enable OpenCollada Support (http://www.opencollada.org)" ON)
@@ -729,6 +728,9 @@ mark_as_advanced(WITH_CXX_GUARDEDALLOC)
 option(WITH_ASSERT_ABORT "Call abort() when raising an assertion through BLI_assert()" ON)
 mark_as_advanced(WITH_ASSERT_ABORT)
 
+option(WITH_ASSERT_RELEASE "Build with asserts enabled even for non-debug configurations" OFF)
+mark_as_advanced(WITH_ASSERT_RELEASE)
+
 if((UNIX AND NOT APPLE) OR (CMAKE_GENERATOR MATCHES "^Visual Studio.+"))
   option(WITH_CLANG_TIDY "\
 Use Clang Tidy to analyze the source code \
@@ -758,8 +760,8 @@ endif()
 
 # Unit testing
 option(WITH_GTESTS "Enable GTest unit testing" OFF)
-option(WITH_OPENGL_RENDER_TESTS "Enable OpenGL render related unit testing (Experimental)" OFF)
-option(WITH_OPENGL_DRAW_TESTS "Enable OpenGL UI drawing related unit testing (Experimental)" OFF)
+option(WITH_GPU_RENDER_TESTS "Enable GPU render related unit testing (EEVEE, Workbench and Grease Pencil)" OFF)
+option(WITH_GPU_DRAW_TESTS "Enable GPU drawing related unit testing (GPU backends and draw manager)" OFF)
 option(WITH_COMPOSITOR_REALTIME_TESTS "Enable regression testing for realtime compositor" OFF)
 if(UNIX AND NOT (APPLE OR HAIKU))
   option(WITH_UI_TESTS "\
@@ -1782,13 +1784,21 @@ if(CMAKE_COMPILER_IS_GNUCC)
     CXX_WARN_NO_SUGGEST_OVERRIDE -Wno-suggest-override
     CXX_WARN_UNINITIALIZED -Wuninitialized
 
+    # NOTE(@ideasman42): In GCC 13.2.1 on Linux this causes internal compiler errors.
+    # The crashes can be resolved by disabling the flag per module (but not via pragmas).
+    # However this also causes a type mix-up FreeStyle  (Blender & FreeStyle's `Curve`)
+    # so it seems to impact GCC's the internal state enough that it's too risky to enable.
+    # When this is resolved the check can be enabled for fixed GCC versions.
+    #
+    # Prevents linking errors with MSVC.
+    # `CXX_WARN_MISMATCHED_TAGS -Wmismatched-tags`
+
     # Useful but too many false positives and inconvenient to suppress each occurrence.
     CXX_WARN_NO_STRINGOP_OVERREAD -Wno-stringop-overread
     CXX_WARN_NO_STRINGOP_OVERFLOW -Wno-stringop-overflow
 
     # Use `[[fallthrough]]` or `ATTR_FALLTHROUGH` macro to suppress.
     CXX_WARN_IMPLICIT_FALLTHROUGH -Wimplicit-fallthrough=5
-
   )
 
   # causes too many warnings
@@ -1890,6 +1900,9 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
     CXX_WARN_UNDEF -Wundef
     CXX_WARN_UNDEF_PREFIX -Wundef-prefix
     CXX_WARN_UNUSED_PARAMETER -Wunused-parameter
+
+    # Prevents linking errors with MSVC.
+    CXX_WARN_MISMATCHED_TAGS -Wmismatched-tags
 
     # Gives too many unfixable warnings.
     # `C_WARN_UNUSED_MACROS -Wunused-macros`
@@ -2159,6 +2172,20 @@ endif()
 
 if(WITH_ASSERT_ABORT)
   add_definitions(-DWITH_ASSERT_ABORT)
+endif()
+
+# NDEBUG is the standard C define to disable asserts.
+if(WITH_ASSERT_RELEASE)
+  # CMake seemingly be setting the NDEBUG flag on its own already on some configurations
+  # therefore we need to remove the flags if they happen to be set.
+  remove_cc_flag("-DNDEBUG") # GCC/CLang
+  remove_cc_flag("/DNDEBUG") # MSVC
+else()
+  set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS
+    $<$<CONFIG:Release>:NDEBUG>
+    $<$<CONFIG:MinSizeRel>:NDEBUG>
+    $<$<CONFIG:RelWithDebInfo>:NDEBUG>
+  )
 endif()
 
 # message(STATUS "Using CFLAGS: ${CMAKE_C_FLAGS}")

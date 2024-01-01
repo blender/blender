@@ -76,6 +76,11 @@ class BitGroupVector {
     return aligned_group_size_ == 0 ? 0 : data_.size() / aligned_group_size_;
   }
 
+  bool is_empty() const
+  {
+    return this->size() == 0;
+  }
+
   /** Number of bits per group. */
   int64_t group_size() const
   {

@@ -64,7 +64,7 @@
 #include "BKE_brush.hh"
 #include "BKE_cloth.hh"
 #include "BKE_collection.h"
-#include "BKE_colortools.h"
+#include "BKE_colortools.hh"
 #include "BKE_constraint.h"
 #include "BKE_curveprofile.h"
 #include "BKE_customdata.hh"
@@ -79,7 +79,7 @@
 #include "BKE_key.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.hh"
 #include "BKE_node.h"
@@ -90,7 +90,7 @@
 #include "BKE_rigidbody.h"
 #include "BKE_screen.hh"
 #include "BKE_studiolight.h"
-#include "BKE_unit.h"
+#include "BKE_unit.hh"
 #include "BKE_workspace.h"
 
 #include "SEQ_iterator.hh"
@@ -3043,8 +3043,8 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     if (DNA_struct_exists(fd->filesdna, "MTexPoly")) {
       LISTBASE_FOREACH (Mesh *, me, &bmain->meshes) {
         /* If we have UVs, so this file will have MTexPoly layers too! */
-        if (CustomData_has_layer(&me->loop_data, CD_MLOOPUV) ||
-            CustomData_has_layer(&me->loop_data, CD_PROP_FLOAT2))
+        if (CustomData_has_layer(&me->corner_data, CD_MLOOPUV) ||
+            CustomData_has_layer(&me->corner_data, CD_PROP_FLOAT2))
         {
           CustomData_update_typemap(&me->face_data);
           CustomData_free_layers(&me->face_data, CD_MTEXPOLY, me->faces_num);
@@ -3409,7 +3409,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     if (!DNA_struct_member_exists(fd->filesdna, "Scene", "SceneDisplay", "display")) {
       /* Initialize new scene.SceneDisplay */
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-        const float vector[3]{-M_SQRT1_3, -M_SQRT1_3, M_SQRT1_3};
+        const float vector[3] = {-M_SQRT1_3, -M_SQRT1_3, M_SQRT1_3};
         copy_v3_v3(scene->display.light_direction, vector);
       }
     }
@@ -4674,7 +4674,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      scene->r.mode &= ~(R_MODE_UNUSED_1 | R_MODE_UNUSED_2 | R_MODE_UNUSED_3 | R_MODE_UNUSED_4 |
+      scene->r.mode &= ~(R_SIMPLIFY_NORMALS | R_MODE_UNUSED_2 | R_MODE_UNUSED_3 | R_MODE_UNUSED_4 |
                          R_MODE_UNUSED_5 | R_MODE_UNUSED_6 | R_MODE_UNUSED_7 | R_MODE_UNUSED_8 |
                          R_MODE_UNUSED_10 | R_MODE_UNUSED_13 | R_MODE_UNUSED_16 |
                          R_MODE_UNUSED_17 | R_MODE_UNUSED_18 | R_MODE_UNUSED_19 |

@@ -86,8 +86,7 @@ int EEVEE_bloom_init(EEVEE_ViewLayerData * /*sldata*/, EEVEE_Data *vedata)
       effects->downsamp_texel_size[i][1] = 1.0f / float(texsize[1]);
 
       eGPUTextureUsage downsample_usage = GPU_TEXTURE_USAGE_SHADER_READ |
-                                          GPU_TEXTURE_USAGE_ATTACHMENT |
-                                          GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW;
+                                          GPU_TEXTURE_USAGE_ATTACHMENT;
       effects->bloom_downsample[i] = DRW_texture_pool_query_2d_ex(
           texsize[0], texsize[1], GPU_R11F_G11F_B10F, downsample_usage, &draw_engine_eevee_type);
       GPU_framebuffer_ensure_config(
@@ -105,8 +104,7 @@ int EEVEE_bloom_init(EEVEE_ViewLayerData * /*sldata*/, EEVEE_Data *vedata)
       texsize[1] = std::max(texsize[1], 2);
 
       eGPUTextureUsage upsample_usage = GPU_TEXTURE_USAGE_SHADER_READ |
-                                        GPU_TEXTURE_USAGE_ATTACHMENT |
-                                        GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW;
+                                        GPU_TEXTURE_USAGE_ATTACHMENT;
 
       effects->bloom_upsample[i] = DRW_texture_pool_query_2d_ex(
           texsize[0], texsize[1], GPU_R11F_G11F_B10F, upsample_usage, &draw_engine_eevee_type);

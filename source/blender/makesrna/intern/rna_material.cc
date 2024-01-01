@@ -65,11 +65,12 @@ const EnumPropertyItem rna_enum_ramp_blend_items[] = {
 #  include "DNA_screen_types.h"
 #  include "DNA_space_types.h"
 
-#  include "BKE_colorband.h"
+#  include "BKE_attribute.hh"
+#  include "BKE_colorband.hh"
 #  include "BKE_context.hh"
 #  include "BKE_gpencil_legacy.h"
 #  include "BKE_grease_pencil.hh"
-#  include "BKE_main.h"
+#  include "BKE_main.hh"
 #  include "BKE_material.h"
 #  include "BKE_node.h"
 #  include "BKE_paint.hh"
@@ -164,7 +165,7 @@ static void rna_Material_active_paint_texture_index_update(bContext *C, PointerR
     }
   }
 
-  if (ma->texpaintslot) {
+  if (ma->texpaintslot && (ma->tot_slots > ma->paint_active_slot)) {
     TexPaintSlot *slot = &ma->texpaintslot[ma->paint_active_slot];
     Image *image = slot->ima;
     if (image) {

@@ -386,7 +386,7 @@ static int mesh_bisect_exec(bContext *C, wmOperator *op)
 
     if (EDBM_op_finish(em, &bmop, op, true)) {
       EDBMUpdate_Params params{};
-      params.calc_looptri = true;
+      params.calc_looptris = true;
       params.calc_normals = false;
       params.is_destructive = true;
       EDBM_update(static_cast<Mesh *>(obedit->data), &params);

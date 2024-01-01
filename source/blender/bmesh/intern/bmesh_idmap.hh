@@ -18,7 +18,7 @@
 #include "BLI_sys_types.h"
 #include "BLI_vector.hh"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
 #define BM_ID_NONE 0
 

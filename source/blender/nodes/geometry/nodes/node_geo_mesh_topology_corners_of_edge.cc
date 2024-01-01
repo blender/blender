@@ -46,15 +46,15 @@ class CornersOfEdgeInput final : public bke::MeshFieldInput {
   }
 
   GVArray get_varray_for_context(const Mesh &mesh,
-                                 const eAttrDomain domain,
+                                 const AttrDomain domain,
                                  const IndexMask &mask) const final
   {
-    const IndexRange edge_range(mesh.totedge);
+    const IndexRange edge_range(mesh.edges_num);
     Array<int> map_offsets;
     Array<int> map_indices;
     const Span<int> corner_edges = mesh.corner_edges();
     const GroupedSpan<int> edge_to_loop_map = bke::mesh::build_edge_to_loop_map(
-        mesh.corner_edges(), mesh.totedge, map_offsets, map_indices);
+        mesh.corner_edges(), mesh.edges_num, map_offsets, map_indices);
 
     const bke::MeshFieldContext context{mesh, domain};
     fn::FieldEvaluator evaluator{context, &mask};
@@ -64,7 +64,7 @@ class CornersOfEdgeInput final : public bke::MeshFieldInput {
     const VArray<int> edge_indices = evaluator.get_evaluated<int>(0);
     const VArray<int> indices_in_sort = evaluator.get_evaluated<int>(1);
 
-    const bke::MeshFieldContext corner_context{mesh, ATTR_DOMAIN_CORNER};
+    const bke::MeshFieldContext corner_context{mesh, AttrDomain::Corner};
     fn::FieldEvaluator corner_evaluator{corner_context, corner_edges.size()};
     corner_evaluator.add(sort_weight_);
     corner_evaluator.evaluate();
@@ -127,9 +127,9 @@ class CornersOfEdgeInput final : public bke::MeshFieldInput {
     sort_weight_.node().for_each_field_input_recursive(fn);
   }
 
-  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const final
+  std::optional<AttrDomain> preferred_domain(const Mesh & /*mesh*/) const final
   {
-    return ATTR_DOMAIN_EDGE;
+    return AttrDomain::Edge;
   }
 };
 
@@ -141,13 +141,13 @@ class CornersOfEdgeCountInput final : public bke::MeshFieldInput {
   }
 
   GVArray get_varray_for_context(const Mesh &mesh,
-                                 const eAttrDomain domain,
+                                 const AttrDomain domain,
                                  const IndexMask & /*mask*/) const final
   {
-    if (domain != ATTR_DOMAIN_EDGE) {
+    if (domain != AttrDomain::Edge) {
       return {};
     }
-    Array<int> counts(mesh.totedge, 0);
+    Array<int> counts(mesh.edges_num, 0);
     array_utils::count_indices(mesh.corner_edges(), counts);
     return VArray<int>::ForContainer(std::move(counts));
   }
@@ -162,9 +162,9 @@ class CornersOfEdgeCountInput final : public bke::MeshFieldInput {
     return dynamic_cast<const CornersOfEdgeCountInput *>(&other) != nullptr;
   }
 
-  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const final
+  std::optional<AttrDomain> preferred_domain(const Mesh & /*mesh*/) const final
   {
-    return ATTR_DOMAIN_EDGE;
+    return AttrDomain::Edge;
   }
 };
 
@@ -176,7 +176,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                       Field<int>(std::make_shared<EvaluateAtIndexInput>(
                           edge_index,
                           Field<int>(std::make_shared<CornersOfEdgeCountInput>()),
-                          ATTR_DOMAIN_EDGE)));
+                          AttrDomain::Edge)));
   }
   if (params.output_is_required("Corner Index")) {
     params.set_output("Corner Index",

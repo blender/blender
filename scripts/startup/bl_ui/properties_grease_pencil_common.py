@@ -274,6 +274,31 @@ class GPENCIL_MT_layer_active(Menu):
                 i -= 1
 
 
+class GREASE_PENCIL_MT_layer_active(Menu):
+    bl_label = "Change Active Layer"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator_context = 'INVOKE_REGION_WIN'
+        obd = context.active_object.data
+
+        nlop = layout.operator("grease_pencil.layer_add", text="New Layer", icon='ADD')
+        nlop.new_layer_name = "Layer"
+
+        if not obd.layers:
+            return
+
+        layout.separator()
+
+        for i in range(len(obd.layers) - 1, -1, -1):
+            layer = obd.layers[i]
+            if layer == obd.layers.active:
+                icon = 'GREASEPENCIL'
+            else:
+                icon = 'NONE'
+            layout.operator("grease_pencil.layer_active", text=layer.name, icon=icon).layer = i
+
+
 class GPENCIL_MT_material_active(Menu):
     bl_label = "Change Active Material"
 
@@ -916,6 +941,8 @@ classes = (
     GPENCIL_UL_annotation_layer,
     GPENCIL_UL_layer,
     GPENCIL_UL_masks,
+
+    GREASE_PENCIL_MT_layer_active,
 
     GreasePencilFlipTintColors,
 )

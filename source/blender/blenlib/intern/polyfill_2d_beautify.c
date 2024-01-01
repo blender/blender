@@ -392,7 +392,7 @@ void BLI_polyfill_beautify(const float (*coords)[2],
 
   // MEM_freeN(eheap_table); /* arena */
 
-  /* get tris from half edge. */
+  /* Get triangles from half edge. */
   uint tri_index = 0;
   for (uint i = 0; i < half_edges_len; i++) {
     struct HalfEdge *e = &half_edges[i];

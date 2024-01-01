@@ -644,6 +644,7 @@ void ui_but_to_pixelrect(rcti *rect,
                          const ARegion *region,
                          const uiBlock *block,
                          const uiBut *but);
+rcti ui_to_pixelrect(const ARegion *region, const uiBlock *block, const rctf *src_rect);
 
 void ui_block_to_region_fl(const ARegion *region, const uiBlock *block, float *r_x, float *r_y);
 void ui_block_to_window_fl(const ARegion *region, const uiBlock *block, float *x, float *y);
@@ -1020,17 +1021,14 @@ int ui_handler_panel_region(bContext *C,
 /**
  * Draw a panel integrated in buttons-window, tool/property lists etc.
  */
-void ui_draw_aligned_panel(const uiStyle *style,
+void ui_draw_aligned_panel(const ARegion *region,
+                           const uiStyle *style,
                            const uiBlock *block,
                            const rcti *rect,
                            bool show_pin,
                            bool show_background,
                            bool region_search_filter_active);
 void ui_panel_tag_search_filter_match(Panel *panel);
-
-/* interface_draw.cc */
-
-void ui_draw_dropshadow(const rctf *rct, float radius, float aspect, float alpha, int select);
 
 /**
  * Draws in resolution of 48x4 colors.

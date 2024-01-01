@@ -47,7 +47,7 @@ void BLI_system_backtrace(FILE *fp)
 {
   (void)fp;
 }
-#endif
+#endif /* !NDEBUG */
 
 /* Replace if different */
 #define TMP_EXT ".tmp"
@@ -4836,7 +4836,7 @@ static void rna_generate(BlenderRNA *brna, FILE *f, const char *filename, const 
 
   fprintf(f, "#include \"BKE_context.hh\"\n");
   fprintf(f, "#include \"BKE_lib_id.h\"\n");
-  fprintf(f, "#include \"BKE_main.h\"\n");
+  fprintf(f, "#include \"BKE_main.hh\"\n");
   fprintf(f, "#include \"BKE_report.h\"\n");
 
   fprintf(f, "#include \"RNA_define.hh\"\n");

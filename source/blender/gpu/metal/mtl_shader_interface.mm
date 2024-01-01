@@ -225,7 +225,8 @@ void MTLShaderInterface::add_texture(uint32_t name_offset,
                                      eGPUTextureType tex_binding_type,
                                      eGPUSamplerFormat sampler_format,
                                      bool is_texture_sampler,
-                                     ShaderStage stage_mask)
+                                     ShaderStage stage_mask,
+                                     int tex_buffer_ssbo_location)
 {
   BLI_assert(texture_slot >= 0 && texture_slot < GPU_max_textures());
   BLI_assert(sampler_format < GPU_SAMPLER_TYPE_MAX);
@@ -241,6 +242,7 @@ void MTLShaderInterface::add_texture(uint32_t name_offset,
     tex.is_texture_sampler = is_texture_sampler;
     tex.stage_mask = stage_mask;
     tex.used = true;
+    tex.texture_buffer_ssbo_location = tex_buffer_ssbo_location;
     total_textures_++;
     max_texture_index_ = max_ii(max_texture_index_, texture_slot);
   }
@@ -410,6 +412,25 @@ void MTLShaderInterface::prepare_common_shader_inputs()
 
   /* Map builtin uniform indices to uniform binding locations. */
   this->map_builtins();
+
+  /* Pre-calculate texture metadata uniform locations for buffer-backed textures. */
+  for (int texture_index = 0; texture_index <= max_texture_index_; texture_index++) {
+    MTLShaderTexture &shd_tex = textures_[texture_index];
+    if (shd_tex.texture_buffer_ssbo_location != -1) {
+      char uniform_name[256];
+      const char *tex_name = get_name_at_offset(shd_tex.name_offset);
+      BLI_snprintf(uniform_name, 256, "%s_metadata", tex_name);
+      const ShaderInput *uni = this->uniform_get(uniform_name);
+      BLI_assert_msg(uni != nullptr,
+                     "Could not find expected metadata uniform slot for buffer-backed texture.");
+      if (uni != nullptr) {
+        BLI_assert(uni->location >= 0);
+        if (uni->location >= 0) {
+          shd_tex.buffer_metadata_uniform_loc = uni->location;
+        }
+      }
+    }
+  }
 }
 
 void MTLShaderInterface::set_sampler_properties(bool use_argument_buffer,

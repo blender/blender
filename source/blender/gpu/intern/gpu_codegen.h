@@ -25,6 +25,7 @@ typedef struct GPUPass GPUPass;
 
 GPUPass *GPU_generate_pass(GPUMaterial *material,
                            struct GPUNodeGraph *graph,
+                           eGPUMaterialEngine engine,
                            GPUCodegenCallbackFn finalize_source_cb,
                            void *thunk,
                            bool optimize_graph);

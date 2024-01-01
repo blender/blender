@@ -32,6 +32,7 @@ set(SRC
   intern/operation.cc
   intern/realize_on_domain_operation.cc
   intern/reduce_to_single_value_operation.cc
+  intern/render_context.cc
   intern/result.cc
   intern/scheduler.cc
   intern/shader_node.cc
@@ -52,6 +53,7 @@ set(SRC
   COM_operation.hh
   COM_realize_on_domain_operation.hh
   COM_reduce_to_single_value_operation.hh
+  COM_render_context.hh
   COM_result.hh
   COM_scheduler.hh
   COM_shader_node.hh
@@ -62,6 +64,7 @@ set(SRC
   COM_utilities.hh
 
   algorithms/intern/jump_flooding.cc
+  algorithms/intern/morphological_blur.cc
   algorithms/intern/morphological_distance.cc
   algorithms/intern/morphological_distance_feather.cc
   algorithms/intern/parallel_reduction.cc
@@ -73,6 +76,7 @@ set(SRC
   algorithms/intern/transform.cc
 
   algorithms/COM_algorithm_jump_flooding.hh
+  algorithms/COM_algorithm_morphological_blur.hh
   algorithms/COM_algorithm_morphological_distance.hh
   algorithms/COM_algorithm_morphological_distance_feather.hh
   algorithms/COM_algorithm_parallel_reduction.hh
@@ -83,6 +87,8 @@ set(SRC
   algorithms/COM_algorithm_symmetric_separable_blur_variable_size.hh
   algorithms/COM_algorithm_transform.hh
 
+  cached_resources/intern/bokeh_kernel.cc
+  cached_resources/intern/cached_image.cc
   cached_resources/intern/cached_mask.cc
   cached_resources/intern/cached_shader.cc
   cached_resources/intern/cached_texture.cc
@@ -94,6 +100,8 @@ set(SRC
   cached_resources/intern/symmetric_blur_weights.cc
   cached_resources/intern/symmetric_separable_blur_weights.cc
 
+  cached_resources/COM_bokeh_kernel.hh
+  cached_resources/COM_cached_image.hh
   cached_resources/COM_cached_mask.hh
   cached_resources/COM_cached_resource.hh
   cached_resources/COM_cached_shader.hh
@@ -127,6 +135,12 @@ set(GLSL_SRC
   shaders/compositor_box_mask.glsl
   shaders/compositor_compute_preview.glsl
   shaders/compositor_convert.glsl
+  shaders/compositor_cryptomatte_image.glsl
+  shaders/compositor_cryptomatte_matte.glsl
+  shaders/compositor_cryptomatte_pick.glsl
+  shaders/compositor_defocus_blur.glsl
+  shaders/compositor_defocus_radius_from_depth.glsl
+  shaders/compositor_defocus_radius_from_scale.glsl
   shaders/compositor_despeckle.glsl
   shaders/compositor_directional_blur.glsl
   shaders/compositor_displace.glsl
@@ -164,6 +178,7 @@ set(GLSL_SRC
   shaders/compositor_kuwahara_anisotropic_compute_structure_tensor.glsl
   shaders/compositor_kuwahara_classic.glsl
   shaders/compositor_map_uv.glsl
+  shaders/compositor_morphological_blur.glsl
   shaders/compositor_morphological_distance.glsl
   shaders/compositor_morphological_distance_feather.glsl
   shaders/compositor_morphological_distance_threshold.glsl
@@ -173,6 +188,7 @@ set(GLSL_SRC
   shaders/compositor_parallel_reduction.glsl
   shaders/compositor_plane_deform.glsl
   shaders/compositor_plane_deform_motion_blur.glsl
+  shaders/compositor_premultiply_alpha.glsl
   shaders/compositor_projector_lens_distortion.glsl
   shaders/compositor_read_input.glsl
   shaders/compositor_realize_on_domain.glsl
@@ -180,7 +196,7 @@ set(GLSL_SRC
   shaders/compositor_smaa_blending_weight_calculation.glsl
   shaders/compositor_smaa_edge_detection.glsl
   shaders/compositor_smaa_neighborhood_blending.glsl
-  shaders/compositor_split_viewer.glsl
+  shaders/compositor_split.glsl
   shaders/compositor_summed_area_table_compute_complete_blocks.glsl
   shaders/compositor_summed_area_table_compute_complete_x_prologues.glsl
   shaders/compositor_summed_area_table_compute_complete_y_prologues.glsl
@@ -264,6 +280,8 @@ set(SRC_SHADER_CREATE_INFOS
   shaders/infos/compositor_box_mask_info.hh
   shaders/infos/compositor_compute_preview_info.hh
   shaders/infos/compositor_convert_info.hh
+  shaders/infos/compositor_cryptomatte_info.hh
+  shaders/infos/compositor_defocus_info.hh
   shaders/infos/compositor_despeckle_info.hh
   shaders/infos/compositor_directional_blur_info.hh
   shaders/infos/compositor_displace_info.hh
@@ -281,6 +299,7 @@ set(SRC_SHADER_CREATE_INFOS
   shaders/infos/compositor_keying_screen_info.hh
   shaders/infos/compositor_kuwahara_info.hh
   shaders/infos/compositor_map_uv_info.hh
+  shaders/infos/compositor_morphological_blur_info.hh
   shaders/infos/compositor_morphological_distance_feather_info.hh
   shaders/infos/compositor_morphological_distance_info.hh
   shaders/infos/compositor_morphological_distance_threshold_info.hh
@@ -290,12 +309,13 @@ set(SRC_SHADER_CREATE_INFOS
   shaders/infos/compositor_parallel_reduction_info.hh
   shaders/infos/compositor_plane_deform_info.hh
   shaders/infos/compositor_plane_deform_motion_blur_info.hh
+  shaders/infos/compositor_premultiply_alpha_info.hh
   shaders/infos/compositor_projector_lens_distortion_info.hh
   shaders/infos/compositor_read_input_info.hh
   shaders/infos/compositor_realize_on_domain_info.hh
   shaders/infos/compositor_screen_lens_distortion_info.hh
   shaders/infos/compositor_smaa_info.hh
-  shaders/infos/compositor_split_viewer_info.hh
+  shaders/infos/compositor_split_info.hh
   shaders/infos/compositor_summed_area_table_info.hh
   shaders/infos/compositor_sun_beams_info.hh
   shaders/infos/compositor_symmetric_blur_info.hh

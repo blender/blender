@@ -14,6 +14,7 @@
 #include "usd_hierarchy_iterator.h"
 #include "usd_writer_curves.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_curve_legacy_convert.hh"
 #include "BKE_curves.hh"
 #include "BKE_lib_id.h"
@@ -73,7 +74,7 @@ static void populate_curve_widths(const bke::CurvesGeometry &geometry, pxr::VtAr
 {
   const bke::AttributeAccessor curve_attributes = geometry.attributes();
   const bke::AttributeReader<float> radii = curve_attributes.lookup<float>("radius",
-                                                                           ATTR_DOMAIN_POINT);
+                                                                           bke::AttrDomain::Point);
 
   widths.resize(radii.varray.size());
 
@@ -529,9 +530,11 @@ void USDCurvesWriter::assign_materials(const HierarchyContext &context,
       continue;
     }
 
-    pxr::UsdShadeMaterialBindingAPI api = pxr::UsdShadeMaterialBindingAPI(usd_curve.GetPrim());
+    pxr::UsdPrim curve_prim = usd_curve.GetPrim();
+    pxr::UsdShadeMaterialBindingAPI api = pxr::UsdShadeMaterialBindingAPI(curve_prim);
     pxr::UsdShadeMaterial usd_material = ensure_usd_material(context, material);
     api.Bind(usd_material);
+    api.Apply(curve_prim);
 
     /* USD seems to support neither per-material nor per-face-group double-sidedness, so we just
      * use the flag from the first non-empty material slot. */

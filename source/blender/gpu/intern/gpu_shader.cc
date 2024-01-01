@@ -64,7 +64,7 @@ Shader::~Shader()
 
 static void standard_defines(Vector<const char *> &sources)
 {
-  BLI_assert(sources.size() == 0);
+  BLI_assert(sources.is_empty());
   /* Version needs to be first. Exact values will be added by implementation. */
   sources.append("version");
   /* Define to identify code usage in shading language. */
@@ -734,6 +734,12 @@ void GPU_shader_uniform_mat3_as_mat4(GPUShader *sh, const char *name, const floa
   float matrix[4][4];
   copy_m4_m3(matrix, data);
   GPU_shader_uniform_mat4(sh, name, matrix);
+}
+
+void GPU_shader_uniform_1f_array(GPUShader *sh, const char *name, int len, const float *val)
+{
+  const int loc = GPU_shader_get_uniform(sh, name);
+  GPU_shader_uniform_float_ex(sh, loc, 1, len, val);
 }
 
 void GPU_shader_uniform_2fv_array(GPUShader *sh, const char *name, int len, const float (*val)[2])

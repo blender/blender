@@ -64,12 +64,12 @@ static LinkNode *knifeproject_poly_from_object(const bContext *C, Object *ob, Li
 
   if (me_eval) {
     ListBase nurbslist = {nullptr, nullptr};
-    float projmat[4][4];
 
     BKE_mesh_to_curve_nurblist(me_eval, &nurbslist, 0); /* wire */
     BKE_mesh_to_curve_nurblist(me_eval, &nurbslist, 1); /* boundary */
 
-    ED_view3d_ob_project_mat_get(static_cast<RegionView3D *>(region->regiondata), ob, projmat);
+    const blender::float4x4 projmat = ED_view3d_ob_project_mat_get(
+        static_cast<RegionView3D *>(region->regiondata), ob);
 
     if (nurbslist.first) {
       LISTBASE_FOREACH (Nurb *, nu, &nurbslist) {
@@ -81,7 +81,7 @@ static LinkNode *knifeproject_poly_from_object(const bContext *C, Object *ob, Li
               MEM_mallocN(sizeof(*mval) * (nu->pntsu + is_cyclic), __func__));
 
           for (bp = nu->bp, a = 0; a < nu->pntsu; a++, bp++) {
-            ED_view3d_project_float_v2_m4(region, bp->vec, mval[a], projmat);
+            copy_v2_v2(mval[a], ED_view3d_project_float_v2_m4(region, bp->vec, projmat));
           }
           if (is_cyclic) {
             copy_v2_v2(mval[a], mval[0]);

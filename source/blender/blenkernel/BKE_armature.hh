@@ -8,8 +8,10 @@
  * \ingroup bke
  */
 
+#include "BLI_bounds_types.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_listbase.h"
+#include "BLI_math_vector_types.hh"
 #include "BLI_set.hh"
 
 #include "DNA_armature_types.h"
@@ -152,8 +154,7 @@ void BKE_armature_copy_bone_transforms(struct bArmature *armature_dst,
 
 void BKE_armature_transform(struct bArmature *arm, const float mat[4][4], bool do_props);
 
-/* Bounding box. */
-struct BoundBox *BKE_armature_boundbox_get(struct Object *ob);
+std::optional<blender::Bounds<blender::float3>> BKE_armature_min_max(const bPose *pose);
 
 /**
  * Calculate the axis-aligned bounds of `pchan` in world-space,
@@ -573,7 +574,7 @@ void BKE_pchan_bbone_deform_segment_index(const struct bPoseChannel *pchan,
                                           int *r_index,
                                           float *r_blend_next);
 
-/* like EBONE_VISIBLE,  be sure to #include "ANIM_bone_collections.h". */
+/* like EBONE_VISIBLE,  be sure to #include "ANIM_bone_collections.hh". */
 #define PBONE_VISIBLE(arm, bone) ANIM_bone_is_visible(arm, bone)
 
 #define PBONE_SELECTABLE(arm, bone) \

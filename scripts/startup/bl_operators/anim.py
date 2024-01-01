@@ -13,7 +13,10 @@ from bpy.props import (
     EnumProperty,
     StringProperty,
 )
-from bpy.app.translations import pgettext_tip as tip_
+from bpy.app.translations import (
+    pgettext_tip as tip_,
+    contexts as i18n_contexts,
+)
 
 
 class ANIM_OT_keying_set_export(Operator):
@@ -201,7 +204,7 @@ class NLA_OT_bake(Operator):
     )
     step: IntProperty(
         name="Frame Step",
-        description="Frame Step",
+        description="Number of frames to skip forward while baking each frame",
         min=1, max=120,
         default=1,
     )
@@ -238,6 +241,7 @@ class NLA_OT_bake(Operator):
     )
     bake_types: EnumProperty(
         name="Bake Data",
+        translation_context=i18n_contexts.id_action,
         description="Which data's transformations to bake",
         options={'ENUM_FLAG'},
         items=(
@@ -254,7 +258,7 @@ class NLA_OT_bake(Operator):
             ('LOCATION', "Location", "Bake location channels"),
             ('ROTATION', "Rotation", "Bake rotation channels"),
             ('SCALE', "Scale", "Bake scale channels"),
-            ('BBONE', "B-Bone", "Bake b-bone channels"),
+            ('BBONE', "B-Bone", "Bake B-Bone channels"),
         ),
         default={'LOCATION', 'ROTATION', 'SCALE', 'BBONE'},
     )

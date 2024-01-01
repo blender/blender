@@ -35,7 +35,7 @@
 #include "BKE_deform.h"
 #include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_layer.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_modifier.hh"
 
 #include "DEG_depsgraph.hh"
@@ -49,7 +49,7 @@
 #include "ED_armature.hh"
 #include "ED_screen.hh"
 
-#include "ANIM_bone_collections.h"
+#include "ANIM_bone_collections.hh"
 
 #include "armature_intern.h"
 
@@ -477,8 +477,8 @@ static int armature_flip_names_exec(bContext *C, wmOperator *op)
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 
     /* copied from #rna_Bone_update_renamed */
-    /* redraw view */
-    WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
+    /* Redraw Outliner / Dopesheet. */
+    WM_event_add_notifier(C, NC_GEOM | ND_DATA | NA_RENAME, ob->data);
 
     /* update animation channels */
     WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN, ob->data);

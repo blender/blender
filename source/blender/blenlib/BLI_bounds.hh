@@ -115,4 +115,40 @@ template<typename T, typename RadiusT>
       [](const Bounds<T> &a, const Bounds<T> &b) { return merge(a, b); });
 }
 
+template<typename T> [[nodiscard]] Bounds<T> expand(Bounds<T> bb, const T b)
+{
+  Bounds<T> expanded;
+  expanded.min = math::min(bb.min, b);
+  expanded.max = math::max(bb.max, b);
+  return expanded;
+}
+
+template<typename T, typename F = typename T::base_type, int size = T::type_length>
+F volume(const Bounds<T> bb)
+{
+  F area = F(1);
+  for (int i = 0; i < size; i++) {
+    area *= bb.max[i] - bb.min[1];
+  }
+
+  return area;
+}
+
+template<typename T, typename F = typename T::base_type, int size = T::type_length>
+Bounds<T> intersect(Bounds<T> a, Bounds<T> b)
+{
+  Bounds<T> out;
+
+  for (int i = 0; i < size; i++) {
+    out.min[i] = std::max(a.min[i], b.min[i]);
+    out.max[i] = std::min(a.max[i], b.max[i]);
+
+    if (out.max[i] < out.min[i]) {
+      out.max[i] = out.min[i] = F(0);
+    }
+  }
+
+  return out;
+}
+
 }  // namespace blender::bounds

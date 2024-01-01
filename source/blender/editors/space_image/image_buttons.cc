@@ -44,7 +44,7 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "image_intern.h"
+#include "image_intern.hh"
 
 #define B_NOP -1
 #define MAX_IMAGE_INFO_LEN 128
@@ -53,7 +53,7 @@ ImageUser *ntree_get_active_iuser(bNodeTree *ntree)
 {
   if (ntree) {
     LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-      if (ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
+      if (node->type == CMP_NODE_VIEWER) {
         if (node->flag & NODE_DO_OUTPUT) {
           return static_cast<ImageUser *>(node->storage);
         }

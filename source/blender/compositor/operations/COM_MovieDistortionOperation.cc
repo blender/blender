@@ -18,6 +18,8 @@ MovieDistortionOperation::MovieDistortionOperation(bool distortion)
   input_operation_ = nullptr;
   movie_clip_ = nullptr;
   apply_ = distortion;
+
+  flags_.can_be_constant = true;
 }
 
 void MovieDistortionOperation::init_data()

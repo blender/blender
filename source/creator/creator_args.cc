@@ -34,13 +34,13 @@
 
 #  include "BKE_appdir.h"
 #  include "BKE_blender_version.h"
-#  include "BKE_blendfile.h"
+#  include "BKE_blendfile.hh"
 #  include "BKE_context.hh"
 
 #  include "BKE_global.h"
 #  include "BKE_image_format.h"
 #  include "BKE_lib_id.h"
-#  include "BKE_main.h"
+#  include "BKE_main.hh"
 #  include "BKE_report.h"
 #  include "BKE_scene.h"
 #  include "BKE_sound.h"
@@ -2537,4 +2537,4 @@ void main_args_setup(bContext *C, bArgs *ba, bool all)
 
 /** \} */
 
-#endif /* WITH_PYTHON_MODULE */
+#endif /* !WITH_PYTHON_MODULE */

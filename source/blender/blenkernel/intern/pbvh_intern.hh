@@ -5,6 +5,8 @@
 #pragma once
 
 #include "BLI_array.hh"
+#include "BLI_bit_span.hh"
+#include "BLI_bounds_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_set.hh"
@@ -14,7 +16,7 @@
 #include "BKE_paint.hh" /* for SCULPT_BOUNDARY_NEEDS_UPDATE */
 #include "BKE_pbvh_api.hh"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 #include "bmesh_idmap.hh"
 
 #define PBVH_STACK_FIXED_DEPTH 100
@@ -30,9 +32,8 @@ struct PBVHTriBuf;
 
 struct PBVHGPUFormat;
 struct MLoopTri;
-struct BMIdMap;
-struct BMVert;
-struct BMFace;
+using blender::Bounds;
+using blender::float3;
 
 /* Axis-aligned bounding box */
 struct BB {
@@ -51,8 +52,8 @@ struct PBVHNode {
   PBVHBatches *draw_batches = nullptr;
 
   /* Voxel bounds */
-  BB vb = {};
-  BB orig_vb = {};
+  Bounds<float3> vb = {};
+  Bounds<float3> orig_vb = {};
 
   /* For internal nodes, the offset of the children in the PBVH
    * 'nodes' array. */
@@ -200,11 +201,13 @@ struct PBVH {
   const bool *seam_edges;
 
   CustomData *vert_data;
-  CustomData *loop_data;
+  CustomData *corner_data;
   CustomData *face_data;
 
   /* Owned by the #PBVH, because after deformations they have to be recomputed. */
-  blender::Array<MLoopTri> looptri;
+  blender::Array<blender::int3> corner_tris;
+  blender::Span<int> corner_tri_faces;
+
   blender::Span<blender::float3> origco, origno;
 
   /* Sculpt flags*/
@@ -222,9 +225,8 @@ struct PBVH {
   CCGKey gridkey;
   CCGElem **grids;
   blender::Span<int> grid_to_face_map;
-  const DMFlagMat *grid_flag_mats;
   int totgrid;
-  BLI_bitmap **grid_hidden;
+  blender::BitGroupVector<> *grid_hidden;
 
   /* Used during BVH build and later to mark that a vertex needs to update
    * (its normal must be recalculated). */
@@ -273,7 +275,7 @@ struct PBVH {
   blender::GroupedSpan<int> vemap;
 
   CustomDataLayer *color_layer;
-  eAttrDomain color_domain;
+  blender::bke::AttrDomain color_domain;
 
   bool is_drawing;
 
@@ -314,7 +316,7 @@ int BB_widest_axis(const BB *bb);
 void BB_intersect(BB *r_out, BB *a, BB *b);
 float BB_volume(const BB *bb);
 
-void pbvh_grow_nodes(PBVH *bvh, int totnode);
+namespace blender::bke::pbvh {
 bool ray_face_intersection_quad(const float ray_start[3],
                                 IsectRayPrecalc *isect_precalc,
                                 const float t0[3],
@@ -328,6 +330,7 @@ bool ray_face_intersection_tri(const float ray_start[3],
                                const float t1[3],
                                const float t2[3],
                                float *depth);
+}  // namespace blender::bke::pbvh
 
 bool ray_face_nearest_quad(const float ray_start[3],
                            const float ray_normal[3],
@@ -353,7 +356,6 @@ bool ray_face_intersection_depth_tri(const float ray_start[3],
                                      const float t1[3],
                                      const float t2[3],
                                      float *r_depth,
-                                     float *r_back_depth,
                                      int *hit_count);
 /* pbvh_bmesh.cc */
 
@@ -366,7 +368,6 @@ bool pbvh_bmesh_node_raycast(SculptSession *ss,
                              struct IsectRayPrecalc *isect_precalc,
                              int *hit_count,
                              float *depth,
-                             float *back_depth,
                              bool use_original,
                              PBVHVertRef *r_active_vertex_index,
                              PBVHFaceRef *r_active_face_index,
@@ -419,7 +420,7 @@ void pbvh_bmesh_check_nodes_simple(PBVH *pbvh);
 void bke_pbvh_insert_face_finalize(PBVH *pbvh, BMFace *f, const int ni);
 void bke_pbvh_insert_face(PBVH *pbvh, struct BMFace *f);
 
-inline bool pbvh_check_vert_boundary_bmesh(PBVH *pbvh, struct BMVert *v)
+inline bool pbvh_check_vert_boundary_bmesh(PBVH *pbvh, BMVert *v)
 {
   int flag = BM_ELEM_CD_GET_INT(v, pbvh->cd_boundary_flag);
 
@@ -467,11 +468,14 @@ inline bool pbvh_check_edge_boundary_bmesh(PBVH *pbvh, struct BMEdge *e)
 void pbvh_bmesh_check_other_verts(PBVHNode *node);
 void pbvh_bmesh_normals_update(PBVH *pbvh, blender::Span<PBVHNode *> nodes);
 
-/* pbvh_pixels.hh */
+namespace blender::bke::pbvh {
 
-void pbvh_node_pixels_free(PBVHNode *node);
-void pbvh_pixels_free(PBVH *pbvh);
-void pbvh_free_draw_buffers(PBVH *pbvh, PBVHNode *node);
+/* pbvh_pixels.hh */
+void node_pixels_free(PBVHNode *node);
+void pixels_free(PBVH *pbvh);
+void free_draw_buffers(PBVH *pbvh, PBVHNode *node);
+
+}  // namespace blender::bke::pbvh
 
 BLI_INLINE bool pbvh_boundary_needs_update_bmesh(PBVH *pbvh, BMVert *v)
 {

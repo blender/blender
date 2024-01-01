@@ -41,14 +41,17 @@ namespace blender::eevee {
 
 class Instance;
 class VolumePipeline;
+class WorldVolumePipeline;
 
 class VolumeModule {
   friend VolumePipeline;
+  friend WorldVolumePipeline;
 
  private:
   Instance &inst_;
 
   bool enabled_;
+  bool use_lights_;
 
   VolumesInfoData &data_;
 
@@ -130,7 +133,7 @@ class VolumeModule {
 
   bool needs_shadow_tagging()
   {
-    return enabled_ && data_.use_lights;
+    return enabled_ && use_lights_;
   }
 
   int3 grid_size()
@@ -141,10 +144,6 @@ class VolumeModule {
   void init();
 
   void begin_sync();
-
-  void sync_world();
-
-  void material_call(MaterialPass &material_pass, Object *ob, ResourceHandle res_handle);
 
   void end_sync();
 

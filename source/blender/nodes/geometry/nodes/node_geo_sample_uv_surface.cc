@@ -122,7 +122,7 @@ class ReverseUVSampleFunction : public mf::MultiFunction {
         is_valid[i] = result.type == ReverseUVSampler::ResultType::Ok;
       }
       if (!tri_index.is_empty()) {
-        tri_index[i] = result.looptri_index;
+        tri_index[i] = result.tri_index;
       }
       if (!bary_weights.is_empty()) {
         bary_weights[i] = result.bary_weights;
@@ -134,13 +134,13 @@ class ReverseUVSampleFunction : public mf::MultiFunction {
   void evaluate_source()
   {
     const Mesh &mesh = *source_.get_mesh();
-    source_context_.emplace(bke::MeshFieldContext{mesh, ATTR_DOMAIN_CORNER});
-    source_evaluator_ = std::make_unique<FieldEvaluator>(*source_context_, mesh.totloop);
+    source_context_.emplace(bke::MeshFieldContext{mesh, AttrDomain::Corner});
+    source_evaluator_ = std::make_unique<FieldEvaluator>(*source_context_, mesh.corners_num);
     source_evaluator_->add(src_uv_map_field_);
     source_evaluator_->evaluate();
     source_uv_map_ = source_evaluator_->get_evaluated<float2>(0);
 
-    reverse_uv_sampler_.emplace(source_uv_map_, mesh.looptris());
+    reverse_uv_sampler_.emplace(source_uv_map_, mesh.corner_tris());
   }
 };
 
@@ -152,7 +152,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     params.set_default_remaining_outputs();
     return;
   }
-  if (mesh->faces_num == 0 && mesh->totvert != 0) {
+  if (mesh->faces_num == 0 && mesh->verts_num != 0) {
     params.error_message_add(NodeWarningType::Error, TIP_("The source mesh must have faces"));
     params.set_default_remaining_outputs();
     return;

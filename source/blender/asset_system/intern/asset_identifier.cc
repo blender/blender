@@ -8,7 +8,7 @@
 
 #include <string>
 
-#include "BKE_blendfile.h"
+#include "BKE_blendfile.hh"
 
 #include "BLI_path_util.h"
 

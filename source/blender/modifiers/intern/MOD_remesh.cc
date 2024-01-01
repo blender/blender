@@ -15,8 +15,6 @@
 #include "BLT_translation.h"
 
 #include "DNA_defaults.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
@@ -64,14 +62,14 @@ static void init_dualcon_mesh(DualConInput *input, Mesh *mesh)
 
   input->co = (DualConCo)mesh->vert_positions().data();
   input->co_stride = sizeof(blender::float3);
-  input->totco = mesh->totvert;
+  input->totco = mesh->verts_num;
 
   input->mloop = (DualConLoop)mesh->corner_verts().data();
   input->loop_stride = sizeof(int);
 
-  input->looptri = (DualConTri)mesh->looptris().data();
-  input->tri_stride = sizeof(MLoopTri);
-  input->tottri = BKE_mesh_runtime_looptri_len(mesh);
+  input->corner_tris = (DualConTri)mesh->corner_tris().data();
+  input->tri_stride = sizeof(blender::int3);
+  input->tottri = BKE_mesh_runtime_corner_tris_len(mesh);
 
   const blender::Bounds<blender::float3> bounds = *mesh->bounds_min_max();
   copy_v3_v3(input->min, bounds.min);
@@ -109,7 +107,7 @@ static void dualcon_add_vert(void *output_v, const float co[3])
 {
   DualConOutput *output = static_cast<DualConOutput *>(output_v);
 
-  BLI_assert(output->curvert < output->mesh->totvert);
+  BLI_assert(output->curvert < output->mesh->verts_num);
 
   copy_v3_v3(output->vert_positions[output->curvert], co);
   output->curvert++;
@@ -134,6 +132,7 @@ static void dualcon_add_quad(void *output_v, const int vert_indices[4])
 
 static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, Mesh *mesh)
 {
+  using namespace blender;
   RemeshModifierData *rmd;
   DualConOutput *output;
   DualConInput input;
@@ -196,10 +195,10 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, 
     MEM_freeN(output);
   }
 
-  BKE_mesh_smooth_flag_set(result, rmd->flag & MOD_REMESH_SMOOTH_SHADING);
+  bke::mesh_smooth_set(*result, rmd->flag & MOD_REMESH_SMOOTH_SHADING);
 
   BKE_mesh_copy_parameters_for_eval(result, mesh);
-  BKE_mesh_calc_edges(result, true, false);
+  bke::mesh_calc_edges(*result, true, false);
 
   blender::geometry::debug_randomize_mesh_order(result);
 

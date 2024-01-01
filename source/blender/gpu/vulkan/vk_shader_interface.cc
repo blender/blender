@@ -156,11 +156,13 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
   const uint32_t resources_len = input_tot_len;
   descriptor_set_locations_ = Array<VKDescriptorSet::Location>(resources_len);
   descriptor_set_locations_.fill(-1);
+  descriptor_set_bind_types_ = Array<shader::ShaderCreateInfo::Resource::BindType>(resources_len);
+  descriptor_set_bind_types_.fill(shader::ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER);
   uint32_t descriptor_set_location = 0;
   for (ShaderCreateInfo::Resource &res : all_resources) {
     const ShaderInput *input = shader_input_get(res);
     BLI_assert(input);
-    descriptor_set_location_update(input, descriptor_set_location++);
+    descriptor_set_location_update(input, descriptor_set_location++, res.bind_type);
   }
 
   /* Post initializing push constants. */
@@ -169,7 +171,9 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
   if (push_constants_storage_type == VKPushConstants::StorageType::UNIFORM_BUFFER) {
     push_constant_descriptor_set_location = descriptor_set_location++;
     const ShaderInput *push_constant_input = ubo_get(PUSH_CONSTANTS_FALLBACK_NAME);
-    descriptor_set_location_update(push_constant_input, push_constants_fallback_location);
+    descriptor_set_location_update(push_constant_input,
+                                   push_constants_fallback_location,
+                                   shader::ShaderCreateInfo::Resource::UNIFORM_BUFFER);
   }
   push_constants_layout_.init(
       info, *this, push_constants_storage_type, push_constant_descriptor_set_location);
@@ -182,12 +186,15 @@ static int32_t shader_input_index(const ShaderInput *shader_inputs,
   return index;
 }
 
-void VKShaderInterface::descriptor_set_location_update(const ShaderInput *shader_input,
-                                                       const VKDescriptorSet::Location location)
+void VKShaderInterface::descriptor_set_location_update(
+    const ShaderInput *shader_input,
+    const VKDescriptorSet::Location location,
+    const shader::ShaderCreateInfo::Resource::BindType bind_type)
 {
   int32_t index = shader_input_index(inputs_, shader_input);
   BLI_assert(descriptor_set_locations_[index].binding == -1);
   descriptor_set_locations_[index] = location;
+  descriptor_set_bind_types_[index] = bind_type;
 }
 
 const VKDescriptorSet::Location VKShaderInterface::descriptor_set_location(
@@ -195,6 +202,13 @@ const VKDescriptorSet::Location VKShaderInterface::descriptor_set_location(
 {
   int32_t index = shader_input_index(inputs_, shader_input);
   return descriptor_set_locations_[index];
+}
+
+const shader::ShaderCreateInfo::Resource::BindType VKShaderInterface::descriptor_set_bind_type(
+    const ShaderInput *shader_input) const
+{
+  int32_t index = shader_input_index(inputs_, shader_input);
+  return descriptor_set_bind_types_[index];
 }
 
 const VKDescriptorSet::Location VKShaderInterface::descriptor_set_location(
@@ -210,6 +224,9 @@ const std::optional<VKDescriptorSet::Location> VKShaderInterface::descriptor_set
 {
   const ShaderInput *shader_input = shader_input_get(bind_type, binding);
   if (shader_input == nullptr) {
+    return std::nullopt;
+  }
+  if (descriptor_set_bind_type(shader_input) != bind_type) {
     return std::nullopt;
   }
   return descriptor_set_location(shader_input);

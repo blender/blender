@@ -15,14 +15,12 @@
 
 #include "GHOST_C-api.h"
 
-#include "BKE_global.h"
-
 namespace blender::gpu {
 
 void GPUTest::SetUp()
 {
   prev_g_debug_ = G.debug;
-  G.debug |= G_DEBUG_GPU | G_DEBUG_GPU_RENDERDOC;
+  G.debug |= g_debug_flags_;
 
   CLG_init();
   GPU_backend_type_selection_set(gpu_backend_type);

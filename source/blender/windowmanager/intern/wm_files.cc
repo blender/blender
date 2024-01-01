@@ -67,16 +67,16 @@
 #include "BKE_blender.h"
 #include "BKE_blender_undo.h"
 #include "BKE_blender_version.h"
-#include "BKE_blendfile.h"
+#include "BKE_blendfile.hh"
 #include "BKE_callbacks.h"
 #include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_override.hh"
-#include "BKE_lib_remap.h"
-#include "BKE_main.h"
-#include "BKE_main_namemap.h"
+#include "BKE_lib_remap.hh"
+#include "BKE_main.hh"
+#include "BKE_main_namemap.hh"
 #include "BKE_multires.hh"
 #include "BKE_packedFile.h"
 #include "BKE_paint.hh"
@@ -1800,6 +1800,7 @@ static ImBuf *blend_file_thumb_from_camera(const bContext *C,
                                                  R_ALPHAPREMUL,
                                                  nullptr,
                                                  nullptr,
+                                                 nullptr,
                                                  err_out);
   }
   else {
@@ -1814,6 +1815,7 @@ static ImBuf *blend_file_thumb_from_camera(const bContext *C,
                                           R_ALPHAPREMUL,
                                           nullptr,
                                           true,
+                                          nullptr,
                                           nullptr,
                                           err_out);
   }
@@ -2095,7 +2097,10 @@ static void wm_autosave_location(char filepath[FILE_MAX])
  * flush the sculpt mesh prior to autosave.  Since this comes with a
  * performance cost it must be removed prior to the final merge.
  */
-void ED_sculpt_fast_save_bmesh(Object *ob);
+namespace blender::ed::sculpt_paint::undo {
+void fast_save_bmesh(Object *ob);
+}
+using namespace blender::ed::sculpt_paint;
 struct MemFileUndoStep;
 MemFileUndoData *memfile_get_step_data(struct MemFileUndoStep *us);
 
@@ -2117,7 +2122,7 @@ extern "C" void wm_autosave_write(Main *bmain, wmWindowManager *wm)
 
     /* Flush sculpt data to the mesh, we will append it to the undo memfile. */
     if (ob->sculpt->bm) {
-      ED_sculpt_fast_save_bmesh(ob);
+      undo::fast_save_bmesh(ob);
     }
     else {
       multires_flush_sculpt_updates(ob);
@@ -3319,6 +3324,11 @@ static int wm_save_as_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent
 
   save_set_compress(op);
   save_set_filepath(C, op);
+
+  PropertyRNA *prop = RNA_struct_find_property(op->ptr, "relative_remap");
+  if (!RNA_property_is_set(op->ptr, prop)) {
+    RNA_property_boolean_set(op->ptr, prop, (U.flag & USER_RELPATHS));
+  }
 
   WM_event_add_fileselect(C, op);
 

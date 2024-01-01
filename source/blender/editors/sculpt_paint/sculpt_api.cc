@@ -54,13 +54,13 @@
 #include "BKE_attribute.hh"
 #include "BKE_brush.hh"
 #include "BKE_ccg.h"
-#include "BKE_colortools.h"
+#include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_idprop.h"
 #include "BKE_image.h"
 #include "BKE_key.h"
 #include "BKE_lib_id.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_mesh.h"
 #include "BKE_mesh_fair.hh"
 #include "BKE_mesh_mapping.hh"
@@ -108,9 +108,9 @@
 
 #include "atomic_ops.h"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 #include "bmesh_log.hh"
-#include "bmesh_tools.h"
+#include "bmesh_tools.hh"
 
 #include "UI_resources.hh"
 
@@ -374,7 +374,7 @@ eSculptBoundary SCULPT_vertex_is_boundary(const SculptSession *ss,
     coord.y = vertex_index / key->grid_size;
     int v1, v2;
     const SubdivCCGAdjacencyType adjacency = BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(
-        ss->subdiv_ccg, &coord, ss->corner_verts, ss->faces, &v1, &v2);
+        *ss->subdiv_ccg, coord, ss->corner_verts, ss->faces, v1, v2);
 
     switch (adjacency) {
       case SUBDIV_CCG_ADJACENT_VERTEX:
@@ -432,7 +432,7 @@ static int sculpt_calc_valence(const struct SculptSession *ss, PBVHVertRef verte
       coord.y = vertex_index / key->grid_size;
 
       SubdivCCGNeighbors neighbors;
-      BKE_subdiv_ccg_neighbor_coords_get(ss->subdiv_ccg, &coord, true, &neighbors);
+      BKE_subdiv_ccg_neighbor_coords_get(*ss->subdiv_ccg, coord, true, neighbors);
 
       tot = neighbors.size;
       break;
@@ -489,18 +489,16 @@ void SCULPT_ensure_persistent_layers(SculptSession *ss, Object *ob)
 
   if (!ss->attrs.persistent_co) {
     ss->attrs.persistent_co = BKE_sculpt_attribute_ensure(
-        ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, SCULPT_ATTRIBUTE_NAME(persistent_co), &params);
+        ob, AttrDomain::Point, CD_PROP_FLOAT3, SCULPT_ATTRIBUTE_NAME(persistent_co), &params);
     ss->attrs.persistent_no = BKE_sculpt_attribute_ensure(
-        ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, SCULPT_ATTRIBUTE_NAME(persistent_no), &params);
+        ob, AttrDomain::Point, CD_PROP_FLOAT3, SCULPT_ATTRIBUTE_NAME(persistent_no), &params);
     ss->attrs.persistent_disp = BKE_sculpt_attribute_ensure(
-        ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT, SCULPT_ATTRIBUTE_NAME(persistent_disp), &params);
+        ob, AttrDomain::Point, CD_PROP_FLOAT, SCULPT_ATTRIBUTE_NAME(persistent_disp), &params);
   }
 }
 
-void SCULPT_apply_dyntopo_settings(Scene * /*scene*/,
-                                   SculptSession *ss,
-                                   Sculpt *sculpt,
-                                   Brush *brush)
+namespace blender::ed::sculpt_paint::dyntopo {
+void apply_settings(Scene * /*scene*/, SculptSession *ss, Sculpt *sculpt, Brush *brush)
 {
   using namespace blender::bke::dyntopo;
 
@@ -541,6 +539,7 @@ void SCULPT_apply_dyntopo_settings(Scene * /*scene*/,
   ds_final->repeat = ds_final->inherit & DYNTOPO_INHERIT_REPEAT ? ds2->repeat : ds1->repeat;
   ds_final->quality = ds_final->inherit & DYNTOPO_INHERIT_QUALITY ? ds2->quality : ds1->quality;
 }
+}  // namespace blender::ed::sculpt_paint::dyntopo
 
 bool SCULPT_face_is_hidden(const SculptSession *ss, PBVHFaceRef face)
 {
