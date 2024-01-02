@@ -390,7 +390,9 @@ bool Object::usable_as_light() const
     return false;
   }
   /* Skip if we are not visible for BSDFs. */
-  if (!(get_visibility() & (PATH_RAY_DIFFUSE | PATH_RAY_GLOSSY | PATH_RAY_TRANSMIT))) {
+  if (!(get_visibility() &
+        (PATH_RAY_DIFFUSE | PATH_RAY_GLOSSY | PATH_RAY_TRANSMIT | PATH_RAY_VOLUME_SCATTER)))
+  {
     return false;
   }
   /* Skip if we have no emission shaders. */
