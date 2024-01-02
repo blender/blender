@@ -2086,6 +2086,7 @@ void rand_delaunay_test(int test_kind,
         }
         default:
           std::cout << "unknown delaunay test type\n";
+          BLI_rng_free(rng);
           return;
       }
       if (otype != CDT_FULL) {
