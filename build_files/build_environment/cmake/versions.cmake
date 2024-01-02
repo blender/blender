@@ -614,9 +614,9 @@ set(ZSTD_HASH_TYPE SHA256)
 set(ZSTD_FILE zstd-${ZSTD_VERSION}.tar.gz)
 set(ZSTD_CPE "cpe:2.3:a:facebook:zstandard:${ZSTD_VERSION}:*:*:*:*:*:*:*")
 
-set(SSE2NEON_VERSION 0d6e9b3dd4687a0b98c0645e001f96659aae5854)
-set(SSE2NEON_URI https://github.com/DLTcollab/sse2neon/archive/${SSE2NEON_VERSION}.tar.gz)
-set(SSE2NEON_HASH 68cf4dfe6d0667ae3e3850233227c4c4937b7b83de01845d356b68d313f25e32)
+set(SSE2NEON_VERSION 1.7.0)
+set(SSE2NEON_URI https://github.com/DLTcollab/sse2neon/archive/refs/tags/v${SSE2NEON_VERSION}.tar.gz)
+set(SSE2NEON_HASH cee6d54922dbc9d4fa57749e3e4b46161b7f435a22e592db9da008051806812a)
 set(SSE2NEON_HASH_TYPE SHA256)
 set(SSE2NEON_FILE sse2neon-${SSE2NEON_VERSION}.tar.gz)
 
