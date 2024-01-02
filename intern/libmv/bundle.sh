@@ -190,6 +190,8 @@ ${third_headers}
 
 
   if(WITH_GTESTS)
+    include(GTestTesting)
+
     blender_add_lib(libmv_test_dataset "./libmv/multiview/test_data_sets.cc" "\${INC}" "\${INC_SYS}" "")
 
 ${tests}

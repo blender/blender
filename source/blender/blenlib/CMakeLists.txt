@@ -571,6 +571,7 @@ if(WITH_GTESTS)
   set(TEST_LIB
     bf_blenlib
   )
+  include(GTestTesting)
   blender_add_test_executable(blenlib "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}")
 
   add_subdirectory(tests/performance)
