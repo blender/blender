@@ -431,7 +431,9 @@ string(APPEND PLATFORM_LINKFLAGS
 
 # Use old, slower linker for now to avoid many linker warnings.
 if(${XCODE_VERSION} VERSION_GREATER_EQUAL 15.0)
-  string(APPEND PLATFORM_LINKFLAGS " -Wl,-ld_classic")
+  if("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "x86_64")
+    string(APPEND PLATFORM_LINKFLAGS " -Wl,-ld_classic")
+  endif()
 endif()
 
 # Make stack size more similar to Embree, required for Embree.
