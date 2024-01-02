@@ -565,7 +565,19 @@ GHOST_SystemCocoa::GHOST_SystemCocoa()
   m_last_warp_timestamp = 0;
 }
 
-GHOST_SystemCocoa::~GHOST_SystemCocoa() {}
+GHOST_SystemCocoa::~GHOST_SystemCocoa()
+{
+  /* The application delegate integrates the Cocoa application with the GHOST system.
+   *
+   * Since the GHOST system is about to be fully destroyed release the application delegate as
+   * well, so it does not point back to a freed system, forcing the delegate to be created with the
+   * new GHOST system in init(). */
+  CocoaAppDelegate *appDelegate = (CocoaAppDelegate *)[NSApp delegate];
+  if (appDelegate) {
+    [NSApp setDelegate:nil];
+    [appDelegate release];
+  }
+}
 
 GHOST_TSuccess GHOST_SystemCocoa::init()
 {
