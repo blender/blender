@@ -1849,7 +1849,8 @@ void BM_lnorspace_rebuild(BMesh *bm, bool preserve_clnor)
     BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
       BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
         if (BM_ELEM_API_FLAG_TEST(l, BM_LNORSPACE_UPDATE) ||
-            bm->spacearr_dirty & BM_SPACEARR_DIRTY_ALL) {
+            bm->spacearr_dirty & BM_SPACEARR_DIRTY_ALL)
+        {
           short(*clnor)[2] = static_cast<short(*)[2]>(
               BM_ELEM_CD_GET_VOID_P(l, cd_loop_clnors_offset));
           int l_index = BM_elem_index_get(l);
@@ -1879,7 +1880,8 @@ void BM_lnorspace_rebuild(BMesh *bm, bool preserve_clnor)
   BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
     BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
       if (BM_ELEM_API_FLAG_TEST(l, BM_LNORSPACE_UPDATE) ||
-          bm->spacearr_dirty & BM_SPACEARR_DIRTY_ALL) {
+          bm->spacearr_dirty & BM_SPACEARR_DIRTY_ALL)
+      {
         if (preserve_clnor) {
           short(*clnor)[2] = static_cast<short(*)[2]>(
               BM_ELEM_CD_GET_VOID_P(l, cd_loop_clnors_offset));

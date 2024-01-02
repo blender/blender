@@ -610,7 +610,8 @@ static void correctivesmooth_modifier_do(ModifierData *md,
   }
 
   if ((csmd->rest_source == MOD_CORRECTIVESMOOTH_RESTSOURCE_BIND) &&
-      (csmd->bind_coords == nullptr)) {
+      (csmd->bind_coords == nullptr))
+  {
     BKE_modifier_set_error(ob, md, "Bind data required");
     goto error;
   }

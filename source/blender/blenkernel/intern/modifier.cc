@@ -544,7 +544,8 @@ bool BKE_modifier_is_enabled(const Scene *scene, ModifierData *md, int required_
     return false;
   }
   if ((required_mode & eModifierMode_Editmode) &&
-      !(mti->flags & eModifierTypeFlag_SupportsEditmode)) {
+      !(mti->flags & eModifierTypeFlag_SupportsEditmode))
+  {
     return false;
   }
 

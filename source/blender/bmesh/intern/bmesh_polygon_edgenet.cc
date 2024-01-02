@@ -427,7 +427,8 @@ static bool bm_face_split_edgenet_find_loop(BMVert *v_init,
              (bm_edge_flagged_radial_count(e_pair[1]) == 1));
 
   if (bm_face_split_edgenet_find_loop_walk(
-          v_init, face_normal, edge_order, edge_order_len, e_pair)) {
+          v_init, face_normal, edge_order, edge_order_len, e_pair))
+  {
     uint i = 0;
 
     r_face_verts[i++] = v_init;
@@ -823,7 +824,8 @@ static void bvhtree_test_edges_isect_2d_ray_cb(void *user_data,
   /* direction is normalized, so this will be the distance */
   float dist_new;
   if (isect_ray_seg_v2(
-          data->v_origin->co, ray->direction, e->v1->co, e->v2->co, &dist_new, nullptr)) {
+          data->v_origin->co, ray->direction, e->v1->co, e->v2->co, &dist_new, nullptr))
+  {
     /* avoid float precision issues, possible this is greater,
      * check above zero to allow some overlap
      * (and needed for partial-connect which will overlap vertices) */
@@ -998,7 +1000,8 @@ static int bm_face_split_edgenet_find_connection(const EdgeGroup_FindConnection_
       BMVert *v_pair[2];
       /* ensure the closest vertex is popped back off the stack first */
       if (len_squared_v2v2(v_origin->co, e_hit->v1->co) >
-          len_squared_v2v2(v_origin->co, e_hit->v2->co)) {
+          len_squared_v2v2(v_origin->co, e_hit->v2->co))
+      {
         ARRAY_SET_ITEMS(v_pair, e_hit->v1, e_hit->v2);
       }
       else {

@@ -305,7 +305,8 @@ static int rna_idproperty_known(CollectionPropertyIterator *iter, void *data)
     for (prop = static_cast<PropertyRNA *>(ptype->cont.properties.first); prop; prop = prop->next)
     {
       if ((prop->flag_internal & PROP_INTERN_BUILTIN) == 0 &&
-          STREQ(prop->identifier, idprop->name)) {
+          STREQ(prop->identifier, idprop->name))
+      {
         return 1;
       }
     }
@@ -1545,11 +1546,13 @@ static void rna_property_override_diff_propptr(Main *bmain,
                         id_a->name);
             }
             else if (id_a->override_library != nullptr &&
-                     id_a->override_library->reference == id_b) {
+                     id_a->override_library->reference == id_b)
+            {
               opop->flag |= LIBOVERRIDE_OP_FLAG_IDPOINTER_MATCH_REFERENCE;
             }
             else if (id_b->override_library != nullptr &&
-                     id_b->override_library->reference == id_a) {
+                     id_b->override_library->reference == id_a)
+            {
               opop->flag |= LIBOVERRIDE_OP_FLAG_IDPOINTER_MATCH_REFERENCE;
             }
             else {
@@ -1573,7 +1576,8 @@ static void rna_property_override_diff_propptr(Main *bmain,
        * Note that we do not need the RNA path for insertion operations. */
       if (rna_path) {
         if ((rna_itemname_a && !rna_itemname_a->empty()) &&
-            (rna_itemname_b && !rna_itemname_b->empty())) {
+            (rna_itemname_b && !rna_itemname_b->empty()))
+        {
           BLI_assert(*rna_itemname_a == *rna_itemname_b);
 
           char esc_item_name[RNA_PATH_BUFFSIZE];

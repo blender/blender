@@ -147,8 +147,8 @@ class TextureMarginMap {
  */
 #define PackDijkstraPixel(dist, dir) (0x80000000 + ((dist) << 4) + (dir))
 #define DijkstraPixelGetDistance(dp) (((dp) ^ 0x80000000) >> 4)
-#define DijkstraPixelGetDirection(dp) ((dp)&0xF)
-#define IsDijkstraPixel(dp) ((dp)&0x80000000)
+#define DijkstraPixelGetDirection(dp) ((dp) & 0xF)
+#define IsDijkstraPixel(dp) ((dp) & 0x80000000)
 #define DijkstraPixelIsUnset(dp) ((dp) == 0xFFFFFFFF)
 
   /**

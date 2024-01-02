@@ -126,7 +126,8 @@ static void rna_Lattice_update_size(Main *bmain, Scene *scene, PointerRNA *ptr)
 
   /* #BKE_lattice_resize needs an object, any object will have the same result */
   for (ob = static_cast<Object *>(bmain->objects.first); ob;
-       ob = static_cast<Object *>(ob->id.next)) {
+       ob = static_cast<Object *>(ob->id.next))
+  {
     if (ob->data == lt) {
       BKE_lattice_resize(lt, newu, newv, neww, ob);
       if (lt->editlatt) {

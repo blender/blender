@@ -850,7 +850,8 @@ static bool gpencil_select_same_material(bContext *C)
   if (is_curve_edit) {
     CTX_DATA_BEGIN (C, bGPDstroke *, gps, editable_gpencil_strokes) {
       if (gps->editcurve != nullptr &&
-          BLI_gset_haskey(selected_colors, POINTER_FROM_INT(gps->mat_nr))) {
+          BLI_gset_haskey(selected_colors, POINTER_FROM_INT(gps->mat_nr)))
+      {
         bGPDcurve *gpc = gps->editcurve;
         for (int i = 0; i < gpc->tot_curve_points; i++) {
           bGPDcurve_point *gpc_pt = &gpc->curve_points[i];

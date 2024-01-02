@@ -508,7 +508,8 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     if (!DNA_struct_member_exists(
-            fd->filesdna, "MovieTrackingSettings", "float", "default_weight")) {
+            fd->filesdna, "MovieTrackingSettings", "float", "default_weight"))
+    {
       LISTBASE_FOREACH (MovieClip *, clip, &bmain->movieclips) {
         clip->tracking.settings.default_weight = 1.0f;
       }
@@ -1010,7 +1011,8 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 276, 3)) {
     if (!DNA_struct_member_exists(
-            fd->filesdna, "RenderData", "CurveMapping", "mblur_shutter_curve")) {
+            fd->filesdna, "RenderData", "CurveMapping", "mblur_shutter_curve"))
+    {
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         CurveMapping *curve_mapping = &scene->r.mblur_shutter_curve;
         BKE_curvemapping_set_defaults(curve_mapping, 1, 0.0f, 0.0f, 1.0f, 1.0f, HD_AUTO);
@@ -1179,7 +1181,8 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
 
     LISTBASE_FOREACH (Camera *, camera, &bmain->cameras) {
       if (camera->stereo.pole_merge_angle_from == 0.0f &&
-          camera->stereo.pole_merge_angle_to == 0.0f) {
+          camera->stereo.pole_merge_angle_to == 0.0f)
+      {
         camera->stereo.pole_merge_angle_from = DEG2RADF(60.0f);
         camera->stereo.pole_merge_angle_to = DEG2RADF(75.0f);
       }
@@ -1197,7 +1200,8 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     if (!DNA_struct_member_exists(
-            fd->filesdna, "BooleanModifierData", "float", "double_threshold")) {
+            fd->filesdna, "BooleanModifierData", "float", "double_threshold"))
+    {
       LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
         LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
           if (md->type == eModifierType_Boolean) {
@@ -1306,7 +1310,8 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     if (!DNA_struct_member_exists(
-            fd->filesdna, "MovieTrackingStabilization", "int", "tot_rot_track")) {
+            fd->filesdna, "MovieTrackingStabilization", "int", "tot_rot_track"))
+    {
       LISTBASE_FOREACH (MovieClip *, clip, &bmain->movieclips) {
         if (clip->tracking.stabilization.rot_track_legacy) {
           migrate_single_rot_stabilization_track_settings(&clip->tracking.stabilization);

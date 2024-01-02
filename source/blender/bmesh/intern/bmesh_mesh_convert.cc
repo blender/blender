@@ -237,7 +237,8 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *mesh, const BMeshFromMeshParams *
   blender::Vector<std::string> temporary_layers_to_delete;
 
   for (const int layer_index :
-       IndexRange(CustomData_number_of_layers(&mesh_ldata, CD_PROP_FLOAT2))) {
+       IndexRange(CustomData_number_of_layers(&mesh_ldata, CD_PROP_FLOAT2)))
+  {
     char name[MAX_CUSTOMDATA_LAYER_NAME];
     BKE_uv_map_vert_select_name_get(
         CustomData_get_layer_name(&mesh_ldata, CD_PROP_FLOAT2, layer_index), name);

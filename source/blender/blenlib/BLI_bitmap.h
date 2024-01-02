@@ -64,13 +64,13 @@ typedef unsigned int BLI_bitmap;
  */
 #define BLI_BITMAP_TEST(_bitmap, _index) \
   (CHECK_TYPE_ANY(_bitmap, BLI_bitmap *, const BLI_bitmap *), \
-   ((_bitmap)[(_index) >> _BITMAP_POWER] & (1u << ((_index)&_BITMAP_MASK))))
+   ((_bitmap)[(_index) >> _BITMAP_POWER] & (1u << ((_index) & _BITMAP_MASK))))
 
 #define BLI_BITMAP_TEST_AND_SET_ATOMIC(_bitmap, _index) \
   (CHECK_TYPE_ANY(_bitmap, BLI_bitmap *, const BLI_bitmap *), \
    (atomic_fetch_and_or_uint32((uint32_t *)&(_bitmap)[(_index) >> _BITMAP_POWER], \
-                               (1u << ((_index)&_BITMAP_MASK))) & \
-    (1u << ((_index)&_BITMAP_MASK))))
+                               (1u << ((_index) & _BITMAP_MASK))) & \
+    (1u << ((_index) & _BITMAP_MASK))))
 
 #define BLI_BITMAP_TEST_BOOL(_bitmap, _index) \
   (CHECK_TYPE_ANY(_bitmap, BLI_bitmap *, const BLI_bitmap *), \
@@ -81,21 +81,21 @@ typedef unsigned int BLI_bitmap;
  */
 #define BLI_BITMAP_ENABLE(_bitmap, _index) \
   (CHECK_TYPE_ANY(_bitmap, BLI_bitmap *, const BLI_bitmap *), \
-   ((_bitmap)[(_index) >> _BITMAP_POWER] |= (1u << ((_index)&_BITMAP_MASK))))
+   ((_bitmap)[(_index) >> _BITMAP_POWER] |= (1u << ((_index) & _BITMAP_MASK))))
 
 /**
  * Clear the value of a single bit at '_index'.
  */
 #define BLI_BITMAP_DISABLE(_bitmap, _index) \
   (CHECK_TYPE_ANY(_bitmap, BLI_bitmap *, const BLI_bitmap *), \
-   ((_bitmap)[(_index) >> _BITMAP_POWER] &= ~(1u << ((_index)&_BITMAP_MASK))))
+   ((_bitmap)[(_index) >> _BITMAP_POWER] &= ~(1u << ((_index) & _BITMAP_MASK))))
 
 /**
  * Flip the value of a single bit at '_index'.
  */
 #define BLI_BITMAP_FLIP(_bitmap, _index) \
   (CHECK_TYPE_ANY(_bitmap, BLI_bitmap *, const BLI_bitmap *), \
-   ((_bitmap)[(_index) >> _BITMAP_POWER] ^= (1u << ((_index)&_BITMAP_MASK))))
+   ((_bitmap)[(_index) >> _BITMAP_POWER] ^= (1u << ((_index) & _BITMAP_MASK))))
 
 /**
  * Set or clear the value of a single bit at '_index'.

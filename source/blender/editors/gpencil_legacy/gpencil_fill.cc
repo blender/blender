@@ -248,7 +248,8 @@ static void gpencil_delete_temp_stroke_extension(tGPDfill *tgpf, const bool all_
       LISTBASE_FOREACH_MUTABLE (bGPDstroke *, gps, &gpf->strokes) {
         /* free stroke */
         if ((gps->flag & GP_STROKE_NOFILL) &&
-            (gps->flag & GP_STROKE_TAG || gps->flag & GP_STROKE_HELP)) {
+            (gps->flag & GP_STROKE_TAG || gps->flag & GP_STROKE_HELP))
+        {
           BLI_remlink(&gpf->strokes, gps);
           BKE_gpencil_free_stroke(gps);
         }
@@ -2259,7 +2260,8 @@ static void gpencil_stroke_from_buffer(tGPDfill *tgpf)
 
   /* if axis locked, reproject to plane locked */
   if ((tgpf->lock_axis > GP_LOCKAXIS_VIEW) &&
-      ((ts->gpencil_v3d_align & GP_PROJECT_DEPTH_VIEW) == 0)) {
+      ((ts->gpencil_v3d_align & GP_PROJECT_DEPTH_VIEW) == 0))
+  {
     float origin[3];
     ED_gpencil_drawing_reference_get(tgpf->scene, tgpf->ob, ts->gpencil_v3d_align, origin);
     ED_gpencil_project_stroke_to_plane(

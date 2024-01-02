@@ -641,7 +641,8 @@ static UVRipPairs *uv_rip_pairs_from_loop(BMLoop *l_init,
         do {
           /* Not a boundary and visible. */
           if (!UL(l_radial_iter)->is_select_edge &&
-              BM_elem_flag_test(l_radial_iter->f, BM_ELEM_TAG)) {
+              BM_elem_flag_test(l_radial_iter->f, BM_ELEM_TAG))
+          {
             BMLoop *l_other = (l_radial_iter->v == l_step->v) ? l_radial_iter :
                                                                 l_radial_iter->next;
             BLI_assert(l_other->v == l_step->v);

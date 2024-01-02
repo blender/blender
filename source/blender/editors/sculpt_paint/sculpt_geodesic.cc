@@ -185,9 +185,11 @@ static float *geodesic_mesh_create(Object *ob, GSet *initial_verts, const float 
               continue;
             }
             if (sculpt_geodesic_mesh_test_dist_add(
-                    vert_positions, v_other, v1, v2, dists, initial_verts)) {
+                    vert_positions, v_other, v1, v2, dists, initial_verts))
+            {
               for (int edge_map_index = 0; edge_map_index < ss->vemap[v_other].size();
-                   edge_map_index++) {
+                   edge_map_index++)
+              {
                 const int e_other = ss->vemap[v_other][edge_map_index];
                 int ev_other;
                 if (edges[e_other][0] == v_other) {

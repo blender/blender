@@ -937,7 +937,8 @@ static void calc_text_rcts(SpaceText *st, ARegion *region, rcti *scroll, rcti *b
     if (pix_bardiff > 0) {
       /* the start of the highlight is in the current viewport */
       if (st->runtime.viewlines && lhlstart >= st->top &&
-          lhlstart <= st->top + st->runtime.viewlines) {
+          lhlstart <= st->top + st->runtime.viewlines)
+      {
         /* Speed the progression of the start of the highlight through the scroll-bar. */
         hlstart = (((pix_available - pix_bardiff) * lhlstart) / ltexth) +
                   (pix_bardiff * (lhlstart - st->top) / st->runtime.viewlines);
@@ -1362,7 +1363,8 @@ static void draw_brackets(const SpaceText *st, const TextDrawContext *tdc, ARegi
     while (linep) {
       while (c < linep->len) {
         if (linep->format && linep->format[fc] != FMT_TYPE_STRING &&
-            linep->format[fc] != FMT_TYPE_COMMENT) {
+            linep->format[fc] != FMT_TYPE_COMMENT)
+        {
           b = text_check_bracket(linep->line[c]);
           if (b == find) {
             if (stack == 0) {
@@ -1396,7 +1398,8 @@ static void draw_brackets(const SpaceText *st, const TextDrawContext *tdc, ARegi
     while (linep) {
       while (fc >= 0) {
         if (linep->format && linep->format[fc] != FMT_TYPE_STRING &&
-            linep->format[fc] != FMT_TYPE_COMMENT) {
+            linep->format[fc] != FMT_TYPE_COMMENT)
+        {
           b = text_check_bracket(linep->line[c]);
           if (b == find) {
             if (stack == 0) {

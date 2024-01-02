@@ -154,7 +154,8 @@ static bool update_zone_per_node(const Span<const bNode *> all_nodes,
         return;
       }
       for (bNodeTreeZone *iter_zone = zone->parent_zone; iter_zone;
-           iter_zone = iter_zone->parent_zone) {
+           iter_zone = iter_zone->parent_zone)
+      {
         if (iter_zone == parent_zone) {
           /* This zone is nested in the parent zone, so it becomes the new parent of the node. */
           parent_zone = zone;

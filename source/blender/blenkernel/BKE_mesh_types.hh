@@ -84,13 +84,11 @@ struct LooseGeomCache {
 /**
  * Cache of a mesh's loose edges, accessed with #Mesh::loose_edges(). *
  */
-struct LooseEdgeCache : public LooseGeomCache {
-};
+struct LooseEdgeCache : public LooseGeomCache {};
 /**
  * Cache of a mesh's loose vertices or vertices not used by faces.
  */
-struct LooseVertCache : public LooseGeomCache {
-};
+struct LooseVertCache : public LooseGeomCache {};
 
 struct MeshRuntime {
   /* Evaluated mesh for objects which do not have effective modifiers.

@@ -13,7 +13,7 @@
 
 #include "../geometry/Geom.h"
 
-//#include "../scene_graph/FrsMaterial.h"
+// #include "../scene_graph/FrsMaterial.h"
 
 #include "../view_map/Interface0D.h"
 #include "../view_map/Interface1D.h"

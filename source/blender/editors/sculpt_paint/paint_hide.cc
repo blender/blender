@@ -157,7 +157,8 @@ void mesh_show_all(Object &object, const Span<PBVHNode *> nodes)
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
   if (const VArray<bool> attribute = *attributes.lookup<bool>(".hide_vert",
-                                                              bke::AttrDomain::Point)) {
+                                                              bke::AttrDomain::Point))
+  {
     const VArraySpan hide_vert(attribute);
     threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
       for (PBVHNode *node : nodes.slice(range)) {
@@ -382,7 +383,8 @@ static void partialvis_update_grids(Depsgraph &depsgraph,
               for (const int x : IndexRange(key.grid_size)) {
                 CCGElem *elem = CCG_grid_elem(&key, grid, x, y);
                 if (isect_point_planes_v3(planes, 4, CCG_elem_co(&key, elem)) ==
-                    (area == VisArea::Inside)) {
+                    (area == VisArea::Inside))
+                {
                   hide[y * key.grid_size + x].set(value);
                 }
               }

@@ -139,7 +139,8 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
     return create_empty_mesh(input_mesh);
   }
   if (vmmd->resolution_mode == VOLUME_TO_MESH_RESOLUTION_MODE_VOXEL_SIZE &&
-      vmmd->voxel_size == 0.0f) {
+      vmmd->voxel_size == 0.0f)
+  {
     return create_empty_mesh(input_mesh);
   }
   if (vmmd->resolution_mode == VOLUME_TO_MESH_RESOLUTION_MODE_VOXEL_AMOUNT &&

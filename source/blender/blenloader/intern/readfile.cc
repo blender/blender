@@ -3319,7 +3319,8 @@ static void lib_link_all(FileData *fd, Main *bmain)
     const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id);
 
     if ((id->tag & (LIB_TAG_UNDO_OLD_ID_REUSED_UNCHANGED | LIB_TAG_UNDO_OLD_ID_REUSED_NOUNDO)) !=
-        0) {
+        0)
+    {
       BLI_assert(fd->flags & FD_FLAGS_IS_MEMFILE);
       /* This ID has been re-used from 'old' bmain. Since it was therefore unchanged across
        * current undo step, and old IDs re-use their old memory address, we do not need to liblink

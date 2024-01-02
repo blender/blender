@@ -264,7 +264,8 @@ void select_frames_region(KeyframeEditData *ked,
       }
       else if (tool == BEZT_OK_CHANNEL_CIRCLE) {
         if (keyframe_region_circle_test(static_cast<const KeyframeEdit_CircleData *>(ked->data),
-                                        pt)) {
+                                        pt))
+        {
           select_frame(frame, select_mode);
         }
       }

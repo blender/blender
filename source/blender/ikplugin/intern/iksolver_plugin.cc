@@ -158,7 +158,8 @@ static void initialize_posetree(Object * /*ob*/, bPoseChannel *pchan_tip)
           break;
         }
         for (; a < size && t < tree->totchannel && tree->pchan[t] == chanlist[segcount - a - 1];
-             a++, t++) {
+             a++, t++)
+        {
           /* pass */
         }
       }

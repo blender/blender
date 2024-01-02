@@ -181,7 +181,8 @@ float ED_armature_ebone_roll_to_vector(const EditBone *bone,
 
   /* If tail == head or the bone is aligned with the axis... */
   if (normalize_v3(nor) <= FLT_EPSILON ||
-      (fabsf(dot_v3v3(align_axis, nor)) >= (1.0f - FLT_EPSILON))) {
+      (fabsf(dot_v3v3(align_axis, nor)) >= (1.0f - FLT_EPSILON)))
+  {
     return roll;
   }
 

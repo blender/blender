@@ -22,8 +22,7 @@ namespace Freestyle {
 namespace VecMat {
 
 namespace Internal {
-template<bool B> struct is_false {
-};
+template<bool B> struct is_false {};
 
 template<> struct is_false<false> {
   static inline void ensure() {}

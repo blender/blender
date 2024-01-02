@@ -660,7 +660,8 @@ void RE_FreeUnusedGPUResources()
        * race condition here because we are on the main thread and new jobs can only
        * be started from the main thread. */
       if (WM_jobs_test(wm, scene, WM_JOB_TYPE_RENDER) ||
-          WM_jobs_test(wm, scene, WM_JOB_TYPE_COMPOSITE)) {
+          WM_jobs_test(wm, scene, WM_JOB_TYPE_COMPOSITE))
+      {
         do_free = false;
         break;
       }
@@ -1175,7 +1176,8 @@ static void do_render_compositor_scenes(Render *re)
       if (node->id && node->id != (ID *)re->scene) {
         Scene *scene = (Scene *)node->id;
         if (!BLI_gset_haskey(scenes_rendered, scene) &&
-            render_scene_has_layers_to_render(scene, nullptr)) {
+            render_scene_has_layers_to_render(scene, nullptr))
+        {
           do_render_compositor_scene(re, scene, cfra);
           BLI_gset_add(scenes_rendered, scene);
           node->typeinfo->updatefunc(restore_scene->nodetree, node);
@@ -1674,7 +1676,8 @@ bool RE_is_rendering_allowed(Scene *scene,
 
   if (scene->r.mode & R_BORDER) {
     if (scene->r.border.xmax <= scene->r.border.xmin ||
-        scene->r.border.ymax <= scene->r.border.ymin) {
+        scene->r.border.ymax <= scene->r.border.ymin)
+    {
       BKE_report(reports, RPT_ERROR, "No border area selected");
       return false;
     }

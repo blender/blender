@@ -259,7 +259,8 @@ ViewEdge *ViewEdgeXBuilder::BuildSharpViewEdge(const OWXEdge &iWEdge)
   FEdge *fefirst = nullptr;
   FEdge *fe = nullptr;
   for (list<OWXEdge>::iterator we = edgesChain.begin(), weend = edgesChain.end(); we != weend;
-       ++we) {
+       ++we)
+  {
     fe = BuildSharpFEdge(feprevious, (*we));
     fe->setViewEdge(newVEdge);
     if (!fefirst) {

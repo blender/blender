@@ -3156,7 +3156,8 @@ static int wm_recover_last_session_invoke(bContext *C, wmOperator *op, const wmE
   wm_open_init_use_scripts(op, false);
 
   if (wm_operator_close_file_dialog_if_needed(
-          C, op, wm_recover_last_session_after_dialog_callback)) {
+          C, op, wm_recover_last_session_after_dialog_callback))
+  {
     return OPERATOR_INTERFACE;
   }
   return wm_recover_last_session_exec(C, op);

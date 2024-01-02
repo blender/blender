@@ -978,7 +978,8 @@ static void datastack_drop_copy(bContext *C, StackDropData *drop_data)
             ob_dst, static_cast<GpencilModifierData *>(drop_data->drag_directdata));
       }
       else if (drop_data->ob_parent->type != OB_GPENCIL_LEGACY &&
-               ob_dst->type != OB_GPENCIL_LEGACY) {
+               ob_dst->type != OB_GPENCIL_LEGACY)
+      {
         ED_object_modifier_copy_to_object(C,
                                           ob_dst,
                                           drop_data->ob_parent,
@@ -1184,7 +1185,8 @@ static bool collection_drop_init(bContext *C, wmDrag *drag, const int xy[2], Col
 
   /* Currently this should not be allowed, cannot edit items in an override of a Collection. */
   if (ID_IS_OVERRIDE_LIBRARY(to_collection) &&
-      !ELEM(insert_type, TE_INSERT_AFTER, TE_INSERT_BEFORE)) {
+      !ELEM(insert_type, TE_INSERT_AFTER, TE_INSERT_BEFORE))
+  {
     return false;
   }
 
@@ -1511,7 +1513,8 @@ static int outliner_item_drag_drop_invoke(bContext *C, wmOperator * /*op*/, cons
         /* Keep collection hierarchies intact when dragging. */
         bool parent_selected = false;
         for (TreeElement *te_parent = te_selected->parent; te_parent;
-             te_parent = te_parent->parent) {
+             te_parent = te_parent->parent)
+        {
           if (outliner_is_collection_tree_element(te_parent)) {
             if (TREESTORE(te_parent)->flag & TSE_SELECTED) {
               parent_selected = true;
@@ -1532,7 +1535,8 @@ static int outliner_item_drag_drop_invoke(bContext *C, wmOperator * /*op*/, cons
 
       if (te_selected->parent) {
         for (TreeElement *te_parent = te_selected->parent; te_parent;
-             te_parent = te_parent->parent) {
+             te_parent = te_parent->parent)
+        {
           if (outliner_is_collection_tree_element(te_parent)) {
             parent = outliner_collection_from_tree_element(te_parent);
             break;

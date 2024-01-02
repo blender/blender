@@ -1967,7 +1967,8 @@ static int move_to_collection_exec(bContext *C, wmOperator *op)
                               nullptr;
 
   if ((single_object != nullptr) && is_link &&
-      BKE_collection_has_object(collection, single_object)) {
+      BKE_collection_has_object(collection, single_object))
+  {
     BKE_reportf(op->reports,
                 RPT_ERROR,
                 "%s already in %s",

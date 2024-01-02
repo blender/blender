@@ -881,7 +881,8 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata,
             /* Do not render surface if we are rendering a volume object
              * and do not have a surface closure. */
             if (use_volume_material &&
-                (gpumat_array[i] && !GPU_material_has_surface_output(gpumat_array[i]))) {
+                (gpumat_array[i] && !GPU_material_has_surface_output(gpumat_array[i])))
+            {
               continue;
             }
 

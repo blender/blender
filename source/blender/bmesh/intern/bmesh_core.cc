@@ -675,7 +675,8 @@ int bmesh_elem_check(void *element, const char htype)
         }
         if (l_iter->e && l_iter->v) {
           if (!BM_vert_in_edge(l_iter->e, l_iter->v) ||
-              !BM_vert_in_edge(l_iter->e, l_iter->next->v)) {
+              !BM_vert_in_edge(l_iter->e, l_iter->next->v))
+          {
             err |= IS_FACE_LOOP_VERT_NOT_IN_EDGE;
           }
 

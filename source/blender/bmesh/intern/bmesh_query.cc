@@ -155,7 +155,8 @@ BMFace *BM_vert_pair_shared_face_cb(BMVert *v_a,
       BMFace *f = l_a->f;
       l_b = BM_face_vert_share_loop(f, v_b);
       if (l_b && (allow_adjacent || !BM_loop_is_adjacent(l_a, l_b)) &&
-          callback(f, l_a, l_b, user_data)) {
+          callback(f, l_a, l_b, user_data))
+      {
         *r_l_a = l_a;
         *r_l_b = l_b;
 
@@ -2206,7 +2207,8 @@ int BM_mesh_calc_face_groups(BMesh *bm,
         do {
           BMLoop *l_radial_iter = l_iter->radial_next;
           if ((l_radial_iter != l_iter) &&
-              ((filter_fn == nullptr) || filter_fn(l_iter, user_data))) {
+              ((filter_fn == nullptr) || filter_fn(l_iter, user_data)))
+          {
             do {
               if ((filter_pair_fn == nullptr) || filter_pair_fn(l_iter, l_radial_iter, user_data))
               {

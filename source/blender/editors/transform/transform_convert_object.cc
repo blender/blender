@@ -705,7 +705,8 @@ static void createTransObject(bContext *C, TransInfo *t)
         Base *base_parent = BKE_view_layer_base_find(view_layer, ob->parent);
         if (base_parent) {
           if (BASE_XFORM_INDIRECT(base_parent) ||
-              BLI_gset_haskey(objects_in_transdata, ob->parent)) {
+              BLI_gset_haskey(objects_in_transdata, ob->parent))
+          {
             ED_object_xform_skip_child_container_item_ensure(
                 tdo->xcs, ob, nullptr, XFORM_OB_SKIP_CHILD_PARENT_IS_XFORM);
             base->flag_legacy |= BA_TRANSFORM_LOCKED_IN_PLACE;

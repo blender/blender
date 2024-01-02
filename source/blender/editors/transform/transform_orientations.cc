@@ -1094,7 +1094,8 @@ int getTransformOrientation_ex(const Scene *scene,
               }
               else {
                 if (BM_edge_calc_length_squared(e_pair[0]) <
-                    BM_edge_calc_length_squared(e_pair[1])) {
+                    BM_edge_calc_length_squared(e_pair[1]))
+                {
                   v_pair_swap = true;
                 }
               }

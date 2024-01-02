@@ -57,8 +57,7 @@ class VolumeGridData : public ImplicitSharingMixin {
   /**
    * Empty struct that exists so that it can be used as token in #VolumeTreeAccessToken.
    */
-  struct AccessToken {
-  };
+  struct AccessToken {};
 
   /**
    * A mutex that needs to be locked whenever working with the data members below.

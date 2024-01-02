@@ -3162,11 +3162,13 @@ static int uv_select_split_exec(bContext *C, wmOperator *op)
       BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 
         if (BM_ELEM_CD_GET_BOOL(l, offsets.select_vert) ||
-            BM_ELEM_CD_GET_BOOL(l, offsets.select_edge)) {
+            BM_ELEM_CD_GET_BOOL(l, offsets.select_edge))
+        {
           is_sel = true;
         }
         if (!BM_ELEM_CD_GET_BOOL(l, offsets.select_vert) ||
-            !BM_ELEM_CD_GET_BOOL(l, offsets.select_edge)) {
+            !BM_ELEM_CD_GET_BOOL(l, offsets.select_edge))
+        {
           is_unsel = true;
         }
 
@@ -3314,7 +3316,8 @@ static void uv_select_flush_from_tag_face(const Scene *scene, Object *obedit, co
   const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
 
   if ((ts->uv_flag & UV_SYNC_SELECTION) == 0 &&
-      ELEM(ts->uv_sticky, SI_STICKY_VERTEX, SI_STICKY_LOC)) {
+      ELEM(ts->uv_sticky, SI_STICKY_VERTEX, SI_STICKY_LOC))
+  {
 
     uint efa_index;
 
@@ -3457,7 +3460,8 @@ static void uv_select_flush_from_loop_edge_flag(const Scene *scene, BMEditMesh *
   const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
 
   if ((ts->uv_flag & UV_SYNC_SELECTION) == 0 &&
-      ELEM(ts->uv_sticky, SI_STICKY_LOC, SI_STICKY_VERTEX)) {
+      ELEM(ts->uv_sticky, SI_STICKY_LOC, SI_STICKY_VERTEX))
+  {
     /* Use UV edge selection to identify which verts must to be selected */
     uint efa_index;
     /* Clear UV vert flags */
@@ -4077,7 +4081,8 @@ static bool do_lasso_select_mesh_uv(bContext *C,
           BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
             float *luv = BM_ELEM_CD_GET_FLOAT_P(l, offsets.uv);
             if (do_lasso_select_mesh_uv_is_edge_inside(
-                    region, &rect, mcoords, mcoords_len, luv, luv_prev)) {
+                    region, &rect, mcoords, mcoords_len, luv, luv_prev))
+            {
               uvedit_edge_select_set_with_sticky(scene, em, l_prev, select, false, offsets);
               changed = true;
             }

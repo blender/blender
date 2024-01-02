@@ -949,7 +949,8 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
    * vgroups affect deform bones */
   wpd->lock_flags = BKE_object_defgroup_lock_flags_get(ob, wpd->defbase_tot);
   if (ts->auto_normalize || ts->multipaint || wpd->lock_flags != nullptr ||
-      ts->wpaint_lock_relative) {
+      ts->wpaint_lock_relative)
+  {
     wpd->vgroup_validmap = BKE_object_defgroup_validmap_get(ob, wpd->defbase_tot);
   }
 
@@ -1399,7 +1400,8 @@ static WPaintAverageAccum do_wpaint_brush_calc_average_weight(Object *ob,
     const float angle_cos = (use_normal && vd.no) ? dot_v3v3(sculpt_normal_frontface, vd.no) :
                                                     1.0f;
     if (angle_cos <= 0.0f ||
-        BKE_brush_curve_strength(brush, sqrtf(test.dist), cache->radius) <= 0.0f) {
+        BKE_brush_curve_strength(brush, sqrtf(test.dist), cache->radius) <= 0.0f)
+    {
       continue;
     }
 

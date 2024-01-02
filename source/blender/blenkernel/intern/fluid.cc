@@ -1239,7 +1239,8 @@ static void compute_obstaclesemission(Scene *scene,
         /* Set scene time */
         /* Handle emission subframe */
         if ((subframe < subframes || time_per_frame + dt + FLT_EPSILON < frame_length) &&
-            !is_first_frame) {
+            !is_first_frame)
+        {
           scene->r.subframe = (time_per_frame + (subframe + 1.0f) * subframe_dt) / frame_length;
           scene->r.cfra = frame - 1;
         }
@@ -1422,7 +1423,8 @@ static void update_obstacles(Depsgraph *depsgraph,
             d_index = manta_get_index(dx, fds->res[0], dy, fds->res[1], dz);
             /* Make sure emission cell is inside the new domain boundary. */
             if (dx < 0 || dy < 0 || dz < 0 || dx >= fds->res[0] || dy >= fds->res[1] ||
-                dz >= fds->res[2]) {
+                dz >= fds->res[2])
+            {
               continue;
             }
 
@@ -2257,7 +2259,8 @@ static void adaptive_domain_adjust(
 
         /* skip if cell already belongs to new area */
         if (xn >= min[0] && xn <= max[0] && yn >= min[1] && yn <= max[1] && zn >= min[2] &&
-            zn <= max[2]) {
+            zn <= max[2])
+        {
           continue;
         }
 
@@ -2753,7 +2756,8 @@ static void compute_flowsemission(Scene *scene,
 
         /* Set scene time */
         if ((subframe < subframes || time_per_frame + dt + FLT_EPSILON < frame_length) &&
-            !is_first_frame) {
+            !is_first_frame)
+        {
           scene->r.subframe = (time_per_frame + (subframe + 1.0f) * subframe_dt) / frame_length;
           scene->r.cfra = frame - 1;
         }
@@ -2998,7 +3002,8 @@ static void update_flowsfluids(Depsgraph *depsgraph,
             d_index = manta_get_index(dx, fds->res[0], dy, fds->res[1], dz);
             /* Make sure emission cell is inside the new domain boundary. */
             if (dx < 0 || dy < 0 || dz < 0 || dx >= fds->res[0] || dy >= fds->res[1] ||
-                dz >= fds->res[2]) {
+                dz >= fds->res[2])
+            {
               continue;
             }
 
@@ -4111,7 +4116,8 @@ Mesh *BKE_fluid_modifier_do(
 
       /* Always update viewport in cache replay mode. */
       if (fds->cache_type == FLUID_DOMAIN_CACHE_REPLAY ||
-          fds->flags & FLUID_DOMAIN_USE_ADAPTIVE_DOMAIN) {
+          fds->flags & FLUID_DOMAIN_USE_ADAPTIVE_DOMAIN)
+      {
         needs_viewport_update = true;
       }
       /* In other cache modes, only update the viewport when no bake is going on. */

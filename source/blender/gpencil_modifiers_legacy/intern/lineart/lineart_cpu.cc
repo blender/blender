@@ -316,7 +316,8 @@ void lineart_edge_cut(LineartData *ld,
      * flags. See LineartEdgeSegment::shadow_mask_bits for details. */
     if (shadow_bits == LRT_SHADOW_MASK_ENCLOSED_SHAPE) {
       if (seg->shadow_mask_bits & LRT_SHADOW_MASK_ILLUMINATED ||
-          e->flags & LRT_EDGE_FLAG_LIGHT_CONTOUR) {
+          e->flags & LRT_EDGE_FLAG_LIGHT_CONTOUR)
+      {
         seg->shadow_mask_bits |= LRT_SHADOW_MASK_INHIBITED;
       }
       else if (seg->shadow_mask_bits & LRT_SHADOW_MASK_SHADED) {
@@ -1691,7 +1692,8 @@ static void lineart_identify_corner_tri_feature_edges(void *__restrict userdata,
 
   if (real_edges[i % 3] >= 0) {
     if (ld->conf.use_crease && ld->conf.sharp_as_crease &&
-        e_feat_data->sharp_edges[real_edges[i % 3]]) {
+        e_feat_data->sharp_edges[real_edges[i % 3]])
+    {
       edge_flag_result |= LRT_EDGE_FLAG_CREASE;
     }
 
@@ -2878,7 +2880,8 @@ static bool lineart_triangle_edge_image_space_occlusion(const LineartTriangle *t
   dot_f = dot_v3v3_db(dir_cam, tri->gn);
 
   if ((e->flags & LRT_EDGE_FLAG_PROJECTED_SHADOW) &&
-      (e->target_reference == tri->target_reference)) {
+      (e->target_reference == tri->target_reference))
+  {
     if (((dot_f > 0) && (e->flags & LRT_EDGE_FLAG_SHADOW_FACING_LIGHT)) ||
         ((dot_f < 0) && !(e->flags & LRT_EDGE_FLAG_SHADOW_FACING_LIGHT)))
     {
@@ -4277,19 +4280,23 @@ static void lineart_bounding_area_link_edge(LineartData *ld,
   }
   else {
     if (lineart_bounding_area_edge_intersect(
-            ld, e->v1->fbcoord, e->v2->fbcoord, &root_ba->child[0])) {
+            ld, e->v1->fbcoord, e->v2->fbcoord, &root_ba->child[0]))
+    {
       lineart_bounding_area_link_edge(ld, &root_ba->child[0], e);
     }
     if (lineart_bounding_area_edge_intersect(
-            ld, e->v1->fbcoord, e->v2->fbcoord, &root_ba->child[1])) {
+            ld, e->v1->fbcoord, e->v2->fbcoord, &root_ba->child[1]))
+    {
       lineart_bounding_area_link_edge(ld, &root_ba->child[1], e);
     }
     if (lineart_bounding_area_edge_intersect(
-            ld, e->v1->fbcoord, e->v2->fbcoord, &root_ba->child[2])) {
+            ld, e->v1->fbcoord, e->v2->fbcoord, &root_ba->child[2]))
+    {
       lineart_bounding_area_link_edge(ld, &root_ba->child[2], e);
     }
     if (lineart_bounding_area_edge_intersect(
-            ld, e->v1->fbcoord, e->v2->fbcoord, &root_ba->child[3])) {
+            ld, e->v1->fbcoord, e->v2->fbcoord, &root_ba->child[3]))
+    {
       lineart_bounding_area_link_edge(ld, &root_ba->child[3], e);
     }
   }
@@ -4562,7 +4569,8 @@ static void lineart_add_triangles_worker(TaskPool *__restrict /*pool*/, LineartI
   // int _dir_control = 0; /* UNUSED */
   while (lineart_schedule_new_triangle_task(th)) {
     for (LineartElementLinkNode *eln = th->pending_from; eln != th->pending_to->next;
-         eln = eln->next) {
+         eln = eln->next)
+    {
       int index_start = eln == th->pending_from ? th->index_from : 0;
       int index_end = eln == th->pending_to ? th->index_to : eln->element_count;
       LineartTriangle *tri = static_cast<LineartTriangle *>(

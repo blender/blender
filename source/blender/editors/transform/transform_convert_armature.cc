@@ -632,7 +632,8 @@ static void createTransPose(bContext * /*C*/, TransInfo *t)
         pchan->bone->flag &= ~BONE_TRANSFORM_MIRROR;
 
         if ((pchan->bone->flag & BONE_TRANSFORM) &&
-            BKE_pose_channel_get_mirrored(ob->pose, pchan->name)) {
+            BKE_pose_channel_get_mirrored(ob->pose, pchan->name))
+        {
           total_mirrored++;
         }
       }

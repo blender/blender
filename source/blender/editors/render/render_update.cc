@@ -286,7 +286,8 @@ static void image_changed(Main *bmain, Image *ima)
 
   /* textures */
   for (tex = static_cast<Tex *>(bmain->textures.first); tex;
-       tex = static_cast<Tex *>(tex->id.next)) {
+       tex = static_cast<Tex *>(tex->id.next))
+  {
     if (tex->type == TEX_IMAGE && tex->ima == ima) {
       texture_changed(bmain, tex);
     }
@@ -299,7 +300,8 @@ static void scene_changed(Main *bmain, Scene *scene)
 
   /* glsl */
   for (ob = static_cast<Object *>(bmain->objects.first); ob;
-       ob = static_cast<Object *>(ob->id.next)) {
+       ob = static_cast<Object *>(ob->id.next))
+  {
     if (ob->mode & OB_MODE_TEXTURE_PAINT) {
       BKE_texpaint_slots_refresh_object(scene, ob);
       ED_paint_proj_mesh_data_check(scene, ob, nullptr, nullptr, nullptr, nullptr);

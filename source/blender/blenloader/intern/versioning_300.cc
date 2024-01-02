@@ -1181,7 +1181,8 @@ void do_versions_after_linking_300(FileData * /*fd*/, Main *bmain)
                      SOCK_OBJECT,
                      SOCK_COLLECTION,
                      SOCK_TEXTURE,
-                     SOCK_MATERIAL)) {
+                     SOCK_MATERIAL))
+            {
               link->tosock = link->tosock->next;
             }
           }
@@ -2644,7 +2645,8 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 300, 13)) {
     /* Convert Surface Deform to sparse-capable bind structure. */
     if (!DNA_struct_member_exists(
-            fd->filesdna, "SurfaceDeformModifierData", "int", "mesh_verts_num")) {
+            fd->filesdna, "SurfaceDeformModifierData", "int", "mesh_verts_num"))
+    {
       LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
         LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
           if (md->type == eModifierType_SurfaceDeform) {
@@ -2671,7 +2673,8 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     if (!DNA_struct_member_exists(
-            fd->filesdna, "WorkSpace", "AssetLibraryReference", "asset_library")) {
+            fd->filesdna, "WorkSpace", "AssetLibraryReference", "asset_library"))
+    {
       LISTBASE_FOREACH (WorkSpace *, workspace, &bmain->workspaces) {
         BKE_asset_library_reference_init_default(&workspace->asset_library_ref);
       }

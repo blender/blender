@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /* Paint a color made from hash of node pointer. */
-//#define DEBUG_PIXEL_NODES
+// #define DEBUG_PIXEL_NODES
 
 #include "DNA_brush_types.h"
 #include "DNA_image_types.h"

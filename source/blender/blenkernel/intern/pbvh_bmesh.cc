@@ -1793,8 +1793,9 @@ bool bmesh_node_raycast(PBVHNode *node,
           float location[3] = {0.0f};
           madd_v3_v3v3fl(location, ray_start, ray_normal, *depth);
           for (const int j : IndexRange(3)) {
-            if (j == 0 || len_squared_v3v3(location, cos[j]) <
-                              len_squared_v3v3(location, nearest_vertex_co)) {
+            if (j == 0 ||
+                len_squared_v3v3(location, cos[j]) < len_squared_v3v3(location, nearest_vertex_co))
+            {
               copy_v3_v3(nearest_vertex_co, cos[j]);
               r_active_vertex->i = intptr_t(node->bm_orvert[node->bm_ortri[i][j]]);
             }
@@ -1994,7 +1995,8 @@ static void pbvh_bmesh_node_limit_ensure_fast(PBVH *pbvh,
         BMFace *f_iter = nodeinfo[i_iter];
         const int face_iter_i = BM_elem_index_get(f_iter);
         if (math::midpoint(face_bounds[face_iter_i].min[axis],
-                           face_bounds[face_iter_i].max[axis]) <= mid) {
+                           face_bounds[face_iter_i].max[axis]) <= mid)
+        {
           candidate = i_iter;
           break;
         }

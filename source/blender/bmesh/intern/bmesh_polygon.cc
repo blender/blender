@@ -1261,7 +1261,8 @@ void BM_face_splits_check_legal(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int l
       for (j = i + 1; j < len; j++) {
         if ((loops[j][0] != nullptr) && !EDGE_SHARE_VERT(edgeverts[i], edgeverts[j])) {
           if (isect_seg_seg_v2(UNPACK2(edgeverts[i]), UNPACK2(edgeverts[j])) ==
-              ISECT_LINE_LINE_CROSS) {
+              ISECT_LINE_LINE_CROSS)
+          {
             loops[i][0] = nullptr;
             break;
           }

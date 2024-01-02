@@ -218,7 +218,8 @@ static void get_nearest_fcurve_verts_list(bAnimContext *ac, const int mval[2], L
         if (fcurve_handle_sel_check(sipo, bezt1)) {
           /* first handle only visible if previous segment had handles */
           if ((!prevbezt && (bezt1->ipo == BEZT_IPO_BEZ)) ||
-              (prevbezt && (prevbezt->ipo == BEZT_IPO_BEZ))) {
+              (prevbezt && (prevbezt->ipo == BEZT_IPO_BEZ)))
+          {
             nearest_fcurve_vert_store(matches,
                                       v2d,
                                       fcu,

@@ -1206,7 +1206,8 @@ void BKE_pose_update_constraint_flags(bPose *pose)
           {
             bPoseChannel *chain_bone = chain_tip;
             for (short index = 0; chain_bone && (data->rootbone == 0 || index < data->rootbone);
-                 index++) {
+                 index++)
+            {
               chain_bone->constflag |= PCHAN_INFLUENCED_BY_IK;
               chain_bone = chain_bone->parent;
             }

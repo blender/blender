@@ -904,7 +904,8 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
           /* find adjacent */
           BM_ITER_ELEM (e, &iter, v_split, BM_EDGES_OF_VERT) {
             if (BM_elem_flag_test(e, BM_ELEM_TAG) && e->l &&
-                BM_elem_flag_test(e->l->f, BM_ELEM_TAG)) {
+                BM_elem_flag_test(e->l->f, BM_ELEM_TAG))
+            {
               if (vert_edge_tag_tot < 2) {
                 vecpair[vert_edge_tag_tot] = BM_elem_index_get(e);
                 BLI_assert(vecpair[vert_edge_tag_tot] != -1);

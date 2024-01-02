@@ -293,7 +293,7 @@ static void build_bvh_spatial(
 /** Hash table size (32768). */
 #define HASHSIZE size_t(1 << (3 * HASHBIT))
 
-#define HASH(i, j, k) ((((((i)&31) << 5) | ((j)&31)) << 5) | ((k)&31))
+#define HASH(i, j, k) ((((((i) & 31) << 5) | ((j) & 31)) << 5) | ((k) & 31))
 
 #define MB_BIT(i, bit) (((i) >> (bit)) & 1)
 // #define FLIP(i, bit) ((i) ^ 1 << (bit)) /* flip the given bit of i */

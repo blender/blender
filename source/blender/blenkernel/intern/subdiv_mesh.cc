@@ -892,7 +892,8 @@ static void subdiv_mesh_ensure_loop_interpolation(SubdivMeshContext *ctx,
   }
   /* Update it for a new corner if needed. */
   if (!tls->loop_interpolation_initialized ||
-      tls->loop_interpolation_coarse_corner != coarse_corner) {
+      tls->loop_interpolation_coarse_corner != coarse_corner)
+  {
     loop_interpolation_from_corner(ctx, &tls->loop_interpolation, coarse_face, coarse_corner);
   }
   /* Store settings used for the current state of interpolator. */

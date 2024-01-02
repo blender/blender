@@ -775,7 +775,8 @@ class LazyFunctionForViewerNode : public LazyFunction {
       }
       const Span<const bNodeLink *> links = bsocket->directly_linked_links();
       if (links.is_empty() ||
-          bke::nodeIsDanglingReroute(&bnode.owner_tree(), links.first()->fromnode)) {
+          bke::nodeIsDanglingReroute(&bnode.owner_tree(), links.first()->fromnode))
+      {
         use_field_input_ = false;
         inputs_.pop_last();
         r_lf_index_by_bsocket[bsocket->index_in_tree()] = -1;
@@ -1605,7 +1606,8 @@ class LazyFunctionForRepeatZone : public LazyFunction {
     zone_info.indices.outputs.main = outputs_.index_range();
 
     for ([[maybe_unused]] const bNodeSocket *socket :
-         zone.input_node->input_sockets().drop_back(1)) {
+         zone.input_node->input_sockets().drop_back(1))
+    {
       outputs_.append_as("Usage", CPPType::get<bool>());
     }
     zone_info.indices.outputs.input_usages = outputs_.index_range().take_back(
@@ -1700,7 +1702,8 @@ class LazyFunctionForRepeatZone : public LazyFunction {
     if (node_storage.inspection_index > 0) {
       if (node_storage.inspection_index >= iterations) {
         if (geo_eval_log::GeoTreeLogger *tree_logger = local_user_data.try_get_tree_logger(
-                user_data)) {
+                user_data))
+        {
           tree_logger->node_warnings.append(
               {repeat_output_bnode_.identifier,
                {NodeWarningType::Info, N_("Inspection index is out of range")}});
@@ -1757,7 +1760,8 @@ class LazyFunctionForRepeatZone : public LazyFunction {
             lf_node.input(item.value));
       }
       for (const auto item :
-           body_fn_.indices.inputs.attributes_by_caller_propagation_index.items()) {
+           body_fn_.indices.inputs.attributes_by_caller_propagation_index.items())
+      {
         lf_graph.add_link(
             *lf_inputs[zone_info_.indices.inputs.attributes_by_caller_propagation_index.lookup(
                 item.key)],
@@ -2796,7 +2800,8 @@ struct GeometryNodesLazyFunctionBuilder {
       bits::foreach_1_index(required_fields, [&](const int field_source_index) {
         const auto &field_source = attribute_inferencing_.all_field_sources[field_source_index];
         if (const auto *socket_field_source = std::get_if<aai::SocketFieldSource>(
-                &field_source.data)) {
+                &field_source.data))
+        {
           if (&socket_field_source->socket->owner_node() == &geometry_output_bsocket.owner_node())
           {
             return;
@@ -2989,7 +2994,8 @@ struct GeometryNodesLazyFunctionBuilder {
       graph_params.lf_output_by_bsocket.add(&bsocket, &lf_output_socket);
       graph_params.socket_usage_inputs.add(&lf_usage_input);
       if (lf::OutputSocket *lf_usage = graph_params.usage_by_bsocket.lookup_default(&bsocket,
-                                                                                    nullptr)) {
+                                                                                    nullptr))
+      {
         graph_params.lf_graph.add_link(*lf_usage, lf_usage_input);
       }
       else {
@@ -3397,7 +3403,8 @@ struct GeometryNodesLazyFunctionBuilder {
         if (lf_input_index != -1) {
           lf::InputSocket &lf_input_socket = lf_node.input(lf_input_index);
           if (lf::OutputSocket *lf_usage = graph_params.usage_by_bsocket.lookup_default(bsocket,
-                                                                                        nullptr)) {
+                                                                                        nullptr))
+          {
             graph_params.lf_graph.add_link(*lf_usage, lf_input_socket);
           }
           else {
@@ -4129,7 +4136,8 @@ struct GeometryNodesLazyFunctionBuilder {
           bool broke_cycle = false;
           for (lf::Socket *lf_cycle_socket : cycle) {
             if (lf_cycle_socket->is_input() &&
-                socket_usage_inputs.contains(&lf_cycle_socket->as_input())) {
+                socket_usage_inputs.contains(&lf_cycle_socket->as_input()))
+            {
               lf::InputSocket &lf_cycle_input_socket = lf_cycle_socket->as_input();
               lf_graph.clear_origin(lf_cycle_input_socket);
               static const bool static_true = true;

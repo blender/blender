@@ -551,7 +551,8 @@ void USDGenericMeshWriter::write_mesh(HierarchyContext &context,
    * unless a subdiv modifier is used, in which case normals are computed,
    * not stored with the mesh. */
   if (usd_export_context_.export_params.export_normals &&
-      subdiv_scheme == pxr::UsdGeomTokens->none) {
+      subdiv_scheme == pxr::UsdGeomTokens->none)
+  {
     write_normals(mesh, usd_mesh);
   }
 

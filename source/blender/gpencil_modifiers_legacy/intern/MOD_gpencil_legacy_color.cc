@@ -105,7 +105,8 @@ static void deform_stroke(GpencilModifierData *md,
   if (mmd->modify_color != GP_MODIFY_COLOR_STROKE) {
     /* If not using Vertex Color, use the material color. */
     if ((gp_style != nullptr) && (gps->vert_color_fill[3] == 0.0f) &&
-        (gp_style->fill_rgba[3] > 0.0f)) {
+        (gp_style->fill_rgba[3] > 0.0f))
+    {
       copy_v4_v4(gps->vert_color_fill, gp_style->fill_rgba);
       gps->vert_color_fill[3] = 1.0f;
     }
@@ -124,7 +125,8 @@ static void deform_stroke(GpencilModifierData *md,
       bGPDspoint *pt = &gps->points[i];
       /* If not using Vertex Color, use the material color. */
       if ((gp_style != nullptr) && (pt->vert_color[3] == 0.0f) &&
-          (gp_style->stroke_rgba[3] > 0.0f)) {
+          (gp_style->stroke_rgba[3] > 0.0f))
+      {
         copy_v4_v4(pt->vert_color, gp_style->stroke_rgba);
         pt->vert_color[3] = 1.0f;
       }

@@ -224,7 +224,8 @@ GPENCIL_MaterialPool *gpencil_material_pool_create(GPENCIL_PrivateData *pd, Obje
     }
 
     if ((gp_style->mode != GP_MATERIAL_MODE_LINE) ||
-        (gp_style->flag & GP_MATERIAL_DISABLE_STENCIL)) {
+        (gp_style->flag & GP_MATERIAL_DISABLE_STENCIL))
+    {
       mat_data->flag |= GP_STROKE_OVERLAP;
     }
 

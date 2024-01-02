@@ -1031,7 +1031,7 @@ void SMAANeighborhoodBlendingOperation::execute_pixel(float output[4],
   }
 
   /* Calculate the blending offsets: */
-  void (*samplefunc)(SocketReader * reader, int x, int y, float xoffset, float color[4]);
+  void (*samplefunc)(SocketReader *reader, int x, int y, float xoffset, float color[4]);
   float offset1, offset2, weight1, weight2, color1[4], color2[4];
 
   if (fmaxf(right, left) > fmaxf(bottom, top)) { /* max(horizontal) > max(vertical) */
@@ -1083,7 +1083,7 @@ void SMAANeighborhoodBlendingOperation::update_memory_buffer_partial(MemoryBuffe
     }
 
     /* Calculate the blending offsets: */
-    void (*sample_fn)(MemoryBuffer * reader, int x, int y, float xoffset, float color[4]);
+    void (*sample_fn)(MemoryBuffer *reader, int x, int y, float xoffset, float color[4]);
     float offset1, offset2, weight1, weight2, color1[4], color2[4];
 
     if (fmaxf(right, left) > fmaxf(bottom, top)) { /* `max(horizontal) > max(vertical)` */

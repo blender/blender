@@ -453,7 +453,8 @@ static void detect_workarounds()
   /* There is a bug on older Nvidia GPU where GL_ARB_texture_gather
    * is reported to be supported but yield a compile error (see #55802). */
   if (GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_ANY, GPU_DRIVER_ANY) &&
-      !(epoxy_gl_version() >= 40)) {
+      !(epoxy_gl_version() >= 40))
+  {
     GLContext::texture_gather_support = false;
   }
 

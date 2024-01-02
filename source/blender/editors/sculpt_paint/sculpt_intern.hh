@@ -919,7 +919,8 @@ void SCULPT_vertex_neighbors_get(SculptSession *ss,
 #define SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN(ss, v_index, neighbor_iterator) \
   SCULPT_vertex_neighbors_get(ss, v_index, false, &neighbor_iterator); \
   for (neighbor_iterator.i = 0; neighbor_iterator.i < neighbor_iterator.size; \
-       neighbor_iterator.i++) { \
+       neighbor_iterator.i++) \
+  { \
     neighbor_iterator.vertex = neighbor_iterator.neighbors[neighbor_iterator.i]; \
     neighbor_iterator.index = neighbor_iterator.neighbor_indices[neighbor_iterator.i];
 

@@ -2227,7 +2227,8 @@ static void validate_object_select_id(Depsgraph *depsgraph,
   }
   /* texture paint mode sampling */
   else if (obact_eval && (obact_eval->mode & OB_MODE_TEXTURE_PAINT) &&
-           (v3d->shading.type > OB_WIRE)) {
+           (v3d->shading.type > OB_WIRE))
+  {
     /* do nothing */
   }
   else if ((obact_eval && (obact_eval->mode & OB_MODE_PARTICLE_EDIT)) && !XRAY_ENABLED(v3d)) {

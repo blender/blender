@@ -530,7 +530,8 @@ SeqRetimingKey *SEQ_retiming_add_transition(const Scene *scene,
 
   SeqRetimingKey *prev_key = key - 1;
   if ((key->flag & SEQ_SPEED_TRANSITION_IN) != 0 ||
-      (prev_key->flag & SEQ_SPEED_TRANSITION_IN) != 0) {
+      (prev_key->flag & SEQ_SPEED_TRANSITION_IN) != 0)
+  {
     return nullptr;
   }
 

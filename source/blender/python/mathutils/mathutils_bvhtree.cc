@@ -359,7 +359,8 @@ static PyObject *py_bvhtree_ray_cast(PyBVHTree *self, PyObject *args)
   /* may fail if the mesh has no faces, in that case the ray-cast misses */
   if (self->tree) {
     if (BLI_bvhtree_ray_cast(self->tree, co, direction, 0.0f, &hit, py_bvhtree_raycast_cb, self) !=
-        -1) {
+        -1)
+    {
       return py_bvhtree_raycast_to_py(&hit);
     }
   }
@@ -403,7 +404,8 @@ static PyObject *py_bvhtree_find_nearest(PyBVHTree *self, PyObject *args)
   /* may fail if the mesh has no faces, in that case the ray-cast misses */
   if (self->tree) {
     if (BLI_bvhtree_find_nearest(self->tree, co, &nearest, py_bvhtree_nearest_point_cb, self) !=
-        -1) {
+        -1)
+    {
       return py_bvhtree_nearest_to_py(&nearest);
     }
   }

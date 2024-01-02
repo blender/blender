@@ -770,7 +770,8 @@ static BMEdge *bm_face_split_edge_find(BMEdge *e_a,
         bool ok = true;
 
         if (UNLIKELY(BM_edge_exists(v_pivot, l_iter->e->v1) ||
-                     BM_edge_exists(v_pivot, l_iter->e->v2))) {
+                     BM_edge_exists(v_pivot, l_iter->e->v2)))
+        {
           /* very unlikely but will cause complications splicing the verts together,
            * so just skip this case */
           ok = false;

@@ -227,7 +227,8 @@ blender::bke::MeshNormalDomain Mesh::normals_domain() const
   }
 
   if (edge_mix == array_utils::BooleanMix::AllFalse &&
-      face_mix == array_utils::BooleanMix::AllFalse) {
+      face_mix == array_utils::BooleanMix::AllFalse)
+  {
     return MeshNormalDomain::Point;
   }
 

@@ -1418,7 +1418,8 @@ PyObject *BPy_Wrap_GetValues(ID *id, IDProperty *prop)
   int i;
 
   for (i = 0, loop = static_cast<IDProperty *>(prop->data.group.first); loop;
-       loop = loop->next, i++) {
+       loop = loop->next, i++)
+  {
     PyList_SET_ITEM(list, i, BPy_IDGroup_WrapData(id, loop, prop));
   }
 
@@ -1439,7 +1440,8 @@ PyObject *BPy_Wrap_GetItems(ID *id, IDProperty *prop)
   int i;
 
   for (i = 0, loop = static_cast<IDProperty *>(prop->data.group.first); loop;
-       loop = loop->next, i++) {
+       loop = loop->next, i++)
+  {
     PyObject *item = PyTuple_New(2);
     PyTuple_SET_ITEMS(
         item, PyUnicode_FromString(loop->name), BPy_IDGroup_WrapData(id, loop, prop));

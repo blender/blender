@@ -649,7 +649,8 @@ static void engine_depsgraph_init(RenderEngine *engine, ViewLayer *view_layer)
   /* Reuse depsgraph from persistent data if possible. */
   if (engine->depsgraph) {
     if (DEG_get_bmain(engine->depsgraph) != bmain ||
-        DEG_get_input_scene(engine->depsgraph) != scene) {
+        DEG_get_input_scene(engine->depsgraph) != scene)
+    {
       /* If bmain or scene changes, we need a completely new graph. */
       engine_depsgraph_free(engine);
     }

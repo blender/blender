@@ -215,7 +215,8 @@ class OIDNDenoiseContext {
     DCHECK(!oidn_pass.use_compositing);
 
     if (denoise_params_.prefilter != DENOISER_PREFILTER_ACCURATE &&
-        !is_pass_scale_needed(oidn_pass)) {
+        !is_pass_scale_needed(oidn_pass))
+    {
       /* Pass data is available as-is from the render buffers. */
       return;
     }

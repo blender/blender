@@ -276,7 +276,8 @@ static void py_rna_gizmo_handler_range_get_cb(const wmGizmo * /*gz*/,
     float range[2];
     for (int i = 0; i < 2; i++) {
       if (((range[i] = PyFloat_AsDouble(PyTuple_GET_ITEM(ret, i))) == -1.0f && PyErr_Occurred()) ==
-          0) {
+          0)
+      {
         /* pass */
       }
       else {

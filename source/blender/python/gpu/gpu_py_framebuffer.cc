@@ -446,7 +446,8 @@ static PyObject *pygpu_framebuffer_clear(BPyGPUFrameBuffer *self, PyObject *args
 
   if (py_col && py_col != Py_None) {
     if (mathutils_array_parse(col, 3, 4, py_col, "GPUFrameBuffer.clear(), invalid 'color' arg") ==
-        -1) {
+        -1)
+    {
       return nullptr;
     }
     buffers |= GPU_COLOR_BIT;

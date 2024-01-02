@@ -36,7 +36,7 @@
 #    define CLOTH_OPENMP_LIMIT 512
 #  endif
 
-//#define DEBUG_TIME
+// #define DEBUG_TIME
 
 #  ifdef DEBUG_TIME
 #    include "PIL_time.h"
@@ -179,7 +179,7 @@ DO_INLINE float dot_lfvector(float (*fLongVectorA)[3], float (*fLongVectorB)[3],
    * due to non-commutative nature of floating point ops this makes the sim give
    * different results each time you run it!
    * schedule(guided, 2) */
-  //#pragma omp parallel for reduction(+: temp) if (verts > CLOTH_OPENMP_LIMIT)
+  // #pragma omp parallel for reduction(+: temp) if (verts > CLOTH_OPENMP_LIMIT)
   for (i = 0; i < long(verts); i++) {
     temp += dot_v3v3(fLongVectorA[i], fLongVectorB[i]);
   }

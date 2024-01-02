@@ -46,7 +46,7 @@
 #include "paint_intern.hh"
 #include "sculpt_intern.hh"
 
-//#define DEBUG_TIME
+// #define DEBUG_TIME
 
 #ifdef DEBUG_TIME
 #  include "PIL_time_utildefines.h"
@@ -359,7 +359,8 @@ static bool paint_brush_update(bContext *C,
     if (ELEM(brush->mtex.brush_map_mode,
              MTEX_MAP_MODE_VIEW,
              MTEX_MAP_MODE_AREA,
-             MTEX_MAP_MODE_RANDOM)) {
+             MTEX_MAP_MODE_RANDOM))
+    {
       do_random = true;
     }
 

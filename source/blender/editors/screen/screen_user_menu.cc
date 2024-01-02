@@ -294,7 +294,8 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
           PropertyRNA *prop = nullptr;
           PointerRNA prop_ptr = ptr;
           if ((data_path == nullptr) ||
-              RNA_path_resolve_full(&ptr, data_path, &prop_ptr, nullptr, nullptr)) {
+              RNA_path_resolve_full(&ptr, data_path, &prop_ptr, nullptr, nullptr))
+          {
             prop = RNA_struct_find_property(&prop_ptr, umi_pr->prop_id);
             if (prop) {
               ok = true;

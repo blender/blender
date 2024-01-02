@@ -189,7 +189,8 @@ void ED_armature_bone_rename(Main *bmain,
 
     /* do entire dbase - objects */
     for (ob = static_cast<Object *>(bmain->objects.first); ob;
-         ob = static_cast<Object *>(ob->id.next)) {
+         ob = static_cast<Object *>(ob->id.next))
+    {
 
       /* we have the object using the armature */
       if (arm == ob->data) {

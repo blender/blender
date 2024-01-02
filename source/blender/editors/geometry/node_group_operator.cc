@@ -948,7 +948,8 @@ static bool unassigned_local_poll(const bContext &C)
       continue;
     }
     if (!group->geometry_node_asset_traits ||
-        (group->geometry_node_asset_traits->flag & flag) != flag) {
+        (group->geometry_node_asset_traits->flag & flag) != flag)
+    {
       continue;
     }
     return true;
@@ -992,7 +993,8 @@ static void catalog_assets_draw_unassigned(const bContext *C, Menu *menu)
       continue;
     }
     if (!group->geometry_node_asset_traits ||
-        (group->geometry_node_asset_traits->flag & flag) != flag) {
+        (group->geometry_node_asset_traits->flag & flag) != flag)
+    {
       continue;
     }
 

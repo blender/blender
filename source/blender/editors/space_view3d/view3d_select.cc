@@ -1379,7 +1379,8 @@ static bool view3d_lasso_select(bContext *C,
       changed_multi |= do_lasso_select_paintvert(vc, wm_userdata, mcoords, mcoords_len, sel_op);
     }
     else if (ob &&
-             (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT))) {
+             (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT)))
+    {
       /* pass */
     }
     else if (ob && (ob->mode & OB_MODE_PARTICLE_EDIT)) {
@@ -2751,7 +2752,8 @@ static bool ed_object_select_pick(bContext *C,
         MovieClip *clip = BKE_object_movieclip_get(scene, basact->object, false);
         if (clip != nullptr) {
           if (ed_object_select_pick_camera_track(
-                  C, scene, basact, clip, gpu->buffer, gpu->hits, params)) {
+                  C, scene, basact, clip, gpu->buffer, gpu->hits, params))
+          {
             ED_object_base_select(basact, BA_SELECT);
             /* Don't set `handled` here as the object activation may be necessary. */
             changed_object = true;
@@ -3931,7 +3933,8 @@ static bool do_meta_box_select(ViewContext *vc, const rcti *rect, const eSelectO
 
   int metaelem_id = 0;
   for (ml = static_cast<MetaElem *>(mb->editelems->first); ml;
-       ml = ml->next, metaelem_id += 0x10000) {
+       ml = ml->next, metaelem_id += 0x10000)
+  {
     bool is_inside_radius = false;
     bool is_inside_stiff = false;
 
@@ -5283,7 +5286,8 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
     }
 
     FOREACH_OBJECT_IN_MODE_BEGIN (
-        vc.scene, vc.view_layer, vc.v3d, obact->type, obact->mode, ob_iter) {
+        vc.scene, vc.view_layer, vc.v3d, obact->type, obact->mode, ob_iter)
+    {
       ED_view3d_viewcontext_init_object(&vc, ob_iter);
 
       obact = vc.obact;

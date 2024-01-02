@@ -1158,7 +1158,8 @@ static void wm_xr_session_events_dispatch(wmXrData *xr,
                                                  action->active_modal_path));
 
         if ((val != KM_NOTHING) &&
-            (!modal || (is_active_modal_action && is_active_modal_subaction))) {
+            (!modal || (is_active_modal_action && is_active_modal_subaction)))
+        {
           const GHOST_XrPose *aim_pose = wm_xr_session_controller_aim_pose_find(
               session_state, action->subaction_paths[subaction_idx]);
           const GHOST_XrPose *aim_pose_other = nullptr;

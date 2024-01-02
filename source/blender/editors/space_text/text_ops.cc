@@ -1481,7 +1481,8 @@ static int text_convert_whitespace_exec(bContext *C, wmOperator *op)
           /* a + 0 we already know to be ' ' char... */
           for (j = 1;
                (j < tab_len) && (a + j < text_check_line_len) && (text_check_line[a + j] == ' ');
-               j++) {
+               j++)
+          {
             /* pass */
           }
 

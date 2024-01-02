@@ -620,7 +620,8 @@ void gpu::MTLTexture::update_sub(
 
     /* Safety Checks. */
     if (type == GPU_DATA_UINT_24_8 || type == GPU_DATA_10_11_11_REV ||
-        type == GPU_DATA_2_10_10_10_REV) {
+        type == GPU_DATA_2_10_10_10_REV)
+    {
       BLI_assert(can_use_direct_blit &&
                  "Special input data type must be a 1-1 mapping with destination texture as it "
                  "cannot easily be split");

@@ -527,7 +527,8 @@ static void object_foreach_path_pointcache(ListBase *ptcache_list,
                                            BPathForeachPathData *bpath_data)
 {
   for (PointCache *cache = (PointCache *)ptcache_list->first; cache != nullptr;
-       cache = cache->next) {
+       cache = cache->next)
+  {
     if (cache->flag & PTCACHE_DISK_CACHE) {
       BKE_bpath_foreach_path_fixed_process(bpath_data, cache->path, sizeof(cache->path));
     }
@@ -3107,7 +3108,8 @@ static void give_parvert(Object *par, int nr, float vec[3])
         }
         if (nr < numVerts) {
           if (me_eval && me_eval->runtime->edit_data &&
-              !me_eval->runtime->edit_data->vertexCos.is_empty()) {
+              !me_eval->runtime->edit_data->vertexCos.is_empty())
+          {
             add_v3_v3(vec, me_eval->runtime->edit_data->vertexCos[nr]);
           }
           else {
@@ -4626,7 +4628,8 @@ int BKE_object_is_modified(Scene *scene, Object *ob)
          md = md->next)
     {
       if ((flag & eModifierMode_Render) == 0 &&
-          BKE_modifier_is_enabled(scene, md, eModifierMode_Render)) {
+          BKE_modifier_is_enabled(scene, md, eModifierMode_Render))
+      {
         flag |= eModifierMode_Render;
       }
 
@@ -4772,12 +4775,14 @@ int BKE_object_is_deform_modified(Scene *scene, Object *ob)
 
     if (can_deform) {
       if (!(flag & eModifierMode_Render) &&
-          BKE_modifier_is_enabled(scene, md, eModifierMode_Render)) {
+          BKE_modifier_is_enabled(scene, md, eModifierMode_Render))
+      {
         flag |= eModifierMode_Render;
       }
 
       if (!(flag & eModifierMode_Realtime) &&
-          BKE_modifier_is_enabled(scene, md, eModifierMode_Realtime)) {
+          BKE_modifier_is_enabled(scene, md, eModifierMode_Realtime))
+      {
         flag |= eModifierMode_Realtime;
       }
     }
@@ -5035,7 +5040,8 @@ KDTree_3d *BKE_object_as_kdtree(Object *ob, int *r_tot)
       const int *index;
 
       if (me_eval &&
-          (index = (const int *)CustomData_get_layer(&me_eval->vert_data, CD_ORIGINDEX))) {
+          (index = (const int *)CustomData_get_layer(&me_eval->vert_data, CD_ORIGINDEX)))
+      {
         const Span<float3> positions = mesh->vert_positions();
 
         /* Tree over-allocates in case where some verts have #ORIGINDEX_NONE. */

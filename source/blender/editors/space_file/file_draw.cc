@@ -377,7 +377,8 @@ static void file_but_enable_drag(uiBut *but,
     }
   }
   else if (sfile->browse_mode == FILE_BROWSE_MODE_ASSETS &&
-           (file->typeflag & FILE_TYPE_ASSET) != 0) {
+           (file->typeflag & FILE_TYPE_ASSET) != 0)
+  {
     const int import_method = ED_fileselect_asset_import_method_get(sfile, file);
     BLI_assert(import_method > -1);
 

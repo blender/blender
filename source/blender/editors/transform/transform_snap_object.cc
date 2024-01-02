@@ -497,7 +497,8 @@ static eSnapMode iter_snap_objects(SnapObjectContext *sctx, IterSnapObjsCallback
     const bool is_object_active = (base == base_act);
     Object *obj_eval = DEG_get_evaluated_object(sctx->runtime.depsgraph, base->object);
     if (obj_eval->transflag & OB_DUPLI ||
-        blender::bke::object_has_geometry_set_instances(*obj_eval)) {
+        blender::bke::object_has_geometry_set_instances(*obj_eval))
+    {
       ListBase *lb = object_duplilist(sctx->runtime.depsgraph, sctx->scene, obj_eval);
       LISTBASE_FOREACH (DupliObject *, dupli_ob, lb) {
         BLI_assert(DEG_is_evaluated_object(dupli_ob->ob));

@@ -477,7 +477,8 @@ static bool bm_loop_normals_required(BMesh *bm)
   }
 
   if (edge_mix == array_utils::BooleanMix::AllFalse &&
-      face_mix == array_utils::BooleanMix::AllFalse) {
+      face_mix == array_utils::BooleanMix::AllFalse)
+  {
     return false;
   }
 

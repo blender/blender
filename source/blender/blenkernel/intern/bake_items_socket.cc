@@ -193,7 +193,8 @@ static void rename_attributes(const Span<GeometrySet *> geometries,
       GeometryComponent &component = geometry->get_component_for_write(type);
       MutableAttributeAccessor attributes = *component.attributes_for_write();
       for (const MapItem<std::string, AnonymousAttributeIDPtr> &attribute_item :
-           attribute_map.items()) {
+           attribute_map.items())
+      {
         attributes.rename(attribute_item.key, *attribute_item.value);
       }
     }

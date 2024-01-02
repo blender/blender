@@ -545,14 +545,16 @@ static uint scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int flag)
       if (eed->v1->f == SF_VERT_ZERO_LEN) {
         v1 = eed->v1;
         while ((eed->v1->f == SF_VERT_ZERO_LEN) && (eed->v1->tmp.v != v1) &&
-               (eed->v1 != eed->v1->tmp.v)) {
+               (eed->v1 != eed->v1->tmp.v))
+        {
           eed->v1 = eed->v1->tmp.v;
         }
       }
       if (eed->v2->f == SF_VERT_ZERO_LEN) {
         v2 = eed->v2;
         while ((eed->v2->f == SF_VERT_ZERO_LEN) && (eed->v2->tmp.v != v2) &&
-               (eed->v2 != eed->v2->tmp.v)) {
+               (eed->v2 != eed->v2->tmp.v))
+        {
           eed->v2 = eed->v2->tmp.v;
         }
       }

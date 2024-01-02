@@ -211,7 +211,8 @@ static PyObject *py_kdtree_find(PyKDTree *self, PyObject *args, PyObject *kwargs
   const char *keywords[] = {"co", "filter", nullptr};
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kwargs, "O|$O:find", (char **)keywords, &py_co, &py_filter)) {
+          args, kwargs, "O|$O:find", (char **)keywords, &py_co, &py_filter))
+  {
     return nullptr;
   }
 

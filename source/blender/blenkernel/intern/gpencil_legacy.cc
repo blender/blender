@@ -2017,7 +2017,8 @@ bool BKE_gpencil_merge_materials_table_get(Object *ob,
       /* Read secondary material to compare with primary material. */
       ma_secondary = BKE_gpencil_material(ob, idx_secondary + 1);
       if ((ma_secondary == nullptr) ||
-          BLI_ghash_haskey(r_mat_table, POINTER_FROM_INT(idx_secondary))) {
+          BLI_ghash_haskey(r_mat_table, POINTER_FROM_INT(idx_secondary)))
+      {
         continue;
       }
       gp_style_primary = ma_primary->gp_style;
@@ -2142,7 +2143,8 @@ bool BKE_gpencil_merge_materials(Object *ob,
               continue;
             }
             if (((gpl->flag & GP_LAYER_UNLOCK_COLOR) == 0) &&
-                (gp_style->flag & GP_MATERIAL_LOCKED)) {
+                (gp_style->flag & GP_MATERIAL_LOCKED))
+            {
               continue;
             }
           }
@@ -2495,7 +2497,8 @@ void BKE_gpencil_visible_stroke_advanced_iter(ViewLayer *view_layer,
       /* Special cases when cframe is before first frame. */
       bGPDframe *gpf_first = static_cast<bGPDframe *>(gpl->frames.first);
       if ((gpf_first != nullptr) && (act_gpf != nullptr) &&
-          (gpf_first->framenum > act_gpf->framenum)) {
+          (gpf_first->framenum > act_gpf->framenum))
+      {
         is_before_first = true;
       }
       if ((gpf_first != nullptr) && (act_gpf == nullptr)) {
@@ -2596,7 +2599,8 @@ void BKE_gpencil_visible_stroke_advanced_iter(ViewLayer *view_layer,
 
       /* If layer solo mode and Paint mode, only keyframes with data are displayed. */
       if (GPENCIL_PAINT_MODE(gpd) && (gpl->flag & GP_LAYER_SOLO_MODE) &&
-          (act_gpf->framenum != cfra)) {
+          (act_gpf->framenum != cfra))
+      {
         gpl->opacity = prev_opacity;
         continue;
       }

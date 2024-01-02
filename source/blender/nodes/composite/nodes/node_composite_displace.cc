@@ -97,7 +97,8 @@ class DisplaceOperation : public NodeOperation {
 
     const Result &input_displacement = get_input("Vector");
     if (input_displacement.is_single_value() &&
-        math::is_zero(input_displacement.get_vector_value())) {
+        math::is_zero(input_displacement.get_vector_value()))
+    {
       return true;
     }
 

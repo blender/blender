@@ -223,7 +223,8 @@ static void blo_update_defaults_screen(bScreen *screen,
       LISTBASE_FOREACH (ARegion *, region, regionbase) {
         if (region->regiontype == RGN_TYPE_TOOL_HEADER) {
           if (((sl->spacetype == SPACE_IMAGE) && hide_image_tool_header) ||
-              sl->spacetype == SPACE_SEQ) {
+              sl->spacetype == SPACE_SEQ)
+          {
             region->flag |= RGN_FLAG_HIDDEN;
           }
           else {
@@ -359,7 +360,8 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
   /* Correct default startup UVs. */
   Mesh *mesh = static_cast<Mesh *>(BLI_findstring(&bmain->meshes, "Cube", offsetof(ID, name) + 2));
   if (mesh && (mesh->corners_num == 24) &&
-      CustomData_has_layer(&mesh->corner_data, CD_PROP_FLOAT2)) {
+      CustomData_has_layer(&mesh->corner_data, CD_PROP_FLOAT2))
+  {
     const float uv_values[24][2] = {
         {0.625, 0.50}, {0.875, 0.50}, {0.875, 0.75}, {0.625, 0.75}, {0.375, 0.75}, {0.625, 0.75},
         {0.625, 1.00}, {0.375, 1.00}, {0.375, 0.00}, {0.625, 0.00}, {0.625, 0.25}, {0.375, 0.25},

@@ -246,7 +246,8 @@ void gaussian_blur_1D(const GSpan src,
     using T = decltype(dummy);
     /* Reduces unnecessary code generation. */
     if constexpr (std::is_same_v<T, float> || std::is_same_v<T, float2> ||
-                  std::is_same_v<T, float3>) {
+                  std::is_same_v<T, float3>)
+    {
       gaussian_blur_1D(src.typed<T>(),
                        iterations,
                        influence,

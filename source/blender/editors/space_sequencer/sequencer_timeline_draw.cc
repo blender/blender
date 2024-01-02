@@ -777,7 +777,8 @@ static void draw_seq_outline(TimelineDrawContext *timeline_ctx, const StripDrawC
    */
   const eSeqOverlapMode overlap_mode = SEQ_tool_settings_overlap_mode_get(timeline_ctx->scene);
   if ((G.moving & G_TRANSFORM_SEQ) && (seq->flag & SELECT) &&
-      overlap_mode != SEQ_OVERLAP_OVERWRITE) {
+      overlap_mode != SEQ_OVERLAP_OVERWRITE)
+  {
     if (seq->flag & SEQ_OVERLAP) {
       col[0] = 255;
       col[1] = col[2] = 33;
@@ -1624,7 +1625,8 @@ static bool draw_cache_view_iter_fn(void *userdata,
   size_t *vert_count;
 
   if ((cache_type & SEQ_CACHE_STORE_FINAL_OUT) &&
-      (drawdata->cache_flag & SEQ_CACHE_VIEW_FINAL_OUT)) {
+      (drawdata->cache_flag & SEQ_CACHE_VIEW_FINAL_OUT))
+  {
     stripe_bot = UI_view2d_region_to_view_y(v2d, V2D_SCROLL_HANDLE_HEIGHT);
     vbo = drawdata->final_out_vbo;
     vert_count = &drawdata->final_out_vert_count;

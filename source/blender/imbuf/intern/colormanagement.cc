@@ -1572,7 +1572,8 @@ static void display_buffer_apply_get_linear_buffer(DisplayBufferThread *handle,
 
     /* first convert byte buffer to float, keep in image space */
     for (i = 0, fp = linear_buffer, cp = byte_buffer; i != i_last;
-         i++, fp += channels, cp += channels) {
+         i++, fp += channels, cp += channels)
+    {
       if (channels == 3) {
         rgb_uchar_to_float(fp, cp);
       }

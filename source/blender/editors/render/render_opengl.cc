@@ -1169,7 +1169,8 @@ static bool screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 
   if (view_context) {
     if (oglrender->rv3d->persp == RV3D_CAMOB && oglrender->v3d->camera &&
-        oglrender->v3d->scenelock) {
+        oglrender->v3d->scenelock)
+    {
       /* since BKE_scene_graph_update_for_newframe() is used rather
        * then ED_update_for_newframe() the camera needs to be set */
       if (BKE_scene_camera_switch_update(scene)) {

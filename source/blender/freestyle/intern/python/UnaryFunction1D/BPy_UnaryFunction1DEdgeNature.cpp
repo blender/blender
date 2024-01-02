@@ -71,7 +71,8 @@ static int UnaryFunction1DEdgeNature___init__(BPy_UnaryFunction1DEdgeNature *sel
   PyObject *obj = nullptr;
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "|O!", (char **)kwlist, &IntegrationType_Type, &obj)) {
+          args, kwds, "|O!", (char **)kwlist, &IntegrationType_Type, &obj))
+  {
     return -1;
   }
 

@@ -56,8 +56,7 @@ struct IrradianceGrid : public LightProbe, IrradianceGridData {
   float viewport_display_size;
 };
 
-struct ReflectionCube : public LightProbe {
-};
+struct ReflectionCube : public LightProbe {};
 
 class LightProbeModule {
   friend class IrradianceCache;

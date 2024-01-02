@@ -1178,7 +1178,8 @@ static void cloth_solve_collisions(
   int i;
 
   if (!(clmd->coll_parms->flags &
-        (CLOTH_COLLSETTINGS_FLAG_ENABLED | CLOTH_COLLSETTINGS_FLAG_SELF))) {
+        (CLOTH_COLLSETTINGS_FLAG_ENABLED | CLOTH_COLLSETTINGS_FLAG_SELF)))
+  {
     return;
   }
 

@@ -298,7 +298,8 @@ void ED_armature_pose_select_in_wpaint_mode(const Scene *scene,
         if (ob_arm != nullptr) {
           Base *base_arm = BKE_view_layer_base_find(view_layer, ob_arm);
           if ((base_arm != nullptr) && (base_arm != base_select) &&
-              (base_arm->flag & BASE_SELECTED)) {
+              (base_arm->flag & BASE_SELECTED))
+          {
             ED_object_base_select(base_arm, BA_DESELECT);
           }
         }
@@ -315,7 +316,8 @@ void ED_armature_pose_select_in_wpaint_mode(const Scene *scene,
         if (ob_arm != nullptr) {
           Base *base_arm = BKE_view_layer_base_find(view_layer, ob_arm);
           if ((base_arm != nullptr) && (base_arm != base_select) &&
-              (base_arm->flag & BASE_SELECTED)) {
+              (base_arm->flag & BASE_SELECTED))
+          {
             ED_object_base_select(base_arm, BA_DESELECT);
           }
         }

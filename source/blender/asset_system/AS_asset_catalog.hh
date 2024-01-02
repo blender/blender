@@ -52,8 +52,7 @@ class AssetCatalogService {
  public:
   static const CatalogFilePath DEFAULT_CATALOG_FILENAME;
 
-  struct read_only_tag {
-  };
+  struct read_only_tag {};
 
  public:
   AssetCatalogService();

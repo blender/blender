@@ -1576,7 +1576,8 @@ static int gpencil_strokes_copy_exec(bContext *C, wmOperator *op)
 
         char **ma_name_val;
         if (!BLI_ghash_ensure_p(
-                gpencil_strokes_copypastebuf_colors, &gps->mat_nr, (void ***)&ma_name_val)) {
+                gpencil_strokes_copypastebuf_colors, &gps->mat_nr, (void ***)&ma_name_val))
+        {
           char *ma_name = static_cast<char *>(BLI_ghash_lookup(ma_to_name, ma));
           *ma_name_val = static_cast<char *>(MEM_dupallocN(ma_name));
         }
@@ -3303,7 +3304,8 @@ static int gpencil_stroke_cyclical_set_exec(bContext *C, wmOperator *op)
           }
           /* skip hidden or locked colors */
           if (!gp_style || (gp_style->flag & GP_MATERIAL_HIDE) ||
-              (gp_style->flag & GP_MATERIAL_LOCKED)) {
+              (gp_style->flag & GP_MATERIAL_LOCKED))
+          {
             continue;
           }
 
@@ -3449,12 +3451,14 @@ static int gpencil_stroke_caps_set_exec(bContext *C, wmOperator *op)
 
           /* skip strokes that are not selected or invalid for current view */
           if (((gps->flag & GP_STROKE_SELECT) == 0) ||
-              (ED_gpencil_stroke_can_use(C, gps) == false)) {
+              (ED_gpencil_stroke_can_use(C, gps) == false))
+          {
             continue;
           }
           /* skip hidden or locked colors */
           if (!gp_style || (gp_style->flag & GP_MATERIAL_HIDE) ||
-              (gp_style->flag & GP_MATERIAL_LOCKED)) {
+              (gp_style->flag & GP_MATERIAL_LOCKED))
+          {
             continue;
           }
 

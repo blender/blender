@@ -89,7 +89,8 @@ static void applyarmature_fix_boneparents(const bContext *C, Scene *scene, Objec
 
   /* go through all objects in database */
   for (ob = static_cast<Object *>(bmain->objects.first); ob;
-       ob = static_cast<Object *>(ob->id.next)) {
+       ob = static_cast<Object *>(ob->id.next))
+  {
     /* if parent is bone in this armature, apply corrections */
     if ((ob->parent == armob) && (ob->partype == PARBONE)) {
       /* apply current transform from parent (not yet destroyed),
@@ -1049,7 +1050,8 @@ static void pchan_clear_rot(bPoseChannel *pchan)
         /* check validity of axis - axis should never be 0,0,0
          * (if so, then we make it rotate about y). */
         if (IS_EQF(pchan->rotAxis[0], pchan->rotAxis[1]) &&
-            IS_EQF(pchan->rotAxis[1], pchan->rotAxis[2])) {
+            IS_EQF(pchan->rotAxis[1], pchan->rotAxis[2]))
+        {
           pchan->rotAxis[1] = 1.0f;
         }
       }
@@ -1116,7 +1118,8 @@ static void pchan_clear_rot(bPoseChannel *pchan)
 
         /* quaternions flip w sign to accumulate rotations correctly */
         if ((quat1[0] < 0.0f && pchan->quat[0] > 0.0f) ||
-            (quat1[0] > 0.0f && pchan->quat[0] < 0.0f)) {
+            (quat1[0] > 0.0f && pchan->quat[0] < 0.0f))
+        {
           mul_qt_fl(pchan->quat, -1.0f);
         }
       }

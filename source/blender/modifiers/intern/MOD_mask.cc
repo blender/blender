@@ -498,7 +498,8 @@ static void add_interpolated_faces_to_new_mesh(const Mesh &src_mesh,
   int sub_face_index = 0;
   int last_i_src = -1;
   for (const int i_dst :
-       IndexRange(faces_masked_num, masked_face_indices.size() - faces_masked_num)) {
+       IndexRange(faces_masked_num, masked_face_indices.size() - faces_masked_num))
+  {
     const int i_src = masked_face_indices[i_dst];
     if (i_src == last_i_src) {
       sub_face_index++;

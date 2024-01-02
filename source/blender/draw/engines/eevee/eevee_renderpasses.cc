@@ -82,7 +82,8 @@ void EEVEE_renderpasses_init(EEVEE_Data *vedata)
     g_data->aov_hash = 0;
 
     if (render_pass == EEVEE_RENDER_PASS_BLOOM &&
-        ((scene->eevee.flag & SCE_EEVEE_BLOOM_ENABLED) == 0)) {
+        ((scene->eevee.flag & SCE_EEVEE_BLOOM_ENABLED) == 0))
+    {
       render_pass = EEVEE_RENDER_PASS_COMBINED;
     }
     if (render_pass == EEVEE_RENDER_PASS_AOV) {
@@ -409,7 +410,8 @@ void EEVEE_renderpasses_output_accumulate(EEVEE_ViewLayerData *sldata,
   }
   else {
     if ((render_pass & EEVEE_RENDER_PASS_BLOOM) != 0 &&
-        (effects->enabled_effects & EFFECT_BLOOM) != 0) {
+        (effects->enabled_effects & EFFECT_BLOOM) != 0)
+    {
       EEVEE_bloom_output_accumulate(sldata, vedata);
     }
   }
@@ -436,7 +438,8 @@ void EEVEE_renderpasses_draw(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   UNUSED_VARS(needs_color_transfer);
 
   if ((render_pass & EEVEE_RENDER_PASS_BLOOM) != 0 &&
-      (effects->enabled_effects & EFFECT_BLOOM) == 0) {
+      (effects->enabled_effects & EFFECT_BLOOM) == 0)
+  {
     is_valid = false;
   }
 

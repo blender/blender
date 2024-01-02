@@ -267,7 +267,8 @@ static void graph_slider_exit(bContext *C, wmOperator *op)
   ED_slider_destroy(C, gso->slider);
 
   for (link = static_cast<LinkData *>(gso->bezt_arr_list.first); link != nullptr;
-       link = link->next) {
+       link = link->next)
+  {
     tBeztCopyData *copy = static_cast<tBeztCopyData *>(link->data);
     MEM_freeN(copy->bezt);
     MEM_freeN(link->data);

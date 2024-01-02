@@ -268,7 +268,8 @@ static void checker_board_color_tint(
   for (y = offset; y < height + offset; y++) {
     for (x = 0; x < width; x++) {
       if (((y / size) % 2 == 1 && (x / size) % 2 == 1) ||
-          ((y / size) % 2 == 0 && (x / size) % 2 == 0)) {
+          ((y / size) % 2 == 0 && (x / size) % 2 == 0))
+      {
         if (rect) {
           rect[0] = char(BLEND_CHAR(rect[0], blend));
           rect[1] = char(BLEND_CHAR(rect[1], blend));

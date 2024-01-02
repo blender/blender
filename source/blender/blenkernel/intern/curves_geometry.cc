@@ -773,7 +773,8 @@ Span<float3> CurvesGeometry::evaluated_tangents() const
                                                                positions[points.first()]);
         }
         if (!math::almost_equal_relative(
-                handles_left[points.last()], positions[points.last()], epsilon)) {
+                handles_left[points.last()], positions[points.last()], epsilon))
+        {
           tangents[evaluated_points.last()] = math::normalize(positions[points.last()] -
                                                               handles_left[points.last()]);
         }

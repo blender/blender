@@ -292,7 +292,8 @@ static void maskrasterize_spline_differentiate_point_outset(float (*diff_feather
     normalize_v2(d_next);
 
     if ((do_test == false) ||
-        (len_squared_v2v2(diff_feather_points[k], diff_points[k]) < ofs_squared)) {
+        (len_squared_v2v2(diff_feather_points[k], diff_points[k]) < ofs_squared))
+    {
 
       add_v2_v2v2(d, d_prev, d_next);
 
@@ -539,7 +540,8 @@ static void layer_bucket_init(MaskRasterLayer *layer, const float pixel_size)
           buckets_face[bucket_index] = bucket;
 
           for (bucket_node = bucketstore[bucket_index]; bucket_node;
-               bucket_node = bucket_node->next) {
+               bucket_node = bucket_node->next)
+          {
             *bucket = POINTER_AS_UINT(bucket_node->link);
             bucket++;
           }

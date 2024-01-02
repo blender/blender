@@ -467,7 +467,8 @@ static int main_relations_create_idlink_cb(LibraryIDLinkCallbackData *cb_data)
     /* Add `id_pointer` as child of `self_id`. */
     {
       if (!BLI_ghash_ensure_p(
-              bmain_relations->relations_from_pointers, self_id, (void ***)&entry_p)) {
+              bmain_relations->relations_from_pointers, self_id, (void ***)&entry_p))
+      {
         *entry_p = static_cast<MainIDRelationsEntry *>(MEM_callocN(sizeof(**entry_p), __func__));
         (*entry_p)->session_uuid = self_id->session_uuid;
       }
@@ -487,7 +488,8 @@ static int main_relations_create_idlink_cb(LibraryIDLinkCallbackData *cb_data)
     /* Add `self_id` as parent of `id_pointer`. */
     if (*id_pointer != nullptr) {
       if (!BLI_ghash_ensure_p(
-              bmain_relations->relations_from_pointers, *id_pointer, (void ***)&entry_p)) {
+              bmain_relations->relations_from_pointers, *id_pointer, (void ***)&entry_p))
+      {
         *entry_p = static_cast<MainIDRelationsEntry *>(MEM_callocN(sizeof(**entry_p), __func__));
         (*entry_p)->session_uuid = (*id_pointer)->session_uuid;
       }

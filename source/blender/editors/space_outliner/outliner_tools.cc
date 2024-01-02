@@ -530,7 +530,8 @@ static void outliner_do_libdata_operation(bContext *C,
     TreeStoreElem *tselem = TREESTORE(te);
     if (tselem->flag & TSE_SELECTED) {
       if (((tselem->type == TSE_SOME_ID) && (te->idcode != 0)) ||
-          tselem->type == TSE_LAYER_COLLECTION) {
+          tselem->type == TSE_LAYER_COLLECTION)
+      {
         TreeStoreElem *tsep = te->parent ? TREESTORE(te->parent) : nullptr;
         operation_fn(C, reports, scene, te, tsep, tselem, user_data);
       }

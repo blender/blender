@@ -795,7 +795,8 @@ static void createTransActionData(bContext *C, TransInfo *t)
         if (use_duplicated) {
           /* Also count for duplicated frames. */
           for (const auto [frame_number, frame] :
-               layer->runtime->trans_data_.temp_frames_buffer.items()) {
+               layer->runtime->trans_data_.temp_frames_buffer.items())
+          {
             grease_pencil_closest_selected_frame(frame_number, frame.is_selected());
           }
         }

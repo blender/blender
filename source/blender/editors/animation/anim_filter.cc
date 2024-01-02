@@ -1126,7 +1126,8 @@ static bool skip_fcurve_selected_data(bDopeSheet *ads, FCurve *fcu, ID *owner_id
 
     /* Check for selected nodes. */
     if (fcu->rna_path &&
-        BLI_str_quoted_substr(fcu->rna_path, "nodes[", node_name, sizeof(node_name))) {
+        BLI_str_quoted_substr(fcu->rna_path, "nodes[", node_name, sizeof(node_name)))
+    {
       /* Get strip name, and check if this strip is selected. */
       node = nodeFindNodebyName(ntree, node_name);
 
@@ -1276,7 +1277,8 @@ static FCurve *animfilter_fcurve_next(bDopeSheet *ads,
     if (ads && owner_id) {
       if ((filter_mode & ANIMFILTER_TMP_IGNORE_ONLYSEL) == 0) {
         if ((ads->filterflag & ADS_FILTER_ONLYSEL) ||
-            (ads->filterflag & ADS_FILTER_INCL_HIDDEN) == 0) {
+            (ads->filterflag & ADS_FILTER_INCL_HIDDEN) == 0)
+        {
           if (skip_fcurve_selected_data(ads, fcu, owner_id, filter_mode)) {
             continue;
           }

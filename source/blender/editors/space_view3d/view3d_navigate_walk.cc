@@ -53,9 +53,9 @@
 #include "BLI_strict_flags.h"
 
 #ifdef WITH_INPUT_NDOF
-//#  define NDOF_WALK_DEBUG
+// #  define NDOF_WALK_DEBUG
 /* NOTE(@ideasman42): Is this needed for NDOF? commented so redraw doesn't thrash. */
-//#  define NDOF_WALK_DRAW_TOOMUCH
+// #  define NDOF_WALK_DRAW_TOOMUCH
 #endif
 
 #define USE_TABLET_SUPPORT
@@ -1518,10 +1518,9 @@ static int walk_modal(bContext *C, wmOperator *op, const wmEvent *event)
   }
   else
 #endif /* WITH_INPUT_NDOF */
-      if (event->type == TIMER && event->customdata == walk->timer)
-  {
-    walkApply(C, walk, false);
-  }
+    if (event->type == TIMER && event->customdata == walk->timer) {
+      walkApply(C, walk, false);
+    }
 
   do_draw |= walk->redraw;
 

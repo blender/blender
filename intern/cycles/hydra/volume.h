@@ -14,11 +14,10 @@ HDCYCLES_NAMESPACE_OPEN_SCOPE
 
 class HdCyclesVolume final : public HdCyclesGeometry<PXR_NS::HdVolume, CCL_NS::Volume> {
  public:
-  HdCyclesVolume(
-      const PXR_NS::SdfPath &rprimId
+  HdCyclesVolume(const PXR_NS::SdfPath &rprimId
 #if PXR_VERSION < 2102
-      ,
-      const PXR_NS::SdfPath &instancerId = {}
+                 ,
+                 const PXR_NS::SdfPath &instancerId = {}
 #endif
   );
   ~HdCyclesVolume() override;

@@ -224,7 +224,8 @@ void BKE_blendfile_link_append_context_free(BlendfileLinkAppendContext *lapp_con
   }
 
   for (LinkNode *liblink = lapp_context->libraries.list; liblink != nullptr;
-       liblink = liblink->next) {
+       liblink = liblink->next)
+  {
     BlendfileLinkAppendContextLibrary *lib_context =
         static_cast<BlendfileLinkAppendContextLibrary *>(liblink->link);
     link_append_context_library_blohandle_release(lapp_context, lib_context);
@@ -465,7 +466,8 @@ static bool object_in_any_collection(Main *bmain, Object *ob)
 
   LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
     if (scene->master_collection != nullptr &&
-        BKE_collection_has_object(scene->master_collection, ob)) {
+        BKE_collection_has_object(scene->master_collection, ob))
+    {
       return true;
     }
   }
@@ -1900,7 +1902,8 @@ void BKE_blendfile_library_relocate(BlendfileLinkAppendContext *lapp_context,
   ID *id;
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
     if (ID_IS_LINKED(id) || !ID_IS_OVERRIDE_LIBRARY_REAL(id) ||
-        (id->tag & LIB_TAG_PRE_EXISTING) == 0) {
+        (id->tag & LIB_TAG_PRE_EXISTING) == 0)
+    {
       continue;
     }
     if ((id->override_library->reference->tag & LIB_TAG_MISSING) == 0) {

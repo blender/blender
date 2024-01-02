@@ -4387,7 +4387,8 @@ static bool sculpt_needs_delta_from_anchored_origin(Brush *brush)
     return true;
   }
   if (brush->sculpt_tool == SCULPT_TOOL_CLOTH &&
-      brush->cloth_deform_type == BRUSH_CLOTH_DEFORM_GRAB) {
+      brush->cloth_deform_type == BRUSH_CLOTH_DEFORM_GRAB)
+  {
     return true;
   }
   return false;
@@ -5855,7 +5856,8 @@ static void do_fake_neighbor_search_task(SculptSession *ss,
     {
       float distance_squared = len_squared_v3v3(vd.co, nearest_vertex_search_co);
       if (distance_squared < nvtd->nearest_vertex_distance_sq &&
-          distance_squared < max_distance_sq) {
+          distance_squared < max_distance_sq)
+      {
         nvtd->nearest_vertex = vd.vertex;
         nvtd->nearest_vertex_distance_sq = distance_squared;
       }
@@ -5957,7 +5959,8 @@ void SCULPT_fake_neighbors_ensure(Sculpt *sd, Object *ob, const float max_dist)
    * recalculated.
    */
   if (ss->fake_neighbors.fake_neighbor_index &&
-      ss->fake_neighbors.current_max_distance == max_dist) {
+      ss->fake_neighbors.current_max_distance == max_dist)
+  {
     return;
   }
 

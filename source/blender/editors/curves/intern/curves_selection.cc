@@ -292,7 +292,8 @@ void select_all(bke::CurvesGeometry &curves,
   if (action == SEL_SELECT) {
     std::optional<IndexRange> range = mask.to_range();
     if (range.has_value() &&
-        (*range == IndexRange(curves.attributes().domain_size(selection_domain)))) {
+        (*range == IndexRange(curves.attributes().domain_size(selection_domain))))
+    {
       /* As an optimization, just remove the selection attributes when everything is selected. */
       attributes.remove(".selection");
       return;
@@ -539,7 +540,8 @@ static std::optional<FindClosestData> find_closest_point_to_screen_co(
 
           const float distance_proj_sq = math::distance_squared(pos_proj, mouse_pos);
           if (distance_proj_sq > radius_sq ||
-              distance_proj_sq > best_match.distance * best_match.distance) {
+              distance_proj_sq > best_match.distance * best_match.distance)
+          {
             /* Ignore the point because it's too far away or there is already a better point. */
             continue;
           }
@@ -598,7 +600,8 @@ static std::optional<FindClosestData> find_closest_curve_to_screen_co(
 
             const float distance_proj_sq = math::distance_squared(pos_proj, mouse_pos);
             if (distance_proj_sq > radius_sq ||
-                distance_proj_sq > best_match.distance * best_match.distance) {
+                distance_proj_sq > best_match.distance * best_match.distance)
+            {
               /* Ignore the point because it's too far away or there is already a better point.
                */
               continue;
@@ -621,7 +624,8 @@ static std::optional<FindClosestData> find_closest_curve_to_screen_co(
             const float distance_proj_sq = dist_squared_to_line_segment_v2(
                 mouse_pos, pos1_proj, pos2_proj);
             if (distance_proj_sq > radius_sq ||
-                distance_proj_sq > best_match.distance * best_match.distance) {
+                distance_proj_sq > best_match.distance * best_match.distance)
+            {
               /* Ignore the segment because it's too far away or there is already a better point.
                */
               continue;

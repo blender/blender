@@ -119,7 +119,7 @@ typedef struct ReportTimerInfo {
   float flash_progress;
 } ReportTimerInfo;
 
-//#ifdef WITH_XR_OPENXR
+// #ifdef WITH_XR_OPENXR
 typedef struct wmXrData {
   /** Runtime information for managing Blender specific behaviors. */
   struct wmXrRuntimeData *runtime;
@@ -127,7 +127,7 @@ typedef struct wmXrData {
    * even before the session runs. */
   XrSessionSettings session_settings;
 } wmXrData;
-//#endif
+// #endif
 
 /* reports need to be before wmWindowManager */
 
@@ -213,9 +213,9 @@ typedef struct wmWindowManager {
 
   struct wmMsgBus *message_bus;
 
-  //#ifdef WITH_XR_OPENXR
+  // #ifdef WITH_XR_OPENXR
   wmXrData xr;
-  //#endif
+  // #endif
 } wmWindowManager;
 
 #define WM_KEYCONFIG_ARRAY_P(wm) &(wm)->defaultconf, &(wm)->addonconf, &(wm)->userconf

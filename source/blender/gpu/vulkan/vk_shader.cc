@@ -1086,7 +1086,8 @@ std::string VKShader::vertex_interface_declare(const shader::ShaderCreateInfo &i
     ss << "layout(location=" << (location++) << ") out int gpu_Layer;\n ";
   }
   if (workarounds.shader_output_viewport_index &&
-      bool(info.builtins_ & BuiltinBits::VIEWPORT_INDEX)) {
+      bool(info.builtins_ & BuiltinBits::VIEWPORT_INDEX))
+  {
     ss << "layout(location=" << (location++) << ") out int gpu_ViewportIndex;\n";
   }
   if (bool(info.builtins_ & BuiltinBits::BARYCENTRIC_COORD)) {
@@ -1132,7 +1133,8 @@ std::string VKShader::fragment_interface_declare(const shader::ShaderCreateInfo 
     ss << "#define gpu_Layer gl_Layer\n";
   }
   if (workarounds.shader_output_viewport_index &&
-      bool(info.builtins_ & BuiltinBits::VIEWPORT_INDEX)) {
+      bool(info.builtins_ & BuiltinBits::VIEWPORT_INDEX))
+  {
     ss << "#define gpu_ViewportIndex gl_ViewportIndex\n";
   }
 

@@ -1135,7 +1135,8 @@ static void outliner_draw_restrictbuts(uiBlock *block,
 
     if (te->ys + 2 * UI_UNIT_Y >= region->v2d.cur.ymin && te->ys <= region->v2d.cur.ymax) {
       if (tselem->type == TSE_R_LAYER &&
-          ELEM(space_outliner->outlinevis, SO_SCENES, SO_VIEW_LAYER)) {
+          ELEM(space_outliner->outlinevis, SO_SCENES, SO_VIEW_LAYER))
+      {
         if (space_outliner->show_restrict_flags & SO_RESTRICT_RENDER) {
           /* View layer render toggle. */
           ViewLayer *layer = static_cast<ViewLayer *>(te->directdata);
@@ -1659,7 +1660,8 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                               (char *)"indirect_only");
               UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
               if (props_active.layer_collection_holdout ||
-                  !props_active.layer_collection_indirect_only) {
+                  !props_active.layer_collection_indirect_only)
+              {
                 UI_but_flag_enable(bt, UI_BUT_INACTIVE);
               }
             }

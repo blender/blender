@@ -396,7 +396,8 @@ static bool applyFaceProject(TransInfo *t, TransDataContainer *tc, TransData *td
   }
 
   if (ED_view3d_project_float_global(t->region, iloc, mval_fl, V3D_PROJ_TEST_NOP) !=
-      V3D_PROJ_RET_OK) {
+      V3D_PROJ_RET_OK)
+  {
     return false;
   }
 
@@ -836,7 +837,8 @@ void initSnapping(TransInfo *t, wmOperator *op)
   /* if snap property exists */
   PropertyRNA *prop;
   if (op && (prop = RNA_struct_find_property(op->ptr, "snap")) &&
-      RNA_property_is_set(op->ptr, prop)) {
+      RNA_property_is_set(op->ptr, prop))
+  {
     if (RNA_property_boolean_get(op->ptr, prop)) {
       t->modifiers |= MOD_SNAP;
 
@@ -856,7 +858,8 @@ void initSnapping(TransInfo *t, wmOperator *op)
       }
 
       if ((prop = RNA_struct_find_property(op->ptr, "snap_point")) &&
-          RNA_property_is_set(op->ptr, prop)) {
+          RNA_property_is_set(op->ptr, prop))
+      {
         RNA_property_float_get_array(op->ptr, prop, t->tsnap.snap_target);
         t->modifiers |= MOD_SNAP_FORCED;
         t->tsnap.status |= SNAP_TARGET_FOUND;
@@ -864,7 +867,8 @@ void initSnapping(TransInfo *t, wmOperator *op)
 
       /* snap align only defined in specific cases */
       if ((prop = RNA_struct_find_property(op->ptr, "snap_align")) &&
-          RNA_property_is_set(op->ptr, prop)) {
+          RNA_property_is_set(op->ptr, prop))
+      {
         SET_FLAG_FROM_TEST(
             t->tsnap.flag, RNA_property_boolean_get(op->ptr, prop), SCE_SNAP_ROTATE);
 
@@ -1373,7 +1377,8 @@ static void snap_source_closest_fn(TransInfo *t)
               dist = t->mode_info->snap_distance_fn(t, loc, t->tsnap.snap_target);
 
               if ((dist != TRANSFORM_DIST_INVALID) &&
-                  (closest == nullptr || fabsf(dist) < fabsf(dist_closest))) {
+                  (closest == nullptr || fabsf(dist) < fabsf(dist_closest)))
+              {
                 copy_v3_v3(t->tsnap.snap_source, loc);
                 closest = td;
                 dist_closest = dist;
@@ -1390,7 +1395,8 @@ static void snap_source_closest_fn(TransInfo *t)
             dist = t->mode_info->snap_distance_fn(t, loc, t->tsnap.snap_target);
 
             if ((dist != TRANSFORM_DIST_INVALID) &&
-                (closest == nullptr || fabsf(dist) < fabsf(dist_closest))) {
+                (closest == nullptr || fabsf(dist) < fabsf(dist_closest)))
+            {
               copy_v3_v3(t->tsnap.snap_source, loc);
               closest = td;
             }
@@ -1415,7 +1421,8 @@ static void snap_source_closest_fn(TransInfo *t)
           dist = t->mode_info->snap_distance_fn(t, loc, t->tsnap.snap_target);
 
           if ((dist != TRANSFORM_DIST_INVALID) &&
-              (closest == nullptr || fabsf(dist) < fabsf(dist_closest))) {
+              (closest == nullptr || fabsf(dist) < fabsf(dist_closest)))
+          {
             copy_v3_v3(t->tsnap.snap_source, loc);
             closest = td;
             dist_closest = dist;

@@ -1005,7 +1005,8 @@ static void particle_batch_cache_ensure_procedural_strand_data(PTCacheEdit *edit
   else {
     int curr_point = 0;
     if ((psys->pathcache != nullptr) &&
-        (!psys->childcache || (psys->part->draw & PART_DRAW_PARENT))) {
+        (!psys->childcache || (psys->part->draw & PART_DRAW_PARENT)))
+    {
       curr_point = particle_batch_cache_fill_strands_data(psys,
                                                           psmd,
                                                           psys->pathcache,
@@ -1105,7 +1106,8 @@ static void particle_batch_cache_ensure_procedural_indices(PTCacheEdit *edit,
   else {
     int curr_point = 0;
     if ((psys->pathcache != nullptr) &&
-        (!psys->childcache || (psys->part->draw & PART_DRAW_PARENT))) {
+        (!psys->childcache || (psys->part->draw & PART_DRAW_PARENT)))
+    {
       curr_point = particle_batch_cache_fill_segments_indices(
           psys->pathcache, 0, psys->totpart, verts_per_hair, &elb);
     }
@@ -1155,7 +1157,8 @@ static void particle_batch_cache_ensure_procedural_pos(PTCacheEdit *edit,
     }
     else {
       if ((psys->pathcache != nullptr) &&
-          (!psys->childcache || (psys->part->draw & PART_DRAW_PARENT))) {
+          (!psys->childcache || (psys->part->draw & PART_DRAW_PARENT)))
+      {
         particle_batch_cache_fill_segments_proc_pos(
             psys->pathcache, psys->totpart, &pos_step, &length_step);
       }
@@ -1301,7 +1304,8 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
   }
   else {
     if ((psys->pathcache != nullptr) &&
-        (!psys->childcache || (psys->part->draw & PART_DRAW_PARENT))) {
+        (!psys->childcache || (psys->part->draw & PART_DRAW_PARENT)))
+    {
       curr_point = particle_batch_cache_fill_segments(psys,
                                                       psmd,
                                                       psys->pathcache,

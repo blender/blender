@@ -95,7 +95,8 @@ class EndpointFieldInput final : public bke::CurvesFieldInput {
   bool is_equal_to(const fn::FieldNode &other) const override
   {
     if (const EndpointFieldInput *other_endpoint = dynamic_cast<const EndpointFieldInput *>(
-            &other)) {
+            &other))
+    {
       return start_size_ == other_endpoint->start_size_ && end_size_ == other_endpoint->end_size_;
     }
     return false;

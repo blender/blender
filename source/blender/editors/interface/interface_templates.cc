@@ -2772,7 +2772,8 @@ static eAutoPropButsReturn template_operator_property_buts_draw_single(
         (layout_flags & UI_TEMPLATE_OP_PROPS_COMPACT));
 
     if ((return_info & UI_PROP_BUTS_NONE_ADDED) &&
-        (layout_flags & UI_TEMPLATE_OP_PROPS_SHOW_EMPTY)) {
+        (layout_flags & UI_TEMPLATE_OP_PROPS_SHOW_EMPTY))
+    {
       uiItemL(layout, IFACE_("No Properties"), ICON_NONE);
     }
   }
@@ -2883,7 +2884,8 @@ static bool ui_layout_operator_properties_only_booleans(const bContext *C,
         continue;
       }
       if (op->type->poll_property &&
-          !ui_layout_operator_buts_poll_property(&ptr, prop, &user_data)) {
+          !ui_layout_operator_buts_poll_property(&ptr, prop, &user_data))
+      {
         continue;
       }
       if (RNA_property_type(prop) != PROP_BOOLEAN) {
@@ -4819,7 +4821,8 @@ static void curvemap_buttons_layout(uiLayout *layout,
                       TIP_("Auto Handle"));
     UI_but_func_set(bt, curvemap_tools_handle_auto, cumap, nullptr);
     if (((cmp->flag & CUMA_HANDLE_AUTO_ANIM) == false) &&
-        ((cmp->flag & CUMA_HANDLE_VECTOR) == false)) {
+        ((cmp->flag & CUMA_HANDLE_VECTOR) == false))
+    {
       bt->flag |= UI_SELECT_DRAW;
     }
 

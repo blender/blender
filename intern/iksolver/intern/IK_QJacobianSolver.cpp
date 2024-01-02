@@ -10,7 +10,7 @@
 
 #include "IK_QJacobianSolver.h"
 
-//#include "analyze.h"
+// #include "analyze.h"
 IK_QJacobianSolver::IK_QJacobianSolver()
 {
   m_poleconstraint = false;

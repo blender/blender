@@ -668,7 +668,8 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
                         /* Find index of e in #adj_faces. */
                         for (face_index = 0;
                              face_index < faces_len && e_adj_faces_faces[face_index] != face;
-                             face_index++) {
+                             face_index++)
+                        {
                           /* Pass. */
                         }
                         /* If not found. */
@@ -1017,7 +1018,8 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
             else if (eg_index >= 0) {
               NewEdgeRef **edge_ptr = unassigned_edges;
               for (found_edge_index = 0; found_edge_index < unassigned_edges_len;
-                   found_edge_index++, edge_ptr++) {
+                   found_edge_index++, edge_ptr++)
+              {
                 if (*edge_ptr) {
                   NewEdgeRef *edge = *edge_ptr;
                   if (edge->faces[0] == eg_track_faces[1]) {
@@ -1087,7 +1089,8 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
                   found_edge;
               edge_groups[eg_index].edges_len++;
               if (edge_groups[eg_index].edges[edge_groups[eg_index].edges_len - 1]->faces[1] !=
-                  nullptr) {
+                  nullptr)
+              {
                 last_open_edge_track = nullptr;
               }
               if (edge_groups[eg_index].edges_len > 3) {
@@ -1688,14 +1691,16 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
                       }
 
                       if (smd->nonmanifold_offset_mode ==
-                          MOD_SOLIDIFY_NONMANIFOLD_OFFSET_MODE_EVEN) {
+                          MOD_SOLIDIFY_NONMANIFOLD_OFFSET_MODE_EVEN)
+                      {
                         int corner_next = face->face.start();
                         int corner = corner_next + (face->face.size() - 1);
                         int corner_prev = corner - 1;
 
                         for (int m = 0;
                              m < face->face.size() && vm[orig_corner_verts[corner]] != i;
-                             m++, corner_next++) {
+                             m++, corner_next++)
+                        {
                           corner_prev = corner;
                           corner = corner_next;
                         }
@@ -1953,7 +1958,8 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
       if (*new_edges && (do_shell || edge_adj_faces_len[i] == 1) && (**new_edges)->old_edge == i) {
         for (NewEdgeRef **l = *new_edges; *l; l++) {
           if ((*l)->link_edge_groups[0]->is_singularity &&
-              (*l)->link_edge_groups[1]->is_singularity) {
+              (*l)->link_edge_groups[1]->is_singularity)
+          {
             const uint v1 = (*l)->link_edge_groups[0]->new_vert;
             const uint v2 = (*l)->link_edge_groups[1]->new_vert;
             bool exists_already = false;
@@ -2302,7 +2308,8 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
                     /* Check both far ends in terms of faces of an edge group. */
                     if ((!src_material_index.is_empty() ?
                              src_material_index[g3->edges[0]->faces[0]->index] :
-                             0) == l) {
+                             0) == l)
+                    {
                       face = g3->edges[0]->faces[0]->index;
                       count++;
                     }
@@ -2395,7 +2402,8 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
   if (do_rim) {
     for (uint i = 0; i < edges_num; i++) {
       if (edge_adj_faces_len[i] == 1 && orig_edge_data_arr[i] &&
-          (*orig_edge_data_arr[i])->old_edge == i) {
+          (*orig_edge_data_arr[i])->old_edge == i)
+      {
         NewEdgeRef **new_edges = orig_edge_data_arr[i];
 
         NewEdgeRef *edge1 = new_edges[0];

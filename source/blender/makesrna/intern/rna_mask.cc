@@ -317,7 +317,8 @@ static MaskSpline *mask_spline_from_point(Mask *mask, MaskSplinePoint *point)
   {
     MaskSpline *spline;
     for (spline = static_cast<MaskSpline *>(mask_layer->splines.first); spline;
-         spline = spline->next) {
+         spline = spline->next)
+    {
       if (point >= spline->points && point < spline->points + spline->tot_point) {
         return spline;
       }

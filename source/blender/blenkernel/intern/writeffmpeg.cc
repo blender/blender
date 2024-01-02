@@ -783,7 +783,8 @@ static AVStream *alloc_video_stream(FFMpegContext *context,
   if (c->time_base.num != 1) {
     AVRational new_time_base;
     if (av_reduce(
-            &new_time_base.num, &new_time_base.den, c->time_base.num, c->time_base.den, INT_MAX)) {
+            &new_time_base.num, &new_time_base.den, c->time_base.num, c->time_base.den, INT_MAX))
+    {
       /* Exact reduction was possible. Use the new value. */
       c->time_base = new_time_base;
     }

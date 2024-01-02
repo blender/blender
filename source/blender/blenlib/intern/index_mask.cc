@@ -508,7 +508,8 @@ IndexMask IndexMask::from_indices(const Span<T> indices, IndexMaskMemory &memory
     return {};
   }
   if (const std::optional<IndexRange> range = unique_sorted_indices::non_empty_as_range_try(
-          indices)) {
+          indices))
+  {
     /* Fast case when the indices encode a single range. */
     return *range;
   }

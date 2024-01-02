@@ -236,8 +236,7 @@ template<uint32_t LOG2DIM> struct alignas(NANOVDB_DATA_ALIGNMENT) LeafFnBase {
 
 /* LeafData<Fp16> */
 
-class Fp16 {
-};
+class Fp16 {};
 
 template<uint32_t LOG2DIM> struct alignas(NANOVDB_DATA_ALIGNMENT) LeafData<Fp16, LOG2DIM> {
   using ValueType = float;
@@ -254,8 +253,7 @@ template<uint32_t LOG2DIM> struct alignas(NANOVDB_DATA_ALIGNMENT) LeafData<Fp16,
 
 /* LeafData<FpN> */
 
-class FpN {
-};
+class FpN {};
 
 template<uint32_t LOG2DIM> struct alignas(NANOVDB_DATA_ALIGNMENT) LeafData<FpN, LOG2DIM> {
   using ValueType = float;

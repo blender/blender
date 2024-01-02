@@ -205,7 +205,8 @@ static void volume_foreach_path(ID *id, BPathForeachPathData *bpath_data)
   Volume *volume = reinterpret_cast<Volume *>(id);
 
   if (volume->packedfile != nullptr &&
-      (bpath_data->flag & BKE_BPATH_FOREACH_PATH_SKIP_PACKED) != 0) {
+      (bpath_data->flag & BKE_BPATH_FOREACH_PATH_SKIP_PACKED) != 0)
+  {
     return;
   }
 

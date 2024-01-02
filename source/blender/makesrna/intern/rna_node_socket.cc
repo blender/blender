@@ -178,7 +178,7 @@ static StructRNA *rna_NodeSocket_register(Main * /*bmain*/,
     nodeRegisterSocketType(st);
   }
 
-  st->free_self = (void (*)(bNodeSocketType * stype)) MEM_freeN;
+  st->free_self = (void (*)(bNodeSocketType *stype))MEM_freeN;
 
   /* if RNA type is already registered, unregister first */
   if (st->ext_socket.srna) {

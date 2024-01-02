@@ -953,7 +953,8 @@ static bool select_grouped_color(bContext *C, Object *ob)
 
   CTX_DATA_BEGIN (C, Base *, base, selectable_bases) {
     if (((base->flag & BASE_SELECTED) == 0) &&
-        compare_v3v3(base->object->color, ob->color, 0.005f)) {
+        compare_v3v3(base->object->color, ob->color, 0.005f))
+    {
       ED_object_base_select(base, BA_SELECT);
       changed = true;
     }

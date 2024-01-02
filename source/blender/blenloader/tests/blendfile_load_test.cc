@@ -5,8 +5,7 @@
 
 #include "BLI_path_util.h"
 
-class BlendfileLoadingTest : public BlendfileLoadingBaseTest {
-};
+class BlendfileLoadingTest : public BlendfileLoadingBaseTest {};
 
 TEST_F(BlendfileLoadingTest, CanaryTest)
 {

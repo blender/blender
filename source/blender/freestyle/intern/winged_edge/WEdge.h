@@ -1209,7 +1209,8 @@ class WShape {
   inline void ResetUserData()
   {
     for (vector<WVertex *>::iterator v = _VertexList.begin(), vend = _VertexList.end(); v != vend;
-         v++) {
+         v++)
+    {
       (*v)->ResetUserData();
     }
 

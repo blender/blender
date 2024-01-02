@@ -197,7 +197,8 @@ void USDHierarchyIterator::add_usd_skel_export_mapping(const Object *obj, const 
   }
 
   if (params_.export_armatures && obj->type == OB_MESH &&
-      can_export_skinned_mesh(*obj, depsgraph_)) {
+      can_export_skinned_mesh(*obj, depsgraph_))
+  {
     skinned_mesh_export_map_.add(obj, path);
   }
 }

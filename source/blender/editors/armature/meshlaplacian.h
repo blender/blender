@@ -13,7 +13,7 @@
 extern "C" {
 #endif
 
-//#define RIGID_DEFORM
+// #define RIGID_DEFORM
 
 struct Mesh;
 struct Object;

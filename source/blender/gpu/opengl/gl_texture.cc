@@ -648,7 +648,8 @@ void GLTexture::samplers_update()
         const GPUSamplerFiltering filtering = GPUSamplerFiltering(filtering_i);
 
         if ((filtering & GPU_SAMPLER_FILTERING_ANISOTROPIC) &&
-            (filtering & GPU_SAMPLER_FILTERING_MIPMAP)) {
+            (filtering & GPU_SAMPLER_FILTERING_MIPMAP))
+        {
           glSamplerParameterf(samplers_state_cache_[extend_yz_i][extend_x_i][filtering_i],
                               GL_TEXTURE_MAX_ANISOTROPY_EXT,
                               anisotropic_filter);
@@ -801,7 +802,8 @@ void GLTexture::check_feedback_loop()
       /* Check for when texture is used with texture barrier. */
       GPUAttachment attachment_read = fb->tmp_detached_[type];
       if (attachment.mip <= mip_max_ && attachment.mip >= mip_min_ &&
-          attachment_read.tex == nullptr) {
+          attachment_read.tex == nullptr)
+      {
         char msg[256];
         SNPRINTF(msg,
                  "Feedback loop: Trying to bind a texture (%s) with mip range %d-%d but mip %d is "

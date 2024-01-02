@@ -167,7 +167,8 @@ static void add_instances_from_component(
 
     if (!dst_attributes.contains(id)) {
       if (src.varray.size() == dst_component.instances_num() && src.sharing_info &&
-          src.varray.is_span()) {
+          src.varray.is_span())
+      {
         const bke::AttributeInitShared init(src.varray.get_internal_span().data(),
                                             *src.sharing_info);
         dst_attributes.add(id, AttrDomain::Instance, data_type, init);

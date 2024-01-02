@@ -288,7 +288,8 @@ void BKE_constraint_mat_convertspace(Object *ob,
           if (ELEM(to,
                    CONSTRAINT_SPACE_LOCAL,
                    CONSTRAINT_SPACE_PARLOCAL,
-                   CONSTRAINT_SPACE_OWNLOCAL)) {
+                   CONSTRAINT_SPACE_OWNLOCAL))
+          {
             /* Call self with slightly different values. */
             BKE_constraint_mat_convertspace(
                 ob, pchan, cob, mat, CONSTRAINT_SPACE_POSE, to, keep_scale);

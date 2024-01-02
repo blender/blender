@@ -26,7 +26,7 @@ class DummyFrameBuffer : public FrameBuffer {
              uint /*clear_stencil*/) override
   {
   }
-  void clear_multi(const float (*/*clear_color*/)[4]) override {}
+  void clear_multi(const float (* /*clear_color*/)[4]) override {}
   void clear_attachment(GPUAttachmentType /*type*/,
                         eGPUDataFormat /*data_format*/,
                         const void * /*clear_value*/) override

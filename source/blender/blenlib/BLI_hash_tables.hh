@@ -327,10 +327,8 @@ struct PointerComparison {
   }
 };
 
-template<typename T> struct DefaultEquality<std::unique_ptr<T>> : public PointerComparison {
-};
-template<typename T> struct DefaultEquality<std::shared_ptr<T>> : public PointerComparison {
-};
+template<typename T> struct DefaultEquality<std::unique_ptr<T>> : public PointerComparison {};
+template<typename T> struct DefaultEquality<std::shared_ptr<T>> : public PointerComparison {};
 
 struct SequenceComparison {
   template<typename T1, typename T2> bool operator()(const T1 &a, const T2 &b) const
@@ -347,7 +345,6 @@ struct SequenceComparison {
 };
 
 template<typename T, int64_t InlineBufferCapacity, typename Allocator>
-struct DefaultEquality<Vector<T, InlineBufferCapacity, Allocator>> : public SequenceComparison {
-};
+struct DefaultEquality<Vector<T, InlineBufferCapacity, Allocator>> : public SequenceComparison {};
 
 }  // namespace blender

@@ -1156,7 +1156,8 @@ static int edbm_mark_sharp_exec(bContext *C, wmOperator *op)
     BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
       if (use_verts) {
         if (!(BM_elem_flag_test(eed->v1, BM_ELEM_SELECT) ||
-              BM_elem_flag_test(eed->v2, BM_ELEM_SELECT))) {
+              BM_elem_flag_test(eed->v2, BM_ELEM_SELECT)))
+        {
           continue;
         }
       }
@@ -1862,7 +1863,8 @@ static bool edbm_edge_split_selected_edges(wmOperator *op, Object *obedit, BMEdi
   BM_custom_loop_normals_to_vector_layer(em->bm);
 
   if (!EDBM_op_call_and_selectf(
-          em, op, "edges.out", false, "split_edges edges=%he", BM_ELEM_SELECT)) {
+          em, op, "edges.out", false, "split_edges edges=%he", BM_ELEM_SELECT))
+  {
     return false;
   }
 
@@ -3526,11 +3528,13 @@ static const EnumPropertyItem *merge_type_itemf(bContext *C,
         RNA_enum_items_add_value(&item, &totitem, merge_type_items, MESH_MERGE_LAST);
       }
       else if (em->bm->selected.first &&
-               ((BMEditSelection *)em->bm->selected.first)->htype == BM_VERT) {
+               ((BMEditSelection *)em->bm->selected.first)->htype == BM_VERT)
+      {
         RNA_enum_items_add_value(&item, &totitem, merge_type_items, MESH_MERGE_FIRST);
       }
       else if (em->bm->selected.last &&
-               ((BMEditSelection *)em->bm->selected.last)->htype == BM_VERT) {
+               ((BMEditSelection *)em->bm->selected.last)->htype == BM_VERT)
+      {
         RNA_enum_items_add_value(&item, &totitem, merge_type_items, MESH_MERGE_LAST);
       }
     }
@@ -3721,7 +3725,8 @@ static bool shape_propagate(BMEditMesh *em, bool use_symmetry)
       BMVert *mirr = use_symmetry ? EDBM_verts_mirror_get(em, eve) : nullptr;
 
       if (!mirr || !BM_elem_flag_test(mirr, BM_ELEM_SELECT) ||
-          BM_elem_flag_test(mirr, BM_ELEM_HIDDEN)) {
+          BM_elem_flag_test(mirr, BM_ELEM_HIDDEN))
+      {
         continue;
       }
     }
@@ -5108,7 +5113,8 @@ static bool edbm_fill_grid_prepare(BMesh *bm, int offset, int *span_p, const boo
           MEM_mallocN(sizeof(*ele_sort) * verts_len, __func__));
       LinkData *v_link;
       for (v_link = static_cast<LinkData *>(verts->first), i = 0; v_link;
-           v_link = v_link->next, i++) {
+           v_link = v_link->next, i++)
+      {
         BMVert *v = static_cast<BMVert *>(v_link->data);
         const float angle = edbm_fill_grid_vert_tag_angle(v);
         ele_sort[i].sort_value = angle;
@@ -7811,7 +7817,8 @@ static int edbm_convex_hull_exec(bContext *C, wmOperator *op)
     /* Delete unused vertices, edges, and faces */
     if (delete_unused) {
       if (!EDBM_op_callf(
-              em, op, "delete geom=%S context=%i", &bmop, "geom_unused.out", DEL_ONLYTAGGED)) {
+              em, op, "delete geom=%S context=%i", &bmop, "geom_unused.out", DEL_ONLYTAGGED))
+      {
         EDBM_op_finish(em, &bmop, op, true);
         continue;
       }
@@ -7820,7 +7827,8 @@ static int edbm_convex_hull_exec(bContext *C, wmOperator *op)
     /* Delete hole edges/faces */
     if (make_holes) {
       if (!EDBM_op_callf(
-              em, op, "delete geom=%S context=%i", &bmop, "geom_holes.out", DEL_ONLYTAGGED)) {
+              em, op, "delete geom=%S context=%i", &bmop, "geom_holes.out", DEL_ONLYTAGGED))
+      {
         EDBM_op_finish(em, &bmop, op, true);
         continue;
       }
@@ -9009,7 +9017,8 @@ static void normals_split(BMesh *bm)
            (!BM_elem_flag_test(l_curr, BM_ELEM_TAG) && BM_loop_check_cyclic_smooth_fan(l_curr))))
       {
         if (!BM_elem_flag_test(l_curr->e, BM_ELEM_TAG) &&
-            !BM_elem_flag_test(l_curr->prev->e, BM_ELEM_TAG)) {
+            !BM_elem_flag_test(l_curr->prev->e, BM_ELEM_TAG))
+        {
           const int loop_index = BM_elem_index_get(l_curr);
           short *clnors = static_cast<short *>(BM_ELEM_CD_GET_VOID_P(l_curr, cd_clnors_offset));
           BKE_lnor_space_custom_normal_to_data(
@@ -9238,7 +9247,8 @@ static int edbm_average_normals_exec(bContext *C, wmOperator *op)
              (!BM_elem_flag_test(l_curr, BM_ELEM_TAG) && BM_loop_check_cyclic_smooth_fan(l_curr))))
         {
           if (!BM_elem_flag_test(l_curr->e, BM_ELEM_TAG) &&
-              !BM_elem_flag_test(l_curr->prev->e, BM_ELEM_TAG)) {
+              !BM_elem_flag_test(l_curr->prev->e, BM_ELEM_TAG))
+          {
             const int loop_index = BM_elem_index_get(l_curr);
             short *clnors = static_cast<short *>(BM_ELEM_CD_GET_VOID_P(l_curr, cd_clnors_offset));
             BKE_lnor_space_custom_normal_to_data(
@@ -9475,7 +9485,8 @@ static int edbm_normals_tools_exec(bContext *C, wmOperator *op)
         }
 
         if (done_copy ||
-            (bm->totfacesel != 1 && lnors_ed_arr->totloop != 1 && bm->totvertsel != 1)) {
+            (bm->totfacesel != 1 && lnors_ed_arr->totloop != 1 && bm->totvertsel != 1))
+        {
           BKE_report(op->reports,
                      RPT_ERROR,
                      "Can only copy one custom normal, vertex normal or face normal");
@@ -9703,7 +9714,8 @@ static int edbm_set_normals_from_faces_exec(bContext *C, wmOperator *op)
     BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
       BM_ITER_ELEM (e, &eiter, f, BM_EDGES_OF_FACE) {
         if (!keep_sharp ||
-            (BM_elem_flag_test(e, BM_ELEM_SMOOTH) && BM_elem_flag_test(e, BM_ELEM_SELECT))) {
+            (BM_elem_flag_test(e, BM_ELEM_SMOOTH) && BM_elem_flag_test(e, BM_ELEM_SELECT)))
+        {
           BM_ITER_ELEM (v, &viter, e, BM_VERTS_OF_EDGE) {
             l = BM_face_vert_share_loop(f, v);
             const int l_index = BM_elem_index_get(l);

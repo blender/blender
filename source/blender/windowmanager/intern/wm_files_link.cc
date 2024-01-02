@@ -765,7 +765,8 @@ static int wm_lib_relocate_exec_do(bContext *C, wmOperator *op, bool do_reload)
         BLI_path_join(filepath, sizeof(filepath), root, relname);
 
         if (BLI_path_cmp(filepath, lib->filepath_abs) == 0 ||
-            !BKE_blendfile_extension_check(relname)) {
+            !BKE_blendfile_extension_check(relname))
+        {
           continue;
         }
 

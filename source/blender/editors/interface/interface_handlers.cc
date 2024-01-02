@@ -657,7 +657,8 @@ static bool ui_but_dragedit_update_mval(uiHandleButtonData *data, int mx)
 #ifdef USE_DRAG_MULTINUM
     if (ELEM(data->multi_data.init,
              uiHandleButtonMulti::INIT_UNSET,
-             uiHandleButtonMulti::INIT_SETUP)) {
+             uiHandleButtonMulti::INIT_SETUP))
+    {
       return false;
     }
 #endif
@@ -959,7 +960,8 @@ static void ui_apply_but_undo(uiBut *but)
     else {
       ID *id = but->rnapoin.owner_id;
       if (!ED_undo_is_legacy_compatible_for_property(static_cast<bContext *>(but->block->evil_C),
-                                                     id)) {
+                                                     id))
+      {
         skip_undo = true;
       }
     }
@@ -4747,7 +4749,8 @@ static int ui_do_but_TEX(
 {
   if (data->state == BUTTON_STATE_HIGHLIGHT) {
     if (ELEM(event->type, LEFTMOUSE, EVT_BUT_OPEN, EVT_PADENTER, EVT_RETKEY) &&
-        event->val == KM_PRESS) {
+        event->val == KM_PRESS)
+    {
       if (ELEM(event->type, EVT_PADENTER, EVT_RETKEY) && !UI_but_is_utf8(but)) {
         /* Pass, allow file-selector, enter to execute. */
       }
@@ -6016,7 +6019,8 @@ static int ui_do_but_SCROLL(
     else if (event->type == MOUSEMOVE) {
       const bool is_motion = (event->type == MOUSEMOVE);
       if (ui_numedit_but_SLI(
-              but, data, (horizontal) ? mx : my, horizontal, is_motion, false, false)) {
+              but, data, (horizontal) ? mx : my, horizontal, is_motion, false, false))
+      {
         /* Scroll-bars in popups need UI layout refresh to update the right items to show. */
         if (ui_block_is_popup_any(but->block)) {
           ED_region_tag_refresh_ui(data->region);
@@ -9403,7 +9407,8 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
           if (data->hold_action_timer) {
             if (but->flag & UI_SELECT) {
               if (len_manhattan_v2v2_int(event->xy, event->prev_xy) <=
-                  WM_EVENT_CURSOR_MOTION_THRESHOLD) {
+                  WM_EVENT_CURSOR_MOTION_THRESHOLD)
+              {
                 /* pass */
               }
               else {
@@ -10474,7 +10479,8 @@ static int ui_handle_menu_event(bContext *C,
           if (event->val == KM_PRESS && (block->flag & UI_BLOCK_LOOP)) {
 
             if (ui_menu_pass_event_to_parent_if_nonactive(
-                    menu, but, level, is_parent_menu, retval)) {
+                    menu, but, level, is_parent_menu, retval))
+            {
               break;
             }
 
@@ -10575,7 +10581,8 @@ static int ui_handle_menu_event(bContext *C,
               }
 
               if (ui_menu_pass_event_to_parent_if_nonactive(
-                      menu, but, level, is_parent_menu, retval)) {
+                      menu, but, level, is_parent_menu, retval))
+              {
                 break;
               }
 
@@ -10687,7 +10694,8 @@ static int ui_handle_menu_event(bContext *C,
             int count;
 
             if (ui_menu_pass_event_to_parent_if_nonactive(
-                    menu, but, level, is_parent_menu, retval)) {
+                    menu, but, level, is_parent_menu, retval))
+            {
               break;
             }
 
@@ -10709,7 +10717,8 @@ static int ui_handle_menu_event(bContext *C,
                         UI_BTYPE_LABEL,
                         UI_BTYPE_SEPR,
                         UI_BTYPE_SEPR_LINE,
-                        UI_BTYPE_IMAGE)) {
+                        UI_BTYPE_IMAGE))
+              {
                 count++;
               }
 
@@ -10789,7 +10798,8 @@ static int ui_handle_menu_event(bContext *C,
             /* Menu search if space-bar or #MenuTypeFlag::SearchOnKeyPress. */
             MenuType *mt = WM_menutype_find(menu->menu_idname, true);
             if ((mt && bool(mt->flag & MenuTypeFlag::SearchOnKeyPress)) ||
-                event->type == EVT_SPACEKEY) {
+                event->type == EVT_SPACEKEY)
+            {
               if ((level != 0) && (but == nullptr || !menu->menu_idname[0])) {
                 /* Search parent if the child is open but not activated or not searchable. */
                 menu->menuretval = UI_RETURN_OUT | UI_RETURN_OUT_PARENT;
@@ -10801,7 +10811,8 @@ static int ui_handle_menu_event(bContext *C,
             }
 
             if (ui_menu_pass_event_to_parent_if_nonactive(
-                    menu, but, level, is_parent_menu, retval)) {
+                    menu, but, level, is_parent_menu, retval))
+            {
               break;
             }
 
@@ -10848,7 +10859,8 @@ static int ui_handle_menu_event(bContext *C,
               }
             }
             else if (saferct && !BLI_rctf_isect_pt(
-                                    &saferct->parent, float(event->xy[0]), float(event->xy[1]))) {
+                                    &saferct->parent, float(event->xy[0]), float(event->xy[1])))
+            {
               if (block->flag & UI_BLOCK_OUT_1) {
                 menu->menuretval = UI_RETURN_OK;
               }
@@ -10874,7 +10886,8 @@ static int ui_handle_menu_event(bContext *C,
       }
 #ifdef USE_KEYNAV_LIMIT
       else if ((event->type == MOUSEMOVE) &&
-               ui_mouse_motion_keynav_test(&menu->keynav_state, event)) {
+               ui_mouse_motion_keynav_test(&menu->keynav_state, event))
+      {
         /* Don't handle the mouse-move if we're using key-navigation. */
         retval = WM_UI_HANDLER_BREAK;
       }
@@ -10929,12 +10942,14 @@ static int ui_handle_menu_event(bContext *C,
 
           /* Check for all parent rects, enables arrow-keys to be used. */
           for (saferct = static_cast<uiSafetyRct *>(block->saferct.first); saferct;
-               saferct = saferct->next) {
+               saferct = saferct->next)
+          {
             /* for mouse move we only check our own rect, for other
              * events we check all preceding block rects too to make
              * arrow keys navigation work */
             if (event->type != MOUSEMOVE ||
-                saferct == static_cast<uiSafetyRct *>(block->saferct.first)) {
+                saferct == static_cast<uiSafetyRct *>(block->saferct.first))
+            {
               if (BLI_rctf_isect_pt(&saferct->parent, float(event->xy[0]), float(event->xy[1]))) {
                 break;
               }

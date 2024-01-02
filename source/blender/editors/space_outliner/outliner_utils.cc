@@ -74,7 +74,8 @@ TreeElement *outliner_find_item_at_y(const SpaceOutliner *space_outliner,
       }
 
       if (BLI_listbase_is_empty(&te_iter->subtree) ||
-          !TSELEM_OPEN(TREESTORE(te_iter), space_outliner)) {
+          !TSELEM_OPEN(TREESTORE(te_iter), space_outliner))
+      {
         /* No need for recursion. */
         continue;
       }

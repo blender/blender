@@ -194,7 +194,8 @@ void FullFrameExecutionModel::determine_areas_to_render(NodeOperation *output_op
     NodeOperation *operation = pair.first;
     const rcti &render_area = pair.second;
     if (BLI_rcti_is_empty(&render_area) ||
-        active_buffers_.is_area_registered(operation, render_area)) {
+        active_buffers_.is_area_registered(operation, render_area))
+    {
       continue;
     }
 

@@ -179,8 +179,7 @@ class GFieldRef : public GFieldBase<const FieldNode *> {
 
 namespace detail {
 /* Utility class to make #is_field_v work. */
-struct TypedFieldBase {
-};
+struct TypedFieldBase {};
 }  // namespace detail
 
 /**

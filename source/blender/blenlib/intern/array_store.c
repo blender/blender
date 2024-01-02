@@ -1223,7 +1223,8 @@ static BChunkList *bchunk_list_from_data_merge(const BArrayInfo *info,
       BLI_assert(i != i_prev);
 
       if ((cref != chunk_list_reference_last) &&
-          bchunk_data_compare(cref->link, data, data_len, i_prev)) {
+          bchunk_data_compare(cref->link, data, data_len, i_prev))
+      {
         bchunk_list_append(info, bs_mem, chunk_list, cref->link);
         ASSERT_CHUNKLIST_SIZE(chunk_list, i);
         ASSERT_CHUNKLIST_DATA(chunk_list, data);

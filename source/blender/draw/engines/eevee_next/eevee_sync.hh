@@ -145,11 +145,9 @@ struct ObjectHandle : BaseHandle {
   ObjectKey object_key;
 };
 
-struct WorldHandle : public BaseHandle {
-};
+struct WorldHandle : public BaseHandle {};
 
-struct SceneHandle : public BaseHandle {
-};
+struct SceneHandle : public BaseHandle {};
 
 class SyncModule {
  private:

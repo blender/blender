@@ -397,7 +397,8 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
   bool supports_render_passes = (pipeline_type == MAT_PIPE_DEFERRED);
   /* Opaque forward do support AOVs and render pass if not using transparency. */
   if (!GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSPARENT) &&
-      (pipeline_type == MAT_PIPE_FORWARD)) {
+      (pipeline_type == MAT_PIPE_FORWARD))
+  {
     supports_render_passes = true;
   }
 

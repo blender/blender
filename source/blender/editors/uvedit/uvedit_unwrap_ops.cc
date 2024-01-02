@@ -2675,7 +2675,8 @@ static int smart_uv_project_thickface_area_cmp_fn(const void *tf_a_p, const void
   /* Ignore the area of small faces.
    * Also, order checks so `!isfinite(...)` values are counted as zero area. */
   if (!((tf_a->area > smart_uv_project_area_ignore) ||
-        (tf_b->area > smart_uv_project_area_ignore))) {
+        (tf_b->area > smart_uv_project_area_ignore)))
+  {
     return 0;
   }
 

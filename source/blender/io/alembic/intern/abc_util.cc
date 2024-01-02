@@ -147,7 +147,7 @@ std::optional<SampleInterpolationSettings> get_sample_interpolation_settings(
   return SampleInterpolationSettings{i0, i1, bias};
 }
 
-//#define USE_NURBS
+// #define USE_NURBS
 
 AbcObjectReader *create_reader(const Alembic::AbcGeom::IObject &object, ImportSettings &settings)
 {

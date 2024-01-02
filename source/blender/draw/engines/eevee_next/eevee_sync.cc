@@ -574,7 +574,8 @@ void foreach_hair_particle_handle(Object *ob, ObjectHandle ob_handle, HairHandle
       const int draw_as = (part_settings->draw_as == PART_DRAW_REND) ? part_settings->ren_as :
                                                                        part_settings->draw_as;
       if (draw_as != PART_DRAW_PATH ||
-          !DRW_object_is_visible_psys_in_active_context(ob, particle_sys)) {
+          !DRW_object_is_visible_psys_in_active_context(ob, particle_sys))
+      {
         continue;
       }
 

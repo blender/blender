@@ -5,7 +5,7 @@
  *
  * Adapted code from Intel Corporation. */
 
-//#define __KERNEL_SSE__
+// #define __KERNEL_SSE__
 
 #include "bvh/binning.h"
 

@@ -767,7 +767,8 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
                         static_cast<void **>(MEM_mallocN(sizeof(void *) * totvert, __func__)) :
                         nullptr;
     for (i = totvert, ve = verts_copy + totvert - 1, vep = verts_pool + totvert - 1; i--;
-         ve--, vep--) {
+         ve--, vep--)
+    {
       *ve = **vep;
       // printf("*vep: %p, verts_pool[%d]: %p\n", *vep, i, verts_pool[i]);
       if (cd_vert_pyptr != -1) {
@@ -823,7 +824,8 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
                         static_cast<void **>(MEM_mallocN(sizeof(void *) * totedge, __func__)) :
                         nullptr;
     for (i = totedge, ed = edges_copy + totedge - 1, edp = edges_pool + totedge - 1; i--;
-         ed--, edp--) {
+         ed--, edp--)
+    {
       *ed = **edp;
       if (cd_edge_pyptr != -1) {
         void **pyptr = static_cast<void **>(BM_ELEM_CD_GET_VOID_P(((BMElem *)ed), cd_edge_pyptr));
@@ -878,7 +880,8 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
                         static_cast<void **>(MEM_mallocN(sizeof(void *) * totface, __func__)) :
                         nullptr;
     for (i = totface, fa = faces_copy + totface - 1, fap = faces_pool + totface - 1; i--;
-         fa--, fap--) {
+         fa--, fap--)
+    {
       *fa = **fap;
       if (cd_poly_pyptr != -1) {
         void **pyptr = static_cast<void **>(BM_ELEM_CD_GET_VOID_P(((BMElem *)fa), cd_poly_pyptr));

@@ -258,7 +258,8 @@ static void node_mix_gather_link_searches(GatherLinkSearchOpParams &params)
   }
   const std::string socket_name = params.in_out() == SOCK_IN ? "A" : "Result";
   for (const EnumPropertyItem *item = rna_enum_ramp_blend_items; item->identifier != nullptr;
-       item++) {
+       item++)
+  {
     if (item->name != nullptr && item->identifier[0] != '\0') {
       params.add_item(IFACE_(item->name), SocketSearchOp{socket_name, item->value}, weight);
     }

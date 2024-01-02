@@ -183,7 +183,8 @@ static void finSelectedSplinePoint(MaskLayer *mask_layer,
   if (check_active) {
     /* TODO: having an active point but no active spline is possible, why? */
     if (mask_layer->act_spline && mask_layer->act_point &&
-        MASKPOINT_ISSEL_ANY(mask_layer->act_point)) {
+        MASKPOINT_ISSEL_ANY(mask_layer->act_point))
+    {
       *spline = mask_layer->act_spline;
       *point = mask_layer->act_point;
       return;

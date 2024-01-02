@@ -19,8 +19,7 @@ struct SatParams {
   std::vector<std::vector<float>> values;
 };
 
-class SummedAreaTableTestP : public testing::TestWithParam<SatParams> {
-};
+class SummedAreaTableTestP : public testing::TestWithParam<SatParams> {};
 
 TEST_P(SummedAreaTableTestP, Values)
 {

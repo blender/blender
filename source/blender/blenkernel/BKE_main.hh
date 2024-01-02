@@ -472,7 +472,7 @@ const char *BKE_main_blendfile_path_from_global(void);
  */
 ListBase *which_libbase(Main *bmain, short type);
 
-//#define INDEX_ID_MAX 41
+// #define INDEX_ID_MAX 41
 /**
  * Put the pointers to all the #ListBase structs in given `bmain` into the `*lb[INDEX_ID_MAX]`
  * array, and return the number of those for convenience.

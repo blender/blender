@@ -224,7 +224,8 @@ void screen_data_copy(bScreen *to, bScreen *from)
 
   ScrVert *s2 = static_cast<ScrVert *>(to->vertbase.first);
   for (ScrVert *s1 = static_cast<ScrVert *>(from->vertbase.first); s1;
-       s1 = s1->next, s2 = s2->next) {
+       s1 = s1->next, s2 = s2->next)
+  {
     s1->newv = s2;
   }
 
@@ -1838,7 +1839,8 @@ bool ED_screen_stereo3d_required(const bScreen *screen, const Scene *scene)
          * the file doesn't have views enabled */
         sima = static_cast<SpaceImage *>(area->spacedata.first);
         if (sima->image && BKE_image_is_stereo(sima->image) &&
-            (sima->iuser.flag & IMA_SHOW_STEREO)) {
+            (sima->iuser.flag & IMA_SHOW_STEREO))
+        {
           return true;
         }
         break;

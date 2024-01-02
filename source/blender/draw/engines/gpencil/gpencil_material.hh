@@ -178,7 +178,8 @@ class MaterialModule {
         }
 
         if ((gp_style_override->fill_style == GP_MATERIAL_FILL_STYLE_TEXTURE) &&
-            (gp_style_override->ima)) {
+            (gp_style_override->ima))
+        {
           copy_v4_fl(gp_style_override->fill_rgba, 1.0f);
           gp_style_override->mix_factor = 0.0f;
         }
@@ -243,7 +244,8 @@ class MaterialModule {
 
     /* Overlap. */
     if ((gp_style->mode != GP_MATERIAL_MODE_LINE) ||
-        (gp_style->flag & GP_MATERIAL_DISABLE_STENCIL)) {
+        (gp_style->flag & GP_MATERIAL_DISABLE_STENCIL))
+    {
       material.flag |= GP_STROKE_OVERLAP;
     }
 

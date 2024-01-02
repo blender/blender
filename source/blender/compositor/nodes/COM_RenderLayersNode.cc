@@ -68,7 +68,8 @@ void RenderLayersNode::test_render_link(NodeConverter &converter,
     RenderLayersProg *operation;
     bool is_preview;
     if (STREQ(rpass->name, RE_PASSNAME_COMBINED) &&
-        STREQ(output->get_bnode_socket()->name, "Alpha")) {
+        STREQ(output->get_bnode_socket()->name, "Alpha"))
+    {
       operation = new RenderLayersAlphaProg(rpass->name, DataType::Value, rpass->channels);
       is_preview = false;
     }

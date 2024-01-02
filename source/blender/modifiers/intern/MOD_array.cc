@@ -249,7 +249,8 @@ static void dm_mvert_map_doubles(int *doubles_map,
          * But if other potential targets are farther,
          * then there will be no mapping at all for this source. */
         while (best_target_vertex != -1 &&
-               !ELEM(doubles_map[best_target_vertex], -1, best_target_vertex)) {
+               !ELEM(doubles_map[best_target_vertex], -1, best_target_vertex))
+        {
           if (compare_len_v3v3(vert_positions[sve_source->vertex_num],
                                vert_positions[doubles_map[best_target_vertex]],
                                dist))

@@ -510,4 +510,4 @@ void MTLBackend::compute_dispatch_indirect(StorageBuf *indirect_buf)
 
 /** \} */
 
-}  // blender::gpu
+}  // namespace blender::gpu

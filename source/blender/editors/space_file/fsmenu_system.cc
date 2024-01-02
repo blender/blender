@@ -168,7 +168,8 @@ static void fsmenu_add_windows_quick_access(FSMenu *fsmenu,
 {
   Microsoft::WRL::ComPtr<IShellDispatch> shell;
   if (CoCreateInstance(CLSID_Shell, nullptr, CLSCTX_ALL, IID_PPV_ARGS(shell.GetAddressOf())) !=
-      S_OK) {
+      S_OK)
+  {
     return;
   }
 
@@ -267,7 +268,8 @@ void fsmenu_read_system(FSMenu *fsmenu, int read_bookmarks)
           if (SHGetDesktopFolder(&desktop) == S_OK) {
             PIDLIST_RELATIVE volume;
             if (desktop->ParseDisplayName(nullptr, nullptr, wline, nullptr, &volume, nullptr) ==
-                S_OK) {
+                S_OK)
+            {
               STRRET volume_name;
               volume_name.uType = STRRET_WSTR;
               if (desktop->GetDisplayNameOf(volume, SHGDN_FORADDRESSBAR, &volume_name) == S_OK) {

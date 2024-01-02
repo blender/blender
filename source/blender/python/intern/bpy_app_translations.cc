@@ -859,7 +859,8 @@ PyObject *BPY_app_translations_struct()
 
     /* We really populate the contexts' fields here! */
     for (ctxt = _contexts, desc = app_translations_contexts_desc.fields; ctxt->c_id;
-         ctxt++, desc++) {
+         ctxt++, desc++)
+    {
       desc->name = ctxt->py_id;
       desc->doc = nullptr;
     }

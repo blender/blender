@@ -878,10 +878,8 @@ extern bool BLI_memory_is_zero(const void *arr, size_t arr_size);
 namespace blender::blenlib_internal {
 
 /* A replacement for std::is_bounded_array_v until we go C++20. */
-template<class T> struct IsBoundedArray : std::false_type {
-};
-template<class T, std::size_t N> struct IsBoundedArray<T[N]> : std::true_type {
-};
+template<class T> struct IsBoundedArray : std::false_type {};
+template<class T, std::size_t N> struct IsBoundedArray<T[N]> : std::true_type {};
 
 }  // namespace blender::blenlib_internal
 

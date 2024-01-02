@@ -606,7 +606,8 @@ void wm_event_do_notifiers(bContext *C)
       }
 
       if (note->window == win ||
-          (note->window == nullptr && ELEM(note->reference, nullptr, scene))) {
+          (note->window == nullptr && ELEM(note->reference, nullptr, scene)))
+      {
         if (note->category == NC_SCENE) {
           if (note->data == ND_FRAME) {
             do_anim = true;
@@ -640,7 +641,8 @@ void wm_event_do_notifiers(bContext *C)
 
   /* The notifiers are sent without context, to keep it clean. */
   while (
-      const wmNotifier *note = static_cast<const wmNotifier *>(BLI_pophead(&wm->notifier_queue))) {
+      const wmNotifier *note = static_cast<const wmNotifier *>(BLI_pophead(&wm->notifier_queue)))
+  {
     if (wm_notifier_is_clear(note)) {
       MEM_freeN((void *)note);
       continue;
@@ -3193,7 +3195,8 @@ static eHandlerActionFlag wm_handlers_do_gizmo_handler(bContext *C,
           LISTBASE_FOREACH (wmKeyMapItem *, kmi, &keymap->items) {
             if ((kmi->flag & KMI_INACTIVE) == 0) {
               if (wm_eventmatch(&event_test_click, kmi) ||
-                  wm_eventmatch(&event_test_click_drag, kmi)) {
+                  wm_eventmatch(&event_test_click_drag, kmi))
+              {
                 wmOperatorType *ot = WM_operatortype_find(kmi->idname, false);
                 if (WM_operator_poll_context(C, ot, WM_OP_INVOKE_DEFAULT)) {
                   is_event_handle_all = true;
@@ -6233,7 +6236,8 @@ void WM_window_cursor_keymap_status_refresh(bContext *C, wmWindow *win)
   {
     bToolRef *tref = nullptr;
     if ((region->regiontype == RGN_TYPE_WINDOW) &&
-        ((1 << area->spacetype) & WM_TOOLSYSTEM_SPACE_MASK)) {
+        ((1 << area->spacetype) & WM_TOOLSYSTEM_SPACE_MASK))
+    {
       const Scene *scene = WM_window_get_active_scene(win);
       ViewLayer *view_layer = WM_window_get_active_view_layer(win);
       WorkSpace *workspace = WM_window_get_active_workspace(win);
@@ -6355,7 +6359,8 @@ bool WM_window_modal_keymap_status_draw(bContext *C, wmWindow *win, uiLayout *la
       continue;
     }
     if ((keymap->poll_modal_item != nullptr) &&
-        (keymap->poll_modal_item(op, items[i].value) == false)) {
+        (keymap->poll_modal_item(op, items[i].value) == false))
+    {
       continue;
     }
 

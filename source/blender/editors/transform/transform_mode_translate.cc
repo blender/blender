@@ -459,7 +459,8 @@ static void ApplySnapTranslation(TransInfo *t, float vec[3])
     if (t->spacetype == SPACE_VIEW3D) {
       if (t->options & CTX_PAINT_CURVE) {
         if (ED_view3d_project_float_global(t->region, point, point, V3D_PROJ_TEST_NOP) !=
-            V3D_PROJ_RET_OK) {
+            V3D_PROJ_RET_OK)
+        {
           zero_v3(point); /* no good answer here... */
         }
       }

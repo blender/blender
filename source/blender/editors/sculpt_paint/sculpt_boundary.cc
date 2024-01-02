@@ -353,7 +353,8 @@ static void sculpt_boundary_edit_data_init(SculptSession *ss,
       SCULPT_VERTEX_DUPLICATES_AND_NEIGHBORS_ITER_BEGIN (ss, from_v, ni) {
         const bool is_visible = hide::vert_visible_get(ss, ni.vertex);
         if (!is_visible ||
-            boundary->edit_info[ni.index].propagation_steps_num != BOUNDARY_STEPS_NONE) {
+            boundary->edit_info[ni.index].propagation_steps_num != BOUNDARY_STEPS_NONE)
+        {
           continue;
         }
         boundary->edit_info[ni.index].original_vertex_i =

@@ -2896,7 +2896,8 @@ static void rekey_particle_to_time(
 
   /* update edit pointers */
   for (k = 0, key = pa->hair, ekey = edit->points[pa_index].keys; k < pa->totkey;
-       k++, key++, ekey++) {
+       k++, key++, ekey++)
+  {
     ekey->co = key->co;
     ekey->time = &key->time;
   }

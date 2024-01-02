@@ -70,7 +70,8 @@ static int UnaryFunction1DVec3f___init__(BPy_UnaryFunction1DVec3f *self,
   PyObject *obj = nullptr;
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "|O!", (char **)kwlist, &IntegrationType_Type, &obj)) {
+          args, kwds, "|O!", (char **)kwlist, &IntegrationType_Type, &obj))
+  {
     return -1;
   }
 

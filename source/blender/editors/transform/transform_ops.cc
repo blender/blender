@@ -568,7 +568,8 @@ static bool transform_poll_property(const bContext *C, wmOperator *op, const Pro
         /* Special case: show constraint axis if we don't have values,
          * needed for mirror operator. */
         if (STREQ(prop_id, "constraint_axis") &&
-            (RNA_struct_find_property(op->ptr, "value") == nullptr)) {
+            (RNA_struct_find_property(op->ptr, "value") == nullptr))
+        {
           return true;
         }
 

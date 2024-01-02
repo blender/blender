@@ -533,7 +533,8 @@ static void updateDuplicateActionConstraintSettings(
         const size_t slength = strlen(new_curve->rna_path);
         bool flip = false;
         if (BLI_strn_endswith(new_curve->rna_path, "location", slength) &&
-            new_curve->array_index == 0) {
+            new_curve->array_index == 0)
+        {
           flip = true;
         }
         else if (BLI_strn_endswith(new_curve->rna_path, "rotation_quaternion", slength) &&

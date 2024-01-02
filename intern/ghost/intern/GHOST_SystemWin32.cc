@@ -964,7 +964,8 @@ void GHOST_SystemWin32::processWintabEvent(GHOST_WindowWin32 *window)
          * event queue. */
         MSG msg;
         if (PeekMessage(&msg, window->getHWND(), message, message, PM_NOYIELD) &&
-            msg.message != WM_QUIT) {
+            msg.message != WM_QUIT)
+        {
 
           /* Test for Win32/Wintab button down match. */
           useWintabPos = wt->testCoordinates(msg.pt.x, msg.pt.y, info.x, info.y);
@@ -1283,7 +1284,8 @@ GHOST_EventKey *GHOST_SystemWin32::processKeyEvent(GHOST_WindowWin32 *window, RA
       /* TODO: #ToUnicodeEx can respond with up to 4 utf16 chars (only 2 here).
        * Could be up to 24 utf8 bytes. */
       if ((r = ToUnicodeEx(
-               vk, raw.data.keyboard.MakeCode, state, utf16, 2, 0, system->m_keylayout))) {
+               vk, raw.data.keyboard.MakeCode, state, utf16, 2, 0, system->m_keylayout)))
+      {
         if ((r > 0 && r < 3)) {
           utf16[r] = 0;
           conv_utf_16_to_8(utf16, utf8_char, 6);

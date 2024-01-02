@@ -58,7 +58,8 @@ ccl_device void integrator_volume_stack_update_for_subsurface(KernelGlobals kg,
   Intersection isect;
   int step = 0;
   while (step < 2 * volume_stack_size &&
-         scene_intersect_volume(kg, &volume_ray, &isect, visibility)) {
+         scene_intersect_volume(kg, &volume_ray, &isect, visibility))
+  {
     /* Ignore self, SSS itself already enters and exits the object. */
     if (isect.object != volume_ray.self.object) {
       shader_setup_from_ray(kg, stack_sd, &volume_ray, &isect);

@@ -1018,7 +1018,8 @@ class NodesModifierSimulationParams : public nodes::GeoNodesSimulationParams {
         node_cache.reset();
       }
       if (!node_cache.bake.frames.is_empty() &&
-          current_frame_ < node_cache.bake.frames.first()->frame) {
+          current_frame_ < node_cache.bake.frames.first()->frame)
+      {
         node_cache.reset();
       }
     }

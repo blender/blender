@@ -556,7 +556,8 @@ void USDMaterialReader::set_principled_node_inputs(bNode *principled,
   float emission_strength = 0.0f;
   if (pxr::UsdShadeInput emissive_input = usd_shader.GetInput(usdtokens::emissiveColor)) {
     if (set_node_input(
-            emissive_input, principled, "Emission Color", ntree, column, &context, true)) {
+            emissive_input, principled, "Emission Color", ntree, column, &context, true))
+    {
       emission_strength = 1.0f;
     }
   }
@@ -1058,7 +1059,8 @@ void USDMaterialReader::convert_usd_primvar_reader_float2(const pxr::UsdShadeSha
      * and use that instead if so. */
     if (varname_input) {
       for (const pxr::UsdShadeConnectionSourceInfo &source_info :
-           varname_input.GetConnectedSources()) {
+           varname_input.GetConnectedSources())
+      {
         pxr::UsdShadeShader shader = pxr::UsdShadeShader(source_info.source.GetPrim());
         pxr::UsdShadeInput secondary_varname_input = shader.GetInput(source_info.sourceName);
         if (secondary_varname_input) {

@@ -248,10 +248,8 @@ struct NodeWithSockets {
     std::string name;
     std::optional<std::string> fontcolor;
   };
-  struct Input : public Socket {
-  };
-  struct Output : public Socket {
-  };
+  struct Input : public Socket {};
+  struct Output : public Socket {};
 
   std::string node_name;
   Vector<Input> inputs;

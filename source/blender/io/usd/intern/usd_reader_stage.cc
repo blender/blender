@@ -286,7 +286,8 @@ static bool merge_with_parent(USDPrimReader *reader)
 
   /* Don't merge Xform and Scope prims. */
   if (xform_reader->prim().IsA<pxr::UsdGeomXform>() ||
-      xform_reader->prim().IsA<pxr::UsdGeomScope>()) {
+      xform_reader->prim().IsA<pxr::UsdGeomScope>())
+  {
     return false;
   }
 

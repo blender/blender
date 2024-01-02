@@ -244,7 +244,8 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
        */
       if (use_correct_order_on_merge) {
         if (UNLIKELY(len_squared_v3v3(positions[vert_index_prev], positions[vert_index]) <
-                     tolerance_sq)) {
+                     tolerance_sq))
+        {
           *vtmap_b = i;
           (*r_vert_merge_map_len)++;
 
@@ -261,7 +262,8 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
       }
       else {
         if (UNLIKELY(len_squared_v3v3(positions[vert_index_prev], positions[vert_index]) <
-                     tolerance_sq)) {
+                     tolerance_sq))
+        {
           *vtmap_a = src_verts_num + i;
           (*r_vert_merge_map_len)++;
 
@@ -454,7 +456,8 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
         for (int i = 0; i < src_verts_num; dvert++, i++) {
           /* merged vertices get both groups, others get flipped */
           if (use_correct_order_on_merge && do_vtargetmap &&
-              ((*r_vert_merge_map)[i + src_verts_num] != -1)) {
+              ((*r_vert_merge_map)[i + src_verts_num] != -1))
+          {
             BKE_defvert_flip_merged(dvert - src_verts_num, flip_map, flip_map_len);
           }
           else if (!use_correct_order_on_merge && do_vtargetmap && ((*r_vert_merge_map)[i] != -1))

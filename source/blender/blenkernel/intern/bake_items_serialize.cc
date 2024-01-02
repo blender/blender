@@ -1032,7 +1032,8 @@ static std::unique_ptr<BakeItem> deserialize_bake_item(const DictionaryValue &io
       return std::make_unique<StringBakeItem>(io_string.value());
     }
     else if (const io::serialize::DictionaryValue *io_string =
-                 io_data->get()->as_dictionary_value()) {
+                 io_data->get()->as_dictionary_value())
+    {
       const std::optional<int64_t> size = io_string->lookup_int("size");
       if (!size) {
         return {};

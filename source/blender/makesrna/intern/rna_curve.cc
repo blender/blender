@@ -176,7 +176,8 @@ static Nurb *curve_nurb_from_point(Curve *cu, const void *point, int *nu_index, 
   for (nu = static_cast<Nurb *>(nurbs->first); nu; nu = nu->next, i++) {
     if (nu->type == CU_BEZIER) {
       if (point >= static_cast<void *>(nu->bezt) &&
-          point < static_cast<void *>(nu->bezt + nu->pntsu)) {
+          point < static_cast<void *>(nu->bezt + nu->pntsu))
+      {
         break;
       }
     }

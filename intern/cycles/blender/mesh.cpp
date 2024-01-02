@@ -313,7 +313,8 @@ static void attr_create_generic(Scene *scene,
     }
 
     if (b_attr.domain == blender::bke::AttrDomain::Corner &&
-        meta_data.data_type == CD_PROP_BYTE_COLOR) {
+        meta_data.data_type == CD_PROP_BYTE_COLOR)
+    {
       Attribute *attr = attributes.add(name, TypeRGBA, ATTR_ELEMENT_CORNER_BYTE);
       if (is_render_color) {
         attr->std = ATTR_STD_VERTEX_COLOR;
@@ -422,7 +423,8 @@ static set<ustring> get_blender_uv_names(const ::Mesh &b_mesh)
   b_mesh.attributes().for_all([&](const blender::bke::AttributeIDRef &id,
                                   const blender::bke::AttributeMetaData meta_data) {
     if (meta_data.domain == blender::bke::AttrDomain::Corner &&
-        meta_data.data_type == CD_PROP_FLOAT2) {
+        meta_data.data_type == CD_PROP_FLOAT2)
+    {
       if (!id.is_anonymous()) {
         uv_names.emplace(std::string_view(id.name()));
       }
@@ -1250,7 +1252,8 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph b_depsgraph,
     if (new_attribute) {
       /* In case of new attribute, we verify if there really was any motion. */
       if (b_verts_num != numverts ||
-          memcmp(mP, &mesh->get_verts()[0], sizeof(float3) * numverts) == 0) {
+          memcmp(mP, &mesh->get_verts()[0], sizeof(float3) * numverts) == 0)
+      {
         /* no motion, remove attributes again */
         if (b_verts_num != numverts) {
           VLOG_WARNING << "Topology differs, disabling motion blur for object " << ob_name;

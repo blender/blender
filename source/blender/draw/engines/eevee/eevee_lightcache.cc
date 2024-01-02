@@ -1473,7 +1473,8 @@ void EEVEE_lightbake_job(void *custom_data, wmJobWorkerStatus *worker_status)
         lbake->grid_sample_len = prb->grid_resolution_x * prb->grid_resolution_y *
                                  prb->grid_resolution_z;
         for (lbake->grid_sample = 0; lbake->grid_sample < lbake->grid_sample_len;
-             ++lbake->grid_sample) {
+             ++lbake->grid_sample)
+        {
           lightbake_do_sample(lbake, eevee_lightbake_render_grid_sample);
         }
       }

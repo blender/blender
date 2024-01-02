@@ -769,7 +769,8 @@ wmGizmo *wm_gizmomap_highlight_find(wmGizmoMap *gzmap,
         }
         else if (step == WM_GIZMOMAP_DRAWSTEP_2D) {
           if ((gz = wm_gizmogroup_find_intersected_gizmo(
-                   wm, gzgroup, C, event->modifier, mval, r_part))) {
+                   wm, gzgroup, C, event->modifier, mval, r_part)))
+          {
             break;
           }
         }
@@ -1229,7 +1230,8 @@ wmGizmoMapType *WM_gizmomaptype_find(const wmGizmoMapType_Params *gzmap_params)
 {
   LISTBASE_FOREACH (wmGizmoMapType *, gzmap_type, &gizmomaptypes) {
     if (gzmap_type->spaceid == gzmap_params->spaceid &&
-        gzmap_type->regionid == gzmap_params->regionid) {
+        gzmap_type->regionid == gzmap_params->regionid)
+    {
       return gzmap_type;
     }
   }

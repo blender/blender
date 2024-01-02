@@ -32,11 +32,11 @@ void _BLI_assert_unreachable_print(const char *file, int line, const char *funct
 #ifndef NDEBUG
 /* _BLI_ASSERT_PRINT_POS */
 #  if defined(__GNUC__)
-#    define _BLI_ASSERT_PRINT_POS(a) _BLI_assert_print_pos(__FILE__, __LINE__, __func__, #    a)
+#    define _BLI_ASSERT_PRINT_POS(a) _BLI_assert_print_pos(__FILE__, __LINE__, __func__, #a)
 #  elif defined(_MSC_VER)
-#    define _BLI_ASSERT_PRINT_POS(a) _BLI_assert_print_pos(__FILE__, __LINE__, __func__, #    a)
+#    define _BLI_ASSERT_PRINT_POS(a) _BLI_assert_print_pos(__FILE__, __LINE__, __func__, #a)
 #  else
-#    define _BLI_ASSERT_PRINT_POS(a) _BLI_assert_print_pos(__FILE__, __LINE__, "<?>", #    a)
+#    define _BLI_ASSERT_PRINT_POS(a) _BLI_assert_print_pos(__FILE__, __LINE__, "<?>", #a)
 #  endif
 /* _BLI_ASSERT_ABORT */
 #  ifdef WITH_ASSERT_ABORT

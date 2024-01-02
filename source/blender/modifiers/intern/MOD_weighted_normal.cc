@@ -149,7 +149,8 @@ static void aggregate_item_normal(WeightedNormalModifierData *wnmd,
                              BKE_defvert_find_index(&dvert[mv_index], defgrp_index) != nullptr;
 
   if (has_vgroup &&
-      ((vert_of_group && use_invert_vgroup) || (!vert_of_group && !use_invert_vgroup))) {
+      ((vert_of_group && use_invert_vgroup) || (!vert_of_group && !use_invert_vgroup)))
+  {
     return;
   }
 

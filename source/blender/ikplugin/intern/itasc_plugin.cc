@@ -314,7 +314,8 @@ static int initialize_chain(Object *ob, bPoseChannel *pchan_tip, bConstraint *co
         break;
       }
       for (; a < size && t < tree->totchannel && tree->pchan[t] == chanlist[segcount - a - 1];
-           a++, t++) {
+           a++, t++)
+      {
         /* pass */
       }
     }

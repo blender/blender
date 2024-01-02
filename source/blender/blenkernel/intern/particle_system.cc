@@ -1903,7 +1903,8 @@ static void sph_force_cb(void *sphdata_v, ParticleKey *state, float *force, floa
                        -10.0f * spring_constant * (1.0f - rij / h) * (spring->rest_length - rij));
         }
         else if (fluid->spring_frames == 0 ||
-                 (pa->prev_state.time - pa->time) <= fluid->spring_frames) {
+                 (pa->prev_state.time - pa->time) <= fluid->spring_frames)
+        {
           ParticleSpring temp_spring;
           temp_spring.particle_index[0] = index;
           temp_spring.particle_index[1] = pfn->index;

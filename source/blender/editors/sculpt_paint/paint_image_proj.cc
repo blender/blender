@@ -105,7 +105,7 @@
 
 #include "IMB_colormanagement.h"
 
-//#include "bmesh_tools.hh"
+// #include "bmesh_tools.hh"
 
 #include "paint_intern.hh"
 
@@ -136,15 +136,15 @@ BLI_INLINE uchar f_to_char(const float val)
 #define PROJ_BOUNDBOX_DIV 8
 #define PROJ_BOUNDBOX_SQUARED (PROJ_BOUNDBOX_DIV * PROJ_BOUNDBOX_DIV)
 
-//#define PROJ_DEBUG_PAINT 1
-//#define PROJ_DEBUG_NOSEAMBLEED 1
-//#define PROJ_DEBUG_PRINT_CLIP 1
+// #define PROJ_DEBUG_PAINT 1
+// #define PROJ_DEBUG_NOSEAMBLEED 1
+// #define PROJ_DEBUG_PRINT_CLIP 1
 #define PROJ_DEBUG_WINCLIP 1
 
 #ifndef PROJ_DEBUG_NOSEAMBLEED
 /* projectFaceSeamFlags options */
-//#define PROJ_FACE_IGNORE  (1<<0)  /* When the face is hidden, back-facing or occluded. */
-//#define PROJ_FACE_INIT    (1<<1)  /* When we have initialized the faces data */
+// #define PROJ_FACE_IGNORE  (1<<0)  /* When the face is hidden, back-facing or occluded. */
+// #define PROJ_FACE_INIT    (1<<1)  /* When we have initialized the faces data */
 
 /* If this face has a seam on any of its edges. */
 #  define PROJ_FACE_SEAM0 (1 << 0)
@@ -2032,14 +2032,16 @@ static ProjPixel *project_paint_uvpixel_init(const ProjPaintState *ps,
        * the faces are already initialized in project_paint_delayed_face_init(...) */
       if (ibuf->float_buffer.data) {
         if (!project_paint_PickColor(
-                ps, co, ((ProjPixelClone *)projPixel)->clonepx.f, nullptr, true)) {
+                ps, co, ((ProjPixelClone *)projPixel)->clonepx.f, nullptr, true))
+        {
           /* zero alpha - ignore */
           ((ProjPixelClone *)projPixel)->clonepx.f[3] = 0;
         }
       }
       else {
         if (!project_paint_PickColor(
-                ps, co, nullptr, ((ProjPixelClone *)projPixel)->clonepx.ch, true)) {
+                ps, co, nullptr, ((ProjPixelClone *)projPixel)->clonepx.ch, true))
+        {
           /* zero alpha - ignore */
           ((ProjPixelClone *)projPixel)->clonepx.ch[3] = 0;
         }
@@ -2577,7 +2579,8 @@ static void project_bucket_clip_face(const bool is_ortho,
     flag = inside_bucket_flag & (ISECT_1 | ISECT_2);
     if (flag && flag != (ISECT_1 | ISECT_2)) {
       if (line_rect_clip(
-              bucket_bounds, v1coSS, v2coSS, uv1co, uv2co, bucket_bounds_uv[*tot], is_ortho)) {
+              bucket_bounds, v1coSS, v2coSS, uv1co, uv2co, bucket_bounds_uv[*tot], is_ortho))
+      {
         (*tot)++;
       }
     }
@@ -2590,7 +2593,8 @@ static void project_bucket_clip_face(const bool is_ortho,
     flag = inside_bucket_flag & (ISECT_2 | ISECT_3);
     if (flag && flag != (ISECT_2 | ISECT_3)) {
       if (line_rect_clip(
-              bucket_bounds, v2coSS, v3coSS, uv2co, uv3co, bucket_bounds_uv[*tot], is_ortho)) {
+              bucket_bounds, v2coSS, v3coSS, uv2co, uv3co, bucket_bounds_uv[*tot], is_ortho))
+      {
         (*tot)++;
       }
     }
@@ -2603,7 +2607,8 @@ static void project_bucket_clip_face(const bool is_ortho,
     flag = inside_bucket_flag & (ISECT_3 | ISECT_1);
     if (flag && flag != (ISECT_3 | ISECT_1)) {
       if (line_rect_clip(
-              bucket_bounds, v3coSS, v1coSS, uv3co, uv1co, bucket_bounds_uv[*tot], is_ortho)) {
+              bucket_bounds, v3coSS, v1coSS, uv3co, uv1co, bucket_bounds_uv[*tot], is_ortho))
+      {
         (*tot)++;
       }
     }
@@ -3182,12 +3187,12 @@ static void project_paint_face_init(const ProjPaintState *ps,
               }
             }
           }
-          //#if 0
+          // #if 0
           else if (has_x_isect) {
             /* assuming the face is not a bow-tie - we know we can't intersect again on the X */
             break;
           }
-          //#endif
+          // #endif
         }
 
 #if 0 /* TODO: investigate why this doesn't work sometimes! it should! */

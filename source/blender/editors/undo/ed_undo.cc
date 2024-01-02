@@ -462,7 +462,8 @@ bool ED_undo_is_legacy_compatible_for_property(bContext *C, ID *id)
       }
       if (obact->mode & OB_MODE_EDIT) {
         if ((id == nullptr) || (obact->data == nullptr) ||
-            (GS(id->name) != GS(((ID *)obact->data)->name))) {
+            (GS(id->name) != GS(((ID *)obact->data)->name)))
+        {
           /* No undo push on id type mismatch in edit-mode. */
           CLOG_INFO(&LOG, 1, "skipping undo for edit-mode");
           return false;

@@ -367,7 +367,7 @@ static GPUIndexBuf *lattice_batch_cache_get_edges(LatticeRenderData *rdata,
     GPUIndexBufBuilder elb;
     GPU_indexbuf_init(&elb, GPU_PRIM_LINES, edge_len, vert_len);
 
-#define LATT_INDEX(u, v, w) ((((w)*rdata->dims.v_len + (v)) * rdata->dims.u_len) + (u))
+#define LATT_INDEX(u, v, w) ((((w) * rdata->dims.v_len + (v)) * rdata->dims.u_len) + (u))
 
     for (int w = 0; w < rdata->dims.w_len; w++) {
       int wxt = ELEM(w, 0, rdata->dims.w_len - 1);

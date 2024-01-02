@@ -1078,7 +1078,8 @@ static void *bmw_EdgeLoopWalker_step(BMWalker *walker)
 
     if (l != nullptr) {
       if (l != e->l && bmw_mask_check_edge(walker, l->e) &&
-          !BLI_gset_haskey(walker->visit_set, l->e)) {
+          !BLI_gset_haskey(walker->visit_set, l->e))
+      {
         lwalk = static_cast<BMwEdgeLoopWalker *>(BMW_state_add(walker));
         lwalk->cur = l->e;
         lwalk->lastv = v;
@@ -1129,7 +1130,8 @@ static void *bmw_EdgeLoopWalker_step(BMWalker *walker)
 
     if (l != nullptr) {
       if (l != e->l && bmw_mask_check_edge(walker, l->e) &&
-          !BLI_gset_haskey(walker->visit_set, l->e)) {
+          !BLI_gset_haskey(walker->visit_set, l->e))
+      {
         lwalk = static_cast<BMwEdgeLoopWalker *>(BMW_state_add(walker));
         lwalk->cur = l->e;
         lwalk->lastv = v;

@@ -1276,7 +1276,8 @@ static void libdecor_frame_handle_configure(libdecor_frame *frame,
                                          win->frame.buffer_scale;
     const int scale_as_fractional = scale * FRACTIONAL_DENOMINATOR;
     if (libdecor_configuration_get_content_size(
-            configuration, frame, &size_next[0], &size_next[1])) {
+            configuration, frame, &size_next[0], &size_next[1]))
+    {
       if (fractional_scale) {
         frame_pending.size[0] = gwl_window_fractional_to_viewport_round(win->frame, size_next[0]);
         frame_pending.size[1] = gwl_window_fractional_to_viewport_round(win->frame, size_next[1]);

@@ -920,7 +920,8 @@ static void build_pict_list_from_image_sequence(ListBase *picsbase,
     void *mem = nullptr;
     size_t size = -1;
     if (!buffer_from_filepath(
-            filepath, g_playanim.from_disk ? nullptr : &mem, &size, &error_message)) {
+            filepath, g_playanim.from_disk ? nullptr : &mem, &size, &error_message))
+    {
       has_error = true;
       size = 0;
     }

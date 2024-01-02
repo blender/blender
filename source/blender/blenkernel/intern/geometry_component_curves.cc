@@ -402,7 +402,8 @@ class CurvesVertexGroupsAttributeProvider final : public DynamicAttributesProvid
     int index;
     bDeformGroup *group;
     if (!BKE_defgroup_listbase_name_find(
-            &curves->vertex_group_names, name.c_str(), &index, &group)) {
+            &curves->vertex_group_names, name.c_str(), &index, &group))
+    {
       return false;
     }
     BLI_remlink(&curves->vertex_group_names, group);

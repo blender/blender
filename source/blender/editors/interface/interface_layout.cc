@@ -693,7 +693,8 @@ static void ui_item_array(uiLayout *layout,
       /* Show check-boxes for rna on a non-emboss block (menu for eg). */
       bool *boolarr = nullptr;
       if (type == PROP_BOOLEAN &&
-          ELEM(layout->root->block->emboss, UI_EMBOSS_NONE, UI_EMBOSS_PULLDOWN)) {
+          ELEM(layout->root->block->emboss, UI_EMBOSS_NONE, UI_EMBOSS_PULLDOWN))
+      {
         boolarr = static_cast<bool *>(MEM_callocN(sizeof(bool) * len, __func__));
         RNA_property_boolean_get_array(ptr, prop, boolarr);
       }
@@ -1176,7 +1177,8 @@ static void ui_but_tip_from_enum_item(uiBut *but, const EnumPropertyItem *item)
 {
   if (but->tip == nullptr || but->tip[0] == '\0') {
     if (item->description && item->description[0] &&
-        !(but->optype && but->optype->get_description)) {
+        !(but->optype && but->optype->get_description))
+    {
       but->tip = item->description;
     }
   }
@@ -1703,7 +1705,7 @@ void uiItemEnumO_value(uiLayout *layout,
                        int value)
 {
   wmOperatorType *ot = WM_operatortype_find(opname, false); /* print error next */
-  UI_OPERATOR_ERROR_RET(ot, opname, return );
+  UI_OPERATOR_ERROR_RET(ot, opname, return);
 
   PointerRNA ptr;
   WM_operator_properties_create_ptr(&ptr, ot);
@@ -1740,7 +1742,7 @@ void uiItemEnumO_string(uiLayout *layout,
                         const char *value_str)
 {
   wmOperatorType *ot = WM_operatortype_find(opname, false); /* print error next */
-  UI_OPERATOR_ERROR_RET(ot, opname, return );
+  UI_OPERATOR_ERROR_RET(ot, opname, return);
 
   PointerRNA ptr;
   WM_operator_properties_create_ptr(&ptr, ot);
@@ -1796,7 +1798,7 @@ void uiItemBooleanO(uiLayout *layout,
                     int value)
 {
   wmOperatorType *ot = WM_operatortype_find(opname, false); /* print error next */
-  UI_OPERATOR_ERROR_RET(ot, opname, return );
+  UI_OPERATOR_ERROR_RET(ot, opname, return);
 
   PointerRNA ptr;
   WM_operator_properties_create_ptr(&ptr, ot);
@@ -1820,7 +1822,7 @@ void uiItemIntO(uiLayout *layout,
                 int value)
 {
   wmOperatorType *ot = WM_operatortype_find(opname, false); /* print error next */
-  UI_OPERATOR_ERROR_RET(ot, opname, return );
+  UI_OPERATOR_ERROR_RET(ot, opname, return);
 
   PointerRNA ptr;
   WM_operator_properties_create_ptr(&ptr, ot);
@@ -1845,7 +1847,7 @@ void uiItemFloatO(uiLayout *layout,
 {
   wmOperatorType *ot = WM_operatortype_find(opname, false); /* print error next */
 
-  UI_OPERATOR_ERROR_RET(ot, opname, return );
+  UI_OPERATOR_ERROR_RET(ot, opname, return);
 
   PointerRNA ptr;
   WM_operator_properties_create_ptr(&ptr, ot);
@@ -1870,7 +1872,7 @@ void uiItemStringO(uiLayout *layout,
 {
   wmOperatorType *ot = WM_operatortype_find(opname, false); /* print error next */
 
-  UI_OPERATOR_ERROR_RET(ot, opname, return );
+  UI_OPERATOR_ERROR_RET(ot, opname, return);
 
   PointerRNA ptr;
   WM_operator_properties_create_ptr(&ptr, ot);
@@ -3684,7 +3686,7 @@ void uiItemMenuEnumFullO(uiLayout *layout,
 {
   wmOperatorType *ot = WM_operatortype_find(opname, false); /* print error next */
 
-  UI_OPERATOR_ERROR_RET(ot, opname, return );
+  UI_OPERATOR_ERROR_RET(ot, opname, return);
 
   if (!ot->srna) {
     ui_item_disabled(layout, opname);

@@ -652,7 +652,8 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
             ((MyDeviceMemory *)it.first)->device_copy_from__IntegratorQueueCounter();
 
             if (IntegratorQueueCounter *queue_counter = (IntegratorQueueCounter *)
-                                                            it.first->host_pointer) {
+                                                            it.first->host_pointer)
+            {
               for (int i = 0; i < DEVICE_KERNEL_INTEGRATOR_NUM; i++)
                 printf("%s%d", i == 0 ? "" : ",", int(queue_counter->num_queued[i]));
             }

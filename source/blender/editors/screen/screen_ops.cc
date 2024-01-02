@@ -4702,7 +4702,7 @@ static void screen_animation_region_tag_redraw(
   ED_region_tag_redraw(region);
 }
 
-//#define PROFILE_AUDIO_SYNCH
+// #define PROFILE_AUDIO_SYNCH
 
 static int screen_animation_step_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *event)
 {

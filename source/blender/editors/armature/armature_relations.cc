@@ -223,7 +223,8 @@ static void joined_armature_fix_links(
 
   /* let's go through all objects in database */
   for (ob = static_cast<Object *>(bmain->objects.first); ob;
-       ob = static_cast<Object *>(ob->id.next)) {
+       ob = static_cast<Object *>(ob->id.next))
+  {
     /* do some object-type specific things */
     if (ob->type == OB_ARMATURE) {
       pose = ob->pose;
@@ -493,7 +494,8 @@ static void separated_armature_fix_links(Main *bmain, Object *origArm, Object *n
 
   /* let's go through all objects in database */
   for (ob = static_cast<Object *>(bmain->objects.first); ob;
-       ob = static_cast<Object *>(ob->id.next)) {
+       ob = static_cast<Object *>(ob->id.next))
+  {
     /* do some object-type specific things */
     if (ob->type == OB_ARMATURE) {
       LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {

@@ -390,7 +390,8 @@ void GeometryManager::update_attribute_element_offset(Geometry *geom,
     if (geom->is_mesh()) {
       Mesh *mesh = static_cast<Mesh *>(geom);
       if (mesh->subdivision_type == Mesh::SUBDIVISION_CATMULL_CLARK &&
-          desc.flags & ATTR_SUBDIVIDED) {
+          desc.flags & ATTR_SUBDIVIDED)
+      {
         /* Indices for subdivided attributes are retrieved
          * from patch table so no need for correction here. */
       }

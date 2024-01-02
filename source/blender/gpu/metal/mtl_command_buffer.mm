@@ -629,7 +629,8 @@ bool MTLCommandBufferManager::insert_memory_barrier(eGPUBarrier barrier_bits,
           MTLRenderStages before_stage_flags = 0;
           MTLRenderStages after_stage_flags = 0;
           if (before_stages & GPU_BARRIER_STAGE_VERTEX &&
-              !(before_stages & GPU_BARRIER_STAGE_FRAGMENT)) {
+              !(before_stages & GPU_BARRIER_STAGE_FRAGMENT))
+          {
             before_stage_flags = before_stage_flags | MTLRenderStageVertex;
           }
           if (before_stages & GPU_BARRIER_STAGE_FRAGMENT) {
@@ -1093,4 +1094,4 @@ void MTLComputeState::bind_pso(id<MTLComputePipelineState> pso)
 
 /** \} */
 
-}  // blender::gpu
+}  // namespace blender::gpu

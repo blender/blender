@@ -284,7 +284,8 @@ void WM_gizmo_group_remove_by_tool(bContext *C,
           if (gzmap && gzmap->type == gzmap_type) {
             wmGizmoGroup *gzgroup, *gzgroup_next;
             for (gzgroup = static_cast<wmGizmoGroup *>(gzmap->groups.first); gzgroup;
-                 gzgroup = gzgroup_next) {
+                 gzgroup = gzgroup_next)
+            {
               gzgroup_next = gzgroup->next;
               if (gzgroup->type == gzgt) {
                 BLI_assert(gzgroup->parent_gzmap == gzmap);
@@ -1046,7 +1047,8 @@ void WM_gizmomaptype_group_unlink(bContext *C,
           if (gzmap && gzmap->type == gzmap_type) {
             wmGizmoGroup *gzgroup, *gzgroup_next;
             for (gzgroup = static_cast<wmGizmoGroup *>(gzmap->groups.first); gzgroup;
-                 gzgroup = gzgroup_next) {
+                 gzgroup = gzgroup_next)
+            {
               gzgroup_next = gzgroup->next;
               if (gzgroup->type == gzgt) {
                 BLI_assert(gzgroup->parent_gzmap == gzmap);

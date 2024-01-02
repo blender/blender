@@ -70,8 +70,7 @@ void AssetCatalogTreeTestFunctions::expect_tree_item_child_items(
   });
 }
 
-class AssetCatalogTreeTest : public AssetLibraryTestBase, public AssetCatalogTreeTestFunctions {
-};
+class AssetCatalogTreeTest : public AssetLibraryTestBase, public AssetCatalogTreeTestFunctions {};
 
 TEST_F(AssetCatalogTreeTest, insert_item_into_tree)
 {

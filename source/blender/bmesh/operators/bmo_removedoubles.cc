@@ -140,7 +140,7 @@ static BMFace *remdoubles_createface(BMesh *bm,
 #undef LOOP_MAP_VERT_INIT
   }
 
-finally : {
+finally: {
   uint i;
   for (i = 0; i < STACK_SIZE(verts); i++) {
     BMO_vert_flag_disable(bm, verts[i], VERT_IN_FACE);
