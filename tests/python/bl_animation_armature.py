@@ -61,6 +61,8 @@ class BoneCollectionTest(unittest.TestCase):
         self.assertEqual([r1_child1, r1_child1_001], list(root1.children), 'root1.children should have its children')
         self.assertEqual([r2_child1, r2_child2], list(root2.children), 'root2.children should have its children')
         self.assertEqual([], list(r1_child1.children))
+        self.assertIsNone(root1.parent)
+        self.assertEqual(root1, r1_child1.parent)
 
         # Check the array order.
         self.assertEqual([root1, root2, r1_child1, r1_child1_001, r2_child1, r2_child2], list(bcolls.all))
@@ -73,6 +75,7 @@ class BoneCollectionTest(unittest.TestCase):
         self.assertEqual([root2], list(r1_child1.children))
         self.assertEqual([r1_child1, r1_child1_001], list(root1.children), 'root1.children should have its children')
         self.assertEqual([r2_child1, r2_child2], list(root2.children), 'root2.children should have its children')
+        self.assertEqual(r1_child1, root2.parent)
 
         # Check the array order.
         self.assertEqual([root1, r1_child1, r1_child1_001, r2_child1, r2_child2, root2], list(bcolls.all))
