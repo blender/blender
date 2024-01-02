@@ -71,7 +71,6 @@ if(WITH_GTESTS)
     bf_io_stl
   )
 
-  include(GTestTesting)
   blender_add_test_lib(bf_io_stl_tests "${TEST_SRC}" "${TEST_INC}" "${INC_SYS}" "${TEST_LIB}")
   add_dependencies(bf_io_stl_tests bf_io_stl)
 endif()

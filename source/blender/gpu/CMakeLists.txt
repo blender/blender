@@ -923,7 +923,6 @@ if(WITH_GTESTS)
       tests/gpu_testing.hh
     )
 
-    include(GTestTesting)
     blender_add_test_lib(bf_gpu_tests "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}")
   endif()
 endif()

@@ -63,6 +63,5 @@ if(WITH_GTESTS)
   set(TEST_LIB
     PRIVATE bf::animrig
   )
-  include(GTestTesting)
   blender_add_test_lib(bf_animrig_tests "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}")
 endif()

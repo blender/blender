@@ -674,7 +674,6 @@ if(WITH_COMPOSITOR_CPU)
     set(TEST_LIB
       bf_compositor
     )
-    include(GTestTesting)
     blender_add_test_lib(bf_compositor_tests "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}")
   endif()
 
