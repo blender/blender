@@ -373,6 +373,13 @@ static bool rna_BoneCollection_is_editable_get(PointerRNA *ptr)
   return ANIM_armature_bonecoll_is_editable(arm, bcoll);
 }
 
+static int rna_BoneCollection_index_get(PointerRNA *ptr)
+{
+  bArmature *arm = reinterpret_cast<bArmature *>(ptr->owner_id);
+  BoneCollection *bcoll = static_cast<BoneCollection *>(ptr->data);
+  return blender::animrig::armature_bonecoll_find_index(arm, bcoll);
+}
+
 /* BoneCollection.bones iterator functions. */
 
 static void rna_BoneCollection_bones_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -2268,6 +2275,15 @@ static void rna_def_bonecollection(BlenderRNA *brna)
                            "Parent",
                            "Parent bone collection. Note that accessing this requires a scan of "
                            "all the bone collections to find the parent");
+
+  prop = RNA_def_property(srna, "index", PROP_INT, PROP_NONE);
+  RNA_def_property_int_funcs(prop, "rna_BoneCollection_index_get", nullptr, nullptr);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(
+      prop,
+      "Index",
+      "Index of this bone collection in the armature.collections.all array. Note that finding "
+      "this index requires a scan of all the bone collections, so do access this with care");
 
   RNA_api_bonecollection(srna);
 }

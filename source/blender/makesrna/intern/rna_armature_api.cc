@@ -200,12 +200,6 @@ static int rna_BoneCollection_move_to_parent(ID *owner_id,
   return new_bcoll_index;
 }
 
-static int rna_BoneCollection_find_index(ID *owner_id, BoneCollection *self)
-{
-  bArmature *armature = (bArmature *)owner_id;
-  return blender::animrig::armature_bonecoll_find_index(armature, self);
-}
-
 #else
 
 void RNA_api_armature_edit_bone(StructRNA *srna)
@@ -397,17 +391,6 @@ void RNA_api_bonecollection(StructRNA *srna)
                      "for manipulating the active bone collection index",
                      -1,
                      INT_MAX);
-  RNA_def_function_return(func, parm);
-
-  /* collection.find_index() */
-  func = RNA_def_function(srna, "find_index", "rna_BoneCollection_find_index");
-  RNA_def_function_ui_description(func,
-                                  "Find the index of this bone collection. This scans through all "
-                                  "the Armature's bone collections");
-  RNA_def_function_flag(func, FUNC_USE_SELF_ID);
-  /* Return value. */
-  parm = RNA_def_int(
-      func, "index", -1, -1, INT_MAX, "Index", "Index of the bone collection", -1, INT_MAX);
   RNA_def_function_return(func, parm);
 }
 
