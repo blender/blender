@@ -204,25 +204,6 @@ ifndef PYTHON
 	PYTHON:=python3
 endif
 
-# The Python version bundled in `LIBDIR`,
-# needed when macOS & Linux are out of sync while upgrading the Python version.
-ifeq ($(OS_NCASE),darwin)
-	PY_LIB_VERSION:=3.10
-else
-	PY_LIB_VERSION:=3.11
-endif
-
-# For macOS python3 is not installed by default, so fallback to python binary
-# in libraries, or python 2 for running make update to get it.
-ifeq ($(OS_NCASE),darwin)
-	ifeq (, $(shell command -v $(PYTHON)))
-		PYTHON:=$(DEPS_INSTALL_DIR)/python/bin/python$(PY_LIB_VERSION)
-		ifeq (, $(shell command -v $(PYTHON)))
-			PYTHON:=python
-		endif
-	endif
-endif
-
 # Set the LIBDIR, an empty string when not found.
 LIBDIR:=$(wildcard ../lib/${OS_NCASE}_${CPU})
 ifeq (, $(LIBDIR))
@@ -230,6 +211,35 @@ ifeq (, $(LIBDIR))
 endif
 ifeq (, $(LIBDIR))
 	LIBDIR:=$(wildcard ../lib/${OS_NCASE})
+endif
+
+# Find the newest Python version bundled in `LIBDIR`.
+PY_LIB_VERSION:=3.15
+ifeq (, $(wildcard $(LIBDIR)/python/lib/python$(PY_LIB_VERSION)))
+	PY_LIB_VERSION:=3.14
+	ifeq (, $(wildcard $(LIBDIR)/python/lib/python$(PY_LIB_VERSION)))
+		PY_LIB_VERSION:=3.13
+		ifeq (, $(wildcard $(LIBDIR)/python/lib/python$(PY_LIB_VERSION)))
+			PY_LIB_VERSION:=3.12
+			ifeq (, $(wildcard $(LIBDIR)/python/lib/python$(PY_LIB_VERSION)))
+				PY_LIB_VERSION:=3.11
+				ifeq (, $(wildcard $(LIBDIR)/python/lib/python$(PY_LIB_VERSION)))
+					PY_LIB_VERSION:=3.10
+				endif
+			endif
+		endif
+	endif
+endif
+
+# For macOS python3 is not installed by default, so fallback to python binary
+# in libraries, or python 2 for running make update to get it.
+ifeq ($(OS_NCASE),darwin)
+	ifeq (, $(shell command -v $(PYTHON)))
+		PYTHON:=$(LIBDIR)/python/bin/python$(PY_LIB_VERSION)
+		ifeq (, $(shell command -v $(PYTHON)))
+			PYTHON:=python
+		endif
+	endif
 endif
 
 # Use the autopep8 module in ../lib/ (which can be executed via Python directly).
