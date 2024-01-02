@@ -116,24 +116,35 @@ class BoneCollectionTest(unittest.TestCase):
         bcolls = self.arm.collections
         bcoll_root = bcolls.new('root')
         bcoll_child1 = bcolls.new('child1', parent=bcoll_root)
-        bcoll_child2 = bcolls.new('child2', parent=bcoll_root)
+        bcoll_child2 = bcolls.new('child2', parent=bcoll_child1)
 
         # Add bones to the armature & assign to collections.
         bone_dict = self.add_bones(self.arm_ob)
         bcoll_root.assign(bone_dict['root'])
 
-        bcoll_child1_bone_names = ('child_L', 'child_L_L', 'child_L_R')
+        bcoll_child1_bone_names = {'child_L', 'child_L_L', 'child_L_R'}
         for bone_name in bcoll_child1_bone_names:
             bcoll_child1.assign(bone_dict[bone_name])
 
-        bcoll_child2_bone_names = ('child_R', 'child_R_L', 'child_R_R')
+        bcoll_child2_bone_names = {'child_R', 'child_R_L', 'child_R_R'}
         for bone_name in bcoll_child2_bone_names:
             bcoll_child2.assign(bone_dict[bone_name])
 
         # Check that the `.bones` property returns the expected ones.
         self.assertEqual([self.arm.bones['root']], list(bcoll_root.bones))
-        self.assertEqual(set(bcoll_child1_bone_names), {b.name for b in bcoll_child1.bones})
-        self.assertEqual(set(bcoll_child2_bone_names), {b.name for b in bcoll_child2.bones})
+        self.assertEqual(bcoll_child1_bone_names, {b.name for b in bcoll_child1.bones})
+        self.assertEqual(bcoll_child2_bone_names, {b.name for b in bcoll_child2.bones})
+
+        # Check that the `.bones_recursive` property returns the expected bones.
+        all_bones = set(self.arm.bones)
+        self.assertEqual(all_bones, set(bcoll_root.bones_recursive),
+                         'All bones should have been assigned to at least one bone collection')
+
+        self.assertEqual(bcoll_child1_bone_names | bcoll_child2_bone_names,
+                         {b.name for b in bcoll_child1.bones_recursive},
+                         "All bones of child1 and child2 should be in child1.bones_recursive")
+
+        self.assertEqual(bcoll_child2_bone_names, {b.name for b in bcoll_child2.bones_recursive})
 
     def test_bone_collection_armature_join(self):
         other_arm_ob, other_arm = self.create_armature()
