@@ -5,7 +5,12 @@
 #include "usd_skel_convert.h"
 
 #include "usd.h"
+#include "usd_armature_utils.h"
+#include "usd_blend_shape_utils.h"
+#include "usd_hash_types.h"
 
+#include <pxr/usd/sdf/namespaceEdit.h>
+#include <pxr/usd/usdGeom/primvarsAPI.h>
 #include <pxr/usd/usdSkel/animation.h>
 #include <pxr/usd/usdSkel/bindingAPI.h>
 #include <pxr/usd/usdSkel/blendShape.h>
@@ -16,16 +21,18 @@
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_key_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_scene_types.h"
 
 #include "BKE_action.h"
 #include "BKE_armature.hh"
+#include "BKE_attribute.hh"
 #include "BKE_deform.h"
 #include "BKE_fcurve.h"
 #include "BKE_key.h"
 #include "BKE_lib_id.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
@@ -33,6 +40,7 @@
 #include "BKE_report.h"
 
 #include "BLI_math_vector.h"
+#include "BLI_span.hh"
 #include "BLI_string.h"
 
 #include "ED_armature.hh"
@@ -42,11 +50,12 @@
 #include "ANIM_animdata.hh"
 #include "ANIM_fcurve.hh"
 
-#include "WM_api.hh"
-
 #include <iostream>
 #include <string>
 #include <vector>
+
+#include "CLG_log.h"
+static CLG_LogRef LOG = {"io.usd"};
 
 namespace {
 
@@ -332,6 +341,39 @@ void import_skeleton_curves(Main *bmain,
   std::for_each(loc_curves.begin(), loc_curves.end(), recalc_handles);
   std::for_each(rot_curves.begin(), rot_curves.end(), recalc_handles);
   std::for_each(scale_curves.begin(), scale_curves.end(), recalc_handles);
+}
+
+/* Set the skeleton path and bind transform on the given mesh. */
+void add_skinned_mesh_bindings(const pxr::UsdSkelSkeleton &skel,
+                               pxr::UsdPrim &mesh_prim,
+                               pxr::UsdGeomXformCache &xf_cache)
+{
+  pxr::UsdSkelBindingAPI skel_api = pxr::UsdSkelBindingAPI::Apply(mesh_prim);
+
+  if (!skel_api) {
+    CLOG_WARN(&LOG,
+              "Couldn't apply UsdSkelBindingAPI to skinned mesh prim %s",
+              mesh_prim.GetPath().GetAsString().c_str());
+    return;
+  }
+
+  /* Specify the path to the skeleton. */
+  pxr::SdfPath skel_path = skel.GetPath();
+  skel_api.CreateSkeletonRel().SetTargets(pxr::SdfPathVector({skel_path}));
+
+  /* Set the mesh's bind transform. */
+  if (pxr::UsdAttribute geom_bind_attr = skel_api.CreateGeomBindTransformAttr()) {
+    /* The bind matrix is the mesh transform relative to the skeleton transform. */
+    pxr::GfMatrix4d mesh_xf = xf_cache.GetLocalToWorldTransform(mesh_prim);
+    pxr::GfMatrix4d skel_xf = xf_cache.GetLocalToWorldTransform(skel.GetPrim());
+    pxr::GfMatrix4d bind_xf = mesh_xf * skel_xf.GetInverse();
+    geom_bind_attr.Set(bind_xf);
+  }
+  else {
+    CLOG_WARN(&LOG,
+              "Couldn't create geom bind transform attribute for skinned mesh %s",
+              mesh_prim.GetPath().GetAsString().c_str());
+  }
 }
 
 }  // End anonymous namespace.
@@ -1063,6 +1105,222 @@ void import_mesh_skel_bindings(Main *bmain,
       }
     }
   }
+}
+
+void skel_export_chaser(pxr::UsdStageRefPtr stage,
+                        const ObjExportMap &armature_export_map,
+                        const ObjExportMap &skinned_mesh_export_map,
+                        const ObjExportMap &shape_key_mesh_export_map,
+                        const Depsgraph *depsgraph)
+{
+  /* We may need to compute the world transforms of certain prims when
+   * setting skinning data.  Using a shared transform cache can make computing
+   * the transforms more efficient. */
+  pxr::UsdGeomXformCache xf_cache(1.0);
+  skinned_mesh_export_chaser(
+      stage, armature_export_map, skinned_mesh_export_map, xf_cache, depsgraph);
+  shape_key_export_chaser(stage, shape_key_mesh_export_map);
+}
+
+void skinned_mesh_export_chaser(pxr::UsdStageRefPtr stage,
+                                const ObjExportMap &armature_export_map,
+                                const ObjExportMap &skinned_mesh_export_map,
+                                pxr::UsdGeomXformCache &xf_cache,
+                                const Depsgraph *depsgraph)
+{
+  /* Finish creating skinned mesh bindings. */
+  for (const auto &item : skinned_mesh_export_map.items()) {
+    const Object *mesh_obj = item.key;
+    const pxr::SdfPath &mesh_path = item.value;
+
+    /* Get the mesh prim from the stage. */
+    pxr::UsdPrim mesh_prim = stage->GetPrimAtPath(mesh_path);
+    if (!mesh_prim) {
+      CLOG_WARN(&LOG,
+                "Invalid export map prim path %s for mesh object %s",
+                mesh_path.GetAsString().c_str(),
+                mesh_obj->id.name + 2);
+      continue;
+    }
+
+    /* Get the armature bound to the mesh's armature modifier. */
+    const Object *arm_obj = get_armature_modifier_obj(*mesh_obj, depsgraph);
+    if (!arm_obj) {
+      CLOG_WARN(&LOG, "Invalid armature modifier for skinned mesh %s", mesh_obj->id.name + 2);
+      continue;
+    }
+    /* Look up the USD skeleton correpsoning to the armature object. */
+    const pxr::SdfPath *path = armature_export_map.lookup_ptr(arm_obj);
+    if (!path) {
+      CLOG_WARN(&LOG, "No export map entry for armature object %s", mesh_obj->id.name + 2);
+      continue;
+    }
+    /* Get the skeleton prim. */
+    pxr::UsdPrim skel_prim = stage->GetPrimAtPath(*path);
+    pxr::UsdSkelSkeleton skel(skel_prim);
+    if (!skel) {
+      CLOG_WARN(&LOG, "Invalid USD skeleton for armature object %s", arm_obj->id.name + 2);
+      continue;
+    }
+
+    add_skinned_mesh_bindings(skel, mesh_prim, xf_cache);
+  }
+}
+
+void shape_key_export_chaser(pxr::UsdStageRefPtr stage,
+                             const ObjExportMap &shape_key_mesh_export_map)
+{
+  Map<pxr::SdfPath, pxr::SdfPathSet> skel_to_mesh;
+
+  /* We will keep track of the mesh prims to clean up the temporary
+   * weights attribute at the end. */
+  Vector<pxr::UsdPrim> mesh_prims;
+
+  /* Finish creating blend shape bindings. */
+  for (const auto &item : shape_key_mesh_export_map.items()) {
+    const Object *mesh_obj = item.key;
+    const pxr::SdfPath &mesh_path = item.value;
+
+    /* Get the mesh prim from the stage. */
+    pxr::UsdPrim mesh_prim = stage->GetPrimAtPath(mesh_path);
+    if (!mesh_prim) {
+      CLOG_WARN(&LOG,
+                "Invalid export map prim path %s for mesh object %s",
+                mesh_path.GetAsString().c_str(),
+                mesh_obj->id.name + 2);
+      continue;
+    }
+
+    /* Keep track of all the mesh prims with blend shapes, for cleanup below. */
+    mesh_prims.append(mesh_prim);
+
+    pxr::UsdSkelBindingAPI skel_api = pxr::UsdSkelBindingAPI::Apply(mesh_prim);
+
+    if (!skel_api) {
+      CLOG_WARN(&LOG,
+                "Couldn't apply UsdSkelBindingAPI to prim %s",
+                mesh_prim.GetPath().GetAsString().c_str());
+      return;
+    }
+
+    pxr::UsdSkelSkeleton skel;
+    if (skel_api.GetSkeleton(&skel)) {
+      /* We have a bound skeleton, so we add it to the map. */
+      pxr::SdfPathSet *mesh_paths = skel_to_mesh.lookup_ptr(skel.GetPath());
+      if (!mesh_paths) {
+        skel_to_mesh.add_new(skel.GetPath(), pxr::SdfPathSet());
+        mesh_paths = skel_to_mesh.lookup_ptr(skel.GetPath());
+      }
+      if (mesh_paths) {
+        mesh_paths->insert(mesh_prim.GetPath());
+      }
+      continue;
+    }
+
+    /* The mesh is not bound to a skeleton, so we must create one for it. */
+    ensure_blend_shape_skeleton(stage, mesh_prim);
+  }
+
+  if (skel_to_mesh.is_empty()) {
+    return;
+  }
+
+  for (const auto &item : skel_to_mesh.items()) {
+    remap_blend_shape_anim(stage, item.key, item.value);
+  }
+
+  /* Finally, delete the temp blendshape weights attributes. */
+  for (pxr::UsdPrim &prim : mesh_prims) {
+    pxr::UsdGeomPrimvarsAPI(prim).RemovePrimvar(TempBlendShapeWeightsPrimvarName);
+  }
+}
+
+void export_deform_verts(const Mesh *mesh,
+                         const pxr::UsdSkelBindingAPI &skel_api,
+                         const Vector<std::string> &bone_names)
+{
+  BLI_assert(mesh);
+  BLI_assert(skel_api);
+
+  /* Map a deform vertex group index to the
+   * index of the corresponding joint.  I.e.,
+   * joint_index[n] is the joint index of the
+   * n-th vertex group. */
+  Vector<int> joint_index;
+
+  /* Build the index mapping. */
+  LISTBASE_FOREACH (const bDeformGroup *, def, &mesh->vertex_group_names) {
+    int bone_idx = -1;
+    /* For now, n-squared search is acceptable. */
+    for (int i = 0; i < bone_names.size(); ++i) {
+      if (bone_names[i] == def->name) {
+        bone_idx = i;
+        break;
+      }
+    }
+
+    joint_index.append(bone_idx);
+  }
+
+  if (joint_index.is_empty()) {
+    return;
+  }
+
+  const Span<MDeformVert> dverts = mesh->deform_verts();
+
+  int max_totweight = 1;
+  for (const int i : dverts.index_range()) {
+    const MDeformVert &vert = dverts[i];
+    if (vert.totweight > max_totweight) {
+      max_totweight = vert.totweight;
+    }
+  }
+
+  /* elem_size will specify the number of
+   * joints that can influence a given point. */
+  const int element_size = max_totweight;
+  int num_points = mesh->verts_num;
+
+  pxr::VtArray<int> joint_indices(num_points * element_size, 0);
+  pxr::VtArray<float> joint_weights(num_points * element_size, 0.0f);
+
+  /* Current offset into the indices and weights arrays. */
+  int offset = 0;
+
+  for (const int i : dverts.index_range()) {
+    const MDeformVert &vert = dverts[i];
+
+    for (int j = 0; j < element_size; ++j, ++offset) {
+
+      if (offset >= joint_indices.size()) {
+        BLI_assert_unreachable();
+        return;
+      }
+
+      if (j >= vert.totweight) {
+        continue;
+      }
+
+      int def_nr = static_cast<int>(vert.dw[j].def_nr);
+
+      if (def_nr >= joint_index.size()) {
+        BLI_assert_unreachable();
+        continue;
+      }
+
+      if (joint_index[def_nr] == -1) {
+        continue;
+      }
+
+      joint_indices[offset] = joint_index[def_nr];
+      joint_weights[offset] = vert.dw[j].weight;
+    }
+  }
+
+  pxr::UsdSkelNormalizeWeights(joint_weights, element_size);
+
+  skel_api.CreateJointIndicesPrimvar(false, element_size).GetAttr().Set(joint_indices);
+  skel_api.CreateJointWeightsPrimvar(false, element_size).GetAttr().Set(joint_weights);
 }
 
 }  // namespace blender::io::usd

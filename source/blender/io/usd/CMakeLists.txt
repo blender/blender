@@ -81,6 +81,8 @@ set(INC_SYS
 
 set(SRC
   intern/usd_asset_utils.cc
+  intern/usd_armature_utils.cc
+  intern/usd_blend_shape_utils.cc
   intern/usd_capi_export.cc
   intern/usd_capi_import.cc
   intern/usd_hierarchy_iterator.cc
@@ -95,6 +97,7 @@ set(SRC
   intern/usd_writer_metaball.cc
   intern/usd_writer_transform.cc
   intern/usd_writer_volume.cc
+  intern/usd_writer_armature.cc
 
   intern/usd_reader_camera.cc
   intern/usd_reader_curve.cc
@@ -111,11 +114,14 @@ set(SRC
   intern/usd_reader_volume.cc
   intern/usd_reader_xform.cc
   intern/usd_skel_convert.cc
+  intern/usd_skel_root_utils.cc
 
   usd.h
   usd.hh
 
   intern/usd_asset_utils.h
+  intern/usd_armature_utils.h
+  intern/usd_blend_shape_utils.h
   intern/usd_exporter_context.h
   intern/usd_hash_types.h
   intern/usd_hierarchy_iterator.h
@@ -130,6 +136,7 @@ set(SRC
   intern/usd_writer_metaball.h
   intern/usd_writer_transform.h
   intern/usd_writer_volume.h
+  intern/usd_writer_armature.h
 
   intern/usd_reader_camera.h
   intern/usd_reader_curve.h
@@ -146,6 +153,7 @@ set(SRC
   intern/usd_reader_volume.h
   intern/usd_reader_xform.h
   intern/usd_skel_convert.h
+  intern/usd_skel_root_utils.h
 )
 
 if(WITH_HYDRA)

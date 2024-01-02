@@ -185,6 +185,10 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
   const bool overwrite_textures = RNA_boolean_get(op->ptr, "overwrite_textures");
   const bool relative_paths = RNA_boolean_get(op->ptr, "relative_paths");
 
+  const bool export_armatures = RNA_boolean_get(op->ptr, "export_armatures");
+  const bool export_shapekeys = RNA_boolean_get(op->ptr, "export_shapekeys");
+  const bool only_deform_bones = RNA_boolean_get(op->ptr, "only_deform_bones");
+
   char root_prim_path[FILE_MAX];
   RNA_string_get(op->ptr, "root_prim_path", root_prim_path);
   process_prim_path(root_prim_path);
@@ -196,6 +200,9 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
       export_normals,
       export_mesh_colors,
       export_materials,
+      export_armatures,
+      export_shapekeys,
+      only_deform_bones,
       export_subdiv,
       selected_objects_only,
       visible_objects_only,
@@ -234,6 +241,15 @@ static void wm_usd_export_draw(bContext * /*C*/, wmOperator *op)
   uiItemR(col, ptr, "export_uvmaps", UI_ITEM_NONE, nullptr, ICON_NONE);
   uiItemR(col, ptr, "export_normals", UI_ITEM_NONE, nullptr, ICON_NONE);
   uiItemR(col, ptr, "export_materials", UI_ITEM_NONE, nullptr, ICON_NONE);
+
+  col = uiLayoutColumnWithHeading(box, true, IFACE_("Rigging"));
+  uiItemR(col, ptr, "export_armatures", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiLayout *row = uiLayoutRow(col, true);
+  uiItemR(row, ptr, "only_deform_bones", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiLayoutSetActive(row, RNA_boolean_get(ptr, "export_armatures"));
+  uiItemR(col, ptr, "export_shapekeys", UI_ITEM_NONE, nullptr, ICON_NONE);
+
+  col = uiLayoutColumn(box, true);
   uiItemR(col, ptr, "export_subdivision", UI_ITEM_NONE, nullptr, ICON_NONE);
   uiItemR(col, ptr, "root_prim_path", UI_ITEM_NONE, nullptr, ICON_NONE);
 
@@ -246,7 +262,7 @@ static void wm_usd_export_draw(bContext * /*C*/, wmOperator *op)
   const bool export_mtl = RNA_boolean_get(ptr, "export_materials");
   uiLayoutSetActive(col, export_mtl);
 
-  uiLayout *row = uiLayoutRow(col, true);
+  row = uiLayoutRow(col, true);
   uiItemR(row, ptr, "export_textures", UI_ITEM_NONE, nullptr, ICON_NONE);
   const bool preview = RNA_boolean_get(ptr, "generate_preview_surface");
   uiLayoutSetActive(row, export_mtl && preview);
@@ -366,6 +382,22 @@ void WM_OT_usd_export(wmOperatorType *ot)
                "Subdivision Scheme",
                "Choose how subdivision modifiers will be mapped to the USD subdivision scheme "
                "during export");
+
+  RNA_def_boolean(ot->srna,
+                  "export_armatures",
+                  true,
+                  "Armatures",
+                  "Export armatures and meshes with armature modifiers as USD skeletons and "
+                  "skinned meshes");
+
+  RNA_def_boolean(ot->srna,
+                  "only_deform_bones",
+                  false,
+                  "Only Deform Bones",
+                  "Only export deform bones and their parents");
+
+  RNA_def_boolean(
+      ot->srna, "export_shapekeys", true, "Shape Keys", "Export shape keys as USD blend shapes");
 
   RNA_def_boolean(ot->srna,
                   "use_instancing",
