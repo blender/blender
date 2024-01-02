@@ -16,7 +16,7 @@ class BoneCollectionTest(unittest.TestCase):
     arm: bpy.types.Armature
 
     def setUp(self):
-        bpy.ops.wm.read_homefile()
+        bpy.ops.wm.read_homefile(use_factory_startup=True)
         self.arm_ob, self.arm = self.create_armature()
 
     def create_armature(self) -> tuple[bpy.types.Object, bpy.types.Armature]:
