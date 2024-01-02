@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'0b00b360f7ae')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'98c6bded9844')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-18 13:45:58\n"
+"POT-Creation-Date: 2024-01-02 10:08:43\n"
 "PO-Revision-Date: 2023-12-12 17:36+0000\n"
 "Last-Translator: Cheng-Chia Tseng <pswo10680@gmail.com>\n"
 "Language-Team: Chinese (Traditional) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -29997,11 +29997,6 @@ msgid "Convert rotations to euler ZYX"
 msgstr "轉換旋轉至尤拉 ZYX"
 
 
-msgctxt "Operator"
-msgid "Export STL"
-msgstr "匯出 STL"
-
-
 msgid "Ascii"
 msgstr "Ascii"
 
@@ -31904,11 +31899,6 @@ msgstr "無陰影"
 
 msgid "Emission Shader"
 msgstr "散發光著色器"
-
-
-msgctxt "Operator"
-msgid "Import STL"
-msgstr "匯入 STL"
 
 
 msgid "Load STL triangle mesh data"
@@ -43010,6 +43000,16 @@ msgstr "關於 Blender"
 
 
 msgctxt "Operator"
+msgid "Export STL"
+msgstr "匯出 STL"
+
+
+msgctxt "Operator"
+msgid "Import STL"
+msgstr "匯入 STL"
+
+
+msgctxt "Operator"
 msgid "Save System Info"
 msgstr "儲存系統資訊"
 
@@ -48518,18 +48518,6 @@ msgstr "顯示格線"
 
 msgid "Show Offsets"
 msgstr "顯示偏移"
-
-
-msgid "Waveforms Off"
-msgstr "波形關"
-
-
-msgid "Waveforms On"
-msgstr "波形開"
-
-
-msgid "Use Strip Option"
-msgstr "使用片段選項"
 
 
 msgid "Bounding Box Center"
@@ -55544,86 +55532,6 @@ msgstr "重算外部"
 msgctxt "Operator"
 msgid "Recalculate Inside"
 msgstr "重算內部"
-
-
-msgctxt "Operator"
-msgid "Copyright"
-msgstr "著作權"
-
-
-msgctxt "Operator"
-msgid "Registered Trademark"
-msgstr "註冊商標"
-
-
-msgctxt "Operator"
-msgid "Degree Sign"
-msgstr "度符號"
-
-
-msgctxt "Operator"
-msgid "Multiplication Sign"
-msgstr "乘號"
-
-
-msgctxt "Operator"
-msgid "Superscript 1"
-msgstr "上標 1"
-
-
-msgctxt "Operator"
-msgid "Superscript 2"
-msgstr "上標 2"
-
-
-msgctxt "Operator"
-msgid "Superscript 3"
-msgstr "上標 3"
-
-
-msgctxt "Operator"
-msgid "Double >>"
-msgstr "雙線 >>"
-
-
-msgctxt "Operator"
-msgid "Double <<"
-msgstr "雙線 <<"
-
-
-msgctxt "Operator"
-msgid "Promillage"
-msgstr "千分符"
-
-
-msgctxt "Operator"
-msgid "Dutch Florin"
-msgstr "荷蘭盾"
-
-
-msgctxt "Operator"
-msgid "British Pound"
-msgstr "英磅"
-
-
-msgctxt "Operator"
-msgid "Japanese Yen"
-msgstr "日元"
-
-
-msgctxt "Operator"
-msgid "German S"
-msgstr "德文 S"
-
-
-msgctxt "Operator"
-msgid "Spanish Question Mark"
-msgstr "西班牙文問號"
-
-
-msgctxt "Operator"
-msgid "Spanish Exclamation Mark"
-msgstr "西班牙文驚嘆號"
 
 
 msgctxt "Operator"

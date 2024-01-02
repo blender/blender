@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'0b00b360f7ae')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'98c6bded9844')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2023-12-18 13:45:58\n"
+"POT-Creation-Date: 2024-01-02 10:08:43\n"
 "PO-Revision-Date: 2023-12-06 06:42+0000\n"
 "Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -31590,6 +31590,10 @@ msgid "Align selected bones to the active bone (or to their parent)"
 msgstr "Alinha os ossos selecionados ao osso ativo (ou ao seu parente)."
 
 
+msgid "Collection Index"
+msgstr "Índice da Coleção"
+
+
 msgctxt "Operator"
 msgid "Auto-Name by Axis"
 msgstr "Nomear automaticamente por eixos"
@@ -34640,11 +34644,6 @@ msgstr "Euler (ZYX)"
 
 msgid "Convert rotations to euler ZYX"
 msgstr "Converte rotações para o Euler ZYX."
-
-
-msgctxt "Operator"
-msgid "Export STL"
-msgstr "Exportar STL"
 
 
 msgid "Ascii"
@@ -37910,11 +37909,6 @@ msgstr "Nó de sombreador para usar"
 
 msgid "Shadeless"
 msgstr "Insensível a luzes ou sombras"
-
-
-msgctxt "Operator"
-msgid "Import STL"
-msgstr "Importar STL"
 
 
 msgid "Load STL triangle mesh data"
@@ -42162,10 +42156,6 @@ msgstr "Move o modificador para cima na pilha."
 msgctxt "Operator"
 msgid "Hide Collection"
 msgstr "Ocultar Coleção"
-
-
-msgid "Collection Index"
-msgstr "Índice da Coleção"
 
 
 msgid "Toggle visibility"
@@ -51691,6 +51681,16 @@ msgstr "Sobre o Blender"
 
 
 msgctxt "Operator"
+msgid "Export STL"
+msgstr "Exportar STL"
+
+
+msgctxt "Operator"
+msgid "Import STL"
+msgstr "Importar STL"
+
+
+msgctxt "Operator"
 msgid "Save System Info"
 msgstr "Salvar as informações sobre o sistema"
 
@@ -59477,18 +59477,6 @@ msgstr "Mostrar deslocamentos"
 
 msgid "Display strip in/out offsets"
 msgstr "Mostra os deslocamentos de entrada e saída das faixas."
-
-
-msgid "Waveforms Off"
-msgstr "Desligar formatos de onda"
-
-
-msgid "Waveforms On"
-msgstr "Acionar formatos de onda"
-
-
-msgid "Use Strip Option"
-msgstr "Utilizar as opções de faixa "
 
 
 msgid "Shuffle"
@@ -68043,86 +68031,6 @@ msgstr "Apagar segmento"
 msgctxt "Operator"
 msgid "Delete Point"
 msgstr "Apagar ponto"
-
-
-msgctxt "Operator"
-msgid "Copyright"
-msgstr "Copyright (Direitos autorais)"
-
-
-msgctxt "Operator"
-msgid "Registered Trademark"
-msgstr "Marca registrada"
-
-
-msgctxt "Operator"
-msgid "Degree Sign"
-msgstr "Símbolo de graduação"
-
-
-msgctxt "Operator"
-msgid "Multiplication Sign"
-msgstr "Sinal de multiplicação"
-
-
-msgctxt "Operator"
-msgid "Superscript 1"
-msgstr "Sobrescrito 1"
-
-
-msgctxt "Operator"
-msgid "Superscript 2"
-msgstr "Sobrescrito 2"
-
-
-msgctxt "Operator"
-msgid "Superscript 3"
-msgstr "Sobrescrito 3"
-
-
-msgctxt "Operator"
-msgid "Double >>"
-msgstr "Seta dupla >>"
-
-
-msgctxt "Operator"
-msgid "Double <<"
-msgstr "Seta dupla <<"
-
-
-msgctxt "Operator"
-msgid "Promillage"
-msgstr "Por milhagem"
-
-
-msgctxt "Operator"
-msgid "Dutch Florin"
-msgstr "Florim holandês"
-
-
-msgctxt "Operator"
-msgid "British Pound"
-msgstr "Libra britânica"
-
-
-msgctxt "Operator"
-msgid "Japanese Yen"
-msgstr "Iene japonês"
-
-
-msgctxt "Operator"
-msgid "German S"
-msgstr "S Germânico (duplo s)"
-
-
-msgctxt "Operator"
-msgid "Spanish Question Mark"
-msgstr "Interrogação hispânica"
-
-
-msgctxt "Operator"
-msgid "Spanish Exclamation Mark"
-msgstr "Exclamação hispânica"
 
 
 msgctxt "Operator"

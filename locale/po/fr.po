@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'0b00b360f7ae')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'98c6bded9844')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-18 13:45:58\n"
-"PO-Revision-Date: 2023-12-15 16:22+0000\n"
+"POT-Creation-Date: 2024-01-02 10:08:43\n"
+"PO-Revision-Date: 2023-12-21 01:55+0000\n"
 "Last-Translator: Damien Picard <dam.pic@free.fr>\n"
 "Language-Team: French <https://translate.blender.org/projects/blender-ui/ui/fr/>\n"
 "Language: fr\n"
@@ -3991,10 +3991,6 @@ msgstr "Collection d’os active de l’armature"
 
 msgid "Active Collection Index"
 msgstr "Indice de la collection active"
-
-
-msgid "The index of the Armature's active bone collection; -1 when there is no active collection"
-msgstr "L’indice de la collection d’os active de l’armature ; -1 s’il n’y a aucune collection active"
 
 
 msgid "Active Collection Name"
@@ -31877,7 +31873,7 @@ msgstr "ClicD"
 
 msgctxt "UI_Events_KeyMaps"
 msgid "Button4 Mouse"
-msgstr "Souris Bouton 4"
+msgstr "Souris bouton 4"
 
 
 msgid "MB4"
@@ -45517,6 +45513,10 @@ msgid "Bake"
 msgstr "Précalculer"
 
 
+msgid "Cache the incoming data so that it can be used without recomputation"
+msgstr "Mettre en cache les données en entrée pour pouvoir les utiliser sans les recalculer"
+
+
 msgid "Active Item Index"
 msgstr "Indice de l’élément actif"
 
@@ -46148,6 +46148,10 @@ msgstr "Bascule par indice"
 
 msgid "Choose between an arbitrary number of values with an index"
 msgstr "Choisir avec un indice parmi un nombre arbitraire de valeurs"
+
+
+msgid "Retrieve the scene's active camera"
+msgstr "Obtenir la caméra active de la scène"
 
 
 msgid "Curve Handle Positions"
@@ -49356,16 +49360,36 @@ msgid "Value to Normal"
 msgstr "Valeur vers normale"
 
 
+msgid "Bake Item"
+msgstr "Élément de précalcul"
+
+
 msgid "Attribute Domain"
 msgstr "Domaine d’attribut"
+
+
+msgid "Attribute domain where the attribute is stored in the baked data"
+msgstr "Domaine d’attribut, où l’attribut est stocké dans les données précalculées"
 
 
 msgid "Color of the corresponding socket type in the node editor"
 msgstr "Couleur du type de prise correspondant dans l’éditeur de nœuds"
 
 
+msgid "Is Attribute"
+msgstr "Est un attribut"
+
+
+msgid "Bake item is an attribute stored on a geometry"
+msgstr "L’élément de précalcul est un attribut stocké dans une géométrie"
+
+
 msgid "Socket Type"
 msgstr "Type de prise"
+
+
+msgid "Collection of bake items"
+msgstr "Collection d’éléments de précalcul"
 
 
 msgid "Collection of repeat items"
@@ -50018,6 +50042,22 @@ msgstr "Nœud actif dans cette arborescence"
 
 msgid "Nodes Modifier Bake"
 msgstr "Précalcul de modificateur Nœuds"
+
+
+msgid "Bake Mode"
+msgstr "Mode de précalcul"
+
+
+msgid "Bake a frame range"
+msgstr "Précalculer un intervalle de frames"
+
+
+msgid "Still"
+msgstr "Fixe"
+
+
+msgid "Bake a single frame"
+msgstr "Précalculer une seule frame"
 
 
 msgid "Frame where the baking ends"
@@ -50956,6 +50996,55 @@ msgstr "Ignorer les frames en dehors de l’intervalle de prévisualisation"
 
 
 msgctxt "Operator"
+msgid "Bake Channels"
+msgstr "Précalculer les canaux"
+
+
+msgid "Create keyframes following the current shape of F-Curves of selected channels"
+msgstr "Créer des images clés en suivant la forme actuelle des F-courbes des canaux sélectionnés"
+
+
+msgid "Bake Modifiers"
+msgstr "Précalculer les modificateurs"
+
+
+msgid "Bake Modifiers into keyframes and delete them after"
+msgstr "Précalculer les modificateurs en images clés, puis les supprimer"
+
+
+msgid "Choose the interpolation type with which new keys will be added"
+msgstr "Choisir le type d’interpolation avec lequel ajouter les nouvelles clés"
+
+
+msgid "New keys will be beziers"
+msgstr "Les nouvelles clés seront de type Bézier"
+
+
+msgid "New keys will be linear"
+msgstr "Les nouvelles clés seront de type linéaire"
+
+
+msgid "New keys will be constant"
+msgstr "Les nouvelles clés seront de type constant"
+
+
+msgid "The range in which to create new keys"
+msgstr "Intervalle dans lequel créer les nouvelles clés"
+
+
+msgid "Remove Outside Range"
+msgstr "Supprimer hors intervalle"
+
+
+msgid "Removes keys outside the given range, leaving only the newly baked"
+msgstr "Supprimer les clés en dehors de l’intervalle choisi, et ne laisser que les nouvelles clés précalculées"
+
+
+msgid "At which interval to add keys"
+msgstr "Combien de frames laisser entre les nouvelles clés"
+
+
+msgctxt "Operator"
 msgid "Remove Empty Animation Data"
 msgstr "Supprimer les données d’animation vides"
 
@@ -51515,16 +51604,8 @@ msgid "Assign to Collection"
 msgstr "Assigner à la collection"
 
 
-msgid "Assign bones to a collection"
-msgstr "Assigner les os à une collection"
-
-
-msgid "The bone collection to move the selected bones to"
-msgstr "La collection d’os vers laquelle déplacer les os sélectionnés"
-
-
-msgid "Name of the newly added bone collection"
-msgstr "Nom de la collection d’os nouvellement ajoutée"
+msgid "Collection Index"
+msgstr "Indice de collection"
 
 
 msgctxt "Operator"
@@ -51749,10 +51830,6 @@ msgid "Remove Bone from Bone Collection"
 msgstr "Retirer l’os de la collection d’os"
 
 
-msgid "Unassign the bone from this bone collection"
-msgstr "Ne plus assigner l’os à cette collection d’os"
-
-
 msgid "Name of the bone to unassign from the collection; empty to use the active bone"
 msgstr "Nom de l’os à retirer de la collection. Laisser vide pour utiliser l’os actif"
 
@@ -51814,7 +51891,7 @@ msgstr "Essayer d’inverser les noms des os si possible, au lieu d’ajouter de
 
 
 msgid "Make copies of the selected bones within the same armature and move them"
-msgstr "Créer de copies des os sélectionnés dans la même armature, et les déplacer"
+msgstr "Créer des copies des os sélectionnés dans la même armature, et les déplacer"
 
 
 msgid "Duplicate Selected Bone(s)"
@@ -54471,8 +54548,29 @@ msgid "Remove selected control points or curves"
 msgstr "Supprimer les points de contrôle ou courbes sélectionnées"
 
 
+msgctxt "Operator"
+msgid "Draw Curves"
+msgstr "Dessiner une courbe"
+
+
+msgid "Draw a freehand curve"
+msgstr "Dessiner une courbe à main levée"
+
+
 msgid "Error distance threshold (in object units)"
 msgstr "Seuil d’erreur de distance (en unités objet)"
+
+
+msgid "Curve 2D"
+msgstr "Courbe 2D"
+
+
+msgid "Copy selected points or curves"
+msgstr "Copier les points ou courbes sélectionnées"
+
+
+msgid "Make copies of selected elements and move them"
+msgstr "Créer des copies des éléments sélectionnés et les déplacer"
 
 
 msgid "Duplicate"
@@ -54673,7 +54771,7 @@ msgstr "Dessiner une courbe"
 
 
 msgid "Draw a freehand spline"
-msgstr "Dessiner une courbe à main levée"
+msgstr "Dessiner une spline à main levée"
 
 
 msgctxt "Operator"
@@ -55637,11 +55735,6 @@ msgstr "Euler (ZYX)"
 
 msgid "Convert rotations to euler ZYX"
 msgstr "Convertir la rotation en Euler ZYX"
-
-
-msgctxt "Operator"
-msgid "Export STL"
-msgstr "Exporter STL"
 
 
 msgid "Save STL triangle mesh data"
@@ -58697,7 +58790,7 @@ msgstr "Dupliquer les traits de Grease Pencil sélectionnés"
 
 
 msgid "Make copies of the selected Grease Pencil strokes and move them"
-msgstr "Copier et déplacer les traits de Grease Pencil sélectionnés"
+msgstr "Créer des copies des traits de Grease Pencil sélectionnés et les déplacer"
 
 
 msgid "Duplicate Strokes"
@@ -61166,6 +61259,14 @@ msgid "The scale factor applied to the curve segments"
 msgstr "Facteur de fondu appliqué aux segments de courbe"
 
 
+msgid "From Left"
+msgstr "Depuis la gauche"
+
+
+msgid "From Right"
+msgstr "Depuis la droite"
+
+
 msgid "Are handles tested individually against the selection criteria"
 msgstr "Si les poignées sont testées individuellement par rapport aux critères de sélection"
 
@@ -61224,16 +61325,8 @@ msgid "Which end of the segment to use as a reference to shear from"
 msgstr "Quelle extrémité du segment utiliser comme référence autour de laquelle cisailler"
 
 
-msgid "From Left"
-msgstr "Depuis la gauche"
-
-
 msgid "Shear the keys using the left key as reference"
 msgstr "Cisailler les clés en utilisant la clé de gauche comme référence"
-
-
-msgid "From Right"
-msgstr "Depuis la droite"
 
 
 msgid "Shear the keys using the right key as reference"
@@ -62501,11 +62594,6 @@ msgid "Use alpha channel for transparency"
 msgstr "Utiliser le canal alpha pour la transparence"
 
 
-msgctxt "Operator"
-msgid "Import STL"
-msgstr "Importer STL"
-
-
 msgid "Load STL triangle mesh data"
 msgstr "Charger des données de maillage triangulé STL"
 
@@ -63392,7 +63480,7 @@ msgstr "Dupliquer les éléments de métaballes sélectionnés"
 
 
 msgid "Make copies of the selected metaball elements and move them"
-msgstr "Copier et déplacer les éléments de métaballes sélectionnés"
+msgstr "Créer des copies des éléments de métaballes sélectionnés et les déplacer"
 
 
 msgid "Duplicate Metaball Elements"
@@ -67070,6 +67158,33 @@ msgstr "(Dé)zoomer l’image d’arrière-plan"
 
 
 msgctxt "Operator"
+msgid "Add Bake Item"
+msgstr "Ajouter un élément de précalcul"
+
+
+msgid "Add a bake item to the bake node"
+msgstr "Ajouter un élément de précalcul au nœud de précalcul"
+
+
+msgctxt "Operator"
+msgid "Move Bake Item"
+msgstr "Déplacer l’élément de précalcul"
+
+
+msgid "Move a bake item up or down in the list"
+msgstr "Déplacer un élément de précalcul vers le haut ou le bas dans la liste"
+
+
+msgctxt "Operator"
+msgid "Remove Bake Item"
+msgstr "Supprimer l’élément de précalcul"
+
+
+msgid "Remove a bake item from the bake node"
+msgstr "Supprimer un élément de précalcul du nœud de précalcul"
+
+
+msgctxt "Operator"
 msgid "Clear Viewer Region"
 msgstr "Effacer la région de visualisation"
 
@@ -68447,12 +68562,34 @@ msgid "Toggle object's force field"
 msgstr "(Dés)activer le champ de force de l’objet"
 
 
+msgctxt "Operator"
+msgid "Delete Geometry Node Bake"
+msgstr "Supprimer le précalcul du nœud de géométrie"
+
+
+msgid "Delete baked data of a single bake node or simulation"
+msgstr "Supprimer les données précalculées d’un seul nœud de précalcul ou simulation"
+
+
 msgid "Bake ID"
 msgstr "ID de précalcul"
 
 
+msgid "Nested node id of the node"
+msgstr "Identifiant imbriqué du nœud"
+
+
 msgid "Name of the modifier that contains the node"
 msgstr "Nom du modificateur contenant le nœud"
+
+
+msgctxt "Operator"
+msgid "Bake Geometry Node"
+msgstr "Précalculer le nœud de géométrie"
+
+
+msgid "Bake a single bake node or simulation"
+msgstr "Précalculer un seul nœud de précalcul ou simulation"
 
 
 msgctxt "Operator"
@@ -68649,10 +68786,6 @@ msgstr "Cacher la collection"
 
 msgid "Show only objects in collection (Shift to extend)"
 msgstr "N’afficher que les objets de la collection (Maj pour étendre)"
-
-
-msgid "Collection Index"
-msgstr "Indice de collection"
 
 
 msgid "Index of the collection to change visibility"
@@ -77302,6 +77435,14 @@ msgid "Set speed of retimed segment"
 msgstr "Définir la vitesse du segment reminuté"
 
 
+msgid "Preserve Current retiming"
+msgstr "Conserver le reminutage actuel"
+
+
+msgid "Keep speed of other segments unchanged, change strip length instead"
+msgstr "Ne pas toucher à la vitesse des autres segments, mais changer la durée de la bande"
+
+
 msgid "New speed of retimed segment"
 msgstr "Nouvelle vitesse du segment reminuté"
 
@@ -84181,6 +84322,11 @@ msgid "Open a window with information about Blender"
 msgstr "Ouvrir une fenêtre avec des informations sur Blender"
 
 
+msgctxt "Operator"
+msgid "Export STL"
+msgstr "Exporter STL"
+
+
 msgid "Save the scene to an STL file"
 msgstr "Enregistrer la scène dans un fichier STL"
 
@@ -84191,6 +84337,11 @@ msgstr "Export par lot"
 
 msgid "Export each object to a separate file"
 msgstr "Exporter chaque objet dans un fichier séparé"
+
+
+msgctxt "Operator"
+msgid "Import STL"
+msgstr "Importer STL"
 
 
 msgid "Import an STL file as an object"
@@ -84341,6 +84492,34 @@ msgid "Include normals of exported meshes in the export"
 msgstr "Inclure les normales des maillages exportés dans l’export"
 
 
+msgid "Subdivision Scheme"
+msgstr "Schéma de subdivision"
+
+
+msgid "Choose how subdivision modifiers will be mapped to the USD subdivision scheme during export"
+msgstr "Choisir comment les modificateurs de subdivision correspondront au schéma de subdivision USD pendant l’export"
+
+
+msgid "Subdivision scheme = None, export base mesh without subdivision"
+msgstr "Schéma de subdivision None, exporter le maillage de base sans subdivision"
+
+
+msgid "Tessellate"
+msgstr "Tesseller"
+
+
+msgid "Subdivision scheme = None, export subdivided mesh"
+msgstr "Schéma de subdivision None, exporter le maillage de base subdivisé"
+
+
+msgid "Best Match"
+msgstr "Meilleur correspondance"
+
+
+msgid "Subdivision scheme = Catmull-Clark, when possible. Reverts to exporting the subdivided mesh for the Simple subdivision type"
+msgstr "Schéma de subdivision Catmull-Clark si possible. Se rabat sur un export du maillage subdivisé pour le type de subdivision Simple"
+
+
 msgid "Export Textures"
 msgstr "Exporter les textures"
 
@@ -84436,14 +84615,6 @@ msgstr "Blend shapes"
 
 msgid "Import guide geometry"
 msgstr "Importer la géométrie guide"
-
-
-msgid "Import Instance Proxies"
-msgstr "Importer les proxies d’instances"
-
-
-msgid "Create unique Blender objects for USD instances"
-msgstr "Créer des objets Blender uniques pour les instances USD"
 
 
 msgid "Import proxy geometry"
@@ -86139,6 +86310,10 @@ msgid "Backdrop"
 msgstr "Image de fond"
 
 
+msgid "Bake Items"
+msgstr "Éléments de précalcul"
+
+
 msgid "Modes"
 msgstr "Modes"
 
@@ -86908,6 +87083,10 @@ msgstr "Mesure"
 
 msgid "Motion Tracking"
 msgstr "Suivi de mouvement (motion tracking)"
+
+
+msgid "Viewer Node"
+msgstr "Nœud visualiseur"
 
 
 msgid "Pose Library"
@@ -89197,14 +89376,6 @@ msgid "Enable the new Overlay codebase, requires restart"
 msgstr "Activer le nouveau code base des surimpressions, nécessite un redémarrage"
 
 
-msgid "Override Auto Resync"
-msgstr "Resynchro auto des redéfinitions"
-
-
-msgid "Enable library overrides automatic resync detection and process on file load. Disable when dealing with older .blend files that need manual Resync (Enforce) handling"
-msgstr "Permet une détection automatique des besoins de resynchronisation des redéfinitions, et de les lancer au chargement du fichier. À désactiver pour les vieux fichiers .blend qui nécessitent une resynchronisation manuelle (forcer)"
-
-
 msgid "Asset Debug Info"
 msgstr "Infos débug d’assets"
 
@@ -89219,14 +89390,6 @@ msgstr "Toutes les données liées directes"
 
 msgid "Forces all linked data to be considered as directly linked. Workaround for current issues/limitations in BAT (Blender studio pipeline tool)"
 msgstr "Forcer toutes les données liées à être considérées comme liées directement. Contournement pour des problèmes et limitations actuelles dans BAT (outil de pipeline du Blender studio)"
-
-
-msgid "Asset Indexing"
-msgstr "Indexation d’assets"
-
-
-msgid "Disabling the asset indexer forces every asset library refresh to completely reread assets from disk"
-msgstr "Désactiver l’indexation d’assets force chaque bibliothèque d’assets à rafraîchir complètement les assets depuis le disque"
 
 
 msgid "Cycles Debug"
@@ -89295,14 +89458,6 @@ msgstr "Nouveaux nœuds de volume"
 
 msgid "Enables visibility of the new Volume nodes in the UI"
 msgstr "Activer la visibilité des nouveaux nœuds de volume dans l’interface"
-
-
-msgid "Override Templates"
-msgstr "Patrons de redéfinition"
-
-
-msgid "Enable library override template in the Python API"
-msgstr "Activer les patrons de redéfinition de bibliothèque dans l’API Python"
 
 
 msgid "Sculpt Texture Paint"
@@ -89641,6 +89796,10 @@ msgstr "Nombre de pixels à glisser avant qu’un évènement « glisser » ne
 
 msgid "Mouse Drag Threshold"
 msgstr "Seuil de cliquer-glisser souris"
+
+
+msgid "Number of pixels to drag before a drag event is triggered for mouse/trackpad input (otherwise click events are detected)"
+msgstr "Nombre de pixels à glisser avant qu’un évènement « glisser » ne soit déclenché, pour les entrées souris et trackpad (sans quoi des évènements de clics sont détectés)"
 
 
 msgid "Tablet Drag Threshold"
@@ -94557,6 +94716,14 @@ msgid "Enable simplification of scene for quicker preview renders"
 msgstr "Activer la simplification de la scène, pour des rendus de prévisualisation plus rapides"
 
 
+msgid "Mesh Normals"
+msgstr "Normales de maillage"
+
+
+msgid "Skip computing custom normals and face corner normals for displaying meshes in the viewport"
+msgstr "Ne pas calculer les normales personnalisées et les normales de coins de faces pour l’affichage des maillages dans les vues 3D"
+
+
 msgid "Render Single Layer"
 msgstr "Rendre ce seul calque"
 
@@ -97759,36 +97926,24 @@ msgid "Show strip thumbnails"
 msgstr "Afficher les miniatures des bandes"
 
 
-msgid "Waveform Display"
-msgstr "Affichage de la forme d’onde"
-
-
 msgid "How Waveforms are displayed"
 msgstr "Comment les formes d’onde sont affichées"
 
 
-msgid "Waveforms Off"
-msgstr "Formes d’onde désactivées"
-
-
-msgid "Don't display waveforms for any sound strips"
-msgstr "N’afficher aucune forme d’onde pour aucune bande son"
-
-
-msgid "Waveforms On"
-msgstr "Formes d’onde activées"
+msgid "Waveform Display"
+msgstr "Affichage de la forme d’onde"
 
 
 msgid "Display waveforms for all sound strips"
 msgstr "Afficher les formes d’onde pour toutes les bandes son"
 
 
-msgid "Use Strip Option"
-msgstr "Utiliser l’option de la bande"
-
-
 msgid "Display waveforms depending on strip setting"
 msgstr "Afficher les formes d’ondes en fonction des réglages des bandes"
+
+
+msgid "Don't display waveforms for any sound strips"
+msgstr "N’afficher aucune forme d’onde pour aucune bande son"
 
 
 msgid "Sequencer Tool Settings"
@@ -100424,10 +100579,6 @@ msgstr "Utiliser les données de l’objet partiellement ou entièrement évalu�
 
 msgid "Use data from original object without any modifiers applied"
 msgstr "Utiliser les données de l’objet original, sans qu’aucun modificateur ne soit appliqué"
-
-
-msgid "Viewer Node"
-msgstr "Nœud visualiseur"
 
 
 msgid "Use intermediate data from viewer node"
@@ -106994,6 +107145,10 @@ msgid "Vector2D"
 msgstr "Vecteur2D"
 
 
+msgid "2D float vector action, representing a thumbstick or trackpad"
+msgstr "Action de vecteur 2D de flottants, représentant un joystick ou un trackpad"
+
+
 msgid "3D pose action, representing a controller's location and rotation"
 msgstr "Action de pose 3D, représentant la position et la rotation d’un contrôleur"
 
@@ -109941,11 +110096,6 @@ msgstr "Impossible de générer des matériaux pour le moteur de rendu inconnu %
 
 msgid "Generating Cycles/EEVEE compatible material, but won't be visible with %s engine"
 msgstr "Génération d’un matériau compatible Cycles et EEVEE, mais ne sera pas visible avec le moteur de rendu %s"
-
-
-msgctxt "Operator"
-msgid "Stl (.stl)"
-msgstr "Stl (.stl)"
 
 
 msgctxt "Operator"
@@ -115985,11 +116135,6 @@ msgstr "Stanford PLY (.ply)"
 
 
 msgctxt "Operator"
-msgid "STL (.stl) (experimental)"
-msgstr "STL (.stl) (expérimental)"
-
-
-msgctxt "Operator"
 msgid "Render Image"
 msgstr "Rendre l’image"
 
@@ -117314,11 +117459,6 @@ msgid "Per Loose Part"
 msgstr "Par partie isolée"
 
 
-msgctxt "Operator"
-msgid "Move to Bone Collection"
-msgstr "Déplacer vers la collection d’os"
-
-
 msgid "Bone Settings"
 msgstr "Réglages des os"
 
@@ -117506,6 +117646,11 @@ msgstr "Arêtes dures"
 msgctxt "Operator"
 msgid "Edge Loops"
 msgstr "Boucles d’arêtes"
+
+
+msgctxt "Operator"
+msgid "Move to Bone Collection"
+msgstr "Déplacer vers la collection d’os"
 
 
 msgctxt "Operator"
@@ -117947,14 +118092,6 @@ msgid "On Selected Markers"
 msgstr "Sur les marqueurs sélectionnés"
 
 
-msgid "- select bones to operate on first -"
-msgstr "– Sélectionner d’abord des os sur lesquels agir –"
-
-
-msgid "All bone collections are read-only"
-msgstr "Toutes les collections d’os sont en lecture seule"
-
-
 msgctxt "Operator"
 msgid "Auto-Name Left/Right"
 msgstr "Nommage auto gauche/droite"
@@ -118085,86 +118222,6 @@ msgstr "Supprimer le segment"
 msgctxt "Operator"
 msgid "Delete Point"
 msgstr "Supprimer le point"
-
-
-msgctxt "Operator"
-msgid "Copyright"
-msgstr "Copyright"
-
-
-msgctxt "Operator"
-msgid "Registered Trademark"
-msgstr "Marque déposée"
-
-
-msgctxt "Operator"
-msgid "Degree Sign"
-msgstr "Degré"
-
-
-msgctxt "Operator"
-msgid "Multiplication Sign"
-msgstr "Signe multiplication"
-
-
-msgctxt "Operator"
-msgid "Superscript 1"
-msgstr "Exposant 1"
-
-
-msgctxt "Operator"
-msgid "Superscript 2"
-msgstr "Exposant 2"
-
-
-msgctxt "Operator"
-msgid "Superscript 3"
-msgstr "Exposant 3"
-
-
-msgctxt "Operator"
-msgid "Double >>"
-msgstr "Guillemet fermant"
-
-
-msgctxt "Operator"
-msgid "Double <<"
-msgstr "Guillemet ouvrant"
-
-
-msgctxt "Operator"
-msgid "Promillage"
-msgstr "Pour mille"
-
-
-msgctxt "Operator"
-msgid "Dutch Florin"
-msgstr "Florin néerlandais"
-
-
-msgctxt "Operator"
-msgid "British Pound"
-msgstr "Livre britannique"
-
-
-msgctxt "Operator"
-msgid "Japanese Yen"
-msgstr "Yen japonais"
-
-
-msgctxt "Operator"
-msgid "German S"
-msgstr "S allemand"
-
-
-msgctxt "Operator"
-msgid "Spanish Question Mark"
-msgstr "Point d’interrogation espagnol"
-
-
-msgctxt "Operator"
-msgid "Spanish Exclamation Mark"
-msgstr "Point d’exclamation espagnol"
 
 
 msgctxt "Operator"
@@ -119026,8 +119083,20 @@ msgid "Null cloth object"
 msgstr "Objet tissu null"
 
 
+msgid "Out of memory on allocating cloth object"
+msgstr "Mémoire insuffisante lors de l’allocation de l’objet tissu"
+
+
 msgid "Cannot build springs"
 msgstr "Impossible de construire les ressorts"
+
+
+msgid "Out of memory on allocating vertices"
+msgstr "Mémoire insuffisante lors de l’allocation des sommets"
+
+
+msgid "Out of memory on allocating triangles"
+msgstr "Mémoire insuffisante lors de l’allocation des triangles"
 
 
 msgid "Scene Collection"
@@ -119322,14 +119391,6 @@ msgstr "Resynchronisation du bloc de données %s et de ses dépendances impossib
 
 msgid "During resync of data-block %s, %d obsolete overrides were deleted, that had local changes defined by user"
 msgstr "Pendant la resynchronisation du bloc de données %s, %d redéfinitions obsolètes ont été supprimées. Elles avaient des changements locaux définis par l’utilisateur"
-
-
-msgid "Data corruption: data-block '%s' is using itself as library override reference"
-msgstr "Corruption de données : le bloc de données « %s » s’utilise lui-même comme référence de redéfinition de bibliothèque"
-
-
-msgid "Data corruption: data-block '%s' is using another local data-block ('%s') as library override reference"
-msgstr "Corruption de données : le bloc de données « %s » utilise un autre bloc de données local (« %s ») comme référence de redéfinition de bibliothèque"
 
 
 msgid "libraries"
@@ -123428,6 +123489,14 @@ msgid "Problem baking object \"%s\""
 msgstr "Problème lors du précalcul de l’objet « %s »"
 
 
+msgid "Modifier containing the node is disabled"
+msgstr "Le modificateur contenant le nœud est désactivé"
+
+
+msgid "Can not determine bake location on disk"
+msgstr "Impossible de déterminer l’emplacement du précalcul sur le disque"
+
+
 msgid "Bake directory of object %s, modifier %s is empty, setting default path"
 msgstr "Le répertoire de précalcul pour l’objet %s, modificateur %s, est vide. Le chemin par défaut sera utilisé"
 
@@ -123442,6 +123511,10 @@ msgstr "Impossible de supprimer le dossier de métadonnées %s"
 
 msgid "Failed to remove blobs directory %s"
 msgstr "Impossible de supprimer le dossier de blobs %s"
+
+
+msgid "File must be saved before baking"
+msgstr "Le fichier doit être enregistré avant le précalcul"
 
 
 msgid "Skipped some collections because of cycle detected"
@@ -127106,6 +127179,14 @@ msgid "Could not create the copy paste file!"
 msgstr "Impossible de créer le fichier de copier-coller !"
 
 
+msgid "Copied the selected Video Sequencer strips to internal clipboard"
+msgstr "Les bandes du séquenceur ont été copiées dans le presse-papier interne"
+
+
+msgid "No clipboard scene to paste Video Sequencer data from"
+msgstr "Aucune scène dans le presse-papier depuis laquelle coller les données de séquenceur"
+
+
 msgid "No strips to paste"
 msgstr "Aucune bande à coller"
 
@@ -128946,6 +129027,10 @@ msgid "Mesh %s, Attribute %s cannot be converted to USD"
 msgstr "Maillage %s, L’attribut %s n’a pas pu être converti en USD"
 
 
+msgid "USD export: Simple subdivision not supported, exporting subdivided mesh"
+msgstr "Export USD : subdivision Simple non prise en charge, export du maillage subdivisé"
+
+
 msgid "USD Export: failed to resolve .vdb file for object: %s"
 msgstr "Export USD : impossible de résoudre le fichier .vdb pour l’objet : %s"
 
@@ -128960,18 +129045,6 @@ msgstr "Les données d’asset ne peuvent être assignées qu’à des assets. U
 
 msgid "Asset data cannot be None"
 msgstr "Les données d’asset ne peuvent pas être None"
-
-
-msgid "Override template experimental feature is disabled"
-msgstr "La fonctionnalité expérimentale des patrons de redéfinition est désactivée"
-
-
-msgid "Unable to create override template for linked data-blocks"
-msgstr "Impossible de créer un patron de redéfinition pour les blocs de données liés"
-
-
-msgid "Unable to create override template for overridden data-blocks"
-msgstr "Impossible de créer un patron de redéfinition pour les blocs de données redéfinis"
 
 
 msgid "No new override property created, property already exists"
@@ -129035,6 +129108,10 @@ msgstr "Impossible d’éditer cette propriété dans un bloc de données systè
 
 
 msgid "Only boolean, int, float, and enum properties supported"
+msgstr "Seules les propriétés booléennes, entières, flottantes et énum sont prises en charge"
+
+
+msgid "Only boolean, int, float and enum properties supported"
 msgstr "Seules les propriétés booléennes, entières, flottantes et énum sont prises en charge"
 
 
@@ -130675,6 +130752,10 @@ msgid "No named attributes used"
 msgstr "Aucun attribut nommé utilisé"
 
 
+msgid "Can not load the baked data"
+msgstr "Impossible de charger les données précalculées"
+
+
 msgid "No group output attributes connected"
 msgstr "Aucun attribut connecté à la sortie de groupe"
 
@@ -131255,6 +131336,10 @@ msgid "Node must be run as tool"
 msgstr "Le nœud doit être lancé comme objet"
 
 
+msgid "Disabled, Blender was compiled without OpenVDB"
+msgstr "Désactivé, Blender a été compilé sans OpenVDB"
+
+
 msgid "Leading"
 msgstr "Valeur de tête"
 
@@ -131309,6 +131394,14 @@ msgstr "Nombre d’instances"
 
 msgid "Layer Count"
 msgstr "Nombre de calques"
+
+
+msgid "Baked Frame {}"
+msgstr "Frame {} précalculée"
+
+
+msgid "Baked {} - {}"
+msgstr "Frames {} - {} précalculées"
 
 
 msgid "How many times to blur the values for all elements"
@@ -131796,10 +131889,6 @@ msgid "The parts of the geometry to be deleted"
 msgstr "Parties de la géométrie à supprimer"
 
 
-msgid "Disabled, Blender was compiled without OpenVDB"
-msgstr "Désactivé, Blender a été compilé sans OpenVDB"
-
-
 msgid "Number of points to sample per unit volume"
 msgstr "Nombre de points à échantillonner par unité de volume"
 
@@ -131902,6 +131991,10 @@ msgstr "A un voisin"
 
 msgid "Index of nearest element"
 msgstr "Indice du plus proche élément"
+
+
+msgid "The camera used for rendering the scene"
+msgstr "Caméra utilisée pour rendre la scène"
 
 
 msgid "Output the handle positions relative to the corresponding control point instead of in the local space of the geometry"
@@ -133681,6 +133774,10 @@ msgid "window_managers"
 msgstr "gestionnaires de fenêtre"
 
 
+msgid "Dragging {} files"
+msgstr "{} fichiers glissés"
+
+
 msgid "Region could not be drawn!"
 msgstr "La région n’a pas pu être affichée !"
 
@@ -134621,10 +134718,6 @@ msgstr "Format NewTek MDD"
 
 msgid "Import-Export MDD as mesh shape keys"
 msgstr "Importer et exporter MDD en tant que clés de forme de maillage"
-
-
-msgid "STL format"
-msgstr "Format STL"
 
 
 msgid "Import-Export STL files"

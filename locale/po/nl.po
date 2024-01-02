@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'0b00b360f7ae')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'98c6bded9844')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-18 13:45:58\n"
-"PO-Revision-Date: 2023-12-17 14:13+0000\n"
-"Last-Translator: Brecht Van Lommel <brechtvanlommel@gmail.com>\n"
+"POT-Creation-Date: 2024-01-02 10:08:43\n"
+"PO-Revision-Date: 2023-12-21 01:55+0000\n"
+"Last-Translator: Lisa <blendergirl@tutanota.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
@@ -3523,6 +3523,10 @@ msgid "Set Start Frame"
 msgstr "Zet Startframe"
 
 
+msgid "Collection Index"
+msgstr "Collectie Index"
+
+
 msgctxt "Operator"
 msgid "Add Bone"
 msgstr "Voeg Bot Toe"
@@ -3942,11 +3946,6 @@ msgstr "Exporteer Camera & Markeringen"
 msgctxt "Operator"
 msgid "Export BVH"
 msgstr "Exporteer BVH"
-
-
-msgctxt "Operator"
-msgid "Export STL"
-msgstr "Exporteer STL"
 
 
 msgid "Apply Modifiers"
@@ -4488,11 +4487,6 @@ msgstr "Importeer Afbeeldingen als Vlakken"
 
 
 msgctxt "Operator"
-msgid "Import STL"
-msgstr "Importeer STL"
-
-
-msgctxt "Operator"
 msgid "Import FBX"
 msgstr "Importeer FBX"
 
@@ -4986,10 +4980,6 @@ msgstr "Kopieer Aanpasser"
 msgctxt "Operator"
 msgid "Hide Collection"
 msgstr "Verberg Collectie"
-
-
-msgid "Collection Index"
-msgstr "Collectie Index"
 
 
 msgctxt "Operator"
@@ -6446,6 +6436,16 @@ msgstr "Interface"
 msgctxt "Operator"
 msgid "About Blender"
 msgstr "Over Blender"
+
+
+msgctxt "Operator"
+msgid "Export STL"
+msgstr "Exporteer STL"
+
+
+msgctxt "Operator"
+msgid "Import STL"
+msgstr "Importeer STL"
 
 
 msgctxt "Operator"
@@ -7931,6 +7931,16 @@ msgstr "Selectie"
 
 
 msgctxt "Operator"
+msgid "Save As..."
+msgstr "Opslaan Als..."
+
+
+msgctxt "Operator"
+msgid "Horizontally"
+msgstr "Horizontaal"
+
+
+msgctxt "Operator"
 msgid "Unpin"
 msgstr "Haal Prikker Los"
 
@@ -8211,6 +8221,11 @@ msgstr "Vorige Werkomgeving"
 msgctxt "Operator"
 msgid "Next Workspace"
 msgstr "Volgende Werkomgeving"
+
+
+msgctxt "Operator"
+msgid "Save Incremental"
+msgstr "Incrementeel Opslaan"
 
 
 msgctxt "Operator"
@@ -8691,11 +8706,6 @@ msgstr "Verwijder Segment"
 msgctxt "Operator"
 msgid "Delete Point"
 msgstr "Verwijder Punt"
-
-
-msgctxt "Operator"
-msgid "Registered Trademark"
-msgstr "Geregistreerd Handelsmerk"
 
 
 msgctxt "Operator"
@@ -9528,6 +9538,10 @@ msgstr "Krommes"
 msgctxt "Sequence"
 msgid "Hue Correct"
 msgstr "Hue Corrigeren"
+
+
+msgid "Save As..."
+msgstr "Opslaan Als..."
 
 
 msgid "Don't Save"

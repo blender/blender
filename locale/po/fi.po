@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'0b00b360f7ae')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'98c6bded9844')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-18 13:45:58\n"
+"POT-Creation-Date: 2024-01-02 10:08:43\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -11553,10 +11553,6 @@ msgstr "FBX-formaatti"
 
 msgid "Import Images as Planes"
 msgstr "Tuo kuva tasoina"
-
-
-msgid "STL format"
-msgstr "STL-formaatti"
 
 
 msgid "Import-Export STL files"

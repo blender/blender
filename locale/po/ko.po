@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'0b00b360f7ae')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'98c6bded9844')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-18 13:45:58\n"
+"POT-Creation-Date: 2024-01-02 10:08:43\n"
 "PO-Revision-Date: 2023-11-14 19:14+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -36065,6 +36065,10 @@ msgid "Align selected bones to the active bone (or to their parent)"
 msgstr "선택된 본을 활성 본(또는 부모)에 정렬"
 
 
+msgid "Collection Index"
+msgstr "컬렉션 인덱스"
+
+
 msgid "Automatically renames the selected bones according to which side of the target axis they fall on"
 msgstr "선택한 본의 대상 축에 따라 본의 이름을 자동으로 변경합니다"
 
@@ -39143,11 +39147,6 @@ msgstr "오일러 (ZYX)"
 
 msgid "Convert rotations to euler ZYX"
 msgstr "오일러 ZYX에 회전을 변환"
-
-
-msgctxt "Operator"
-msgid "Export STL"
-msgstr "STL을 내보내기"
 
 
 msgid "Save STL triangle mesh data"
@@ -43025,11 +43024,6 @@ msgstr "이미지의 정의를 블렌더 단위 당 도트로 사용"
 
 msgid "Use alpha channel for transparency"
 msgstr "투명도를 위해 알파 채널을 사용"
-
-
-msgctxt "Operator"
-msgid "Import STL"
-msgstr "STL을 가져오기"
 
 
 msgid "Load STL triangle mesh data"
@@ -47796,10 +47790,6 @@ msgstr "컬렉션을 숨기기"
 
 msgid "Show only objects in collection (Shift to extend)"
 msgstr "컬렉션에있는 오브젝트 만 표시 (Shift 키를 눌러 확장)"
-
-
-msgid "Collection Index"
-msgstr "컬렉션 인덱스"
 
 
 msgid "Index of the collection to change visibility"
@@ -58288,6 +58278,16 @@ msgstr "릴리즈 정보와 함께 스플래쉬 화면을 열기"
 
 
 msgctxt "Operator"
+msgid "Export STL"
+msgstr "STL을 내보내기"
+
+
+msgctxt "Operator"
+msgid "Import STL"
+msgstr "STL을 가져오기"
+
+
+msgctxt "Operator"
 msgid "Save System Info"
 msgstr "시스템 정보를 저장"
 
@@ -67567,18 +67567,6 @@ msgstr "오프셋을 표시"
 
 msgid "Display strip in/out offsets"
 msgstr "스트립 인/아웃 오프셋을 표시"
-
-
-msgid "Waveforms Off"
-msgstr "파형 Off"
-
-
-msgid "Waveforms On"
-msgstr "파형 On"
-
-
-msgid "Use Strip Option"
-msgstr "스트립 옵션을 사용"
 
 
 msgid "Bounding Box Center"
@@ -78958,86 +78946,6 @@ msgstr "세그먼트를 삭제"
 msgctxt "Operator"
 msgid "Delete Point"
 msgstr "포인트를 삭제"
-
-
-msgctxt "Operator"
-msgid "Copyright"
-msgstr "저작권"
-
-
-msgctxt "Operator"
-msgid "Registered Trademark"
-msgstr "등록된 상표"
-
-
-msgctxt "Operator"
-msgid "Degree Sign"
-msgstr "디그리 기호"
-
-
-msgctxt "Operator"
-msgid "Multiplication Sign"
-msgstr "곱셈 기호"
-
-
-msgctxt "Operator"
-msgid "Superscript 1"
-msgstr "첨자 1"
-
-
-msgctxt "Operator"
-msgid "Superscript 2"
-msgstr "첨자 2"
-
-
-msgctxt "Operator"
-msgid "Superscript 3"
-msgstr "첨자 3"
-
-
-msgctxt "Operator"
-msgid "Double >>"
-msgstr "이중 >>"
-
-
-msgctxt "Operator"
-msgid "Double <<"
-msgstr "이중 <<"
-
-
-msgctxt "Operator"
-msgid "Promillage"
-msgstr "프로밀레이지"
-
-
-msgctxt "Operator"
-msgid "Dutch Florin"
-msgstr "네덜란드 플로린"
-
-
-msgctxt "Operator"
-msgid "British Pound"
-msgstr "영국 파운드"
-
-
-msgctxt "Operator"
-msgid "Japanese Yen"
-msgstr "일본 엔"
-
-
-msgctxt "Operator"
-msgid "German S"
-msgstr "독일어 S"
-
-
-msgctxt "Operator"
-msgid "Spanish Question Mark"
-msgstr "스페인어 물음표"
-
-
-msgctxt "Operator"
-msgid "Spanish Exclamation Mark"
-msgstr "스페인어 느낌표"
 
 
 msgctxt "Operator"

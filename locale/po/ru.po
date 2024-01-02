@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'0b00b360f7ae')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'98c6bded9844')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-18 13:45:58\n"
+"POT-Creation-Date: 2024-01-02 10:08:43\n"
 "PO-Revision-Date: 2023-12-11 03:52+0000\n"
 "Last-Translator: Lockal <lockalsash@gmail.com>\n"
 "Language-Team: Russian <https://translate.blender.org/projects/blender-ui/ui/ru/>\n"
@@ -3971,10 +3971,6 @@ msgstr "Коллекции костей этого скелета"
 
 msgid "Active Collection"
 msgstr "Активная коллекция"
-
-
-msgid "The index of the Armature's active bone collection; -1 when there is no active collection"
-msgstr "Индекс активной коллекции костей скелета; -1, если активной коллекции нет"
 
 
 msgid "The name of the Armature's active bone collection; empty when there is no active collection"
@@ -40960,6 +40956,10 @@ msgid "Align selected bones to the active bone (or to their parent)"
 msgstr "Выровнять выделенные кости относительно активной кости (или их родителя)"
 
 
+msgid "Collection Index"
+msgstr "Индекс коллекции"
+
+
 msgid "Automatically renames the selected bones according to which side of the target axis they fall on"
 msgstr "Автоматически переименовать выделенные кости в зависимости от того, на какой стороне оси они находятся"
 
@@ -44089,11 +44089,6 @@ msgstr "Эйлер (ZYX)"
 
 msgid "Convert rotations to euler ZYX"
 msgstr "Преобразовать вращения по Эйлеру ZYX"
-
-
-msgctxt "Operator"
-msgid "Export STL"
-msgstr "Экспортировать STL"
 
 
 msgid "Ascii"
@@ -48013,11 +48008,6 @@ msgstr "Использовать определённое изображение
 
 msgid "Use alpha channel for transparency"
 msgstr "Использовать альфа-канал для прозрачности"
-
-
-msgctxt "Operator"
-msgid "Import STL"
-msgstr "Импортировать STL"
 
 
 msgid "Load STL triangle mesh data"
@@ -52876,10 +52866,6 @@ msgstr "Скрыть коллекцию"
 
 msgid "Show only objects in collection (Shift to extend)"
 msgstr "Показать только объекты в коллекции (Shift для расширения)"
-
-
-msgid "Collection Index"
-msgstr "Индекс коллекции"
 
 
 msgid "Index of the collection to change visibility"
@@ -63540,6 +63526,16 @@ msgstr "Открыть окно с информацией о программе 
 
 
 msgctxt "Operator"
+msgid "Export STL"
+msgstr "Экспортировать STL"
+
+
+msgctxt "Operator"
+msgid "Import STL"
+msgstr "Импортировать STL"
+
+
+msgctxt "Operator"
 msgid "Save System Info"
 msgstr "Сохранить информацию о системе"
 
@@ -65200,6 +65196,10 @@ msgstr "Измерение"
 
 msgid "Motion Tracking"
 msgstr "Отслеживание движения"
+
+
+msgid "Viewer Node"
+msgstr "Нода предпросмотра"
 
 
 msgid "Pose Library"
@@ -72950,18 +72950,6 @@ msgid "Display strip in/out offsets"
 msgstr "Показывать смещения начала/конца клипа"
 
 
-msgid "Waveforms Off"
-msgstr "Выключить формы волн"
-
-
-msgid "Waveforms On"
-msgstr "Включить формы волн"
-
-
-msgid "Use Strip Option"
-msgstr "Использовать настройки клипа"
-
-
 msgid "Shuffle"
 msgstr "Перемешать"
 
@@ -75095,10 +75083,6 @@ msgstr "Тип вида видеоредактора (видеоредактор
 
 msgid "Sequencer & Preview"
 msgstr "Видеоредактор и предпросмотр"
-
-
-msgid "Viewer Node"
-msgstr "Нода предпросмотра"
 
 
 msgid "Space Text Editor"
@@ -85077,86 +85061,6 @@ msgstr "Удалить сегмент"
 msgctxt "Operator"
 msgid "Delete Point"
 msgstr "Удалить точку"
-
-
-msgctxt "Operator"
-msgid "Copyright"
-msgstr "Copyright"
-
-
-msgctxt "Operator"
-msgid "Registered Trademark"
-msgstr "Зарегистрированная торговая марка"
-
-
-msgctxt "Operator"
-msgid "Degree Sign"
-msgstr "Знак градуса"
-
-
-msgctxt "Operator"
-msgid "Multiplication Sign"
-msgstr "Знак умножения"
-
-
-msgctxt "Operator"
-msgid "Superscript 1"
-msgstr "Надстрочная 1"
-
-
-msgctxt "Operator"
-msgid "Superscript 2"
-msgstr "Надстрочная 2"
-
-
-msgctxt "Operator"
-msgid "Superscript 3"
-msgstr "Надстрочная 3"
-
-
-msgctxt "Operator"
-msgid "Double >>"
-msgstr "Двойной >>"
-
-
-msgctxt "Operator"
-msgid "Double <<"
-msgstr "Двойной <<"
-
-
-msgctxt "Operator"
-msgid "Promillage"
-msgstr "Промилле"
-
-
-msgctxt "Operator"
-msgid "Dutch Florin"
-msgstr "Голландский флорин"
-
-
-msgctxt "Operator"
-msgid "British Pound"
-msgstr "Британский фунт"
-
-
-msgctxt "Operator"
-msgid "Japanese Yen"
-msgstr "Японская иена"
-
-
-msgctxt "Operator"
-msgid "German S"
-msgstr "Немецкий S"
-
-
-msgctxt "Operator"
-msgid "Spanish Question Mark"
-msgstr "Перевёрнутый знак вопроса"
-
-
-msgctxt "Operator"
-msgid "Spanish Exclamation Mark"
-msgstr "Перевёрнутый восклицательный знак"
 
 
 msgctxt "Operator"

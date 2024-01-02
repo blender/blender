@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'0b00b360f7ae')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'98c6bded9844')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-18 13:45:58\n"
+"POT-Creation-Date: 2024-01-02 10:08:43\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -14006,11 +14006,6 @@ msgid "Euler (ZYX)"
 msgstr "Ојлер (ZYX)"
 
 
-msgctxt "Operator"
-msgid "Export STL"
-msgstr "Извоз у STL"
-
-
 msgid "Ascii"
 msgstr "Ascii"
 
@@ -15079,11 +15074,6 @@ msgstr "Релативне путање"
 
 msgid "Shadeless"
 msgstr "Сенчења"
-
-
-msgctxt "Operator"
-msgid "Import STL"
-msgstr "Увоз у STL"
 
 
 msgctxt "Operator"
@@ -20370,6 +20360,16 @@ msgstr "Мени претраге"
 msgctxt "Operator"
 msgid "Splash Screen"
 msgstr "Почетни екран"
+
+
+msgctxt "Operator"
+msgid "Export STL"
+msgstr "Извоз у STL"
+
+
+msgctxt "Operator"
+msgid "Import STL"
+msgstr "Увоз у STL"
 
 
 msgid "URL"

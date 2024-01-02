@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'0b00b360f7ae')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'98c6bded9844')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-18 13:45:58\n"
+"POT-Creation-Date: 2024-01-02 10:08:43\n"
 "PO-Revision-Date: 2021-03-01 19:15+0000\n"
 "Last-Translator: lxlalexlxl <lxlalexlxl@ukr.net>\n"
 "Language-Team: Ukrainian (Ukraine) (http://www.transifex.com/lxlalexlxl/blender/language/uk_UA/)\n"
@@ -41031,6 +41031,10 @@ msgid "Align selected bones to the active bone (or to their parent)"
 msgstr "Вирівняти вибрані кістки за активною кісткою (або її предком)"
 
 
+msgid "Collection Index"
+msgstr "Індекс Колекції"
+
+
 msgctxt "Operator"
 msgid "Auto-Name by Axis"
 msgstr "Автоназва за віссю"
@@ -44434,11 +44438,6 @@ msgstr "Ейлер (ZYX)"
 
 msgid "Convert rotations to euler ZYX"
 msgstr "Конвертувати оберти в Ейлерові - ZYX"
-
-
-msgctxt "Operator"
-msgid "Export STL"
-msgstr "Експорт STL"
 
 
 msgid "Save STL triangle mesh data"
@@ -49174,11 +49173,6 @@ msgstr "Вживати визначення зображення як точки
 
 msgid "Use alpha channel for transparency"
 msgstr "Вжити канал альфа для прозорості"
-
-
-msgctxt "Operator"
-msgid "Import STL"
-msgstr "Імпорт STL"
 
 
 msgid "Load STL triangle mesh data"
@@ -54460,10 +54454,6 @@ msgstr "Сховати Колекцію"
 
 msgid "Show only objects in collection (Shift to extend)"
 msgstr "Показувати лише об'єкти у колекції  (Shift для розширення)"
-
-
-msgid "Collection Index"
-msgstr "Індекс Колекції"
 
 
 msgid "Index of the collection to change visibility"
@@ -67076,6 +67066,16 @@ msgstr "Відкрити вікно з інформацією про Blender"
 
 
 msgctxt "Operator"
+msgid "Export STL"
+msgstr "Експорт STL"
+
+
+msgctxt "Operator"
+msgid "Import STL"
+msgstr "Імпорт STL"
+
+
+msgctxt "Operator"
 msgid "Save System Info"
 msgstr "Зберегти системну інформацію"
 
@@ -77402,18 +77402,6 @@ msgstr "Показувати шлях до файлу джерела або ім
 
 msgid "Waveform Display"
 msgstr "Показ Хвилеформи"
-
-
-msgid "Waveforms Off"
-msgstr "Вимкнути форму хвилі"
-
-
-msgid "Waveforms On"
-msgstr "Увімкнути форму хвилі"
-
-
-msgid "Use Strip Option"
-msgstr "Вжити опцію смужки"
 
 
 msgid "Sequencer Tool Settings"
@@ -91617,86 +91605,6 @@ msgstr "Видалити Сегмент"
 msgctxt "Operator"
 msgid "Delete Point"
 msgstr "Видалити Точку"
-
-
-msgctxt "Operator"
-msgid "Copyright"
-msgstr "Авторське право"
-
-
-msgctxt "Operator"
-msgid "Registered Trademark"
-msgstr "Зареєстрована торгова марка"
-
-
-msgctxt "Operator"
-msgid "Degree Sign"
-msgstr "Знак Градуса"
-
-
-msgctxt "Operator"
-msgid "Multiplication Sign"
-msgstr "Знак Множення"
-
-
-msgctxt "Operator"
-msgid "Superscript 1"
-msgstr "Верхній індекс 1"
-
-
-msgctxt "Operator"
-msgid "Superscript 2"
-msgstr "Верхній індекс 2"
-
-
-msgctxt "Operator"
-msgid "Superscript 3"
-msgstr "Верхній індекс 3"
-
-
-msgctxt "Operator"
-msgid "Double >>"
-msgstr "Подвійне >>"
-
-
-msgctxt "Operator"
-msgid "Double <<"
-msgstr "Подвійне <<"
-
-
-msgctxt "Operator"
-msgid "Promillage"
-msgstr "Проміле"
-
-
-msgctxt "Operator"
-msgid "Dutch Florin"
-msgstr "Нідерландський Флорин"
-
-
-msgctxt "Operator"
-msgid "British Pound"
-msgstr "Британський Фунт"
-
-
-msgctxt "Operator"
-msgid "Japanese Yen"
-msgstr "Японська Єна"
-
-
-msgctxt "Operator"
-msgid "German S"
-msgstr "Німецьке S"
-
-
-msgctxt "Operator"
-msgid "Spanish Question Mark"
-msgstr "Іспанський Знак Питання"
-
-
-msgctxt "Operator"
-msgid "Spanish Exclamation Mark"
-msgstr "Іспанський Знак Оклику"
 
 
 msgctxt "Operator"

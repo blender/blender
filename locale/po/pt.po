@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'0b00b360f7ae')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'98c6bded9844')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2023-12-18 13:45:58\n"
-"PO-Revision-Date: 2023-12-16 01:58+0000\n"
+"POT-Creation-Date: 2024-01-02 10:08:43\n"
+"PO-Revision-Date: 2024-01-01 05:55+0000\n"
 "Last-Translator: Duarte Ramos <duarte.framos@gmail.com>\n"
 "Language-Team: Portuguese <https://translate.blender.org/projects/blender-ui/ui/pt/>\n"
 "Language: pt\n"
@@ -408,6 +408,14 @@ msgstr "Mostra o Interface glTF para gerir variantes de materiais"
 
 msgid "Display glTF UI to manage animations"
 msgstr "Mostrar interface glTF para gerir animações"
+
+
+msgid "glTFpack file path"
+msgstr "Caminho do ficha glTFpack"
+
+
+msgid "Path to gltfpack binary"
+msgstr "Caminho para o binário glTFpack"
 
 
 msgid "Displays glTF Material Output node in Shader Editor (Menu Add > Output)"
@@ -1366,6 +1374,11 @@ msgstr "Cena"
 
 
 msgctxt "ID"
+msgid "Screen"
+msgstr "Ecrã"
+
+
+msgctxt "ID"
 msgid "Sound"
 msgstr "Som"
 
@@ -1437,8 +1450,32 @@ msgid "All"
 msgstr "Todos"
 
 
+msgid "Show assets from all of the listed asset libraries"
+msgstr "Mostrar recursos de todas as bibliotecas de recursos listadas"
+
+
+msgid "Current File"
+msgstr "Ficheiro Actual"
+
+
+msgid "Show the assets currently available in this Blender session"
+msgstr "Mostrar os recursos actualmente disponíveis nesta sessão Blender"
+
+
+msgid "Essentials"
+msgstr "Essenciais"
+
+
+msgid "Show the basic building blocks and utilities coming with Blender"
+msgstr "Mostrar os elementos de construção básicos e utilidades que vêm com o Blender"
+
+
 msgid "Custom"
 msgstr "Personalizar"
+
+
+msgid "Show assets from the asset libraries configured in the Preferences"
+msgstr "Mostrar recursos das bibliotecas de recursos configuradas nas Preferências"
 
 
 msgid "ID Name"
@@ -1515,6 +1552,14 @@ msgstr "Etiquetas de recursos"
 
 msgid "Collection of custom asset tags"
 msgstr "Colecção de etiquetas de recursos personalizadas"
+
+
+msgid "Asset Weak Reference"
+msgstr "Referência Fraca do Recurso"
+
+
+msgid "Weak reference to some asset"
+msgstr "Referência fraca de um recurso"
 
 
 msgid "Geometry attribute"
@@ -1671,6 +1716,10 @@ msgstr "Atributo na instância"
 
 msgid "Layer"
 msgstr "Camadas"
+
+
+msgid "Attribute on Grease Pencil layer"
+msgstr "Atributo na Camada de Grease Pencil"
 
 
 msgid "Is Internal"
@@ -2355,6 +2404,14 @@ msgstr "Lápis de cera"
 
 msgid "Grease Pencil data-blocks"
 msgstr "Blocos-de-dados de Grease Pencil"
+
+
+msgid "Grease Pencil v3"
+msgstr "Grease Pencil V3"
+
+
+msgid "Grease Pencil v3 data-blocks"
+msgstr "Data-blocks de Grease Pencil V3"
 
 
 msgid "Hair Curves"
@@ -3879,6 +3936,10 @@ msgid "Bones"
 msgstr "Ossos"
 
 
+msgid "Bones assigned to this bone collection. In armature edit mode this will always return an empty list of bones, as the bone collection memberships are only synchronized when exiting edit mode"
+msgstr "Ossos adicionados a esta colecção de ossos. No modo de edição de armação retorna sempre uma lista vazia, uma vez que a associação a colecções só é sincronizada quando sair do modo de edição"
+
+
 msgid "Is Editable"
 msgstr "É Editável"
 
@@ -3933,10 +3994,6 @@ msgstr "Colecção de ossos activa da armação"
 
 msgid "Active Collection Index"
 msgstr "Índice da Colecção Activa"
-
-
-msgid "The index of the Armature's active bone collection; -1 when there is no active collection"
-msgstr "O índice da colecção de ossos activa da Armação; -1 quando não há colecção activa"
 
 
 msgid "Active Collection Name"
@@ -13097,16 +13154,42 @@ msgid "Whether this path is saved in bookmarks, or generated from OS"
 msgstr "Permite definir se este caminho será guardado através da marcação de favoritos, ou gerado a partir do sistema operativo."
 
 
+msgid "File Handler Type"
+msgstr "Tipo de manipulador de ficheiro"
+
+
+msgid "Extends functionality to operators that manages files, such as adding drag and drop support"
+msgstr "Expande a funcionalidade a operadores que manipulam ficheiros, como a adicionar suporte para arrastar e largar"
+
+
 msgid "File Extensions"
 msgstr "Extensões de ficheiro"
+
+
+msgid ""
+"Formatted string of file extensions supported by the file handler, each extension should start with a \".\" and be separated by \";\".\n"
+"For Example: `\".blend;.ble\"`"
+msgstr "Texto formatado de extensões suportadas pelo manipulador de,ficheiros, cada extensão deve começar com um \".\" e ser separado por \";\". Por exemplo: `\".blend;.ble\"`"
+
+
+msgid "If this is set, the file handler gets a custom ID, otherwise it takes the name of the class used to define the file handler (for example, if the class name is \"OBJECT_FH_hello\", and bl_idname is not set by the script, then bl_idname = \"OBJECT_FH_hello\")"
+msgstr "Se estiver definido, o manipulador de ficheiros recebe um ID personalizado, caso contrário assume o nome da classe utilizada para definir o manipulador de ficheiros (por exemplo, se o nome da classe é \"OBJECT_FH_hello\", e bl_idname não está definido pelo script, então bl_idname = \"OBJECT_FH_hello\""
 
 
 msgid "Operator"
 msgstr "Operador"
 
 
+msgid "Operator that can handle import files with the extensions given in bl_file_extensions"
+msgstr "Operador que lida com importação de ficheiros com extensões dadas por bl_file_extensions"
+
+
 msgid "Label"
 msgstr "Rótulo"
+
+
+msgid "The file handler label"
+msgstr "Etiqueta do manipulador de ficheiros"
 
 
 msgid "File Select Entry"
@@ -14546,12 +14629,32 @@ msgid "System Maximum"
 msgstr "Máximo do Sistema"
 
 
+msgid "Maximum number of fluid particles that are allowed in this simulation"
+msgstr "Número máximo de partículas de fluído permitidas nesta simulação"
+
+
+msgid "Temperature Grid"
+msgstr "Grelha de Temperatura"
+
+
+msgid "Smoke temperature grid, range 0 to 1 represents 0 to 1000K"
+msgstr "Grelha de temperatura do fumo. Intervalo de 0 a 1 representa 0 a 1000K"
+
+
 msgid "Time Scale"
 msgstr "Escala de tempo"
 
 
 msgid "Adjust simulation speed"
 msgstr "Permite ajustar a velocidade da simulação."
+
+
+msgid "Maximum number of simulation steps to perform for one frame"
+msgstr "Número máximo de passos de simulação a calcular por fotograma"
+
+
+msgid "Minimum number of simulation steps to perform for one frame"
+msgstr "Número mínimo de passos de simulação a calcular por fotograma"
 
 
 msgid "Adaptive Domain"
@@ -14562,24 +14665,164 @@ msgid "Adapt simulation resolution and size to fluid"
 msgstr "Adaptar resolução de simulação e tamanho ao fluido."
 
 
+msgid "Use Adaptive Time Steps"
+msgstr "Usar Passos Temporais Adaptativos"
+
+
+msgid "Bubble"
+msgstr "Bolha"
+
+
+msgid "Create bubble particle system"
+msgstr "Criar sistema de partículas de bolhas"
+
+
+msgid "Enable collisions with back domain border"
+msgstr "Activar colisões com a fronteira traseira do domínio"
+
+
 msgid "Bottom"
 msgstr "Base"
+
+
+msgid "Enable collisions with bottom domain border"
+msgstr "Activar colisões com a fronteira inferior do domínio"
+
+
+msgid "Enable collisions with front domain border"
+msgstr "Activar colisões com a fronteira frontal do domínio"
+
+
+msgid "Enable collisions with left domain border"
+msgstr "Activar colisões com a fronteira esquerda do domínio"
+
+
+msgid "Enable collisions with right domain border"
+msgstr "Activar colisões com a fronteira direita do domínio"
 
 
 msgid "Top"
 msgstr "Topo"
 
 
+msgid "Enable collisions with top domain border"
+msgstr "Activar colisões com a fronteira superior do domínio"
+
+
+msgid "Grid Display"
+msgstr "Exibição em Grelha"
+
+
+msgid "Render a simulation field while mapping its voxels values to the colors of a ramp or using a predefined color code"
+msgstr "Renderizar um campo de simulação mapeando os valores dos voxel às cores de um gradiente ou usando um código de cores pré definido"
+
+
+msgid "Use Diffusion"
+msgstr "Usar Difusão"
+
+
+msgid "Enable fluid diffusion settings (e.g. viscosity, surface tension)"
+msgstr "Usar definições de difusão de fluido (por exemplo viscosidade, tensão superficial)"
+
+
 msgid "Dissolve Smoke"
 msgstr "Dissolver fumo"
+
+
+msgid "Let smoke disappear over time"
+msgstr "Deixar fumo desaparecer com o tempo."
+
+
+msgid "Logarithmic Dissolve"
+msgstr "Dissolução Logarítmica"
+
+
+msgid "Dissolve smoke in a logarithmic fashion. Dissolves quickly at first, but lingers longer"
+msgstr "Dissolver fumo de forma logarítmica. Dissolve rapidamente ao início, mas permanece mais prolongadamente"
+
+
+msgid "Create liquid particle system"
+msgstr "Criar sistema de partículas de fluido"
+
+
+msgid "Foam"
+msgstr "Espuma"
+
+
+msgid "Create foam particle system"
+msgstr "Criar sistema de partículas de espuma"
+
+
+msgid "Fractional Obstacles"
+msgstr "Obstáculos Fraccionais"
+
+
+msgid "Fractional obstacles improve and smoothen the fluid-obstacle boundary"
+msgstr "Obstáculos fraccionais melhoram e suavizam a fronteira fluído-obstáculo"
+
+
+msgid "Use Guiding"
+msgstr "Usar Guias"
+
+
+msgid "Enable fluid guiding"
+msgstr "Activar orientação de fluído"
+
+
+msgid "Use Mesh"
+msgstr "Usar Malha"
+
+
+msgid "Enable fluid mesh (using amplification)"
+msgstr "Ativar malha de fluido (usando amplificação)"
+
+
+msgid "Use Noise"
+msgstr "Usar Ruído"
+
+
+msgid "Enable fluid noise (using amplification)"
+msgstr "Ativar ruído de fluido (usando amplificação)"
+
+
+msgid "Slice"
+msgstr "Fatiar"
 
 
 msgid "Perform a single slice of the domain object"
 msgstr "Perfaz um fatiamento único (constante) do objeto de domínio."
 
 
+msgid "Speed Vectors"
+msgstr "Vectores de Velocidade"
+
+
+msgid "Caches velocities of mesh vertices. These will be used (automatically) when rendering with motion blur enabled"
+msgstr "Armazena velocidades dos vértices da malha. Estes serão utilizados (automaticamente) quando renderizar com desfocagem de movimento activa"
+
+
+msgid "Spray"
+msgstr "Pulverização"
+
+
+msgid "Create spray particle system"
+msgstr "Criar sistema de partículas de pulverização"
+
+
 msgid "Tracer"
 msgstr "Traçadoras"
+
+
+msgid "Create tracer particle system"
+msgstr "Criar sistema de partículas rastreadoras"
+
+
+msgid "Use Viscosity"
+msgstr "Usar Viscosidade"
+
+
+msgid "Enable fluid viscosity settings"
+msgstr "Activar definições de viscosidade de fluído"
 
 
 msgid "Display Type"
@@ -14590,12 +14833,72 @@ msgid "Needle"
 msgstr "Agulhas"
 
 
+msgid "Display vectors as needles"
+msgstr "Desenhar vetores como agulhas"
+
+
 msgid "Streamlines"
 msgstr "Linhas encadeadas"
 
 
+msgid "Display vectors as streamlines"
+msgstr "Desenha os vetores como linhas de fluxo"
+
+
+msgid "MAC Grid"
+msgstr "Grelha MAC"
+
+
+msgid "Display vector field as MAC grid"
+msgstr "Mostrar campo de vectores como grelha MAC"
+
+
+msgid "Vector field to be represented by the display vectors"
+msgstr "Campo de vectores a ser representado pelos vectores de exibição"
+
+
+msgid "Fluid Velocity"
+msgstr "Velocidade de Fluído"
+
+
+msgid "Velocity field of the fluid domain"
+msgstr "Campo de velocidade do domínio de fluído"
+
+
+msgid "Guide Velocity"
+msgstr "Velocidade de Guia"
+
+
+msgid "Guide velocity field of the fluid domain"
+msgstr "Campo de velocidade guia do domínio de fluído"
+
+
+msgid "Force field of the fluid domain"
+msgstr "Campo de força do domínio de fluído"
+
+
 msgid "Multiplier for scaling the vectors"
 msgstr "Multiplicador para escalonamento dos vetores."
+
+
+msgid "Magnitude"
+msgstr "Magnitude"
+
+
+msgid "Scale vectors with their magnitudes"
+msgstr "Vectores de escala com as suas magnitudes"
+
+
+msgid "Show X-component of MAC Grid"
+msgstr "Mostrar componente-X da Grelha MAC"
+
+
+msgid "Show Y-component of MAC Grid"
+msgstr "Mostrar componente-Y da Grelha MAC"
+
+
+msgid "Show Z-component of MAC Grid"
+msgstr "Mostrar componente-Z da Grelha MAC"
 
 
 msgid "Velocity Grid"
@@ -14604,6 +14907,14 @@ msgstr "Grelha de velocidade"
 
 msgid "Smoke velocity grid"
 msgstr "Grelha de velocidade para o domínio do fumo."
+
+
+msgid "Velocity Scale"
+msgstr "Escala da velocidade"
+
+
+msgid "Factor to control the amount of motion blur"
+msgstr "Factor para controlar a quantidade de desfocagem de movimento"
 
 
 msgid "Viscosity Base"
@@ -14622,24 +14933,120 @@ msgid "Negative exponent for the viscosity value (to simplify entering small val
 msgstr "Exponente negativo para o valor de viscosidade (para simplificar, entre com pequenos valores, ex 5*10^-6)."
 
 
+msgid "Viscosity of liquid (higher values result in more viscous fluids, a value of 0 will still apply some viscosity)"
+msgstr "Viscosidade do líquido (valores mais altos resultam em fluído mais viscoso, valor de 0 ainda aplica alguma viscosidade)"
+
+
+msgid "Amount of turbulence and rotation in smoke"
+msgstr "Quantidade de turbulência e rotação no fumo"
+
+
+msgid "Effector Settings"
+msgstr "Definições dos Efetores"
+
+
 msgid "Smoke collision settings"
 msgstr "Definições de colisão de fumo."
+
+
+msgid "Effector Type"
+msgstr "Tipo de efector"
+
+
+msgid "Change type of effector in the simulation"
+msgstr "Alterar tipo de efector na simulação"
 
 
 msgid "Collision"
 msgstr "Colisões"
 
 
+msgid "Create collision object"
+msgstr "Criar objecto de colisão"
+
+
+msgid "Guide"
+msgstr "Guia"
+
+
+msgid "Create guide object"
+msgstr "Criar objecto guia"
+
+
+msgid "Guiding mode"
+msgstr "Modo de Guia"
+
+
+msgid "How to create guiding velocities"
+msgstr "Como criar velocidades guia"
+
+
 msgid "Maximize"
 msgstr "Maximizar"
+
+
+msgid "Compare velocities from previous frame with new velocities from current frame and keep the maximum"
+msgstr "Comprar velocidades do fotograma anterior com velocidades do fotograma actual e manter máximo"
+
+
+msgid "Minimize"
+msgstr "Minimizar"
+
+
+msgid "Compare velocities from previous frame with new velocities from current frame and keep the minimum"
+msgstr "Comprar velocidades do fotograma anterior com velocidades do fotograma actual e manter mínimo"
+
+
+msgid "Override"
+msgstr "Revogar"
+
+
+msgid "Always write new guide velocities for every frame (each frame only contains current velocities from guiding objects)"
+msgstr "Escrever sempre novas velocidades guias para cada fotograma (cada fotograma apenas contém velocidades actuais dos objectos guia)"
+
+
+msgid "Averaged"
+msgstr "Média"
+
+
+msgid "Take average of velocities from previous frame and new velocities from current frame"
+msgstr "Ler velocidades médias do fotograma anterior e velocidades novas do fotograma actual"
 
 
 msgid "Subframes"
 msgstr "Sub-fotogramas"
 
 
+msgid "Number of additional samples to take between frames to improve quality of fast moving effector objects"
+msgstr "Número de amostras adicionais a obter entre fotogramas para melhorar a qualidade de efectores de movimento rápido"
+
+
+msgid "Additional distance around mesh surface to consider as effector"
+msgstr "Distância adicional à volta da superfície da malha para considerar como efector"
+
+
+msgid "Control when to apply the effector"
+msgstr "Controlar quando aplicar o efecfor"
+
+
+msgid "Is Planar"
+msgstr "É Planar"
+
+
+msgid "Treat this object as a planar, unclosed mesh"
+msgstr "Tratar este objeto como uma malha planar não fechada"
+
+
+msgid "Multiplier of obstacle velocity"
+msgstr "Multiplicador de velocidade do obstáculo"
+
+
 msgid "Flow Settings"
 msgstr "Definições de fluxo"
+
+
+msgid "Fluid flow settings"
+msgstr "Definições de fluxo do fluído"
 
 
 msgid "Density"
@@ -14654,8 +15061,36 @@ msgid "Name of vertex group which determines surface emission rate"
 msgstr "Nome do grupo de vértices que determina a taxa de emissão de superfície."
 
 
+msgid "Flow Behavior"
+msgstr "Comportamento do Fluxo"
+
+
+msgid "Change flow behavior in the simulation"
+msgstr "Alterar comportamento do fluxo na simulação"
+
+
+msgid "Add fluid to simulation"
+msgstr "Adicionar fluído à simulação"
+
+
+msgid "Delete fluid from simulation"
+msgstr "Apaga o fluído da simulação"
+
+
+msgid "Only use given geometry for fluid"
+msgstr "Usar apenas geometria nada para fluído"
+
+
+msgid "Change how fluid is emitted"
+msgstr "Altera como o fluído é emitido"
+
+
 msgid "Flow Type"
 msgstr "Tipo de fluxo"
+
+
+msgid "Change type of fluid in the simulation"
+msgstr "Alterar tipo de fluído na simulação"
 
 
 msgid "Add smoke"
@@ -14676,6 +15111,10 @@ msgstr "Fogo"
 
 msgid "Add fire"
 msgstr "Adicionar fogo"
+
+
+msgid "Add liquid"
+msgstr "Adicionar líquido"
 
 
 msgid "Flame Rate"
@@ -14700,6 +15139,18 @@ msgstr "Cor do fumo"
 
 msgid "Number of additional samples to take between frames to improve quality of fast moving flows"
 msgstr "Número de amostras adicionais para obter entre os fotogramas para melhorar a qualidade de fluxos de movimento rápido."
+
+
+msgid "Surface Emission"
+msgstr "Emissão da Superfície"
+
+
+msgid "Controls fluid emission from the mesh surface (higher value results in emission further away from the mesh surface"
+msgstr "Controlar emissão de fluído da superfície da malha (valor mais alto resulta em emissão mais longe da superfície da malha)"
+
+
+msgid "Temperature Difference"
+msgstr "Diferença de Temperatura"
 
 
 msgid "Temperature difference to ambient temperature"
@@ -14742,8 +15193,24 @@ msgid "Absolute Density"
 msgstr "Densidade absoluta"
 
 
+msgid "Only allow given density value in emitter area and will not add up"
+msgstr "Permitir apenas valor de densidade dado na área de emissão e não adiciona"
+
+
+msgid "Use Flow"
+msgstr "Usar Fluxo"
+
+
+msgid "Control when to apply fluid flow"
+msgstr "Controlar quando aplicar fluxo de fluído"
+
+
 msgid "Initial Velocity"
 msgstr "Velocidade inicial"
+
+
+msgid "Fluid has some initial velocity when it is emitted"
+msgstr "Fluído tem uma velocidade inicial quando é emitido"
 
 
 msgid "Set Size"
@@ -14752,6 +15219,10 @@ msgstr "Definir tamanho"
 
 msgid "Set particle size in simulation cells or use nearest cell"
 msgstr "Define o tamanho das partículas em células de simulação ou usa as células mais próximas."
+
+
+msgid "Treat this object as a planar and unclosed mesh. Fluid will only be emitted from the mesh surface and based on the surface emission value"
+msgstr "Tratar este objeto como uma malha plana não fechada. O fluído só será emitido da superfície da malha e baseado no valor emissão superficial"
 
 
 msgid "Use Texture"
@@ -14766,6 +15237,14 @@ msgid "Initial"
 msgstr "Inicial"
 
 
+msgid "Additional initial velocity in X, Y and Z direction (added to source velocity)"
+msgstr "Velocidade adicional na direcção em X, Y, e Z (adicionado à velocidade da origem)"
+
+
+msgid "Multiplier of source velocity passed to fluid (source velocity is non-zero only if object is moving)"
+msgstr "Multiplicador da velocidade da origem passado ao fluído (a velocidade da origem é não nula apenas se o objecto estiver em movimento)"
+
+
 msgid "Amount of normal directional velocity"
 msgstr "Quantidade de velocidade direcional fornecida pelas normais."
 
@@ -14774,12 +15253,36 @@ msgid "Amount of random velocity"
 msgstr "Quantidade de velocidade aleatória."
 
 
+msgid "Volume Emission"
+msgstr "Emissão de Volume"
+
+
+msgid "Controls fluid emission from within the mesh (higher value results in greater emissions from inside the mesh)"
+msgstr "Controlar emissão de fluído do interior da malha (valor mais alto resulta em emissões maiores do interior da malha)"
+
+
 msgid "Freestyle Line Set"
 msgstr "Freestyle - Conjuntos de linhas"
 
 
 msgid "Line set for associating lines and style parameters"
 msgstr "Definições de linha para a associação de linhas e parâmetros de estilo."
+
+
+msgid "Collection"
+msgstr "Colecção"
+
+
+msgid "A collection of objects based on which feature edges are selected"
+msgstr "Uma colecção de objetos baseada em que arestas de características estão selecionadas"
+
+
+msgid "Collection Negation"
+msgstr "Negação de Colecções"
+
+
+msgid "Specify either inclusion or exclusion of feature edges belonging to a collection of objects"
+msgstr "Especifica tanto a inclusão como a exclusão das arestas de características pertencentes a colecções de objectos"
 
 
 msgid "Inclusive"
@@ -14978,6 +15481,14 @@ msgid "Select border edges (open mesh edges)"
 msgstr "Seleciona as arestas nas margens (arestas de malha aberta)."
 
 
+msgid "Selection by Collection"
+msgstr "Selecção por Colecção"
+
+
+msgid "Select feature edges based on a collection of objects"
+msgstr "Seleciona arestas de características com base numa colecções de objetos"
+
+
 msgid "Selection by Edge Types"
 msgstr "Seleção pelos tipos de aresta"
 
@@ -15066,6 +15577,10 @@ msgid "Select hidden feature edges"
 msgstr "Seleciona as arestas de funcionalidade ocultas."
 
 
+msgid "Quantitative Invisibility"
+msgstr "Invisibilidade Quantitativa"
+
+
 msgid "Select feature edges within a range of quantitative invisibility (QI) values"
 msgstr "Seleciona as arestas de funcionalidade de acordo com um intervalo de alcance para a invisibilidade quantitativa."
 
@@ -15106,6 +15621,18 @@ msgid "Freestyle Settings"
 msgstr "Definições Freestyle"
 
 
+msgid "Freestyle settings for a ViewLayer data-block"
+msgstr "Definições Freestyle para um datablock de ViewLayer"
+
+
+msgid "As Render Pass"
+msgstr "Uma Passagem de Renderização"
+
+
+msgid "Renders Freestyle output to a separate pass instead of overlaying it on the Combined pass"
+msgstr "Renderiza resultado Freestyle para uma passagem de render separada em vez de sobrepor na passagem Combinada"
+
+
 msgid "Crease Angle"
 msgstr "Ângulo dos vincos"
 
@@ -15134,8 +15661,16 @@ msgid "Select the Freestyle control mode"
 msgstr "Permite selecionar o modo de controlo para o renderizador Freestyle."
 
 
+msgid "Python Scripting"
+msgstr "Scripting em Python"
+
+
 msgid "Advanced mode for using style modules written in Python"
 msgstr "Modo avançado para o uso de módulos de estilo escritos em Python."
+
+
+msgid "Parameter Editor"
+msgstr "Editor de Parâmetros"
 
 
 msgid "Basic mode for interactive style parameter editing"
@@ -15194,6 +15729,66 @@ msgid "View Map Cache"
 msgstr "Cache de mapa de visualização"
 
 
+msgid "Keep the computed view map and avoid recalculating it if mesh geometry is unchanged"
+msgstr "Manter o mapa de vista computado e evitar o seu recálculo se a geometria de malha não for alterada"
+
+
+msgid "Edit Curve"
+msgstr "Curva de Edição"
+
+
+msgid "Edition Curve"
+msgstr "Curva para Editar"
+
+
+msgid "Curve Points"
+msgstr "Pontos da Curva"
+
+
+msgid "Curve data points"
+msgstr "Pontos dos dados da curva"
+
+
+msgid "Curve is selected for viewport editing"
+msgstr "A curva está seleccionada para edição na janela de visualização"
+
+
+msgid "Point Index"
+msgstr "Índice do Ponto"
+
+
+msgid "Index of the corresponding grease pencil stroke point"
+msgstr "Índice do ponto do grease pencil correspondente"
+
+
+msgid "Pressure of the grease pencil stroke point"
+msgstr "Pressão do ponto do traço de grease pencil"
+
+
+msgid "Color intensity (alpha factor) of the grease pencil stroke point"
+msgstr "Intensidade de côr (factor alpha) do ponto do traço de grease pencil"
+
+
+msgid "UV Factor"
+msgstr "Factor UV"
+
+
+msgid "Internal UV factor"
+msgstr "Factor de UV interno"
+
+
+msgid "UV Rotation"
+msgstr "Rotação do UV"
+
+
+msgid "Internal UV factor for dot mode"
+msgstr "Factor interno UV para modo ponto"
+
+
+msgid "Vertex color of the grease pencil stroke point"
+msgstr "Cor de vértice do ponto do traço de grease pencil"
+
+
 msgid "Grease Pencil Frame"
 msgstr "Fotograma de lápis de cera"
 
@@ -15218,12 +15813,28 @@ msgid "Frame is being edited (painted on)"
 msgstr "Fotograma que está sendo editado (sendo pintado)."
 
 
+msgid "Keyframe Type"
+msgstr "Tipo de Fotogramas Chave"
+
+
+msgid "Type of keyframe"
+msgstr "Tipo de Fotograma Chave"
+
+
 msgid "Keyframe"
 msgstr "Fotograma chave"
 
 
+msgid "Normal keyframe, e.g. for key poses"
+msgstr "Fotogramas chave normais, por exemplo para as poses principais"
+
+
 msgid "Breakdown"
 msgstr "Interruptivos"
+
+
+msgid "A breakdown pose, e.g. for transitions between key poses"
+msgstr "Uma pose de decomposição, por exemplo para transição entre poses principais"
 
 
 msgid "Moving Hold"
@@ -15298,6 +15909,10 @@ msgid "Frame currently being displayed for this layer"
 msgstr "Fotograma sendo mostrado atualmente para esta camada."
 
 
+msgid "Set annotation Visibility"
+msgstr "Definir visibilidade de anotações"
+
+
 msgid "After Color"
 msgstr "Cor posterior"
 
@@ -15308,6 +15923,10 @@ msgstr "Cor de base para os fantasmas após o fotograma atual."
 
 msgid "Frames After"
 msgstr "Fotogramas posteriores"
+
+
+msgid "Maximum number of frames to show after current frame"
+msgstr "Número máximo de fotogramas chave a mostrar após fotograma actual"
 
 
 msgid "Before Color"
@@ -15322,12 +15941,40 @@ msgid "Frames Before"
 msgstr "Fotogramas anteriores"
 
 
+msgid "Maximum number of frames to show before current frame"
+msgstr "Número máximo de fotogramas chave a mostrar antes do fotograma actual"
+
+
+msgid "Annotation Layer Opacity"
+msgstr "Opacidade da Camada de Anotações"
+
+
 msgid "Blend Mode"
 msgstr "Modo de Mistura"
 
 
+msgid "Blend mode"
+msgstr "Modo de mesclagem"
+
+
 msgid "Regular"
 msgstr "Regular"
+
+
+msgid "Hard Light"
+msgstr "Hard Light"
+
+
+msgid "Custom Channel Color"
+msgstr "Cor Personalizada de Canal"
+
+
+msgid "Custom color for animation channel in Dopesheet"
+msgstr "Cor personalizada para canal de animação na Dopesheet"
+
+
+msgid "Color for all strokes in this layer"
+msgstr "Cor para todos os traços nesta camada"
 
 
 msgid "Frames"
@@ -15354,12 +16001,24 @@ msgid "True when the layer parent object is set"
 msgstr "Verdadeiro quando uma camada parenteada a um objeto está definida."
 
 
+msgid "Ruler"
+msgstr "Régua"
+
+
+msgid "This is a special ruler layer"
+msgstr "Esta é uma cama especial de régua"
+
+
 msgid "Thickness Change"
 msgstr "Alterações de espessura"
 
 
 msgid "Thickness change to apply to current strokes (in pixels)"
 msgstr "Alterações de espessura a ser aplicada nos traços atuais (em pixeis)."
+
+
+msgid "Values for change location"
+msgstr "Valores para alteração de posição"
 
 
 msgid "Locked"
@@ -15378,12 +16037,44 @@ msgid "Lock current frame displayed by layer"
 msgstr "Trava o fotograma atual mostrado pela camada."
 
 
+msgid "Disallow Locked Materials Editing"
+msgstr "Não Permitir Edição de Materiais Trancados"
+
+
+msgid "Avoids editing locked materials in the layer"
+msgstr "Evita editar materiais trancados nesta camada"
+
+
+msgid "List of Masking Layers"
+msgstr "Lista de Camadas Máscara"
+
+
 msgid "Parent inverse transformation matrix"
 msgstr "Matriz de transformação inversa de parentesco."
 
 
+msgid "Matrix Layer Inverse"
+msgstr "Matriz Inversa da Camada"
+
+
+msgid "Local Layer transformation inverse matrix"
+msgstr "Matriz inversa da transformação local da camada"
+
+
+msgid "Matrix Layer"
+msgstr "Matriz da Camada"
+
+
+msgid "Local Layer transformation matrix"
+msgstr "Matriz de transformação local da camada"
+
+
 msgid "Layer Opacity"
 msgstr "Opacidade de camada"
+
+
+msgid "Parent object"
+msgstr "Objecto pai"
 
 
 msgid "Parent Bone"
@@ -15414,12 +16105,40 @@ msgid "Pass Index"
 msgstr "Índice de passo"
 
 
+msgid "Index number for the \"Layer Index\" pass"
+msgstr "Número de índice para o passagem de \"Índice de Camada\""
+
+
+msgid "Values for changes in rotation"
+msgstr "Valores para alterações na rotação"
+
+
+msgid "Values for changes in scale"
+msgstr "Valores para alterações na escala"
+
+
 msgid "Layer is selected for editing in the Dope Sheet"
 msgstr "A camada está selecionada para edição na tabela de animação."
 
 
+msgid "In Front"
+msgstr "À Frente"
+
+
+msgid "Make the layer display in front of objects"
+msgstr "Faz com que a camada seja exibida à frente dos objectos"
+
+
 msgid "Show Points"
 msgstr "Mostrar pontos"
+
+
+msgid "Show the points which make up the strokes (for debugging purposes)"
+msgstr "Mostrar os pontos que compõem os traços (para finalidade de correção de erros)"
+
+
+msgid "Thickness of annotation strokes"
+msgstr "Espessura dos traços de anotações"
 
 
 msgid "Tint Color"
@@ -15442,40 +16161,216 @@ msgid "Onion Skinning"
 msgstr "Transparência (papel vegetal) "
 
 
+msgid "Display annotation onion skins before and after the current frame"
+msgstr "Mostrar anotações de casca de cebola antes e depois do fotograma actual"
+
+
+msgid "Use Lights"
+msgstr "Usar Luzes"
+
+
+msgid "Enable the use of lights on stroke and fill materials"
+msgstr "Activar utilização de luzes nos traços e materiais de preenchimento"
+
+
 msgid "Use Mask"
 msgstr "Usar máscara"
+
+
+msgid "The visibility of drawings on this layer is affected by the layers in its masks list"
+msgstr "Visibilidade de desenhos nesta camada é afectada por camadas na sua lista de máscaras"
+
+
+msgid "Display onion skins before and after the current frame"
+msgstr "Mostrar casca de cebola antes e depois do fotograma actual"
+
+
+msgid "Solo Mode"
+msgstr "Modo Solo"
+
+
+msgid "In Draw Mode only display layers with keyframe in current frame"
+msgstr "No Modo de Desenho mostrar apenas camadas com fotograma chave no fotograma actual"
+
+
+msgid "Use Masks in Render"
+msgstr "Usar Máscaras no Render"
+
+
+msgid "Include the mask layers when rendering the view-layer"
+msgstr "Incluir camadas máscara quando renderizar a view-layer"
+
+
+msgid "Vertex Paint Opacity"
+msgstr "Opacidade da Pintura de Vértices"
+
+
+msgid "Vertex Paint mix factor"
+msgstr "Factor de mistura da Pintura de Vértices"
+
+
+msgid "ViewLayer"
+msgstr "ViewLayer"
+
+
+msgid "Only include Layer in this View Layer render output (leave blank to include always)"
+msgstr "Apenas incluir Camada no resultado de renderização desta View Layer (deixar em branco para incluir sempre)"
+
+
+msgid "Grease Pencil Masking Layers"
+msgstr "Camadas de Máscara do Grease Pencil"
+
+
+msgid "List of Mask Layers"
+msgstr "Lista de Camadas Máscara"
+
+
+msgid "Set mask Visibility"
+msgstr "Definir visibilidade de máscara"
+
+
+msgid "Angle Snap"
+msgstr "Adesão ao Ângulo"
+
+
+msgid "Angle snapping"
+msgstr "Adesão ao ângulo"
+
+
+msgid "Custom reference point for guides"
+msgstr "Ponto de referência personalizado para guias"
+
+
+msgid "Object used for reference point"
+msgstr "Object usado para ponto de referência"
+
+
+msgid "Type of speed guide"
+msgstr "Tipo de guia de semente"
+
+
+msgid "Use cursor as reference point"
+msgstr "Usar posição do cursor como ponto de referência"
+
+
+msgid "Use custom reference point"
+msgstr "Usar ponto de referência personalizado"
+
+
+msgid "Use object as reference point"
+msgstr "Usar objecto como ponto de referência"
 
 
 msgid "Spacing"
 msgstr "Espaçamento"
 
 
+msgid "Guide spacing"
+msgstr "Espaçamento de guias"
+
+
 msgid "Circular"
 msgstr "Circular"
+
+
+msgid "Use single point to create rings"
+msgstr "Usar ponto individual para criar anéis"
 
 
 msgid "Radial"
 msgstr "Radial"
 
 
+msgid "Use single point as direction"
+msgstr "Usar ponto individual como direcção"
+
+
+msgid "Parallel lines"
+msgstr "Linhas paralelas"
+
+
 msgid "Grid"
 msgstr "Grelha"
+
+
+msgid "Grid allows horizontal and vertical lines"
+msgstr "A grelha permite linhas horizontais e verticais"
+
+
+msgid "Isometric"
+msgstr "Isométrica"
+
+
+msgid "Grid allows isometric and vertical lines"
+msgstr "Grelha permite linhas isométricas e verticais"
+
+
+msgid "Use Guides"
+msgstr "Usar Guias"
+
+
+msgid "Enable speed guides"
+msgstr "Activar guias de velocidade"
+
+
+msgid "Use Snapping"
+msgstr "Usar Adesão"
+
+
+msgid "Enable snapping to guides angle or spacing options"
+msgstr "Activar adesão a guias ângulos ou opções de espaçamento"
 
 
 msgid "GPencil Sculpt Settings"
 msgstr "Definições de escultura para lápis de cera"
 
 
+msgid "General properties for Grease Pencil stroke sculpting tools"
+msgstr "Propriedades gerais para ferramentas de escultura dos traços de Grease Pencil"
+
+
+msgid "Threshold for stroke intersections"
+msgstr "Limite para intersecções de traços"
+
+
+msgid "Lock Axis"
+msgstr "Trancar Eixo"
+
+
+msgid "Align strokes to current view plane"
+msgstr "Alinhar traços com o plano de vista actual"
+
+
+msgid "Front (X-Z)"
+msgstr "Frente (X-Z)"
+
+
 msgid "Project strokes to plane locked to Y"
 msgstr "A projeção dos traços será bloqueada no eixo Y do plano."
+
+
+msgid "Side (Y-Z)"
+msgstr "Lado (Y-Z)"
 
 
 msgid "Project strokes to plane locked to X"
 msgstr "A projeção dos traços será bloqueada no eixo X do plano."
 
 
+msgid "Top (X-Y)"
+msgstr "Topo (X-Y)"
+
+
 msgid "Project strokes to plane locked to Z"
 msgstr "A projeção dos traços será bloqueada no eixo Z do plano."
+
+
+msgid "Align strokes to current 3D cursor orientation"
+msgstr "Alinhar traços com orientação actual do Cursor 3D"
+
+
+msgid "Custom curve to control falloff of brush effect by Grease Pencil frames"
+msgstr "Curva personalizada para controlar decaimento do efeito do pincel por fotograma de Grease Pencil"
 
 
 msgid "Use Falloff"
@@ -15488,6 +16383,14 @@ msgstr "Traços de lápis de cera"
 
 msgid "Freehand curve defining part of a sketch"
 msgstr "Curvas a mão livre definindo partes dos rascunhos."
+
+
+msgid "Boundbox Min"
+msgstr "Min Caixa Envolvente"
+
+
+msgid "Coordinate space that stroke is in"
+msgstr "Espaço de coordenadas em que o traço está"
 
 
 msgid "Stroke is in screen-space"
@@ -15516,6 +16419,19 @@ msgstr "Imagem 2D"
 
 msgid "Stroke is in 2D-space (but with special 'image' scaling)"
 msgstr "Os traços estão no espaço 2D (mas como uma escala de \"imagem\" especial)."
+
+
+msgid "Temporary data for Edit Curve"
+msgstr "Informação temporária para a Curva em Edição"
+
+
+msgctxt "GPencil"
+msgid "End Cap"
+msgstr "Pontas dos Traços"
+
+
+msgid "Stroke end extreme cap style"
+msgstr "Estilo de traço e pontas dos extremos"
 
 
 msgid "Thickness of stroke (in pixels)"
@@ -37157,11 +38073,6 @@ msgid "Convert rotations to euler ZYX"
 msgstr "Converte rotações para o Euler ZYX."
 
 
-msgctxt "Operator"
-msgid "Export STL"
-msgstr "Exportar STL"
-
-
 msgid "Ascii"
 msgstr "ASCII"
 
@@ -39638,11 +40549,6 @@ msgstr "Caminhos relativos"
 
 msgid "Shadeless"
 msgstr "Insensível a luzes ou sombras"
-
-
-msgctxt "Operator"
-msgid "Import STL"
-msgstr "Importar STL"
 
 
 msgid "Load STL triangle mesh data"
@@ -51892,6 +52798,16 @@ msgstr "Abre uma tela de abertura com as informações de lançamento."
 
 
 msgctxt "Operator"
+msgid "Export STL"
+msgstr "Exportar STL"
+
+
+msgctxt "Operator"
+msgid "Import STL"
+msgstr "Importar STL"
+
+
+msgctxt "Operator"
 msgid "Save System Info"
 msgstr "Guardar as informações sobre o sistema"
 
@@ -58346,18 +59262,6 @@ msgstr "Mostrar deslocamentos"
 
 msgid "Display strip in/out offsets"
 msgstr "Mostra os deslocamentos de entrada e saída das faixas."
-
-
-msgid "Waveforms Off"
-msgstr "Desligar formatos de onda"
-
-
-msgid "Waveforms On"
-msgstr "Acionar formatos de onda"
-
-
-msgid "Use Strip Option"
-msgstr "Utilizar as opções de faixa "
 
 
 msgid "Bounding Box Center"
@@ -65306,86 +66210,6 @@ msgstr "Recalcular para fora"
 msgctxt "Operator"
 msgid "Recalculate Inside"
 msgstr "Recalcular para dentro"
-
-
-msgctxt "Operator"
-msgid "Copyright"
-msgstr "Copyright (Direitos autorais)"
-
-
-msgctxt "Operator"
-msgid "Registered Trademark"
-msgstr "Marca registrada"
-
-
-msgctxt "Operator"
-msgid "Degree Sign"
-msgstr "Símbolo de graduação"
-
-
-msgctxt "Operator"
-msgid "Multiplication Sign"
-msgstr "Sinal de multiplicação"
-
-
-msgctxt "Operator"
-msgid "Superscript 1"
-msgstr "Sobrescrito 1"
-
-
-msgctxt "Operator"
-msgid "Superscript 2"
-msgstr "Sobrescrito 2"
-
-
-msgctxt "Operator"
-msgid "Superscript 3"
-msgstr "Sobrescrito 3"
-
-
-msgctxt "Operator"
-msgid "Double >>"
-msgstr "Seta dupla >>"
-
-
-msgctxt "Operator"
-msgid "Double <<"
-msgstr "Seta dupla <<"
-
-
-msgctxt "Operator"
-msgid "Promillage"
-msgstr "Por milhagem"
-
-
-msgctxt "Operator"
-msgid "Dutch Florin"
-msgstr "Florim holandês"
-
-
-msgctxt "Operator"
-msgid "British Pound"
-msgstr "Libra britânica"
-
-
-msgctxt "Operator"
-msgid "Japanese Yen"
-msgstr "Iene japonês"
-
-
-msgctxt "Operator"
-msgid "German S"
-msgstr "S Germânico (duplo s)"
-
-
-msgctxt "Operator"
-msgid "Spanish Question Mark"
-msgstr "Interrogação hispânica"
-
-
-msgctxt "Operator"
-msgid "Spanish Exclamation Mark"
-msgstr "Exclamação hispânica"
 
 
 msgctxt "Operator"
