@@ -3572,6 +3572,30 @@ void WM_OT_save_mainfile(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Clear Recent Files List Operator
+ * \{ */
+
+static int wm_clear_recent_files_exec(bContext * /*C*/, wmOperator * /*op*/)
+{
+  wm_history_files_free();
+  wm_history_file_write();
+
+  return OPERATOR_FINISHED;
+}
+
+void WM_OT_clear_recent_files(wmOperatorType *ot)
+{
+  ot->name = "Clear Recent Files List";
+  ot->idname = "WM_OT_clear_recent_files";
+  ot->description = "Clear the Recent Files List";
+
+  ot->invoke = WM_operator_confirm;
+  ot->exec = wm_clear_recent_files_exec;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Auto Script Execution Warning Dialog
  * \{ */
 
