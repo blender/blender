@@ -781,6 +781,13 @@ endif()
 option(WITH_TESTS_BATCHED "Run multiple tests in a single Blender invocation, for faster test execution" ON)
 mark_as_advanced(WITH_TESTS_BATCHED)
 
+option(WITH_TESTS_SINGLE_BINARY "\
+Link GTest tests into a single binary. \
+For faster overall build and less disk space, but slower individual test build"
+  ON
+)
+mark_as_advanced(WITH_TESTS_SINGLE_BINARY)
+
 # NOTE: All callers of this must add `TEST_PYTHON_EXE_EXTRA_ARGS` before any other arguments.
 set(TEST_PYTHON_EXE "" CACHE PATH "Python executable to run unit tests")
 mark_as_advanced(TEST_PYTHON_EXE)

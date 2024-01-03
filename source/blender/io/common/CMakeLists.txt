@@ -52,8 +52,8 @@ if(WITH_GTESTS)
     ../../blenloader
   )
   set(TEST_LIB
-    bf_blenloader_tests
+    bf_blenloader_test_util
     bf_io_common
   )
-  blender_add_test_lib(bf_io_common_tests "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}")
+  blender_add_test_suite_lib(io_common "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}")
 endif()

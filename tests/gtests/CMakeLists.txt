@@ -7,7 +7,9 @@ if(WITH_GTESTS)
   remove_strict_flags()
 
   # Build common test executable used by most tests
-  add_subdirectory(runner)
+  if(WITH_TESTS_SINGLE_BINARY)
+    add_subdirectory(runner)
+  endif()
 
   # Build utility library used by test executables
   add_subdirectory(testing)

@@ -55,5 +55,5 @@ endif()
 
 if(WITH_GTESTS AND WITH_CYCLES_LOGGING)
   set(INC_SYS )
-  blender_add_test_executable(cycles "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+  blender_add_test_suite_executable(cycles "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 endif()

@@ -73,6 +73,7 @@ if(WITH_GTESTS)
   )
   set(TEST_LIB
     bf_io_ply
+    bf_blenloader_test_util
   )
-  blender_add_test_lib(bf_io_ply_tests "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}")
+  blender_add_test_suite_lib(io_ply "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}")
 endif()

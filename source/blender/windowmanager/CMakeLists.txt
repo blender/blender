@@ -217,5 +217,5 @@ if(WITH_GTESTS)
   set(TEST_SRC
     intern/wm_dragdrop_test.cc
   )
-  blender_add_test_lib(bf_wm_tests "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB}")
+  blender_add_test_suite_lib(windowmanager "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB}")
 endif()

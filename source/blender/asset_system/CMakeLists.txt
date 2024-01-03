@@ -58,11 +58,14 @@ if(WITH_GTESTS)
     tests/asset_library_service_test.cc
     tests/asset_library_test.cc
     tests/asset_representation_test.cc
-
+  )
+  set(TEST_COMMON_SRC
     tests/asset_library_test_common.hh
   )
   set(TEST_LIB
     bf_asset_system
   )
-  blender_add_test_lib(bf_asset_system_tests "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}")
+  blender_add_test_suite_lib(asset_system
+    "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}" "${TEST_COMMON_SRC}"
+  )
 endif()

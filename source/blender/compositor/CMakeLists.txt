@@ -674,7 +674,7 @@ if(WITH_COMPOSITOR_CPU)
     set(TEST_LIB
       bf_compositor
     )
-    blender_add_test_lib(bf_compositor_tests "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}")
+    blender_add_test_suite_lib(compositor "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}")
   endif()
 
   # RNA_prototypes.h
