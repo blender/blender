@@ -369,51 +369,83 @@ void SEQ_retiming_offset_transition_key(const Scene *scene,
   key_end->retiming_factor -= corrected_offset * next_segment_step;
 }
 
-void SEQ_retiming_remove_multiple_keys(Sequence *seq, blender::Vector<SeqRetimingKey *> &keys)
+static void seq_retiming_cleanup_freeze_frame(SeqRetimingKey *key)
 {
-  if ((*keys.begin())->strip_frame_index == 0) {
-    keys.remove(0);
+  if ((key->flag & SEQ_FREEZE_FRAME_IN) != 0) {
+    SeqRetimingKey *next_key = key + 1;
+    key->flag &= ~SEQ_FREEZE_FRAME_IN;
+    next_key->flag &= ~SEQ_FREEZE_FRAME_OUT;
   }
-  if (SEQ_retiming_is_last_key(seq, *keys.end())) {
-    keys.remove(keys.size() - 1);
+  if ((key->flag & SEQ_FREEZE_FRAME_OUT) != 0) {
+    SeqRetimingKey *previous_key = key - 1;
+    key->flag &= ~SEQ_FREEZE_FRAME_OUT;
+    previous_key->flag &= ~SEQ_FREEZE_FRAME_IN;
   }
+}
+
+void SEQ_retiming_remove_multiple_keys(Sequence *seq,
+                                       blender::Vector<SeqRetimingKey *> &keys_to_remove)
+{
+  /* Transitions need special treatment, so separate these from `keys_to_remove`. */
+  blender::Vector<SeqRetimingKey *> transitions;
+
+  /* Cleanup freeze frames and extract transition keys. */
+  for (SeqRetimingKey *key : keys_to_remove) {
+    if (SEQ_retiming_key_is_freeze_frame(key)) {
+      seq_retiming_cleanup_freeze_frame(key);
+    }
+    if ((key->flag & SEQ_SPEED_TRANSITION_IN) != 0) {
+      transitions.append_non_duplicates(key);
+      transitions.append_non_duplicates(key + 1);
+    }
+    if ((key->flag & SEQ_SPEED_TRANSITION_OUT) != 0) {
+      transitions.append_non_duplicates(key);
+      transitions.append_non_duplicates(key - 1);
+    }
+  }
+
+  /* Sanitize keys to be removed. */
+  keys_to_remove.remove_if([&](SeqRetimingKey *key) {
+    return key->strip_frame_index == 0 || SEQ_retiming_is_last_key(seq, key) ||
+           SEQ_retiming_key_is_transition_type(key);
+  });
 
   const size_t keys_count = SEQ_retiming_keys_count(seq);
-  size_t new_keys_count = keys_count - keys.size();
-
+  size_t new_keys_count = keys_count - keys_to_remove.size() - transitions.size() / 2;
   SeqRetimingKey *new_keys = (SeqRetimingKey *)MEM_callocN(new_keys_count * sizeof(SeqRetimingKey),
                                                            __func__);
-  int next_index_to_copy_from = 0;
   int keys_copied = 0;
 
-  for (SeqRetimingKey *key : keys) {
-    const int key_index = key - seq->retiming_keys;
-    const int copy_num = key_index - next_index_to_copy_from;
-
-    memcpy(new_keys + keys_copied,
-           seq->retiming_keys + next_index_to_copy_from,
-           copy_num * sizeof(SeqRetimingKey));
-
-    keys_copied += copy_num;
-    next_index_to_copy_from = key_index + 1;
+  /* Copy keys to new array. */
+  for (SeqRetimingKey &key : SEQ_retiming_keys_get(seq)) {
+    /* Create key that was used to make transition in new array. */
+    if (transitions.contains(&key) && SEQ_retiming_key_is_transition_start(&key)) {
+      SeqRetimingKey *new_key = new_keys + keys_copied;
+      new_key->strip_frame_index = key.original_strip_frame_index;
+      new_key->retiming_factor = key.original_retiming_factor;
+      keys_copied++;
+      continue;
+    }
+    if (keys_to_remove.contains(&key) || transitions.contains(&key)) {
+      continue;
+    }
+    memcpy(new_keys + keys_copied, &key, sizeof(SeqRetimingKey));
+    keys_copied++;
   }
-
-  /* Copy remaining keys. */
-  const int copy_num = seq->retiming_keys_num - next_index_to_copy_from;
-
-  memcpy(new_keys + keys_copied,
-         seq->retiming_keys + next_index_to_copy_from,
-         copy_num * sizeof(SeqRetimingKey));
 
   MEM_freeN(seq->retiming_keys);
   seq->retiming_keys = new_keys;
-  seq->retiming_keys_num = keys_copied + copy_num;
+  seq->retiming_keys_num = new_keys_count;
 }
 
 static void seq_retiming_remove_key_ex(Sequence *seq, SeqRetimingKey *key)
 {
   if (key->strip_frame_index == 0 || SEQ_retiming_is_last_key(seq, key)) {
     return; /* First and last key can not be removed. */
+  }
+
+  if (SEQ_retiming_key_is_freeze_frame(key)) {
+    seq_retiming_cleanup_freeze_frame(key);
   }
 
   size_t keys_count = SEQ_retiming_keys_count(seq);
@@ -435,12 +467,17 @@ static SeqRetimingKey *seq_retiming_remove_transition(const Scene *scene,
                                                       Sequence *seq,
                                                       SeqRetimingKey *key)
 {
-  const int orig_frame_index = key->original_strip_frame_index;
-  const float orig_retiming_factor = key->original_retiming_factor;
+  SeqRetimingKey *transition_start = key;
+  if ((key->flag & SEQ_SPEED_TRANSITION_OUT) != 0) {
+    transition_start = key - 1;
+  }
+
+  const int orig_frame_index = transition_start->original_strip_frame_index;
+  const float orig_retiming_factor = transition_start->original_retiming_factor;
 
   /* Remove both keys defining transition. */
-  int key_index = SEQ_retiming_key_index_get(seq, key);
-  seq_retiming_remove_key_ex(seq, key);
+  int key_index = SEQ_retiming_key_index_get(seq, transition_start);
+  seq_retiming_remove_key_ex(seq, transition_start);
   seq_retiming_remove_key_ex(seq, seq->retiming_keys + key_index);
 
   /* Create original linear key. */
@@ -452,26 +489,10 @@ static SeqRetimingKey *seq_retiming_remove_transition(const Scene *scene,
 
 void SEQ_retiming_remove_key(const Scene *scene, Sequence *seq, SeqRetimingKey *key)
 {
-  SeqRetimingKey *previous_key = key - 1;
 
-  if ((key->flag & SEQ_SPEED_TRANSITION_IN) != 0) {
+  if (SEQ_retiming_key_is_transition_type(key)) {
     seq_retiming_remove_transition(scene, seq, key);
     return;
-  }
-
-  if ((key->flag & SEQ_SPEED_TRANSITION_OUT) != 0) {
-    seq_retiming_remove_transition(scene, seq, previous_key);
-    return;
-  }
-
-  if ((key->flag & SEQ_FREEZE_FRAME_IN) != 0) {
-    SeqRetimingKey *next_key = key - 1;
-    key->flag &= ~SEQ_FREEZE_FRAME_IN;
-    next_key->flag &= ~SEQ_FREEZE_FRAME_OUT;
-  }
-  if ((key->flag & SEQ_FREEZE_FRAME_OUT) != 0) {
-    key->flag &= ~SEQ_FREEZE_FRAME_OUT;
-    previous_key->flag &= ~SEQ_FREEZE_FRAME_IN;
   }
 
   seq_retiming_remove_key_ex(seq, key);
