@@ -322,7 +322,7 @@ bool BLI_file_alias_target(const char *filepath,
       if (conv_utf_8_to_16(filepath, path_utf16, ARRAY_SIZE(path_utf16)) == 0) {
         hr = PersistFile->Load(path_utf16, STGM_READ);
         if (SUCCEEDED(hr)) {
-          hr = Shortcut->Resolve(0, SLR_NO_UI | SLR_UPDATE);
+          hr = Shortcut->Resolve(0, SLR_NO_UI | SLR_UPDATE | SLR_NOSEARCH);
           if (SUCCEEDED(hr)) {
             wchar_t target_utf16[FILE_MAXDIR] = {0};
             hr = Shortcut->GetPath(target_utf16, FILE_MAXDIR, NULL, 0);
