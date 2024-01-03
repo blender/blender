@@ -9,6 +9,7 @@
 #include <cerrno>
 #include <cmath>
 #include <cstring>
+#include <string>
 
 #include "MEM_guardedalloc.h"
 
@@ -29,11 +30,16 @@
 #include "BKE_context.hh"
 #include "BKE_report.h"
 
+#include "BLO_readfile.h"
+
 #include "BLT_translation.h"
 
 #include "BLF_api.h"
 
+#include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
+#include "IMB_metadata.h"
+#include "IMB_thumbs.h"
 
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
@@ -108,11 +114,227 @@ void ED_file_path_button(bScreen *screen,
   UI_block_func_set(block, nullptr, nullptr, nullptr);
 }
 
-/* Dummy helper - we need dynamic tooltips here. */
-static char *file_draw_tooltip_func(bContext * /*C*/, void *argN, const char * /*tip*/)
+struct file_tooltip_data {
+  const SpaceFile *sfile;
+  const FileDirEntry *file;
+};
+
+static file_tooltip_data *file_tooltip_data_create(const SpaceFile *sfile,
+                                                   const FileDirEntry *file)
 {
-  char *dyn_tooltip = static_cast<char *>(argN);
-  return BLI_strdup(dyn_tooltip);
+  file_tooltip_data *data = (file_tooltip_data *)MEM_mallocN(sizeof(file_tooltip_data),
+                                                             "tooltip_data");
+  data->sfile = sfile;
+  data->file = file;
+  return data;
+}
+
+static void file_draw_tooltip_custom_func(bContext * /*C*/, struct uiTooltipData *tip, void *argN)
+{
+  file_tooltip_data *file_data = static_cast<file_tooltip_data *>(argN);
+  const SpaceFile *sfile = file_data->sfile;
+  const FileList *files = sfile->files;
+  const FileSelectParams *params = ED_fileselect_get_active_params(sfile);
+  const FileDirEntry *file = file_data->file;
+
+  BLI_assert_msg(!file->asset, "Asset tooltip should never be overridden here.");
+
+  /* Check the FileDirEntry first to see if the preview is already loaded. */
+  ImBuf *thumb = filelist_file_getimage(file);
+
+  /* Only free if it is loaded later. */
+  bool free_imbuf = (thumb == nullptr);
+
+  UI_tooltip_text_field_add(
+      tip, BLI_strdup(file->name), nullptr, UI_TIP_STYLE_HEADER, UI_TIP_LC_MAIN);
+  UI_tooltip_text_field_add(tip, nullptr, nullptr, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
+
+  if (!(file->typeflag & FILE_TYPE_BLENDERLIB)) {
+
+    char full_path[FILE_MAX_LIBEXTRA];
+    filelist_file_get_full_path(files, file, full_path);
+
+    if (params->recursion_level > 0) {
+      char root[FILE_MAX];
+      BLI_path_split_dir_part(full_path, root, FILE_MAX);
+      UI_tooltip_text_field_add(
+          tip, BLI_strdup(root), nullptr, UI_TIP_STYLE_NORMAL, UI_TIP_LC_NORMAL);
+    }
+
+    if (file->redirection_path) {
+      UI_tooltip_text_field_add(tip,
+                                BLI_sprintfN("%s: %s", N_("Link target"), file->redirection_path),
+                                nullptr,
+                                UI_TIP_STYLE_NORMAL,
+                                UI_TIP_LC_NORMAL);
+    }
+    if (file->attributes & FILE_ATTR_OFFLINE) {
+      UI_tooltip_text_field_add(tip,
+                                BLI_strdup(N_("This file is offline")),
+                                nullptr,
+                                UI_TIP_STYLE_NORMAL,
+                                UI_TIP_LC_ALERT);
+    }
+    if (file->attributes & FILE_ATTR_READONLY) {
+      UI_tooltip_text_field_add(tip,
+                                BLI_strdup(N_("This file is read-only")),
+                                nullptr,
+                                UI_TIP_STYLE_NORMAL,
+                                UI_TIP_LC_ALERT);
+    }
+    if (file->attributes & (FILE_ATTR_SYSTEM | FILE_ATTR_RESTRICTED)) {
+      UI_tooltip_text_field_add(tip,
+                                BLI_strdup(N_("This is a restricted system file")),
+                                nullptr,
+                                UI_TIP_STYLE_NORMAL,
+                                UI_TIP_LC_ALERT);
+    }
+
+    if (file->typeflag & (FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP)) {
+      char version_st[128] = {0};
+      if (!thumb) {
+        /* Load the thumbnail from cache if existing, but don't create if not. */
+        thumb = IMB_thumb_read(full_path, THB_LARGE);
+      }
+      if (thumb) {
+        /* Look for version in existing thumbnail if available. */
+        IMB_metadata_get_field(
+            thumb->metadata, "Thumb::Blender::Version", version_st, sizeof(version_st));
+      }
+
+      if (!version_st[0] && !(file->attributes & FILE_ATTR_OFFLINE)) {
+        /* Load Blender version directly from the file. */
+        short version = BLO_version_from_file(full_path);
+        if (version != 0) {
+          SNPRINTF(version_st, "%d.%01d", version / 100, version % 100);
+        }
+      }
+
+      if (version_st[0]) {
+        UI_tooltip_text_field_add(tip,
+                                  BLI_sprintfN("Blender %s", version_st),
+                                  nullptr,
+                                  UI_TIP_STYLE_NORMAL,
+                                  UI_TIP_LC_NORMAL);
+        UI_tooltip_text_field_add(tip, nullptr, nullptr, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
+      }
+    }
+    else if (file->typeflag & FILE_TYPE_IMAGE) {
+      if (!thumb) {
+        /* Load the thumbnail from cache if existing, create if not. */
+        thumb = IMB_thumb_manage(full_path, THB_LARGE, THB_SOURCE_IMAGE);
+      }
+      if (thumb) {
+        char value1[128];
+        char value2[128];
+        if (IMB_metadata_get_field(
+                thumb->metadata, "Thumb::Image::Width", value1, sizeof(value1)) &&
+            IMB_metadata_get_field(
+                thumb->metadata, "Thumb::Image::Height", value2, sizeof(value2)))
+        {
+          UI_tooltip_text_field_add(tip,
+                                    BLI_sprintfN("%s \u00D7 %s", value1, value2),
+                                    nullptr,
+                                    UI_TIP_STYLE_NORMAL,
+                                    UI_TIP_LC_NORMAL);
+          UI_tooltip_text_field_add(tip, nullptr, nullptr, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
+        }
+      }
+    }
+    else if (file->typeflag & FILE_TYPE_MOVIE) {
+      if (!thumb) {
+        /* This could possibly take a while. */
+        thumb = IMB_thumb_manage(full_path, THB_LARGE, THB_SOURCE_MOVIE);
+      }
+      if (thumb) {
+        char value1[128];
+        char value2[128];
+        char value3[128];
+        if (IMB_metadata_get_field(
+                thumb->metadata, "Thumb::Video::Width", value1, sizeof(value1)) &&
+            IMB_metadata_get_field(
+                thumb->metadata, "Thumb::Video::Height", value2, sizeof(value2)))
+        {
+          UI_tooltip_text_field_add(tip,
+                                    BLI_sprintfN("%s \u00D7 %s", value1, value2),
+                                    nullptr,
+                                    UI_TIP_STYLE_NORMAL,
+                                    UI_TIP_LC_NORMAL);
+        }
+        if (IMB_metadata_get_field(
+                thumb->metadata, "Thumb::Video::Frames", value1, sizeof(value1)) &&
+            IMB_metadata_get_field(thumb->metadata, "Thumb::Video::FPS", value2, sizeof(value2)) &&
+            IMB_metadata_get_field(
+                thumb->metadata, "Thumb::Video::Duration", value3, sizeof(value3)))
+        {
+          UI_tooltip_text_field_add(
+              tip,
+              BLI_sprintfN("%s %s @ %s %s", value1, N_("Frames"), value2, N_("FPS")),
+              nullptr,
+              UI_TIP_STYLE_NORMAL,
+              UI_TIP_LC_NORMAL);
+          UI_tooltip_text_field_add(tip,
+                                    BLI_sprintfN("%s %s", value3, N_("seconds")),
+                                    nullptr,
+                                    UI_TIP_STYLE_NORMAL,
+                                    UI_TIP_LC_NORMAL);
+          UI_tooltip_text_field_add(tip, nullptr, nullptr, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
+        }
+      }
+    }
+
+    char date_st[FILELIST_DIRENTRY_DATE_LEN], time_st[FILELIST_DIRENTRY_TIME_LEN];
+    bool is_today, is_yesterday;
+    std::string day_string = ("");
+    BLI_filelist_entry_datetime_to_string(
+        NULL, file->time, false, time_st, date_st, &is_today, &is_yesterday);
+    if (is_today || is_yesterday) {
+      day_string = (is_today ? N_("Today") : N_("Yesterday")) + std::string(" ");
+    }
+    UI_tooltip_text_field_add(tip,
+                              BLI_sprintfN("%s: %s%s%s",
+                                           N_("Modified"),
+                                           day_string.c_str(),
+                                           (is_today || is_yesterday) ? "" : date_st,
+                                           (is_today || is_yesterday) ? time_st : ""),
+                              nullptr,
+                              UI_TIP_STYLE_NORMAL,
+                              UI_TIP_LC_NORMAL);
+
+    if (!(file->typeflag & FILE_TYPE_DIR) && file->size > 0) {
+      char size[16];
+      BLI_filelist_entry_size_to_string(NULL, file->size, false, size);
+      if (file->size < 10000) {
+        char size_full[16];
+        BLI_str_format_uint64_grouped(size_full, file->size);
+        UI_tooltip_text_field_add(
+            tip,
+            BLI_sprintfN("%s: %s (%s %s)", N_("Size"), size, size_full, N_("bytes")),
+            nullptr,
+            UI_TIP_STYLE_NORMAL,
+            UI_TIP_LC_NORMAL);
+      }
+      else {
+        UI_tooltip_text_field_add(tip,
+                                  BLI_sprintfN("%s: %s", N_("Size"), size),
+                                  nullptr,
+                                  UI_TIP_STYLE_NORMAL,
+                                  UI_TIP_LC_NORMAL);
+      }
+    }
+  }
+
+  if (thumb && params->display != FILE_IMGDISPLAY) {
+    float scale = (96.0f * UI_SCALE_FAC) / float(MAX2(thumb->x, thumb->y));
+    short size[2] = {short(float(thumb->x) * scale), short(float(thumb->y) * scale)};
+    UI_tooltip_text_field_add(tip, nullptr, nullptr, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
+    UI_tooltip_text_field_add(tip, nullptr, nullptr, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
+    UI_tooltip_image_field_add(tip, thumb, size);
+  }
+
+  if (thumb && free_imbuf) {
+    IMB_freeImBuf(thumb);
+  }
 }
 
 static char *file_draw_asset_tooltip_func(bContext * /*C*/, void *argN, const char * /*tip*/)
@@ -172,7 +394,7 @@ static void file_but_enable_drag(uiBut *but,
 
 static uiBut *file_add_icon_but(const SpaceFile *sfile,
                                 uiBlock *block,
-                                const char *path,
+                                const char * /*path*/,
                                 const FileDirEntry *file,
                                 const rcti *tile_draw_rect,
                                 int icon,
@@ -195,7 +417,8 @@ static uiBut *file_add_icon_but(const SpaceFile *sfile,
     UI_but_func_tooltip_set(but, file_draw_asset_tooltip_func, file->asset, nullptr);
   }
   else {
-    UI_but_func_tooltip_set(but, file_draw_tooltip_func, BLI_strdup(path), MEM_freeN);
+    UI_but_func_tooltip_custom_set(
+        but, file_draw_tooltip_custom_func, file_tooltip_data_create(sfile, file), MEM_freeN);
   }
 
   return but;
@@ -335,7 +558,8 @@ static void file_add_preview_drag_but(const SpaceFile *sfile,
     UI_but_func_tooltip_set(but, file_draw_asset_tooltip_func, file->asset, nullptr);
   }
   else {
-    UI_but_func_tooltip_set(but, file_draw_tooltip_func, BLI_strdup(path), MEM_freeN);
+    UI_but_func_tooltip_custom_set(
+        but, file_draw_tooltip_custom_func, file_tooltip_data_create(sfile, file), MEM_freeN);
   }
 }
 

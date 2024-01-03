@@ -1412,6 +1412,17 @@ BlendThumbnail *BLO_thumbnail_from_file(const char *filepath)
   return data;
 }
 
+short BLO_version_from_file(const char *filepath)
+{
+  short version = 0;
+  FileData *fd = blo_filedata_from_file_minimal(filepath);
+  if (fd) {
+    version = fd->fileversion;
+    blo_filedata_free(fd);
+  }
+  return version;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
