@@ -190,26 +190,7 @@ static void recent_files_menu_draw(const bContext * /*C*/, Menu *menu)
 {
   uiLayout *layout = menu->layout;
   uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
-  if (!BLI_listbase_is_empty(&G.recent_files)) {
-    LISTBASE_FOREACH (RecentFile *, recent, &G.recent_files) {
-      const char *file = BLI_path_basename(recent->filepath);
-      const int icon = BKE_blendfile_extension_check(file) ? ICON_FILE_BLEND : ICON_FILE_BACKUP;
-      PointerRNA ptr;
-      uiItemFullO(layout,
-                  "WM_OT_open_mainfile",
-                  file,
-                  icon,
-                  nullptr,
-                  WM_OP_INVOKE_DEFAULT,
-                  UI_ITEM_NONE,
-                  &ptr);
-      RNA_string_set(&ptr, "filepath", recent->filepath);
-      RNA_boolean_set(&ptr, "display_file_selector", false);
-    }
-    uiItemS(layout);
-    uiItemO(layout, nullptr, ICON_TRASH, "WM_OT_clear_recent_files");
-  }
-  else {
+  if (uiTemplateRecentFiles(layout, U.recent_files) == 0) {
     uiItemL(layout, IFACE_("No Recent Files"), ICON_NONE);
   }
 }
