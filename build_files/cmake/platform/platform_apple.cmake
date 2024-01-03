@@ -429,10 +429,21 @@ string(APPEND PLATFORM_LINKFLAGS
   " -Wl,-unexported_symbols_list,'${PLATFORM_SYMBOLS_MAP}'"
 )
 
-# Use old, slower linker for now to avoid many linker warnings.
 if(${XCODE_VERSION} VERSION_GREATER_EQUAL 15.0)
   if("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "x86_64")
+    # Silence "no platform load command found in <static library>, assuming: macOS".
     string(APPEND PLATFORM_LINKFLAGS " -Wl,-ld_classic")
+  else()
+    # Silence "ld: warning: ignoring duplicate libraries".
+    #
+    # The warning is introduced with Xcode 15 and is triggered when the same library
+    # is passed to the linker ultiple times. This situation could happen with either
+    # cyclic libraries, or some transitive dependencies where CMake might decide to
+    # pass library to the linker multiple times to force it re-scan symbols. It is
+    # not neeed for Xcode linker to ensure all symbols from library are used and it
+    # is corrected in CMake 3.29:
+    #    https://gitlab.kitware.com/cmake/cmake/-/issues/25297
+    string(APPEND PLATFORM_LINKFLAGS " -Xlinker -no_warn_duplicate_libraries")
   endif()
 endif()
 
