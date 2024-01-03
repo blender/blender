@@ -683,7 +683,8 @@ void SCULPT_do_clay_thumb_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
 
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (const int i : range) {
-      do_clay_thumb_brush_task(ob, brush, mat, area_no_sp, area_co, clay_strength, nodes[i]);
+      do_clay_thumb_brush_task(
+          ob, brush, mat, area_no_sp, ss->cache->location, clay_strength, nodes[i]);
     }
   });
 }
