@@ -36,8 +36,7 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeGeometryViewer *data = MEM_cnew<NodeGeometryViewer>(__func__);
   data->data_type = CD_PROP_FLOAT;
-  data->domain = ATTR_DOMAIN_AUTO;
-
+  data->domain = int8_t(AttrDomain::Auto);
   node->storage = data;
 }
 
@@ -120,7 +119,7 @@ static void node_rna(StructRNA *srna)
                     "Domain to evaluate the field on",
                     rna_enum_attribute_domain_with_auto_items,
                     NOD_storage_enum_accessors(domain),
-                    ATTR_DOMAIN_POINT);
+                    int(AttrDomain::Point));
 }
 
 static void node_register()

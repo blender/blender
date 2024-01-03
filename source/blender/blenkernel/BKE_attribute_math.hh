@@ -16,7 +16,7 @@
 #include "BLI_math_vector.hh"
 #include "BLI_offset_indices.hh"
 
-#include "BKE_customdata.hh"
+#include "BKE_attribute.hh"
 
 namespace blender::bke::attribute_math {
 

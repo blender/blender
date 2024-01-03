@@ -4,18 +4,15 @@
 
 #pragma once
 
-#include "BLI_kdtree.h"
-#include "BLI_math_matrix_types.hh"
-#include "BLI_math_vector.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
 
-#include "BKE_bvhutils.hh"
 #include "BKE_curves.hh"
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-
 #include "GEO_reverse_uv_sampler.hh"
+
+struct Mesh;
+struct KDTree_3d;
 
 namespace blender::geometry {
 

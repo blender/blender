@@ -99,7 +99,7 @@ def report_personal_weekly_get(username, start, verbose=True):
                 fullname = activity["repo"]["full_name"] + "/pulls/" + activity["content"].split('|')[0]
                 pulls_created.add(fullname)
             elif op_type == "commit_repo":
-                if activity["ref_name"] == "refs/heads/main":
+                if activity["ref_name"] == "refs/heads/main" and activity["content"]:
                     content_json = json.loads(activity["content"])
                     repo_name = activity["repo"]["name"]
                     for commits in content_json["Commits"]:

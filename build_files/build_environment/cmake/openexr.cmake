@@ -14,8 +14,6 @@ endif()
 
 set(OPENEXR_EXTRA_ARGS
   ${OPENEXR_EXTRA_ARGS}
-  -DZLIB_LIBRARY=${LIBDIR}/zlib/lib/${ZLIB_LIBRARY}
-  -DZLIB_INCLUDE_DIR=${LIBDIR}/zlib/include/
   -DBUILD_TESTING=OFF
   -DOPENEXR_BUILD_BOTH_STATIC_SHARED=OFF
   -DBUILD_SHARED_LIBS=ON
@@ -23,13 +21,14 @@ set(OPENEXR_EXTRA_ARGS
   -DOPENEXR_INSTALL_EXAMPLES=OFF
   -DImath_DIR=${LIBDIR}/imath/lib/cmake/Imath
   -DOPENEXR_LIB_SUFFIX=${OPENEXR_VERSION_BUILD_POSTFIX}
+  -Dlibdeflate_DIR=${LIBDIR}/deflate/lib/cmake/libdeflate
 )
 
 ExternalProject_Add(external_openexr
   URL file://${PACKAGE_DIR}/${OPENEXR_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
   URL_HASH ${OPENEXR_HASH_TYPE}=${OPENEXR_HASH}
-  PATCH_COMMAND ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/openexr/src/external_openexr < ${PATCH_DIR}/openexr_b18905772e.diff
+  PATCH_COMMAND ${PATCH_CMD} -p 2 -d ${BUILD_DIR}/openexr/src/external_openexr < ${PATCH_DIR}/openexr_deflate_1588.diff
   CMAKE_GENERATOR ${PLATFORM_ALT_GENERATOR}
   PREFIX ${BUILD_DIR}/openexr
   CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/openexr ${DEFAULT_CMAKE_FLAGS} ${OPENEXR_EXTRA_ARGS}
@@ -51,6 +50,6 @@ endif()
 
 add_dependencies(
   external_openexr
-  external_zlib
   external_imath
+  external_deflate
 )

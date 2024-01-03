@@ -50,6 +50,8 @@ char *MSLGeneratorInterface::msl_patch_default = nullptr;
 #define FRAGMENT_OUT_STRUCT_NAME "FragmentOut"
 #define FRAGMENT_TILE_IN_STRUCT_NAME "FragmentTileIn"
 
+#define ATOMIC_DEFINE_STR "#define MTL_SUPPORTS_TEXTURE_ATOMICS 1\n"
+
 /* -------------------------------------------------------------------- */
 /** \name Shader Translation utility functions.
  * \{ */
@@ -869,6 +871,18 @@ char *MSLGeneratorInterface::msl_patch_default_get()
   return msl_patch_default;
 }
 
+/* Specialization constants will evaluate using a dynamic value if provided at PSO compile time. */
+static void generate_specialization_constant_declarations(const shader::ShaderCreateInfo *info,
+                                                          std::stringstream &ss)
+{
+  uint index = MTL_SHADER_SPECIALIZATION_CONSTANT_BASE_ID;
+  for (const ShaderCreateInfo::SpecializationConstant &sc : info->specialization_constants_) {
+    /* TODO(Metal): Output specialization constant chain. */
+    ss << "constant " << sc.type << " " << sc.name << " [[function_constant(" << index << ")]];\n";
+    index++;
+  }
+}
+
 bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
 {
   /* Verify if create-info is available.
@@ -1047,6 +1061,19 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
   /* Setup `stringstream` for populating generated MSL shader vertex/frag shaders. */
   std::stringstream ss_vertex;
   std::stringstream ss_fragment;
+  ss_vertex << "#line 1 \"msl_wrapper_code\"\n";
+  ss_fragment << "#line 1 \"msl_wrapper_code\"\n";
+
+  if (bool(info->builtins_ & BuiltinBits::TEXTURE_ATOMIC) &&
+      MTLBackend::get_capabilities().supports_texture_atomics)
+  {
+    ss_vertex << ATOMIC_DEFINE_STR;
+    ss_fragment << ATOMIC_DEFINE_STR;
+  }
+
+  /* Generate specialization constants. */
+  generate_specialization_constant_declarations(info, ss_vertex);
+  generate_specialization_constant_declarations(info, ss_fragment);
 
   /*** Generate VERTEX Stage ***/
   /* Conditional defines. */
@@ -1505,6 +1532,13 @@ bool MTLShader::generate_msl_from_glsl_compute(const shader::ShaderCreateInfo *i
 
   ss_compute << "#define GPU_ARB_texture_cube_map_array 1\n"
                 "#define GPU_ARB_shader_draw_parameters 1\n";
+  if (bool(info->builtins_ & BuiltinBits::TEXTURE_ATOMIC) &&
+      MTLBackend::get_capabilities().supports_texture_atomics)
+  {
+    ss_compute << ATOMIC_DEFINE_STR;
+  }
+
+  generate_specialization_constant_declarations(info, ss_compute);
 
 #ifndef NDEBUG
   extract_global_scope_constants(shd_builder_->glsl_compute_source_, ss_compute);
@@ -1664,7 +1698,7 @@ bool MTLShader::generate_msl_from_glsl_compute(const shader::ShaderCreateInfo *i
   this->set_interface(msl_iface.bake_shader_interface(this->name));
 
   /* Compute dims. */
-  this->compute_pso_instance_.set_compute_workgroup_size(
+  this->compute_pso_common_state_.set_compute_workgroup_size(
       max_ii(info->compute_layout_.local_size_x, 1),
       max_ii(info->compute_layout_.local_size_y, 1),
       max_ii(info->compute_layout_.local_size_z, 1));
@@ -1790,6 +1824,11 @@ void MSLGeneratorInterface::prepare_from_createinfo(const shader::ShaderCreateIn
                        bool(push_constant.array_size > 1),
                        push_constant.array_size);
     uniforms.append(uniform);
+  }
+
+  /** Prepare Constants. */
+  for (const auto &constant : create_info_->specialization_constants_) {
+    constants.append(MSLConstant(constant.type, constant.name));
   }
 
   /* Prepare textures and uniform blocks.
@@ -3722,6 +3761,12 @@ MTLShaderInterface *MSLGeneratorInterface::bake_shader_interface(const char *nam
                            tex_buf_ssbo_location);
   }
 
+  /* Specialization Constants. */
+  for (const MSLConstant &constant : this->constants) {
+    interface->add_constant(name_buffer_copystr(
+        &interface->name_buffer_, constant.name.c_str(), name_buffer_size, name_buffer_offset));
+  }
+
   /* Sampler Parameters. */
   interface->set_sampler_properties(
       this->use_argument_buffer_for_samplers(),
@@ -3998,7 +4043,7 @@ std::string MSLTextureResource::get_msl_wrapper_type_str() const
     case ImageType::INT_2D_ARRAY_ATOMIC:
     case ImageType::UINT_2D_ARRAY_ATOMIC: {
       if (supports_native_atomics) {
-        return "_mtl_combined_image_sampler_2d";
+        return "_mtl_combined_image_sampler_2d_array";
       }
       else {
         return "_mtl_combined_image_sampler_2d_array_atomic_fallback";

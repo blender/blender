@@ -6,9 +6,10 @@
 
 #include "BLI_index_mask.hh"
 
-#include "BKE_attribute.hh"
-
 struct Mesh;
+namespace blender::bke {
+class AnonymousAttributePropagationInfo;
+}
 
 namespace blender::geometry {
 

@@ -22,14 +22,14 @@ set(MESA_EXTRA_FLAGS
   -Dcpp_args=${MESA_CXXFLAGS}
   -Dc_link_args=${MESA_LDFLAGS}
   -Dcpp_link_args=${MESA_LDFLAGS}
-  -Dglx=gallium-xlib
+  -Dglx=xlib
   -Dgallium-drivers=swrast
-  -Ddri-drivers=
   -Dvulkan-drivers=
   -Dgbm=disabled
   -Degl=disabled
   -Dgles1=disabled
   -Dgles2=disabled
+  -Dcpp_rtti=false
   -Dshared-llvm=disabled
   # Without this, the build fails when: `wayland-scanner` is not found.
   # At some point we will likely want to support Wayland.

@@ -11,48 +11,92 @@
 #pragma BLENDER_REQUIRE(eevee_renderpass_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_colorspace_lib.glsl)
 
+vec3 load_radiance_direct(ivec2 texel, int i)
+{
+  /* TODO(fclem): Layered texture. */
+  switch (i) {
+    case 0:
+      return texelFetch(direct_radiance_1_tx, texel, 0).rgb;
+    case 1:
+      return texelFetch(direct_radiance_2_tx, texel, 0).rgb;
+    case 2:
+      return texelFetch(direct_radiance_3_tx, texel, 0).rgb;
+    default:
+      return vec3(0);
+  }
+  return vec3(0);
+}
+
+vec3 load_radiance_indirect(ivec2 texel, ClosureType closure_type)
+{
+  /* TODO(fclem): Layered texture. */
+  switch (closure_type) {
+    case CLOSURE_BSSRDF_BURLEY_ID:
+    case CLOSURE_BSDF_DIFFUSE_ID:
+      return texelFetch(indirect_diffuse_tx, texel, 0).rgb;
+    case CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID:
+      return texelFetch(indirect_reflect_tx, texel, 0).rgb;
+    case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
+      return texelFetch(indirect_refract_tx, texel, 0).rgb;
+    default:
+      return vec3(0);
+  }
+  return vec3(0);
+}
+
 void main()
 {
   ivec2 texel = ivec2(gl_FragCoord.xy);
 
-  GBufferData gbuf = gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_color_tx, texel);
+  GBufferReader gbuf = gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, texel);
 
-  vec3 glossy_reflect_light = vec3(0.0);
-  vec3 glossy_refract_light = vec3(0.0);
-  vec3 diffuse_reflect_light = vec3(0.0);
-  vec3 diffuse_refract_light = vec3(0.0);
-
-  if (gbuf.has_diffuse) {
-    diffuse_reflect_light = imageLoad(direct_radiance_1_img, texel).rgb +
-                            imageLoad(indirect_diffuse_img, texel).rgb;
+  /* TODO: use stencil buffer to avoid fragment invocations here. */
+  out_combined = vec4(0.0, 0.0, 0.0, 0.0);
+  if (gbuf.closure_count == 0) {
+    return;
   }
 
-  if (gbuf.has_reflection) {
-    glossy_reflect_light = imageLoad(direct_radiance_2_img, texel).rgb +
-                           imageLoad(indirect_reflect_img, texel).rgb;
-  }
+  vec3 out_diffuse = vec3(0.0);
+  vec3 out_specular = vec3(0.0);
 
-  if (gbuf.has_translucent) {
-    /* Indirect radiance not implemented yet. */
-    diffuse_refract_light = imageLoad(direct_radiance_3_img, texel).rgb;
-  }
+  for (int i = 0; i < GBUFFER_LAYER_MAX && i < gbuf.closure_count; i++) {
+    vec3 closure_light = load_radiance_direct(texel, i);
 
-  if (gbuf.has_refraction) {
-    /* Direct radiance not implemented yet. */
-    glossy_refract_light = imageLoad(indirect_refract_img, texel).rgb;
+    /* TODO(fclem): Enable for OpenGL and Vulkan once they fully support specialization constants.
+     */
+#ifndef GPU_METAL
+    bool use_combined_lightprobe_eval = uniform_buf.pipeline.use_combined_lightprobe_eval;
+#endif
+    if (!use_combined_lightprobe_eval) {
+      closure_light += load_radiance_indirect(texel, gbuf.closures[i].type);
+    }
+
+    closure_light *= gbuf.closures[i].color;
+    out_combined.rgb += closure_light;
+
+    switch (gbuf.closures[i].type) {
+      case CLOSURE_BSDF_TRANSLUCENT_ID:
+      case CLOSURE_BSSRDF_BURLEY_ID:
+      case CLOSURE_BSDF_DIFFUSE_ID:
+        out_diffuse += closure_light;
+        break;
+      case CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID:
+      case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
+        out_specular += closure_light;
+        break;
+      case CLOSURE_NONE_ID:
+        /* TODO(fclem): Assert. */
+        break;
+    }
   }
 
   /* Light passes. */
-  vec3 diffuse_light = diffuse_reflect_light + diffuse_refract_light;
-  vec3 specular_light = glossy_reflect_light + glossy_refract_light;
-  output_renderpass_color(uniform_buf.render_pass.diffuse_light_id, vec4(diffuse_light, 1.0));
-  output_renderpass_color(uniform_buf.render_pass.specular_light_id, vec4(specular_light, 1.0));
-  /* Combine. */
-  out_combined = vec4(0.0);
-  out_combined.xyz += diffuse_reflect_light * gbuf.diffuse.color;
-  out_combined.xyz += diffuse_refract_light * gbuf.translucent.color;
-  out_combined.xyz += glossy_reflect_light * gbuf.reflection.color;
-  out_combined.xyz += glossy_refract_light * gbuf.refraction.color;
+  if (render_pass_diffuse_light_enabled) {
+    output_renderpass_color(uniform_buf.render_pass.diffuse_light_id, vec4(out_diffuse, 1.0));
+  }
+  if (render_pass_specular_light_enabled) {
+    output_renderpass_color(uniform_buf.render_pass.specular_light_id, vec4(out_specular, 1.0));
+  }
 
   if (any(isnan(out_combined))) {
     out_combined = vec4(1.0, 0.0, 1.0, 0.0);

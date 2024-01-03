@@ -112,15 +112,15 @@ void BKE_mesh_ensure_skin_customdata(struct Mesh *mesh);
 /** Add face offsets to describe faces to a new mesh. */
 void BKE_mesh_face_offsets_ensure_alloc(struct Mesh *mesh);
 
-struct Mesh *BKE_mesh_new_nomain(int verts_num, int edges_num, int faces_num, int loops_num);
+struct Mesh *BKE_mesh_new_nomain(int verts_num, int edges_num, int faces_num, int corners_num);
 struct Mesh *BKE_mesh_new_nomain_from_template(
-    const struct Mesh *me_src, int verts_num, int edges_num, int faces_num, int loops_num);
+    const struct Mesh *me_src, int verts_num, int edges_num, int faces_num, int corners_num);
 struct Mesh *BKE_mesh_new_nomain_from_template_ex(const struct Mesh *me_src,
                                                   int verts_num,
                                                   int edges_num,
                                                   int tessface_num,
                                                   int faces_num,
-                                                  int loops_num,
+                                                  int corners_num,
                                                   struct CustomData_MeshMasks mask);
 
 void BKE_mesh_eval_delete(struct Mesh *mesh_eval);
@@ -313,8 +313,6 @@ void BKE_lnor_spacearr_tls_join(MLoopNorSpaceArray *lnors_spacearr,
 
 MLoopNorSpace *BKE_lnor_space_create(MLoopNorSpaceArray *lnors_spacearr);
 
-#ifdef __cplusplus
-
 /**
  * Should only be called once.
  * Beware, this modifies ref_vec and other_vec in place!
@@ -326,8 +324,6 @@ void BKE_lnor_space_define(MLoopNorSpace *lnor_space,
                            const float vec_ref[3],
                            const float vec_other[3],
                            blender::Span<blender::float3> edge_vectors);
-
-#endif
 
 /**
  * Add a new given loop to given lnor_space.
@@ -481,14 +477,14 @@ bool BKE_mesh_validate_material_indices(struct Mesh *mesh);
  */
 bool BKE_mesh_validate_arrays(struct Mesh *mesh,
                               float (*vert_positions)[3],
-                              unsigned int totvert,
+                              unsigned int verts_num,
                               blender::int2 *edges,
-                              unsigned int totedge,
-                              struct MFace *mfaces,
-                              unsigned int totface,
+                              unsigned int edges_num,
+                              struct MFace *legacy_faces,
+                              unsigned int legacy_faces_num,
                               int *corner_verts,
                               int *corner_edges,
-                              unsigned int totloop,
+                              unsigned int corners_num,
                               int *face_offsets,
                               unsigned int faces_num,
                               struct MDeformVert *dverts, /* assume totvert length */
@@ -504,10 +500,10 @@ bool BKE_mesh_validate_arrays(struct Mesh *mesh,
 bool BKE_mesh_validate_all_customdata(struct CustomData *vert_data,
                                       uint totvert,
                                       struct CustomData *edge_data,
-                                      uint totedge,
-                                      struct CustomData *loop_data,
-                                      uint totloop,
-                                      struct CustomData *pdata,
+                                      uint edges_num,
+                                      struct CustomData *corner_data,
+                                      uint corners_num,
+                                      struct CustomData *face_data,
                                       uint faces_num,
                                       bool check_meshmask,
                                       bool do_verbose,
@@ -515,17 +511,6 @@ bool BKE_mesh_validate_all_customdata(struct CustomData *vert_data,
                                       bool *r_change);
 
 void BKE_mesh_strip_loose_faces(struct Mesh *mesh);
-
-/**
- * Calculate edges from faces.
- */
-void BKE_mesh_calc_edges(struct Mesh *mesh, bool keep_existing_edges, bool select_new_edges);
-/**
- * Calculate/create edges from tessface data
- *
- * \param mesh: The mesh to add edges into
- */
-void BKE_mesh_calc_edges_tessface(struct Mesh *mesh);
 
 /* In DerivedMesh.cc */
 void BKE_mesh_wrapper_deferred_finalize_mdata(struct Mesh *me_eval);
@@ -548,9 +533,3 @@ char *BKE_mesh_debug_info(const struct Mesh *mesh)
     ATTR_NONNULL(1) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
 void BKE_mesh_debug_print(const struct Mesh *mesh) ATTR_NONNULL(1);
 #endif
-
-/* -------------------------------------------------------------------- */
-/** \name Inline Mesh Data Access
- * \{ */
-
-/** \} */

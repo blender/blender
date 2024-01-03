@@ -24,6 +24,7 @@
 
 #include "BKE_action.h" /* BKE_pose_channel_find_name */
 #include "BKE_context.hh"
+#include "BKE_customdata.hh"
 #include "BKE_deform.h"
 #include "BKE_lib_query.h"
 #include "BKE_mesh.hh"
@@ -142,7 +143,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   const bool invert_vgroup = (umd->flag & MOD_UVWARP_INVERT_VGROUP) != 0;
 
   /* make sure there are UV Maps available */
-  if (!CustomData_has_layer(&mesh->loop_data, CD_PROP_FLOAT2)) {
+  if (!CustomData_has_layer(&mesh->corner_data, CD_PROP_FLOAT2)) {
     return mesh;
   }
 
@@ -193,13 +194,13 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   translate_m4(warp_mat, -umd->center[0], -umd->center[1], 0.0f);
 
   /* make sure we're using an existing layer */
-  CustomData_validate_layer_name(&mesh->loop_data, CD_PROP_FLOAT2, umd->uvlayer_name, uvname);
+  CustomData_validate_layer_name(&mesh->corner_data, CD_PROP_FLOAT2, umd->uvlayer_name, uvname);
 
   const blender::OffsetIndices faces = mesh->faces();
   const blender::Span<int> corner_verts = mesh->corner_verts();
 
   float(*mloopuv)[2] = static_cast<float(*)[2]>(CustomData_get_layer_named_for_write(
-      &mesh->loop_data, CD_PROP_FLOAT2, uvname, corner_verts.size()));
+      &mesh->corner_data, CD_PROP_FLOAT2, uvname, corner_verts.size()));
   MOD_get_vgroup(ctx->object, mesh, umd->vgroup_name, &dvert, &defgrp_index);
 
   UVWarpData data{};

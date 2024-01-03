@@ -117,10 +117,10 @@ static bool stats_mesheval(const Mesh *me_eval, bool is_selected, SceneStats *st
     totloop = subsurf_runtime_data->stats_totloop;
   }
   else {
-    totvert = me_eval->totvert;
-    totedge = me_eval->totedge;
+    totvert = me_eval->verts_num;
+    totedge = me_eval->edges_num;
     totface = me_eval->faces_num;
-    totloop = me_eval->totloop;
+    totloop = me_eval->corners_num;
   }
 
   stats->totvert += totvert;

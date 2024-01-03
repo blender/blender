@@ -16,10 +16,6 @@
 
 #include "node_util.hh"
 
-#ifdef WITH_OPENVDB
-#  include <openvdb/Types.h>
-#endif
-
 struct BVHTreeFromMesh;
 struct GeometrySet;
 namespace blender::nodes {
@@ -50,7 +46,7 @@ void transform_geometry_set(GeoNodeExecParams &params,
  * component. If no component can work with the domain, then `error_message` is set to true.
  */
 void separate_geometry(GeometrySet &geometry_set,
-                       eAttrDomain domain,
+                       AttrDomain domain,
                        GeometryNodeDeleteGeometryMode mode,
                        const Field<bool> &selection_field,
                        const AnonymousAttributePropagationInfo &propagation_info,
@@ -65,30 +61,19 @@ void get_closest_in_bvhtree(BVHTreeFromMesh &tree_data,
 
 int apply_offset_in_cyclic_range(IndexRange range, int start_index, int offset);
 
-#ifdef WITH_OPENVDB
-/**
- * Initializes the VolumeComponent of a GeometrySet with a new Volume from points.
- * The grid class should be either openvdb::GRID_FOG_VOLUME or openvdb::GRID_LEVEL_SET.
- */
-void initialize_volume_component_from_points(GeoNodeExecParams &params,
-                                             const NodeGeometryPointsToVolume &storage,
-                                             GeometrySet &r_geometry_set,
-                                             openvdb::GridClass gridClass);
-#endif
-
 class EvaluateAtIndexInput final : public bke::GeometryFieldInput {
  private:
   Field<int> index_field_;
   GField value_field_;
-  eAttrDomain value_field_domain_;
+  AttrDomain value_field_domain_;
 
  public:
-  EvaluateAtIndexInput(Field<int> index_field, GField value_field, eAttrDomain value_field_domain);
+  EvaluateAtIndexInput(Field<int> index_field, GField value_field, AttrDomain value_field_domain);
 
   GVArray get_varray_for_context(const bke::GeometryFieldContext &context,
                                  const IndexMask &mask) const final;
 
-  std::optional<eAttrDomain> preferred_domain(const GeometryComponent & /*component*/) const final
+  std::optional<AttrDomain> preferred_domain(const GeometryComponent & /*component*/) const final
   {
     return value_field_domain_;
   }
@@ -97,16 +82,16 @@ class EvaluateAtIndexInput final : public bke::GeometryFieldInput {
 class EvaluateOnDomainInput final : public bke::GeometryFieldInput {
  private:
   GField src_field_;
-  eAttrDomain src_domain_;
+  AttrDomain src_domain_;
 
  public:
-  EvaluateOnDomainInput(GField field, eAttrDomain domain);
+  EvaluateOnDomainInput(GField field, AttrDomain domain);
 
   GVArray get_varray_for_context(const bke::GeometryFieldContext &context,
                                  const IndexMask & /*mask*/) const final;
   void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override;
 
-  std::optional<eAttrDomain> preferred_domain(
+  std::optional<AttrDomain> preferred_domain(
       const GeometryComponent & /*component*/) const override;
 };
 
@@ -156,5 +141,18 @@ const EnumPropertyItem *domain_without_corner_experimental_grease_pencil_version
     bContext * /*C*/, PointerRNA * /*ptr*/, PropertyRNA * /*prop*/, bool *r_free);
 
 }  // namespace enums
+
+bool grid_type_supported(eCustomDataType data_type);
+bool grid_type_supported(eNodeSocketDatatype socket_type);
+const EnumPropertyItem *grid_custom_data_type_items_filter_fn(bContext *C,
+                                                              PointerRNA *ptr,
+                                                              PropertyRNA *prop,
+                                                              bool *r_free);
+const EnumPropertyItem *grid_socket_type_items_filter_fn(bContext *C,
+                                                         PointerRNA *ptr,
+                                                         PropertyRNA *prop,
+                                                         bool *r_free);
+
+void node_geo_exec_with_missing_openvdb(GeoNodeExecParams &params);
 
 }  // namespace blender::nodes

@@ -186,7 +186,7 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
         mesh = editmesh_eval_final;
       }
     }
-    is_mesh_verts_only = mesh->totedge == 0 && mesh->totvert > 0;
+    is_mesh_verts_only = mesh->edges_num == 0 && mesh->verts_num > 0;
   }
 
   const bool use_wire = !is_mesh_verts_only && ((pd->overlay.flag & V3D_OVERLAY_WIREFRAMES) ||

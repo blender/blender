@@ -2023,6 +2023,7 @@ static void draw_subdiv_cache_ensure_mat_offsets(DRWSubdivCache &cache,
                                                  Mesh *mesh_eval,
                                                  uint mat_len)
 {
+  using namespace blender;
   draw_subdiv_cache_free_material_data(cache);
 
   const int number_of_quads = cache.num_subdiv_loops / 4;
@@ -2037,7 +2038,7 @@ static void draw_subdiv_cache_ensure_mat_offsets(DRWSubdivCache &cache,
 
   const blender::bke::AttributeAccessor attributes = mesh_eval->attributes();
   const blender::VArraySpan<int> material_indices = *attributes.lookup_or_default<int>(
-      "material_index", ATTR_DOMAIN_FACE, 0);
+      "material_index", bke::AttrDomain::Face, 0);
 
   /* Count number of subdivided polygons for each material. */
   int *mat_start = static_cast<int *>(MEM_callocN(sizeof(int) * mat_len, "subdiv mat_start"));
@@ -2231,7 +2232,7 @@ void DRW_subdivide_loose_geom(DRWSubdivCache *subdiv_cache, MeshBufferCache *cac
   blender::Array<int> vert_to_edge_offsets;
   blender::Array<int> vert_to_edge_indices;
   const blender::GroupedSpan<int> vert_to_edge_map = blender::bke::mesh::build_vert_to_edge_map(
-      coarse_edges, coarse_mesh->totvert, vert_to_edge_offsets, vert_to_edge_indices);
+      coarse_edges, coarse_mesh->verts_num, vert_to_edge_offsets, vert_to_edge_indices);
 
   for (int i = 0; i < coarse_loose_edge_len; i++) {
     const int coarse_edge_index = cache->loose_geom.edges[i];

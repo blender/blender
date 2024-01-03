@@ -130,6 +130,10 @@ struct MTLShaderUniform {
   uint32_t array_len;
 };
 
+struct MTLShaderConstant {
+  uint32_t name_offset;
+};
+
 struct MTLShaderTexture {
   bool used;
   uint32_t name_offset;
@@ -199,6 +203,10 @@ class MTLShaderInterface : public ShaderInterface {
   int max_texture_index_;
   MTLShaderTexture textures_[MTL_MAX_TEXTURE_SLOTS];
 
+  /* Specialization constants. */
+  uint32_t total_constants_;
+  Vector<MTLShaderConstant> constants_;
+
   /* Whether argument buffers are used for sampler bindings. */
   bool sampler_use_argument_buffer_;
   int sampler_argument_buffer_bind_index_[3];
@@ -241,6 +249,7 @@ class MTLShaderInterface : public ShaderInterface {
                    ShaderStage stage_mask = ShaderStage::FRAGMENT,
                    int tex_buffer_ssbo_location = -1);
   void add_push_constant_block(uint32_t name_offset);
+  void add_constant(uint32_t name_offset);
 
   /* Resolve and cache locations of builtin uniforms and uniform blocks. */
   void map_builtins();
@@ -255,6 +264,9 @@ class MTLShaderInterface : public ShaderInterface {
   /* Fetch Uniforms. */
   const MTLShaderUniform &get_uniform(uint index) const;
   uint32_t get_total_uniforms() const;
+
+  /* Fetch Constants. */
+  uint32_t get_total_constants() const;
 
   /* Fetch Uniform Blocks. */
   const MTLShaderBufferBlock &get_uniform_block(uint index) const;

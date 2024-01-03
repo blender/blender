@@ -6,7 +6,7 @@
 
 #include "BLI_math_vector.h"
 
-#include "BKE_colortools.h"
+#include "BKE_colortools.hh"
 
 namespace blender::compositor {
 

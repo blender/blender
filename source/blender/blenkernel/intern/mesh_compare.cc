@@ -530,7 +530,7 @@ static std::optional<MeshMismatch> verify_attributes_compatible(
 static std::optional<MeshMismatch> sort_domain_using_attributes(
     const AttributeAccessor &mesh1_attributes,
     const AttributeAccessor &mesh2_attributes,
-    const eAttrDomain domain,
+    const AttrDomain domain,
     const Span<StringRef> excluded_attributes,
     IndexMapping &maps,
     const float threshold)
@@ -587,16 +587,16 @@ static std::optional<MeshMismatch> sort_domain_using_attributes(
                                                        component_i);
         if (!attributes_line_up) {
           switch (domain) {
-            case ATTR_DOMAIN_POINT:
+            case AttrDomain::Point:
               mismatch = MeshMismatch::VertexAttributes;
               return;
-            case ATTR_DOMAIN_EDGE:
+            case AttrDomain::Edge:
               mismatch = MeshMismatch::EdgeAttributes;
               return;
-            case ATTR_DOMAIN_CORNER:
+            case AttrDomain::Corner:
               mismatch = MeshMismatch::CornerAttributes;
               return;
-            case ATTR_DOMAIN_FACE:
+            case AttrDomain::Face:
               mismatch = MeshMismatch::FaceAttributes;
               return;
             default:
@@ -684,11 +684,11 @@ static std::optional<MeshMismatch> construct_vertex_mapping(const Mesh &mesh1,
   Array<int> vert_to_edge_offsets1;
   Array<int> vert_to_edge_indices1;
   const GroupedSpan<int> vert_to_edge_map1 = mesh::build_vert_to_edge_map(
-      mesh1.edges(), mesh1.totvert, vert_to_edge_offsets1, vert_to_edge_indices1);
+      mesh1.edges(), mesh1.verts_num, vert_to_edge_offsets1, vert_to_edge_indices1);
   Array<int> vert_to_edge_offsets2;
   Array<int> vert_to_edge_indices2;
   const GroupedSpan<int> vert_to_edge_map2 = mesh::build_vert_to_edge_map(
-      mesh2.edges(), mesh2.totvert, vert_to_edge_offsets2, vert_to_edge_indices2);
+      mesh2.edges(), mesh2.verts_num, vert_to_edge_offsets2, vert_to_edge_indices2);
 
   for (const int sorted_i : verts.from_sorted1.index_range()) {
     const int vert1 = verts.from_sorted1[sorted_i];
@@ -768,13 +768,13 @@ std::optional<MeshMismatch> compare_meshes(const Mesh &mesh1,
 {
 
   /* These will be assumed implicitly later on. */
-  if (mesh1.totvert != mesh2.totvert) {
+  if (mesh1.verts_num != mesh2.verts_num) {
     return MeshMismatch::NumVerts;
   }
-  if (mesh1.totedge != mesh2.totedge) {
+  if (mesh1.edges_num != mesh2.edges_num) {
     return MeshMismatch::NumEdges;
   }
-  if (mesh1.totloop != mesh2.totloop) {
+  if (mesh1.corners_num != mesh2.corners_num) {
     return MeshMismatch::NumCorners;
   }
   if (mesh1.faces_num != mesh2.faces_num) {
@@ -790,9 +790,9 @@ std::optional<MeshMismatch> compare_meshes(const Mesh &mesh1,
     return mismatch;
   }
 
-  IndexMapping verts(mesh1.totvert);
+  IndexMapping verts(mesh1.verts_num);
   mismatch = sort_domain_using_attributes(
-      mesh1_attributes, mesh2_attributes, ATTR_DOMAIN_POINT, {}, verts, threshold);
+      mesh1_attributes, mesh2_attributes, AttrDomain::Point, {}, verts, threshold);
   if (mismatch) {
     return mismatch;
   };
@@ -800,13 +800,13 @@ std::optional<MeshMismatch> compare_meshes(const Mesh &mesh1,
   /* We need the maps going the other way as well. */
   verts.recalculate_inverse_maps();
 
-  IndexMapping edges(mesh1.totedge);
+  IndexMapping edges(mesh1.edges_num);
   if (!sort_edges(mesh1.edges(), mesh2.edges(), verts, edges)) {
     return MeshMismatch::EdgeTopology;
   }
 
   mismatch = sort_domain_using_attributes(
-      mesh1_attributes, mesh2_attributes, ATTR_DOMAIN_EDGE, {".edge_verts"}, edges, threshold);
+      mesh1_attributes, mesh2_attributes, AttrDomain::Edge, {".edge_verts"}, edges, threshold);
   if (mismatch) {
     return mismatch;
   };
@@ -814,7 +814,7 @@ std::optional<MeshMismatch> compare_meshes(const Mesh &mesh1,
   /* We need the maps going the other way as well. */
   edges.recalculate_inverse_maps();
 
-  IndexMapping corners(mesh1.totloop);
+  IndexMapping corners(mesh1.corners_num);
   if (!sort_corners_based_on_domain(mesh1.corner_verts(), mesh2.corner_verts(), verts, corners)) {
     return MeshMismatch::FaceTopology;
   }
@@ -825,7 +825,7 @@ std::optional<MeshMismatch> compare_meshes(const Mesh &mesh1,
 
   mismatch = sort_domain_using_attributes(mesh1_attributes,
                                           mesh2_attributes,
-                                          ATTR_DOMAIN_CORNER,
+                                          AttrDomain::Corner,
                                           {".corner_vert", ".corner_edge"},
                                           corners,
                                           threshold);
@@ -842,7 +842,7 @@ std::optional<MeshMismatch> compare_meshes(const Mesh &mesh1,
   }
 
   mismatch = sort_domain_using_attributes(
-      mesh1_attributes, mesh2_attributes, ATTR_DOMAIN_FACE, {}, faces, threshold);
+      mesh1_attributes, mesh2_attributes, AttrDomain::Face, {}, faces, threshold);
   if (mismatch) {
     return mismatch;
   };

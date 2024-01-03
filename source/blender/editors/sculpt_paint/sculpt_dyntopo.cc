@@ -13,8 +13,6 @@
 
 #include "BLT_translation.h"
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 
 #include "BKE_context.hh"
@@ -147,14 +145,15 @@ static void SCULPT_dynamic_topology_disable_ex(
 
     /* Copy over stored custom data. */
     undo::NodeGeometry *geometry = &unode->geometry_bmesh_enter;
-    mesh->totvert = geometry->totvert;
-    mesh->totloop = geometry->totloop;
+    mesh->verts_num = geometry->totvert;
+    mesh->corners_num = geometry->totloop;
     mesh->faces_num = geometry->faces_num;
-    mesh->totedge = geometry->totedge;
+    mesh->edges_num = geometry->totedge;
     mesh->totface_legacy = 0;
     CustomData_copy(&geometry->vert_data, &mesh->vert_data, CD_MASK_MESH.vmask, geometry->totvert);
     CustomData_copy(&geometry->edge_data, &mesh->edge_data, CD_MASK_MESH.emask, geometry->totedge);
-    CustomData_copy(&geometry->loop_data, &mesh->loop_data, CD_MASK_MESH.lmask, geometry->totloop);
+    CustomData_copy(
+        &geometry->corner_data, &mesh->corner_data, CD_MASK_MESH.lmask, geometry->totloop);
     CustomData_copy(
         &geometry->face_data, &mesh->face_data, CD_MASK_MESH.pmask, geometry->faces_num);
     implicit_sharing::copy_shared_pointer(geometry->face_offset_indices,
@@ -167,9 +166,9 @@ static void SCULPT_dynamic_topology_disable_ex(
 
     /* Sync the visibility to vertices manually as the `pmap` is still not initialized. */
     bool *hide_vert = (bool *)CustomData_get_layer_named_for_write(
-        &mesh->vert_data, CD_PROP_BOOL, ".hide_vert", mesh->totvert);
+        &mesh->vert_data, CD_PROP_BOOL, ".hide_vert", mesh->verts_num);
     if (hide_vert != nullptr) {
-      memset(hide_vert, 0, sizeof(bool) * mesh->totvert);
+      memset(hide_vert, 0, sizeof(bool) * mesh->verts_num);
     }
   }
 
@@ -328,7 +327,8 @@ enum WarnFlag check_attribute_warning(Scene *scene, Object *ob)
   if (!dyntopo_supports_customdata_layers({mesh->face_data.layers, mesh->face_data.totlayer})) {
     flag |= LDATA;
   }
-  if (!dyntopo_supports_customdata_layers({mesh->loop_data.layers, mesh->loop_data.totlayer})) {
+  if (!dyntopo_supports_customdata_layers({mesh->corner_data.layers, mesh->corner_data.totlayer}))
+  {
     flag |= LDATA;
   }
 

@@ -39,6 +39,7 @@
 
 #include "ANIM_bone_collections.hh"
 #include "ANIM_keyframing.hh"
+#include "ANIM_rna.hh"
 
 #include "transform.hh"
 #include "transform_orientations.hh"
@@ -1266,6 +1267,81 @@ static void restoreMirrorPoseBones(TransDataContainer *tc)
   }
 }
 
+/* Given the transform mode `tmode` return a Vector of RNA paths that were possibly modified during
+ * that transformation. */
+static blender::Vector<std::string> get_affected_rna_paths_from_transform_mode(
+    const eTfmMode tmode,
+    ToolSettings *toolsettings,
+    const blender::StringRef rotation_path,
+    const bool targetless_ik)
+{
+  blender::Vector<std::string> rna_paths;
+  switch (tmode) {
+    case TFM_TRANSLATION:
+      if (targetless_ik) {
+        rna_paths.append(rotation_path);
+      }
+      else {
+        rna_paths.append("location");
+      }
+      break;
+
+    case TFM_ROTATION:
+    case TFM_TRACKBALL:
+      if (ELEM(toolsettings->transform_pivot_point, V3D_AROUND_CURSOR, V3D_AROUND_ACTIVE)) {
+        rna_paths.append("location");
+      }
+
+      if ((toolsettings->transform_flag & SCE_XFORM_AXIS_ALIGN) == 0) {
+        rna_paths.append(rotation_path);
+      }
+      break;
+
+    case TFM_RESIZE:
+      if (ELEM(toolsettings->transform_pivot_point, V3D_AROUND_CURSOR, V3D_AROUND_ACTIVE)) {
+        rna_paths.append("location");
+      }
+
+      if ((toolsettings->transform_flag & SCE_XFORM_AXIS_ALIGN) == 0) {
+        rna_paths.append("scale");
+      }
+      break;
+
+    default:
+      break;
+  }
+  return rna_paths;
+}
+
+static void autokeyframe_pose(
+    bContext *C, Scene *scene, Object *ob, short targetless_ik, const eTfmMode tmode)
+{
+
+  bPose *pose = ob->pose;
+  LISTBASE_FOREACH (bPoseChannel *, pchan, &pose->chanbase) {
+    if ((pchan->bone->flag & BONE_TRANSFORM) == 0 &&
+        !((pose->flag & POSE_MIRROR_EDIT) && (pchan->bone->flag & BONE_TRANSFORM_MIRROR)))
+    {
+      continue;
+    }
+
+    blender::Vector<std::string> rna_paths;
+    const blender::StringRef rotation_path = blender::animrig::get_rotation_mode_path(
+        eRotationModes(pchan->rotmode));
+
+    if (blender::animrig::is_autokey_flag(scene, AUTOKEY_FLAG_INSERTNEEDED)) {
+      rna_paths = get_affected_rna_paths_from_transform_mode(
+          tmode, scene->toolsettings, rotation_path, targetless_ik);
+    }
+    else {
+      rna_paths = {"location", rotation_path, "scale"};
+    }
+
+    blender::animrig::autokeyframe_pose_channel(
+        C, scene, ob, pchan, rna_paths.as_span(), targetless_ik);
+  }
+}
+
 static void recalcData_pose(TransInfo *t)
 {
   if (t->mode == TFM_BONESIZE) {
@@ -1326,7 +1402,7 @@ static void recalcData_pose(TransInfo *t)
         int targetless_ik = (t->flag & T_AUTOIK);
 
         animrecord_check_state(t, &ob->id);
-        blender::animrig::autokeyframe_pose(t->context, t->scene, ob, targetless_ik);
+        autokeyframe_pose(t->context, t->scene, ob, targetless_ik, t->mode);
       }
 
       if (motionpath_need_update_pose(t->scene, ob)) {
@@ -1589,7 +1665,7 @@ static void special_aftertrans_update__pose(bContext *C, TransInfo *t)
       /* automatic inserting of keys and unkeyed tagging -
        * only if transform wasn't canceled (or TFM_DUMMY) */
       if (!canceled && (t->mode != TFM_DUMMY)) {
-        blender::animrig::autokeyframe_pose(C, t->scene, ob, targetless_ik);
+        autokeyframe_pose(C, t->scene, ob, targetless_ik, t->mode);
         DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
       }
       else {

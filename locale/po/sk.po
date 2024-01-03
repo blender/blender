@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'0b00b360f7ae')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'98c6bded9844')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-18 13:45:58\n"
+"POT-Creation-Date: 2024-01-02 10:08:43\n"
 "PO-Revision-Date: 2023-12-11 10:34+0000\n"
 "Last-Translator: Jozef Matta <jozef.m923@gmail.com>\n"
 "Language-Team: Slovak <https://translate.blender.org/projects/blender-ui/ui/sk/>\n"
@@ -3979,10 +3979,6 @@ msgstr "Aktívna kolekcia kostí armatúry"
 
 msgid "Active Collection Index"
 msgstr "Index aktívnej kolekcie"
-
-
-msgid "The index of the Armature's active bone collection; -1 when there is no active collection"
-msgstr "Index aktívnej kolekcie kostí armatúry; -1, ak neexistuje žiadna aktívna kolekcia"
 
 
 msgid "Active Collection Name"
@@ -51453,16 +51449,8 @@ msgid "Assign to Collection"
 msgstr "Priradiť do kolekcie"
 
 
-msgid "Assign bones to a collection"
-msgstr "Priradí kosti do kolekcie"
-
-
-msgid "The bone collection to move the selected bones to"
-msgstr "Kolekcia kostí, do ktorej sa majú presunúť vybrané kosti"
-
-
-msgid "Name of the newly added bone collection"
-msgstr "Názov novo pridanej kolekcie kostí"
+msgid "Collection Index"
+msgstr "Index kolekcie"
 
 
 msgctxt "Operator"
@@ -51680,10 +51668,6 @@ msgstr "Odstrániť vybrané kosti z aktívnej kolekcie kostí"
 
 msgid "Name of the bone collection to unassign this bone from; empty to unassign from the active bone collection"
 msgstr "Názov kolekcie kostí, z ktorej sa má táto kosť odhlásiť; prázdne - odhlásenie z aktívnej kolekcie kostí"
-
-
-msgid "Unassign the bone from this bone collection"
-msgstr "Zruší priradenie kosti z tejto kolekcie kostí"
 
 
 msgid "Name of the bone to unassign from the collection; empty to use the active bone"
@@ -55570,11 +55554,6 @@ msgstr "Euler (ZYX)"
 
 msgid "Convert rotations to euler ZYX"
 msgstr "Konvertuje rotáciu podľa Eulera ZYX"
-
-
-msgctxt "Operator"
-msgid "Export STL"
-msgstr "Exportovať STL"
 
 
 msgid "Save STL triangle mesh data"
@@ -60991,6 +60970,14 @@ msgid "The scale factor applied to the curve segments"
 msgstr "Faktor mierky použitý na segmenty krivky"
 
 
+msgid "From Left"
+msgstr "Zľava"
+
+
+msgid "From Right"
+msgstr "Sprava"
+
+
 msgid "Are handles tested individually against the selection criteria"
 msgstr "Manipulátory sú testované jednotlivo proti kritériám výberu"
 
@@ -61049,16 +61036,8 @@ msgid "Which end of the segment to use as a reference to shear from"
 msgstr "Určije, ktorý koniec úseku sa má použiť ako referencia na strih"
 
 
-msgid "From Left"
-msgstr "Zľava"
-
-
 msgid "Shear the keys using the left key as reference"
 msgstr "Strihá kľúčmi použitím ľavého kľúča ako referencie"
-
-
-msgid "From Right"
-msgstr "Sprava"
 
 
 msgid "Shear the keys using the right key as reference"
@@ -62302,11 +62281,6 @@ msgstr "Použije definíciu obrázka ako body na jednotku Blendera"
 
 msgid "Use alpha channel for transparency"
 msgstr "Použije alfa kanál pre priehľadnosť"
-
-
-msgctxt "Operator"
-msgid "Import STL"
-msgstr "Importovať STL"
 
 
 msgid "Load STL triangle mesh data"
@@ -68436,10 +68410,6 @@ msgstr "Skryť kolekciu"
 
 msgid "Show only objects in collection (Shift to extend)"
 msgstr "Zobrazí iba objekty v kolekcii (Shift na rozšírenie)"
-
-
-msgid "Collection Index"
-msgstr "Index kolekcie"
 
 
 msgid "Index of the collection to change visibility"
@@ -83939,6 +83909,11 @@ msgid "Open a window with information about Blender"
 msgstr "Otvorí okno s informáciami o aplikácii Blender"
 
 
+msgctxt "Operator"
+msgid "Export STL"
+msgstr "Exportovať STL"
+
+
 msgid "Save the scene to an STL file"
 msgstr "Uloží scénu do STL súboru"
 
@@ -83949,6 +83924,11 @@ msgstr "Dávka exportu"
 
 msgid "Export each object to a separate file"
 msgstr "Exportovať každý objekt do samostatného súboru"
+
+
+msgctxt "Operator"
+msgid "Import STL"
+msgstr "Importovať STL"
 
 
 msgid "Import an STL file as an object"
@@ -84194,14 +84174,6 @@ msgstr "Prelínanie tvarov"
 
 msgid "Import guide geometry"
 msgstr "Import návodu geometrie"
-
-
-msgid "Import Instance Proxies"
-msgstr "Import inštancií náhrad"
-
-
-msgid "Create unique Blender objects for USD instances"
-msgstr "Vytvorí jedinečné objekty Blenderu pre inštancie USD"
 
 
 msgid "Import proxy geometry"
@@ -86656,6 +86628,10 @@ msgid "Motion Tracking"
 msgstr "Snímanie pohybu"
 
 
+msgid "Viewer Node"
+msgstr "Uzol Zobrazovač"
+
+
 msgid "Pose Library"
 msgstr "Knižnica póz"
 
@@ -88943,14 +88919,6 @@ msgid "Enable the new Overlay codebase, requires restart"
 msgstr "Povolí novú kódovú základňu Prekrytia, vyžaduje reštart"
 
 
-msgid "Override Auto Resync"
-msgstr "Prepísať automatickú opätovnú synchronizáciu"
-
-
-msgid "Enable library overrides automatic resync detection and process on file load. Disable when dealing with older .blend files that need manual Resync (Enforce) handling"
-msgstr "Povolí prepis knižnice prepíše automatické zisťovanie opätovnej synchronizácie a proces načítania súboru. Zakáže, keď pracujete so staršími .blend súbormi, ktoré vyžadujú ručné spracovanie pomocou Opätovnej synchronizácie (vynútenie)"
-
-
 msgid "Asset Debug Info"
 msgstr "Informácie o ladení aktív"
 
@@ -88965,14 +88933,6 @@ msgstr "Priame prepojenie všetkých údajov"
 
 msgid "Forces all linked data to be considered as directly linked. Workaround for current issues/limitations in BAT (Blender studio pipeline tool)"
 msgstr "Vynúti posúdenie všetkých prepojených údajov za priamo prepojené. Alternatívne riešenie aktuálnych problémov/obmedzení v BAT (nástroj Blender Studio Pipeline)"
-
-
-msgid "Asset Indexing"
-msgstr "Indexovanie aktív"
-
-
-msgid "Disabling the asset indexer forces every asset library refresh to completely reread assets from disk"
-msgstr "Vypne vynútenie indexátora aktív pri každom obnovení knižnice aktív na úplné opätovné načítanie aktív z disku"
 
 
 msgid "Cycles Debug"
@@ -89041,14 +89001,6 @@ msgstr "Nové uzly objemov"
 
 msgid "Enables visibility of the new Volume nodes in the UI"
 msgstr "Povolí viditeľnosť nových uzlov objemov v užívateľskom rozhraní"
-
-
-msgid "Override Templates"
-msgstr "Šablóny prepisu"
-
-
-msgid "Enable library override template in the Python API"
-msgstr "Povolí šablóny prepisu knižnice v rozhraní API jazyka Python"
 
 
 msgid "Sculpt Texture Paint"
@@ -97501,36 +97453,24 @@ msgid "Show strip thumbnails"
 msgstr "Zobrazí pásy miniatúr"
 
 
-msgid "Waveform Display"
-msgstr "Zobrazenie tvarovej vlny"
-
-
 msgid "How Waveforms are displayed"
 msgstr "Ako sa zobrazujú tvarové vlny"
 
 
-msgid "Waveforms Off"
-msgstr "Vypnutý tvar vlny"
-
-
-msgid "Don't display waveforms for any sound strips"
-msgstr "Bez zobrazenia tvaru vlny pre zvukové pásy"
-
-
-msgid "Waveforms On"
-msgstr "Zapnutý tvar vlny"
+msgid "Waveform Display"
+msgstr "Zobrazenie tvarovej vlny"
 
 
 msgid "Display waveforms for all sound strips"
 msgstr "Zobrazí tvar vlny pre všetky zvukové pásy"
 
 
-msgid "Use Strip Option"
-msgstr "Použiť voľbu pásu"
-
-
 msgid "Display waveforms depending on strip setting"
 msgstr "Tvar vlny zobrazí v závislosti od nastavenia pásu"
+
+
+msgid "Don't display waveforms for any sound strips"
+msgstr "Bez zobrazenia tvaru vlny pre zvukové pásy"
 
 
 msgid "Sequencer Tool Settings"
@@ -100166,10 +100106,6 @@ msgstr "Použije údaje z úplne alebo čiastočne vyhodnoteného objektu"
 
 msgid "Use data from original object without any modifiers applied"
 msgstr "Použije údaje z pôvodného objektu bez použitia akýchkoľvek modifikátorov"
-
-
-msgid "Viewer Node"
-msgstr "Uzol Zobrazovač"
 
 
 msgid "Use intermediate data from viewer node"
@@ -109672,11 +109608,6 @@ msgstr "Vygenerovanie cyklov/EEVEE kompatibilného materiálu, ale nebude vidite
 
 
 msgctxt "Operator"
-msgid "Stl (.stl)"
-msgstr "Stl (.stl)"
-
-
-msgctxt "Operator"
 msgid "FBX (.fbx)"
 msgstr "FBX (.fbx)"
 
@@ -115637,11 +115568,6 @@ msgstr "Stanford PLY (.ply)"
 
 
 msgctxt "Operator"
-msgid "STL (.stl) (experimental)"
-msgstr "STL (.stl) (experimentálne)"
-
-
-msgctxt "Operator"
 msgid "Render Image"
 msgstr "Prekresliť obrázok"
 
@@ -116966,11 +116892,6 @@ msgid "Per Loose Part"
 msgstr "Podľa voľnej časti"
 
 
-msgctxt "Operator"
-msgid "Move to Bone Collection"
-msgstr "Presunúť do kolekcie kostí"
-
-
 msgid "Bone Settings"
 msgstr "Nastavenie kostí"
 
@@ -117158,6 +117079,11 @@ msgstr "Ostré hrany"
 msgctxt "Operator"
 msgid "Edge Loops"
 msgstr "Slučku hrán"
+
+
+msgctxt "Operator"
+msgid "Move to Bone Collection"
+msgstr "Presunúť do kolekcie kostí"
 
 
 msgctxt "Operator"
@@ -117599,14 +117525,6 @@ msgid "On Selected Markers"
 msgstr "Na vybrané značky"
 
 
-msgid "- select bones to operate on first -"
-msgstr "- vyberte kosti, ktoré chcete operovať ako prvé -"
-
-
-msgid "All bone collections are read-only"
-msgstr "Všetky kolekcie kostí sú len na čítanie"
-
-
 msgctxt "Operator"
 msgid "Auto-Name Left/Right"
 msgstr "Automatický názov Vľavo/Vpravo"
@@ -117737,86 +117655,6 @@ msgstr "Odstrániť segment"
 msgctxt "Operator"
 msgid "Delete Point"
 msgstr "Odstrániť bod"
-
-
-msgctxt "Operator"
-msgid "Copyright"
-msgstr "Autorské práva"
-
-
-msgctxt "Operator"
-msgid "Registered Trademark"
-msgstr "Registrovaná obchodná značka"
-
-
-msgctxt "Operator"
-msgid "Degree Sign"
-msgstr "Znak stupňa"
-
-
-msgctxt "Operator"
-msgid "Multiplication Sign"
-msgstr "Znak násobiteľa"
-
-
-msgctxt "Operator"
-msgid "Superscript 1"
-msgstr "Superscript 1"
-
-
-msgctxt "Operator"
-msgid "Superscript 2"
-msgstr "Superscript 2"
-
-
-msgctxt "Operator"
-msgid "Superscript 3"
-msgstr "Superscript 3"
-
-
-msgctxt "Operator"
-msgid "Double >>"
-msgstr "Dvojitá šípka >>"
-
-
-msgctxt "Operator"
-msgid "Double <<"
-msgstr "Dvojitá šípka <<"
-
-
-msgctxt "Operator"
-msgid "Promillage"
-msgstr "Promile"
-
-
-msgctxt "Operator"
-msgid "Dutch Florin"
-msgstr "Holandský florin"
-
-
-msgctxt "Operator"
-msgid "British Pound"
-msgstr "Britská libra"
-
-
-msgctxt "Operator"
-msgid "Japanese Yen"
-msgstr "Japonský yen"
-
-
-msgctxt "Operator"
-msgid "German S"
-msgstr "Nemecké S"
-
-
-msgctxt "Operator"
-msgid "Spanish Question Mark"
-msgstr "Španielsky otáznik"
-
-
-msgctxt "Operator"
-msgid "Spanish Exclamation Mark"
-msgstr "Španielsky výkričník"
 
 
 msgctxt "Operator"
@@ -118974,14 +118812,6 @@ msgstr "Nemožno opätovne synchronizovať blok údajov %s a jeho závislosti, p
 
 msgid "During resync of data-block %s, %d obsolete overrides were deleted, that had local changes defined by user"
 msgstr "Počas opätovnej synchronizácie bloku údajov %s, %d boli odstránené zastarané prepisy, ktoré mali lokálne zmeny definované užívateľom"
-
-
-msgid "Data corruption: data-block '%s' is using itself as library override reference"
-msgstr "Poškodené údaje: blok údajov „%s“ sa používa ako referencia na prepis knižnice"
-
-
-msgid "Data corruption: data-block '%s' is using another local data-block ('%s') as library override reference"
-msgstr "Poškodené údaje: blok údajov „%s“ používa ako odkaz na prepis knižnice iný lokálny blok údajov („%s“)"
 
 
 msgid "libraries"
@@ -128570,18 +128400,6 @@ msgid "Asset data cannot be None"
 msgstr "Údaje o aktívach nemôžu byť žiadne"
 
 
-msgid "Override template experimental feature is disabled"
-msgstr "Experimentálna funkcia šablóny prepisu je vypnutá"
-
-
-msgid "Unable to create override template for linked data-blocks"
-msgstr "Nemožno vytvoriť šablónu prepisu pre prepojené bloky údajov"
-
-
-msgid "Unable to create override template for overridden data-blocks"
-msgstr "Nemožno vytvoriť šablónu prepisu pre prepísané bloky údajov"
-
-
 msgid "No new override property created, property already exists"
 msgstr "Nevytvorená žiadna nová vlastnosť prepisu, vlastnosť už existuje"
 
@@ -130859,6 +130677,10 @@ msgid "Node must be run as tool"
 msgstr "Uzol musí byť spustený ako nástroj"
 
 
+msgid "Disabled, Blender was compiled without OpenVDB"
+msgstr "Zakázané, Blender bol skompilovaný bez OpenVDB"
+
+
 msgid "Leading"
 msgstr "Vedenie"
 
@@ -131398,10 +131220,6 @@ msgstr "Neplatné UV povrchy na krivkách {}"
 
 msgid "The parts of the geometry to be deleted"
 msgstr "Časti geometrie na odstránenie"
-
-
-msgid "Disabled, Blender was compiled without OpenVDB"
-msgstr "Zakázané, Blender bol skompilovaný bez OpenVDB"
 
 
 msgid "Number of points to sample per unit volume"
@@ -134225,10 +134043,6 @@ msgstr "Formát NewTek MDD"
 
 msgid "Import-Export MDD as mesh shape keys"
 msgstr "Import-Export MDD ako kľúčové tvary povrchovej siete"
-
-
-msgid "STL format"
-msgstr "Formát STL"
 
 
 msgid "Import-Export STL files"

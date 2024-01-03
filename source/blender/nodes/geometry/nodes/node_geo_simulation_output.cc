@@ -76,7 +76,7 @@ static bke::bake::BakeSocketConfig make_bake_socket_config(
   for (const int item_i : node_simulation_items.index_range()) {
     const NodeSimulationItem &item = node_simulation_items[item_i];
     config.types[item_i] = eNodeSocketDatatype(item.socket_type);
-    config.domains[item_i] = eAttrDomain(item.attribute_domain);
+    config.domains[item_i] = AttrDomain(item.attribute_domain);
     if (item.socket_type == SOCK_GEOMETRY) {
       last_geometry_index = item_i;
     }
@@ -251,7 +251,7 @@ static void mix_with_indices(MutableSpan<float4x4> prev,
 static void mix_attributes(MutableAttributeAccessor prev_attributes,
                            const AttributeAccessor next_attributes,
                            const Span<int> index_map,
-                           const eAttrDomain mix_domain,
+                           const AttrDomain mix_domain,
                            const float factor,
                            const Set<std::string> &names_to_skip = {})
 {
@@ -263,7 +263,7 @@ static void mix_attributes(MutableAttributeAccessor prev_attributes,
 
   for (const AttributeIDRef &id : ids) {
     const GAttributeReader prev = prev_attributes.lookup(id);
-    const eAttrDomain domain = prev.domain;
+    const AttrDomain domain = prev.domain;
     if (domain != mix_domain) {
       continue;
     }
@@ -334,7 +334,7 @@ static void mix_geometries(GeometrySet &prev, const GeometrySet &next, const flo
       mix_attributes(mesh_prev->attributes_for_write(),
                      mesh_next->attributes(),
                      vert_map,
-                     ATTR_DOMAIN_POINT,
+                     AttrDomain::Point,
                      factor,
                      {});
     }
@@ -346,7 +346,7 @@ static void mix_geometries(GeometrySet &prev, const GeometrySet &next, const flo
       mix_attributes(points_prev->attributes_for_write(),
                      points_next->attributes(),
                      index_map,
-                     ATTR_DOMAIN_POINT,
+                     AttrDomain::Point,
                      factor);
     }
   }
@@ -358,7 +358,7 @@ static void mix_geometries(GeometrySet &prev, const GeometrySet &next, const flo
       mix_attributes(prev,
                      next,
                      index_map,
-                     ATTR_DOMAIN_POINT,
+                     AttrDomain::Point,
                      factor,
                      {"handle_type_left", "handle_type_right"});
     }
@@ -370,7 +370,7 @@ static void mix_geometries(GeometrySet &prev, const GeometrySet &next, const flo
       mix_attributes(instances_prev->attributes_for_write(),
                      instances_next->attributes(),
                      index_map,
-                     ATTR_DOMAIN_INSTANCE,
+                     AttrDomain::Instance,
                      factor,
                      {"position"});
       if (index_map.is_empty()) {

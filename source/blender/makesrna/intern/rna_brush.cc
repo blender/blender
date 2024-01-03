@@ -453,7 +453,7 @@ static EnumPropertyItem rna_enum_gpencil_brush_vertex_icons_items[] = {
 #  include "RNA_access.hh"
 
 #  include "BKE_brush.hh"
-#  include "BKE_colorband.h"
+#  include "BKE_colorband.hh"
 #  include "BKE_gpencil_legacy.h"
 #  include "BKE_icons.h"
 #  include "BKE_material.h"

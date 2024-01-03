@@ -10,7 +10,6 @@
 
 #include "DNA_curves_types.h"
 #include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_pointcloud_types.h"
 
 #include "BKE_attribute.hh"
@@ -55,7 +54,7 @@ static Array<int> invert_permutation(const Span<int> permutation)
  */
 static int seed_from_mesh(const Mesh &mesh)
 {
-  return mesh.totvert;
+  return mesh.verts_num;
 }
 
 static int seed_from_pointcloud(const PointCloud &pointcloud)
@@ -93,7 +92,7 @@ void debug_randomize_vert_order(Mesh *mesh)
   }
 
   const int seed = seed_from_mesh(*mesh);
-  const Array<int> new_by_old_map = get_permutation(mesh->totvert, seed);
+  const Array<int> new_by_old_map = get_permutation(mesh->verts_num, seed);
 
   reorder_customdata(mesh->vert_data, new_by_old_map);
 
@@ -114,7 +113,7 @@ void debug_randomize_edge_order(Mesh *mesh)
   }
 
   const int seed = seed_from_mesh(*mesh);
-  const Array<int> new_by_old_map = get_permutation(mesh->totedge, seed);
+  const Array<int> new_by_old_map = get_permutation(mesh->edges_num, seed);
 
   reorder_customdata(mesh->edge_data, new_by_old_map);
 
@@ -173,7 +172,7 @@ void debug_randomize_face_order(Mesh *mesh)
   Array<int> new_face_offsets = make_new_offset_indices(old_faces, old_by_new_map);
   const OffsetIndices<int> new_faces = new_face_offsets.as_span();
 
-  reorder_customdata_groups(mesh->loop_data, old_faces, new_faces, new_by_old_map);
+  reorder_customdata_groups(mesh->corner_data, old_faces, new_faces, new_by_old_map);
 
   mesh->face_offsets_for_write().copy_from(new_face_offsets);
 

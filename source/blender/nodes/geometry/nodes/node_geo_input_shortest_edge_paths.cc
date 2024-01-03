@@ -35,7 +35,7 @@ static void shortest_paths(const Mesh &mesh,
                            MutableSpan<float> r_cost)
 {
   const Span<int2> edges = mesh.edges();
-  Array<bool> visited(mesh.totvert, false);
+  Array<bool> visited(mesh.verts_num, false);
 
   std::priority_queue<VertPriority, std::vector<VertPriority>, std::greater<VertPriority>> queue;
 
@@ -96,35 +96,35 @@ class ShortestEdgePathsNextVertFieldInput final : public bke::MeshFieldInput {
   }
 
   GVArray get_varray_for_context(const Mesh &mesh,
-                                 const eAttrDomain domain,
+                                 const AttrDomain domain,
                                  const IndexMask & /*mask*/) const final
   {
-    const bke::MeshFieldContext edge_context{mesh, ATTR_DOMAIN_EDGE};
-    fn::FieldEvaluator edge_evaluator{edge_context, mesh.totedge};
+    const bke::MeshFieldContext edge_context{mesh, AttrDomain::Edge};
+    fn::FieldEvaluator edge_evaluator{edge_context, mesh.edges_num};
     edge_evaluator.add(cost_);
     edge_evaluator.evaluate();
     const VArray<float> input_cost = edge_evaluator.get_evaluated<float>(0);
 
-    const bke::MeshFieldContext point_context{mesh, ATTR_DOMAIN_POINT};
-    fn::FieldEvaluator point_evaluator{point_context, mesh.totvert};
+    const bke::MeshFieldContext point_context{mesh, AttrDomain::Point};
+    fn::FieldEvaluator point_evaluator{point_context, mesh.verts_num};
     point_evaluator.add(end_selection_);
     point_evaluator.evaluate();
     const IndexMask end_selection = point_evaluator.get_evaluated_as_mask(0);
 
-    Array<int> next_index(mesh.totvert, -1);
-    Array<float> cost(mesh.totvert, FLT_MAX);
+    Array<int> next_index(mesh.verts_num, -1);
+    Array<float> cost(mesh.verts_num, FLT_MAX);
 
     if (end_selection.is_empty()) {
       array_utils::fill_index_range<int>(next_index);
       return mesh.attributes().adapt_domain<int>(
-          VArray<int>::ForContainer(std::move(next_index)), ATTR_DOMAIN_POINT, domain);
+          VArray<int>::ForContainer(std::move(next_index)), AttrDomain::Point, domain);
     }
 
     const Span<int2> edges = mesh.edges();
     Array<int> vert_to_edge_offset_data;
     Array<int> vert_to_edge_indices;
     const GroupedSpan<int> vert_to_edge = bke::mesh::build_vert_to_edge_map(
-        edges, mesh.totvert, vert_to_edge_offset_data, vert_to_edge_indices);
+        edges, mesh.verts_num, vert_to_edge_offset_data, vert_to_edge_indices);
     shortest_paths(mesh, vert_to_edge, end_selection, input_cost, next_index, cost);
 
     threading::parallel_for(next_index.index_range(), 1024, [&](const IndexRange range) {
@@ -135,7 +135,7 @@ class ShortestEdgePathsNextVertFieldInput final : public bke::MeshFieldInput {
       }
     });
     return mesh.attributes().adapt_domain<int>(
-        VArray<int>::ForContainer(std::move(next_index)), ATTR_DOMAIN_POINT, domain);
+        VArray<int>::ForContainer(std::move(next_index)), AttrDomain::Point, domain);
   }
 
   void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override
@@ -160,9 +160,9 @@ class ShortestEdgePathsNextVertFieldInput final : public bke::MeshFieldInput {
     return false;
   }
 
-  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
+  std::optional<AttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
   {
-    return ATTR_DOMAIN_POINT;
+    return AttrDomain::Point;
   }
 };
 
@@ -181,34 +181,34 @@ class ShortestEdgePathsCostFieldInput final : public bke::MeshFieldInput {
   }
 
   GVArray get_varray_for_context(const Mesh &mesh,
-                                 const eAttrDomain domain,
+                                 const AttrDomain domain,
                                  const IndexMask & /*mask*/) const final
   {
-    const bke::MeshFieldContext edge_context{mesh, ATTR_DOMAIN_EDGE};
-    fn::FieldEvaluator edge_evaluator{edge_context, mesh.totedge};
+    const bke::MeshFieldContext edge_context{mesh, AttrDomain::Edge};
+    fn::FieldEvaluator edge_evaluator{edge_context, mesh.edges_num};
     edge_evaluator.add(cost_);
     edge_evaluator.evaluate();
     const VArray<float> input_cost = edge_evaluator.get_evaluated<float>(0);
 
-    const bke::MeshFieldContext point_context{mesh, ATTR_DOMAIN_POINT};
-    fn::FieldEvaluator point_evaluator{point_context, mesh.totvert};
+    const bke::MeshFieldContext point_context{mesh, AttrDomain::Point};
+    fn::FieldEvaluator point_evaluator{point_context, mesh.verts_num};
     point_evaluator.add(end_selection_);
     point_evaluator.evaluate();
     const IndexMask end_selection = point_evaluator.get_evaluated_as_mask(0);
 
     if (end_selection.is_empty()) {
       return mesh.attributes().adapt_domain<float>(
-          VArray<float>::ForSingle(0.0f, mesh.totvert), ATTR_DOMAIN_POINT, domain);
+          VArray<float>::ForSingle(0.0f, mesh.verts_num), AttrDomain::Point, domain);
     }
 
-    Array<int> next_index(mesh.totvert, -1);
-    Array<float> cost(mesh.totvert, FLT_MAX);
+    Array<int> next_index(mesh.verts_num, -1);
+    Array<float> cost(mesh.verts_num, FLT_MAX);
 
     const Span<int2> edges = mesh.edges();
     Array<int> vert_to_edge_offset_data;
     Array<int> vert_to_edge_indices;
     const GroupedSpan<int> vert_to_edge = bke::mesh::build_vert_to_edge_map(
-        edges, mesh.totvert, vert_to_edge_offset_data, vert_to_edge_indices);
+        edges, mesh.verts_num, vert_to_edge_offset_data, vert_to_edge_indices);
     shortest_paths(mesh, vert_to_edge, end_selection, input_cost, next_index, cost);
 
     threading::parallel_for(cost.index_range(), 1024, [&](const IndexRange range) {
@@ -219,7 +219,7 @@ class ShortestEdgePathsCostFieldInput final : public bke::MeshFieldInput {
       }
     });
     return mesh.attributes().adapt_domain<float>(
-        VArray<float>::ForContainer(std::move(cost)), ATTR_DOMAIN_POINT, domain);
+        VArray<float>::ForContainer(std::move(cost)), AttrDomain::Point, domain);
   }
 
   void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override
@@ -243,9 +243,9 @@ class ShortestEdgePathsCostFieldInput final : public bke::MeshFieldInput {
     return false;
   }
 
-  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
+  std::optional<AttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
   {
-    return ATTR_DOMAIN_POINT;
+    return AttrDomain::Point;
   }
 };
 

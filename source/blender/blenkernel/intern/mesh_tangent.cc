@@ -12,9 +12,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
@@ -123,13 +120,12 @@ void BKE_mesh_calc_loop_tangent_single(Mesh *mesh,
 {
   using namespace blender;
   using namespace blender::bke;
-
   if (!uvmap) {
-    uvmap = CustomData_get_active_layer_name(&mesh->loop_data, CD_PROP_FLOAT2);
+    uvmap = CustomData_get_active_layer_name(&mesh->corner_data, CD_PROP_FLOAT2);
   }
 
   const AttributeAccessor attributes = mesh->attributes();
-  const VArraySpan uv_map = *attributes.lookup<float2>(uvmap, ATTR_DOMAIN_CORNER);
+  const VArraySpan uv_map = *attributes.lookup<float2>(uvmap, AttrDomain::Corner);
   if (uv_map.is_empty()) {
     BKE_reportf(reports,
                 RPT_ERROR,
@@ -140,12 +136,12 @@ void BKE_mesh_calc_loop_tangent_single(Mesh *mesh,
 
   BKE_mesh_calc_loop_tangent_single_ex(
       reinterpret_cast<const float(*)[3]>(mesh->vert_positions().data()),
-      mesh->totvert,
+      mesh->verts_num,
       mesh->corner_verts().data(),
       r_looptangents,
       reinterpret_cast<const float(*)[3]>(mesh->corner_normals().data()),
       reinterpret_cast<const float(*)[2]>(uv_map.data()),
-      mesh->totloop,
+      mesh->corners_num,
       mesh->faces(),
       reports);
 }
@@ -585,7 +581,7 @@ void BKE_mesh_calc_loop_tangents(Mesh *me_eval,
   using namespace blender::bke;
   const blender::Span<int3> corner_tris = me_eval->corner_tris();
   const bke::AttributeAccessor attributes = me_eval->attributes();
-  const VArraySpan sharp_face = *attributes.lookup<bool>("sharp_face", ATTR_DOMAIN_FACE);
+  const VArraySpan sharp_face = *attributes.lookup<bool>("sharp_face", AttrDomain::Face);
   short tangent_mask = 0;
   BKE_mesh_calc_loop_tangent_ex(
       reinterpret_cast<const float(*)[3]>(me_eval->vert_positions().data()),
@@ -595,7 +591,7 @@ void BKE_mesh_calc_loop_tangents(Mesh *me_eval,
       me_eval->corner_tri_faces().data(),
       uint(corner_tris.size()),
       sharp_face,
-      &me_eval->loop_data,
+      &me_eval->corner_data,
       calc_active_tangent,
       tangent_names,
       tangent_names_len,
@@ -605,8 +601,8 @@ void BKE_mesh_calc_loop_tangents(Mesh *me_eval,
       /* may be nullptr */
       static_cast<const float(*)[3]>(CustomData_get_layer(&me_eval->vert_data, CD_ORCO)),
       /* result */
-      &me_eval->loop_data,
-      uint(me_eval->totloop),
+      &me_eval->corner_data,
+      uint(me_eval->corners_num),
       &tangent_mask);
 }
 

@@ -10,8 +10,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_meshdata_types.h"
-
 #include "BKE_customdata.hh"
 
 #include "bmesh.hh"

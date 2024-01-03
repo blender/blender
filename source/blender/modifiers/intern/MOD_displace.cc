@@ -306,13 +306,13 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
   }
 
   if (direction == MOD_DISP_DIR_CLNOR) {
-    if (CustomData_has_layer(&mesh->loop_data, CD_CUSTOMLOOPNORMAL)) {
+    if (CustomData_has_layer(&mesh->corner_data, CD_CUSTOMLOOPNORMAL)) {
       vert_clnors = static_cast<float(*)[3]>(
           MEM_malloc_arrayN(positions.size(), sizeof(*vert_clnors), __func__));
       BKE_mesh_normals_loop_to_vertex(
           positions.size(),
           mesh->corner_verts().data(),
-          mesh->totloop,
+          mesh->corners_num,
           reinterpret_cast<const float(*)[3]>(mesh->corner_normals().data()),
           vert_clnors);
     }

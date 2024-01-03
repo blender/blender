@@ -25,7 +25,6 @@
 #include "DNA_customdata_types.h"
 
 /* For embedding CCGKey in iterator. */
-#include "BKE_attribute.h"
 #include "BKE_ccg.h"
 #include "BKE_pbvh.hh"
 
@@ -43,10 +42,15 @@ struct PBVHNode;
 struct SubdivCCG;
 struct Image;
 struct ImageUser;
-namespace blender::draw::pbvh {
+namespace blender {
+namespace bke {
+enum class AttrDomain : int8_t;
+}
+namespace draw::pbvh {
 struct PBVHBatches;
 struct PBVH_GPU_Args;
-}  // namespace blender::draw::pbvh
+}  // namespace draw::pbvh
+}  // namespace blender
 
 struct PBVHProxyNode {
   blender::Vector<blender::float3> co;
@@ -528,7 +532,9 @@ blender::Span<blender::float3> BKE_pbvh_get_vert_normals(const PBVH *pbvh);
 
 PBVHColorBufferNode *BKE_pbvh_node_color_buffer_get(PBVHNode *node);
 void BKE_pbvh_node_color_buffer_free(PBVH *pbvh);
-bool BKE_pbvh_get_color_layer(Mesh *mesh, CustomDataLayer **r_layer, eAttrDomain *r_domain);
+bool BKE_pbvh_get_color_layer(Mesh *mesh,
+                              CustomDataLayer **r_layer,
+                              blender::bke::AttrDomain *r_domain);
 
 /* Swaps colors at each element in indices (of domain pbvh->vcol_domain)
  * with values in colors. */

@@ -19,7 +19,7 @@
 namespace blender::io::stl {
 
 struct Expectation {
-  int totvert, totedge, faces_num, totloop;
+  int verts_num, edges_num, faces_num, corners_num;
   float3 vert_first, vert_last;
 };
 
@@ -64,10 +64,10 @@ class stl_importer_test : public BlendfileLoadingBaseTest {
           Mesh *mesh = BKE_object_get_evaluated_mesh(object);
           const Span<float3> positions = mesh->vert_positions();
           printf("%i, %i, %i, %i, float3(%g, %g, %g), float3(%g, %g, %g)",
-                 mesh->totvert,
-                 mesh->totedge,
+                 mesh->verts_num,
+                 mesh->edges_num,
                  mesh->faces_num,
-                 mesh->totloop,
+                 mesh->corners_num,
                  positions.first().x,
                  positions.first().y,
                  positions.first().z,
@@ -91,10 +91,10 @@ class stl_importer_test : public BlendfileLoadingBaseTest {
       EXPECT_V3_NEAR(object->rot, float3(M_PI_2, 0, 0), 0.0001f);
       EXPECT_V3_NEAR(object->scale, float3(1, 1, 1), 0.0001f);
       Mesh *mesh = BKE_object_get_evaluated_mesh(object);
-      EXPECT_EQ(mesh->totvert, expect.totvert);
-      EXPECT_EQ(mesh->totedge, expect.totedge);
+      EXPECT_EQ(mesh->verts_num, expect.verts_num);
+      EXPECT_EQ(mesh->edges_num, expect.edges_num);
       EXPECT_EQ(mesh->faces_num, expect.faces_num);
-      EXPECT_EQ(mesh->totloop, expect.totloop);
+      EXPECT_EQ(mesh->corners_num, expect.corners_num);
       const Span<float3> positions = mesh->vert_positions();
       EXPECT_V3_NEAR(positions.first(), expect.vert_first, 0.0001f);
       EXPECT_V3_NEAR(positions.last(), expect.vert_last, 0.0001f);

@@ -1054,8 +1054,8 @@ void rna_object_uvlayer_name_set(PointerRNA *ptr,
   if (ob->type == OB_MESH && ob->data) {
     mesh = static_cast<Mesh *>(ob->data);
 
-    for (a = 0; a < mesh->loop_data.totlayer; a++) {
-      layer = &mesh->loop_data.layers[a];
+    for (a = 0; a < mesh->corner_data.totlayer; a++) {
+      layer = &mesh->corner_data.layers[a];
 
       if (layer->type == CD_PROP_FLOAT2 && STREQ(layer->name, value)) {
         BLI_strncpy(result, value, result_maxncpy);

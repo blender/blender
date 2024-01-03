@@ -25,8 +25,8 @@
 #include "BLT_translation.h"
 
 #include "BKE_anim_data.h"
-#include "BKE_colorband.h"
-#include "BKE_colortools.h"
+#include "BKE_colorband.hh"
+#include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_freestyle.h"
 #include "BKE_idtype.h"

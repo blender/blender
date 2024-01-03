@@ -39,7 +39,9 @@ set(ISPC_EXTRA_ARGS
   -DISPC_NO_DUMPS=On
   -DISPC_INCLUDE_EXAMPLES=Off
   -DISPC_INCLUDE_TESTS=Off
-  -DLLVM_ROOT=${LIBDIR}/llvm/lib/cmake/llvm
+  -DISPC_INCLUDE_RT=Off
+  -DLLVM_CONFIG_EXECUTABLE=${LIBDIR}/llvm/bin/llvm-config
+  -DLLVM_DIR=${LIBDIR}/llvm/lib/cmake/llvm/
   -DLLVM_LIBRARY_DIR=${LIBDIR}/llvm/lib
   -DCLANG_EXECUTABLE=${LIBDIR}/llvm/bin/clang
   -DCLANGPP_EXECUTABLE=${LIBDIR}/llvm/bin/clang++

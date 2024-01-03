@@ -426,7 +426,7 @@ void Film::sync()
   accumulate_ps_.init();
   accumulate_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS);
   accumulate_ps_.shader_set(inst_.shaders.static_shader_get(shader));
-  inst_.bind_uniform_data(&accumulate_ps_);
+  accumulate_ps_.bind_resources(inst_.uniform_data);
   accumulate_ps_.bind_ubo("camera_prev", &(*velocity.camera_steps[STEP_PREVIOUS]));
   accumulate_ps_.bind_ubo("camera_curr", &(*velocity.camera_steps[STEP_CURRENT]));
   accumulate_ps_.bind_ubo("camera_next", &(*velocity.camera_steps[step_next]));
@@ -637,7 +637,7 @@ void Film::accumulate(View &view, GPUTexture *combined_final_tx)
   combined_final_tx_ = combined_final_tx;
 
   data_.display_only = false;
-  inst_.push_uniform_data();
+  inst_.uniform_data.push_update();
 
   inst_.manager->submit(accumulate_ps_, view);
 
@@ -664,7 +664,7 @@ void Film::display()
   combined_final_tx_ = inst_.render_buffers.combined_tx;
 
   data_.display_only = true;
-  inst_.push_uniform_data();
+  inst_.uniform_data.push_update();
 
   draw::View drw_view("MainView", DRW_view_default_get());
 

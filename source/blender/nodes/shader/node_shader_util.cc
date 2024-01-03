@@ -329,7 +329,8 @@ void ntreeExecGPUNodes(bNodeTreeExec *exec, GPUMaterial *mat, bNode *output_node
       }
     }
     else {
-      do_it = true;
+      do_it = node->runtime->need_exec;
+      node->runtime->need_exec = 0;
     }
 
     if (do_it) {

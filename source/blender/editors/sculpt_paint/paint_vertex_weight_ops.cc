@@ -24,7 +24,7 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_brush.hh"
-#include "BKE_colortools.h"
+#include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_deform.h"
 #include "BKE_mesh.hh"
@@ -430,11 +430,11 @@ static bool weight_paint_set(Object *ob, float paintweight)
   }
 
   WPaintPrev wpp;
-  wpaint_prev_create(&wpp, dvert, mesh->totvert);
+  wpaint_prev_create(&wpp, dvert, mesh->verts_num);
 
   const bke::AttributeAccessor attributes = mesh->attributes();
-  const VArraySpan select_vert = *attributes.lookup<bool>(".select_vert", ATTR_DOMAIN_POINT);
-  const VArraySpan select_poly = *attributes.lookup<bool>(".select_poly", ATTR_DOMAIN_FACE);
+  const VArraySpan select_vert = *attributes.lookup<bool>(".select_vert", bke::AttrDomain::Point);
+  const VArraySpan select_poly = *attributes.lookup<bool>(".select_poly", bke::AttrDomain::Face);
 
   for (const int i : faces.index_range()) {
     if ((paint_selmode == SCE_SELECT_FACE) && !(!select_poly.is_empty() && select_poly[i])) {
@@ -479,7 +479,7 @@ static bool weight_paint_set(Object *ob, float paintweight)
 
   {
     MDeformVert *dv = dvert;
-    for (int index = mesh->totvert; index != 0; index--, dv++) {
+    for (int index = mesh->verts_num; index != 0; index--, dv++) {
       dv->flag = 0;
     }
   }
@@ -723,8 +723,8 @@ static int paint_weight_gradient_modal(bContext *C, wmOperator *op, const wmEven
       Mesh *mesh = static_cast<Mesh *>(ob->data);
       if (vert_cache->wpp.wpaint_prev) {
         MDeformVert *dvert = mesh->deform_verts_for_write().data();
-        BKE_defvert_array_free_elems(dvert, mesh->totvert);
-        BKE_defvert_array_copy(dvert, vert_cache->wpp.wpaint_prev, mesh->totvert);
+        BKE_defvert_array_free_elems(dvert, mesh->verts_num);
+        BKE_defvert_array_copy(dvert, vert_cache->wpp.wpaint_prev, mesh->verts_num);
         wpaint_prev_destroy(&vert_cache->wpp);
       }
       MEM_freeN(vert_cache);
@@ -766,13 +766,13 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
   if (is_interactive) {
     if (gesture->user_data.data == nullptr) {
       gesture->user_data.data = MEM_mallocN(sizeof(WPGradient_vertStoreBase) +
-                                                (sizeof(WPGradient_vertStore) * mesh->totvert),
+                                                (sizeof(WPGradient_vertStore) * mesh->verts_num),
                                             __func__);
       gesture->user_data.use_free = false;
       data.is_init = true;
 
       wpaint_prev_create(
-          &((WPGradient_vertStoreBase *)gesture->user_data.data)->wpp, dverts, mesh->totvert);
+          &((WPGradient_vertStoreBase *)gesture->user_data.data)->wpp, dverts, mesh->verts_num);
 
       /* On initialization only, convert face -> vert sel. */
       if (mesh->editflag & ME_EDIT_PAINT_FACE_SEL) {
@@ -789,7 +789,7 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
 
     data.is_init = true;
     vert_cache = static_cast<WPGradient_vertStoreBase *>(MEM_mallocN(
-        sizeof(WPGradient_vertStoreBase) + (sizeof(WPGradient_vertStore) * mesh->totvert),
+        sizeof(WPGradient_vertStoreBase) + (sizeof(WPGradient_vertStore) * mesh->verts_num),
         __func__));
   }
 
@@ -799,8 +799,9 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
   data.scene = scene;
   data.mesh = mesh;
   data.dvert = dverts;
-  data.select_vert = *attributes.lookup<bool>(".select_vert", ATTR_DOMAIN_POINT);
-  data.hide_vert = *attributes.lookup_or_default<bool>(".hide_vert", ATTR_DOMAIN_POINT, false);
+  data.select_vert = *attributes.lookup<bool>(".select_vert", bke::AttrDomain::Point);
+  data.hide_vert = *attributes.lookup_or_default<bool>(
+      ".hide_vert", bke::AttrDomain::Point, false);
   data.sco_start = sco_start;
   data.sco_end = sco_end;
   data.sco_line_div = 1.0f / len_v2v2(sco_start, sco_end);
@@ -827,7 +828,7 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
   const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
   const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
   if (data.is_init) {
-    data.vert_visit = BLI_BITMAP_NEW(mesh->totvert, __func__);
+    data.vert_visit = BLI_BITMAP_NEW(mesh->verts_num, __func__);
 
     BKE_mesh_foreach_mapped_vert(me_eval, gradientVertInit__mapFunc, &data, MESH_FOREACH_NOP);
 
@@ -851,7 +852,7 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
     bool *vgroup_validmap = BKE_object_defgroup_validmap_get(ob, vgroup_num);
     if (vgroup_validmap != nullptr) {
       MDeformVert *dvert = dverts;
-      for (int i = 0; i < mesh->totvert; i++) {
+      for (int i = 0; i < mesh->verts_num; i++) {
         if ((data.vert_cache->elem[i].flag & WPGradient_vertStore::VGRAD_STORE_IS_MODIFIED) != 0) {
           if (lock_flags != nullptr) {
             BKE_defvert_normalize_lock_map(

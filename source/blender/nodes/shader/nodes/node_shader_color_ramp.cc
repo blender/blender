@@ -8,7 +8,7 @@
 
 #include "DNA_texture_types.h"
 
-#include "BKE_colorband.h"
+#include "BKE_colorband.hh"
 
 #include "BLI_color.hh"
 

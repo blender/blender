@@ -337,6 +337,7 @@ class GRAPH_MT_key_blending(Menu):
         layout.operator("graph.push_pull", text="Push Pull")
         layout.operator("graph.shear", text="Shear Keys")
         layout.operator("graph.scale_average", text="Scale Average")
+        layout.operator("graph.scale_from_neighbor", text="Scale from Neighbor")
         layout.operator("graph.time_offset", text="Time Offset")
 
 

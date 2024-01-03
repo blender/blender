@@ -2,8 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BKE_attribute.hh"
 #include "BKE_brush.hh"
-#include "BKE_colortools.h"
+#include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.h"
@@ -227,9 +228,9 @@ struct PaintOperationExecutor {
 
     bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
     bke::SpanAttributeWriter<int> materials = attributes.lookup_or_add_for_write_span<int>(
-        "material_index", ATTR_DOMAIN_CURVE);
+        "material_index", bke::AttrDomain::Curve);
     bke::SpanAttributeWriter<bool> cyclic = attributes.lookup_or_add_for_write_span<bool>(
-        "cyclic", ATTR_DOMAIN_CURVE);
+        "cyclic", bke::AttrDomain::Curve);
     cyclic.span.last() = false;
     materials.span.last() = material_index;
 
@@ -241,11 +242,11 @@ struct PaintOperationExecutor {
 
     /* Initialize the rest of the attributes with default values. */
     bke::fill_attribute_range_default(attributes,
-                                      ATTR_DOMAIN_POINT,
+                                      bke::AttrDomain::Point,
                                       {"position", "radius", "opacity", "vertex_color"},
                                       curves.points_range().take_back(1));
     bke::fill_attribute_range_default(attributes,
-                                      ATTR_DOMAIN_CURVE,
+                                      bke::AttrDomain::Curve,
                                       {"curve_type", "material_index", "cyclic"},
                                       curves.curves_range().take_back(1));
 
@@ -407,7 +408,7 @@ struct PaintOperationExecutor {
 
     /* Initialize the rest of the attributes with default values. */
     bke::fill_attribute_range_default(attributes,
-                                      ATTR_DOMAIN_POINT,
+                                      bke::AttrDomain::Point,
                                       {"position", "radius", "opacity", "vertex_color"},
                                       curves.points_range().take_back(1));
   }
@@ -516,7 +517,7 @@ void PaintOperation::simplify_stroke(bke::greasepencil::Drawing &drawing, const 
 
   if (total_points_to_delete > 0) {
     IndexMaskMemory memory;
-    curves.remove_points(IndexMask::from_bools(points_to_delete, memory));
+    curves.remove_points(IndexMask::from_bools(points_to_delete, memory), {});
   }
 }
 
@@ -552,7 +553,7 @@ void PaintOperation::on_stroke_done(const bContext &C)
 
   /* Grease Pencil should have an active layer. */
   BLI_assert(grease_pencil.has_active_layer());
-  bke::greasepencil::Layer &active_layer = *grease_pencil.get_active_layer_for_write();
+  bke::greasepencil::Layer &active_layer = *grease_pencil.get_active_layer();
   const int drawing_index = active_layer.drawing_index_at(scene->r.cfra);
 
   /* Drawing should exist. */

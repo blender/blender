@@ -53,9 +53,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
@@ -458,7 +455,7 @@ static TriTessFace *mesh_calc_tri_tessface(Mesh *mesh, bool tangent, Mesh *me_ev
   using namespace blender;
   int i;
 
-  const int tottri = poly_to_tri_count(mesh->faces_num, mesh->totloop);
+  const int tottri = poly_to_tri_count(mesh->faces_num, mesh->corners_num);
   TriTessFace *triangles;
 
   /* calculate normal for each face only once */
@@ -470,7 +467,7 @@ static TriTessFace *mesh_calc_tri_tessface(Mesh *mesh, bool tangent, Mesh *me_ev
   const blender::Span<int> corner_verts = mesh->corner_verts();
   const bke::AttributeAccessor attributes = mesh->attributes();
   const VArray<bool> sharp_faces =
-      attributes.lookup_or_default<bool>("sharp_face", ATTR_DOMAIN_FACE, false).varray;
+      attributes.lookup_or_default<bool>("sharp_face", bke::AttrDomain::Face, false).varray;
 
   blender::int3 *corner_tris = static_cast<blender::int3 *>(
       MEM_mallocN(sizeof(*corner_tris) * tottri, __func__));
@@ -495,7 +492,7 @@ static TriTessFace *mesh_calc_tri_tessface(Mesh *mesh, bool tangent, Mesh *me_ev
   if (tangent) {
     BKE_mesh_calc_loop_tangents(me_eval, true, nullptr, 0);
 
-    tspace = static_cast<const TSpace *>(CustomData_get_layer(&me_eval->loop_data, CD_TANGENT));
+    tspace = static_cast<const TSpace *>(CustomData_get_layer(&me_eval->corner_data, CD_TANGENT));
     BLI_assert(tspace);
 
     corner_normals = me_eval->corner_normals();
@@ -724,12 +721,12 @@ void RE_bake_pixels_populate(Mesh *mesh,
   const float(*mloopuv)[2];
   if ((uv_layer == nullptr) || (uv_layer[0] == '\0')) {
     mloopuv = static_cast<const float(*)[2]>(
-        CustomData_get_layer(&mesh->loop_data, CD_PROP_FLOAT2));
+        CustomData_get_layer(&mesh->corner_data, CD_PROP_FLOAT2));
   }
   else {
-    int uv_id = CustomData_get_named_layer(&mesh->loop_data, CD_PROP_FLOAT2, uv_layer);
+    int uv_id = CustomData_get_named_layer(&mesh->corner_data, CD_PROP_FLOAT2, uv_layer);
     mloopuv = static_cast<const float(*)[2]>(
-        CustomData_get_layer_n(&mesh->loop_data, CD_PROP_FLOAT2, uv_id));
+        CustomData_get_layer_n(&mesh->corner_data, CD_PROP_FLOAT2, uv_id));
   }
 
   if (mloopuv == nullptr) {
@@ -750,7 +747,7 @@ void RE_bake_pixels_populate(Mesh *mesh,
     zbuf_alloc_span(&bd.zspan[i], targets->images[i].width, targets->images[i].height);
   }
 
-  const int tottri = poly_to_tri_count(mesh->faces_num, mesh->totloop);
+  const int tottri = poly_to_tri_count(mesh->faces_num, mesh->corners_num);
   blender::int3 *corner_tris = static_cast<blender::int3 *>(
       MEM_mallocN(sizeof(*corner_tris) * tottri, __func__));
 
@@ -759,7 +756,8 @@ void RE_bake_pixels_populate(Mesh *mesh,
 
   const blender::Span<int> tri_faces = mesh->corner_tri_faces();
   const bke::AttributeAccessor attributes = mesh->attributes();
-  const VArraySpan material_indices = *attributes.lookup<int>("material_index", ATTR_DOMAIN_FACE);
+  const VArraySpan material_indices = *attributes.lookup<int>("material_index",
+                                                              bke::AttrDomain::Face);
 
   const int materials_num = targets->materials_num;
 

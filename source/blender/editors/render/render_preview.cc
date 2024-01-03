@@ -46,7 +46,7 @@
 #include "BKE_appdir.h"
 #include "BKE_armature.hh"
 #include "BKE_brush.hh"
-#include "BKE_colortools.h"
+#include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_icons.h"

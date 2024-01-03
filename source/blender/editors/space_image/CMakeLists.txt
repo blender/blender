@@ -31,7 +31,7 @@ set(SRC
   image_undo.cc
   space_image.cc
 
-  image_intern.h
+  image_intern.hh
 )
 
 set(LIB

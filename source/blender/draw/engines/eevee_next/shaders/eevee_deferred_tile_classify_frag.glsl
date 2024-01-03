@@ -18,20 +18,22 @@ void main()
 
   ivec2 tile_co = texel >> closure_tile_size_shift;
 
-  if (gbuffer_has_closure(in_gbuffer_header, eClosureBits(CLOSURE_DIFFUSE))) {
+  GBufferReader gbuf = gbuffer_read_header(in_gbuffer_header);
+
+  if (gbuf.has_diffuse) {
     imageStore(tile_mask_img, ivec3(tile_co, 0), uvec4(1u));
   }
-  if (gbuffer_has_closure(in_gbuffer_header, eClosureBits(CLOSURE_REFLECTION))) {
+  if (gbuf.has_reflection) {
     imageStore(tile_mask_img, ivec3(tile_co, 1), uvec4(1u));
   }
-  if (gbuffer_has_closure(in_gbuffer_header, eClosureBits(CLOSURE_REFRACTION))) {
+  if (gbuf.has_refraction) {
     imageStore(tile_mask_img, ivec3(tile_co, 2), uvec4(1u));
   }
-  if (gbuffer_has_closure(in_gbuffer_header, eClosureBits(CLOSURE_TRANSLUCENT))) {
+  if (gbuf.has_translucent) {
     imageStore(tile_mask_img, ivec3(tile_co, 3), uvec4(1u));
   }
   /* TODO(fclem): For now, override SSS if we have translucency. */
-  else if (gbuffer_has_closure(in_gbuffer_header, eClosureBits(CLOSURE_SSS))) {
+  else if (gbuf.has_sss) {
     imageStore(tile_mask_img, ivec3(tile_co, 3), uvec4(1u));
   }
 }

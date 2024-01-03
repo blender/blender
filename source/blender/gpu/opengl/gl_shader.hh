@@ -106,7 +106,9 @@ class GLShader : public Shader {
 
 class GLLogParser : public GPULogParser {
  public:
-  const char *parse_line(const char *log_line, GPULogItem &log_item) override;
+  const char *parse_line(const char *source_combined,
+                         const char *log_line,
+                         GPULogItem &log_item) override;
 
  protected:
   const char *skip_severity_prefix(const char *log_line, GPULogItem &log_item);

@@ -654,13 +654,13 @@ bool ED_object_modifier_convert_psys_to_mesh(ReportList * /*reports*/,
   Object *obn = BKE_object_add(bmain, scene, view_layer, OB_MESH, nullptr);
   Mesh *mesh = static_cast<Mesh *>(obn->data);
 
-  mesh->totvert = verts_num;
-  mesh->totedge = edges_num;
+  mesh->verts_num = verts_num;
+  mesh->edges_num = edges_num;
 
   CustomData_add_layer_named(
       &mesh->vert_data, CD_PROP_FLOAT3, CD_CONSTRUCT, verts_num, "position");
   CustomData_add_layer_named(
-      &mesh->edge_data, CD_PROP_INT32_2D, CD_CONSTRUCT, mesh->totedge, ".edge_verts");
+      &mesh->edge_data, CD_PROP_INT32_2D, CD_CONSTRUCT, mesh->edges_num, ".edge_verts");
   CustomData_add_layer(&mesh->fdata_legacy, CD_MFACE, CD_SET_DEFAULT, 0);
 
   blender::MutableSpan<float3> positions = mesh->vert_positions_for_write();
@@ -668,7 +668,7 @@ bool ED_object_modifier_convert_psys_to_mesh(ReportList * /*reports*/,
 
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::SpanAttributeWriter<bool> select_vert = attributes.lookup_or_add_for_write_span<bool>(
-      ".select_vert", ATTR_DOMAIN_POINT);
+      ".select_vert", bke::AttrDomain::Point);
 
   int edge_index = 0;
 
@@ -723,22 +723,22 @@ static void add_shapekey_layers(Mesh &mesh_dest, const Mesh &mesh_src)
   int i;
   LISTBASE_FOREACH_INDEX (const KeyBlock *, kb, &mesh_src.key->block, i) {
     void *array;
-    if (mesh_src.totvert != kb->totelem) {
+    if (mesh_src.verts_num != kb->totelem) {
       CLOG_ERROR(&LOG,
                  "vertex size mismatch (Mesh '%s':%d != KeyBlock '%s':%d)",
                  mesh_src.id.name + 2,
-                 mesh_src.totvert,
+                 mesh_src.verts_num,
                  kb->name,
                  kb->totelem);
-      array = MEM_calloc_arrayN(size_t(mesh_src.totvert), sizeof(float[3]), __func__);
+      array = MEM_calloc_arrayN(size_t(mesh_src.verts_num), sizeof(float[3]), __func__);
     }
     else {
-      array = MEM_malloc_arrayN(size_t(mesh_src.totvert), sizeof(float[3]), __func__);
-      memcpy(array, kb->data, sizeof(float[3]) * size_t(mesh_src.totvert));
+      array = MEM_malloc_arrayN(size_t(mesh_src.verts_num), sizeof(float[3]), __func__);
+      memcpy(array, kb->data, sizeof(float[3]) * size_t(mesh_src.verts_num));
     }
 
     CustomData_add_layer_named_with_data(
-        &mesh_dest.vert_data, CD_SHAPEKEY, array, mesh_dest.totvert, kb->name, nullptr);
+        &mesh_dest.vert_data, CD_SHAPEKEY, array, mesh_dest.verts_num, kb->name, nullptr);
     const int ci = CustomData_get_layer_index_n(&mesh_dest.vert_data, CD_SHAPEKEY, i);
 
     mesh_dest.vert_data.layers[ci].uid = kb->uid;
@@ -779,7 +779,7 @@ static Mesh *create_applied_mesh_for_modifier(Depsgraph *depsgraph,
       BKE_keyblock_convert_to_mesh(
           kb,
           reinterpret_cast<float(*)[3]>(mesh->vert_positions_for_write().data()),
-          mesh->totvert);
+          mesh->verts_num);
     }
   }
 
@@ -911,7 +911,7 @@ static bool modifier_apply_shape(Main *bmain,
 }
 
 static bool meta_data_matches(const std::optional<blender::bke::AttributeMetaData> meta_data,
-                              const eAttrDomainMask domains,
+                              const AttrDomainMask domains,
                               const eCustomDataMask types)
 {
   if (!meta_data) {
@@ -2416,7 +2416,7 @@ static int multires_external_save_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if (CustomData_external_test(&mesh->loop_data, CD_MDISPS)) {
+  if (CustomData_external_test(&mesh->corner_data, CD_MDISPS)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -2426,8 +2426,9 @@ static int multires_external_save_exec(bContext *C, wmOperator *op)
     BLI_path_rel(filepath, BKE_main_blendfile_path(bmain));
   }
 
-  CustomData_external_add(&mesh->loop_data, &mesh->id, CD_MDISPS, mesh->totloop, filepath);
-  CustomData_external_write(&mesh->loop_data, &mesh->id, CD_MASK_MESH.lmask, mesh->totloop, 0);
+  CustomData_external_add(&mesh->corner_data, &mesh->id, CD_MDISPS, mesh->corners_num, filepath);
+  CustomData_external_write(
+      &mesh->corner_data, &mesh->id, CD_MASK_MESH.lmask, mesh->corners_num, 0);
 
   return OPERATOR_FINISHED;
 }
@@ -2449,7 +2450,7 @@ static int multires_external_save_invoke(bContext *C, wmOperator *op, const wmEv
     return OPERATOR_CANCELLED;
   }
 
-  if (CustomData_external_test(&mesh->loop_data, CD_MDISPS)) {
+  if (CustomData_external_test(&mesh->corner_data, CD_MDISPS)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -2502,12 +2503,12 @@ static int multires_external_pack_exec(bContext *C, wmOperator * /*op*/)
   Object *ob = ED_object_active_context(C);
   Mesh *mesh = static_cast<Mesh *>(ob->data);
 
-  if (!CustomData_external_test(&mesh->loop_data, CD_MDISPS)) {
+  if (!CustomData_external_test(&mesh->corner_data, CD_MDISPS)) {
     return OPERATOR_CANCELLED;
   }
 
   /* XXX don't remove. */
-  CustomData_external_remove(&mesh->loop_data, &mesh->id, CD_MDISPS, mesh->totloop);
+  CustomData_external_remove(&mesh->corner_data, &mesh->id, CD_MDISPS, mesh->corners_num);
 
   return OPERATOR_FINISHED;
 }
@@ -2699,7 +2700,7 @@ static void modifier_skin_customdata_delete(Object *ob)
     BM_data_layer_free(em->bm, &em->bm->vdata, CD_MVERT_SKIN);
   }
   else {
-    CustomData_free_layer_active(&mesh->vert_data, CD_MVERT_SKIN, mesh->totvert);
+    CustomData_free_layer_active(&mesh->vert_data, CD_MVERT_SKIN, mesh->verts_num);
   }
 }
 
@@ -2943,7 +2944,7 @@ static Object *modifier_skin_armature_create(Depsgraph *depsgraph, Main *bmain, 
   const Span<float3> positions_eval = me_eval_deform->vert_positions();
 
   /* add vertex weights to original mesh */
-  CustomData_add_layer(&mesh->vert_data, CD_MDEFORMVERT, CD_SET_DEFAULT, mesh->totvert);
+  CustomData_add_layer(&mesh->vert_data, CD_MDEFORMVERT, CD_SET_DEFAULT, mesh->verts_num);
 
   Scene *scene = DEG_get_input_scene(depsgraph);
   ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
@@ -2956,18 +2957,18 @@ static Object *modifier_skin_armature_create(Depsgraph *depsgraph, Main *bmain, 
   arm->edbo = MEM_cnew<ListBase>("edbo armature");
 
   MVertSkin *mvert_skin = static_cast<MVertSkin *>(
-      CustomData_get_layer_for_write(&mesh->vert_data, CD_MVERT_SKIN, mesh->totvert));
+      CustomData_get_layer_for_write(&mesh->vert_data, CD_MVERT_SKIN, mesh->verts_num));
 
   blender::Array<int> vert_to_edge_offsets;
   blender::Array<int> vert_to_edge_indices;
   const blender::GroupedSpan<int> emap = blender::bke::mesh::build_vert_to_edge_map(
-      me_edges, mesh->totvert, vert_to_edge_offsets, vert_to_edge_indices);
+      me_edges, mesh->verts_num, vert_to_edge_offsets, vert_to_edge_indices);
 
-  BLI_bitmap *edges_visited = BLI_BITMAP_NEW(mesh->totedge, "edge_visited");
+  BLI_bitmap *edges_visited = BLI_BITMAP_NEW(mesh->edges_num, "edge_visited");
 
   /* NOTE: we use EditBones here, easier to set them up and use
    * edit-armature functions to convert back to regular bones */
-  for (int v = 0; v < mesh->totvert; v++) {
+  for (int v = 0; v < mesh->verts_num; v++) {
     if (mvert_skin[v].flag & MVERT_SKIN_ROOT) {
       EditBone *bone = nullptr;
 

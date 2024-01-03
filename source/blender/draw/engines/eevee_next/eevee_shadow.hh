@@ -353,6 +353,11 @@ class ShadowModule {
     pass.bind_texture(SHADOW_TILEMAPS_TEX_SLOT, &tilemap_pool.tilemap_tx);
   }
 
+  const ShadowSceneData &get_data()
+  {
+    return data_;
+  }
+
  private:
   void remove_unused();
   void debug_page_map_call(DRWPass *pass);

@@ -10,33 +10,34 @@
 
 #include "BLI_array.hh"
 #include "BLI_bit_vector.hh"
-#include "BLI_bitmap.h"
-#include "BLI_compiler_compat.h"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_ordered_edge.hh"
 #include "BLI_set.hh"
-#include "BLI_utildefines.h"
 
 #include "DNA_brush_enums.h"
+#include "DNA_customdata_types.h"
 #include "DNA_object_enums.h"
 
-#include "BKE_attribute.h"
 #include "BKE_pbvh.hh"
 
-#include "bmesh.hh"
-
 struct BMFace;
+struct BMLog;
 struct BMesh;
 struct BlendDataReader;
 struct BlendLibReader;
 struct BlendWriter;
 struct Brush;
+struct CustomDataLayer;
 struct CurveMapping;
 struct Depsgraph;
 struct EnumPropertyItem;
-namespace blender::ed::sculpt_paint {
+namespace blender {
+namespace bke {
+enum class AttrDomain : int8_t;
+}
+namespace ed::sculpt_paint {
 namespace expand {
 struct Cache;
 }
@@ -44,7 +45,8 @@ namespace filter {
 struct Cache;
 }
 struct StrokeCache;
-}  // namespace blender::ed::sculpt_paint
+}  // namespace ed::sculpt_paint
+}  // namespace blender
 struct GHash;
 struct GridPaintMask;
 struct Image;
@@ -302,95 +304,6 @@ struct SculptPoseIKChain {
   blender::float3 grab_delta_offset;
 };
 
-/* Cloth Brush */
-
-/* Cloth Simulation. */
-enum eSculptClothNodeSimState {
-  /* Constraints were not built for this node, so it can't be simulated. */
-  SCULPT_CLOTH_NODE_UNINITIALIZED,
-
-  /* There are constraints for the geometry in this node, but it should not be simulated. */
-  SCULPT_CLOTH_NODE_INACTIVE,
-
-  /* There are constraints for this node and they should be used by the solver. */
-  SCULPT_CLOTH_NODE_ACTIVE,
-};
-
-enum eSculptClothConstraintType {
-  /* Constraint that creates the structure of the cloth. */
-  SCULPT_CLOTH_CONSTRAINT_STRUCTURAL = 0,
-  /* Constraint that references the position of a vertex and a position in deformation_pos which
-   * can be deformed by the tools. */
-  SCULPT_CLOTH_CONSTRAINT_DEFORMATION = 1,
-  /* Constraint that references the vertex position and a editable soft-body position for
-   * plasticity. */
-  SCULPT_CLOTH_CONSTRAINT_SOFTBODY = 2,
-  /* Constraint that references the vertex position and its initial position. */
-  SCULPT_CLOTH_CONSTRAINT_PIN = 3,
-};
-
-struct SculptClothLengthConstraint {
-  /* Elements that are affected by the constraint. */
-  /* Element a should always be a mesh vertex with the index stored in elem_index_a as it is always
-   * deformed. Element b could be another vertex of the same mesh or any other position (arbitrary
-   * point, position for a previous state). In that case, elem_index_a and elem_index_b should be
-   * the same to avoid affecting two different vertices when solving the constraints.
-   * *elem_position points to the position which is owned by the element. */
-  int elem_index_a;
-  float *elem_position_a;
-
-  int elem_index_b;
-  float *elem_position_b;
-
-  float length;
-  float strength;
-
-  /* Index in #SculptClothSimulation.node_state of the node from where this constraint was created.
-   * This constraints will only be used by the solver if the state is active. */
-  int node;
-
-  eSculptClothConstraintType type;
-};
-
-struct SculptClothSimulation {
-  SculptClothLengthConstraint *length_constraints;
-  int tot_length_constraints;
-  blender::Set<blender::OrderedEdge> created_length_constraints;
-  int capacity_length_constraints;
-  float *length_constraint_tweak;
-
-  /* Position anchors for deformation brushes. These positions are modified by the brush and the
-   * final positions of the simulated vertices are updated with constraints that use these points
-   * as targets. */
-  float (*deformation_pos)[3];
-  float *deformation_strength;
-
-  float mass;
-  float damping;
-  float softbody_strength;
-
-  float (*acceleration)[3];
-  float (*pos)[3];
-  float (*init_pos)[3];
-  float (*init_no)[3];
-  float (*softbody_pos)[3];
-  float (*prev_pos)[3];
-  float (*last_iteration_pos)[3];
-
-  ListBase *collider_list;
-
-  int totnode;
-  /** #PBVHNode pointer as a key, index in #SculptClothSimulation.node_state as value. */
-  GHash *node_state_index;
-  eSculptClothNodeSimState *node_state;
-};
-
-struct SculptPersistentBase {
-  blender::float3 co;
-  blender::float3 no;
-  float disp;
-};
-
 struct SculptVertexInfo {
   /* Indexed by base mesh vertex index, stores if that vertex is a boundary. */
   blender::BitVector<> boundary;
@@ -499,7 +412,7 @@ struct SculptAttributeParams {
 
 struct SculptAttribute {
   /* Domain, data type and name */
-  eAttrDomain domain;
+  blender::bke::AttrDomain domain;
   eCustomDataType proptype;
   char name[MAX_CUSTOMDATA_LAYER_NAME];
 
@@ -586,7 +499,7 @@ struct SculptSession {
   MPropCol *vcol;
   MLoopCol *mcol;
 
-  eAttrDomain vcol_domain;
+  blender::bke::AttrDomain vcol_domain;
   eCustomDataType vcol_type;
 
   /* Mesh connectivity maps. */
@@ -768,14 +681,14 @@ int BKE_sculptsession_vertex_count(const SculptSession *ss);
 
 /* Ensure an attribute layer exists. */
 SculptAttribute *BKE_sculpt_attribute_ensure(Object *ob,
-                                             eAttrDomain domain,
+                                             blender::bke::AttrDomain domain,
                                              eCustomDataType proptype,
                                              const char *name,
                                              const SculptAttributeParams *params);
 
 /* Returns nullptr if attribute does not exist. */
 SculptAttribute *BKE_sculpt_attribute_get(Object *ob,
-                                          eAttrDomain domain,
+                                          blender::bke::AttrDomain domain,
                                           eCustomDataType proptype,
                                           const char *name);
 
@@ -786,27 +699,6 @@ void BKE_sculpt_attribute_destroy_temporary_all(Object *ob);
 
 /* Destroy attributes that were marked as stroke only in SculptAttributeParams. */
 void BKE_sculpt_attributes_destroy_temporary_stroke(Object *ob);
-
-BLI_INLINE void *BKE_sculpt_vertex_attr_get(const PBVHVertRef vertex, const SculptAttribute *attr)
-{
-  if (attr->data) {
-    char *p = (char *)attr->data;
-    int idx = (int)vertex.i;
-
-    if (attr->data_for_bmesh) {
-      BMElem *v = (BMElem *)vertex.i;
-      idx = v->head.index;
-    }
-
-    return p + attr->elem_size * (int)idx;
-  }
-  else {
-    BMElem *v = (BMElem *)vertex.i;
-    return BM_ELEM_CD_GET_VOID_P(v, attr->bmesh_cd_offset);
-  }
-
-  return NULL;
-}
 
 /**
  * Create new color layer on object if it doesn't have one and if experimental feature set has
@@ -863,9 +755,7 @@ bool BKE_sculptsession_use_pbvh_draw(const Object *ob, const RegionView3D *rv3d)
 /**
  * Fills the object's active color attribute layer with the fill color.
  *
- * \param[in] ob: The object.
- * \param[in] fill_color: The fill color.
- * \param[in] only_selected: Limit the fill to selected faces or vertices.
+ * \param only_selected: Limit the fill to selected faces or vertices.
  *
  * \return #true if successful.
  */

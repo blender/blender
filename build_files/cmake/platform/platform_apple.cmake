@@ -329,6 +329,7 @@ endif()
 if(WITH_CYCLES AND WITH_CYCLES_OSL)
   find_package(OSL REQUIRED)
 endif()
+add_bundled_libraries(osl/lib)
 
 if(WITH_CYCLES AND WITH_CYCLES_EMBREE)
   find_package(Embree 3.8.0 REQUIRED)
@@ -430,7 +431,9 @@ string(APPEND PLATFORM_LINKFLAGS
 
 # Use old, slower linker for now to avoid many linker warnings.
 if(${XCODE_VERSION} VERSION_GREATER_EQUAL 15.0)
-  string(APPEND PLATFORM_LINKFLAGS " -Wl,-ld_classic")
+  if("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "x86_64")
+    string(APPEND PLATFORM_LINKFLAGS " -Wl,-ld_classic")
+  endif()
 endif()
 
 # Make stack size more similar to Embree, required for Embree.

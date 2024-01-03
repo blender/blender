@@ -23,7 +23,7 @@ struct BakeSocketConfig {
    * The domain on which an the attribute corresponding to the socket should be stored (only used
    * for some socket types).
    */
-  Vector<eAttrDomain> domains;
+  Vector<AttrDomain> domains;
   /**
    * Determines which geometries a field socket should be evaluated on. This can be used to
    * implement rules like a field should only be evaluated on the preceding or on all geometries.

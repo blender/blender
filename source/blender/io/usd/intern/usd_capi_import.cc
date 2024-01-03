@@ -683,6 +683,7 @@ static void import_endjob(void *customdata)
 
     lc = BKE_layer_collection_get_active(view_layer);
 
+<<<<<<< HEAD
     if (!data->archive->proto_readers().empty()) {
       create_proto_collections(data->bmain,
                                view_layer,
@@ -690,10 +691,18 @@ static void import_endjob(void *customdata)
                                data->archive->proto_readers(),
                                data->archive->readers());
     }
+=======
+    /* Create prototype collections for instancing. */
+    data->archive->create_proto_collections(data->bmain, lc->collection);
+>>>>>>> main
 
     /* Add all objects to the collection. */
     for (USDPrimReader *reader : data->archive->readers()) {
       if (!reader) {
+        continue;
+      }
+      if (reader->prim().IsInPrototype()) {
+        /* Skip prototype prims, as these are added to prototype collections. */
         continue;
       }
       Object *ob = reader->object();

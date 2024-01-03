@@ -436,7 +436,7 @@ static void armature_vert_task(void *__restrict userdata,
   const MDeformVert *dvert;
   if (data->use_dverts || data->armature_def_nr != -1) {
     if (data->me_target) {
-      BLI_assert(i < data->me_target->totvert);
+      BLI_assert(i < data->me_target->verts_num);
       if (data->dverts != nullptr) {
         dvert = data->dverts + i;
       }
@@ -522,7 +522,7 @@ static void armature_deform_coords_impl(const Object *ob_arm,
         const Mesh *mesh = (const Mesh *)target_data_id;
         dverts = mesh->deform_verts().data();
         if (dverts) {
-          dverts_len = mesh->totvert;
+          dverts_len = mesh->verts_num;
         }
       }
     }

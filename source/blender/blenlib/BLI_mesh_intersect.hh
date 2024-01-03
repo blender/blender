@@ -16,6 +16,7 @@
 #  include <iosfwd>
 
 #  include "BLI_array.hh"
+#  include "BLI_function_ref.hh"
 #  include "BLI_index_range.hh"
 #  include "BLI_map.hh"
 #  include "BLI_math_mpq.hh"
@@ -403,7 +404,7 @@ IMesh trimesh_self_intersect(const IMesh &tm_in, IMeshArena *arena);
 
 IMesh trimesh_nary_intersect(const IMesh &tm_in,
                              int nshapes,
-                             std::function<int(int)> shape_fn,
+                             FunctionRef<int(int)> shape_fn,
                              bool use_self,
                              IMeshArena *arena);
 

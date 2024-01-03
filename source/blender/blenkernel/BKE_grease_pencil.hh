@@ -395,6 +395,11 @@ class Layer : public ::GreasePencilLayer {
   int drawing_index_at(const int frame_number) const;
 
   /**
+   * \returns true if there is a drawing on this layer at \a frame_number.
+   */
+  bool has_drawing_at(const int frame_number) const;
+
+  /**
    * \returns the key of the active frame at \a frame_number or -1 if there is no frame.
    */
   FramesMapKey frame_key_at(int frame_number) const;

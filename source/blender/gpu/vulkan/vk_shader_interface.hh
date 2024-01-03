@@ -29,6 +29,7 @@ class VKShaderInterface : public ShaderInterface {
    */
   uint32_t image_offset_ = 0;
   Array<VKDescriptorSet::Location> descriptor_set_locations_;
+  Array<shader::ShaderCreateInfo::Resource::BindType> descriptor_set_bind_types_;
 
   VKPushConstants::Layout push_constants_layout_;
 
@@ -71,8 +72,12 @@ class VKShaderInterface : public ShaderInterface {
   const ShaderInput *shader_input_get(
       const shader::ShaderCreateInfo::Resource::BindType &bind_type, int binding) const;
   const VKDescriptorSet::Location descriptor_set_location(const ShaderInput *shader_input) const;
-  void descriptor_set_location_update(const ShaderInput *shader_input,
-                                      const VKDescriptorSet::Location location);
+  const shader::ShaderCreateInfo::Resource::BindType descriptor_set_bind_type(
+      const ShaderInput *shader_input) const;
+  void descriptor_set_location_update(
+      const ShaderInput *shader_input,
+      const VKDescriptorSet::Location location,
+      const shader::ShaderCreateInfo::Resource::BindType bind_type);
 };
 
 }  // namespace blender::gpu

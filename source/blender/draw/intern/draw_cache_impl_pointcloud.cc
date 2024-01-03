@@ -337,6 +337,7 @@ GPUBatch **pointcloud_surface_shaded_get(PointCloud *pointcloud,
                                          GPUMaterial **gpu_materials,
                                          int mat_len)
 {
+  using namespace blender;
   PointCloudBatchCache *cache = pointcloud_batch_cache_get(*pointcloud);
   DRW_Attributes attrs_needed;
   drw_attributes_clear(&attrs_needed);
@@ -348,7 +349,7 @@ GPUBatch **pointcloud_surface_shaded_get(PointCloud *pointcloud,
 
       int layer_index;
       eCustomDataType type;
-      eAttrDomain domain = ATTR_DOMAIN_POINT;
+      bke::AttrDomain domain = bke::AttrDomain::Point;
       if (!drw_custom_data_match_attribute(&pointcloud->pdata, name, &layer_index, &type)) {
         continue;
       }
@@ -397,11 +398,12 @@ GPUVertBuf *DRW_pointcloud_position_and_radius_buffer_get(Object *ob)
 
 GPUVertBuf **DRW_pointcloud_evaluated_attribute(PointCloud *pointcloud, const char *name)
 {
+  using namespace blender;
   PointCloudBatchCache &cache = *pointcloud_batch_cache_get(*pointcloud);
 
   int layer_index;
   eCustomDataType type;
-  eAttrDomain domain = ATTR_DOMAIN_POINT;
+  bke::AttrDomain domain = bke::AttrDomain::Point;
   if (drw_custom_data_match_attribute(&pointcloud->pdata, name, &layer_index, &type)) {
     DRW_Attributes attributes{};
     drw_attributes_add_request(&attributes, name, type, layer_index, domain);

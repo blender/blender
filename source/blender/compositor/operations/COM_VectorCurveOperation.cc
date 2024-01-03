@@ -4,7 +4,7 @@
 
 #include "COM_VectorCurveOperation.h"
 
-#include "BKE_colortools.h"
+#include "BKE_colortools.hh"
 
 namespace blender::compositor {
 

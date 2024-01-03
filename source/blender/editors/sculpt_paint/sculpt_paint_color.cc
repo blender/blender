@@ -8,16 +8,16 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_brush_types.h"
+
 #include "BLI_hash.h"
 #include "BLI_math_color_blend.h"
 #include "BLI_task.h"
 #include "BLI_vector.hh"
 
-#include "DNA_meshdata_types.h"
-
 #include "BKE_brush.hh"
-#include "BKE_colorband.h"
-#include "BKE_colortools.h"
+#include "BKE_colorband.hh"
+#include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"

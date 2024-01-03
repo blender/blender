@@ -21,10 +21,10 @@ class ResolutionFieldInput final : public bke::CurvesFieldInput {
   }
 
   GVArray get_varray_for_context(const bke::CurvesGeometry &curves,
-                                 const eAttrDomain domain,
+                                 const AttrDomain domain,
                                  const IndexMask & /*mask*/) const final
   {
-    return curves.adapt_domain(curves.resolution(), ATTR_DOMAIN_CURVE, domain);
+    return curves.adapt_domain(curves.resolution(), AttrDomain::Curve, domain);
   }
 
   uint64_t hash() const final
@@ -37,9 +37,9 @@ class ResolutionFieldInput final : public bke::CurvesFieldInput {
     return dynamic_cast<const ResolutionFieldInput *>(&other) != nullptr;
   }
 
-  std::optional<eAttrDomain> preferred_domain(const bke::CurvesGeometry & /*curves*/) const final
+  std::optional<AttrDomain> preferred_domain(const bke::CurvesGeometry & /*curves*/) const final
   {
-    return ATTR_DOMAIN_CURVE;
+    return AttrDomain::Curve;
   }
 };
 

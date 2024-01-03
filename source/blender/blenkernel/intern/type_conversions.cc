@@ -4,8 +4,6 @@
 
 #include "BKE_type_conversions.hh"
 
-#include "DNA_meshdata_types.h"
-
 #include "FN_multi_function_builder.hh"
 
 #include "BLI_color.hh"

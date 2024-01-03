@@ -63,15 +63,15 @@ static void rna_Mesh_calc_tangents(Mesh *mesh, ReportList *reports, const char *
 {
   float(*r_looptangents)[4];
 
-  if (CustomData_has_layer(&mesh->loop_data, CD_MLOOPTANGENT)) {
+  if (CustomData_has_layer(&mesh->corner_data, CD_MLOOPTANGENT)) {
     r_looptangents = static_cast<float(*)[4]>(
-        CustomData_get_layer_for_write(&mesh->loop_data, CD_MLOOPTANGENT, mesh->totloop));
-    memset(r_looptangents, 0, sizeof(float[4]) * mesh->totloop);
+        CustomData_get_layer_for_write(&mesh->corner_data, CD_MLOOPTANGENT, mesh->corners_num));
+    memset(r_looptangents, 0, sizeof(float[4]) * mesh->corners_num);
   }
   else {
-    r_looptangents = static_cast<float(*)[4]>(
-        CustomData_add_layer(&mesh->loop_data, CD_MLOOPTANGENT, CD_SET_DEFAULT, mesh->totloop));
-    CustomData_set_layer_flag(&mesh->loop_data, CD_MLOOPTANGENT, CD_FLAG_TEMPORARY);
+    r_looptangents = static_cast<float(*)[4]>(CustomData_add_layer(
+        &mesh->corner_data, CD_MLOOPTANGENT, CD_SET_DEFAULT, mesh->corners_num));
+    CustomData_set_layer_flag(&mesh->corner_data, CD_MLOOPTANGENT, CD_FLAG_TEMPORARY);
   }
 
   BKE_mesh_calc_loop_tangent_single(mesh, uvmap, r_looptangents, reports);
@@ -79,7 +79,7 @@ static void rna_Mesh_calc_tangents(Mesh *mesh, ReportList *reports, const char *
 
 static void rna_Mesh_free_tangents(Mesh *mesh)
 {
-  CustomData_free_layers(&mesh->loop_data, CD_MLOOPTANGENT, mesh->totloop);
+  CustomData_free_layers(&mesh->corner_data, CD_MLOOPTANGENT, mesh->corners_num);
 }
 
 static void rna_Mesh_calc_corner_tri(Mesh *mesh)
@@ -93,9 +93,9 @@ static void rna_Mesh_calc_smooth_groups(
   using namespace blender;
   *r_poly_group_num = mesh->faces_num;
   const bke::AttributeAccessor attributes = mesh->attributes();
-  const VArraySpan sharp_edges = *attributes.lookup<bool>("sharp_edge", ATTR_DOMAIN_EDGE);
-  const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", ATTR_DOMAIN_FACE);
-  *r_poly_group = BKE_mesh_calc_smoothgroups(mesh->totedge,
+  const VArraySpan sharp_edges = *attributes.lookup<bool>("sharp_edge", bke::AttrDomain::Edge);
+  const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", bke::AttrDomain::Face);
+  *r_poly_group = BKE_mesh_calc_smoothgroups(mesh->edges_num,
                                              mesh->faces(),
                                              mesh->corner_edges(),
                                              sharp_edges,
@@ -110,7 +110,7 @@ static void rna_Mesh_normals_split_custom_set(Mesh *mesh,
                                               int normals_num)
 {
   float(*loop_normals)[3] = (float(*)[3])normals;
-  const int numloops = mesh->totloop;
+  const int numloops = mesh->corners_num;
   if (normals_num != numloops * 3) {
     BKE_reportf(reports,
                 RPT_ERROR,
@@ -131,7 +131,7 @@ static void rna_Mesh_normals_split_custom_set_from_vertices(Mesh *mesh,
                                                             int normals_num)
 {
   float(*vert_normals)[3] = (float(*)[3])normals;
-  const int numverts = mesh->totvert;
+  const int numverts = mesh->verts_num;
   if (normals_num != numverts * 3) {
     BKE_reportf(reports,
                 RPT_ERROR,
@@ -167,8 +167,8 @@ static void rna_Mesh_update(Mesh *mesh,
                             const bool calc_edges,
                             const bool calc_edges_loose)
 {
-  if (calc_edges || ((mesh->faces_num || mesh->totface_legacy) && mesh->totedge == 0)) {
-    BKE_mesh_calc_edges(mesh, calc_edges, true);
+  if (calc_edges || ((mesh->faces_num || mesh->totface_legacy) && mesh->edges_num == 0)) {
+    blender::bke::mesh_calc_edges(*mesh, calc_edges, true);
   }
 
   if (calc_edges_loose) {

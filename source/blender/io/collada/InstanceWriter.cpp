@@ -40,13 +40,13 @@ void InstanceWriter::add_material_bindings(COLLADASW::BindMaterial &bind_materia
       /* Create <bind_vertex_input> for each uv map. */
       Mesh *mesh = (Mesh *)ob->data;
 
-      int num_layers = CustomData_number_of_layers(&mesh->loop_data, CD_PROP_FLOAT2);
+      int num_layers = CustomData_number_of_layers(&mesh->corner_data, CD_PROP_FLOAT2);
 
       int map_index = 0;
-      int active_uv_index = CustomData_get_active_layer_index(&mesh->loop_data, CD_PROP_FLOAT2);
+      int active_uv_index = CustomData_get_active_layer_index(&mesh->corner_data, CD_PROP_FLOAT2);
       for (int b = 0; b < num_layers; b++) {
         if (!active_uv_only || b == active_uv_index) {
-          const char *name = bc_CustomData_get_layer_name(&mesh->loop_data, CD_PROP_FLOAT2, b);
+          const char *name = bc_CustomData_get_layer_name(&mesh->corner_data, CD_PROP_FLOAT2, b);
           im.push_back(COLLADASW::BindVertexInput(name, "TEXCOORD", map_index++));
         }
       }

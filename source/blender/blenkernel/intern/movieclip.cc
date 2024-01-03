@@ -46,7 +46,7 @@
 
 #include "BKE_anim_data.h"
 #include "BKE_bpath.h"
-#include "BKE_colortools.h"
+#include "BKE_colortools.hh"
 #include "BKE_global.h"
 #include "BKE_idtype.h"
 #include "BKE_image.h" /* openanim */

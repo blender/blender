@@ -75,17 +75,14 @@ void GlareBaseOperation::update_memory_buffer(MemoryBuffer *output,
 {
   if (!is_output_rendered_) {
     MemoryBuffer *input = inputs[0];
-    const bool is_input_inflated = input->is_a_single_elem();
-    if (is_input_inflated) {
-      input = input->inflate();
+    if (input->is_a_single_elem()) {
+      copy_v4_v4(output->get_elem(0, 0), input->get_elem(0, 0));
+      is_output_rendered_ = true;
+      return;
     }
 
     this->generate_glare(output->get_buffer(), input, settings_);
     is_output_rendered_ = true;
-
-    if (is_input_inflated) {
-      delete input;
-    }
   }
 }
 

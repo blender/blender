@@ -28,10 +28,10 @@ class CornerVertFieldInput final : public bke::MeshFieldInput {
   }
 
   GVArray get_varray_for_context(const Mesh &mesh,
-                                 const eAttrDomain domain,
+                                 const AttrDomain domain,
                                  const IndexMask & /*mask*/) const final
   {
-    if (domain != ATTR_DOMAIN_CORNER) {
+    if (domain != AttrDomain::Corner) {
       return {};
     }
     return VArray<int>::ForSpan(mesh.corner_verts());
@@ -47,9 +47,9 @@ class CornerVertFieldInput final : public bke::MeshFieldInput {
     return dynamic_cast<const CornerVertFieldInput *>(&other) != nullptr;
   }
 
-  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const final
+  std::optional<AttrDomain> preferred_domain(const Mesh & /*mesh*/) const final
   {
-    return ATTR_DOMAIN_CORNER;
+    return AttrDomain::Corner;
   }
 };
 
@@ -59,7 +59,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                     Field<int>(std::make_shared<EvaluateAtIndexInput>(
                         params.extract_input<Field<int>>("Corner Index"),
                         Field<int>(std::make_shared<CornerVertFieldInput>()),
-                        ATTR_DOMAIN_CORNER)));
+                        AttrDomain::Corner)));
 }
 
 static void node_register()

@@ -16,8 +16,6 @@
 #include "DEG_depsgraph.hh"
 
 #include "DNA_brush_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 
 #include "WM_api.hh"
 
@@ -107,7 +105,7 @@ struct PuffOperationExecutor {
     brush_pos_re_ = stroke_extension.mouse_position;
 
     point_factors_ = *curves_->attributes().lookup_or_default<float>(
-        ".selection", ATTR_DOMAIN_POINT, 1.0f);
+        ".selection", bke::AttrDomain::Point, 1.0f);
     curve_selection_ = curves::retrieve_selected_curves(*curves_id_, selected_curve_memory_);
 
     falloff_shape_ = static_cast<eBrushFalloffShape>(brush_->falloff_shape);

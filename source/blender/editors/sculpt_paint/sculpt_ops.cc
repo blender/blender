@@ -10,7 +10,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_ghash.h"
-#include "BLI_gsqueue.h"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_task.h"
@@ -21,14 +20,12 @@
 #include "DNA_brush_types.h"
 #include "DNA_customdata_types.h"
 #include "DNA_listBase.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_attribute.h"
+#include "BKE_attribute.hh"
 #include "BKE_brush.hh"
 #include "BKE_ccg.h"
 #include "BKE_context.hh"
@@ -77,6 +74,7 @@
 
 static int sculpt_set_persistent_base_exec(bContext *C, wmOperator * /*op*/)
 {
+  using namespace blender;
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
@@ -92,11 +90,11 @@ static int sculpt_set_persistent_base_exec(bContext *C, wmOperator * /*op*/)
   params.permanent = true;
 
   ss->attrs.persistent_co = BKE_sculpt_attribute_ensure(
-      ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, SCULPT_ATTRIBUTE_NAME(persistent_co), &params);
+      ob, bke::AttrDomain::Point, CD_PROP_FLOAT3, SCULPT_ATTRIBUTE_NAME(persistent_co), &params);
   ss->attrs.persistent_no = BKE_sculpt_attribute_ensure(
-      ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, SCULPT_ATTRIBUTE_NAME(persistent_no), &params);
+      ob, bke::AttrDomain::Point, CD_PROP_FLOAT3, SCULPT_ATTRIBUTE_NAME(persistent_no), &params);
   ss->attrs.persistent_disp = BKE_sculpt_attribute_ensure(
-      ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT, SCULPT_ATTRIBUTE_NAME(persistent_disp), &params);
+      ob, bke::AttrDomain::Point, CD_PROP_FLOAT, SCULPT_ATTRIBUTE_NAME(persistent_disp), &params);
 
   const int totvert = SCULPT_vertex_count_get(ss);
 
@@ -371,7 +369,7 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
     MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
 
     const char *message_unsupported = nullptr;
-    if (mesh->totloop != mesh->faces_num * 3) {
+    if (mesh->corners_num != mesh->faces_num * 3) {
       message_unsupported = TIP_("non-triangle face");
     }
     else if (mmd != nullptr) {
@@ -587,7 +585,7 @@ void SCULPT_geometry_preview_lines_update(bContext *C, SculptSession *ss, float 
   float brush_co[3];
   copy_v3_v3(brush_co, SCULPT_active_vertex_co_get(ss));
 
-  BLI_bitmap *visited_verts = BLI_BITMAP_NEW(SCULPT_vertex_count_get(ss), "visited_verts");
+  blender::BitVector<> visited_verts(SCULPT_vertex_count_get(ss));
 
   /* Assuming an average of 6 edges per vertex in a triangulated mesh. */
   const int max_preview_verts = SCULPT_vertex_count_get(ss) * 3 * 2;
@@ -596,14 +594,13 @@ void SCULPT_geometry_preview_lines_update(bContext *C, SculptSession *ss, float 
     ss->preview_vert_list = MEM_cnew_array<PBVHVertRef>(max_preview_verts, __func__);
   }
 
-  GSQueue *non_visited_verts = BLI_gsqueue_new(sizeof(PBVHVertRef));
-  PBVHVertRef active_v = SCULPT_active_vertex_get(ss);
-  BLI_gsqueue_push(non_visited_verts, &active_v);
+  std::queue<PBVHVertRef> non_visited_verts;
+  non_visited_verts.push(SCULPT_active_vertex_get(ss));
 
-  while (!BLI_gsqueue_is_empty(non_visited_verts)) {
-    PBVHVertRef from_v;
+  while (!non_visited_verts.empty()) {
+    PBVHVertRef from_v = non_visited_verts.front();
+    non_visited_verts.pop();
 
-    BLI_gsqueue_pop(non_visited_verts, &from_v);
     SculptVertexNeighborIter ni;
     SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, from_v, ni) {
       if (totpoints + (ni.size * 2) < max_preview_verts) {
@@ -613,22 +610,18 @@ void SCULPT_geometry_preview_lines_update(bContext *C, SculptSession *ss, float 
         totpoints++;
         ss->preview_vert_list[totpoints] = to_v;
         totpoints++;
-        if (BLI_BITMAP_TEST(visited_verts, to_v_i)) {
+        if (visited_verts[to_v_i]) {
           continue;
         }
-        BLI_BITMAP_ENABLE(visited_verts, to_v_i);
+        visited_verts[to_v_i].set();
         const float *co = SCULPT_vertex_co_for_grab_active_get(ss, to_v);
         if (len_squared_v3v3(brush_co, co) < radius * radius) {
-          BLI_gsqueue_push(non_visited_verts, &to_v);
+          non_visited_verts.push(to_v);
         }
       }
     }
     SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
   }
-
-  BLI_gsqueue_free(non_visited_verts);
-
-  MEM_freeN(visited_verts);
 
   ss->preview_vert_count = totpoints;
 }
@@ -831,7 +824,6 @@ static void sculpt_mask_by_color_contiguous(Object *object,
   copy_v3_v3(ffd.initial_color, color);
 
   flood_fill::execute(ss, &flood, sculpt_mask_by_color_contiguous_floodfill, &ffd);
-  flood_fill::free_fill(&flood);
 
   Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, {});
   const SculptMaskWriteInfo mask_write = SCULPT_mask_get_for_write(ss);

@@ -1,0 +1,21 @@
+diff --git a/src/Imath/half.h b/src/Imath/half.h
+index 84b349ab..828e0d82 100644
+--- a/src/Imath/half.h
++++ b/src/Imath/half.h
+@@ -328,8 +328,14 @@ imath_half_to_float (imath_half_bits_t h)
+         // other compilers may provide count-leading-zeros primitives,
+         // but we need the community to inform us of the variants
+         uint32_t lc;
+-#    if defined(_MSC_VER) && (_M_IX86 || _M_X64)
+-        lc = __lzcnt (hexpmant);
++#    if defined(_MSC_VER)
++        // The direct intrinsic for this is __lznct, but that is not supported
++        // on older x86_64 hardware or ARM. Instead uses the bsr instruction
++        // and one additional subtraction. This assumes hexpmant != 0, for 0
++        // bsr and lznct would behave differently.
++        unsigned long bsr;
++        _BitScanReverse (&bsr, hexpmant);
++        lc = (31 - bsr);
+ #    elif defined(__GNUC__) || defined(__clang__)
+         lc = (uint32_t) __builtin_clz (hexpmant);
+ #    else

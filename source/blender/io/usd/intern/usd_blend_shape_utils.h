@@ -3,15 +3,22 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
+<<<<<<< HEAD
 #include <map>
 #include <set>
 
+=======
+>>>>>>> main
 #include <pxr/usd/usd/prim.h>
 #include <pxr/usd/usd/stage.h>
 #include <pxr/usd/usd/tokens.h>
 
 struct Key;
 struct Main;
+<<<<<<< HEAD
+=======
+struct Mesh;
+>>>>>>> main
 struct Object;
 struct Scene;
 struct USDExportParams;

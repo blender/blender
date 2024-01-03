@@ -32,10 +32,16 @@ void HiZBuffer::sync()
 
   data_.uv_scale = float2(render_extent) / float2(hiz_extent);
 
+  /* TODO(@fclem): There might be occasions where we might not want to
+   * copy mip 0 for performance reasons if there is no need for it. */
+  bool update_mip_0 = true;
+
   {
     PassSimple &pass = hiz_update_ps_;
+    GPUShader *sh = inst_.shaders.static_shader_get(HIZ_UPDATE);
     pass.init();
-    pass.shader_set(inst_.shaders.static_shader_get(HIZ_UPDATE));
+    pass.specialize_constant(sh, "update_mip_0", update_mip_0);
+    pass.shader_set(sh);
     pass.bind_ssbo("finished_tile_counter", atomic_tile_counter_);
     /* TODO(fclem): Should be a parameter to avoid confusion. */
     pass.bind_texture("depth_tx", &src_tx_, with_filter);
@@ -46,16 +52,15 @@ void HiZBuffer::sync()
     pass.bind_image("out_mip_4", &hiz_mip_ref_[4]);
     pass.bind_image("out_mip_5", &hiz_mip_ref_[5]);
     pass.bind_image("out_mip_6", &hiz_mip_ref_[6]);
-    /* TODO(@fclem): There might be occasions where we might not want to
-     * copy mip 0 for performance reasons if there is no need for it. */
-    pass.push_constant("update_mip_0", true);
     pass.dispatch(int3(dispatch_size, 1));
     pass.barrier(GPU_BARRIER_TEXTURE_FETCH);
   }
   {
     PassSimple &pass = hiz_update_layer_ps_;
+    GPUShader *sh = inst_.shaders.static_shader_get(HIZ_UPDATE_LAYER);
     pass.init();
-    pass.shader_set(inst_.shaders.static_shader_get(HIZ_UPDATE_LAYER));
+    pass.specialize_constant(sh, "update_mip_0", update_mip_0);
+    pass.shader_set(sh);
     pass.bind_ssbo("finished_tile_counter", atomic_tile_counter_);
     /* TODO(fclem): Should be a parameter to avoid confusion. */
     pass.bind_texture("depth_layered_tx", &src_tx_, with_filter);
@@ -66,9 +71,6 @@ void HiZBuffer::sync()
     pass.bind_image("out_mip_4", &hiz_mip_ref_[4]);
     pass.bind_image("out_mip_5", &hiz_mip_ref_[5]);
     pass.bind_image("out_mip_6", &hiz_mip_ref_[6]);
-    /* TODO(@fclem): There might be occasions where we might not want to
-     * copy mip 0 for performance reasons if there is no need for it. */
-    pass.push_constant("update_mip_0", true);
     pass.push_constant("layer_id", &layer_id_);
     pass.dispatch(int3(dispatch_size, 1));
     pass.barrier(GPU_BARRIER_TEXTURE_FETCH);
@@ -78,7 +80,7 @@ void HiZBuffer::sync()
     debug_draw_ps_.init();
     debug_draw_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_CUSTOM);
     debug_draw_ps_.shader_set(inst_.shaders.static_shader_get(HIZ_DEBUG));
-    this->bind_resources(debug_draw_ps_);
+    debug_draw_ps_.bind_resources(this->front);
     debug_draw_ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
   }
 }

@@ -11,8 +11,10 @@
 
 void main()
 {
-  /* Doesn't matter. Doesn't get rasterized. */
+  /* Doesn't matter. Doesn't get rasterized.
+   * gl_PointSize set for Metal/Vulkan backend compatibility. */
   gl_Position = vec4(0.0);
+  gl_PointSize = 0.0;
 
   int tile_per_row = textureSize(tile_mask_tx, 0).x;
   ivec2 tile_coord = ivec2(gl_VertexID % tile_per_row, gl_VertexID / tile_per_row);

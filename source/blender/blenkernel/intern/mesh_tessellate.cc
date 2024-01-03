@@ -11,6 +11,7 @@
  * \see `bmesh_mesh_tessellate.cc` for the #BMesh equivalent of this file.
  */
 
+#include "BLI_array_utils.hh"
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
@@ -323,6 +324,13 @@ void corner_tris_calc_with_normals(const Span<float3> vert_positions,
 }
 
 /** \} */
+
+void vert_tris_from_corner_tris(const Span<int> corner_verts,
+                                const Span<int3> corner_tris,
+                                MutableSpan<int3> vert_tris)
+{
+  array_utils::gather(corner_verts, corner_tris.cast<int>(), vert_tris.cast<int>());
+}
 
 int3 corner_tri_get_real_edges(const Span<int2> edges,
                                const Span<int> corner_verts,

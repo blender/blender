@@ -56,6 +56,17 @@
 #include "BLI_sort.hh"
 #include "BLI_string.h"
 
+<<<<<<< HEAD
+=======
+#include "BKE_collection.h"
+#include "BKE_lib_id.h"
+#include "BKE_modifier.hh"
+#include "BKE_report.h"
+
+#include "CLG_log.h"
+
+#include "DNA_collection_types.h"
+>>>>>>> main
 #include "DNA_material_types.h"
 
 #include "WM_api.hh"
@@ -63,7 +74,47 @@
 
 struct Object;
 
+static CLG_LogRef LOG = {"io.usd"};
+
 namespace blender::io::usd {
+
+/**
+ * Create a collection with the given parent and name.
+ */
+static Collection *create_collection(Main *bmain, Collection *parent, const char *name)
+{
+  if (!bmain) {
+    return nullptr;
+  }
+
+  return BKE_collection_add(bmain, parent, name);
+}
+
+/**
+ * Set the instance collection on the given instance reader.
+ * The collection is assigned from the given map based on
+ * the prototype prim path.
+ */
+static void set_instance_collection(
+    USDInstanceReader *instance_reader,
+    const std::map<pxr::SdfPath, Collection *> &proto_collection_map)
+{
+  if (!instance_reader) {
+    return;
+  }
+
+  pxr::SdfPath proto_path = instance_reader->proto_path();
+
+  std::map<pxr::SdfPath, Collection *>::const_iterator it = proto_collection_map.find(proto_path);
+
+  if (it != proto_collection_map.end()) {
+    instance_reader->set_instance_collection(it->second);
+  }
+  else {
+    CLOG_WARN(
+        &LOG, "Couldn't find prototype collection for %s", instance_reader->prim_path().c_str());
+  }
+}
 
 USDStageReader::USDStageReader(pxr::UsdStageRefPtr stage,
                                const USDImportParams &params,
@@ -93,8 +144,16 @@ bool USDStageReader::is_primitive_prim(const pxr::UsdPrim &prim) const
 USDPrimReader *USDStageReader::create_reader_if_allowed(const pxr::UsdPrim &prim,
                                                         pxr::UsdGeomXformCache *xf_cache)
 {
+<<<<<<< HEAD
   if (params_.use_instancing && prim.IsInstance()) {
     return new USDInstanceReader(prim, params_, settings_);
+=======
+  if (params_.support_scene_instancing && prim.IsInstance()) {
+    return new USDInstanceReader(prim, params_, settings_);
+  }
+  if (params_.import_shapes && is_primitive_prim(prim)) {
+    return new USDShapeReader(prim, params_, settings_);
+>>>>>>> main
   }
   if (params_.import_cameras && prim.IsA<pxr::UsdGeomCamera>()) {
     return new USDCameraReader(prim, params_, settings_);
@@ -143,6 +202,9 @@ USDPrimReader *USDStageReader::create_reader_if_allowed(const pxr::UsdPrim &prim
 USDPrimReader *USDStageReader::create_reader(const pxr::UsdPrim &prim,
                                              pxr::UsdGeomXformCache *xf_cache)
 {
+  if (params_.support_scene_instancing && prim.IsInstance()) {
+    return new USDInstanceReader(prim, params_, settings_);
+  }
   if (is_primitive_prim(prim)) {
     return new USDShapeReader(prim, params_, settings_);
   }
@@ -291,7 +353,10 @@ bool USDStageReader::merge_with_parent(USDPrimReader *reader) const
 
 USDPrimReader *USDStageReader::collect_readers(Main *bmain,
                                                const pxr::UsdPrim &prim,
+<<<<<<< HEAD
                                                pxr::UsdGeomXformCache *xf_cache,
+=======
+>>>>>>> main
                                                std::vector<USDPrimReader *> &r_readers)
 {
   if (prim.IsA<pxr::UsdGeomImageable>()) {
@@ -310,6 +375,7 @@ USDPrimReader *USDStageReader::collect_readers(Main *bmain,
     dome_lights_.push_back(pxr::UsdLuxDomeLight(prim));
   }
 
+<<<<<<< HEAD
   pxr::Usd_PrimFlagsConjunction filter_predicate = pxr::UsdPrimIsActive && pxr::UsdPrimIsLoaded &&
                                                    !pxr::UsdPrimIsAbstract;
   if (params_.import_defined_only) {
@@ -318,6 +384,10 @@ USDPrimReader *USDStageReader::collect_readers(Main *bmain,
 
   if (!params_.use_instancing && params_.import_instance_proxies) {
     filter_predicate.TraverseInstanceProxies(true);
+=======
+  if (!params_.support_scene_instancing) {
+    filter_predicate = pxr::UsdTraverseInstanceProxies(filter_predicate);
+>>>>>>> main
   }
 
   pxr::UsdPrimSiblingRange children = prim.GetFilteredChildren(filter_predicate);
@@ -325,7 +395,11 @@ USDPrimReader *USDStageReader::collect_readers(Main *bmain,
   std::vector<USDPrimReader *> child_readers;
 
   for (const auto &childPrim : children) {
+<<<<<<< HEAD
     if (USDPrimReader *child_reader = collect_readers(bmain, childPrim, xf_cache, r_readers)) {
+=======
+    if (USDPrimReader *child_reader = collect_readers(bmain, childPrim, r_readers)) {
+>>>>>>> main
       child_readers.push_back(child_reader);
     }
   }
@@ -393,24 +467,44 @@ void USDStageReader::collect_readers(Main *bmain)
 
   clear_readers();
   clear_proto_readers();
+<<<<<<< HEAD
   dome_lights_.clear();
+=======
+>>>>>>> main
 
   /* Iterate through the stage. */
   pxr::UsdPrim root = stage_->GetPseudoRoot();
 
   stage_->SetInterpolationType(pxr::UsdInterpolationType::UsdInterpolationTypeHeld);
+<<<<<<< HEAD
 
   pxr::UsdGeomXformCache xf_cache;
   collect_readers(bmain, root, &xf_cache, readers_);
 
   if (params_.use_instancing) {
     // Collect the scenegraph instance prototypes.
+=======
+  collect_readers(bmain, root, readers_);
+
+  if (params_.support_scene_instancing) {
+    /* Collect the scenegraph instance prototypes. */
+>>>>>>> main
     std::vector<pxr::UsdPrim> protos = stage_->GetPrototypes();
 
     for (const pxr::UsdPrim &proto_prim : protos) {
       std::vector<USDPrimReader *> proto_readers;
+<<<<<<< HEAD
       collect_readers(bmain, proto_prim, &xf_cache, proto_readers);
       proto_readers_.insert(std::make_pair(proto_prim.GetPath(), proto_readers));
+=======
+      collect_readers(bmain, proto_prim, proto_readers);
+      proto_readers_.insert(std::make_pair(proto_prim.GetPath(), proto_readers));
+
+      for (USDPrimReader *reader : proto_readers) {
+        readers_.push_back(reader);
+        reader->incref();
+      }
+>>>>>>> main
     }
   }
 }
@@ -555,8 +649,11 @@ void USDStageReader::clear_proto_readers()
         delete reader;
       }
     }
+<<<<<<< HEAD
 
     pair.second.clear();
+=======
+>>>>>>> main
   }
 
   proto_readers_.clear();
@@ -570,6 +667,68 @@ void USDStageReader::sort_readers()
         const char *nb = b ? b->name().c_str() : "";
         return BLI_strcasecmp(na, nb) < 0;
       });
+}
+
+void USDStageReader::create_proto_collections(Main *bmain, Collection *parent_collection)
+{
+  if (proto_readers_.empty()) {
+    return;
+  }
+
+  Collection *all_protos_collection = create_collection(bmain, parent_collection, "prototypes");
+
+  if (all_protos_collection) {
+    all_protos_collection->flag |= COLLECTION_HIDE_VIEWPORT;
+    all_protos_collection->flag |= COLLECTION_HIDE_RENDER;
+    if (parent_collection) {
+      DEG_id_tag_update(&parent_collection->id, ID_RECALC_HIERARCHY);
+    }
+  }
+
+  std::map<pxr::SdfPath, Collection *> proto_collection_map;
+
+  for (const auto &pair : proto_readers_) {
+    Collection *proto_collection = create_collection(bmain, all_protos_collection, "proto");
+
+    proto_collection_map.insert(std::make_pair(pair.first, proto_collection));
+  }
+
+  /* Set the instance collections on the readers, including the prototype
+   * readers (which are included in readers_), as instancing may be nested. */
+
+  for (USDPrimReader *reader : readers_) {
+    if (USDInstanceReader *instance_reader = dynamic_cast<USDInstanceReader *>(reader)) {
+      set_instance_collection(instance_reader, proto_collection_map);
+    }
+  }
+
+  /* Add the prototype objects to the collections. */
+  for (const auto &pair : proto_readers_) {
+
+    std::map<pxr::SdfPath, Collection *>::const_iterator it = proto_collection_map.find(
+        pair.first);
+
+    if (it == proto_collection_map.end()) {
+      std::cerr << "WARNING: Couldn't find collection when adding objects for prototype "
+                << pair.first << std::endl;
+      CLOG_WARN(&LOG,
+                "Couldn't find collection when adding objects for prototype %s",
+                pair.first.GetAsString().c_str());
+      continue;
+    }
+
+    for (USDPrimReader *reader : pair.second) {
+      Object *ob = reader->object();
+
+      if (!ob) {
+        continue;
+      }
+
+      Collection *coll = it->second;
+
+      BKE_collection_object_add(bmain, coll, ob);
+    }
+  }
 }
 
 }  // Namespace blender::io::usd

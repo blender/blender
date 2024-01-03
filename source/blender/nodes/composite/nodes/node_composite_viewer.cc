@@ -104,8 +104,8 @@ class ViewerOperation : public NodeOperation {
       color.w = alpha.get_float_value();
     }
 
-    const int2 viewer_size = compute_domain().size;
-    GPU_texture_clear(context().get_viewer_output_texture(viewer_size), GPU_DATA_FLOAT, color);
+    const Domain domain = compute_domain();
+    GPU_texture_clear(context().get_viewer_output_texture(domain), GPU_DATA_FLOAT, color);
   }
 
   /* Executes when the alpha channel of the image is ignored. */
@@ -124,12 +124,12 @@ class ViewerOperation : public NodeOperation {
     const Result &image = get_input("Image");
     image.bind_as_texture(shader, "input_tx");
 
-    const int2 viewer_size = compute_domain().size;
-    GPUTexture *output_texture = context().get_viewer_output_texture(viewer_size);
+    const Domain domain = compute_domain();
+    GPUTexture *output_texture = context().get_viewer_output_texture(domain);
     const int image_unit = GPU_shader_get_sampler_binding(shader, "output_img");
     GPU_texture_image_bind(output_texture, image_unit);
 
-    compute_dispatch_threads_at_least(shader, viewer_size);
+    compute_dispatch_threads_at_least(shader, domain.size);
 
     image.unbind_as_texture();
     GPU_texture_image_unbind(output_texture);
@@ -152,12 +152,12 @@ class ViewerOperation : public NodeOperation {
     const Result &image = get_input("Image");
     image.bind_as_texture(shader, "input_tx");
 
-    const int2 viewer_size = compute_domain().size;
-    GPUTexture *output_texture = context().get_viewer_output_texture(viewer_size);
+    const Domain domain = compute_domain();
+    GPUTexture *output_texture = context().get_viewer_output_texture(domain);
     const int image_unit = GPU_shader_get_sampler_binding(shader, "output_img");
     GPU_texture_image_bind(output_texture, image_unit);
 
-    compute_dispatch_threads_at_least(shader, viewer_size);
+    compute_dispatch_threads_at_least(shader, domain.size);
 
     image.unbind_as_texture();
     GPU_texture_image_unbind(output_texture);
@@ -183,12 +183,12 @@ class ViewerOperation : public NodeOperation {
     const Result &alpha = get_input("Alpha");
     alpha.bind_as_texture(shader, "alpha_tx");
 
-    const int2 viewer_size = compute_domain().size;
-    GPUTexture *output_texture = context().get_viewer_output_texture(viewer_size);
+    const Domain domain = compute_domain();
+    GPUTexture *output_texture = context().get_viewer_output_texture(domain);
     const int image_unit = GPU_shader_get_sampler_binding(shader, "output_img");
     GPU_texture_image_bind(output_texture, image_unit);
 
-    compute_dispatch_threads_at_least(shader, viewer_size);
+    compute_dispatch_threads_at_least(shader, domain.size);
 
     image.unbind_as_texture();
     alpha.unbind_as_texture();

@@ -28,6 +28,7 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_context.hh"
+#include "BKE_customdata.hh"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_mesh.hh"
@@ -182,7 +183,7 @@ static Mesh *mesh_remove_doubles_on_axis(Mesh *result,
     /* TODO(mano-wii): Polygons with all vertices merged are the ones that form duplicates.
      * Therefore the duplicate face test can be skipped. */
     result = geometry::mesh_merge_verts(*tmp,
-                                        MutableSpan<int>{full_doubles_map, result->totvert},
+                                        MutableSpan<int>{full_doubles_map, result->verts_num},
                                         int(tot_doubles * (step_tot - 1)),
                                         false);
 
@@ -224,8 +225,8 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   };
 
   uint maxVerts = 0, maxEdges = 0, maxPolys = 0;
-  const uint totvert = uint(mesh->totvert);
-  const uint totedge = uint(mesh->totedge);
+  const uint totvert = uint(mesh->verts_num);
+  const uint totedge = uint(mesh->edges_num);
   const uint faces_num = uint(mesh->faces_num);
 
   uint *edge_face_map = nullptr; /* orig edge to orig face */
@@ -233,7 +234,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
   /* UV Coords */
   const uint mloopuv_layers_tot = uint(
-      CustomData_number_of_layers(&mesh->loop_data, CD_PROP_FLOAT2));
+      CustomData_number_of_layers(&mesh->corner_data, CD_PROP_FLOAT2));
   blender::Array<blender::float2 *> mloopuv_layers(mloopuv_layers_tot);
   float uv_u_scale;
   float uv_v_minmax[2] = {FLT_MAX, -FLT_MAX};
@@ -400,8 +401,8 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
       mesh, int(maxVerts), int(maxEdges), int(maxPolys), int(maxPolys) * 4);
   /* The modifier doesn't support original index mapping on the edge or face domains. Remove
    * original index layers, since otherwise edges aren't displayed at all in wireframe view. */
-  CustomData_free_layers(&result->edge_data, CD_ORIGINDEX, result->totedge);
-  CustomData_free_layers(&result->face_data, CD_ORIGINDEX, result->totedge);
+  CustomData_free_layers(&result->edge_data, CD_ORIGINDEX, result->edges_num);
+  CustomData_free_layers(&result->face_data, CD_ORIGINDEX, result->edges_num);
 
   const blender::Span<float3> vert_positions_orig = mesh->vert_positions();
   const blender::Span<int2> edges_orig = mesh->edges();
@@ -416,7 +417,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   blender::MutableSpan<int> corner_edges_new = result->corner_edges_for_write();
   bke::MutableAttributeAccessor attributes = result->attributes_for_write();
   bke::SpanAttributeWriter<bool> sharp_faces = attributes.lookup_or_add_for_write_span<bool>(
-      "sharp_face", ATTR_DOMAIN_FACE);
+      "sharp_face", bke::AttrDomain::Face);
 
   if (!CustomData_has_layer(&result->face_data, CD_ORIGINDEX)) {
     CustomData_add_layer(&result->face_data, CD_ORIGINDEX, CD_SET_DEFAULT, int(maxPolys));
@@ -436,7 +437,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
     uint uv_lay;
     for (uv_lay = 0; uv_lay < mloopuv_layers_tot; uv_lay++) {
       mloopuv_layers[uv_lay] = static_cast<blender::float2 *>(CustomData_get_layer_n_for_write(
-          &result->loop_data, CD_PROP_FLOAT2, int(uv_lay), result->totloop));
+          &result->corner_data, CD_PROP_FLOAT2, int(uv_lay), result->corners_num));
     }
 
     if (ltmd->flag & MOD_SCREW_UV_STRETCH_V) {
@@ -838,11 +839,11 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
   const bke::AttributeAccessor src_attributes = mesh->attributes();
   const VArraySpan src_material_index = *src_attributes.lookup<int>("material_index",
-                                                                    ATTR_DOMAIN_FACE);
+                                                                    bke::AttrDomain::Face);
 
   bke::MutableAttributeAccessor dst_attributes = result->attributes_for_write();
   bke::SpanAttributeWriter dst_material_index = dst_attributes.lookup_or_add_for_write_span<int>(
-      "material_index", ATTR_DOMAIN_FACE);
+      "material_index", bke::AttrDomain::Face);
 
   for (uint i = 0; i < totedge; i++, med_new_firstloop++) {
     const uint step_last = step_tot - (close ? 1 : 2);
@@ -897,14 +898,26 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
       /* Loop-Custom-Data */
       if (has_mloop_orig) {
 
-        CustomData_copy_data(
-            &mesh->loop_data, &result->loop_data, int(mloop_index_orig[0]), new_loop_index + 0, 1);
-        CustomData_copy_data(
-            &mesh->loop_data, &result->loop_data, int(mloop_index_orig[1]), new_loop_index + 1, 1);
-        CustomData_copy_data(
-            &mesh->loop_data, &result->loop_data, int(mloop_index_orig[1]), new_loop_index + 2, 1);
-        CustomData_copy_data(
-            &mesh->loop_data, &result->loop_data, int(mloop_index_orig[0]), new_loop_index + 3, 1);
+        CustomData_copy_data(&mesh->corner_data,
+                             &result->corner_data,
+                             int(mloop_index_orig[0]),
+                             new_loop_index + 0,
+                             1);
+        CustomData_copy_data(&mesh->corner_data,
+                             &result->corner_data,
+                             int(mloop_index_orig[1]),
+                             new_loop_index + 1,
+                             1);
+        CustomData_copy_data(&mesh->corner_data,
+                             &result->corner_data,
+                             int(mloop_index_orig[1]),
+                             new_loop_index + 2,
+                             1);
+        CustomData_copy_data(&mesh->corner_data,
+                             &result->corner_data,
+                             int(mloop_index_orig[0]),
+                             new_loop_index + 3,
+                             1);
 
         if (mloopuv_layers_tot) {
           uint uv_lay;

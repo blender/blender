@@ -7,9 +7,6 @@
 #include "BLI_set.hh"
 #include "BLI_task.hh"
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-
 #include "BKE_attribute.hh"
 #include "BKE_attribute_math.hh"
 #include "BKE_curves.hh"
@@ -47,12 +44,16 @@ BLI_NOINLINE bke::CurvesGeometry create_curve_from_vert_indices(
     }
   }
 
-  bke::gather_attributes(
-      mesh_attributes, ATTR_DOMAIN_POINT, propagation_info, skip, vert_indices, curves_attributes);
+  bke::gather_attributes(mesh_attributes,
+                         bke::AttrDomain::Point,
+                         propagation_info,
+                         skip,
+                         vert_indices,
+                         curves_attributes);
 
   mesh_attributes.for_all(
       [&](const bke::AttributeIDRef &id, const bke::AttributeMetaData meta_data) {
-        if (meta_data.domain == ATTR_DOMAIN_POINT) {
+        if (meta_data.domain == bke::AttrDomain::Point) {
           return true;
         }
         if (skip.contains(id.name())) {
@@ -62,14 +63,14 @@ BLI_NOINLINE bke::CurvesGeometry create_curve_from_vert_indices(
           return true;
         }
 
-        const bke::GAttributeReader src = mesh_attributes.lookup(id, ATTR_DOMAIN_POINT);
+        const bke::GAttributeReader src = mesh_attributes.lookup(id, bke::AttrDomain::Point);
         /* Some attributes might not exist if they were builtin on domains that don't have
          * any elements, i.e. a face attribute on the output of the line primitive node. */
         if (!src) {
           return true;
         }
         bke::GSpanAttributeWriter dst = curves_attributes.lookup_or_add_for_write_only_span(
-            id, ATTR_DOMAIN_POINT, meta_data.data_type);
+            id, bke::AttrDomain::Point, meta_data.data_type);
         bke::attribute_math::gather(*src, vert_indices, dst.span);
         dst.finish();
         return true;
@@ -203,7 +204,7 @@ BLI_NOINLINE static bke::CurvesGeometry edges_to_curves_convert(
     const Span<int2> edges,
     const bke::AnonymousAttributePropagationInfo &propagation_info)
 {
-  CurveFromEdgesOutput output = edges_to_curve_point_indices(mesh.totvert, edges);
+  CurveFromEdgesOutput output = edges_to_curve_point_indices(mesh.verts_num, edges);
   return create_curve_from_vert_indices(mesh.attributes(),
                                         output.vert_indices,
                                         output.curve_offsets,

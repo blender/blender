@@ -56,7 +56,7 @@ static void mesh_render_data_loose_geom_mesh(const MeshRenderData &mr, MeshBuffe
   const bool no_loose_edge_hint = mesh.runtime->loose_edges_cache.is_cached() &&
                                   mesh.runtime->loose_edges_cache.data().count == 0;
   threading::parallel_invoke(
-      mesh.totedge > 4096 && !no_loose_vert_hint && !no_loose_edge_hint,
+      mesh.edges_num > 4096 && !no_loose_vert_hint && !no_loose_edge_hint,
       [&]() {
         const bke::LooseEdgeCache &loose_edges = mesh.loose_edges();
         if (loose_edges.count > 0) {
@@ -355,7 +355,7 @@ const CustomData *mesh_cd_ldata_get_from_mesh(const Mesh *mesh)
   switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_SUBD:
     case ME_WRAPPER_TYPE_MDATA:
-      return &mesh->loop_data;
+      return &mesh->corner_data;
       break;
     case ME_WRAPPER_TYPE_BMESH:
       return &mesh->edit_mesh->bm->ldata;
@@ -363,7 +363,7 @@ const CustomData *mesh_cd_ldata_get_from_mesh(const Mesh *mesh)
   }
 
   BLI_assert(0);
-  return &mesh->loop_data;
+  return &mesh->corner_data;
 }
 
 const CustomData *mesh_cd_pdata_get_from_mesh(const Mesh *mesh)
@@ -660,9 +660,9 @@ MeshRenderData *mesh_render_data_create(Object *object,
 
   if (mr->extract_type != MR_EXTRACT_BMESH) {
     /* Mesh */
-    mr->vert_len = mr->mesh->totvert;
-    mr->edge_len = mr->mesh->totedge;
-    mr->loop_len = mr->mesh->totloop;
+    mr->vert_len = mr->mesh->verts_num;
+    mr->edge_len = mr->mesh->edges_num;
+    mr->loop_len = mr->mesh->corners_num;
     mr->face_len = mr->mesh->faces_num;
     mr->tri_len = poly_to_tri_count(mr->face_len, mr->loop_len);
 
@@ -683,17 +683,17 @@ MeshRenderData *mesh_render_data_create(Object *object,
 
     const bke::AttributeAccessor attributes = mr->mesh->attributes();
 
-    mr->material_indices = *attributes.lookup<int>("material_index", ATTR_DOMAIN_FACE);
+    mr->material_indices = *attributes.lookup<int>("material_index", bke::AttrDomain::Face);
 
-    mr->hide_vert = *attributes.lookup<bool>(".hide_vert", ATTR_DOMAIN_POINT);
-    mr->hide_edge = *attributes.lookup<bool>(".hide_edge", ATTR_DOMAIN_EDGE);
-    mr->hide_poly = *attributes.lookup<bool>(".hide_poly", ATTR_DOMAIN_FACE);
+    mr->hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
+    mr->hide_edge = *attributes.lookup<bool>(".hide_edge", bke::AttrDomain::Edge);
+    mr->hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
 
-    mr->select_vert = *attributes.lookup<bool>(".select_vert", ATTR_DOMAIN_POINT);
-    mr->select_edge = *attributes.lookup<bool>(".select_edge", ATTR_DOMAIN_EDGE);
-    mr->select_poly = *attributes.lookup<bool>(".select_poly", ATTR_DOMAIN_FACE);
+    mr->select_vert = *attributes.lookup<bool>(".select_vert", bke::AttrDomain::Point);
+    mr->select_edge = *attributes.lookup<bool>(".select_edge", bke::AttrDomain::Edge);
+    mr->select_poly = *attributes.lookup<bool>(".select_poly", bke::AttrDomain::Face);
 
-    mr->sharp_faces = *attributes.lookup<bool>("sharp_face", ATTR_DOMAIN_FACE);
+    mr->sharp_faces = *attributes.lookup<bool>("sharp_face", bke::AttrDomain::Face);
   }
   else {
     /* #BMesh */

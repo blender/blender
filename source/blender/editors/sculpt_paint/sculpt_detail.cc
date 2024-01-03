@@ -15,6 +15,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_brush_types.h"
 #include "DNA_mesh_types.h"
 
 #include "BKE_context.hh"

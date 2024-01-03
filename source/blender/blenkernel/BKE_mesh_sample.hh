@@ -15,7 +15,7 @@
 #include "FN_field.hh"
 #include "FN_multi_function.hh"
 
-#include "BKE_attribute.h"
+#include "BKE_attribute_math.hh"
 #include "BKE_geometry_fields.hh"
 
 struct Mesh;
@@ -178,7 +178,7 @@ class BaryWeightSampleFn : public mf::MultiFunction {
   std::optional<bke::MeshFieldContext> source_context_;
   std::unique_ptr<fn::FieldEvaluator> source_evaluator_;
   const GVArray *source_data_;
-  eAttrDomain domain_;
+  AttrDomain domain_;
 
  public:
   BaryWeightSampleFn(GeometrySet geometry, fn::GField src_field);

@@ -190,15 +190,26 @@ struct DeferredLayerBase {
   /* Return the amount of gbuffer layer needed. */
   int closure_layer_count() const
   {
-    return count_bits_i(closure_bits_ & (CLOSURE_REFRACTION | CLOSURE_REFLECTION |
-                                         CLOSURE_DIFFUSE | CLOSURE_TRANSLUCENT | CLOSURE_SSS));
+    /* Diffuse and translucent require only one layer. */
+    int count = count_bits_i(closure_bits_ & (CLOSURE_DIFFUSE | CLOSURE_TRANSLUCENT));
+    /* SSS require an additional layer compared to diffuse. */
+    count += count_bits_i(closure_bits_ & CLOSURE_SSS);
+    /* Reflection and refraction can have at most two layers. */
+    count += 2 * count_bits_i(closure_bits_ & (CLOSURE_REFRACTION | CLOSURE_REFLECTION));
+    return count;
   }
 
   /* Return the amount of gbuffer layer needed. */
-  int color_layer_count() const
+  int normal_layer_count() const
   {
-    return count_bits_i(closure_bits_ & (CLOSURE_REFRACTION | CLOSURE_REFLECTION |
-                                         CLOSURE_DIFFUSE | CLOSURE_TRANSLUCENT));
+    /* TODO(fclem): We could count the number of different tangent frame in the shader and use
+     * min(tangent_frame_count, closure_count) once we have the normal reuse optimization.
+     * For now, allocate a split normal layer for each Closure. */
+    int count = count_bits_i(closure_bits_ & (CLOSURE_REFRACTION | CLOSURE_REFLECTION |
+                                              CLOSURE_DIFFUSE | CLOSURE_TRANSLUCENT));
+    /* Count the additional infos layer needed by some closures. */
+    count += count_bits_i(closure_bits_ & (CLOSURE_SSS | CLOSURE_TRANSLUCENT));
+    return count;
   }
 
   void gbuffer_pass_sync(Instance &inst);
@@ -230,6 +241,7 @@ class DeferredLayer : DeferredLayerBase {
    */
   TextureFromPool direct_radiance_txs_[3] = {
       {"direct_radiance_1"}, {"direct_radiance_2"}, {"direct_radiance_3"}};
+  Texture dummy_black_tx = {"dummy_black_tx"};
   /* Reference to ray-tracing result. */
   GPUTexture *indirect_diffuse_tx_ = nullptr;
   GPUTexture *indirect_reflect_tx_ = nullptr;
@@ -253,6 +265,8 @@ class DeferredLayer : DeferredLayerBase {
   /* TODO(fclem): This shouldn't be part of the pipeline but of the view. */
   Texture radiance_feedback_tx_ = {"radiance_feedback_tx"};
   float4x4 radiance_feedback_persmat_;
+
+  bool use_combined_lightprobe_eval = true;
 
  public:
   DeferredLayer(Instance &inst) : inst_(inst){};
@@ -283,6 +297,8 @@ class DeferredPipeline {
 
   PassSimple debug_draw_ps_ = {"debug_gbuffer"};
 
+  bool use_combined_lightprobe_eval;
+
  public:
   DeferredPipeline(Instance &inst)
       : opaque_layer_(inst), refraction_layer_(inst), volumetric_layer_(inst){};
@@ -309,9 +325,9 @@ class DeferredPipeline {
   }
 
   /* Return the maximum amount of gbuffer layer needed. */
-  int color_layer_count() const
+  int normal_layer_count() const
   {
-    return max_ii(opaque_layer_.color_layer_count(), refraction_layer_.color_layer_count());
+    return max_ii(opaque_layer_.normal_layer_count(), refraction_layer_.normal_layer_count());
   }
 
   void debug_draw(draw::View &view, GPUFrameBuffer *combined_fb);
@@ -525,9 +541,9 @@ class DeferredProbePipeline {
   }
 
   /* Return the maximum amount of gbuffer layer needed. */
-  int color_layer_count() const
+  int normal_layer_count() const
   {
-    return opaque_layer_.color_layer_count();
+    return opaque_layer_.normal_layer_count();
   }
 };
 

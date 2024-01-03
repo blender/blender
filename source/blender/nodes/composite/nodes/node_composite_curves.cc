@@ -8,7 +8,7 @@
 
 #include "BLI_math_base.h"
 
-#include "BKE_colortools.h"
+#include "BKE_colortools.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"

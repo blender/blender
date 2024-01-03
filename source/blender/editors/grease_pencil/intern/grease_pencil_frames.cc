@@ -343,10 +343,8 @@ static int insert_blank_frame_exec(bContext *C, wmOperator *op)
     if (!grease_pencil.has_active_layer()) {
       return OPERATOR_CANCELLED;
     }
-    changed = grease_pencil.insert_blank_frame(*grease_pencil.get_active_layer_for_write(),
-                                               current_frame,
-                                               duration,
-                                               BEZT_KEYTYPE_KEYFRAME);
+    changed = grease_pencil.insert_blank_frame(
+        *grease_pencil.get_active_layer(), current_frame, duration, BEZT_KEYTYPE_KEYFRAME);
   }
 
   if (changed) {

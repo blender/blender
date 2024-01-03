@@ -633,6 +633,7 @@ pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
     iter.process_usd_skel();
   }
 
+<<<<<<< HEAD
   /* Set Stage Default Prim Path. */
   if (strlen(params.default_prim_path) > 0) {
     std::string valid_default_prim_path = pxr::TfMakeValidIdentifier(params.default_prim_path);
@@ -651,6 +652,8 @@ pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
     }
   }
 
+=======
+>>>>>>> main
   /* Set the default prim if it doesn't exist */
   if (!usd_stage->GetDefaultPrim()) {
     /* Use TraverseAll since it's guaranteed to be depth first and will get the first top level

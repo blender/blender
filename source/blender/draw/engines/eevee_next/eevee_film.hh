@@ -89,6 +89,11 @@ class Film {
   void sync();
   void end_sync();
 
+  const FilmData &get_data()
+  {
+    return data_;
+  }
+
   /** Accumulate the newly rendered sample contained in #RenderBuffers and blit to display. */
   void accumulate(View &view, GPUTexture *combined_final_tx);
 

@@ -531,7 +531,7 @@ struct OutputAttributeInfo {
 
 struct OutputAttributeToStore {
   bke::GeometryComponent::Type component_type;
-  eAttrDomain domain;
+  bke::AttrDomain domain;
   StringRefNull name;
   GMutableSpan data;
 };
@@ -540,11 +540,11 @@ struct OutputAttributeToStore {
  * The output attributes are organized based on their domain, because attributes on the same domain
  * can be evaluated together.
  */
-static MultiValueMap<eAttrDomain, OutputAttributeInfo> find_output_attributes_to_store(
+static MultiValueMap<bke::AttrDomain, OutputAttributeInfo> find_output_attributes_to_store(
     const bNodeTree &tree, const IDProperty *properties, Span<GMutablePointer> output_values)
 {
   const bNode &output_node = *tree.group_output_node();
-  MultiValueMap<eAttrDomain, OutputAttributeInfo> outputs_by_domain;
+  MultiValueMap<bke::AttrDomain, OutputAttributeInfo> outputs_by_domain;
   for (const bNodeSocket *socket : output_node.input_sockets().drop_front(1).drop_back(1)) {
     if (!socket_type_has_attribute_toggle(eNodeSocketDatatype(socket->type))) {
       continue;
@@ -568,7 +568,7 @@ static MultiValueMap<eAttrDomain, OutputAttributeInfo> find_output_attributes_to
     const fn::GField field = value_variant.extract<fn::GField>();
 
     const bNodeTreeInterfaceSocket *interface_socket = tree.interface_outputs()[index];
-    const eAttrDomain domain = (eAttrDomain)interface_socket->attribute_domain;
+    const bke::AttrDomain domain = bke::AttrDomain(interface_socket->attribute_domain);
     OutputAttributeInfo output_info;
     output_info.field = std::move(field);
     output_info.name = attribute_name;
@@ -583,7 +583,7 @@ static MultiValueMap<eAttrDomain, OutputAttributeInfo> find_output_attributes_to
  */
 static Vector<OutputAttributeToStore> compute_attributes_to_store(
     const bke::GeometrySet &geometry,
-    const MultiValueMap<eAttrDomain, OutputAttributeInfo> &outputs_by_domain)
+    const MultiValueMap<bke::AttrDomain, OutputAttributeInfo> &outputs_by_domain)
 {
   Vector<OutputAttributeToStore> attributes_to_store;
   for (const auto component_type : {bke::GeometryComponent::Type::Mesh,
@@ -597,7 +597,7 @@ static Vector<OutputAttributeToStore> compute_attributes_to_store(
     const bke::GeometryComponent &component = *geometry.get_component(component_type);
     const bke::AttributeAccessor attributes = *component.attributes();
     for (const auto item : outputs_by_domain.items()) {
-      const eAttrDomain domain = item.key;
+      const bke::AttrDomain domain = item.key;
       const Span<OutputAttributeInfo> outputs_info = item.value;
       if (!attributes.domain_supported(domain)) {
         continue;
@@ -673,7 +673,7 @@ static void store_output_attributes(bke::GeometrySet &geometry,
 {
   /* All new attribute values have to be computed before the geometry is actually changed. This is
    * necessary because some fields might depend on attributes that are overwritten. */
-  MultiValueMap<eAttrDomain, OutputAttributeInfo> outputs_by_domain =
+  MultiValueMap<bke::AttrDomain, OutputAttributeInfo> outputs_by_domain =
       find_output_attributes_to_store(tree, properties, output_values);
   Vector<OutputAttributeToStore> attributes_to_store = compute_attributes_to_store(
       geometry, outputs_by_domain);

@@ -19,7 +19,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 
-#include "BKE_attribute.h"
+#include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
 #include "BKE_object.hh"
 
@@ -588,7 +588,7 @@ static void bmo_get_loop_color_ref(BMesh *bm,
   CustomData_reset(&me_query.vert_data);
   CustomData_reset(&me_query.edge_data);
   CustomData_reset(&me_query.face_data);
-  me_query.loop_data = bm->ldata;
+  me_query.corner_data = bm->ldata;
   *((short *)me_query.id.name) = ID_ME;
 
   CustomDataLayer *layer = BKE_id_attribute_from_index(

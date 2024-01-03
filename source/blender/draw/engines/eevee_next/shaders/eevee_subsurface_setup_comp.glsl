@@ -17,22 +17,22 @@ void main(void)
 {
   ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
 
-  if (all(equal(gl_LocalInvocationID.xy, uvec2(0)))) {
+  if (gl_LocalInvocationIndex == 0u) {
     has_visible_sss = 0u;
   }
 
   barrier();
 
-  GBufferData gbuf = gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_color_tx, texel);
+  GBufferReader gbuf = gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, texel);
 
   if (gbuf.has_sss) {
     vec3 radiance = imageLoad(direct_light_img, texel).rgb +
                     imageLoad(indirect_light_img, texel).rgb;
 
-    float max_radius = reduce_max(gbuf.diffuse.sss_radius);
+    float max_radius = reduce_max(gbuf.data.diffuse.sss_radius);
 
     imageStore(radiance_img, texel, vec4(radiance, 0.0));
-    imageStore(object_id_img, texel, uvec4(gbuf.diffuse.sss_id));
+    imageStore(object_id_img, texel, uvec4(gbuf.data.object_id));
 
     vec2 center_uv = (vec2(texel) + 0.5) / vec2(textureSize(gbuf_header_tx, 0));
     float depth = texelFetch(depth_tx, texel, 0).r;
@@ -53,7 +53,7 @@ void main(void)
 
   barrier();
 
-  if (all(equal(gl_LocalInvocationID.xy, uvec2(0)))) {
+  if (gl_LocalInvocationIndex == 0u) {
     if (has_visible_sss > 0u) {
       uint tile_id = atomicAdd(convolve_dispatch_buf.num_groups_x, 1u);
       convolve_tile_buf[tile_id] = packUvec2x16(gl_WorkGroupID.xy);

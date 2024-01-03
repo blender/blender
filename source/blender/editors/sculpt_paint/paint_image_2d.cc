@@ -22,7 +22,7 @@
 #include "BLI_task.h"
 
 #include "BKE_brush.hh"
-#include "BKE_colorband.h"
+#include "BKE_colorband.hh"
 #include "BKE_context.hh"
 #include "BKE_image.h"
 #include "BKE_paint.hh"

@@ -54,7 +54,7 @@ static void convert_instances_to_points(GeometrySet &geometry_set,
 
   bke::MutableAttributeAccessor dst_attributes = pointcloud->attributes_for_write();
   bke::SpanAttributeWriter<float> point_radii =
-      dst_attributes.lookup_or_add_for_write_only_span<float>("radius", ATTR_DOMAIN_POINT);
+      dst_attributes.lookup_or_add_for_write_only_span<float>("radius", AttrDomain::Point);
   array_utils::gather(radii, selection, point_radii.span);
   point_radii.finish();
 
@@ -78,11 +78,11 @@ static void convert_instances_to_points(GeometrySet &geometry_set,
     {
       const bke::AttributeInitShared init(src.varray.get_internal_span().data(),
                                           *src.sharing_info);
-      dst_attributes.add(id, ATTR_DOMAIN_POINT, type, init);
+      dst_attributes.add(id, AttrDomain::Point, type, init);
     }
     else {
       GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
-          id, ATTR_DOMAIN_POINT, type);
+          id, AttrDomain::Point, type);
       array_utils::gather(src.varray, selection, dst.span);
       dst.finish();
     }

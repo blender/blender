@@ -50,7 +50,7 @@ static int grease_pencil_layer_add_exec(bContext *C, wmOperator *op)
   if (grease_pencil.has_active_layer()) {
     Layer &new_layer = grease_pencil.add_layer(new_layer_name);
     grease_pencil.move_node_after(new_layer.as_node(),
-                                  grease_pencil.get_active_layer_for_write()->as_node());
+                                  grease_pencil.get_active_layer()->as_node());
     grease_pencil.set_active_layer(&new_layer);
     grease_pencil.insert_blank_frame(new_layer, scene->r.cfra, 0, BEZT_KEYTYPE_KEYFRAME);
   }
@@ -97,7 +97,7 @@ static int grease_pencil_layer_remove_exec(bContext *C, wmOperator * /*op*/)
     return OPERATOR_CANCELLED;
   }
 
-  grease_pencil.remove_layer(*grease_pencil.get_active_layer_for_write());
+  grease_pencil.remove_layer(*grease_pencil.get_active_layer());
 
   DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_SELECTED, &grease_pencil);
@@ -146,7 +146,7 @@ static int grease_pencil_layer_reorder_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  Layer &active_layer = *grease_pencil.get_active_layer_for_write();
+  Layer &active_layer = *grease_pencil.get_active_layer();
   switch (reorder_location) {
     case LAYER_REORDER_ABOVE: {
       /* NOTE: The layers are stored from bottom to top, so inserting above (visually), means
@@ -248,7 +248,7 @@ static int grease_pencil_layer_group_add_exec(bContext *C, wmOperator *op)
     LayerGroup &new_group = grease_pencil.add_layer_group(
         grease_pencil.get_active_layer()->parent_group(), new_layer_group_name);
     grease_pencil.move_node_after(new_group.as_node(),
-                                  grease_pencil.get_active_layer_for_write()->as_node());
+                                  grease_pencil.get_active_layer()->as_node());
   }
   else {
     grease_pencil.add_layer_group(grease_pencil.root_group(), new_layer_group_name);
@@ -301,7 +301,7 @@ static int grease_pencil_layer_hide_exec(bContext *C, wmOperator *op)
   }
   else {
     /* hide selected/active */
-    Layer &active_layer = *grease_pencil.get_active_layer_for_write();
+    Layer &active_layer = *grease_pencil.get_active_layer();
     active_layer.set_visible(false);
   }
 

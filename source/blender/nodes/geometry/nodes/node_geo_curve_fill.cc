@@ -6,9 +6,6 @@
 #include "BLI_delaunay_2d.hh"
 #include "BLI_math_vector_types.hh"
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_instances.hh"
@@ -125,7 +122,7 @@ static Array<meshintersect::CDT_result<double>> do_group_aware_cdt(
     const CDT_output_type output_type,
     const Field<int> &group_index_field)
 {
-  const bke::GeometryFieldContext field_context{curves, ATTR_DOMAIN_CURVE};
+  const bke::GeometryFieldContext field_context{curves, AttrDomain::Curve};
   fn::FieldEvaluator data_evaluator{field_context, curves.curves_num()};
   data_evaluator.add(group_index_field);
   data_evaluator.evaluate();
@@ -247,7 +244,7 @@ static Mesh *cdts_to_mesh(const Span<meshintersect::CDT_result<double>> results)
 
   /* The delaunay triangulation doesn't seem to return all of the necessary all_edges, even in
    * triangulation mode. */
-  BKE_mesh_calc_edges(mesh, true, false);
+  bke::mesh_calc_edges(*mesh, true, false);
   bke::mesh_smooth_set(*mesh, false);
 
   mesh->tag_overlapping_none();

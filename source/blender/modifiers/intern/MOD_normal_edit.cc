@@ -26,6 +26,7 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_context.hh"
+#include "BKE_customdata.hh"
 #include "BKE_deform.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
@@ -59,7 +60,7 @@ static void generate_vert_coordinates(Mesh *mesh,
   INIT_MINMAX(min_co, max_co);
 
   const Span<float3> positions = mesh->vert_positions();
-  for (int i = 0; i < mesh->totvert; i++) {
+  for (int i = 0; i < mesh->verts_num; i++) {
     copy_v3_v3(r_cos[i], positions[i]);
     if (r_size != nullptr && ob_center == nullptr) {
       minmax_v3v3_v3(min_co, max_co, r_cos[i]);
@@ -323,18 +324,18 @@ static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
     faces_check_flip(*mesh, nos, mesh->face_normals());
   }
   const bke::AttributeAccessor attributes = mesh->attributes();
-  const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", ATTR_DOMAIN_FACE);
-  blender::bke::mesh::normals_loop_custom_set(vert_positions,
-                                              edges,
-                                              faces,
-                                              corner_verts,
-                                              corner_edges,
-                                              mesh->vert_normals(),
-                                              mesh->face_normals(),
-                                              sharp_faces,
-                                              sharp_edges,
-                                              nos,
-                                              clnors);
+  const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", bke::AttrDomain::Face);
+  bke::mesh::normals_loop_custom_set(vert_positions,
+                                     edges,
+                                     faces,
+                                     corner_verts,
+                                     corner_edges,
+                                     mesh->vert_normals(),
+                                     mesh->face_normals(),
+                                     sharp_faces,
+                                     sharp_edges,
+                                     nos,
+                                     clnors);
 
   MEM_freeN(cos);
   MEM_freeN(done_verts);
@@ -429,18 +430,18 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
     faces_check_flip(*mesh, nos, mesh->face_normals());
   }
   const bke::AttributeAccessor attributes = mesh->attributes();
-  const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", ATTR_DOMAIN_FACE);
-  blender::bke::mesh::normals_loop_custom_set(positions,
-                                              edges,
-                                              faces,
-                                              corner_verts,
-                                              corner_edges,
-                                              mesh->vert_normals(),
-                                              mesh->face_normals(),
-                                              sharp_faces,
-                                              sharp_edges,
-                                              nos,
-                                              clnors);
+  const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", bke::AttrDomain::Face);
+  bke::mesh::normals_loop_custom_set(positions,
+                                     edges,
+                                     faces,
+                                     corner_verts,
+                                     corner_edges,
+                                     mesh->vert_normals(),
+                                     mesh->face_normals(),
+                                     sharp_faces,
+                                     sharp_edges,
+                                     nos,
+                                     clnors);
 }
 
 static bool is_valid_target(NormalEditModifierData *enmd)
@@ -475,7 +476,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
                                     (enmd->mix_limit == float(M_PI)));
 
   /* Do not run that modifier at all if auto-smooth is disabled! */
-  if (!is_valid_target_with_error(ctx->object, enmd) || mesh->totloop == 0) {
+  if (!is_valid_target_with_error(ctx->object, enmd) || mesh->corners_num == 0) {
     return mesh;
   }
 
@@ -501,11 +502,11 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
 
   blender::Array<blender::float3> loop_normals;
 
-  CustomData *ldata = &result->loop_data;
+  CustomData *ldata = &result->corner_data;
 
   bke::MutableAttributeAccessor attributes = result->attributes_for_write();
   bke::SpanAttributeWriter<bool> sharp_edges = attributes.lookup_or_add_for_write_span<bool>(
-      "sharp_edge", ATTR_DOMAIN_EDGE);
+      "sharp_edge", bke::AttrDomain::Edge);
 
   blender::short2 *clnors = static_cast<blender::short2 *>(
       CustomData_get_layer_for_write(ldata, CD_CUSTOMLOOPNORMAL, corner_verts.size()));
@@ -513,7 +514,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
     clnors = static_cast<blender::short2 *>(
         CustomData_get_layer_for_write(ldata, CD_CUSTOMLOOPNORMAL, corner_verts.size()));
     loop_normals.reinitialize(corner_verts.size());
-    const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", ATTR_DOMAIN_FACE);
+    const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", bke::AttrDomain::Face);
     blender::bke::mesh::normals_calc_loop(positions,
                                           edges,
                                           faces,
@@ -541,7 +542,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
                                  ctx,
                                  ob,
                                  result,
-                                 {clnors, result->totloop},
+                                 {clnors, result->corners_num},
                                  loop_normals,
                                  enmd->mix_mode,
                                  enmd->mix_factor,
@@ -561,7 +562,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
                                       ctx,
                                       ob,
                                       result,
-                                      {clnors, result->totloop},
+                                      {clnors, result->corners_num},
                                       loop_normals,
                                       enmd->mix_mode,
                                       enmd->mix_factor,

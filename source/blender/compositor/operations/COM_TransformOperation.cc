@@ -22,15 +22,8 @@ TransformOperation::TransformOperation()
   convert_degree_to_rad_ = false;
   sampler_ = PixelSampler::Bilinear;
   invert_ = false;
-  max_scale_canvas_size_ = {ScaleOperation::DEFAULT_MAX_SCALE_CANVAS_SIZE,
-                            ScaleOperation::DEFAULT_MAX_SCALE_CANVAS_SIZE};
 
   flags_.can_be_constant = true;
-}
-
-void TransformOperation::set_scale_canvas_max_size(Size2f size)
-{
-  max_scale_canvas_size_ = size;
 }
 
 void TransformOperation::init_data()
@@ -126,10 +119,6 @@ void TransformOperation::determine_canvas(const rcti &preferred_area, rcti &r_ar
       /* Scale -> Rotate -> Translate. */
       scale_canvas_ = image_canvas;
       ScaleOperation::scale_area(scale_canvas_, scale_, scale_);
-      const Size2f max_scale_size = {
-          MAX2(BLI_rcti_size_x(&image_canvas), max_scale_canvas_size_.x),
-          MAX2(BLI_rcti_size_y(&image_canvas), max_scale_canvas_size_.y)};
-      ScaleOperation::clamp_area_size_max(scale_canvas_, max_scale_size);
 
       RotateOperation::get_rotation_canvas(
           scale_canvas_, rotate_sine_, rotate_cosine_, rotate_canvas_);
@@ -149,11 +138,6 @@ void TransformOperation::determine_canvas(const rcti &preferred_area, rcti &r_ar
 
       scale_canvas_ = rotate_canvas_;
       ScaleOperation::scale_area(scale_canvas_, scale_, scale_);
-
-      const Size2f max_scale_size = {
-          MAX2(BLI_rcti_size_x(&rotate_canvas_), max_scale_canvas_size_.x),
-          MAX2(BLI_rcti_size_y(&rotate_canvas_), max_scale_canvas_size_.y)};
-      ScaleOperation::clamp_area_size_max(scale_canvas_, max_scale_size);
 
       r_area = scale_canvas_;
     }

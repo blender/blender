@@ -34,7 +34,6 @@
 
 #include "BKE_DerivedMesh.hh"
 #include "BKE_bvhutils.hh"
-#include "BKE_colorband.h"
 #include "BKE_deform.h"
 #include "BKE_editmesh.hh"
 #include "BKE_editmesh_cache.hh"
@@ -245,9 +244,9 @@ void BKE_mesh_runtime_eval_to_meshkey(Mesh *me_deformed, Mesh *mesh, KeyBlock *k
   /* Just a shallow wrapper around #BKE_keyblock_convert_from_mesh,
    * that ensures both evaluated mesh and original one has same number of vertices. */
 
-  const int totvert = me_deformed->totvert;
+  const int totvert = me_deformed->verts_num;
 
-  if (totvert == 0 || mesh->totvert == 0 || mesh->totvert != totvert) {
+  if (totvert == 0 || mesh->verts_num == 0 || mesh->verts_num != totvert) {
     return;
   }
 
@@ -392,7 +391,7 @@ static Mesh *create_orco_mesh(Object *ob, Mesh *mesh, BMEditMesh *em, int layer)
 
   if (orco) {
     orco_mesh->vert_positions_for_write().copy_from(
-        {reinterpret_cast<const float3 *>(orco), orco_mesh->totvert});
+        {reinterpret_cast<const float3 *>(orco), orco_mesh->verts_num});
     orco_mesh->tag_positions_changed();
     if (free) {
       MEM_freeN(orco);
@@ -404,23 +403,23 @@ static Mesh *create_orco_mesh(Object *ob, Mesh *mesh, BMEditMesh *em, int layer)
 
 static MutableSpan<float3> orco_coord_layer_ensure(Mesh *mesh, const eCustomDataType layer)
 {
-  void *data = CustomData_get_layer_for_write(&mesh->vert_data, layer, mesh->totvert);
+  void *data = CustomData_get_layer_for_write(&mesh->vert_data, layer, mesh->verts_num);
   if (!data) {
-    data = CustomData_add_layer(&mesh->vert_data, layer, CD_CONSTRUCT, mesh->totvert);
+    data = CustomData_add_layer(&mesh->vert_data, layer, CD_CONSTRUCT, mesh->verts_num);
   }
-  return MutableSpan(reinterpret_cast<float3 *>(data), mesh->totvert);
+  return MutableSpan(reinterpret_cast<float3 *>(data), mesh->verts_num);
 }
 
 static void add_orco_mesh(
     Object *ob, BMEditMesh *em, Mesh *mesh, Mesh *mesh_orco, const eCustomDataType layer)
 {
-  const int totvert = mesh->totvert;
+  const int totvert = mesh->verts_num;
 
   MutableSpan<float3> layer_orco;
   if (mesh_orco) {
     layer_orco = orco_coord_layer_ensure(mesh, layer);
 
-    if (mesh_orco->totvert == totvert) {
+    if (mesh_orco->verts_num == totvert) {
       layer_orco.copy_from(mesh_orco->vert_positions());
     }
     else {
@@ -537,13 +536,13 @@ static void set_rest_position(Mesh &mesh)
   if (positions) {
     if (positions.sharing_info && positions.varray.is_span()) {
       attributes.add<float3>("rest_position",
-                             ATTR_DOMAIN_POINT,
+                             AttrDomain::Point,
                              AttributeInitShared(positions.varray.get_internal_span().data(),
                                                  *positions.sharing_info));
     }
     else {
       attributes.add<float3>(
-          "rest_position", ATTR_DOMAIN_POINT, AttributeInitVArray(positions.varray));
+          "rest_position", AttrDomain::Point, AttributeInitVArray(positions.varray));
     }
   }
 }
@@ -632,7 +631,7 @@ static void mesh_calc_modifiers(Depsgraph *depsgraph,
       }
 
       if (mti->type == ModifierTypeType::OnlyDeform && !sculpt_dyntopo) {
-        blender::bke::ScopedModifierTimer modifier_timer{*md};
+        ScopedModifierTimer modifier_timer{*md};
         if (!mesh_final) {
           mesh_final = BKE_mesh_copy_for_eval(mesh_input);
           ASSERT_IS_VALID_MESH(mesh_final);
@@ -765,21 +764,21 @@ static void mesh_calc_modifiers(Depsgraph *depsgraph,
             ((nextmask.vmask | nextmask.emask | nextmask.pmask) & CD_MASK_ORIGINDEX)) {
           /* calc */
           CustomData_add_layer(
-              &mesh_final->vert_data, CD_ORIGINDEX, CD_CONSTRUCT, mesh_final->totvert);
+              &mesh_final->vert_data, CD_ORIGINDEX, CD_CONSTRUCT, mesh_final->verts_num);
           CustomData_add_layer(
-              &mesh_final->edge_data, CD_ORIGINDEX, CD_CONSTRUCT, mesh_final->totedge);
+              &mesh_final->edge_data, CD_ORIGINDEX, CD_CONSTRUCT, mesh_final->edges_num);
           CustomData_add_layer(
               &mesh_final->face_data, CD_ORIGINDEX, CD_CONSTRUCT, mesh_final->faces_num);
 
           /* Not worth parallelizing this,
            * gives less than 0.1% overall speedup in best of best cases... */
           range_vn_i((int *)CustomData_get_layer_for_write(
-                         &mesh_final->vert_data, CD_ORIGINDEX, mesh_final->totvert),
-                     mesh_final->totvert,
+                         &mesh_final->vert_data, CD_ORIGINDEX, mesh_final->verts_num),
+                     mesh_final->verts_num,
                      0);
           range_vn_i((int *)CustomData_get_layer_for_write(
-                         &mesh_final->edge_data, CD_ORIGINDEX, mesh_final->totedge),
-                     mesh_final->totedge,
+                         &mesh_final->edge_data, CD_ORIGINDEX, mesh_final->edges_num),
+                     mesh_final->edges_num,
                      0);
           range_vn_i((int *)CustomData_get_layer_for_write(
                          &mesh_final->face_data, CD_ORIGINDEX, mesh_final->faces_num),
@@ -807,9 +806,11 @@ static void mesh_calc_modifiers(Depsgraph *depsgraph,
 
       /* add an origspace layer if needed */
       if ((md_datamask->mask.lmask) & CD_MASK_ORIGSPACE_MLOOP) {
-        if (!CustomData_has_layer(&mesh_final->loop_data, CD_ORIGSPACE_MLOOP)) {
-          CustomData_add_layer(
-              &mesh_final->loop_data, CD_ORIGSPACE_MLOOP, CD_SET_DEFAULT, mesh_final->totloop);
+        if (!CustomData_has_layer(&mesh_final->corner_data, CD_ORIGSPACE_MLOOP)) {
+          CustomData_add_layer(&mesh_final->corner_data,
+                               CD_ORIGSPACE_MLOOP,
+                               CD_SET_DEFAULT,
+                               mesh_final->corners_num);
           mesh_init_origspace(mesh_final);
         }
       }
@@ -935,7 +936,7 @@ static void mesh_calc_modifiers(Depsgraph *depsgraph,
 
   /* Remove temporary data layer only needed for modifier evaluation.
    * Save some memory, and ensure GPU subdivision does not need to deal with this. */
-  CustomData_free_layers(&mesh_final->vert_data, CD_CLOTH_ORCO, mesh_final->totvert);
+  CustomData_free_layers(&mesh_final->vert_data, CD_CLOTH_ORCO, mesh_final->verts_num);
 
   /* Compute normals. */
   if (is_own_mesh) {
@@ -1204,9 +1205,11 @@ static void editbmesh_calc_modifiers(Depsgraph *depsgraph,
       mesh_set_only_copy(mesh_final, &mask);
 
       if (mask.lmask & CD_MASK_ORIGSPACE_MLOOP) {
-        if (!CustomData_has_layer(&mesh_final->loop_data, CD_ORIGSPACE_MLOOP)) {
-          CustomData_add_layer(
-              &mesh_final->loop_data, CD_ORIGSPACE_MLOOP, CD_SET_DEFAULT, mesh_final->totloop);
+        if (!CustomData_has_layer(&mesh_final->corner_data, CD_ORIGSPACE_MLOOP)) {
+          CustomData_add_layer(&mesh_final->corner_data,
+                               CD_ORIGSPACE_MLOOP,
+                               CD_SET_DEFAULT,
+                               mesh_final->corners_num);
           mesh_init_origspace(mesh_final);
         }
       }
@@ -1622,7 +1625,7 @@ static void mesh_init_origspace(Mesh *mesh)
   const float default_osf[4][2] = {{0, 0}, {1, 0}, {1, 1}, {0, 1}};
 
   OrigSpaceLoop *lof_array = (OrigSpaceLoop *)CustomData_get_layer_for_write(
-      &mesh->loop_data, CD_ORIGSPACE_MLOOP, mesh->totloop);
+      &mesh->corner_data, CD_ORIGSPACE_MLOOP, mesh->corners_num);
   const Span<float3> positions = mesh->vert_positions();
   const blender::OffsetIndices faces = mesh->faces();
   const Span<int> corner_verts = mesh->corner_verts();

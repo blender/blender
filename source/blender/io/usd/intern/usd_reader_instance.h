@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /*
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,6 +17,11 @@
  * The Original Code is Copyright (C) 2021 NVIDIA Corporation.
  * All rights reserved.
  */
+=======
+/* SPDX-FileCopyrightText: 2023 NVIDIA Corporation. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+>>>>>>> main
 #pragma once
 
 #include "usd_reader_xform.h"
@@ -26,8 +32,14 @@ struct Collection;
 
 namespace blender::io::usd {
 
+<<<<<<< HEAD
 /* Wraps the UsdGeomXform schema. Creates a Blender Empty object. */
 
+=======
+/**
+ * Convert a USD instanced prim to a blender collection instance.
+ */
+>>>>>>> main
 class USDInstanceReader : public USDXformReader {
 
  public:
@@ -37,10 +49,26 @@ class USDInstanceReader : public USDXformReader {
 
   bool valid() const override;
 
+<<<<<<< HEAD
   void create_object(Main *bmain, double motionSampleTime) override;
 
   void set_instance_collection(Collection *coll);
 
+=======
+  /**
+   * Create an object that instances a collection.
+   */
+  void create_object(Main *bmain, double motionSampleTime) override;
+
+  /**
+   * Assign the given collection to the object.
+   */
+  void set_instance_collection(Collection *coll);
+
+  /**
+   * Get the path of the USD prototype prim.
+   */
+>>>>>>> main
   pxr::SdfPath proto_path() const;
 };
 

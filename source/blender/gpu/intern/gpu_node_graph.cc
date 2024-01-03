@@ -88,9 +88,10 @@ static void gpu_node_input_link(GPUNode *node, GPUNodeLink *link, const eGPUType
           input->layer_attr->users++;
           break;
         case GPU_SOURCE_TEX:
-        case GPU_SOURCE_TEX_TILED_MAPPING:
           input->texture->users++;
           break;
+        case GPU_SOURCE_TEX_TILED_MAPPING:
+          /* Already handled by GPU_SOURCE_TEX. */
         default:
           break;
       }
@@ -848,9 +849,10 @@ static void gpu_inputs_free(ListBase *inputs)
         input->layer_attr->users--;
         break;
       case GPU_SOURCE_TEX:
-      case GPU_SOURCE_TEX_TILED_MAPPING:
         input->texture->users--;
         break;
+      case GPU_SOURCE_TEX_TILED_MAPPING:
+        /* Already handled by GPU_SOURCE_TEX. */
       default:
         break;
     }

@@ -25,7 +25,7 @@
 #include "DEG_depsgraph_query.hh"
 
 #include "DNA_material_types.h"
-#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
@@ -48,7 +48,7 @@ OBJMesh::OBJMesh(Depsgraph *depsgraph, const OBJExportParams &export_params, Obj
     mesh_faces_ = export_mesh_->faces();
     mesh_corner_verts_ = export_mesh_->corner_verts();
     sharp_faces_ = *export_mesh_->attributes().lookup_or_default<bool>(
-        "sharp_face", ATTR_DOMAIN_FACE, false);
+        "sharp_face", bke::AttrDomain::Face, false);
   }
   else {
     /* Curves and NURBS surfaces need a new mesh when they're
@@ -88,7 +88,7 @@ void OBJMesh::set_mesh(Mesh *mesh)
   mesh_faces_ = mesh->faces();
   mesh_corner_verts_ = mesh->corner_verts();
   sharp_faces_ = *export_mesh_->attributes().lookup_or_default<bool>(
-      "sharp_face", ATTR_DOMAIN_FACE, false);
+      "sharp_face", bke::AttrDomain::Face, false);
 }
 
 void OBJMesh::clear()
@@ -162,7 +162,7 @@ void OBJMesh::set_world_axes_transform(const Object &obj_eval,
 
 int OBJMesh::tot_vertices() const
 {
-  return export_mesh_->totvert;
+  return export_mesh_->verts_num;
 }
 
 int OBJMesh::tot_faces() const
@@ -177,7 +177,7 @@ int OBJMesh::tot_uv_vertices() const
 
 int OBJMesh::tot_edges() const
 {
-  return export_mesh_->totedge;
+  return export_mesh_->edges_num;
 }
 
 int16_t OBJMesh::tot_materials() const
@@ -201,8 +201,8 @@ int OBJMesh::ith_smooth_group(const int face_index) const
 void OBJMesh::calc_smooth_groups(const bool use_bitflags)
 {
   const bke::AttributeAccessor attributes = export_mesh_->attributes();
-  const VArraySpan sharp_edges = *attributes.lookup<bool>("sharp_edge", ATTR_DOMAIN_EDGE);
-  const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", ATTR_DOMAIN_FACE);
+  const VArraySpan sharp_edges = *attributes.lookup<bool>("sharp_edge", bke::AttrDomain::Edge);
+  const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", bke::AttrDomain::Face);
   poly_smooth_groups_ = BKE_mesh_calc_smoothgroups(mesh_edges_.size(),
                                                    mesh_faces_,
                                                    export_mesh_->corner_edges(),
@@ -216,7 +216,7 @@ void OBJMesh::calc_poly_order()
 {
   const bke::AttributeAccessor attributes = export_mesh_->attributes();
   const VArray<int> material_indices = *attributes.lookup_or_default<int>(
-      "material_index", ATTR_DOMAIN_FACE, 0);
+      "material_index", bke::AttrDomain::Face, 0);
   if (material_indices.is_single() && material_indices.get_internal_single() == 0) {
     return;
   }
@@ -268,14 +268,14 @@ Span<int> OBJMesh::calc_poly_vertex_indices(const int face_index) const
 
 void OBJMesh::store_uv_coords_and_indices()
 {
-  const StringRef active_uv_name = CustomData_get_active_layer_name(&export_mesh_->loop_data,
+  const StringRef active_uv_name = CustomData_get_active_layer_name(&export_mesh_->corner_data,
                                                                     CD_PROP_FLOAT2);
   if (active_uv_name.is_empty()) {
     uv_coords_.clear();
     return;
   }
   const bke::AttributeAccessor attributes = export_mesh_->attributes();
-  const VArraySpan uv_map = *attributes.lookup<float2>(active_uv_name, ATTR_DOMAIN_CORNER);
+  const VArraySpan uv_map = *attributes.lookup<float2>(active_uv_name, bke::AttrDomain::Corner);
   if (uv_map.is_empty()) {
     uv_coords_.clear();
     return;
@@ -284,8 +284,8 @@ void OBJMesh::store_uv_coords_and_indices()
   Map<float2, int> uv_to_index;
 
   /* We don't know how many unique UVs there will be, but this is a guess. */
-  uv_to_index.reserve(export_mesh_->totvert);
-  uv_coords_.reserve(export_mesh_->totvert);
+  uv_to_index.reserve(export_mesh_->verts_num);
+  uv_coords_.reserve(export_mesh_->verts_num);
 
   loop_to_uv_index_.resize(uv_map.size());
 
@@ -347,7 +347,7 @@ void OBJMesh::store_normal_coords_and_indices()
   Map<float3, int> normal_to_index;
   /* We don't know how many unique normals there will be, but this is a guess. */
   normal_to_index.reserve(export_mesh_->faces_num);
-  loop_to_normal_index_.resize(export_mesh_->totloop);
+  loop_to_normal_index_.resize(export_mesh_->corners_num);
   loop_to_normal_index_.fill(-1);
 
   Span<float3> corner_normals;
@@ -364,7 +364,7 @@ void OBJMesh::store_normal_coords_and_indices()
     if (need_per_loop_normals) {
       for (const int corner : face) {
         float3 loop_normal;
-        BLI_assert(corner < export_mesh_->totloop);
+        BLI_assert(corner < export_mesh_->corners_num);
         copy_v3_v3(loop_normal, corner_normals[corner]);
         mul_m3_v3(world_and_axes_normal_transform_, loop_normal);
         normalize_v3(loop_normal);
@@ -388,7 +388,7 @@ void OBJMesh::store_normal_coords_and_indices()
         normal_coords_.append(rounded_poly_normal);
       }
       for (const int corner : face) {
-        BLI_assert(corner < export_mesh_->totloop);
+        BLI_assert(corner < export_mesh_->corners_num);
         loop_to_normal_index_[corner] = poly_norm_index;
       }
     }

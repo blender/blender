@@ -34,10 +34,10 @@ static StringRef attribute_data_type_string(const eCustomDataType type)
   return StringRef(IFACE_(name));
 }
 
-static StringRef attribute_domain_string(const eAttrDomain domain)
+static StringRef attribute_domain_string(const bke::AttrDomain domain)
 {
   const char *name = nullptr;
-  RNA_enum_name_from_value(rna_enum_attribute_domain_items, domain, &name);
+  RNA_enum_name_from_value(rna_enum_attribute_domain_items, int(domain), &name);
   return StringRef(IFACE_(name));
 }
 

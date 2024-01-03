@@ -199,6 +199,9 @@ if(OPENEXR_FOUND)
       ${IMATH_INCLUDE_DIR}
       ${IMATH_INCLUDE_DIR}/Imath)
   endif()
+
+  set(IMATH_INCLUDE_DIRS
+    ${IMATH_INCLUDE_DIR})
 endif()
 
 mark_as_advanced(

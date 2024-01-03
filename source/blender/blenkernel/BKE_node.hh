@@ -16,6 +16,7 @@
 #include "DNA_listBase.h"
 
 #include "BKE_node.h"
+#include "BKE_volume_enums.hh"
 
 /* for FOREACH_NODETREE_BEGIN */
 #include "DNA_node_types.h"
@@ -332,6 +333,8 @@ std::optional<eCustomDataType> socket_type_to_custom_data_type(eNodeSocketDataty
 std::optional<eNodeSocketDatatype> custom_data_type_to_socket_type(eCustomDataType type);
 const CPPType *socket_type_to_geo_nodes_base_cpp_type(eNodeSocketDatatype type);
 std::optional<eNodeSocketDatatype> geo_nodes_base_cpp_type_to_socket_type(const CPPType &type);
+std::optional<VolumeGridType> socket_type_to_grid_type(eNodeSocketDatatype type);
+std::optional<eNodeSocketDatatype> grid_type_to_socket_type(VolumeGridType type);
 
 /**
  * Contains information about a specific kind of zone (e.g. simulation or repeat zone in geometry

@@ -18,7 +18,6 @@
 #include "BLI_math_matrix.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_attribute.h"
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
 #include "BKE_data_transfer.h"
@@ -255,7 +254,7 @@ int BKE_object_data_transfer_dttype_to_srcdst_index(const int dtdata_type)
  * is set).
  */
 static void data_transfer_mesh_attributes_transfer_active_color_string(
-    Mesh *mesh_dst, const Mesh *mesh_src, const eAttrDomainMask mask_domain, const int data_type)
+    Mesh *mesh_dst, const Mesh *mesh_src, const AttrDomainMask mask_domain, const int data_type)
 {
   if (mesh_dst->active_color_attribute) {
     return;
@@ -306,7 +305,7 @@ static void data_transfer_mesh_attributes_transfer_active_color_string(
  * is set).
  */
 static void data_transfer_mesh_attributes_transfer_default_color_string(
-    Mesh *mesh_dst, const Mesh *mesh_src, const eAttrDomainMask mask_domain, const int data_type)
+    Mesh *mesh_dst, const Mesh *mesh_src, const AttrDomainMask mask_domain, const int data_type)
 {
   if (mesh_dst->default_color_attribute) {
     return;
@@ -363,22 +362,22 @@ static void data_transfer_dtdata_type_postprocess(Mesh *me_dst,
       return;
     }
     /* Bake edited destination loop normals into custom normals again. */
-    CustomData *ldata_dst = &me_dst->loop_data;
+    CustomData *ldata_dst = &me_dst->corner_data;
 
     blender::float3 *loop_nors_dst = static_cast<blender::float3 *>(
-        CustomData_get_layer_for_write(ldata_dst, CD_NORMAL, me_dst->totloop));
+        CustomData_get_layer_for_write(ldata_dst, CD_NORMAL, me_dst->corners_num));
     blender::short2 *custom_nors_dst = static_cast<blender::short2 *>(
-        CustomData_get_layer_for_write(ldata_dst, CD_CUSTOMLOOPNORMAL, me_dst->totloop));
+        CustomData_get_layer_for_write(ldata_dst, CD_CUSTOMLOOPNORMAL, me_dst->corners_num));
 
     if (!custom_nors_dst) {
-      custom_nors_dst = static_cast<blender::short2 *>(
-          CustomData_add_layer(ldata_dst, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, me_dst->totloop));
+      custom_nors_dst = static_cast<blender::short2 *>(CustomData_add_layer(
+          ldata_dst, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, me_dst->corners_num));
     }
 
     bke::MutableAttributeAccessor attributes = me_dst->attributes_for_write();
     bke::SpanAttributeWriter<bool> sharp_edges = attributes.lookup_or_add_for_write_span<bool>(
-        "sharp_edge", ATTR_DOMAIN_EDGE);
-    const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", ATTR_DOMAIN_FACE);
+        "sharp_edge", bke::AttrDomain::Edge);
+    const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", bke::AttrDomain::Face);
     /* Note loop_nors_dst contains our custom normals as transferred from source... */
     blender::bke::mesh::normals_loop_custom_set(me_dst->vert_positions(),
                                                 me_dst->edges(),
@@ -389,10 +388,10 @@ static void data_transfer_dtdata_type_postprocess(Mesh *me_dst,
                                                 me_dst->face_normals(),
                                                 sharp_faces,
                                                 sharp_edges.span,
-                                                {loop_nors_dst, me_dst->totloop},
-                                                {custom_nors_dst, me_dst->totloop});
+                                                {loop_nors_dst, me_dst->corners_num},
+                                                {custom_nors_dst, me_dst->corners_num});
     sharp_edges.finish();
-    CustomData_free_layers(ldata_dst, CD_NORMAL, me_dst->totloop);
+    CustomData_free_layers(ldata_dst, CD_NORMAL, me_dst->corners_num);
   }
 }
 
@@ -864,6 +863,7 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
                                                  const int tolayers,
                                                  SpaceTransform *space_transform)
 {
+  using namespace blender;
   const CustomData *cd_src;
   CustomData *cd_dst;
 
@@ -927,7 +927,7 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
         CustomData_add_layer_named(&me_dst->vert_data,
                                    CD_PROP_FLOAT,
                                    CD_SET_DEFAULT,
-                                   me_dst->totvert,
+                                   me_dst->verts_num,
                                    "bevel_weight_vert");
       }
       data_transfer_layersmapping_add_item_cd(
@@ -938,7 +938,7 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
           mix_weights,
           CustomData_get_layer_named(&me_src->vert_data, CD_PROP_FLOAT, "bevel_weight_vert"),
           CustomData_get_layer_named_for_write(
-              &me_dst->vert_data, CD_PROP_FLOAT, "bevel_weight_vert", me_dst->totvert),
+              &me_dst->vert_data, CD_PROP_FLOAT, "bevel_weight_vert", me_dst->verts_num),
           interp,
           interp_data);
       return true;
@@ -972,7 +972,7 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
     if (r_map && cddata_type == CD_FAKE_SEAM) {
       if (!CustomData_has_layer_named(&me_dst->edge_data, CD_PROP_BOOL, ".uv_seam")) {
         CustomData_add_layer_named(
-            &me_dst->edge_data, CD_PROP_BOOL, CD_SET_DEFAULT, me_dst->totedge, ".uv_seam");
+            &me_dst->edge_data, CD_PROP_BOOL, CD_SET_DEFAULT, me_dst->edges_num, ".uv_seam");
       }
       data_transfer_layersmapping_add_item_cd(
           r_map,
@@ -982,7 +982,7 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
           mix_weights,
           CustomData_get_layer_named(&me_src->edge_data, CD_PROP_BOOL, ".uv_seam"),
           CustomData_get_layer_named_for_write(
-              &me_dst->edge_data, CD_PROP_BOOL, ".uv_seam", me_dst->totedge),
+              &me_dst->edge_data, CD_PROP_BOOL, ".uv_seam", me_dst->edges_num),
           interp,
           interp_data);
       return true;
@@ -990,7 +990,7 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
     if (r_map && cddata_type == CD_FAKE_SHARP) {
       if (!CustomData_has_layer_named(&me_dst->edge_data, CD_PROP_BOOL, "sharp_edge")) {
         CustomData_add_layer_named(
-            &me_dst->edge_data, CD_PROP_BOOL, CD_SET_DEFAULT, me_dst->totedge, "sharp_edge");
+            &me_dst->edge_data, CD_PROP_BOOL, CD_SET_DEFAULT, me_dst->edges_num, "sharp_edge");
       }
       data_transfer_layersmapping_add_item_cd(
           r_map,
@@ -1000,7 +1000,7 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
           mix_weights,
           CustomData_get_layer_named(&me_src->edge_data, CD_PROP_BOOL, "sharp_edge"),
           CustomData_get_layer_named_for_write(
-              &me_dst->edge_data, CD_PROP_BOOL, "sharp_edge", me_dst->totedge),
+              &me_dst->edge_data, CD_PROP_BOOL, "sharp_edge", me_dst->edges_num),
           interp,
           interp_data);
       return true;
@@ -1010,7 +1010,7 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
         CustomData_add_layer_named(&me_dst->edge_data,
                                    CD_PROP_FLOAT,
                                    CD_SET_DEFAULT,
-                                   me_dst->totedge,
+                                   me_dst->edges_num,
                                    "bevel_weight_edge");
       }
       data_transfer_layersmapping_add_item_cd(
@@ -1021,7 +1021,7 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
           mix_weights,
           CustomData_get_layer_named(&me_src->edge_data, CD_PROP_FLOAT, "bevel_weight_edge"),
           CustomData_get_layer_named_for_write(
-              &me_dst->edge_data, CD_PROP_FLOAT, "bevel_weight_edge", me_dst->totedge),
+              &me_dst->edge_data, CD_PROP_FLOAT, "bevel_weight_edge", me_dst->edges_num),
           interp,
           interp_data);
       return true;
@@ -1029,7 +1029,7 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
     if (r_map && cddata_type == CD_FAKE_CREASE) {
       if (!CustomData_get_layer_named(&me_dst->edge_data, CD_PROP_FLOAT, "crease_edge")) {
         CustomData_add_layer_named(
-            &me_dst->edge_data, CD_PROP_FLOAT, CD_SET_DEFAULT, me_dst->totedge, "crease_edge");
+            &me_dst->edge_data, CD_PROP_FLOAT, CD_SET_DEFAULT, me_dst->edges_num, "crease_edge");
       }
       data_transfer_layersmapping_add_item_cd(
           r_map,
@@ -1039,7 +1039,7 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
           mix_weights,
           CustomData_get_layer_named(&me_src->edge_data, CD_PROP_FLOAT, "crease_edge"),
           CustomData_get_layer_named_for_write(
-              &me_dst->edge_data, CD_PROP_FLOAT, "crease_edge", me_dst->totedge),
+              &me_dst->edge_data, CD_PROP_FLOAT, "crease_edge", me_dst->edges_num),
           interp,
           interp_data);
       return true;
@@ -1052,26 +1052,31 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
       cddata_type = CD_PROP_FLOAT2;
     }
     else if (cddata_type == CD_FAKE_LNOR) {
-      if (!CustomData_get_layer(&me_dst->loop_data, CD_PROP_FLOAT)) {
-        CustomData_add_layer(&me_dst->loop_data, CD_NORMAL, CD_SET_DEFAULT, me_dst->totloop);
+      /* Use #CD_NORMAL as a temporary storage for custom normals in 3D vector form.
+       * A post-process step will convert this layer to #CD_CUSTOMLOOPNORMAL. */
+      float3 *dst_data = static_cast<float3 *>(
+          CustomData_get_layer_for_write(&me_dst->corner_data, CD_NORMAL, me_dst->corners_num));
+      if (!dst_data) {
+        dst_data = static_cast<float3 *>(CustomData_add_layer(
+            &me_dst->corner_data, CD_NORMAL, CD_SET_DEFAULT, me_dst->corners_num));
       }
+      MutableSpan(dst_data, me_dst->corners_num).copy_from(me_dst->corner_normals());
       /* Post-process will convert it back to CD_CUSTOMLOOPNORMAL. */
-      data_transfer_layersmapping_add_item_cd(
-          r_map,
-          CD_NORMAL,
-          mix_mode,
-          mix_factor,
-          mix_weights,
-          me_src->corner_normals().data(),
-          CustomData_get_layer_for_write(&me_dst->loop_data, CD_NORMAL, me_dst->totloop),
-          customdata_data_transfer_interp_normal_normals,
-          space_transform);
+      data_transfer_layersmapping_add_item_cd(r_map,
+                                              CD_NORMAL,
+                                              mix_mode,
+                                              mix_factor,
+                                              mix_weights,
+                                              me_src->corner_normals().data(),
+                                              dst_data,
+                                              customdata_data_transfer_interp_normal_normals,
+                                              space_transform);
       return true;
     }
 
     if (!(cddata_type & CD_FAKE)) {
-      cd_src = &me_src->loop_data;
-      cd_dst = &me_dst->loop_data;
+      cd_src = &me_src->corner_data;
+      cd_dst = &me_dst->corner_data;
 
       if (!data_transfer_layersmapping_cdlayers(r_map,
                                                 eCustomDataType(cddata_type),
@@ -1196,7 +1201,7 @@ void BKE_object_data_transfer_layout(Depsgraph *depsgraph,
     }
 
     if (DT_DATATYPE_IS_VERT(dtdata_type)) {
-      const int num_elem_dst = me_dst->totvert;
+      const int num_elem_dst = me_dst->verts_num;
 
       data_transfer_layersmapping_generate(nullptr,
                                            ob_src,
@@ -1224,7 +1229,7 @@ void BKE_object_data_transfer_layout(Depsgraph *depsgraph,
       }
     }
     if (DT_DATATYPE_IS_EDGE(dtdata_type)) {
-      const int num_elem_dst = me_dst->totedge;
+      const int num_elem_dst = me_dst->edges_num;
 
       data_transfer_layersmapping_generate(nullptr,
                                            ob_src,
@@ -1244,7 +1249,7 @@ void BKE_object_data_transfer_layout(Depsgraph *depsgraph,
                                            nullptr);
     }
     if (DT_DATATYPE_IS_LOOP(dtdata_type)) {
-      const int num_elem_dst = me_dst->totloop;
+      const int num_elem_dst = me_dst->corners_num;
 
       data_transfer_layersmapping_generate(nullptr,
                                            ob_src,
@@ -1379,7 +1384,7 @@ bool BKE_object_data_transfer_ex(Depsgraph *depsgraph,
 
     BKE_mesh_remap_find_best_match_from_mesh(
         reinterpret_cast<const float(*)[3]>(me_dst->vert_positions().data()),
-        me_dst->totvert,
+        me_dst->verts_num,
         me_src,
         space_transform);
   }
@@ -1408,10 +1413,10 @@ bool BKE_object_data_transfer_ex(Depsgraph *depsgraph,
 
     if (DT_DATATYPE_IS_VERT(dtdata_type)) {
       blender::MutableSpan<blender::float3> positions_dst = me_dst->vert_positions_for_write();
-      const int num_verts_dst = me_dst->totvert;
+      const int num_verts_dst = me_dst->verts_num;
 
       if (!geom_map_init[VDATA]) {
-        const int num_verts_src = me_src->totvert;
+        const int num_verts_src = me_src->verts_num;
 
         if ((map_vert_mode == MREMAP_MODE_TOPOLOGY) && (num_verts_dst != num_verts_src)) {
           BKE_report(reports,
@@ -1420,7 +1425,7 @@ bool BKE_object_data_transfer_ex(Depsgraph *depsgraph,
                      "'Topology' mapping cannot be used in this case");
           continue;
         }
-        if ((map_vert_mode & MREMAP_USE_EDGE) && (me_src->totedge == 0)) {
+        if ((map_vert_mode & MREMAP_USE_EDGE) && (me_src->edges_num == 0)) {
           BKE_report(reports,
                      RPT_ERROR,
                      "Source mesh does not have any edges, "
@@ -1491,11 +1496,11 @@ bool BKE_object_data_transfer_ex(Depsgraph *depsgraph,
     if (DT_DATATYPE_IS_EDGE(dtdata_type)) {
       blender::MutableSpan<blender::float3> positions_dst = me_dst->vert_positions_for_write();
 
-      const int num_verts_dst = me_dst->totvert;
+      const int num_verts_dst = me_dst->verts_num;
       const blender::Span<blender::int2> edges_dst = me_dst->edges();
 
       if (!geom_map_init[EDATA]) {
-        const int num_edges_src = me_src->totedge;
+        const int num_edges_src = me_src->edges_num;
 
         if ((map_edge_mode == MREMAP_MODE_TOPOLOGY) && (edges_dst.size() != num_edges_src)) {
           BKE_report(reports,
@@ -1574,14 +1579,14 @@ bool BKE_object_data_transfer_ex(Depsgraph *depsgraph,
     }
     if (DT_DATATYPE_IS_LOOP(dtdata_type)) {
       const blender::Span<blender::float3> positions_dst = me_dst->vert_positions();
-      const int num_verts_dst = me_dst->totvert;
+      const int num_verts_dst = me_dst->verts_num;
       const blender::OffsetIndices faces_dst = me_dst->faces();
       const blender::Span<int> corner_verts_dst = me_dst->corner_verts();
 
       MeshRemapIslandsCalc island_callback = data_transfer_get_loop_islands_generator(cddata_type);
 
       if (!geom_map_init[LDATA]) {
-        const int num_loops_src = me_src->totloop;
+        const int num_loops_src = me_src->corners_num;
 
         if ((map_loop_mode == MREMAP_MODE_TOPOLOGY) && (corner_verts_dst.size() != num_loops_src))
         {
@@ -1591,7 +1596,7 @@ bool BKE_object_data_transfer_ex(Depsgraph *depsgraph,
                      "'Topology' mapping cannot be used in this case");
           continue;
         }
-        if ((map_loop_mode & MREMAP_USE_EDGE) && (me_src->totedge == 0)) {
+        if ((map_loop_mode & MREMAP_USE_EDGE) && (me_src->edges_num == 0)) {
           BKE_report(reports,
                      RPT_ERROR,
                      "Source mesh does not have any edges, "
@@ -1664,7 +1669,7 @@ bool BKE_object_data_transfer_ex(Depsgraph *depsgraph,
     }
     if (DT_DATATYPE_IS_FACE(dtdata_type)) {
       const blender::Span<blender::float3> positions_dst = me_dst->vert_positions();
-      const int num_verts_dst = me_dst->totvert;
+      const int num_verts_dst = me_dst->verts_num;
       const blender::OffsetIndices faces_dst = me_dst->faces();
       const blender::Span<int> corner_verts_dst = me_dst->corner_verts();
 
@@ -1678,7 +1683,7 @@ bool BKE_object_data_transfer_ex(Depsgraph *depsgraph,
                      "'Topology' mapping cannot be used in this case");
           continue;
         }
-        if ((map_face_mode & MREMAP_USE_EDGE) && (me_src->totedge == 0)) {
+        if ((map_face_mode & MREMAP_USE_EDGE) && (me_src->edges_num == 0)) {
           BKE_report(reports,
                      RPT_ERROR,
                      "Source mesh does not have any edges, "

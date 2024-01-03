@@ -218,6 +218,15 @@ struct MSLUniform {
   }
 };
 
+struct MSLConstant {
+  shader::Type type;
+  std::string name;
+
+  MSLConstant(shader::Type const_type, std::string const_name) : type(const_type), name(const_name)
+  {
+  }
+};
+
 struct MSLBufferBlock {
   std::string type_name;
   std::string name;
@@ -401,6 +410,8 @@ class MSLGeneratorInterface {
   blender::Vector<MSLTextureResource> texture_samplers;
   blender::Vector<MSLVertexInputAttribute> vertex_input_attributes;
   blender::Vector<MSLVertexOutputAttribute> vertex_output_varyings;
+  /* Specialization Constants. */
+  blender::Vector<MSLConstant> constants;
   /* Fragment tile inputs. */
   blender::Vector<MSLFragmentTileInputAttribute> fragment_tile_inputs;
   /* Should match vertex outputs, but defined separately as

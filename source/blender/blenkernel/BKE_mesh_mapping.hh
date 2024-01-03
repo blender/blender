@@ -121,7 +121,7 @@ void BKE_mesh_vert_corner_tri_map_create(MeshElemMap **r_map,
                                          const blender::int3 *corner_tris,
                                          int tottris,
                                          const int *corner_verts,
-                                         int totloop);
+                                         int corners_num);
 /**
  * This function creates a map so the source-data (vert/edge/loop/face)
  * can loop over the destination data (using the destination arrays origindex).
@@ -198,7 +198,7 @@ using MeshRemapIslandsCalc = bool (*)(const float (*vert_positions)[3],
                                       blender::OffsetIndices<int> faces,
                                       const int *corner_verts,
                                       const int *corner_edges,
-                                      int totloop,
+                                      int corners_num,
                                       MeshIslandStore *r_island_store);
 
 /* Above vert/UV mapping stuff does not do what we need here, but does things we do not need here.
@@ -216,7 +216,7 @@ bool BKE_mesh_calc_islands_loop_face_edgeseam(const float (*vert_positions)[3],
                                               blender::OffsetIndices<int> faces,
                                               const int *corner_verts,
                                               const int *corner_edges,
-                                              int totloop,
+                                              int corners_num,
                                               MeshIslandStore *r_island_store);
 
 /**
@@ -240,7 +240,7 @@ bool BKE_mesh_calc_islands_loop_face_uvmap(float (*vert_positions)[3],
                                            blender::OffsetIndices<int> faces,
                                            const int *corner_verts,
                                            const int *corner_edges,
-                                           int totloop,
+                                           int corners_num,
                                            const float (*luvs)[2],
                                            MeshIslandStore *r_island_store);
 

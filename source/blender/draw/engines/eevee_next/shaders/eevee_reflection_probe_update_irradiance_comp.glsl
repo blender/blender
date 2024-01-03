@@ -56,7 +56,7 @@ void main()
   cooefs[store_index][3] = cooef.L1.Mp1;
 
   barrier();
-  if (gl_LocalInvocationID.x == 0) {
+  if (gl_LocalInvocationIndex == 0u) {
     /* Join results */
     vec4 result[4];
     result[0] = vec4(0.0);

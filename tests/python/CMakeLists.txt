@@ -380,6 +380,11 @@ add_blender_test(
 # ------------------------------------------------------------------------------
 # ANIMATION TESTS
 add_blender_test(
+  bl_animation_armature
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_animation_armature.py
+)
+
+add_blender_test(
   bl_animation_fcurves
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_animation_fcurves.py
   --

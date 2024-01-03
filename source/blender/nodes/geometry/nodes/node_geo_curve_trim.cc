@@ -155,7 +155,7 @@ static void geometry_set_curve_trim(GeometrySet &geometry_set,
   if (geometry_set.has_curves()) {
     const Curves &src_curves_id = *geometry_set.get_curves();
     const bke::CurvesGeometry &src_curves = src_curves_id.geometry.wrap();
-    const bke::CurvesFieldContext field_context{src_curves, ATTR_DOMAIN_CURVE};
+    const bke::CurvesFieldContext field_context{src_curves, AttrDomain::Curve};
     bke::CurvesGeometry dst_curves;
     if (trim_curves(src_curves,
                     mode,
@@ -182,7 +182,7 @@ static void geometry_set_curve_trim(GeometrySet &geometry_set,
       }
       const bke::CurvesGeometry &src_curves = drawing->strokes();
       const bke::GreasePencilLayerFieldContext field_context{
-          grease_pencil, ATTR_DOMAIN_CURVE, layer_index};
+          grease_pencil, AttrDomain::Curve, layer_index};
       bke::CurvesGeometry dst_curves;
       if (trim_curves(src_curves,
                       mode,

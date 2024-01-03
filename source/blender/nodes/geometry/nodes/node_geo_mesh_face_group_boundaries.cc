@@ -4,9 +4,6 @@
 
 #include <atomic>
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-
 #include "BKE_mesh.hh"
 
 #include "node_geometry_util.hh"
@@ -39,10 +36,10 @@ class BoundaryFieldInput final : public bke::MeshFieldInput {
   }
 
   GVArray get_varray_for_context(const Mesh &mesh,
-                                 const eAttrDomain domain,
+                                 const AttrDomain domain,
                                  const IndexMask & /*mask*/) const final
   {
-    const bke::MeshFieldContext face_context{mesh, ATTR_DOMAIN_FACE};
+    const bke::MeshFieldContext face_context{mesh, AttrDomain::Face};
     FieldEvaluator face_evaluator{face_context, mesh.faces_num};
     face_evaluator.add(face_set_);
     face_evaluator.evaluate();
@@ -51,9 +48,9 @@ class BoundaryFieldInput final : public bke::MeshFieldInput {
       return {};
     }
 
-    Array<bool> boundary(mesh.totedge, false);
+    Array<bool> boundary(mesh.edges_num, false);
 
-    Array<std::atomic<int>> edge_states(mesh.totedge);
+    Array<std::atomic<int>> edge_states(mesh.edges_num);
     /* State is index of face or one of invalid values: */
     static constexpr int no_face_yet = -1;
     static constexpr int is_boundary = -2;
@@ -103,7 +100,7 @@ class BoundaryFieldInput final : public bke::MeshFieldInput {
       }
     });
     return mesh.attributes().adapt_domain<bool>(
-        VArray<bool>::ForContainer(std::move(boundary)), ATTR_DOMAIN_EDGE, domain);
+        VArray<bool>::ForContainer(std::move(boundary)), AttrDomain::Edge, domain);
   }
 
   void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override
@@ -111,9 +108,9 @@ class BoundaryFieldInput final : public bke::MeshFieldInput {
     face_set_.node().for_each_field_input_recursive(fn);
   }
 
-  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
+  std::optional<AttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
   {
-    return ATTR_DOMAIN_EDGE;
+    return AttrDomain::Edge;
   }
 };
 

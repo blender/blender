@@ -33,8 +33,6 @@
 #include "BLI_vector_list.hh"
 #include "BLI_virtual_array.hh"
 
-#include "DNA_meshdata_types.h"
-
 namespace blender::bke::pbvh::uv_islands {
 
 struct MeshEdge;

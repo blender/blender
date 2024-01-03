@@ -907,8 +907,8 @@ static Mesh *subdivide_base(const Mesh *orig)
   const blender::Span<blender::float3> orig_vert_positions = orig->vert_positions();
   const blender::Span<blender::int2> orig_edges = orig->edges();
   const MDeformVert *origdvert = orig->deform_verts().data();
-  int orig_vert_num = orig->totvert;
-  int orig_edge_num = orig->totedge;
+  int orig_vert_num = orig->verts_num;
+  int orig_edge_num = orig->edges_num;
 
   /* Get degree of all vertices */
   blender::Array<int> degree(orig_vert_num, 0);
@@ -929,7 +929,7 @@ static Mesh *subdivide_base(const Mesh *orig)
   blender::MutableSpan<blender::float3> out_vert_positions = result->vert_positions_for_write();
   blender::MutableSpan<blender::int2> result_edges = result->edges_for_write();
   MVertSkin *outnode = static_cast<MVertSkin *>(
-      CustomData_get_layer_for_write(&result->vert_data, CD_MVERT_SKIN, result->totvert));
+      CustomData_get_layer_for_write(&result->vert_data, CD_MVERT_SKIN, result->verts_num));
   MDeformVert *outdvert = nullptr;
   if (origdvert) {
     outdvert = result->deform_verts_for_write().data();
@@ -1921,7 +1921,7 @@ static Mesh *base_skin(Mesh *origmesh, SkinModifierData *smd, eSkinErrorFlag *r_
   const blender::Span<blender::float3> vert_positions = origmesh->vert_positions();
   const blender::Span<blender::int2> edges = origmesh->edges();
   const MDeformVert *dvert = origmesh->deform_verts().data();
-  const int verts_num = origmesh->totvert;
+  const int verts_num = origmesh->verts_num;
 
   blender::Array<int> vert_to_edge_offsets;
   blender::Array<int> vert_to_edge_indices;

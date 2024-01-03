@@ -19,8 +19,6 @@
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_userdef_types.h"
 
@@ -167,7 +165,7 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
   }
   else {
     const VArray<bool> sharp_face = *mesh->attributes().lookup_or_default<bool>(
-        "sharp_face", ATTR_DOMAIN_FACE, false);
+        "sharp_face", bke::AttrDomain::Face, false);
     bke::mesh_smooth_set(*new_mesh, !sharp_face[0]);
   }
 
@@ -679,11 +677,11 @@ static bool mesh_is_manifold_consistent(Mesh *mesh)
   const Span<int> corner_edges = mesh->corner_edges();
 
   bool is_manifold_consistent = true;
-  char *edge_faces = (char *)MEM_callocN(mesh->totedge * sizeof(char), "remesh_manifold_check");
+  char *edge_faces = (char *)MEM_callocN(mesh->edges_num * sizeof(char), "remesh_manifold_check");
   int *edge_vert = (int *)MEM_malloc_arrayN(
-      mesh->totedge, sizeof(uint), "remesh_consistent_check");
+      mesh->edges_num, sizeof(uint), "remesh_consistent_check");
 
-  for (uint i = 0; i < mesh->totedge; i++) {
+  for (uint i = 0; i < mesh->edges_num; i++) {
     edge_vert[i] = -1;
   }
 

@@ -149,7 +149,7 @@ typedef struct bNodeSocket {
   short stack_index;
   char display_shape;
 
-  /* #eAttrDomain used when the geometry nodes modifier creates an attribute for a group
+  /* #AttrDomain used when the geometry nodes modifier creates an attribute for a group
    * output. */
   char attribute_domain;
 
@@ -1515,7 +1515,7 @@ typedef struct NodeRandomValue {
 typedef struct NodeAccumulateField {
   /** #eCustomDataType. */
   uint8_t data_type;
-  /** #eAttrDomain. */
+  /** #AttrDomain. */
   uint8_t domain;
 } NodeAccumulateField;
 
@@ -1696,7 +1696,7 @@ typedef struct NodeGeometryCurveSample {
 typedef struct NodeGeometryTransferAttribute {
   /** #eCustomDataType. */
   int8_t data_type;
-  /** #eAttrDomain. */
+  /** #AttrDomain. */
   int8_t domain;
   /** #GeometryNodeAttributeTransferMode. */
   uint8_t mode;
@@ -1706,7 +1706,7 @@ typedef struct NodeGeometryTransferAttribute {
 typedef struct NodeGeometrySampleIndex {
   /** #eCustomDataType. */
   int8_t data_type;
-  /** #eAttrDomain. */
+  /** #AttrDomain. */
   int8_t domain;
   int8_t clamp;
   char _pad[1];
@@ -1732,14 +1732,14 @@ typedef struct NodeGeometryMeshToPoints {
 typedef struct NodeGeometryAttributeCapture {
   /** #eCustomDataType. */
   int8_t data_type;
-  /** #eAttrDomain. */
+  /** #AttrDomain. */
   int8_t domain;
 } NodeGeometryAttributeCapture;
 
 typedef struct NodeGeometryStoreNamedAttribute {
   /** #eCustomDataType. */
   int8_t data_type;
-  /** #eAttrDomain. */
+  /** #AttrDomain. */
   int8_t domain;
 } NodeGeometryStoreNamedAttribute;
 
@@ -1760,19 +1760,19 @@ typedef struct NodeGeometryStringToCurves {
 } NodeGeometryStringToCurves;
 
 typedef struct NodeGeometryDeleteGeometry {
-  /** #eAttrDomain. */
+  /** #AttrDomain. */
   int8_t domain;
   /** #GeometryNodeDeleteGeometryMode. */
   int8_t mode;
 } NodeGeometryDeleteGeometry;
 
 typedef struct NodeGeometryDuplicateElements {
-  /** #eAttrDomain. */
+  /** #AttrDomain. */
   int8_t domain;
 } NodeGeometryDuplicateElements;
 
 typedef struct NodeGeometrySeparateGeometry {
-  /** #eAttrDomain. */
+  /** #AttrDomain. */
   int8_t domain;
 } NodeGeometrySeparateGeometry;
 
@@ -1784,7 +1784,7 @@ typedef struct NodeGeometryImageTexture {
 typedef struct NodeGeometryViewer {
   /** #eCustomDataType. */
   int8_t data_type;
-  /** #eAttrDomain. */
+  /** #AttrDomain. */
   int8_t domain;
 } NodeGeometryViewer;
 
@@ -1797,7 +1797,7 @@ typedef struct NodeSimulationItem {
   char *name;
   /** #eNodeSocketDatatype. */
   short socket_type;
-  /** #eAttrDomain. */
+  /** #AttrDomain. */
   short attribute_domain;
   /**
    * Generates unique identifier for sockets which stays the same even when the item order or

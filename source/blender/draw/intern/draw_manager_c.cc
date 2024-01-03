@@ -20,7 +20,6 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_colortools.h"
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
 #include "BKE_curves.h"
@@ -47,7 +46,6 @@
 
 #include "DNA_camera_types.h"
 #include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"

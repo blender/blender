@@ -408,6 +408,12 @@ ccl_device_inline float3 safe_normalize(const float3 a)
   return (t != 0.0f) ? a * (1.0f / t) : a;
 }
 
+ccl_device_inline float3 safe_normalize_fallback(const float3 a, const float3 fallback)
+{
+  float t = len(a);
+  return (t != 0.0f) ? a * (1.0f / t) : fallback;
+}
+
 ccl_device_inline float3 safe_normalize_len(const float3 a, ccl_private float *t)
 {
   *t = len(a);

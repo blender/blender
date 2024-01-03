@@ -39,7 +39,7 @@
 
 #  include "BLI_threads.h"
 
-#  include "BKE_colorband.h"
+#  include "BKE_colorband.hh"
 #  include "BKE_context.hh"
 #  include "BKE_particle.h"
 

@@ -10,6 +10,7 @@
 #include "BLI_listbase.h"
 
 #include "BKE_attribute.hh"
+#include "BKE_customdata.hh"
 #include "BKE_geometry_fields.hh"
 #include "BKE_mesh.hh"
 
@@ -77,13 +78,13 @@ static Mesh *create_mesh_no_attributes(const Mesh &params_mesh,
                                        const int corners_num)
 {
   Mesh *mesh = BKE_mesh_new_nomain(0, 0, faces_num, 0);
-  mesh->totvert = verts_num;
-  mesh->totedge = edges_num;
-  mesh->totloop = corners_num;
+  mesh->verts_num = verts_num;
+  mesh->edges_num = edges_num;
+  mesh->corners_num = corners_num;
   CustomData_free_layer_named(&mesh->vert_data, "position", 0);
   CustomData_free_layer_named(&mesh->edge_data, ".edge_verts", 0);
-  CustomData_free_layer_named(&mesh->loop_data, ".corner_vert", 0);
-  CustomData_free_layer_named(&mesh->loop_data, ".corner_edge", 0);
+  CustomData_free_layer_named(&mesh->corner_data, ".corner_vert", 0);
+  CustomData_free_layer_named(&mesh->corner_data, ".corner_edge", 0);
   BKE_mesh_copy_parameters_for_eval(mesh, &params_mesh);
   return mesh;
 }
@@ -137,7 +138,7 @@ static void gather_vert_attributes(const Mesh &mesh_src,
       },
       [&]() {
         bke::gather_attributes(mesh_src.attributes(),
-                               ATTR_DOMAIN_POINT,
+                               bke::AttrDomain::Point,
                                propagation_info,
                                vertex_group_names,
                                vert_mask,
@@ -148,7 +149,7 @@ static void gather_vert_attributes(const Mesh &mesh_src,
 std::optional<Mesh *> mesh_copy_selection(
     const Mesh &src_mesh,
     const VArray<bool> &selection,
-    const eAttrDomain selection_domain,
+    const bke::AttrDomain selection_domain,
     const bke::AnonymousAttributePropagationInfo &propagation_info)
 {
   const Span<int2> src_edges = src_mesh.edges();
@@ -169,10 +170,10 @@ std::optional<Mesh *> mesh_copy_selection(
   IndexMask edge_mask;
   IndexMask face_mask;
   switch (selection_domain) {
-    case ATTR_DOMAIN_POINT: {
+    case bke::AttrDomain::Point: {
       const VArraySpan<bool> span(selection);
       threading::parallel_invoke(
-          src_mesh.totvert > 1024,
+          src_mesh.verts_num > 1024,
           [&]() { vert_mask = IndexMask::from_bools(span, memory.local()); },
           [&]() { edge_mask = edge_selection_from_vert(src_edges, span, memory.local()); },
           [&]() {
@@ -181,14 +182,14 @@ std::optional<Mesh *> mesh_copy_selection(
           });
       break;
     }
-    case ATTR_DOMAIN_EDGE: {
+    case bke::AttrDomain::Edge: {
       const VArraySpan<bool> span(selection);
       threading::parallel_invoke(
           src_edges.size() > 1024,
           [&]() {
             edge_mask = IndexMask::from_bools(span, memory.local());
             vert_mask = vert_selection_from_edge(
-                src_edges, edge_mask, src_mesh.totvert, memory.local());
+                src_edges, edge_mask, src_mesh.verts_num, memory.local());
           },
           [&]() {
             face_mask = face_selection_from_edge(
@@ -196,18 +197,18 @@ std::optional<Mesh *> mesh_copy_selection(
           });
       break;
     }
-    case ATTR_DOMAIN_FACE: {
+    case bke::AttrDomain::Face: {
       const VArraySpan<bool> span(selection);
       face_mask = IndexMask::from_bools(span, memory.local());
       threading::parallel_invoke(
           face_mask.size() > 1024,
           [&]() {
             vert_mask = vert_selection_from_face(
-                src_faces, face_mask, src_corner_verts, src_mesh.totvert, memory.local());
+                src_faces, face_mask, src_corner_verts, src_mesh.verts_num, memory.local());
           },
           [&]() {
             edge_mask = edge_selection_from_face(
-                src_faces, face_mask, src_corner_edges, src_mesh.totedge, memory.local());
+                src_faces, face_mask, src_corner_edges, src_mesh.edges_num, memory.local());
           });
       break;
     }
@@ -219,8 +220,8 @@ std::optional<Mesh *> mesh_copy_selection(
   if (vert_mask.is_empty()) {
     return nullptr;
   }
-  const bool same_verts = vert_mask.size() == src_mesh.totvert;
-  const bool same_edges = edge_mask.size() == src_mesh.totedge;
+  const bool same_verts = vert_mask.size() == src_mesh.verts_num;
+  const bool same_edges = edge_mask.size() == src_mesh.edges_num;
   const bool same_faces = face_mask.size() == src_mesh.faces_num;
   if (same_verts && same_edges && same_faces) {
     return std::nullopt;
@@ -229,14 +230,14 @@ std::optional<Mesh *> mesh_copy_selection(
   Mesh *dst_mesh = create_mesh_no_attributes(
       src_mesh, vert_mask.size(), edge_mask.size(), face_mask.size(), 0);
   bke::MutableAttributeAccessor dst_attributes = dst_mesh->attributes_for_write();
-  dst_attributes.add<int2>(".edge_verts", ATTR_DOMAIN_EDGE, bke::AttributeInitConstruct());
+  dst_attributes.add<int2>(".edge_verts", bke::AttrDomain::Edge, bke::AttributeInitConstruct());
   MutableSpan<int2> dst_edges = dst_mesh->edges_for_write();
 
   const OffsetIndices<int> dst_faces = offset_indices::gather_selected_offsets(
       src_faces, face_mask, dst_mesh->face_offsets_for_write());
-  dst_mesh->totloop = dst_faces.total_size();
-  dst_attributes.add<int>(".corner_vert", ATTR_DOMAIN_CORNER, bke::AttributeInitConstruct());
-  dst_attributes.add<int>(".corner_edge", ATTR_DOMAIN_CORNER, bke::AttributeInitConstruct());
+  dst_mesh->corners_num = dst_faces.total_size();
+  dst_attributes.add<int>(".corner_vert", bke::AttrDomain::Corner, bke::AttributeInitConstruct());
+  dst_attributes.add<int>(".corner_edge", bke::AttrDomain::Corner, bke::AttributeInitConstruct());
   MutableSpan<int> dst_corner_verts = dst_mesh->corner_verts_for_write();
   MutableSpan<int> dst_corner_edges = dst_mesh->corner_edges_for_write();
 
@@ -245,7 +246,7 @@ std::optional<Mesh *> mesh_copy_selection(
       [&]() {
         remap_verts(src_faces,
                     dst_faces,
-                    src_mesh.totvert,
+                    src_mesh.verts_num,
                     vert_mask,
                     edge_mask,
                     face_mask,
@@ -266,15 +267,19 @@ std::optional<Mesh *> mesh_copy_selection(
       [&]() {
         gather_vert_attributes(src_mesh, propagation_info, vert_mask, *dst_mesh);
         bke::gather_attributes(src_attributes,
-                               ATTR_DOMAIN_EDGE,
+                               bke::AttrDomain::Edge,
                                propagation_info,
                                {".edge_verts"},
                                edge_mask,
                                dst_attributes);
-        bke::gather_attributes(
-            src_attributes, ATTR_DOMAIN_FACE, propagation_info, {}, face_mask, dst_attributes);
+        bke::gather_attributes(src_attributes,
+                               bke::AttrDomain::Face,
+                               propagation_info,
+                               {},
+                               face_mask,
+                               dst_attributes);
         bke::gather_attributes_group_to_group(src_attributes,
-                                              ATTR_DOMAIN_CORNER,
+                                              bke::AttrDomain::Corner,
                                               propagation_info,
                                               {".corner_edge", ".corner_vert"},
                                               src_faces,
@@ -283,10 +288,10 @@ std::optional<Mesh *> mesh_copy_selection(
                                               dst_attributes);
       });
 
-  if (selection_domain == ATTR_DOMAIN_EDGE) {
+  if (selection_domain == bke::AttrDomain::Edge) {
     copy_loose_vert_hint(src_mesh, *dst_mesh);
   }
-  else if (selection_domain == ATTR_DOMAIN_FACE) {
+  else if (selection_domain == bke::AttrDomain::Face) {
     copy_loose_vert_hint(src_mesh, *dst_mesh);
     copy_loose_edge_hint(src_mesh, *dst_mesh);
   }
@@ -298,7 +303,7 @@ std::optional<Mesh *> mesh_copy_selection(
 std::optional<Mesh *> mesh_copy_selection_keep_verts(
     const Mesh &src_mesh,
     const VArray<bool> &selection,
-    const eAttrDomain selection_domain,
+    const bke::AttrDomain selection_domain,
     const bke::AnonymousAttributePropagationInfo &propagation_info)
 {
   const Span<int2> src_edges = src_mesh.edges();
@@ -315,7 +320,7 @@ std::optional<Mesh *> mesh_copy_selection_keep_verts(
   IndexMask edge_mask;
   IndexMask face_mask;
   switch (selection_domain) {
-    case ATTR_DOMAIN_POINT: {
+    case bke::AttrDomain::Point: {
       const VArraySpan<bool> span(selection);
       threading::parallel_invoke(
           src_edges.size() > 1024,
@@ -326,7 +331,7 @@ std::optional<Mesh *> mesh_copy_selection_keep_verts(
           });
       break;
     }
-    case ATTR_DOMAIN_EDGE: {
+    case bke::AttrDomain::Edge: {
       const VArraySpan<bool> span(selection);
       threading::parallel_invoke(
           src_edges.size() > 1024,
@@ -337,7 +342,7 @@ std::optional<Mesh *> mesh_copy_selection_keep_verts(
           });
       break;
     }
-    case ATTR_DOMAIN_FACE: {
+    case bke::AttrDomain::Face: {
       const VArraySpan<bool> span(selection);
       face_mask = IndexMask::from_bools(span, memory.local());
       edge_mask = edge_selection_from_face(
@@ -349,20 +354,20 @@ std::optional<Mesh *> mesh_copy_selection_keep_verts(
       break;
   }
 
-  const bool same_edges = edge_mask.size() == src_mesh.totedge;
+  const bool same_edges = edge_mask.size() == src_mesh.edges_num;
   const bool same_faces = face_mask.size() == src_mesh.faces_num;
   if (same_edges && same_faces) {
     return std::nullopt;
   }
 
   Mesh *dst_mesh = create_mesh_no_attributes(
-      src_mesh, src_mesh.totvert, edge_mask.size(), face_mask.size(), 0);
+      src_mesh, src_mesh.verts_num, edge_mask.size(), face_mask.size(), 0);
   bke::MutableAttributeAccessor dst_attributes = dst_mesh->attributes_for_write();
 
   const OffsetIndices<int> dst_faces = offset_indices::gather_selected_offsets(
       src_faces, face_mask, dst_mesh->face_offsets_for_write());
-  dst_mesh->totloop = dst_faces.total_size();
-  dst_attributes.add<int>(".corner_edge", ATTR_DOMAIN_CORNER, bke::AttributeInitConstruct());
+  dst_mesh->corners_num = dst_faces.total_size();
+  dst_attributes.add<int>(".corner_edge", bke::AttrDomain::Corner, bke::AttributeInitConstruct());
   MutableSpan<int> dst_corner_edges = dst_mesh->corner_edges_for_write();
 
   threading::parallel_invoke(
@@ -377,13 +382,21 @@ std::optional<Mesh *> mesh_copy_selection_keep_verts(
       },
       [&]() {
         bke::copy_attributes(
-            src_attributes, ATTR_DOMAIN_POINT, propagation_info, {}, dst_attributes);
-        bke::gather_attributes(
-            src_attributes, ATTR_DOMAIN_EDGE, propagation_info, {}, edge_mask, dst_attributes);
-        bke::gather_attributes(
-            src_attributes, ATTR_DOMAIN_FACE, propagation_info, {}, face_mask, dst_attributes);
+            src_attributes, bke::AttrDomain::Point, propagation_info, {}, dst_attributes);
+        bke::gather_attributes(src_attributes,
+                               bke::AttrDomain::Edge,
+                               propagation_info,
+                               {},
+                               edge_mask,
+                               dst_attributes);
+        bke::gather_attributes(src_attributes,
+                               bke::AttrDomain::Face,
+                               propagation_info,
+                               {},
+                               face_mask,
+                               dst_attributes);
         bke::gather_attributes_group_to_group(src_attributes,
-                                              ATTR_DOMAIN_CORNER,
+                                              bke::AttrDomain::Corner,
                                               propagation_info,
                                               {".corner_edge"},
                                               src_faces,
@@ -394,7 +407,7 @@ std::optional<Mesh *> mesh_copy_selection_keep_verts(
 
   /* Positions are not changed by the operation, so the bounds are the same. */
   dst_mesh->runtime->bounds_cache = src_mesh.runtime->bounds_cache;
-  if (selection_domain == ATTR_DOMAIN_FACE) {
+  if (selection_domain == bke::AttrDomain::Face) {
     copy_loose_edge_hint(src_mesh, *dst_mesh);
   }
   copy_overlapping_hint(src_mesh, *dst_mesh);
@@ -405,7 +418,7 @@ std::optional<Mesh *> mesh_copy_selection_keep_verts(
 std::optional<Mesh *> mesh_copy_selection_keep_edges(
     const Mesh &src_mesh,
     const VArray<bool> &selection,
-    const eAttrDomain selection_domain,
+    const bke::AttrDomain selection_domain,
     const bke::AnonymousAttributePropagationInfo &propagation_info)
 {
   const OffsetIndices src_faces = src_mesh.faces();
@@ -418,15 +431,15 @@ std::optional<Mesh *> mesh_copy_selection_keep_edges(
   IndexMaskMemory memory;
   IndexMask face_mask;
   switch (selection_domain) {
-    case ATTR_DOMAIN_POINT:
+    case bke::AttrDomain::Point:
       face_mask = face_selection_from_vert(
           src_faces, src_mesh.corner_verts(), VArraySpan(selection), memory);
       break;
-    case ATTR_DOMAIN_EDGE:
+    case bke::AttrDomain::Edge:
       face_mask = face_selection_from_edge(
           src_faces, src_mesh.corner_edges(), VArraySpan(selection), memory);
       break;
-    case ATTR_DOMAIN_FACE:
+    case bke::AttrDomain::Face:
       face_mask = IndexMask::from_bools(selection, memory);
       break;
     default:
@@ -440,21 +453,23 @@ std::optional<Mesh *> mesh_copy_selection_keep_edges(
   }
 
   Mesh *dst_mesh = create_mesh_no_attributes(
-      src_mesh, src_mesh.totvert, src_mesh.totedge, face_mask.size(), 0);
+      src_mesh, src_mesh.verts_num, src_mesh.edges_num, face_mask.size(), 0);
   bke::MutableAttributeAccessor dst_attributes = dst_mesh->attributes_for_write();
 
   const OffsetIndices<int> dst_faces = offset_indices::gather_selected_offsets(
       src_faces, face_mask, dst_mesh->face_offsets_for_write());
-  dst_mesh->totloop = dst_faces.total_size();
-  dst_attributes.add<int>(".corner_vert", ATTR_DOMAIN_CORNER, bke::AttributeInitConstruct());
-  dst_attributes.add<int>(".corner_edge", ATTR_DOMAIN_CORNER, bke::AttributeInitConstruct());
+  dst_mesh->corners_num = dst_faces.total_size();
+  dst_attributes.add<int>(".corner_vert", bke::AttrDomain::Corner, bke::AttributeInitConstruct());
+  dst_attributes.add<int>(".corner_edge", bke::AttrDomain::Corner, bke::AttributeInitConstruct());
 
-  bke::copy_attributes(src_attributes, ATTR_DOMAIN_POINT, propagation_info, {}, dst_attributes);
-  bke::copy_attributes(src_attributes, ATTR_DOMAIN_EDGE, propagation_info, {}, dst_attributes);
+  bke::copy_attributes(
+      src_attributes, bke::AttrDomain::Point, propagation_info, {}, dst_attributes);
+  bke::copy_attributes(
+      src_attributes, bke::AttrDomain::Edge, propagation_info, {}, dst_attributes);
   bke::gather_attributes(
-      src_attributes, ATTR_DOMAIN_FACE, propagation_info, {}, face_mask, dst_attributes);
+      src_attributes, bke::AttrDomain::Face, propagation_info, {}, face_mask, dst_attributes);
   bke::gather_attributes_group_to_group(src_attributes,
-                                        ATTR_DOMAIN_CORNER,
+                                        bke::AttrDomain::Corner,
                                         propagation_info,
                                         {},
                                         src_faces,

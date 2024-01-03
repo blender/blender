@@ -17,9 +17,6 @@
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-
 #include "BLI_array_utils.hh"
 #include "BLI_bit_vector.hh"
 #include "BLI_linklist.h"
@@ -209,13 +206,13 @@ blender::bke::MeshNormalDomain Mesh::normals_domain() const
     return MeshNormalDomain::Point;
   }
 
-  if (CustomData_has_layer(&this->loop_data, CD_CUSTOMLOOPNORMAL)) {
+  if (CustomData_has_layer(&this->corner_data, CD_CUSTOMLOOPNORMAL)) {
     return MeshNormalDomain::Corner;
   }
 
   const AttributeAccessor attributes = this->attributes();
   const VArray<bool> sharp_faces = *attributes.lookup_or_default<bool>(
-      "sharp_face", ATTR_DOMAIN_FACE, false);
+      "sharp_face", AttrDomain::Face, false);
 
   const array_utils::BooleanMix face_mix = array_utils::booleans_mix_calc(sharp_faces);
   if (face_mix == array_utils::BooleanMix::AllTrue) {
@@ -223,7 +220,7 @@ blender::bke::MeshNormalDomain Mesh::normals_domain() const
   }
 
   const VArray<bool> sharp_edges = *attributes.lookup_or_default<bool>(
-      "sharp_edge", ATTR_DOMAIN_EDGE, false);
+      "sharp_edge", AttrDomain::Edge, false);
   const array_utils::BooleanMix edge_mix = array_utils::booleans_mix_calc(sharp_edges);
   if (edge_mix == array_utils::BooleanMix::AllTrue) {
     return MeshNormalDomain::Face;
@@ -274,7 +271,7 @@ blender::Span<blender::float3> Mesh::corner_normals() const
   using namespace blender;
   using namespace blender::bke;
   this->runtime->corner_normals_cache.ensure([&](Vector<float3> &r_data) {
-    r_data.reinitialize(this->totloop);
+    r_data.reinitialize(this->corners_num);
     const OffsetIndices<int> faces = this->faces();
     switch (this->normals_domain()) {
       case MeshNormalDomain::Point: {
@@ -292,10 +289,10 @@ blender::Span<blender::float3> Mesh::corner_normals() const
       }
       case MeshNormalDomain::Corner: {
         const AttributeAccessor attributes = this->attributes();
-        const VArraySpan sharp_edges = *attributes.lookup<bool>("sharp_edge", ATTR_DOMAIN_EDGE);
-        const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", ATTR_DOMAIN_FACE);
+        const VArraySpan sharp_edges = *attributes.lookup<bool>("sharp_edge", AttrDomain::Edge);
+        const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", AttrDomain::Face);
         const short2 *custom_normals = static_cast<const short2 *>(
-            CustomData_get_layer(&this->loop_data, CD_CUSTOMLOOPNORMAL));
+            CustomData_get_layer(&this->corner_data, CD_CUSTOMLOOPNORMAL));
         mesh::normals_calc_loop(this->vert_positions(),
                                 this->edges(),
                                 this->faces(),
@@ -659,12 +656,11 @@ static void mesh_edges_sharp_tag(const OffsetIndices<int> faces,
                                  const Span<float3> face_normals,
                                  const Span<bool> sharp_faces,
                                  const Span<bool> sharp_edges,
-                                 const bool check_angle,
                                  const float split_angle,
                                  MutableSpan<int2> edge_to_loops,
                                  MutableSpan<bool> r_sharp_edges)
 {
-  const float split_angle_cos = check_angle ? cosf(split_angle) : -1.0f;
+  const float split_angle_cos = cosf(split_angle);
   auto face_is_smooth = [&](const int face_i) {
     return sharp_faces.is_empty() || !sharp_faces[face_i];
   };
@@ -684,9 +680,8 @@ static void mesh_edges_sharp_tag(const OffsetIndices<int> faces,
         e2l[1] = face_is_smooth(face_i) ? INDEX_UNSET : INDEX_INVALID;
       }
       else if (e2l[1] == INDEX_UNSET) {
-        const bool is_angle_sharp = (check_angle &&
-                                     math::dot(face_normals[loop_to_face_map[e2l[0]]],
-                                               face_normals[face_i]) < split_angle_cos);
+        const bool is_angle_sharp = math::dot(face_normals[loop_to_face_map[e2l[0]]],
+                                              face_normals[face_i]) < split_angle_cos;
 
         /* Second loop using this edge, time to test its sharpness.
          * An edge is sharp if it is tagged as such, or its face is not smooth,
@@ -799,7 +794,6 @@ void edges_sharp_from_angle_set(const OffsetIndices<int> faces,
                        face_normals,
                        sharp_faces,
                        sharp_edges,
-                       true,
                        split_angle,
                        edge_to_loops,
                        sharp_edges);
@@ -1548,32 +1542,32 @@ void normals_loop_custom_set_from_verts(const Span<float3> vert_positions,
 static void mesh_set_custom_normals(Mesh *mesh, float (*r_custom_nors)[3], const bool use_vertices)
 {
   short2 *clnors = static_cast<short2 *>(
-      CustomData_get_layer_for_write(&mesh->loop_data, CD_CUSTOMLOOPNORMAL, mesh->totloop));
+      CustomData_get_layer_for_write(&mesh->corner_data, CD_CUSTOMLOOPNORMAL, mesh->corners_num));
   if (clnors != nullptr) {
-    memset(clnors, 0, sizeof(*clnors) * mesh->totloop);
+    memset(clnors, 0, sizeof(*clnors) * mesh->corners_num);
   }
   else {
     clnors = static_cast<short2 *>(CustomData_add_layer(
-        &mesh->loop_data, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, mesh->totloop));
+        &mesh->corner_data, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, mesh->corners_num));
   }
   MutableAttributeAccessor attributes = mesh->attributes_for_write();
   SpanAttributeWriter<bool> sharp_edges = attributes.lookup_or_add_for_write_span<bool>(
-      "sharp_edge", ATTR_DOMAIN_EDGE);
-  const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", ATTR_DOMAIN_FACE);
+      "sharp_edge", AttrDomain::Edge);
+  const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", AttrDomain::Face);
 
-  mesh_normals_loop_custom_set(
-      mesh->vert_positions(),
-      mesh->edges(),
-      mesh->faces(),
-      mesh->corner_verts(),
-      mesh->corner_edges(),
-      mesh->vert_normals(),
-      mesh->face_normals(),
-      sharp_faces,
-      use_vertices,
-      {reinterpret_cast<float3 *>(r_custom_nors), use_vertices ? mesh->totvert : mesh->totloop},
-      sharp_edges.span,
-      {clnors, mesh->totloop});
+  mesh_normals_loop_custom_set(mesh->vert_positions(),
+                               mesh->edges(),
+                               mesh->faces(),
+                               mesh->corner_verts(),
+                               mesh->corner_edges(),
+                               mesh->vert_normals(),
+                               mesh->face_normals(),
+                               sharp_faces,
+                               use_vertices,
+                               {reinterpret_cast<float3 *>(r_custom_nors),
+                                use_vertices ? mesh->verts_num : mesh->corners_num},
+                               sharp_edges.span,
+                               {clnors, mesh->corners_num});
 
   sharp_edges.finish();
 }

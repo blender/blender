@@ -48,6 +48,13 @@ class MTLContext;
 #  define shader_debug_printf(...) /* Null print. */
 #endif
 
+/* Offset base specialization constant ID for function constants declared in CreateInfo. */
+#define MTL_SHADER_SPECIALIZATION_CONSTANT_BASE_ID 30
+/* Maximum threshold for specialized shader variant count.
+ * This is a catch-all to prevent excessive PSO permutations from being created and also catch
+ * parameters which should ideally not be used for specialization. */
+#define MTL_SHADER_MAX_SPECIALIZED_PSOS 5
+
 /* Desired reflection data for a buffer binding. */
 struct MTLBufferArgumentData {
   uint32_t index;
@@ -92,19 +99,10 @@ struct MTLRenderPipelineStateInstance {
   blender::Vector<MTLBufferArgumentData> buffer_bindings_reflection_data_frag;
 };
 
-/* Metal COmpute Pipeline State instance. */
-struct MTLComputePipelineStateInstance {
-  /* Function instances with specialization.
-   * Required for argument encoder construction. */
-  id<MTLFunction> compute = nil;
-  /* PSO handle. */
-  id<MTLComputePipelineState> pso = nil;
-  /* Base bind index for binding uniform buffers, offset based on other
-   * bound buffers such as vertex buffers, as the count can vary. */
-  int base_uniform_buffer_index = -1;
-  /* Base bind index for binding storage buffers. */
-  int base_storage_buffer_index = -1;
+/* Common compute pipeline state. */
+struct MTLComputePipelineStateCommon {
 
+  /* Threadgroup information is common for all PSO variants.*/
   int threadgroup_x_len = 1;
   int threadgroup_y_len = 1;
   int threadgroup_z_len = 1;
@@ -117,6 +115,25 @@ struct MTLComputePipelineStateInstance {
     this->threadgroup_y_len = workgroup_size_y;
     this->threadgroup_z_len = workgroup_size_z;
   }
+};
+
+/* Metal Compute Pipeline State instance per PSO. */
+struct MTLComputePipelineStateInstance {
+
+  /** Derived information. */
+  /* Unique index for PSO variant. */
+  uint32_t shader_pso_index;
+  /* Base bind index for binding uniform buffers, offset based on other
+   * bound buffers such as vertex buffers, as the count can vary. */
+  int base_uniform_buffer_index = -1;
+  /* Base bind index for binding storage buffers. */
+  int base_storage_buffer_index = -1;
+
+  /* Function instances with specialization.
+   * Required for argument encoder construction. */
+  id<MTLFunction> compute = nil;
+  /* PSO handle. */
+  id<MTLComputePipelineState> pso = nil;
 };
 
 /* #MTLShaderBuilder source wrapper used during initial compilation. */
@@ -195,7 +212,9 @@ class MTLShader : public Shader {
   std::mutex pso_cache_lock_;
 
   /** Compute pipeline state and Compute PSO caching. */
-  MTLComputePipelineStateInstance compute_pso_instance_;
+  MTLComputePipelineStateCommon compute_pso_common_state_;
+  blender::Map<MTLComputePipelineStateDescriptor, MTLComputePipelineStateInstance *>
+      compute_pso_cache_;
 
   /* True to enable multi-layered rendering support. */
   bool uses_gpu_layer = false;
@@ -350,9 +369,11 @@ class MTLShader : public Shader {
       MTLPrimitiveTopologyClass prim_type,
       const MTLRenderPipelineStateDescriptor &pipeline_descriptor);
 
-  bool bake_compute_pipeline_state(MTLContext *ctx);
-  const MTLComputePipelineStateInstance &get_compute_pipeline_state();
-
+  MTLComputePipelineStateInstance *bake_compute_pipeline_state(MTLContext *ctx);
+  const MTLComputePipelineStateCommon &get_compute_common_state()
+  {
+    return compute_pso_common_state_;
+  }
   /* Transform Feedback. */
   GPUVertBuf *get_transform_feedback_active_buffer();
   bool has_transform_feedback_varying(std::string str);

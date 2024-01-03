@@ -38,10 +38,10 @@ class OffsetCornerInFaceFieldInput final : public bke::MeshFieldInput {
   }
 
   GVArray get_varray_for_context(const Mesh &mesh,
-                                 const eAttrDomain domain,
+                                 const AttrDomain domain,
                                  const IndexMask &mask) const final
   {
-    const IndexRange corner_range(mesh.totloop);
+    const IndexRange corner_range(mesh.corners_num);
     const OffsetIndices faces = mesh.faces();
 
     const bke::MeshFieldContext context{mesh, domain};
@@ -91,9 +91,9 @@ class OffsetCornerInFaceFieldInput final : public bke::MeshFieldInput {
     return false;
   }
 
-  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const final
+  std::optional<AttrDomain> preferred_domain(const Mesh & /*mesh*/) const final
   {
-    return ATTR_DOMAIN_CORNER;
+    return AttrDomain::Corner;
   }
 };
 

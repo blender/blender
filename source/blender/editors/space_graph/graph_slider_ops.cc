@@ -2280,3 +2280,191 @@ void GRAPH_OT_push_pull(wmOperatorType *ot)
                        2.0f);
 }
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Scale from Left Operator
+ * \{ */
+
+static const EnumPropertyItem scale_anchor_items[] = {
+    {int(FCurveSegmentAnchor::LEFT), "LEFT", 0, "From Left", "foo"},
+    {int(FCurveSegmentAnchor::RIGHT), "RIGHT", 0, "From Right", "foo"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
+static void scale_from_neighbor_graph_keys(bAnimContext *ac,
+                                           const float factor,
+                                           const FCurveSegmentAnchor anchor)
+{
+  ListBase anim_data = {nullptr, nullptr};
+
+  ANIM_animdata_filter(
+      ac, &anim_data, OPERATOR_DATA_FILTER, ac->data, eAnimCont_Types(ac->datatype));
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+    FCurve *fcu = (FCurve *)ale->key_data;
+    ListBase segments = find_fcurve_segments(fcu);
+
+    LISTBASE_FOREACH (FCurveSegment *, segment, &segments) {
+      scale_from_fcurve_segment_neighbor(fcu, segment, factor, anchor);
+    }
+
+    ale->update |= ANIM_UPDATE_DEFAULT;
+    BLI_freelistN(&segments);
+  }
+
+  ANIM_animdata_update(ac, &anim_data);
+  ANIM_animdata_freelist(&anim_data);
+}
+
+static void scale_from_neighbor_draw_status_header(bContext *C, wmOperator *op)
+{
+  char status_str[UI_MAX_DRAW_STR];
+  char mode_str[32];
+  char slider_string[UI_MAX_DRAW_STR];
+
+  tGraphSliderOp *gso = static_cast<tGraphSliderOp *>(op->customdata);
+  ED_slider_status_string_get(gso->slider, slider_string, UI_MAX_DRAW_STR);
+
+  /* Operator specific functionality that extends beyond the slider. */
+  char op_slider_string[UI_MAX_DRAW_STR];
+  const FCurveSegmentAnchor anchor = FCurveSegmentAnchor(RNA_enum_get(op->ptr, "anchor"));
+  switch (anchor) {
+    case FCurveSegmentAnchor::LEFT:
+      SNPRINTF(op_slider_string, "%s | %s", slider_string, "[D] - Scale From Right End");
+      break;
+
+    case FCurveSegmentAnchor::RIGHT:
+      SNPRINTF(op_slider_string, "%s | %s", slider_string, "[D] - Scale From Left End");
+      break;
+  }
+
+  STRNCPY(mode_str, TIP_("Scale from Neighbor Keys"));
+
+  if (hasNumInput(&gso->num)) {
+    char str_ofs[NUM_STR_REP_LEN];
+
+    outputNumInput(&gso->num, str_ofs, &gso->scene->unit);
+
+    SNPRINTF(status_str, "%s: %s", mode_str, str_ofs);
+  }
+  else {
+    SNPRINTF(status_str, "%s: %s", mode_str, op_slider_string);
+  }
+
+  ED_workspace_status_text(C, status_str);
+}
+
+static void scale_from_neighbor_modal_update(bContext *C, wmOperator *op)
+{
+  tGraphSliderOp *gso = static_cast<tGraphSliderOp *>(op->customdata);
+
+  scale_from_neighbor_draw_status_header(C, op);
+
+  /* Reset keyframes to the state at invoke. */
+  reset_bezts(gso);
+  const float factor = slider_factor_get_and_remember(op);
+  const FCurveSegmentAnchor anchor = FCurveSegmentAnchor(RNA_enum_get(op->ptr, "anchor"));
+  scale_from_neighbor_graph_keys(&gso->ac, factor, anchor);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
+}
+
+static int scale_from_neighbor_modal(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  if (event->val != KM_PRESS) {
+    return graph_slider_modal(C, op, event);
+  }
+
+  switch (event->type) {
+    case EVT_DKEY: {
+      FCurveSegmentAnchor anchor = FCurveSegmentAnchor(RNA_enum_get(op->ptr, "anchor"));
+      switch (anchor) {
+        case FCurveSegmentAnchor::LEFT:
+          RNA_enum_set(op->ptr, "anchor", int(FCurveSegmentAnchor::RIGHT));
+          break;
+
+        case FCurveSegmentAnchor::RIGHT:
+          RNA_enum_set(op->ptr, "anchor", int(FCurveSegmentAnchor::LEFT));
+          break;
+      }
+      scale_from_neighbor_modal_update(C, op);
+      break;
+    }
+
+    default:
+      return graph_slider_modal(C, op, event);
+  }
+  return OPERATOR_RUNNING_MODAL;
+}
+
+static int scale_from_neighbor_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  const int invoke_result = graph_slider_invoke(C, op, event);
+
+  if (invoke_result == OPERATOR_CANCELLED) {
+    return OPERATOR_CANCELLED;
+  }
+
+  tGraphSliderOp *gso = static_cast<tGraphSliderOp *>(op->customdata);
+  gso->modal_update = scale_from_neighbor_modal_update;
+  gso->factor_prop = RNA_struct_find_property(op->ptr, "factor");
+  scale_from_neighbor_draw_status_header(C, op);
+  ED_slider_factor_bounds_set(gso->slider, 0, 2);
+  ED_slider_factor_set(gso->slider, 1.0f);
+
+  return invoke_result;
+}
+
+static int scale_from_neighbor_exec(bContext *C, wmOperator *op)
+{
+  bAnimContext ac;
+
+  /* Get editor data. */
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
+    return OPERATOR_CANCELLED;
+  }
+
+  const float factor = RNA_float_get(op->ptr, "factor");
+
+  const FCurveSegmentAnchor anchor = FCurveSegmentAnchor(RNA_enum_get(op->ptr, "anchor"));
+  scale_from_neighbor_graph_keys(&ac, factor, anchor);
+
+  /* Set notifier that keyframes have changed. */
+  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
+
+  return OPERATOR_FINISHED;
+}
+
+void GRAPH_OT_scale_from_neighbor(wmOperatorType *ot)
+{
+  /* Identifiers. */
+  ot->name = "Scale from Neighbor";
+  ot->idname = "GRAPH_OT_scale_from_neighbor";
+  ot->description =
+      "Increase or decrease the value of selected keys \n\
+  in relationship to the neighboring one";
+
+  /* API callbacks. */
+  ot->invoke = scale_from_neighbor_invoke;
+  ot->modal = scale_from_neighbor_modal;
+  ot->exec = scale_from_neighbor_exec;
+  ot->poll = graphop_editable_keyframes_poll;
+
+  /* Flags. */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR_X;
+
+  RNA_def_float_factor(ot->srna,
+                       "factor",
+                       0.0f,
+                       -FLT_MAX,
+                       FLT_MAX,
+                       "Factor",
+                       "The factor to scale keys with",
+                       -1.0f,
+                       1.0f);
+
+  RNA_def_enum(ot->srna,
+               "anchor",
+               scale_anchor_items,
+               int(FCurveSegmentAnchor::LEFT),
+               "Reference Key",
+               "Which end of the segment to use as a reference to scale from");
+}

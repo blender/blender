@@ -28,7 +28,7 @@ static void set_curve_resolution(bke::CurvesGeometry &curves,
   }
   MutableAttributeAccessor attributes = curves.attributes_for_write();
   AttributeWriter<int> resolutions = attributes.lookup_or_add_for_write<int>("resolution",
-                                                                             ATTR_DOMAIN_CURVE);
+                                                                             AttrDomain::Curve);
   bke::AttributeValidator validator = attributes.lookup_validator("resolution");
 
   fn::FieldEvaluator evaluator{field_context, curves.curves_num()};
@@ -52,7 +52,7 @@ static void set_grease_pencil_resolution(GreasePencil &grease_pencil,
     }
     bke::CurvesGeometry &curves = drawing->strokes_for_write();
     const bke::GreasePencilLayerFieldContext field_context(
-        grease_pencil, ATTR_DOMAIN_CURVE, layer_index);
+        grease_pencil, AttrDomain::Curve, layer_index);
     set_curve_resolution(curves, field_context, selection_field, resolution_field);
   }
 }
@@ -66,7 +66,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (Curves *curves_id = geometry_set.get_curves_for_write()) {
       bke::CurvesGeometry &curves = curves_id->geometry.wrap();
-      const bke::CurvesFieldContext field_context{curves, ATTR_DOMAIN_CURVE};
+      const bke::CurvesFieldContext field_context{curves, AttrDomain::Curve};
       set_curve_resolution(curves_id->geometry.wrap(), field_context, selection, resolution);
     }
     if (geometry_set.has_grease_pencil()) {

@@ -8,6 +8,7 @@
 
 #include "DNA_material_types.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_context.hh"
 #include "BKE_curves_utils.hh"
 #include "BKE_grease_pencil.hh"
@@ -285,7 +286,7 @@ static int grease_pencil_material_lock_unselected_exec(bContext *C, wmOperator *
 
     AttributeAccessor attributes = info.drawing.strokes().attributes();
     const VArray<int> material_indices = *attributes.lookup_or_default<int>(
-        "material_index", ATTR_DOMAIN_CURVE, 0);
+        "material_index", AttrDomain::Curve, 0);
 
     if (const std::optional<int> single = material_indices.get_if_single()) {
       materials_used.add(*single);

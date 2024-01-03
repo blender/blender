@@ -89,11 +89,26 @@ set(SRC
   intern/usd_capi_export.cc
   intern/usd_capi_import.cc
   intern/usd_hierarchy_iterator.cc
+<<<<<<< HEAD
   intern/usd_light_convert.cc
   intern/usd_lux_api_wrapper.cc
   intern/usd_modifier_disabler.cc
   intern/usd_skel_convert.cc
   intern/usd_skel_root_utils.cc
+=======
+  intern/usd_hook.cc
+  intern/usd_writer_abstract.cc
+  intern/usd_writer_camera.cc
+  intern/usd_writer_curves.cc
+  intern/usd_writer_hair.cc
+  intern/usd_writer_light.cc
+  intern/usd_writer_material.cc
+  intern/usd_writer_mesh.cc
+  intern/usd_writer_metaball.cc
+  intern/usd_writer_transform.cc
+  intern/usd_writer_volume.cc
+  intern/usd_writer_armature.cc
+>>>>>>> main
 
   intern/usd_reader_camera.cc
   intern/usd_reader_curve.cc
@@ -109,6 +124,7 @@ set(SRC
   intern/usd_reader_stage.cc
   intern/usd_reader_volume.cc
   intern/usd_reader_xform.cc
+<<<<<<< HEAD
 
   intern/usd_hook.cc
   intern/usd_umm.cc
@@ -125,6 +141,10 @@ set(SRC
   intern/usd_writer_particle.cc
   intern/usd_writer_transform.cc
   intern/usd_writer_volume.cc
+=======
+  intern/usd_skel_convert.cc
+  intern/usd_skel_root_utils.cc
+>>>>>>> main
 
   usd.h
   usd.hh
@@ -171,6 +191,27 @@ set(SRC
   intern/usd_writer_particle.h
   intern/usd_writer_transform.h
   intern/usd_writer_volume.h
+<<<<<<< HEAD
+=======
+  intern/usd_writer_armature.h
+
+  intern/usd_reader_camera.h
+  intern/usd_reader_curve.h
+  intern/usd_reader_geom.h
+  intern/usd_reader_instance.h
+  intern/usd_reader_light.h
+  intern/usd_reader_material.h
+  intern/usd_reader_mesh.h
+  intern/usd_reader_nurbs.h
+  intern/usd_reader_prim.h
+  intern/usd_reader_shape.h
+  intern/usd_reader_skeleton.h
+  intern/usd_reader_stage.h
+  intern/usd_reader_volume.h
+  intern/usd_reader_xform.h
+  intern/usd_skel_convert.h
+  intern/usd_skel_root_utils.h
+>>>>>>> main
 )
 
 if(WITH_HYDRA)
@@ -228,6 +269,9 @@ list(APPEND LIB
 
 if(WITH_OPENVDB)
   add_definitions(-DWITH_OPENVDB ${OPENVDB_DEFINITIONS})
+  list(APPEND INC
+    ../../../../intern/openvdb
+  )
   list(APPEND INC_SYS
     ${OPENVDB_INCLUDE_DIRS}
   )

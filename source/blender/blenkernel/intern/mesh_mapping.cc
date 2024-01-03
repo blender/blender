@@ -13,9 +13,6 @@
 
 #include "atomic_ops.h"
 
-#include "DNA_meshdata_types.h"
-#include "DNA_vec_types.h"
-
 #include "BLI_array.hh"
 #include "BLI_bitmap.h"
 #include "BLI_buffer.h"
@@ -52,7 +49,7 @@ UvVertMap *BKE_mesh_uv_vert_map_create(const blender::OffsetIndices<int> faces,
   UvMapVert *buf;
   int i, totuv, nverts;
 
-  BLI_buffer_declare_static(vec2f, tf_uv_buf, BLI_BUFFER_NOP, 32);
+  BLI_buffer_declare_static(blender::float2, tf_uv_buf, BLI_BUFFER_NOP, 32);
 
   totuv = 0;
 
@@ -88,7 +85,8 @@ UvVertMap *BKE_mesh_uv_vert_map_create(const blender::OffsetIndices<int> faces,
       float(*tf_uv)[2] = nullptr;
 
       if (use_winding) {
-        tf_uv = (float(*)[2])BLI_buffer_reinit_data(&tf_uv_buf, vec2f, size_t(face.size()));
+        tf_uv = (float(*)[2])BLI_buffer_reinit_data(
+            &tf_uv_buf, blender::float2, size_t(face.size()));
       }
 
       nverts = int(face.size());

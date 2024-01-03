@@ -38,6 +38,7 @@ set(SRC
   ANIM_keyframing.hh
   ANIM_rna.hh
   ANIM_visualkey.hh
+  intern/bone_collections_internal.hh
 )
 
 set(LIB

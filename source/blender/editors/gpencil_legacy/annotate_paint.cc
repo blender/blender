@@ -22,7 +22,6 @@
 #include "PIL_time.h"
 
 #include "BKE_callbacks.h"
-#include "BKE_colortools.h"
 #include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_gpencil_geom_legacy.h"

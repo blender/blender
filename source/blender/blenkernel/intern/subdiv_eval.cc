@@ -8,9 +8,6 @@
 
 #include "BKE_subdiv_eval.hh"
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-
 #include "BLI_math_vector.h"
 #include "BLI_task.h"
 #include "BLI_timeit.hh"
@@ -237,15 +234,15 @@ bool BKE_subdiv_eval_refine_from_mesh(Subdiv *subdiv,
   set_coarse_positions(
       subdiv,
       coarse_vertex_cos ?
-          Span(reinterpret_cast<const float3 *>(coarse_vertex_cos), mesh->totvert) :
+          Span(reinterpret_cast<const float3 *>(coarse_vertex_cos), mesh->verts_num) :
           mesh->vert_positions(),
       mesh->verts_no_face());
 
   /* Set face-varying data to UV maps. */
-  const int num_uv_layers = CustomData_number_of_layers(&mesh->loop_data, CD_PROP_FLOAT2);
+  const int num_uv_layers = CustomData_number_of_layers(&mesh->corner_data, CD_PROP_FLOAT2);
   for (int layer_index = 0; layer_index < num_uv_layers; layer_index++) {
     const float(*mloopuv)[2] = static_cast<const float(*)[2]>(
-        CustomData_get_layer_n(&mesh->loop_data, CD_PROP_FLOAT2, layer_index));
+        CustomData_get_layer_n(&mesh->corner_data, CD_PROP_FLOAT2, layer_index));
     set_face_varying_data_from_uv(subdiv, mesh, mloopuv, layer_index);
   }
   /* Set vertex data to orco. */

@@ -103,7 +103,12 @@ void Shader::print_log(Span<const char *> sources,
     }
 
     GPULogItem log_item;
-    log_line = parser->parse_line(log_line, log_item);
+    log_line = parser->parse_line(sources_combined, log_line, log_item);
+
+    /* Empty line, skip. */
+    if ((log_item.cursor.row == -1) && ELEM(log_line[0], '\n', '\0')) {
+      continue;
+    }
 
     /* Sanitize output. Really bad values can happen when the error line is buggy. */
     if (log_item.cursor.source >= sources.size()) {
@@ -204,7 +209,12 @@ void Shader::print_log(Span<const char *> sources,
       row_in_file -= sources_end_line[source_index - 1];
     }
     /* Print the filename the error line is coming from. */
-    if (source_index > 0) {
+    if (!log_item.cursor.file_name_and_error_line.is_empty()) {
+      char name_buf[128];
+      log_item.cursor.file_name_and_error_line.copy(name_buf);
+      BLI_dynstr_appendf(dynstr, "%s%s: %s", info_col, name_buf, reset_col);
+    }
+    else if (source_index > 0) {
       StringRefNull filename = shader::gpu_shader_dependency_get_filename_from_source_string(
           sources[source_index]);
       if (!filename.is_empty()) {

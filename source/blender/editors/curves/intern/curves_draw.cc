@@ -9,7 +9,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_mempool.h"
 
-#include "BKE_attribute.h"
+#include "BKE_attribute.hh"
 #include "BKE_context.hh"
 #include "BKE_curves.hh"
 #include "BKE_report.h"
@@ -648,6 +648,7 @@ static int curves_draw_exec(bContext *C, wmOperator *op)
   const float error_threshold = RNA_float_get(op->ptr, "error_threshold");
   const float corner_angle = RNA_float_get(op->ptr, "corner_angle");
   const bool use_cyclic = RNA_boolean_get(op->ptr, "use_cyclic");
+  bool is_cyclic = (stroke_len > 2) && use_cyclic;
 
   const float radius_min = cps->radius_min;
   const float radius_max = cps->radius_max;
@@ -725,6 +726,10 @@ static int curves_draw_exec(bContext *C, wmOperator *op)
     if ((stroke_len > 2) && use_cyclic) {
       calc_flag |= CURVE_FIT_CALC_CYCLIC;
     }
+    else {
+      /* Might need this update if stroke_len <= 2 after removing doubles. */
+      is_cyclic = false;
+    }
 
     int result;
     if (fit_method == CURVE_PAINT_FIT_METHOD_REFIT) {
@@ -775,7 +780,7 @@ static int curves_draw_exec(bContext *C, wmOperator *op)
       const IndexRange new_points = curves.points_by_curve()[curve_index];
 
       bke::SpanAttributeWriter<float> radii = attributes.lookup_or_add_for_write_only_span<float>(
-          "radius", ATTR_DOMAIN_POINT);
+          "radius", bke::AttrDomain::Point);
 
       float *co = cubic_spline;
 
@@ -798,13 +803,11 @@ static int curves_draw_exec(bContext *C, wmOperator *op)
         co += (dims * 3);
       }
 
-      // bezt->f1 = bezt->f2 = bezt->f3 = SELECT;
-
       if (corners_index) {
         /* ignore the first and last */
         uint i_start = 0, i_end = corners_index_len;
 
-        if ((corners_index_len >= 2) && (calc_flag & CURVE_FIT_CALC_CYCLIC) == 0) {
+        if ((corners_index_len >= 2) && !is_cyclic) {
           i_start += 1;
           i_end -= 1;
         }
@@ -819,20 +822,15 @@ static int curves_draw_exec(bContext *C, wmOperator *op)
       radii.finish();
 
       bke::AttributeWriter<bool> selection = attributes.lookup_or_add_for_write<bool>(
-          ".selection", ATTR_DOMAIN_CURVE);
+          ".selection", bke::AttrDomain::Curve);
       selection.varray.set(curve_index, true);
       selection.finish();
 
       if (attributes.contains("resolution")) {
         curves.resolution_for_write()[curve_index] = 12;
       }
-
-      if (attributes.contains("cyclic") || bool(calc_flag & CURVE_FIT_CALC_CYCLIC)) {
-        curves.cyclic_for_write()[curve_index] = true;
-      }
-
       bke::fill_attribute_range_default(attributes,
-                                        ATTR_DOMAIN_POINT,
+                                        bke::AttrDomain::Point,
                                         {"position",
                                          "radius",
                                          "handle_left",
@@ -842,8 +840,8 @@ static int curves_draw_exec(bContext *C, wmOperator *op)
                                          ".selection"},
                                         new_points);
       bke::fill_attribute_range_default(attributes,
-                                        ATTR_DOMAIN_CURVE,
-                                        {"curve_type", "resolution", "cyclic", ".selection"},
+                                        bke::AttrDomain::Curve,
+                                        {"curve_type", "resolution", ".selection"},
                                         IndexRange(curve_index, 1));
     }
 
@@ -861,7 +859,7 @@ static int curves_draw_exec(bContext *C, wmOperator *op)
 
     MutableSpan<float3> positions = curves.positions_for_write();
     bke::SpanAttributeWriter<float> radii = attributes.lookup_or_add_for_write_only_span<float>(
-        "radius", ATTR_DOMAIN_POINT);
+        "radius", bke::AttrDomain::Point);
 
     const IndexRange new_points = curves.points_by_curve()[curve_index];
 
@@ -885,14 +883,20 @@ static int curves_draw_exec(bContext *C, wmOperator *op)
     radii.finish();
 
     bke::AttributeWriter<bool> selection = attributes.lookup_or_add_for_write<bool>(
-        ".selection", ATTR_DOMAIN_CURVE);
+        ".selection", bke::AttrDomain::Curve);
     selection.varray.set(curve_index, true);
     selection.finish();
 
     bke::fill_attribute_range_default(
-        attributes, ATTR_DOMAIN_POINT, {"position", "radius", ".selection"}, new_points);
-    bke::fill_attribute_range_default(
-        attributes, ATTR_DOMAIN_CURVE, {"curve_type", ".selection"}, IndexRange(curve_index, 1));
+        attributes, bke::AttrDomain::Point, {"position", "radius", ".selection"}, new_points);
+    bke::fill_attribute_range_default(attributes,
+                                      bke::AttrDomain::Curve,
+                                      {"curve_type", ".selection"},
+                                      IndexRange(curve_index, 1));
+  }
+
+  if (is_cyclic) {
+    curves.cyclic_for_write()[curve_index] = true;
   }
 
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);

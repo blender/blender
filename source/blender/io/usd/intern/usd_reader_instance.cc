@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /*
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,6 +24,19 @@
 #include "DNA_object_types.h"
 
 #include <iostream>
+=======
+/* SPDX-FileCopyrightText: 2023 NVIDIA Corporation. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
+#include "usd_reader_instance.h"
+
+#include "BKE_lib_id.h"
+#include "BKE_object.hh"
+
+#include "DNA_collection_types.h"
+#include "DNA_object_types.h"
+>>>>>>> main
 
 namespace blender::io::usd {
 
@@ -42,12 +56,25 @@ void USDInstanceReader::create_object(Main *bmain, const double /* motionSampleT
 {
   this->object_ = BKE_object_add_only_object(bmain, OB_EMPTY, name_.c_str());
   this->object_->data = nullptr;
+<<<<<<< HEAD
+=======
+  this->object_->instance_collection = nullptr;
+>>>>>>> main
   this->object_->transflag |= OB_DUPLICOLLECTION;
 }
 
 void USDInstanceReader::set_instance_collection(Collection *coll)
 {
+<<<<<<< HEAD
   if (this->object_) {
+=======
+  if (this->object_ && this->object_->instance_collection != coll) {
+    if (this->object_->instance_collection) {
+      id_us_min(&this->object_->instance_collection->id);
+      this->object_->instance_collection = nullptr;
+    }
+    id_us_plus(&coll->id);
+>>>>>>> main
     this->object_->instance_collection = coll;
   }
 }

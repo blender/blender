@@ -59,7 +59,7 @@ static Subdiv *subdiv_for_simple_to_catmull_clark(Object *object, MultiresModifi
 void multires_do_versions_simple_to_catmull_clark(Object *object, MultiresModifierData *mmd)
 {
   const Mesh *base_mesh = static_cast<const Mesh *>(object->data);
-  if (base_mesh->totloop == 0) {
+  if (base_mesh->corners_num == 0) {
     return;
   }
 

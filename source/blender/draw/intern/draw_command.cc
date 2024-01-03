@@ -111,6 +111,39 @@ void PushConstant::execute(RecordingState &state) const
   }
 }
 
+void SpecializeConstant::execute() const
+{
+  /* All specialization constants should exist as they are not optimized out like uniforms. */
+  BLI_assert(location != -1);
+
+  switch (type) {
+    case SpecializeConstant::Type::IntValue:
+      GPU_shader_constant_int_ex(shader, location, int_value);
+      break;
+    case SpecializeConstant::Type::IntReference:
+      GPU_shader_constant_int_ex(shader, location, *int_ref);
+      break;
+    case SpecializeConstant::Type::UintValue:
+      GPU_shader_constant_uint_ex(shader, location, uint_value);
+      break;
+    case SpecializeConstant::Type::UintReference:
+      GPU_shader_constant_uint_ex(shader, location, *uint_ref);
+      break;
+    case SpecializeConstant::Type::FloatValue:
+      GPU_shader_constant_float_ex(shader, location, float_value);
+      break;
+    case SpecializeConstant::Type::FloatReference:
+      GPU_shader_constant_float_ex(shader, location, *float_ref);
+      break;
+    case SpecializeConstant::Type::BoolValue:
+      GPU_shader_constant_bool_ex(shader, location, bool_value);
+      break;
+    case SpecializeConstant::Type::BoolReference:
+      GPU_shader_constant_bool_ex(shader, location, *bool_ref);
+      break;
+  }
+}
+
 void Draw::execute(RecordingState &state) const
 {
   state.front_facing_set(handle.has_inverted_handedness());
@@ -422,6 +455,39 @@ std::string PushConstant::serialize() const
   }
 
   return std::string(".push_constant(") + std::to_string(location) + ", data=" + ss.str() + ")";
+}
+
+std::string SpecializeConstant::serialize() const
+{
+  std::stringstream ss;
+  switch (type) {
+    case Type::IntValue:
+      ss << int_value;
+      break;
+    case Type::UintValue:
+      ss << uint_value;
+      break;
+    case Type::FloatValue:
+      ss << float_value;
+      break;
+    case Type::BoolValue:
+      ss << bool_value;
+      break;
+    case Type::IntReference:
+      ss << *int_ref;
+      break;
+    case Type::UintReference:
+      ss << *uint_ref;
+      break;
+    case Type::FloatReference:
+      ss << *float_ref;
+      break;
+    case Type::BoolReference:
+      ss << *bool_ref;
+      break;
+  }
+  return std::string(".specialize_constant(") + std::to_string(location) + ", data=" + ss.str() +
+         ")";
 }
 
 std::string Draw::serialize() const

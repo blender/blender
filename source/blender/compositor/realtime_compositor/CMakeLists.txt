@@ -64,6 +64,7 @@ set(SRC
   COM_utilities.hh
 
   algorithms/intern/jump_flooding.cc
+  algorithms/intern/morphological_blur.cc
   algorithms/intern/morphological_distance.cc
   algorithms/intern/morphological_distance_feather.cc
   algorithms/intern/parallel_reduction.cc
@@ -75,6 +76,7 @@ set(SRC
   algorithms/intern/transform.cc
 
   algorithms/COM_algorithm_jump_flooding.hh
+  algorithms/COM_algorithm_morphological_blur.hh
   algorithms/COM_algorithm_morphological_distance.hh
   algorithms/COM_algorithm_morphological_distance_feather.hh
   algorithms/COM_algorithm_parallel_reduction.hh
@@ -136,6 +138,9 @@ set(GLSL_SRC
   shaders/compositor_cryptomatte_image.glsl
   shaders/compositor_cryptomatte_matte.glsl
   shaders/compositor_cryptomatte_pick.glsl
+  shaders/compositor_defocus_blur.glsl
+  shaders/compositor_defocus_radius_from_depth.glsl
+  shaders/compositor_defocus_radius_from_scale.glsl
   shaders/compositor_despeckle.glsl
   shaders/compositor_directional_blur.glsl
   shaders/compositor_displace.glsl
@@ -173,6 +178,7 @@ set(GLSL_SRC
   shaders/compositor_kuwahara_anisotropic_compute_structure_tensor.glsl
   shaders/compositor_kuwahara_classic.glsl
   shaders/compositor_map_uv.glsl
+  shaders/compositor_morphological_blur.glsl
   shaders/compositor_morphological_distance.glsl
   shaders/compositor_morphological_distance_feather.glsl
   shaders/compositor_morphological_distance_threshold.glsl
@@ -275,6 +281,7 @@ set(SRC_SHADER_CREATE_INFOS
   shaders/infos/compositor_compute_preview_info.hh
   shaders/infos/compositor_convert_info.hh
   shaders/infos/compositor_cryptomatte_info.hh
+  shaders/infos/compositor_defocus_info.hh
   shaders/infos/compositor_despeckle_info.hh
   shaders/infos/compositor_directional_blur_info.hh
   shaders/infos/compositor_displace_info.hh
@@ -292,6 +299,7 @@ set(SRC_SHADER_CREATE_INFOS
   shaders/infos/compositor_keying_screen_info.hh
   shaders/infos/compositor_kuwahara_info.hh
   shaders/infos/compositor_map_uv_info.hh
+  shaders/infos/compositor_morphological_blur_info.hh
   shaders/infos/compositor_morphological_distance_feather_info.hh
   shaders/infos/compositor_morphological_distance_info.hh
   shaders/infos/compositor_morphological_distance_threshold_info.hh

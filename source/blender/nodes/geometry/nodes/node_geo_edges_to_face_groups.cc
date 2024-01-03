@@ -43,11 +43,11 @@ class FaceSetFromBoundariesInput final : public bke::MeshFieldInput {
   }
 
   GVArray get_varray_for_context(const Mesh &mesh,
-                                 const eAttrDomain domain,
+                                 const AttrDomain domain,
                                  const IndexMask & /*mask*/) const final
   {
-    const bke::MeshFieldContext context{mesh, ATTR_DOMAIN_EDGE};
-    fn::FieldEvaluator evaluator{context, mesh.totedge};
+    const bke::MeshFieldContext context{mesh, AttrDomain::Edge};
+    fn::FieldEvaluator evaluator{context, mesh.edges_num};
     evaluator.add(non_boundary_edge_field_);
     evaluator.evaluate();
     const IndexMask non_boundary_edges = evaluator.get_evaluated_as_mask(0);
@@ -57,7 +57,7 @@ class FaceSetFromBoundariesInput final : public bke::MeshFieldInput {
     Array<int> edge_to_face_offsets;
     Array<int> edge_to_face_indices;
     const GroupedSpan<int> edge_to_face_map = bke::mesh::build_edge_to_face_map(
-        faces, mesh.corner_edges(), mesh.totedge, edge_to_face_offsets, edge_to_face_indices);
+        faces, mesh.corner_edges(), mesh.edges_num, edge_to_face_offsets, edge_to_face_indices);
 
     AtomicDisjointSet islands(faces.size());
     non_boundary_edges.foreach_index(
@@ -67,7 +67,7 @@ class FaceSetFromBoundariesInput final : public bke::MeshFieldInput {
     islands.calc_reduced_ids(output);
 
     return mesh.attributes().adapt_domain(
-        VArray<int>::ForContainer(std::move(output)), ATTR_DOMAIN_FACE, domain);
+        VArray<int>::ForContainer(std::move(output)), AttrDomain::Face, domain);
   }
 
   uint64_t hash() const override
@@ -83,9 +83,9 @@ class FaceSetFromBoundariesInput final : public bke::MeshFieldInput {
     return false;
   }
 
-  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const final
+  std::optional<AttrDomain> preferred_domain(const Mesh & /*mesh*/) const final
   {
-    return ATTR_DOMAIN_FACE;
+    return AttrDomain::Face;
   }
 };
 

@@ -14,6 +14,7 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_context.hh"
+#include "BKE_customdata.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
@@ -193,7 +194,7 @@ static int geometry_extract_apply(bContext *C,
   BKE_editmesh_free_data(em);
   MEM_freeN(em);
 
-  if (new_mesh->totvert == 0) {
+  if (new_mesh->verts_num == 0) {
     BKE_id_free(bmain, new_mesh);
     return OPERATOR_FINISHED;
   }

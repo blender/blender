@@ -13,7 +13,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#include "BKE_attribute.h"
+#include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
 #include "BKE_global.h"
 #include "BKE_material.h"
@@ -102,18 +102,6 @@ void UI_GetThemeColorShadeAlpha4ubv(int /*colorid*/,
                                     uchar[4] /*col*/)
 {
   BLI_assert_unreachable();
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Stubs of BKE_attribute.h
- * \{ */
-
-extern "C" eAttrDomain BKE_id_attribute_domain(const struct ID * /*id*/,
-                                               const struct CustomDataLayer * /*layer*/)
-{
-  return ATTR_DOMAIN_AUTO;
 }
 
 /** \} */

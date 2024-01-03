@@ -132,7 +132,7 @@ static const EnumPropertyItem blend_type_items[] = {
 
 #  include "RNA_access.hh"
 
-#  include "BKE_colorband.h"
+#  include "BKE_colorband.hh"
 #  include "BKE_context.hh"
 #  include "BKE_image.h"
 #  include "BKE_main.hh"

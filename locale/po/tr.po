@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'0b00b360f7ae')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'98c6bded9844')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-18 13:45:58\n"
+"POT-Creation-Date: 2024-01-02 10:08:43\n"
 "PO-Revision-Date: 2023-11-15 02:54+0000\n"
 "Last-Translator: bitigchi <bitigchi@me.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -3905,10 +3905,6 @@ msgstr "Armatürün etkin kemik koleksiyonu"
 
 msgid "Active Collection Index"
 msgstr "Etkin Koleksiyon İndeksi"
-
-
-msgid "The index of the Armature's active bone collection; -1 when there is no active collection"
-msgstr "Armatürün etkin kemik koleksiyonunun indeksi; etkin koleksiyon yokken -1'dir"
 
 
 msgid "Active Collection Name"
@@ -10237,6 +10233,10 @@ msgid "Motion Tracking"
 msgstr "Hareket İzleme"
 
 
+msgid "Viewer Node"
+msgstr "Görüntüleyici Düğümü"
+
+
 msgctxt "Operator"
 msgid "Density"
 msgstr "Yoğunluk"
@@ -10341,14 +10341,6 @@ msgstr "Gres Kalemi 3.0"
 
 msgid "New Curves Tools"
 msgstr "Yeni Eğriler Araçları"
-
-
-msgid "Override Templates"
-msgstr "Şablonları Geçersiz Kıl"
-
-
-msgid "Enable library override template in the Python API"
-msgstr "Python API'sinde kitaplık geçersiz kılma şablonunu etkinleştir"
 
 
 msgid "Animation Player"
@@ -10756,10 +10748,6 @@ msgstr "Sahne Özellikleri"
 
 msgid "Object Evaluation State"
 msgstr "Nesne Değerlendirme Durumu"
-
-
-msgid "Viewer Node"
-msgstr "Görüntüleyici Düğümü"
 
 
 msgid "Syntax highlight for scripting"
@@ -12096,11 +12084,6 @@ msgid "Fair Positions"
 msgstr "Eşit Konumlar"
 
 
-msgctxt "Operator"
-msgid "Move to Bone Collection"
-msgstr "Kemik Koleksiyonuna Taşı"
-
-
 msgid "Bone Settings"
 msgstr "Kemik Ayarları"
 
@@ -12108,6 +12091,11 @@ msgstr "Kemik Ayarları"
 msgctxt "Operator"
 msgid "Rename Active Bone..."
 msgstr "Etkin Kemiği Yeniden Adlandır..."
+
+
+msgctxt "Operator"
+msgid "Move to Bone Collection"
+msgstr "Kemik Koleksiyonuna Taşı"
 
 
 msgctxt "GPencil"

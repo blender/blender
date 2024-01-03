@@ -8,6 +8,8 @@
  * Random number generator, contains persistent state and sample count logic.
  */
 
+#include "BKE_colortools.hh"
+
 #include "BLI_rand.h"
 
 #include "BLI_math_base.hh"

@@ -36,7 +36,7 @@ void forward_lighting_eval(float thickness, out vec3 radiance, out vec3 transmit
 
   ClosureLight cl_reflection;
   cl_reflection.N = g_reflection_data.N;
-  cl_reflection.ltc_mat = LTC_GGX_MAT(dot(g_reflection_data.N, V), g_reflection_data.roughness);
+  cl_reflection.ltc_mat = LTC_GGX_MAT(dot(g_reflection_data.N, V), g_reflection_data.data.x);
   cl_reflection.type = LIGHT_SPECULAR;
 
   int cl_layer = 0;
@@ -84,19 +84,23 @@ void forward_lighting_eval(float thickness, out vec3 radiance, out vec3 transmit
 
 #ifdef MAT_DIFFUSE
   diffuse_light = stack.cl[cl_diffuse_id].light_shadowed;
-  diffuse_light += lightprobe_eval(samp, g_diffuse_data, g_data.P, V, noise_probe);
+  diffuse_light += lightprobe_eval(
+      samp, to_closure_diffuse(g_diffuse_data), g_data.P, V, noise_probe);
 #endif
 #ifdef MAT_TRANSLUCENT
   translucent_light = stack.cl[cl_translucent_id].light_shadowed;
-  translucent_light += lightprobe_eval(samp, g_translucent_data, g_data.P, V, noise_probe);
+  translucent_light += lightprobe_eval(
+      samp, to_closure_translucent(g_translucent_data), g_data.P, V, noise_probe);
 #endif
 #ifdef MAT_REFLECTION
   reflection_light = stack.cl[cl_reflection_id].light_shadowed;
-  reflection_light += lightprobe_eval(samp, g_reflection_data, g_data.P, V, noise_probe);
+  reflection_light += lightprobe_eval(
+      samp, to_closure_reflection(g_reflection_data), g_data.P, V, noise_probe);
 #endif
 #ifdef MAT_REFRACTION
   /* TODO(fclem): Refraction from lightprobe. */
-  // refraction_light += lightprobe_eval(samp, g_refraction_data, g_data.P, V, noise_probe);
+  // refraction_light += lightprobe_eval(samp, to_closure_refraction(g_refraction_data), g_data.P,
+  // V, noise_probe);
 #endif
 
   /* Apply weight. */

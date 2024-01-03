@@ -8,7 +8,6 @@
 
 #pragma once
 
-#include "BKE_attribute.h"
 #include "BKE_grease_pencil.hh"
 
 #include "BLI_generic_span.hh"
@@ -26,6 +25,11 @@ struct ToolSettings;
 struct Scene;
 struct ViewDepths;
 struct View3D;
+namespace blender {
+namespace bke {
+enum class AttrDomain : int8_t;
+}
+}  // namespace blender
 
 enum {
   LAYER_REORDER_ABOVE,
@@ -48,7 +52,7 @@ void ED_keymap_grease_pencil(wmKeyConfig *keyconf);
 /**
  * Get the selection mode for Grease Pencil selection operators: point, stroke, segment.
  */
-eAttrDomain ED_grease_pencil_selection_domain_get(const ToolSettings *tool_settings);
+blender::bke::AttrDomain ED_grease_pencil_selection_domain_get(const ToolSettings *tool_settings);
 
 /** \} */
 
@@ -178,7 +182,7 @@ IndexMask retrieve_editable_points(Object &object,
                                    IndexMaskMemory &memory);
 IndexMask retrieve_editable_elements(Object &object,
                                      const bke::greasepencil::Drawing &drawing,
-                                     eAttrDomain selection_domain,
+                                     bke::AttrDomain selection_domain,
                                      IndexMaskMemory &memory);
 
 IndexMask retrieve_visible_strokes(Object &grease_pencil_object,
@@ -193,7 +197,7 @@ IndexMask retrieve_editable_and_selected_points(Object &object,
                                                 IndexMaskMemory &memory);
 IndexMask retrieve_editable_and_selected_elements(Object &object,
                                                   const bke::greasepencil::Drawing &drawing,
-                                                  eAttrDomain selection_domain,
+                                                  bke::AttrDomain selection_domain,
                                                   IndexMaskMemory &memory);
 
 void create_blank(Main &bmain, Object &object, int frame_number);

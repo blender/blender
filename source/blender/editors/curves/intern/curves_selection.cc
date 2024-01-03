@@ -32,11 +32,11 @@ IndexMask retrieve_selected_curves(const bke::CurvesGeometry &curves, IndexMaskM
    * interested in whether any point in each curve is selected. Retrieve meta data since
    * #lookup_or_default from the attribute API doesn't give the domain of the attribute. */
   std::optional<bke::AttributeMetaData> meta_data = attributes.lookup_meta_data(".selection");
-  if (meta_data && meta_data->domain == ATTR_DOMAIN_POINT) {
+  if (meta_data && meta_data->domain == bke::AttrDomain::Point) {
     /* Avoid the interpolation from interpolating the attribute to the
      * curve domain by retrieving the point domain values directly. */
     const VArray<bool> selection = *attributes.lookup_or_default<bool>(
-        ".selection", ATTR_DOMAIN_POINT, true);
+        ".selection", bke::AttrDomain::Point, true);
     if (selection.is_single()) {
       return selection.get_internal_single() ? IndexMask(curves_range) : IndexMask();
     }
@@ -51,7 +51,7 @@ IndexMask retrieve_selected_curves(const bke::CurvesGeometry &curves, IndexMaskM
         });
   }
   const VArray<bool> selection = *attributes.lookup_or_default<bool>(
-      ".selection", ATTR_DOMAIN_CURVE, true);
+      ".selection", bke::AttrDomain::Curve, true);
   return IndexMask::from_bools(curves_range, selection, memory);
 }
 
@@ -64,7 +64,8 @@ IndexMask retrieve_selected_curves(const Curves &curves_id, IndexMaskMemory &mem
 IndexMask retrieve_selected_points(const bke::CurvesGeometry &curves, IndexMaskMemory &memory)
 {
   return IndexMask::from_bools(
-      *curves.attributes().lookup_or_default<bool>(".selection", ATTR_DOMAIN_POINT, true), memory);
+      *curves.attributes().lookup_or_default<bool>(".selection", bke::AttrDomain::Point, true),
+      memory);
 }
 
 IndexMask retrieve_selected_points(const Curves &curves_id, IndexMaskMemory &memory)
@@ -74,7 +75,7 @@ IndexMask retrieve_selected_points(const Curves &curves_id, IndexMaskMemory &mem
 }
 
 bke::GSpanAttributeWriter ensure_selection_attribute(bke::CurvesGeometry &curves,
-                                                     const eAttrDomain selection_domain,
+                                                     const bke::AttrDomain selection_domain,
                                                      const eCustomDataType create_type)
 {
   bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
@@ -284,7 +285,7 @@ static void invert_selection(GMutableSpan selection, const IndexMask &mask)
 
 void select_all(bke::CurvesGeometry &curves,
                 const IndexMask &mask,
-                const eAttrDomain selection_domain,
+                const bke::AttrDomain selection_domain,
                 int action)
 {
   bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
@@ -311,7 +312,7 @@ void select_all(bke::CurvesGeometry &curves,
   selection.finish();
 }
 
-void select_all(bke::CurvesGeometry &curves, const eAttrDomain selection_domain, int action)
+void select_all(bke::CurvesGeometry &curves, const bke::AttrDomain selection_domain, int action)
 {
   const IndexRange selection(curves.attributes().domain_size(selection_domain));
   select_all(curves, selection, selection_domain, action);
@@ -321,7 +322,7 @@ void select_linked(bke::CurvesGeometry &curves, const IndexMask &curves_mask)
 {
   const OffsetIndices points_by_curve = curves.points_by_curve();
   bke::GSpanAttributeWriter selection = ensure_selection_attribute(
-      curves, ATTR_DOMAIN_POINT, CD_PROP_BOOL);
+      curves, bke::AttrDomain::Point, CD_PROP_BOOL);
 
   curves_mask.foreach_index(GrainSize(256), [&](const int64_t curve_i) {
     GMutableSpan selection_curve = selection.span.slice(points_by_curve[curve_i]);
@@ -348,7 +349,7 @@ void select_alternate(bke::CurvesGeometry &curves,
 
   const OffsetIndices points_by_curve = curves.points_by_curve();
   bke::GSpanAttributeWriter selection = ensure_selection_attribute(
-      curves, ATTR_DOMAIN_POINT, CD_PROP_BOOL);
+      curves, bke::AttrDomain::Point, CD_PROP_BOOL);
   const VArray<bool> cyclic = curves.cyclic();
 
   MutableSpan<bool> selection_typed = selection.span.typed<bool>();
@@ -394,7 +395,7 @@ void select_adjacent(bke::CurvesGeometry &curves,
 {
   const OffsetIndices points_by_curve = curves.points_by_curve();
   bke::GSpanAttributeWriter selection = ensure_selection_attribute(
-      curves, ATTR_DOMAIN_POINT, CD_PROP_BOOL);
+      curves, bke::AttrDomain::Point, CD_PROP_BOOL);
   const VArray<bool> cyclic = curves.cyclic();
 
   if (deselect) {
@@ -655,12 +656,12 @@ std::optional<FindClosestData> closest_elem_find_screen_space(
     const OffsetIndices<int> points_by_curve,
     const Span<float3> positions,
     const IndexMask &mask,
-    const eAttrDomain domain,
+    const bke::AttrDomain domain,
     const int2 coord,
     const FindClosestData &initial_closest)
 {
   switch (domain) {
-    case ATTR_DOMAIN_POINT:
+    case bke::AttrDomain::Point:
       return find_closest_point_to_screen_co(vc.region,
                                              vc.rv3d,
                                              object,
@@ -669,7 +670,7 @@ std::optional<FindClosestData> closest_elem_find_screen_space(
                                              float2(coord),
                                              ED_view3d_select_dist_px(),
                                              initial_closest);
-    case ATTR_DOMAIN_CURVE:
+    case bke::AttrDomain::Curve:
       return find_closest_curve_to_screen_co(vc.region,
                                              vc.rv3d,
                                              object,
@@ -689,7 +690,7 @@ bool select_box(const ViewContext &vc,
                 bke::CurvesGeometry &curves,
                 const Span<float3> positions,
                 const IndexMask &mask,
-                const eAttrDomain selection_domain,
+                const bke::AttrDomain selection_domain,
                 const rcti &rect,
                 const eSelectOp sel_op)
 {
@@ -705,7 +706,7 @@ bool select_box(const ViewContext &vc,
   const float4x4 projection = ED_view3d_ob_project_mat_get(vc.rv3d, vc.obact);
 
   const OffsetIndices points_by_curve = curves.points_by_curve();
-  if (selection_domain == ATTR_DOMAIN_POINT) {
+  if (selection_domain == bke::AttrDomain::Point) {
     mask.foreach_index(GrainSize(1024), [&](const int point_i) {
       const float2 pos_proj = ED_view3d_project_float_v2_m4(
           vc.region, positions[point_i], projection);
@@ -715,7 +716,7 @@ bool select_box(const ViewContext &vc,
       }
     });
   }
-  else if (selection_domain == ATTR_DOMAIN_CURVE) {
+  else if (selection_domain == bke::AttrDomain::Curve) {
     mask.foreach_index(GrainSize(512), [&](const int curve_i) {
       const IndexRange points = points_by_curve[curve_i];
       if (points.size() == 1) {
@@ -751,7 +752,7 @@ bool select_lasso(const ViewContext &vc,
                   bke::CurvesGeometry &curves,
                   const Span<float3> positions,
                   const IndexMask &mask,
-                  const eAttrDomain selection_domain,
+                  const bke::AttrDomain selection_domain,
                   const Span<int2> coords,
                   const eSelectOp sel_op)
 {
@@ -771,7 +772,7 @@ bool select_lasso(const ViewContext &vc,
   const float4x4 projection = ED_view3d_ob_project_mat_get(vc.rv3d, vc.obact);
 
   const OffsetIndices points_by_curve = curves.points_by_curve();
-  if (selection_domain == ATTR_DOMAIN_POINT) {
+  if (selection_domain == bke::AttrDomain::Point) {
     mask.foreach_index(GrainSize(1024), [&](const int point_i) {
       const float2 pos_proj = ED_view3d_project_float_v2_m4(
           vc.region, positions[point_i], projection);
@@ -785,7 +786,7 @@ bool select_lasso(const ViewContext &vc,
       }
     });
   }
-  else if (selection_domain == ATTR_DOMAIN_CURVE) {
+  else if (selection_domain == bke::AttrDomain::Curve) {
     mask.foreach_index(GrainSize(512), [&](const int curve_i) {
       const IndexRange points = points_by_curve[curve_i];
       if (points.size() == 1) {
@@ -834,7 +835,7 @@ bool select_circle(const ViewContext &vc,
                    bke::CurvesGeometry &curves,
                    const Span<float3> positions,
                    const IndexMask &mask,
-                   const eAttrDomain selection_domain,
+                   const bke::AttrDomain selection_domain,
                    const int2 coord,
                    const float radius,
                    const eSelectOp sel_op)
@@ -852,7 +853,7 @@ bool select_circle(const ViewContext &vc,
   const float4x4 projection = ED_view3d_ob_project_mat_get(vc.rv3d, vc.obact);
 
   const OffsetIndices points_by_curve = curves.points_by_curve();
-  if (selection_domain == ATTR_DOMAIN_POINT) {
+  if (selection_domain == bke::AttrDomain::Point) {
     mask.foreach_index(GrainSize(1024), [&](const int point_i) {
       const float2 pos_proj = ED_view3d_project_float_v2_m4(
           vc.region, positions[point_i], projection);
@@ -862,7 +863,7 @@ bool select_circle(const ViewContext &vc,
       }
     });
   }
-  else if (selection_domain == ATTR_DOMAIN_CURVE) {
+  else if (selection_domain == bke::AttrDomain::Curve) {
     mask.foreach_index(GrainSize(512), [&](const int curve_i) {
       const IndexRange points = points_by_curve[curve_i];
       if (points.size() == 1) {

@@ -40,16 +40,18 @@
 #include "BKE_object.hh"
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
+
 #include "DEG_depsgraph_query.hh"
+
 #include "DNA_camera_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_light_types.h"
 #include "DNA_material_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "RE_pipeline.h"
@@ -1917,7 +1919,7 @@ static void lineart_sort_adjacent_items(LineartAdjacentEdge *ai, int length)
 
 static LineartEdgeNeighbor *lineart_build_edge_neighbor(Mesh *mesh, int total_edges)
 {
-  /* Because the mesh is triangulated, so `mesh->totedge` should be reliable? */
+  /* Because the mesh is triangulated, so `mesh->edges_num` should be reliable? */
   LineartAdjacentEdge *adj_e = static_cast<LineartAdjacentEdge *>(
       MEM_mallocN(sizeof(LineartAdjacentEdge) * total_edges, "LineartAdjacentEdge arr"));
   LineartEdgeNeighbor *edge_nabr = static_cast<LineartEdgeNeighbor *>(
@@ -1957,14 +1959,15 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
 {
   using namespace blender;
   Mesh *mesh = ob_info->original_me;
-  if (!mesh->totedge) {
+  if (!mesh->edges_num) {
     return;
   }
 
   /* Triangulate. */
   const Span<int3> corner_tris = mesh->corner_tris();
   const bke::AttributeAccessor attributes = mesh->attributes();
-  const VArraySpan material_indices = *attributes.lookup<int>("material_index", ATTR_DOMAIN_FACE);
+  const VArraySpan material_indices = *attributes.lookup<int>("material_index",
+                                                              bke::AttrDomain::Face);
 
   /* Check if we should look for custom data tags like Freestyle edges or faces. */
   bool can_find_freestyle_edge = false;
@@ -1982,8 +1985,8 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
   /* If we allow duplicated edges, one edge should get added multiple times if is has been
    * classified as more than one edge type. This is so we can create multiple different line type
    * chains containing the same edge. */
-  LineartVert *la_v_arr = static_cast<LineartVert *>(
-      lineart_mem_acquire_thread(&la_data->render_data_pool, sizeof(LineartVert) * mesh->totvert));
+  LineartVert *la_v_arr = static_cast<LineartVert *>(lineart_mem_acquire_thread(
+      &la_data->render_data_pool, sizeof(LineartVert) * mesh->verts_num));
   LineartTriangle *la_tri_arr = static_cast<LineartTriangle *>(lineart_mem_acquire_thread(
       &la_data->render_data_pool, corner_tris.size() * la_data->sizeof_triangle));
 
@@ -1998,7 +2001,7 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
   BLI_spin_unlock(&la_data->lock_task);
 
   elem_link_node->obindex = ob_info->obindex;
-  elem_link_node->element_count = mesh->totvert;
+  elem_link_node->element_count = mesh->verts_num;
   elem_link_node->object_ref = orig_ob;
   ob_info->v_eln = elem_link_node;
 
@@ -2055,7 +2058,7 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
   vert_data.model_view_proj = ob_info->model_view_proj;
 
   BLI_task_parallel_range(
-      0, mesh->totvert, &vert_data, lineart_mvert_transform_task, &vert_settings);
+      0, mesh->verts_num, &vert_data, lineart_mvert_transform_task, &vert_settings);
 
   /* Convert all mesh triangles into lineart triangles.
    * Also create an edge map to get connectivity between edges and triangles. */
@@ -2094,9 +2097,9 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
   edge_feat_settings.func_reduce = feat_data_sum_reduce;
 
   const VArray<bool> sharp_edges = *attributes.lookup_or_default<bool>(
-      "sharp_edge", ATTR_DOMAIN_EDGE, false);
+      "sharp_edge", bke::AttrDomain::Edge, false);
   const VArray<bool> sharp_faces = *attributes.lookup_or_default<bool>(
-      "sharp_face", ATTR_DOMAIN_FACE, false);
+      "sharp_face", bke::AttrDomain::Face, false);
 
   EdgeFeatData edge_feat_data = {nullptr};
   edge_feat_data.ld = la_data;
@@ -2142,7 +2145,7 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
         MEM_malloc_arrayN(loose_edges.count, sizeof(int), __func__));
     if (loose_edges.count > 0) {
       loose_data.loose_count = 0;
-      for (const int64_t edge_i : IndexRange(mesh->totedge)) {
+      for (const int64_t edge_i : IndexRange(mesh->edges_num)) {
         if (loose_edges.is_loose_bits[edge_i]) {
           loose_data.loose_array[loose_data.loose_count] = int(edge_i);
           loose_data.loose_count++;
@@ -5373,7 +5376,7 @@ static void lineart_gpencil_generate(LineartCache *cache,
                 int sindex = 0, vindex;
                 LISTBASE_FOREACH (LineartEdgeChainItem *, eci, &ec->chain) {
                   vindex = eci->index;
-                  if (vindex >= mesh->totvert) {
+                  if (vindex >= mesh->verts_num) {
                     break;
                   }
                   MDeformWeight *mdw = BKE_defvert_ensure_index(&dvert[vindex], dindex);

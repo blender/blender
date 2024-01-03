@@ -32,6 +32,7 @@
 #include "BKE_bvhutils.hh"
 #include "BKE_context.hh"
 #include "BKE_curves.hh"
+#include "BKE_customdata.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
@@ -169,7 +170,7 @@ static bool editable_curves_point_domain_poll(bContext *C)
     return false;
   }
   const Curves *curves_id = static_cast<const Curves *>(CTX_data_active_object(C)->data);
-  if (curves_id->selection_domain != ATTR_DOMAIN_POINT) {
+  if (bke::AttrDomain(curves_id->selection_domain) != bke::AttrDomain::Point) {
     CTX_wm_operator_poll_msg_set(C, "Only available in point selection mode");
     return false;
   }
@@ -593,7 +594,7 @@ static void snap_curves_to_surface_exec_object(Object &curves_ob,
   if (curves_id.surface_uv_map != nullptr) {
     const bke::AttributeAccessor surface_attributes = surface_mesh.attributes();
     surface_uv_map = *surface_attributes.lookup<float2>(curves_id.surface_uv_map,
-                                                        ATTR_DOMAIN_CORNER);
+                                                        bke::AttrDomain::Corner);
   }
 
   const OffsetIndices points_by_curve = curves.points_by_curve();
@@ -778,14 +779,14 @@ namespace set_selection_domain {
 
 static int curves_set_selection_domain_exec(bContext *C, wmOperator *op)
 {
-  const eAttrDomain domain = eAttrDomain(RNA_enum_get(op->ptr, "domain"));
+  const bke::AttrDomain domain = bke::AttrDomain(RNA_enum_get(op->ptr, "domain"));
 
   for (Curves *curves_id : get_unique_editable_curves(*C)) {
-    if (curves_id->selection_domain == domain) {
+    if (bke::AttrDomain(curves_id->selection_domain) == domain) {
       continue;
     }
 
-    curves_id->selection_domain = domain;
+    curves_id->selection_domain = char(domain);
 
     CurvesGeometry &curves = curves_id->geometry.wrap();
     bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
@@ -870,7 +871,7 @@ static int select_all_exec(bContext *C, wmOperator *op)
 
   for (Curves *curves_id : unique_curves) {
     /* (De)select all the curves. */
-    select_all(curves_id->geometry.wrap(), eAttrDomain(curves_id->selection_domain), action);
+    select_all(curves_id->geometry.wrap(), bke::AttrDomain(curves_id->selection_domain), action);
 
     /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
      * attribute for now. */
@@ -904,7 +905,7 @@ static int select_random_exec(bContext *C, wmOperator *op)
 
   for (Curves *curves_id : unique_curves) {
     CurvesGeometry &curves = curves_id->geometry.wrap();
-    const eAttrDomain selection_domain = eAttrDomain(curves_id->selection_domain);
+    const bke::AttrDomain selection_domain = bke::AttrDomain(curves_id->selection_domain);
     const int domain_size = curves.attributes().domain_size(selection_domain);
 
     IndexMaskMemory memory;
@@ -985,7 +986,7 @@ static int select_ends_exec(bContext *C, wmOperator *op)
 
     const bool was_anything_selected = has_anything_selected(curves);
     bke::GSpanAttributeWriter selection = ensure_selection_attribute(
-        curves, ATTR_DOMAIN_POINT, CD_PROP_BOOL);
+        curves, bke::AttrDomain::Point, CD_PROP_BOOL);
     if (!was_anything_selected) {
       fill_selection_true(selection.span);
     }
@@ -1154,7 +1155,7 @@ static int surface_set_exec(bContext *C, wmOperator *op)
   Object &new_surface_ob = *CTX_data_active_object(C);
 
   Mesh &new_surface_mesh = *static_cast<Mesh *>(new_surface_ob.data);
-  const char *new_uv_map_name = CustomData_get_active_layer_name(&new_surface_mesh.loop_data,
+  const char *new_uv_map_name = CustomData_get_active_layer_name(&new_surface_mesh.corner_data,
                                                                  CD_PROP_FLOAT2);
 
   CTX_DATA_BEGIN (C, Object *, selected_ob, selected_objects) {
@@ -1221,7 +1222,7 @@ static int delete_exec(bContext *C, wmOperator * /*op*/)
 {
   for (Curves *curves_id : get_unique_editable_curves(*C)) {
     bke::CurvesGeometry &curves = curves_id->geometry.wrap();
-    if (remove_selection(curves, eAttrDomain(curves_id->selection_domain))) {
+    if (remove_selection(curves, bke::AttrDomain(curves_id->selection_domain))) {
       DEG_id_tag_update(&curves_id->id, ID_RECALC_GEOMETRY);
       WM_event_add_notifier(C, NC_GEOM | ND_DATA, curves_id);
     }
@@ -1251,11 +1252,11 @@ static int delete_exec(bContext *C, wmOperator * /*op*/)
   for (Curves *curves_id : get_unique_editable_curves(*C)) {
     bke::CurvesGeometry &curves = curves_id->geometry.wrap();
     IndexMaskMemory memory;
-    switch (eAttrDomain(curves_id->selection_domain)) {
-      case ATTR_DOMAIN_POINT:
+    switch (bke::AttrDomain(curves_id->selection_domain)) {
+      case bke::AttrDomain::Point:
         duplicate_points(curves, retrieve_selected_points(*curves_id, memory));
         break;
-      case ATTR_DOMAIN_CURVE:
+      case bke::AttrDomain::Curve:
         duplicate_curves(curves, retrieve_selected_curves(*curves_id, memory));
         break;
       default:

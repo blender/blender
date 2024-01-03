@@ -17,6 +17,7 @@
 
 #include "DEG_depsgraph.hh"
 
+#include "BKE_attribute.hh"
 #include "BKE_attribute_math.hh"
 #include "BKE_brush.hh"
 #include "BKE_bvhutils.hh"
@@ -29,8 +30,6 @@
 #include "DNA_brush_enums.h"
 #include "DNA_brush_types.h"
 #include "DNA_curves_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -126,7 +125,7 @@ struct SnakeHookOperatorExecutor {
     transforms_ = CurvesSurfaceTransforms(*object_, curves_id_->surface);
 
     curve_factors_ = *curves_->attributes().lookup_or_default(
-        ".selection", ATTR_DOMAIN_CURVE, 1.0f);
+        ".selection", bke::AttrDomain::Curve, 1.0f);
     curve_selection_ = curves::retrieve_selected_curves(*curves_id_, selected_curve_memory_);
 
     brush_pos_prev_re_ = self.last_mouse_position_re_;

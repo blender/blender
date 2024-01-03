@@ -8,9 +8,6 @@
  * Functions for iterating mesh features.
  */
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-
 #include "BKE_customdata.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_editmesh_cache.hh"
@@ -73,7 +70,7 @@ void BKE_mesh_foreach_mapped_vert(
     }
 
     if (index) {
-      for (int i = 0; i < mesh->totvert; i++) {
+      for (int i = 0; i < mesh->verts_num; i++) {
         const float *no = (flag & MESH_FOREACH_USE_NORMAL) ? &vert_normals[i].x : nullptr;
         const int orig = *index++;
         if (orig == ORIGINDEX_NONE) {
@@ -83,7 +80,7 @@ void BKE_mesh_foreach_mapped_vert(
       }
     }
     else {
-      for (int i = 0; i < mesh->totvert; i++) {
+      for (int i = 0; i < mesh->verts_num; i++) {
         const float *no = (flag & MESH_FOREACH_USE_NORMAL) ? &vert_normals[i].x : nullptr;
         func(user_data, i, positions[i], no);
       }
@@ -135,7 +132,7 @@ void BKE_mesh_foreach_mapped_edge(
         func(user_data, orig, positions[edges[i][0]], positions[edges[i][1]]);
       }
     }
-    else if (mesh->totedge == tot_edges) {
+    else if (mesh->edges_num == tot_edges) {
       for (const int i : edges.index_range()) {
         func(user_data, i, positions[edges[i][0]], positions[edges[i][1]]);
       }

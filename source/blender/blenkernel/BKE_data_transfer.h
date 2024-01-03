@@ -8,7 +8,6 @@
 
 #pragma once
 
-#include "BKE_customdata.hh"
 #include "BLI_compiler_compat.h"
 
 #ifdef __cplusplus

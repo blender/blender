@@ -203,10 +203,7 @@ bool BKE_lib_override_library_create(Main *bmain,
                                      ID *id_instance_hint,
                                      ID **r_id_root_override,
                                      const bool do_fully_editable);
-/**
- * Create a library override template.
- */
-bool BKE_lib_override_library_template_create(ID *id);
+
 /**
  * Convert a given proxy object into a library override.
  *

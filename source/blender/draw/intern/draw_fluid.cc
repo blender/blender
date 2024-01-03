@@ -18,7 +18,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_colorband.h"
+#include "BKE_colorband.hh"
 
 #include "IMB_colormanagement.h"
 

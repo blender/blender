@@ -540,7 +540,7 @@ static void rna_Mesh_assign_verts_to_group(
 
   /* Loop list adding verts to group. */
   for (i = 0; i < totindex; i++) {
-    if (i < 0 || i >= mesh->totvert) {
+    if (i < 0 || i >= mesh->verts_num) {
       BKE_report(reports, RPT_ERROR, "Bad vertex index in list");
       return;
     }

@@ -24,11 +24,6 @@ BaseScaleOperation::BaseScaleOperation()
   variable_size_ = false;
 }
 
-void BaseScaleOperation::set_scale_canvas_max_size(Size2f size)
-{
-  max_scale_canvas_size_ = size;
-}
-
 ScaleOperation::ScaleOperation() : ScaleOperation(DataType::Color) {}
 
 ScaleOperation::ScaleOperation(DataType data_type) : BaseScaleOperation()
@@ -224,9 +219,6 @@ void ScaleOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
     const float scale_x = get_constant_scale_x(input_width);
     const float scale_y = get_constant_scale_y(input_height);
     scale_area(r_area, scale_x, scale_y);
-    const Size2f max_scale_size = {std::max(input_width, max_scale_canvas_size_.x),
-                                   std::max(input_height, max_scale_canvas_size_.y)};
-    clamp_area_size_max(r_area, max_scale_size);
 
     /* Re-determine canvases of x and y constant inputs with scaled canvas as preferred. */
     get_input_operation(X_INPUT_INDEX)->unset_canvas();
@@ -405,9 +397,6 @@ void ScaleFixedSizeOperation::init_data(const rcti &input_canvas)
         offset_x_ += ((w_src - (w_src * div)) / (w_src / w_dst)) / 2.0f;
         if (is_crop_ && execution_model_ == eExecutionModel::FullFrame) {
           int fit_width = new_width_ * div;
-          if (fit_width > max_scale_canvas_size_.x) {
-            fit_width = max_scale_canvas_size_.x;
-          }
 
           const int added_width = fit_width - new_width_;
           new_width_ += added_width;
@@ -421,9 +410,6 @@ void ScaleFixedSizeOperation::init_data(const rcti &input_canvas)
         offset_y_ += ((h_src - (h_src * div)) / (h_src / h_dst)) / 2.0f;
         if (is_crop_ && execution_model_ == eExecutionModel::FullFrame) {
           int fit_height = new_height_ * div;
-          if (fit_height > max_scale_canvas_size_.y) {
-            fit_height = max_scale_canvas_size_.y;
-          }
 
           const int added_height = fit_height - new_height_;
           new_height_ += added_height;

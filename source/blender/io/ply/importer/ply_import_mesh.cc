@@ -6,7 +6,6 @@
  * \ingroup ply
  */
 
-#include "BKE_attribute.h"
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
 #include "BKE_lib_id.h"
@@ -35,11 +34,11 @@ Mesh *convert_ply_to_mesh(PlyData &data, const PLYImportParams &params)
     for (const int i : data.edges.index_range()) {
       int32_t v1 = data.edges[i].first;
       int32_t v2 = data.edges[i].second;
-      if (v1 >= mesh->totvert) {
+      if (v1 >= mesh->verts_num) {
         fprintf(stderr, "Invalid PLY vertex index in edge %i/1: %d\n", i, v1);
         v1 = 0;
       }
-      if (v2 >= mesh->totvert) {
+      if (v2 >= mesh->verts_num) {
         fprintf(stderr, "Invalid PLY vertex index in edge %i/2: %d\n", i, v2);
         v2 = 0;
       }
@@ -59,7 +58,7 @@ Mesh *convert_ply_to_mesh(PlyData &data, const PLYImportParams &params)
       face_offsets[i] = offset;
       for (int j = 0; j < size; j++) {
         uint32_t v = data.face_vertices[offset + j];
-        if (v >= mesh->totvert) {
+        if (v >= mesh->verts_num) {
           fprintf(stderr, "Invalid PLY vertex index in face %i loop %i: %u\n", i, j, v);
           v = 0;
         }
@@ -72,8 +71,8 @@ Mesh *convert_ply_to_mesh(PlyData &data, const PLYImportParams &params)
   /* Vertex colors */
   if (!data.vertex_colors.is_empty() && params.vertex_colors != PLY_VERTEX_COLOR_NONE) {
     /* Create a data layer for vertex colors and set them. */
-    bke::SpanAttributeWriter<ColorGeometry4f> colors =
-        attributes.lookup_or_add_for_write_span<ColorGeometry4f>("Col", ATTR_DOMAIN_POINT);
+    bke::SpanAttributeWriter colors = attributes.lookup_or_add_for_write_span<ColorGeometry4f>(
+        "Col", bke::AttrDomain::Point);
 
     if (params.vertex_colors == PLY_VERTEX_COLOR_SRGB) {
       for (const int i : data.vertex_colors.index_range()) {
@@ -93,7 +92,7 @@ Mesh *convert_ply_to_mesh(PlyData &data, const PLYImportParams &params)
   /* Uvmap */
   if (!data.uv_coordinates.is_empty()) {
     bke::SpanAttributeWriter<float2> uv_map = attributes.lookup_or_add_for_write_only_span<float2>(
-        "UVMap", ATTR_DOMAIN_CORNER);
+        "UVMap", bke::AttrDomain::Corner);
     for (const int i : data.face_vertices.index_range()) {
       uv_map.span[i] = data.uv_coordinates[data.face_vertices[i]];
     }
@@ -101,7 +100,7 @@ Mesh *convert_ply_to_mesh(PlyData &data, const PLYImportParams &params)
   }
 
   /* Calculate edges from the rest of the mesh. */
-  BKE_mesh_calc_edges(mesh, true, false);
+  bke::mesh_calc_edges(*mesh, true, false);
 
   /* If we have custom vertex normals, set them (note: important to do this
    * after initializing the loops). */
@@ -115,7 +114,7 @@ Mesh *convert_ply_to_mesh(PlyData &data, const PLYImportParams &params)
       /* If we have no faces, add vertex normals as custom attribute. */
       attributes.add<float3>(
           "normal",
-          ATTR_DOMAIN_POINT,
+          bke::AttrDomain::Point,
           bke::AttributeInitVArray(VArray<float3>::ForSpan(data.vertex_normals)));
     }
   }
@@ -128,7 +127,7 @@ Mesh *convert_ply_to_mesh(PlyData &data, const PLYImportParams &params)
   if (params.import_attributes && !data.vertex_custom_attr.is_empty()) {
     for (const PlyCustomAttribute &attr : data.vertex_custom_attr) {
       attributes.add<float>(attr.name,
-                            ATTR_DOMAIN_POINT,
+                            bke::AttrDomain::Point,
                             bke::AttributeInitVArray(VArray<float>::ForSpan(attr.data)));
     }
   }
@@ -136,7 +135,7 @@ Mesh *convert_ply_to_mesh(PlyData &data, const PLYImportParams &params)
   /* Merge all vertices on the same location. */
   if (params.merge_verts) {
     std::optional<Mesh *> merged_mesh = blender::geometry::mesh_merge_by_distance_all(
-        *mesh, IndexMask(mesh->totvert), 0.0001f);
+        *mesh, IndexMask(mesh->verts_num), 0.0001f);
     if (merged_mesh) {
       BKE_id_free(nullptr, &mesh->id);
       mesh = *merged_mesh;

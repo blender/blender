@@ -15,15 +15,12 @@
 #include "BLI_math_base_safe.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_set.hh"
-#include "BLI_task.h"
 #include "BLI_vector.hh"
 
 #include "DNA_brush_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 
 #include "BKE_brush.hh"
-#include "BKE_colortools.h"
+#include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
@@ -655,7 +652,6 @@ static void SCULPT_topology_automasking_init(Sculpt *sd, Object *ob)
 
   copy_v3_v3(fdata.location, SCULPT_active_vertex_co_get(ss));
   flood_fill::execute(ss, &flood, automask_floodfill_cb, &fdata);
-  flood_fill::free_fill(&flood);
 }
 
 static void sculpt_face_sets_automasking_init(Sculpt *sd, Object *ob)
@@ -836,7 +832,7 @@ Cache *cache_init(Sculpt *sd, Brush *brush, Object *ob)
       SculptAttributeParams params = {0};
       ss->attrs.automasking_occlusion = BKE_sculpt_attribute_ensure(
           ob,
-          ATTR_DOMAIN_POINT,
+          bke::AttrDomain::Point,
           CD_PROP_INT8,
           SCULPT_ATTRIBUTE_NAME(automasking_occlusion),
           &params);
@@ -858,7 +854,7 @@ Cache *cache_init(Sculpt *sd, Brush *brush, Object *ob)
       SculptAttributeParams params = {0};
       ss->attrs.automasking_cavity = BKE_sculpt_attribute_ensure(
           ob,
-          ATTR_DOMAIN_POINT,
+          bke::AttrDomain::Point,
           CD_PROP_FLOAT,
           SCULPT_ATTRIBUTE_NAME(automasking_cavity),
           &params);
@@ -896,7 +892,11 @@ Cache *cache_init(Sculpt *sd, Brush *brush, Object *ob)
   params.stroke_only = true;
 
   ss->attrs.automasking_factor = BKE_sculpt_attribute_ensure(
-      ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT, SCULPT_ATTRIBUTE_NAME(automasking_factor), &params);
+      ob,
+      bke::AttrDomain::Point,
+      CD_PROP_FLOAT,
+      SCULPT_ATTRIBUTE_NAME(automasking_factor),
+      &params);
 
   float initial_value;
 

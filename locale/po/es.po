@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'0b00b360f7ae')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'98c6bded9844')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-18 13:45:58\n"
+"POT-Creation-Date: 2024-01-02 10:08:43\n"
 "PO-Revision-Date: 2023-12-09 04:50+0000\n"
 "Last-Translator: Darwin Yip <yipdarwin+blender@gmail.com>\n"
 "Language-Team: Spanish <https://translate.blender.org/projects/blender-ui/ui/es/>\n"
@@ -3958,10 +3958,6 @@ msgstr "Colección del hueso activo del esqueleto"
 
 msgid "Active Collection Index"
 msgstr "Identificador colección de activo"
-
-
-msgid "The index of the Armature's active bone collection; -1 when there is no active collection"
-msgstr "El identificador de la colección del hueso activo del esqueleto; -1 cuando no haya una colección"
 
 
 msgid "Active Collection Name"
@@ -51163,16 +51159,8 @@ msgid "Assign to Collection"
 msgstr "Asignar a colección"
 
 
-msgid "Assign bones to a collection"
-msgstr "Asigna huesos a una colección"
-
-
-msgid "The bone collection to move the selected bones to"
-msgstr "La colección de huesos a la cual mover los huesos seleccionados"
-
-
-msgid "Name of the newly added bone collection"
-msgstr "Nombre de la colección de huesos recientemente agregada"
+msgid "Collection Index"
+msgstr "Identificador de la colección"
 
 
 msgctxt "Operator"
@@ -51390,10 +51378,6 @@ msgstr "Elimina los huesos seleccionados de la colección de huesos activa"
 
 msgid "Name of the bone collection to unassign this bone from; empty to unassign from the active bone collection"
 msgstr "Nombre de la colección de la cual quitar este hueso; dejar vacío para quitarlo de la colección activa"
-
-
-msgid "Unassign the bone from this bone collection"
-msgstr "Quita el hueso de esta colección de huesos"
 
 
 msgid "Name of the bone to unassign from the collection; empty to use the active bone"
@@ -55280,11 +55264,6 @@ msgstr "Euler (ZYX)"
 
 msgid "Convert rotations to euler ZYX"
 msgstr "Convetir rotaciones a Euler ZYX"
-
-
-msgctxt "Operator"
-msgid "Export STL"
-msgstr "Exportar STL"
 
 
 msgid "Save STL triangle mesh data"
@@ -60633,6 +60612,14 @@ msgid "The scale factor applied to the curve segments"
 msgstr "El factor de escala aplicado a los segmentos de curva"
 
 
+msgid "From Left"
+msgstr "Desde la izquierda"
+
+
+msgid "From Right"
+msgstr "Desde la derecha"
+
+
 msgid "Are handles tested individually against the selection criteria"
 msgstr "Si las asas son comprobadas individualmente contra los criterios de selección"
 
@@ -60691,16 +60678,8 @@ msgid "Which end of the segment to use as a reference to shear from"
 msgstr "Cuál extremo del segmento usar como referencia desde la cual cizallar"
 
 
-msgid "From Left"
-msgstr "Desde la izquierda"
-
-
 msgid "Shear the keys using the left key as reference"
 msgstr "Cizallar los claves usando el clave de la izquierda como referencia"
-
-
-msgid "From Right"
-msgstr "Desde la derecha"
 
 
 msgid "Shear the keys using the right key as reference"
@@ -61874,11 +61853,6 @@ msgstr "Definir la imagen en base a sus puntos por unidades de Blender"
 
 msgid "Use alpha channel for transparency"
 msgstr "Usar el canal alfa para definir la transparencia"
-
-
-msgctxt "Operator"
-msgid "Import STL"
-msgstr "Importar STL"
 
 
 msgid "Load STL triangle mesh data"
@@ -67946,10 +67920,6 @@ msgstr "Ocultar colección"
 
 msgid "Show only objects in collection (Shift to extend)"
 msgstr "Permite mostrar sólo objetos en una colección (Mayúsculas para extender)"
-
-
-msgid "Collection Index"
-msgstr "Identificador de la colección"
 
 
 msgid "Index of the collection to change visibility"
@@ -83356,6 +83326,16 @@ msgid "Open a window with information about Blender"
 msgstr "Abre una ventana con información acerca de Blender"
 
 
+msgctxt "Operator"
+msgid "Export STL"
+msgstr "Exportar STL"
+
+
+msgctxt "Operator"
+msgid "Import STL"
+msgstr "Importar STL"
+
+
 msgid "Import an STL file as an object"
 msgstr "Importar un archivo STL como un objeto"
 
@@ -83599,14 +83579,6 @@ msgstr "Formas clave"
 
 msgid "Import guide geometry"
 msgstr "Importar geometría de guía"
-
-
-msgid "Import Instance Proxies"
-msgstr "Importar reemplazos de instancias"
-
-
-msgid "Create unique Blender objects for USD instances"
-msgstr "Crea objetos únicos de Blender para las instancias USD"
 
 
 msgid "Import proxy geometry"
@@ -86044,6 +86016,10 @@ msgid "Motion Tracking"
 msgstr "Rastreo de movimiento"
 
 
+msgid "Viewer Node"
+msgstr "Nodo Visor"
+
+
 msgid "Pose Library"
 msgstr "Biblioteca de poses"
 
@@ -88323,14 +88299,6 @@ msgid "Enable the new Overlay codebase, requires restart"
 msgstr "Habilitar el nuevo código de Overlay, requiere reiniciar"
 
 
-msgid "Override Auto Resync"
-msgstr "Auto resincronizar redefiniciones"
-
-
-msgid "Enable library overrides automatic resync detection and process on file load. Disable when dealing with older .blend files that need manual Resync (Enforce) handling"
-msgstr "Habilita la detección automática de resincronización de redefiniciones de biblioteca al cargar el archivo. Deshabilitar cuando se utilicen archivos .blend antiguos a los que se necesite aplicar Resincronizar (a la fuerza)"
-
-
 msgid "Asset Debug Info"
 msgstr "Información de depuración de recursos"
 
@@ -88345,14 +88313,6 @@ msgstr "Tratar datos vinculados como directos"
 
 msgid "Forces all linked data to be considered as directly linked. Workaround for current issues/limitations in BAT (Blender studio pipeline tool)"
 msgstr "Fuerza a que todos los datos vinculados sean considerados como directamente vinculados. Solución alternativa para inconvenientes/limitaciones actuales de BAT (la herramienta de canalización de datos de Blender Studio)"
-
-
-msgid "Asset Indexing"
-msgstr "Indizado de recursos"
-
-
-msgid "Disabling the asset indexer forces every asset library refresh to completely reread assets from disk"
-msgstr "Deshabilitar el indexador de recursos fuerza a que en cada refresco de la biblioteca de recursos éstos tengan que volver a ser leídos completamente desde el disco"
 
 
 msgid "Cycles Debug"
@@ -88421,14 +88381,6 @@ msgstr "Nuevos nodos de volumen"
 
 msgid "Enables visibility of the new Volume nodes in the UI"
 msgstr "Habilita la visibilidad de los nuevos nodos de volumen en la interfaz"
-
-
-msgid "Override Templates"
-msgstr "Plantillas de redefinición"
-
-
-msgid "Enable library override template in the Python API"
-msgstr "Habilitar plantillas de redefinición de bibliotecas en la API de Python"
 
 
 msgid "Sculpt Texture Paint"
@@ -96825,36 +96777,24 @@ msgid "Show strip thumbnails"
 msgstr "Muestra miniaturas en los clips"
 
 
-msgid "Waveform Display"
-msgstr "Formas de onda"
-
-
 msgid "How Waveforms are displayed"
 msgstr "Método de visualización de formas de onda"
 
 
-msgid "Waveforms Off"
-msgstr "No mostrar"
-
-
-msgid "Don't display waveforms for any sound strips"
-msgstr "No mostrar formas de onda para ningún clip de sonido"
-
-
-msgid "Waveforms On"
-msgstr "Mostrar"
+msgid "Waveform Display"
+msgstr "Formas de onda"
 
 
 msgid "Display waveforms for all sound strips"
 msgstr "Mostrar formas de onda para todos los clips de sonido"
 
 
-msgid "Use Strip Option"
-msgstr "Usar opciones del clip"
-
-
 msgid "Display waveforms depending on strip setting"
 msgstr "Mostrar formas de onda dependiendo de las opciones del clip"
+
+
+msgid "Don't display waveforms for any sound strips"
+msgstr "No mostrar formas de onda para ningún clip de sonido"
 
 
 msgid "Sequencer Tool Settings"
@@ -99490,10 +99430,6 @@ msgstr "Usar datos del objeto evaluado total o parcialmente"
 
 msgid "Use data from original object without any modifiers applied"
 msgstr "Usar datos del objeto sin sus modificadores aplicados"
-
-
-msgid "Viewer Node"
-msgstr "Nodo Visor"
 
 
 msgid "Use intermediate data from viewer node"
@@ -108919,11 +108855,6 @@ msgstr "Generando un material compatible con Cycles/EEVEE, pero no será visible
 
 
 msgctxt "Operator"
-msgid "Stl (.stl)"
-msgstr "STL (.stl)"
-
-
-msgctxt "Operator"
 msgid "FBX (.fbx)"
 msgstr "FBX (.fbx)"
 
@@ -114828,11 +114759,6 @@ msgstr "PLY de Stanford (.ply)"
 
 
 msgctxt "Operator"
-msgid "STL (.stl) (experimental)"
-msgstr "STL (.stl) (experimental)"
-
-
-msgctxt "Operator"
 msgid "Render Image"
 msgstr "Procesar fotograma"
 
@@ -116142,11 +116068,6 @@ msgid "Per Loose Part"
 msgstr "Por parte suelta"
 
 
-msgctxt "Operator"
-msgid "Move to Bone Collection"
-msgstr "Mover a colección de huesos"
-
-
 msgid "Bone Settings"
 msgstr "Opciones de huesos"
 
@@ -116334,6 +116255,11 @@ msgstr "Definir bordes"
 msgctxt "Operator"
 msgid "Edge Loops"
 msgstr "Bucles de bordes"
+
+
+msgctxt "Operator"
+msgid "Move to Bone Collection"
+msgstr "Mover a colección de huesos"
 
 
 msgctxt "Operator"
@@ -116765,14 +116691,6 @@ msgid "On Selected Markers"
 msgstr "En marcadores seleccionados"
 
 
-msgid "- select bones to operate on first -"
-msgstr "- seleccionar antes huesos sobre los cuales operar -"
-
-
-msgid "All bone collections are read-only"
-msgstr "Todas las colecciones de huesos son de sólo lectura"
-
-
 msgctxt "Operator"
 msgid "Auto-Name Left/Right"
 msgstr "Nombrar autom. izquierda / derecha"
@@ -116903,86 +116821,6 @@ msgstr "Borrar segmento"
 msgctxt "Operator"
 msgid "Delete Point"
 msgstr "Borrar punto"
-
-
-msgctxt "Operator"
-msgid "Copyright"
-msgstr "Copyright"
-
-
-msgctxt "Operator"
-msgid "Registered Trademark"
-msgstr "Marca Registrada"
-
-
-msgctxt "Operator"
-msgid "Degree Sign"
-msgstr "Grados"
-
-
-msgctxt "Operator"
-msgid "Multiplication Sign"
-msgstr "Multiplicación"
-
-
-msgctxt "Operator"
-msgid "Superscript 1"
-msgstr "Super 1"
-
-
-msgctxt "Operator"
-msgid "Superscript 2"
-msgstr "Super 2"
-
-
-msgctxt "Operator"
-msgid "Superscript 3"
-msgstr "Super 3"
-
-
-msgctxt "Operator"
-msgid "Double >>"
-msgstr "Doble >>"
-
-
-msgctxt "Operator"
-msgid "Double <<"
-msgstr "Doble <<"
-
-
-msgctxt "Operator"
-msgid "Promillage"
-msgstr "Por mil"
-
-
-msgctxt "Operator"
-msgid "Dutch Florin"
-msgstr "Florín holandés"
-
-
-msgctxt "Operator"
-msgid "British Pound"
-msgstr "Libra Esterlina"
-
-
-msgctxt "Operator"
-msgid "Japanese Yen"
-msgstr "Yen"
-
-
-msgctxt "Operator"
-msgid "German S"
-msgstr "S alemana"
-
-
-msgctxt "Operator"
-msgid "Spanish Question Mark"
-msgstr "Interrogación apertura"
-
-
-msgctxt "Operator"
-msgid "Spanish Exclamation Mark"
-msgstr "Admiración apertura"
 
 
 msgctxt "Operator"
@@ -118116,14 +117954,6 @@ msgstr "No es posible resincronizar el bloque de datos %s y sus dependencias, de
 
 msgid "During resync of data-block %s, %d obsolete overrides were deleted, that had local changes defined by user"
 msgstr "Durante la resincronización del bloque de datos %s, se borraron %d redefiniciones obsoletas, que presentaban cambios locales definidos por el usuario"
-
-
-msgid "Data corruption: data-block '%s' is using itself as library override reference"
-msgstr "Corrupción de datos: el bloque de datos '%s' se está usando a sí mismo como referencia de redefinición de biblioteca"
-
-
-msgid "Data corruption: data-block '%s' is using another local data-block ('%s') as library override reference"
-msgstr "Corrupción de datos: el bloque de datos '%s' está usando otr bloque de datos local ('%s') como referencia de redefinición de biblioteca"
 
 
 msgid "libraries"
@@ -127601,18 +127431,6 @@ msgid "Asset data cannot be None"
 msgstr "Los datos de un recurso no pueden ser nulos"
 
 
-msgid "Override template experimental feature is disabled"
-msgstr "La característica experimental Plantillas de redefinición se encuentra deshabilitada"
-
-
-msgid "Unable to create override template for linked data-blocks"
-msgstr "No fue posible crear una plantilla de redefinición para los bloques de datos vinculados"
-
-
-msgid "Unable to create override template for overridden data-blocks"
-msgstr "No fue posible crear una plantilla de redefinición para los bloques de datos redefinidos"
-
-
 msgid "No new override property created, property already exists"
 msgstr "No se creó ninguna nueva propiedad redefinida, la propiedad ya existe"
 
@@ -129842,6 +129660,10 @@ msgid "Node must be run as tool"
 msgstr "El nodo debe ser ejecutado como una herramienta"
 
 
+msgid "Disabled, Blender was compiled without OpenVDB"
+msgstr "Deshabilitado, Blender fue compilado sin soporte para OpenVDB"
+
+
 msgid "Leading"
 msgstr "Desde el inicio"
 
@@ -130373,10 +130195,6 @@ msgstr "UV de superficie inválidas en {} curvas"
 
 msgid "The parts of the geometry to be deleted"
 msgstr "Partes de la geometría a ser borradas"
-
-
-msgid "Disabled, Blender was compiled without OpenVDB"
-msgstr "Deshabilitado, Blender fue compilado sin soporte para OpenVDB"
 
 
 msgid "Number of points to sample per unit volume"
@@ -133188,10 +133006,6 @@ msgstr "Formato MDD de NewTek"
 
 msgid "Import-Export MDD as mesh shape keys"
 msgstr "Importa y exporta MDD como Formas clave de una malla"
-
-
-msgid "STL format"
-msgstr "Formato STL"
 
 
 msgid "Import-Export STL files"

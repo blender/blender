@@ -68,23 +68,23 @@ static Array<float3> curve_tangent_point_domain(const bke::CurvesGeometry &curve
 }
 
 static VArray<float3> construct_curve_tangent_gvarray(const bke::CurvesGeometry &curves,
-                                                      const eAttrDomain domain)
+                                                      const AttrDomain domain)
 {
   const VArray<int8_t> types = curves.curve_types();
   if (curves.is_single_type(CURVE_TYPE_POLY)) {
     return curves.adapt_domain<float3>(
-        VArray<float3>::ForSpan(curves.evaluated_tangents()), ATTR_DOMAIN_POINT, domain);
+        VArray<float3>::ForSpan(curves.evaluated_tangents()), AttrDomain::Point, domain);
   }
 
   Array<float3> tangents = curve_tangent_point_domain(curves);
 
-  if (domain == ATTR_DOMAIN_POINT) {
+  if (domain == AttrDomain::Point) {
     return VArray<float3>::ForContainer(std::move(tangents));
   }
 
-  if (domain == ATTR_DOMAIN_CURVE) {
+  if (domain == AttrDomain::Curve) {
     return curves.adapt_domain<float3>(
-        VArray<float3>::ForContainer(std::move(tangents)), ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE);
+        VArray<float3>::ForContainer(std::move(tangents)), AttrDomain::Point, AttrDomain::Curve);
   }
 
   return nullptr;
@@ -98,7 +98,7 @@ class TangentFieldInput final : public bke::CurvesFieldInput {
   }
 
   GVArray get_varray_for_context(const bke::CurvesGeometry &curves,
-                                 const eAttrDomain domain,
+                                 const AttrDomain domain,
                                  const IndexMask & /*mask*/) const final
   {
     return construct_curve_tangent_gvarray(curves, domain);
@@ -115,9 +115,9 @@ class TangentFieldInput final : public bke::CurvesFieldInput {
     return dynamic_cast<const TangentFieldInput *>(&other) != nullptr;
   }
 
-  std::optional<eAttrDomain> preferred_domain(const bke::CurvesGeometry & /*curves*/) const final
+  std::optional<AttrDomain> preferred_domain(const bke::CurvesGeometry & /*curves*/) const final
   {
-    return ATTR_DOMAIN_POINT;
+    return AttrDomain::Point;
   }
 };
 

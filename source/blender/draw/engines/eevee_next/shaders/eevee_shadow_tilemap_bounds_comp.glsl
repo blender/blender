@@ -52,7 +52,7 @@ void main()
       local_max = max(local_max, z);
     }
 
-    if (gl_LocalInvocationID.x == 0) {
+    if (gl_LocalInvocationIndex == 0u) {
       global_min = floatBitsToOrderedInt(FLT_MAX);
       global_max = floatBitsToOrderedInt(-FLT_MAX);
     }
@@ -69,7 +69,7 @@ void main()
 
     barrier();
 
-    if (gl_LocalInvocationID.x == 0) {
+    if (gl_LocalInvocationIndex == 0u) {
       /* Final result. Min/Max of the whole dispatch. */
       atomicMin(light_buf[l_idx].clip_near, global_min);
       atomicMax(light_buf[l_idx].clip_far, global_max);

@@ -4,6 +4,7 @@
 
 #include "BLI_math_vector.hh"
 
+#include "BLI_kdtree.h"
 #include "BLI_length_parameterize.hh"
 #include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
@@ -398,9 +399,9 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
 
   /* Explicitly set all other attributes besides those processed above to default values. */
   bke::fill_attribute_range_default(
-      attributes, ATTR_DOMAIN_POINT, {"position"}, outputs.new_points_range);
+      attributes, bke::AttrDomain::Point, {"position"}, outputs.new_points_range);
   bke::fill_attribute_range_default(attributes,
-                                    ATTR_DOMAIN_CURVE,
+                                    bke::AttrDomain::Curve,
                                     {"curve_type", "surface_uv_coordinate", "resolution"},
                                     outputs.new_curves_range);
 

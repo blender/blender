@@ -25,6 +25,7 @@
 
 #include "BLT_translation.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_bvhutils.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
@@ -641,6 +642,7 @@ void heat_bone_weighting(Object *ob,
                          const int *selected,
                          const char **error_str)
 {
+  using namespace blender;
   LaplacianSystem *sys;
   blender::int3 *corner_tris;
   float solution, weight;
@@ -651,23 +653,24 @@ void heat_bone_weighting(Object *ob,
   const blender::Span<blender::float3> vert_positions = mesh->vert_positions();
   const blender::OffsetIndices faces = mesh->faces();
   const blender::Span<int> corner_verts = mesh->corner_verts();
+  const bke::AttributeAccessor attributes = mesh->attributes();
   bool use_vert_sel = (mesh->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
   bool use_face_sel = (mesh->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
 
   *error_str = nullptr;
 
   /* bone heat needs triangulated faces */
-  tris_num = poly_to_tri_count(mesh->faces_num, mesh->totloop);
+  tris_num = poly_to_tri_count(mesh->faces_num, mesh->corners_num);
 
   /* count triangles and create mask */
   if (ob->mode & OB_MODE_WEIGHT_PAINT && (use_face_sel || use_vert_sel)) {
     mask = static_cast<int *>(
-        MEM_callocN(sizeof(int) * mesh->totvert, "heat_bone_weighting mask"));
+        MEM_callocN(sizeof(int) * mesh->verts_num, "heat_bone_weighting mask"));
 
     /*  (added selectedVerts content for vertex mask, they used to just equal 1) */
     if (use_vert_sel) {
-      const bool *select_vert = (const bool *)CustomData_get_layer_named(
-          &mesh->vert_data, CD_PROP_BOOL, ".select_vert");
+      const VArray select_vert = *attributes.lookup_or_default<bool>(
+          ".select_vert", bke::AttrDomain::Point, false);
       if (select_vert) {
         for (const int i : faces.index_range()) {
           for (const int vert : corner_verts.slice(faces[i])) {
@@ -677,8 +680,8 @@ void heat_bone_weighting(Object *ob,
       }
     }
     else if (use_face_sel) {
-      const bool *select_poly = (const bool *)CustomData_get_layer_named(
-          &mesh->face_data, CD_PROP_BOOL, ".select_poly");
+      const VArray select_poly = *attributes.lookup_or_default<bool>(
+          ".select_poly", bke::AttrDomain::Face, false);
       if (select_poly) {
         for (const int i : faces.index_range()) {
           if (select_poly[i]) {
@@ -692,9 +695,9 @@ void heat_bone_weighting(Object *ob,
   }
 
   /* create laplacian */
-  sys = laplacian_system_construct_begin(mesh->totvert, tris_num, 1);
+  sys = laplacian_system_construct_begin(mesh->verts_num, tris_num, 1);
 
-  sys->heat.tris_num = poly_to_tri_count(mesh->faces_num, mesh->totloop);
+  sys->heat.tris_num = poly_to_tri_count(mesh->faces_num, mesh->corners_num);
   corner_tris = static_cast<blender::int3 *>(
       MEM_mallocN(sizeof(*sys->heat.corner_tris) * sys->heat.tris_num, __func__));
 
@@ -703,7 +706,7 @@ void heat_bone_weighting(Object *ob,
 
   sys->heat.corner_tris = corner_tris;
   sys->heat.corner_verts = corner_verts;
-  sys->heat.verts_num = mesh->totvert;
+  sys->heat.verts_num = mesh->verts_num;
   sys->heat.verts = verts;
   sys->heat.root = root;
   sys->heat.tip = tip;
@@ -715,8 +718,8 @@ void heat_bone_weighting(Object *ob,
   laplacian_system_construct_end(sys);
 
   if (dgroupflip) {
-    vertsflipped = static_cast<int *>(MEM_callocN(sizeof(int) * mesh->totvert, "vertsflipped"));
-    for (a = 0; a < mesh->totvert; a++) {
+    vertsflipped = static_cast<int *>(MEM_callocN(sizeof(int) * mesh->verts_num, "vertsflipped"));
+    for (a = 0; a < mesh->verts_num; a++) {
       vertsflipped[a] = mesh_get_x_mirror_vert(ob, nullptr, a, use_topology);
     }
   }
@@ -733,7 +736,7 @@ void heat_bone_weighting(Object *ob,
 
     /* clear weights */
     if (bbone && firstsegment) {
-      for (a = 0; a < mesh->totvert; a++) {
+      for (a = 0; a < mesh->verts_num; a++) {
         if (mask && !mask[a]) {
           continue;
         }
@@ -748,7 +751,7 @@ void heat_bone_weighting(Object *ob,
     /* fill right hand side */
     laplacian_begin_solve(sys, -1);
 
-    for (a = 0; a < mesh->totvert; a++) {
+    for (a = 0; a < mesh->verts_num; a++) {
       if (heat_source_closest(sys, a, j)) {
         laplacian_add_right_hand_side(sys, a, sys->heat.H[a] * sys->heat.p[a]);
       }
@@ -757,7 +760,7 @@ void heat_bone_weighting(Object *ob,
     /* solve */
     if (laplacian_system_solve(sys)) {
       /* load solution into vertex groups */
-      for (a = 0; a < mesh->totvert; a++) {
+      for (a = 0; a < mesh->verts_num; a++) {
         if (mask && !mask[a]) {
           continue;
         }
@@ -805,7 +808,7 @@ void heat_bone_weighting(Object *ob,
 
     /* remove too small vertex weights */
     if (bbone && lastsegment) {
-      for (a = 0; a < mesh->totvert; a++) {
+      for (a = 0; a < mesh->verts_num; a++) {
         if (mask && !mask[a]) {
           continue;
         }
@@ -1777,7 +1780,7 @@ void ED_mesh_deform_bind_callback(Object *object,
   mdb.verts_num = verts_num;
 
   mdb.cagemesh = cagemesh;
-  mdb.cage_verts_num = mdb.cagemesh->totvert;
+  mdb.cage_verts_num = mdb.cagemesh->verts_num;
   mdb.cagecos = static_cast<float(*)[3]>(
       MEM_callocN(sizeof(*mdb.cagecos) * mdb.cage_verts_num, "MeshDeformBindCos"));
   copy_m4_m4(mdb.cagemat, cagemat);

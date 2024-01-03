@@ -1,21 +1,6 @@
 diff -Naur ispc-1.17.0.org/CMakeLists.txt ispc-1.17.0/CMakeLists.txt
 --- ispc-1.17.0.org/CMakeLists.txt	2022-01-15 01:35:15 -0700
 +++ ispc-1.17.0/CMakeLists.txt	2022-02-12 12:44:24 -0700
-@@ -36,8 +36,12 @@
- cmake_minimum_required(VERSION 3.13)
- 
- if (UNIX)
--    set(CMAKE_C_COMPILER "clang")
--    set(CMAKE_CXX_COMPILER "clang++")
-+    if (NOT CMAKE_C_COMPILER)
-+        set(CMAKE_C_COMPILER "clang")
-+    endif()
-+    if (NOT CMAKE_CXX_COMPILER)
-+        set(CMAKE_CXX_COMPILER "clang++")
-+    endif()
- endif()
- 
- set(PROJECT_NAME ispc)
 @@ -443,7 +447,7 @@
  
  # Include directories
@@ -25,15 +10,15 @@ diff -Naur ispc-1.17.0.org/CMakeLists.txt ispc-1.17.0/CMakeLists.txt
                             ${XE_DEPS_DIR}/include
                             ${CMAKE_CURRENT_SOURCE_DIR}/src
                             ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR})
-@@ -507,7 +511,7 @@
- 
- # Link against Clang libraries
- foreach(clangLib ${CLANG_LIBRARY_LIST})
--    find_library(${clangLib}Path NAMES ${clangLib} HINTS ${LLVM_LIBRARY_DIRS})
-+    find_library(${clangLib}Path NAMES ${clangLib} HINTS ${LLVM_LIBRARY_DIRS} ${CLANG_LIBRARY_DIR})
-     list(APPEND CLANG_LIBRARY_FULL_PATH_LIST ${${clangLib}Path})
- endforeach()
- target_link_libraries(${PROJECT_NAME} ${CLANG_LIBRARY_FULL_PATH_LIST})
+@@ -607,7 +607,7 @@
+                  NAMES
+                     "${CMAKE_STATIC_LIBRARY_PREFIX}${clangLib}${CMAKE_STATIC_LIBRARY_SUFFIX}"
+                     clang-cpp
+-                 HINTS ${LLVM_LIBRARY_DIRS})
++                 HINTS ${LLVM_LIBRARY_DIRS} ${CLANG_LIBRARY_DIR})
+     if (NOT ${${clangLib}Path} IN_LIST CLANG_LIBRARY_FULL_PATH_LIST)
+         list(APPEND CLANG_LIBRARY_FULL_PATH_LIST ${${clangLib}Path})
+     endif()
 @@ -546,6 +550,29 @@
      endif()
  endif()

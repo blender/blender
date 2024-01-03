@@ -28,7 +28,10 @@
 
 #include "DNA_customdata_types.h"
 #include "DNA_material_types.h"
+<<<<<<< HEAD
 #include "DNA_mesh_types.h"
+=======
+>>>>>>> main
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
@@ -214,24 +217,33 @@ static std::optional<eCustomDataType> convert_usd_type_to_blender(
   return *value;
 }
 
-static const std::optional<eAttrDomain> convert_usd_varying_to_blender(
+static const std::optional<bke::AttrDomain> convert_usd_varying_to_blender(
     const pxr::TfToken usd_domain, ReportList *reports)
 {
+<<<<<<< HEAD
   static const blender::Map<pxr::TfToken, eAttrDomain> domain_map = []() {
     blender::Map<pxr::TfToken, eAttrDomain> map;
     map.add_new(pxr::UsdGeomTokens->faceVarying, ATTR_DOMAIN_CORNER);
     map.add_new(pxr::UsdGeomTokens->vertex, ATTR_DOMAIN_POINT);
     map.add_new(pxr::UsdGeomTokens->varying, ATTR_DOMAIN_CORNER);
     map.add_new(pxr::UsdGeomTokens->face, ATTR_DOMAIN_FACE);
+=======
+  static const blender::Map<pxr::TfToken, bke::AttrDomain> domain_map = []() {
+    blender::Map<pxr::TfToken, bke::AttrDomain> map;
+    map.add_new(pxr::UsdGeomTokens->faceVarying, bke::AttrDomain::Corner);
+    map.add_new(pxr::UsdGeomTokens->vertex, bke::AttrDomain::Point);
+    map.add_new(pxr::UsdGeomTokens->varying, bke::AttrDomain::Point);
+    map.add_new(pxr::UsdGeomTokens->face, bke::AttrDomain::Face);
+>>>>>>> main
     /* As there's no "constant" type in Blender, for now we're
      * translating into a point Attribute. */
-    map.add_new(pxr::UsdGeomTokens->constant, ATTR_DOMAIN_POINT);
-    map.add_new(pxr::UsdGeomTokens->uniform, ATTR_DOMAIN_FACE);
+    map.add_new(pxr::UsdGeomTokens->constant, bke::AttrDomain::Point);
+    map.add_new(pxr::UsdGeomTokens->uniform, bke::AttrDomain::Face);
     /* Notice: Edge types are not supported! */
     return map;
   }();
 
-  const eAttrDomain *value = domain_map.lookup_ptr(usd_domain);
+  const bke::AttrDomain *value = domain_map.lookup_ptr(usd_domain);
 
   if (value == nullptr) {
     BKE_reportf(
@@ -325,9 +337,9 @@ bool USDMeshReader::topology_changed(const Mesh *existing_mesh, const double mot
     normal_interpolation_ = mesh_prim_.GetNormalsInterpolation();
   }
 
-  return positions_.size() != existing_mesh->totvert ||
+  return positions_.size() != existing_mesh->verts_num ||
          face_counts_.size() != existing_mesh->faces_num ||
-         face_indices_.size() != existing_mesh->totloop;
+         face_indices_.size() != existing_mesh->corners_num;
 }
 
 void USDMeshReader::read_mpolys(Mesh *mesh)
@@ -374,7 +386,7 @@ void USDMeshReader::read_mpolys(Mesh *mesh)
     }
   }
 
-  BKE_mesh_calc_edges(mesh, false, false);
+  bke::mesh_calc_edges(*mesh, false, false);
 }
 
 template<typename T>
@@ -423,9 +435,9 @@ void USDMeshReader::read_color_data_primvar(Mesh *mesh,
 
   pxr::TfToken interp = primvar.GetInterpolation();
 
-  if ((interp == pxr::UsdGeomTokens->faceVarying && usd_colors.size() != mesh->totloop) ||
-      (interp == pxr::UsdGeomTokens->varying && usd_colors.size() != mesh->totloop) ||
-      (interp == pxr::UsdGeomTokens->vertex && usd_colors.size() != mesh->totvert) ||
+  if ((interp == pxr::UsdGeomTokens->faceVarying && usd_colors.size() != mesh->corners_num) ||
+      (interp == pxr::UsdGeomTokens->varying && usd_colors.size() != mesh->corners_num) ||
+      (interp == pxr::UsdGeomTokens->vertex && usd_colors.size() != mesh->verts_num) ||
       (interp == pxr::UsdGeomTokens->constant && usd_colors.size() != 1) ||
       (interp == pxr::UsdGeomTokens->uniform && usd_colors.size() != mesh->faces_num))
   {
@@ -440,14 +452,14 @@ void USDMeshReader::read_color_data_primvar(Mesh *mesh,
   const StringRef primvar_name(primvar.GetBaseName().GetString());
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
 
-  eAttrDomain color_domain = ATTR_DOMAIN_POINT;
+  bke::AttrDomain color_domain = bke::AttrDomain::Point;
 
   if (ELEM(interp,
            pxr::UsdGeomTokens->varying,
            pxr::UsdGeomTokens->faceVarying,
            pxr::UsdGeomTokens->uniform))
   {
-    color_domain = ATTR_DOMAIN_CORNER;
+    color_domain = bke::AttrDomain::Corner;
   }
 
   bke::SpanAttributeWriter<ColorGeometry4f> color_data;
@@ -548,9 +560,9 @@ void USDMeshReader::read_uv_data_primvar(Mesh *mesh,
                   pxr::UsdGeomTokens->faceVarying,
                   pxr::UsdGeomTokens->varying));
 
-  if ((varying_type == pxr::UsdGeomTokens->faceVarying && usd_uvs.size() != mesh->totloop) ||
-      (varying_type == pxr::UsdGeomTokens->vertex && usd_uvs.size() != mesh->totvert) ||
-      (varying_type == pxr::UsdGeomTokens->varying && usd_uvs.size() != mesh->totloop))
+  if ((varying_type == pxr::UsdGeomTokens->faceVarying && usd_uvs.size() != mesh->corners_num) ||
+      (varying_type == pxr::UsdGeomTokens->vertex && usd_uvs.size() != mesh->verts_num) ||
+      (varying_type == pxr::UsdGeomTokens->varying && usd_uvs.size() != mesh->corners_num))
   {
     BKE_reportf(reports(),
                 RPT_WARNING,
@@ -561,7 +573,7 @@ void USDMeshReader::read_uv_data_primvar(Mesh *mesh,
 
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::SpanAttributeWriter<float2> uv_data = attributes.lookup_or_add_for_write_only_span<float2>(
-      primvar_name, ATTR_DOMAIN_CORNER);
+      primvar_name, bke::AttrDomain::Corner);
 
   if (!uv_data) {
     BKE_reportf(reports(),
@@ -592,7 +604,7 @@ void USDMeshReader::read_uv_data_primvar(Mesh *mesh,
   else {
     /* Handle vertex interpolation. */
     const Span<int> corner_verts = mesh->corner_verts();
-    BLI_assert(mesh->totvert == usd_uvs.size());
+    BLI_assert(mesh->verts_num == usd_uvs.size());
     for (int i = 0; i < uv_data.span.size(); ++i) {
       /* Get the vertex index for this corner. */
       int vi = corner_verts[i];
@@ -688,8 +700,8 @@ void USDMeshReader::read_generic_data_primvar(Mesh *mesh,
   const pxr::TfToken varying_type = primvar.GetInterpolation();
   const pxr::TfToken name = pxr::UsdGeomPrimvar::StripPrimvarsName(primvar.GetPrimvarName());
 
-  const std::optional<eAttrDomain> domain = convert_usd_varying_to_blender(varying_type,
-                                                                           reports());
+  const std::optional<bke::AttrDomain> domain = convert_usd_varying_to_blender(varying_type,
+                                                                               reports());
   const std::optional<eCustomDataType> type = convert_usd_type_to_blender(sdf_type, reports());
 
   if (!domain.has_value() || !type.has_value()) {
@@ -748,7 +760,7 @@ void USDMeshReader::read_vertex_creases(Mesh *mesh, const double motionSampleTim
   }
 
   /* It is fine to have fewer indices than vertices, but never the other way other. */
-  if (corner_indices.size() > mesh->totvert) {
+  if (corner_indices.size() > mesh->verts_num) {
     std::cerr << "WARNING: too many vertex crease for mesh " << prim_path_ << std::endl;
     return;
   }
@@ -761,7 +773,7 @@ void USDMeshReader::read_vertex_creases(Mesh *mesh, const double motionSampleTim
 
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::SpanAttributeWriter creases = attributes.lookup_or_add_for_write_span<float>(
-      "crease_vert", ATTR_DOMAIN_POINT);
+      "crease_vert", bke::AttrDomain::Point);
 
   for (size_t i = 0; i < corner_indices.size(); i++) {
     creases.span[corner_indices[i]] = corner_sharpnesses[i];
@@ -779,7 +791,7 @@ void USDMeshReader::process_normals_vertex_varying(Mesh *mesh)
     return;
   }
 
-  if (normals_.size() != mesh->totvert) {
+  if (normals_.size() != mesh->verts_num) {
     std::cerr << "WARNING: vertex varying normals count mismatch for mesh " << prim_path_
               << std::endl;
     return;
@@ -797,7 +809,7 @@ void USDMeshReader::process_normals_face_varying(Mesh *mesh)
   }
 
   /* Check for normals count mismatches to prevent crashes. */
-  if (normals_.size() != mesh->totloop) {
+  if (normals_.size() != mesh->corners_num) {
     std::cerr << "WARNING: loop normal count mismatch for mesh " << mesh->id.name << std::endl;
     return;
   }
@@ -844,7 +856,7 @@ void USDMeshReader::process_normals_uniform(Mesh *mesh)
   }
 
   float(*lnors)[3] = static_cast<float(*)[3]>(
-      MEM_malloc_arrayN(mesh->totloop, sizeof(float[3]), "USD::FaceNormals"));
+      MEM_malloc_arrayN(mesh->corners_num, sizeof(float[3]), "USD::FaceNormals"));
 
   const OffsetIndices faces = mesh->faces();
   for (const int i : faces.index_range()) {
@@ -910,7 +922,7 @@ void USDMeshReader::read_custom_data(const ImportSettings *settings,
                                      const double motionSampleTime,
                                      const bool new_mesh)
 {
-  if (!(mesh && mesh_prim_ && mesh->totloop > 0)) {
+  if (!(mesh && mesh_prim_ && mesh->corners_num > 0)) {
     return;
   }
 
@@ -1019,10 +1031,10 @@ void USDMeshReader::read_custom_data(const ImportSettings *settings,
 
   if (!active_uv_set_name.IsEmpty()) {
     int layer_index = CustomData_get_named_layer_index(
-        &mesh->loop_data, CD_PROP_FLOAT2, active_uv_set_name.GetText());
+        &mesh->corner_data, CD_PROP_FLOAT2, active_uv_set_name.GetText());
     if (layer_index > -1) {
-      CustomData_set_layer_active_index(&mesh->loop_data, CD_PROP_FLOAT2, layer_index);
-      CustomData_set_layer_render_index(&mesh->loop_data, CD_PROP_FLOAT2, layer_index);
+      CustomData_set_layer_active_index(&mesh->corner_data, CD_PROP_FLOAT2, layer_index);
+      CustomData_set_layer_render_index(&mesh->corner_data, CD_PROP_FLOAT2, layer_index);
     }
   }
 }
@@ -1098,7 +1110,7 @@ void USDMeshReader::readFaceSetsSample(Main *bmain, Mesh *mesh, const double mot
 
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::SpanAttributeWriter<int> material_indices = attributes.lookup_or_add_for_write_span<int>(
-      "material_index", ATTR_DOMAIN_FACE);
+      "material_index", bke::AttrDomain::Face);
   this->assign_facesets_to_material_indices(motionSampleTime, material_indices.span, &mat_map);
   material_indices.finish();
 
@@ -1159,7 +1171,7 @@ Mesh *USDMeshReader::read_mesh(Mesh *existing_mesh,
       std::map<pxr::SdfPath, int> mat_map;
       bke::MutableAttributeAccessor attributes = active_mesh->attributes_for_write();
       bke::SpanAttributeWriter<int> material_indices =
-          attributes.lookup_or_add_for_write_span<int>("material_index", ATTR_DOMAIN_FACE);
+          attributes.lookup_or_add_for_write_span<int>("material_index", bke::AttrDomain::Face);
       assign_facesets_to_material_indices(
           params.motion_sample_time, material_indices.span, &mat_map);
       material_indices.finish();
@@ -1184,11 +1196,7 @@ std::string USDMeshReader::get_skeleton_path() const
     return "";
   }
 
-  pxr::UsdSkelBindingAPI skel_api = pxr::UsdSkelBindingAPI::Apply(prim_);
-
-  if (!skel_api) {
-    return "";
-  }
+  pxr::UsdSkelBindingAPI skel_api(prim_);
 
   if (pxr::UsdSkelSkeleton skel = skel_api.GetInheritedSkeleton()) {
     return skel.GetPath().GetAsString();
@@ -1206,8 +1214,9 @@ std::optional<XformResult> USDMeshReader::get_local_usd_xform(const float time) 
     return USDXformReader::get_local_usd_xform(time);
   }
 
-  if (pxr::UsdSkelBindingAPI skel_api = pxr::UsdSkelBindingAPI::Apply(prim_)) {
-    if (skel_api.GetGeomBindTransformAttr().HasAuthoredValue()) {
+  pxr::UsdSkelBindingAPI skel_api = pxr::UsdSkelBindingAPI(prim_);
+  if (pxr::UsdAttribute xf_attr = skel_api.GetGeomBindTransformAttr()) {
+    if (xf_attr.HasAuthoredValue()) {
       pxr::GfMatrix4d bind_xf;
       if (skel_api.GetGeomBindTransformAttr().Get(&bind_xf)) {
         /* The USD bind transform is a matrix of doubles,

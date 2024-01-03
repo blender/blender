@@ -7,10 +7,6 @@
  * \ingroup bke
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct ColorBand;
 
 /** #ColorBand.data length. */
@@ -27,7 +23,3 @@ void BKE_colorband_evaluate_table_rgba(const struct ColorBand *coba, float **arr
 struct CBData *BKE_colorband_element_add(struct ColorBand *coba, float position);
 bool BKE_colorband_element_remove(struct ColorBand *coba, int index);
 void BKE_colorband_update_sort(struct ColorBand *coba);
-
-#ifdef __cplusplus
-}
-#endif

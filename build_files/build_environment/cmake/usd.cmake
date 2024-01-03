@@ -111,12 +111,7 @@ ExternalProject_Add(external_usd
   CMAKE_GENERATOR ${PLATFORM_ALT_GENERATOR}
   PREFIX ${BUILD_DIR}/usd
   LIST_SEPARATOR ^^
-  # usd_pull_1965.diff  https://github.com/PixarAnimationStudios/USD/pull/1965
-  # usd_hydra.diff -    https://github.com/bnagirniak/RPRHydraRenderBlenderAddon/blob/master/usd.diff
-  # usd_hydra.diff also included the blender changes and usd_pull_1965 and has been edited to remove those sections.
   PATCH_COMMAND ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/usd/src/external_usd < ${PATCH_DIR}/usd.diff &&
-                ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/usd/src/external_usd < ${PATCH_DIR}/usd_pull_1965.diff &&
-                ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/usd/src/external_usd < ${PATCH_DIR}/usd_hydra.diff &&
                 ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/usd/src/external_usd < ${PATCH_DIR}/usd_core_profile.diff
   CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/usd -Wno-dev ${DEFAULT_CMAKE_FLAGS} ${USD_EXTRA_ARGS}
   INSTALL_DIR ${LIBDIR}/usd

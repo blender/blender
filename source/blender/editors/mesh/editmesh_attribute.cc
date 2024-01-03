@@ -10,7 +10,7 @@
 #include "BLI_generic_pointer.hh"
 #include "BLI_math_quaternion.hh"
 
-#include "BKE_attribute.h"
+#include "BKE_attribute.hh"
 #include "BKE_context.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_layer.h"
@@ -52,16 +52,16 @@
 
 namespace blender::ed::mesh {
 
-static char domain_to_htype(const eAttrDomain domain)
+static char domain_to_htype(const bke::AttrDomain domain)
 {
   switch (domain) {
-    case ATTR_DOMAIN_POINT:
+    case bke::AttrDomain::Point:
       return BM_VERT;
-    case ATTR_DOMAIN_EDGE:
+    case bke::AttrDomain::Edge:
       return BM_EDGE;
-    case ATTR_DOMAIN_FACE:
+    case bke::AttrDomain::Face:
       return BM_FACE;
-    case ATTR_DOMAIN_CORNER:
+    case bke::AttrDomain::Corner:
       return BM_LOOP;
     default:
       BLI_assert_unreachable();
@@ -188,19 +188,19 @@ static int mesh_set_attribute_exec(bContext *C, wmOperator *op)
     conversions.convert_to_uninitialized(type, dst_type, value.get(), dst_buffer);
     const GPointer dst_value(dst_type, dst_buffer);
     switch (BKE_id_attribute_domain(&mesh->id, layer)) {
-      case ATTR_DOMAIN_POINT:
+      case bke::AttrDomain::Point:
         bmesh_vert_edge_face_layer_selected_values_set(
             *bm, BM_VERTS_OF_MESH, dst_value, layer->offset);
         break;
-      case ATTR_DOMAIN_EDGE:
+      case bke::AttrDomain::Edge:
         bmesh_vert_edge_face_layer_selected_values_set(
             *bm, BM_EDGES_OF_MESH, dst_value, layer->offset);
         break;
-      case ATTR_DOMAIN_FACE:
+      case bke::AttrDomain::Face:
         bmesh_vert_edge_face_layer_selected_values_set(
             *bm, BM_FACES_OF_MESH, dst_value, layer->offset);
         break;
-      case ATTR_DOMAIN_CORNER:
+      case bke::AttrDomain::Corner:
         bmesh_loop_layer_selected_values_set(*em, dst_value, layer->offset);
         break;
       default:
@@ -228,7 +228,7 @@ static int mesh_set_attribute_invoke(bContext *C, wmOperator *op, const wmEvent 
 
   const CustomDataLayer *layer = BKE_id_attributes_active_get(&mesh->id);
   const eCustomDataType data_type = eCustomDataType(layer->type);
-  const eAttrDomain domain = BKE_id_attribute_domain(&mesh->id, layer);
+  const bke::AttrDomain domain = BKE_id_attribute_domain(&mesh->id, layer);
   const BMElem *active_elem = BM_mesh_active_elem_get(bm);
   if (!active_elem) {
     return WM_operator_props_popup(C, op, event);

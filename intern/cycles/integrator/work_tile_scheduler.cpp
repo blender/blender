@@ -54,10 +54,11 @@ void WorkTileScheduler::reset_scheduler_state()
   tile_size_ = tile_calculate_best_size(
       accelerated_rt_, image_size_px_, samples_num_, max_num_path_states_, scrambling_distance_);
 
-  VLOG_WORK << "Will schedule tiles of size " << tile_size_;
-
   const int num_path_states_in_tile = tile_size_.width * tile_size_.height *
                                       tile_size_.num_samples;
+  const int num_tiles = max_num_path_states_ / num_path_states_in_tile;
+
+  VLOG_WORK << "Will schedule " << num_tiles << " tiles of size " << tile_size_;
 
   if (num_path_states_in_tile == 0) {
     num_tiles_x_ = 0;
@@ -65,13 +66,10 @@ void WorkTileScheduler::reset_scheduler_state()
     num_tiles_per_sample_range_ = 0;
   }
   else {
-    if (VLOG_IS_ON(3)) {
-      /* The logging is based on multiple tiles scheduled, ignoring overhead of multi-tile
-       * scheduling and purely focusing on the number of used path states. */
-      const int num_tiles = max_num_path_states_ / num_path_states_in_tile;
-      VLOG_WORK << "Number of unused path states: "
-                << max_num_path_states_ - num_tiles * num_path_states_in_tile;
-    }
+    /* The logging is based on multiple tiles scheduled, ignoring overhead of multi-tile
+     * scheduling and purely focusing on the number of used path states. */
+    VLOG_WORK << "Number of unused path states: "
+              << max_num_path_states_ - num_tiles * num_path_states_in_tile;
 
     num_tiles_x_ = divide_up(image_size_px_.x, tile_size_.width);
     num_tiles_y_ = divide_up(image_size_px_.y, tile_size_.height);

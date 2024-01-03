@@ -44,6 +44,21 @@
 
 namespace blender::eevee {
 
+/* Combines data from several modules to avoid wasting binding slots. */
+struct UniformDataModule {
+  UniformDataBuf data;
+
+  void push_update()
+  {
+    data.push_update();
+  }
+
+  template<typename PassType> void bind_resources(PassType &pass)
+  {
+    pass.bind_ubo(UNIFORM_BUF_SLOT, &data);
+  }
+};
+
 /**
  * \class Instance
  * \brief A running instance of the engine.
@@ -52,7 +67,10 @@ class Instance {
   friend VelocityModule;
   friend MotionBlurModule;
 
-  UniformDataBuf global_ubo_;
+  /** Debug scopes. */
+  static void *debug_scope_render_sample;
+  static void *debug_scope_irradiance_setup;
+  static void *debug_scope_irradiance_sample;
 
   uint64_t depsgraph_last_update_ = 0;
   bool overlays_enabled_;
@@ -60,6 +78,7 @@ class Instance {
  public:
   ShaderModule &shaders;
   SyncModule sync;
+  UniformDataModule uniform_data;
   MaterialModule materials;
   SubsurfaceModule subsurface;
   PipelineModule pipelines;
@@ -120,23 +139,23 @@ class Instance {
       : shaders(*ShaderModule::module_get()),
         sync(*this),
         materials(*this),
-        subsurface(*this, global_ubo_.subsurface),
-        pipelines(*this, global_ubo_.pipeline),
-        shadows(*this, global_ubo_.shadow),
+        subsurface(*this, uniform_data.data.subsurface),
+        pipelines(*this, uniform_data.data.pipeline),
+        shadows(*this, uniform_data.data.shadow),
         lights(*this),
-        ambient_occlusion(*this, global_ubo_.ao),
-        raytracing(*this, global_ubo_.raytrace),
+        ambient_occlusion(*this, uniform_data.data.ao),
+        raytracing(*this, uniform_data.data.raytrace),
         reflection_probes(*this),
         planar_probes(*this),
         velocity(*this),
         motion_blur(*this),
         depth_of_field(*this),
         cryptomatte(*this),
-        hiz_buffer(*this, global_ubo_.hiz),
+        hiz_buffer(*this, uniform_data.data.hiz),
         sampling(*this),
-        camera(*this, global_ubo_.camera),
-        film(*this, global_ubo_.film),
-        render_buffers(*this, global_ubo_.render_pass),
+        camera(*this, uniform_data.data.camera),
+        film(*this, uniform_data.data.film),
+        render_buffers(*this, uniform_data.data.render_pass),
         main_view(*this),
         capture_view(*this),
         world(*this),
@@ -144,7 +163,7 @@ class Instance {
         lookdev(*this),
         light_probes(*this),
         irradiance_cache(*this),
-        volume(*this, global_ubo_.volumes){};
+        volume(*this, uniform_data.data.volumes){};
   ~Instance(){};
 
   /* Render & Viewport. */
@@ -239,16 +258,6 @@ class Instance {
            ((v3d->shading.type == OB_MATERIAL) && (v3d->overlay.flag & V3D_OVERLAY_LOOK_DEV));
   }
 
-  void push_uniform_data()
-  {
-    global_ubo_.push_update();
-  }
-
-  template<typename T> void bind_uniform_data(draw::detail::PassBase<T> *pass)
-  {
-    pass->bind_ubo(UNIFORM_BUF_SLOT, &global_ubo_);
-  }
-
   int get_recalc_flags(const ObjectRef &ob_ref)
   {
     auto get_flags = [&](const ObjectRuntimeHandle &runtime) {
@@ -283,6 +292,24 @@ class Instance {
   void update_eval_members();
 
   void set_time(float time);
+
+  struct DebugScope {
+    void *scope;
+
+    DebugScope(void *&scope_p, const char *name)
+    {
+      if (scope_p == nullptr) {
+        scope_p = GPU_debug_capture_scope_create(name);
+      }
+      scope = scope_p;
+      GPU_debug_capture_scope_begin(scope);
+    }
+
+    ~DebugScope()
+    {
+      GPU_debug_capture_scope_end(scope);
+    }
+  };
 };
 
 }  // namespace blender::eevee

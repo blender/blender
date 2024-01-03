@@ -142,6 +142,8 @@ GPU_SHADER_CREATE_INFO(eevee_ray_denoise_spatial)
     .image(5, GPU_R32F, Qualifier::WRITE, ImageType::FLOAT_2D, "out_hit_depth_img")
     .image(6, RAYTRACE_TILEMASK_FORMAT, Qualifier::READ, ImageType::UINT_2D_ARRAY, "tile_mask_img")
     .storage_buf(4, Qualifier::READ, "uint", "tiles_coord_buf[]")
+    .specialization_constant(Type::INT, "raytrace_resolution_scale", 2)
+    .specialization_constant(Type::BOOL, "skip_denoise", false)
     .compute_source("eevee_ray_denoise_spatial_comp.glsl");
 
 EEVEE_RAYTRACE_CLOSURE_VARIATION(eevee_ray_denoise_spatial)

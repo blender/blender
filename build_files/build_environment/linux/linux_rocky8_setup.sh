@@ -96,6 +96,10 @@ PACKAGES_FOR_LIBS=(
     # Required by: `external_mesa`.
     expat-devel
 
+    # Required by: `external_mesa`.
+    libxshmfence
+    libxshmfence-devel
+
     # Required by: `external_igc` & `external_osl` as a build-time dependency.
     bison
     # Required by: `external_osl` as a build-time dependency.

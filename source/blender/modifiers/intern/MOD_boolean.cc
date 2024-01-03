@@ -294,7 +294,7 @@ static void BMD_mesh_intersection(BMesh *bm,
   {
     BMIter iter;
     int i;
-    const int i_verts_end = mesh_operand_ob->totvert;
+    const int i_verts_end = mesh_operand_ob->verts_num;
     const int i_faces_end = mesh_operand_ob->faces_num;
 
     float imat[4][4];

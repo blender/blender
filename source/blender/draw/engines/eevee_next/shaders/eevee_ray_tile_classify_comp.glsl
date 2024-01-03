@@ -23,7 +23,7 @@ float ray_roughness_factor(RayTraceData raytrace, float roughness)
 
 void main()
 {
-  if (all(equal(gl_LocalInvocationID, uvec3(0)))) {
+  if (gl_LocalInvocationIndex == 0u) {
     /* Init shared variables. */
     for (int i = 0; i < 3; i++) {
       tile_contains_ray_tracing[i] = 0;
@@ -38,7 +38,7 @@ void main()
   bool valid_texel = in_texture_range(texel, gbuf_header_tx);
 
   if (valid_texel) {
-    GBufferData gbuf = gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_color_tx, texel);
+    GBufferReader gbuf = gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, texel);
 
     /* TODO(fclem): Arbitrary closure stack. */
     for (int i = 0; i < 3; i++) {
@@ -50,7 +50,8 @@ void main()
       }
       else if (i == 1 && gbuf.has_reflection) {
         /* Reflection. */
-        ray_roughness_fac = ray_roughness_factor(uniform_buf.raytrace, gbuf.reflection.roughness);
+        ray_roughness_fac = ray_roughness_factor(uniform_buf.raytrace,
+                                                 gbuf.data.reflection.roughness);
       }
       else if (i == 2 && gbuf.has_refraction) {
         /* Refraction. */
@@ -72,7 +73,7 @@ void main()
 
   barrier();
 
-  if (all(equal(gl_LocalInvocationID, uvec3(0)))) {
+  if (gl_LocalInvocationIndex == 0u) {
     ivec2 denoise_tile_co = ivec2(gl_WorkGroupID.xy);
     ivec2 tracing_tile_co = denoise_tile_co / uniform_buf.raytrace.resolution_scale;
 

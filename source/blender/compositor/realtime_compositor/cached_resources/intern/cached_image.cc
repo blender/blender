@@ -259,7 +259,7 @@ CachedImage::CachedImage(Context &context,
 
 CachedImage::~CachedImage()
 {
-  GPU_texture_free(texture_);
+  GPU_TEXTURE_FREE_SAFE(texture_);
 }
 
 GPUTexture *CachedImage::texture()

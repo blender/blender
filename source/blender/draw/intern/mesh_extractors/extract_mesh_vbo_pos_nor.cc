@@ -263,7 +263,7 @@ static void extract_pos_nor_init_subdiv(const DRWSubdivCache &subdiv_cache,
 
     GPUVertBuf *src_custom_normals = GPU_vertbuf_calloc();
     GPU_vertbuf_init_with_format(src_custom_normals, get_custom_normals_format());
-    GPU_vertbuf_data_alloc(src_custom_normals, coarse_mesh->totloop);
+    GPU_vertbuf_data_alloc(src_custom_normals, coarse_mesh->corners_num);
 
     memcpy(GPU_vertbuf_get_data(src_custom_normals),
            corner_normals.data(),

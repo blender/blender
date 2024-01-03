@@ -12,7 +12,9 @@
 
 namespace blender::gpu {
 
-const char *GLLogParser::parse_line(const char *log_line, GPULogItem &log_item)
+const char *GLLogParser::parse_line(const char * /*source_combined*/,
+                                    const char *log_line,
+                                    GPULogItem &log_item)
 {
   /* Skip ERROR: or WARNING:. */
   log_line = skip_severity_prefix(log_line, log_item);

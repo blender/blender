@@ -26,6 +26,13 @@ def _km_hierarchy_iter_recursive(items):
 
 
 def generate():
+    import bpy
+
+    if bpy.app.background:
+        from bl_ui.space_toolsystem_common import ToolSelectPanelHelper
+        for cls in ToolSelectPanelHelper.__subclasses__():
+            cls.register_ensure()
+
     return list(_km_hierarchy_iter_recursive(_km_hierarchy))
 
 

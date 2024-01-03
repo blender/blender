@@ -301,7 +301,7 @@ static void editmesh_corner_tris_nearest_point(void *userdata,
                                                BVHTreeNearest *nearest)
 {
   BMEditMesh *em = static_cast<BMEditMesh *>(userdata);
-  const BMLoop **ltri = (const BMLoop **)em->looptris[index];
+  const BMLoop **ltri = const_cast<const BMLoop **>(em->looptris[index]);
 
   const float *t0, *t1, *t2;
   t0 = ltri[0]->v->co;
@@ -404,7 +404,7 @@ static void editmesh_corner_tris_spherecast(void *userdata,
                                             BVHTreeRayHit *hit)
 {
   BMEditMesh *em = static_cast<BMEditMesh *>(userdata);
-  const BMLoop **ltri = (const BMLoop **)em->looptris[index];
+  const BMLoop **ltri = const_cast<const BMLoop **>(em->looptris[index]);
 
   const float *t0, *t1, *t2;
   t0 = ltri[0]->v->co;
@@ -959,7 +959,7 @@ static BVHTree *bvhtree_from_editmesh_corner_tris_create_tree(float epsilon,
     return nullptr;
   }
 
-  const BMLoop *(*corner_tris)[3] = (const BMLoop *(*)[3])em->looptris;
+  const BMLoop *(*corner_tris)[3] = const_cast<const BMLoop *(*)[3]>(em->looptris);
 
   /* Insert BMesh-tessellation triangles into the BVH-tree, unless they are hidden
    * and/or selected. Even if the faces themselves are not selected for the snapped
@@ -1122,6 +1122,8 @@ BVHTree *BKE_bvhtree_from_mesh_get(BVHTreeFromMesh *data,
                                    const BVHCacheType bvh_cache_type,
                                    const int tree_type)
 {
+  using namespace blender;
+  using namespace blender::bke;
   BVHCache **bvh_cache_p = (BVHCache **)&mesh->runtime->bvh_cache;
 
   Span<int3> corner_tris;
@@ -1130,7 +1132,7 @@ BVHTree *BKE_bvhtree_from_mesh_get(BVHTreeFromMesh *data,
   }
 
   const Span<float3> positions = mesh->vert_positions();
-  const Span<blender::int2> edges = mesh->edges();
+  const Span<int2> edges = mesh->edges();
   const Span<int> corner_verts = mesh->corner_verts();
 
   /* Setup BVHTreeFromMesh */
@@ -1158,7 +1160,7 @@ BVHTree *BKE_bvhtree_from_mesh_get(BVHTreeFromMesh *data,
 
   switch (bvh_cache_type) {
     case BVHTREE_FROM_LOOSEVERTS: {
-      const blender::bke::LooseVertCache &loose_verts = mesh->loose_verts();
+      const LooseVertCache &loose_verts = mesh->loose_verts();
       data->tree = bvhtree_from_mesh_verts_create_tree(
           0.0f, tree_type, 6, positions, loose_verts.is_loose_bits, loose_verts.count);
       break;
@@ -1168,7 +1170,7 @@ BVHTree *BKE_bvhtree_from_mesh_get(BVHTreeFromMesh *data,
       break;
     }
     case BVHTREE_FROM_LOOSEEDGES: {
-      const blender::bke::LooseEdgeCache &loose_edges = mesh->loose_edges();
+      const LooseEdgeCache &loose_edges = mesh->loose_edges();
       data->tree = bvhtree_from_mesh_edges_create_tree(
           positions, edges, loose_edges.is_loose_bits, loose_edges.count, 0.0f, tree_type, 6);
       break;
@@ -1192,11 +1194,11 @@ BVHTree *BKE_bvhtree_from_mesh_get(BVHTreeFromMesh *data,
       break;
     }
     case BVHTREE_FROM_CORNER_TRIS_NO_HIDDEN: {
-      blender::bke::AttributeAccessor attributes = mesh->attributes();
+      AttributeAccessor attributes = mesh->attributes();
       int mask_bits_act_len = -1;
       const BitVector<> mask = corner_tris_no_hidden_map_get(
           mesh->faces(),
-          *attributes.lookup_or_default(".hide_poly", ATTR_DOMAIN_FACE, false),
+          *attributes.lookup_or_default(".hide_poly", AttrDomain::Face, false),
           corner_tris.size(),
           &mask_bits_act_len);
       data->tree = bvhtree_from_mesh_corner_tris_create_tree(

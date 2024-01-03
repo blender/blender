@@ -11,6 +11,7 @@ set(INC_SYS
 
 set(SRC
   openvdb_capi.h
+  openvdb_fwd.hh
 )
 
 set(LIB

@@ -52,6 +52,7 @@
 #include "BKE_collection.h"
 #include "BKE_collision.h"
 #include "BKE_curve.hh"
+#include "BKE_customdata.hh"
 #include "BKE_deform.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
@@ -260,7 +261,7 @@ typedef struct ccd_Mesh {
   int mvert_num, tri_num;
   const float (*vert_positions)[3];
   const float (*vert_positions_prev)[3];
-  const MVertTri *tri;
+  const blender::int3 *vert_tris;
   int safety;
   ccdf_minmax *mima;
   /* Axis Aligned Bounding Box AABB */
@@ -273,7 +274,6 @@ static ccd_Mesh *ccd_mesh_make(Object *ob)
   CollisionModifierData *cmd;
   ccd_Mesh *pccd_M = nullptr;
   ccdf_minmax *mima;
-  const MVertTri *vt;
   float hull;
   int i;
 
@@ -316,20 +316,20 @@ static ccd_Mesh *ccd_mesh_make(Object *ob)
     pccd_M->bbmax[2] = max_ff(pccd_M->bbmax[2], v[2] + hull);
   }
   /* Allocate and copy faces. */
-  pccd_M->tri = static_cast<const MVertTri *>(MEM_dupallocN(cmd->tri));
+  pccd_M->vert_tris = static_cast<const blender::int3 *>(MEM_dupallocN(cmd->vert_tris));
 
   /* OBBs for idea1 */
   pccd_M->mima = static_cast<ccdf_minmax *>(
       MEM_mallocN(sizeof(ccdf_minmax) * pccd_M->tri_num, "ccd_Mesh_Faces_mima"));
 
   /* Anyhow we need to walk the list of faces and find OBB they live in. */
-  for (i = 0, mima = pccd_M->mima, vt = pccd_M->tri; i < pccd_M->tri_num; i++, mima++, vt++) {
+  for (i = 0, mima = pccd_M->mima; i < pccd_M->tri_num; i++, mima++) {
     const float *v;
 
     mima->minx = mima->miny = mima->minz = 1e30f;
     mima->maxx = mima->maxy = mima->maxz = -1e30f;
 
-    v = pccd_M->vert_positions[vt->tri[0]];
+    v = pccd_M->vert_positions[pccd_M->vert_tris[i][0]];
     mima->minx = min_ff(mima->minx, v[0] - hull);
     mima->miny = min_ff(mima->miny, v[1] - hull);
     mima->minz = min_ff(mima->minz, v[2] - hull);
@@ -337,7 +337,7 @@ static ccd_Mesh *ccd_mesh_make(Object *ob)
     mima->maxy = max_ff(mima->maxy, v[1] + hull);
     mima->maxz = max_ff(mima->maxz, v[2] + hull);
 
-    v = pccd_M->vert_positions[vt->tri[1]];
+    v = pccd_M->vert_positions[pccd_M->vert_tris[i][1]];
     mima->minx = min_ff(mima->minx, v[0] - hull);
     mima->miny = min_ff(mima->miny, v[1] - hull);
     mima->minz = min_ff(mima->minz, v[2] - hull);
@@ -345,7 +345,7 @@ static ccd_Mesh *ccd_mesh_make(Object *ob)
     mima->maxy = max_ff(mima->maxy, v[1] + hull);
     mima->maxz = max_ff(mima->maxz, v[2] + hull);
 
-    v = pccd_M->vert_positions[vt->tri[2]];
+    v = pccd_M->vert_positions[pccd_M->vert_tris[i][2]];
     mima->minx = min_ff(mima->minx, v[0] - hull);
     mima->miny = min_ff(mima->miny, v[1] - hull);
     mima->minz = min_ff(mima->minz, v[2] - hull);
@@ -360,7 +360,6 @@ static void ccd_mesh_update(Object *ob, ccd_Mesh *pccd_M)
 {
   CollisionModifierData *cmd;
   ccdf_minmax *mima;
-  const MVertTri *vt;
   float hull;
   int i;
 
@@ -418,14 +417,14 @@ static void ccd_mesh_update(Object *ob, ccd_Mesh *pccd_M)
   }
 
   /* Anyhow we need to walk the list of faces and find OBB they live in. */
-  for (i = 0, mima = pccd_M->mima, vt = pccd_M->tri; i < pccd_M->tri_num; i++, mima++, vt++) {
+  for (i = 0, mima = pccd_M->mima; i < pccd_M->tri_num; i++, mima++) {
     const float *v;
 
     mima->minx = mima->miny = mima->minz = 1e30f;
     mima->maxx = mima->maxy = mima->maxz = -1e30f;
 
     /* vert_positions */
-    v = pccd_M->vert_positions[vt->tri[0]];
+    v = pccd_M->vert_positions[pccd_M->vert_tris[i][0]];
     mima->minx = min_ff(mima->minx, v[0] - hull);
     mima->miny = min_ff(mima->miny, v[1] - hull);
     mima->minz = min_ff(mima->minz, v[2] - hull);
@@ -433,7 +432,7 @@ static void ccd_mesh_update(Object *ob, ccd_Mesh *pccd_M)
     mima->maxy = max_ff(mima->maxy, v[1] + hull);
     mima->maxz = max_ff(mima->maxz, v[2] + hull);
 
-    v = pccd_M->vert_positions[vt->tri[1]];
+    v = pccd_M->vert_positions[pccd_M->vert_tris[i][1]];
     mima->minx = min_ff(mima->minx, v[0] - hull);
     mima->miny = min_ff(mima->miny, v[1] - hull);
     mima->minz = min_ff(mima->minz, v[2] - hull);
@@ -441,7 +440,7 @@ static void ccd_mesh_update(Object *ob, ccd_Mesh *pccd_M)
     mima->maxy = max_ff(mima->maxy, v[1] + hull);
     mima->maxz = max_ff(mima->maxz, v[2] + hull);
 
-    v = pccd_M->vert_positions[vt->tri[2]];
+    v = pccd_M->vert_positions[pccd_M->vert_tris[i][2]];
     mima->minx = min_ff(mima->minx, v[0] - hull);
     mima->miny = min_ff(mima->miny, v[1] - hull);
     mima->minz = min_ff(mima->minz, v[2] - hull);
@@ -450,7 +449,7 @@ static void ccd_mesh_update(Object *ob, ccd_Mesh *pccd_M)
     mima->maxz = max_ff(mima->maxz, v[2] + hull);
 
     /* vert_positions_prev */
-    v = pccd_M->vert_positions_prev[vt->tri[0]];
+    v = pccd_M->vert_positions_prev[pccd_M->vert_tris[i][0]];
     mima->minx = min_ff(mima->minx, v[0] - hull);
     mima->miny = min_ff(mima->miny, v[1] - hull);
     mima->minz = min_ff(mima->minz, v[2] - hull);
@@ -458,7 +457,7 @@ static void ccd_mesh_update(Object *ob, ccd_Mesh *pccd_M)
     mima->maxy = max_ff(mima->maxy, v[1] + hull);
     mima->maxz = max_ff(mima->maxz, v[2] + hull);
 
-    v = pccd_M->vert_positions_prev[vt->tri[1]];
+    v = pccd_M->vert_positions_prev[pccd_M->vert_tris[i][1]];
     mima->minx = min_ff(mima->minx, v[0] - hull);
     mima->miny = min_ff(mima->miny, v[1] - hull);
     mima->minz = min_ff(mima->minz, v[2] - hull);
@@ -466,7 +465,7 @@ static void ccd_mesh_update(Object *ob, ccd_Mesh *pccd_M)
     mima->maxy = max_ff(mima->maxy, v[1] + hull);
     mima->maxz = max_ff(mima->maxz, v[2] + hull);
 
-    v = pccd_M->vert_positions_prev[vt->tri[2]];
+    v = pccd_M->vert_positions_prev[pccd_M->vert_tris[i][2]];
     mima->minx = min_ff(mima->minx, v[0] - hull);
     mima->miny = min_ff(mima->miny, v[1] - hull);
     mima->minz = min_ff(mima->minz, v[2] - hull);
@@ -481,7 +480,7 @@ static void ccd_mesh_free(ccd_Mesh *ccdm)
   /* Make sure we're not nuking objects we don't know. */
   if (ccdm && (ccdm->safety == CCD_SAFETY)) {
     MEM_freeN((void *)ccdm->vert_positions);
-    MEM_freeN((void *)ccdm->tri);
+    MEM_freeN((void *)ccdm->vert_tris);
     if (ccdm->vert_positions_prev) {
       MEM_freeN((void *)ccdm->vert_positions_prev);
     }
@@ -1163,12 +1162,12 @@ static int sb_detect_face_collisionCached(const float face_v1[3],
       if (ob->pd && ob->pd->deflect) {
         const float(*vert_positions)[3] = nullptr;
         const float(*vert_positions_prev)[3] = nullptr;
-        const MVertTri *vt = nullptr;
+        const blender::int3 *vt = nullptr;
         const ccdf_minmax *mima = nullptr;
 
         if (ccdm) {
           vert_positions = ccdm->vert_positions;
-          vt = ccdm->tri;
+          vt = ccdm->vert_tris;
           vert_positions_prev = ccdm->vert_positions_prev;
           mima = ccdm->mima;
           a = ccdm->tri_num;
@@ -1202,19 +1201,19 @@ static int sb_detect_face_collisionCached(const float face_v1[3],
 
           if (vert_positions) {
 
-            copy_v3_v3(nv1, vert_positions[vt->tri[0]]);
-            copy_v3_v3(nv2, vert_positions[vt->tri[1]]);
-            copy_v3_v3(nv3, vert_positions[vt->tri[2]]);
+            copy_v3_v3(nv1, vert_positions[(*vt)[0]]);
+            copy_v3_v3(nv2, vert_positions[(*vt)[1]]);
+            copy_v3_v3(nv3, vert_positions[(*vt)[2]]);
 
             if (vert_positions_prev) {
               mul_v3_fl(nv1, time);
-              madd_v3_v3fl(nv1, vert_positions_prev[vt->tri[0]], 1.0f - time);
+              madd_v3_v3fl(nv1, vert_positions_prev[(*vt)[0]], 1.0f - time);
 
               mul_v3_fl(nv2, time);
-              madd_v3_v3fl(nv2, vert_positions_prev[vt->tri[1]], 1.0f - time);
+              madd_v3_v3fl(nv2, vert_positions_prev[(*vt)[1]], 1.0f - time);
 
               mul_v3_fl(nv3, time);
-              madd_v3_v3fl(nv3, vert_positions_prev[vt->tri[2]], 1.0f - time);
+              madd_v3_v3fl(nv3, vert_positions_prev[(*vt)[2]], 1.0f - time);
             }
           }
 
@@ -1344,13 +1343,13 @@ static int sb_detect_edge_collisionCached(const float edge_v1[3],
       if (ob->pd && ob->pd->deflect) {
         const float(*vert_positions)[3] = nullptr;
         const float(*vert_positions_prev)[3] = nullptr;
-        const MVertTri *vt = nullptr;
+        const blender::int3 *vt = nullptr;
         const ccdf_minmax *mima = nullptr;
 
         if (ccdm) {
           vert_positions = ccdm->vert_positions;
           vert_positions_prev = ccdm->vert_positions_prev;
-          vt = ccdm->tri;
+          vt = ccdm->vert_tris;
           mima = ccdm->mima;
           a = ccdm->tri_num;
 
@@ -1383,19 +1382,19 @@ static int sb_detect_edge_collisionCached(const float edge_v1[3],
 
           if (vert_positions) {
 
-            copy_v3_v3(nv1, vert_positions[vt->tri[0]]);
-            copy_v3_v3(nv2, vert_positions[vt->tri[1]]);
-            copy_v3_v3(nv3, vert_positions[vt->tri[2]]);
+            copy_v3_v3(nv1, vert_positions[(*vt)[0]]);
+            copy_v3_v3(nv2, vert_positions[(*vt)[1]]);
+            copy_v3_v3(nv3, vert_positions[(*vt)[2]]);
 
             if (vert_positions_prev) {
               mul_v3_fl(nv1, time);
-              madd_v3_v3fl(nv1, vert_positions_prev[vt->tri[0]], 1.0f - time);
+              madd_v3_v3fl(nv1, vert_positions_prev[(*vt)[0]], 1.0f - time);
 
               mul_v3_fl(nv2, time);
-              madd_v3_v3fl(nv2, vert_positions_prev[vt->tri[1]], 1.0f - time);
+              madd_v3_v3fl(nv2, vert_positions_prev[(*vt)[1]], 1.0f - time);
 
               mul_v3_fl(nv3, time);
-              madd_v3_v3fl(nv3, vert_positions_prev[vt->tri[2]], 1.0f - time);
+              madd_v3_v3fl(nv3, vert_positions_prev[(*vt)[2]], 1.0f - time);
             }
           }
 
@@ -1647,13 +1646,13 @@ static int sb_detect_vertex_collisionCached(float opco[3],
       if (ob->pd && ob->pd->deflect) {
         const float(*vert_positions)[3] = nullptr;
         const float(*vert_positions_prev)[3] = nullptr;
-        const MVertTri *vt = nullptr;
+        const blender::int3 *vt = nullptr;
         const ccdf_minmax *mima = nullptr;
 
         if (ccdm) {
           vert_positions = ccdm->vert_positions;
           vert_positions_prev = ccdm->vert_positions_prev;
-          vt = ccdm->tri;
+          vt = ccdm->vert_tris;
           mima = ccdm->mima;
           a = ccdm->tri_num;
 
@@ -1700,9 +1699,9 @@ static int sb_detect_vertex_collisionCached(float opco[3],
 
           if (vert_positions) {
 
-            copy_v3_v3(nv1, vert_positions[vt->tri[0]]);
-            copy_v3_v3(nv2, vert_positions[vt->tri[1]]);
-            copy_v3_v3(nv3, vert_positions[vt->tri[2]]);
+            copy_v3_v3(nv1, vert_positions[(*vt)[0]]);
+            copy_v3_v3(nv2, vert_positions[(*vt)[1]]);
+            copy_v3_v3(nv3, vert_positions[(*vt)[2]]);
 
             if (vert_positions_prev) {
               /* Grab the average speed of the collider vertices before we spoil nvX
@@ -1710,18 +1709,18 @@ static int sb_detect_vertex_collisionCached(float opco[3],
                * since the AABB reduced probability to get here drastically
                * it might be a nice tradeoff CPU <--> memory.
                */
-              sub_v3_v3v3(vv1, nv1, vert_positions_prev[vt->tri[0]]);
-              sub_v3_v3v3(vv2, nv2, vert_positions_prev[vt->tri[1]]);
-              sub_v3_v3v3(vv3, nv3, vert_positions_prev[vt->tri[2]]);
+              sub_v3_v3v3(vv1, nv1, vert_positions_prev[(*vt)[0]]);
+              sub_v3_v3v3(vv2, nv2, vert_positions_prev[(*vt)[1]]);
+              sub_v3_v3v3(vv3, nv3, vert_positions_prev[(*vt)[2]]);
 
               mul_v3_fl(nv1, time);
-              madd_v3_v3fl(nv1, vert_positions_prev[vt->tri[0]], 1.0f - time);
+              madd_v3_v3fl(nv1, vert_positions_prev[(*vt)[0]], 1.0f - time);
 
               mul_v3_fl(nv2, time);
-              madd_v3_v3fl(nv2, vert_positions_prev[vt->tri[1]], 1.0f - time);
+              madd_v3_v3fl(nv2, vert_positions_prev[(*vt)[1]], 1.0f - time);
 
               mul_v3_fl(nv3, time);
-              madd_v3_v3fl(nv3, vert_positions_prev[vt->tri[2]], 1.0f - time);
+              madd_v3_v3fl(nv3, vert_positions_prev[(*vt)[2]], 1.0f - time);
             }
           }
 
@@ -2656,9 +2655,9 @@ static void springs_from_mesh(Object *ob)
      * will be overwritten sbObjectStep() to receive
      * actual modifier stack vert_positions
      */
-    if (mesh->totvert) {
+    if (mesh->verts_num) {
       bp = ob->soft->bpoint;
-      for (a = 0; a < mesh->totvert; a++, bp++) {
+      for (a = 0; a < mesh->verts_num; a++, bp++) {
         copy_v3_v3(bp->origS, positions[a]);
         mul_m4_v3(ob->object_to_world, bp->origS);
       }
@@ -2680,7 +2679,7 @@ static void mesh_to_softbody(Object *ob)
 {
   SoftBody *sb;
   Mesh *mesh = static_cast<Mesh *>(ob->data);
-  const vec2i *edge = static_cast<const vec2i *>(
+  const blender::int2 *edge = static_cast<const blender::int2 *>(
       CustomData_get_layer_named(&mesh->edge_data, CD_PROP_INT32_2D, ".edge_verts"));
   BodyPoint *bp;
   BodySpring *bs;
@@ -2688,14 +2687,14 @@ static void mesh_to_softbody(Object *ob)
   int defgroup_index, defgroup_index_mass, defgroup_index_spring;
 
   if (ob->softflag & OB_SB_EDGES) {
-    totedge = mesh->totedge;
+    totedge = mesh->edges_num;
   }
   else {
     totedge = 0;
   }
 
   /* renew ends with ob->soft with points and edges, also checks & makes ob->soft */
-  renew_softbody(ob, mesh->totvert, totedge);
+  renew_softbody(ob, mesh->verts_num, totedge);
 
   /* we always make body points */
   sb = ob->soft;
@@ -2707,7 +2706,7 @@ static void mesh_to_softbody(Object *ob)
   defgroup_index_mass = dvert ? BKE_id_defgroup_name_index(&mesh->id, sb->namedVG_Mass) : -1;
   defgroup_index_spring = dvert ? BKE_id_defgroup_name_index(&mesh->id, sb->namedVG_Spring_K) : -1;
 
-  for (a = 0; a < mesh->totvert; a++, bp++) {
+  for (a = 0; a < mesh->verts_num; a++, bp++) {
     /* get scalar values needed  *per vertex* from vertex group functions,
      * so we can *paint* them nicely ..
      * they are normalized [0.0..1.0] so may be we need amplitude for scale
@@ -2738,7 +2737,7 @@ static void mesh_to_softbody(Object *ob)
   if (ob->softflag & OB_SB_EDGES) {
     if (edge) {
       bs = sb->bspring;
-      for (a = mesh->totedge; a > 0; a--, edge++, bs++) {
+      for (a = mesh->edges_num; a > 0; a--, edge++, bs++) {
         bs->v1 = edge->x;
         bs->v2 = edge->y;
         bs->springtype = SB_EDGE;
@@ -2775,7 +2774,7 @@ static void mesh_faces_to_scratch(Object *ob)
 
   /* Allocate and copy faces. */
 
-  sb->scratch->bodyface_num = poly_to_tri_count(mesh->faces_num, mesh->totloop);
+  sb->scratch->bodyface_num = poly_to_tri_count(mesh->faces_num, mesh->corners_num);
   blender::Array<blender::int3> corner_tris(sb->scratch->bodyface_num);
   blender::bke::mesh::corner_tris_calc(
       mesh->vert_positions(), mesh->faces(), mesh->corner_verts(), corner_tris);
@@ -3208,7 +3207,7 @@ void sbObjectToSoftbody(Object *ob)
 static bool object_has_edges(const Object *ob)
 {
   if (ob->type == OB_MESH) {
-    return ((Mesh *)ob->data)->totedge;
+    return ((Mesh *)ob->data)->edges_num;
   }
   if (ob->type == OB_LATTICE) {
     return true;
