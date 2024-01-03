@@ -32,6 +32,7 @@ class HIPDevice : public GPUDevice {
   int pitch_alignment;
   int hipDevId;
   int hipDevArchitecture;
+  int hipRuntimeVersion;
   bool first_error;
 
   HIPDeviceKernels kernels;
@@ -102,6 +103,7 @@ class HIPDevice : public GPUDevice {
  protected:
   bool get_device_attribute(hipDeviceAttribute_t attribute, int *value);
   int get_device_default_attribute(hipDeviceAttribute_t attribute, int default_value);
+  hipMemoryType get_memory_type(hipMemoryType mem_type);
 };
 
 CCL_NAMESPACE_END
