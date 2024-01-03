@@ -941,7 +941,10 @@ void ShadowModule::end_sync()
   /* Allocate new tile-maps and fill shadow data of the lights. */
   tilemap_pool.tilemaps_data.clear();
   for (Light &light : inst_.lights.light_map_.values()) {
-    if (light.directional != nullptr) {
+    if (enabled_ == false) {
+      light.tilemap_index = LIGHT_NO_SHADOW;
+    }
+    else if (light.directional != nullptr) {
       light.directional->end_sync(light, inst_.camera, lod_bias_);
     }
     else if (light.punctual != nullptr) {
@@ -1265,6 +1268,11 @@ float ShadowModule::tilemap_pixel_radius()
 
 void ShadowModule::set_view(View &view, GPUTexture *depth_tx)
 {
+  if (enabled_ == false) {
+    /* All lights have been tagged to have no shadow. */
+    return;
+  }
+
   GPUFrameBuffer *prev_fb = GPU_framebuffer_active_get();
 
   src_depth_tx_ = depth_tx;
