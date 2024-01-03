@@ -55,6 +55,5 @@ if(WITH_GTESTS)
     bf_blenloader_tests
     bf_io_common
   )
-  include(GTestTesting)
   blender_add_test_lib(bf_io_common_tests "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}")
 endif()

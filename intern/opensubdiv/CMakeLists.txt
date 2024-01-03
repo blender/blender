@@ -105,8 +105,6 @@ blender_add_lib(bf_intern_opensubdiv "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 # Tests.
 
 if(WITH_GTESTS AND WITH_OPENSUBDIV)
-  include(GTestTesting)
-
   add_definitions(${GFLAGS_DEFINES})
   add_definitions(${GLOG_DEFINES})
 

@@ -863,7 +863,6 @@ if(WITH_GTESTS)
   set(TEST_INC
     ../editors/include
   )
-  include(GTestTesting)
   blender_add_test_lib(bf_blenkernel_tests "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB}")
 
   # RNA_prototypes.h

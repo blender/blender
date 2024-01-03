@@ -3,8 +3,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 if(WITH_GTESTS AND WITH_CYCLES_LOGGING)
-  Include(GTestTesting)
-
   # Otherwise we get warnings here that we can't fix in external projects
   remove_strict_flags()
 endif()

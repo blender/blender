@@ -178,6 +178,5 @@ if(WITH_GTESTS)
   set(TEST_LIB
     bf_depsgraph
   )
-  include(GTestTesting)
   blender_add_test_lib(bf_depsgraph_tests "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB}")
 endif()
