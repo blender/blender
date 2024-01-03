@@ -68,6 +68,7 @@ static DynamicLibrary hip_lib;
 thipGetErrorName *hipGetErrorName;
 thipInit *hipInit;
 thipDriverGetVersion *hipDriverGetVersion;
+thipRuntimeGetVersion *hipRuntimeGetVersion;
 thipGetDevice *hipGetDevice;
 thipGetDeviceCount *hipGetDeviceCount;
 thipGetDeviceProperties *hipGetDeviceProperties;
@@ -298,6 +299,7 @@ static int hipewHipInit(void) {
   HIP_LIBRARY_FIND_CHECKED(hipGetErrorName);
   HIP_LIBRARY_FIND_CHECKED(hipInit);
   HIP_LIBRARY_FIND_CHECKED(hipDriverGetVersion);
+  HIP_LIBRARY_FIND_CHECKED(hipRuntimeGetVersion);
   HIP_LIBRARY_FIND_CHECKED(hipGetDevice);
   HIP_LIBRARY_FIND_CHECKED(hipGetDeviceCount);
   HIP_LIBRARY_FIND_CHECKED(hipGetDeviceProperties);
@@ -420,7 +422,28 @@ static int hipewHipInit(void) {
   return result;
 }
 
+hipMemoryType get_hip_memory_type(hipMemoryType mem_type, int runtime_version) {
+  /** Convert hipMemoryType for backwards compatibility with rocm5/6. 
+   * This can be removed when support for ROCm 5 is removed. */
 
+  /* If version is 5 we need to use the old enum vals (60000000 is start of ROCm 6) */
+  if (runtime_version > 60000000) {
+    return mem_type;
+  }
+
+  switch (mem_type) {
+    case hipMemoryTypeHost:
+      return hipMemoryTypeHost_v5;
+    case hipMemoryTypeDevice:
+      return hipMemoryTypeDevice_v5;
+    case hipMemoryTypeArray:
+      return hipMemoryTypeArray_v5;
+    case hipMemoryTypeUnified:
+      return hipMemoryTypeUnified_v5;
+    default:
+      return hipMemoryTypeUnregistered;  /* This should not happen. */
+  }
+}
 
 int hipewInit(hipuint32_t flags) {
   int result = HIPEW_SUCCESS;
