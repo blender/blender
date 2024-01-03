@@ -508,6 +508,11 @@ void DeferredLayer::end_sync()
   if (closure_bits_ & evaluated_closures) {
     RenderBuffersInfoData &rbuf_data = inst_.render_buffers.data;
 
+    /* NOTE: For tile-based GPU architectures, barriers are not always needed if implicit local
+     * ordering is guarnteed via either blending order or explicit raster_order_groups. */
+    bool is_tbdr_arch_metal = (GPU_platform_architecture() == GPU_ARCHITECTURE_TBDR) &&
+                              (GPU_backend_get_type() == GPU_BACKEND_METAL);
+
     /* Add the tile classification step at the end of the GBuffer pass. */
     {
       /* Fill tile mask texture with the collected closure present in a tile. */
@@ -523,7 +528,9 @@ void DeferredLayer::end_sync()
       sub.shader_set(inst_.shaders.static_shader_get(DEFERRED_TILE_CLASSIFY));
       sub.bind_image("tile_mask_img", &tile_mask_tx_);
       sub.push_constant("closure_tile_size_shift", &closure_tile_size_shift_);
-      sub.barrier(GPU_BARRIER_TEXTURE_FETCH);
+      if (!is_tbdr_arch_metal) {
+        sub.barrier(GPU_BARRIER_TEXTURE_FETCH);
+      }
       sub.draw_procedural(GPU_PRIM_TRIS, 1, 3);
     }
     {
@@ -566,7 +573,9 @@ void DeferredLayer::end_sync()
         /* WORKAROUND: Avoid rasterizer discard by enabling stencil write, but the shaders actually
          * use no fragment output. */
         sub.state_set(DRW_STATE_WRITE_STENCIL | DRW_STATE_STENCIL_EQUAL | DRW_STATE_DEPTH_GREATER);
-        sub.barrier(GPU_BARRIER_SHADER_STORAGE);
+        if (!is_tbdr_arch_metal) {
+          sub.barrier(GPU_BARRIER_SHADER_STORAGE);
+        }
         sub.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
         sub.bind_image(RBUFS_COLOR_SLOT, &inst_.render_buffers.rp_color_tx);
         sub.bind_image(RBUFS_VALUE_SLOT, &inst_.render_buffers.rp_value_tx);
@@ -595,17 +604,7 @@ void DeferredLayer::end_sync()
           sub.bind_resources(inst_.reflection_probes);
           sub.bind_resources(inst_.irradiance_cache);
           sub.state_stencil(0xFFu, 1u << i, 0xFFu);
-          if (GPU_backend_get_type() == GPU_BACKEND_METAL) {
-            /* WORKAROUND: On Apple silicon the stencil test is broken. Only issue one expensive
-             * lighting evaluation. */
-            if (i == 2) {
-              sub.state_set(DRW_STATE_WRITE_STENCIL | DRW_STATE_DEPTH_GREATER);
-              sub.draw_procedural(GPU_PRIM_TRIS, 1, 3);
-            }
-          }
-          else {
-            sub.draw_procedural(GPU_PRIM_TRIS, 1, 3);
-          }
+          sub.draw_procedural(GPU_PRIM_TRIS, 1, 3);
         }
       }
     }
@@ -634,7 +633,9 @@ void DeferredLayer::end_sync()
       pass.bind_image(RBUFS_VALUE_SLOT, &inst_.render_buffers.rp_value_tx);
       pass.bind_resources(inst_.gbuffer);
       pass.bind_resources(inst_.uniform_data);
-      pass.barrier(GPU_BARRIER_TEXTURE_FETCH | GPU_BARRIER_SHADER_IMAGE_ACCESS);
+      if (!is_tbdr_arch_metal) {
+        pass.barrier(GPU_BARRIER_TEXTURE_FETCH | GPU_BARRIER_SHADER_IMAGE_ACCESS);
+      }
       pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);
     }
   }
