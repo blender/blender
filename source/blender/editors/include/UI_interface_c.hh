@@ -1788,15 +1788,15 @@ void UI_but_func_tooltip_set(uiBut *but, uiButToolTipFunc func, void *arg, uiFre
  */
 void UI_but_func_tooltip_label_set(uiBut *but, std::function<std::string(const uiBut *but)> func);
 
-typedef enum uiTooltipStyle {
+enum uiTooltipStyle {
   UI_TIP_STYLE_NORMAL = 0, /* Regular text. */
   UI_TIP_STYLE_HEADER,     /* Header text. */
   UI_TIP_STYLE_MONO,       /* Mono-spaced text. */
   UI_TIP_STYLE_IMAGE,      /* Image field. */
   UI_TIP_STYLE_SPACER,     /* Padding to separate sections. */
-} uiTooltipStyle;
+};
 
-typedef enum uiTooltipColorID {
+enum uiTooltipColorID {
   UI_TIP_LC_MAIN = 0, /* Color of primary text. */
   UI_TIP_LC_VALUE,    /* Color for the value of buttons (also shortcuts). */
   UI_TIP_LC_ACTIVE,   /* Color of titles of active enum values. */
@@ -1804,7 +1804,7 @@ typedef enum uiTooltipColorID {
   UI_TIP_LC_PYTHON,   /* Color of python snippets. */
   UI_TIP_LC_ALERT,    /* Warning text color, eg: why operator can't run. */
   UI_TIP_LC_MAX
-} uiTooltipColorID;
+};
 
 void UI_but_func_tooltip_custom_set(uiBut *but,
                                     uiButToolTipCustomFunc func,

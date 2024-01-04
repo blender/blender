@@ -14,10 +14,6 @@ struct wmKeyConfig;
 
 #include "wm_gizmo_fn.hh"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* -------------------------------------------------------------------- */
 /* wmGizmo */
 
@@ -28,13 +24,13 @@ extern "C" {
  * \return if the selection has changed.
  */
 bool wm_gizmo_select_set_ex(
-    struct wmGizmoMap *gzmap, struct wmGizmo *gz, bool select, bool use_array, bool use_callback);
-bool wm_gizmo_select_and_highlight(bContext *C, struct wmGizmoMap *gzmap, struct wmGizmo *gz);
+    wmGizmoMap *gzmap, wmGizmo *gz, bool select, bool use_array, bool use_callback);
+bool wm_gizmo_select_and_highlight(bContext *C, wmGizmoMap *gzmap, wmGizmo *gz);
 
-void wm_gizmo_calculate_scale(struct wmGizmo *gz, const bContext *C);
-void wm_gizmo_update(struct wmGizmo *gz, const bContext *C, bool refresh_map);
+void wm_gizmo_calculate_scale(wmGizmo *gz, const bContext *C);
+void wm_gizmo_update(wmGizmo *gz, const bContext *C, bool refresh_map);
 
-int wm_gizmo_is_visible(struct wmGizmo *gz);
+int wm_gizmo_is_visible(wmGizmo *gz);
 enum {
   WM_GIZMO_IS_VISIBLE_UPDATE = (1 << 0),
   WM_GIZMO_IS_VISIBLE_DRAW = (1 << 1),
@@ -55,47 +51,44 @@ enum {
 /**
  * Create a new gizmo-group from \a gzgt.
  */
-struct wmGizmoGroup *wm_gizmogroup_new_from_type(struct wmGizmoMap *gzmap,
-                                                 struct wmGizmoGroupType *gzgt);
-void wm_gizmogroup_free(bContext *C, struct wmGizmoGroup *gzgroup);
+wmGizmoGroup *wm_gizmogroup_new_from_type(wmGizmoMap *gzmap, wmGizmoGroupType *gzgt);
+void wm_gizmogroup_free(bContext *C, wmGizmoGroup *gzgroup);
 /**
  * Add \a gizmo to \a gzgroup and make sure its name is unique within the group.
  */
-void wm_gizmogroup_gizmo_register(struct wmGizmoGroup *gzgroup, struct wmGizmo *gz);
-struct wmGizmoGroup *wm_gizmogroup_find_by_type(const struct wmGizmoMap *gzmap,
-                                                const struct wmGizmoGroupType *gzgt);
-struct wmGizmo *wm_gizmogroup_find_intersected_gizmo(wmWindowManager *wm,
-                                                     const struct wmGizmoGroup *gzgroup,
-                                                     struct bContext *C,
-                                                     int event_modifier,
-                                                     const int mval[2],
-                                                     int *r_part);
+void wm_gizmogroup_gizmo_register(wmGizmoGroup *gzgroup, wmGizmo *gz);
+wmGizmoGroup *wm_gizmogroup_find_by_type(const wmGizmoMap *gzmap, const wmGizmoGroupType *gzgt);
+wmGizmo *wm_gizmogroup_find_intersected_gizmo(wmWindowManager *wm,
+                                              const wmGizmoGroup *gzgroup,
+                                              bContext *C,
+                                              int event_modifier,
+                                              const int mval[2],
+                                              int *r_part);
 /**
  * Adds all gizmos of \a gzgroup that can be selected to the head of \a listbase.
  * Added items need freeing!
  */
 void wm_gizmogroup_intersectable_gizmos_to_list(wmWindowManager *wm,
-                                                const struct wmGizmoGroup *gzgroup,
+                                                const wmGizmoGroup *gzgroup,
                                                 int event_modifier,
-                                                struct BLI_Buffer *visible_gizmos);
-bool wm_gizmogroup_is_visible_in_drawstep(const struct wmGizmoGroup *gzgroup,
+                                                BLI_Buffer *visible_gizmos);
+bool wm_gizmogroup_is_visible_in_drawstep(const wmGizmoGroup *gzgroup,
                                           eWM_GizmoFlagMapDrawStep drawstep);
 
-void wm_gizmogrouptype_setup_keymap(struct wmGizmoGroupType *gzgt, struct wmKeyConfig *keyconf);
+void wm_gizmogrouptype_setup_keymap(wmGizmoGroupType *gzgt, wmKeyConfig *keyconf);
 
-wmKeyMap *wm_gizmogroup_tweak_modal_keymap(struct wmKeyConfig *keyconf);
+wmKeyMap *wm_gizmogroup_tweak_modal_keymap(wmKeyConfig *keyconf);
 
 /* -------------------------------------------------------------------- */
 /* wmGizmoMap */
 
-typedef struct wmGizmoMapSelectState {
+struct wmGizmoMapSelectState {
   struct wmGizmo **items;
   int len, len_alloc;
-} wmGizmoMapSelectState;
+};
 
 struct wmGizmoMap {
-
-  struct wmGizmoMapType *type;
+  wmGizmoMapType *type;
   ListBase groups; /* wmGizmoGroup */
 
   /* private, update tagging (enum defined in C source). */
@@ -115,11 +108,11 @@ struct wmGizmoMap {
    */
   struct {
     /* we redraw the gizmo-map when this changes */
-    struct wmGizmo *highlight;
+    wmGizmo *highlight;
     /* User has clicked this gizmo and it gets all input. */
-    struct wmGizmo *modal;
+    wmGizmo *modal;
     /* array for all selected gizmos */
-    struct wmGizmoMapSelectState select;
+    wmGizmoMapSelectState select;
     /* cursor location at point of entering modal (see: WM_GIZMO_MOVE_CURSOR) */
     int event_xy[2];
     short event_grabcursor;
@@ -135,7 +128,7 @@ struct wmGizmoMap {
  * \note There is only ever one of these for every (area, region) combination.
  */
 struct wmGizmoMapType {
-  struct wmGizmoMapType *next, *prev;
+  wmGizmoMapType *next, *prev;
   short spaceid, regionid;
   /* types of gizmo-groups for this gizmo-map type */
   ListBase grouptype_refs;
@@ -144,16 +137,12 @@ struct wmGizmoMapType {
   eWM_GizmoFlagMapTypeUpdateFlag type_update_flag;
 };
 
-void wm_gizmomap_select_array_clear(struct wmGizmoMap *gzmap);
+void wm_gizmomap_select_array_clear(wmGizmoMap *gzmap);
 /**
  * Deselect all selected gizmos in \a gzmap.
  * \return if selection has changed.
  */
-bool wm_gizmomap_deselect_all(struct wmGizmoMap *gzmap);
-void wm_gizmomap_select_array_shrink(struct wmGizmoMap *gzmap, int len_subtract);
-void wm_gizmomap_select_array_push_back(struct wmGizmoMap *gzmap, wmGizmo *gz);
-void wm_gizmomap_select_array_remove(struct wmGizmoMap *gzmap, wmGizmo *gz);
-
-#ifdef __cplusplus
-}
-#endif
+bool wm_gizmomap_deselect_all(wmGizmoMap *gzmap);
+void wm_gizmomap_select_array_shrink(wmGizmoMap *gzmap, int len_subtract);
+void wm_gizmomap_select_array_push_back(wmGizmoMap *gzmap, wmGizmo *gz);
+void wm_gizmomap_select_array_remove(wmGizmoMap *gzmap, wmGizmo *gz);

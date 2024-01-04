@@ -26,19 +26,19 @@ struct wmOperatorType;
 
 /* `wm_gizmo_type.cc`, for init/exit */
 
-void wm_gizmotype_free(void);
+void wm_gizmotype_free();
 /**
  * Called on initialize #WM_init().
  */
-void wm_gizmotype_init(void);
+void wm_gizmotype_init();
 
 /* wm_gizmogroup_type.c, for init/exit */
 
-void wm_gizmogrouptype_free(void);
+void wm_gizmogrouptype_free();
 /**
  * Called on initialize #WM_init().
  */
-void wm_gizmogrouptype_init(void);
+void wm_gizmogrouptype_init();
 
 /** \} */
 
@@ -46,10 +46,10 @@ void wm_gizmogrouptype_init(void);
 /** \name #wmGizmoGroup
  * \{ */
 
-void GIZMOGROUP_OT_gizmo_select(struct wmOperatorType *ot);
-void GIZMOGROUP_OT_gizmo_tweak(struct wmOperatorType *ot);
+void GIZMOGROUP_OT_gizmo_select(wmOperatorType *ot);
+void GIZMOGROUP_OT_gizmo_tweak(wmOperatorType *ot);
 
-bool wm_gizmogroup_is_any_selected(const struct wmGizmoGroup *gzgroup);
+bool wm_gizmogroup_is_any_selected(const wmGizmoGroup *gzgroup);
 
 /** \} */
 
@@ -57,48 +57,40 @@ bool wm_gizmogroup_is_any_selected(const struct wmGizmoGroup *gzgroup);
 /** \name #wmGizmoMap
  * \{ */
 
-void wm_gizmomap_remove(struct wmGizmoMap *gzmap);
+void wm_gizmomap_remove(wmGizmoMap *gzmap);
 
 /**
  * Initialize key-maps for all existing gizmo-groups
  */
-void wm_gizmos_keymap(struct wmKeyConfig *keyconf);
+void wm_gizmos_keymap(wmKeyConfig *keyconf);
 
-void wm_gizmomaps_handled_modal_update(bContext *C,
-                                       struct wmEvent *event,
-                                       struct wmEventHandler_Op *handler);
+void wm_gizmomaps_handled_modal_update(bContext *C, wmEvent *event, wmEventHandler_Op *handler);
 /**
  * Prepare context for gizmo handling (but only if area/region is
  * part of screen). Version of #wm_handler_op_context for gizmos.
  */
-void wm_gizmomap_handler_context_op(bContext *C, struct wmEventHandler_Op *handler);
-void wm_gizmomap_handler_context_gizmo(bContext *C, struct wmEventHandler_Gizmo *handler);
+void wm_gizmomap_handler_context_op(bContext *C, wmEventHandler_Op *handler);
+void wm_gizmomap_handler_context_gizmo(bContext *C, wmEventHandler_Gizmo *handler);
 
 /**
  * Try to find a gizmo under the mouse position. 2D intersections have priority over
  * 3D ones (could check for smallest screen-space distance but not needed right now).
  */
-struct wmGizmo *wm_gizmomap_highlight_find(struct wmGizmoMap *gzmap,
-                                           bContext *C,
-                                           const struct wmEvent *event,
-                                           int *r_part);
-bool wm_gizmomap_highlight_set(struct wmGizmoMap *gzmap,
-                               const bContext *C,
-                               struct wmGizmo *gz,
-                               int part);
-struct wmGizmo *wm_gizmomap_highlight_get(struct wmGizmoMap *gzmap);
+wmGizmo *wm_gizmomap_highlight_find(wmGizmoMap *gzmap,
+                                    bContext *C,
+                                    const wmEvent *event,
+                                    int *r_part);
+bool wm_gizmomap_highlight_set(wmGizmoMap *gzmap, const bContext *C, wmGizmo *gz, int part);
+wmGizmo *wm_gizmomap_highlight_get(wmGizmoMap *gzmap);
 /**
  * Caller should call exit when (enable == False).
  */
-void wm_gizmomap_modal_set(struct wmGizmoMap *gzmap,
-                           bContext *C,
-                           struct wmGizmo *gz,
-                           const struct wmEvent *event,
-                           bool enable);
+void wm_gizmomap_modal_set(
+    wmGizmoMap *gzmap, bContext *C, wmGizmo *gz, const wmEvent *event, bool enable);
 
-struct wmGizmo *wm_gizmomap_modal_get(struct wmGizmoMap *gzmap);
-struct wmGizmo **wm_gizmomap_selected_get(wmGizmoMap *gzmap, int *r_selected_len);
-struct ListBase *wm_gizmomap_groups_get(wmGizmoMap *gzmap);
+wmGizmo *wm_gizmomap_modal_get(wmGizmoMap *gzmap);
+wmGizmo **wm_gizmomap_selected_get(wmGizmoMap *gzmap, int *r_selected_len);
+ListBase *wm_gizmomap_groups_get(wmGizmoMap *gzmap);
 
 /** \} */
 
@@ -106,6 +98,6 @@ struct ListBase *wm_gizmomap_groups_get(wmGizmoMap *gzmap);
 /** \name #wmGizmoMapType
  * \{ */
 
-void wm_gizmomaptypes_free(void);
+void wm_gizmomaptypes_free();
 
 /** \} */

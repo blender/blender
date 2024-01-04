@@ -15,7 +15,7 @@ struct Sequence;
 /**
  * Callback format for the for_each function below.
  */
-typedef bool (*SeqForEachFunc)(Sequence *seq, void *user_data);
+using SeqForEachFunc = bool (*)(Sequence *seq, void *user_data);
 
 /**
  * Utility function to recursively iterate through all sequence strips in a `seqbase` list.

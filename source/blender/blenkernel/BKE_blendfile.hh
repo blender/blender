@@ -50,7 +50,7 @@ bool BKE_blendfile_library_path_explode(const char *path,
  *
  * \note Currently does attempt to open and read (part of) the given file.
  */
-bool BKE_blendfile_is_readable(const char *path, struct ReportList *reports);
+bool BKE_blendfile_is_readable(const char *path, ReportList *reports);
 
 /**
  * Shared setup function that makes the data from `bfd` into the current blend file,
@@ -116,7 +116,7 @@ UserDef *BKE_blendfile_userdef_read(const char *filepath, ReportList *reports);
 UserDef *BKE_blendfile_userdef_read_from_memory(const void *filebuf,
                                                 int filelength,
                                                 ReportList *reports);
-UserDef *BKE_blendfile_userdef_from_defaults(void);
+UserDef *BKE_blendfile_userdef_from_defaults();
 
 /**
  * Only write the #UserDef in a `.blend`.

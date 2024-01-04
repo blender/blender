@@ -34,7 +34,7 @@ struct AssetTypeInfo {
   OnMarkAssetFn on_mark_asset_fn;
 };
 
-AssetMetaData *BKE_asset_metadata_create(void);
+AssetMetaData *BKE_asset_metadata_create();
 void BKE_asset_metadata_free(AssetMetaData **asset_data);
 
 /**

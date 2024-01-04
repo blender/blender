@@ -20,7 +20,7 @@
 struct Object;
 struct wmXrActionSet;
 
-typedef struct wmXrSessionState {
+struct wmXrSessionState {
   bool is_started;
 
   /** Last known viewer pose (centroid of eyes, in world space) stored for queries. */
@@ -67,9 +67,9 @@ typedef struct wmXrSessionState {
   struct wmXrActionSet *active_action_set;
   /* Name of the action set (if any) to activate before the next actions sync. */
   char active_action_set_next[64]; /* MAX_NAME */
-} wmXrSessionState;
+};
 
-typedef struct wmXrRuntimeData {
+struct wmXrRuntimeData {
   GHOST_XrContextHandle context;
 
   /** The window the session was started in. Stored to be able to follow its view-layer. This may
@@ -86,15 +86,15 @@ typedef struct wmXrRuntimeData {
   ListBase actionmaps; /* #XrActionMap */
   short actactionmap;
   short selactionmap;
-} wmXrRuntimeData;
+};
 
-typedef struct wmXrViewportPair {
+struct wmXrViewportPair {
   struct wmXrViewportPair *next, *prev;
   struct GPUOffScreen *offscreen;
   struct GPUViewport *viewport;
-} wmXrViewportPair;
+};
 
-typedef struct {
+struct wmXrSurfaceData {
   /** Off-screen buffers/viewports for each view. */
   ListBase viewports; /* #wmXrViewportPair */
 
@@ -102,9 +102,9 @@ typedef struct {
   struct ARegionType *controller_art;
   /** Controller draw callback handle. */
   void *controller_draw_handle;
-} wmXrSurfaceData;
+};
 
-typedef struct wmXrDrawData {
+struct wmXrDrawData {
   struct Scene *scene;
   struct Depsgraph *depsgraph;
 
@@ -120,9 +120,9 @@ typedef struct wmXrDrawData {
   /** Offset to _subtract_ from the OpenXR eye and viewer pose to get the wanted effective pose
    * (e.g. a pose exactly at the landmark position). */
   float eye_position_ofs[3]; /* Local/view space. */
-} wmXrDrawData;
+};
 
-typedef struct wmXrController {
+struct wmXrController {
   struct wmXrController *next, *prev;
   /** OpenXR user path identifier. */
   char subaction_path[64]; /* XR_MAX_USER_PATH_LENGTH */
@@ -138,9 +138,9 @@ typedef struct wmXrController {
 
   /** Controller model. */
   struct GPUBatch *model;
-} wmXrController;
+};
 
-typedef struct wmXrAction {
+struct wmXrAction {
   char *name;
   eXrActionType type;
   unsigned int count_subaction_paths;
@@ -171,16 +171,16 @@ typedef struct wmXrAction {
   eXrOpFlag op_flag;
   eXrActionFlag action_flag;
   eXrHapticFlag haptic_flag;
-} wmXrAction;
+};
 
-typedef struct wmXrHapticAction {
+struct wmXrHapticAction {
   struct wmXrHapticAction *next, *prev;
   wmXrAction *action;
   const char *subaction_path;
   int64_t time_start;
-} wmXrHapticAction;
+};
 
-typedef struct wmXrActionSet {
+struct wmXrActionSet {
   char *name;
 
   /** XR pose actions that determine the controller grip/aim transforms. */
@@ -191,11 +191,11 @@ typedef struct wmXrActionSet {
   ListBase active_modal_actions;
   /** Currently active haptic actions. */
   ListBase active_haptic_actions;
-} wmXrActionSet;
+};
 
 /* `wm_xr.cc` */
 
-wmXrRuntimeData *wm_xr_runtime_data_create(void);
+wmXrRuntimeData *wm_xr_runtime_data_create();
 void wm_xr_runtime_data_free(wmXrRuntimeData **runtime);
 
 /* `wm_xr_session.cc` */
@@ -218,7 +218,7 @@ void wm_xr_session_state_update(const XrSessionSettings *settings,
                                 wmXrSessionState *state);
 bool wm_xr_session_surface_offscreen_ensure(wmXrSurfaceData *surface_data,
                                             const GHOST_XrDrawViewInfo *draw_view);
-void *wm_xr_session_gpu_binding_context_create(void);
+void *wm_xr_session_gpu_binding_context_create();
 void wm_xr_session_gpu_binding_context_destroy(GHOST_ContextHandle context);
 
 void wm_xr_session_actions_init(wmXrData *xr);
@@ -241,4 +241,4 @@ void wm_xr_pose_scale_to_imat(const GHOST_XrPose *pose, float scale, float r_ima
  * callback (see GHOST_XrDrawViewFunc()) and executed for each view (read: eye).
  */
 void wm_xr_draw_view(const GHOST_XrDrawViewInfo *draw_view, void *customdata);
-void wm_xr_draw_controllers(const struct bContext *C, struct ARegion *region, void *customdata);
+void wm_xr_draw_controllers(const bContext *C, ARegion *region, void *customdata);

@@ -85,7 +85,7 @@ struct PBVHFrustumPlanes {
 
 BLI_INLINE BMesh *BKE_pbvh_get_bmesh(PBVH *pbvh)
 {
-  return ((struct PBVHPublic *)pbvh)->bm;
+  return ((PBVHPublic *)pbvh)->bm;
 }
 
 Mesh *BKE_pbvh_get_mesh(PBVH *pbvh);

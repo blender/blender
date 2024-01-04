@@ -224,7 +224,7 @@ void *BLO_read_get_new_packed_address(BlendDataReader *reader, const void *old_a
 #define BLO_read_packed_address(reader, ptr_p) \
   *((void **)ptr_p) = BLO_read_get_new_packed_address((reader), *(ptr_p))
 
-typedef void (*BlendReadListFn)(BlendDataReader *reader, void *data);
+using BlendReadListFn = void (*)(BlendDataReader *reader, void *data);
 /**
  * Updates all `->prev` and `->next` pointers of the list elements.
  * Updates the `list->first` and `list->last` pointers.

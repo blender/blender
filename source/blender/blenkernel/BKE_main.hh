@@ -465,7 +465,7 @@ const char *BKE_main_blendfile_path(const Main *bmain) ATTR_NONNULL();
  * \warning Usage is not recommended,
  * you should always try to get a valid Main pointer from context.
  */
-const char *BKE_main_blendfile_path_from_global(void);
+const char *BKE_main_blendfile_path_from_global();
 
 /**
  * \return A pointer to the \a ListBase of given \a bmain for requested \a type ID type.

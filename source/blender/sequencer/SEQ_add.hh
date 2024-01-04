@@ -14,8 +14,11 @@
 
 struct ListBase;
 struct Main;
+struct Mask;
+struct MovieClip;
 struct Scene;
 struct Sequence;
+struct Stereo3dFormat;
 
 /** #SeqLoadData.flags */
 enum eSeqLoadFlags {
@@ -36,22 +39,22 @@ struct SeqLoadData {
   struct {
     int len;
     int end_frame;
-  } image;                /* Only for image strips. */
-  struct Scene *scene;    /* Only for scene strips. */
-  struct MovieClip *clip; /* Only for clip strips. */
-  struct Mask *mask;      /* Only for mask strips. */
+  } image;         /* Only for image strips. */
+  Scene *scene;    /* Only for scene strips. */
+  MovieClip *clip; /* Only for clip strips. */
+  Mask *mask;      /* Only for mask strips. */
   struct {
     int type;
     int end_frame;
-    struct Sequence *seq1;
-    struct Sequence *seq2;
-    struct Sequence *seq3;
+    Sequence *seq1;
+    Sequence *seq2;
+    Sequence *seq3;
   } effect; /* Only for effect strips. */
   eSeqLoadFlags flags;
   eSeqImageFitMethod fit_method;
   bool use_multiview;
   char views_format;
-  struct Stereo3dFormat *stereo3d_format;
+  Stereo3dFormat *stereo3d_format;
   bool allow_invalid_file;     /* Used by RNA API to create placeholder strips. */
   double r_video_stream_start; /* For AV synchronization. Set by `SEQ_add_movie_strip`. */
   bool adjust_playback_rate;

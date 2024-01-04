@@ -76,7 +76,7 @@ void DEG_relations_tag_update(Main *bmain);
  */
 struct DepsNodeHandle;
 
-typedef enum eDepsSceneComponentType {
+enum eDepsSceneComponentType {
   /* Parameters Component - Default when nothing else fits
    * (i.e. just SDNA property setting). */
   DEG_SCENE_COMP_PARAMETERS,
@@ -85,9 +85,9 @@ typedef enum eDepsSceneComponentType {
   DEG_SCENE_COMP_ANIMATION,
   /* Sequencer Component (Scene Only). */
   DEG_SCENE_COMP_SEQUENCER,
-} eDepsSceneComponentType;
+};
 
-typedef enum eDepsObjectComponentType {
+enum eDepsObjectComponentType {
   /* Used in query API, to denote which component caller is interested in. */
   DEG_OB_COMP_ANY,
 
@@ -114,7 +114,7 @@ typedef enum eDepsObjectComponentType {
   DEG_OB_COMP_SHADING,
   /* Cache Component */
   DEG_OB_COMP_CACHE,
-} eDepsObjectComponentType;
+};
 
 void DEG_add_scene_relation(DepsNodeHandle *node_handle,
                             Scene *scene,

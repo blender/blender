@@ -94,7 +94,7 @@ struct DRWSubdivLooseGeom {
  * This holds the various buffers used to evaluate and render subdivision through OpenGL.
  * \{ */
 
-typedef struct DRWSubdivCache {
+struct DRWSubdivCache {
   Mesh *mesh;
   BMesh *bm;
   Subdiv *subdiv;
@@ -181,7 +181,7 @@ typedef struct DRWSubdivCache {
   /* Extra flags, passed to the UBO. */
   bool is_edit_mode;
   bool use_hide;
-} DRWSubdivCache;
+};
 
 /* Only frees the data of the cache, caller is responsible to free the cache itself if necessary.
  */

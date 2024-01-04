@@ -387,7 +387,7 @@ class SocketDeclarationBuilder : public BaseSocketDeclarationBuilder {
 
 using SocketDeclarationPtr = std::unique_ptr<SocketDeclaration>;
 
-typedef void (*PanelDrawButtonsFunction)(uiLayout *, bContext *, PointerRNA *);
+using PanelDrawButtonsFunction = void (*)(uiLayout *, bContext *, PointerRNA *);
 
 /**
  * Describes a panel containing sockets or other panels.

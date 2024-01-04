@@ -15,7 +15,7 @@
 struct rcti;
 
 /** Flags for mode of operation. */
-typedef enum eGPUSelectMode {
+enum eGPUSelectMode {
   GPU_SELECT_ALL = 1,
   /* gpu_select_query */
   GPU_SELECT_NEAREST_FIRST_PASS = 2,
@@ -23,12 +23,12 @@ typedef enum eGPUSelectMode {
   /* gpu_select_pick */
   GPU_SELECT_PICK_ALL = 4,
   GPU_SELECT_PICK_NEAREST = 5,
-} eGPUSelectMode;
+};
 
 /**
  * The result of calling #GPU_select_begin & #GPU_select_end.
  */
-typedef struct GPUSelectResult {
+struct GPUSelectResult {
   /** The selection identifier matching the value passed in by #GPU_select_load_id. */
   unsigned int id;
   /**
@@ -39,7 +39,7 @@ typedef struct GPUSelectResult {
    *   this has not been included as Blender doesn't need this however support could be added.
    */
   unsigned int depth;
-} GPUSelectResult;
+};
 
 using GPUSelectStorage = blender::Vector<GPUSelectResult, 2500>;
 struct GPUSelectBuffer {
@@ -50,7 +50,7 @@ struct GPUSelectBuffer {
  * Initialize and provide buffer for results.
  */
 void GPU_select_begin(GPUSelectBuffer *buffer,
-                      const struct rcti *input,
+                      const rcti *input,
                       eGPUSelectMode mode,
                       int oldhits);
 /**
@@ -58,7 +58,7 @@ void GPU_select_begin(GPUSelectBuffer *buffer,
  * Uses the new Select-Next engine if enabled.
  */
 void GPU_select_begin_next(GPUSelectBuffer *buffer,
-                           const struct rcti *input,
+                           const rcti *input,
                            eGPUSelectMode mode,
                            int oldhits);
 /**
@@ -99,4 +99,4 @@ uint GPU_select_buffer_remove_by_id(blender::MutableSpan<GPUSelectResult> hit_re
 /**
  * Part of the solution copied from `rect_subregion_stride_calc`.
  */
-void GPU_select_buffer_stride_realign(const struct rcti *src, const struct rcti *dst, uint *r_buf);
+void GPU_select_buffer_stride_realign(const rcti *src, const rcti *dst, uint *r_buf);

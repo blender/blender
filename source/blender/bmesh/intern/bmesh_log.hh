@@ -12,9 +12,8 @@ struct BMFace;
 struct BMVert;
 struct BMesh;
 struct RangeTreeUInt;
-
-typedef struct BMLog BMLog;
-typedef struct BMLogEntry BMLogEntry;
+struct BMLog;
+struct BMLogEntry;
 
 /**
  * Allocate, initialize, and assign a new BMLog.
@@ -110,7 +109,7 @@ void BM_log_redo(BMesh *bm, BMLog *log);
  * state so that a subsequent redo operation will restore the newer
  * vertex state.
  */
-void BM_log_vert_before_modified(BMLog *log, struct BMVert *v, int cd_vert_mask_offset);
+void BM_log_vert_before_modified(BMLog *log, BMVert *v, int cd_vert_mask_offset);
 
 /**
  * Log a new vertex as added to the #BMesh.
@@ -119,7 +118,7 @@ void BM_log_vert_before_modified(BMLog *log, struct BMVert *v, int cd_vert_mask_
  * of added vertices, with the key being its ID and the value
  * containing everything needed to reconstruct that vertex.
  */
-void BM_log_vert_added(BMLog *log, struct BMVert *v, int cd_vert_mask_offset);
+void BM_log_vert_added(BMLog *log, BMVert *v, int cd_vert_mask_offset);
 
 /**
  * Log a face before it is modified.
@@ -127,7 +126,7 @@ void BM_log_vert_added(BMLog *log, struct BMVert *v, int cd_vert_mask_offset);
  * This is intended to handle only header flags and we always
  * assume face has been added before.
  */
-void BM_log_face_modified(BMLog *log, struct BMFace *f);
+void BM_log_face_modified(BMLog *log, BMFace *f);
 
 /**
  * Log a new face as added to the #BMesh.
@@ -136,7 +135,7 @@ void BM_log_face_modified(BMLog *log, struct BMFace *f);
  * of added faces, with the key being its ID and the value containing
  * everything needed to reconstruct that face.
  */
-void BM_log_face_added(BMLog *log, struct BMFace *f);
+void BM_log_face_added(BMLog *log, BMFace *f);
 
 /**
  * Log a vertex as removed from the #BMesh.
@@ -155,7 +154,7 @@ void BM_log_face_added(BMLog *log, struct BMFace *f);
  * If there's a move record for the vertex, that's used as the
  * vertices original location, then the move record is deleted.
  */
-void BM_log_vert_removed(BMLog *log, struct BMVert *v, int cd_vert_mask_offset);
+void BM_log_vert_removed(BMLog *log, BMVert *v, int cd_vert_mask_offset);
 
 /**
  * Log a face as removed from the #BMesh.
@@ -171,7 +170,7 @@ void BM_log_vert_removed(BMLog *log, struct BMVert *v, int cd_vert_mask_offset);
  * its ID and the value containing everything needed to reconstruct
  * that face.
  */
-void BM_log_face_removed(BMLog *log, struct BMFace *f);
+void BM_log_face_removed(BMLog *log, BMFace *f);
 
 /**
  * Log all vertices/faces in the #BMesh as added.

@@ -110,17 +110,17 @@ void BM_loop_interp_from_face(
  */
 void BM_face_multires_bounds_smooth(BMesh *bm, BMFace *f);
 
-struct LinkNode *BM_vert_loop_groups_data_layer_create(
-    BMesh *bm, BMVert *v, int layer_n, const float *loop_weights, struct MemArena *arena);
+LinkNode *BM_vert_loop_groups_data_layer_create(
+    BMesh *bm, BMVert *v, int layer_n, const float *loop_weights, MemArena *arena);
 /**
  * Take existing custom data and merge each fan's data.
  */
-void BM_vert_loop_groups_data_layer_merge(BMesh *bm, struct LinkNode *groups, int layer_n);
+void BM_vert_loop_groups_data_layer_merge(BMesh *bm, LinkNode *groups, int layer_n);
 /**
  * A version of #BM_vert_loop_groups_data_layer_merge
  * that takes an array of loop-weights (aligned with #BM_LOOPS_OF_VERT iterator).
  */
 void BM_vert_loop_groups_data_layer_merge_weights(BMesh *bm,
-                                                  struct LinkNode *groups,
+                                                  LinkNode *groups,
                                                   int layer_n,
                                                   const float *loop_weights);

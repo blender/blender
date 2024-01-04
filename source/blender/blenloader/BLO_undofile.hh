@@ -55,14 +55,14 @@ struct MemFileUndoData {
 };
 
 /* FileReader-compatible wrapper for reading MemFiles */
-typedef struct {
+struct UndoReader {
   FileReader reader;
 
   MemFile *memfile;
   int undo_direction;
 
   bool memchunk_identical;
-} UndoReader;
+};
 
 /* Actually only used `writefile.cc`. */
 

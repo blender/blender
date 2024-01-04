@@ -20,7 +20,7 @@ struct ComponentNode;
 
 /* Evaluation Operation for atomic operation */
 /* XXX: move this to another header that can be exposed? */
-typedef function<void(::Depsgraph *)> DepsEvalOperationCb;
+using DepsEvalOperationCb = function<void(::Depsgraph *)>;
 
 /* Identifiers for common operations (as an enum). */
 enum class OperationCode {

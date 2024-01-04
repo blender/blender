@@ -122,9 +122,9 @@ bool vertex_paint_poll_ignore_tool(bContext *C);
  */
 bool vertex_paint_mode_poll(bContext *C);
 
-typedef void (*VPaintTransform_Callback)(const float col[3],
-                                         const void *user_data,
-                                         float r_col[3]);
+using VPaintTransform_Callback = void (*)(const float col[3],
+                                          const void *user_data,
+                                          float r_col[3]);
 
 void PAINT_OT_weight_paint_toggle(wmOperatorType *ot);
 void PAINT_OT_weight_paint(wmOperatorType *ot);

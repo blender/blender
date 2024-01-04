@@ -131,7 +131,7 @@ class AssetRepresentation;
 }
 using AssetRepresentationHandle = blender::asset_system::AssetRepresentation;
 
-typedef void (*wmGenericUserDataFreeFn)(void *data);
+using wmGenericUserDataFreeFn = void (*)(void *data);
 
 struct wmGenericUserData {
   void *data;
@@ -919,17 +919,17 @@ struct wmTimer {
   bool sleep;
 };
 
-typedef enum wmWarningSize {
+enum wmWarningSize {
   WM_WARNING_SIZE_SMALL = 0,
   WM_WARNING_SIZE_LARGE,
-} wmWarningSize;
+};
 
-typedef enum wmWarningPosition {
+enum wmWarningPosition {
   WM_WARNING_POSITION_MOUSE = 0,
   WM_WARNING_POSITION_CENTER,
-} wmWarningPosition;
+};
 
-typedef struct wmWarningDetails {
+struct wmWarningDetails {
   char title[1024];
   char message[1024];
   char message2[1024];
@@ -942,7 +942,7 @@ typedef struct wmWarningDetails {
   bool cancel_default;
   bool mouse_move_quit;
   bool red_alert;
-} wmWarningDetails;
+};
 
 /**
  * Communication/status data owned by the wmJob, and passed to the worker code when calling
@@ -1074,7 +1074,7 @@ struct wmOperatorType {
   /**
    * If using WM_operator_confirm the following can override all parts of the dialog.
    */
-  void (*warning)(struct bContext *C, struct wmOperator *, wmWarningDetails *warning);
+  void (*warning)(bContext *C, wmOperator *, wmWarningDetails *warning);
 
   /** RNA for properties */
   StructRNA *srna;

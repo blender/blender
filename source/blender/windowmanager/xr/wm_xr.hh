@@ -12,7 +12,7 @@ struct wmWindow;
 struct wmWindowManager;
 struct wmXrData;
 
-typedef void (*wmXrSessionExitFn)(const wmXrData *xr_data);
+using wmXrSessionExitFn = void (*)(const wmXrData *xr_data);
 
 /* `wm_xr.cc` */
 
@@ -23,4 +23,4 @@ bool wm_xr_events_handle(wmWindowManager *wm);
 
 /* `wm_xr_operators.cc` */
 
-void wm_xr_operatortypes_register(void);
+void wm_xr_operatortypes_register();

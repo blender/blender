@@ -8,6 +8,8 @@
 
 #include "RNA_types.hh"
 
+struct bContext;
+
 #define FH_MAX_FILE_EXTENSIONS_STR 512
 
 struct FileHandlerType {
@@ -22,7 +24,7 @@ struct FileHandlerType {
   char file_extensions_str[FH_MAX_FILE_EXTENSIONS_STR];
 
   /** Check if file handler can be used on file drop. */
-  bool (*poll_drop)(const struct bContext *C, FileHandlerType *file_handle_type);
+  bool (*poll_drop)(const bContext *C, FileHandlerType *file_handle_type);
 
   /** List of file extensions supported by the file handler. */
   blender::Vector<std::string> file_extensions;

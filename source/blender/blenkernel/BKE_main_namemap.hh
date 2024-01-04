@@ -24,7 +24,7 @@ struct ID;
 struct Main;
 struct UniqueName_Map;
 
-UniqueName_Map *BKE_main_namemap_create(void) ATTR_WARN_UNUSED_RESULT;
+UniqueName_Map *BKE_main_namemap_create() ATTR_WARN_UNUSED_RESULT;
 void BKE_main_namemap_destroy(UniqueName_Map **r_name_map) ATTR_NONNULL();
 
 /**

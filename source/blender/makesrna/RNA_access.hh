@@ -755,7 +755,7 @@ void _RNA_warning(const char *format, ...) ATTR_PRINTF_FORMAT(1, 2);
  * \note In practice, #EQ_STRICT and #EQ_COMPARE have same behavior currently,
  * and will yield same result.
  */
-typedef enum eRNACompareMode {
+enum eRNACompareMode {
   /* Only care about equality, not full comparison. */
   /** Set/unset ignored. */
   RNA_EQ_STRICT,
@@ -765,7 +765,7 @@ typedef enum eRNACompareMode {
   RNA_EQ_UNSET_MATCH_NONE,
   /** Full comparison. */
   RNA_EQ_COMPARE,
-} eRNACompareMode;
+};
 
 bool RNA_property_equals(
     Main *bmain, PointerRNA *ptr_a, PointerRNA *ptr_b, PropertyRNA *prop, eRNACompareMode mode);
@@ -774,7 +774,7 @@ bool RNA_struct_equals(Main *bmain, PointerRNA *ptr_a, PointerRNA *ptr_b, eRNACo
 /* Override. */
 
 /** Flags for #RNA_struct_override_matches. */
-typedef enum eRNAOverrideMatch {
+enum eRNAOverrideMatch {
   /** Do not compare properties that are not overridable. */
   RNA_OVERRIDE_COMPARE_IGNORE_NON_OVERRIDABLE = 1 << 0,
   /** Do not compare properties that are already overridden. */
@@ -786,10 +786,10 @@ typedef enum eRNAOverrideMatch {
   RNA_OVERRIDE_COMPARE_RESTORE = 1 << 17,
   /** Tag for restoration of property's value(s) to reference ones, if needed and possible. */
   RNA_OVERRIDE_COMPARE_TAG_FOR_RESTORE = 1 << 18,
-} eRNAOverrideMatch;
+};
 ENUM_OPERATORS(eRNAOverrideMatch, RNA_OVERRIDE_COMPARE_TAG_FOR_RESTORE)
 
-typedef enum eRNAOverrideMatchResult {
+enum eRNAOverrideMatchResult {
   RNA_OVERRIDE_MATCH_RESULT_INIT = 0,
 
   /**
@@ -804,10 +804,10 @@ typedef enum eRNAOverrideMatchResult {
   RNA_OVERRIDE_MATCH_RESULT_RESTORE_TAGGED = 1 << 1,
   /** Some properties were reset to reference values. */
   RNA_OVERRIDE_MATCH_RESULT_RESTORED = 1 << 2,
-} eRNAOverrideMatchResult;
+};
 ENUM_OPERATORS(eRNAOverrideMatchResult, RNA_OVERRIDE_MATCH_RESULT_RESTORED)
 
-typedef enum eRNAOverrideStatus {
+enum eRNAOverrideStatus {
   /** The property is overridable. */
   RNA_OVERRIDE_STATUS_OVERRIDABLE = 1 << 0,
   /** The property is overridden. */
@@ -816,7 +816,7 @@ typedef enum eRNAOverrideStatus {
   RNA_OVERRIDE_STATUS_MANDATORY = 1 << 2,
   /** The override status of this property is locked. */
   RNA_OVERRIDE_STATUS_LOCKED = 1 << 3,
-} eRNAOverrideStatus;
+};
 ENUM_OPERATORS(eRNAOverrideStatus, RNA_OVERRIDE_STATUS_LOCKED)
 
 /**
@@ -848,7 +848,7 @@ bool RNA_struct_override_store(Main *bmain,
                                PointerRNA *ptr_storage,
                                IDOverrideLibrary *override);
 
-typedef enum eRNAOverrideApplyFlag {
+enum eRNAOverrideApplyFlag {
   RNA_OVERRIDE_APPLY_FLAG_NOP = 0,
   /**
    * Hack to work around/fix older broken overrides: Do not apply override operations affecting ID
@@ -861,7 +861,7 @@ typedef enum eRNAOverrideApplyFlag {
 
   /** Only perform restore operations. */
   RNA_OVERRIDE_APPLY_FLAG_RESTORE_ONLY = 1 << 2,
-} eRNAOverrideApplyFlag;
+};
 
 /**
  * Apply given \a override operations on \a id_ptr_dst, using \a id_ptr_src

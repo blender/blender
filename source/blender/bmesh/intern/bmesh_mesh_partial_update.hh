@@ -13,10 +13,10 @@
 /**
  * Parameters used to determine which kinds of data needs to be generated.
  */
-typedef struct BMPartialUpdate_Params {
+struct BMPartialUpdate_Params {
   bool do_normals;
   bool do_tessellate;
-} BMPartialUpdate_Params;
+};
 
 /**
  * Cached data to speed up partial updates.
@@ -30,7 +30,7 @@ typedef struct BMPartialUpdate_Params {
  * - Partial normal updates use face & loop indices,
  *   setting them to dirty values between updates will slow down normal recalculation.
  */
-typedef struct BMPartialUpdate {
+struct BMPartialUpdate {
   BMVert **verts;
   BMFace **faces;
   int verts_len, verts_len_alloc;
@@ -38,7 +38,7 @@ typedef struct BMPartialUpdate {
 
   /** Store the parameters used in creation so invalid use can be asserted. */
   BMPartialUpdate_Params params;
-} BMPartialUpdate;
+};
 
 /**
  * All Tagged & Connected, see: #BM_mesh_partial_create_from_verts
