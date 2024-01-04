@@ -555,7 +555,7 @@ static int armature_bone_transflags_update_recursive(bArmature *arm,
     bone->flag &= ~BONE_TRANSFORM;
     do_next = do_it;
     if (do_it) {
-      if (ANIM_bonecoll_is_visible(arm, bone)) {
+      if (ANIM_bone_in_visible_collection(arm, bone)) {
         if (bone->flag & BONE_SELECTED) {
           bone->flag |= BONE_TRANSFORM;
           total++;

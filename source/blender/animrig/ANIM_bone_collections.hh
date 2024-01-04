@@ -265,12 +265,12 @@ void ANIM_armature_bonecoll_reconstruct(struct bArmature *armature);
  */
 
 /** Return true when any of the bone's collections is visible. */
-bool ANIM_bonecoll_is_visible(const struct bArmature *armature, const struct Bone *bone);
+bool ANIM_bone_in_visible_collection(const struct bArmature *armature, const struct Bone *bone);
 
 inline bool ANIM_bone_is_visible(const struct bArmature *armature, const struct Bone *bone)
 {
   const bool bone_itself_visible = (bone->flag & (BONE_HIDDEN_P | BONE_HIDDEN_PG)) == 0;
-  return bone_itself_visible && ANIM_bonecoll_is_visible(armature, bone);
+  return bone_itself_visible && ANIM_bone_in_visible_collection(armature, bone);
 }
 
 bool ANIM_bonecoll_is_visible_editbone(const struct bArmature *armature,
@@ -286,12 +286,12 @@ inline bool ANIM_bone_is_visible_editbone(const struct bArmature *armature,
 inline bool ANIM_bonecoll_is_visible_pchan(const struct bArmature *armature,
                                            const struct bPoseChannel *pchan)
 {
-  return ANIM_bonecoll_is_visible(armature, pchan->bone);
+  return ANIM_bone_in_visible_collection(armature, pchan->bone);
 }
 
 inline bool ANIM_bonecoll_is_visible_actbone(const struct bArmature *armature)
 {
-  return ANIM_bonecoll_is_visible(armature, armature->act_bone);
+  return ANIM_bone_in_visible_collection(armature, armature->act_bone);
 }
 
 void ANIM_armature_bonecoll_show_all(struct bArmature *armature);

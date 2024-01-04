@@ -869,7 +869,7 @@ static bool any_bone_collection_visible(const ListBase /*BoneCollectionRef*/ *co
 /* TODO: these two functions were originally implemented for armature layers, hence the armature
  * parameters. These should be removed at some point. */
 
-bool ANIM_bonecoll_is_visible(const bArmature * /*armature*/, const Bone *bone)
+bool ANIM_bone_in_visible_collection(const bArmature * /*armature*/, const Bone *bone)
 {
   return any_bone_collection_visible(&bone->runtime.collections);
 }
@@ -934,7 +934,7 @@ bool ANIM_armature_bonecoll_contains_active_bone(const struct bArmature *armatur
 
 void ANIM_armature_bonecoll_show_from_bone(bArmature *armature, const Bone *bone)
 {
-  if (ANIM_bonecoll_is_visible(armature, bone)) {
+  if (ANIM_bone_in_visible_collection(armature, bone)) {
     return;
   }
 
