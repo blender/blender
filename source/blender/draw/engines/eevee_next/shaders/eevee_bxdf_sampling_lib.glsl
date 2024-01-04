@@ -15,16 +15,6 @@
 
 #define GGX_USE_VISIBLE_NORMAL 1
 
-float sample_pdf_ggx_reflect(float NH, float NV, float VH, float G1_V, float alpha)
-{
-  float a2 = square(alpha);
-#if GGX_USE_VISIBLE_NORMAL
-  return 0.25 * bxdf_ggx_D(NH, a2) * G1_V / NV;
-#else
-  return NH * bxdf_ggx_D(NH, a2);
-#endif
-}
-
 float sample_pdf_ggx_refract(
     float NH, float NV, float VH, float LH, float G1_V, float alpha, float eta)
 {
@@ -83,6 +73,41 @@ vec3 sample_ggx(vec3 rand, float alpha, vec3 Vt)
   return sample_ggx(rand, alpha, Vt, G1_unused);
 }
 
+/* Similar as `sample_ggx()`, but reduces the number or rejected samples due to reflection in the
+ * lower hemisphere, and returns `pdf` instead of `G1_V`. Only used for reflection.
+ *
+ * Sampling visible GGX normals with bounded spherical caps.
+ * Eto, Kenta, and Yusuke Tokuyoshi. "Bounded VNDF Sampling for Smith-GGX Reflections."
+ * SIGGRAPH Asia 2023 Technical Communications. 2023. 1-4.
+ * https://gpuopen.com/download/publications/Bounded_VNDF_Sampling_for_Smith-GGX_Reflections.pdf */
+vec3 sample_ggx_bounded(vec3 rand, float alpha, vec3 Vt, out float pdf)
+{
+  /* Transforming the view direction to the hemisphere configuration. */
+  vec3 Vh = vec3(alpha * Vt.xy, Vt.z);
+  float norm = length(Vh);
+  Vh = Vh / norm;
+
+  /* Compute the bounded cap. */
+  float a2 = square(alpha);
+  float s2 = square(1.0 + length(Vt.xy));
+  float k = (1.0 - a2) * s2 / (s2 + a2 * square(Vt.z));
+
+  /* Sample a spherical cap in (-Vh.z * k, 1]. */
+  float cos_theta = mix(-Vh.z * k, 1.0, 1.0 - rand.x);
+  float sin_theta = sqrt(saturate(1.0 - square(cos_theta)));
+  vec3 Lh = vec3(sin_theta * rand.yz, cos_theta);
+
+  /* Compute unnormalized halfway direction. */
+  vec3 Hh = Vh + Lh;
+
+  /* Transforming the normal back to the ellipsoid configuration. */
+  vec3 Ht = normalize(vec3(alpha * Hh.xy, max(0.0, Hh.z)));
+
+  pdf = 0.5 * bxdf_ggx_D(saturate(Ht.z), a2) / (k * Vt.z + norm);
+
+  return Ht;
+}
+
 /**
  * Returns a reflected ray direction following the GGX distribution.
  *
@@ -97,17 +122,12 @@ vec3 sample_ggx(vec3 rand, float alpha, vec3 Vt)
  */
 vec3 sample_ggx_reflect(vec3 rand, float alpha, vec3 V, vec3 N, vec3 T, vec3 B, out float pdf)
 {
-  float G1_V;
-  vec3 tV = world_to_tangent(V, N, T, B);
-  vec3 tH = sample_ggx(rand, alpha, tV, G1_V);
-  float NH = saturate(tH.z);
-  float NV = saturate(tV.z);
-  float VH = dot(tV, tH);
-  vec3 H = tangent_to_world(tH, N, T, B);
+  vec3 Vt = world_to_tangent(V, N, T, B);
+  vec3 Ht = sample_ggx_bounded(rand, alpha, Vt, pdf);
+  vec3 H = tangent_to_world(Ht, N, T, B);
 
-  if (VH > 0.0) {
+  if (dot(V, H) > 0.0) {
     vec3 L = reflect(-V, H);
-    pdf = sample_pdf_ggx_reflect(NH, NV, VH, G1_V, alpha);
     return L;
   }
   pdf = 0.0;
