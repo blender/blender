@@ -26,6 +26,10 @@
 
 #include "PIL_time.h"
 
+using Alembic::Abc::IV3fArrayProperty;
+using Alembic::Abc::PropertyHeader;
+using Alembic::Abc::V3fArraySamplePtr;
+
 namespace blender::io::alembic {
 
 std::string get_id_name(const Object *const ob)
@@ -112,6 +116,41 @@ bool has_property(const Alembic::Abc::ICompoundProperty &prop, const std::string
   }
 
   return prop.getPropertyHeader(name) != nullptr;
+}
+
+V3fArraySamplePtr get_velocity_prop(const Alembic::Abc::ICompoundProperty &schema,
+                                    const Alembic::AbcGeom::ISampleSelector &selector,
+                                    const std::string &name)
+{
+  for (size_t i = 0; i < schema.getNumProperties(); i++) {
+    const PropertyHeader &header = schema.getPropertyHeader(i);
+
+    if (header.isCompound()) {
+      const ICompoundProperty &prop = ICompoundProperty(schema, header.getName());
+
+      if (has_property(prop, name)) {
+        /* Header cannot be null here, as its presence is checked via has_property, so it is safe
+         * to dereference. */
+        const PropertyHeader *header = prop.getPropertyHeader(name);
+        if (!IV3fArrayProperty::matches(*header)) {
+          continue;
+        }
+
+        const IV3fArrayProperty &velocity_prop = IV3fArrayProperty(prop, name, 0);
+        if (velocity_prop) {
+          return velocity_prop.getValue(selector);
+        }
+      }
+    }
+    else if (header.isArray()) {
+      if (header.getName() == name && IV3fArrayProperty::matches(header)) {
+        const IV3fArrayProperty &velocity_prop = IV3fArrayProperty(schema, name, 0);
+        return velocity_prop.getValue(selector);
+      }
+    }
+  }
+
+  return V3fArraySamplePtr();
 }
 
 using index_time_pair_t = std::pair<Alembic::AbcCoreAbstract::index_t, Alembic::AbcGeom::chrono_t>;
