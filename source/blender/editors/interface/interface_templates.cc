@@ -7310,11 +7310,6 @@ int uiTemplateRecentFiles(uiLayout *layout, int rows)
         but, uiTemplateRecentFiles_tooltip_func, BLI_strdup(recent->filepath), MEM_freeN);
   }
 
-  if (i > 0) {
-    uiItemS(layout);
-    uiItemO(layout, nullptr, ICON_TRASH, "WM_OT_clear_recent_files");
-  }
-
   return i;
 }
 
