@@ -1181,6 +1181,203 @@ int WM_enum_search_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/
   return OPERATOR_INTERFACE;
 }
 
+static void wm_operator_block_cancel(bContext *C, void *arg_op, void *arg_block)
+{
+  wmOperator *op = static_cast<wmOperator *>(arg_op);
+  uiBlock *block = static_cast<uiBlock *>(arg_block);
+  UI_popup_block_close(C, CTX_wm_window(C), block);
+  WM_redraw_windows(C);
+  if (op) {
+    if (op->type->cancel) {
+      op->type->cancel(C, op);
+    }
+    WM_operator_free(op);
+  }
+}
+
+static void wm_operator_block_confirm(bContext *C, void *arg_op, void *arg_block)
+{
+  wmOperator *op = static_cast<wmOperator *>(arg_op);
+  uiBlock *block = static_cast<uiBlock *>(arg_block);
+  UI_popup_block_close(C, CTX_wm_window(C), block);
+  WM_redraw_windows(C);
+  if (op) {
+    WM_operator_call_ex(C, op, true);
+  }
+}
+
+static uiBlock *wm_block_confirm_create(bContext *C, ARegion *region, void *arg_op)
+{
+  wmOperator *op = static_cast<wmOperator *>(arg_op);
+
+  wmWarningDetails warning = {{0}};
+
+  STRNCPY(warning.title, WM_operatortype_description(C, op->type, op->ptr).c_str());
+  STRNCPY(warning.confirm_button, WM_operatortype_name(op->type, op->ptr).c_str());
+  STRNCPY(warning.cancel_button, IFACE_("Cancel"));
+  warning.icon = ALERT_ICON_WARNING;
+  warning.size = WM_WARNING_SIZE_SMALL;
+  warning.position = WM_WARNING_POSITION_MOUSE;
+  warning.confirm_default = true;
+  warning.cancel_default = false;
+  warning.mouse_move_quit = false;
+  warning.red_alert = false;
+
+  /* uiBlock.flag */
+  int block_flags = UI_BLOCK_KEEP_OPEN | UI_BLOCK_NO_WIN_CLIP | UI_BLOCK_NUMSELECT;
+
+  if (op->type->warning) {
+    op->type->warning(C, op, &warning);
+  }
+  if (warning.mouse_move_quit) {
+    block_flags |= UI_BLOCK_MOVEMOUSE_QUIT;
+  }
+  if (warning.icon < ALERT_ICON_WARNING || warning.icon >= ALERT_ICON_MAX) {
+    warning.icon = ALERT_ICON_QUESTION;
+  }
+
+  uiBlock *block = UI_block_begin(C, region, __func__, UI_EMBOSS);
+  UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
+  UI_block_flag_enable(block, block_flags);
+
+  const uiStyle *style = UI_style_get_dpi();
+  int text_width = MAX2(
+      120 * UI_SCALE_FAC,
+      BLF_width(style->widget.uifont_id, warning.title, ARRAY_SIZE(warning.title)));
+  if (warning.message[0]) {
+    text_width = MAX2(
+        text_width,
+        BLF_width(style->widget.uifont_id, warning.message, ARRAY_SIZE(warning.message)));
+  }
+  if (warning.message2[0]) {
+    text_width = MAX2(
+        text_width,
+        BLF_width(style->widget.uifont_id, warning.message2, ARRAY_SIZE(warning.message2)));
+  }
+
+  const bool small = warning.size == WM_WARNING_SIZE_SMALL;
+  const int padding = (small ? 7 : 14) * UI_SCALE_FAC;
+  const short icon_size = (small ? (warning.message[0] ? 48 : 32) : 64) * UI_SCALE_FAC;
+  const int dialog_width = icon_size + text_width + (style->columnspace * 2.5);
+  const float split_factor = (float)icon_size / (float)(dialog_width - style->columnspace);
+
+  uiLayout *block_layout = UI_block_layout(
+      block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, dialog_width, UI_UNIT_Y, 0, style);
+
+  /* Split layout to put alert icon on left side. */
+  uiLayout *split_block = uiLayoutSplit(block_layout, split_factor, false);
+
+  /* Alert icon on the left. */
+  uiLayout *layout = uiLayoutRow(split_block, true);
+  /* Using 'align_left' with 'row' avoids stretching the icon along the width of column. */
+  uiLayoutSetAlignment(layout, UI_LAYOUT_ALIGN_LEFT);
+  uiDefButAlert(block, warning.icon, 0, 0, icon_size, icon_size);
+
+  /* The rest of the content on the right. */
+  layout = uiLayoutColumn(split_block, true);
+
+  if (warning.title[0]) {
+    if (!warning.message[0]) {
+      uiItemS(layout);
+    }
+    uiItemL_ex(layout, warning.title, ICON_NONE, true, false);
+  }
+  if (warning.message[0]) {
+    uiItemL(layout, warning.message, ICON_NONE);
+  }
+  if (warning.message2[0]) {
+    uiItemL(layout, warning.message2, ICON_NONE);
+  }
+
+  uiItemS_ex(layout, small ? 0.5f : 4.0f);
+
+  /* Buttons. */
+
+#ifdef _WIN32
+  const bool windows_layout = true;
+#else
+  const bool windows_layout = false;
+#endif
+
+  uiBut *confirm = nullptr;
+  uiBut *cancel = nullptr;
+  int height = UI_UNIT_Y;
+  uiLayout *split = uiLayoutSplit(small ? block_layout : layout, 0.0f, true);
+  uiLayoutSetScaleY(split, small ? 1.1f : 1.2f);
+  uiLayoutColumn(split, false);
+
+  if (windows_layout) {
+    confirm = uiDefIconTextBut(block,
+                               UI_BTYPE_BUT,
+                               0,
+                               0,
+                               warning.confirm_button,
+                               0,
+                               0,
+                               0,
+                               height,
+                               0,
+                               0,
+                               0,
+                               0,
+                               0,
+                               nullptr);
+    uiLayoutColumn(split, false);
+  }
+
+  cancel = uiDefIconTextBut(
+      block, UI_BTYPE_BUT, 0, 0, warning.cancel_button, 0, 0, 0, height, 0, 0, 0, 0, 0, nullptr);
+
+  if (!windows_layout) {
+    uiLayoutColumn(split, false);
+    confirm = uiDefIconTextBut(block,
+                               UI_BTYPE_BUT,
+                               0,
+                               0,
+                               warning.confirm_button,
+                               0,
+                               0,
+                               0,
+                               height,
+                               0,
+                               0,
+                               0,
+                               0,
+                               0,
+                               nullptr);
+  }
+
+  UI_block_func_set(block, nullptr, nullptr, nullptr);
+  UI_but_func_set(confirm, wm_operator_block_confirm, op, block);
+  UI_but_func_set(cancel, wm_operator_block_cancel, op, block);
+  UI_but_drawflag_disable(confirm, UI_BUT_TEXT_LEFT);
+  UI_but_drawflag_disable(cancel, UI_BUT_TEXT_LEFT);
+
+  if (warning.red_alert) {
+    UI_but_flag_enable(confirm, UI_BUT_REDALERT);
+  }
+  else {
+    if (warning.cancel_default) {
+      UI_but_flag_enable(cancel, UI_BUT_ACTIVE_DEFAULT);
+    }
+    else if (warning.confirm_default) {
+      UI_but_flag_enable(confirm, UI_BUT_ACTIVE_DEFAULT);
+    }
+  }
+
+  if (warning.position == WM_WARNING_POSITION_MOUSE) {
+    int bounds_offset[2];
+    bounds_offset[0] = uiLayoutGetWidth(layout) * (windows_layout ? -0.33f : -0.66f);
+    bounds_offset[1] = UI_UNIT_Y * (warning.message[0] ? 3.1 : 2.5);
+    UI_block_bounds_set_popup(block, padding, bounds_offset);
+  }
+  else if (warning.position == WM_WARNING_POSITION_CENTER) {
+    UI_block_bounds_set_centered(block, padding);
+  }
+
+  return block;
+}
+
 int WM_operator_confirm_message_ex(bContext *C,
                                    wmOperator *op,
                                    const char *title,
@@ -1208,6 +1405,11 @@ int WM_operator_confirm_message_ex(bContext *C,
 
 int WM_operator_confirm_message(bContext *C, wmOperator *op, const char *message)
 {
+  if (op->type->warning) {
+    UI_popup_block_invoke(C, wm_block_confirm_create, op, nullptr);
+    return OPERATOR_RUNNING_MODAL;
+  }
+
   return WM_operator_confirm_message_ex(
       C, op, IFACE_("OK?"), ICON_QUESTION, message, WM_OP_EXEC_REGION_WIN);
 }
