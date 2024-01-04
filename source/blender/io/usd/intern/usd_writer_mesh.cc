@@ -2,15 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #include "usd_writer_mesh.h"
-<<<<<<< HEAD
-=======
-
-#include "usd_armature_utils.h"
-#include "usd_blend_shape_utils.h"
-#include "usd_hierarchy_iterator.h"
-#include "usd_skel_convert.h"
-#include "usd_writer_armature.h"
->>>>>>> main
 
 #include "usd_armature_utils.h"
 #include "usd_blend_shape_utils.h"
@@ -35,18 +26,10 @@
 #include "BLI_math_vector_types.hh"
 
 #include "BKE_armature.hh"
-<<<<<<< HEAD
-#include "BKE_attribute.h"
-#include "BKE_customdata.hh"
-#include "BKE_deform.h"
-#include "BKE_key.h"
-#include "BKE_customdata.hh"
-=======
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
 #include "BKE_deform.h"
 #include "BKE_key.h"
->>>>>>> main
 #include "BKE_lib_id.h"
 #include "BKE_library.hh"
 #include "BKE_material.h"
@@ -65,10 +48,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_key_types.h"
 #include "DNA_layer_types.h"
-<<<<<<< HEAD
 #include "DNA_mesh_types.h"
-=======
->>>>>>> main
 #include "DNA_modifier_types.h"
 #include "DNA_object_fluidsim_types.h"
 #include "DNA_object_types.h"
@@ -281,11 +261,7 @@ void USDGenericMeshWriter::write_custom_data(const Object *obj,
              usd_export_context_.export_params.export_shapekeys) &&
             attribute_id.name().rfind("skel:") == 0)
         {
-<<<<<<< HEAD
-          /* If we're exporting armatures ot shape keys to UsdSkel, we skip any
-=======
           /* If we're exporting armatures or shape keys to UsdSkel, we skip any
->>>>>>> main
            * attributes that have names with the "skel:" namespace, to avoid possible
            * conflicts. Such attribute might have been previously imported into Blender
            * from USD, but can no longer be considered valid. */
@@ -294,11 +270,7 @@ void USDGenericMeshWriter::write_custom_data(const Object *obj,
 
         if (usd_export_context_.export_params.export_armatures &&
             is_armature_modifier_bone_name(
-<<<<<<< HEAD
-                obj, attribute_id.name().data(), usd_export_context_.depsgraph))
-=======
                 *obj, attribute_id.name().data(), usd_export_context_.depsgraph))
->>>>>>> main
         {
           /* This attribute is likely a vertex group for the armature modifier,
            * and it may conflict with skinning data that will be written to
@@ -1014,22 +986,12 @@ void USDMeshWriter::set_skel_export_flags(const HierarchyContext &context)
   write_skinned_mesh_ = false;
   write_blend_shapes_ = false;
 
-<<<<<<< HEAD
-  Vector<ModifierData *> mods = get_enabled_modifiers(context.object,
-                                                      usd_export_context_.depsgraph);
-
-=======
->>>>>>> main
   const USDExportParams &params = usd_export_context_.export_params;
 
   /* We can write a skinned mesh if exporting armatures is enabled and the object has an armature
    * modifier. */
   write_skinned_mesh_ = params.export_armatures &&
-<<<<<<< HEAD
-                        can_export_skinned_mesh(context.object, usd_export_context_.depsgraph);
-=======
                         can_export_skinned_mesh(*context.object, usd_export_context_.depsgraph);
->>>>>>> main
 
   /* We can write blend shapes if exporting shape keys is enabled and the object has shape keys. */
   write_blend_shapes_ = params.export_shapekeys && is_mesh_with_shape_keys(context.object);
@@ -1042,39 +1004,16 @@ void USDMeshWriter::init_skinned_mesh(const HierarchyContext &context)
   pxr::UsdPrim mesh_prim = stage->GetPrimAtPath(usd_export_context_.usd_path);
 
   if (!mesh_prim.IsValid()) {
-<<<<<<< HEAD
-    WM_reportf(RPT_WARNING,
-               "%s: couldn't get valid mesh prim for mesh %s\n",
-               __func__,
-               usd_export_context_.usd_path.GetAsString().c_str());
-=======
     CLOG_WARN(&LOG,
               "%s: couldn't get valid mesh prim for mesh %s",
               __func__,
               usd_export_context_.usd_path.GetAsString().c_str());
->>>>>>> main
     return;
   }
 
   pxr::UsdSkelBindingAPI skel_api = pxr::UsdSkelBindingAPI::Apply(mesh_prim);
 
   if (!skel_api) {
-<<<<<<< HEAD
-    WM_reportf(RPT_WARNING,
-               "%s: couldn't apply UsdSkelBindingAPI to mesh prim %s\n",
-               __func__,
-               usd_export_context_.usd_path.GetAsString().c_str());
-    return;
-  }
-
-  const Object *arm_obj = get_armature_modifier_obj(context.object, usd_export_context_.depsgraph);
-
-  if (!arm_obj) {
-    WM_reportf(RPT_WARNING,
-               "%s: couldn't get armature modifier object for skinned mesh %s\n",
-               __func__,
-               usd_export_context_.usd_path.GetAsString().c_str());
-=======
     CLOG_WARN(&LOG,
               "Couldn't apply UsdSkelBindingAPI to mesh prim %s",
               usd_export_context_.usd_path.GetAsString().c_str());
@@ -1088,20 +1027,10 @@ void USDMeshWriter::init_skinned_mesh(const HierarchyContext &context)
     CLOG_WARN(&LOG,
               "Couldn't get armature modifier object for skinned mesh %s",
               usd_export_context_.usd_path.GetAsString().c_str());
->>>>>>> main
     return;
   }
 
   Vector<std::string> bone_names;
-<<<<<<< HEAD
-  get_armature_bone_names(arm_obj, bone_names, usd_export_context_.export_params.use_deform);
-
-  if (bone_names.is_empty()) {
-    WM_reportf(RPT_WARNING,
-               "%s: no armature bones for skinned mesh %s\n",
-               __func__,
-               usd_export_context_.usd_path.GetAsString().c_str());
-=======
   get_armature_bone_names(
       arm_obj, usd_export_context_.export_params.only_deform_bones, bone_names);
 
@@ -1109,7 +1038,6 @@ void USDMeshWriter::init_skinned_mesh(const HierarchyContext &context)
     CLOG_WARN(&LOG,
               "No armature bones for skinned mesh %s",
               usd_export_context_.usd_path.GetAsString().c_str());
->>>>>>> main
     return;
   }
 
@@ -1142,16 +1070,9 @@ void USDMeshWriter::init_blend_shapes(const HierarchyContext &context)
   pxr::UsdPrim mesh_prim = stage->GetPrimAtPath(usd_export_context_.usd_path);
 
   if (!mesh_prim.IsValid()) {
-<<<<<<< HEAD
-    WM_reportf(RPT_WARNING,
-               "%s: couldn't get valid mesh prim for mesh %s\n",
-               __func__,
-               mesh_prim.GetPath().GetAsString().c_str());
-=======
     CLOG_WARN(&LOG,
               "Couldn't get valid mesh prim for mesh %s",
               mesh_prim.GetPath().GetAsString().c_str());
->>>>>>> main
     return;
   }
 
@@ -1222,16 +1143,9 @@ void USDMeshWriter::add_shape_key_weights_sample(const Object *obj)
   pxr::UsdPrim mesh_prim = stage->GetPrimAtPath(usd_export_context_.usd_path);
 
   if (!mesh_prim.IsValid()) {
-<<<<<<< HEAD
-    WM_reportf(RPT_WARNING,
-               "%s: couldn't get valid mesh prim for mesh %s\n",
-               __func__,
-               usd_export_context_.usd_path.GetAsString().c_str());
-=======
     CLOG_WARN(&LOG,
               "Couldn't get valid mesh prim for mesh %s",
               usd_export_context_.usd_path.GetAsString().c_str());
->>>>>>> main
     return;
   }
 
@@ -1244,17 +1158,10 @@ void USDMeshWriter::add_shape_key_weights_sample(const Object *obj)
       TempBlendShapeWeightsPrimvarName, pxr::SdfValueTypeNames->FloatArray);
 
   if (!temp_weights_attr) {
-<<<<<<< HEAD
-    WM_reportf(RPT_WARNING,
-               "%s: couldn't create primvar %s on prim %s\n",
-               __func__,
-               mesh_prim.GetPath().GetAsString().c_str());
-=======
     CLOG_WARN(&LOG,
               "Couldn't create primvar %s on prim %s",
               TempBlendShapeWeightsPrimvarName.GetText(),
               mesh_prim.GetPath().GetAsString().c_str());
->>>>>>> main
     return;
   }
 

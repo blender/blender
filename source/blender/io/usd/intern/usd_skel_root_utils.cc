@@ -4,20 +4,11 @@
 
 #include "usd_skel_root_utils.h"
 
-<<<<<<< HEAD
-#include "WM_api.hh"
-
-=======
->>>>>>> main
 #include <pxr/usd/usd/primRange.h>
 #include <pxr/usd/usdGeom/xform.h>
 #include <pxr/usd/usdSkel/bindingAPI.h>
 #include <pxr/usd/usdSkel/root.h>
 
-<<<<<<< HEAD
-#include <iostream>
-
-=======
 #include "BKE_report.h"
 
 #include "WM_types.hh"
@@ -27,7 +18,6 @@
 #include "CLG_log.h"
 static CLG_LogRef LOG = {"io.usd"};
 
->>>>>>> main
 /* Utility: return the common Xform ancestor of the given prims. Is no such ancestor can
  * be found, return an in valid Xform. */
 static pxr::UsdGeomXform get_xform_ancestor(const pxr::UsdPrim &prim1, const pxr::UsdPrim &prim2)
@@ -67,11 +57,8 @@ void create_skel_roots(pxr::UsdStageRefPtr stage, const USDExportParams &params)
     return;
   }
 
-<<<<<<< HEAD
-=======
   ReportList *reports = params.worker_status ? params.worker_status->reports : nullptr;
 
->>>>>>> main
   /* Whether we converted any prims to UsdSkel. */
   bool converted_to_usdskel = false;
 
@@ -89,16 +76,9 @@ void create_skel_roots(pxr::UsdStageRefPtr stage, const USDExportParams &params)
     pxr::UsdSkelBindingAPI skel_bind_api(prim);
 
     if (!skel_bind_api) {
-<<<<<<< HEAD
-      WM_reportf(RPT_WARNING,
-                 "%s: couldn't apply UsdSkelBindingAPI to prim %s\n",
-                 __func__,
-                 prim.GetPath().GetAsString().c_str());
-=======
       CLOG_WARN(&LOG,
                 "Couldn't apply UsdSkelBindingAPI to prim %s",
                 prim.GetPath().GetAsString().c_str());
->>>>>>> main
       continue;
     }
 
@@ -111,14 +91,7 @@ void create_skel_roots(pxr::UsdStageRefPtr stage, const USDExportParams &params)
     }
 
     if (!skel.GetPrim().IsValid()) {
-<<<<<<< HEAD
-      WM_reportf(RPT_WARNING,
-                 "%s: invalid skeleton for prim %s\n",
-                 __func__,
-                 prim.GetPath().GetAsString().c_str());
-=======
       CLOG_WARN(&LOG, "Invalid skeleton for prim %s", prim.GetPath().GetAsString().c_str());
->>>>>>> main
       continue;
     }
 
@@ -132,28 +105,13 @@ void create_skel_roots(pxr::UsdStageRefPtr stage, const USDExportParams &params)
 
     if (pxr::UsdGeomXform xf = get_xform_ancestor(prim, skel.GetPrim())) {
       /* We found a common Xform ancestor, so we set its type to UsdSkelRoot. */
-<<<<<<< HEAD
-      WM_reportf(RPT_INFO,
-                 "%s: Converting Xform prim %s to a SkelRoot\n",
-                 __func__,
-                 prim.GetPath().GetAsString().c_str());
-=======
       CLOG_INFO(
           &LOG, 4, "Converting Xform prim %s to a SkelRoot", prim.GetPath().GetAsString().c_str());
->>>>>>> main
 
       pxr::UsdSkelRoot::Define(stage, xf.GetPath());
       converted_to_usdskel = true;
     }
     else {
-<<<<<<< HEAD
-      WM_reportf(RPT_WARNING,
-                 "%s: Couldn't find a common Xform ancestor for skinned prim %s "
-                 "and skeleton %s to convert to a USD SkelRoot. "
-                 "This can be addressed by setting a root primitive in the export options.\n",
-                 __func__,
-                 prim.GetPath().GetAsString().c_str());
-=======
       BKE_reportf(reports,
                   RPT_WARNING,
                   "%s: Couldn't find a common Xform ancestor for skinned prim %s "
@@ -162,7 +120,6 @@ void create_skel_roots(pxr::UsdStageRefPtr stage, const USDExportParams &params)
                   __func__,
                   prim.GetPath().GetAsString().c_str(),
                   skel.GetPath().GetAsString().c_str());
->>>>>>> main
     }
   }
 

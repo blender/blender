@@ -36,9 +36,6 @@ class USDStageReader {
 
   std::vector<USDPrimReader *> readers_;
 
-  // Readers for scenegraph instance prototypes.
-  ProtoReaderMap proto_readers_;
-
   /* USD dome lights are converted to a world material,
    * rather than light objects, so are handled differently */
   std::vector<pxr::UsdLuxDomeLight> dome_lights_;
@@ -108,14 +105,6 @@ class USDStageReader {
 
   void clear_proto_readers();
 
-<<<<<<< HEAD
-  const ProtoReaderMap &proto_readers() const
-  {
-    return proto_readers_;
-  };
-
-=======
->>>>>>> main
   const std::vector<USDPrimReader *> &readers() const
   {
     return readers_;
@@ -136,10 +125,7 @@ class USDStageReader {
  private:
   USDPrimReader *collect_readers(Main *bmain,
                                  const pxr::UsdPrim &prim,
-<<<<<<< HEAD
                                  pxr::UsdGeomXformCache *xf_cache,
-=======
->>>>>>> main
                                  std::vector<USDPrimReader *> &r_readers);
 
   /**

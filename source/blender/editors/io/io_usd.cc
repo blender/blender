@@ -334,17 +334,12 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
 
   const bool export_armatures = RNA_boolean_get(op->ptr, "export_armatures");
   const bool export_shapekeys = RNA_boolean_get(op->ptr, "export_shapekeys");
-  const bool use_deform = RNA_boolean_get(op->ptr, "use_deform");
-
-  const bool export_armatures = RNA_boolean_get(op->ptr, "export_armatures");
-  const bool export_shapekeys = RNA_boolean_get(op->ptr, "export_shapekeys");
   const bool only_deform_bones = RNA_boolean_get(op->ptr, "only_deform_bones");
 
   char root_prim_path[FILE_MAX];
   RNA_string_get(op->ptr, "root_prim_path", root_prim_path);
   process_prim_path(root_prim_path);
 
-<<<<<<< HEAD
   char default_prim_path[FILE_MAX];
   RNA_string_get(op->ptr, "default_prim_path", default_prim_path);
   process_prim_path(default_prim_path);
@@ -376,8 +371,6 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
   const bool generate_cycles_shaders = RNA_boolean_get(op->ptr, "generate_cycles_shaders");
 
   const eUSDXformOpMode xform_op_mode = eUSDXformOpMode(RNA_enum_get(op->ptr, "xform_op_mode"));
-
-  const bool fix_skel_root = RNA_boolean_get(op->ptr, "fix_skel_root");
 
   const bool overwrite_textures = RNA_boolean_get(op->ptr, "overwrite_textures");
 
@@ -418,6 +411,9 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
                                    export_mesh_attributes,
                                    export_transforms,
                                    export_materials,
+                                   export_armatures,
+                                   export_shapekeys,
+                                   only_deform_bones,
                                    export_subdiv,
                                    export_meshes,
                                    export_lights,
@@ -455,12 +451,8 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
                                    scale_light_radius,
                                    convert_world_material,
                                    generate_cycles_shaders,
-                                   export_armatures,
                                    xform_op_mode,
-                                   fix_skel_root,
                                    overwrite_textures,
-                                   export_shapekeys,
-                                   use_deform,
                                    usdz_downscale_size,
                                    usdz_downscale_custom_size,
                                    usdz_is_arkit,
@@ -484,28 +476,6 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
       params.frame_end = scene->r.efra;
     }
   }
-=======
-  USDExportParams params = {
-      export_animation,
-      export_hair,
-      export_uvmaps,
-      export_normals,
-      export_mesh_colors,
-      export_materials,
-      export_armatures,
-      export_shapekeys,
-      only_deform_bones,
-      export_subdiv,
-      selected_objects_only,
-      visible_objects_only,
-      use_instancing,
-      eEvaluationMode(evaluation_mode),
-      generate_preview_surface,
-      export_textures,
-      overwrite_textures,
-      relative_paths,
-  };
->>>>>>> main
 
   STRNCPY(params.root_prim_path, root_prim_path);
   STRNCPY(params.default_prim_path, default_prim_path);
@@ -531,56 +501,9 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
     RNA_boolean_set(ptr, "init_scene_frame_range", false);
   }
 
-<<<<<<< HEAD
   uiItemR(layout, ptr, "evaluation_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   /* Note: all other pertinent settings are shown through the panels below! */
-=======
-  col = uiLayoutColumn(box, true);
-  uiItemR(col, ptr, "export_animation", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "export_hair", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "export_uvmaps", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "export_normals", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "export_materials", UI_ITEM_NONE, nullptr, ICON_NONE);
-
-  col = uiLayoutColumnWithHeading(box, true, IFACE_("Rigging"));
-  uiItemR(col, ptr, "export_armatures", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiLayout *row = uiLayoutRow(col, true);
-  uiItemR(row, ptr, "only_deform_bones", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiLayoutSetActive(row, RNA_boolean_get(ptr, "export_armatures"));
-  uiItemR(col, ptr, "export_shapekeys", UI_ITEM_NONE, nullptr, ICON_NONE);
-
-  col = uiLayoutColumn(box, true);
-  uiItemR(col, ptr, "export_subdivision", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "root_prim_path", UI_ITEM_NONE, nullptr, ICON_NONE);
-
-  col = uiLayoutColumn(box, true);
-  uiItemR(col, ptr, "evaluation_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
-
-  box = uiLayoutBox(layout);
-  col = uiLayoutColumnWithHeading(box, true, IFACE_("Materials"));
-  uiItemR(col, ptr, "generate_preview_surface", UI_ITEM_NONE, nullptr, ICON_NONE);
-  const bool export_mtl = RNA_boolean_get(ptr, "export_materials");
-  uiLayoutSetActive(col, export_mtl);
-
-  row = uiLayoutRow(col, true);
-  uiItemR(row, ptr, "export_textures", UI_ITEM_NONE, nullptr, ICON_NONE);
-  const bool preview = RNA_boolean_get(ptr, "generate_preview_surface");
-  uiLayoutSetActive(row, export_mtl && preview);
-
-  row = uiLayoutRow(col, true);
-  uiItemR(row, ptr, "overwrite_textures", UI_ITEM_NONE, nullptr, ICON_NONE);
-  const bool export_tex = RNA_boolean_get(ptr, "export_textures");
-  uiLayoutSetActive(row, export_mtl && preview && export_tex);
-
-  box = uiLayoutBox(layout);
-  col = uiLayoutColumnWithHeading(box, true, IFACE_("File References"));
-  uiItemR(col, ptr, "relative_paths", UI_ITEM_NONE, nullptr, ICON_NONE);
-
-  box = uiLayoutBox(layout);
-  uiItemL(box, IFACE_("Experimental"), ICON_NONE);
-  uiItemR(box, ptr, "use_instancing", UI_ITEM_NONE, nullptr, ICON_NONE);
->>>>>>> main
 }
 
 static void free_operator_customdata(wmOperator *op)
@@ -752,22 +675,6 @@ void WM_OT_usd_export(wmOperatorType *ot)
                   "Particles",
                   "When checked, all particle systems will be exported");
 
-  RNA_def_boolean(ot->srna,
-                  "export_armatures",
-                  true,
-                  "Armatures",
-                  "Export armatures and meshes with armature modifiers as USD skeletons and "
-                  "skinned meshes");
-
-  RNA_def_boolean(
-      ot->srna, "export_shapekeys", true, "Shape Keys", "Export shape keys as USD blend shapes");
-
-  RNA_def_boolean(ot->srna,
-                  "use_deform",
-                  false,
-                  "Only Deform Bones",
-                  "Only export Deform bones and their parents");
-
   RNA_def_enum(ot->srna,
                "export_subdivision",
                rna_enum_usd_export_subdiv_mode_items,
@@ -797,13 +704,6 @@ void WM_OT_usd_export(wmOperatorType *ot)
                   false,
                   "Instancing",
                   "Export instanced objects as references in USD rather than real objects");
-
-  RNA_def_boolean(ot->srna,
-                  "fix_skel_root",
-                  true,
-                  "Fix Skel Root",
-                  "If exporting armatures, attempt to automatically "
-                  "correct invalid USD Skel Root hierarchies");
 
   RNA_def_enum(ot->srna,
                "evaluation_mode",
@@ -1194,8 +1094,6 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
   const bool import_proxy = RNA_boolean_get(op->ptr, "import_proxy");
   const bool import_render = RNA_boolean_get(op->ptr, "import_render");
 
-  const bool use_instancing = RNA_boolean_get(op->ptr, "use_instancing");
-
   const char *import_shaders_mode_prop_name = USD_umm_module_loaded() ?
                                                   "import_shaders_mode" :
                                                   "import_shaders_mode_no_umm";
@@ -1269,7 +1167,6 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
   params.import_proxy = import_proxy;
   params.import_render = import_render;
   params.import_visible_only = import_visible_only;
-  params.use_instancing = use_instancing;
   params.import_shaders_mode = import_shaders_mode;
   params.set_material_blend = set_material_blend;
   params.light_intensity_scale = light_intensity_scale;
@@ -1303,64 +1200,6 @@ static void wm_usd_import_draw(bContext * /*C*/, wmOperator *op)
 
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
-<<<<<<< HEAD
-=======
-
-  uiLayout *box = uiLayoutBox(layout);
-  uiLayout *col = uiLayoutColumnWithHeading(box, true, IFACE_("Data Types"));
-  uiItemR(col, ptr, "import_cameras", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "import_curves", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "import_lights", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "import_materials", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "import_meshes", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "import_volumes", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "import_shapes", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "import_skeletons", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "import_blendshapes", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(box, ptr, "prim_path_mask", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(box, ptr, "scale", UI_ITEM_NONE, nullptr, ICON_NONE);
-
-  box = uiLayoutBox(layout);
-  col = uiLayoutColumnWithHeading(box, true, IFACE_("Mesh Data"));
-  uiItemR(col, ptr, "read_mesh_uvs", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "read_mesh_colors", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "read_mesh_attributes", UI_ITEM_NONE, nullptr, ICON_NONE);
-  col = uiLayoutColumnWithHeading(box, true, IFACE_("Include"));
-  uiItemR(col, ptr, "import_subdiv", UI_ITEM_NONE, IFACE_("Subdivision"), ICON_NONE);
-  uiItemR(col, ptr, "support_scene_instancing", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "import_visible_only", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "import_guide", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "import_proxy", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "import_render", UI_ITEM_NONE, nullptr, ICON_NONE);
-
-  col = uiLayoutColumnWithHeading(box, true, IFACE_("Options"));
-  uiItemR(col, ptr, "set_frame_range", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "relative_path", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "create_collection", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(box, ptr, "light_intensity_scale", UI_ITEM_NONE, nullptr, ICON_NONE);
-
-  box = uiLayoutBox(layout);
-  col = uiLayoutColumnWithHeading(box, true, IFACE_("Materials"));
-  uiItemR(col, ptr, "import_all_materials", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "import_usd_preview", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiLayoutSetEnabled(col, RNA_boolean_get(ptr, "import_materials"));
-  uiLayout *row = uiLayoutRow(col, true);
-  uiItemR(row, ptr, "set_material_blend", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiLayoutSetEnabled(row, RNA_boolean_get(ptr, "import_usd_preview"));
-  uiItemR(col, ptr, "mtl_name_collision_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
-
-  box = uiLayoutBox(layout);
-  col = uiLayoutColumn(box, true);
-  uiItemR(col, ptr, "import_textures_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
-  bool copy_textures = RNA_enum_get(op->ptr, "import_textures_mode") == USD_TEX_IMPORT_COPY;
-  row = uiLayoutRow(col, true);
-  uiItemR(row, ptr, "import_textures_dir", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiLayoutSetEnabled(row, copy_textures);
-  row = uiLayoutRow(col, true);
-  uiItemR(row, ptr, "tex_name_collision_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiLayoutSetEnabled(row, copy_textures);
-  uiLayoutSetEnabled(col, RNA_boolean_get(ptr, "import_materials"));
->>>>>>> main
 }
 
 void WM_OT_usd_import(wmOperatorType *ot)
@@ -1483,13 +1322,6 @@ void WM_OT_usd_import(wmOperatorType *ot)
   RNA_def_boolean(ot->srna, "import_proxy", false, "Proxy", "Import proxy geometry");
 
   RNA_def_boolean(ot->srna, "import_render", true, "Render", "Import final render geometry");
-
-  RNA_def_boolean(ot->srna,
-                  "use_instancing",
-                  false,
-                  "Instancing",
-                  "Import USD scenegraph instances as Blender collection instances. "
-                  "Note that point instancers are not yet handled by this option");
 
   RNA_def_enum(ot->srna,
                "import_shaders_mode",
@@ -1856,7 +1688,7 @@ static void usd_export_panel_rigging_draw(const bContext *C, Panel *panel)
   col = uiLayoutColumnWithHeading(panel->layout, true, IFACE_("Shapes: "));
   uiLayoutSetPropSep(col, true);
   uiItemR(col, ptr, "export_shapekeys", UI_ITEM_NONE, "Export Shape Keys", ICON_NONE);
-  uiItemR(col, ptr, "use_deform", UI_ITEM_NONE, "Only Deform Bones", ICON_NONE);
+  uiItemR(col, ptr, "only_deform_bones", UI_ITEM_NONE, "Only Deform Bones", ICON_NONE);
 }
 
 void usd_panel_register(const char *idname,
@@ -2154,14 +1986,7 @@ static void usd_import_panel_particles_draw(const bContext *C, Panel *panel)
   uiLayout *col = uiLayoutColumn(panel->layout, false);
   uiLayoutSetPropSep(col, true);
 
-  uiItemR(col, ptr, "use_instancing", UI_ITEM_NONE, nullptr, ICON_NONE);
-
-  uiLayout *sub = uiLayoutColumn(panel->layout, false);
-  uiLayoutSetPropSep(sub, true);
-
-  uiItemR(sub, ptr, "import_instance_proxies", UI_ITEM_NONE, nullptr, ICON_NONE);
-  const bool is_enabled = !RNA_boolean_get(ptr, "use_instancing");
-  uiLayoutSetEnabled(sub, is_enabled);
+  uiItemR(col, ptr, "support_scene_instancing", UI_ITEM_NONE, nullptr, ICON_NONE);
 }
 
 void usd_import_panel_register_general()

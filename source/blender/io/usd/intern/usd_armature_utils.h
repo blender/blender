@@ -3,11 +3,9 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_function_ref.hh"
-<<<<<<< HEAD
-=======
+
 #include "BLI_map.hh"
 #include "BLI_string_ref.hh"
->>>>>>> main
 #include "BLI_vector.hh"
 
 #include "DNA_modifier_types.h"
@@ -39,21 +37,11 @@ void visit_bones(const Object *ob_arm, FunctionRef<void(const Bone *)> visitor);
  * Return in 'r_names' the names of the given armature object's bones.
  *
  * \param ob_arm: The armature object
-<<<<<<< HEAD
- * \param r_names: The returned list of bone names
- * \param use_deform: If true, use only deform bone names, including their parents, to match
- *                    Armature export joint indices.
- */
-void get_armature_bone_names(const Object *ob_arm,
-                             Vector<std::string> &r_names,
-                             const bool use_deform);
-=======
  * \param use_deform: If true, use only deform bone names, including their parents, to match
  *                    armature export joint indices
  * \param r_names: The returned list of bone names
  */
 void get_armature_bone_names(const Object *ob_arm, bool use_deform, Vector<std::string> &r_names);
->>>>>>> main
 
 /**
  * Return the USD joint path corresponding to the given bone. For example, for the bone
@@ -71,23 +59,6 @@ pxr::TfToken build_usd_joint_path(const Bone *bone);
  *
  * \param skel_anim: The animation whose joints attribute will be set
  * \param ob_arm: The armature object
-<<<<<<< HEAD
- */
-void create_pose_joints(pxr::UsdSkelAnimation &skel_anim,
-                        const Object *obj,
-                        std::unordered_map<const char *, const Bone *> *deform_map);
-
-/**
- * Return a list of all the modifiers on the given object enabled for the
- * given dependency graph's evaluation mode (viewport or render).
- *
- * \param obj: Object to query for the modifiers
- * \param depsgraph: The dependency graph where the object was evaluated
- * \return: The list of modifiers
- *
- */
-Vector<ModifierData *> get_enabled_modifiers(const Object *obj, const Depsgraph *depsgraph);
-=======
  * \param deform_map: A pointer to a map associating bone names with
  *                    deform bones and their parents. If the pointer
  *                    is not null, assume only deform bones are to be
@@ -97,22 +68,16 @@ Vector<ModifierData *> get_enabled_modifiers(const Object *obj, const Depsgraph 
 void create_pose_joints(pxr::UsdSkelAnimation &skel_anim,
                         const Object &obj,
                         const Map<StringRef, const Bone *> *deform_map);
->>>>>>> main
 
 /**
  * Return the modifier of the given type enabled for the given dependency graph's
  * evaluation mode (viewport or render).
-<<<<<<< HEAD
- */
-const ModifierData *get_enabled_modifier(const Object *obj,
-=======
  *
  * \param obj: Object to query for the modifier
  * \param depsgraph: The dependency graph where the object was evaluated
  * \return: The modifier
  */
 const ModifierData *get_enabled_modifier(const Object &obj,
->>>>>>> main
                                          ModifierType type,
                                          const Depsgraph *depsgraph);
 
@@ -124,11 +89,7 @@ const ModifierData *get_enabled_modifier(const Object &obj,
  * \param depsgraph: The dependency graph where the object was evaluated
  * \return: The armature object
  */
-<<<<<<< HEAD
-const Object *get_armature_modifier_obj(const Object *obj, const Depsgraph *depsgraph);
-=======
 const Object *get_armature_modifier_obj(const Object &obj, const Depsgraph *depsgraph);
->>>>>>> main
 
 /**
  * If the given object has an armature modifier, query whether the given
@@ -140,13 +101,8 @@ const Object *get_armature_modifier_obj(const Object &obj, const Depsgraph *deps
  * \return: True if the name matches a bone name.  Return false if no matching
  *          bone name is found or if the object does not have an armature modifier
  */
-<<<<<<< HEAD
-bool is_armature_modifier_bone_name(const Object *obj,
-                                    const char *name,
-=======
 bool is_armature_modifier_bone_name(const Object &obj,
                                     const StringRefNull name,
->>>>>>> main
                                     const Depsgraph *depsgraph);
 
 /**
@@ -158,11 +114,7 @@ bool is_armature_modifier_bone_name(const Object &obj,
  * \param depsgraph: The dependency graph where the object was evaluated
  * \return: True if skinned mesh export is supported, false otherwise
  */
-<<<<<<< HEAD
-bool can_export_skinned_mesh(const Object *obj, const Depsgraph *depsgraph);
-=======
 bool can_export_skinned_mesh(const Object &obj, const Depsgraph *depsgraph);
->>>>>>> main
 
 /**
  * Initialize the deform bones map:
@@ -171,15 +123,8 @@ bool can_export_skinned_mesh(const Object &obj, const Depsgraph *depsgraph);
  *           hierarchies, marking those bones as deform as well.
  * \param obj: Object to query
  * \param deform_map: A pointer to the deform_map to fill with deform bones and
-<<<<<<< HEAD
- *                    their parents found on the object.
- */
-void init_deform_bones_map(const Object *obj,
-                           std::unordered_map<const char *, const Bone *> *deform_map);
-=======
  *                    their parents found on the object
  */
 void init_deform_bones_map(const Object *obj, Map<StringRef, const Bone *> *deform_map);
->>>>>>> main
 
 }  // namespace blender::io::usd

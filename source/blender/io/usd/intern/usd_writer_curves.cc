@@ -14,12 +14,9 @@
 #include "usd_hierarchy_iterator.h"
 #include "usd_writer_curves.h"
 
-<<<<<<< HEAD
 #include "DNA_curve_types.h"
 
-=======
 #include "BKE_attribute.hh"
->>>>>>> main
 #include "BKE_curve_legacy_convert.hh"
 #include "BKE_curves.hh"
 #include "BKE_lib_id.h"
@@ -81,12 +78,7 @@ static void populate_curve_widths(const bke::CurvesGeometry &geometry,
 {
   const bke::AttributeAccessor curve_attributes = geometry.attributes();
   const bke::AttributeReader<float> radii = curve_attributes.lookup<float>("radius",
-<<<<<<< HEAD
-                                                                           ATTR_DOMAIN_POINT);
-=======
                                                                            bke::AttrDomain::Point);
-
->>>>>>> main
   widths.resize(radii.varray.size());
 
   for (const int i : radii.varray.index_range()) {

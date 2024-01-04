@@ -28,10 +28,7 @@
 
 #include "DNA_customdata_types.h"
 #include "DNA_material_types.h"
-<<<<<<< HEAD
 #include "DNA_mesh_types.h"
-=======
->>>>>>> main
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
@@ -220,21 +217,12 @@ static std::optional<eCustomDataType> convert_usd_type_to_blender(
 static const std::optional<bke::AttrDomain> convert_usd_varying_to_blender(
     const pxr::TfToken usd_domain, ReportList *reports)
 {
-<<<<<<< HEAD
-  static const blender::Map<pxr::TfToken, eAttrDomain> domain_map = []() {
-    blender::Map<pxr::TfToken, eAttrDomain> map;
-    map.add_new(pxr::UsdGeomTokens->faceVarying, ATTR_DOMAIN_CORNER);
-    map.add_new(pxr::UsdGeomTokens->vertex, ATTR_DOMAIN_POINT);
-    map.add_new(pxr::UsdGeomTokens->varying, ATTR_DOMAIN_CORNER);
-    map.add_new(pxr::UsdGeomTokens->face, ATTR_DOMAIN_FACE);
-=======
   static const blender::Map<pxr::TfToken, bke::AttrDomain> domain_map = []() {
     blender::Map<pxr::TfToken, bke::AttrDomain> map;
     map.add_new(pxr::UsdGeomTokens->faceVarying, bke::AttrDomain::Corner);
     map.add_new(pxr::UsdGeomTokens->vertex, bke::AttrDomain::Point);
-    map.add_new(pxr::UsdGeomTokens->varying, bke::AttrDomain::Point);
+    map.add_new(pxr::UsdGeomTokens->varying, bke::AttrDomain::Corner);
     map.add_new(pxr::UsdGeomTokens->face, bke::AttrDomain::Face);
->>>>>>> main
     /* As there's no "constant" type in Blender, for now we're
      * translating into a point Attribute. */
     map.add_new(pxr::UsdGeomTokens->constant, bke::AttrDomain::Point);

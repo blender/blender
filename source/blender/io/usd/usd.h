@@ -173,12 +173,8 @@ struct USDExportParams {
   bool scale_light_radius = true;
   bool convert_world_material = true;
   bool generate_cycles_shaders = false;
-  bool export_armatures = true;
   eUSDXformOpMode xform_op_mode = eUSDXformOpMode::USD_XFORM_OP_SRT;
-  bool fix_skel_root = true;
   bool overwrite_textures = false;
-  bool export_shapekeys = true;
-  bool use_deform = false;
   eUSDZTextureDownscaleSize usdz_downscale_size = eUSDZTextureDownscaleSize::USD_TEXTURE_SIZE_KEEP;
   int usdz_downscale_custom_size = 128;
   bool usdz_is_arkit = false;
@@ -223,7 +219,6 @@ struct USDImportParams {
   bool import_proxy;
   bool import_render;
   bool import_visible_only;
-  bool use_instancing;
   eUSDImportShadersMode import_shaders_mode;
   bool set_material_blend;
   float light_intensity_scale;

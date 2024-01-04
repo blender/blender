@@ -56,8 +56,6 @@
 #include "BLI_sort.hh"
 #include "BLI_string.h"
 
-<<<<<<< HEAD
-=======
 #include "BKE_collection.h"
 #include "BKE_lib_id.h"
 #include "BKE_modifier.hh"
@@ -66,7 +64,6 @@
 #include "CLG_log.h"
 
 #include "DNA_collection_types.h"
->>>>>>> main
 #include "DNA_material_types.h"
 
 #include "WM_api.hh"
@@ -144,16 +141,8 @@ bool USDStageReader::is_primitive_prim(const pxr::UsdPrim &prim) const
 USDPrimReader *USDStageReader::create_reader_if_allowed(const pxr::UsdPrim &prim,
                                                         pxr::UsdGeomXformCache *xf_cache)
 {
-<<<<<<< HEAD
-  if (params_.use_instancing && prim.IsInstance()) {
-    return new USDInstanceReader(prim, params_, settings_);
-=======
   if (params_.support_scene_instancing && prim.IsInstance()) {
     return new USDInstanceReader(prim, params_, settings_);
-  }
-  if (params_.import_shapes && is_primitive_prim(prim)) {
-    return new USDShapeReader(prim, params_, settings_);
->>>>>>> main
   }
   if (params_.import_cameras && prim.IsA<pxr::UsdGeomCamera>()) {
     return new USDCameraReader(prim, params_, settings_);
@@ -328,7 +317,7 @@ bool USDStageReader::merge_with_parent(USDPrimReader *reader) const
   }
 
   /* Don't merge if instancing is enabled and the parent is an instance. */
-  if (params_.use_instancing && xform_reader->prim().GetParent().IsInstance()) {
+  if (params_.support_scene_instancing && xform_reader->prim().GetParent().IsInstance()) {
     return false;
   }
 
@@ -353,10 +342,7 @@ bool USDStageReader::merge_with_parent(USDPrimReader *reader) const
 
 USDPrimReader *USDStageReader::collect_readers(Main *bmain,
                                                const pxr::UsdPrim &prim,
-<<<<<<< HEAD
                                                pxr::UsdGeomXformCache *xf_cache,
-=======
->>>>>>> main
                                                std::vector<USDPrimReader *> &r_readers)
 {
   if (prim.IsA<pxr::UsdGeomImageable>()) {
@@ -375,19 +361,16 @@ USDPrimReader *USDStageReader::collect_readers(Main *bmain,
     dome_lights_.push_back(pxr::UsdLuxDomeLight(prim));
   }
 
-<<<<<<< HEAD
-  pxr::Usd_PrimFlagsConjunction filter_predicate = pxr::UsdPrimIsActive && pxr::UsdPrimIsLoaded &&
-                                                   !pxr::UsdPrimIsAbstract;
+  pxr::Usd_PrimFlagsConjunction filter_flags = pxr::UsdPrimIsActive && pxr::UsdPrimIsLoaded &&
+                                               !pxr::UsdPrimIsAbstract;
+
   if (params_.import_defined_only) {
-    filter_predicate &= pxr::UsdPrimIsDefined;
+    filter_flags &= pxr::UsdPrimIsDefined;
   }
 
-  if (!params_.use_instancing && params_.import_instance_proxies) {
-    filter_predicate.TraverseInstanceProxies(true);
-=======
+  pxr::Usd_PrimFlagsPredicate filter_predicate(filter_flags);
   if (!params_.support_scene_instancing) {
     filter_predicate = pxr::UsdTraverseInstanceProxies(filter_predicate);
->>>>>>> main
   }
 
   pxr::UsdPrimSiblingRange children = prim.GetFilteredChildren(filter_predicate);
@@ -395,11 +378,7 @@ USDPrimReader *USDStageReader::collect_readers(Main *bmain,
   std::vector<USDPrimReader *> child_readers;
 
   for (const auto &childPrim : children) {
-<<<<<<< HEAD
     if (USDPrimReader *child_reader = collect_readers(bmain, childPrim, xf_cache, r_readers)) {
-=======
-    if (USDPrimReader *child_reader = collect_readers(bmain, childPrim, r_readers)) {
->>>>>>> main
       child_readers.push_back(child_reader);
     }
   }
@@ -407,7 +386,7 @@ USDPrimReader *USDStageReader::collect_readers(Main *bmain,
   /* We prune the current prim if it's a Scope
    * and we didn't convert any of its children. */
   if (child_readers.empty() && prim.IsA<pxr::UsdGeomScope>() &&
-      !(params_.use_instancing && prim.IsInstance()))
+      !(params_.support_scene_instancing && prim.IsInstance()))
   {
     return nullptr;
   }
@@ -467,44 +446,28 @@ void USDStageReader::collect_readers(Main *bmain)
 
   clear_readers();
   clear_proto_readers();
-<<<<<<< HEAD
   dome_lights_.clear();
-=======
->>>>>>> main
 
   /* Iterate through the stage. */
   pxr::UsdPrim root = stage_->GetPseudoRoot();
 
   stage_->SetInterpolationType(pxr::UsdInterpolationType::UsdInterpolationTypeHeld);
-<<<<<<< HEAD
 
   pxr::UsdGeomXformCache xf_cache;
   collect_readers(bmain, root, &xf_cache, readers_);
 
-  if (params_.use_instancing) {
-    // Collect the scenegraph instance prototypes.
-=======
-  collect_readers(bmain, root, readers_);
-
   if (params_.support_scene_instancing) {
     /* Collect the scenegraph instance prototypes. */
->>>>>>> main
     std::vector<pxr::UsdPrim> protos = stage_->GetPrototypes();
 
     for (const pxr::UsdPrim &proto_prim : protos) {
       std::vector<USDPrimReader *> proto_readers;
-<<<<<<< HEAD
       collect_readers(bmain, proto_prim, &xf_cache, proto_readers);
       proto_readers_.insert(std::make_pair(proto_prim.GetPath(), proto_readers));
-=======
-      collect_readers(bmain, proto_prim, proto_readers);
-      proto_readers_.insert(std::make_pair(proto_prim.GetPath(), proto_readers));
-
       for (USDPrimReader *reader : proto_readers) {
         readers_.push_back(reader);
         reader->incref();
       }
->>>>>>> main
     }
   }
 }
@@ -649,11 +612,6 @@ void USDStageReader::clear_proto_readers()
         delete reader;
       }
     }
-<<<<<<< HEAD
-
-    pair.second.clear();
-=======
->>>>>>> main
   }
 
   proto_readers_.clear();

@@ -7,10 +7,7 @@
 #include "usd.h"
 #include "usd_armature_utils.h"
 #include "usd_blend_shape_utils.h"
-<<<<<<< HEAD
-=======
 #include "usd_hash_types.h"
->>>>>>> main
 
 #include <pxr/usd/sdf/namespaceEdit.h>
 #include <pxr/usd/usdGeom/primvarsAPI.h>
@@ -57,16 +54,8 @@
 #include <string>
 #include <vector>
 
-<<<<<<< HEAD
-namespace usdtokens {
-static const pxr::TfToken Anim("Anim", pxr::TfToken::Immortal);
-static const pxr::TfToken joint1("joint1", pxr::TfToken::Immortal);
-static const pxr::TfToken Skel("Skel", pxr::TfToken::Immortal);
-}  // namespace usdtokens
-=======
 #include "CLG_log.h"
 static CLG_LogRef LOG = {"io.usd"};
->>>>>>> main
 
 namespace {
 
@@ -362,16 +351,9 @@ void add_skinned_mesh_bindings(const pxr::UsdSkelSkeleton &skel,
   pxr::UsdSkelBindingAPI skel_api = pxr::UsdSkelBindingAPI::Apply(mesh_prim);
 
   if (!skel_api) {
-<<<<<<< HEAD
-    WM_reportf(RPT_WARNING,
-               "%s: couldn't apply UsdSkelBindingAPI to skinned mesh prim %s\n",
-               __func__,
-               mesh_prim.GetPath().GetAsString().c_str());
-=======
     CLOG_WARN(&LOG,
               "Couldn't apply UsdSkelBindingAPI to skinned mesh prim %s",
               mesh_prim.GetPath().GetAsString().c_str());
->>>>>>> main
     return;
   }
 
@@ -388,16 +370,9 @@ void add_skinned_mesh_bindings(const pxr::UsdSkelSkeleton &skel,
     geom_bind_attr.Set(bind_xf);
   }
   else {
-<<<<<<< HEAD
-    WM_reportf(RPT_WARNING,
-               "%s: couldn't create geom bind transform attribute for skinned mesh %s\n",
-               __func__,
-               mesh_prim.GetPath().GetAsString().c_str());
-=======
     CLOG_WARN(&LOG,
               "Couldn't create geom bind transform attribute for skinned mesh %s",
               mesh_prim.GetPath().GetAsString().c_str());
->>>>>>> main
   }
 }
 
@@ -1101,28 +1076,9 @@ void import_mesh_skel_bindings(Main *bmain,
   /* Create a deform group per joint. */
   std::vector<bDeformGroup *> joint_def_grps(joints.size(), nullptr);
 
-  /* We must be careful about name collisions with existing attributes when creating
-   * deform groups, because in the call to BKE_object_defgroup_add_name() below
-   * the deform group is given a unique name if there is already an attribute with
-   * the same name. To ensure that deform groups preserve the required bone names, we
-   * will remove attributes with colliding names before adding the groups. */
-  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
-
   for (int idx : used_indices) {
     std::string joint_name = pxr::SdfPath(joints[idx]).GetName();
-    if (!BKE_object_defgroup_find_name(mesh_obj, joint_name.c_str())) {
-      /* If there is an attribute with the same name, remove it. */
-      bke::AttributeIDRef attr_id(joint_name);
-      if (attributes.contains(attr_id)) {
-        WM_reportf(
-            RPT_WARNING,
-            "%s: Removing attribute '%s' from mesh '%s', as it conflicts with a deform group "
-            "for a bone with the same name",
-            __func__,
-            joint_name.c_str(),
-            mesh->id.name + 2);
-        attributes.remove(attr_id);
-      }
+    if (!BKE_object_defgroup_find_name(mesh_obj, joint_name.c_str())) {   
       bDeformGroup *def_grp = BKE_object_defgroup_add_name(mesh_obj, joint_name.c_str());
       joint_def_grps[idx] = def_grp;
     }
@@ -1180,61 +1136,30 @@ void skinned_mesh_export_chaser(pxr::UsdStageRefPtr stage,
     /* Get the mesh prim from the stage. */
     pxr::UsdPrim mesh_prim = stage->GetPrimAtPath(mesh_path);
     if (!mesh_prim) {
-<<<<<<< HEAD
-      WM_reportf(RPT_WARNING,
-                 "%s: Invalid export map prim path %s for mesh object %s",
-                 __func__,
-                 mesh_path.GetAsString().c_str(),
-                 mesh_obj->id.name + 2);
-=======
       CLOG_WARN(&LOG,
                 "Invalid export map prim path %s for mesh object %s",
                 mesh_path.GetAsString().c_str(),
                 mesh_obj->id.name + 2);
->>>>>>> main
       continue;
     }
 
     /* Get the armature bound to the mesh's armature modifier. */
-<<<<<<< HEAD
-    const Object *arm_obj = get_armature_modifier_obj(mesh_obj, depsgraph);
-    if (!arm_obj) {
-      WM_reportf(RPT_WARNING,
-                 "%s: Invalid armature modifier for skinned mesh %s",
-                 __func__,
-                 mesh_obj->id.name + 2);
-=======
     const Object *arm_obj = get_armature_modifier_obj(*mesh_obj, depsgraph);
     if (!arm_obj) {
       CLOG_WARN(&LOG, "Invalid armature modifier for skinned mesh %s", mesh_obj->id.name + 2);
->>>>>>> main
       continue;
     }
     /* Look up the USD skeleton correpsoning to the armature object. */
     const pxr::SdfPath *path = armature_export_map.lookup_ptr(arm_obj);
     if (!path) {
-<<<<<<< HEAD
-      WM_reportf(RPT_WARNING,
-                 "%s: No export map entry for armature object %s",
-                 __func__,
-                 mesh_obj->id.name + 2);
-=======
       CLOG_WARN(&LOG, "No export map entry for armature object %s", mesh_obj->id.name + 2);
->>>>>>> main
       continue;
     }
     /* Get the skeleton prim. */
     pxr::UsdPrim skel_prim = stage->GetPrimAtPath(*path);
     pxr::UsdSkelSkeleton skel(skel_prim);
     if (!skel) {
-<<<<<<< HEAD
-      WM_reportf(RPT_WARNING,
-                 "%s: Invalid USD skeleton for armature object %s",
-                 __func__,
-                 arm_obj->id.name + 2);
-=======
       CLOG_WARN(&LOG, "Invalid USD skeleton for armature object %s", arm_obj->id.name + 2);
->>>>>>> main
       continue;
     }
 
@@ -1245,19 +1170,11 @@ void skinned_mesh_export_chaser(pxr::UsdStageRefPtr stage,
 void shape_key_export_chaser(pxr::UsdStageRefPtr stage,
                              const ObjExportMap &shape_key_mesh_export_map)
 {
-<<<<<<< HEAD
-  std::map<pxr::SdfPath, pxr::SdfPathSet> skel_to_mesh;
-
-  /* We will keep track of the mesh prims to clean up the temporary
-   * weights attribute at the end. */
-  std::vector<pxr::UsdPrim> mesh_prims;
-=======
   Map<pxr::SdfPath, pxr::SdfPathSet> skel_to_mesh;
 
   /* We will keep track of the mesh prims to clean up the temporary
    * weights attribute at the end. */
   Vector<pxr::UsdPrim> mesh_prims;
->>>>>>> main
 
   /* Finish creating blend shape bindings. */
   for (const auto &item : shape_key_mesh_export_map.items()) {
@@ -1267,55 +1184,28 @@ void shape_key_export_chaser(pxr::UsdStageRefPtr stage,
     /* Get the mesh prim from the stage. */
     pxr::UsdPrim mesh_prim = stage->GetPrimAtPath(mesh_path);
     if (!mesh_prim) {
-<<<<<<< HEAD
-      WM_reportf(RPT_WARNING,
-                 "%s: Invalid export map prim path %s for mesh object %s",
-                 __func__,
-                 mesh_path.GetAsString().c_str(),
-                 mesh_obj->id.name + 2);
-=======
       CLOG_WARN(&LOG,
                 "Invalid export map prim path %s for mesh object %s",
                 mesh_path.GetAsString().c_str(),
                 mesh_obj->id.name + 2);
->>>>>>> main
       continue;
     }
 
     /* Keep track of all the mesh prims with blend shapes, for cleanup below. */
-<<<<<<< HEAD
-    mesh_prims.push_back(mesh_prim);
-=======
     mesh_prims.append(mesh_prim);
->>>>>>> main
 
     pxr::UsdSkelBindingAPI skel_api = pxr::UsdSkelBindingAPI::Apply(mesh_prim);
 
     if (!skel_api) {
-<<<<<<< HEAD
-      WM_reportf(RPT_WARNING,
-                 "%s: Couldn't apply UsdSkelBindingAPI to prim %s",
-                 __func__,
-                 mesh_prim.GetPath().GetAsString().c_str());
-=======
       CLOG_WARN(&LOG,
                 "Couldn't apply UsdSkelBindingAPI to prim %s",
                 mesh_prim.GetPath().GetAsString().c_str());
->>>>>>> main
       return;
     }
 
     pxr::UsdSkelSkeleton skel;
     if (skel_api.GetSkeleton(&skel)) {
       /* We have a bound skeleton, so we add it to the map. */
-<<<<<<< HEAD
-      auto it = skel_to_mesh.find(skel.GetPath());
-      if (it == skel_to_mesh.end()) {
-        it = skel_to_mesh.insert(std::make_pair(skel.GetPath(), pxr::SdfPathSet())).first;
-      }
-      if (it != skel_to_mesh.end()) {
-        it->second.insert(mesh_prim.GetPath());
-=======
       pxr::SdfPathSet *mesh_paths = skel_to_mesh.lookup_ptr(skel.GetPath());
       if (!mesh_paths) {
         skel_to_mesh.add_new(skel.GetPath(), pxr::SdfPathSet());
@@ -1323,7 +1213,6 @@ void shape_key_export_chaser(pxr::UsdStageRefPtr stage,
       }
       if (mesh_paths) {
         mesh_paths->insert(mesh_prim.GetPath());
->>>>>>> main
       }
       continue;
     }
@@ -1331,22 +1220,12 @@ void shape_key_export_chaser(pxr::UsdStageRefPtr stage,
     /* The mesh is not bound to a skeleton, so we must create one for it. */
     ensure_blend_shape_skeleton(stage, mesh_prim);
   }
-
-<<<<<<< HEAD
-  if (skel_to_mesh.empty()) {
-    return;
-  }
-
-  for (const auto &kv : skel_to_mesh) {
-    remap_blend_shape_anim(stage, kv.first, kv.second);
-=======
   if (skel_to_mesh.is_empty()) {
     return;
   }
 
   for (const auto &item : skel_to_mesh.items()) {
     remap_blend_shape_anim(stage, item.key, item.value);
->>>>>>> main
   }
 
   /* Finally, delete the temp blendshape weights attributes. */
@@ -1399,11 +1278,7 @@ void export_deform_verts(const Mesh *mesh,
   /* elem_size will specify the number of
    * joints that can influence a given point. */
   const int element_size = max_totweight;
-<<<<<<< HEAD
-  int num_points = mesh->totvert;
-=======
   int num_points = mesh->verts_num;
->>>>>>> main
 
   pxr::VtArray<int> joint_indices(num_points * element_size, 0);
   pxr::VtArray<float> joint_weights(num_points * element_size, 0.0f);

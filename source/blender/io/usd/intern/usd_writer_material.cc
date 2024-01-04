@@ -11,8 +11,8 @@
 #include "usd_umm.h"
 
 #include "BKE_appdir.h"
-#include "BKE_colorband.h"
-#include "BKE_colortools.h"
+#include "BKE_colorband.hh"
+#include "BKE_colortools.hh"
 #include "BKE_curve.hh"
 #include "BKE_global.h"
 #include "BKE_image.h"

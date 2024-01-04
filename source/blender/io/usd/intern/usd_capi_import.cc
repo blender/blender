@@ -523,47 +523,6 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
    * open stage for the lifetime of the scene. */
   CacheFile *cache_file = nullptr;
 
-  /* Handle instance prototypes.
-   * TODO(makowalski): Move this logic inside USDReaderStage? */
-
-  /* Create prototype objects.
-   * TODO(makowalski): Sort prototype objects by name, as below? */
-  for (const auto &pair : archive->proto_readers()) {
-    for (USDPrimReader *reader : pair.second) {
-      if (reader) {
-        reader->create_object(data->bmain, 0.0);
-      }
-    }
-  }
-
-  for (const auto &pair : archive->proto_readers()) {
-
-    for (USDPrimReader *reader : pair.second) {
-
-      if (!reader) {
-        continue;
-      }
-
-      /* TODO(makowalski): Here and below, should we call
-       * read_object_data() with the actual time? */
-      reader->read_object_data(data->bmain, 0.0);
-
-      apply_cache_file(reader, data, &cache_file);
-
-      Object *ob = reader->object();
-
-      if (!ob) {
-        continue;
-      }
-
-      const USDPrimReader *parent_reader = reader->parent();
-
-      ob->parent = parent_reader ? parent_reader->object() : nullptr;
-
-      /* TODO(makowalski): Handle progress update. */
-    }
-  }
-
   /* Sort readers by name: when creating a lot of objects in Blender,
    * it is much faster if the order is sorted by name. */
   archive->sort_readers();
@@ -662,16 +621,6 @@ static void import_endjob(void *customdata)
       }
     }
 
-    for (const auto &pair : data->archive->proto_readers()) {
-      for (USDPrimReader *reader : pair.second) {
-
-        /* It's possible that cancellation occurred between the creation of
-         * the reader and the creation of the Blender object. */
-        if (Object *ob = reader->object()) {
-          BKE_id_free_us(data->bmain, ob);
-        }
-      }
-    }
   }
   else if (data->archive) {
     Base *base;
@@ -683,18 +632,8 @@ static void import_endjob(void *customdata)
 
     lc = BKE_layer_collection_get_active(view_layer);
 
-<<<<<<< HEAD
-    if (!data->archive->proto_readers().empty()) {
-      create_proto_collections(data->bmain,
-                               view_layer,
-                               lc->collection,
-                               data->archive->proto_readers(),
-                               data->archive->readers());
-    }
-=======
     /* Create prototype collections for instancing. */
     data->archive->create_proto_collections(data->bmain, lc->collection);
->>>>>>> main
 
     /* Add all objects to the collection. */
     for (USDPrimReader *reader : data->archive->readers()) {

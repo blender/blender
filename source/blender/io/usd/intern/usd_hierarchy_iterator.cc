@@ -95,7 +95,7 @@ USDExporterContext USDHierarchyIterator::create_usd_export_context(const Hierarc
   }
 
   bool can_merge_with_xform = true;
-  if (this->params_.export_armatures && (can_export_skinned_mesh(context->object, depsgraph_) ||
+  if (this->params_.export_armatures && (can_export_skinned_mesh(*context->object, depsgraph_) ||
                                          context->object->type == OB_ARMATURE))
   {
     can_merge_with_xform = false;
@@ -206,11 +206,8 @@ AbstractHierarchyWriter *USDHierarchyIterator::create_data_writer(const Hierarch
     add_usd_skel_export_mapping(context->object, data_writer->usd_path());
   }
 
-<<<<<<< HEAD
   data_writer->set_iterator(this);
 
-=======
->>>>>>> main
   return data_writer;
 }
 
@@ -262,22 +259,6 @@ bool USDHierarchyIterator::include_child_writers(const HierarchyContext *context
   }
 
   return !(params_.use_instancing && context->is_instance());
-}
-
-void USDHierarchyIterator::add_usd_skel_export_mapping(const Object *obj, const pxr::SdfPath &path)
-{
-  if (params_.export_shapekeys && is_mesh_with_shape_keys(obj)) {
-    shape_key_mesh_export_map_.add(obj, path);
-  }
-
-  if (params_.export_armatures && obj->type == OB_ARMATURE) {
-    armature_export_map_.add(obj, path);
-  }
-
-  if (params_.export_armatures && obj->type == OB_MESH && can_export_skinned_mesh(obj, depsgraph_))
-  {
-    skinned_mesh_export_map_.add(obj, path);
-  }
 }
 
 void USDHierarchyIterator::add_usd_skel_export_mapping(const Object *obj, const pxr::SdfPath &path)
