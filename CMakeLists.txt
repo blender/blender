@@ -1025,7 +1025,7 @@ if("${CMAKE_GENERATOR}" MATCHES "Ninja")
   option(WITH_NINJA_POOL_JOBS "\
 Enable Ninja pools of jobs, to try to ease building on machines with 16GB of RAM or less \
 (if not yet defined, will try to set best values based on detected machine specifications)."
-    OFF
+    ON
   )
   mark_as_advanced(WITH_NINJA_POOL_JOBS)
 endif()
