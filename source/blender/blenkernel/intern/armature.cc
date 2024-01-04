@@ -3133,7 +3133,11 @@ bPoseChannel *BKE_armature_splineik_solver_find_root(bPoseChannel *pchan,
   return rootchan;
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
+/** \name implementations of DNA struct C++ methods.
+ * \{ */
 
 blender::Span<const BoneCollection *> bArmature::collections_span() const
 {
