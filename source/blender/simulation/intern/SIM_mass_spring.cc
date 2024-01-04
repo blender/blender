@@ -17,6 +17,7 @@
 #include "BLI_linklist.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector.hh"
 #include "BLI_utildefines.h"
 
 #include "BKE_cloth.hh"
@@ -547,7 +548,9 @@ BLI_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s)
   }
 }
 
-static void hair_get_boundbox(ClothModifierData *clmd, float gmin[3], float gmax[3])
+static void hair_get_boundbox(ClothModifierData *clmd,
+                              blender::float3 &gmin,
+                              blender::float3 &gmax)
 {
   Cloth *cloth = clmd->clothObject;
   Implicit_Data *data = cloth->implicit;
@@ -556,9 +559,9 @@ static void hair_get_boundbox(ClothModifierData *clmd, float gmin[3], float gmax
 
   INIT_MINMAX(gmin, gmax);
   for (i = 0; i < mvert_num; i++) {
-    float x[3];
+    blender::float3 x;
     SIM_mass_spring_get_motion_state(data, i, x, nullptr);
-    DO_MINMAX(x, gmin, gmax);
+    blender::math::min_max(x, gmin, gmax);
   }
 }
 
@@ -957,7 +960,7 @@ static void cloth_continuum_step(ClothModifierData *clmd, float dt)
    */
   float density_target = parms->density_target;
   float density_strength = parms->density_strength;
-  float gmin[3], gmax[3];
+  blender::float3 gmin, gmax;
   int i;
 
   /* clear grid info */

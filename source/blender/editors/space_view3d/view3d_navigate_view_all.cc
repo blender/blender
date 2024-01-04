@@ -321,7 +321,7 @@ static int viewselected_exec(bContext *C, wmOperator *op)
   const bool is_gp_edit = gpd_eval ? GPENCIL_ANY_MODE(gpd_eval) : false;
   const bool is_face_map = ((is_gp_edit == false) && region->gizmo_map &&
                             WM_gizmomap_is_any_selected(region->gizmo_map));
-  float min[3], max[3];
+  float3 min, max;
   bool ok = false, ok_dist = true;
   const bool use_all_regions = RNA_boolean_get(op->ptr, "use_all_regions");
   const bool skip_camera = (ED_view3d_camera_lock_check(v3d, rv3d) ||

@@ -24,6 +24,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector.hh"
 #include "BLI_memarena.h"
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
@@ -1085,7 +1086,7 @@ static void closest_latice(int r[3], const float pos[3], const float size)
 static void find_first_points(PROCESS *process, const uint em)
 {
   const MetaElem *ml;
-  int center[3], lbn[3], rtf[3], it[3], dir[3], add[3];
+  blender::int3 center, lbn, rtf, it, dir, add;
   float tmp[3], a, b;
 
   ml = process->mainb[em];
@@ -1116,7 +1117,7 @@ static void find_first_points(PROCESS *process, const uint em)
             add[0] = it[0] - dir[0];
             add[1] = it[1] - dir[1];
             add[2] = it[2] - dir[2];
-            DO_MIN(it, add);
+            add = blender::math::min(add, it);
             add_cube(process, add[0], add[1], add[2]);
             break;
           }
@@ -1255,7 +1256,7 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
           if (!(ml->flag & MB_HIDE)) {
             float pos[4][4], rot[4][4];
             float expx, expy, expz;
-            float tempmin[3], tempmax[3];
+            blender::float3 tempmin, tempmax;
 
             MetaElem *new_ml;
 
@@ -1352,7 +1353,7 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
             /* Find max and min of transformed bounding-box. */
             INIT_MINMAX(tempmin, tempmax);
             for (i = 0; i < 8; i++) {
-              DO_MINMAX(new_ml->bb->vec[i], tempmin, tempmax);
+              blender::math::min_max(blender::float3(new_ml->bb->vec[i]), tempmin, tempmax);
             }
 
             /* Set only point 0 and 6 - AABB of meta-elem. */
