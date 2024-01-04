@@ -5834,7 +5834,7 @@ class VIEW3D_MT_edit_greasepencil_stroke(Menu):
         layout.operator_menu_enum("grease_pencil.caps_set", text="Set Caps", property="type")
 
         layout.separator()
-        
+
         layout.operator("grease_pencil.set_uniform_thickness")
         layout.operator("grease_pencil.set_uniform_opacity")
 
