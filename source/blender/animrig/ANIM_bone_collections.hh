@@ -214,8 +214,33 @@ void ANIM_armature_bonecoll_name_set(struct bArmature *armature,
                                      struct BoneCollection *bcoll,
                                      const char *name);
 
-void ANIM_bonecoll_show(struct BoneCollection *bcoll);
-void ANIM_bonecoll_hide(struct BoneCollection *bcoll);
+/**
+ * Show this bone collection.
+ *
+ * This marks the bone collection as 'visible'. Whether it is effectively
+ * visible also depends on the visibility state of its ancestors. */
+void ANIM_bonecoll_show(bArmature *armature, BoneCollection *bcoll);
+
+/**
+ * Hide this bone collection.
+ *
+ * This marks the bone collection as 'hidden'. This also effectively hides its descendants,
+ * regardless of their visibility state. */
+void ANIM_bonecoll_hide(bArmature *armature, BoneCollection *bcoll);
+
+/**
+ * Show or hide this bone collection.
+ *
+ * Calling this with a hard-coded `is_visible` parameter is equivalent to
+ * calling the dedicated show/hide functions. Prefer the dedicated functions for
+ * clarity.
+ *
+ * \see ANIM_bonecoll_show
+ * \see ANIM_bonecoll_hide
+ */
+void ANIM_armature_bonecoll_is_visible_set(bArmature *armature,
+                                           BoneCollection *bcoll,
+                                           bool is_visible);
 
 /**
  * Assign the bone to the bone collection.

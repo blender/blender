@@ -22,7 +22,9 @@ TEST(ANIM_bone_collections, bonecoll_new_free)
   EXPECT_NE(nullptr, bcoll);
   EXPECT_EQ("some name", std::string(bcoll->name));
   EXPECT_TRUE(BLI_listbase_is_empty(&bcoll->bones));
-  EXPECT_EQ(BONE_COLLECTION_VISIBLE | BONE_COLLECTION_SELECTABLE, bcoll->flags);
+  EXPECT_EQ(BONE_COLLECTION_VISIBLE | BONE_COLLECTION_SELECTABLE |
+                BONE_COLLECTION_ANCESTORS_VISIBLE,
+            bcoll->flags);
   ANIM_bonecoll_free(bcoll);
 }
 
@@ -451,6 +453,71 @@ TEST_F(ANIM_armature_bone_collections, find_parent_index)
   EXPECT_EQ(0, armature_bonecoll_find_parent_index(&arm, 3));
   EXPECT_EQ(1, armature_bonecoll_find_parent_index(&arm, 4));
   EXPECT_EQ(2, armature_bonecoll_find_parent_index(&arm, 5));
+}
+
+TEST_F(ANIM_armature_bone_collections, collection_hierarchy_visibility)
+{
+  /* Set up a small hierarchy. */
+  BoneCollection *bcoll_root0 = ANIM_armature_bonecoll_new(&arm, "root0");
+  BoneCollection *bcoll_root1 = ANIM_armature_bonecoll_new(&arm, "root1");
+  const int root0_index = armature_bonecoll_find_index(&arm, bcoll_root0);
+  BoneCollection *bcoll_r0_child0 = ANIM_armature_bonecoll_new(&arm, "r0_child0", root0_index);
+  BoneCollection *bcoll_r0_child1 = ANIM_armature_bonecoll_new(&arm, "r0_child1", root0_index);
+  const int child0_index = armature_bonecoll_find_index(&arm, bcoll_r0_child0);
+  BoneCollection *bcoll_c0_child0 = ANIM_armature_bonecoll_new(&arm, "c0_child0", child0_index);
+
+  /* Initially, all bone collections should be marked as visible. */
+  EXPECT_TRUE(bcoll_root0->flags & BONE_COLLECTION_VISIBLE);
+  EXPECT_TRUE(bcoll_root1->flags & BONE_COLLECTION_VISIBLE);
+  EXPECT_TRUE(bcoll_r0_child0->flags & BONE_COLLECTION_VISIBLE);
+  EXPECT_TRUE(bcoll_r0_child1->flags & BONE_COLLECTION_VISIBLE);
+  EXPECT_TRUE(bcoll_c0_child0->flags & BONE_COLLECTION_VISIBLE);
+
+  /* Initially, all bone collections should have visible ancestors. */
+  EXPECT_TRUE(bcoll_root0->flags & BONE_COLLECTION_ANCESTORS_VISIBLE);
+  EXPECT_TRUE(bcoll_root1->flags & BONE_COLLECTION_ANCESTORS_VISIBLE);
+  EXPECT_TRUE(bcoll_r0_child0->flags & BONE_COLLECTION_ANCESTORS_VISIBLE);
+  EXPECT_TRUE(bcoll_r0_child1->flags & BONE_COLLECTION_ANCESTORS_VISIBLE);
+  EXPECT_TRUE(bcoll_c0_child0->flags & BONE_COLLECTION_ANCESTORS_VISIBLE);
+
+  /* Mark root_0 as invisible, this should also update its children. */
+  ANIM_bonecoll_hide(&arm, bcoll_root0);
+
+  EXPECT_FALSE(bcoll_root0->flags & BONE_COLLECTION_VISIBLE);
+  EXPECT_TRUE(bcoll_root1->flags & BONE_COLLECTION_VISIBLE);
+  EXPECT_TRUE(bcoll_r0_child0->flags & BONE_COLLECTION_VISIBLE);
+  EXPECT_TRUE(bcoll_r0_child1->flags & BONE_COLLECTION_VISIBLE);
+  EXPECT_TRUE(bcoll_c0_child0->flags & BONE_COLLECTION_VISIBLE);
+
+  EXPECT_TRUE(bcoll_root0->flags & BONE_COLLECTION_ANCESTORS_VISIBLE);
+  EXPECT_TRUE(bcoll_root1->flags & BONE_COLLECTION_ANCESTORS_VISIBLE);
+  EXPECT_FALSE(bcoll_r0_child0->flags & BONE_COLLECTION_ANCESTORS_VISIBLE);
+  EXPECT_FALSE(bcoll_r0_child1->flags & BONE_COLLECTION_ANCESTORS_VISIBLE);
+  EXPECT_FALSE(bcoll_c0_child0->flags & BONE_COLLECTION_ANCESTORS_VISIBLE);
+
+  /* Move r0_child0 to root1, that should change its BONE_COLLECTION_ANCESTORS_VISIBLE */
+  const int root1_index = armature_bonecoll_find_index(&arm, bcoll_root1);
+  armature_bonecoll_move_to_parent(&arm, child0_index, 0, root0_index, root1_index);
+
+  EXPECT_FALSE(bcoll_root0->flags & BONE_COLLECTION_VISIBLE);
+  EXPECT_TRUE(bcoll_root1->flags & BONE_COLLECTION_VISIBLE);
+  EXPECT_TRUE(bcoll_r0_child0->flags & BONE_COLLECTION_VISIBLE);
+  EXPECT_TRUE(bcoll_r0_child1->flags & BONE_COLLECTION_VISIBLE);
+  EXPECT_TRUE(bcoll_c0_child0->flags & BONE_COLLECTION_VISIBLE);
+
+  EXPECT_TRUE(bcoll_root0->flags & BONE_COLLECTION_ANCESTORS_VISIBLE);
+  EXPECT_TRUE(bcoll_root1->flags & BONE_COLLECTION_ANCESTORS_VISIBLE);
+  EXPECT_TRUE(bcoll_r0_child0->flags & BONE_COLLECTION_ANCESTORS_VISIBLE)
+      << "The child that was moved to a visible root should be affected";
+  EXPECT_FALSE(bcoll_r0_child1->flags & BONE_COLLECTION_ANCESTORS_VISIBLE)
+      << "The child that wasn't moved should not be affected.";
+  EXPECT_TRUE(bcoll_c0_child0->flags & BONE_COLLECTION_ANCESTORS_VISIBLE)
+      << "The grandchild that was indirectly moved to a visible root should be affected";
+
+  /* Add a new child to root0, it should have the right flags. */
+  BoneCollection *bcoll_r0_child2 = ANIM_armature_bonecoll_new(&arm, "r0_child2", root0_index);
+  EXPECT_TRUE(bcoll_r0_child2->flags & BONE_COLLECTION_VISIBLE);
+  EXPECT_FALSE(bcoll_r0_child2->flags & BONE_COLLECTION_ANCESTORS_VISIBLE);
 }
 
 TEST_F(ANIM_armature_bone_collections, bones_assign_unassign)

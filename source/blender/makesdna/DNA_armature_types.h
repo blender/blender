@@ -226,6 +226,14 @@ typedef struct bArmature {
   /* Collection array access for convenient for-loop iteration. */
   blender::Span<const BoneCollection *> collections_span() const;
   blender::Span<BoneCollection *> collections_span();
+
+  /* Span of all root collections. */
+  blender::Span<const BoneCollection *> collections_roots() const;
+  blender::Span<BoneCollection *> collections_roots();
+
+  /* Return the span of children of the given bone collection. */
+  blender::Span<const BoneCollection *> collection_children(const BoneCollection *parent) const;
+  blender::Span<BoneCollection *> collection_children(BoneCollection *parent);
 #endif
 } bArmature;
 
@@ -264,6 +272,35 @@ typedef struct BoneCollection {
 
   /** Custom properties. */
   struct IDProperty *prop;
+
+#ifdef __cplusplus
+  /**
+   * Return whether this collection is marked as 'visible'.
+   *
+   * Note that its effective visibility depends on the visibility of its ancestors as well.
+   *
+   * \see is_visible_effectively
+   * \see ANIM_bonecoll_show
+   * \see ANIM_bonecoll_hide
+   */
+  bool is_visible() const;
+
+  /**
+   * Return whether this collection's ancestors are visible or not.
+   *
+   * \see is_visible_effectively
+   */
+  bool is_visible_ancestors() const;
+
+  /**
+   * Return whether this collection is effectively visible.
+   *
+   * \return true when this collection and all its ancestors are visible.
+   *
+   * \see is_visisble
+   */
+  bool is_visible_effectively() const;
+#endif
 } BoneCollection;
 
 /** Membership relation of a bone with a bone collection. */
@@ -461,11 +498,19 @@ typedef enum eBone_BBoneHandleFlag {
 
 /** #BoneCollection.flag */
 typedef enum eBoneCollection_Flag {
-  BONE_COLLECTION_VISIBLE = (1 << 0),
+  BONE_COLLECTION_VISIBLE = (1 << 0),    /* Visibility flag of this particular collection. */
   BONE_COLLECTION_SELECTABLE = (1 << 1), /* Intended to be implemented in the not-so-far future. */
   BONE_COLLECTION_OVERRIDE_LIBRARY_LOCAL = (1 << 2), /* Added by a local library override. */
+
+  /**
+   * Set when all ancestors are visible.
+   *
+   * This would actually be a runtime flag, but bone collections don't have a
+   * runtime struct yet, and the addition of one more flag doesn't seem worth
+   * the effort. */
+  BONE_COLLECTION_ANCESTORS_VISIBLE = (1 << 3),
 } eBoneCollection_Flag;
-ENUM_OPERATORS(eBoneCollection_Flag, BONE_COLLECTION_OVERRIDE_LIBRARY_LOCAL)
+ENUM_OPERATORS(eBoneCollection_Flag, BONE_COLLECTION_ANCESTORS_VISIBLE)
 
 #ifdef __cplusplus
 

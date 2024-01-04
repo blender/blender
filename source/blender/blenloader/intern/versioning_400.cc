@@ -183,7 +183,7 @@ static void version_bonelayers_to_bonecollections(Main *bmain)
       layermask_collection.append(std::make_pair(layer_mask, bcoll));
 
       if ((arm->layer & layer_mask) == 0) {
-        ANIM_bonecoll_hide(bcoll);
+        ANIM_bonecoll_hide(arm, bcoll);
       }
     }
 
@@ -223,7 +223,7 @@ static void version_bonegroups_to_bonecollections(Main *bmain)
        * groups did not have any impact on this. To retain the behavior, that
        * hiding all layers a bone is on hides the bone, the
        * bone-group-collections should be created hidden. */
-      ANIM_bonecoll_hide(bcoll);
+      ANIM_bonecoll_hide(arm, bcoll);
     }
 
     /* Assign the bones to their bone group based collection. */

@@ -3149,4 +3149,37 @@ blender::Span<BoneCollection *> bArmature::collections_span()
   return blender::Span(collection_array, collection_array_num);
 }
 
+blender::Span<const BoneCollection *> bArmature::collections_roots() const
+{
+  return blender::Span(collection_array, collection_root_count);
+}
+blender::Span<BoneCollection *> bArmature::collections_roots()
+{
+  return blender::Span(collection_array, collection_root_count);
+}
+
+blender::Span<const BoneCollection *> bArmature::collection_children(
+    const BoneCollection *parent) const
+{
+  return blender::Span(&collection_array[parent->child_index], parent->child_count);
+}
+
+blender::Span<BoneCollection *> bArmature::collection_children(BoneCollection *parent)
+{
+  return blender::Span(&collection_array[parent->child_index], parent->child_count);
+}
+
+bool BoneCollection::is_visible() const
+{
+  return this->flags & BONE_COLLECTION_VISIBLE;
+}
+bool BoneCollection::is_visible_ancestors() const
+{
+  return this->flags & BONE_COLLECTION_ANCESTORS_VISIBLE;
+}
+bool BoneCollection::is_visible_effectively() const
+{
+  return this->is_visible() && this->is_visible_ancestors();
+}
+
 /** \} */

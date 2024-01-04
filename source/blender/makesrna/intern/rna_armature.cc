@@ -373,6 +373,17 @@ static void rna_BoneCollection_name_set(PointerRNA *ptr, const char *name)
   WM_main_add_notifier(NC_OBJECT | ND_BONE_COLLECTION, &arm->id);
 }
 
+static void rna_BoneCollection_is_visible_set(PointerRNA *ptr, const bool is_visible)
+{
+  bArmature *arm = (bArmature *)ptr->owner_id;
+  BoneCollection *bcoll = (BoneCollection *)ptr->data;
+
+  ANIM_armature_bonecoll_is_visible_set(arm, bcoll, is_visible);
+
+  WM_main_add_notifier(NC_OBJECT | ND_BONE_COLLECTION, &arm->id);
+  WM_main_add_notifier(NC_OBJECT | ND_POSE, &arm->id);
+}
+
 static char *rna_BoneCollection_path(const PointerRNA *ptr)
 {
   const BoneCollection *bcoll = (const BoneCollection *)ptr->data;
@@ -2244,7 +2255,15 @@ static void rna_def_bonecollection(BlenderRNA *brna)
       prop, "Visible", "Bones in this collection will be visible in pose/object mode");
   RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
-  RNA_def_property_update(prop, NC_OBJECT | ND_POSE, nullptr);
+  RNA_def_property_boolean_funcs(prop, nullptr, "rna_BoneCollection_is_visible_set");
+
+  prop = RNA_def_property(srna, "is_visible_ancestors", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flags", BONE_COLLECTION_ANCESTORS_VISIBLE);
+  RNA_def_property_ui_text(prop,
+                           "Ancestors Effectively Visible",
+                           "True when all of the ancestors of this bone collection are marked as "
+                           "visible; always True for root bone collections");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
   prop = RNA_def_property(srna, "is_local_override", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flags", BONE_COLLECTION_OVERRIDE_LIBRARY_LOCAL);
