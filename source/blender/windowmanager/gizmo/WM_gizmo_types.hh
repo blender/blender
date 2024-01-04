@@ -16,18 +16,14 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_utildefines.h"
 
+#include "DNA_listBase.h"
+
 struct wmGizmo;
 struct wmGizmoGroup;
 struct wmGizmoGroupType;
 struct wmGizmoMapType;
 struct wmGizmoProperty;
 struct wmKeyConfig;
-
-#include "DNA_listBase.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /* -------------------------------------------------------------------- */
 /* Enum Typedef's */
@@ -195,7 +191,7 @@ typedef enum {
   WM_GIZMO_TWEAK_SNAP = (1 << 1),
 } eWM_GizmoFlagTweak;
 
-#include "wm_gizmo_fn.h"
+#include "wm_gizmo_fn.hh"
 
 typedef struct wmGizmoOpElem {
   struct wmOperatorType *type;
@@ -513,7 +509,3 @@ typedef enum eWM_GizmoFlagMapDrawStep {
   WM_GIZMOMAP_DRAWSTEP_3D,
 } eWM_GizmoFlagMapDrawStep;
 #define WM_GIZMOMAP_DRAWSTEP_MAX 2
-
-#ifdef __cplusplus
-}
-#endif

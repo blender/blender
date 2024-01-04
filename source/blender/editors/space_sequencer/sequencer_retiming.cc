@@ -32,7 +32,7 @@
 #include "SEQ_transform.hh"
 
 #include "WM_api.hh"
-#include "WM_toolsystem.h"
+#include "WM_toolsystem.hh"
 
 #include "RNA_define.hh"
 

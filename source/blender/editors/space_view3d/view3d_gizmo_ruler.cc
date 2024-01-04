@@ -48,7 +48,7 @@
 #include "RNA_access.hh"
 
 #include "WM_api.hh"
-#include "WM_toolsystem.h"
+#include "WM_toolsystem.hh"
 #include "WM_types.hh"
 
 #include "DEG_depsgraph_query.hh"

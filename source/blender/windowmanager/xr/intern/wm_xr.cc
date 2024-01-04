@@ -31,7 +31,7 @@
 #include "WM_api.hh"
 
 #include "wm_surface.hh"
-#include "wm_xr_intern.h"
+#include "wm_xr_intern.hh"
 
 struct wmXrErrorHandlerData {
   wmWindowManager *wm;

@@ -57,7 +57,7 @@
 
 #include "WM_api.hh"
 #include "WM_types.hh"
-#include "wm_event_system.h"
+#include "wm_event_system.hh"
 #include "wm_window.hh"
 
 #include <fmt/format.h>

@@ -33,8 +33,8 @@
 #include "wm.hh"
 
 /* own includes */
-#include "wm_gizmo_intern.h"
-#include "wm_gizmo_wmapi.h"
+#include "wm_gizmo_intern.hh"
+#include "wm_gizmo_wmapi.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Gizmo Type Append

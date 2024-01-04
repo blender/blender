@@ -119,12 +119,12 @@ struct wmWindowManager;
 #include "RNA_types.hh"
 
 /* exported types for WM */
-#include "gizmo/WM_gizmo_types.h"
+#include "gizmo/WM_gizmo_types.hh"
 #include "wm_cursors.hh"
 #include "wm_event_types.hh"
 
 /* Include external gizmo API's */
-#include "gizmo/WM_gizmo_api.h"
+#include "gizmo/WM_gizmo_api.hh"
 
 namespace blender::asset_system {
 class AssetRepresentation;

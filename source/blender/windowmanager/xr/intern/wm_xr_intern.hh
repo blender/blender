@@ -10,12 +10,14 @@
 
 #include "CLG_log.h"
 
-#include "wm_xr.h"
+#include "GHOST_Types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "DNA_listBase.h"
+#include "DNA_xr_types.h"
 
+#include "wm_xr.hh"
+
+struct Object;
 struct wmXrActionSet;
 
 typedef struct wmXrSessionState {
@@ -240,7 +242,3 @@ void wm_xr_pose_scale_to_imat(const GHOST_XrPose *pose, float scale, float r_ima
  */
 void wm_xr_draw_view(const GHOST_XrDrawViewInfo *draw_view, void *customdata);
 void wm_xr_draw_controllers(const struct bContext *C, struct ARegion *region, void *customdata);
-
-#ifdef __cplusplus
-}
-#endif

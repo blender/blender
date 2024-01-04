@@ -35,7 +35,7 @@
 
 #include "WM_api.hh"
 #include "WM_types.hh"
-#include "wm_event_system.h"
+#include "wm_event_system.hh"
 
 /* for tool-tips */
 #include "UI_interface.hh"
@@ -43,8 +43,8 @@
 #include "DEG_depsgraph.hh"
 
 /* own includes */
-#include "wm_gizmo_intern.h"
-#include "wm_gizmo_wmapi.h"
+#include "wm_gizmo_intern.hh"
+#include "wm_gizmo_wmapi.hh"
 
 /**
  * Store all gizmo-maps here. Anyone who wants to register a gizmo for a certain

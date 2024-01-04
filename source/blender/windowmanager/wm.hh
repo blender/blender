@@ -10,7 +10,7 @@
 
 struct wmWindow;
 
-#include "gizmo/wm_gizmo_wmapi.h"
+#include "gizmo/wm_gizmo_wmapi.hh"
 
 struct wmPaintCursor {
   wmPaintCursor *next, *prev;

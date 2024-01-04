@@ -12,7 +12,7 @@ struct BLI_Buffer;
 struct wmGizmoMap;
 struct wmKeyConfig;
 
-#include "wm_gizmo_fn.h"
+#include "wm_gizmo_fn.hh"
 
 #ifdef __cplusplus
 extern "C" {

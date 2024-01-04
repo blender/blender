@@ -8,10 +8,7 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
+struct wmWindow;
 struct wmWindowManager;
 struct wmXrData;
 
@@ -27,7 +24,3 @@ bool wm_xr_events_handle(wmWindowManager *wm);
 /* `wm_xr_operators.cc` */
 
 void wm_xr_operatortypes_register(void);
-
-#ifdef __cplusplus
-}
-#endif

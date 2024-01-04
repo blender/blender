@@ -82,9 +82,9 @@
 
 #include "wm.hh"
 #include "wm_cursors.hh"
-#include "wm_event_system.h"
+#include "wm_event_system.hh"
 #include "wm_files.hh"
-#include "wm_platform_support.h"
+#include "wm_platform_support.hh"
 #include "wm_surface.hh"
 #include "wm_window.hh"
 

@@ -8,9 +8,15 @@
 
 #pragma once
 
+#include "WM_api.hh"
+
 struct ARegion;
+struct bToolRef;
 struct GHOST_TabletData;
 struct ScrArea;
+struct wmEvent;
+struct wmKeyMap;
+struct wmKeyMapItem;
 enum wmOperatorCallContext;
 
 #ifdef WITH_XR_OPENXR

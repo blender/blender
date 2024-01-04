@@ -39,7 +39,7 @@
 
 #include "WM_api.hh"
 #include "WM_message.hh"
-#include "WM_toolsystem.h" /* own include */
+#include "WM_toolsystem.hh" /* own include */
 #include "WM_types.hh"
 
 static void toolsystem_reinit_with_toolref(bContext *C, WorkSpace * /*workspace*/, bToolRef *tref);

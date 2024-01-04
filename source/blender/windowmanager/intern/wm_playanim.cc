@@ -64,7 +64,7 @@
 
 #include "DEG_depsgraph.hh"
 
-#include "wm_window_private.h"
+#include "wm_window_private.hh"
 
 #include "WM_api.hh" /* Only for #WM_main_playanim. */
 

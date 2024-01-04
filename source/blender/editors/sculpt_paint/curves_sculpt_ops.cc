@@ -19,7 +19,7 @@
 
 #include "WM_api.hh"
 #include "WM_message.hh"
-#include "WM_toolsystem.h"
+#include "WM_toolsystem.hh"
 
 #include "ED_curves.hh"
 #include "ED_curves_sculpt.hh"

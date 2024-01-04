@@ -26,7 +26,7 @@
 
 #include "UI_interface.hh"
 
-#include "WM_toolsystem.h"
+#include "WM_toolsystem.hh"
 #include "WM_types.hh"
 
 /* see WM_types.hh */

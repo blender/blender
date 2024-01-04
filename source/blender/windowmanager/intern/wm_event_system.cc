@@ -66,15 +66,15 @@
 
 #include "WM_api.hh"
 #include "WM_message.hh"
-#include "WM_toolsystem.h"
+#include "WM_toolsystem.hh"
 #include "WM_types.hh"
 
 #include "wm.hh"
-#include "wm_event_system.h"
+#include "wm_event_system.hh"
 #include "wm_event_types.hh"
 #include "wm_surface.hh"
 #include "wm_window.hh"
-#include "wm_window_private.h"
+#include "wm_window_private.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"

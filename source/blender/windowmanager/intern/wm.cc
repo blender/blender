@@ -44,10 +44,10 @@
 #include "WM_types.hh"
 #include "wm.hh"
 #include "wm_draw.hh"
-#include "wm_event_system.h"
+#include "wm_event_system.hh"
 #include "wm_window.hh"
 #ifdef WITH_XR_OPENXR
-#  include "wm_xr.h"
+#  include "wm_xr.hh"
 #endif
 
 #include "BKE_undo_system.h"

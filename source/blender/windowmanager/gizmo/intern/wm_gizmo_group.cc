@@ -31,14 +31,14 @@
 
 #include "WM_api.hh"
 #include "WM_types.hh"
-#include "wm_event_system.h"
+#include "wm_event_system.hh"
 
 #include "ED_screen.hh"
 #include "ED_undo.hh"
 
 /* own includes */
-#include "wm_gizmo_intern.h"
-#include "wm_gizmo_wmapi.h"
+#include "wm_gizmo_intern.hh"
+#include "wm_gizmo_wmapi.hh"
 
 #ifdef WITH_PYTHON
 #  include "BPY_extern.h"

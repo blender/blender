@@ -43,10 +43,10 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "wm_event_system.h"
+#include "wm_event_system.hh"
 #include "wm_surface.hh"
 #include "wm_window.hh"
-#include "wm_xr_intern.h"
+#include "wm_xr_intern.hh"
 
 static wmSurface *g_xr_surface = nullptr;
 static CLG_LogRef LOG = {"wm.xr"};

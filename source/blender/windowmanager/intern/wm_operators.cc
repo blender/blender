@@ -97,12 +97,12 @@
 
 #include "wm.hh"
 #include "wm_draw.hh"
-#include "wm_event_system.h"
+#include "wm_event_system.hh"
 #include "wm_event_types.hh"
 #include "wm_files.hh"
 #include "wm_window.hh"
 #ifdef WITH_XR_OPENXR
-#  include "wm_xr.h"
+#  include "wm_xr.hh"
 #endif
 
 #define UNDOCUMENTED_OPERATOR_TIP N_("(undocumented operator)")
