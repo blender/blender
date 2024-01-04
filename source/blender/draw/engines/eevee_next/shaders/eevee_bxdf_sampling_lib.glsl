@@ -39,35 +39,33 @@ float sample_pdf_ggx_refract(
  *
  * \param rand: random point on the unit cylinder (result of sample_cylinder).
  * \param alpha: roughness parameter.
- * \param tV: tangent space view vector.
+ * \param Vt: tangent space view vector.
  * \param G1_V: output G1_V factor to be reused.
  */
 vec3 sample_ggx(vec3 rand, float alpha, vec3 Vt, out float G1_V)
 {
 #if GGX_USE_VISIBLE_NORMAL
-  /* From:
-   * "A Simpler and Exact Sampling Routine for the GGXDistribution of Visible Normals"
-   * by Eric Heitz.
-   * http://jcgt.org/published/0007/04/01/slides.pdf
+  /* Sampling Visible GGX Normals with Spherical Caps.
+   * Jonathan Dupuy and Anis Benyoub, HPG Vol. 42, No. 8, 2023.
+   * https://diglib.eg.org/bitstream/handle/10.1111/cgf14867/v42i8_03_14867.pdf
    * View vector is expected to be in tangent space. */
 
-  /* Stretch view. */
-  vec3 Th, Bh, Vh = normalize(vec3(alpha * Vt.xy, Vt.z));
-  make_orthonormal_basis(Vh, Th, Bh);
-  /* Sample point with polar coordinates (r, phi). */
-  float r = sqrt(rand.x);
-  float x = r * rand.y;
-  float y = r * rand.z;
-  float s = 0.5 * (1.0 + Vh.z);
-  G1_V = Vh.z / s;
-  y = (1.0 - s) * sqrt(1.0 - x * x) + s * y;
-  float z = sqrt(saturate(1.0 - x * x - y * y));
-  /* Compute normal. */
-  vec3 Hh = x * Th + y * Bh + z * Vh;
-  /* Unstretch. */
-  vec3 Ht = normalize(vec3(alpha * Hh.xy, saturate(Hh.z)));
-  /* Microfacet Normal. */
-  return Ht;
+  /* Transforming the view direction to the hemisphere configuration. */
+  vec3 Vh = normalize(vec3(alpha * Vt.xy, Vt.z));
+
+  /* Visibility term. */
+  G1_V = 2.0 * Vh.z / (1.0 + Vh.z);
+
+  /* Sample a spherical cap in (-Vh.z, 1]. */
+  float cos_theta = mix(-Vh.z, 1.0, 1.0 - rand.x);
+  float sin_theta = sqrt(saturate(1.0 - square(cos_theta)));
+  vec3 Lh = vec3(sin_theta * rand.yz, cos_theta);
+
+  /* Compute unnormalized halfway direction. */
+  vec3 Hh = Vh + Lh;
+
+  /* Transforming the normal back to the ellipsoid configuration. */
+  return normalize(vec3(alpha * Hh.xy, max(0.0, Hh.z)));
 #else
   /* Theta is the cone angle. */
   float z = sqrt((1.0 - rand.x) / (1.0 + square(alpha) * rand.x - rand.x)); /* cos theta */
