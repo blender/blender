@@ -5833,6 +5833,11 @@ class VIEW3D_MT_edit_greasepencil_stroke(Menu):
         layout.operator("grease_pencil.stroke_switch_direction")
         layout.operator_menu_enum("grease_pencil.caps_set", text="Set Caps", property="type")
 
+        layout.separator()
+        
+        layout.operator("grease_pencil.set_uniform_thickness")
+        layout.operator("grease_pencil.set_uniform_opacity")
+
 
 class VIEW3D_MT_edit_greasepencil_point(Menu):
     bl_label = "Point"
@@ -5840,10 +5845,6 @@ class VIEW3D_MT_edit_greasepencil_point(Menu):
     def draw(self, _context):
         layout = self.layout
         layout.operator("grease_pencil.stroke_smooth", text="Smooth Points")
-
-        layout.separator()
-        layout.operator("grease_pencil.set_uniform_thickness")
-        layout.operator("grease_pencil.set_uniform_opacity")
 
 
 class VIEW3D_MT_edit_curves(Menu):
