@@ -88,7 +88,7 @@ void OVERLAY_edit_mesh_cache_init(OVERLAY_Data *vedata)
 
   const bool is_wire_shmode = (shading->type == OB_WIRE);
 
-  float backwire_opacity = (pd->edit_mesh.do_zbufclip) ? v3d->overlay.backwire_opacity : 1.0f;
+  float backwire_opacity = (pd->edit_mesh.do_zbufclip) ? 0.5f : 1.0f;
   float face_alpha = (!pd->edit_mesh.do_faces) ? 0.0f : 1.0f;
   GPUTexture **depth_tex = (pd->edit_mesh.do_zbufclip) ? &dtxl->depth : &txl->dummy_depth_tx;
 

@@ -3401,7 +3401,6 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
             copy_v3_fl(v3d->shading.single_color, 0.8f);
             v3d->shading.shadow_intensity = 0.5;
 
-            v3d->overlay.backwire_opacity = 0.5f;
             v3d->overlay.normals_length = 0.1f;
             v3d->overlay.flag = 0;
           }
