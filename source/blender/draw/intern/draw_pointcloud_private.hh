@@ -21,4 +21,4 @@ GPUBatch **pointcloud_surface_shaded_get(PointCloud *pointcloud,
                                          int mat_len);
 GPUBatch *pointcloud_surface_get(PointCloud *pointcloud);
 
-}
+}  // namespace blender::draw

@@ -94,4 +94,4 @@ bool curves_ensure_procedural_data(Curves *curves,
 
 void drw_curves_get_attribute_sampler_name(const char *layer_name, char r_sampler_name[32]);
 
-}
+}  // namespace blender::draw
