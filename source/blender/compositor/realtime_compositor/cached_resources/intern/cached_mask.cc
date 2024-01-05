@@ -31,10 +31,12 @@ namespace blender::realtime_compositor {
  */
 
 CachedMaskKey::CachedMaskKey(int2 size,
+                             float aspect_ratio,
                              bool use_feather,
                              int motion_blur_samples,
                              float motion_blur_shutter)
     : size(size),
+      aspect_ratio(aspect_ratio),
       use_feather(use_feather),
       motion_blur_samples(motion_blur_samples),
       motion_blur_shutter(motion_blur_shutter)
@@ -43,12 +45,13 @@ CachedMaskKey::CachedMaskKey(int2 size,
 
 uint64_t CachedMaskKey::hash() const
 {
-  return get_default_hash_4(size, use_feather, motion_blur_samples, motion_blur_shutter);
+  return get_default_hash_4(
+      size, use_feather, motion_blur_samples, float2(motion_blur_shutter, aspect_ratio));
 }
 
 bool operator==(const CachedMaskKey &a, const CachedMaskKey &b)
 {
-  return a.size == b.size && a.use_feather == b.use_feather &&
+  return a.size == b.size && a.aspect_ratio == b.aspect_ratio && a.use_feather == b.use_feather &&
          a.motion_blur_samples == b.motion_blur_samples &&
          a.motion_blur_shutter == b.motion_blur_shutter;
 }
@@ -104,6 +107,7 @@ CachedMask::CachedMask(Context &context,
                        Mask *mask,
                        int2 size,
                        int frame,
+                       float aspect_ratio,
                        bool use_feather,
                        int motion_blur_samples,
                        float motion_blur_shutter)
@@ -117,7 +121,10 @@ CachedMask::CachedMask(Context &context,
       for (const int64_t x : IndexRange(size.x)) {
         /* Compute the coordinates in the [0, 1] range and add 0.5 to evaluate the mask at the
          * center of pixels. */
-        const float2 coordinates = (float2(x, y) + 0.5f) / float2(size);
+        float2 coordinates = (float2(x, y) + 0.5f) / float2(size);
+        /* Do aspect ratio correction around the center 0.5 point. */
+        coordinates = (coordinates - float2(0.5)) * float2(1.0, aspect_ratio) + float2(0.5);
+
         float mask_value = 0.0f;
         for (MaskRasterHandle *handle : handles) {
           mask_value += BKE_maskrasterize_handle_sample(handle, coordinates);
@@ -175,11 +182,13 @@ void CachedMaskContainer::reset()
 CachedMask &CachedMaskContainer::get(Context &context,
                                      Mask *mask,
                                      int2 size,
+                                     float aspect_ratio,
                                      bool use_feather,
                                      int motion_blur_samples,
                                      float motion_blur_shutter)
 {
-  const CachedMaskKey key(size, use_feather, motion_blur_samples, motion_blur_shutter);
+  const CachedMaskKey key(
+      size, aspect_ratio, use_feather, motion_blur_samples, motion_blur_shutter);
 
   auto &cached_masks_for_id = map_.lookup_or_add_default(mask->id.name);
 
@@ -193,6 +202,7 @@ CachedMask &CachedMaskContainer::get(Context &context,
                                         mask,
                                         size,
                                         context.get_frame_number(),
+                                        aspect_ratio,
                                         use_feather,
                                         motion_blur_samples,
                                         motion_blur_shutter);
