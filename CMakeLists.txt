@@ -1669,11 +1669,10 @@ if("${CMAKE_GENERATOR}" MATCHES "Ninja" AND WITH_NINJA_POOL_JOBS)
     math(EXPR _compile_heavy_jobs "${_TOT_MEM} / 8000")
     math(EXPR _compile_heavy_jobs_max "${_NUM_CORES} - 1")
     if(${_compile_heavy_jobs} GREATER ${_compile_heavy_jobs_max})
-      set(_compile_heavy_jobs _compile_heavy_jobs_max)
+      set(_compile_heavy_jobs ${_compile_heavy_jobs_max})
     elseif(${_compile_heavy_jobs} LESS 1)
       set(_compile_heavy_jobs 1)
     endif()
-
     set(NINJA_MAX_NUM_PARALLEL_COMPILE_HEAVY_JOBS "${_compile_heavy_jobs}" CACHE STRING "\
 Define the maximum number of concurrent heavy compilation jobs, for ninja build system \
 (used for some targets which cpp files can take several GB each during compilation)."
@@ -1681,20 +1680,33 @@ Define the maximum number of concurrent heavy compilation jobs, for ninja build 
     )
     mark_as_advanced(NINJA_MAX_NUM_PARALLEL_COMPILE_HEAVY_JOBS)
     set(_compile_heavy_jobs)
+    set(_compile_heavy_jobs_max)
 
-    # Only set regular compile jobs if we set heavy jobs, and there are 'enough' cores available,
-    # otherwise default (using all cores) if fine.
+    # Heuristics: Assume 2Gb of RAM is needed per heavy compile job.
+    # Typical RAM peak usage of these is actually way less than 1GB usually,
+    # but this also accounts for the part of the physical RAM being used by other unrelated
+    # processes on the system, and the part being used by the 'heavy' compile and linking jobs.
+    #
+    # If there are 'enough' cores available, cap the maximum number of regular jobs to
+    # `number of cores - 1`, otherwise allow using all cores if there is enough RAM available.
     # This allows to ensure that the heavy jobs won't get starved by too many normal jobs,
     # since the former usually take a long time to process.
-    if(NINJA_MAX_NUM_PARALLEL_COMPILE_HEAVY_JOBS AND ${_NUM_CORES} GREATER 3)
-      math(EXPR _compile_jobs "${_NUM_CORES} - 1")
+    math(EXPR _compile_jobs "${_TOT_MEM} / 2000")
+    if(${_NUM_CORES} GREATER 3)
+      math(EXPR _compile_jobs_max "${_NUM_CORES} - 1")
     else()
-      set(_compile_jobs "")
+      set(_compile_jobs_max ${_NUM_CORES})
+    endif()
+    if(${_compile_jobs} GREATER ${_compile_jobs_max})
+      set(_compile_jobs ${_compile_jobs_max})
+    elseif(${_compile_jobs} LESS 1)
+      set(_compile_jobs 1)
     endif()
     set(NINJA_MAX_NUM_PARALLEL_COMPILE_JOBS "${_compile_jobs}" CACHE STRING
         "Define the maximum number of concurrent compilation jobs, for ninja build system." FORCE)
     mark_as_advanced(NINJA_MAX_NUM_PARALLEL_COMPILE_JOBS)
     set(_compile_jobs)
+    set(_compile_jobs_max)
 
     # In practice, even when there is RAM available,
     # this proves to be quicker than running in parallel (due to slow disks accesses).
