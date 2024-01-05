@@ -384,6 +384,12 @@ static void rna_BoneCollection_is_visible_set(PointerRNA *ptr, const bool is_vis
   WM_main_add_notifier(NC_OBJECT | ND_POSE, &arm->id);
 }
 
+static bool rna_BoneCollection_is_visible_effectively_get(PointerRNA *ptr)
+{
+  const BoneCollection *bcoll = (BoneCollection *)ptr->data;
+  return bcoll->is_visible_effectively();
+}
+
 static char *rna_BoneCollection_path(const PointerRNA *ptr)
 {
   const BoneCollection *bcoll = (const BoneCollection *)ptr->data;
@@ -2263,6 +2269,15 @@ static void rna_def_bonecollection(BlenderRNA *brna)
                            "Ancestors Effectively Visible",
                            "True when all of the ancestors of this bone collection are marked as "
                            "visible; always True for root bone collections");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+  prop = RNA_def_property(srna, "is_visible_effectively", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_funcs(prop, "rna_BoneCollection_is_visible_effectively_get", nullptr);
+  RNA_def_property_ui_text(
+      prop,
+      "Effective Visibility",
+      "Whether this bone collection is effectively visible in the viewport. This is True when "
+      "this bone collection and all of its ancestors are visible");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
   prop = RNA_def_property(srna, "is_local_override", PROP_BOOLEAN, PROP_NONE);
