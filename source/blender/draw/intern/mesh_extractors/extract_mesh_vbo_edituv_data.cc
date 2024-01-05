@@ -78,14 +78,13 @@ static void extract_edituv_data_iter_face_mesh(const MeshRenderData &mr,
 {
   MeshExtract_EditUVData_Data *data = static_cast<MeshExtract_EditUVData_Data *>(_data);
   const IndexRange face = mr.faces[face_index];
-  const int ml_index_end = face.start() + face.size();
-  for (int ml_index = face.start(); ml_index < ml_index_end; ml_index += 1) {
-    EditLoopData *eldata = &data->vbo_data[ml_index];
+  for (const int corner : face) {
+    EditLoopData *eldata = &data->vbo_data[corner];
     memset(eldata, 0x0, sizeof(*eldata));
     BMFace *efa = bm_original_face_get(mr, face_index);
     if (efa) {
-      BMVert *eve = bm_original_vert_get(mr, mr.corner_verts[ml_index]);
-      BMEdge *eed = bm_original_edge_get(mr, mr.corner_edges[ml_index]);
+      BMVert *eve = bm_original_vert_get(mr, mr.corner_verts[corner]);
+      BMEdge *eed = bm_original_edge_get(mr, mr.corner_edges[corner]);
       if (eed && eve) {
         /* Loop on an edge endpoint. */
         BMLoop *l = BM_face_edge_share_loop(efa, eed);
@@ -96,8 +95,8 @@ static void extract_edituv_data_iter_face_mesh(const MeshRenderData &mr,
         if (eed == nullptr) {
           /* Find if the loop's vert is not part of an edit edge.
            * For this, we check if the previous loop was on an edge. */
-          const int l_prev = bke::mesh::face_corner_prev(face, ml_index);
-          eed = bm_original_edge_get(mr, mr.corner_edges[l_prev]);
+          const int corner_prev = bke::mesh::face_corner_prev(face, corner);
+          eed = bm_original_edge_get(mr, mr.corner_edges[corner_prev]);
         }
         if (eed) {
           /* Mapped points on an edge between two edit verts. */

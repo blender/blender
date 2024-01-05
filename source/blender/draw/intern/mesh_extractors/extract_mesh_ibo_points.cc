@@ -72,8 +72,8 @@ static void extract_points_iter_face_mesh(const MeshRenderData &mr,
                                           void *_userdata)
 {
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_userdata);
-  for (const int ml_index : mr.faces[face_index]) {
-    vert_set_mesh(elb, mr, mr.corner_verts[ml_index], ml_index);
+  for (const int corner : mr.faces[face_index]) {
+    vert_set_mesh(elb, mr, mr.corner_verts[corner], corner);
   }
 }
 

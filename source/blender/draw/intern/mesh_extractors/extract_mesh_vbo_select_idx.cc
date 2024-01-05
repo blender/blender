@@ -114,8 +114,8 @@ static void extract_face_idx_iter_face_mesh(const MeshRenderData &mr,
                                             const int face_index,
                                             void *data)
 {
-  for (const int ml_index : mr.faces[face_index]) {
-    (*(int32_t **)data)[ml_index] = (mr.p_origindex) ? mr.p_origindex[face_index] : face_index;
+  for (const int corner : mr.faces[face_index]) {
+    (*(int32_t **)data)[corner] = (mr.p_origindex) ? mr.p_origindex[face_index] : face_index;
   }
 }
 
@@ -123,9 +123,9 @@ static void extract_edge_idx_iter_face_mesh(const MeshRenderData &mr,
                                             const int face_index,
                                             void *data)
 {
-  for (const int ml_index : mr.faces[face_index]) {
-    const int edge = mr.corner_edges[ml_index];
-    (*(int32_t **)data)[ml_index] = (mr.e_origindex) ? mr.e_origindex[edge] : edge;
+  for (const int corner : mr.faces[face_index]) {
+    const int edge = mr.corner_edges[corner];
+    (*(int32_t **)data)[corner] = (mr.e_origindex) ? mr.e_origindex[edge] : edge;
   }
 }
 
@@ -133,9 +133,9 @@ static void extract_vert_idx_iter_face_mesh(const MeshRenderData &mr,
                                             const int face_index,
                                             void *data)
 {
-  for (const int ml_index : mr.faces[face_index]) {
-    const int vert = mr.corner_verts[ml_index];
-    (*(int32_t **)data)[ml_index] = (mr.v_origindex) ? mr.v_origindex[vert] : vert;
+  for (const int corner : mr.faces[face_index]) {
+    const int vert = mr.corner_verts[corner];
+    (*(int32_t **)data)[corner] = (mr.v_origindex) ? mr.v_origindex[vert] : vert;
   }
 }
 

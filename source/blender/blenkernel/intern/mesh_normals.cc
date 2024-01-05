@@ -472,16 +472,16 @@ void BKE_lnor_space_define(MLoopNorSpace *lnor_space,
 
 void BKE_lnor_space_add_loop(MLoopNorSpaceArray *lnors_spacearr,
                              MLoopNorSpace *lnor_space,
-                             const int ml_index,
+                             const int corner,
                              void *bm_loop,
                              const bool is_single)
 {
   BLI_assert((lnors_spacearr->data_type == MLNOR_SPACEARR_LOOP_INDEX && bm_loop == nullptr) ||
              (lnors_spacearr->data_type == MLNOR_SPACEARR_BMLOOP_PTR && bm_loop != nullptr));
 
-  lnors_spacearr->lspacearr[ml_index] = lnor_space;
+  lnors_spacearr->lspacearr[corner] = lnor_space;
   if (bm_loop == nullptr) {
-    bm_loop = POINTER_FROM_INT(ml_index);
+    bm_loop = POINTER_FROM_INT(corner);
   }
   if (is_single) {
     BLI_assert(lnor_space->loops == nullptr);
@@ -490,7 +490,7 @@ void BKE_lnor_space_add_loop(MLoopNorSpaceArray *lnors_spacearr,
   }
   else {
     BLI_assert((lnor_space->flags & MLNOR_SPACE_IS_SINGLE) == 0);
-    BLI_linklist_prepend_nlink(&lnor_space->loops, bm_loop, &lnors_spacearr->loops_pool[ml_index]);
+    BLI_linklist_prepend_nlink(&lnor_space->loops, bm_loop, &lnors_spacearr->loops_pool[corner]);
   }
 }
 

@@ -197,18 +197,18 @@ static void extract_tan_ex_init(const MeshRenderData &mr,
       const char *name = tangent_names[i];
       const float(*layer_data)[4] = (const float(*)[4])CustomData_get_layer_named(
           &corner_data, CD_TANGENT, name);
-      for (int ml_index = 0; ml_index < mr.loop_len; ml_index++) {
-        normal_float_to_short_v3(*tan_data, layer_data[ml_index]);
-        (*tan_data)[3] = (layer_data[ml_index][3] > 0.0f) ? SHRT_MAX : SHRT_MIN;
+      for (int corner = 0; corner < mr.loop_len; corner++) {
+        normal_float_to_short_v3(*tan_data, layer_data[corner]);
+        (*tan_data)[3] = (layer_data[corner][3] > 0.0f) ? SHRT_MAX : SHRT_MIN;
         tan_data++;
       }
     }
     if (use_orco_tan) {
       const float(*layer_data)[4] = (const float(*)[4])CustomData_get_layer_n(
           &corner_data, CD_TANGENT, 0);
-      for (int ml_index = 0; ml_index < mr.loop_len; ml_index++) {
-        normal_float_to_short_v3(*tan_data, layer_data[ml_index]);
-        (*tan_data)[3] = (layer_data[ml_index][3] > 0.0f) ? SHRT_MAX : SHRT_MIN;
+      for (int corner = 0; corner < mr.loop_len; corner++) {
+        normal_float_to_short_v3(*tan_data, layer_data[corner]);
+        (*tan_data)[3] = (layer_data[corner][3] > 0.0f) ? SHRT_MAX : SHRT_MIN;
         tan_data++;
       }
     }
@@ -219,18 +219,18 @@ static void extract_tan_ex_init(const MeshRenderData &mr,
       const char *name = tangent_names[i];
       const float(*layer_data)[4] = (const float(*)[4])CustomData_get_layer_named(
           &corner_data, CD_TANGENT, name);
-      for (int ml_index = 0; ml_index < mr.loop_len; ml_index++) {
-        *tan_data = GPU_normal_convert_i10_v3(layer_data[ml_index]);
-        tan_data->w = (layer_data[ml_index][3] > 0.0f) ? 1 : -2;
+      for (int corner = 0; corner < mr.loop_len; corner++) {
+        *tan_data = GPU_normal_convert_i10_v3(layer_data[corner]);
+        tan_data->w = (layer_data[corner][3] > 0.0f) ? 1 : -2;
         tan_data++;
       }
     }
     if (use_orco_tan) {
       const float(*layer_data)[4] = (const float(*)[4])CustomData_get_layer_n(
           &corner_data, CD_TANGENT, 0);
-      for (int ml_index = 0; ml_index < mr.loop_len; ml_index++) {
-        *tan_data = GPU_normal_convert_i10_v3(layer_data[ml_index]);
-        tan_data->w = (layer_data[ml_index][3] > 0.0f) ? 1 : -2;
+      for (int corner = 0; corner < mr.loop_len; corner++) {
+        *tan_data = GPU_normal_convert_i10_v3(layer_data[corner]);
+        tan_data->w = (layer_data[corner][3] > 0.0f) ? 1 : -2;
         tan_data++;
       }
     }
@@ -298,9 +298,9 @@ static void extract_tan_init_subdiv(const DRWSubdivCache &subdiv_cache,
     const char *name = tangent_names[i];
     const float(*layer_data)[4] = (const float(*)[4])CustomData_get_layer_named(
         &corner_data, CD_TANGENT, name);
-    for (int ml_index = 0; ml_index < mr.loop_len; ml_index++) {
-      copy_v3_v3(*tan_data, layer_data[ml_index]);
-      (*tan_data)[3] = (layer_data[ml_index][3] > 0.0f) ? 1.0f : -1.0f;
+    for (int corner = 0; corner < mr.loop_len; corner++) {
+      copy_v3_v3(*tan_data, layer_data[corner]);
+      (*tan_data)[3] = (layer_data[corner][3] > 0.0f) ? 1.0f : -1.0f;
       tan_data++;
     }
 
@@ -315,9 +315,9 @@ static void extract_tan_init_subdiv(const DRWSubdivCache &subdiv_cache,
     float(*tan_data)[4] = (float(*)[4])GPU_vertbuf_get_data(coarse_vbo);
     const float(*layer_data)[4] = (const float(*)[4])CustomData_get_layer_n(
         &corner_data, CD_TANGENT, 0);
-    for (int ml_index = 0; ml_index < mr.loop_len; ml_index++) {
-      copy_v3_v3(*tan_data, layer_data[ml_index]);
-      (*tan_data)[3] = (layer_data[ml_index][3] > 0.0f) ? 1.0f : -1.0f;
+    for (int corner = 0; corner < mr.loop_len; corner++) {
+      copy_v3_v3(*tan_data, layer_data[corner]);
+      (*tan_data)[3] = (layer_data[corner][3] > 0.0f) ? 1.0f : -1.0f;
       tan_data++;
     }
 

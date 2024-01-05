@@ -221,13 +221,12 @@ static void extract_edituv_lines_iter_face_mesh(const MeshRenderData &mr,
     mp_select = !mr.select_poly.is_empty() && mr.select_poly[face_index];
   }
 
-  for (const int ml_index : face) {
-    const int edge = mr.corner_edges[ml_index];
+  for (const int corner : face) {
+    const int edge = mr.corner_edges[corner];
+    const int corner_next = bke::mesh::face_corner_next(face, corner);
 
-    const int ml_index_last = face.last();
-    const int ml_index_next = (ml_index == ml_index_last) ? face.start() : (ml_index + 1);
     const bool real_edge = (mr.e_origindex == nullptr || mr.e_origindex[edge] != ORIGINDEX_NONE);
-    edituv_edge_add(data, mp_hidden || !real_edge, mp_select, ml_index, ml_index_next);
+    edituv_edge_add(data, mp_hidden || !real_edge, mp_select, corner, corner_next);
   }
 }
 
@@ -395,11 +394,11 @@ static void extract_edituv_points_iter_face_mesh(const MeshRenderData &mr,
   const bool mp_hidden = (efa) ? BM_elem_flag_test_bool(efa, BM_ELEM_HIDDEN) : true;
   const bool mp_select = (efa) ? BM_elem_flag_test_bool(efa, BM_ELEM_SELECT) : false;
 
-  for (const int ml_index : mr.faces[face_index]) {
-    const int vert = mr.corner_verts[ml_index];
+  for (const int corner : mr.faces[face_index]) {
+    const int vert = mr.corner_verts[corner];
 
     const bool real_vert = !mr.v_origindex || mr.v_origindex[vert] != ORIGINDEX_NONE;
-    edituv_point_add(data, mp_hidden || !real_vert, mp_select, ml_index);
+    edituv_point_add(data, mp_hidden || !real_vert, mp_select, corner);
   }
 }
 
@@ -551,8 +550,8 @@ static void extract_edituv_fdots_iter_face_mesh(const MeshRenderData &mr,
   if (mr.use_subsurf_fdots) {
     const BitSpan facedot_tags = mr.mesh->runtime->subsurf_face_dot_tags;
 
-    for (const int ml_index : mr.faces[face_index]) {
-      const int vert = mr.corner_verts[ml_index];
+    for (const int corner : mr.faces[face_index]) {
+      const int vert = mr.corner_verts[corner];
 
       const bool real_fdot = !mr.p_origindex || (mr.p_origindex[face_index] != ORIGINDEX_NONE);
       const bool subd_fdot = facedot_tags[vert];

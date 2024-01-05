@@ -154,12 +154,12 @@ static void extract_edit_data_iter_face_mesh(const MeshRenderData &mr,
 {
   EditLoopData *vbo_data = *(EditLoopData **)_data;
 
-  for (const int ml_index : mr.faces[face_index]) {
-    EditLoopData *data = vbo_data + ml_index;
+  for (const int corner : mr.faces[face_index]) {
+    EditLoopData *data = vbo_data + corner;
     memset(data, 0x0, sizeof(*data));
     BMFace *efa = bm_original_face_get(mr, face_index);
-    BMVert *eve = bm_original_vert_get(mr, mr.corner_verts[ml_index]);
-    BMEdge *eed = bm_original_edge_get(mr, mr.corner_edges[ml_index]);
+    BMVert *eve = bm_original_vert_get(mr, mr.corner_verts[corner]);
+    BMEdge *eed = bm_original_edge_get(mr, mr.corner_edges[corner]);
     if (efa) {
       mesh_render_data_face_flag(mr, efa, {-1, -1, -1, -1}, data);
     }

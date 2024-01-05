@@ -44,16 +44,14 @@ static void extract_lines_paint_mask_iter_face_mesh(const MeshRenderData &mr,
   MeshExtract_LinePaintMask_Data *data = static_cast<MeshExtract_LinePaintMask_Data *>(_data);
   const IndexRange face = mr.faces[face_index];
 
-  const int ml_index_end = face.start() + face.size();
-  for (int ml_index = face.start(); ml_index < ml_index_end; ml_index += 1) {
-    const int e_index = mr.corner_edges[ml_index];
+  for (const int corner : face) {
+    const int e_index = mr.corner_edges[corner];
 
     if (!((mr.use_hide && !mr.hide_edge.is_empty() && mr.hide_edge[e_index]) ||
           ((mr.e_origindex) && (mr.e_origindex[e_index] == ORIGINDEX_NONE))))
     {
 
-      const int ml_index_last = face.size() + face.start() - 1;
-      const int ml_index_other = (ml_index == ml_index_last) ? face.start() : (ml_index + 1);
+      const int corner_next = bke::mesh::face_corner_next(face, corner);
       if (!mr.select_poly.is_empty() && mr.select_poly[face_index]) {
         if (BLI_BITMAP_TEST_AND_SET_ATOMIC(data->select_map, e_index)) {
           /* Hide edge as it has more than 2 selected loop. */
@@ -61,13 +59,13 @@ static void extract_lines_paint_mask_iter_face_mesh(const MeshRenderData &mr,
         }
         else {
           /* First selected loop. Set edge visible, overwriting any unselected loop. */
-          GPU_indexbuf_set_line_verts(&data->elb, e_index, ml_index, ml_index_other);
+          GPU_indexbuf_set_line_verts(&data->elb, e_index, corner, corner_next);
         }
       }
       else {
         /* Set these unselected loop only if this edge has no other selected loop. */
         if (!BLI_BITMAP_TEST(data->select_map, e_index)) {
-          GPU_indexbuf_set_line_verts(&data->elb, e_index, ml_index, ml_index_other);
+          GPU_indexbuf_set_line_verts(&data->elb, e_index, corner, corner_next);
         }
       }
     }
@@ -112,11 +110,11 @@ static void extract_lines_paint_mask_iter_subdiv_mesh(const DRWSubdivCache &subd
   int *subdiv_loop_edge_index = (int *)GPU_vertbuf_get_data(subdiv_cache.edges_orig_index);
   int *subdiv_loop_subdiv_edge_index = subdiv_cache.subdiv_loop_subdiv_edge_index;
 
-  uint start_loop_idx = subdiv_quad_index * 4;
-  uint end_loop_idx = (subdiv_quad_index + 1) * 4;
-  for (uint loop_idx = start_loop_idx; loop_idx < end_loop_idx; loop_idx++) {
-    const uint coarse_edge_index = uint(subdiv_loop_edge_index[loop_idx]);
-    const uint subdiv_edge_index = uint(subdiv_loop_subdiv_edge_index[loop_idx]);
+  const IndexRange subdiv_face(subdiv_quad_index * 4, 4);
+
+  for (const int corner : subdiv_face) {
+    const uint coarse_edge_index = uint(subdiv_loop_edge_index[corner]);
+    const uint subdiv_edge_index = uint(subdiv_loop_subdiv_edge_index[corner]);
 
     if (coarse_edge_index == -1u) {
       GPU_indexbuf_set_line_restart(&data->elb, subdiv_edge_index);
@@ -125,8 +123,7 @@ static void extract_lines_paint_mask_iter_subdiv_mesh(const DRWSubdivCache &subd
       if (!((mr.use_hide && !mr.hide_edge.is_empty() && mr.hide_edge[coarse_edge_index]) ||
             ((mr.e_origindex) && (mr.e_origindex[coarse_edge_index] == ORIGINDEX_NONE))))
       {
-        const uint ml_index_other = (loop_idx == (end_loop_idx - 1)) ? start_loop_idx :
-                                                                       loop_idx + 1;
+        const int corner_next = bke::mesh::face_corner_next(subdiv_face, corner);
         if (!mr.select_poly.is_empty() && mr.select_poly[coarse_quad_index]) {
           if (BLI_BITMAP_TEST_AND_SET_ATOMIC(data->select_map, coarse_edge_index)) {
             /* Hide edge as it has more than 2 selected loop. */
@@ -134,13 +131,13 @@ static void extract_lines_paint_mask_iter_subdiv_mesh(const DRWSubdivCache &subd
           }
           else {
             /* First selected loop. Set edge visible, overwriting any unselected loop. */
-            GPU_indexbuf_set_line_verts(&data->elb, subdiv_edge_index, loop_idx, ml_index_other);
+            GPU_indexbuf_set_line_verts(&data->elb, subdiv_edge_index, corner, corner_next);
           }
         }
         else {
           /* Set these unselected loop only if this edge has no other selected loop. */
           if (!BLI_BITMAP_TEST(data->select_map, coarse_edge_index)) {
-            GPU_indexbuf_set_line_verts(&data->elb, subdiv_edge_index, loop_idx, ml_index_other);
+            GPU_indexbuf_set_line_verts(&data->elb, subdiv_edge_index, corner, corner_next);
           }
         }
       }

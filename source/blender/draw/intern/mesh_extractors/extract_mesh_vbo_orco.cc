@@ -64,10 +64,10 @@ static void extract_orco_iter_face_bm(const MeshRenderData & /*mr*/,
 
 static void extract_orco_iter_face_mesh(const MeshRenderData &mr, const int face_index, void *data)
 {
-  for (const int ml_index : mr.faces[face_index]) {
-    const int vert = mr.corner_verts[ml_index];
+  for (const int corner : mr.faces[face_index]) {
+    const int vert = mr.corner_verts[corner];
     MeshExtract_Orco_Data *orco_data = (MeshExtract_Orco_Data *)data;
-    float *loop_orco = orco_data->vbo_data[ml_index];
+    float *loop_orco = orco_data->vbo_data[corner];
     copy_v3_v3(loop_orco, orco_data->orco[vert]);
     loop_orco[3] = 0.0; /* Tag as not a generic attribute. */
   }

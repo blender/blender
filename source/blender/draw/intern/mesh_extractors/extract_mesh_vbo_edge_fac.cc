@@ -117,21 +117,21 @@ static void extract_edge_fac_iter_face_mesh(const MeshRenderData &mr,
   const IndexRange face = mr.faces[face_index];
   const BitSpan optimal_display_edges = mr.mesh->runtime->subsurf_optimal_display_edges;
 
-  for (const int ml_index : face) {
-    const int edge = mr.corner_edges[ml_index];
+  for (const int corner : face) {
+    const int edge = mr.corner_edges[corner];
 
     if (data->use_edge_render && !optimal_display_edges[edge]) {
-      data->vbo_data[ml_index] = FORCE_HIDE;
+      data->vbo_data[corner] = FORCE_HIDE;
     }
     else {
       MEdgeDataPrev *medata = &data->edge_pdata[edge];
 
       uint8_t corner_count = data->edge_loop_count[edge];
-      data->vbo_data[ml_index] = 0;
+      data->vbo_data[corner] = 0;
       if (corner_count < 4) {
         if (corner_count == 0) {
           /* Prepare to calculate the factor. */
-          medata->corner_a = ml_index;
+          medata->corner_a = corner;
           medata->data = face_index;
         }
         else if (corner_count == 1) {
@@ -140,10 +140,10 @@ static void extract_edge_fac_iter_face_mesh(const MeshRenderData &mr,
           uint8_t fac = loop_edge_factor_get(float3(mr.face_normals[face_index_a]),
                                              float3(mr.face_normals[face_index]));
           data->vbo_data[medata->corner_a] = fac;
-          data->vbo_data[ml_index] = fac;
+          data->vbo_data[corner] = fac;
 
           /* If the count still changes, use this `data` member to inform the corner. */
-          medata->data = ml_index;
+          medata->data = corner;
         }
         else {
           /* Non-manifold edge. Always visible. */
@@ -206,8 +206,8 @@ static void extract_edge_fac_finish(const MeshRenderData &mr,
     GPU_vertbuf_data_alloc(vbo, buf_len);
 
     float *fdata_legacy = (float *)GPU_vertbuf_get_data(vbo);
-    for (int ml_index = 0; ml_index < buf_len; ml_index++, fdata_legacy++) {
-      *fdata_legacy = data->vbo_data[ml_index] / 255.0f;
+    for (int corner = 0; corner < buf_len; corner++, fdata_legacy++) {
+      *fdata_legacy = data->vbo_data[corner] / 255.0f;
     }
     /* Free old byte data. */
     MEM_freeN(data->vbo_data);

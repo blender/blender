@@ -62,11 +62,11 @@ static void extract_lnor_iter_face_mesh(const MeshRenderData &mr, const int face
 {
   const bool hidden = !mr.hide_poly.is_empty() && mr.hide_poly[face_index];
 
-  for (const int ml_index : mr.faces[face_index]) {
-    const int vert = mr.corner_verts[ml_index];
-    GPUPackedNormal *lnor_data = &(*(GPUPackedNormal **)data)[ml_index];
+  for (const int corner : mr.faces[face_index]) {
+    const int vert = mr.corner_verts[corner];
+    GPUPackedNormal *lnor_data = &(*(GPUPackedNormal **)data)[corner];
     if (!mr.loop_normals.is_empty()) {
-      *lnor_data = GPU_normal_convert_i10_v3(mr.loop_normals[ml_index]);
+      *lnor_data = GPU_normal_convert_i10_v3(mr.loop_normals[corner]);
     }
     else if (mr.normals_domain == bke::MeshNormalDomain::Face ||
              (!mr.sharp_faces.is_empty() && mr.sharp_faces[face_index]))
@@ -185,11 +185,11 @@ static void extract_lnor_hq_iter_face_mesh(const MeshRenderData &mr,
 {
   const bool hidden = !mr.hide_poly.is_empty() && mr.hide_poly[face_index];
 
-  for (const int ml_index : mr.faces[face_index]) {
-    const int vert = mr.corner_verts[ml_index];
-    gpuHQNor *lnor_data = &(*(gpuHQNor **)data)[ml_index];
+  for (const int corner : mr.faces[face_index]) {
+    const int vert = mr.corner_verts[corner];
+    gpuHQNor *lnor_data = &(*(gpuHQNor **)data)[corner];
     if (!mr.loop_normals.is_empty()) {
-      normal_float_to_short_v3(&lnor_data->x, mr.loop_normals[ml_index]);
+      normal_float_to_short_v3(&lnor_data->x, mr.loop_normals[corner]);
     }
     else if (mr.normals_domain == bke::MeshNormalDomain::Face ||
              (!mr.sharp_faces.is_empty() && mr.sharp_faces[face_index]))

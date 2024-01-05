@@ -140,15 +140,15 @@ static void extract_weights_iter_face_mesh(const MeshRenderData &mr,
                                            void *_data)
 {
   MeshExtract_Weight_Data *data = static_cast<MeshExtract_Weight_Data *>(_data);
-  for (const int ml_index : mr.faces[face_index]) {
-    const int vert = mr.corner_verts[ml_index];
+  for (const int corner : mr.faces[face_index]) {
+    const int vert = mr.corner_verts[corner];
     if (data->dvert != nullptr) {
       const MDeformVert *dvert = &data->dvert[vert];
-      data->vbo_data[ml_index] = evaluate_vertex_weight(dvert, data->wstate);
+      data->vbo_data[corner] = evaluate_vertex_weight(dvert, data->wstate);
     }
     else {
       const MDeformVert *dvert = nullptr;
-      data->vbo_data[ml_index] = evaluate_vertex_weight(dvert, data->wstate);
+      data->vbo_data[corner] = evaluate_vertex_weight(dvert, data->wstate);
     }
   }
 }

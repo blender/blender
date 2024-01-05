@@ -96,25 +96,23 @@ static void extract_lines_iter_face_mesh(const MeshRenderData &mr,
 
   /* Using face & loop iterator would complicate accessing the adjacent loop. */
   if (data->test_visibility) {
-    const int ml_index_last = face.last();
-    int ml_index = ml_index_last, ml_index_next = face.start();
-    do {
-      const int edge = mr.corner_edges[ml_index];
+    for (const int corner : face) {
+      const int edge = mr.corner_edges[corner];
+      const int corner_next = bke::mesh::face_corner_next(face, corner);
       if (is_edge_visible(data, edge)) {
-        GPU_indexbuf_set_line_verts(elb, edge, ml_index, ml_index_next);
+        GPU_indexbuf_set_line_verts(elb, edge, corner, corner_next);
       }
       else {
         GPU_indexbuf_set_line_restart(elb, edge);
       }
-    } while ((ml_index = ml_index_next++) != ml_index_last);
+    }
   }
   else {
-    const int ml_index_last = face.last();
-    int ml_index = ml_index_last, ml_index_next = face.start();
-    do {
-      const int edge = mr.corner_edges[ml_index];
-      GPU_indexbuf_set_line_verts(elb, edge, ml_index, ml_index_next);
-    } while ((ml_index = ml_index_next++) != ml_index_last);
+    for (const int corner : face) {
+      const int edge = mr.corner_edges[corner];
+      const int corner_next = bke::mesh::face_corner_next(face, corner);
+      GPU_indexbuf_set_line_verts(elb, edge, corner, corner_next);
+    }
   }
 }
 
