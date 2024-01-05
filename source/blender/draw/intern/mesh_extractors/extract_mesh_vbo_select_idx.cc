@@ -215,7 +215,7 @@ static void extract_vert_idx_loose_geom_subdiv(const DRWSubdivCache &subdiv_cach
   int32_t *vert_idx_data = (int32_t *)GPU_vertbuf_get_data(vbo);
   uint offset = subdiv_cache.num_subdiv_loops;
 
-  blender::Span<DRWSubdivLooseEdge> loose_edges = draw_subdiv_cache_get_loose_edges(subdiv_cache);
+  Span<DRWSubdivLooseEdge> loose_edges = draw_subdiv_cache_get_loose_edges(subdiv_cache);
 
   for (const DRWSubdivLooseEdge &loose_edge : loose_edges) {
     const DRWSubdivLooseVertex &v1 = loose_geom.verts[loose_edge.loose_subdiv_v1_index];
@@ -234,8 +234,7 @@ static void extract_vert_idx_loose_geom_subdiv(const DRWSubdivCache &subdiv_cach
     offset += 2;
   }
 
-  blender::Span<DRWSubdivLooseVertex> loose_verts = draw_subdiv_cache_get_loose_verts(
-      subdiv_cache);
+  Span<DRWSubdivLooseVertex> loose_verts = draw_subdiv_cache_get_loose_verts(subdiv_cache);
 
   for (const DRWSubdivLooseVertex &loose_vert : loose_verts) {
     vert_idx_data[offset] = mr.v_origindex ? mr.v_origindex[loose_vert.coarse_vertex_index] :
@@ -273,7 +272,7 @@ static void extract_edge_idx_loose_geom_subdiv(const DRWSubdivCache &subdiv_cach
   int32_t *vert_idx_data = (int32_t *)GPU_vertbuf_get_data(vbo);
   uint offset = subdiv_cache.num_subdiv_loops;
 
-  blender::Span<DRWSubdivLooseEdge> loose_edges = draw_subdiv_cache_get_loose_edges(subdiv_cache);
+  Span<DRWSubdivLooseEdge> loose_edges = draw_subdiv_cache_get_loose_edges(subdiv_cache);
   for (const DRWSubdivLooseEdge &loose_edge : loose_edges) {
     const int coarse_edge_index = mr.e_origindex ? mr.e_origindex[loose_edge.coarse_edge_index] :
                                                    loose_edge.coarse_edge_index;
@@ -399,9 +398,9 @@ constexpr MeshExtract create_extractor_fdot_idx()
 
 /** \} */
 
-}  // namespace blender::draw
+const MeshExtract extract_face_idx = create_extractor_face_idx();
+const MeshExtract extract_edge_idx = create_extractor_edge_idx();
+const MeshExtract extract_vert_idx = create_extractor_vert_idx();
+const MeshExtract extract_fdot_idx = create_extractor_fdot_idx();
 
-const MeshExtract extract_face_idx = blender::draw::create_extractor_face_idx();
-const MeshExtract extract_edge_idx = blender::draw::create_extractor_edge_idx();
-const MeshExtract extract_vert_idx = blender::draw::create_extractor_vert_idx();
-const MeshExtract extract_fdot_idx = blender::draw::create_extractor_fdot_idx();
+}  // namespace blender::draw

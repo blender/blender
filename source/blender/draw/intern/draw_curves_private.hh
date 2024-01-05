@@ -17,6 +17,8 @@ struct GPUVertBuf;
 struct GPUBatch;
 struct GPUMaterial;
 
+namespace blender::draw {
+
 #define MAX_THICKRES 2    /* see eHairType */
 #define MAX_HAIR_SUBDIV 4 /* see hair_subdiv rna */
 
@@ -91,3 +93,5 @@ bool curves_ensure_procedural_data(Curves *curves,
                                    int thickness_res);
 
 void drw_curves_get_attribute_sampler_name(const char *layer_name, char r_sampler_name[32]);
+
+}

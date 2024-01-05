@@ -330,7 +330,7 @@ static void extract_pos_nor_loose_geom_subdiv(const DRWSubdivCache &subdiv_cache
   /* Make sure buffer is active for sending loose data. */
   GPU_vertbuf_use(vbo);
 
-  blender::Span<DRWSubdivLooseEdge> loose_edges = draw_subdiv_cache_get_loose_edges(subdiv_cache);
+  Span<DRWSubdivLooseEdge> loose_edges = draw_subdiv_cache_get_loose_edges(subdiv_cache);
 
   SubdivPosNorLoop edge_data[2];
   memset(edge_data, 0, sizeof(SubdivPosNorLoop) * 2);
@@ -349,8 +349,7 @@ static void extract_pos_nor_loose_geom_subdiv(const DRWSubdivCache &subdiv_cache
 
   SubdivPosNorLoop vert_data;
   memset(&vert_data, 0, sizeof(SubdivPosNorLoop));
-  blender::Span<DRWSubdivLooseVertex> loose_verts = draw_subdiv_cache_get_loose_verts(
-      subdiv_cache);
+  Span<DRWSubdivLooseVertex> loose_verts = draw_subdiv_cache_get_loose_verts(subdiv_cache);
 
   for (const DRWSubdivLooseVertex &loose_vert : loose_verts) {
     copy_v3_v3(vert_data.pos, loose_vert.co);
@@ -575,7 +574,7 @@ constexpr MeshExtract create_extractor_pos_nor_hq()
 
 /** \} */
 
-}  // namespace blender::draw
+const MeshExtract extract_pos_nor = create_extractor_pos_nor();
+const MeshExtract extract_pos_nor_hq = create_extractor_pos_nor_hq();
 
-const MeshExtract extract_pos_nor = blender::draw::create_extractor_pos_nor();
-const MeshExtract extract_pos_nor_hq = blender::draw::create_extractor_pos_nor_hq();
+}  // namespace blender::draw

@@ -74,7 +74,8 @@ GPUShader *DRW_shader_hair_refine_get(ParticleRefineShader refinement,
   return e_data.hair_refine_sh[refinement];
 }
 
-GPUShader *DRW_shader_curves_refine_get(CurvesEvalShader type, eParticleRefineShaderType sh_type)
+GPUShader *DRW_shader_curves_refine_get(blender::draw::CurvesEvalShader type,
+                                        eParticleRefineShaderType sh_type)
 {
   /* TODO: Implement curves evaluation types (Bezier and Catmull Rom). */
   if (e_data.hair_refine_sh[type] == nullptr) {

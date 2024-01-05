@@ -42,6 +42,7 @@ void OVERLAY_edit_mesh_init(OVERLAY_Data *vedata)
 
 void OVERLAY_edit_mesh_cache_init(OVERLAY_Data *vedata)
 {
+  using namespace blender::draw;
   OVERLAY_TextureList *txl = vedata->txl;
   OVERLAY_PassList *psl = vedata->psl;
   OVERLAY_PrivateData *pd = vedata->stl->pd;
@@ -226,6 +227,7 @@ void OVERLAY_edit_mesh_cache_init(OVERLAY_Data *vedata)
 
 static void overlay_edit_mesh_add_ob_to_pass(OVERLAY_PrivateData *pd, Object *ob, bool in_front)
 {
+  using namespace blender::draw;
   GPUBatch *geom_tris, *geom_verts, *geom_edges, *geom_fcenter, *skin_roots, *circle;
   DRWShadingGroup *vert_shgrp, *edge_shgrp, *fdot_shgrp, *face_shgrp, *skin_roots_shgrp;
 
@@ -273,6 +275,7 @@ static void overlay_edit_mesh_add_ob_to_pass(OVERLAY_PrivateData *pd, Object *ob
 
 void OVERLAY_edit_mesh_cache_populate(OVERLAY_Data *vedata, Object *ob)
 {
+  using namespace blender::draw;
   OVERLAY_PrivateData *pd = vedata->stl->pd;
   GPUBatch *geom = nullptr;
 

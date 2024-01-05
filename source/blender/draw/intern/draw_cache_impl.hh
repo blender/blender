@@ -27,6 +27,8 @@ struct GreasePencil;
 
 #include "BKE_mesh.h"
 
+namespace blender::draw {
+
 /* -------------------------------------------------------------------- */
 /** \name Expose via BKE callbacks
  * \{ */
@@ -323,3 +325,5 @@ GPUBatch *DRW_particles_batch_cache_get_edit_tip_points(Object *object,
                                                         PTCacheEdit *edit);
 
 /** \} */
+
+}  // namespace blender::draw

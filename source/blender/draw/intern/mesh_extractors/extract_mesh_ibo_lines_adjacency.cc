@@ -266,6 +266,6 @@ constexpr MeshExtract create_extractor_lines_adjacency()
 
 /** \} */
 
-}  // namespace blender::draw
+const MeshExtract extract_lines_adjacency = create_extractor_lines_adjacency();
 
-const MeshExtract extract_lines_adjacency = blender::draw::create_extractor_lines_adjacency();
+}  // namespace blender::draw

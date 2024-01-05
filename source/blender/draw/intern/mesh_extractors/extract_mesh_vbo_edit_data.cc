@@ -313,7 +313,7 @@ static void extract_edit_data_loose_geom_subdiv(const DRWSubdivCache &subdiv_cac
     return;
   }
 
-  blender::Span<DRWSubdivLooseEdge> loose_edges = draw_subdiv_cache_get_loose_edges(subdiv_cache);
+  Span<DRWSubdivLooseEdge> loose_edges = draw_subdiv_cache_get_loose_edges(subdiv_cache);
 
   EditLoopData *vbo_data = *(EditLoopData **)_data;
   int loose_edge_i = 0;
@@ -363,6 +363,6 @@ constexpr MeshExtract create_extractor_edit_data()
 
 /** \} */
 
-}  // namespace blender::draw
+const MeshExtract extract_edit_data = create_extractor_edit_data();
 
-const MeshExtract extract_edit_data = blender::draw::create_extractor_edit_data();
+}  // namespace blender::draw

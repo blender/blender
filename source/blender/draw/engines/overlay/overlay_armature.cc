@@ -849,6 +849,7 @@ static void drw_shgroup_bone_custom_solid_mesh(const ArmatureDrawContext *ctx,
                                                const float outline_color[4],
                                                Object *custom)
 {
+  using namespace blender::draw;
   /* TODO(fclem): arg... less than ideal but we never iter on this object
    * to assure batch cache is valid. */
   DRW_mesh_batch_cache_validate(custom, mesh);
@@ -893,6 +894,7 @@ static void drw_shgroup_bone_custom_mesh_wire(const ArmatureDrawContext *ctx,
                                               const float color[4],
                                               Object *custom)
 {
+  using namespace blender::draw;
   /* TODO(fclem): arg... less than ideal but we never iter on this object
    * to assure batch cache is valid. */
   DRW_mesh_batch_cache_validate(custom, mesh);
@@ -917,6 +919,7 @@ static void drw_shgroup_custom_bone_curve(const ArmatureDrawContext *ctx,
                                           const float outline_color[4],
                                           Object *custom)
 {
+  using namespace blender::draw;
   /* TODO(fclem): arg... less than ideal but we never iter on this object
    * to assure batch cache is valid. */
   DRW_curve_batch_cache_validate(curve);

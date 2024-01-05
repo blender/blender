@@ -207,6 +207,6 @@ constexpr MeshExtract create_extractor_weights()
 
 /** \} */
 
-}  // namespace blender::draw
+const MeshExtract extract_weights = create_extractor_weights();
 
-const MeshExtract extract_weights = blender::draw::create_extractor_weights();
+}  // namespace blender::draw

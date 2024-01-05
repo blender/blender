@@ -88,6 +88,6 @@ constexpr MeshExtract create_extractor_orco()
 
 /** \} */
 
-}  // namespace blender::draw
+const MeshExtract extract_orco = create_extractor_orco();
 
-const MeshExtract extract_orco = blender::draw::create_extractor_orco();
+}  // namespace blender::draw

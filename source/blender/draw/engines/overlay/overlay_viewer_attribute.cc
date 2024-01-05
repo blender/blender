@@ -56,6 +56,7 @@ static void populate_cache_for_instance(Object &object,
 {
   using namespace blender;
   using namespace blender::bke;
+  using namespace blender::draw;
 
   const GeometrySet &base_geometry = *dupli_object.preview_base_geometry;
   const InstancesComponent &instances = *base_geometry.get_component<InstancesComponent>();
@@ -108,6 +109,7 @@ static void populate_cache_for_geometry(Object &object,
 {
   using namespace blender;
   using namespace blender::bke;
+  using namespace blender::draw;
 
   switch (object.type) {
     case OB_MESH: {

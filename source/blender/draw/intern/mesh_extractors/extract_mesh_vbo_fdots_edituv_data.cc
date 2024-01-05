@@ -79,6 +79,6 @@ constexpr MeshExtract create_extractor_fdots_edituv_data()
 
 /** \} */
 
-}  // namespace blender::draw
+const MeshExtract extract_fdots_edituv_data = create_extractor_fdots_edituv_data();
 
-const MeshExtract extract_fdots_edituv_data = blender::draw::create_extractor_fdots_edituv_data();
+}  // namespace blender::draw

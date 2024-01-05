@@ -538,6 +538,7 @@ static void eevee_render_draw_background(EEVEE_Data *vedata)
 
 void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl, const rcti *rect)
 {
+  using namespace blender::draw;
   const char *viewname = RE_GetActiveRenderView(engine->re);
   EEVEE_PassList *psl = vedata->psl;
   EEVEE_StorageList *stl = vedata->stl;

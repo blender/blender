@@ -181,13 +181,14 @@ void OVERLAY_edit_uv_init(OVERLAY_Data *vedata)
 
 void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
 {
+  using namespace blender::draw;
   OVERLAY_StorageList *stl = vedata->stl;
   OVERLAY_PassList *psl = vedata->psl;
   OVERLAY_PrivateData *pd = stl->pd;
 
   const DRWContextState *draw_ctx = DRW_context_state_get();
   SpaceImage *sima = (SpaceImage *)draw_ctx->space_data;
-  Image *image = sima->image;
+  ::Image *image = sima->image;
   const Scene *scene = draw_ctx->scene;
   ToolSettings *ts = scene->toolsettings;
 
@@ -350,7 +351,7 @@ void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
 
   if (pd->edit_uv.do_stencil_overlay) {
     const Brush *brush = BKE_paint_brush(&ts->imapaint.paint);
-    Image *stencil_image = brush->clone.image;
+    ::Image *stencil_image = brush->clone.image;
     ImBuf *stencil_ibuf = BKE_image_acquire_ibuf(
         stencil_image, nullptr, &pd->edit_uv.stencil_lock);
 
@@ -435,6 +436,7 @@ void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
 
 static void overlay_edit_uv_cache_populate(OVERLAY_Data *vedata, Object *ob)
 {
+  using namespace blender::draw;
   if (!(DRW_object_visibility_in_active_context(ob) & OB_VISIBLE_SELF)) {
     return;
   }

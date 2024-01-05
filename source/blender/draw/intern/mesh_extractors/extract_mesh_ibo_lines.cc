@@ -398,9 +398,8 @@ constexpr MeshExtract create_extractor_lines_loose_only()
 
 /** \} */
 
-}  // namespace blender::draw
+const MeshExtract extract_lines = create_extractor_lines();
+const MeshExtract extract_lines_with_lines_loose = create_extractor_lines_with_lines_loose();
+const MeshExtract extract_lines_loose_only = create_extractor_lines_loose_only();
 
-const MeshExtract extract_lines = blender::draw::create_extractor_lines();
-const MeshExtract extract_lines_with_lines_loose =
-    blender::draw::create_extractor_lines_with_lines_loose();
-const MeshExtract extract_lines_loose_only = blender::draw::create_extractor_lines_loose_only();
+}  // namespace blender::draw

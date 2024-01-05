@@ -220,8 +220,7 @@ static void extract_points_loose_geom_subdiv(const DRWSubdivCache &subdiv_cache,
   uint offset = subdiv_cache.num_subdiv_loops;
 
   if (mr.extract_type != MR_EXTRACT_BMESH) {
-    blender::Span<DRWSubdivLooseEdge> loose_edges = draw_subdiv_cache_get_loose_edges(
-        subdiv_cache);
+    Span<DRWSubdivLooseEdge> loose_edges = draw_subdiv_cache_get_loose_edges(subdiv_cache);
 
     for (const DRWSubdivLooseEdge &loose_edge : loose_edges) {
       const DRWSubdivLooseVertex &v1 = loose_geom.verts[loose_edge.loose_subdiv_v1_index];
@@ -235,8 +234,7 @@ static void extract_points_loose_geom_subdiv(const DRWSubdivCache &subdiv_cache,
 
       offset += 2;
     }
-    blender::Span<DRWSubdivLooseVertex> loose_verts = draw_subdiv_cache_get_loose_verts(
-        subdiv_cache);
+    Span<DRWSubdivLooseVertex> loose_verts = draw_subdiv_cache_get_loose_verts(subdiv_cache);
 
     for (const DRWSubdivLooseVertex &loose_vert : loose_verts) {
       vert_set_mesh(elb, mr, loose_vert.coarse_vertex_index, offset);
@@ -244,8 +242,7 @@ static void extract_points_loose_geom_subdiv(const DRWSubdivCache &subdiv_cache,
     }
   }
   else {
-    blender::Span<DRWSubdivLooseEdge> loose_edges = draw_subdiv_cache_get_loose_edges(
-        subdiv_cache);
+    Span<DRWSubdivLooseEdge> loose_edges = draw_subdiv_cache_get_loose_edges(subdiv_cache);
 
     for (const DRWSubdivLooseEdge &loose_edge : loose_edges) {
       const DRWSubdivLooseVertex &v1 = loose_geom.verts[loose_edge.loose_subdiv_v1_index];
@@ -263,8 +260,7 @@ static void extract_points_loose_geom_subdiv(const DRWSubdivCache &subdiv_cache,
 
       offset += 2;
     }
-    blender::Span<DRWSubdivLooseVertex> loose_verts = draw_subdiv_cache_get_loose_verts(
-        subdiv_cache);
+    Span<DRWSubdivLooseVertex> loose_verts = draw_subdiv_cache_get_loose_verts(subdiv_cache);
 
     for (const DRWSubdivLooseVertex &loose_vert : loose_verts) {
       BMVert *eve = mr.v_origindex ? bm_original_vert_get(mr, loose_vert.coarse_vertex_index) :
@@ -312,6 +308,6 @@ constexpr MeshExtract create_extractor_points()
 
 /** \} */
 
-}  // namespace blender::draw
+const MeshExtract extract_points = create_extractor_points();
 
-const MeshExtract extract_points = blender::draw::create_extractor_points();
+}  // namespace blender::draw

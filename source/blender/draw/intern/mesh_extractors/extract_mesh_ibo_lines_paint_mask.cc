@@ -178,6 +178,6 @@ constexpr MeshExtract create_extractor_lines_paint_mask()
 
 /** \} */
 
-}  // namespace blender::draw
+const MeshExtract extract_lines_paint_mask = create_extractor_lines_paint_mask();
 
-const MeshExtract extract_lines_paint_mask = blender::draw::create_extractor_lines_paint_mask();
+}  // namespace blender::draw

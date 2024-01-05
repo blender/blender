@@ -350,6 +350,6 @@ constexpr MeshExtract create_extractor_edge_fac()
 
 /** \} */
 
-}  // namespace blender::draw
+const MeshExtract extract_edge_fac = create_extractor_edge_fac();
 
-const MeshExtract extract_edge_fac = blender::draw::create_extractor_edge_fac();
+}  // namespace blender::draw

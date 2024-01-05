@@ -38,6 +38,8 @@
 #  include "PIL_time_utildefines.h"
 #endif
 
+namespace blender::draw {
+
 int mesh_render_mat_len_get(const Object *object, const Mesh *mesh)
 {
   if (mesh->edit_mesh != nullptr) {
@@ -48,8 +50,6 @@ int mesh_render_mat_len_get(const Object *object, const Mesh *mesh)
   }
   return std::max<int>(1, mesh->totcol);
 }
-
-namespace blender::draw {
 
 /* ---------------------------------------------------------------------- */
 /** \name Mesh Elements Extract Struct

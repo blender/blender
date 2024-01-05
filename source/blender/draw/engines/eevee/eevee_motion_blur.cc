@@ -278,6 +278,7 @@ void EEVEE_motion_blur_curves_cache_populate(EEVEE_ViewLayerData * /*sldata*/,
                                              EEVEE_Data *vedata,
                                              Object *ob)
 {
+  using namespace blender::draw;
   EEVEE_PassList *psl = vedata->psl;
   EEVEE_StorageList *stl = vedata->stl;
   EEVEE_EffectsInfo *effects = stl->effects;
@@ -433,6 +434,7 @@ static void motion_blur_remove_vbo_reference_from_batch(GPUBatch *batch,
 
 void EEVEE_motion_blur_cache_finish(EEVEE_Data *vedata)
 {
+  using namespace blender::draw;
   EEVEE_StorageList *stl = vedata->stl;
   EEVEE_EffectsInfo *effects = stl->effects;
   GHashIterator ghi;

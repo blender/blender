@@ -66,10 +66,7 @@
 
 #include "mesh_extractors/extract_mesh.hh"
 
-using blender::IndexRange;
-using blender::Map;
-using blender::Span;
-using blender::StringRefNull;
+namespace blender::draw {
 
 /* ---------------------------------------------------------------------- */
 /** \name Dependencies between buffer and batch
@@ -276,7 +273,6 @@ static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Object *object,
                                                    int gpumat_array_len,
                                                    DRW_Attributes *attributes)
 {
-  using namespace blender;
   const Mesh *me_final = editmesh_final_or_this(object, mesh);
   const CustomData *cd_ldata = mesh_cd_ldata_get_from_mesh(me_final);
   const CustomData *cd_pdata = mesh_cd_pdata_get_from_mesh(me_final);
@@ -867,7 +863,6 @@ static void request_active_and_default_color_attributes(const Object &object,
                                                         const Mesh &mesh,
                                                         DRW_Attributes &attributes)
 {
-  using namespace blender;
   const Mesh *me_final = editmesh_final_or_this(&object, &mesh);
   const CustomData *cd_vdata = mesh_cd_vdata_get_from_mesh(me_final);
   const CustomData *cd_ldata = mesh_cd_ldata_get_from_mesh(me_final);
@@ -1342,7 +1337,6 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph *task_graph,
                                            const bool is_paint_mode,
                                            const bool use_hide)
 {
-  using namespace blender;
   BLI_assert(task_graph);
   const ToolSettings *ts = nullptr;
   if (scene) {
@@ -1866,37 +1860,37 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph *task_graph,
 #endif
 
   if (do_uvcage) {
-    blender::draw::mesh_buffer_cache_create_requested(task_graph,
-                                                      cache,
-                                                      cache.uv_cage,
-                                                      ob,
-                                                      mesh,
-                                                      is_editmode,
-                                                      is_paint_mode,
-                                                      is_mode_active,
-                                                      ob->object_to_world,
-                                                      false,
-                                                      true,
-                                                      scene,
-                                                      ts,
-                                                      true);
+    mesh_buffer_cache_create_requested(task_graph,
+                                       cache,
+                                       cache.uv_cage,
+                                       ob,
+                                       mesh,
+                                       is_editmode,
+                                       is_paint_mode,
+                                       is_mode_active,
+                                       ob->object_to_world,
+                                       false,
+                                       true,
+                                       scene,
+                                       ts,
+                                       true);
   }
 
   if (do_cage) {
-    blender::draw::mesh_buffer_cache_create_requested(task_graph,
-                                                      cache,
-                                                      cache.cage,
-                                                      ob,
-                                                      mesh,
-                                                      is_editmode,
-                                                      is_paint_mode,
-                                                      is_mode_active,
-                                                      ob->object_to_world,
-                                                      false,
-                                                      false,
-                                                      scene,
-                                                      ts,
-                                                      true);
+    mesh_buffer_cache_create_requested(task_graph,
+                                       cache,
+                                       cache.cage,
+                                       ob,
+                                       mesh,
+                                       is_editmode,
+                                       is_paint_mode,
+                                       is_mode_active,
+                                       ob->object_to_world,
+                                       false,
+                                       false,
+                                       scene,
+                                       ts,
+                                       true);
   }
 
   if (do_subdivision) {
@@ -1920,20 +1914,20 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph *task_graph,
     mesh_batch_cache_free_subdiv_cache(cache);
   }
 
-  blender::draw::mesh_buffer_cache_create_requested(task_graph,
-                                                    cache,
-                                                    cache.final,
-                                                    ob,
-                                                    mesh,
-                                                    is_editmode,
-                                                    is_paint_mode,
-                                                    is_mode_active,
-                                                    ob->object_to_world,
-                                                    true,
-                                                    false,
-                                                    scene,
-                                                    ts,
-                                                    use_hide);
+  mesh_buffer_cache_create_requested(task_graph,
+                                     cache,
+                                     cache.final,
+                                     ob,
+                                     mesh,
+                                     is_editmode,
+                                     is_paint_mode,
+                                     is_mode_active,
+                                     ob->object_to_world,
+                                     true,
+                                     false,
+                                     scene,
+                                     ts,
+                                     use_hide);
 
   /* Ensure that all requested batches have finished.
    * Ideally we want to remove this sync, but there are cases where this doesn't work.
@@ -1949,3 +1943,5 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph *task_graph,
 }
 
 /** \} */
+
+}  // namespace blender::draw

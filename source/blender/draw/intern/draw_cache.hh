@@ -247,8 +247,10 @@ typedef struct DRWVolumeGrid {
   float bounds_to_texture[4][4];
 } DRWVolumeGrid;
 
+namespace blender::draw {
+
 DRWVolumeGrid *DRW_volume_batch_cache_get_grid(struct Volume *volume,
-                                               const blender::bke::VolumeGridData *grid);
+                                               const bke::VolumeGridData *grid);
 struct GPUBatch *DRW_cache_volume_face_wireframe_get(struct Object *ob);
 struct GPUBatch *DRW_cache_volume_selection_surface_get(struct Object *ob);
 
@@ -286,3 +288,4 @@ struct GPUVertBuf *DRW_cache_grease_pencil_position_buffer_get(const struct Scen
                                                                struct Object *ob);
 struct GPUVertBuf *DRW_cache_grease_pencil_color_buffer_get(const struct Scene *scene,
                                                             struct Object *ob);
+}  // namespace blender::draw

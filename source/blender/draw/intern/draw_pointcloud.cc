@@ -25,8 +25,13 @@
 #include "draw_attributes.hh"
 #include "draw_cache_impl.hh"
 #include "draw_common.h"
+#include "draw_common.hh"
 #include "draw_manager.h"
 #include "draw_pointcloud_private.hh"
+/* For drw_curves_get_attribute_sampler_name. */
+#include "draw_curves_private.hh"
+
+namespace blender::draw {
 
 static GPUVertBuf *g_dummy_vbo = nullptr;
 
@@ -96,11 +101,6 @@ void DRW_pointcloud_free()
 {
   GPU_VERTBUF_DISCARD_SAFE(g_dummy_vbo);
 }
-
-#include "draw_common.hh"
-/* For drw_curves_get_attribute_sampler_name. */
-#include "draw_curves_private.hh"
-namespace blender::draw {
 
 template<typename PassT>
 GPUBatch *point_cloud_sub_pass_setup_implementation(PassT &sub_ps,

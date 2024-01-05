@@ -35,7 +35,9 @@
 /** \name Update Loose Geometry
  * \{ */
 
-static void extract_set_bits(const blender::BitSpan bits, blender::MutableSpan<int> indices)
+namespace blender::draw {
+
+static void extract_set_bits(const BitSpan bits, MutableSpan<int> indices)
 {
   int count = 0;
   for (const int64_t i : bits.index_range()) {
@@ -49,7 +51,6 @@ static void extract_set_bits(const blender::BitSpan bits, blender::MutableSpan<i
 
 static void mesh_render_data_loose_geom_mesh(const MeshRenderData &mr, MeshBufferCache &cache)
 {
-  using namespace blender;
   const Mesh &mesh = *mr.mesh;
   const bool no_loose_vert_hint = mesh.runtime->loose_verts_cache.is_cached() &&
                                   mesh.runtime->loose_verts_cache.data().count == 0;
@@ -77,7 +78,6 @@ static void mesh_render_data_loose_verts_bm(const MeshRenderData &mr,
                                             MeshBufferCache &cache,
                                             BMesh &bm)
 {
-  using namespace blender;
   int i;
   BMIter iter;
   BMVert *vert;
@@ -101,7 +101,6 @@ static void mesh_render_data_loose_edges_bm(const MeshRenderData &mr,
                                             MeshBufferCache &cache,
                                             BMesh &bm)
 {
-  using namespace blender;
   int i;
   BMIter iter;
   BMEdge *edge;
@@ -169,8 +168,6 @@ void mesh_render_data_update_loose_geom(MeshRenderData &mr,
  *
  * Contains face indices sorted based on their material.
  * \{ */
-
-namespace blender::draw {
 
 static void accumululate_material_counts_bm(
     const BMesh &bm, threading::EnumerableThreadSpecific<Array<int>> &all_tri_counts)
@@ -320,14 +317,12 @@ static void mesh_render_data_faces_sorted_ensure(MeshRenderData &mr, MeshBufferC
   mesh_render_data_faces_sorted_build(mr, cache);
 }
 
-}  // namespace blender::draw
-
 void mesh_render_data_update_faces_sorted(MeshRenderData &mr,
                                           MeshBufferCache &cache,
                                           const eMRDataType data_flag)
 {
   if (data_flag & MR_DATA_POLYS_SORTED) {
-    blender::draw::mesh_render_data_faces_sorted_ensure(mr, cache);
+    mesh_render_data_faces_sorted_ensure(mr, cache);
     mr.face_sorted = &cache.face_sorted;
   }
 }
@@ -450,8 +445,6 @@ static bool bm_face_is_sharp(const BMFace *const &face)
  */
 static bool bm_loop_normals_required(BMesh *bm)
 {
-  using namespace blender;
-  using namespace blender::bke;
   if (bm->totface == 0) {
     return false;
   }
@@ -494,7 +487,7 @@ void mesh_render_data_update_normals(MeshRenderData &mr, const eMRDataType data_
       mr.face_normals = mr.mesh->face_normals();
     }
     if (((data_flag & MR_DATA_LOOP_NOR) && !mr.use_simplify_normals &&
-         mr.normals_domain == blender::bke::MeshNormalDomain::Corner) ||
+         mr.normals_domain == bke::MeshNormalDomain::Corner) ||
         (data_flag & MR_DATA_TAN_LOOP_NOR))
     {
       mr.loop_normals = mr.mesh->corner_normals();
@@ -556,7 +549,6 @@ MeshRenderData *mesh_render_data_create(Object *object,
                                         const bool do_uvedit,
                                         const ToolSettings *ts)
 {
-  using namespace blender;
   MeshRenderData *mr = MEM_new<MeshRenderData>(__func__);
   mr->toolsettings = ts;
   mr->mat_len = mesh_render_mat_len_get(object, mesh);
@@ -577,7 +569,7 @@ MeshRenderData *mesh_render_data_create(Object *object,
     mr->hide_unmapped_edges = !do_final || editmesh_eval_final == editmesh_eval_cage;
 
     if (mr->edit_data) {
-      blender::bke::EditMeshData *emd = mr->edit_data;
+      bke::EditMeshData *emd = mr->edit_data;
       if (!emd->vertexCos.is_empty()) {
         BKE_editmesh_cache_ensure_vert_normals(*mr->edit_bmesh, *emd);
         BKE_editmesh_cache_ensure_face_normals(*mr->edit_bmesh, *emd);
@@ -718,3 +710,5 @@ void mesh_render_data_free(MeshRenderData *mr)
 }
 
 /** \} */
+
+}  // namespace blender::draw

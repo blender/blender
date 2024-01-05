@@ -926,6 +926,7 @@ static void eevee_lightbake_delete_resources(EEVEE_LightBake *lbake)
 /* Cache as in draw cache not light cache. */
 static void eevee_lightbake_cache_create(EEVEE_Data *vedata, EEVEE_LightBake *lbake)
 {
+  using namespace blender::draw;
   EEVEE_TextureList *txl = vedata->txl;
   EEVEE_StorageList *stl = vedata->stl;
   EEVEE_FramebufferList *fbl = vedata->fbl;

@@ -1623,6 +1623,7 @@ static void view3d_update_viewer_path(const bContext *C)
 
 void view3d_main_region_draw(const bContext *C, ARegion *region)
 {
+  using namespace blender::draw;
   Main *bmain = CTX_data_main(C);
   View3D *v3d = CTX_wm_view3d(C);
 
@@ -1688,6 +1689,7 @@ void ED_view3d_draw_offscreen(Depsgraph *depsgraph,
                               GPUOffScreen *ofs,
                               GPUViewport *viewport)
 {
+  using namespace blender::draw;
   RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
   RenderEngineType *engine_type = ED_view3d_engine_type(scene, drawtype);
 

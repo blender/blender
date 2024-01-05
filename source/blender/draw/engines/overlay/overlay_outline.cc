@@ -187,6 +187,7 @@ static void gpencil_layer_cache_populate(bGPDlayer *gpl,
                                          bGPDstroke * /*gps*/,
                                          void *thunk)
 {
+  using namespace blender::draw;
   iterData *iter = (iterData *)thunk;
   bGPdata *gpd = (bGPdata *)iter->ob->data;
 
@@ -216,6 +217,7 @@ static void gpencil_stroke_cache_populate(bGPDlayer * /*gpl*/,
                                           bGPDstroke *gps,
                                           void *thunk)
 {
+  using namespace blender::draw;
   iterData *iter = (iterData *)thunk;
 
   MaterialGPencilStyle *gp_style = BKE_gpencil_material_settings(iter->ob, gps->mat_nr + 1);
@@ -273,6 +275,7 @@ static void OVERLAY_outline_gpencil(OVERLAY_PrivateData *pd, Object *ob)
 
 static void OVERLAY_outline_volume(OVERLAY_PrivateData *pd, Object *ob)
 {
+  using namespace blender::draw;
   GPUBatch *geom = DRW_cache_volume_selection_surface_get(ob);
   if (geom == nullptr) {
     return;
@@ -284,12 +287,14 @@ static void OVERLAY_outline_volume(OVERLAY_PrivateData *pd, Object *ob)
 
 static void OVERLAY_outline_curves(OVERLAY_PrivateData *pd, Object *ob)
 {
+  using namespace blender::draw;
   DRWShadingGroup *shgroup = pd->outlines_curves_grp;
   DRW_shgroup_curves_create_sub(ob, shgroup, nullptr);
 }
 
 static void OVERLAY_outline_pointcloud(OVERLAY_PrivateData *pd, Object *ob)
 {
+  using namespace blender::draw;
   if (pd->wireframe_mode) {
     /* Looks bad in this case. Could be relaxed if we draw a
      * wireframe of some sort in the future. */

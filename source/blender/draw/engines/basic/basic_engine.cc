@@ -154,6 +154,7 @@ static void basic_cache_populate_particles(void *vedata, Object *ob)
 
 static void basic_cache_populate(void *vedata, Object *ob)
 {
+  using namespace blender::draw;
   BASIC_StorageList *stl = ((BASIC_Data *)vedata)->stl;
 
   /* TODO(fclem): fix selection of smoke domains. */

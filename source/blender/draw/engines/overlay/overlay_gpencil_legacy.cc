@@ -324,6 +324,7 @@ void OVERLAY_gpencil_legacy_cache_init(OVERLAY_Data *vedata)
 
 static void OVERLAY_edit_gpencil_cache_populate(OVERLAY_Data *vedata, Object *ob)
 {
+  using namespace blender::draw;
   OVERLAY_PrivateData *pd = vedata->stl->pd;
   bGPdata *gpd = (bGPdata *)ob->data;
   const DRWContextState *draw_ctx = DRW_context_state_get();

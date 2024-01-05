@@ -30,12 +30,11 @@
 #include "draw_instance_data.h"
 #include "draw_shader_shared.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct DupliObject;
 struct Object;
+namespace blender::draw {
+struct CurvesUniformBufPool;
+}
 
 /** Use draw manager to call GPU_select, see: #DRW_draw_select_loop */
 #define USE_GPU_SELECT
@@ -569,7 +568,7 @@ typedef struct DRWData {
   /** Per stereo view data. Contains engine data and default frame-buffers. */
   struct DRWViewData *view_data[2];
   /** Per draw-call curves object data. */
-  struct CurvesUniformBufPool *curves_ubos;
+  blender::draw::CurvesUniformBufPool *curves_ubos;
 } DRWData;
 
 /** \} */
@@ -734,21 +733,23 @@ bool drw_engine_data_engines_data_validate(GPUViewport *viewport, void **engine_
 void drw_engine_data_cache_release(GPUViewport *viewport);
 void drw_engine_data_free(GPUViewport *viewport);
 
+struct GPUMaterial;
+
+namespace blender::draw {
+
 struct DRW_Attributes;
 struct DRW_MeshCDMask;
-struct GPUMaterial;
+
 void DRW_mesh_get_attributes(const struct Object *object,
                              const struct Mesh *mesh,
                              const struct GPUMaterial *const *gpumat_array,
                              int gpumat_array_len,
-                             struct DRW_Attributes *r_attrs,
-                             struct DRW_MeshCDMask *r_cd_needed);
+                             DRW_Attributes *r_attrs,
+                             DRW_MeshCDMask *r_cd_needed);
+
+}  // namespace blender::draw
 
 void DRW_manager_begin_sync(void);
 void DRW_manager_end_sync(void);
 
 /** \} */
-
-#ifdef __cplusplus
-}
-#endif

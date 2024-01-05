@@ -71,6 +71,10 @@ struct ParticleSystem;
 struct RenderEngineType;
 struct bContext;
 struct rcti;
+namespace blender::draw {
+struct DRW_Attributes;
+struct DRW_MeshCDMask;
+}  // namespace blender::draw
 
 typedef struct DRWCallBuffer DRWCallBuffer;
 typedef struct DRWInterface DRWInterface;
@@ -1005,13 +1009,10 @@ typedef struct DRWContextState {
 
 const DRWContextState *DRW_context_state_get(void);
 
-struct DRW_Attributes;
-struct DRW_MeshCDMask;
-
 void DRW_mesh_batch_cache_get_attributes(struct Object *object,
                                          struct Mesh *mesh,
-                                         struct DRW_Attributes **r_attrs,
-                                         struct DRW_MeshCDMask **r_cd_needed);
+                                         blender::draw::DRW_Attributes **r_attrs,
+                                         blender::draw::DRW_MeshCDMask **r_cd_needed);
 
 void DRW_sculpt_debug_cb(
     PBVHNode *node, void *user_data, const float bmin[3], const float bmax[3], PBVHNodeFlags flag);

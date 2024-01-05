@@ -41,12 +41,7 @@
 
 #include "draw_cache_impl.hh" /* own include */
 
-using blender::Array;
-using blender::ColorGeometry4f;
-using blender::float3;
-using blender::IndexRange;
-using blender::OffsetIndices;
-using blender::Span;
+namespace blender::draw {
 
 /* See: edit_curve_point_vert.glsl for duplicate includes. */
 #define SELECT 1
@@ -102,19 +97,19 @@ static void curve_render_overlay_verts_edges_len_get(ListBase *lb,
   }
 }
 
-static void curve_eval_render_wire_verts_edges_len_get(const blender::bke::CurvesGeometry &curves,
+static void curve_eval_render_wire_verts_edges_len_get(const bke::CurvesGeometry &curves,
                                                        int *r_curve_len,
                                                        int *r_vert_len,
                                                        int *r_edge_len)
 {
   const OffsetIndices points_by_curve = curves.evaluated_points_by_curve();
-  const blender::VArray<bool> cyclic = curves.cyclic();
+  const VArray<bool> cyclic = curves.cyclic();
 
   *r_curve_len = curves.curves_num();
   *r_vert_len = points_by_curve.total_size();
   *r_edge_len = 0;
   for (const int i : curves.curves_range()) {
-    *r_edge_len += blender::bke::curves::segments_num(points_by_curve[i].size(), cyclic[i]);
+    *r_edge_len += bke::curves::segments_num(points_by_curve[i].size(), cyclic[i]);
   }
 }
 
@@ -476,14 +471,13 @@ static void curve_create_curves_pos(CurveRenderData *rdata, GPUVertBuf *vbo_curv
   GPU_vertbuf_init_with_format(vbo_curves_pos, &format);
   GPU_vertbuf_data_alloc(vbo_curves_pos, vert_len);
 
-  const blender::bke::CurvesGeometry &curves = rdata->curve_eval->geometry.wrap();
+  const bke::CurvesGeometry &curves = rdata->curve_eval->geometry.wrap();
   const Span<float3> positions = curves.evaluated_positions();
   GPU_vertbuf_attr_fill(vbo_curves_pos, attr_id.pos, positions.data());
 }
 
 static void curve_create_attribute(CurveRenderData *rdata, GPUVertBuf *vbo_attr)
 {
-  using namespace blender;
   if (rdata->curve_eval == nullptr) {
     return;
   }
@@ -507,7 +501,6 @@ static void curve_create_attribute(CurveRenderData *rdata, GPUVertBuf *vbo_attr)
 
 static void curve_create_curves_lines(CurveRenderData *rdata, GPUIndexBuf *ibo_curve_lines)
 {
-  using namespace blender;
   if (rdata->curve_eval == nullptr) {
     return;
   }
@@ -925,3 +918,5 @@ void DRW_curve_batch_cache_create_requested(Object *ob, const Scene *scene)
 }
 
 /** \} */
+
+}  // namespace blender::draw

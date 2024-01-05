@@ -27,6 +27,8 @@
 
 #define SELECT 1
 
+namespace blender::draw {
+
 static void lattice_batch_cache_clear(Lattice *lt);
 
 /* ---------------------------------------------------------------------- */
@@ -502,3 +504,5 @@ GPUBatch *DRW_lattice_batch_cache_get_edit_verts(Lattice *lt)
 
   return cache->overlay_verts;
 }
+
+}  // namespace blender::draw

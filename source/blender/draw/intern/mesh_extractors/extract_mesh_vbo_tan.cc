@@ -373,7 +373,7 @@ constexpr MeshExtract create_extractor_tan_hq()
 
 /** \} */
 
-}  // namespace blender::draw
+const MeshExtract extract_tan = create_extractor_tan();
+const MeshExtract extract_tan_hq = create_extractor_tan_hq();
 
-const MeshExtract extract_tan = blender::draw::create_extractor_tan();
-const MeshExtract extract_tan_hq = blender::draw::create_extractor_tan_hq();
+}  // namespace blender::draw

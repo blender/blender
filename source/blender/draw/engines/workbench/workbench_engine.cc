@@ -722,6 +722,7 @@ static void workbench_render_to_image(void *vedata,
                                       RenderLayer *layer,
                                       const rcti *rect)
 {
+  using namespace blender::draw;
   if (!workbench_render_framebuffers_init()) {
     RE_engine_report(engine, RPT_ERROR, "Failed to allocate GPU buffers");
     return;

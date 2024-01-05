@@ -105,6 +105,6 @@ constexpr MeshExtract create_extractor_fdots_uv()
 
 /** \} */
 
-}  // namespace blender::draw
+const MeshExtract extract_fdots_uv = create_extractor_fdots_uv();
 
-const MeshExtract extract_fdots_uv = blender::draw::create_extractor_fdots_uv();
+}  // namespace blender::draw

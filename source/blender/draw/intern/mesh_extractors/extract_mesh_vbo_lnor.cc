@@ -231,7 +231,7 @@ constexpr MeshExtract create_extractor_lnor_hq()
 
 /** \} */
 
-}  // namespace blender::draw
+const MeshExtract extract_lnor = create_extractor_lnor();
+const MeshExtract extract_lnor_hq = create_extractor_lnor_hq();
 
-const MeshExtract extract_lnor = blender::draw::create_extractor_lnor();
-const MeshExtract extract_lnor_hq = blender::draw::create_extractor_lnor_hq();
+}  // namespace blender::draw

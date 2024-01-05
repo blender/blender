@@ -133,6 +133,6 @@ constexpr MeshExtract create_extractor_fdots_pos()
 
 /** \} */
 
-}  // namespace blender::draw
+const MeshExtract extract_fdots_pos = create_extractor_fdots_pos();
 
-const MeshExtract extract_fdots_pos = blender::draw::create_extractor_fdots_pos();
+}  // namespace blender::draw

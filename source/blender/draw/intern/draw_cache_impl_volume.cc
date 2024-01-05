@@ -36,6 +36,8 @@
 #include "draw_cache.hh"      /* own include */
 #include "draw_cache_impl.hh" /* own include */
 
+namespace blender::draw {
+
 static void volume_batch_cache_clear(Volume *volume);
 
 /* ---------------------------------------------------------------------- */
@@ -211,7 +213,7 @@ GPUBatch *DRW_volume_batch_cache_get_wireframes_face(Volume *volume)
   VolumeBatchCache *cache = volume_batch_cache_get(volume);
 
   if (cache->face_wire.batch == nullptr) {
-    const blender::bke::VolumeGridData *volume_grid = BKE_volume_grid_active_get_for_read(volume);
+    const bke::VolumeGridData *volume_grid = BKE_volume_grid_active_get_for_read(volume);
     if (volume_grid == nullptr) {
       return nullptr;
     }
@@ -260,7 +262,7 @@ GPUBatch *DRW_volume_batch_cache_get_selection_surface(Volume *volume)
 {
   VolumeBatchCache *cache = volume_batch_cache_get(volume);
   if (cache->selection_surface == nullptr) {
-    const blender::bke::VolumeGridData *volume_grid = BKE_volume_grid_active_get_for_read(volume);
+    const bke::VolumeGridData *volume_grid = BKE_volume_grid_active_get_for_read(volume);
     if (volume_grid == nullptr) {
       return nullptr;
     }
@@ -271,10 +273,10 @@ GPUBatch *DRW_volume_batch_cache_get_selection_surface(Volume *volume)
 }
 
 static DRWVolumeGrid *volume_grid_cache_get(const Volume *volume,
-                                            const blender::bke::VolumeGridData *grid,
+                                            const bke::VolumeGridData *grid,
                                             VolumeBatchCache *cache)
 {
-  const std::string name = blender::bke::volume_grid::get_name(*grid);
+  const std::string name = bke::volume_grid::get_name(*grid);
 
   /* Return cached grid. */
   LISTBASE_FOREACH (DRWVolumeGrid *, cache_grid, &cache->grids) {
@@ -293,13 +295,12 @@ static DRWVolumeGrid *volume_grid_cache_get(const Volume *volume,
   BKE_volume_load(volume, G.main);
 
   /* Test if we support textures with the number of channels. */
-  size_t channels = blender::bke::volume_grid::get_channels_num(
-      blender::bke::volume_grid::get_type(*grid));
+  size_t channels = bke::volume_grid::get_channels_num(bke::volume_grid::get_type(*grid));
   if (!ELEM(channels, 1, 3)) {
     return cache_grid;
   }
 
-  const bool was_loaded = blender::bke::volume_grid::is_loaded(*grid);
+  const bool was_loaded = bke::volume_grid::is_loaded(*grid);
 
   DenseFloatVolumeGrid dense_grid;
   if (BKE_volume_grid_dense_floats(volume, grid, &dense_grid)) {
@@ -329,14 +330,14 @@ static DRWVolumeGrid *volume_grid_cache_get(const Volume *volume,
 
   /* Free grid from memory if it wasn't previously loaded. */
   if (!was_loaded) {
-    blender::bke::volume_grid::unload_tree_if_possible(*grid);
+    bke::volume_grid::unload_tree_if_possible(*grid);
   }
 
   return cache_grid;
 }
 
 DRWVolumeGrid *DRW_volume_batch_cache_get_grid(Volume *volume,
-                                               const blender::bke::VolumeGridData *volume_grid)
+                                               const bke::VolumeGridData *volume_grid)
 {
   VolumeBatchCache *cache = volume_batch_cache_get(volume);
   DRWVolumeGrid *grid = volume_grid_cache_get(volume, volume_grid, cache);
@@ -347,3 +348,5 @@ int DRW_volume_material_count_get(const Volume *volume)
 {
   return max_ii(1, volume->totcol);
 }
+
+}  // namespace blender::draw

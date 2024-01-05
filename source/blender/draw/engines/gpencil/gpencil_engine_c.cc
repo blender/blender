@@ -173,6 +173,7 @@ void GPENCIL_engine_init(void *ved)
 
 void GPENCIL_cache_init(void *ved)
 {
+  using namespace blender::draw;
   GPENCIL_Data *vedata = (GPENCIL_Data *)ved;
   GPENCIL_PassList *psl = vedata->psl;
   GPENCIL_TextureList *txl = vedata->txl;
@@ -465,6 +466,7 @@ static void gpencil_stroke_cache_populate(bGPDlayer *gpl,
                                           bGPDstroke *gps,
                                           void *thunk)
 {
+  using namespace blender::draw;
   gpIterPopulateData *iter = (gpIterPopulateData *)thunk;
 
   bGPdata *gpd = static_cast<bGPdata *>(iter->ob->data);
@@ -750,6 +752,7 @@ void GPENCIL_cache_finish(void *ved)
 
 static void GPENCIL_draw_scene_depth_only(void *ved)
 {
+  using namespace blender::draw;
   GPENCIL_Data *vedata = (GPENCIL_Data *)ved;
   GPENCIL_PrivateData *pd = vedata->stl->pd;
   DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
@@ -917,6 +920,7 @@ static void GPENCIL_fast_draw_end(GPENCIL_Data *vedata)
 
 void GPENCIL_draw_scene(void *ved)
 {
+  using namespace blender::draw;
   GPENCIL_Data *vedata = (GPENCIL_Data *)ved;
   GPENCIL_PrivateData *pd = vedata->stl->pd;
   GPENCIL_FramebufferList *fbl = vedata->fbl;

@@ -250,6 +250,7 @@ void EEVEE_cryptomatte_object_curves_cache_populate(EEVEE_Data *vedata,
                                                     EEVEE_ViewLayerData *sldata,
                                                     Object *ob)
 {
+  using namespace blender::draw;
   BLI_assert(ob->type == OB_CURVES);
   Material *material = BKE_object_material_get_eval(ob, CURVES_MATERIAL_NR);
   DRWShadingGroup *grp = eevee_cryptomatte_shading_group_create(

@@ -178,6 +178,7 @@ static ParticleHairCache *drw_hair_particle_cache_get(Object *object,
                                                       int subdiv,
                                                       int thickness_res)
 {
+  using namespace blender::draw;
   ParticleHairCache *cache;
   bool update = particles_ensure_procedural_data(
       object, psys, md, &cache, gpu_material, subdiv, thickness_res);
@@ -459,6 +460,7 @@ static ParticleHairCache *hair_particle_cache_get(Object *object,
                                                   int subdiv,
                                                   int thickness_res)
 {
+  using namespace blender::draw;
   ParticleHairCache *cache;
   bool update = particles_ensure_procedural_data(
       object, psys, md, &cache, gpu_material, subdiv, thickness_res);

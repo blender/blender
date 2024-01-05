@@ -13,8 +13,12 @@ struct GPUBatch;
 struct GPUVertBuf;
 struct GPUMaterial;
 
+namespace blender::draw {
+
 GPUVertBuf *pointcloud_position_and_radius_get(PointCloud *pointcloud);
 GPUBatch **pointcloud_surface_shaded_get(PointCloud *pointcloud,
                                          GPUMaterial **gpu_materials,
                                          int mat_len);
 GPUBatch *pointcloud_surface_get(PointCloud *pointcloud);
+
+}

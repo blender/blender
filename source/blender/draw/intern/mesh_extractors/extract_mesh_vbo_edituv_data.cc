@@ -193,6 +193,6 @@ constexpr MeshExtract create_extractor_edituv_data()
 
 /** \} */
 
-}  // namespace blender::draw
+const MeshExtract extract_edituv_data = create_extractor_edituv_data();
 
-const MeshExtract extract_edituv_data = blender::draw::create_extractor_edituv_data();
+}  // namespace blender::draw

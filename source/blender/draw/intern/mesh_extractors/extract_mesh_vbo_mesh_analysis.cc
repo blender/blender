@@ -635,6 +635,6 @@ constexpr MeshExtract create_extractor_mesh_analysis()
 
 /** \} */
 
-}  // namespace blender::draw
+const MeshExtract extract_mesh_analysis = create_extractor_mesh_analysis();
 
-const MeshExtract extract_mesh_analysis = blender::draw::create_extractor_mesh_analysis();
+}  // namespace blender::draw

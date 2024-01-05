@@ -28,10 +28,13 @@
 #include "DRW_render.hh"
 
 #include "draw_cache_impl.hh"
+#include "draw_common.hh"
 #include "draw_curves_private.hh"
 #include "draw_hair_private.h"
 #include "draw_manager.h"
 #include "draw_shader.hh"
+
+namespace blender::draw {
 
 BLI_INLINE eParticleRefineShaderType drw_curves_shader_type_get()
 {
@@ -63,10 +66,10 @@ static int g_tf_target_height;
 static GPUVertBuf *g_dummy_vbo = nullptr;
 static DRWPass *g_tf_pass; /* XXX can be a problem with multiple DRWManager in the future */
 
-using CurvesInfosBuf = blender::draw::UniformBuffer<CurvesInfos>;
+using CurvesInfosBuf = UniformBuffer<CurvesInfos>;
 
 struct CurvesUniformBufPool {
-  blender::Vector<std::unique_ptr<CurvesInfosBuf>> ubos;
+  Vector<std::unique_ptr<CurvesInfosBuf>> ubos;
   int used = 0;
 
   void reset()
@@ -309,7 +312,6 @@ DRWShadingGroup *DRW_shgroup_curves_create_sub(Object *object,
                                                DRWShadingGroup *shgrp_parent,
                                                GPUMaterial *gpu_material)
 {
-  using namespace blender;
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const Scene *scene = draw_ctx->scene;
   CurvesUniformBufPool *pool = DST.vmempool->curves_ubos;
@@ -339,11 +341,11 @@ DRWShadingGroup *DRW_shgroup_curves_create_sub(Object *object,
 
   /* Use the radius of the root and tip of the first curve for now. This is a workaround that we
    * use for now because we can't use a per-point radius yet. */
-  const blender::bke::CurvesGeometry &curves = curves_id.geometry.wrap();
+  const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
   if (curves.curves_num() >= 1) {
-    blender::VArray<float> radii = *curves.attributes().lookup_or_default(
+    VArray<float> radii = *curves.attributes().lookup_or_default(
         "radius", bke::AttrDomain::Point, 0.005f);
-    const blender::IndexRange first_curve_points = curves.points_by_curve()[0];
+    const IndexRange first_curve_points = curves.points_by_curve()[0];
     const float first_radius = radii[first_curve_points.first()];
     const float last_radius = radii[first_curve_points.last()];
     const float middle_radius = radii[first_curve_points.size() / 2];
@@ -559,9 +561,6 @@ void DRW_curves_free()
 }
 
 /* New Draw Manager. */
-#include "draw_common.hh"
-
-namespace blender::draw {
 
 static PassSimple *g_pass = nullptr;
 
@@ -685,11 +684,11 @@ GPUBatch *curves_sub_pass_setup_implementation(PassT &sub_ps,
 
   /* Use the radius of the root and tip of the first curve for now. This is a workaround that we
    * use for now because we can't use a per-point radius yet. */
-  const blender::bke::CurvesGeometry &curves = curves_id.geometry.wrap();
+  const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
   if (curves.curves_num() >= 1) {
-    blender::VArray<float> radii = *curves.attributes().lookup_or_default(
+    VArray<float> radii = *curves.attributes().lookup_or_default(
         "radius", bke::AttrDomain::Point, 0.005f);
-    const blender::IndexRange first_curve_points = curves.points_by_curve()[0];
+    const IndexRange first_curve_points = curves.points_by_curve()[0];
     const float first_radius = radii[first_curve_points.first()];
     const float last_radius = radii[first_curve_points.last()];
     const float middle_radius = radii[first_curve_points.size() / 2];

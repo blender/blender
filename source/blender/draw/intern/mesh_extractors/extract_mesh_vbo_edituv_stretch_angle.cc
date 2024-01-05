@@ -303,7 +303,6 @@ constexpr MeshExtract create_extractor_edituv_edituv_stretch_angle()
 
 /** \} */
 
-}  // namespace blender::draw
+const MeshExtract extract_edituv_stretch_angle = create_extractor_edituv_edituv_stretch_angle();
 
-const MeshExtract extract_edituv_stretch_angle =
-    blender::draw::create_extractor_edituv_edituv_stretch_angle();
+}  // namespace blender::draw

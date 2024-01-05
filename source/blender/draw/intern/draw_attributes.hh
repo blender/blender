@@ -22,6 +22,8 @@ namespace blender::bke {
 enum class AttrDomain : int8_t;
 }
 
+namespace blender::draw {
+
 struct DRW_AttributeRequest {
   eCustomDataType cd_type;
   int layer_index;
@@ -70,3 +72,5 @@ bool drw_custom_data_match_attribute(const CustomData *custom_data,
                                      const char *name,
                                      int *r_layer_index,
                                      eCustomDataType *r_type);
+
+}  // namespace blender::draw

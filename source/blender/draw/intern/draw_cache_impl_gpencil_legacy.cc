@@ -36,10 +36,6 @@
 #define BEZIER_HANDLE (1 << 3)
 #define COLOR_SHIFT 5
 
-/* -------------------------------------------------------------------- */
-/** \name Internal Types
- * \{ */
-
 struct GpencilBatchCache {
   /** Instancing Data */
   GPUVertBuf *vbo;
@@ -67,6 +63,12 @@ struct GpencilBatchCache {
   /** Last cache frame */
   int cache_frame;
 };
+
+namespace blender::draw {
+
+/* -------------------------------------------------------------------- */
+/** \name Internal Types
+ * \{ */
 
 /** \} */
 
@@ -996,3 +998,5 @@ int DRW_gpencil_material_count_get(const bGPdata *gpd)
 }
 
 /** \} */
+
+}  // namespace blender::draw

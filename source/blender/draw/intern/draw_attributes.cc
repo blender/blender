@@ -9,6 +9,8 @@
 
 #include "draw_attributes.hh"
 
+namespace blender::draw {
+
 /* Return true if the given DRW_AttributeRequest is already in the requests. */
 static bool drw_attributes_has_request(const DRW_Attributes *requests,
                                        const DRW_AttributeRequest &req)
@@ -115,3 +117,5 @@ bool drw_custom_data_match_attribute(const CustomData *custom_data,
 
   return false;
 }
+
+}  // namespace blender::draw

@@ -591,9 +591,9 @@ constexpr MeshExtract create_extractor_edituv_fdots()
 
 /** \} */
 
-}  // namespace blender::draw
+const MeshExtract extract_edituv_tris = create_extractor_edituv_tris();
+const MeshExtract extract_edituv_lines = create_extractor_edituv_lines();
+const MeshExtract extract_edituv_points = create_extractor_edituv_points();
+const MeshExtract extract_edituv_fdots = create_extractor_edituv_fdots();
 
-const MeshExtract extract_edituv_tris = blender::draw::create_extractor_edituv_tris();
-const MeshExtract extract_edituv_lines = blender::draw::create_extractor_edituv_lines();
-const MeshExtract extract_edituv_points = blender::draw::create_extractor_edituv_points();
-const MeshExtract extract_edituv_fdots = blender::draw::create_extractor_edituv_fdots();
+}  // namespace blender::draw
