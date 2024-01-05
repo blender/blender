@@ -223,6 +223,20 @@ function(blender_target_include_dirs_sys
   blender_target_include_dirs_impl(${target} TRUE "${_ALL_INCS}")
 endfunction()
 
+# Enable unity build for the given target.
+function(blender_set_target_unity_build target batch_size)
+  if(WITH_UNITY_BUILD)
+    set_target_properties(${target} PROPERTIES
+      UNITY_BUILD ON
+      UNITY_BUILD_BATCH_SIZE ${batch_size}
+    )
+    if(WITH_NINJA_POOL_JOBS AND NINJA_MAX_NUM_PARALLEL_COMPILE_HEAVY_JOBS)
+      # Unity builds are typically heavy.
+      set_target_properties(${target} PROPERTIES JOB_POOL_COMPILE compile_heavy_job_pool)
+    endif()
+  endif()
+endfunction()
+
 # Set include paths for header files included with "*.h" syntax.
 # This enables auto-complete suggestions for user header files on Xcode.
 # Build process is not affected since the include paths are the same
