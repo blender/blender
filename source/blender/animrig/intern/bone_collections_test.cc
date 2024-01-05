@@ -1317,46 +1317,66 @@ class ANIM_armature_bone_collections_testlist : public testing::Test {
     BKE_libblock_free_datablock(&arm.id, 0);
   }
 
-  void expect_bcolls(std::initializer_list<std::string> expect_names)
+  testing::AssertionResult expect_bcolls(std::vector<std::string> expect_names)
   {
-    EXPECT_EQ(expect_names.size(), arm.collection_array_num);
-
-    int index = 0;
-    for (const std::string &expect_bcoll : expect_names) {
-      BoneCollection *actual_bcoll = arm.collection_array[index];
-      EXPECT_EQ(expect_bcoll, std::string(actual_bcoll->name))
-          << "Expected collection_array[" << index << "] to be " << expect_bcoll << ", but it is "
-          << actual_bcoll->name;
-      index++;
+    std::vector<std::string> actual_names;
+    for (const BoneCollection *bcoll : arm.collections_span()) {
+      actual_names.push_back(bcoll->name);
     }
+
+    if (expect_names == actual_names) {
+      return testing::AssertionSuccess();
+    }
+
+    testing::AssertionResult failure = testing::AssertionFailure();
+
+    failure << "Expected bone collections differ from actual ones:" << std::endl;
+
+    /* This is what you get when C++ doesn't even have a standard library
+     * function to do something like `expect_names.join(", ")`. */
+    failure << "Expected collections: [";
+    for (int i = 0; i < expect_names.size() - 1; i++) {
+      failure << expect_names[i] << ", ";
+    }
+    failure << expect_names.back() << "]" << std::endl;
+
+    failure << "Actual collections  : [";
+    for (int i = 0; i < actual_names.size() - 1; i++) {
+      failure << actual_names[i] << ", ";
+    }
+    failure << actual_names.back() << "]" << std::endl;
+
+    internal::bonecolls_debug_list(&arm);
+
+    return failure;
   }
 };
 
 TEST_F(ANIM_armature_bone_collections_testlist, move_before_after_index__before_first_sibling)
 {
   EXPECT_EQ(1, ANIM_armature_bonecoll_move_before_after_index(&arm, 3, 1, MoveLocation::Before));
-  expect_bcolls({"root", "child2", "child0", "child1", "child1_0"});
+  EXPECT_TRUE(expect_bcolls({"root", "child2", "child0", "child1", "child1_0"}));
   EXPECT_EQ(0, armature_bonecoll_find_parent_index(&arm, 1));
 }
 
 TEST_F(ANIM_armature_bone_collections_testlist, move_before_after_index__after_first_sibling)
 {
   EXPECT_EQ(2, ANIM_armature_bonecoll_move_before_after_index(&arm, 3, 1, MoveLocation::After));
-  expect_bcolls({"root", "child0", "child2", "child1", "child1_0"});
+  EXPECT_TRUE(expect_bcolls({"root", "child0", "child2", "child1", "child1_0"}));
   EXPECT_EQ(0, armature_bonecoll_find_parent_index(&arm, 2));
 }
 
 TEST_F(ANIM_armature_bone_collections_testlist, move_before_after_index__before_last_sibling)
 {
   EXPECT_EQ(2, ANIM_armature_bonecoll_move_before_after_index(&arm, 1, 3, MoveLocation::Before));
-  expect_bcolls({"root", "child1", "child0", "child2", "child1_0"});
+  EXPECT_TRUE(expect_bcolls({"root", "child1", "child0", "child2", "child1_0"}));
   EXPECT_EQ(0, armature_bonecoll_find_parent_index(&arm, 2));
 }
 
 TEST_F(ANIM_armature_bone_collections_testlist, move_before_after_index__after_last_sibling)
 {
   EXPECT_EQ(3, ANIM_armature_bonecoll_move_before_after_index(&arm, 1, 3, MoveLocation::After));
-  expect_bcolls({"root", "child1", "child2", "child0", "child1_0"});
+  EXPECT_TRUE(expect_bcolls({"root", "child1", "child2", "child0", "child1_0"}));
   EXPECT_EQ(0, armature_bonecoll_find_parent_index(&arm, 3));
 }
 
@@ -1364,7 +1384,7 @@ TEST_F(ANIM_armature_bone_collections_testlist,
        move_before_after_index__other_parent_before__move_left)
 {
   EXPECT_EQ(1, ANIM_armature_bonecoll_move_before_after_index(&arm, 4, 1, MoveLocation::Before));
-  expect_bcolls({"root", "child1_0", "child0", "child1", "child2"});
+  EXPECT_TRUE(expect_bcolls({"root", "child1_0", "child0", "child1", "child2"}));
   EXPECT_EQ(0, armature_bonecoll_find_parent_index(&arm, 1));
 }
 
@@ -1372,7 +1392,7 @@ TEST_F(ANIM_armature_bone_collections_testlist,
        move_before_after_index__other_parent_after__move_left)
 {
   EXPECT_EQ(2, ANIM_armature_bonecoll_move_before_after_index(&arm, 4, 1, MoveLocation::After));
-  expect_bcolls({"root", "child0", "child1_0", "child1", "child2"});
+  EXPECT_TRUE(expect_bcolls({"root", "child0", "child1_0", "child1", "child2"}));
   EXPECT_EQ(0, armature_bonecoll_find_parent_index(&arm, 2));
 }
 
@@ -1380,7 +1400,7 @@ TEST_F(ANIM_armature_bone_collections_testlist,
        move_before_after_index__other_parent_before__move_right)
 {
   EXPECT_EQ(3, ANIM_armature_bonecoll_move_before_after_index(&arm, 1, 4, MoveLocation::Before));
-  expect_bcolls({"root", "child1", "child2", "child0", "child1_0"});
+  EXPECT_TRUE(expect_bcolls({"root", "child1", "child2", "child0", "child1_0"}));
   EXPECT_EQ(1, armature_bonecoll_find_parent_index(&arm, 3));
 }
 
@@ -1388,21 +1408,21 @@ TEST_F(ANIM_armature_bone_collections_testlist,
        move_before_after_index__other_parent_after__move_right)
 {
   EXPECT_EQ(4, ANIM_armature_bonecoll_move_before_after_index(&arm, 1, 4, MoveLocation::After));
-  expect_bcolls({"root", "child1", "child2", "child1_0", "child0"});
+  EXPECT_TRUE(expect_bcolls({"root", "child1", "child2", "child1_0", "child0"}));
   EXPECT_EQ(1, armature_bonecoll_find_parent_index(&arm, 4));
 }
 
 TEST_F(ANIM_armature_bone_collections_testlist, move_before_after_index__to_root__before)
 {
   EXPECT_EQ(0, ANIM_armature_bonecoll_move_before_after_index(&arm, 4, 0, MoveLocation::Before));
-  expect_bcolls({"child1_0", "root", "child0", "child1", "child2"});
+  EXPECT_TRUE(expect_bcolls({"child1_0", "root", "child0", "child1", "child2"}));
   EXPECT_EQ(-1, armature_bonecoll_find_parent_index(&arm, 0));
 }
 
 TEST_F(ANIM_armature_bone_collections_testlist, move_before_after_index__to_root__after)
 {
   EXPECT_EQ(1, ANIM_armature_bonecoll_move_before_after_index(&arm, 4, 0, MoveLocation::After));
-  expect_bcolls({"root", "child1_0", "child0", "child1", "child2"});
+  EXPECT_TRUE(expect_bcolls({"root", "child1_0", "child0", "child1", "child2"}));
   EXPECT_EQ(-1, armature_bonecoll_find_parent_index(&arm, 1));
 }
 
@@ -1469,16 +1489,16 @@ TEST_F(ANIM_armature_bone_collections_liboverrides, bcoll_insert_copy_after)
       &dst_arm, &arm, anchor, src_root);
 
   /* Check the array order. */
-  expect_bcolls({"root",
-                 "new_root",
-                 "child0",
-                 "child1",
-                 "child2",
-                 "child1_0",
-                 "new_child1",
-                 "new_child2",
-                 "new_gchild1",
-                 "new_gchild2"});
+  EXPECT_TRUE(expect_bcolls({"root",
+                             "new_root",
+                             "child0",
+                             "child1",
+                             "child2",
+                             "child1_0",
+                             "new_child1",
+                             "new_child2",
+                             "new_gchild1",
+                             "new_gchild2"}));
 
   /* Check that the copied root is actually stored in the destination armature array. */
   const int new_root_index = armature_bonecoll_find_index(&dst_arm, copy_root);
