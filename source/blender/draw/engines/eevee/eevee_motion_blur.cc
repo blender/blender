@@ -8,7 +8,7 @@
  * Gather all screen space effects technique such as Bloom, Motion Blur, DoF, SSAO, SSR, ...
  */
 
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include "BLI_rand.h"
 #include "BLI_string_utils.hh"

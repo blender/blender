@@ -15,7 +15,7 @@
 #include <string>
 
 #include "BLI_string_ref.hh"
-#include "DRW_render.h"
+#include "DRW_render.hh"
 #include "GPU_material.h"
 #include "GPU_shader.h"
 

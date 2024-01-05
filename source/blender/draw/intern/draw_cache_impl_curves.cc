@@ -36,13 +36,13 @@
 #include "GPU_material.h"
 #include "GPU_texture.h"
 
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include "draw_attributes.hh"
 #include "draw_cache_impl.hh" /* own include */
-#include "draw_cache_inline.h"
+#include "draw_cache_inline.hh"
 #include "draw_curves_private.hh" /* own include */
-#include "draw_shader.h"
+#include "draw_shader.hh"
 
 using blender::IndexRange;
 

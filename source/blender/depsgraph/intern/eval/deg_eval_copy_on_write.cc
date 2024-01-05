@@ -53,7 +53,7 @@
 #include "DNA_sequence_types.h"
 #include "DNA_sound_types.h"
 
-#include "DRW_engine.h"
+#include "DRW_engine.hh"
 
 #ifdef NESTED_ID_NASTY_WORKAROUND
 #  include "DNA_curve_types.h"

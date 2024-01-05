@@ -67,7 +67,7 @@
 
 #include "GPU_matrix.h"
 
-#include "DRW_engine.h"
+#include "DRW_engine.hh"
 
 #include "WM_api.hh"
 #include "WM_message.hh"

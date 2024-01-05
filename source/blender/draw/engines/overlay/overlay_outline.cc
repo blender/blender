@@ -8,7 +8,7 @@
 
 #include "BLI_math_vector.hh"
 
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include "BKE_global.h"
 #include "BKE_gpencil_legacy.h"

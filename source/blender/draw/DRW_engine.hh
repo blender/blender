@@ -12,10 +12,6 @@
 
 #include "DNA_object_enums.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct ARegion;
 struct DRWData;
 struct DRWInstanceDataList;
@@ -221,6 +217,3 @@ void DRW_cdlayer_attr_aliases_add(struct GPUVertFormat *format,
                                   const char *layer_name,
                                   bool is_active_render,
                                   bool is_active_layer);
-#ifdef __cplusplus
-}
-#endif

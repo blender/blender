@@ -20,7 +20,7 @@ enum PBVHType {
   PBVH_BMESH,
 };
 
-/* #PBVHNodeFlags is needed by `DRW_render.h` and `draw_cache.cc`. */
+/* #PBVHNodeFlags is needed by `DRW_render.hh` and `draw_cache.cc`. */
 enum PBVHNodeFlags {
   PBVH_Leaf = 1 << 0,
 

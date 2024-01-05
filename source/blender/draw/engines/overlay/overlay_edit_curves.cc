@@ -9,7 +9,7 @@
 #include "BKE_attribute.hh"
 #include "BKE_curves.h"
 
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include "ED_view3d.hh"
 

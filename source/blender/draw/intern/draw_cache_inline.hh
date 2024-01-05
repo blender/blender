@@ -11,10 +11,6 @@
 #include "GPU_batch.h"
 #include "MEM_guardedalloc.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* Common */
 // #define DRW_DEBUG_MESH_CACHE_REQUEST
 
@@ -30,61 +26,57 @@ extern "C" {
     (flag |= DRW_ibo_requested(ibo) ? (value) : 0)
 #endif
 
-BLI_INLINE GPUBatch *DRW_batch_request(GPUBatch **batch)
+inline GPUBatch *DRW_batch_request(GPUBatch **batch)
 {
   /* XXX TODO(fclem): We are writing to batch cache here. Need to make this thread safe. */
-  if (*batch == NULL) {
+  if (*batch == nullptr) {
     *batch = GPU_batch_calloc();
   }
   return *batch;
 }
 
-BLI_INLINE bool DRW_batch_requested(GPUBatch *batch, GPUPrimType prim_type)
+inline bool DRW_batch_requested(GPUBatch *batch, GPUPrimType prim_type)
 {
   /* Batch has been requested if it has been created but not initialized. */
-  if (batch != NULL && batch->verts[0] == NULL) {
+  if (batch != nullptr && batch->verts[0] == nullptr) {
     /* HACK. We init without a valid VBO and let the first vbo binding
      * fill verts[0]. */
-    GPU_batch_init_ex(batch, prim_type, (GPUVertBuf *)1, NULL, (eGPUBatchFlag)0);
-    batch->verts[0] = NULL;
+    GPU_batch_init_ex(batch, prim_type, (GPUVertBuf *)1, nullptr, (eGPUBatchFlag)0);
+    batch->verts[0] = nullptr;
     return true;
   }
   return false;
 }
 
-BLI_INLINE void DRW_ibo_request(GPUBatch *batch, GPUIndexBuf **ibo)
+inline void DRW_ibo_request(GPUBatch *batch, GPUIndexBuf **ibo)
 {
-  if (*ibo == NULL) {
+  if (*ibo == nullptr) {
     *ibo = GPU_indexbuf_calloc();
   }
-  if (batch != NULL) {
+  if (batch != nullptr) {
     GPU_batch_elembuf_set(batch, *ibo, false);
   }
 }
 
-BLI_INLINE bool DRW_ibo_requested(GPUIndexBuf *ibo)
+inline bool DRW_ibo_requested(GPUIndexBuf *ibo)
 {
   /* TODO: do not rely on data uploaded. This prevents multi-threading.
    * (need access to a GPU context). */
-  return (ibo != NULL && !GPU_indexbuf_is_init(ibo));
+  return (ibo != nullptr && !GPU_indexbuf_is_init(ibo));
 }
 
-BLI_INLINE void DRW_vbo_request(GPUBatch *batch, GPUVertBuf **vbo)
+inline void DRW_vbo_request(GPUBatch *batch, GPUVertBuf **vbo)
 {
-  if (*vbo == NULL) {
+  if (*vbo == nullptr) {
     *vbo = GPU_vertbuf_calloc();
   }
-  if (batch != NULL) {
+  if (batch != nullptr) {
     /* HACK we set VBO's that may not yet be valid. */
     GPU_batch_vertbuf_add(batch, *vbo, false);
   }
 }
 
-BLI_INLINE bool DRW_vbo_requested(GPUVertBuf *vbo)
+inline bool DRW_vbo_requested(GPUVertBuf *vbo)
 {
-  return (vbo != NULL && (GPU_vertbuf_get_status(vbo) & GPU_VERTBUF_INIT) == 0);
+  return (vbo != nullptr && (GPU_vertbuf_get_status(vbo) & GPU_VERTBUF_INIT) == 0);
 }
-
-#ifdef __cplusplus
-}
-#endif

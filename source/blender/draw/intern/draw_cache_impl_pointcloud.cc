@@ -30,7 +30,7 @@
 
 #include "draw_attributes.hh"
 #include "draw_cache_impl.hh"
-#include "draw_cache_inline.h"
+#include "draw_cache_inline.hh"
 #include "draw_pointcloud_private.hh" /* own include */
 
 using namespace blender;

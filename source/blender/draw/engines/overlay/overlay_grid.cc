@@ -8,7 +8,7 @@
 
 #include "BLI_math_color.h"
 
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include "DNA_camera_types.h"
 #include "DNA_screen_types.h"

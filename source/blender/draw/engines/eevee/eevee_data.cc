@@ -8,7 +8,7 @@
  * All specific data handler for Objects, Lights, ViewLayers, ...
  */
 
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include "BLI_ghash.h"
 #include "BLI_memblock.h"

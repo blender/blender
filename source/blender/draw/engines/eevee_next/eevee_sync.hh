@@ -16,7 +16,7 @@
 #include "BLI_map.hh"
 #include "DEG_depsgraph_query.hh"
 #include "DNA_object_types.h"
-#include "DRW_render.h"
+#include "DRW_render.hh"
 #include "GPU_material.h"
 
 #include "eevee_shader_shared.hh"

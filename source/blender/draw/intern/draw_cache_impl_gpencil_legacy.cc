@@ -15,8 +15,8 @@
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
 
-#include "DRW_engine.h"
-#include "DRW_render.h"
+#include "DRW_engine.hh"
+#include "DRW_render.hh"
 
 #include "ED_gpencil_legacy.hh"
 #include "GPU_batch.h"
@@ -27,7 +27,7 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_polyfill_2d.h"
 
-#include "draw_cache.h"
+#include "draw_cache.hh"
 #include "draw_cache_impl.hh"
 
 #include "../engines/gpencil/gpencil_defines.h"

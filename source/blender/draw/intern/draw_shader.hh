@@ -8,9 +8,8 @@
 
 #pragma once
 
-#ifdef __cplusplus
-#  include "draw_curves_private.hh"
-#  include "draw_hair_private.h"
+#include "draw_curves_private.hh"
+#include "draw_hair_private.h"
 
 struct GPUShader;
 
@@ -34,14 +33,4 @@ GPUShader *DRW_shader_draw_view_finalize_get();
 GPUShader *DRW_shader_draw_resource_finalize_get();
 GPUShader *DRW_shader_draw_command_generate_get();
 
-#endif
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 void DRW_shaders_free(void);
-
-#ifdef __cplusplus
-}
-#endif

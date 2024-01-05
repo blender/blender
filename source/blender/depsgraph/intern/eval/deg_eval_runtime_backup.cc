@@ -12,7 +12,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "DRW_engine.h"
+#include "DRW_engine.hh"
 
 namespace blender::deg {
 

@@ -18,7 +18,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_pointcloud.h"
 
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include "UI_resources.hh"
 

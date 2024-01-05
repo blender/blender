@@ -225,17 +225,17 @@ set(SRC
   engines/overlay/overlay_volume.cc
   engines/overlay/overlay_wireframe.cc
 
-  DRW_engine.h
+  DRW_engine.hh
   DRW_pbvh.hh
   DRW_select_buffer.hh
   intern/DRW_gpu_wrapper.hh
-  intern/DRW_render.h
+  intern/DRW_render.hh
   intern/attribute_convert.hh
   intern/draw_attributes.hh
-  intern/draw_cache.h
+  intern/draw_cache.hh
   intern/draw_cache_extract.hh
   intern/draw_cache_impl.hh
-  intern/draw_cache_inline.h
+  intern/draw_cache_inline.hh
   intern/draw_color_management.h
   intern/draw_command.hh
   intern/draw_common.h
@@ -256,7 +256,7 @@ set(SRC
   intern/draw_pbvh.hh
   intern/draw_resource.hh
   intern/draw_sculpt.hh
-  intern/draw_shader.h
+  intern/draw_shader.hh
   intern/draw_shader_shared.h
   intern/draw_state.h
   intern/draw_subdivision.hh

@@ -5,7 +5,7 @@
 /** \file
  * \ingroup draw_engine
  */
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include "draw_cache_impl.hh"
 #include "draw_manager_text.hh"

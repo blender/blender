@@ -13,7 +13,7 @@
 #include "BKE_object.hh"
 #include "DEG_depsgraph.hh"
 #include "DNA_lightprobe_types.h"
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include "eevee_ambient_occlusion.hh"
 #include "eevee_camera.hh"

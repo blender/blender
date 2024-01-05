@@ -52,7 +52,7 @@
 #include "IMB_imbuf.h"
 
 /* Only for cursor drawing. */
-#include "DRW_engine.h"
+#include "DRW_engine.hh"
 
 /* Own include. */
 #include "sequencer_intern.hh"

@@ -8,7 +8,7 @@
  * \brief Particle API for render engines
  */
 
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include "MEM_guardedalloc.h"
 

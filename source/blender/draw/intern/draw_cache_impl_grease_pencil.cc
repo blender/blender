@@ -17,8 +17,8 @@
 
 #include "DNA_grease_pencil_types.h"
 
-#include "DRW_engine.h"
-#include "DRW_render.h"
+#include "DRW_engine.hh"
+#include "DRW_render.hh"
 
 #include "ED_curves.hh"
 #include "ED_grease_pencil.hh"

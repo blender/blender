@@ -25,13 +25,13 @@
 #include "GPU_vertex_buffer.h"
 
 #include "DRW_gpu_wrapper.hh"
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include "draw_cache_impl.hh"
 #include "draw_curves_private.hh"
 #include "draw_hair_private.h"
 #include "draw_manager.h"
-#include "draw_shader.h"
+#include "draw_shader.hh"
 
 BLI_INLINE eParticleRefineShaderType drw_curves_shader_type_get()
 {

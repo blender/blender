@@ -48,7 +48,7 @@
 #include "RE_engine.h"
 #include "RE_pipeline.h"
 
-#include "DRW_engine.h"
+#include "DRW_engine.hh"
 
 #include "WM_api.hh"
 

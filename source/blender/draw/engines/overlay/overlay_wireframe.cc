@@ -24,7 +24,7 @@
 #include "BLI_hash.h"
 #include "BLI_math_base.hh"
 
-#include "DRW_render.h"
+#include "DRW_render.hh"
 #include "GPU_shader.h"
 
 #include "ED_view3d.hh"

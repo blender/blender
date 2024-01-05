@@ -28,8 +28,8 @@
 
 #include "PIL_time.h"
 
-#include "DRW_engine.h"
-#include "DRW_render.h"
+#include "DRW_engine.hh"
+#include "DRW_render.hh"
 
 #include "GPU_capabilities.h"
 #include "GPU_compute.h"
@@ -45,7 +45,7 @@
 
 #include "draw_cache_extract.hh"
 #include "draw_cache_impl.hh"
-#include "draw_cache_inline.h"
+#include "draw_cache_inline.hh"
 #include "mesh_extractors/extract_mesh.hh"
 
 using blender::Span;

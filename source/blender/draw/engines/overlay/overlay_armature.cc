@@ -17,7 +17,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
 
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include "BLI_listbase_wrapper.hh"
 #include "BLI_math_color.h"

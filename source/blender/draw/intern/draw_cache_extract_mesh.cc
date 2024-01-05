@@ -27,7 +27,7 @@
 #include "GPU_capabilities.h"
 
 #include "draw_cache_extract.hh"
-#include "draw_cache_inline.h"
+#include "draw_cache_inline.hh"
 #include "draw_subdivision.hh"
 
 #include "mesh_extractors/extract_mesh.hh"

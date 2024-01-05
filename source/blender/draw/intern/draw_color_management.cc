@@ -8,7 +8,7 @@
 
 #include "draw_manager.h"
 
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include "GPU_batch.h"
 #include "GPU_framebuffer.h"

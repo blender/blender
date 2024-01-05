@@ -11,7 +11,7 @@
 #include "BKE_gpencil_legacy.h"
 #include "BKE_image.h"
 #include "DRW_gpu_wrapper.hh"
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include "draw_manager.hh"
 #include "draw_pass.hh"

@@ -35,9 +35,9 @@
 
 #include "UI_resources.hh"
 
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
-#include "draw_cache_inline.h"
+#include "draw_cache_inline.hh"
 
 #include "draw_cache_impl.hh" /* own include */
 

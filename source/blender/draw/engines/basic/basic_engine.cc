@@ -9,7 +9,7 @@
  * When we only need simple flat shaders.
  */
 
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include "BKE_global.h"
 #include "BKE_object.hh"

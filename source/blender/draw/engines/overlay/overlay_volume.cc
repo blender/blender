@@ -8,7 +8,7 @@
 
 #include "DNA_volume_types.h"
 
-#include "DRW_render.h"
+#include "DRW_render.hh"
 #include "GPU_shader.h"
 
 #include "overlay_private.hh"

@@ -7,7 +7,7 @@
  */
 #include "BLI_rect.h"
 
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include "BKE_object.hh"
 

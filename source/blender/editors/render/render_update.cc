@@ -21,7 +21,7 @@
 #include "DNA_windowmanager_types.h"
 #include "DNA_world_types.h"
 
-#include "DRW_engine.h"
+#include "DRW_engine.hh"
 
 #include "BLI_listbase.h"
 #include "BLI_threads.h"

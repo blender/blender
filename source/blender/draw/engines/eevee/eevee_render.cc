@@ -10,8 +10,8 @@
  * Render functions for final render outputs.
  */
 
-#include "DRW_engine.h"
-#include "DRW_render.h"
+#include "DRW_engine.hh"
+#include "DRW_render.hh"
 
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"

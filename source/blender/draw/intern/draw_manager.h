@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include "DRW_engine.h"
-#include "DRW_render.h"
+#include "DRW_engine.hh"
+#include "DRW_render.hh"
 
 #include "BLI_assert.h"
 #include "BLI_linklist.h"

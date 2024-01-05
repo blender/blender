@@ -6,8 +6,8 @@
  * \ingroup draw_engine
  */
 
-#include "DRW_engine.h"
-#include "DRW_render.h"
+#include "DRW_engine.hh"
+#include "DRW_render.hh"
 
 #include "draw_color_management.h" /* TODO: remove dependency. */
 

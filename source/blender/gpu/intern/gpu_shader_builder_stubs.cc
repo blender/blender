@@ -27,7 +27,7 @@
 
 #include "NOD_shader.h"
 
-#include "DRW_engine.h"
+#include "DRW_engine.hh"
 
 #include "bmesh.hh"
 
@@ -202,7 +202,7 @@ extern "C" void ntreeFreeLocalTree(struct bNodeTree * /*ntree*/)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Stubs of DRW_engine.h
+/** \name Stubs of DRW_engine.hh
  * \{ */
 extern "C" void DRW_deferred_shader_remove(struct GPUMaterial * /*mat*/)
 {

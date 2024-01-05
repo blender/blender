@@ -54,7 +54,7 @@
 
 #include "BLO_read_write.hh"
 
-#include "DRW_engine.h"
+#include "DRW_engine.hh"
 
 #include "image_intern.hh"
 

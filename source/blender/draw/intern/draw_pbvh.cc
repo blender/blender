@@ -46,7 +46,7 @@
 
 #include "GPU_batch.h"
 
-#include "DRW_engine.h"
+#include "DRW_engine.hh"
 #include "DRW_pbvh.hh"
 
 #include "attribute_convert.hh"

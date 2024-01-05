@@ -33,7 +33,7 @@
 #include "GPU_texture.h"
 #include "GPU_uniform_buffer.h"
 
-#include "DRW_engine.h"
+#include "DRW_engine.hh"
 
 #include "PIL_time.h"
 

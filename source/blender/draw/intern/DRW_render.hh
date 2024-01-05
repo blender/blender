@@ -37,7 +37,7 @@
 #include "GPU_texture.h"
 #include "GPU_uniform_buffer.h"
 
-#include "draw_cache.h"
+#include "draw_cache.hh"
 #include "draw_common.h"
 #include "draw_view.h"
 
@@ -51,10 +51,6 @@
 #include "RE_engine.h"
 
 #include "DEG_depsgraph.hh"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /* Uncomment to track unused resource bindings. */
 // #define DRW_UNUSED_RESOURCE_TRACKING
@@ -1019,7 +1015,3 @@ void DRW_mesh_batch_cache_get_attributes(struct Object *object,
 
 void DRW_sculpt_debug_cb(
     PBVHNode *node, void *user_data, const float bmin[3], const float bmax[3], PBVHNodeFlags flag);
-
-#ifdef __cplusplus
-}
-#endif

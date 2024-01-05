@@ -8,7 +8,7 @@
  * Eevee's indirect lighting cache.
  */
 
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include "BKE_global.h"
 
@@ -62,13 +62,13 @@
       (IRRADIANCE_MAX_POOL_SIZE / IRRADIANCE_SAMPLE_SIZE_Y)
 
 /* TODO: should be replace by a more elegant alternative. */
-extern "C" void DRW_gpu_context_enable(void);
-extern "C" void DRW_gpu_context_disable(void);
+void DRW_gpu_context_enable(void);
+void DRW_gpu_context_disable(void);
 
-extern "C" void DRW_system_gpu_render_context_enable(void *re_system_gpu_context);
-extern "C" void DRW_system_gpu_render_context_disable(void *re_system_gpu_context);
-extern "C" void DRW_blender_gpu_render_context_enable(void *re_blender_gpu_context);
-extern "C" void DRW_blender_gpu_render_context_disable(void *re_blender_gpu_context);
+void DRW_system_gpu_render_context_enable(void *re_system_gpu_context);
+void DRW_system_gpu_render_context_disable(void *re_system_gpu_context);
+void DRW_blender_gpu_render_context_enable(void *re_blender_gpu_context);
+void DRW_blender_gpu_render_context_disable(void *re_blender_gpu_context);
 
 struct EEVEE_LightBake {
   Depsgraph *depsgraph;

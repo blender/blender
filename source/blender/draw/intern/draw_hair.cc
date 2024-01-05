@@ -8,7 +8,7 @@
  * \brief Contains procedural GPU hair drawing methods.
  */
 
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
@@ -32,7 +32,7 @@
 #include "DRW_gpu_wrapper.hh"
 
 #include "draw_hair_private.h"
-#include "draw_shader.h"
+#include "draw_shader.hh"
 #include "draw_shader_shared.h"
 
 BLI_INLINE eParticleRefineShaderType drw_hair_shader_type_get()

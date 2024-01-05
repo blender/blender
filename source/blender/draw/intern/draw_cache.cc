@@ -32,7 +32,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "draw_cache.h"
+#include "draw_cache.hh"
 #include "draw_cache_impl.hh"
 #include "draw_manager.h"
 

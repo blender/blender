@@ -10,10 +10,6 @@
 
 #include "BKE_volume_grid_fwd.hh"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct GPUBatch;
 struct GPUMaterial;
 struct GPUVertBuf;
@@ -290,7 +286,3 @@ struct GPUVertBuf *DRW_cache_grease_pencil_position_buffer_get(const struct Scen
                                                                struct Object *ob);
 struct GPUVertBuf *DRW_cache_grease_pencil_color_buffer_get(const struct Scene *scene,
                                                             struct Object *ob);
-
-#ifdef __cplusplus
-}
-#endif

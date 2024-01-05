@@ -52,13 +52,13 @@
 #include "GPU_batch.h"
 #include "GPU_material.h"
 
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include "ED_mesh.hh"
 #include "ED_uvedit.hh"
 
 #include "draw_cache_extract.hh"
-#include "draw_cache_inline.h"
+#include "draw_cache_inline.hh"
 #include "draw_subdivision.hh"
 
 #include "draw_cache_impl.hh" /* own include */

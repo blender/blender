@@ -20,7 +20,7 @@
 #include "GPU_vertex_buffer.h"
 
 #include "DRW_gpu_wrapper.hh"
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include "draw_attributes.hh"
 #include "draw_cache_impl.hh"

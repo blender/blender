@@ -26,7 +26,7 @@
 #include "DNA_camera_types.h"
 #include "DNA_space_types.h"
 
-#include "DRW_engine.h"
+#include "DRW_engine.hh"
 
 #include "ED_screen.hh"
 #include "ED_space_api.hh"

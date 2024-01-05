@@ -14,7 +14,7 @@
 
 #include "BLI_math_bits.h"
 
-#include "DRW_render.h"
+#include "DRW_render.hh"
 #include "draw_shader_shared.h"
 
 #include "eevee_lut.hh"

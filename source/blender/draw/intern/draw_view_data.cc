@@ -11,7 +11,7 @@
 #include "GPU_capabilities.h"
 #include "GPU_viewport.h"
 
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include "draw_instance_data.h"
 

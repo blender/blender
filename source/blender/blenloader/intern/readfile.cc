@@ -89,7 +89,7 @@
 #include "BKE_undo_system.h"
 #include "BKE_workspace.h"
 
-#include "DRW_engine.h"
+#include "DRW_engine.hh"
 
 #include "DEG_depsgraph.hh"
 

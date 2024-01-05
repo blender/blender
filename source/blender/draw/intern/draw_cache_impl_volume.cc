@@ -31,9 +31,9 @@
 
 #include "DEG_depsgraph_query.hh"
 
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
-#include "draw_cache.h"       /* own include */
+#include "draw_cache.hh"      /* own include */
 #include "draw_cache_impl.hh" /* own include */
 
 static void volume_batch_cache_clear(Volume *volume);
