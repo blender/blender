@@ -297,7 +297,7 @@ typedef struct BoneCollection {
    *
    * \return true when this collection and all its ancestors are visible.
    *
-   * \see is_visisble
+   * \see is_visible
    */
   bool is_visible_effectively() const;
 #endif
