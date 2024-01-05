@@ -15,7 +15,11 @@ blender -b -noaudio --factory-startup --python tests/python/bl_animation_keyfram
 
 def _fcurve_paths_match(fcurves: list, expected_paths: list) -> bool:
     data_paths = list(set([fcurve.data_path for fcurve in fcurves]))
-    return sorted(data_paths) == sorted(expected_paths)
+    data_paths.sort()
+    expected_paths.sort()
+    if data_paths != expected_paths:
+        raise AssertionError(
+            f"Expected paths do not match F-Curve paths. Expected: {expected_paths}. F-Curve: {data_paths}")
 
 
 def _get_view3d_context():
@@ -69,9 +73,8 @@ def _insert_by_name_test(insert_key: str, expected_paths: list):
     keyed_object = _create_animation_object()
     with bpy.context.temp_override(**_get_view3d_context()):
         bpy.ops.anim.keyframe_insert_by_name(type=insert_key)
-    match = _fcurve_paths_match(keyed_object.animation_data.action.fcurves, expected_paths)
+    _fcurve_paths_match(keyed_object.animation_data.action.fcurves, expected_paths)
     bpy.data.objects.remove(keyed_object, do_unlink=True)
-    return match
 
 
 def _insert_from_user_preference_test(enabled_user_pref_fields: set, expected_paths: list):
@@ -79,9 +82,8 @@ def _insert_from_user_preference_test(enabled_user_pref_fields: set, expected_pa
     bpy.context.preferences.edit.key_insert_channels = enabled_user_pref_fields
     with bpy.context.temp_override(**_get_view3d_context()):
         bpy.ops.anim.keyframe_insert()
-    match = _fcurve_paths_match(keyed_object.animation_data.action.fcurves, expected_paths)
+    _fcurve_paths_match(keyed_object.animation_data.action.fcurves, expected_paths)
     bpy.data.objects.remove(keyed_object, do_unlink=True)
-    return match
 
 
 def _get_keying_set(scene, name: str):
@@ -95,9 +97,8 @@ def _insert_with_keying_set_test(keying_set_name: str, expected_paths: list):
     keyed_object = _create_animation_object()
     with bpy.context.temp_override(**_get_view3d_context()):
         bpy.ops.anim.keyframe_insert()
-    match = _fcurve_paths_match(keyed_object.animation_data.action.fcurves, expected_paths)
+    _fcurve_paths_match(keyed_object.animation_data.action.fcurves, expected_paths)
     bpy.data.objects.remove(keyed_object, do_unlink=True)
-    return match
 
 
 class AbstractKeyframingTest:
@@ -110,29 +111,30 @@ class InsertKeyTest(AbstractKeyframingTest, unittest.TestCase):
     """ Ensure keying things by name or with a keying set adds the right keys. """
 
     def test_insert_by_name(self):
-        self.assertTrue(_insert_by_name_test("Location", ["location"]))
-        self.assertTrue(_insert_by_name_test("Rotation", ["rotation_euler"]))
-        self.assertTrue(_insert_by_name_test("Scaling", ["scale"]))
-        self.assertTrue(_insert_by_name_test("LocRotScale", ["location", "rotation_euler", "scale"]))
+        _insert_by_name_test("Location", ["location"])
+        _insert_by_name_test("Rotation", ["rotation_euler"])
+        _insert_by_name_test("Scaling", ["scale"])
+        _insert_by_name_test("LocRotScale", ["location", "rotation_euler", "scale"])
 
     def test_insert_with_keying_set(self):
-        self.assertTrue(_insert_with_keying_set_test("Location", ["location"]))
-        self.assertTrue(_insert_with_keying_set_test("Rotation", ["rotation_euler"]))
-        self.assertTrue(_insert_with_keying_set_test("Scale", ["scale"]))
-        self.assertTrue(
-            _insert_with_keying_set_test("Location, Rotation & Scale", ["location", "rotation_euler", "scale"])
-        )
+        _insert_with_keying_set_test("Location", ["location"])
+        _insert_with_keying_set_test("Rotation", ["rotation_euler"])
+        _insert_with_keying_set_test("Scale", ["scale"])
+        _insert_with_keying_set_test("Location, Rotation & Scale", ["location", "rotation_euler", "scale"])
 
     def test_insert_from_user_preferences(self):
-        self.assertTrue(_insert_from_user_preference_test({"LOCATION"}, ["location"]))
-        self.assertTrue(_insert_from_user_preference_test({"ROTATION"}, ["rotation_euler"]))
-        self.assertTrue(_insert_from_user_preference_test({"SCALE"}, ["scale"]))
-        self.assertTrue(_insert_from_user_preference_test(
-            {"LOCATION", "ROTATION", "SCALE"}, ["location", "rotation_euler", "scale"]))
+        _insert_from_user_preference_test({"LOCATION"}, ["location"])
+        _insert_from_user_preference_test({"ROTATION"}, ["rotation_euler"])
+        _insert_from_user_preference_test({"SCALE"}, ["scale"])
+        _insert_from_user_preference_test({"LOCATION", "ROTATION", "SCALE"}, ["location", "rotation_euler", "scale"])
 
 
 class VisualKeyingTest(AbstractKeyframingTest, unittest.TestCase):
     """ Check if visual keying produces the correct keyframe values. """
+
+    def tearDown(self):
+        super().tearDown()
+        bpy.context.preferences.edit.use_visual_keying = False
 
     def test_visual_location_keying_set(self):
         t_value = 1
@@ -147,9 +149,6 @@ class VisualKeyingTest(AbstractKeyframingTest, unittest.TestCase):
 
         for fcurve in constrained.animation_data.action.fcurves:
             self.assertEqual(fcurve.keyframe_points[0].co.y, t_value)
-
-        bpy.data.objects.remove(target, do_unlink=True)
-        bpy.data.objects.remove(constrained, do_unlink=True)
 
     def test_visual_rotation_keying_set(self):
         rot_value_deg = 45
@@ -166,9 +165,6 @@ class VisualKeyingTest(AbstractKeyframingTest, unittest.TestCase):
 
         for fcurve in constrained.animation_data.action.fcurves:
             self.assertAlmostEqual(fcurve.keyframe_points[0].co.y, rot_value_rads, places=4)
-
-        bpy.data.objects.remove(target, do_unlink=True)
-        bpy.data.objects.remove(constrained, do_unlink=True)
 
     def test_visual_location_user_pref_override(self):
         # When enabling the user preference setting,
@@ -187,10 +183,6 @@ class VisualKeyingTest(AbstractKeyframingTest, unittest.TestCase):
         for fcurve in constrained.animation_data.action.fcurves:
             self.assertEqual(fcurve.keyframe_points[0].co.y, t_value)
 
-        bpy.data.objects.remove(target, do_unlink=True)
-        bpy.data.objects.remove(constrained, do_unlink=True)
-        bpy.context.preferences.edit.use_visual_keying = False
-
     def test_visual_location_user_pref(self):
         target = _create_animation_object()
         t_value = 1
@@ -207,10 +199,6 @@ class VisualKeyingTest(AbstractKeyframingTest, unittest.TestCase):
 
         for fcurve in constrained.animation_data.action.fcurves:
             self.assertEqual(fcurve.keyframe_points[0].co.y, t_value)
-
-        bpy.data.objects.remove(target, do_unlink=True)
-        bpy.data.objects.remove(constrained, do_unlink=True)
-        bpy.context.preferences.edit.use_visual_keying = False
 
 
 class CycleAwareKeyingTest(AbstractKeyframingTest, unittest.TestCase):
@@ -246,7 +234,7 @@ class CycleAwareKeyingTest(AbstractKeyframingTest, unittest.TestCase):
             bpy.ops.anim.keyframe_insert_by_name(type="Location")
 
         # Check that only location keys have been created.
-        self.assertTrue(_fcurve_paths_match(action.fcurves, ["location"]))
+        _fcurve_paths_match(action.fcurves, ["location"])
 
         expected_keys = [1, 3, 5, 9, 20]
 
@@ -260,26 +248,29 @@ class CycleAwareKeyingTest(AbstractKeyframingTest, unittest.TestCase):
             # All fcurves should have a cycles modifier.
             self.assertTrue(fcurve.modifiers[0].type == "CYCLES")
 
-        bpy.data.objects.remove(keyed_object, do_unlink=True)
-
 
 class AutoKeyframingTest(AbstractKeyframingTest, unittest.TestCase):
 
-    def test_autokey_basic(self):
-        keyed_object = _create_animation_object()
+    def setUp(self):
+        super().setUp()
         bpy.context.scene.tool_settings.use_keyframe_insert_auto = True
         bpy.context.preferences.edit.use_keyframe_insert_available = False
+        bpy.context.preferences.edit.use_keyframe_insert_needed = False
+
+    def tearDown(self):
+        super().tearDown()
+        bpy.context.scene.tool_settings.use_keyframe_insert_auto = False
+
+    def test_autokey_basic(self):
+        keyed_object = _create_animation_object()
         with bpy.context.temp_override(**_get_view3d_context()):
             bpy.ops.transform.translate(value=(1, 0, 0))
 
         action = keyed_object.animation_data.action
-        self.assertTrue(_fcurve_paths_match(action.fcurves, ["location", "rotation_euler", "scale"]))
-        bpy.data.objects.remove(keyed_object, do_unlink=True)
+        _fcurve_paths_match(action.fcurves, ["location", "rotation_euler", "scale"])
 
     def test_autokey_bone(self):
         armature_obj = _create_armature()
-        bpy.context.scene.tool_settings.use_keyframe_insert_auto = True
-        bpy.context.preferences.edit.use_keyframe_insert_available = False
 
         bpy.ops.object.mode_set(mode='POSE')
         # Not overriding the context because it would mean context.selected_pose_bones is empty
@@ -290,18 +281,24 @@ class AutoKeyframingTest(AbstractKeyframingTest, unittest.TestCase):
         action = armature_obj.animation_data.action
         bone_path = f"pose.bones[\"{_BONE_NAME}\"]"
         expected_paths = [f"{bone_path}.location", f"{bone_path}.rotation_euler", f"{bone_path}.scale"]
-        self.assertTrue(_fcurve_paths_match(action.fcurves, expected_paths))
-
-        bpy.data.objects.remove(armature_obj, do_unlink=True)
+        _fcurve_paths_match(action.fcurves, expected_paths)
 
 
 class InsertAvailableTest(AbstractKeyframingTest, unittest.TestCase):
 
-    def test_autokey_available_object(self):
-        keyed_object = _create_animation_object()
-
+    def setUp(self):
+        super().setUp()
         bpy.context.scene.tool_settings.use_keyframe_insert_auto = True
         bpy.context.preferences.edit.use_keyframe_insert_available = True
+        bpy.context.preferences.edit.use_keyframe_insert_needed = False
+
+    def tearDown(self):
+        super().tearDown()
+        bpy.context.scene.tool_settings.use_keyframe_insert_auto = False
+        bpy.context.preferences.edit.use_keyframe_insert_available = False
+
+    def test_autokey_available_object(self):
+        keyed_object = _create_animation_object()
 
         with bpy.context.temp_override(**_get_view3d_context()):
             bpy.context.scene.frame_set(1)
@@ -311,7 +308,7 @@ class InsertAvailableTest(AbstractKeyframingTest, unittest.TestCase):
 
         # Test that no new keyframes have been added.
         action = keyed_object.animation_data.action
-        self.assertTrue(_fcurve_paths_match(action.fcurves, ["rotation_euler"]))
+        _fcurve_paths_match(action.fcurves, ["rotation_euler"])
 
         with bpy.context.temp_override(**_get_view3d_context()):
             bpy.context.scene.frame_set(1)
@@ -320,7 +317,7 @@ class InsertAvailableTest(AbstractKeyframingTest, unittest.TestCase):
             bpy.ops.transform.translate(value=(1, 0, 0))
 
         action = keyed_object.animation_data.action
-        self.assertTrue(_fcurve_paths_match(action.fcurves, ["location", "rotation_euler"]))
+        _fcurve_paths_match(action.fcurves, ["location", "rotation_euler"])
 
         for fcurve in action.fcurves:
             # Translating the bone would also add rotation keys as long as "Only Insert Needed" is off.
@@ -329,13 +326,8 @@ class InsertAvailableTest(AbstractKeyframingTest, unittest.TestCase):
             else:
                 raise AssertionError(f"Did not expect keys other than location and rotation, got {fcurve.data_path}.")
 
-        bpy.context.preferences.edit.use_keyframe_insert_available = False
-        bpy.data.objects.remove(keyed_object, do_unlink=True)
-
     def test_autokey_available_bone(self):
         armature_obj = _create_armature()
-        bpy.context.scene.tool_settings.use_keyframe_insert_auto = True
-        bpy.context.preferences.edit.use_keyframe_insert_available = True
 
         bpy.ops.object.mode_set(mode='POSE')
         with bpy.context.temp_override(**_get_view3d_context()):
@@ -348,7 +340,7 @@ class InsertAvailableTest(AbstractKeyframingTest, unittest.TestCase):
         action = armature_obj.animation_data.action
         bone_path = f"pose.bones[\"{_BONE_NAME}\"]"
         expected_paths = [f"{bone_path}.rotation_euler"]
-        self.assertTrue(_fcurve_paths_match(action.fcurves, expected_paths))
+        _fcurve_paths_match(action.fcurves, expected_paths)
 
         with bpy.context.temp_override(**_get_view3d_context()):
             bpy.context.scene.frame_set(1)
@@ -357,7 +349,7 @@ class InsertAvailableTest(AbstractKeyframingTest, unittest.TestCase):
             bpy.ops.transform.translate(value=(1, 0, 0))
 
         expected_paths = [f"{bone_path}.location", f"{bone_path}.rotation_euler"]
-        self.assertTrue(_fcurve_paths_match(action.fcurves, expected_paths))
+        _fcurve_paths_match(action.fcurves, expected_paths)
 
         for fcurve in action.fcurves:
             # Translating the bone would also add rotation keys as long as "Only Insert Needed" is off.
@@ -366,13 +358,8 @@ class InsertAvailableTest(AbstractKeyframingTest, unittest.TestCase):
             else:
                 raise AssertionError(f"Did not expect keys other than location and rotation, got {fcurve.data_path}.")
 
-        bpy.data.objects.remove(armature_obj, do_unlink=True)
-
     def test_insert_available_keying_set(self):
         keyed_object = _create_animation_object()
-
-        bpy.context.scene.tool_settings.use_keyframe_insert_auto = True
-        bpy.context.preferences.edit.use_keyframe_insert_available = False
 
         with bpy.context.temp_override(**_get_view3d_context()):
             self.assertRaises(RuntimeError, bpy.ops.anim.keyframe_insert_by_name, type="Available")
@@ -386,13 +373,10 @@ class InsertAvailableTest(AbstractKeyframingTest, unittest.TestCase):
             bpy.ops.anim.keyframe_insert_by_name(type="Available")
 
         action = keyed_object.animation_data.action
-        self.assertTrue(_fcurve_paths_match(action.fcurves, ["location"]))
+        _fcurve_paths_match(action.fcurves, ["location"])
 
         for fcurve in action.fcurves:
             self.assertEqual(len(fcurve.keyframe_points), 2)
-
-        bpy.context.preferences.edit.use_keyframe_insert_available = False
-        bpy.data.objects.remove(keyed_object, do_unlink=True)
 
 
 class InsertNeededTest(AbstractKeyframingTest, unittest.TestCase):
@@ -404,6 +388,7 @@ class InsertNeededTest(AbstractKeyframingTest, unittest.TestCase):
         bpy.context.preferences.edit.use_keyframe_insert_available = False
 
     def tearDown(self):
+        super().tearDown()
         bpy.context.scene.tool_settings.use_keyframe_insert_auto = False
         bpy.context.preferences.edit.use_keyframe_insert_needed = False
 
@@ -417,7 +402,7 @@ class InsertNeededTest(AbstractKeyframingTest, unittest.TestCase):
             bpy.ops.transform.translate(value=(1, 0, 0))
 
         action = keyed_object.animation_data.action
-        self.assertTrue(_fcurve_paths_match(action.fcurves, ["location"]))
+        _fcurve_paths_match(action.fcurves, ["location"])
 
         # With "Insert Needed" enabled it has to key all location channels first,
         # before it can add keys only to the channels where values have actually
@@ -447,7 +432,7 @@ class InsertNeededTest(AbstractKeyframingTest, unittest.TestCase):
 
         action = armature_obj.animation_data.action
         bone_path = f"pose.bones[\"{_BONE_NAME}\"]"
-        self.assertTrue(_fcurve_paths_match(action.fcurves, [f"{bone_path}.location"]))
+        _fcurve_paths_match(action.fcurves, [f"{bone_path}.location"])
 
         # With "Insert Needed" enabled it has to key all location channels first,
         # before it can add keys only to the channels where values have actually
