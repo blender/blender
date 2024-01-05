@@ -8,12 +8,13 @@ struct Main;
 #include "WM_types.hh"
 
 #include "usd.h"
+#include "usd_hash_types.h"
 #include "usd_reader_prim.h"
 
 #include <pxr/usd/usd/stage.h>
 #include <pxr/usd/usdGeom/imageable.h>
 
-#include <vector>
+#include <string>
 
 struct ImportSettings;
 
@@ -23,7 +24,7 @@ namespace blender::io::usd {
  * Map a USD prototype prim path to the list of readers that convert
  * the prototype data.
  */
-using ProtoReaderMap = std::map<pxr::SdfPath, std::vector<USDPrimReader *>>;
+using ProtoReaderMap = blender::Map<pxr::SdfPath, blender::Vector<USDPrimReader *>>;
 
 class USDStageReader {
 
@@ -32,11 +33,11 @@ class USDStageReader {
   USDImportParams params_;
   ImportSettings settings_;
 
-  std::vector<USDPrimReader *> readers_;
+  blender::Vector<USDPrimReader *> readers_;
 
   /* USD material prim paths encountered during stage
    * traversal, for importing unused materials. */
-  std::vector<std::string> material_paths_;
+  blender::Vector<std::string> material_paths_;
 
   /* Readers for scenegraph instance prototypes. */
   ProtoReaderMap proto_readers_;
@@ -98,7 +99,7 @@ class USDStageReader {
 
   void clear_proto_readers();
 
-  const std::vector<USDPrimReader *> &readers() const
+  const blender::Vector<USDPrimReader *> &readers() const
   {
     return readers_;
   };
@@ -113,7 +114,7 @@ class USDStageReader {
  private:
   USDPrimReader *collect_readers(Main *bmain,
                                  const pxr::UsdPrim &prim,
-                                 std::vector<USDPrimReader *> &r_readers);
+                                 blender::Vector<USDPrimReader *> &r_readers);
 
   /**
    * Returns true if the given prim should be included in the

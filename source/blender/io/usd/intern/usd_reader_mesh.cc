@@ -6,6 +6,7 @@
  * NVIDIA Corporation. All rights reserved. */
 
 #include "usd_reader_mesh.h"
+#include "usd_hash_types.h"
 #include "usd_reader_material.h"
 #include "usd_skel_convert.h"
 
@@ -17,13 +18,11 @@
 #include "BKE_object.hh"
 #include "BKE_report.h"
 
+#include "BLI_map.hh"
 #include "BLI_math_color.hh"
-#include "BLI_math_geom.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
 #include "BLI_string.h"
-
-#include "usd_hash_types.h"
 
 #include "DNA_customdata_types.h"
 #include "DNA_material_types.h"
@@ -80,11 +79,11 @@ static pxr::UsdShadeMaterial compute_bound_material(const pxr::UsdPrim &prim)
 
 static void assign_materials(Main *bmain,
                              Object *ob,
-                             const std::map<pxr::SdfPath, int> &mat_index_map,
+                             const blender::Map<pxr::SdfPath, int> &mat_index_map,
                              const USDImportParams &params,
                              pxr::UsdStageRefPtr stage,
-                             std::map<std::string, Material *> &mat_name_to_mat,
-                             std::map<std::string, std::string> &usd_path_to_mat_name)
+                             blender::Map<std::string, Material *> &mat_name_to_mat,
+                             blender::Map<std::string, std::string> &usd_path_to_mat_name)
 {
   if (!(stage && bmain && ob)) {
     return;
@@ -96,22 +95,18 @@ static void assign_materials(Main *bmain,
 
   blender::io::usd::USDMaterialReader mat_reader(params, bmain);
 
-  for (std::map<pxr::SdfPath, int>::const_iterator it = mat_index_map.begin();
-       it != mat_index_map.end();
-       ++it)
-  {
-
+  for (const auto item : mat_index_map.items()) {
     Material *assigned_mat = blender::io::usd::find_existing_material(
-        it->first, params, mat_name_to_mat, usd_path_to_mat_name);
+        item.key, params, mat_name_to_mat, usd_path_to_mat_name);
     if (!assigned_mat) {
       /* Blender material doesn't exist, so create it now. */
 
       /* Look up the USD material. */
-      pxr::UsdPrim prim = stage->GetPrimAtPath(it->first);
+      pxr::UsdPrim prim = stage->GetPrimAtPath(item.key);
       pxr::UsdShadeMaterial usd_mat(prim);
 
       if (!usd_mat) {
-        std::cout << "WARNING: Couldn't construct USD material from prim " << it->first
+        std::cout << "WARNING: Couldn't construct USD material from prim " << item.key
                   << std::endl;
         continue;
       }
@@ -120,27 +115,27 @@ static void assign_materials(Main *bmain,
       assigned_mat = mat_reader.add_material(usd_mat);
 
       if (!assigned_mat) {
-        std::cout << "WARNING: Couldn't create Blender material from USD material " << it->first
+        std::cout << "WARNING: Couldn't create Blender material from USD material " << item.key
                   << std::endl;
         continue;
       }
 
       const std::string mat_name = pxr::TfMakeValidIdentifier(assigned_mat->id.name + 2);
-      mat_name_to_mat[mat_name] = assigned_mat;
+      mat_name_to_mat.lookup_or_add_default(mat_name) = assigned_mat;
 
       if (params.mtl_name_collision_mode == USD_MTL_NAME_COLLISION_MAKE_UNIQUE) {
         /* Record the name of the Blender material we created for the USD material
          * with the given path. */
-        usd_path_to_mat_name[it->first.GetAsString()] = mat_name;
+        usd_path_to_mat_name.lookup_or_add_default(item.key.GetAsString()) = mat_name;
       }
     }
 
     if (assigned_mat) {
-      BKE_object_material_assign_single_obdata(bmain, ob, assigned_mat, it->second);
+      BKE_object_material_assign_single_obdata(bmain, ob, assigned_mat, item.value);
     }
     else {
       /* This shouldn't happen. */
-      std::cout << "WARNING: Couldn't assign material " << it->first << std::endl;
+      std::cout << "WARNING: Couldn't assign material " << item.key << std::endl;
     }
   }
   if (ob->totcol > 0) {
@@ -919,9 +914,8 @@ void USDMeshReader::read_custom_data(const ImportSettings *settings,
 
     /* To avoid unnecessarily reloading static primvars during animation,
      * early out if not first load and this primvar isn't animated. */
-    if (!new_mesh && primvar_varying_map_.find(name) != primvar_varying_map_.end() &&
-        !primvar_varying_map_.at(name))
-    {
+    const bool is_time_varying = primvar_varying_map_.lookup_default(name, false);
+    if (!new_mesh && !is_time_varying) {
       continue;
     }
 
@@ -975,9 +969,9 @@ void USDMeshReader::read_custom_data(const ImportSettings *settings,
     }
 
     /* Record whether the primvar attribute might be time varying. */
-    if (primvar_varying_map_.find(name) == primvar_varying_map_.end()) {
+    if (!primvar_varying_map_.contains(name)) {
       bool might_be_time_varying = pv.ValueMightBeTimeVarying();
-      primvar_varying_map_.insert(std::make_pair(name, might_be_time_varying));
+      primvar_varying_map_.add(name, might_be_time_varying);
       if (might_be_time_varying) {
         is_time_varying_ = true;
       }
@@ -1001,7 +995,7 @@ void USDMeshReader::read_custom_data(const ImportSettings *settings,
 
 void USDMeshReader::assign_facesets_to_material_indices(double motionSampleTime,
                                                         MutableSpan<int> material_indices,
-                                                        std::map<pxr::SdfPath, int> *r_mat_map)
+                                                        blender::Map<pxr::SdfPath, int> *r_mat_map)
 {
   if (r_mat_map == nullptr) {
     return;
@@ -1031,30 +1025,26 @@ void USDMeshReader::assign_facesets_to_material_indices(double motionSampleTime,
         continue;
       }
 
-      if (r_mat_map->find(subset_mtl_path) == r_mat_map->end()) {
-        (*r_mat_map)[subset_mtl_path] = 1 + current_mat++;
-      }
-
-      const int mat_idx = (*r_mat_map)[subset_mtl_path] - 1;
+      const int mat_idx = r_mat_map->lookup_or_add(subset_mtl_path, 1 + current_mat++);
 
       pxr::UsdAttribute indicesAttribute = subset.GetIndicesAttr();
       pxr::VtIntArray indices;
       indicesAttribute.Get(&indices, motionSampleTime);
 
       for (const int i : indices) {
-        material_indices[i] = mat_idx;
+        material_indices[i] = mat_idx - 1;
       }
     }
   }
 
-  if (r_mat_map->empty()) {
+  if (r_mat_map->is_empty()) {
 
     pxr::UsdShadeMaterial mtl = utils::compute_bound_material(prim_);
     if (mtl) {
       pxr::SdfPath mtl_path = mtl.GetPath();
 
       if (!mtl_path.IsEmpty()) {
-        r_mat_map->insert(std::make_pair(mtl.GetPath(), 1));
+        r_mat_map->add(mtl.GetPath(), 1);
       }
     }
   }
@@ -1066,7 +1056,7 @@ void USDMeshReader::readFaceSetsSample(Main *bmain, Mesh *mesh, const double mot
     return;
   }
 
-  std::map<pxr::SdfPath, int> mat_map;
+  blender::Map<pxr::SdfPath, int> mat_map;
 
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::SpanAttributeWriter<int> material_indices = attributes.lookup_or_add_for_write_span<int>(
@@ -1074,7 +1064,7 @@ void USDMeshReader::readFaceSetsSample(Main *bmain, Mesh *mesh, const double mot
   this->assign_facesets_to_material_indices(motionSampleTime, material_indices.span, &mat_map);
   material_indices.finish();
   /* Build material name map if it's not built yet. */
-  if (this->settings_->mat_name_to_mat.empty()) {
+  if (this->settings_->mat_name_to_mat.is_empty()) {
     build_material_map(bmain, &this->settings_->mat_name_to_mat);
   }
   utils::assign_materials(bmain,
@@ -1122,7 +1112,7 @@ Mesh *USDMeshReader::read_mesh(Mesh *existing_mesh,
      * the material slots that were created when the object was loaded from
      * USD are still valid now. */
     if (active_mesh->faces_num != 0 && import_params_.import_materials) {
-      std::map<pxr::SdfPath, int> mat_map;
+      blender::Map<pxr::SdfPath, int> mat_map;
       bke::MutableAttributeAccessor attributes = active_mesh->attributes_for_write();
       bke::SpanAttributeWriter<int> material_indices =
           attributes.lookup_or_add_for_write_span<int>("material_index", bke::AttrDomain::Face);

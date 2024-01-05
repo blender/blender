@@ -255,9 +255,8 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
   std::string prim_path_mask(data->params.prim_path_mask);
   pxr::UsdStagePopulationMask pop_mask;
   if (!prim_path_mask.empty()) {
-    const std::vector<std::string> mask_tokens = pxr::TfStringTokenize(prim_path_mask, ",;");
-    for (const std::string &tok : mask_tokens) {
-      pxr::SdfPath prim_path(tok);
+    for (const std::string &mask_token : pxr::TfStringTokenize(prim_path_mask, ",;")) {
+      pxr::SdfPath prim_path(mask_token);
       if (!prim_path.IsEmpty()) {
         pop_mask.Add(prim_path);
       }

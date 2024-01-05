@@ -5,6 +5,7 @@
  * Modifications Copyright 2021 Tangent Animation and. NVIDIA Corporation. All rights reserved. */
 #pragma once
 
+#include "BLI_map.hh"
 #include "BLI_span.hh"
 
 #include "usd.h"
@@ -18,8 +19,8 @@ class USDMeshReader : public USDGeomReader {
  private:
   pxr::UsdGeomMesh mesh_prim_;
 
-  std::unordered_map<std::string, pxr::TfToken> uv_token_map_;
-  std::map<const pxr::TfToken, bool> primvar_varying_map_;
+  blender::Map<std::string, pxr::TfToken> uv_token_map_;
+  blender::Map<const pxr::TfToken, bool> primvar_varying_map_;
 
   /* TODO(makowalski): Is it the best strategy to cache the
    * mesh geometry in the following members? It appears these
@@ -73,7 +74,7 @@ class USDMeshReader : public USDGeomReader {
   void readFaceSetsSample(Main *bmain, Mesh *mesh, double motionSampleTime);
   void assign_facesets_to_material_indices(double motionSampleTime,
                                            MutableSpan<int> material_indices,
-                                           std::map<pxr::SdfPath, int> *r_mat_map);
+                                           blender::Map<pxr::SdfPath, int> *r_mat_map);
 
   void read_mpolys(Mesh *mesh);
   void read_vertex_creases(Mesh *mesh, double motionSampleTime);

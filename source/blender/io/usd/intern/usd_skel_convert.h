@@ -8,7 +8,6 @@
 
 #include "DNA_windowmanager_types.h"
 
-#include <map>
 #include <pxr/usd/usd/prim.h>
 #include <pxr/usd/usdGeom/xformCache.h>
 #include <pxr/usd/usdSkel/bindingAPI.h>

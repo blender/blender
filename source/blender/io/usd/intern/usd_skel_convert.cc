@@ -39,9 +39,12 @@
 #include "BKE_object_deform.h"
 #include "BKE_report.h"
 
+#include "BLI_map.hh"
 #include "BLI_math_vector.h"
+#include "BLI_set.hh"
 #include "BLI_span.hh"
 #include "BLI_string.h"
+#include "BLI_vector.hh"
 
 #include "ED_armature.hh"
 #include "ED_keyframing.hh"
@@ -120,7 +123,7 @@ void add_bezt(FCurve *fcu,
 void import_skeleton_curves(Main *bmain,
                             Object *arm_obj,
                             const pxr::UsdSkelSkeletonQuery &skel_query,
-                            const std::map<pxr::TfToken, std::string> &joint_to_bone_map,
+                            const blender::Map<pxr::TfToken, std::string> &joint_to_bone_map,
                             ReportList *reports)
 
 {
@@ -128,7 +131,7 @@ void import_skeleton_curves(Main *bmain,
     return;
   }
 
-  if (joint_to_bone_map.empty()) {
+  if (joint_to_bone_map.is_empty()) {
     return;
   }
 
@@ -156,50 +159,50 @@ void import_skeleton_curves(Main *bmain,
   /* Get the joint paths. */
   pxr::VtTokenArray joint_order = skel_query.GetJointOrder();
 
-  std::vector<FCurve *> loc_curves;
-  std::vector<FCurve *> rot_curves;
-  std::vector<FCurve *> scale_curves;
+  blender::Vector<FCurve *> loc_curves;
+  blender::Vector<FCurve *> rot_curves;
+  blender::Vector<FCurve *> scale_curves;
 
   /* Iterate over the joints and create the corresponding curves for the bones. */
   for (const pxr::TfToken &joint : joint_order) {
-    std::map<pxr::TfToken, std::string>::const_iterator it = joint_to_bone_map.find(joint);
+    const std::string *name = joint_to_bone_map.lookup_ptr(joint);
 
-    if (it == joint_to_bone_map.end()) {
+    if (name == nullptr) {
       /* This joint doesn't correspond to any bone we created.
        * Add null placeholders for the channel curves. */
-      loc_curves.push_back(nullptr);
-      loc_curves.push_back(nullptr);
-      loc_curves.push_back(nullptr);
-      rot_curves.push_back(nullptr);
-      rot_curves.push_back(nullptr);
-      rot_curves.push_back(nullptr);
-      rot_curves.push_back(nullptr);
-      scale_curves.push_back(nullptr);
-      scale_curves.push_back(nullptr);
-      scale_curves.push_back(nullptr);
+      loc_curves.append(nullptr);
+      loc_curves.append(nullptr);
+      loc_curves.append(nullptr);
+      rot_curves.append(nullptr);
+      rot_curves.append(nullptr);
+      rot_curves.append(nullptr);
+      rot_curves.append(nullptr);
+      scale_curves.append(nullptr);
+      scale_curves.append(nullptr);
+      scale_curves.append(nullptr);
       continue;
     }
 
-    bActionGroup *grp = action_groups_add_new(act, it->second.c_str());
+    bActionGroup *grp = action_groups_add_new(act, name->c_str());
 
     /* Add translation curves. */
-    std::string rna_path = "pose.bones[\"" + it->second + "\"].location";
-    loc_curves.push_back(create_chan_fcurve(act, grp, 0, rna_path, num_samples));
-    loc_curves.push_back(create_chan_fcurve(act, grp, 1, rna_path, num_samples));
-    loc_curves.push_back(create_chan_fcurve(act, grp, 2, rna_path, num_samples));
+    std::string rna_path = "pose.bones[\"" + *name + "\"].location";
+    loc_curves.append(create_chan_fcurve(act, grp, 0, rna_path, num_samples));
+    loc_curves.append(create_chan_fcurve(act, grp, 1, rna_path, num_samples));
+    loc_curves.append(create_chan_fcurve(act, grp, 2, rna_path, num_samples));
 
     /* Add rotation curves. */
-    rna_path = "pose.bones[\"" + it->second + "\"].rotation_quaternion";
-    rot_curves.push_back(create_chan_fcurve(act, grp, 0, rna_path, num_samples));
-    rot_curves.push_back(create_chan_fcurve(act, grp, 1, rna_path, num_samples));
-    rot_curves.push_back(create_chan_fcurve(act, grp, 2, rna_path, num_samples));
-    rot_curves.push_back(create_chan_fcurve(act, grp, 3, rna_path, num_samples));
+    rna_path = "pose.bones[\"" + *name + "\"].rotation_quaternion";
+    rot_curves.append(create_chan_fcurve(act, grp, 0, rna_path, num_samples));
+    rot_curves.append(create_chan_fcurve(act, grp, 1, rna_path, num_samples));
+    rot_curves.append(create_chan_fcurve(act, grp, 2, rna_path, num_samples));
+    rot_curves.append(create_chan_fcurve(act, grp, 3, rna_path, num_samples));
 
     /* Add scale curves. */
-    rna_path = "pose.bones[\"" + it->second + "\"].scale";
-    scale_curves.push_back(create_chan_fcurve(act, grp, 0, rna_path, num_samples));
-    scale_curves.push_back(create_chan_fcurve(act, grp, 1, rna_path, num_samples));
-    scale_curves.push_back(create_chan_fcurve(act, grp, 2, rna_path, num_samples));
+    rna_path = "pose.bones[\"" + *name + "\"].scale";
+    scale_curves.append(create_chan_fcurve(act, grp, 0, rna_path, num_samples));
+    scale_curves.append(create_chan_fcurve(act, grp, 1, rna_path, num_samples));
+    scale_curves.append(create_chan_fcurve(act, grp, 2, rna_path, num_samples));
   }
 
   /* Sanity checks: make sure we have a curve entry for each joint. */
@@ -469,7 +472,7 @@ void import_blendshapes(Main *bmain,
 
   /* Keep track of the shape-keys we're adding,
    * for validation when creating curves later. */
-  std::set<pxr::TfToken> shapekey_names;
+  blender::Set<pxr::TfToken> shapekey_names;
 
   for (int i = 0; i < targets.size(); ++i) {
     /* Get USD path to blend shape. */
@@ -505,7 +508,7 @@ void import_blendshapes(Main *bmain,
       continue;
     }
 
-    shapekey_names.insert(blendshapes[i]);
+    shapekey_names.add(blendshapes[i]);
 
     /* Add the key block. */
     kb = BKE_keyblock_add(key, blendshapes[i].GetString().c_str());
@@ -629,13 +632,13 @@ void import_blendshapes(Main *bmain,
 
   /* Create the animation and curves. */
   bAction *act = blender::animrig::id_action_ensure(bmain, (ID *)&key->id);
-  std::vector<FCurve *> curves;
+  blender::Vector<FCurve *> curves;
 
   for (auto blendshape_name : blendshapes) {
-    if (shapekey_names.find(blendshape_name) == shapekey_names.end()) {
+    if (!shapekey_names.contains(blendshape_name)) {
       /* We didn't create a shape-key for this blend-shape, so we don't
        * create a curve and insert a null placeholder in the curve array. */
-      curves.push_back(nullptr);
+      curves.append(nullptr);
       continue;
     }
 
@@ -643,7 +646,7 @@ void import_blendshapes(Main *bmain,
     std::string rna_path = "key_blocks[\"" + blendshape_name.GetString() + "\"].value";
     FCurve *fcu = create_fcurve(0, rna_path);
     fcu->totvert = num_samples;
-    curves.push_back(fcu);
+    curves.append(fcu);
     BLI_addtail(&act->curves, fcu);
   }
 
@@ -715,12 +718,12 @@ void import_skeleton(Main *bmain,
   ED_armature_to_edit(arm);
 
   /* The bones we create, stored in the skeleton's joint order. */
-  std::vector<EditBone *> edit_bones;
+  blender::Vector<EditBone *> edit_bones;
 
   /* Keep track of the bones we create for each joint.
    * We'll need this when creating animation curves
    * later. */
-  std::map<pxr::TfToken, std::string> joint_to_bone_map;
+  blender::Map<pxr::TfToken, std::string> joint_to_bone_map;
 
   /* Create the bones. */
   for (const pxr::TfToken &joint : joint_order) {
@@ -732,11 +735,11 @@ void import_skeleton(Main *bmain,
                   "%s: Couldn't add bone for joint %s",
                   __func__,
                   joint.GetString().c_str());
-      edit_bones.push_back(nullptr);
+      edit_bones.append(nullptr);
       continue;
     }
-    joint_to_bone_map.insert(std::make_pair(joint, bone->name));
-    edit_bones.push_back(bone);
+    joint_to_bone_map.add(joint, bone->name);
+    edit_bones.append(bone);
   }
 
   /* Sanity check: we should have created a bone for each joint. */
@@ -829,7 +832,7 @@ void import_skeleton(Main *bmain,
 
   /* This will record the child bone indices per parent bone,
    * to simplify accessing children when computing lengths. */
-  std::vector<std::vector<int>> child_bones(num_joints);
+  blender::Vector<blender::Vector<int>> child_bones(num_joints);
 
   for (size_t i = 0; i < num_joints; ++i) {
     const int parent_idx = skel_topology.GetParent(i);
@@ -842,7 +845,7 @@ void import_skeleton(Main *bmain,
       continue;
     }
 
-    child_bones[parent_idx].push_back(i);
+    child_bones[parent_idx].append(i);
     if (edit_bones[i] && edit_bones[parent_idx]) {
       edit_bones[i]->parent = edit_bones[parent_idx];
     }
@@ -855,7 +858,7 @@ void import_skeleton(Main *bmain,
      * by the distance between this bone's head
      * and the average head location of its children. */
 
-    if (child_bones[i].empty()) {
+    if (child_bones[i].is_empty()) {
       continue;
     }
 
@@ -893,7 +896,7 @@ void import_skeleton(Main *bmain,
   avg_len_scale /= num_joints;
 
   for (size_t i = 0; i < num_joints; ++i) {
-    if (!child_bones[i].empty()) {
+    if (!child_bones[i].is_empty()) {
       /* Not a terminal bone. */
       continue;
     }
@@ -1042,7 +1045,7 @@ void import_mesh_skel_bindings(Main *bmain,
   }
 
   /* Determine which joint indices are used for skinning this prim. */
-  std::vector<int> used_indices;
+  blender::Vector<int> used_indices;
   for (int index : joint_indices) {
     if (std::find(used_indices.begin(), used_indices.end(), index) == used_indices.end()) {
       /* We haven't accounted for this index yet. */
@@ -1050,11 +1053,11 @@ void import_mesh_skel_bindings(Main *bmain,
         std::cerr << "Out of bound joint index " << index << std::endl;
         continue;
       }
-      used_indices.push_back(index);
+      used_indices.append(index);
     }
   }
 
-  if (used_indices.empty()) {
+  if (used_indices.is_empty()) {
     return;
   }
 
@@ -1074,7 +1077,7 @@ void import_mesh_skel_bindings(Main *bmain,
   }
 
   /* Create a deform group per joint. */
-  std::vector<bDeformGroup *> joint_def_grps(joints.size(), nullptr);
+  blender::Vector<bDeformGroup *> joint_def_grps(joints.size(), nullptr);
 
   for (int idx : used_indices) {
     std::string joint_name = pxr::SdfPath(joints[idx]).GetName();
