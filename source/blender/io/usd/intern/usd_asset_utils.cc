@@ -16,6 +16,8 @@
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 
+#include <string_view>
+
 static const char UDIM_PATTERN[] = "<UDIM>";
 static const char UDIM_PATTERN2[] = "%3CUDIM%3E";
 
@@ -36,7 +38,8 @@ namespace blender::io::usd {
  */
 static std::pair<std::string, std::string> split_udim_pattern(const std::string &path)
 {
-  for (const std::string &pattern : {UDIM_PATTERN, UDIM_PATTERN2}) {
+  std::string_view patterns[]{UDIM_PATTERN, UDIM_PATTERN2};
+  for (const std::string_view pattern : patterns) {
     const std::string::size_type pos = path.find(pattern);
     if (pos != std::string::npos) {
       return {path.substr(0, pos), path.substr(pos + pattern.size())};
