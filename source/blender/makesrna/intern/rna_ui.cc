@@ -1455,7 +1455,8 @@ static void rna_UILayout_property_decorate_set(PointerRNA *ptr, bool value)
 
 /* File Handler */
 
-static bool file_handler_poll_drop(const bContext *C, FileHandlerType *file_handler_type)
+static bool file_handler_poll_drop(const bContext *C,
+                                   blender::bke::FileHandlerType *file_handler_type)
 {
   extern FunctionRNA rna_FileHandler_poll_drop_func;
 
@@ -1480,7 +1481,8 @@ static bool file_handler_poll_drop(const bContext *C, FileHandlerType *file_hand
 
 static bool rna_FileHandler_unregister(Main * /*bmain*/, StructRNA *type)
 {
-  FileHandlerType *file_handler_type = static_cast<FileHandlerType *>(
+  using namespace blender;
+  bke::FileHandlerType *file_handler_type = static_cast<bke::FileHandlerType *>(
       RNA_struct_blender_type_get(type));
 
   if (!file_handler_type) {
@@ -1490,7 +1492,7 @@ static bool rna_FileHandler_unregister(Main * /*bmain*/, StructRNA *type)
   RNA_struct_free_extension(type, &file_handler_type->rna_ext);
   RNA_struct_free(&BLENDER_RNA, type);
 
-  BKE_file_handler_remove(file_handler_type);
+  bke::file_handler_remove(file_handler_type);
 
   return true;
 }
@@ -1503,8 +1505,8 @@ static StructRNA *rna_FileHandler_register(Main *bmain,
                                            StructCallbackFunc call,
                                            StructFreeFunc free)
 {
-
-  FileHandlerType dummy_file_handler_type{};
+  using namespace blender;
+  bke::FileHandlerType dummy_file_handler_type{};
   FileHandler dummy_file_handler{};
 
   dummy_file_handler.type = &dummy_file_handler_type;
@@ -1530,7 +1532,7 @@ static StructRNA *rna_FileHandler_register(Main *bmain,
   }
 
   /* Check if there is a file handler registered with the same `idname`, and remove it. */
-  auto registered_file_handler = BKE_file_handler_find(dummy_file_handler_type.idname);
+  auto registered_file_handler = bke::file_handler_find(dummy_file_handler_type.idname);
   if (registered_file_handler) {
     rna_FileHandler_unregister(bmain, registered_file_handler->rna_ext.srna);
   }
@@ -1543,7 +1545,7 @@ static StructRNA *rna_FileHandler_register(Main *bmain,
   }
 
   /* Create the new file handler type. */
-  std::unique_ptr<FileHandlerType> file_handler_type = std::make_unique<FileHandlerType>();
+  auto file_handler_type = std::make_unique<bke::FileHandlerType>();
   *file_handler_type = dummy_file_handler_type;
 
   file_handler_type->rna_ext.srna = RNA_def_struct_ptr(
@@ -1556,7 +1558,7 @@ static StructRNA *rna_FileHandler_register(Main *bmain,
   file_handler_type->poll_drop = have_function[0] ? file_handler_poll_drop : nullptr;
 
   auto srna = file_handler_type->rna_ext.srna;
-  BKE_file_handler_add(std::move(file_handler_type));
+  bke::file_handler_add(std::move(file_handler_type));
 
   return srna;
 }

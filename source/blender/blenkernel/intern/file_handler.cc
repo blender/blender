@@ -6,23 +6,25 @@
 
 #include "BLI_string.h"
 
-static blender::RawVector<std::unique_ptr<FileHandlerType>> &file_handlers()
+namespace blender::bke {
+
+static Vector<std::unique_ptr<FileHandlerType>> &file_handlers_vector()
 {
-  static blender::RawVector<std::unique_ptr<FileHandlerType>> file_handlers;
+  static Vector<std::unique_ptr<FileHandlerType>> file_handlers;
   return file_handlers;
 }
 
-const blender::RawVector<std::unique_ptr<FileHandlerType>> &BKE_file_handlers()
+Span<std::unique_ptr<FileHandlerType>> file_handlers()
 {
-  return file_handlers();
+  return file_handlers_vector();
 }
 
-FileHandlerType *BKE_file_handler_find(const char *name)
+FileHandlerType *file_handler_find(const StringRef name)
 {
   auto itr = std::find_if(file_handlers().begin(),
                           file_handlers().end(),
                           [name](const std::unique_ptr<FileHandlerType> &file_handler) {
-                            return STREQ(name, file_handler->idname);
+                            return name == file_handler->idname;
                           });
   if (itr != file_handlers().end()) {
     return itr->get();
@@ -30,9 +32,9 @@ FileHandlerType *BKE_file_handler_find(const char *name)
   return nullptr;
 }
 
-void BKE_file_handler_add(std::unique_ptr<FileHandlerType> file_handler)
+void file_handler_add(std::unique_ptr<FileHandlerType> file_handler)
 {
-  BLI_assert(BKE_file_handler_find(file_handler->idname) == nullptr);
+  BLI_assert(file_handler_find(file_handler->idname) == nullptr);
 
   /** Load all extensions from the string list into the list. */
   const char char_separator = ';';
@@ -47,13 +49,15 @@ void BKE_file_handler_add(std::unique_ptr<FileHandlerType> file_handler)
     char_end = BLI_strchr_or_end(char_begin, char_separator);
   }
 
-  file_handlers().append(std::move(file_handler));
+  file_handlers_vector().append(std::move(file_handler));
 }
 
-void BKE_file_handler_remove(FileHandlerType *file_handler)
+void file_handler_remove(FileHandlerType *file_handler)
 {
-  file_handlers().remove_if(
+  file_handlers_vector().remove_if(
       [file_handler](const std::unique_ptr<FileHandlerType> &test_file_handler) {
         return test_file_handler.get() == file_handler;
       });
 }
+
+}  // namespace blender::bke
