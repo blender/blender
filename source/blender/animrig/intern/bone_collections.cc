@@ -1075,6 +1075,55 @@ int armature_bonecoll_find_parent_index(const bArmature *armature, const int bco
   return -1;
 }
 
+int armature_bonecoll_child_number_find(const bArmature *armature, const ::BoneCollection *bcoll)
+{
+  const int bcoll_index = armature_bonecoll_find_index(armature, bcoll);
+  const int parent_index = armature_bonecoll_find_parent_index(armature, bcoll_index);
+  return bonecoll_child_number(armature, parent_index, bcoll_index);
+}
+
+int armature_bonecoll_child_number_set(bArmature *armature,
+                                       ::BoneCollection *bcoll,
+                                       int new_child_number)
+{
+  const int bcoll_index = armature_bonecoll_find_index(armature, bcoll);
+  const int parent_index = armature_bonecoll_find_parent_index(armature, bcoll_index);
+
+  BoneCollection fake_armature_parent = {};
+  fake_armature_parent.child_count = armature->collection_root_count;
+
+  BoneCollection *parent_bcoll;
+  if (parent_index < 0) {
+    parent_bcoll = &fake_armature_parent;
+  }
+  else {
+    parent_bcoll = armature->collection_array[parent_index];
+  }
+
+  /* Bounds checks. */
+  if (new_child_number >= parent_bcoll->child_count) {
+    return -1;
+  }
+  if (new_child_number < 0) {
+    new_child_number = parent_bcoll->child_count - 1;
+  }
+
+  /* Store the parent's child_index, as that might move if to_index is the first child
+   * (bonecolls_move_to_index() will keep it pointing at that first child). */
+  const int old_parent_child_index = parent_bcoll->child_index;
+  const int to_index = parent_bcoll->child_index + new_child_number;
+  internal::bonecolls_move_to_index(armature, bcoll_index, to_index);
+
+  parent_bcoll->child_index = old_parent_child_index;
+
+  /* Make sure that if this was the active bone collection, its index also changes. */
+  if (armature->runtime.active_collection_index == bcoll_index) {
+    ANIM_armature_bonecoll_active_index_set(armature, to_index);
+  }
+
+  return to_index;
+}
+
 bool armature_bonecoll_is_root(const bArmature *armature, const int bcoll_index)
 {
   BLI_assert(bcoll_index >= 0);

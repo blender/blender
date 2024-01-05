@@ -171,35 +171,6 @@ static bool rna_BoneCollection_unassign(BoneCollection *bcoll,
                                             ANIM_armature_bonecoll_unassign_editbone);
 }
 
-static int rna_BoneCollection_move_to_parent(ID *owner_id,
-                                             BoneCollection *self,
-                                             bContext *C,
-                                             ReportList *reports,
-                                             BoneCollection *to_parent,
-                                             const int to_child_num)
-{
-  using namespace blender::animrig;
-
-  bArmature *armature = (bArmature *)owner_id;
-
-  const int from_bcoll_index = armature_bonecoll_find_index(armature, self);
-  const int from_parent_index = armature_bonecoll_find_parent_index(armature, from_bcoll_index);
-  const int to_parent_index = armature_bonecoll_find_index(armature, to_parent);
-
-  if (to_parent_index == from_bcoll_index ||
-      armature_bonecoll_is_decendent_of(armature, from_bcoll_index, to_parent_index))
-  {
-    BKE_report(reports, RPT_ERROR, "Cannot make a bone collection a decendent of itself");
-    return from_bcoll_index;
-  }
-
-  const int new_bcoll_index = armature_bonecoll_move_to_parent(
-      armature, from_bcoll_index, to_child_num, from_parent_index, to_parent_index);
-
-  WM_event_add_notifier(C, NC_OBJECT | ND_BONE_COLLECTION, nullptr);
-  return new_bcoll_index;
-}
-
 #else
 
 void RNA_api_armature_edit_bone(StructRNA *srna)
@@ -348,49 +319,6 @@ void RNA_api_bonecollection(StructRNA *srna)
                          "Unassigned",
                          "Whether the bone was actually removed; will be false if the bone was "
                          "not a member of the collection to begin with");
-  RNA_def_function_return(func, parm);
-
-  /* collection.move_to_parent(parent, child_num) */
-  func = RNA_def_function(srna, "move_to_parent", "rna_BoneCollection_move_to_parent");
-  RNA_def_function_ui_description(
-      func,
-      "Change the hierarchy, by moving this bone collection to become a child of a different "
-      "parent. Use `parent=None` to make this collection a root collection");
-  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
-
-  parm = RNA_def_pointer(func,
-                         "to_parent",
-                         "BoneCollection",
-                         "Parent Collection",
-                         "The bone collection becomes a child of this collection. If `None`, the "
-                         "bone collection becomes a root");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-
-  parm = RNA_def_int(func,
-                     "to_child_num",
-                     -1,
-                     -1,
-                     INT_MAX,
-                     "Child Number",
-                     "Place the bone collection before this child; `child_num=0` makes it the "
-                     "first child, `child_num=1` the second, etc. Both `child_num=-1` and "
-                     "`child_num=child_count` will move the bone collection to be the last child "
-                     "of the new parent",
-                     -1,
-                     INT_MAX);
-
-  /* Return value. */
-
-  parm = RNA_def_int(func,
-                     "new_index",
-                     -1,
-                     -1,
-                     INT_MAX,
-                     "New Index",
-                     "Resulting index of the bone collection, after the move. This can be used "
-                     "for manipulating the active bone collection index",
-                     -1,
-                     INT_MAX);
   RNA_def_function_return(func, parm);
 }
 

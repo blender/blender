@@ -327,6 +327,28 @@ int armature_bonecoll_find_index(const bArmature *armature, const ::BoneCollecti
  */
 int armature_bonecoll_find_parent_index(const bArmature *armature, int bcoll_index);
 
+/**
+ * Find the child number of this bone collection.
+ *
+ * This is the offset of this collection relative to the parent's first child.
+ * In other words, the first child has number 0, second child has number 1, etc.
+ *
+ * This requires a scan of the array, hence the function is called 'find' and not 'get'.
+ */
+int armature_bonecoll_child_number_find(const bArmature *armature, const ::BoneCollection *bcoll);
+
+/**
+ * Move this bone collection to a new child number.
+ *
+ * \return the new absolute index of the bone collection, or -1 if the new child number was not
+ * valid.
+ *
+ * \see armature_bonecoll_child_number_find
+ */
+int armature_bonecoll_child_number_set(bArmature *armature,
+                                       ::BoneCollection *bcoll,
+                                       int new_child_number);
+
 bool armature_bonecoll_is_root(const bArmature *armature, int bcoll_index);
 
 bool armature_bonecoll_is_child_of(const bArmature *armature,

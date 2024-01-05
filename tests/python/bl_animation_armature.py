@@ -87,7 +87,7 @@ class BoneCollectionTest(unittest.TestCase):
         self.assertEqual([root1, root2, r1_child1, r1_child1_001, r2_child1, r2_child2], list(bcolls.all))
 
         # Move root2 to become the child of r1_child1.
-        self.assertEqual(5, root2.move_to_parent(r1_child1))
+        root2.parent = r1_child1
 
         # Check the hierarchy.
         self.assertEqual([root1], list(bcolls), 'armature.collections should reflect only the roots')
@@ -100,7 +100,8 @@ class BoneCollectionTest(unittest.TestCase):
         self.assertEqual([root1, r1_child1, r1_child1_001, r2_child1, r2_child2, root2], list(bcolls.all))
 
         # Move root2 between r1_child1 and r1_child1_001.
-        self.assertEqual(2, root2.move_to_parent(root1, to_child_num=1))
+        root2.parent = root1
+        root2.child_num = 1
 
         # Check the hierarchy.
         self.assertEqual([root1], list(bcolls), 'armature.collections should reflect only the roots')

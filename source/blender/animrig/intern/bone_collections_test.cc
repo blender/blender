@@ -1426,6 +1426,59 @@ TEST_F(ANIM_armature_bone_collections_testlist, move_before_after_index__to_root
   EXPECT_EQ(-1, armature_bonecoll_find_parent_index(&arm, 1));
 }
 
+TEST_F(ANIM_armature_bone_collections_testlist, child_number_set__roots)
+{
+  /* Test with only one root. */
+  EXPECT_EQ(0, armature_bonecoll_child_number_set(&arm, root, 0));
+  EXPECT_TRUE(expect_bcolls({"root", "child0", "child1", "child2", "child1_0"}));
+
+  /* Move to "after the last child", which is the one root itself. */
+  EXPECT_EQ(0, armature_bonecoll_child_number_set(&arm, root, -1));
+  EXPECT_TRUE(expect_bcolls({"root", "child0", "child1", "child2", "child1_0"}));
+  EXPECT_EQ(0, armature_bonecoll_child_number_set(&arm, root, 0));
+  EXPECT_TRUE(expect_bcolls({"root", "child0", "child1", "child2", "child1_0"}));
+
+  /* Going beyond the number of children is not allowed. */
+  EXPECT_EQ(-1, armature_bonecoll_child_number_set(&arm, root, 1));
+  EXPECT_TRUE(expect_bcolls({"root", "child0", "child1", "child2", "child1_0"}));
+
+  /* Add two roots to be able to play. */
+  ANIM_armature_bonecoll_new(&arm, "root1");
+  ANIM_armature_bonecoll_new(&arm, "root2");
+  EXPECT_TRUE(expect_bcolls({"root", "root1", "root2", "child0", "child1", "child2", "child1_0"}));
+
+  /* Move the old root in between the two new ones. */
+  EXPECT_EQ(1, armature_bonecoll_child_number_set(&arm, root, 1));
+  EXPECT_TRUE(expect_bcolls({"root1", "root", "root2", "child0", "child1", "child2", "child1_0"}));
+
+  /* And to the last one. */
+  EXPECT_EQ(2, armature_bonecoll_child_number_set(&arm, root, 2));
+  EXPECT_TRUE(expect_bcolls({"root1", "root2", "root", "child0", "child1", "child2", "child1_0"}));
+}
+
+TEST_F(ANIM_armature_bone_collections_testlist, child_number_set__siblings)
+{
+  /* Move child0 to itself. */
+  EXPECT_EQ(1, armature_bonecoll_child_number_set(&arm, child0, 0));
+  EXPECT_TRUE(expect_bcolls({"root", "child0", "child1", "child2", "child1_0"}));
+
+  /* Move child2 to itself. */
+  EXPECT_EQ(3, armature_bonecoll_child_number_set(&arm, child2, -1));
+  EXPECT_TRUE(expect_bcolls({"root", "child0", "child1", "child2", "child1_0"}));
+
+  /* Going beyond the number of children is not allowed. */
+  EXPECT_EQ(-1, armature_bonecoll_child_number_set(&arm, child0, 3));
+  EXPECT_TRUE(expect_bcolls({"root", "child0", "child1", "child2", "child1_0"}));
+
+  /* Move child0 to in between child1 and child2. */
+  EXPECT_EQ(2, armature_bonecoll_child_number_set(&arm, child0, 1));
+  EXPECT_TRUE(expect_bcolls({"root", "child1", "child0", "child2", "child1_0"}));
+
+  /* Move child0 to the last spot. */
+  EXPECT_EQ(3, armature_bonecoll_child_number_set(&arm, child0, 2));
+  EXPECT_TRUE(expect_bcolls({"root", "child1", "child2", "child0", "child1_0"}));
+}
+
 class ANIM_armature_bone_collections_liboverrides
     : public ANIM_armature_bone_collections_testlist {
  protected:
