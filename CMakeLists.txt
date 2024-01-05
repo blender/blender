@@ -1649,20 +1649,29 @@ if("${CMAKE_GENERATOR}" MATCHES "Ninja" AND WITH_NINJA_POOL_JOBS)
     # Note: this gives mem in MB.
     cmake_host_system_information(RESULT _TOT_MEM QUERY TOTAL_PHYSICAL_MEMORY)
 
-    # Heuristics: the more cores we have, the more free memory we have to keep
-    # for the non-heavy tasks too.
-    if(${_TOT_MEM} LESS 8000 AND ${_NUM_CORES} GREATER 2)
-      set(_compile_heavy_jobs "1")
-    elseif(${_TOT_MEM} LESS 16000 AND ${_NUM_CORES} GREATER 4)
-      set(_compile_heavy_jobs "2")
-    elseif(${_TOT_MEM} LESS 24000 AND ${_NUM_CORES} GREATER 8)
-      set(_compile_heavy_jobs "3")
-    elseif(${_TOT_MEM} LESS 32000 AND ${_NUM_CORES} GREATER 16)
-      set(_compile_heavy_jobs "4")
-    elseif(${_TOT_MEM} LESS 64000 AND ${_NUM_CORES} GREATER 32)
-      set(_compile_heavy_jobs "8")
-    else()
-      set(_compile_heavy_jobs "")
+    # Heuristics: Assume 8Gb of RAM is needed per heavy compile job.
+    # Typical RAM peak usage of these is actually less than 3GB currently,
+    # but this also accounts for the part of the physical RAM being used by other unrelated
+    # processes on the system, and the part being used by the 'regular' compile and linking jobs.
+    #
+    # Also always cap heavy jobs amount to `number of available threads - 1`, to ensure that even if
+    # there would be enough RAM, the machine never ends up handling only heavy jobs at some point.
+    # This can have annoying sides effects, like lack of output in the console for several minutes,
+    # which can lead to a wrong detection of 'unresponsive' state by the buildbots e.g.
+    #
+    # Currently, these settings applied to a 64GB/16threads linux machine will use, for a full build:
+    #   - release build:
+    #      * RAM: typically less than 20%, with some peaks at 25%.
+    #      * CPU: over 90% of usage on average over the whole build time.
+    #   - debug with ASAN build:
+    #      * RAM: typically less than 40%, with some peaks at 50%.
+    #      * CPU: over 90% of usage on average over the whole build time.
+    math(EXPR _compile_heavy_jobs "${_TOT_MEM} / 8000")
+    math(EXPR _compile_heavy_jobs_max "${_NUM_CORES} - 1")
+    if(${_compile_heavy_jobs} GREATER ${_compile_heavy_jobs_max})
+      set(_compile_heavy_jobs _compile_heavy_jobs_max)
+    elseif(${_compile_heavy_jobs} LESS 1)
+      set(_compile_heavy_jobs 1)
     endif()
 
     set(NINJA_MAX_NUM_PARALLEL_COMPILE_HEAVY_JOBS "${_compile_heavy_jobs}" CACHE STRING "\
@@ -1673,9 +1682,11 @@ Define the maximum number of concurrent heavy compilation jobs, for ninja build 
     mark_as_advanced(NINJA_MAX_NUM_PARALLEL_COMPILE_HEAVY_JOBS)
     set(_compile_heavy_jobs)
 
-    # Only set regular compile jobs if we set heavy jobs,
+    # Only set regular compile jobs if we set heavy jobs, and there are 'enough' cores available,
     # otherwise default (using all cores) if fine.
-    if(NINJA_MAX_NUM_PARALLEL_COMPILE_HEAVY_JOBS)
+    # This allows to ensure that the heavy jobs won't get starved by too many normal jobs,
+    # since the former usually take a long time to process.
+    if(NINJA_MAX_NUM_PARALLEL_COMPILE_HEAVY_JOBS AND ${_NUM_CORES} GREATER 3)
       math(EXPR _compile_jobs "${_NUM_CORES} - 1")
     else()
       set(_compile_jobs "")
