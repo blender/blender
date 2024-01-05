@@ -22,28 +22,18 @@ file(MAKE_DIRECTORY ${TEST_OUT_DIR}/blendfile_io)
 # endif()
 
 # Run Blender command with parameters.
-function(add_blender_test_impl testname exe)
+function(add_blender_test_impl testname envvars_list exe)
   add_test(
     NAME ${testname}
     COMMAND ${exe} ${ARGN}
   )
-
-  # Don't fail tests on leaks since these often happen in external libraries that we can't fix.
-  set(_lsan_options "exitcode=0")
-  if(DEFINED ENV{LSAN_OPTIONS})
-    set(_lsan_options "${_lsan_options}:$ENV{LSAN_OPTIONS}")
-  endif()
-  set_tests_properties(${testname} PROPERTIES ENVIRONMENT "LSAN_OPTIONS=${_lsan_options}")
-  unset(_lsan_options)
-
-  if(PLATFORM_ENV_INSTALL)
-    set_tests_properties(${testname} PROPERTIES ENVIRONMENT "${PLATFORM_ENV_INSTALL}")
-  endif()
+  blender_test_set_envvars("${testname}" "${envvars_list}")
 endfunction()
 
 function(add_blender_test testname)
   add_blender_test_impl(
     "${testname}"
+    ""
     "${TEST_BLENDER_EXE}"
     ${TEST_BLENDER_EXE_PARAMS}
     ${ARGN}
@@ -89,6 +79,7 @@ The location of weston, leave blank for the default location."
     list(REMOVE_ITEM EXE_PARAMS --background)
     add_blender_test_impl(
       "${testname}"
+      "${_blender_headless_env_vars}"
       "${TEST_PYTHON_EXE}"
       "${CMAKE_SOURCE_DIR}/tests/utils/blender_headless.py"
       # NOTE: attempting to maximize the window causes problems with a headless `weston`,
@@ -99,7 +90,6 @@ The location of weston, leave blank for the default location."
       "${EXE_PARAMS}"
       "${ARGN}"
     )
-    set_tests_properties(${testname} PROPERTIES ENVIRONMENT "${_blender_headless_env_vars}")
   endfunction()
 endif()
 
@@ -114,17 +104,7 @@ function(add_python_test testname testscript)
     COMMAND ${TEST_PYTHON_EXE} ${TEST_PYTHON_EXE_EXTRA_ARGS} ${testscript} ${ARGN}
     WORKING_DIRECTORY $<TARGET_FILE_DIR:blender>
   )
-
-  set(_lsan_options "exitcode=0")
-  if(DEFINED ENV{LSAN_OPTIONS})
-    set(_lsan_options "${_lsan_options}:$ENV{LSAN_OPTIONS}")
-  endif()
-  set_tests_properties(${testname} PROPERTIES ENVIRONMENT "LSAN_OPTIONS=${_lsan_options}")
-  unset(_lsan_options)
-
-  if(PLATFORM_ENV_INSTALL)
-    set_tests_properties(${testname} PROPERTIES ENVIRONMENT "${PLATFORM_ENV_INSTALL}")
-  endif()
+  blender_test_set_envvars("${testname}" "")
 endfunction()
 
 # Run Python render test.

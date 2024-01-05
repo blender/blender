@@ -12,6 +12,43 @@ function(get_blender_test_install_dir VARIABLE_NAME)
   set(${VARIABLE_NAME} "${TEST_INSTALL_DIR}" PARENT_SCOPE)
 endfunction()
 
+# Add the necessary LSAN/ASAN options to the given list of environment variables.
+# Typically used after adding a test, before calling
+#   `set_tests_properties(${testname} PROPERTIES ENVIRONMENT "${_envvar_list}")`,
+# to ensure that it will run with the correct sanitizer settings.
+#
+# \param envvars_list: A list of extra environment variables to define for that test.
+#                      Note that this does no check for (re-)definition of a same variable.
+function(blender_test_set_envvars testname envvars_list)
+  if(PLATFORM_ENV_INSTALL)
+    list(APPEND envvar_list "${PLATFORM_ENV_INSTALL}")
+  endif()
+
+  if(NOT CMAKE_BUILD_TYPE MATCHES "Release")
+    if(WITH_COMPILER_ASAN)
+      # Don't fail tests on leaks since these often happen in external libraries that we can't fix.
+      # FIXME This is a 'nuke solution', no xSAN errors will ever fail tests. Needs more refined handling,
+      #       see https://projects.blender.org/blender/blender/pulls/116635 .
+      set(_lsan_options "LSAN_OPTIONS=exitcode=0")
+      # FIXME That `allocator_may_return_null=true` ASAN option is only needed for the `guardedalloc` test,
+      #       would be nice to allow tests definition to pass extra envvars better.
+      # NOTE: This is needed for Mac builds currently, on Linux the `exitcode=0` option passed above to LSAN
+      #       also seems to silence reports from ASAN.
+      set(_asan_options "ASAN_OPTIONS=allocator_may_return_null=true")
+      if(DEFINED ENV{LSAN_OPTIONS})
+        set(_lsan_options "${_lsan_options}:$ENV{LSAN_OPTIONS}")
+      endif()
+      if(DEFINED ENV{ASAN_OPTIONS})
+        set(_asan_options "${_asan_options}:$ENV{ASAN_OPTIONS}")
+      endif()
+      list(APPEND envvar_list "${_lsan_options}" "${_asan_options}")
+    endif()
+  endif()
+
+  # Can only be called once per test to define its custom environment variables.
+  set_tests_properties(${testname} PROPERTIES ENVIRONMENT "${envvar_list}")
+endfunction()
+
 macro(blender_src_gtest_ex)
   if(WITH_GTESTS)
     set(options)
@@ -140,13 +177,8 @@ function(blender_add_ctests)
       WORKING_DIRECTORY ${TEST_INSTALL_DIR}
     )
   endif()
+  blender_test_set_envvars("${ARGS_SUITE_NAME}" "")
 
-  if(WIN32)
-    set_tests_properties(
-      ${ARGS_SUITE_NAME} PROPERTIES
-      ENVIRONMENT "PATH=${CMAKE_INSTALL_PREFIX_WITH_CONFIG}/blender.shared/;$ENV{PATH}"
-    )
-  endif()
   unset(_test_release_dir)
 endfunction()
 
