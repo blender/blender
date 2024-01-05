@@ -395,6 +395,75 @@ class InsertAvailableTest(AbstractKeyframingTest, unittest.TestCase):
         bpy.data.objects.remove(keyed_object, do_unlink=True)
 
 
+class InsertNeededTest(AbstractKeyframingTest, unittest.TestCase):
+
+    def setUp(self):
+        super().setUp()
+        bpy.context.scene.tool_settings.use_keyframe_insert_auto = True
+        bpy.context.preferences.edit.use_keyframe_insert_needed = True
+        bpy.context.preferences.edit.use_keyframe_insert_available = False
+
+    def tearDown(self):
+        bpy.context.scene.tool_settings.use_keyframe_insert_auto = False
+        bpy.context.preferences.edit.use_keyframe_insert_needed = False
+
+    def test_insert_needed_object(self):
+        keyed_object = _create_animation_object()
+
+        with bpy.context.temp_override(**_get_view3d_context()):
+            bpy.context.scene.frame_set(1)
+            bpy.ops.transform.translate(value=(-1, 0, 0))
+            bpy.context.scene.frame_set(5)
+            bpy.ops.transform.translate(value=(1, 0, 0))
+
+        action = keyed_object.animation_data.action
+        self.assertTrue(_fcurve_paths_match(action.fcurves, ["location"]))
+
+        # With "Insert Needed" enabled it has to key all location channels first,
+        # before it can add keys only to the channels where values have actually
+        # changed.
+        expected_keys = {
+            "location": (2, 1, 1)
+        }
+
+        self.assertEqual(len(action.fcurves), 3)
+
+        for fcurve in action.fcurves:
+            if fcurve.data_path not in expected_keys:
+                raise AssertionError(f"Did not expect a key on {fcurve.data_path}")
+            self.assertEqual(expected_keys[fcurve.data_path][fcurve.array_index], len(fcurve.keyframe_points))
+
+    def test_insert_needed_bone(self):
+        armature_obj = _create_armature()
+
+        bpy.ops.object.mode_set(mode='POSE')
+        with bpy.context.temp_override(**_get_view3d_context()):
+            bpy.context.scene.frame_set(1)
+            bpy.ops.transform.translate(value=(-1, 0, 0), orient_type='LOCAL')
+            bpy.context.scene.frame_set(5)
+            bpy.ops.transform.translate(value=(1, 0, 0), orient_type='LOCAL')
+
+        bpy.ops.object.mode_set(mode='OBJECT')
+
+        action = armature_obj.animation_data.action
+        bone_path = f"pose.bones[\"{_BONE_NAME}\"]"
+        self.assertTrue(_fcurve_paths_match(action.fcurves, [f"{bone_path}.location"]))
+
+        # With "Insert Needed" enabled it has to key all location channels first,
+        # before it can add keys only to the channels where values have actually
+        # changed.
+        expected_keys = {
+            f"{bone_path}.location": (2, 1, 1)
+        }
+
+        self.assertEqual(len(action.fcurves), 3)
+
+        for fcurve in action.fcurves:
+            if fcurve.data_path not in expected_keys:
+                raise AssertionError(f"Did not expect a key on {fcurve.data_path}")
+            self.assertEqual(expected_keys[fcurve.data_path][fcurve.array_index], len(fcurve.keyframe_points))
+
+
 def main():
     global args
     import argparse
