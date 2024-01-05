@@ -1170,7 +1170,7 @@ static void pbvh_faces_update_normals(PBVH &pbvh, Span<PBVHNode *> nodes, Mesh &
   for (const PBVHNode *node : nodes) {
     for (const int vert : node->vert_indices.as_span().take_front(node->uniq_verts)) {
       if (update_tags[vert]) {
-        faces_to_update.add_multiple(pbvh.pmap[vert]);
+        faces_to_update.add_multiple(pbvh.vert_to_face_map[vert]);
       }
     }
   }
@@ -1211,11 +1211,11 @@ static void pbvh_faces_update_normals(PBVH &pbvh, Span<PBVHNode *> nodes, Mesh &
 
   if (pbvh.deformed) {
     normals_calc_verts_simple(
-        pbvh.pmap, pbvh.face_normals, verts_to_update, pbvh.vert_normals_deformed);
+        pbvh.vert_to_face_map, pbvh.face_normals, verts_to_update, pbvh.vert_normals_deformed);
   }
   else {
     mesh.runtime->vert_normals_cache.update([&](Vector<float3> &r_data) {
-      normals_calc_verts_simple(pbvh.pmap, pbvh.face_normals, verts_to_update, r_data);
+      normals_calc_verts_simple(pbvh.vert_to_face_map, pbvh.face_normals, verts_to_update, r_data);
     });
     pbvh.vert_normals = mesh.runtime->vert_normals_cache.data();
   }
@@ -3043,9 +3043,9 @@ void BKE_pbvh_update_active_vcol(PBVH *pbvh, Mesh *mesh)
   BKE_pbvh_get_color_layer(mesh, &pbvh->color_layer, &pbvh->color_domain);
 }
 
-void BKE_pbvh_pmap_set(PBVH *pbvh, const blender::GroupedSpan<int> pmap)
+void BKE_pbvh_pmap_set(PBVH *pbvh, const blender::GroupedSpan<int> vert_to_face_map)
 {
-  pbvh->pmap = pmap;
+  pbvh->vert_to_face_map = vert_to_face_map;
 }
 
 void BKE_pbvh_ensure_node_loops(PBVH *pbvh)

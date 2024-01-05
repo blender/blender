@@ -1442,13 +1442,13 @@ static void sculptsession_free_pbvh(Object *object)
     ss->pbvh = nullptr;
   }
 
-  ss->pmap = {};
+  ss->vert_to_face_map = {};
   ss->edge_to_face_offsets = {};
   ss->edge_to_face_indices = {};
-  ss->epmap = {};
+  ss->edge_to_face_map = {};
   ss->vert_to_edge_offsets = {};
   ss->vert_to_edge_indices = {};
-  ss->vemap = {};
+  ss->vert_to_edge_map = {};
 
   MEM_SAFE_FREE(ss->preview_vert_list);
   ss->preview_vert_count = 0;
@@ -1749,11 +1749,11 @@ static void sculpt_update_object(Depsgraph *depsgraph,
   sculpt_update_persistent_base(ob);
 
   if (ob->type == OB_MESH) {
-    ss->pmap = mesh->vert_to_face_map();
+    ss->vert_to_face_map = mesh->vert_to_face_map();
   }
 
   if (ss->pbvh) {
-    BKE_pbvh_pmap_set(ss->pbvh, ss->pmap);
+    BKE_pbvh_pmap_set(ss->pbvh, ss->vert_to_face_map);
   }
 
   if (ss->deform_modifiers_active) {
@@ -2174,7 +2174,7 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
     }
 
     BKE_pbvh_update_active_vcol(pbvh, BKE_object_get_original_mesh(ob));
-    BKE_pbvh_pmap_set(pbvh, ob->sculpt->pmap);
+    BKE_pbvh_pmap_set(pbvh, ob->sculpt->vert_to_face_map);
 
     return pbvh;
   }
@@ -2197,7 +2197,7 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
     }
   }
 
-  BKE_pbvh_pmap_set(pbvh, ob->sculpt->pmap);
+  BKE_pbvh_pmap_set(pbvh, ob->sculpt->vert_to_face_map);
   ob->sculpt->pbvh = pbvh;
 
   sculpt_attribute_update_refs(ob);

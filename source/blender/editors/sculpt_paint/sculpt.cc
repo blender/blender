@@ -412,7 +412,7 @@ bool vert_any_face_visible_get(SculptSession *ss, PBVHVertRef vertex)
       if (!ss->hide_poly) {
         return true;
       }
-      for (const int face : ss->pmap[vertex.i]) {
+      for (const int face : ss->vert_to_face_map[vertex.i]) {
         if (!ss->hide_poly[face]) {
           return true;
         }
@@ -434,7 +434,7 @@ bool vert_all_faces_visible_get(const SculptSession *ss, PBVHVertRef vertex)
       if (!ss->hide_poly) {
         return true;
       }
-      for (const int face : ss->pmap[vertex.i]) {
+      for (const int face : ss->vert_to_face_map[vertex.i]) {
         if (ss->hide_poly[face]) {
           return false;
         }
@@ -490,7 +490,7 @@ int vert_face_set_get(SculptSession *ss, PBVHVertRef vertex)
         return SCULPT_FACE_SET_NONE;
       }
       int face_set = 0;
-      for (const int face_index : ss->pmap[vertex.i]) {
+      for (const int face_index : ss->vert_to_face_map[vertex.i]) {
         if (ss->face_sets[face_index] > face_set) {
           face_set = ss->face_sets[face_index];
         }
@@ -519,7 +519,7 @@ bool vert_has_face_set(SculptSession *ss, PBVHVertRef vertex, int face_set)
       if (!ss->face_sets) {
         return face_set == SCULPT_FACE_SET_NONE;
       }
-      for (const int face_index : ss->pmap[vertex.i]) {
+      for (const int face_index : ss->vert_to_face_map[vertex.i]) {
         if (ss->face_sets[face_index] == face_set) {
           return true;
         }
@@ -547,7 +547,7 @@ static bool sculpt_check_unique_face_set_in_base_mesh(SculptSession *ss, int ind
     return true;
   }
   int face_set = -1;
-  for (const int face_index : ss->pmap[index]) {
+  for (const int face_index : ss->vert_to_face_map[index]) {
     if (face_set == -1) {
       face_set = ss->face_sets[face_index];
     }
@@ -566,7 +566,7 @@ static bool sculpt_check_unique_face_set_in_base_mesh(SculptSession *ss, int ind
  */
 static bool sculpt_check_unique_face_set_for_edge_in_base_mesh(SculptSession *ss, int v1, int v2)
 {
-  const Span<int> vert_map = ss->pmap[v1];
+  const Span<int> vert_map = ss->vert_to_face_map[v1];
   int p1 = -1, p2 = -1;
   for (int i = 0; i < vert_map.size(); i++) {
     const int face_i = vert_map[i];
@@ -704,7 +704,7 @@ static void sculpt_vertex_neighbors_get_faces(SculptSession *ss,
   iter->neighbors = iter->neighbors_fixed;
   iter->neighbor_indices = iter->neighbor_indices_fixed;
 
-  for (const int face_i : ss->pmap[vertex.i]) {
+  for (const int face_i : ss->vert_to_face_map[vertex.i]) {
     if (ss->hide_poly && ss->hide_poly[face_i]) {
       /* Skip connectivity from hidden faces. */
       continue;

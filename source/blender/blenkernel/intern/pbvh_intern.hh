@@ -183,7 +183,7 @@ struct PBVH {
 
   BMLog *bm_log;
 
-  blender::GroupedSpan<int> pmap;
+  blender::GroupedSpan<int> vert_to_face_map;
 
   CustomDataLayer *color_layer;
   blender::bke::AttrDomain color_domain;

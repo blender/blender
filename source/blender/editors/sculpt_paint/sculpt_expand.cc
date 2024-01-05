@@ -732,7 +732,7 @@ static float *sculpt_expand_diagonals_falloff_create(Object *ob, const PBVHVertR
 
     int v_next_i = BKE_pbvh_vertex_to_index(ss->pbvh, v_next);
 
-    for (const int face : ss->pmap[v_next_i]) {
+    for (const int face : ss->vert_to_face_map[v_next_i]) {
       for (const int vert : ss->corner_verts.slice(ss->faces[face])) {
         const PBVHVertRef neighbor_v = BKE_pbvh_make_vref(vert);
         if (visited_verts[neighbor_v.i]) {
@@ -1973,7 +1973,7 @@ static void sculpt_expand_delete_face_set_id(
     int *r_face_sets, SculptSession *ss, Cache *expand_cache, Mesh *mesh, const int delete_id)
 {
   const int totface = ss->totfaces;
-  const GroupedSpan<int> pmap = ss->pmap;
+  const GroupedSpan<int> vert_to_face_map = ss->vert_to_face_map;
   const OffsetIndices faces = mesh->faces();
   const Span<int> corner_verts = mesh->corner_verts();
 
@@ -2011,7 +2011,7 @@ static void sculpt_expand_delete_face_set_id(
       const int f_index = POINTER_AS_INT(BLI_LINKSTACK_POP(queue));
       int other_id = delete_id;
       for (const int vert : corner_verts.slice(faces[f_index])) {
-        for (const int neighbor_face_index : pmap[vert]) {
+        for (const int neighbor_face_index : vert_to_face_map[vert]) {
           if (expand_cache->original_face_sets[neighbor_face_index] <= 0) {
             /* Skip picking IDs from hidden Face Sets. */
             continue;
