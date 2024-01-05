@@ -16,6 +16,7 @@
 #include "DNA_image_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_sequence_types.h"
 #include "DNA_space_types.h"
 
 #include "IMB_filetype.h"

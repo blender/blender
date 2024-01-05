@@ -9,7 +9,10 @@
 #include <cmath>
 #include <cstring>
 
+#include "BLF_api.h"
+
 #include "BLI_blenlib.h"
+#include "BLI_math_rotation.h"
 #include "BLI_utildefines.h"
 
 #include "IMB_imbuf_types.h"
@@ -56,8 +59,9 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-/* Own include. */
 #include "sequencer_intern.hh"
+#include "sequencer_quads_batch.hh"
+#include "sequencer_scopes.hh"
 
 static Sequence *special_seq_update = nullptr;
 
@@ -158,37 +162,9 @@ ImBuf *sequencer_ibuf_get(Main *bmain,
   return ibuf;
 }
 
-static void sequencer_check_scopes(SequencerScopes *scopes, ImBuf *ibuf)
-{
-  if (scopes->reference_ibuf != ibuf) {
-    if (scopes->zebra_ibuf) {
-      IMB_freeImBuf(scopes->zebra_ibuf);
-      scopes->zebra_ibuf = nullptr;
-    }
-
-    if (scopes->waveform_ibuf) {
-      IMB_freeImBuf(scopes->waveform_ibuf);
-      scopes->waveform_ibuf = nullptr;
-    }
-
-    if (scopes->sep_waveform_ibuf) {
-      IMB_freeImBuf(scopes->sep_waveform_ibuf);
-      scopes->sep_waveform_ibuf = nullptr;
-    }
-
-    if (scopes->vector_ibuf) {
-      IMB_freeImBuf(scopes->vector_ibuf);
-      scopes->vector_ibuf = nullptr;
-    }
-
-    if (scopes->histogram_ibuf) {
-      IMB_freeImBuf(scopes->histogram_ibuf);
-      scopes->histogram_ibuf = nullptr;
-    }
-  }
-}
-
-static ImBuf *sequencer_make_scope(Scene *scene, ImBuf *ibuf, ImBuf *(*make_scope_fn)(ImBuf *ibuf))
+static ImBuf *sequencer_make_scope(Scene *scene,
+                                   ImBuf *ibuf,
+                                   ImBuf *(*make_scope_fn)(const ImBuf *ibuf))
 {
   ImBuf *display_ibuf = IMB_dupImBuf(ibuf);
   ImBuf *scope;
@@ -451,11 +427,9 @@ static void sequencer_draw_display_buffer(const bContext *C,
                                           ARegion *region,
                                           SpaceSeq *sseq,
                                           ImBuf *ibuf,
-                                          ImBuf *scope,
                                           bool draw_overlay,
                                           bool draw_backdrop)
 {
-  void *display_buffer;
   void *buffer_cache_handle = nullptr;
 
   if (sseq->mainb == SEQ_DRAW_IMG_IMBUF && sseq->flag & SEQ_USE_ALPHA) {
@@ -472,21 +446,8 @@ static void sequencer_draw_display_buffer(const bContext *C,
   uint texCoord = GPU_vertformat_attr_add(
       imm_format, "texCoord", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-  if (scope) {
-    ibuf = scope;
-
-    if (ibuf->float_buffer.data && ibuf->byte_buffer.data == nullptr) {
-      IMB_rect_from_float(ibuf);
-    }
-
-    display_buffer = ibuf->byte_buffer.data;
-    format = GPU_RGBA8;
-    data = GPU_DATA_UBYTE;
-  }
-  else {
-    display_buffer = sequencer_OCIO_transform_ibuf(
-        C, ibuf, &glsl_used, &format, &data, &buffer_cache_handle);
-  }
+  void *display_buffer = sequencer_OCIO_transform_ibuf(
+      C, ibuf, &glsl_used, &format, &data, &buffer_cache_handle);
 
   if (draw_backdrop) {
     GPU_matrix_push();
@@ -558,68 +519,350 @@ static void sequencer_draw_display_buffer(const bContext *C,
   }
 }
 
-static ImBuf *sequencer_get_scope(Scene *scene, SpaceSeq *sseq, ImBuf *ibuf, bool draw_backdrop)
+static void draw_histogram(ARegion *region,
+                           const blender::ed::seq::ScopeHistogram &hist,
+                           SeqQuadsBatch &quads,
+                           const rctf &area)
 {
-  ImBuf *scope = nullptr;
-  SequencerScopes *scopes = &sseq->scopes;
+  using namespace blender::ed::seq;
+  if (hist.data.is_empty()) {
+    return;
+  }
 
-  if (!draw_backdrop && (sseq->mainb != SEQ_DRAW_IMG_IMBUF || sseq->zebra != 0)) {
-    sequencer_check_scopes(scopes, ibuf);
+  /* Background. */
+  uchar col_bg[4] = {0, 0, 0, 255};
+  quads.add_quad(area.xmin, area.ymin, area.xmax, area.ymax, col_bg);
 
-    switch (sseq->mainb) {
-      case SEQ_DRAW_IMG_IMBUF:
-        if (!scopes->zebra_ibuf) {
+  /* Grid lines and labels. */
+  uchar col_grid[4] = {128, 128, 128, 128};
+  float grid_x_0 = area.xmin;
+  float grid_x_1 = area.xmax;
+  /* Float histograms show more than 0..1 range horizontally. */
+  if (hist.is_float_hist()) {
+    float ratio_0 = ratiof(ScopeHistogram::FLOAT_VAL_MIN, ScopeHistogram::FLOAT_VAL_MAX, 0.0f);
+    float ratio_1 = ratiof(ScopeHistogram::FLOAT_VAL_MIN, ScopeHistogram::FLOAT_VAL_MAX, 1.0f);
+    grid_x_0 = area.xmin + (area.xmax - area.xmin) * ratio_0;
+    grid_x_1 = area.xmin + (area.xmax - area.xmin) * ratio_1;
+  }
 
-          if (ibuf->float_buffer.data) {
-            ImBuf *display_ibuf = IMB_dupImBuf(ibuf);
-            IMB_colormanagement_imbuf_make_display_space(
-                display_ibuf, &scene->view_settings, &scene->display_settings);
-            scopes->zebra_ibuf = make_zebra_view_from_ibuf(display_ibuf, sseq->zebra);
-            IMB_freeImBuf(display_ibuf);
-          }
-          else {
-            scopes->zebra_ibuf = make_zebra_view_from_ibuf(ibuf, sseq->zebra);
-          }
-        }
-        scope = scopes->zebra_ibuf;
-        break;
-      case SEQ_DRAW_IMG_WAVEFORM:
-        if ((sseq->flag & SEQ_DRAW_COLOR_SEPARATED) != 0) {
-          if (!scopes->sep_waveform_ibuf) {
-            scopes->sep_waveform_ibuf = sequencer_make_scope(
-                scene, ibuf, make_sep_waveform_view_from_ibuf);
-          }
-          scope = scopes->sep_waveform_ibuf;
-        }
-        else {
-          if (!scopes->waveform_ibuf) {
-            scopes->waveform_ibuf = sequencer_make_scope(
-                scene, ibuf, make_waveform_view_from_ibuf);
-          }
-          scope = scopes->waveform_ibuf;
-        }
-        break;
-      case SEQ_DRAW_IMG_VECTORSCOPE:
-        if (!scopes->vector_ibuf) {
-          scopes->vector_ibuf = sequencer_make_scope(scene, ibuf, make_vectorscope_view_from_ibuf);
-        }
-        scope = scopes->vector_ibuf;
-        break;
-      case SEQ_DRAW_IMG_HISTOGRAM:
-        if (!scopes->histogram_ibuf) {
-          scopes->histogram_ibuf = sequencer_make_scope(
-              scene, ibuf, make_histogram_view_from_ibuf);
-        }
-        scope = scopes->histogram_ibuf;
-        break;
+  View2D *v2d = &region->v2d;
+  float text_scale_x, text_scale_y;
+  UI_view2d_scale_get_inverse(v2d, &text_scale_x, &text_scale_y);
+
+  for (int line = 0; line <= 4; line++) {
+    float val = float(line) / 4;
+    float x = grid_x_0 + (grid_x_1 - grid_x_0) * val;
+    quads.add_line(x, area.ymin, x, area.ymax, col_grid);
+
+    /* Label. */
+    char buf[10];
+    BLI_snprintf(buf, sizeof(buf), "%.2f", val);
+    size_t buf_len = strlen(buf);
+
+    float text_width, text_height;
+    BLF_width_and_height(BLF_default(), buf, buf_len, &text_width, &text_height);
+    text_width *= text_scale_x;
+    text_height *= text_scale_y;
+    UI_view2d_text_cache_add(
+        v2d, x - text_width / 2, area.ymax - text_height * 1.3f, buf, buf_len, col_grid);
+  }
+
+  /* Border. */
+  uchar col_border[4] = {64, 64, 64, 128};
+  quads.add_wire_quad(area.xmin, area.ymin, area.xmax, area.ymax, col_border);
+
+  /* Histogram area & line for each R/G/B channels, additively blended. */
+  quads.draw();
+  GPU_blend(GPU_BLEND_ADDITIVE);
+  for (int ch = 0; ch < 3; ++ch) {
+    if (hist.max_value[ch] == 0) {
+      continue;
     }
+    uchar col_line[4] = {32, 32, 32, 255};
+    uchar col_area[4] = {64, 64, 64, 128};
+    col_line[ch] = 224;
+    col_area[ch] = 224;
+    float y_scale = (area.ymax - area.ymin) / hist.max_value[ch] * 0.95f;
+    float x_scale = (area.xmax - area.xmin) / hist.data.size();
+    float yb = area.ymin;
+    for (int bin = 0; bin < hist.data.size() - 1; bin++) {
+      float x0 = area.xmin + (bin + 0.5f) * x_scale;
+      float x1 = area.xmin + (bin + 1.5f) * x_scale;
 
-    /* Future files may have new scopes we don't catch above. */
-    if (scope) {
-      scopes->reference_ibuf = ibuf;
+      float y0 = area.ymin + hist.data[bin][ch] * y_scale;
+      float y1 = area.ymin + hist.data[bin + 1][ch] * y_scale;
+      quads.add_quad(x0, yb, x0, y0, x1, yb, x1, y1, col_area);
+      quads.add_line(x0, y0, x1, y1, col_line);
     }
   }
-  return scope;
+  quads.draw();
+  GPU_blend(GPU_BLEND_ALPHA);
+
+  UI_view2d_text_cache_draw(region);
+}
+
+static blender::float2 rgb_to_uv(const blender::float3 &rgb)
+{
+  float y, u, v;
+  rgb_to_yuv(rgb.x, rgb.y, rgb.z, &y, &u, &v, BLI_YUV_ITU_BT709);
+  return blender::float2(u, v);
+}
+
+static void draw_waveform_graticule(ARegion *region, SeqQuadsBatch &quads, const rctf &area)
+{
+  /* Horizontal lines at 10%, 70%, 90%. */
+  const float lines[3] = {0.1f, 0.7f, 0.9f};
+  uchar col_grid[4] = {160, 64, 64, 128};
+  const float x0 = area.xmin;
+  const float x1 = area.xmax;
+
+  for (int i = 0; i < 3; i++) {
+    const float y = area.ymin + (area.ymax - area.ymin) * lines[i];
+    char buf[10];
+    BLI_snprintf(buf, sizeof(buf), "%.1f", lines[i]);
+    quads.add_line(x0, y, x1, y, col_grid);
+    UI_view2d_text_cache_add(&region->v2d, x0 + 8, y + 8, buf, strlen(buf), col_grid);
+  }
+  /* Border. */
+  uchar col_border[4] = {64, 64, 64, 128};
+  quads.add_wire_quad(x0, area.ymin, x1, area.ymax, col_border);
+
+  quads.draw();
+  UI_view2d_text_cache_draw(region);
+}
+
+static void draw_vectorscope_graticule(SeqQuadsBatch &quads, const rctf &area)
+{
+  using namespace blender;
+  GPU_blend(GPU_BLEND_ALPHA);
+
+  const float skin_rad = DEG2RADF(123.0f); /* angle in radians of the skin tone line */
+
+  const float w = BLI_rctf_size_x(&area);
+  const float h = BLI_rctf_size_y(&area);
+  const float centerx = BLI_rctf_cent_x(&area);
+  const float centery = BLI_rctf_cent_y(&area);
+  const float rad_base = ((w < h) ? w : h) * 0.5f;
+  /* vectorscope image is scaled over YUV range, +/- (0.436, 0.615) */
+  const float rad_x = rad_base * (0.5f / 0.436f);
+  const float rad_y = rad_base * (0.5f / 0.615f);
+
+  /* center cross */
+  uchar col_grid[4] = {128, 128, 128, 96};
+  quads.add_line(centerx - rad_base * 0.1f, centery, centerx + rad_base * 0.1f, centery, col_grid);
+  quads.add_line(centerx, centery - rad_base * 0.1f, centerx, centery + rad_base * 0.1f, col_grid);
+
+  /* fully saturated vs "safe" (0.75) colored areas */
+  const float3 primaries[6] = {
+      {1, 0, 0},
+      {1, 1, 0},
+      {0, 1, 0},
+      {0, 1, 1},
+      {0, 0, 1},
+      {1, 0, 1},
+  };
+  float2 center{centerx, centery};
+  float2 rad_scale{rad_x * 2, rad_y * 2};
+  for (int i = 0; i < 6; i++) {
+    float3 prim0 = primaries[i];
+    float3 prim1 = primaries[(i + 1) % 6];
+    float3 safe0 = prim0 * 0.75f;
+    float3 safe1 = prim1 * 0.75f;
+    float2 uv0 = center + rgb_to_uv(prim0) * rad_scale;
+    float2 uv1 = center + rgb_to_uv(prim1) * rad_scale;
+    float2 uv2 = center + rgb_to_uv(safe0) * rad_scale;
+    float2 uv3 = center + rgb_to_uv(safe1) * rad_scale;
+    uchar col0[4] = {uchar(prim0.x * 255), uchar(prim0.y * 255), uchar(prim0.z * 255), 64};
+    uchar col1[4] = {uchar(prim1.x * 255), uchar(prim1.y * 255), uchar(prim1.z * 255), 64};
+    uchar col2[4] = {uchar(safe0.x * 255), uchar(safe0.y * 255), uchar(safe0.z * 255), 64};
+    uchar col3[4] = {uchar(safe1.x * 255), uchar(safe1.y * 255), uchar(safe1.z * 255), 64};
+    quads.add_quad(uv0.x, uv0.y, uv1.x, uv1.y, uv2.x, uv2.y, uv3.x, uv3.y, col0, col1, col2, col3);
+    col0[3] = col1[3] = col2[3] = col3[3] = 192;
+    quads.add_line(uv0.x, uv0.y, uv1.x, uv1.y, col0, col1);
+    quads.add_line(uv2.x, uv2.y, uv3.x, uv3.y, col2, col3);
+  }
+
+  /* skin tone line */
+  uchar col_tone[4] = {255, 102, 0, 128};
+  const float tone_line_len = 0.895f; /* makes it end at outer edge of saturation ring. */
+  quads.add_line(centerx,
+                 centery,
+                 centerx + cosf(skin_rad) * rad_x * tone_line_len,
+                 centery + sinf(skin_rad) * rad_y * tone_line_len,
+                 col_tone);
+}
+
+static void sequencer_draw_scopes(Scene *scene, ARegion *region, SpaceSeq *sseq)
+{
+  using namespace blender::ed::seq;
+
+  /* Figure out draw coordinates. */
+  rctf preview;
+  sequencer_preview_get_rect(&preview, scene, region, sseq, false, false);
+
+  rctf uv;
+  BLI_rctf_init(&uv, 0.0f, 1.0f, 0.0f, 1.0f);
+  const bool keep_aspect = sseq->mainb == SEQ_DRAW_IMG_VECTORSCOPE;
+  float vecscope_aspect = 1.0f;
+  if (keep_aspect) {
+    float width = std::max(BLI_rctf_size_x(&preview), 0.1f);
+    float height = std::max(BLI_rctf_size_y(&preview), 0.1f);
+    vecscope_aspect = width / height;
+    if (vecscope_aspect >= 1.0f) {
+      BLI_rctf_resize_x(&uv, vecscope_aspect);
+    }
+    else {
+      BLI_rctf_resize_y(&uv, 1.0f / vecscope_aspect);
+    }
+  }
+
+  SeqQuadsBatch quads;
+  SeqScopes *scopes = &sseq->runtime->scopes;
+
+  /* Draw scope image if there is one. */
+  bool use_blend = sseq->mainb == SEQ_DRAW_IMG_IMBUF && sseq->flag & SEQ_USE_ALPHA;
+  ImBuf *scope_image = nullptr;
+  if (sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
+    scope_image = scopes->zebra_ibuf;
+  }
+  else if (sseq->mainb == SEQ_DRAW_IMG_WAVEFORM) {
+    scope_image = (sseq->flag & SEQ_DRAW_COLOR_SEPARATED) != 0 ? scopes->sep_waveform_ibuf :
+                                                                 scopes->waveform_ibuf;
+  }
+  else if (sseq->mainb == SEQ_DRAW_IMG_VECTORSCOPE) {
+    scope_image = scopes->vector_ibuf;
+  }
+  else if (sseq->mainb == SEQ_DRAW_IMG_HISTOGRAM) {
+    use_blend = true;
+  }
+
+  if (use_blend) {
+    GPU_blend(GPU_BLEND_ALPHA);
+  }
+
+  if (scope_image != nullptr) {
+    if (scope_image->float_buffer.data && scope_image->byte_buffer.data == nullptr) {
+      IMB_rect_from_float(scope_image);
+    }
+
+    eGPUTextureFormat format = GPU_RGBA8;
+    eGPUDataFormat data = GPU_DATA_UBYTE;
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
+    GPUTexture *texture = GPU_texture_create_2d(
+        "seq_display_buf", scope_image->x, scope_image->y, 1, format, usage, nullptr);
+    GPU_texture_update(texture, data, scope_image->byte_buffer.data);
+    GPU_texture_filter_mode(texture, false);
+    GPU_texture_extend_mode(texture, GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
+
+    GPU_texture_bind(texture, 0);
+
+    GPUVertFormat *imm_format = immVertexFormat();
+    uint pos = GPU_vertformat_attr_add(imm_format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+    uint texCoord = GPU_vertformat_attr_add(
+        imm_format, "texCoord", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+    immBindBuiltinProgram(GPU_SHADER_3D_IMAGE_COLOR);
+    immUniformColor3f(1.0f, 1.0f, 1.0f);
+
+    immBegin(GPU_PRIM_TRI_FAN, 4);
+
+    immAttr2f(texCoord, uv.xmin, uv.ymin);
+    immVertex2f(pos, preview.xmin, preview.ymin);
+
+    immAttr2f(texCoord, uv.xmin, uv.ymax);
+    immVertex2f(pos, preview.xmin, preview.ymax);
+
+    immAttr2f(texCoord, uv.xmax, uv.ymax);
+    immVertex2f(pos, preview.xmax, preview.ymax);
+
+    immAttr2f(texCoord, uv.xmax, uv.ymin);
+    immVertex2f(pos, preview.xmax, preview.ymin);
+
+    immEnd();
+
+    GPU_texture_unbind(texture);
+    GPU_texture_free(texture);
+
+    immUnbindProgram();
+  }
+
+  if (sseq->mainb == SEQ_DRAW_IMG_HISTOGRAM) {
+    draw_histogram(region, scopes->histogram, quads, preview);
+  }
+  if (sseq->mainb == SEQ_DRAW_IMG_WAVEFORM) {
+    use_blend = true;
+    draw_waveform_graticule(region, quads, preview);
+  }
+  if (sseq->mainb == SEQ_DRAW_IMG_VECTORSCOPE) {
+    use_blend = true;
+    draw_vectorscope_graticule(quads, preview);
+  }
+
+  quads.draw();
+
+  if (use_blend) {
+    GPU_blend(GPU_BLEND_NONE);
+  }
+}
+
+static bool sequencer_calc_scopes(Scene *scene, SpaceSeq *sseq, ImBuf *ibuf, bool draw_backdrop)
+{
+  using namespace blender::ed::seq;
+
+  if (draw_backdrop || (sseq->mainb == SEQ_DRAW_IMG_IMBUF && sseq->zebra == 0)) {
+    return false; /* Not drawing any scopes. */
+  }
+
+  SeqScopes *scopes = &sseq->runtime->scopes;
+  if (scopes->reference_ibuf != ibuf) {
+    scopes->cleanup();
+  }
+
+  switch (sseq->mainb) {
+    case SEQ_DRAW_IMG_IMBUF:
+      if (!scopes->zebra_ibuf) {
+
+        if (ibuf->float_buffer.data) {
+          ImBuf *display_ibuf = IMB_dupImBuf(ibuf);
+          IMB_colormanagement_imbuf_make_display_space(
+              display_ibuf, &scene->view_settings, &scene->display_settings);
+          scopes->zebra_ibuf = make_zebra_view_from_ibuf(display_ibuf, sseq->zebra);
+          IMB_freeImBuf(display_ibuf);
+        }
+        else {
+          scopes->zebra_ibuf = make_zebra_view_from_ibuf(ibuf, sseq->zebra);
+        }
+      }
+      break;
+    case SEQ_DRAW_IMG_WAVEFORM:
+      if ((sseq->flag & SEQ_DRAW_COLOR_SEPARATED) != 0) {
+        if (!scopes->sep_waveform_ibuf) {
+          scopes->sep_waveform_ibuf = sequencer_make_scope(
+              scene, ibuf, make_sep_waveform_view_from_ibuf);
+        }
+      }
+      else {
+        if (!scopes->waveform_ibuf) {
+          scopes->waveform_ibuf = sequencer_make_scope(scene, ibuf, make_waveform_view_from_ibuf);
+        }
+      }
+      break;
+    case SEQ_DRAW_IMG_VECTORSCOPE:
+      if (!scopes->vector_ibuf) {
+        scopes->vector_ibuf = sequencer_make_scope(scene, ibuf, make_vectorscope_view_from_ibuf);
+      }
+      break;
+    case SEQ_DRAW_IMG_HISTOGRAM: {
+      ImBuf *display_ibuf = IMB_dupImBuf(ibuf);
+      IMB_colormanagement_imbuf_make_display_space(
+          display_ibuf, &scene->view_settings, &scene->display_settings);
+      scopes->histogram.calc_from_ibuf(display_ibuf);
+      IMB_freeImBuf(display_ibuf);
+    } break;
+    default: /* Future files might have scopes we don't know about. */
+      return false;
+  }
+  scopes->reference_ibuf = ibuf;
+  return true;
 }
 
 bool sequencer_draw_get_transform_preview(SpaceSeq *sseq, Scene *scene)
@@ -732,7 +975,6 @@ void sequencer_draw_preview(const bContext *C,
   Depsgraph *depsgraph = CTX_data_expect_evaluated_depsgraph(C);
   View2D *v2d = &region->v2d;
   ImBuf *ibuf = nullptr;
-  ImBuf *scope = nullptr;
   float viewrect[2];
   const bool show_imbuf = ED_space_sequencer_check_show_imbuf(sseq);
   const bool draw_gpencil = ((sseq->preview_overlay.flag & SEQ_PREVIEW_SHOW_GPENCIL) && sseq->gpd);
@@ -781,13 +1023,17 @@ void sequencer_draw_preview(const bContext *C,
   }
 
   if (ibuf) {
-    scope = sequencer_get_scope(scene, sseq, ibuf, draw_backdrop);
+    bool has_scope = sequencer_calc_scopes(scene, sseq, ibuf, draw_backdrop);
+    if (has_scope) {
+      /* Draw scope. */
+      sequencer_draw_scopes(scene, region, sseq);
+    }
+    else {
+      /* Draw image. */
+      sequencer_draw_display_buffer(C, scene, region, sseq, ibuf, draw_overlay, draw_backdrop);
+    }
 
-    /* Draw image. */
-    sequencer_draw_display_buffer(
-        C, scene, region, sseq, ibuf, scope, draw_overlay, draw_backdrop);
-
-    /* Draw over image. */
+    /* Draw metadata. */
     if (sseq->preview_overlay.flag & SEQ_PREVIEW_SHOW_METADATA && sseq->flag & SEQ_SHOW_OVERLAY) {
       ED_region_image_metadata_draw(0.0, 0.0, ibuf, &v2d->tot, 1.0, 1.0);
     }
@@ -821,7 +1067,6 @@ void sequencer_draw_preview(const bContext *C,
   ED_region_draw_cb_draw(C, region, REGION_DRAW_POST_VIEW);
   GPU_framebuffer_bind_no_srgb(framebuffer_overlay);
 
-  /* Scope is freed in sequencer_check_scopes when `ibuf` changes and redraw is needed. */
   if (ibuf) {
     IMB_freeImBuf(ibuf);
   }

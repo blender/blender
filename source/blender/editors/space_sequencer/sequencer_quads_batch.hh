@@ -33,9 +33,9 @@ class SeqQuadsBatch {
   /** Add an axis-aligned quad. */
   void add_quad(float x1, float y1, float x2, float y2, const uchar color[4])
   {
-    add_quad(x1, y1, x1, y2, x2, y1, x2, y2, color);
+    add_quad(x1, y1, x1, y2, x2, y1, x2, y2, color, color, color, color);
   }
-  /** Add a quad. */
+  /** Add a quad with four arbitrary coordinates and one color. */
   void add_quad(float x1,
                 float y1,
                 float x2,
@@ -44,11 +44,33 @@ class SeqQuadsBatch {
                 float y3,
                 float x4,
                 float y4,
-                const uchar color[4]);
+                const uchar color[4])
+  {
+    add_quad(x1, y1, x2, y2, x3, y3, x4, y4, color, color, color, color);
+  }
+  /** Add a quad with four arbitrary coordinates and a color for each. */
+  void add_quad(float x1,
+                float y1,
+                float x2,
+                float y2,
+                float x3,
+                float y3,
+                float x4,
+                float y4,
+                const uchar color1[4],
+                const uchar color2[4],
+                const uchar color3[4],
+                const uchar color4[4]);
   /** Add four lines of an axis-aligned quad edges. */
   void add_wire_quad(float x1, float y1, float x2, float y2, const uchar color[4]);
-  /** Add a line. */
-  void add_line(float x1, float y1, float x2, float y2, const uchar color[4]);
+  /** Add a line with single color. */
+  void add_line(float x1, float y1, float x2, float y2, const uchar color[4])
+  {
+    add_line(x1, y1, x2, y2, color, color);
+  }
+  /** Add a line with two endpoint colors. */
+  void add_line(
+      float x1, float y1, float x2, float y2, const uchar color1[4], const uchar color2[4]);
 
  private:
   static constexpr int MAX_QUADS = 1024;

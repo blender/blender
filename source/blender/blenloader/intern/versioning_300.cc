@@ -46,6 +46,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_sequence_types.h"
 #include "DNA_space_types.h"
 #include "DNA_text_types.h"
 #include "DNA_tracking_types.h"
