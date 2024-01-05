@@ -137,8 +137,8 @@ class DefocusOperation : public NodeOperation {
 
     radius.bind_as_texture(shader, "radius_tx");
 
-    bokeh_kernel.bind_as_texture(shader, "weights_tx");
     GPU_texture_filter_mode(bokeh_kernel.texture(), true);
+    bokeh_kernel.bind_as_texture(shader, "weights_tx");
 
     const Domain domain = compute_domain();
     output.allocate_texture(domain);

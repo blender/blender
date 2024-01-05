@@ -169,8 +169,8 @@ class GlareOperation : public NodeOperation {
     GPU_shader_uniform_1f(shader, "threshold", node_storage(bnode()).threshold);
 
     const Result &input_image = get_input("Image");
-    input_image.bind_as_texture(shader, "input_tx");
     GPU_texture_filter_mode(input_image.texture(), true);
+    input_image.bind_as_texture(shader, "input_tx");
 
     const int2 glare_size = get_glare_size();
     Result highlights_result = context().create_temporary_result(ResultType::Color);
@@ -394,10 +394,10 @@ class GlareOperation : public NodeOperation {
       GPU_shader_uniform_3fv(shader, "fade_factors", fade_factors);
       GPU_shader_uniform_2fv(shader, "streak_vector", streak_vector);
 
-      input_streak_result.bind_as_texture(shader, "input_streak_tx");
       GPU_texture_filter_mode(input_streak_result.texture(), true);
       GPU_texture_extend_mode(input_streak_result.texture(),
                               GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
+      input_streak_result.bind_as_texture(shader, "input_streak_tx");
 
       output_streak_result.bind_as_image(shader, "output_streak_img");
 
@@ -582,13 +582,13 @@ class GlareOperation : public NodeOperation {
     GPUShader *shader = context().get_shader("compositor_glare_ghost_base");
     GPU_shader_bind(shader);
 
-    small_ghost_result.bind_as_texture(shader, "small_ghost_tx");
     GPU_texture_filter_mode(small_ghost_result.texture(), true);
     GPU_texture_extend_mode(small_ghost_result.texture(), GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
+    small_ghost_result.bind_as_texture(shader, "small_ghost_tx");
 
-    big_ghost_result.bind_as_texture(shader, "big_ghost_tx");
     GPU_texture_filter_mode(big_ghost_result.texture(), true);
     GPU_texture_extend_mode(big_ghost_result.texture(), GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
+    big_ghost_result.bind_as_texture(shader, "big_ghost_tx");
 
     const int2 glare_size = get_glare_size();
     Result base_ghost_result = context().create_temporary_result(ResultType::Color);
@@ -737,8 +737,8 @@ class GlareOperation : public NodeOperation {
 
     for (const int i : upsample_passes_range) {
       Result &input = downsample_chain[upsample_passes_range.last() - i + 1];
-      input.bind_as_texture(shader, "input_tx");
       GPU_texture_filter_mode(input.texture(), true);
+      input.bind_as_texture(shader, "input_tx");
 
       const Result &output = downsample_chain[upsample_passes_range.last() - i];
       output.bind_as_image(shader, "output_img", true);
@@ -788,8 +788,8 @@ class GlareOperation : public NodeOperation {
       }
 
       const Result &input = downsample_chain[i];
-      input.bind_as_texture(shader, "input_tx");
       GPU_texture_filter_mode(input.texture(), true);
+      input.bind_as_texture(shader, "input_tx");
 
       Result &output = downsample_chain[i + 1];
       output.allocate_texture(input.domain().size / 2);
@@ -834,8 +834,8 @@ class GlareOperation : public NodeOperation {
     const Result &input_image = get_input("Image");
     input_image.bind_as_texture(shader, "input_tx");
 
-    glare_result.bind_as_texture(shader, "glare_tx");
     GPU_texture_filter_mode(glare_result.texture(), true);
+    glare_result.bind_as_texture(shader, "glare_tx");
 
     const Domain domain = compute_domain();
     Result &output_image = get_result("Image");

@@ -86,10 +86,9 @@ class DirectionalBlurOperation : public NodeOperation {
     GPU_shader_uniform_mat3_as_mat4(shader, "inverse_transformation", get_transformation().ptr());
 
     const Result &input_image = get_input("Image");
-    input_image.bind_as_texture(shader, "input_tx");
-
     GPU_texture_filter_mode(input_image.texture(), true);
     GPU_texture_extend_mode(input_image.texture(), GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
+    input_image.bind_as_texture(shader, "input_tx");
 
     const Domain domain = compute_domain();
     Result &output_image = get_result("Image");
