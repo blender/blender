@@ -35,6 +35,11 @@ struct FileHandlerType {
 
   /** RNA integration. */
   ExtensionRNA rna_ext;
+
+  /**
+   * Return a vector of indices in #paths of file paths supported by the file handler.
+   */
+  blender::Vector<int64_t> filter_supported_paths(const blender::Span<std::string> paths) const;
 };
 
 /**
@@ -57,5 +62,13 @@ void file_handler_remove(FileHandlerType *file_handler);
 
 /** Return pointers to all registered file handlers. */
 Span<std::unique_ptr<FileHandlerType>> file_handlers();
+
+/**
+ * Return a vector of file handlers that support any file path in `paths` and the call to
+ * `poll_drop` returns #true. Caller must check if each file handler have a valid
+ * `import_operator`.
+ */
+blender::Vector<FileHandlerType *> file_handlers_poll_file_drop(
+    const bContext *C, const blender::Span<std::string> paths);
 
 }  // namespace blender::bke

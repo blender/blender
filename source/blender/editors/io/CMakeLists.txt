@@ -17,6 +17,7 @@ set(INC
   ../../io/wavefront_obj
   ../../makesrna
   ../../windowmanager
+  ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
 set(INC_SYS
@@ -27,6 +28,7 @@ set(SRC
   io_alembic.cc
   io_cache.cc
   io_collada.cc
+  io_drop_import_file.cc
   io_gpencil_export.cc
   io_gpencil_import.cc
   io_gpencil_utils.cc
@@ -39,6 +41,7 @@ set(SRC
   io_alembic.hh
   io_cache.hh
   io_collada.hh
+  io_drop_import_file.hh
   io_gpencil.hh
   io_obj.hh
   io_ops.hh
@@ -53,6 +56,7 @@ set(LIB
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::intern::clog
 )
 
 if(WITH_OPENCOLLADA)

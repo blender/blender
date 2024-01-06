@@ -112,6 +112,22 @@ bool RNA_struct_idprops_contains_datablock(const StructRNA *type);
 bool RNA_struct_idprops_unset(PointerRNA *ptr, const char *identifier);
 
 PropertyRNA *RNA_struct_find_property(PointerRNA *ptr, const char *identifier);
+
+/**
+ * Same as `RNA_struct_find_property` but returns `nullptr` if the property type is no same to
+ * `property_type_check`.
+ */
+PropertyRNA *RNA_struct_find_property_check(PointerRNA &props,
+                                            const char *name,
+                                            const PropertyType property_type_check);
+/**
+ * Same as `RNA_struct_find_property` but returns `nullptr` if the property type is not
+ * #PropertyType::PROP_COLLECTION or property struct type is different to `struct_type_check`.
+ */
+PropertyRNA *RNA_struct_find_collection_property_check(PointerRNA &props,
+                                                       const char *name,
+                                                       const StructRNA *struct_type_check);
+
 bool RNA_struct_contains_property(PointerRNA *ptr, PropertyRNA *prop_test);
 unsigned int RNA_struct_count_properties(StructRNA *srna);
 

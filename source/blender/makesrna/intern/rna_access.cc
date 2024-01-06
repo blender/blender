@@ -41,6 +41,8 @@
 #include "BKE_node.hh"
 #include "BKE_report.h"
 
+#include "CLG_log.h"
+
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
 
@@ -60,6 +62,8 @@
 #include "rna_internal.h"
 
 const PointerRNA PointerRNA_NULL = {nullptr};
+
+static CLG_LogRef LOG = {"rna.access"};
 
 /* Init/Exit */
 
@@ -777,6 +781,86 @@ PropertyRNA *RNA_struct_find_property(PointerRNA *ptr, const char *identifier)
     }
   }
 
+  return nullptr;
+}
+
+static const char *rna_property_type_identifier(PropertyType prop_type)
+{
+  switch (prop_type) {
+    case PROP_BOOLEAN:
+      return RNA_struct_identifier(&RNA_BoolProperty);
+    case PROP_INT:
+      return RNA_struct_identifier(&RNA_IntProperty);
+    case PROP_FLOAT:
+      return RNA_struct_identifier(&RNA_FloatProperty);
+    case PROP_STRING:
+      return RNA_struct_identifier(&RNA_StringProperty);
+    case PROP_ENUM:
+      return RNA_struct_identifier(&RNA_EnumProperty);
+    case PROP_POINTER:
+      return RNA_struct_identifier(&RNA_PointerProperty);
+    case PROP_COLLECTION:
+      return RNA_struct_identifier(&RNA_CollectionProperty);
+    default:
+      return RNA_struct_identifier(&RNA_Property);
+  }
+}
+
+PropertyRNA *RNA_struct_find_property_check(PointerRNA &props,
+                                            const char *name,
+                                            const PropertyType property_type_check)
+{
+  PropertyRNA *prop = RNA_struct_find_property(&props, name);
+  if (!prop) {
+    return nullptr;
+  }
+  const PropertyType prop_type = RNA_property_type(prop);
+  if (prop_type == property_type_check) {
+    return prop;
+  }
+  CLOG_WARN(&LOG,
+            TIP_("'%s : %s()' expected, got '%s : %s()'"),
+            name,
+            rna_property_type_identifier(property_type_check),
+            name,
+            rna_property_type_identifier(prop_type));
+  return nullptr;
+}
+
+PropertyRNA *RNA_struct_find_collection_property_check(PointerRNA &props,
+                                                       const char *name,
+                                                       const StructRNA *struct_type_check)
+{
+  PropertyRNA *prop = RNA_struct_find_property(&props, name);
+  if (!prop) {
+    return nullptr;
+  }
+
+  const PropertyType prop_type = RNA_property_type(prop);
+  const StructRNA *prop_struct_type = RNA_property_pointer_type(&props, prop);
+  if (prop_type == PROP_COLLECTION && prop_struct_type == struct_type_check) {
+    return prop;
+  }
+
+  if (prop_type != PROP_COLLECTION) {
+    CLOG_WARN(&LOG,
+              TIP_("'%s : %s(type = %s)' expected, got '%s : %s()'"),
+              name,
+              rna_property_type_identifier(PROP_COLLECTION),
+              RNA_struct_identifier(struct_type_check),
+              name,
+              rna_property_type_identifier(prop_type));
+    return nullptr;
+  }
+
+  CLOG_WARN(&LOG,
+            TIP_("'%s : %s(type = %s)' expected, got '%s : %s(type = %s)'."),
+            name,
+            rna_property_type_identifier(PROP_COLLECTION),
+            RNA_struct_identifier(struct_type_check),
+            name,
+            rna_property_type_identifier(PROP_COLLECTION),
+            RNA_struct_identifier(prop_struct_type));
   return nullptr;
 }
 
