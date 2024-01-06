@@ -22,12 +22,12 @@ BArrayStore *BLI_array_store_at_size_ensure(struct BArrayStore_AtSize *bs_stride
 {
   if (bs_stride->stride_table_len < stride) {
     bs_stride->stride_table_len = stride;
-    bs_stride->stride_table = MEM_recallocN(bs_stride->stride_table,
-                                            sizeof(*bs_stride->stride_table) * stride);
+    bs_stride->stride_table = static_cast<BArrayStore **>(
+        MEM_recallocN(bs_stride->stride_table, sizeof(*bs_stride->stride_table) * stride));
   }
   BArrayStore **bs_p = &bs_stride->stride_table[stride - 1];
 
-  if ((*bs_p) == NULL) {
+  if ((*bs_p) == nullptr) {
     /* calculate best chunk-count to fit a power of two */
     uint chunk_count = chunk_size;
     {

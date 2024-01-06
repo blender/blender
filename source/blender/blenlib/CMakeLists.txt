@@ -43,8 +43,8 @@ set(SRC
   intern/BLI_mmap.c
   intern/BLI_timer.c
   intern/DLRB_tree.c
-  intern/array_store.c
-  intern/array_store_utils.c
+  intern/array_store.cc
+  intern/array_store_utils.cc
   intern/array_utils.c
   intern/array_utils.cc
   intern/astar.c
