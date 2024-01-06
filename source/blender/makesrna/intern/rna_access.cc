@@ -819,7 +819,7 @@ PropertyRNA *RNA_struct_find_property_check(PointerRNA &props,
     return prop;
   }
   CLOG_WARN(&LOG,
-            TIP_("'%s : %s()' expected, got '%s : %s()'"),
+            "'%s : %s()' expected, got '%s : %s()'",
             name,
             rna_property_type_identifier(property_type_check),
             name,
@@ -844,7 +844,7 @@ PropertyRNA *RNA_struct_find_collection_property_check(PointerRNA &props,
 
   if (prop_type != PROP_COLLECTION) {
     CLOG_WARN(&LOG,
-              TIP_("'%s : %s(type = %s)' expected, got '%s : %s()'"),
+              "'%s : %s(type = %s)' expected, got '%s : %s()'",
               name,
               rna_property_type_identifier(PROP_COLLECTION),
               RNA_struct_identifier(struct_type_check),
@@ -854,7 +854,7 @@ PropertyRNA *RNA_struct_find_collection_property_check(PointerRNA &props,
   }
 
   CLOG_WARN(&LOG,
-            TIP_("'%s : %s(type = %s)' expected, got '%s : %s(type = %s)'."),
+            "'%s : %s(type = %s)' expected, got '%s : %s(type = %s)'.",
             name,
             rna_property_type_identifier(PROP_COLLECTION),
             RNA_struct_identifier(struct_type_check),

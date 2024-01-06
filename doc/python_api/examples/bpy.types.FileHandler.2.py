@@ -1,11 +1,12 @@
 """
 Basic FileHandler for Operator that imports multiple files
------------------
+----------------------------------------------------------
 
 Also operators can be invoked with multiple files from 'drag-and-drop',
 but for this it is require to define the following properties:
 
 .. code-block:: python
+
     directory: StringProperty(subtype='FILE_PATH')
     files: CollectionProperty(type=bpy.types.OperatorFileListElement)
 
@@ -64,7 +65,7 @@ class ShaderScriptImport(bpy.types.Operator):
     By default the file handler invokes the operator with the directory and files properties set.
     In this example if this properties are set the operator is executed, if not the
     file select window is invoked.
-    This depends on setting 'options={'SKIP_SAVE'}' to the properties options to avoid
+    This depends on setting ``options={'SKIP_SAVE'}`` to the properties options to avoid
     to reuse filepath data between operator calls.
     """
 

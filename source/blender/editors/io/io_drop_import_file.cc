@@ -114,7 +114,7 @@ static PointerRNA file_handler_import_operator_create_ptr(
     const char *message =
         "Expected operator properties filepath or files and directory not found. Refer to "
         "FileHandler documentation for details.";
-    CLOG_WARN(&LOG, TIP_(message));
+    CLOG_WARN(&LOG, "%s", message);
   }
   return props;
 }
@@ -195,7 +195,7 @@ void WM_OT_drop_import_file(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
-void drop_import_file_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *drop)
+static void drop_import_file_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *drop)
 {
   const auto paths = WM_drag_get_paths(drag);
 

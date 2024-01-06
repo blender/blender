@@ -1,6 +1,6 @@
 """
 Basic FileHandler for Operator that imports just one file
------------------
+---------------------------------------------------------
 
 When creating a ``Operator`` that imports files, you may want to
 add them 'drag-and-drop' support, File Handlers helps to define
@@ -14,6 +14,7 @@ required a set of properties, when the ``Operator`` can import just one
 file per execution it needs to define the following property:
 
 .. code-block:: python
+
     filepath: bpy.props.StringProperty(subtype='FILE_PATH')
 
 This ``filepath`` property now will be used by the ``FileHandler`` to
@@ -55,7 +56,7 @@ class CurveTextImport(bpy.types.Operator):
     By default the file handler invokes the operator with the filepath property set.
     In this example if this property is set the operator is executed, if not the
     file select window is invoked.
-    This depends on setting 'options={'SKIP_SAVE'}' to the property options to avoid
+    This depends on setting ``options={'SKIP_SAVE'}`` to the property options to avoid
     to reuse filepath data between operator calls.
     """
 
