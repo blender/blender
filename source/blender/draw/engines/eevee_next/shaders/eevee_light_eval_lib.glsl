@@ -18,7 +18,7 @@
 #pragma BLENDER_REQUIRE(eevee_shadow_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_codegen_lib.glsl)
 
-/* If using compute, the shader should define it's own pixel. */
+/* If using compute, the shader should define its own pixel. */
 #if !defined(PIXEL) && defined(GPU_FRAGMENT_SHADER)
 #  define PIXEL gl_FragCoord.xy
 #endif
