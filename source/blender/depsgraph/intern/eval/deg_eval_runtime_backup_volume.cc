@@ -28,8 +28,8 @@ void VolumeBackup::init_from_volume(Volume *volume)
   BLI_STATIC_ASSERT(sizeof(filepath) == sizeof(volume->filepath),
                     "VolumeBackup filepath length wrong");
 
-  grids = volume->runtime.grids;
-  volume->runtime.grids = nullptr;
+  grids = volume->runtime->grids;
+  volume->runtime->grids = nullptr;
 }
 
 void VolumeBackup::restore_to_volume(Volume *volume)

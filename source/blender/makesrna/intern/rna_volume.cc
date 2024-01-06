@@ -345,7 +345,7 @@ static void rna_def_volume_grids(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_property_ui_text(prop, "Is Loaded", "List of grids and metadata are loaded in memory");
 
   prop = RNA_def_property(srna, "frame", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, nullptr, "runtime.frame");
+  RNA_def_property_int_sdna(prop, nullptr, "runtime->frame");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop,
                            "Frame",
@@ -696,7 +696,7 @@ static void rna_def_volume(BlenderRNA *brna)
 
   /* Scalar grids for velocity. */
   prop = RNA_def_property(srna, "velocity_x_grid", PROP_STRING, PROP_NONE);
-  RNA_def_property_string_sdna(prop, nullptr, "runtime.velocity_x_grid");
+  RNA_def_property_string_sdna(prop, nullptr, "runtime->velocity_x_grid");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop,
                            "Velocity X Grid",
@@ -704,7 +704,7 @@ static void rna_def_volume(BlenderRNA *brna)
                            "was split into multiple grids");
 
   prop = RNA_def_property(srna, "velocity_y_grid", PROP_STRING, PROP_NONE);
-  RNA_def_property_string_sdna(prop, nullptr, "runtime.velocity_y_grid");
+  RNA_def_property_string_sdna(prop, nullptr, "runtime->velocity_y_grid");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop,
                            "Velocity Y Grid",
@@ -712,7 +712,7 @@ static void rna_def_volume(BlenderRNA *brna)
                            "was split into multiple grids");
 
   prop = RNA_def_property(srna, "velocity_z_grid", PROP_STRING, PROP_NONE);
-  RNA_def_property_string_sdna(prop, nullptr, "runtime.velocity_z_grid");
+  RNA_def_property_string_sdna(prop, nullptr, "runtime->velocity_z_grid");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop,
                            "Velocity Z Grid",

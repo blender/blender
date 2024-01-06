@@ -11,23 +11,15 @@
 #include "DNA_ID.h"
 
 struct PackedFile;
-struct VolumeGridVector;
 
-typedef struct Volume_Runtime {
-  /** OpenVDB Grids. */
-  struct VolumeGridVector *grids;
-
-  /** Current frame in sequence for evaluated volume. */
-  int frame;
-
-  /** Default simplify level for volume grids loaded from files. */
-  int default_simplify_level;
-
-  /* Names for scalar grids which would need to be merged to recompose the velocity grid. */
-  char velocity_x_grid[64];
-  char velocity_y_grid[64];
-  char velocity_z_grid[64];
-} Volume_Runtime;
+#ifdef __cplusplus
+namespace blender::bke {
+struct VolumeRuntime;
+}
+using VolumeRuntimeHandle = blender::bke::VolumeRuntime;
+#else
+typedef struct VolumeRuntimeHandle VolumeRuntimeHandle;
+#endif
 
 typedef struct VolumeDisplay {
   float density;
@@ -94,7 +86,7 @@ typedef struct Volume {
   void *batch_cache;
 
   /* Runtime Data */
-  Volume_Runtime runtime;
+  VolumeRuntimeHandle *runtime;
 } Volume;
 
 /** #Volume.flag */
