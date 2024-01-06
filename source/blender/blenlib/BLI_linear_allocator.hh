@@ -65,7 +65,7 @@ template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopya
   {
     BLI_assert(size >= 0);
     BLI_assert(alignment >= 1);
-    BLI_assert(is_power_of_2_i(alignment));
+    BLI_assert(is_power_of_2(alignment));
 
     const uintptr_t alignment_mask = alignment - 1;
     const uintptr_t potential_allocation_begin = (current_begin_ + alignment_mask) &

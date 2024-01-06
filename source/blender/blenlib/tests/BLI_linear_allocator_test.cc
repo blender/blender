@@ -11,7 +11,7 @@ namespace blender::tests {
 
 static bool is_aligned(void *ptr, uint alignment)
 {
-  BLI_assert(is_power_of_2_i(int(alignment)));
+  BLI_assert(is_power_of_2(int(alignment)));
   return (POINTER_AS_UINT(ptr) & (alignment - 1)) == 0;
 }
 

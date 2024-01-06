@@ -6,6 +6,7 @@
  * \ingroup edinterface
  */
 
+#include <cfloat>
 #include <limits>
 #include <stdexcept>
 

@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <cstring>
+
 #include "BKE_file_handler.hh"
 
 #include "BLI_string.h"

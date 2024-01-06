@@ -10,7 +10,6 @@
 
 #include <cfloat>
 #include <cmath>
-#include <cstring>
 
 #include "BKE_node.hh"
 

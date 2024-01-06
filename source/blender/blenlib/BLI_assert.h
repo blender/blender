@@ -13,6 +13,8 @@
  * - #BLI_STATIC_ASSERT_ALIGN
  */
 
+#include <stddef.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif

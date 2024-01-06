@@ -9,6 +9,7 @@
  * but does not write it to a file.
  */
 
+#include <cctype>
 #include <cstring>
 
 #include "BLI_alloca.h"

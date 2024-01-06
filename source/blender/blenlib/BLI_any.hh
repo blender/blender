@@ -15,7 +15,6 @@
  */
 
 #include <algorithm>
-#include <cstring>
 #include <utility>
 
 #include "BLI_memory_utils.hh"
@@ -160,7 +159,9 @@ class Any {
         info_->copy_construct(&buffer_, &other.buffer_);
       }
       else {
-        memcpy(&buffer_, &other.buffer_, RealInlineBufferCapacity);
+        std::copy_n(static_cast<const std::byte *>(other.buffer_.ptr()),
+                    RealInlineBufferCapacity,
+                    static_cast<std::byte *>(buffer_.ptr()));
       }
     }
   }
@@ -176,7 +177,9 @@ class Any {
         info_->move_construct(&buffer_, &other.buffer_);
       }
       else {
-        memcpy(&buffer_, &other.buffer_, RealInlineBufferCapacity);
+        std::copy_n(static_cast<const std::byte *>(other.buffer_.ptr()),
+                    RealInlineBufferCapacity,
+                    static_cast<std::byte *>(buffer_.ptr()));
       }
     }
   }

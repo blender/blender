@@ -28,6 +28,7 @@
 #include "BKE_report.h"
 
 #include "BLI_dynstr.h"
+#include "BLI_math_base.h"
 #include "BLI_utildefines.h"
 #include "BLT_translation.h"
 

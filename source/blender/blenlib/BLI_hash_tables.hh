@@ -11,9 +11,7 @@
  */
 
 #include <algorithm>
-#include <cmath>
 
-#include "BLI_allocator.hh"
 #include "BLI_memory_utils.hh"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
@@ -25,30 +23,6 @@ namespace blender {
  *
  * Those should eventually be de-duplicated with functions in BLI_math_base.h.
  * \{ */
-
-inline constexpr int64_t is_power_of_2_constexpr(const int64_t x)
-{
-  BLI_assert(x >= 0);
-  return (x & (x - 1)) == 0;
-}
-
-inline constexpr int64_t log2_floor_constexpr(const int64_t x)
-{
-  BLI_assert(x >= 0);
-  return x <= 1 ? 0 : 1 + log2_floor_constexpr(x >> 1);
-}
-
-inline constexpr int64_t log2_ceil_constexpr(const int64_t x)
-{
-  BLI_assert(x >= 0);
-  return (is_power_of_2_constexpr(int(x))) ? log2_floor_constexpr(x) : log2_floor_constexpr(x) + 1;
-}
-
-inline constexpr int64_t power_of_2_max_constexpr(const int64_t x)
-{
-  BLI_assert(x >= 0);
-  return 1ll << log2_ceil_constexpr(x);
-}
 
 template<typename IntT> inline constexpr IntT ceil_division(const IntT x, const IntT y)
 {
@@ -83,7 +57,7 @@ inline constexpr int64_t total_slot_amount_for_usable_slots(
     const int64_t max_load_factor_numerator,
     const int64_t max_load_factor_denominator)
 {
-  return power_of_2_max_constexpr(ceil_division_by_fraction(
+  return power_of_2_max(ceil_division_by_fraction(
       min_usable_slots, max_load_factor_numerator, max_load_factor_denominator));
 }
 
@@ -115,7 +89,7 @@ class LoadFactor {
                                       int64_t *r_total_slots,
                                       int64_t *r_usable_slots) const
   {
-    BLI_assert(is_power_of_2_i(int(min_total_slots)));
+    BLI_assert(is_power_of_2(int(min_total_slots)));
 
     int64_t total_slots = this->compute_total_slots(min_usable_slots, numerator_, denominator_);
     total_slots = std::max(total_slots, min_total_slots);
