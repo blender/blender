@@ -204,7 +204,7 @@ extern "C" void ntreeFreeLocalTree(struct bNodeTree * /*ntree*/)
 /* -------------------------------------------------------------------- */
 /** \name Stubs of DRW_engine.hh
  * \{ */
-extern "C" void DRW_deferred_shader_remove(struct GPUMaterial * /*mat*/)
+extern void DRW_deferred_shader_remove(struct GPUMaterial * /*mat*/)
 {
   BLI_assert_unreachable();
 }
