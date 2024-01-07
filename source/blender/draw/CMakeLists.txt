@@ -466,6 +466,7 @@ set(GLSL_SRC
   engines/eevee_next/shaders/eevee_bxdf_lib.glsl
   engines/eevee_next/shaders/eevee_bxdf_sampling_lib.glsl
   engines/eevee_next/shaders/eevee_camera_lib.glsl
+  engines/eevee_next/shaders/eevee_closure_lib.glsl
   engines/eevee_next/shaders/eevee_colorspace_lib.glsl
   engines/eevee_next/shaders/eevee_cryptomatte_lib.glsl
   engines/eevee_next/shaders/eevee_cubemap_lib.glsl

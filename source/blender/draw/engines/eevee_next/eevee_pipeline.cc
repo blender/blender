@@ -460,6 +460,7 @@ void DeferredLayerBase::gbuffer_pass_sync(Instance &inst)
   gbuffer_single_sided_ps_->state_set(state | DRW_STATE_CULL_BACK);
 
   closure_bits_ = CLOSURE_NONE;
+  closure_count_ = 0;
 }
 
 void DeferredLayer::begin_sync()
@@ -626,9 +627,9 @@ void DeferredLayer::end_sync()
       pass.bind_texture("direct_radiance_1_tx", &direct_radiance_txs_[0]);
       pass.bind_texture("direct_radiance_2_tx", &direct_radiance_txs_[1]);
       pass.bind_texture("direct_radiance_3_tx", &direct_radiance_txs_[2]);
-      pass.bind_texture("indirect_diffuse_tx", &indirect_diffuse_tx_);
-      pass.bind_texture("indirect_reflect_tx", &indirect_reflect_tx_);
-      pass.bind_texture("indirect_refract_tx", &indirect_refract_tx_);
+      pass.bind_texture("indirect_radiance_1_tx", &indirect_radiance_txs_[0]);
+      pass.bind_texture("indirect_radiance_2_tx", &indirect_radiance_txs_[1]);
+      pass.bind_texture("indirect_radiance_3_tx", &indirect_radiance_txs_[2]);
       pass.bind_image(RBUFS_COLOR_SLOT, &inst_.render_buffers.rp_color_tx);
       pass.bind_image(RBUFS_VALUE_SLOT, &inst_.render_buffers.rp_value_tx);
       pass.bind_resources(inst_.gbuffer);
@@ -658,6 +659,7 @@ PassMain::Sub *DeferredLayer::material_add(::Material *blender_mat, GPUMaterial 
 {
   eClosureBits closure_bits = shader_closure_bits_from_flag(gpumat);
   closure_bits_ |= closure_bits;
+  closure_count_ = max_ii(closure_count_, count_bits_i(closure_bits));
 
   bool has_shader_to_rgba = (closure_bits & CLOSURE_SHADER_TO_RGBA) != 0;
   bool backface_culling = (blender_mat->blend_flag & MA_BL_CULL_BACKFACE) != 0;
@@ -771,22 +773,20 @@ void DeferredLayer::render(View &main_view,
 
   inst_.manager->submit(gbuffer_ps_, render_view);
 
-  int closure_count = count_bits_i(closure_bits_ &
-                                   (CLOSURE_REFLECTION | CLOSURE_DIFFUSE | CLOSURE_TRANSLUCENT));
   for (int i = 0; i < ARRAY_SIZE(direct_radiance_txs_); i++) {
     direct_radiance_txs_[i].acquire(
-        (closure_count > i) ? extent : int2(1), DEFERRED_RADIANCE_FORMAT, usage_rw);
+        (closure_count_ > i) ? extent : int2(1), DEFERRED_RADIANCE_FORMAT, usage_rw);
   }
 
   RayTraceResult indirect_result;
 
   if (use_combined_lightprobe_eval) {
     float4 data(0.0f);
-    dummy_black_tx.ensure_2d(
-        RAYTRACE_RADIANCE_FORMAT, int2(1), GPU_TEXTURE_USAGE_SHADER_READ, data);
-    indirect_diffuse_tx_ = dummy_black_tx;
-    indirect_reflect_tx_ = dummy_black_tx;
-    indirect_refract_tx_ = dummy_black_tx;
+    /* Subsurface writes (black) to that texture. */
+    dummy_black_tx.ensure_2d(RAYTRACE_RADIANCE_FORMAT, int2(1), usage_rw, data);
+    for (int i = 0; i < 3; i++) {
+      indirect_radiance_txs_[i] = dummy_black_tx;
+    }
   }
   else {
     indirect_result = inst_.raytracing.render(rt_buffer,
@@ -797,17 +797,16 @@ void DeferredLayer::render(View &main_view,
                                               main_view,
                                               render_view,
                                               do_screen_space_refraction);
-
-    indirect_diffuse_tx_ = indirect_result.diffuse.get();
-    indirect_reflect_tx_ = indirect_result.reflect.get();
-    indirect_refract_tx_ = indirect_result.refract.get();
+    for (int i = 0; i < 3; i++) {
+      indirect_radiance_txs_[i] = indirect_result.closures[i].get();
+    }
   }
 
   GPU_framebuffer_bind(combined_fb);
   inst_.manager->submit(eval_light_ps_, render_view);
 
   inst_.subsurface.render(
-      direct_radiance_txs_[0], indirect_diffuse_tx_, closure_bits_, render_view);
+      direct_radiance_txs_[0], indirect_radiance_txs_[0], closure_bits_, render_view);
 
   GPU_framebuffer_bind(combined_fb);
   inst_.manager->submit(combine_ps_);
@@ -1244,6 +1243,7 @@ PassMain::Sub *DeferredProbeLayer::material_add(::Material *blender_mat, GPUMate
 {
   eClosureBits closure_bits = shader_closure_bits_from_flag(gpumat);
   closure_bits_ |= closure_bits;
+  closure_count_ = max_ii(closure_count_, count_bits_i(closure_bits));
 
   bool has_shader_to_rgba = (closure_bits & CLOSURE_SHADER_TO_RGBA) != 0;
   bool backface_culling = (blender_mat->blend_flag & MA_BL_CULL_BACKFACE) != 0;
@@ -1372,6 +1372,7 @@ void PlanarProbePipeline::begin_sync()
   }
 
   closure_bits_ = CLOSURE_NONE;
+  closure_count_ = 0;
 }
 
 void PlanarProbePipeline::end_sync()
@@ -1391,6 +1392,7 @@ PassMain::Sub *PlanarProbePipeline::material_add(::Material *blender_mat, GPUMat
 {
   eClosureBits closure_bits = shader_closure_bits_from_flag(gpumat);
   closure_bits_ |= closure_bits;
+  closure_count_ = max_ii(closure_count_, count_bits_i(closure_bits));
 
   bool has_shader_to_rgba = (closure_bits & CLOSURE_SHADER_TO_RGBA) != 0;
   bool backface_culling = (blender_mat->blend_flag & MA_BL_CULL_BACKFACE) != 0;

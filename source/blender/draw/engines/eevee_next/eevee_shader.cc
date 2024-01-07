@@ -118,12 +118,8 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_hiz_update_layer";
     case HORIZON_DENOISE:
       return "eevee_horizon_denoise";
-    case HORIZON_SCAN_DIFFUSE:
-      return "eevee_horizon_scan_diffuse";
-    case HORIZON_SCAN_REFLECT:
-      return "eevee_horizon_scan_reflect";
-    case HORIZON_SCAN_REFRACT:
-      return "eevee_horizon_scan_refract";
+    case HORIZON_SCAN:
+      return "eevee_horizon_scan";
     case HORIZON_SETUP:
       return "eevee_horizon_setup";
     case LOOKDEV_DISPLAY:
@@ -192,36 +188,20 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_light_culling_tile";
     case LIGHT_CULLING_ZBIN:
       return "eevee_light_culling_zbin";
-    case RAY_DENOISE_SPATIAL_DIFFUSE:
-      return "eevee_ray_denoise_spatial_diffuse";
-    case RAY_DENOISE_SPATIAL_REFLECT:
-      return "eevee_ray_denoise_spatial_reflect";
-    case RAY_DENOISE_SPATIAL_REFRACT:
-      return "eevee_ray_denoise_spatial_refract";
+    case RAY_DENOISE_SPATIAL:
+      return "eevee_ray_denoise_spatial";
     case RAY_DENOISE_TEMPORAL:
       return "eevee_ray_denoise_temporal";
-    case RAY_DENOISE_BILATERAL_DIFFUSE:
-      return "eevee_ray_denoise_bilateral_diffuse";
-    case RAY_DENOISE_BILATERAL_REFLECT:
-      return "eevee_ray_denoise_bilateral_reflect";
-    case RAY_DENOISE_BILATERAL_REFRACT:
-      return "eevee_ray_denoise_bilateral_refract";
-    case RAY_GENERATE_DIFFUSE:
-      return "eevee_ray_generate_diffuse";
-    case RAY_GENERATE_REFLECT:
-      return "eevee_ray_generate_reflect";
-    case RAY_GENERATE_REFRACT:
-      return "eevee_ray_generate_refract";
+    case RAY_DENOISE_BILATERAL:
+      return "eevee_ray_denoise_bilateral";
+    case RAY_GENERATE:
+      return "eevee_ray_generate";
     case RAY_TRACE_FALLBACK:
       return "eevee_ray_trace_fallback";
     case RAY_TRACE_PLANAR:
       return "eevee_ray_trace_planar";
-    case RAY_TRACE_SCREEN_DIFFUSE:
-      return "eevee_ray_trace_screen_diffuse";
-    case RAY_TRACE_SCREEN_REFLECT:
-      return "eevee_ray_trace_screen_reflect";
-    case RAY_TRACE_SCREEN_REFRACT:
-      return "eevee_ray_trace_screen_refract";
+    case RAY_TRACE_SCREEN:
+      return "eevee_ray_trace_screen";
     case RAY_TILE_CLASSIFY:
       return "eevee_ray_tile_classify";
     case RAY_TILE_COMPACT:

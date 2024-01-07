@@ -21,20 +21,38 @@
 #pragma BLENDER_REQUIRE(eevee_gbuffer_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_bxdf_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_closure_lib.glsl)
 
-float bxdf_eval(ClosureDiffuse closure, vec3 L, vec3 V)
+float bxdf_eval(ClosureUndetermined cl, vec3 L, vec3 V)
 {
-  return bsdf_lambert(closure.N, L);
+  switch (cl.type) {
+    case CLOSURE_BSDF_TRANSLUCENT_ID:
+      return bsdf_lambert(-cl.N, L);
+    case CLOSURE_BSSRDF_BURLEY_ID:
+    case CLOSURE_BSDF_DIFFUSE_ID:
+      return bsdf_lambert(cl.N, L);
+    case CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID:
+      return bsdf_ggx_reflect(
+          cl.N, L, V, square(max(BSDF_ROUGHNESS_THRESHOLD, to_closure_reflection(cl).roughness)));
+    case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
+      return bsdf_ggx_refract(
+          cl.N,
+          L,
+          V,
+          square(max(BSDF_ROUGHNESS_THRESHOLD, to_closure_refraction(cl).roughness)),
+          to_closure_refraction(cl).ior);
+    case CLOSURE_NONE_ID:
+    default:
+      return 0.0;
+  }
 }
 
-float bxdf_eval(ClosureRefraction closure, vec3 L, vec3 V)
+/* Tag pixel radiance as invalid. */
+void invalid_pixel_write(ivec2 texel)
 {
-  return btdf_ggx(closure.N, L, V, closure.roughness, closure.ior);
-}
-
-float bxdf_eval(ClosureReflection closure, vec3 L, vec3 V)
-{
-  return bsdf_ggx(closure.N, L, V, closure.roughness);
+  imageStore(out_radiance_img, texel, vec4(FLT_11_11_10_MAX, 0.0));
+  imageStore(out_variance_img, texel, vec4(0.0));
+  imageStore(out_hit_depth_img, texel, vec4(0.0));
 }
 
 void main()
@@ -61,6 +79,10 @@ void main()
     return;
   }
 
+#ifndef GPU_METAL
+  /* TODO(fclem): Support specialization on OpenGL and Vulkan. */
+  int closure_index = uniform_buf.raytrace.closure_index;
+#endif
   /* Clear neighbor tiles that will not be processed. */
   /* TODO(fclem): Optimize this. We don't need to clear the whole ring. */
   for (int x = -1; x <= 1; x++) {
@@ -74,73 +96,50 @@ void main()
         continue;
       }
 
-      int closure_index = uniform_buf.raytrace.closure_index;
       ivec3 sample_tile = ivec3(tile_coord_neighbor, closure_index);
 
       uint tile_mask = imageLoad(tile_mask_img, sample_tile).r;
       bool tile_is_unused = !flag_test(tile_mask, 1u << 0u);
       if (tile_is_unused) {
         ivec2 texel_fullres_neighbor = texel_fullres + ivec2(x, y) * int(tile_size);
-
-        imageStore(out_radiance_img, texel_fullres_neighbor, vec4(FLT_11_11_10_MAX, 0.0));
-        imageStore(out_variance_img, texel_fullres_neighbor, vec4(0.0));
-        imageStore(out_hit_depth_img, texel_fullres_neighbor, vec4(0.0));
+        invalid_pixel_write(texel_fullres_neighbor);
       }
     }
   }
 
   bool valid_texel = in_texture_range(texel_fullres, gbuf_header_tx);
-  uint header = (!valid_texel) ? 0u : texelFetch(gbuf_header_tx, texel_fullres, 0).r;
-  GBufferReader gbuf_header = gbuffer_read_header(header);
-
-#if defined(RAYTRACE_DIFFUSE)
-  bool has_closure = gbuf_header.has_diffuse;
-#elif defined(RAYTRACE_REFRACT)
-  bool has_closure = gbuf_header.has_refraction;
-#elif defined(RAYTRACE_REFLECT)
-  bool has_closure = gbuf_header.has_reflection;
-#endif
-  if (!has_closure) {
-    imageStore(out_radiance_img, texel_fullres, vec4(FLT_11_11_10_MAX, 0.0));
-    imageStore(out_variance_img, texel_fullres, vec4(0.0));
-    imageStore(out_hit_depth_img, texel_fullres, vec4(0.0));
+  if (!valid_texel) {
+    invalid_pixel_write(texel_fullres);
     return;
   }
-
-  vec2 uv = (vec2(texel_fullres) + 0.5) * uniform_buf.raytrace.full_resolution_inv;
-
-  vec3 P = drw_point_screen_to_world(vec3(uv, 0.5));
-  vec3 V = drw_world_incident_vector(P);
 
   GBufferReader gbuf = gbuffer_read(
       gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, texel_fullres);
 
-#if defined(RAYTRACE_DIFFUSE)
-  ClosureDiffuse closure = gbuf.data.diffuse;
-#elif defined(RAYTRACE_REFRACT)
-  ClosureRefraction closure = gbuf.data.refraction;
-#elif defined(RAYTRACE_REFLECT)
-  ClosureReflection closure = gbuf.data.reflection;
-#else
-#  error
-#endif
+  bool has_valid_closure = closure_index < gbuf.closure_count;
+  if (!has_valid_closure) {
+    invalid_pixel_write(texel_fullres);
+    return;
+  }
 
-  uint sample_count = 16u;
-  float filter_size = 9.0;
-#if defined(RAYTRACE_REFRACT) || defined(RAYTRACE_REFLECT)
-  float filter_size_factor = saturate(closure.roughness * 8.0);
-  sample_count = 1u + uint(15.0 * filter_size_factor + 0.5);
+  vec2 uv = (vec2(texel_fullres) + 0.5) * uniform_buf.raytrace.full_resolution_inv;
+  vec3 P = drw_point_screen_to_world(vec3(uv, 0.5));
+  vec3 V = drw_world_incident_vector(P);
+
+  ClosureUndetermined closure = gbuf.closures[closure_index];
+
+  /* Compute filter size and needed sample count */
+  float apparent_roughness = closure_apparent_roughness_get(closure);
+  float filter_size_factor = saturate(apparent_roughness * 8.0);
+  uint sample_count = 1u + uint(15.0 * filter_size_factor + 0.5);
   /* NOTE: filter_size should never be greater than twice RAYTRACE_GROUP_SIZE. Otherwise, the
    * reconstruction can becomes ill defined since we don't know if further tiles are valid. */
-  filter_size = 12.0 * sqrt(filter_size_factor);
+  float filter_size = 12.0 * sqrt(filter_size_factor);
   if (rt_resolution_scale > 1) {
     /* Filter at least 1 trace pixel to fight the undersampling. */
     filter_size = max(filter_size, 3.0);
     sample_count = max(sample_count, 5u);
   }
-  /* NOTE: Roughness is squared now. */
-  closure.roughness = max(1e-3, square(closure.roughness));
-#endif
 
   vec2 noise = utility_tx_fetch(utility_tx, vec2(texel_fullres), UTIL_BLUE_NOISE_LAYER).ba;
   noise += sampling_rng_1D_get(SAMPLING_CLOSURE);

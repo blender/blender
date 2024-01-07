@@ -9,6 +9,7 @@
 #pragma BLENDER_REQUIRE(eevee_lightprobe_eval_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_bxdf_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_gbuffer_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_ray_types_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_ray_trace_screen_lib.glsl)
 
@@ -36,6 +37,22 @@ void main()
   ivec2 texel_fullres = texel * uniform_buf.raytrace.resolution_scale +
                         uniform_buf.raytrace.resolution_bias;
 
+#ifndef GPU_METAL
+  /* TODO(fclem): Support specialization on OpenGL and Vulkan. */
+  int closure_index = uniform_buf.raytrace.closure_index;
+#endif
+
+  uint gbuf_header = texelFetch(gbuf_header_tx, texel_fullres, 0).r;
+  GBufferReader gbuf = gbuffer_read_header_closure_types(gbuf_header);
+  uint closure_type = gbuf.closures[closure_index].type;
+
+  bool is_reflection = true;
+  if ((closure_type == CLOSURE_BSDF_TRANSLUCENT_ID) ||
+      (closure_type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID))
+  {
+    is_reflection = false;
+  }
+
   float depth = texelFetch(depth_tx, texel_fullres, 0).r;
   vec2 uv = (vec2(texel_fullres) + 0.5) * uniform_buf.raytrace.full_resolution_inv;
 
@@ -49,14 +66,6 @@ void main()
   float noise_offset = sampling_rng_1D_get(SAMPLING_RAYTRACE_W);
   float rand_trace = interlieved_gradient_noise(vec2(texel), 5.0, noise_offset);
 
-#if defined(RAYTRACE_REFLECT) || defined(RAYTRACE_DIFFUSE)
-  const bool discard_backface = true;
-  const bool allow_self_intersection = false;
-#elif defined(RAYTRACE_REFRACT)
-  const bool discard_backface = false;
-  const bool allow_self_intersection = true;
-#endif
-
   /* TODO(fclem): Take IOR into account in the roughness LOD bias. */
   /* TODO(fclem): pdf to roughness mapping is a crude approximation. Find something better. */
   float roughness = saturate(sample_pdf_uniform_hemisphere() / ray_pdf_inv);
@@ -68,29 +77,52 @@ void main()
   /* Extend the ray to cover the whole view. */
   ray_view.max_time = 1000.0;
 
-  ScreenTraceHitData hit = raytrace_screen(uniform_buf.raytrace,
-                                           uniform_buf.hiz,
-                                           hiz_tx,
-                                           rand_trace,
-                                           roughness,
-                                           discard_backface,
-                                           allow_self_intersection,
-                                           ray_view);
+#ifndef GPU_METAL
+  /* TODO(fclem): Support specialization on OpenGL and Vulkan. */
+  bool trace_refraction = uniform_buf.raytrace.trace_refraction;
+#endif
 
-  if (hit.valid) {
-    vec3 hit_P = transform_point(drw_view.viewinv, hit.v_hit_P);
-    /* TODO(@fclem): Split matrix multiply for precision. */
-    vec3 history_ndc_hit_P = project_point(uniform_buf.raytrace.radiance_persmat, hit_P);
-    vec3 history_ss_hit_P = history_ndc_hit_P * 0.5 + 0.5;
-    /* Evaluate radiance at hit-point. */
-    radiance = textureLod(screen_radiance_tx, history_ss_hit_P.xy, 0.0).rgb;
+  ScreenTraceHitData hit;
+  hit.valid = false;
+  /* This huge branch is likely to be a huge issue for performance.
+   * We could split the shader but that would mean to dispatch some area twice for the same closure
+   * index. Another idea is to put both HiZ buffer int he same texture and dynamically access one
+   * or the other. But that might also impact performance. */
+  if (is_reflection) {
+    hit = raytrace_screen(uniform_buf.raytrace,
+                          uniform_buf.hiz,
+                          hiz_front_tx,
+                          rand_trace,
+                          roughness,
+                          true,  /* discard_backface */
+                          false, /* allow_self_intersection */
+                          ray_view);
 
-    /* Transmit twice if thickness is set and ray is longer than thickness. */
-    // if (thickness > 0.0 && length(ray_data.xyz) > thickness) {
-    //   ray_radiance.rgb *= color;
-    // }
+    if (hit.valid) {
+      vec3 hit_P = transform_point(drw_view.viewinv, hit.v_hit_P);
+      /* TODO(@fclem): Split matrix multiply for precision. */
+      vec3 history_ndc_hit_P = project_point(uniform_buf.raytrace.radiance_persmat, hit_P);
+      vec3 history_ss_hit_P = history_ndc_hit_P * 0.5 + 0.5;
+      /* Fetch radiance at hit-point. */
+      radiance = textureLod(radiance_front_tx, history_ss_hit_P.xy, 0.0).rgb;
+    }
   }
-  else {
+  else if (trace_refraction) {
+    hit = raytrace_screen(uniform_buf.raytrace,
+                          uniform_buf.hiz,
+                          hiz_back_tx,
+                          rand_trace,
+                          roughness,
+                          false, /* discard_backface */
+                          true,  /* allow_self_intersection */
+                          ray_view);
+
+    if (hit.valid) {
+      radiance = textureLod(radiance_back_tx, hit.ss_hit_P.xy, 0.0).rgb;
+    }
+  }
+
+  if (!hit.valid) {
     /* Using ray direction as geometric normal to bias the sampling position.
      * This is faster than loading the gbuffer again and averages between reflected and normal
      * direction over many rays. */

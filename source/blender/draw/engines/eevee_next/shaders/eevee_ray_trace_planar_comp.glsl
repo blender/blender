@@ -12,6 +12,7 @@
 #pragma BLENDER_REQUIRE(eevee_lightprobe_eval_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_bxdf_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_gbuffer_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_ray_types_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_ray_trace_screen_lib.glsl)
 
@@ -33,6 +34,22 @@ void main()
 
   ivec2 texel_fullres = texel * uniform_buf.raytrace.resolution_scale +
                         uniform_buf.raytrace.resolution_bias;
+
+#ifndef GPU_METAL
+  /* TODO(fclem): Support specialization on OpenGL and Vulkan. */
+  int closure_index = uniform_buf.raytrace.closure_index;
+#endif
+
+  uint gbuf_header = texelFetch(gbuf_header_tx, texel_fullres, 0).r;
+  GBufferReader gbuf = gbuffer_read_header_closure_types(gbuf_header);
+  uint closure_type = gbuf.closures[closure_index].type;
+
+  if ((closure_type == CLOSURE_BSDF_TRANSLUCENT_ID) ||
+      (closure_type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID))
+  {
+    /* Planar light-probes cannot trace refraction yet. */
+    return;
+  }
 
   float depth = texelFetch(depth_tx, texel_fullres, 0).r;
   vec2 uv = (vec2(texel_fullres) + 0.5) * uniform_buf.raytrace.full_resolution_inv;

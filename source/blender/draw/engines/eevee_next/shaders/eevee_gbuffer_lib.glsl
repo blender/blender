@@ -701,6 +701,52 @@ GBufferReader gbuffer_read_header(uint header)
   return gbuf;
 }
 
+GBufferReader gbuffer_read_header_closure_types(uint header)
+{
+  GBufferReader gbuf;
+  gbuf.header = header;
+  gbuf.has_any_surface = (header != 0u);
+  gbuf.closure_count = 0;
+
+  for (int layer = 0; layer < 4; layer++) {
+    GBufferMode mode = gbuffer_header_unpack(gbuf.header, layer);
+    switch (mode) {
+      case GBUF_NONE:
+        break;
+      case GBUF_DIFFUSE:
+        gbuf.closures[gbuf.closure_count].type = CLOSURE_BSDF_DIFFUSE_ID;
+        gbuf.closure_count += 1;
+        break;
+      case GBUF_TRANSLUCENT:
+        gbuf.closures[gbuf.closure_count].type = CLOSURE_BSDF_TRANSLUCENT_ID;
+        gbuf.closure_count += 1;
+        break;
+      case GBUF_SUBSURFACE:
+        gbuf.closures[gbuf.closure_count].type = CLOSURE_BSSRDF_BURLEY_ID;
+        gbuf.closure_count += 1;
+        break;
+      case GBUF_METAL_CLEARCOAT:
+        gbuf.closures[gbuf.closure_count].type = CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID;
+        gbuf.closure_count += 1;
+        gbuf.closures[gbuf.closure_count].type = CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID;
+        gbuf.closure_count += 1;
+        break;
+      case GBUF_REFLECTION_COLORLESS:
+      case GBUF_REFLECTION:
+        gbuf.closures[gbuf.closure_count].type = CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID;
+        gbuf.closure_count += 1;
+        break;
+      case GBUF_REFRACTION_COLORLESS:
+      case GBUF_REFRACTION:
+        gbuf.closures[gbuf.closure_count].type = CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID;
+        gbuf.closure_count += 1;
+        break;
+    }
+  }
+
+  return gbuf;
+}
+
 GBufferReader gbuffer_read(samplerGBufferHeader header_tx,
                            samplerGBufferClosure closure_tx,
                            samplerGBufferNormal normal_tx,

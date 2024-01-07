@@ -14,9 +14,9 @@
 
 GPU_SHADER_CREATE_INFO(eevee_gbuffer_data)
     .define("GBUFFER_LOAD")
-    .sampler(8, ImageType::UINT_2D, "gbuf_header_tx")
-    .sampler(9, ImageType::FLOAT_2D_ARRAY, "gbuf_closure_tx")
-    .sampler(10, ImageType::FLOAT_2D_ARRAY, "gbuf_normal_tx");
+    .sampler(12, ImageType::UINT_2D, "gbuf_header_tx")
+    .sampler(13, ImageType::FLOAT_2D_ARRAY, "gbuf_closure_tx")
+    .sampler(14, ImageType::FLOAT_2D_ARRAY, "gbuf_normal_tx");
 
 GPU_SHADER_CREATE_INFO(eevee_deferred_tile_classify)
     .fragment_source("eevee_deferred_tile_classify_frag.glsl")
@@ -105,9 +105,9 @@ GPU_SHADER_CREATE_INFO(eevee_deferred_combine)
     .sampler(2, ImageType::FLOAT_2D, "direct_radiance_1_tx")
     .sampler(3, ImageType::FLOAT_2D, "direct_radiance_2_tx")
     .sampler(4, ImageType::FLOAT_2D, "direct_radiance_3_tx")
-    .sampler(5, ImageType::FLOAT_2D, "indirect_diffuse_tx")
-    .sampler(6, ImageType::FLOAT_2D, "indirect_reflect_tx")
-    .sampler(7, ImageType::FLOAT_2D, "indirect_refract_tx")
+    .sampler(5, ImageType::FLOAT_2D, "indirect_radiance_1_tx")
+    .sampler(6, ImageType::FLOAT_2D, "indirect_radiance_2_tx")
+    .sampler(7, ImageType::FLOAT_2D, "indirect_radiance_3_tx")
     .fragment_out(0, Type::VEC4, "out_combined")
     .additional_info("eevee_shared",
                      "eevee_gbuffer_data",

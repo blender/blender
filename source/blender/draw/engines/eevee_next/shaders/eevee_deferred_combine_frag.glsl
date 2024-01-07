@@ -13,7 +13,6 @@
 
 vec3 load_radiance_direct(ivec2 texel, int i)
 {
-  /* TODO(fclem): Layered texture. */
   switch (i) {
     case 0:
       return texelFetch(direct_radiance_1_tx, texel, 0).rgb;
@@ -27,17 +26,15 @@ vec3 load_radiance_direct(ivec2 texel, int i)
   return vec3(0);
 }
 
-vec3 load_radiance_indirect(ivec2 texel, ClosureType closure_type)
+vec3 load_radiance_indirect(ivec2 texel, int i)
 {
-  /* TODO(fclem): Layered texture. */
-  switch (closure_type) {
-    case CLOSURE_BSSRDF_BURLEY_ID:
-    case CLOSURE_BSDF_DIFFUSE_ID:
-      return texelFetch(indirect_diffuse_tx, texel, 0).rgb;
-    case CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID:
-      return texelFetch(indirect_reflect_tx, texel, 0).rgb;
-    case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
-      return texelFetch(indirect_refract_tx, texel, 0).rgb;
+  switch (i) {
+    case 0:
+      return texelFetch(indirect_radiance_1_tx, texel, 0).rgb;
+    case 1:
+      return texelFetch(indirect_radiance_2_tx, texel, 0).rgb;
+    case 2:
+      return texelFetch(indirect_radiance_3_tx, texel, 0).rgb;
     default:
       return vec3(0);
   }
@@ -68,7 +65,7 @@ void main()
     bool use_combined_lightprobe_eval = uniform_buf.pipeline.use_combined_lightprobe_eval;
 #endif
     if (!use_combined_lightprobe_eval) {
-      closure_light += load_radiance_indirect(texel, gbuf.closures[i].type);
+      closure_light += load_radiance_indirect(texel, i);
     }
 
     closure_light *= gbuf.closures[i].color;

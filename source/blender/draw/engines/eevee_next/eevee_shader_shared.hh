@@ -1235,10 +1235,11 @@ struct RayTraceData {
   float roughness_mask_bias;
   /** If set to true will bypass spatial denoising. */
   bool1 skip_denoise;
+  /** If set to false will bypass tracing for refractive closures. */
+  bool1 trace_refraction;
   /** Closure being ray-traced. */
-  eClosureBits closure_active;
   int closure_index;
-  int _pad1;
+  int _pad0;
 };
 BLI_STATIC_ASSERT_ALIGN(RayTraceData, 16)
 

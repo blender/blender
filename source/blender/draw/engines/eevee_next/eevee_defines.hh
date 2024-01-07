@@ -234,3 +234,6 @@
 #define VELOCITY_GEO_PREV_BUF_SLOT 2
 #define VELOCITY_GEO_NEXT_BUF_SLOT 3
 #define VELOCITY_INDIRECTION_BUF_SLOT 4
+
+/* Treat closure as singular if the roughness is below this threshold. */
+#define BSDF_ROUGHNESS_THRESHOLD 2e-2

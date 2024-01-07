@@ -24,14 +24,7 @@ void main()
   GBufferReader gbuf = gbuffer_read(
       gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, texel_fullres);
 
-#if defined(RAYTRACE_DIFFUSE)
-  bool valid_pixel = gbuf.has_diffuse;
-#elif defined(RAYTRACE_REFLECT)
-  bool valid_pixel = gbuf.has_reflection;
-#elif defined(RAYTRACE_REFRACT)
-  bool valid_pixel = gbuf.has_refraction;
-#endif
-
+  bool valid_pixel = closure_index < gbuf.closure_count;
   if (!valid_pixel) {
     imageStore(out_ray_data_img, texel, vec4(0.0));
     return;
@@ -42,20 +35,11 @@ void main()
   vec3 V = drw_world_incident_vector(P);
   vec2 noise = utility_tx_fetch(utility_tx, vec2(texel), UTIL_BLUE_NOISE_LAYER).rg;
 
-#if defined(RAYTRACE_DIFFUSE)
-  ClosureDiffuse closure = gbuf.data.diffuse;
-#elif defined(RAYTRACE_REFLECT)
-  ClosureReflection closure = gbuf.data.reflection;
-#elif defined(RAYTRACE_REFRACT)
-  ClosureRefraction closure = gbuf.data.refraction;
-#endif
-
-  float pdf;
-  vec3 ray_direction = ray_generate_direction(noise.xy, closure, V, pdf);
+  BsdfSample samp = ray_generate_direction(noise.xy, gbuf.closures[closure_index], V);
 
   /* Store inverse pdf to speedup denoising.
    * Limit to the smallest non-0 value that the format can encode.
    * Strangely it does not correspond to the IEEE spec. */
-  float inv_pdf = (pdf == 0.0) ? 0.0 : max(6e-8, 1.0 / pdf);
-  imageStore(out_ray_data_img, texel, vec4(ray_direction, inv_pdf));
+  float inv_pdf = (samp.pdf == 0.0) ? 0.0 : max(6e-8, 1.0 / samp.pdf);
+  imageStore(out_ray_data_img, texel, vec4(samp.direction, inv_pdf));
 }

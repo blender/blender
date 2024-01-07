@@ -23,8 +23,7 @@ void main()
       gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, texel_fullres);
 
   /* Export normal. */
-  /* TODO(fclem): Export the most visible normal. */
-  vec3 N = gbuf.has_diffuse ? gbuf.data.diffuse.N : gbuf.data.reflection.N;
+  vec3 N = gbuf.data.surface_N;
   if (is_zero(N)) {
     /* Avoid NaN. But should be fixed in any case. */
     N = vec3(1.0, 0.0, 0.0);

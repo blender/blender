@@ -11,6 +11,7 @@
 #pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_codegen_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_gbuffer_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_closure_lib.glsl)
 
 shared uint tile_contains_ray_tracing[3];
 shared uint tile_contains_horizon_scan[3];
@@ -40,26 +41,9 @@ void main()
   if (valid_texel) {
     GBufferReader gbuf = gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, texel);
 
-    /* TODO(fclem): Arbitrary closure stack. */
-    for (int i = 0; i < 3; i++) {
-      float ray_roughness_fac;
-
-      if (i == 0 && gbuf.has_diffuse) {
-        /* Diffuse. */
-        ray_roughness_fac = ray_roughness_factor(uniform_buf.raytrace, 1.0);
-      }
-      else if (i == 1 && gbuf.has_reflection) {
-        /* Reflection. */
-        ray_roughness_fac = ray_roughness_factor(uniform_buf.raytrace,
-                                                 gbuf.data.reflection.roughness);
-      }
-      else if (i == 2 && gbuf.has_refraction) {
-        /* Refraction. */
-        ray_roughness_fac = 0.0; /* TODO(fclem): Apparent roughness. For now, always raytrace. */
-      }
-      else {
-        continue;
-      }
+    for (int i = 0; i < 3 && i < gbuf.closure_count; i++) {
+      float roughness = closure_apparent_roughness_get(gbuf.closures[i]);
+      float ray_roughness_fac = ray_roughness_factor(uniform_buf.raytrace, roughness);
 
       /* We don't care about race condition here. */
       if (ray_roughness_fac > 0.0) {
