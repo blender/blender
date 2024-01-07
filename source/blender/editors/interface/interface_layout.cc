@@ -21,6 +21,7 @@
 #include "BLI_dynstr.h"
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
+#include "BLI_memory_utils.hh"
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
@@ -5430,6 +5431,11 @@ static bool button_matches_search_filter(uiBut *but, const char *search_filter)
       const EnumPropertyItem *items_array = nullptr;
       bool free;
       RNA_property_enum_items_gettexted(nullptr, ptr, enum_prop, &items_array, &items_len, &free);
+      BLI_SCOPED_DEFER([&] {
+        if (free) {
+          MEM_freeN((EnumPropertyItem *)items_array);
+        }
+      });
 
       if (items_array == nullptr) {
         return false;
@@ -5443,9 +5449,6 @@ static bool button_matches_search_filter(uiBut *but, const char *search_filter)
         if (BLI_strcasestr(items_array[i].name, search_filter)) {
           return true;
         }
-      }
-      if (free) {
-        MEM_freeN((EnumPropertyItem *)items_array);
       }
     }
   }
