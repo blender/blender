@@ -672,6 +672,7 @@ static bke::CurvesGeometry remove_points_and_split(const bke::CurvesGeometry &cu
   gather_attributes(
       src_attributes, bke::AttrDomain::Point, {}, {}, dst_to_src_point, dst_attributes);
 
+  dst_curves.update_curve_types();
   dst_curves.remove_attributes_based_on_types();
 
   return dst_curves;
