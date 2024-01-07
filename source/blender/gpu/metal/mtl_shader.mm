@@ -374,7 +374,8 @@ bool MTLShader::finalize(const shader::ShaderCreateInfo *info)
             NSNotFound)
         {
           const char *errors_c_str = [[error localizedDescription] UTF8String];
-          const char *sources_c_str = shd_builder_->glsl_fragment_source_.c_str();
+          const char *sources_c_str = (is_compute) ? shd_builder_->glsl_compute_source_.c_str() :
+                                                     shd_builder_->glsl_fragment_source_.c_str();
 
           MTLLogParser parser;
           print_log(Span<const char *>(&sources_c_str, 1),
