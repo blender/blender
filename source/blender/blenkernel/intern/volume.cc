@@ -165,7 +165,6 @@ static void volume_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, con
   }
 #endif
 
-  volume_dst->runtime->default_simplify_level = volume_src->runtime->default_simplify_level;
   volume_dst->runtime->frame = volume_src->runtime->frame;
   STRNCPY(volume_dst->runtime->velocity_x_grid, volume_src->runtime->velocity_x_grid);
   STRNCPY(volume_dst->runtime->velocity_y_grid, volume_src->runtime->velocity_y_grid);
@@ -653,7 +652,6 @@ static void volume_update_simplify_level(Main *bmain, Volume *volume, const Deps
 {
 #ifdef WITH_OPENVDB
   const int simplify_level = BKE_volume_simplify_level(depsgraph);
-  volume->runtime->default_simplify_level = simplify_level;
 
   /* Replace grids with the new simplify level variants from the cache. */
   if (BKE_volume_load(volume, bmain)) {

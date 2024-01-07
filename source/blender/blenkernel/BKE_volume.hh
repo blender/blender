@@ -129,9 +129,6 @@ struct VolumeRuntime {
   /** Current frame in sequence for evaluated volume. */
   int frame = 0;
 
-  /** Default simplify level for volume grids loaded from files. */
-  int default_simplify_level = 0;
-
   /* Names for scalar grids which would need to be merged to recompose the velocity grid. */
   char velocity_x_grid[64] = "";
   char velocity_y_grid[64] = "";
