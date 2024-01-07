@@ -790,6 +790,7 @@ struct ShaderCreateInfo {
         break;
     }
     specialization_constants_.append(constant);
+    interface_names_size_ += name.size() + 1;
     return *(Self *)this;
   }
 
