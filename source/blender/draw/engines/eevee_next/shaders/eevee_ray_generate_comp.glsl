@@ -35,7 +35,7 @@ void main()
   vec3 V = drw_world_incident_vector(P);
   vec2 noise = utility_tx_fetch(utility_tx, vec2(texel), UTIL_BLUE_NOISE_LAYER).rg;
 
-  BsdfSample samp = ray_generate_direction(noise.xy, gbuf.closures[closure_index], V);
+  BsdfSample samp = ray_generate_direction(noise.xy, gbuffer_closure_get(gbuf, closure_index), V);
 
   /* Store inverse pdf to speedup denoising.
    * Limit to the smallest non-0 value that the format can encode.

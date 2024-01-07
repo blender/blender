@@ -23,7 +23,7 @@ void main()
       gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, texel_fullres);
 
   /* Export normal. */
-  vec3 N = gbuf.data.surface_N;
+  vec3 N = gbuf.surface_N;
   if (is_zero(N)) {
     /* Avoid NaN. But should be fixed in any case. */
     N = vec3(1.0, 0.0, 0.0);

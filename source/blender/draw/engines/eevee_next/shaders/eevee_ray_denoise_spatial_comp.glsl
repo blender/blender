@@ -126,7 +126,7 @@ void main()
   vec3 P = drw_point_screen_to_world(vec3(uv, 0.5));
   vec3 V = drw_world_incident_vector(P);
 
-  ClosureUndetermined closure = gbuf.closures[closure_index];
+  ClosureUndetermined closure = gbuffer_closure_get(gbuf, closure_index);
 
   /* Compute filter size and needed sample count */
   float apparent_roughness = closure_apparent_roughness_get(closure);

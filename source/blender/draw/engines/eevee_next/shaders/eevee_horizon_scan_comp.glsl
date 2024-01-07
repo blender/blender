@@ -47,7 +47,7 @@ void main()
   }
 
   HorizonScanContext ctx;
-  ctx.closure = gbuf.closures[closure_index];
+  ctx.closure = gbuffer_closure_get(gbuf, closure_index);
   ctx.closure.N = drw_normal_world_to_view(ctx.closure.N);
 
   vec3 vP = drw_point_screen_to_view(vec3(uv, depth));

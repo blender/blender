@@ -31,18 +31,14 @@ void main()
 
   uint closure_count = texelFetch(tile_mask_tx, ivec3(tile_coord, 0), 0).r +
                        texelFetch(tile_mask_tx, ivec3(tile_coord, 1), 0).r +
-                       // texelFetch(tile_mask_tx, ivec3(tile_coord, 2), 0).r + /* TODO: refract */
+                       texelFetch(tile_mask_tx, ivec3(tile_coord, 2), 0).r +
                        texelFetch(tile_mask_tx, ivec3(tile_coord, 3), 0).r;
-  /* TODO(fclem): This is waiting for fully flexible evaluation pipeline. We need to refactor the
-   * raytracing pipeline first. */
-  bool has_reflection = texelFetch(tile_mask_tx, ivec3(tile_coord, 1), 0).r != 0u;
-  bool has_sss = texelFetch(tile_mask_tx, ivec3(tile_coord, 3), 0).r != 0u;
 
-  if (closure_count == 3 || has_sss) {
+  if (closure_count == 3) {
     uint tile_index = atomicAdd(closure_triple_draw_buf.vertex_len, 6u) / 6u;
     closure_triple_tile_buf[tile_index] = packUvec2x16(uvec2(tile_coord));
   }
-  else if (closure_count == 2 || has_reflection) {
+  else if (closure_count == 2) {
     uint tile_index = atomicAdd(closure_double_draw_buf.vertex_len, 6u) / 6u;
     closure_double_tile_buf[tile_index] = packUvec2x16(uvec2(tile_coord));
   }

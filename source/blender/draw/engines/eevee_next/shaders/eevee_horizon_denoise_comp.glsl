@@ -56,7 +56,7 @@ vec3 from_accumulation_space(vec3 color)
 
 vec3 load_normal(ivec2 texel)
 {
-  return gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, texel).data.surface_N;
+  return gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, texel).surface_N;
 }
 
 void main()
@@ -93,7 +93,7 @@ void main()
     return;
   }
 
-  ClosureUndetermined closure_center = gbuf.closures[closure_index];
+  ClosureUndetermined closure_center = gbuffer_closure_get(gbuf, closure_index);
 
   vec3 center_N = closure_center.N;
   float roughness = closure_apparent_roughness_get(closure_center);

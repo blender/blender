@@ -68,10 +68,11 @@ void main()
       closure_light += load_radiance_indirect(texel, i);
     }
 
-    closure_light *= gbuf.closures[i].color;
+    ClosureUndetermined cl = gbuffer_closure_get(gbuf, i);
+    closure_light *= cl.color;
     out_combined.rgb += closure_light;
 
-    switch (gbuf.closures[i].type) {
+    switch (cl.type) {
       case CLOSURE_BSDF_TRANSLUCENT_ID:
       case CLOSURE_BSSRDF_BURLEY_ID:
       case CLOSURE_BSDF_DIFFUSE_ID:

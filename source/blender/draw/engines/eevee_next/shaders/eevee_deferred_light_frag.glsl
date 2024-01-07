@@ -54,23 +54,24 @@ void main()
   }
 
   vec3 P = drw_point_screen_to_world(vec3(uvcoordsvar.xy, depth));
-  vec3 Ng = gbuf.data.surface_N;
+  vec3 Ng = gbuf.surface_N;
   vec3 V = drw_world_incident_vector(P);
   float vPz = dot(drw_view_forward(), P) - dot(drw_view_forward(), drw_view_position());
 
   ClosureLightStack stack;
   for (int i = 0; i < LIGHT_CLOSURE_EVAL_COUNT && i < gbuf.closure_count; i++) {
-    stack.cl[i] = closure_light_new(gbuf.closures[i], V);
+    stack.cl[i] = closure_light_new(gbuffer_closure_get(gbuf, i), V);
   }
 
   /* TODO(fclem): Split thickness computation. */
-  float thickness = (gbuf.has_translucent) ? gbuf.data.thickness : 0.0;
+  float thickness = gbuf.thickness;
 #ifdef MAT_SUBSURFACE
-  if (gbuf.has_sss) {
+  /* NOTE: BSSRDF is supposed to always be the first closure. */
+  bool has_sss = gbuffer_closure_get(gbuf, 0).type == CLOSURE_BSSRDF_BURLEY_ID;
+  if (has_sss) {
     float shadow_thickness = thickness_from_shadow(P, Ng, vPz);
-    thickness = (shadow_thickness != THICKNESS_NO_VALUE) ?
-                    max(shadow_thickness, gbuf.data.thickness) :
-                    gbuf.data.thickness;
+    thickness = (shadow_thickness != THICKNESS_NO_VALUE) ? max(shadow_thickness, gbuf.thickness) :
+                                                           gbuf.thickness;
 
     /* Add one translucent closure for all SSS closure. Reuse the same lighting. */
     ClosureLight cl_light;
@@ -84,12 +85,11 @@ void main()
   light_eval(stack, P, Ng, V, vPz, thickness);
 
 #ifdef MAT_SUBSURFACE
-  /* NOTE: BSSRDF is supposed to always be the first closure. */
-  if (gbuf.closures[0].type == CLOSURE_BSSRDF_BURLEY_ID) {
+  if (has_sss) {
     /* Add to diffuse light for processing inside the Screen Space SSS pass.
      * The tranlucent light is not outputed as a separate quantity because
      * it is over the closure_count. */
-    vec3 sss_profile = subsurface_transmission(gbuf.closures[0].data.rgb, thickness);
+    vec3 sss_profile = subsurface_transmission(gbuffer_closure_get(gbuf, 0).data.rgb, thickness);
     stack.cl[0].light_shadowed += stack.cl[gbuf.closure_count].light_shadowed * sss_profile;
     stack.cl[0].light_unshadowed += stack.cl[gbuf.closure_count].light_unshadowed * sss_profile;
   }
@@ -116,25 +116,26 @@ void main()
     LightProbeSample samp = lightprobe_load(P, Ng, V);
 
     for (int i = 0; i < LIGHT_CLOSURE_EVAL_COUNT && i < gbuf.closure_count; i++) {
-      switch (gbuf.closures[i].type) {
+      ClosureUndetermined cl = gbuffer_closure_get(gbuf, i);
+      switch (cl.type) {
         case CLOSURE_BSDF_TRANSLUCENT_ID:
           /* TODO: Support in ray tracing first. Otherwise we have a discrepancy. */
           stack.cl[i].light_shadowed += lightprobe_eval(
-              samp, to_closure_translucent(gbuf.closures[i]), P, V, noise_probe);
+              samp, to_closure_translucent(cl), P, V, noise_probe);
           break;
         case CLOSURE_BSSRDF_BURLEY_ID:
           /* TODO: Support translucency in ray tracing first. Otherwise we have a discrepancy. */
         case CLOSURE_BSDF_DIFFUSE_ID:
           stack.cl[i].light_shadowed += lightprobe_eval(
-              samp, to_closure_diffuse(gbuf.closures[i]), P, V, noise_probe);
+              samp, to_closure_diffuse(cl), P, V, noise_probe);
           break;
         case CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID:
           stack.cl[i].light_shadowed += lightprobe_eval(
-              samp, to_closure_reflection(gbuf.closures[i]), P, V, noise_probe);
+              samp, to_closure_reflection(cl), P, V, noise_probe);
           break;
         case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
           stack.cl[i].light_shadowed += lightprobe_eval(
-              samp, to_closure_refraction(gbuf.closures[i]), P, V, noise_probe);
+              samp, to_closure_refraction(cl), P, V, noise_probe);
           break;
         case CLOSURE_NONE_ID:
           /* TODO(fclem): Assert. */

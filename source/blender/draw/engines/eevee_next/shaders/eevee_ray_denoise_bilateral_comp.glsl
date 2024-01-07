@@ -85,7 +85,7 @@ void main()
     return;
   }
 
-  ClosureUndetermined center_closure = gbuf.closures[closure_index];
+  ClosureUndetermined center_closure = gbuffer_closure_get(gbuf, closure_index);
 
   float roughness = closure_apparent_roughness_get(center_closure);
   float variance = imageLoad(in_variance_img, texel_fullres).r;
@@ -149,7 +149,7 @@ void main()
       continue;
     }
 
-    ClosureUndetermined sample_closure = sample_gbuf.closures[closure_index];
+    ClosureUndetermined sample_closure = gbuffer_closure_get(sample_gbuf, closure_index);
 
     float depth_weight = bilateral_depth_weight(center_closure.N, center_P, sample_P);
     float spatial_weight = bilateral_spatial_weight(filter_size, vec2(offset));

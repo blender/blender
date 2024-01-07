@@ -127,6 +127,7 @@ GPU_SHADER_CREATE_INFO(eevee_deferred_capture_eval)
     /* Inputs. */
     .fragment_out(0, Type::VEC4, "out_radiance")
     .define("SHADOW_SUBSURFACE")
+    .define("LIGHT_CLOSURE_EVAL_COUNT", "2")
     .additional_info("eevee_shared",
                      "eevee_gbuffer_data",
                      "eevee_utility_texture",
