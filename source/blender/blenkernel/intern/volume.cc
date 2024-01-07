@@ -228,9 +228,6 @@ static void volume_blend_write(BlendWriter *writer, ID *id, const void *id_addre
   Volume *volume = (Volume *)id;
   const bool is_undo = BLO_write_is_undo(writer);
 
-  /* Clean up, important in undo case to reduce false detection of changed datablocks. */
-  volume->runtime->grids = nullptr;
-
   /* Do not store packed files in case this is a library override ID. */
   if (ID_IS_OVERRIDE_LIBRARY(volume) && !is_undo) {
     volume->packedfile = nullptr;
