@@ -1502,6 +1502,7 @@ MTLComputePipelineStateInstance *MTLShader::bake_compute_pipeline_state(MTLConte
 
     /* Compile PSO. */
     MTLComputePipelineDescriptor *desc = [[MTLComputePipelineDescriptor alloc] init];
+    desc.label = [NSString stringWithUTF8String:this->name];
     desc.maxTotalThreadsPerThreadgroup = 1024;
     desc.computeFunction = compute_function;
 
