@@ -711,14 +711,14 @@ GBufferWriter gbuffer_pack(GBufferDataUndetermined data_in)
 }
 
 /* Return the number of closure as encoded in the give header value. */
-uint gbuffer_closure_count(uint header)
+int gbuffer_closure_count(uint header)
 {
   uvec4 closure_types = (uvec4(header) >> uvec4(0u, 4u, 8u, 12u)) & 15u;
 
   if (closure_types.x == GBUF_METAL_CLEARCOAT) {
-    return 2u;
+    return 2;
   }
-  return reduce_add(vec4(not(equal(closure_types, uvec4(0u)))));
+  return reduce_add(ivec4(not(equal(closure_types, uvec4(0u)))));
 }
 
 GBufferReader gbuffer_read_header_closure_types(uint header)
@@ -728,7 +728,7 @@ GBufferReader gbuffer_read_header_closure_types(uint header)
 
   for (int layer = 0; layer < GBUFFER_LAYER_MAX; layer++) {
     GBufferMode mode = gbuffer_header_unpack(header, layer);
-    int closure_type = CLOSURE_NONE_ID;
+    ClosureType closure_type = CLOSURE_NONE_ID;
     switch (mode) {
       case GBUF_DIFFUSE:
         closure_type = CLOSURE_BSDF_DIFFUSE_ID;
