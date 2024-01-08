@@ -1420,6 +1420,13 @@ static void paint_mesh_restore_co(Sculpt *sd, Object *ob)
     });
   }
 
+  if (type == undo::Type::Position) {
+    /* Update normals for potentially-changed positions. Theoretically this may be unnecessary if
+     * the tool restoring to the initial state doesn't use the normals, but we have no easy way to
+     * know that from here. */
+    bke::pbvh::update_normals(*ss->pbvh, ss->subdiv_ccg);
+  }
+
   BKE_pbvh_node_color_buffer_free(ss->pbvh);
 }
 
