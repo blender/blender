@@ -146,8 +146,7 @@ ccl_device bool shadow_linking_shade_surface_emission(KernelGlobals kg,
 #  endif
 
   surface_shader_eval<KERNEL_FEATURE_NODE_MASK_SURFACE_LIGHT>(
-      kg, state, emission_sd, render_buffer, path_flag);
-  surface_shader_prepare_closures(kg, state, emission_sd, path_flag);
+      kg, state, emission_sd, render_buffer, path_flag | PATH_RAY_EMISSION);
 
   if ((emission_sd->flag & SD_EMISSION) == 0) {
     return false;
@@ -186,7 +185,7 @@ ccl_device void shadow_linking_shade(KernelGlobals kg,
   Ray ray ccl_optional_struct_init;
   integrator_state_read_ray(state, &ray);
 
-  ShaderDataCausticsStorage emission_sd_storage;
+  ShaderDataTinyStorage emission_sd_storage;
   ccl_private ShaderData *emission_sd = AS_SHADER_DATA(&emission_sd_storage);
 
   Spectrum bsdf_spectrum;
