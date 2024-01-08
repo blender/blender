@@ -2346,6 +2346,9 @@ static char *read_file_as_buffer(const int fd, const bool nil_terminate, size_t 
         if (UNLIKELY(len_chunk < 0)) {
           ok = false;
         }
+        if (chunk == chunk_first) {
+          chunk_first = nullptr;
+        }
         free(chunk);
         break;
       }
