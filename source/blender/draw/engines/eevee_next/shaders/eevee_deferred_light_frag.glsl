@@ -7,6 +7,7 @@
  */
 
 #pragma BLENDER_REQUIRE(draw_view_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_codegen_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_gbuffer_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_renderpass_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_light_eval_lib.glsl)
