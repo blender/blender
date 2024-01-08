@@ -314,9 +314,9 @@ static void detect_workarounds()
     GLContext::framebuffer_fetch_support = false;
     GLContext::texture_barrier_support = false;
 
+#if 0
     /* Do not alter OpenGL 4.3 features.
      * These code paths should be removed. */
-    /*
     GCaps.shader_image_load_store_support = false;
     GLContext::base_instance_support = false;
     GLContext::copy_image_support = false;
@@ -327,7 +327,7 @@ static void detect_workarounds()
     GLContext::texture_gather_support = false;
     GLContext::texture_storage_support = false;
     GLContext::vertex_attrib_binding_support = false;
-    */
+#endif
 
     return;
   }

@@ -2880,10 +2880,10 @@ void uiItemPointerR(uiLayout *layout,
                     int icon);
 
 /**
-* Create a list of enum items.
-
+ * Create a list of enum items.
+ *
  * \param active: an optional item to highlight.
-*/
+ */
 void uiItemsFullEnumO(uiLayout *layout,
                       const char *opname,
                       const char *propname,

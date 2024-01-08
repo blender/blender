@@ -109,7 +109,7 @@ struct ShadowTracingSample {
 void shadow_map_trace_hit_check(inout ShadowMapTracingState state, ShadowTracingSample samp)
 {
   /* Skip empty tiles since they do not contain actual depth information.
-   * Not doing so would change the z gradient history.  */
+   * Not doing so would change the z gradient history. */
   if (samp.skip_sample) {
     return;
   }

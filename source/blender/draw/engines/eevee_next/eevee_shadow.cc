@@ -1300,7 +1300,7 @@ void ShadowModule::set_view(View &view, GPUTexture *depth_tx)
     render_fb_.ensure(fb_size);
   }
   else if (shadow_technique == ShadowTechnique::TILE_COPY) {
-    /* Create memoryless depth attachment for on-tile surface depth accumulation.*/
+    /* Create memoryless depth attachment for on-tile surface depth accumulation. */
     shadow_depth_fb_tx_.ensure_2d_array(GPU_DEPTH_COMPONENT32F, fb_size, fb_layers, usage);
     shadow_depth_accum_tx_.ensure_2d_array(GPU_R32F, fb_size, fb_layers, usage);
     render_fb_.ensure(GPU_ATTACHMENT_TEXTURE(shadow_depth_fb_tx_),
@@ -1327,7 +1327,7 @@ void ShadowModule::set_view(View &view, GPUTexture *depth_tx)
       statistics_buf_.current().async_flush_to_host();
 
       /* Isolate shadow update into own command buffer.
-       * If parameter buffer exceeds limits, then other work will not be impacted.  */
+       * If parameter buffer exceeds limits, then other work will not be impacted. */
       bool use_flush = (shadow_technique == ShadowTechnique::TILE_COPY) &&
                        (GPU_backend_get_type() == GPU_BACKEND_METAL);
 

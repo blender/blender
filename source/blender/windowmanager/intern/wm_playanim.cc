@@ -1066,7 +1066,7 @@ static void playanim_change_frame(PlayState *ps)
   int sizex, sizey;
   playanim_window_get_size(ps->ghost_data.window, &sizex, &sizey);
   const int i_last = static_cast<PlayAnimPict *>(ps->picsbase.last)->frame;
-  /* Without this the frame-indicator location isn't closest to the cursor.  */
+  /* Without this the frame-indicator location isn't closest to the cursor. */
   const int correct_rounding = (sizex / i_last) / 2;
   const int i = clamp_i((i_last * (ps->frame_cursor_x + correct_rounding)) / sizex, 0, i_last);
 

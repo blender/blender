@@ -74,7 +74,7 @@ static int node_shader_gpu_tex_coord(GPUMaterial *mat,
 NODE_SHADER_MATERIALX_BEGIN
 #ifdef WITH_MATERIALX
 {
-  /* NOTE: Some outputs aren't supported by MaterialX.*/
+  /* NOTE: Some outputs aren't supported by MaterialX. */
   NodeItem res = empty();
   std::string name = socket_out_->name;
 

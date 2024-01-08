@@ -176,7 +176,7 @@ TEST_F(BMainMergeTest, linked_data)
   EXPECT_EQ(nullptr, bmain_src);
 
   /* Try another merge, with the same library path - second library should be skipped, destination
-   * merge should still have only one library ID.*/
+   * merge should still have only one library ID. */
   bmain_src = BKE_main_new();
   STRNCPY(bmain_src->filepath, SRC_PATH);
 

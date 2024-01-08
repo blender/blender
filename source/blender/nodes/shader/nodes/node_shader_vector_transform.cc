@@ -155,7 +155,7 @@ NODE_SHADER_MATERIALX_BEGIN
       fromspace = "object";
       break;
     default:
-      /* NOTE: SHD_VECT_TRANSFORM_SPACE_CAMERA don't have an implementation in MaterialX.*/
+      /* NOTE: SHD_VECT_TRANSFORM_SPACE_CAMERA don't have an implementation in MaterialX. */
       BLI_assert_unreachable();
       return vector;
   }
@@ -168,7 +168,7 @@ NODE_SHADER_MATERIALX_BEGIN
       tospace = "object";
       break;
     default:
-      /* NOTE: SHD_VECT_TRANSFORM_SPACE_CAMERA don't have an implementation in MaterialX.*/
+      /* NOTE: SHD_VECT_TRANSFORM_SPACE_CAMERA don't have an implementation in MaterialX. */
       BLI_assert_unreachable();
       return vector;
   }

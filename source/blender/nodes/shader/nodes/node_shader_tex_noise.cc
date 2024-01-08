@@ -410,7 +410,7 @@ static void sh_node_noise_build_multi_function(NodeMultiFunctionBuilder &builder
 NODE_SHADER_MATERIALX_BEGIN
 #ifdef WITH_MATERIALX
 {
-  /* NOTE: Some inputs aren't supported by MaterialX.*/
+  /* NOTE: Some inputs aren't supported by MaterialX. */
   NodeItem scale = get_input_value("Scale", NodeItem::Type::Float);
   NodeItem detail = get_input_default("Detail", NodeItem::Type::Float);
   NodeItem lacunarity = get_input_value("Lacunarity", NodeItem::Type::Float);

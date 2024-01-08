@@ -507,13 +507,13 @@ static int seq_retiming_clamp_create_offset(SeqRetimingKey *key, int offset)
   return min_iii(offset, prev_dist - 1, next_dist - 1);
 }
 
-/* First offset old key, then add new key to original place with same fac
-This is not great way to do things, but it's done in order to be able to freeze last key. */
 SeqRetimingKey *SEQ_retiming_add_freeze_frame(const Scene *scene,
                                               Sequence *seq,
                                               SeqRetimingKey *key,
                                               const int offset)
 {
+  /* First offset old key, then add new key to original place with same fac
+   * This is not great way to do things, but it's done in order to be able to freeze last key. */
   if (SEQ_retiming_key_is_transition_type(key)) {
     return nullptr;
   }

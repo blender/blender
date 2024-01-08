@@ -1388,7 +1388,7 @@ static BMVert *find_outer_flap_vert(BMFace &face)
   BM_ITER_ELEM (vert, &bm_iter, &face, BM_VERTS_OF_FACE) {
     if (BM_vert_face_count_at_most(vert, 2) == 1) {
       if (flap_vert) {
-        /* There are multiple vertices which become loose on removing the face and its edges.*/
+        /* There are multiple vertices which become loose on removing the face and its edges. */
         return nullptr;
       }
       flap_vert = vert;

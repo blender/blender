@@ -444,7 +444,7 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
                          work_size];
     }
 
-    /* this relies on IntegratorStateGPU layout being contiguous device_ptrs  */
+    /* this relies on IntegratorStateGPU layout being contiguous device_ptrs. */
     const size_t pointer_block_end = offsetof(KernelParamsMetal, integrator_state) +
                                      offsetof(IntegratorStateGPU, sort_partition_divisor);
     for (size_t offset = 0; offset < pointer_block_end; offset += sizeof(device_ptr)) {

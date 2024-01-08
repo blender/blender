@@ -28,7 +28,7 @@ class SeqQuadsBatch {
   SeqQuadsBatch();
   ~SeqQuadsBatch();
 
-  /** Draw all the previously added primitives.  */
+  /** Draw all the previously added primitives. */
   void draw();
   /** Add an axis-aligned quad. */
   void add_quad(float x1, float y1, float x2, float y2, const uchar color[4])

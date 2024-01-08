@@ -169,7 +169,7 @@ struct MTLSamplerState {
   }
 };
 
-const MTLSamplerState DEFAULT_SAMPLER_STATE = {GPUSamplerState::default_sampler() /*, 0, 9999*/};
+const MTLSamplerState DEFAULT_SAMPLER_STATE = {GPUSamplerState::default_sampler() /*, 0, 9999 */};
 
 class MTLTexture : public Texture {
   friend class MTLContext;

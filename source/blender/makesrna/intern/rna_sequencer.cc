@@ -64,7 +64,7 @@ struct EffectInfo {
   int inputs;
 };
 
-/* These wrap strangely, disable formatting for fixed indentation and wrapping.  */
+/* These wrap strangely, disable formatting for fixed indentation and wrapping. */
 /* clang-format off */
 #define RNA_ENUM_SEQUENCER_VIDEO_MODIFIER_TYPE_ITEMS \
   {seqModifierType_BrightContrast, "BRIGHT_CONTRAST", ICON_NONE, "Brightness/Contrast", ""}, \

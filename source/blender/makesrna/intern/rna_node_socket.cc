@@ -104,7 +104,7 @@ static void rna_NodeSocket_draw_color_simple(const bNodeSocketType *socket_type,
   void *ret;
 
   func = &rna_NodeSocket_draw_color_simple_func; /* RNA_struct_find_function(&ptr,
-                                                    "draw_color_simple"); */
+                                                  * "draw_color_simple"); */
 
   PointerRNA ptr = RNA_pointer_create(nullptr, socket_type->ext_socket.srna, nullptr);
   RNA_parameter_list_create(&list, &ptr, func);

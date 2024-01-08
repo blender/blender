@@ -225,7 +225,7 @@ static void partialvis_update_mesh(Object &object,
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
   if (action == VisAction::Show && !attributes.contains(".hide_vert")) {
-    /* If everything is already visible, don't do anything.*/
+    /* If everything is already visible, don't do anything. */
     return;
   }
 

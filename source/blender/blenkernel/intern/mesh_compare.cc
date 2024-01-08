@@ -682,7 +682,7 @@ static std::optional<MeshMismatch> construct_vertex_mapping(const Mesh &mesh1,
   }
 
   /* Since we are not yet able to distinguish all vertices based on their attributes alone, we
-  need to use the edge topology. */
+   * need to use the edge topology. */
   Array<int> vert_to_edge_offsets1;
   Array<int> vert_to_edge_indices1;
   const GroupedSpan<int> vert_to_edge_map1 = mesh::build_vert_to_edge_map(

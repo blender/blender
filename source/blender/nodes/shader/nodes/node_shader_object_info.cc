@@ -33,7 +33,7 @@ static int node_shader_gpu_object_info(GPUMaterial *mat,
 NODE_SHADER_MATERIALX_BEGIN
 #ifdef WITH_MATERIALX
 {
-  /* NOTE: Some outputs isn't supported by MaterialX.*/
+  /* NOTE: Some outputs isn't supported by MaterialX. */
   NodeItem res = empty();
   std::string name = socket_out_->name;
 

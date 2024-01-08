@@ -1133,7 +1133,7 @@ static void move_to_collection_menu_create(bContext *C, uiLayout *layout, void *
   }
 
   /* Loop over the children. There should be at least one, otherwise this parent
-   * bone collection wouldn't have been drawn as a menu.*/
+   * bone collection wouldn't have been drawn as a menu. */
   for (int index = child_index; index < child_index + child_count; index++) {
     const BoneCollection *bcoll = arm->collection_array[index];
 

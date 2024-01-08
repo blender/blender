@@ -453,7 +453,7 @@ void ANIM_armature_bonecoll_active_runtime_refresh(struct bArmature *armature)
     index++;
   }
 
-  /* No bone collection with the name was found, so better to clear everything.*/
+  /* No bone collection with the name was found, so better to clear everything. */
   armature_bonecoll_active_clear(armature);
 }
 

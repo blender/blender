@@ -136,11 +136,11 @@ class RayTraceModule {
   Texture tile_raytrace_tracing_tx_ = {"tile_raytrace_tracing_tx_"};
   Texture tile_horizon_denoise_tx_ = {"tile_horizon_denoise_tx_"};
   Texture tile_horizon_tracing_tx_ = {"tile_horizon_tracing_tx_"};
-  /** Indirect dispatch rays. Avoid dispatching work-groups that will not trace anything.*/
+  /** Indirect dispatch rays. Avoid dispatching work-groups that will not trace anything. */
   DispatchIndirectBuf raytrace_tracing_dispatch_buf_ = {"raytrace_tracing_dispatch_buf_"};
   /** Indirect dispatch denoise full-resolution tiles. */
   DispatchIndirectBuf raytrace_denoise_dispatch_buf_ = {"raytrace_denoise_dispatch_buf_"};
-  /** Indirect dispatch horizon scan. Avoid dispatching work-groups that will not scan anything.*/
+  /** Indirect dispatch horizon scan. Avoid dispatching work-groups that will not scan anything. */
   DispatchIndirectBuf horizon_tracing_dispatch_buf_ = {"horizon_tracing_dispatch_buf_"};
   /** Indirect dispatch denoise full-resolution tiles. */
   DispatchIndirectBuf horizon_denoise_dispatch_buf_ = {"horizon_denoise_dispatch_buf_"};

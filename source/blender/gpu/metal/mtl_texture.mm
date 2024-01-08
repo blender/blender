@@ -2355,7 +2355,7 @@ void gpu::MTLTexture::ensure_baked()
     /** Atomic texture fallback.
      * If texture atomic operations are required and are not natively supported, we instead
      * allocate a buffer-backed 2D texture and perform atomic operations on this instead. Support
-     * for 2D Array textures and 3D textures is achieved via packing layers into the 2D texture.*/
+     * for 2D Array textures and 3D textures is achieved via packing layers into the 2D texture. */
     bool native_texture_atomics = MTLBackend::get_capabilities().supports_texture_atomics;
     if ((gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_ATOMIC) && !native_texture_atomics) {
 

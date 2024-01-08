@@ -1007,10 +1007,10 @@ TEST_F(ANIM_armature_bone_collections, bcoll_move_to_parent__within_siblings)
   /* Move r0_child0 to become 1st child of root_1, before r1_child0. */
   EXPECT_EQ(2,
             armature_bonecoll_move_to_parent(&arm,
-                                             3, /* From index.*/
-                                             0, /* To child number.*/
+                                             3, /* From index. */
+                                             0, /* To child number. */
                                              0, /* From parent. */
-                                             1  /* To parent.*/
+                                             1  /* To parent. */
                                              ));
 
   ASSERT_EQ(2, arm.collection_root_count);
@@ -1042,10 +1042,10 @@ TEST_F(ANIM_armature_bone_collections, bcoll_move_to_parent__within_siblings)
   /* Move r0_child1 to become the 2nd child of root_1. */
   EXPECT_EQ(3,
             armature_bonecoll_move_to_parent(&arm,
-                                             4, /* From index.*/
-                                             1, /* To child number.*/
+                                             4, /* From index. */
+                                             1, /* To child number. */
                                              0, /* From parent. */
-                                             1  /* To parent.*/
+                                             1  /* To parent. */
                                              ));
 
   ASSERT_EQ(2, arm.collection_root_count);
@@ -1077,10 +1077,10 @@ TEST_F(ANIM_armature_bone_collections, bcoll_move_to_parent__within_siblings)
   /* Move r0_child3 to become the last child of root_1. */
   EXPECT_EQ(5,
             armature_bonecoll_move_to_parent(&arm,
-                                             6, /* From index.*/
-                                             3, /* To child number.*/
+                                             6, /* From index. */
+                                             3, /* To child number. */
                                              0, /* From parent. */
-                                             1  /* To parent.*/
+                                             1  /* To parent. */
                                              ));
 
   ASSERT_EQ(2, arm.collection_root_count);
@@ -1115,10 +1115,10 @@ TEST_F(ANIM_armature_bone_collections, bcoll_move_to_parent__within_siblings)
   /* Move r0_child3 to become the first child of root_0. */
   EXPECT_EQ(5,
             armature_bonecoll_move_to_parent(&arm,
-                                             5, /* From index.*/
-                                             0, /* To child number.*/
+                                             5, /* From index. */
+                                             0, /* To child number. */
                                              1, /* From parent. */
-                                             0  /* To parent.*/
+                                             0  /* To parent. */
                                              ));
 
   ASSERT_EQ(2, arm.collection_root_count);
@@ -1150,10 +1150,10 @@ TEST_F(ANIM_armature_bone_collections, bcoll_move_to_parent__within_siblings)
   /* Move r0_child0 to become the last child of root_0. */
   EXPECT_EQ(6,
             armature_bonecoll_move_to_parent(&arm,
-                                             2, /* From index.*/
-                                             2, /* To child number.*/
+                                             2, /* From index. */
+                                             2, /* To child number. */
                                              1, /* From parent. */
-                                             0  /* To parent.*/
+                                             0  /* To parent. */
                                              ));
 
   ASSERT_EQ(2, arm.collection_root_count);
@@ -1185,10 +1185,10 @@ TEST_F(ANIM_armature_bone_collections, bcoll_move_to_parent__within_siblings)
   /* Move r0_child1 to become the 3nd child of root_0. */
   EXPECT_EQ(5,
             armature_bonecoll_move_to_parent(&arm,
-                                             2, /* From index.*/
-                                             2, /* To child number.*/
+                                             2, /* From index. */
+                                             2, /* To child number. */
                                              1, /* From parent. */
-                                             0  /* To parent.*/
+                                             0  /* To parent. */
                                              ));
 
   ASSERT_EQ(2, arm.collection_root_count);

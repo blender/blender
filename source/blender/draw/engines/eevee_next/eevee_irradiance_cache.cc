@@ -214,7 +214,7 @@ void IrradianceCache::set_view(View & /*view*/)
                   return _a.z < _b.z;
                 }
                 else {
-                  /* Fallback to memory address, since there's no good alternative.*/
+                  /* Fallback to memory address, since there's no good alternative. */
                   return a < b;
                 }
               });
@@ -636,7 +636,7 @@ void IrradianceBake::init(const Object &probe_object)
   capture_indirect_ = (lightprobe->grid_flag & LIGHTPROBE_GRID_CAPTURE_INDIRECT);
   capture_emission_ = (lightprobe->grid_flag & LIGHTPROBE_GRID_CAPTURE_EMISSION);
 
-  /* Initialize views data, since they're used by other modules.*/
+  /* Initialize views data, since they're used by other modules. */
   surfel_raster_views_sync(float3(0.0f), float3(1.0f), float4x4::identity());
 }
 

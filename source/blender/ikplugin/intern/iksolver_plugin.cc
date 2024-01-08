@@ -214,7 +214,7 @@ static void initialize_posetree(Object * /*ob*/, bPoseChannel *pchan_tip)
     pchan_root->flag |= POSE_IKTREE;
 
     /* Per bone only one active IK constraint is supported. Inactive constraints still need to be
-     * added for the depsgraph to evaluate properly.*/
+     * added for the depsgraph to evaluate properly. */
     if (constraint->enforce != 0.0 && !(constraint->flag & CONSTRAINT_OFF)) {
       break;
     }

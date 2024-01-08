@@ -292,8 +292,8 @@ class ShadowModule {
   Framebuffer render_fb_ = {"shadow_write_framebuffer"};
 
   /* NOTE(Metal): Metal requires memoryless textures to be created which represent attachments in
-   * the shadow write framebuffer. These textures do not occupy any physical memory, but require a
-   * Texture object containing its parameters.*/
+   * the shadow write frame-buffer. These textures do not occupy any physical memory, but require a
+   * Texture object containing its parameters. */
   Texture shadow_depth_fb_tx_ = {"shadow_depth_fb_tx_"};
   Texture shadow_depth_accum_tx_ = {"shadow_depth_accum_tx_"};
 

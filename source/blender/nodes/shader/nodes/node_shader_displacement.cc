@@ -40,7 +40,7 @@ static int gpu_shader_displacement(GPUMaterial *mat,
 NODE_SHADER_MATERIALX_BEGIN
 #ifdef WITH_MATERIALX
 {
-  /* NOTE: Normal input and Space feature don't have an implementation in MaterialX.*/
+  /* NOTE: Normal input and Space feature don't have an implementation in MaterialX. */
   NodeItem midlevel = get_input_value("Midlevel", NodeItem::Type::Float);
   NodeItem height = get_input_value("Height", NodeItem::Type::Float) - midlevel;
   NodeItem scale = get_input_value("Scale", NodeItem::Type::Float);

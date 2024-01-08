@@ -1731,7 +1731,7 @@ static bool wm_window_timers_process(const bContext *C, int *sleep_us_p)
   bool has_event = false;
 
   const int sleep_us = *sleep_us_p;
-  /* The nearest time an active timer is scheduled to run.  */
+  /* The nearest time an active timer is scheduled to run. */
   double ntime_min = DBL_MAX;
 
   /* Mutable in case the timer gets removed. */
