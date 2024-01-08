@@ -26,7 +26,6 @@ import sys
 import time
 
 from typing import (
-    Any,
     List,
     Optional,
     Sequence,
