@@ -107,7 +107,6 @@ GHOST_SystemX11::GHOST_SystemX11()
     : GHOST_System(),
       m_xkb_descr(nullptr),
       m_start_time(0),
-      m_start_time_monotonic(0),
       m_keyboard_vector{0},
 #ifdef WITH_X11_XINPUT
       m_last_key_time(0),
@@ -176,22 +175,12 @@ GHOST_SystemX11::GHOST_SystemX11()
   m_last_release_keycode = 0;
   m_last_release_time = 0;
 
-  /* Compute the initial times. */
-  {
-    timeval tv;
-    if (gettimeofday(&tv, nullptr) != 0) {
-      GHOST_ASSERT(false, "Could not instantiate timer!");
-    }
-    /* Taking care not to overflow the `tv.tv_sec * 1000`. */
-    m_start_time = uint64_t(tv.tv_sec) * 1000 + tv.tv_usec / 1000;
-  }
-
   {
     timespec ts = {0, 0};
     if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0) {
       GHOST_ASSERT(false, "Could not instantiate monotonic timer!");
     }
-    m_start_time_monotonic = (uint64_t(ts.tv_sec) * 1000) + uint64_t(ts.tv_nsec / 1000000);
+    m_start_time = (uint64_t(ts.tv_sec) * 1000) + uint64_t(ts.tv_nsec / 1000000);
   }
 
   /* Use detectable auto-repeat, mac and windows also do this. */
@@ -283,24 +272,73 @@ GHOST_TSuccess GHOST_SystemX11::init()
 
 uint64_t GHOST_SystemX11::getMilliSeconds() const
 {
-  timeval tv;
-  if (gettimeofday(&tv, nullptr) != 0) {
-    GHOST_ASSERT(false, "Could not compute time!");
+  timespec ts = {0, 0};
+  if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0) {
+    GHOST_ASSERT(false, "Could not instantiate monotonic timer!");
   }
-
   /* Taking care not to overflow the tv.tv_sec * 1000 */
-  return uint64_t(tv.tv_sec) * 1000 + tv.tv_usec / 1000 - m_start_time;
+  const uint64_t time = (uint64_t(ts.tv_sec) * 1000) + uint64_t(ts.tv_nsec / 1000000);
+  GHOST_ASSERT(m_start_time <= time, "Monotonic time unexpectedly went backwards!");
+  return time - m_start_time;
 }
 
-uint64_t GHOST_SystemX11::ms_from_input_time(const Time timestamp) const
+uint64_t GHOST_SystemX11::ms_from_input_time(Time timestamp) const
 {
-  GHOST_ASSERT(timestamp >= m_start_time_monotonic, "Invalid time-stamp");
   /* NOTE(@ideasman42): Return a time compatible with `getMilliSeconds()`,
    * this is needed as X11 time-stamps use monotonic time.
    * The X11 implementation *could* use any basis, in practice though we are supporting
    * XORG/LIBINPUT which uses time-stamps based on the monotonic time,
    * Needed to resolve failure to detect double-clicking, see: #40009. */
-  return uint64_t(timestamp) - m_start_time_monotonic;
+
+  /* Accumulate time rollover (as well as store the initial delta from `m_start_time`). */
+  static uint64_t timestamp_offset = 0;
+
+  /* The last event time (to detect rollover). */
+  static uint32_t timestamp_prev = 0;
+  /* Causes the X11 time-stamp to be zero based. */
+  static uint32_t timestamp_start = 0;
+
+  static bool is_time_init = false;
+
+#if 0
+  /* Force rollover after 2 seconds (for testing). */
+  {
+    const uint32_t timestamp_wrap_ms = 2000;
+    static uint32_t timestamp_offset_fake = 0;
+    if (!is_time_init) {
+      timestamp_offset_fake = UINT32_MAX - (timestamp + timestamp_wrap_ms);
+    }
+    timestamp = uint32_t(timestamp + timestamp_offset_fake);
+  }
+#endif
+
+  if (!is_time_init) {
+    /* Store the initial delta in the rollover. */
+    const uint64_t current_time = getMilliSeconds();
+    timestamp_offset = current_time;
+    timestamp_start = timestamp;
+  }
+
+  /* Always remove the start time.
+   * This changes the point where `uint32_t` rolls over, but that's OK. */
+  timestamp = uint32_t(timestamp) - timestamp_start;
+
+  if (!is_time_init) {
+    is_time_init = true;
+    timestamp_prev = timestamp;
+  }
+
+  if (UNLIKELY(timestamp < timestamp_prev)) {
+    /* Only rollover if this is within a reasonable range. */
+    if (UNLIKELY(timestamp_prev - timestamp > UINT32_MAX / 2)) {
+      timestamp_offset += uint64_t(UINT32_MAX) + 1;
+    }
+  }
+  timestamp_prev = timestamp;
+
+  uint64_t timestamp_final = (uint64_t(timestamp) + timestamp_offset);
+
+  return timestamp_final;
 }
 
 uint8_t GHOST_SystemX11::getNumDisplays() const
