@@ -238,6 +238,9 @@ BoneCollection *ANIM_armature_bonecoll_new(bArmature *armature,
     bonecoll_insert_as_child(armature, bcoll, parent_index);
   }
 
+  /* Restore the active bone collection pointer, as its index might have changed. */
+  ANIM_armature_bonecoll_active_set(armature, armature->runtime.active_collection);
+
   return bcoll;
 }
 
