@@ -724,7 +724,7 @@ int ANIM_armature_bonecoll_get_index_by_name(bArmature *armature, const char *na
   return -1;
 }
 
-/** Clear #BONE_COLLECTION_ANCESTORS_VISIBLE on all decedents of this bone collection. */
+/** Clear #BONE_COLLECTION_ANCESTORS_VISIBLE on all descendants of this bone collection. */
 static void ancestors_visible_descendants_clear(bArmature *armature, BoneCollection *parent_bcoll)
 {
   for (BoneCollection *bcoll : armature->collection_children(parent_bcoll)) {
@@ -733,7 +733,7 @@ static void ancestors_visible_descendants_clear(bArmature *armature, BoneCollect
   }
 }
 
-/** Set or clear #BONE_COLLECTION_ANCESTORS_VISIBLE on all decedents of this bone collection. */
+/** Set or clear #BONE_COLLECTION_ANCESTORS_VISIBLE on all descendants of this bone collection. */
 static void ancestors_visible_descendants_update(bArmature *armature, BoneCollection *parent_bcoll)
 {
   if (!parent_bcoll->is_visible_effectively()) {
@@ -752,7 +752,7 @@ static void ancestors_visible_descendants_update(bArmature *armature, BoneCollec
   }
 }
 
-/** Set/clear BONE_COLLECTION_ANCESTORS_VISIBLE on this bone collection and all its decedents. */
+/** Set/clear BONE_COLLECTION_ANCESTORS_VISIBLE on this bone collection and all its descendants. */
 static void ancestors_visible_update(bArmature *armature,
                                      const BoneCollection *parent_bcoll,
                                      BoneCollection *bcoll)
