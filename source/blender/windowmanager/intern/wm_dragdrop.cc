@@ -109,18 +109,19 @@ wmDropBox *WM_dropbox_add(ListBase *lb,
                           void (*cancel)(Main *, wmDrag *, wmDropBox *),
                           WMDropboxTooltipFunc tooltip)
 {
+  wmOperatorType *ot = WM_operatortype_find(idname, true);
+  if (ot == nullptr) {
+    printf("Error: dropbox with unknown operator: %s\n", idname);
+    return nullptr;
+  }
+
   wmDropBox *drop = MEM_cnew<wmDropBox>(__func__);
   drop->poll = poll;
   drop->copy = copy;
   drop->cancel = cancel;
   drop->tooltip = tooltip;
-  drop->ot = WM_operatortype_find(idname, false);
+  drop->ot = ot;
 
-  if (drop->ot == nullptr) {
-    MEM_freeN(drop);
-    printf("Error: dropbox with unknown operator: %s\n", idname);
-    return nullptr;
-  }
   WM_operator_properties_alloc(&(drop->ptr), &(drop->properties), idname);
 
   BLI_addtail(lb, drop);
