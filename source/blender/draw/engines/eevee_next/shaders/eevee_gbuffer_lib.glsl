@@ -85,7 +85,7 @@ struct GBufferReader {
 /* -------------------------------------------------------------------- */
 /** \name Load / Store macros
  *
- * This allows for writting unit tests that read and write during the same shader invocation.
+ * This allows for writing unit tests that read and write during the same shader invocation.
  * \{ */
 
 #ifdef GBUFFER_LOAD
@@ -666,7 +666,7 @@ GBufferWriter gbuffer_pack(GBufferDataUndetermined data_in)
 
   if (has_diffuse) {
     if (has_sss) {
-      /* Subsurface need to be first to be outputed in first lighting texture. */
+      /* Subsurface need to be first to be outputted in first lighting texture. */
       gbuffer_closure_subsurface_pack(gbuf, data_in.diffuse);
     }
     else {
@@ -692,7 +692,7 @@ GBufferWriter gbuffer_pack(GBufferDataUndetermined data_in)
     }
   }
 
-  /* TODO(fclem): Allow misxing of translucent and refraction. */
+  /* TODO(@fclem): Allow mixing of translucent and refraction. */
   if (has_translucent && !has_refraction) {
     gbuffer_closure_translucent_pack(gbuf, data_in.translucent);
   }

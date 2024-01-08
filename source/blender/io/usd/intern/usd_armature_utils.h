@@ -45,7 +45,7 @@ void get_armature_bone_names(const Object *ob_arm, bool use_deform, Vector<std::
 /**
  * Return the USD joint path corresponding to the given bone. For example, for the bone
  * "Hand", this function might return the full path "Shoulder/Elbow/Hand" of the joint
- * in the hierachy.
+ * in the hierarchy.
  *
  * \param bone: The bone whose path will be queried.
  * \return: The path to the joint

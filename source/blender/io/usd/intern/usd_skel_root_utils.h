@@ -11,7 +11,7 @@ namespace blender::io::usd {
 
 /**
  * We must structure the scene graph to encapsulate skinned prim under a UsdSkelRoot
- * prim.  Per the USD documentation, a SkelRoot is a
+ * prim. Per the USD documentation, a SkelRoot is a:
  *
  * "Boundable prim type used to identify a scope beneath which skeletally-posed primitives are
  * defined. A SkelRoot must be defined at or above a skinned primitive for any skinning behaviors

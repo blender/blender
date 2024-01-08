@@ -1116,7 +1116,7 @@ void skel_export_chaser(pxr::UsdStageRefPtr stage,
                         const ObjExportMap &shape_key_mesh_export_map,
                         const Depsgraph *depsgraph)
 {
-  /* We may need to compute the world transforms of certain prims when
+  /* We may need to compute the world transforms of certain primitives when
    * setting skinning data.  Using a shared transform cache can make computing
    * the transforms more efficient. */
   pxr::UsdGeomXformCache xf_cache(1.0);
@@ -1152,7 +1152,7 @@ void skinned_mesh_export_chaser(pxr::UsdStageRefPtr stage,
       CLOG_WARN(&LOG, "Invalid armature modifier for skinned mesh %s", mesh_obj->id.name + 2);
       continue;
     }
-    /* Look up the USD skeleton correpsoning to the armature object. */
+    /* Look up the USD skeleton corresponding to the armature object. */
     const pxr::SdfPath *path = armature_export_map.lookup_ptr(arm_obj);
     if (!path) {
       CLOG_WARN(&LOG, "No export map entry for armature object %s", mesh_obj->id.name + 2);
@@ -1175,7 +1175,7 @@ void shape_key_export_chaser(pxr::UsdStageRefPtr stage,
 {
   Map<pxr::SdfPath, pxr::SdfPathSet> skel_to_mesh;
 
-  /* We will keep track of the mesh prims to clean up the temporary
+  /* We will keep track of the mesh primitives to clean up the temporary
    * weights attribute at the end. */
   Vector<pxr::UsdPrim> mesh_prims;
 
@@ -1194,7 +1194,7 @@ void shape_key_export_chaser(pxr::UsdStageRefPtr stage,
       continue;
     }
 
-    /* Keep track of all the mesh prims with blend shapes, for cleanup below. */
+    /* Keep track of all the mesh primitives with blend shapes, for cleanup below. */
     mesh_prims.append(mesh_prim);
 
     pxr::UsdSkelBindingAPI skel_api = pxr::UsdSkelBindingAPI::Apply(mesh_prim);

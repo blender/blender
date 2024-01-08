@@ -39,7 +39,7 @@ class USDStageReader {
    * traversal, for importing unused materials. */
   blender::Vector<std::string> material_paths_;
 
-  /* Readers for scenegraph instance prototypes. */
+  /* Readers for scene-graph instance prototypes. */
   ProtoReaderMap proto_readers_;
 
  public:

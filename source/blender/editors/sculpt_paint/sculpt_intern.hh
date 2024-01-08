@@ -207,7 +207,7 @@ struct Node {
   bool applied;
 
   /* shape keys */
-  char shapeName[MAX_NAME]; /* sizeof(KeyBlock::name). */
+  char shapeName[MAX_NAME]; /* `sizeof(KeyBlock::name)`. */
 
   /* Geometry modification operations.
    *

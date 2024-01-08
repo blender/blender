@@ -95,7 +95,7 @@ void create_skel_roots(pxr::UsdStageRefPtr stage, const USDExportParams &params)
       continue;
     }
 
-    /* Try to find a commmon ancestor of the skinned prim and its bound skeleton. */
+    /* Try to find a common ancestor of the skinned prim and its bound skeleton. */
     pxr::UsdSkelRoot prim_skel_root = pxr::UsdSkelRoot::Find(prim);
     pxr::UsdSkelRoot skel_skel_root = pxr::UsdSkelRoot::Find(skel.GetPrim());
 

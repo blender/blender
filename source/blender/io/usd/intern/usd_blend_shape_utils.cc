@@ -135,7 +135,7 @@ void ensure_blend_shape_skeleton(pxr::UsdStageRefPtr stage, pxr::UsdPrim &mesh_p
     skel.GetRestTransformsAttr().Set(rest_transforms);
 
     /* Some DCCs seem to require joint names to bind the
-     * skeleton to blendshapes. */
+     * skeleton to blend-shapes. */
     pxr::VtTokenArray joints({usdtokens::joint1});
     skel.CreateJointsAttr().Set(joints);
   }
@@ -284,13 +284,13 @@ void create_blend_shapes(pxr::UsdStageRefPtr stage,
     point_indices_attr.Set(indices);
   }
 
-  /* Set the blendshape names and targets on the shape. */
+  /* Set the blend-shape names and targets on the shape. */
   pxr::UsdAttribute blendshape_attr = skel_api.CreateBlendShapesAttr();
   blendshape_attr.Set(blendshape_names);
   skel_api.CreateBlendShapeTargetsRel().SetTargets(blendshape_paths);
 
   /* Some DCCs seem to require joint indices and weights to
-   * bind the skeleton for blendshapes, so we we create these
+   * bind the skeleton for blend-shapes, so we we create these
    * primvars, if needed. */
 
   if (!skel_api.GetJointIndicesAttr().HasAuthoredValue()) {

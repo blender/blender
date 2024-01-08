@@ -396,7 +396,7 @@ void USDStageReader::collect_readers(Main *bmain)
   collect_readers(bmain, root, readers_);
 
   if (params_.support_scene_instancing) {
-    /* Collect the scenegraph instance prototypes. */
+    /* Collect the scene-graph instance prototypes. */
     std::vector<pxr::UsdPrim> protos = stage_->GetPrototypes();
 
     for (const pxr::UsdPrim &proto_prim : protos) {

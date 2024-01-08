@@ -26,7 +26,7 @@
 
 static CLG_LogRef LOG = {"io.drop_import_file"};
 
-/* Retuns the list of file paths stored in #WM_OT_drop_import_file operator properties. */
+/** Returns the list of file paths stored in #WM_OT_drop_import_file operator properties. */
 static blender::Vector<std::string> drop_import_file_paths(const wmOperator *op)
 {
   blender::Vector<std::string> result;

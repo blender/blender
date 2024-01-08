@@ -31,7 +31,7 @@ namespace blender::bke::volume_grid {
  *
  * A grid contains the following:
  * - Transform: The mapping between index and object space. It also determines e.g. the voxel size.
- * - Meta-data: Contains e.g. the name and grid class (fog volume or sdf) and potentially other
+ * - Meta-data: Contains e.g. the name and grid class (fog volume or SDF) and potentially other
  *   data.
  * - Tree: This is the heavy data that contains all the voxel values.
  *
@@ -44,12 +44,12 @@ namespace blender::bke::volume_grid {
  *   with independent meta-data and transforms. The tree is only actually copied when necessary.
  * - Lazy loading of the entire grid or just the tree: When constructing the #VolumeGridData it is
  *   possible to provide a callback that lazy-loads the grid when it is first accessed. This is
- *   especially benefitial when loading grids from a file and it's not clear in the beginning if
+ *   especially beneficial when loading grids from a file and it's not clear in the beginning if
  *   the tree is actually needed. It's also supported to just load the meta-data and transform
  *   first and to load the tree only when it's used. This allows e.g. transforming or renaming the
  *   grid without loading the tree.
  * - Unloading of the tree: It's possible to unload the tree data when it is not in use. This is
- *   only supported on a shared grid if the tree could be reloaded (e.g. by reading it from a vdb
+ *   only supported on a shared grid if the tree could be reloaded (e.g. by reading it from a VDB
  *   file) and if no one is currently accessing the grid data.
  */
 class VolumeGridData : public ImplicitSharingMixin {

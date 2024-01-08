@@ -1495,7 +1495,7 @@ class ANIM_armature_bone_collections_liboverrides
     ANIM_armature_bone_collections_testlist::SetUp();
 
     /* TODO: make this clone `arm` into `dst_arm`, instead of assuming the below
-     * code is still in sync with the superclass. */
+     * code is still in sync with the super-class. */
     memset(&dst_arm, 0, sizeof(dst_arm));
     STRNCPY(dst_arm.id.name, "ARArmatureDST");
 
@@ -1524,7 +1524,7 @@ class ANIM_armature_bone_collections_liboverrides
 
 TEST_F(ANIM_armature_bone_collections_liboverrides, bcoll_insert_copy_after)
 {
-  /* Mimick that a new root, two children, and two grandchildren were added via library overrides.
+  /* Mimic that a new root, two children, and two grandchildren were added via library overrides.
    * These were saved in `arm`, and now need to be copied into `dst_arm`. */
   BoneCollection *src_root = ANIM_armature_bonecoll_new(&arm, "new_root");
   const int root_index = armature_bonecoll_find_index(&arm, src_root);

@@ -510,7 +510,7 @@ void DeferredLayer::end_sync()
     RenderBuffersInfoData &rbuf_data = inst_.render_buffers.data;
 
     /* NOTE: For tile-based GPU architectures, barriers are not always needed if implicit local
-     * ordering is guarnteed via either blending order or explicit raster_order_groups. */
+     * ordering is guaranteed via either blending order or explicit raster_order_groups. */
     bool is_tbdr_arch_metal = (GPU_platform_architecture() == GPU_ARCHITECTURE_TBDR) &&
                               (GPU_backend_get_type() == GPU_BACKEND_METAL);
 

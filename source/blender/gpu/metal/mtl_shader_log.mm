@@ -56,7 +56,7 @@ const char *MTLLogParser::parse_line(const char *source_combined,
       int64_t file_start = src.find(needle);
       if (file_start == -1) {
         /* Can be generated code or wrapper code outside of the main sources.
-         * But should be already catched by the above case. */
+         * But should be already caught by the above case. */
         log_item.cursor.row = -1;
         wrapper_error_ = true;
       }
@@ -74,7 +74,7 @@ const char *MTLLogParser::parse_line(const char *source_combined,
     }
   }
   else if (parsed_error_) {
-    /* Skip the redundant lines that we be outputed above the error. */
+    /* Skip the redundant lines that we be outputted above the error. */
     return skip_line(log_line);
   }
   else if (wrapper_error_) {

@@ -15,7 +15,7 @@ void main()
   ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
   float depth = texture_load(depth_tx, texel).x;
 
-  /* Compute Vu in equation (7). */
+  /* Compute `Vu` in equation (7). */
   const float distance_to_image_of_object = (focal_length * depth) / (depth - focal_length);
 
   /* Compute C in equation (8). Notice that the last multiplier was included in the absolute since

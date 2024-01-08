@@ -1023,11 +1023,12 @@ static bool move_to_collection_poll(bContext *C)
 /**
  * Encode the parameters into an integer, and return as void*.
  *
- * This makes it possible to use these values and pass them directly as 'custom data' pointer to
- * `uiItemMenuF()`. This makes it possible to give every menu a unique bone collection index for
- * which it should show the child collections, without having to allocate memory or use static
- * variables. See `move_to_collection_invoke()` in `object_edit.cc` for the alternative that I
- * (Sybren) wanted to avoid. */
+ * NOTE(@sybren): This makes it possible to use these values and pass them directly as
+ * 'custom data' pointer to `uiItemMenuF()`. This makes it possible to give every menu a unique
+ * bone collection index for which it should show the child collections, without having to allocate
+ * memory or use static variables.  See `move_to_collection_invoke()` in `object_edit.cc`
+ * for the alternative that I wanted to avoid.
+ */
 static void *menu_custom_data_encode(const int bcoll_index, const bool is_move_operation)
 {
   /* Add 1 to the index, so that it's never negative (it can be -1 to indicate 'all roots'). */

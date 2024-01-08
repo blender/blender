@@ -19,7 +19,7 @@ namespace blender::ed::seq {
 struct ScopeHistogram {
   /* Byte images just have bins for the 0..255 range. */
   static constexpr int BINS_BYTE = 256;
-  /* Float images spead -0.25..+1.25 range over 512 bins. */
+  /* Float images spread -0.25..+1.25 range over 512 bins. */
   static constexpr int BINS_FLOAT = 512;
   static constexpr float FLOAT_VAL_MIN = -0.25f;
   static constexpr float FLOAT_VAL_MAX = 1.25f;

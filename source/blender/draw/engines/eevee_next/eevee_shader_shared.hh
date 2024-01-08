@@ -1206,7 +1206,7 @@ enum GBufferMode : uint32_t {
   GBUF_REFRACTION_COLORLESS = 13u,
 
   /** Special configurations. Packs multiple closures into less layer. */
-  /* TODO(fclem): This is isn't currently working due to monolitic nature of the evaluation. */
+  /* TODO(@fclem): This is isn't currently working due to monolithic nature of the evaluation. */
   GBUF_METAL_CLEARCOAT = 15u,
 
   /** IMPORTANT: Needs to be less than 16 for correct packing in g-buffer header. */

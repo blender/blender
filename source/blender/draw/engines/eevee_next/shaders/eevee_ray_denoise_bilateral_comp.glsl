@@ -75,7 +75,7 @@ void main()
       gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, texel_fullres);
 
 #ifndef GPU_METAL
-  /* TODO(fclem): Support specialization on OpenGL and Vulkan. */
+  /* TODO(fclem): Support specialization on OpenGL and VULKAN. */
   int closure_index = uniform_buf.raytrace.closure_index;
 #endif
 

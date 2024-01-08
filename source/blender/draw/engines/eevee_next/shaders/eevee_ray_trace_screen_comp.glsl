@@ -38,7 +38,7 @@ void main()
                         uniform_buf.raytrace.resolution_bias;
 
 #ifndef GPU_METAL
-  /* TODO(fclem): Support specialization on OpenGL and Vulkan. */
+  /* TODO(fclem): Support specialization on OpenGL and VULKAN. */
   int closure_index = uniform_buf.raytrace.closure_index;
 #endif
 
@@ -78,7 +78,7 @@ void main()
   ray_view.max_time = 1000.0;
 
 #ifndef GPU_METAL
-  /* TODO(fclem): Support specialization on OpenGL and Vulkan. */
+  /* TODO(fclem): Support specialization on OpenGL and VULKAN. */
   bool trace_refraction = uniform_buf.raytrace.trace_refraction;
 #endif
 

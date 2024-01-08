@@ -59,7 +59,7 @@ void main()
   for (int i = 0; i < GBUFFER_LAYER_MAX && i < gbuf.closure_count; i++) {
     vec3 closure_light = load_radiance_direct(texel, i);
 
-    /* TODO(fclem): Enable for OpenGL and Vulkan once they fully support specialization constants.
+    /* TODO(fclem): Enable for OpenGL and VULKAN once they fully support specialization constants.
      */
 #ifndef GPU_METAL
     bool use_combined_lightprobe_eval = uniform_buf.pipeline.use_combined_lightprobe_eval;

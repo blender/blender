@@ -58,7 +58,7 @@ static blender::float2 rgb_to_uv_normalized(const float rgb[3])
 {
   /* Exact same math as rgb_to_yuv BT709 case. Duplicated here
    * since this function is called a lot, and non-inline function
-   * call plus colorspace switch in there overhead does add up. */
+   * call plus color-space switch in there overhead does add up. */
   float r = rgb[0], g = rgb[1], b = rgb[2];
   /* We don't need y. */
   float u = -0.09991f * r - 0.33609f * g + 0.436f * b;

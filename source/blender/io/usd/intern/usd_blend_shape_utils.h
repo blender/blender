@@ -44,9 +44,9 @@ const Key *get_mesh_shape_key(const Object *obj);
 bool is_mesh_with_shape_keys(const Object *obj);
 
 /**
- * Convert shape keys on the given object to USD blend shapes. The blend shapes
- * will be added to the stage as children of the given USD mesh prim. The blendshape
- * names and targets will also be set as properites on the prim.
+ * Convert shape keys on the given object to USD blend shapes. The blend-shapes
+ * will be added to the stage as children of the given USD mesh prim. The blend-shape
+ * names and targets will also be set as properties on the primitive.
  *
  * \param stage: The stage
  * \param obj: The mesh object whose shape keys will be converted to blend shapes

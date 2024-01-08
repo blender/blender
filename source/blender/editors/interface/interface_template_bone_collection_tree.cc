@@ -219,7 +219,7 @@ class BoneCollectionItem : public AbstractTreeViewItem {
       uiItemL(sub, "", icon);
     }
 
-    /* Visibility eyecon. */
+    /* Visibility eye icon. */
     {
       uiLayout *visibility_sub = uiLayoutRow(sub, true);
       uiLayoutSetActive(visibility_sub, bone_collection_.is_visible_ancestors());

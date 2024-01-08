@@ -2293,9 +2293,9 @@ uiLayout *uiLayoutRow(uiLayout *layout, bool align);
  * property name pair. This gives the caller flexibility to decide who should own the open-state.
  *
  * \param C: The context is necessary because sometimes the panel may be forced to be open by the
- *   context even of the open-property is `false`. This can happen with e.g. property search.
- * \param layout: The `uiLayout` that should contain the subpanel. Only layouts that span the full
- *   width of the region are supported for now.
+ * context even of the open-property is `false`. This can happen with e.g. property search.
+ * \param layout: The `uiLayout` that should contain the sub-panel.
+ * Only layouts that span the full width of the region are supported for now.
  * \param name: Text that's shown in the panel header. It should already be translated.
  * \param open_prop_owner: Data that contains the open-property.
  * \param open_prop_name: Name of the open-property in `open_prop_owner`.
