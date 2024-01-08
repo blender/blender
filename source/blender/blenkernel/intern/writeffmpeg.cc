@@ -8,10 +8,10 @@
  */
 
 #ifdef WITH_FFMPEG
-#  include <stdio.h>
-#  include <string.h>
+#  include <cstdio>
+#  include <cstring>
 
-#  include <stdlib.h>
+#  include <cstdlib>
 
 #  include "MEM_guardedalloc.h"
 

@@ -8,8 +8,8 @@
  * Some really low-level file operations.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 #include <sys/types.h>
 
 #include <sys/stat.h>
@@ -31,8 +31,8 @@
 #  include <sys/vfs.h>
 #endif
 
+#include <cstring>
 #include <fcntl.h>
-#include <string.h>
 
 #ifdef WIN32
 #  include "BLI_string_utf8.h"

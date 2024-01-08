@@ -6,14 +6,14 @@
  * \ingroup bli
  */
 
-#include <stdlib.h> /* malloc */
-#include <string.h>
+#include <cstdlib> /* malloc */
+#include <cstring>
 
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include <errno.h>
+#include <cerrno>
 
 #include <zlib.h>
 #include <zstd.h>

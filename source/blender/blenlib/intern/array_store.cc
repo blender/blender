@@ -87,8 +87,8 @@
  * Otherwise new chunks are created.
  */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 

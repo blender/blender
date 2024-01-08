@@ -8,9 +8,9 @@
  */
 
 #include <algorithm> /* For `min/max`. */
-#include <ctype.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cctype>
+#include <cstdlib>
+#include <cstring>
 
 #include "DNA_listBase.h"
 

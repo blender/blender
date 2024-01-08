@@ -6,18 +6,18 @@
  * \ingroup bli
  */
 
-#include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cerrno>
+#include <cstdio>
+#include <cstdlib>
 #include <sys/types.h>
 
 #ifndef WIN32
 #  include <dirent.h>
 #endif
 
-#include <string.h>
+#include <cstring>
+#include <ctime>
 #include <sys/stat.h>
-#include <time.h>
 
 #ifdef WIN32
 #  include "BLI_winstuff.h"
