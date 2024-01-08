@@ -81,16 +81,12 @@ struct TransformUserData {
 
   void init_add_x(const float4x4 &transform_matrix)
   {
-    const double width = src->x;
-    add_x = double2(transform_matrix.x_axis()) * width + double2(transform_matrix.location());
-    add_x = (add_x - start_uv) * (1.0 / width);
+    add_x = double2(transform_matrix.x_axis());
   }
 
   void init_add_y(const float4x4 &transform_matrix)
   {
-    const double height = src->y;
-    add_y = double2(transform_matrix.y_axis()) * height + double2(transform_matrix.location());
-    add_y = (add_y - start_uv) * (1.0 / height);
+    add_y = double2(transform_matrix.y_axis());
   }
 
   void init_subsampling(const int num_subsamples)
@@ -102,7 +98,7 @@ struct TransformUserData {
 
     for (int y : IndexRange(0, num_subsamples)) {
       for (int x : IndexRange(0, num_subsamples)) {
-        double2 delta_uv = -offset_x - offset_y;
+        double2 delta_uv = offset_x + offset_y;
         delta_uv += x * subsample_add_x;
         delta_uv += y * subsample_add_y;
         subsampling.delta_uvs.append(delta_uv);
@@ -313,6 +309,13 @@ class Sampler {
       u = wrap_uv(u, source->x);
       v = wrap_uv(v, source->y);
     }
+    /* BLI_bilinear_interpolation functions use `floor(uv)` and `floor(uv)+1`
+     * texels. For proper mapping between pixel and texel spaces, need to
+     * subtract 0.5. */
+    if constexpr (Filter == IMB_FILTER_BILINEAR) {
+      u -= 0.5f;
+      v -= 0.5f;
+    }
     if constexpr (Filter == IMB_FILTER_BILINEAR && std::is_same_v<StorageType, float> &&
                   NumChannels == 4)
     {
@@ -505,9 +508,10 @@ class ScanlineProcessor {
  private:
   void process_one_sample_per_pixel(const TransformUserData *user_data, int scanline)
   {
-    double2 uv = user_data->start_uv +
-                 user_data->destination_region.x_range.first() * user_data->add_x +
-                 user_data->add_y * scanline;
+    /* Note: sample at pixel center for proper filtering. */
+    double pixel_x = user_data->destination_region.x_range.first() + 0.5;
+    double pixel_y = scanline + 0.5;
+    double2 uv = user_data->start_uv + user_data->add_x * pixel_x + user_data->add_y * pixel_y;
 
     output.init_pixel_pointer(user_data->dst,
                               int2(user_data->destination_region.x_range.first(), scanline));
@@ -526,9 +530,10 @@ class ScanlineProcessor {
 
   void process_with_subsampling(const TransformUserData *user_data, int scanline)
   {
-    double2 uv = user_data->start_uv +
-                 user_data->destination_region.x_range.first() * user_data->add_x +
-                 user_data->add_y * scanline;
+    /* Note: sample at pixel center for proper filtering. */
+    double pixel_x = user_data->destination_region.x_range.first() + 0.5;
+    double pixel_y = scanline + 0.5;
+    double2 uv = user_data->start_uv + user_data->add_x * pixel_x + user_data->add_y * pixel_y;
 
     output.init_pixel_pointer(user_data->dst,
                               int2(user_data->destination_region.x_range.first(), scanline));
