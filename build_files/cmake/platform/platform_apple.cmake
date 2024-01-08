@@ -154,9 +154,8 @@ if(WITH_FRIBIDI)
   find_package(Fribidi)
 endif()
 
-if(WITH_IMAGE_OPENEXR)
-  find_package(OpenEXR)
-endif()
+# Header dependency of required OpenImageIO.
+find_package(OpenEXR REQUIRED)
 add_bundled_libraries(openexr/lib)
 add_bundled_libraries(imath/lib)
 
