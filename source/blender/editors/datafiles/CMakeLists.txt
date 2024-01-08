@@ -110,6 +110,8 @@ set(ICON_NAMES
   speaker
   tool_settings
   shaderfx
+  record_off
+  record_on
   fake_user_off
   fake_user_on
   view3d
