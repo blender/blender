@@ -267,13 +267,12 @@ def main() -> None:
         time_delta = weekday
         start_date = end_date - datetime.timedelta(days=time_delta, hours=end_date.hour)
 
-    # Ensure friday :)
-    friday = start_date + datetime.timedelta(days=4)
-    week = start_date.isocalendar()[1]
-    start_date_str = start_date.strftime('%b %d')
-    end_date_str = friday.strftime('%b %d')
+    sunday = start_date + datetime.timedelta(days=6)
+    # week = start_date.isocalendar()[1]
+    start_date_str = start_date.strftime('%B ') + str(start_date.day)
+    end_date_str = str(sunday.day) if start_date.month == sunday.month else sunday.strftime('%B ') + str(sunday.day)
 
-    print("## Week %d (%s - %s)\n\n" % (week, start_date_str, end_date_str))
+    print(f"## {start_date_str} - {end_date_str}\n")
     report_personal_weekly_get(username, start_date, verbose=args.verbose)
 
 
