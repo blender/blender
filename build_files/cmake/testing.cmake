@@ -406,4 +406,3 @@ function(blender_add_test_performance_executable
     DISCOVER_TESTS FALSE
   )
 endfunction()
-
