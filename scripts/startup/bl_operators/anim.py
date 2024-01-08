@@ -555,7 +555,7 @@ class ARMATURE_OT_collection_show_all(Operator):
 
     def execute(self, context):
         arm = context.object.data
-        for bcoll in arm.collections:
+        for bcoll in arm.collections.all:
             bcoll.is_visible = True
         return {'FINISHED'}
 
