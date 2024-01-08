@@ -1154,10 +1154,11 @@ bool armature_bonecoll_is_child_of(const bArmature *armature,
 }
 
 bool armature_bonecoll_is_descendant_of(const bArmature *armature,
-                                       const int potential_parent_index,
-                                       const int potential_descendant_index)
+                                        const int potential_parent_index,
+                                        const int potential_descendant_index)
 {
-  if (armature_bonecoll_is_child_of(armature, potential_parent_index, potential_descendant_index)) {
+  if (armature_bonecoll_is_child_of(armature, potential_parent_index, potential_descendant_index))
+  {
     /* Found a direct child. */
     return true;
   }
