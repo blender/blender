@@ -1346,8 +1346,12 @@ struct wmDropBox {
   /**
    * If poll succeeds, operator is called.
    * Not saved in file, so can be pointer.
+   * This may be null when the operator has been unregistered,
+   * where `opname` can be used to re-initialize it.
    */
   wmOperatorType *ot;
+  /** #wmOperatorType::idname, needed for re-registration. */
+  char opname[64];
 
   /** Operator properties, assigned to ptr->data and can be written to a file. */
   IDProperty *properties;

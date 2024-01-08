@@ -1363,6 +1363,11 @@ wmDropBox *WM_dropbox_add(ListBase *lb,
                           void (*copy)(bContext *, wmDrag *, wmDropBox *),
                           void (*cancel)(Main *, wmDrag *, wmDropBox *),
                           WMDropboxTooltipFunc tooltip);
+/**
+ * Ensure operator pointers & properties are valid after operators have been added/removed.
+ */
+void WM_dropbox_update_ot();
+
 void WM_drag_draw_item_name_fn(bContext *C, wmWindow *win, wmDrag *drag, const int xy[2]);
 void WM_drag_draw_default_fn(bContext *C, wmWindow *win, wmDrag *drag, const int xy[2]);
 /**
