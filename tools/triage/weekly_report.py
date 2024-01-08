@@ -37,6 +37,14 @@ def argparse_create():
         help="")
 
     parser.add_argument(
+        "--weeks-ago",
+        dest="weeks_ago",
+        type=int,
+        default=1,
+        help="Determine which week the report should be generated for. 0 means the current week. "
+             "The default is 1, to create a report for the previous week.")
+
+    parser.add_argument(
         "-v",
         "--verbose",
         action="store_true",
@@ -247,7 +255,7 @@ def main() -> None:
             return
 
     # end_date = datetime.datetime(2020, 3, 14)
-    end_date = datetime.datetime.now()
+    end_date = datetime.datetime.now() - datetime.timedelta(weeks=(args.weeks_ago - 1))
     weekday = end_date.weekday()
 
     # Assuming I am lazy and making this at last moment or even later in worst case
