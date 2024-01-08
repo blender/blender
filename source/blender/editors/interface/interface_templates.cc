@@ -7193,9 +7193,7 @@ void uiTemplateCacheFile(uiLayout *layout,
 /* -------------------------------------------------------------------- */
 /** \name Recent Files Template
  * \{ */
-static void uiTemplateRecentFiles_tooltip_func(bContext * /*C*/,
-                                               struct uiTooltipData *tip,
-                                               void *argN)
+static void uiTemplateRecentFiles_tooltip_func(bContext * /*C*/, uiTooltipData *tip, void *argN)
 {
   char *path = (char *)argN;
 
@@ -7255,7 +7253,7 @@ static void uiTemplateRecentFiles_tooltip_func(bContext * /*C*/,
 
     if (status.st_size > 0) {
       char size[16];
-      BLI_filelist_entry_size_to_string(NULL, status.st_size, false, size);
+      BLI_filelist_entry_size_to_string(nullptr, status.st_size, false, size);
       UI_tooltip_text_field_add(tip,
                                 BLI_sprintfN("%s: %s", N_("Size"), size),
                                 nullptr,

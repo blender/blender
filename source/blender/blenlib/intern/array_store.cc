@@ -325,7 +325,7 @@ typedef struct BChunk {
  * Links to store #BChunk data in #BChunkList.chunk_refs.
  */
 typedef struct BChunkRef {
-  struct BChunkRef *next, *prev;
+  BChunkRef *next, *prev;
   BChunk *link;
 } BChunkRef;
 
@@ -338,7 +338,7 @@ typedef struct BChunkRef {
  * this avoids having to do so many table lookups.
  */
 typedef struct BTableRef {
-  struct BTableRef *next;
+  BTableRef *next;
   const BChunkRef *cref;
 } BTableRef;
 
@@ -1610,7 +1610,7 @@ size_t BLI_array_store_calc_size_compacted_get(const BArrayStore *bs)
   BLI_mempool_iternew(bs->memory.chunk, &iter);
   while ((chunk = static_cast<BChunk *>(BLI_mempool_iterstep(&iter)))) {
     BLI_assert(chunk->users > 0);
-    size_total += (size_t)chunk->data_len;
+    size_total += size_t(chunk->data_len);
   }
   return size_total;
 }
@@ -1741,7 +1741,7 @@ bool BLI_array_store_is_valid(BArrayStore *bs)
       return false;
     }
 
-    if (BLI_listbase_count(&chunk_list->chunk_refs) != (int)chunk_list->chunk_refs_len) {
+    if (BLI_listbase_count(&chunk_list->chunk_refs) != int(chunk_list->chunk_refs_len)) {
       return false;
     }
 

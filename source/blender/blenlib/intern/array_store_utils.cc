@@ -16,7 +16,7 @@
 
 #include "BLI_math_base.h"
 
-BArrayStore *BLI_array_store_at_size_ensure(struct BArrayStore_AtSize *bs_stride,
+BArrayStore *BLI_array_store_at_size_ensure(BArrayStore_AtSize *bs_stride,
                                             const int stride,
                                             const int chunk_size)
 {
@@ -42,13 +42,13 @@ BArrayStore *BLI_array_store_at_size_ensure(struct BArrayStore_AtSize *bs_stride
   return *bs_p;
 }
 
-BArrayStore *BLI_array_store_at_size_get(struct BArrayStore_AtSize *bs_stride, const int stride)
+BArrayStore *BLI_array_store_at_size_get(BArrayStore_AtSize *bs_stride, const int stride)
 {
   BLI_assert(stride > 0 && stride <= bs_stride->stride_table_len);
   return bs_stride->stride_table[stride - 1];
 }
 
-void BLI_array_store_at_size_clear(struct BArrayStore_AtSize *bs_stride)
+void BLI_array_store_at_size_clear(BArrayStore_AtSize *bs_stride)
 {
   for (int i = 0; i < bs_stride->stride_table_len; i += 1) {
     if (bs_stride->stride_table[i]) {
@@ -61,7 +61,7 @@ void BLI_array_store_at_size_clear(struct BArrayStore_AtSize *bs_stride)
   bs_stride->stride_table_len = 0;
 }
 
-void BLI_array_store_at_size_calc_memory_usage(struct BArrayStore_AtSize *bs_stride,
+void BLI_array_store_at_size_calc_memory_usage(BArrayStore_AtSize *bs_stride,
                                                size_t *r_size_expanded,
                                                size_t *r_size_compacted)
 {

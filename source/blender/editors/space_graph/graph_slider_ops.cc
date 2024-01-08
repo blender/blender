@@ -2365,7 +2365,7 @@ static void scale_from_neighbor_modal_update(bContext *C, wmOperator *op)
   const float factor = slider_factor_get_and_remember(op);
   const FCurveSegmentAnchor anchor = FCurveSegmentAnchor(RNA_enum_get(op->ptr, "anchor"));
   scale_from_neighbor_graph_keys(&gso->ac, factor, anchor);
-  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
 }
 
 static int scale_from_neighbor_modal(bContext *C, wmOperator *op, const wmEvent *event)
@@ -2429,7 +2429,7 @@ static int scale_from_neighbor_exec(bContext *C, wmOperator *op)
   scale_from_neighbor_graph_keys(&ac, factor, anchor);
 
   /* Set notifier that keyframes have changed. */
-  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
 
   return OPERATOR_FINISHED;
 }

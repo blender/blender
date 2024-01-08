@@ -129,7 +129,7 @@ static file_tooltip_data *file_tooltip_data_create(const SpaceFile *sfile,
   return data;
 }
 
-static void file_draw_tooltip_custom_func(bContext * /*C*/, struct uiTooltipData *tip, void *argN)
+static void file_draw_tooltip_custom_func(bContext * /*C*/, uiTooltipData *tip, void *argN)
 {
   file_tooltip_data *file_data = static_cast<file_tooltip_data *>(argN);
   const SpaceFile *sfile = file_data->sfile;
@@ -287,7 +287,7 @@ static void file_draw_tooltip_custom_func(bContext * /*C*/, struct uiTooltipData
     bool is_today, is_yesterday;
     std::string day_string = ("");
     BLI_filelist_entry_datetime_to_string(
-        NULL, file->time, false, time_st, date_st, &is_today, &is_yesterday);
+        nullptr, file->time, false, time_st, date_st, &is_today, &is_yesterday);
     if (is_today || is_yesterday) {
       day_string = (is_today ? N_("Today") : N_("Yesterday")) + std::string(" ");
     }
@@ -303,7 +303,7 @@ static void file_draw_tooltip_custom_func(bContext * /*C*/, struct uiTooltipData
 
     if (!(file->typeflag & FILE_TYPE_DIR) && file->size > 0) {
       char size[16];
-      BLI_filelist_entry_size_to_string(NULL, file->size, false, size);
+      BLI_filelist_entry_size_to_string(nullptr, file->size, false, size);
       if (file->size < 10000) {
         char size_full[16];
         BLI_str_format_uint64_grouped(size_full, file->size);

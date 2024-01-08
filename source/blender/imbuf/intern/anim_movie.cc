@@ -1562,7 +1562,7 @@ ImBuf *IMB_anim_previewframe(anim *anim)
 #ifdef WITH_FFMPEG
     if (anim->pFormatCtx && anim->curtype == ANIM_FFMPEG) {
       AVStream *v_st = anim->pFormatCtx->streams[anim->videoStream];
-      AVRational frame_rate = av_guess_frame_rate(anim->pFormatCtx, v_st, NULL);
+      AVRational frame_rate = av_guess_frame_rate(anim->pFormatCtx, v_st, nullptr);
       if (frame_rate.num != 0) {
         double duration = anim->duration_in_frames / av_q2d(frame_rate);
         SNPRINTF(value, "%g", av_q2d(frame_rate));

@@ -1316,7 +1316,7 @@ static uiBlock *wm_block_confirm_create(bContext *C, ARegion *region, void *arg_
                                0,
                                0,
                                height,
-                               0,
+                               nullptr,
                                0,
                                0,
                                0,
@@ -1325,8 +1325,21 @@ static uiBlock *wm_block_confirm_create(bContext *C, ARegion *region, void *arg_
     uiLayoutColumn(split, false);
   }
 
-  cancel = uiDefIconTextBut(
-      block, UI_BTYPE_BUT, 0, 0, warning.cancel_button, 0, 0, 0, height, 0, 0, 0, 0, 0, nullptr);
+  cancel = uiDefIconTextBut(block,
+                            UI_BTYPE_BUT,
+                            0,
+                            0,
+                            warning.cancel_button,
+                            0,
+                            0,
+                            0,
+                            height,
+                            nullptr,
+                            0,
+                            0,
+                            0,
+                            0,
+                            nullptr);
 
   if (!windows_layout) {
     uiLayoutColumn(split, false);
@@ -1339,7 +1352,7 @@ static uiBlock *wm_block_confirm_create(bContext *C, ARegion *region, void *arg_
                                0,
                                0,
                                height,
-                               0,
+                               nullptr,
                                0,
                                0,
                                0,
