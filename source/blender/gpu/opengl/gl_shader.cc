@@ -1105,6 +1105,10 @@ static const char *glsl_patch_default_get()
   if (GLContext::framebuffer_fetch_support) {
     ss << "#extension GL_EXT_shader_framebuffer_fetch: enable\n";
   }
+  if (GPU_stencil_export_support()) {
+    ss << "#extension GL_ARB_shader_stencil_export: enable\n";
+    ss << "#define GPU_ARB_shader_stencil_export\n";
+  }
 
   /* Fallbacks. */
   if (!GLContext::shader_draw_parameters_support) {

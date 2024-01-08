@@ -247,13 +247,6 @@ class DeferredLayer : DeferredLayerBase {
   /* Reference to ray-tracing results. */
   GPUTexture *indirect_radiance_txs_[3] = {nullptr};
 
-  /* Parameters for the light evaluation pass. */
-  int closure_tile_size_shift_ = 0;
-  /* Tile buffers for different lighting complexity levels. */
-  struct {
-    DrawIndirectBuf draw_buf_ = {"DrawIndirectBuf"};
-    ClosureTileBuf tile_buf_ = {"ClosureTileBuf"};
-  } closure_bufs_[3];
   /**
    * Tile texture containing several bool per tile indicating presence of feature.
    * It is used to select specialized shader for each tile.

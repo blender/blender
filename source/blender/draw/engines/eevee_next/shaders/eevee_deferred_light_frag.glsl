@@ -49,10 +49,6 @@ void main()
   float depth = texelFetch(hiz_tx, texel, 0).r;
   GBufferReader gbuf = gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, texel);
 
-  if (gbuf.closure_count == 0) {
-    return;
-  }
-
   vec3 P = drw_point_screen_to_world(vec3(uvcoordsvar.xy, depth));
   vec3 Ng = gbuf.surface_N;
   vec3 V = drw_world_incident_vector(P);

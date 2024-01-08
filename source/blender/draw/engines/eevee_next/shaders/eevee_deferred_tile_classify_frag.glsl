@@ -3,33 +3,25 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
- * This pass load Gbuffer data and output a mask of tiles to process.
- * This mask is then processed by the compaction phase.
+ * This pass load Gbuffer data and output a stencil of pixel to process for each
+ * lighting complexity.
  */
 
-#pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_codegen_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_gbuffer_lib.glsl)
 
 void main()
 {
-  ivec2 texel = ivec2(gl_FragCoord.xy);
+  GBufferReader gbuf = gbuffer_read_header_closure_types(in_gbuffer_header);
 
-  ivec2 tile_co = texel >> closure_tile_size_shift;
-
-  uint closure_count = gbuffer_closure_count(in_gbuffer_header);
-
-  if (closure_count > 0) {
-    imageStore(tile_mask_img, ivec3(tile_co, 0), uvec4(1u));
+#if defined(GPU_ARB_shader_stencil_export) || defined(GPU_METAL)
+  gl_FragStencilRefARB = gbuf.closure_count;
+#else
+  /* Instead of setting the stencil at once, we do it (literally) bit by bit.
+   * Discard fragments that do not have a number of closure whose bit-pattern
+   * overlap the current stencil un-masked bit. */
+  if ((current_bit & int(gbuf.closure_count)) == 0) {
+    discard;
+    return;
   }
-  if (closure_count > 1) {
-    imageStore(tile_mask_img, ivec3(tile_co, 1), uvec4(1u));
-  }
-  if (closure_count > 2) {
-    imageStore(tile_mask_img, ivec3(tile_co, 2), uvec4(1u));
-  }
-  if (closure_count > 3) {
-    imageStore(tile_mask_img, ivec3(tile_co, 3), uvec4(1u));
-  }
+#endif
 }

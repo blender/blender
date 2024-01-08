@@ -445,6 +445,7 @@ class MSLGeneratorInterface {
   bool uses_gl_PrimitiveID;
   /* Sets the output render target array index when using multilayered rendering. */
   bool uses_gl_FragDepth;
+  bool uses_gl_FragStencilRefARB;
   bool uses_gpu_layer;
   bool uses_gpu_viewport_index;
   bool uses_transform_feedback;

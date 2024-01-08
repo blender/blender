@@ -599,6 +599,7 @@ void GLBackend::capabilities_init()
   GCaps.transform_feedback_support = true;
   GCaps.texture_view_support = epoxy_gl_version() >= 43 ||
                                epoxy_has_gl_extension("GL_ARB_texture_view");
+  GCaps.stencil_export_support = epoxy_has_gl_extension("GL_ARB_shader_stencil_export");
 
   /* GL specific capabilities. */
   glGetIntegerv(GL_MAX_3D_TEXTURE_SIZE, &GCaps.max_texture_3d_size);
