@@ -2190,6 +2190,15 @@ static void rna_def_ID(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
 
+  prop = RNA_def_property(srna, "session_uid", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, nullptr, "session_uuid");
+  RNA_def_property_ui_text(
+      prop,
+      "Session UID",
+      "A session-wide unique identifier for the data block that remains the "
+      "same across renames and internal reallocations. It does change when reloading the file");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
   prop = RNA_def_property(srna, "is_evaluated", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_ui_text(
       prop,
