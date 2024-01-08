@@ -1354,9 +1354,18 @@ class ANIM_armature_bone_collections_testlist : public testing::Test {
 
 TEST_F(ANIM_armature_bone_collections_testlist, move_before_after_index__before_first_sibling)
 {
+  /* Set the active index to be one of the affected bone collections. */
+  ANIM_armature_bonecoll_active_name_set(&arm, "child2");
+  ASSERT_EQ(3, arm.runtime.active_collection_index);
+
   EXPECT_EQ(1, ANIM_armature_bonecoll_move_before_after_index(&arm, 3, 1, MoveLocation::Before));
   EXPECT_TRUE(expect_bcolls({"root", "child2", "child0", "child1", "child1_0"}));
   EXPECT_EQ(0, armature_bonecoll_find_parent_index(&arm, 1));
+
+  /* The three indicators of the active collection should still be in sync. */
+  EXPECT_EQ(1, arm.runtime.active_collection_index);
+  EXPECT_EQ(child2, arm.runtime.active_collection);
+  EXPECT_STREQ("child2", arm.active_collection_name);
 }
 
 TEST_F(ANIM_armature_bone_collections_testlist, move_before_after_index__after_first_sibling)
@@ -1368,9 +1377,18 @@ TEST_F(ANIM_armature_bone_collections_testlist, move_before_after_index__after_f
 
 TEST_F(ANIM_armature_bone_collections_testlist, move_before_after_index__before_last_sibling)
 {
+  /* Set the active index to be one of the affected bone collections. */
+  ANIM_armature_bonecoll_active_name_set(&arm, "child1");
+  ASSERT_EQ(2, arm.runtime.active_collection_index);
+
   EXPECT_EQ(2, ANIM_armature_bonecoll_move_before_after_index(&arm, 1, 3, MoveLocation::Before));
   EXPECT_TRUE(expect_bcolls({"root", "child1", "child0", "child2", "child1_0"}));
   EXPECT_EQ(0, armature_bonecoll_find_parent_index(&arm, 2));
+
+  /* The three indicators of the active collection should still be in sync. */
+  EXPECT_EQ(1, arm.runtime.active_collection_index);
+  EXPECT_EQ(child1, arm.runtime.active_collection);
+  EXPECT_STREQ("child1", arm.active_collection_name);
 }
 
 TEST_F(ANIM_armature_bone_collections_testlist, move_before_after_index__after_last_sibling)

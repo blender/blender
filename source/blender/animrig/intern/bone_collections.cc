@@ -1383,6 +1383,15 @@ void bonecolls_rotate_block(bArmature *armature,
       bcoll->child_index += direction;
     }
   }
+
+  /* Make sure the active bone collection index is moved as well. */
+  const int active_index = armature->runtime.active_collection_index;
+  if (active_index == move_from_index) {
+    armature->runtime.active_collection_index = move_to_index;
+  }
+  else if (start_index <= active_index && active_index < start_index + count) {
+    armature->runtime.active_collection_index += direction;
+  }
 }
 
 void bonecolls_move_to_index(bArmature *armature, const int from_index, const int to_index)
