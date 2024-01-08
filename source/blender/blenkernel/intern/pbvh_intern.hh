@@ -161,10 +161,6 @@ struct PBVH {
   CCGKey gridkey;
   SubdivCCG *subdiv_ccg;
 
-  /* Used during BVH build and later to mark that a vertex needs to update
-   * (its normal must be recalculated). */
-  blender::Array<bool> vert_bitmap;
-
 #ifdef PERFCNTRS
   int perf_modified;
 #endif

@@ -1370,9 +1370,6 @@ static void paint_mesh_restore_node(Object *ob, const undo::Type type, PBVHNode 
       BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
         SCULPT_orig_vert_data_update(&orig_vert_data, &vd);
         copy_v3_v3(vd.co, orig_vert_data.co);
-        if (vd.is_mesh) {
-          BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
-        }
       }
       BKE_pbvh_vertex_iter_end;
       BKE_pbvh_node_mark_update(node);
@@ -3113,10 +3110,6 @@ static void do_gravity_task(SculptSession *ss,
         ss, brush, vd.co, sqrtf(test.dist), vd.no, vd.fno, vd.mask, vd.vertex, thread_id, nullptr);
 
     mul_v3_v3fl(proxy[vd.i], offset, fade);
-
-    if (vd.is_mesh) {
-      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
-    }
   }
   BKE_pbvh_vertex_iter_end;
 }

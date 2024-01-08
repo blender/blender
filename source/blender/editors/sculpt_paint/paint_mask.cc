@@ -1930,9 +1930,6 @@ static void project_line_gesture_apply_task(SculptGestureContext *sgcontext, PBV
       continue;
     }
     add_v3_v3(vd.co, disp);
-    if (vd.is_mesh) {
-      BKE_pbvh_vert_tag_update_normal(sgcontext->ss->pbvh, vd.vertex);
-    }
     any_updated = true;
   }
   BKE_pbvh_vertex_iter_end;

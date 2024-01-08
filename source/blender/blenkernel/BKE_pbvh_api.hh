@@ -295,7 +295,6 @@ void BKE_pbvh_node_fully_unmasked_set(PBVHNode *node, int fully_masked);
 bool BKE_pbvh_node_fully_unmasked_get(const PBVHNode *node);
 
 void BKE_pbvh_mark_rebuild_pixels(PBVH *pbvh);
-void BKE_pbvh_vert_tag_update_normal(PBVH *pbvh, PBVHVertRef vertex);
 
 blender::Span<int> BKE_pbvh_node_get_grid_indices(const PBVHNode &node);
 
@@ -514,13 +513,6 @@ void BKE_pbvh_node_get_bm_orco_data(PBVHNode *node,
                                     int *r_orco_tris_num,
                                     float (**r_orco_coords)[3],
                                     BMVert ***r_orco_verts);
-
-/**
- * \note doing a full search on all vertices here seems expensive,
- * however this is important to avoid having to recalculate bound-box & sync the buffers to the
- * GPU (which is far more expensive!) See: #47232.
- */
-bool BKE_pbvh_node_has_vert_with_normal_update_tag(PBVH *pbvh, PBVHNode *node);
 
 bool pbvh_has_mask(const PBVH *pbvh);
 

@@ -190,10 +190,6 @@ static void do_pose_brush_task(Object *ob, const Brush *brush, PBVHNode *node)
 
     float *target_co = SCULPT_brush_deform_target_vertex_co_get(ss, brush->deform_target, &vd);
     copy_v3_v3(target_co, final_pos);
-
-    if (vd.is_mesh) {
-      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
-    }
   }
   BKE_pbvh_vertex_iter_end;
 }
