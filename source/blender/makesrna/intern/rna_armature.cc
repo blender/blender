@@ -282,9 +282,9 @@ static void rna_BoneCollection_parent_set(PointerRNA *ptr,
   const int to_parent_index = armature_bonecoll_find_index(armature, to_parent);
 
   if (to_parent_index == from_bcoll_index ||
-      armature_bonecoll_is_decendent_of(armature, from_bcoll_index, to_parent_index))
+      armature_bonecoll_is_descendant_of(armature, from_bcoll_index, to_parent_index))
   {
-    BKE_report(reports, RPT_ERROR, "Cannot make a bone collection a decendent of itself");
+    BKE_report(reports, RPT_ERROR, "Cannot make a bone collection a descendant of itself");
     return;
   }
 

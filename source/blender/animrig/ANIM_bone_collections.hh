@@ -355,9 +355,9 @@ bool armature_bonecoll_is_child_of(const bArmature *armature,
                                    int potential_parent_index,
                                    int potential_child_index);
 
-bool armature_bonecoll_is_decendent_of(const bArmature *armature,
+bool armature_bonecoll_is_descendant_of(const bArmature *armature,
                                        int potential_parent_index,
-                                       int potential_decendent_index);
+                                       int potential_descendant_index);
 
 bool bonecoll_has_children(const BoneCollection *bcoll);
 

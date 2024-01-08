@@ -1150,11 +1150,11 @@ bool armature_bonecoll_is_child_of(const bArmature *armature,
          potential_child_index < upper_bound;
 }
 
-bool armature_bonecoll_is_decendent_of(const bArmature *armature,
+bool armature_bonecoll_is_descendant_of(const bArmature *armature,
                                        const int potential_parent_index,
-                                       const int potential_decendent_index)
+                                       const int potential_descendant_index)
 {
-  if (armature_bonecoll_is_child_of(armature, potential_parent_index, potential_decendent_index)) {
+  if (armature_bonecoll_is_child_of(armature, potential_parent_index, potential_descendant_index)) {
     /* Found a direct child. */
     return true;
   }
@@ -1163,7 +1163,7 @@ bool armature_bonecoll_is_decendent_of(const bArmature *armature,
   const int upper_bound = potential_parent->child_index + potential_parent->child_count;
 
   for (int visit_index = potential_parent->child_index; visit_index < upper_bound; visit_index++) {
-    if (armature_bonecoll_is_decendent_of(armature, visit_index, potential_decendent_index)) {
+    if (armature_bonecoll_is_descendant_of(armature, visit_index, potential_descendant_index)) {
       return true;
     }
   }

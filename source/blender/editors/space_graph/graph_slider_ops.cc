@@ -2287,8 +2287,8 @@ void GRAPH_OT_push_pull(wmOperatorType *ot)
  * \{ */
 
 static const EnumPropertyItem scale_anchor_items[] = {
-    {int(FCurveSegmentAnchor::LEFT), "LEFT", 0, "From Left", "foo"},
-    {int(FCurveSegmentAnchor::RIGHT), "RIGHT", 0, "From Right", "foo"},
+    {int(FCurveSegmentAnchor::LEFT), "LEFT", 0, "From Left", ""},
+    {int(FCurveSegmentAnchor::RIGHT), "RIGHT", 0, "From Right", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 

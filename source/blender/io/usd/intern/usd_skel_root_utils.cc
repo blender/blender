@@ -116,7 +116,7 @@ void create_skel_roots(pxr::UsdStageRefPtr stage, const USDExportParams &params)
                   RPT_WARNING,
                   "%s: Couldn't find a common Xform ancestor for skinned prim %s "
                   "and skeleton %s to convert to a USD SkelRoot. "
-                  "This can be addressed by setting a root primitive in the export options.\n",
+                  "This can be addressed by setting a root primitive in the export options",
                   __func__,
                   prim.GetPath().GetAsString().c_str(),
                   skel.GetPath().GetAsString().c_str());
