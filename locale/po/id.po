@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'98c6bded9844')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd13edee3e0cc')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-02 10:08:43\n"
+"POT-Creation-Date: 2024-01-08 11:04:23\n"
 "PO-Revision-Date: 2023-12-04 11:07+0000\n"
 "Last-Translator: Mohamad Rido <mohamadrido@mail.ru>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -3033,6 +3033,10 @@ msgstr "Anak objek akan meggunakan transformasi relatif, seperti merusak bentuk"
 
 msgid "Bones"
 msgstr "Tulang"
+
+
+msgid "Index"
+msgstr "Index"
 
 
 msgid "Visible"
@@ -6144,10 +6148,6 @@ msgstr "Bidang untuk garis luar yang terproyeksi"
 
 msgid "View"
 msgstr "Pandangan"
-
-
-msgid "Index"
-msgstr "Index"
 
 
 msgid "Segments"
@@ -25358,6 +25358,10 @@ msgid "Unable to export PDF"
 msgstr "Tidak dapat mengekspor PDF"
 
 
+msgid "Rigging"
+msgstr "Menali"
+
+
 msgctxt "Mesh"
 msgid "Plane"
 msgstr "Plane"
@@ -26616,10 +26620,6 @@ msgstr "Tambahkan Mesh"
 
 msgid "Import-Export"
 msgstr "Impor-Ekspor"
-
-
-msgid "Rigging"
-msgstr "Menali"
 
 
 msgid "Video Tools"

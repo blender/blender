@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'98c6bded9844')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd13edee3e0cc')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-02 10:08:43\n"
+"POT-Creation-Date: 2024-01-08 11:04:23\n"
 "PO-Revision-Date: 2023-12-17 02:53+0000\n"
 "Last-Translator: Jad Musallam <rubber.444332@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -3571,6 +3571,10 @@ msgstr "Raccolta di ossa in un blocco-dati Armatura"
 
 msgid "Bones"
 msgstr "Ossa"
+
+
+msgid "Index"
+msgstr "Indice"
 
 
 msgid "Is Editable"
@@ -7559,10 +7563,6 @@ msgstr "Punto della Curva"
 
 msgid "Curve control point"
 msgstr "Punto di controllo della curva"
-
-
-msgid "Index"
-msgstr "Indice"
 
 
 msgid "Index of this point"
@@ -58182,6 +58182,10 @@ msgid "Browse ID data to be linked"
 msgstr "Naviga Dati ID da collegare"
 
 
+msgid "Modified"
+msgstr "Modificato"
+
+
 msgctxt "Object"
 msgid "New"
 msgstr "Nuovo"
@@ -58350,6 +58354,10 @@ msgstr "Gruppi Oggetto"
 
 msgid "Material Groups"
 msgstr "Gruppi Materiale"
+
+
+msgid "Rigging"
+msgstr "Rigging"
 
 
 msgid "Mesh Data"
@@ -61562,10 +61570,6 @@ msgid "File Not Found"
 msgstr "File Non Trovato"
 
 
-msgid "Modified"
-msgstr "Modificato"
-
-
 msgid "Save changes before closing?"
 msgstr "Salvare le modifiche prima di chiudere?"
 
@@ -61709,10 +61713,6 @@ msgstr "Aggiungi Mesh"
 
 msgid "Import-Export"
 msgstr "Importa-Esporta"
-
-
-msgid "Rigging"
-msgstr "Rigging"
 
 
 msgid "English (English)"

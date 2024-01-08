@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'98c6bded9844')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd13edee3e0cc')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-02 10:08:43\n"
-"PO-Revision-Date: 2024-01-02 10:29+0000\n"
+"POT-Creation-Date: 2024-01-08 11:04:23\n"
+"PO-Revision-Date: 2024-01-08 10:33+0000\n"
 "Last-Translator: Ye Gui <ziweidao@foxmail.com>\n"
 "Language-Team: Chinese (Simplified) <https://translate.blender.org/projects/blender-ui/ui/zh_Hans/>\n"
 "Language: zh_HANS\n"
@@ -3925,6 +3925,10 @@ msgstr "骨骼"
 
 msgid "Bones assigned to this bone collection. In armature edit mode this will always return an empty list of bones, as the bone collection memberships are only synchronized when exiting edit mode"
 msgstr "骨骼被分配到此骨骼集合，在骨架编辑模式下此将永远返回一个空的骨骼列表，因为骨骼集合成员资格仅在退出编辑模式时同步"
+
+
+msgid "Index"
+msgstr "编号"
 
 
 msgid "Is Editable"
@@ -9489,10 +9493,6 @@ msgstr "曲线控制点"
 
 msgid "Curve control point"
 msgstr "曲线控制点"
-
-
-msgid "Index"
-msgstr "编号"
 
 
 msgid "Index of this point"
@@ -17918,7 +17918,7 @@ msgstr "使用随时间变化的随机值"
 
 
 msgid "Line Art Modifier"
-msgstr "绳艺修改器"
+msgstr "线条画修改器"
 
 
 msgid "Image Threshold"
@@ -22533,7 +22533,7 @@ msgstr "强制交叉"
 
 
 msgid "Generate intersection lines even with objects that disabled intersection"
-msgstr "生成相交线，即使物体禁用了交集"
+msgstr "生成相交线，即使物体禁用了交叉"
 
 
 msgid "Use Intersection Masks"
@@ -50497,7 +50497,7 @@ msgstr "使用新关键帧覆盖现有帧"
 
 
 msgid "Overwrite All"
-msgstr "全部覆盖"
+msgstr "覆写全部"
 
 
 msgid "Replace all keys"
@@ -50513,7 +50513,7 @@ msgstr "在粘贴区间内覆写帧"
 
 
 msgid "Overwrite Entire Range"
-msgstr "覆写全部范围"
+msgstr "覆写整个范围"
 
 
 msgid "Overwrite keys in pasted range, using the range of all copied keys"
@@ -60885,7 +60885,7 @@ msgstr "粘贴带有偏移值的关键帧"
 
 
 msgid "Left Key"
-msgstr "左方向键"
+msgstr "左侧关键帧"
 
 
 msgid "Paste keys with the first key matching the key left of the cursor"
@@ -60893,7 +60893,7 @@ msgstr "粘贴关键帧，第一帧和游标左边关键帧匹配"
 
 
 msgid "Right Key"
-msgstr "右方向键"
+msgstr "右侧关键帧"
 
 
 msgid "Paste keys with the last key matching the key right of the cursor"
@@ -66114,7 +66114,7 @@ msgstr "移除 UV 贴图"
 
 msgctxt "Operator"
 msgid "Reverse UVs"
-msgstr "翻转UV"
+msgstr "翻转 UV"
 
 
 msgid "Flip direction of UV coordinates inside faces"
@@ -67639,7 +67639,7 @@ msgstr "用于对齐的物体侧"
 
 
 msgid "Negative Sides"
-msgstr "反方"
+msgstr "反面"
 
 
 msgid "Centers"
@@ -68146,7 +68146,7 @@ msgstr "复制所选物体，但不复制其物体数据，然后移动"
 
 msgctxt "Operator"
 msgid "Make Instances Real"
-msgstr "实现实例"
+msgstr "实例独立化(实现实例)"
 
 
 msgid "Make instanced objects attached to this object real"
@@ -100687,7 +100687,7 @@ msgstr "显示背景图"
 
 
 msgid "Show the grid background and borders"
-msgstr "显示网格背景和边框"
+msgstr "显示栅格背景和边框"
 
 
 msgid "Display overlays like UV Maps and Metadata"
@@ -104808,14 +104808,6 @@ msgstr "3D旋转"
 
 msgid "3D View Overlay Settings"
 msgstr "3D视图叠加设置"
-
-
-msgid "Backwire Opacity"
-msgstr "后侧线框不透明度"
-
-
-msgid "Opacity when rendering transparent wires"
-msgstr "渲染透明线框时的不透明度"
 
 
 msgid "Bone Wireframe Opacity"
@@ -112389,7 +112381,7 @@ msgstr "渲染为"
 
 
 msgid "Parent Particles"
-msgstr "渲染父粒子"
+msgstr "父级粒子"
 
 
 msgid "Global Coordinates"
@@ -120948,7 +120940,7 @@ msgstr "无法找到顶点信息以创建调色板"
 
 
 msgid "GPencil Vertex Paint: LMB to paint | RMB/Escape to Exit | Ctrl to Invert Action"
-msgstr "蜡笔顶点绘制：LMB 绘制 |RMB/Escape 退出 |Ctrl 反转操作"
+msgstr "蜡笔顶点绘制：鼠标左键 绘制 |鼠标右键/Esc 退出 |Ctrl 反转操作"
 
 
 msgid "Cannot Paint while play animation"
@@ -121846,6 +121838,18 @@ msgid "Browse ID data to be linked"
 msgstr "浏览要关联的 ID 数据"
 
 
+msgid "Today"
+msgstr "今天"
+
+
+msgid "Yesterday"
+msgstr "昨天"
+
+
+msgid "Modified"
+msgstr "修改器影响"
+
+
 msgctxt "Color"
 msgid "C"
 msgstr "C"
@@ -122153,6 +122157,10 @@ msgid "No filename given"
 msgstr "未给出文件名"
 
 
+msgid "Rigging"
+msgstr "绑定"
+
+
 msgid "File References"
 msgstr "文件引用"
 
@@ -122387,7 +122395,7 @@ msgstr "为边循环选择边或面来执行旋转操作"
 
 
 msgid "Could not find any selected edges that can be rotated"
-msgstr "无法找到可用于旋转的可选择边"
+msgstr "无法找到可用于旋转的选中边"
 
 
 msgid "No selected vertex"
@@ -124899,14 +124907,6 @@ msgstr "将资产从任何目录中移出"
 
 msgid "Move asset out of any catalog"
 msgstr "将资产从任何目录中移出"
-
-
-msgid "Today"
-msgstr "今天"
-
-
-msgid "Yesterday"
-msgstr "昨天"
 
 
 msgid "File path"
@@ -131582,11 +131582,11 @@ msgstr "插值时考虑的邻近引导曲线最大量"
 
 
 msgid "Index of the closest guide curve for each generated curve"
-msgstr "每个生成的曲线的最近引导曲线编号"
+msgstr "每条生成的曲线的最近引导曲线编号"
 
 
 msgid "Weight of the closest guide curve for each generated curve"
-msgstr "每个生成的曲线的最近引导曲线的权重"
+msgstr "每条生成的曲线的最近引导曲线的权重"
 
 
 msgid "Old"
@@ -133133,10 +133133,6 @@ msgid "File Not Found"
 msgstr "文件未找到"
 
 
-msgid "Modified"
-msgstr "修改器影响"
-
-
 msgid "Save the current file in the desired location but do not make the saved file active"
 msgstr "将当前文件保存在所需位置，但不要使保存的文件处于活动状态"
 
@@ -134183,10 +134179,6 @@ msgid "Import-Export"
 msgstr "导入 - 导出"
 
 
-msgid "Rigging"
-msgstr "绑定"
-
-
 msgid "Video Tools"
 msgstr "视频工具"
 
@@ -134668,7 +134660,7 @@ msgstr "用于毛发扎带实例的几何体（优先）"
 
 
 msgid "Object used for the hair tie instance"
-msgstr "用于发圈实例的对象"
+msgstr "用于发圈实例的物体"
 
 
 msgid "Hair Tie Scale"
@@ -134744,11 +134736,11 @@ msgstr "用于选择的导向曲线的导向曲线或点"
 
 
 msgid "Minimum distance between two guides"
-msgstr "两个引导线之间的最小距离"
+msgstr "两条引导线之间的最小距离"
 
 
 msgid "ID to group together curves for guide map creation"
-msgstr "用于将曲线分组在一起以创建引导映射的ID"
+msgstr "用于将曲线组群以创建引导映射的ID"
 
 
 msgid "Curl Hair Curves"
@@ -134800,7 +134792,7 @@ msgstr "读取有关每条曲线的信息"
 
 
 msgid "Index of each Curve"
-msgstr "每个曲线的编号"
+msgstr "每条曲线的编号"
 
 
 msgid "Curve ID"
@@ -134816,7 +134808,7 @@ msgstr "每条曲线的长度"
 
 
 msgid "Direction from root to tip of each Curve"
-msgstr "从每条曲线的根部到头端的方向"
+msgstr "从每条曲线的根部到梢部的方向"
 
 
 msgid "Random vector for each Curve"
@@ -134828,7 +134820,7 @@ msgstr "表面UV"
 
 
 msgid "Attachment surface UV coordinate of each Curve"
-msgstr "每个曲线的附着表面UV坐标"
+msgstr "每条曲线的附着表面UV坐标"
 
 
 msgid "Curve Root"
@@ -135180,7 +135172,7 @@ msgstr "每条曲线的偏移"
 
 
 msgid "Random offset of noise texture for each Curve"
-msgstr "每个曲线的噪波纹理的随机偏移"
+msgstr "每条曲线的噪波纹理的随机偏移"
 
 
 msgid "Seed value for randomization"
@@ -135296,7 +135288,7 @@ msgstr "卷曲长度"
 
 
 msgid "Length of each curve to be rolled"
-msgstr "每个卷曲曲线的长度"
+msgstr "每条卷曲曲线的长度"
 
 
 msgid "Roll Radius"
@@ -135400,7 +135392,7 @@ msgstr "最大半径系数"
 
 
 msgid "Shrinkwrap Hair Curves"
-msgstr "收缩包裹毛发曲线"
+msgstr "缩裹毛发曲线"
 
 
 msgid "Shrinkwraps hair curves to a mesh surface from below and optionally from above"

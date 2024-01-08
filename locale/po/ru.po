@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'98c6bded9844')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd13edee3e0cc')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-02 10:08:43\n"
+"POT-Creation-Date: 2024-01-08 11:04:23\n"
 "PO-Revision-Date: 2023-12-11 03:52+0000\n"
 "Last-Translator: Lockal <lockalsash@gmail.com>\n"
 "Language-Team: Russian <https://translate.blender.org/projects/blender-ui/ui/ru/>\n"
@@ -3923,6 +3923,10 @@ msgstr "Кости"
 
 msgid "Bones assigned to this bone collection. In armature edit mode this will always return an empty list of bones, as the bone collection memberships are only synchronized when exiting edit mode"
 msgstr "Кости, назначенные этой коллекции костей. В режиме редактирования скелета всегда будет возвращаться пустой список костей, так как состав коллекции костей синхронизируется только при выходе из режима редактирования"
+
+
+msgid "Index"
+msgstr "Индекс"
 
 
 msgid "Is Editable"
@@ -9072,10 +9076,6 @@ msgstr "Только начало"
 
 msgid "Use the start of the stroke for the depth"
 msgstr "Использовать начало штрихов для глубины"
-
-
-msgid "Index"
-msgstr "Индекс"
 
 
 msgid "Profile Path editor used to build a profile path"
@@ -78282,14 +78282,6 @@ msgid "3D View Overlay Settings"
 msgstr "Настройки наложений 3D-вида"
 
 
-msgid "Backwire Opacity"
-msgstr "Прозрачность сетки"
-
-
-msgid "Opacity when rendering transparent wires"
-msgstr "Прозрачность прорисовки сеток"
-
-
 msgid "Fade layer opacity for Grease Pencil layers except the active one"
 msgstr "Ослабить видимость слоёв Grease Pencil, за исключением активного"
 
@@ -87416,6 +87408,18 @@ msgid "Browse ID data to be linked"
 msgstr "Выбор связываемых данных идентификаторов"
 
 
+msgid "Today"
+msgstr "Сегодня"
+
+
+msgid "Yesterday"
+msgstr "Вчера"
+
+
+msgid "Modified"
+msgstr "С изменениями"
+
+
 msgctxt "Object"
 msgid "New"
 msgstr "Создать"
@@ -87603,6 +87607,10 @@ msgstr "Группы материалов"
 
 msgid "Smooth Groups"
 msgstr "Группы сглаживания"
+
+
+msgid "Rigging"
+msgstr "Риггинг"
 
 
 msgid "Mesh Data"
@@ -89391,14 +89399,6 @@ msgstr "Выделите хотя бы 4 трека-точки для созда
 
 msgid "Some data failed to reconstruct (see console for details)"
 msgstr "Невозможно восстановить некоторые данные (дополнительная информация приведена в консоли)"
-
-
-msgid "Today"
-msgstr "Сегодня"
-
-
-msgid "Yesterday"
-msgstr "Вчера"
 
 
 msgid "File path"
@@ -92426,10 +92426,6 @@ msgid "unable to open the file"
 msgstr "не удалось открыть файл"
 
 
-msgid "Modified"
-msgstr "С изменениями"
-
-
 msgid "For security reasons, automatic execution of Python scripts in this file was disabled:"
 msgstr "Из соображений безопасности в этом файле отключено автоматическое выполнение скриптов Python:"
 
@@ -92815,10 +92811,6 @@ msgstr "Добавление мешей"
 
 msgid "Import-Export"
 msgstr "Импорт/экспорт"
-
-
-msgid "Rigging"
-msgstr "Риггинг"
 
 
 msgid "Video Tools"

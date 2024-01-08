@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'98c6bded9844')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd13edee3e0cc')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-02 10:08:43\n"
+"POT-Creation-Date: 2024-01-08 11:04:23\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Ainhize & Miriam <agoenaga006@ikasle.ehu.eus>\n"
 "Language-Team: Euskara <agoenaga006@ikasle.ehu.eus>\n"
@@ -2139,6 +2139,10 @@ msgid "New"
 msgstr "Berria"
 
 
+msgid "Rigging"
+msgstr "Rigging"
+
+
 msgctxt "Mesh"
 msgid "Plane"
 msgstr "Planoa"
@@ -2368,10 +2372,6 @@ msgstr "Kurba Gehitu"
 
 msgid "Import-Export"
 msgstr "Inportatu-Esportatu"
-
-
-msgid "Rigging"
-msgstr "Rigging"
 
 
 msgid "English (English)"

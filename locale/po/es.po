@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'98c6bded9844')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd13edee3e0cc')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-02 10:08:43\n"
+"POT-Creation-Date: 2024-01-08 11:04:23\n"
 "PO-Revision-Date: 2023-12-09 04:50+0000\n"
 "Last-Translator: Darwin Yip <yipdarwin+blender@gmail.com>\n"
 "Language-Team: Spanish <https://translate.blender.org/projects/blender-ui/ui/es/>\n"
@@ -3902,6 +3902,10 @@ msgstr "Colección de huesos en el bloque de datos de un esqueleto"
 
 msgid "Bones"
 msgstr "Huesos"
+
+
+msgid "Index"
+msgstr "Identificador"
 
 
 msgid "Is Editable"
@@ -9466,10 +9470,6 @@ msgstr "Punto de la curva"
 
 msgid "Curve control point"
 msgstr "Punto de control de la curva"
-
-
-msgid "Index"
-msgstr "Identificador"
 
 
 msgid "Index of this point"
@@ -104094,14 +104094,6 @@ msgid "3D View Overlay Settings"
 msgstr "Opciones de sobreimpresión en la vista 3D"
 
 
-msgid "Backwire Opacity"
-msgstr "Opacidad estructuras traseras"
-
-
-msgid "Opacity when rendering transparent wires"
-msgstr "Opacidad al procesar estructuras transparentes"
-
-
 msgid "Bone Wireframe Opacity"
 msgstr "Opacidad estructura huesos"
 
@@ -120934,6 +120926,18 @@ msgid "Browse ID data to be linked"
 msgstr "Explorar datos de ID a ser vinculados"
 
 
+msgid "Today"
+msgstr "Hoy"
+
+
+msgid "Yesterday"
+msgstr "Ayer"
+
+
+msgid "Modified"
+msgstr "Modificado"
+
+
 msgctxt "Color"
 msgid "C"
 msgstr "C"
@@ -121231,6 +121235,10 @@ msgstr "Indicadores grupos suavizado"
 
 msgid "ASCII"
 msgstr "ASCII"
+
+
+msgid "Rigging"
+msgstr "Sistemas de control"
 
 
 msgid "File References"
@@ -123948,14 +123956,6 @@ msgstr "Mover recursos fuera de cualquier catálogo"
 
 msgid "Move asset out of any catalog"
 msgstr "Mover recurso fuera de cualquier catálogo"
-
-
-msgid "Today"
-msgstr "Hoy"
-
-
-msgid "Yesterday"
-msgstr "Ayer"
 
 
 msgid "File path"
@@ -132110,10 +132110,6 @@ msgid "File Not Found"
 msgstr "Archivo no encontrado"
 
 
-msgid "Modified"
-msgstr "Modificado"
-
-
 msgid "Save the current file in the desired location but do not make the saved file active"
 msgstr "Guarda el archivo actual en la ubicación deseada, pero no lo convierte en activo"
 
@@ -133154,10 +133150,6 @@ msgstr "Captura"
 
 msgid "Import-Export"
 msgstr "Importación-Exportación"
-
-
-msgid "Rigging"
-msgstr "Sistemas de control"
 
 
 msgid "Video Tools"

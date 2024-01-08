@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'98c6bded9844')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd13edee3e0cc')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2024-01-02 10:08:43\n"
+"POT-Creation-Date: 2024-01-08 11:04:23\n"
 "PO-Revision-Date: 2024-01-01 05:55+0000\n"
 "Last-Translator: Duarte Ramos <duarte.framos@gmail.com>\n"
 "Language-Team: Portuguese <https://translate.blender.org/projects/blender-ui/ui/pt/>\n"
@@ -3938,6 +3938,10 @@ msgstr "Ossos"
 
 msgid "Bones assigned to this bone collection. In armature edit mode this will always return an empty list of bones, as the bone collection memberships are only synchronized when exiting edit mode"
 msgstr "Ossos adicionados a esta colecção de ossos. No modo de edição de armação retorna sempre uma lista vazia, uma vez que a associação a colecções só é sincronizada quando sair do modo de edição"
+
+
+msgid "Index"
+msgstr "Índice"
 
 
 msgid "Is Editable"
@@ -9504,10 +9508,6 @@ msgstr "Ponto da Curva"
 
 msgid "Curve control point"
 msgstr "Ponto de controlo da curva"
-
-
-msgid "Index"
-msgstr "Índice"
 
 
 msgid "Index of this point"
@@ -67810,6 +67810,10 @@ msgid "Browse ID data to be linked"
 msgstr "Permite navegar entre os dados de identificadores a ser vinculados."
 
 
+msgid "Modified"
+msgstr "Modificado"
+
+
 msgctxt "Object"
 msgid "New"
 msgstr "Novo(a)"
@@ -67935,6 +67939,10 @@ msgstr "Grupos de materiais"
 
 msgid "Smooth Groups"
 msgstr "Grupos suavizados"
+
+
+msgid "Rigging"
+msgstr "Arranjo de animação"
 
 
 msgctxt "Mesh"
@@ -71501,10 +71509,6 @@ msgid "unable to open the file"
 msgstr "Não foi possível abrir o ficheiro."
 
 
-msgid "Modified"
-msgstr "Modificado"
-
-
 msgid "Unable to create user config path"
 msgstr "Não é possível criar o caminho das configurações de utilizador."
 
@@ -71692,10 +71696,6 @@ msgstr "Adicionar malha"
 
 msgid "Import-Export"
 msgstr "Importar e exportar"
-
-
-msgid "Rigging"
-msgstr "Arranjo de animação"
 
 
 msgid "English (English)"

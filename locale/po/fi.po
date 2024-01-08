@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'98c6bded9844')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd13edee3e0cc')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-02 10:08:43\n"
+"POT-Creation-Date: 2024-01-08 11:04:23\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2058,6 +2058,10 @@ msgid "Local Location"
 msgstr "Lokaali sijainti"
 
 
+msgid "Index"
+msgstr "Indeksi"
+
+
 msgid "Visible"
 msgstr "Näkyvä"
 
@@ -3432,10 +3436,6 @@ msgstr "Vain ensimmäinen"
 
 msgid "Curve Point"
 msgstr "Käyräpiste"
-
-
-msgid "Index"
-msgstr "Indeksi"
 
 
 msgctxt "Mesh"
@@ -9102,6 +9102,14 @@ msgid "Stop this job"
 msgstr "Lopeta tämä työ"
 
 
+msgid "Today"
+msgstr "Tänään"
+
+
+msgid "Yesterday"
+msgstr "Eilen"
+
+
 msgctxt "Object"
 msgid "New"
 msgstr "Uusi"
@@ -9721,14 +9729,6 @@ msgstr "Leveys:"
 
 msgid "Height:"
 msgstr "Korkeus:"
-
-
-msgid "Today"
-msgstr "Tänään"
-
-
-msgid "Yesterday"
-msgstr "Eilen"
 
 
 msgid "File path"

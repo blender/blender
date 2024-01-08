@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'98c6bded9844')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd13edee3e0cc')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-02 10:08:43\n"
-"PO-Revision-Date: 2023-12-11 10:34+0000\n"
+"POT-Creation-Date: 2024-01-08 11:04:23\n"
+"PO-Revision-Date: 2024-01-07 08:42+0000\n"
 "Last-Translator: Jozef Matta <jozef.m923@gmail.com>\n"
 "Language-Team: Slovak <https://translate.blender.org/projects/blender-ui/ui/sk/>\n"
 "Language: sk\n"
@@ -1636,7 +1636,7 @@ msgstr "Vector 32-bitového celého čísla so značkou"
 
 
 msgid "Quaternion"
-msgstr "Kvaternión"
+msgstr "Štvorica"
 
 
 msgid "Floating point quaternion rotation"
@@ -2336,7 +2336,7 @@ msgstr "Blok údajov štetcov"
 
 
 msgid "Cache Files"
-msgstr "Súbory zásobníkov"
+msgstr "Súbory zásobníka"
 
 
 msgid "Cache Files data-blocks"
@@ -3923,6 +3923,10 @@ msgstr "Kosti"
 
 msgid "Bones assigned to this bone collection. In armature edit mode this will always return an empty list of bones, as the bone collection memberships are only synchronized when exiting edit mode"
 msgstr "Kosti priradené k tejto kolekcii kostí. V režime editácie armatúry to vždy vráti prázdny zoznam kostí, pretože príslušnosť ku kolekcii kostí sa synchronizuje až po opustení režimu editácie"
+
+
+msgid "Index"
+msgstr "Index"
 
 
 msgid "Is Editable"
@@ -9487,10 +9491,6 @@ msgstr "Bod krivky"
 
 msgid "Curve control point"
 msgstr "Riadiaci bod krivky"
-
-
-msgid "Index"
-msgstr "Index"
 
 
 msgid "Index of this point"
@@ -26507,7 +26507,7 @@ msgstr "Skupina uzlov sa používa v režime objektu"
 
 
 msgid "Sculpt"
-msgstr "Tvarovanie"
+msgstr "Tvarovať"
 
 
 msgid "The node group is used in sculpt mode"
@@ -104808,14 +104808,6 @@ msgid "3D View Overlay Settings"
 msgstr "Nastavenie prekrytia 3D zobrazenia"
 
 
-msgid "Backwire Opacity"
-msgstr "Nepriehľadnosť zadného drôtu"
-
-
-msgid "Opacity when rendering transparent wires"
-msgstr "Nepriehľadnosť pri prekreslení priehľadných drôtov"
-
-
 msgid "Bone Wireframe Opacity"
 msgstr "Nepriehľadnosť drôteného rámu kostí"
 
@@ -121848,6 +121840,18 @@ msgid "Browse ID data to be linked"
 msgstr "Prehľadávať údaje ID na prepojenie"
 
 
+msgid "Today"
+msgstr "Dnes"
+
+
+msgid "Yesterday"
+msgstr "Včera"
+
+
+msgid "Modified"
+msgstr "Upravený"
+
+
 msgctxt "Color"
 msgid "C"
 msgstr "C"
@@ -122153,6 +122157,10 @@ msgstr "Dávka"
 
 msgid "No filename given"
 msgstr "Nie je zadaný žiadny názov súboru"
+
+
+msgid "Rigging"
+msgstr "Výbava"
 
 
 msgid "File References"
@@ -124901,14 +124909,6 @@ msgstr "Presunúť aktíva z akéhokoľvek katalógu"
 
 msgid "Move asset out of any catalog"
 msgstr "Presunúť aktívum z akéhokoľvek katalógu"
-
-
-msgid "Today"
-msgstr "Dnes"
-
-
-msgid "Yesterday"
-msgstr "Včera"
 
 
 msgid "File path"
@@ -133143,10 +133143,6 @@ msgid "File Not Found"
 msgstr "Súbor nenájdený"
 
 
-msgid "Modified"
-msgstr "Upravený"
-
-
 msgid "Save the current file in the desired location but do not make the saved file active"
 msgstr "Uloží aktuálny súbor na požadované miesto, ale neaktivuje uložený súbor"
 
@@ -134191,10 +134187,6 @@ msgstr "Zapečenie"
 
 msgid "Import-Export"
 msgstr "Import-Export"
-
-
-msgid "Rigging"
-msgstr "Výbava"
 
 
 msgid "Video Tools"

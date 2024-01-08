@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'98c6bded9844')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd13edee3e0cc')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-02 10:08:43\n"
+"POT-Creation-Date: 2024-01-08 11:04:23\n"
 "PO-Revision-Date: 2021-03-01 19:15+0000\n"
 "Last-Translator: lxlalexlxl <lxlalexlxl@ukr.net>\n"
 "Language-Team: Ukrainian (Ukraine) (http://www.transifex.com/lxlalexlxl/blender/language/uk_UA/)\n"
@@ -3212,6 +3212,10 @@ msgstr "Нащадки об'єкта зазнають відносних тра�
 
 msgid "Bones"
 msgstr "Кістки"
+
+
+msgid "Index"
+msgstr "Індекс"
 
 
 msgid "Visible"
@@ -7993,10 +7997,6 @@ msgstr "Лише перше"
 
 msgid "Use the start of the stroke for the depth"
 msgstr "Використати старт штриха для глибини"
-
-
-msgid "Index"
-msgstr "Індекс"
 
 
 msgid "Profile Path editor used to build a profile path"
@@ -83439,14 +83439,6 @@ msgid "3D View Overlay Settings"
 msgstr "Устави Накладання 3D Огляду"
 
 
-msgid "Backwire Opacity"
-msgstr "Безпрозорість Дроту Позаду"
-
-
-msgid "Opacity when rendering transparent wires"
-msgstr "Безпрозорість при рендерингу прозорих дротів"
-
-
 msgid "Display Handles"
 msgstr "Показ Держаків"
 
@@ -94292,6 +94284,18 @@ msgid "Browse ID data to be linked"
 msgstr "Переглянути дані ID для пов'язання"
 
 
+msgid "Today"
+msgstr "Сьогодні"
+
+
+msgid "Yesterday"
+msgstr "Учора"
+
+
+msgid "Modified"
+msgstr "Змінено"
+
+
 msgctxt "Object"
 msgid "New"
 msgstr "Новий"
@@ -94510,6 +94514,10 @@ msgstr "Групи згладжування"
 
 msgid "ASCII"
 msgstr "ASCII"
+
+
+msgid "Rigging"
+msgstr "Оснащення (rigging)"
 
 
 msgctxt "Mesh"
@@ -96487,14 +96495,6 @@ msgstr "Деякі дані не вдалось реконструювати (п
 
 msgid "Average re-projection error: %.2f px"
 msgstr "Середня помилка перепроєктування: %.2f пікселів"
-
-
-msgid "Today"
-msgstr "Сьогодні"
-
-
-msgid "Yesterday"
-msgstr "Учора"
 
 
 msgid "File path"
@@ -99877,10 +99877,6 @@ msgid "File Not Found"
 msgstr "Файл Не Знайдено"
 
 
-msgid "Modified"
-msgstr "Змінено"
-
-
 msgid "For security reasons, automatic execution of Python scripts in this file was disabled:"
 msgstr "З причин безпеки автоматичне виконання скриптів Python у цьому файлів було вимкнено:"
 
@@ -100167,10 +100163,6 @@ msgstr "Додати сіть"
 
 msgid "Import-Export"
 msgstr "Імпорт-експорт"
-
-
-msgid "Rigging"
-msgstr "Оснащення (rigging)"
 
 
 msgid "Video Tools"

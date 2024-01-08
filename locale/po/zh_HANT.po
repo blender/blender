@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'98c6bded9844')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd13edee3e0cc')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-02 10:08:43\n"
-"PO-Revision-Date: 2023-12-12 17:36+0000\n"
+"POT-Creation-Date: 2024-01-08 11:04:23\n"
+"PO-Revision-Date: 2024-01-06 21:56+0000\n"
 "Last-Translator: Cheng-Chia Tseng <pswo10680@gmail.com>\n"
 "Language-Team: Chinese (Traditional) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
 "Language: zh_HANT\n"
@@ -3166,12 +3166,24 @@ msgid "Z-axis handle offset for end of the B-Bone's curve, adjusts curvature"
 msgstr "B-骨骼曲線末端的 Z 軸控制桿偏移，調整曲率"
 
 
+msgid "B-Bone End Handle"
+msgstr "B骨骼末端控制桿"
+
+
+msgid "B-Bone Start Handle"
+msgstr "B骨骼始端控制桿"
+
+
 msgid "Length of first Bezier Handle (for B-Bones only)"
 msgstr "第一個貝茲控制桿的長度 (僅適用於 B 骨骼)"
 
 
 msgid "Length of second Bezier Handle (for B-Bones only)"
 msgstr "第二個貝茲控制桿的長度 (僅適用於 B 骨骼)"
+
+
+msgid "B-Bone End Handle Type"
+msgstr "B骨骼末端控制桿類型"
 
 
 msgid "Automatic"
@@ -3488,6 +3500,10 @@ msgstr "將 Y 的縮放輸入/輸出乘以最終緩和值"
 
 msgid "Bones"
 msgstr "骨骼"
+
+
+msgid "Index"
+msgstr "索引"
 
 
 msgid "Visible"
@@ -7247,10 +7263,6 @@ msgstr "偵測角落"
 
 msgid "Absolute Offset"
 msgstr "絕對值偏移"
-
-
-msgid "Index"
-msgstr "索引"
 
 
 msgid "Segments"
@@ -56916,6 +56928,10 @@ msgid "Browse ID data to be linked"
 msgstr "瀏覽要連結的 ID 資料"
 
 
+msgid "Modified"
+msgstr "已修改"
+
+
 msgctxt "Object"
 msgid "New"
 msgstr "新增"
@@ -57043,6 +57059,10 @@ msgstr "材質群組"
 
 msgid "Smooth Groups"
 msgstr "平滑群組"
+
+
+msgid "Rigging"
+msgstr "索具"
 
 
 msgctxt "Mesh"
@@ -60238,10 +60258,6 @@ msgid "unable to open the file"
 msgstr "無法開啟檔案"
 
 
-msgid "Modified"
-msgstr "已修改"
-
-
 msgid "For security reasons, automatic execution of Python scripts in this file was disabled:"
 msgstr "基於安全性考量，此檔案的 Python 命令稿自動執行功能已停用："
 
@@ -60501,10 +60517,6 @@ msgstr "添加網格"
 
 msgid "Import-Export"
 msgstr "匯入-匯出"
-
-
-msgid "Rigging"
-msgstr "索具"
 
 
 msgid "Video Tools"

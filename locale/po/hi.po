@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'98c6bded9844')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd13edee3e0cc')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-02 10:08:43\n"
+"POT-Creation-Date: 2024-01-08 11:04:23\n"
 "PO-Revision-Date: 2015-03-03 16:21+0530\n"
 "Last-Translator: Roshan Lal Gumasta <roshan@anisecrets.com>\n"
 "Language-Team: Hindi <www.anisecrets.com>\n"
@@ -619,6 +619,10 @@ msgid "Bones"
 msgstr "हड्डियों"
 
 
+msgid "Index"
+msgstr "सूचकांक"
+
+
 msgid "Count"
 msgstr "गिनती"
 
@@ -1030,10 +1034,6 @@ msgstr "समतल"
 
 msgid "View"
 msgstr "दृश्य"
-
-
-msgid "Index"
-msgstr "सूचकांक"
 
 
 msgid "Render"
@@ -6339,6 +6339,10 @@ msgid "Stop animation playback"
 msgstr "अनुप्राणन चलाएँ रोकें"
 
 
+msgid "Modified"
+msgstr "संशोधित"
+
+
 msgctxt "Object"
 msgid "New"
 msgstr "नई"
@@ -6436,6 +6440,10 @@ msgstr "नई"
 
 msgid "%d items"
 msgstr "%d वस्तु"
+
+
+msgid "Rigging"
+msgstr "हेराफेरी"
 
 
 msgctxt "Mesh"
@@ -6932,10 +6940,6 @@ msgid "Blender File View"
 msgstr "ब्लेंडर संचिका दृश्य"
 
 
-msgid "Modified"
-msgstr "संशोधित"
-
-
 msgid "ON"
 msgstr "ऑन"
 
@@ -6959,10 +6963,6 @@ msgstr "जाल जोड़ें"
 
 msgid "Import-Export"
 msgstr "आयात-निर्यात"
-
-
-msgid "Rigging"
-msgstr "हेराफेरी"
 
 
 msgid "English (English)"

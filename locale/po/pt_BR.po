@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'98c6bded9844')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd13edee3e0cc')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2024-01-02 10:08:43\n"
+"POT-Creation-Date: 2024-01-08 11:04:23\n"
 "PO-Revision-Date: 2023-12-06 06:42+0000\n"
 "Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -3326,6 +3326,10 @@ msgstr "Crianças do objeto irão usar a transformação relativa, como deforma�
 
 msgid "Bones"
 msgstr "Ossos"
+
+
+msgid "Index"
+msgstr "Índice"
 
 
 msgid "Visible"
@@ -6955,10 +6959,6 @@ msgstr "Referenciar pelas terminações iniciais"
 
 msgid "Use the start of the stroke for the depth"
 msgstr "Usa as terminações iniciais dos traços para definir a profundidade."
-
-
-msgid "Index"
-msgstr "Índice"
 
 
 msgid "Segments"
@@ -69884,6 +69884,14 @@ msgid "Browse ID data to be linked"
 msgstr "Permite navegar entre os dados de identificadores a ser vinculados."
 
 
+msgid "Yesterday"
+msgstr "Ontem"
+
+
+msgid "Modified"
+msgstr "Modificado"
+
+
 msgctxt "Object"
 msgid "New"
 msgstr "Novo(a)"
@@ -70047,6 +70055,10 @@ msgstr "Grupos de materiais"
 
 msgid "Smooth Groups"
 msgstr "Grupos suavizados"
+
+
+msgid "Rigging"
+msgstr "Arranjo de animação"
 
 
 msgctxt "Mesh"
@@ -71608,10 +71620,6 @@ msgstr "Necessita ao menos 4 pontos de rastreamento selecionados para criar um p
 
 msgid "Some data failed to reconstruct (see console for details)"
 msgstr "Alguns dados falharam na reconstrução (veja o console para detalhes)."
-
-
-msgid "Yesterday"
-msgstr "Ontem"
 
 
 msgid "File path"
@@ -74048,10 +74056,6 @@ msgid "File Not Found"
 msgstr "Arquivo Não Encontrado"
 
 
-msgid "Modified"
-msgstr "Modificado"
-
-
 msgid "Save changes before closing?"
 msgstr "Salvar alterações antes de fechar?"
 
@@ -74259,10 +74263,6 @@ msgstr "Adicionar malha"
 
 msgid "Import-Export"
 msgstr "Importar e exportar"
-
-
-msgid "Rigging"
-msgstr "Arranjo de animação"
 
 
 msgid "Video Tools"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'98c6bded9844')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd13edee3e0cc')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-02 10:08:43\n"
+"POT-Creation-Date: 2024-01-08 11:04:23\n"
 "PO-Revision-Date: 2023-12-12 02:28+0000\n"
 "Last-Translator: Zdeněk Doležal <Griperis@outlook.cz>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -2685,6 +2685,10 @@ msgstr "Relativní cesta"
 
 msgid "Bones"
 msgstr "Kosti"
+
+
+msgid "Index"
+msgstr "Index"
 
 
 msgid "Visible"
@@ -5602,10 +5606,6 @@ msgstr "Pohled"
 
 msgid "Only First"
 msgstr "Pouze První"
-
-
-msgid "Index"
-msgstr "Index"
 
 
 msgid "Segments"
@@ -44652,6 +44652,18 @@ msgid "Browse ID data to be linked"
 msgstr "Procházet ID Data k připojení"
 
 
+msgid "Today"
+msgstr "Dnes"
+
+
+msgid "Yesterday"
+msgstr "Včera"
+
+
+msgid "Modified"
+msgstr "Modifikátory"
+
+
 msgctxt "Object"
 msgid "New"
 msgstr "Nový"
@@ -45629,14 +45641,6 @@ msgstr "Vyhlazuje hrany textury"
 
 msgid "No object to apply orientation on"
 msgstr "Animace"
-
-
-msgid "Today"
-msgstr "Dnes"
-
-
-msgid "Yesterday"
-msgstr "Včera"
 
 
 msgid "File path"
@@ -46639,10 +46643,6 @@ msgstr "není možné otevřít soubor"
 
 msgid "File Not Found"
 msgstr "Soubor nebyl nalezen"
-
-
-msgid "Modified"
-msgstr "Modifikátory"
 
 
 msgid "Save changes before closing?"

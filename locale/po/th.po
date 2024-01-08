@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'98c6bded9844')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd13edee3e0cc')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-02 10:08:43\n"
+"POT-Creation-Date: 2024-01-08 11:04:23\n"
 "PO-Revision-Date: 2019-12-08 17:40+0700\n"
 "Last-Translator: gongpha <gongpha@gmail.com>\n"
 "Language-Team: Thai Translation Team <gongpha@gmail.com>\n"
@@ -5094,6 +5094,10 @@ msgid "Zoom out"
 msgstr "ซูมออก"
 
 
+msgid "Yesterday"
+msgstr "เมื่อวาน"
+
+
 msgctxt "Object"
 msgid "New"
 msgstr "ใหม่"
@@ -5204,6 +5208,10 @@ msgid "New"
 msgstr "ใหม่"
 
 
+msgid "Rigging"
+msgstr "Rigging"
+
+
 msgctxt "Mesh"
 msgid "Plane"
 msgstr "ระนาบ"
@@ -5303,10 +5311,6 @@ msgstr ", %.2f เฟรม/วินาที"
 
 msgid ", failed to load"
 msgstr ", โหลดล้มเหลว"
-
-
-msgid "Yesterday"
-msgstr "เมื่อวาน"
 
 
 msgid "Cancel"
@@ -5561,10 +5565,6 @@ msgstr "เพิ่มเมช"
 
 msgid "Import-Export"
 msgstr "นำเข้า-ส่งออก"
-
-
-msgid "Rigging"
-msgstr "Rigging"
 
 
 msgid "Video Tools"

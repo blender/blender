@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'98c6bded9844')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd13edee3e0cc')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-02 10:08:43\n"
-"PO-Revision-Date: 2023-12-29 13:01+0000\n"
+"POT-Creation-Date: 2024-01-08 11:04:23\n"
+"PO-Revision-Date: 2024-01-06 06:15+0000\n"
 "Last-Translator: Peter Simonsson <peter@simonsson.com>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
 "Language: sv\n"
@@ -1032,7 +1032,7 @@ msgstr "Är nödvändig"
 
 
 msgid "Whether the attribute can be removed or renamed"
-msgstr "Huruvida attributen kan tas bort ett byta namn"
+msgstr "Huruvida attributen kan tas bort eller byta namn"
 
 
 msgid "Name of the Attribute"
@@ -2279,6 +2279,14 @@ msgstr "Skärm"
 
 msgid "Linear Light"
 msgstr "Linjärt ljus"
+
+
+msgid "Clockwise"
+msgstr "Medsols"
+
+
+msgid "Counter-Clockwise"
+msgstr "Motsols"
 
 
 msgid "Alpha"
@@ -7941,6 +7949,10 @@ msgid "Language"
 msgstr "Språk"
 
 
+msgid "Duplicate"
+msgstr "Duplicera"
+
+
 msgctxt "Operator"
 msgid "Toggle Cyclic"
 msgstr "Växla cyklisk"
@@ -8285,17 +8297,342 @@ msgid "Rounded"
 msgstr "Rundad"
 
 
+msgid "Flat"
+msgstr "Platt"
+
+
+msgctxt "Operator"
+msgid "Delete Frame"
+msgstr "Ta bort bildruta"
+
+
+msgid "Delete Grease Pencil Frame(s)"
+msgstr "Ta bort Grease Pencil bildruta/or"
+
+
+msgid "Method used for deleting Grease Pencil frames"
+msgstr "Metod för att ta bort Grease Pencil-bildrutor"
+
+
+msgid "Deletes current frame in the active layer"
+msgstr "Tar bort den aktuella bildrutan från det aktiva lagret"
+
+
+msgid "All Active Frames"
+msgstr "Alla aktiva bildrutor"
+
+
+msgid "Delete active frames for all layers"
+msgstr "Ta bort aktiva bildrutor från alla lager"
+
+
+msgid "Insert a blank frame on the current scene frame"
+msgstr "Lägg in en tom bildruta på den aktuella scenbildrutan"
+
+
+msgid "Insert a blank frame in all editable layers"
+msgstr "Lägg in en tom bildruta i alla redigerbara lager"
+
+
+msgid "Add a new Grease Pencil layer in the active object"
+msgstr "Lägg till ett nytt Grease Pencil-lager i det aktiva objektet"
+
+
+msgid "Name of the new layer"
+msgstr "Namn på det nya lagret"
+
+
+msgctxt "Operator"
+msgid "Add New Layer Group"
+msgstr "Lägg till ny lagergrupp"
+
+
+msgid "Add a new Grease Pencil layer group in the active object"
+msgstr "Lägg till ny Grease Pencil lagergrupp i det aktiva objektet"
+
+
+msgid "Name of the new layer group"
+msgstr "Namn på den nya lagergruppen"
+
+
+msgid "Remove the active Grease Pencil layer"
+msgstr "Ta bort det aktiva Grease Pencil-lagret"
+
+
+msgctxt "Operator"
+msgid "Reorder Layer"
+msgstr "Ordna om lager"
+
+
+msgid "Reorder the active Grease Pencil layer"
+msgstr "Ordna om det aktiva Grease Pencil-lagret"
+
+
+msgid "Above"
+msgstr "Ovanför"
+
+
+msgid "Below"
+msgstr "Under"
+
+
+msgid "Target Name"
+msgstr "Målnamn"
+
+
+msgid "Name of the target layer"
+msgstr "Namn på mållagret"
+
+
 msgctxt "Operator"
 msgid "Hide Materials"
 msgstr "Dölj material"
+
+
+msgid "Hide active/inactive Grease Pencil material(s)"
+msgstr "Dölj aktiva/inaktiva Grease Pencil-material"
+
+
+msgid "Hide inactive materials instead of the active one"
+msgstr "Dölj inaktiva material istället för det aktiva"
+
+
+msgid "Lock and hide any material not used"
+msgstr "Lås och dölj alla material som inte används"
+
+
+msgid "(De)select all visible strokes"
+msgstr "(Av)markera alla synliga penseldrag"
+
+
+msgctxt "Operator"
+msgid "Select Alternate"
+msgstr "Markera alternerande"
+
+
+msgid "Select alternated points in strokes with already selected points"
+msgstr "Markera alternerande punkter i penseldrag med redan markerade punkter"
+
+
+msgid "Deselect Ends"
+msgstr "Avmarkera ändar"
+
+
+msgid "(De)select the first and last point of each stroke"
+msgstr "(Av)markera den första och sista punkten i varje penseldrag"
+
+
+msgid "Select end points of strokes"
+msgstr "Markera ändpunkter av penseldrag"
+
+
+msgctxt "Operator"
+msgid "Set Active Material"
+msgstr "Ange aktivt material"
+
+
+msgctxt "Operator"
+msgid "Select Mode"
+msgstr "Markeringsläge"
+
+
+msgid "Change the selection mode for Grease Pencil strokes"
+msgstr "Ändra markeringsläget för Grease Pencil-penseldrag"
+
+
+msgid "Select only points"
+msgstr "Markera endast punkter"
+
+
+msgid "Select all stroke points"
+msgstr "Markera alla penseldragspunkter"
+
+
+msgid "Select all stroke points between other strokes"
+msgstr "Markera alla penseldragspunkter mellan andra penseldrag"
+
+
+msgctxt "Operator"
+msgid "Set Uniform Opacity"
+msgstr "Ange enhetlig opacitet"
+
+
+msgid "Set all stroke points to same opacity"
+msgstr "Ange samma opacitet för alla penseldragspunkter"
+
+
+msgctxt "Operator"
+msgid "Set Uniform Thickness"
+msgstr "Ange enhetlig tjocklek"
+
+
+msgid "Set all stroke points to same thickness"
+msgstr "Ange samma tjocklek för alla penseldragspunkter"
+
+
+msgctxt "Operator"
+msgid "Assign Material"
+msgstr "Tilldela material"
+
+
+msgid "Simplify selected strokes"
+msgstr "Förenkla markerade penseldrag"
+
+
+msgctxt "Operator"
+msgid "Copy Image"
+msgstr "Kopiera bild"
+
+
+msgid "Copy the image to the clipboard"
+msgstr "Kopiera bilden till urklippet"
+
+
+msgctxt "Operator"
+msgid "Paste Image"
+msgstr "Klistra in bild"
+
+
+msgid "Paste new image from the clipboard"
+msgstr "Klistra in ny bild från urklippet"
+
+
+msgctxt "Operator"
+msgid "Image Edit Externally"
+msgstr "Redigera bild externt"
+
+
+msgid "Edit image in an external application"
+msgstr "Redigera bilden i en extern applikation"
+
+
+msgctxt "Operator"
+msgid "Flip Image"
+msgstr "Vänd bild"
+
+
+msgid "Flip the image"
+msgstr "Vänd bilden"
+
+
+msgid "Flip the image horizontally"
+msgstr "Vänd bilden horisontellt"
+
+
+msgid "Flip the image vertically"
+msgstr "Vänd bilden vertikalt"
+
+
+msgctxt "Operator"
+msgid "Invert Channels"
+msgstr "Invertera kanaler"
+
+
+msgid "Invert image's channels"
+msgstr "Invertera bildens kanaler"
+
+
+msgid "Invert alpha channel"
+msgstr "Invertera alfakanal"
+
+
+msgid "Invert blue channel"
+msgstr "Invertera blå kanal"
+
+
+msgid "Invert green channel"
+msgstr "Invertera grön kanal"
+
+
+msgid "Invert red channel"
+msgstr "Invertera röd kanal"
+
+
+msgctxt "Operator"
+msgid "Match Movie Length"
+msgstr "Matcha filmlängd"
+
+
+msgctxt "Operator"
+msgid "New Image"
+msgstr "Ny bild"
 
 
 msgid "Create a new image"
 msgstr "Skapa en ny bild"
 
 
+msgid "Create an image with an alpha channel"
+msgstr "Skapa en bild med en alfakanal"
+
+
 msgid "32-bit Float"
-msgstr "32-bit Flyttal"
+msgstr "32-bit flyttal"
+
+
+msgid "Create image with 32-bit floating-point bit depth"
+msgstr "Skapa bild med 32-bit flyttals färgdjup"
+
+
+msgid "Fill the image with a grid for UV map testing"
+msgstr "Fyll bilden med ett rutnät för testning av UV-kartor"
+
+
+msgid "Image height"
+msgstr "Bildhöjd"
+
+
+msgid "Image data-block name"
+msgstr "Bild datablock-namn"
+
+
+msgid "Image width"
+msgstr "Bildbredd"
+
+
+msgctxt "Operator"
+msgid "Open Image"
+msgstr "Öppna bild"
+
+
+msgid "Open image"
+msgstr "Öppna bild"
+
+
+msgctxt "Operator"
+msgid "Pack Image"
+msgstr "Packa bild"
+
+
+msgid "Pack an image as embedded data into the .blend file"
+msgstr "Packa en bild som inbäddad data inuti .blend-filen"
+
+
+msgctxt "Operator"
+msgid "Reload Image"
+msgstr "Ladda om bild"
+
+
+msgid "Reload current image from disk"
+msgstr "Ladda om aktuell bild från disk"
+
+
+msgctxt "Operator"
+msgid "Replace Image"
+msgstr "Ersätt bild"
+
+
+msgid "Replace current image by another one from disk"
+msgstr "Ersätt aktuell bild med en annan från disk"
+
+
+msgctxt "Operator"
+msgid "Resize Image"
+msgstr "Skala om bild"
+
+
+msgid "Resize the image"
+msgstr "Skala om bilden"
 
 
 msgctxt "Operator"
@@ -8305,6 +8642,15 @@ msgstr "Spara bild"
 
 msgid "Save the image with current name and settings"
 msgstr "Spara bilden med aktuellt namn och inställningar"
+
+
+msgctxt "Operator"
+msgid "Save All Modified"
+msgstr "Spara alla ändrade"
+
+
+msgid "Save all modified images"
+msgstr "Spara alla ändrade bilder"
 
 
 msgctxt "Operator"
@@ -8329,9 +8675,577 @@ msgid "Save a sequence of images"
 msgstr "Spara en sekvens av bilder"
 
 
+msgctxt "Operator"
+msgid "Unpack Image"
+msgstr "Packa upp bild"
+
+
+msgid "Save an image packed in the .blend file to disk"
+msgstr "Spara en bild som är packad i .blend-filen till disk"
+
+
+msgid "Image Name"
+msgstr "Bildnamn"
+
+
+msgid "Image data-block name to unpack"
+msgstr "Datablock-namn på bild att packa upp"
+
+
+msgid "Use Local File"
+msgstr "Använd lokal fil"
+
+
+msgid "Write Local File (overwrite existing)"
+msgstr "Skriv lokal fil (skriv över befintlig)"
+
+
+msgid "Use Original File"
+msgstr "Använd originalfil"
+
+
+msgid "Write Original File (overwrite existing)"
+msgstr "Skriv originalfil (skriv över befintlig)"
+
+
+msgid "View the entire image"
+msgstr "Visa hela bilden"
+
+
+msgctxt "Operator"
+msgid "Zoom View"
+msgstr "Zooma vy"
+
+
+msgid "Zoom in/out the image"
+msgstr "Zooma in/ut i bilden"
+
+
+msgid "Zoom Out"
+msgstr "Zooma ut"
+
+
+msgid "Zoom in the image (centered around 2D cursor)"
+msgstr "Zooma in bilden (centrerad kring 2D-markören)"
+
+
+msgid "Zoom out the image (centered around 2D cursor)"
+msgstr "Zooma ut bilden (centrerad kring 2D-markören)"
+
+
+msgid "Set zoom ratio of the view"
+msgstr "Ange zoom-ratio för vyn"
+
+
+msgctxt "Operator"
+msgid "Import SVG"
+msgstr "Importera SVG"
+
+
+msgid "Load a SVG file"
+msgstr "Ladda en SVG-fil"
+
+
+msgctxt "Operator"
+msgid "Import Images as Planes"
+msgstr "Importera bilder som plan"
+
+
+msgid "Create mesh plane(s) from image files with the appropriate aspect ratio"
+msgstr "Skapa mesh-plan från bildfiler med passande höjd- och breddförhållande"
+
+
+msgid "How to align the planes"
+msgstr "Hur planen ska justeras"
+
+
+msgid "Facing Positive X"
+msgstr "Vänd mot positiv X"
+
+
+msgid "Facing Positive Y"
+msgstr "Vänd mot positiv Y"
+
+
+msgid "Z+ (Up)"
+msgstr "Z+ (upp)"
+
+
+msgid "Facing Positive Z"
+msgstr "Vänd mot positiv Z"
+
+
+msgid "Facing Negative X"
+msgstr "Vänd mot negativ X"
+
+
+msgid "Facing Negative Y"
+msgstr "Vänd mot negativ Y"
+
+
+msgid "Z- (Down)"
+msgstr "Z- (ner)"
+
+
+msgid "Facing Negative Z"
+msgstr "Vänd mot negativ Z"
+
+
+msgid "Face Camera"
+msgstr "Vänd mot kamera"
+
+
+msgid "Facing Camera"
+msgstr "Vänd mot kamera"
+
+
+msgid "Facing the Camera's dominant axis"
+msgstr "Vänd mot kamerans dominanta axel"
+
+
+msgid "Height of the created plane"
+msgstr "Höjd av det skapade planet"
+
+
+msgid "Animate Image Sequences"
+msgstr "Animera bildsekvenser"
+
+
+msgid "Import sequentially numbered images as an animated image sequence instead of separate planes"
+msgstr "Importera sekventiellt numrerade bilder som en animerad bildsekvens istället för separata plan"
+
+
+msgid "Offset Planes"
+msgstr "Förskjut plan"
+
+
+msgid "Offset Planes From Each Other"
+msgstr "Förskjut plan från varandra"
+
+
+msgid "Space between planes"
+msgstr "Utrymme mellan plan"
+
+
+msgid "How planes are oriented relative to each others' local axis"
+msgstr "Hur plan är orienterade relativt till varandras lokala axel"
+
+
+msgid "Side by Side to the Left"
+msgstr "Sida vid sida till vänster"
+
+
+msgid "Side by Side, Downward"
+msgstr "Sida vid sida, nedåt"
+
+
+msgid "Stacked Above"
+msgstr "Staplade ovan"
+
+
+msgid "Side by Side to the Right"
+msgstr "Sida vid sida till höger"
+
+
+msgid "Side by Side, Upward"
+msgstr "Sida vid sida, uppåt"
+
+
+msgid "Stacked Below"
+msgstr "Staplade under"
+
+
+msgid "Overwrite Material"
+msgstr "Skriv över material"
+
+
+msgid "Overwrite existing Material (based on material name)"
+msgstr "Skriv över befintligt material (baserat på materialets namn)"
+
+
+msgid "Relative Paths"
+msgstr "Relativa sökvägar"
+
+
+msgid "Use relative file paths"
+msgstr "Använd relativa sökvägar"
+
+
+msgid "Node shader to use"
+msgstr "Nod-shader att använda"
+
+
+msgid "Shadeless"
+msgstr "Skugglös"
+
+
+msgid "Only visible to camera and reflections"
+msgstr "Endast synlig för kamera och reflektioner"
+
+
+msgctxt "Material"
+msgid "Shadow Mode"
+msgstr "Skuggläge"
+
+
 msgctxt "Material"
 msgid "None"
 msgstr "Ingen"
+
+
+msgid "Size Mode"
+msgstr "Storleksläge"
+
+
+msgid "How the size of the plane is computed"
+msgstr "Hur storleken på planet beräknas"
+
+
+msgid "Use absolute size"
+msgstr "Använd absolut storlek"
+
+
+msgid "Camera Relative"
+msgstr "Kamera-relativ"
+
+
+msgid "Scale to the camera frame"
+msgstr "Skala till kamerans ram"
+
+
+msgid "Dpi"
+msgstr "DPI"
+
+
+msgid "Use alpha channel for transparency"
+msgstr "Använd alfakanal för genomskinlighet"
+
+
+msgctxt "Operator"
+msgid "Select Ungrouped"
+msgstr "Markera ogrupperade"
+
+
+msgid "Select vertices without a group"
+msgstr "Markera vertexar utan en grupp"
+
+
+msgctxt "Operator"
+msgid "Add Time Marker"
+msgstr "Lägg till tidsmarkör"
+
+
+msgid "Add a new time marker"
+msgstr "Lägg till en ny tidsmarkör"
+
+
+msgctxt "Operator"
+msgid "Delete Markers"
+msgstr "Ta bort markörer"
+
+
+msgid "Delete selected time marker(s)"
+msgstr "Ta bort markerad(e) tidsmarkör(er)"
+
+
+msgctxt "Operator"
+msgid "Duplicate Time Marker"
+msgstr "Duplicera tidsmarkör"
+
+
+msgid "Duplicate selected time marker(s)"
+msgstr "Duplicera markerad(e) tidsmarkör(er)"
+
+
+msgctxt "Operator"
+msgid "Copy Markers to Scene"
+msgstr "Kopiera markörer till scen"
+
+
+msgid "Copy selected markers to another scene"
+msgstr "Kopiera markerade markörer till en annan scen"
+
+
+msgctxt "Operator"
+msgid "Move Time Marker"
+msgstr "Flytta tidsmarkör"
+
+
+msgid "Move selected time marker(s)"
+msgstr "Flytta markerad(e) tidsmarkör(er)"
+
+
+msgctxt "Operator"
+msgid "Rename Marker"
+msgstr "Byt namn på markör"
+
+
+msgid "Rename first selected time marker"
+msgstr "Byt namn på första markerade tidsmarkören"
+
+
+msgid "New name for marker"
+msgstr "Nytt namn för markör"
+
+
+msgctxt "Operator"
+msgid "Select Time Marker"
+msgstr "Markera tidsmarkör"
+
+
+msgid "Select time marker(s)"
+msgstr "Markera tidsmarkör(er)"
+
+
+msgid "Select the camera"
+msgstr "Markera kameran"
+
+
+msgctxt "Operator"
+msgid "(De)select all Markers"
+msgstr "(Av)markera alla markörer"
+
+
+msgid "Change selection of all time markers"
+msgstr "Ändra markering av alla tidsmarkörer"
+
+
+msgctxt "Operator"
+msgid "Duplicate Mask"
+msgstr "Duplicera mask"
+
+
+msgid "Duplicate mask and move"
+msgstr "Duplicera mask och flytta"
+
+
+msgid "Duplicate Mask"
+msgstr "Duplicera mask"
+
+
+msgctxt "Operator"
+msgid "Move Layer"
+msgstr "Flytta lager"
+
+
+msgid "Move the active layer up/down in the list"
+msgstr "Flytta det aktiva lagret upp/ner i listan"
+
+
+msgid "Direction to move the active layer"
+msgstr "Riktning att flytta det aktiva lagret i"
+
+
+msgctxt "Operator"
+msgid "Add Mask Layer"
+msgstr "Lägg till masklager"
+
+
+msgid "Add new mask layer for masking"
+msgstr "Lägg till nytt masklager för maskning"
+
+
+msgid "Name of new mask layer"
+msgstr "Namn på nytt masklager"
+
+
+msgid "Remove mask layer"
+msgstr "Ta bort masklager"
+
+
+msgctxt "Operator"
+msgid "New Mask"
+msgstr "Ny mask"
+
+
+msgid "Create new mask"
+msgstr "Skapa ny mask"
+
+
+msgid "Name of new mask"
+msgstr "Namn på ny mask"
+
+
+msgctxt "Operator"
+msgid "Add Circle"
+msgstr "Lägg till cirkel"
+
+
+msgid "Location of new circle"
+msgstr "Position av ny cirkel"
+
+
+msgid "Size of new circle"
+msgstr "Storlek på ny cirkel"
+
+
+msgctxt "Operator"
+msgid "Add Square"
+msgstr "Lägg till kvadrat"
+
+
+msgctxt "Operator"
+msgid "Copy Material"
+msgstr "Kopiera material"
+
+
+msgid "Copy the material settings and nodes"
+msgstr "Kopiera materialinställningar och noder"
+
+
+msgctxt "Operator"
+msgid "New Material"
+msgstr "Nytt material"
+
+
+msgid "Add a new material"
+msgstr "Lägg till nytt material"
+
+
+msgctxt "Operator"
+msgid "Paste Material"
+msgstr "Klistra in material"
+
+
+msgid "Paste the material settings and nodes"
+msgstr "Klistra in materialinställningar och noder"
+
+
+msgctxt "Operator"
+msgid "Delete Var"
+msgstr "Ta bort variabel"
+
+
+msgid "Remove the variable from the Console"
+msgstr "Ta bort variabeln från konsolen"
+
+
+msgctxt "Operator"
+msgid "Hide/Unhide"
+msgstr "Dölj/visa"
+
+
+msgid "Change the display state of the var"
+msgstr "Ändra visningstillstånd av variabeln"
+
+
+msgctxt "Operator"
+msgid "Lock/Unlock"
+msgstr "Lås/lås upp"
+
+
+msgid "Lock the var from being deleted"
+msgstr "Lås variabeln från att tas bort"
+
+
+msgid "Delete selected metaball element(s)"
+msgstr "Ta bort markerade metaboll-element"
+
+
+msgctxt "Operator"
+msgid "Duplicate Metaball Elements"
+msgstr "Duplicera metaboll-element"
+
+
+msgid "Duplicate selected metaball element(s)"
+msgstr "Duplicera markerade metaboll-element"
+
+
+msgid "Make copies of the selected metaball elements and move them"
+msgstr "Gör kopior av de markerade metaboll-elementen och flytta dem"
+
+
+msgid "Duplicate Metaball Elements"
+msgstr "Duplicera metaboll-element"
+
+
+msgid "Hide (un)selected metaball element(s)"
+msgstr "Dölj (av)markerade metaboll-element"
+
+
+msgid "Reveal all hidden metaball elements"
+msgstr "Visa alla dolda metaboll-element"
+
+
+msgid "Change selection of all metaball elements"
+msgstr "Ändra markering av alla metaboll-element"
+
+
+msgid "Randomly select metaball elements"
+msgstr "Slumpvis markering av metaboll-element"
+
+
+msgid "Select similar metaballs by property types"
+msgstr "Markera liknande metabollar efter typ av egenskaper"
+
+
+msgctxt "Operator"
+msgid "Bevel"
+msgstr "Fasning"
+
+
+msgid "Cut into selected items at an angle to create bevel or chamfer"
+msgstr "Skär in i markerade objekt i en vinkel för att skapa fasning eller avfasning"
+
+
+msgid "Do not allow beveled edges/vertices to overlap each other"
+msgstr "Tillåt inte fasade kanter/vertexar att överlappa varandra"
+
+
+msgctxt "Curve"
+msgid "Profile Shape"
+msgstr "Profilform"
+
+
+msgid "Shape of the profile"
+msgstr "Form av profilen"
+
+
+msgid "Profile Factor"
+msgstr "Profilfaktor"
+
+
+msgid "How much intermediary new edges are shrunk/expanded"
+msgstr "Hur mycket mellanliggande nya kanter förminskas/expanderas"
+
+
+msgid "Smoothness factor"
+msgstr "Jämnhetsfaktor"
+
+
+msgctxt "Operator"
+msgid "Reverse Colors"
+msgstr "Omvänd färger"
+
+
+msgctxt "Operator"
+msgid "Rotate Colors"
+msgstr "Rotera färger"
+
+
+msgid "Counter Clockwise"
+msgstr "Motsols"
+
+
+msgid "Delete Unused"
+msgstr "Ta bort oanvända"
+
+
+msgid "Make Holes"
+msgstr "Gör hål"
+
+
+msgid "Compare Materials"
+msgstr "Jämför material"
+
+
+msgctxt "Operator"
+msgid "Decimate Geometry"
+msgstr "Decimera geometri"
+
+
+msgid "Simplify geometry by collapsing edges"
+msgstr "Förenkla geometri genom att slå ihop kanter"
 
 
 msgctxt "Operator"
@@ -8340,16 +9254,182 @@ msgstr "Radera kant-slinga"
 
 
 msgctxt "Operator"
+msgid "Delete Loose"
+msgstr "Ta bort lösa"
+
+
+msgid "Delete loose vertices, edges or faces"
+msgstr "Ta bort lösa vertexar, kanter eller ytor"
+
+
+msgid "Remove loose edges"
+msgstr "Ta bort lösa kanter"
+
+
+msgid "Remove loose faces"
+msgstr "Ta bort lösa ytor"
+
+
+msgid "Remove loose vertices"
+msgstr "Ta bort lösa vertexar"
+
+
+msgid "Duplicate selected vertices, edges or faces"
+msgstr "Duplicera markerade vertexar, kanter eller ytor"
+
+
+msgid "Duplicate mesh and move"
+msgstr "Duplicera mesh och flytta"
+
+
+msgctxt "Operator"
+msgid "Make Edge/Face"
+msgstr "Gör kant/yta"
+
+
+msgid "Add an edge or face to selected"
+msgstr "Lägg till en kant eller yta till markerad"
+
+
+msgctxt "Operator"
+msgid "Rotate Selected Edge"
+msgstr "Rotera markerad kant"
+
+
+msgid "Rotate selected edge or adjoining faces"
+msgstr "Rotera markerad kant eller angränsande ytor"
+
+
+msgctxt "Operator"
+msgid "Select Sharp Edges"
+msgstr "Markera skarpa kanter"
+
+
+msgid "Select all sharp enough edges"
+msgstr "Markera alla kanter som är skarpa nog"
+
+
+msgctxt "Operator"
 msgid "Fill"
 msgstr "Fyll"
+
+
+msgctxt "Operator"
+msgid "Grid Fill"
+msgstr "Fyll rutnät"
+
+
+msgctxt "Operator"
+msgid "Fill Holes"
+msgstr "Fyll hål"
+
+
+msgid "Sides"
+msgstr "Sidor"
+
+
+msgctxt "Operator"
+msgid "Knife Topology Tool"
+msgstr "Kniv topologiverktyg"
+
+
+msgid "Cut new topology"
+msgstr "Skär ny topologi"
 
 
 msgid "Occlude Geometry"
 msgstr "Skym struktur"
 
 
+msgid "Measurements"
+msgstr "Mått"
+
+
+msgid "Visible distance and angle measurements"
+msgstr "Synliga avstånd- och vinkelmått"
+
+
+msgid "Show no measurements"
+msgstr "Visa inga mått"
+
+
+msgid "Show both distances and angles"
+msgstr "Visa både avstånd och vinklar"
+
+
+msgid "Show just distance measurements"
+msgstr "Visa endast avståndsmått"
+
+
+msgid "Show just angle measurements"
+msgstr "Visa endast vinkelmått"
+
+
+msgctxt "Operator"
+msgid "Merge"
+msgstr "Sammanfoga"
+
+
 msgid "Merge selected vertices"
-msgstr "Göm Markerad"
+msgstr "Sammanfoga markerade vertexar"
+
+
+msgid "Merge method to use"
+msgstr "Metod för sammanfogning att använda"
+
+
+msgid "At Center"
+msgstr "Vid center"
+
+
+msgid "At Cursor"
+msgstr "Vid markör"
+
+
+msgid "At First"
+msgstr "Vid första"
+
+
+msgid "At Last"
+msgstr "Vid sista"
+
+
+msgid "Move UVs according to merge"
+msgstr "Flytta UVs enligt sammanfogning"
+
+
+msgctxt "Operator"
+msgid "Merge Normals"
+msgstr "Sammanfoga normaler"
+
+
+msgid "Merge custom normals of selected vertices"
+msgstr "Sammanfoga anpassade normaler av markerade vertexar"
+
+
+msgid "Weak"
+msgstr "Svag"
+
+
+msgid "Strong"
+msgstr "Stark"
+
+
+msgid "Set Value"
+msgstr "Ange värde"
+
+
+msgid "Set value of faces"
+msgstr "Ange värde av ytor"
+
+
+msgctxt "Operator"
+msgid "Recalculate Normals"
+msgstr "Beräkna om normaler"
+
+
+msgid "Make face and vertex normals point either outside or inside the mesh"
+msgstr "Få yt- eller vertexnormaler att peka antingen utåt eller inåt meshen"
 
 
 msgctxt "Operator"
@@ -14929,6 +16009,14 @@ msgstr ""
 "(%s), förvänta dig förlust av data"
 
 
+msgid "Today"
+msgstr "Idag"
+
+
+msgid "Yesterday"
+msgstr "Igår"
+
+
 msgctxt "PaintCurve"
 msgid "New"
 msgstr "Ny"
@@ -15094,14 +16182,6 @@ msgstr "Inga filer markerade för att öppnas"
 
 msgid "Cannot read '%s': %s"
 msgstr "Kan inte läsa '%s': %s"
-
-
-msgid "Today"
-msgstr "Idag"
-
-
-msgid "Yesterday"
-msgstr "Igår"
 
 
 msgid "Could not rename: %s"

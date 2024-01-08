@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'98c6bded9844')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd13edee3e0cc')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-02 10:08:43\n"
+"POT-Creation-Date: 2024-01-08 11:04:23\n"
 "PO-Revision-Date: 2024-01-01 17:02+0000\n"
 "Last-Translator: Satoshi Yamasaki <yamyam@yo.rim.or.jp>\n"
 "Language-Team: Japanese <https://translate.blender.org/projects/blender-ui/ui/ja/>\n"
@@ -3938,6 +3938,10 @@ msgstr "ボーン"
 
 msgid "Bones assigned to this bone collection. In armature edit mode this will always return an empty list of bones, as the bone collection memberships are only synchronized when exiting edit mode"
 msgstr "このボーンコレクションに割り当てられたボーン．ボーンコレクションのメンバーは編集モードを抜けた時のみ同期されるため，アーマチュア編集モード中では常に空のボーンのリストを返します"
+
+
+msgid "Index"
+msgstr "インデックス"
 
 
 msgid "Is Editable"
@@ -9582,10 +9586,6 @@ msgstr "カーブポイント"
 
 msgid "Curve control point"
 msgstr "カーブの制御点"
-
-
-msgid "Index"
-msgstr "インデックス"
 
 
 msgid "Index of this point"
@@ -105866,14 +105866,6 @@ msgid "3D View Overlay Settings"
 msgstr "3Dビューオーバーレイ設定"
 
 
-msgid "Backwire Opacity"
-msgstr "バックワイヤの不透明度"
-
-
-msgid "Opacity when rendering transparent wires"
-msgstr "透過ワイヤーフレームのレンダリング時の不透明度"
-
-
 msgid "Bone Wireframe Opacity"
 msgstr "ボーンワイヤの不透明度"
 
@@ -122922,6 +122914,18 @@ msgid "Browse ID data to be linked"
 msgstr "リンクするIDデータを閲覧"
 
 
+msgid "Today"
+msgstr "今日"
+
+
+msgid "Yesterday"
+msgstr "昨日"
+
+
+msgid "Modified"
+msgstr "更新日時"
+
+
 msgctxt "Color"
 msgid "C"
 msgstr "C"
@@ -123223,6 +123227,10 @@ msgstr "ASCII"
 
 msgid "No filename given"
 msgstr "ファイル名がありません"
+
+
+msgid "Rigging"
+msgstr "リギング"
 
 
 msgid "File References"
@@ -125975,14 +125983,6 @@ msgstr "アセットをカタログ外に移動"
 
 msgid "Move asset out of any catalog"
 msgstr "アセットをカタログ外に移動します"
-
-
-msgid "Today"
-msgstr "今日"
-
-
-msgid "Yesterday"
-msgstr "昨日"
 
 
 msgid "File path"
@@ -134292,10 +134292,6 @@ msgid "File Not Found"
 msgstr "ファイルが見つかりません"
 
 
-msgid "Modified"
-msgstr "更新日時"
-
-
 msgid "Save the current file in the desired location but do not make the saved file active"
 msgstr "現在のファイルを指定の場所に保存しますが，保存ファイルをアクティブにしません"
 
@@ -135340,10 +135336,6 @@ msgstr "ベイキング"
 
 msgid "Import-Export"
 msgstr "インポート/エクスポート"
-
-
-msgid "Rigging"
-msgstr "リギング"
 
 
 msgid "Video Tools"

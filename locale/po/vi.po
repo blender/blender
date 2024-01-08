@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'98c6bded9844')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd13edee3e0cc')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-02 10:08:43\n"
-"PO-Revision-Date: 2024-01-01 05:55+0000\n"
+"POT-Creation-Date: 2024-01-08 11:04:23\n"
+"PO-Revision-Date: 2024-01-06 21:56+0000\n"
 "Last-Translator: Hoang Duy Tran <hoangduytran1960@googlemail.com>\n"
 "Language-Team: Vietnamese <https://translate.blender.org/projects/blender-ui/ui/vi/>\n"
 "Language: vi\n"
@@ -3919,6 +3919,10 @@ msgstr "Xương"
 
 msgid "Bones assigned to this bone collection. In armature edit mode this will always return an empty list of bones, as the bone collection memberships are only synchronized when exiting edit mode"
 msgstr "Xương vốn được ấn định cho bộ sưu tập xương này. Trong chế độ chỉnh sửa khung cốt, việc làm này sẽ luôn trả về một danh sách xương trống rỗng, vì tư cách thành viên của bộ sưu tập xương chỉ được phép đồng bộ hóa khi thoát khỏi chế độ chỉnh sửa mà thôi"
+
+
+msgid "Index"
+msgstr "Chỉ Số"
 
 
 msgid "Is Editable"
@@ -9467,10 +9471,6 @@ msgstr "Điểm của Đường Cong"
 
 msgid "Curve control point"
 msgstr "Điểm điều khiển đường cong"
-
-
-msgid "Index"
-msgstr "Chỉ Số"
 
 
 msgid "Index of this point"
@@ -104587,14 +104587,6 @@ msgid "3D View Overlay Settings"
 msgstr "Sắp Đặt về Vẽ Lồng trong Góc Nhìn 3D"
 
 
-msgid "Backwire Opacity"
-msgstr "Độ Đục của các Mạch Lưới Phía Sau"
-
-
-msgid "Opacity when rendering transparent wires"
-msgstr "Độ đục khi kết xuất các mạch lưới trong suốt"
-
-
 msgid "Bone Wireframe Opacity"
 msgstr "Độ Đục Khung Dây Xương"
 
@@ -121425,6 +121417,18 @@ msgid "Browse ID data to be linked"
 msgstr "Duyệt dữ liệu ID sẽ được kết nối"
 
 
+msgid "Today"
+msgstr "Hôm Nay"
+
+
+msgid "Yesterday"
+msgstr "Hôm Qua"
+
+
+msgid "Modified"
+msgstr "Đã bị Sửa Đổi"
+
+
 msgid "The data-block %s is not overridable"
 msgstr "Khối dữ liệu %s không thể vượt quyền được"
 
@@ -121725,6 +121729,10 @@ msgstr "Hàng Loạt"
 
 msgid "No filename given"
 msgstr "Không có tên tập tin nào được cung cấp cả"
+
+
+msgid "Rigging"
+msgstr "Dàn Dựng"
 
 
 msgid "File References"
@@ -124473,14 +124481,6 @@ msgstr "Di chuyển tài sản ra khỏi danh mục nào đó"
 
 msgid "Move asset out of any catalog"
 msgstr "Di chuyển tài sản ra khỏi danh mục nào đó"
-
-
-msgid "Today"
-msgstr "Hôm Nay"
-
-
-msgid "Yesterday"
-msgstr "Hôm Qua"
 
 
 msgid "File path"
@@ -132664,10 +132664,6 @@ msgid "File Not Found"
 msgstr "Không Tìm Thấy Tập Tin"
 
 
-msgid "Modified"
-msgstr "Đã bị Sửa Đổi"
-
-
 msgid "Save the current file in the desired location but do not make the saved file active"
 msgstr "Lưu tập tin hiện tại vào vị trí mong muốn song không đặt tập tin đã lưu lại là tập tin đang hoạt động"
 
@@ -133708,10 +133704,6 @@ msgstr "Nướng"
 
 msgid "Import-Export"
 msgstr "Nhập-Xuất Khẩu"
-
-
-msgid "Rigging"
-msgstr "Dàn Dựng"
 
 
 msgid "Video Tools"

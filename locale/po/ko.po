@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'98c6bded9844')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd13edee3e0cc')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-02 10:08:43\n"
+"POT-Creation-Date: 2024-01-08 11:04:23\n"
 "PO-Revision-Date: 2023-11-14 19:14+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -2975,6 +2975,10 @@ msgstr "상대적인 변환을 사용하는 오브젝트 자식들, 변형과 �
 
 msgid "Bones"
 msgstr "본"
+
+
+msgid "Index"
+msgstr "인덱스"
 
 
 msgid "Visible"
@@ -7412,10 +7416,6 @@ msgstr "첫 번째 만"
 
 msgid "Use the start of the stroke for the depth"
 msgstr "깊이에 대해 스트로크의 시작을 사용"
-
-
-msgid "Index"
-msgstr "인덱스"
 
 
 msgid "Profile Path editor used to build a profile path"
@@ -72854,14 +72854,6 @@ msgid "3D View Overlay Settings"
 msgstr "3D뷰 오버레이 설정"
 
 
-msgid "Backwire Opacity"
-msgstr "백와이어 불투명도"
-
-
-msgid "Opacity when rendering transparent wires"
-msgstr "투명한 와이어를 렌더링 할 때의 불투명도"
-
-
 msgid "Fade layer opacity for Grease Pencil layers except the active one"
 msgstr "그리스 펜슬 레이어의 활성 레이어를 제외한 레이어의 불투명도를 페이드합니다"
 
@@ -81208,6 +81200,18 @@ msgid "Browse ID data to be linked"
 msgstr "연결할 ID 데이터를 찾아보기"
 
 
+msgid "Today"
+msgstr "오늘"
+
+
+msgid "Yesterday"
+msgstr "어제"
+
+
+msgid "Modified"
+msgstr "수정됨"
+
+
 msgctxt "Object"
 msgid "New"
 msgstr "새로운"
@@ -81352,6 +81356,10 @@ msgstr "매테리얼 그룹"
 
 msgid "Smooth Groups"
 msgstr "스무스 그룹"
+
+
+msgid "Rigging"
+msgstr "리깅"
 
 
 msgctxt "Mesh"
@@ -83085,14 +83093,6 @@ msgstr "평면을 생성하려면 적어도 4개의 선택된 포인트 트랙�
 
 msgid "Some data failed to reconstruct (see console for details)"
 msgstr "일부 데이터를 재구성하지 못했습니다 (자세한 내용은 콘솔 참조)"
-
-
-msgid "Today"
-msgstr "오늘"
-
-
-msgid "Yesterday"
-msgstr "어제"
 
 
 msgid "File path"
@@ -85868,10 +85868,6 @@ msgid "unable to open the file"
 msgstr "파일을 열 수 없음"
 
 
-msgid "Modified"
-msgstr "수정됨"
-
-
 msgid "For security reasons, automatic execution of Python scripts in this file was disabled:"
 msgstr "보안상의 이유로 이 파일에서 Python 스크립트 자동 실행이 비활성화됨:"
 
@@ -86142,10 +86138,6 @@ msgstr "메쉬를 추가"
 
 msgid "Import-Export"
 msgstr "가져오기-내보내기"
-
-
-msgid "Rigging"
-msgstr "리깅"
 
 
 msgid "Video Tools"

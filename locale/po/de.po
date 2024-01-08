@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'98c6bded9844')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd13edee3e0cc')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-02 10:08:43\n"
+"POT-Creation-Date: 2024-01-08 11:04:23\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Martin Reininger <martinreininger@gmx.net>\n"
 "Language-Team: German translation team\n"
@@ -3341,6 +3341,10 @@ msgstr "Kindobjekt wird relative Transformation verwenden, ähnlich der Deformat
 
 msgid "Bones"
 msgstr "Knochen"
+
+
+msgid "Index"
+msgstr "Index"
 
 
 msgid "Visible"
@@ -7454,10 +7458,6 @@ msgstr "Nur erstes"
 
 msgid "Curve Point"
 msgstr "Kurvenpunkte"
-
-
-msgid "Index"
-msgstr "Index"
 
 
 msgid "Profile control points"
@@ -59817,6 +59817,18 @@ msgid "Browse ID data to be linked"
 msgstr "Zu verknüpfende ID-Daten durchsuchen"
 
 
+msgid "Today"
+msgstr "Heute"
+
+
+msgid "Yesterday"
+msgstr "Gestern"
+
+
+msgid "Modified"
+msgstr "Modifizieren"
+
+
 msgctxt "Object"
 msgid "New"
 msgstr "Neu"
@@ -60048,6 +60060,10 @@ msgstr "Materialgruppe"
 
 msgid "ASCII"
 msgstr "ASCII"
+
+
+msgid "Rigging"
+msgstr "Takelage"
 
 
 msgid "File References"
@@ -61086,14 +61102,6 @@ msgstr "Keine aktive Spur zum Zusammenführen"
 
 msgid "No object to apply orientation on"
 msgstr "Keine Objekte um die Orientierung zu übernehmen"
-
-
-msgid "Today"
-msgstr "Heute"
-
-
-msgid "Yesterday"
-msgstr "Gestern"
 
 
 msgid "File path"
@@ -63375,10 +63383,6 @@ msgid "File Not Found"
 msgstr "Datei nicht gefunden"
 
 
-msgid "Modified"
-msgstr "Modifizieren"
-
-
 msgid "For security reasons, automatic execution of Python scripts in this file was disabled:"
 msgstr "Zur Sicherheit wird die automatische Ausführung der Python Skripte in dieser Datei deaktiviert:"
 
@@ -63617,10 +63621,6 @@ msgstr "Masche hinzufügen"
 
 msgid "Import-Export"
 msgstr "Importieren/Expotieren"
-
-
-msgid "Rigging"
-msgstr "Takelage"
 
 
 msgid "Video Tools"
