@@ -142,6 +142,12 @@ static int grease_pencil_stroke_invoke(bContext *C, wmOperator *op, const wmEven
 
   const int current_frame = scene->r.cfra;
   bke::greasepencil::Layer &active_layer = *grease_pencil.get_active_layer();
+
+  if (!active_layer.is_editable()) {
+    BKE_report(op->reports, RPT_ERROR, "Active layer is locked or hidden");
+    return OPERATOR_CANCELLED;
+  }
+
   /* If there is no drawing at the current frame and auto-key is off, then */
   if (!active_layer.has_drawing_at(current_frame) && !blender::animrig::is_autokey_on(scene)) {
     BKE_report(op->reports, RPT_ERROR, "No Grease Pencil frame to draw on");
