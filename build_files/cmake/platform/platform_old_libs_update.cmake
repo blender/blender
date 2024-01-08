@@ -126,7 +126,6 @@ endif()
 
 # Detect Python 3.10 to 3.11 upgrade for Blender 4.1.
 if(UNIX AND
-  (NOT APPLE) AND
   LIBDIR AND
   EXISTS ${LIBDIR} AND
   EXISTS ${LIBDIR}/python/bin/python3.11 AND
