@@ -123,6 +123,10 @@ wmDropBox *WM_dropbox_add(ListBase *lb,
   drop->ot = ot;
 
   WM_operator_properties_alloc(&(drop->ptr), &(drop->properties), idname);
+  WM_operator_properties_sanitize(drop->ptr, true);
+
+  /* Signal for no context, see #STRUCT_NO_CONTEXT_WITHOUT_OWNER_ID. */
+  drop->ptr->owner_id = nullptr;
 
   BLI_addtail(lb, drop);
 
