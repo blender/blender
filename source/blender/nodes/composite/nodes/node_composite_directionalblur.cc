@@ -83,7 +83,11 @@ class DirectionalBlurOperation : public NodeOperation {
      * transformation. So add an extra iteration for the original image and put that into
      * consideration in the shader. */
     GPU_shader_uniform_1i(shader, "iterations", get_iterations() + 1);
-    GPU_shader_uniform_mat3_as_mat4(shader, "inverse_transformation", get_transformation().ptr());
+    GPU_shader_uniform_2fv(shader, "origin", get_origin());
+    GPU_shader_uniform_2fv(shader, "translation", get_translation());
+    GPU_shader_uniform_1f(shader, "rotation_sin", math::sin(get_rotation()));
+    GPU_shader_uniform_1f(shader, "rotation_cos", math::cos(get_rotation()));
+    GPU_shader_uniform_1f(shader, "scale", get_scale());
 
     const Result &input_image = get_input("Image");
     GPU_texture_filter_mode(input_image.texture(), true);
@@ -102,16 +106,18 @@ class DirectionalBlurOperation : public NodeOperation {
     input_image.unbind_as_texture();
   }
 
-  /* Get the amount of translation that will be applied on each iteration. The translation is in
-   * the negative x direction rotated in the clock-wise direction, hence the negative sign for the
-   * rotation and translation vector. */
+  /* Get the amount of translation relative to the image size that will be applied on each
+   * iteration. The translation is in the negative x direction rotated in the clock-wise direction,
+   * hence the negative sign for the rotation and translation vector. */
   float2 get_translation()
   {
-    const float diagonal_length = math::length(float2(get_input("Image").domain().size));
+    const float2 input_size = float2(get_input("Image").domain().size);
+    const float diagonal_length = math::length(input_size);
     const float translation_amount = diagonal_length * node_storage(bnode()).distance;
     const float2x2 rotation = math::from_rotation<float2x2>(
         math::AngleRadian(-node_storage(bnode()).angle));
-    return rotation * float2(-translation_amount / get_iterations(), 0.0f);
+    const float2 translation = rotation * float2(-translation_amount / get_iterations(), 0.0f);
+    return translation / input_size;
   }
 
   /* Get the amount of rotation that will be applied on each iteration. */
@@ -122,27 +128,14 @@ class DirectionalBlurOperation : public NodeOperation {
 
   /* Get the amount of scale that will be applied on each iteration. The scale is identity when the
    * user supplies 0, so we add 1. */
-  float2 get_scale()
+  float get_scale()
   {
-    return float2(1.0f + node_storage(bnode()).zoom / get_iterations());
+    return node_storage(bnode()).zoom / get_iterations();
   }
 
   float2 get_origin()
   {
-    const float2 center = float2(node_storage(bnode()).center_x, node_storage(bnode()).center_y);
-    return float2(get_input("Image").domain().size) * center;
-  }
-
-  float3x3 get_transformation()
-  {
-    /* Construct the transformation that will be applied on each iteration. */
-    const float3x3 transformation = math::from_loc_rot_scale<float3x3>(
-        get_translation(), math::AngleRadian(get_rotation()), get_scale());
-    /* Change the origin of the transformation to the user-specified origin. */
-    const float3x3 origin_transformation = math::from_origin_transform<float3x3>(transformation,
-                                                                                 get_origin());
-    /* The shader will transform the coordinates, not the image itself, so take the inverse. */
-    return math::invert(origin_transformation);
+    return float2(node_storage(bnode()).center_x, node_storage(bnode()).center_y);
   }
 
   /* The actual number of iterations is 2 to the power of the user supplied iterations. The power
