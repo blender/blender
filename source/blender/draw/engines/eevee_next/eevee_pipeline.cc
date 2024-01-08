@@ -535,7 +535,6 @@ void DeferredLayer::end_sync()
       else {
         /* The shader cannot set the stencil directly. So we do one fullscreen pass for each
          * stencil bit we need to set and accumulate the result. */
-        sub.clear_stencil(0x0u);
         for (size_t i = 0; i <= log2_ceil(closure_count_); i++) {
           int stencil_value = 1 << i;
           sub.push_constant("current_bit", stencil_value);
@@ -719,6 +718,12 @@ void DeferredLayer::render(View &main_view,
     GPU_framebuffer_bind(gbuffer_fb);
   }
   else {
+    if (!GPU_stencil_export_support()) {
+      /* Clearing custom load-store framebuffers is invalid,
+       * clear the stencil as a regular framebuffer first. */
+      GPU_framebuffer_bind(gbuffer_fb);
+      GPU_framebuffer_clear_stencil(gbuffer_fb, 0x0u);
+    }
     GPU_framebuffer_bind_ex(
         gbuffer_fb,
         {
