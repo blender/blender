@@ -705,7 +705,7 @@ void DeferredLayer::render(View &main_view,
       /* FIXME(fclem): Metal has bug in backend. */
       GPU_backend_get_type() == GPU_BACKEND_METAL)
   {
-    inst_.gbuffer.header_tx.clear(int4(0));
+    inst_.gbuffer.header_tx.clear(uint4(0));
   }
 
   if (GPU_backend_get_type() == GPU_BACKEND_METAL) {
