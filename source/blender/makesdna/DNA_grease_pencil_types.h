@@ -569,13 +569,13 @@ typedef struct GreasePencil {
    * drawing exists.
    */
   const blender::bke::greasepencil::Drawing *get_drawing_at(
-      const blender::bke::greasepencil::Layer *layer, int frame_number) const;
+      const blender::bke::greasepencil::Layer &layer, int frame_number) const;
   /**
    * Returns an editable drawing on \a layer at frame \a frame_number or `nullptr` if no such
    * drawing exists.
    */
   blender::bke::greasepencil::Drawing *get_editable_drawing_at(
-      const blender::bke::greasepencil::Layer *layer, int frame_number);
+      const blender::bke::greasepencil::Layer &layer, int frame_number);
 
   std::optional<blender::Bounds<blender::float3>> bounds_min_max(int frame) const;
   std::optional<blender::Bounds<blender::float3>> bounds_min_max_eval() const;

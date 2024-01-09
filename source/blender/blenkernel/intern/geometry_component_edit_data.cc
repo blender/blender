@@ -89,7 +89,7 @@ static void remember_deformed_grease_pencil_if_necessary(const GreasePencil *gre
         *grease_pencil, layer_index);
     const greasepencil::Layer &orig_layer = *orig_layers[layer_index];
     const greasepencil::Drawing *orig_drawing = orig_grease_pencil.get_drawing_at(
-        &orig_layer, grease_pencil->runtime->eval_frame);
+        orig_layer, grease_pencil->runtime->eval_frame);
     GreasePencilDrawingEditHints &drawing_hints = all_hints[layer_index];
 
     if (!drawing || !orig_drawing) {
