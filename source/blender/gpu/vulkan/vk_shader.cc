@@ -1015,9 +1015,10 @@ std::string VKShader::resources_declare(const shader::ShaderCreateInfo &info) co
         ss << "const bool " << sc.name << "=" << (sc.default_value.u ? "true" : "false") << ";\n";
         break;
       case Type::FLOAT:
-        /* Use uint representation to allow exact same bit pattern even if NaN. */
-        ss << "const float " << sc.name << "= uintBitsToFloat("
-           << std::to_string(sc.default_value.u) << "u);\n";
+        /* Use uint representation to allow exact same bit pattern even if NaN. uintBitsToFloat
+         * isn't supported during global const initialization.  */
+        ss << "#define " << sc.name << " uintBitsToFloat(" << std::to_string(sc.default_value.u)
+           << "u)\n";
         break;
       default:
         BLI_assert_unreachable();
