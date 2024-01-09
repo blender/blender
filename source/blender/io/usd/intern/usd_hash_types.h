@@ -7,6 +7,7 @@
 #include "BLI_hash.hh"
 
 #include <pxr/base/tf/token.h>
+#include <pxr/usd/sdf/path.h>
 #include <pxr/usd/sdf/valueTypeName.h>
 
 namespace blender {

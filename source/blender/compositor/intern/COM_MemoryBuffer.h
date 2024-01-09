@@ -13,6 +13,8 @@
 #include "BLI_math_vector.h"
 #include "BLI_rect.h"
 
+#include <cstring>
+
 struct ColormanageProcessor;
 struct ImBuf;
 
