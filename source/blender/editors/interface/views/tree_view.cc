@@ -508,7 +508,7 @@ void AbstractTreeViewItem::toggle_collapsed()
   is_open_ = !is_open_;
 }
 
-void AbstractTreeViewItem::set_collapsed(bool collapsed)
+void AbstractTreeViewItem::set_collapsed(const bool collapsed)
 {
   is_open_ = !collapsed;
 }
