@@ -372,7 +372,7 @@ static void update_existing_bake_caches(NodesModifierData &nmd)
       }
     }
   }
-  
+
   modifier_cache.simulation_cache_by_id = std::move(new_simulation_cache_by_id);
   modifier_cache.bake_cache_by_id = std::move(new_bake_cache_by_id);
 }
@@ -1790,8 +1790,7 @@ static void draw_property_for_socket(const bContext &C,
                                      NodesModifierData *nmd,
                                      PointerRNA *bmain_ptr,
                                      PointerRNA *md_ptr,
-                                     const bNodeTreeInterfaceSocket &socket,
-                                     const int socket_index)
+                                     const bNodeTreeInterfaceSocket &socket)
 {
   const StringRefNull identifier = socket.identifier;
   /* The property should be created in #MOD_nodes_update_interface with the correct type. */
@@ -1811,6 +1810,9 @@ static void draw_property_for_socket(const bContext &C,
 
   uiLayout *row = uiLayoutRow(layout, true);
   uiLayoutSetPropDecorate(row, true);
+
+  const int input_index =
+      const_cast<const bNodeTree *>(nmd->node_group)->interface_inputs().first_index(&socket);
 
   /* Use #uiItemPointerR to draw pointer properties because #uiItemR would not have enough
    * information about what type of ID to select for editing the values. This is because
@@ -1848,7 +1850,7 @@ static void draw_property_for_socket(const bContext &C,
       ATTR_FALLTHROUGH;
     }
     default: {
-      if (nodes::input_has_attribute_toggle(*nmd->node_group, socket_index)) {
+      if (nodes::input_has_attribute_toggle(*nmd->node_group, input_index)) {
         add_attribute_search_or_value_buttons(C, row, *nmd, md_ptr, socket);
       }
       else {
@@ -1856,7 +1858,7 @@ static void draw_property_for_socket(const bContext &C,
       }
     }
   }
-  if (!nodes::input_has_attribute_toggle(*nmd->node_group, socket_index)) {
+  if (!nodes::input_has_attribute_toggle(*nmd->node_group, input_index)) {
     uiItemL(row, "", ICON_BLANK1);
   }
 }
@@ -1896,8 +1898,7 @@ static void draw_interface_panel_content(const bContext *C,
                                          uiLayout *layout,
                                          PointerRNA *modifier_ptr,
                                          NodesModifierData &nmd,
-                                         const bNodeTreeInterfacePanel &interface_panel,
-                                         int &next_input_index)
+                                         const bNodeTreeInterfacePanel &interface_panel)
 {
   Main *bmain = CTX_data_main(C);
   PointerRNA bmain_ptr = RNA_main_pointer_create(bmain);
@@ -1911,18 +1912,15 @@ static void draw_interface_panel_content(const bContext *C,
       if (uiLayout *panel_layout = uiLayoutPanel(
               C, layout, sub_interface_panel.name, &panel_ptr, "is_open"))
       {
-        draw_interface_panel_content(
-            C, panel_layout, modifier_ptr, nmd, sub_interface_panel, next_input_index);
+        draw_interface_panel_content(C, panel_layout, modifier_ptr, nmd, sub_interface_panel);
       }
     }
     else {
       const auto &interface_socket = *reinterpret_cast<const bNodeTreeInterfaceSocket *>(item);
       if (interface_socket.flag & NODE_INTERFACE_SOCKET_INPUT) {
         if (!(interface_socket.flag & NODE_INTERFACE_SOCKET_HIDE_IN_MODIFIER)) {
-          draw_property_for_socket(
-              *C, layout, &nmd, &bmain_ptr, modifier_ptr, interface_socket, next_input_index);
+          draw_property_for_socket(*C, layout, &nmd, &bmain_ptr, modifier_ptr, interface_socket);
         }
-        next_input_index++;
       }
     }
   }
@@ -2050,9 +2048,7 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   if (nmd->node_group != nullptr && nmd->settings.properties != nullptr) {
     nmd->node_group->ensure_interface_cache();
-    int next_input_index = 0;
-    draw_interface_panel_content(
-        C, layout, ptr, *nmd, nmd->node_group->tree_interface.root_panel, next_input_index);
+    draw_interface_panel_content(C, layout, ptr, *nmd, nmd->node_group->tree_interface.root_panel);
   }
 
   /* Draw node warnings. */
