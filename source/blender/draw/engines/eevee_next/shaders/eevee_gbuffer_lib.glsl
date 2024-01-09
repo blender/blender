@@ -703,7 +703,7 @@ GBufferWriter gbuffer_pack(GBufferDataUndetermined data_in)
     gbuffer_append_normal(gbuf, data_in.surface_N);
   }
 
-  if (has_sss || has_translucent) {
+  if (has_sss || has_translucent || has_refraction) {
     gbuffer_additional_info_pack(gbuf, data_in.thickness, data_in.object_id);
   }
 
@@ -814,6 +814,7 @@ GBufferReader gbuffer_read(samplerGBufferHeader header_tx,
       case GBUF_REFRACTION:
         gbuffer_closure_refraction_load(gbuf, layer, closure_tx, normal_tx);
         gbuf.closure_count++;
+        has_additional_data = true;
         break;
       case GBUF_REFLECTION_COLORLESS:
         gbuffer_closure_reflection_colorless_load(gbuf, layer, closure_tx, normal_tx);
@@ -822,6 +823,7 @@ GBufferReader gbuffer_read(samplerGBufferHeader header_tx,
       case GBUF_REFRACTION_COLORLESS:
         gbuffer_closure_refraction_colorless_load(gbuf, layer, closure_tx, normal_tx);
         gbuf.closure_count++;
+        has_additional_data = true;
         break;
     }
   }

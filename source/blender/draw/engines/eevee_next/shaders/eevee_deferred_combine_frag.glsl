@@ -58,6 +58,7 @@ void main()
 
   for (int i = 0; i < GBUFFER_LAYER_MAX && i < gbuf.closure_count; i++) {
     vec3 closure_light = load_radiance_direct(texel, i);
+    ClosureUndetermined cl = gbuffer_closure_get(gbuf, i);
 
     /* TODO(fclem): Enable for OpenGL and VULKAN once they fully support specialization constants.
      */
@@ -65,10 +66,16 @@ void main()
     bool use_combined_lightprobe_eval = uniform_buf.pipeline.use_combined_lightprobe_eval;
 #endif
     if (!use_combined_lightprobe_eval) {
-      closure_light += load_radiance_indirect(texel, i);
+      vec3 closure_indirect = load_radiance_indirect(texel, i);
+      if (cl.type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID) {
+        /* TODO(fclem): Add instead of replacing when we support correct refracted light. */
+        closure_light = closure_indirect;
+      }
+      else {
+        closure_light += closure_indirect;
+      }
     }
 
-    ClosureUndetermined cl = gbuffer_closure_get(gbuf, i);
     closure_light *= cl.color;
     out_combined.rgb += closure_light;
 
