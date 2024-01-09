@@ -35,7 +35,7 @@ namespace blender::animrig::internal {
  * Updating those, as well as any references to the rotated element, is the
  * responsibility of the caller.
  *
- * \param direction must be either -1 or 1.
+ * \param direction: Must be either -1 or 1.
  */
 void bonecolls_rotate_block(bArmature *armature, int start_index, int count, int direction);
 
