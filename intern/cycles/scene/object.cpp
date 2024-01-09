@@ -571,11 +571,6 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
   kobject.dupli_generated[0] = ob->dupli_generated[0];
   kobject.dupli_generated[1] = ob->dupli_generated[1];
   kobject.dupli_generated[2] = ob->dupli_generated[2];
-  kobject.numkeys = (geom->geometry_type == Geometry::HAIR) ?
-                        static_cast<Hair *>(geom)->get_curve_keys().size() :
-                    (geom->geometry_type == Geometry::POINTCLOUD) ?
-                        static_cast<PointCloud *>(geom)->num_points() :
-                        0;
   kobject.dupli_uv[0] = ob->dupli_uv[0];
   kobject.dupli_uv[1] = ob->dupli_uv[1];
   int totalsteps = geom->get_motion_steps();
@@ -583,6 +578,10 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
   kobject.numverts = (geom->geometry_type == Geometry::MESH ||
                       geom->geometry_type == Geometry::VOLUME) ?
                          static_cast<Mesh *>(geom)->get_verts().size() :
+                     (geom->geometry_type == Geometry::HAIR) ?
+                         static_cast<Hair *>(geom)->get_curve_keys().size() :
+                     (geom->geometry_type == Geometry::POINTCLOUD) ?
+                         static_cast<PointCloud *>(geom)->num_points() :
                          0;
   kobject.patch_map_offset = 0;
   kobject.attribute_map_offset = 0;
