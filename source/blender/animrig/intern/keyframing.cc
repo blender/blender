@@ -68,21 +68,21 @@ void update_autoflags_fcurve_direct(FCurve *fcu, PropertyRNA *prop)
 }
 
 /** Used to make curves newly added to a cyclic Action cycle with the correct period. */
-static void make_new_fcurve_cyclic(const bAction *act, FCurve *fcu)
+static void make_new_fcurve_cyclic(FCurve *fcu, const blender::float2 &action_range)
 {
   /* The curve must contain one (newly-added) keyframe. */
   if (fcu->totvert != 1 || !fcu->bezt) {
     return;
   }
 
-  const float period = act->frame_end - act->frame_start;
+  const float period = action_range[1] - action_range[0];
 
   if (period < 0.1f) {
     return;
   }
 
   /* Move the keyframe into the range. */
-  const float frame_offset = fcu->bezt[0].vec[1][0] - act->frame_start;
+  const float frame_offset = fcu->bezt[0].vec[1][0] - action_range[0];
   const float fix = floorf(frame_offset / period) * period;
 
   fcu->bezt[0].vec[0][0] -= fix;
@@ -470,7 +470,7 @@ static bool insert_keyframe_fcurve_value(Main *bmain,
   const bool is_cyclic_action = (flag & INSERTKEY_CYCLE_AWARE) && BKE_action_is_cyclic(act);
 
   if (is_cyclic_action && fcu->totvert == 1) {
-    make_new_fcurve_cyclic(act, fcu);
+    make_new_fcurve_cyclic(fcu, {act->frame_start, act->frame_end});
   }
 
   /* Update F-Curve flags to ensure proper behavior for property type. */
@@ -494,7 +494,7 @@ static bool insert_keyframe_fcurve_value(Main *bmain,
 
   /* If the curve is new, make it cyclic if appropriate. */
   if (is_cyclic_action && is_new_curve) {
-    make_new_fcurve_cyclic(act, fcu);
+    make_new_fcurve_cyclic(fcu, {act->frame_start, act->frame_end});
   }
 
   return success;
