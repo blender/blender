@@ -1225,6 +1225,12 @@ bNodeSocket *node_find_indicated_socket(SpaceNode &snode,
   };
 
   for (bNode *node : sorted_nodes) {
+    const bool node_hidden = node->flag & NODE_HIDDEN;
+    if (!node_hidden && node->runtime->totr.ymax - cursor.y < NODE_DY) {
+      /* Don't pick socket when cursor is over node header. This allows the user to always resize
+       * by dragging on the left and right side of the header. */
+      continue;
+    }
     if (in_out & SOCK_IN) {
       for (bNodeSocket *sock : node->input_sockets()) {
         if (!node->is_socket_icon_drawn(*sock)) {
@@ -1232,7 +1238,7 @@ bNodeSocket *node_find_indicated_socket(SpaceNode &snode,
         }
         const float2 location = sock->runtime->location;
         const float distance = math::distance(location, cursor);
-        if (sock->flag & SOCK_MULTI_INPUT && !(node->flag & NODE_HIDDEN)) {
+        if (sock->flag & SOCK_MULTI_INPUT && !node_hidden) {
           if (cursor_isect_multi_input_socket(cursor, *sock)) {
             update_best_socket(sock, distance);
             continue;
@@ -1251,7 +1257,7 @@ bNodeSocket *node_find_indicated_socket(SpaceNode &snode,
         const float2 location = sock->runtime->location;
         const float distance = math::distance(location, cursor);
         if (distance < max_distance) {
-          if (node->flag & NODE_HIDDEN) {
+          if (node_hidden) {
             if (location.x - cursor.x > padded_socket_size) {
               /* Needed to be able to resize collapsed nodes. */
               continue;
