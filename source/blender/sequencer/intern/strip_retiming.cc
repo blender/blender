@@ -123,6 +123,7 @@ void SEQ_retiming_data_clear(Sequence *seq)
 {
   seq->retiming_keys = nullptr;
   seq->retiming_keys_num = 0;
+  seq->flag &= ~SEQ_SHOW_RETIMING;
 }
 
 bool SEQ_retiming_is_active(const Sequence *seq)
