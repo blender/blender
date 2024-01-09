@@ -511,11 +511,6 @@ void DeferredLayer::end_sync()
   if (closure_bits_ & evaluated_closures) {
     RenderBuffersInfoData &rbuf_data = inst_.render_buffers.data;
 
-    /* NOTE: For tile-based GPU architectures, barriers are not always needed if implicit local
-     * ordering is guaranteed via either blending order or explicit raster_order_groups. */
-    bool is_tbdr_arch_metal = (GPU_platform_architecture() == GPU_ARCHITECTURE_TBDR) &&
-                              (GPU_backend_get_type() == GPU_BACKEND_METAL);
-
     /* Add the stencil classification step at the end of the GBuffer pass. */
     {
       GPUShader *sh = inst_.shaders.static_shader_get(DEFERRED_TILE_CLASSIFY);
