@@ -10,8 +10,8 @@
 
 #include <Python.h>
 
-#if PY_VERSION_HEX < 0x030a0000
-#  error "Python 3.10 or greater is required, you'll need to update your Python."
+#if PY_VERSION_HEX < 0x030b0000
+#  error "Python 3.11 or greater is required, you'll need to update your Python."
 #endif
 
 #ifdef __cplusplus
