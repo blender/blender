@@ -54,7 +54,10 @@ macro(blender_src_gtest_ex)
     set(options)
     set(oneValueArgs NAME)
     set(multiValueArgs SRC EXTRA_LIBS COMMAND_ARGS)
-    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
+    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+    unset(options)
+    unset(oneValueArgs)
+    unset(multiValueArgs)
 
     set(TARGET_NAME ${ARG_NAME}_test)
     get_property(_current_include_directories
@@ -259,7 +262,10 @@ function(blender_add_test_executable_impl
   )
 
   set(oneValueArgs ADD_CTESTS DISCOVER_TESTS)
+  set(multiValueArgs)
   cmake_parse_arguments(ARGS "" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+  unset(oneValueArgs)
+  unset(multiValueArgs)
 
   add_cc_flags_custom_test(${name} PARENT_SCOPE)
 
