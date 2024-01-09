@@ -241,6 +241,11 @@ static bool depends_on_time(Scene * /*scene*/, ModifierData *md)
   if (tree == nullptr) {
     return false;
   }
+  for (const NodesModifierBake &bake : Span(nmd->bakes, nmd->bakes_num)) {
+    if (bake.bake_mode == NODES_MODIFIER_BAKE_MODE_ANIMATION) {
+      return true;
+    }
+  }
   Set<const bNodeTree *> checked_groups;
   return check_tree_for_time_node(*tree, checked_groups);
 }
