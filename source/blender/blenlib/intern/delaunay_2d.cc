@@ -76,21 +76,21 @@ template<> double math_to_double<double>(const double v)
  * While this could be cleaned up some, it is usable by other routines in Blender
  * that need to keep track of a 2D arrangement, with topology.
  */
-template<typename Arith_t> struct CDTVert;
-template<typename Arith_t> struct CDTEdge;
-template<typename Arith_t> struct CDTFace;
+template<typename T> struct CDTVert;
+template<typename T> struct CDTEdge;
+template<typename T> struct CDTFace;
 
-template<typename Arith_t> struct SymEdge {
+template<typename T> struct SymEdge {
   /** Next #SymEdge in face, doing CCW traversal of face. */
-  SymEdge<Arith_t> *next{nullptr};
+  SymEdge<T> *next{nullptr};
   /** Next #SymEdge CCW around vert. */
-  SymEdge<Arith_t> *rot{nullptr};
+  SymEdge<T> *rot{nullptr};
   /** Vert at origin. */
-  CDTVert<Arith_t> *vert{nullptr};
+  CDTVert<T> *vert{nullptr};
   /** Un-directed edge this is for. */
-  CDTEdge<Arith_t> *edge{nullptr};
+  CDTEdge<T> *edge{nullptr};
   /** Face on left side. */
-  CDTFace<Arith_t> *face{nullptr};
+  CDTFace<T> *face{nullptr};
 
   SymEdge() = default;
 };
@@ -112,67 +112,62 @@ template<typename T> inline SymEdge<T> *prev(const SymEdge<T> *se)
 /** A coordinate class with extra information for fast filtered orient tests. */
 
 template<typename T> struct FatCo {
-  vec2<T> exact;
-  vec2<double> approx;
-  vec2<double> abs_approx;
+  VecBase<T, 2> exact;
+  double2 approx;
+  double2 abs_approx;
 
   FatCo();
 #ifdef WITH_GMP
-  FatCo(const vec2<mpq_class> &v);
+  FatCo(const mpq2 &v);
 #endif
-  FatCo(const vec2<double> &v);
+  FatCo(const double2 &v);
 };
 
 #ifdef WITH_GMP
 template<> struct FatCo<mpq_class> {
-  vec2<mpq_class> exact;
-  vec2<double> approx;
-  vec2<double> abs_approx;
+  mpq2 exact;
+  double2 approx;
+  double2 abs_approx;
 
-  FatCo()
-      : exact(vec2<mpq_class>(0, 0)), approx(vec2<double>(0, 0)), abs_approx(vec2<double>(0, 0))
-  {
-  }
+  FatCo() : exact(mpq2(0, 0)), approx(double2(0, 0)), abs_approx(double2(0, 0)) {}
 
-  FatCo(const vec2<mpq_class> &v)
+  FatCo(const mpq2 &v)
   {
     exact = v;
-    approx = vec2<double>(v.x.get_d(), v.y.get_d());
-    abs_approx = vec2<double>(fabs(approx.x), fabs(approx.y));
+    approx = double2(v.x.get_d(), v.y.get_d());
+    abs_approx = double2(fabs(approx.x), fabs(approx.y));
   }
 
-  FatCo(const vec2<double> &v)
+  FatCo(const double2 &v)
   {
-    exact = vec2<mpq_class>(v.x, v.y);
+    exact = mpq2(v.x, v.y);
     approx = v;
-    abs_approx = vec2<double>(fabs(approx.x), fabs(approx.y));
+    abs_approx = double2(fabs(approx.x), fabs(approx.y));
   }
 };
 #endif
 
 template<> struct FatCo<double> {
-  vec2<double> exact;
-  vec2<double> approx;
-  vec2<double> abs_approx;
+  double2 exact;
+  double2 approx;
+  double2 abs_approx;
 
-  FatCo() : exact(vec2<double>(0, 0)), approx(vec2<double>(0, 0)), abs_approx(vec2<double>(0, 0))
-  {
-  }
+  FatCo() : exact(double2(0, 0)), approx(double2(0, 0)), abs_approx(double2(0, 0)) {}
 
 #ifdef WITH_GMP
-  FatCo(const vec2<mpq_class> &v)
+  FatCo(const mpq2 &v)
   {
-    exact = vec2<double>(v.x.get_d(), v.y.get_d());
+    exact = double2(v.x.get_d(), v.y.get_d());
     approx = exact;
-    abs_approx = vec2<double>(fabs(approx.x), fabs(approx.y));
+    abs_approx = double2(fabs(approx.x), fabs(approx.y));
   }
 #endif
 
-  FatCo(const vec2<double> &v)
+  FatCo(const double2 &v)
   {
     exact = v;
     approx = v;
-    abs_approx = vec2<double>(fabs(approx.x), fabs(approx.y));
+    abs_approx = double2(fabs(approx.x), fabs(approx.y));
   }
 };
 
@@ -197,23 +192,23 @@ template<typename T> struct CDTVert {
   int visit_index{0};
 
   CDTVert() = default;
-  explicit CDTVert(const vec2<T> &pt);
+  explicit CDTVert(const VecBase<T, 2> &pt);
 };
 
-template<typename Arith_t> struct CDTEdge {
+template<typename T> struct CDTEdge {
   /** Set of input edge ids that this is part of.
    * If don't need_ids, then should contain 0 if it is a constrained edge,
    * else empty. */
   blender::Set<int> input_ids;
   /** The directed edges for this edge. */
-  SymEdge<Arith_t> symedges[2]{SymEdge<Arith_t>(), SymEdge<Arith_t>()};
+  SymEdge<T> symedges[2]{SymEdge<T>(), SymEdge<T>()};
 
   CDTEdge() = default;
 };
 
-template<typename Arith_t> struct CDTFace {
+template<typename T> struct CDTFace {
   /** A symedge in face; only used during output, so only valid then. */
-  SymEdge<Arith_t> *symedge{nullptr};
+  SymEdge<T> *symedge{nullptr};
   /** Set of input face ids that this is part of.
    * If don't need_ids, then should contain 0 if it is part of a constrained face,
    * else empty. */
@@ -228,19 +223,19 @@ template<typename Arith_t> struct CDTFace {
   CDTFace() = default;
 };
 
-template<typename Arith_t> struct CDTArrangement {
+template<typename T> struct CDTArrangement {
   /* The arrangement owns the memory pointed to by the pointers in these vectors.
    * They are pointers instead of actual structures because these vectors may be resized and
    * other elements refer to the elements by pointer. */
 
   /** The verts. Some may be merged to others (see their merge_to_index). */
-  Vector<CDTVert<Arith_t> *> verts;
+  Vector<CDTVert<T> *> verts;
   /** The edges. Some may be deleted (SymEdge next and rot pointers are null). */
-  Vector<CDTEdge<Arith_t> *> edges;
+  Vector<CDTEdge<T> *> edges;
   /** The faces. Some may be deleted (see their delete member). */
-  Vector<CDTFace<Arith_t> *> faces;
+  Vector<CDTFace<T> *> faces;
   /** Which CDTFace is the outer face. */
-  CDTFace<Arith_t> *outer_face{nullptr};
+  CDTFace<T> *outer_face{nullptr};
 
   CDTArrangement() = default;
   ~CDTArrangement();
@@ -253,7 +248,7 @@ template<typename Arith_t> struct CDTArrangement {
    * Add a new vertex to the arrangement, with the given 2D coordinate.
    * It will not be connected to anything yet.
    */
-  CDTVert<Arith_t> *add_vert(const vec2<Arith_t> &pt);
+  CDTVert<T> *add_vert(const VecBase<T, 2> &pt);
 
   /**
    * Add an edge from v1 to v2. The edge will have a left face and a right face,
@@ -261,19 +256,16 @@ template<typename Arith_t> struct CDTArrangement {
    * If the vertices do not yet have a #SymEdge pointer,
    * their pointer is set to the #SymEdge in this new edge.
    */
-  CDTEdge<Arith_t> *add_edge(CDTVert<Arith_t> *v1,
-                             CDTVert<Arith_t> *v2,
-                             CDTFace<Arith_t> *fleft,
-                             CDTFace<Arith_t> *fright);
+  CDTEdge<T> *add_edge(CDTVert<T> *v1, CDTVert<T> *v2, CDTFace<T> *fleft, CDTFace<T> *fright);
 
   /**
    * Add a new face. It is disconnected until an add_edge makes it the
    * left or right face of an edge.
    */
-  CDTFace<Arith_t> *add_face();
+  CDTFace<T> *add_face();
 
   /** Make a new edge from v to se->vert, splicing it in. */
-  CDTEdge<Arith_t> *add_vert_to_symedge_edge(CDTVert<Arith_t> *v, SymEdge<Arith_t> *se);
+  CDTEdge<T> *add_vert_to_symedge_edge(CDTVert<T> *v, SymEdge<T> *se);
 
   /**
    * Assuming s1 and s2 are both #SymEdge's in a face with > 3 sides and one is not the next of the
@@ -281,34 +273,34 @@ template<typename Arith_t> struct CDTArrangement {
    * be the one that s1 has as left face, and a new face will be added and made s2 and its
    * next-cycle's left face.
    */
-  CDTEdge<Arith_t> *add_diagonal(SymEdge<Arith_t> *s1, SymEdge<Arith_t> *s2);
+  CDTEdge<T> *add_diagonal(SymEdge<T> *s1, SymEdge<T> *s2);
 
   /**
    * Connect the verts of se1 and se2, assuming that currently those two #SymEdge's are on the
    * outer boundary (have face == outer_face) of two components that are isolated from each other.
    */
-  CDTEdge<Arith_t> *connect_separate_parts(SymEdge<Arith_t> *se1, SymEdge<Arith_t> *se2);
+  CDTEdge<T> *connect_separate_parts(SymEdge<T> *se1, SymEdge<T> *se2);
 
   /**
    * Split se at fraction lambda, and return the new #CDTEdge that is the new second half.
    * Copy the edge input_ids into the new one.
    */
-  CDTEdge<Arith_t> *split_edge(SymEdge<Arith_t> *se, Arith_t lambda);
+  CDTEdge<T> *split_edge(SymEdge<T> *se, T lambda);
 
   /**
    * Delete an edge. The new combined face on either side of the deleted edge will be the one that
    * was e's face. There will now be an unused face, which will be marked deleted, and an unused
    * #CDTEdge, marked by setting the next and rot pointers of its #SymEdge's to #nullptr.
    */
-  void delete_edge(SymEdge<Arith_t> *se);
+  void delete_edge(SymEdge<T> *se);
 
   /**
    * If the vertex with index i in the vert array has not been merge, return it.
    * Else return the one that it has merged to.
    */
-  CDTVert<Arith_t> *get_vert_resolve_merge(int i)
+  CDTVert<T> *get_vert_resolve_merge(int i)
   {
-    CDTVert<Arith_t> *v = this->verts[i];
+    CDTVert<T> *v = this->verts[i];
     if (v->merge_to_index != -1) {
       v = this->verts[v->merge_to_index];
     }
@@ -499,18 +491,10 @@ template<typename T> void cdt_draw(const std::string &label, const CDTArrangemen
   if (cdt.verts.is_empty()) {
     return;
   }
-  vec2<double> vmin(DBL_MAX, DBL_MAX);
-  vec2<double> vmax(-DBL_MAX, -DBL_MAX);
+  double2 vmin(std::numeric_limits<double>::max());
+  double2 vmax(std::numeric_limits<double>::lowest());
   for (const CDTVert<T> *v : cdt.verts) {
-    for (int i = 0; i < 2; ++i) {
-      double dvi = v->co.approx[i];
-      if (dvi < vmin[i]) {
-        vmin[i] = dvi;
-      }
-      if (dvi > vmax[i]) {
-        vmax[i] = dvi;
-      }
-    }
+    math::min_max(v->co.approx, vmin, vmax);
   }
   double draw_margin = ((vmax.x - vmin.x) + (vmax.y - vmin.y)) * margin_expand;
   double minx = vmin.x - draw_margin;
@@ -557,8 +541,8 @@ template<typename T> void cdt_draw(const std::string &label, const CDTArrangemen
     }
     const CDTVert<T> *u = e->symedges[0].vert;
     const CDTVert<T> *v = e->symedges[1].vert;
-    const vec2<double> &uco = u->co.approx;
-    const vec2<double> &vco = v->co.approx;
+    const double2 &uco = u->co.approx;
+    const double2 &vco = v->co.approx;
     int strokew = e->input_ids.size() == 0 ? thin_line : thick_line;
     f << R"(<line fill="none" stroke="black" stroke-width=")" << strokew << "\" x1=\""
       << SX(uco[0]) << "\" y1=\"" << SY(uco[1]) << "\" x2=\"" << SX(vco[0]) << "\" y2=\""
@@ -603,7 +587,7 @@ template<typename T> void cdt_draw(const std::string &label, const CDTArrangemen
         if (se_face_start != nullptr) {
           /* Find center of face. */
           int face_nverts = 0;
-          vec2<double> cen(0.0, 0.0);
+          double2 cen(0.0, 0.0);
           if (face == cdt.outer_face) {
             cen.x = minx;
             cen.y = miny;
@@ -756,12 +740,12 @@ bool in_line<mpq_class>(const FatCo<mpq_class> &a,
                         const FatCo<mpq_class> &b,
                         const FatCo<mpq_class> &c)
 {
-  vec2<double> ab = b.approx - a.approx;
-  vec2<double> bc = c.approx - b.approx;
-  vec2<double> ac = c.approx - a.approx;
-  vec2<double> supremum_ab = b.abs_approx + a.abs_approx;
-  vec2<double> supremum_bc = c.abs_approx + b.abs_approx;
-  vec2<double> supremum_ac = c.abs_approx + a.abs_approx;
+  double2 ab = b.approx - a.approx;
+  double2 bc = c.approx - b.approx;
+  double2 ac = c.approx - a.approx;
+  double2 supremum_ab = b.abs_approx + a.abs_approx;
+  double2 supremum_bc = c.abs_approx + b.abs_approx;
+  double2 supremum_ac = c.abs_approx + a.abs_approx;
   double dot_ab_ac = ab.x * ac.x + ab.y * ac.y;
   double supremum_dot_ab_ac = supremum_ab.x * supremum_ac.x + supremum_ab.y * supremum_ac.y;
   constexpr double index = 6;
@@ -775,12 +759,12 @@ bool in_line<mpq_class>(const FatCo<mpq_class> &a,
   if (dot_bc_ac < -err_bound) {
     return false;
   }
-  vec2<mpq_class> exact_ab = b.exact - a.exact;
-  vec2<mpq_class> exact_ac = c.exact - a.exact;
+  mpq2 exact_ab = b.exact - a.exact;
+  mpq2 exact_ac = c.exact - a.exact;
   if (dot(exact_ab, exact_ac) < 0) {
     return false;
   }
-  vec2<mpq_class> exact_bc = c.exact - b.exact;
+  mpq2 exact_bc = c.exact - b.exact;
   return dot(exact_bc, exact_ac) >= 0;
 }
 #endif
@@ -788,16 +772,16 @@ bool in_line<mpq_class>(const FatCo<mpq_class> &a,
 template<>
 bool in_line<double>(const FatCo<double> &a, const FatCo<double> &b, const FatCo<double> &c)
 {
-  vec2<double> ab = b.approx - a.approx;
-  vec2<double> ac = c.approx - a.approx;
+  double2 ab = b.approx - a.approx;
+  double2 ac = c.approx - a.approx;
   if (dot(ab, ac) < 0) {
     return false;
   }
-  vec2<double> bc = c.approx - b.approx;
+  double2 bc = c.approx - b.approx;
   return dot(bc, ac) >= 0;
 }
 
-template<> CDTVert<double>::CDTVert(const vec2<double> &pt)
+template<> CDTVert<double>::CDTVert(const double2 &pt)
 {
   this->co.exact = pt;
   this->co.approx = pt;
@@ -809,7 +793,7 @@ template<> CDTVert<double>::CDTVert(const vec2<double> &pt)
 }
 
 #ifdef WITH_GMP
-template<> CDTVert<mpq_class>::CDTVert(const vec2<mpq_class> &pt)
+template<> CDTVert<mpq_class>::CDTVert(const mpq2 &pt)
 {
   this->co.exact = pt;
   this->co.approx = double2(pt.x.get_d(), pt.y.get_d());
@@ -821,7 +805,7 @@ template<> CDTVert<mpq_class>::CDTVert(const vec2<mpq_class> &pt)
 }
 #endif
 
-template<typename T> CDTVert<T> *CDTArrangement<T>::add_vert(const vec2<T> &pt)
+template<typename T> CDTVert<T> *CDTArrangement<T>::add_vert(const VecBase<T, 2> &pt)
 {
   CDTVert<T> *v = new CDTVert<T>(pt);
   int index = this->verts.append_and_get_index(v);
@@ -1064,8 +1048,8 @@ CDTEdge<T> *CDTArrangement<T>::connect_separate_parts(SymEdge<T> *se1, SymEdge<T
 template<typename T> CDTEdge<T> *CDTArrangement<T>::split_edge(SymEdge<T> *se, T lambda)
 {
   /* Split e at lambda. */
-  const vec2<T> *a = &se->vert->co.exact;
-  const vec2<T> *b = &se->next->vert->co.exact;
+  const VecBase<T, 2> *a = &se->vert->co.exact;
+  const VecBase<T, 2> *b = &se->next->vert->co.exact;
   SymEdge<T> *sesym = sym(se);
   SymEdge<T> *sesymprev = prev(sesym);
   SymEdge<T> *sesymprevsym = sym(sesymprev);
@@ -1177,8 +1161,8 @@ template<typename T> class SiteInfo {
  */
 template<typename T> bool site_lexicographic_sort(const SiteInfo<T> &a, const SiteInfo<T> &b)
 {
-  const vec2<T> &co_a = a.v->co.exact;
-  const vec2<T> &co_b = b.v->co.exact;
+  const VecBase<T, 2> &co_a = a.v->co.exact;
+  const VecBase<T, 2> &co_b = b.v->co.exact;
   if (co_a[0] < co_b[0]) {
     return true;
   }
@@ -1697,7 +1681,7 @@ void fill_crossdata_for_intersect(const FatCo<T> &curco,
   auto isect = isect_seg_seg(va->co.exact, vb->co.exact, curco.exact, v2->co.exact);
   T &lambda = isect.lambda;
   switch (isect.kind) {
-    case isect_result<vec2<T>>::LINE_LINE_CROSS: {
+    case isect_result<VecBase<T, 2>>::LINE_LINE_CROSS: {
 #ifdef WITH_GMP
       if (!std::is_same<T, mpq_class>::value) {
 #else
@@ -1725,7 +1709,7 @@ void fill_crossdata_for_intersect(const FatCo<T> &curco,
       }
       break;
     }
-    case isect_result<vec2<T>>::LINE_LINE_EXACT: {
+    case isect_result<VecBase<T, 2>>::LINE_LINE_EXACT: {
       if (lambda == 0) {
         fill_crossdata_for_through_vert(va, se_vcva, cd, cd_next);
       }
@@ -1740,7 +1724,7 @@ void fill_crossdata_for_intersect(const FatCo<T> &curco,
       }
       break;
     }
-    case isect_result<vec2<T>>::LINE_LINE_NONE: {
+    case isect_result<VecBase<T, 2>>::LINE_LINE_NONE: {
 #ifdef WITH_GMP
       if (std::is_same<T, mpq_class>::value) {
         BLI_assert(false);
@@ -1756,7 +1740,7 @@ void fill_crossdata_for_intersect(const FatCo<T> &curco,
       }
       break;
     }
-    case isect_result<vec2<T>>::LINE_LINE_COLINEAR: {
+    case isect_result<VecBase<T, 2>>::LINE_LINE_COLINEAR: {
       if (distance_squared(va->co.approx, v2->co.approx) <=
           distance_squared(vb->co.approx, v2->co.approx))
       {
@@ -1836,7 +1820,7 @@ void get_next_crossing_from_edge(CrossData<T> *cd,
 {
   CDTVert<T> *va = cd->in->vert;
   CDTVert<T> *vb = cd->in->next->vert;
-  vec2<T> curco = interpolate(va->co.exact, vb->co.exact, cd->lambda);
+  VecBase<T, 2> curco = interpolate(va->co.exact, vb->co.exact, cd->lambda);
   FatCo<T> fat_curco(curco);
   SymEdge<T> *se_ac = sym(cd->in)->next;
   CDTVert<T> *vc = se_ac->next->vert;
@@ -2376,8 +2360,8 @@ template<typename T> void remove_non_constraint_edges_leave_valid_bmesh(CDT_stat
     if (!is_deleted_edge(e) && !is_constrained_edge(e)) {
       dissolvable_edges.append(EdgeToSort<T>());
       dissolvable_edges[i].e = e;
-      const vec2<double> &co1 = e->symedges[0].vert->co.approx;
-      const vec2<double> &co2 = e->symedges[1].vert->co.approx;
+      const double2 &co1 = e->symedges[0].vert->co.approx;
+      const double2 &co2 = e->symedges[1].vert->co.approx;
       dissolvable_edges[i].len_squared = distance_squared(co1, co2);
       i++;
     }
@@ -2544,7 +2528,7 @@ template<typename T> void detect_holes(CDT_state<T> *cdt_state)
   /* Pick a ray end almost certain to be outside everything and in direction
    * that is unlikely to hit a vertex or overlap an edge exactly. */
   FatCo<T> ray_end;
-  ray_end.exact = vec2<T>(123456, 654321);
+  ray_end.exact = VecBase<T, 2>(123456, 654321);
   for (int i : region_rep_face.index_range()) {
     CDTFace<T> *f = region_rep_face[i];
     FatCo<T> mid;
@@ -2568,13 +2552,13 @@ template<typename T> void detect_holes(CDT_state<T> *cdt_state)
                                      e->symedges[0].vert->co.exact,
                                      e->symedges[1].vert->co.exact);
           switch (isect.kind) {
-            case isect_result<vec2<T>>::LINE_LINE_CROSS: {
+            case isect_result<VecBase<T, 2>>::LINE_LINE_CROSS: {
               hits++;
               break;
             }
-            case isect_result<vec2<T>>::LINE_LINE_EXACT:
-            case isect_result<vec2<T>>::LINE_LINE_NONE:
-            case isect_result<vec2<T>>::LINE_LINE_COLINEAR:
+            case isect_result<VecBase<T, 2>>::LINE_LINE_EXACT:
+            case isect_result<VecBase<T, 2>>::LINE_LINE_NONE:
+            case isect_result<VecBase<T, 2>>::LINE_LINE_COLINEAR:
               break;
           }
         }
@@ -2692,7 +2676,7 @@ CDT_result<T> get_cdt_output(CDT_state<T> *cdt_state,
       }
     }
   }
-  result.vert = Array<vec2<T>>(nv);
+  result.vert = Array<VecBase<T, 2>>(nv);
   if (cdt_state->need_ids) {
     result.vert_orig = Array<Vector<int>>(nv);
   }
