@@ -3524,7 +3524,7 @@ static void rna_def_space(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Type", "Space data type");
 
-  /* access to V2D_VIEWSYNC_SCREEN_TIME */
+  /* Access to #V2D_VIEWSYNC_SCREEN_TIME. */
   prop = RNA_def_property(srna, "show_locked_time", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(prop, "rna_Space_view2d_sync_get", "rna_Space_view2d_sync_set");
   RNA_def_property_ui_text(prop,
