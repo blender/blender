@@ -80,14 +80,15 @@ set(INC_SYS
 )
 
 set(SRC
-  intern/usd_asset_utils.cc
   intern/usd_armature_utils.cc
+  intern/usd_asset_utils.cc
   intern/usd_blend_shape_utils.cc
   intern/usd_capi_export.cc
   intern/usd_capi_import.cc
   intern/usd_hierarchy_iterator.cc
   intern/usd_hook.cc
   intern/usd_writer_abstract.cc
+  intern/usd_writer_armature.cc
   intern/usd_writer_camera.cc
   intern/usd_writer_curves.cc
   intern/usd_writer_hair.cc
@@ -97,7 +98,6 @@ set(SRC
   intern/usd_writer_metaball.cc
   intern/usd_writer_transform.cc
   intern/usd_writer_volume.cc
-  intern/usd_writer_armature.cc
 
   intern/usd_reader_camera.cc
   intern/usd_reader_curve.cc
@@ -119,14 +119,15 @@ set(SRC
   usd.h
   usd.hh
 
-  intern/usd_asset_utils.h
   intern/usd_armature_utils.h
+  intern/usd_asset_utils.h
   intern/usd_blend_shape_utils.h
   intern/usd_exporter_context.h
   intern/usd_hash_types.h
   intern/usd_hierarchy_iterator.h
   intern/usd_hook.h
   intern/usd_writer_abstract.h
+  intern/usd_writer_armature.h
   intern/usd_writer_camera.h
   intern/usd_writer_curves.h
   intern/usd_writer_hair.h
@@ -136,7 +137,6 @@ set(SRC
   intern/usd_writer_metaball.h
   intern/usd_writer_transform.h
   intern/usd_writer_volume.h
-  intern/usd_writer_armature.h
 
   intern/usd_reader_camera.h
   intern/usd_reader_curve.h
