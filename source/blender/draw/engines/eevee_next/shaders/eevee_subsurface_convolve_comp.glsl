@@ -97,9 +97,7 @@ void main(void)
     return;
   }
 
-  /* TODO SSS closure. */
-  ClosureDiffuse closure = to_closure_diffuse(gbuffer_closure_get(gbuf, 0));
-
+  ClosureSubsurface closure = to_closure_subsurface(gbuffer_closure_get(gbuf, 0));
   float max_radius = reduce_max(closure.sss_radius);
 
   float homcoord = ProjectionMatrix[2][3] * vP.z + ProjectionMatrix[3][3];

@@ -26,12 +26,10 @@ void main(void)
   GBufferReader gbuf = gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, texel);
 
   if (gbuffer_closure_get(gbuf, 0).type == CLOSURE_BSSRDF_BURLEY_ID) {
-    /* TODO SSS closure. */
-
     vec3 radiance = imageLoad(direct_light_img, texel).rgb +
                     imageLoad(indirect_light_img, texel).rgb;
 
-    ClosureDiffuse closure = to_closure_diffuse(gbuffer_closure_get(gbuf, 0));
+    ClosureSubsurface closure = to_closure_subsurface(gbuffer_closure_get(gbuf, 0));
     float max_radius = reduce_max(closure.sss_radius);
 
     imageStore(radiance_img, texel, vec4(radiance, 0.0));
