@@ -2169,7 +2169,7 @@ static int power_of_10_greater_equal_to(int x)
     return 1;
   }
   int ans = 1;
-  BLI_assert(x < INT_MAX / 10);
+  BLI_assert(x < std::numeric_limits<int>::max() / 10);
   while (ans < x) {
     ans *= 10;
   }
@@ -2207,7 +2207,7 @@ int add_face_constraints(CDT_state<T> *cdt_state,
    * If we really have that many faces and that large a max face length that when multiplied
    * together the are >= INT_MAX, then the Delaunay calculation will take unreasonably long anyway.
    */
-  BLI_assert(INT_MAX / cdt_state->face_edge_offset > input_faces.size());
+  BLI_assert(std::numeric_limits<int>::max() / cdt_state->face_edge_offset > input_faces.size());
   int faces_added = 0;
   for (const int f : input_faces.index_range()) {
     const Span<int> face = input_faces[f];
