@@ -35,6 +35,7 @@
 struct SnapGizmo3D {
   wmGizmo gizmo;
   V3DSnapCursorState *snap_state;
+  V3DSnapCursorState snap_state_stored;
 };
 
 /* -------------------------------------------------------------------- */
@@ -188,6 +189,7 @@ static void gizmo_snap_rna_snap_srouce_type_set_fn(PointerRNA * /*ptr*/,
 static void snap_cursor_free(SnapGizmo3D *snap_gizmo)
 {
   if (snap_gizmo->snap_state) {
+    snap_gizmo->snap_state_stored = *snap_gizmo->snap_state;
     ED_view3d_cursor_snap_state_free(snap_gizmo->snap_state);
     snap_gizmo->snap_state = nullptr;
   }
@@ -216,18 +218,6 @@ static bool snap_cursor_poll(ARegion *region, void *data)
   return true;
 }
 
-static void snap_cursor_init(SnapGizmo3D *snap_gizmo)
-{
-  snap_gizmo->snap_state = ED_view3d_cursor_snap_state_create();
-  snap_gizmo->snap_state->draw_point = true;
-  snap_gizmo->snap_state->draw_plane = false;
-
-  rgba_float_to_uchar(snap_gizmo->snap_state->target_color, snap_gizmo->gizmo.color);
-
-  snap_gizmo->snap_state->poll = snap_cursor_poll;
-  snap_gizmo->snap_state->poll_data = snap_gizmo;
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -237,14 +227,23 @@ static void snap_cursor_init(SnapGizmo3D *snap_gizmo)
 static void snap_gizmo_setup(wmGizmo *gz)
 {
   gz->flag |= WM_GIZMO_NO_TOOLTIP;
-  snap_cursor_init((SnapGizmo3D *)gz);
+
+  SnapGizmo3D *snap_gizmo = (SnapGizmo3D *)gz;
+  snap_gizmo->snap_state = ED_view3d_cursor_snap_state_create();
+  snap_gizmo->snap_state->draw_point = true;
+  snap_gizmo->snap_state->draw_plane = false;
+  snap_gizmo->snap_state->poll = snap_cursor_poll;
+  snap_gizmo->snap_state->poll_data = snap_gizmo;
+
+  snap_gizmo->snap_state_stored = *snap_gizmo->snap_state;
 }
 
 static void snap_gizmo_draw(const bContext * /*C*/, wmGizmo *gz)
 {
   SnapGizmo3D *snap_gizmo = (SnapGizmo3D *)gz;
   if (snap_gizmo->snap_state == nullptr) {
-    snap_cursor_init(snap_gizmo);
+    snap_gizmo->snap_state = ED_view3d_cursor_snap_state_create();
+    *snap_gizmo->snap_state = snap_gizmo->snap_state_stored;
   }
 
   /* All drawing is handled at the paint cursor.
