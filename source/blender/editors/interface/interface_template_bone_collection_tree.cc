@@ -239,11 +239,6 @@ class BoneCollectionItem : public AbstractTreeViewItem {
     UI_menutype_draw(&C, mt, &column);
   }
 
-  bool supports_collapsing() const override
-  {
-    return true;
-  }
-
   std::optional<bool> should_be_active() const override
   {
     return armature_.runtime.active_collection_index == bcoll_index_;
