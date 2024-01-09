@@ -465,6 +465,7 @@ static int bpy_prop_array_length_parse(PyObject *o, void *p)
     }
 
     PyObject **seq_items = PySequence_Fast_ITEMS(seq_fast);
+    array_len_info->len_total = 1;
     for (int i = 0; i < seq_len; i++) {
       int size;
       if ((size = PyLong_AsLong(seq_items[i])) == -1) {
@@ -486,10 +487,7 @@ static int bpy_prop_array_length_parse(PyObject *o, void *p)
 
       array_len_info->dims[i] = size;
       array_len_info->dims_len = seq_len;
-    }
-    array_len_info->len_total = array_len_info->dims[0];
-    for (int i = 1; i < seq_len; i++) {
-      array_len_info->len_total *= array_len_info->dims[i];
+      array_len_info->len_total *= size;
     }
   }
   return 1;
@@ -2963,7 +2961,7 @@ static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject
 
   const char *name = nullptr, *description = "";
   const char *translation_context = nullptr;
-  Array<bool, 64> default_value;
+  Array<bool, RNA_STACK_ARRAY> default_value;
   BPyPropArrayLength array_len_info{};
   array_len_info.len_total = 3;
   PropertyRNA *prop;
@@ -3335,7 +3333,7 @@ static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject 
   const char *translation_context = nullptr;
   int min = INT_MIN, max = INT_MAX, soft_min = INT_MIN, soft_max = INT_MAX;
   int step = 1;
-  Array<int, 64> default_value;
+  Array<int, RNA_STACK_ARRAY> default_value;
   BPyPropArrayLength array_len_info{};
   array_len_info.len_total = 3;
   PropertyRNA *prop;
@@ -3713,7 +3711,7 @@ static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObjec
   const char *translation_context = nullptr;
   float min = -FLT_MAX, max = FLT_MAX, soft_min = -FLT_MAX, soft_max = FLT_MAX;
   float step = 3;
-  Array<float, 64> default_value;
+  Array<float, RNA_STACK_ARRAY> default_value;
   int precision = 2;
   BPyPropArrayLength array_len_info{};
   array_len_info.len_total = 3;
