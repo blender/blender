@@ -117,10 +117,13 @@ static const aal::RelationsInNode &get_relations_in_node(const bNode &node, Reso
         }
       }
       else if (socket_is_field(*socket)) {
-        /* Reference relations are not added for the output node, because then nodes after the
-         * repeat zone would have to know about the individual field sources within the repeat
-         * zone. This is not necessary, because the field outputs of a repeat zone already serve as
-         * field sources and anonymous attributes are extracted from them. */
+        /* Reference relations are not added for the repeat output node here, because those need
+         * some special handling which is done during the actual inferencing. This is necessary,
+         * because nodes coming after the repeat zone don't have access to the intermediate fields
+         * created inside of the repeat zone. Instead, the outputs of the repeat zone are treated
+         * as new field sources which wrap all fields created in the zone.
+         *
+         * The repeat input node does get the expected reference relations though. */
         if (node.type == GEO_NODE_REPEAT_INPUT) {
           for (const bNodeSocket *input_socket : node.input_sockets()) {
             if (socket_is_field(*input_socket)) {
@@ -399,8 +402,8 @@ static AnonymousAttributeInferencingResult analyze_anonymous_attribute_usages(
          * Input to the Repeat Output node. Therefor, all anonymous attributes may be propagated as
          * well. */
         const bNodeTreeZone *zone = zones->get_zone_by_node(node->identifier);
+        const int items_num = node->output_sockets().size() - 1;
         if (const bNode *input_node = zone->input_node) {
-          const int items_num = node->output_sockets().size();
           for (const int i : IndexRange(items_num)) {
             const int src_index = input_node->input_socket(i + 1).index_in_tree();
             const int dst_index = node->output_socket(i).index_in_tree();
@@ -410,6 +413,25 @@ static AnonymousAttributeInferencingResult analyze_anonymous_attribute_usages(
             available_fields_by_geometry_socket[dst_index] |=
                 available_fields_by_geometry_socket[src_index];
           }
+        }
+        /* Propagate fields that have not been created inside of the repeat zones. Field sources
+         * from inside the repeat zone become new field sources on the outside. */
+        for (const int i : IndexRange(items_num)) {
+          const int src_index = node->input_socket(i).index_in_tree();
+          const int dst_index = node->output_socket(i).index_in_tree();
+          bits::foreach_1_index(
+              propagated_fields_by_socket[src_index], [&](const int field_source_index) {
+                const FieldSource &field_source = all_field_sources[field_source_index];
+                if (const auto *socket_field_source = std::get_if<SocketFieldSource>(
+                        &field_source.data))
+                {
+                  const bNode &field_source_node = socket_field_source->socket->owner_node();
+                  if (zone->contains_node_recursively(field_source_node)) {
+                    return;
+                  }
+                }
+                propagated_fields_by_socket[dst_index][field_source_index].set();
+              });
         }
       }
     }
