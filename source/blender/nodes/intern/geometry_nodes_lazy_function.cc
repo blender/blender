@@ -2132,8 +2132,7 @@ struct GeometryNodesLazyFunctionBuilder {
    */
   void build_zone_functions()
   {
-    zone_build_infos_ = scope_.linear_allocator().construct_array<ZoneBuildInfo>(
-        tree_zones_->zones.size());
+    zone_build_infos_ = scope_.construct<Array<ZoneBuildInfo>>(tree_zones_->zones.size());
 
     const Array<int> zone_build_order = this->compute_zone_build_order();
 
