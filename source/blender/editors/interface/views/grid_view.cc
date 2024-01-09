@@ -7,6 +7,7 @@
  */
 
 #include <cfloat>
+#include <cmath>
 #include <limits>
 #include <stdexcept>
 
@@ -236,7 +237,7 @@ IndexRange BuildOnlyVisibleButtonsHelper::get_visible_range() const
 {
   int first_idx_in_view = 0;
 
-  const float scroll_ofs_y = abs(v2d_.cur.ymax - v2d_.tot.ymax);
+  const float scroll_ofs_y = std::abs(v2d_.cur.ymax - v2d_.tot.ymax);
   if (!IS_EQF(scroll_ofs_y, 0)) {
     const int scrolled_away_rows = int(scroll_ofs_y) / style_.tile_height;
 
