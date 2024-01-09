@@ -744,7 +744,9 @@ std::optional<RawMaskIterator> IndexMask::find(const int64_t query_index) const
   if (local_segment[index_in_segment] != local_query_index) {
     return std::nullopt;
   }
-  return RawMaskIterator{segment_i, int16_t(index_in_segment)};
+  const int64_t actual_index_in_segment = index_in_segment +
+                                          (segment_i == 0 ? begin_index_in_segment_ : 0);
+  return RawMaskIterator{segment_i, int16_t(actual_index_in_segment)};
 }
 
 bool IndexMask::contains(const int64_t query_index) const
