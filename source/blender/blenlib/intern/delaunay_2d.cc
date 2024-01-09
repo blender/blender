@@ -2214,11 +2214,11 @@ int add_face_constraints(CDT_state<T> *cdt_state,
 
   int maxflen = 0;
   for (const int f : input_faces.index_range()) {
-    maxflen = max_ii(maxflen, input_faces[f].size());
+    maxflen = std::max<int>(maxflen, input_faces[f].size());
   }
   /* For convenience in debugging, make face_edge_offset be a power of 10. */
   cdt_state->face_edge_offset = power_of_10_greater_equal_to(
-      max_ii(maxflen, cdt_state->face_edge_offset));
+      std::max(maxflen, cdt_state->face_edge_offset));
   /* The original_edge encoding scheme doesn't work if the following is false.
    * If we really have that many faces and that large a max face length that when multiplied
    * together the are >= INT_MAX, then the Delaunay calculation will take unreasonably long anyway.

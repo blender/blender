@@ -12,7 +12,7 @@
 #include <cmath>
 #include <type_traits>
 
-#include "BLI_math_base.h"
+#include "BLI_math_numbers.hh"
 #include "BLI_utildefines.h"
 
 namespace blender::math {
@@ -184,7 +184,7 @@ template<typename T> inline T exp(const T &x)
 template<typename T> inline T safe_acos(const T &a)
 {
   if (UNLIKELY(a <= T(-1))) {
-    return T(M_PI);
+    return T(numbers::pi);
   }
   else if (UNLIKELY(a >= T(1))) {
     return T(0);
@@ -207,7 +207,7 @@ inline float safe_acos_approx(float x)
    */
   const float a = std::sqrt(1.0f - m) *
                   (1.5707963267f + m * (-0.213300989f + m * (0.077980478f + m * -0.02164095f)));
-  return x < 0.0f ? float(M_PI) - a : a;
+  return x < 0.0f ? float(numbers::pi) - a : a;
 }
 
 template<typename T> inline T asin(const T &a)

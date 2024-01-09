@@ -342,42 +342,24 @@ struct BoundingBox {
 
   void combine(const float3 &p)
   {
-    min.x = min_ff(min.x, p.x);
-    min.y = min_ff(min.y, p.y);
-    min.z = min_ff(min.z, p.z);
-    max.x = max_ff(max.x, p.x);
-    max.y = max_ff(max.y, p.y);
-    max.z = max_ff(max.z, p.z);
+    math::min_max(p, this->min, this->max);
   }
 
   void combine(const double3 &p)
   {
-    min.x = min_ff(min.x, float(p.x));
-    min.y = min_ff(min.y, float(p.y));
-    min.z = min_ff(min.z, float(p.z));
-    max.x = max_ff(max.x, float(p.x));
-    max.y = max_ff(max.y, float(p.y));
-    max.z = max_ff(max.z, float(p.z));
+    math::min_max(float3(p), this->min, this->max);
   }
 
   void combine(const BoundingBox &bb)
   {
-    min.x = min_ff(min.x, bb.min.x);
-    min.y = min_ff(min.y, bb.min.y);
-    min.z = min_ff(min.z, bb.min.z);
-    max.x = max_ff(max.x, bb.max.x);
-    max.y = max_ff(max.y, bb.max.y);
-    max.z = max_ff(max.z, bb.max.z);
+    min = math::min(this->min, bb.min);
+    max = math::max(this->max, bb.max);
   }
 
   void expand(float pad)
   {
-    min.x -= pad;
-    min.y -= pad;
-    min.z -= pad;
-    max.x += pad;
-    max.y += pad;
-    max.z += pad;
+    min -= pad;
+    max += pad;
   }
 };
 
