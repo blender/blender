@@ -196,6 +196,9 @@ static void update_zone_border_links(const bNodeTree &tree, bNodeTreeZones &tree
     if (link->is_muted()) {
       continue;
     }
+    if (bke::nodeIsDanglingReroute(&tree, link->fromnode)) {
+      continue;
+    }
     bNodeTreeZone *from_zone = const_cast<bNodeTreeZone *>(
         tree_zones.get_zone_by_socket(*link->fromsock));
     bNodeTreeZone *to_zone = const_cast<bNodeTreeZone *>(
