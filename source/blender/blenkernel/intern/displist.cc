@@ -41,7 +41,7 @@
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
-#include "BKE_vfont.h"
+#include "BKE_vfont.hh"
 
 #include "BLI_sys_types.h" /* For #intptr_t support. */
 
@@ -744,7 +744,7 @@ static blender::bke::GeometrySet curve_calc_modifiers_post(Depsgraph *depsgraph,
 
     if (mti->type == ModifierTypeType::OnlyDeform) {
       mti->deform_verts(md, &mectx_deform, mesh, mesh->vert_positions_for_write());
-      BKE_mesh_tag_positions_changed(mesh);
+      mesh->tag_positions_changed();
     }
     else {
       Mesh *output_mesh = mti->modify_mesh(md, &mectx_apply, mesh);
@@ -1366,8 +1366,6 @@ void BKE_displist_make_curveTypes(Depsgraph *depsgraph,
 
     ob->runtime->geometry_set_eval = new blender::bke::GeometrySet(std::move(geometry));
   }
-
-  BKE_object_boundbox_calc_from_evaluated_geometry(ob);
 }
 
 void BKE_displist_minmax(const ListBase *dispbase, float min[3], float max[3])

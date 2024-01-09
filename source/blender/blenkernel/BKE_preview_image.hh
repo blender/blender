@@ -92,7 +92,7 @@ std::optional<int> BKE_previewimg_deferred_thumb_source_get(const PreviewImage *
 
 /**
  * Create an #ImBuf holding a copy of the preview image buffer in \a prv.
- * \note The returned image buffer has to be free'd (#IMB_freeImBuf()).
+ * \note The returned image buffer has to be freed (#IMB_freeImBuf()).
  */
 ImBuf *BKE_previewimg_to_imbuf(PreviewImage *prv, int size);
 

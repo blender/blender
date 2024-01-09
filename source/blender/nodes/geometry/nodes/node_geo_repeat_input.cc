@@ -79,6 +79,7 @@ static void node_register()
   ntype.declare = node_declare;
   ntype.gather_link_search_ops = nullptr;
   ntype.insert_link = node_insert_link;
+  ntype.no_muting = true;
   node_type_storage(
       &ntype, "NodeGeometryRepeatInput", node_free_standard_storage, node_copy_standard_storage);
   nodeRegisterType(&ntype);

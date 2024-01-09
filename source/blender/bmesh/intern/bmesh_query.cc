@@ -25,8 +25,8 @@
 
 #include "BKE_customdata.hh"
 
-#include "bmesh.h"
-#include "intern/bmesh_private.h"
+#include "bmesh.hh"
+#include "intern/bmesh_private.hh"
 
 BMLoop *BM_face_other_edge_loop(BMFace *f, BMEdge *e, BMVert *v)
 {
@@ -155,7 +155,8 @@ BMFace *BM_vert_pair_shared_face_cb(BMVert *v_a,
       BMFace *f = l_a->f;
       l_b = BM_face_vert_share_loop(f, v_b);
       if (l_b && (allow_adjacent || !BM_loop_is_adjacent(l_a, l_b)) &&
-          callback(f, l_a, l_b, user_data)) {
+          callback(f, l_a, l_b, user_data))
+      {
         *r_l_a = l_a;
         *r_l_b = l_b;
 
@@ -1828,7 +1829,7 @@ BMFace *BM_face_exists_overlap(BMVert **varr, const int len)
   BMFace *f_overlap = nullptr;
   LinkNode *f_lnk = nullptr;
 
-#ifdef DEBUG
+#ifndef NDEBUG
   /* check flag isn't already set */
   for (i = 0; i < len; i++) {
     BM_ITER_ELEM (f, &viter, varr[i], BM_FACES_OF_VERT) {
@@ -1866,7 +1867,7 @@ bool BM_face_exists_overlap_subset(BMVert **varr, const int len)
   bool is_overlap = false;
   LinkNode *f_lnk = nullptr;
 
-#ifdef DEBUG
+#ifndef NDEBUG
   /* check flag isn't already set */
   for (int i = 0; i < len; i++) {
     BLI_assert(BM_ELEM_API_FLAG_TEST(varr[i], _FLAG_OVERLAP) == 0);
@@ -2112,7 +2113,7 @@ int BM_mesh_calc_face_groups(BMesh *bm,
 {
   /* NOTE: almost duplicate of #BM_mesh_calc_edge_groups, keep in sync. */
 
-#ifdef DEBUG
+#ifndef NDEBUG
   int group_index_len = 1;
 #else
   int group_index_len = 32;
@@ -2206,7 +2207,8 @@ int BM_mesh_calc_face_groups(BMesh *bm,
         do {
           BMLoop *l_radial_iter = l_iter->radial_next;
           if ((l_radial_iter != l_iter) &&
-              ((filter_fn == nullptr) || filter_fn(l_iter, user_data))) {
+              ((filter_fn == nullptr) || filter_fn(l_iter, user_data)))
+          {
             do {
               if ((filter_pair_fn == nullptr) || filter_pair_fn(l_iter, l_radial_iter, user_data))
               {
@@ -2266,7 +2268,7 @@ int BM_mesh_calc_edge_groups(BMesh *bm,
 {
   /* NOTE: almost duplicate of #BM_mesh_calc_face_groups, keep in sync. */
 
-#ifdef DEBUG
+#ifndef NDEBUG
   int group_index_len = 1;
 #else
   int group_index_len = 32;

@@ -32,7 +32,6 @@
 #include "BLI_vector_set.hh"
 
 struct Depsgraph;
-
 struct CustomData_MeshMasks;
 
 namespace blender::deg {
@@ -68,6 +67,12 @@ enum eUpdateSource {
   DEG_UPDATE_SOURCE_RELATIONS = (1 << 2),
   /* Update is happening due to visibility change. */
   DEG_UPDATE_SOURCE_VISIBILITY = (1 << 3),
+  /**
+   * Update is happening because some side effect of the reevaluation is necessary. For example,
+   * baking intermediate geometry nodes happens during normal evaluation but does not actually
+   * change the final result. For baking we still want to reevaluate it.
+   */
+  DEG_UPDATE_SOURCE_SIDE_EFFECT_REQUEST = (1 << 4),
 };
 
 /* C++ wrapper around DNA's CustomData_MeshMasks struct. */

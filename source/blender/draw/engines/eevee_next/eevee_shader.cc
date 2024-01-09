@@ -52,7 +52,7 @@ ShaderModule::ShaderModule()
     shader = nullptr;
   }
 
-#ifdef DEBUG
+#ifndef NDEBUG
   /* Ensure all shader are described. */
   for (auto i : IndexRange(MAX_SHADER_TYPE)) {
     const char *name = static_shader_create_info_name_get(eShaderType(i));
@@ -94,12 +94,22 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_film_cryptomatte_post";
     case DEFERRED_COMBINE:
       return "eevee_deferred_combine";
-    case DEFERRED_LIGHT:
-      return "eevee_deferred_light";
+    case DEFERRED_LIGHT_SINGLE:
+      return "eevee_deferred_light_single";
+    case DEFERRED_LIGHT_DOUBLE:
+      return "eevee_deferred_light_double";
+    case DEFERRED_LIGHT_TRIPLE:
+      return "eevee_deferred_light_triple";
     case DEFERRED_CAPTURE_EVAL:
       return "eevee_deferred_capture_eval";
     case DEFERRED_PLANAR_EVAL:
       return "eevee_deferred_planar_eval";
+    case DEFERRED_TILE_CLASSIFY:
+      return "eevee_deferred_tile_classify";
+    case DEFERRED_TILE_COMPACT:
+      return "eevee_deferred_tile_compact";
+    case DEFERRED_TILE_STENCIL:
+      return "eevee_deferred_tile_stencil";
     case HIZ_DEBUG:
       return "eevee_hiz_debug";
     case HIZ_UPDATE:
@@ -108,14 +118,12 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_hiz_update_layer";
     case HORIZON_DENOISE:
       return "eevee_horizon_denoise";
-    case HORIZON_SCAN_DIFFUSE:
-      return "eevee_horizon_scan_diffuse";
-    case HORIZON_SCAN_REFLECT:
-      return "eevee_horizon_scan_reflect";
-    case HORIZON_SCAN_REFRACT:
-      return "eevee_horizon_scan_refract";
+    case HORIZON_SCAN:
+      return "eevee_horizon_scan";
     case HORIZON_SETUP:
       return "eevee_horizon_setup";
+    case LOOKDEV_DISPLAY:
+      return "eevee_lookdev_display";
     case MOTION_BLUR_GATHER:
       return "eevee_motion_blur_gather";
     case MOTION_BLUR_TILE_DILATE:
@@ -128,6 +136,8 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_debug_surfels";
     case DEBUG_IRRADIANCE_GRID:
       return "eevee_debug_irradiance_grid";
+    case DEBUG_GBUFFER:
+      return "eevee_debug_gbuffer";
     case DISPLAY_PROBE_GRID:
       return "eevee_display_probe_grid";
     case DISPLAY_PROBE_REFLECTION:
@@ -178,36 +188,20 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_light_culling_tile";
     case LIGHT_CULLING_ZBIN:
       return "eevee_light_culling_zbin";
-    case RAY_DENOISE_SPATIAL_DIFFUSE:
-      return "eevee_ray_denoise_spatial_diffuse";
-    case RAY_DENOISE_SPATIAL_REFLECT:
-      return "eevee_ray_denoise_spatial_reflect";
-    case RAY_DENOISE_SPATIAL_REFRACT:
-      return "eevee_ray_denoise_spatial_refract";
+    case RAY_DENOISE_SPATIAL:
+      return "eevee_ray_denoise_spatial";
     case RAY_DENOISE_TEMPORAL:
       return "eevee_ray_denoise_temporal";
-    case RAY_DENOISE_BILATERAL_DIFFUSE:
-      return "eevee_ray_denoise_bilateral_diffuse";
-    case RAY_DENOISE_BILATERAL_REFLECT:
-      return "eevee_ray_denoise_bilateral_reflect";
-    case RAY_DENOISE_BILATERAL_REFRACT:
-      return "eevee_ray_denoise_bilateral_refract";
-    case RAY_GENERATE_DIFFUSE:
-      return "eevee_ray_generate_diffuse";
-    case RAY_GENERATE_REFLECT:
-      return "eevee_ray_generate_reflect";
-    case RAY_GENERATE_REFRACT:
-      return "eevee_ray_generate_refract";
+    case RAY_DENOISE_BILATERAL:
+      return "eevee_ray_denoise_bilateral";
+    case RAY_GENERATE:
+      return "eevee_ray_generate";
     case RAY_TRACE_FALLBACK:
       return "eevee_ray_trace_fallback";
     case RAY_TRACE_PLANAR:
       return "eevee_ray_trace_planar";
-    case RAY_TRACE_SCREEN_DIFFUSE:
-      return "eevee_ray_trace_screen_diffuse";
-    case RAY_TRACE_SCREEN_REFLECT:
-      return "eevee_ray_trace_screen_reflect";
-    case RAY_TRACE_SCREEN_REFRACT:
-      return "eevee_ray_trace_screen_refract";
+    case RAY_TRACE_SCREEN:
+      return "eevee_ray_trace_screen";
     case RAY_TILE_CLASSIFY:
       return "eevee_ray_tile_classify";
     case RAY_TILE_COMPACT:
@@ -380,14 +374,11 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
     }
   }
 
-  if (pipeline_type == MAT_PIPE_PREPASS_FORWARD) {
-    info.define("MAT_FORWARD");
-  }
-
   bool supports_render_passes = (pipeline_type == MAT_PIPE_DEFERRED);
   /* Opaque forward do support AOVs and render pass if not using transparency. */
   if (!GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSPARENT) &&
-      (pipeline_type == MAT_PIPE_FORWARD)) {
+      (pipeline_type == MAT_PIPE_FORWARD))
+  {
     supports_render_passes = true;
   }
 
@@ -396,8 +387,56 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
     info.additional_info("eevee_cryptomatte_out");
   }
 
-  if (GPU_material_flag_get(gpumat, GPU_MATFLAG_SUBSURFACE) && pipeline_type == MAT_PIPE_FORWARD) {
-    info.define("SSS_TRANSMITTANCE");
+  int lit_closure_count = 0;
+  if (GPU_material_flag_get(gpumat, GPU_MATFLAG_DIFFUSE)) {
+    info.define("MAT_DIFFUSE");
+    lit_closure_count++;
+  }
+  if (GPU_material_flag_get(gpumat, GPU_MATFLAG_GLOSSY)) {
+    info.define("MAT_REFLECTION");
+    lit_closure_count++;
+  }
+  if (GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSLUCENT)) {
+    info.define("MAT_TRANSLUCENT");
+    lit_closure_count++;
+  }
+  if (GPU_material_flag_get(gpumat, GPU_MATFLAG_SUBSURFACE)) {
+    info.define("MAT_SUBSURFACE");
+    lit_closure_count++;
+  }
+  if (GPU_material_flag_get(gpumat, GPU_MATFLAG_REFRACT)) {
+    info.define("MAT_REFRACTION");
+    /* TODO(fclem): Support refracted lights. */
+  }
+
+  if (GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSLUCENT | GPU_MATFLAG_SUBSURFACE)) {
+    info.define("SHADOW_SUBSURFACE");
+  }
+
+  if ((pipeline_type == MAT_PIPE_FORWARD) ||
+      GPU_material_flag_get(gpumat, GPU_MATFLAG_SHADER_TO_RGBA))
+  {
+    switch (lit_closure_count) {
+      case 0:
+        /* Define nothing. This will in turn define SKIP_LIGHT_EVAL. */
+        break;
+      /* These need to be separated since the strings need to be static. */
+      case 1:
+        info.define("LIGHT_CLOSURE_EVAL_COUNT", "1");
+        break;
+      case 2:
+        info.define("LIGHT_CLOSURE_EVAL_COUNT", "2");
+        break;
+      case 3:
+        info.define("LIGHT_CLOSURE_EVAL_COUNT", "3");
+        break;
+      case 4:
+        info.define("LIGHT_CLOSURE_EVAL_COUNT", "4");
+        break;
+      default:
+        BLI_assert_unreachable();
+        break;
+    }
   }
 
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_BARYCENTRIC)) {
@@ -521,7 +560,7 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
     info.vertex_source_generated = vert_gen.str();
   }
 
-  if (!is_compute) {
+  if (!is_compute && pipeline_type != MAT_PIPE_VOLUME_OCCUPANCY) {
     frag_gen << ((codegen.material_functions) ? codegen.material_functions : "\n");
 
     if (codegen.displacement) {
@@ -631,7 +670,12 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
           info.additional_info("eevee_surf_capture");
           break;
         case MAT_PIPE_DEFERRED:
-          info.additional_info("eevee_surf_deferred");
+          if (GPU_material_flag_get(gpumat, GPU_MATFLAG_SHADER_TO_RGBA)) {
+            info.additional_info("eevee_surf_deferred_hybrid");
+          }
+          else {
+            info.additional_info("eevee_surf_deferred");
+          }
           break;
         case MAT_PIPE_FORWARD:
           info.additional_info("eevee_surf_forward");
@@ -664,8 +708,14 @@ GPUMaterial *ShaderModule::material_shader_get(::Material *blender_mat,
   uint64_t shader_uuid = shader_uuid_from_material_type(
       pipeline_type, geometry_type, displacement_type, blender_mat->blend_flag);
 
-  return DRW_shader_from_material(
-      blender_mat, nodetree, shader_uuid, is_volume, deferred_compilation, codegen_callback, this);
+  return DRW_shader_from_material(blender_mat,
+                                  nodetree,
+                                  GPU_MAT_EEVEE,
+                                  shader_uuid,
+                                  is_volume,
+                                  deferred_compilation,
+                                  codegen_callback,
+                                  this);
 }
 
 GPUMaterial *ShaderModule::world_shader_get(::World *blender_world,
@@ -679,8 +729,14 @@ GPUMaterial *ShaderModule::world_shader_get(::World *blender_world,
 
   uint64_t shader_uuid = shader_uuid_from_material_type(pipeline_type, geometry_type);
 
-  return DRW_shader_from_world(
-      blender_world, nodetree, shader_uuid, is_volume, defer_compilation, codegen_callback, this);
+  return DRW_shader_from_world(blender_world,
+                               nodetree,
+                               GPU_MAT_EEVEE,
+                               shader_uuid,
+                               is_volume,
+                               defer_compilation,
+                               codegen_callback,
+                               this);
 }
 
 /* Variation to compile a material only with a nodetree. Caller needs to maintain the list of
@@ -700,6 +756,7 @@ GPUMaterial *ShaderModule::material_shader_get(const char *name,
                                                    nodetree,
                                                    &materials,
                                                    name,
+                                                   GPU_MAT_EEVEE,
                                                    shader_uuid,
                                                    is_volume,
                                                    false,

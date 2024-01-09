@@ -10,11 +10,11 @@ set(INC_SYS
 )
 
 set(SRC
-  opensubdiv_capi.h
-  opensubdiv_capi_type.h
-  opensubdiv_converter_capi.h
-  opensubdiv_evaluator_capi.h
-  opensubdiv_topology_refiner_capi.h
+  opensubdiv_capi.hh
+  opensubdiv_capi_type.hh
+  opensubdiv_converter_capi.hh
+  opensubdiv_evaluator_capi.hh
+  opensubdiv_topology_refiner_capi.hh
 )
 
 set(LIB
@@ -105,10 +105,8 @@ blender_add_lib(bf_intern_opensubdiv "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 # Tests.
 
 if(WITH_GTESTS AND WITH_OPENSUBDIV)
-  include(GTestTesting)
-
   add_definitions(${GFLAGS_DEFINES})
   add_definitions(${GLOG_DEFINES})
 
-  blender_add_test_executable(opensubdiv_mesh_topology_test "internal/topology/mesh_topology_test.cc" "${INC}" "${INC_SYS}" "${LIB};bf_intern_opensubdiv")
+  blender_add_test_executable(opensubdiv_mesh_topology "internal/topology/mesh_topology_test.cc" "${INC}" "${INC_SYS}" "${LIB};bf_intern_opensubdiv")
 endif()

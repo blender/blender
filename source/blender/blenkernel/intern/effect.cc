@@ -670,12 +670,12 @@ bool closest_point_on_surface(SurfaceModifierData *surmd,
     }
 
     if (surface_vel) {
-      const int *corner_verts = bvhtree->corner_verts;
-      const MLoopTri *lt = &bvhtree->looptri[nearest.index];
+      const int *corner_verts = bvhtree->corner_verts.data();
+      const blender::int3 &tri = bvhtree->corner_tris[nearest.index];
 
-      copy_v3_v3(surface_vel, surmd->runtime.vert_velocities[corner_verts[lt->tri[0]]]);
-      add_v3_v3(surface_vel, surmd->runtime.vert_velocities[corner_verts[lt->tri[1]]]);
-      add_v3_v3(surface_vel, surmd->runtime.vert_velocities[corner_verts[lt->tri[2]]]);
+      copy_v3_v3(surface_vel, surmd->runtime.vert_velocities[corner_verts[tri[0]]]);
+      add_v3_v3(surface_vel, surmd->runtime.vert_velocities[corner_verts[tri[1]]]);
+      add_v3_v3(surface_vel, surmd->runtime.vert_velocities[corner_verts[tri[2]]]);
 
       mul_v3_fl(surface_vel, (1.0f / 3.0f));
     }
@@ -695,7 +695,8 @@ bool get_effector_data(EffectorCache *eff,
   /* In case surface object is in Edit mode when loading the .blend,
    * surface modifier is never executed and bvhtree never built, see #48415. */
   if (eff->pd && eff->pd->shape == PFIELD_SHAPE_SURFACE && eff->surmd &&
-      eff->surmd->runtime.bvhtree) {
+      eff->surmd->runtime.bvhtree)
+  {
     /* closest point in the object surface is an effector */
     float vec[3];
 
@@ -828,7 +829,7 @@ static void get_effector_tot(
   if (eff->pd->shape == PFIELD_SHAPE_POINTS) {
     /* TODO: hair and points object support */
     const Mesh *me_eval = BKE_object_get_evaluated_mesh(eff->ob);
-    *tot = me_eval != nullptr ? me_eval->totvert : 1;
+    *tot = me_eval != nullptr ? me_eval->verts_num : 1;
 
     if (*tot && eff->pd->forcefield == PFIELD_HARMONIC && point->index >= 0) {
       *p = point->index % *tot;
@@ -848,7 +849,8 @@ static void get_effector_tot(
       efd->charge = eff->pd->f_strength;
     }
     else if (eff->pd->forcefield == PFIELD_HARMONIC &&
-             (eff->pd->flag & PFIELD_MULTIPLE_SPRINGS) == 0) {
+             (eff->pd->flag & PFIELD_MULTIPLE_SPRINGS) == 0)
+    {
       /* every particle is mapped to only one harmonic effector particle */
       *p = point->index % eff->psys->totpart;
       *tot = *p + 1;

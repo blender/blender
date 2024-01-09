@@ -107,7 +107,18 @@ void init_globals()
   g_data.hair_time = 0.0;
   g_data.hair_thickness = 0.0;
   g_data.hair_strand_id = 0;
-  g_data.ray_type = RAY_TYPE_CAMERA; /* TODO */
+#if defined(MAT_SHADOW)
+  g_data.ray_type = RAY_TYPE_SHADOW;
+#elif defined(MAT_CAPTURE)
+  g_data.ray_type = RAY_TYPE_DIFFUSE;
+#else
+  if (uniform_buf.pipeline.is_probe_reflection) {
+    g_data.ray_type = RAY_TYPE_GLOSSY;
+  }
+  else {
+    g_data.ray_type = RAY_TYPE_CAMERA;
+  }
+#endif
   g_data.ray_depth = 0.0;
   g_data.ray_length = distance(g_data.P, drw_view_position());
   g_data.barycentric_coords = vec2(0.0);
@@ -141,10 +152,14 @@ void init_interface()
 #if defined(GPU_VERTEX_SHADER) && defined(MAT_SHADOW)
 void shadow_viewport_layer_set(int view_id, int lod)
 {
+#  ifdef SHADOW_UPDATE_ATOMIC_RASTER
+  shadow_iface.shadow_view_id = view_id;
+#  else
   /* We still render to a layered frame-buffer in the case of Metal + Tile Based Renderer.
    * Since it needs correct depth buffering, each view needs to not overlap each others.
    * It doesn't matter much for other platform, so we use that as a way to pass the view id. */
   gpu_Layer = view_id;
+#  endif
   gpu_ViewportIndex = lod;
 }
 #endif
@@ -152,6 +167,10 @@ void shadow_viewport_layer_set(int view_id, int lod)
 #if defined(GPU_FRAGMENT_SHADER) && defined(MAT_SHADOW)
 int shadow_view_id_get()
 {
+#  ifdef SHADOW_UPDATE_ATOMIC_RASTER
+  return shadow_iface.shadow_view_id;
+#  else
   return gpu_Layer;
+#  endif
 }
 #endif

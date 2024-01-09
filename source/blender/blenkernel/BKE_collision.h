@@ -7,15 +7,12 @@
  * \ingroup bke
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "BLI_math_vector_types.hh"
 
 struct BVHTree;
 struct Collection;
 struct CollisionModifierData;
 struct Depsgraph;
-struct MVertTri;
 struct Object;
 
 ////////////////////////////////////////
@@ -90,13 +87,13 @@ typedef struct FaceCollPair {
 /////////////////////////////////////////////////
 
 struct BVHTree *bvhtree_build_from_mvert(const float (*positions)[3],
-                                         const struct MVertTri *tri,
+                                         const blender::int3 *vert_tris,
                                          int tri_num,
                                          float epsilon);
 void bvhtree_update_from_mvert(struct BVHTree *bvhtree,
                                const float (*positions)[3],
                                const float (*positions_moving)[3],
-                               const struct MVertTri *tri,
+                               const blender::int3 *vert_tris,
                                int tri_num,
                                bool moving);
 
@@ -165,7 +162,3 @@ void BKE_collider_cache_free(struct ListBase **colliders);
 /////////////////////////////////////////////////
 
 /////////////////////////////////////////////////
-
-#ifdef __cplusplus
-}
-#endif

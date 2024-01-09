@@ -17,6 +17,8 @@ ConvertDepthToRadiusOperation::ConvertDepthToRadiusOperation()
   camera_object_ = nullptr;
   max_radius_ = 32.0f;
   blur_post_operation_ = nullptr;
+
+  flags_.can_be_constant = true;
 }
 
 float ConvertDepthToRadiusOperation::determine_focal_distance()

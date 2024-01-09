@@ -621,8 +621,7 @@ using SRGBA8 = PixelValue<ColorSceneLinearByteEncoded4b<eAlpha::Premultiplied>>;
 using FLOAT3 = PixelValue<float3>;
 using FLOAT4 = PixelValue<ColorSceneLinear4f<eAlpha::Premultiplied>>;
 /* NOTE: Vulkan stores R11_G11_B10 in reverse component order. */
-class B10F_G11G_R11F : public PixelValue<uint32_t> {
-};
+class B10F_G11G_R11F : public PixelValue<uint32_t> {};
 
 class HALF4 : public PixelValue<uint64_t> {
  public:
@@ -756,13 +755,13 @@ template<typename StorageType> void convert(UnsignedNormalized<StorageType> &dst
 {
   static constexpr uint32_t scalar = UnsignedNormalized<StorageType>::scalar();
   static constexpr uint32_t max = scalar;
-  dst.value = (clamp_f((src.value * scalar), 0, max));
+  dst.value = (clamp_f((src.value * float(scalar)), 0, float(max)));
 }
 
 template<typename StorageType> void convert(F32 &dst, const UnsignedNormalized<StorageType> &src)
 {
   static constexpr uint32_t scalar = UnsignedNormalized<StorageType>::scalar();
-  dst.value = float(uint32_t(src.value)) / scalar;
+  dst.value = float(uint32_t(src.value)) / float(scalar);
 }
 
 /* Copy the contents of src to dst with out performing any actual conversion. */

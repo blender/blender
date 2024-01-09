@@ -48,8 +48,8 @@ const EnumPropertyItem rna_enum_color_space_convert_default_items[] = {
 
 #  include "MEM_guardedalloc.h"
 
-#  include "BKE_colorband.h"
-#  include "BKE_colortools.h"
+#  include "BKE_colorband.hh"
+#  include "BKE_colortools.hh"
 #  include "BKE_image.h"
 #  include "BKE_linestyle.h"
 #  include "BKE_movieclip.h"

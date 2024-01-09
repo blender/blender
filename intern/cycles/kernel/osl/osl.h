@@ -52,6 +52,11 @@ ccl_device_inline void shaderdata_to_shaderglobals(KernelGlobals kg,
 
   /* shader data to be used in services callbacks */
   globals->renderstate = sd;
+#if OSL_LIBRARY_VERSION_CODE >= 11304
+  globals->shadingStateUniform = nullptr;
+  globals->thread_index = 0;
+  globals->shade_index = 0;
+#endif
 
   /* hacky, we leave it to services to fetch actual object matrix */
   globals->shader2common = sd;

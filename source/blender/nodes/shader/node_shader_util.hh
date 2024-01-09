@@ -10,7 +10,6 @@
 
 #include <cfloat>
 #include <cmath>
-#include <cstring>
 
 #include "BKE_node.hh"
 
@@ -30,7 +29,6 @@
 #endif
 
 struct bContext;
-typedef struct bContext bContext;
 struct bNodeExecContext;
 struct bNodeExecData;
 struct bNodeTreeExec;
@@ -72,3 +70,7 @@ void ntreeShaderEndExecTree_internal(bNodeTreeExec *exec);
 
 void ntreeExecGPUNodes(bNodeTreeExec *exec, GPUMaterial *mat, bNode *output_node);
 void get_XYZ_to_RGB_for_gpu(XYZ_to_RGB *data);
+
+bool node_socket_not_zero(const GPUNodeStack &socket);
+bool node_socket_not_white(const GPUNodeStack &socket);
+bool node_socket_not_black(const GPUNodeStack &socket);

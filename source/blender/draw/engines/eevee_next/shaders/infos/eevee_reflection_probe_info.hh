@@ -46,7 +46,7 @@ GPU_SHADER_CREATE_INFO(eevee_reflection_probe_select)
                  "ReflectionProbeData",
                  "reflection_probe_buf[REFLECTION_PROBES_MAX]")
     .push_constant(Type::INT, "reflection_probe_count")
-    .additional_info("eevee_shared", "eevee_volume_probe_data")
+    .additional_info("eevee_shared", "eevee_sampling_data", "eevee_volume_probe_data")
     .compute_source("eevee_reflection_probe_select_comp.glsl")
     .do_static_compilation(true);
 

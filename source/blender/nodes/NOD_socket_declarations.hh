@@ -246,8 +246,7 @@ class Shader : public SocketDeclaration {
   bool can_connect(const bNodeSocket &socket) const override;
 };
 
-class ShaderBuilder : public SocketDeclarationBuilder<Shader> {
-};
+class ShaderBuilder : public SocketDeclarationBuilder<Shader> {};
 
 class ExtendBuilder;
 
@@ -264,8 +263,7 @@ class Extend : public SocketDeclaration {
   bool can_connect(const bNodeSocket &socket) const override;
 };
 
-class ExtendBuilder : public SocketDeclarationBuilder<Extend> {
-};
+class ExtendBuilder : public SocketDeclarationBuilder<Extend> {};
 
 class Custom : public SocketDeclaration {
  public:

@@ -2,10 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-
-#include "BKE_attribute_math.hh"
 #include "BKE_bvhutils.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_sample.hh"
@@ -68,18 +64,17 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   }
 }
 
-static void get_closest_mesh_looptris(const Mesh &mesh,
-                                      const VArray<float3> &positions,
-                                      const IndexMask &mask,
-                                      const MutableSpan<int> r_looptri_indices,
-                                      const MutableSpan<float> r_distances_sq,
-                                      const MutableSpan<float3> r_positions)
+static void get_closest_mesh_tris(const Mesh &mesh,
+                                  const VArray<float3> &positions,
+                                  const IndexMask &mask,
+                                  const MutableSpan<int> r_tri_indices,
+                                  const MutableSpan<float> r_distances_sq,
+                                  const MutableSpan<float3> r_positions)
 {
   BLI_assert(mesh.faces_num > 0);
   BVHTreeFromMesh tree_data;
-  BKE_bvhtree_from_mesh_get(&tree_data, &mesh, BVHTREE_FROM_LOOPTRI, 2);
-  get_closest_in_bvhtree(
-      tree_data, positions, mask, r_looptri_indices, r_distances_sq, r_positions);
+  BKE_bvhtree_from_mesh_get(&tree_data, &mesh, BVHTREE_FROM_CORNER_TRIS, 2);
+  get_closest_in_bvhtree(tree_data, positions, mask, r_tri_indices, r_distances_sq, r_positions);
   free_bvhtree_from_mesh(&tree_data);
 }
 
@@ -108,7 +103,7 @@ class SampleNearestSurfaceFunction : public mf::MultiFunction {
     MutableSpan<float3> sample_position = params.uninitialized_single_output<float3>(
         2, "Sample Position");
     const Mesh &mesh = *source_.get_mesh();
-    get_closest_mesh_looptris(mesh, positions, mask, triangle_index, {}, sample_position);
+    get_closest_mesh_tris(mesh, positions, mask, triangle_index, {}, sample_position);
   }
 
   ExecutionHints get_execution_hints() const override
@@ -127,7 +122,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     params.set_default_remaining_outputs();
     return;
   }
-  if (mesh->totvert == 0) {
+  if (mesh->verts_num == 0) {
     params.set_default_remaining_outputs();
     return;
   }

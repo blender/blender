@@ -30,7 +30,8 @@ ImagePyramid::ImagePyramid(const ImagePyramid & /*iBrother*/)
 {
   if (!_levels.empty()) {
     for (vector<GrayImage *>::iterator im = _levels.begin(), imend = _levels.end(); im != imend;
-         ++im) {
+         ++im)
+    {
       _levels.push_back(new GrayImage(**im));
     }
   }
@@ -40,7 +41,8 @@ ImagePyramid::~ImagePyramid()
 {
   if (!_levels.empty()) {
     for (vector<GrayImage *>::iterator im = _levels.begin(), imend = _levels.end(); im != imend;
-         ++im) {
+         ++im)
+    {
       delete (*im);
     }
     _levels.clear();

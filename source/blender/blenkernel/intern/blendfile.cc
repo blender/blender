@@ -34,9 +34,9 @@
 #include "BKE_appdir.h"
 #include "BKE_blender.h"
 #include "BKE_blender_version.h"
-#include "BKE_blendfile.h"
+#include "BKE_blendfile.hh"
 #include "BKE_bpath.h"
-#include "BKE_colorband.h"
+#include "BKE_colorband.hh"
 #include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_idtype.h"
@@ -46,10 +46,10 @@
 #include "BKE_lib_id.h"
 #include "BKE_lib_override.hh"
 #include "BKE_lib_query.h"
-#include "BKE_lib_remap.h"
-#include "BKE_main.h"
-#include "BKE_main_idmap.h"
-#include "BKE_main_namemap.h"
+#include "BKE_lib_remap.hh"
+#include "BKE_main.hh"
+#include "BKE_main_idmap.hh"
+#include "BKE_main_namemap.hh"
 #include "BKE_preferences.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -486,7 +486,8 @@ static void reuse_old_bmain_data_for_blendfile(ReuseOldBMainData *reuse_data, co
   }
 }
 
-/** Does a complete replacement of data in `new_bmain` by data from `old_bmain. Original new data
+/**
+ * Does a complete replacement of data in `new_bmain` by data from `old_bmain. Original new data
  * are moved to the `old_bmain`, and will be freed together with it.
  *
  * WARNING: Currently only expects to work on local data, won't work properly if some of the IDs of
@@ -494,7 +495,8 @@ static void reuse_old_bmain_data_for_blendfile(ReuseOldBMainData *reuse_data, co
  *
  * NOTE: Unlike with #reuse_old_bmain_data_for_blendfile, there is no support at all for potential
  * dependencies of the IDs moved around. This is not expected to be necessary for the current use
- * cases (UI-related IDs). */
+ * cases (UI-related IDs).
+ */
 static void swap_old_bmain_data_for_blendfile(ReuseOldBMainData *reuse_data, const short id_code)
 {
   Main *new_bmain = reuse_data->new_bmain;
@@ -563,9 +565,11 @@ static void swap_old_bmain_data_for_blendfile(ReuseOldBMainData *reuse_data, con
   FOREACH_MAIN_LISTBASE_ID_END;
 }
 
-/** Similar to #swap_old_bmain_data_for_blendfile, but with special handling for WM ID. Tightly
+/**
+ * Similar to #swap_old_bmain_data_for_blendfile, but with special handling for WM ID. Tightly
  * related to further WM post-processing from calling WM code (see #WM_file_read and
- * #wm_homefile_read_ex). */
+ * #wm_homefile_read_ex).
+ */
 static void swap_wm_data_for_blendfile(ReuseOldBMainData *reuse_data, const bool load_ui)
 {
   Main *old_bmain = reuse_data->old_bmain;

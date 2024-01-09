@@ -6,6 +6,8 @@
  * \ingroup draw
  */
 
+#include "DNA_meshdata_types.h"
+
 #include "extract_mesh.hh"
 
 #include "draw_cache_impl.hh"
@@ -152,12 +154,12 @@ static void extract_edit_data_iter_face_mesh(const MeshRenderData &mr,
 {
   EditLoopData *vbo_data = *(EditLoopData **)_data;
 
-  for (const int ml_index : mr.faces[face_index]) {
-    EditLoopData *data = vbo_data + ml_index;
+  for (const int corner : mr.faces[face_index]) {
+    EditLoopData *data = vbo_data + corner;
     memset(data, 0x0, sizeof(*data));
     BMFace *efa = bm_original_face_get(mr, face_index);
-    BMVert *eve = bm_original_vert_get(mr, mr.corner_verts[ml_index]);
-    BMEdge *eed = bm_original_edge_get(mr, mr.corner_edges[ml_index]);
+    BMVert *eve = bm_original_vert_get(mr, mr.corner_verts[corner]);
+    BMEdge *eed = bm_original_edge_get(mr, mr.corner_edges[corner]);
     if (efa) {
       mesh_render_data_face_flag(mr, efa, {-1, -1, -1, -1}, data);
     }
@@ -311,7 +313,7 @@ static void extract_edit_data_loose_geom_subdiv(const DRWSubdivCache &subdiv_cac
     return;
   }
 
-  blender::Span<DRWSubdivLooseEdge> loose_edges = draw_subdiv_cache_get_loose_edges(subdiv_cache);
+  Span<DRWSubdivLooseEdge> loose_edges = draw_subdiv_cache_get_loose_edges(subdiv_cache);
 
   EditLoopData *vbo_data = *(EditLoopData **)_data;
   int loose_edge_i = 0;
@@ -361,6 +363,6 @@ constexpr MeshExtract create_extractor_edit_data()
 
 /** \} */
 
-}  // namespace blender::draw
+const MeshExtract extract_edit_data = create_extractor_edit_data();
 
-const MeshExtract extract_edit_data = blender::draw::create_extractor_edit_data();
+}  // namespace blender::draw

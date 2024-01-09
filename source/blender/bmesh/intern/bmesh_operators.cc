@@ -20,8 +20,8 @@
 
 #include "BLT_translation.h"
 
-#include "bmesh.h"
-#include "intern/bmesh_private.h"
+#include "bmesh.hh"
+#include "intern/bmesh_private.hh"
 
 /* forward declarations */
 static void bmo_flag_layer_alloc(BMesh *bm);
@@ -101,7 +101,8 @@ static void bmo_op_slots_init(const BMOSlotType *slot_types, BMOpSlot *slot_args
       case BMO_OP_SLOT_INT:
         if (ELEM(slot->slot_subtype.intg,
                  BMO_OP_SLOT_SUBTYPE_INT_ENUM,
-                 BMO_OP_SLOT_SUBTYPE_INT_FLAG)) {
+                 BMO_OP_SLOT_SUBTYPE_INT_FLAG))
+        {
           slot->data.enum_data.flags = slot_types[i].enum_flags;
           /* Set the first value of the enum as the default value. */
           slot->data.i = slot->data.enum_data.flags[0].value;
@@ -132,7 +133,7 @@ void BMO_op_init(BMesh *bm, BMOperator *op, const int flag, const char *opname)
 {
   int opcode = BMO_opcode_from_opname(opname);
 
-#ifdef DEBUG
+#ifndef NDEBUG
   BM_ELEM_INDEX_VALIDATE(bm, "pre bmo", opname);
 #else
   (void)bm;
@@ -185,7 +186,7 @@ void BMO_op_finish(BMesh *bm, BMOperator *op)
 
   BLI_memarena_free(op->arena);
 
-#ifdef DEBUG
+#ifndef NDEBUG
   BM_ELEM_INDEX_VALIDATE(bm, "post bmo", bmo_opdefines[op->type]->opname);
 
   /* avoid accidental re-use */

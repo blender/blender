@@ -35,16 +35,12 @@
 
 /**
  * Next prime after `2^n` (skipping 2 & 3).
- *
- * \note Also used by: `BLI_smallhash`.
  */
-extern const uint BLI_ghash_hash_sizes[]; /* Quiet warning, this is only used by smallhash.c */
-const uint BLI_ghash_hash_sizes[] = {
+static const uint hashsizes[] = {
     5,       11,      17,      37,      67,       131,      257,      521,       1031,
     2053,    4099,    8209,    16411,   32771,    65537,    131101,   262147,    524309,
     1048583, 2097169, 4194319, 8388617, 16777259, 33554467, 67108879, 134217757, 268435459,
 };
-#define hashsizes BLI_ghash_hash_sizes
 
 #ifdef GHASH_USE_MODULO_BUCKETS
 #  define GHASH_MAX_SIZE 27
@@ -62,8 +58,8 @@ BLI_STATIC_ASSERT(ARRAY_SIZE(hashsizes) == GHASH_MAX_SIZE, "Invalid 'hashsizes' 
  * about 25% - 30% quicker 'dynamic-topology' stroke drawing e.g.).
  * Min load #GHASH_LIMIT_SHRINK is a quarter of max load, to avoid resizing to quickly.
  */
-#define GHASH_LIMIT_GROW(_nbkt) (((_nbkt)*3) / 4)
-#define GHASH_LIMIT_SHRINK(_nbkt) (((_nbkt)*3) / 16)
+#define GHASH_LIMIT_GROW(_nbkt) (((_nbkt) * 3) / 4)
+#define GHASH_LIMIT_SHRINK(_nbkt) (((_nbkt) * 3) / 16)
 
 /* WARNING! Keep in sync with ugly _gh_Entry in header!!! */
 typedef struct Entry {

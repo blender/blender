@@ -8,6 +8,7 @@
 #include "WM_types.hh"
 
 #include "BLI_map.hh"
+#include "BLI_vector.hh"
 
 #include <pxr/usd/usdShade/material.h>
 
@@ -29,7 +30,7 @@ using ShaderToNodeMap = blender::Map<std::string, bNode *>;
 struct NodePlacementContext {
   float origx;
   float origy;
-  std::vector<float> column_offsets;
+  blender::Vector<float, 0> column_offsets;
   const float horizontal_step;
   const float vertical_step;
 
@@ -108,7 +109,8 @@ class USDMaterialReader {
                       const char *dest_socket_name,
                       bNodeTree *ntree,
                       int column,
-                      NodePlacementContext *r_ctx) const;
+                      NodePlacementContext *r_ctx,
+                      bool is_color_corrected) const;
 
   /**
    * Follow the connected source of the USD input to create corresponding inputs
@@ -119,7 +121,8 @@ class USDMaterialReader {
                          const char *dest_socket_name,
                          bNodeTree *ntree,
                          int column,
-                         NodePlacementContext *r_ctx) const;
+                         NodePlacementContext *r_ctx,
+                         bool is_color_corrected = false) const;
 
   void convert_usd_uv_texture(const pxr::UsdShadeShader &usd_shader,
                               const pxr::TfToken &usd_source_name,
@@ -127,13 +130,23 @@ class USDMaterialReader {
                               const char *dest_socket_name,
                               bNodeTree *ntree,
                               int column,
-                              NodePlacementContext *r_ctx) const;
+                              NodePlacementContext *r_ctx,
+                              bool is_color_corrected = false) const;
+
+  void convert_usd_transform_2d(const pxr::UsdShadeShader &usd_shader,
+                                bNode *dest_node,
+                                const char *dest_socket_name,
+                                bNodeTree *ntree,
+                                int column,
+                                NodePlacementContext *r_ctx) const;
 
   /**
    * Load the texture image node's texture from the path given by the USD shader's
    * file input value.
    */
-  void load_tex_image(const pxr::UsdShadeShader &usd_shader, bNode *tex_image) const;
+  void load_tex_image(const pxr::UsdShadeShader &usd_shader,
+                      bNode *tex_image,
+                      bool is_color_corrected = false) const;
 
   /**
    * This function creates a Blender UV Map node, under the simplifying assumption that
@@ -158,7 +171,7 @@ class USDMaterialReader {
  * might be modified to be a valid USD identifier, to match material
  * names in the imported USD.
  */
-void build_material_map(const Main *bmain, std::map<std::string, Material *> *r_mat_map);
+void build_material_map(const Main *bmain, blender::Map<std::string, Material *> *r_mat_map);
 
 /**
  * Returns an existing Blender material that corresponds to the USD material with the given path.
@@ -173,9 +186,10 @@ void build_material_map(const Main *bmain, std::map<std::string, Material *> *r_
  * material imported from a USD path in the case when a unique name was generated
  * for the material due to a name collision.
  */
-Material *find_existing_material(const pxr::SdfPath &usd_mat_path,
-                                 const USDImportParams &params,
-                                 const std::map<std::string, Material *> &mat_map,
-                                 const std::map<std::string, std::string> &usd_path_to_mat_name);
+Material *find_existing_material(
+    const pxr::SdfPath &usd_mat_path,
+    const USDImportParams &params,
+    const blender::Map<std::string, Material *> &mat_map,
+    const blender::Map<std::string, std::string> &usd_path_to_mat_name);
 
 }  // namespace blender::io::usd

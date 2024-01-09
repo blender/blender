@@ -8,9 +8,6 @@
  * Functions for iterating mesh features.
  */
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-
 #include "BKE_customdata.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_editmesh_cache.hh"
@@ -48,7 +45,7 @@ void BKE_mesh_foreach_mapped_vert(
       const blender::Span<blender::float3> positions = mesh->runtime->edit_data->vertexCos;
       blender::Span<blender::float3> vert_normals;
       if (flag & MESH_FOREACH_USE_NORMAL) {
-        BKE_editmesh_cache_ensure_vert_normals(em, mesh->runtime->edit_data);
+        BKE_editmesh_cache_ensure_vert_normals(*em, *mesh->runtime->edit_data);
         vert_normals = mesh->runtime->edit_data->vertexNos;
       }
       BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
@@ -73,7 +70,7 @@ void BKE_mesh_foreach_mapped_vert(
     }
 
     if (index) {
-      for (int i = 0; i < mesh->totvert; i++) {
+      for (int i = 0; i < mesh->verts_num; i++) {
         const float *no = (flag & MESH_FOREACH_USE_NORMAL) ? &vert_normals[i].x : nullptr;
         const int orig = *index++;
         if (orig == ORIGINDEX_NONE) {
@@ -83,7 +80,7 @@ void BKE_mesh_foreach_mapped_vert(
       }
     }
     else {
-      for (int i = 0; i < mesh->totvert; i++) {
+      for (int i = 0; i < mesh->verts_num; i++) {
         const float *no = (flag & MESH_FOREACH_USE_NORMAL) ? &vert_normals[i].x : nullptr;
         func(user_data, i, positions[i], no);
       }
@@ -135,7 +132,7 @@ void BKE_mesh_foreach_mapped_edge(
         func(user_data, orig, positions[edges[i][0]], positions[edges[i][1]]);
       }
     }
-    else if (mesh->totedge == tot_edges) {
+    else if (mesh->edges_num == tot_edges) {
       for (const int i : edges.index_range()) {
         func(user_data, i, positions[edges[i][0]], positions[edges[i][1]]);
       }
@@ -245,11 +242,11 @@ void BKE_mesh_foreach_mapped_face_center(
     BMIter iter;
     int i;
 
-    BKE_editmesh_cache_ensure_face_centers(em, mesh->runtime->edit_data);
+    BKE_editmesh_cache_ensure_face_centers(*em, *mesh->runtime->edit_data);
     face_centers = mesh->runtime->edit_data->faceCos; /* always set */
 
     if (flag & MESH_FOREACH_USE_NORMAL) {
-      BKE_editmesh_cache_ensure_face_normals(em, mesh->runtime->edit_data);
+      BKE_editmesh_cache_ensure_face_normals(*em, *mesh->runtime->edit_data);
       face_normals = mesh->runtime->edit_data->faceNos; /* maybe nullptr */
     }
 

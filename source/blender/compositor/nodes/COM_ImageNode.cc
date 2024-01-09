@@ -81,7 +81,8 @@ void ImageNode::convert_to_operations(NodeConverter &converter,
           int view = 0;
 
           if (STREQ(storage->pass_name, RE_PASSNAME_COMBINED) &&
-              STREQ(bnode_socket->name, "Alpha")) {
+              STREQ(bnode_socket->name, "Alpha"))
+          {
             /* Alpha output is already handled with the associated combined output. */
             continue;
           }

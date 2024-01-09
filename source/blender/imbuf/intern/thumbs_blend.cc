@@ -18,7 +18,7 @@
 #include "BLO_readfile.h"
 
 #include "BKE_idtype.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_preview_image.hh"
 
 #include "DNA_ID.h" /* For preview images... */

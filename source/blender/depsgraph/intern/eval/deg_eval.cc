@@ -387,6 +387,8 @@ void deg_evaluate_on_refresh(Depsgraph *graph)
     return;
   }
 
+  graph->update_count++;
+
   graph->debug.begin_graph_evaluation();
 
 #ifdef WITH_PYTHON

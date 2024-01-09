@@ -24,10 +24,8 @@ GPU_SHADER_CREATE_INFO(compositor_read_input_vector)
 
 GPU_SHADER_CREATE_INFO(compositor_read_input_color)
     .additional_info("compositor_read_input_shared")
-    .push_constant(Type::BOOL, "premultiply_alpha")
     .image(0, GPU_RGBA16F, Qualifier::WRITE, ImageType::FLOAT_2D, "output_img")
-    .define("READ_EXPRESSION(input_color)",
-            "input_color * vec4(vec3(premultiply_alpha ? input_color.a : 1.0), 1.0)")
+    .define("READ_EXPRESSION(input_color)", "input_color")
     .do_static_compilation(true);
 
 GPU_SHADER_CREATE_INFO(compositor_read_input_alpha)

@@ -8,21 +8,20 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math_color.h"
-#include "BLI_math_vector.h"
-#include "BLI_utildefines.h"
-
 #include "BLI_bitmap.h"
 #include "BLI_ghash.h"
 #include "BLI_index_range.hh"
+#include "BLI_math_color.h"
+#include "BLI_math_vector.h"
 #include "BLI_rand.h"
 #include "BLI_span.hh"
 #include "BLI_task.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
-#include "BKE_attribute.h"
+#include "BKE_attribute.hh"
 #include "BKE_ccg.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
@@ -32,7 +31,7 @@
 
 #include "PIL_time.h"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
 #include "atomic_ops.h"
 
@@ -91,10 +90,10 @@ static void pbvh_vertex_color_get(const PBVH &pbvh, PBVHVertRef vertex, float r_
 {
   int index = vertex.i;
 
-  if (pbvh.color_domain == ATTR_DOMAIN_CORNER) {
+  if (pbvh.color_domain == AttrDomain::Corner) {
     int count = 0;
     zero_v4(r_color);
-    for (const int i_face : pbvh.pmap[index]) {
+    for (const int i_face : pbvh.vert_to_face_map[index]) {
       const IndexRange face = pbvh.faces[i_face];
       Span<T> colors{static_cast<const T *>(pbvh.color_layer->data) + face.start(), face.size()};
       Span<int> face_verts = pbvh.corner_verts.slice(face);
@@ -124,8 +123,8 @@ static void pbvh_vertex_color_set(PBVH &pbvh, PBVHVertRef vertex, const float co
 {
   int index = vertex.i;
 
-  if (pbvh.color_domain == ATTR_DOMAIN_CORNER) {
-    for (const int i_face : pbvh.pmap[index]) {
+  if (pbvh.color_domain == AttrDomain::Corner) {
+    for (const int i_face : pbvh.vert_to_face_map[index]) {
       const IndexRange face = pbvh.faces[i_face];
       MutableSpan<T> colors{static_cast<T *>(pbvh.color_layer->data) + face.start(), face.size()};
       Span<int> face_verts = pbvh.corner_verts.slice(face);
@@ -192,7 +191,7 @@ void BKE_pbvh_store_colors_vertex(PBVH *pbvh,
                                   const blender::Span<int> indices,
                                   blender::MutableSpan<blender::float4> r_colors)
 {
-  if (pbvh->color_domain == ATTR_DOMAIN_POINT) {
+  if (pbvh->color_domain == blender::bke::AttrDomain::Point) {
     BKE_pbvh_store_colors(pbvh, indices, r_colors);
   }
   else {

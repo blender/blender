@@ -39,7 +39,7 @@
 #include "BKE_deform.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
@@ -61,7 +61,7 @@
 #include "ED_screen.hh"
 #include "ED_select_utils.hh"
 
-#include "ANIM_bone_collections.h"
+#include "ANIM_bone_collections.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -953,7 +953,8 @@ static bool select_grouped_color(bContext *C, Object *ob)
 
   CTX_DATA_BEGIN (C, Base *, base, selectable_bases) {
     if (((base->flag & BASE_SELECTED) == 0) &&
-        compare_v3v3(base->object->color, ob->color, 0.005f)) {
+        compare_v3v3(base->object->color, ob->color, 0.005f))
+    {
       ED_object_base_select(base, BA_SELECT);
       changed = true;
     }

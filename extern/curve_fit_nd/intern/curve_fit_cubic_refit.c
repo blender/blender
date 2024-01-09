@@ -1311,7 +1311,7 @@ int curve_fit_cubic_to_points_refit_db(
 #ifdef USE_CORNER_DETECT
 	if (use_corner) {
 
-#ifdef DEBUG
+#ifndef NDEBUG
 		for (uint i = 0; i < knots_len; i++) {
 			assert(knots[i].heap_node == NULL);
 		}

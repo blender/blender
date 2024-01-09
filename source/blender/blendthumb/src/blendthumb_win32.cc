@@ -8,7 +8,7 @@
  * Thumbnail from Blend file extraction for MS-Windows.
  */
 
-#include <math.h>
+#include <cmath>
 #include <new>
 #include <shlwapi.h>
 #include <string>

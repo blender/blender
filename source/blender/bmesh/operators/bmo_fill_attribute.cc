@@ -11,9 +11,9 @@
 #include "BLI_linklist_stack.h"
 #include "BLI_utildefines.h"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
-#include "intern/bmesh_operators_private.h" /* own include */
+#include "intern/bmesh_operators_private.hh" /* own include */
 
 /**
  * Check if all other loops are tagged.
@@ -56,7 +56,7 @@ static void bm_face_copy_shared_all(BMesh *bm,
 
   if (use_data) {
     /* copy face-attrs */
-    BM_elem_attrs_copy(bm, bm, f_other, f);
+    BM_elem_attrs_copy(bm, f_other, f);
 
     /* copy loop-attrs */
     BM_face_copy_shared(bm, f, bm_loop_is_face_untag, nullptr);

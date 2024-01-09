@@ -166,35 +166,35 @@
     return value; \
   }
 
-/* Noise fBM */
+/* Noise fBM. */
 
 NOISE_FBM(float)
 NOISE_FBM(vec2)
 NOISE_FBM(vec3)
 NOISE_FBM(vec4)
 
-/* Noise Multifractal */
+/* Noise Multi-fractal. */
 
 NOISE_MULTI_FRACTAL(float)
 NOISE_MULTI_FRACTAL(vec2)
 NOISE_MULTI_FRACTAL(vec3)
 NOISE_MULTI_FRACTAL(vec4)
 
-/* Noise Hetero Terrain */
+/* Noise Hetero Terrain. */
 
 NOISE_HETERO_TERRAIN(float)
 NOISE_HETERO_TERRAIN(vec2)
 NOISE_HETERO_TERRAIN(vec3)
 NOISE_HETERO_TERRAIN(vec4)
 
-/* Noise Hybrid Multifractal */
+/* Noise Hybrid Multi-fractal. */
 
 NOISE_HYBRID_MULTI_FRACTAL(float)
 NOISE_HYBRID_MULTI_FRACTAL(vec2)
 NOISE_HYBRID_MULTI_FRACTAL(vec3)
 NOISE_HYBRID_MULTI_FRACTAL(vec4)
 
-/* Noise Ridged Multifractal */
+/* Noise Ridged Multi-fractal. */
 
 NOISE_RIDGED_MULTI_FRACTAL(float)
 NOISE_RIDGED_MULTI_FRACTAL(vec2)

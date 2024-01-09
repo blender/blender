@@ -37,7 +37,7 @@ static int gpu_shader_particle_info(GPUMaterial *mat,
 NODE_SHADER_MATERIALX_BEGIN
 #ifdef WITH_MATERIALX
 {
-  /* NOTE: This node isn't supported by MaterialX.*/
+  /* NOTE: This node isn't supported by MaterialX. */
   return get_output_default(socket_out_->name, NodeItem::Type::Any);
 }
 #endif

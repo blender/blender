@@ -56,6 +56,7 @@ const char *MTLShaderInterface::get_name_at_offset(uint32_t offset) const
 void MTLShaderInterface::init()
 {
   total_attributes_ = 0;
+  total_constants_ = 0;
   total_uniform_blocks_ = 0;
   max_uniformbuf_index_ = 0;
   total_storage_blocks_ = 0;
@@ -225,7 +226,8 @@ void MTLShaderInterface::add_texture(uint32_t name_offset,
                                      eGPUTextureType tex_binding_type,
                                      eGPUSamplerFormat sampler_format,
                                      bool is_texture_sampler,
-                                     ShaderStage stage_mask)
+                                     ShaderStage stage_mask,
+                                     int tex_buffer_ssbo_location)
 {
   BLI_assert(texture_slot >= 0 && texture_slot < GPU_max_textures());
   BLI_assert(sampler_format < GPU_SAMPLER_TYPE_MAX);
@@ -241,6 +243,7 @@ void MTLShaderInterface::add_texture(uint32_t name_offset,
     tex.is_texture_sampler = is_texture_sampler;
     tex.stage_mask = stage_mask;
     tex.used = true;
+    tex.texture_buffer_ssbo_location = tex_buffer_ssbo_location;
     total_textures_++;
     max_texture_index_ = max_ii(max_texture_index_, texture_slot);
   }
@@ -252,6 +255,14 @@ void MTLShaderInterface::add_texture(uint32_t name_offset,
         texture_slot,
         GPU_max_textures());
   }
+}
+
+void MTLShaderInterface::add_constant(uint32_t name_offset)
+{
+  MTLShaderConstant constant;
+  constant.name_offset = name_offset;
+  constants_.append(constant);
+  total_constants_++;
 }
 
 void MTLShaderInterface::map_builtins()
@@ -309,10 +320,11 @@ void MTLShaderInterface::prepare_common_shader_inputs()
   ubo_len_ = this->get_total_uniform_blocks();
   uniform_len_ = this->get_total_uniforms() + this->get_total_textures();
   ssbo_len_ = this->get_total_storage_blocks();
+  constant_len_ = this->get_total_constants();
 
   /* Calculate total inputs and allocate #ShaderInput array. */
   /* NOTE: We use the existing `name_buffer_` allocated for internal input structs. */
-  int input_tot_len = attr_len_ + ubo_len_ + uniform_len_ + ssbo_len_;
+  int input_tot_len = attr_len_ + ubo_len_ + uniform_len_ + ssbo_len_ + constant_len_;
   inputs_ = (ShaderInput *)MEM_callocN(sizeof(ShaderInput) * input_tot_len, __func__);
   ShaderInput *current_input = inputs_;
 
@@ -406,10 +418,40 @@ void MTLShaderInterface::prepare_common_shader_inputs()
     current_input++;
   }
 
+  /* Specialization Constants. */
+  BLI_assert(&inputs_[attr_len_ + ubo_len_ + uniform_len_ + ssbo_len_] >= current_input);
+  current_input = &inputs_[attr_len_ + ubo_len_ + uniform_len_ + ssbo_len_];
+  for (const int const_index : IndexRange(constant_len_)) {
+    MTLShaderConstant &shd_const = constants_[const_index];
+    current_input->name_offset = shd_const.name_offset;
+    current_input->name_hash = BLI_hash_string(this->get_name_at_offset(shd_const.name_offset));
+    current_input->location = const_index;
+    current_input++;
+  }
+
   this->sort_inputs();
 
   /* Map builtin uniform indices to uniform binding locations. */
   this->map_builtins();
+
+  /* Pre-calculate texture metadata uniform locations for buffer-backed textures. */
+  for (int texture_index = 0; texture_index <= max_texture_index_; texture_index++) {
+    MTLShaderTexture &shd_tex = textures_[texture_index];
+    if (shd_tex.texture_buffer_ssbo_location != -1) {
+      char uniform_name[256];
+      const char *tex_name = get_name_at_offset(shd_tex.name_offset);
+      BLI_snprintf(uniform_name, 256, "%s_metadata", tex_name);
+      const ShaderInput *uni = this->uniform_get(uniform_name);
+      BLI_assert_msg(uni != nullptr,
+                     "Could not find expected metadata uniform slot for buffer-backed texture.");
+      if (uni != nullptr) {
+        BLI_assert(uni->location >= 0);
+        if (uni->location >= 0) {
+          shd_tex.buffer_metadata_uniform_loc = uni->location;
+        }
+      }
+    }
+  }
 }
 
 void MTLShaderInterface::set_sampler_properties(bool use_argument_buffer,
@@ -437,6 +479,11 @@ const MTLShaderInputAttribute &MTLShaderInterface::get_attribute(uint index) con
 uint32_t MTLShaderInterface::get_total_attributes() const
 {
   return total_attributes_;
+}
+
+uint32_t MTLShaderInterface::get_total_constants() const
+{
+  return total_constants_;
 }
 
 uint32_t MTLShaderInterface::get_total_vertex_stride() const

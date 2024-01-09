@@ -14,6 +14,8 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
+#include "BKE_main.hh"
+#include "BKE_workspace.h"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -28,12 +30,78 @@
 #include "bpy_rna.h"
 
 /* -------------------------------------------------------------------- */
+/** \name Private Utility Functions
+ * \{ */
+
+static void bpy_rna_context_temp_set_screen_for_window(bContext *C, wmWindow *win, bScreen *screen)
+{
+  if (screen == nullptr) {
+    return;
+  }
+  if (screen == WM_window_get_active_screen(win)) {
+    return;
+  }
+
+  WorkSpace *workspace;
+  BKE_workspace_layout_find_global(CTX_data_main(C), screen, &workspace);
+  /* Changing workspace instead of just screen as they are tied. */
+  WM_window_set_active_workspace(C, win, workspace);
+  WM_window_set_active_screen(win, workspace, screen);
+}
+
+static bool wm_check_window_exists(const Main *bmain, const wmWindow *win)
+{
+  LISTBASE_FOREACH (wmWindowManager *, wm, &bmain->wm) {
+    if (BLI_findindex(&wm->windows, win) != -1) {
+      return true;
+    }
+  }
+  return false;
+}
+
+static bool wm_check_screen_exists(const Main *bmain, const bScreen *screen)
+{
+  if (BLI_findindex(&bmain->screens, screen) != -1) {
+    return true;
+  }
+  return false;
+}
+
+static bool wm_check_area_exists(const wmWindow *win, const bScreen *screen, const ScrArea *area)
+{
+  if (win && (BLI_findindex(&win->global_areas.areabase, area) != -1)) {
+    return true;
+  }
+  if (screen && (BLI_findindex(&screen->areabase, area) != -1)) {
+    return true;
+  }
+  return false;
+}
+
+static bool wm_check_region_exists(const bScreen *screen,
+                                   const ScrArea *area,
+                                   const ARegion *region)
+{
+  if (screen && (BLI_findindex(&screen->regionbase, region) != -1)) {
+    return true;
+  }
+  if (area && (BLI_findindex(&area->regionbase, region) != -1)) {
+    return true;
+  }
+  return false;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Temporary Context Override (Python Context Manager)
  * \{ */
 
 struct ContextStore {
   wmWindow *win;
   bool win_is_set;
+  bScreen *screen;
+  bool screen_is_set;
   ScrArea *area;
   bool area_is_set;
   ARegion *region;
@@ -46,6 +114,15 @@ struct BPyContextTempOverride {
 
   ContextStore ctx_init;
   ContextStore ctx_temp;
+
+  struct {
+    /**
+     * The original screen of `ctx_temp.win`, needed when restoring this windows screen as it
+     * won't be `ctx_init.screen` (when switching the window as well as the screen), see #115937.
+     */
+    bScreen *screen;
+  } ctx_temp_orig;
+
   /** Bypass Python overrides set when calling an operator from Python. */
   bContext_PyState py_state;
   /**
@@ -67,46 +144,130 @@ static void bpy_rna_context_temp_override__tp_dealloc(BPyContextTempOverride *se
 static PyObject *bpy_rna_context_temp_override_enter(BPyContextTempOverride *self)
 {
   bContext *C = self->context;
+  Main *bmain = CTX_data_main(C);
 
   CTX_py_state_push(C, &self->py_state, self->py_state_context_dict);
 
   self->ctx_init.win = CTX_wm_window(C);
+  self->ctx_init.screen = self->ctx_init.win ? WM_window_get_active_screen(self->ctx_init.win) :
+                                               CTX_wm_screen(C);
   self->ctx_init.area = CTX_wm_area(C);
   self->ctx_init.region = CTX_wm_region(C);
 
   wmWindow *win = self->ctx_temp.win_is_set ? self->ctx_temp.win : self->ctx_init.win;
+  bScreen *screen = self->ctx_temp.screen_is_set ? self->ctx_temp.screen : self->ctx_init.screen;
   ScrArea *area = self->ctx_temp.area_is_set ? self->ctx_temp.area : self->ctx_init.area;
   ARegion *region = self->ctx_temp.region_is_set ? self->ctx_temp.region : self->ctx_init.region;
 
   self->ctx_init.win_is_set = (self->ctx_init.win != win);
+  self->ctx_init.screen_is_set = (self->ctx_init.screen != screen);
   self->ctx_init.area_is_set = (self->ctx_init.area != area);
   self->ctx_init.region_is_set = (self->ctx_init.region != region);
 
-  bScreen *screen = win ? WM_window_get_active_screen(win) : nullptr;
+  /* When the screen isn't passed but a window is, match the screen to the window,
+   * it's important to do this after setting `self->ctx_init.screen_is_set` because the screen is
+   * *not* set, only the window, restoring the window will also restore its screen, see #116297. */
+  if ((self->ctx_temp.win_is_set == true) && (self->ctx_temp.screen_is_set == false)) {
+    screen = win ? WM_window_get_active_screen(win) : nullptr;
+  }
 
-  /* Sanity check, the region is in the screen/area. */
+  /* NOTE(@ideasman42): Regarding sanity checks.
+   * There are 3 different situations to be accounted for here regarding overriding windowing data.
+   *
+   * - 1) Nothing is overridden.
+   *   Simple, no sanity checks needed.
+   *
+   * - 2) Some members are overridden.
+   *   Check the state is consistent (that the region is part the area or screen for e.g.).
+   *
+   * - 3) Some members are overridden *but* the context members are unchanged.
+   *   This is a less obvious case which often happens when a Python script copies the context
+   *   typically via `context.copy()`, manipulates it and passes it in as keyword arguments.
+   *
+   *   A naive approach could be to behave as if these arguments weren't passed in
+   *   which would work in many situations however there is a difference
+   *   since these members are used to restore the context afterwards.
+   *   It's possible a script might use this context-manager to *pin* the context,
+   *   running actions that change the context, relying on the context to be restored.
+   *
+   *   When error-checking unchanged context members some error checks must be skipped
+   *   such as the check to disallow temporary screens since that could break using
+   *   `temp_override(..)` running with the current context from a render-window for e.g.
+   *
+   *   In fact all sanity checks could be disabled when the members involved remain unchanged
+   *   however it's possible Python scripts corrupt Blender's internal windowing state so keeping
+   *   the checks is harmless and alerts developers early on that something is wrong.
+   */
+
   if (self->ctx_temp.region_is_set && (region != nullptr)) {
-    if (area == nullptr) {
-      PyErr_SetString(PyExc_TypeError, "Region set with nullptr area");
+    if (screen == nullptr && area == nullptr) {
+      PyErr_SetString(PyExc_TypeError, "Region set with screen & area set to None");
       return nullptr;
     }
-    if ((screen && BLI_findindex(&screen->regionbase, region) == -1) &&
-        (BLI_findindex(&area->regionbase, region) == -1))
-    {
-      PyErr_SetString(PyExc_TypeError, "Region not found in area");
+    if (!wm_check_region_exists(screen, area, region)) {
+      PyErr_SetString(PyExc_TypeError, "Region not found in area or screen");
       return nullptr;
     }
   }
 
   if (self->ctx_temp.area_is_set && (area != nullptr)) {
-    if (screen == nullptr) {
-      PyErr_SetString(PyExc_TypeError, "Area set with nullptr screen");
+    if (win == nullptr && screen == nullptr) {
+      PyErr_SetString(PyExc_TypeError, "Area set with window & screen set to None");
       return nullptr;
     }
-    if (BLI_findindex(&screen->areabase, area) == -1) {
+    if (!wm_check_area_exists(win, screen, area)) {
       PyErr_SetString(PyExc_TypeError, "Area not found in screen");
       return nullptr;
     }
+  }
+
+  if (self->ctx_temp.screen_is_set && (screen != nullptr)) {
+    if (win == nullptr) {
+      PyErr_SetString(PyExc_TypeError, "Screen set with null window");
+      return nullptr;
+    }
+    if (!wm_check_screen_exists(bmain, screen)) {
+      PyErr_SetString(PyExc_TypeError, "Screen not found");
+      return nullptr;
+    }
+
+    /* Skip some checks when the screen is unchanged. */
+    if (self->ctx_init.screen_is_set) {
+      if (screen->temp != 0) {
+        PyErr_SetString(PyExc_TypeError,
+                        "Overriding context with temporary screen is not supported");
+        return nullptr;
+      }
+      if (BKE_workspace_layout_find_global(bmain, screen, nullptr) == nullptr) {
+        PyErr_SetString(PyExc_TypeError, "Screen has no workspace");
+        return nullptr;
+      }
+
+      LISTBASE_FOREACH (wmWindowManager *, wm, &bmain->wm) {
+        LISTBASE_FOREACH (wmWindow *, win_iter, &wm->windows) {
+          if (win_iter == win) {
+            continue;
+          }
+          if (screen == WM_window_get_active_screen(win_iter)) {
+            PyErr_SetString(PyExc_TypeError, "Screen is used by another window");
+            return nullptr;
+          }
+        }
+      }
+    }
+  }
+
+  if (self->ctx_temp.win_is_set && (win != nullptr)) {
+    if (!wm_check_window_exists(bmain, win)) {
+      PyErr_SetString(PyExc_TypeError, "Window not found");
+      return nullptr;
+    }
+  }
+
+  /* Manipulate the context (setup). */
+  if (self->ctx_temp.screen_is_set) {
+    self->ctx_temp_orig.screen = WM_window_get_active_screen(win);
+    bpy_rna_context_temp_set_screen_for_window(C, win, self->ctx_temp.screen);
   }
 
   /* NOTE: always set these members, even when they are equal to the current values because
@@ -121,6 +282,9 @@ static PyObject *bpy_rna_context_temp_override_enter(BPyContextTempOverride *sel
 
   if (self->ctx_temp.win_is_set) {
     CTX_wm_window_set(C, self->ctx_temp.win);
+  }
+  if (self->ctx_temp.screen_is_set) {
+    CTX_wm_screen_set(C, self->ctx_temp.screen);
   }
   if (self->ctx_temp.area_is_set) {
     CTX_wm_area_set(C, self->ctx_temp.area);
@@ -137,47 +301,102 @@ static PyObject *bpy_rna_context_temp_override_exit(BPyContextTempOverride *self
 {
   bContext *C = self->context;
 
-  /* Special case where the window is expected to be freed on file-read,
-   * in this case the window should not be restored, see: #92818. */
-  bool do_restore = true;
-  if (self->ctx_init.win) {
-    wmWindowManager *wm = CTX_wm_manager(C);
-    if (BLI_findindex(&wm->windows, self->ctx_init.win) == -1) {
-      CTX_wm_window_set(C, nullptr);
-      do_restore = false;
+  Main *bmain = CTX_data_main(C);
+
+  /* Manipulate the context (restore). */
+  if (self->ctx_temp.screen_is_set) {
+    if (self->ctx_temp_orig.screen && wm_check_screen_exists(bmain, self->ctx_temp_orig.screen)) {
+      wmWindow *win = self->ctx_temp.win_is_set ? self->ctx_temp.win : self->ctx_init.win;
+      if (win && wm_check_window_exists(bmain, win)) {
+        bpy_rna_context_temp_set_screen_for_window(C, win, self->ctx_temp_orig.screen);
+      }
     }
   }
 
+  /* Account for for the window to be freed on file-read,
+   * in this case the window should not be restored, see: #92818.
+   * Also account for other windowing members to be removed on exit,
+   * in this case the context is cleared. */
+  bool do_restore = true;
+
+  /* Restore context members as needed.
+   *
+   * The checks here behaves as follows:
+   * - When `self->ctx_init.win_is_set` is true, the window was changed by the override.
+   *   in this case restore the initial window.
+   * - When `self->ctx_temp.win_is_set` is true, the window was set to the current value.
+   *   Setting the window (even to the current value) must be accounted for
+   *   because setting the window clears the area and the region members,
+   *   which must now be restored.
+   *
+   * `is_container_set` is used to detect if nested context members need to be restored.
+   * The comments above refer to the window, it also applies to the screen containing an area
+   * and area which contains a region. */
+  bool is_container_set = false;
+
+  /* Handle Window. */
   if (do_restore) {
-    /* Restore context members as needed.
-     *
-     * The checks here behaves as follows:
-     * - When `self->ctx_init.win_is_set` is true, the window was changed by the override.
-     *   in this case restore the initial window.
-     * - When `self->ctx_temp.win_is_set` is true, the window was set to the current value.
-     *   Setting the window (even to the current value) must be accounted for
-     *   because setting the window clears the area and the region members,
-     *   which must now be restored.
-     *
-     * `is_container_set` is used to detect if nested context members need to be restored.
-     * The comments above refer to the window, it also applies to the area which contains a region.
-     */
-    bool is_container_set = false;
-
-    if (self->ctx_init.win_is_set) {
-      CTX_wm_window_set(C, self->ctx_init.win);
-      is_container_set = true;
-    }
-    else if (self->ctx_temp.win_is_set) {
-      is_container_set = true;
+    if (self->ctx_init.win && !wm_check_window_exists(bmain, self->ctx_init.win)) {
+      CTX_wm_window_set(C, nullptr);
+      do_restore = false;
     }
 
-    if (self->ctx_init.area_is_set || is_container_set) {
-      CTX_wm_area_set(C, self->ctx_init.area);
-      is_container_set = true;
+    if (do_restore) {
+      if (self->ctx_init.win_is_set) {
+        CTX_wm_window_set(C, self->ctx_init.win);
+        is_container_set = true;
+      }
+      else if (self->ctx_temp.win_is_set) {
+        is_container_set = true;
+      }
     }
-    else if (self->ctx_temp.area_is_set) {
-      is_container_set = true;
+  }
+
+  /* Handle Screen. */
+  if (do_restore) {
+    if (self->ctx_init.screen && !wm_check_screen_exists(bmain, self->ctx_init.screen)) {
+      CTX_wm_screen_set(C, nullptr);
+      do_restore = false;
+    }
+
+    if (do_restore) {
+      if (self->ctx_init.screen_is_set || is_container_set) {
+        CTX_wm_screen_set(C, self->ctx_init.screen);
+        is_container_set = true;
+      }
+      else if (self->ctx_temp.screen_is_set) {
+        is_container_set = true;
+      }
+    }
+  }
+
+  /* Handle Area. */
+  if (do_restore) {
+    if (self->ctx_init.area &&
+        !wm_check_area_exists(self->ctx_init.win, self->ctx_init.screen, self->ctx_init.area))
+    {
+      CTX_wm_area_set(C, nullptr);
+      do_restore = false;
+    }
+
+    if (do_restore) {
+      if (self->ctx_init.area_is_set || is_container_set) {
+        CTX_wm_area_set(C, self->ctx_init.area);
+        is_container_set = true;
+      }
+      else if (self->ctx_temp.area_is_set) {
+        is_container_set = true;
+      }
+    }
+  }
+
+  /* Handle Region. */
+  if (do_restore) {
+    if (self->ctx_init.region &&
+        !wm_check_region_exists(self->ctx_init.screen, self->ctx_init.area, self->ctx_init.region))
+    {
+      CTX_wm_region_set(C, nullptr);
+      do_restore = false;
     }
 
     if (self->ctx_init.region_is_set || is_container_set) {
@@ -187,8 +406,10 @@ static PyObject *bpy_rna_context_temp_override_exit(BPyContextTempOverride *self
     else if (self->ctx_temp.region_is_set) {
       is_container_set = true;
     }
-    UNUSED_VARS(is_container_set);
   }
+  UNUSED_VARS(is_container_set);
+
+  /* Finished restoring the context. */
 
   /* A copy may have been made when writing context members, see #BPY_context_dict_clear_members */
   PyObject *context_dict_test = static_cast<PyObject *>(CTX_py_dict_get(C));
@@ -300,6 +521,13 @@ PyDoc_STRVAR(bpy_context_temp_override_doc,
              "\n"
              "   :arg window: Window override or None.\n"
              "   :type window: :class:`bpy.types.Window`\n"
+             "   :arg screen: Screen override or None.\n"
+             "\n"
+             "      .. note:: Changing the screen has wider implications "
+             "than other arguments as it will also change the works-space "
+             "and potentially the scene (when pinned).\n"
+             "\n"
+             "   :type screen: :class:`bpy.types.Screen`\n"
              "   :arg area: Area override or None.\n"
              "   :type area: :class:`bpy.types.Area`\n"
              "   :arg region: Region override or None.\n"
@@ -328,18 +556,27 @@ static PyObject *bpy_context_temp_override(PyObject *self, PyObject *args, PyObj
 
   struct {
     BPy_StructRNA_Parse window;
+    BPy_StructRNA_Parse screen;
     BPy_StructRNA_Parse area;
     BPy_StructRNA_Parse region;
   } params{};
   params.window.type = &RNA_Window;
+  params.screen.type = &RNA_Screen;
   params.area.type = &RNA_Area;
   params.region.type = &RNA_Region;
 
-  static const char *const _keywords[] = {"window", "area", "region", nullptr};
+  static const char *const _keywords[] = {
+      "window",
+      "screen",
+      "area",
+      "region",
+      nullptr,
+  };
   static _PyArg_Parser _parser = {
       PY_ARG_PARSER_HEAD_COMPAT()
       "|$" /* Optional, keyword only arguments. */
       "O&" /* `window` */
+      "O&" /* `screen` */
       "O&" /* `area` */
       "O&" /* `region` */
       ":temp_override",
@@ -355,6 +592,8 @@ static PyObject *bpy_context_temp_override(PyObject *self, PyObject *args, PyObj
                                                               &_parser,
                                                               pyrna_struct_as_ptr_or_null_parse,
                                                               &params.window,
+                                                              pyrna_struct_as_ptr_or_null_parse,
+                                                              &params.screen,
                                                               pyrna_struct_as_ptr_or_null_parse,
                                                               &params.area,
                                                               pyrna_struct_as_ptr_or_null_parse,
@@ -381,6 +620,12 @@ static PyObject *bpy_context_temp_override(PyObject *self, PyObject *args, PyObj
     ctx_temp.win = static_cast<wmWindow *>(params.window.ptr->data);
     ctx_temp.win_is_set = true;
   }
+
+  if (params.screen.ptr != nullptr) {
+    ctx_temp.screen = static_cast<bScreen *>(params.screen.ptr->data);
+    ctx_temp.screen_is_set = true;
+  }
+
   if (params.area.ptr != nullptr) {
     ctx_temp.area = static_cast<ScrArea *>(params.area.ptr->data);
     ctx_temp.area_is_set = true;
@@ -396,12 +641,18 @@ static PyObject *bpy_context_temp_override(PyObject *self, PyObject *args, PyObj
   ret->ctx_temp = ctx_temp;
   memset(&ret->ctx_init, 0, sizeof(ret->ctx_init));
 
+  ret->ctx_temp_orig.screen = nullptr;
+
   ret->py_state_context_dict = kwds;
 
   return (PyObject *)ret;
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Public Type Definition
+ * \{ */
 
 #if (defined(__GNUC__) && !defined(__clang__))
 #  pragma GCC diagnostic push
@@ -426,3 +677,5 @@ void bpy_rna_context_types_init()
     return;
   }
 }
+
+/** \} */

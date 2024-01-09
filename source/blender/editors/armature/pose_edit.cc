@@ -27,7 +27,7 @@
 #include "BKE_global.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_object.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -50,7 +50,7 @@
 #include "ED_screen.hh"
 #include "ED_view3d.hh"
 
-#include "ANIM_bone_collections.h"
+#include "ANIM_bone_collections.hh"
 #include "ANIM_keyframing.hh"
 
 #include "UI_interface.hh"
@@ -674,7 +674,7 @@ static int hide_pose_bone_fn(Object *ob, Bone *bone, void *ptr)
   bArmature *arm = static_cast<bArmature *>(ob->data);
   const bool hide_select = bool(POINTER_AS_INT(ptr));
   int count = 0;
-  if (ANIM_bonecoll_is_visible(arm, bone)) {
+  if (ANIM_bone_in_visible_collection(arm, bone)) {
     if (((bone->flag & BONE_SELECTED) != 0) == hide_select) {
       bone->flag |= BONE_HIDDEN_P;
       /* only needed when 'hide_select' is true, but harmless. */
@@ -744,7 +744,7 @@ static int show_pose_bone_cb(Object *ob, Bone *bone, void *data)
 
   bArmature *arm = static_cast<bArmature *>(ob->data);
   int count = 0;
-  if (ANIM_bonecoll_is_visible(arm, bone)) {
+  if (ANIM_bone_in_visible_collection(arm, bone)) {
     if (bone->flag & BONE_HIDDEN_P) {
       if (!(bone->flag & BONE_UNSELECTABLE)) {
         SET_FLAG_FROM_TEST(bone->flag, select, BONE_SELECTED);

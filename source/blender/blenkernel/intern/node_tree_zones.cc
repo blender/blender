@@ -154,7 +154,8 @@ static bool update_zone_per_node(const Span<const bNode *> all_nodes,
         return;
       }
       for (bNodeTreeZone *iter_zone = zone->parent_zone; iter_zone;
-           iter_zone = iter_zone->parent_zone) {
+           iter_zone = iter_zone->parent_zone)
+      {
         if (iter_zone == parent_zone) {
           /* This zone is nested in the parent zone, so it becomes the new parent of the node. */
           parent_zone = zone;
@@ -193,6 +194,9 @@ static void update_zone_border_links(const bNodeTree &tree, bNodeTreeZones &tree
       continue;
     }
     if (link->is_muted()) {
+      continue;
+    }
+    if (bke::nodeIsDanglingReroute(&tree, link->fromnode)) {
       continue;
     }
     bNodeTreeZone *from_zone = const_cast<bNodeTreeZone *>(

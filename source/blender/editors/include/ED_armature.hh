@@ -39,7 +39,7 @@ struct wmOperator;
 #define BONESEL_BONE (1u << 31)
 #define BONESEL_ANY (BONESEL_TIP | BONESEL_ROOT | BONESEL_BONE)
 
-/* useful macros, be sure to #include "ANIM_bone_collections.h". */
+/* useful macros, be sure to #include "ANIM_bone_collections.hh". */
 #define EBONE_VISIBLE(arm, ebone) ANIM_bone_is_visible_editbone(arm, ebone)
 
 #define EBONE_SELECTABLE(arm, ebone) \
@@ -300,8 +300,8 @@ bool ED_armature_pose_select_pick_with_buffer(const Scene *scene,
                                               ViewLayer *view_layer,
                                               View3D *v3d,
                                               Base *base,
-                                              const GPUSelectResult *buffer,
-                                              short hits,
+                                              const GPUSelectResult *hit_results,
+                                              int hits,
                                               const SelectPick_Params *params,
                                               bool do_nearest);
 /**

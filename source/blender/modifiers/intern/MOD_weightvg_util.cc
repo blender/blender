@@ -21,7 +21,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_colortools.h" /* CurveMapping. */
+#include "BKE_colortools.hh" /* CurveMapping. */
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
 #include "BKE_deform.h"
@@ -138,7 +138,7 @@ void weightvg_do_mask(const ModifierEvalContext *ctx,
     float(*tex_co)[3];
     /* See mapping note below... */
     MappingInfoModifierData t_map;
-    const int verts_num = mesh->totvert;
+    const int verts_num = mesh->verts_num;
 
     /* Use new generic get_texture_coords, but do not modify our DNA struct for it...
      * XXX Why use a ModifierData stuff here ? Why not a simple, generic struct for parameters?

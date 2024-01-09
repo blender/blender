@@ -17,12 +17,12 @@
 
 #include "DNA_screen_types.h"
 
-#include "GPU_select.h"
+#include "GPU_select.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "DRW_engine.h"
+#include "DRW_engine.hh"
 #include "DRW_select_buffer.hh"
 
 #include "draw_manager.h"

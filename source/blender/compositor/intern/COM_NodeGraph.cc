@@ -279,7 +279,8 @@ void NodeGraph::add_proxies_group(const CompositorContext &context,
 
   /* create proxy nodes for group input/output nodes */
   for (bNode *b_node_io = (bNode *)b_group_tree->nodes.first; b_node_io;
-       b_node_io = b_node_io->next) {
+       b_node_io = b_node_io->next)
+  {
     if (b_node_io->type == NODE_GROUP_INPUT) {
       add_proxies_group_inputs(b_node, b_node_io);
     }

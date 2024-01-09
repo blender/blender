@@ -9,11 +9,9 @@ set(INC
   ../../blenloader
   ../../blentranslation
   ../../bmesh
-  ../../depsgraph
   ../../editors/include
   ../../makesrna
   ../../windowmanager
-  ../../../../intern/clog
   ../../../../intern/utfconv
 )
 
@@ -46,7 +44,6 @@ set(SRC
   exporter/abc_custom_props.cc
   exporter/abc_export_capi.cc
   exporter/abc_hierarchy_iterator.cc
-  exporter/abc_subdiv_disabler.cc
   exporter/abc_writer_abstract.cc
   exporter/abc_writer_camera.cc
   exporter/abc_writer_curves.cc
@@ -74,7 +71,6 @@ set(SRC
   exporter/abc_archive.h
   exporter/abc_custom_props.h
   exporter/abc_hierarchy_iterator.h
-  exporter/abc_subdiv_disabler.h
   exporter/abc_writer_abstract.h
   exporter/abc_writer_camera.h
   exporter/abc_writer_curves.h
@@ -90,7 +86,9 @@ set(SRC
 set(LIB
   bf_blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::depsgraph
   PRIVATE bf::dna
+  PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   bf_io_common
 
@@ -116,6 +114,5 @@ if(WITH_GTESTS)
   set(TEST_LIB
     bf_io_alembic
   )
-  include(GTestTesting)
-  blender_add_test_lib(bf_io_alembic_tests "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}")
+  blender_add_test_suite_lib(io_alembic "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}")
 endif()

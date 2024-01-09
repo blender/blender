@@ -26,7 +26,7 @@ static float noise3_perlin(const float vec[3]);
  * \{ */
 
 /* needed for voronoi */
-#define HASHPNT(x, y, z) hashpntf + 3 * hash[(hash[(hash[(z)&255] + (y)) & 255] + (x)) & 255]
+#define HASHPNT(x, y, z) hashpntf + 3 * hash[(hash[(hash[(z) & 255] + (y)) & 255] + (x)) & 255]
 static const float hashpntf[768] = {
     0.536902, 0.020915, 0.501445, 0.216316, 0.517036, 0.822466, 0.965315, 0.377313, 0.678764,
     0.744545, 0.097731, 0.396357, 0.247202, 0.520897, 0.613396, 0.542124, 0.146813, 0.255489,
@@ -779,7 +779,7 @@ static float noise3_perlin(const float vec[3])
   b01 = p[i + by1];
   b11 = p[j + by1];
 
-#define VALUE_AT(rx, ry, rz) ((rx)*q[0] + (ry)*q[1] + (rz)*q[2])
+#define VALUE_AT(rx, ry, rz) ((rx) * q[0] + (ry) * q[1] + (rz) * q[2])
 #define SURVE(t) ((t) * (t) * (3.0f - 2.0f * (t)))
 
   /* lerp moved to improved perlin above */

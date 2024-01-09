@@ -8,9 +8,10 @@
 #include "GPU_capabilities.h"
 #include "GPU_framebuffer.h"
 
+#include "ED_screen.hh"
 #include "ED_view3d.hh"
 
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include "RE_pipeline.h"
 
@@ -42,7 +43,7 @@ static void eevee_engine_init(void *vedata)
   Depsgraph *depsgraph = ctx_state->depsgraph;
   Scene *scene = ctx_state->scene;
   View3D *v3d = ctx_state->v3d;
-  const ARegion *region = ctx_state->region;
+  ARegion *region = ctx_state->region;
   RegionView3D *rv3d = ctx_state->rv3d;
 
   DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
@@ -54,6 +55,7 @@ static void eevee_engine_init(void *vedata)
   /* Get render borders. */
   rcti rect;
   BLI_rcti_init(&rect, 0, size[0], 0, size[1]);
+  rcti visible_rect = rect;
   if (v3d) {
     if (rv3d && (rv3d->persp == RV3D_CAMOB)) {
       camera = v3d->camera;
@@ -82,16 +84,31 @@ static void eevee_engine_init(void *vedata)
       rect.xmax = v3d->render_border.xmax * size[0];
       rect.ymax = v3d->render_border.ymax * size[1];
     }
+
+    if (DRW_state_is_viewport_image_render()) {
+      const float *vp_size = DRW_viewport_size_get();
+      visible_rect.xmax = vp_size[0];
+      visible_rect.ymax = vp_size[1];
+      visible_rect.xmin = visible_rect.ymin = 0;
+    }
+    else {
+      visible_rect = *ED_region_visible_rect(region);
+    }
   }
 
-  ved->instance->init(size, &rect, nullptr, depsgraph, camera, nullptr, default_view, v3d, rv3d);
+  ved->instance->init(
+      size, &rect, &visible_rect, nullptr, depsgraph, camera, nullptr, default_view, v3d, rv3d);
 }
 
 static void eevee_draw_scene(void *vedata)
 {
   EEVEE_Data *ved = reinterpret_cast<EEVEE_Data *>(vedata);
-  DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
-  ved->instance->draw_viewport(dfbl);
+  if (DRW_state_is_viewport_image_render()) {
+    ved->instance->draw_viewport_image_render();
+  }
+  else {
+    ved->instance->draw_viewport();
+  }
   STRNCPY(ved->info, ved->instance->info.c_str());
   /* Reset view for other following engines. */
   DRW_view_set_active(nullptr);
@@ -110,6 +127,13 @@ static void eevee_cache_populate(void *vedata, Object *object)
 static void eevee_cache_finish(void *vedata)
 {
   reinterpret_cast<EEVEE_Data *>(vedata)->instance->end_sync();
+}
+
+static void eevee_view_update(void *vedata)
+{
+  if (eevee::Instance *instance = reinterpret_cast<EEVEE_Data *>(vedata)->instance) {
+    instance->view_update();
+  }
 }
 
 static void eevee_engine_free()
@@ -138,8 +162,9 @@ static void eevee_render_to_image(void *vedata,
   rctf view_rect;
   rcti rect;
   RE_GetViewPlane(render, &view_rect, &rect);
+  rcti visible_rect = rect;
 
-  instance->init(size, &rect, engine, depsgraph, camera_original_ob, layer);
+  instance->init(size, &rect, &visible_rect, engine, depsgraph, camera_original_ob, layer);
   instance->render_frame(layer, viewname);
 
   EEVEE_Data *ved = static_cast<EEVEE_Data *>(vedata);
@@ -177,7 +202,7 @@ DrawEngineType draw_engine_eevee_next_type = {
     /*cache_populate*/ &eevee_cache_populate,
     /*cache_finish*/ &eevee_cache_finish,
     /*draw_scene*/ &eevee_draw_scene,
-    /*view_update*/ nullptr,
+    /*view_update*/ &eevee_view_update,
     /*id_update*/ nullptr,
     /*render_to_image*/ &eevee_render_to_image,
     /*store_metadata*/ &eevee_store_metadata,

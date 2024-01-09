@@ -29,10 +29,10 @@ class CurveOfPointInput final : public bke::CurvesFieldInput {
   }
 
   GVArray get_varray_for_context(const bke::CurvesGeometry &curves,
-                                 const eAttrDomain domain,
+                                 const AttrDomain domain,
                                  const IndexMask & /*mask*/) const final
   {
-    if (domain != ATTR_DOMAIN_POINT) {
+    if (domain != AttrDomain::Point) {
       return {};
     }
     return VArray<int>::ForContainer(curves.point_to_curve_map());
@@ -48,9 +48,9 @@ class CurveOfPointInput final : public bke::CurvesFieldInput {
     return dynamic_cast<const CurveOfPointInput *>(&other) != nullptr;
   }
 
-  std::optional<eAttrDomain> preferred_domain(const bke::CurvesGeometry & /*curves*/) const final
+  std::optional<AttrDomain> preferred_domain(const bke::CurvesGeometry & /*curves*/) const final
   {
-    return ATTR_DOMAIN_POINT;
+    return AttrDomain::Point;
   }
 };
 
@@ -62,10 +62,10 @@ class PointIndexInCurveInput final : public bke::CurvesFieldInput {
   }
 
   GVArray get_varray_for_context(const bke::CurvesGeometry &curves,
-                                 const eAttrDomain domain,
+                                 const AttrDomain domain,
                                  const IndexMask & /*mask*/) const final
   {
-    if (domain != ATTR_DOMAIN_POINT) {
+    if (domain != AttrDomain::Point) {
       return {};
     }
     const Span<int> offsets = curves.offsets();
@@ -88,9 +88,9 @@ class PointIndexInCurveInput final : public bke::CurvesFieldInput {
     return dynamic_cast<const PointIndexInCurveInput *>(&other) != nullptr;
   }
 
-  std::optional<eAttrDomain> preferred_domain(const bke::CurvesGeometry & /*curves*/)
+  std::optional<AttrDomain> preferred_domain(const bke::CurvesGeometry & /*curves*/)
   {
-    return ATTR_DOMAIN_POINT;
+    return AttrDomain::Point;
   }
 };
 
@@ -101,14 +101,14 @@ static void node_geo_exec(GeoNodeExecParams params)
     params.set_output(
         "Curve Index",
         Field<int>(std::make_shared<EvaluateAtIndexInput>(
-            point_index, Field<int>(std::make_shared<CurveOfPointInput>()), ATTR_DOMAIN_POINT)));
+            point_index, Field<int>(std::make_shared<CurveOfPointInput>()), AttrDomain::Point)));
   }
   if (params.output_is_required("Index in Curve")) {
     params.set_output("Index in Curve",
                       Field<int>(std::make_shared<EvaluateAtIndexInput>(
                           point_index,
                           Field<int>(std::make_shared<PointIndexInCurveInput>()),
-                          ATTR_DOMAIN_POINT)));
+                          AttrDomain::Point)));
   }
 }
 

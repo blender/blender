@@ -10,7 +10,7 @@ void node_bsdf_glass(vec4 color,
                      const float do_multiscatter,
                      out Closure result)
 {
-  color = max(color, vec4(0));
+  color = max(color, vec4(0.0));
   roughness = saturate(roughness);
   ior = max(ior, 1e-5);
   N = safe_normalize(N);

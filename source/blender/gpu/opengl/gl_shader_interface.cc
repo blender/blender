@@ -390,6 +390,7 @@ GLShaderInterface::GLShaderInterface(GLuint program, const shader::ShaderCreateI
 
   attr_len_ = info.vertex_inputs_.size();
   uniform_len_ = info.push_constants_.size();
+  constant_len_ = info.specialization_constants_.size();
   ubo_len_ = 0;
   ssbo_len_ = 0;
 
@@ -430,7 +431,7 @@ GLShaderInterface::GLShaderInterface(GLuint program, const shader::ShaderCreateI
 
   BLI_assert_msg(ubo_len_ <= 16, "enabled_ubo_mask_ is uint16_t");
 
-  int input_tot_len = attr_len_ + ubo_len_ + uniform_len_ + ssbo_len_;
+  int input_tot_len = attr_len_ + ubo_len_ + uniform_len_ + ssbo_len_ + constant_len_;
   inputs_ = (ShaderInput *)MEM_callocN(sizeof(ShaderInput) * input_tot_len, __func__);
   ShaderInput *input = inputs_;
 
@@ -526,6 +527,14 @@ GLShaderInterface::GLShaderInterface(GLuint program, const shader::ShaderCreateI
       enabled_ssbo_mask_ |= (1 << input->binding);
       input++;
     }
+  }
+
+  /* Constants */
+  int constant_id = 0;
+  for (const ShaderCreateInfo::SpecializationConstant &constant : info.specialization_constants_) {
+    copy_input_name(input, constant.name, name_buffer_, name_buffer_offset);
+    input->location = constant_id++;
+    input++;
   }
 
   this->sort_inputs();

@@ -42,7 +42,7 @@ class GeometryDataSource : public DataSource {
   Object *object_eval_;
   const bke::GeometrySet geometry_set_;
   const bke::GeometryComponent *component_;
-  eAttrDomain domain_;
+  bke::AttrDomain domain_;
   /* Layer index for grease pencil component. */
   int layer_index_;
   ExtraColumns extra_columns_;
@@ -57,7 +57,7 @@ class GeometryDataSource : public DataSource {
   GeometryDataSource(Object *object_eval,
                      bke::GeometrySet geometry_set,
                      const bke::GeometryComponent::Type component_type,
-                     const eAttrDomain domain,
+                     const bke::AttrDomain domain,
                      const int layer_index = -1,
                      ExtraColumns extra_columns = {})
       : object_eval_(object_eval),

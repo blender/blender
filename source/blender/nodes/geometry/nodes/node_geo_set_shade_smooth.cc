@@ -30,7 +30,7 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  node->custom1 = ATTR_DOMAIN_FACE;
+  node->custom1 = int16_t(AttrDomain::Face);
 }
 
 /**
@@ -59,7 +59,7 @@ static bool try_removing_sharp_attribute(Mesh &mesh,
 }
 
 static void set_sharp(Mesh &mesh,
-                      const eAttrDomain domain,
+                      const AttrDomain domain,
                       const StringRef name,
                       const Field<bool> &selection_field,
                       const Field<bool> &sharp_field)
@@ -87,7 +87,7 @@ static void set_sharp(Mesh &mesh,
 static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
-  const eAttrDomain domain = eAttrDomain(params.node().custom1);
+  const AttrDomain domain = AttrDomain(params.node().custom1);
   Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
   Field<bool> smooth_field = params.extract_input<Field<bool>>("Shade Smooth");
 
@@ -95,7 +95,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     if (Mesh *mesh = geometry_set.get_mesh_for_write()) {
       set_sharp(*mesh,
                 domain,
-                domain == ATTR_DOMAIN_FACE ? "sharp_face" : "sharp_edge",
+                domain == AttrDomain::Face ? "sharp_face" : "sharp_edge",
                 selection_field,
                 fn::invert_boolean_field(smooth_field));
     }

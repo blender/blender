@@ -52,7 +52,7 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   node->custom1 = CD_PROP_FLOAT;
-  node->custom2 = ATTR_DOMAIN_POINT;
+  node->custom2 = int16_t(AttrDomain::Point);
 }
 
 static std::optional<eCustomDataType> node_type_from_other_socket(const bNodeSocket &socket)
@@ -141,7 +141,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   GeometrySet geometry_set = params.get_input<GeometrySet>("Geometry");
   const bNode &node = params.node();
   const eCustomDataType data_type = eCustomDataType(node.custom1);
-  const eAttrDomain domain = eAttrDomain(node.custom2);
+  const AttrDomain domain = AttrDomain(node.custom2);
   Vector<const GeometryComponent *> components = geometry_set.get_components();
 
   const Field<bool> selection_field = params.get_input<Field<bool>>("Selection");
@@ -355,7 +355,7 @@ static void node_rna(StructRNA *srna)
                     "Which domain to read the data from",
                     rna_enum_attribute_domain_items,
                     NOD_inline_enum_accessors(custom2),
-                    ATTR_DOMAIN_POINT,
+                    int(AttrDomain::Point),
                     enums::domain_experimental_grease_pencil_version3_fn);
 }
 

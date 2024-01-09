@@ -83,7 +83,7 @@ void SteerableViewMap::Clear()
   if (!_mapping.empty()) {
     for (map<uint, double *>::iterator m = _mapping.begin(), mend = _mapping.end(); m != mend; ++m)
     {
-      delete[](*m).second;
+      delete[] (*m).second;
     }
     _mapping.clear();
   }

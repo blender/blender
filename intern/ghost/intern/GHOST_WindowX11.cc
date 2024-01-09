@@ -638,7 +638,7 @@ int GHOST_WindowX11::icccmGetState() const
   struct {
     CARD32 state;
     XID icon;
-  } * prop_ret;
+  } *prop_ret;
   ulong bytes_after, num_ret;
   Atom type_ret;
   int ret, format_ret;

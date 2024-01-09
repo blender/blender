@@ -6,7 +6,7 @@
  * \ingroup draw
  */
 
-#include "MEM_guardedalloc.h"
+#include "GPU_index_buffer.h"
 
 #include "extract_mesh.hh"
 
@@ -22,13 +22,13 @@ struct MeshExtract_LinesData {
   GPUIndexBufBuilder elb;
   BitSpan optimal_display_edges;
   const int *e_origindex;
-  const bool *hide_edge;
+  Span<bool> hide_edge;
   bool test_visibility;
 };
 
 BLI_INLINE bool is_edge_visible(const MeshExtract_LinesData *data, const int edge)
 {
-  if (data->hide_edge && data->hide_edge[edge]) {
+  if (!data->hide_edge.is_empty() && data->hide_edge[edge]) {
     return false;
   }
   if (data->e_origindex && data->e_origindex[edge] == ORIGINDEX_NONE) {
@@ -53,12 +53,12 @@ static void extract_lines_init(const MeshRenderData &mr,
                     mr.loop_len + mr.loop_loose_len);
 
   if (mr.extract_type == MR_EXTRACT_MESH) {
-    data->optimal_display_edges = mr.me->runtime->subsurf_optimal_display_edges;
+    data->optimal_display_edges = mr.mesh->runtime->subsurf_optimal_display_edges;
     data->e_origindex = mr.hide_unmapped_edges ? mr.e_origindex : nullptr;
-    data->hide_edge = mr.use_hide ? mr.hide_edge : nullptr;
+    data->hide_edge = mr.use_hide ? Span(mr.hide_edge) : Span<bool>();
 
     data->test_visibility = !data->optimal_display_edges.is_empty() || data->e_origindex ||
-                            data->hide_edge;
+                            !data->hide_edge.is_empty();
   }
 }
 
@@ -96,25 +96,23 @@ static void extract_lines_iter_face_mesh(const MeshRenderData &mr,
 
   /* Using face & loop iterator would complicate accessing the adjacent loop. */
   if (data->test_visibility) {
-    const int ml_index_last = face.last();
-    int ml_index = ml_index_last, ml_index_next = face.start();
-    do {
-      const int edge = mr.corner_edges[ml_index];
+    for (const int corner : face) {
+      const int edge = mr.corner_edges[corner];
+      const int corner_next = bke::mesh::face_corner_next(face, corner);
       if (is_edge_visible(data, edge)) {
-        GPU_indexbuf_set_line_verts(elb, edge, ml_index, ml_index_next);
+        GPU_indexbuf_set_line_verts(elb, edge, corner, corner_next);
       }
       else {
         GPU_indexbuf_set_line_restart(elb, edge);
       }
-    } while ((ml_index = ml_index_next++) != ml_index_last);
+    }
   }
   else {
-    const int ml_index_last = face.last();
-    int ml_index = ml_index_last, ml_index_next = face.start();
-    do {
-      const int edge = mr.corner_edges[ml_index];
-      GPU_indexbuf_set_line_verts(elb, edge, ml_index, ml_index_next);
-    } while ((ml_index = ml_index_next++) != ml_index_last);
+    for (const int corner : face) {
+      const int edge = mr.corner_edges[corner];
+      const int corner_next = bke::mesh::face_corner_next(face, corner);
+      GPU_indexbuf_set_line_verts(elb, edge, corner, corner_next);
+    }
   }
 }
 
@@ -221,8 +219,8 @@ static void extract_lines_loose_geom_subdiv(const DRWSubdivCache &subdiv_cache,
     case MR_EXTRACT_MESH: {
       const int *e_origindex = (mr.hide_unmapped_edges) ? mr.e_origindex : nullptr;
       if (e_origindex == nullptr) {
-        const bool *hide_edge = mr.hide_edge;
-        if (hide_edge) {
+        const Span<bool> hide_edge = mr.hide_edge;
+        if (!hide_edge.is_empty()) {
           for (DRWSubdivLooseEdge edge : loose_edges) {
             *flags_data++ = hide_edge[edge.coarse_edge_index];
           }
@@ -239,8 +237,8 @@ static void extract_lines_loose_geom_subdiv(const DRWSubdivCache &subdiv_cache,
           }
         }
         else {
-          const bool *hide_edge = mr.hide_edge;
-          if (hide_edge) {
+          const Span<bool> hide_edge = mr.hide_edge;
+          if (!hide_edge.is_empty()) {
             for (DRWSubdivLooseEdge edge : loose_edges) {
               int e = edge.coarse_edge_index;
 
@@ -398,9 +396,8 @@ constexpr MeshExtract create_extractor_lines_loose_only()
 
 /** \} */
 
-}  // namespace blender::draw
+const MeshExtract extract_lines = create_extractor_lines();
+const MeshExtract extract_lines_with_lines_loose = create_extractor_lines_with_lines_loose();
+const MeshExtract extract_lines_loose_only = create_extractor_lines_loose_only();
 
-const MeshExtract extract_lines = blender::draw::create_extractor_lines();
-const MeshExtract extract_lines_with_lines_loose =
-    blender::draw::create_extractor_lines_with_lines_loose();
-const MeshExtract extract_lines_loose_only = blender::draw::create_extractor_lines_loose_only();
+}  // namespace blender::draw

@@ -28,6 +28,7 @@
 
 #include "BKE_crazyspace.hh"
 #include "BKE_curves.hh"
+#include "BKE_customdata.hh"
 #include "BKE_geometry_set.hh"
 
 #include "GPU_batch.h"
@@ -35,15 +36,13 @@
 #include "GPU_material.h"
 #include "GPU_texture.h"
 
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include "draw_attributes.hh"
 #include "draw_cache_impl.hh" /* own include */
-#include "draw_cache_inline.h"
+#include "draw_cache_inline.hh"
 #include "draw_curves_private.hh" /* own include */
-#include "draw_shader.h"
-
-using blender::IndexRange;
+#include "draw_shader.hh"
 
 namespace blender::draw {
 
@@ -271,7 +270,7 @@ static void curves_batch_cache_ensure_edit_points_selection(const bke::CurvesGeo
                           curves.points_num());
 
   const VArray<float> attribute = *curves.attributes().lookup_or_default<float>(
-      ".selection", ATTR_DOMAIN_POINT, true);
+      ".selection", bke::AttrDomain::Point, true);
   attribute.materialize(data);
 }
 
@@ -335,8 +334,8 @@ static void curves_batch_ensure_attribute(const Curves &curves,
   GPUVertBuf *attr_vbo = cache.proc_attributes_buf[index];
 
   GPU_vertbuf_data_alloc(attr_vbo,
-                         request.domain == ATTR_DOMAIN_POINT ? curves.geometry.point_num :
-                                                               curves.geometry.curve_num);
+                         request.domain == bke::AttrDomain::Point ? curves.geometry.point_num :
+                                                                    curves.geometry.curve_num);
 
   const bke::AttributeAccessor attributes = curves.geometry.wrap().attributes();
 
@@ -359,7 +358,7 @@ static void curves_batch_ensure_attribute(const Curves &curves,
   GPU_VERTBUF_DISCARD_SAFE(cache.final[subdiv].attributes_buf[index]);
 
   /* Ensure final data for points. */
-  if (request.domain == ATTR_DOMAIN_POINT) {
+  if (request.domain == bke::AttrDomain::Point) {
     curves_batch_cache_ensure_procedural_final_attr(cache, &format, subdiv, index, sampler_name);
   }
 }
@@ -368,7 +367,7 @@ static void curves_batch_cache_fill_strands_data(const bke::CurvesGeometry &curv
                                                  GPUVertBufRaw &data_step,
                                                  GPUVertBufRaw &seg_step)
 {
-  const blender::OffsetIndices points_by_curve = curves.points_by_curve();
+  const OffsetIndices points_by_curve = curves.points_by_curve();
 
   for (const int i : IndexRange(curves.curves_num())) {
     const IndexRange points = points_by_curve[i];
@@ -537,12 +536,12 @@ static bool curves_ensure_attributes(const Curves &curves,
 
       int layer_index;
       eCustomDataType type;
-      eAttrDomain domain;
+      bke::AttrDomain domain;
       if (drw_custom_data_match_attribute(cd_curve, name, &layer_index, &type)) {
-        domain = ATTR_DOMAIN_CURVE;
+        domain = bke::AttrDomain::Curve;
       }
       else if (drw_custom_data_match_attribute(cd_point, name, &layer_index, &type)) {
-        domain = ATTR_DOMAIN_POINT;
+        domain = bke::AttrDomain::Point;
       }
       else {
         continue;
@@ -570,7 +569,7 @@ static bool curves_ensure_attributes(const Curves &curves,
       continue;
     }
 
-    if (request.domain == ATTR_DOMAIN_POINT) {
+    if (request.domain == bke::AttrDomain::Point) {
       need_tf_update = true;
     }
 
@@ -590,24 +589,22 @@ static void request_attribute(Curves &curves, const char *name)
 
   DRW_Attributes attributes{};
 
-  blender::bke::CurvesGeometry &curves_geometry = curves.geometry.wrap();
-  std::optional<blender::bke::AttributeMetaData> meta_data =
-      curves_geometry.attributes().lookup_meta_data(name);
+  bke::CurvesGeometry &curves_geometry = curves.geometry.wrap();
+  std::optional<bke::AttributeMetaData> meta_data = curves_geometry.attributes().lookup_meta_data(
+      name);
   if (!meta_data) {
     return;
   }
-  const eAttrDomain domain = meta_data->domain;
+  const bke::AttrDomain domain = meta_data->domain;
   const eCustomDataType type = meta_data->data_type;
-  const CustomData &custom_data = domain == ATTR_DOMAIN_POINT ? curves.geometry.point_data :
-                                                                curves.geometry.curve_data;
+  const CustomData &custom_data = domain == bke::AttrDomain::Point ? curves.geometry.point_data :
+                                                                     curves.geometry.curve_data;
 
   drw_attributes_add_request(
       &attributes, name, type, CustomData_get_named_layer(&custom_data, type, name), domain);
 
   drw_attributes_merge(&final_cache.attr_used, &attributes, cache.render_mutex);
 }
-
-}  // namespace blender::draw
 
 void drw_curves_get_attribute_sampler_name(const char *layer_name, char r_sampler_name[32])
 {
@@ -623,7 +620,6 @@ bool curves_ensure_procedural_data(Curves *curves_id,
                                    const int subdiv,
                                    const int thickness_res)
 {
-  using namespace blender;
   bke::CurvesGeometry &curves = curves_id->geometry.wrap();
   bool need_ft_update = false;
 
@@ -662,7 +658,6 @@ bool curves_ensure_procedural_data(Curves *curves_id,
 
 void DRW_curves_batch_cache_dirty_tag(Curves *curves, int mode)
 {
-  using namespace blender::draw;
   CurvesBatchCache *cache = static_cast<CurvesBatchCache *>(curves->batch_cache);
   if (cache == nullptr) {
     return;
@@ -678,7 +673,6 @@ void DRW_curves_batch_cache_dirty_tag(Curves *curves, int mode)
 
 void DRW_curves_batch_cache_validate(Curves *curves)
 {
-  using namespace blender::draw;
   if (!curves_batch_cache_valid(*curves)) {
     curves_batch_cache_clear(*curves);
     curves_batch_cache_init(*curves);
@@ -687,7 +681,6 @@ void DRW_curves_batch_cache_validate(Curves *curves)
 
 void DRW_curves_batch_cache_free(Curves *curves)
 {
-  using namespace blender::draw;
   curves_batch_cache_clear(*curves);
   MEM_delete(static_cast<CurvesBatchCache *>(curves->batch_cache));
   curves->batch_cache = nullptr;
@@ -695,7 +688,6 @@ void DRW_curves_batch_cache_free(Curves *curves)
 
 void DRW_curves_batch_cache_free_old(Curves *curves, int ctime)
 {
-  using namespace blender::draw;
   CurvesBatchCache *cache = static_cast<CurvesBatchCache *>(curves->batch_cache);
   if (cache == nullptr) {
     return;
@@ -722,21 +714,19 @@ void DRW_curves_batch_cache_free_old(Curves *curves, int ctime)
   }
 }
 
-int DRW_curves_material_count_get(Curves *curves)
+int DRW_curves_material_count_get(const Curves *curves)
 {
   return max_ii(1, curves->totcol);
 }
 
 GPUBatch *DRW_curves_batch_cache_get_edit_points(Curves *curves)
 {
-  using namespace blender::draw;
   CurvesBatchCache &cache = curves_batch_cache_get(*curves);
   return DRW_batch_request(&cache.edit_points);
 }
 
 GPUBatch *DRW_curves_batch_cache_get_edit_lines(Curves *curves)
 {
-  using namespace blender::draw;
   CurvesBatchCache &cache = curves_batch_cache_get(*curves);
   return DRW_batch_request(&cache.edit_lines);
 }
@@ -745,7 +735,6 @@ GPUVertBuf **DRW_curves_texture_for_evaluated_attribute(Curves *curves,
                                                         const char *name,
                                                         bool *r_is_point_domain)
 {
-  using namespace blender::draw;
   CurvesBatchCache &cache = curves_batch_cache_get(*curves);
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const Scene *scene = draw_ctx->scene;
@@ -766,10 +755,10 @@ GPUVertBuf **DRW_curves_texture_for_evaluated_attribute(Curves *curves,
     return nullptr;
   }
   switch (final_cache.attr_used.requests[request_i].domain) {
-    case ATTR_DOMAIN_POINT:
+    case bke::AttrDomain::Point:
       *r_is_point_domain = true;
       return &final_cache.attributes_buf[request_i];
-    case ATTR_DOMAIN_CURVE:
+    case bke::AttrDomain::Curve:
       *r_is_point_domain = false;
       return &cache.curves_cache.proc_attributes_buf[request_i];
     default:
@@ -780,7 +769,6 @@ GPUVertBuf **DRW_curves_texture_for_evaluated_attribute(Curves *curves,
 
 void DRW_curves_batch_cache_create_requested(Object *ob)
 {
-  using namespace blender;
   Curves *curves_id = static_cast<Curves *>(ob->data);
   Object *ob_orig = DEG_get_original_object(ob);
   if (ob_orig == nullptr) {
@@ -813,3 +801,5 @@ void DRW_curves_batch_cache_create_requested(Object *ob)
     curves_batch_cache_ensure_edit_lines(curves_orig, cache);
   }
 }
+
+}  // namespace blender::draw

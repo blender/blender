@@ -10,7 +10,7 @@
 
 #include "BKE_appdir.h"
 #include "BKE_callbacks.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 
 #include "DNA_asset_types.h"
 

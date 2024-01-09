@@ -36,12 +36,12 @@ typedef unsigned char uchar;
     typedef struct name##__ { \
       int unused; \
       MEM_CXX_CLASS_ALLOC_FUNCS(#name) \
-    } * name
+    } *name
 #else
 #  define GHOST_DECLARE_HANDLE(name) \
     typedef struct name##__ { \
       int unused; \
-    } * name
+    } *name
 #endif
 
 /**
@@ -316,7 +316,7 @@ typedef enum {
 } GHOST_TEventType;
 
 typedef enum {
-  GHOST_kStandardCursorFirstCursor = 0,
+#define GHOST_kStandardCursorFirstCursor int(GHOST_kStandardCursorDefault)
   GHOST_kStandardCursorDefault = 0,
   GHOST_kStandardCursorRightArrow,
   GHOST_kStandardCursorLeftArrow,
@@ -357,7 +357,7 @@ typedef enum {
   GHOST_kStandardCursorCopy,
   GHOST_kStandardCursorCustom,
 
-  GHOST_kStandardCursorNumCursors
+#define GHOST_kStandardCursorNumCursors (int(GHOST_kStandardCursorCustom) + 1)
 } GHOST_TStandardCursor;
 
 typedef enum {

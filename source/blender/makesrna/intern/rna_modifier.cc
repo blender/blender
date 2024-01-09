@@ -23,8 +23,9 @@
 #include "BLT_translation.h"
 
 #include "BKE_animsys.h"
-#include "BKE_attribute.h"
+#include "BKE_attribute.hh"
 #include "BKE_curveprofile.h"
+#include "BKE_customdata.hh"
 #include "BKE_data_transfer.h"
 #include "BKE_dynamicpaint.h"
 #include "BKE_effect.h"
@@ -1070,15 +1071,15 @@ static void rna_MultiresModifier_level_range(
 static bool rna_MultiresModifier_external_get(PointerRNA *ptr)
 {
   Object *ob = (Object *)ptr->owner_id;
-  Mesh *me = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
 
-  return CustomData_external_test(&me->loop_data, CD_MDISPS);
+  return CustomData_external_test(&mesh->corner_data, CD_MDISPS);
 }
 
 static void rna_MultiresModifier_filepath_get(PointerRNA *ptr, char *value)
 {
   Object *ob = (Object *)ptr->owner_id;
-  CustomDataExternal *external = ((Mesh *)ob->data)->loop_data.external;
+  CustomDataExternal *external = ((Mesh *)ob->data)->corner_data.external;
 
   strcpy(value, (external) ? external->filepath : "");
 }
@@ -1086,7 +1087,7 @@ static void rna_MultiresModifier_filepath_get(PointerRNA *ptr, char *value)
 static void rna_MultiresModifier_filepath_set(PointerRNA *ptr, const char *value)
 {
   Object *ob = (Object *)ptr->owner_id;
-  CustomDataExternal *external = ((Mesh *)ob->data)->loop_data.external;
+  CustomDataExternal *external = ((Mesh *)ob->data)->corner_data.external;
 
   if (external && !STREQ(external->filepath, value)) {
     STRNCPY(external->filepath, value);
@@ -1097,7 +1098,7 @@ static void rna_MultiresModifier_filepath_set(PointerRNA *ptr, const char *value
 static int rna_MultiresModifier_filepath_length(PointerRNA *ptr)
 {
   Object *ob = (Object *)ptr->owner_id;
-  CustomDataExternal *external = ((Mesh *)ob->data)->loop_data.external;
+  CustomDataExternal *external = ((Mesh *)ob->data)->corner_data.external;
 
   return strlen((external) ? external->filepath : "");
 }
@@ -1298,6 +1299,7 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_src_itemf(
                                                                                 PropertyRNA *prop,
                                                                                 bool *r_free)
 {
+  using namespace blender;
   DataTransferModifierData *dtmd = (DataTransferModifierData *)ptr->data;
   EnumPropertyItem *item = nullptr, tmp_item = {0};
   int totitem = 0;
@@ -1359,14 +1361,14 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_src_itemf(
         return item;
       }
 
-      num_data = CustomData_number_of_layers(&me_eval->loop_data, CD_PROP_FLOAT2);
+      num_data = CustomData_number_of_layers(&me_eval->corner_data, CD_PROP_FLOAT2);
 
       RNA_enum_item_add_separator(&item, &totitem);
 
       for (i = 0; i < num_data; i++) {
         tmp_item.value = i;
         tmp_item.identifier = tmp_item.name = CustomData_get_layer_name(
-            &me_eval->loop_data, CD_PROP_FLOAT2, i);
+            &me_eval->corner_data, CD_PROP_FLOAT2, i);
         RNA_enum_item_add(&item, &totitem, &tmp_item);
       }
     }
@@ -1377,9 +1379,10 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_src_itemf(
     Object *ob_src = dtmd->ob_source;
 
     if (ob_src) {
-      eAttrDomain domain = STREQ(RNA_property_identifier(prop), "layers_vcol_vert_select_src") ?
-                               ATTR_DOMAIN_POINT :
-                               ATTR_DOMAIN_CORNER;
+      bke::AttrDomain domain = STREQ(RNA_property_identifier(prop),
+                                     "layers_vcol_vert_select_src") ?
+                                   bke::AttrDomain::Point :
+                                   bke::AttrDomain::Corner;
 
       Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
       const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob_src);
@@ -1396,11 +1399,11 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_src_itemf(
       }
 
       const CustomData *cdata;
-      if (domain == ATTR_DOMAIN_POINT) {
+      if (domain == bke::AttrDomain::Point) {
         cdata = &mesh_eval->vert_data;
       }
       else {
-        cdata = &mesh_eval->loop_data;
+        cdata = &mesh_eval->corner_data;
       }
 
       eCustomDataType types[2] = {CD_PROP_COLOR, CD_PROP_BYTE_COLOR};
@@ -1476,19 +1479,19 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_dst_itemf(
 
       if (ob_dst && ob_dst->data) {
         Mesh *me_dst;
-        CustomData *loop_data;
+        CustomData *corner_data;
         int num_data, i;
 
         me_dst = static_cast<Mesh *>(ob_dst->data);
-        loop_data = &me_dst->loop_data;
-        num_data = CustomData_number_of_layers(loop_data, CD_PROP_FLOAT2);
+        corner_data = &me_dst->corner_data;
+        num_data = CustomData_number_of_layers(corner_data, CD_PROP_FLOAT2);
 
         RNA_enum_item_add_separator(&item, &totitem);
 
         for (i = 0; i < num_data; i++) {
           tmp_item.value = i;
           tmp_item.identifier = tmp_item.name = CustomData_get_layer_name(
-              loop_data, CD_PROP_FLOAT2, i);
+              corner_data, CD_PROP_FLOAT2, i);
           RNA_enum_item_add(&item, &totitem, &tmp_item);
         }
       }
@@ -1511,7 +1514,7 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_dst_itemf(
         Mesh *me_dst = static_cast<Mesh *>(ob_dst->data);
         CustomData *cdata = STREQ(RNA_property_identifier(prop), "layers_vcol_vert_select_dst") ?
                                 &me_dst->vert_data :
-                                &me_dst->loop_data;
+                                &me_dst->corner_data;
 
         int idx = 0;
         for (int i = 0; i < 2; i++) {
@@ -1703,6 +1706,19 @@ static IDProperty **rna_NodesModifier_properties(PointerRNA *ptr)
   return &settings->properties;
 }
 #else
+
+static void rna_def_modifier_panel_open_prop(StructRNA *srna, const char *identifier, const int id)
+{
+  BLI_assert(id >= 0);
+  BLI_assert(id < sizeof(ModifierData::layout_panel_open_flag) * 8);
+
+  PropertyRNA *prop;
+  prop = RNA_def_property(srna, identifier, PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "modifier.layout_panel_open_flag", (int64_t(1) << id));
+  RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, nullptr);
+}
 
 static void rna_def_property_subdivision_common(StructRNA *srna)
 {
@@ -7061,6 +7077,12 @@ static void rna_def_modifier_weightednormal(BlenderRNA *brna)
 
 static void rna_def_modifier_nodes_bake(BlenderRNA *brna)
 {
+  static EnumPropertyItem bake_mode_items[] = {
+      {NODES_MODIFIER_BAKE_MODE_ANIMATION, "ANIMATION", 0, "Animation", "Bake a frame range"},
+      {NODES_MODIFIER_BAKE_MODE_STILL, "STILL", 0, "Still", "Bake a single frame"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
   StructRNA *srna;
   PropertyRNA *prop;
 
@@ -7091,6 +7113,11 @@ static void rna_def_modifier_nodes_bake(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Custom Path", "Specify a path where the baked data should be stored manually");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "bake_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, bake_mode_items);
+  RNA_def_property_ui_text(prop, "Bake Mode", "");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
 
 static void rna_def_modifier_nodes_bakes(BlenderRNA *brna)
@@ -7102,6 +7129,30 @@ static void rna_def_modifier_nodes_bakes(BlenderRNA *brna)
   RNA_def_struct_ui_text(srna, "Bakes", "Bake data for every bake node");
 }
 
+static void rna_def_modifier_nodes_panel(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "NodesModifierPanel", nullptr);
+  RNA_def_struct_ui_text(srna, "Nodes Modifier Panel", "");
+
+  prop = RNA_def_property(srna, "is_open", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", NODES_MODIFIER_PANEL_OPEN);
+  RNA_def_property_ui_text(prop, "Is Open", "Whether the panel is expanded or closed");
+  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
+  RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, nullptr);
+}
+
+static void rna_def_modifier_nodes_panels(BlenderRNA *brna)
+{
+  StructRNA *srna;
+
+  srna = RNA_def_struct(brna, "NodesModifierPanels", nullptr);
+  RNA_def_struct_sdna(srna, "NodesModifierData");
+  RNA_def_struct_ui_text(srna, "Panels", "State of all panels defined by the node group");
+}
+
 static void rna_def_modifier_nodes(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -7109,6 +7160,9 @@ static void rna_def_modifier_nodes(BlenderRNA *brna)
 
   rna_def_modifier_nodes_bake(brna);
   rna_def_modifier_nodes_bakes(brna);
+
+  rna_def_modifier_nodes_panel(brna);
+  rna_def_modifier_nodes_panels(brna);
 
   srna = RNA_def_struct(brna, "NodesModifier", "Modifier");
   RNA_def_struct_ui_text(srna, "Nodes Modifier", "");
@@ -7125,7 +7179,7 @@ static void rna_def_modifier_nodes(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_update(prop, 0, "rna_NodesModifier_node_group_update");
 
-  prop = RNA_def_property(srna, "simulation_bake_directory", PROP_STRING, PROP_DIRPATH);
+  prop = RNA_def_property(srna, "bake_directory", PROP_STRING, PROP_DIRPATH);
   RNA_def_property_ui_text(
       prop, "Simulation Bake Directory", "Location on disk where the bake data is stored");
   RNA_def_property_update(prop, 0, nullptr);
@@ -7135,12 +7189,20 @@ static void rna_def_modifier_nodes(BlenderRNA *brna)
   RNA_def_property_collection_sdna(prop, nullptr, "bakes", "bakes_num");
   RNA_def_property_srna(prop, "NodesModifierBakes");
 
+  prop = RNA_def_property(srna, "panels", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_struct_type(prop, "NodesModifierPanel");
+  RNA_def_property_collection_sdna(prop, nullptr, "panels", "panels_num");
+  RNA_def_property_srna(prop, "NodesModifierPanels");
+
   prop = RNA_def_property(srna, "show_group_selector", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_negative_sdna(
       prop, nullptr, "flag", NODES_MODIFIER_HIDE_DATABLOCK_SELECTOR);
   RNA_def_property_ui_text(prop, "Show Node Group", "");
   RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, nullptr);
+
+  rna_def_modifier_panel_open_prop(srna, "open_output_attributes_panel", 0);
+  rna_def_modifier_panel_open_prop(srna, "open_internal_dependencies_panel", 1);
 
   RNA_define_lib_overridable(false);
 }

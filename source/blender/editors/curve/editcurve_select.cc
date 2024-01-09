@@ -355,7 +355,8 @@ static void select_adjacent_cp(ListBase *editnurb,
           break;
         }
         if ((lastsel == false) && (bezt->hide == 0) &&
-            ((bezt->f2 & SELECT) || (selstatus == false))) {
+            ((bezt->f2 & SELECT) || (selstatus == false)))
+        {
           bezt += next;
           if (!(bezt->f2 & SELECT) || (selstatus == false)) {
             bool sel = select_beztriple(bezt, selstatus, SELECT, VISIBLE);
@@ -1086,7 +1087,8 @@ static void curve_select_less(Object *obedit)
           else {
             bp -= nu->pntsu;
             if (BLI_BITMAP_TEST(selbpoints, a + nu->pntsu) ||
-                ((bp->hide == 0) && (bp->f1 & SELECT))) {
+                ((bp->hide == 0) && (bp->f1 & SELECT)))
+            {
               sel++;
             }
             bp += nu->pntsu;
@@ -1645,7 +1647,8 @@ static bool curve_nurb_select_similar_type(Object *ob,
           case SIMCURHAND_RADIUS: {
             float radius_ref = bezt->radius;
             if (ED_select_similar_compare_float_tree(
-                    tree_1d, radius_ref, thresh, eSimilarCmp(compare))) {
+                    tree_1d, radius_ref, thresh, eSimilarCmp(compare)))
+            {
               select = true;
             }
             break;
@@ -1653,7 +1656,8 @@ static bool curve_nurb_select_similar_type(Object *ob,
           case SIMCURHAND_WEIGHT: {
             float weight_ref = bezt->weight;
             if (ED_select_similar_compare_float_tree(
-                    tree_1d, weight_ref, thresh, eSimilarCmp(compare))) {
+                    tree_1d, weight_ref, thresh, eSimilarCmp(compare)))
+            {
               select = true;
             }
             break;
@@ -1692,7 +1696,8 @@ static bool curve_nurb_select_similar_type(Object *ob,
           case SIMCURHAND_RADIUS: {
             float radius_ref = bp->radius;
             if (ED_select_similar_compare_float_tree(
-                    tree_1d, radius_ref, thresh, eSimilarCmp(compare))) {
+                    tree_1d, radius_ref, thresh, eSimilarCmp(compare)))
+            {
               select = true;
             }
             break;
@@ -1700,7 +1705,8 @@ static bool curve_nurb_select_similar_type(Object *ob,
           case SIMCURHAND_WEIGHT: {
             float weight_ref = bp->weight;
             if (ED_select_similar_compare_float_tree(
-                    tree_1d, weight_ref, thresh, eSimilarCmp(compare))) {
+                    tree_1d, weight_ref, thresh, eSimilarCmp(compare)))
+            {
               select = true;
             }
             break;
@@ -1922,7 +1928,8 @@ static void curve_select_shortest_path_curve(Nurb *nu, int vert_src, int vert_ds
 
   if (nu->flagu & CU_NURB_CYCLIC) {
     if (curve_calc_dist_span(nu, vert_src, vert_dst) >
-        curve_calc_dist_span(nu, vert_dst, vert_src)) {
+        curve_calc_dist_span(nu, vert_dst, vert_src))
+    {
       SWAP(int, vert_src, vert_dst);
     }
   }
@@ -1953,7 +1960,7 @@ static void curve_select_shortest_path_surf(Nurb *nu, int vert_src, int vert_dst
   struct PointAdj {
     int vert, vert_prev;
     float cost;
-  } * data;
+  } *data;
 
   /* init connectivity data */
   data = static_cast<PointAdj *>(MEM_mallocN(sizeof(*data) * vert_num, __func__));

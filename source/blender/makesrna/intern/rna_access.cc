@@ -37,9 +37,11 @@
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
 #include "BKE_lib_override.hh"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_node.hh"
 #include "BKE_report.h"
+
+#include "CLG_log.h"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
@@ -60,6 +62,8 @@
 #include "rna_internal.h"
 
 const PointerRNA PointerRNA_NULL = {nullptr};
+
+static CLG_LogRef LOG = {"rna.access"};
 
 /* Init/Exit */
 
@@ -519,6 +523,14 @@ void rna_property_rna_or_id_get(PropertyRNA *prop,
       r_prop_rna_or_id->array_len = idprop_evaluated != nullptr ? uint(idprop_evaluated->len) : 0;
     }
     else {
+      /* Special case for int properties with enum items, these are displayed as a PROP_ENUM. */
+      if (idprop->type == IDP_INT) {
+        const IDPropertyUIDataInt *ui_data_int = reinterpret_cast<IDPropertyUIDataInt *>(
+            idprop->ui_data);
+        if (ui_data_int && ui_data_int->enum_items_num > 0) {
+          r_prop_rna_or_id->rnaprop = &rna_PropertyGroupItem_enum;
+        }
+      }
       r_prop_rna_or_id->rnaprop = typemap[int(idprop->type)];
     }
   }
@@ -559,6 +571,14 @@ PropertyRNA *rna_ensure_property(PropertyRNA *prop)
 
     if (idprop->type == IDP_ARRAY) {
       return arraytypemap[int(idprop->subtype)];
+    }
+    /* Special case for int properties with enum items, these are displayed as a PROP_ENUM. */
+    if (idprop->type == IDP_INT) {
+      const IDPropertyUIDataInt *ui_data_int = reinterpret_cast<IDPropertyUIDataInt *>(
+          idprop->ui_data);
+      if (ui_data_int && ui_data_int->enum_items_num > 0) {
+        return &rna_PropertyGroupItem_enum;
+      }
     }
     return typemap[int(idprop->type)];
   }
@@ -761,6 +781,86 @@ PropertyRNA *RNA_struct_find_property(PointerRNA *ptr, const char *identifier)
     }
   }
 
+  return nullptr;
+}
+
+static const char *rna_property_type_identifier(PropertyType prop_type)
+{
+  switch (prop_type) {
+    case PROP_BOOLEAN:
+      return RNA_struct_identifier(&RNA_BoolProperty);
+    case PROP_INT:
+      return RNA_struct_identifier(&RNA_IntProperty);
+    case PROP_FLOAT:
+      return RNA_struct_identifier(&RNA_FloatProperty);
+    case PROP_STRING:
+      return RNA_struct_identifier(&RNA_StringProperty);
+    case PROP_ENUM:
+      return RNA_struct_identifier(&RNA_EnumProperty);
+    case PROP_POINTER:
+      return RNA_struct_identifier(&RNA_PointerProperty);
+    case PROP_COLLECTION:
+      return RNA_struct_identifier(&RNA_CollectionProperty);
+    default:
+      return RNA_struct_identifier(&RNA_Property);
+  }
+}
+
+PropertyRNA *RNA_struct_find_property_check(PointerRNA &props,
+                                            const char *name,
+                                            const PropertyType property_type_check)
+{
+  PropertyRNA *prop = RNA_struct_find_property(&props, name);
+  if (!prop) {
+    return nullptr;
+  }
+  const PropertyType prop_type = RNA_property_type(prop);
+  if (prop_type == property_type_check) {
+    return prop;
+  }
+  CLOG_WARN(&LOG,
+            "'%s : %s()' expected, got '%s : %s()'",
+            name,
+            rna_property_type_identifier(property_type_check),
+            name,
+            rna_property_type_identifier(prop_type));
+  return nullptr;
+}
+
+PropertyRNA *RNA_struct_find_collection_property_check(PointerRNA &props,
+                                                       const char *name,
+                                                       const StructRNA *struct_type_check)
+{
+  PropertyRNA *prop = RNA_struct_find_property(&props, name);
+  if (!prop) {
+    return nullptr;
+  }
+
+  const PropertyType prop_type = RNA_property_type(prop);
+  const StructRNA *prop_struct_type = RNA_property_pointer_type(&props, prop);
+  if (prop_type == PROP_COLLECTION && prop_struct_type == struct_type_check) {
+    return prop;
+  }
+
+  if (prop_type != PROP_COLLECTION) {
+    CLOG_WARN(&LOG,
+              "'%s : %s(type = %s)' expected, got '%s : %s()'",
+              name,
+              rna_property_type_identifier(PROP_COLLECTION),
+              RNA_struct_identifier(struct_type_check),
+              name,
+              rna_property_type_identifier(prop_type));
+    return nullptr;
+  }
+
+  CLOG_WARN(&LOG,
+            "'%s : %s(type = %s)' expected, got '%s : %s(type = %s)'.",
+            name,
+            rna_property_type_identifier(PROP_COLLECTION),
+            RNA_struct_identifier(struct_type_check),
+            name,
+            rna_property_type_identifier(PROP_COLLECTION),
+            RNA_struct_identifier(prop_struct_type));
   return nullptr;
 }
 
@@ -1501,6 +1601,39 @@ void RNA_property_enum_items_ex(bContext *C,
                                 int *r_totitem,
                                 bool *r_free)
 {
+  if (!use_static && prop->magic != RNA_MAGIC) {
+    const IDProperty *idprop = (IDProperty *)prop;
+    if (idprop->type == IDP_INT) {
+      IDPropertyUIDataInt *ui_data = reinterpret_cast<IDPropertyUIDataInt *>(idprop->ui_data);
+
+      int totitem = 0;
+      EnumPropertyItem *result = nullptr;
+      if (ui_data) {
+        for (const IDPropertyUIDataEnumItem &idprop_item :
+             blender::Span(ui_data->enum_items, ui_data->enum_items_num))
+        {
+          BLI_assert(idprop_item.identifier != nullptr);
+          BLI_assert(idprop_item.name != nullptr);
+          const EnumPropertyItem item = {idprop_item.value,
+                                         idprop_item.identifier,
+                                         idprop_item.icon,
+                                         idprop_item.name,
+                                         idprop_item.description ? idprop_item.description : ""};
+          RNA_enum_item_add(&result, &totitem, &item);
+        }
+      }
+
+      RNA_enum_item_end(&result, &totitem);
+      *r_item = result;
+      if (r_totitem) {
+        /* Exclude the terminator item. */
+        *r_totitem = totitem - 1;
+      }
+      *r_free = true;
+      return;
+    }
+  }
+
   EnumPropertyRNA *eprop = (EnumPropertyRNA *)rna_ensure_property(prop);
 
   *r_free = false;
@@ -3429,7 +3562,7 @@ void RNA_property_string_set(PointerRNA *ptr, PropertyRNA *prop, const char *val
     if (group) {
       IDP_AddToGroup(
           group,
-          IDP_NewStringMaxSize(value, prop->identifier, RNA_property_string_maxlength(prop)));
+          IDP_NewStringMaxSize(value, RNA_property_string_maxlength(prop), prop->identifier));
     }
   }
 }
@@ -4622,6 +4755,8 @@ static int rna_raw_access(ReportList *reports,
       /* Could also be faster with non-matching types,
        * for now we just do slower loop. */
     }
+    BLI_assert_msg(itemlen == 0 || itemtype != PROP_ENUM,
+                   "Enum array properties should not exist");
   }
 
   {
@@ -4659,11 +4794,14 @@ static int rna_raw_access(ReportList *reports,
             break;
           }
 
-          if (!ELEM(itemtype, PROP_BOOLEAN, PROP_INT, PROP_FLOAT)) {
-            BKE_report(reports, RPT_ERROR, "Only boolean, int, and float properties supported");
+          if (!ELEM(itemtype, PROP_BOOLEAN, PROP_INT, PROP_FLOAT, PROP_ENUM)) {
+            BKE_report(
+                reports, RPT_ERROR, "Only boolean, int, float and enum properties supported");
             err = 1;
             break;
           }
+          BLI_assert_msg(itemlen == 0 || itemtype != PROP_ENUM,
+                         "Enum array properties should not exist");
         }
 
         /* editable check */
@@ -4697,7 +4835,14 @@ static int rna_raw_access(ReportList *reports,
                   RNA_property_float_set(&itemptr, iprop, f);
                   break;
                 }
+                case PROP_ENUM: {
+                  int i;
+                  RAW_GET(int, i, in, a);
+                  RNA_property_enum_set(&itemptr, iprop, i);
+                  break;
+                }
                 default:
+                  BLI_assert_unreachable();
                   break;
               }
             }
@@ -4718,7 +4863,13 @@ static int rna_raw_access(ReportList *reports,
                   RAW_SET(float, in, a, f);
                   break;
                 }
+                case PROP_ENUM: {
+                  int i = RNA_property_enum_get(&itemptr, iprop);
+                  RAW_SET(int, in, a, i);
+                  break;
+                }
                 default:
+                  BLI_assert_unreachable();
                   break;
               }
             }
@@ -4763,6 +4914,7 @@ static int rna_raw_access(ReportList *reports,
                   break;
                 }
                 default:
+                  BLI_assert_unreachable();
                   break;
               }
             }
@@ -4793,6 +4945,7 @@ static int rna_raw_access(ReportList *reports,
                   break;
                 }
                 default:
+                  BLI_assert_unreachable();
                   break;
               }
             }
@@ -4816,6 +4969,7 @@ static int rna_raw_access(ReportList *reports,
                   break;
                 }
                 default:
+                  BLI_assert_unreachable();
                   break;
               }
             }
@@ -4837,6 +4991,7 @@ static int rna_raw_access(ReportList *reports,
                   break;
                 }
                 default:
+                  BLI_assert_unreachable();
                   break;
               }
             }

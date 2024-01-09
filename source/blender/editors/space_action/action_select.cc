@@ -468,7 +468,8 @@ static void box_select_elem(
       Mask *mask = static_cast<Mask *>(ale->data);
       MaskLayer *masklay;
       for (masklay = static_cast<MaskLayer *>(mask->masklayers.first); masklay;
-           masklay = masklay->next) {
+           masklay = masklay->next)
+      {
         ED_masklayer_frames_select_box(masklay, xmin, xmax, sel_data->selectmode);
       }
       break;
@@ -751,7 +752,8 @@ static void region_select_elem(RegionSelectData *sel_data, bAnimListElem *ale, b
       Mask *mask = static_cast<Mask *>(ale->data);
       MaskLayer *masklay;
       for (masklay = static_cast<MaskLayer *>(mask->masklayers.first); masklay;
-           masklay = masklay->next) {
+           masklay = masklay->next)
+      {
         ED_masklayer_frames_select_region(
             &sel_data->ked, masklay, sel_data->mode, sel_data->selectmode);
       }

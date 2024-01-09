@@ -4,7 +4,7 @@
  *
  * Author: Sergey Sharybin. */
 
-#include "opensubdiv_topology_refiner_capi.h"
+#include "opensubdiv_topology_refiner_capi.hh"
 
 #include <cstddef>
 

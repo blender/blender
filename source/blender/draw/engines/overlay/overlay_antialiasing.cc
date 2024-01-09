@@ -40,7 +40,7 @@
  *  - No convergence time (compared to TAA).
  */
 
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include "ED_screen.hh"
 

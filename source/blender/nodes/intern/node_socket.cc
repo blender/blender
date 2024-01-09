@@ -39,7 +39,7 @@
 #include "NOD_socket_declarations.hh"
 
 using namespace blender;
-using blender::bke::ValueOrField;
+using blender::bke::SocketValueVariant;
 using blender::nodes::SocketDeclarationPtr;
 
 bNodeSocket *node_add_socket_from_template(bNodeTree *ntree,
@@ -371,27 +371,6 @@ static const char *get_current_socket_identifier_for_future_socket(
     const Span<const SocketDeclaration *> socket_decls)
 {
   switch (node.type) {
-    case GEO_NODE_SWITCH: {
-      const NodeSwitch &storage = *static_cast<const NodeSwitch *>(node.storage);
-      const bool use_field_socket = ELEM(storage.input_type,
-                                         SOCK_FLOAT,
-                                         SOCK_INT,
-                                         SOCK_BOOLEAN,
-                                         SOCK_VECTOR,
-                                         SOCK_RGBA,
-                                         SOCK_STRING,
-                                         SOCK_ROTATION);
-      if (BLI_str_startswith(socket.identifier, "Switch")) {
-        if (use_field_socket) {
-          return "Switch";
-        }
-        return "Switch_001";
-      }
-      return get_identifier_from_decl({"False", "True", "Output"}, socket, socket_decls);
-    }
-    case GEO_NODE_SAMPLE_CURVE: {
-      return get_identifier_from_decl("Value", socket, socket_decls);
-    }
     case FN_NODE_RANDOM_VALUE: {
       return get_identifier_from_decl({"Min", "Max", "Value"}, socket, socket_decls);
     }
@@ -877,7 +856,7 @@ static bNodeSocketType *make_standard_socket_type(int type, int subtype)
   StructRNA *srna;
 
   stype = MEM_cnew<bNodeSocketType>("node socket C type");
-  stype->free_self = (void (*)(bNodeSocketType * stype)) MEM_freeN;
+  stype->free_self = (void (*)(bNodeSocketType *stype))MEM_freeN;
   STRNCPY(stype->idname, socket_idname);
   STRNCPY(stype->label, socket_label);
   STRNCPY(stype->subtype_label, socket_subtype_label);
@@ -921,7 +900,7 @@ static bNodeSocketType *make_socket_type_virtual()
   StructRNA *srna;
 
   stype = MEM_cnew<bNodeSocketType>("node socket C type");
-  stype->free_self = (void (*)(bNodeSocketType * stype)) MEM_freeN;
+  stype->free_self = (void (*)(bNodeSocketType *stype))MEM_freeN;
   STRNCPY(stype->idname, socket_idname);
 
   /* set the RNA type
@@ -950,11 +929,13 @@ static bNodeSocketType *make_socket_type_bool()
   socktype->get_base_cpp_value = [](const void *socket_value, void *r_value) {
     *(bool *)r_value = ((bNodeSocketValueBoolean *)socket_value)->value;
   };
-  socktype->geometry_nodes_cpp_type = &blender::CPPType::get<ValueOrField<bool>>();
+  socktype->geometry_nodes_cpp_type = &blender::CPPType::get<SocketValueVariant>();
   socktype->get_geometry_nodes_cpp_value = [](const void *socket_value, void *r_value) {
     const bool value = ((bNodeSocketValueBoolean *)socket_value)->value;
-    new (r_value) ValueOrField<bool>(value);
+    new (r_value) SocketValueVariant(value);
   };
+  static SocketValueVariant default_value{false};
+  socktype->geometry_nodes_default_cpp_value = &default_value;
   return socktype;
 }
 
@@ -967,13 +948,15 @@ static bNodeSocketType *make_socket_type_rotation()
     const math::EulerXYZ euler(float3(typed_value.value_euler));
     *static_cast<math::Quaternion *>(r_value) = math::to_quaternion(euler);
   };
-  socktype->geometry_nodes_cpp_type = &blender::CPPType::get<ValueOrField<math::Quaternion>>();
+  socktype->geometry_nodes_cpp_type = &blender::CPPType::get<SocketValueVariant>();
   socktype->get_geometry_nodes_cpp_value = [](const void *socket_value, void *r_value) {
     const auto &typed_value = *(bNodeSocketValueRotation *)socket_value;
     const math::EulerXYZ euler(float3(typed_value.value_euler));
     const math::Quaternion value = math::to_quaternion(euler);
-    new (r_value) ValueOrField<math::Quaternion>(value);
+    new (r_value) SocketValueVariant(value);
   };
+  static SocketValueVariant default_value{math::Quaternion::identity()};
+  socktype->geometry_nodes_default_cpp_value = &default_value;
   return socktype;
 }
 
@@ -984,11 +967,13 @@ static bNodeSocketType *make_socket_type_float(PropertySubType subtype)
   socktype->get_base_cpp_value = [](const void *socket_value, void *r_value) {
     *(float *)r_value = ((bNodeSocketValueFloat *)socket_value)->value;
   };
-  socktype->geometry_nodes_cpp_type = &blender::CPPType::get<ValueOrField<float>>();
+  socktype->geometry_nodes_cpp_type = &blender::CPPType::get<SocketValueVariant>();
   socktype->get_geometry_nodes_cpp_value = [](const void *socket_value, void *r_value) {
     const float value = ((bNodeSocketValueFloat *)socket_value)->value;
-    new (r_value) ValueOrField<float>(value);
+    new (r_value) SocketValueVariant(value);
   };
+  static SocketValueVariant default_value{0.0f};
+  socktype->geometry_nodes_default_cpp_value = &default_value;
   return socktype;
 }
 
@@ -999,11 +984,13 @@ static bNodeSocketType *make_socket_type_int(PropertySubType subtype)
   socktype->get_base_cpp_value = [](const void *socket_value, void *r_value) {
     *(int *)r_value = ((bNodeSocketValueInt *)socket_value)->value;
   };
-  socktype->geometry_nodes_cpp_type = &blender::CPPType::get<ValueOrField<int>>();
+  socktype->geometry_nodes_cpp_type = &blender::CPPType::get<SocketValueVariant>();
   socktype->get_geometry_nodes_cpp_value = [](const void *socket_value, void *r_value) {
     const int value = ((bNodeSocketValueInt *)socket_value)->value;
-    new (r_value) ValueOrField<int>(value);
+    new (r_value) SocketValueVariant(value);
   };
+  static SocketValueVariant default_value{0};
+  socktype->geometry_nodes_default_cpp_value = &default_value;
   return socktype;
 }
 
@@ -1014,11 +1001,13 @@ static bNodeSocketType *make_socket_type_vector(PropertySubType subtype)
   socktype->get_base_cpp_value = [](const void *socket_value, void *r_value) {
     *(blender::float3 *)r_value = ((bNodeSocketValueVector *)socket_value)->value;
   };
-  socktype->geometry_nodes_cpp_type = &blender::CPPType::get<ValueOrField<blender::float3>>();
+  socktype->geometry_nodes_cpp_type = &blender::CPPType::get<SocketValueVariant>();
   socktype->get_geometry_nodes_cpp_value = [](const void *socket_value, void *r_value) {
     const blender::float3 value = ((bNodeSocketValueVector *)socket_value)->value;
-    new (r_value) ValueOrField<blender::float3>(value);
+    new (r_value) SocketValueVariant(value);
   };
+  static SocketValueVariant default_value{blender::float3(0, 0, 0)};
+  socktype->geometry_nodes_default_cpp_value = &default_value;
   return socktype;
 }
 
@@ -1029,12 +1018,13 @@ static bNodeSocketType *make_socket_type_rgba()
   socktype->get_base_cpp_value = [](const void *socket_value, void *r_value) {
     *(blender::ColorGeometry4f *)r_value = ((bNodeSocketValueRGBA *)socket_value)->value;
   };
-  socktype->geometry_nodes_cpp_type =
-      &blender::CPPType::get<ValueOrField<blender::ColorGeometry4f>>();
+  socktype->geometry_nodes_cpp_type = &blender::CPPType::get<SocketValueVariant>();
   socktype->get_geometry_nodes_cpp_value = [](const void *socket_value, void *r_value) {
     const blender::ColorGeometry4f value = ((bNodeSocketValueRGBA *)socket_value)->value;
-    new (r_value) ValueOrField<blender::ColorGeometry4f>(value);
+    new (r_value) SocketValueVariant(value);
   };
+  static SocketValueVariant default_value{blender::ColorGeometry4f(0, 0, 0, 0)};
+  socktype->geometry_nodes_default_cpp_value = &default_value;
   return socktype;
 }
 
@@ -1045,13 +1035,13 @@ static bNodeSocketType *make_socket_type_string()
   socktype->get_base_cpp_value = [](const void *socket_value, void *r_value) {
     new (r_value) std::string(((bNodeSocketValueString *)socket_value)->value);
   };
-  socktype->geometry_nodes_cpp_type = &blender::CPPType::get<ValueOrField<std::string>>();
+  socktype->geometry_nodes_cpp_type = &blender::CPPType::get<SocketValueVariant>();
   socktype->get_geometry_nodes_cpp_value = [](const void *socket_value, void *r_value) {
-    std::string value;
-    value.~basic_string();
-    new (&value) std::string(((bNodeSocketValueString *)socket_value)->value);
-    new (r_value) ValueOrField<std::string>(value);
+    std::string value = ((bNodeSocketValueString *)socket_value)->value;
+    new (r_value) SocketValueVariant(value);
   };
+  static SocketValueVariant default_value{std::string()};
+  socktype->geometry_nodes_default_cpp_value = &default_value;
   return socktype;
 }
 

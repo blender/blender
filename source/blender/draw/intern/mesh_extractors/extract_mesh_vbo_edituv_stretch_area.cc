@@ -75,7 +75,7 @@ static void compute_area_ratio(const MeshRenderData &mr,
   }
   else {
     BLI_assert(mr.extract_type == MR_EXTRACT_MESH);
-    const float2 *uv_data = (const float2 *)CustomData_get_layer(&mr.me->loop_data,
+    const float2 *uv_data = (const float2 *)CustomData_get_layer(&mr.mesh->corner_data,
                                                                  CD_PROP_FLOAT2);
     for (int face_index = 0; face_index < mr.face_len; face_index++) {
       const IndexRange face = mr.faces[face_index];
@@ -175,7 +175,6 @@ constexpr MeshExtract create_extractor_edituv_stretch_area()
 
 /** \} */
 
-}  // namespace blender::draw
+const MeshExtract extract_edituv_stretch_area = create_extractor_edituv_stretch_area();
 
-const MeshExtract extract_edituv_stretch_area =
-    blender::draw::create_extractor_edituv_stretch_area();
+}  // namespace blender::draw

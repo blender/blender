@@ -15,7 +15,7 @@
 
 #include "internal/base/memory.h"
 #include "internal/topology/mesh_topology.h"
-#include "opensubdiv_topology_refiner_capi.h"
+#include "opensubdiv_topology_refiner_capi.hh"
 
 struct OpenSubdiv_Converter;
 
@@ -64,7 +64,6 @@ class TopologyRefinerImpl {
 }  // namespace opensubdiv
 }  // namespace blender
 
-struct OpenSubdiv_TopologyRefinerImpl : public blender::opensubdiv::TopologyRefinerImpl {
-};
+struct OpenSubdiv_TopologyRefinerImpl : public blender::opensubdiv::TopologyRefinerImpl {};
 
 #endif  // OPENSUBDIV_TOPOLOGY_REFINER_IMPL_H_

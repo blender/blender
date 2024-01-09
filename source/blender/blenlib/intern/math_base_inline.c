@@ -232,10 +232,7 @@ MINLINE signed char round_db_to_char(double a){_round_db_impl(a, signed char)} M
     short round_db_to_short(double a){_round_db_impl(a, short)} MINLINE
     unsigned short round_db_to_ushort(double a){_round_db_impl(a, unsigned short)} MINLINE
     int round_db_to_int(double a){_round_db_impl(a, int)} MINLINE
-    unsigned int round_db_to_uint(double a)
-{
-  _round_db_impl(a, unsigned int)
-}
+    unsigned int round_db_to_uint(double a){_round_db_impl(a, unsigned int)}
 
 #undef _round_fl_impl
 #undef _round_db_impl
@@ -261,10 +258,8 @@ MINLINE signed char round_db_to_char_clamp(double a){
     unsigned short round_db_to_ushort_clamp(double a){
         _round_clamp_db_impl(a, unsigned short, 0, USHRT_MAX)} MINLINE
     int round_db_to_int_clamp(double a){_round_clamp_db_impl(a, int, INT_MIN, INT_MAX)} MINLINE
-    unsigned int round_db_to_uint_clamp(double a)
-{
-  _round_clamp_db_impl(a, unsigned int, 0, UINT_MAX)
-}
+    unsigned int round_db_to_uint_clamp(double a){
+        _round_clamp_db_impl(a, unsigned int, 0, UINT_MAX)}
 
 #undef _round_clamp_fl_impl
 #undef _round_clamp_db_impl

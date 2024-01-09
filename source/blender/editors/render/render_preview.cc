@@ -46,7 +46,7 @@
 #include "BKE_appdir.h"
 #include "BKE_armature.hh"
 #include "BKE_brush.hh"
-#include "BKE_colortools.h"
+#include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_icons.h"
@@ -55,7 +55,7 @@
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_light.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_node.hh"
 #include "BKE_object.hh"
@@ -194,8 +194,16 @@ void ED_preview_ensure_dbase(const bool with_gpencil)
     base_initialized = true;
   }
   if (!base_initialized_gpencil && with_gpencil) {
-    G_pr_main_grease_pencil = load_main_from_memory(datatoc_preview_grease_pencil_blend,
-                                                    datatoc_preview_grease_pencil_blend_size);
+
+    if (U.experimental.use_grease_pencil_version3) {
+      G_pr_main_grease_pencil = load_main_from_memory(datatoc_preview_grease_pencil_blend,
+                                                      datatoc_preview_grease_pencil_blend_size);
+    }
+    else {
+      G_pr_main_grease_pencil = load_main_from_memory(
+          datatoc_preview_grease_pencil_legacy_blend,
+          datatoc_preview_grease_pencil_legacy_blend_size);
+    }
     base_initialized_gpencil = true;
   }
 #else
@@ -296,11 +304,11 @@ static const char *preview_floor_material_name(const Scene *scene,
 }
 
 static void switch_preview_floor_material(Main *pr_main,
-                                          Mesh *me,
+                                          Mesh *mesh,
                                           const Scene *scene,
                                           const ePreviewRenderMethod pr_method)
 {
-  if (me->totcol == 0) {
+  if (mesh->totcol == 0) {
     return;
   }
 
@@ -308,7 +316,7 @@ static void switch_preview_floor_material(Main *pr_main,
   Material *mat = static_cast<Material *>(
       BLI_findstring(&pr_main->materials, material_name, offsetof(ID, name) + 2));
   if (mat) {
-    me->mat[0] = mat;
+    mesh->mat[0] = mat;
   }
 }
 
@@ -419,7 +427,8 @@ static const char *preview_world_name(const Scene *sce,
    * this approximation.
    */
   if (id_type == ID_MA && pr_method == PR_ICON_RENDER &&
-      !render_engine_supports_ray_visibility(sce)) {
+      !render_engine_supports_ray_visibility(sce))
+  {
     return "WorldFloor";
   }
   return "World";
@@ -530,16 +539,20 @@ static Scene *preview_prepare_scene(
           /* Use a default world color. Using the current
            * scene world can be slow if it has big textures. */
           sce->world->use_nodes = false;
-          sce->world->horr = 0.05f;
-          sce->world->horg = 0.05f;
-          sce->world->horb = 0.05f;
+          /* Use brighter world color for grease pencil. */
+          if (sp->pr_main == G_pr_main_grease_pencil) {
+            sce->world->horr = 1.0f;
+            sce->world->horg = 1.0f;
+            sce->world->horb = 1.0f;
+          }
+          else {
+            sce->world->horr = 0.05f;
+            sce->world->horg = 0.05f;
+            sce->world->horb = 0.05f;
+          }
         }
 
-        /* For grease pencil, always use sphere for icon renders. */
-        const ePreviewType preview_type = static_cast<ePreviewType>(
-            (sp->pr_method == PR_ICON_RENDER && sp->pr_main == G_pr_main_grease_pencil) ?
-                MA_SPHERE_A :
-                (ePreviewType)mat->pr_type);
+        const ePreviewType preview_type = static_cast<ePreviewType>(mat->pr_type);
         ED_preview_set_visibility(pr_main, sce, view_layer, preview_type, sp->pr_method);
       }
       else {
@@ -878,6 +891,7 @@ static void object_preview_render(IconPreview *preview, IconPreviewSize *preview
       R_ALPHAPREMUL,
       nullptr,
       nullptr,
+      nullptr,
       err_out);
   /* TODO: color-management? */
 
@@ -1011,6 +1025,7 @@ static void action_preview_render(IconPreview *preview, IconPreviewSize *preview
                                                       IB_rect,
                                                       V3D_OFSDRAW_NONE,
                                                       R_ADDSKY,
+                                                      nullptr,
                                                       nullptr,
                                                       nullptr,
                                                       err_out);
@@ -1437,7 +1452,8 @@ static void icon_preview_startjob(void *customdata, bool *stop, bool *do_update)
      * only get existing `ibuf`. */
     ibuf = BKE_image_acquire_ibuf(ima, &iuser, nullptr);
     if (ibuf == nullptr ||
-        (ibuf->byte_buffer.data == nullptr && ibuf->float_buffer.data == nullptr)) {
+        (ibuf->byte_buffer.data == nullptr && ibuf->float_buffer.data == nullptr))
+    {
       BKE_image_release_ibuf(ima, ibuf, nullptr);
       return;
     }

@@ -6,7 +6,7 @@
  * \ingroup texnodes
  */
 
-#include "BKE_colorband.h"
+#include "BKE_colorband.hh"
 #include "IMB_colormanagement.h"
 #include "NOD_texture.h"
 #include "node_texture_util.hh"

@@ -127,7 +127,8 @@ void PathTraceDisplay::copy_pixels_to_texture(
     const half4 *rgba_row = rgba_pixels;
     half4 *mapped_rgba_row = mapped_rgba_pixels + texture_y * texture_width + texture_x;
     for (int y = 0; y < pixels_height;
-         ++y, rgba_row += pixels_width, mapped_rgba_row += texture_width) {
+         ++y, rgba_row += pixels_width, mapped_rgba_row += texture_width)
+    {
       memcpy(mapped_rgba_row, rgba_row, sizeof(half4) * pixels_width);
     }
   }

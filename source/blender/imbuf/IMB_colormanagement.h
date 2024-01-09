@@ -534,10 +534,12 @@ enum {
 /** \name Rendering Tables
  * \{ */
 
+void IMB_colormanagement_blackbody_temperature_to_rgb(float r_dest[4], float value);
 void IMB_colormanagement_blackbody_temperature_to_rgb_table(float *r_table,
                                                             int width,
                                                             float min,
                                                             float max);
+void IMB_colormanagement_wavelength_to_rgb(float r_dest[4], float value);
 void IMB_colormanagement_wavelength_to_rgb_table(float *r_table, int width);
 
 /** \} */

@@ -386,7 +386,8 @@ const Pass *Pass::find(const vector<Pass *> &passes,
 {
   for (const Pass *pass : passes) {
     if (pass->get_type() != type || pass->get_mode() != mode ||
-        pass->get_lightgroup() != lightgroup) {
+        pass->get_lightgroup() != lightgroup)
+    {
       continue;
     }
     return pass;

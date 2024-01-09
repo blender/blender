@@ -310,7 +310,7 @@ void SnapData::register_result(SnapObjectContext *sctx,
   sctx->ret.loc = math::transform_point(obmat, sctx->ret.loc);
   sctx->ret.no = math::normalize(math::transform_direction(obmat, sctx->ret.no));
 
-#ifdef DEBUG
+#ifndef NDEBUG
   /* Make sure this is only called once. */
   r_nearest->index = -2;
 #endif
@@ -497,7 +497,8 @@ static eSnapMode iter_snap_objects(SnapObjectContext *sctx, IterSnapObjsCallback
     const bool is_object_active = (base == base_act);
     Object *obj_eval = DEG_get_evaluated_object(sctx->runtime.depsgraph, base->object);
     if (obj_eval->transflag & OB_DUPLI ||
-        blender::bke::object_has_geometry_set_instances(*obj_eval)) {
+        blender::bke::object_has_geometry_set_instances(*obj_eval))
+    {
       ListBase *lb = object_duplilist(sctx->runtime.depsgraph, sctx->scene, obj_eval);
       LISTBASE_FOREACH (DupliObject *, dupli_ob, lb) {
         BLI_assert(DEG_is_evaluated_object(dupli_ob->ob));
@@ -1206,7 +1207,7 @@ bool ED_transform_snap_object_project_ray_all(SnapObjectContext *sctx,
     return false;
   }
 
-#ifdef DEBUG
+#ifndef NDEBUG
   float ray_depth_prev = sctx->ret.ray_depth_max;
 #endif
   if (raycastObjects(sctx)) {
@@ -1214,7 +1215,7 @@ bool ED_transform_snap_object_project_ray_all(SnapObjectContext *sctx,
       BLI_listbase_sort(r_hit_list, hit_depth_cmp);
     }
     /* meant to be readonly for 'all' hits, ensure it is */
-#ifdef DEBUG
+#ifndef NDEBUG
     BLI_assert(ray_depth_prev == sctx->ret.ray_depth_max);
 #endif
     return true;
@@ -1488,12 +1489,22 @@ bool ED_transform_snap_object_project_all_view3d_ex(SnapObjectContext *sctx,
                                                     bool sort,
                                                     ListBase *r_hit_list)
 {
-  float ray_start[3], ray_normal[3];
+  float3 ray_start, ray_normal, ray_end;
+  const RegionView3D *rv3d = static_cast<const RegionView3D *>(region->regiondata);
 
   if (!ED_view3d_win_to_ray_clipped_ex(
-          depsgraph, region, v3d, mval, true, nullptr, ray_normal, ray_start, nullptr))
+          depsgraph, region, v3d, mval, false, nullptr, ray_normal, ray_start, ray_end))
   {
     return false;
+  }
+
+  if ((rv3d->rflag & RV3D_CLIPPING) &&
+      clip_segment_v3_plane_n(ray_start, ray_end, rv3d->clip, 6, ray_start, ray_end))
+  {
+    float ray_depth_max = math::dot(ray_end - ray_start, ray_normal);
+    if ((ray_depth == -1.0f) || (ray_depth > ray_depth_max)) {
+      ray_depth = ray_depth_max;
+    }
   }
 
   return ED_transform_snap_object_project_ray_all(

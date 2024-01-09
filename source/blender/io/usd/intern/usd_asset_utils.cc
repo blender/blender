@@ -9,15 +9,14 @@
 #include <pxr/usd/ar/resolver.h>
 #include <pxr/usd/ar/writableAsset.h>
 
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_report.h"
 
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 
-#include "WM_api.hh"
-#include "WM_types.hh"
+#include <string_view>
 
 static const char UDIM_PATTERN[] = "<UDIM>";
 static const char UDIM_PATTERN2[] = "%3CUDIM%3E";
@@ -39,16 +38,15 @@ namespace blender::io::usd {
  */
 static std::pair<std::string, std::string> split_udim_pattern(const std::string &path)
 {
-  static const std::vector<std::string> patterns = {UDIM_PATTERN, UDIM_PATTERN2};
-
-  for (const std::string &pattern : patterns) {
+  std::string_view patterns[]{UDIM_PATTERN, UDIM_PATTERN2};
+  for (const std::string_view pattern : patterns) {
     const std::string::size_type pos = path.find(pattern);
     if (pos != std::string::npos) {
       return {path.substr(0, pos), path.substr(pos + pattern.size())};
     }
   }
 
-  return {std::string(), std::string()};
+  return {};
 }
 
 /* Return the asset file base name, with special handling of

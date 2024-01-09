@@ -138,7 +138,8 @@ void TiledExecutionModel::execute_groups(eCompositorPriority priority,
 {
   for (ExecutionGroup *execution_group : groups_) {
     if (execution_group->get_flags().is_output &&
-        execution_group->get_render_priority() == priority) {
+        execution_group->get_render_priority() == priority)
+    {
       execution_group->execute(&exec_system);
     }
   }

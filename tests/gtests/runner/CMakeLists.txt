@@ -32,7 +32,6 @@ blender_src_gtest_ex(
   NAME blender
   SRC "${SRC}"
   EXTRA_LIBS "${TEST_LIBS}"
-  SKIP_ADD_TEST
 )
 setup_platform_linker_libs(blender_test)
 

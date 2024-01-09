@@ -12,7 +12,7 @@
 
 #include "DNA_scene_types.h"
 
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include "eevee_shader_shared.hh"
 
@@ -28,7 +28,7 @@ class Instance;
  * \{ */
 
 /**
- * Contain persistent buffer that need to be stored per view.
+ * Contain persistent buffer that need to be stored per view, per layer.
  */
 struct RayTraceBuffer {
   /** Set of buffers that need to be allocated for each ray type. */
@@ -51,10 +51,9 @@ struct RayTraceBuffer {
     TextureFromPool denoised_bilateral_tx = {"denoised_bilateral_tx"};
   };
   /**
-   * One for each closure type. Not to be mistaken with deferred layer type.
-   * For instance the opaque deferred layer will only used the reflection history buffer.
+   * One for each closure. Not to be mistaken with deferred layer type.
    */
-  DenoiseBuffer reflection, refraction, diffuse;
+  DenoiseBuffer closures[3];
 };
 
 /**
@@ -62,7 +61,7 @@ struct RayTraceBuffer {
  * The result buffer is usually short lived and is kept in a TextureFromPool managed by the mode.
  * This structure contains a reference to it so that it can be freed after use by the caller.
  */
-class RayTraceResult {
+class RayTraceResultTexture {
  private:
   /** Result is in a temporary texture that needs to be released. */
   TextureFromPool *result_ = nullptr;
@@ -70,9 +69,9 @@ class RayTraceResult {
   Texture *history_ = nullptr;
 
  public:
-  RayTraceResult() = default;
-  RayTraceResult(TextureFromPool &result) : result_(result.ptr()){};
-  RayTraceResult(TextureFromPool &result, Texture &history)
+  RayTraceResultTexture() = default;
+  RayTraceResultTexture(TextureFromPool &result) : result_(result.ptr()){};
+  RayTraceResultTexture(TextureFromPool &result, Texture &history)
       : result_(result.ptr()), history_(history.ptr()){};
 
   GPUTexture *get()
@@ -91,6 +90,17 @@ class RayTraceResult {
   }
 };
 
+struct RayTraceResult {
+  RayTraceResultTexture closures[3];
+
+  void release()
+  {
+    for (int i = 0; i < 3; i++) {
+      closures[i].release();
+    }
+  }
+};
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -103,24 +113,15 @@ class RayTraceModule {
 
   draw::PassSimple tile_classify_ps_ = {"TileClassify"};
   draw::PassSimple tile_compact_ps_ = {"TileCompact"};
-  draw::PassSimple generate_diffuse_ps_ = {"RayGenerate.Diffuse"};
-  draw::PassSimple generate_reflect_ps_ = {"RayGenerate.Reflection"};
-  draw::PassSimple generate_refract_ps_ = {"RayGenerate.Refraction"};
-  draw::PassSimple trace_diffuse_ps_ = {"Trace.Diffuse"};
-  draw::PassSimple trace_reflect_ps_ = {"Trace.Reflection"};
-  draw::PassSimple trace_refract_ps_ = {"Trace.Refraction"};
+  draw::PassSimple generate_ps_ = {"RayGenerate"};
+  draw::PassSimple trace_planar_ps_ = {"Trace.Planar"};
+  draw::PassSimple trace_screen_ps_ = {"Trace.Screen"};
   draw::PassSimple trace_fallback_ps_ = {"Trace.Fallback"};
-  draw::PassSimple denoise_spatial_diffuse_ps_ = {"DenoiseSpatial.Diffuse"};
-  draw::PassSimple denoise_spatial_reflect_ps_ = {"DenoiseSpatial.Reflection"};
-  draw::PassSimple denoise_spatial_refract_ps_ = {"DenoiseSpatial.Refraction"};
+  draw::PassSimple denoise_spatial_ps_ = {"DenoiseSpatial"};
   draw::PassSimple denoise_temporal_ps_ = {"DenoiseTemporal"};
-  draw::PassSimple denoise_bilateral_diffuse_ps_ = {"DenoiseBilateral.Diffuse"};
-  draw::PassSimple denoise_bilateral_reflect_ps_ = {"DenoiseBilateral.Reflection"};
-  draw::PassSimple denoise_bilateral_refract_ps_ = {"DenoiseBilateral.Refraction"};
+  draw::PassSimple denoise_bilateral_ps_ = {"DenoiseBilateral"};
   draw::PassSimple horizon_setup_ps_ = {"HorizonScan.Setup"};
-  draw::PassSimple horizon_scan_diffuse_ps_ = {"HorizonScan.Diffuse"};
-  draw::PassSimple horizon_scan_reflect_ps_ = {"HorizonScan.Reflection"};
-  draw::PassSimple horizon_scan_refract_ps_ = {"HorizonScan.Refraction"};
+  draw::PassSimple horizon_scan_ps_ = {"HorizonScan.Trace"};
   draw::PassSimple horizon_denoise_ps_ = {"HorizonScan.Denoise"};
 
   /** Dispatch with enough tiles for the whole screen. */
@@ -129,22 +130,26 @@ class RayTraceModule {
   int3 tile_compact_dispatch_size_ = int3(1);
   /** Dispatch with enough tiles for the tracing resolution. */
   int3 tracing_dispatch_size_ = int3(1);
-  /** 2D tile mask to check which unused adjacent tile we need to clear. */
-  TextureFromPool tile_mask_tx_ = {"tile_mask_tx"};
-  /** Indirect dispatch rays. Avoid dispatching work-groups that will not trace anything.*/
-  DispatchIndirectBuf ray_dispatch_buf_ = {"ray_dispatch_buf_"};
+  /** 2D tile mask to check which unused adjacent tile we need to clear and which tile we need to
+   * dispatch for each work type. */
+  Texture tile_raytrace_denoise_tx_ = {"tile_raytrace_denoise_tx_"};
+  Texture tile_raytrace_tracing_tx_ = {"tile_raytrace_tracing_tx_"};
+  Texture tile_horizon_denoise_tx_ = {"tile_horizon_denoise_tx_"};
+  Texture tile_horizon_tracing_tx_ = {"tile_horizon_tracing_tx_"};
+  /** Indirect dispatch rays. Avoid dispatching work-groups that will not trace anything. */
+  DispatchIndirectBuf raytrace_tracing_dispatch_buf_ = {"raytrace_tracing_dispatch_buf_"};
   /** Indirect dispatch denoise full-resolution tiles. */
-  DispatchIndirectBuf ray_denoise_dispatch_buf_ = {"ray_denoise_dispatch_buf_"};
-  /** Indirect dispatch horizon scan. Avoid dispatching work-groups that will not scan anything.*/
-  DispatchIndirectBuf horizon_dispatch_buf_ = {"horizon_dispatch_buf_"};
+  DispatchIndirectBuf raytrace_denoise_dispatch_buf_ = {"raytrace_denoise_dispatch_buf_"};
+  /** Indirect dispatch horizon scan. Avoid dispatching work-groups that will not scan anything. */
+  DispatchIndirectBuf horizon_tracing_dispatch_buf_ = {"horizon_tracing_dispatch_buf_"};
   /** Indirect dispatch denoise full-resolution tiles. */
   DispatchIndirectBuf horizon_denoise_dispatch_buf_ = {"horizon_denoise_dispatch_buf_"};
   /** Pointer to the texture to store the result of horizon scan in. */
   GPUTexture *horizon_scan_output_tx_ = nullptr;
   /** Tile buffer that contains tile coordinates. */
-  RayTraceTileBuf ray_tiles_buf_ = {"ray_tiles_buf_"};
-  RayTraceTileBuf ray_denoise_tiles_buf_ = {"ray_denoise_tiles_buf_"};
-  RayTraceTileBuf horizon_tiles_buf_ = {"horizon_tiles_buf_"};
+  RayTraceTileBuf raytrace_tracing_tiles_buf_ = {"raytrace_tracing_tiles_buf_"};
+  RayTraceTileBuf raytrace_denoise_tiles_buf_ = {"raytrace_denoise_tiles_buf_"};
+  RayTraceTileBuf horizon_tracing_tiles_buf_ = {"horizon_tracing_tiles_buf_"};
   RayTraceTileBuf horizon_denoise_tiles_buf_ = {"horizon_denoise_tiles_buf_"};
   /** Texture containing the ray direction and PDF. */
   TextureFromPool ray_data_tx_ = {"ray_data_tx"};
@@ -175,19 +180,16 @@ class RayTraceModule {
   GPUTexture *variance_history_tx_ = nullptr;
   GPUTexture *tilemask_history_tx_ = nullptr;
   /** Radiance input for screen space tracing. */
-  GPUTexture *screen_radiance_tx_ = nullptr;
+  GPUTexture *screen_radiance_front_tx_ = nullptr;
+  GPUTexture *screen_radiance_back_tx_ = nullptr;
 
   /** Dummy texture when the tracing is disabled. */
   TextureFromPool dummy_result_tx_ = {"dummy_result_tx"};
-  /** Pointer to `inst_.render_buffers.depth_tx.stencil_view()` updated before submission. */
-  GPUTexture *renderbuf_stencil_view_ = nullptr;
   /** Pointer to `inst_.render_buffers.depth_tx` updated before submission. */
   GPUTexture *renderbuf_depth_view_ = nullptr;
 
   /** Copy of the scene options to avoid changing parameters during motion blur. */
-  RaytraceEEVEE reflection_options_;
-  RaytraceEEVEE refraction_options_;
-  RaytraceEEVEE diffuse_options_;
+  RaytraceEEVEE ray_tracing_options_;
 
   RaytraceEEVEE_Method tracing_method_ = RAYTRACE_EEVEE_METHOD_NONE;
 
@@ -201,31 +203,46 @@ class RayTraceModule {
   void sync();
 
   /**
-   * RayTrace the scene and resolve a radiance buffer for the corresponding `closure_bit` into the
-   * given `out_radiance_tx`.
+   * RayTrace the scene and resolve radiance buffer for the corresponding `closure_bit`.
    *
    * IMPORTANT: Should not be conditionally executed as it manages the RayTraceResult.
-   * IMPORTANT: The screen tracing will use the Hierarchical-Z Buffer in its current state.
+   * IMPORTANT: The screen tracing will be using the front and back Hierarchical-Z Buffer in its
+   * current state.
    *
-   * \arg screen_radiance_tx is the texture used for screen space rays.
-   * \arg screen_radiance_persmat is the view projection matrix used to render screen_radiance_tx.
+   * \arg rt_buffer is the layer's permanent storage.
+   * \arg screen_radiance_back_tx is the texture used for screen space transmission rays.
+   * \arg screen_radiance_front_tx is the texture used for screen space reflection rays.
+   * \arg screen_radiance_persmat is the view projection matrix used for screen_radiance_front_tx.
    * \arg active_closures is a mask of all active closures in a deferred layer.
-   * \arg raytrace_closure is type of closure the rays are to be casted for.
    * \arg main_view is the un-jittered view.
    * \arg render_view is the TAA jittered view.
    * \arg force_no_tracing will run the pipeline without any tracing, relying only on local probes.
    */
-  RayTraceResult trace(RayTraceBuffer &rt_buffer,
-                       GPUTexture *screen_radiance_tx,
-                       const float4x4 &screen_radiance_persmat,
-                       eClosureBits active_closures,
-                       eClosureBits raytrace_closure,
-                       View &main_view,
-                       View &render_view,
-                       bool force_no_tracing = false);
+  RayTraceResult render(RayTraceBuffer &rt_buffer,
+                        GPUTexture *screen_radiance_back_tx,
+                        GPUTexture *screen_radiance_front_tx,
+                        const float4x4 &screen_radiance_persmat,
+                        eClosureBits active_closures,
+                        /* TODO(fclem): Maybe wrap these two in some other class. */
+                        View &main_view,
+                        View &render_view,
+                        bool do_refraction_tracing);
 
   void debug_pass_sync();
   void debug_draw(View &view, GPUFrameBuffer *view_fb);
+
+ private:
+  RayTraceResultTexture trace(int closure_index,
+                              bool active_layer,
+                              RaytraceEEVEE options,
+                              RayTraceBuffer &rt_buffer,
+                              GPUTexture *screen_radiance_back_tx,
+                              GPUTexture *screen_radiance_front_tx,
+                              const float4x4 &screen_radiance_persmat,
+                              /* TODO(fclem): Maybe wrap these two in some other class. */
+                              View &main_view,
+                              View &render_view,
+                              bool use_horizon_scan);
 };
 
 /** \} */

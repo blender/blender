@@ -154,9 +154,8 @@ if(WITH_FRIBIDI)
   find_package(Fribidi)
 endif()
 
-if(WITH_IMAGE_OPENEXR)
-  find_package(OpenEXR)
-endif()
+# Header dependency of required OpenImageIO.
+find_package(OpenEXR REQUIRED)
 add_bundled_libraries(openexr/lib)
 add_bundled_libraries(imath/lib)
 
@@ -329,6 +328,7 @@ endif()
 if(WITH_CYCLES AND WITH_CYCLES_OSL)
   find_package(OSL REQUIRED)
 endif()
+add_bundled_libraries(osl/lib)
 
 if(WITH_CYCLES AND WITH_CYCLES_EMBREE)
   find_package(Embree 3.8.0 REQUIRED)
@@ -428,9 +428,22 @@ string(APPEND PLATFORM_LINKFLAGS
   " -Wl,-unexported_symbols_list,'${PLATFORM_SYMBOLS_MAP}'"
 )
 
-# Use old, slower linker for now to avoid many linker warnings.
 if(${XCODE_VERSION} VERSION_GREATER_EQUAL 15.0)
-  string(APPEND PLATFORM_LINKFLAGS " -Wl,-ld_classic")
+  if("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "x86_64")
+    # Silence "no platform load command found in <static library>, assuming: macOS".
+    string(APPEND PLATFORM_LINKFLAGS " -Wl,-ld_classic")
+  else()
+    # Silence "ld: warning: ignoring duplicate libraries".
+    #
+    # The warning is introduced with Xcode 15 and is triggered when the same library
+    # is passed to the linker ultiple times. This situation could happen with either
+    # cyclic libraries, or some transitive dependencies where CMake might decide to
+    # pass library to the linker multiple times to force it re-scan symbols. It is
+    # not neeed for Xcode linker to ensure all symbols from library are used and it
+    # is corrected in CMake 3.29:
+    #    https://gitlab.kitware.com/cmake/cmake/-/issues/25297
+    string(APPEND PLATFORM_LINKFLAGS " -Xlinker -no_warn_duplicate_libraries")
+  endif()
 endif()
 
 # Make stack size more similar to Embree, required for Embree.

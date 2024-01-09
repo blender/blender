@@ -4,13 +4,12 @@
 
 set(INC
   .
-  importer
   exporter
+  importer
   ../common
   ../../blenkernel
   ../../bmesh
   ../../bmesh/intern
-  ../../depsgraph
   ../../editors/include
   ../../makesrna
   ../../nodes
@@ -36,13 +35,14 @@ set(SRC
   importer/stl_import_ascii_reader.hh
   importer/stl_import_binary_reader.hh
   importer/stl_import_mesh.hh
-  exporter/stl_export_writer.hh
   exporter/stl_export.hh
+  exporter/stl_export_writer.hh
 )
 
 set(LIB
   bf_blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
   bf_io_common
@@ -67,11 +67,9 @@ if(WITH_GTESTS)
   set(TEST_LIB
     ${LIB}
 
-    bf_blenloader_tests
+    bf_blenloader_test_util
     bf_io_stl
   )
 
-  include(GTestTesting)
-  blender_add_test_lib(bf_io_stl_tests "${TEST_SRC}" "${TEST_INC}" "${INC_SYS}" "${TEST_LIB}")
-  add_dependencies(bf_io_stl_tests bf_io_stl)
+  blender_add_test_suite_lib(io_stl "${TEST_SRC}" "${TEST_INC}" "${INC_SYS}" "${TEST_LIB}")
 endif()

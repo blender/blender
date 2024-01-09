@@ -8,7 +8,7 @@
 
 #include "draw_manager.h"
 
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include "GPU_batch.h"
 #include "GPU_framebuffer.h"
@@ -18,7 +18,7 @@
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 
-#include "BKE_colortools.h"
+#include "BKE_colortools.hh"
 
 #include "IMB_colormanagement.h"
 

@@ -74,6 +74,7 @@ void ARMATURE_OT_collection_add(struct wmOperatorType *ot);
 void ARMATURE_OT_collection_remove(struct wmOperatorType *ot);
 void ARMATURE_OT_collection_move(struct wmOperatorType *ot);
 void ARMATURE_OT_collection_assign(struct wmOperatorType *ot);
+void ARMATURE_OT_collection_create_and_assign(struct wmOperatorType *ot);
 void ARMATURE_OT_collection_unassign(struct wmOperatorType *ot);
 void ARMATURE_OT_collection_unassign_named(struct wmOperatorType *ot);
 void ARMATURE_OT_collection_select(struct wmOperatorType *ot);
@@ -294,24 +295,26 @@ struct Bone *ED_armature_pick_bone(struct bContext *C,
                                    bool findunsel,
                                    struct Base **r_base);
 
-struct EditBone *ED_armature_pick_ebone_from_selectbuffer(struct Base **bases,
-                                                          uint bases_len,
-                                                          const struct GPUSelectResult *buffer,
-                                                          short hits,
-                                                          bool findunsel,
-                                                          bool do_nearest,
-                                                          struct Base **r_base);
-struct bPoseChannel *ED_armature_pick_pchan_from_selectbuffer(struct Base **bases,
-                                                              uint bases_len,
-                                                              const struct GPUSelectResult *buffer,
-                                                              short hits,
-                                                              bool findunsel,
-                                                              bool do_nearest,
-                                                              struct Base **r_base);
+struct EditBone *ED_armature_pick_ebone_from_selectbuffer(
+    struct Base **bases,
+    uint bases_len,
+    const struct GPUSelectResult *hit_results,
+    int hits,
+    bool findunsel,
+    bool do_nearest,
+    struct Base **r_base);
+struct bPoseChannel *ED_armature_pick_pchan_from_selectbuffer(
+    struct Base **bases,
+    uint bases_len,
+    const struct GPUSelectResult *hit_results,
+    int hits,
+    bool findunsel,
+    bool do_nearest,
+    struct Base **r_base);
 struct Bone *ED_armature_pick_bone_from_selectbuffer(struct Base **bases,
                                                      uint bases_len,
-                                                     const struct GPUSelectResult *buffer,
-                                                     short hits,
+                                                     const struct GPUSelectResult *hit_results,
+                                                     int hits,
                                                      bool findunsel,
                                                      bool do_nearest,
                                                      struct Base **r_base);

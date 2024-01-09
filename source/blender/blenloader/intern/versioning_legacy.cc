@@ -53,12 +53,12 @@
 
 #include "BKE_action.h"
 #include "BKE_armature.hh"
-#include "BKE_colortools.h"
 #include "BKE_constraint.h"
+#include "BKE_customdata.hh"
 #include "BKE_deform.h"
 #include "BKE_fcurve.h"
 #include "BKE_lattice.hh"
-#include "BKE_main.h"  /* for Main */
+#include "BKE_main.hh" /* for Main */
 #include "BKE_mesh.hh" /* for ME_ defines (patching) */
 #include "BKE_mesh_legacy_convert.hh"
 #include "BKE_modifier.hh"
@@ -81,21 +81,21 @@
 /* Make preferences read-only, use `versioning_userdef.cc`. */
 #define U (*((const UserDef *)&U))
 
-static void vcol_to_fcol(Mesh *me)
+static void vcol_to_fcol(Mesh *mesh)
 {
   MFace *mface;
   uint *mcol, *mcoln, *mcolmain;
   int a;
 
-  if (me->totface_legacy == 0 || me->mcol == nullptr) {
+  if (mesh->totface_legacy == 0 || mesh->mcol == nullptr) {
     return;
   }
 
   mcoln = mcolmain = static_cast<uint *>(
-      MEM_malloc_arrayN(me->totface_legacy, sizeof(int[4]), "mcoln"));
-  mcol = (uint *)me->mcol;
-  mface = me->mface;
-  for (a = me->totface_legacy; a > 0; a--, mface++) {
+      MEM_malloc_arrayN(mesh->totface_legacy, sizeof(int[4]), "mcoln"));
+  mcol = (uint *)mesh->mcol;
+  mface = mesh->mface;
+  for (a = mesh->totface_legacy; a > 0; a--, mface++) {
     mcoln[0] = mcol[mface->v1];
     mcoln[1] = mcol[mface->v2];
     mcoln[2] = mcol[mface->v3];
@@ -103,8 +103,8 @@ static void vcol_to_fcol(Mesh *me)
     mcoln += 4;
   }
 
-  MEM_freeN(me->mcol);
-  me->mcol = (MCol *)mcolmain;
+  MEM_freeN(mesh->mcol);
+  mesh->mcol = (MCol *)mcolmain;
 }
 
 static void do_version_bone_head_tail_237(Bone *bone)
@@ -237,7 +237,8 @@ static void idproperties_fix_groups_lengths_recurse(IDProperty *prop)
   int i;
 
   for (loop = static_cast<IDProperty *>(prop->data.group.first), i = 0; loop;
-       loop = loop->next, i++) {
+       loop = loop->next, i++)
+  {
     if (loop->type == IDP_GROUP) {
       idproperties_fix_groups_lengths_recurse(loop);
     }
@@ -260,7 +261,7 @@ static void idproperties_fix_group_lengths(ListBase idlist)
   }
 }
 
-static void customdata_version_242(Mesh *me)
+static void customdata_version_242(Mesh *mesh)
 {
   CustomDataLayer *layer;
   MTFace *mtf;
@@ -268,58 +269,60 @@ static void customdata_version_242(Mesh *me)
   TFace *tf;
   int a, mtfacen, mcoln;
 
-  if (!me->vert_data.totlayer) {
-    CustomData_add_layer_with_data(&me->vert_data, CD_MVERT, me->mvert, me->totvert, nullptr);
+  if (!mesh->vert_data.totlayer) {
+    CustomData_add_layer_with_data(
+        &mesh->vert_data, CD_MVERT, mesh->mvert, mesh->verts_num, nullptr);
 
-    if (me->dvert) {
+    if (mesh->dvert) {
       CustomData_add_layer_with_data(
-          &me->vert_data, CD_MDEFORMVERT, me->dvert, me->totvert, nullptr);
+          &mesh->vert_data, CD_MDEFORMVERT, mesh->dvert, mesh->verts_num, nullptr);
     }
   }
 
-  if (!me->edge_data.totlayer) {
-    CustomData_add_layer_with_data(&me->edge_data, CD_MEDGE, me->medge, me->totedge, nullptr);
+  if (!mesh->edge_data.totlayer) {
+    CustomData_add_layer_with_data(
+        &mesh->edge_data, CD_MEDGE, mesh->medge, mesh->edges_num, nullptr);
   }
 
-  if (!me->fdata_legacy.totlayer) {
+  if (!mesh->fdata_legacy.totlayer) {
     CustomData_add_layer_with_data(
-        &me->fdata_legacy, CD_MFACE, me->mface, me->totface_legacy, nullptr);
+        &mesh->fdata_legacy, CD_MFACE, mesh->mface, mesh->totface_legacy, nullptr);
 
-    if (me->tface) {
-      if (me->mcol) {
-        MEM_freeN(me->mcol);
+    if (mesh->tface) {
+      if (mesh->mcol) {
+        MEM_freeN(mesh->mcol);
       }
 
-      me->mcol = static_cast<MCol *>(
-          CustomData_add_layer(&me->fdata_legacy, CD_MCOL, CD_SET_DEFAULT, me->totface_legacy));
-      me->mtface = static_cast<MTFace *>(
-          CustomData_add_layer(&me->fdata_legacy, CD_MTFACE, CD_SET_DEFAULT, me->totface_legacy));
+      mesh->mcol = static_cast<MCol *>(CustomData_add_layer(
+          &mesh->fdata_legacy, CD_MCOL, CD_SET_DEFAULT, mesh->totface_legacy));
+      mesh->mtface = static_cast<MTFace *>(CustomData_add_layer(
+          &mesh->fdata_legacy, CD_MTFACE, CD_SET_DEFAULT, mesh->totface_legacy));
 
-      mtf = me->mtface;
-      mcol = me->mcol;
-      tf = me->tface;
+      mtf = mesh->mtface;
+      mcol = mesh->mcol;
+      tf = mesh->tface;
 
-      for (a = 0; a < me->totface_legacy; a++, mtf++, tf++, mcol += 4) {
+      for (a = 0; a < mesh->totface_legacy; a++, mtf++, tf++, mcol += 4) {
         memcpy(mcol, tf->col, sizeof(tf->col));
         memcpy(mtf->uv, tf->uv, sizeof(tf->uv));
       }
 
-      MEM_freeN(me->tface);
-      me->tface = nullptr;
+      MEM_freeN(mesh->tface);
+      mesh->tface = nullptr;
     }
-    else if (me->mcol) {
+    else if (mesh->mcol) {
       CustomData_add_layer_with_data(
-          &me->fdata_legacy, CD_MCOL, me->mcol, me->totface_legacy, nullptr);
+          &mesh->fdata_legacy, CD_MCOL, mesh->mcol, mesh->totface_legacy, nullptr);
     }
   }
 
-  if (me->tface) {
-    MEM_freeN(me->tface);
-    me->tface = nullptr;
+  if (mesh->tface) {
+    MEM_freeN(mesh->tface);
+    mesh->tface = nullptr;
   }
 
-  for (a = 0, mtfacen = 0, mcoln = 0; a < me->fdata_legacy.totlayer; a++) {
-    layer = &me->fdata_legacy.layers[a];
+  for (a = 0, mtfacen = 0, mcoln = 0; a < mesh->fdata_legacy.totlayer; a++) {
+    layer = &mesh->fdata_legacy.layers[a];
 
     if (layer->type == CD_MTFACE) {
       if (layer->name[0] == 0) {
@@ -347,13 +350,13 @@ static void customdata_version_242(Mesh *me)
 }
 
 /* Only copy render texface layer from active. */
-static void customdata_version_243(Mesh *me)
+static void customdata_version_243(Mesh *mesh)
 {
   CustomDataLayer *layer;
   int a;
 
-  for (a = 0; a < me->fdata_legacy.totlayer; a++) {
-    layer = &me->fdata_legacy.layers[a];
+  for (a = 0; a < mesh->fdata_legacy.totlayer; a++) {
+    layer = &mesh->fdata_legacy.layers[a];
     layer->active_rnd = layer->active;
   }
 }
@@ -363,7 +366,7 @@ static void do_version_ntree_242_2(bNodeTree *ntree)
 {
   if (ntree->type == NTREE_COMPOSIT) {
     LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-      if (ELEM(node->type, CMP_NODE_IMAGE, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
+      if (ELEM(node->type, CMP_NODE_IMAGE, CMP_NODE_VIEWER)) {
         /* only image had storage */
         if (node->storage) {
           NodeImageAnim *nia = static_cast<NodeImageAnim *>(node->storage);
@@ -542,12 +545,12 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
   if (bmain->versionfile <= 106) {
     /* mcol changed */
-    Mesh *me = static_cast<Mesh *>(bmain->meshes.first);
-    while (me) {
-      if (me->mcol) {
-        vcol_to_fcol(me);
+    Mesh *mesh = static_cast<Mesh *>(bmain->meshes.first);
+    while (mesh) {
+      if (mesh->mcol) {
+        vcol_to_fcol(mesh);
       }
-      me = static_cast<Mesh *>(me->id.next);
+      mesh = static_cast<Mesh *>(mesh->id.next);
     }
   }
 
@@ -633,23 +636,23 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
   }
 
   if (bmain->versionfile <= 164) {
-    Mesh *me = static_cast<Mesh *>(bmain->meshes.first);
-    while (me) {
-      me->smoothresh_legacy = 30;
-      me = static_cast<Mesh *>(me->id.next);
+    Mesh *mesh = static_cast<Mesh *>(bmain->meshes.first);
+    while (mesh) {
+      mesh->smoothresh_legacy = 30;
+      mesh = static_cast<Mesh *>(mesh->id.next);
     }
   }
 
   if (bmain->versionfile <= 165) {
-    Mesh *me = static_cast<Mesh *>(bmain->meshes.first);
+    Mesh *mesh = static_cast<Mesh *>(bmain->meshes.first);
     TFace *tface;
     int nr;
     char *cp;
 
-    while (me) {
-      if (me->tface) {
-        nr = me->totface_legacy;
-        tface = me->tface;
+    while (mesh) {
+      if (mesh->tface) {
+        nr = mesh->totface_legacy;
+        tface = mesh->tface;
         while (nr--) {
           int j;
           for (j = 0; j < 4; j++) {
@@ -663,17 +666,17 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
           tface++;
         }
       }
-      me = static_cast<Mesh *>(me->id.next);
+      mesh = static_cast<Mesh *>(mesh->id.next);
     }
   }
 
   if (bmain->versionfile <= 169) {
-    Mesh *me = static_cast<Mesh *>(bmain->meshes.first);
-    while (me) {
-      if (me->subdiv == 0) {
-        me->subdiv = 1;
+    Mesh *mesh = static_cast<Mesh *>(bmain->meshes.first);
+    while (mesh) {
+      if (mesh->subdiv == 0) {
+        mesh->subdiv = 1;
       }
-      me = static_cast<Mesh *>(me->id.next);
+      mesh = static_cast<Mesh *>(mesh->id.next);
     }
   }
 
@@ -731,18 +734,18 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
   if (bmain->versionfile <= 173) {
     int a, b;
-    Mesh *me = static_cast<Mesh *>(bmain->meshes.first);
-    while (me) {
-      if (me->tface) {
-        TFace *tface = me->tface;
-        for (a = 0; a < me->totface_legacy; a++, tface++) {
+    Mesh *mesh = static_cast<Mesh *>(bmain->meshes.first);
+    while (mesh) {
+      if (mesh->tface) {
+        TFace *tface = mesh->tface;
+        for (a = 0; a < mesh->totface_legacy; a++, tface++) {
           for (b = 0; b < 4; b++) {
             tface->uv[b][0] /= 32767.0f;
             tface->uv[b][1] /= 32767.0f;
           }
         }
       }
-      me = static_cast<Mesh *>(me->id.next);
+      mesh = static_cast<Mesh *>(mesh->id.next);
     }
   }
 
@@ -760,7 +763,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
   if (bmain->versionfile <= 212) {
     bSound *sound;
-    Mesh *me;
+    Mesh *mesh;
 
     sound = static_cast<bSound *>(bmain->sounds.first);
     while (sound) {
@@ -778,55 +781,57 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
       sound = static_cast<bSound *>(sound->id.next);
     }
 
-    /* `me->subdiv` changed to reflect the actual reparametization
+    /* `mesh->subdiv` changed to reflect the actual reparametization
      * better, and S-meshes were removed - if it was a S-mesh make
      * it a subsurf, and reset the subdivision level because subsurf
      * takes a lot more work to calculate. */
-    for (me = static_cast<Mesh *>(bmain->meshes.first); me; me = static_cast<Mesh *>(me->id.next))
+    for (mesh = static_cast<Mesh *>(bmain->meshes.first); mesh;
+         mesh = static_cast<Mesh *>(mesh->id.next))
     {
       enum {
         ME_SMESH = (1 << 6),
         ME_SUBSURF = (1 << 7),
       };
-      if (me->flag & ME_SMESH) {
-        me->flag &= ~ME_SMESH;
-        me->flag |= ME_SUBSURF;
+      if (mesh->flag & ME_SMESH) {
+        mesh->flag &= ~ME_SMESH;
+        mesh->flag |= ME_SUBSURF;
 
-        me->subdiv = 1;
+        mesh->subdiv = 1;
       }
       else {
-        if (me->subdiv < 2) {
-          me->subdiv = 1;
+        if (mesh->subdiv < 2) {
+          mesh->subdiv = 1;
         }
         else {
-          me->subdiv--;
+          mesh->subdiv--;
         }
       }
     }
   }
 
   if (bmain->versionfile <= 220) {
-    Mesh *me;
+    Mesh *mesh;
 
     /* Began using alpha component of vertex colors, but
      * old file vertex colors are undefined, reset them
      * to be fully opaque. -zr
      */
-    for (me = static_cast<Mesh *>(bmain->meshes.first); me; me = static_cast<Mesh *>(me->id.next))
+    for (mesh = static_cast<Mesh *>(bmain->meshes.first); mesh;
+         mesh = static_cast<Mesh *>(mesh->id.next))
     {
-      if (me->mcol) {
+      if (mesh->mcol) {
         int i;
 
-        for (i = 0; i < me->totface_legacy * 4; i++) {
-          MCol *mcol = &me->mcol[i];
+        for (i = 0; i < mesh->totface_legacy * 4; i++) {
+          MCol *mcol = &mesh->mcol[i];
           mcol->a = 255;
         }
       }
-      if (me->tface) {
+      if (mesh->tface) {
         int i, j;
 
-        for (i = 0; i < me->totface_legacy; i++) {
-          TFace *tf = &((TFace *)me->tface)[i];
+        for (i = 0; i < mesh->totface_legacy; i++) {
+          TFace *tf = &((TFace *)mesh->tface)[i];
 
           for (j = 0; j < 4; j++) {
             char *col = (char *)&tf->col[j];
@@ -850,7 +855,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
   if (bmain->versionfile <= 224) {
     bSound *sound;
-    Mesh *me;
+    Mesh *mesh;
     bScreen *screen;
 
     for (sound = static_cast<bSound *>(bmain->sounds.first); sound;
@@ -864,11 +869,12 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
       }
     }
     /* Make sure that old subsurf meshes don't have zero subdivision level for rendering */
-    for (me = static_cast<Mesh *>(bmain->meshes.first); me; me = static_cast<Mesh *>(me->id.next))
+    for (mesh = static_cast<Mesh *>(bmain->meshes.first); mesh;
+         mesh = static_cast<Mesh *>(mesh->id.next))
     {
       enum { ME_SUBSURF = (1 << 7) };
-      if ((me->flag & ME_SUBSURF) && (me->subdivr == 0)) {
-        me->subdivr = me->subdiv;
+      if ((mesh->flag & ME_SUBSURF) && (mesh->subdivr == 0)) {
+        mesh->subdivr = mesh->subdiv;
       }
     }
 
@@ -1243,7 +1249,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
     /* softbody init new vars */
     for (ob = static_cast<Object *>(bmain->objects.first); ob;
-         ob = static_cast<Object *>(ob->id.next)) {
+         ob = static_cast<Object *>(ob->id.next))
+    {
       if (ob->soft) {
         if (ob->soft->defgoal == 0.0f) {
           ob->soft->defgoal = 0.7f;
@@ -1277,7 +1284,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
       }
     }
     for (ob = static_cast<Object *>(bmain->objects.first); ob;
-         ob = static_cast<Object *>(ob->id.next)) {
+         ob = static_cast<Object *>(ob->id.next))
+    {
       if (ob->parent) {
         Object *parent = static_cast<Object *>(
             blo_do_versions_newlibadr(fd, &ob->id, ID_IS_LINKED(ob), ob->parent));
@@ -1304,7 +1312,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
         }
       }
       else if (ob->type == OB_MESH) {
-        Mesh *me = static_cast<Mesh *>(
+        Mesh *mesh = static_cast<Mesh *>(
             blo_do_versions_newlibadr(fd, &ob->id, ID_IS_LINKED(ob), ob->data));
 
         enum {
@@ -1312,23 +1320,23 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
           ME_OPT_EDGES = (1 << 8),
         };
 
-        if (me->flag & ME_SUBSURF) {
+        if (mesh->flag & ME_SUBSURF) {
           SubsurfModifierData *smd = (SubsurfModifierData *)BKE_modifier_new(
               eModifierType_Subsurf);
 
-          smd->levels = MAX2(1, me->subdiv);
-          smd->renderLevels = MAX2(1, me->subdivr);
-          smd->subdivType = me->subsurftype;
+          smd->levels = MAX2(1, mesh->subdiv);
+          smd->renderLevels = MAX2(1, mesh->subdivr);
+          smd->subdivType = mesh->subsurftype;
 
           smd->modifier.mode = 0;
-          if (me->subdiv != 0) {
+          if (mesh->subdiv != 0) {
             smd->modifier.mode |= 1;
           }
-          if (me->subdivr != 0) {
+          if (mesh->subdivr != 0) {
             smd->modifier.mode |= 2;
           }
 
-          if (me->flag & ME_OPT_EDGES) {
+          if (mesh->flag & ME_OPT_EDGES) {
             smd->flags |= eSubsurfModifierFlag_ControlEdges;
           }
 
@@ -1361,7 +1369,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     Lattice *lt;
     Object *ob;
     bArmature *arm;
-    Mesh *me;
+    Mesh *mesh;
     Key *key;
     Scene *sce = static_cast<Scene *>(bmain->scenes.first);
 
@@ -1385,7 +1393,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     }
 
     for (ob = static_cast<Object *>(bmain->objects.first); ob;
-         ob = static_cast<Object *>(ob->id.next)) {
+         ob = static_cast<Object *>(ob->id.next))
+    {
       PartEff *paf;
 
       LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
@@ -1402,7 +1411,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
           ModifierData *md = static_cast<ModifierData *>(ob->modifiers.first);
 
           while (md && BKE_modifier_get_info(ModifierType(md->type))->type ==
-                           ModifierTypeType::OnlyDeform) {
+                           ModifierTypeType::OnlyDeform)
+          {
             md = md->next;
           }
 
@@ -1461,18 +1471,20 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
       arm->deformflag |= ARM_DEF_VGROUP;
     }
 
-    for (me = static_cast<Mesh *>(bmain->meshes.first); me; me = static_cast<Mesh *>(me->id.next))
+    for (mesh = static_cast<Mesh *>(bmain->meshes.first); mesh;
+         mesh = static_cast<Mesh *>(mesh->id.next))
     {
-      if (!me->medge) {
-        BKE_mesh_calc_edges_legacy(me);
+      if (!mesh->medge) {
+        BKE_mesh_calc_edges_legacy(mesh);
       }
       else {
-        BKE_mesh_strip_loose_faces(me);
+        BKE_mesh_strip_loose_faces(mesh);
       }
     }
 
     for (key = static_cast<Key *>(bmain->shapekeys.first); key;
-         key = static_cast<Key *>(key->id.next)) {
+         key = static_cast<Key *>(key->id.next))
+    {
       int index = 1;
 
       LISTBASE_FOREACH (KeyBlock *, kb, &key->block) {
@@ -1500,7 +1512,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
     /* deformflag is local in modifier now */
     for (ob = static_cast<Object *>(bmain->objects.first); ob;
-         ob = static_cast<Object *>(ob->id.next)) {
+         ob = static_cast<Object *>(ob->id.next))
+    {
       LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
         if (md->type == eModifierType_Armature) {
           ArmatureModifierData *amd = (ArmatureModifierData *)md;
@@ -1602,7 +1615,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
     /* for empty drawsize and drawtype */
     for (ob = static_cast<Object *>(bmain->objects.first); ob;
-         ob = static_cast<Object *>(ob->id.next)) {
+         ob = static_cast<Object *>(ob->id.next))
+    {
       if (ob->empty_drawsize == 0.0f) {
         ob->empty_drawtype = OB_ARROWS;
         ob->empty_drawsize = 1.0;
@@ -1629,7 +1643,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     Object *ob;
     Curve *cu;
     Material *ma;
-    Mesh *me;
+    Mesh *mesh;
     Collection *collection;
     BezTriple *bezt;
     BPoint *bp;
@@ -1684,7 +1698,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
     /* add default radius values to old curve points */
     for (cu = static_cast<Curve *>(bmain->curves.first); cu;
-         cu = static_cast<Curve *>(cu->id.next)) {
+         cu = static_cast<Curve *>(cu->id.next))
+    {
       LISTBASE_FOREACH (Nurb *, nu, &cu->nurb) {
         if (nu->bezt) {
           for (bezt = nu->bezt, a = 0; a < nu->pntsu; a++, bezt++) {
@@ -1704,7 +1719,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     }
 
     for (ob = static_cast<Object *>(bmain->objects.first); ob;
-         ob = static_cast<Object *>(ob->id.next)) {
+         ob = static_cast<Object *>(ob->id.next))
+    {
       ListBase *list;
       list = &ob->constraints;
 
@@ -1776,9 +1792,10 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
       }
     }
 
-    for (me = static_cast<Mesh *>(bmain->meshes.first); me; me = static_cast<Mesh *>(me->id.next))
+    for (mesh = static_cast<Mesh *>(bmain->meshes.first); mesh;
+         mesh = static_cast<Mesh *>(mesh->id.next))
     {
-      customdata_version_242(me);
+      customdata_version_242(mesh);
     }
 
     for (collection = static_cast<Collection *>(bmain->collections.first); collection;
@@ -1815,7 +1832,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
         }
       }
       for (tex = static_cast<Tex *>(bmain->textures.first); tex;
-           tex = static_cast<Tex *>(tex->id.next)) {
+           tex = static_cast<Tex *>(tex->id.next))
+      {
         enum {
           TEX_ANIMCYCLIC = (1 << 6),
           TEX_ANIM5 = (1 << 7),
@@ -1903,10 +1921,11 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
     /* render layer added, this is not the active layer */
     if (bmain->versionfile <= 243 || bmain->subversionfile < 2) {
-      Mesh *me;
-      for (me = static_cast<Mesh *>(bmain->meshes.first); me;
-           me = static_cast<Mesh *>(me->id.next)) {
-        customdata_version_243(me);
+      Mesh *mesh;
+      for (mesh = static_cast<Mesh *>(bmain->meshes.first); mesh;
+           mesh = static_cast<Mesh *>(mesh->id.next))
+      {
+        customdata_version_243(mesh);
       }
     }
   }
@@ -1953,7 +1972,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
         ((bmain->versionfile < 245) || (bmain->versionfile == 245 && bmain->subversionfile == 0)))
     {
       for (ob = static_cast<Object *>(bmain->objects.first); ob;
-           ob = static_cast<Object *>(ob->id.next)) {
+           ob = static_cast<Object *>(ob->id.next))
+      {
         ListBase *list;
         list = &ob->constraints;
 
@@ -2028,7 +2048,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
     /* add point caches */
     for (ob = static_cast<Object *>(bmain->objects.first); ob;
-         ob = static_cast<Object *>(ob->id.next)) {
+         ob = static_cast<Object *>(ob->id.next))
+    {
       if (ob->soft && !ob->soft->pointcache) {
         ob->soft->pointcache = BKE_ptcache_add(&ob->soft->ptcaches);
       }
@@ -2036,7 +2057,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
       LISTBASE_FOREACH (ParticleSystem *, psys, &ob->particlesystem) {
         if (psys->pointcache) {
           if (psys->pointcache->flag & PTCACHE_BAKED &&
-              (psys->pointcache->flag & PTCACHE_DISK_CACHE) == 0) {
+              (psys->pointcache->flag & PTCACHE_DISK_CACHE) == 0)
+          {
             printf("Old memory cache isn't supported for particles, so re-bake the simulation!\n");
             psys->pointcache->flag &= ~PTCACHE_BAKED;
           }
@@ -2103,7 +2125,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     }
 
     for (tex = static_cast<Tex *>(bmain->textures.first); tex;
-         tex = static_cast<Tex *>(tex->id.next)) {
+         tex = static_cast<Tex *>(tex->id.next))
+    {
       if (tex->iuser.flag & IMA_OLD_PREMUL) {
         tex->iuser.flag &= ~IMA_OLD_PREMUL;
       }
@@ -2139,7 +2162,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     }
 
     for (ob = static_cast<Object *>(bmain->objects.first); ob;
-         ob = static_cast<Object *>(ob->id.next)) {
+         ob = static_cast<Object *>(ob->id.next))
+    {
       LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
         if (md->type == eModifierType_Armature) {
           ((ArmatureModifierData *)md)->deformflag |= ARM_DEF_B_BONE_REST;
@@ -2176,7 +2200,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     Object *ob;
 
     for (ob = static_cast<Object *>(bmain->objects.first); ob;
-         ob = static_cast<Object *>(ob->id.next)) {
+         ob = static_cast<Object *>(ob->id.next))
+    {
       if (ob->pose) {
         LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
           do_version_constraints_245(&pchan->constraints);
@@ -2208,7 +2233,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     PartEff *paf = nullptr;
 
     for (ob = static_cast<Object *>(bmain->objects.first); ob;
-         ob = static_cast<Object *>(ob->id.next)) {
+         ob = static_cast<Object *>(ob->id.next))
+    {
       if (ob->soft && ob->soft->keys) {
         SoftBody *sb = ob->soft;
         int k;
@@ -2375,7 +2401,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
     /* dupliface scale */
     for (ob = static_cast<Object *>(bmain->objects.first); ob;
-         ob = static_cast<Object *>(ob->id.next)) {
+         ob = static_cast<Object *>(ob->id.next))
+    {
       ob->instance_faces_scale = 1.0f;
     }
   }
@@ -2385,7 +2412,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
     /* NLA-strips - scale. */
     for (ob = static_cast<Object *>(bmain->objects.first); ob;
-         ob = static_cast<Object *>(ob->id.next)) {
+         ob = static_cast<Object *>(ob->id.next))
+    {
       LISTBASE_FOREACH (bActionStrip *, strip, &ob->nlastrips) {
         float length, actlength, repeat;
 
@@ -2460,7 +2488,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     Object *ob;
 
     for (ob = static_cast<Object *>(bmain->objects.first); ob;
-         ob = static_cast<Object *>(ob->id.next)) {
+         ob = static_cast<Object *>(ob->id.next))
+    {
       if (ob->fluidsimSettings) {
         FluidsimModifierData *fluidmd = (FluidsimModifierData *)BKE_modifier_new(
             eModifierType_Fluidsim);
@@ -2482,7 +2511,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 246, 1)) {
     Object *ob;
     for (ob = static_cast<Object *>(bmain->objects.first); ob;
-         ob = static_cast<Object *>(ob->id.next)) {
+         ob = static_cast<Object *>(ob->id.next))
+    {
       if (ob->pd && (ob->pd->forcefield == PFIELD_WIND)) {
         ob->pd->f_noise = 0.0f;
       }
@@ -2494,7 +2524,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     Curve *cu;
 
     for (cu = static_cast<Curve *>(bmain->curves.first); cu;
-         cu = static_cast<Curve *>(cu->id.next)) {
+         cu = static_cast<Curve *>(cu->id.next))
+    {
       LISTBASE_FOREACH (Nurb *, nu, &cu->nurb) {
         nu->radius_interp = 3;
 
@@ -2559,7 +2590,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
   if (bmain->versionfile < 249 && bmain->subversionfile < 1) {
     Object *ob;
     for (ob = static_cast<Object *>(bmain->objects.first); ob;
-         ob = static_cast<Object *>(ob->id.next)) {
+         ob = static_cast<Object *>(ob->id.next))
+    {
       if (ob->pd) {
         ob->pd->seed = (uint(ceil(PIL_check_seconds_timer())) + 1) % 128;
       }

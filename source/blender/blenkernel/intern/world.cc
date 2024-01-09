@@ -28,14 +28,14 @@
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_node.h"
 #include "BKE_preview_image.hh"
 #include "BKE_world.h"
 
 #include "BLT_translation.h"
 
-#include "DRW_engine.h"
+#include "DRW_engine.hh"
 
 #include "DEG_depsgraph.hh"
 

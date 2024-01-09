@@ -78,7 +78,7 @@ static void make_prim_finish(bContext *C,
 
   /* Only recalculate edit-mode tessellation if we are staying in edit-mode. */
   EDBMUpdate_Params params{};
-  params.calc_looptri = !exit_editmode;
+  params.calc_looptris = !exit_editmode;
   params.calc_normals = false;
   params.is_destructive = true;
   EDBM_update(static_cast<Mesh *>(obedit->data), &params);

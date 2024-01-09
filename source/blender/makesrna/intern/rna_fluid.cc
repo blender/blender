@@ -39,7 +39,7 @@
 
 #  include "BLI_threads.h"
 
-#  include "BKE_colorband.h"
+#  include "BKE_colorband.hh"
 #  include "BKE_context.hh"
 #  include "BKE_particle.h"
 
@@ -464,7 +464,8 @@ static void rna_Fluid_combined_export_update(Main *bmain, Scene *scene, PointerR
     }
   }
   else if (fmd->domain->sndparticle_combined_export ==
-           SNDPARTICLE_COMBINED_EXPORT_SPRAY_FOAM_BUBBLE) {
+           SNDPARTICLE_COMBINED_EXPORT_SPRAY_FOAM_BUBBLE)
+  {
     if (ob->type == OB_MESH && !rna_Fluid_parts_exists(ptr, PART_FLUID_SPRAYFOAMBUBBLE)) {
 
       rna_Fluid_parts_create(bmain,

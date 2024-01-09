@@ -361,30 +361,33 @@ void RNA_api_scene(StructRNA *srna)
       func, "geom_samples", 1, 1, 128, "Geom samples", "Geometry samples per frame", 1, 128);
   RNA_def_float(func, "shutter_open", 0.0f, -1.0f, 1.0f, "Shutter open", "", -1.0f, 1.0f);
   RNA_def_float(func, "shutter_close", 1.0f, -1.0f, 1.0f, "Shutter close", "", -1.0f, 1.0f);
-  RNA_def_boolean(func, "selected_only", 0, "Selected only", "Export only selected objects");
-  RNA_def_boolean(func, "uvs", 1, "UVs", "Export UVs");
-  RNA_def_boolean(func, "normals", 1, "Normals", "Export normals");
-  RNA_def_boolean(func, "vcolors", 0, "Color Attributes", "Export color attributes");
+  RNA_def_boolean(func, "selected_only", false, "Selected only", "Export only selected objects");
+  RNA_def_boolean(func, "uvs", true, "UVs", "Export UVs");
+  RNA_def_boolean(func, "normals", true, "Normals", "Export normals");
+  RNA_def_boolean(func, "vcolors", false, "Color Attributes", "Export color attributes");
   RNA_def_boolean(
-      func, "apply_subdiv", 1, "Subsurfs as meshes", "Export subdivision surfaces as meshes");
-  RNA_def_boolean(func, "flatten", 0, "Flatten hierarchy", "Flatten hierarchy");
+      func, "apply_subdiv", true, "Subsurfs as meshes", "Export subdivision surfaces as meshes");
+  RNA_def_boolean(func, "flatten", false, "Flatten hierarchy", "Flatten hierarchy");
   RNA_def_boolean(func,
                   "visible_objects_only",
-                  0,
+                  false,
                   "Visible layers only",
                   "Export only objects in visible layers");
-  RNA_def_boolean(func, "face_sets", 0, "Facesets", "Export face sets");
+  RNA_def_boolean(func, "face_sets", false, "Facesets", "Export face sets");
   RNA_def_boolean(func,
                   "subdiv_schema",
-                  0,
+                  false,
                   "Use Alembic subdivision Schema",
                   "Use Alembic subdivision Schema");
+  RNA_def_boolean(func,
+                  "export_hair",
+                  true,
+                  "Export Hair",
+                  "Exports hair particle systems as animated curves");
   RNA_def_boolean(
-      func, "export_hair", 1, "Export Hair", "Exports hair particle systems as animated curves");
+      func, "export_particles", true, "Export Particles", "Exports non-hair particle systems");
   RNA_def_boolean(
-      func, "export_particles", 1, "Export Particles", "Exports non-hair particle systems");
-  RNA_def_boolean(
-      func, "packuv", 0, "Export with packed UV islands", "Export with packed UV islands");
+      func, "packuv", false, "Export with packed UV islands", "Export with packed UV islands");
   RNA_def_float(
       func,
       "scale",
@@ -395,8 +398,11 @@ void RNA_api_scene(StructRNA *srna)
       "Value by which to enlarge or shrink the objects with respect to the world's origin",
       0.0001f,
       1000.0f);
-  RNA_def_boolean(
-      func, "triangulate", 0, "Triangulate", "Export polygons (quads and n-gons) as triangles");
+  RNA_def_boolean(func,
+                  "triangulate",
+                  false,
+                  "Triangulate",
+                  "Export polygons (quads and n-gons) as triangles");
   RNA_def_enum(func,
                "quad_method",
                rna_enum_modifier_triangulate_quad_method_items,

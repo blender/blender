@@ -26,7 +26,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_layer.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_node.hh"
 
 #include "DEG_depsgraph.hh"
@@ -63,7 +63,8 @@ bool DepsgraphRelationBuilder::build_layer_collection(LayerCollection *layer_col
   const ComponentKey collection_hierarchy_key{&collection->id, NodeType::HIERARCHY};
 
   LISTBASE_FOREACH (
-      LayerCollection *, child_layer_collection, &layer_collection->layer_collections) {
+      LayerCollection *, child_layer_collection, &layer_collection->layer_collections)
+  {
     if (build_layer_collection(child_layer_collection)) {
       Collection *child_collection = child_layer_collection->collection;
       const ComponentKey child_collection_hierarchy_key{&child_collection->id,

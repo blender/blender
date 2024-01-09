@@ -49,6 +49,7 @@ typedef struct KernelGlobalsCPU {
   OSLGlobals *osl = nullptr;
   OSLShadingSystem *osl_ss = nullptr;
   OSLThreadData *osl_tdata = nullptr;
+  int osl_thread_index = 0;
 #endif
 
 #ifdef __PATH_GUIDING__

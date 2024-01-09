@@ -56,7 +56,7 @@ struct SurfaceReconstructResult {
 /**
  * Reconstruct surface information from the depth buffer.
  * Use adjacent pixel info to reconstruct normals.
-
+ *
  * \a extent is the valid region of depth_tx.
  * \a texel is the pixel coordinate [0..extent-1] to reconstruct.
  */

@@ -31,7 +31,7 @@
 #include "BKE_context.hh"
 #include "BKE_image.h"
 #include "BKE_lib_id.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_paint.hh"
 #include "BKE_report.h"
 
@@ -40,7 +40,7 @@
 #include "ED_screen.hh"
 
 #include "WM_api.hh"
-#include "WM_toolsystem.h"
+#include "WM_toolsystem.hh"
 #include "WM_types.hh"
 
 #include "RNA_access.hh"
@@ -391,7 +391,8 @@ static int palette_color_add_exec(bContext *C, wmOperator * /*op*/)
              PAINT_MODE_TEXTURE_3D,
              PAINT_MODE_TEXTURE_2D,
              PAINT_MODE_VERTEX,
-             PAINT_MODE_SCULPT)) {
+             PAINT_MODE_SCULPT))
+    {
       copy_v3_v3(color->rgb, BKE_brush_color_get(scene, brush));
       color->value = 0.0;
     }
@@ -1460,6 +1461,7 @@ void ED_operatormacros_paint()
 void ED_operatortypes_paint()
 {
   /* palette */
+  using namespace blender::ed::sculpt_paint;
   WM_operatortype_append(PALETTE_OT_new);
   WM_operatortype_append(PALETTE_OT_color_add);
   WM_operatortype_append(PALETTE_OT_color_delete);
@@ -1548,17 +1550,19 @@ void ED_operatortypes_paint()
   WM_operatortype_append(PAINT_OT_face_vert_reveal);
 
   /* partial visibility */
-  WM_operatortype_append(PAINT_OT_hide_show);
+  WM_operatortype_append(hide::PAINT_OT_hide_show);
+  WM_operatortype_append(hide::PAINT_OT_visibility_invert);
 
   /* paint masking */
-  WM_operatortype_append(PAINT_OT_mask_flood_fill);
-  WM_operatortype_append(PAINT_OT_mask_lasso_gesture);
-  WM_operatortype_append(PAINT_OT_mask_box_gesture);
-  WM_operatortype_append(PAINT_OT_mask_line_gesture);
+  WM_operatortype_append(mask::PAINT_OT_mask_flood_fill);
+  WM_operatortype_append(mask::PAINT_OT_mask_lasso_gesture);
+  WM_operatortype_append(mask::PAINT_OT_mask_box_gesture);
+  WM_operatortype_append(mask::PAINT_OT_mask_line_gesture);
 }
 
 void ED_keymap_paint(wmKeyConfig *keyconf)
 {
+  using namespace blender::ed::sculpt_paint;
   wmKeyMap *keymap;
 
   keymap = WM_keymap_ensure(keyconf, "Paint Curve", SPACE_EMPTY, RGN_TYPE_WINDOW);
@@ -1599,5 +1603,5 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
   keymap->poll = CURVES_SCULPT_mode_poll;
 
   /* sculpt expand. */
-  sculpt_expand_modal_keymap(keyconf);
+  expand::modal_keymap(keyconf);
 }

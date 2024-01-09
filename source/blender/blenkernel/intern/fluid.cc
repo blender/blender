@@ -56,7 +56,6 @@
 
 #  include "BKE_bvhutils.hh"
 #  include "BKE_collision.h"
-#  include "BKE_colortools.h"
 #  include "BKE_customdata.hh"
 #  include "BKE_deform.h"
 #  include "BKE_mesh.hh"
@@ -397,21 +396,21 @@ static void manta_pos_to_cell(FluidDomainSettings *fds, float pos[3])
 /* Set domain transformations and base resolution from object mesh. */
 static void manta_set_domain_from_mesh(FluidDomainSettings *fds,
                                        Object *ob,
-                                       Mesh *me,
+                                       Mesh *mesh,
                                        bool init_resolution)
 {
   size_t i;
   float min[3] = {FLT_MAX, FLT_MAX, FLT_MAX}, max[3] = {-FLT_MAX, -FLT_MAX, -FLT_MAX};
   float size[3];
 
-  blender::MutableSpan<blender::float3> positions = me->vert_positions_for_write();
+  blender::MutableSpan<blender::float3> positions = mesh->vert_positions_for_write();
   float scale = 0.0;
   int res;
 
   res = fds->maxres;
 
   /* Set minimum and maximum coordinates of BB. */
-  for (i = 0; i < me->totvert; i++) {
+  for (i = 0; i < mesh->verts_num; i++) {
     minmax_v3v3_v3(min, max, positions[i]);
   }
 
@@ -483,7 +482,7 @@ static void update_final_gravity(FluidDomainSettings *fds, Scene *scene)
 }
 
 static bool fluid_modifier_init(
-    FluidModifierData *fmd, Depsgraph *depsgraph, Object *ob, Scene *scene, Mesh *me)
+    FluidModifierData *fmd, Depsgraph *depsgraph, Object *ob, Scene *scene, Mesh *mesh)
 {
   int scene_framenr = int(DEG_get_ctime(depsgraph));
 
@@ -491,7 +490,7 @@ static bool fluid_modifier_init(
     FluidDomainSettings *fds = fmd->domain;
     int res[3];
     /* Set domain dimensions from mesh. */
-    manta_set_domain_from_mesh(fds, ob, me, true);
+    manta_set_domain_from_mesh(fds, ob, mesh, true);
     /* Set domain gravity, use global gravity if enabled. */
     update_final_gravity(fds, scene);
     /* Reset domain values. */
@@ -852,7 +851,7 @@ BLI_INLINE void apply_effector_fields(FluidEffectorSettings * /*fes*/,
 static void update_velocities(FluidEffectorSettings *fes,
                               const blender::Span<blender::float3> vert_positions,
                               const int *corner_verts,
-                              const MLoopTri *mlooptri,
+                              const blender::int3 *corner_tris,
                               float *velocity_map,
                               int index,
                               BVHTreeFromMesh *tree_data,
@@ -876,12 +875,12 @@ static void update_velocities(FluidEffectorSettings *fes,
           tree_data->tree, ray_start, &nearest, tree_data->nearest_callback, tree_data) != -1)
   {
     float weights[3];
-    int v1, v2, v3, f_index = nearest.index;
+    int v1, v2, v3, tri_i = nearest.index;
 
     /* Calculate barycentric weights for nearest point. */
-    v1 = corner_verts[mlooptri[f_index].tri[0]];
-    v2 = corner_verts[mlooptri[f_index].tri[1]];
-    v3 = corner_verts[mlooptri[f_index].tri[2]];
+    v1 = corner_verts[corner_tris[tri_i][0]];
+    v2 = corner_verts[corner_tris[tri_i][1]];
+    v3 = corner_verts[corner_tris[tri_i][2]];
     interp_weights_tri_v3(
         weights, vert_positions[v1], vert_positions[v2], vert_positions[v3], nearest.co);
 
@@ -952,7 +951,7 @@ struct ObstaclesFromDMData {
 
   blender::Span<blender::float3> vert_positions;
   blender::Span<int> corner_verts;
-  blender::Span<MLoopTri> looptris;
+  blender::Span<blender::int3> corner_tris;
 
   BVHTreeFromMesh *tree;
   FluidObjectBB *bb;
@@ -987,7 +986,7 @@ static void obstacles_from_mesh_task_cb(void *__restrict userdata,
       update_velocities(data->fes,
                         data->vert_positions,
                         data->corner_verts.data(),
-                        data->looptris.data(),
+                        data->corner_tris.data(),
                         bb->velocity,
                         index,
                         data->tree,
@@ -1016,14 +1015,14 @@ static void obstacles_from_mesh(Object *coll_ob,
     float *vert_vel = nullptr;
     bool has_velocity = false;
 
-    Mesh *me = BKE_mesh_copy_for_eval(fes->mesh);
-    blender::MutableSpan<blender::float3> positions = me->vert_positions_for_write();
+    Mesh *mesh = BKE_mesh_copy_for_eval(fes->mesh);
+    blender::MutableSpan<blender::float3> positions = mesh->vert_positions_for_write();
 
     int min[3], max[3], res[3];
 
-    const blender::Span<int> corner_verts = me->corner_verts();
-    const blender::Span<MLoopTri> looptris = me->looptris();
-    numverts = me->totvert;
+    const blender::Span<int> corner_verts = mesh->corner_verts();
+    const blender::Span<blender::int3> corner_tris = mesh->corner_tris();
+    numverts = mesh->verts_num;
 
     /* TODO(sebbas): Make initialization of vertex velocities optional? */
     {
@@ -1080,13 +1079,13 @@ static void obstacles_from_mesh(Object *coll_ob,
 
     /* Skip effector sampling loop if object has disabled effector. */
     bool use_effector = fes->flags & FLUID_EFFECTOR_USE_EFFEC;
-    if (use_effector && BKE_bvhtree_from_mesh_get(&tree_data, me, BVHTREE_FROM_LOOPTRI, 4)) {
+    if (use_effector && BKE_bvhtree_from_mesh_get(&tree_data, mesh, BVHTREE_FROM_CORNER_TRIS, 4)) {
 
       ObstaclesFromDMData data{};
       data.fes = fes;
       data.vert_positions = positions;
       data.corner_verts = corner_verts;
-      data.looptris = looptris;
+      data.corner_tris = corner_tris;
       data.tree = &tree_data;
       data.bb = bb;
       data.has_velocity = has_velocity;
@@ -1106,7 +1105,7 @@ static void obstacles_from_mesh(Object *coll_ob,
     if (vert_vel) {
       MEM_freeN(vert_vel);
     }
-    BKE_id_free(nullptr, me);
+    BKE_id_free(nullptr, mesh);
   }
 }
 
@@ -1240,7 +1239,8 @@ static void compute_obstaclesemission(Scene *scene,
         /* Set scene time */
         /* Handle emission subframe */
         if ((subframe < subframes || time_per_frame + dt + FLT_EPSILON < frame_length) &&
-            !is_first_frame) {
+            !is_first_frame)
+        {
           scene->r.subframe = (time_per_frame + (subframe + 1.0f) * subframe_dt) / frame_length;
           scene->r.cfra = frame - 1;
         }
@@ -1423,7 +1423,8 @@ static void update_obstacles(Depsgraph *depsgraph,
             d_index = manta_get_index(dx, fds->res[0], dy, fds->res[1], dz);
             /* Make sure emission cell is inside the new domain boundary. */
             if (dx < 0 || dy < 0 || dz < 0 || dx >= fds->res[0] || dy >= fds->res[1] ||
-                dz >= fds->res[2]) {
+                dz >= fds->res[2])
+            {
               continue;
             }
 
@@ -1801,7 +1802,7 @@ static void sample_mesh(FluidFlowSettings *ffs,
                         blender::Span<blender::float3> vert_positions,
                         const blender::Span<blender::float3> vert_normals,
                         const int *corner_verts,
-                        const MLoopTri *mlooptri,
+                        const blender::int3 *corner_tris,
                         const float (*mloopuv)[2],
                         float *influence_map,
                         float *velocity_map,
@@ -1882,13 +1883,13 @@ static void sample_mesh(FluidFlowSettings *ffs,
           tree_data->tree, ray_start, &nearest, tree_data->nearest_callback, tree_data) != -1)
   {
     float weights[3];
-    int v1, v2, v3, f_index = nearest.index;
+    int v1, v2, v3, tri_i = nearest.index;
     float hit_normal[3];
 
     /* Calculate barycentric weights for nearest point. */
-    v1 = corner_verts[mlooptri[f_index].tri[0]];
-    v2 = corner_verts[mlooptri[f_index].tri[1]];
-    v3 = corner_verts[mlooptri[f_index].tri[2]];
+    v1 = corner_verts[corner_tris[tri_i][0]];
+    v2 = corner_verts[corner_tris[tri_i][1]];
+    v3 = corner_verts[corner_tris[tri_i][2]];
     interp_weights_tri_v3(
         weights, vert_positions[v1], vert_positions[v2], vert_positions[v3], nearest.co);
 
@@ -1925,9 +1926,9 @@ static void sample_mesh(FluidFlowSettings *ffs,
         }
         else if (mloopuv) {
           const float *uv[3];
-          uv[0] = mloopuv[mlooptri[f_index].tri[0]];
-          uv[1] = mloopuv[mlooptri[f_index].tri[1]];
-          uv[2] = mloopuv[mlooptri[f_index].tri[2]];
+          uv[0] = mloopuv[corner_tris[tri_i][0]];
+          uv[1] = mloopuv[corner_tris[tri_i][1]];
+          uv[2] = mloopuv[corner_tris[tri_i][2]];
 
           interp_v2_v2v2v2(tex_co, UNPACK3(uv), weights);
 
@@ -1999,7 +2000,7 @@ struct EmitFromDMData {
   blender::Span<blender::float3> vert_positions;
   blender::Span<blender::float3> vert_normals;
   blender::Span<int> corner_verts;
-  blender::Span<MLoopTri> looptris;
+  blender::Span<blender::int3> corner_tris;
   const float (*mloopuv)[2];
   const MDeformVert *dvert;
   int defgrp_index;
@@ -2033,7 +2034,7 @@ static void emit_from_mesh_task_cb(void *__restrict userdata,
                     data->vert_positions,
                     data->vert_normals,
                     data->corner_verts.data(),
-                    data->looptris.data(),
+                    data->corner_tris.data(),
                     data->mloopuv,
                     bb->influence,
                     bb->velocity,
@@ -2079,15 +2080,15 @@ static void emit_from_mesh(
 
     /* Copy mesh for thread safety as we modify it.
      * Main issue is its VertArray being modified, then replaced and freed. */
-    Mesh *me = BKE_mesh_copy_for_eval(ffs->mesh);
-    blender::MutableSpan<blender::float3> positions = me->vert_positions_for_write();
+    Mesh *mesh = BKE_mesh_copy_for_eval(ffs->mesh);
+    blender::MutableSpan<blender::float3> positions = mesh->vert_positions_for_write();
 
-    const blender::Span<int> corner_verts = me->corner_verts();
-    const blender::Span<MLoopTri> looptris = me->looptris();
-    const int numverts = me->totvert;
-    const MDeformVert *dvert = BKE_mesh_deform_verts(me);
+    const blender::Span<int> corner_verts = mesh->corner_verts();
+    const blender::Span<blender::int3> corner_tris = mesh->corner_tris();
+    const int numverts = mesh->verts_num;
+    const MDeformVert *dvert = mesh->deform_verts().data();
     const float(*mloopuv)[2] = static_cast<const float(*)[2]>(
-        CustomData_get_layer_named(&me->loop_data, CD_PROP_FLOAT2, ffs->uvlayer_name));
+        CustomData_get_layer_named(&mesh->corner_data, CD_PROP_FLOAT2, ffs->uvlayer_name));
 
     if (ffs->flags & FLUID_FLOW_INITVELOCITY) {
       vert_vel = static_cast<float *>(
@@ -2127,7 +2128,7 @@ static void emit_from_mesh(
       /* Calculate emission map bounds. */
       bb_boundInsert(bb, positions[i]);
     }
-    BKE_mesh_tag_positions_changed(me);
+    mesh->tag_positions_changed();
     mul_m4_v3(flow_ob->object_to_world, flow_center);
     manta_pos_to_cell(fds, flow_center);
 
@@ -2146,15 +2147,15 @@ static void emit_from_mesh(
 
     /* Skip flow sampling loop if object has disabled flow. */
     bool use_flow = ffs->flags & FLUID_FLOW_USE_INFLOW;
-    if (use_flow && BKE_bvhtree_from_mesh_get(&tree_data, me, BVHTREE_FROM_LOOPTRI, 4)) {
+    if (use_flow && BKE_bvhtree_from_mesh_get(&tree_data, mesh, BVHTREE_FROM_CORNER_TRIS, 4)) {
 
       EmitFromDMData data{};
       data.fds = fds;
       data.ffs = ffs;
       data.vert_positions = positions;
-      data.vert_normals = me->vert_normals();
+      data.vert_normals = mesh->vert_normals();
       data.corner_verts = corner_verts;
-      data.looptris = looptris;
+      data.corner_tris = corner_tris;
       data.mloopuv = mloopuv;
       data.dvert = dvert;
       data.defgrp_index = defgrp_index;
@@ -2178,7 +2179,7 @@ static void emit_from_mesh(
     if (vert_vel) {
       MEM_freeN(vert_vel);
     }
-    BKE_id_free(nullptr, me);
+    BKE_id_free(nullptr, mesh);
   }
 }
 
@@ -2258,7 +2259,8 @@ static void adaptive_domain_adjust(
 
         /* skip if cell already belongs to new area */
         if (xn >= min[0] && xn <= max[0] && yn >= min[1] && yn <= max[1] && zn >= min[2] &&
-            zn <= max[2]) {
+            zn <= max[2])
+        {
           continue;
         }
 
@@ -2754,7 +2756,8 @@ static void compute_flowsemission(Scene *scene,
 
         /* Set scene time */
         if ((subframe < subframes || time_per_frame + dt + FLT_EPSILON < frame_length) &&
-            !is_first_frame) {
+            !is_first_frame)
+        {
           scene->r.subframe = (time_per_frame + (subframe + 1.0f) * subframe_dt) / frame_length;
           scene->r.cfra = frame - 1;
         }
@@ -2999,7 +3002,8 @@ static void update_flowsfluids(Depsgraph *depsgraph,
             d_index = manta_get_index(dx, fds->res[0], dy, fds->res[1], dz);
             /* Make sure emission cell is inside the new domain boundary. */
             if (dx < 0 || dy < 0 || dz < 0 || dx >= fds->res[0] || dy >= fds->res[1] ||
-                dz >= fds->res[2]) {
+                dz >= fds->res[2])
+            {
               continue;
             }
 
@@ -3219,14 +3223,18 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
                                     Mesh *orgmesh,
                                     Object *ob)
 {
-  Mesh *me;
+  using namespace blender;
+  using namespace blender::bke;
+  Mesh *mesh;
   float min[3];
   float max[3];
   float size[3];
   float cell_size_scaled[3];
 
-  const int *orig_material_indices = BKE_mesh_material_indices(orgmesh);
-  const short mp_mat_nr = orig_material_indices ? orig_material_indices[0] : 0;
+  const AttributeAccessor orig_attributes = orgmesh->attributes();
+  const VArraySpan orig_material_indices = *orig_attributes.lookup<int>("material_index",
+                                                                        AttrDomain::Face);
+  const short mp_mat_nr = orig_material_indices.is_empty() ? 0 : orig_material_indices[0];
 
   int i;
   int num_verts, num_faces;
@@ -3247,18 +3255,18 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
     return nullptr;
   }
 
-  me = BKE_mesh_new_nomain(num_verts, 0, num_faces, num_faces * 3);
-  if (!me) {
+  mesh = BKE_mesh_new_nomain(num_verts, 0, num_faces, num_faces * 3);
+  if (!mesh) {
     return nullptr;
   }
-  blender::MutableSpan<blender::float3> positions = me->vert_positions_for_write();
-  blender::MutableSpan<int> face_offsets = me->face_offsets_for_write();
-  blender::MutableSpan<int> corner_verts = me->corner_verts_for_write();
+  blender::MutableSpan<blender::float3> positions = mesh->vert_positions_for_write();
+  blender::MutableSpan<int> face_offsets = mesh->face_offsets_for_write();
+  blender::MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
 
   const bool is_sharp = orgmesh->attributes()
-                            .lookup_or_default<bool>("sharp_face", ATTR_DOMAIN_FACE, false)
+                            .lookup_or_default<bool>("sharp_face", AttrDomain::Face, false)
                             .varray[0];
-  BKE_mesh_smooth_flag_set(me, !is_sharp);
+  mesh_smooth_set(*mesh, !is_sharp);
 
   /* Get size (dimension) but considering scaling. */
   copy_v3_v3(cell_size_scaled, fds->cell_size);
@@ -3288,7 +3296,7 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
 
   if (use_speedvectors) {
     CustomDataLayer *velocity_layer = BKE_id_attribute_new(
-        &me->id, "velocity", CD_PROP_FLOAT3, ATTR_DOMAIN_POINT, nullptr);
+        &mesh->id, "velocity", CD_PROP_FLOAT3, AttrDomain::Point, nullptr);
     velarray = static_cast<float(*)[3]>(velocity_layer->data);
   }
 
@@ -3341,12 +3349,14 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
     }
   }
 
-  int *material_indices = BKE_mesh_material_indices_for_write(me);
+  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  bke::SpanAttributeWriter material_indices = attributes.lookup_or_add_for_write_span<int>(
+      "material_index", AttrDomain::Face);
 
   /* Loop for triangles. */
   for (const int i : face_offsets.index_range().drop_back(1)) {
     /* Initialize from existing face. */
-    material_indices[i] = mp_mat_nr;
+    material_indices.span[i] = mp_mat_nr;
 
     face_offsets[i] = i * 3;
 
@@ -3362,13 +3372,17 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
 #  endif
   }
 
-  BKE_mesh_calc_edges(me, false, false);
+  material_indices.finish();
 
-  return me;
+  mesh_calc_edges(*mesh, false, false);
+
+  return mesh;
 }
 
 static Mesh *create_smoke_geometry(FluidDomainSettings *fds, Mesh *orgmesh, Object *ob)
 {
+  using namespace blender;
+  using namespace blender::bke;
   Mesh *result;
   float min[3];
   float max[3];
@@ -3486,12 +3500,12 @@ static Mesh *create_smoke_geometry(FluidDomainSettings *fds, Mesh *orgmesh, Obje
     }
   }
 
-  BKE_mesh_calc_edges(result, false, false);
+  mesh_calc_edges(*result, false, false);
   return result;
 }
 
 static int manta_step(
-    Depsgraph *depsgraph, Scene *scene, Object *ob, Mesh *me, FluidModifierData *fmd, int frame)
+    Depsgraph *depsgraph, Scene *scene, Object *ob, Mesh *mesh, FluidModifierData *fmd, int frame)
 {
   FluidDomainSettings *fds = fmd->domain;
   float dt, frame_length, time_total, time_total_old;
@@ -3511,7 +3525,7 @@ static int manta_step(
   if (fds->type == FLUID_DOMAIN_TYPE_GAS) {
     init_resolution = (fds->flags & FLUID_DOMAIN_USE_ADAPTIVE_DOMAIN) != 0;
   }
-  manta_set_domain_from_mesh(fds, ob, me, init_resolution);
+  manta_set_domain_from_mesh(fds, ob, mesh, init_resolution);
 
   /* Use local variables for adaptive loop, dt can change. */
   frame_length = fds->frame_length;
@@ -3597,18 +3611,18 @@ static void fluid_modifier_processFlow(FluidModifierData *fmd,
                                        Depsgraph *depsgraph,
                                        Scene *scene,
                                        Object *ob,
-                                       Mesh *me,
+                                       Mesh *mesh,
                                        const int scene_framenr)
 {
   if (scene_framenr >= fmd->time) {
-    fluid_modifier_init(fmd, depsgraph, ob, scene, me);
+    fluid_modifier_init(fmd, depsgraph, ob, scene, mesh);
   }
 
   if (fmd->flow) {
     if (fmd->flow->mesh) {
       BKE_id_free(nullptr, fmd->flow->mesh);
     }
-    fmd->flow->mesh = BKE_mesh_copy_for_eval(me);
+    fmd->flow->mesh = BKE_mesh_copy_for_eval(mesh);
   }
 
   if (scene_framenr > fmd->time) {
@@ -3624,18 +3638,18 @@ static void fluid_modifier_processEffector(FluidModifierData *fmd,
                                            Depsgraph *depsgraph,
                                            Scene *scene,
                                            Object *ob,
-                                           Mesh *me,
+                                           Mesh *mesh,
                                            const int scene_framenr)
 {
   if (scene_framenr >= fmd->time) {
-    fluid_modifier_init(fmd, depsgraph, ob, scene, me);
+    fluid_modifier_init(fmd, depsgraph, ob, scene, mesh);
   }
 
   if (fmd->effector) {
     if (fmd->effector->mesh) {
       BKE_id_free(nullptr, fmd->effector->mesh);
     }
-    fmd->effector->mesh = BKE_mesh_copy_for_eval(me);
+    fmd->effector->mesh = BKE_mesh_copy_for_eval(mesh);
   }
 
   if (scene_framenr > fmd->time) {
@@ -3651,7 +3665,7 @@ static void fluid_modifier_processDomain(FluidModifierData *fmd,
                                          Depsgraph *depsgraph,
                                          Scene *scene,
                                          Object *ob,
-                                         Mesh *me,
+                                         Mesh *mesh,
                                          const int scene_framenr)
 {
   FluidDomainSettings *fds = fmd->domain;
@@ -3733,7 +3747,7 @@ static void fluid_modifier_processDomain(FluidModifierData *fmd,
   }
 
   /* Fluid domain init must not fail in order to continue modifier evaluation. */
-  if (!fds->fluid && !fluid_modifier_init(fmd, depsgraph, ob, scene, me)) {
+  if (!fds->fluid && !fluid_modifier_init(fmd, depsgraph, ob, scene, mesh)) {
     CLOG_ERROR(&LOG, "Fluid initialization failed. Should not happen!");
     return;
   }
@@ -4032,7 +4046,7 @@ static void fluid_modifier_processDomain(FluidModifierData *fmd,
     }
     if (baking_data) {
       /* Only save baked data if all of it completed successfully. */
-      if (manta_step(depsgraph, scene, ob, me, fmd, scene_framenr)) {
+      if (manta_step(depsgraph, scene, ob, mesh, fmd, scene_framenr)) {
         manta_write_config(fds->fluid, fmd, scene_framenr);
         manta_write_data(fds->fluid, fmd, scene_framenr);
       }
@@ -4062,23 +4076,23 @@ static void fluid_modifier_processDomain(FluidModifierData *fmd,
 }
 
 static void fluid_modifier_process(
-    FluidModifierData *fmd, Depsgraph *depsgraph, Scene *scene, Object *ob, Mesh *me)
+    FluidModifierData *fmd, Depsgraph *depsgraph, Scene *scene, Object *ob, Mesh *mesh)
 {
   const int scene_framenr = int(DEG_get_ctime(depsgraph));
 
   if (fmd->type & MOD_FLUID_TYPE_FLOW) {
-    fluid_modifier_processFlow(fmd, depsgraph, scene, ob, me, scene_framenr);
+    fluid_modifier_processFlow(fmd, depsgraph, scene, ob, mesh, scene_framenr);
   }
   else if (fmd->type & MOD_FLUID_TYPE_EFFEC) {
-    fluid_modifier_processEffector(fmd, depsgraph, scene, ob, me, scene_framenr);
+    fluid_modifier_processEffector(fmd, depsgraph, scene, ob, mesh, scene_framenr);
   }
   else if (fmd->type & MOD_FLUID_TYPE_DOMAIN) {
-    fluid_modifier_processDomain(fmd, depsgraph, scene, ob, me, scene_framenr);
+    fluid_modifier_processDomain(fmd, depsgraph, scene, ob, mesh, scene_framenr);
   }
 }
 
 Mesh *BKE_fluid_modifier_do(
-    FluidModifierData *fmd, Depsgraph *depsgraph, Scene *scene, Object *ob, Mesh *me)
+    FluidModifierData *fmd, Depsgraph *depsgraph, Scene *scene, Object *ob, Mesh *mesh)
 {
   /* Optimization: Do not update viewport during bakes (except in replay mode)
    * Reason: UI is locked and updated liquid / smoke geometry is not visible anyways. */
@@ -4091,7 +4105,7 @@ Mesh *BKE_fluid_modifier_do(
       BLI_rw_mutex_lock(static_cast<ThreadRWMutex *>(fmd->domain->fluid_mutex), THREAD_LOCK_WRITE);
     }
 
-    fluid_modifier_process(fmd, depsgraph, scene, ob, me);
+    fluid_modifier_process(fmd, depsgraph, scene, ob, mesh);
 
     if ((fmd->type & MOD_FLUID_TYPE_DOMAIN) && fmd->domain) {
       BLI_rw_mutex_unlock(static_cast<ThreadRWMutex *>(fmd->domain->fluid_mutex));
@@ -4102,7 +4116,8 @@ Mesh *BKE_fluid_modifier_do(
 
       /* Always update viewport in cache replay mode. */
       if (fds->cache_type == FLUID_DOMAIN_CACHE_REPLAY ||
-          fds->flags & FLUID_DOMAIN_USE_ADAPTIVE_DOMAIN) {
+          fds->flags & FLUID_DOMAIN_USE_ADAPTIVE_DOMAIN)
+      {
         needs_viewport_update = true;
       }
       /* In other cache modes, only update the viewport when no bake is going on. */
@@ -4130,10 +4145,10 @@ Mesh *BKE_fluid_modifier_do(
     if (needs_viewport_update) {
       /* Return generated geometry depending on domain type. */
       if (fmd->domain->type == FLUID_DOMAIN_TYPE_LIQUID) {
-        result = create_liquid_geometry(fmd->domain, scene, me, ob);
+        result = create_liquid_geometry(fmd->domain, scene, mesh, ob);
       }
       if (fmd->domain->type == FLUID_DOMAIN_TYPE_GAS) {
-        result = create_smoke_geometry(fmd->domain, me, ob);
+        result = create_smoke_geometry(fmd->domain, mesh, ob);
       }
     }
 
@@ -4146,10 +4161,10 @@ Mesh *BKE_fluid_modifier_do(
   }
 
   if (!result) {
-    result = BKE_mesh_copy_for_eval(me);
+    result = BKE_mesh_copy_for_eval(mesh);
   }
   else {
-    BKE_mesh_copy_parameters_for_eval(result, me);
+    BKE_mesh_copy_parameters_for_eval(result, mesh);
   }
 
   /* Liquid simulation has a texture space that based on the bounds of the fluid mesh.

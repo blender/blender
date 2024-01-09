@@ -118,10 +118,10 @@ static void deform_verts(ModifierData *md,
     uint mesh_verts_num = 0, i = 0;
     int init = 0;
 
-    BKE_mesh_vert_coords_apply(surmd->runtime.mesh,
-                               reinterpret_cast<const float(*)[3]>(positions.data()));
+    surmd->runtime.mesh->vert_positions_for_write().copy_from(positions);
+    surmd->runtime.mesh->tag_positions_changed();
 
-    mesh_verts_num = surmd->runtime.mesh->totvert;
+    mesh_verts_num = surmd->runtime.mesh->verts_num;
 
     if ((mesh_verts_num != surmd->runtime.verts_num) ||
         (surmd->runtime.vert_positions_prev == nullptr) ||
@@ -161,14 +161,14 @@ static void deform_verts(ModifierData *md,
     surmd->runtime.cfra_prev = cfra;
 
     const bool has_face = surmd->runtime.mesh->faces_num > 0;
-    const bool has_edge = surmd->runtime.mesh->totedge > 0;
+    const bool has_edge = surmd->runtime.mesh->edges_num > 0;
     if (has_face || has_edge) {
       surmd->runtime.bvhtree = static_cast<BVHTreeFromMesh *>(
           MEM_callocN(sizeof(BVHTreeFromMesh), __func__));
 
       if (has_face) {
         BKE_bvhtree_from_mesh_get(
-            surmd->runtime.bvhtree, surmd->runtime.mesh, BVHTREE_FROM_LOOPTRI, 2);
+            surmd->runtime.bvhtree, surmd->runtime.mesh, BVHTREE_FROM_CORNER_TRIS, 2);
       }
       else if (has_edge) {
         BKE_bvhtree_from_mesh_get(

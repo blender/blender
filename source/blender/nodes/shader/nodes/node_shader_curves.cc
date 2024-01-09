@@ -8,7 +8,7 @@
 
 #include "node_shader_util.hh"
 
-#include "BKE_colortools.h"
+#include "BKE_colortools.hh"
 
 #include "BLI_math_vector.h"
 

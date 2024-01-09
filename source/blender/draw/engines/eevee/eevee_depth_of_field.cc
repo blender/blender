@@ -15,7 +15,7 @@
  *   difference with our actual implementation that prioritize quality.
  */
 
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include "DNA_camera_types.h"
 #include "DNA_screen_types.h"

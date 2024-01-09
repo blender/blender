@@ -13,7 +13,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_rect.h"
 
-#include "BKE_colortools.h"
+#include "BKE_colortools.hh"
 
 #include "IMB_colormanagement.h"
 
@@ -27,7 +27,7 @@
 #include "GPU_uniform_buffer.h"
 #include "GPU_viewport.h"
 
-#include "DRW_engine.h"
+#include "DRW_engine.hh"
 
 #include "MEM_guardedalloc.h"
 

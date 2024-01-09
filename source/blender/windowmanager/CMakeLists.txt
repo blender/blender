@@ -7,12 +7,10 @@ set(INC
   gizmo
   gizmo/intern
   ../asset_system
-  ../blenfont
   ../blenkernel
   ../blenloader
   ../blentranslation
   ../compositor
-  ../depsgraph
   ../editors/include
   ../draw
   ../gpu
@@ -21,7 +19,6 @@ set(INC
   ../nodes
   ../render
   ../sequencer
-  ../../../intern/clog
   ../../../intern/memutil
   ../../../extern/fmtlib/include
   ../bmesh
@@ -77,31 +74,34 @@ set(SRC
   WM_api.hh
   WM_keymap.hh
   WM_message.hh
-  WM_toolsystem.h
+  WM_toolsystem.hh
   WM_types.hh
   wm.hh
   wm_cursors.hh
   wm_draw.hh
-  wm_event_system.h
+  wm_event_system.hh
   wm_event_types.hh
   wm_files.hh
   wm_surface.hh
   wm_window.hh
-  intern/wm_platform_support.h
-  intern/wm_window_private.h
-  gizmo/WM_gizmo_api.h
-  gizmo/WM_gizmo_types.h
-  gizmo/wm_gizmo_fn.h
-  gizmo/wm_gizmo_wmapi.h
-  gizmo/intern/wm_gizmo_intern.h
+  intern/wm_platform_support.hh
+  intern/wm_window_private.hh
+  gizmo/WM_gizmo_api.hh
+  gizmo/WM_gizmo_types.hh
+  gizmo/wm_gizmo_fn.hh
+  gizmo/wm_gizmo_wmapi.hh
+  gizmo/intern/wm_gizmo_intern.hh
   message_bus/intern/wm_message_bus_intern.hh
   message_bus/wm_message_bus.hh
 )
 
 set(LIB
+  PRIVATE bf::blenfont
   PRIVATE bf::blenlib
+  PRIVATE bf::depsgraph
   PRIVATE bf::dna
   bf_editor_screen
+  PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::animrig
   bf_sequencer
@@ -201,8 +201,8 @@ if(WITH_XR_OPENXR)
     xr/intern/wm_xr_operators.cc
     xr/intern/wm_xr_session.cc
 
-    xr/wm_xr.h
-    xr/intern/wm_xr_intern.h
+    xr/wm_xr.hh
+    xr/intern/wm_xr_intern.hh
   )
 endif()
 
@@ -210,3 +210,12 @@ blender_add_lib_nolist(bf_windowmanager "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
 # RNA_prototypes.h
 add_dependencies(bf_windowmanager bf_rna)
+
+if(WITH_GTESTS)
+  set(TEST_INC
+  )
+  set(TEST_SRC
+    intern/wm_dragdrop_test.cc
+  )
+  blender_add_test_suite_lib(windowmanager "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB}")
+endif()

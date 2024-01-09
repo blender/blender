@@ -5,8 +5,8 @@
 #include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
 
-#include "bmesh.h"
-#include "bmesh_tools.h"
+#include "bmesh.hh"
+#include "bmesh_tools.hh"
 
 #include "DNA_mesh_types.h"
 
@@ -91,7 +91,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
     const Mesh &mesh_in = *geometry_set.get_mesh();
 
-    const bke::MeshFieldContext context{mesh_in, ATTR_DOMAIN_FACE};
+    const bke::MeshFieldContext context{mesh_in, AttrDomain::Face};
     FieldEvaluator evaluator{context, mesh_in.faces_num};
     evaluator.add(selection_field);
     evaluator.evaluate();

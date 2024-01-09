@@ -489,7 +489,7 @@ MINLINE void premul_float_to_straight_uchar(unsigned char *result, const float c
   }
 }
 
-#endif /* __MATH_COLOR_INLINE_C__ */
+#endif /* !__MATH_COLOR_INLINE_C__ */
 
 #ifdef __cplusplus
 }

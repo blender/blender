@@ -19,17 +19,16 @@
 
 #include "BKE_context.hh"
 #include "BKE_gpencil_legacy.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_report.h"
 
 #include "BKE_layer.h"
 #include "BKE_material.h"
 #include "BKE_object.hh"
 #include "BKE_scene.h"
-#include "BKE_unit.h"
+#include "BKE_unit.hh"
 
 #include "DNA_gpencil_legacy_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_view3d_types.h"
 
@@ -49,7 +48,7 @@
 #include "RNA_access.hh"
 
 #include "WM_api.hh"
-#include "WM_toolsystem.h"
+#include "WM_toolsystem.hh"
 #include "WM_types.hh"
 
 #include "DEG_depsgraph_query.hh"
@@ -435,7 +434,8 @@ static bool view3d_ruler_item_mousemove(const bContext *C,
 
 #ifdef USE_AXIS_CONSTRAINTS
       if (!(ruler_item->flag & RULERITEM_USE_ANGLE) &&
-          ruler_info->constrain_mode != CONSTRAIN_MODE_OFF) {
+          ruler_info->constrain_mode != CONSTRAIN_MODE_OFF)
+      {
 
         Scene *scene = DEG_get_input_scene(depsgraph);
         ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
@@ -1410,7 +1410,8 @@ static int view3d_ruler_remove_invoke(bContext *C, wmOperator *op, const wmEvent
     if (ruler_info->item_active) {
       RulerItem *ruler_item = ruler_info->item_active;
       if ((ruler_item->flag & RULERITEM_USE_ANGLE) &&
-          (ruler_item->flag & RULERITEM_USE_ANGLE_ACTIVE)) {
+          (ruler_item->flag & RULERITEM_USE_ANGLE_ACTIVE))
+      {
         ruler_item->flag &= ~(RULERITEM_USE_ANGLE | RULERITEM_USE_ANGLE_ACTIVE);
       }
       else {

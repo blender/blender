@@ -10,8 +10,8 @@
 
 #include "BLI_utildefines.h"
 
-#include "bmesh.h"
-#include "intern/bmesh_private.h"
+#include "bmesh.hh"
+#include "intern/bmesh_private.hh"
 
 /* BMO functions */
 

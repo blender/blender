@@ -493,7 +493,8 @@ void UI_draw_roundbox_4fv_ex(const rctf *rect,
 int UI_draw_roundbox_corner_get();
 #endif
 
-void UI_draw_box_shadow(const rctf *rect, unsigned char alpha);
+void ui_draw_dropshadow(const rctf *rct, float radius, float width, float aspect, float alpha);
+
 void UI_draw_text_underline(int pos_x, int pos_y, int len, int height, const float color[4]);
 
 /**
@@ -563,8 +564,10 @@ using uiButHandleNFunc = void (*)(bContext *C, void *argN, void *arg2);
 using uiButHandleHoldFunc = void (*)(bContext *C, ARegion *butregion, uiBut *but);
 using uiButCompleteFunc = int (*)(bContext *C, char *str, void *arg);
 
-/** Function to compare the identity of two buttons over redraws, to check if they represent the
- * same data, and thus should be considered the same button over redraws. */
+/**
+ * Function to compare the identity of two buttons over redraws, to check if they represent the
+ * same data, and thus should be considered the same button over redraws.
+ */
 using uiButIdentityCompareFunc = bool (*)(const uiBut *a, const uiBut *b);
 
 /* Search types. */
@@ -1403,7 +1406,7 @@ PointerRNA *UI_but_operator_ptr_get(uiBut *but);
 void UI_but_context_ptr_set(uiBlock *block, uiBut *but, const char *name, const PointerRNA *ptr);
 const PointerRNA *UI_but_context_ptr_get(const uiBut *but,
                                          const char *name,
-                                         const StructRNA *type CPP_ARG_DEFAULT(nullptr));
+                                         const StructRNA *type = nullptr);
 const bContextStore *UI_but_context_get(const uiBut *but);
 
 void UI_but_unit_type_set(uiBut *but, int unit_type);
@@ -1785,15 +1788,15 @@ void UI_but_func_tooltip_set(uiBut *but, uiButToolTipFunc func, void *arg, uiFre
  */
 void UI_but_func_tooltip_label_set(uiBut *but, std::function<std::string(const uiBut *but)> func);
 
-typedef enum uiTooltipStyle {
+enum uiTooltipStyle {
   UI_TIP_STYLE_NORMAL = 0, /* Regular text. */
   UI_TIP_STYLE_HEADER,     /* Header text. */
   UI_TIP_STYLE_MONO,       /* Mono-spaced text. */
   UI_TIP_STYLE_IMAGE,      /* Image field. */
   UI_TIP_STYLE_SPACER,     /* Padding to separate sections. */
-} uiTooltipStyle;
+};
 
-typedef enum uiTooltipColorID {
+enum uiTooltipColorID {
   UI_TIP_LC_MAIN = 0, /* Color of primary text. */
   UI_TIP_LC_VALUE,    /* Color for the value of buttons (also shortcuts). */
   UI_TIP_LC_ACTIVE,   /* Color of titles of active enum values. */
@@ -1801,7 +1804,7 @@ typedef enum uiTooltipColorID {
   UI_TIP_LC_PYTHON,   /* Color of python snippets. */
   UI_TIP_LC_ALERT,    /* Warning text color, eg: why operator can't run. */
   UI_TIP_LC_MAX
-} uiTooltipColorID;
+};
 
 void UI_but_func_tooltip_custom_set(uiBut *but,
                                     uiButToolTipCustomFunc func,
@@ -1861,9 +1864,9 @@ PointerRNA *UI_but_extra_operator_icon_opptr_get(uiButExtraOpIcon *extra_icon);
  * Get the scaled size for a preview button (typically #UI_BTyPE_PREVIEW_TILE) based on \a
  * size_px plus padding.
  */
-int UI_preview_tile_size_x(const int size_px CPP_ARG_DEFAULT(96));
-int UI_preview_tile_size_y(const int size_px CPP_ARG_DEFAULT(96));
-int UI_preview_tile_size_y_no_label(const int size_px CPP_ARG_DEFAULT(96));
+int UI_preview_tile_size_x(const int size_px = 96);
+int UI_preview_tile_size_y(const int size_px = 96);
+int UI_preview_tile_size_y_no_label(const int size_px = 96);
 
 /* Autocomplete
  *
@@ -2281,6 +2284,33 @@ bool uiLayoutGetPropDecorate(uiLayout *layout);
 /* Layout create functions. */
 
 uiLayout *uiLayoutRow(uiLayout *layout, bool align);
+
+/**
+ * Create a "layout panel" which is a panel that is defined as part of the `uiLayout`. This allows
+ * creating expandable sections which can also be nested.
+ *
+ * The open-state of the panel is defined by an RNA property which is passed in as a pointer +
+ * property name pair. This gives the caller flexibility to decide who should own the open-state.
+ *
+ * \param C: The context is necessary because sometimes the panel may be forced to be open by the
+ * context even of the open-property is `false`. This can happen with e.g. property search.
+ * \param layout: The `uiLayout` that should contain the sub-panel.
+ * Only layouts that span the full width of the region are supported for now.
+ * \param name: Text that's shown in the panel header. It should already be translated.
+ * \param open_prop_owner: Data that contains the open-property.
+ * \param open_prop_name: Name of the open-property in `open_prop_owner`.
+ *
+ * \return NULL if the panel is closed and should not be drawn, otherwise the layout where the
+ * sub-panel should be inserted into.
+ */
+uiLayout *uiLayoutPanel(const bContext *C,
+                        uiLayout *layout,
+                        const char *name,
+                        PointerRNA *open_prop_owner,
+                        const char *open_prop_name);
+
+bool uiLayoutEndsWithPanelHeader(const uiLayout &layout);
+
 /**
  * See #uiLayoutColumnWithHeading().
  */
@@ -2674,6 +2704,8 @@ void uiTemplateLightLinkingCollection(uiLayout *layout,
                                       PointerRNA *ptr,
                                       const char *propname);
 
+void uiTemplateBoneCollectionTree(uiLayout *layout, bContext *C);
+
 #ifdef WITH_GREASE_PENCIL_V3
 void uiTemplateGreasePencilLayerTree(uiLayout *layout, bContext *C);
 #endif
@@ -2848,10 +2880,10 @@ void uiItemPointerR(uiLayout *layout,
                     int icon);
 
 /**
-* Create a list of enum items.
-
+ * Create a list of enum items.
+ *
  * \param active: an optional item to highlight.
-*/
+ */
 void uiItemsFullEnumO(uiLayout *layout,
                       const char *opname,
                       const char *propname,

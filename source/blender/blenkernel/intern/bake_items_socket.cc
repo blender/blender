@@ -5,9 +5,9 @@
 #include "BKE_bake_items_socket.hh"
 
 #include "BKE_geometry_fields.hh"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 
-#include "BKE_node_socket_value_cpp_type.hh"
+#include "BKE_node_socket_value.hh"
 
 namespace blender::bke::bake {
 
@@ -48,9 +48,8 @@ Array<std::unique_ptr<BakeItem>> move_socket_values_to_bake_items(const Span<voi
         break;
       }
       case SOCK_STRING: {
-        const ValueOrField<std::string> &value = *static_cast<const ValueOrField<std::string> *>(
-            socket_value);
-        bake_items[i] = std::make_unique<StringBakeItem>(value.as_value());
+        auto &value_variant = *static_cast<SocketValueVariant *>(socket_value);
+        bake_items[i] = std::make_unique<StringBakeItem>(value_variant.extract<std::string>());
         break;
       }
       case SOCK_FLOAT:
@@ -59,48 +58,42 @@ Array<std::unique_ptr<BakeItem>> move_socket_values_to_bake_items(const Span<voi
       case SOCK_BOOLEAN:
       case SOCK_ROTATION:
       case SOCK_RGBA: {
-        const CPPType &type = get_socket_cpp_type(socket_type);
-        const ValueOrFieldCPPType &value_or_field_type = *ValueOrFieldCPPType::get_from_self(type);
-        const CPPType &base_type = value_or_field_type.value;
-        if (!value_or_field_type.is_field(socket_value)) {
-          const void *value = value_or_field_type.get_value_ptr(socket_value);
-          bake_items[i] = std::make_unique<PrimitiveBakeItem>(base_type, value);
-          break;
+        auto &value_variant = *static_cast<SocketValueVariant *>(socket_value);
+        if (value_variant.is_context_dependent_field()) {
+          const fn::GField &field = value_variant.get<fn::GField>();
+          const AttrDomain domain = config.domains[i];
+          const std::string attribute_name = ".bake_" + std::to_string(i);
+          const Span<int> geometry_indices = config.geometries_by_attribute[i];
+          for (const int geometry_i : geometry_indices) {
+            BLI_assert(config.types[geometry_i] == SOCK_GEOMETRY);
+            GeometrySet &geometry =
+                static_cast<GeometryBakeItem *>(bake_items[geometry_i].get())->geometry;
+            if (geometry.has_pointcloud()) {
+              PointCloudComponent &component =
+                  geometry.get_component_for_write<PointCloudComponent>();
+              try_capture_field_on_geometry(component, attribute_name, domain, field);
+            }
+            if (geometry.has_mesh()) {
+              MeshComponent &component = geometry.get_component_for_write<MeshComponent>();
+              try_capture_field_on_geometry(component, attribute_name, domain, field);
+            }
+            if (geometry.has_curves()) {
+              CurveComponent &component = geometry.get_component_for_write<CurveComponent>();
+              try_capture_field_on_geometry(component, attribute_name, domain, field);
+            }
+            if (geometry.has_instances()) {
+              InstancesComponent &component =
+                  geometry.get_component_for_write<InstancesComponent>();
+              try_capture_field_on_geometry(component, attribute_name, domain, field);
+            }
+          }
+          bake_items[i] = std::make_unique<AttributeBakeItem>(attribute_name);
         }
-        const fn::GField &field = *value_or_field_type.get_field_ptr(socket_value);
-        if (!field.node().depends_on_input()) {
-          BUFFER_FOR_CPP_TYPE_VALUE(base_type, value);
-          fn::evaluate_constant_field(field, value);
-          bake_items[i] = std::make_unique<PrimitiveBakeItem>(base_type, value);
-          base_type.destruct(value);
-          break;
+        else {
+          value_variant.convert_to_single();
+          GPointer value = value_variant.get_single_ptr();
+          bake_items[i] = std::make_unique<PrimitiveBakeItem>(*value.type(), value.get());
         }
-        const eAttrDomain domain = config.domains[i];
-        const std::string attribute_name = ".bake_" + std::to_string(i);
-        const Span<int> geometry_indices = config.geometries_by_attribute[i];
-        for (const int geometry_i : geometry_indices) {
-          BLI_assert(config.types[geometry_i] == SOCK_GEOMETRY);
-          GeometrySet &geometry =
-              static_cast<GeometryBakeItem *>(bake_items[geometry_i].get())->geometry;
-          if (geometry.has_pointcloud()) {
-            PointCloudComponent &component =
-                geometry.get_component_for_write<PointCloudComponent>();
-            try_capture_field_on_geometry(component, attribute_name, domain, field);
-          }
-          if (geometry.has_mesh()) {
-            MeshComponent &component = geometry.get_component_for_write<MeshComponent>();
-            try_capture_field_on_geometry(component, attribute_name, domain, field);
-          }
-          if (geometry.has_curves()) {
-            CurveComponent &component = geometry.get_component_for_write<CurveComponent>();
-            try_capture_field_on_geometry(component, attribute_name, domain, field);
-          }
-          if (geometry.has_instances()) {
-            InstancesComponent &component = geometry.get_component_for_write<InstancesComponent>();
-            try_capture_field_on_geometry(component, attribute_name, domain, field);
-          }
-        }
-        bake_items[i] = std::make_unique<AttributeBakeItem>(attribute_name);
         break;
       }
       default:
@@ -129,7 +122,6 @@ Array<std::unique_ptr<BakeItem>> move_socket_values_to_bake_items(const Span<voi
     Map<std::string, AnonymousAttributeIDPtr> &r_attribute_map,
     void *r_value)
 {
-  const CPPType &type = get_socket_cpp_type(socket_type);
   switch (socket_type) {
     case SOCK_GEOMETRY: {
       if (const auto *item = dynamic_cast<const GeometryBakeItem *>(&bake_item)) {
@@ -144,11 +136,11 @@ Array<std::unique_ptr<BakeItem>> move_socket_values_to_bake_items(const Span<voi
     case SOCK_BOOLEAN:
     case SOCK_ROTATION:
     case SOCK_RGBA: {
-      const ValueOrFieldCPPType &value_or_field_type = *ValueOrFieldCPPType::get_from_self(type);
-      const CPPType &base_type = value_or_field_type.value;
+      const CPPType &base_type = *socket_type_to_geo_nodes_base_cpp_type(socket_type);
       if (const auto *item = dynamic_cast<const PrimitiveBakeItem *>(&bake_item)) {
         if (item->type() == base_type) {
-          value_or_field_type.construct_from_value(r_value, item->value());
+          auto *value_variant = new (r_value) SocketValueVariant();
+          value_variant->store_single(socket_type, item->value());
           return true;
         }
         return false;
@@ -158,7 +150,7 @@ Array<std::unique_ptr<BakeItem>> move_socket_values_to_bake_items(const Span<voi
             base_type);
         const AnonymousAttributeIDPtr &attribute_id = attribute_field->anonymous_id();
         fn::GField field{attribute_field};
-        value_or_field_type.construct_from_field(r_value, std::move(field));
+        new (r_value) SocketValueVariant(std::move(field));
         r_attribute_map.add(item->name(), attribute_id);
         return true;
       }
@@ -166,7 +158,7 @@ Array<std::unique_ptr<BakeItem>> move_socket_values_to_bake_items(const Span<voi
     }
     case SOCK_STRING: {
       if (const auto *item = dynamic_cast<const StringBakeItem *>(&bake_item)) {
-        new (r_value) ValueOrField<std::string>(item->value());
+        new (r_value) SocketValueVariant(std::string(item->value()));
         return true;
       }
       return false;
@@ -201,7 +193,8 @@ static void rename_attributes(const Span<GeometrySet *> geometries,
       GeometryComponent &component = geometry->get_component_for_write(type);
       MutableAttributeAccessor attributes = *component.attributes_for_write();
       for (const MapItem<std::string, AnonymousAttributeIDPtr> &attribute_item :
-           attribute_map.items()) {
+           attribute_map.items())
+      {
         attributes.rename(attribute_item.key, *attribute_item.value);
       }
     }

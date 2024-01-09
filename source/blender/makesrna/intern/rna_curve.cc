@@ -154,8 +154,8 @@ static const EnumPropertyItem curve2d_fill_mode_items[] = {
 
 #  include "BKE_curve.hh"
 #  include "BKE_curveprofile.h"
-#  include "BKE_main.h"
-#  include "BKE_vfont.h"
+#  include "BKE_main.hh"
+#  include "BKE_vfont.hh"
 
 #  include "DEG_depsgraph.hh"
 #  include "DEG_depsgraph_build.hh"
@@ -176,7 +176,8 @@ static Nurb *curve_nurb_from_point(Curve *cu, const void *point, int *nu_index, 
   for (nu = static_cast<Nurb *>(nurbs->first); nu; nu = nu->next, i++) {
     if (nu->type == CU_BEZIER) {
       if (point >= static_cast<void *>(nu->bezt) &&
-          point < static_cast<void *>(nu->bezt + nu->pntsu)) {
+          point < static_cast<void *>(nu->bezt + nu->pntsu))
+      {
         break;
       }
     }

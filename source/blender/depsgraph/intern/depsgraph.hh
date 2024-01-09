@@ -43,8 +43,8 @@ struct TimeSourceNode;
 
 /* Dependency Graph object */
 struct Depsgraph {
-  typedef Vector<OperationNode *> OperationNodes;
-  typedef Vector<IDNode *> IDDepsNodes;
+  using OperationNodes = Vector<OperationNode *>;
+  using IDDepsNodes = Vector<IDNode *>;
 
   Depsgraph(Main *bmain, Scene *scene, ViewLayer *view_layer, eEvaluationMode mode);
   ~Depsgraph();
@@ -170,6 +170,9 @@ struct Depsgraph {
   Map<const ID *, ListBase *> *physics_relations[DEG_PHYSICS_RELATIONS_NUM];
 
   light_linking::Cache light_linking_cache;
+
+  /* The number of times this graph has been evaluated. */
+  uint64_t update_count;
 
   MEM_CXX_CLASS_ALLOC_FUNCS("Depsgraph");
 };

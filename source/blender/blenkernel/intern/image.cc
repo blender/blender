@@ -44,7 +44,6 @@
 #include "DNA_light_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_packedFile_types.h"
 #include "DNA_scene_types.h"
@@ -63,14 +62,14 @@
 #include "BLT_translation.h"
 
 #include "BKE_bpath.h"
-#include "BKE_colortools.h"
+#include "BKE_colortools.hh"
 #include "BKE_global.h"
 #include "BKE_icons.h"
 #include "BKE_idtype.h"
 #include "BKE_image.h"
 #include "BKE_image_format.h"
 #include "BKE_lib_id.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.hh"
@@ -95,6 +94,8 @@
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
+
+#include "DRW_engine.hh"
 
 #include "BLO_read_write.hh"
 
@@ -180,6 +181,7 @@ static void image_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, cons
   }
 
   BLI_listbase_clear(&image_dst->anims);
+  BLI_listbase_clear(reinterpret_cast<ListBase *>(&image_dst->drawdata));
 
   BLI_duplicatelist(&image_dst->tiles, &image_src->tiles);
 
@@ -223,6 +225,7 @@ static void image_free_data(ID *id)
   BKE_previewimg_free(&image->preview);
 
   BLI_freelistN(&image->tiles);
+  DRW_drawdata_free(id);
 
   image_runtime_free_data(image);
 }
@@ -1570,7 +1573,8 @@ void BKE_image_free_all_textures(Main *bmain)
   }
 
   for (tex = static_cast<Tex *>(bmain->textures.first); tex;
-       tex = static_cast<Tex *>(tex->id.next)) {
+       tex = static_cast<Tex *>(tex->id.next))
+  {
     if (tex->ima) {
       tex->ima->id.tag |= LIB_TAG_DOIT;
     }
@@ -3708,7 +3712,8 @@ void BKE_image_multiview_index(const Image *ima, ImageUser *iuser)
     }
     else {
       if ((iuser->view < 0) ||
-          (iuser->view >= BLI_listbase_count_at_most(&ima->views, iuser->view + 1))) {
+          (iuser->view >= BLI_listbase_count_at_most(&ima->views, iuser->view + 1)))
+      {
         iuser->multi_index = iuser->view = 0;
       }
       else {
@@ -4828,17 +4833,16 @@ void BKE_image_pool_free(ImagePool *pool)
 }
 
 BLI_INLINE ImBuf *image_pool_find_item(
-    ImagePool *pool, Image *image, int entry, int index, bool *found)
+    ImagePool *pool, Image *image, int entry, int index, bool *r_found)
 {
-  *found = false;
-
   LISTBASE_FOREACH (ImagePoolItem *, item, &pool->image_buffers) {
     if (item->image == image && item->entry == entry && item->index == index) {
-      *found = true;
+      *r_found = true;
       return item->ibuf;
     }
   }
 
+  *r_found = false;
   return nullptr;
 }
 

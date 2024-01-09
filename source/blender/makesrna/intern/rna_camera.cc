@@ -557,7 +557,7 @@ static void rna_def_camera_dof_settings_data(BlenderRNA *brna)
   prop = RNA_def_property(srna, "aperture_ratio", PROP_FLOAT, PROP_NONE);
   RNA_def_property_ui_text(prop, "Ratio", "Distortion to simulate anamorphic lens bokeh");
   RNA_def_property_range(prop, 0.01f, FLT_MAX);
-  RNA_def_property_ui_range(prop, 1.0f, 2.0f, 0.1, 3);
+  RNA_def_property_ui_range(prop, 0.01f, 2.0f, 0.1, 3);
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Camera_dof_update");
 
   RNA_define_lib_overridable(false);

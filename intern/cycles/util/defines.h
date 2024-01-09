@@ -61,6 +61,7 @@
 /* Address spaces for GPU. */
 #  define ccl_global
 #  define ccl_inline_constant inline constexpr
+#  define ccl_static_constexpr static constexpr
 #  define ccl_constant const
 #  define ccl_private
 #  define ccl_ray_data ccl_private

@@ -410,7 +410,10 @@ double IMD_anim_get_offset(struct anim *anim);
  * Return the fps contained in movie files (function rval is false,
  * and frs_sec and frs_sec_base untouched if none available!)
  */
-bool IMB_anim_get_fps(struct anim *anim, short *frs_sec, float *frs_sec_base, bool no_av_base);
+bool IMB_anim_get_fps(const struct anim *anim,
+                      bool no_av_base,
+                      short *r_frs_sec,
+                      float *r_frs_sec_base);
 
 /**
  * \attention Defined in `anim_movie.cc`.
@@ -640,8 +643,6 @@ void IMB_buffer_byte_from_byte(unsigned char *rect_to,
                                int height,
                                int stride_to,
                                int stride_from);
-void IMB_buffer_float_unpremultiply(float *buf, int width, int height);
-void IMB_buffer_float_premultiply(float *buf, int width, int height);
 
 /**
  * Change the ordering of the color bytes pointed to by rect from
@@ -681,10 +682,11 @@ void nearest_interpolation_color_wrap(
     const struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v);
 void bilinear_interpolation_color(
     const struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v);
-void bilinear_interpolation_color_char(
-    const struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v);
-void bilinear_interpolation_color_fl(
-    const struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v);
+void bilinear_interpolation_color_char(const struct ImBuf *in,
+                                       unsigned char outI[4],
+                                       float u,
+                                       float v);
+void bilinear_interpolation_color_fl(const struct ImBuf *in, float outF[4], float u, float v);
 /**
  * Note about wrapping, the u/v still needs to be within the image bounds,
  * just the interpolation is wrapped.

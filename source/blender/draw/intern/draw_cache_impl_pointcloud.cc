@@ -30,10 +30,10 @@
 
 #include "draw_attributes.hh"
 #include "draw_cache_impl.hh"
-#include "draw_cache_inline.h"
+#include "draw_cache_inline.hh"
 #include "draw_pointcloud_private.hh" /* own include */
 
-using namespace blender;
+namespace blender::draw {
 
 /* -------------------------------------------------------------------- */
 /** \name GPUBatch cache management
@@ -248,8 +248,6 @@ static void pointcloud_extract_indices(const PointCloud &pointcloud, PointCloudB
 static void pointcloud_extract_position_and_radius(const PointCloud &pointcloud,
                                                    PointCloudBatchCache &cache)
 {
-  using namespace blender;
-
   const bke::AttributeAccessor attributes = pointcloud.attributes();
   const Span<float3> positions = pointcloud.positions();
   const VArray<float> radii = *attributes.lookup<float>("radius");
@@ -293,8 +291,6 @@ static void pointcloud_extract_attribute(const PointCloud &pointcloud,
                                          const DRW_AttributeRequest &request,
                                          int index)
 {
-  using namespace blender;
-
   GPUVertBuf *&attr_buf = cache.eval_cache.attributes_buf[index];
 
   const bke::AttributeAccessor attributes = pointcloud.attributes();
@@ -348,7 +344,7 @@ GPUBatch **pointcloud_surface_shaded_get(PointCloud *pointcloud,
 
       int layer_index;
       eCustomDataType type;
-      eAttrDomain domain = ATTR_DOMAIN_POINT;
+      bke::AttrDomain domain = bke::AttrDomain::Point;
       if (!drw_custom_data_match_attribute(&pointcloud->pdata, name, &layer_index, &type)) {
         continue;
       }
@@ -401,7 +397,7 @@ GPUVertBuf **DRW_pointcloud_evaluated_attribute(PointCloud *pointcloud, const ch
 
   int layer_index;
   eCustomDataType type;
-  eAttrDomain domain = ATTR_DOMAIN_POINT;
+  bke::AttrDomain domain = bke::AttrDomain::Point;
   if (drw_custom_data_match_attribute(&pointcloud->pdata, name, &layer_index, &type)) {
     DRW_Attributes attributes{};
     drw_attributes_add_request(&attributes, name, type, layer_index, domain);
@@ -421,7 +417,7 @@ GPUVertBuf **DRW_pointcloud_evaluated_attribute(PointCloud *pointcloud, const ch
   return &cache.eval_cache.attributes_buf[request_i];
 }
 
-int DRW_pointcloud_material_count_get(PointCloud *pointcloud)
+int DRW_pointcloud_material_count_get(const PointCloud *pointcloud)
 {
   return max_ii(1, pointcloud->totcol);
 }
@@ -463,3 +459,5 @@ void DRW_pointcloud_batch_cache_create_requested(Object *ob)
 }
 
 /** \} */
+
+}  // namespace blender::draw

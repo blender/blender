@@ -45,15 +45,15 @@ class EdgesOfVertInput final : public bke::MeshFieldInput {
   }
 
   GVArray get_varray_for_context(const Mesh &mesh,
-                                 const eAttrDomain domain,
+                                 const AttrDomain domain,
                                  const IndexMask &mask) const final
   {
-    const IndexRange vert_range(mesh.totvert);
+    const IndexRange vert_range(mesh.verts_num);
     const Span<int2> edges = mesh.edges();
     Array<int> map_offsets;
     Array<int> map_indices;
     const GroupedSpan<int> vert_to_edge_map = bke::mesh::build_vert_to_edge_map(
-        edges, mesh.totvert, map_offsets, map_indices);
+        edges, mesh.verts_num, map_offsets, map_indices);
 
     const bke::MeshFieldContext context{mesh, domain};
     fn::FieldEvaluator evaluator{context, &mask};
@@ -63,8 +63,8 @@ class EdgesOfVertInput final : public bke::MeshFieldInput {
     const VArray<int> vert_indices = evaluator.get_evaluated<int>(0);
     const VArray<int> indices_in_sort = evaluator.get_evaluated<int>(1);
 
-    const bke::MeshFieldContext edge_context{mesh, ATTR_DOMAIN_EDGE};
-    fn::FieldEvaluator edge_evaluator{edge_context, mesh.totedge};
+    const bke::MeshFieldContext edge_context{mesh, AttrDomain::Edge};
+    fn::FieldEvaluator edge_evaluator{edge_context, mesh.edges_num};
     edge_evaluator.add(sort_weight_);
     edge_evaluator.evaluate();
     const VArray<float> all_sort_weights = edge_evaluator.get_evaluated<float>(0);
@@ -140,9 +140,9 @@ class EdgesOfVertInput final : public bke::MeshFieldInput {
     return false;
   }
 
-  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const final
+  std::optional<AttrDomain> preferred_domain(const Mesh & /*mesh*/) const final
   {
-    return ATTR_DOMAIN_POINT;
+    return AttrDomain::Point;
   }
 };
 
@@ -154,13 +154,13 @@ class EdgesOfVertCountInput final : public bke::MeshFieldInput {
   }
 
   GVArray get_varray_for_context(const Mesh &mesh,
-                                 const eAttrDomain domain,
+                                 const AttrDomain domain,
                                  const IndexMask & /*mask*/) const final
   {
-    if (domain != ATTR_DOMAIN_POINT) {
+    if (domain != AttrDomain::Point) {
       return {};
     }
-    Array<int> counts(mesh.totvert, 0);
+    Array<int> counts(mesh.verts_num, 0);
     array_utils::count_indices(mesh.edges().cast<int>(), counts);
     return VArray<int>::ForContainer(std::move(counts));
   }
@@ -175,9 +175,9 @@ class EdgesOfVertCountInput final : public bke::MeshFieldInput {
     return dynamic_cast<const EdgesOfVertCountInput *>(&other) != nullptr;
   }
 
-  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const final
+  std::optional<AttrDomain> preferred_domain(const Mesh & /*mesh*/) const final
   {
-    return ATTR_DOMAIN_POINT;
+    return AttrDomain::Point;
   }
 };
 
@@ -189,7 +189,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                       Field<int>(std::make_shared<EvaluateAtIndexInput>(
                           vert_index,
                           Field<int>(std::make_shared<EdgesOfVertCountInput>()),
-                          ATTR_DOMAIN_POINT)));
+                          AttrDomain::Point)));
   }
   if (params.output_is_required("Edge Index")) {
     params.set_output("Edge Index",

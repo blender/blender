@@ -69,9 +69,9 @@ static void extract_sculpt_data_init(const MeshRenderData &mr,
         uchar face_set_color[4] = {UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX};
         if (cd_face_set_ofs != -1) {
           const int face_set_id = BM_ELEM_CD_GET_INT(l_iter->f, cd_face_set_ofs);
-          if (face_set_id != mr.me->face_sets_color_default) {
+          if (face_set_id != mr.mesh->face_sets_color_default) {
             BKE_paint_face_set_overlay_color_get(
-                face_set_id, mr.me->face_sets_color_seed, face_set_color);
+                face_set_id, mr.mesh->face_sets_color_seed, face_set_color);
           }
         }
         copy_v3_v3_uchar(vbo_data->face_set_color, face_set_color);
@@ -80,9 +80,10 @@ static void extract_sculpt_data_init(const MeshRenderData &mr,
     }
   }
   else {
-    const bke::AttributeAccessor attributes = mr.me->attributes();
-    const VArray<float> mask = *attributes.lookup<float>(".sculpt_mask", ATTR_DOMAIN_POINT);
-    const VArray<int> face_set = *attributes.lookup<int>(".sculpt_face_set", ATTR_DOMAIN_FACE);
+    const bke::AttributeAccessor attributes = mr.mesh->attributes();
+    const VArray<float> mask = *attributes.lookup<float>(".sculpt_mask", bke::AttrDomain::Point);
+    const VArray<int> face_set = *attributes.lookup<int>(".sculpt_face_set",
+                                                         bke::AttrDomain::Face);
 
     for (int face_index = 0; face_index < mr.face_len; face_index++) {
       for (const int corner : mr.faces[face_index]) {
@@ -96,9 +97,9 @@ static void extract_sculpt_data_init(const MeshRenderData &mr,
         if (face_set) {
           const int face_set_id = face_set[face_index];
           /* Skip for the default color Face Set to render it white. */
-          if (face_set_id != mr.me->face_sets_color_default) {
+          if (face_set_id != mr.mesh->face_sets_color_default) {
             BKE_paint_face_set_overlay_color_get(
-                face_set_id, mr.me->face_sets_color_seed, face_set_color);
+                face_set_id, mr.mesh->face_sets_color_seed, face_set_color);
           }
         }
         copy_v3_v3_uchar(vbo_data->face_set_color, face_set_color);
@@ -116,14 +117,14 @@ static void extract_sculpt_data_init_subdiv(const DRWSubdivCache &subdiv_cache,
 {
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buffer);
 
-  Mesh *coarse_mesh = mr.me;
+  Mesh *coarse_mesh = mr.mesh;
 
   /* First, interpolate mask if available. */
   GPUVertBuf *mask_vbo = nullptr;
   GPUVertBuf *subdiv_mask_vbo = nullptr;
 
   const bke::AttributeAccessor attributes = coarse_mesh->attributes();
-  const VArray<float> mask = *attributes.lookup<float>(".sculpt_mask", ATTR_DOMAIN_POINT);
+  const VArray<float> mask = *attributes.lookup<float>(".sculpt_mask", bke::AttrDomain::Point);
 
   const OffsetIndices coarse_faces = coarse_mesh->faces();
   const Span<int> coarse_corner_verts = coarse_mesh->corner_verts();
@@ -135,7 +136,7 @@ static void extract_sculpt_data_init_subdiv(const DRWSubdivCache &subdiv_cache,
 
     mask_vbo = GPU_vertbuf_calloc();
     GPU_vertbuf_init_with_format(mask_vbo, &mask_format);
-    GPU_vertbuf_data_alloc(mask_vbo, coarse_mesh->totloop);
+    GPU_vertbuf_data_alloc(mask_vbo, coarse_mesh->corners_num);
     float *v_mask = static_cast<float *>(GPU_vertbuf_get_data(mask_vbo));
 
     for (int i = 0; i < coarse_mesh->faces_num; i++) {
@@ -163,7 +164,8 @@ static void extract_sculpt_data_init_subdiv(const DRWSubdivCache &subdiv_cache,
   };
 
   gpuFaceSet *face_sets = (gpuFaceSet *)GPU_vertbuf_get_data(face_set_vbo);
-  const VArray<float> cd_face_sets = *attributes.lookup<float>(".sculpt_mask", ATTR_DOMAIN_POINT);
+  const VArray<int> cd_face_sets = *attributes.lookup<int>(".sculpt_face_set",
+                                                           bke::AttrDomain::Face);
 
   GPUVertFormat *format = get_sculpt_data_format();
   GPU_vertbuf_init_build_on_device(vbo, format, subdiv_cache.num_subdiv_loops);
@@ -209,6 +211,6 @@ constexpr MeshExtract create_extractor_sculpt_data()
 
 /** \} */
 
-}  // namespace blender::draw
+const MeshExtract extract_sculpt_data = create_extractor_sculpt_data();
 
-const MeshExtract extract_sculpt_data = blender::draw::create_extractor_sculpt_data();
+}  // namespace blender::draw

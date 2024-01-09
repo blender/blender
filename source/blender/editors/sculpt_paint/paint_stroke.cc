@@ -26,7 +26,7 @@
 #include "RNA_access.hh"
 
 #include "BKE_brush.hh"
-#include "BKE_colortools.h"
+#include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
 #include "BKE_image.h"
@@ -46,7 +46,7 @@
 #include "paint_intern.hh"
 #include "sculpt_intern.hh"
 
-//#define DEBUG_TIME
+// #define DEBUG_TIME
 
 #ifdef DEBUG_TIME
 #  include "PIL_time_utildefines.h"
@@ -108,7 +108,7 @@ struct PaintStroke {
   float last_tablet_event_pressure;
 
   float zoom_2d;
-  int pen_flip;
+  bool pen_flip;
 
   /* Tilt, as read from the event. */
   float x_tilt;
@@ -212,6 +212,7 @@ static void paint_draw_line_cursor(bContext *C, int x, int y, void *customdata)
 
 static bool paint_tool_require_location(Brush *brush, ePaintMode mode)
 {
+  using namespace blender::ed::sculpt_paint;
   switch (mode) {
     case PAINT_MODE_SCULPT:
       if (ELEM(brush->sculpt_tool,
@@ -225,7 +226,7 @@ static bool paint_tool_require_location(Brush *brush, ePaintMode mode)
       {
         return false;
       }
-      else if (SCULPT_is_cloth_deform_brush(brush)) {
+      else if (cloth::is_cloth_deform_brush(brush)) {
         return false;
       }
       else {
@@ -358,7 +359,8 @@ static bool paint_brush_update(bContext *C,
     if (ELEM(brush->mtex.brush_map_mode,
              MTEX_MAP_MODE_VIEW,
              MTEX_MAP_MODE_AREA,
-             MTEX_MAP_MODE_RANDOM)) {
+             MTEX_MAP_MODE_RANDOM))
+    {
       do_random = true;
     }
 
@@ -398,7 +400,7 @@ static bool paint_brush_update(bContext *C,
 
     ups->anchored_size = ups->pixel_radius = sqrtf(dx * dx + dy * dy);
 
-    ups->brush_rotation = ups->brush_rotation_sec = atan2f(dx, dy) + float(M_PI);
+    ups->brush_rotation = ups->brush_rotation_sec = atan2f(dy, dx) + float(0.5f * M_PI);
 
     if (brush->flag & BRUSH_EDGE_TO_EDGE) {
       halfway[0] = dx * 0.5f + stroke->initial_mouse[0];
@@ -678,6 +680,7 @@ static float paint_space_stroke_spacing(bContext *C,
                                         float size_pressure,
                                         float spacing_pressure)
 {
+  using namespace blender::ed::sculpt_paint;
   Paint *paint = BKE_paint_get_active_from_context(C);
   ePaintMode mode = BKE_paintmode_get_active_from_context(C);
   Brush *brush = BKE_paint_brush(paint);
@@ -708,7 +711,7 @@ static float paint_space_stroke_spacing(bContext *C,
     spacing = spacing * (1.5f - spacing_pressure);
   }
 
-  if (SCULPT_is_cloth_deform_brush(brush)) {
+  if (cloth::is_cloth_deform_brush(brush)) {
     /* The spacing in tools that use the cloth solver should not be affected by the brush radius to
      * avoid affecting the simulation update rate when changing the radius of the brush.
      * With a value of 100 and the brush default of 10 for spacing, a simulation step runs every 2
@@ -1033,11 +1036,12 @@ static bool curves_sculpt_brush_uses_spacing(const eBrushCurvesSculptTool tool)
 
 bool paint_space_stroke_enabled(Brush *br, ePaintMode mode)
 {
+  using namespace blender::ed::sculpt_paint;
   if ((br->flag & BRUSH_SPACE) == 0) {
     return false;
   }
 
-  if (br->sculpt_tool == SCULPT_TOOL_CLOTH || SCULPT_is_cloth_deform_brush(br)) {
+  if (br->sculpt_tool == SCULPT_TOOL_CLOTH || cloth::is_cloth_deform_brush(br)) {
     /* The Cloth Brush is a special case for stroke spacing. Even if it has grab modes which do
      * not support dynamic size, stroke spacing needs to be enabled so it is possible to control
      * whether the simulation runs constantly or only when the brush moves when using the cloth
@@ -1369,7 +1373,7 @@ static bool paint_stroke_curve_end(bContext *C, wmOperator *op, PaintStroke *str
 
       for (j = 0; j < PAINT_CURVE_NUM_SEGMENTS; j++) {
         if (do_rake) {
-          float rotation = atan2f(tangents[2 * j], tangents[2 * j + 1]);
+          float rotation = atan2f(tangents[2 * j + 1], tangents[2 * j]) + float(0.5f * M_PI);
           paint_update_brush_rake_rotation(ups, br, rotation);
         }
 

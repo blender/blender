@@ -20,7 +20,7 @@
 #include "GPU_state.h"
 
 #ifdef USE_GPU_SELECT
-#  include "GPU_select.h"
+#  include "GPU_select.hh"
 #endif
 
 void DRW_select_load_id(uint id)
@@ -1078,7 +1078,8 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
           break;
         case DRW_CMD_DRAW:
           if (!USE_BATCHING || state.obmats_loc == -1 || (G.f & G_FLAG_PICKSEL) ||
-              cmd->draw.batch->inst[0]) {
+              cmd->draw.batch->inst[0])
+          {
             draw_call_single_do(
                 shgroup, &state, cmd->draw.batch, cmd->draw.handle, 0, 0, 0, 0, true);
           }

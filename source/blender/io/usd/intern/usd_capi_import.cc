@@ -17,8 +17,8 @@
 #include "BKE_global.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
-#include "BKE_library.h"
-#include "BKE_main.h"
+#include "BKE_library.hh"
+#include "BKE_main.hh"
 #include "BKE_node.hh"
 #include "BKE_object.hh"
 #include "BKE_report.h"
@@ -220,8 +220,6 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
     DEG_id_tag_update(&import_collection->id, ID_RECALC_COPY_ON_WRITE);
     DEG_relations_tag_update(data->bmain);
 
-    WM_main_add_notifier(NC_SCENE | ND_LAYER, nullptr);
-
     BKE_view_layer_synced_ensure(data->scene, data->view_layer);
     data->view_layer->active_collection = BKE_layer_collection_first_from_scene_collection(
         data->view_layer, import_collection);
@@ -257,9 +255,8 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
   std::string prim_path_mask(data->params.prim_path_mask);
   pxr::UsdStagePopulationMask pop_mask;
   if (!prim_path_mask.empty()) {
-    const std::vector<std::string> mask_tokens = pxr::TfStringTokenize(prim_path_mask, ",;");
-    for (const std::string &tok : mask_tokens) {
-      pxr::SdfPath prim_path(tok);
+    for (const std::string &mask_token : pxr::TfStringTokenize(prim_path_mask, ",;")) {
+      pxr::SdfPath prim_path(mask_token);
       if (!prim_path.IsEmpty()) {
         pop_mask.Add(prim_path);
       }
@@ -397,9 +394,16 @@ static void import_endjob(void *customdata)
 
     lc = BKE_layer_collection_get_active(view_layer);
 
+    /* Create prototype collections for instancing. */
+    data->archive->create_proto_collections(data->bmain, lc->collection);
+
     /* Add all objects to the collection. */
     for (USDPrimReader *reader : data->archive->readers()) {
       if (!reader) {
+        continue;
+      }
+      if (reader->prim().IsInPrototype()) {
+        /* Skip prototype prims, as these are added to prototype collections. */
         continue;
       }
       Object *ob = reader->object();
@@ -454,7 +458,7 @@ static void import_endjob(void *customdata)
 
   MEM_SAFE_FREE(data->params.prim_path_mask);
 
-  WM_main_add_notifier(NC_SCENE | ND_FRAME, data->scene);
+  WM_main_add_notifier(NC_ID | NA_ADDED, nullptr);
   report_job_duration(data);
 }
 

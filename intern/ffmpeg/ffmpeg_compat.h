@@ -16,6 +16,7 @@
 
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
+#include <libswscale/swscale.h>
 
 /* Check if our ffmpeg is new enough, avoids user complaints.
  * Minimum supported version is currently 3.2.0 which mean the following library versions:
@@ -44,6 +45,11 @@
  * If it sticks around any longer, then we should consider refactoring this.
  */
 #  define FFMPEG_USE_OLD_CHANNEL_VARS
+#endif
+
+/* Threaded sws_scale_frame was added in ffmpeg 5.0 (swscale version 6.1). */
+#if (LIBSWSCALE_VERSION_INT >= AV_VERSION_INT(6, 1, 100))
+#  define FFMPEG_SWSCALE_THREADING
 #endif
 
 /* AV_CODEC_CAP_AUTO_THREADS was renamed to AV_CODEC_CAP_OTHER_THREADS with

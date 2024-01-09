@@ -59,17 +59,15 @@ class TextureOperation : public NodeOperation {
         get_texture(),
         true,
         domain.size,
-        get_input("Offset").get_vector_value_default(float4(0.0f)).xy(),
-        get_input("Scale").get_vector_value_default(float4(0.0f)).xy());
+        get_input("Offset").get_vector_value_default(float4(0.0f)).xyz(),
+        get_input("Scale").get_vector_value_default(float4(1.0f)).xyz());
 
     if (color_result.should_compute()) {
-      color_result.allocate_texture(domain);
-      GPU_texture_copy(color_result.texture(), cached_texture.color_texture());
+      color_result.wrap_external(cached_texture.color_texture());
     }
 
     if (value_result.should_compute()) {
-      value_result.allocate_texture(domain);
-      GPU_texture_copy(value_result.texture(), cached_texture.value_texture());
+      value_result.wrap_external(cached_texture.value_texture());
     }
   }
 

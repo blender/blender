@@ -159,7 +159,7 @@ GHOST_TSuccess GHOST_DisplayManagerX11::setCurrentDisplaySetting(
     fprintf(stderr, "Error: XF86VidMode extension missing!\n");
     return GHOST_kFailure;
   }
-#  ifdef DEBUG
+#  ifndef NDEBUG
   printf("Using XFree86-VidModeExtension Version %d.%d\n", majorVersion, minorVersion);
 #  endif
 
@@ -199,7 +199,7 @@ GHOST_TSuccess GHOST_DisplayManagerX11::setCurrentDisplaySetting(
     }
 
     if (best_fit != -1) {
-#  ifdef DEBUG
+#  ifndef NDEBUG
       printf("Switching to video mode %dx%d %dx%d %d\n",
              vidmodes[best_fit]->hdisplay,
              vidmodes[best_fit]->vdisplay,

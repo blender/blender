@@ -6,7 +6,7 @@
  * \ingroup draw_engine
  */
 
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include "BLI_dynstr.h"
 #include "BLI_string_utils.hh"
@@ -15,7 +15,7 @@
 #include "GPU_index_buffer.h"
 #include "GPU_vertex_buffer.h"
 
-#include "draw_shader.h"
+#include "draw_shader.hh"
 
 extern "C" char datatoc_common_hair_lib_glsl[];
 extern "C" char datatoc_common_hair_refine_vert_glsl[];
@@ -74,7 +74,8 @@ GPUShader *DRW_shader_hair_refine_get(ParticleRefineShader refinement,
   return e_data.hair_refine_sh[refinement];
 }
 
-GPUShader *DRW_shader_curves_refine_get(CurvesEvalShader type, eParticleRefineShaderType sh_type)
+GPUShader *DRW_shader_curves_refine_get(blender::draw::CurvesEvalShader type,
+                                        eParticleRefineShaderType sh_type)
 {
   /* TODO: Implement curves evaluation types (Bezier and Catmull Rom). */
   if (e_data.hair_refine_sh[type] == nullptr) {

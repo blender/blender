@@ -39,18 +39,26 @@ void node_eevee_specular(vec4 diffuse,
 
   float alpha = (1.0 - transp) * weight;
 
+#ifdef GPU_SHADER_EEVEE_LEGACY_DEFINES
+  /* EEVEE Legacy evaluates the subsurface as a diffuse closure.
+   * So this has no performance penalty. However, using a separate closure for subsurface
+   * (just like for EEVEE-Next) would induce a huge performance hit. */
+  ClosureSubsurface diffuse_data;
+#else
   ClosureDiffuse diffuse_data;
+#endif
   diffuse_data.weight = alpha;
   diffuse_data.color = diffuse.rgb;
   diffuse_data.N = N;
-  diffuse_data.sss_id = 0u;
 
+#ifdef GPU_SHADER_EEVEE_LEGACY_DEFINES
   /* WORKAROUND: Nasty workaround to the current interface with the closure evaluation.
    * Ideally the occlusion input should be move to the output node or removed all-together.
    * This is temporary to avoid a regression in 3.2 and should be removed after EEVEE-Next rewrite.
    */
   diffuse_data.sss_radius.r = occlusion;
   diffuse_data.sss_radius.g = -1.0; /* Flag */
+#endif
 
   ClosureReflection reflection_data;
   reflection_data.weight = alpha;

@@ -754,7 +754,10 @@ class IMAGE_HT_header(Header):
 
             # Snap.
             snap_uv_element = tool_settings.snap_uv_element
-            act_snap_uv_element = tool_settings.bl_rna.properties["snap_uv_element"].enum_items[snap_uv_element]
+            try:
+                act_snap_icon = tool_settings.bl_rna.properties["snap_uv_element"].enum_items[snap_uv_element].icon
+            except KeyError:
+                act_snap_icon = 'NONE'
 
             row = layout.row(align=True)
             row.prop(tool_settings, "use_snap_uv", text="")
@@ -762,7 +765,7 @@ class IMAGE_HT_header(Header):
             sub = row.row(align=True)
             sub.popover(
                 panel="IMAGE_PT_snapping",
-                icon=act_snap_uv_element.icon,
+                icon=act_snap_icon,
                 text="",
             )
 

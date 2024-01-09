@@ -14,7 +14,7 @@
 
 #include "UI_resources.hh"
 
-#include "DRW_engine.h"
+#include "DRW_engine.hh"
 #include "DRW_select_buffer.hh"
 
 #include "draw_cache_impl.hh"
@@ -192,6 +192,7 @@ static void select_cache_init(void *vedata)
 
 static void select_cache_populate(void *vedata, Object *ob)
 {
+  using namespace blender::draw;
   SELECTID_StorageList *stl = ((SELECTID_Data *)vedata)->stl;
   SELECTID_ObjectData *sel_data = (SELECTID_ObjectData *)DRW_drawdata_get(
       &ob->id, &draw_engine_select_type);

@@ -73,8 +73,8 @@ void USDVolumeWriter::do_write(HierarchyContext &context)
   pxr::UsdVolVolume usd_volume = pxr::UsdVolVolume::Define(stage, volume_path);
 
   for (const int i : IndexRange(num_grids)) {
-    const VolumeGrid *grid = BKE_volume_grid_get_for_read(volume, i);
-    const std::string grid_name = BKE_volume_grid_name(grid);
+    const bke::VolumeGridData *grid = BKE_volume_grid_get(volume, i);
+    const std::string grid_name = bke::volume_grid::get_name(*grid);
     const std::string grid_id = pxr::TfMakeValidIdentifier(grid_name);
     const pxr::SdfPath grid_path = volume_path.AppendPath(pxr::SdfPath(grid_id));
     pxr::UsdVolOpenVDBAsset usd_grid = pxr::UsdVolOpenVDBAsset::Define(stage, grid_path);
@@ -83,11 +83,9 @@ void USDVolumeWriter::do_write(HierarchyContext &context)
     usd_volume.CreateFieldRelationship(pxr::TfToken(grid_id), grid_path);
   }
 
-  float3 volume_bound_min(std::numeric_limits<float>::max());
-  float3 volume_bound_max(std::numeric_limits<float>::lowest());
-  if (BKE_volume_min_max(volume, volume_bound_min, volume_bound_max)) {
-    const pxr::VtArray<pxr::GfVec3f> volume_extent = {pxr::GfVec3f(&volume_bound_min[0]),
-                                                      pxr::GfVec3f(&volume_bound_max[0])};
+  if (const std::optional<Bounds<float3>> bounds = BKE_volume_min_max(volume)) {
+    const pxr::VtArray<pxr::GfVec3f> volume_extent = {pxr::GfVec3f(&bounds->min.x),
+                                                      pxr::GfVec3f(&bounds->max.x)};
     usd_volume.GetExtentAttr().Set(volume_extent, timecode);
   }
 

@@ -14,10 +14,6 @@
 #  include <windows.h>
 #endif
 
-#ifdef __linux__
-#  include <unistd.h>
-#endif
-
 #if defined(WITH_TBB_MALLOC) && defined(_MSC_VER) && defined(NDEBUG)
 #  pragma comment(lib, "tbbmalloc_proxy.lib")
 #  pragma comment(linker, "/include:__TBB_malloc_proxy")
@@ -29,7 +25,6 @@
 
 #include "DNA_genfile.h"
 
-#include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_system.h"
 #include "BLI_task.h"
@@ -47,14 +42,13 @@
 #include "BKE_global.h"
 #include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_idtype.h"
-#include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_modifier.hh"
 #include "BKE_node.h"
 #include "BKE_particle.h"
 #include "BKE_shader_fx.h"
 #include "BKE_sound.h"
-#include "BKE_vfont.h"
+#include "BKE_vfont.hh"
 #include "BKE_volume.hh"
 
 #ifndef WITH_PYTHON_MODULE
@@ -71,7 +65,7 @@
 #include "ED_datafiles.h"
 
 #include "WM_api.hh"
-#include "WM_toolsystem.h"
+#include "WM_toolsystem.hh"
 
 #include "RNA_define.hh"
 
@@ -333,19 +327,6 @@ int main(int argc,
   }
 #  endif /* USE_WIN32_UNICODE_ARGS */
 #endif   /* WIN32 */
-
-/* Here we check for Windows ARM64 or WSL, and override the Mesa reported OpenGL version */
-#if defined(WIN32) || defined(__linux__)
-#  if defined(WIN32)
-  if (strncmp(BLI_getenv("PROCESSOR_IDENTIFIER"), "ARM", 3) == 0)
-#  else /* Must be linux, so check if we're in WSL */
-  if (access("/proc/sys/fs/binfmt_misc/WSLInterop", F_OK) == 0)
-#  endif
-  {
-    BLI_setenv_if_new("MESA_GLSL_VERSION_OVERRIDE", "430");
-    BLI_setenv_if_new("MESA_GL_VERSION_OVERRIDE", "4.3");
-  }
-#endif
 
   /* NOTE: Special exception for guarded allocator type switch:
    *       we need to perform switch from lock-free to fully

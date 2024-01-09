@@ -10,15 +10,13 @@
 
 #include "IMB_colormanagement.h"
 
-#include "BKE_colorband.h"
+#include "BKE_colorband.hh"
 
 #include "GPU_material.h"
 
 #include "COM_shader_node.hh"
 
 #include "node_composite_util.hh"
-
-#include "BKE_colorband.h"
 
 /* **************** VALTORGB ******************** */
 

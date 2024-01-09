@@ -109,7 +109,7 @@ struct ShadowTracingSample {
 void shadow_map_trace_hit_check(inout ShadowMapTracingState state, ShadowTracingSample samp)
 {
   /* Skip empty tiles since they do not contain actual depth information.
-   * Not doing so would change the z gradient history.  */
+   * Not doing so would change the z gradient history. */
   if (samp.skip_sample) {
     return;
   }
@@ -310,12 +310,10 @@ ShadowRayPunctual shadow_ray_generate_punctual(LightData light,
     direction = point_on_light_shape - lP;
     r_is_above_surface = dot(direction, lNg) > 0.0;
 
-#ifdef SSS_TRANSMITTANCE
+#ifdef SHADOW_SUBSURFACE
     if (!r_is_above_surface) {
-      float dir_len;
-      vec3 L = normalize_and_get_length(direction, dir_len);
       /* Skip the object volume. Do not push behind the light. */
-      float offset_len = saturate(thickness / dir_len);
+      float offset_len = saturate(thickness / length(direction));
       lP += direction * offset_len;
       direction *= 1.0 - offset_len;
     }
@@ -341,12 +339,10 @@ ShadowRayPunctual shadow_ray_generate_punctual(LightData light,
     direction = point_on_light_shape - lP;
     r_is_above_surface = dot(direction, lNg) > 0.0;
 
-#ifdef SSS_TRANSMITTANCE
+#ifdef SHADOW_SUBSURFACE
     if (!r_is_above_surface) {
-      float dir_len;
-      vec3 L = normalize_and_get_length(direction, dir_len);
       /* Skip the object volume. Do not push behind the light. */
-      float offset_len = saturate(thickness / dir_len);
+      float offset_len = saturate(thickness / length(direction));
       lP += direction * offset_len;
       direction *= 1.0 - offset_len;
     }
@@ -477,7 +473,7 @@ ShadowEvalResult shadow_eval(LightData light,
   ShadowEvalResult result;
   result.light_visibilty = saturate(1.0 - surface_hit * safe_rcp(surface_ray_count));
   result.light_visibilty = min(result.light_visibilty,
-                               saturate(1.0 - subsurface_hit * safe_rcp(surface_ray_count)));
+                               saturate(1.0 - subsurface_hit * safe_rcp(subsurface_ray_count)));
   result.occluder_distance = 0.0; /* Unused. Could reintroduced if needed. */
   return result;
 }

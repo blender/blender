@@ -971,7 +971,8 @@ bool RenderScheduler::work_need_denoise(bool &delayed, bool &ready_to_display)
 
   /* Immediately denoise when we reach the start sample or last sample. */
   if (num_samples_finished == denoiser_params_.start_sample ||
-      num_samples_finished == num_samples_) {
+      num_samples_finished == num_samples_)
+  {
     return true;
   }
 

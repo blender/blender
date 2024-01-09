@@ -14,11 +14,9 @@
 #include "BLI_offset_indices.hh"
 #include "BLI_vector.hh"
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-
 #include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
+#include "DNA_meshdata_types.h"
 
 #include "GEO_mesh_merge_by_distance.hh"
 #include "GEO_randomize.hh"
@@ -262,7 +260,8 @@ static void weld_assert_poly_no_vert_repetition(const WeldPoly *wp,
   Array<int, 64> verts(wp->loop_len);
   WeldLoopOfPolyIter iter;
   if (!weld_iter_loop_of_poly_begin(
-          iter, *wp, wloop, corner_verts, corner_edges, loop_map, nullptr)) {
+          iter, *wp, wloop, corner_verts, corner_edges, loop_map, nullptr))
+  {
     return;
   }
   else {
@@ -384,7 +383,7 @@ static void weld_edge_find_doubles(Span<WeldEdge> weld_edges,
   /* Setup Edge Overlap. */
   int edge_double_kill_len = 0;
 
-  if (weld_edges.size() == 0) {
+  if (weld_edges.is_empty()) {
     *r_edge_double_kill_len = edge_double_kill_len;
     return;
   }
@@ -1041,7 +1040,7 @@ static int poly_find_doubles(const OffsetIndices<int> poly_corners_offsets,
 
   /* Use a reverse for loop to ensure that indexes are assigned in ascending order. */
   for (int face_index = poly_num; face_index--;) {
-    if (poly_corners_offsets[face_index].size() == 0) {
+    if (poly_corners_offsets[face_index].is_empty()) {
       continue;
     }
 
@@ -1171,7 +1170,8 @@ static void weld_poly_find_doubles(const Span<int> corner_verts,
 
     WeldLoopOfPolyIter iter;
     if (!weld_iter_loop_of_poly_begin(
-            iter, wp, wloop, corner_verts, corner_edges, loop_map, nullptr)) {
+            iter, wp, wloop, corner_verts, corner_edges, loop_map, nullptr))
+    {
       continue;
     }
 
@@ -1252,7 +1252,7 @@ static void weld_mesh_context_create(const Mesh &mesh,
   Vector<WeldEdge> wedge = weld_edge_ctx_alloc_and_find_collapsed(
       edges, vert_dest_map, r_weld_mesh->edge_dest_map, &edge_collapsed_len);
 
-  weld_edge_find_doubles(wedge, mesh.totvert, r_weld_mesh->edge_dest_map, &edge_double_kill_len);
+  weld_edge_find_doubles(wedge, mesh.verts_num, r_weld_mesh->edge_dest_map, &edge_double_kill_len);
 
   r_weld_mesh->edge_kill_len = edge_collapsed_len + edge_double_kill_len;
 
@@ -1549,8 +1549,8 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
   const OffsetIndices src_faces = mesh.faces();
   const Span<int> src_corner_verts = mesh.corner_verts();
   const Span<int> src_corner_edges = mesh.corner_edges();
-  const int totvert = mesh.totvert;
-  const int totedge = mesh.totedge;
+  const int totvert = mesh.verts_num;
+  const int totedge = mesh.edges_num;
 
   WeldMesh weld_mesh;
   weld_mesh_context_create(mesh, vert_dest_map, removed_vertex_count, do_mix_data, &weld_mesh);
@@ -1610,7 +1610,7 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
     if (poly_ctx == OUT_OF_CONTEXT) {
       int mp_loop_len = src_faces[i].size();
       CustomData_copy_data(
-          &mesh.loop_data, &result->loop_data, src_faces[i].start(), loop_cur, mp_loop_len);
+          &mesh.corner_data, &result->corner_data, src_faces[i].start(), loop_cur, mp_loop_len);
       for (; mp_loop_len--; loop_cur++) {
         dst_corner_verts[loop_cur] = vert_final_map[dst_corner_verts[loop_cur]];
         dst_corner_edges[loop_cur] = edge_final_map[dst_corner_edges[loop_cur]];
@@ -1634,8 +1634,11 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
         continue;
       }
       do {
-        customdata_weld(
-            &mesh.loop_data, &result->loop_data, group_buffer.data(), iter.group_len, loop_cur);
+        customdata_weld(&mesh.corner_data,
+                        &result->corner_data,
+                        group_buffer.data(),
+                        iter.group_len,
+                        loop_cur);
         dst_corner_verts[loop_cur] = vert_final_map[iter.v];
         dst_corner_edges[loop_cur] = edge_final_map[iter.e];
         loop_cur++;
@@ -1668,7 +1671,7 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
     }
     do {
       customdata_weld(
-          &mesh.loop_data, &result->loop_data, group_buffer.data(), iter.group_len, loop_cur);
+          &mesh.corner_data, &result->corner_data, group_buffer.data(), iter.group_len, loop_cur);
       dst_corner_verts[loop_cur] = vert_final_map[iter.v];
       dst_corner_edges[loop_cur] = edge_final_map[iter.e];
       loop_cur++;
@@ -1696,7 +1699,7 @@ std::optional<Mesh *> mesh_merge_by_distance_all(const Mesh &mesh,
                                                  const IndexMask &selection,
                                                  const float merge_distance)
 {
-  Array<int> vert_dest_map(mesh.totvert, OUT_OF_CONTEXT);
+  Array<int> vert_dest_map(mesh.verts_num, OUT_OF_CONTEXT);
 
   KDTree_3d *tree = BLI_kdtree_3d_new(selection.size());
 
@@ -1732,9 +1735,9 @@ std::optional<Mesh *> mesh_merge_by_distance_connected(const Mesh &mesh,
 
   /* From the original index of the vertex.
    * This indicates which vert it is or is going to be merged. */
-  Array<int> vert_dest_map(mesh.totvert, OUT_OF_CONTEXT);
+  Array<int> vert_dest_map(mesh.verts_num, OUT_OF_CONTEXT);
 
-  Array<WeldVertexCluster> vert_clusters(mesh.totvert);
+  Array<WeldVertexCluster> vert_clusters(mesh.verts_num);
 
   for (const int i : positions.index_range()) {
     WeldVertexCluster &vc = vert_clusters[i];
@@ -1743,7 +1746,7 @@ std::optional<Mesh *> mesh_merge_by_distance_connected(const Mesh &mesh,
   }
   const float merge_dist_sq = square_f(merge_distance);
 
-  range_vn_i(vert_dest_map.data(), mesh.totvert, 0);
+  range_vn_i(vert_dest_map.data(), mesh.verts_num, 0);
 
   /* Collapse Edges that are shorter than the threshold. */
   const bke::LooseEdgeCache *loose_edges = nullptr;
@@ -1797,7 +1800,7 @@ std::optional<Mesh *> mesh_merge_by_distance_connected(const Mesh &mesh,
     return std::nullopt;
   }
 
-  for (const int i : IndexRange(mesh.totvert)) {
+  for (const int i : IndexRange(mesh.verts_num)) {
     if (i == vert_dest_map[i]) {
       vert_dest_map[i] = OUT_OF_CONTEXT;
     }

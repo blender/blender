@@ -75,7 +75,7 @@ bool multiresModifier_reshapeFromObject(Depsgraph *depsgraph,
       dst,
       mmd,
       reinterpret_cast<const float(*)[3]>(src_mesh_eval->vert_positions().data()),
-      src_mesh_eval->totvert);
+      src_mesh_eval->verts_num);
 }
 
 /** \} */
@@ -89,6 +89,7 @@ bool multiresModifier_reshapeFromDeformModifier(Depsgraph *depsgraph,
                                                 MultiresModifierData *mmd,
                                                 ModifierData *deform_md)
 {
+  using namespace blender;
   MultiresModifierData highest_mmd = blender::dna::shallow_copy(*mmd);
   highest_mmd.sculptlvl = highest_mmd.totlvl;
   highest_mmd.lvl = highest_mmd.totlvl;
@@ -97,8 +98,7 @@ bool multiresModifier_reshapeFromDeformModifier(Depsgraph *depsgraph,
   /* Create mesh for the multires, ignoring any further modifiers (leading
    * deformation modifiers will be applied though). */
   Mesh *multires_mesh = BKE_multires_create_mesh(depsgraph, object, &highest_mmd);
-  int num_deformed_verts;
-  float(*deformed_verts)[3] = BKE_mesh_vert_coords_alloc(multires_mesh, &num_deformed_verts);
+  Array<float3> deformed_verts(multires_mesh->vert_positions());
 
   /* Apply deformation modifier on the multires, */
   ModifierEvalContext modifier_ctx{};
@@ -106,19 +106,16 @@ bool multiresModifier_reshapeFromDeformModifier(Depsgraph *depsgraph,
   modifier_ctx.object = object;
   modifier_ctx.flag = MOD_APPLY_USECACHE | MOD_APPLY_IGNORE_SIMPLIFY;
 
-  BKE_modifier_deform_verts(
-      deform_md,
-      &modifier_ctx,
-      multires_mesh,
-      {reinterpret_cast<blender::float3 *>(deformed_verts), num_deformed_verts});
+  BKE_modifier_deform_verts(deform_md, &modifier_ctx, multires_mesh, deformed_verts);
   BKE_id_free(nullptr, multires_mesh);
 
   /* Reshaping */
   bool result = multiresModifier_reshapeFromVertcos(
-      depsgraph, object, &highest_mmd, deformed_verts, num_deformed_verts);
-
-  /* Cleanup */
-  MEM_freeN(deformed_verts);
+      depsgraph,
+      object,
+      &highest_mmd,
+      reinterpret_cast<float(*)[3]>(deformed_verts.data()),
+      deformed_verts.size());
 
   return result;
 }
@@ -176,7 +173,7 @@ void multiresModifier_subdivide_to_level(Object *object,
   }
 
   Mesh *coarse_mesh = static_cast<Mesh *>(object->data);
-  if (coarse_mesh->totloop == 0) {
+  if (coarse_mesh->corners_num == 0) {
     /* If there are no loops in the mesh implies there is no CD_MDISPS as well. So can early output
      * from here as there is nothing to subdivide. */
     return;
@@ -186,9 +183,10 @@ void multiresModifier_subdivide_to_level(Object *object,
 
   /* There was no multires at all, all displacement is at 0. Can simply make sure all mdisps grids
    * are allocated at a proper level and return. */
-  const bool has_mdisps = CustomData_has_layer(&coarse_mesh->loop_data, CD_MDISPS);
+  const bool has_mdisps = CustomData_has_layer(&coarse_mesh->corner_data, CD_MDISPS);
   if (!has_mdisps) {
-    CustomData_add_layer(&coarse_mesh->loop_data, CD_MDISPS, CD_SET_DEFAULT, coarse_mesh->totloop);
+    CustomData_add_layer(
+        &coarse_mesh->corner_data, CD_MDISPS, CD_SET_DEFAULT, coarse_mesh->corners_num);
   }
 
   /* NOTE: Subdivision happens from the top level of the existing multires modifier. If it is set

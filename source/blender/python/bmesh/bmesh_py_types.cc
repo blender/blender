@@ -27,7 +27,7 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
 #include <Python.h>
 
@@ -1027,20 +1027,20 @@ PyDoc_STRVAR(bpy_bmesh_to_mesh_doc,
 static PyObject *bpy_bmesh_to_mesh(BPy_BMesh *self, PyObject *args)
 {
   PyObject *py_mesh;
-  Mesh *me;
+  Mesh *mesh;
   BMesh *bm;
 
   BPY_BM_CHECK_OBJ(self);
 
   if (!PyArg_ParseTuple(args, "O:to_mesh", &py_mesh) ||
-      !(me = static_cast<Mesh *>(PyC_RNA_AsPointer(py_mesh, "Mesh"))))
+      !(mesh = static_cast<Mesh *>(PyC_RNA_AsPointer(py_mesh, "Mesh"))))
   {
     return nullptr;
   }
 
   /* we could allow this but its almost certainly _not_ what script authors want */
-  if (me->edit_mesh) {
-    PyErr_Format(PyExc_ValueError, "to_mesh(): Mesh '%s' is in editmode", me->id.name + 2);
+  if (mesh->edit_mesh) {
+    PyErr_Format(PyExc_ValueError, "to_mesh(): Mesh '%s' is in editmode", mesh->id.name + 2);
     return nullptr;
   }
 
@@ -1049,21 +1049,21 @@ static PyObject *bpy_bmesh_to_mesh(BPy_BMesh *self, PyObject *args)
   Main *bmain = nullptr;
   BMeshToMeshParams params{};
   params.update_shapekey_indices = true;
-  if (me->id.tag & LIB_TAG_NO_MAIN) {
+  if (mesh->id.tag & LIB_TAG_NO_MAIN) {
     /* Mesh might be coming from a self-contained source like object.to_mesh(). No need to remap
      * anything in this case. */
   }
   else {
-    BLI_assert(BKE_id_is_in_global_main(&me->id));
+    BLI_assert(BKE_id_is_in_global_main(&mesh->id));
     bmain = G_MAIN; /* XXX UGLY! */
     params.calc_object_remap = true;
   }
 
-  BM_mesh_bm_to_me(bmain, bm, me, &params);
+  BM_mesh_bm_to_me(bmain, bm, mesh, &params);
 
   /* we could have the user do this but if they forget blender can easy crash
    * since the references arrays for the objects derived meshes are now invalid */
-  DEG_id_tag_update(&me->id, ID_RECALC_GEOMETRY_ALL_MODES);
+  DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY_ALL_MODES);
 
   Py_RETURN_NONE;
 }
@@ -1199,7 +1199,7 @@ static PyObject *bpy_bmesh_from_mesh(BPy_BMesh *self, PyObject *args, PyObject *
       "mesh", "face_normals", "vertex_normals", "use_shape_key", "shape_key_index", nullptr};
   BMesh *bm;
   PyObject *py_mesh;
-  Mesh *me;
+  Mesh *mesh;
   bool use_fnorm = true;
   bool use_vert_normal = true;
   bool use_shape_key = false;
@@ -1219,7 +1219,7 @@ static PyObject *bpy_bmesh_from_mesh(BPy_BMesh *self, PyObject *args, PyObject *
                                    PyC_ParseBool,
                                    &use_shape_key,
                                    &shape_key_index) ||
-      !(me = static_cast<Mesh *>(PyC_RNA_AsPointer(py_mesh, "Mesh"))))
+      !(mesh = static_cast<Mesh *>(PyC_RNA_AsPointer(py_mesh, "Mesh"))))
   {
     return nullptr;
   }
@@ -1231,7 +1231,7 @@ static PyObject *bpy_bmesh_from_mesh(BPy_BMesh *self, PyObject *args, PyObject *
   params.calc_vert_normal = use_vert_normal;
   params.use_shapekey = use_shape_key;
   params.active_shapekey = shape_key_index + 1;
-  BM_mesh_bm_from_me(bm, me, &params);
+  BM_mesh_bm_from_me(bm, mesh, &params);
 
   Py_RETURN_NONE;
 }
@@ -1394,8 +1394,8 @@ static PyObject *bpy_bmesh_calc_loop_triangles(BPy_BMElem *self)
 {
   BMesh *bm;
 
-  int looptris_tot;
-  BMLoop *(*looptris)[3];
+  int corner_tris_tot;
+  BMLoop *(*corner_tris)[3];
 
   PyObject *ret;
   int i;
@@ -1404,17 +1404,17 @@ static PyObject *bpy_bmesh_calc_loop_triangles(BPy_BMElem *self)
 
   bm = self->bm;
 
-  looptris_tot = poly_to_tri_count(bm->totface, bm->totloop);
-  looptris = static_cast<BMLoop *(*)[3]>(PyMem_MALLOC(sizeof(*looptris) * looptris_tot));
+  corner_tris_tot = poly_to_tri_count(bm->totface, bm->totloop);
+  corner_tris = static_cast<BMLoop *(*)[3]>(PyMem_MALLOC(sizeof(*corner_tris) * corner_tris_tot));
 
-  BM_mesh_calc_tessellation(bm, looptris);
+  BM_mesh_calc_tessellation(bm, corner_tris);
 
-  ret = PyList_New(looptris_tot);
-  for (i = 0; i < looptris_tot; i++) {
-    PyList_SET_ITEM(ret, i, BPy_BMLoop_Array_As_Tuple(bm, looptris[i], 3));
+  ret = PyList_New(corner_tris_tot);
+  for (i = 0; i < corner_tris_tot; i++) {
+    PyList_SET_ITEM(ret, i, BPy_BMLoop_Array_As_Tuple(bm, corner_tris[i], 3));
   }
 
-  PyMem_FREE(looptris);
+  PyMem_FREE(corner_tris);
 
   return ret;
 }
@@ -1494,7 +1494,44 @@ static PyObject *bpy_bm_elem_copy_from(BPy_BMElem *self, BPy_BMElem *value)
   }
 
   if (value->ele != self->ele) {
-    BM_elem_attrs_copy_ex(value->bm, self->bm, value->ele, self->ele, 0xff, CD_MASK_BM_ELEM_PYPTR);
+    switch (self->ele->head.htype) {
+      case BM_VERT: {
+        const BMCustomDataCopyMap cd_vert_map = CustomData_bmesh_copy_map_calc(
+            value->bm->vdata, self->bm->vdata, CD_MASK_BM_ELEM_PYPTR);
+        BM_elem_attrs_copy(self->bm,
+                           cd_vert_map,
+                           reinterpret_cast<const BMVert *>(value->ele),
+                           reinterpret_cast<BMVert *>(self->ele));
+        break;
+      }
+      case BM_EDGE: {
+        const BMCustomDataCopyMap cd_edge_map = CustomData_bmesh_copy_map_calc(
+            value->bm->edata, self->bm->edata, CD_MASK_BM_ELEM_PYPTR);
+        BM_elem_attrs_copy(self->bm,
+                           cd_edge_map,
+                           reinterpret_cast<const BMEdge *>(value->ele),
+                           reinterpret_cast<BMEdge *>(self->ele));
+        break;
+      }
+      case BM_FACE: {
+        const BMCustomDataCopyMap cd_face_map = CustomData_bmesh_copy_map_calc(
+            value->bm->pdata, self->bm->pdata, CD_MASK_BM_ELEM_PYPTR);
+        BM_elem_attrs_copy(self->bm,
+                           cd_face_map,
+                           reinterpret_cast<const BMFace *>(value->ele),
+                           reinterpret_cast<BMFace *>(self->ele));
+        break;
+      }
+      case BM_LOOP: {
+        const BMCustomDataCopyMap cd_loop_map = CustomData_bmesh_copy_map_calc(
+            value->bm->ldata, self->bm->ldata, CD_MASK_BM_ELEM_PYPTR);
+        BM_elem_attrs_copy(self->bm,
+                           cd_loop_map,
+                           reinterpret_cast<const BMLoop *>(value->ele),
+                           reinterpret_cast<BMLoop *>(self->ele));
+        break;
+      }
+    }
   }
 
   Py_RETURN_NONE;
@@ -1890,7 +1927,7 @@ static PyObject *bpy_bmface_copy(BPy_BMFace *self, PyObject *args, PyObject *kw)
     return nullptr;
   }
 
-  f_cpy = BM_face_copy(bm, bm, self->f, do_verts, do_edges);
+  f_cpy = BM_face_copy(bm, self->f, do_verts, do_edges);
 
   if (f_cpy) {
     return BPy_BMFace_CreatePyObject(bm, f_cpy);
@@ -2205,7 +2242,14 @@ static PyObject *bpy_bmvertseq_new(BPy_BMElemSeq *self, PyObject *args)
   }
 
   if (py_vert_example) {
-    BM_elem_attrs_copy(py_vert_example->bm, bm, py_vert_example->v, v);
+    if (py_vert_example->bm == bm) {
+      BM_elem_attrs_copy(bm, py_vert_example->v, v);
+    }
+    else {
+      const BMCustomDataCopyMap cd_vert_map = CustomData_bmesh_copy_map_calc(
+          py_vert_example->bm->vdata, bm->vdata);
+      BM_elem_attrs_copy(bm, cd_vert_map, py_vert_example->v, v);
+    }
   }
 
   return BPy_BMVert_CreatePyObject(bm, v);
@@ -2266,7 +2310,14 @@ static PyObject *bpy_bmedgeseq_new(BPy_BMElemSeq *self, PyObject *args)
   }
 
   if (py_edge_example) {
-    BM_elem_attrs_copy(py_edge_example->bm, bm, py_edge_example->e, e);
+    if (py_edge_example->bm == bm) {
+      BM_elem_attrs_copy(bm, py_edge_example->e, e);
+    }
+    else {
+      const BMCustomDataCopyMap cd_edge_map = CustomData_bmesh_copy_map_calc(
+          py_edge_example->bm->edata, bm->edata);
+      BM_elem_attrs_copy(bm, cd_edge_map, py_edge_example->e, e);
+    }
   }
 
   ret = BPy_BMEdge_CreatePyObject(bm, e);

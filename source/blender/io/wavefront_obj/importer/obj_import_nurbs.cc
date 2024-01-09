@@ -13,6 +13,7 @@
 
 #include "DNA_curve_types.h"
 
+#include "IO_wavefront_obj.hh"
 #include "importer_mesh_utils.hh"
 #include "obj_import_nurbs.hh"
 #include "obj_import_objects.hh"
@@ -21,7 +22,8 @@ namespace blender::io::obj {
 
 Object *CurveFromGeometry::create_curve(Main *bmain, const OBJImportParams &import_params)
 {
-  std::string ob_name{curve_geometry_.geometry_name_};
+  std::string ob_name = get_geometry_name(curve_geometry_.geometry_name_,
+                                          import_params.collection_separator);
   if (ob_name.empty() && !curve_geometry_.nurbs_element_.group_.empty()) {
     ob_name = curve_geometry_.nurbs_element_.group_;
   }

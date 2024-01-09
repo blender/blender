@@ -241,7 +241,8 @@ bool _bli_array_iter_span(const void *arr,
       else {
         uint i_step = i_curr + 1;
         while ((i_step != arr_len) &&
-               test_fn(POINTER_OFFSET(arr, i_step * arr_stride_uint), user_data)) {
+               test_fn(POINTER_OFFSET(arr, i_step * arr_stride_uint), user_data))
+        {
           i_step_prev = i_step;
           i_step++;
         }

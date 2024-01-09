@@ -41,7 +41,7 @@
 #include "strip_time.hh"
 #include "utils.hh"
 
-float seq_time_media_playback_rate_factor_get(const Scene *scene, const Sequence *seq)
+float SEQ_time_media_playback_rate_factor_get(const Scene *scene, const Sequence *seq)
 {
   if ((seq->flag & SEQ_AUTO_PLAYBACK_RATE) == 0) {
     return 1.0f;
@@ -60,7 +60,7 @@ int seq_time_strip_original_content_length_get(const Scene *scene, const Sequenc
     return seq->len;
   }
 
-  return seq->len / seq_time_media_playback_rate_factor_get(scene, seq);
+  return seq->len / SEQ_time_media_playback_rate_factor_get(scene, seq);
 }
 
 float SEQ_give_frame_index(const Scene *scene, Sequence *seq, float timeline_frame)
@@ -91,7 +91,7 @@ float SEQ_give_frame_index(const Scene *scene, Sequence *seq, float timeline_fra
 
   frame_index = max_ff(frame_index, 0);
 
-  frame_index *= seq_time_media_playback_rate_factor_get(scene, seq);
+  frame_index *= SEQ_time_media_playback_rate_factor_get(scene, seq);
 
   if (SEQ_retiming_is_active(seq)) {
     const float retiming_factor = seq_retiming_evaluate(seq, frame_index);
@@ -342,7 +342,7 @@ float SEQ_time_sequence_get_fps(Scene *scene, Sequence *seq)
       }
       short frs_sec;
       float frs_sec_base;
-      if (IMB_anim_get_fps(strip_anim->anim, &frs_sec, &frs_sec_base, true)) {
+      if (IMB_anim_get_fps(strip_anim->anim, true, &frs_sec, &frs_sec_base)) {
         return float(frs_sec) / frs_sec_base;
       }
       break;
@@ -477,13 +477,13 @@ bool SEQ_time_has_still_frames(const Scene *scene, const Sequence *seq)
 int SEQ_time_strip_length_get(const Scene *scene, const Sequence *seq)
 {
   if (SEQ_retiming_is_active(seq)) {
-    const SeqRetimingKey *key_start = seq->retiming_keys;
-    const SeqRetimingKey *key_end = seq->retiming_keys + (SEQ_retiming_keys_count(seq) - 1);
-    return (key_end->strip_frame_index + 1) / seq_time_media_playback_rate_factor_get(scene, seq) -
-           key_start->strip_frame_index / seq_time_media_playback_rate_factor_get(scene, seq);
+    const int last_key_frame = SEQ_retiming_key_timeline_frame_get(
+        scene, seq, SEQ_retiming_last_key_get(seq));
+    /* Last key is mapped to last frame index. Numbering starts from 0. */
+    return last_key_frame + 1 - SEQ_time_start_frame_get(seq);
   }
 
-  return seq->len / seq_time_media_playback_rate_factor_get(scene, seq);
+  return seq->len / SEQ_time_media_playback_rate_factor_get(scene, seq);
 }
 
 float SEQ_time_start_frame_get(const Sequence *seq)
@@ -575,4 +575,52 @@ void seq_time_translate_handles(const Scene *scene, Sequence *seq, const int off
   blender::Span effects = seq_sequence_lookup_effects_by_seq(scene, seq);
   seq_time_update_effects_strip_range(scene, effects);
   SEQ_time_update_meta_strip_range(scene, seq_sequence_lookup_meta_by_seq(scene, seq));
+}
+
+static void seq_time_slip_strip_ex(const Scene *scene, Sequence *seq, int delta, bool recursed)
+{
+  if (delta == 0) {
+    return;
+  }
+
+  /* Skip effect strips where the length is dependent on another strip,
+   * as they are calculated with #seq_time_update_effects_strip_range. */
+  if (seq->seq1 != nullptr || seq->seq2 != nullptr) {
+    return;
+  }
+
+  /* Effects only have a start frame and a length, so unless we're inside
+   * a meta strip, there's no need to do anything. */
+  if (!recursed && (seq->type & SEQ_TYPE_EFFECT)) {
+    return;
+  }
+
+  /* Move strips inside meta strip. */
+  if (seq->type == SEQ_TYPE_META) {
+    /* If the meta strip has no contents, don't do anything. */
+    if (BLI_listbase_is_empty(&seq->seqbase)) {
+      return;
+    }
+    LISTBASE_FOREACH (Sequence *, seq_child, &seq->seqbase) {
+      seq_time_slip_strip_ex(scene, seq_child, delta, true);
+    }
+  }
+
+  seq->start = seq->start + delta;
+  if (!recursed) {
+    seq->startofs = seq->startofs - delta;
+    seq->endofs = seq->endofs + delta;
+  }
+
+  /* Only to make files usable in older versions. */
+  seq->startdisp = SEQ_time_left_handle_frame_get(scene, seq);
+  seq->enddisp = SEQ_time_right_handle_frame_get(scene, seq);
+
+  blender::Span effects = seq_sequence_lookup_effects_by_seq(scene, seq);
+  seq_time_update_effects_strip_range(scene, effects);
+}
+
+void SEQ_time_slip_strip(const Scene *scene, Sequence *seq, int delta)
+{
+  seq_time_slip_strip_ex(scene, seq, delta, false);
 }

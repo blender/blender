@@ -19,7 +19,6 @@
 
 #include "DNA_image_types.h"
 #include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -642,7 +641,8 @@ static UVRipPairs *uv_rip_pairs_from_loop(BMLoop *l_init,
         do {
           /* Not a boundary and visible. */
           if (!UL(l_radial_iter)->is_select_edge &&
-              BM_elem_flag_test(l_radial_iter->f, BM_ELEM_TAG)) {
+              BM_elem_flag_test(l_radial_iter->f, BM_ELEM_TAG))
+          {
             BMLoop *l_other = (l_radial_iter->v == l_step->v) ? l_radial_iter :
                                                                 l_radial_iter->next;
             BLI_assert(l_other->v == l_step->v);
@@ -737,8 +737,8 @@ static bool uv_rip_pairs_calc_center_and_direction(UVRipPairs *rip,
  */
 static bool uv_rip_object(Scene *scene, Object *obedit, const float co[2], const float aspect_y)
 {
-  Mesh *me = (Mesh *)obedit->data;
-  BMEditMesh *em = me->edit_mesh;
+  Mesh *mesh = (Mesh *)obedit->data;
+  BMEditMesh *em = mesh->edit_mesh;
   BMesh *bm = em->bm;
   const char *active_uv_name = CustomData_get_active_layer_name(&bm->ldata, CD_PROP_FLOAT2);
   BM_uv_map_ensure_vert_select_attr(bm, active_uv_name);

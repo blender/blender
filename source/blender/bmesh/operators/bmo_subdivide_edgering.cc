@@ -31,9 +31,9 @@
 
 #include "BKE_curve.hh"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
-#include "intern/bmesh_operators_private.h" /* own include */
+#include "intern/bmesh_operators_private.hh" /* own include */
 
 #define VERT_SHARED (1 << 0)
 
@@ -641,7 +641,8 @@ static void bm_edgering_pair_interpolate(BMesh *bm,
           LinkData *v_iter;
 
           for (v_iter = static_cast<LinkData *>(lb_ring->first), i = 0; v_iter;
-               v_iter = v_iter->next, i++) {
+               v_iter = v_iter->next, i++)
+          {
             if (i > 0 && i < resolu - 1) {
               /* shape */
               if (falloff_cache) {

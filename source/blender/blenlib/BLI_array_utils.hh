@@ -222,6 +222,7 @@ void invert_booleans(MutableSpan<bool> span);
 void invert_booleans(MutableSpan<bool> span, const IndexMask &mask);
 
 int64_t count_booleans(const VArray<bool> &varray);
+int64_t count_booleans(const VArray<bool> &varray, const IndexMask &mask);
 
 enum class BooleanMix {
   None,
@@ -267,6 +268,17 @@ template<typename T> inline Vector<IndexRange> find_all_ranges(const Span<T> spa
 template<typename T> inline void fill_index_range(MutableSpan<T> span, const T start = 0)
 {
   std::iota(span.begin(), span.end(), start);
+}
+
+template<typename T>
+bool indexed_data_equal(const Span<T> all_values, const Span<int> indices, const Span<T> values)
+{
+  for (const int i : indices.index_range()) {
+    if (all_values[indices[i]] != values[i]) {
+      return true;
+    }
+  }
+  return false;
 }
 
 }  // namespace blender::array_utils

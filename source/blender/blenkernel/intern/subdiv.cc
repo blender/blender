@@ -9,7 +9,6 @@
 #include "BKE_subdiv.hh"
 
 #include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 
 #include "BLI_utildefines.h"
@@ -21,10 +20,10 @@
 
 #include "subdiv_converter.hh"
 
-#include "opensubdiv_capi.h"
-#include "opensubdiv_converter_capi.h"
-#include "opensubdiv_evaluator_capi.h"
-#include "opensubdiv_topology_refiner_capi.h"
+#include "opensubdiv_capi.hh"
+#include "opensubdiv_converter_capi.hh"
+#include "opensubdiv_evaluator_capi.hh"
+#include "opensubdiv_topology_refiner_capi.hh"
 
 /* --------------------------------------------------------------------
  * Module.
@@ -127,7 +126,7 @@ Subdiv *BKE_subdiv_new_from_converter(const SubdivSettings *settings,
 
 Subdiv *BKE_subdiv_new_from_mesh(const SubdivSettings *settings, const Mesh *mesh)
 {
-  if (mesh->totvert == 0) {
+  if (mesh->verts_num == 0) {
     return nullptr;
   }
   OpenSubdiv_Converter converter;

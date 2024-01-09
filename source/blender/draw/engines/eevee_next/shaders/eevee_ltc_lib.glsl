@@ -11,6 +11,7 @@
  */
 
 #pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_math_matrix_lib.glsl)
 
 #define LTC_LAMBERT_MAT vec4(1.0, 0.0, 0.0, 1.0)
 #define LTC_GGX_MAT(cos_theta, roughness) \
@@ -147,18 +148,26 @@ mat3 ltc_matrix(vec4 lut)
   return mat3(vec3(lut.x, 0, lut.y), vec3(0, 1, 0), vec3(lut.z, 0, lut.w));
 }
 
+mat3x3 ltc_tangent_basis(vec3 N, vec3 V)
+{
+  float NV = dot(N, V);
+  if (NV > 0.9999) {
+    /* Mostly for orthographic view and surfel light eval. */
+    return from_up_axis(N);
+  }
+  /* Construct orthonormal basis around N. */
+  vec3 T1 = normalize(V - N * NV);
+  vec3 T2 = cross(N, T1);
+  return mat3x3(T1, T2, N);
+}
+
 void ltc_transform_quad(vec3 N, vec3 V, mat3 Minv, inout vec3 corners[4])
 {
-  /* Avoid dot(N, V) == 1 in ortho mode, leading T1 normalize to fail. */
-  V = normalize(V + 1e-8);
-
   /* Construct orthonormal basis around N. */
-  vec3 T1, T2;
-  T1 = normalize(V - N * dot(N, V));
-  T2 = cross(N, T1);
+  mat3 T = ltc_tangent_basis(N, V);
 
   /* Rotate area light in (T1, T2, R) basis. */
-  Minv = Minv * transpose(mat3(T1, T2, N));
+  Minv = Minv * transpose(T);
 
   /* Apply LTC inverse matrix. */
   corners[0] = normalize(Minv * corners[0]);
@@ -195,16 +204,11 @@ float ltc_evaluate_disk_simple(sampler2DArray utility_tx, float disk_radius, flo
 /* disk_points are WS vectors from the shading point to the disk "bounding domain" */
 float ltc_evaluate_disk(sampler2DArray utility_tx, vec3 N, vec3 V, mat3 Minv, vec3 disk_points[3])
 {
-  /* Avoid dot(N, V) == 1 in ortho mode, leading T1 normalize to fail. */
-  V = normalize(V + 1e-8);
+  /* Construct orthonormal basis around N. */
+  mat3 T = ltc_tangent_basis(N, V);
 
-  /* construct orthonormal basis around N */
-  vec3 T1, T2;
-  T1 = normalize(V - N * dot(V, N));
-  T2 = cross(N, T1);
-
-  /* rotate area light in (T1, T2, R) basis */
-  mat3 R = transpose(mat3(T1, T2, N));
+  /* Rotate area light in (T1, T2, R) basis. */
+  mat3 R = transpose(T);
 
   /* Intermediate step: init ellipse. */
   vec3 L_[3];

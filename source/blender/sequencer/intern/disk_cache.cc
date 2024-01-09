@@ -31,7 +31,7 @@
 #include "BLI_path_util.h"
 #include "BLI_threads.h"
 
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_scene.h"
 
 #include "SEQ_prefetch.hh"

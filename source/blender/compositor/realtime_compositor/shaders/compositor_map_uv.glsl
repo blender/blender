@@ -32,14 +32,14 @@ void main()
    * standard backward finite difference equation, because multiplication by -1 flips the order of
    * subtraction. */
   int x_step = (table_index.x % 2) * -2 + 1;
-  vec2 x_neighbour = uv_coordinates_table[table_index.x + x_step][table_index.y];
-  vec2 x_gradient = (x_neighbour - uv_coordinates) * x_step;
+  vec2 x_neighbor = uv_coordinates_table[table_index.x + x_step][table_index.y];
+  vec2 x_gradient = (x_neighbor - uv_coordinates) * x_step;
 
   /* Compute the partial derivative of the UV coordinates along the y direction using a
    * finite difference approximation. See the previous code section for more information. */
   int y_step = (table_index.y % 2) * -2 + 1;
-  vec2 y_neighbour = uv_coordinates_table[table_index.x][table_index.y + y_step];
-  vec2 y_gradient = (y_neighbour - uv_coordinates) * y_step;
+  vec2 y_neighbor = uv_coordinates_table[table_index.x][table_index.y + y_step];
+  vec2 y_gradient = (y_neighbor - uv_coordinates) * y_step;
 
   /* Sample the input using the UV coordinates passing in the computed gradients in order to
    * utilize the anisotropic filtering capabilities of the sampler. */

@@ -7,6 +7,10 @@
 #include "DNA_color_types.h"
 #include "DNA_node_types.h"
 
+namespace blender::realtime_compositor {
+class RenderContext;
+}
+
 struct Render;
 
 /* Keep ascii art. */
@@ -332,7 +336,8 @@ void COM_execute(Render *render,
                  Scene *scene,
                  bNodeTree *node_tree,
                  bool rendering,
-                 const char *view_name);
+                 const char *view_name,
+                 blender::realtime_compositor::RenderContext *render_context);
 
 /**
  * \brief Deinitialize the compositor caches and allocated memory.

@@ -15,7 +15,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_unit.h"
+#include "BKE_unit.hh"
 
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
@@ -58,12 +58,11 @@ struct TransDataVertSlideVert {
 };
 
 struct VertSlideData {
+  /* result of ED_view3d_ob_project_mat_get */
+  float4x4 proj_mat;
   TransDataVertSlideVert *sv;
   int totsv;
   int curr_sv_index;
-
-  /* result of ED_view3d_ob_project_mat_get */
-  float proj_mat[4][4];
 };
 
 struct VertSlideParams {
@@ -83,12 +82,10 @@ static void vert_slide_update_input(TransInfo *t)
   const float *co_orig_3d = sv->co_orig_3d;
   const float *co_curr_3d = sv->co_link_orig_3d[sv->co_link_curr];
 
-  float co_curr_2d[2], co_orig_2d[2];
-
   int mval_ofs[2], mval_start[2], mval_end[2];
 
-  ED_view3d_project_float_v2_m4(t->region, co_orig_3d, co_orig_2d, sld->proj_mat);
-  ED_view3d_project_float_v2_m4(t->region, co_curr_3d, co_curr_2d, sld->proj_mat);
+  const float2 co_orig_2d = ED_view3d_project_float_v2_m4(t->region, co_orig_3d, sld->proj_mat);
+  const float2 co_curr_2d = ED_view3d_project_float_v2_m4(t->region, co_curr_3d, sld->proj_mat);
 
   ARRAY_SET_ITEMS(mval_ofs, t->mouse.imval[0] - co_orig_2d[0], t->mouse.imval[1] - co_orig_2d[1]);
   ARRAY_SET_ITEMS(mval_start, co_orig_2d[0] + mval_ofs[0], co_orig_2d[1] + mval_ofs[1]);
@@ -123,16 +120,13 @@ static void calcVertSlideMouseActiveVert(TransInfo *t, const float2 &mval_fl)
   TransDataVertSlideVert *sv;
 
   /* set the vertex to use as a reference for the mouse direction 'curr_sv_index' */
-  float dist_sq = 0.0f;
   float dist_min_sq = FLT_MAX;
   int i;
 
   for (i = 0, sv = sld->sv; i < sld->totsv; i++, sv++) {
-    float co_2d[2];
+    const float2 co_2d = ED_view3d_project_float_v2_m4(t->region, sv->co_orig_3d, sld->proj_mat);
 
-    ED_view3d_project_float_v2_m4(t->region, sv->co_orig_3d, co_2d, sld->proj_mat);
-
-    dist_sq = len_squared_v2v2(mval_fl, co_2d);
+    const float dist_sq = len_squared_v2v2(mval_fl, co_2d);
     if (dist_sq < dist_min_sq) {
       dist_min_sq = dist_sq;
       sld->curr_sv_index = i;
@@ -199,7 +193,7 @@ static VertSlideData *createVertSlideVerts(TransInfo *t, const TransDataContaine
   BMEdge *e;
   BMVert *v;
   TransDataVertSlideVert *sv_array;
-  VertSlideData *sld = static_cast<VertSlideData *>(MEM_callocN(sizeof(*sld), "sld"));
+  VertSlideData *sld = MEM_new<VertSlideData>(__func__);
   int j;
 
   sld->curr_sv_index = 0;
@@ -267,7 +261,7 @@ static VertSlideData *createVertSlideVerts(TransInfo *t, const TransDataContaine
   sld->totsv = j;
 
   /* most likely will be set below */
-  unit_m4(sld->proj_mat);
+  sld->proj_mat = blender::float4x4::identity();
 
   if (t->spacetype == SPACE_VIEW3D) {
     /* view vars */
@@ -276,7 +270,7 @@ static VertSlideData *createVertSlideVerts(TransInfo *t, const TransDataContaine
 
     rv3d = static_cast<RegionView3D *>(region ? region->regiondata : nullptr);
     if (rv3d) {
-      ED_view3d_ob_project_mat_get(rv3d, tc->obedit, sld->proj_mat);
+      sld->proj_mat = ED_view3d_ob_project_mat_get(rv3d, tc->obedit);
     }
   }
 
@@ -718,7 +712,7 @@ void transform_mode_vert_slide_reproject_input(TransInfo *t)
     RegionView3D *rv3d = static_cast<RegionView3D *>(t->region->regiondata);
     FOREACH_TRANS_DATA_CONTAINER (t, tc) {
       VertSlideData *sld = static_cast<VertSlideData *>(tc->custom.mode.data);
-      ED_view3d_ob_project_mat_get(rv3d, tc->obedit, sld->proj_mat);
+      sld->proj_mat = ED_view3d_ob_project_mat_get(rv3d, tc->obedit);
     }
   }
 

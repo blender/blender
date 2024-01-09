@@ -385,7 +385,8 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
           case SIMFACE_PERIMETER: {
             float perimeter = BM_face_calc_perimeter_with_mat3(face, ob_m3);
             if (ED_select_similar_compare_float_tree(
-                    tree_1d, perimeter, thresh, eSimilarCmp(compare))) {
+                    tree_1d, perimeter, thresh, eSimilarCmp(compare)))
+            {
               select = true;
             }
             break;
@@ -424,7 +425,8 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
           }
           case SIMFACE_SMOOTH:
             if ((BM_elem_flag_test(face, BM_ELEM_SMOOTH) != 0) ==
-                ((face_data_value & SIMFACE_DATA_TRUE) != 0)) {
+                ((face_data_value & SIMFACE_DATA_TRUE) != 0))
+            {
               select = true;
             }
             break;
@@ -458,7 +460,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
     if (changed) {
       EDBM_selectmode_flush(em);
       EDBMUpdate_Params params{};
-      params.calc_looptri = false;
+      params.calc_looptris = false;
       params.calc_normals = false;
       params.is_destructive = false;
       EDBM_update(static_cast<Mesh *>(ob->data), &params);
@@ -484,7 +486,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
       }
       EDBM_selectmode_flush(em);
       EDBMUpdate_Params params{};
-      params.calc_looptri = false;
+      params.calc_looptris = false;
       params.calc_normals = false;
       params.is_destructive = false;
       EDBM_update(static_cast<Mesh *>(ob->data), &params);
@@ -508,11 +510,6 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 /** \name Select Similar Edge
  * \{ */
 
-/**
- * NOTE: This is not normal, but the edge direction itself and always in
- * a positive quadrant (tries z, y then x).
- * Therefore we need to use the entire object transformation matrix.
- */
 static void edge_pos_direction_worldspace_get(Object *ob, BMEdge *edge, float *r_dir)
 {
   float v1[3], v2[3];
@@ -524,22 +521,6 @@ static void edge_pos_direction_worldspace_get(Object *ob, BMEdge *edge, float *r
 
   sub_v3_v3v3(r_dir, v1, v2);
   normalize_v3(r_dir);
-
-  /* Make sure we have a consistent direction that can be checked regardless of
-   * the verts order of the edges. This spares us from storing dir and -dir in the tree_3d. */
-  if (fabs(r_dir[2]) < FLT_EPSILON) {
-    if (fabs(r_dir[1]) < FLT_EPSILON) {
-      if (r_dir[0] < 0.0f) {
-        mul_v3_fl(r_dir, -1.0f);
-      }
-    }
-    else if (r_dir[1] < 0.0f) {
-      mul_v3_fl(r_dir, -1.0f);
-    }
-  }
-  else if (r_dir[2] < 0.0f) {
-    mul_v3_fl(r_dir, -1.0f);
-  }
 }
 
 static float edge_length_squared_worldspace_get(Object *ob, BMEdge *edge)
@@ -619,7 +600,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
       tree_1d = BLI_kdtree_1d_new(tot_edges_selected_all);
       break;
     case SIMEDGE_DIR:
-      tree_3d = BLI_kdtree_3d_new(tot_edges_selected_all);
+      tree_3d = BLI_kdtree_3d_new(tot_edges_selected_all * 2);
       break;
     case SIMEDGE_FACE:
       gset = BLI_gset_ptr_new("Select similar edge: face");
@@ -687,9 +668,13 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
             BLI_gset_add(gset, POINTER_FROM_INT(BM_edge_face_count(edge)));
             break;
           case SIMEDGE_DIR: {
-            float dir[3];
+            float dir[3], dir_flip[3];
             edge_pos_direction_worldspace_get(ob, edge, dir);
             BLI_kdtree_3d_insert(tree_3d, tree_index++, dir);
+            /* Also store the flipped direction so it can be checked regardless of the verts order
+             * of the edges. */
+            negate_v3_v3(dir_flip, dir);
+            BLI_kdtree_3d_insert(tree_3d, tree_index++, dir_flip);
             break;
           }
           case SIMEDGE_LENGTH: {
@@ -846,7 +831,8 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
           case SIMEDGE_LENGTH: {
             float length = edge_length_squared_worldspace_get(ob, edge);
             if (ED_select_similar_compare_float_tree(
-                    tree_1d, length, thresh, eSimilarCmp(compare))) {
+                    tree_1d, length, thresh, eSimilarCmp(compare)))
+            {
               select = true;
             }
             break;
@@ -862,13 +848,15 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
           }
           case SIMEDGE_SEAM:
             if ((BM_elem_flag_test(edge, BM_ELEM_SEAM) != 0) ==
-                ((edge_data_value & SIMEDGE_DATA_TRUE) != 0)) {
+                ((edge_data_value & SIMEDGE_DATA_TRUE) != 0))
+            {
               select = true;
             }
             break;
           case SIMEDGE_SHARP:
             if ((BM_elem_flag_test(edge, BM_ELEM_SMOOTH) != 0) ==
-                ((edge_data_value & SIMEDGE_DATA_TRUE) != 0)) {
+                ((edge_data_value & SIMEDGE_DATA_TRUE) != 0))
+            {
               select = true;
             }
             break;
@@ -899,7 +887,8 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 
             const float *value = BM_ELEM_CD_GET_FLOAT_P(edge, custom_data_offset);
             if (ED_select_similar_compare_float_tree(
-                    tree_1d, *value, thresh, eSimilarCmp(compare))) {
+                    tree_1d, *value, thresh, eSimilarCmp(compare)))
+            {
               select = true;
             }
             break;
@@ -916,7 +905,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
     if (changed) {
       EDBM_selectmode_flush(em);
       EDBMUpdate_Params params{};
-      params.calc_looptri = false;
+      params.calc_looptris = false;
       params.calc_normals = false;
       params.is_destructive = false;
       EDBM_update(static_cast<Mesh *>(ob->data), &params);
@@ -942,7 +931,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
       }
       EDBM_selectmode_flush(em);
       EDBMUpdate_Params params{};
-      params.calc_looptri = false;
+      params.calc_looptris = false;
       params.calc_normals = false;
       params.is_destructive = false;
       EDBM_update(static_cast<Mesh *>(ob->data), &params);
@@ -1255,7 +1244,8 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
             }
             const float *value = BM_ELEM_CD_GET_FLOAT_P(vert, cd_crease_offset);
             if (ED_select_similar_compare_float_tree(
-                    tree_1d, *value, thresh, eSimilarCmp(compare))) {
+                    tree_1d, *value, thresh, eSimilarCmp(compare)))
+            {
               select = true;
             }
             break;
@@ -1276,7 +1266,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
     if (changed) {
       EDBM_selectmode_flush(em);
       EDBMUpdate_Params params{};
-      params.calc_looptri = false;
+      params.calc_looptris = false;
       params.calc_normals = false;
       params.is_destructive = false;
       EDBM_update(static_cast<Mesh *>(ob->data), &params);

@@ -34,9 +34,9 @@ static std::string get_mesh_active_uvlayer_name(const Object *ob)
     return "";
   }
 
-  const Mesh *me = static_cast<Mesh *>(ob->data);
+  const Mesh *mesh = static_cast<Mesh *>(ob->data);
 
-  const char *name = CustomData_get_active_layer_name(&me->loop_data, CD_PROP_FLOAT2);
+  const char *name = CustomData_get_active_layer_name(&mesh->corner_data, CD_PROP_FLOAT2);
 
   return name ? name : "";
 }
@@ -118,7 +118,7 @@ pxr::UsdShadeMaterial USDAbstractWriter::ensure_usd_material(const HierarchyCont
   }
 
   std::string active_uv = get_mesh_active_uvlayer_name(context.object);
-  return create_usd_material(usd_export_context_, usd_path, material, active_uv);
+  return create_usd_material(usd_export_context_, usd_path, material, active_uv, reports());
 }
 
 void USDAbstractWriter::write_visibility(const HierarchyContext &context,

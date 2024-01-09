@@ -36,19 +36,56 @@ private:
 	typedef void (JOSResampleReader::*resample_f)(double target_factor, int length, sample_t* buffer);
 
 	/**
+	 * The half filter length for Quality::HIGH setting. 
+	 */
+	static const int m_len_high;
+	/**
+	 * The half filter length for Quality::MEDIUM setting.
+	 */
+	static const int m_len_medium;
+	/**
+	 * The half filter length for Quality::LOW setting.
+	 */
+	static const int m_len_low;
+	/**
+	 * The filter sample step size for Quality::HIGH setting.
+	 */
+	static const int m_L_high;
+	/**
+	 * The filter sample step size for Quality::MEDIUM setting.
+	 */
+	static const int m_L_medium;
+	/**
+	 * The filter sample step size for Quality::LOW setting.
+	 */
+	static const int m_L_low;
+	/**
+	 * The filter coefficients for Quality::HIGH setting.
+	 */
+	static const float m_coeff_high[];
+	/**
+	 * The filter coefficients for Quality::MEDIUM setting.
+	 */
+	static const float m_coeff_medium[];
+	/**
+	 * The filter coefficients for Quality::LOW setting.
+	 */
+	static const float m_coeff_low[];
+
+	/**
 	 * The half filter length.
 	 */
-	static const int m_len;
+	int m_len;
 
 	/**
 	 * The sample step size for the filter.
 	 */
-	static const int m_L;
+	int m_L;
 
 	/**
 	 * The filter coefficients.
 	 */
-	static const float m_coeff[];
+	const float* m_coeff;
 
 	/**
 	 * The reader channels.
@@ -107,17 +144,27 @@ private:
 	 */
 	void AUD_LOCAL updateBuffer(int size, double factor, int samplesize);
 
-	void AUD_LOCAL resample(double target_factor, int length, sample_t* buffer);
+	void AUD_LOCAL resample_generic(double target_factor, int length, sample_t* buffer);
 	void AUD_LOCAL resample_mono(double target_factor, int length, sample_t* buffer);
 	void AUD_LOCAL resample_stereo(double target_factor, int length, sample_t* buffer);
 
+	template <typename T>
+	void AUD_LOCAL resample(double target_factor, int length, sample_t* buffer);
+
 public:
+	enum class Quality
+	{
+		LOW = 0,
+		MEDIUM,
+		HIGH,
+	};
+
 	/**
 	 * Creates a resampling reader.
 	 * \param reader The reader to mix.
 	 * \param rate The target sampling rate.
 	 */
-	JOSResampleReader(std::shared_ptr<IReader> reader, SampleRate rate);
+	JOSResampleReader(std::shared_ptr<IReader> reader, SampleRate rate, Quality = Quality::MEDIUM);
 
 	virtual void seek(int position);
 	virtual int getLength() const;

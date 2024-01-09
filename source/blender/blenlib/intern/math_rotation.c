@@ -17,9 +17,17 @@
 /******************************** Quaternions ********************************/
 
 /* used to test is a quat is not normalized (only used for debug prints) */
-#ifdef DEBUG
+#ifndef NDEBUG
 #  define QUAT_EPSILON 0.0001
 #endif
+
+/**
+ * The threshold for using a zeroed 3rd (typically Z) value when calculating the euler.
+ * NOTE(@ideasman42): A reasonable range for this value is (0.0002 .. 0.00002).
+ * This was previously `16 * FLT_EPSILON` however it caused imprecision at times,
+ * see examples from: #116880.
+ */
+#define EULER_HYPOT_EPSILON 0.0000375
 
 void unit_axis_angle(float axis[3], float *angle)
 {
@@ -216,7 +224,7 @@ static void quat_to_mat3_no_error(float m[3][3], const float q[4])
 
 void quat_to_mat3(float m[3][3], const float q[4])
 {
-#ifdef DEBUG
+#ifndef NDEBUG
   float f;
   if (!((f = dot_qtqt(q, q)) == 0.0f || (fabsf(f - 1.0f) < (float)QUAT_EPSILON))) {
     fprintf(stderr,
@@ -232,7 +240,7 @@ void quat_to_mat4(float m[4][4], const float q[4])
 {
   double q0, q1, q2, q3, qda, qdb, qdc, qaa, qab, qac, qbb, qbc, qcc;
 
-#ifdef DEBUG
+#ifndef NDEBUG
   if (!((q0 = dot_qtqt(q, q)) == 0.0 || (fabs(q0 - 1.0) < QUAT_EPSILON))) {
     fprintf(stderr,
             "Warning! quat_to_mat4() called with non-normalized: size %.8f *** report a bug ***\n",
@@ -1065,7 +1073,7 @@ void quat_to_axis_angle(float axis[3], float *angle, const float q[4])
 {
   float ha, si;
 
-#ifdef DEBUG
+#ifndef NDEBUG
   if (!((ha = dot_qtqt(q, q)) == 0.0f || (fabsf(ha - 1.0f) < (float)QUAT_EPSILON))) {
     fprintf(stderr,
             "Warning! quat_to_axis_angle() called with non-normalized: size %.8f *** report a bug "
@@ -1392,8 +1400,7 @@ static void mat3_normalized_to_eul2(const float mat[3][3], float eul1[3], float 
 
   BLI_ASSERT_UNIT_M3(mat);
 
-  if (cy > 16.0f * FLT_EPSILON) {
-
+  if (cy > (float)EULER_HYPOT_EPSILON) {
     eul1[0] = atan2f(mat[1][2], mat[2][2]);
     eul1[1] = atan2f(-mat[0][2], cy);
     eul1[2] = atan2f(mat[0][1], mat[0][0]);
@@ -1727,7 +1734,7 @@ static void mat3_normalized_to_eulo2(const float mat[3][3],
 
   cy = hypotf(mat[i][i], mat[i][j]);
 
-  if (cy > 16.0f * FLT_EPSILON) {
+  if (cy > (float)EULER_HYPOT_EPSILON) {
     eul1[i] = atan2f(mat[j][k], mat[k][k]);
     eul1[j] = atan2f(-mat[i][k], cy);
     eul1[k] = atan2f(mat[i][j], mat[i][i]);

@@ -6,15 +6,12 @@
 
 /** \file
  * \ingroup bke
- * \brief External data structures for PBVH. Does not include data structures internal to the draw
- * code.
+ * \brief External data structures for PBVH. Does not include internal data structures.
  */
 
-#include "BLI_compiler_compat.h"
 #include "BLI_utildefines.h"
 
 struct PBVHNode;
-struct PBVHBatches;
 struct BMesh;
 
 enum PBVHType {
@@ -23,7 +20,7 @@ enum PBVHType {
   PBVH_BMESH,
 };
 
-/* #PBVHNodeFlags is needed by `DRW_render.h` and `draw_cache.cc`. */
+/* #PBVHNodeFlags is needed by `DRW_render.hh` and `draw_cache.cc`. */
 enum PBVHNodeFlags {
   PBVH_Leaf = 1 << 0,
 
@@ -66,20 +63,6 @@ struct PBVHVertRef {
   PBVH_REF_CXX_METHODS(PBVHVertRef)
 };
 
-/* NOTE: edges in PBVH_GRIDS are always pulled from the base mesh. */
-struct PBVHEdgeRef {
-  intptr_t i;
-
-  PBVH_REF_CXX_METHODS(PBVHVertRef)
-};
-
-/* NOTE: faces in PBVH_GRIDS are always puled from the base mesh. */
-struct PBVHFaceRef {
-  intptr_t i;
-
-  PBVH_REF_CXX_METHODS(PBVHVertRef)
-};
-
 #define PBVH_REF_NONE -1LL
 
 /* Public members of PBVH, used for inlined functions. */
@@ -91,7 +74,7 @@ struct PBVHPublic {
 struct PBVH;
 struct PBVHNode;
 
-BLI_INLINE PBVHType BKE_pbvh_type(const PBVH *pbvh)
+inline PBVHType BKE_pbvh_type(const PBVH *pbvh)
 {
   return ((const PBVHPublic *)pbvh)->type;
 }

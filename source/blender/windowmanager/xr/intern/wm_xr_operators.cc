@@ -19,7 +19,7 @@
 #include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_screen.hh"
 
 #include "DEG_depsgraph.hh"
@@ -43,7 +43,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "wm_xr_intern.h"
+#include "wm_xr_intern.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Operator Conditions

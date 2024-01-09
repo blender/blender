@@ -741,7 +741,8 @@ ccl_device_intersect bool kernel_embree_intersect(KernelGlobals kg,
   rtcIntersect1(kernel_data.device_bvh, &ctx, &ray_hit);
 #endif
   if (ray_hit.hit.geomID == RTC_INVALID_GEOMETRY_ID ||
-      ray_hit.hit.primID == RTC_INVALID_GEOMETRY_ID) {
+      ray_hit.hit.primID == RTC_INVALID_GEOMETRY_ID)
+  {
     return false;
   }
 

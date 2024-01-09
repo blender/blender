@@ -218,6 +218,15 @@ struct MSLUniform {
   }
 };
 
+struct MSLConstant {
+  shader::Type type;
+  std::string name;
+
+  MSLConstant(shader::Type const_type, std::string const_name) : type(const_type), name(const_name)
+  {
+  }
+};
+
 struct MSLBufferBlock {
   std::string type_name;
   std::string name;
@@ -227,6 +236,8 @@ struct MSLBufferBlock {
   uint slot;
   uint location;
   shader::Qualifier qualifiers;
+  /* Flag for use with texture atomic fallback. */
+  bool is_texture_buffer = false;
 
   bool operator==(const MSLBufferBlock &right) const
   {
@@ -253,6 +264,9 @@ struct MSLTextureResource {
   uint slot;
   /* Explicit bind index provided by ShaderCreateInfo. */
   uint location;
+
+  /* Atomic fallback buffer information. */
+  int atomic_fallback_buffer_ssbo_id = -1;
 
   eGPUTextureType get_texture_binding_type() const;
   eGPUSamplerFormat get_sampler_format() const;
@@ -396,6 +410,8 @@ class MSLGeneratorInterface {
   blender::Vector<MSLTextureResource> texture_samplers;
   blender::Vector<MSLVertexInputAttribute> vertex_input_attributes;
   blender::Vector<MSLVertexOutputAttribute> vertex_output_varyings;
+  /* Specialization Constants. */
+  blender::Vector<MSLConstant> constants;
   /* Fragment tile inputs. */
   blender::Vector<MSLFragmentTileInputAttribute> fragment_tile_inputs;
   /* Should match vertex outputs, but defined separately as
@@ -429,6 +445,7 @@ class MSLGeneratorInterface {
   bool uses_gl_PrimitiveID;
   /* Sets the output render target array index when using multilayered rendering. */
   bool uses_gl_FragDepth;
+  bool uses_gl_FragStencilRefARB;
   bool uses_gpu_layer;
   bool uses_gpu_viewport_index;
   bool uses_transform_feedback;

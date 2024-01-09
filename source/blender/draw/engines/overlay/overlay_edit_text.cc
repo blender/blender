@@ -6,14 +6,14 @@
  * \ingroup draw_engine
  */
 
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include "UI_resources.hh"
 
 #include "BLI_math_color.h"
 #include "BLI_math_rotation.h"
 
-#include "BKE_vfont.h"
+#include "BKE_vfont.hh"
 
 #include "DNA_curve_types.h"
 

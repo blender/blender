@@ -8,7 +8,6 @@
 
 #include "BLI_bit_ref.hh"
 #include "BLI_index_range.hh"
-#include "BLI_math_bits.h"
 #include "BLI_memory_utils.hh"
 
 namespace blender::bits {
@@ -361,6 +360,11 @@ class MutableBoundedBitSpan : public MutableBitSpan {
   MutableBoundedBitSpan take_front(const int64_t n) const
   {
     return {data_, bit_range_.take_front(n)};
+  }
+
+  BoundedBitSpan as_span() const
+  {
+    return BoundedBitSpan(data_, bit_range_);
   }
 
   void copy_from(const BitSpan other);

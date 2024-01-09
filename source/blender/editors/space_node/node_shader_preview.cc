@@ -31,13 +31,13 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
-#include "BKE_colortools.h"
+#include "BKE_colortools.hh"
 #include "BKE_compute_contexts.hh"
 #include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
@@ -452,7 +452,7 @@ static void connect_node_to_surface_output(const Span<bNodeTreePath *> treepath,
 static void connect_nodes_to_aovs(const Span<bNodeTreePath *> treepath,
                                   const Span<NodeSocketPair> &nodesocket_span)
 {
-  if (nodesocket_span.size() == 0) {
+  if (nodesocket_span.is_empty()) {
     return;
   }
   bNodeTree *main_nt = treepath.first()->nodetree;

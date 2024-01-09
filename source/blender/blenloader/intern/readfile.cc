@@ -73,10 +73,10 @@
 #include "BKE_lib_id.h"
 #include "BKE_lib_override.hh"
 #include "BKE_lib_query.h"
-#include "BKE_lib_remap.h"
-#include "BKE_main.h" /* for Main */
-#include "BKE_main_idmap.h"
-#include "BKE_main_namemap.h"
+#include "BKE_lib_remap.hh"
+#include "BKE_main.hh" /* for Main */
+#include "BKE_main_idmap.hh"
+#include "BKE_main_namemap.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
@@ -89,7 +89,7 @@
 #include "BKE_undo_system.h"
 #include "BKE_workspace.h"
 
-#include "DRW_engine.h"
+#include "DRW_engine.hh"
 
 #include "DEG_depsgraph.hh"
 
@@ -99,7 +99,6 @@
 #include "BLO_readfile.h"
 #include "BLO_undofile.hh"
 
-#include "SEQ_clipboard.hh"
 #include "SEQ_iterator.hh"
 #include "SEQ_modifier.hh"
 #include "SEQ_sequencer.hh"
@@ -1411,6 +1410,17 @@ BlendThumbnail *BLO_thumbnail_from_file(const char *filepath)
   blo_filedata_free(fd);
 
   return data;
+}
+
+short BLO_version_from_file(const char *filepath)
+{
+  short version = 0;
+  FileData *fd = blo_filedata_from_file_minimal(filepath);
+  if (fd) {
+    version = fd->fileversion;
+    blo_filedata_free(fd);
+  }
+  return version;
 }
 
 /** \} */
@@ -3309,7 +3319,8 @@ static void lib_link_all(FileData *fd, Main *bmain)
     const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id);
 
     if ((id->tag & (LIB_TAG_UNDO_OLD_ID_REUSED_UNCHANGED | LIB_TAG_UNDO_OLD_ID_REUSED_NOUNDO)) !=
-        0) {
+        0)
+    {
       BLI_assert(fd->flags & FD_FLAGS_IS_MEMFILE);
       /* This ID has been re-used from 'old' bmain. Since it was therefore unchanged across
        * current undo step, and old IDs re-use their old memory address, we do not need to liblink
@@ -3544,8 +3555,10 @@ static void read_undo_remap_noundo_data(FileData *fd)
   FOREACH_MAIN_ID_END;
 }
 
-/** Contains sanity/debug checks to be performed at the very end of the reading process (i.e. after
- * data, liblink, linked data, etc. has been done). */
+/**
+ * Contains sanity/debug checks to be performed at the very end of the reading process (i.e. after
+ * data, liblink, linked data, etc. has been done).
+ */
 static void blo_read_file_checks(Main *bmain)
 {
 #ifndef NDEBUG

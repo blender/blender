@@ -64,8 +64,8 @@ static void compute_marker_points(MovieClip *movie_clip,
                                   Vector<float2> &marker_positions,
                                   Vector<float4> &marker_colors)
 {
-  BLI_assert(marker_positions.size() == 0);
-  BLI_assert(marker_colors.size() == 0);
+  BLI_assert(marker_positions.is_empty());
+  BLI_assert(marker_colors.is_empty());
 
   ImBuf *image_buffer = BKE_movieclip_get_ibuf(movie_clip, &movie_clip_user);
   if (!image_buffer) {

@@ -169,7 +169,7 @@ struct Node {
    * The reason why all depsgraph nodes are descended from this type (apart
    * from basic serialization benefits - from the typeinfo) is that we can
    * have relationships between these nodes. */
-  typedef Vector<Relation *> Relations;
+  using Relations = Vector<Relation *>;
 
   string name;        /* Identifier - mainly for debugging purposes. */
   NodeType type;      /* Structural type of node. */

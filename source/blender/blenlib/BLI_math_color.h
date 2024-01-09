@@ -177,7 +177,7 @@ MINLINE void float_to_byte_dither_v3(
     unsigned char b[3], const float f[3], float dither, float s, float t);
 
 #define rgba_char_args_set_fl(col, r, g, b, a) \
-  rgba_char_args_set(col, (r)*255, (g)*255, (b)*255, (a)*255)
+  rgba_char_args_set(col, (r) * 255, (g) * 255, (b) * 255, (a) * 255)
 
 #define rgba_float_args_set_ch(col, r, g, b, a) \
   rgba_float_args_set(col, (r) / 255.0f, (g) / 255.0f, (b) / 255.0f, (a) / 255.0f)

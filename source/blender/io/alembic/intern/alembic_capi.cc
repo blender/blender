@@ -664,7 +664,7 @@ static void import_endjob(void *user_data)
       break;
   }
 
-  WM_main_add_notifier(NC_SCENE | ND_FRAME, data->scene);
+  WM_main_add_notifier(NC_ID | NA_ADDED, nullptr);
   report_job_duration(data);
 }
 

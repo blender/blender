@@ -51,8 +51,8 @@
 #include "BKE_lib_id.h"
 #include "BKE_lib_override.hh"
 #include "BKE_lib_query.h"
-#include "BKE_lib_remap.h"
-#include "BKE_main.h"
+#include "BKE_lib_remap.hh"
+#include "BKE_main.hh"
 #include "BKE_object.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -281,9 +281,9 @@ static void unlink_material_fn(bContext * /*C*/,
       break;
     }
     case ID_ME: {
-      Mesh *me = (Mesh *)tsep->id;
-      totcol = me->totcol;
-      matar = me->mat;
+      Mesh *mesh = (Mesh *)tsep->id;
+      totcol = mesh->totcol;
+      matar = mesh->mat;
       break;
     }
     case ID_CU_LEGACY: {
@@ -530,7 +530,8 @@ static void outliner_do_libdata_operation(bContext *C,
     TreeStoreElem *tselem = TREESTORE(te);
     if (tselem->flag & TSE_SELECTED) {
       if (((tselem->type == TSE_SOME_ID) && (te->idcode != 0)) ||
-          tselem->type == TSE_LAYER_COLLECTION) {
+          tselem->type == TSE_LAYER_COLLECTION)
+      {
         TreeStoreElem *tsep = te->parent ? TREESTORE(te->parent) : nullptr;
         operation_fn(C, reports, scene, te, tsep, tselem, user_data);
       }
@@ -2294,7 +2295,7 @@ static void constraint_fn(int event, TreeElement *te, TreeStoreElem * /*tselem*/
       lb = &ob->constraints;
     }
 
-    if (BKE_constraint_remove_ex(lb, ob, constraint, true)) {
+    if (BKE_constraint_remove_ex(lb, ob, constraint)) {
       /* there's no active constraint now, so make sure this is the case */
       BKE_constraints_active_set(&ob->constraints, nullptr);
 

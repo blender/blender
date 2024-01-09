@@ -19,9 +19,9 @@
 
 #include "BKE_customdata.hh"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
-#include "intern/bmesh_operators_private.h" /* own include */
+#include "intern/bmesh_operators_private.hh" /* own include */
 
 #define USE_CAP_OPTION
 
@@ -52,7 +52,8 @@ static BMFace *bm_face_split_walk_back(BMesh *bm, BMLoop *l_src, BMLoop **r_l)
   cos = BLI_array_alloca(cos, num);
 
   for (l_dst = l_src->prev, i = 0; BM_elem_index_get(l_dst->prev->v) != -1;
-       l_dst = l_dst->prev, i++) {
+       l_dst = l_dst->prev, i++)
+  {
     copy_v3_v3(cos[num - (i + 1)], l_dst->v->co);
   }
 

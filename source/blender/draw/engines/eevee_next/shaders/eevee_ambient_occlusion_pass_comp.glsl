@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_ambient_occlusion_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_horizon_scan_eval_lib.glsl)
 
 void main()
@@ -45,7 +44,8 @@ void main()
                     uniform_buf.ao.distance,
                     uniform_buf.ao.thickness,
                     uniform_buf.ao.angle_bias,
-                    10);
+                    10,
+                    false);
 
   imageStore(
       out_ao_img, ivec3(texel, out_ao_img_layer_index), vec4(saturate(ctx.occlusion_result.r)));

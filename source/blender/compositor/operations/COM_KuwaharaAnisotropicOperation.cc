@@ -20,6 +20,7 @@ KuwaharaAnisotropicOperation::KuwaharaAnisotropicOperation()
   this->add_input_socket(DataType::Color);
   this->add_output_socket(DataType::Color);
   this->flags_.is_fullframe_operation = true;
+  this->flags_.can_be_constant = true;
 }
 
 void KuwaharaAnisotropicOperation::init_execution()

@@ -15,7 +15,6 @@
  */
 
 #include <algorithm>
-#include <cstring>
 #include <utility>
 
 #include "BLI_memory_utils.hh"
@@ -160,7 +159,9 @@ class Any {
         info_->copy_construct(&buffer_, &other.buffer_);
       }
       else {
-        memcpy(&buffer_, &other.buffer_, RealInlineBufferCapacity);
+        std::copy_n(static_cast<const std::byte *>(other.buffer_.ptr()),
+                    RealInlineBufferCapacity,
+                    static_cast<std::byte *>(buffer_.ptr()));
       }
     }
   }
@@ -176,7 +177,9 @@ class Any {
         info_->move_construct(&buffer_, &other.buffer_);
       }
       else {
-        memcpy(&buffer_, &other.buffer_, RealInlineBufferCapacity);
+        std::copy_n(static_cast<const std::byte *>(other.buffer_.ptr()),
+                    RealInlineBufferCapacity,
+                    static_cast<std::byte *>(buffer_.ptr()));
       }
     }
   }
@@ -311,20 +314,29 @@ class Any {
    * Get a reference to the stored value. This invokes undefined behavior when #T does not have the
    * correct type.
    */
-  template<typename T> std::decay_t<T> &get()
+  template<typename T> T &get()
   {
-    BLI_assert(this->is<T>());
-    return *static_cast<std::decay_t<T> *>(this->get());
+    /* Use const-cast to be able to reuse the const method above. */
+    return const_cast<T &>(const_cast<const Any *>(this)->get<T>());
   }
 
   /**
    * Get a reference to the stored value. This invokes undefined behavior when #T does not have the
    * correct type.
    */
-  template<typename T> const std::decay_t<T> &get() const
+  template<typename T> const T &get() const
   {
     BLI_assert(this->is<T>());
-    return *static_cast<const std::decay_t<T> *>(this->get());
+    const void *buffer;
+    /* Can avoid the `info_->get == nullptr` check because the result is known statically. */
+    if constexpr (is_inline_v<T>) {
+      buffer = &buffer_;
+    }
+    else {
+      BLI_assert(info_->get != nullptr);
+      buffer = info_->get(&buffer_);
+    }
+    return *static_cast<const T *>(buffer);
   }
 
   /**

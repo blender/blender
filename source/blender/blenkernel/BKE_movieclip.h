@@ -46,21 +46,21 @@ struct ImBuf *BKE_movieclip_get_postprocessed_ibuf(struct MovieClip *clip,
                                                    int postprocess_flag);
 struct ImBuf *BKE_movieclip_get_stable_ibuf(struct MovieClip *clip,
                                             const struct MovieClipUser *user,
-                                            float loc[2],
-                                            float *scale,
-                                            float *angle,
-                                            int postprocess_flag);
+                                            int postprocess_flag,
+                                            float r_loc[2],
+                                            float *r_scale,
+                                            float *r_angle);
 struct ImBuf *BKE_movieclip_get_ibuf_flag(struct MovieClip *clip,
                                           const struct MovieClipUser *user,
                                           int flag,
                                           int cache_flag);
 void BKE_movieclip_get_size(struct MovieClip *clip,
                             const struct MovieClipUser *user,
-                            int *width,
-                            int *height);
+                            int *r_width,
+                            int *r_height);
 void BKE_movieclip_get_size_fl(struct MovieClip *clip,
                                const struct MovieClipUser *user,
-                               float size[2]);
+                               float r_size[2]);
 int BKE_movieclip_get_duration(struct MovieClip *clip);
 float BKE_movieclip_get_fps(struct MovieClip *clip);
 void BKE_movieclip_get_aspect(struct MovieClip *clip, float *aspx, float *aspy);

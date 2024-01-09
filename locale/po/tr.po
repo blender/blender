@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'7ce745a76b47')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd13edee3e0cc')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-20 11:21:26\n"
+"POT-Creation-Date: 2024-01-08 11:04:23\n"
 "PO-Revision-Date: 2023-11-15 02:54+0000\n"
 "Last-Translator: bitigchi <bitigchi@me.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -1403,6 +1403,14 @@ msgstr "Varlık Kitaplığı"
 
 msgid "Choose the asset library to display assets from"
 msgstr "Varlıkların görüntüleneceği varlık kitaplığını seç"
+
+
+msgid "All"
+msgstr "Tümü"
+
+
+msgid "Custom"
+msgstr "Özel"
 
 
 msgid "ID Name"
@@ -3899,10 +3907,6 @@ msgid "Active Collection Index"
 msgstr "Etkin Koleksiyon İndeksi"
 
 
-msgid "The index of the Armature's active bone collection; -1 when there is no active collection"
-msgstr "Armatürün etkin kemik koleksiyonunun indeksi; etkin koleksiyon yokken -1'dir"
-
-
 msgid "Active Collection Name"
 msgstr "Etkin Koleksiyon Adı"
 
@@ -3913,10 +3917,6 @@ msgstr "Armatürün etkin kemik koleksiyonunun adı; etkin koleksiyon yokken bo�
 
 msgid "Theme color or custom color of a bone"
 msgstr "Bir kemiğin tema veya özel rengi"
-
-
-msgid "Custom"
-msgstr "Özel"
 
 
 msgid "The custom bone colors, used when palette is 'CUSTOM'"
@@ -4392,10 +4392,6 @@ msgstr "Ters çevrilen alanı doldur"
 
 msgid "Mode to draw boundary limits"
 msgstr "Had sınırlarını çizmek için kip"
-
-
-msgid "All"
-msgstr "Tümü"
 
 
 msgid "Use both visible strokes and edit lines as fill boundary limits"
@@ -6254,6 +6250,10 @@ msgid "Save"
 msgstr "Kaydet"
 
 
+msgid "Operator"
+msgstr "Operatör"
+
+
 msgid "Environment"
 msgstr "Çevre"
 
@@ -6463,8 +6463,60 @@ msgid "Blue"
 msgstr "Mavi"
 
 
+msgid "Font"
+msgstr "Yazıtipi"
+
+
+msgid "Key"
+msgstr "Anahtar"
+
+
 msgid "Library"
 msgstr "Kütüphane"
+
+
+msgid "Light"
+msgstr "Işık"
+
+
+msgid "Mask"
+msgstr "Maske"
+
+
+msgid "Mesh"
+msgstr "Örgü"
+
+
+msgid "Node Tree"
+msgstr "Düğüm Ağacı"
+
+
+msgid "Particle"
+msgstr "Parçacık"
+
+
+msgid "Point Cloud"
+msgstr "Nokta Bulutu"
+
+
+msgid "Sound"
+msgstr "Ses"
+
+
+msgid "Text"
+msgstr "Metin"
+
+
+msgid "Window Manager"
+msgstr "Pencere Yöneticisi"
+
+
+msgid "Workspace"
+msgstr "Çalışma Alanı"
+
+
+msgid "World"
+msgstr "Dünya"
 
 
 msgid "Save this data-block even if it has no users"
@@ -6807,10 +6859,6 @@ msgid "Path"
 msgstr "Yol"
 
 
-msgid "Font"
-msgstr "Yazıtipi"
-
-
 msgid "Font Size"
 msgstr "Yazıtipi Boyutu"
 
@@ -6829,10 +6877,6 @@ msgstr "Asg"
 
 msgid "Max"
 msgstr "Azm"
-
-
-msgid "Node Tree"
-msgstr "Düğüm Ağacı"
 
 
 msgid "2D Length"
@@ -6994,14 +7038,6 @@ msgstr "Düzen"
 
 msgid "Tool"
 msgstr "Araç"
-
-
-msgid "Mesh"
-msgstr "Örgü"
-
-
-msgid "Point Cloud"
-msgstr "Nokta Bulutu"
 
 
 msgid "Data"
@@ -7188,10 +7224,6 @@ msgid "Mass"
 msgstr "Kütle"
 
 
-msgid "Particle"
-msgstr "Parçacık"
-
-
 msgid "Newtonian"
 msgstr "Newtoncu"
 
@@ -7296,10 +7328,6 @@ msgid "5 Channels"
 msgstr "5 Kanal"
 
 
-msgid "Sound"
-msgstr "Ses"
-
-
 msgctxt "Text"
 msgid "Modified"
 msgstr "Değiştirildi"
@@ -7322,10 +7350,6 @@ msgid "Sequence Mode"
 msgstr "Sekans Kipi"
 
 
-msgid "Window Manager"
-msgstr "Pencere Yöneticisi"
-
-
 msgid "Support"
 msgstr "Destek"
 
@@ -7340,10 +7364,6 @@ msgstr "XR Oturumu Ayarları"
 
 msgid "XR Session State"
 msgstr "XR Oturumu Durumu"
-
-
-msgid "Workspace"
-msgstr "Çalışma Alanı"
 
 
 msgid "Workspace data-block, defining the working environment for the user"
@@ -7522,10 +7542,6 @@ msgid "Texture"
 msgstr "Doku"
 
 
-msgid "Mask"
-msgstr "Maske"
-
-
 msgid "Bone Collection Specials"
 msgstr "Kemik Koleksiyonu Özel Seçimleri"
 
@@ -7546,14 +7562,6 @@ msgid "Channel"
 msgstr "Kanal"
 
 
-msgid "Dope Sheet Channel"
-msgstr "Döküm Kağıdı Kanalı"
-
-
-msgid "Key"
-msgstr "Anahtar"
-
-
 msgid "Snap"
 msgstr "Yakala"
 
@@ -7565,10 +7573,6 @@ msgstr "Açılım"
 msgctxt "Operator"
 msgid "Add"
 msgstr "Ekle"
-
-
-msgid "Text"
-msgstr "Metin"
 
 
 msgid "Keying"
@@ -7680,10 +7684,6 @@ msgid "Add Image"
 msgstr "Resim Ekle"
 
 
-msgid "Light"
-msgstr "Işık"
-
-
 msgid "Link/Transfer Data"
 msgstr "Veriyi Bağlantıla/Aktar"
 
@@ -7776,10 +7776,6 @@ msgstr "Kopya"
 
 msgid "Viewport Resolution"
 msgstr "Görüş Alanı Çözünürlüğü"
-
-
-msgid "World"
-msgstr "Dünya"
 
 
 msgid "Smooth Shading"
@@ -7939,6 +7935,10 @@ msgid "Rotation to Quaternion"
 msgstr "Döndürmeden Dördeye"
 
 
+msgid "Active Item Index"
+msgstr "Etkin Öge İndeksi"
+
+
 msgid "Original"
 msgstr "Özgün"
 
@@ -7956,10 +7956,6 @@ msgid "Mirror"
 msgstr "Yansıt"
 
 
-msgid "Signed Distance"
-msgstr "İmzalı Uzaklık"
-
-
 msgid "Is Viewport"
 msgstr "Görüş Alanı"
 
@@ -7970,10 +7966,6 @@ msgstr "Nesne Bilgisi"
 
 msgid "Points to Curves"
 msgstr "Noktalardan Eğriye"
-
-
-msgid "Active Item Index"
-msgstr "Etkin Öge İndeksi"
 
 
 msgid "Set Selection"
@@ -8934,6 +8926,10 @@ msgid "Duplicate Objects"
 msgstr "Nesneleri Çoğalt"
 
 
+msgid "Bake ID"
+msgstr "Pişirme Kimliği"
+
+
 msgid "Input Name"
 msgstr "Girdi Adı"
 
@@ -8989,10 +8985,6 @@ msgstr "Kıl Yarıçapı"
 msgctxt "Operator"
 msgid "Bake Simulation"
 msgstr "Pişirme Benzetimi"
-
-
-msgid "Bake ID"
-msgstr "Pişirme Kimliği"
 
 
 msgctxt "Operator"
@@ -9358,10 +9350,6 @@ msgstr "Betikleri Yeniden Yükle"
 
 msgid "Reload scripts"
 msgstr "Betikleri yeniden yükle"
-
-
-msgid "Operator"
-msgstr "Operatör"
 
 
 msgid "Sharpen"
@@ -10054,10 +10042,6 @@ msgid "UV Sculpting"
 msgstr "UV Yontması"
 
 
-msgid "Refraction"
-msgstr "Kırılma"
-
-
 msgid "Viewport Sampling Presets"
 msgstr "Görüş Alanı Örnekleme Önayarları"
 
@@ -10249,6 +10233,10 @@ msgid "Motion Tracking"
 msgstr "Hareket İzleme"
 
 
+msgid "Viewer Node"
+msgstr "Görüntüleyici Düğümü"
+
+
 msgctxt "Operator"
 msgid "Density"
 msgstr "Yoğunluk"
@@ -10353,14 +10341,6 @@ msgstr "Gres Kalemi 3.0"
 
 msgid "New Curves Tools"
 msgstr "Yeni Eğriler Araçları"
-
-
-msgid "Override Templates"
-msgstr "Şablonları Geçersiz Kıl"
-
-
-msgid "Enable library override template in the Python API"
-msgstr "Python API'sinde kitaplık geçersiz kılma şablonunu etkinleştir"
 
 
 msgid "Animation Player"
@@ -10770,10 +10750,6 @@ msgid "Object Evaluation State"
 msgstr "Nesne Değerlendirme Durumu"
 
 
-msgid "Viewer Node"
-msgstr "Görüntüleyici Düğümü"
-
-
 msgid "Syntax highlight for scripting"
 msgstr "Betik yazımı için sözdizim vurgulaması"
 
@@ -10925,6 +10901,10 @@ msgstr "Döküm Kağıdı için tema ayarları"
 
 msgid "Active Channel Group"
 msgstr "Etkin Kanal Grubu"
+
+
+msgid "Dope Sheet Channel"
+msgstr "Döküm Kağıdı Kanalı"
 
 
 msgid "Dope Sheet Sub-channel"
@@ -11542,6 +11522,10 @@ msgid "Caps Type"
 msgstr "Başlık Türü"
 
 
+msgid "Refraction"
+msgstr "Kırılma"
+
+
 msgid "Render Engine"
 msgstr "Sunum İşletkesi"
 
@@ -12100,11 +12084,6 @@ msgid "Fair Positions"
 msgstr "Eşit Konumlar"
 
 
-msgctxt "Operator"
-msgid "Move to Bone Collection"
-msgstr "Kemik Koleksiyonuna Taşı"
-
-
 msgid "Bone Settings"
 msgstr "Kemik Ayarları"
 
@@ -12112,6 +12091,11 @@ msgstr "Kemik Ayarları"
 msgctxt "Operator"
 msgid "Rename Active Bone..."
 msgstr "Etkin Kemiği Yeniden Adlandır..."
+
+
+msgctxt "Operator"
+msgid "Move to Bone Collection"
+msgstr "Kemik Koleksiyonuna Taşı"
 
 
 msgctxt "GPencil"
@@ -12706,10 +12690,6 @@ msgstr "Boya Eğrisi"
 
 msgid " Materials,"
 msgstr " Malzemeler,"
-
-
-msgid " Textures,"
-msgstr " Dokular,"
 
 
 msgid "OK"

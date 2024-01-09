@@ -444,7 +444,7 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
                          work_size];
     }
 
-    /* this relies on IntegratorStateGPU layout being contiguous device_ptrs  */
+    /* this relies on IntegratorStateGPU layout being contiguous device_ptrs. */
     const size_t pointer_block_end = offsetof(KernelParamsMetal, integrator_state) +
                                      offsetof(IntegratorStateGPU, sort_partition_divisor);
     for (size_t offset = 0; offset < pointer_block_end; offset += sizeof(device_ptr)) {
@@ -652,7 +652,8 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
             ((MyDeviceMemory *)it.first)->device_copy_from__IntegratorQueueCounter();
 
             if (IntegratorQueueCounter *queue_counter = (IntegratorQueueCounter *)
-                                                            it.first->host_pointer) {
+                                                            it.first->host_pointer)
+            {
               for (int i = 0; i < DEVICE_KERNEL_INTEGRATOR_NUM; i++)
                 printf("%s%d", i == 0 ? "" : ",", int(queue_counter->num_queued[i]));
             }

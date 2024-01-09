@@ -4,12 +4,11 @@
 
 set(INC
   .
-  ../blenfont
   ../blenkernel
   ../blentranslation
-  ../depsgraph
   ../draw
   ../editors/include
+  ../bmesh
   ../gpu
   ../imbuf
   ../makesrna
@@ -17,8 +16,6 @@ set(INC
   ../render
   ../sequencer
   ../windowmanager
-  ../../../intern/clog
-  ../bmesh
 
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -61,9 +58,12 @@ set(SRC
 
 set(LIB
   PRIVATE bf::animrig
+  PRIVATE bf::blenfont
   bf_blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::depsgraph
   PRIVATE bf::dna
+  PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
 )
 
@@ -99,18 +99,36 @@ blender_add_lib(bf_blenloader "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 add_dependencies(bf_blenloader bf_rna)
 
 if(WITH_GTESTS)
-  set(TEST_SRC
-    tests/blendfile_load_test.cc
+  # Utility functions for test also used by other tests.
+  set(TEST_UTIL_SRC
     tests/blendfile_loading_base_test.cc
-
     tests/blendfile_loading_base_test.h
   )
-  set(TEST_INC
+  set(TEST_UTIL_INC
+    ${INC}
+    ../../../tests/gtests
     ../../../intern/ghost
   )
-  set(TEST_LIB
+  set(TEST_UTIL_INC_SYS
+    ${INC_SYS}
+    ${GFLAGS_INCLUDE_DIRS}
+    ${GLOG_INCLUDE_DIRS}
+    ${CMAKE_SOURCE_DIR}/extern/gtest/include
+  )
+  set(TEST_UTIL_LIB
+    ${LIB}
     bf_blenloader
   )
-  include(GTestTesting)
-  blender_add_test_lib(bf_blenloader_tests "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}")
+  blender_add_lib(bf_blenloader_test_util "${TEST_UTIL_SRC}" "${TEST_UTIL_INC}" "${TEST_UTIL_INC_SYS}" "${TEST_UTIL_LIB}")
+
+  # Actual blenloader tests.
+  set(TEST_SRC
+    tests/blendfile_load_test.cc
+  )
+  set(TEST_LIB
+    ${LIB}
+    bf_blenloader
+    bf_blenloader_test_util
+  )
+  blender_add_test_suite_lib(blenloader "${TEST_SRC}" "${INC}" "${INC_SYS}" "${TEST_LIB}")
 endif()

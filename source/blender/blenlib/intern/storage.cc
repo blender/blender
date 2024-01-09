@@ -8,8 +8,8 @@
  * Some really low-level file operations.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 #include <sys/types.h>
 
 #include <sys/stat.h>
@@ -31,8 +31,8 @@
 #  include <sys/vfs.h>
 #endif
 
+#include <cstring>
 #include <fcntl.h>
-#include <string.h>
 
 #ifdef WIN32
 #  include "BLI_string_utf8.h"
@@ -322,7 +322,7 @@ bool BLI_file_alias_target(const char *filepath,
       if (conv_utf_8_to_16(filepath, path_utf16, ARRAY_SIZE(path_utf16)) == 0) {
         hr = PersistFile->Load(path_utf16, STGM_READ);
         if (SUCCEEDED(hr)) {
-          hr = Shortcut->Resolve(0, SLR_NO_UI | SLR_UPDATE);
+          hr = Shortcut->Resolve(0, SLR_NO_UI | SLR_UPDATE | SLR_NOSEARCH);
           if (SUCCEEDED(hr)) {
             wchar_t target_utf16[FILE_MAXDIR] = {0};
             hr = Shortcut->GetPath(target_utf16, FILE_MAXDIR, NULL, 0);
@@ -444,10 +444,10 @@ bool BLI_is_file(const char *path)
 /**
  * Use for both text and binary file reading.
  */
-static void *file_read_data_as_mem_impl(FILE *fp,
-                                        bool read_size_exact,
-                                        size_t pad_bytes,
-                                        size_t *r_size)
+void *BLI_file_read_data_as_mem_from_handle(FILE *fp,
+                                            bool read_size_exact,
+                                            size_t pad_bytes,
+                                            size_t *r_size)
 {
   BLI_stat_t st;
   if (BLI_fstat(fileno(fp), &st) == -1) {
@@ -504,7 +504,7 @@ void *BLI_file_read_text_as_mem(const char *filepath, size_t pad_bytes, size_t *
   FILE *fp = BLI_fopen(filepath, "r");
   void *mem = nullptr;
   if (fp) {
-    mem = file_read_data_as_mem_impl(fp, false, pad_bytes, r_size);
+    mem = BLI_file_read_data_as_mem_from_handle(fp, false, pad_bytes, r_size);
     fclose(fp);
   }
   return mem;
@@ -515,7 +515,7 @@ void *BLI_file_read_binary_as_mem(const char *filepath, size_t pad_bytes, size_t
   FILE *fp = BLI_fopen(filepath, "rb");
   void *mem = nullptr;
   if (fp) {
-    mem = file_read_data_as_mem_impl(fp, true, pad_bytes, r_size);
+    mem = BLI_file_read_data_as_mem_from_handle(fp, true, pad_bytes, r_size);
     fclose(fp);
   }
   return mem;

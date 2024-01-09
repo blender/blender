@@ -71,4 +71,25 @@ void IndexSwitchItemsAccessor::blend_read_data(BlendDataReader *reader, bNode &n
   BLO_read_data_address(reader, &storage.items);
 }
 
+StructRNA *BakeItemsAccessor::item_srna = &RNA_NodeGeometryBakeItem;
+int BakeItemsAccessor::node_type = GEO_NODE_BAKE;
+
+void BakeItemsAccessor::blend_write(BlendWriter *writer, const bNode &node)
+{
+  const auto &storage = *static_cast<const NodeGeometryBake *>(node.storage);
+  BLO_write_struct_array(writer, NodeGeometryBakeItem, storage.items_num, storage.items);
+  for (const NodeGeometryBakeItem &item : Span(storage.items, storage.items_num)) {
+    BLO_write_string(writer, item.name);
+  }
+}
+
+void BakeItemsAccessor::blend_read_data(BlendDataReader *reader, bNode &node)
+{
+  auto &storage = *static_cast<NodeGeometryBake *>(node.storage);
+  BLO_read_data_address(reader, &storage.items);
+  for (const NodeGeometryBakeItem &item : Span(storage.items, storage.items_num)) {
+    BLO_read_data_address(reader, &item.name);
+  }
+}
+
 }  // namespace blender::nodes

@@ -161,6 +161,8 @@ static inline std::ostream &operator<<(std::ostream &stream, const Type type)
       return stream << "short3";
     case Type::SHORT4:
       return stream << "short4";
+    case Type::BOOL:
+      return stream << "bool";
     default:
       BLI_assert(0);
       return stream;
@@ -265,6 +267,20 @@ enum class ImageType {
   DEPTH_2D_ARRAY,
   DEPTH_CUBE,
   DEPTH_CUBE_ARRAY,
+  /** Atomic texture type wrappers.
+   * For OpenGL, these map to the equivalent (U)INT_* types.
+   * NOTE: Atomic variants MUST be used if the texture bound to this resource has usage flag:
+   * `GPU_TEXTURE_USAGE_ATOMIC`, even if atomic texture operations are not used in the given
+   * shader.
+   * The shader source MUST also utilize the correct atomic sampler handle e.g.
+   * `usampler2DAtomic` in conjunction with these types, for passing texture/image resources into
+   * functions. */
+  UINT_2D_ATOMIC,
+  UINT_2D_ARRAY_ATOMIC,
+  UINT_3D_ATOMIC,
+  INT_2D_ATOMIC,
+  INT_2D_ARRAY_ATOMIC,
+  INT_3D_ATOMIC
 };
 
 /* Storage qualifiers. */
@@ -480,6 +496,34 @@ struct ShaderCreateInfo {
 
   using SubpassIn = FragOut;
   Vector<SubpassIn> subpass_inputs_;
+
+  struct SpecializationConstant {
+    struct Value {
+      union {
+        uint32_t u;
+        int32_t i;
+        float f;
+      };
+
+      bool operator==(const Value &other) const
+      {
+        return u == other.u;
+      }
+    };
+
+    Type type;
+    StringRefNull name;
+    Value default_value;
+
+    bool operator==(const SpecializationConstant &b) const
+    {
+      TEST_EQUAL(*this, b, type);
+      TEST_EQUAL(*this, b, name);
+      TEST_EQUAL(*this, b, default_value);
+      return true;
+    }
+  };
+  Vector<SpecializationConstant> specialization_constants_;
 
   struct Sampler {
     ImageType type;
@@ -700,6 +744,63 @@ struct ShaderCreateInfo {
   /** \} */
 
   /* -------------------------------------------------------------------- */
+  /** \name Shader specialization constants
+   * \{ */
+
+  /* Adds a specialization constant which is a dynamically modifiable value, which will be
+   * statically compiled into a PSO configuration to provide optimal runtime performance,
+   * with a reduced re-compilation cost vs Macro's with easier generation of unique permutations
+   * based on run-time values.
+   *
+   * Tip: To evaluate use-cases of where specialization constants can provide a performance
+   * gain, benchmark a given shader in its default case. Attempt to statically disable branches or
+   * conditions which rely on uniform look-ups and measure if there is a marked improvement in
+   * performance and/or reduction in memory bandwidth/register pressure.
+   *
+   * NOTE: Specialization constants will incur new compilation of PSOs and thus can incur an
+   * unexpected cost. Specialization constants should be reserved for infrequently changing
+   * parameters (e.g. user setting parameters such as toggling of features or quality level
+   * presets), or those with a low set of possible runtime permutations.
+   *
+   * Specialization constants are assigned at runtime using:
+   *  - `GPU_shader_constant_*(shader, name, value)`
+   * or
+   *  - `DrawPass::specialize_constant(shader, name, value)`
+   *
+   * All constants **MUST** be specified before binding a shader.
+   */
+  Self &specialization_constant(Type type, StringRefNull name, double default_value)
+  {
+    SpecializationConstant constant;
+    constant.type = type;
+    constant.name = name;
+    switch (type) {
+      case Type::INT:
+        constant.default_value.i = static_cast<int>(default_value);
+        break;
+      case Type::BOOL:
+      case Type::UINT:
+        constant.default_value.u = static_cast<uint>(default_value);
+        break;
+      case Type::FLOAT:
+        constant.default_value.f = static_cast<float>(default_value);
+        break;
+      default:
+        BLI_assert_msg(0, "Only scalar types can be used as constants");
+        break;
+    }
+    specialization_constants_.append(constant);
+    interface_names_size_ += name.size() + 1;
+    return *(Self *)this;
+  }
+
+  /* TODO: Add API to specify unique specialization config permutations in CreateInfo, allowing
+   * specialized compilation to be primed and handled in the background at start-up, rather than
+   * waiting for a given permutation to occur dynamically. */
+
+  /** \} */
+
+  /* -------------------------------------------------------------------- */
   /** \name Resources bindings points
    * \{ */
 
@@ -805,7 +906,7 @@ struct ShaderCreateInfo {
 
   Self &push_constant(Type type, StringRefNull name, int array_size = 0)
   {
-    /* We don't have support for UINT push constants yet, use INT instead.*/
+    /* We don't have support for UINT push constants yet, use INT instead. */
     BLI_assert(type != Type::UINT);
     BLI_assert_msg(name.find("[") == -1,
                    "Array syntax is forbidden for push constants."

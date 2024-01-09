@@ -47,6 +47,7 @@ using namespace metal::raytracing;
 #define ccl_global device
 #define ccl_inline_constant static constant constexpr
 #define ccl_device_constant constant
+#define ccl_static_constexpr static constant constexpr
 #define ccl_constant constant
 #define ccl_gpu_shared threadgroup
 #define ccl_private thread
@@ -180,7 +181,7 @@ void kernel_gpu_##name::run(thread MetalKernelContext& context, \
 #define ccl_gpu_kernel_call(x) context.x
 #define ccl_gpu_kernel_within_bounds(i,n) true
 
-/* define a function object where "func" is the lambda body, and additional parameters are used to specify captured state  */
+/* define a function object where "func" is the lambda body, and additional parameters are used to specify captured state. */
 #define ccl_gpu_kernel_lambda(func, ...) \
   struct KernelLambda \
   { \

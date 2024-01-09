@@ -539,8 +539,8 @@ typedef enum eGPUTextureUsage {
   GPU_TEXTURE_USAGE_SHADER_WRITE = (1 << 1),
   /* Whether a texture is used as an attachment in a frame-buffer. */
   GPU_TEXTURE_USAGE_ATTACHMENT = (1 << 2),
-  /* Whether a texture is used to create a texture view utilising a different texture format to the
-   * source textures format. This includes the use of stencil views.  */
+  /* Whether a texture is used to create a texture view utilizing a different texture format to the
+   * source textures format. This includes the use of stencil views. */
   GPU_TEXTURE_USAGE_FORMAT_VIEW = (1 << 3),
   /* Whether the texture needs to be read from by the CPU. */
   GPU_TEXTURE_USAGE_HOST_READ = (1 << 4),
@@ -1009,7 +1009,7 @@ bool GPU_texture_has_signed_format(const GPUTexture *tex);
  * \a size is expected to be a pointer to a vector of dimension matching the texture's dimension
  * (including the array dimension).
  */
-void GPU_texture_get_mipmap_size(GPUTexture *texture, int mip_level, int *size);
+void GPU_texture_get_mipmap_size(GPUTexture *texture, int mip_level, int *r_size);
 
 /** \} */
 

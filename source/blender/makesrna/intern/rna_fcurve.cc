@@ -1055,11 +1055,10 @@ static void rna_FModifierStepped_frame_end_set(PointerRNA *ptr, float value)
 static BezTriple *rna_FKeyframe_points_insert(
     ID *id, FCurve *fcu, Main *bmain, float frame, float value, int keyframe_type, int flag)
 {
-  int index = blender::animrig::insert_vert_fcurve(fcu,
-                                                   frame,
-                                                   value,
-                                                   eBezTriple_KeyframeType(keyframe_type),
-                                                   eInsertKeyFlags(flag) | INSERTKEY_NO_USERPREF);
+  using namespace blender::animrig;
+  KeyframeSettings settings = get_keyframe_settings(false);
+  settings.keyframe_type = eBezTriple_KeyframeType(keyframe_type);
+  int index = insert_vert_fcurve(fcu, {frame, value}, settings, eInsertKeyFlags(flag));
 
   if ((fcu->bezt) && (index >= 0)) {
     rna_tag_animation_update(bmain, id);
@@ -1975,6 +1974,28 @@ static void rna_def_drivertarget(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Context Property", "Type of a context-dependent data-block to access property from");
   RNA_def_property_update(prop, 0, "rna_DriverTarget_update_data");
+
+  prop = RNA_def_property(srna, "use_fallback_value", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "options", DTAR_OPTION_USE_FALLBACK);
+  RNA_def_property_ui_text(prop,
+                           "Use Fallback",
+                           "Use the fallback value if the data path can't be resolved, instead of "
+                           "failing to evaluate the driver");
+  RNA_def_property_update(prop, 0, "rna_DriverTarget_update_data");
+
+  prop = RNA_def_property(srna, "fallback_value", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, nullptr, "fallback_value");
+  RNA_def_property_ui_text(
+      prop, "Fallback", "The value to use if the data path can't be resolved");
+  RNA_def_property_update(prop, 0, "rna_DriverTarget_update_data");
+
+  prop = RNA_def_property(srna, "is_fallback_used", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", DTAR_FLAG_FALLBACK_USED);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(
+      prop,
+      "Is Fallback Used",
+      "Indicates that the most recent variable evaluation used the fallback value");
 }
 
 static void rna_def_drivervar(BlenderRNA *brna)

@@ -234,7 +234,8 @@ static void init_laplacian_matrix(LaplacianSystem *sys)
     idv2 = sys->edges[i][1];
     /* if is boundary, apply scale-dependent umbrella operator only with neighbors in boundary */
     if (sys->ne_ed_num[idv1] != sys->ne_fa_num[idv1] &&
-        sys->ne_ed_num[idv2] != sys->ne_fa_num[idv2]) {
+        sys->ne_ed_num[idv2] != sys->ne_fa_num[idv2])
+    {
       sys->vlengths[idv1] += sys->eweights[i];
       sys->vlengths[idv2] += sys->eweights[i];
     }
@@ -365,7 +366,7 @@ static void laplaciansmoothModifier_do(
   int defgrp_index;
   const bool invert_vgroup = (smd->flag & MOD_LAPLACIANSMOOTH_INVERT_VGROUP) != 0;
 
-  sys = init_laplacian_system(mesh->totedge, mesh->totloop, verts_num);
+  sys = init_laplacian_system(mesh->edges_num, mesh->corners_num, verts_num);
   if (!sys) {
     return;
   }

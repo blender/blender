@@ -28,7 +28,7 @@
 #include "BKE_context.hh"
 #include "BKE_deform.h"
 #include "BKE_lib_id.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_scene.h"
@@ -165,16 +165,16 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
   /* -------------------------------------------------------------------- */
   /* tricky shape key integration (slow!) */
   if (mcmd->deform_mode == MOD_MESHCACHE_DEFORM_INTEGRATE) {
-    Mesh *me = static_cast<Mesh *>(ob->data);
+    Mesh *mesh = static_cast<Mesh *>(ob->data);
 
     /* we could support any object type */
     if (UNLIKELY(ob->type != OB_MESH)) {
       BKE_modifier_set_error(ob, &mcmd->modifier, "'Integrate' only valid for Mesh objects");
     }
-    else if (UNLIKELY(me->totvert != verts_num)) {
+    else if (UNLIKELY(mesh->verts_num != verts_num)) {
       BKE_modifier_set_error(ob, &mcmd->modifier, "'Integrate' original mesh vertex mismatch");
     }
-    else if (UNLIKELY(me->faces_num == 0)) {
+    else if (UNLIKELY(mesh->faces_num == 0)) {
       BKE_modifier_set_error(ob, &mcmd->modifier, "'Integrate' requires faces");
     }
     else {
@@ -182,16 +182,18 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
           MEM_malloc_arrayN(verts_num, sizeof(*vertexCos_New), __func__));
 
       BKE_mesh_calc_relative_deform(
-          me->face_offsets().data(),
-          me->faces_num,
-          me->corner_verts().data(),
-          me->totvert,
-          reinterpret_cast<const float(*)[3]>(
-              me->vert_positions().data()),  /* From the original Mesh. */
-          (const float(*)[3])vertexCos_Real, /* the input we've been given (shape keys!) */
-          (const float(*)[3])vertexCos,      /* The result of this modifier. */
-          vertexCos_New                      /* The result of this function. */
-      );
+          mesh->face_offsets().data(),
+          mesh->faces_num,
+          mesh->corner_verts().data(),
+          mesh->verts_num,
+          /* From the original Mesh. */
+          reinterpret_cast<const float(*)[3]>(mesh->vert_positions().data()),
+          /* the input we've been given (shape keys!) */
+          const_cast<const float(*)[3]>(vertexCos_Real),
+          /* The result of this modifier. */
+          const_cast<const float(*)[3]>(vertexCos),
+          /* The result of this function. */
+          vertexCos_New);
 
       /* write the corrected locations back into the result */
       memcpy(vertexCos, vertexCos_New, sizeof(*vertexCos) * verts_num);
@@ -248,7 +250,7 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
         const float global_offset = (mcmd->flag & MOD_MESHCACHE_INVERT_VERTEX_GROUP) ?
                                         mcmd->factor :
                                         0.0f;
-        if (BKE_mesh_deform_verts(mesh) != nullptr) {
+        if (!mesh->deform_verts().is_empty()) {
           for (int i = 0; i < verts_num; i++) {
             /* For each vertex, compute its blending factor between the mesh cache (for `fac = 0`)
              * and the former position of the vertex (for `fac = 1`). */

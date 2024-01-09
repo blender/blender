@@ -289,7 +289,8 @@ void NodeOperationBuilder::add_datatype_conversions()
     NodeOperation *from_op = &link.from()->get_operation();
     NodeOperation *to_op = &link.to()->get_operation();
     if (!(from_op->get_flags().use_datatype_conversion ||
-          to_op->get_flags().use_datatype_conversion)) {
+          to_op->get_flags().use_datatype_conversion))
+    {
       continue;
     }
 

@@ -52,10 +52,10 @@ void SEQ_edit_flag_for_removal(Scene *scene, ListBase *seqbase, Sequence *seq);
 void SEQ_edit_remove_flagged_sequences(Scene *scene, ListBase *seqbase);
 void SEQ_edit_update_muting(Editing *ed);
 
-typedef enum eSeqSplitMethod {
+enum eSeqSplitMethod {
   SEQ_SPLIT_SOFT,
   SEQ_SPLIT_HARD,
-} eSeqSplitMethod;
+};
 
 /**
  * Split Sequence at timeline_frame in two.

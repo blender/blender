@@ -118,7 +118,7 @@ bool BKE_lib_override_library_is_hierarchy_leaf(Main *bmain, ID *id);
 /**
  * Tag the liboverride ID for auto-refresh when it gets tagged for depsgraph update.
  *
- * NOTE: This should only handle direct user editing, it is assumed that indirct updates should
+ * NOTE: This should only handle direct user editing, it is assumed that indirect updates should
  * never require an update of the liboverride diffing info.
  */
 void BKE_lib_override_id_tag_on_deg_tag_from_user(ID *id);
@@ -214,10 +214,7 @@ bool BKE_lib_override_library_create(Main *bmain,
                                      ID *id_instance_hint,
                                      ID **r_id_root_override,
                                      const bool do_fully_editable);
-/**
- * Create a library override template.
- */
-bool BKE_lib_override_library_template_create(ID *id);
+
 /**
  * Convert a given proxy object into a library override.
  *
@@ -303,7 +300,7 @@ void BKE_lib_override_library_delete(Main *bmain, ID *id_root);
 /**
  * Make given ID fully local.
  *
- * \param bmain If given, all liboverrides hierarchy roots will be re-validated/generated after
+ * \param bmain: If given, all liboverrides hierarchy roots will be re-validated/generated after
  * clearing the liboverride data from given \a id. If nullptr, caller is responsible to perform
  * this action (call #BKE_lib_override_library_main_hierarchy_root_ensure) itself.
  *

@@ -28,10 +28,10 @@ vec2 compute_dir(vec2 v0, vec2 v1)
   return dir;
 }
 
-void do_vertex_shader(vec4 pos, int vertex_id, out vec2 out_sspos, out vec4 out_finalcolour)
+void do_vertex_shader(vec4 pos, int vertex_id, out vec2 out_sspos, out vec4 out_finalcolor)
 {
   out_sspos = proj(pos);
-  out_finalcolour = vec4(0.0);
+  out_finalcolor = vec4(0.0);
 
   int frame = vertex_id + cacheStart;
   float intensity; /* how faint */
@@ -43,7 +43,7 @@ void do_vertex_shader(vec4 pos, int vertex_id, out vec2 out_sspos, out vec4 out_
   if (frame < frameCurrent) {
     if (use_custom_color) {
       /* Custom color: previous frames color is darker than current frame */
-      out_finalcolour.rgb = customColor * 0.25;
+      out_finalcolor.rgb = customColor * 0.25;
     }
     else {
       /* black - before frameCurrent */
@@ -53,13 +53,13 @@ void do_vertex_shader(vec4 pos, int vertex_id, out vec2 out_sspos, out vec4 out_
       else {
         intensity = SET_INTENSITY(frameStart, frame, frameCurrent, 0.68, 0.92);
       }
-      out_finalcolour.rgb = mix(colorWire.rgb, blend_base, intensity);
+      out_finalcolor.rgb = mix(colorWire.rgb, blend_base, intensity);
     }
   }
   else if (frame > frameCurrent) {
     if (use_custom_color) {
       /* Custom color: next frames color is equal to user selected color */
-      out_finalcolour.rgb = customColor;
+      out_finalcolor.rgb = customColor;
     }
     else {
       /* blue - after frameCurrent */
@@ -70,13 +70,13 @@ void do_vertex_shader(vec4 pos, int vertex_id, out vec2 out_sspos, out vec4 out_
         intensity = SET_INTENSITY(frameCurrent, frame, frameEnd, 0.68, 0.92);
       }
 
-      out_finalcolour.rgb = mix(colorBonePose.rgb, blend_base, intensity);
+      out_finalcolor.rgb = mix(colorBonePose.rgb, blend_base, intensity);
     }
   }
   else {
     if (use_custom_color) {
       /* Custom color: current frame color is slightly darker than user selected color */
-      out_finalcolour.rgb = customColor * 0.5;
+      out_finalcolor.rgb = customColor * 0.5;
     }
     else {
       /* green - on frameCurrent */
@@ -86,10 +86,10 @@ void do_vertex_shader(vec4 pos, int vertex_id, out vec2 out_sspos, out vec4 out_
       else {
         intensity = 0.75f;
       }
-      out_finalcolour.rgb = mix(colorBackground.rgb, blend_base, intensity);
+      out_finalcolor.rgb = mix(colorBackground.rgb, blend_base, intensity);
     }
   }
-  out_finalcolour.a = 1.0;
+  out_finalcolor.a = 1.0;
 }
 
 void main()

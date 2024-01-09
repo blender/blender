@@ -15,8 +15,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -26,6 +24,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector.hh"
 #include "BLI_memarena.h"
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
@@ -295,7 +294,7 @@ static void build_bvh_spatial(
 /** Hash table size (32768). */
 #define HASHSIZE size_t(1 << (3 * HASHBIT))
 
-#define HASH(i, j, k) ((((((i)&31) << 5) | ((j)&31)) << 5) | ((k)&31))
+#define HASH(i, j, k) ((((((i) & 31) << 5) | ((j) & 31)) << 5) | ((k) & 31))
 
 #define MB_BIT(i, bit) (((i) >> (bit)) & 1)
 // #define FLIP(i, bit) ((i) ^ 1 << (bit)) /* flip the given bit of i */
@@ -963,7 +962,7 @@ static void vnormal(PROCESS *process, const float point[3], float r_no[3])
   r_no[1] = metaball(process, point[0], point[1] + delta, point[2]) - f;
   r_no[2] = metaball(process, point[0], point[1], point[2] + delta) - f;
 }
-#endif /* USE_ACCUM_NORMAL */
+#endif /* !USE_ACCUM_NORMAL */
 
 /**
  * \return the id of vertex between two corners.
@@ -1087,7 +1086,7 @@ static void closest_latice(int r[3], const float pos[3], const float size)
 static void find_first_points(PROCESS *process, const uint em)
 {
   const MetaElem *ml;
-  int center[3], lbn[3], rtf[3], it[3], dir[3], add[3];
+  blender::int3 center, lbn, rtf, it, dir, add;
   float tmp[3], a, b;
 
   ml = process->mainb[em];
@@ -1118,7 +1117,7 @@ static void find_first_points(PROCESS *process, const uint em)
             add[0] = it[0] - dir[0];
             add[1] = it[1] - dir[1];
             add[2] = it[2] - dir[2];
-            DO_MIN(it, add);
+            add = blender::math::min(add, it);
             add_cube(process, add[0], add[1], add[2]);
             break;
           }
@@ -1257,7 +1256,7 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
           if (!(ml->flag & MB_HIDE)) {
             float pos[4][4], rot[4][4];
             float expx, expy, expz;
-            float tempmin[3], tempmax[3];
+            blender::float3 tempmin, tempmax;
 
             MetaElem *new_ml;
 
@@ -1354,7 +1353,7 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
             /* Find max and min of transformed bounding-box. */
             INIT_MINMAX(tempmin, tempmax);
             for (i = 0; i < 8; i++) {
-              DO_MINMAX(new_ml->bb->vec[i], tempmin, tempmax);
+              blender::math::min_max(blender::float3(new_ml->bb->vec[i]), tempmin, tempmax);
             }
 
             /* Set only point 0 and 6 - AABB of meta-elem. */
@@ -1488,12 +1487,12 @@ Mesh *BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob)
   }
   MEM_freeN(process.indices);
 
-  for (int i = 0; i < mesh->totvert; i++) {
+  for (int i = 0; i < mesh->verts_num; i++) {
     normalize_v3(process.no[i]);
   }
   blender::bke::mesh_vert_normals_assign(*mesh, std::move(process.no));
 
-  BKE_mesh_calc_edges(mesh, false, false);
+  blender::bke::mesh_calc_edges(*mesh, false, false);
 
   return mesh;
 }

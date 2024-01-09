@@ -13,6 +13,7 @@ DirectionalBlurOperation::DirectionalBlurOperation()
   this->add_output_socket(DataType::Color);
   flags_.complex = true;
   flags_.open_cl = true;
+  flags_.can_be_constant = true;
   input_program_ = nullptr;
 }
 

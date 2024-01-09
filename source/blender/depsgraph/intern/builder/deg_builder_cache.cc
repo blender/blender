@@ -81,7 +81,8 @@ void animated_property_cb(ID * /*id*/, FCurve *fcurve, void *data_v)
   PointerRNA pointer_rna;
   PropertyRNA *property_rna = nullptr;
   if (!RNA_path_resolve_property(
-          &data->pointer_rna, fcurve->rna_path, &pointer_rna, &property_rna)) {
+          &data->pointer_rna, fcurve->rna_path, &pointer_rna, &property_rna))
+  {
     return;
   }
   /* Get storage for the ID.
@@ -141,7 +142,8 @@ bool AnimatedPropertyStorage::isAnyPropertyAnimated(const PointerRNA *pointer_rn
 DepsgraphBuilderCache::~DepsgraphBuilderCache()
 {
   for (AnimatedPropertyStorage *animated_property_storage :
-       animated_property_storage_map_.values()) {
+       animated_property_storage_map_.values())
+  {
     delete animated_property_storage;
   }
 }

@@ -1,0 +1,49 @@
+diff --git a/setup.py.orig b/setup.py
+index a97a755..07ce853 100644
+--- a/setup.py.orig
++++ b/setup.py
+@@ -2168,7 +2168,7 @@
+                 ffi_inc = None
+                 print('Header file {} does not exist'.format(ffi_h))
+         if ffi_lib is None and ffi_inc:
+-            for lib_name in ('ffi', 'ffi_pic'):
++            for lib_name in ('ffi_pic', ):
+                 if (self.compiler.find_library_file(self.lib_dirs, lib_name)):
+                     ffi_lib = lib_name
+                     break
+--- a/Modules/posixmodule.c	2022-12-09 21:44:03
++++ b/Modules/posixmodule.c	2022-12-09 21:39:46
+@@ -10564,10 +10564,15 @@
+         Py_BEGIN_ALLOW_THREADS
+ #ifdef HAVE_MKFIFOAT
+         if (dir_fd != DEFAULT_DIR_FD) {
++// BLENDER: disable also at compile time for compatibility when linking with older Xcode.
++// https://github.com/python/cpython/issues/97897
++#ifndef __APPLE__
+             if (HAVE_MKFIFOAT_RUNTIME) {
+                 result = mkfifoat(dir_fd, path->narrow, mode);
+ 
++            } else
++#endif
++            {
+-            } else {
+                 mkfifoat_unavailable = 1;
+                 result = 0;
+             }
+@@ -10638,10 +10633,15 @@
+         Py_BEGIN_ALLOW_THREADS
+ #ifdef HAVE_MKNODAT
+         if (dir_fd != DEFAULT_DIR_FD) {
++// BLENDER: disable also at compile time for compatibility when linking with older Xcode.
++// https://github.com/python/cpython/issues/97897
++#ifndef __APPLE__
+             if (HAVE_MKNODAT_RUNTIME) {
+                 result = mknodat(dir_fd, path->narrow, mode, device);
+ 
++            } else
++#endif
++            {
+-            } else {
+                 mknodat_unavailable = 1;
+                 result = 0;
+             }

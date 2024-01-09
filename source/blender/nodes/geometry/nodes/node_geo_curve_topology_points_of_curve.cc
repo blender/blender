@@ -45,7 +45,7 @@ class PointsOfCurveInput final : public bke::CurvesFieldInput {
   }
 
   GVArray get_varray_for_context(const bke::CurvesGeometry &curves,
-                                 const eAttrDomain domain,
+                                 const AttrDomain domain,
                                  const IndexMask &mask) const final
   {
     const OffsetIndices points_by_curve = curves.points_by_curve();
@@ -58,7 +58,7 @@ class PointsOfCurveInput final : public bke::CurvesFieldInput {
     const VArray<int> curve_indices = evaluator.get_evaluated<int>(0);
     const VArray<int> indices_in_sort = evaluator.get_evaluated<int>(1);
 
-    const bke::CurvesFieldContext point_context{curves, ATTR_DOMAIN_POINT};
+    const bke::CurvesFieldContext point_context{curves, AttrDomain::Point};
     fn::FieldEvaluator point_evaluator{point_context, curves.points_num()};
     point_evaluator.add(sort_weight_);
     point_evaluator.evaluate();
@@ -128,9 +128,9 @@ class PointsOfCurveInput final : public bke::CurvesFieldInput {
     return false;
   }
 
-  std::optional<eAttrDomain> preferred_domain(const bke::CurvesGeometry & /*curves*/) const final
+  std::optional<AttrDomain> preferred_domain(const bke::CurvesGeometry & /*curves*/) const final
   {
-    return ATTR_DOMAIN_CURVE;
+    return AttrDomain::Curve;
   }
 };
 
@@ -142,10 +142,10 @@ class CurvePointCountInput final : public bke::CurvesFieldInput {
   }
 
   GVArray get_varray_for_context(const bke::CurvesGeometry &curves,
-                                 const eAttrDomain domain,
+                                 const AttrDomain domain,
                                  const IndexMask & /*mask*/) const final
   {
-    if (domain != ATTR_DOMAIN_CURVE) {
+    if (domain != AttrDomain::Curve) {
       return {};
     }
     const OffsetIndices points_by_curve = curves.points_by_curve();
@@ -164,9 +164,9 @@ class CurvePointCountInput final : public bke::CurvesFieldInput {
     return dynamic_cast<const CurvePointCountInput *>(&other) != nullptr;
   }
 
-  std::optional<eAttrDomain> preferred_domain(const bke::CurvesGeometry & /*curves*/) const final
+  std::optional<AttrDomain> preferred_domain(const bke::CurvesGeometry & /*curves*/) const final
   {
-    return ATTR_DOMAIN_CURVE;
+    return AttrDomain::Curve;
   }
 };
 
@@ -196,10 +196,10 @@ class CurveStartPointInput final : public bke::CurvesFieldInput {
   }
 
   GVArray get_varray_for_context(const bke::CurvesGeometry &curves,
-                                 const eAttrDomain domain,
+                                 const AttrDomain domain,
                                  const IndexMask & /*mask*/) const final
   {
-    return curves.adapt_domain(VArray<int>::ForSpan(curves.offsets()), ATTR_DOMAIN_CURVE, domain);
+    return curves.adapt_domain(VArray<int>::ForSpan(curves.offsets()), AttrDomain::Curve, domain);
   }
 
   uint64_t hash() const final
@@ -212,9 +212,9 @@ class CurveStartPointInput final : public bke::CurvesFieldInput {
     return dynamic_cast<const CurveStartPointInput *>(&other) != nullptr;
   }
 
-  std::optional<eAttrDomain> preferred_domain(const bke::CurvesGeometry & /*curves*/) const final
+  std::optional<AttrDomain> preferred_domain(const bke::CurvesGeometry & /*curves*/) const final
   {
-    return ATTR_DOMAIN_CURVE;
+    return AttrDomain::Curve;
   }
 };
 
@@ -226,7 +226,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                       Field<int>(std::make_shared<EvaluateAtIndexInput>(
                           curve_index,
                           Field<int>(std::make_shared<CurvePointCountInput>()),
-                          ATTR_DOMAIN_CURVE)));
+                          AttrDomain::Curve)));
   }
   if (params.output_is_required("Point Index")) {
     Field<int> sort_index = params.extract_input<Field<int>>("Sort Index");

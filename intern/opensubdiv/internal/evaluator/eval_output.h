@@ -15,7 +15,7 @@
 #include "internal/base/type.h"
 #include "internal/evaluator/evaluator_impl.h"
 
-#include "opensubdiv_evaluator_capi.h"
+#include "opensubdiv_evaluator_capi.hh"
 
 using OpenSubdiv::Far::PatchTable;
 using OpenSubdiv::Far::StencilTable;

@@ -13,6 +13,7 @@ MapUVOperation::MapUVOperation()
   this->add_output_socket(DataType::Color);
   alpha_ = 0.0f;
   flags_.complex = true;
+  flags_.can_be_constant = true;
   set_canvas_input_index(UV_INPUT_INDEX);
 
   inputUVProgram_ = nullptr;

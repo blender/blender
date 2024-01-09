@@ -23,8 +23,8 @@
 
 #include "BLO_read_write.hh"
 
-#include "BKE_colortools.h"
-#include "BKE_main.h"
+#include "BKE_colortools.hh"
+#include "BKE_main.hh"
 #include "BKE_scene.h"
 #include "BKE_sound.h"
 

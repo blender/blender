@@ -19,8 +19,8 @@
 
 #include "BKE_customdata.hh"
 
-#include "bmesh.h"
-#include "intern/bmesh_operators_private.h"
+#include "bmesh.hh"
+#include "intern/bmesh_operators_private.hh"
 
 static void remdoubles_splitface(BMFace *f, BMesh *bm, BMOperator *op, BMOpSlot *slot_targetmap)
 {
@@ -140,7 +140,7 @@ static BMFace *remdoubles_createface(BMesh *bm,
 #undef LOOP_MAP_VERT_INIT
   }
 
-finally : {
+finally: {
   uint i;
   for (i = 0; i < STACK_SIZE(verts); i++) {
     BMO_vert_flag_disable(bm, verts[i], VERT_IN_FACE);
@@ -160,7 +160,7 @@ finally : {
       BMLoop *l_iter, *l_first;
       l_iter = l_first = BM_FACE_FIRST_LOOP(f_new);
       do {
-        BM_elem_attrs_copy(bm, bm, loops[i], l_iter);
+        BM_elem_attrs_copy(bm, loops[i], l_iter);
       } while ((void)i++, (l_iter = l_iter->next) != l_first);
 
       *r_created = true;
@@ -365,7 +365,7 @@ void bmo_pointmerge_facedata_exec(BMesh *bm, BMOperator *op)
         continue;
       }
 
-      CustomData_bmesh_copy_data(&bm->ldata, &bm->ldata, l_first->head.data, &l->head.data);
+      CustomData_bmesh_copy_block(bm->ldata, l_first->head.data, &l->head.data);
     }
   }
 }

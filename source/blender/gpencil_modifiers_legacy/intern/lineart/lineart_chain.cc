@@ -834,7 +834,8 @@ static LineartChainRegisterEntry *lineart_chain_get_closest_cre(LineartData *ld,
         if (ld->conf.fuzzy_intersections) {
           /* If none of those are intersection lines... */
           if (!(cre->ec->type & LRT_EDGE_FLAG_INTERSECTION) &&
-              !(ec->type & LRT_EDGE_FLAG_INTERSECTION)) {
+              !(ec->type & LRT_EDGE_FLAG_INTERSECTION))
+          {
             continue; /* We don't want to chain along different objects at the moment. */
           }
         }
@@ -856,7 +857,8 @@ static LineartChainRegisterEntry *lineart_chain_get_closest_cre(LineartData *ld,
       if (cre->ec->type != ec->type) {
         if (ld->conf.fuzzy_intersections) {
           if (!(cre->ec->type == LRT_EDGE_FLAG_INTERSECTION ||
-                ec->type == LRT_EDGE_FLAG_INTERSECTION)) {
+                ec->type == LRT_EDGE_FLAG_INTERSECTION))
+          {
             continue; /* Fuzzy intersections but no intersection line found. */
           }
         }
@@ -1157,7 +1159,8 @@ void MOD_lineart_smooth_chains(LineartData *ld, float tolerance)
           if (ratio < len2 && ratio > -len2 * 10) {
             /* We only remove p3 if p4 is on the extension of p1->p2. */
             if ((eci4 = eci3->next) &&
-                (dist_to_line_v2(eci4->pos, eci->pos, eci2->pos) < tolerance)) {
+                (dist_to_line_v2(eci4->pos, eci->pos, eci2->pos) < tolerance))
+            {
               BLI_remlink(&ec->chain, eci3);
               next_eci = eci;
               continue;
@@ -1392,7 +1395,8 @@ void MOD_lineart_chain_find_silhouette_backdrop_objects(LineartData *ld)
 {
   LISTBASE_FOREACH (LineartEdgeChain *, ec, &ld->chains) {
     if (ec->type == LRT_EDGE_FLAG_CONTOUR &&
-        ec->shadow_mask_bits & LRT_SHADOW_SILHOUETTE_ERASED_GROUP) {
+        ec->shadow_mask_bits & LRT_SHADOW_SILHOUETTE_ERASED_GROUP)
+    {
       uint32_t target = ec->shadow_mask_bits & LRT_OBINDEX_HIGHER;
       LineartElementLinkNode *eln = lineart_find_matching_eln(&ld->geom.line_buffer_pointers,
                                                               target);

@@ -18,7 +18,6 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_userdef_types.h"
 
-#include "BKE_colorband.h"
 #include "BKE_deform.h"
 #include "BKE_lattice.hh"
 
@@ -27,6 +26,8 @@
 #include "draw_cache_impl.hh" /* own include */
 
 #define SELECT 1
+
+namespace blender::draw {
 
 static void lattice_batch_cache_clear(Lattice *lt);
 
@@ -368,7 +369,7 @@ static GPUIndexBuf *lattice_batch_cache_get_edges(LatticeRenderData *rdata,
     GPUIndexBufBuilder elb;
     GPU_indexbuf_init(&elb, GPU_PRIM_LINES, edge_len, vert_len);
 
-#define LATT_INDEX(u, v, w) ((((w)*rdata->dims.v_len + (v)) * rdata->dims.u_len) + (u))
+#define LATT_INDEX(u, v, w) ((((w) * rdata->dims.v_len + (v)) * rdata->dims.u_len) + (u))
 
     for (int w = 0; w < rdata->dims.w_len; w++) {
       int wxt = ELEM(w, 0, rdata->dims.w_len - 1);
@@ -503,3 +504,5 @@ GPUBatch *DRW_lattice_batch_cache_get_edit_verts(Lattice *lt)
 
   return cache->overlay_verts;
 }
+
+}  // namespace blender::draw

@@ -156,7 +156,7 @@ class Instance {
     if (is_object_data_visible) {
       if (object_state.sculpt_pbvh) {
         /* Disable frustum culling for sculpt meshes. */
-        /* TODO(@pragma37): Implement a cleaner way to disable frustum culling.  */
+        /* TODO(@pragma37): Implement a cleaner way to disable frustum culling. */
         ResourceHandle handle = manager.resource_handle(float4x4(ob_ref.object->object_to_world));
         handle = ResourceHandle(handle.resource_index(), ob_ref.object->transflag & OB_NEG_SCALE);
         sculpt_sync(ob_ref, handle, object_state);
@@ -328,7 +328,7 @@ class Instance {
     }
 
     if (object_state.use_per_material_batches) {
-      for (SculptBatch &batch : sculpt_batches_get(ob_ref.object, true, features)) {
+      for (SculptBatch &batch : sculpt_batches_get(ob_ref.object, features)) {
         Material mat = get_material(ob_ref, object_state.color_type, batch.material_slot);
         if (SCULPT_DEBUG_DRAW) {
           mat.base_color = batch.debug_color();
@@ -346,7 +346,7 @@ class Instance {
     }
     else {
       Material mat = get_material(ob_ref, object_state.color_type);
-      for (SculptBatch &batch : sculpt_batches_get(ob_ref.object, false, features)) {
+      for (SculptBatch &batch : sculpt_batches_get(ob_ref.object, features)) {
         if (SCULPT_DEBUG_DRAW) {
           mat.base_color = batch.debug_color();
         }
@@ -641,7 +641,7 @@ static bool workbench_render_framebuffers_init()
          GPU_framebuffer_check_valid(dfbl->depth_only_fb, nullptr);
 }
 
-#ifdef DEBUG
+#ifdef _DEBUG
 /* This is just to ease GPU debugging when the frame delimiter is set to Finish */
 #  define GPU_FINISH_DELIMITER() GPU_finish()
 #else
@@ -722,6 +722,7 @@ static void workbench_render_to_image(void *vedata,
                                       RenderLayer *layer,
                                       const rcti *rect)
 {
+  using namespace blender::draw;
   if (!workbench_render_framebuffers_init()) {
     RE_engine_report(engine, RPT_ERROR, "Failed to allocate GPU buffers");
     return;

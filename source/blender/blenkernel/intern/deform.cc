@@ -454,8 +454,8 @@ const ListBase *BKE_id_defgroup_list_get(const ID *id)
 {
   switch (GS(id->name)) {
     case ID_ME: {
-      const Mesh *me = (const Mesh *)id;
-      return &me->vertex_group_names;
+      const Mesh *mesh = (const Mesh *)id;
+      return &mesh->vertex_group_names;
     }
     case ID_LT: {
       const Lattice *lt = (const Lattice *)id;

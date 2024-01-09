@@ -32,7 +32,7 @@ static void set_radius(bke::CurvesGeometry &curves,
   }
   MutableAttributeAccessor attributes = curves.attributes_for_write();
   AttributeWriter<float> radii = attributes.lookup_or_add_for_write<float>("radius",
-                                                                           ATTR_DOMAIN_POINT);
+                                                                           AttrDomain::Point);
   fn::FieldEvaluator evaluator{field_context, curves.points_num()};
   evaluator.set_selection(selection_field);
   evaluator.add_with_destination(radius_field, radii.varray);
@@ -50,7 +50,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (Curves *curves_id = geometry_set.get_curves_for_write()) {
       bke::CurvesGeometry &curves = curves_id->geometry.wrap();
-      const bke::CurvesFieldContext field_context{curves, ATTR_DOMAIN_POINT};
+      const bke::CurvesFieldContext field_context{curves, AttrDomain::Point};
       set_radius(curves, field_context, selection_field, radii_field);
     }
 
@@ -65,7 +65,7 @@ static void node_geo_exec(GeoNodeExecParams params)
         }
         bke::CurvesGeometry &curves = drawing->strokes_for_write();
         const bke::GreasePencilLayerFieldContext field_context(
-            *grease_pencil, ATTR_DOMAIN_POINT, layer_index);
+            *grease_pencil, AttrDomain::Point, layer_index);
         set_radius(curves, field_context, selection_field, radii_field);
       }
     }

@@ -81,7 +81,7 @@ class Context {
   /* Will wait until the GPU has finished executing all command. */
   virtual void finish() = 0;
 
-  virtual void memory_statistics_get(int *total_mem, int *free_mem) = 0;
+  virtual void memory_statistics_get(int *r_total_mem, int *r_free_mem) = 0;
 
   virtual void debug_group_begin(const char *, int){};
   virtual void debug_group_end(){};

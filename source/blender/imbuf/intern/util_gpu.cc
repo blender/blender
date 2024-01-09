@@ -125,7 +125,7 @@ static void *imb_gpu_get_data(const ImBuf *ibuf,
                               const int rescale_size[2],
                               const bool store_premultiplied,
                               bool *r_freedata,
-                              eGPUDataFormat *out_data_format)
+                              eGPUDataFormat *r_data_format)
 {
   bool is_float_rect = (ibuf->float_buffer.data != nullptr);
   const bool is_grayscale = imb_is_grayscale_texture_format_compatible(ibuf);
@@ -252,7 +252,7 @@ static void *imb_gpu_get_data(const ImBuf *ibuf,
     }
   }
 
-  *out_data_format = (is_float_rect) ? GPU_DATA_FLOAT : GPU_DATA_UBYTE;
+  *r_data_format = (is_float_rect) ? GPU_DATA_FLOAT : GPU_DATA_UBYTE;
   return data_rect;
 }
 

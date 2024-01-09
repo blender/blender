@@ -42,6 +42,6 @@ class BoneColor : public ::BoneColor {
  * This returns the pose bone's own color, unless it's set to "default", then it defaults to the
  * armature bone color.
  */
-const BoneColor &ANIM_bonecolor_posebone_get(const struct bPoseChannel *pose_bone);
+const BoneColor &ANIM_bonecolor_posebone_get(const bPoseChannel *pose_bone);
 
 };  // namespace blender::animrig

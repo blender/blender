@@ -30,11 +30,11 @@
 
 #include "BKE_image.h"
 #include "BKE_image_format.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_packedFile.h"
 #include "BKE_report.h"
 #include "BKE_sound.h"
-#include "BKE_vfont.h"
+#include "BKE_vfont.hh"
 #include "BKE_volume.hh"
 
 #include "IMB_imbuf.h"
@@ -263,7 +263,8 @@ void BKE_packedfile_pack_all(Main *bmain, ReportList *reports, bool verbose)
        vfont = static_cast<VFont *>(vfont->id.next))
   {
     if (vfont->packedfile == nullptr && !ID_IS_LINKED(vfont) &&
-        BKE_vfont_is_builtin(vfont) == false) {
+        BKE_vfont_is_builtin(vfont) == false)
+    {
       vfont->packedfile = BKE_packedfile_new(
           reports, vfont->filepath, BKE_main_blendfile_path(bmain));
       tot++;

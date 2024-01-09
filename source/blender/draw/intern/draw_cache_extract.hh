@@ -8,26 +8,20 @@
 
 #pragma once
 
-#include <algorithm>
-
 #include "BLI_utildefines.h"
 
-#include "DNA_customdata_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_view3d_enums.h"
-
-#include "BKE_attribute.h"
-#include "BKE_object.hh"
-
-#include "GPU_batch.h"
-#include "GPU_index_buffer.h"
-#include "GPU_vertex_buffer.h"
+#include "GPU_shader.h"
 
 #include "draw_attributes.hh"
 
-struct DRWSubdivCache;
-struct MeshRenderData;
+struct GPUBatch;
+struct GPUIndexBuf;
 struct TaskGraph;
+
+namespace blender::draw {
+
+struct MeshRenderData;
+struct DRWSubdivCache;
 
 /* Vertex Group Selection and display options */
 struct DRW_MeshWeightState {
@@ -54,7 +48,7 @@ enum {
 };
 
 enum eMRIterType {
-  MR_ITER_LOOPTRI = 1 << 0,
+  MR_ITER_CORNER_TRI = 1 << 0,
   MR_ITER_POLY = 1 << 1,
   MR_ITER_LOOSE_EDGE = 1 << 2,
   MR_ITER_LOOSE_VERT = 1 << 3,
@@ -65,7 +59,7 @@ enum eMRDataType {
   MR_DATA_NONE = 0,
   MR_DATA_POLY_NOR = 1 << 1,
   MR_DATA_LOOP_NOR = 1 << 2,
-  MR_DATA_LOOPTRI = 1 << 3,
+  MR_DATA_CORNER_TRI = 1 << 3,
   MR_DATA_LOOSE_GEOM = 1 << 4,
   /** Force loop normals calculation. */
   MR_DATA_TAN_LOOP_NOR = 1 << 5,
@@ -73,16 +67,7 @@ enum eMRDataType {
 };
 ENUM_OPERATORS(eMRDataType, MR_DATA_POLYS_SORTED)
 
-BLI_INLINE int mesh_render_mat_len_get(const Object *object, const Mesh *me)
-{
-  if (me->edit_mesh != NULL) {
-    const Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(object);
-    if (editmesh_eval_final != NULL) {
-      return std::max<int>(1, editmesh_eval_final->totcol);
-    }
-  }
-  return std::max<int>(1, me->totcol);
-}
+int mesh_render_mat_len_get(const Object *object, const Mesh *mesh);
 
 struct MeshBufferList {
   /* Every VBO below contains at least enough data for every loop in the mesh
@@ -224,16 +209,16 @@ BLI_STATIC_ASSERT(MBC_BATCH_LEN < 32, "Number of batches exceeded the limit of b
 
 struct MeshExtractLooseGeom {
   /** Indices of all vertices not used by edges in the #Mesh or #BMesh. */
-  blender::Array<int> verts;
+  Array<int> verts;
   /** Indices of all edges not used by faces in the #Mesh or #BMesh. */
-  blender::Array<int> edges;
+  Array<int> edges;
 };
 
 struct SortedFaceData {
   /** The first triangle index for each polygon, sorted into slices by material. */
-  blender::Array<int> tri_first_index;
+  Array<int> tri_first_index;
   /** The number of visible triangles assigned to each material. */
-  blender::Array<int> mat_tri_len;
+  Array<int> mat_tri_len;
   /* The total number of visible triangles (a sum of the values in #mat_tri_len). */
   int visible_tri_len;
 };
@@ -256,7 +241,7 @@ struct MeshBufferCache {
        mbc == &batch_cache.final || mbc == &batch_cache.cage || mbc == &batch_cache.uv_cage; \
        mbc = (mbc == &batch_cache.final) ? \
                  &batch_cache.cage : \
-                 ((mbc == &batch_cache.cage) ? &batch_cache.uv_cage : NULL))
+                 ((mbc == &batch_cache.cage) ? &batch_cache.uv_cage : nullptr))
 
 struct MeshBatchCache {
   MeshBufferCache final, cage, uv_cage;
@@ -311,13 +296,11 @@ struct MeshBatchCache {
   (MBC_EDITUV_FACES_STRETCH_AREA | MBC_EDITUV_FACES_STRETCH_ANGLE | MBC_EDITUV_FACES | \
    MBC_EDITUV_EDGES | MBC_EDITUV_VERTS | MBC_EDITUV_FACEDOTS | MBC_WIRE_LOOPS_UVS)
 
-namespace blender::draw {
-
 void mesh_buffer_cache_create_requested(TaskGraph *task_graph,
                                         MeshBatchCache &cache,
                                         MeshBufferCache &mbc,
                                         Object *object,
-                                        Mesh *me,
+                                        Mesh *mesh,
                                         bool is_editmode,
                                         bool is_paint_mode,
                                         bool is_mode_active,

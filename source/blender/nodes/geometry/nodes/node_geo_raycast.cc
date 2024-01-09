@@ -33,7 +33,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .supported_type(GeometryComponent::Type::Mesh);
   if (node != nullptr) {
     const eCustomDataType data_type = eCustomDataType(node_storage(*node).data_type);
-    /* TODO: Field interfacind is depend in offsetd of next declrations! */
+    /* TODO: Field interfacing depends on the offset of the next declarations! */
     b.add_input(data_type, "Attribute").hide_value().field_on_all();
   }
 
@@ -100,7 +100,7 @@ static void raycast_to_mesh(const IndexMask &mask,
                             const MutableSpan<float> r_hit_distances)
 {
   BVHTreeFromMesh tree_data;
-  BKE_bvhtree_from_mesh_get(&tree_data, &mesh, BVHTREE_FROM_LOOPTRI, 4);
+  BKE_bvhtree_from_mesh_get(&tree_data, &mesh, BVHTREE_FROM_CORNER_TRIS, 4);
   BLI_SCOPED_DEFER([&]() { free_bvhtree_from_mesh(&tree_data); });
 
   if (tree_data.tree == nullptr) {

@@ -94,7 +94,7 @@ class BVHParams {
   /* Split time range to this number of steps and create leaf node for each
    * of this time steps.
    *
-   * Speeds up rendering of motion primitives in the cost of higher memory usage.
+   * Speeds up rendering of motion primitives at the cost of higher memory usage.
    */
 
   /* Same as above, but for triangle primitives. */

@@ -30,7 +30,8 @@ void MetaData::replace_hash_neutral_cryptomatte_keys(const blender::StringRef la
   std::string cryptomatte_manifest = entries_.pop_default(META_DATA_KEY_CRYPTOMATTE_MANIFEST, "");
 
   if (cryptomatte_hash.length() || cryptomatte_conversion.length() ||
-      cryptomatte_manifest.length()) {
+      cryptomatte_manifest.length())
+  {
     add_cryptomatte_entry(layer_name, "name", layer_name);
   }
   if (cryptomatte_hash.length()) {
@@ -48,6 +49,14 @@ void MetaData::add_to_render_result(RenderResult *render_result) const
 {
   for (MapItem<std::string, std::string> entry : entries_.items()) {
     BKE_render_result_stamp_data(render_result, entry.key.c_str(), entry.value.c_str());
+  }
+}
+
+void MetaData::for_each_entry(
+    FunctionRef<void(const std::string &, const std::string &)> callback) const
+{
+  for (MapItem<std::string, std::string> entry : entries_.items()) {
+    callback(entry.key, entry.value);
   }
 }
 

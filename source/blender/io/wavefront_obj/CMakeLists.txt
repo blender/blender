@@ -10,7 +10,6 @@ set(INC
   ../../blenkernel
   ../../bmesh
   ../../bmesh/intern
-  ../../depsgraph
   ../../editors/include
   ../../makesrna
   ../../nodes
@@ -57,6 +56,7 @@ set(SRC
 set(LIB
   bf_blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
   bf_io_common
@@ -91,11 +91,9 @@ if(WITH_GTESTS)
   set(TEST_LIB
     ${LIB}
 
-    bf_blenloader_tests
+    bf_blenloader_test_util
     bf_io_wavefront_obj
   )
 
-  include(GTestTesting)
-  blender_add_test_lib(bf_io_wavefront_obj_tests "${TEST_SRC}" "${TEST_INC}" "${INC_SYS}" "${TEST_LIB}")
-  add_dependencies(bf_io_wavefront_obj_tests bf_io_wavefront_obj)
+  blender_add_test_suite_lib(io_wavefront "${TEST_SRC}" "${TEST_INC}" "${INC_SYS}" "${TEST_LIB}")
 endif()

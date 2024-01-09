@@ -14,19 +14,20 @@
 
 #include "DNA_customdata_types.h"
 
-#include "BKE_attribute.h"
-
 #include "BLI_sys_types.h"
-#include "BLI_threads.h"
-#include "BLI_utildefines.h"
 
 #include "GPU_shader.h"
-#include "GPU_vertex_format.h"
+
+namespace blender::bke {
+enum class AttrDomain : int8_t;
+}
+
+namespace blender::draw {
 
 struct DRW_AttributeRequest {
   eCustomDataType cd_type;
   int layer_index;
-  eAttrDomain domain;
+  blender::bke::AttrDomain domain;
   char attribute_name[64];
 };
 
@@ -50,7 +51,7 @@ struct DRW_MeshCDMask {
 /* Keep `DRW_MeshCDMask` struct within a `uint32_t`.
  * bit-wise and atomic operations are used to compare and update the struct.
  * See `mesh_cd_layers_type_*` functions. */
-BLI_STATIC_ASSERT(sizeof(DRW_MeshCDMask) <= sizeof(uint32_t), "DRW_MeshCDMask exceeds 32 bits")
+static_assert(sizeof(DRW_MeshCDMask) <= sizeof(uint32_t), "DRW_MeshCDMask exceeds 32 bits");
 
 void drw_attributes_clear(DRW_Attributes *attributes);
 
@@ -65,9 +66,11 @@ void drw_attributes_add_request(DRW_Attributes *attrs,
                                 const char *name,
                                 eCustomDataType data_type,
                                 int layer_index,
-                                eAttrDomain domain);
+                                blender::bke::AttrDomain domain);
 
 bool drw_custom_data_match_attribute(const CustomData *custom_data,
                                      const char *name,
                                      int *r_layer_index,
                                      eCustomDataType *r_type);
+
+}  // namespace blender::draw

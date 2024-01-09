@@ -20,6 +20,19 @@
 
 namespace blender::index_mask {
 
+template<typename T> void build_reverse_map(const IndexMask &mask, MutableSpan<T> r_map)
+{
+#ifndef NDEBUG
+  /* Catch errors with asserts in debug builds. */
+  r_map.fill(-1);
+#endif
+  BLI_assert(r_map.size() >= mask.min_array_size());
+  mask.foreach_index_optimized<T>(GrainSize(4096),
+                                  [&](const T src, const T dst) { r_map[src] = dst; });
+}
+
+template void build_reverse_map<int>(const IndexMask &mask, MutableSpan<int> r_map);
+
 std::array<int16_t, max_segment_size> build_static_indices_array()
 {
   std::array<int16_t, max_segment_size> data;
@@ -495,7 +508,8 @@ IndexMask IndexMask::from_indices(const Span<T> indices, IndexMaskMemory &memory
     return {};
   }
   if (const std::optional<IndexRange> range = unique_sorted_indices::non_empty_as_range_try(
-          indices)) {
+          indices))
+  {
     /* Fast case when the indices encode a single range. */
     return *range;
   }
@@ -575,7 +589,6 @@ IndexMask IndexMask::from_bools(const IndexMask &universe,
 IndexMask IndexMask::from_union(const IndexMask &mask_a,
                                 const IndexMask &mask_b,
                                 IndexMaskMemory &memory)
-
 {
   const int64_t new_size = math::max(mask_a.min_array_size(), mask_b.min_array_size());
   Array<bool> tmp(new_size, false);
@@ -731,7 +744,9 @@ std::optional<RawMaskIterator> IndexMask::find(const int64_t query_index) const
   if (local_segment[index_in_segment] != local_query_index) {
     return std::nullopt;
   }
-  return RawMaskIterator{segment_i, int16_t(index_in_segment)};
+  const int64_t actual_index_in_segment = index_in_segment +
+                                          (segment_i == 0 ? begin_index_in_segment_ : 0);
+  return RawMaskIterator{segment_i, int16_t(actual_index_in_segment)};
 }
 
 bool IndexMask::contains(const int64_t query_index) const

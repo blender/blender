@@ -25,8 +25,8 @@
 
 #include "BKE_customdata.hh"
 
-#include "bmesh.h"
-#include "intern/bmesh_private.h"
+#include "bmesh.hh"
+#include "intern/bmesh_private.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Face Split Edge-Net
@@ -427,7 +427,8 @@ static bool bm_face_split_edgenet_find_loop(BMVert *v_init,
              (bm_edge_flagged_radial_count(e_pair[1]) == 1));
 
   if (bm_face_split_edgenet_find_loop_walk(
-          v_init, face_normal, edge_order, edge_order_len, e_pair)) {
+          v_init, face_normal, edge_order, edge_order_len, e_pair))
+  {
     uint i = 0;
 
     r_face_verts[i++] = v_init;
@@ -492,7 +493,7 @@ bool BM_face_split_edgenet(BMesh *bm,
   BLI_assert(BM_ELEM_API_FLAG_TEST(f, FACE_NET) == 0);
   BM_ELEM_API_FLAG_ENABLE(f, FACE_NET);
 
-#ifdef DEBUG
+#ifndef NDEBUG
   for (i = 0; i < edge_net_len; i++) {
     BLI_assert(BM_ELEM_API_FLAG_TEST(edge_net[i], EDGE_NET) == 0);
     BLI_assert(BM_edge_in_face(edge_net[i], f) == false);
@@ -590,8 +591,7 @@ bool BM_face_split_edgenet(BMesh *bm,
     do {
       BM_ITER_ELEM (l_other, &iter, l_iter->v, BM_LOOPS_OF_VERT) {
         if ((l_other->f != f) && BM_ELEM_API_FLAG_TEST(l_other->f, FACE_NET)) {
-          CustomData_bmesh_copy_data(
-              &bm->ldata, &bm->ldata, l_iter->head.data, &l_other->head.data);
+          CustomData_bmesh_copy_block(bm->ldata, l_iter->head.data, &l_other->head.data);
         }
       }
       /* tag not to interpolate */
@@ -622,8 +622,7 @@ bool BM_face_split_edgenet(BMesh *bm,
                 l_first = l_iter;
               }
               else {
-                CustomData_bmesh_copy_data(
-                    &bm->ldata, &bm->ldata, l_first->head.data, &l_iter->head.data);
+                CustomData_bmesh_copy_block(bm->ldata, l_first->head.data, &l_iter->head.data);
               }
             }
           }
@@ -825,7 +824,8 @@ static void bvhtree_test_edges_isect_2d_ray_cb(void *user_data,
   /* direction is normalized, so this will be the distance */
   float dist_new;
   if (isect_ray_seg_v2(
-          data->v_origin->co, ray->direction, e->v1->co, e->v2->co, &dist_new, nullptr)) {
+          data->v_origin->co, ray->direction, e->v1->co, e->v2->co, &dist_new, nullptr))
+  {
     /* avoid float precision issues, possible this is greater,
      * check above zero to allow some overlap
      * (and needed for partial-connect which will overlap vertices) */
@@ -1000,7 +1000,8 @@ static int bm_face_split_edgenet_find_connection(const EdgeGroup_FindConnection_
       BMVert *v_pair[2];
       /* ensure the closest vertex is popped back off the stack first */
       if (len_squared_v2v2(v_origin->co, e_hit->v1->co) >
-          len_squared_v2v2(v_origin->co, e_hit->v2->co)) {
+          len_squared_v2v2(v_origin->co, e_hit->v2->co))
+      {
         ARRAY_SET_ITEMS(v_pair, e_hit->v1, e_hit->v2);
       }
       else {
@@ -1496,7 +1497,7 @@ bool BM_face_split_edgenet_connect_islands(BMesh *bm,
 
   bm->elem_index_dirty |= BM_VERT;
 
-  /* Now create bvh tree
+  /* Now create BVH tree.
    *
    * Note that a large epsilon is used because meshes with dimensions of around 100+ need it.
    * see #52329. */
@@ -1639,7 +1640,7 @@ finally:
   if (use_partial_connect) {
 
 /* Sanity check: ensure we don't have connecting edges before splicing begins. */
-#  ifdef DEBUG
+#  ifndef NDEBUG
     {
       struct TempVertPair *tvp = temp_vert_pairs.list;
       do {

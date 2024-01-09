@@ -22,7 +22,7 @@
 
 #include "BKE_appdir.h"
 #include "BKE_context.hh"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_report.h"
 #include "BKE_screen.hh"
 
@@ -335,9 +335,10 @@ static int file_browse_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
   if (!path[0]) {
     /* Defaults if the path is empty. */
-    if (STR_ELEM(
-            RNA_property_identifier(prop), "font_path_ui", "font_path_ui_mono", "font_directory"))
-    {
+    const char *prop_id = RNA_property_identifier(prop);
+    /* NOTE: relying on built-in names isn't useful for add-on authors.
+     * The property itself should support this kind of meta-data. */
+    if (STR_ELEM(prop_id, "font_path_ui", "font_path_ui_mono", "font_directory")) {
       if (!U.fontdir[0]) {
         char fonts_dir[FILE_MAXDIR];
         BKE_appdir_font_folder_default(fonts_dir, ARRAY_SIZE(fonts_dir));

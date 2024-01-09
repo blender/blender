@@ -44,15 +44,15 @@
 #include "BKE_animsys.h" /* <------ should this be here?, needed for sequencer update */
 #include "BKE_callbacks.h"
 #include "BKE_camera.h"
-#include "BKE_colortools.h"
+#include "BKE_colortools.hh"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_image_format.h"
 #include "BKE_image_save.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
-#include "BKE_lib_remap.h"
-#include "BKE_main.h"
+#include "BKE_lib_remap.hh"
+#include "BKE_main.hh"
 #include "BKE_mask.h"
 #include "BKE_modifier.hh"
 #include "BKE_node.hh"
@@ -65,6 +65,8 @@
 #include "BKE_writeavi.h" /* <------ should be replaced once with generic movie module */
 
 #include "NOD_composite.hh"
+
+#include "COM_render_context.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
@@ -84,6 +86,7 @@
 #include "SEQ_relations.hh"
 #include "SEQ_render.hh"
 
+#include "GPU_capabilities.h"
 #include "GPU_context.h"
 #include "WM_api.hh"
 #include "wm_window.hh"
@@ -657,7 +660,8 @@ void RE_FreeUnusedGPUResources()
        * race condition here because we are on the main thread and new jobs can only
        * be started from the main thread. */
       if (WM_jobs_test(wm, scene, WM_JOB_TYPE_RENDER) ||
-          WM_jobs_test(wm, scene, WM_JOB_TYPE_COMPOSITE)) {
+          WM_jobs_test(wm, scene, WM_JOB_TYPE_COMPOSITE))
+      {
         do_free = false;
         break;
       }
@@ -1172,7 +1176,8 @@ static void do_render_compositor_scenes(Render *re)
       if (node->id && node->id != (ID *)re->scene) {
         Scene *scene = (Scene *)node->id;
         if (!BLI_gset_haskey(scenes_rendered, scene) &&
-            render_scene_has_layers_to_render(scene, nullptr)) {
+            render_scene_has_layers_to_render(scene, nullptr))
+        {
           do_render_compositor_scene(re, scene, cfra);
           BLI_gset_add(scenes_rendered, scene);
           node->typeinfo->updatefunc(restore_scene->nodetree, node);
@@ -1266,10 +1271,18 @@ static void do_render_compositor(Render *re)
           /* If we have consistent depsgraph now would be a time to update them. */
         }
 
+        blender::realtime_compositor::RenderContext compositor_render_context;
         LISTBASE_FOREACH (RenderView *, rv, &re->result->views) {
-          ntreeCompositExecTree(
-              re, re->pipeline_scene_eval, ntree, &re->r, true, G.background == 0, rv->name);
+          ntreeCompositExecTree(re,
+                                re->pipeline_scene_eval,
+                                ntree,
+                                &re->r,
+                                true,
+                                G.background == 0,
+                                rv->name,
+                                &compositor_render_context);
         }
+        compositor_render_context.save_file_outputs(re->pipeline_scene_eval);
 
         ntree->runtime->stats_draw = nullptr;
         ntree->runtime->test_break = nullptr;
@@ -1628,6 +1641,32 @@ static int check_compositor_output(Scene *scene)
   return node_tree_has_compositor_output(scene->nodetree);
 }
 
+/* Identify if the compositor can run on the GPU. Currently, this only checks if the compositor is
+ * set to GPU and the render size exceeds what can be allocated as a texture in it. */
+static bool is_compositing_possible_on_gpu(Scene *scene, ReportList *reports)
+{
+  /* CPU compositor can always run. */
+  if (!U.experimental.use_full_frame_compositor ||
+      scene->nodetree->execution_mode != NTREE_EXECUTION_MODE_REALTIME)
+  {
+    return true;
+  }
+
+  int width, height;
+  BKE_render_resolution(&scene->r, false, &width, &height);
+  const int max_texture_size = GPU_max_texture_size();
+
+  /* There is no way to know if the render size is too large except if we actually allocate a test
+   * texture, which we want to avoid due its cost. So we employ a heuristic that so far has worked
+   * with all known GPU drivers. */
+  if (size_t(width) * height > (size_t(max_texture_size) * max_texture_size) / 4) {
+    BKE_report(reports, RPT_ERROR, "Render size too large for GPU, use CPU compositor instead");
+    return false;
+  }
+
+  return true;
+}
+
 bool RE_is_rendering_allowed(Scene *scene,
                              ViewLayer *single_layer,
                              Object *camera_override,
@@ -1637,7 +1676,8 @@ bool RE_is_rendering_allowed(Scene *scene,
 
   if (scene->r.mode & R_BORDER) {
     if (scene->r.border.xmax <= scene->r.border.xmin ||
-        scene->r.border.ymax <= scene->r.border.ymin) {
+        scene->r.border.ymax <= scene->r.border.ymin)
+    {
       BKE_report(reports, RPT_ERROR, "No border area selected");
       return false;
     }
@@ -1659,6 +1699,10 @@ bool RE_is_rendering_allowed(Scene *scene,
 
     if (!check_compositor_output(scene)) {
       BKE_report(reports, RPT_ERROR, "No render output node in scene");
+      return false;
+    }
+
+    if (!is_compositing_possible_on_gpu(scene, reports)) {
       return false;
     }
   }

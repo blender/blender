@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'7ce745a76b47')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd13edee3e0cc')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-20 11:21:26\n"
+"POT-Creation-Date: 2024-01-08 11:04:23\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Ainhize & Miriam <agoenaga006@ikasle.ehu.eus>\n"
 "Language-Team: Euskara <agoenaga006@ikasle.ehu.eus>\n"
@@ -447,6 +447,22 @@ msgid "Sphere"
 msgstr "Esfera"
 
 
+msgid "Sound"
+msgstr "Soinua"
+
+
+msgid "Speaker"
+msgstr "Bozgorailua"
+
+
+msgid "Text"
+msgstr "Testua"
+
+
+msgid "World"
+msgstr "Mundua"
+
+
 msgid "Groups"
 msgstr "Taldeak"
 
@@ -489,10 +505,6 @@ msgstr "Zirkulua"
 
 msgid "Angular Velocity"
 msgstr "Abiadura-angeluarra"
-
-
-msgid "Sound"
-msgstr "Soinua"
 
 
 msgid "Image Texture"
@@ -572,10 +584,6 @@ msgid "Show/Hide Faces"
 msgstr "Aurpegiak erakutsi/ezkutatu"
 
 
-msgid "Text"
-msgstr "Testua"
-
-
 msgid "Physics"
 msgstr "Fisikak"
 
@@ -606,10 +614,6 @@ msgstr "Loturak"
 
 msgid "New"
 msgstr "Berria"
-
-
-msgid "World"
-msgstr "Mundua"
 
 
 msgctxt "Curve"
@@ -1687,10 +1691,6 @@ msgid "Prev"
 msgstr "Aurrekoa"
 
 
-msgid "Speaker"
-msgstr "Bozgorailua"
-
-
 msgctxt "Operator"
 msgid "Load Factory Settings"
 msgstr "Lehenetsitako ezarpenak kargatu"
@@ -1704,10 +1704,6 @@ msgstr "Azken Saioa Berreskuratu"
 msgctxt "Operator"
 msgid "Save System Info"
 msgstr "Sistemaren Informazioa Gorde"
-
-
-msgid "Refraction"
-msgstr "Errefrakzioa"
 
 
 msgctxt "Operator"
@@ -1906,6 +1902,10 @@ msgstr "Baxua"
 
 msgid "Upper"
 msgstr "Altua"
+
+
+msgid "Refraction"
+msgstr "Errefrakzioa"
 
 
 msgctxt "Image"
@@ -2139,6 +2139,10 @@ msgid "New"
 msgstr "Berria"
 
 
+msgid "Rigging"
+msgstr "Rigging"
+
+
 msgctxt "Mesh"
 msgid "Plane"
 msgstr "Planoa"
@@ -2368,10 +2372,6 @@ msgstr "Kurba Gehitu"
 
 msgid "Import-Export"
 msgstr "Inportatu-Esportatu"
-
-
-msgid "Rigging"
-msgstr "Rigging"
 
 
 msgid "English (English)"

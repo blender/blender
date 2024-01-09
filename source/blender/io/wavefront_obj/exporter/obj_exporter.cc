@@ -213,7 +213,7 @@ static void write_mesh_objects(Vector<std::unique_ptr<OBJMesh>> exportable_as_me
         /* This function takes a 0-indexed slot index for the obj_mesh object and
          * returns the material name that we are using in the .obj file for it. */
         const auto *obj_mtlindices = mtlindices.is_empty() ? nullptr : &mtlindices[i];
-        std::function<const char *(int)> matname_fn = [&](int s) -> const char * {
+        auto matname_fn = [&](int s) -> const char * {
           if (!obj_mtlindices || s < 0 || s >= obj_mtlindices->size()) {
             return nullptr;
           }
@@ -305,8 +305,7 @@ bool append_frame_to_filename(const char *filepath, const int frame, char *r_fil
 {
   BLI_strncpy(r_filepath_with_frames, filepath, FILE_MAX);
   BLI_path_extension_strip(r_filepath_with_frames);
-  const int digits = frame == 0 ? 1 : integer_digits_i(abs(frame));
-  BLI_path_frame(r_filepath_with_frames, FILE_MAX, frame, digits);
+  BLI_path_frame(r_filepath_with_frames, FILE_MAX, frame, 4);
   return BLI_path_extension_replace(r_filepath_with_frames, FILE_MAX, ".obj");
 }
 

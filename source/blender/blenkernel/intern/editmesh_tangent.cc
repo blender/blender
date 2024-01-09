@@ -29,7 +29,7 @@
 /** \name Tangent Space Calculation
  * \{ */
 
-/* Necessary complexity to handle looptri's as quads for correct tangents */
+/* Necessary complexity to handle looptris as quads for correct tangents. */
 #define USE_LOOPTRI_DETECT_QUADS
 
 struct SGLSLEditMeshToTangent {
@@ -137,7 +137,7 @@ struct SGLSLEditMeshToTangent {
   int numTessFaces;
 
 #ifdef USE_LOOPTRI_DETECT_QUADS
-  /* map from 'fake' face index to looptri,
+  /* map from 'fake' face index to looptris,
    * quads will point to the first looptri of the quad */
   const int *face_as_quad_map;
   int num_face_as_quad_map;
@@ -224,7 +224,7 @@ void BKE_editmesh_loop_tangent_calc(BMEditMesh *em,
         face_as_quad_map[i] = j;
         /* step over all quads */
         if (em->looptris[j][0]->f->len == 4) {
-          j++; /* skips the nest looptri */
+          j++; /* Skips the next looptri. */
         }
       }
       num_face_as_quad_map = i;
@@ -286,7 +286,7 @@ void BKE_editmesh_loop_tangent_calc(BMEditMesh *em,
         }
         BM_mesh_elem_index_ensure(bm, htype_index);
 
-        mesh2tangent->looptris = (const BMLoop *(*)[3])em->looptris;
+        mesh2tangent->looptris = const_cast<const BMLoop *(*)[3]>(em->looptris);
         mesh2tangent->tangent = static_cast<float(*)[4]>(loopdata_out->layers[index].data);
 
         BLI_task_pool_push(

@@ -8,6 +8,7 @@
 #pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_gbuffer_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_lightprobe_eval_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_closure_lib.glsl)
 
 float bilateral_depth_weight(vec3 center_N, vec3 center_P, vec3 sample_P)
 {
@@ -55,20 +56,7 @@ vec3 from_accumulation_space(vec3 color)
 
 vec3 load_normal(ivec2 texel)
 {
-  GBufferData gbuf = gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_color_tx, texel);
-
-  /* TODO(fclem): Load preprocessed Normal. */
-  vec3 N = vec3(0.0);
-  if (gbuf.has_diffuse) {
-    N = gbuf.diffuse.N;
-  }
-  if (gbuf.has_reflection) {
-    N = gbuf.reflection.N;
-  }
-  if (gbuf.has_refraction) {
-    N = gbuf.refraction.N;
-  }
-  return N;
+  return gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, texel).surface_N;
 }
 
 void main()
@@ -93,23 +81,22 @@ void main()
     return;
   }
 
-  GBufferData gbuf = gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_color_tx, texel_fullres);
+  GBufferReader gbuf = gbuffer_read(
+      gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, texel_fullres);
 
-  uint closure_bits = texelFetch(gbuf_header_tx, texel_fullres, 0).r;
-  if (!flag_test(closure_bits, uniform_buf.raytrace.closure_active)) {
+#ifndef GPU_METAL
+  /* TODO(fclem): Support specialization on OpenGL and Vulkan. */
+  int closure_index = uniform_buf.raytrace.closure_index;
+#endif
+  bool has_valid_closure = closure_index < gbuf.closure_count;
+  if (!has_valid_closure) {
     return;
   }
 
-  vec3 center_N = gbuf.diffuse.N;
-  float roughness = 1.0;
-  if (uniform_buf.raytrace.closure_active == eClosureBits(CLOSURE_REFLECTION)) {
-    roughness = gbuf.reflection.roughness;
-    center_N = gbuf.reflection.N;
-  }
-  if (uniform_buf.raytrace.closure_active == eClosureBits(CLOSURE_REFRACTION)) {
-    roughness = 1.0; /* TODO(fclem): Apparent roughness. */
-    center_N = gbuf.refraction.N;
-  }
+  ClosureUndetermined closure_center = gbuffer_closure_get(gbuf, closure_index);
+
+  vec3 center_N = closure_center.N;
+  float roughness = closure_apparent_roughness_get(closure_center);
 
   float mix_fac = saturate(roughness * uniform_buf.raytrace.roughness_mask_scale -
                            uniform_buf.raytrace.roughness_mask_bias);
@@ -129,11 +116,9 @@ void main()
       ivec2 sample_texel = texel + ivec2(x, y);
       ivec2 sample_texel_fullres = sample_texel * uniform_buf.raytrace.resolution_scale +
                                    uniform_buf.raytrace.resolution_bias;
-      ivec2 sample_tile = sample_texel_fullres / RAYTRACE_GROUP_SIZE;
+      ivec3 sample_tile = ivec3(sample_texel_fullres / RAYTRACE_GROUP_SIZE, closure_index);
       /* Make sure the sample has been processed and do not contain garbage data. */
-      uint tile_mask = imageLoad(tile_mask_img, sample_tile).r;
-      bool unprocessed_tile = !flag_test(tile_mask, 1u << 1u);
-      if (unprocessed_tile) {
+      if (imageLoad(tile_mask_img, sample_tile).r == 0u) {
         continue;
       }
 

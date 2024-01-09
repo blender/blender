@@ -58,7 +58,8 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   const int weight = ELEM(params.other_socket().type, SOCK_FLOAT) ? 0 : -1;
 
   for (const EnumPropertyItem *item = rna_enum_node_math_items; item->identifier != nullptr;
-       item++) {
+       item++)
+  {
     if (item->name != nullptr && item->identifier[0] != '\0') {
       params.add_item(CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, item->name),
                       SocketSearchOp{"Value", (NodeMathOperation)item->value},

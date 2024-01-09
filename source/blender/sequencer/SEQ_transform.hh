@@ -28,28 +28,26 @@ bool SEQ_transform_seqbase_shuffle_ex(ListBase *seqbasep,
                                       Sequence *test,
                                       Scene *evil_scene,
                                       int channel_delta);
-bool SEQ_transform_seqbase_shuffle(struct ListBase *seqbasep,
-                                   struct Sequence *test,
-                                   struct Scene *evil_scene);
+bool SEQ_transform_seqbase_shuffle(ListBase *seqbasep, Sequence *test, Scene *evil_scene);
 bool SEQ_transform_seqbase_shuffle_time(blender::Span<Sequence *> strips_to_shuffle,
                                         blender::Span<Sequence *> time_dependent_strips,
-                                        struct ListBase *seqbasep,
-                                        struct Scene *evil_scene,
-                                        struct ListBase *markers,
+                                        ListBase *seqbasep,
+                                        Scene *evil_scene,
+                                        ListBase *markers,
                                         bool use_sync_markers);
 bool SEQ_transform_seqbase_shuffle_time(blender::Span<Sequence *> strips_to_shuffle,
-                                        struct ListBase *seqbasep,
-                                        struct Scene *evil_scene,
-                                        struct ListBase *markers,
+                                        ListBase *seqbasep,
+                                        Scene *evil_scene,
+                                        ListBase *markers,
                                         bool use_sync_markers);
 
-void SEQ_transform_handle_overlap(struct Scene *scene,
-                                  struct ListBase *seqbasep,
+void SEQ_transform_handle_overlap(Scene *scene,
+                                  ListBase *seqbasep,
                                   blender::Span<Sequence *> transformed_strips,
                                   blender::Span<Sequence *> time_dependent_strips,
                                   bool use_sync_markers);
-void SEQ_transform_handle_overlap(struct Scene *scene,
-                                  struct ListBase *seqbasep,
+void SEQ_transform_handle_overlap(Scene *scene,
+                                  ListBase *seqbasep,
                                   blender::Span<Sequence *> transformed_strips,
                                   bool use_sync_markers);
 /**
@@ -126,7 +124,7 @@ void SEQ_image_preview_unit_from_px(const Scene *scene, const float co_src[2], f
  * \param r_min: Minimum x and y values
  * \param r_max: Maximum x and y values
  */
-void SEQ_image_transform_bounding_box_from_collection(struct Scene *scene,
+void SEQ_image_transform_bounding_box_from_collection(Scene *scene,
                                                       blender::Span<Sequence *> strips,
                                                       bool apply_rotation,
                                                       float r_min[2],

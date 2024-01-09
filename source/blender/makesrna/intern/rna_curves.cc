@@ -37,6 +37,11 @@ const EnumPropertyItem rna_enum_curve_normal_mode_items[] = {
      "Z Up",
      "Calculate normals perpendicular to the Z axis and the curve tangent. If a series of points "
      "is vertical, the X axis is used"},
+    {NORMAL_MODE_FREE,
+     "FREE",
+     ICON_NONE,
+     "Free",
+     "Use the stored custom normal attribute as the final normals"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -183,24 +188,25 @@ static void rna_CurvePoint_location_set(PointerRNA *ptr, const float value[3])
 
 static float rna_CurvePoint_radius_get(PointerRNA *ptr)
 {
+  using namespace blender;
   const Curves *curves = rna_curves(ptr);
-  const float *radii = static_cast<const float *>(
-      CustomData_get_layer_named(&curves->geometry.point_data, CD_PROP_FLOAT, "radius"));
-  if (radii == nullptr) {
-    return 0.0f;
-  }
+  const bke::AttributeAccessor attributes = curves->geometry.wrap().attributes();
+  const VArray radii = *attributes.lookup_or_default<float>(
+      "radius", bke::AttrDomain::Point, 0.0f);
   return radii[rna_CurvePoint_index_get_const(ptr)];
 }
 
 static void rna_CurvePoint_radius_set(PointerRNA *ptr, float value)
 {
+  using namespace blender;
   Curves *curves = rna_curves(ptr);
-  float *radii = static_cast<float *>(CustomData_get_layer_named_for_write(
-      &curves->geometry.point_data, CD_PROP_FLOAT, "radius", curves->geometry.point_num));
-  if (radii == nullptr) {
+  bke::MutableAttributeAccessor attributes = curves->geometry.wrap().attributes_for_write();
+  bke::AttributeWriter radii = attributes.lookup_or_add_for_write<float>("radius",
+                                                                         bke::AttrDomain::Point);
+  if (!radii) {
     return;
   }
-  radii[rna_CurvePoint_index_get_const(ptr)] = value;
+  radii.varray.set(rna_CurvePoint_index_get_const(ptr), value);
 }
 
 static char *rna_CurvePoint_path(const PointerRNA *ptr)
@@ -293,25 +299,10 @@ static void rna_Curves_add_curves(Curves *curves_id,
 
   /* Initialize new attribute values, since #CurvesGeometry::resize() doesn't do that. */
   bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
-  attributes.for_all(
-      [&](const bke::AttributeIDRef &id, const bke::AttributeMetaData /*meta_data*/) {
-        bke::GSpanAttributeWriter attribute = attributes.lookup_for_write_span(id);
-        GMutableSpan new_data;
-        switch (attribute.domain) {
-          case ATTR_DOMAIN_POINT:
-            new_data = attribute.span.drop_front(orig_points_num);
-            break;
-          case ATTR_DOMAIN_CURVE:
-            new_data = attribute.span.drop_front(orig_curves_num);
-            break;
-          default:
-            BLI_assert_unreachable();
-        }
-        const CPPType &type = attribute.span.type();
-        type.fill_construct_n(type.default_value(), new_data.data(), new_data.size());
-        attribute.finish();
-        return true;
-      });
+  bke::fill_attribute_range_default(
+      attributes, bke::AttrDomain::Point, {}, curves.points_range().drop_front(orig_points_num));
+  bke::fill_attribute_range_default(
+      attributes, bke::AttrDomain::Curve, {}, curves.curves_range().drop_front(orig_curves_num));
 
   curves.update_curve_types();
 

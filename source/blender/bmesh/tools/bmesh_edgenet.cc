@@ -17,8 +17,8 @@
 #include "BLI_mempool.h"
 #include "BLI_utildefines.h"
 
-#include "bmesh.h"
-#include "bmesh_edgenet.h" /* own include */
+#include "bmesh.hh"
+#include "bmesh_edgenet.hh" /* own include */
 
 #include "BLI_strict_flags.h" /* keep last */
 
@@ -200,7 +200,8 @@ begin:
 
           if (vn_curr->pass == -vn_next->pass) {
             if ((vn_curr->flag & VNINFO_FLAG_IS_MIXFACE) ||
-                (vn_next->flag & VNINFO_FLAG_IS_MIXFACE)) {
+                (vn_next->flag & VNINFO_FLAG_IS_MIXFACE))
+            {
               /* found connecting edge */
               if (bm_edgenet_path_check_overlap(v_curr, v_next, vnet_info) == false) {
                 return e;

@@ -10,6 +10,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
 #include "ED_uvedit.hh"
@@ -17,6 +18,8 @@
 #include "extract_mesh.hh"
 
 #include "draw_cache_impl.hh"
+
+namespace blender::draw {
 
 void *mesh_extract_buffer_get(const MeshExtract *extractor, MeshBufferList *mbuflist)
 {
@@ -31,7 +34,8 @@ void *mesh_extract_buffer_get(const MeshExtract *extractor, MeshBufferList *mbuf
 eMRIterType mesh_extract_iter_type(const MeshExtract *ext)
 {
   eMRIterType type = (eMRIterType)0;
-  SET_FLAG_FROM_TEST(type, (ext->iter_looptri_bm || ext->iter_looptri_mesh), MR_ITER_LOOPTRI);
+  SET_FLAG_FROM_TEST(
+      type, (ext->iter_looptri_bm || ext->iter_corner_tri_mesh), MR_ITER_CORNER_TRI);
   SET_FLAG_FROM_TEST(type, (ext->iter_face_bm || ext->iter_face_mesh), MR_ITER_POLY);
   SET_FLAG_FROM_TEST(
       type, (ext->iter_loose_edge_bm || ext->iter_loose_edge_mesh), MR_ITER_LOOSE_EDGE);
@@ -153,3 +157,5 @@ void mesh_render_data_loop_edge_flag(const MeshRenderData &mr,
 }
 
 /** \} */
+
+}  // namespace blender::draw

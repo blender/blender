@@ -23,15 +23,14 @@
 
 #include "BLT_translation.h"
 
-#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
 
-#include "BKE_colorband.h"
-#include "BKE_colortools.h"
+#include "BKE_colorband.hh"
+#include "BKE_colortools.hh"
 #include "BKE_customdata.hh"
 #include "BKE_deform.h"
 #include "BKE_lattice.hh"
@@ -75,7 +74,8 @@ static int point_data_used(PointDensity *pd)
     if (ELEM(pd->ob_color_source,
              TEX_PD_COLOR_VERTCOL,
              TEX_PD_COLOR_VERTWEIGHT,
-             TEX_PD_COLOR_VERTNOR)) {
+             TEX_PD_COLOR_VERTNOR))
+    {
       pd_bitflag |= POINT_DATA_COLOR;
     }
   }
@@ -278,20 +278,20 @@ static void pointdensity_cache_vertex_color(PointDensity *pd,
                                             Mesh *mesh,
                                             float *data_color)
 {
-  const int *corner_verts = BKE_mesh_corner_verts(mesh);
-  const int totloop = mesh->totloop;
+  const blender::Span<int> corner_verts = mesh->corner_verts();
+  const int totloop = mesh->corners_num;
   char layername[MAX_CUSTOMDATA_LAYER_NAME];
   int i;
 
   BLI_assert(data_color);
 
-  if (!CustomData_has_layer(&mesh->loop_data, CD_PROP_BYTE_COLOR)) {
+  if (!CustomData_has_layer(&mesh->corner_data, CD_PROP_BYTE_COLOR)) {
     return;
   }
   CustomData_validate_layer_name(
-      &mesh->loop_data, CD_PROP_BYTE_COLOR, pd->vertex_attribute_name, layername);
+      &mesh->corner_data, CD_PROP_BYTE_COLOR, pd->vertex_attribute_name, layername);
   const MLoopCol *mcol = static_cast<const MLoopCol *>(
-      CustomData_get_layer_named(&mesh->loop_data, CD_PROP_BYTE_COLOR, layername));
+      CustomData_get_layer_named(&mesh->corner_data, CD_PROP_BYTE_COLOR, layername));
   if (!mcol) {
     return;
   }
@@ -332,7 +332,7 @@ static void pointdensity_cache_vertex_weight(PointDensity *pd,
                                              Mesh *mesh,
                                              float *data_color)
 {
-  const int totvert = mesh->totvert;
+  const int totvert = mesh->verts_num;
   int mdef_index;
   int i;
 
@@ -369,7 +369,7 @@ static void pointdensity_cache_vertex_normal(Mesh *mesh, float *data_color)
 {
   BLI_assert(data_color);
   const blender::Span<blender::float3> normals = mesh->vert_normals();
-  memcpy(data_color, normals.data(), sizeof(float[3]) * mesh->totvert);
+  memcpy(data_color, normals.data(), sizeof(float[3]) * mesh->verts_num);
 }
 
 static void pointdensity_cache_object(PointDensity *pd, Object *ob)
@@ -391,8 +391,8 @@ static void pointdensity_cache_object(PointDensity *pd, Object *ob)
   }
 #endif
 
-  const float(*positions)[3] = BKE_mesh_vert_positions(mesh); /* local object space */
-  pd->totpoints = mesh->totvert;
+  const blender::Span<blender::float3> positions = mesh->vert_positions(); /* local object space */
+  pd->totpoints = mesh->verts_num;
   if (pd->totpoints == 0) {
     return;
   }
@@ -827,6 +827,7 @@ void RE_point_density_minmax(Depsgraph *depsgraph,
                              float r_min[3],
                              float r_max[3])
 {
+  using namespace blender;
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
   Object *object = pd->object;
   if (object == nullptr) {
@@ -853,9 +854,9 @@ void RE_point_density_minmax(Depsgraph *depsgraph,
   }
   else {
     const float radius[3] = {pd->radius, pd->radius, pd->radius};
-    if (const std::optional<BoundBox> bb = BKE_object_boundbox_get(object)) {
-      copy_v3_v3(r_min, bb->vec[0]);
-      copy_v3_v3(r_max, bb->vec[6]);
+    if (const std::optional<Bounds<float3>> bb = BKE_object_boundbox_get(object)) {
+      copy_v3_v3(r_min, bb->min);
+      copy_v3_v3(r_max, bb->max);
       /* Adjust texture space to include density points on the boundaries. */
       sub_v3_v3(r_min, radius);
       add_v3_v3(r_max, radius);

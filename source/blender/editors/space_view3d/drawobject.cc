@@ -6,8 +6,6 @@
  * \ingroup spview3d
  */
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -33,7 +31,7 @@
 
 #include "UI_resources.hh"
 
-#include "DRW_engine.h"
+#include "DRW_engine.hh"
 
 #include "view3d_intern.h" /* bad level include */
 

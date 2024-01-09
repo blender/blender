@@ -18,10 +18,8 @@
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
 
-#include "DNA_meshdata_types.h"
-
-#include "bmesh.h"
-#include "intern/bmesh_private.h"
+#include "bmesh.hh"
+#include "intern/bmesh_private.hh"
 
 BMUVOffsets BM_uv_map_get_offsets_from_layer(const BMesh *bm, const int layer)
 {

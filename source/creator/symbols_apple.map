@@ -36,6 +36,7 @@ _Jv_RegisterClasses
 lame_*
 *llvm*
 *LLVM*
+*Manta*
 *MathML*
 *mkldnn*
 Name

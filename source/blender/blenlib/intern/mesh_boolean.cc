@@ -15,7 +15,7 @@
 
 #  include "BLI_array.hh"
 #  include "BLI_assert.h"
-#  include "BLI_delaunay_2d.h"
+#  include "BLI_delaunay_2d.hh"
 #  include "BLI_hash.hh"
 #  include "BLI_kdopbvh.h"
 #  include "BLI_map.hh"
@@ -51,7 +51,7 @@ namespace blender::meshintersect {
  * that yield predictable results from run-to-run and machine-to-machine.
  */
 class Edge {
-  const Vert *v_[2]{nullptr, nullptr};
+  const Vert *v_[2] = {nullptr, nullptr};
 
  public:
   Edge() = default;
@@ -981,7 +981,7 @@ static Array<int> sort_tris_around_edge(
    * be only 3 or 4 - so OK to make copies of arrays instead of swapping
    * around in a single array. */
   const int dbg_level = 0;
-  if (tris.size() == 0) {
+  if (tris.is_empty()) {
     return Array<int>();
   }
   if (dbg_level > 0) {
@@ -1306,7 +1306,7 @@ static bool patch_cell_graph_ok(const CellsInfo &cinfo, const PatchesInfo &pinfo
     if (cell.merged_to() != NO_INDEX) {
       continue;
     }
-    if (cell.patches().size() == 0) {
+    if (cell.patches().is_empty()) {
       std::cout << "Patch/Cell graph disconnected at Cell " << c << " with no patches\n";
       return false;
     }
@@ -2132,7 +2132,7 @@ static void finish_patch_cell_graph(const IMesh &tm,
   /* For nested components, merge their ambient cell with the nearest containing cell. */
   Vector<int> outer_components;
   for (int comp : comp_cont.index_range()) {
-    if (comp_cont[comp].size() == 0) {
+    if (comp_cont[comp].is_empty()) {
       outer_components.append(comp);
     }
     else {
@@ -2198,7 +2198,7 @@ static void propagate_windings_and_in_output_volume(PatchesInfo &pinfo,
                                                     int c_ambient,
                                                     BoolOpType op,
                                                     int nshapes,
-                                                    std::function<int(int)> shape_fn)
+                                                    FunctionRef<int(int)> shape_fn)
 {
   int dbg_level = 0;
   if (dbg_level > 0) {
@@ -2253,7 +2253,7 @@ static void propagate_windings_and_in_output_volume(PatchesInfo &pinfo,
 }
 
 /**
- * Given an array of winding numbers, where the ith entry is a cell's winding
+ * Given an array of winding numbers, where the `i-th` entry is a cell's winding
  * number with respect to input shape (mesh part) i, return true if the
  * cell should be included in the output of the boolean operation.
  *   Intersection: all the winding numbers must be nonzero.
@@ -2459,7 +2459,8 @@ static IMesh extract_from_in_output_volume_diffs(const IMesh &tm_subdivided,
     bool adjacent_zero_volume_cell = cell_above.zero_volume() || cell_below.zero_volume();
     any_zero_volume_cell |= adjacent_zero_volume_cell;
     if (cell_above.in_output_volume() ^ cell_below.in_output_volume() &&
-        !adjacent_zero_volume_cell) {
+        !adjacent_zero_volume_cell)
+    {
       bool flip = cell_above.in_output_volume();
       if (dbg_level > 0) {
         std::cout << "need tri " << t << " flip=" << flip << "\n";
@@ -2514,12 +2515,12 @@ static double3 calc_point_inside_tri_db(const Face &tri)
 class InsideShapeTestData {
  public:
   const IMesh &tm;
-  std::function<int(int)> shape_fn;
+  FunctionRef<int(int)> shape_fn;
   int nshapes;
   /* A per-shape vector of parity of hits of that shape. */
   Array<int> hit_parity;
 
-  InsideShapeTestData(const IMesh &tm, std::function<int(int)> shape_fn, int nshapes)
+  InsideShapeTestData(const IMesh &tm, FunctionRef<int(int)> shape_fn, int nshapes)
       : tm(tm), shape_fn(shape_fn), nshapes(nshapes)
   {
   }
@@ -2557,7 +2558,7 @@ static void inside_shape_callback(void *userdata,
   if (isect_ray_tri_epsilon_v3(
           ray->origin, ray->direction, fv0, fv1, fv2, &dist, nullptr, FLT_EPSILON))
   {
-    /* Count parity as +1 if ray is in the same direction as tri's normal,
+    /* Count parity as +1 if ray is in the same direction as triangle's normal,
      * and -1 if the directions are opposite. */
     double3 o_db{double(ray->origin[0]), double(ray->origin[1]), double(ray->origin[2])};
     int parity = orient3d(tri.vert[0]->co, tri.vert[1]->co, tri.vert[2]->co, o_db);
@@ -2578,7 +2579,7 @@ static void inside_shape_callback(void *userdata,
  * \param tree: Contains all the triangles of \a tm and can be used for fast ray-casting.
  */
 static void test_tri_inside_shapes(const IMesh &tm,
-                                   std::function<int(int)> shape_fn,
+                                   FunctionRef<int(int)> shape_fn,
                                    int nshapes,
                                    int test_t_index,
                                    BVHTree *tree,
@@ -2726,11 +2727,8 @@ static void raycast_add_flipped(Vector<Face *> &out_faces, Face &tri, IMeshArena
  * when the input is not PWN, some patches can be both inside and outside
  * some shapes (e.g., a plane cutting through Suzanne's open eyes).
  */
-static IMesh raycast_tris_boolean(const IMesh &tm,
-                                  BoolOpType op,
-                                  int nshapes,
-                                  std::function<int(int)> shape_fn,
-                                  IMeshArena *arena)
+static IMesh raycast_tris_boolean(
+    const IMesh &tm, BoolOpType op, int nshapes, FunctionRef<int(int)> shape_fn, IMeshArena *arena)
 {
   constexpr int dbg_level = 0;
   if (dbg_level > 0) {
@@ -2804,7 +2802,7 @@ static IMesh raycast_tris_boolean(const IMesh &tm,
 static IMesh raycast_patches_boolean(const IMesh &tm,
                                      BoolOpType op,
                                      int nshapes,
-                                     std::function<int(int)> shape_fn,
+                                     FunctionRef<int(int)> shape_fn,
                                      const PatchesInfo &pinfo,
                                      IMeshArena *arena)
 {
@@ -3217,7 +3215,7 @@ static void do_dissolve(FaceMergeState *fms)
       dissolve_edges.append(e);
     }
   }
-  if (dissolve_edges.size() == 0) {
+  if (dissolve_edges.is_empty()) {
     return;
   }
   /* Things look nicer if we dissolve the longer edges first. */
@@ -3543,7 +3541,7 @@ static IMesh polymesh_from_trimesh_with_dissolve(const IMesh &tm_out,
 IMesh boolean_trimesh(IMesh &tm_in,
                       BoolOpType op,
                       int nshapes,
-                      std::function<int(int)> shape_fn,
+                      FunctionRef<int(int)> shape_fn,
                       bool use_self,
                       bool hole_tolerant,
                       IMeshArena *arena)
@@ -3691,7 +3689,7 @@ static void dump_test_spec(IMesh &imesh)
 IMesh boolean_mesh(IMesh &imesh,
                    BoolOpType op,
                    int nshapes,
-                   std::function<int(int)> shape_fn,
+                   FunctionRef<int(int)> shape_fn,
                    bool use_self,
                    bool hole_tolerant,
                    IMesh *imesh_triangulated,

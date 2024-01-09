@@ -18,7 +18,7 @@
  */
 
 #include "DRW_gpu_wrapper.hh"
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include "draw_shader_shared.h"
 

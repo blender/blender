@@ -29,11 +29,11 @@ typedef struct vec2i {
 typedef struct vec2d {
   double x, y;
 } vec2d;
-
+*/
 typedef struct vec3i {
   int x, y, z;
 } vec3i;
-*/
+
 typedef struct vec3f {
   float x, y, z;
 } vec3f;

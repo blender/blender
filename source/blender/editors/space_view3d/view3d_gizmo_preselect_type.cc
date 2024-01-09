@@ -23,6 +23,7 @@
 #include "BKE_layer.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.hh"
+#include "BKE_object.hh"
 
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
@@ -36,7 +37,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
 #include "ED_gizmo_library.hh"
 #include "ED_mesh.hh"
@@ -134,7 +135,8 @@ static int gizmo_preselect_elem_test_select(bContext *C, wmGizmo *gz, const int 
     View3D *v3d = CTX_wm_view3d(C);
     BKE_view_layer_synced_ensure(scene, view_layer);
     if ((gz_ele->bases) == nullptr ||
-        (gz_ele->bases[0] != BKE_view_layer_active_base_get(view_layer))) {
+        (gz_ele->bases[0] != BKE_view_layer_active_base_get(view_layer)))
+    {
       MEM_SAFE_FREE(gz_ele->bases);
       gz_ele->bases = BKE_view_layer_array_from_bases_in_edit_mode(
           scene, view_layer, v3d, &gz_ele->bases_len);
@@ -239,7 +241,8 @@ static int gizmo_preselect_elem_test_select(bContext *C, wmGizmo *gz, const int 
     {
       Object *ob = gz_ele->bases[gz_ele->base_index]->object;
       Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-      Mesh *me_eval = (Mesh *)DEG_get_evaluated_id(depsgraph, static_cast<ID *>(ob->data));
+      Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+      Mesh *me_eval = BKE_object_get_editmesh_eval_cage(ob_eval);
       if (BKE_mesh_wrapper_vert_len(me_eval) == bm->totvert) {
         coords = BKE_mesh_wrapper_vert_coords(me_eval);
       }

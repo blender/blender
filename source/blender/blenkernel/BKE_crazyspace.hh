@@ -77,7 +77,7 @@ void BKE_crazyspace_set_quats_editmesh(BMEditMesh *em,
                                        blender::Span<blender::float3> mappedcos,
                                        float (*quats)[4],
                                        bool use_select);
-void BKE_crazyspace_set_quats_mesh(Mesh *me,
+void BKE_crazyspace_set_quats_mesh(Mesh *mesh,
                                    blender::Span<blender::float3> origcos,
                                    blender::Span<blender::float3> mappedcos,
                                    float (*quats)[4]);

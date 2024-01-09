@@ -30,7 +30,9 @@ enum eMeshFairingDepth {
  * Affect_vertices is used to define the fairing area. Indexed by vertex index, set to true when
  * the vertex should be modified by fairing.
  */
-void BKE_bmesh_prefair_and_fair_verts(BMesh *bm, bool *affect_verts, eMeshFairingDepth depth);
+void BKE_bmesh_prefair_and_fair_verts(BMesh *bm,
+                                      const bool affected_verts[],
+                                      eMeshFairingDepth depth);
 
 /**
  * This function can optionally use the vertex coordinates of deform_mverts to read and write the
@@ -38,5 +40,5 @@ void BKE_bmesh_prefair_and_fair_verts(BMesh *bm, bool *affect_verts, eMeshFairin
  */
 void BKE_mesh_prefair_and_fair_verts(Mesh *mesh,
                                      blender::MutableSpan<blender::float3> deform_vert_positions,
-                                     bool *affect_verts,
+                                     const bool affected_verts[],
                                      eMeshFairingDepth depth);

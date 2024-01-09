@@ -65,7 +65,7 @@ static void initialize_posetree(Object * /*ob*/, bPoseChannel *pchan_tip)
   blender::Vector<bConstraint *> ik_constraints;
   find_ik_constraints(&pchan_tip->constraints, ik_constraints);
 
-  if (ik_constraints.size() == 0) {
+  if (ik_constraints.is_empty()) {
     return;
   }
 
@@ -76,7 +76,7 @@ static void initialize_posetree(Object * /*ob*/, bPoseChannel *pchan_tip)
     PoseTree *tree;
     bKinematicConstraint *data = (bKinematicConstraint *)constraint->data;
     /* exclude tip from chain? */
-    if (!(data->flag & CONSTRAINT_IK_TIP)) {
+    if (!(data->flag & CONSTRAINT_IK_TIP) && pchan_tip->parent != nullptr) {
       pchan_tip = pchan_tip->parent;
     }
 
@@ -158,7 +158,8 @@ static void initialize_posetree(Object * /*ob*/, bPoseChannel *pchan_tip)
           break;
         }
         for (; a < size && t < tree->totchannel && tree->pchan[t] == chanlist[segcount - a - 1];
-             a++, t++) {
+             a++, t++)
+        {
           /* pass */
         }
       }
@@ -213,7 +214,7 @@ static void initialize_posetree(Object * /*ob*/, bPoseChannel *pchan_tip)
     pchan_root->flag |= POSE_IKTREE;
 
     /* Per bone only one active IK constraint is supported. Inactive constraints still need to be
-     * added for the depsgraph to evaluate properly.*/
+     * added for the depsgraph to evaluate properly. */
     if (constraint->enforce != 0.0 && !(constraint->flag & CONSTRAINT_OFF)) {
       break;
     }

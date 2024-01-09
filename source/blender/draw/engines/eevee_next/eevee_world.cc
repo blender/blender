@@ -84,9 +84,8 @@ void World::sync()
 
   if (bl_world) {
     /* Detect world update before overriding it. */
-    WorldHandle &wo_handle = inst_.sync.sync_world(bl_world);
-    has_update = (wo_handle.recalc != 0);
-    wo_handle.reset_recalc_flag();
+    WorldHandle wo_handle = inst_.sync.sync_world();
+    has_update = wo_handle.recalc != 0;
   }
 
   /* Sync volume first since its result can override the surface world. */
@@ -120,14 +119,12 @@ void World::sync()
   inst_.reflection_probes.sync_world(bl_world);
   if (has_update) {
     inst_.reflection_probes.do_world_update_set(true);
-    inst_.sampling.reset();
   }
 
   /* We have to manually test here because we have overrides. */
   ::World *orig_world = (::World *)DEG_get_original_id(&bl_world->id);
   if (assign_if_different(prev_original_world, orig_world)) {
     inst_.reflection_probes.do_world_update_set(true);
-    inst_.sampling.reset();
   }
 
   GPUMaterial *gpumat = inst_.shaders.world_shader_get(bl_world, ntree, MAT_PIPE_DEFERRED);
@@ -154,7 +151,7 @@ void World::sync_volume()
   }
 
   if (gpumat && (GPU_material_status(gpumat) == GPU_MAT_SUCCESS)) {
-    has_volume_ = true;
+    has_volume_ = GPU_material_has_volume_output(gpumat);
     has_volume_scatter_ = GPU_material_flag_get(gpumat, GPU_MATFLAG_VOLUME_SCATTER);
     has_volume_absorption_ = GPU_material_flag_get(gpumat, GPU_MATFLAG_VOLUME_ABSORPTION);
   }

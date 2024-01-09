@@ -43,7 +43,7 @@
 void main()
 {
   /* The tile clear pass writes out to tile attachment to ensure raster order groups are satisfied,
-   * allowing the clear to be guaranteed to happen first, as it is first in submission order.   */
+   * allowing the clear to be guaranteed to happen first, as it is first in submission order. */
   out_tile_depth = FLT_MAX;
 }
 
@@ -58,7 +58,7 @@ void main()
 
   /* Write result to atlas. */
 #  ifdef GPU_METAL
-  /* NOTE: Use the fastest possible write function without any parameter wrapping or conversion.*/
+  /* NOTE: Use the fastest possible write function without any parameter wrapping or conversion. */
   shadow_atlas_img.texture->write(
       u_depth, ushort2(interp_noperspective.out_texel_xy), interp_flat.out_page_z);
 #  else

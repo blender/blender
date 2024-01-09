@@ -1,4 +1,7 @@
+# SPDX-FileCopyrightText: 2023 Blender Authors
+#
 # SPDX-License-Identifier: BSD-3-Clause
+
 # - Find Harfbuzz library
 # Find the native harfbuzz includes and library
 # This module defines

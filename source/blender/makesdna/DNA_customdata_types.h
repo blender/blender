@@ -68,17 +68,24 @@ typedef struct CustomDataExternal {
 } CustomDataExternal;
 
 /**
- * Structure which stores custom element data associated with mesh elements
- * (vertices, edges or faces). The custom data is organized into a series of
- * layers, each with a data type (e.g. MTFace, MDeformVert, etc.).
+ * #CustomData stores an arbitrary number of typed data "layers" for multiple elements.
+ * The layers are typically geometry attributes, and the elements are typically geometry
+ * elements like vertices, edges, or curves.
+ *
+ * Each layer has a type, often with certain semantics beyond the type of the raw data. However,
+ * a subset of the layer types are exposed as attributes and accessed with a higher level API
+ * built around #AttributeAccessor.
+ *
+ * For #BMesh, #CustomData is adapted to store the data from all layers in a single "block" which
+ * is allocated for each element. Each layer's data is stored at a certain offset into every
+ * block's data.
  */
 typedef struct CustomData {
-  /** CustomDataLayers, ordered by type. */
+  /** Layers ordered by type. */
   CustomDataLayer *layers;
   /**
-   * runtime only! - maps types to indices of first layer of that type,
-   * MUST be >= CD_NUMTYPES, but we can't use a define here.
-   * Correct size is ensured in CustomData_update_typemap assert().
+   * Runtime only map from types to indices of first layer of that type,
+   * Correct size of #CD_NUMTYPES is ensured by CustomData_update_typemap.
    */
   int typemap[53];
   /** Number of layers, size of layers array. */
@@ -91,11 +98,11 @@ typedef struct CustomData {
   CustomDataExternal *external;
 } CustomData;
 
-/** #CustomData.type */
+/** #CustomDataLayer.type */
 typedef enum eCustomDataType {
-  /* Used by GLSL attributes in the cases when we need a delayed CD type
-   * assignment (in the cases when we don't know in advance which layer
-   * we are addressing).
+  /**
+   * Used by GPU attributes in the cases when we don't know which layer
+   * we are addressing in advance.
    */
   CD_AUTO_FROM_NAME = -1,
 
@@ -103,7 +110,7 @@ typedef enum eCustomDataType {
   CD_MVERT = 0,
   CD_MSTICKY = 1,
 #endif
-  CD_MDEFORMVERT = 2, /* Array of `MDeformVert`. */
+  CD_MDEFORMVERT = 2, /* Array of #MDeformVert. */
 #ifdef DNA_DEPRECATED_ALLOW
   CD_MEDGE = 3,
 #endif
@@ -112,8 +119,8 @@ typedef enum eCustomDataType {
   CD_MCOL = 6,
   CD_ORIGINDEX = 7,
   /**
-   * Used for derived face corner normals on mesh `ldata`, since currently they are not computed
-   * lazily. Derived vertex and polygon normals are stored in #Mesh_Runtime.
+   * Used as temporary storage for some areas that support interpolating custom normals.
+   * Using a separate type from generic 3D vectors is a simple way of keeping values normalized.
    */
   CD_NORMAL = 8,
 #ifdef DNA_DEPRECATED_ALLOW
@@ -131,8 +138,8 @@ typedef enum eCustomDataType {
   CD_PROP_BYTE_COLOR = 17,
   CD_TANGENT = 18,
   CD_MDISPS = 19,
-  CD_PREVIEW_MCOL = 20,           /* For displaying weight-paint colors. */
-                                  /*  CD_ID_MCOL          = 21, */
+  /* CD_PREVIEW_MCOL = 20, */ /* UNUSED */
+  /* CD_ID_MCOL = 21, */
   /* CD_TEXTURE_MLOOPCOL = 22, */ /* UNUSED */
   CD_CLOTH_ORCO = 23,
 /* CD_RECAST = 24, */ /* UNUSED */
@@ -148,7 +155,7 @@ typedef enum eCustomDataType {
   CD_CREASE = 30,
 #endif
   CD_ORIGSPACE_MLOOP = 31,
-  CD_PREVIEW_MLOOPCOL = 32,
+  /* CD_PREVIEW_MLOOPCOL = 32, */ /* UNUSED */
   CD_BM_ELEM_PYPTR = 33,
 
 #ifdef DNA_DEPRECATED_ALLOW
@@ -183,6 +190,10 @@ typedef enum eCustomDataType {
   CD_NUMTYPES = 53,
 } eCustomDataType;
 
+#ifdef __cplusplus
+using eCustomDataMask = uint64_t;
+#endif
+
 /* Bits for eCustomDataMask */
 #define CD_MASK_MDEFORMVERT (1 << CD_MDEFORMVERT)
 #define CD_MASK_MFACE (1 << CD_MFACE)
@@ -198,13 +209,11 @@ typedef enum eCustomDataType {
 #define CD_MASK_PROP_BYTE_COLOR (1 << CD_PROP_BYTE_COLOR)
 #define CD_MASK_TANGENT (1 << CD_TANGENT)
 #define CD_MASK_MDISPS (1 << CD_MDISPS)
-#define CD_MASK_PREVIEW_MCOL (1 << CD_PREVIEW_MCOL)
 #define CD_MASK_CLOTH_ORCO (1 << CD_CLOTH_ORCO)
 
 #define CD_MASK_SHAPE_KEYINDEX (1 << CD_SHAPE_KEYINDEX)
 #define CD_MASK_SHAPEKEY (1 << CD_SHAPEKEY)
 #define CD_MASK_ORIGSPACE_MLOOP (1LL << CD_ORIGSPACE_MLOOP)
-#define CD_MASK_PREVIEW_MLOOPCOL (1LL << CD_PREVIEW_MLOOPCOL)
 #define CD_MASK_BM_ELEM_PYPTR (1LL << CD_BM_ELEM_PYPTR)
 
 #define CD_MASK_GRID_PAINT_MASK (1LL << CD_GRID_PAINT_MASK)

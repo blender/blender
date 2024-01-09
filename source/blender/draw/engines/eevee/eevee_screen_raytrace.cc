@@ -8,7 +8,7 @@
  * Screen space reflections and refractions techniques.
  */
 
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include "BLI_dynstr.h"
 #include "BLI_string_utils.hh"

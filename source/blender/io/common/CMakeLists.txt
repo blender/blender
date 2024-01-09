@@ -5,7 +5,6 @@
 set(INC
   .
   ../../blenkernel
-  ../../depsgraph
   ../../makesrna
 )
 
@@ -19,12 +18,14 @@ set(SRC
   intern/object_identifier.cc
   intern/orientation.cc
   intern/path_util.cc
+  intern/subdiv_disabler.cc
 
   IO_abstract_hierarchy_iterator.h
   IO_dupli_persistent_id.hh
   IO_orientation.hh
   IO_path_util.hh
   IO_path_util_types.hh
+  IO_subdiv_disabler.hh
   IO_types.hh
   intern/dupli_parent_finder.hh
 )
@@ -32,6 +33,7 @@ set(SRC
 set(LIB
   bf_blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
 )
@@ -50,9 +52,8 @@ if(WITH_GTESTS)
     ../../blenloader
   )
   set(TEST_LIB
-    bf_blenloader_tests
+    bf_blenloader_test_util
     bf_io_common
   )
-  include(GTestTesting)
-  blender_add_test_lib(bf_io_common_tests "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}")
+  blender_add_test_suite_lib(io_common "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}")
 endif()

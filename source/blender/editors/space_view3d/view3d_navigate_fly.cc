@@ -13,9 +13,9 @@
  */
 
 #ifdef WITH_INPUT_NDOF
-//#  define NDOF_FLY_DEBUG
+// #  define NDOF_FLY_DEBUG
 /* NOTE(@ideasman42): is this needed for NDOF? commented so redraw doesn't thrash. */
-//#  define NDOF_FLY_DRAW_TOOMUCH
+// #  define NDOF_FLY_DRAW_TOOMUCH
 #endif /* WITH_INPUT_NDOF */
 
 #include "DNA_object_types.h"
@@ -327,7 +327,8 @@ static bool initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, const wmEvent
   }
 
   if (fly->rv3d->persp == RV3D_CAMOB &&
-      !BKE_id_is_editable(CTX_data_main(C), &fly->v3d->camera->id)) {
+      !BKE_id_is_editable(CTX_data_main(C), &fly->v3d->camera->id))
+  {
     BKE_report(op->reports,
                RPT_ERROR,
                "Cannot navigate a camera from an external library or non-editable override");
@@ -539,7 +540,7 @@ static void flyEvent(FlyInfo *fly, const wmEvent *event)
         fly->state = FLY_CONFIRM;
         break;
       }
-      /* Speed adjusting with mouse-pan (track-pad). */
+      /* Speed adjusting with mouse-pan (trackpad). */
       case FLY_MODAL_SPEED: {
         float fac = 0.02f * float(event->prev_xy[1] - event->xy[1]);
 
@@ -1115,10 +1116,9 @@ static int fly_modal(bContext *C, wmOperator *op, const wmEvent *event)
   }
   else
 #endif /* WITH_INPUT_NDOF */
-      if (event->type == TIMER && event->customdata == fly->timer)
-  {
-    flyApply(C, fly, false);
-  }
+    if (event->type == TIMER && event->customdata == fly->timer) {
+      flyApply(C, fly, false);
+    }
 
   do_draw |= fly->redraw;
 

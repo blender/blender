@@ -8,7 +8,7 @@
  * Volumetric effects rendering using frostbite approach.
  */
 
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include "BLI_listbase.h"
 #include "BLI_rand.h"

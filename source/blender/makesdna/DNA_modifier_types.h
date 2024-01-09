@@ -120,6 +120,14 @@ typedef struct ModifierData {
   short flag;
   /** An "expand" bit for each of the modifier's (sub)panels (#uiPanelDataExpansion). */
   short ui_expand_flag;
+  /**
+   * Bits that can be used for open-states of layout panels in the modifier. This can replace
+   * `ui_expand_flag` once all modifiers use layout panels. Currently, trying to reuse the same
+   * flags is problematic, because the bits in `ui_expand_flag` are mapped to panels automatically
+   * and easily conflict with the explicit mapping of bits to panels here.
+   */
+  uint16_t layout_panel_open_flag;
+  char _pad[6];
   /** MAX_NAME. */
   char name[64];
 
@@ -879,7 +887,7 @@ typedef struct CollisionModifierData {
   /** (xnew - x) at the actual inter-frame step. */
   float (*current_v)[3];
 
-  struct MVertTri *tri;
+  int (*vert_tris)[3];
 
   unsigned int mvert_num;
   unsigned int tri_num;
@@ -2285,8 +2293,8 @@ enum {
 
 /** Surface Deform vertex bind modes. */
 enum {
-  MOD_SDEF_MODE_LOOPTRI = 0,
-  MOD_SDEF_MODE_NGON = 1,
+  MOD_SDEF_MODE_CORNER_TRIS = 0,
+  MOD_SDEF_MODE_NGONS = 1,
   MOD_SDEF_MODE_CENTROID = 2,
 };
 
@@ -2330,6 +2338,9 @@ typedef struct NodesModifierBake {
   int id;
   /** #NodesModifierBakeFlag. */
   uint32_t flag;
+  /** #NodesModifierBakeMode. */
+  uint8_t bake_mode;
+  char _pad[7];
   /**
    * Directory where the baked data should be stored. This is only used when
    * `NODES_MODIFIER_BAKE_CUSTOM_PATH` is set.
@@ -2343,10 +2354,26 @@ typedef struct NodesModifierBake {
   int frame_end;
 } NodesModifierBake;
 
+typedef struct NodesModifierPanel {
+  /** ID of the corresponding panel from #bNodeTreeInterfacePanel::identifier. */
+  int id;
+  /** #NodesModifierPanelFlag. */
+  uint32_t flag;
+} NodesModifierPanel;
+
+typedef enum NodesModifierPanelFlag {
+  NODES_MODIFIER_PANEL_OPEN = 1 << 0,
+} NodesModifierPanelFlag;
+
 typedef enum NodesModifierBakeFlag {
   NODES_MODIFIER_BAKE_CUSTOM_SIMULATION_FRAME_RANGE = 1 << 0,
   NODES_MODIFIER_BAKE_CUSTOM_PATH = 1 << 1,
 } NodesModifierBakeFlag;
+
+typedef enum NodesModifierBakeMode {
+  NODES_MODIFIER_BAKE_MODE_ANIMATION = 0,
+  NODES_MODIFIER_BAKE_MODE_STILL = 1,
+} NodesModifierBakeMode;
 
 typedef struct NodesModifierData {
   ModifierData modifier;
@@ -2355,14 +2382,16 @@ typedef struct NodesModifierData {
   /**
    * Directory where baked simulation states are stored. This may be relative to the .blend file.
    */
-  char *simulation_bake_directory;
+  char *bake_directory;
   /** NodesModifierFlag. */
   int8_t flag;
 
   char _pad[3];
   int bakes_num;
   NodesModifierBake *bakes;
-  void *_pad2;
+  char _pad2[4];
+  int panels_num;
+  NodesModifierPanel *panels;
 
   NodesModifierRuntimeHandle *runtime;
 

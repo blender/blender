@@ -53,7 +53,7 @@
 #include "interface_intern.hh"
 
 /* For key-map item access. */
-#include "wm_event_system.h"
+#include "wm_event_system.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Menu Search Template Implementation

@@ -1029,7 +1029,7 @@ mat4x4 from_loc_rot_scale(vec3 location, AxisAngle rotation, vec3 scale)
 mat3x3 from_up_axis(vec3 up)
 {
   /* Duff, Tom, et al. "Building an orthonormal basis, revisited." JCGT 6.1 (2017). */
-  float z_sign = sign(up.z);
+  float z_sign = up.z >= 0.0 ? 1.0 : -1.0;
   float a = -1.0 / (z_sign + up.z);
   float b = up.x * up.y * a;
 

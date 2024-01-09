@@ -123,6 +123,15 @@ void DEG_id_tag_update_ex(Main *bmain, ID *id, unsigned int flags);
 
 void DEG_graph_id_tag_update(Main *bmain, Depsgraph *depsgraph, ID *id, unsigned int flags);
 
+/**
+ * Tag the given ID for an update in the given depsgraph even though it evaluated state might not
+ * have changed. This can be used when some data is required that is generated as a side effect of
+ * the evaluation. For example, baking an intermediate geometry in geometry nodes needs this,
+ * because the to-be-baked geometry has to be recomputed even though no input changed and the final
+ * geometry also did not change.
+ */
+void DEG_id_tag_update_for_side_effect_request(Depsgraph *depsgraph, ID *id, unsigned int flags);
+
 /** Tag all dependency graphs when time has changed. */
 void DEG_time_tag_update(Main *bmain);
 
@@ -210,6 +219,9 @@ bool DEG_is_evaluating(const Depsgraph *depsgraph);
 bool DEG_is_active(const Depsgraph *depsgraph);
 void DEG_make_active(Depsgraph *depsgraph);
 void DEG_make_inactive(Depsgraph *depsgraph);
+
+/* Returns the number of times the graph has been evaluated. */
+uint64_t DEG_get_update_count(const Depsgraph *depsgraph);
 
 /**
  * Disable the visibility optimization making it so IDs which affect hidden objects or disabled

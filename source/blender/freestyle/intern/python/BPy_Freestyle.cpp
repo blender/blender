@@ -42,6 +42,9 @@
 
 #include "../generic/py_capi_utils.h" /* #PyC_UnicodeFromBytes */
 
+#include "BKE_colorband.hh"  /* BKE_colorband_evaluate() */
+#include "BKE_colortools.hh" /* BKE_curvemapping_evaluateF() */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -188,8 +191,6 @@ static PyObject *Freestyle_blendRamp(PyObject * /*self*/, PyObject *args)
   return Vector_CreatePyObject(a, 3, nullptr);
 }
 
-#include "BKE_colorband.h" /* BKE_colorband_evaluate() */
-
 static char Freestyle_evaluateColorRamp___doc__[] =
     ".. function:: evaluateColorRamp(ramp, in)\n"
     "\n"
@@ -223,7 +224,6 @@ static PyObject *Freestyle_evaluateColorRamp(PyObject * /*self*/, PyObject *args
   return Vector_CreatePyObject(out, 4, nullptr);
 }
 
-#include "BKE_colortools.h" /* BKE_curvemapping_evaluateF() */
 #include "DNA_color_types.h"
 
 static char Freestyle_evaluateCurveMappingF___doc__[] =

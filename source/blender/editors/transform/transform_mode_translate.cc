@@ -21,7 +21,7 @@
 #include "BKE_context.hh"
 #include "BKE_image.h"
 #include "BKE_report.h"
-#include "BKE_unit.h"
+#include "BKE_unit.hh"
 
 #include "ED_node.hh"
 #include "ED_screen.hh"
@@ -36,6 +36,8 @@
 #include "transform_convert.hh"
 #include "transform_mode.hh"
 #include "transform_snap.hh"
+
+using namespace blender;
 
 /* -------------------------------------------------------------------- */
 /** \name Transform (Translate) Custom Data
@@ -71,16 +73,16 @@ struct TranslateCustomData {
 struct TransDataArgs_Translate {
   const TransInfo *t;
   const TransDataContainer *tc;
-  float pivot_local[3];
-  float vec[3];
+  float3 snap_source_local;
+  float3 vec;
   enum eTranslateRotateMode rotate_mode;
 };
 
 static void transdata_elem_translate(const TransInfo *t,
                                      const TransDataContainer *tc,
                                      TransData *td,
-                                     const float pivot_local[3],
-                                     const float vec[3],
+                                     const float3 &snap_source_local,
+                                     const float3 &vec,
                                      enum eTranslateRotateMode rotate_mode)
 {
   float rotate_offset[3] = {0};
@@ -96,7 +98,7 @@ static void transdata_elem_translate(const TransInfo *t,
     else {
       BLI_assert(rotate_mode == TRANSLATE_ROTATE_ON);
 
-      const float *original_normal;
+      float3 original_normal;
 
       /* In pose mode, we want to align normals with Y axis of bones. */
       if (t->options & CTX_POSE_BONE) {
@@ -106,10 +108,16 @@ static void transdata_elem_translate(const TransInfo *t,
         original_normal = td->axismtx[2];
       }
 
+      if (t->flag & T_POINTS) {
+        /* Convert to Global Space since #ElementRotation_ex operates with the matrix in global
+         * space. */
+        original_normal = math::transform_direction(float3x3(td->mtx), original_normal);
+      }
+
       rotation_between_vecs_to_mat3(mat, original_normal, t->tsnap.snapNormal);
     }
 
-    ElementRotation_ex(t, tc, td, mat, pivot_local);
+    ElementRotation_ex(t, tc, td, mat, snap_source_local);
 
     if (td->loc) {
       use_rotate_offset = true;
@@ -165,7 +173,8 @@ static void transdata_elem_translate_fn(void *__restrict iter_data_v,
   if (td->flag & TD_SKIP) {
     return;
   }
-  transdata_elem_translate(data->t, data->tc, td, data->pivot_local, data->vec, data->rotate_mode);
+  transdata_elem_translate(
+      data->t, data->tc, td, data->snap_source_local, data->vec, data->rotate_mode);
 }
 
 /** \} */
@@ -371,7 +380,9 @@ static void translate_snap_grid_apply(TransInfo *t,
 
   float in[3];
   if (t->con.mode & CON_APPLY) {
-    BLI_assert(t->tsnap.target_type == SCE_SNAP_TO_NONE);
+    /* We need to clear the previous Snap to Grid result,
+     * otherwise #t->con.applyVec will have no effect. */
+    t->tsnap.target_type = SCE_SNAP_TO_NONE;
     t->con.applyVec(t, nullptr, nullptr, loc, in);
   }
   else {
@@ -381,6 +392,13 @@ static void translate_snap_grid_apply(TransInfo *t,
   for (int i = 0; i <= max_index; i++) {
     const float iter_fac = grid_dist[i] * asp[i];
     r_out[i] = iter_fac * roundf((in[i] + center_global[i]) / iter_fac) - center_global[i];
+  }
+
+  if ((t->con.mode & CON_APPLY) &&
+      (t->spacemtx[0][0] != 1.0f || t->spacemtx[1][1] != 1.0f || t->spacemtx[2][2] != 1.0f))
+  {
+    /* The space matrix is not identity, we need to constrain the result again. */
+    t->con.applyVec(t, nullptr, nullptr, r_out, r_out);
   }
 }
 
@@ -441,7 +459,8 @@ static void ApplySnapTranslation(TransInfo *t, float vec[3])
     if (t->spacetype == SPACE_VIEW3D) {
       if (t->options & CTX_PAINT_CURVE) {
         if (ED_view3d_project_float_global(t->region, point, point, V3D_PROJ_TEST_NOP) !=
-            V3D_PROJ_RET_OK) {
+            V3D_PROJ_RET_OK)
+        {
           zero_v3(point); /* no good answer here... */
         }
       }
@@ -485,12 +504,12 @@ static void applyTranslationValue(TransInfo *t, const float vec[3])
   }
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    float pivot_local[3];
+    float3 snap_source_local;
     if (rotate_mode != TRANSLATE_ROTATE_OFF) {
-      copy_v3_v3(pivot_local, t->tsnap.snap_source);
-      /* The pivot has to be in local-space (see #49494) */
+      snap_source_local = t->tsnap.snap_source;
       if (tc->use_local_mat) {
-        mul_m4_v3(tc->imat, pivot_local);
+        /* The pivot has to be in local-space (see #49494) */
+        snap_source_local = math::transform_point(float4x4(tc->imat), snap_source_local);
       }
     }
 
@@ -500,15 +519,15 @@ static void applyTranslationValue(TransInfo *t, const float vec[3])
         if (td->flag & TD_SKIP) {
           continue;
         }
-        transdata_elem_translate(t, tc, td, pivot_local, vec, rotate_mode);
+        transdata_elem_translate(t, tc, td, snap_source_local, vec, rotate_mode);
       }
     }
     else {
       TransDataArgs_Translate data{};
       data.t = t;
       data.tc = tc;
-      copy_v3_v3(data.pivot_local, pivot_local);
-      copy_v3_v3(data.vec, vec);
+      data.snap_source_local = snap_source_local;
+      data.vec = vec;
       data.rotate_mode = rotate_mode;
 
       TaskParallelSettings settings;

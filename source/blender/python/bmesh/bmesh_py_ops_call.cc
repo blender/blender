@@ -16,7 +16,7 @@
 
 #include "../mathutils/mathutils.h"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
 #include "bmesh_py_ops_call.h" /* own include */
 

@@ -10,7 +10,6 @@
  */
 
 #include "DNA_listBase.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -26,12 +25,12 @@
 #include "BLI_polyfill_2d.h"
 #include "BLI_polyfill_2d_beautify.h"
 
-#include "bmesh.h"
-#include "bmesh_tools.h"
+#include "bmesh.hh"
+#include "bmesh_tools.hh"
 
 #include "BKE_customdata.hh"
 
-#include "intern/bmesh_private.h"
+#include "intern/bmesh_private.hh"
 
 /**
  * \brief COMPUTE POLY NORMAL (BMFace)
@@ -1115,9 +1114,9 @@ void BM_face_triangulate(BMesh *bm,
       }
 
       /* copy CD data */
-      BM_elem_attrs_copy(bm, bm, l_tri[0], l_new);
-      BM_elem_attrs_copy(bm, bm, l_tri[1], l_new->next);
-      BM_elem_attrs_copy(bm, bm, l_tri[2], l_new->prev);
+      BM_elem_attrs_copy(bm, l_tri[0], l_new);
+      BM_elem_attrs_copy(bm, l_tri[1], l_new->next);
+      BM_elem_attrs_copy(bm, l_tri[2], l_new->prev);
 
       /* add all but the last face which is swapped and removed (below) */
       if (i != last_tri) {
@@ -1262,7 +1261,8 @@ void BM_face_splits_check_legal(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int l
       for (j = i + 1; j < len; j++) {
         if ((loops[j][0] != nullptr) && !EDGE_SHARE_VERT(edgeverts[i], edgeverts[j])) {
           if (isect_seg_seg_v2(UNPACK2(edgeverts[i]), UNPACK2(edgeverts[j])) ==
-              ISECT_LINE_LINE_CROSS) {
+              ISECT_LINE_LINE_CROSS)
+          {
             loops[i][0] = nullptr;
             break;
           }

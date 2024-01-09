@@ -18,13 +18,14 @@
 #pragma BLENDER_REQUIRE(eevee_shadow_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_codegen_lib.glsl)
 
-/* If using compute, the shader should define it's own pixel. */
+/* If using compute, the shader should define its own pixel. */
 #if !defined(PIXEL) && defined(GPU_FRAGMENT_SHADER)
 #  define PIXEL gl_FragCoord.xy
 #endif
 
 #if !defined(LIGHT_CLOSURE_EVAL_COUNT)
 #  define LIGHT_CLOSURE_EVAL_COUNT 1
+#  define SKIP_LIGHT_EVAL
 #endif
 
 uint shadow_pack(float visibility, uint bit_depth, uint shift)
@@ -57,8 +58,15 @@ void light_shadow_single(uint l_idx,
   if (attenuation < LIGHT_ATTENUATION_THRESHOLD) {
     return;
   }
+
+  /* TODO(fclem): Enable for OpenGL and Vulkan once they fully support specialization constants. */
+#if defined(SPECIALIZED_SHADOW_PARAMS) && defined(GPU_METAL)
+  int ray_count = shadow_ray_count;
+  int ray_step_count = shadow_ray_step_count;
+#else
   int ray_count = uniform_buf.shadow.ray_count;
   int ray_step_count = uniform_buf.shadow.step_count;
+#endif
 
   ShadowEvalResult result = shadow_eval(
       light, is_directional, P, Ng, thickness, ray_count, ray_step_count);
@@ -130,8 +138,15 @@ void light_eval_single(uint l_idx,
                        inout uint shift)
 {
   LightData light = light_buf[l_idx];
+
+  /* TODO(fclem): Enable for OpenGL and Vulkan once they fully support specialization constants. */
+#if defined(SPECIALIZED_SHADOW_PARAMS) && defined(GPU_METAL)
+  int ray_count = shadow_ray_count;
+  int ray_step_count = shadow_ray_step_count;
+#else
   int ray_count = uniform_buf.shadow.ray_count;
   int ray_step_count = uniform_buf.shadow.step_count;
+#endif
 
   bool use_subsurface = thickness > 0.0;
   LightVector lv = light_vector_get(light, is_directional, P);
@@ -192,7 +207,7 @@ void light_eval(inout ClosureLightStack stack, vec3 P, vec3 Ng, vec3 V, float vP
   light_eval(stack, P, Ng, V, vPz, thickness, 0u);
 }
 
-#  if !defined(SSS_TRANSMITTANCE) && defined(LIGHT_ITER_FORCE_NO_CULLING)
+#  if !defined(SHADOW_SUBSURFACE) && defined(LIGHT_ITER_FORCE_NO_CULLING)
 void light_eval(inout ClosureLightStack stack, vec3 P, vec3 Ng, vec3 V)
 {
   light_eval(stack, P, Ng, V, 0.0, 0.0, 0u);

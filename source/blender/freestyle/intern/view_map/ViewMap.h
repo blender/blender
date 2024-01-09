@@ -821,7 +821,8 @@ class NonTVertex : public ViewVertex {
   {
     edges_container::iterator insertedve;
     for (edges_container::iterator ve = _ViewEdges.begin(), vend = _ViewEdges.end(); ve != vend;
-         ve++) {
+         ve++)
+    {
       if ((ve)->first == iOld) {
         insertedve = _ViewEdges.insert(
             ve, directedViewEdge(iNew, ve->second));  // inserts e2 before ve.

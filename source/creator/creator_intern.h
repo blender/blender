@@ -39,7 +39,7 @@ void main_signal_setup(void);
 void main_signal_setup_background(void);
 void main_signal_setup_fpe(void);
 
-#endif /* WITH_PYTHON_MODULE */
+#endif /* !WITH_PYTHON_MODULE */
 
 /** Shared data for argument handlers to store state in. */
 struct ApplicationState {

@@ -53,15 +53,11 @@ endif()
 # quiet output for Makefiles, 'make -s' helps too
 # set_property(GLOBAL PROPERTY RULE_MESSAGES OFF)
 
-# global compile definitions since add_definitions() adds for all.
+# Global compile definitions since add_definitions() adds for all.
+# _DEBUG is a Visual Studio define, enabled for all platforms.
 set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS
-  $<$<CONFIG:Debug>:DEBUG;_DEBUG>
-  $<$<CONFIG:Release>:NDEBUG>
-  $<$<CONFIG:MinSizeRel>:NDEBUG>
-  $<$<CONFIG:RelWithDebInfo>:NDEBUG>
+  $<$<CONFIG:Debug>:_DEBUG>
 )
-
-
 # -----------------------------------------------------------------------------
 # Set policy
 
@@ -98,7 +94,6 @@ endif()
 # Load Blender's Local Macros
 
 include(build_files/cmake/macros.cmake)
-
 
 # -----------------------------------------------------------------------------
 # Initialize Project
@@ -733,6 +728,9 @@ mark_as_advanced(WITH_CXX_GUARDEDALLOC)
 option(WITH_ASSERT_ABORT "Call abort() when raising an assertion through BLI_assert()" ON)
 mark_as_advanced(WITH_ASSERT_ABORT)
 
+option(WITH_ASSERT_RELEASE "Build with asserts enabled even for non-debug configurations" OFF)
+mark_as_advanced(WITH_ASSERT_RELEASE)
+
 if((UNIX AND NOT APPLE) OR (CMAKE_GENERATOR MATCHES "^Visual Studio.+"))
   option(WITH_CLANG_TIDY "\
 Use Clang Tidy to analyze the source code \
@@ -762,8 +760,8 @@ endif()
 
 # Unit testing
 option(WITH_GTESTS "Enable GTest unit testing" OFF)
-option(WITH_OPENGL_RENDER_TESTS "Enable OpenGL render related unit testing (Experimental)" OFF)
-option(WITH_OPENGL_DRAW_TESTS "Enable OpenGL UI drawing related unit testing (Experimental)" OFF)
+option(WITH_GPU_RENDER_TESTS "Enable GPU render related unit testing (EEVEE, Workbench and Grease Pencil)" OFF)
+option(WITH_GPU_DRAW_TESTS "Enable GPU drawing related unit testing (GPU backends and draw manager)" OFF)
 option(WITH_COMPOSITOR_REALTIME_TESTS "Enable regression testing for realtime compositor" OFF)
 if(UNIX AND NOT (APPLE OR HAIKU))
   option(WITH_UI_TESTS "\
@@ -782,6 +780,13 @@ endif()
 # test per Blender instance could give much better clues about the root of the problem.
 option(WITH_TESTS_BATCHED "Run multiple tests in a single Blender invocation, for faster test execution" ON)
 mark_as_advanced(WITH_TESTS_BATCHED)
+
+option(WITH_TESTS_SINGLE_BINARY "\
+Link GTest tests into a single binary. \
+For faster overall build and less disk space, but slower individual test build"
+  ON
+)
+mark_as_advanced(WITH_TESTS_SINGLE_BINARY)
 
 # NOTE: All callers of this must add `TEST_PYTHON_EXE_EXTRA_ARGS` before any other arguments.
 set(TEST_PYTHON_EXE "" CACHE PATH "Python executable to run unit tests")
@@ -1020,7 +1025,7 @@ if("${CMAKE_GENERATOR}" MATCHES "Ninja")
   option(WITH_NINJA_POOL_JOBS "\
 Enable Ninja pools of jobs, to try to ease building on machines with 16GB of RAM or less \
 (if not yet defined, will try to set best values based on detected machine specifications)."
-    OFF
+    ON
   )
   mark_as_advanced(WITH_NINJA_POOL_JOBS)
 endif()
@@ -1229,10 +1234,10 @@ if(WITH_PYTHON)
   # Do this before main 'platform_*' checks,
   # because UNIX will search for the old Python paths which may not exist.
   # giving errors about missing paths before this case is met.
-  if(DEFINED PYTHON_VERSION AND "${PYTHON_VERSION}" VERSION_LESS "3.10")
+  if(DEFINED PYTHON_VERSION AND "${PYTHON_VERSION}" VERSION_LESS "3.11")
     message(
       FATAL_ERROR
-      "At least Python 3.10 is required to build, but found Python ${PYTHON_VERSION}"
+      "At least Python 3.11 is required to build, but found Python ${PYTHON_VERSION}"
     )
   endif()
 
@@ -1304,6 +1309,25 @@ if(NOT CMAKE_BUILD_TYPE MATCHES "Release")
       string(REPLACE " " ";" _list_COMPILER_ASAN_CFLAGS ${COMPILER_ASAN_CFLAGS})
       set(_is_CONFIG_DEBUG "$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>")
       add_compile_options("$<${_is_CONFIG_DEBUG}:${_list_COMPILER_ASAN_CFLAGS}>")
+
+      # Skip generation of the unwind tables, as they might require a lot of space when sanitizers
+      # are enabled and not fit into the .eh_frame section. Disabling the unwind tables might have
+      # side effects on code which does frame walking, such as
+      #   - backtrace()
+      #   - __attribute__((__cleanup__(f)))
+      #   - __builtin_return_address(n), for n > 0
+      #   - pthread_cleanup_push when it is implemented using __attribute__((__cleanup__(f)))
+      # It should not have affect on debugging, since it uses -g flag which generates debugging
+      # tables in the .debug_frame section.
+      # At the time of adding these flags calling backtrace() from C code on Apple M2 did not
+      # affect on the printed backtrace, and exception handling was correct as well.
+      #
+      # Related discussion:
+      #  https://stackoverflow.com/questions/26300819/why-gcc-compiled-c-program-needs-eh-frame-section
+      add_compile_options("$<${_is_CONFIG_DEBUG}:-fno-unwind-tables>")
+      add_compile_options("$<${_is_CONFIG_DEBUG}:-fno-asynchronous-unwind-tables>")
+
+      add_compile_options("$<${_is_CONFIG_DEBUG}:-fno-omit-frame-pointer>")
       add_link_options("$<${_is_CONFIG_DEBUG}:-fno-omit-frame-pointer;-fsanitize=address>")
       unset(_list_COMPILER_ASAN_CFLAGS)
       unset(_is_CONFIG_DEBUG)
@@ -1625,22 +1649,30 @@ if("${CMAKE_GENERATOR}" MATCHES "Ninja" AND WITH_NINJA_POOL_JOBS)
     # Note: this gives mem in MB.
     cmake_host_system_information(RESULT _TOT_MEM QUERY TOTAL_PHYSICAL_MEMORY)
 
-    # Heuristics: the more cores we have, the more free memory we have to keep
-    # for the non-heavy tasks too.
-    if(${_TOT_MEM} LESS 8000 AND ${_NUM_CORES} GREATER 2)
-      set(_compile_heavy_jobs "1")
-    elseif(${_TOT_MEM} LESS 16000 AND ${_NUM_CORES} GREATER 4)
-      set(_compile_heavy_jobs "2")
-    elseif(${_TOT_MEM} LESS 24000 AND ${_NUM_CORES} GREATER 8)
-      set(_compile_heavy_jobs "3")
-    elseif(${_TOT_MEM} LESS 32000 AND ${_NUM_CORES} GREATER 16)
-      set(_compile_heavy_jobs "4")
-    elseif(${_TOT_MEM} LESS 64000 AND ${_NUM_CORES} GREATER 32)
-      set(_compile_heavy_jobs "8")
-    else()
-      set(_compile_heavy_jobs "")
+    # Heuristics: Assume 8Gb of RAM is needed per heavy compile job.
+    # Typical RAM peak usage of these is actually less than 3GB currently,
+    # but this also accounts for the part of the physical RAM being used by other unrelated
+    # processes on the system, and the part being used by the 'regular' compile and linking jobs.
+    #
+    # Also always cap heavy jobs amount to `number of available threads - 1`, to ensure that even if
+    # there would be enough RAM, the machine never ends up handling only heavy jobs at some point.
+    # This can have annoying sides effects, like lack of output in the console for several minutes,
+    # which can lead to a wrong detection of 'unresponsive' state by the buildbots e.g.
+    #
+    # Currently, these settings applied to a 64GB/16threads linux machine will use, for a full build:
+    #   - release build:
+    #      * RAM: typically less than 20%, with some peaks at 25%.
+    #      * CPU: over 90% of usage on average over the whole build time.
+    #   - debug with ASAN build:
+    #      * RAM: typically less than 40%, with some peaks at 50%.
+    #      * CPU: over 90% of usage on average over the whole build time.
+    math(EXPR _compile_heavy_jobs "${_TOT_MEM} / 8000")
+    math(EXPR _compile_heavy_jobs_max "${_NUM_CORES} - 1")
+    if(${_compile_heavy_jobs} GREATER ${_compile_heavy_jobs_max})
+      set(_compile_heavy_jobs ${_compile_heavy_jobs_max})
+    elseif(${_compile_heavy_jobs} LESS 1)
+      set(_compile_heavy_jobs 1)
     endif()
-
     set(NINJA_MAX_NUM_PARALLEL_COMPILE_HEAVY_JOBS "${_compile_heavy_jobs}" CACHE STRING "\
 Define the maximum number of concurrent heavy compilation jobs, for ninja build system \
 (used for some targets which cpp files can take several GB each during compilation)."
@@ -1648,18 +1680,33 @@ Define the maximum number of concurrent heavy compilation jobs, for ninja build 
     )
     mark_as_advanced(NINJA_MAX_NUM_PARALLEL_COMPILE_HEAVY_JOBS)
     set(_compile_heavy_jobs)
+    set(_compile_heavy_jobs_max)
 
-    # Only set regular compile jobs if we set heavy jobs,
-    # otherwise default (using all cores) if fine.
-    if(NINJA_MAX_NUM_PARALLEL_COMPILE_HEAVY_JOBS)
-      math(EXPR _compile_jobs "${_NUM_CORES} - 1")
+    # Heuristics: Assume 2Gb of RAM is needed per heavy compile job.
+    # Typical RAM peak usage of these is actually way less than 1GB usually,
+    # but this also accounts for the part of the physical RAM being used by other unrelated
+    # processes on the system, and the part being used by the 'heavy' compile and linking jobs.
+    #
+    # If there are 'enough' cores available, cap the maximum number of regular jobs to
+    # `number of cores - 1`, otherwise allow using all cores if there is enough RAM available.
+    # This allows to ensure that the heavy jobs won't get starved by too many normal jobs,
+    # since the former usually take a long time to process.
+    math(EXPR _compile_jobs "${_TOT_MEM} / 2000")
+    if(${_NUM_CORES} GREATER 3)
+      math(EXPR _compile_jobs_max "${_NUM_CORES} - 1")
     else()
-      set(_compile_jobs "")
+      set(_compile_jobs_max ${_NUM_CORES})
+    endif()
+    if(${_compile_jobs} GREATER ${_compile_jobs_max})
+      set(_compile_jobs ${_compile_jobs_max})
+    elseif(${_compile_jobs} LESS 1)
+      set(_compile_jobs 1)
     endif()
     set(NINJA_MAX_NUM_PARALLEL_COMPILE_JOBS "${_compile_jobs}" CACHE STRING
         "Define the maximum number of concurrent compilation jobs, for ninja build system." FORCE)
     mark_as_advanced(NINJA_MAX_NUM_PARALLEL_COMPILE_JOBS)
     set(_compile_jobs)
+    set(_compile_jobs_max)
 
     # In practice, even when there is RAM available,
     # this proves to be quicker than running in parallel (due to slow disks accesses).
@@ -1786,13 +1833,21 @@ if(CMAKE_COMPILER_IS_GNUCC)
     CXX_WARN_NO_SUGGEST_OVERRIDE -Wno-suggest-override
     CXX_WARN_UNINITIALIZED -Wuninitialized
 
+    # NOTE(@ideasman42): In GCC 13.2.1 on Linux this causes internal compiler errors.
+    # The crashes can be resolved by disabling the flag per module (but not via pragmas).
+    # However this also causes a type mix-up FreeStyle  (Blender & FreeStyle's `Curve`)
+    # so it seems to impact GCC's the internal state enough that it's too risky to enable.
+    # When this is resolved the check can be enabled for fixed GCC versions.
+    #
+    # Prevents linking errors with MSVC.
+    # `CXX_WARN_MISMATCHED_TAGS -Wmismatched-tags`
+
     # Useful but too many false positives and inconvenient to suppress each occurrence.
     CXX_WARN_NO_STRINGOP_OVERREAD -Wno-stringop-overread
     CXX_WARN_NO_STRINGOP_OVERFLOW -Wno-stringop-overflow
 
     # Use `[[fallthrough]]` or `ATTR_FALLTHROUGH` macro to suppress.
     CXX_WARN_IMPLICIT_FALLTHROUGH -Wimplicit-fallthrough=5
-
   )
 
   # causes too many warnings
@@ -1894,6 +1949,9 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
     CXX_WARN_UNDEF -Wundef
     CXX_WARN_UNDEF_PREFIX -Wundef-prefix
     CXX_WARN_UNUSED_PARAMETER -Wunused-parameter
+
+    # Prevents linking errors with MSVC.
+    CXX_WARN_MISMATCHED_TAGS -Wmismatched-tags
 
     # Gives too many unfixable warnings.
     # `C_WARN_UNUSED_MACROS -Wunused-macros`
@@ -2165,9 +2223,27 @@ if(WITH_ASSERT_ABORT)
   add_definitions(-DWITH_ASSERT_ABORT)
 endif()
 
+# NDEBUG is the standard C define to disable asserts.
+if(WITH_ASSERT_RELEASE)
+  # CMake seemingly be setting the NDEBUG flag on its own already on some configurations
+  # therefore we need to remove the flags if they happen to be set.
+  remove_cc_flag("-DNDEBUG") # GCC/CLang
+  remove_cc_flag("/DNDEBUG") # MSVC
+else()
+  set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS
+    $<$<CONFIG:Release>:NDEBUG>
+    $<$<CONFIG:MinSizeRel>:NDEBUG>
+    $<$<CONFIG:RelWithDebInfo>:NDEBUG>
+  )
+endif()
+
 # message(STATUS "Using CFLAGS: ${CMAKE_C_FLAGS}")
 # message(STATUS "Using CXXFLAGS: ${CMAKE_CXX_FLAGS}")
 
+# -----------------------------------------------------------------------------
+# Testing Functions
+
+include(build_files/cmake/testing.cmake)
 
 # -----------------------------------------------------------------------------
 # Add Sub-Directories

@@ -14,7 +14,7 @@
 #include <opensubdiv/sdc/options.h>
 #include <opensubdiv/sdc/types.h>
 
-#include "opensubdiv_capi_type.h"
+#include "opensubdiv_capi_type.hh"
 
 struct OpenSubdiv_Converter;
 

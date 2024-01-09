@@ -6,21 +6,24 @@
  * \ingroup draw_engine
  */
 
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include "ED_grease_pencil.hh"
 
+#include "BKE_attribute.hh"
 #include "BKE_grease_pencil.hh"
 
 #include "overlay_private.hh"
 
 void OVERLAY_edit_grease_pencil_cache_init(OVERLAY_Data *vedata)
 {
+  using namespace blender;
   OVERLAY_PassList *psl = vedata->psl;
   OVERLAY_PrivateData *pd = vedata->stl->pd;
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  const eAttrDomain selection_domain = ED_grease_pencil_selection_domain_get(
+  const bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(
       draw_ctx->scene->toolsettings);
+  const View3D *v3d = draw_ctx->v3d;
 
   GPUShader *sh;
   DRWShadingGroup *grp;
@@ -29,11 +32,16 @@ void OVERLAY_edit_grease_pencil_cache_init(OVERLAY_Data *vedata)
                    DRW_STATE_BLEND_ALPHA;
   DRW_PASS_CREATE(psl->edit_grease_pencil_ps, (state | pd->clipping_state));
 
-  sh = OVERLAY_shader_edit_particle_strand();
-  grp = pd->edit_grease_pencil_wires_grp = DRW_shgroup_create(sh, psl->edit_grease_pencil_ps);
-  DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
+  const bool show_points = selection_domain == bke::AttrDomain::Point;
+  const bool show_lines = (v3d->gp_flag & V3D_GP_SHOW_EDIT_LINES) != 0;
 
-  if (selection_domain == ATTR_DOMAIN_POINT) {
+  if (show_lines) {
+    sh = OVERLAY_shader_edit_particle_strand();
+    grp = pd->edit_grease_pencil_wires_grp = DRW_shgroup_create(sh, psl->edit_grease_pencil_ps);
+    DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
+  }
+
+  if (show_points) {
     sh = OVERLAY_shader_edit_particle_point();
     grp = pd->edit_grease_pencil_points_grp = DRW_shgroup_create(sh, psl->edit_grease_pencil_ps);
     DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
@@ -42,6 +50,7 @@ void OVERLAY_edit_grease_pencil_cache_init(OVERLAY_Data *vedata)
 
 void OVERLAY_edit_grease_pencil_cache_populate(OVERLAY_Data *vedata, Object *ob)
 {
+  using namespace blender::draw;
   OVERLAY_PrivateData *pd = vedata->stl->pd;
   const DRWContextState *draw_ctx = DRW_context_state_get();
 

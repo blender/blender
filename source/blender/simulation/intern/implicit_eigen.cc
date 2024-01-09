@@ -10,13 +10,13 @@
 
 #ifdef IMPLICIT_SOLVER_EIGEN
 
-//#define USE_EIGEN_CORE
+// #define USE_EIGEN_CORE
 #  define USE_EIGEN_CONSTRAINED_CG
 
 #  ifdef __GNUC__
 #    pragma GCC diagnostic push
 /* XXX suppress verbose warnings in eigen */
-//#  pragma GCC diagnostic ignored "-Wlogical-op"
+// #  pragma GCC diagnostic ignored "-Wlogical-op"
 #  endif
 
 #  ifndef IMPLICIT_ENABLE_EIGEN_DEBUG
@@ -48,7 +48,6 @@
 #  include "MEM_guardedalloc.h"
 
 extern "C" {
-#  include "DNA_meshdata_types.h"
 #  include "DNA_object_force_types.h"
 #  include "DNA_object_types.h"
 #  include "DNA_scene_types.h"

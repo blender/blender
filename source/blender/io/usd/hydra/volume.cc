@@ -37,12 +37,12 @@ void VolumeData::init()
   filepath_ = BKE_volume_grids_frame_filepath(volume);
   ID_LOGN(1, "%s", filepath_.c_str());
 
-  if (volume->runtime.grids) {
+  if (volume->runtime->grids) {
     const int num_grids = BKE_volume_num_grids(volume);
     if (num_grids) {
       for (const int i : IndexRange(num_grids)) {
-        const VolumeGrid *grid = BKE_volume_grid_get_for_read(volume, i);
-        const std::string grid_name = BKE_volume_grid_name(grid);
+        const bke::VolumeGridData *grid = BKE_volume_grid_get(volume, i);
+        const std::string grid_name = bke::volume_grid::get_name(*grid);
 
         field_descriptors_.emplace_back(pxr::TfToken(grid_name),
                                         pxr::UsdVolImagingTokens->openvdbAsset,

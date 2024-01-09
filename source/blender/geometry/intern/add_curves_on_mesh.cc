@@ -4,6 +4,7 @@
 
 #include "BLI_math_vector.hh"
 
+#include "BLI_kdtree.h"
 #include "BLI_length_parameterize.hh"
 #include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
@@ -37,12 +38,12 @@ struct NeighborCurve {
 static constexpr int max_neighbors = 5;
 using NeighborCurves = Vector<NeighborCurve, max_neighbors>;
 
-float3 compute_surface_point_normal(const MLoopTri &looptri,
+float3 compute_surface_point_normal(const int3 &corner_tri,
                                     const float3 &bary_coord,
                                     const Span<float3> corner_normals)
 {
   const float3 value = bke::mesh_surface_sample::sample_corner_attribute_with_bary_coords(
-      bary_coord, looptri, corner_normals);
+      bary_coord, corner_tri, corner_normals);
   return math::normalize(value);
 }
 
@@ -141,7 +142,7 @@ static void interpolate_position_with_interpolation(CurvesGeometry &curves,
                                                     const Span<float> new_lengths_cu,
                                                     const Span<float3> new_normals_su,
                                                     const bke::CurvesSurfaceTransforms &transforms,
-                                                    const Span<MLoopTri> looptris,
+                                                    const Span<int3> corner_tris,
                                                     const ReverseUVSampler &reverse_uv_sampler,
                                                     const Span<float3> corner_normals_su)
 {
@@ -182,7 +183,7 @@ static void interpolate_position_with_interpolation(CurvesGeometry &curves,
         }
 
         const float3 neighbor_normal_su = compute_surface_point_normal(
-            looptris[result.looptri_index], result.bary_weights, corner_normals_su);
+            corner_tris[result.tri_index], result.bary_weights, corner_normals_su);
         const float3 neighbor_normal_cu = math::normalize(
             math::transform_direction(transforms.surface_to_curves_normal, neighbor_normal_su));
 
@@ -245,7 +246,7 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
 
   Vector<float3> root_positions_cu;
   Vector<float3> bary_coords;
-  Vector<int> looptri_indices;
+  Vector<int> tri_indices;
   Vector<float2> used_uvs;
 
   /* Find faces that the passed in uvs belong to. */
@@ -258,14 +259,14 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
       outputs.uv_error = true;
       continue;
     }
-    const MLoopTri &looptri = inputs.surface_looptris[result.looptri_index];
+    const int3 &tri = inputs.surface_corner_tris[result.tri_index];
     bary_coords.append(result.bary_weights);
-    looptri_indices.append(result.looptri_index);
+    tri_indices.append(result.tri_index);
     const float3 root_position_su = bke::attribute_math::mix3<float3>(
         result.bary_weights,
-        surface_positions[surface_corner_verts[looptri.tri[0]]],
-        surface_positions[surface_corner_verts[looptri.tri[1]]],
-        surface_positions[surface_corner_verts[looptri.tri[2]]]);
+        surface_positions[surface_corner_verts[tri[0]]],
+        surface_positions[surface_corner_verts[tri[1]]],
+        surface_positions[surface_corner_verts[tri[2]]]);
     root_positions_cu.append(
         math::transform_point(inputs.transforms->surface_to_curves, root_position_su));
     used_uvs.append(uv);
@@ -348,8 +349,8 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
 
   /* Find surface normal at root points. */
   Array<float3> new_normals_su(added_curves_num);
-  bke::mesh_surface_sample::sample_corner_normals(inputs.surface_looptris,
-                                                  looptri_indices,
+  bke::mesh_surface_sample::sample_corner_normals(inputs.surface_corner_tris,
+                                                  tri_indices,
                                                   bary_coords,
                                                   inputs.corner_normals_su,
                                                   IndexMask(added_curves_num),
@@ -364,7 +365,7 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
                                             new_lengths_cu,
                                             new_normals_su,
                                             *inputs.transforms,
-                                            inputs.surface_looptris,
+                                            inputs.surface_corner_tris,
                                             *inputs.reverse_uv_sampler,
                                             inputs.corner_normals_su);
   }
@@ -382,7 +383,8 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
   bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
 
   if (bke::SpanAttributeWriter<int> resolution = attributes.lookup_for_write_span<int>(
-          "resolution")) {
+          "resolution"))
+  {
     if (inputs.interpolate_resolution) {
       interpolate_from_neighbors(
           neighbors_per_curve,
@@ -397,22 +399,12 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
   }
 
   /* Explicitly set all other attributes besides those processed above to default values. */
-  Set<std::string> attributes_to_skip{
-      {"position", "curve_type", "surface_uv_coordinate", "resolution"}};
-  attributes.for_all(
-      [&](const bke::AttributeIDRef &id, const bke::AttributeMetaData /*meta_data*/) {
-        if (attributes_to_skip.contains(id.name())) {
-          return true;
-        }
-        bke::GSpanAttributeWriter attribute = attributes.lookup_for_write_span(id);
-        const CPPType &type = attribute.span.type();
-        GMutableSpan new_data = attribute.span.slice(attribute.domain == ATTR_DOMAIN_POINT ?
-                                                         outputs.new_points_range :
-                                                         outputs.new_curves_range);
-        type.fill_assign_n(type.default_value(), new_data.data(), new_data.size());
-        attribute.finish();
-        return true;
-      });
+  bke::fill_attribute_range_default(
+      attributes, bke::AttrDomain::Point, {"position"}, outputs.new_points_range);
+  bke::fill_attribute_range_default(attributes,
+                                    bke::AttrDomain::Curve,
+                                    {"curve_type", "surface_uv_coordinate", "resolution"},
+                                    outputs.new_curves_range);
 
   return outputs;
 }

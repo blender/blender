@@ -84,7 +84,7 @@ static bool is_appdir_init = false;
 #  define ASSERT_IS_INIT() BLI_assert(is_appdir_init)
 #else
 #  define ASSERT_IS_INIT() ((void)0)
-#endif
+#endif /* NDEBUG */
 
 void BKE_appdir_init()
 {
@@ -703,28 +703,32 @@ const char *BKE_appdir_folder_id_user_notest(const int folder_id, const char *su
   switch (folder_id) {
     case BLENDER_USER_DATAFILES:
       if (get_path_environment_ex(
-              path, sizeof(path), subfolder, "BLENDER_USER_DATAFILES", check_is_dir)) {
+              path, sizeof(path), subfolder, "BLENDER_USER_DATAFILES", check_is_dir))
+      {
         break;
       }
       get_path_user_ex(path, sizeof(path), "datafiles", subfolder, version, check_is_dir);
       break;
     case BLENDER_USER_CONFIG:
       if (get_path_environment_ex(
-              path, sizeof(path), subfolder, "BLENDER_USER_CONFIG", check_is_dir)) {
+              path, sizeof(path), subfolder, "BLENDER_USER_CONFIG", check_is_dir))
+      {
         break;
       }
       get_path_user_ex(path, sizeof(path), "config", subfolder, version, check_is_dir);
       break;
     case BLENDER_USER_AUTOSAVE:
       if (get_path_environment_ex(
-              path, sizeof(path), subfolder, "BLENDER_USER_AUTOSAVE", check_is_dir)) {
+              path, sizeof(path), subfolder, "BLENDER_USER_AUTOSAVE", check_is_dir))
+      {
         break;
       }
       get_path_user_ex(path, sizeof(path), "autosave", subfolder, version, check_is_dir);
       break;
     case BLENDER_USER_SCRIPTS:
       if (get_path_environment_ex(
-              path, sizeof(path), subfolder, "BLENDER_USER_SCRIPTS", check_is_dir)) {
+              path, sizeof(path), subfolder, "BLENDER_USER_SCRIPTS", check_is_dir))
+      {
         break;
       }
       get_path_user_ex(path, sizeof(path), "scripts", subfolder, version, check_is_dir);
@@ -882,7 +886,7 @@ static void where_am_i(char *program_filepath,
     /* Remove "/./" and "/../" so string comparisons can be used on the path. */
     BLI_path_normalize_native(program_filepath);
 
-#  if defined(DEBUG)
+#  ifndef NDEBUG
     if (!STREQ(program_name, program_filepath)) {
       CLOG_INFO(&LOG, 2, "guessing '%s' == '%s'", program_name, program_filepath);
     }
@@ -1053,7 +1057,8 @@ bool BKE_appdir_app_template_has_userpref(const char *app_template)
 
   char app_template_path[FILE_MAX];
   if (!BKE_appdir_app_template_id_search(
-          app_template, app_template_path, sizeof(app_template_path))) {
+          app_template, app_template_path, sizeof(app_template_path)))
+  {
     return false;
   }
 

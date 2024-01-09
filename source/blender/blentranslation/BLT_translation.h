@@ -144,7 +144,7 @@ typedef struct {
 
 #define BLT_I18NCONTEXTS_ITEM(ctxt_id, py_id) \
   { \
-#    ctxt_id, py_id, ctxt_id \
+    #ctxt_id, py_id, ctxt_id \
   }
 
 #define BLT_I18NCONTEXTS_DESC \

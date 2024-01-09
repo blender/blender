@@ -1,13 +1,14 @@
---- a/llvm/lib/Support/Unix/Path.inc	2020-02-17 09:24:26.000000000 +0100
-+++ b/llvm/lib/Support/Unix/Path.inc	2020-02-17 09:26:25.000000000 +0100
-@@ -1200,7 +1200,9 @@
- /// implementation.
+diff -Naur ll.org/llvm/lib/Support/Unix/Path.inc ll/llvm/lib/Support/Unix/Path.inc
+--- ll.org/llvm/lib/Support/Unix/Path.inc	2023-08-01 06:41:14.360891600 -0600
++++ ll/llvm/lib/Support/Unix/Path.inc	2023-08-01 07:20:02.063130200 -0600
+@@ -1476,7 +1476,9 @@
  std::error_code copy_file(const Twine &From, const Twine &To) {
-   uint32_t Flag = COPYFILE_DATA;
--#if __has_builtin(__builtin_available) && defined(COPYFILE_CLONE)
+   std::string FromS = From.str();
+   std::string ToS = To.str();
+-#if __has_builtin(__builtin_available)
 +  // BLENDER: This optimization makes LLVM not build on older Xcode versions,
 +  // just disable until everyone has new enough Xcode versions.
 +#if 0
    if (__builtin_available(macos 10.12, *)) {
-     bool IsSymlink;
-     if (std::error_code Error = is_symlink_file(From, IsSymlink))
+     // Optimistically try to use clonefile() and handle errors, rather than
+     // calling stat() to see if it'll work.

@@ -30,9 +30,10 @@
 
 #include "BKE_bvhutils.hh"
 #include "BKE_context.hh"
+#include "BKE_customdata.hh"
 #include "BKE_global.h"
 #include "BKE_layer.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.hh"
 #include "BKE_mesh_runtime.hh"
@@ -61,7 +62,7 @@
 
 #include "WM_api.hh"
 #include "WM_message.hh"
-#include "WM_toolsystem.h"
+#include "WM_toolsystem.hh"
 #include "WM_types.hh"
 
 #include "RNA_access.hh"
@@ -167,8 +168,11 @@ void PE_free_ptcache_edit(PTCacheEdit *edit)
   MEM_freeN(edit);
 }
 
-int PE_minmax(
-    Depsgraph *depsgraph, Scene *scene, ViewLayer *view_layer, float min[3], float max[3])
+int PE_minmax(Depsgraph *depsgraph,
+              Scene *scene,
+              ViewLayer *view_layer,
+              blender::float3 &min,
+              blender::float3 &max)
 {
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
@@ -200,13 +204,13 @@ int PE_minmax(
     LOOP_SELECTED_KEYS {
       copy_v3_v3(co, key->co);
       mul_m4_v3(mat, co);
-      DO_MINMAX(co, min, max);
+      blender::math::min_max(blender::float3(co), min, max);
       ok = 1;
     }
   }
 
   if (!ok) {
-    BKE_object_minmax(ob, min, max, true);
+    BKE_object_minmax(ob, min, max);
     ok = 1;
   }
 
@@ -497,7 +501,7 @@ struct PEData {
 
 static void PE_set_data(bContext *C, PEData *data)
 {
-  memset(data, 0, sizeof(*data));
+  *data = {};
 
   data->context = C;
   data->bmain = CTX_data_main(C);
@@ -529,13 +533,14 @@ static bool PE_create_shape_tree(PEData *data, Object *shapeob)
   Object *shapeob_eval = DEG_get_evaluated_object(data->depsgraph, shapeob);
   const Mesh *mesh = BKE_object_get_evaluated_mesh(shapeob_eval);
 
-  memset(&data->shape_bvh, 0, sizeof(data->shape_bvh));
+  data->shape_bvh = {};
 
   if (!mesh) {
     return false;
   }
 
-  return (BKE_bvhtree_from_mesh_get(&data->shape_bvh, mesh, BVHTREE_FROM_LOOPTRI, 4) != nullptr);
+  return (BKE_bvhtree_from_mesh_get(&data->shape_bvh, mesh, BVHTREE_FROM_CORNER_TRIS, 4) !=
+          nullptr);
 }
 
 static void PE_free_shape_tree(PEData *data)
@@ -2894,7 +2899,8 @@ static void rekey_particle_to_time(
 
   /* update edit pointers */
   for (k = 0, key = pa->hair, ekey = edit->points[pa_index].keys; k < pa->totkey;
-       k++, key++, ekey++) {
+       k++, key++, ekey++)
+  {
     ekey->co = key->co;
     ekey->time = &key->time;
   }
@@ -3518,7 +3524,7 @@ void PARTICLE_OT_delete(wmOperatorType *ot)
 
 static void PE_mirror_x(Depsgraph *depsgraph, Scene *scene, Object *ob, int tagged)
 {
-  Mesh *me = (Mesh *)(ob->data);
+  Mesh *mesh = (Mesh *)(ob->data);
   ParticleSystemModifierData *psmd_eval;
   PTCacheEdit *edit = PE_get_current(depsgraph, scene, ob);
   ParticleSystem *psys = edit->psys;
@@ -3543,7 +3549,7 @@ static void PE_mirror_x(Depsgraph *depsgraph, Scene *scene, Object *ob, int tagg
                                      !psmd_eval->mesh_final->runtime->deformed_only);
 
   /* NOTE: this is not nice to use tessfaces but hard to avoid since pa->num uses tessfaces */
-  BKE_mesh_tessface_ensure(me);
+  BKE_mesh_tessface_ensure(mesh);
 
   /* NOTE: In case psys uses Mesh tessface indices, we mirror final Mesh itself, not orig mesh.
    * Avoids an (impossible) mesh -> orig -> mesh tessface indices conversion. */
@@ -3579,7 +3585,8 @@ static void PE_mirror_x(Depsgraph *depsgraph, Scene *scene, Object *ob, int tagg
     const MFace *mtessface = use_dm_final_indices ?
                                  (const MFace *)CustomData_get_layer(
                                      &psmd_eval->mesh_final->fdata_legacy, CD_MFACE) :
-                                 (const MFace *)CustomData_get_layer(&me->fdata_legacy, CD_MFACE);
+                                 (const MFace *)CustomData_get_layer(&mesh->fdata_legacy,
+                                                                     CD_MFACE);
 
     /* allocate new arrays and copy existing */
     new_pars = static_cast<ParticleData *>(
@@ -4155,7 +4162,9 @@ static int particle_intersect_mesh(Depsgraph *depsgraph,
 {
   const MFace *mface = nullptr;
   int i, totface, intersect = 0;
-  float cur_d, cur_uv[2], v1[3], v2[3], v3[3], v4[3], min[3], max[3], p_min[3], p_max[3];
+  float cur_d;
+  blender::float2 cur_uv;
+  blender::float3 v1, v2, v3, v4, min, max, p_min, p_max;
   float cur_ipoint[3];
 
   if (mesh == nullptr) {
@@ -4212,11 +4221,11 @@ static int particle_intersect_mesh(Depsgraph *depsgraph,
 
     if (face_minmax == nullptr) {
       INIT_MINMAX(min, max);
-      DO_MINMAX(v1, min, max);
-      DO_MINMAX(v2, min, max);
-      DO_MINMAX(v3, min, max);
+      blender::math::min_max(blender::float3(v1), min, max);
+      blender::math::min_max(blender::float3(v2), min, max);
+      blender::math::min_max(blender::float3(v3), min, max);
       if (mface->v4) {
-        DO_MINMAX(v4, min, max);
+        blender::math::min_max(blender::float3(v4), min, max);
       }
       if (isect_aabb_aabb_v3(min, max, p_min, p_max) == 0) {
         continue;
@@ -4709,7 +4718,7 @@ static int brush_edit_init(bContext *C, wmOperator *op)
   PTCacheEdit *edit = PE_get_current(depsgraph, scene, ob);
   ARegion *region = CTX_wm_region(C);
   BrushEdit *bedit;
-  float min[3], max[3];
+  blender::float3 min, max;
 
   /* set the 'distance factor' for grabbing (used in comb etc) */
   INIT_MINMAX(min, max);

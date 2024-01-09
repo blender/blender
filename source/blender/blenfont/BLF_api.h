@@ -345,7 +345,7 @@ int BLF_load_default(bool unique);
 int BLF_load_mono_default(bool unique);
 void BLF_load_font_stack(void);
 
-#ifdef DEBUG
+#ifndef NDEBUG
 void BLF_state_print(int fontid);
 #endif
 

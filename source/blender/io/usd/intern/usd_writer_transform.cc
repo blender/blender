@@ -28,7 +28,9 @@ void USDTransformWriter::do_write(HierarchyContext &context)
   if (!xformOp_) {
     xformOp_ = xform.AddTransformOp();
   }
-  xformOp_.Set(pxr::GfMatrix4d(parent_relative_matrix), get_export_time_code());
+
+  pxr::GfMatrix4d mat_val(parent_relative_matrix);
+  usd_value_writer_.SetAttribute(xformOp_.GetAttr(), mat_val, get_export_time_code());
 }
 
 bool USDTransformWriter::check_is_animated(const HierarchyContext &context) const

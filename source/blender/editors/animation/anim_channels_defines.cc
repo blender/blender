@@ -9,6 +9,7 @@
 #include <cstdio>
 
 #include "ANIM_action.hh"
+#include "ANIM_animdata.hh"
 #include "ANIM_keyframing.hh"
 
 #include "MEM_guardedalloc.h"
@@ -58,7 +59,7 @@
 #include "BKE_grease_pencil.hh"
 #include "BKE_key.h"
 #include "BKE_lib_id.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_nla.h"
 
 #include "GPU_immediate.h"
@@ -1189,7 +1190,7 @@ static int acf_nla_controls_icon(bAnimListElem * /*ale*/)
 /** NLA Control F-Curves expander type define. */
 static bAnimChannelType ACF_NLACONTROLS = {
     /*channel_type_name*/ "NLA Controls Expander",
-    /*track_role*/ ACHANNEL_ROLE_EXPANDER,
+    /*channel_role*/ ACHANNEL_ROLE_EXPANDER,
 
     /*get_backdrop_color*/ acf_nla_controls_color,
     /*get_channel_color*/ nullptr,
@@ -2585,20 +2586,20 @@ static void *acf_dsmesh_setting_ptr(bAnimListElem *ale,
                                     eAnimChannel_Settings setting,
                                     short *r_type)
 {
-  Mesh *me = (Mesh *)ale->data;
+  Mesh *mesh = (Mesh *)ale->data;
 
   /* Clear extra return data first. */
   *r_type = 0;
 
   switch (setting) {
     case ACHANNEL_SETTING_EXPAND: /* expanded */
-      return GET_ACF_FLAG_PTR(me->flag, r_type);
+      return GET_ACF_FLAG_PTR(mesh->flag, r_type);
 
     case ACHANNEL_SETTING_SELECT:  /* selected */
     case ACHANNEL_SETTING_MUTE:    /* muted (for NLA only) */
     case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
-      if (me->adt) {
-        return GET_ACF_FLAG_PTR(me->adt->flag, r_type);
+      if (mesh->adt) {
+        return GET_ACF_FLAG_PTR(mesh->adt->flag, r_type);
       }
       return nullptr;
 
@@ -4558,6 +4559,23 @@ static bool achannel_is_being_renamed(const bAnimContext *ac,
   return false;
 }
 
+/** Check if the animation channel name should be underlined in red due to errors. */
+static bool achannel_is_broken(const bAnimListElem *ale)
+{
+  switch (ale->type) {
+    case ANIMTYPE_FCURVE:
+    case ANIMTYPE_NLACURVE: {
+      const FCurve *fcu = static_cast<const FCurve *>(ale->data);
+
+      /* The channel is disabled (has a bad rna path), or it's a driver that failed to evaluate. */
+      return (ale->flag & FCURVE_DISABLED) ||
+             (fcu->driver != nullptr && (fcu->driver->flag & DRIVER_FLAG_INVALID));
+    }
+    default:
+      return false;
+  }
+}
+
 float ANIM_UI_get_keyframe_scale_factor()
 {
   bTheme *btheme = UI_GetTheme();
@@ -4741,7 +4759,7 @@ void ANIM_channel_draw(
     UI_fontstyle_draw_simple(fstyle, offset, ytext, name, col);
 
     /* draw red underline if channel is disabled */
-    if (ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE) && (ale->flag & FCURVE_DISABLED)) {
+    if (achannel_is_broken(ale)) {
       uint pos = GPU_vertformat_attr_add(
           immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
@@ -5094,7 +5112,7 @@ static void achannel_setting_slider_shapekey_cb(bContext *C, void *key_poin, voi
   if (RNA_path_resolve_property(&id_ptr, rna_path, &ptr, &prop)) {
     /* find or create new F-Curve */
     /* XXX is the group name for this ok? */
-    bAction *act = ED_id_action_ensure(bmain, (ID *)key);
+    bAction *act = blender::animrig::id_action_ensure(bmain, (ID *)key);
     FCurve *fcu = blender::animrig::action_fcurve_ensure(bmain, act, nullptr, &ptr, rna_path, 0);
 
     /* set the special 'replace' flag if on a keyframe */

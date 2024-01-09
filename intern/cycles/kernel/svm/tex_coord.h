@@ -324,6 +324,11 @@ ccl_device_noinline void svm_node_normal_map(KernelGlobals kg,
 
     /* transform to world space */
     object_normal_transform(kg, sd, &N);
+
+    /* invert normal for backfacing polygons */
+    if (is_backfacing) {
+      N = -N;
+    }
   }
   else {
     /* strange blender convention */
@@ -335,20 +340,23 @@ ccl_device_noinline void svm_node_normal_map(KernelGlobals kg,
     /* object, world space */
     N = color;
 
-    if (space == NODE_NORMAL_MAP_OBJECT || space == NODE_NORMAL_MAP_BLENDER_OBJECT)
+    if (space == NODE_NORMAL_MAP_OBJECT || space == NODE_NORMAL_MAP_BLENDER_OBJECT) {
       object_normal_transform(kg, sd, &N);
-    else
+    }
+    else {
       N = safe_normalize(N);
+    }
+
+    /* invert normal for backfacing polygons */
+    if (is_backfacing) {
+      N = -N;
+    }
+
     /* Apply strength in all but tangent space. */
     if (strength != 1.0f) {
       strength = max(strength, 0.0f);
       N = safe_normalize(sd->N + (N - sd->N) * strength);
     }
-  }
-
-  /* invert normal for backfacing polygons */
-  if (is_backfacing) {
-    N = -N;
   }
 
   if (is_zero(N)) {

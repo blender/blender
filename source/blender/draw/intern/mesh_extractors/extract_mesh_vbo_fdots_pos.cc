@@ -6,7 +6,7 @@
  * \ingroup draw
  */
 
-#include "BLI_bitmap.h"
+#include "GPU_index_buffer.h"
 
 #include "extract_mesh.hh"
 
@@ -75,10 +75,10 @@ static void extract_fdots_pos_iter_face_mesh(const MeshRenderData &mr,
   float *co = center[face_index];
   zero_v3(co);
 
-  const BitSpan facedot_tags = mr.me->runtime->subsurf_face_dot_tags;
+  const BitSpan facedot_tags = mr.mesh->runtime->subsurf_face_dot_tags;
 
-  for (const int ml_index : mr.faces[face_index]) {
-    const int vert = mr.corner_verts[ml_index];
+  for (const int corner : mr.faces[face_index]) {
+    const int vert = mr.corner_verts[corner];
     if (mr.use_subsurf_fdots) {
       if (facedot_tags[vert]) {
         copy_v3_v3(center[face_index], mr.vert_positions[vert]);
@@ -133,6 +133,6 @@ constexpr MeshExtract create_extractor_fdots_pos()
 
 /** \} */
 
-}  // namespace blender::draw
+const MeshExtract extract_fdots_pos = create_extractor_fdots_pos();
 
-const MeshExtract extract_fdots_pos = blender::draw::create_extractor_fdots_pos();
+}  // namespace blender::draw

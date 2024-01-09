@@ -6,11 +6,9 @@ set(INC
   .
   ../include
   ../../asset_system
-  ../../blenfont
   ../../blenkernel
   ../../blenloader
   ../../blentranslation
-  ../../depsgraph
   ../../draw
   ../../functions
   ../../gpu
@@ -69,6 +67,7 @@ set(SRC
   interface_style.cc
   interface_template_asset_view.cc
   interface_template_attribute_search.cc
+  interface_template_bone_collection_tree.cc
   interface_template_light_linking.cc
   interface_template_list.cc
   interface_template_node_tree_interface.cc
@@ -97,8 +96,10 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::blenfont
   bf_blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::depsgraph
   PRIVATE bf::dna
   bf_editor_datafiles
   PRIVATE bf::intern::guardedalloc

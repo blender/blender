@@ -42,8 +42,10 @@ void AS_asset_library_refresh_catalog_simplename(struct AssetLibrary *asset_libr
 /** Return whether any loaded AssetLibrary has unsaved changes to its catalogs. */
 bool AS_asset_library_has_any_unsaved_catalogs(void);
 
-/** An asset library can include local IDs (IDs in the current file). Their pointers need to be
- * remapped on change (or assets removed as IDs gets removed). */
+/**
+ * An asset library can include local IDs (IDs in the current file). Their pointers need to be
+ * remapped on change (or assets removed as IDs gets removed).
+ */
 void AS_asset_library_remap_ids(const struct IDRemapper *mappings);
 
 /**

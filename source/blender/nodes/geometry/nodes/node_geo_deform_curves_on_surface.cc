@@ -18,9 +18,6 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-
 #include "NOD_socket_search_link.hh"
 
 #include "GEO_reverse_uv_sampler.hh"
@@ -72,11 +69,11 @@ static void deform_curves(const CurvesGeometry &curves,
 
   const Span<float3> surface_positions_old = surface_mesh_old.vert_positions();
   const Span<int> surface_corner_verts_old = surface_mesh_old.corner_verts();
-  const Span<MLoopTri> surface_looptris_old = surface_mesh_old.looptris();
+  const Span<int3> surface_corner_tris_old = surface_mesh_old.corner_tris();
 
   const Span<float3> surface_positions_new = surface_mesh_new.vert_positions();
   const Span<int> surface_corner_verts_new = surface_mesh_new.corner_verts();
-  const Span<MLoopTri> surface_looptris_new = surface_mesh_new.looptris();
+  const Span<int3> surface_corner_tris_new = surface_mesh_new.corner_tris();
 
   const OffsetIndices points_by_curve = curves.points_by_curve();
 
@@ -93,18 +90,18 @@ static void deform_curves(const CurvesGeometry &curves,
         continue;
       }
 
-      const MLoopTri &looptri_old = surface_looptris_old[surface_sample_old.looptri_index];
-      const MLoopTri &looptri_new = surface_looptris_new[surface_sample_new.looptri_index];
+      const int3 &tri_old = surface_corner_tris_old[surface_sample_old.tri_index];
+      const int3 &tri_new = surface_corner_tris_new[surface_sample_new.tri_index];
       const float3 &bary_weights_old = surface_sample_old.bary_weights;
       const float3 &bary_weights_new = surface_sample_new.bary_weights;
 
-      const int corner_0_old = looptri_old.tri[0];
-      const int corner_1_old = looptri_old.tri[1];
-      const int corner_2_old = looptri_old.tri[2];
+      const int corner_0_old = tri_old[0];
+      const int corner_1_old = tri_old[1];
+      const int corner_2_old = tri_old[2];
 
-      const int corner_0_new = looptri_new.tri[0];
-      const int corner_1_new = looptri_new.tri[1];
-      const int corner_2_new = looptri_new.tri[2];
+      const int corner_0_new = tri_new[0];
+      const int corner_1_new = tri_new[1];
+      const int corner_2_new = tri_new[2];
 
       const int vert_0_old = surface_corner_verts_old[corner_0_old];
       const int vert_1_old = surface_corner_verts_old[corner_1_old];
@@ -301,18 +298,18 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
   const VArraySpan uv_map_orig = *mesh_attributes_orig.lookup<float2>(uv_map_name,
-                                                                      ATTR_DOMAIN_CORNER);
+                                                                      AttrDomain::Corner);
   const VArraySpan uv_map_eval = *mesh_attributes_eval.lookup<float2>(uv_map_name,
-                                                                      ATTR_DOMAIN_CORNER);
+                                                                      AttrDomain::Corner);
   const VArraySpan rest_positions = *mesh_attributes_eval.lookup<float3>(rest_position_name,
-                                                                         ATTR_DOMAIN_POINT);
+                                                                         AttrDomain::Point);
   const VArraySpan surface_uv_coords = *curves.attributes().lookup_or_default<float2>(
-      "surface_uv_coordinate", ATTR_DOMAIN_CURVE, float2(0));
+      "surface_uv_coordinate", AttrDomain::Curve, float2(0));
 
-  const Span<MLoopTri> looptris_orig = surface_mesh_orig->looptris();
-  const Span<MLoopTri> looptris_eval = surface_mesh_eval->looptris();
-  const ReverseUVSampler reverse_uv_sampler_orig{uv_map_orig, looptris_orig};
-  const ReverseUVSampler reverse_uv_sampler_eval{uv_map_eval, looptris_eval};
+  const Span<int3> corner_tris_orig = surface_mesh_orig->corner_tris();
+  const Span<int3> corner_tris_eval = surface_mesh_eval->corner_tris();
+  const ReverseUVSampler reverse_uv_sampler_orig{uv_map_orig, corner_tris_orig};
+  const ReverseUVSampler reverse_uv_sampler_eval{uv_map_eval, corner_tris_eval};
 
   /* Retrieve face corner normals from each mesh. It's necessary to use face corner normals
    * because face normals or vertex normals may lose information (custom normals, auto smooth) in
@@ -372,7 +369,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     /* Then also deform edit curve information for use in sculpt mode. */
     const CurvesGeometry &curves_orig = edit_hints->curves_id_orig.geometry.wrap();
     const VArraySpan<float2> surface_uv_coords_orig = *curves_orig.attributes().lookup_or_default(
-        "surface_uv_coordinate", ATTR_DOMAIN_CURVE, float2(0));
+        "surface_uv_coordinate", AttrDomain::Curve, float2(0));
     if (!surface_uv_coords_orig.is_empty()) {
       deform_curves(curves_orig,
                     *surface_mesh_orig,

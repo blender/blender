@@ -16,7 +16,6 @@ struct DerivedMesh;
 struct MDisps;
 struct Mesh;
 struct ModifierData;
-struct MLoopTri;
 struct MultiresModifierData;
 struct Object;
 struct Scene;
@@ -27,7 +26,7 @@ struct SubdivToMeshSettings;
 /**
  * Delete mesh mdisps and grid paint masks.
  */
-void multires_customdata_delete(Mesh *me);
+void multires_customdata_delete(Mesh *mesh);
 
 void multires_set_tot_level(Object *ob, MultiresModifierData *mmd, int lvl);
 
@@ -78,10 +77,8 @@ Mesh *BKE_multires_create_mesh(Depsgraph *depsgraph, Object *object, MultiresMod
  * Get coordinates of a deformed base mesh which is an input to the given multi-res modifier.
  * \note The modifiers will be re-evaluated.
  */
-float (*BKE_multires_create_deformed_base_mesh_vert_coords(Depsgraph *depsgraph,
-                                                           Object *object,
-                                                           MultiresModifierData *mmd,
-                                                           int *r_num_deformed_verts))[3];
+blender::Array<blender::float3> BKE_multires_create_deformed_base_mesh_vert_coords(
+    Depsgraph *depsgraph, Object *object, MultiresModifierData *mmd);
 
 /**
  * \param direction: 1 for delete higher, 0 for lower (not implemented yet).
@@ -114,7 +111,7 @@ int multires_mdisp_corners(const MDisps *s);
 /**
  * Update multi-res data after topology changing.
  */
-void multires_topology_changed(Mesh *me);
+void multires_topology_changed(Mesh *mesh);
 
 /**
  * Makes sure data from an external file is fully read.

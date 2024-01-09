@@ -8,13 +8,17 @@
 
 #pragma once
 
+#include "BLI_utility_mixins.hh"
 #include "BLI_vector.hh"
 #include "BLI_vector_set.hh"
 #include "DNA_sequence_types.h"
 #include "RNA_access.hh"
 
+#include "sequencer_scopes.hh"
+
 /* Internal exports only. */
 
+class SeqQuadsBatch;
 struct ARegion;
 struct ARegionType;
 struct Depsgraph;
@@ -38,6 +42,24 @@ struct ListBase;
 
 #define DEFAULT_IMG_STRIP_LENGTH 25 /* XXX arbitrary but ok for now. */
 #define OVERLAP_ALPHA 180
+
+namespace blender::ed::seq {
+
+struct SpaceSeq_Runtime : public NonCopyable {
+  /** Required for Thumbnail job start condition. */
+  rctf last_thumbnail_area = {0, 0, 0, 0};
+  /** Stores lists of most recently displayed thumbnails. */
+  GHash *last_displayed_thumbnails = nullptr;
+  int rename_channel_index = 0;
+  float timeline_clamp_custom_range = 0;
+
+  blender::ed::seq::SeqScopes scopes;
+
+  SpaceSeq_Runtime() = default;
+  ~SpaceSeq_Runtime();
+};
+
+}  // namespace blender::ed::seq
 
 struct SeqChannelDrawContext {
   const bContext *C;
@@ -141,6 +163,7 @@ bool sequencer_edit_with_channel_region_poll(bContext *C);
 bool sequencer_editing_initialized_and_active(bContext *C);
 /* UNUSED */
 // bool sequencer_strip_poll( bContext *C);
+bool sequencer_strip_editable_poll(bContext *C);
 bool sequencer_strip_has_path_poll(bContext *C);
 bool sequencer_view_has_preview_poll(bContext *C);
 bool sequencer_view_preview_only_poll(const bContext *C);
@@ -234,7 +257,7 @@ void SEQUENCER_OT_select_side(wmOperatorType *ot);
 void SEQUENCER_OT_select_box(wmOperatorType *ot);
 void SEQUENCER_OT_select_inverse(wmOperatorType *ot);
 void SEQUENCER_OT_select_grouped(wmOperatorType *ot);
-Sequence *find_nearest_seq(const Scene *scene, const View2D *v2d, int *hand, const int mval[2]);
+Sequence *find_nearest_seq(const Scene *scene, const View2D *v2d, const int mval[2], int *r_hand);
 
 /* `sequencer_add.cc` */
 
@@ -255,14 +278,6 @@ void sequencer_dropboxes();
 
 void sequencer_operatortypes();
 void sequencer_keymap(wmKeyConfig *keyconf);
-
-/* sequencer_scope.c */
-
-ImBuf *make_waveform_view_from_ibuf(ImBuf *ibuf);
-ImBuf *make_sep_waveform_view_from_ibuf(ImBuf *ibuf);
-ImBuf *make_vectorscope_view_from_ibuf(ImBuf *ibuf);
-ImBuf *make_zebra_view_from_ibuf(ImBuf *ibuf, float perc);
-ImBuf *make_histogram_view_from_ibuf(ImBuf *ibuf);
 
 /* `sequencer_buttons.cc` */
 
@@ -311,16 +326,22 @@ void SEQUENCER_OT_retiming_freeze_frame_add(wmOperatorType *ot);
 void SEQUENCER_OT_retiming_transition_add(wmOperatorType *ot);
 void SEQUENCER_OT_retiming_segment_speed_set(wmOperatorType *ot);
 int sequencer_retiming_key_select_exec(bContext *C, wmOperator *op);
+/* Select a key and all following keys. */
+int sequencer_retiming_select_linked_time(bContext *C, wmOperator *op);
 int sequencer_select_exec(bContext *C, wmOperator *op);
 int sequencer_retiming_key_remove_exec(bContext *C, wmOperator *op);
 int sequencer_retiming_select_all_exec(bContext *C, wmOperator *op);
 int sequencer_retiming_box_select_exec(bContext *C, wmOperator *op);
 
 /* `sequencer_retiming_draw.cc` */
-void sequencer_draw_retiming(const bContext *C);
+void sequencer_draw_retiming(const bContext *C, SeqQuadsBatch *quads);
 blender::Vector<Sequence *> sequencer_visible_strips_get(const bContext *C);
 SeqRetimingKey *try_to_realize_virtual_key(const bContext *C, Sequence *seq, const int mval[2]);
 SeqRetimingKey *retiming_mousover_key_get(const bContext *C, const int mval[2], Sequence **r_seq);
 int left_fake_key_frame_get(const bContext *C, const Sequence *seq);
 int right_fake_key_frame_get(const bContext *C, const Sequence *seq);
 bool retiming_keys_are_visible(const bContext *C);
+
+/* `sequencer_clipboard.cc` */
+int sequencer_clipboard_copy_exec(bContext *C, wmOperator *op);
+int sequencer_clipboard_paste_exec(bContext *C, wmOperator *op);

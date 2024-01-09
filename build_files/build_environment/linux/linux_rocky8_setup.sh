@@ -96,6 +96,10 @@ PACKAGES_FOR_LIBS=(
     # Required by: `external_mesa`.
     expat-devel
 
+    # Required by: `external_mesa`.
+    libxshmfence
+    libxshmfence-devel
+
     # Required by: `external_igc` & `external_osl` as a build-time dependency.
     bison
     # Required by: `external_osl` as a build-time dependency.
@@ -148,3 +152,6 @@ yum -y install python3 python3-pip python3-devel
 # Dependencies for asound.
 yum -y install -y  \
     alsa-lib-devel pulseaudio-libs-devel
+
+# Required by Blender build option: `WITH_JACK`.
+yum -y install jack-audio-connection-kit-devel

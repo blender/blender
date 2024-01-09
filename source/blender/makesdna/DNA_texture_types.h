@@ -378,10 +378,6 @@ enum {
   TEX_NO_CLAMP = 1 << 10,
 };
 
-#define TEX_FLAG_MASK \
-  (TEX_COLORBAND | TEX_FLIPBLEND | TEX_NEGALPHA | TEX_CHECKER_ODD | TEX_CHECKER_EVEN | \
-   TEX_PRV_ALPHA | TEX_PRV_NOR | TEX_REPEAT_XMIR | TEX_REPEAT_YMIR)
-
 /** #Tex::extend (starts with 1 because of backward compatibility). */
 enum {
   TEX_EXTEND = 1,

@@ -6,9 +6,9 @@
  * \ingroup draw
  */
 
-#include "BLI_bitmap.h"
-
 #include "extract_mesh.hh"
+
+#include "GPU_index_buffer.h"
 
 #include "draw_subdivision.hh"
 
@@ -54,18 +54,18 @@ static void extract_edituv_tris_iter_looptri_bm(const MeshRenderData & /*mr*/,
                  BM_elem_index_get(elt[2]));
 }
 
-static void extract_edituv_tris_iter_looptri_mesh(const MeshRenderData &mr,
-                                                  const MLoopTri *mlt,
-                                                  const int elt_index,
-                                                  void *_data)
+static void extract_edituv_tris_iter_corner_tri_mesh(const MeshRenderData &mr,
+                                                     const int3 &tri,
+                                                     const int elt_index,
+                                                     void *_data)
 {
   MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(_data);
-  const int face_i = mr.looptri_faces[elt_index];
+  const int face_i = mr.corner_tri_faces[elt_index];
   const BMFace *efa = bm_original_face_get(mr, face_i);
   const bool mp_hidden = (efa) ? BM_elem_flag_test_bool(efa, BM_ELEM_HIDDEN) : true;
   const bool mp_select = (efa) ? BM_elem_flag_test_bool(efa, BM_ELEM_SELECT) : false;
 
-  edituv_tri_add(data, mp_hidden, mp_select, mlt->tri[0], mlt->tri[1], mlt->tri[2]);
+  edituv_tri_add(data, mp_hidden, mp_select, tri[0], tri[1], tri[2]);
 }
 
 static void extract_edituv_tris_finish(const MeshRenderData & /*mr*/,
@@ -147,7 +147,7 @@ constexpr MeshExtract create_extractor_edituv_tris()
   MeshExtract extractor = {nullptr};
   extractor.init = extract_edituv_tris_init;
   extractor.iter_looptri_bm = extract_edituv_tris_iter_looptri_bm;
-  extractor.iter_looptri_mesh = extract_edituv_tris_iter_looptri_mesh;
+  extractor.iter_corner_tri_mesh = extract_edituv_tris_iter_corner_tri_mesh;
   extractor.finish = extract_edituv_tris_finish;
   extractor.init_subdiv = extract_edituv_tris_init_subdiv;
   extractor.iter_subdiv_bm = extract_edituv_tris_iter_subdiv_bm;
@@ -217,17 +217,16 @@ static void extract_edituv_lines_iter_face_mesh(const MeshRenderData &mr,
     mp_select = (efa) ? BM_elem_flag_test_bool(efa, BM_ELEM_SELECT) : false;
   }
   else {
-    mp_hidden = (mr.hide_poly) ? mr.hide_poly[face_index] : false;
-    mp_select = mr.select_poly && mr.select_poly[face_index];
+    mp_hidden = mr.hide_poly.is_empty() ? false : mr.hide_poly[face_index];
+    mp_select = !mr.select_poly.is_empty() && mr.select_poly[face_index];
   }
 
-  for (const int ml_index : face) {
-    const int edge = mr.corner_edges[ml_index];
+  for (const int corner : face) {
+    const int edge = mr.corner_edges[corner];
+    const int corner_next = bke::mesh::face_corner_next(face, corner);
 
-    const int ml_index_last = face.last();
-    const int ml_index_next = (ml_index == ml_index_last) ? face.start() : (ml_index + 1);
     const bool real_edge = (mr.e_origindex == nullptr || mr.e_origindex[edge] != ORIGINDEX_NONE);
-    edituv_edge_add(data, mp_hidden || !real_edge, mp_select, ml_index, ml_index_next);
+    edituv_edge_add(data, mp_hidden || !real_edge, mp_select, corner, corner_next);
   }
 }
 
@@ -295,8 +294,8 @@ static void extract_edituv_lines_iter_subdiv_mesh(const DRWSubdivCache &subdiv_c
     mp_select = (efa) ? BM_elem_flag_test_bool(efa, BM_ELEM_SELECT) : false;
   }
   else {
-    mp_hidden = (mr.hide_poly) ? mr.hide_poly[coarse_face_index] : false;
-    mp_select = mr.select_poly && mr.select_poly[coarse_face_index];
+    mp_hidden = mr.hide_poly.is_empty() ? false : mr.hide_poly[coarse_face_index];
+    mp_select = !mr.select_poly.is_empty() && mr.select_poly[coarse_face_index];
   }
 
   uint start_loop_idx = subdiv_quad_index * 4;
@@ -395,11 +394,11 @@ static void extract_edituv_points_iter_face_mesh(const MeshRenderData &mr,
   const bool mp_hidden = (efa) ? BM_elem_flag_test_bool(efa, BM_ELEM_HIDDEN) : true;
   const bool mp_select = (efa) ? BM_elem_flag_test_bool(efa, BM_ELEM_SELECT) : false;
 
-  for (const int ml_index : mr.faces[face_index]) {
-    const int vert = mr.corner_verts[ml_index];
+  for (const int corner : mr.faces[face_index]) {
+    const int vert = mr.corner_verts[corner];
 
     const bool real_vert = !mr.v_origindex || mr.v_origindex[vert] != ORIGINDEX_NONE;
-    edituv_point_add(data, mp_hidden || !real_vert, mp_select, ml_index);
+    edituv_point_add(data, mp_hidden || !real_vert, mp_select, corner);
   }
 }
 
@@ -549,10 +548,10 @@ static void extract_edituv_fdots_iter_face_mesh(const MeshRenderData &mr,
   const bool mp_select = (efa) ? BM_elem_flag_test_bool(efa, BM_ELEM_SELECT) : false;
 
   if (mr.use_subsurf_fdots) {
-    const BitSpan facedot_tags = mr.me->runtime->subsurf_face_dot_tags;
+    const BitSpan facedot_tags = mr.mesh->runtime->subsurf_face_dot_tags;
 
-    for (const int ml_index : mr.faces[face_index]) {
-      const int vert = mr.corner_verts[ml_index];
+    for (const int corner : mr.faces[face_index]) {
+      const int vert = mr.corner_verts[corner];
 
       const bool real_fdot = !mr.p_origindex || (mr.p_origindex[face_index] != ORIGINDEX_NONE);
       const bool subd_fdot = facedot_tags[vert];
@@ -591,9 +590,9 @@ constexpr MeshExtract create_extractor_edituv_fdots()
 
 /** \} */
 
-}  // namespace blender::draw
+const MeshExtract extract_edituv_tris = create_extractor_edituv_tris();
+const MeshExtract extract_edituv_lines = create_extractor_edituv_lines();
+const MeshExtract extract_edituv_points = create_extractor_edituv_points();
+const MeshExtract extract_edituv_fdots = create_extractor_edituv_fdots();
 
-const MeshExtract extract_edituv_tris = blender::draw::create_extractor_edituv_tris();
-const MeshExtract extract_edituv_lines = blender::draw::create_extractor_edituv_lines();
-const MeshExtract extract_edituv_points = blender::draw::create_extractor_edituv_points();
-const MeshExtract extract_edituv_fdots = blender::draw::create_extractor_edituv_fdots();
+}  // namespace blender::draw

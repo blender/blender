@@ -8,13 +8,9 @@
 #include "BKE_customdata.hh"
 #include "BKE_deform.h"
 #include "BKE_geometry_set.hh"
-#include "BKE_mesh.hh"
-#include "BKE_pointcloud.h"
 #include "BKE_type_conversions.hh"
 
-#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_pointcloud_types.h"
 
 #include "BLI_array_utils.hh"
 #include "BLI_color.hh"
@@ -31,16 +27,75 @@
 
 #include "attribute_access_intern.hh"
 
-using blender::float3;
-using blender::GMutableSpan;
-using blender::GSpan;
-using blender::GVArrayImpl_For_GSpan;
-using blender::Set;
-using blender::StringRef;
-using blender::StringRefNull;
-using blender::bke::AttributeIDRef;
-
 namespace blender::bke {
+
+const blender::CPPType *custom_data_type_to_cpp_type(const eCustomDataType type)
+{
+  switch (type) {
+    case CD_PROP_FLOAT:
+      return &CPPType::get<float>();
+    case CD_PROP_FLOAT2:
+      return &CPPType::get<float2>();
+    case CD_PROP_FLOAT3:
+      return &CPPType::get<float3>();
+    case CD_PROP_INT32:
+      return &CPPType::get<int>();
+    case CD_PROP_INT32_2D:
+      return &CPPType::get<int2>();
+    case CD_PROP_COLOR:
+      return &CPPType::get<ColorGeometry4f>();
+    case CD_PROP_BOOL:
+      return &CPPType::get<bool>();
+    case CD_PROP_INT8:
+      return &CPPType::get<int8_t>();
+    case CD_PROP_BYTE_COLOR:
+      return &CPPType::get<ColorGeometry4b>();
+    case CD_PROP_QUATERNION:
+      return &CPPType::get<math::Quaternion>();
+    case CD_PROP_STRING:
+      return &CPPType::get<MStringProperty>();
+    default:
+      return nullptr;
+  }
+}
+
+eCustomDataType cpp_type_to_custom_data_type(const blender::CPPType &type)
+{
+  if (type.is<float>()) {
+    return CD_PROP_FLOAT;
+  }
+  if (type.is<float2>()) {
+    return CD_PROP_FLOAT2;
+  }
+  if (type.is<float3>()) {
+    return CD_PROP_FLOAT3;
+  }
+  if (type.is<int>()) {
+    return CD_PROP_INT32;
+  }
+  if (type.is<int2>()) {
+    return CD_PROP_INT32_2D;
+  }
+  if (type.is<ColorGeometry4f>()) {
+    return CD_PROP_COLOR;
+  }
+  if (type.is<bool>()) {
+    return CD_PROP_BOOL;
+  }
+  if (type.is<int8_t>()) {
+    return CD_PROP_INT8;
+  }
+  if (type.is<ColorGeometry4b>()) {
+    return CD_PROP_BYTE_COLOR;
+  }
+  if (type.is<math::Quaternion>()) {
+    return CD_PROP_QUATERNION;
+  }
+  if (type.is<MStringProperty>()) {
+    return CD_PROP_STRING;
+  }
+  return static_cast<eCustomDataType>(-1);
+}
 
 std::ostream &operator<<(std::ostream &stream, const AttributeIDRef &attribute_id)
 {
@@ -142,22 +197,22 @@ eCustomDataType attribute_data_type_highest_complexity(Span<eCustomDataType> dat
  * \note Generally the order should mirror the order of the domains
  * established in each component's ComponentAttributeProviders.
  */
-static int attribute_domain_priority(const eAttrDomain domain)
+static int attribute_domain_priority(const AttrDomain domain)
 {
   switch (domain) {
-    case ATTR_DOMAIN_INSTANCE:
+    case AttrDomain::Instance:
       return 0;
-    case ATTR_DOMAIN_LAYER:
+    case AttrDomain::Layer:
       return 1;
-    case ATTR_DOMAIN_CURVE:
+    case AttrDomain::Curve:
       return 2;
-    case ATTR_DOMAIN_FACE:
+    case AttrDomain::Face:
       return 3;
-    case ATTR_DOMAIN_EDGE:
+    case AttrDomain::Edge:
       return 4;
-    case ATTR_DOMAIN_POINT:
+    case AttrDomain::Point:
       return 5;
-    case ATTR_DOMAIN_CORNER:
+    case AttrDomain::Corner:
       return 6;
     default:
       /* Domain not supported in nodes yet. */
@@ -166,12 +221,12 @@ static int attribute_domain_priority(const eAttrDomain domain)
   }
 }
 
-eAttrDomain attribute_domain_highest_priority(Span<eAttrDomain> domains)
+AttrDomain attribute_domain_highest_priority(Span<AttrDomain> domains)
 {
   int highest_priority = INT_MIN;
-  eAttrDomain highest_priority_domain = ATTR_DOMAIN_CORNER;
+  AttrDomain highest_priority_domain = AttrDomain::Corner;
 
-  for (const eAttrDomain domain : domains) {
+  for (const AttrDomain domain : domains) {
     const int priority = attribute_domain_priority(domain);
     if (priority > highest_priority) {
       highest_priority = priority;
@@ -549,7 +604,7 @@ bool CustomDataAttributeProvider::try_delete(void *owner, const AttributeIDRef &
 
 bool CustomDataAttributeProvider::try_create(void *owner,
                                              const AttributeIDRef &attribute_id,
-                                             const eAttrDomain domain,
+                                             const AttrDomain domain,
                                              const eCustomDataType data_type,
                                              const AttributeInit &initializer) const
 {
@@ -598,16 +653,14 @@ bool CustomDataAttributeProvider::foreach_attribute(const void *owner,
 /** \name Attribute API
  * \{ */
 
-static blender::GVArray try_adapt_data_type(blender::GVArray varray,
-                                            const blender::CPPType &to_type)
+static GVArray try_adapt_data_type(GVArray varray, const CPPType &to_type)
 {
-  const blender::bke::DataTypeConversions &conversions =
-      blender::bke::get_implicit_type_conversions();
+  const DataTypeConversions &conversions = get_implicit_type_conversions();
   return conversions.try_convert(std::move(varray), to_type);
 }
 
 GAttributeReader AttributeAccessor::lookup(const AttributeIDRef &attribute_id,
-                                           const std::optional<eAttrDomain> domain,
+                                           const std::optional<AttrDomain> domain,
                                            const std::optional<eCustomDataType> data_type) const
 {
   GAttributeReader attribute = this->lookup(attribute_id);
@@ -638,7 +691,7 @@ GAttributeReader AttributeAccessor::lookup(const AttributeIDRef &attribute_id,
 }
 
 GAttributeReader AttributeAccessor::lookup_or_default(const AttributeIDRef &attribute_id,
-                                                      const eAttrDomain domain,
+                                                      const AttrDomain domain,
                                                       const eCustomDataType data_type,
                                                       const void *default_value) const
 {
@@ -681,7 +734,7 @@ void MutableAttributeAccessor::remove_anonymous()
 /**
  * Debug utility that checks whether the #finish function of an #AttributeWriter has been called.
  */
-#ifdef DEBUG
+#ifndef NDEBUG
 struct FinishCallChecker {
   std::string name;
   bool finish_called = false;
@@ -700,7 +753,7 @@ GAttributeWriter MutableAttributeAccessor::lookup_for_write(const AttributeIDRef
 {
   GAttributeWriter attribute = fn_->lookup_for_write(owner_, attribute_id);
   /* Check that the #finish method is called in debug builds. */
-#ifdef DEBUG
+#ifndef NDEBUG
   if (attribute) {
     auto checker = std::make_shared<FinishCallChecker>();
     checker->name = attribute_id.name();
@@ -728,7 +781,7 @@ GSpanAttributeWriter MutableAttributeAccessor::lookup_for_write_span(
 
 GAttributeWriter MutableAttributeAccessor::lookup_or_add_for_write(
     const AttributeIDRef &attribute_id,
-    const eAttrDomain domain,
+    const AttrDomain domain,
     const eCustomDataType data_type,
     const AttributeInit &initializer)
 {
@@ -747,7 +800,7 @@ GAttributeWriter MutableAttributeAccessor::lookup_or_add_for_write(
 
 GSpanAttributeWriter MutableAttributeAccessor::lookup_or_add_for_write_span(
     const AttributeIDRef &attribute_id,
-    const eAttrDomain domain,
+    const AttrDomain domain,
     const eCustomDataType data_type,
     const AttributeInit &initializer)
 {
@@ -760,7 +813,7 @@ GSpanAttributeWriter MutableAttributeAccessor::lookup_or_add_for_write_span(
 }
 
 GSpanAttributeWriter MutableAttributeAccessor::lookup_or_add_for_write_only_span(
-    const AttributeIDRef &attribute_id, const eAttrDomain domain, const eCustomDataType data_type)
+    const AttributeIDRef &attribute_id, const AttrDomain domain, const eCustomDataType data_type)
 {
   GAttributeWriter attribute = this->lookup_or_add_for_write(
       attribute_id, domain, data_type, AttributeInitConstruct());
@@ -817,39 +870,38 @@ fn::GField AttributeValidator::validate_field_if_necessary(const fn::GField &fie
 }
 
 Vector<AttributeTransferData> retrieve_attributes_for_transfer(
-    const bke::AttributeAccessor src_attributes,
-    bke::MutableAttributeAccessor dst_attributes,
-    const eAttrDomainMask domain_mask,
+    const AttributeAccessor src_attributes,
+    MutableAttributeAccessor dst_attributes,
+    const AttrDomainMask domain_mask,
     const AnonymousAttributePropagationInfo &propagation_info,
     const Set<std::string> &skip)
 {
   Vector<AttributeTransferData> attributes;
-  src_attributes.for_all(
-      [&](const bke::AttributeIDRef &id, const bke::AttributeMetaData meta_data) {
-        if (!(ATTR_DOMAIN_AS_MASK(meta_data.domain) & domain_mask)) {
-          return true;
-        }
-        if (id.is_anonymous() && !propagation_info.propagate(id.anonymous_id())) {
-          return true;
-        }
-        if (skip.contains(id.name())) {
-          return true;
-        }
+  src_attributes.for_all([&](const AttributeIDRef &id, const AttributeMetaData meta_data) {
+    if (!(ATTR_DOMAIN_AS_MASK(meta_data.domain) & domain_mask)) {
+      return true;
+    }
+    if (id.is_anonymous() && !propagation_info.propagate(id.anonymous_id())) {
+      return true;
+    }
+    if (skip.contains(id.name())) {
+      return true;
+    }
 
-        const GVArray src = *src_attributes.lookup(id, meta_data.domain);
-        bke::GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
-            id, meta_data.domain, meta_data.data_type);
-        attributes.append({std::move(src), meta_data, std::move(dst)});
+    const GVArray src = *src_attributes.lookup(id, meta_data.domain);
+    GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
+        id, meta_data.domain, meta_data.data_type);
+    attributes.append({std::move(src), meta_data, std::move(dst)});
 
-        return true;
-      });
+    return true;
+  });
   return attributes;
 }
 
 /** \} */
 
 void gather_attributes(const AttributeAccessor src_attributes,
-                       const eAttrDomain domain,
+                       const AttrDomain domain,
                        const AnonymousAttributePropagationInfo &propagation_info,
                        const Set<std::string> &skip,
                        const IndexMask &selection,
@@ -866,15 +918,14 @@ void gather_attributes(const AttributeAccessor src_attributes,
     if (skip.contains(id.name())) {
       return true;
     }
-    const bke::GAttributeReader src = src_attributes.lookup(id, domain);
+    const GAttributeReader src = src_attributes.lookup(id, domain);
     if (selection.size() == src_size && src.sharing_info && src.varray.is_span()) {
-      const bke::AttributeInitShared init(src.varray.get_internal_span().data(),
-                                          *src.sharing_info);
+      const AttributeInitShared init(src.varray.get_internal_span().data(), *src.sharing_info);
       if (dst_attributes.add(id, domain, meta_data.data_type, init)) {
         return true;
       }
     }
-    bke::GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
+    GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
         id, domain, meta_data.data_type);
     if (!dst) {
       return true;
@@ -909,7 +960,7 @@ static bool indices_are_range(const Span<int> indices, const IndexRange range)
 }
 
 void gather_attributes(const AttributeAccessor src_attributes,
-                       const eAttrDomain domain,
+                       const AttrDomain domain,
                        const AnonymousAttributePropagationInfo &propagation_info,
                        const Set<std::string> &skip,
                        const Span<int> indices,
@@ -929,8 +980,8 @@ void gather_attributes(const AttributeAccessor src_attributes,
       if (skip.contains(id.name())) {
         return true;
       }
-      const bke::GAttributeReader src = src_attributes.lookup(id, domain);
-      bke::GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
+      const GAttributeReader src = src_attributes.lookup(id, domain);
+      GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
           id, domain, meta_data.data_type);
       if (!dst) {
         return true;
@@ -943,7 +994,7 @@ void gather_attributes(const AttributeAccessor src_attributes,
 }
 
 void gather_attributes_group_to_group(const AttributeAccessor src_attributes,
-                                      const eAttrDomain domain,
+                                      const AttrDomain domain,
                                       const AnonymousAttributePropagationInfo &propagation_info,
                                       const Set<std::string> &skip,
                                       const OffsetIndices<int> src_offsets,
@@ -962,7 +1013,7 @@ void gather_attributes_group_to_group(const AttributeAccessor src_attributes,
       return true;
     }
     const GVArraySpan src = *src_attributes.lookup(id, domain);
-    bke::GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
+    GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
         id, domain, meta_data.data_type);
     if (!dst) {
       return true;
@@ -974,7 +1025,7 @@ void gather_attributes_group_to_group(const AttributeAccessor src_attributes,
 }
 
 void gather_attributes_to_groups(const AttributeAccessor src_attributes,
-                                 const eAttrDomain domain,
+                                 const AttrDomain domain,
                                  const AnonymousAttributePropagationInfo &propagation_info,
                                  const Set<std::string> &skip,
                                  const OffsetIndices<int> dst_offsets,
@@ -992,7 +1043,7 @@ void gather_attributes_to_groups(const AttributeAccessor src_attributes,
       return true;
     }
     const GVArraySpan src = *src_attributes.lookup(id, domain);
-    bke::GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
+    GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
         id, domain, meta_data.data_type);
     if (!dst) {
       return true;
@@ -1004,7 +1055,7 @@ void gather_attributes_to_groups(const AttributeAccessor src_attributes,
 }
 
 void copy_attributes(const AttributeAccessor src_attributes,
-                     const eAttrDomain domain,
+                     const AttrDomain domain,
                      const AnonymousAttributePropagationInfo &propagation_info,
                      const Set<std::string> &skip,
                      MutableAttributeAccessor dst_attributes)
@@ -1019,7 +1070,7 @@ void copy_attributes(const AttributeAccessor src_attributes,
 }
 
 void copy_attributes_group_to_group(const AttributeAccessor src_attributes,
-                                    const eAttrDomain domain,
+                                    const AttrDomain domain,
                                     const AnonymousAttributePropagationInfo &propagation_info,
                                     const Set<std::string> &skip,
                                     const OffsetIndices<int> src_offsets,
@@ -1041,13 +1092,34 @@ void copy_attributes_group_to_group(const AttributeAccessor src_attributes,
       return true;
     }
     const GVArraySpan src = *src_attributes.lookup(id, domain);
-    bke::GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
+    GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
         id, domain, meta_data.data_type);
     if (!dst) {
       return true;
     }
     array_utils::copy_group_to_group(src_offsets, dst_offsets, selection, src, dst.span);
     dst.finish();
+    return true;
+  });
+}
+
+void fill_attribute_range_default(MutableAttributeAccessor attributes,
+                                  const AttrDomain domain,
+                                  const Set<std::string> &skip,
+                                  const IndexRange range)
+{
+  attributes.for_all([&](const AttributeIDRef &id, const AttributeMetaData meta_data) {
+    if (meta_data.domain != domain) {
+      return true;
+    }
+    if (skip.contains(id.name())) {
+      return true;
+    }
+    GSpanAttributeWriter attribute = attributes.lookup_for_write_span(id);
+    const CPPType &type = attribute.span.type();
+    GMutableSpan data = attribute.span.slice(range);
+    type.fill_assign_n(type.default_value(), data.data(), data.size());
+    attribute.finish();
     return true;
   });
 }

@@ -807,7 +807,8 @@ static PyObject *merge_func(PyObject * /*self*/, PyObject *args, PyObject *keywo
   PyObject *pyinput, *pyoutput = NULL;
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, keywords, "OO", (char **)keyword_list, &pyinput, &pyoutput)) {
+          args, keywords, "OO", (char **)keyword_list, &pyinput, &pyoutput))
+  {
     return NULL;
   }
 

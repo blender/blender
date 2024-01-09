@@ -418,25 +418,13 @@ void GLTexture::copy_to(Texture *dst_)
   BLI_assert((dst->w_ == src->w_) && (dst->h_ == src->h_) && (dst->d_ == src->d_));
   BLI_assert(dst->format_ == src->format_);
   BLI_assert(dst->type_ == src->type_);
-  /* TODO: support array / 3D textures. */
-  BLI_assert(dst->d_ == 0);
 
-  if (GLContext::copy_image_support) {
-    int mip = 0;
-    /* NOTE: mip_size_get() won't override any dimension that is equal to 0. */
-    int extent[3] = {1, 1, 1};
-    this->mip_size_get(mip, extent);
-    glCopyImageSubData(
-        src->tex_id_, target_, mip, 0, 0, 0, dst->tex_id_, target_, mip, 0, 0, 0, UNPACK3(extent));
-  }
-  else {
-    /* Fallback for older GL. */
-    GPU_framebuffer_blit(wrap(src->framebuffer_get()),
-                         0,
-                         wrap(dst->framebuffer_get()),
-                         0,
-                         to_framebuffer_bits(format_));
-  }
+  int mip = 0;
+  /* NOTE: mip_size_get() won't override any dimension that is equal to 0. */
+  int extent[3] = {1, 1, 1};
+  this->mip_size_get(mip, extent);
+  glCopyImageSubData(
+      src->tex_id_, target_, mip, 0, 0, 0, dst->tex_id_, target_, mip, 0, 0, 0, UNPACK3(extent));
 
   has_pixels_ = true;
 }
@@ -660,7 +648,8 @@ void GLTexture::samplers_update()
         const GPUSamplerFiltering filtering = GPUSamplerFiltering(filtering_i);
 
         if ((filtering & GPU_SAMPLER_FILTERING_ANISOTROPIC) &&
-            (filtering & GPU_SAMPLER_FILTERING_MIPMAP)) {
+            (filtering & GPU_SAMPLER_FILTERING_MIPMAP))
+        {
           glSamplerParameterf(samplers_state_cache_[extend_yz_i][extend_x_i][filtering_i],
                               GL_TEXTURE_MAX_ANISOTROPY_EXT,
                               anisotropic_filter);
@@ -813,7 +802,8 @@ void GLTexture::check_feedback_loop()
       /* Check for when texture is used with texture barrier. */
       GPUAttachment attachment_read = fb->tmp_detached_[type];
       if (attachment.mip <= mip_max_ && attachment.mip >= mip_min_ &&
-          attachment_read.tex == nullptr) {
+          attachment_read.tex == nullptr)
+      {
         char msg[256];
         SNPRINTF(msg,
                  "Feedback loop: Trying to bind a texture (%s) with mip range %d-%d but mip %d is "

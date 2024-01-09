@@ -92,7 +92,7 @@ class World {
   void sync_volume();
 
   /* Returns a dummy black world for when a valid world isn't present or when we want to suppress
-   * any light comming from the world. */
+   * any light coming from the world. */
   ::World *default_world_get();
 };
 

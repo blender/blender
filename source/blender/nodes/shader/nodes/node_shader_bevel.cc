@@ -42,7 +42,7 @@ static int gpu_shader_bevel(GPUMaterial *mat,
 NODE_SHADER_MATERIALX_BEGIN
 #ifdef WITH_MATERIALX
 {
-  /* NOTE: This node isn't supported by MaterialX.*/
+  /* NOTE: This node isn't supported by MaterialX. */
   return get_input_link("Normal", NodeItem::Type::Vector3);
 }
 #endif

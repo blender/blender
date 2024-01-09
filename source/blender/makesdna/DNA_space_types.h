@@ -19,7 +19,6 @@
 #include "DNA_movieclip_types.h" /* MovieClipUser */
 #include "DNA_node_types.h"      /* for bNodeInstanceKey */
 #include "DNA_outliner_types.h"  /* for TreeStoreElem */
-#include "DNA_sequence_types.h"  /* SequencerScopes */
 #include "DNA_vec_types.h"
 /* Hum ... Not really nice... but needed for spacebuts. */
 #include "DNA_view2d_types.h"
@@ -67,9 +66,15 @@ namespace blender::ed::outliner {
 struct SpaceOutliner_Runtime;
 }  // namespace blender::ed::outliner
 using SpaceOutliner_Runtime = blender::ed::outliner::SpaceOutliner_Runtime;
+
+namespace blender::ed::seq {
+struct SpaceSeq_Runtime;
+}  // namespace blender::ed::seq
+using SpaceSeq_Runtime = blender::ed::seq::SpaceSeq_Runtime;
 #else
 typedef struct SpaceNode_Runtime SpaceNode_Runtime;
 typedef struct SpaceOutliner_Runtime SpaceOutliner_Runtime;
+typedef struct SpaceSeq_Runtime SpaceSeq_Runtime;
 #endif
 
 /** Defined in `file_intern.hh`. */
@@ -623,20 +628,13 @@ typedef enum eSpaceSeq_SequencerTimelineOverlay_Flag {
   SEQ_TIMELINE_ALL_WAVEFORMS = (1 << 7),
   /** Draw no wave-forms. */
   SEQ_TIMELINE_NO_WAVEFORMS = (1 << 8),
+  /** Draw only upper part of the waveform, showing absolute signal value. */
+  SEQ_TIMELINE_WAVEFORMS_HALF = (1 << 9),
   SEQ_TIMELINE_SHOW_STRIP_NAME = (1 << 14),
   SEQ_TIMELINE_SHOW_STRIP_SOURCE = (1 << 15),
   SEQ_TIMELINE_SHOW_STRIP_DURATION = (1 << 16),
   SEQ_TIMELINE_SHOW_GRID = (1 << 18),
 } eSpaceSeq_SequencerTimelineOverlay_Flag;
-
-typedef struct SpaceSeqRuntime {
-  /** Required for Thumbnail job start condition. */
-  struct rctf last_thumbnail_area;
-  /** Stores lists of most recently displayed thumbnails. */
-  struct GHash *last_displayed_thumbnails;
-  int rename_channel_index;
-  float timeline_clamp_custom_range;
-} SpaceSeqRuntime;
 
 /** Sequencer. */
 typedef struct SpaceSeq {
@@ -676,8 +674,6 @@ typedef struct SpaceSeq {
   /** Grease-pencil data. */
   struct bGPdata *gpd;
 
-  /** Different scoped displayed in space. */
-  struct SequencerScopes scopes;
   struct SequencerPreviewOverlay preview_overlay;
   struct SequencerTimelineOverlay timeline_overlay;
 
@@ -685,7 +681,7 @@ typedef struct SpaceSeq {
   char multiview_eye;
   char _pad2[7];
 
-  SpaceSeqRuntime runtime;
+  SpaceSeq_Runtime *runtime;
 } SpaceSeq;
 
 /** #SpaceSeq.mainb */
@@ -712,7 +708,6 @@ typedef enum eSpaceSeq_Flag {
   SPACE_SEQ_FLAG_UNUSED_4 = (1 << 4),
   SPACE_SEQ_FLAG_UNUSED_5 = (1 << 5),
   SEQ_USE_ALPHA = (1 << 6), /* use RGBA display mode for preview */
-  SPACE_SEQ_FLAG_UNUSED_9 = (1 << 9),
   SPACE_SEQ_FLAG_UNUSED_10 = (1 << 10),
   SEQ_SHOW_MARKERS = (1 << 11), /* show markers region */
   SEQ_ZOOM_TO_FIT = (1 << 12),
@@ -1474,7 +1469,8 @@ typedef enum eSpaceText_Flags {
   ST_SHOW_MARGIN = (1 << 7),
   ST_MATCH_CASE = (1 << 8),
 
-  ST_FIND_ACTIVATE = (1 << 9),
+  ST_FLAG_UNUSED_9 = (1 << 9), /* Dirty. */
+
 } eSpaceText_Flags;
 
 /* SpaceText.findstr/replacestr */
@@ -1981,7 +1977,7 @@ typedef struct SpaceSpreadsheet {
 
   /* #GeometryComponent::Type. */
   uint8_t geometry_component_type;
-  /* #eAttrDomain. */
+  /* #AttrDomain. */
   uint8_t attribute_domain;
   /* eSpaceSpreadsheet_ObjectEvalState. */
   uint8_t object_eval_state;

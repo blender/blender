@@ -6,6 +6,8 @@
  * \ingroup draw
  */
 
+#include "DNA_meshdata_types.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "BKE_deform.h"
@@ -107,7 +109,7 @@ static void extract_weights_init(const MeshRenderData &mr,
     data->cd_ofs = CustomData_get_offset(&mr.bm->vdata, CD_MDEFORMVERT);
   }
   else {
-    data->dvert = mr.me->deform_verts().data();
+    data->dvert = mr.mesh->deform_verts().data();
     data->cd_ofs = -1;
   }
 }
@@ -138,15 +140,15 @@ static void extract_weights_iter_face_mesh(const MeshRenderData &mr,
                                            void *_data)
 {
   MeshExtract_Weight_Data *data = static_cast<MeshExtract_Weight_Data *>(_data);
-  for (const int ml_index : mr.faces[face_index]) {
-    const int vert = mr.corner_verts[ml_index];
+  for (const int corner : mr.faces[face_index]) {
+    const int vert = mr.corner_verts[corner];
     if (data->dvert != nullptr) {
       const MDeformVert *dvert = &data->dvert[vert];
-      data->vbo_data[ml_index] = evaluate_vertex_weight(dvert, data->wstate);
+      data->vbo_data[corner] = evaluate_vertex_weight(dvert, data->wstate);
     }
     else {
       const MDeformVert *dvert = nullptr;
-      data->vbo_data[ml_index] = evaluate_vertex_weight(dvert, data->wstate);
+      data->vbo_data[corner] = evaluate_vertex_weight(dvert, data->wstate);
     }
   }
 }
@@ -205,6 +207,6 @@ constexpr MeshExtract create_extractor_weights()
 
 /** \} */
 
-}  // namespace blender::draw
+const MeshExtract extract_weights = create_extractor_weights();
 
-const MeshExtract extract_weights = blender::draw::create_extractor_weights();
+}  // namespace blender::draw

@@ -11,7 +11,7 @@
 #include "BKE_material.h"
 #include "BKE_paint.hh"
 
-#include "WM_toolsystem.h"
+#include "WM_toolsystem.hh"
 
 #include "ED_paint.hh"
 

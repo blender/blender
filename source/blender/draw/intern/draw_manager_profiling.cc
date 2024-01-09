@@ -218,7 +218,7 @@ void DRW_stats_draw(const rcti *rect)
   int fontid = BLF_default();
   UI_FontThemeColor(fontid, TH_TEXT_HI);
   BLF_enable(fontid, BLF_SHADOW);
-  const float rgba[]{0.0f, 0.0f, 0.0f, 0.75f};
+  const float rgba[] = {0.0f, 0.0f, 0.0f, 0.75f};
   BLF_shadow(fontid, 5, rgba);
   BLF_shadow_offset(fontid, 0, -1);
 

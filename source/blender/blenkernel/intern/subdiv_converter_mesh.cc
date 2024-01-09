@@ -10,22 +10,20 @@
 
 #include <cstring>
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-
 #include "BLI_utildefines.h"
 
 #include "BKE_attribute.hh"
+#include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
 #include "BKE_subdiv.hh"
 
 #include "MEM_guardedalloc.h"
 
-#include "opensubdiv_capi.h"
-#include "opensubdiv_converter_capi.h"
+#include "opensubdiv_capi.hh"
+#include "opensubdiv_converter_capi.hh"
 
-#include "bmesh_class.h"
+#include "bmesh_class.hh"
 
 /* Enable work-around for non-working CPU evaluator when using bilinear scheme.
  * This forces Catmark scheme with all edges marked as infinitely sharp. */
@@ -198,7 +196,7 @@ static int get_num_uv_layers(const OpenSubdiv_Converter *converter)
 {
   ConverterStorage *storage = static_cast<ConverterStorage *>(converter->user_data);
   const Mesh *mesh = storage->mesh;
-  return CustomData_number_of_layers(&mesh->loop_data, CD_PROP_FLOAT2);
+  return CustomData_number_of_layers(&mesh->corner_data, CD_PROP_FLOAT2);
 }
 
 static void precalc_uv_layer(const OpenSubdiv_Converter *converter, const int layer_index)
@@ -206,13 +204,13 @@ static void precalc_uv_layer(const OpenSubdiv_Converter *converter, const int la
   ConverterStorage *storage = static_cast<ConverterStorage *>(converter->user_data);
   const Mesh *mesh = storage->mesh;
   const float(*mloopuv)[2] = static_cast<const float(*)[2]>(
-      CustomData_get_layer_n(&mesh->loop_data, CD_PROP_FLOAT2, layer_index));
-  const int num_vert = mesh->totvert;
+      CustomData_get_layer_n(&mesh->corner_data, CD_PROP_FLOAT2, layer_index));
+  const int num_vert = mesh->verts_num;
   const float limit[2] = {STD_UV_CONNECT_LIMIT, STD_UV_CONNECT_LIMIT};
   /* Initialize memory required for the operations. */
   if (storage->loop_uv_indices == nullptr) {
     storage->loop_uv_indices = static_cast<int *>(
-        MEM_malloc_arrayN(mesh->totloop, sizeof(int), "loop uv vertex index"));
+        MEM_malloc_arrayN(mesh->corners_num, sizeof(int), "loop uv vertex index"));
   }
   UvVertMap *uv_vert_map = BKE_mesh_uv_vert_map_create(storage->faces,
                                                        nullptr,
@@ -355,20 +353,20 @@ static void initialize_manifold_indices(ConverterStorage *storage)
   const bke::LooseVertCache &loose_verts = mesh->verts_no_face();
   const bke::LooseEdgeCache &loose_edges = mesh->loose_edges();
   initialize_manifold_index_array(loose_verts.is_loose_bits,
-                                  mesh->totvert,
+                                  mesh->verts_num,
                                   &storage->manifold_vertex_index,
                                   &storage->manifold_vertex_index_reverse,
                                   &storage->num_manifold_vertices);
   initialize_manifold_index_array(loose_edges.is_loose_bits,
-                                  mesh->totedge,
+                                  mesh->edges_num,
                                   nullptr,
                                   &storage->manifold_edge_index_reverse,
                                   &storage->num_manifold_edges);
   /* Initialize infinite sharp mapping. */
   if (loose_edges.count > 0) {
     const Span<int2> edges = storage->edges;
-    storage->infinite_sharp_vertices_map.resize(mesh->totvert, false);
-    for (int edge_index = 0; edge_index < mesh->totedge; edge_index++) {
+    storage->infinite_sharp_vertices_map.resize(mesh->verts_num, false);
+    for (int edge_index = 0; edge_index < mesh->edges_num; edge_index++) {
       if (loose_edges.is_loose_bits[edge_index]) {
         const int2 edge = edges[edge_index];
         storage->infinite_sharp_vertices_map[edge[0]].set();
@@ -383,6 +381,7 @@ static void init_user_data(OpenSubdiv_Converter *converter,
                            const Mesh *mesh)
 {
   using namespace blender;
+  using namespace blender::bke;
   ConverterStorage *user_data = MEM_new<ConverterStorage>(__func__);
   user_data->settings = *settings;
   user_data->mesh = mesh;
@@ -393,8 +392,8 @@ static void init_user_data(OpenSubdiv_Converter *converter,
   user_data->corner_edges = mesh->corner_edges();
   if (settings->use_creases) {
     const bke::AttributeAccessor attributes = mesh->attributes();
-    user_data->cd_vertex_crease = *attributes.lookup<float>("crease_vert", ATTR_DOMAIN_POINT);
-    user_data->cd_edge_crease = *attributes.lookup<float>("crease_edge", ATTR_DOMAIN_EDGE);
+    user_data->cd_vertex_crease = *attributes.lookup<float>("crease_vert", AttrDomain::Point);
+    user_data->cd_edge_crease = *attributes.lookup<float>("crease_edge", AttrDomain::Edge);
   }
   user_data->loop_uv_indices = nullptr;
   initialize_manifold_indices(user_data);

@@ -43,7 +43,7 @@ static void reverse_grease_pencil(GreasePencil &grease_pencil, const Field<bool>
     }
     bke::CurvesGeometry &curves = drawing->strokes_for_write();
     const bke::GreasePencilLayerFieldContext field_context(
-        grease_pencil, ATTR_DOMAIN_CURVE, layer_index);
+        grease_pencil, AttrDomain::Curve, layer_index);
     reverse_curve(curves, field_context, selection_field);
     drawing->tag_topology_changed();
   }
@@ -59,7 +59,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (Curves *curves_id = geometry_set.get_curves_for_write()) {
       bke::CurvesGeometry &curves = curves_id->geometry.wrap();
-      const bke::CurvesFieldContext field_context{curves, ATTR_DOMAIN_CURVE};
+      const bke::CurvesFieldContext field_context{curves, AttrDomain::Curve};
       reverse_curve(curves, field_context, selection_field);
     }
     if (geometry_set.has_grease_pencil()) {

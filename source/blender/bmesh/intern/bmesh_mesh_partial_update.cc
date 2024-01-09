@@ -43,7 +43,7 @@
 #include "BLI_bitmap.h"
 #include "BLI_math_vector.h"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
 /**
  * Grow by 1.5x (rounding up).

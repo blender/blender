@@ -59,7 +59,7 @@ struct Mesh *dynamicPaint_Modifier_do(struct DynamicPaintModifierData *pmd,
                                       struct Depsgraph *depsgraph,
                                       struct Scene *scene,
                                       struct Object *ob,
-                                      struct Mesh *me);
+                                      struct Mesh *mesh);
 /**
  * Free whole dynamic-paint modifier.
  */

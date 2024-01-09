@@ -6,7 +6,7 @@
  * \ingroup draw_engine
  */
 
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include "BKE_gpencil_legacy.h"
 
@@ -21,7 +21,7 @@
 #include "overlay_private.hh"
 
 #include "draw_common.h"
-#include "draw_manager_text.h"
+#include "draw_manager_text.hh"
 
 void OVERLAY_edit_gpencil_legacy_cache_init(OVERLAY_Data *vedata)
 {
@@ -324,6 +324,7 @@ void OVERLAY_gpencil_legacy_cache_init(OVERLAY_Data *vedata)
 
 static void OVERLAY_edit_gpencil_cache_populate(OVERLAY_Data *vedata, Object *ob)
 {
+  using namespace blender::draw;
   OVERLAY_PrivateData *pd = vedata->stl->pd;
   bGPdata *gpd = (bGPdata *)ob->data;
   const DRWContextState *draw_ctx = DRW_context_state_get();

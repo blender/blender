@@ -86,7 +86,7 @@ static Mesh *mirror_apply_on_axis(MirrorModifierData *mmd,
     if (vert_merge_map_len) {
       Mesh *tmp = result;
       result = geometry::mesh_merge_verts(
-          *tmp, MutableSpan<int>{vert_merge_map, result->totvert}, vert_merge_map_len, false);
+          *tmp, MutableSpan<int>{vert_merge_map, result->verts_num}, vert_merge_map_len, false);
       BKE_id_free(nullptr, tmp);
     }
     MEM_freeN(vert_merge_map);
@@ -245,9 +245,7 @@ ModifierTypeInfo modifierType_Mirror = {
     /*type*/ ModifierTypeType::Constructive,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
         eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_EnableInEditmode |
-        eModifierTypeFlag_AcceptsCVs |
-        /* this is only the case when 'MOD_MIR_VGROUP' is used */
-        eModifierTypeFlag_UsesPreview,
+        eModifierTypeFlag_AcceptsCVs,
     /*icon*/ ICON_MOD_MIRROR,
 
     /*copy_data*/ BKE_modifier_copydata_generic,

@@ -22,14 +22,14 @@
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_lib_id.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 
 #include "DEG_depsgraph.hh"
 
 #include "ED_armature.hh"
 #include "ED_util.hh"
 
-#include "ANIM_bone_collections.h"
+#include "ANIM_bone_collections.hh"
 
 #include "armature_intern.h"
 
@@ -179,7 +179,8 @@ EditBone *ED_armature_ebone_find_shared_parent(EditBone *ebone_child[], const ui
   /* accumulate */
   for (uint i = 0; i < ebone_child_tot; i++) {
     for (EditBone *ebone_iter = ebone_child[i]->parent; ebone_iter;
-         ebone_iter = ebone_iter->parent) {
+         ebone_iter = ebone_iter->parent)
+    {
       EBONE_TEMP_UINT(ebone_iter) += 1;
     }
   }

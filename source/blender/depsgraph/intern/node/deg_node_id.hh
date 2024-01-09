@@ -17,7 +17,7 @@ namespace blender::deg {
 
 struct ComponentNode;
 
-typedef uint64_t IDComponentsMask;
+using IDComponentsMask = uint64_t;
 
 /* NOTE: We use max comparison to mark an id node that is linked more than once
  * So keep this enum ordered accordingly. */

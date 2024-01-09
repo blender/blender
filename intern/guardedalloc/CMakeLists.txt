@@ -6,6 +6,10 @@ if(HAVE_MALLOC_STATS_H)
   add_definitions(-DHAVE_MALLOC_STATS_H)
 endif()
 
+if(WITH_MEM_VALGRIND)
+  add_definitions(-DWITH_MEM_VALGRIND)
+endif()
+
 set(INC
   PUBLIC .
 )
@@ -79,6 +83,5 @@ if(WITH_GTESTS)
     bf_intern_guardedalloc
     bf_blenlib
   )
-  include(GTestTesting)
-  blender_add_test_executable(guardedalloc "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}")
+  blender_add_test_suite_executable(guardedalloc "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}")
 endif()

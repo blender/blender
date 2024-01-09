@@ -34,15 +34,15 @@
 #include "BLO_writefile.hh"
 
 #include "BKE_blender.h"
-#include "BKE_blendfile.h"
+#include "BKE_blendfile.hh"
 #include "BKE_callbacks.h"
 #include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_icons.h"
 #include "BKE_image.h"
 #include "BKE_keyconfig.h"
-#include "BKE_lib_remap.h"
-#include "BKE_main.h"
+#include "BKE_lib_remap.hh"
+#include "BKE_main.hh"
 #include "BKE_mball_tessellate.h"
 #include "BKE_node.hh"
 #include "BKE_preview_image.hh"
@@ -50,7 +50,7 @@
 #include "BKE_scene.h"
 #include "BKE_screen.hh"
 #include "BKE_sound.h"
-#include "BKE_vfont.h"
+#include "BKE_vfont.hh"
 
 #include "BKE_addon.h"
 #include "BKE_appdir.h"
@@ -62,8 +62,6 @@
 
 #include "RE_engine.h"
 #include "RE_pipeline.h" /* RE_ free stuff */
-
-#include "SEQ_clipboard.hh" /* free seq clipboard */
 
 #include "IMB_thumbs.h"
 
@@ -84,9 +82,9 @@
 
 #include "wm.hh"
 #include "wm_cursors.hh"
-#include "wm_event_system.h"
+#include "wm_event_system.hh"
 #include "wm_files.hh"
-#include "wm_platform_support.h"
+#include "wm_platform_support.hh"
 #include "wm_surface.hh"
 #include "wm_window.hh"
 
@@ -120,7 +118,7 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "DRW_engine.h"
+#include "DRW_engine.hh"
 
 CLG_LOGREF_DECLARE_GLOBAL(WM_LOG_OPERATORS, "wm.operator");
 CLG_LOGREF_DECLARE_GLOBAL(WM_LOG_HANDLERS, "wm.handler");
@@ -581,7 +579,6 @@ void WM_exit_ex(bContext *C, const bool do_python_exit, const bool do_user_exit_
   ED_preview_restart_queue_free();
   ED_assetlist_storage_exit();
 
-  SEQ_clipboard_free(); /* `sequencer.cc` */
   BKE_tracking_clipboard_free();
   BKE_mask_clipboard_free();
   BKE_vfont_clipboard_free();
@@ -610,7 +607,7 @@ void WM_exit_ex(bContext *C, const bool do_python_exit, const bool do_user_exit_
   /* Free the GPU subdivision data after the database to ensure that subdivision structs used by
    * the modifiers were garbage collected. */
   if (gpu_is_init) {
-    DRW_subdiv_free();
+    blender::draw::DRW_subdiv_free();
   }
 
   ANIM_fcurves_copybuf_free();

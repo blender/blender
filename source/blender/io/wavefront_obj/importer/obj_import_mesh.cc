@@ -9,7 +9,7 @@
 #include <iostream>
 
 #include "DNA_material_types.h"
-#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_scene_types.h"
 
 #include "BKE_attribute.hh"
@@ -41,7 +41,8 @@ Object *MeshFromGeometry::create_mesh(Main *bmain,
     /* Empty mesh */
     return nullptr;
   }
-  std::string ob_name{mesh_geometry_.geometry_name_};
+  std::string ob_name = get_geometry_name(mesh_geometry_.geometry_name_,
+                                          import_params.collection_separator);
   if (ob_name.empty()) {
     ob_name = "Untitled";
   }
@@ -66,7 +67,7 @@ Object *MeshFromGeometry::create_mesh(Main *bmain,
 
   if (import_params.validate_meshes || mesh_geometry_.has_invalid_faces_) {
     bool verbose_validate = false;
-#ifdef DEBUG
+#ifndef NDEBUG
     verbose_validate = true;
 #endif
     BKE_mesh_validate(mesh, verbose_validate, false);
@@ -173,7 +174,7 @@ void MeshFromGeometry::create_vertices(Mesh *mesh)
       continue;
     }
     int local_vi = int(mesh_geometry_.global_to_local_vertices_.size());
-    BLI_assert(local_vi >= 0 && local_vi < mesh->totvert);
+    BLI_assert(local_vi >= 0 && local_vi < mesh->verts_num);
     copy_v3_v3(positions[local_vi], global_vertices_.vertices[vi]);
     mesh_geometry_.global_to_local_vertices_.add_new(vi, local_vi);
   }
@@ -191,9 +192,9 @@ void MeshFromGeometry::create_faces_loops(Mesh *mesh, bool use_vertex_groups)
   MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::SpanAttributeWriter<int> material_indices =
-      attributes.lookup_or_add_for_write_only_span<int>("material_index", ATTR_DOMAIN_FACE);
+      attributes.lookup_or_add_for_write_only_span<int>("material_index", bke::AttrDomain::Face);
   bke::SpanAttributeWriter<bool> sharp_faces = attributes.lookup_or_add_for_write_span<bool>(
-      "sharp_face", ATTR_DOMAIN_FACE);
+      "sharp_face", bke::AttrDomain::Face);
 
   const int64_t tot_face_elems{mesh->faces_num};
   int tot_loop_idx = 0;
@@ -267,7 +268,7 @@ void MeshFromGeometry::create_edges(Mesh *mesh)
 
   /* Set argument `update` to true so that existing, explicitly imported edges can be merged
    * with the new ones created from polygons. */
-  BKE_mesh_calc_edges(mesh, true, false);
+  bke::mesh_calc_edges(*mesh, true, false);
 }
 
 void MeshFromGeometry::create_uv_verts(Mesh *mesh)
@@ -278,7 +279,7 @@ void MeshFromGeometry::create_uv_verts(Mesh *mesh)
 
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::SpanAttributeWriter<float2> uv_map = attributes.lookup_or_add_for_write_only_span<float2>(
-      "UVMap", ATTR_DOMAIN_CORNER);
+      "UVMap", bke::AttrDomain::Corner);
 
   int tot_loop_idx = 0;
   bool added_uv = false;
@@ -404,7 +405,7 @@ void MeshFromGeometry::create_colors(Mesh *mesh)
     {
       /* This block is suitable, use colors from it. */
       CustomDataLayer *color_layer = BKE_id_attribute_new(
-          &mesh->id, "Color", CD_PROP_COLOR, ATTR_DOMAIN_POINT, nullptr);
+          &mesh->id, "Color", CD_PROP_COLOR, bke::AttrDomain::Point, nullptr);
       BKE_id_attributes_active_color_set(&mesh->id, color_layer->name);
       BKE_id_attributes_default_color_set(&mesh->id, color_layer->name);
       float4 *colors = (float4 *)color_layer->data;

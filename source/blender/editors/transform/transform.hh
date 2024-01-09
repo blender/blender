@@ -267,7 +267,7 @@ enum {
   TFM_MODAL_NODE_ATTACH_ON = 24,
   TFM_MODAL_NODE_ATTACH_OFF = 25,
 
-  /** For analog input, like track-pad. */
+  /** For analog input, like trackpad. */
   TFM_MODAL_PROPSIZE = 26,
   /** Node editor insert offset (also called auto-offset) direction toggle. */
   TFM_MODAL_INSERTOFS_TOGGLE_DIR = 27,

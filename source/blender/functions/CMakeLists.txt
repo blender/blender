@@ -24,7 +24,6 @@ set(SRC
   intern/multi_function_procedure_optimization.cc
 
   FN_field.hh
-  FN_init.h
   FN_lazy_function.hh
   FN_lazy_function_execute.hh
   FN_lazy_function_graph.hh
@@ -80,6 +79,5 @@ if(WITH_GTESTS)
   set(TEST_LIB
     bf_functions
   )
-  include(GTestTesting)
-  blender_add_test_lib(bf_functions_tests "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}")
+  blender_add_test_suite_lib(function "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}")
 endif()

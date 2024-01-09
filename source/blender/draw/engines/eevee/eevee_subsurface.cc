@@ -8,7 +8,7 @@
  * Screen space subsurface scattering technique.
  */
 
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include "BLI_string_utils.hh"
 

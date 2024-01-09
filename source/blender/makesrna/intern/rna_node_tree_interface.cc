@@ -28,7 +28,7 @@ static const EnumPropertyItem node_tree_interface_socket_in_out_items[] = {
 
 #ifdef RNA_RUNTIME
 
-#  include "BKE_attribute.h"
+#  include "BKE_attribute.hh"
 #  include "BKE_node.h"
 #  include "BKE_node_runtime.hh"
 #  include "BKE_node_tree_interface.hh"
@@ -275,7 +275,7 @@ static StructRNA *rna_NodeTreeInterfaceSocket_register(Main * /*bmain*/,
     nodeRegisterSocketType(st);
   }
 
-  st->free_self = (void (*)(bNodeSocketType * stype)) MEM_freeN;
+  st->free_self = (void (*)(bNodeSocketType *stype))MEM_freeN;
 
   /* if RNA type is already registered, unregister first */
   if (st->ext_interface.srna) {
@@ -446,13 +446,14 @@ static const EnumPropertyItem *rna_NodeTreeInterfaceSocket_default_input_itemf(
 static const EnumPropertyItem *rna_NodeTreeInterfaceSocket_attribute_domain_itemf(
     bContext * /*C*/, PointerRNA * /*ptr*/, PropertyRNA * /*prop*/, bool *r_free)
 {
+  using namespace blender;
   EnumPropertyItem *item_array = nullptr;
   int items_len = 0;
 
   for (const EnumPropertyItem *item = rna_enum_attribute_domain_items; item->identifier != nullptr;
        item++)
   {
-    if (!U.experimental.use_grease_pencil_version3 && item->value == ATTR_DOMAIN_LAYER) {
+    if (!U.experimental.use_grease_pencil_version3 && item->value == int(bke::AttrDomain::Layer)) {
       continue;
     }
     RNA_enum_item_add(&item_array, &items_len, item);
@@ -688,7 +689,8 @@ static const EnumPropertyItem *rna_subtype_filter_itemf(const blender::Set<int> 
   EnumPropertyItem *items = nullptr;
   int items_count = 0;
   for (const EnumPropertyItem *item = rna_enum_property_subtype_items; item->name != nullptr;
-       item++) {
+       item++)
+  {
     if (subtypes.contains(item->value)) {
       RNA_enum_item_add(&items, &items_count, item);
     }

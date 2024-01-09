@@ -286,11 +286,13 @@ static void deg_debug_graphviz_relation_arrowhead(const Relation *rel, dot::Dire
   const char *shape_no_cow = "box";
   const char *shape = shape_default;
   if (rel->from->get_class() == NodeClass::OPERATION &&
-      rel->to->get_class() == NodeClass::OPERATION) {
+      rel->to->get_class() == NodeClass::OPERATION)
+  {
     OperationNode *op_from = (OperationNode *)rel->from;
     OperationNode *op_to = (OperationNode *)rel->to;
     if (op_from->owner->type == NodeType::COPY_ON_WRITE &&
-        !op_to->owner->need_tag_cow_before_update()) {
+        !op_to->owner->need_tag_cow_before_update())
+    {
       shape = shape_no_cow;
     }
   }

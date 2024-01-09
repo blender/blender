@@ -59,8 +59,6 @@ void text_update_cursor_moved(bContext *C);
 
 #define SUGG_LIST_SIZE 7
 #define SUGG_LIST_WIDTH 20
-#define DOC_WIDTH 40
-#define DOC_HEIGHT 10
 
 #define TOOL_SUGG_LIST 0x01
 

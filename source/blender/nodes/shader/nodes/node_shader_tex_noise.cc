@@ -50,8 +50,8 @@ static void sh_node_tex_noise_declare(NodeDeclarationBuilder &b)
 static void node_shader_buts_tex_noise(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "noise_dimensions", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
-  uiItemR(layout, ptr, "type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
-  if (ELEM(RNA_enum_get(ptr, "type"), SHD_NOISE_FBM)) {
+  uiItemR(layout, ptr, "noise_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  if (ELEM(RNA_enum_get(ptr, "noise_type"), SHD_NOISE_FBM)) {
     uiItemR(layout, ptr, "normalize", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
   }
 }
@@ -410,7 +410,7 @@ static void sh_node_noise_build_multi_function(NodeMultiFunctionBuilder &builder
 NODE_SHADER_MATERIALX_BEGIN
 #ifdef WITH_MATERIALX
 {
-  /* NOTE: Some inputs aren't supported by MaterialX.*/
+  /* NOTE: Some inputs aren't supported by MaterialX. */
   NodeItem scale = get_input_value("Scale", NodeItem::Type::Float);
   NodeItem detail = get_input_default("Detail", NodeItem::Type::Float);
   NodeItem lacunarity = get_input_value("Lacunarity", NodeItem::Type::Float);

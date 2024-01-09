@@ -21,7 +21,7 @@
 #include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
 const BMAllocTemplate bm_mesh_allocsize_default = {512, 1024, 2048, 512};
 const BMAllocTemplate bm_mesh_chunksize_default = {512, 1024, 2048, 512};
@@ -335,7 +335,7 @@ void bmesh_edit_end(BMesh *bm, BMOpTypeFlag type_flag)
 void BM_mesh_elem_index_ensure_ex(BMesh *bm, const char htype, int elem_offset[4])
 {
 
-#ifdef DEBUG
+#ifndef NDEBUG
   BM_ELEM_INDEX_VALIDATE(bm, "Should Never Fail!", __func__);
 #endif
 
@@ -514,7 +514,7 @@ void BM_mesh_elem_index_validate(
   }
 
 #if 0 /* mostly annoying, even in debug mode */
-#  ifdef DEBUG
+#  ifndef NDEBUG
   if (is_any_error == 0) {
     fprintf(stderr, "Valid Index Success: at %s, %s, '%s', '%s'\n", location, func, msg_a, msg_b);
   }
@@ -767,7 +767,8 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
                         static_cast<void **>(MEM_mallocN(sizeof(void *) * totvert, __func__)) :
                         nullptr;
     for (i = totvert, ve = verts_copy + totvert - 1, vep = verts_pool + totvert - 1; i--;
-         ve--, vep--) {
+         ve--, vep--)
+    {
       *ve = **vep;
       // printf("*vep: %p, verts_pool[%d]: %p\n", *vep, i, verts_pool[i]);
       if (cd_vert_pyptr != -1) {
@@ -823,7 +824,8 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
                         static_cast<void **>(MEM_mallocN(sizeof(void *) * totedge, __func__)) :
                         nullptr;
     for (i = totedge, ed = edges_copy + totedge - 1, edp = edges_pool + totedge - 1; i--;
-         ed--, edp--) {
+         ed--, edp--)
+    {
       *ed = **edp;
       if (cd_edge_pyptr != -1) {
         void **pyptr = static_cast<void **>(BM_ELEM_CD_GET_VOID_P(((BMElem *)ed), cd_edge_pyptr));
@@ -878,7 +880,8 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
                         static_cast<void **>(MEM_mallocN(sizeof(void *) * totface, __func__)) :
                         nullptr;
     for (i = totface, fa = faces_copy + totface - 1, fap = faces_pool + totface - 1; i--;
-         fa--, fap--) {
+         fa--, fap--)
+    {
       *fa = **fap;
       if (cd_poly_pyptr != -1) {
         void **pyptr = static_cast<void **>(BM_ELEM_CD_GET_VOID_P(((BMElem *)fa), cd_poly_pyptr));

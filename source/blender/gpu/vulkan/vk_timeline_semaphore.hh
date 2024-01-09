@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Authorss
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -14,14 +14,14 @@ namespace blender::gpu {
 class VKDevice;
 
 /**
- * A timeline semaphore is a special semaphore type used to syncronize between commands and
- * resource usage in a time aware fasion.
+ * A timeline semaphore is a special semaphore type used to synchronize between commands and
+ * resource usage in a time aware fashion.
  *
- * Synchronization is a core part of Vulkan and the Timeline Semaphore is a utility that
+ * Synchronization is a core part of VULKAN and the Timeline Semaphore is a utility that
  * facilitates its implementation in Blender.
  *
  * There are resources that needs to be tracked in time in order to know when to submit, free or
- * reuse these resource. Some usecases are:
+ * reuse these resource. Some use cases are:
  *
  * - Command buffers can only be reset or freed when they are executed on the device. When the
  *   command buffers are still pending for execution they may not be reused or freed.
@@ -34,7 +34,7 @@ class VKDevice;
  * For each device queue a timeline semaphore should be constructed. Every time when a command
  * buffer is submitted the submission will wait for the current timeline value to be completed.
  * Locally the command buffer can keep track of the timeline value when submitting commands so
- * `gpuFinish` could be implemented is a context aware fasion.
+ * `gpuFinish` could be implemented is a context aware fashion.
  *
  * #VKTimelineSemaphore::Value can be stored locally. By calling the wait function you can ensure
  * that at least the given value has been finished.

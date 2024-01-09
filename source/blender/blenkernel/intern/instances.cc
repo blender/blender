@@ -7,6 +7,7 @@
 #include "BLI_task.hh"
 
 #include "BKE_attribute_math.hh"
+#include "BKE_customdata.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_instances.hh"
 
@@ -184,7 +185,7 @@ void Instances::remove(const IndexMask &mask,
   array_utils::gather(transforms_.as_span(), mask, new_instances.transforms_.as_mutable_span());
 
   gather_attributes(this->attributes(),
-                    ATTR_DOMAIN_INSTANCE,
+                    AttrDomain::Instance,
                     propagation_info,
                     {"position"},
                     mask,

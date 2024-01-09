@@ -9,21 +9,17 @@
  * This file contains access functions for the Mesh.runtime struct.
  */
 
-#include "BKE_mesh_types.hh"
-
 struct CustomData_MeshMasks;
 struct Depsgraph;
 struct KeyBlock;
-struct MLoopTri;
-struct MVertTri;
 struct Mesh;
 struct Object;
 struct Scene;
 
-/** Return the number of derived triangles (looptris). */
-int BKE_mesh_runtime_looptri_len(const Mesh *mesh);
+/** Return the number of derived triangles (corner_tris). */
+int BKE_mesh_runtime_corner_tris_len(const Mesh *mesh);
 
-bool BKE_mesh_runtime_ensure_edit_data(Mesh *mesh);
+void BKE_mesh_runtime_ensure_edit_data(Mesh *mesh);
 
 /**
  * Clear and free any derived caches associated with the mesh geometry data. Examples include BVH
@@ -31,7 +27,7 @@ bool BKE_mesh_runtime_ensure_edit_data(Mesh *mesh);
  * directly or making other large changes to topology. It does not need to be called on new meshes.
  *
  * For "smaller" changes to meshes like updating positions, consider calling a more specific update
- * function like #BKE_mesh_tag_positions_changed.
+ * function like #Mesh::tag_positions_changed().
  *
  * Also note that some derived caches like #CD_TANGENT are stored directly in #CustomData.
  */
@@ -44,14 +40,6 @@ void BKE_mesh_runtime_clear_geometry(Mesh *mesh);
  * more data.
  */
 void BKE_mesh_runtime_clear_cache(Mesh *mesh);
-
-/**
- * Convert triangles encoded as face corner indices to triangles encoded as vertex indices.
- */
-void BKE_mesh_runtime_verttri_from_looptri(MVertTri *r_verttri,
-                                           const int *corner_verts,
-                                           const MLoopTri *looptri,
-                                           int looptri_num);
 
 /* NOTE: the functions below are defined in DerivedMesh.cc, and are intended to be moved
  * to a more suitable location when that file is removed.
@@ -77,8 +65,8 @@ Mesh *mesh_create_eval_no_deform_render(Depsgraph *depsgraph,
                                         Object *ob,
                                         const CustomData_MeshMasks *dataMask);
 
-void BKE_mesh_runtime_eval_to_meshkey(Mesh *me_deformed, Mesh *me, KeyBlock *kb);
+void BKE_mesh_runtime_eval_to_meshkey(Mesh *me_deformed, Mesh *mesh, KeyBlock *kb);
 
 #ifndef NDEBUG
 bool BKE_mesh_runtime_is_valid(Mesh *me_eval);
-#endif /* NDEBUG */
+#endif /* !NDEBUG */

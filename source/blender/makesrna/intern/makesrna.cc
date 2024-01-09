@@ -47,7 +47,7 @@ void BLI_system_backtrace(FILE *fp)
 {
   (void)fp;
 }
-#endif
+#endif /* !NDEBUG */
 
 /* Replace if different */
 #define TMP_EXT ".tmp"
@@ -1538,7 +1538,8 @@ static char *rna_def_property_length_func(
   else if (prop->type == PROP_COLLECTION) {
     if (!manualfunc) {
       if (prop->type == PROP_COLLECTION &&
-          (!(dp->dnalengthname || dp->dnalengthfixed) || !dp->dnaname)) {
+          (!(dp->dnalengthname || dp->dnalengthfixed) || !dp->dnaname))
+      {
         CLOG_ERROR(&LOG, "%s.%s has no valid dna info.", srna->identifier, prop->identifier);
         DefRNA.error = true;
         return nullptr;
@@ -4229,7 +4230,8 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
        * we'll probably have to revisit. :/ */
       StructRNA *type = rna_find_struct((const char *)pprop->type);
       if (type && (type->flag & STRUCT_ID) &&
-          !(prop->flag_internal & PROP_INTERN_PTR_OWNERSHIP_FORCED)) {
+          !(prop->flag_internal & PROP_INTERN_PTR_OWNERSHIP_FORCED))
+      {
         RNA_def_property_flag(prop, PROP_PTR_NO_OWNERSHIP);
       }
       break;
@@ -4241,7 +4243,8 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
        * we'll probably have to revisit. :/ */
       StructRNA *type = rna_find_struct((const char *)cprop->item_type);
       if (type && (type->flag & STRUCT_ID) &&
-          !(prop->flag_internal & PROP_INTERN_PTR_OWNERSHIP_FORCED)) {
+          !(prop->flag_internal & PROP_INTERN_PTR_OWNERSHIP_FORCED))
+      {
         RNA_def_property_flag(prop, PROP_PTR_NO_OWNERSHIP);
       }
       break;
@@ -4836,7 +4839,7 @@ static void rna_generate(BlenderRNA *brna, FILE *f, const char *filename, const 
 
   fprintf(f, "#include \"BKE_context.hh\"\n");
   fprintf(f, "#include \"BKE_lib_id.h\"\n");
-  fprintf(f, "#include \"BKE_main.h\"\n");
+  fprintf(f, "#include \"BKE_main.hh\"\n");
   fprintf(f, "#include \"BKE_report.h\"\n");
 
   fprintf(f, "#include \"RNA_define.hh\"\n");

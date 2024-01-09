@@ -45,8 +45,8 @@
 
 /* -------------- Utils ------------- */
 /* For performance on macOS, constants declared within function scope utilize constant uniform
-   register space rather than per-thread, reducing spill and increasing
-   thread execution width - and thus performance */
+ * register space rather than per-thread, reducing spill and increasing
+ * thread execution width - and thus performance. */
 #define DEFINE_DOF_QUAD_OFFSETS \
   const vec2 quad_offsets[4] = vec2[4]( \
       vec2(-0.5, 0.5), vec2(0.5, 0.5), vec2(0.5, -0.5), vec2(-0.5, -0.5));

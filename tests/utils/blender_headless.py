@@ -5,10 +5,10 @@
 
 """
 Wrapper for Blender that launches a graphical instances of Blender
-in it's own display-server.
+in its own display-server.
 
 This can be useful when a graphical context is required (when ``--background`` can't be used)
-and it's preferable not to have windows opening on the users system.
+and it's preferable not to have windows opening on the user's system.
 
 The main use case for this is tests that run simulated events, see: ``bl_run_operators_event_simulate.py``.
 

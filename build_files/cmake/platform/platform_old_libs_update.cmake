@@ -105,7 +105,7 @@ if(UNIX AND (NOT APPLE) AND LIBDIR AND (EXISTS ${LIBDIR}))
   unset(_libdir_stale)
 endif()
 
-# Detect update in 4.1 to shared library OpenImageDenoise.
+# Detect update in 4.1 to shared library OpenImageDenoise and OSL.
 if(UNIX AND
   DEFINED OPENIMAGEDENOISE_LIBRARY AND
   OPENIMAGEDENOISE_LIBRARY MATCHES "libOpenImageDenoise.a$" AND
@@ -113,4 +113,25 @@ if(UNIX AND
    EXISTS ${LIBDIR}/openimagedenoise/lib/libOpenImageDenoise.dylib))
   message(STATUS "Auto updating CMake configuration for dynamic OpenImageDenoise")
   unset_cache_variables("^OPENIMAGEDENOISE")
+endif()
+
+if(UNIX AND
+  DEFINED OSL_OSLCOMP_LIBRARY AND
+  OSL_OSLCOMP_LIBRARY MATCHES "liboslcomp.a$" AND
+  (EXISTS ${LIBDIR}/osl/lib/liboslcomp.so OR
+   EXISTS ${LIBDIR}/osl/lib/liboslcomp.dylib))
+  message(STATUS "Auto updating CMake configuration for dynamic OpenShadingLanguage")
+  unset_cache_variables("^OSL_")
+endif()
+
+# Detect Python 3.10 to 3.11 upgrade for Blender 4.1.
+if(UNIX AND
+  LIBDIR AND
+  EXISTS ${LIBDIR} AND
+  EXISTS ${LIBDIR}/python/bin/python3.11 AND
+  DEFINED PYTHON_VERSION AND
+  PYTHON_VERSION VERSION_LESS "3.11")
+
+  message(STATUS "Auto updating CMake configuration for Python 3.11")
+  unset_cache_variables("^PYTHON_")
 endif()

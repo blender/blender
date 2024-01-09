@@ -34,7 +34,7 @@ ccl_device bool film_adaptive_sampling_convergence_check(KernelGlobals kg,
                                                          int x,
                                                          int y,
                                                          float threshold,
-                                                         bool reset,
+                                                         int reset,
                                                          int offset,
                                                          int stride)
 {

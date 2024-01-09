@@ -82,62 +82,32 @@ void main()
 
   /* ----- GBuffer output ----- */
 
-  uint header = 0u;
+  GBufferDataUndetermined gbuf_data;
+  gbuf_data.diffuse = g_diffuse_data;
+  gbuf_data.translucent = g_translucent_data;
+  gbuf_data.reflection = g_reflection_data;
+  gbuf_data.refraction = g_refraction_data;
+  gbuf_data.surface_N = g_data.N;
+  gbuf_data.thickness = thickness;
+  gbuf_data.object_id = resource_id;
 
-  if (g_reflection_data.weight > 0.0) {
-    /* Reflection. */
-    vec4 closure;
-    closure.xy = gbuffer_normal_pack(g_reflection_data.N);
-    closure.z = g_reflection_data.roughness;
-    closure.w = 0.0;
-    imageStore(out_gbuf_closure_img, ivec3(out_texel, 0), closure);
+  GBufferWriter gbuf = gbuffer_pack(gbuf_data);
 
-    vec4 color = gbuffer_color_pack(g_reflection_data.color);
-    imageStore(out_gbuf_color_img, ivec3(out_texel, 0), color);
-    header |= CLOSURE_REFLECTION;
+  /* Output header and first closure using frame-buffer attachment. */
+  out_gbuf_header = gbuf.header;
+  out_gbuf_closure1 = gbuf.data[0];
+  out_gbuf_closure2 = gbuf.data[1];
+  out_gbuf_normal = gbuf.N[0];
+
+  /* Output remaining closures using image store. */
+  /* NOTE: The image view start at layer 2 so all destination layer is `layer - 2`. */
+  for (int layer = 2; layer < GBUFFER_DATA_MAX && layer < gbuf.layer_data; layer++) {
+    imageStore(out_gbuf_closure_img, ivec3(out_texel, layer - 2), gbuf.data[layer]);
   }
-
-  float combined_weight = g_refraction_data.weight + g_diffuse_data.weight;
-  if (combined_weight > 0.0) {
-    /* TODO(fclem) other RNG. */
-    float refract_rand = fract(g_closure_rand * 6.1803398875);
-    bool output_refraction = (refract_rand * combined_weight) < g_refraction_data.weight;
-    if (output_refraction) {
-      /* Refraction. */
-      vec4 closure;
-      closure.xy = gbuffer_normal_pack(g_refraction_data.N);
-      closure.z = g_refraction_data.roughness;
-      closure.w = gbuffer_ior_pack(g_refraction_data.ior);
-      imageStore(out_gbuf_closure_img, ivec3(out_texel, 1), closure);
-
-      vec4 color = gbuffer_color_pack(g_refraction_data.color);
-      imageStore(out_gbuf_color_img, ivec3(out_texel, 1), color);
-      header |= CLOSURE_REFRACTION;
-    }
-    else {
-      /* Diffuse. */
-      vec4 closure;
-      closure.xy = gbuffer_normal_pack(g_diffuse_data.N);
-      closure.z = gbuffer_thickness_pack(thickness);
-      closure.w = 0.0; /* Unused. */
-      imageStore(out_gbuf_closure_img, ivec3(out_texel, 1), closure);
-
-      vec4 color = gbuffer_color_pack(g_diffuse_data.color);
-      imageStore(out_gbuf_color_img, ivec3(out_texel, 1), color);
-      header |= CLOSURE_DIFFUSE;
-    }
-
-    if (g_diffuse_data.sss_id > 0) {
-      /* SubSurface Scattering. */
-      vec4 closure;
-      closure.xyz = gbuffer_sss_radii_pack(g_diffuse_data.sss_radius);
-      closure.w = gbuffer_object_id_unorm16_pack(uint(resource_id));
-      imageStore(out_gbuf_closure_img, ivec3(out_texel, 2), closure);
-      header |= CLOSURE_SSS;
-    }
+  /* NOTE: The image view start at layer 1 so all destination layer is `layer - 1`. */
+  for (int layer = 1; layer < GBUFFER_NORMAL_MAX && layer < gbuf.layer_normal; layer++) {
+    imageStore(out_gbuf_normal_img, ivec3(out_texel, layer - 1), gbuf.N[layer].xyyy);
   }
-
-  imageStore(out_gbuf_header_img, out_texel, uvec4(header));
 
   /* ----- Radiance output ----- */
 

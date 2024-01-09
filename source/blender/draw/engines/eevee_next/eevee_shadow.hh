@@ -223,6 +223,8 @@ class ShadowModule {
 
   PassMain::Sub *tilemap_usage_transparent_ps_ = nullptr;
   GPUBatch *box_batch_ = nullptr;
+  /* Source texture for depth buffer analysis. */
+  GPUTexture *src_depth_tx_ = nullptr;
 
   Framebuffer usage_tag_fb;
 
@@ -290,8 +292,8 @@ class ShadowModule {
   Framebuffer render_fb_ = {"shadow_write_framebuffer"};
 
   /* NOTE(Metal): Metal requires memoryless textures to be created which represent attachments in
-   * the shadow write framebuffer. These textures do not occupy any physical memory, but require a
-   * Texture object containing its parameters.*/
+   * the shadow write frame-buffer. These textures do not occupy any physical memory, but require a
+   * Texture object containing its parameters. */
   Texture shadow_depth_fb_tx_ = {"shadow_depth_fb_tx_"};
   Texture shadow_depth_accum_tx_ = {"shadow_depth_accum_tx_"};
 
@@ -336,7 +338,11 @@ class ShadowModule {
 
   void set_lights_data();
 
-  void set_view(View &view);
+  /* Update all shadow regions visible inside the view.
+   * If called multiple time for the same view, it will only do the depth buffer scanning
+   * to check any new opaque surfaces.
+   * Needs to be called after `LightModule::set_view();`. */
+  void set_view(View &view, GPUTexture *depth_tx = nullptr);
 
   void debug_end_sync();
   void debug_draw(View &view, GPUFrameBuffer *view_fb);
@@ -345,6 +351,11 @@ class ShadowModule {
   {
     pass.bind_texture(SHADOW_ATLAS_TEX_SLOT, &atlas_tx_);
     pass.bind_texture(SHADOW_TILEMAPS_TEX_SLOT, &tilemap_pool.tilemap_tx);
+  }
+
+  const ShadowSceneData &get_data()
+  {
+    return data_;
   }
 
  private:

@@ -21,9 +21,9 @@
 /* XXX: using 128 for totelem and `pchunk` of `mempool`, no idea what good
  * values would be though */
 
-#  include "bmesh.h"
+#  include "bmesh.hh"
 
-#  include "intern/bmesh_operators_private.h" /* own include */
+#  include "intern/bmesh_operators_private.hh" /* own include */
 
 using blender::Vector;
 
@@ -138,7 +138,8 @@ static void hull_output_triangles(BMesh *bm, BLI_mempool *hull_triangles)
         const int next = (i == 2 ? 0 : i + 1);
         BMEdge *e = BM_edge_exists(t->v[i], t->v[next]);
         if (e && BMO_edge_flag_test(bm, e, HULL_FLAG_INPUT) &&
-            !BMO_edge_flag_test(bm, e, HULL_FLAG_HOLE)) {
+            !BMO_edge_flag_test(bm, e, HULL_FLAG_HOLE))
+        {
           BMO_edge_flag_enable(bm, e, HULL_FLAG_OUTPUT_GEOM);
         }
       }

@@ -18,9 +18,9 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_blendfile.h"
+#include "BKE_blendfile.hh"
 #include "BKE_global.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_report.h"
 
 #include "BLO_writefile.hh"
@@ -135,7 +135,7 @@ static PyObject *bpy_lib_write(BPy_PropertyRNA *self, PyObject *args, PyObject *
     /* original values */
     short id_flag;
     short id_us;
-  } * id_store_array, *id_store;
+  } *id_store_array, *id_store;
   int id_store_len = 0;
 
   PyObject *ret;

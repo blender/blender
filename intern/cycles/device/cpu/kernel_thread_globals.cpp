@@ -12,14 +12,16 @@ CCL_NAMESPACE_BEGIN
 
 CPUKernelThreadGlobals::CPUKernelThreadGlobals(const KernelGlobalsCPU &kernel_globals,
                                                void *osl_globals_memory,
-                                               Profiler &cpu_profiler)
+                                               Profiler &cpu_profiler,
+                                               const int thread_index)
     : KernelGlobalsCPU(kernel_globals), cpu_profiler_(cpu_profiler)
 {
   clear_runtime_pointers();
 
 #ifdef WITH_OSL
-  OSLGlobals::thread_init(this, static_cast<OSLGlobals *>(osl_globals_memory));
+  OSLGlobals::thread_init(this, static_cast<OSLGlobals *>(osl_globals_memory), thread_index);
 #else
+  (void)thread_index;
   (void)osl_globals_memory;
 #endif
 

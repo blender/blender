@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "BLI_map.hh"
 #include "BLI_math_geom.h"
 
 #define MAX_CLIPPLANE_LEN 6

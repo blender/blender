@@ -6,7 +6,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_idtype.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_node.hh"
 #include "BKE_object.hh"
 
@@ -15,7 +15,7 @@
 #include "RNA_define.hh"
 
 #include "GPU_batch.h"
-#include "draw_shader.h"
+#include "draw_shader.hh"
 #include "draw_testing.hh"
 #include "engines/eevee_next/eevee_instance.hh"
 #include "engines/eevee_next/eevee_precompute.hh"

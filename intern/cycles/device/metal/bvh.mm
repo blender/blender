@@ -23,7 +23,7 @@ CCL_NAMESPACE_BEGIN
       metal_printf("%s\n", str.c_str()); \
     }
 
-//#  define BVH_THROTTLE_DIAGNOSTICS
+// #  define BVH_THROTTLE_DIAGNOSTICS
 #  ifdef BVH_THROTTLE_DIAGNOSTICS
 #    define bvh_throttle_printf(...) printf("BVHMetalBuildThrottler::" __VA_ARGS__)
 #  else

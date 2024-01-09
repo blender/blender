@@ -13,9 +13,12 @@
 #include <cstdlib>
 #include <cstring>
 
+#include <fmt/format.h>
+
 #include "BLI_endian_switch.h"
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
+#include "BLI_set.hh"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
@@ -275,6 +278,14 @@ IDPropertyUIData *IDP_ui_data_copy(const IDProperty *prop)
       const IDPropertyUIDataInt *src = (const IDPropertyUIDataInt *)prop->ui_data;
       IDPropertyUIDataInt *dst = (IDPropertyUIDataInt *)dst_ui_data;
       dst->default_array = static_cast<int *>(MEM_dupallocN(src->default_array));
+      dst->enum_items = static_cast<IDPropertyUIDataEnumItem *>(MEM_dupallocN(src->enum_items));
+      for (const int64_t i : blender::IndexRange(src->enum_items_num)) {
+        const IDPropertyUIDataEnumItem &src_item = src->enum_items[i];
+        IDPropertyUIDataEnumItem &dst_item = dst->enum_items[i];
+        dst_item.identifier = BLI_strdup(src_item.identifier);
+        dst_item.name = BLI_strdup_null(src_item.name);
+        dst_item.description = BLI_strdup_null(src_item.description);
+      }
       break;
     }
     case IDP_UI_DATA_TYPE_BOOLEAN: {
@@ -345,7 +356,7 @@ static IDProperty *IDP_CopyArray(const IDProperty *prop, const int flag)
 /** \name String Functions (IDProperty String API)
  * \{ */
 
-IDProperty *IDP_NewStringMaxSize(const char *st, const char *name, int maxncpy)
+IDProperty *IDP_NewStringMaxSize(const char *st, const size_t st_maxncpy, const char *name)
 {
   IDProperty *prop = static_cast<IDProperty *>(
       MEM_callocN(sizeof(IDProperty), "IDProperty string"));
@@ -358,18 +369,17 @@ IDProperty *IDP_NewStringMaxSize(const char *st, const char *name, int maxncpy)
   }
   else {
     /* include null terminator '\0' */
-    int stlen = int(strlen(st)) + 1;
-
-    if ((maxncpy > 0) && (maxncpy < stlen)) {
-      stlen = maxncpy;
-    }
+    const int stlen = int((st_maxncpy > 0) ? BLI_strnlen(st, st_maxncpy - 1) : strlen(st)) + 1;
 
     prop->data.pointer = MEM_mallocN(size_t(stlen), "id property string 2");
     prop->len = prop->totallen = stlen;
-    if (stlen > 0) {
+
+    /* Ensured above, must always be true otherwise null terminator assignment will be invalid. */
+    BLI_assert(stlen > 0);
+    if (stlen > 1) {
       memcpy(prop->data.pointer, st, size_t(stlen));
-      IDP_String(prop)[stlen - 1] = '\0';
     }
+    IDP_String(prop)[stlen - 1] = '\0';
   }
 
   prop->type = IDP_STRING;
@@ -380,7 +390,7 @@ IDProperty *IDP_NewStringMaxSize(const char *st, const char *name, int maxncpy)
 
 IDProperty *IDP_NewString(const char *st, const char *name)
 {
-  return IDP_NewStringMaxSize(st, name, -1);
+  return IDP_NewStringMaxSize(st, 0, name);
 }
 
 static IDProperty *IDP_CopyString(const IDProperty *prop, const int flag)
@@ -398,14 +408,12 @@ static IDProperty *IDP_CopyString(const IDProperty *prop, const int flag)
   return newp;
 }
 
-void IDP_AssignStringMaxSize(IDProperty *prop, const char *st, int maxncpy)
+void IDP_AssignStringMaxSize(IDProperty *prop, const char *st, const size_t st_maxncpy)
 {
   BLI_assert(prop->type == IDP_STRING);
   const bool is_byte = prop->subtype == IDP_STRING_SUB_BYTE;
-  int stlen = int(strlen(st)) + (is_byte ? 0 : 1);
-  if ((maxncpy > 0) && (maxncpy < stlen)) {
-    stlen = maxncpy;
-  }
+  const int stlen = int((st_maxncpy > 0) ? BLI_strnlen(st, st_maxncpy - 1) : strlen(st)) +
+                    (is_byte ? 0 : 1);
   IDP_ResizeArray(prop, stlen);
   if (stlen > 0) {
     memcpy(prop->data.pointer, st, size_t(stlen));
@@ -427,6 +435,78 @@ void IDP_FreeString(IDProperty *prop)
   if (prop->data.pointer) {
     MEM_freeN(prop->data.pointer);
   }
+}
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Enum Type (IDProperty Enum API)
+ * \{ */
+
+static void IDP_int_ui_data_free_enum_items(IDPropertyUIDataInt *ui_data)
+{
+  for (const int64_t i : blender::IndexRange(ui_data->enum_items_num)) {
+    IDPropertyUIDataEnumItem &item = ui_data->enum_items[i];
+    MEM_SAFE_FREE(item.identifier);
+    MEM_SAFE_FREE(item.name);
+    MEM_SAFE_FREE(item.description);
+  }
+  MEM_SAFE_FREE(ui_data->enum_items);
+}
+
+const IDPropertyUIDataEnumItem *IDP_EnumItemFind(const IDProperty *prop)
+{
+  BLI_assert(prop->type == IDP_INT);
+  const IDPropertyUIDataInt *ui_data = reinterpret_cast<const IDPropertyUIDataInt *>(
+      prop->ui_data);
+
+  const int value = IDP_Int(prop);
+  for (const IDPropertyUIDataEnumItem &item :
+       blender::Span(ui_data->enum_items, ui_data->enum_items_num))
+  {
+    if (item.value == value) {
+      return &item;
+    }
+  }
+  return nullptr;
+}
+
+bool IDP_EnumItemsValidate(const IDPropertyUIDataEnumItem *items,
+                           const int items_num,
+                           void (*error_fn)(const char *))
+{
+  blender::Set<int> used_values;
+  blender::Set<const char *> used_identifiers;
+  used_values.reserve(items_num);
+  used_identifiers.reserve(items_num);
+
+  bool is_valid = true;
+  for (const int64_t i : blender::IndexRange(items_num)) {
+    const IDPropertyUIDataEnumItem &item = items[i];
+    if (item.identifier == nullptr || item.identifier[0] == '\0') {
+      if (error_fn) {
+        const std::string msg = "Item identifier is empty";
+        error_fn(msg.c_str());
+      }
+      is_valid = false;
+    }
+    if (!used_identifiers.add(item.identifier)) {
+      if (error_fn) {
+        const std::string msg = fmt::format("Item identifier '{}' is already used",
+                                            item.identifier);
+        error_fn(msg.c_str());
+      }
+      is_valid = false;
+    }
+    if (!used_values.add(item.value)) {
+      if (error_fn) {
+        const std::string msg = fmt::format(
+            "Item value {} for item '{}' is already used", item.value, item.identifier);
+        error_fn(msg.c_str());
+      }
+      is_valid = false;
+    }
+  }
+  return is_valid;
 }
 
 /** \} */
@@ -1020,6 +1100,9 @@ void IDP_ui_data_free_unique_contents(IDPropertyUIData *ui_data,
       if (ui_data_int->default_array != other_int->default_array) {
         MEM_SAFE_FREE(ui_data_int->default_array);
       }
+      if (ui_data_int->enum_items != other_int->enum_items) {
+        IDP_int_ui_data_free_enum_items(ui_data_int);
+      }
       break;
     }
     case IDP_UI_DATA_TYPE_BOOLEAN: {
@@ -1058,6 +1141,7 @@ void IDP_ui_data_free(IDProperty *prop)
     case IDP_UI_DATA_TYPE_INT: {
       IDPropertyUIDataInt *ui_data_int = (IDPropertyUIDataInt *)prop->ui_data;
       MEM_SAFE_FREE(ui_data_int->default_array);
+      IDP_int_ui_data_free_enum_items(ui_data_int);
       break;
     }
     case IDP_UI_DATA_TYPE_BOOLEAN: {
@@ -1201,6 +1285,14 @@ static void write_ui_data(const IDProperty *prop, BlendWriter *writer)
         BLO_write_int32_array(
             writer, uint(ui_data_int->default_array_len), (int32_t *)ui_data_int->default_array);
       }
+      BLO_write_struct_array(
+          writer, IDPropertyUIDataEnumItem, ui_data_int->enum_items_num, ui_data_int->enum_items);
+      for (const int64_t i : blender::IndexRange(ui_data_int->enum_items_num)) {
+        IDPropertyUIDataEnumItem &item = ui_data_int->enum_items[i];
+        BLO_write_string(writer, item.identifier);
+        BLO_write_string(writer, item.name);
+        BLO_write_string(writer, item.description);
+      }
       BLO_write_struct(writer, IDPropertyUIDataInt, ui_data);
       break;
     }
@@ -1327,6 +1419,13 @@ static void read_ui_data(IDProperty *prop, BlendDataReader *reader)
       if (prop->type == IDP_ARRAY) {
         BLO_read_int32_array(
             reader, ui_data_int->default_array_len, (int **)&ui_data_int->default_array);
+      }
+      BLO_read_data_address(reader, &ui_data_int->enum_items);
+      for (const int64_t i : blender::IndexRange(ui_data_int->enum_items_num)) {
+        IDPropertyUIDataEnumItem &item = ui_data_int->enum_items[i];
+        BLO_read_data_address(reader, &item.identifier);
+        BLO_read_data_address(reader, &item.name);
+        BLO_read_data_address(reader, &item.description);
       }
       break;
     }

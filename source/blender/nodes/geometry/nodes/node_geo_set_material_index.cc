@@ -24,7 +24,7 @@ static void set_material_index_in_geometry(const fn::FieldContext &field_context
                                            const Field<bool> &selection_field,
                                            const Field<int> &index_field,
                                            MutableAttributeAccessor &attributes,
-                                           const eAttrDomain domain)
+                                           const AttrDomain domain)
 {
   const int domain_size = attributes.domain_size(domain);
   if (domain_size == 0) {
@@ -59,9 +59,9 @@ static void set_material_index_in_grease_pencil(GreasePencil &grease_pencil,
 
     MutableAttributeAccessor attributes = curves.attributes_for_write();
     const bke::GreasePencilLayerFieldContext field_context{
-        grease_pencil, ATTR_DOMAIN_CURVE, layer_index};
+        grease_pencil, AttrDomain::Curve, layer_index};
     set_material_index_in_geometry(
-        field_context, selection_field, index_field, attributes, ATTR_DOMAIN_CURVE);
+        field_context, selection_field, index_field, attributes, AttrDomain::Curve);
   }
 }
 
@@ -75,10 +75,10 @@ static void node_geo_exec(GeoNodeExecParams params)
     if (geometry_set.has_mesh()) {
       GeometryComponent &component = geometry_set.get_component_for_write<MeshComponent>();
       const bke::GeometryFieldContext field_context{
-          geometry_set.get_component_for_write<MeshComponent>(), ATTR_DOMAIN_FACE};
+          geometry_set.get_component_for_write<MeshComponent>(), AttrDomain::Face};
       MutableAttributeAccessor attributes = *component.attributes_for_write();
       set_material_index_in_geometry(
-          field_context, selection_field, index_field, attributes, ATTR_DOMAIN_FACE);
+          field_context, selection_field, index_field, attributes, AttrDomain::Face);
     }
     if (GreasePencil *grease_pencil = geometry_set.get_grease_pencil_for_write()) {
       set_material_index_in_grease_pencil(*grease_pencil, selection_field, index_field);

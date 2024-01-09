@@ -329,7 +329,8 @@ void ntreeExecGPUNodes(bNodeTreeExec *exec, GPUMaterial *mat, bNode *output_node
       }
     }
     else {
-      do_it = true;
+      do_it = node->runtime->need_exec;
+      node->runtime->need_exec = 0;
     }
 
     if (do_it) {
@@ -400,4 +401,17 @@ void get_XYZ_to_RGB_for_gpu(XYZ_to_RGB *data)
   data->b[0] = xyz_to_rgb[2];
   data->b[1] = xyz_to_rgb[5];
   data->b[2] = xyz_to_rgb[8];
+}
+
+bool node_socket_not_zero(const GPUNodeStack &socket)
+{
+  return socket.link || socket.vec[0] > 1e-5f;
+}
+bool node_socket_not_white(const GPUNodeStack &socket)
+{
+  return socket.link || socket.vec[0] < 1.0f || socket.vec[1] < 1.0f || socket.vec[2] < 1.0f;
+}
+bool node_socket_not_black(const GPUNodeStack &socket)
+{
+  return socket.link || socket.vec[0] > 1e-5f || socket.vec[1] > 1e-5f || socket.vec[2] > 1e-5f;
 }

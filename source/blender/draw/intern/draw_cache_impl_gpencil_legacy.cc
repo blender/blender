@@ -15,8 +15,8 @@
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
 
-#include "DRW_engine.h"
-#include "DRW_render.h"
+#include "DRW_engine.hh"
+#include "DRW_render.hh"
 
 #include "ED_gpencil_legacy.hh"
 #include "GPU_batch.h"
@@ -27,7 +27,7 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_polyfill_2d.h"
 
-#include "draw_cache.h"
+#include "draw_cache.hh"
 #include "draw_cache_impl.hh"
 
 #include "../engines/gpencil/gpencil_defines.h"
@@ -35,10 +35,6 @@
 
 #define BEZIER_HANDLE (1 << 3)
 #define COLOR_SHIFT 5
-
-/* -------------------------------------------------------------------- */
-/** \name Internal Types
- * \{ */
 
 struct GpencilBatchCache {
   /** Instancing Data */
@@ -67,6 +63,12 @@ struct GpencilBatchCache {
   /** Last cache frame */
   int cache_frame;
 };
+
+namespace blender::draw {
+
+/* -------------------------------------------------------------------- */
+/** \name Internal Types
+ * \{ */
 
 /** \} */
 
@@ -990,9 +992,11 @@ GPUBatch *DRW_cache_gpencil_edit_curve_points_get(Object *ob, int cfra)
   return cache->edit_curve_points_batch;
 }
 
-int DRW_gpencil_material_count_get(bGPdata *gpd)
+int DRW_gpencil_material_count_get(const bGPdata *gpd)
 {
   return max_ii(1, gpd->totcol);
 }
 
 /** \} */
+
+}  // namespace blender::draw

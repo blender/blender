@@ -15,9 +15,9 @@
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
-#include "bmesh.h"
+#include "bmesh.hh"
 
-#include "intern/bmesh_operators_private.h" /* own include */
+#include "intern/bmesh_operators_private.hh" /* own include */
 
 #include "BLI_mempool.h"
 
@@ -344,7 +344,8 @@ static PathLinkState *state_step__face_edges(PathContext *pc,
         BMElem *ele_next_from = (BMElem *)l_iter->f;
 
         if (FACE_WALK_TEST((BMFace *)ele_next_from) &&
-            (ELE_TOUCH_TEST_EDGE((BMEdge *)ele_next) == false)) {
+            (ELE_TOUCH_TEST_EDGE((BMEdge *)ele_next) == false))
+        {
           min_dist_dir_update(mddir, dist_dir);
           mddir->dist_min[index] = dist_test;
           l_iter_best[index] = l_iter;
@@ -389,7 +390,8 @@ static PathLinkState *state_step__face_verts(PathContext *pc,
         BMElem *ele_next_from = (BMElem *)l_iter->f;
 
         if (FACE_WALK_TEST((BMFace *)ele_next_from) &&
-            (ELE_TOUCH_TEST_VERT((BMVert *)ele_next) == false)) {
+            (ELE_TOUCH_TEST_VERT((BMVert *)ele_next) == false))
+        {
           min_dist_dir_update(mddir, dist_dir);
           mddir->dist_min[index] = dist_test;
           l_iter_best[index] = l_iter;

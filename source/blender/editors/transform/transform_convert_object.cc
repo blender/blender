@@ -17,7 +17,7 @@
 #include "BKE_context.hh"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_object.hh"
 #include "BKE_pointcache.h"
 #include "BKE_report.h"
@@ -25,6 +25,7 @@
 #include "BKE_scene.h"
 
 #include "ANIM_keyframing.hh"
+#include "ANIM_rna.hh"
 #include "ED_keyframing.hh"
 #include "ED_object.hh"
 
@@ -704,7 +705,8 @@ static void createTransObject(bContext *C, TransInfo *t)
         Base *base_parent = BKE_view_layer_base_find(view_layer, ob->parent);
         if (base_parent) {
           if (BASE_XFORM_INDIRECT(base_parent) ||
-              BLI_gset_haskey(objects_in_transdata, ob->parent)) {
+              BLI_gset_haskey(objects_in_transdata, ob->parent))
+          {
             ED_object_xform_skip_child_container_item_ensure(
                 tdo->xcs, ob, nullptr, XFORM_OB_SKIP_CHILD_PARENT_IS_XFORM);
             base->flag_legacy |= BA_TRANSFORM_LOCKED_IN_PLACE;
@@ -755,6 +757,80 @@ static bool motionpath_need_update_object(Scene *scene, Object *ob)
 /** \name Recalc Data object
  * \{ */
 
+/* Given the transform mode `tmode` return a Vector of RNA paths that were possibly modified during
+ * that transformation. */
+static blender::Vector<std::string> get_affected_rna_paths_from_transform_mode(
+    const eTfmMode tmode,
+    Scene *scene,
+    ViewLayer *view_layer,
+    Object *ob,
+    const blender::StringRef rotation_path)
+{
+  blender::Vector<std::string> rna_paths;
+  switch (tmode) {
+    case TFM_TRANSLATION:
+      rna_paths.append("location");
+      break;
+
+    case TFM_ROTATION:
+    case TFM_TRACKBALL:
+      if (scene->toolsettings->transform_pivot_point == V3D_AROUND_ACTIVE) {
+        BKE_view_layer_synced_ensure(scene, view_layer);
+        if (ob != BKE_view_layer_active_object_get(view_layer)) {
+          rna_paths.append("location");
+        }
+      }
+      else if (scene->toolsettings->transform_pivot_point == V3D_AROUND_CURSOR) {
+        rna_paths.append("location");
+      }
+
+      if ((scene->toolsettings->transform_flag & SCE_XFORM_AXIS_ALIGN) == 0) {
+        rna_paths.append(rotation_path);
+      }
+      break;
+
+    case TFM_RESIZE:
+      if (scene->toolsettings->transform_pivot_point == V3D_AROUND_ACTIVE) {
+        BKE_view_layer_synced_ensure(scene, view_layer);
+        if (ob != BKE_view_layer_active_object_get(view_layer)) {
+          rna_paths.append("location");
+        }
+      }
+      else if (scene->toolsettings->transform_pivot_point == V3D_AROUND_CURSOR) {
+        rna_paths.append("location");
+      }
+
+      if ((scene->toolsettings->transform_flag & SCE_XFORM_AXIS_ALIGN) == 0) {
+        rna_paths.append("scale");
+      }
+      break;
+
+    default:
+      rna_paths.append("location");
+      rna_paths.append(rotation_path);
+      rna_paths.append("scale");
+  }
+
+  return rna_paths;
+}
+
+static void autokeyframe_object(bContext *C, Scene *scene, Object *ob, const eTfmMode tmode)
+{
+  blender::Vector<std::string> rna_paths;
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  const blender::StringRef rotation_path = blender::animrig::get_rotation_mode_path(
+      eRotationModes(ob->rotmode));
+
+  if (blender::animrig::is_autokey_flag(scene, AUTOKEY_FLAG_INSERTNEEDED)) {
+    rna_paths = get_affected_rna_paths_from_transform_mode(
+        tmode, scene, view_layer, ob, rotation_path);
+  }
+  else {
+    rna_paths = {"location", rotation_path, "scale"};
+  }
+  blender::animrig::autokeyframe_object(C, scene, ob, rna_paths.as_span());
+}
+
 static void recalcData_objects(TransInfo *t)
 {
   bool motionpath_update = false;
@@ -780,7 +856,7 @@ static void recalcData_objects(TransInfo *t)
        * (FPoints) instead of keyframes? */
       if ((t->animtimer) && blender::animrig::is_autokey_on(t->scene)) {
         animrecord_check_state(t, &ob->id);
-        blender::animrig::autokeyframe_object(t->context, t->scene, t->view_layer, ob, t->mode);
+        autokeyframe_object(t->context, t->scene, ob, t->mode);
       }
 
       motionpath_update |= motionpath_need_update_object(t->scene, ob);
@@ -855,7 +931,7 @@ static void special_aftertrans_update__object(bContext *C, TransInfo *t)
 
     /* Set auto-key if necessary. */
     if (!canceled) {
-      blender::animrig::autokeyframe_object(C, t->scene, t->view_layer, ob, t->mode);
+      autokeyframe_object(C, t->scene, ob, t->mode);
     }
 
     motionpath_update |= motionpath_need_update_object(t->scene, ob);

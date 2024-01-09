@@ -392,6 +392,14 @@ void MTLBackend::capabilities_init(MTLContext *ctx)
    * with Apple Silicon GPUs. Disabling for now to avoid erroneous rendering. */
   MTLBackend::capabilities.supports_texture_gather = [device hasUnifiedMemory];
 
+  /* Texture atomics supported in Metal 3.1. */
+  MTLBackend::capabilities.supports_texture_atomics = false;
+#if defined(MAC_OS_VERSION_14_0)
+  if (@available(macOS 14.0, *)) {
+    MTLBackend::capabilities.supports_texture_atomics = true;
+  }
+#endif
+
   /* Common Global Capabilities. */
   GCaps.max_texture_size = ([device supportsFamily:MTLGPUFamilyApple3] ||
                             MTLBackend::capabilities.supports_family_mac1) ?
@@ -454,6 +462,7 @@ void MTLBackend::capabilities_init(MTLContext *ctx)
   }
 
   GCaps.transform_feedback_support = true;
+  GCaps.stencil_export_support = true;
 
   /* OPENGL Related workarounds -- none needed for Metal. */
   GCaps.extensions_len = 0;
@@ -502,4 +511,4 @@ void MTLBackend::compute_dispatch_indirect(StorageBuf *indirect_buf)
 
 /** \} */
 
-}  // blender::gpu
+}  // namespace blender::gpu

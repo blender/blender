@@ -9,8 +9,6 @@
 #include "BKE_report.h"
 
 #include "DNA_cachefile_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_windowmanager_types.h"
 
@@ -152,14 +150,14 @@ Mesh *USDShapeReader::read_mesh(Mesh *existing_mesh,
   offset_indices::accumulate_counts_to_offsets(face_offsets);
 
   /* Don't smooth-shade cubes; we're not worrying about sharpness for Gprims. */
-  BKE_mesh_smooth_flag_set(active_mesh, !prim_.IsA<pxr::UsdGeomCube>());
+  bke::mesh_smooth_set(*active_mesh, !prim_.IsA<pxr::UsdGeomCube>());
 
   MutableSpan<int> corner_verts = active_mesh->corner_verts_for_write();
   for (const int i : corner_verts.index_range()) {
     corner_verts[i] = face_indices[i];
   }
 
-  BKE_mesh_calc_edges(active_mesh, false, false);
+  bke::mesh_calc_edges(*active_mesh, false, false);
   return active_mesh;
 }
 
@@ -176,7 +174,7 @@ Mesh *USDShapeReader::mesh_from_prim(Mesh *existing_mesh,
 
   const bool poly_counts_match = existing_mesh ? face_counts.size() == existing_mesh->faces_num :
                                                  false;
-  const bool position_counts_match = existing_mesh ? positions.size() == existing_mesh->totvert :
+  const bool position_counts_match = existing_mesh ? positions.size() == existing_mesh->verts_num :
                                                      false;
 
   Mesh *active_mesh = nullptr;

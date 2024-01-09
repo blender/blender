@@ -35,6 +35,7 @@ struct SpaceImage;
 struct VPaint;
 struct ViewContext;
 struct bContext;
+struct ReportList;
 struct wmEvent;
 struct wmKeyConfig;
 struct wmKeyMap;
@@ -121,9 +122,9 @@ bool vertex_paint_poll_ignore_tool(bContext *C);
  */
 bool vertex_paint_mode_poll(bContext *C);
 
-typedef void (*VPaintTransform_Callback)(const float col[3],
-                                         const void *user_data,
-                                         float r_col[3]);
+using VPaintTransform_Callback = void (*)(const float col[3],
+                                          const void *user_data,
+                                          float r_col[3]);
 
 void PAINT_OT_weight_paint_toggle(wmOperatorType *ot);
 void PAINT_OT_weight_paint(wmOperatorType *ot);
@@ -454,39 +455,27 @@ enum BrushStrokeMode {
 
 /* paint_hide.cc */
 
-enum PartialVisAction {
-  PARTIALVIS_HIDE,
-  PARTIALVIS_SHOW,
-};
-
-enum PartialVisArea {
-  PARTIALVIS_INSIDE,
-  PARTIALVIS_OUTSIDE,
-  PARTIALVIS_ALL,
-  PARTIALVIS_MASKED,
-};
+namespace blender::ed::sculpt_paint::hide {
+void sync_all_from_faces(Object &object);
+void mesh_show_all(Object &object, Span<PBVHNode *> nodes);
+void grids_show_all(Depsgraph &depsgraph, Object &object, Span<PBVHNode *> nodes);
+void tag_update_visibility(const bContext &C);
 
 void PAINT_OT_hide_show(wmOperatorType *ot);
+void PAINT_OT_visibility_invert(wmOperatorType *ot);
+}  // namespace blender::ed::sculpt_paint::hide
 
 /* `paint_mask.cc` */
 
-/* The gesture API doesn't write to this enum type,
- * it writes to eSelectOp from ED_select_utils.hh.
- * We must thus map the modes here to the desired
- * eSelectOp modes.
- *
- * Fixes #102349.
- */
-enum PaintMaskFloodMode {
-  PAINT_MASK_FLOOD_VALUE = SEL_OP_SUB,
-  PAINT_MASK_FLOOD_VALUE_INVERSE = SEL_OP_ADD,
-  PAINT_MASK_INVERT = SEL_OP_XOR,
-};
+namespace blender::ed::sculpt_paint::mask {
+
+Array<float> duplicate_mask(const Object &object);
 
 void PAINT_OT_mask_flood_fill(wmOperatorType *ot);
 void PAINT_OT_mask_lasso_gesture(wmOperatorType *ot);
 void PAINT_OT_mask_box_gesture(wmOperatorType *ot);
 void PAINT_OT_mask_line_gesture(wmOperatorType *ot);
+}  // namespace blender::ed::sculpt_paint::mask
 
 /* `paint_curve.cc` */
 

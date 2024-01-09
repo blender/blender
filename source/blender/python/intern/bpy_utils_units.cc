@@ -23,14 +23,14 @@
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_compat.h"
 
-#include "BKE_unit.h"
+#include "BKE_unit.hh"
 
 /***** C-defined systems and types *****/
 
 static PyTypeObject BPyUnitsSystemsType;
 static PyTypeObject BPyUnitsCategoriesType;
 
-/* XXX: Maybe better as `extern` of `BKE_unit.h` ? */
+/* XXX: Maybe better as `extern` of `BKE_unit.hh` ? */
 static const char *bpyunits_usystem_items[] = {
     "NONE",
     "METRIC",
@@ -62,7 +62,7 @@ BLI_STATIC_ASSERT(
 /**
  * These fields are just empty placeholders, actual values get set in initializations functions.
  * This allows us to avoid many handwriting, and above all,
- * to keep all systems/categories definition stuff in `BKE_unit.h`.
+ * to keep all systems/categories definition stuff in `BKE_unit.hh`.
  */
 static PyStructSequence_Field bpyunits_systems_fields[ARRAY_SIZE(bpyunits_usystem_items)];
 static PyStructSequence_Field bpyunits_categories_fields[ARRAY_SIZE(bpyunits_ucategories_items)];

@@ -23,11 +23,9 @@
 
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_grease_pencil_types.h"
-#include "DNA_object_types.h" /* #BoundBox. */
 
 struct Main;
 struct Depsgraph;
-struct BoundBox;
 struct Scene;
 struct Object;
 struct Material;
@@ -397,6 +395,11 @@ class Layer : public ::GreasePencilLayer {
   int drawing_index_at(const int frame_number) const;
 
   /**
+   * \returns true if there is a drawing on this layer at \a frame_number.
+   */
+  bool has_drawing_at(const int frame_number) const;
+
+  /**
    * \returns the key of the active frame at \a frame_number or -1 if there is no frame.
    */
   FramesMapKey frame_key_at(int frame_number) const;
@@ -658,7 +661,7 @@ inline TreeNode &Layer::as_node()
 TREENODE_COMMON_METHODS_FORWARD_IMPL(Layer);
 inline bool Layer::is_empty() const
 {
-  return (this->frames().size() == 0);
+  return (this->frames().is_empty());
 }
 inline LayerGroup &Layer::parent_group() const
 {
@@ -683,7 +686,7 @@ class GreasePencilRuntime {
    */
   void *batch_cache = nullptr;
   /* The frame on which the object was evaluated (only valid for evaluated object). */
-  int eval_frame;
+  int eval_frame = 0;
 
  public:
   GreasePencilRuntime() {}
@@ -811,7 +814,6 @@ inline bool GreasePencil::has_active_layer() const
 void *BKE_grease_pencil_add(Main *bmain, const char *name);
 GreasePencil *BKE_grease_pencil_new_nomain();
 GreasePencil *BKE_grease_pencil_copy_for_eval(const GreasePencil *grease_pencil_src);
-BoundBox BKE_grease_pencil_boundbox_get(Object *ob);
 void BKE_grease_pencil_data_update(Depsgraph *depsgraph, Scene *scene, Object *object);
 void BKE_grease_pencil_duplicate_drawing_array(const GreasePencil *grease_pencil_src,
                                                GreasePencil *grease_pencil_dst);

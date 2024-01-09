@@ -100,13 +100,13 @@ static void retrieve_attribute_spans(const Span<bke::AttributeIDRef> ids,
 {
   const bke::AttributeAccessor src_attributes = src_curves.attributes();
   for (const int i : ids.index_range()) {
-    const GVArray src_attribute = *src_attributes.lookup(ids[i], ATTR_DOMAIN_POINT);
+    const GVArray src_attribute = *src_attributes.lookup(ids[i], bke::AttrDomain::Point);
     src.append(src_attribute.get_internal_span());
 
     const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(src_attribute.type());
     bke::GSpanAttributeWriter dst_attribute =
         dst_curves.attributes_for_write().lookup_or_add_for_write_only_span(
-            ids[i], ATTR_DOMAIN_POINT, data_type);
+            ids[i], bke::AttrDomain::Point, data_type);
     dst.append(dst_attribute.span);
     dst_attributes.append(std::move(dst_attribute));
   }
@@ -140,7 +140,7 @@ static void gather_point_attributes_to_interpolate(
   VectorSet<bke::AttributeIDRef> ids_no_interpolation;
   src_curves.attributes().for_all(
       [&](const bke::AttributeIDRef &id, const bke::AttributeMetaData meta_data) {
-        if (meta_data.domain != ATTR_DOMAIN_POINT) {
+        if (meta_data.domain != bke::AttrDomain::Point) {
           return true;
         }
         if (meta_data.data_type == CD_PROP_STRING) {
@@ -178,14 +178,14 @@ static void gather_point_attributes_to_interpolate(
   if (output_ids.tangent_id) {
     result.src_evaluated_tangents = src_curves.evaluated_tangents();
     bke::GSpanAttributeWriter dst_attribute = dst_attributes.lookup_or_add_for_write_only_span(
-        output_ids.tangent_id, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3);
+        output_ids.tangent_id, bke::AttrDomain::Point, CD_PROP_FLOAT3);
     result.dst_tangents = dst_attribute.span.typed<float3>();
     result.dst_attributes.append(std::move(dst_attribute));
   }
   if (output_ids.normal_id) {
     result.src_evaluated_normals = src_curves.evaluated_normals();
     bke::GSpanAttributeWriter dst_attribute = dst_attributes.lookup_or_add_for_write_only_span(
-        output_ids.normal_id, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3);
+        output_ids.normal_id, bke::AttrDomain::Point, CD_PROP_FLOAT3);
     result.dst_normals = dst_attribute.span.typed<float3>();
     result.dst_attributes.append(std::move(dst_attribute));
   }

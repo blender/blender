@@ -44,17 +44,17 @@ class EndpointFieldInput final : public bke::CurvesFieldInput {
   }
 
   GVArray get_varray_for_context(const bke::CurvesGeometry &curves,
-                                 const eAttrDomain domain,
+                                 const AttrDomain domain,
                                  const IndexMask & /*mask*/) const final
   {
-    if (domain != ATTR_DOMAIN_POINT) {
+    if (domain != AttrDomain::Point) {
       return {};
     }
     if (curves.points_num() == 0) {
       return {};
     }
 
-    const bke::CurvesFieldContext size_context{curves, ATTR_DOMAIN_CURVE};
+    const bke::CurvesFieldContext size_context{curves, AttrDomain::Curve};
     fn::FieldEvaluator evaluator{size_context, curves.curves_num()};
     evaluator.add(start_size_);
     evaluator.add(end_size_);
@@ -95,15 +95,16 @@ class EndpointFieldInput final : public bke::CurvesFieldInput {
   bool is_equal_to(const fn::FieldNode &other) const override
   {
     if (const EndpointFieldInput *other_endpoint = dynamic_cast<const EndpointFieldInput *>(
-            &other)) {
+            &other))
+    {
       return start_size_ == other_endpoint->start_size_ && end_size_ == other_endpoint->end_size_;
     }
     return false;
   }
 
-  std::optional<eAttrDomain> preferred_domain(const CurvesGeometry & /*curves*/) const
+  std::optional<AttrDomain> preferred_domain(const CurvesGeometry & /*curves*/) const
   {
-    return ATTR_DOMAIN_POINT;
+    return AttrDomain::Point;
   }
 };
 

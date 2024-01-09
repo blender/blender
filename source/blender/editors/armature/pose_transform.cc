@@ -29,7 +29,7 @@
 #include "BKE_deform.h"
 #include "BKE_idprop.h"
 #include "BKE_layer.h"
-#include "BKE_main.h"
+#include "BKE_main.hh"
 #include "BKE_object.hh"
 #include "BKE_report.h"
 
@@ -48,7 +48,7 @@
 #include "ED_screen.hh"
 #include "ED_util.hh"
 
-#include "ANIM_bone_collections.h"
+#include "ANIM_bone_collections.hh"
 #include "ANIM_keyframing.hh"
 
 #include "UI_interface.hh"
@@ -89,7 +89,8 @@ static void applyarmature_fix_boneparents(const bContext *C, Scene *scene, Objec
 
   /* go through all objects in database */
   for (ob = static_cast<Object *>(bmain->objects.first); ob;
-       ob = static_cast<Object *>(ob->id.next)) {
+       ob = static_cast<Object *>(ob->id.next))
+  {
     /* if parent is bone in this armature, apply corrections */
     if ((ob->parent == armob) && (ob->partype == PARBONE)) {
       /* apply current transform from parent (not yet destroyed),
@@ -605,7 +606,7 @@ static void set_pose_keys(Object *ob)
   if (ob->pose) {
     LISTBASE_FOREACH (bPoseChannel *, chan, &ob->pose->chanbase) {
       Bone *bone = chan->bone;
-      if ((bone) && (bone->flag & BONE_SELECTED) && ANIM_bonecoll_is_visible(arm, bone)) {
+      if ((bone) && (bone->flag & BONE_SELECTED) && ANIM_bone_in_visible_collection(arm, bone)) {
         chan->flag |= POSE_KEY;
       }
       else {
@@ -1049,7 +1050,8 @@ static void pchan_clear_rot(bPoseChannel *pchan)
         /* check validity of axis - axis should never be 0,0,0
          * (if so, then we make it rotate about y). */
         if (IS_EQF(pchan->rotAxis[0], pchan->rotAxis[1]) &&
-            IS_EQF(pchan->rotAxis[1], pchan->rotAxis[2])) {
+            IS_EQF(pchan->rotAxis[1], pchan->rotAxis[2]))
+        {
           pchan->rotAxis[1] = 1.0f;
         }
       }
@@ -1116,7 +1118,8 @@ static void pchan_clear_rot(bPoseChannel *pchan)
 
         /* quaternions flip w sign to accumulate rotations correctly */
         if ((quat1[0] < 0.0f && pchan->quat[0] > 0.0f) ||
-            (quat1[0] > 0.0f && pchan->quat[0] < 0.0f)) {
+            (quat1[0] > 0.0f && pchan->quat[0] < 0.0f))
+        {
           mul_qt_fl(pchan->quat, -1.0f);
         }
       }

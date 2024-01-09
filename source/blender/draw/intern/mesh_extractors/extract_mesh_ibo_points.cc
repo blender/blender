@@ -6,9 +6,7 @@
  * \ingroup draw
  */
 
-#include "BLI_vector.hh"
-
-#include "MEM_guardedalloc.h"
+#include "GPU_index_buffer.h"
 
 #include "draw_subdivision.hh"
 #include "extract_mesh.hh"
@@ -44,7 +42,7 @@ BLI_INLINE void vert_set_mesh(GPUIndexBufBuilder *elb,
                               const int v_index,
                               const int l_index)
 {
-  const bool hidden = mr.use_hide && mr.hide_vert && mr.hide_vert[v_index];
+  const bool hidden = mr.use_hide && !mr.hide_vert.is_empty() && mr.hide_vert[v_index];
 
   if (!(hidden || ((mr.v_origindex) && (mr.v_origindex[v_index] == ORIGINDEX_NONE)))) {
     GPU_indexbuf_set_point_vert(elb, v_index, l_index);
@@ -74,8 +72,8 @@ static void extract_points_iter_face_mesh(const MeshRenderData &mr,
                                           void *_userdata)
 {
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_userdata);
-  for (const int ml_index : mr.faces[face_index]) {
-    vert_set_mesh(elb, mr, mr.corner_verts[ml_index], ml_index);
+  for (const int corner : mr.faces[face_index]) {
+    vert_set_mesh(elb, mr, mr.corner_verts[corner], corner);
   }
 }
 
@@ -176,7 +174,7 @@ static void extract_points_iter_subdiv_common(GPUIndexBufBuilder *elb,
       }
     }
     else {
-      if (mr.use_hide && mr.hide_vert && mr.hide_vert[coarse_vertex_index]) {
+      if (mr.use_hide && !mr.hide_vert.is_empty() && mr.hide_vert[coarse_vertex_index]) {
         GPU_indexbuf_set_point_restart(elb, coarse_vertex_index);
         continue;
       }
@@ -222,8 +220,7 @@ static void extract_points_loose_geom_subdiv(const DRWSubdivCache &subdiv_cache,
   uint offset = subdiv_cache.num_subdiv_loops;
 
   if (mr.extract_type != MR_EXTRACT_BMESH) {
-    blender::Span<DRWSubdivLooseEdge> loose_edges = draw_subdiv_cache_get_loose_edges(
-        subdiv_cache);
+    Span<DRWSubdivLooseEdge> loose_edges = draw_subdiv_cache_get_loose_edges(subdiv_cache);
 
     for (const DRWSubdivLooseEdge &loose_edge : loose_edges) {
       const DRWSubdivLooseVertex &v1 = loose_geom.verts[loose_edge.loose_subdiv_v1_index];
@@ -237,8 +234,7 @@ static void extract_points_loose_geom_subdiv(const DRWSubdivCache &subdiv_cache,
 
       offset += 2;
     }
-    blender::Span<DRWSubdivLooseVertex> loose_verts = draw_subdiv_cache_get_loose_verts(
-        subdiv_cache);
+    Span<DRWSubdivLooseVertex> loose_verts = draw_subdiv_cache_get_loose_verts(subdiv_cache);
 
     for (const DRWSubdivLooseVertex &loose_vert : loose_verts) {
       vert_set_mesh(elb, mr, loose_vert.coarse_vertex_index, offset);
@@ -246,8 +242,7 @@ static void extract_points_loose_geom_subdiv(const DRWSubdivCache &subdiv_cache,
     }
   }
   else {
-    blender::Span<DRWSubdivLooseEdge> loose_edges = draw_subdiv_cache_get_loose_edges(
-        subdiv_cache);
+    Span<DRWSubdivLooseEdge> loose_edges = draw_subdiv_cache_get_loose_edges(subdiv_cache);
 
     for (const DRWSubdivLooseEdge &loose_edge : loose_edges) {
       const DRWSubdivLooseVertex &v1 = loose_geom.verts[loose_edge.loose_subdiv_v1_index];
@@ -265,8 +260,7 @@ static void extract_points_loose_geom_subdiv(const DRWSubdivCache &subdiv_cache,
 
       offset += 2;
     }
-    blender::Span<DRWSubdivLooseVertex> loose_verts = draw_subdiv_cache_get_loose_verts(
-        subdiv_cache);
+    Span<DRWSubdivLooseVertex> loose_verts = draw_subdiv_cache_get_loose_verts(subdiv_cache);
 
     for (const DRWSubdivLooseVertex &loose_vert : loose_verts) {
       BMVert *eve = mr.v_origindex ? bm_original_vert_get(mr, loose_vert.coarse_vertex_index) :
@@ -314,6 +308,6 @@ constexpr MeshExtract create_extractor_points()
 
 /** \} */
 
-}  // namespace blender::draw
+const MeshExtract extract_points = create_extractor_points();
 
-const MeshExtract extract_points = blender::draw::create_extractor_points();
+}  // namespace blender::draw

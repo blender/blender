@@ -8,18 +8,23 @@
 
 #  include <openvdb/openvdb.h>
 #  include <openvdb/points/PointDataGrid.h>
+#  include <optional>
 
+#  include "BLI_bounds_types.hh"
 #  include "BLI_math_matrix_types.hh"
 #  include "BLI_math_vector_types.hh"
 #  include "BLI_string_ref.hh"
 
-VolumeGrid *BKE_volume_grid_add_vdb(Volume &volume,
-                                    blender::StringRef name,
-                                    openvdb::GridBase::Ptr vdb_grid);
+#  include "BKE_volume_enums.hh"
 
-bool BKE_volume_grid_bounds(openvdb::GridBase::ConstPtr grid,
-                            blender::float3 &r_min,
-                            blender::float3 &r_max);
+struct Volume;
+
+blender::bke::VolumeGridData *BKE_volume_grid_add_vdb(Volume &volume,
+                                                      blender::StringRef name,
+                                                      openvdb::GridBase::Ptr vdb_grid);
+
+std::optional<blender::Bounds<blender::float3>> BKE_volume_grid_bounds(
+    openvdb::GridBase::ConstPtr grid);
 
 /**
  * Return a new grid pointer with only the metadata and transform changed.
@@ -28,18 +33,6 @@ bool BKE_volume_grid_bounds(openvdb::GridBase::ConstPtr grid,
  */
 openvdb::GridBase::ConstPtr BKE_volume_grid_shallow_transform(openvdb::GridBase::ConstPtr grid,
                                                               const blender::float4x4 &transform);
-
-openvdb::GridBase::ConstPtr BKE_volume_grid_openvdb_for_metadata(const VolumeGrid *grid);
-openvdb::GridBase::ConstPtr BKE_volume_grid_openvdb_for_read(const Volume *volume,
-                                                             const VolumeGrid *grid);
-openvdb::GridBase::Ptr BKE_volume_grid_openvdb_for_write(const Volume *volume,
-                                                         VolumeGrid *grid,
-                                                         bool clear);
-
-void BKE_volume_grid_clear_tree(Volume &volume, VolumeGrid &volume_grid);
-void BKE_volume_grid_clear_tree(openvdb::GridBase &grid);
-
-VolumeGridType BKE_volume_grid_type_openvdb(const openvdb::GridBase &grid);
 
 template<typename OpType>
 auto BKE_volume_grid_type_operation(const VolumeGridType grid_type, OpType &&op)

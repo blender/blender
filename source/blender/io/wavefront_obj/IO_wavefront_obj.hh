@@ -65,16 +65,17 @@ struct OBJImportParams {
   /** Full path to the source OBJ file to import. */
   char filepath[FILE_MAX];
   /** Value 0 disables clamping. */
-  float clamp_size;
-  float global_scale;
-  eIOAxis forward_axis;
-  eIOAxis up_axis;
-  bool use_split_objects;
-  bool use_split_groups;
-  bool import_vertex_groups;
-  bool validate_meshes;
-  bool relative_paths;
-  bool clear_selection;
+  float clamp_size = 0.0f;
+  float global_scale = 1.0f;
+  eIOAxis forward_axis = IO_AXIS_NEGATIVE_Z;
+  eIOAxis up_axis = IO_AXIS_Y;
+  char collection_separator = 0;
+  bool use_split_objects = true;
+  bool use_split_groups = false;
+  bool import_vertex_groups = false;
+  bool validate_meshes = false;
+  bool relative_paths = true;
+  bool clear_selection = true;
 };
 
 /**

@@ -6,14 +6,14 @@
  * \ingroup bli
  */
 
-#include <stdlib.h> /* malloc */
-#include <string.h>
+#include <cstdlib> /* malloc */
+#include <cstring>
 
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include <errno.h>
+#include <cerrno>
 
 #include <zlib.h>
 #include <zstd.h>
@@ -436,15 +436,6 @@ bool BLI_file_ensure_parent_dir_exists(const char *filepath)
 
 int BLI_rename(const char *from, const char *to)
 {
-#ifdef WIN32
-  return urename(from, to);
-#else
-  return rename(from, to);
-#endif
-}
-
-int BLI_rename_overwrite(const char *from, const char *to)
-{
   if (!BLI_exists(from)) {
     return 1;
   }
@@ -462,13 +453,62 @@ int BLI_rename_overwrite(const char *from, const char *to)
    * In this particular case we would not want to follow symbolic-links as well.
    * Since this functionality isn't required at the moment, leave this as-is.
    * Noting it as a potential improvement. */
+
+  /* NOTE: To avoid the concurrency 'time of check/time of use' (TOC/TOU) issue, this code attempts
+   * to use available solutions for an 'atomic' (file-system wise) rename operation, instead of
+   * first checking for an existing `to` target path, and then doing the rename operation if it
+   * does not exists at the time of check.
+   *
+   * Windows (through `MoveFileExW`) by default does not allow replacing an existing path. It is
+   * however not clear whether its API is exposed to the TOC/TOU issue or not.
+   *
+   * On Linux or OSX, to keep operations atomic, special non-standardized variants of `rename` must
+   * be used, depending on the OS. Note that there may also be failure due to file system not
+   * supporting this operation, although in practice this should not be a problem in modern
+   * systems.
+   *   - https://man7.org/linux/man-pages/man2/rename.2.html
+   *   - https://www.unix.com/man-page/mojave/2/renameatx_np/
+   *
+   * BSD systems do not have any such thing currently, and are therefore exposed to the TOC/TOU
+   * issue. */
+
+#ifdef WIN32
+  return urename(from, to, false);
+#elif defined(__APPLE__)
+  return renamex_np(from, to, RENAME_EXCL);
+#elif defined(__GLIBC_PREREQ)
+#  if __GLIBC_PREREQ(2, 28)
+  /* Most common Linux cases. */
+  return renameat2(AT_FDCWD, from, AT_FDCWD, to, RENAME_NOREPLACE);
+#  endif
+#else
+  /* At least all BSD's currently. */
   if (BLI_exists(to)) {
-    if (BLI_delete(to, false, false)) {
+    return 1;
+  }
+  return rename(from, to);
+#endif
+}
+
+int BLI_rename_overwrite(const char *from, const char *to)
+{
+  if (!BLI_exists(from)) {
+    return 1;
+  }
+
+#ifdef WIN32
+  /* `urename` from `utfconv` intern utils uses `MoveFileExW`, which allows to replace an existing
+   * file, but not an existing directory, even if empty. This will only delete empty directories.
+   */
+  if (BLI_is_dir(to)) {
+    if (BLI_delete(to, true, false)) {
       return 1;
     }
   }
-
-  return BLI_rename(from, to);
+  return urename(from, to, true);
+#else
+  return rename(from, to);
+#endif
 }
 
 #ifdef WIN32
@@ -817,29 +857,24 @@ enum {
 
 typedef int (*RecursiveOp_Callback)(const char *from, const char *to);
 
-/* appending of filename to dir (ensures for buffer size before appending) */
+/**
+ * Append `file` to `dir` (ensures for buffer size before appending).
+ * \param dst: The destination memory (allocated by `malloc`).
+ */
 static void join_dirfile_alloc(char **dst, size_t *alloc_len, const char *dir, const char *file)
 {
   size_t len = strlen(dir) + strlen(file) + 1;
 
   if (*dst == nullptr) {
-    *dst = MEM_cnew_array<char>(len + 1, "join_dirfile_alloc path");
+    *dst = static_cast<char *>(malloc(len + 1));
   }
   else if (*alloc_len < len) {
-    *dst = static_cast<char *>(MEM_reallocN(*dst, len + 1));
+    *dst = static_cast<char *>(realloc(*dst, len + 1));
   }
 
   *alloc_len = len;
 
   BLI_path_join(*dst, len + 1, dir, file);
-}
-
-static char *strip_last_slash(const char *dirpath)
-{
-  char *result = BLI_strdup(dirpath);
-  BLI_path_slash_rstrip(result);
-
-  return result;
 }
 
 /**
@@ -853,7 +888,7 @@ static char *strip_last_slash(const char *dirpath)
  *                          RecursiveOp_Callback_StopRecurs to skip the subdirectory.
  * \param callback_file: Optional, to be invoked on each file found.
  * \param callback_dir_post: optional, to be invoked after leaving a subdirectory.
- * \return
+ * \return Zero on success.
  */
 static int recursive_operation(const char *startfrom,
                                const char *startto,
@@ -861,18 +896,27 @@ static int recursive_operation(const char *startfrom,
                                RecursiveOp_Callback callback_file,
                                RecursiveOp_Callback callback_dir_post)
 {
+  /* NOTE(@ideasman42): This function must *not* use any `MEM_*` functions
+   * as it's used to purge temporary files on when the processed is aborted,
+   * in this case the `MEM_*` state may have already been freed (memory usage tracking for e.g.)
+   * causing freed memory access, potentially crashing. This constraint doesn't apply to the
+   * callbacks themselves - unless they might also be called when aborting. */
   struct stat st;
   char *from = nullptr, *to = nullptr;
   char *from_path = nullptr, *to_path = nullptr;
-  dirent **dirlist = nullptr;
   size_t from_alloc_len = -1, to_alloc_len = -1;
-  int i, n = 0, ret = 0;
+  int ret = 0;
+
+  dirent **dirlist = nullptr;
+  int dirlist_num = 0;
 
   do { /* once */
     /* ensure there's no trailing slash in file path */
-    from = strip_last_slash(startfrom);
+    from = strdup(startfrom);
+    BLI_path_slash_rstrip(from);
     if (startto) {
-      to = strip_last_slash(startto);
+      to = strdup(startto);
+      BLI_path_slash_rstrip(to);
     }
 
     ret = lstat(from, &st);
@@ -893,8 +937,8 @@ static int recursive_operation(const char *startfrom,
       break;
     }
 
-    n = scandir(startfrom, &dirlist, nullptr, alphasort);
-    if (n < 0) {
+    dirlist_num = scandir(startfrom, &dirlist, nullptr, alphasort);
+    if (dirlist_num < 0) {
       /* error opening directory for listing */
       perror("scandir");
       ret = -1;
@@ -915,7 +959,7 @@ static int recursive_operation(const char *startfrom,
       }
     }
 
-    for (i = 0; i < n; i++) {
+    for (int i = 0; i < dirlist_num; i++) {
       const dirent *const dirent = dirlist[i];
 
       if (FILENAME_IS_CURRPAR(dirent->d_name)) {
@@ -932,9 +976,7 @@ static int recursive_operation(const char *startfrom,
 #  ifdef __HAIKU__
       {
         struct stat st_dir;
-        char filepath[FILE_MAX];
-        BLI_path_join(filepath, sizeof(filepath), startfrom, dirent->d_name, NULL);
-        lstat(filepath, &st_dir);
+        lstat(from_path, &st_dir);
         is_dir = S_ISDIR(st_dir.st_mode);
       }
 #  else
@@ -970,22 +1012,22 @@ static int recursive_operation(const char *startfrom,
   } while (false);
 
   if (dirlist != nullptr) {
-    for (i = 0; i < n; i++) {
+    for (int i = 0; i < dirlist_num; i++) {
       free(dirlist[i]);
     }
     free(dirlist);
   }
   if (from_path != nullptr) {
-    MEM_freeN(from_path);
+    free(from_path);
   }
   if (to_path != nullptr) {
-    MEM_freeN(to_path);
+    free(to_path);
   }
   if (from != nullptr) {
-    MEM_freeN(from);
+    free(from);
   }
   if (to != nullptr) {
-    MEM_freeN(to);
+    free(to);
   }
 
   return ret;
@@ -1026,8 +1068,8 @@ static int delete_soft(const char *file, const char **error_message)
 
   Class NSStringClass = objc_getClass("NSString");
   SEL stringWithUTF8StringSel = sel_registerName("stringWithUTF8String:");
-  id pathString = ((
-      id(*)(Class, SEL, const char *))objc_msgSend)(NSStringClass, stringWithUTF8StringSel, file);
+  id pathString = ((id(*)(Class, SEL, const char *))objc_msgSend)(
+      NSStringClass, stringWithUTF8StringSel, file);
 
   Class NSFileManagerClass = objc_getClass("NSFileManager");
   SEL defaultManagerSel = sel_registerName("defaultManager");
@@ -1038,8 +1080,8 @@ static int delete_soft(const char *file, const char **error_message)
   id nsurl = ((id(*)(Class, SEL, id))objc_msgSend)(NSURLClass, fileURLWithPathSel, pathString);
 
   SEL trashItemAtURLSel = sel_registerName("trashItemAtURL:resultingItemURL:error:");
-  BOOL deleteSuccessful = ((
-      BOOL(*)(id, SEL, id, id, id))objc_msgSend)(fileManager, trashItemAtURLSel, nsurl, nil, nil);
+  BOOL deleteSuccessful = ((BOOL(*)(id, SEL, id, id, id))objc_msgSend)(
+      fileManager, trashItemAtURLSel, nsurl, nil, nil);
 
   if (deleteSuccessful) {
     ret = 0;
@@ -1368,7 +1410,8 @@ static const char *path_destination_ensure_filename(const char *path_src,
                                                     size_t buf_size)
 {
   if (BLI_is_dir(path_dst)) {
-    char *path_src_no_slash = strip_last_slash(path_src);
+    char *path_src_no_slash = BLI_strdup(path_src);
+    BLI_path_slash_rstrip(path_src_no_slash);
     const char *filename_src = BLI_path_basename(path_src_no_slash);
     if (filename_src != path_src_no_slash) {
       const size_t buf_size_needed = strlen(path_dst) + 1 + strlen(filename_src) + 1;

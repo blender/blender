@@ -103,7 +103,10 @@ void Instances::ensure_geometry_instances()
   new_references.reserve(references_.size());
   for (const InstanceReference &reference : references_) {
     switch (reference.type()) {
-      case InstanceReference::Type::None:
+      case InstanceReference::Type::None: {
+        new_references.append(InstanceReference(GeometrySet{}));
+        break;
+      }
       case InstanceReference::Type::GeometrySet: {
         /* Those references can stay as their were. */
         new_references.append(reference);

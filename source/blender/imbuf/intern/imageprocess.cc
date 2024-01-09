@@ -83,7 +83,7 @@ void bicubic_interpolation_color(const ImBuf *in, uchar outI[4], float outF[4], 
     BLI_bicubic_interpolation_fl(in->float_buffer.data, outF, in->x, in->y, 4, u, v);
   }
   else {
-    BLI_bicubic_interpolation_char(in->byte_buffer.data, outI, in->x, in->y, 4, u, v);
+    BLI_bicubic_interpolation_char(in->byte_buffer.data, outI, in->x, in->y, u, v);
   }
 }
 
@@ -108,20 +108,18 @@ void bicubic_interpolation(const ImBuf *in, ImBuf *out, float u, float v, int xo
 /** \name Bi-Linear Interpolation
  * \{ */
 
-void bilinear_interpolation_color_fl(
-    const ImBuf *in, uchar /*outI*/[4], float outF[4], float u, float v)
+void bilinear_interpolation_color_fl(const ImBuf *in, float outF[4], float u, float v)
 {
   BLI_assert(outF);
   BLI_assert(in->float_buffer.data);
   BLI_bilinear_interpolation_fl(in->float_buffer.data, outF, in->x, in->y, 4, u, v);
 }
 
-void bilinear_interpolation_color_char(
-    const ImBuf *in, uchar outI[4], float /*outF*/[4], float u, float v)
+void bilinear_interpolation_color_char(const ImBuf *in, uchar outI[4], float u, float v)
 {
   BLI_assert(outI);
   BLI_assert(in->byte_buffer.data);
-  BLI_bilinear_interpolation_char(in->byte_buffer.data, outI, in->x, in->y, 4, u, v);
+  BLI_bilinear_interpolation_char(in->byte_buffer.data, outI, in->x, in->y, u, v);
 }
 
 void bilinear_interpolation_color(const ImBuf *in, uchar outI[4], float outF[4], float u, float v)
@@ -130,7 +128,7 @@ void bilinear_interpolation_color(const ImBuf *in, uchar outI[4], float outF[4],
     BLI_bilinear_interpolation_fl(in->float_buffer.data, outF, in->x, in->y, 4, u, v);
   }
   else {
-    BLI_bilinear_interpolation_char(in->byte_buffer.data, outI, in->x, in->y, 4, u, v);
+    BLI_bilinear_interpolation_char(in->byte_buffer.data, outI, in->x, in->y, u, v);
   }
 }
 

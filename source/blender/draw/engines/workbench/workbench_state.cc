@@ -152,8 +152,13 @@ void SceneState::init(Object *camera_ob /*=nullptr*/)
     reset_taa = true;
   }
 
-  if (assign_if_different(overlays_enabled, v3d && !(v3d->flag2 & V3D_HIDE_OVERLAYS))) {
-    /** Reset TAA when enabling overlays, since we won't have valid sample0 depth textures.
+  bool _overlays_enabled = v3d && !(v3d->flag2 & V3D_HIDE_OVERLAYS);
+  /* Depth is always required in Wireframe mode. */
+  _overlays_enabled = _overlays_enabled || shading.type < OB_SOLID;
+  /* Some overlay passes can be rendered even with overlays disabled (See #116424). */
+  _overlays_enabled = _overlays_enabled || new_clip_state & DRW_STATE_CLIP_PLANES;
+  if (assign_if_different(overlays_enabled, _overlays_enabled)) {
+    /* Reset TAA when enabling overlays, since we won't have valid sample0 depth textures.
      * (See #113741) */
     reset_taa = true;
   }
@@ -188,7 +193,7 @@ static const CustomData *get_loop_custom_data(const Mesh *mesh)
     BLI_assert(mesh->edit_mesh->bm != nullptr);
     return &mesh->edit_mesh->bm->ldata;
   }
-  return &mesh->loop_data;
+  return &mesh->corner_data;
 }
 
 static const CustomData *get_vert_custom_data(const Mesh *mesh)
@@ -219,9 +224,9 @@ ObjectState::ObjectState(const SceneState &scene_state, Object *ob)
   bool has_uv = false;
 
   if (ob->type == OB_MESH) {
-    const Mesh *me = static_cast<Mesh *>(ob->data);
-    const CustomData *cd_vdata = get_vert_custom_data(me);
-    const CustomData *cd_ldata = get_loop_custom_data(me);
+    const Mesh *mesh = static_cast<Mesh *>(ob->data);
+    const CustomData *cd_vdata = get_vert_custom_data(mesh);
+    const CustomData *cd_ldata = get_loop_custom_data(mesh);
 
     has_color = (CustomData_has_layer(cd_vdata, CD_PROP_COLOR) ||
                  CustomData_has_layer(cd_vdata, CD_PROP_BYTE_COLOR) ||

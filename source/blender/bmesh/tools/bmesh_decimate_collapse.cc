@@ -25,10 +25,10 @@
 
 #include "BKE_customdata.hh"
 
-#include "bmesh.h"
-#include "bmesh_decimate.h" /* own include */
+#include "bmesh.hh"
+#include "bmesh_decimate.hh" /* own include */
 
-#include "../intern/bmesh_structure.h"
+#include "../intern/bmesh_structure.hh"
 
 #define USE_SYMMETRY
 #ifdef USE_SYMMETRY
@@ -242,29 +242,29 @@ static void bm_decim_build_edge_cost_single(BMEdge *e,
     goto clear;
   }
 
-  /* check we can collapse, some edges we better not touch */
+  /* Check we can collapse, some edges we better not touch. */
   if (BM_edge_is_boundary(e)) {
     if (e->l->f->len == 3) {
-      /* pass */
+      /* Pass. */
     }
     else {
-      /* only collapse tri's */
+      /* Only collapse triangles. */
       goto clear;
     }
   }
   else if (BM_edge_is_manifold(e)) {
     if ((e->l->f->len == 3) && (e->l->radial_next->f->len == 3)) {
-      /* pass */
+      /* Pass. */
     }
     else {
-      /* only collapse tri's */
+      /* Only collapse triangles. */
       goto clear;
     }
   }
   else {
     goto clear;
   }
-  /* end sanity check */
+  /* End sanity check. */
 
   {
     double optimize_co[3];
@@ -687,7 +687,7 @@ static void bm_edge_collapse_loop_customdata(
 {
   /* Disable seam check - the seam check would have to be done per layer,
    * its not really that important. */
-  //#define USE_SEAM
+  // #define USE_SEAM
   /* these don't need to be updated, since they will get removed when the edge collapses */
   BMLoop *l_clear, *l_other;
   const bool is_manifold = BM_edge_is_manifold(l->e);
@@ -789,7 +789,7 @@ static void bm_edge_collapse_loop_customdata(
     }
   }
 
-  //#undef USE_SEAM
+  // #undef USE_SEAM
 }
 #endif /* USE_CUSTOMDATA */
 

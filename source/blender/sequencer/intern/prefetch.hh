@@ -18,7 +18,7 @@ struct Sequence;
 void seq_prefetch_start(const SeqRenderData *context, float timeline_frame);
 void seq_prefetch_free(Scene *scene);
 bool seq_prefetch_job_is_running(Scene *scene);
-void seq_prefetch_get_time_range(Scene *scene, int *start, int *end);
+void seq_prefetch_get_time_range(Scene *scene, int *r_start, int *r_end);
 /**
  * For cache context swapping.
  */

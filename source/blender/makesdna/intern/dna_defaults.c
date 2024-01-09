@@ -336,7 +336,7 @@ extern const bTheme U_theme_default;
  * Prevent assigning the wrong struct types since all elements in #DNA_default_table are `void *`.
  */
 #if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)
-#  define SDNA_TYPE_CHECKED(v, t) (&(v) + (_Generic((v), t : 0)))
+#  define SDNA_TYPE_CHECKED(v, t) (&(v) + (_Generic((v), t: 0)))
 #else
 #  define SDNA_TYPE_CHECKED(v, t) (&(v))
 #endif

@@ -33,7 +33,7 @@ class BitGroupVector {
   {
     if (group_size < 64) {
       /* Align to next power of two so that a single group never spans across two ints. */
-      return int64_t(power_of_2_max_u(uint32_t(group_size)));
+      return power_of_2_max(group_size);
     }
     /* Align to multiple of BitsPerInt. */
     return (group_size + BitsPerInt - 1) & ~(BitsPerInt - 1);
@@ -74,6 +74,11 @@ class BitGroupVector {
   int64_t size() const
   {
     return aligned_group_size_ == 0 ? 0 : data_.size() / aligned_group_size_;
+  }
+
+  bool is_empty() const
+  {
+    return this->size() == 0;
   }
 
   /** Number of bits per group. */
