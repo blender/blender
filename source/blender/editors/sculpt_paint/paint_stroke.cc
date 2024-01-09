@@ -400,7 +400,7 @@ static bool paint_brush_update(bContext *C,
 
     ups->anchored_size = ups->pixel_radius = sqrtf(dx * dx + dy * dy);
 
-    ups->brush_rotation = ups->brush_rotation_sec = atan2f(dx, dy) + float(M_PI);
+    ups->brush_rotation = ups->brush_rotation_sec = atan2f(dy, dx) + float(0.5f * M_PI);
 
     if (brush->flag & BRUSH_EDGE_TO_EDGE) {
       halfway[0] = dx * 0.5f + stroke->initial_mouse[0];
@@ -1373,7 +1373,7 @@ static bool paint_stroke_curve_end(bContext *C, wmOperator *op, PaintStroke *str
 
       for (j = 0; j < PAINT_CURVE_NUM_SEGMENTS; j++) {
         if (do_rake) {
-          float rotation = atan2f(tangents[2 * j], tangents[2 * j + 1]);
+          float rotation = atan2f(tangents[2 * j + 1], tangents[2 * j]) + float(0.5f * M_PI);
           paint_update_brush_rake_rotation(ups, br, rotation);
         }
 

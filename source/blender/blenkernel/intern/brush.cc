@@ -2116,7 +2116,7 @@ float BKE_brush_sample_tex_3d(const Scene *scene,
     if (mtex->brush_map_mode == MTEX_MAP_MODE_VIEW) {
       /* keep coordinates relative to mouse */
 
-      rotation += ups->brush_rotation;
+      rotation -= ups->brush_rotation;
 
       x = point_2d[0] - ups->tex_mouse[0];
       y = point_2d[1] - ups->tex_mouse[1];
@@ -2134,7 +2134,7 @@ float BKE_brush_sample_tex_3d(const Scene *scene,
       y = point_2d[1];
     }
     else if (mtex->brush_map_mode == MTEX_MAP_MODE_RANDOM) {
-      rotation += ups->brush_rotation;
+      rotation -= ups->brush_rotation;
       /* these contain a random coordinate */
       x = point_2d[0] - ups->tex_mouse[0];
       y = point_2d[1] - ups->tex_mouse[1];
@@ -2229,7 +2229,7 @@ float BKE_brush_sample_masktex(
     if (mtex->brush_map_mode == MTEX_MAP_MODE_VIEW) {
       /* keep coordinates relative to mouse */
 
-      rotation += ups->brush_rotation_sec;
+      rotation -= ups->brush_rotation_sec;
 
       x = point_2d[0] - ups->mask_tex_mouse[0];
       y = point_2d[1] - ups->mask_tex_mouse[1];
@@ -2247,7 +2247,7 @@ float BKE_brush_sample_masktex(
       y = point_2d[1];
     }
     else if (mtex->brush_map_mode == MTEX_MAP_MODE_RANDOM) {
-      rotation += ups->brush_rotation_sec;
+      rotation -= ups->brush_rotation_sec;
       /* these contain a random coordinate */
       x = point_2d[0] - ups->mask_tex_mouse[0];
       y = point_2d[1] - ups->mask_tex_mouse[1];
