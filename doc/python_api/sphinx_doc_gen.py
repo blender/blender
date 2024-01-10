@@ -1217,7 +1217,7 @@ context_type_map = {
     "particle_settings": ("ParticleSettings", False),
     "particle_system": ("ParticleSystem", False),
     "particle_system_editable": ("ParticleSystem", False),
-    "property": ("(:class:`bpy.types.ID`, :class:`string`, :class:`int`)", False),
+    "property": ("(:class:`bpy.types.AnyType`, :class:`string`, :class:`int`)", False),
     "pointcloud": ("PointCloud", False),
     "pose_bone": ("PoseBone", False),
     "pose_object": ("Object", False),

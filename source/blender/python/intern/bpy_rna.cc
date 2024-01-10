@@ -4422,19 +4422,36 @@ static PyObject *pyrna_struct_getattro(BPy_StructRNA *self, PyObject *pyname)
             break;
           }
           case CTX_DATA_TYPE_PROPERTY: {
-            char *path_str = nullptr;
-            if ((newprop != nullptr) && (newptr.owner_id != nullptr) &&
-                (path_str = RNA_path_from_ID_to_property(&newptr, newprop)))
-            {
+            if (newprop != nullptr) {
               /* Create pointer to parent ID, and path from ID to property. */
-              PointerRNA idptr = RNA_id_pointer_create(newptr.owner_id);
-              ret = PyTuple_New(3);
-              PyTuple_SET_ITEMS(ret,
-                                pyrna_struct_CreatePyObject(&idptr),
-                                PyUnicode_FromString(path_str),
-                                PyLong_FromLong(newindex));
+              PointerRNA idptr;
 
-              MEM_freeN(path_str);
+              PointerRNA *base_ptr;
+              char *path_str;
+
+              if (newptr.owner_id) {
+                idptr = RNA_id_pointer_create(newptr.owner_id);
+                path_str = RNA_path_from_ID_to_property(&idptr, newprop);
+                base_ptr = &idptr;
+              }
+              else {
+                path_str = RNA_path_from_ptr_to_property_index(&newptr, newprop, 0, -1);
+                base_ptr = &newptr;
+              }
+
+              if (path_str) {
+                ret = PyTuple_New(3);
+                PyTuple_SET_ITEMS(ret,
+                                  pyrna_struct_CreatePyObject(base_ptr),
+                                  PyUnicode_FromString(path_str),
+                                  PyLong_FromLong(newindex));
+
+                MEM_freeN(path_str);
+              }
+              else {
+                ret = Py_None;
+                Py_INCREF(ret);
+              }
             }
             else {
               ret = Py_None;
