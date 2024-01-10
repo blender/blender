@@ -19,7 +19,7 @@ GPU_SHADER_CREATE_INFO(eevee_hiz_update_base)
     .image(4, GPU_R32F, Qualifier::WRITE, ImageType::FLOAT_2D, "out_mip_4")
     .image(5, GPU_R32F, Qualifier::READ_WRITE, ImageType::FLOAT_2D, "out_mip_5")
     .image(6, GPU_R32F, Qualifier::WRITE, ImageType::FLOAT_2D, "out_mip_6")
-    .specialization_constant(Type::BOOL, "update_mip_0", false)
+    .specialization_constant(Type::BOOL, "update_mip_0", true)
     .compute_source("eevee_hiz_update_comp.glsl");
 
 GPU_SHADER_CREATE_INFO(eevee_hiz_update)
