@@ -213,7 +213,7 @@ static const std::optional<bke::AttrDomain> convert_usd_varying_to_blender(
     blender::Map<pxr::TfToken, bke::AttrDomain> map;
     map.add_new(pxr::UsdGeomTokens->faceVarying, bke::AttrDomain::Corner);
     map.add_new(pxr::UsdGeomTokens->vertex, bke::AttrDomain::Point);
-    map.add_new(pxr::UsdGeomTokens->varying, bke::AttrDomain::Point);
+    map.add_new(pxr::UsdGeomTokens->varying, bke::AttrDomain::Corner);
     map.add_new(pxr::UsdGeomTokens->face, bke::AttrDomain::Face);
     /* As there's no "constant" type in Blender, for now we're
      * translating into a point Attribute. */
