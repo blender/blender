@@ -145,7 +145,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
   MirrorModifierData *mmd = (MirrorModifierData *)ptr->data;
   bool has_bisect = (mmd->flag &
-                     (MOD_MIR_BISECT_AXIS_X | MOD_MIR_BISECT_AXIS_X | MOD_MIR_BISECT_AXIS_X));
+                     (MOD_MIR_BISECT_AXIS_X | MOD_MIR_BISECT_AXIS_Y | MOD_MIR_BISECT_AXIS_Z));
 
   col = uiLayoutColumn(layout, false);
   uiLayoutSetPropSep(col, true);
