@@ -96,13 +96,13 @@ float lightprobe_roughness_to_lod(float roughness)
   return sqrt(roughness) * 11.0;
 }
 
-vec3 lightprobe_eval(LightProbeSample samp, ClosureDiffuse cl, vec3 P, vec3 V, vec2 noise)
+vec3 lightprobe_eval(LightProbeSample samp, ClosureDiffuse cl, vec3 P, vec3 V)
 {
   vec3 radiance_sh = spherical_harmonics_evaluate_lambert(cl.N, samp.volume_irradiance);
   return radiance_sh;
 }
 
-vec3 lightprobe_eval(LightProbeSample samp, ClosureTranslucent cl, vec3 P, vec3 V, vec2 noise)
+vec3 lightprobe_eval(LightProbeSample samp, ClosureTranslucent cl, vec3 P, vec3 V)
 {
   vec3 radiance_sh = spherical_harmonics_evaluate_lambert(-cl.N, samp.volume_irradiance);
   return radiance_sh;
@@ -116,11 +116,9 @@ vec3 lightprobe_reflection_dominant_dir(vec3 N, vec3 V, float roughness)
   return normalize(mix(N, R, fac));
 }
 
-vec3 lightprobe_eval(
-    LightProbeSample samp, ClosureReflection reflection, vec3 P, vec3 V, vec2 noise)
+vec3 lightprobe_eval(LightProbeSample samp, ClosureReflection reflection, vec3 P, vec3 V)
 {
   vec3 L = lightprobe_reflection_dominant_dir(reflection.N, V, reflection.roughness);
-  // vec3 L = ray_generate_direction(noise, reflection, V, pdf);
 
   float lod = lightprobe_roughness_to_lod(reflection.roughness);
   vec3 radiance_cube = lightprobe_spherical_sample_normalized_with_parallax(
@@ -139,10 +137,9 @@ vec3 lightprobe_refraction_dominant_dir(vec3 N, vec3 V, float ior, float roughne
   return normalize(mix(-N, R, fac));
 }
 
-vec3 lightprobe_eval(LightProbeSample samp, ClosureRefraction cl, vec3 P, vec3 V, vec2 noise)
+vec3 lightprobe_eval(LightProbeSample samp, ClosureRefraction cl, vec3 P, vec3 V)
 {
   vec3 L = lightprobe_refraction_dominant_dir(cl.N, V, cl.ior, cl.roughness);
-  // vec3 L = ray_generate_direction(noise, cl, V, pdf);
 
   float lod = lightprobe_roughness_to_lod(cl.roughness);
   vec3 radiance_cube = lightprobe_spherical_sample_normalized_with_parallax(
