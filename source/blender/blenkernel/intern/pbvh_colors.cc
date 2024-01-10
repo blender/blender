@@ -86,9 +86,56 @@ template<> void from_float(const float src[4], MPropCol &dst)
 }
 
 template<typename T>
+static void pbvh_vertex_color_get_bmesh(const PBVH &pbvh, PBVHVertRef vertex, float r_color[4])
+{
+  BMVert *v = reinterpret_cast<BMVert *>(vertex.i);
+  int cd_color = pbvh.color_layer->offset;
+
+  if (pbvh.color_domain == AttrDomain::Corner) {
+    zero_v4(r_color);
+
+    if (!v->e) {
+      return;
+    }
+
+    BMEdge *e = v->e;
+    int count = 0;
+
+    do {
+      BMLoop *l = e->l;
+      if (l) {
+        do {
+          BMLoop *l_color = l->v != v ? l->next : l;
+          T *color = BM_ELEM_CD_PTR<T *>(l_color, cd_color);
+
+          float temp[4];
+          to_float(*color, temp);
+          add_v4_v4(r_color, temp);
+          count++;
+        } while ((l = l->radial_next) != e->l);
+      }
+    } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
+
+    if (count) {
+      mul_v4_fl(r_color, 1.0f / float(count));
+    }
+
+    return;
+  }
+
+  T *color = BM_ELEM_CD_PTR<T *>(v, cd_color);
+  to_float(*color, r_color);
+}
+
+template<typename T>
 static void pbvh_vertex_color_get(const PBVH &pbvh, PBVHVertRef vertex, float r_color[4])
 {
   int index = vertex.i;
+
+  if (pbvh.header.bm) {
+    pbvh_vertex_color_get_bmesh<T>(pbvh, vertex, r_color);
+    return;
+  }
 
   if (pbvh.color_domain == AttrDomain::Corner) {
     int count = 0;
@@ -119,9 +166,42 @@ static void pbvh_vertex_color_get(const PBVH &pbvh, PBVHVertRef vertex, float r_
 }
 
 template<typename T>
+static void pbvh_vertex_color_set_bmesh(const PBVH &pbvh, PBVHVertRef vertex, const float color[4])
+{
+  BMVert *v = reinterpret_cast<BMVert *>(vertex.i);
+  int cd_color = pbvh.color_layer->offset;
+
+  if (pbvh.color_domain == AttrDomain::Corner) {
+    if (!v->e) {
+      return;
+    }
+
+    BMEdge *e = v->e;
+    do {
+      BMLoop *l = e->l;
+      if (l) {
+        do {
+          BMLoop *l_color = l->v != v ? l->next : l;
+          from_float(color, *BM_ELEM_CD_PTR<T *>(l_color, cd_color)); 
+        } while ((l = l->radial_next) != e->l);
+      }
+    } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
+
+    return;
+  }
+
+  from_float(color, *BM_ELEM_CD_PTR<T *>(v, cd_color));
+}
+
+template<typename T>
 static void pbvh_vertex_color_set(PBVH &pbvh, PBVHVertRef vertex, const float color[4])
 {
   int index = vertex.i;
+
+  if (pbvh.header.bm) {
+    pbvh_vertex_color_set_bmesh<T>(pbvh, vertex, color);
+    return;
+  }
 
   if (pbvh.color_domain == AttrDomain::Corner) {
     for (const int i_face : pbvh.pmap[index]) {

@@ -4267,7 +4267,7 @@ void CustomData_bmesh_copy_block(CustomData &data, void *src_block, void **dst_b
   if (*dst_block) {
     for (const CustomDataLayer &layer : Span(data.layers, data.totlayer)) {
       const LayerTypeInfo &info = *layerType_getInfo(eCustomDataType(layer.type));
-      if (info.free) {
+      if (info.free && !(layer.flag & CD_FLAG_ELEM_NOCOPY)) {
         info.free(POINTER_OFFSET(*dst_block, layer.offset), 1);
       }
     }
@@ -4276,10 +4276,14 @@ void CustomData_bmesh_copy_block(CustomData &data, void *src_block, void **dst_b
     if (data.totsize == 0) {
       return;
     }
-    *dst_block = BLI_mempool_alloc(data.pool);
+    *dst_block = BLI_mempool_calloc(data.pool);
   }
 
   for (const CustomDataLayer &layer : Span(data.layers, data.totlayer)) {
+    if (layer.flag & CD_FLAG_ELEM_NOCOPY) {
+      continue;
+    }
+
     const int offset = layer.offset;
     const LayerTypeInfo &info = *layerType_getInfo(eCustomDataType(layer.type));
     if (info.copy) {

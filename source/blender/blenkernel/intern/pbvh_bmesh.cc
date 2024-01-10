@@ -888,6 +888,11 @@ static void pbvh_bmesh_node_split(
   BKE_pbvh_free_proxyarray(pbvh, n);
 #endif
 
+  if (!n->bm_faces) {
+    printf("%s: n->bm_faces was nullptr! depth: %d\n", __func__, depth);
+    return;
+  }
+
   if (n->depth >= PBVH_STACK_FIXED_DEPTH || n->bm_faces->size() <= pbvh->leaf_limit) {
     /* Node limit not exceeded */
     pbvh_bmesh_node_finalize(pbvh, node_index, cd_vert_node_offset, cd_face_node_offset, add_orco);
@@ -915,7 +920,7 @@ static void pbvh_bmesh_node_split(
   /* Add two new child nodes */
   const int children = pbvh->nodes.size();
   n->children_offset = children;
-  pbvh->nodes.reserve(pbvh->nodes.size() + 2);
+  pbvh->nodes.resize(pbvh->nodes.size() + 2);
 
   /* Array reallocated, update current node pointer */
   n = &pbvh->nodes[node_index];
@@ -2492,7 +2497,7 @@ ATTR_NO_OPT void build_bmesh(PBVH *pbvh,
   /* start recursion, assign faces to nodes accordingly */
   pbvh_bmesh_node_limit_ensure_fast(pbvh, nodeinfo, bbc_array, &rootnode, leaves, arena);
 
-  pbvh->nodes.reserve(pbvh->nodes.size() + 1);
+  pbvh->nodes.resize(pbvh->nodes.size() + 1);
   rootnode.node_index = 0;
 
   pbvh_bmesh_create_nodes_fast_recursive_create(pbvh, nodeinfo, bbc_array, &rootnode);
