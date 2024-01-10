@@ -345,6 +345,9 @@ static void attr_create_motion(Mesh *mesh, BL::Attribute &b_attribute, const flo
   BL::FloatVectorAttribute b_vector_attribute(b_attribute);
   const int numverts = mesh->get_verts().size();
 
+  /* Override motion steps to fixed number. */
+  mesh->set_motion_steps(3);
+
   /* Find or add attribute */
   float3 *P = &mesh->get_verts()[0];
   Attribute *attr_mP = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);

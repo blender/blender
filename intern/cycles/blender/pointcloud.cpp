@@ -29,6 +29,9 @@ static void attr_create_motion(PointCloud *pointcloud,
   BL::FloatVectorAttribute b_vector_attribute(b_attribute);
   const int num_points = pointcloud->get_points().size();
 
+  /* Override motion steps to fixed number. */
+  pointcloud->set_motion_steps(3);
+
   /* Find or add attribute */
   float3 *P = pointcloud->get_points().data();
   float *radius = pointcloud->get_radius().data();

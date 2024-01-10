@@ -700,6 +700,9 @@ static void attr_create_motion(Hair *hair, BL::Attribute &b_attribute, const flo
   const float(*src)[3] = static_cast<const float(*)[3]>(b_vector_attribute.data[0].ptr.data);
   const int num_curve_keys = hair->get_curve_keys().size();
 
+  /* Override motion steps to fixed number. */
+  hair->set_motion_steps(3);
+
   /* Find or add attribute */
   float3 *P = &hair->get_curve_keys()[0];
   Attribute *attr_mP = hair->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
