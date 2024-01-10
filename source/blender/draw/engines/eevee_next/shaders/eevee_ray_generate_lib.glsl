@@ -12,6 +12,7 @@
 #pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_bxdf_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_ray_types_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
 
 struct BsdfSample {
   vec3 direction;
