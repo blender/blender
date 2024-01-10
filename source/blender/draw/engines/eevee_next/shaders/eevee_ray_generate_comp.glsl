@@ -34,6 +34,7 @@ void main()
   vec3 P = drw_point_screen_to_world(vec3(uv, 0.5));
   vec3 V = drw_world_incident_vector(P);
   vec2 noise = utility_tx_fetch(utility_tx, vec2(texel), UTIL_BLUE_NOISE_LAYER).rg;
+  noise = fract(noise + sampling_rng_2D_get(SAMPLING_RAYTRACE_U));
 
   BsdfSample samp = ray_generate_direction(noise.xy, gbuffer_closure_get(gbuf, closure_index), V);
 
