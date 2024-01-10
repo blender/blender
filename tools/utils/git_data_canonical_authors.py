@@ -476,8 +476,9 @@ def canonical_author_map() -> Dict[str, str]:
             "Mikhail <ktdfly>",
             "Mikhail Matrosov <kdtfly>",
         ),
-        "Monique Dewanchand <m.dewanchand@atmind.nl>": (
+        "Monique Dewanchand <mdewanchand@atmind.nl>": (
             "Monique Dewanchand <mdewanchand>",
+            "Monique Dewanchand <m.dewanchand@atmind.nl>",
         ),
         "Nate Rupsis <nrupsis@gmail.com>": (
             "Nate Rupsis <C-Nathaniel.Rupsis@charter.com>",
