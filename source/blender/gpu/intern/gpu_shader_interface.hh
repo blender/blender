@@ -48,7 +48,7 @@ class ShaderInterface {
   friend shader::ShaderCreateInfo;
   /* TODO(fclem): should be protected. */
  public:
-  /** Flat array. In this order: Attributes, Ubos, Uniforms. */
+  /** Flat array. In this order: Attributes, Ubos, Uniforms, SSBOs, Constants. */
   ShaderInput *inputs_ = nullptr;
   /** Buffer containing all inputs names separated by '\0'. */
   char *name_buffer_ = nullptr;
@@ -57,6 +57,7 @@ class ShaderInterface {
   uint ubo_len_ = 0;
   uint uniform_len_ = 0;
   uint ssbo_len_ = 0;
+  uint constant_len_ = 0;
   /** Enabled bind-points that needs to be fed with data. */
   uint16_t enabled_attr_mask_ = 0;
   uint16_t enabled_ubo_mask_ = 0;
@@ -115,6 +116,12 @@ class ShaderInterface {
   inline const ShaderInput *ssbo_get(const int binding) const
   {
     return input_lookup(inputs_ + attr_len_ + ubo_len_ + uniform_len_, ssbo_len_, binding);
+  }
+
+  inline const ShaderInput *constant_get(const char *name) const
+  {
+    return input_lookup(
+        inputs_ + attr_len_ + ubo_len_ + uniform_len_ + ssbo_len_, constant_len_, name);
   }
 
   inline const char *input_name_get(const ShaderInput *input) const

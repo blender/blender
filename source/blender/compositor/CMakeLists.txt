@@ -648,10 +648,7 @@ if(WITH_COMPOSITOR_CPU)
 
   blender_add_lib(bf_compositor "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
-  if(WITH_UNITY_BUILD)
-    set_target_properties(bf_compositor PROPERTIES UNITY_BUILD ON)
-    set_target_properties(bf_compositor PROPERTIES UNITY_BUILD_BATCH_SIZE 10)
-  endif()
+  blender_set_target_unity_build(bf_compositor 10)
 
   if(COMMAND target_precompile_headers)
     target_precompile_headers(bf_compositor PRIVATE COM_precomp.h)
@@ -674,8 +671,7 @@ if(WITH_COMPOSITOR_CPU)
     set(TEST_LIB
       bf_compositor
     )
-    include(GTestTesting)
-    blender_add_test_lib(bf_compositor_tests "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}")
+    blender_add_test_suite_lib(compositor "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}")
   endif()
 
   # RNA_prototypes.h

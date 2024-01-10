@@ -16,6 +16,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_attribute.hh"
+#include "BKE_customdata.hh"
 #include "BKE_global.h"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
@@ -83,7 +84,8 @@ NodeGroup *BlenderFileLoader::Load()
     }
 
     if ((ob->base_flag & (BASE_HOLDOUT | BASE_INDIRECT_ONLY)) ||
-        (ob->visibility_flag & OB_HOLDOUT)) {
+        (ob->visibility_flag & OB_HOLDOUT))
+    {
       continue;
     }
 

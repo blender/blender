@@ -505,7 +505,6 @@ static float *sculpt_expand_topology_falloff_create(Sculpt *sd, Object *ob, cons
   fdata.dists = dists;
 
   flood_fill::execute(ss, &flood, expand_topology_floodfill_cb, &fdata);
-  flood_fill::free_fill(&flood);
 
   return dists;
 }
@@ -566,7 +565,6 @@ static float *sculpt_expand_normal_falloff_create(Sculpt *sd,
   SCULPT_vertex_normal_get(ss, v, fdata.original_normal);
 
   flood_fill::execute(ss, &flood, mask_expand_normal_floodfill_cb, &fdata);
-  flood_fill::free_fill(&flood);
 
   for (int repeat = 0; repeat < blur_steps; repeat++) {
     for (int i = 0; i < totvert; i++) {
@@ -641,7 +639,7 @@ static float *sculpt_expand_boundary_topology_falloff_create(Sculpt *sd,
   const int totvert = SCULPT_vertex_count_get(ss);
   float *dists = static_cast<float *>(MEM_calloc_arrayN(totvert, sizeof(float), __func__));
   BitVector<> visited_verts(totvert);
-  GSQueue *queue = BLI_gsqueue_new(sizeof(PBVHVertRef));
+  std::queue<PBVHVertRef> queue;
 
   /* Search and initialize a boundary per symmetry pass, then mark those verts as visited. */
   const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
@@ -659,22 +657,23 @@ static float *sculpt_expand_boundary_topology_falloff_create(Sculpt *sd,
     }
 
     for (int i = 0; i < boundary->verts_num; i++) {
-      BLI_gsqueue_push(queue, &boundary->verts[i]);
+      queue.push(boundary->verts[i]);
       visited_verts[BKE_pbvh_vertex_to_index(ss->pbvh, boundary->verts[i])].set();
     }
     boundary::data_free(boundary);
   }
 
   /* If there are no boundaries, return a falloff with all values set to 0. */
-  if (BLI_gsqueue_is_empty(queue)) {
+  if (queue.empty()) {
     return dists;
   }
 
   /* Propagate the values from the boundaries to the rest of the mesh. */
-  while (!BLI_gsqueue_is_empty(queue)) {
-    PBVHVertRef v_next;
+  while (!queue.empty()) {
+    PBVHVertRef v_next = queue.front();
+    queue.pop();
 
-    BLI_gsqueue_pop(queue, &v_next);
+    int v_next_i = BKE_pbvh_vertex_to_index(ss->pbvh, v_next);
 
     SculptVertexNeighborIter ni;
     SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, v_next, ni) {
@@ -686,12 +685,11 @@ static float *sculpt_expand_boundary_topology_falloff_create(Sculpt *sd,
 
       dists[ni.index] = dists[v_next_i] + 1.0f;
       visited_verts[ni.index].set();
-      BLI_gsqueue_push(queue, &ni.vertex);
+      queue.push(ni.vertex);
     }
     SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
   }
 
-  BLI_gsqueue_free(queue);
   return dists;
 }
 
@@ -720,7 +718,7 @@ static float *sculpt_expand_diagonals_falloff_create(Object *ob, const PBVHVertR
 
   /* Search and mask as visited the initial vertices using the enabled symmetry passes. */
   BitVector<> visited_verts(totvert);
-  GSQueue *queue = BLI_gsqueue_new(sizeof(PBVHVertRef));
+  std::queue<PBVHVertRef> queue;
   const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
   for (char symm_it = 0; symm_it <= symm; symm_it++) {
     if (!SCULPT_is_symmetry_iteration_valid(symm_it, symm)) {
@@ -731,18 +729,18 @@ static float *sculpt_expand_diagonals_falloff_create(Object *ob, const PBVHVertR
         ob, symm_it, v);
     int symm_vertex_i = BKE_pbvh_vertex_to_index(ss->pbvh, symm_vertex);
 
-    BLI_gsqueue_push(queue, &symm_vertex);
+    queue.push(symm_vertex);
     visited_verts[symm_vertex_i].set();
   }
 
-  if (BLI_gsqueue_is_empty(queue)) {
+  if (queue.empty()) {
     return dists;
   }
 
   /* Propagate the falloff increasing the value by 1 each time a new vertex is visited. */
-  while (!BLI_gsqueue_is_empty(queue)) {
-    PBVHVertRef v_next;
-    BLI_gsqueue_pop(queue, &v_next);
+  while (!queue.empty()) {
+    PBVHVertRef v_next = queue.front();
+    queue.pop();
 
     int v_next_i = BKE_pbvh_vertex_to_index(ss->pbvh, v_next);
 
@@ -758,21 +756,21 @@ static float *sculpt_expand_diagonals_falloff_create(Object *ob, const PBVHVertR
           BMVert *neighbor_v = l->next->v;
           const int neighbor_v_i = BM_elem_index_get(neighbor_v);
 
-          if (BLI_BITMAP_TEST(visited_verts, neighbor_v_i)) {
+          if (visited_verts[neighbor_v_i].test()) {
             l = l->next;
             continue;
           }
 
           dists[neighbor_v_i] = dists[v_next_i] + 1.0f;
-          BLI_BITMAP_ENABLE(visited_verts, neighbor_v_i);
-          BLI_gsqueue_push(queue, &neighbor_v);
+          visited_verts[neighbor_v_i].set();
+          queue.push({reinterpret_cast<intptr_t>(neighbor_v)});
 
           l = l->next;
         } while (l != f->l_first);
       }
     }
     else {
-      for (const int face : ss->pmap[v_next_i]) {
+      for (const int face : ss->vert_to_face_map[v_next_i]) {
         for (const int vert : ss->corner_verts.slice(ss->faces[face])) {
           const PBVHVertRef neighbor_v = BKE_pbvh_make_vref(vert);
           if (visited_verts[neighbor_v.i]) {
@@ -780,13 +778,12 @@ static float *sculpt_expand_diagonals_falloff_create(Object *ob, const PBVHVertR
           }
           dists[neighbor_v.i] = dists[v_next_i] + 1.0f;
           visited_verts[neighbor_v.i].set();
-          BLI_gsqueue_push(queue, &neighbor_v);
+          queue.push(neighbor_v);
         }
       }
     }
   }
 
-  BLI_gsqueue_free(queue);
   return dists;
 }
 
@@ -987,7 +984,6 @@ static void sculpt_expand_topology_from_state_boundary(Object *ob,
   ExpandFloodFillData fdata;
   fdata.dists = dists;
   flood_fill::execute(ss, &flood, expand_topology_floodfill_cb, &fdata);
-  flood_fill::free_fill(&flood);
 
   expand_cache->vert_falloff = dists;
 }
@@ -1212,7 +1208,6 @@ static void sculpt_expand_cache_data_free(Cache *expand_cache)
 {
   MEM_SAFE_FREE(expand_cache->vert_falloff);
   MEM_SAFE_FREE(expand_cache->face_falloff);
-  MEM_SAFE_FREE(expand_cache->original_mask);
   MEM_SAFE_FREE(expand_cache->original_colors);
   MEM_delete<Cache>(expand_cache);
 }
@@ -1313,7 +1308,7 @@ static void sculpt_expand_restore_original_state(bContext *C, Object *ob, Cache 
   SculptSession *ss = ob->sculpt;
   switch (expand_cache->target) {
     case SCULPT_EXPAND_TARGET_MASK:
-      write_mask_data(ss, {expand_cache->original_mask, SCULPT_vertex_count_get(ss)});
+      write_mask_data(ss, expand_cache->original_mask);
       SCULPT_flush_update_step(C, SCULPT_UPDATE_MASK);
       SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
       SCULPT_tag_update_overlays(C);
@@ -1512,12 +1507,7 @@ static void sculpt_expand_original_state_store(Object *ob, Cache *expand_cache)
   expand_cache->original_face_sets = face_set::duplicate_face_sets(*ob);
 
   if (expand_cache->target == SCULPT_EXPAND_TARGET_MASK) {
-    expand_cache->original_mask = static_cast<float *>(
-        MEM_malloc_arrayN(totvert, sizeof(float), "initial mask"));
-    for (int i = 0; i < totvert; i++) {
-      expand_cache->original_mask[i] = SCULPT_vertex_mask_get(
-          ss, BKE_pbvh_index_to_vertex(ss->pbvh, i));
-    }
+    expand_cache->original_mask = mask::duplicate_mask(*ob);
   }
 
   if (expand_cache->target == SCULPT_EXPAND_TARGET_COLORS) {
@@ -2170,7 +2160,7 @@ static void sculpt_expand_delete_face_set_id(int *r_face_sets,
   }
 
   const int totface = ss->totfaces;
-  const GroupedSpan<int> pmap = ss->pmap;
+  const GroupedSpan<int> vert_to_face_map = ss->vert_to_face_map;
   const OffsetIndices faces = mesh->faces();
   const Span<int> corner_verts = mesh->corner_verts();
 
@@ -2210,7 +2200,7 @@ static void sculpt_expand_delete_face_set_id(int *r_face_sets,
       const int f_index = POINTER_AS_INT(BLI_LINKSTACK_POP(queue));
       int other_id = delete_id;
       for (const int vert : corner_verts.slice(faces[f_index])) {
-        for (const int neighbor_face_index : pmap[vert]) {
+        for (const int neighbor_face_index : vert_to_face_map[vert]) {
           if (expand_cache->original_face_sets[neighbor_face_index] <= 0) {
             /* Skip picking IDs from hidden Face Sets. */
             continue;
@@ -2305,6 +2295,54 @@ static void sculpt_expand_undo_push(Object *ob, Cache *expand_cache)
   }
 }
 
+static bool any_nonzero_mask(const Object &object)
+{
+  const SculptSession &ss = *object.sculpt;
+  switch (BKE_pbvh_type(ss.pbvh)) {
+    case PBVH_FACES: {
+      const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+      const bke::AttributeAccessor attributes = mesh.attributes();
+      const VArraySpan mask = *attributes.lookup<float>(".sculpt_mask");
+      if (mask.is_empty()) {
+        return false;
+      }
+      return std::any_of(
+          mask.begin(), mask.end(), [&](const float value) { return value > 0.0f; });
+    }
+    case PBVH_GRIDS: {
+      const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
+      const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
+      if (!key.has_mask) {
+        return false;
+      }
+      return std::any_of(subdiv_ccg.grids.begin(), subdiv_ccg.grids.end(), [&](CCGElem *elem) {
+        for (const int i : IndexRange(key.grid_area)) {
+          if (*CCG_elem_offset_mask(&key, elem, i) > 0.0f) {
+            return true;
+          }
+        }
+        return false;
+      });
+    }
+    case PBVH_BMESH: {
+      BMesh &bm = *ss.bm;
+      const int offset = CustomData_get_offset_named(&bm.vdata, CD_PROP_FLOAT, ".sculpt_mask");
+      if (offset == -1) {
+        return false;
+      }
+      BMIter iter;
+      BMVert *vert;
+      BM_ITER_MESH (vert, &iter, &bm, BM_VERTS_OF_MESH) {
+        if (BM_ELEM_CD_GET_FLOAT(vert, offset) > 0.0f) {
+          return true;
+        }
+      }
+      return false;
+    }
+  }
+  return false;
+}
+
 static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
@@ -2336,19 +2374,7 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
     BKE_sculpt_mask_layers_ensure(depsgraph, CTX_data_main(C), ob, mmd);
 
     if (RNA_boolean_get(op->ptr, "use_auto_mask")) {
-      int verts_num = SCULPT_vertex_count_get(ss);
-      bool ok = true;
-
-      for (int i = 0; i < verts_num; i++) {
-        PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
-
-        if (SCULPT_vertex_mask_get(ss, vertex) != 0.0f) {
-          ok = false;
-          break;
-        }
-      }
-
-      if (ok) {
+      if (any_nonzero_mask(*ob)) {
         write_mask_data(ss, Array<float>(SCULPT_vertex_count_get(ss), 1.0f));
       }
     }

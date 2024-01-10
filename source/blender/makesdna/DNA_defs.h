@@ -87,8 +87,7 @@ template<class T> class ShallowDataConstRef {
   const T &ref_;
 };
 
-class ShallowZeroInitializeTag {
-};
+class ShallowZeroInitializeTag {};
 
 }  // namespace blender::dna::internal
 

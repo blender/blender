@@ -295,7 +295,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   Map<int, std::unique_ptr<GeometrySet>> geometry_by_group_id;
 
   if (src_geometry.has_mesh() &&
-      ELEM(domain, AttrDomain::Point, AttrDomain::Edge, AttrDomain::Face)) {
+      ELEM(domain, AttrDomain::Point, AttrDomain::Edge, AttrDomain::Face))
+  {
     const auto &component = *src_geometry.get_component<MeshComponent>();
     split_mesh_groups(component,
                       domain,

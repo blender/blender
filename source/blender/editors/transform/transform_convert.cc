@@ -575,7 +575,8 @@ bool constraints_list_needinv(TransInfo *t, ListBase *list)
           bChildOfConstraint *data = (bChildOfConstraint *)con->data;
 
           if ((data->flag & CHILDOF_LOCX) && (data->flag & CHILDOF_LOCY) &&
-              (data->flag & CHILDOF_LOCZ)) {
+              (data->flag & CHILDOF_LOCZ))
+          {
             return true;
           }
         }
@@ -584,7 +585,8 @@ bool constraints_list_needinv(TransInfo *t, ListBase *list)
           bRotateLikeConstraint *data = (bRotateLikeConstraint *)con->data;
 
           if (ELEM(data->mix_mode, ROTLIKE_MIX_OFFSET, ROTLIKE_MIX_BEFORE) &&
-              ELEM(t->mode, TFM_ROTATION)) {
+              ELEM(t->mode, TFM_ROTATION))
+          {
             return true;
           }
         }

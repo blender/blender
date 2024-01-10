@@ -24,6 +24,8 @@
 #include "BKE_attribute_math.hh"
 #include "BKE_curves.h"
 
+struct BlendDataReader;
+struct BlendWriter;
 struct MDeformVert;
 namespace blender::bke {
 class AnonymousAttributePropagationInfo;

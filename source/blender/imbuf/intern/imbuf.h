@@ -28,7 +28,7 @@
 
 #define SWAP_SHORT(x) (((x & 0xff) << 8) | ((x >> 8) & 0xff))
 #define SWAP_LONG(x) \
-  (((x) << 24) | (((x)&0xff00) << 8) | (((x) >> 8) & 0xff00) | (((x) >> 24) & 0xff))
+  (((x) << 24) | (((x) & 0xff00) << 8) | (((x) >> 8) & 0xff00) | (((x) >> 24) & 0xff))
 
 #define ENDIAN_NOP(x) (x)
 

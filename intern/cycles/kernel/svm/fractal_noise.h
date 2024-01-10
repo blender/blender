@@ -8,7 +8,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* Fractal Brownian motion*/
+/* Fractal Brownian motion. */
 
 ccl_device_noinline float noise_fbm(
     float p, float detail, float roughness, float lacunarity, bool normalize)

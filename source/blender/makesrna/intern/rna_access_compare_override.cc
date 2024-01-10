@@ -26,7 +26,7 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-//#define DEBUG_OVERRIDE_TIMEIT
+// #define DEBUG_OVERRIDE_TIMEIT
 
 #ifdef DEBUG_OVERRIDE_TIMEIT
 #  include "PIL_time_utildefines.h"
@@ -709,7 +709,8 @@ bool RNA_struct_override_matches(Main *bmain,
     }
 
     if (!prop_local.is_idprop &&
-        RNA_property_override_flag(prop_local.rnaprop) & PROPOVERRIDE_IGNORE) {
+        RNA_property_override_flag(prop_local.rnaprop) & PROPOVERRIDE_IGNORE)
+    {
       continue;
     }
 
@@ -835,7 +836,8 @@ bool RNA_struct_override_matches(Main *bmain,
       }
 
       if ((do_restore || do_tag_for_restore) &&
-          (report_flags & RNA_OVERRIDE_MATCH_RESULT_CREATED) == 0) {
+          (report_flags & RNA_OVERRIDE_MATCH_RESULT_CREATED) == 0)
+      {
         /* We are allowed to restore to reference's values. */
         if (ELEM(nullptr, op, opop) || opop->operation == LIBOVERRIDE_OP_NOOP) {
           if (RNA_property_editable(ptr_local, rawprop)) {
@@ -1600,7 +1602,8 @@ void RNA_struct_override_apply(Main *bmain,
         }
         else if (op->rna_prop_type == PROP_COLLECTION) {
           if (RNA_struct_is_ID(
-                  RNA_property_pointer_type(&rnaapply_ctx.ptr_src, rnaapply_ctx.prop_src))) {
+                  RNA_property_pointer_type(&rnaapply_ctx.ptr_src, rnaapply_ctx.prop_src)))
+          {
             BLI_assert(id_ptr_src->owner_id ==
                        rna_property_override_property_real_id_owner(
                            bmain, &rnaapply_ctx.ptr_src, nullptr, nullptr));

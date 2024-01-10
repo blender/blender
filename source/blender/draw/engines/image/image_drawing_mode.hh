@@ -498,7 +498,8 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
           float v = info.clipping_uv_bounds.ymax * yf + info.clipping_uv_bounds.ymin * (1.0 - yf) -
                     tile_offset_y;
           for (int x = gpu_texture_region_to_update.xmin; x < gpu_texture_region_to_update.xmax;
-               x++) {
+               x++)
+          {
             float xf = x / (float)texture_width;
             float u = info.clipping_uv_bounds.xmax * xf +
                       info.clipping_uv_bounds.xmin * (1.0 - xf) - tile_offset_x;

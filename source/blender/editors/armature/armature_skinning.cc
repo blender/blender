@@ -22,6 +22,7 @@
 
 #include "BKE_action.h"
 #include "BKE_armature.hh"
+#include "BKE_attribute.hh"
 #include "BKE_deform.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_iterators.hh"
@@ -81,7 +82,8 @@ static int bone_skinnable_cb(Object * /*ob*/, Bone *bone, void *datap)
   if (!(data->is_weight_paint) || !(bone->flag & BONE_HIDDEN_P)) {
     if (!(bone->flag & BONE_NO_DEFORM)) {
       if (data->heat && data->armob->pose &&
-          BKE_pose_channel_find_name(data->armob->pose, bone->name)) {
+          BKE_pose_channel_find_name(data->armob->pose, bone->name))
+      {
         segments = bone->segments;
       }
       else {
@@ -155,7 +157,8 @@ static int dgroup_skinnable_cb(Object *ob, Bone *bone, void *datap)
   if (!data->is_weight_paint || !(bone->flag & BONE_HIDDEN_P)) {
     if (!(bone->flag & BONE_NO_DEFORM)) {
       if (data->heat && data->armob->pose &&
-          BKE_pose_channel_find_name(data->armob->pose, bone->name)) {
+          BKE_pose_channel_find_name(data->armob->pose, bone->name))
+      {
         segments = bone->segments;
       }
       else {
@@ -163,7 +166,7 @@ static int dgroup_skinnable_cb(Object *ob, Bone *bone, void *datap)
       }
 
       if (!data->is_weight_paint ||
-          (ANIM_bonecoll_is_visible(arm, bone) && (bone->flag & BONE_SELECTED)))
+          (ANIM_bone_in_visible_collection(arm, bone) && (bone->flag & BONE_SELECTED)))
       {
         if (!(defgroup = BKE_object_defgroup_find_name(ob, bone->name))) {
           defgroup = BKE_object_defgroup_add_name(ob, bone->name);
@@ -200,6 +203,7 @@ static void envelope_bone_weighting(Object *ob,
                                     const int *selected,
                                     float scale)
 {
+  using namespace blender;
   /* Create vertex group weights from envelopes */
 
   bool use_topology = (mesh->editflag & ME_EDIT_MIRROR_TOPO) != 0;
@@ -211,8 +215,8 @@ static void envelope_bone_weighting(Object *ob,
     use_mask = true;
   }
 
-  const bool *select_vert = (const bool *)CustomData_get_layer_named(
-      &mesh->vert_data, CD_PROP_BOOL, ".select_vert");
+  const bke::AttributeAccessor attributes = mesh->attributes();
+  const VArray select_vert = *attributes.lookup<bool>(".select_vert", bke::AttrDomain::Point);
 
   /* for each vertex in the mesh */
   for (int i = 0; i < mesh->verts_num; i++) {
@@ -381,7 +385,7 @@ static void add_verts_to_dgroups(ReportList *reports,
 
     /* set selected */
     if (wpmode) {
-      if (ANIM_bonecoll_is_visible(arm, bone) && (bone->flag & BONE_SELECTED)) {
+      if (ANIM_bone_in_visible_collection(arm, bone) && (bone->flag & BONE_SELECTED)) {
         selected[j] = 1;
       }
     }

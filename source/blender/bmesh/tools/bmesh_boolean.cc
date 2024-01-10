@@ -8,6 +8,8 @@
  * Main functions for boolean on a #BMesh (used by the tool and modifier)
  */
 
+#include <functional>
+
 #include "BLI_array.hh"
 #include "BLI_math_mpq.hh"
 #include "BLI_mesh_boolean.hh"

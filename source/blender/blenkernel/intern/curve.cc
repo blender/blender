@@ -4256,7 +4256,8 @@ void BKE_nurbList_handles_set(ListBase *editnurb,
           while (a--) {
             const short flag = BKE_nurb_bezt_handle_test_calc_flag(bezt, SELECT, handle_mode);
             if (((flag & (1 << 0)) && bezt->h1 != HD_FREE) ||
-                ((flag & (1 << 2)) && bezt->h2 != HD_FREE)) {
+                ((flag & (1 << 2)) && bezt->h2 != HD_FREE))
+            {
               h_new = HD_AUTO;
               break;
             }
@@ -4879,7 +4880,8 @@ bool BKE_nurb_type_convert(Nurb *nu,
       bp = nu->bp;
       while (a--) {
         if ((type == CU_POLY && bezt->h1 == HD_VECT && bezt->h2 == HD_VECT) ||
-            (use_handles == false)) {
+            (use_handles == false))
+        {
           /* vector handle becomes one poly vertex */
           copy_v3_v3(bp->vec, bezt->vec[1]);
           bp->vec[3] = 1.0;

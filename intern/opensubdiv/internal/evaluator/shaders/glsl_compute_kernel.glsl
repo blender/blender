@@ -40,7 +40,7 @@ layout(binding = 1) buffer dst_buffer
   float dstVertexBuffer[];
 };
 
-  // derivative buffers (if needed)
+// derivative buffers (if needed)
 
 #if defined(OPENSUBDIV_GLSL_COMPUTE_USE_1ST_DERIVATIVES)
 uniform ivec3 duDesc;
@@ -73,7 +73,7 @@ layout(binding = 12) buffer dvv_buffer
 };
 #endif
 
-  // stencil buffers
+// stencil buffers
 
 #if defined(OPENSUBDIV_GLSL_COMPUTE_KERNEL_EVAL_STENCILS)
 

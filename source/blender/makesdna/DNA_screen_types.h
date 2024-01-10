@@ -32,6 +32,14 @@ struct wmDrawBuffer;
 struct wmTimer;
 struct wmTooltipState;
 struct Panel_Runtime;
+#ifdef __cplusplus
+namespace blender::bke {
+struct FileHandlerType;
+}
+using FileHandlerTypeHandle = blender::bke::FileHandlerType;
+#else
+typedef struct FileHandlerTypeHandle FileHandlerTypeHandle;
+#endif
 
 /* TODO: Doing this is quite ugly :)
  * Once the top-bar is merged bScreen should be refactored to use ScrAreaMap. */
@@ -826,5 +834,5 @@ ENUM_OPERATORS(AssetShelfSettings_DisplayFlag, ASSETSHELF_SHOW_NAMES);
 typedef struct FileHandler {
   DNA_DEFINE_CXX_METHODS(FileHandler)
   /** Runtime. */
-  struct FileHandlerType *type;
+  FileHandlerTypeHandle *type;
 } FileHandler;

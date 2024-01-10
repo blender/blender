@@ -78,7 +78,7 @@ ccl_device void osl_closure_diffuse_setup(KernelGlobals kg,
     return;
   }
 
-  bsdf->N = closure->N;
+  bsdf->N = safe_normalize_fallback(closure->N, sd->N);
 
   sd->flag |= bsdf_diffuse_setup(bsdf);
 }
@@ -100,7 +100,7 @@ ccl_device void osl_closure_oren_nayar_setup(KernelGlobals kg,
     return;
   }
 
-  bsdf->N = closure->N;
+  bsdf->N = safe_normalize_fallback(closure->N, sd->N);
   bsdf->roughness = closure->roughness;
 
   sd->flag |= bsdf_oren_nayar_setup(bsdf);
@@ -123,7 +123,7 @@ ccl_device void osl_closure_translucent_setup(KernelGlobals kg,
     return;
   }
 
-  bsdf->N = closure->N;
+  bsdf->N = safe_normalize_fallback(closure->N, sd->N);
 
   sd->flag |= bsdf_translucent_setup(bsdf);
 }
@@ -145,7 +145,7 @@ ccl_device void osl_closure_reflection_setup(KernelGlobals kg,
     return;
   }
 
-  bsdf->N = maybe_ensure_valid_specular_reflection(sd, closure->N);
+  bsdf->N = maybe_ensure_valid_specular_reflection(sd, safe_normalize_fallback(closure->N, sd->N));
   bsdf->alpha_x = bsdf->alpha_y = 0.0f;
 
   sd->flag |= bsdf_microfacet_ggx_setup(bsdf);
@@ -168,7 +168,7 @@ ccl_device void osl_closure_refraction_setup(KernelGlobals kg,
     return;
   }
 
-  bsdf->N = maybe_ensure_valid_specular_reflection(sd, closure->N);
+  bsdf->N = maybe_ensure_valid_specular_reflection(sd, safe_normalize_fallback(closure->N, sd->N));
   bsdf->ior = closure->ior;
   bsdf->alpha_x = bsdf->alpha_y = 0.0f;
 
@@ -214,7 +214,7 @@ ccl_device void osl_closure_dielectric_bsdf_setup(KernelGlobals kg,
     return;
   }
 
-  bsdf->N = maybe_ensure_valid_specular_reflection(sd, closure->N);
+  bsdf->N = maybe_ensure_valid_specular_reflection(sd, safe_normalize_fallback(closure->N, sd->N));
   bsdf->alpha_x = closure->alpha_x;
   bsdf->alpha_y = closure->alpha_y;
   bsdf->ior = closure->ior;
@@ -286,7 +286,7 @@ ccl_device void osl_closure_conductor_bsdf_setup(KernelGlobals kg,
     return;
   }
 
-  bsdf->N = maybe_ensure_valid_specular_reflection(sd, closure->N);
+  bsdf->N = maybe_ensure_valid_specular_reflection(sd, safe_normalize_fallback(closure->N, sd->N));
   bsdf->alpha_x = closure->alpha_x;
   bsdf->alpha_y = closure->alpha_y;
   bsdf->ior = 0.0f;
@@ -338,7 +338,7 @@ ccl_device void osl_closure_generalized_schlick_bsdf_setup(
     return;
   }
 
-  bsdf->N = maybe_ensure_valid_specular_reflection(sd, closure->N);
+  bsdf->N = maybe_ensure_valid_specular_reflection(sd, safe_normalize_fallback(closure->N, sd->N));
   bsdf->alpha_x = closure->alpha_x;
   bsdf->alpha_y = closure->alpha_y;
   bsdf->T = closure->T;
@@ -422,7 +422,7 @@ ccl_device void osl_closure_microfacet_setup(KernelGlobals kg,
     return;
   }
 
-  bsdf->N = maybe_ensure_valid_specular_reflection(sd, closure->N);
+  bsdf->N = maybe_ensure_valid_specular_reflection(sd, safe_normalize_fallback(closure->N, sd->N));
   bsdf->alpha_x = closure->alpha_x;
   bsdf->alpha_y = closure->alpha_y;
   bsdf->ior = closure->ior;
@@ -498,7 +498,7 @@ ccl_device void osl_closure_microfacet_f82_tint_setup(
     return;
   }
 
-  bsdf->N = maybe_ensure_valid_specular_reflection(sd, closure->N);
+  bsdf->N = maybe_ensure_valid_specular_reflection(sd, safe_normalize_fallback(closure->N, sd->N));
   bsdf->alpha_x = closure->alpha_x;
   bsdf->alpha_y = closure->alpha_y;
   bsdf->ior = 0.0f;
@@ -542,7 +542,7 @@ ccl_device void osl_closure_microfacet_multi_ggx_glass_setup(
     return;
   }
 
-  bsdf->N = maybe_ensure_valid_specular_reflection(sd, closure->N);
+  bsdf->N = maybe_ensure_valid_specular_reflection(sd, safe_normalize_fallback(closure->N, sd->N));
   bsdf->alpha_x = closure->alpha_x;
   bsdf->alpha_y = bsdf->alpha_x;
   bsdf->ior = closure->ior;
@@ -573,7 +573,7 @@ ccl_device void osl_closure_microfacet_multi_ggx_aniso_setup(
     return;
   }
 
-  bsdf->N = maybe_ensure_valid_specular_reflection(sd, closure->N);
+  bsdf->N = maybe_ensure_valid_specular_reflection(sd, safe_normalize_fallback(closure->N, sd->N));
   bsdf->alpha_x = closure->alpha_x;
   bsdf->alpha_y = closure->alpha_y;
   bsdf->ior = 1.0f;
@@ -608,7 +608,7 @@ ccl_device void osl_closure_ashikhmin_velvet_setup(
     return;
   }
 
-  bsdf->N = maybe_ensure_valid_specular_reflection(sd, closure->N);
+  bsdf->N = maybe_ensure_valid_specular_reflection(sd, safe_normalize_fallback(closure->N, sd->N));
   bsdf->sigma = closure->sigma;
 
   sd->flag |= bsdf_ashikhmin_velvet_setup(bsdf);
@@ -635,7 +635,7 @@ ccl_device void osl_closure_sheen_setup(KernelGlobals kg,
     return;
   }
 
-  bsdf->N = closure->N;
+  bsdf->N = safe_normalize_fallback(closure->N, sd->N);
   bsdf->roughness = closure->roughness;
 
   const int sheen_flag = bsdf_sheen_setup(kg, sd, bsdf);
@@ -666,7 +666,7 @@ ccl_device void osl_closure_diffuse_toon_setup(KernelGlobals kg,
     return;
   }
 
-  bsdf->N = maybe_ensure_valid_specular_reflection(sd, closure->N);
+  bsdf->N = maybe_ensure_valid_specular_reflection(sd, safe_normalize_fallback(closure->N, sd->N));
   bsdf->size = closure->size;
   bsdf->smooth = closure->smooth;
 
@@ -690,7 +690,7 @@ ccl_device void osl_closure_glossy_toon_setup(KernelGlobals kg,
     return;
   }
 
-  bsdf->N = maybe_ensure_valid_specular_reflection(sd, closure->N);
+  bsdf->N = maybe_ensure_valid_specular_reflection(sd, safe_normalize_fallback(closure->N, sd->N));
   bsdf->size = closure->size;
   bsdf->smooth = closure->smooth;
 
@@ -758,7 +758,7 @@ ccl_device void osl_closure_diffuse_ramp_setup(KernelGlobals kg,
     return;
   }
 
-  bsdf->N = closure->N;
+  bsdf->N = safe_normalize_fallback(closure->N, sd->N);
 
   bsdf->colors = (float3 *)closure_alloc_extra(sd, sizeof(float3) * 8);
   if (!bsdf->colors) {
@@ -785,7 +785,7 @@ ccl_device void osl_closure_phong_ramp_setup(KernelGlobals kg,
     return;
   }
 
-  bsdf->N = maybe_ensure_valid_specular_reflection(sd, closure->N);
+  bsdf->N = maybe_ensure_valid_specular_reflection(sd, safe_normalize_fallback(closure->N, sd->N));
   bsdf->exponent = closure->exponent;
 
   bsdf->colors = (float3 *)closure_alloc_extra(sd, sizeof(float3) * 8);
@@ -830,7 +830,8 @@ ccl_device void osl_closure_bssrdf_setup(KernelGlobals kg,
 
   /* create one closure per color channel */
   bssrdf->albedo = closure->albedo;
-  bssrdf->N = maybe_ensure_valid_specular_reflection(sd, closure->N);
+  bssrdf->N = maybe_ensure_valid_specular_reflection(sd,
+                                                     safe_normalize_fallback(closure->N, sd->N));
   bssrdf->alpha = closure->roughness;
   bssrdf->ior = closure->ior;
   bssrdf->anisotropy = closure->anisotropy;
@@ -857,7 +858,7 @@ ccl_device void osl_closure_hair_reflection_setup(KernelGlobals kg,
     return;
   }
 
-  bsdf->N = maybe_ensure_valid_specular_reflection(sd, closure->N);
+  bsdf->N = maybe_ensure_valid_specular_reflection(sd, safe_normalize_fallback(closure->N, sd->N));
   bsdf->T = closure->T;
   bsdf->roughness1 = closure->roughness1;
   bsdf->roughness2 = closure->roughness2;
@@ -884,7 +885,7 @@ ccl_device void osl_closure_hair_transmission_setup(
     return;
   }
 
-  bsdf->N = maybe_ensure_valid_specular_reflection(sd, closure->N);
+  bsdf->N = maybe_ensure_valid_specular_reflection(sd, safe_normalize_fallback(closure->N, sd->N));
   bsdf->T = closure->T;
   bsdf->roughness1 = closure->roughness1;
   bsdf->roughness2 = closure->roughness2;
@@ -911,7 +912,7 @@ ccl_device void osl_closure_hair_chiang_setup(KernelGlobals kg,
     return;
   }
 
-  bsdf->N = maybe_ensure_valid_specular_reflection(sd, closure->N);
+  bsdf->N = maybe_ensure_valid_specular_reflection(sd, safe_normalize_fallback(closure->N, sd->N));
   bsdf->sigma = closure->sigma;
   bsdf->v = closure->v;
   bsdf->s = closure->s;
@@ -951,7 +952,7 @@ ccl_device void osl_closure_hair_huang_setup(KernelGlobals kg,
     return;
   }
 
-  bsdf->N = closure->N;
+  bsdf->N = safe_normalize_fallback(closure->N, sd->N);
   bsdf->sigma = closure->sigma;
   bsdf->roughness = closure->roughness;
   bsdf->tilt = closure->tilt;

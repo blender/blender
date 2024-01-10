@@ -29,6 +29,10 @@
 
 namespace blender::eevee {
 
+void *Instance::debug_scope_render_sample = nullptr;
+void *Instance::debug_scope_irradiance_setup = nullptr;
+void *Instance::debug_scope_irradiance_sample = nullptr;
+
 /* -------------------------------------------------------------------- */
 /** \name Initialization
  *
@@ -292,7 +296,7 @@ void Instance::end_sync()
   reflection_probes.end_sync();
   planar_probes.end_sync();
 
-  global_ubo_.push_update();
+  uniform_data.push_update();
 
   depsgraph_last_update_ = DEG_get_update_count(depsgraph);
 }
@@ -372,6 +376,8 @@ void Instance::render_sample()
   if (!is_viewport() && sampling.do_render_sync()) {
     render_sync();
   }
+
+  DebugScope debug_scope(debug_scope_render_sample, "EEVEE.render_sample");
 
   sampling.step();
 
@@ -626,6 +632,8 @@ void Instance::light_bake_irradiance(
     render_sync();
     manager->end_sync();
 
+    DebugScope debug_scope(debug_scope_irradiance_setup, "EEVEE.irradiance_setup");
+
     capture_view.render_world();
 
     irradiance_cache.bake.surfels_create(probe);
@@ -647,7 +655,8 @@ void Instance::light_bake_irradiance(
   sampling.init(probe);
   while (!sampling.finished()) {
     context_wrapper([&]() {
-      GPU_debug_capture_begin();
+      DebugScope debug_scope(debug_scope_irradiance_sample, "EEVEE.irradiance_sample");
+
       /* Batch ray cast by pack of 16. Avoids too much overhead of the update function & context
        * switch. */
       /* TODO(fclem): Could make the number of iteration depend on the computation time. */
@@ -675,7 +684,6 @@ void Instance::light_bake_irradiance(
 
       float progress = sampling.sample_index() / float(sampling.sample_count());
       result_update(cache_frame, progress);
-      GPU_debug_capture_end();
     });
 
     if (stop()) {

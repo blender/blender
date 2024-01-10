@@ -30,7 +30,8 @@ void MetaData::replace_hash_neutral_cryptomatte_keys(const blender::StringRef la
   std::string cryptomatte_manifest = entries_.pop_default(META_DATA_KEY_CRYPTOMATTE_MANIFEST, "");
 
   if (cryptomatte_hash.length() || cryptomatte_conversion.length() ||
-      cryptomatte_manifest.length()) {
+      cryptomatte_manifest.length())
+  {
     add_cryptomatte_entry(layer_name, "name", layer_name);
   }
   if (cryptomatte_hash.length()) {

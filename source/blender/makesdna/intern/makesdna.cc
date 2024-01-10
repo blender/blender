@@ -188,7 +188,8 @@ static bool match_identifier_with_len(const char *str,
   if (strncmp(str, identifier, identifier_len) == 0) {
     /* Check `str` isn't a prefix to a longer identifier. */
     if (isdigit(str[identifier_len]) || isalpha(str[identifier_len]) ||
-        (str[identifier_len] == '_')) {
+        (str[identifier_len] == '_'))
+    {
       return false;
     }
     return true;

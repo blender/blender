@@ -30,6 +30,7 @@
 #include "BKE_constraint.h"
 #include "BKE_context.hh"
 #include "BKE_fcurve_driver.h"
+#include "BKE_idprop.h"
 #include "BKE_layer.h"
 #include "BKE_main.hh"
 #include "BKE_report.h"
@@ -222,7 +223,8 @@ static void joined_armature_fix_links(
 
   /* let's go through all objects in database */
   for (ob = static_cast<Object *>(bmain->objects.first); ob;
-       ob = static_cast<Object *>(ob->id.next)) {
+       ob = static_cast<Object *>(ob->id.next))
+  {
     /* do some object-type specific things */
     if (ob->type == OB_ARMATURE) {
       pose = ob->pose;
@@ -339,6 +341,9 @@ int ED_armature_join_objects_exec(bContext *C, wmOperator *op)
         BoneCollection *mapped = bone_collection_by_name.lookup_default(bcoll->name, nullptr);
         if (!mapped) {
           BoneCollection *new_bcoll = ANIM_armature_bonecoll_new(arm, bcoll->name);
+          if (bcoll->prop) {
+            new_bcoll->prop = IDP_CopyProperty_ex(bcoll->prop, 0);
+          }
           bone_collection_by_name.add(bcoll->name, new_bcoll);
           mapped = new_bcoll;
         }
@@ -489,7 +494,8 @@ static void separated_armature_fix_links(Main *bmain, Object *origArm, Object *n
 
   /* let's go through all objects in database */
   for (ob = static_cast<Object *>(bmain->objects.first); ob;
-       ob = static_cast<Object *>(ob->id.next)) {
+       ob = static_cast<Object *>(ob->id.next))
+  {
     /* do some object-type specific things */
     if (ob->type == OB_ARMATURE) {
       LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {

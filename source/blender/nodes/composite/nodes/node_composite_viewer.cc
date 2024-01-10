@@ -210,7 +210,9 @@ class ViewerOperation : public NodeOperation {
      * size, so use the input directly. Otherwise, no dedicated viewer exist so the input should be
      * in the domain of the compositing region. */
     if (context().use_composite_output()) {
-      return NodeOperation::compute_domain();
+      const Domain domain = NodeOperation::compute_domain();
+      /* Fallback to the compositing region size in case of a single value domain. */
+      return domain.size == int2(1) ? Domain(context().get_compositing_region_size()) : domain;
     }
     else {
       return Domain(context().get_compositing_region_size());

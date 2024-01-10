@@ -7,7 +7,7 @@
  */
 
 #include <cmath>
-#include <string.h>
+#include <cstring>
 
 #include "ANIM_animdata.hh"
 #include "ANIM_fcurve.hh"

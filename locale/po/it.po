@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'0b00b360f7ae')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd13edee3e0cc')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-18 13:45:58\n"
+"POT-Creation-Date: 2024-01-08 11:04:23\n"
 "PO-Revision-Date: 2023-12-17 02:53+0000\n"
 "Last-Translator: Jad Musallam <rubber.444332@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -3571,6 +3571,10 @@ msgstr "Raccolta di ossa in un blocco-dati Armatura"
 
 msgid "Bones"
 msgstr "Ossa"
+
+
+msgid "Index"
+msgstr "Indice"
 
 
 msgid "Is Editable"
@@ -7559,10 +7563,6 @@ msgstr "Punto della Curva"
 
 msgid "Curve control point"
 msgstr "Punto di controllo della curva"
-
-
-msgid "Index"
-msgstr "Indice"
 
 
 msgid "Index of this point"
@@ -28002,6 +28002,10 @@ msgid "Align selected bones to the active bone (or to their parent)"
 msgstr "Allinea le ossa selezionate con l'osso attivo (o i loro genitori)"
 
 
+msgid "Collection Index"
+msgstr "Indice Raccolta"
+
+
 msgid "Automatically renames the selected bones according to which side of the target axis they fall on"
 msgstr "Rinomina automaticamente le ossa selezionate in accordo a quale lato dell'asse bersaglio cadono"
 
@@ -30501,11 +30505,6 @@ msgid "Convert rotations to euler ZYX"
 msgstr "Converte le rotazioni nell'euleriana ZYX"
 
 
-msgctxt "Operator"
-msgid "Export STL"
-msgstr "Esporta STL"
-
-
 msgid "Ascii"
 msgstr "Ascii"
 
@@ -32644,11 +32643,6 @@ msgstr "Percorsi Relativi"
 
 msgid "Shadeless"
 msgstr "Senza ombre"
-
-
-msgctxt "Operator"
-msgid "Import STL"
-msgstr "Importa STL"
 
 
 msgid "Load STL triangle mesh data"
@@ -36150,10 +36144,6 @@ msgstr "Muovi Modificatore Su"
 
 msgid "Move modifier up in the stack"
 msgstr "Muovi in su il modificatore nella lista"
-
-
-msgid "Collection Index"
-msgstr "Indice Raccolta"
 
 
 msgctxt "Operator"
@@ -43734,6 +43724,16 @@ msgstr "Apre lo splash screen con le informazioni di versione"
 
 
 msgctxt "Operator"
+msgid "Export STL"
+msgstr "Esporta STL"
+
+
+msgctxt "Operator"
+msgid "Import STL"
+msgstr "Importa STL"
+
+
+msgctxt "Operator"
 msgid "Save System Info"
 msgstr "Salva Info di Sistema"
 
@@ -49572,18 +49572,6 @@ msgstr "Mostra Griglia"
 
 msgid "Show Offsets"
 msgstr "Mostra Scostamento"
-
-
-msgid "Waveforms Off"
-msgstr "Forma d'onda Off"
-
-
-msgid "Waveforms On"
-msgstr "Forma d'onda On"
-
-
-msgid "Use Strip Option"
-msgstr "Usa Opzione Spezzone"
 
 
 msgid "Bounding Box Center"
@@ -56756,86 +56744,6 @@ msgstr "Cancella Punto"
 
 
 msgctxt "Operator"
-msgid "Copyright"
-msgstr "Copyright"
-
-
-msgctxt "Operator"
-msgid "Registered Trademark"
-msgstr "Marchio Registrato"
-
-
-msgctxt "Operator"
-msgid "Degree Sign"
-msgstr "Segno Gradi"
-
-
-msgctxt "Operator"
-msgid "Multiplication Sign"
-msgstr "Segno Moltiplicazione"
-
-
-msgctxt "Operator"
-msgid "Superscript 1"
-msgstr "Superscript 1"
-
-
-msgctxt "Operator"
-msgid "Superscript 2"
-msgstr "Superscript 2"
-
-
-msgctxt "Operator"
-msgid "Superscript 3"
-msgstr "Superscript 3"
-
-
-msgctxt "Operator"
-msgid "Double >>"
-msgstr "Doppio >>"
-
-
-msgctxt "Operator"
-msgid "Double <<"
-msgstr "Doppio <<"
-
-
-msgctxt "Operator"
-msgid "Promillage"
-msgstr "Per Mille"
-
-
-msgctxt "Operator"
-msgid "Dutch Florin"
-msgstr "Fiorino Olandese"
-
-
-msgctxt "Operator"
-msgid "British Pound"
-msgstr "Sterlina Inglese"
-
-
-msgctxt "Operator"
-msgid "Japanese Yen"
-msgstr "Yen Giapponese"
-
-
-msgctxt "Operator"
-msgid "German S"
-msgstr "S Tedesca"
-
-
-msgctxt "Operator"
-msgid "Spanish Question Mark"
-msgstr "Punto Interrogativo Spagnolo"
-
-
-msgctxt "Operator"
-msgid "Spanish Exclamation Mark"
-msgstr "Punto Esclamativo Spagnolo"
-
-
-msgctxt "Operator"
 msgid "Previous Character"
 msgstr "Carattere Precedente"
 
@@ -58274,6 +58182,10 @@ msgid "Browse ID data to be linked"
 msgstr "Naviga Dati ID da collegare"
 
 
+msgid "Modified"
+msgstr "Modificato"
+
+
 msgctxt "Object"
 msgid "New"
 msgstr "Nuovo"
@@ -58442,6 +58354,10 @@ msgstr "Gruppi Oggetto"
 
 msgid "Material Groups"
 msgstr "Gruppi Materiale"
+
+
+msgid "Rigging"
+msgstr "Rigging"
 
 
 msgid "Mesh Data"
@@ -61654,10 +61570,6 @@ msgid "File Not Found"
 msgstr "File Non Trovato"
 
 
-msgid "Modified"
-msgstr "Modificato"
-
-
 msgid "Save changes before closing?"
 msgstr "Salvare le modifiche prima di chiudere?"
 
@@ -61801,10 +61713,6 @@ msgstr "Aggiungi Mesh"
 
 msgid "Import-Export"
 msgstr "Importa-Esporta"
-
-
-msgid "Rigging"
-msgstr "Rigging"
 
 
 msgid "English (English)"

@@ -8,6 +8,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_brush_types.h"
+
 #include "BLI_hash.h"
 #include "BLI_math_color_blend.h"
 #include "BLI_task.h"
@@ -78,10 +80,6 @@ static void do_color_smooth_task(Object *ob, const Brush *brush, PBVHNode *node)
     SCULPT_vertex_color_get(ss, vd.vertex, color);
     blend_color_interpolate_float(color, color, smooth_color, fade);
     SCULPT_vertex_color_set(ss, vd.vertex, color);
-
-    if (vd.is_mesh) {
-      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
-    }
   }
   BKE_pbvh_vertex_iter_end;
 }
@@ -235,10 +233,6 @@ static void do_paint_brush_task(Object *ob,
 
     CLAMP4(vcolor, 0.0f, 1.0f);
     SCULPT_vertex_color_set(ss, vd.vertex, vcolor);
-
-    if (vd.is_mesh) {
-      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
-    }
   }
   BKE_pbvh_vertex_iter_end;
 }

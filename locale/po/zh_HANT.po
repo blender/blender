@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'0b00b360f7ae')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd13edee3e0cc')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-18 13:45:58\n"
-"PO-Revision-Date: 2023-12-12 17:36+0000\n"
+"POT-Creation-Date: 2024-01-08 11:04:23\n"
+"PO-Revision-Date: 2024-01-06 21:56+0000\n"
 "Last-Translator: Cheng-Chia Tseng <pswo10680@gmail.com>\n"
 "Language-Team: Chinese (Traditional) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
 "Language: zh_HANT\n"
@@ -3166,12 +3166,24 @@ msgid "Z-axis handle offset for end of the B-Bone's curve, adjusts curvature"
 msgstr "B-骨骼曲線末端的 Z 軸控制桿偏移，調整曲率"
 
 
+msgid "B-Bone End Handle"
+msgstr "B骨骼末端控制桿"
+
+
+msgid "B-Bone Start Handle"
+msgstr "B骨骼始端控制桿"
+
+
 msgid "Length of first Bezier Handle (for B-Bones only)"
 msgstr "第一個貝茲控制桿的長度 (僅適用於 B 骨骼)"
 
 
 msgid "Length of second Bezier Handle (for B-Bones only)"
 msgstr "第二個貝茲控制桿的長度 (僅適用於 B 骨骼)"
+
+
+msgid "B-Bone End Handle Type"
+msgstr "B骨骼末端控制桿類型"
 
 
 msgid "Automatic"
@@ -3488,6 +3500,10 @@ msgstr "將 Y 的縮放輸入/輸出乘以最終緩和值"
 
 msgid "Bones"
 msgstr "骨骼"
+
+
+msgid "Index"
+msgstr "索引"
 
 
 msgid "Visible"
@@ -7247,10 +7263,6 @@ msgstr "偵測角落"
 
 msgid "Absolute Offset"
 msgstr "絕對值偏移"
-
-
-msgid "Index"
-msgstr "索引"
 
 
 msgid "Segments"
@@ -29997,11 +30009,6 @@ msgid "Convert rotations to euler ZYX"
 msgstr "轉換旋轉至尤拉 ZYX"
 
 
-msgctxt "Operator"
-msgid "Export STL"
-msgstr "匯出 STL"
-
-
 msgid "Ascii"
 msgstr "Ascii"
 
@@ -31904,11 +31911,6 @@ msgstr "無陰影"
 
 msgid "Emission Shader"
 msgstr "散發光著色器"
-
-
-msgctxt "Operator"
-msgid "Import STL"
-msgstr "匯入 STL"
 
 
 msgid "Load STL triangle mesh data"
@@ -43010,6 +43012,16 @@ msgstr "關於 Blender"
 
 
 msgctxt "Operator"
+msgid "Export STL"
+msgstr "匯出 STL"
+
+
+msgctxt "Operator"
+msgid "Import STL"
+msgstr "匯入 STL"
+
+
+msgctxt "Operator"
 msgid "Save System Info"
 msgstr "儲存系統資訊"
 
@@ -48518,18 +48530,6 @@ msgstr "顯示格線"
 
 msgid "Show Offsets"
 msgstr "顯示偏移"
-
-
-msgid "Waveforms Off"
-msgstr "波形關"
-
-
-msgid "Waveforms On"
-msgstr "波形開"
-
-
-msgid "Use Strip Option"
-msgstr "使用片段選項"
 
 
 msgid "Bounding Box Center"
@@ -55547,86 +55547,6 @@ msgstr "重算內部"
 
 
 msgctxt "Operator"
-msgid "Copyright"
-msgstr "著作權"
-
-
-msgctxt "Operator"
-msgid "Registered Trademark"
-msgstr "註冊商標"
-
-
-msgctxt "Operator"
-msgid "Degree Sign"
-msgstr "度符號"
-
-
-msgctxt "Operator"
-msgid "Multiplication Sign"
-msgstr "乘號"
-
-
-msgctxt "Operator"
-msgid "Superscript 1"
-msgstr "上標 1"
-
-
-msgctxt "Operator"
-msgid "Superscript 2"
-msgstr "上標 2"
-
-
-msgctxt "Operator"
-msgid "Superscript 3"
-msgstr "上標 3"
-
-
-msgctxt "Operator"
-msgid "Double >>"
-msgstr "雙線 >>"
-
-
-msgctxt "Operator"
-msgid "Double <<"
-msgstr "雙線 <<"
-
-
-msgctxt "Operator"
-msgid "Promillage"
-msgstr "千分符"
-
-
-msgctxt "Operator"
-msgid "Dutch Florin"
-msgstr "荷蘭盾"
-
-
-msgctxt "Operator"
-msgid "British Pound"
-msgstr "英磅"
-
-
-msgctxt "Operator"
-msgid "Japanese Yen"
-msgstr "日元"
-
-
-msgctxt "Operator"
-msgid "German S"
-msgstr "德文 S"
-
-
-msgctxt "Operator"
-msgid "Spanish Question Mark"
-msgstr "西班牙文問號"
-
-
-msgctxt "Operator"
-msgid "Spanish Exclamation Mark"
-msgstr "西班牙文驚嘆號"
-
-
-msgctxt "Operator"
 msgid "Toggle Bold"
 msgstr "切換粗體"
 
@@ -57008,6 +56928,10 @@ msgid "Browse ID data to be linked"
 msgstr "瀏覽要連結的 ID 資料"
 
 
+msgid "Modified"
+msgstr "已修改"
+
+
 msgctxt "Object"
 msgid "New"
 msgstr "新增"
@@ -57135,6 +57059,10 @@ msgstr "材質群組"
 
 msgid "Smooth Groups"
 msgstr "平滑群組"
+
+
+msgid "Rigging"
+msgstr "索具"
 
 
 msgctxt "Mesh"
@@ -60330,10 +60258,6 @@ msgid "unable to open the file"
 msgstr "無法開啟檔案"
 
 
-msgid "Modified"
-msgstr "已修改"
-
-
 msgid "For security reasons, automatic execution of Python scripts in this file was disabled:"
 msgstr "基於安全性考量，此檔案的 Python 命令稿自動執行功能已停用："
 
@@ -60593,10 +60517,6 @@ msgstr "添加網格"
 
 msgid "Import-Export"
 msgstr "匯入-匯出"
-
-
-msgid "Rigging"
-msgstr "索具"
 
 
 msgid "Video Tools"

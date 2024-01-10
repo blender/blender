@@ -116,6 +116,8 @@ void WM_OT_recover_auto_save(wmOperatorType *ot);
 void WM_OT_save_as_mainfile(wmOperatorType *ot);
 void WM_OT_save_mainfile(wmOperatorType *ot);
 
+void WM_OT_clear_recent_files(wmOperatorType *ot);
+
 /* `wm_files_link.cc` */
 
 void WM_OT_link(wmOperatorType *ot);

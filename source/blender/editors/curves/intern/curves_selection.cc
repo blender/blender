@@ -173,7 +173,7 @@ static bool contains(const VArray<bool> &varray,
           for (const int64_t segment_i : IndexRange(sliced_mask.segments_num())) {
             const IndexMaskSegment segment = sliced_mask.segment(segment_i);
             for (const int i : segment) {
-              if (span[i]) {
+              if (span[i] == value) {
                 return true;
               }
             }
@@ -191,13 +191,15 @@ static bool contains(const VArray<bool> &varray,
           return init;
         }
         constexpr int64_t MaxChunkSize = 512;
-        for (int64_t start = range.start(); start < range.last(); start += MaxChunkSize) {
-          const int64_t end = std::min<int64_t>(start + MaxChunkSize, range.last());
+        const int64_t slice_end = range.one_after_last();
+        for (int64_t start = range.start(); start < slice_end; start += MaxChunkSize) {
+          const int64_t end = std::min<int64_t>(start + MaxChunkSize, slice_end);
           const int64_t size = end - start;
           const IndexMask sliced_mask = indices_to_check.slice(start, size);
           std::array<bool, MaxChunkSize> values;
+          auto values_end = values.begin() + size;
           varray.materialize_compressed(sliced_mask, values);
-          if (std::find(values.begin(), values.end(), true) != values.end()) {
+          if (std::find(values.begin(), values_end, value) != values_end) {
             return true;
           }
         }
@@ -292,7 +294,8 @@ void select_all(bke::CurvesGeometry &curves,
   if (action == SEL_SELECT) {
     std::optional<IndexRange> range = mask.to_range();
     if (range.has_value() &&
-        (*range == IndexRange(curves.attributes().domain_size(selection_domain)))) {
+        (*range == IndexRange(curves.attributes().domain_size(selection_domain))))
+    {
       /* As an optimization, just remove the selection attributes when everything is selected. */
       attributes.remove(".selection");
       return;
@@ -539,7 +542,8 @@ static std::optional<FindClosestData> find_closest_point_to_screen_co(
 
           const float distance_proj_sq = math::distance_squared(pos_proj, mouse_pos);
           if (distance_proj_sq > radius_sq ||
-              distance_proj_sq > best_match.distance * best_match.distance) {
+              distance_proj_sq > best_match.distance * best_match.distance)
+          {
             /* Ignore the point because it's too far away or there is already a better point. */
             continue;
           }
@@ -598,7 +602,8 @@ static std::optional<FindClosestData> find_closest_curve_to_screen_co(
 
             const float distance_proj_sq = math::distance_squared(pos_proj, mouse_pos);
             if (distance_proj_sq > radius_sq ||
-                distance_proj_sq > best_match.distance * best_match.distance) {
+                distance_proj_sq > best_match.distance * best_match.distance)
+            {
               /* Ignore the point because it's too far away or there is already a better point.
                */
               continue;
@@ -621,7 +626,8 @@ static std::optional<FindClosestData> find_closest_curve_to_screen_co(
             const float distance_proj_sq = dist_squared_to_line_segment_v2(
                 mouse_pos, pos1_proj, pos2_proj);
             if (distance_proj_sq > radius_sq ||
-                distance_proj_sq > best_match.distance * best_match.distance) {
+                distance_proj_sq > best_match.distance * best_match.distance)
+            {
               /* Ignore the segment because it's too far away or there is already a better point.
                */
               continue;

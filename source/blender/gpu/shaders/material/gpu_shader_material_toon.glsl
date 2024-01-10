@@ -13,7 +13,6 @@ void node_bsdf_toon(
   diffuse_data.weight = weight;
   diffuse_data.color = color.rgb;
   diffuse_data.N = N;
-  diffuse_data.sss_id = 0u;
 
   result = closure_eval(diffuse_data);
 }

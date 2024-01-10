@@ -2112,6 +2112,10 @@ void RNA_api_ui_layout(StructRNA *srna)
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   api_ui_item_rna_common(func);
 
+  func = RNA_def_function(srna, "template_bone_collection_tree", "uiTemplateBoneCollectionTree");
+  RNA_def_function_ui_description(func, "Show bone collections tree");
+  RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+
 #  ifdef WITH_GREASE_PENCIL_V3
   func = RNA_def_function(
       srna, "template_grease_pencil_layer_tree", "uiTemplateGreasePencilLayerTree");

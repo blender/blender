@@ -534,10 +534,10 @@ typedef bool (*BMLoopPairFilterFunc)(const BMLoop *, const BMLoop *, void *user_
 #  define BM_ELEM_CD_GET_BOOL_P(ele, offset) \
     (BLI_assert(offset != -1), \
      _Generic(ele, \
-              GENERIC_TYPE_ANY((bool *)POINTER_OFFSET((ele)->head.data, offset), \
-                               _BM_GENERIC_TYPE_ELEM_NONCONST), \
-              GENERIC_TYPE_ANY((const bool *)POINTER_OFFSET((ele)->head.data, offset), \
-                               _BM_GENERIC_TYPE_ELEM_CONST)))
+     GENERIC_TYPE_ANY((bool *)POINTER_OFFSET((ele)->head.data, offset), \
+                      _BM_GENERIC_TYPE_ELEM_NONCONST), \
+     GENERIC_TYPE_ANY((const bool *)POINTER_OFFSET((ele)->head.data, offset), \
+                      _BM_GENERIC_TYPE_ELEM_CONST)))
 #else
 #  define BM_ELEM_CD_GET_BOOL_P(ele, offset) \
     (BLI_assert(offset != -1), (bool *)((char *)(ele)->head.data + (offset)))
@@ -547,10 +547,9 @@ typedef bool (*BMLoopPairFilterFunc)(const BMLoop *, const BMLoop *, void *user_
 #  define BM_ELEM_CD_GET_VOID_P(ele, offset) \
     (BLI_assert(offset != -1), \
      _Generic(ele, \
-              GENERIC_TYPE_ANY(POINTER_OFFSET((ele)->head.data, offset), \
-                               _BM_GENERIC_TYPE_ELEM_NONCONST), \
-              GENERIC_TYPE_ANY((const void *)POINTER_OFFSET((ele)->head.data, offset), \
-                               _BM_GENERIC_TYPE_ELEM_CONST)))
+     GENERIC_TYPE_ANY(POINTER_OFFSET((ele)->head.data, offset), _BM_GENERIC_TYPE_ELEM_NONCONST), \
+     GENERIC_TYPE_ANY((const void *)POINTER_OFFSET((ele)->head.data, offset), \
+                      _BM_GENERIC_TYPE_ELEM_CONST)))
 #else
 #  define BM_ELEM_CD_GET_VOID_P(ele, offset) \
     (BLI_assert(offset != -1), (void *)((char *)(ele)->head.data + (offset)))
@@ -572,26 +571,26 @@ typedef bool (*BMLoopPairFilterFunc)(const BMLoop *, const BMLoop *, void *user_
 #  define BM_ELEM_CD_GET_FLOAT_P(ele, offset) \
     (BLI_assert(offset != -1), \
      _Generic(ele, \
-              GENERIC_TYPE_ANY((float *)POINTER_OFFSET((ele)->head.data, offset), \
-                               _BM_GENERIC_TYPE_ELEM_NONCONST), \
-              GENERIC_TYPE_ANY((const float *)POINTER_OFFSET((ele)->head.data, offset), \
-                               _BM_GENERIC_TYPE_ELEM_CONST)))
+     GENERIC_TYPE_ANY((float *)POINTER_OFFSET((ele)->head.data, offset), \
+                      _BM_GENERIC_TYPE_ELEM_NONCONST), \
+     GENERIC_TYPE_ANY((const float *)POINTER_OFFSET((ele)->head.data, offset), \
+                      _BM_GENERIC_TYPE_ELEM_CONST)))
 
 #  define BM_ELEM_CD_GET_FLOAT2_P(ele, offset) \
     (BLI_assert(offset != -1), \
      _Generic(ele, \
-              GENERIC_TYPE_ANY((float(*)[2])POINTER_OFFSET((ele)->head.data, offset), \
-                               _BM_GENERIC_TYPE_ELEM_NONCONST), \
-              GENERIC_TYPE_ANY((const float(*)[2])POINTER_OFFSET((ele)->head.data, offset), \
-                               _BM_GENERIC_TYPE_ELEM_CONST)))
+     GENERIC_TYPE_ANY((float(*)[2])POINTER_OFFSET((ele)->head.data, offset), \
+                      _BM_GENERIC_TYPE_ELEM_NONCONST), \
+     GENERIC_TYPE_ANY((const float(*)[2])POINTER_OFFSET((ele)->head.data, offset), \
+                      _BM_GENERIC_TYPE_ELEM_CONST)))
 
 #  define BM_ELEM_CD_GET_FLOAT3_P(ele, offset) \
     (BLI_assert(offset != -1), \
      _Generic(ele, \
-              GENERIC_TYPE_ANY((float(*)[3])POINTER_OFFSET((ele)->head.data, offset), \
-                               _BM_GENERIC_TYPE_ELEM_NONCONST), \
-              GENERIC_TYPE_ANY((const float(*)[3])POINTER_OFFSET((ele)->head.data, offset), \
-                               _BM_GENERIC_TYPE_ELEM_CONST)))
+     GENERIC_TYPE_ANY((float(*)[3])POINTER_OFFSET((ele)->head.data, offset), \
+                      _BM_GENERIC_TYPE_ELEM_NONCONST), \
+     GENERIC_TYPE_ANY((const float(*)[3])POINTER_OFFSET((ele)->head.data, offset), \
+                      _BM_GENERIC_TYPE_ELEM_CONST)))
 
 #else
 

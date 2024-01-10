@@ -620,7 +620,8 @@ void gpu::MTLTexture::update_sub(
 
     /* Safety Checks. */
     if (type == GPU_DATA_UINT_24_8 || type == GPU_DATA_10_11_11_REV ||
-        type == GPU_DATA_2_10_10_10_REV) {
+        type == GPU_DATA_2_10_10_10_REV)
+    {
       BLI_assert(can_use_direct_blit &&
                  "Special input data type must be a 1-1 mapping with destination texture as it "
                  "cannot easily be split");
@@ -2354,7 +2355,7 @@ void gpu::MTLTexture::ensure_baked()
     /** Atomic texture fallback.
      * If texture atomic operations are required and are not natively supported, we instead
      * allocate a buffer-backed 2D texture and perform atomic operations on this instead. Support
-     * for 2D Array textures and 3D textures is achieved via packing layers into the 2D texture.*/
+     * for 2D Array textures and 3D textures is achieved via packing layers into the 2D texture. */
     bool native_texture_atomics = MTLBackend::get_capabilities().supports_texture_atomics;
     if ((gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_ATOMIC) && !native_texture_atomics) {
 

@@ -29,6 +29,7 @@
 #include "BKE_attribute.hh"
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
+#include "BKE_customdata.hh"
 #include "BKE_displist.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
@@ -248,7 +249,8 @@ static void dm_mvert_map_doubles(int *doubles_map,
          * But if other potential targets are farther,
          * then there will be no mapping at all for this source. */
         while (best_target_vertex != -1 &&
-               !ELEM(doubles_map[best_target_vertex], -1, best_target_vertex)) {
+               !ELEM(doubles_map[best_target_vertex], -1, best_target_vertex))
+        {
           if (compare_len_v3v3(vert_positions[sve_source->vertex_num],
                                vert_positions[doubles_map[best_target_vertex]],
                                dist))

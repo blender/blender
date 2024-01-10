@@ -14,6 +14,7 @@ FlipOperation::FlipOperation()
   input_operation_ = nullptr;
   flip_x_ = true;
   flip_y_ = false;
+  flags_.can_be_constant = true;
 }
 void FlipOperation::init_execution()
 {
@@ -110,6 +111,10 @@ void FlipOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                  Span<MemoryBuffer *> inputs)
 {
   const MemoryBuffer *input_img = inputs[0];
+  if (input_img->is_a_single_elem()) {
+    copy_v4_v4(output->get_elem(0, 0), input_img->get_elem(0, 0));
+    return;
+  }
   const int input_offset_x = input_img->get_rect().xmin;
   const int input_offset_y = input_img->get_rect().ymin;
   for (BuffersIterator<float> it = output->iterate_with({}, area); !it.is_end(); ++it) {

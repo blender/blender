@@ -18,6 +18,7 @@ SummedAreaTableOperation::SummedAreaTableOperation()
   mode_ = eMode::Identity;
 
   this->flags_.is_fullframe_operation = true;
+  this->flags_.can_be_constant = true;
 }
 
 void SummedAreaTableOperation::init_execution()

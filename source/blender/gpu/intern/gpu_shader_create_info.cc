@@ -122,6 +122,7 @@ void ShaderCreateInfo::finalize()
     vertex_out_interfaces_.extend_non_duplicates(info.vertex_out_interfaces_);
     geometry_out_interfaces_.extend_non_duplicates(info.geometry_out_interfaces_);
     subpass_inputs_.extend_non_duplicates(info.subpass_inputs_);
+    specialization_constants_.extend_non_duplicates(info.specialization_constants_);
 
     validate_vertex_attributes(&info);
 
@@ -278,6 +279,16 @@ std::string ShaderCreateInfo::check_error() const
     error += this->name_ +
              " contains a stage interface using an instance name and mixed interpolation modes. "
              "This is not compatible with Vulkan and need to be adjusted.\n";
+  }
+
+  /* Validate specialization constants. */
+  for (int i = 0; i < specialization_constants_.size(); i++) {
+    for (int j = i + 1; j < specialization_constants_.size(); j++) {
+      if (specialization_constants_[i].name == specialization_constants_[j].name) {
+        error += this->name_ + " contains two specialization constants with the name: " +
+                 std::string(specialization_constants_[i].name);
+      }
+    }
   }
 #endif
 

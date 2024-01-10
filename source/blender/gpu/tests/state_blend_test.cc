@@ -13,7 +13,7 @@
 
 #include "BLI_math_vector.hh"
 
-#include "intern/draw_cache.h"
+#include "intern/draw_cache.hh"
 
 namespace blender::gpu::tests {
 

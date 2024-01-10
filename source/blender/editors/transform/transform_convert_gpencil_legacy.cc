@@ -609,7 +609,8 @@ static void createTransGPencil_strokes(bContext *C,
                    * This allows get interesting effects also when move
                    * using proportional editing. */
                   if ((gps->flag & GP_STROKE_SELECT) &&
-                      (ts->transform_pivot_point == V3D_AROUND_LOCAL_ORIGINS)) {
+                      (ts->transform_pivot_point == V3D_AROUND_LOCAL_ORIGINS))
+                  {
                     copy_v3_v3(td->center, center);
                   }
                   else {
@@ -642,7 +643,8 @@ static void createTransGPencil_strokes(bContext *C,
 
                   /* Screen-space needs special matrices. */
                   if ((gps->flag & (GP_STROKE_3DSPACE | GP_STROKE_2DSPACE | GP_STROKE_2DIMAGE)) ==
-                      0) {
+                      0)
+                  {
                     /* Screen-space. */
                     td->protectflag = OB_LOCK_LOCZ | OB_LOCK_ROTZ | OB_LOCK_SCALEZ;
                   }

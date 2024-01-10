@@ -246,7 +246,8 @@ void gaussian_blur_1D(const GSpan src,
     using T = decltype(dummy);
     /* Reduces unnecessary code generation. */
     if constexpr (std::is_same_v<T, float> || std::is_same_v<T, float2> ||
-                  std::is_same_v<T, float3>) {
+                  std::is_same_v<T, float3>)
+    {
       gaussian_blur_1D(src.typed<T>(),
                        iterations,
                        influence,
@@ -671,6 +672,7 @@ static bke::CurvesGeometry remove_points_and_split(const bke::CurvesGeometry &cu
   gather_attributes(
       src_attributes, bke::AttrDomain::Point, {}, {}, dst_to_src_point, dst_attributes);
 
+  dst_curves.update_curve_types();
   dst_curves.remove_attributes_based_on_types();
 
   return dst_curves;

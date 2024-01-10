@@ -59,7 +59,8 @@ void NodeGroup::accept(SceneVisitor &v)
 
   v.visitNodeGroupBefore(*this);
   for (vector<Node *>::iterator node = _Children.begin(), end = _Children.end(); node != end;
-       ++node) {
+       ++node)
+  {
     (*node)->accept(v);
   }
   v.visitNodeGroupAfter(*this);

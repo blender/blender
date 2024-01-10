@@ -52,6 +52,7 @@
 #include "BKE_cloth.hh"
 #include "BKE_collection.h"
 #include "BKE_colortools.hh"
+#include "BKE_customdata.hh"
 #include "BKE_deform.h"
 #include "BKE_displist.h"
 #include "BKE_effect.h"
@@ -773,7 +774,8 @@ void psys_check_group_weights(ParticleSettings *part)
   dw = static_cast<ParticleDupliWeight *>(part->instance_weights.first);
   while (dw) {
     if (dw->ob == nullptr ||
-        !BKE_collection_has_object_recursive(part->instance_collection, dw->ob)) {
+        !BKE_collection_has_object_recursive(part->instance_collection, dw->ob))
+    {
       tdw = dw->next;
       BLI_freelinkN(&part->instance_weights, dw);
       dw = tdw;
@@ -1917,7 +1919,8 @@ int psys_particle_dm_face_lookup(Mesh *mesh_final,
       /* If current tessface from 'final' DM and orig tessface (given by index)
        * map to the same orig poly. */
       if (BKE_mesh_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, findex_dst) ==
-          pindex_orig) {
+          pindex_orig)
+      {
         faceuv = osface_final[findex_dst].uv;
 
         /* check that this intersects - Its possible this misses :/ -
@@ -2381,7 +2384,8 @@ bool do_guides(Depsgraph *depsgraph,
       }
       else {
         if (BKE_where_on_path(eff->ob, guidetime, guidevec, guidedir, nullptr, &radius, &weight) ==
-            0) {
+            0)
+        {
           return false;
         }
       }

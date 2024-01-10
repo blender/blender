@@ -9,6 +9,8 @@
 #include <climits>
 #include <cstdlib>
 
+#include "BLI_math_base.h"
+
 #include "DNA_cloth_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"

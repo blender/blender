@@ -111,13 +111,13 @@ enum {
   ID_REMAP_NO_ORIG_POINTERS_ACCESS = 1 << 20,
 };
 
-typedef enum eIDRemapType {
+enum eIDRemapType {
   /** Remap an ID reference to a new reference. The new reference can also be null. */
   ID_REMAP_TYPE_REMAP = 0,
 
   /** Cleanup all IDs used by a specific one. */
   ID_REMAP_TYPE_CLEANUP = 1,
-} eIDRemapType;
+};
 
 /**
  * Replace all references in given Main using the given \a mappings
@@ -192,15 +192,15 @@ void BKE_libblock_relink_multiple(Main *bmain,
  */
 void BKE_libblock_relink_to_newid(Main *bmain, ID *id, int remap_flag) ATTR_NONNULL();
 
-typedef void (*BKE_library_free_notifier_reference_cb)(const void *);
-typedef void (*BKE_library_remap_editor_id_reference_cb)(const IDRemapper *mappings);
+using BKE_library_free_notifier_reference_cb = void (*)(const void *);
+using BKE_library_remap_editor_id_reference_cb = void (*)(const IDRemapper *mappings);
 
 void BKE_library_callback_free_notifier_reference_set(BKE_library_free_notifier_reference_cb func);
 void BKE_library_callback_remap_editor_id_reference_set(
     BKE_library_remap_editor_id_reference_cb func);
 
 /* IDRemapper */
-typedef enum IDRemapperApplyResult {
+enum IDRemapperApplyResult {
   /** No remapping rules available for the source. */
   ID_REMAP_RESULT_SOURCE_UNAVAILABLE,
   /** Source isn't mappable (e.g. NULL). */
@@ -209,9 +209,9 @@ typedef enum IDRemapperApplyResult {
   ID_REMAP_RESULT_SOURCE_REMAPPED,
   /** Source has been set to NULL. */
   ID_REMAP_RESULT_SOURCE_UNASSIGNED,
-} IDRemapperApplyResult;
+};
 
-typedef enum IDRemapperApplyOptions {
+enum IDRemapperApplyOptions {
   /**
    * Update the user count of the old and new ID data-block.
    *
@@ -240,17 +240,17 @@ typedef enum IDRemapperApplyOptions {
   ID_REMAP_APPLY_UNMAP_WHEN_REMAPPING_TO_SELF = (1 << 2),
 
   ID_REMAP_APPLY_DEFAULT = 0,
-} IDRemapperApplyOptions;
+};
 ENUM_OPERATORS(IDRemapperApplyOptions, ID_REMAP_APPLY_UNMAP_WHEN_REMAPPING_TO_SELF)
 
-typedef void (*IDRemapperIterFunction)(ID *old_id, ID *new_id, void *user_data);
+using IDRemapperIterFunction = void (*)(ID *old_id, ID *new_id, void *user_data);
 
 /**
  * Create a new ID Remapper.
  *
  * An ID remapper stores multiple remapping rules.
  */
-IDRemapper *BKE_id_remapper_create(void);
+IDRemapper *BKE_id_remapper_create();
 
 void BKE_id_remapper_clear(IDRemapper *id_remapper);
 bool BKE_id_remapper_is_empty(const IDRemapper *id_remapper);

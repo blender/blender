@@ -523,7 +523,7 @@ void ReflectionProbeModule::set_view(View & /*view*/)
                 return _a.z < _b.z;
               }
               else {
-                /* Fallback to memory address, since there's no good alternative.*/
+                /* Fallback to memory address, since there's no good alternative. */
                 return a < b;
               }
             });

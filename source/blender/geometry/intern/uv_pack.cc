@@ -216,11 +216,18 @@ static float angle_match(float angle_radians, float target_radians)
   return angle_radians;
 }
 
+static float angle_wrap(float angle_radians)
+{
+  angle_radians = angle_radians - floorf((angle_radians + M_PI_2) / M_PI) * M_PI;
+  BLI_assert(DEG2RADF(-90.0f) <= angle_radians);
+  BLI_assert(angle_radians <= DEG2RADF(90.0f));
+  return angle_radians;
+}
+
 /** Angle rounding helper for "D4" transforms. */
 static float plusminus_90_angle(float angle_radians)
 {
-  angle_radians = angle_radians - floorf((angle_radians + M_PI_2) / M_PI) * M_PI;
-
+  angle_radians = angle_wrap(angle_radians);
   angle_radians = angle_match(angle_radians, DEG2RADF(-90.0f));
   angle_radians = angle_match(angle_radians, DEG2RADF(0.0f));
   angle_radians = angle_match(angle_radians, DEG2RADF(90.0f));
@@ -232,15 +239,19 @@ static float plusminus_90_angle(float angle_radians)
 void PackIsland::calculate_pre_rotation_(const UVPackIsland_Params &params)
 {
   pre_rotate_ = 0.0f;
-  if (!can_rotate_(params)) {
-    return; /* Nothing to do. */
-  }
   if (params.rotate_method == ED_UVPACK_ROTATION_CARDINAL) {
     /* Arbitrary rotations are not allowed. */
     return;
   }
-  BLI_assert(params.rotate_method == ED_UVPACK_ROTATION_ANY ||
-             params.rotate_method == ED_UVPACK_ROTATION_AXIS_ALIGNED);
+  if (!can_rotate_before_pack_(params)) {
+    return; /* Nothing to do. */
+  }
+
+  BLI_assert(ELEM(params.rotate_method,
+                  ED_UVPACK_ROTATION_ANY,
+                  ED_UVPACK_ROTATION_AXIS_ALIGNED,
+                  ED_UVPACK_ROTATION_AXIS_ALIGNED_X,
+                  ED_UVPACK_ROTATION_AXIS_ALIGNED_Y));
 
   /* As a heuristic to improve layout efficiency, #PackIsland's are first rotated by an
    * angle which minimizes the area of the enclosing AABB. This angle is stored in the
@@ -273,11 +284,30 @@ void PackIsland::calculate_pre_rotation_(const UVPackIsland_Params &params)
 
       Bounds<float2> island_bounds = *bounds::min_max(coords.as_span());
       float2 diagonal = island_bounds.max - island_bounds.min;
-      if (diagonal.y < diagonal.x) {
-        angle += DEG2RADF(90.0f);
+      switch (params.rotate_method) {
+        case ED_UVPACK_ROTATION_AXIS_ALIGNED_X: {
+          if (diagonal.x < diagonal.y) {
+            angle += DEG2RADF(90.0f);
+          }
+          pre_rotate_ = angle_wrap(angle);
+          break;
+        }
+        case ED_UVPACK_ROTATION_AXIS_ALIGNED_Y: {
+          if (diagonal.x > diagonal.y) {
+            angle += DEG2RADF(90.0f);
+          }
+          pre_rotate_ = angle_wrap(angle);
+          break;
+        }
+        default: {
+          if (diagonal.y < diagonal.x) {
+            angle += DEG2RADF(90.0f);
+          }
+          pre_rotate_ = plusminus_90_angle(angle);
+          break;
+        }
       }
     }
-    pre_rotate_ = plusminus_90_angle(angle);
   }
   if (!pre_rotate_) {
     return;
@@ -2353,12 +2383,20 @@ void PackIsland::build_inverse_transformation(const float scale,
 #endif
 }
 
-bool PackIsland::can_rotate_(const UVPackIsland_Params &params) const
+static bool can_rotate_with_method(const PackIsland &island,
+                                   const UVPackIsland_Params &params,
+                                   const eUVPackIsland_RotationMethod rotate_method)
 {
-  if (params.rotate_method == ED_UVPACK_ROTATION_NONE) {
+  /* When axis aligned along X/Y coordinates, rotation is performed once early on,
+   * but no rotation is allowed when packing. */
+  if (ELEM(rotate_method,
+           ED_UVPACK_ROTATION_NONE,
+           ED_UVPACK_ROTATION_AXIS_ALIGNED_X,
+           ED_UVPACK_ROTATION_AXIS_ALIGNED_Y))
+  {
     return false;
   }
-  if (!pinned) {
+  if (!island.pinned) {
     return true;
   }
   switch (params.pin_method) {
@@ -2369,6 +2407,20 @@ bool PackIsland::can_rotate_(const UVPackIsland_Params &params) const
     default:
       return true;
   }
+}
+
+bool PackIsland::can_rotate_before_pack_(const UVPackIsland_Params &params) const
+{
+  eUVPackIsland_RotationMethod rotate_method = params.rotate_method;
+  if (ELEM(rotate_method, ED_UVPACK_ROTATION_AXIS_ALIGNED_X, ED_UVPACK_ROTATION_AXIS_ALIGNED_Y)) {
+    rotate_method = ED_UVPACK_ROTATION_AXIS_ALIGNED;
+  }
+  return can_rotate_with_method(*this, params, rotate_method);
+}
+
+bool PackIsland::can_rotate_(const UVPackIsland_Params &params) const
+{
+  return can_rotate_with_method(*this, params, params.rotate_method);
 }
 
 bool PackIsland::can_scale_(const UVPackIsland_Params &params) const

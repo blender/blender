@@ -10,11 +10,6 @@
 
 #include "draw_common_shader_shared.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-struct CurvesUniformBufPool;
 struct DRWShadingGroup;
 struct FluidModifierData;
 struct GPUMaterial;
@@ -25,6 +20,9 @@ struct RegionView3D;
 struct ViewLayer;
 struct Scene;
 struct DRWData;
+namespace blender::draw {
+struct CurvesUniformBufPool;
+}
 
 /* Keep in sync with globalsBlock in shaders */
 BLI_STATIC_ASSERT_ALIGN(GlobalsUboStorage, 16)
@@ -75,6 +73,8 @@ void DRW_hair_free(void);
 
 /* draw_curves.cc */
 
+namespace blender::draw {
+
 /**
  * \note Only valid after #DRW_curves_update().
  */
@@ -85,7 +85,7 @@ struct DRWShadingGroup *DRW_shgroup_curves_create_sub(struct Object *object,
                                                       struct GPUMaterial *gpu_material);
 
 void DRW_curves_init(struct DRWData *drw_data);
-void DRW_curves_ubos_pool_free(struct CurvesUniformBufPool *pool);
+void DRW_curves_ubos_pool_free(CurvesUniformBufPool *pool);
 void DRW_curves_update(void);
 void DRW_curves_free(void);
 
@@ -96,6 +96,8 @@ struct DRWShadingGroup *DRW_shgroup_pointcloud_create_sub(struct Object *object,
                                                           struct GPUMaterial *gpu_material);
 void DRW_pointcloud_init(void);
 void DRW_pointcloud_free(void);
+
+}  // namespace blender::draw
 
 /* draw_volume.cc */
 
@@ -144,7 +146,3 @@ struct DRW_Global {
   struct GPUUniformBuf *clipping_ubo;
 };
 extern struct DRW_Global G_draw;
-
-#ifdef __cplusplus
-}
-#endif

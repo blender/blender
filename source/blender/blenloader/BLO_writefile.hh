@@ -9,10 +9,6 @@
  * \brief external `writefile.cc` function prototypes.
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct BlendThumbnail;
 struct Main;
 struct MemFile;
@@ -27,7 +23,7 @@ struct ReportList;
 /**
  * Adjust paths when saving (kept unless #BlendFileWriteParams.use_save_as_copy is set).
  */
-typedef enum eBLO_WritePathRemap {
+enum eBLO_WritePathRemap {
   /** No path manipulation. */
   BLO_WRITE_PATH_REMAP_NONE = 0,
   /** Remap existing relative paths (default). */
@@ -36,7 +32,7 @@ typedef enum eBLO_WritePathRemap {
   BLO_WRITE_PATH_REMAP_RELATIVE_ALL = 2,
   /** Make all paths absolute. */
   BLO_WRITE_PATH_REMAP_ABSOLUTE = 3,
-} eBLO_WritePathRemap;
+};
 
 /** Similar to #BlendFileReadParams. */
 struct BlendFileWriteParams {
@@ -46,28 +42,21 @@ struct BlendFileWriteParams {
   /** On write, restore paths after editing them (see #BLO_WRITE_PATH_REMAP_RELATIVE). */
   uint use_save_as_copy : 1;
   uint use_userdef : 1;
-  const struct BlendThumbnail *thumb;
+  const BlendThumbnail *thumb;
 };
 
 /**
  * \return Success.
  */
-extern bool BLO_write_file(struct Main *mainvar,
+extern bool BLO_write_file(Main *mainvar,
                            const char *filepath,
                            int write_flags,
-                           const struct BlendFileWriteParams *params,
-                           struct ReportList *reports);
+                           const BlendFileWriteParams *params,
+                           ReportList *reports);
 
 /**
  * \return Success.
  */
-extern bool BLO_write_file_mem(struct Main *mainvar,
-                               struct MemFile *compare,
-                               struct MemFile *current,
-                               int write_flags);
+extern bool BLO_write_file_mem(Main *mainvar, MemFile *compare, MemFile *current, int write_flags);
 
 /** \} */
-
-#ifdef __cplusplus
-}
-#endif

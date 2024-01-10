@@ -49,8 +49,7 @@ namespace sim_input {
  * The data is just passed through the node. Data that is incompatible with simulations (like
  * anonymous attributes), is removed though.
  */
-struct PassThrough {
-};
+struct PassThrough {};
 
 /**
  * The input is not evaluated, instead the values provided here are output by the node.
@@ -80,8 +79,7 @@ namespace sim_output {
  * Output the data that comes from the corresponding simulation input node, ignoring the nodes in
  * the zone.
  */
-struct PassThrough {
-};
+struct PassThrough {};
 
 /**
  * Computes the simulation step and calls the given function to cache the new simulation state.
@@ -396,7 +394,8 @@ std::unique_ptr<LazyFunction> get_simulation_input_lazy_function(
     const bNode &node,
     GeometryNodesLazyFunctionGraphInfo &own_lf_graph_info);
 std::unique_ptr<LazyFunction> get_switch_node_lazy_function(const bNode &node);
-std::unique_ptr<LazyFunction> get_index_switch_node_lazy_function(const bNode &node);
+std::unique_ptr<LazyFunction> get_index_switch_node_lazy_function(
+    const bNode &node, GeometryNodesLazyFunctionGraphInfo &lf_graph_info);
 std::unique_ptr<LazyFunction> get_bake_lazy_function(
     const bNode &node, GeometryNodesLazyFunctionGraphInfo &own_lf_graph_info);
 

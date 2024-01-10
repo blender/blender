@@ -183,7 +183,8 @@ static int gpencil_vertexpaint_brightness_contrast_exec(bContext *C, wmOperator 
               bGPDspoint *pt;
               for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
                 if (((!any_selected) || (pt->flag & GP_SPOINT_SELECT)) &&
-                    (pt->vert_color[3] > 0.0f)) {
+                    (pt->vert_color[3] > 0.0f))
+                {
                   for (int i2 = 0; i2 < 3; i2++) {
                     pt->vert_color[i2] = gain * pt->vert_color[i2] + offset;
                   }
@@ -295,7 +296,8 @@ static int gpencil_vertexpaint_hsv_exec(bContext *C, wmOperator *op)
               bGPDspoint *pt;
               for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
                 if (((!any_selected) || (pt->flag & GP_SPOINT_SELECT)) &&
-                    (pt->vert_color[3] > 0.0f)) {
+                    (pt->vert_color[3] > 0.0f))
+                {
                   rgb_to_hsv_v(pt->vert_color, hsv);
 
                   hsv[0] += (hue - 0.5f);
@@ -400,7 +402,8 @@ static int gpencil_vertexpaint_invert_exec(bContext *C, wmOperator *op)
 
               for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
                 if (((!any_selected) || (pt->flag & GP_SPOINT_SELECT)) &&
-                    (pt->vert_color[3] > 0.0f)) {
+                    (pt->vert_color[3] > 0.0f))
+                {
                   for (int i2 = 0; i2 < 3; i2++) {
                     pt->vert_color[i2] = 1.0f - pt->vert_color[i2];
                   }
@@ -492,7 +495,8 @@ static int gpencil_vertexpaint_levels_exec(bContext *C, wmOperator *op)
 
               for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
                 if (((!any_selected) || (pt->flag & GP_SPOINT_SELECT)) &&
-                    (pt->vert_color[3] > 0.0f)) {
+                    (pt->vert_color[3] > 0.0f))
+                {
                   for (int i2 = 0; i2 < 3; i2++) {
                     pt->vert_color[i2] = gain * (pt->vert_color[i2] + offset);
                   }

@@ -28,8 +28,7 @@ struct BMeshCreateParams {
  *
  * \note ob is needed by multires
  */
-BMesh *BM_mesh_create(const struct BMAllocTemplate *allocsize,
-                      const struct BMeshCreateParams *params);
+BMesh *BM_mesh_create(const BMAllocTemplate *allocsize, const BMeshCreateParams *params);
 
 /**
  * \brief BMesh Free Mesh
@@ -162,15 +161,15 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
  * but could also be used for packing fragmented bmeshes.
  */
 void BM_mesh_rebuild(BMesh *bm,
-                     const struct BMeshCreateParams *params,
-                     struct BLI_mempool *vpool,
-                     struct BLI_mempool *epool,
-                     struct BLI_mempool *lpool,
-                     struct BLI_mempool *fpool);
+                     const BMeshCreateParams *params,
+                     BLI_mempool *vpool,
+                     BLI_mempool *epool,
+                     BLI_mempool *lpool,
+                     BLI_mempool *fpool);
 
-typedef struct BMAllocTemplate {
+struct BMAllocTemplate {
   int totvert, totedge, totloop, totface;
-} BMAllocTemplate;
+};
 
 /* used as an extern, defined in bmesh.h */
 extern const BMAllocTemplate bm_mesh_allocsize_default;

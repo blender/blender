@@ -149,11 +149,11 @@ void enable_ex(Main *bmain, Depsgraph *depsgraph, Object *ob)
 {
   SculptSession *ss = ob->sculpt;
 
-  ss->pmap = {};
-  ss->epmap = {};
+  ss->vert_to_face_map = {};
+  ss->edge_to_face_map = {};
   ss->edge_to_face_indices = {};
   ss->edge_to_face_offsets = {};
-  ss->vemap = {};
+  ss->vert_to_edge_map = {};
 
   /* Clear out any existing DM and PBVH. */
   if (ss->pbvh) {
@@ -187,12 +187,12 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Object
   customdata_strip_templayers(&mesh->vert_data, mesh->verts_num);
   customdata_strip_templayers(&mesh->face_data, mesh->faces_num);
 
-  if (!ss->pmap.is_empty()) {
-    ss->pmap = {};
-    ss->epmap = {};
+  if (!ss->vert_to_face_map.is_empty()) {
+    ss->vert_to_face_map = {};
+    ss->edge_to_face_map = {};
     ss->edge_to_face_indices = {};
     ss->edge_to_face_offsets = {};
-    ss->vemap = {};
+    ss->vert_to_edge_map = {};
   }
 
   if (!ss->bm || !ss->pbvh || BKE_pbvh_type(ss->pbvh) != PBVH_BMESH) {

@@ -495,6 +495,10 @@ class MESH_UL_attributes(UIList):
         for idx, item in enumerate(attributes):
             flags[idx] = 0 if item.is_internal else flags[idx]
 
+        # Reorder by name.
+        if self.use_filter_sort_alpha:
+            indices = bpy.types.UI_UL_list.sort_items_by_name(attributes, "name")
+
         return flags, indices
 
     def draw_item(self, _context, layout, _data, attribute, _icon, _active_data, _active_propname, _index):
@@ -608,6 +612,10 @@ class ColorAttributesListBase():
                 item.is_internal
             )
             flags[idx] = 0 if skip else flags[idx]
+
+        # Reorder by name.
+        if self.use_filter_sort_alpha:
+            indices = bpy.types.UI_UL_list.sort_items_by_name(attributes, "name")
 
         return flags, indices
 

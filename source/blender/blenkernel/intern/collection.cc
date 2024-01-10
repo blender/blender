@@ -1655,7 +1655,8 @@ static bool collection_instance_fix_recursive(Collection *parent_collection,
 
   LISTBASE_FOREACH (CollectionObject *, collection_object, &parent_collection->gobject) {
     if (collection_object->ob != nullptr &&
-        collection_object->ob->instance_collection == collection) {
+        collection_object->ob->instance_collection == collection)
+    {
       id_us_min(&collection->id);
       collection_object->ob->instance_collection = nullptr;
       cycles_found = true;

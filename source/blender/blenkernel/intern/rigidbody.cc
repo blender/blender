@@ -316,7 +316,8 @@ void BKE_rigidbody_object_copy(Main *bmain, Object *ob_dst, const Object *ob_src
       }
 
       if ((flag & LIB_ID_CREATE_NO_DEG_TAG) == 0 &&
-          (need_objects_update || need_constraints_update)) {
+          (need_objects_update || need_constraints_update))
+      {
         BKE_rigidbody_cache_reset(rigidbody_world);
 
         DEG_relations_tag_update(bmain);
@@ -2044,7 +2045,8 @@ static void rigidbody_update_external_forces(Depsgraph *depsgraph,
     /* update influence of effectors - but don't do it on an effector */
     /* only dynamic bodies need effector update */
     if (rbo->type == RBO_TYPE_ACTIVE &&
-        ((ob->pd == nullptr) || (ob->pd->forcefield == PFIELD_NULL))) {
+        ((ob->pd == nullptr) || (ob->pd->forcefield == PFIELD_NULL)))
+    {
       EffectorWeights *effector_weights = rbw->effector_weights;
       EffectedPoint epoint;
       ListBase *effectors;

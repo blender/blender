@@ -93,6 +93,29 @@ GPU_SHADER_CREATE_INFO(gpu_buffer_texture_test)
     .compute_source("gpu_buffer_texture_test.glsl")
     .do_static_compilation(true);
 
+/* Specialization constants. */
+
+GPU_SHADER_CREATE_INFO(gpu_specialization_constants_base_test)
+    .storage_buf(0, Qualifier::WRITE, "int", "data_out[]")
+    .specialization_constant(Type::FLOAT, "float_in", 2)
+    .specialization_constant(Type::UINT, "uint_in", 3)
+    .specialization_constant(Type::INT, "int_in", 4)
+    .specialization_constant(Type::BOOL, "bool_in", true);
+
+GPU_SHADER_CREATE_INFO(gpu_compute_specialization_test)
+    .local_group_size(1)
+    .additional_info("gpu_specialization_constants_base_test")
+    .compute_source("gpu_specialization_test.glsl")
+    .do_static_compilation(true);
+
+GPU_SHADER_CREATE_INFO(gpu_graphic_specialization_test)
+    .additional_info("gpu_specialization_constants_base_test")
+    .vertex_source("gpu_specialization_test.glsl")
+    .fragment_source("gpu_specialization_test.glsl")
+    .do_static_compilation(true);
+
+/* EEVEE test. */
+
 GPU_SHADER_CREATE_INFO(eevee_shadow_test)
     .fragment_source("eevee_shadow_test.glsl")
     .additional_info("gpu_shader_test")

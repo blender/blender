@@ -27,7 +27,7 @@
 #include "GPU_capabilities.h"
 
 #include "draw_cache_extract.hh"
-#include "draw_cache_inline.h"
+#include "draw_cache_inline.hh"
 #include "draw_subdivision.hh"
 
 #include "mesh_extractors/extract_mesh.hh"
@@ -37,6 +37,8 @@
 #ifdef DEBUG_TIME
 #  include "PIL_time_utildefines.h"
 #endif
+
+namespace blender::draw {
 
 int mesh_render_mat_len_get(const Object *object, const Mesh *mesh)
 {
@@ -48,8 +50,6 @@ int mesh_render_mat_len_get(const Object *object, const Mesh *mesh)
   }
   return std::max<int>(1, mesh->totcol);
 }
-
-namespace blender::draw {
 
 /* ---------------------------------------------------------------------- */
 /** \name Mesh Elements Extract Struct

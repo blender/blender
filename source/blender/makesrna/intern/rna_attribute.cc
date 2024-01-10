@@ -258,7 +258,8 @@ const EnumPropertyItem *rna_enum_attribute_domain_itemf(ID *id,
       continue;
     }
     if (id_type == ID_CV &&
-        !ELEM(domain_item->value, int(AttrDomain::Point), int(AttrDomain::Curve))) {
+        !ELEM(domain_item->value, int(AttrDomain::Point), int(AttrDomain::Curve)))
+    {
       continue;
     }
     if (id_type == ID_ME && ELEM(domain_item->value, int(AttrDomain::Curve))) {

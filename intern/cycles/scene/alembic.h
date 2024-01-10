@@ -32,11 +32,9 @@ struct MatrixSamplesData {
 };
 
 /* Helpers to detect if some type is a `ccl::array`. */
-template<typename> struct is_array : public std::false_type {
-};
+template<typename> struct is_array : public std::false_type {};
 
-template<typename T> struct is_array<array<T>> : public std::true_type {
-};
+template<typename T> struct is_array<array<T>> : public std::true_type {};
 
 /* Holds the data for a cache lookup at a given time, as well as information to
  * help disambiguate successes or failures to get data from the cache. */

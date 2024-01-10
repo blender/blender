@@ -72,7 +72,7 @@ void multires_reshape_apply_base_refit_base_mesh(MultiresReshapeContext *reshape
   blender::MutableSpan<blender::float3> base_positions = base_mesh->vert_positions_for_write();
   /* Update the context in case the vertices were duplicated. */
   reshape_context->base_positions = base_positions;
-  const blender::GroupedSpan<int> pmap = base_mesh->vert_to_face_map();
+  const blender::GroupedSpan<int> vert_to_face_map = base_mesh->vert_to_face_map();
 
   float(*origco)[3] = static_cast<float(*)[3]>(
       MEM_calloc_arrayN(base_mesh->verts_num, sizeof(float[3]), __func__));
@@ -84,17 +84,15 @@ void multires_reshape_apply_base_refit_base_mesh(MultiresReshapeContext *reshape
     float avg_no[3] = {0, 0, 0}, center[3] = {0, 0, 0}, push[3];
 
     /* Don't adjust vertices not used by at least one face. */
-    if (!pmap[i].size()) {
+    if (!vert_to_face_map[i].size()) {
       continue;
     }
 
     /* Find center. */
     int tot = 0;
-    for (int j = 0; j < pmap[i].size(); j++) {
-      const blender::IndexRange face = reshape_context->base_faces[pmap[i][j]];
-
+    for (const int face : vert_to_face_map[i]) {
       /* This double counts, not sure if that's bad or good. */
-      for (const int corner : face) {
+      for (const int corner : reshape_context->base_faces[face]) {
         const int vndx = reshape_context->base_corner_verts[corner];
         if (vndx != i) {
           add_v3_v3(center, origco[vndx]);
@@ -105,8 +103,8 @@ void multires_reshape_apply_base_refit_base_mesh(MultiresReshapeContext *reshape
     mul_v3_fl(center, 1.0f / tot);
 
     /* Find normal. */
-    for (int j = 0; j < pmap[i].size(); j++) {
-      const blender::IndexRange face = reshape_context->base_faces[pmap[i][j]];
+    for (int j = 0; j < vert_to_face_map[i].size(); j++) {
+      const blender::IndexRange face = reshape_context->base_faces[vert_to_face_map[i][j]];
 
       /* Set up face, loops, and coords in order to call #bke::mesh::face_normal_calc(). */
       blender::Array<int> face_verts(face.size());

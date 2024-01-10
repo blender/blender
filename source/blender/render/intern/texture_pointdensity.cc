@@ -74,7 +74,8 @@ static int point_data_used(PointDensity *pd)
     if (ELEM(pd->ob_color_source,
              TEX_PD_COLOR_VERTCOL,
              TEX_PD_COLOR_VERTWEIGHT,
-             TEX_PD_COLOR_VERTNOR)) {
+             TEX_PD_COLOR_VERTNOR))
+    {
       pd_bitflag |= POINT_DATA_COLOR;
     }
   }

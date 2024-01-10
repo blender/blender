@@ -1276,7 +1276,8 @@ static void libdecor_frame_handle_configure(libdecor_frame *frame,
                                          win->frame.buffer_scale;
     const int scale_as_fractional = scale * FRACTIONAL_DENOMINATOR;
     if (libdecor_configuration_get_content_size(
-            configuration, frame, &size_next[0], &size_next[1])) {
+            configuration, frame, &size_next[0], &size_next[1]))
+    {
       if (fractional_scale) {
         frame_pending.size[0] = gwl_window_fractional_to_viewport_round(win->frame, size_next[0]);
         frame_pending.size[1] = gwl_window_fractional_to_viewport_round(win->frame, size_next[1]);
@@ -2394,12 +2395,12 @@ bool GHOST_WindowWayland::outputs_changed_update_scale()
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
     if (use_libdecor) {
-      /* LIBDECOR needs it's own logic, failing to do this causes the window border
+      /* LIBDECOR needs its own logic. Failing to do this causes the window border
        * not to follow the GHOST window on startup - with multiple monitors,
        * each with different fractional scale, see: #109194.
        *
        * Note that the window will show larger, then resize to be smaller soon
-       * after opening, this would be nice to avoid but but would require DPI
+       * after opening. This would be nice to avoid but but would require DPI
        * to be stored in the window (as noted above). */
       int size_next[2] = {0, 0};
       int size_orig[2] = {0, 0};

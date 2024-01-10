@@ -383,7 +383,8 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
   bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
 
   if (bke::SpanAttributeWriter<int> resolution = attributes.lookup_for_write_span<int>(
-          "resolution")) {
+          "resolution"))
+  {
     if (inputs.interpolate_resolution) {
       interpolate_from_neighbors(
           neighbors_per_curve,

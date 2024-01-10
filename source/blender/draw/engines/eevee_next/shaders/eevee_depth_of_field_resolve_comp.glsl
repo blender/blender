@@ -20,7 +20,7 @@ shared uint shared_max_slight_focus_abs_coc;
  */
 float dof_slight_focus_coc_tile_get(vec2 frag_coord)
 {
-  if (all(equal(gl_LocalInvocationID, uvec3(0)))) {
+  if (gl_LocalInvocationIndex == 0u) {
     shared_max_slight_focus_abs_coc = floatBitsToUint(0.0);
   }
   barrier();

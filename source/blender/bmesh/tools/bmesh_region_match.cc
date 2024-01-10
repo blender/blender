@@ -677,7 +677,8 @@ static bool bm_uuidwalk_facestep_begin(UUIDWalk *uuidwalk, UUIDFaceStep *fstep)
 static void bm_uuidwalk_facestep_end(UUIDWalk *uuidwalk, UUIDFaceStep *fstep)
 {
   while (
-      UUIDFaceStepItem *fstep_item = static_cast<UUIDFaceStepItem *>(BLI_pophead(&fstep->items))) {
+      UUIDFaceStepItem *fstep_item = static_cast<UUIDFaceStepItem *>(BLI_pophead(&fstep->items)))
+  {
     BLI_mempool_free(uuidwalk->step_pool_items, fstep_item);
   }
 }
@@ -735,7 +736,8 @@ static BMFace **bm_mesh_region_match_pair(
 
   /* setup the initial state */
   if (UNLIKELY(bm_uuidwalk_init_from_edge(w_src, e_src) !=
-               bm_uuidwalk_init_from_edge(w_dst, e_dst))) {
+               bm_uuidwalk_init_from_edge(w_dst, e_dst)))
+  {
     /* should never happen, if verts passed are compatible, but to be safe... */
     goto finally;
   }
@@ -766,7 +768,8 @@ static BMFace **bm_mesh_region_match_pair(
       }
 
       if (bm_uuidwalk_facestep_begin(w_src, fstep_src) &&
-          bm_uuidwalk_facestep_begin(w_dst, fstep_dst)) {
+          bm_uuidwalk_facestep_begin(w_dst, fstep_dst))
+      {
         /* Step over face-lists with matching UUID's
          * both lists are sorted, so no need for lookups.
          * The data is created on 'begin' and cleared on 'end' */

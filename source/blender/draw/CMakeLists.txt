@@ -225,17 +225,17 @@ set(SRC
   engines/overlay/overlay_volume.cc
   engines/overlay/overlay_wireframe.cc
 
-  DRW_engine.h
+  DRW_engine.hh
   DRW_pbvh.hh
   DRW_select_buffer.hh
   intern/DRW_gpu_wrapper.hh
-  intern/DRW_render.h
+  intern/DRW_render.hh
   intern/attribute_convert.hh
   intern/draw_attributes.hh
-  intern/draw_cache.h
+  intern/draw_cache.hh
   intern/draw_cache_extract.hh
   intern/draw_cache_impl.hh
-  intern/draw_cache_inline.h
+  intern/draw_cache_inline.hh
   intern/draw_color_management.h
   intern/draw_command.hh
   intern/draw_common.h
@@ -256,7 +256,7 @@ set(SRC
   intern/draw_pbvh.hh
   intern/draw_resource.hh
   intern/draw_sculpt.hh
-  intern/draw_shader.h
+  intern/draw_shader.hh
   intern/draw_shader_shared.h
   intern/draw_state.h
   intern/draw_subdivision.hh
@@ -466,6 +466,7 @@ set(GLSL_SRC
   engines/eevee_next/shaders/eevee_bxdf_lib.glsl
   engines/eevee_next/shaders/eevee_bxdf_sampling_lib.glsl
   engines/eevee_next/shaders/eevee_camera_lib.glsl
+  engines/eevee_next/shaders/eevee_closure_lib.glsl
   engines/eevee_next/shaders/eevee_colorspace_lib.glsl
   engines/eevee_next/shaders/eevee_cryptomatte_lib.glsl
   engines/eevee_next/shaders/eevee_cubemap_lib.glsl
@@ -474,9 +475,9 @@ set(GLSL_SRC
   engines/eevee_next/shaders/eevee_debug_surfels_frag.glsl
   engines/eevee_next/shaders/eevee_debug_irradiance_grid_vert.glsl
   engines/eevee_next/shaders/eevee_debug_irradiance_grid_frag.glsl
-  engines/eevee_next/shaders/eevee_deferred_light_frag.glsl
   engines/eevee_next/shaders/eevee_deferred_capture_frag.glsl
   engines/eevee_next/shaders/eevee_deferred_combine_frag.glsl
+  engines/eevee_next/shaders/eevee_deferred_light_frag.glsl
   engines/eevee_next/shaders/eevee_deferred_planar_frag.glsl
   engines/eevee_next/shaders/eevee_deferred_tile_classify_frag.glsl
   engines/eevee_next/shaders/eevee_deferred_tile_compact_vert.glsl
@@ -995,7 +996,6 @@ if(WITH_GTESTS)
     )
     set(TEST_LIB
     )
-    include(GTestTesting)
-    blender_add_test_lib(bf_draw_tests "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}")
+    blender_add_test_suite_lib(draw "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}")
   endif()
 endif()

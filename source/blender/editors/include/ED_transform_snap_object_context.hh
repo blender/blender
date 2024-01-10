@@ -10,7 +10,7 @@
 
 #include "DNA_scene_types.h"
 
-//#define DEBUG_SNAP_TIME
+// #define DEBUG_SNAP_TIME
 
 struct BMEdge;
 struct BMFace;

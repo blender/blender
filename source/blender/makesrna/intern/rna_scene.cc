@@ -3819,7 +3819,7 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, nullptr, "autokey_mode", AUTOKEY_ON);
   RNA_def_property_ui_text(
       prop, "Auto Keying", "Automatic keyframe insertion for Objects, Bones and Masks");
-  RNA_def_property_ui_icon(prop, ICON_REC, 0);
+  RNA_def_property_ui_icon(prop, ICON_RECORD_OFF, 1);
 
   prop = RNA_def_property(srna, "auto_keying_mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_bitflag_sdna(prop, nullptr, "autokey_mode");
@@ -8314,6 +8314,13 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
   RNA_def_property_struct_type(prop, "RaytraceEEVEE");
   RNA_def_property_ui_text(
       prop, "Reflection Trace Options", "EEVEE settings for tracing reflections");
+
+  prop = RNA_def_property(srna, "use_raytracing", PROP_BOOLEAN, PROP_NONE);
+  /* Reuse the same property as legacy EEVEE for compatibility. */
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", SCE_EEVEE_SSR_ENABLED);
+  RNA_def_property_ui_text(prop, "Use Ray-Tracing", "Enable the ray-tracing module");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
 }
 
 static void rna_def_scene_gpencil(BlenderRNA *brna)

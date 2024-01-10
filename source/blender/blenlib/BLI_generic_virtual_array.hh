@@ -229,7 +229,7 @@ class GVMutableArray : public GVArrayCommon {
   static GVMutableArray ForSpan(GMutableSpan span);
 
   operator GVArray() const &;
-  operator GVArray() &&noexcept;
+  operator GVArray() && noexcept;
 
   GVMutableArray &operator=(const GVMutableArray &other);
   GVMutableArray &operator=(GVMutableArray &&other) noexcept;

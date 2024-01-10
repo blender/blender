@@ -769,15 +769,15 @@ static const char *camera_adrcodes_to_paths(int adrcode, int *r_array_index)
   /* result depends on adrcode */
   switch (adrcode) {
     case CAM_LENS:
-#if 0  /* XXX this cannot be resolved easily... \
-        * perhaps we assume camera is perspective (works for most cases... */
+#if 0 /* XXX this cannot be resolved easily... \
+       * perhaps we assume camera is perspective (works for most cases... */
       if (ca->type == CAM_ORTHO) {
         return "ortho_scale";
       }
       else {
         return "lens";
       }
-#else  /* XXX lazy hack for now... */
+#else /* XXX lazy hack for now... */
       return "lens";
 #endif /* XXX this cannot be resolved easily */
 

@@ -2,11 +2,17 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_span.hh"
+#include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 
 #include "DNA_windowmanager_types.h"
 
 #include "RNA_types.hh"
+
+struct bContext;
+
+namespace blender::bke {
 
 #define FH_MAX_FILE_EXTENSIONS_STR 512
 
@@ -22,13 +28,18 @@ struct FileHandlerType {
   char file_extensions_str[FH_MAX_FILE_EXTENSIONS_STR];
 
   /** Check if file handler can be used on file drop. */
-  bool (*poll_drop)(const struct bContext *C, FileHandlerType *file_handle_type);
+  bool (*poll_drop)(const bContext *C, FileHandlerType *file_handle_type);
 
   /** List of file extensions supported by the file handler. */
-  blender::Vector<std::string> file_extensions;
+  Vector<std::string> file_extensions;
 
   /** RNA integration. */
   ExtensionRNA rna_ext;
+
+  /**
+   * Return a vector of indices in #paths of file paths supported by the file handler.
+   */
+  blender::Vector<int64_t> filter_supported_paths(const blender::Span<std::string> paths) const;
 };
 
 /**
@@ -38,14 +49,26 @@ struct FileHandlerType {
  *
  * The new  `file_handler` is expected to have a unique `FileHandlerType.idname`.
  */
-void BKE_file_handler_add(std::unique_ptr<FileHandlerType> file_handler);
+void file_handler_add(std::unique_ptr<FileHandlerType> file_handler);
 
 /** Returns a `file_handler` that have a specific `idname`, otherwise return `nullptr`. */
-FileHandlerType *BKE_file_handler_find(const char *idname);
+FileHandlerType *file_handler_find(StringRef idname);
 
-/** Removes and frees a specific `file_handler` from the `file_handlers` list, the `file_handler`
- * pointer will be not longer valid for use. */
-void BKE_file_handler_remove(FileHandlerType *file_handler);
+/**
+ * Removes and frees a specific `file_handler` from the `file_handlers` list, the `file_handler`
+ * pointer will be not longer valid for use.
+ */
+void file_handler_remove(FileHandlerType *file_handler);
 
-/** Return a reference of the #RawVector with all `file_handlers` registered. */
-const blender::RawVector<std::unique_ptr<FileHandlerType>> &BKE_file_handlers();
+/** Return pointers to all registered file handlers. */
+Span<std::unique_ptr<FileHandlerType>> file_handlers();
+
+/**
+ * Return a vector of file handlers that support any file path in `paths` and the call to
+ * `poll_drop` returns #true. Caller must check if each file handler have a valid
+ * `import_operator`.
+ */
+blender::Vector<FileHandlerType *> file_handlers_poll_file_drop(
+    const bContext *C, const blender::Span<std::string> paths);
+
+}  // namespace blender::bke

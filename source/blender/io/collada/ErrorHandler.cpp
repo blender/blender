@@ -58,7 +58,8 @@ bool ErrorHandler::handleError(const COLLADASaxFWL::IError *error)
     }
 
     else if (parserError.getErrorType() ==
-             GeneratedSaxParser::ParserError::ERROR_COULD_NOT_OPEN_FILE) {
+             GeneratedSaxParser::ParserError::ERROR_COULD_NOT_OPEN_FILE)
+    {
       isError = true;
       error_context = "File access";
     }

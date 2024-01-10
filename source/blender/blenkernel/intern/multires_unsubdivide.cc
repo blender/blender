@@ -163,8 +163,7 @@ static bool is_vertex_diagonal(BMVert *from_v, BMVert *to_v)
  */
 static void unsubdivide_face_center_vertex_tag(BMesh *bm, BMVert *initial_vertex)
 {
-  bool *visited_verts = static_cast<bool *>(
-      MEM_calloc_arrayN(bm->totvert, sizeof(bool), "visited vertices"));
+  blender::BitVector<> visited_verts(bm->totvert);
   GSQueue *queue;
   queue = BLI_gsqueue_new(sizeof(BMVert *));
 
@@ -180,7 +179,7 @@ static void unsubdivide_face_center_vertex_tag(BMesh *bm, BMVert *initial_vertex
       int neighbor_vertex_index = BM_elem_index_get(neighbor_v);
       if (neighbor_v != initial_vertex && is_vertex_diagonal(neighbor_v, initial_vertex)) {
         BLI_gsqueue_push(queue, &neighbor_v);
-        visited_verts[neighbor_vertex_index] = true;
+        visited_verts[neighbor_vertex_index].set();
         BM_elem_flag_set(neighbor_v, BM_ELEM_TAG, true);
       }
     }
@@ -218,7 +217,7 @@ static void unsubdivide_face_center_vertex_tag(BMesh *bm, BMVert *initial_vertex
               is_vertex_diagonal(neighbor_v, diagonal_v))
           {
             BLI_gsqueue_push(queue, &neighbor_v);
-            visited_verts[neighbor_vertex_index] = true;
+            visited_verts[neighbor_vertex_index].set(true);
             BM_elem_flag_set(neighbor_v, BM_ELEM_TAG, true);
           }
         }
@@ -228,7 +227,6 @@ static void unsubdivide_face_center_vertex_tag(BMesh *bm, BMVert *initial_vertex
   }
 
   BLI_gsqueue_free(queue);
-  MEM_freeN(visited_verts);
 }
 
 /**

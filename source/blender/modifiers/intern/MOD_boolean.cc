@@ -546,7 +546,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
       BKE_mesh_wrapper_ensure_mdata(mesh_operand_ob);
       /* when one of objects is empty (has got no faces) we could speed up
        * calculation a bit returning one of objects' derived meshes (or empty one)
-       * Returning mesh is depended on modifiers operation (sergey) */
+       * Returning mesh is dependent on modifiers operation (sergey) */
       result = get_quick_mesh(object, mesh, operand_ob, mesh_operand_ob, bmd->operation);
 
       if (result == nullptr) {

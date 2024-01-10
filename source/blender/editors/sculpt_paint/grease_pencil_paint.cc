@@ -173,7 +173,7 @@ struct PaintOperationExecutor {
     //     brush->gpencil_settings->vertex_mode, GPPAINT_MODE_STROKE, GPPAINT_MODE_BOTH);
 
     BLI_assert(grease_pencil->has_active_layer());
-    drawing_ = grease_pencil->get_editable_drawing_at(grease_pencil->get_active_layer(),
+    drawing_ = grease_pencil->get_editable_drawing_at(*grease_pencil->get_active_layer(),
                                                       scene_->r.cfra);
     BLI_assert(drawing_ != nullptr);
   }

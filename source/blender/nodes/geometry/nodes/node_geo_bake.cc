@@ -210,7 +210,8 @@ class LazyFunctionForBakeNode final : public LazyFunction {
     }
     else if (auto *info = std::get_if<sim_output::ReadError>(behavior)) {
       if (geo_eval_log::GeoTreeLogger *tree_logger = local_user_data.try_get_tree_logger(
-              user_data)) {
+              user_data))
+      {
         tree_logger->node_warnings.append(
             {node_.identifier, {NodeWarningType::Error, info->message}});
       }

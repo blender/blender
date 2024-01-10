@@ -561,15 +561,15 @@ class NodeTreeMainUpdater {
         if (ntype.group_update_func) {
           ntype.group_update_func(&ntree, node);
         }
-        if (ntype.updatefunc) {
-          ntype.updatefunc(&ntree, node);
-        }
         if (ntype.declare) {
           /* Should have been created when the node was registered. */
           BLI_assert(ntype.static_declaration != nullptr);
           if (ntype.static_declaration->is_context_dependent) {
             nodes::update_node_declaration_and_sockets(ntree, *node);
           }
+        }
+        if (ntype.updatefunc) {
+          ntype.updatefunc(&ntree, node);
         }
       }
     }

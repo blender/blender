@@ -194,7 +194,8 @@ ViewVertex *ViewMap::InsertViewVertex(SVertex *iVertex, vector<ViewEdge *> &newV
   }
   FEdge *fend(nullptr), *fbegin(nullptr);
   for (vector<FEdge *>::const_iterator fe = fedges.begin(), feend = fedges.end(); fe != feend;
-       ++fe) {
+       ++fe)
+  {
     if ((*fe)->vertexB() == iVertex) {
       fend = (*fe);
     }

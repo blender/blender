@@ -1391,11 +1391,11 @@ bool paint_calculate_rake_rotation(UnifiedPaintSettings *ups,
     }
 
     float dpos[2];
-    sub_v2_v2v2(dpos, ups->last_rake, mouse_pos);
+    sub_v2_v2v2(dpos, mouse_pos, ups->last_rake);
 
     /* Limit how often we update the angle to prevent jitter. */
     if (len_squared_v2(dpos) >= r * r) {
-      rotation = atan2f(dpos[0], dpos[1]);
+      rotation = atan2f(dpos[1], dpos[0]) + float(0.5f * M_PI);
 
       copy_v2_v2(ups->last_rake, mouse_pos);
 
@@ -1605,11 +1605,13 @@ static void sculptsession_free_pbvh(Object *object)
     ss->pbvh = nullptr;
   }
 
-  ss->pmap = {};
+  ss->vert_to_face_map = {};
   ss->edge_to_face_offsets = {};
   ss->edge_to_face_indices = {};
-  ss->epmap = {};
-  ss->vemap = {};
+  ss->edge_to_face_map = {};
+  ss->vert_to_edge_offsets = {};
+  ss->vert_to_edge_indices = {};
+  ss->vert_to_edge_map = {};
 
   MEM_SAFE_FREE(ss->preview_vert_list);
   ss->preview_vert_count = 0;
@@ -1879,7 +1881,7 @@ static void sculpt_update_object(
   Sculpt *sd = scene->toolsettings->sculpt;
   UnifiedPaintSettings &ups = scene->toolsettings->unified_paint_settings;
   SculptSession *ss = ob->sculpt;
-  Mesh *me = BKE_object_get_original_mesh(ob);
+  Mesh *mesh = BKE_object_get_original_mesh(ob);
   Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
   MultiresModifierData *mmd = sculpt_multires_modifier_get(scene, ob, true);
   const bool use_face_sets = (ob->mode & OB_MODE_SCULPT) != 0;
@@ -1911,7 +1913,7 @@ static void sculpt_update_object(
   ss->shapekey_active = (mmd == nullptr) ? BKE_keyblock_from_object(ob) : nullptr;
 
   ss->material_index = (int *)CustomData_get_layer_named(
-      &me->face_data, CD_PROP_INT32, "material_index");
+      &mesh->face_data, CD_PROP_INT32, "material_index");
 
   /* NOTE: Weight pPaint require mesh info for loop lookup, but it never uses multires code path,
    * so no extra checks is needed here. */
@@ -1920,44 +1922,44 @@ static void sculpt_update_object(
     ss->multires.modifier = mmd;
     ss->multires.level = mmd->sculptlvl;
     ss->totvert = me_eval->verts_num;
-    ss->totloops = me->corners_num;
-    ss->totedges = me->edges_num;
+    ss->totloops = mesh->corners_num;
+    ss->totedges = mesh->edges_num;
     ss->faces_num = me_eval->faces_num;
-    ss->totfaces = me->faces_num;
+    ss->totfaces = mesh->faces_num;
 
     /* These are assigned to the base mesh in Multires. This is needed because Face Sets
      * operators and tools use the Face Sets data from the base mesh when Multires is active. */
-    ss->vert_positions = me->vert_positions_for_write();
-    ss->faces = me->faces();
-    ss->edges = me->edges();
-    ss->corner_verts = me->corner_verts();
-    ss->corner_edges = me->corner_edges();
+    ss->vert_positions = mesh->vert_positions_for_write();
+    ss->faces = mesh->faces();
+    ss->edges = mesh->edges();
+    ss->corner_verts = mesh->corner_verts();
+    ss->corner_edges = mesh->corner_edges();
   }
   else {
-    ss->totvert = me->verts_num;
-    ss->faces_num = me->faces_num;
-    ss->totfaces = me->faces_num;
-    ss->totloops = me->corners_num;
-    ss->totedges = me->edges_num;
+    ss->totvert = mesh->verts_num;
+    ss->faces_num = mesh->faces_num;
+    ss->totfaces = mesh->faces_num;
+    ss->totloops = mesh->corners_num;
+    ss->totedges = mesh->edges_num;
 
-    ss->vert_positions = me->vert_positions_for_write();
-    ss->edges = me->edges();
-    ss->faces = me->faces();
+    ss->vert_positions = mesh->vert_positions_for_write();
+    ss->edges = mesh->edges();
+    ss->faces = mesh->faces();
 
-    ss->vert_positions = me->vert_positions_for_write();
+    ss->vert_positions = mesh->vert_positions_for_write();
 
     ss->sharp_edge = (bool *)CustomData_get_layer_named_for_write(
-        &me->edge_data, CD_PROP_BOOL, "sharp_edge", me->edges_num);
+        &mesh->edge_data, CD_PROP_BOOL, "sharp_edge", mesh->edges_num);
     ss->seam_edge = (bool *)CustomData_get_layer_named_for_write(
-        &me->edge_data, CD_PROP_BOOL, ".uv_seam", me->edges_num);
+        &mesh->edge_data, CD_PROP_BOOL, ".uv_seam", mesh->edges_num);
 
-    ss->vdata = &me->vert_data;
-    ss->edata = &me->edge_data;
-    ss->ldata = &me->corner_data;
-    ss->pdata = &me->face_data;
+    ss->vdata = &mesh->vert_data;
+    ss->edata = &mesh->edge_data;
+    ss->ldata = &mesh->corner_data;
+    ss->pdata = &mesh->face_data;
 
-    ss->corner_verts = me->corner_verts();
-    ss->corner_edges = me->corner_edges();
+    ss->corner_verts = mesh->corner_verts();
+    ss->corner_edges = mesh->corner_edges();
 
     ss->multires.active = false;
     ss->multires.modifier = nullptr;
@@ -1966,7 +1968,7 @@ static void sculpt_update_object(
     CustomDataLayer *layer;
     AttrDomain domain;
 
-    if (BKE_pbvh_get_color_layer(nullptr, me, &layer, &domain)) {
+    if (BKE_pbvh_get_color_layer(nullptr, mesh, &layer, &domain)) {
       if (layer->type == CD_PROP_COLOR) {
         ss->vcol = static_cast<MPropCol *>(layer->data);
       }
@@ -1991,7 +1993,7 @@ static void sculpt_update_object(
     ldata = &ss->bm->ldata;
   }
   else {
-    ldata = &me->corner_data;
+    ldata = &mesh->corner_data;
   }
 
   ss->totuv = 0;
@@ -2003,7 +2005,7 @@ static void sculpt_update_object(
   }
 
   ss->hide_poly = (bool *)CustomData_get_layer_named_for_write(
-      &me->face_data, CD_PROP_BOOL, ".hide_poly", me->faces_num);
+      &mesh->face_data, CD_PROP_BOOL, ".hide_poly", mesh->faces_num);
 
   ss->subdiv_ccg = me_eval->runtime->subdiv_ccg.get();
 
@@ -2021,7 +2023,7 @@ static void sculpt_update_object(
   /* Sculpt Face Sets. */
   if (use_face_sets) {
     int *face_sets = static_cast<int *>(CustomData_get_layer_named_for_write(
-        &me->face_data, CD_PROP_INT32, ".sculpt_face_set", me->faces_num));
+        &mesh->face_data, CD_PROP_INT32, ".sculpt_face_set", mesh->faces_num));
 
     if (face_sets) {
       /* Load into sculpt attribute system. */
@@ -2037,7 +2039,7 @@ static void sculpt_update_object(
 
   sculpt_boundary_flags_ensure(ob, pbvh, BKE_sculptsession_vertex_count(ss), ss->totedges);
 
-  BKE_pbvh_update_active_vcol(pbvh, me);
+  BKE_pbvh_update_active_vcol(pbvh, mesh);
 
   if (BKE_pbvh_type(pbvh) == PBVH_FACES) {
     ss->poly_normals = blender::bke::pbvh::get_poly_normals(ss->pbvh);
@@ -2059,11 +2061,11 @@ static void sculpt_update_object(
   sculpt_update_persistent_base(ob);
 
   if (ob->type == OB_MESH) {
-    ss->pmap = me->vert_to_face_map();
+    ss->vert_to_face_map = mesh->vert_to_face_map();
   }
 
   if (ss->pbvh) {
-    blender::bke::pbvh::set_pmap(ss->pbvh, ss->pmap);
+    blender::bke::pbvh::set_pmap(ss->pbvh, ss->vert_to_face_map);
   }
 
   if (ss->deform_modifiers_active) {
@@ -2083,7 +2085,7 @@ static void sculpt_update_object(
       {
         BKE_sculptsession_free_deformMats(ss);
 
-        BLI_assert(me_eval_deform->totvert == me->verts_num);
+        BLI_assert(me_eval_deform->totvert == mesh->verts_num);
 
         ss->deform_cos = me_eval->vert_positions();
         BKE_pbvh_vert_coords_apply(ss->pbvh, ss->deform_cos);
@@ -2097,8 +2099,8 @@ static void sculpt_update_object(
 
       ss->orig_cos = (ss->shapekey_active) ?
                          Span(static_cast<const float3 *>(ss->shapekey_active->data),
-                              me->verts_num) :
-                         me->vert_positions();
+                              mesh->verts_num) :
+                         mesh->vert_positions();
 
       BKE_crazyspace_build_sculpt(depsgraph, scene, ob, ss->deform_imats, ss->deform_cos);
       BKE_pbvh_vert_coords_apply(ss->pbvh, ss->deform_cos);
@@ -2122,214 +2124,192 @@ static void sculpt_update_object(
         a++;
       }
     }
-    else {
-      BKE_sculptsession_free_deformMats(ss);
-    }
+  }
+  else {
+    BKE_sculptsession_free_deformMats(ss);
+  }
 
-    if (ss->shapekey_active != nullptr && ss->deform_cos.is_empty()) {
-      ss->deform_cos = Span(static_cast<const float3 *>(ss->shapekey_active->data), me->verts_num);
-    }
+  if (ss->shapekey_active != nullptr && ss->deform_cos.is_empty()) {
+    ss->deform_cos = Span(static_cast<const float3 *>(ss->shapekey_active->data), mesh->verts_num);
+  }
 
-    /* if pbvh is deformed, key block is already applied to it */
-    if (ss->shapekey_active) {
-      bool pbvh_deformed = BKE_pbvh_is_deformed(ss->pbvh);
-      if (!pbvh_deformed || ss->deform_cos.is_empty()) {
-        const Span key_data(static_cast<const float3 *>(ss->shapekey_active->data), me->verts_num);
+  /* if pbvh is deformed, key block is already applied to it */
+  if (ss->shapekey_active) {
+    bool pbvh_deformed = BKE_pbvh_is_deformed(ss->pbvh);
+    if (!pbvh_deformed || ss->deform_cos.is_empty()) {
+      const Span key_data(static_cast<const float3 *>(ss->shapekey_active->data), mesh->verts_num);
 
-        if (key_data.data() != nullptr) {
-          if (!pbvh_deformed) {
-            /* apply shape keys coordinates to PBVH */
-            BKE_pbvh_vert_coords_apply(ss->pbvh, key_data);
-          }
-          if (ss->deform_cos.is_empty()) {
-            ss->deform_cos = key_data;
-          }
+      if (key_data.data() != nullptr) {
+        if (!pbvh_deformed) {
+          /* apply shape keys coordinates to PBVH */
+          BKE_pbvh_vert_coords_apply(ss->pbvh, key_data);
+        }
+        if (ss->deform_cos.is_empty()) {
+          ss->deform_cos = key_data;
         }
       }
     }
+  }
 
-    int totvert = 0;
+  int totvert = 0;
 
-    switch (BKE_pbvh_type(pbvh)) {
-      case PBVH_FACES:
-        totvert = me->verts_num;
-        break;
-      case PBVH_BMESH:
-        totvert = ss->bm ? ss->bm->totvert : me->verts_num;
-        break;
-      case PBVH_GRIDS:
-        totvert = BKE_pbvh_get_grid_num_verts(ss->pbvh);
-        break;
-    }
+  switch (BKE_pbvh_type(pbvh)) {
+    case PBVH_FACES:
+      totvert = mesh->verts_num;
+      break;
+    case PBVH_BMESH:
+      totvert = ss->bm ? ss->bm->totvert : mesh->verts_num;
+      break;
+    case PBVH_GRIDS:
+      totvert = BKE_pbvh_get_grid_num_verts(ss->pbvh);
+      break;
+  }
 
-    BKE_sculpt_init_flags_valence(ob, pbvh, totvert, false);
+  BKE_sculpt_init_flags_valence(ob, pbvh, totvert, false);
 
-    if (ss->bm && me->key && ob->shapenr != ss->bm->shapenr) {
-      KeyBlock *actkey = static_cast<KeyBlock *>(
-          BLI_findlink(&me->key->block, ss->bm->shapenr - 1));
-      KeyBlock *newkey = static_cast<KeyBlock *>(BLI_findlink(&me->key->block, ob->shapenr - 1));
+  if (ss->bm && mesh->key && ob->shapenr != ss->bm->shapenr) {
+    KeyBlock *actkey = static_cast<KeyBlock *>(BLI_findlink(&mesh->key->block, ss->bm->shapenr - 1));
+    KeyBlock *newkey = static_cast<KeyBlock *>(BLI_findlink(&mesh->key->block, ob->shapenr - 1));
 
-      bool updatePBVH = false;
+    bool updatePBVH = false;
 
-      if (!actkey) {
-        printf("%s: failed to find active shapekey\n", __func__);
-        if (!ss->bm->shapenr || !CustomData_has_layer(&ss->bm->vdata, CD_SHAPEKEY)) {
-          printf("allocating shapekeys. . .\n");
+    if (!actkey) {
+      printf("%s: failed to find active shapekey\n", __func__);
+      if (!ss->bm->shapenr || !CustomData_has_layer(&ss->bm->vdata, CD_SHAPEKEY)) {
+        printf("allocating shapekeys. . .\n");
 
-          // need to allocate customdata for keys
-          for (KeyBlock *key = (KeyBlock *)me->key->block.first; key; key = key->next) {
+        // need to allocate customdata for keys
+        for (KeyBlock *key = (KeyBlock *)mesh->key->block.first; key; key = key->next) {
 
-            int idx = CustomData_get_named_layer_index(&ss->bm->vdata, CD_SHAPEKEY, key->name);
+          int idx = CustomData_get_named_layer_index(&ss->bm->vdata, CD_SHAPEKEY, key->name);
 
-            if (idx == -1) {
-              BM_data_layer_add_named(ss->bm, &ss->bm->vdata, CD_SHAPEKEY, key->name);
-              BKE_sculptsession_update_attr_refs(ob);
+          if (idx == -1) {
+            BM_data_layer_add_named(ss->bm, &ss->bm->vdata, CD_SHAPEKEY, key->name);
+            BKE_sculptsession_update_attr_refs(ob);
 
-              idx = CustomData_get_named_layer_index(&ss->bm->vdata, CD_SHAPEKEY, key->name);
-              ss->bm->vdata.layers[idx].uid = key->uid;
-            }
-
-            int cd_shapeco = ss->bm->vdata.layers[idx].offset;
-            BMVert *v;
-            BMIter iter;
-
-            BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
-              float *keyco = (float *)BM_ELEM_CD_GET_VOID_P(v, cd_shapeco);
-
-              copy_v3_v3(keyco, v->co);
-            }
+            idx = CustomData_get_named_layer_index(&ss->bm->vdata, CD_SHAPEKEY, key->name);
+            ss->bm->vdata.layers[idx].uid = key->uid;
           }
-        }
 
-        updatePBVH = true;
-        ss->bm->shapenr = ob->shapenr;
-      }
-
-      if (!newkey) {
-        printf("%s: failed to find new active shapekey\n", __func__);
-      }
-
-      if (actkey && newkey) {
-        int cd_co1 = CustomData_get_named_layer_index(&ss->bm->vdata, CD_SHAPEKEY, actkey->name);
-        int cd_co2 = CustomData_get_named_layer_index(&ss->bm->vdata, CD_SHAPEKEY, newkey->name);
-
-        BMVert *v;
-        BMIter iter;
-
-        if (cd_co1 == -1) {  // non-recoverable error
-          printf("%s: failed to find active shapekey in customdata.\n", __func__);
-          return;
-        }
-        else if (cd_co2 == -1) {
-          printf("%s: failed to find new shapekey in customdata; allocating . . .\n", __func__);
-
-          BM_data_layer_add_named(ss->bm, &ss->bm->vdata, CD_SHAPEKEY, newkey->name);
-          int idx = CustomData_get_named_layer_index(&ss->bm->vdata, CD_SHAPEKEY, newkey->name);
-
-          int cd_co = ss->bm->vdata.layers[idx].offset;
-          ss->bm->vdata.layers[idx].uid = newkey->uid;
-
-          BKE_sculptsession_update_attr_refs(ob);
+          int cd_shapeco = ss->bm->vdata.layers[idx].offset;
+          BMVert *v;
+          BMIter iter;
 
           BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
-            float *keyco = (float *)BM_ELEM_CD_GET_VOID_P(v, cd_co);
+            float *keyco = (float *)BM_ELEM_CD_GET_VOID_P(v, cd_shapeco);
+
             copy_v3_v3(keyco, v->co);
           }
-
-          cd_co2 = idx;
         }
+      }
 
-        cd_co1 = ss->bm->vdata.layers[cd_co1].offset;
-        cd_co2 = ss->bm->vdata.layers[cd_co2].offset;
+      updatePBVH = true;
+      ss->bm->shapenr = ob->shapenr;
+    }
+
+    if (!newkey) {
+      printf("%s: failed to find new active shapekey\n", __func__);
+    }
+
+    if (actkey && newkey) {
+      int cd_co1 = CustomData_get_named_layer_index(&ss->bm->vdata, CD_SHAPEKEY, actkey->name);
+      int cd_co2 = CustomData_get_named_layer_index(&ss->bm->vdata, CD_SHAPEKEY, newkey->name);
+
+      BMVert *v;
+      BMIter iter;
+
+      if (cd_co1 == -1) {  // non-recoverable error
+        printf("%s: failed to find active shapekey in customdata.\n", __func__);
+        return;
+      }
+      else if (cd_co2 == -1) {
+        printf("%s: failed to find new shapekey in customdata; allocating . . .\n", __func__);
+
+        BM_data_layer_add_named(ss->bm, &ss->bm->vdata, CD_SHAPEKEY, newkey->name);
+        int idx = CustomData_get_named_layer_index(&ss->bm->vdata, CD_SHAPEKEY, newkey->name);
+
+        int cd_co = ss->bm->vdata.layers[idx].offset;
+        ss->bm->vdata.layers[idx].uid = newkey->uid;
+
+        BKE_sculptsession_update_attr_refs(ob);
 
         BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
-          float *co1 = (float *)BM_ELEM_CD_GET_VOID_P(v, cd_co1);
-          float *co2 = (float *)BM_ELEM_CD_GET_VOID_P(v, cd_co2);
-
-          copy_v3_v3(co1, v->co);
-          copy_v3_v3(v->co, co2);
+          float *keyco = (float *)BM_ELEM_CD_GET_VOID_P(v, cd_co);
+          copy_v3_v3(keyco, v->co);
         }
 
-        ss->bm->shapenr = ob->shapenr;
-
-        updatePBVH = true;
+        cd_co2 = idx;
       }
 
-      if (updatePBVH && ss->pbvh) {
-        Vector<PBVHNode *> nodes = blender::bke::pbvh::get_flagged_nodes(ss->pbvh, PBVH_Leaf);
+      cd_co1 = ss->bm->vdata.layers[cd_co1].offset;
+      cd_co2 = ss->bm->vdata.layers[cd_co2].offset;
 
-        for (PBVHNode *node : nodes) {
-          BKE_pbvh_node_mark_update(node);
-          BKE_pbvh_vert_tag_update_normal_tri_area(node);
-        }
+      BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
+        float *co1 = (float *)BM_ELEM_CD_GET_VOID_P(v, cd_co1);
+        float *co2 = (float *)BM_ELEM_CD_GET_VOID_P(v, cd_co2);
+
+        copy_v3_v3(co1, v->co);
+        copy_v3_v3(v->co, co2);
       }
-      /* We could be more precise when we have access to the active tool. */
-      const bool use_paint_slots = (ob->mode & OB_MODE_SCULPT) != 0;
-      if (use_paint_slots) {
-        BKE_texpaint_slots_refresh_object(scene, ob);
-      }
+
+      ss->bm->shapenr = ob->shapenr;
+
+      updatePBVH = true;
     }
 
-    if (ss->bm_log && ss->pbvh) {
-      bke::pbvh::set_idmap(ss->pbvh, ss->bm_idmap);
-      BKE_pbvh_set_bm_log(ss->pbvh, ss->bm_log);
-    }
+    if (updatePBVH && ss->pbvh) {
+      Vector<PBVHNode *> nodes = blender::bke::pbvh::get_flagged_nodes(ss->pbvh, PBVH_Leaf);
 
-    if (is_paint_tool) {
-      if (ss->vcol_domain == AttrDomain::Corner) {
-        /* Ensure pbvh nodes have loop indices; the sculpt undo system
-         * needs them for color attributes.
-         */
-        BKE_pbvh_ensure_node_loops(ss->pbvh);
+      for (PBVHNode *node : nodes) {
+        BKE_pbvh_node_mark_update(node);
+        BKE_pbvh_vert_tag_update_normal_tri_area(node);
       }
+    }
+  }
 
-      /*
-       * We should rebuild the PBVH_pixels when painting canvas changes.
-       *
-       * The relevant changes are stored/encoded in the paint canvas key.
-       * These include the active uv map, and resolutions.
+  if (ss->bm_log && ss->pbvh) {
+    bke::pbvh::set_idmap(ss->pbvh, ss->bm_idmap);
+    BKE_pbvh_set_bm_log(ss->pbvh, ss->bm_log);
+  }
+
+  if (is_paint_tool) {
+    if (ss->vcol_domain == AttrDomain::Corner) {
+      /* Ensure pbvh nodes have loop indices; the sculpt undo system
+       * needs them for color attributes.
        */
-      if (U.experimental.use_sculpt_texture_paint && ss->pbvh) {
-        char *paint_canvas_key = BKE_paint_canvas_key_get(&scene->toolsettings->paint_mode, ob);
-        if (ss->last_paint_canvas_key == nullptr ||
-            !STREQ(paint_canvas_key, ss->last_paint_canvas_key)) {
-          MEM_SAFE_FREE(ss->last_paint_canvas_key);
-          ss->last_paint_canvas_key = paint_canvas_key;
-          BKE_pbvh_mark_rebuild_pixels(ss->pbvh);
-        }
+      BKE_pbvh_ensure_node_loops(ss->pbvh);
+    }
 
-        /*
-         * We should rebuild the PBVH_pixels when painting canvas changes.
-         *
-         * The relevant changes are stored/encoded in the paint canvas key.
-         * These include the active uv map, and resolutions.
-         */
-        if (U.experimental.use_sculpt_texture_paint && ss->pbvh) {
-          char *paint_canvas_key = BKE_paint_canvas_key_get(&scene->toolsettings->paint_mode, ob);
-          if (ss->last_paint_canvas_key == nullptr ||
-              !STREQ(paint_canvas_key, ss->last_paint_canvas_key)) {
-            MEM_SAFE_FREE(ss->last_paint_canvas_key);
-            ss->last_paint_canvas_key = paint_canvas_key;
-            BKE_pbvh_mark_rebuild_pixels(ss->pbvh);
-          }
-          else {
-            MEM_freeN(paint_canvas_key);
-          }
-        }
-
-        /* We could be more precise when we have access to the active tool. */
-        const bool use_paint_slots = (ob->mode & OB_MODE_SCULPT) != 0;
-        if (use_paint_slots) {
-          BKE_texpaint_slots_refresh_object(scene, ob);
-        }
+    /*
+     * We should rebuild the PBVH_pixels when painting canvas changes.
+     *
+     * The relevant changes are stored/encoded in the paint canvas key.
+     * These include the active uv map, and resolutions.
+     */
+    if (U.experimental.use_sculpt_texture_paint && ss->pbvh) {
+      char *paint_canvas_key = BKE_paint_canvas_key_get(&scene->toolsettings->paint_mode, ob);
+      if (ss->last_paint_canvas_key == nullptr ||
+          !STREQ(paint_canvas_key, ss->last_paint_canvas_key)) {
+        MEM_SAFE_FREE(ss->last_paint_canvas_key);
+        ss->last_paint_canvas_key = paint_canvas_key;
+        BKE_pbvh_mark_rebuild_pixels(ss->pbvh);
+      }
+      else {
+        MEM_freeN(paint_canvas_key);
       }
     }
 
-    if (ss->pbvh) {
-      blender::bke::pbvh::set_flags_valence(ss->pbvh,
-                                            static_cast<uint8_t *>(ss->attrs.flags->data),
-                                            static_cast<int *>(ss->attrs.valence->data));
+    /* We could be more precise when we have access to the active tool. */
+    const bool use_paint_slots = (ob->mode & OB_MODE_SCULPT) != 0;
+    if (use_paint_slots) {
+      BKE_texpaint_slots_refresh_object(scene, ob);
     }
+  }
+
+  if (ss->pbvh) {
+    blender::bke::pbvh::set_flags_valence(ss->pbvh,
+                                          static_cast<uint8_t *>(ss->attrs.flags->data),
+                                          static_cast<int *>(ss->attrs.valence->data));
   }
 }
 
@@ -2387,16 +2367,15 @@ void BKE_sculpt_color_layer_create_if_needed(Object *object)
     return;
   }
 
-  char unique_name[MAX_CUSTOMDATA_LAYER_NAME];
-  BKE_id_attribute_calc_unique_name(&orig_me->id, "Color", unique_name);
+  const std::string unique_name = BKE_id_attribute_calc_unique_name(orig_me->id, "Color");
   if (!orig_me->attributes_for_write().add(
           unique_name, AttrDomain::Point, CD_PROP_COLOR, AttributeInitDefaultValue()))
   {
     return;
   }
 
-  BKE_id_attributes_active_color_set(&orig_me->id, unique_name);
-  BKE_id_attributes_default_color_set(&orig_me->id, unique_name);
+  BKE_id_attributes_active_color_set(&orig_me->id, unique_name.c_str());
+  BKE_id_attributes_default_color_set(&orig_me->id, unique_name.c_str());
   DEG_id_tag_update(&orig_me->id, ID_RECALC_GEOMETRY_ALL_MODES);
   BKE_mesh_tessface_clear(orig_me);
 
@@ -2699,15 +2678,15 @@ static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform)
   SculptSession *ss = ob->sculpt;
   Mesh *me = BKE_object_get_original_mesh(ob);
 
-  if (ss->pmap.is_empty()) {
-    ss->pmap = me->vert_to_face_map();
+  if (ss->vert_to_face_map.is_empty()) {
+    ss->vert_to_face_map = me->vert_to_face_map();
   }
 
   PBVH *pbvh = ob->sculpt->pbvh = bke::pbvh::build_mesh(me);
 
   BKE_sculptsession_update_attr_refs(ob);
 
-  blender::bke::pbvh::set_pmap(ss->pbvh, ss->pmap);
+  blender::bke::pbvh::set_pmap(ss->pbvh, ss->vert_to_face_map);
   BKE_sculpt_ensure_sculpt_layers(ob);
   BKE_sculpt_init_flags_valence(ob, pbvh, me->verts_num, true);
   BKE_sculpt_ensure_origco(ob);
@@ -2754,11 +2733,11 @@ static PBVH *build_pbvh_from_ccg(Object *ob, SubdivCCG *subdiv_ccg)
   blender::bke::pbvh::build_grids(&key, base_mesh, subdiv_ccg);
   blender::bke::pbvh::sharp_limit_set(pbvh, ss->sharp_angle_limit);
 
-  if (ss->pmap.is_empty()) {
-    ss->pmap = base_mesh->vert_to_face_map();
+  if (ss->vert_to_face_map.is_empty()) {
+    ss->vert_to_face_map = base_mesh->vert_to_face_map();
   }
 
-  blender::bke::pbvh::set_pmap(ss->pbvh, ss->pmap);
+  blender::bke::pbvh::set_pmap(ss->pbvh, ss->vert_to_face_map);
   int totvert = BKE_pbvh_get_grid_num_verts(pbvh);
   BKE_sculpt_init_flags_valence(ob, pbvh, totvert, true);
 
@@ -2844,6 +2823,7 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
 
     BKE_sculptsession_sync_attributes(ob, BKE_object_get_original_mesh(ob), false);
     BKE_pbvh_update_active_vcol(pbvh, BKE_object_get_original_mesh(ob));
+    blender::bke::pbvh::set_pmap(pbvh, ob->sculpt->vert_to_face_map);
 
     return pbvh;
   }
@@ -2904,6 +2884,7 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
   }
 
   ss->pbvh = pbvh;
+  blender::bke::pbvh::set_pmap(pbvh, ss->vert_to_face_map);
 
   sculpt_attribute_update_refs(ob);
 

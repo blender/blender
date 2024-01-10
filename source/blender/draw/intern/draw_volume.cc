@@ -9,7 +9,7 @@
  */
 
 #include "DRW_gpu_wrapper.hh"
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include "DNA_fluid_types.h"
 #include "DNA_volume_types.h"

@@ -462,6 +462,7 @@ void MTLBackend::capabilities_init(MTLContext *ctx)
   }
 
   GCaps.transform_feedback_support = true;
+  GCaps.stencil_export_support = true;
 
   /* OPENGL Related workarounds -- none needed for Metal. */
   GCaps.extensions_len = 0;
@@ -510,4 +511,4 @@ void MTLBackend::compute_dispatch_indirect(StorageBuf *indirect_buf)
 
 /** \} */
 
-}  // blender::gpu
+}  // namespace blender::gpu

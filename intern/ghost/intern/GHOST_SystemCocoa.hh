@@ -13,7 +13,7 @@
 #  error Apple OSX only!
 #endif  // __APPLE__
 
-//#define __CARBONSOUND__
+// #define __CARBONSOUND__
 
 #include "GHOST_System.hh"
 

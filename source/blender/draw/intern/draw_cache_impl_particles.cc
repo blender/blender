@@ -8,7 +8,7 @@
  * \brief Particle API for render engines
  */
 
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -42,6 +42,8 @@
 
 #include "draw_cache_impl.hh" /* own include */
 #include "draw_hair_private.h"
+
+namespace blender::draw {
 
 static void particle_batch_cache_clear(ParticleSystem *psys);
 
@@ -1005,7 +1007,8 @@ static void particle_batch_cache_ensure_procedural_strand_data(PTCacheEdit *edit
   else {
     int curr_point = 0;
     if ((psys->pathcache != nullptr) &&
-        (!psys->childcache || (psys->part->draw & PART_DRAW_PARENT))) {
+        (!psys->childcache || (psys->part->draw & PART_DRAW_PARENT)))
+    {
       curr_point = particle_batch_cache_fill_strands_data(psys,
                                                           psmd,
                                                           psys->pathcache,
@@ -1105,7 +1108,8 @@ static void particle_batch_cache_ensure_procedural_indices(PTCacheEdit *edit,
   else {
     int curr_point = 0;
     if ((psys->pathcache != nullptr) &&
-        (!psys->childcache || (psys->part->draw & PART_DRAW_PARENT))) {
+        (!psys->childcache || (psys->part->draw & PART_DRAW_PARENT)))
+    {
       curr_point = particle_batch_cache_fill_segments_indices(
           psys->pathcache, 0, psys->totpart, verts_per_hair, &elb);
     }
@@ -1155,7 +1159,8 @@ static void particle_batch_cache_ensure_procedural_pos(PTCacheEdit *edit,
     }
     else {
       if ((psys->pathcache != nullptr) &&
-          (!psys->childcache || (psys->part->draw & PART_DRAW_PARENT))) {
+          (!psys->childcache || (psys->part->draw & PART_DRAW_PARENT)))
+      {
         particle_batch_cache_fill_segments_proc_pos(
             psys->pathcache, psys->totpart, &pos_step, &length_step);
       }
@@ -1301,7 +1306,8 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
   }
   else {
     if ((psys->pathcache != nullptr) &&
-        (!psys->childcache || (psys->part->draw & PART_DRAW_PARENT))) {
+        (!psys->childcache || (psys->part->draw & PART_DRAW_PARENT)))
+    {
       curr_point = particle_batch_cache_fill_segments(psys,
                                                       psmd,
                                                       psys->pathcache,
@@ -1759,3 +1765,5 @@ bool particles_ensure_procedural_data(Object *object,
 
   return need_ft_update;
 }
+
+}  // namespace blender::draw

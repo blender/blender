@@ -567,7 +567,8 @@ static bool ntree_branch_count_and_tag_nodes(bNode *fromnode, bNode *tonode, voi
     iter->node_count++;
   }
   if (tonode->runtime->tmp_flag == -1 &&
-      (iter->node_filter == nullptr || iter->node_filter(tonode))) {
+      (iter->node_filter == nullptr || iter->node_filter(tonode)))
+  {
     tonode->runtime->tmp_flag = iter->node_count;
     iter->node_count++;
   }

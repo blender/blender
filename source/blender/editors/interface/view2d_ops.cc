@@ -785,7 +785,8 @@ static void view_zoomstep_apply_ex(bContext *C,
 
         /* only move view to mouse if zoom fac is inside minzoom/maxzoom */
         if (((v2d->keepzoom & V2D_LIMITZOOM) == 0) ||
-            IN_RANGE_INCL(zoomx, v2d->minzoom, v2d->maxzoom)) {
+            IN_RANGE_INCL(zoomx, v2d->minzoom, v2d->maxzoom))
+        {
           const float mval_fac = (vzd->mx_2d - cur_old.xmin) / BLI_rctf_size_x(&cur_old);
           const float mval_faci = 1.0f - mval_fac;
           const float ofs = (mval_fac * dx) - (mval_faci * dx);
@@ -820,7 +821,8 @@ static void view_zoomstep_apply_ex(bContext *C,
 
         /* only move view to mouse if zoom fac is inside minzoom/maxzoom */
         if (((v2d->keepzoom & V2D_LIMITZOOM) == 0) ||
-            IN_RANGE_INCL(zoomy, v2d->minzoom, v2d->maxzoom)) {
+            IN_RANGE_INCL(zoomy, v2d->minzoom, v2d->maxzoom))
+        {
           const float mval_fac = (vzd->my_2d - cur_old.ymin) / BLI_rctf_size_y(&cur_old);
           const float mval_faci = 1.0f - mval_fac;
           const float ofs = (mval_fac * dy) - (mval_faci * dy);
@@ -1174,7 +1176,8 @@ static int view_zoomdrag_invoke(bContext *C, wmOperator *op, const wmEvent *even
     /* Only respect user setting zoom axis if the view does not have any zoom restrictions
      * any will be scaled uniformly. */
     if (((v2d->keepzoom & (V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y)) == 0) &&
-        (v2d->keepzoom & V2D_KEEPASPECT)) {
+        (v2d->keepzoom & V2D_KEEPASPECT))
+    {
       if (U.uiflag & USER_ZOOM_HORIZ) {
         facy = 0.0f;
       }

@@ -1825,12 +1825,9 @@ void GreasePencil::move_duplicate_frames(
 }
 
 const blender::bke::greasepencil::Drawing *GreasePencil::get_drawing_at(
-    const blender::bke::greasepencil::Layer *layer, const int frame_number) const
+    const blender::bke::greasepencil::Layer &layer, const int frame_number) const
 {
-  if (layer == nullptr) {
-    return nullptr;
-  }
-  const int drawing_index = layer->drawing_index_at(frame_number);
+  const int drawing_index = layer.drawing_index_at(frame_number);
   if (drawing_index == -1) {
     /* No drawing found. */
     return nullptr;
@@ -1845,13 +1842,13 @@ const blender::bke::greasepencil::Drawing *GreasePencil::get_drawing_at(
 }
 
 blender::bke::greasepencil::Drawing *GreasePencil::get_editable_drawing_at(
-    const blender::bke::greasepencil::Layer *layer, const int frame_number)
+    const blender::bke::greasepencil::Layer &layer, const int frame_number)
 {
-  if (layer == nullptr || !layer->is_editable()) {
+  if (!layer.is_editable()) {
     return nullptr;
   }
 
-  const int drawing_index = layer->drawing_index_at(frame_number);
+  const int drawing_index = layer.drawing_index_at(frame_number);
   if (drawing_index == -1) {
     /* No drawing found. */
     return nullptr;
@@ -1871,8 +1868,8 @@ std::optional<blender::Bounds<blender::float3>> GreasePencil::bounds_min_max(con
   std::optional<Bounds<float3>> bounds;
   const Span<const bke::greasepencil::Layer *> layers = this->layers();
   for (const int layer_i : layers.index_range()) {
-    const bke::greasepencil::Layer *layer = layers[layer_i];
-    if (!layer->is_visible()) {
+    const bke::greasepencil::Layer &layer = *layers[layer_i];
+    if (!layer.is_visible()) {
       continue;
     }
     if (const bke::greasepencil::Drawing *drawing = this->get_drawing_at(layer, frame)) {

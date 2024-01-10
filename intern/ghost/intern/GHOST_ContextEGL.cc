@@ -147,7 +147,7 @@ static bool egl_chk(bool result,
 }
 
 #ifndef NDEBUG
-#  define EGL_CHK(x) egl_chk((x), __FILE__, __LINE__, #  x)
+#  define EGL_CHK(x) egl_chk((x), __FILE__, __LINE__, #x)
 #else
 #  define EGL_CHK(x) egl_chk(x)
 #endif
@@ -475,7 +475,8 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
   attrib_list.clear();
 
   if (epoxy_egl_version(m_display) >= 15 ||
-      epoxy_has_egl_extension(m_display, "KHR_create_context")) {
+      epoxy_has_egl_extension(m_display, "KHR_create_context"))
+  {
     if (m_api == EGL_OPENGL_API || m_api == EGL_OPENGL_ES_API) {
       if (m_contextMajorVersion != 0) {
         attrib_list.push_back(EGL_CONTEXT_MAJOR_VERSION_KHR);

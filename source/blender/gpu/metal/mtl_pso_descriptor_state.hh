@@ -11,6 +11,10 @@
 
 #include <Metal/Metal.h>
 
+#include "BLI_vector.hh"
+
+#include "gpu_shader_private.hh"
+
 namespace blender::gpu {
 
 /**
@@ -171,6 +175,29 @@ struct MTLVertexDescriptor {
   }
 };
 
+struct SpecializationStateDescriptor {
+  Vector<Shader::Constants::Value> values;
+
+  SpecializationStateDescriptor() = default;
+  SpecializationStateDescriptor(Vector<Shader::Constants::Value> source) : values(source) {}
+
+  bool operator==(const SpecializationStateDescriptor &other) const
+  {
+    return values == other.values;
+  }
+
+  uint64_t hash() const
+  {
+    uint64_t hash = values.size();
+    uint seed = 0xFF;
+    for (const Shader::Constants::Value &value : values) {
+      seed = seed << 1;
+      hash ^= seed ^ value.u;
+    }
+    return hash;
+  }
+};
+
 /* Metal Render Pipeline State Descriptor -- All unique information which feeds PSO creation. */
 struct MTLRenderPipelineStateDescriptor {
   /* This state descriptor will contain ALL parameters which generate a unique PSO.
@@ -178,9 +205,10 @@ struct MTLRenderPipelineStateDescriptor {
    * new PSO for the current shader.
    *
    * Unlike the 'MTLContextGlobalShaderPipelineState', this struct contains a subset of
-   * parameters used to distinguish between unique PSOs. This struct is hash-able and only contains
-   * those parameters which are required by PSO generation. Non-unique state such as bound
-   * resources is not tracked here, as it does not require a unique PSO permutation if changed. */
+   * parameters used to distinguish between unique PSOs. This struct is hash-able and only
+   * contains those parameters which are required by PSO generation. Non-unique state such as
+   * bound resources is not tracked here, as it does not require a unique PSO permutation if
+   * changed. */
 
   /* Input Vertex Descriptor. */
   MTLVertexDescriptor vertex_descriptor;
@@ -209,6 +237,9 @@ struct MTLRenderPipelineStateDescriptor {
 
   /* Point size required by point primitives. */
   float point_size = 0.0f;
+
+  /* Specialization constants map. */
+  SpecializationStateDescriptor specialization_state;
 
   /* Comparison Operator for caching. */
   bool operator==(const MTLRenderPipelineStateDescriptor &other) const
@@ -242,6 +273,10 @@ struct MTLRenderPipelineStateDescriptor {
       if (color_attachment_format[c] != other.color_attachment_format[c]) {
         return false;
       }
+    }
+
+    if (!(specialization_state == other.specialization_state)) {
+      return false;
     }
 
     return true;
@@ -284,6 +319,9 @@ struct MTLRenderPipelineStateDescriptor {
     /* Clipping plane enablement. */
     hash ^= uint64_t(clipping_plane_enable_mask) << 20;
 
+    /* Specialization constants. We can treat the raw bytes as uint. */
+    hash ^= specialization_state.hash();
+
     return hash;
   }
 
@@ -299,6 +337,25 @@ struct MTLRenderPipelineStateDescriptor {
     }
     vertex_descriptor.uses_ssbo_vertex_fetch = false;
     vertex_descriptor.num_ssbo_attributes = 0;
+  }
+};
+
+/* Metal Compute Pipeline State Descriptor containing all unique information which feeds PSO
+ * creation. */
+struct MTLComputePipelineStateDescriptor {
+
+  /* Specialization constants map. */
+  SpecializationStateDescriptor specialization_state;
+
+  /* Comparison Operator for caching. */
+  bool operator==(const MTLComputePipelineStateDescriptor &other) const
+  {
+    return (specialization_state == other.specialization_state);
+  }
+
+  uint64_t hash() const
+  {
+    return specialization_state.hash();
   }
 };
 

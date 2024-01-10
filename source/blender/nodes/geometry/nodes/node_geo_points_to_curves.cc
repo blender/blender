@@ -113,6 +113,9 @@ static Curves *curves_from_points(const PointCloud &points,
                                   const bke::AnonymousAttributePropagationInfo &propagation_info)
 {
   const int domain_size = points.totpoint;
+  if (domain_size == 0) {
+    return nullptr;
+  }
 
   const bke::PointCloudFieldContext context(points);
   fn::FieldEvaluator evaluator(context, domain_size);

@@ -123,7 +123,8 @@ bool BKE_image_save_options_init(ImageSaveOptions *opts,
     else {
       BKE_image_format_from_imbuf(&opts->im_format, ibuf);
       if (ima->source == IMA_SRC_GENERATED &&
-          !IMB_colormanagement_space_name_is_data(ima_colorspace)) {
+          !IMB_colormanagement_space_name_is_data(ima_colorspace))
+      {
         ima_colorspace = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_BYTE);
       }
 

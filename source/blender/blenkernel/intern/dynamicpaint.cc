@@ -79,7 +79,7 @@ using blender::int3;
 
 /* could enable at some point but for now there are far too many conversions */
 #ifdef __GNUC__
-//#  pragma GCC diagnostic ignored "-Wdouble-promotion"
+// #  pragma GCC diagnostic ignored "-Wdouble-promotion"
 #endif
 
 static CLG_LogRef LOG = {"bke.dynamicpaint"};
@@ -2121,7 +2121,8 @@ static void dynamicPaint_frameUpdate(
 
       /* image sequences are handled by bake operator */
       if ((surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ) ||
-          !(surface->flags & MOD_DPAINT_ACTIVE)) {
+          !(surface->flags & MOD_DPAINT_ACTIVE))
+      {
         continue;
       }
 
@@ -3024,7 +3025,8 @@ int dynamicPaint_createUVSurface(Scene *scene,
 
                 if (n_target >= 0 && n_target != index) {
                   if (!dynamicPaint_pointHasNeighbor(
-                          ed, final_index[index], final_index[n_target])) {
+                          ed, final_index[index], final_index[n_target]))
+                  {
                     ed->n_target[n_pos] = final_index[n_target];
                     ed->n_num[final_index[index]]++;
                     n_pos++;
@@ -4770,7 +4772,8 @@ static void dynamic_paint_paint_single_point_cb_ex(void *__restrict userdata,
 
     if (surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
       if (brush->proximity_falloff == MOD_DPAINT_PRFALL_RAMP &&
-          !(brush->flags & MOD_DPAINT_RAMP_ALPHA)) {
+          !(brush->flags & MOD_DPAINT_RAMP_ALPHA))
+      {
         paintColor[0] = colorband[0];
         paintColor[1] = colorband[1];
         paintColor[2] = colorband[2];

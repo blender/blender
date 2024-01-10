@@ -740,6 +740,20 @@ static bool graph_panel_drivers_poll(const bContext *C, PanelType * /*pt*/)
   return graph_panel_context(C, nullptr, nullptr);
 }
 
+static void graph_panel_driverVar_fallback(uiLayout *layout,
+                                           const DriverTarget *dtar,
+                                           PointerRNA *dtar_ptr)
+{
+  if (dtar->options & DTAR_OPTION_USE_FALLBACK) {
+    uiLayout *row = uiLayoutRow(layout, true);
+    uiItemR(row, dtar_ptr, "use_fallback_value", UI_ITEM_NONE, "", ICON_NONE);
+    uiItemR(row, dtar_ptr, "fallback_value", UI_ITEM_NONE, nullptr, ICON_NONE);
+  }
+  else {
+    uiItemR(layout, dtar_ptr, "use_fallback_value", UI_ITEM_NONE, nullptr, ICON_NONE);
+  }
+}
+
 /* settings for 'single property' driver variable type */
 static void graph_panel_driverVar__singleProp(uiLayout *layout, ID *id, DriverVar *dvar)
 {
@@ -761,12 +775,15 @@ static void graph_panel_driverVar__singleProp(uiLayout *layout, ID *id, DriverVa
 
     /* rna path */
     col = uiLayoutColumn(layout, true);
-    uiLayoutSetRedAlert(col, (dtar->flag & DTAR_FLAG_INVALID));
+    uiLayoutSetRedAlert(col, (dtar->flag & (DTAR_FLAG_INVALID | DTAR_FLAG_FALLBACK_USED)));
     uiTemplatePathBuilder(col,
                           &dtar_ptr,
                           "data_path",
                           &root_ptr,
                           CTX_IFACE_(BLT_I18NCONTEXT_EDITOR_FILEBROWSER, "Path"));
+
+    /* Default value. */
+    graph_panel_driverVar_fallback(layout, dtar, &dtar_ptr);
   }
 }
 
@@ -904,13 +921,16 @@ static void graph_panel_driverVar__contextProp(uiLayout *layout, ID *id, DriverV
   /* Target Path */
   {
     uiLayout *col = uiLayoutColumn(layout, true);
-    uiLayoutSetRedAlert(col, (dtar->flag & DTAR_FLAG_INVALID));
+    uiLayoutSetRedAlert(col, (dtar->flag & (DTAR_FLAG_INVALID | DTAR_FLAG_FALLBACK_USED)));
     uiTemplatePathBuilder(col,
                           &dtar_ptr,
                           "data_path",
                           nullptr,
                           CTX_IFACE_(BLT_I18NCONTEXT_EDITOR_FILEBROWSER, "Path"));
   }
+
+  /* Default value. */
+  graph_panel_driverVar_fallback(layout, dtar, &dtar_ptr);
 }
 
 /* ----------------------------------------------------------------- */

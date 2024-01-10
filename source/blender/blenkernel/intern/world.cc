@@ -35,7 +35,7 @@
 
 #include "BLT_translation.h"
 
-#include "DRW_engine.h"
+#include "DRW_engine.hh"
 
 #include "DEG_depsgraph.hh"
 

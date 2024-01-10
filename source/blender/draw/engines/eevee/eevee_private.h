@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include "BLI_bitmap.h"
 

@@ -1212,7 +1212,8 @@ ccl_device void integrator_shade_volume(KernelGlobals kg,
 
 #  ifdef __SHADOW_LINKING__
   if (shadow_linking_schedule_intersection_kernel<DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME>(kg,
-                                                                                         state)) {
+                                                                                         state))
+  {
     return;
   }
 #  endif /* __SHADOW_LINKING__ */

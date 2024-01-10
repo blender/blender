@@ -185,7 +185,8 @@ static void rna_Armature_edit_bone_remove(bArmature *arm,
   RNA_POINTER_INVALIDATE(ebone_ptr);
 }
 
-static void rna_iterator_bone_collections_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+static void rna_iterator_bone_collections_all_begin(CollectionPropertyIterator *iter,
+                                                    PointerRNA *ptr)
 {
   bArmature *arm = (bArmature *)ptr->data;
   rna_iterator_array_begin(iter,
@@ -195,11 +196,27 @@ static void rna_iterator_bone_collections_begin(CollectionPropertyIterator *iter
                            false,
                            nullptr);
 }
-
-static int rna_iterator_bone_collections_length(PointerRNA *ptr)
+static int rna_iterator_bone_collections_all_length(PointerRNA *ptr)
 {
   bArmature *arm = (bArmature *)ptr->data;
   return arm->collection_array_num;
+}
+
+static void rna_iterator_bone_collections_roots_begin(CollectionPropertyIterator *iter,
+                                                      PointerRNA *ptr)
+{
+  bArmature *arm = (bArmature *)ptr->data;
+  rna_iterator_array_begin(iter,
+                           arm->collection_array,
+                           sizeof(BoneCollection *),
+                           arm->collection_root_count,
+                           false,
+                           nullptr);
+}
+static int rna_iterator_bone_collections_roots_length(PointerRNA *ptr)
+{
+  bArmature *arm = (bArmature *)ptr->data;
+  return arm->collection_root_count;
 }
 
 static void rna_BoneCollections_active_set(PointerRNA *ptr,
@@ -209,6 +226,72 @@ static void rna_BoneCollections_active_set(PointerRNA *ptr,
   bArmature *arm = (bArmature *)ptr->data;
   BoneCollection *bcoll = (BoneCollection *)value.data;
   ANIM_armature_bonecoll_active_set(arm, bcoll);
+}
+
+static void rna_iterator_bone_collection_children_begin(CollectionPropertyIterator *iter,
+                                                        PointerRNA *ptr)
+{
+  bArmature *arm = (bArmature *)ptr->owner_id;
+  const BoneCollection *bcoll = (BoneCollection *)ptr->data;
+  rna_iterator_array_begin(iter,
+                           arm->collection_array + bcoll->child_index,
+                           sizeof(BoneCollection *),
+                           bcoll->child_count,
+                           false,
+                           nullptr);
+}
+static int rna_iterator_bone_collection_children_length(PointerRNA *ptr)
+{
+  const BoneCollection *bcoll = (BoneCollection *)ptr->data;
+  return bcoll->child_count;
+}
+
+static PointerRNA rna_BoneCollection_parent_get(PointerRNA *ptr)
+{
+  bArmature *arm = (bArmature *)ptr->owner_id;
+  const BoneCollection *bcoll = (BoneCollection *)ptr->data;
+
+  /* Note that this performs two scans of the array. This might look bad, but as
+   * long as `Object.children` still loops in Python over all of
+   * `bpy.data.objects`, this should also be acceptable. */
+  using namespace blender::animrig;
+  const int bcoll_index = armature_bonecoll_find_index(arm, bcoll);
+  const int parent_index = armature_bonecoll_find_parent_index(arm, bcoll_index);
+
+  if (parent_index < 0) {
+    return PointerRNA_NULL;
+  }
+
+  BoneCollection *parent = arm->collection_array[parent_index];
+  return RNA_pointer_create(&arm->id, &RNA_BoneCollection, parent);
+}
+
+static void rna_BoneCollection_parent_set(PointerRNA *ptr,
+                                          PointerRNA value,
+                                          struct ReportList *reports)
+{
+  using namespace blender::animrig;
+
+  BoneCollection *self = (BoneCollection *)ptr->data;
+  BoneCollection *to_parent = (BoneCollection *)value.data;
+
+  bArmature *armature = (bArmature *)ptr->owner_id;
+
+  const int from_bcoll_index = armature_bonecoll_find_index(armature, self);
+  const int from_parent_index = armature_bonecoll_find_parent_index(armature, from_bcoll_index);
+  const int to_parent_index = armature_bonecoll_find_index(armature, to_parent);
+
+  if (to_parent_index == from_bcoll_index ||
+      armature_bonecoll_is_descendant_of(armature, from_bcoll_index, to_parent_index))
+  {
+    BKE_report(reports, RPT_ERROR, "Cannot make a bone collection a descendant of itself");
+    return;
+  }
+
+  armature_bonecoll_move_to_parent(
+      armature, from_bcoll_index, -1, from_parent_index, to_parent_index);
+
+  WM_main_add_notifier(NC_OBJECT | ND_BONE_COLLECTION, nullptr);
 }
 
 static int rna_BoneCollections_active_index_get(PointerRNA *ptr)
@@ -234,6 +317,32 @@ static void rna_BoneCollections_active_index_range(
   // collection (i.e. the default collection that should remain first).
   *min = 0;
   *max = max_ii(0, arm->collection_array_num - 1);
+}
+
+static BoneCollection *rna_BoneCollections_new(bArmature *armature,
+                                               ReportList *reports,
+                                               const char *name,
+                                               BoneCollection *parent)
+{
+  if (parent == nullptr) {
+    BoneCollection *bcoll = ANIM_armature_bonecoll_new(armature, name);
+    WM_main_add_notifier(NC_OBJECT | ND_BONE_COLLECTION, armature);
+    return bcoll;
+  }
+
+  const int32_t parent_index = blender::animrig::armature_bonecoll_find_index(armature, parent);
+  if (parent_index < 0) {
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Bone collection '%s' not found in Armature '%s'",
+                parent->name,
+                armature->id.name + 2);
+    return nullptr;
+  }
+
+  BoneCollection *bcoll = ANIM_armature_bonecoll_new(armature, name, parent_index);
+  WM_main_add_notifier(NC_OBJECT | ND_BONE_COLLECTION, armature);
+  return bcoll;
 }
 
 static void rna_BoneCollections_active_name_set(PointerRNA *ptr, const char *name)
@@ -264,13 +373,30 @@ static void rna_BoneCollection_name_set(PointerRNA *ptr, const char *name)
   WM_main_add_notifier(NC_OBJECT | ND_BONE_COLLECTION, &arm->id);
 }
 
+static void rna_BoneCollection_is_visible_set(PointerRNA *ptr, const bool is_visible)
+{
+  bArmature *arm = (bArmature *)ptr->owner_id;
+  BoneCollection *bcoll = (BoneCollection *)ptr->data;
+
+  ANIM_armature_bonecoll_is_visible_set(arm, bcoll, is_visible);
+
+  WM_main_add_notifier(NC_OBJECT | ND_BONE_COLLECTION, &arm->id);
+  WM_main_add_notifier(NC_OBJECT | ND_POSE, &arm->id);
+}
+
+static bool rna_BoneCollection_is_visible_effectively_get(PointerRNA *ptr)
+{
+  const BoneCollection *bcoll = (BoneCollection *)ptr->data;
+  return bcoll->is_visible_effectively();
+}
+
 static char *rna_BoneCollection_path(const PointerRNA *ptr)
 {
   const BoneCollection *bcoll = (const BoneCollection *)ptr->data;
   char name_esc[sizeof(bcoll->name) * 2];
 
   BLI_str_escape(name_esc, bcoll->name, sizeof(name_esc));
-  return BLI_sprintfN("collections[\"%s\"]", name_esc);
+  return BLI_sprintfN("collections_all[\"%s\"]", name_esc);
 }
 
 static IDProperty **rna_BoneCollection_idprops(PointerRNA *ptr)
@@ -290,6 +416,27 @@ static bool rna_BoneCollection_is_editable_get(PointerRNA *ptr)
   bArmature *arm = reinterpret_cast<bArmature *>(ptr->owner_id);
   BoneCollection *bcoll = static_cast<BoneCollection *>(ptr->data);
   return ANIM_armature_bonecoll_is_editable(arm, bcoll);
+}
+
+static int rna_BoneCollection_index_get(PointerRNA *ptr)
+{
+  bArmature *arm = reinterpret_cast<bArmature *>(ptr->owner_id);
+  BoneCollection *bcoll = static_cast<BoneCollection *>(ptr->data);
+  return blender::animrig::armature_bonecoll_find_index(arm, bcoll);
+}
+
+static int rna_BoneCollection_child_number_get(PointerRNA *ptr)
+{
+  bArmature *arm = reinterpret_cast<bArmature *>(ptr->owner_id);
+  BoneCollection *bcoll = static_cast<BoneCollection *>(ptr->data);
+  return blender::animrig::armature_bonecoll_child_number_find(arm, bcoll);
+}
+static void rna_BoneCollection_child_number_set(PointerRNA *ptr, const int new_child_number)
+{
+  bArmature *arm = reinterpret_cast<bArmature *>(ptr->owner_id);
+  BoneCollection *bcoll = static_cast<BoneCollection *>(ptr->data);
+  blender::animrig::armature_bonecoll_child_number_set(arm, bcoll, new_child_number);
+  WM_main_add_notifier(NC_OBJECT | ND_BONE_COLLECTION, nullptr);
 }
 
 /* BoneCollection.bones iterator functions. */
@@ -343,22 +490,37 @@ static void rna_EditBone_collections_begin(CollectionPropertyIterator *iter, Poi
 static bool rna_Armature_collections_override_apply(Main *bmain,
                                                     RNAPropertyOverrideApplyContext &rnaapply_ctx)
 {
+  PointerRNA *ptr_src = &rnaapply_ctx.ptr_src;
   PointerRNA *ptr_dst = &rnaapply_ctx.ptr_dst;
   PropertyRNA *prop_dst = rnaapply_ctx.prop_dst;
   PointerRNA *ptr_item_dst = &rnaapply_ctx.ptr_item_dst;
   PointerRNA *ptr_item_src = &rnaapply_ctx.ptr_item_src;
   IDOverrideLibraryPropertyOperation *opop = rnaapply_ctx.liboverride_operation;
 
-  if (opop->operation != LIBOVERRIDE_OP_INSERT_AFTER) {
-    printf("Unsupported RNA override operation on armature collections, ignoring\n");
-    return false;
+  switch (opop->operation) {
+    case LIBOVERRIDE_OP_INSERT_AFTER:
+      /* This is the case this function was written for: adding new bone collections. It will be
+       * handled below this switch. */
+      break;
+    case LIBOVERRIDE_OP_REPLACE:
+      /* These are stored by Blender when overridable properties are changed on the root
+       * collections, However, these are *also* created on the `armature.collections_all` property,
+       * which is actually where these per-collection overrides are handled. This doesn't seem to
+       * be proper behaviour, but I (Sybren) also don't want to spam the console about this as this
+       * is not something a user could fix. */
+      return false;
+    default:
+      /* Any other operation is simply not supported, and also not expected to exist. */
+      printf("Unsupported RNA override operation on armature collections, ignoring\n");
+      return false;
   }
 
+  const bArmature *arm_src = (bArmature *)ptr_src->owner_id;
   bArmature *arm_dst = (bArmature *)ptr_dst->owner_id;
   BoneCollection *bcoll_anchor = static_cast<BoneCollection *>(ptr_item_dst->data);
   BoneCollection *bcoll_src = static_cast<BoneCollection *>(ptr_item_src->data);
   BoneCollection *bcoll = ANIM_armature_bonecoll_insert_copy_after(
-      arm_dst, bcoll_anchor, bcoll_src);
+      arm_dst, arm_src, bcoll_anchor, bcoll_src);
 
   if (!ID_IS_LINKED(&arm_dst->id)) {
     /* Mark this bone collection as local override, so that certain operations can be allowed. */
@@ -1827,10 +1989,16 @@ static void rna_def_armature_collections(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_property_int_sdna(prop, nullptr, "runtime.active_collection_index");
   RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
   RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
-  RNA_def_property_ui_text(prop,
-                           "Active Collection Index",
-                           "The index of the Armature's active bone collection; -1 when there "
-                           "is no active collection");
+  RNA_def_property_ui_text(
+      prop,
+      "Active Collection Index",
+      "The index of the Armature's active bone collection; -1 when there "
+      "is no active collection. Note that this is indexing the underlying array of bone "
+      "collections, which may not be in the order you expect. Root collections are listed first, "
+      "and siblings are always sequential. Apart from that, bone collections can be in any order, "
+      "and thus incrementing or decrementing this index can make the active bone collection jump "
+      "around in unexpected ways. For a more predictable interface, use `active` or "
+      "`active_name`");
   RNA_def_property_int_funcs(prop,
                              "rna_BoneCollections_active_index_get",
                              "rna_BoneCollections_active_index_set",
@@ -1848,8 +2016,9 @@ static void rna_def_armature_collections(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_BoneCollections_active_name_set");
 
   /* Armature.collections.new(...) */
-  func = RNA_def_function(srna, "new", "ANIM_armature_bonecoll_new");
+  func = RNA_def_function(srna, "new", "rna_BoneCollections_new");
   RNA_def_function_ui_description(func, "Add a new empty bone collection to the armature");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
   parm = RNA_def_string(func,
                         "name",
                         nullptr,
@@ -1858,6 +2027,12 @@ static void rna_def_armature_collections(BlenderRNA *brna, PropertyRNA *cprop)
                         "Name of the new collection. Blender will ensure it is unique within the "
                         "collections of the Armature");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  parm = RNA_def_pointer(
+      func,
+      "parent",
+      "BoneCollection",
+      "Parent Collection",
+      "If not None, the new bone collection becomes a child of this collection");
   /* Return value. */
   parm = RNA_def_pointer(
       func, "bonecollection", "BoneCollection", "", "Newly created bone collection");
@@ -1865,7 +2040,11 @@ static void rna_def_armature_collections(BlenderRNA *brna, PropertyRNA *cprop)
 
   /* Armature.collections.remove(...) */
   func = RNA_def_function(srna, "remove", "ANIM_armature_bonecoll_remove");
-  RNA_def_function_ui_description(func, "Remove the bone collection from the armature");
+  RNA_def_function_ui_description(
+      func,
+      "Remove the bone collection from the armature. If this bone collection has any children, "
+      "they will be reassigned to their grandparent; in other words, the children will take the "
+      "place of the removed bone collection");
   parm = RNA_def_pointer(func,
                          "bone_collection",
                          "BoneCollection",
@@ -1875,8 +2054,10 @@ static void rna_def_armature_collections(BlenderRNA *brna, PropertyRNA *cprop)
 
   /* Armature.collections.move(...) */
   func = RNA_def_function(srna, "move", "rna_BoneCollections_move");
-  RNA_def_function_ui_description(
-      func, "Move a bone collection to a different position in the collection list");
+  RNA_def_function_ui_description(func,
+                                  "Move a bone collection to a different position in the "
+                                  "collection list. This can only be used to reorder siblings, "
+                                  "and not to change parent-child relationships");
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   parm = RNA_def_int(
       func, "from_index", -1, INT_MIN, INT_MAX, "From Index", "Index to move", 0, 10000);
@@ -1946,7 +2127,7 @@ static void rna_def_armature(BlenderRNA *brna)
 
   RNA_define_lib_overridable(true);
 
-  /* Collections */
+  /* Collection Properties */
   prop = RNA_def_property(srna, "bones", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_sdna(prop, nullptr, "bonebase", nullptr);
   RNA_def_property_collection_funcs(prop,
@@ -1968,24 +2149,47 @@ static void rna_def_armature(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Edit Bones", "");
   rna_def_armature_edit_bones(brna, prop);
 
+  /* Bone Collection properties. */
   prop = RNA_def_property(srna, "collections", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "BoneCollection");
   RNA_def_property_collection_funcs(prop,
-                                    "rna_iterator_bone_collections_begin",
+                                    "rna_iterator_bone_collections_roots_begin",
                                     "rna_iterator_array_next",
                                     "rna_iterator_array_end",
                                     "rna_iterator_array_dereference_get",
-                                    "rna_iterator_bone_collections_length",
+                                    "rna_iterator_bone_collections_roots_length",
                                     nullptr, /* TODO */
                                     nullptr, /* TODO */
                                     nullptr);
-  RNA_def_property_ui_text(prop, "Bone Collections", "");
+  RNA_def_property_ui_text(prop, "Bone Collections (Roots)", "");
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_override_funcs(
       prop, nullptr, nullptr, "rna_Armature_collections_override_apply");
   RNA_def_property_override_flag(
       prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY | PROPOVERRIDE_LIBRARY_INSERTION);
   rna_def_armature_collections(brna, prop);
+
+  prop = RNA_def_property(srna, "collections_all", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_struct_type(prop, "BoneCollection");
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_iterator_bone_collections_all_begin",
+                                    "rna_iterator_array_next",
+                                    "rna_iterator_array_end",
+                                    "rna_iterator_array_dereference_get",
+                                    "rna_iterator_bone_collections_all_length",
+                                    nullptr, /* TODO */
+                                    nullptr, /* TODO */
+                                    nullptr);
+  RNA_def_property_ui_text(
+      prop, "Bone Collections (All)", "List of all bone collections of the armature");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  /* Overrides on `armature.collections_all` are only there to override specific properties, like
+   * is_visible.
+   *
+   * New Bone collections are added as overrides via the `armature.collections` (the roots)
+   * property. It's up to its 'apply' function to also copy the children of a
+   * library-override-added root. */
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   /* Enum values */
   prop = RNA_def_property(srna, "pose_position", PROP_ENUM, PROP_NONE);
@@ -2088,7 +2292,24 @@ static void rna_def_bonecollection(BlenderRNA *brna)
       prop, "Visible", "Bones in this collection will be visible in pose/object mode");
   RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
-  RNA_def_property_update(prop, NC_OBJECT | ND_POSE, nullptr);
+  RNA_def_property_boolean_funcs(prop, nullptr, "rna_BoneCollection_is_visible_set");
+
+  prop = RNA_def_property(srna, "is_visible_ancestors", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flags", BONE_COLLECTION_ANCESTORS_VISIBLE);
+  RNA_def_property_ui_text(prop,
+                           "Ancestors Effectively Visible",
+                           "True when all of the ancestors of this bone collection are marked as "
+                           "visible; always True for root bone collections");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+  prop = RNA_def_property(srna, "is_visible_effectively", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_funcs(prop, "rna_BoneCollection_is_visible_effectively_get", nullptr);
+  RNA_def_property_ui_text(
+      prop,
+      "Effective Visibility",
+      "Whether this bone collection is effectively visible in the viewport. This is True when "
+      "this bone collection and all of its ancestors are visible");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
   prop = RNA_def_property(srna, "is_local_override", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flags", BONE_COLLECTION_OVERRIDE_LIBRARY_LOCAL);
@@ -2124,6 +2345,51 @@ static void rna_def_bonecollection(BlenderRNA *brna)
                            "Bones assigned to this bone collection. In armature edit mode this "
                            "will always return an empty list of bones, as the bone collection "
                            "memberships are only synchronized when exiting edit mode");
+
+  prop = RNA_def_property(srna, "children", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_struct_type(prop, "BoneCollection");
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_iterator_bone_collection_children_begin",
+                                    "rna_iterator_array_next",
+                                    "rna_iterator_array_end",
+                                    "rna_iterator_array_dereference_get",
+                                    "rna_iterator_bone_collection_children_length",
+                                    nullptr, /* TODO */
+                                    nullptr, /* TODO */
+                                    nullptr);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
+
+  prop = RNA_def_property(srna, "parent", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "BoneCollection");
+  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
+  RNA_def_property_pointer_funcs(
+      prop, "rna_BoneCollection_parent_get", "rna_BoneCollection_parent_set", nullptr, nullptr);
+  RNA_def_property_ui_text(prop,
+                           "Parent",
+                           "Parent bone collection. Note that accessing this requires a scan of "
+                           "all the bone collections to find the parent");
+
+  prop = RNA_def_property(srna, "index", PROP_INT, PROP_NONE);
+  RNA_def_property_int_funcs(prop, "rna_BoneCollection_index_get", nullptr, nullptr);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
+  RNA_def_property_ui_text(
+      prop,
+      "Index",
+      "Index of this bone collection in the armature.collections.all array. Note that finding "
+      "this index requires a scan of all the bone collections, so do access this with care");
+
+  prop = RNA_def_property(srna, "child_number", PROP_INT, PROP_NONE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
+  RNA_def_property_int_funcs(
+      prop, "rna_BoneCollection_child_number_get", "rna_BoneCollection_child_number_set", nullptr);
+  RNA_def_property_ui_text(
+      prop,
+      "Child Number",
+      "Index of this collection into its parent's list of children. Note that finding "
+      "this index requires a scan of all the bone collections, so do access this with care");
 
   RNA_api_bonecollection(srna);
 }

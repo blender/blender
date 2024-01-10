@@ -585,7 +585,8 @@ static void face_edge_loop_islands_calc(const int totedge,
             for (; i--; p++) {
               int bit = face_groups[*p];
               if (!ELEM(bit, 0, face_group_id, face_group_id_overflowed) &&
-                  !(bit_face_group_mask & bit)) {
+                  !(bit_face_group_mask & bit))
+              {
                 bit_face_group_mask |= bit;
               }
             }
@@ -953,7 +954,8 @@ static bool mesh_calc_islands_loop_face_uv(const int totedge,
         const int edge_i = corner_edges[corner];
         loop_indices[num_lidx++] = int(corner);
         if (num_edge_borders && BLI_BITMAP_TEST(edge_borders, edge_i) &&
-            (edge_border_count[edge_i] < 2)) {
+            (edge_border_count[edge_i] < 2))
+        {
           edge_border_count[edge_i]++;
           if (edge_border_count[edge_i] == 2) {
             edge_innercut_indices[num_einnercuts++] = edge_i;

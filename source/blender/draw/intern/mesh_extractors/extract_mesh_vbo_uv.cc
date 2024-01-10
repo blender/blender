@@ -179,6 +179,6 @@ constexpr MeshExtract create_extractor_uv()
 
 /** \} */
 
-}  // namespace blender::draw
+const MeshExtract extract_uv = create_extractor_uv();
 
-const MeshExtract extract_uv = blender::draw::create_extractor_uv();
+}  // namespace blender::draw

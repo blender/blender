@@ -87,6 +87,7 @@ GPU_SHADER_CREATE_INFO(eevee_surfel_light)
 
 GPU_SHADER_CREATE_INFO(eevee_surfel_cluster_build)
     .local_group_size(SURFEL_GROUP_SIZE)
+    .builtins(BuiltinBits::TEXTURE_ATOMIC)
     .additional_info("eevee_shared", "eevee_surfel_common", "draw_view")
     .image(0, GPU_R32I, Qualifier::READ_WRITE, ImageType::INT_3D_ATOMIC, "cluster_list_img")
     .compute_source("eevee_surfel_cluster_build_comp.glsl")

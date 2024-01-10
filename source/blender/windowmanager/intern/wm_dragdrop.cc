@@ -57,7 +57,7 @@
 
 #include "WM_api.hh"
 #include "WM_types.hh"
-#include "wm_event_system.h"
+#include "wm_event_system.hh"
 #include "wm_window.hh"
 
 #include <fmt/format.h>
@@ -67,6 +67,9 @@ static ListBase dropboxes = {nullptr, nullptr};
 
 static void wm_drag_free_asset_data(wmDragAsset **asset_data);
 static void wm_drag_free_path_data(wmDragPath **path_data);
+
+static void wm_drop_item_free_data(wmDropBox *drop);
+static void wm_drop_item_clear_runtime(wmDropBox *drop);
 
 wmDragActiveDropState::wmDragActiveDropState() = default;
 wmDragActiveDropState::~wmDragActiveDropState() = default;
@@ -109,23 +112,97 @@ wmDropBox *WM_dropbox_add(ListBase *lb,
                           void (*cancel)(Main *, wmDrag *, wmDropBox *),
                           WMDropboxTooltipFunc tooltip)
 {
+  wmOperatorType *ot = WM_operatortype_find(idname, true);
+  if (ot == nullptr) {
+    printf("Error: dropbox with unknown operator: %s\n", idname);
+    return nullptr;
+  }
+
   wmDropBox *drop = MEM_cnew<wmDropBox>(__func__);
   drop->poll = poll;
   drop->copy = copy;
   drop->cancel = cancel;
   drop->tooltip = tooltip;
-  drop->ot = WM_operatortype_find(idname, false);
+  drop->ot = ot;
+  STRNCPY(drop->opname, idname);
 
-  if (drop->ot == nullptr) {
-    MEM_freeN(drop);
-    printf("Error: dropbox with unknown operator: %s\n", idname);
-    return nullptr;
-  }
   WM_operator_properties_alloc(&(drop->ptr), &(drop->properties), idname);
+  WM_operator_properties_sanitize(drop->ptr, true);
+
+  /* Signal for no context, see #STRUCT_NO_CONTEXT_WITHOUT_OWNER_ID. */
+  drop->ptr->owner_id = nullptr;
 
   BLI_addtail(lb, drop);
 
   return drop;
+}
+
+static void wm_dropbox_item_update_ot(wmDropBox *drop)
+{
+  /* NOTE(@ideasman42): this closely follows #wm_keymap_item_properties_update_ot.
+   * `keep_properties` is implied because drop boxes aren't dynamically added & removed.
+   * It's possible in the future drop-boxes can be (un)registered by scripts.
+   * In this case we might want to remove drop-boxes that point to missing operators. */
+  wmOperatorType *ot = WM_operatortype_find(drop->opname, false);
+  if (ot == nullptr) {
+    /* Allow for the operator to be added back and re-validated, keep it's properties. */
+    wm_drop_item_clear_runtime(drop);
+    drop->ot = nullptr;
+    return;
+  }
+
+  if (drop->ptr == nullptr) {
+    WM_operator_properties_alloc(&(drop->ptr), &(drop->properties), drop->opname);
+    WM_operator_properties_sanitize(drop->ptr, true);
+  }
+  else {
+    if (ot->srna != drop->ptr->type) {
+      WM_operator_properties_create_ptr(drop->ptr, ot);
+      if (drop->properties) {
+        drop->ptr->data = drop->properties;
+      }
+      WM_operator_properties_sanitize(drop->ptr, true);
+    }
+  }
+
+  if (drop->ptr) {
+    drop->ptr->owner_id = nullptr;
+  }
+  drop->ot = ot;
+}
+
+void WM_dropbox_update_ot()
+{
+  LISTBASE_FOREACH (wmDropBoxMap *, dm, &dropboxes) {
+    LISTBASE_FOREACH (wmDropBox *, drop, &dm->dropboxes) {
+      wm_dropbox_item_update_ot(drop);
+    }
+  }
+}
+
+static void wm_drop_item_free_data(wmDropBox *drop)
+{
+  if (drop->ptr) {
+    WM_operator_properties_free(drop->ptr);
+    MEM_freeN(drop->ptr);
+    drop->ptr = nullptr;
+    drop->properties = nullptr;
+  }
+  else if (drop->properties) {
+    IDP_FreeProperty(drop->properties);
+    drop->properties = nullptr;
+  }
+}
+
+static void wm_drop_item_clear_runtime(wmDropBox *drop)
+{
+  IDProperty *properties = drop->properties;
+  drop->properties = nullptr;
+  if (drop->ptr) {
+    drop->ptr->data = nullptr;
+  }
+  wm_drop_item_free_data(drop);
+  drop->properties = properties;
 }
 
 void wm_dropbox_free()
@@ -133,10 +210,7 @@ void wm_dropbox_free()
 
   LISTBASE_FOREACH (wmDropBoxMap *, dm, &dropboxes) {
     LISTBASE_FOREACH (wmDropBox *, drop, &dm->dropboxes) {
-      if (drop->ptr) {
-        WM_operator_properties_free(drop->ptr);
-        MEM_freeN(drop->ptr);
-      }
+      wm_drop_item_free_data(drop);
     }
     BLI_freelistN(&dm->dropboxes);
   }
@@ -349,7 +423,7 @@ static char *dropbox_tooltip(bContext *C, wmDrag *drag, const int xy[2], wmDropB
   if (drop->tooltip) {
     tooltip = drop->tooltip(C, drag, xy, drop);
   }
-  if (!tooltip) {
+  if (!tooltip && drop->ot) {
     tooltip = BLI_strdup(WM_operatortype_name(drop->ot, drop->ptr).c_str());
   }
   /* XXX Doing translation here might not be ideal, but later we have no more
@@ -384,7 +458,7 @@ static wmDropBox *dropbox_active(bContext *C,
           }
 
           const wmOperatorCallContext opcontext = wm_drop_operator_context_get(drop);
-          if (WM_operator_poll_context(C, drop->ot, opcontext)) {
+          if (drop->ot && WM_operator_poll_context(C, drop->ot, opcontext)) {
             CTX_store_set(C, nullptr);
             return drop;
           }

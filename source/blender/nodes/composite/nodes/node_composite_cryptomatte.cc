@@ -528,7 +528,8 @@ class CryptoMatteOperation : public NodeOperation {
          * unnamed, that is, in the case of mono rendering, in which case we just return the first
          * view. */
         if (!context().get_view_name().is_empty() &&
-            context().get_view_name() != render_pass->view) {
+            context().get_view_name() != render_pass->view)
+        {
           continue;
         }
 

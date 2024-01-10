@@ -10,7 +10,7 @@
 
 #include "BKE_grease_pencil.hh"
 #include "DRW_gpu_wrapper.hh"
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include "draw_manager.hh"
 #include "draw_pass.hh"

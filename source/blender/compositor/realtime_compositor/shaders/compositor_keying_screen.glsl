@@ -9,7 +9,7 @@ shared vec2 cached_marker_positions[CACHE_SIZE];
 shared vec4 cached_marker_colors[CACHE_SIZE];
 
 /* Cache the initial part of the marker SSBOs in shared memory to make the interpolation loop
- * faster.  */
+ * faster. */
 void populate_cache()
 {
   if (int(gl_LocalInvocationIndex) < number_of_markers) {

@@ -153,6 +153,8 @@ void SceneState::init(Object *camera_ob /*=nullptr*/)
   }
 
   bool _overlays_enabled = v3d && !(v3d->flag2 & V3D_HIDE_OVERLAYS);
+  /* Depth is always required in Wireframe mode. */
+  _overlays_enabled = _overlays_enabled || shading.type < OB_SOLID;
   /* Some overlay passes can be rendered even with overlays disabled (See #116424). */
   _overlays_enabled = _overlays_enabled || new_clip_state & DRW_STATE_CLIP_PLANES;
   if (assign_if_different(overlays_enabled, _overlays_enabled)) {

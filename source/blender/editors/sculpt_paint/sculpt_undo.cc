@@ -341,9 +341,8 @@ static void update_cb_partial(PBVHNode *node, PartialUpdateData *data)
     }
   }
   else {
-    if (BKE_pbvh_node_has_vert_with_normal_update_tag(data->pbvh, node)) {
-      BKE_pbvh_node_mark_update(node);
-    }
+    BKE_pbvh_node_mark_update(node);
+
     const blender::Span<int> verts = BKE_pbvh_node_get_vert_indices(node);
     if (data->modified_mask_verts != nullptr) {
       for (const int vert : verts) {
@@ -479,20 +478,17 @@ static bool sculpt_undo_restore_coords(bContext *C, Depsgraph *depsgraph, Node &
         if (ss->deform_modifiers_active) {
           for (const int i : index.index_range()) {
             restore_deformed(ss, unode, i, index[i], positions[index[i]]);
-            BKE_pbvh_vert_tag_update_normal(ss->pbvh, BKE_pbvh_make_vref(index[i]));
           }
         }
         else {
           for (const int i : index.index_range()) {
             swap_v3_v3(positions[index[i]], unode.orig_position[i]);
-            BKE_pbvh_vert_tag_update_normal(ss->pbvh, BKE_pbvh_make_vref(index[i]));
           }
         }
       }
       else {
         for (const int i : index.index_range()) {
           swap_v3_v3(positions[index[i]], unode.position[i]);
-          BKE_pbvh_vert_tag_update_normal(ss->pbvh, BKE_pbvh_make_vref(index[i]));
         }
       }
     }
@@ -1491,7 +1487,8 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
     }
     else if (unode->maxgrid && subdiv_ccg != nullptr) {
       if ((subdiv_ccg->grids.size() != unode->maxgrid) ||
-          (subdiv_ccg->grid_size != unode->gridsize)) {
+          (subdiv_ccg->grid_size != unode->gridsize))
+      {
         continue;
       }
 
@@ -1843,7 +1840,6 @@ static Node *sculpt_undo_alloc_node(Object *ob, PBVHNode *node, Type type)
       }
       else {
         unode->vert_hidden.resize(allvert);
-        usculpt->undo_size += BLI_BITMAP_SIZE(allvert);
       }
 
       break;
@@ -2219,6 +2215,12 @@ bool ensure_dyntopo_node_undo(
   SculptSession *ss = ob->sculpt;
 
   UndoSculpt *usculpt = sculpt_undo_get_nodes();
+
+  if (!usculpt) {
+    printf("%s: possible undo error.\n", __func__);
+    return false;
+  }
+
   Node *unode = (Node *)usculpt->nodes.first;
 
   if (!unode) {
@@ -2353,15 +2355,10 @@ Node *push_node(Object *ob, PBVHNode *node, Type type)
     unode->vert_indices.as_mutable_span().copy_from(BKE_pbvh_node_get_vert_indices(node));
 
     if (!unode->corner_indices.is_empty()) {
-      const int *loop_indices;
-      int allloop;
-      BKE_pbvh_node_num_loops(ss->pbvh, static_cast<PBVHNode *>(unode->node), &allloop);
-      BKE_pbvh_node_get_loops(
-          ss->pbvh, static_cast<PBVHNode *>(unode->node), &loop_indices, nullptr);
+      Span<int> loop_indices = BKE_pbvh_node_get_loops(static_cast<const PBVHNode *>(unode->node));
 
-      if (allloop) {
-        unode->corner_indices.as_mutable_span().copy_from({loop_indices, allloop});
-
+      if (!loop_indices.is_empty()) {
+        unode->corner_indices.as_mutable_span().copy_from(loop_indices);
         unode->mesh_corners_num = BKE_object_get_original_mesh(ob)->corners_num;
       }
     }

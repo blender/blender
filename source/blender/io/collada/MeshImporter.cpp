@@ -328,7 +328,8 @@ bool MeshImporter::is_nice_mesh(COLLADAFW::Mesh *mesh)
 
     else if (!ELEM(type,
                    COLLADAFW::MeshPrimitive::TRIANGLES,
-                   COLLADAFW::MeshPrimitive::TRIANGLE_FANS)) {
+                   COLLADAFW::MeshPrimitive::TRIANGLE_FANS))
+    {
       fprintf(stderr, "ERROR: Primitive type %s is not supported.\n", type_str);
       return false;
     }
@@ -721,7 +722,8 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh,
         }
 
         for (uint uvset_index = 0; uvset_index < index_list_array_uvcoord.getCount();
-             uvset_index++) {
+             uvset_index++)
+        {
           COLLADAFW::IndexList &index_list = *index_list_array_uvcoord[uvset_index];
           blender::float2 *mloopuv = static_cast<blender::float2 *>(
               CustomData_get_layer_named_for_write(&mesh->corner_data,

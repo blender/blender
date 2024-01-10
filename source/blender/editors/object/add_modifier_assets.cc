@@ -19,6 +19,7 @@
 #include "BKE_idprop.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.hh"
+#include "BKE_modifier.hh"
 #include "BKE_report.h"
 #include "BKE_screen.hh"
 
@@ -314,6 +315,7 @@ static int modifier_add_asset_exec(bContext *C, wmOperator *op)
   nmd->flag |= NODES_MODIFIER_HIDE_DATABLOCK_SELECTOR;
 
   STRNCPY(nmd->modifier.name, DATA_(node_group->id.name + 2));
+  BKE_modifier_unique_name(&object->modifiers, &nmd->modifier);
 
   WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, object);
 

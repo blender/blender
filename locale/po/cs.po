@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'0b00b360f7ae')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd13edee3e0cc')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-18 13:45:58\n"
+"POT-Creation-Date: 2024-01-08 11:04:23\n"
 "PO-Revision-Date: 2023-12-12 02:28+0000\n"
 "Last-Translator: Zdeněk Doležal <Griperis@outlook.cz>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -2685,6 +2685,10 @@ msgstr "Relativní cesta"
 
 msgid "Bones"
 msgstr "Kosti"
+
+
+msgid "Index"
+msgstr "Index"
 
 
 msgid "Visible"
@@ -5602,10 +5606,6 @@ msgstr "Pohled"
 
 msgid "Only First"
 msgstr "Pouze První"
-
-
-msgid "Index"
-msgstr "Index"
 
 
 msgid "Segments"
@@ -21769,11 +21769,6 @@ msgid "Convert rotations to euler ZYX"
 msgstr "Původni rotace"
 
 
-msgctxt "Operator"
-msgid "Export STL"
-msgstr "Exportovat"
-
-
 msgid "Ascii"
 msgstr "Ascii"
 
@@ -23397,11 +23392,6 @@ msgstr "Plochý"
 
 msgid "Emission Shader"
 msgstr "Shader záření"
-
-
-msgctxt "Operator"
-msgid "Import STL"
-msgstr "Importovat"
 
 
 msgid "Load STL triangle mesh data"
@@ -32119,6 +32109,16 @@ msgstr "O Blenderu"
 
 msgid "Open a window with information about Blender"
 msgstr "Otevřít okno s informacemi o Blenderu"
+
+
+msgctxt "Operator"
+msgid "Export STL"
+msgstr "Exportovat"
+
+
+msgctxt "Operator"
+msgid "Import STL"
+msgstr "Importovat"
 
 
 msgctxt "Operator"
@@ -43532,36 +43532,6 @@ msgstr "Odstranit bod"
 
 
 msgctxt "Operator"
-msgid "Copyright"
-msgstr "Autorská práva"
-
-
-msgctxt "Operator"
-msgid "Dutch Florin"
-msgstr "Holandský Florin"
-
-
-msgctxt "Operator"
-msgid "British Pound"
-msgstr "Britská libra"
-
-
-msgctxt "Operator"
-msgid "Japanese Yen"
-msgstr "Japonský jen"
-
-
-msgctxt "Operator"
-msgid "Spanish Question Mark"
-msgstr "Španělský Otazník"
-
-
-msgctxt "Operator"
-msgid "Spanish Exclamation Mark"
-msgstr "Španělský Vykřičník"
-
-
-msgctxt "Operator"
 msgid "To Uppercase"
 msgstr "Na Velká Písmena"
 
@@ -44682,6 +44652,18 @@ msgid "Browse ID data to be linked"
 msgstr "Procházet ID Data k připojení"
 
 
+msgid "Today"
+msgstr "Dnes"
+
+
+msgid "Yesterday"
+msgstr "Včera"
+
+
+msgid "Modified"
+msgstr "Modifikátory"
+
+
 msgctxt "Object"
 msgid "New"
 msgstr "Nový"
@@ -45659,14 +45641,6 @@ msgstr "Vyhlazuje hrany textury"
 
 msgid "No object to apply orientation on"
 msgstr "Animace"
-
-
-msgid "Today"
-msgstr "Dnes"
-
-
-msgid "Yesterday"
-msgstr "Včera"
 
 
 msgid "File path"
@@ -46669,10 +46643,6 @@ msgstr "není možné otevřít soubor"
 
 msgid "File Not Found"
 msgstr "Soubor nebyl nalezen"
-
-
-msgid "Modified"
-msgstr "Modifikátory"
 
 
 msgid "Save changes before closing?"

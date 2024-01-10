@@ -259,7 +259,8 @@ static void node_socket_add_replace(const bContext *C,
         }
 
         if (STREQ(sock_prev->identifier, sock_from->identifier) &&
-            sock_prev->type == sock_from->type) {
+            sock_prev->type == sock_from->type)
+        {
           bNodeLink *link = sock_prev->link;
 
           if (link && link->fromnode) {
@@ -922,7 +923,8 @@ static void ui_node_draw_input(uiLayout &layout,
       UI_block_emboss_set(block, UI_EMBOSS_NONE);
 
       if (lnode &&
-          (lnode->inputs.first || (lnode->typeinfo->draw_buttons && lnode->type != NODE_GROUP))) {
+          (lnode->inputs.first || (lnode->typeinfo->draw_buttons && lnode->type != NODE_GROUP)))
+      {
         int icon = (input.flag & SOCK_COLLAPSED) ? ICON_DISCLOSURE_TRI_RIGHT :
                                                    ICON_DISCLOSURE_TRI_DOWN;
         uiItemR(sub, &inputptr, "show_expanded", UI_ITEM_R_ICON_ONLY, "", icon);

@@ -178,7 +178,8 @@ bool isEqualEdgeTags(const MeshTopology &mesh_topology, const OpenSubdiv_Convert
     int requested_edge_vertices[2];
     converter->getEdgeVertices(converter, edge_index, requested_edge_vertices);
     if (!mesh_topology.isEdgeEqual(
-            edge_index, requested_edge_vertices[0], requested_edge_vertices[1])) {
+            edge_index, requested_edge_vertices[0], requested_edge_vertices[1]))
+    {
       return false;
     }
   }

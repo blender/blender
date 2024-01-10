@@ -560,7 +560,8 @@ ccl_device_forceinline void integrate_surface_ao(KernelGlobals kg,
   const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
 
   if (!(kernel_data.kernel_features & KERNEL_FEATURE_AO_ADDITIVE) &&
-      !(path_flag & PATH_RAY_CAMERA)) {
+      !(path_flag & PATH_RAY_CAMERA))
+  {
     return;
   }
 

@@ -233,13 +233,13 @@ void LookdevModule::sync_pass(PassSimple &pass,
   pass.bind_image("rp_value_img", dummy_aov_value_tx_);
   pass.bind_image("aov_color_img", dummy_aov_color_tx_);
   pass.bind_image("aov_value_img", dummy_aov_value_tx_);
-  inst_.bind_uniform_data(&pass);
-  inst_.hiz_buffer.bind_resources(pass);
-  inst_.reflection_probes.bind_resources(pass);
-  inst_.irradiance_cache.bind_resources(pass);
-  inst_.shadows.bind_resources(pass);
-  inst_.volume.bind_resources(pass);
-  inst_.cryptomatte.bind_resources(pass);
+  pass.bind_resources(inst_.uniform_data);
+  pass.bind_resources(inst_.hiz_buffer.front);
+  pass.bind_resources(inst_.reflection_probes);
+  pass.bind_resources(inst_.irradiance_cache);
+  pass.bind_resources(inst_.shadows);
+  pass.bind_resources(inst_.volume.result);
+  pass.bind_resources(inst_.cryptomatte);
 
   pass.draw(geom, res_handle, 0);
 }

@@ -41,7 +41,7 @@ else()
       # using the system directory `/etc/ssl` might seem the obvious choice,
       # there is no guarantee the version of SSL used with Blender is compatible with the systems,
       # where changes to the SSL configuration format can cause SSL not to load (see #114452).
-      # So reference a directory known not to exist. Ideally Blender could distribute it's own SSL
+      # So reference a directory known not to exist. Ideally Blender could distribute its own SSL
       # directory, but this isn't compatible with hard coded paths.
       # See #111132 & https://github.com/openssl/openssl/issues/20185 for details.
       -DOPENSSLDIR=\\"/dev/null\\"

@@ -26,8 +26,9 @@ namespace Freestyle {
 #  define REALSCALE (2.0 / 65536.0)
 #  define NREALSCALE (2.0 / 4096.0)
 
-#  define HASH3D(a, b, c) hashTable[hashTable[hashTable[(a)&0xfff] ^ ((b)&0xfff)] ^ ((c)&0xfff)]
-#  define HASH(a, b, c) (xtab[(xtab[(xtab[(a)&0xff] ^ (b)) & 0xff] ^ (c)) & 0xff] & 0xff)
+#  define HASH3D(a, b, c) \
+    hashTable[hashTable[hashTable[(a) & 0xfff] ^ ((b) & 0xfff)] ^ ((c) & 0xfff)]
+#  define HASH(a, b, c) (xtab[(xtab[(xtab[(a) & 0xff] ^ (b)) & 0xff] ^ (c)) & 0xff] & 0xff)
 #  define INCRSUM(m, s, x, y, z) \
     ((s) * (RTable[m] * 0.5 + RTable[m + 1] * (x) + RTable[m + 2] * (y) + RTable[m + 3] * (z)))
 
@@ -148,7 +149,7 @@ float Noise::smoothNoise2(Vec2f &vec)
   sx = SCURVE(rx0);
   sy = SCURVE(ry0);
 
-#define AT2(rx, ry) ((rx)*q[0] + (ry)*q[1])
+#define AT2(rx, ry) ((rx) * q[0] + (ry) * q[1])
 
   q = g2[b00];
   u = AT2(rx0, ry0);
@@ -189,7 +190,7 @@ float Noise::smoothNoise3(Vec3f &vec)
   sy = SCURVE(ry0);
   sz = SCURVE(rz0);
 
-#define AT3(rx, ry, rz) ((rx)*q[0] + (ry)*q[1] + (rz)*q[2])
+#define AT3(rx, ry, rz) ((rx) * q[0] + (ry) * q[1] + (rz) * q[2])
 
   q = g3[b00 + bz0];
   u = AT3(rx0, ry0, rz0);

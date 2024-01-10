@@ -521,6 +521,37 @@ static void build_keyingset_enum(bContext *C, EnumPropertyItem **item, int *toti
   *r_free = true;
 }
 
+static const EnumPropertyItem *keyingset_set_active_enum_itemf(bContext *C,
+                                                               PointerRNA * /*ptr*/,
+                                                               PropertyRNA * /*prop*/,
+                                                               bool *r_free)
+{
+  if (C == nullptr) {
+    return rna_enum_dummy_DEFAULT_items;
+  }
+
+  /* active Keying Set
+   * - only include entry if it exists
+   */
+  Scene *scene = CTX_data_scene(C);
+  EnumPropertyItem *item = nullptr, item_tmp = {0};
+  int totitem = 0;
+  if (scene->active_keyingset) {
+    /* active Keying Set */
+    item_tmp.identifier = "__ACTIVE__";
+    item_tmp.name = "Clear Active Keying Set";
+    item_tmp.value = 0;
+    RNA_enum_item_add(&item, &totitem, &item_tmp);
+
+    /* separator */
+    RNA_enum_item_add_separator(&item, &totitem);
+  }
+
+  build_keyingset_enum(C, &item, &totitem, r_free);
+
+  return item;
+}
+
 void ANIM_OT_keying_set_active_set(wmOperatorType *ot)
 {
   PropertyRNA *prop;
@@ -541,7 +572,7 @@ void ANIM_OT_keying_set_active_set(wmOperatorType *ot)
   /* keyingset to use (dynamic enum) */
   prop = RNA_def_enum(
       ot->srna, "type", rna_enum_dummy_DEFAULT_items, 0, "Keying Set", "The Keying Set to use");
-  RNA_def_enum_funcs(prop, ANIM_keying_sets_enum_itemf);
+  RNA_def_enum_funcs(prop, keyingset_set_active_enum_itemf);
   // RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 

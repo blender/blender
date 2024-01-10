@@ -19,6 +19,8 @@
 
 #include "draw_cache_impl.hh"
 
+namespace blender::draw {
+
 void *mesh_extract_buffer_get(const MeshExtract *extractor, MeshBufferList *mbuflist)
 {
   /* NOTE: POINTER_OFFSET on windows platforms casts internally to `void *`, but on GCC/CLANG to
@@ -155,3 +157,5 @@ void mesh_render_data_loop_edge_flag(const MeshRenderData &mr,
 }
 
 /** \} */
+
+}  // namespace blender::draw

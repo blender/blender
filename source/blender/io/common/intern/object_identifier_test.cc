@@ -60,8 +60,7 @@ class TestObjectIdentifier : public ObjectIdentifier {
 
 }  // namespace
 
-class ObjectIdentifierOrderTest : public testing::Test {
-};
+class ObjectIdentifierOrderTest : public testing::Test {};
 
 TEST_F(ObjectIdentifierOrderTest, graph_root)
 {
@@ -171,8 +170,7 @@ TEST_F(ObjectIdentifierOrderTest, map_copy_and_update)
   EXPECT_EQ(5, graph.size());
 }
 
-class PersistentIDTest : public testing::Test {
-};
+class PersistentIDTest : public testing::Test {};
 
 TEST_F(PersistentIDTest, is_from_same_instancer)
 {

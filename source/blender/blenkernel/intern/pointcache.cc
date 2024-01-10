@@ -93,7 +93,7 @@
 #define PTCACHE_DATA_TO(data, type, index, to) \
   if (data[type]) { \
     memcpy(to, \
-           (char *)(data)[type] + ((index) ? (index)*ptcache_data_size[type] : 0), \
+           (char *)(data)[type] + ((index) ? (index) * ptcache_data_size[type] : 0), \
            ptcache_data_size[type]); \
   } \
   (void)0
@@ -1651,7 +1651,8 @@ static int ptcache_file_data_write(PTCacheFile *pf)
 
   for (i = 0; i < BPHYS_TOT_DATA; i++) {
     if ((pf->data_types & (1 << i)) &&
-        !ptcache_file_write(pf, pf->cur[i], 1, ptcache_data_size[i])) {
+        !ptcache_file_write(pf, pf->cur[i], 1, ptcache_data_size[i]))
+    {
       return 0;
     }
   }
@@ -2993,7 +2994,8 @@ int BKE_ptcache_object_reset(Scene *scene, Object *ob, int mode)
       FluidModifierData *fmd = (FluidModifierData *)md;
       FluidDomainSettings *fds = fmd->domain;
       if ((fmd->type & MOD_FLUID_TYPE_DOMAIN) && fds &&
-          fds->cache_type == FLUID_DOMAIN_CACHE_REPLAY) {
+          fds->cache_type == FLUID_DOMAIN_CACHE_REPLAY)
+      {
         BKE_ptcache_id_from_smoke(&pid, ob, fmd);
         reset |= BKE_ptcache_id_reset(scene, &pid, mode);
       }
@@ -3835,7 +3837,8 @@ static void direct_link_pointcache_cb(BlendDataReader *reader, void *data)
 
     /* the cache saves non-struct data without DNA */
     if (pm->data[i] && ptcache_data_struct[i][0] == '\0' &&
-        BLO_read_requires_endian_switch(reader)) {
+        BLO_read_requires_endian_switch(reader))
+    {
       /* data_size returns bytes. */
       int tot = (BKE_ptcache_data_size(i) * pm->totpoint) / sizeof(int);
 

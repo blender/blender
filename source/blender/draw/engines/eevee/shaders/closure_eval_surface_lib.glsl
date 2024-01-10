@@ -27,9 +27,9 @@ vec3 out_ssr_N;
 bool aov_is_valid = false;
 vec3 out_aov;
 
-bool output_sss(ClosureDiffuse diffuse, ClosureOutputDiffuse diffuse_out)
+bool output_sss(ClosureSubsurface diffuse, ClosureOutputDiffuse diffuse_out)
 {
-  if (diffuse.sss_id == 0u || !do_sss || !sssToggle || outputSssId == 0) {
+  if (diffuse.sss_radius.r == -1.0 || !do_sss || !sssToggle || outputSssId == 0) {
     return false;
   }
   if (renderPassSSSColor) {
@@ -71,6 +71,7 @@ void output_aov(vec4 color, float value, uint hash)
 }
 
 /* Single BSDFs. */
+
 CLOSURE_EVAL_FUNCTION_DECLARE_1(DiffuseBSDF, Diffuse)
 Closure closure_eval(ClosureDiffuse diffuse)
 {
@@ -83,8 +84,24 @@ Closure closure_eval(ClosureDiffuse diffuse)
   CLOSURE_EVAL_FUNCTION_1(DiffuseBSDF, Diffuse);
 
   Closure closure = CLOSURE_DEFAULT;
-  if (!output_sss(diffuse, out_Diffuse_0)) {
-    closure.radiance += out_Diffuse_0.radiance * diffuse.color * diffuse.weight;
+  closure.radiance += out_Diffuse_0.radiance * diffuse.color * diffuse.weight;
+  return closure;
+}
+
+/* NOTE: Reuse the diffuse eval function. */
+Closure closure_eval(ClosureSubsurface subsurface)
+{
+  /* Glue with the old system. */
+  CLOSURE_VARS_DECLARE_1(Diffuse);
+
+  in_Diffuse_0.N = subsurface.N;
+  in_Diffuse_0.albedo = subsurface.color;
+
+  CLOSURE_EVAL_FUNCTION_1(DiffuseBSDF, Diffuse);
+
+  Closure closure = CLOSURE_DEFAULT;
+  if (!output_sss(subsurface, out_Diffuse_0)) {
+    closure.radiance += out_Diffuse_0.radiance * subsurface.color * subsurface.weight;
   }
   return closure;
 }
@@ -197,7 +214,7 @@ Closure closure_eval(ClosureReflection reflection, ClosureRefraction refraction)
 
 /* Dielectric BSDF */
 CLOSURE_EVAL_FUNCTION_DECLARE_2(DielectricBSDF, Diffuse, Glossy)
-Closure closure_eval(ClosureDiffuse diffuse, ClosureReflection reflection)
+Closure closure_eval(ClosureSubsurface diffuse, ClosureReflection reflection)
 {
 #if defined(DO_SPLIT_CLOSURE_EVAL)
   Closure closure = closure_eval(diffuse);
@@ -230,7 +247,9 @@ Closure closure_eval(ClosureDiffuse diffuse, ClosureReflection reflection)
 
 /* Specular BSDF */
 CLOSURE_EVAL_FUNCTION_DECLARE_3(SpecularBSDF, Diffuse, Glossy, Glossy)
-Closure closure_eval(ClosureDiffuse diffuse, ClosureReflection reflection, ClosureReflection coat)
+Closure closure_eval(ClosureSubsurface diffuse,
+                     ClosureReflection reflection,
+                     ClosureReflection coat)
 {
 #if defined(DO_SPLIT_CLOSURE_EVAL)
   Closure closure = closure_eval(diffuse);
@@ -267,7 +286,7 @@ Closure closure_eval(ClosureDiffuse diffuse, ClosureReflection reflection, Closu
 
 /* Principled BSDF */
 CLOSURE_EVAL_FUNCTION_DECLARE_4(PrincipledBSDF, Diffuse, Glossy, Glossy, Refraction)
-Closure closure_eval(ClosureDiffuse diffuse,
+Closure closure_eval(ClosureSubsurface diffuse,
                      ClosureReflection reflection,
                      ClosureReflection coat,
                      ClosureRefraction refraction)

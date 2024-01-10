@@ -654,7 +654,8 @@ bool ED_object_parent_set(ReportList *reports,
                 ((CurveModifierData *)md)->object = par;
               }
               if (par->runtime->curve_cache &&
-                  par->runtime->curve_cache->anim_path_accum_length == nullptr) {
+                  par->runtime->curve_cache->anim_path_accum_length == nullptr)
+              {
                 DEG_id_tag_update(&par->id, ID_RECALC_GEOMETRY);
               }
             }
@@ -1200,7 +1201,8 @@ static int object_track_clear_exec(bContext *C, wmOperator *op)
       if (ELEM(con->type,
                CONSTRAINT_TYPE_TRACKTO,
                CONSTRAINT_TYPE_LOCKTRACK,
-               CONSTRAINT_TYPE_DAMPTRACK)) {
+               CONSTRAINT_TYPE_DAMPTRACK))
+      {
         BKE_constraint_remove(&ob->constraints, con);
       }
     }
@@ -1557,7 +1559,8 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
 
             /* now add in the collections from the link nodes */
             for (collection_node = ob_collections; collection_node;
-                 collection_node = collection_node->next) {
+                 collection_node = collection_node->next)
+            {
               if (ob_dst->instance_collection != collection_node->link) {
                 BKE_collection_object_add(
                     bmain, static_cast<Collection *>(collection_node->link), ob_dst);
@@ -2158,7 +2161,8 @@ static bool make_local_all__instance_indirect_unused(Main *bmain,
   bool changed = false;
 
   for (ob = static_cast<Object *>(bmain->objects.first); ob;
-       ob = static_cast<Object *>(ob->id.next)) {
+       ob = static_cast<Object *>(ob->id.next))
+  {
     if (ID_IS_LINKED(ob) && (ob->id.us == 0)) {
       Base *base;
 
@@ -2280,7 +2284,8 @@ static int make_local_exec(bContext *C, wmOperator *op)
       }
 
       if (ELEM(mode, MAKE_LOCAL_SELECT_OBDATA, MAKE_LOCAL_SELECT_OBDATA_MATERIAL) &&
-          ob->data != nullptr) {
+          ob->data != nullptr)
+      {
         ID *ob_data = static_cast<ID *>(ob->data);
         ob_data->tag &= ~LIB_TAG_PRE_EXISTING;
         make_local_animdata_tag(BKE_animdata_from_id(ob_data));
@@ -2514,7 +2519,8 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
         case ID_GR: {
           Collection *collection_root = (Collection *)id_root;
           LISTBASE_FOREACH_MUTABLE (
-              CollectionParent *, collection_parent, &collection_root->runtime.parents) {
+              CollectionParent *, collection_parent, &collection_root->runtime.parents)
+          {
             if (ID_IS_LINKED(collection_parent->collection) ||
                 !BKE_view_layer_has_collection(view_layer, collection_parent->collection))
             {

@@ -48,8 +48,8 @@ static void extract_fdots_iter_face_mesh(const MeshRenderData &mr,
   if (mr.use_subsurf_fdots) {
     const BitSpan facedot_tags = mr.mesh->runtime->subsurf_face_dot_tags;
 
-    for (const int ml_index : mr.faces[face_index]) {
-      const int vert = mr.corner_verts[ml_index];
+    for (const int corner : mr.faces[face_index]) {
+      const int vert = mr.corner_verts[corner];
       if (facedot_tags[vert] && !hidden) {
         GPU_indexbuf_set_point_vert(elb, face_index, face_index);
         return;
@@ -93,6 +93,6 @@ constexpr MeshExtract create_extractor_fdots()
 
 /** \} */
 
-}  // namespace blender::draw
+const MeshExtract extract_fdots = create_extractor_fdots();
 
-const MeshExtract extract_fdots = blender::draw::create_extractor_fdots();
+}  // namespace blender::draw

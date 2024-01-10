@@ -855,25 +855,11 @@ static void bpy_module_delay_init(PyObject *bpy_proxy)
  */
 static bool bpy_module_ensure_compatible_version()
 {
-/* First check the Python version used matches the major version that Blender was built with.
- * While this isn't essential, the error message in this case may be cryptic and misleading.
- * NOTE: using `Py_LIMITED_API` would remove the need for this, in practice it's
- * unlikely Blender will ever used the limited API though. */
-#  if PY_VERSION_HEX >= 0x030b0000 /* Python 3.11 & newer. */
+  /* First check the Python version used matches the major version that Blender was built with.
+   * While this isn't essential, the error message in this case may be cryptic and misleading.
+   * NOTE: using `Py_LIMITED_API` would remove the need for this, in practice it's
+   * unlikely Blender will ever used the limited API though. */
   const uint version_runtime = Py_Version;
-#  else
-  uint version_runtime;
-  {
-    uint version_runtime_major = 0, version_runtime_minor = 0;
-    const char *version_str = Py_GetVersion();
-    if (sscanf(version_str, "%u.%u.", &version_runtime_major, &version_runtime_minor) != 2) {
-      /* Should never happen, raise an error to ensure this check never fails silently. */
-      PyErr_Format(PyExc_ImportError, "Failed to extract the version from \"%s\"", version_str);
-      return false;
-    }
-    version_runtime = (version_runtime_major << 24) | (version_runtime_minor << 16);
-  }
-#  endif
 
   uint version_compile_major = PY_VERSION_HEX >> 24;
   uint version_compile_minor = ((PY_VERSION_HEX & 0x00ff0000) >> 16);

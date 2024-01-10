@@ -614,7 +614,8 @@ void BKE_mesh_remap_calc_verts_from_mesh(const int mode,
           }
 
           if (mesh_remap_bvhtree_query_nearest(
-                  &treedata, &nearest, tmp_co, max_dist_sq, &hit_dist)) {
+                  &treedata, &nearest, tmp_co, max_dist_sq, &hit_dist))
+          {
             const int face_index = tri_faces[nearest.index];
 
             if (mode == MREMAP_MODE_VERT_FACE_NEAREST) {
@@ -746,7 +747,8 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
             }
 
             if (mesh_remap_bvhtree_query_nearest(
-                    &treedata, &nearest, tmp_co, max_dist_sq, &hit_dist)) {
+                    &treedata, &nearest, tmp_co, max_dist_sq, &hit_dist))
+            {
               v_dst_to_src_map[vidx_dst].hit_dist = hit_dist;
               v_dst_to_src_map[vidx_dst].index = nearest.index;
             }
@@ -1660,7 +1662,8 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
               islands_res[tindex][plidx_dst].factor = 0.0f;
 
               if (mesh_remap_bvhtree_query_nearest(
-                      tdata, &nearest, tmp_co, max_dist_sq, &hit_dist)) {
+                      tdata, &nearest, tmp_co, max_dist_sq, &hit_dist))
+              {
                 islands_res[tindex][plidx_dst].hit_dist = hit_dist;
                 islands_res[tindex][plidx_dst].index_src = tri_faces[nearest.index];
                 copy_v3_v3(islands_res[tindex][plidx_dst].hit_point, nearest.co);

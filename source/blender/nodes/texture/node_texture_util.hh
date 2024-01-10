@@ -50,7 +50,7 @@ struct TexParams {
   const MTex *mtex;
 };
 
-typedef void (*TexFn)(float *out, TexParams *params, bNode *node, bNodeStack **in, short thread);
+using TexFn = void (*)(float *out, TexParams *params, bNode *node, bNodeStack **in, short thread);
 
 struct TexDelegate {
   TexCallData *cdata;

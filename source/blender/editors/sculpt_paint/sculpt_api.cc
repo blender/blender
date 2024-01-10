@@ -169,8 +169,8 @@ eSculptBoundary SCULPT_edge_is_boundary(const SculptSession *ss,
             ss->attrs.face_set ? (int *)ss->attrs.face_set->data : nullptr,
             ss->sharp_edge,
             ss->seam_edge,
-            ss->pmap,
-            ss->epmap,
+            ss->vert_to_face_map,
+            ss->edge_to_face_map,
             ss->ldata,
             ss->sharp_angle_limit,
             ss->corner_verts,
@@ -189,8 +189,8 @@ eSculptBoundary SCULPT_edge_is_boundary(const SculptSession *ss,
             ss->attrs.face_set ? (int *)ss->attrs.face_set->data : nullptr,
             ss->sharp_edge,
             ss->seam_edge,
-            ss->pmap,
-            ss->epmap,
+            ss->vert_to_face_map,
+            ss->edge_to_face_map,
             ss->ldata,
             ss->subdiv_ccg,
             key,
@@ -257,7 +257,7 @@ static void faces_update_boundary_flags(const SculptSession *ss, const PBVHVertR
                                                  ss->corner_verts.data(),
                                                  ss->corner_edges.data(),
                                                  ss->faces,
-                                                 ss->pmap,
+                                                 ss->vert_to_face_map,
                                                  vertex,
                                                  ss->sharp_edge,
                                                  ss->seam_edge,
@@ -272,7 +272,7 @@ static void faces_update_boundary_flags(const SculptSession *ss, const PBVHVertR
   if (sculpt_check_boundary_vertex_in_base_mesh(ss, vertex.i)) {
     *flag |= SCULPT_BOUNDARY_MESH;
 
-    Span<int> pmap = ss->pmap[vertex.i];
+    Span<int> pmap = ss->vert_to_face_map[vertex.i];
 
     if (pmap.size() < 4) {
       bool ok = true;
@@ -412,7 +412,7 @@ static int sculpt_calc_valence(const struct SculptSession *ss, PBVHVertRef verte
     }
     case PBVH_FACES: {
       Vector<int, 32> edges;
-      for (int edge : ss->pmap[vertex.i]) {
+      for (int edge : ss->vert_to_face_map[vertex.i]) {
         if (!edges.contains(edge)) {
           edges.append(edge);
         }

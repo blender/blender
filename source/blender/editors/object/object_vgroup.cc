@@ -2897,7 +2897,7 @@ static eVGroupSelect normalize_vertex_group_target(Object *ob)
   eVGroupSelect target_group = WT_VGROUP_ALL;
 
   /* If armature is present, and armature is actively deforming the object
-  (i.e armature modifier isn't disabled) use BONE DEFORM. */
+   * (i.e armature modifier isn't disabled) use BONE DEFORM. */
   if (BKE_modifiers_is_deformed_by_armature(ob)) {
 
     int defgroup_tot = BKE_object_defgroup_count(ob);

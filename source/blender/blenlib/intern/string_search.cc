@@ -362,7 +362,8 @@ static std::optional<float> score_query_against_words(Span<StringRef> query_word
     {
       /* Try to match against word initials. */
       if (std::optional<InitialsMatch> match = match_word_initials(
-              query_word, item, word_match_map)) {
+              query_word, item, word_match_map))
+      {
         /* If the all matched words are in the main group, give the match a higher priority. */
         bool all_main_group_matches = match->count_main_group_matches(item) ==
                                       match->matched_word_indices.size();

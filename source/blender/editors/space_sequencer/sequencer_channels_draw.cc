@@ -179,7 +179,7 @@ static float draw_channel_widget_lock(const SeqChannelDrawContext *context,
 
 static bool channel_is_being_renamed(const SpaceSeq *sseq, const int channel_index)
 {
-  return sseq->runtime.rename_channel_index == channel_index;
+  return sseq->runtime->rename_channel_index == channel_index;
 }
 
 static float text_size_get(const SeqChannelDrawContext *context)
@@ -250,7 +250,7 @@ static void draw_channel_labels(const SeqChannelDrawContext *context,
     UI_block_emboss_set(block, UI_EMBOSS_NONE);
 
     if (UI_but_active_only(context->C, context->region, block, but) == false) {
-      sseq->runtime.rename_channel_index = 0;
+      sseq->runtime->rename_channel_index = 0;
     }
 
     WM_event_add_notifier(context->C, NC_SCENE | ND_SEQUENCER, context->scene);

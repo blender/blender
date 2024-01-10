@@ -141,17 +141,11 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
   }
 
   /**
-   * Versioning code until next subversion bump goes here.
-   *
-   * \note Be sure to check when bumping the version:
-   * - #blo_do_versions_userdef in this file.
-   * - "versioning_{BLENDER_VERSION}.c"
+   * Always bump subversion in BKE_blender_version.h when adding versioning
+   * code here, and wrap it inside a USER_VERSION_ATLEAST check.
    *
    * \note Keep this message at the bottom of the function.
    */
-  {
-    /* Keep this block, even when empty. */
-  }
 
 #undef FROM_DEFAULT_V4_UCHAR
 
@@ -912,17 +906,11 @@ void blo_do_versions_userdef(UserDef *userdef)
   }
 
   /**
-   * Versioning code until next subversion bump goes here.
-   *
-   * \note Be sure to check when bumping the version:
-   * - #do_versions_theme in this file.
-   * - "versioning_{BLENDER_VERSION}.c"
+   * Always bump subversion in BKE_blender_version.h when adding versioning
+   * code here, and wrap it inside a USER_VERSION_ATLEAST check.
    *
    * \note Keep this message at the bottom of the function.
    */
-  {
-    /* Keep this block, even when empty. */
-  }
 
   LISTBASE_FOREACH (bTheme *, btheme, &userdef->themes) {
     do_versions_theme(userdef, btheme);

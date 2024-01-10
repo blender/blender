@@ -30,7 +30,7 @@
 
 static CLG_LogRef LOG = {"bke.main_namemap"};
 
-//#define DEBUG_PRINT_MEMORY_USAGE
+// #define DEBUG_PRINT_MEMORY_USAGE
 
 using namespace blender;
 

@@ -126,6 +126,11 @@ int GPU_shader_get_sampler_binding(GPUShader *shader, const char *name);
 int GPU_shader_get_uniform(GPUShader *shader, const char *name);
 
 /**
+ * Returns specialization constant location.
+ */
+int GPU_shader_get_constant(GPUShader *shader, const char *name);
+
+/**
  * Sets a generic push constant (a.k.a. uniform).
  * \a length and \a array_size should match the create info push_constant declaration.
  */
@@ -170,6 +175,26 @@ bool GPU_shader_get_attribute_info(const GPUShader *shader,
                                    int attr_location,
                                    char r_name[256],
                                    int *r_type);
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Specialization API.
+ *
+ * Used to allow specialization constants.
+ * IMPORTANT: All constants must be specified before binding a shader that needs specialization.
+ * Otherwise, it will produce undefined behavior.
+ * \{ */
+
+void GPU_shader_constant_int_ex(GPUShader *sh, int location, int value);
+void GPU_shader_constant_uint_ex(GPUShader *sh, int location, unsigned int value);
+void GPU_shader_constant_float_ex(GPUShader *sh, int location, float value);
+void GPU_shader_constant_bool_ex(GPUShader *sh, int location, bool value);
+
+void GPU_shader_constant_int(GPUShader *sh, const char *name, int value);
+void GPU_shader_constant_uint(GPUShader *sh, const char *name, unsigned int value);
+void GPU_shader_constant_float(GPUShader *sh, const char *name, float value);
+void GPU_shader_constant_bool(GPUShader *sh, const char *name, bool value);
 
 /** \} */
 

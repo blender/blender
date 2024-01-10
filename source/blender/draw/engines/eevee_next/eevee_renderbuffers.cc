@@ -17,7 +17,7 @@
 #include "GPU_framebuffer.h"
 #include "GPU_texture.h"
 
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include "eevee_film.hh"
 #include "eevee_instance.hh"

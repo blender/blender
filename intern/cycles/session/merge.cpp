@@ -157,7 +157,8 @@ static bool parse_channels(const ImageSpec &in_spec,
 
     string layername, channelname;
     if (parse_channel_name(
-            pass.channel_name, layername, pass.name, channelname, multiview_channels)) {
+            pass.channel_name, layername, pass.name, channelname, multiview_channels))
+    {
       /* Channel part of a render layer. */
       pass.op = parse_channel_operation(pass.name);
     }
@@ -459,7 +460,8 @@ static bool merge_pixels(const vector<MergeImage> &images,
           case MERGE_CHANNEL_SAMPLES: {
             const auto &samples = layer_samples.at(layer.name);
             for (size_t i = 0; offset < num_pixels;
-                 offset += stride, out_offset += out_stride, i++) {
+                 offset += stride, out_offset += out_stride, i++)
+            {
               out_pixels[out_offset] = 1.0f * samples.per_pixel[i] / samples.total;
             }
             break;

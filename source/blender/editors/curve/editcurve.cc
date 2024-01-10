@@ -3478,7 +3478,8 @@ static void subdividenurb(Object *obedit, View3D *v3d, int number_cuts)
           }
 
           if (BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, bezt) &&
-              BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, nextbezt)) {
+              BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, nextbezt))
+          {
             float prevvec[3][3];
 
             memcpy(prevvec, bezt->vec, sizeof(float[9]));
@@ -4810,7 +4811,8 @@ bool ED_curve_editnurb_select_pick(bContext *C,
 
   if (params->sel_op == SEL_OP_SET) {
     if ((found && params->select_passthrough) &&
-        (((bezt ? (&bezt->f1)[hand] : bp->f1) & SELECT) != 0)) {
+        (((bezt ? (&bezt->f1)[hand] : bp->f1) & SELECT) != 0))
+    {
       found = false;
     }
     else if (found || params->deselect_all) {

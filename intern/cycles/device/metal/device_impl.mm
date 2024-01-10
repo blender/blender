@@ -579,6 +579,11 @@ void MetalDevice::compile_and_load(int device_id, MetalPipelineType pso_type)
     if (@available(macos 12.0, *)) {
       options.languageVersion = MTLLanguageVersion2_4;
     }
+#  if defined(MAC_OS_VERSION_13_0)
+    if (@available(macos 13.0, *)) {
+      options.languageVersion = MTLLanguageVersion3_0;
+    }
+#  endif
 #  if defined(MAC_OS_VERSION_14_0)
     if (@available(macos 14.0, *)) {
       options.languageVersion = MTLLanguageVersion3_1;

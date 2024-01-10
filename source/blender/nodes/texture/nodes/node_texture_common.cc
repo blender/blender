@@ -70,7 +70,8 @@ static void group_copy_inputs(bNode *gnode, bNodeStack **in, bNodeStack *gstack)
   LISTBASE_FOREACH (bNode *, node, &ngroup->nodes) {
     if (node->type == NODE_GROUP_INPUT) {
       for (sock = static_cast<bNodeSocket *>(node->outputs.first), a = 0; sock;
-           sock = sock->next, a++) {
+           sock = sock->next, a++)
+      {
         if (in[a]) { /* shouldn't need to check this #36694. */
           ns = node_get_socket_stack(gstack, sock);
           if (ns) {

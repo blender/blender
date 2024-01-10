@@ -687,7 +687,7 @@ static void bm_edge_collapse_loop_customdata(
 {
   /* Disable seam check - the seam check would have to be done per layer,
    * its not really that important. */
-  //#define USE_SEAM
+  // #define USE_SEAM
   /* these don't need to be updated, since they will get removed when the edge collapses */
   BMLoop *l_clear, *l_other;
   const bool is_manifold = BM_edge_is_manifold(l->e);
@@ -789,7 +789,7 @@ static void bm_edge_collapse_loop_customdata(
     }
   }
 
-  //#undef USE_SEAM
+  // #undef USE_SEAM
 }
 #endif /* USE_CUSTOMDATA */
 

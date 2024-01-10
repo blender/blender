@@ -20,9 +20,23 @@
 #include <cmath>
 #include <cstring>
 
+#if defined(__x86_64__) || defined(_M_X64) || defined(__SSE2__)
+#include <immintrin.h>
+static inline int lrint_impl(double x)
+{
+	return _mm_cvtsd_si32(_mm_load_sd(&x));
+}
+#else
+static inline int lrint_impl(double x)
+{
+	return lrint(x);
+}
+#endif
+
+
 #define RATE_MAX 256
 #define SHIFT_BITS 12
-#define double_to_fp(x) (lrint(x * double(1 << SHIFT_BITS)))
+#define double_to_fp(x) (lrint_impl(x * double(1 << SHIFT_BITS)))
 #define int_to_fp(x) (x << SHIFT_BITS)
 #define fp_to_int(x) (x >> SHIFT_BITS)
 #define fp_to_double(x) (x * 1.0/(1 << SHIFT_BITS))
@@ -31,7 +45,7 @@
 
 AUD_NAMESPACE_BEGIN
 
-JOSResampleReader::JOSResampleReader(std::shared_ptr<IReader> reader, SampleRate rate) :
+JOSResampleReader::JOSResampleReader(std::shared_ptr<IReader> reader, SampleRate rate, Quality quality) :
 	ResampleReader(reader, rate),
 	m_channels(CHANNELS_INVALID),
 	m_n(0),
@@ -39,6 +53,28 @@ JOSResampleReader::JOSResampleReader(std::shared_ptr<IReader> reader, SampleRate
 	m_cache_valid(0),
 	m_last_factor(0)
 {
+	switch(quality)
+	{
+	case Quality::LOW:
+		m_len = m_len_low;
+		m_L = m_L_low;
+		m_coeff = m_coeff_low;
+		break;
+	case Quality::MEDIUM:
+		m_len = m_len_medium;
+		m_L = m_L_medium;
+		m_coeff = m_coeff_medium;
+		break;
+	case Quality::HIGH:
+		m_len = m_len_high;
+		m_L = m_L_high;
+		m_coeff = m_coeff_high;
+		break;
+	default:
+		m_len = m_len_low;
+		m_L = m_L_low;
+		m_coeff = m_coeff_low;
+	}
 }
 
 void JOSResampleReader::reset()
@@ -75,168 +111,195 @@ void JOSResampleReader::updateBuffer(int size, double factor, int samplesize)
 	m_buffer.assureSize((m_cache_valid + size) * samplesize, true);
 }
 
-#define RESAMPLE_METHOD(name, left, right) void JOSResampleReader::name(double target_factor, int length, sample_t* buffer)\
-{\
-	sample_t* buf = m_buffer.getBuffer();\
-\
-	unsigned int P, l;\
-	int end, channel, i;\
-	double eta, v, f_increment, factor;\
-\
-	m_sums.assureSize(m_channels * sizeof(double));\
-	double* sums = reinterpret_cast<double*>(m_sums.getBuffer());\
-	sample_t* data;\
-	const float* coeff = m_coeff;\
-\
-	unsigned int P_increment;\
-\
-	for(unsigned int t = 0; t < length; t++)\
-	{\
-		factor = (m_last_factor * (length - t - 1) + target_factor * (t + 1)) / length;\
-\
-		std::memset(sums, 0, sizeof(double) * m_channels);\
-\
-		if(factor >= 1)\
-		{\
-			P = double_to_fp(m_P * m_L);\
-\
-			end = std::floor(m_len / double(m_L) - m_P) - 1;\
-			if(m_n < end)\
-				end = m_n;\
-\
-			data = buf + (m_n - end) * m_channels;\
-			l = fp_to_int(P);\
-			eta = fp_rest_to_double(P);\
-			l += m_L * end;\
-\
-			for(i = 0; i <= end; i++)\
-			{\
-				v = coeff[l] + eta * (coeff[l+1] - coeff[l]);\
-				l -= m_L;\
-				left\
-			}\
-\
-			P = int_to_fp(m_L) - P;\
-\
-			end = std::floor((m_len - 1) / double(m_L) + m_P) - 1;\
-			if(m_cache_valid - int(m_n) - 2 < end)\
-				end = m_cache_valid - int(m_n) - 2;\
-\
-			data = buf + (m_n + 2 + end) * m_channels - 1;\
-			l = fp_to_int(P);\
-			eta = fp_rest_to_double(P);\
-			l += m_L * end;\
-\
-			for(i = 0; i <= end; i++)\
-			{\
-				v = coeff[l] + eta * (coeff[l+1] - coeff[l]);\
-				l -= m_L;\
-				right\
-			}\
-\
-			for(channel = 0; channel < m_channels; channel++)\
-			{\
-				*buffer = sums[channel];\
-				buffer++;\
-			}\
-		}\
-		else\
-		{\
-			f_increment = factor * m_L;\
-			P_increment = double_to_fp(f_increment);\
-			P = double_to_fp(m_P * f_increment);\
-\
-			end = (int_to_fp(m_len) - P) / P_increment - 1;\
-			if(m_n < end)\
-				end = m_n;\
-\
-			P += P_increment * end;\
-			data = buf + (m_n - end) * m_channels;\
-			l = fp_to_int(P);\
-\
-			for(i = 0; i <= end; i++)\
-			{\
-				eta = fp_rest_to_double(P);\
-				v = coeff[l] + eta * (coeff[l+1] - coeff[l]);\
-				P -= P_increment;\
-				l = fp_to_int(P);\
-				left\
-			}\
-\
-			P = 0 - P;\
-\
-			end = (int_to_fp(m_len) - P) / P_increment - 1;\
-			if(m_cache_valid - int(m_n) - 2 < end)\
-				end = m_cache_valid - int(m_n) - 2;\
-\
-			P += P_increment * end;\
-			data = buf + (m_n + 2 + end) * m_channels - 1;\
-			l = fp_to_int(P);\
-\
-			for(i = 0; i <= end; i++)\
-			{\
-				eta = fp_rest_to_double(P);\
-				v = coeff[l] + eta * (coeff[l+1] - coeff[l]);\
-				P -= P_increment;\
-				l = fp_to_int(P);\
-				right\
-			}\
-\
-			for(channel = 0; channel < m_channels; channel++)\
-			{\
-				*buffer = factor * sums[channel];\
-				buffer++;\
-			}\
-		}\
-\
-		m_P += std::fmod(1.0 / factor, 1.0);\
-		m_n += std::floor(1.0 / factor);\
-\
-		while(m_P >= 1.0)\
-		{\
-			m_P -= 1.0;\
-			m_n++;\
-		}\
-	}\
+template<typename T>
+void JOSResampleReader::resample(double target_factor, int length, sample_t* buffer)
+{
+	const sample_t* buf = m_buffer.getBuffer();
+
+	unsigned int P, l;
+	int end, i;
+	double eta, v, f_increment, factor;
+
+	m_sums.assureSize(m_channels * sizeof(double));
+	double* sums = reinterpret_cast<double*>(m_sums.getBuffer());
+	const sample_t* data;
+	const float* coeff = m_coeff;
+
+	unsigned int P_increment;
+
+	for(unsigned int t = 0; t < length; t++)
+	{
+		factor = (m_last_factor * (length - t - 1) + target_factor * (t + 1)) / length;
+
+		std::memset(sums, 0, sizeof(double) * m_channels);
+
+		if(factor >= 1)
+		{
+			P = double_to_fp(m_P * m_L);
+
+			end = std::floor(m_len / double(m_L) - m_P) - 1;
+			if(m_n < end)
+				end = m_n;
+
+			data = buf + (m_n - end) * m_channels;
+			l = fp_to_int(P);
+			eta = fp_rest_to_double(P);
+			l += m_L * end;
+
+			for(i = 0; i <= end; i++)
+			{
+				v = coeff[l] + eta * (coeff[l+1] - coeff[l]);
+				l -= m_L;
+				T::left(m_channels, sums, data, v);
+			}
+
+			P = int_to_fp(m_L) - P;
+
+			end = std::floor((m_len - 1) / double(m_L) + m_P) - 1;
+			if(m_cache_valid - int(m_n) - 2 < end)
+				end = m_cache_valid - int(m_n) - 2;
+
+			data = buf + (m_n + 2 + end) * m_channels - 1;
+			l = fp_to_int(P);
+			eta = fp_rest_to_double(P);
+			l += m_L * end;
+
+			for(i = 0; i <= end; i++)
+			{
+				v = coeff[l] + eta * (coeff[l+1] - coeff[l]);
+				l -= m_L;
+				T::right(m_channels, sums, data, v);
+			}
+
+			for(int channel = 0; channel < m_channels; channel++)
+			{
+				*buffer = sums[channel];
+				buffer++;
+			}
+		}
+		else
+		{
+			f_increment = factor * m_L;
+			P_increment = double_to_fp(f_increment);
+			P = double_to_fp(m_P * f_increment);
+
+			end = (int_to_fp(m_len) - P) / P_increment - 1;
+			if(m_n < end)
+				end = m_n;
+
+			P += P_increment * end;
+			data = buf + (m_n - end) * m_channels;
+			l = fp_to_int(P);
+
+			for(i = 0; i <= end; i++)
+			{
+				eta = fp_rest_to_double(P);
+				v = coeff[l] + eta * (coeff[l+1] - coeff[l]);
+				P -= P_increment;
+				l = fp_to_int(P);
+				T::left(m_channels, sums, data, v);
+			}
+
+			P = 0 - P;
+
+			end = (int_to_fp(m_len) - P) / P_increment - 1;
+			if(m_cache_valid - int(m_n) - 2 < end)
+				end = m_cache_valid - int(m_n) - 2;
+
+			P += P_increment * end;
+			data = buf + (m_n + 2 + end) * m_channels - 1;
+			l = fp_to_int(P);
+
+			for(i = 0; i <= end; i++)
+			{
+				eta = fp_rest_to_double(P);
+				v = coeff[l] + eta * (coeff[l+1] - coeff[l]);
+				P -= P_increment;
+				l = fp_to_int(P);
+				T::right(m_channels, sums, data, v);
+			}
+
+			for(int channel = 0; channel < m_channels; channel++)
+			{
+				*buffer = factor * sums[channel];
+				buffer++;
+			}
+		}
+
+		m_P += std::fmod(1.0 / factor, 1.0);
+		m_n += std::floor(1.0 / factor);
+
+		while(m_P >= 1.0)
+		{
+			m_P -= 1.0;
+			m_n++;
+		}
+	}
 }
 
-RESAMPLE_METHOD(resample, {
-				channel = 0;
-				do
-				{
-					sums[channel] += *data * v;
-					channel++;
-					data++;
-				}
-				while(channel < m_channels);
-}, {
-				channel = m_channels;
-				do
-				{
-					channel--;
-					sums[channel] += *data * v;
-					data--;
-				}
-				while(channel);
-})
-
-RESAMPLE_METHOD(resample_mono, {
-				*sums += *data * v;
+void JOSResampleReader::resample_generic(double target_factor, int length, sample_t* buffer)
+{
+	struct OpGeneric
+	{
+		static void left(int channel_count, double *sums, const sample_t*& data, double v)
+		{
+			int channel = 0;
+			do
+			{
+				sums[channel] += *data * v;
+				channel++;
 				data++;
-}, {
-				*sums += *data * v;
+			} while(channel < channel_count);
+		}
+		static void right(int channel_count, double* sums, const sample_t*& data, double v)
+		{
+			int channel = channel_count;
+			do
+			{
+				channel--;
+				sums[channel] += *data * v;
 				data--;
-})
-
-RESAMPLE_METHOD(resample_stereo, {
-				sums[0] += data[0] * v;
-				sums[1] += data[1] * v;
-				data+=2;
-}, {
-				data-=2;
-				sums[0] += data[1] * v;
-				sums[1] += data[2] * v;
-})
+			} while(channel);
+		}
+	};
+	resample<OpGeneric>(target_factor, length, buffer);
+}
+void JOSResampleReader::resample_mono(double target_factor, int length, sample_t* buffer)
+{
+	struct OpMono
+	{
+		static void left(int channel_count, double* sums, const sample_t*& data, double v)
+		{
+			*sums += *data * v;
+			data++;
+		}
+		static void right(int channel_count, double* sums, const sample_t*& data, double v)
+		{
+			*sums += *data * v;
+			data--;
+		}
+	};
+	resample<OpMono>(target_factor, length, buffer);
+}
+void JOSResampleReader::resample_stereo(double target_factor, int length, sample_t* buffer)
+{
+	struct OpStereo
+	{
+		static void left(int channel_count, double* sums, const sample_t*& data, double v)
+		{
+			sums[0] += data[0] * v;
+			sums[1] += data[1] * v;
+			data += 2;
+		}
+		static void right(int channel_count, double* sums, const sample_t*& data, double v)
+		{
+			data -= 2;
+			sums[0] += data[1] * v;
+			sums[1] += data[2] * v;
+		}
+	};
+	resample<OpStereo>(target_factor, length, buffer);
+}
 
 void JOSResampleReader::seek(int position)
 {
@@ -290,7 +353,7 @@ void JOSResampleReader::read(int& length, bool& eos, sample_t* buffer)
 			m_resample = &JOSResampleReader::resample_stereo;
 			break;
 		default:
-			m_resample = &JOSResampleReader::resample;
+			m_resample = &JOSResampleReader::resample_generic;
 			break;
 		}
 	}

@@ -63,7 +63,8 @@ void EEVEE_shadows_init(EEVEE_ViewLayerData *sldata)
 
   EEVEE_LightsInfo *linfo = sldata->lights;
   if ((linfo->shadow_cube_size != sh_cube_size) ||
-      (linfo->shadow_high_bitdepth != sh_high_bitdepth)) {
+      (linfo->shadow_high_bitdepth != sh_high_bitdepth))
+  {
     BLI_assert((sh_cube_size > 0) && (sh_cube_size <= 4096));
     DRW_TEXTURE_FREE_SAFE(sldata->shadow_cube_pool);
     CLAMP(sh_cube_size, 1, 4096);

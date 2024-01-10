@@ -15,7 +15,7 @@
 #include "RNA_define.hh"
 
 #include "GPU_batch.h"
-#include "draw_shader.h"
+#include "draw_shader.hh"
 #include "draw_testing.hh"
 #include "engines/eevee_next/eevee_instance.hh"
 #include "engines/eevee_next/eevee_precompute.hh"

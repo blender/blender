@@ -228,10 +228,6 @@ struct PBVH {
   int totgrid;
   blender::BitGroupVector<> *grid_hidden;
 
-  /* Used during BVH build and later to mark that a vertex needs to update
-   * (its normal must be recalculated). */
-  blender::Array<bool> vert_bitmap;
-
 #ifdef PERFCNTRS
   int perf_modified;
 #endif
@@ -271,8 +267,8 @@ struct PBVH {
   int stroke_id;
 
   bool invalid;
-  blender::GroupedSpan<int> pmap;
-  blender::GroupedSpan<int> vemap;
+  blender::GroupedSpan<int> vert_to_face_map;
+  blender::GroupedSpan<int> vert_to_edge_map;
 
   CustomDataLayer *color_layer;
   blender::bke::AttrDomain color_domain;
@@ -330,7 +326,6 @@ bool ray_face_intersection_tri(const float ray_start[3],
                                const float t1[3],
                                const float t2[3],
                                float *depth);
-}  // namespace blender::bke::pbvh
 
 bool ray_face_nearest_quad(const float ray_start[3],
                            const float ray_normal[3],
@@ -347,9 +342,11 @@ bool ray_face_nearest_tri(const float ray_start[3],
                           const float t2[3],
                           float *r_depth,
                           float *r_dist_sq);
+}  // namespace blender::bke::pbvh
 
 void pbvh_update_BB_redraw(PBVH *bvh, PBVHNode **nodes, int totnode, int flag);
 
+namespace blender::bke::pbvh {
 bool ray_face_intersection_depth_tri(const float ray_start[3],
                                      struct IsectRayPrecalc *isect_precalc,
                                      const float t0[3],
@@ -357,6 +354,8 @@ bool ray_face_intersection_depth_tri(const float ray_start[3],
                                      const float t2[3],
                                      float *r_depth,
                                      int *hit_count);
+}
+
 /* pbvh_bmesh.cc */
 
 /* pbvh_bmesh.c */
@@ -407,7 +406,7 @@ BLI_INLINE PBVHNode *pbvh_bmesh_node_from_face(PBVH *pbvh, const BMFace *key)
 
 bool pbvh_bmesh_node_limit_ensure(PBVH *pbvh, int node_index);
 
-//#define PBVH_BMESH_DEBUG
+// #define PBVH_BMESH_DEBUG
 
 #ifdef PBVH_BMESH_DEBUG
 void pbvh_bmesh_check_nodes(PBVH *pbvh);

@@ -49,7 +49,7 @@ typedef struct _stati64 path_stat_t;
 typedef struct _stat path_stat_t;
 #  endif
 #  ifndef S_ISDIR
-#    define S_ISDIR(x) (((x)&_S_IFDIR) == _S_IFDIR)
+#    define S_ISDIR(x) (((x) & _S_IFDIR) == _S_IFDIR)
 #  endif
 #else
 typedef struct stat path_stat_t;

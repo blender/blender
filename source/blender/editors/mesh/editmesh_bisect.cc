@@ -58,7 +58,7 @@ struct BisectData {
     BMBackup mesh_backup;
     bool is_valid;
     bool is_dirty;
-  } * backup;
+  } *backup;
   int backup_len;
 };
 

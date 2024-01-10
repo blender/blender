@@ -550,7 +550,8 @@ static void shrinkwrap_calc_normal_projection_cb_ex(void *__restrict userdata,
     char options = calc->smd->shrinkOpts;
 
     if ((options & MOD_SHRINKWRAP_INVERT_CULL_TARGET) &&
-        (options & MOD_SHRINKWRAP_CULL_TARGET_MASK)) {
+        (options & MOD_SHRINKWRAP_CULL_TARGET_MASK))
+    {
       options ^= MOD_SHRINKWRAP_CULL_TARGET_MASK;
     }
 
@@ -561,7 +562,8 @@ static void shrinkwrap_calc_normal_projection_cb_ex(void *__restrict userdata,
     }
 
     if (BKE_shrinkwrap_project_normal(
-            options, tmp_co, inv_no, 0.0, &calc->local2target, tree, hit)) {
+            options, tmp_co, inv_no, 0.0, &calc->local2target, tree, hit))
+    {
       is_aux = false;
     }
   }
@@ -704,7 +706,7 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
  * The actual solution vector is [ w0, w1, l ], with w2 eliminated.
  */
 
-//#define TRACE_TARGET_PROJECT
+// #define TRACE_TARGET_PROJECT
 
 struct TargetProjectTriData {
   const float **vtri_co;

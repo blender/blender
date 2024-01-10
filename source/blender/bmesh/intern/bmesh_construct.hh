@@ -161,15 +161,13 @@ void BM_elem_select_copy(BMesh *bm_dst, void *ele_dst_v, const void *ele_src_v);
  * as this is the mesh they have control over (active UV layer for rendering for example).
  */
 void BM_mesh_copy_init_customdata_from_mesh_array(BMesh *bm_dst,
-                                                  const struct Mesh *me_src_array[],
+                                                  const Mesh *me_src_array[],
                                                   int me_src_array_len,
-                                                  const struct BMAllocTemplate *allocsize);
+                                                  const BMAllocTemplate *allocsize);
 void BM_mesh_copy_init_customdata_from_mesh(BMesh *bm_dst,
-                                            const struct Mesh *me_src,
-                                            const struct BMAllocTemplate *allocsize);
-void BM_mesh_copy_init_customdata(BMesh *bm_dst,
-                                  BMesh *bm_src,
-                                  const struct BMAllocTemplate *allocsize);
+                                            const Mesh *me_src,
+                                            const BMAllocTemplate *allocsize);
+void BM_mesh_copy_init_customdata(BMesh *bm_dst, BMesh *bm_src, const BMAllocTemplate *allocsize);
 /**
  * Similar to #BM_mesh_copy_init_customdata but copies all layers ignoring
  * flags like #CD_FLAG_NOCOPY.
@@ -182,5 +180,5 @@ void BM_mesh_copy_init_customdata(BMesh *bm_dst,
 void BM_mesh_copy_init_customdata_all_layers(BMesh *bm_dst,
                                              BMesh *bm_src,
                                              char htype,
-                                             const struct BMAllocTemplate *allocsize);
+                                             const BMAllocTemplate *allocsize);
 BMesh *BM_mesh_copy(BMesh *bm_old);

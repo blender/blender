@@ -13,6 +13,7 @@
 #include <optional>
 
 using Alembic::Abc::chrono_t;
+using Alembic::Abc::V3fArraySamplePtr;
 
 struct ID;
 struct Object;
@@ -82,6 +83,9 @@ void get_min_max_time(const Alembic::AbcGeom::IObject &object,
 }
 
 bool has_property(const Alembic::Abc::ICompoundProperty &prop, const std::string &name);
+V3fArraySamplePtr get_velocity_prop(const Alembic::Abc::ICompoundProperty &schema,
+                                    const Alembic::AbcGeom::ISampleSelector &selector,
+                                    const std::string &name);
 
 /**
  * The SampleInterpolationSettings struct holds information for interpolating data between two

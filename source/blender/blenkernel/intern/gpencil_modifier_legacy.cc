@@ -104,7 +104,8 @@ void BKE_gpencil_cache_data_init(Depsgraph *depsgraph, Object *ob)
         mmd->cache_data = static_cast<ShrinkwrapTreeData *>(
             MEM_callocN(sizeof(ShrinkwrapTreeData), __func__));
         if (BKE_shrinkwrap_init_tree(
-                mmd->cache_data, target, mmd->shrink_type, mmd->shrink_mode, false)) {
+                mmd->cache_data, target, mmd->shrink_type, mmd->shrink_mode, false))
+        {
         }
         else {
           MEM_SAFE_FREE(mmd->cache_data);

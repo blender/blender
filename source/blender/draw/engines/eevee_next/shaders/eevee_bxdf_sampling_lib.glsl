@@ -94,7 +94,7 @@ vec3 sample_ggx(vec3 rand, float alpha, vec3 Vt)
  * \param N: Normal vector.
  * \param T: Tangent vector.
  * \param B: Bitangent vector.
-
+ *
  * \return pdf: the pdf of sampling the reflected ray. 0 if ray is invalid.
  */
 vec3 sample_ggx_reflect(vec3 rand, float alpha, vec3 V, vec3 N, vec3 T, vec3 B, out float pdf)
@@ -125,7 +125,7 @@ vec3 sample_ggx_reflect(vec3 rand, float alpha, vec3 V, vec3 N, vec3 T, vec3 B, 
  * \param N: Normal vector.
  * \param T: Tangent vector.
  * \param B: Bitangent vector.
-
+ *
  * \return pdf: the pdf of sampling the refracted ray. 0 if ray is invalid.
  */
 vec3 sample_ggx_refract(

@@ -8,18 +8,23 @@ struct Main;
 #include "WM_types.hh"
 
 #include "usd.h"
+#include "usd_hash_types.h"
 #include "usd_reader_prim.h"
 
 #include <pxr/usd/usd/stage.h>
 #include <pxr/usd/usdGeom/imageable.h>
 
-#include <vector>
+#include <string>
 
 struct ImportSettings;
 
 namespace blender::io::usd {
 
-typedef std::map<pxr::SdfPath, std::vector<USDPrimReader *>> ProtoReaderMap;
+/**
+ * Map a USD prototype prim path to the list of readers that convert
+ * the prototype data.
+ */
+using ProtoReaderMap = blender::Map<pxr::SdfPath, blender::Vector<USDPrimReader *>>;
 
 class USDStageReader {
 
@@ -28,11 +33,14 @@ class USDStageReader {
   USDImportParams params_;
   ImportSettings settings_;
 
-  std::vector<USDPrimReader *> readers_;
+  blender::Vector<USDPrimReader *> readers_;
 
   /* USD material prim paths encountered during stage
    * traversal, for importing unused materials. */
-  std::vector<std::string> material_paths_;
+  blender::Vector<std::string> material_paths_;
+
+  /* Readers for scene-graph instance prototypes. */
+  ProtoReaderMap proto_readers_;
 
  public:
   USDStageReader(pxr::UsdStageRefPtr stage,
@@ -89,15 +97,24 @@ class USDStageReader {
 
   void clear_readers();
 
-  const std::vector<USDPrimReader *> &readers() const
+  void clear_proto_readers();
+
+  const blender::Vector<USDPrimReader *> &readers() const
   {
     return readers_;
   };
 
   void sort_readers();
 
+  /**
+   * Create prototype collections for instancing by the USD instance readers.
+   */
+  void create_proto_collections(Main *bmain, Collection *parent_collection);
+
  private:
-  USDPrimReader *collect_readers(Main *bmain, const pxr::UsdPrim &prim);
+  USDPrimReader *collect_readers(Main *bmain,
+                                 const pxr::UsdPrim &prim,
+                                 blender::Vector<USDPrimReader *> &r_readers);
 
   /**
    * Returns true if the given prim should be included in the

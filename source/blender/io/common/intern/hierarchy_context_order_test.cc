@@ -18,8 +18,7 @@ Object *fake_pointer(int value)
 
 }  // namespace
 
-class HierarchyContextOrderTest : public testing::Test {
-};
+class HierarchyContextOrderTest : public testing::Test {};
 
 TEST_F(HierarchyContextOrderTest, ObjectPointerTest)
 {

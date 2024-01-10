@@ -289,7 +289,6 @@ static float *geodesic_mesh_create(Object *ob,
   if (vert_positions.is_empty()) {
     vert_positions = SCULPT_mesh_deformed_positions_get(ss);
   }
-
   const Span<int2> edges = mesh->edges();
   const OffsetIndices faces = mesh->faces();
   const Span<int> corner_verts = mesh->corner_verts();
@@ -298,15 +297,21 @@ static float *geodesic_mesh_create(Object *ob,
   const VArraySpan<bool> hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
 
   float *dists = static_cast<float *>(MEM_malloc_arrayN(totvert, sizeof(float), __func__));
-  BLI_bitmap *edge_tag = BLI_BITMAP_NEW(totedge, "edge tag");
+  BitVector<> edge_tag(totedge);
 
-  if (ss->epmap.is_empty()) {
-    ss->epmap = bke::mesh::build_edge_to_face_map(
+  if (ss->edge_to_face_map.is_empty()) {
+    ss->edge_to_face_map = bke::mesh::build_edge_to_face_map(
         faces, corner_edges, edges.size(), ss->edge_to_face_offsets, ss->edge_to_face_indices);
   }
-  if (ss->vemap.is_empty()) {
-    ss->vemap = bke::mesh::build_vert_to_edge_map(
+  if (ss->vert_to_edge_map.is_empty()) {
+    ss->vert_to_edge_map = bke::mesh::build_vert_to_edge_map(
         edges, mesh->verts_num, ss->vert_to_edge_offsets, ss->vert_to_edge_indices);
+  }
+
+  if (r_closest_verts) {
+    for (int i = 0; i < totvert; i++) {
+      r_closest_verts[i].i = -1LL;
+    }
   }
 
   /* Both contain edge indices encoded as *void. */
@@ -318,41 +323,37 @@ static float *geodesic_mesh_create(Object *ob,
 
   for (int i = 0; i < totvert; i++) {
     if (BLI_gset_haskey(initial_verts, POINTER_FROM_INT(i))) {
+      dists[i] = 0.0f;
+
       if (r_closest_verts) {
         r_closest_verts[i] = BKE_pbvh_index_to_vertex(ss->pbvh, i);
       }
-
-      dists[i] = 0.0f;
     }
     else {
-      if (r_closest_verts) {
-        r_closest_verts[i].i = -1LL;
-      }
-
       dists[i] = FLT_MAX;
     }
   }
 
-  /* Masks verts that are further than limit radius from an initial vertex. As there is no need
+  /* Masks vertices that are further than limit radius from an initial vertex. As there is no need
    * to define a distance to them the algorithm can stop earlier by skipping them. */
-  BLI_bitmap *affected_vertex = BLI_BITMAP_NEW(totvert, "affected vertex");
+  BitVector<> affected_vert(totvert);
   GSetIterator gs_iter;
 
   if (limit_radius == FLT_MAX) {
-    /* In this case, no need to loop through all initial verts to check distances as they are
+    /* In this case, no need to loop through all initial vertices to check distances as they are
      * all going to be affected. */
-    BLI_bitmap_set_all(affected_vertex, true, totvert);
+    affected_vert.fill(true);
   }
   else {
     /* This is an O(n^2) loop used to limit the geodesic distance calculation to a radius. When
      * this optimization is needed, it is expected for the tool to request the distance to a low
-     * number of verts (usually just 1 or 2). */
+     * number of vertices (usually just 1 or 2). */
     GSET_ITER (gs_iter, initial_verts) {
       const int v = POINTER_AS_INT(BLI_gsetIterator_getKey(&gs_iter));
       const float *v_co = vert_positions[v];
       for (int i = 0; i < totvert; i++) {
         if (len_squared_v3v3(v_co, vert_positions[i]) <= limit_radius_sq) {
-          BLI_BITMAP_ENABLE(affected_vertex, i);
+          affected_vert[i].set();
         }
       }
     }
@@ -362,7 +363,7 @@ static float *geodesic_mesh_create(Object *ob,
   for (int i = 0; i < totedge; i++) {
     const int v1 = edges[i][0];
     const int v2 = edges[i][1];
-    if (!BLI_BITMAP_TEST(affected_vertex, v1) && !BLI_BITMAP_TEST(affected_vertex, v2)) {
+    if (!affected_vert[v1] && !affected_vert[v2]) {
       continue;
     }
     if (dists[v1] != FLT_MAX || dists[v2] != FLT_MAX) {
@@ -389,38 +390,32 @@ static float *geodesic_mesh_create(Object *ob,
                                            r_closest_verts);
       }
 
-      if (ss->epmap[e].size() != 0) {
-        for (int face_map_index = 0; face_map_index < ss->epmap[e].size(); face_map_index++) {
-          const int face = ss->epmap[e][face_map_index];
-          if (!hide_poly.is_empty() && hide_poly[face]) {
+      for (const int face : ss->edge_to_face_map[e]) {
+        if (!hide_poly.is_empty() && hide_poly[face]) {
+          continue;
+        }
+        for (const int v_other : corner_verts.slice(faces[face])) {
+          if (ELEM(v_other, v1, v2)) {
             continue;
           }
-          for (const int v_other : corner_verts.slice(faces[face])) {
-            if (ELEM(v_other, v1, v2)) {
-              continue;
-            }
-            if (sculpt_geodesic_mesh_test_dist_add(
-                    vert_positions, v_other, v1, v2, dists, initial_verts, nullptr))
-            {
-              for (int edge_map_index = 0; edge_map_index < ss->vemap[v_other].size();
-                   edge_map_index++) {
-                const int e_other = ss->vemap[v_other][edge_map_index];
-                int ev_other;
-                if (edges[e_other][0] == v_other) {
-                  ev_other = edges[e_other][1];
-                }
-                else {
-                  ev_other = edges[e_other][0];
-                }
+          if (sculpt_geodesic_mesh_test_dist_add(
+                  vert_positions, v_other, v1, v2, dists, initial_verts, r_closest_verts))
+          {
+            for (const int e_other : ss->vert_to_edge_map[v_other]) {
+              int ev_other;
+              if (edges[e_other][0] == v_other) {
+                ev_other = edges[e_other][1];
+              }
+              else {
+                ev_other = edges[e_other][0];
+              }
 
-                if (e_other != e && !BLI_BITMAP_TEST(edge_tag, e_other) &&
-                    (ss->epmap[e_other].is_empty() || dists[ev_other] != FLT_MAX))
-                {
-                  if (BLI_BITMAP_TEST(affected_vertex, v_other) ||
-                      BLI_BITMAP_TEST(affected_vertex, ev_other)) {
-                    BLI_BITMAP_ENABLE(edge_tag, e_other);
-                    BLI_LINKSTACK_PUSH(queue_next, POINTER_FROM_INT(e_other));
-                  }
+              if (e_other != e && !edge_tag[e_other] &&
+                  (ss->edge_to_face_map[e_other].is_empty() || dists[ev_other] != FLT_MAX))
+              {
+                if (affected_vert[v_other] || affected_vert[ev_other]) {
+                  edge_tag[e_other].set();
+                  BLI_LINKSTACK_PUSH(queue_next, POINTER_FROM_INT(e_other));
                 }
               }
             }
@@ -431,16 +426,15 @@ static float *geodesic_mesh_create(Object *ob,
 
     for (LinkNode *lnk = queue_next; lnk; lnk = lnk->next) {
       const int e = POINTER_AS_INT(lnk->link);
-      BLI_BITMAP_DISABLE(edge_tag, e);
+      edge_tag[e].reset();
     }
 
     BLI_LINKSTACK_SWAP(queue, queue_next);
+
   } while (BLI_LINKSTACK_SIZE(queue));
 
   BLI_LINKSTACK_FREE(queue);
   BLI_LINKSTACK_FREE(queue_next);
-  MEM_SAFE_FREE(edge_tag);
-  MEM_SAFE_FREE(affected_vertex);
 
   return dists;
 }
@@ -473,7 +467,7 @@ static float *geodesic_bmesh_create(Object *ob,
   const float limit_radius_sq = limit_radius * limit_radius;
 
   float *dists = static_cast<float *>(MEM_malloc_arrayN(totvert, sizeof(float), "distances"));
-  BLI_bitmap *edge_tag = BLI_BITMAP_NEW(totedge, "edge tag");
+  BitVector<> edge_tag(totedge);
 
   BLI_LINKSTACK_DECLARE(queue, BMEdge *);
   BLI_LINKSTACK_DECLARE(queue_next, BMEdge *);
@@ -496,7 +490,7 @@ static float *geodesic_bmesh_create(Object *ob,
 
   /* Masks verts that are further than limit radius from an initial vertex. As there is no
    * need to define a distance to them the algorithm can stop earlier by skipping them. */
-  BLI_bitmap *affected_vertex = BLI_BITMAP_NEW(totvert, "affected vertex");
+  BitVector<> affected_vertex(totvert);
   GSetIterator gs_iter;
 
   BMVert *v;
@@ -509,7 +503,7 @@ static float *geodesic_bmesh_create(Object *ob,
   if (limit_radius == FLT_MAX) {
     /* In this case, no need to loop through all initial verts to check distances as they are
      * all going to be affected. */
-    BLI_bitmap_set_all(affected_vertex, true, totvert);
+    affected_vertex.fill(true);
   }
   else {
     /* This is an O(n^2) loop used to limit the geodesic distance calculation to a radius.
@@ -527,7 +521,7 @@ static float *geodesic_bmesh_create(Object *ob,
         const float *co2 = pos_override ? vert_positions[BM_elem_index_get(v2)] : v2->co;
 
         if (len_squared_v3v3(co1, co2) <= limit_radius_sq) {
-          BLI_BITMAP_ENABLE(affected_vertex, i);
+          affected_vertex[i].set();
         }
       }
     }
@@ -539,7 +533,7 @@ static float *geodesic_bmesh_create(Object *ob,
     const int v1_i = BM_elem_index_get(e->v1);
     const int v2_i = BM_elem_index_get(e->v2);
 
-    if (!BLI_BITMAP_TEST(affected_vertex, v1_i) && !BLI_BITMAP_TEST(affected_vertex, v2_i)) {
+    if (!affected_vertex[v1_i].test() && !affected_vertex[v2_i].test()) {
       continue;
     }
     if (dists[v1_i] != FLT_MAX || dists[v2_i] != FLT_MAX) {
@@ -604,13 +598,13 @@ static float *geodesic_bmesh_create(Object *ob,
                 const int ev_other_i = BM_elem_index_get(ev_other);
                 const int e_other_i = BM_elem_index_get(e_other);
 
-                bool ok = e_other != e && !BLI_BITMAP_TEST(edge_tag, e_other_i);
+                bool ok = e_other != e && !edge_tag[e_other_i].test();
                 ok = ok && (!e_other->l || dists[ev_other_i] != FLT_MAX);
-                ok = ok && (BLI_BITMAP_TEST(affected_vertex, v_other_i) ||
-                            BLI_BITMAP_TEST(affected_vertex, ev_other_i));
+                ok = ok &&
+                     (affected_vertex[v_other_i].test() || affected_vertex[ev_other_i].test());
 
                 if (ok) {
-                  BLI_BITMAP_ENABLE(edge_tag, e_other_i);
+                  edge_tag[e_other_i].set();
                   BLI_LINKSTACK_PUSH(queue_next, e_other);
                 }
               }
@@ -628,7 +622,7 @@ static float *geodesic_bmesh_create(Object *ob,
       BMEdge *e = (BMEdge *)lnk->link;
       const int e_i = BM_elem_index_get(e);
 
-      BLI_BITMAP_DISABLE(edge_tag, e_i);
+      edge_tag[e_i].reset();
     }
 
     BLI_LINKSTACK_SWAP(queue, queue_next);
@@ -637,8 +631,6 @@ static float *geodesic_bmesh_create(Object *ob,
 
   BLI_LINKSTACK_FREE(queue);
   BLI_LINKSTACK_FREE(queue_next);
-  MEM_SAFE_FREE(edge_tag);
-  MEM_SAFE_FREE(affected_vertex);
 
   return dists;
 }
@@ -722,13 +714,13 @@ static float *geodesic_grids_create(Object *ob,
 
   /* Masks verts that are further than limit radius from an initial vertex. As there is no
    * need to define a distance to them the algorithm can stop earlier by skipping them. */
-  BLI_bitmap *affected_vertex = BLI_BITMAP_NEW(totvert, "affected vertex");
+  BitVector<> affected_vertex(totvert);
   GSetIterator gs_iter;
 
   if (limit_radius == FLT_MAX) {
     /* In this case, no need to loop through all initial verts to check distances as they are
      * all going to be affected. */
-    BLI_bitmap_set_all(affected_vertex, true, totvert);
+    affected_vertex.fill(true);
   }
   else {
     /* This is an O(n^2) loop used to limit the geodesic distance calculation to a radius.
@@ -744,7 +736,7 @@ static float *geodesic_grids_create(Object *ob,
                                  &vert_positions[i][0] :
                                  SCULPT_vertex_co_get(ss, BKE_pbvh_index_to_vertex(ss->pbvh, i));
         if (len_squared_v3v3(v_co, v_co2) <= limit_radius_sq) {
-          BLI_BITMAP_ENABLE(affected_vertex, i);
+          affected_vertex[i].set();
         }
       }
     }
@@ -844,14 +836,14 @@ static float *geodesic_grids_create(Object *ob,
     e_otherv_map[i][3] = v2b;
   }
 
-  BLI_bitmap *edge_tag = BLI_BITMAP_NEW(totedge, "edge tag");
+  BitVector<> edge_tag(totedge);
 
   /* Add edges adjacent to an initial vertex to the queue. */
   for (int i = 0; i < totedge; i++) {
     const int v1 = edges[i].v1;
     const int v2 = edges[i].v2;
 
-    if (!BLI_BITMAP_TEST(affected_vertex, v1) && !BLI_BITMAP_TEST(affected_vertex, v2)) {
+    if (!affected_vertex[v1].test() && !affected_vertex[v2].test()) {
       continue;
     }
     if (dists[v1] != FLT_MAX || dists[v2] != FLT_MAX) {
@@ -904,11 +896,9 @@ static float *geodesic_grids_create(Object *ob,
               ev_other = edges[e_other].v1;
             }
 
-            if (e_other != e && !BLI_BITMAP_TEST(edge_tag, e_other) &&
-                (dists[ev_other] != FLT_MAX)) {
-              if (BLI_BITMAP_TEST(affected_vertex, v_other) ||
-                  BLI_BITMAP_TEST(affected_vertex, ev_other)) {
-                BLI_BITMAP_ENABLE(edge_tag, e_other);
+            if (e_other != e && !edge_tag[e_other].test() && (dists[ev_other] != FLT_MAX)) {
+              if (affected_vertex[v_other].test() || affected_vertex[ev_other].test()) {
+                edge_tag[e_other].set();
                 BLI_LINKSTACK_PUSH(queue_next, POINTER_FROM_INT(e_other));
               }
             }
@@ -919,7 +909,7 @@ static float *geodesic_grids_create(Object *ob,
 
     for (LinkNode *lnk = queue_next; lnk; lnk = lnk->next) {
       const int e = POINTER_AS_INT(lnk->link);
-      BLI_BITMAP_DISABLE(edge_tag, e);
+      edge_tag[e].reset();
     }
 
     BLI_LINKSTACK_SWAP(queue, queue_next);
@@ -928,8 +918,6 @@ static float *geodesic_grids_create(Object *ob,
 
   BLI_LINKSTACK_FREE(queue);
   BLI_LINKSTACK_FREE(queue_next);
-  MEM_SAFE_FREE(edge_tag);
-  MEM_SAFE_FREE(affected_vertex);
 
   BLI_memarena_free(ma);
   BLI_ghash_free(ehash, nullptr, nullptr);

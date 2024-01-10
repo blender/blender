@@ -250,7 +250,8 @@ static bool parse_int_range_relative_clamp(const char *str,
                                            const char **r_err_msg)
 {
   if (parse_int_range_relative(
-          str, str_end_range, str_end_test, pos, neg, r_value_range, r_err_msg)) {
+          str, str_end_range, str_end_test, pos, neg, r_value_range, r_err_msg))
+  {
     CLAMP(r_value_range[0], min, max);
     CLAMP(r_value_range[1], min, max);
     return true;
@@ -942,7 +943,7 @@ static const char arg_handle_log_show_backtrace_set_doc[] =
 static int arg_handle_log_show_backtrace_set(int /*argc*/, const char ** /*argv*/, void * /*data*/)
 {
   /* Ensure types don't become incompatible. */
-  void (*fn)(FILE * fp) = BLI_system_backtrace;
+  void (*fn)(FILE *fp) = BLI_system_backtrace;
   CLG_backtrace_fn_set((void (*)(void *))fn);
   return 0;
 }
@@ -1634,10 +1635,10 @@ static const char arg_handle_image_type_set_doc[] =
     "<format>\n"
     "\tSet the render format.\n"
     "\tValid options are:\n"
-    "\t'TGA' 'RAWTGA' 'JPEG' 'IRIS' 'IRIZ' 'AVIRAW' 'AVIJPEG' 'PNG' 'BMP'.\n"
+    "\t'TGA' 'RAWTGA' 'JPEG' 'IRIS' 'AVIRAW' 'AVIJPEG' 'PNG' 'BMP' 'HDR' 'TIFF'.\n"
     "\n"
     "\tFormats that can be compiled into Blender, not available on all systems:\n"
-    "\t'HDR' 'TIFF' 'OPEN_EXR' 'OPEN_EXR_MULTILAYER' 'MPEG' 'CINEON' 'DPX' 'DDS' 'JP2' 'WEBP'.";
+    "\t'OPEN_EXR' 'OPEN_EXR_MULTILAYER' 'FFMPEG' 'CINEON' 'DPX' 'JP2' 'WEBP'.";
 static int arg_handle_image_type_set(int argc, const char **argv, void *data)
 {
   bContext *C = static_cast<bContext *>(data);

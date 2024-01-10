@@ -16,7 +16,7 @@ namespace blender::bke::volume_grid {
 #ifdef WITH_OPENVDB
 
 /**
- * Multiple #VolumeDataGrid can implictly share the same underlying tree with different
+ * Multiple #VolumeDataGrid can implicitly share the same underlying tree with different
  * meta-data/transforms.
  */
 class OpenvdbTreeSharingInfo : public ImplicitSharingInfo {
@@ -247,7 +247,7 @@ GVolumeGrid VolumeGridData::copy() const
 {
   std::lock_guard lock{mutex_};
   this->ensure_grid_loaded();
-  /* Can't use #MEM_new because the default construtor is private. */
+  /* Can't use #MEM_new because the default constructor is private. */
   VolumeGridData *new_copy = new (MEM_mallocN(sizeof(VolumeGridData), __func__)) VolumeGridData();
   /* Makes a deep copy of the meta-data but shares the tree. */
   new_copy->grid_ = grid_->copyGrid();

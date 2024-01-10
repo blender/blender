@@ -27,6 +27,7 @@
 
 #include "BKE_bvhutils.hh"
 #include "BKE_cloth.hh"
+#include "BKE_customdata.hh"
 #include "BKE_effect.h"
 #include "BKE_global.h"
 #include "BKE_lib_id.h"
@@ -1564,6 +1565,7 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
           if (tmp_mesh) {
             BKE_id_free(nullptr, &tmp_mesh->id);
           }
+          BLI_rng_free(rng);
           return false;
         }
       }

@@ -2279,7 +2279,8 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
       continue;
     }
     if ((next && closest_fcu_frame < closest_frame) ||
-        (!next && closest_fcu_frame > closest_frame)) {
+        (!next && closest_fcu_frame > closest_frame))
+    {
       closest_frame = closest_fcu_frame;
       found = true;
     }

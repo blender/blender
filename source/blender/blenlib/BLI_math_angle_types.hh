@@ -50,7 +50,7 @@ template<typename T> struct AngleRadianBase {
 
   static AngleRadianBase from_degree(const T &degrees)
   {
-    return degrees * T(M_PI / 180.0);
+    return degrees * T(numbers::pi / 180.0);
   }
 
   /** Conversions. */
@@ -64,7 +64,7 @@ template<typename T> struct AngleRadianBase {
   /* Return angle value in degree. */
   T degree() const
   {
-    return value_ * T(180.0 / M_PI);
+    return value_ * T(180.0 / numbers::pi);
   }
 
   /* Return angle value in radian. */
@@ -80,7 +80,7 @@ template<typename T> struct AngleRadianBase {
    */
   AngleRadianBase wrapped() const
   {
-    return math::mod_periodic(value_ + T(M_PI), T(2 * M_PI)) - T(M_PI);
+    return math::mod_periodic(value_ + T(numbers::pi), T(2 * numbers::pi)) - T(numbers::pi);
   }
 
   /**
@@ -197,7 +197,7 @@ template<typename T> struct AngleCartesianBase {
 
   static AngleCartesianBase from_degree(const T &degrees)
   {
-    return AngleCartesianBase(degrees * T(M_PI / 180.0));
+    return AngleCartesianBase(degrees * T(numbers::pi / 180.0));
   }
 
   /**
@@ -224,7 +224,7 @@ template<typename T> struct AngleCartesianBase {
   /* Return angle value in degree. */
   T degree() const
   {
-    return T(*this) * T(180.0 / M_PI);
+    return T(*this) * T(180.0 / numbers::pi);
   }
 
   /* Return angle value in radian. */
@@ -420,19 +420,19 @@ template<typename T = float> struct AngleFraction {
     const bool is_negative = numerator_ < 0;
     /* TODO jump table. */
     if (abs(numerator_) == denominator_ * 2) {
-      return is_negative ? T(-M_PI * 2) : T(M_PI * 2);
+      return is_negative ? T(-numbers::pi * 2) : T(numbers::pi * 2);
     }
     if (abs(numerator_) == denominator_) {
-      return is_negative ? T(-M_PI) : T(M_PI);
+      return is_negative ? T(-numbers::pi) : T(numbers::pi);
     }
     if (numerator_ == 0) {
       return T(0);
     }
     if (abs(numerator_) * 2 == denominator_) {
-      return is_negative ? T(-M_PI_2) : T(M_PI_2);
+      return is_negative ? T(-numbers::pi * 0.5) : T(numbers::pi * 0.5);
     }
     if (abs(numerator_) * 4 == denominator_) {
-      return is_negative ? T(-M_PI_4) : T(M_PI_4);
+      return is_negative ? T(-numbers::pi * 0.25) : T(numbers::pi * 0.25);
     }
     /* TODO(fclem): No idea if this is precise or not. Just doing something for now. */
     const int64_t number_of_pi = numerator_ / denominator_;
@@ -442,14 +442,14 @@ template<typename T = float> struct AngleFraction {
     /* TODO(fclem): This is conservative. Could find a better threshold. */
     if (slice_numerator > 0xFFFFFFFF || denominator_ > 0xFFFFFFFF) {
       /* Certainly loose precision. */
-      slice_of_pi = T(M_PI) * slice_numerator / T(denominator_);
+      slice_of_pi = T(numbers::pi) * slice_numerator / T(denominator_);
     }
     else {
       /* Pi as a fraction can be expressed as 80143857 / 25510582 with 15th digit of precision. */
       slice_of_pi = T(slice_numerator * 80143857) / T(denominator_ * 25510582);
     }
     /* If angle is inside [-pi..pi] range, `number_of_pi` is 0 and has no effect on precision. */
-    return slice_of_pi + T(M_PI) * number_of_pi;
+    return slice_of_pi + T(numbers::pi) * number_of_pi;
   }
 
   /** Methods. */
@@ -631,7 +631,7 @@ template<typename T = float> struct AngleFraction {
           break;
         case 1:
         case 3:
-          x = y = T(M_SQRT1_2);
+          x = y = math::rcp(T(numbers::sqrt2));
           break;
         default:
           BLI_assert_unreachable();
@@ -661,7 +661,7 @@ template<typename T = float> struct AngleFraction {
       }
       /* Resulting angle should be oscillating in [0..pi/4] range. */
       BLI_assert(a.numerator_ >= 0 && a.numerator_ <= a.denominator_ / 4);
-      T angle = T(M_PI) * (T(a.numerator_) / T(a.denominator_));
+      T angle = T(numbers::pi) * (T(a.numerator_) / T(a.denominator_));
       x = math::cos(angle);
       y = math::sin(angle);
       /* Diagonal symmetry "unfolding". */

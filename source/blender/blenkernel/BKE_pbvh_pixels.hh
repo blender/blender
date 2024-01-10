@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include <functional>
-
 #include "BLI_math_vector.hh"
 #include "BLI_rect.h"
 #include "BLI_vector.hh"

@@ -15,7 +15,7 @@
 #include "BLI_link_utils.h"
 #include "BLI_memblock.h"
 
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include "BKE_camera.h"
 

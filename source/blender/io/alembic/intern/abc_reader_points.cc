@@ -89,7 +89,8 @@ void AbcPointsReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSel
 
 void read_points_sample(const IPointsSchema &schema,
                         const ISampleSelector &selector,
-                        CDStreamConfig &config)
+                        CDStreamConfig &config,
+                        ImportSettings *settings)
 {
   Alembic::AbcGeom::IPointsSchema::Sample sample = schema.getValue(selector);
 
@@ -109,13 +110,20 @@ void read_points_sample(const IPointsSchema &schema,
   }
 
   read_mverts(*config.mesh, positions, vnormals);
+
+  if (!settings->velocity_name.empty() && settings->velocity_scale != 0.0f) {
+    V3fArraySamplePtr velocities = get_velocity_prop(schema, selector, settings->velocity_name);
+    if (velocities) {
+      read_velocity(velocities, config, settings->velocity_scale);
+    }
+  }
 }
 
 Mesh *AbcPointsReader::read_mesh(Mesh *existing_mesh,
                                  const ISampleSelector &sample_sel,
                                  int /*read_flag*/,
-                                 const char * /*velocity_name*/,
-                                 const float /*velocity_scale*/,
+                                 const char *velocity_name,
+                                 const float velocity_scale,
                                  const char **err_str)
 {
   IPointsSchema::Sample sample;
@@ -140,9 +148,13 @@ Mesh *AbcPointsReader::read_mesh(Mesh *existing_mesh,
     new_mesh = BKE_mesh_new_nomain(positions->size(), 0, 0, 0);
   }
 
+  ImportSettings settings;
+  settings.velocity_name = velocity_name;
+  settings.velocity_scale = velocity_scale;
+
   Mesh *mesh_to_export = new_mesh ? new_mesh : existing_mesh;
   CDStreamConfig config = get_config(mesh_to_export);
-  read_points_sample(m_schema, sample_sel, config);
+  read_points_sample(m_schema, sample_sel, config, &settings);
 
   return mesh_to_export;
 }

@@ -25,16 +25,16 @@ struct BMeshNormalsUpdate_Params {
  *
  * Updates the normals of a mesh.
  */
-void BM_mesh_normals_update_ex(BMesh *bm, const struct BMeshNormalsUpdate_Params *param);
+void BM_mesh_normals_update_ex(BMesh *bm, const BMeshNormalsUpdate_Params *param);
 void BM_mesh_normals_update(BMesh *bm);
 /**
  * A version of #BM_mesh_normals_update that updates a subset of geometry,
  * used to avoid the overhead of updating everything.
  */
 void BM_mesh_normals_update_with_partial_ex(BMesh *bm,
-                                            const struct BMPartialUpdate *bmpinfo,
-                                            const struct BMeshNormalsUpdate_Params *param);
-void BM_mesh_normals_update_with_partial(BMesh *bm, const struct BMPartialUpdate *bmpinfo);
+                                            const BMPartialUpdate *bmpinfo,
+                                            const BMeshNormalsUpdate_Params *param);
+void BM_mesh_normals_update_with_partial(BMesh *bm, const BMPartialUpdate *bmpinfo);
 
 /**
  * \brief BMesh Compute Normals from/to external data.
@@ -59,7 +59,7 @@ void BM_loops_calc_normal_vcos(BMesh *bm,
                                const float (*fnos)[3],
                                bool use_split_normals,
                                float (*r_lnos)[3],
-                               struct MLoopNorSpaceArray *r_lnors_spacearr,
+                               MLoopNorSpaceArray *r_lnors_spacearr,
                                short (*clnors_data)[2],
                                int cd_loop_clnors_offset,
                                bool do_rebuild);
@@ -84,16 +84,15 @@ void BM_lnorspace_err(BMesh *bm);
 #endif
 
 /* Loop Generics */
-struct BMLoopNorEditDataArray *BM_loop_normal_editdata_array_init(BMesh *bm,
-                                                                  bool do_all_loops_of_vert);
-void BM_loop_normal_editdata_array_free(struct BMLoopNorEditDataArray *lnors_ed_arr);
+BMLoopNorEditDataArray *BM_loop_normal_editdata_array_init(BMesh *bm, bool do_all_loops_of_vert);
+void BM_loop_normal_editdata_array_free(BMLoopNorEditDataArray *lnors_ed_arr);
 
 /**
  * \warning This function sets #BM_ELEM_TAG on loops & edges via #bm_mesh_loops_calc_normals,
  * take care to run this before setting up tags.
  */
-bool BM_custom_loop_normals_to_vector_layer(struct BMesh *bm);
-void BM_custom_loop_normals_from_vector_layer(struct BMesh *bm, bool add_sharp_edges);
+bool BM_custom_loop_normals_to_vector_layer(BMesh *bm);
+void BM_custom_loop_normals_from_vector_layer(BMesh *bm, bool add_sharp_edges);
 
 /**
  * Define sharp edges as needed to mimic 'autosmooth' from angle threshold.

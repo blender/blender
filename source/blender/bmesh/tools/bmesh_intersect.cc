@@ -315,7 +315,8 @@ static enum ISectType intersect_line_tri(const float p0[3],
   /* check ray isn't planar with tri */
   if (fabsf(dot_v3v3(p_dir, t_nor)) >= e->eps) {
     if (isect_line_segment_tri_epsilon_v3(
-            p0, p1, t_cos[0], t_cos[1], t_cos[2], &fac, nullptr, 0.0f)) {
+            p0, p1, t_cos[0], t_cos[1], t_cos[2], &fac, nullptr, 0.0f))
+    {
       if ((fac >= e->eps_margin) && (fac <= 1.0f - e->eps_margin)) {
         interp_v3_v3v3(r_ix, p0, p1, fac);
         if (min_fff(len_squared_v3v3(t_cos[0], r_ix),
@@ -1426,7 +1427,8 @@ bool BM_mesh_intersect(BMesh *bm,
               !BLI_gset_haskey(verts_invalid, splice_ls[i][1]))
           {
             if (!BM_edge_exists(UNPACK2(splice_ls[i])) &&
-                !BM_vert_splice_check_double(UNPACK2(splice_ls[i]))) {
+                !BM_vert_splice_check_double(UNPACK2(splice_ls[i])))
+            {
               BM_vert_splice(bm, splice_ls[i][1], splice_ls[i][0]);
             }
           }

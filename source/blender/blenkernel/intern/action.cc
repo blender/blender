@@ -680,7 +680,7 @@ bool BKE_pose_channels_is_valid(const bPose *pose)
 
 bool BKE_pose_is_bonecoll_visible(const bArmature *arm, const bPoseChannel *pchan)
 {
-  return pchan->bone && ANIM_bonecoll_is_visible(arm, pchan->bone);
+  return pchan->bone && ANIM_bone_in_visible_collection(arm, pchan->bone);
 }
 
 bPoseChannel *BKE_pose_channel_active(Object *ob, const bool check_bonecoll)
@@ -693,7 +693,7 @@ bPoseChannel *BKE_pose_channel_active(Object *ob, const bool check_bonecoll)
   /* find active */
   LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
     if ((pchan->bone) && (pchan->bone == arm->act_bone)) {
-      if (!check_bonecoll || ANIM_bonecoll_is_visible(arm, pchan->bone)) {
+      if (!check_bonecoll || ANIM_bone_in_visible_collection(arm, pchan->bone)) {
         return pchan;
       }
     }
@@ -1206,7 +1206,8 @@ void BKE_pose_update_constraint_flags(bPose *pose)
           {
             bPoseChannel *chain_bone = chain_tip;
             for (short index = 0; chain_bone && (data->rootbone == 0 || index < data->rootbone);
-                 index++) {
+                 index++)
+            {
               chain_bone->constflag |= PCHAN_INFLUENCED_BY_IK;
               chain_bone = chain_bone->parent;
             }

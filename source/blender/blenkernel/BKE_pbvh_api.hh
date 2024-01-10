@@ -137,7 +137,7 @@ struct PBVHFrustumPlanes {
 
 BLI_INLINE BMesh *BKE_pbvh_get_bmesh(PBVH *pbvh)
 {
-  return ((struct PBVHPublic *)pbvh)->bm;
+  return ((PBVHPublic *)pbvh)->bm;
 }
 
 Mesh *BKE_pbvh_get_mesh(PBVH *pbvh);
@@ -305,11 +305,13 @@ void raycast(PBVH *pbvh,
              bool original,
              int stroke_id);
 
-bool node_raycast(SculptSession *ss,
+bool raycast_node(SculptSession *ss,
                   PBVH *pbvh,
                   PBVHNode *node,
                   float (*origco)[3],
                   bool use_origco,
+                  const Span<int> corner_verts,
+                  const Span<bool> hide_poly,
                   const float ray_start[3],
                   const float ray_normal[3],
                   IsectRayPrecalc *isect_precalc,
@@ -456,7 +458,6 @@ bool BKE_pbvh_node_fully_unmasked_get(PBVHNode *node);
 void BKE_pbvh_node_mark_curvature_update(PBVHNode *node);
 
 void BKE_pbvh_mark_rebuild_pixels(PBVH *pbvh);
-void BKE_pbvh_vert_tag_update_normal(PBVH *pbvh, PBVHVertRef vertex);
 
 blender::Span<int> BKE_pbvh_node_get_grid_indices(const PBVHNode &node);
 
@@ -474,10 +475,24 @@ void BKE_pbvh_node_num_verts(const PBVH *pbvh,
 int BKE_pbvh_node_num_unique_verts(const PBVH &pbvh, const PBVHNode &node);
 blender::Span<int> BKE_pbvh_node_get_vert_indices(const PBVHNode *node);
 blender::Span<int> BKE_pbvh_node_get_unique_vert_indices(const PBVHNode *node);
-void BKE_pbvh_node_get_loops(PBVH *pbvh,
-                             PBVHNode *node,
-                             const int **r_loop_indices,
-                             const int **r_corner_verts);
+blender::Span<int> BKE_pbvh_node_get_loops(const PBVHNode *node);
+
+    namespace blender::bke::pbvh {
+
+/**
+ * Gather the indices of all faces (not triangles) used by the node.
+ * For convenience, pass a reference to the data in the result.
+ */
+Span<int> node_face_indices_calc_mesh(const PBVH &pbvh, const PBVHNode &node, Vector<int> &faces);
+
+/**
+ * Gather the indices of all base mesh faces in the node.
+ * For convenience, pass a reference to the data in the result.
+ */
+Span<int> node_face_indices_calc_grids(const PBVH &pbvh, const PBVHNode &node, Vector<int> &faces);
+
+}  // namespace blender::bke::pbvh
+
 blender::Vector<int> BKE_pbvh_node_calc_face_indices(const PBVH &pbvh, const PBVHNode &node);
 
 /* Get number of faces in the mesh; for PBVH_GRIDS the
@@ -731,13 +746,6 @@ void BKE_pbvh_face_iter_finish(PBVHFaceIter *fd);
 blender::MutableSpan<PBVHProxyNode> BKE_pbvh_node_get_proxies(PBVHNode *node);
 void BKE_pbvh_node_free_proxies(PBVHNode *node);
 PBVHProxyNode &BKE_pbvh_node_add_proxy(PBVH &pbvh, PBVHNode &node);
-
-/**
- * \note doing a full search on all vertices here seems expensive,
- * however this is important to avoid having to recalculate bound-box & sync the buffers to the
- * GPU (which is far more expensive!) See: #47232.
- */
-bool BKE_pbvh_node_has_vert_with_normal_update_tag(PBVH *pbvh, PBVHNode *node);
 
 // void BKE_pbvh_node_BB_reset(PBVHNode *node);
 // void BKE_pbvh_node_BB_expand(PBVHNode *node, float co[3]);

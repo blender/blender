@@ -60,7 +60,7 @@
 
 #include "RE_texture.h"
 
-#include "DRW_engine.h"
+#include "DRW_engine.hh"
 
 #include "BLO_read_write.hh"
 

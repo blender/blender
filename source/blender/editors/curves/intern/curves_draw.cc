@@ -648,6 +648,7 @@ static int curves_draw_exec(bContext *C, wmOperator *op)
   const float error_threshold = RNA_float_get(op->ptr, "error_threshold");
   const float corner_angle = RNA_float_get(op->ptr, "corner_angle");
   const bool use_cyclic = RNA_boolean_get(op->ptr, "use_cyclic");
+  bool is_cyclic = (stroke_len > 2) && use_cyclic;
 
   const float radius_min = cps->radius_min;
   const float radius_max = cps->radius_max;
@@ -725,6 +726,10 @@ static int curves_draw_exec(bContext *C, wmOperator *op)
     if ((stroke_len > 2) && use_cyclic) {
       calc_flag |= CURVE_FIT_CALC_CYCLIC;
     }
+    else {
+      /* Might need this update if stroke_len <= 2 after removing doubles. */
+      is_cyclic = false;
+    }
 
     int result;
     if (fit_method == CURVE_PAINT_FIT_METHOD_REFIT) {
@@ -798,13 +803,11 @@ static int curves_draw_exec(bContext *C, wmOperator *op)
         co += (dims * 3);
       }
 
-      // bezt->f1 = bezt->f2 = bezt->f3 = SELECT;
-
       if (corners_index) {
         /* ignore the first and last */
         uint i_start = 0, i_end = corners_index_len;
 
-        if ((corners_index_len >= 2) && (calc_flag & CURVE_FIT_CALC_CYCLIC) == 0) {
+        if ((corners_index_len >= 2) && !is_cyclic) {
           i_start += 1;
           i_end -= 1;
         }
@@ -826,11 +829,6 @@ static int curves_draw_exec(bContext *C, wmOperator *op)
       if (attributes.contains("resolution")) {
         curves.resolution_for_write()[curve_index] = 12;
       }
-
-      if (attributes.contains("cyclic") || bool(calc_flag & CURVE_FIT_CALC_CYCLIC)) {
-        curves.cyclic_for_write()[curve_index] = true;
-      }
-
       bke::fill_attribute_range_default(attributes,
                                         bke::AttrDomain::Point,
                                         {"position",
@@ -843,7 +841,7 @@ static int curves_draw_exec(bContext *C, wmOperator *op)
                                         new_points);
       bke::fill_attribute_range_default(attributes,
                                         bke::AttrDomain::Curve,
-                                        {"curve_type", "resolution", "cyclic", ".selection"},
+                                        {"curve_type", "resolution", ".selection"},
                                         IndexRange(curve_index, 1));
     }
 
@@ -895,6 +893,10 @@ static int curves_draw_exec(bContext *C, wmOperator *op)
                                       bke::AttrDomain::Curve,
                                       {"curve_type", ".selection"},
                                       IndexRange(curve_index, 1));
+  }
+
+  if (is_cyclic) {
+    curves.cyclic_for_write()[curve_index] = true;
   }
 
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);

@@ -89,7 +89,7 @@
 #include "BKE_undo_system.h"
 #include "BKE_workspace.h"
 
-#include "DRW_engine.h"
+#include "DRW_engine.hh"
 
 #include "DEG_depsgraph.hh"
 
@@ -1410,6 +1410,17 @@ BlendThumbnail *BLO_thumbnail_from_file(const char *filepath)
   blo_filedata_free(fd);
 
   return data;
+}
+
+short BLO_version_from_file(const char *filepath)
+{
+  short version = 0;
+  FileData *fd = blo_filedata_from_file_minimal(filepath);
+  if (fd) {
+    version = fd->fileversion;
+    blo_filedata_free(fd);
+  }
+  return version;
 }
 
 /** \} */
@@ -3308,7 +3319,8 @@ static void lib_link_all(FileData *fd, Main *bmain)
     const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id);
 
     if ((id->tag & (LIB_TAG_UNDO_OLD_ID_REUSED_UNCHANGED | LIB_TAG_UNDO_OLD_ID_REUSED_NOUNDO)) !=
-        0) {
+        0)
+    {
       BLI_assert(fd->flags & FD_FLAGS_IS_MEMFILE);
       /* This ID has been re-used from 'old' bmain. Since it was therefore unchanged across
        * current undo step, and old IDs re-use their old memory address, we do not need to liblink

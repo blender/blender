@@ -320,4 +320,13 @@ TEST(index_mask, ComplementFuzzy)
   }
 }
 
+TEST(index_mask, OffsetIndexRangeFind)
+{
+  IndexMask mask = IndexRange(1, 2);
+  auto result = mask.find(1);
+  EXPECT_TRUE(result.has_value());
+  EXPECT_EQ(mask.iterator_to_index(*result), 0);
+  EXPECT_EQ(mask[0], 1);
+}
+
 }  // namespace blender::index_mask::tests

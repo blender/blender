@@ -341,8 +341,8 @@ enum PathRayMNEE {
 #define SHADOW_CATCHER_VISIBILITY_SHIFT(visibility) ((visibility) << 16)
 
 #define SHADOW_CATCHER_PATH_VISIBILITY(path_flag, visibility) \
-  (((path_flag)&PATH_RAY_SHADOW_CATCHER_PASS) ? SHADOW_CATCHER_VISIBILITY_SHIFT(visibility) : \
-                                                (visibility))
+  (((path_flag) & PATH_RAY_SHADOW_CATCHER_PASS) ? SHADOW_CATCHER_VISIBILITY_SHIFT(visibility) : \
+                                                  (visibility))
 
 #define SHADOW_CATCHER_OBJECT_VISIBILITY(is_shadow_catcher, visibility) \
   (((is_shadow_catcher) ? SHADOW_CATCHER_VISIBILITY_SHIFT(visibility) : 0) | (visibility))
@@ -648,7 +648,8 @@ typedef enum PrimitiveType {
 } PrimitiveType;
 
 /* Convert type to index in range 0..PRIMITIVE_NUM-1. */
-#define PRIMITIVE_INDEX(type) (bitscan((uint32_t)(type)) * 2 + (((type)&PRIMITIVE_MOTION) ? 1 : 0))
+#define PRIMITIVE_INDEX(type) \
+  (bitscan((uint32_t)(type)) * 2 + (((type) & PRIMITIVE_MOTION) ? 1 : 0))
 
 /* Pack segment into type value to save space. */
 #define PRIMITIVE_PACK_SEGMENT(type, segment) ((segment << PRIMITIVE_NUM_BITS) | (type))

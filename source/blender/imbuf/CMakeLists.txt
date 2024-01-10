@@ -15,7 +15,6 @@ set(INC
 set(INC_SYS
   ${JPEG_INCLUDE_DIR}
   ${ZLIB_INCLUDE_DIRS}
-  ${IMATH_INCLUDE_DIRS}
   ${OPENIMAGEIO_INCLUDE_DIRS}
 )
 
@@ -89,6 +88,15 @@ set(LIB
 )
 
 if(WITH_IMAGE_OPENEXR)
+  # Keep until APPLE/ARM libraries are updated.
+  if(APPLE)
+    if(CMAKE_OSX_ARCHITECTURES MATCHES arm64)
+      list(APPEND INC_SYS
+        ${IMATH_INCLUDE_DIRS}
+      )
+    endif()
+  endif()
+
   list(APPEND LIB
     bf_imbuf_openexr
   )

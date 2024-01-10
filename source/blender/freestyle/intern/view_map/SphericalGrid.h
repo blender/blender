@@ -14,8 +14,8 @@
 // I would like to avoid using deque because including ViewMap.h and <deque> or <vector> separately
 // results in redefinitions of identifiers. ViewMap.h already includes <vector> so it should be a
 // safe fall-back.
-//#include <vector>
-//#include <deque>
+// #include <vector>
+// #include <deque>
 
 #include "GridDensityProvider.h"
 #include "OccluderSource.h"

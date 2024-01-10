@@ -201,7 +201,7 @@ bool win32_chk(bool result, const char *file = nullptr, int line = 0, const char
 bool win32_silent_chk(bool result);
 
 #  ifndef NDEBUG
-#    define WIN32_CHK(x) win32_chk((x), __FILE__, __LINE__, #    x)
+#    define WIN32_CHK(x) win32_chk((x), __FILE__, __LINE__, #x)
 #  else
 #    define WIN32_CHK(x) win32_chk(x)
 #  endif

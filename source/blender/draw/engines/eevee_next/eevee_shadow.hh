@@ -292,8 +292,8 @@ class ShadowModule {
   Framebuffer render_fb_ = {"shadow_write_framebuffer"};
 
   /* NOTE(Metal): Metal requires memoryless textures to be created which represent attachments in
-   * the shadow write framebuffer. These textures do not occupy any physical memory, but require a
-   * Texture object containing its parameters.*/
+   * the shadow write frame-buffer. These textures do not occupy any physical memory, but require a
+   * Texture object containing its parameters. */
   Texture shadow_depth_fb_tx_ = {"shadow_depth_fb_tx_"};
   Texture shadow_depth_accum_tx_ = {"shadow_depth_accum_tx_"};
 
@@ -351,6 +351,11 @@ class ShadowModule {
   {
     pass.bind_texture(SHADOW_ATLAS_TEX_SLOT, &atlas_tx_);
     pass.bind_texture(SHADOW_TILEMAPS_TEX_SLOT, &tilemap_pool.tilemap_tx);
+  }
+
+  const ShadowSceneData &get_data()
+  {
+    return data_;
   }
 
  private:

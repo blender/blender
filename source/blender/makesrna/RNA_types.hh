@@ -108,7 +108,7 @@ enum PropertyScaleType {
   PROP_SCALE_CUBIC = 2,
 };
 
-#define RNA_SUBTYPE_UNIT(subtype) ((subtype)&0x00FF0000)
+#define RNA_SUBTYPE_UNIT(subtype) ((subtype) & 0x00FF0000)
 #define RNA_SUBTYPE_VALUE(subtype) ((subtype) & ~0x00FF0000)
 #define RNA_SUBTYPE_UNIT_VALUE(subtype) ((subtype) >> 16)
 

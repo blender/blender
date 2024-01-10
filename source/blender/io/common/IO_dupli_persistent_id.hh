@@ -8,8 +8,8 @@
 #include "DNA_object_types.h" /* For MAX_DUPLI_RECUR */
 
 #include <array>
-#include <optional>
-#include <ostream>
+#include <iosfwd>
+#include <string>
 
 namespace blender::io {
 
@@ -17,7 +17,7 @@ namespace blender::io {
 class PersistentID {
  protected:
   constexpr static int array_length_ = MAX_DUPLI_RECUR;
-  typedef std::array<int, array_length_> PIDArray;
+  using PIDArray = std::array<int, array_length_>;
   PIDArray persistent_id_;
 
   explicit PersistentID(const PIDArray &persistent_id_values);

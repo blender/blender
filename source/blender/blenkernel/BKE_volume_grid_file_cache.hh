@@ -44,8 +44,8 @@ struct GridsFromFile {
 };
 
 /**
- * Get all the data stored in a .vdb file. This does not actually load the tree data, which is done
- * on demand.
+ * Get all the data stored in a `.vdb` file.
+ * This does not actually load the tree data, which is done on demand.
  */
 GridsFromFile get_all_grids_from_file(StringRef file_path, int simplify_level = 0);
 

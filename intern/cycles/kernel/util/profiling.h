@@ -17,7 +17,7 @@ CCL_NAMESPACE_BEGIN
 #  define PROFILING_INIT_FOR_SHADER(kg, event) \
     ProfilingWithShaderHelper profiling_helper((ProfilingState *)&kg->profiler, event)
 #  define PROFILING_SHADER(object, shader) \
-    profiling_helper.set_shader(object, (shader)&SHADER_MASK);
+    profiling_helper.set_shader(object, (shader) & SHADER_MASK);
 #else
 #  define PROFILING_INIT(kg, event)
 #  define PROFILING_EVENT(event)

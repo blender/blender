@@ -65,7 +65,8 @@ static void unique_name(bNode *node)
   }
   for (; i; i = i->next) {
     if (i == node || i->type != TEX_NODE_OUTPUT ||
-        !STREQ(name, ((TexNodeOutput *)(i->storage))->name)) {
+        !STREQ(name, ((TexNodeOutput *)(i->storage))->name))
+    {
       continue;
     }
 

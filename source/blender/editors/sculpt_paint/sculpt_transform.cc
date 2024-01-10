@@ -12,7 +12,6 @@
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
-#include "BLI_task.h"
 
 #include "BKE_brush.hh"
 #include "BKE_context.hh"
@@ -182,10 +181,6 @@ static void sculpt_transform_task(Object *ob, const float transform_mats[8][4][4
     mul_v3_fl(disp, 1.0f - fade);
 
     add_v3_v3v3(vd.co, start_co, disp);
-
-    if (vd.is_mesh) {
-      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
-    }
   }
   BKE_pbvh_vertex_iter_end;
 
@@ -252,10 +247,6 @@ static void sculpt_elastic_transform_task(Object *ob,
     mul_v3_fl(final_disp, 20.0f * (1.0f - fade));
 
     copy_v3_v3(proxy[vd.i], final_disp);
-
-    if (vd.is_mesh) {
-      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
-    }
   }
   BKE_pbvh_vertex_iter_end;
 

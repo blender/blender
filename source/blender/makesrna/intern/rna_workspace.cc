@@ -38,7 +38,7 @@
 
 #  include "RNA_access.hh"
 
-#  include "WM_toolsystem.h"
+#  include "WM_toolsystem.hh"
 
 static void rna_window_update_all(Main * /*bmain*/, Scene * /*scene*/, PointerRNA * /*ptr*/)
 {

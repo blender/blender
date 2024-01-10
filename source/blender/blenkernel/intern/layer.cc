@@ -48,7 +48,7 @@
 #include "DEG_depsgraph_debug.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "DRW_engine.h"
+#include "DRW_engine.hh"
 
 #include "RE_engine.h"
 
@@ -2677,7 +2677,8 @@ void BKE_view_layer_rename_lightgroup(Scene *scene,
 
     /* Update the scene's world to refer to the new name instead. */
     if (scene->world != nullptr && !ID_IS_LINKED(scene->world) &&
-        scene->world->lightgroup != nullptr) {
+        scene->world->lightgroup != nullptr)
+    {
       LightgroupMembership *lgm = scene->world->lightgroup;
       if (STREQ(lgm->name, old_name)) {
         STRNCPY_UTF8(lgm->name, lightgroup->name);

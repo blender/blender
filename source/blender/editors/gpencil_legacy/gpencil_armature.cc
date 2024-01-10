@@ -127,7 +127,8 @@ static int gpencil_bone_skinnable_cb(Object * /*ob*/, Bone *bone, void *datap)
   if (!(bone->flag & BONE_HIDDEN_P)) {
     if (!(bone->flag & BONE_NO_DEFORM)) {
       if (data->heat && data->armob->pose &&
-          BKE_pose_channel_find_name(data->armob->pose, bone->name)) {
+          BKE_pose_channel_find_name(data->armob->pose, bone->name))
+      {
         segments = bone->segments;
       }
       else {
@@ -200,14 +201,15 @@ static int dgroup_skinnable_cb(Object *ob, Bone *bone, void *datap)
   if (!(bone->flag & BONE_HIDDEN_P)) {
     if (!(bone->flag & BONE_NO_DEFORM)) {
       if (data->heat && data->armob->pose &&
-          BKE_pose_channel_find_name(data->armob->pose, bone->name)) {
+          BKE_pose_channel_find_name(data->armob->pose, bone->name))
+      {
         segments = bone->segments;
       }
       else {
         segments = 1;
       }
 
-      if (ANIM_bonecoll_is_visible(arm, bone)) {
+      if (ANIM_bone_in_visible_collection(arm, bone)) {
         if (!(defgroup = BKE_object_defgroup_find_name(ob, bone->name))) {
           defgroup = BKE_object_defgroup_add_name(ob, bone->name);
         }

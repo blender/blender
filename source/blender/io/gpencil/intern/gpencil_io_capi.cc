@@ -109,7 +109,8 @@ static bool gpencil_io_export_pdf(Depsgraph *depsgraph,
     case GP_EXPORT_FRAME_SCENE: {
       for (int32_t i = iparams->frame_start; i < iparams->frame_end + 1; i++) {
         if ((iparams->frame_mode == GP_EXPORT_FRAME_SELECTED) &&
-            !is_keyframe_included(gpd_eval, i, true)) {
+            !is_keyframe_included(gpd_eval, i, true))
+        {
           continue;
         }
 

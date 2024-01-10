@@ -371,7 +371,7 @@ void BKE_main_merge(Main *bmain_dst, Main **r_bmain_src, MainMergeReport &report
   reports.num_merged_ids = int(ids_to_move.size());
 
   /* Rebase relative filepaths in `bmain_src` using `bmain_dst` path as new reference, or make them
-   * absolute if destination bmain has no filepath.  */
+   * absolute if destination bmain has no filepath. */
   if (bmain_src->filepath[0] != '\0') {
     char dir_src[FILE_MAXDIR];
     BLI_path_split_dir_part(bmain_src->filepath, dir_src, sizeof(dir_src));
@@ -404,7 +404,7 @@ void BKE_main_merge(Main *bmain_dst, Main **r_bmain_src, MainMergeReport &report
 
   /* The other data has to be remapped once all IDs are in `bmain_dst`, to ensure that additional
    * update process (e.g. collection hierarchy handling) happens as expected with the correct set
-   * of data.  */
+   * of data. */
   BKE_libblock_relink_multiple(bmain_dst, ids_to_move, ID_REMAP_TYPE_REMAP, id_remapper, 0);
 
   BKE_reportf(
@@ -467,7 +467,8 @@ static int main_relations_create_idlink_cb(LibraryIDLinkCallbackData *cb_data)
     /* Add `id_pointer` as child of `self_id`. */
     {
       if (!BLI_ghash_ensure_p(
-              bmain_relations->relations_from_pointers, self_id, (void ***)&entry_p)) {
+              bmain_relations->relations_from_pointers, self_id, (void ***)&entry_p))
+      {
         *entry_p = static_cast<MainIDRelationsEntry *>(MEM_callocN(sizeof(**entry_p), __func__));
         (*entry_p)->session_uuid = self_id->session_uuid;
       }
@@ -487,7 +488,8 @@ static int main_relations_create_idlink_cb(LibraryIDLinkCallbackData *cb_data)
     /* Add `self_id` as parent of `id_pointer`. */
     if (*id_pointer != nullptr) {
       if (!BLI_ghash_ensure_p(
-              bmain_relations->relations_from_pointers, *id_pointer, (void ***)&entry_p)) {
+              bmain_relations->relations_from_pointers, *id_pointer, (void ***)&entry_p))
+      {
         *entry_p = static_cast<MainIDRelationsEntry *>(MEM_callocN(sizeof(**entry_p), __func__));
         (*entry_p)->session_uuid = (*id_pointer)->session_uuid;
       }

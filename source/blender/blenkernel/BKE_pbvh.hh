@@ -6,11 +6,9 @@
 
 /** \file
  * \ingroup bke
- * \brief External data structures for PBVH. Does not include data structures internal to the draw
- * code.
+ * \brief External data structures for PBVH. Does not include internal data structures.
  */
 
-#include "BLI_compiler_compat.h"
 #include "BLI_utildefines.h"
 
 struct PBVHNode;
@@ -28,7 +26,7 @@ enum PBVHType {
   PBVH_BMESH,
 };
 
-/* #PBVHNodeFlags is needed by `DRW_render.h` and `draw_cache.cc`. */
+/* #PBVHNodeFlags is needed by `DRW_render.hh` and `draw_cache.cc`. */
 enum PBVHNodeFlags {
   PBVH_Leaf = 1 << 0,
 
@@ -106,7 +104,7 @@ struct PBVHPublic {
 struct PBVH;
 struct PBVHNode;
 
-BLI_INLINE PBVHType BKE_pbvh_type(const PBVH *pbvh)
+inline PBVHType BKE_pbvh_type(const PBVH *pbvh)
 {
   return ((const PBVHPublic *)pbvh)->type;
 }

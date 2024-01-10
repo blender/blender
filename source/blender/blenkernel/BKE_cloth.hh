@@ -140,42 +140,42 @@ struct ClothSpring {
 /* Some macro enhancements for vector treatment. */
 #define VECSUBADDSS(v1, v2, aS, v3, bS) \
   { \
-    *(v1) -= *(v2)*aS + *(v3)*bS; \
+    *(v1) -= *(v2) * aS + *(v3) * bS; \
     *(v1 + 1) -= *(v2 + 1) * aS + *(v3 + 1) * bS; \
     *(v1 + 2) -= *(v2 + 2) * aS + *(v3 + 2) * bS; \
   } \
   ((void)0)
 #define VECADDSS(v1, v2, aS, v3, bS) \
   { \
-    *(v1) = *(v2)*aS + *(v3)*bS; \
+    *(v1) = *(v2) * aS + *(v3) * bS; \
     *(v1 + 1) = *(v2 + 1) * aS + *(v3 + 1) * bS; \
     *(v1 + 2) = *(v2 + 2) * aS + *(v3 + 2) * bS; \
   } \
   ((void)0)
 #define VECADDS(v1, v2, v3, bS) \
   { \
-    *(v1) = *(v2) + *(v3)*bS; \
+    *(v1) = *(v2) + *(v3) * bS; \
     *(v1 + 1) = *(v2 + 1) + *(v3 + 1) * bS; \
     *(v1 + 2) = *(v2 + 2) + *(v3 + 2) * bS; \
   } \
   ((void)0)
 #define VECSUBMUL(v1, v2, aS) \
   { \
-    *(v1) -= *(v2)*aS; \
+    *(v1) -= *(v2) * aS; \
     *(v1 + 1) -= *(v2 + 1) * aS; \
     *(v1 + 2) -= *(v2 + 2) * aS; \
   } \
   ((void)0)
 #define VECSUBS(v1, v2, v3, bS) \
   { \
-    *(v1) = *(v2) - *(v3)*bS; \
+    *(v1) = *(v2) - *(v3) * bS; \
     *(v1 + 1) = *(v2 + 1) - *(v3 + 1) * bS; \
     *(v1 + 2) = *(v2 + 2) - *(v3 + 2) * bS; \
   } \
   ((void)0)
 #define VECADDMUL(v1, v2, aS) \
   { \
-    *(v1) += *(v2)*aS; \
+    *(v1) += *(v2) * aS; \
     *(v1 + 1) += *(v2 + 1) * aS; \
     *(v1 + 2) += *(v2 + 2) * aS; \
   } \

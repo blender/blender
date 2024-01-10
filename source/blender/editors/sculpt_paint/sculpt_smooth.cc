@@ -859,9 +859,6 @@ static void do_enhance_details_brush_task(Object *ob,
     madd_v3_v3v3fl(disp, vd.co, detail_dir, fade);
     SCULPT_clip(sd, ss, vd.co, disp);
 
-    if (vd.is_mesh) {
-      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
-    }
     BKE_sculpt_sharp_boundary_flag_update(ss, vd.vertex);
   }
   BKE_pbvh_vertex_iter_end;
@@ -996,9 +993,6 @@ static void do_smooth_brush_task(Object *ob,
         BKE_sculpt_reproject_cdata(ss, vd.vertex, oldco, oldno, ss->distort_correction_mode);
       }
 
-      if (vd.is_mesh) {
-        BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
-      }
       BKE_sculpt_sharp_boundary_flag_update(ss, vd.vertex);
     }
   }
@@ -1048,8 +1042,8 @@ void do_smooth_brush(
   SCULPT_boundary_info_ensure(ob);
   smooth_undo_push(sd, ob, nodes, brush);
 
-  /* PBVH_FACES needs ss->epmap. */
-  if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES && ss->epmap.is_empty()) {
+  /* PBVH_FACES needs ss->edge_to_face_map. */
+  if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES && ss->edge_to_face_map.is_empty()) {
     SCULPT_ensure_epmap(ss);
   }
 
@@ -1058,7 +1052,7 @@ void do_smooth_brush(
   count = int(bstrength * max_iterations);
   last = max_iterations * (bstrength - count * fract);
 
-  if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES && ss->pmap.is_empty()) {
+  if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES && ss->vert_to_face_map.is_empty()) {
     BLI_assert_msg(0, "sculpt smooth: pmap missing");
     return;
   }
@@ -1213,9 +1207,6 @@ static void do_surface_smooth_brush_laplacian_task(Object *ob, const Brush *brus
     float disp[3];
     surface_smooth_laplacian_step(ss, disp, vd.co, vd.vertex, orig_data.co, alpha, weighted);
     madd_v3_v3fl(vd.co, disp, clamp_f(fade, 0.0f, 1.0f));
-    if (vd.is_mesh) {
-      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
-    }
   }
   BKE_pbvh_vertex_iter_end;
 }

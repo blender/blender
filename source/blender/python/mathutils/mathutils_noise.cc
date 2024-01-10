@@ -50,8 +50,8 @@
 #define MATRIX_A 0x9908b0dfUL /* constant vector a */
 #define UMASK 0x80000000UL    /* most significant w-r bits */
 #define LMASK 0x7fffffffUL    /* least significant r bits */
-#define MIXBITS(u, v) (((u)&UMASK) | ((v)&LMASK))
-#define TWIST(u, v) ((MIXBITS(u, v) >> 1) ^ ((v)&1UL ? MATRIX_A : 0UL))
+#define MIXBITS(u, v) (((u) & UMASK) | ((v) & LMASK))
+#define TWIST(u, v) ((MIXBITS(u, v) >> 1) ^ ((v) & 1UL ? MATRIX_A : 0UL))
 
 static ulong state[N]; /* The array for the state vector. */
 static int left = 1;
@@ -869,7 +869,8 @@ static PyObject *M_Noise_hybrid_multi_fractal(PyObject * /*self*/, PyObject *arg
   }
 
   if (mathutils_array_parse(vec, 3, 3, value, "hybrid_multi_fractal: invalid 'position' arg") ==
-      -1) {
+      -1)
+  {
     return nullptr;
   }
 
@@ -932,7 +933,8 @@ static PyObject *M_Noise_ridged_multi_fractal(PyObject * /*self*/, PyObject *arg
   }
 
   if (mathutils_array_parse(vec, 3, 3, value, "ridged_multi_fractal: invalid 'position' arg") ==
-      -1) {
+      -1)
+  {
     return nullptr;
   }
 

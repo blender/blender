@@ -18,7 +18,6 @@
 
 #  include "DNA_pointcloud_types.h"
 
-#  include "BKE_customdata.hh"
 #endif
 
 #ifdef __cplusplus
@@ -50,20 +49,6 @@ struct PointCloudRuntime {
 };
 
 }  // namespace blender::bke
-
-inline blender::Span<blender::float3> PointCloud::positions() const
-{
-  return {static_cast<const blender::float3 *>(
-              CustomData_get_layer_named(&this->pdata, CD_PROP_FLOAT3, "position")),
-          this->totpoint};
-}
-
-inline blender::MutableSpan<blender::float3> PointCloud::positions_for_write()
-{
-  return {static_cast<blender::float3 *>(CustomData_get_layer_named_for_write(
-              &this->pdata, CD_PROP_FLOAT3, "position", this->totpoint)),
-          this->totpoint};
-}
 
 #endif
 

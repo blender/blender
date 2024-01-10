@@ -6,8 +6,6 @@ __all__ = (
     "bmesh_linked_uv_islands",
 )
 
-import bmesh
-
 
 def match_uv(face, vert, uv, uv_layer):
     for loop in face.loops:

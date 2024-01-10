@@ -6,7 +6,7 @@
  * \ingroup draw_engine
  */
 
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include "draw_cache_impl.hh"
 #include "overlay_private.hh"
@@ -60,6 +60,7 @@ static bool everything_selected(const Curves &curves_id)
 
 static void populate_selection_overlay(OVERLAY_Data *vedata, Object *object)
 {
+  using namespace blender::draw;
   OVERLAY_PrivateData *pd = vedata->stl->pd;
   Curves *curves = static_cast<Curves *>(object->data);
 
@@ -89,6 +90,7 @@ static void populate_selection_overlay(OVERLAY_Data *vedata, Object *object)
 
 static void populate_edit_overlay(OVERLAY_Data *vedata, Object *object)
 {
+  using namespace blender::draw;
   OVERLAY_PrivateData *pd = vedata->stl->pd;
   Curves *curves = static_cast<Curves *>(object->data);
 

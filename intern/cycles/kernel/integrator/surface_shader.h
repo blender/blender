@@ -167,7 +167,8 @@ ccl_device_inline void surface_shader_prepare_closures(KernelGlobals kg,
           sc->sample_weight = 0.0f;
         }
         else if ((CLOSURE_IS_BSDF_TRANSPARENT(sc->type) &&
-                  (filter_closures & FILTER_CLOSURE_TRANSPARENT))) {
+                  (filter_closures & FILTER_CLOSURE_TRANSPARENT)))
+        {
           sc->type = CLOSURE_HOLDOUT_ID;
           sc->sample_weight = 0.0f;
           sd->flag |= SD_HOLDOUT;

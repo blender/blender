@@ -12,6 +12,7 @@
 #include "BLI_threads.h"
 
 #include "BKE_attribute.hh"
+#include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
 
 namespace blender::bke {

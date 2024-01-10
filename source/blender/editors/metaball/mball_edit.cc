@@ -814,7 +814,8 @@ static bool ed_mball_findnearest_metaelem(bContext *C,
         }
 
         if (((select_id & 0xFFFF) == base_index) &&
-            ((select_id & ~MBALLSEL_ANY) >> 16 == ml_index)) {
+            ((select_id & ~MBALLSEL_ANY) >> 16 == ml_index))
+        {
           hit_cycle_offset = a + 1;
           break;
         }

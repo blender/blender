@@ -306,7 +306,7 @@ vec3 lightprobe_eval(LightProbeSample samp, ClosureTranslucent cl, vec3 P, vec3 
   return radiance_sh;
 }
 
-vec3 lightprobe_specular_dominant_dir(vec3 N, vec3 V, float roughness)
+vec3 lightprobe_reflection_dominant_dir(vec3 N, vec3 V, float roughness)
 {
   vec3 R = -reflect(V, N);
   float smoothness = 1.0 - roughness;
@@ -317,7 +317,7 @@ vec3 lightprobe_specular_dominant_dir(vec3 N, vec3 V, float roughness)
 vec3 lightprobe_eval(
     LightProbeSample samp, ClosureReflection reflection, vec3 P, vec3 V, vec2 noise)
 {
-  vec3 L = lightprobe_specular_dominant_dir(reflection.N, V, reflection.roughness);
+  vec3 L = lightprobe_reflection_dominant_dir(reflection.N, V, reflection.roughness);
   // vec3 L = ray_generate_direction(noise, reflection, V, pdf);
 
   float lod = lightprobe_roughness_to_lod(reflection.roughness);
@@ -325,6 +325,28 @@ vec3 lightprobe_eval(
       samp.spherical_id, P, L, lod, samp.volume_irradiance);
 
   float fac = lightprobe_roughness_to_cube_sh_mix_fac(reflection.roughness);
+  vec3 radiance_sh = spherical_harmonics_evaluate_lambert(L, samp.volume_irradiance);
+  return mix(radiance_cube, radiance_sh, fac);
+}
+
+vec3 lightprobe_refraction_dominant_dir(vec3 N, vec3 V, float ior, float roughness)
+{
+  vec3 R = refract(-V, N, 1.0 / ior);
+  float smoothness = 1.0 - roughness;
+  float fac = smoothness * (sqrt(smoothness) + roughness);
+  return normalize(mix(-N, R, fac));
+}
+
+vec3 lightprobe_eval(LightProbeSample samp, ClosureRefraction cl, vec3 P, vec3 V, vec2 noise)
+{
+  vec3 L = lightprobe_refraction_dominant_dir(cl.N, V, cl.ior, cl.roughness);
+  // vec3 L = ray_generate_direction(noise, cl, V, pdf);
+
+  float lod = lightprobe_roughness_to_lod(cl.roughness);
+  vec3 radiance_cube = lightprobe_spherical_sample_normalized_with_parallax(
+      samp.spherical_id, P, L, lod, samp.volume_irradiance);
+
+  float fac = lightprobe_roughness_to_cube_sh_mix_fac(cl.roughness);
   vec3 radiance_sh = spherical_harmonics_evaluate_lambert(L, samp.volume_irradiance);
   return mix(radiance_cube, radiance_sh, fac);
 }

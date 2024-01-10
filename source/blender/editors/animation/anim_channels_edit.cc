@@ -3507,7 +3507,8 @@ static int click_select_channel_group(bAnimContext *ac,
 
     /* only select channels in group and group itself */
     for (fcu = static_cast<FCurve *>(agrp->channels.first); fcu && fcu->grp == agrp;
-         fcu = fcu->next) {
+         fcu = fcu->next)
+    {
       fcu->flag |= FCURVE_SELECTED;
     }
     agrp->flag |= AGRP_SELECTED;

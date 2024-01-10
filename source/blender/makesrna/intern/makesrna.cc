@@ -1538,7 +1538,8 @@ static char *rna_def_property_length_func(
   else if (prop->type == PROP_COLLECTION) {
     if (!manualfunc) {
       if (prop->type == PROP_COLLECTION &&
-          (!(dp->dnalengthname || dp->dnalengthfixed) || !dp->dnaname)) {
+          (!(dp->dnalengthname || dp->dnalengthfixed) || !dp->dnaname))
+      {
         CLOG_ERROR(&LOG, "%s.%s has no valid dna info.", srna->identifier, prop->identifier);
         DefRNA.error = true;
         return nullptr;
@@ -4229,7 +4230,8 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
        * we'll probably have to revisit. :/ */
       StructRNA *type = rna_find_struct((const char *)pprop->type);
       if (type && (type->flag & STRUCT_ID) &&
-          !(prop->flag_internal & PROP_INTERN_PTR_OWNERSHIP_FORCED)) {
+          !(prop->flag_internal & PROP_INTERN_PTR_OWNERSHIP_FORCED))
+      {
         RNA_def_property_flag(prop, PROP_PTR_NO_OWNERSHIP);
       }
       break;
@@ -4241,7 +4243,8 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
        * we'll probably have to revisit. :/ */
       StructRNA *type = rna_find_struct((const char *)cprop->item_type);
       if (type && (type->flag & STRUCT_ID) &&
-          !(prop->flag_internal & PROP_INTERN_PTR_OWNERSHIP_FORCED)) {
+          !(prop->flag_internal & PROP_INTERN_PTR_OWNERSHIP_FORCED))
+      {
         RNA_def_property_flag(prop, PROP_PTR_NO_OWNERSHIP);
       }
       break;

@@ -13,31 +13,28 @@
 
 vec3 load_radiance_direct(ivec2 texel, int i)
 {
-  /* TODO(fclem): Layered texture. */
   switch (i) {
     case 0:
-      return imageLoad(direct_radiance_1_img, texel).rgb;
+      return texelFetch(direct_radiance_1_tx, texel, 0).rgb;
     case 1:
-      return imageLoad(direct_radiance_2_img, texel).rgb;
+      return texelFetch(direct_radiance_2_tx, texel, 0).rgb;
     case 2:
-      return imageLoad(direct_radiance_3_img, texel).rgb;
+      return texelFetch(direct_radiance_3_tx, texel, 0).rgb;
     default:
       return vec3(0);
   }
   return vec3(0);
 }
 
-vec3 load_radiance_indirect(ivec2 texel, ClosureType closure_type)
+vec3 load_radiance_indirect(ivec2 texel, int i)
 {
-  /* TODO(fclem): Layered texture. */
-  switch (closure_type) {
-    case CLOSURE_BSSRDF_BURLEY_ID:
-    case CLOSURE_BSDF_DIFFUSE_ID:
-      return imageLoad(indirect_diffuse_img, texel).rgb;
-    case CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID:
-      return imageLoad(indirect_reflect_img, texel).rgb;
-    case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
-      return imageLoad(indirect_refract_img, texel).rgb;
+  switch (i) {
+    case 0:
+      return texelFetch(indirect_radiance_1_tx, texel, 0).rgb;
+    case 1:
+      return texelFetch(indirect_radiance_2_tx, texel, 0).rgb;
+    case 2:
+      return texelFetch(indirect_radiance_3_tx, texel, 0).rgb;
     default:
       return vec3(0);
   }
@@ -50,18 +47,39 @@ void main()
 
   GBufferReader gbuf = gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, texel);
 
+  /* TODO: use stencil buffer to avoid fragment invocations here. */
   out_combined = vec4(0.0, 0.0, 0.0, 0.0);
+  if (gbuf.closure_count == 0) {
+    return;
+  }
+
   vec3 out_diffuse = vec3(0.0);
   vec3 out_specular = vec3(0.0);
 
   for (int i = 0; i < GBUFFER_LAYER_MAX && i < gbuf.closure_count; i++) {
-    vec3 closure_light = load_radiance_direct(texel, i) +
-                         load_radiance_indirect(texel, gbuf.closures[i].type);
+    vec3 closure_light = load_radiance_direct(texel, i);
+    ClosureUndetermined cl = gbuffer_closure_get(gbuf, i);
 
-    closure_light *= gbuf.closures[i].color;
+    /* TODO(fclem): Enable for OpenGL and VULKAN once they fully support specialization constants.
+     */
+#ifndef GPU_METAL
+    bool use_combined_lightprobe_eval = uniform_buf.pipeline.use_combined_lightprobe_eval;
+#endif
+    if (!use_combined_lightprobe_eval) {
+      vec3 closure_indirect = load_radiance_indirect(texel, i);
+      if (cl.type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID) {
+        /* TODO(fclem): Add instead of replacing when we support correct refracted light. */
+        closure_light = closure_indirect;
+      }
+      else {
+        closure_light += closure_indirect;
+      }
+    }
+
+    closure_light *= cl.color;
     out_combined.rgb += closure_light;
 
-    switch (gbuf.closures[i].type) {
+    switch (cl.type) {
       case CLOSURE_BSDF_TRANSLUCENT_ID:
       case CLOSURE_BSSRDF_BURLEY_ID:
       case CLOSURE_BSDF_DIFFUSE_ID:
@@ -77,11 +95,13 @@ void main()
     }
   }
 
-#if 1 /* TODO(fclem): Only if needed. */
   /* Light passes. */
-  output_renderpass_color(uniform_buf.render_pass.diffuse_light_id, vec4(out_diffuse, 1.0));
-  output_renderpass_color(uniform_buf.render_pass.specular_light_id, vec4(out_specular, 1.0));
-#endif
+  if (render_pass_diffuse_light_enabled) {
+    output_renderpass_color(uniform_buf.render_pass.diffuse_light_id, vec4(out_diffuse, 1.0));
+  }
+  if (render_pass_specular_light_enabled) {
+    output_renderpass_color(uniform_buf.render_pass.specular_light_id, vec4(out_specular, 1.0));
+  }
 
   if (any(isnan(out_combined))) {
     out_combined = vec4(1.0, 0.0, 1.0, 0.0);

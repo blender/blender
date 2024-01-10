@@ -77,6 +77,7 @@ static void draw_select_id_edit_mesh(SELECTID_StorageList *stl,
                                      uint *r_edge_offset,
                                      uint *r_face_offset)
 {
+  using namespace blender::draw;
   Mesh *mesh = static_cast<Mesh *>(ob->data);
   BMEditMesh *em = mesh->edit_mesh;
 
@@ -142,6 +143,7 @@ static void draw_select_id_mesh(SELECTID_StorageList *stl,
                                 uint *r_edge_offset,
                                 uint *r_face_offset)
 {
+  using namespace blender::draw;
   Mesh *mesh = static_cast<Mesh *>(ob->data);
 
   GPUBatch *geom_faces = DRW_mesh_batch_cache_get_triangles_with_select_id(mesh);

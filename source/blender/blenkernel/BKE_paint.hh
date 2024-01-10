@@ -10,14 +10,11 @@
 
 #include "BLI_array.hh"
 #include "BLI_bit_vector.hh"
-#include "BLI_bitmap.h"
-#include "BLI_compiler_compat.h"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_ordered_edge.hh"
 #include "BLI_set.hh"
-#include "BLI_utildefines.h"
 
 #include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
@@ -37,6 +34,7 @@
 
 struct SculptAttribute;
 struct BMFace;
+struct BMLog;
 struct BMesh;
 struct BMIdMap;
 struct BMLog;
@@ -44,6 +42,7 @@ struct BlendDataReader;
 struct BlendLibReader;
 struct BlendWriter;
 struct Brush;
+struct CustomDataLayer;
 struct CurveMapping;
 struct Depsgraph;
 struct EnumPropertyItem;
@@ -319,89 +318,6 @@ struct SculptPoseIKChain {
   blender::float3 grab_delta_offset;
 };
 
-/* Cloth Brush */
-
-/* Cloth Simulation. */
-enum eSculptClothNodeSimState {
-  /* Constraints were not built for this node, so it can't be simulated. */
-  SCULPT_CLOTH_NODE_UNINITIALIZED,
-
-  /* There are constraints for the geometry in this node, but it should not be simulated. */
-  SCULPT_CLOTH_NODE_INACTIVE,
-
-  /* There are constraints for this node and they should be used by the solver. */
-  SCULPT_CLOTH_NODE_ACTIVE,
-};
-
-enum eSculptClothConstraintType {
-  /* Constraint that creates the structure of the cloth. */
-  SCULPT_CLOTH_CONSTRAINT_STRUCTURAL = 0,
-  /* Constraint that references the position of a vertex and a position in deformation_pos which
-   * can be deformed by the tools. */
-  SCULPT_CLOTH_CONSTRAINT_DEFORMATION = 1,
-  /* Constraint that references the vertex position and a editable soft-body position for
-   * plasticity. */
-  SCULPT_CLOTH_CONSTRAINT_SOFTBODY = 2,
-  /* Constraint that references the vertex position and its initial position. */
-  SCULPT_CLOTH_CONSTRAINT_PIN = 3,
-};
-
-struct SculptClothLengthConstraint {
-  /* Elements that are affected by the constraint. */
-  /* Element a should always be a mesh vertex with the index stored in elem_index_a as it is always
-   * deformed. Element b could be another vertex of the same mesh or any other position (arbitrary
-   * point, position for a previous state). In that case, elem_index_a and elem_index_b should be
-   * the same to avoid affecting two different vertices when solving the constraints.
-   * *elem_position points to the position which is owned by the element. */
-  int elem_index_a;
-  float *elem_position_a;
-
-  int elem_index_b;
-  float *elem_position_b;
-
-  float length;
-  float strength;
-
-  /* Index in #SculptClothSimulation.node_state of the node from where this constraint was created.
-   * This constraints will only be used by the solver if the state is active. */
-  int node;
-
-  eSculptClothConstraintType type;
-};
-
-struct SculptClothSimulation {
-  SculptClothLengthConstraint *length_constraints;
-  int tot_length_constraints;
-  blender::Set<blender::OrderedEdge> created_length_constraints;
-  int capacity_length_constraints;
-  float *length_constraint_tweak;
-
-  /* Position anchors for deformation brushes. These positions are modified by the brush and the
-   * final positions of the simulated vertices are updated with constraints that use these points
-   * as targets. */
-  float (*deformation_pos)[3];
-  float *deformation_strength;
-
-  float mass;
-  float damping;
-  float softbody_strength;
-
-  float (*acceleration)[3];
-  float (*pos)[3];
-  float (*init_pos)[3];
-  float (*init_no)[3];
-  float (*softbody_pos)[3];
-  float (*prev_pos)[3];
-  float (*last_iteration_pos)[3];
-
-  ListBase *collider_list;
-
-  int totnode;
-  /** #PBVHNode pointer as a key, index in #SculptClothSimulation.node_state as value. */
-  GHash *node_state_index;
-  eSculptClothNodeSimState *node_state;
-};
-
 struct SculptVertexInfo {
   /* Indexed by base mesh vertex index, stores if that vertex is a boundary. */
   blender::BitVector<> boundary;
@@ -671,17 +587,17 @@ struct SculptSession {
 
   /* Mesh connectivity maps. */
   /* Vertices to adjacent polys. */
-  blender::GroupedSpan<int> pmap;
+  blender::GroupedSpan<int> vert_to_face_map;
 
   /* Edges to adjacent faces. */
   blender::Array<int> edge_to_face_offsets;
   blender::Array<int> edge_to_face_indices;
-  blender::GroupedSpan<int> epmap;
+  blender::GroupedSpan<int> edge_to_face_map;
 
   /* Vertices to adjacent edges. */
   blender::Array<int> vert_to_edge_offsets;
   blender::Array<int> vert_to_edge_indices;
-  blender::GroupedSpan<int> vemap;
+  blender::GroupedSpan<int> vert_to_edge_map;
 
   /* Mesh Face Sets */
   /* Total number of faces of the base mesh. */
@@ -1200,15 +1116,15 @@ inline void BKE_sculpt_boundary_flag_update(SculptSession *ss,
         }
         case PBVH_FACES:
           /* If we have a vertex to edge map use it. */
-          if (!ss->vemap.is_empty()) {
-            for (int edge_i : ss->vemap[vertex.i]) {
+          if (!ss->vert_to_edge_map.is_empty()) {
+            for (int edge_i : ss->vert_to_edge_map[vertex.i]) {
               *blender::bke::paint::edge_attr_ptr<int>(
                   {edge_i}, ss->attrs.edge_boundary_flags) |= SCULPT_BOUNDARY_NEEDS_UPDATE |
                                                               SCULPT_BOUNDARY_UPDATE_SHARP_ANGLE;
             }
           }
           else { /* Otherwise use vertex to poly map. */
-            for (int poly_i : ss->pmap[vertex.i]) {
+            for (int poly_i : ss->vert_to_face_map[vertex.i]) {
               for (int loop_i : ss->faces[poly_i]) {
                 if (ss->corner_verts[loop_i] == vertex.i) {
                   int edge_i = ss->corner_edges[loop_i];

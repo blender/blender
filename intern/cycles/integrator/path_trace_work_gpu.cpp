@@ -964,7 +964,8 @@ void PathTraceWorkGPU::copy_to_display_naive(PathTraceDisplay *display,
    * change of the resolution divider. However, if the display becomes smaller, shrink the
    * allocated memory as well. */
   if (display_rgba_half_.data_width != final_width ||
-      display_rgba_half_.data_height != final_height) {
+      display_rgba_half_.data_height != final_height)
+  {
     display_rgba_half_.alloc(final_width, final_height);
     /* TODO(sergey): There should be a way to make sure device-side memory is allocated without
      * transferring zeroes to the device. */

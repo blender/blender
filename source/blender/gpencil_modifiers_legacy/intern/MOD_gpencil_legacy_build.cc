@@ -538,7 +538,8 @@ static void build_sequential(Object *ob,
     }
     else {
       if (fade_start != fade_end && int(cell->start_idx) < fade_end &&
-          int(cell->end_idx) > fade_start) {
+          int(cell->end_idx) > fade_start)
+      {
         int start_index = fade_start - cell->start_idx;
         int end_index = cell->totpoints + fade_end - cell->end_idx - 1;
         CLAMP(start_index, 0, cell->totpoints - 1);

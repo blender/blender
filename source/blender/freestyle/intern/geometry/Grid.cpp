@@ -58,17 +58,17 @@ void firstIntersectionGridVisitor::examineOccluder(Polygon3r *occ)
 #else
         if (tmp_t < t_) {
 #endif
-        occluder_ = occ;
-        u_ = tmp_u;
-        v_ = tmp_v;
-        t_ = tmp_t;
+          occluder_ = occ;
+          u_ = tmp_u;
+          v_ = tmp_v;
+          t_ = tmp_t;
+        }
+      }
+      else {
+        occ->userdata2 = nullptr;
       }
     }
-    else {
-      occ->userdata2 = nullptr;
-    }
   }
-}
 }  // namespace Freestyle
 
 bool firstIntersectionGridVisitor::stop()

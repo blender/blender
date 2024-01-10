@@ -20,6 +20,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BKE_attribute.hh"
+#include "BKE_customdata.hh"
 #include "BKE_deform.h"
 #include "BKE_mesh.hh"
 #include "BKE_particle.h"
@@ -1023,8 +1024,12 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
 
     float *result_edge_crease = nullptr;
     if (crease_rim || crease_outer || crease_inner) {
-      result_edge_crease = (float *)CustomData_add_layer_named(
-          &result->edge_data, CD_PROP_FLOAT, CD_SET_DEFAULT, result->edges_num, "crease_edge");
+      result_edge_crease = static_cast<float *>(CustomData_get_layer_named_for_write(
+          &result->edge_data, CD_PROP_FLOAT, "crease_edge", result->edges_num));
+      if (!result_edge_crease) {
+        result_edge_crease = static_cast<float *>(CustomData_add_layer_named(
+            &result->edge_data, CD_PROP_FLOAT, CD_SET_DEFAULT, result->edges_num, "crease_edge"));
+      }
     }
 
     /* add faces & edges */

@@ -33,8 +33,8 @@
 #include "wm.hh"
 
 /* own includes */
-#include "wm_gizmo_intern.h"
-#include "wm_gizmo_wmapi.h"
+#include "wm_gizmo_intern.hh"
+#include "wm_gizmo_wmapi.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Gizmo Type Append
@@ -134,7 +134,8 @@ static void gizmotype_unlink(bContext *C, Main *bmain, wmGizmoType *gzt)
           if (gzmap) {
             LISTBASE_FOREACH (wmGizmoGroup *, gzgroup, &gzmap->groups) {
               for (wmGizmo *gz = static_cast<wmGizmo *>(gzgroup->gizmos.first), *gz_next; gz;
-                   gz = gz_next) {
+                   gz = gz_next)
+              {
                 gz_next = gz->next;
                 BLI_assert(gzgroup->parent_gzmap == gzmap);
                 if (gz->type == gzt) {

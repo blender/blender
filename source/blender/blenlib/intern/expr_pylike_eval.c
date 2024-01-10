@@ -581,7 +581,8 @@ static bool parse_add_func(ExprParseState *state, eOpCode code, int args, void *
       CHECK_ERROR(args == 2);
 
       if (jmp_gap >= 2 && prev_ops[-2].opcode == OPCODE_CONST &&
-          prev_ops[-1].opcode == OPCODE_CONST) {
+          prev_ops[-1].opcode == OPCODE_CONST)
+      {
         BinaryOpFunc func = funcptr;
 
         /* volatile because some compilers overly aggressive optimize this call out.
@@ -818,7 +819,8 @@ static bool parse_unary(ExprParseState *state)
           if (args != opcode_arg_count(builtin_ops[i].op)) {
             for (int j = i + 1; builtin_ops[j].name; j++) {
               if (opcode_arg_count(builtin_ops[j].op) == args &&
-                  STREQ(builtin_ops[j].name, builtin_ops[i].name)) {
+                  STREQ(builtin_ops[j].name, builtin_ops[i].name))
+              {
                 i = j;
                 break;
               }

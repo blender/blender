@@ -554,7 +554,8 @@ void GHOST_XrContext::drawSessionViews(void *draw_customdata)
 void GHOST_XrContext::handleSessionStateChange(const XrEventDataSessionStateChanged &lifecycle)
 {
   if (m_session &&
-      m_session->handleStateChangeEvent(lifecycle) == GHOST_XrSession::SESSION_DESTROY) {
+      m_session->handleStateChangeEvent(lifecycle) == GHOST_XrSession::SESSION_DESTROY)
+  {
     m_session = nullptr;
   }
 }

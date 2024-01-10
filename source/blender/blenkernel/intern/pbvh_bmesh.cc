@@ -1447,7 +1447,7 @@ bool pbvh_bmesh_node_raycast(SculptSession *ss,
       }
     }
 
-    if (ray_face_intersection_depth_tri(
+    if (blender::bke::pbvh::ray_face_intersection_depth_tri(
             ray_start, isect_precalc, cos[0], cos[1], cos[2], depth, hit_count))
     {
       hit = true;
@@ -1461,7 +1461,8 @@ bool pbvh_bmesh_node_raycast(SculptSession *ss,
         madd_v3_v3v3fl(location, ray_start, ray_normal, *depth);
         for (int j = 0; j < 3; j++) {
           if (j == 0 ||
-              len_squared_v3v3(location, cos[j]) < len_squared_v3v3(location, nearest_vertex_co)) {
+              len_squared_v3v3(location, cos[j]) < len_squared_v3v3(location, nearest_vertex_co))
+          {
             copy_v3_v3(nearest_vertex_co, cos[j]);
             r_active_vertex->i = (intptr_t)verts[j];
           }
@@ -1560,7 +1561,8 @@ bool pbvh_bmesh_node_nearest_to_ray(SculptSession *ss,
       co3 = v3->co;
     }
 
-    hit |= ray_face_nearest_tri(ray_start, ray_normal, co1, co2, co3, depth, dist_sq);
+    hit |= blender::bke::pbvh::ray_face_nearest_tri(
+        ray_start, ray_normal, co1, co2, co3, depth, dist_sq);
   }
 
   return hit;
@@ -2114,7 +2116,8 @@ static void pbvh_bmesh_update_uv_boundary_intern(BMVert *v,
       float2 uv2b = *BM_ELEM_CD_PTR<float2 *>(l->v == v ? l->next : l, cd_uv);
 
       if (len_squared_v2v2(uv1a, uv2a) > snap_limit_sqr ||
-          len_squared_v2v2(uv1b, uv2b) > snap_limit_sqr) {
+          len_squared_v2v2(uv1b, uv2b) > snap_limit_sqr)
+      {
         *boundflag |= SCULPT_BOUNDARY_UV;
       }
 
@@ -2240,7 +2243,8 @@ void update_vert_boundary_bmesh(int cd_faceset_offset,
 
     if (e->l) {
       if ((e->l->f->head.hflag & BM_ELEM_HIDDEN) ||
-          (e->l->radial_next->f->head.hflag & BM_ELEM_HIDDEN)) {
+          (e->l->radial_next->f->head.hflag & BM_ELEM_HIDDEN))
+      {
         newflag |= SCULPTFLAG_VERT_FSET_HIDDEN;
       }
 
@@ -2396,20 +2400,20 @@ void debug_pbvh_on_vert_kill(BMVert *v)
 namespace blender::bke::pbvh {
 
 /* Build a PBVH from a BMesh */
-ATTR_NO_OPT void build_bmesh(PBVH *pbvh,
-                             Mesh *me,
-                             BMesh *bm,
-                             BMLog *log,
-                             BMIdMap *idmap,
-                             const int cd_vert_node_offset,
-                             const int cd_face_node_offset,
-                             const int cd_face_areas,
-                             const int cd_boundary_flag,
-                             const int cd_edge_boundary,
-                             const int cd_flag_offset,
-                             const int cd_valence_offset,
-                             const int cd_origco,
-                             const int cd_origno)
+void build_bmesh(PBVH *pbvh,
+                 Mesh *me,
+                 BMesh *bm,
+                 BMLog *log,
+                 BMIdMap *idmap,
+                 const int cd_vert_node_offset,
+                 const int cd_face_node_offset,
+                 const int cd_face_areas,
+                 const int cd_boundary_flag,
+                 const int cd_edge_boundary,
+                 const int cd_flag_offset,
+                 const int cd_valence_offset,
+                 const int cd_origco,
+                 const int cd_origno)
 {
   pbvh->bm_idmap = idmap;
   pbvh->header.bm = bm;

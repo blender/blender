@@ -305,7 +305,8 @@ static size_t id_delete(Main *bmain,
     /* Since we removed IDs from Main, their own other IDs usages need to be removed 'manually'. */
     blender::Vector<ID *> cleanup_ids;
     for (ID *id = static_cast<ID *>(tagged_deleted_ids.first); id;
-         id = static_cast<ID *>(id->next)) {
+         id = static_cast<ID *>(id->next))
+    {
       cleanup_ids.append(id);
     }
     BKE_libblock_relink_multiple(bmain,
@@ -325,7 +326,8 @@ static size_t id_delete(Main *bmain,
      * deleted IDs may not be properly decreased by the remappings (since `NO_MAIN` ID user-counts
      * is never affected). */
     for (ID *id = static_cast<ID *>(tagged_deleted_ids.first); id;
-         id = static_cast<ID *>(id->next)) {
+         id = static_cast<ID *>(id->next))
+    {
       id->tag |= LIB_TAG_NO_MAIN;
       /* User-count needs to be reset artificially, since some usages may not be cleared in batch
        * deletion (typically, if one deleted ID uses another deleted ID, this may not be cleared by

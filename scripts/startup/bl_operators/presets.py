@@ -516,7 +516,7 @@ class AddPresetTrackingSettings(AddPresetBase, Operator):
 
 
 class AddPresetEEVEERaytracing(AddPresetBase, Operator):
-    """Add or remove an EEVEE raytracing preset"""
+    """Add or remove an EEVEE ray-tracing preset"""
     bl_idname = "render.eevee_raytracing_preset_add"
     bl_label = "Add Raytracing Preset"
     preset_menu = "RENDER_PT_eevee_next_raytracing_presets"

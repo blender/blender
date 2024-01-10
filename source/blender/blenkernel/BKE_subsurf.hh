@@ -81,18 +81,18 @@ struct CCGDerivedMesh {
   struct {
     int startVert;
     CCGVert *vert;
-  } * vertMap;
+  } *vertMap;
   struct {
     int startVert;
     int startEdge;
     CCGEdge *edge;
-  } * edgeMap;
+  } *edgeMap;
   struct {
     int startVert;
     int startEdge;
     int startFace;
     CCGFace *face;
-  } * faceMap;
+  } *faceMap;
 
   int *reverseFaceMap;
 

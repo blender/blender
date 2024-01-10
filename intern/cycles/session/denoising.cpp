@@ -361,7 +361,8 @@ bool DenoiseImage::parse_channels(const ImageSpec &in_spec, string &error)
   /* Loop over all detected RenderLayers, check whether they contain a full set of input channels.
    * Any channels that won't be processed internally are also passed through. */
   for (map<string, DenoiseImageLayer>::iterator i = file_layers.begin(); i != file_layers.end();
-       ++i) {
+       ++i)
+  {
     const string &name = i->first;
     DenoiseImageLayer &layer = i->second;
 

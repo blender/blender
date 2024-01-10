@@ -1206,7 +1206,7 @@ enum GBufferMode : uint32_t {
   GBUF_REFRACTION_COLORLESS = 13u,
 
   /** Special configurations. Packs multiple closures into less layer. */
-  /* TODO(fclem): This is isn't currently working due to monolitic nature of the evaluation. */
+  /* TODO(@fclem): This is isn't currently working due to monolithic nature of the evaluation. */
   GBUF_METAL_CLEARCOAT = 15u,
 
   /** IMPORTANT: Needs to be less than 16 for correct packing in g-buffer header. */
@@ -1235,10 +1235,11 @@ struct RayTraceData {
   float roughness_mask_bias;
   /** If set to true will bypass spatial denoising. */
   bool1 skip_denoise;
+  /** If set to false will bypass tracing for refractive closures. */
+  bool1 trace_refraction;
   /** Closure being ray-traced. */
-  eClosureBits closure_active;
   int closure_index;
-  int _pad1;
+  int _pad0;
 };
 BLI_STATIC_ASSERT_ALIGN(RayTraceData, 16)
 
@@ -1430,7 +1431,7 @@ BLI_STATIC_ASSERT_ALIGN(ProbePlanarDisplayData, 16)
 struct PipelineInfoData {
   float alpha_hash_scale;
   bool1 is_probe_reflection;
-  float _pad1;
+  bool1 use_combined_lightprobe_eval;
   float _pad2;
 };
 BLI_STATIC_ASSERT_ALIGN(PipelineInfoData, 16)

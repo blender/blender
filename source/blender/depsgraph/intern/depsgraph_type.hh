@@ -32,7 +32,6 @@
 #include "BLI_vector_set.hh"
 
 struct Depsgraph;
-
 struct CustomData_MeshMasks;
 
 namespace blender::deg {

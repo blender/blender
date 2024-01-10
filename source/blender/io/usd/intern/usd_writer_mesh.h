@@ -10,6 +10,8 @@
 
 #include <pxr/usd/usdGeom/mesh.h>
 
+struct Key;
+
 namespace blender::bke {
 class AttributeIDRef;
 struct AttributeMetaData;
@@ -47,7 +49,7 @@ class USDGenericMeshWriter : public USDAbstractWriter {
   void write_normals(const Mesh *mesh, pxr::UsdGeomMesh usd_mesh);
   void write_surface_velocity(const Mesh *mesh, pxr::UsdGeomMesh usd_mesh);
 
-  void write_custom_data(const Mesh *mesh, pxr::UsdGeomMesh usd_mesh);
+  void write_custom_data(const Object *obj, const Mesh *mesh, pxr::UsdGeomMesh usd_mesh);
   void write_generic_data(const Mesh *mesh,
                           pxr::UsdGeomMesh usd_mesh,
                           const bke::AttributeIDRef &attribute_id,
@@ -68,11 +70,27 @@ class USDGenericMeshWriter : public USDAbstractWriter {
 };
 
 class USDMeshWriter : public USDGenericMeshWriter {
+  bool write_skinned_mesh_;
+  bool write_blend_shapes_;
+
  public:
   USDMeshWriter(const USDExporterContext &ctx);
 
  protected:
+  virtual void do_write(HierarchyContext &context) override;
+
   virtual Mesh *get_export_mesh(Object *object_eval, bool &r_needsfree) override;
+
+  /**
+   * Determine whether we should write skinned mesh or blend shape data
+   * based on the export parameters and the modifiers enabled on the object.
+   */
+  void set_skel_export_flags(const HierarchyContext &context);
+
+  void init_skinned_mesh(const HierarchyContext &context);
+  void init_blend_shapes(const HierarchyContext &context);
+
+  void add_shape_key_weights_sample(const Object *obj);
 };
 
 }  // namespace blender::io::usd

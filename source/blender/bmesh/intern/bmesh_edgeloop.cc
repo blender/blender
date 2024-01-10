@@ -554,7 +554,8 @@ void BM_edgeloop_edges_get(BMEdgeLoopStore *el_store, BMEdge **e_arr)
   LinkData *node;
   int i = 0;
   for (node = static_cast<LinkData *>(el_store->verts.first); node && node->next;
-       node = node->next) {
+       node = node->next)
+  {
     e_arr[i++] = BM_edge_exists(NODE_AS_V(node), NODE_AS_V(node->next));
     BLI_assert(e_arr[i - 1] != nullptr);
   }

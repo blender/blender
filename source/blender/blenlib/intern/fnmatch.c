@@ -219,7 +219,7 @@ fnmatch (const char *pattern, const char *string, int flags)
   return 0;
 
   if ((flags & FNM_LEADING_DIR) && *n == '/')
-  /* The FNM_LEADING_DIR flag says that "foo*" matches "foobar/frobozz".  */
+  /* The FNM_LEADING_DIR flag says that "foo*" matches "foobar/frobozz". */
   return 0;
 
   return FNM_NOMATCH;

@@ -114,7 +114,7 @@
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 
-#include "DRW_engine.h"
+#include "DRW_engine.hh"
 
 #include "bmesh.hh"
 

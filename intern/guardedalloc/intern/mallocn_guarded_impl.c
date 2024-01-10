@@ -37,13 +37,13 @@
  * but this introduces some overhead to memory header and makes
  * things slower a bit, so better to keep disabled by default
  */
-//#define DEBUG_MEMDUPLINAME
+// #define DEBUG_MEMDUPLINAME
 
 /* Only for debugging:
  * lets you count the allocations so as to find the allocator of unfreed memory
  * in situations where the leak is predictable */
 
-//#define DEBUG_MEMCOUNTER
+// #define DEBUG_MEMCOUNTER
 
 /* Only for debugging:
  * Defining DEBUG_BACKTRACE will display a back-trace from where memory block was allocated and

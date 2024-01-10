@@ -213,8 +213,7 @@ class DummyInstruction : public Instruction {
 /**
  * This instruction ends the procedure.
  */
-class ReturnInstruction : public Instruction {
-};
+class ReturnInstruction : public Instruction {};
 
 /**
  * Inputs and outputs of the entire procedure network.

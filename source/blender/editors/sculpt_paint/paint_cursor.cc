@@ -587,7 +587,7 @@ static bool paint_draw_tex_overlay(UnifiedPaintSettings *ups,
 
       /* Brush rotation. */
       GPU_matrix_translate_2fv(center);
-      GPU_matrix_rotate_2d(-RAD2DEGF(primary ? ups->brush_rotation : ups->brush_rotation_sec));
+      GPU_matrix_rotate_2d(RAD2DEGF(primary ? ups->brush_rotation : ups->brush_rotation_sec));
       GPU_matrix_translate_2f(-center[0], -center[1]);
 
       /* Scale based on tablet pressure. */
@@ -1717,7 +1717,7 @@ static void sculpt_cursor_draw_3D_face_set_preview(PaintCursorContext *pcontext)
   immEnd();
   */
 
-  if (ss->pmap.is_empty()) {
+  if (ss->vert_to_face_map.is_empty()) {
     return;
   }
 

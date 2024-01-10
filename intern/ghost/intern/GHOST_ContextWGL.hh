@@ -8,7 +8,7 @@
 
 #pragma once
 
-//#define WIN32_COMPOSITING
+// #define WIN32_COMPOSITING
 
 #include "GHOST_Context.hh"
 

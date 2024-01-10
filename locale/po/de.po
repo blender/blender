@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'0b00b360f7ae')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'd13edee3e0cc')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-18 13:45:58\n"
+"POT-Creation-Date: 2024-01-08 11:04:23\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Martin Reininger <martinreininger@gmx.net>\n"
 "Language-Team: German translation team\n"
@@ -3341,6 +3341,10 @@ msgstr "Kindobjekt wird relative Transformation verwenden, ähnlich der Deformat
 
 msgid "Bones"
 msgstr "Knochen"
+
+
+msgid "Index"
+msgstr "Index"
 
 
 msgid "Visible"
@@ -7454,10 +7458,6 @@ msgstr "Nur erstes"
 
 msgid "Curve Point"
 msgstr "Kurvenpunkte"
-
-
-msgid "Index"
-msgstr "Index"
 
 
 msgid "Profile control points"
@@ -27421,6 +27421,10 @@ msgid "Align Bones"
 msgstr "Knochen ausrichten"
 
 
+msgid "Collection Index"
+msgstr "Indexsammlung"
+
+
 msgid "X-Axis"
 msgstr "X-Achse"
 
@@ -29819,11 +29823,6 @@ msgstr "Euler (ZYX)"
 
 msgid "Convert rotations to euler ZYX"
 msgstr "Rotationen zu Euler-ZYX konvertieren"
-
-
-msgctxt "Operator"
-msgid "Export STL"
-msgstr "STL exportieren"
 
 
 msgid "Save STL triangle mesh data"
@@ -32375,11 +32374,6 @@ msgstr "Dpi"
 
 msgid "Use alpha channel for transparency"
 msgstr "Alphakanal für Transparenz verwenden"
-
-
-msgctxt "Operator"
-msgid "Import STL"
-msgstr "STL importieren"
 
 
 msgctxt "Operator"
@@ -35206,10 +35200,6 @@ msgstr "Wachsstiftmodifikator entfernen"
 msgctxt "Operator"
 msgid "Hide Collection"
 msgstr "Sammlung verstecken"
-
-
-msgid "Collection Index"
-msgstr "Indexsammlung"
 
 
 msgid "Toggle visibility"
@@ -41725,6 +41715,16 @@ msgid "About Blender"
 msgstr "Über Blender"
 
 
+msgctxt "Operator"
+msgid "Export STL"
+msgstr "STL exportieren"
+
+
+msgctxt "Operator"
+msgid "Import STL"
+msgstr "STL importieren"
+
+
 msgid "Validate Mesh"
 msgstr "Netz verifizieren"
 
@@ -48137,14 +48137,6 @@ msgstr "Vorschaubilder anzeigen"
 
 msgid "Waveform Display"
 msgstr "Wellenform anzeigen"
-
-
-msgid "Waveforms Off"
-msgstr "Wellenformen Aus"
-
-
-msgid "Waveforms On"
-msgstr "Wellenformen Ein"
 
 
 msgid "Sequencer Tool Settings"
@@ -58186,71 +58178,6 @@ msgstr "Punkt löschen"
 
 
 msgctxt "Operator"
-msgid "Copyright"
-msgstr "Urheberrecht"
-
-
-msgctxt "Operator"
-msgid "Registered Trademark"
-msgstr "Registriertes Markenzeichen"
-
-
-msgctxt "Operator"
-msgid "Degree Sign"
-msgstr "Gradzeichen"
-
-
-msgctxt "Operator"
-msgid "Multiplication Sign"
-msgstr "Multiplikator Zeichen"
-
-
-msgctxt "Operator"
-msgid "Double >>"
-msgstr "Doppelt >>"
-
-
-msgctxt "Operator"
-msgid "Double <<"
-msgstr "Doppelt <<"
-
-
-msgctxt "Operator"
-msgid "Promillage"
-msgstr "Promille"
-
-
-msgctxt "Operator"
-msgid "Dutch Florin"
-msgstr "Holländische Gulden"
-
-
-msgctxt "Operator"
-msgid "British Pound"
-msgstr "Britscher Pfund"
-
-
-msgctxt "Operator"
-msgid "Japanese Yen"
-msgstr "Japanisches Yen"
-
-
-msgctxt "Operator"
-msgid "German S"
-msgstr "Deutsches S"
-
-
-msgctxt "Operator"
-msgid "Spanish Question Mark"
-msgstr "Spanisches Fragezeichen"
-
-
-msgctxt "Operator"
-msgid "Spanish Exclamation Mark"
-msgstr "Spanisches Ausrufezeichen"
-
-
-msgctxt "Operator"
 msgid "Previous Character"
 msgstr "Vorheriger Buchstabe"
 
@@ -59890,6 +59817,18 @@ msgid "Browse ID data to be linked"
 msgstr "Zu verknüpfende ID-Daten durchsuchen"
 
 
+msgid "Today"
+msgstr "Heute"
+
+
+msgid "Yesterday"
+msgstr "Gestern"
+
+
+msgid "Modified"
+msgstr "Modifizieren"
+
+
 msgctxt "Object"
 msgid "New"
 msgstr "Neu"
@@ -60121,6 +60060,10 @@ msgstr "Materialgruppe"
 
 msgid "ASCII"
 msgstr "ASCII"
+
+
+msgid "Rigging"
+msgstr "Takelage"
 
 
 msgid "File References"
@@ -61159,14 +61102,6 @@ msgstr "Keine aktive Spur zum Zusammenführen"
 
 msgid "No object to apply orientation on"
 msgstr "Keine Objekte um die Orientierung zu übernehmen"
-
-
-msgid "Today"
-msgstr "Heute"
-
-
-msgid "Yesterday"
-msgstr "Gestern"
 
 
 msgid "File path"
@@ -63448,10 +63383,6 @@ msgid "File Not Found"
 msgstr "Datei nicht gefunden"
 
 
-msgid "Modified"
-msgstr "Modifizieren"
-
-
 msgid "For security reasons, automatic execution of Python scripts in this file was disabled:"
 msgstr "Zur Sicherheit wird die automatische Ausführung der Python Skripte in dieser Datei deaktiviert:"
 
@@ -63690,10 +63621,6 @@ msgstr "Masche hinzufügen"
 
 msgid "Import-Export"
 msgstr "Importieren/Expotieren"
-
-
-msgid "Rigging"
-msgstr "Takelage"
 
 
 msgid "Video Tools"
