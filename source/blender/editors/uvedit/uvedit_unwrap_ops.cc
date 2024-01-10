@@ -1570,18 +1570,30 @@ static const EnumPropertyItem pack_margin_method_items[] = {
 };
 
 static const EnumPropertyItem pack_rotate_method_items[] = {
-    RNA_ENUM_ITEM_SEPR,
-    {ED_UVPACK_ROTATION_AXIS_ALIGNED,
-     "AXIS_ALIGNED",
-     0,
-     "Axis-aligned",
-     "Rotated to a minimal rectangle, either vertical or horizontal"},
+    {ED_UVPACK_ROTATION_ANY, "ANY", 0, "Any", "Any angle is allowed for rotation"},
     {ED_UVPACK_ROTATION_CARDINAL,
      "CARDINAL",
      0,
      "Cardinal",
      "Only 90 degree rotations are allowed"},
-    {ED_UVPACK_ROTATION_ANY, "ANY", 0, "Any", "Any angle is allowed for rotation"},
+    RNA_ENUM_ITEM_SEPR,
+
+#define PACK_ROTATE_METHOD_AXIS_ALIGNED_OFFSET 3
+    {ED_UVPACK_ROTATION_AXIS_ALIGNED,
+     "AXIS_ALIGNED",
+     0,
+     "Axis-aligned",
+     "Rotated to a minimal rectangle, either vertical or horizontal"},
+    {ED_UVPACK_ROTATION_AXIS_ALIGNED_X,
+     "AXIS_ALIGNED_X",
+     0,
+     "Axis-aligned (Horizontal)",
+     "Rotate islands to be aligned horizontally"},
+    {ED_UVPACK_ROTATION_AXIS_ALIGNED_Y,
+     "AXIS_ALIGNED_Y",
+     0,
+     "Axis-aligned (Vertical)",
+     "Rotate islands to be aligned vertically"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -2954,7 +2966,7 @@ static int smart_project_exec(bContext *C, wmOperator *op)
     const bool correct_aspect = RNA_boolean_get(op->ptr, "correct_aspect");
 
     blender::geometry::UVPackIsland_Params params;
-    params.rotate_method = ED_UVPACK_ROTATION_ANY;
+    params.rotate_method = eUVPackIsland_RotationMethod(RNA_enum_get(op->ptr, "rotate_method"));
     params.only_selected_uvs = only_selected_uvs;
     params.only_selected_faces = true;
     params.correct_aspect = correct_aspect;
@@ -3010,6 +3022,14 @@ void UV_OT_smart_project(wmOperatorType *ot)
                pack_margin_method_items,
                ED_UVPACK_MARGIN_SCALED,
                "Margin Method",
+               "");
+  RNA_def_enum(ot->srna,
+               "rotate_method",
+               /* Only show aligned options as the rotation from a projection
+                * generated from a direction vector isn't meaningful. */
+               pack_rotate_method_items + PACK_ROTATE_METHOD_AXIS_ALIGNED_OFFSET,
+               ED_UVPACK_ROTATION_AXIS_ALIGNED_Y,
+               "Rotation Method",
                "");
   RNA_def_float(ot->srna,
                 "island_margin",
