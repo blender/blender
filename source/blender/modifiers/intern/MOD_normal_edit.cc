@@ -325,17 +325,17 @@ static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
   }
   const bke::AttributeAccessor attributes = mesh->attributes();
   const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", bke::AttrDomain::Face);
-  bke::mesh::normals_loop_custom_set(vert_positions,
-                                     edges,
-                                     faces,
-                                     corner_verts,
-                                     corner_edges,
-                                     mesh->vert_normals(),
-                                     mesh->face_normals(),
-                                     sharp_faces,
-                                     sharp_edges,
-                                     nos,
-                                     clnors);
+  bke::mesh::normals_corner_custom_set(vert_positions,
+                                       edges,
+                                       faces,
+                                       corner_verts,
+                                       corner_edges,
+                                       mesh->vert_normals(),
+                                       mesh->face_normals(),
+                                       sharp_faces,
+                                       sharp_edges,
+                                       nos,
+                                       clnors);
 
   MEM_freeN(cos);
   MEM_freeN(done_verts);
@@ -431,17 +431,17 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
   }
   const bke::AttributeAccessor attributes = mesh->attributes();
   const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", bke::AttrDomain::Face);
-  bke::mesh::normals_loop_custom_set(positions,
-                                     edges,
-                                     faces,
-                                     corner_verts,
-                                     corner_edges,
-                                     mesh->vert_normals(),
-                                     mesh->face_normals(),
-                                     sharp_faces,
-                                     sharp_edges,
-                                     nos,
-                                     clnors);
+  bke::mesh::normals_corner_custom_set(positions,
+                                       edges,
+                                       faces,
+                                       corner_verts,
+                                       corner_edges,
+                                       mesh->vert_normals(),
+                                       mesh->face_normals(),
+                                       sharp_faces,
+                                       sharp_edges,
+                                       nos,
+                                       clnors);
 }
 
 static bool is_valid_target(NormalEditModifierData *enmd)
@@ -515,19 +515,19 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
         CustomData_get_layer_for_write(ldata, CD_CUSTOMLOOPNORMAL, corner_verts.size()));
     loop_normals.reinitialize(corner_verts.size());
     const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", bke::AttrDomain::Face);
-    blender::bke::mesh::normals_calc_loop(positions,
-                                          edges,
-                                          faces,
-                                          corner_verts,
-                                          corner_edges,
-                                          result->corner_to_face_map(),
-                                          result->vert_normals(),
-                                          result->face_normals(),
-                                          sharp_edges.span,
-                                          sharp_faces,
-                                          clnors,
-                                          nullptr,
-                                          loop_normals);
+    blender::bke::mesh::normals_calc_corners(positions,
+                                             edges,
+                                             faces,
+                                             corner_verts,
+                                             corner_edges,
+                                             result->corner_to_face_map(),
+                                             result->vert_normals(),
+                                             result->face_normals(),
+                                             sharp_edges.span,
+                                             sharp_faces,
+                                             clnors,
+                                             nullptr,
+                                             loop_normals);
   }
 
   if (clnors == nullptr) {

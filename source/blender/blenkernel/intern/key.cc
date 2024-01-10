@@ -2280,7 +2280,7 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
     const AttributeAccessor attributes = mesh->attributes();
     const VArraySpan sharp_edges = *attributes.lookup<bool>("sharp_edge", AttrDomain::Edge);
     const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", AttrDomain::Face);
-    mesh::normals_calc_loop(
+    mesh::normals_calc_corners(
         positions,
         edges,
         faces,

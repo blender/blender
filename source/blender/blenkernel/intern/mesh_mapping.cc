@@ -373,7 +373,7 @@ static GroupedSpan<int> gather_groups(const Span<int> group_indices,
   return {OffsetIndices<int>(r_offsets), r_indices};
 }
 
-Array<int> build_loop_to_face_map(const OffsetIndices<int> faces)
+Array<int> build_corner_to_face_map(const OffsetIndices<int> faces)
 {
   Array<int> map(faces.total_size());
   offset_indices::build_reverse_map(faces, map);
@@ -430,18 +430,18 @@ Array<int> build_vert_to_corner_indices(const Span<int> corner_verts,
   return reverse_indices_in_groups(corner_verts, offsets);
 }
 
-GroupedSpan<int> build_vert_to_loop_map(const Span<int> corner_verts,
-                                        const int verts_num,
-                                        Array<int> &r_offsets,
-                                        Array<int> &r_indices)
+GroupedSpan<int> build_vert_to_corner_map(const Span<int> corner_verts,
+                                          const int verts_num,
+                                          Array<int> &r_offsets,
+                                          Array<int> &r_indices)
 {
   return gather_groups(corner_verts, verts_num, r_offsets, r_indices);
 }
 
-GroupedSpan<int> build_edge_to_loop_map(const Span<int> corner_edges,
-                                        const int edges_num,
-                                        Array<int> &r_offsets,
-                                        Array<int> &r_indices)
+GroupedSpan<int> build_edge_to_corner_map(const Span<int> corner_edges,
+                                          const int edges_num,
+                                          Array<int> &r_offsets,
+                                          Array<int> &r_indices)
 {
   return gather_groups(corner_edges, edges_num, r_offsets, r_indices);
 }
@@ -858,7 +858,7 @@ static bool mesh_calc_islands_loop_face_uv(const int totedge,
   Array<int> edge_to_loop_indices;
   GroupedSpan<int> edge_to_loop_map;
   if (luvs) {
-    edge_to_loop_map = bke::mesh::build_edge_to_loop_map(
+    edge_to_loop_map = bke::mesh::build_edge_to_corner_map(
         {corner_edges, totloop}, totedge, edge_to_loop_offsets, edge_to_loop_indices);
   }
 

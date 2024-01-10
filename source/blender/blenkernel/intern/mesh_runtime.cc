@@ -120,7 +120,7 @@ blender::Span<int> Mesh::corner_to_face_map() const
   using namespace blender;
   this->runtime->corner_to_face_map_cache.ensure([&](Array<int> &r_data) {
     const OffsetIndices faces = this->faces();
-    r_data = bke::mesh::build_loop_to_face_map(faces);
+    r_data = bke::mesh::build_corner_to_face_map(faces);
   });
   return this->runtime->corner_to_face_map_cache.data();
 }
