@@ -4422,11 +4422,12 @@ static PyObject *pyrna_struct_getattro(BPy_StructRNA *self, PyObject *pyname)
             break;
           }
           case CTX_DATA_TYPE_PROPERTY: {
-            if (newprop != nullptr) {
+            char *path_str = nullptr;
+            if ((newprop != nullptr) && (newptr.owner_id != nullptr) &&
+                (path_str = RNA_path_from_ID_to_property(&newptr, newprop)))
+            {
               /* Create pointer to parent ID, and path from ID to property. */
               PointerRNA idptr = RNA_id_pointer_create(newptr.owner_id);
-              char *path_str = RNA_path_from_ID_to_property(&newptr, newprop);
-
               ret = PyTuple_New(3);
               PyTuple_SET_ITEMS(ret,
                                 pyrna_struct_CreatePyObject(&idptr),
