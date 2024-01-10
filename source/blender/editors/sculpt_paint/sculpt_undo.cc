@@ -953,6 +953,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, UndoSculpt &usculpt)
 
     switch (unode->type) {
       case Type::Position:
+        modified_verts_position.resize(ss->totvert, false);
         if (restore_coords(C, ob, depsgraph, *unode, modified_verts_position)) {
           changed_position = true;
         }
@@ -1032,7 +1033,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, UndoSculpt &usculpt)
   data.changed_mask = changed_mask;
   data.pbvh = ss->pbvh;
   data.modified_grids = modified_grids;
-  data.modified_hidden_verts = modified_verts_position;
+  data.modified_position_verts = modified_verts_position;
   data.modified_hidden_verts = modified_verts_hide;
   data.modified_hidden_faces = modified_faces_hide;
   data.modified_mask_verts = modified_verts_mask;
