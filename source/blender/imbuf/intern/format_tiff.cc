@@ -69,6 +69,9 @@ bool imb_save_tiff(ImBuf *ibuf, const char *filepath, int flags)
   else if (ibuf->foptions.flag & TIF_COMPRESS_PACKBITS) {
     file_spec.attribute("compression", "packbits");
   }
+  else if (ibuf->foptions.flag & TIF_COMPRESS_NONE) {
+    file_spec.attribute("compression", "none");
+  }
 
   return imb_oiio_write(ctx, filepath, file_spec);
 }
