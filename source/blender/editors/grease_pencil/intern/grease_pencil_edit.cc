@@ -32,6 +32,8 @@
 #include "ED_grease_pencil.hh"
 #include "ED_screen.hh"
 
+#include "GEO_subdivide_curves.hh"
+
 #include "WM_api.hh"
 
 #include "UI_resources.hh"
@@ -1642,6 +1644,136 @@ static void GREASE_PENCIL_OT_clean_loose(wmOperatorType *ot)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Stroke Subdivide Operator
+ * \{ */
+
+static int gpencil_stroke_subdivide_exec(bContext *C, wmOperator *op)
+{
+  const int cuts = RNA_int_get(op->ptr, "number_cuts");
+  const bool only_selected = RNA_boolean_get(op->ptr, "only_selected");
+
+  std::atomic<bool> changed = false;
+
+  const Scene *scene = CTX_data_scene(C);
+  Object *object = CTX_data_active_object(C);
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  const bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(
+      scene->toolsettings);
+
+  const Array<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
+
+  threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
+    IndexMaskMemory memory;
+    const IndexMask strokes = ed::greasepencil::retrieve_editable_and_selected_strokes(
+        *object, info.drawing, memory);
+    if (strokes.is_empty()) {
+      return;
+    }
+    bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
+
+    VArray<int> vcuts = {};
+
+    if (selection_domain == bke::AttrDomain::Curve || !only_selected) {
+      /* Subdivide entire selected curve, every stroke subdivides to the same cut. */
+      vcuts = VArray<int>::ForSingle(cuts, curves.points_num());
+    }
+    else if (selection_domain == bke::AttrDomain::Point) {
+      /* Subdivide between selected points. Only cut between selected points.
+       * Make the cut array the same length as point count for specifying
+       * cut/uncut for each segment. */
+      const VArray<bool> selection = *curves.attributes().lookup_or_default<bool>(
+          ".selection", bke::AttrDomain::Point, true);
+
+      const OffsetIndices points_by_curve = curves.points_by_curve();
+      const VArray<bool> cyclic = curves.cyclic();
+
+      Array<int> use_cuts(curves.points_num(), 0);
+
+      /* The cut is after each point, so the last point selected wouldn't need to be registered. */
+      for (const int curve : curves.curves_range()) {
+        /* No need to loop to the last point since the cut is registered on the point before the
+         * segment. */
+        for (const int point : points_by_curve[curve].drop_back(1)) {
+          /* The point itself should be selected. */
+          if (!selection[point]) {
+            continue;
+          }
+          /* If the next point in the curve is selected, then cut this segment. */
+          if (selection[point + 1]) {
+            use_cuts[point] = cuts;
+          }
+        }
+        /* Check for cyclic and selection. */
+        if (cyclic[curve]) {
+          const int first_point = points_by_curve[curve].first();
+          const int last_point = points_by_curve[curve].last();
+          if (selection[first_point] && selection[last_point]) {
+            use_cuts[last_point] = cuts;
+          }
+        }
+      }
+      vcuts = VArray<int>::ForContainer(std::move(use_cuts));
+    }
+
+    curves = geometry::subdivide_curves(curves, strokes, vcuts, {});
+    info.drawing.tag_topology_changed();
+    changed.store(true, std::memory_order_relaxed);
+  });
+
+  if (changed) {
+    DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+static void GREASE_PENCIL_OT_stroke_subdivide(wmOperatorType *ot)
+{
+  PropertyRNA *prop;
+
+  /* identifiers */
+  ot->name = "Subdivide Stroke";
+  ot->idname = "GREASE_PENCIL_OT_stroke_subdivide";
+  ot->description =
+      "Subdivide between continuous selected points of the stroke adding a point half way "
+      "between "
+      "them";
+
+  /* API callbacks. */
+  ot->exec = gpencil_stroke_subdivide_exec;
+  ot->poll = ed::greasepencil::editable_grease_pencil_poll;
+
+  /* Flags. */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* Properties. */
+  prop = RNA_def_int(ot->srna, "number_cuts", 1, 1, 32, "Number of Cuts", "", 1, 5);
+  /* Avoid re-using last var because it can cause _very_ high value and annoy users. */
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+  RNA_def_boolean(ot->srna,
+                  "only_selected",
+                  true,
+                  "Selected Points",
+                  "Smooth only selected points in the stroke");
+}
+
+/** \} */
+
+static void grease_pencil_operatormarcos_define()
+{
+  wmOperatorType *ot;
+
+  ot = WM_operatortype_append_macro("GREASE_PENCIL_OT_stroke_subdivide_smooth",
+                                    "Subdivide and Smooth",
+                                    "Subdivide strokes and smooth them",
+                                    OPTYPE_UNDO | OPTYPE_REGISTER);
+  WM_operatortype_macro_define(ot, "GREASE_PENCIL_OT_stroke_subdivide");
+  WM_operatortype_macro_define(ot, "GREASE_PENCIL_OT_stroke_smooth");
+}
+
 }  // namespace blender::ed::greasepencil
 
 void ED_operatortypes_grease_pencil_edit()
@@ -1662,6 +1794,9 @@ void ED_operatortypes_grease_pencil_edit()
   WM_operatortype_append(GREASE_PENCIL_OT_duplicate);
   WM_operatortype_append(GREASE_PENCIL_OT_set_material);
   WM_operatortype_append(GREASE_PENCIL_OT_clean_loose);
+  WM_operatortype_append(GREASE_PENCIL_OT_stroke_subdivide);
+
+  grease_pencil_operatormarcos_define();
 }
 
 void ED_keymap_grease_pencil(wmKeyConfig *keyconf)
