@@ -1797,7 +1797,7 @@ static Collection *single_object_users_collection(Main *bmain,
        * state currently. With current code, that would lead to a memory leak - because of
        * reasons. It would be a useless loss of computing anyway, since caller has to fully
        * refresh view-layers/collections caching at the end. */
-      BKE_collection_child_add_no_sync(collection, collection_child_new);
+      BKE_collection_child_add_no_sync(bmain, collection, collection_child_new);
       BLI_remlink(&collection->children, child);
       MEM_freeN(child);
       if (child == orig_child_last) {

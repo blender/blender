@@ -327,7 +327,7 @@ static bool rna_Collection_children_override_apply(Main *bmain,
   collchild_dst->collection = subcoll_src;
   id_us_plus(&collchild_dst->collection->id);
 
-  BKE_collection_object_cache_free(coll_dst);
+  BKE_collection_object_cache_free(bmain, coll_dst, 0);
   BKE_main_collection_sync(bmain);
 
   RNA_property_update_main(bmain, nullptr, ptr_dst, prop_dst);
@@ -368,7 +368,7 @@ static void rna_Collection_hide_render_set(PointerRNA *ptr, bool value)
 static void rna_Collection_flag_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
   Collection *collection = (Collection *)ptr->data;
-  BKE_collection_object_cache_free(collection);
+  BKE_collection_object_cache_free(bmain, collection, 0);
   BKE_main_collection_sync(bmain);
 
   DEG_id_tag_update(&collection->id, ID_RECALC_COPY_ON_WRITE);
