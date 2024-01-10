@@ -1227,7 +1227,6 @@ class SEQUENCER_MT_context_menu(Menu):
 
             layout.operator("sequencer.delete", text="Delete Retiming Keys")
 
-
     def draw(self, context):
         ed = context.scene.sequence_editor
         if ed.selected_retiming_keys:
