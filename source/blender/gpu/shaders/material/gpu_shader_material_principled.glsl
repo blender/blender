@@ -220,6 +220,8 @@ void node_bsdf_principled(vec4 base_color,
    * So this has no performance penalty. However, using a separate closure for subsurface
    * (just like for EEVEE-Next) would induce a huge performance hit. */
   ClosureSubsurface diffuse_data;
+  /* Flag subsurface as disabled by default. */
+  diffuse_data.sss_radius.b = -1.0;
 #else
   ClosureDiffuse diffuse_data;
 #endif
@@ -234,11 +236,7 @@ void node_bsdf_principled(vec4 base_color,
     /* Subsurface Scattering materials behave unpredictably with values greater than 1.0 in
      * Cycles. So it's clamped there and we clamp here for consistency with Cycles. */
     base_color = mix(base_color, clamped_base_color, subsurface_weight);
-
-    if (do_sss == 0.0) {
-      diffuse_data.sss_radius = vec3(-1);
-    }
-    else {
+    if (do_sss != 0.0) {
       diffuse_data.sss_radius = subsurface_weight * subsurface_radius;
     }
 #else
