@@ -67,6 +67,7 @@ Closure closure_eval(ClosureHair hair);
 Closure closure_eval(ClosureReflection reflection, ClosureRefraction refraction);
 /* Dielectric BSDF. */
 Closure closure_eval(ClosureDiffuse diffuse, ClosureReflection reflection);
+Closure closure_eval(ClosureSubsurface diffuse, ClosureReflection reflection);
 /* Coat BSDF. */
 Closure closure_eval(ClosureReflection reflection, ClosureReflection coat);
 /* Volume BSDF. */
