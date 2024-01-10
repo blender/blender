@@ -621,6 +621,110 @@ static bool curve_draw_init(bContext *C, wmOperator *op, bool is_invoke)
   return true;
 }
 
+static void create_Bezier(bke::CurvesGeometry &curves,
+                          bke::MutableAttributeAccessor &attributes,
+                          const CurveDrawData *cdd,
+                          const int curve_index,
+                          const bool is_cyclic,
+                          const uint cubic_spline_len,
+                          const int dims,
+                          const int radius_index,
+                          const float radius_max,
+                          const float *cubic_spline,
+                          const uint *corners_index,
+                          const uint corners_index_len)
+{
+  curves.resize(curves.points_num() + cubic_spline_len, curve_index + 1);
+
+  MutableSpan<float3> positions = curves.positions_for_write();
+  MutableSpan<float3> handle_positions_l = curves.handle_positions_left_for_write();
+  MutableSpan<float3> handle_positions_r = curves.handle_positions_right_for_write();
+  MutableSpan<int8_t> handle_types_l = curves.handle_types_left_for_write();
+  MutableSpan<int8_t> handle_types_r = curves.handle_types_right_for_write();
+
+  const IndexRange new_points = curves.points_by_curve()[curve_index];
+
+  bke::SpanAttributeWriter<float> radii = attributes.lookup_or_add_for_write_only_span<float>(
+      "radius", bke::AttrDomain::Point);
+
+  const float *co = cubic_spline;
+
+  for (const int64_t i : new_points) {
+    const float *handle_l = co + (dims * 0);
+    const float *pt = co + (dims * 1);
+    const float *handle_r = co + (dims * 2);
+
+    copy_v3_v3(handle_positions_l[i], handle_l);
+    copy_v3_v3(positions[i], pt);
+    copy_v3_v3(handle_positions_r[i], handle_r);
+
+    const float radius = (radius_index != -1) ?
+                             (pt[radius_index] * cdd->radius.range) + cdd->radius.min :
+                             radius_max;
+    radii.span[i] = radius;
+
+    handle_types_l[i] = BEZIER_HANDLE_ALIGN;
+    handle_types_r[i] = BEZIER_HANDLE_ALIGN;
+    co += (dims * 3);
+  }
+
+  if (corners_index) {
+    /* ignore the first and last */
+    uint i_start = 0, i_end = corners_index_len;
+
+    if ((corners_index_len >= 2) && !is_cyclic) {
+      i_start += 1;
+      i_end -= 1;
+    }
+
+    for (const auto i : IndexRange(i_start, i_end - i_start)) {
+      const int64_t corner_i = new_points[corners_index[i]];
+      handle_types_l[corner_i] = BEZIER_HANDLE_FREE;
+      handle_types_r[corner_i] = BEZIER_HANDLE_FREE;
+    }
+  }
+
+  radii.finish();
+}
+
+static void create_NURBS(bke::CurvesGeometry &curves,
+                         bke::MutableAttributeAccessor &attributes,
+                         const CurveDrawData *cdd,
+                         const int curve_index,
+                         const bool is_cyclic,
+                         const uint cubic_spline_len,
+                         const int dims,
+                         const int radius_index,
+                         const float radius_max,
+                         const float *cubic_spline)
+{
+  const int point_num = (cubic_spline_len - 2) * 3 + 4 + (is_cyclic ? 2 : 0);
+  curves.resize(curves.points_num() + point_num, curve_index + 1);
+
+  MutableSpan<float3> positions = curves.positions_for_write();
+  MutableSpan<float> weights = curves.nurbs_weights_for_write();
+
+  const IndexRange new_points = curves.points_by_curve()[curve_index];
+
+  bke::SpanAttributeWriter<float> radii = attributes.lookup_or_add_for_write_only_span<float>(
+      "radius", bke::AttrDomain::Point);
+  /* If cyclic shows to first left handle else first control point. */
+  const float *pt = cubic_spline + (is_cyclic ? 0 : dims);
+
+  for (const int64_t i : new_points) {
+    const float radius = (radius_index != -1) ?
+                             (pt[radius_index] * cdd->radius.range) + cdd->radius.min :
+                             radius_max;
+    copy_v3_v3(positions[i], pt);
+    weights[i] = 1.0f;
+    radii.span[i] = radius;
+
+    pt += dims;
+  }
+
+  radii.finish();
+}
+
 static int curves_draw_exec(bContext *C, wmOperator *op)
 {
   if (op->customdata == nullptr) {
@@ -648,6 +752,7 @@ static int curves_draw_exec(bContext *C, wmOperator *op)
   const float error_threshold = RNA_float_get(op->ptr, "error_threshold");
   const float corner_angle = RNA_float_get(op->ptr, "corner_angle");
   const bool use_cyclic = RNA_boolean_get(op->ptr, "use_cyclic");
+  const bool bezier_as_nurbs = RNA_boolean_get(op->ptr, "bezier_as_nurbs");
   bool is_cyclic = (stroke_len > 2) && use_cyclic;
 
   const float radius_min = cps->radius_min;
@@ -768,58 +873,45 @@ static int curves_draw_exec(bContext *C, wmOperator *op)
     }
 
     if (result == 0) {
-      curves.resize(curves.points_num() + cubic_spline_len, curve_index + 1);
-      curves.fill_curve_types(IndexRange(curve_index, 1), CURVE_TYPE_BEZIER);
-
-      MutableSpan<float3> positions = curves.positions_for_write();
-      MutableSpan<float3> handle_positions_l = curves.handle_positions_left_for_write();
-      MutableSpan<float3> handle_positions_r = curves.handle_positions_right_for_write();
-      MutableSpan<int8_t> handle_types_l = curves.handle_types_left_for_write();
-      MutableSpan<int8_t> handle_types_r = curves.handle_types_right_for_write();
-
-      const IndexRange new_points = curves.points_by_curve()[curve_index];
-
-      bke::SpanAttributeWriter<float> radii = attributes.lookup_or_add_for_write_only_span<float>(
-          "radius", bke::AttrDomain::Point);
-
-      float *co = cubic_spline;
-
-      for (const int64_t i : new_points) {
-        const float *handle_l = co + (dims * 0);
-        const float *pt = co + (dims * 1);
-        const float *handle_r = co + (dims * 2);
-
-        copy_v3_v3(handle_positions_l[i], handle_l);
-        copy_v3_v3(positions[i], pt);
-        copy_v3_v3(handle_positions_r[i], handle_r);
-
-        const float radius = (radius_index != -1) ?
-                                 (pt[radius_index] * cdd->radius.range) + cdd->radius.min :
-                                 radius_max;
-        radii.span[i] = radius;
-
-        handle_types_l[i] = BEZIER_HANDLE_ALIGN;
-        handle_types_r[i] = BEZIER_HANDLE_ALIGN;
-        co += (dims * 3);
+      int8_t knots_mode;
+      int8_t order;
+      CurveType curve_type;
+      if (bezier_as_nurbs) {
+        bool is_cyclic_curve = calc_flag & CURVE_FIT_CALC_CYCLIC;
+        create_NURBS(curves,
+                     attributes,
+                     cdd,
+                     curve_index,
+                     is_cyclic_curve,
+                     cubic_spline_len,
+                     dims,
+                     radius_index,
+                     radius_max,
+                     cubic_spline);
+        order = 4;
+        knots_mode = is_cyclic_curve ? NURBS_KNOT_MODE_BEZIER : NURBS_KNOT_MODE_ENDPOINT_BEZIER;
+        curve_type = CURVE_TYPE_NURBS;
       }
-
-      if (corners_index) {
-        /* ignore the first and last */
-        uint i_start = 0, i_end = corners_index_len;
-
-        if ((corners_index_len >= 2) && !is_cyclic) {
-          i_start += 1;
-          i_end -= 1;
-        }
-
-        for (const auto i : IndexRange(i_start, i_end - i_start)) {
-          const int64_t corner_i = new_points[corners_index[i]];
-          handle_types_l[corner_i] = BEZIER_HANDLE_FREE;
-          handle_types_r[corner_i] = BEZIER_HANDLE_FREE;
-        }
+      else {
+        create_Bezier(curves,
+                      attributes,
+                      cdd,
+                      curve_index,
+                      is_cyclic,
+                      cubic_spline_len,
+                      dims,
+                      radius_index,
+                      radius_max,
+                      cubic_spline,
+                      corners_index,
+                      corners_index_len);
+        order = 0;
+        knots_mode = 0;
+        curve_type = CURVE_TYPE_BEZIER;
       }
-
-      radii.finish();
+      curves.nurbs_knots_modes_for_write()[curve_index] = knots_mode;
+      curves.nurbs_orders_for_write()[curve_index] = order;
+      curves.fill_curve_types(IndexRange(curve_index, 1), curve_type);
 
       bke::AttributeWriter<bool> selection = attributes.lookup_or_add_for_write<bool>(
           ".selection", bke::AttrDomain::Curve);
@@ -837,12 +929,14 @@ static int curves_draw_exec(bContext *C, wmOperator *op)
                                          "handle_right",
                                          "handle_type_left",
                                          "handle_type_right",
+                                         "nurbs_weight",
                                          ".selection"},
-                                        new_points);
-      bke::fill_attribute_range_default(attributes,
-                                        bke::AttrDomain::Curve,
-                                        {"curve_type", "resolution", ".selection"},
-                                        IndexRange(curve_index, 1));
+                                        curves.points_by_curve()[curve_index]);
+      bke::fill_attribute_range_default(
+          attributes,
+          bke::AttrDomain::Curve,
+          {"curve_type", "resolution", "cyclic", "nurbs_order", "knots_mode", ".selection"},
+          IndexRange(curve_index, 1));
     }
 
     if (corners_index) {
@@ -1218,6 +1312,9 @@ void CURVES_OT_draw(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
   prop = RNA_def_boolean(ot->srna, "is_curve_2d", false, "Curve 2D", "");
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+
+  prop = RNA_def_boolean(ot->srna, "bezier_as_nurbs", false, "As NURBS", "");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
