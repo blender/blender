@@ -67,7 +67,8 @@ void forward_lighting_eval(float thickness, out vec3 radiance, out vec3 transmit
 #endif
 
 #ifdef MAT_SUBSURFACE
-  vec3 sss_profile = subsurface_transmission(g_diffuse_data.sss_radius, thickness);
+  vec3 sss_profile = subsurface_transmission(to_closure_subsurface(g_diffuse_data).sss_radius,
+                                             thickness);
   stack.cl[cl_subsurface_id].light_shadowed *= sss_profile;
   stack.cl[cl_subsurface_id].light_unshadowed *= sss_profile;
   /* Fuse back the SSS transmittance with the diffuse lighting. */
