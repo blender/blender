@@ -317,6 +317,69 @@ void blo_do_versions_400(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (MAIN_VERSION_ATLEAST(bmain, 400, 30)) {
+    /* Forward compatibility for #ts->snap_mode. */
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      ToolSettings *ts = scene->toolsettings;
+      enum { IS_DEFAULT = 0, IS_UV, IS_NODE };
+      auto versioning_snap_to = [](short snap_to_old, int type) {
+        eSnapMode snap_to_new = SCE_SNAP_MODE_NONE;
+        if (snap_to_old & (1 << 1)) {
+          snap_to_new |= type == IS_NODE ? SCE_SNAP_MODE_NODE_Y :
+                         type == IS_UV   ? SCE_SNAP_MODE_VERTEX :
+                                           SCE_SNAP_MODE_EDGE_MIDPOINT;
+        }
+        if (snap_to_old & (1 << 2)) {
+          snap_to_new |= type == IS_NODE ? SCE_SNAP_MODE_NODE_Y : SCE_SNAP_MODE_VERTEX;
+        }
+        if (snap_to_old & (1 << 3)) {
+          snap_to_new |= type == IS_NODE ? SCE_SNAP_MODE_NODE_Y :
+                         type == IS_UV   ? SCE_SNAP_MODE_VERTEX :
+                                           SCE_SNAP_MODE_EDGE_PERPENDICULAR;
+        }
+        if (snap_to_old & (1 << 4)) {
+          snap_to_new |= type == IS_NODE ? SCE_SNAP_MODE_NODE_Y :
+                         type == IS_UV   ? SCE_SNAP_MODE_VERTEX :
+                                           SCE_SNAP_MODE_EDGE;
+        }
+        if (snap_to_old & (1 << 5)) {
+          snap_to_new |= type == IS_NODE ? SCE_SNAP_MODE_NODE_Y :
+                         type == IS_UV   ? SCE_SNAP_MODE_VERTEX :
+                                           SCE_SNAP_MODE_FACE_RAYCAST;
+        }
+        if (snap_to_old & (1 << 6)) {
+          snap_to_new |= type == IS_NODE ? SCE_SNAP_MODE_NODE_Y :
+                         type == IS_UV   ? SCE_SNAP_MODE_VERTEX :
+                                           SCE_SNAP_MODE_VOLUME;
+        }
+        if (snap_to_old & (1 << 7)) {
+          snap_to_new |= type == IS_NODE ? SCE_SNAP_MODE_NODE_Y :
+                         type == IS_UV   ? SCE_SNAP_MODE_VERTEX :
+                                           SCE_SNAP_MODE_GRID;
+        }
+        if (snap_to_old & (1 << 8)) {
+          snap_to_new |= SCE_SNAP_MODE_INCREMENT;
+        }
+        if (snap_to_old & (1 << 9)) {
+          snap_to_new |= SCE_SNAP_MODE_FACE_NEAREST;
+        }
+        if (snap_to_old & (1 << 10)) {
+          snap_to_new |= SCE_SNAP_MODE_FACE_RAYCAST;
+        }
+
+        if (!snap_to_new) {
+          snap_to_new = eSnapMode(1 << 0);
+        }
+
+        return snap_to_new;
+      };
+
+      ts->snap_mode = versioning_snap_to(ts->snap_mode, IS_DEFAULT);
+      ts->snap_node_mode = versioning_snap_to(ts->snap_node_mode, IS_NODE);
+      ts->snap_uv_mode = versioning_snap_to(ts->snap_uv_mode, IS_UV);
+    }
+  }
+
   if (MAIN_VERSION_ATLEAST(bmain, 401, 4)) {
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ntree->type != NTREE_CUSTOM) {
