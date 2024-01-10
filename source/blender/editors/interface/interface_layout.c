@@ -5129,29 +5129,30 @@ static bool button_matches_search_filter(uiBut *but, const char *search_filter)
     if (but->type == UI_BTYPE_MENU) {
       PointerRNA *ptr = &but->rnapoin;
       PropertyRNA *enum_prop = but->rnaprop;
-
       int items_len;
       const EnumPropertyItem *items_array = NULL;
       bool free;
       RNA_property_enum_items_gettexted(NULL, ptr, enum_prop, &items_array, &items_len, &free);
-      BLI_SCOPED_DEFER([&] {
-        if (free) {
-          MEM_freeN((EnumPropertyItem *)items_array);
-        }
-      });
-
       if (items_array == NULL) {
         return false;
       }
 
+      bool found = false;
       for (int i = 0; i < items_len; i++) {
         /* Check for NULL name field which enums use for separators. */
         if (items_array[i].name == NULL) {
           continue;
         }
         if (BLI_strcasestr(items_array[i].name, search_filter)) {
-          return true;
+          found = true;
+          break;
         }
+      }
+      if (free) {
+        MEM_freeN((EnumPropertyItem *)items_array);
+      }
+      if (found) {
+        return true;
       }
     }
   }
