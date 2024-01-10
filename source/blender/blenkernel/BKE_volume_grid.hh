@@ -140,12 +140,6 @@ class VolumeGridData : public ImplicitSharingMixin {
   ~VolumeGridData();
 
   /**
-   * Get an access token for the underlying tree. This is necessary to be able to detect whether
-   * the grid is currently unused so that it can be safely unloaded.
-   */
-  VolumeTreeAccessToken tree_access_token() const;
-
-  /**
    * Create a copy of the volume grid. This should generally only be done when the current grid is
    * shared and one owner wants to modify it.
    *
@@ -158,22 +152,20 @@ class VolumeGridData : public ImplicitSharingMixin {
    * Get the underlying OpenVDB grid for read-only access. This may load the tree lazily if it's
    * not loaded already.
    */
-  const openvdb::GridBase &grid(const VolumeTreeAccessToken &tree_access_token) const;
+  const openvdb::GridBase &grid(VolumeTreeAccessToken &r_token) const;
   /**
    * Get the underlying OpenVDB grid for read and write access. This may load the tree lazily if
    * it's not loaded already. It may also make a copy of the tree if it's currently shared.
    */
-  openvdb::GridBase &grid_for_write(const VolumeTreeAccessToken &tree_access_token);
+  openvdb::GridBase &grid_for_write(VolumeTreeAccessToken &r_token);
 
   /**
    * Same as #grid and #grid_for_write but returns the grid as a `shared_ptr` so that it can be
    * used with APIs that only support grids wrapped into one. This method is not supposed to
    * actually transfer ownership of the grid.
    */
-  std::shared_ptr<const openvdb::GridBase> grid_ptr(
-      const VolumeTreeAccessToken &tree_access_token) const;
-  std::shared_ptr<openvdb::GridBase> grid_ptr_for_write(
-      const VolumeTreeAccessToken &tree_access_token);
+  std::shared_ptr<const openvdb::GridBase> grid_ptr(VolumeTreeAccessToken &r_token) const;
+  std::shared_ptr<openvdb::GridBase> grid_ptr_for_write(VolumeTreeAccessToken &r_token);
 
   /**
    * Get the name of the grid that's stored in the grid meta-data.
@@ -319,8 +311,8 @@ template<typename T> class VolumeGrid : public GVolumeGrid {
   /**
    * Wraps the same methods on #VolumeGridData but casts to the correct OpenVDB type.
    */
-  const OpenvdbGridType<T> &grid(const VolumeTreeAccessToken &tree_access_token) const;
-  OpenvdbGridType<T> &grid_for_write(const VolumeTreeAccessToken &tree_access_token);
+  const OpenvdbGridType<T> &grid(VolumeTreeAccessToken &r_token) const;
+  OpenvdbGridType<T> &grid_for_write(VolumeTreeAccessToken &r_token);
 
  private:
   void assert_correct_type() const;
@@ -381,18 +373,15 @@ inline VolumeGrid<T>::VolumeGrid(std::shared_ptr<OpenvdbGridType<T>> grid)
 }
 
 template<typename T>
-inline const OpenvdbGridType<T> &VolumeGrid<T>::grid(
-    const VolumeTreeAccessToken &tree_access_token) const
+inline const OpenvdbGridType<T> &VolumeGrid<T>::grid(VolumeTreeAccessToken &r_token) const
 {
-  return static_cast<const OpenvdbGridType<T> &>(data_->grid(tree_access_token));
+  return static_cast<const OpenvdbGridType<T> &>(data_->grid(r_token));
 }
 
 template<typename T>
-inline OpenvdbGridType<T> &VolumeGrid<T>::grid_for_write(
-    const VolumeTreeAccessToken &tree_access_token)
+inline OpenvdbGridType<T> &VolumeGrid<T>::grid_for_write(VolumeTreeAccessToken &r_token)
 {
-  return static_cast<OpenvdbGridType<T> &>(
-      this->get_for_write().grid_for_write(tree_access_token));
+  return static_cast<OpenvdbGridType<T> &>(this->get_for_write().grid_for_write(r_token));
 }
 
 template<typename T> inline void VolumeGrid<T>::assert_correct_type() const
