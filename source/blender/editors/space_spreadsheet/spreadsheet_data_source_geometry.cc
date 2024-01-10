@@ -266,7 +266,7 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
       if (STREQ(column_id.name, "Scale")) {
         return std::make_unique<ColumnValues>(
             column_id.name, VArray<float3>::ForFunc(domain_num, [transforms](int64_t index) {
-              return math::to_scale(transforms[index]);
+              return math::to_scale<true>(transforms[index]);
             }));
       }
     }

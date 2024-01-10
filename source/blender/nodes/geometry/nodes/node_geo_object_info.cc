@@ -58,10 +58,10 @@ static void node_geo_exec(GeoNodeExecParams params)
   float3 location, scale;
   math::Quaternion rotation;
   if (transform_space_relative) {
-    math::to_loc_rot_scale(transform, location, rotation, scale);
+    math::to_loc_rot_scale<true>(transform, location, rotation, scale);
   }
   else {
-    math::to_loc_rot_scale(object_matrix, location, rotation, scale);
+    math::to_loc_rot_scale<true>(object_matrix, location, rotation, scale);
   }
   params.set_output("Location", location);
   params.set_output("Rotation", rotation);
