@@ -128,6 +128,16 @@ void fill_selection_true(GMutableSpan selection)
   }
 }
 
+void fill_selection(GMutableSpan selection, bool value)
+{
+  if (selection.type().is<bool>()) {
+    selection.typed<bool>().fill(value);
+  }
+  else if (selection.type().is<float>()) {
+    selection.typed<float>().fill(value ? 1.0f : 0.0f);
+  }
+}
+
 void fill_selection_false(GMutableSpan selection, const IndexMask &mask)
 {
   if (selection.type().is<bool>()) {
