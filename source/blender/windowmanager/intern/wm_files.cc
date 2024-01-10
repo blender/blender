@@ -3576,15 +3576,15 @@ void WM_OT_save_mainfile(wmOperatorType *ot)
 /** \name Clear Recent Files List Operator
  * \{ */
 
-static void wm_clear_recent_files_warning(bContext * /*C*/,
+static void wm_clear_recent_files_confirm(bContext * /*C*/,
                                           wmOperator * /*op*/,
-                                          wmWarningDetails *warning)
+                                          wmConfirmDetails *confirm)
 {
-  STRNCPY(warning->message, IFACE_("Remove all items from the Recent Files list"));
-  STRNCPY(warning->confirm_button, IFACE_("Remove All"));
-  warning->position = WM_WARNING_POSITION_CENTER;
-  warning->size = WM_WARNING_SIZE_LARGE;
-  warning->cancel_default = true;
+  STRNCPY(confirm->message, IFACE_("Remove all items from the Recent Files list"));
+  STRNCPY(confirm->confirm_button, IFACE_("Remove All"));
+  confirm->position = WM_WARNING_POSITION_CENTER;
+  confirm->size = WM_WARNING_SIZE_LARGE;
+  confirm->cancel_default = true;
 }
 
 static int wm_clear_recent_files_exec(bContext * /*C*/, wmOperator * /*op*/)
@@ -3603,7 +3603,7 @@ void WM_OT_clear_recent_files(wmOperatorType *ot)
 
   ot->invoke = WM_operator_confirm;
   ot->exec = wm_clear_recent_files_exec;
-  ot->warning = wm_clear_recent_files_warning;
+  ot->confirm = wm_clear_recent_files_confirm;
 }
 
 /** \} */
