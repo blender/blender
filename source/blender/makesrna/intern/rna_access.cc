@@ -4586,8 +4586,17 @@ int RNA_property_collection_raw_array(
       case PROP_RAW_CHAR: \
         var = (dtype)((char *)raw.array)[a]; \
         break; \
+      case PROP_RAW_INT8: \
+        var = (dtype)((int8_t *)raw.array)[a]; \
+        break; \
+      case PROP_RAW_UINT8: \
+        var = (dtype)((uint8_t *)raw.array)[a]; \
+        break; \
       case PROP_RAW_SHORT: \
         var = (dtype)((short *)raw.array)[a]; \
+        break; \
+      case PROP_RAW_UINT16: \
+        var = (dtype)((uint16_t *)raw.array)[a]; \
         break; \
       case PROP_RAW_INT: \
         var = (dtype)((int *)raw.array)[a]; \
@@ -4601,6 +4610,12 @@ int RNA_property_collection_raw_array(
       case PROP_RAW_DOUBLE: \
         var = (dtype)((double *)raw.array)[a]; \
         break; \
+      case PROP_RAW_INT64: \
+        var = (dtype)((int64_t *)raw.array)[a]; \
+        break; \
+      case PROP_RAW_UINT64: \
+        var = (dtype)((uint64_t *)raw.array)[a]; \
+        break; \
       default: \
         var = (dtype)0; \
     } \
@@ -4613,8 +4628,17 @@ int RNA_property_collection_raw_array(
       case PROP_RAW_CHAR: \
         ((char *)raw.array)[a] = char(var); \
         break; \
+      case PROP_RAW_INT8: \
+        ((int8_t *)raw.array)[a] = int8_t(var); \
+        break; \
+      case PROP_RAW_UINT8: \
+        ((uint8_t *)raw.array)[a] = uint8_t(var); \
+        break; \
       case PROP_RAW_SHORT: \
         ((short *)raw.array)[a] = short(var); \
+        break; \
+      case PROP_RAW_UINT16: \
+        ((uint16_t *)raw.array)[a] = uint16_t(var); \
         break; \
       case PROP_RAW_INT: \
         ((int *)raw.array)[a] = int(var); \
@@ -4628,6 +4652,12 @@ int RNA_property_collection_raw_array(
       case PROP_RAW_DOUBLE: \
         ((double *)raw.array)[a] = double(var); \
         break; \
+      case PROP_RAW_INT64: \
+        ((int64_t *)raw.array)[a] = int64_t(var); \
+        break; \
+      case PROP_RAW_UINT64: \
+        ((uint64_t *)raw.array)[a] = uint64_t(var); \
+        break; \
       default: \
         break; \
     } \
@@ -4639,8 +4669,14 @@ int RNA_raw_type_sizeof(RawPropertyType type)
   switch (type) {
     case PROP_RAW_CHAR:
       return sizeof(char);
+    case PROP_RAW_INT8:
+      return sizeof(int8_t);
+    case PROP_RAW_UINT8:
+      return sizeof(uint8_t);
     case PROP_RAW_SHORT:
       return sizeof(short);
+    case PROP_RAW_UINT16:
+      return sizeof(uint16_t);
     case PROP_RAW_INT:
       return sizeof(int);
     case PROP_RAW_BOOLEAN:
@@ -4649,6 +4685,10 @@ int RNA_raw_type_sizeof(RawPropertyType type)
       return sizeof(float);
     case PROP_RAW_DOUBLE:
       return sizeof(double);
+    case PROP_RAW_INT64:
+      return sizeof(int64_t);
+    case PROP_RAW_UINT64:
+      return sizeof(uint64_t);
     default:
       return 0;
   }
