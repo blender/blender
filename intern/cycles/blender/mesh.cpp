@@ -237,11 +237,14 @@ static void mikk_compute_tangents(
   }
 }
 
-static void attr_create_motion(Mesh *mesh,
-                               const blender::Span<blender::float3> b_attr,
-                               const float motion_scale)
+static void attr_create_motion_from_velocity(Mesh *mesh,
+                                             const blender::Span<blender::float3> b_attr,
+                                             const float motion_scale)
 {
   const int numverts = mesh->get_verts().size();
+
+  /* Override motion steps to fixed number. */
+  mesh->set_motion_steps(3);
 
   /* Find or add attribute */
   float3 *P = &mesh->get_verts()[0];
@@ -289,7 +292,7 @@ static void attr_create_generic(Scene *scene,
     if (need_motion && name == u_velocity) {
       const blender::VArraySpan b_attribute = *b_attributes.lookup<blender::float3>(
           id, blender::bke::AttrDomain::Point);
-      attr_create_motion(mesh, b_attribute, motion_scale);
+      attr_create_motion_from_velocity(mesh, b_attribute, motion_scale);
     }
 
     if (!(mesh->need_attribute(scene, name) ||

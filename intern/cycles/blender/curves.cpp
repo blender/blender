@@ -683,11 +683,14 @@ static void fill_generic_attribute(const int num_curves,
   }
 }
 
-static void attr_create_motion(Hair *hair,
-                               const blender::Span<blender::float3> src,
-                               const float motion_scale)
+static void attr_create_motion_from_velocity(Hair *hair,
+                                             const blender::Span<blender::float3> src,
+                                             const float motion_scale)
 {
   const int num_curve_keys = hair->get_curve_keys().size();
+
+  /* Override motion steps to fixed number. */
+  hair->set_motion_steps(3);
 
   /* Find or add attribute */
   float3 *P = &hair->get_curve_keys()[0];
@@ -732,7 +735,7 @@ static void attr_create_generic(Scene *scene,
     if (need_motion && name == u_velocity) {
       const blender::VArraySpan b_attr = *b_attributes.lookup<blender::float3>(
           id, blender::bke::AttrDomain::Point);
-      attr_create_motion(hair, b_attr, motion_scale);
+      attr_create_motion_from_velocity(hair, b_attr, motion_scale);
       return true;
     }
 

@@ -22,11 +22,14 @@
 
 CCL_NAMESPACE_BEGIN
 
-static void attr_create_motion(PointCloud *pointcloud,
-                               const blender::Span<blender::float3> b_attribute,
-                               const float motion_scale)
+static void attr_create_motion_from_velocity(PointCloud *pointcloud,
+                                             const blender::Span<blender::float3> b_attribute,
+                                             const float motion_scale)
 {
   const int num_points = pointcloud->get_points().size();
+
+  /* Override motion steps to fixed number. */
+  pointcloud->set_motion_steps(3);
 
   /* Find or add attribute */
   float3 *P = pointcloud->get_points().data();
@@ -69,7 +72,7 @@ static void copy_attributes(PointCloud *pointcloud,
 
     if (need_motion && name == u_velocity) {
       const blender::VArraySpan b_attr = *b_attributes.lookup<blender::float3>(id);
-      attr_create_motion(pointcloud, b_attr, motion_scale);
+      attr_create_motion_from_velocity(pointcloud, b_attr, motion_scale);
     }
 
     if (attributes.find(name)) {
