@@ -593,7 +593,7 @@ MANTA::~MANTA()
  * with some differences:
  * - Doesn't touch `sys.modules`, use #manta_python_main_module_activate instead.
  * - Returns the module instead of the modules `dict`.
- * */
+ */
 static PyObject *manta_python_main_module_create(const char *filename)
 {
   PyObject *builtins = PyEval_GetBuiltins();

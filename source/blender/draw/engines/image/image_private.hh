@@ -38,7 +38,7 @@ struct IMAGE_Data {
  *
  * The drawing mode decides how to draw the image on the screen. Each way how to draw would have
  * its own subclass. For now there is only a single drawing mode. #DefaultDrawingMode.
- **/
+ */
 class AbstractDrawingMode {
  public:
   virtual ~AbstractDrawingMode() = default;

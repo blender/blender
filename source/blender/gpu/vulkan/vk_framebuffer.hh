@@ -27,7 +27,7 @@ class VKFrameBuffer : public FrameBuffer {
   VkFramebuffer vk_framebuffer_ = VK_NULL_HANDLE;
   /* Vulkan device who created the handle. */
   VkDevice vk_device_ = VK_NULL_HANDLE;
-  /* Base render pass used for framebuffer creation. */
+  /* Base render pass used for frame-buffer creation. */
   VkRenderPass vk_render_pass_ = VK_NULL_HANDLE;
   /* Number of layers if the attachments are layered textures. */
   int depth_ = 1;
@@ -40,8 +40,8 @@ class VKFrameBuffer : public FrameBuffer {
 
  public:
   /**
-   * Create a conventional framebuffer to attach texture to.
-   **/
+   * Create a conventional frame-buffer to attach texture to.
+   */
   VKFrameBuffer(const char *name);
 
   ~VKFrameBuffer();

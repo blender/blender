@@ -2754,7 +2754,7 @@ static void calc_brush_local_mat(const float rotation,
    * the brush). */
   angle = rotation + cache->special_rotation;
   /* By convention, motion direction points down the brush's Y axis, the angle represents the X
-   * axis, normal is a 90 deg ccw rotation of the motion direction. */
+   * axis, normal is a 90 deg CCW rotation of the motion direction. */
   float motion_normal_screen[2];
   motion_normal_screen[0] = cosf(angle);
   motion_normal_screen[1] = sinf(angle);

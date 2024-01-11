@@ -29,7 +29,7 @@ struct EditFontSelBox {
 
 /**
  * Edit data for #Curve (a text curve, with an #Object::type of `OB_FONT`).
- * */
+ */
 struct EditFont {
   /** Array of UTF32 code-points. */
   char32_t *textbuf;

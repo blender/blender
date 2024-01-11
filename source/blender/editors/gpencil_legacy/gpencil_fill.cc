@@ -159,7 +159,7 @@ struct tGPDfill {
   int fill_simplylvl;
   /** boundary limits drawing mode */
   int fill_draw_mode;
-  /** types of extensions **/
+  /** Types of extensions. */
   int fill_extend_mode;
   /* scaling factor */
   float fill_factor;
