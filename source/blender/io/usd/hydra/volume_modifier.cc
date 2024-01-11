@@ -17,10 +17,6 @@
 
 #include "hydra_scene_delegate.h"
 
-PXR_NAMESPACE_OPEN_SCOPE
-TF_DEFINE_PRIVATE_TOKENS(grid_tokens_, (density)(flame)(shadow)(temperature)(velocity));
-PXR_NAMESPACE_CLOSE_SCOPE
-
 namespace blender::io::hydra {
 
 VolumeModifierData::VolumeModifierData(HydraSceneDelegate *scene_delegate,
@@ -62,7 +58,13 @@ void VolumeModifierData::init()
                                    scene_delegate_->scene->r.cfra);
   ID_LOG(1, "%s", filepath_.c_str());
 
-  for (auto &grid_name : pxr::grid_tokens_->allTokens) {
+  static const pxr::TfToken grid_tokens[] = {pxr::TfToken("density", pxr::TfToken::Immortal),
+                                             pxr::TfToken("flame", pxr::TfToken::Immortal),
+                                             pxr::TfToken("shadow", pxr::TfToken::Immortal),
+                                             pxr::TfToken("temperature", pxr::TfToken::Immortal),
+                                             pxr::TfToken("velocity", pxr::TfToken::Immortal)};
+
+  for (const auto &grid_name : grid_tokens) {
     field_descriptors_.emplace_back(grid_name,
                                     pxr::UsdVolImagingTokens->openvdbAsset,
                                     prim_id.AppendElementString("VF_" + grid_name.GetString()));
