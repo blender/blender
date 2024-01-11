@@ -408,6 +408,7 @@ static bool fake_keys_draw(const bContext *C,
     SeqRetimingKey fake_key;
     fake_key.strip_frame_index = (right_key_frame - SEQ_time_start_frame_get(seq)) *
                                  SEQ_time_media_playback_rate_factor_get(scene, seq);
+    fake_key.flag = 0;
     retime_key_draw(C, seq, &fake_key, sh_bindings, selection);
   }
   return true;
