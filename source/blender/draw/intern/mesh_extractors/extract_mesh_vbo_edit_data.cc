@@ -321,18 +321,23 @@ static void extract_edit_data_loose_geom_subdiv(const DRWSubdivCache *subdiv_cac
     memset(data, 0, sizeof(EditLoopData));
     const int edge_index = loose_edge.coarse_edge_index;
     BMEdge *eed = mr->e_origindex ? bm_original_edge_get(mr, edge_index) :
-                                    BM_edge_at_index(mr->bm, edge_index);
-    mesh_render_data_edge_flag(mr, eed, &data[0]);
-    data[1] = data[0];
+                                   BM_edge_at_index(mr->bm, edge_index);
+    if (eed) {
+      mesh_render_data_edge_flag(mr, eed, &data[0]);
+      data[1] = data[0];
 
-    const DRWSubdivLooseVertex &v1 = loose_geom.verts[loose_edge.loose_subdiv_v1_index];
-    const DRWSubdivLooseVertex &v2 = loose_geom.verts[loose_edge.loose_subdiv_v2_index];
+      const DRWSubdivLooseVertex &v1 = loose_geom.verts[loose_edge.loose_subdiv_v1_index];
+      const DRWSubdivLooseVertex &v2 = loose_geom.verts[loose_edge.loose_subdiv_v2_index];
 
-    if (v1.coarse_vertex_index != -1u) {
-      mesh_render_data_vert_flag(mr, eed->v1, &data[0]);
+      if (v1.coarse_vertex_index != -1u) {
+        mesh_render_data_vert_flag(mr, eed->v1, &data[0]);
+      }
+      if (v2.coarse_vertex_index != -1u) {
+        mesh_render_data_vert_flag(mr, eed->v2, &data[1]);
+      }
     }
-    if (v2.coarse_vertex_index != -1u) {
-      mesh_render_data_vert_flag(mr, eed->v2, &data[1]);
+    else {
+      memset(&data[1], 0, sizeof(EditLoopData));
     }
   }
 }
