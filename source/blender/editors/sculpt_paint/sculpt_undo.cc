@@ -1434,7 +1434,7 @@ static Node *geometry_push(Object *object, Type type)
 static void store_face_sets(const Mesh &mesh, Node &unode)
 {
   array_utils::gather(
-      *mesh.attributes().lookup_or_default<int>(".sculpt_face_set", bke::AttrDomain::Face, 0),
+      *mesh.attributes().lookup_or_default<int>(".sculpt_face_set", bke::AttrDomain::Face, 1),
       unode.face_indices.as_span(),
       unode.face_sets.as_mutable_span());
 }
