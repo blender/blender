@@ -1157,6 +1157,9 @@ bool armature_bonecoll_is_descendant_of(const bArmature *armature,
                                         const int potential_parent_index,
                                         const int potential_descendant_index)
 {
+  BLI_assert_msg(potential_descendant_index >= 0,
+                 "Potential descendant has to exist for this function call to make sense.");
+
   if (armature_bonecoll_is_child_of(armature, potential_parent_index, potential_descendant_index))
   {
     /* Found a direct child. */
