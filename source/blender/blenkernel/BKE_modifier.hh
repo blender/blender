@@ -68,6 +68,22 @@ enum class ModifierTypeType {
 enum ModifierTypeFlag {
   eModifierTypeFlag_AcceptsMesh = (1 << 0),
   eModifierTypeFlag_AcceptsCVs = (1 << 1),
+  /**
+   * Modifiers that enable this flag can have the modifiers "On Cage" option toggled,
+   * see: #eModifierMode_OnCage, where the output of the modifier can be selected directly.
+   * In some cases the cage geometry use read to tool code as well (loop-cut & knife are examples).
+   *
+   * When set, geometry from the resulting mesh can be mapped back to the original indices
+   * via #CD_ORIGINDEX.
+   *
+   * While many modifiers using this flag preserve the order of geometry arrays,
+   * this isn't always the case, this flag doesn't imply #ModifierTypeType::OnlyDeform.
+   * Geometry from the original mesh may be removed from the resulting mesh or new geometry
+   * may be added (where the #CD_ORIGINDEX value will be #ORIGINDEX_NONE).
+   *
+   * Modifiers that create entirely new geometry from the input should not enable this flag
+   * because none of the geometry will be selectable when "On Cage" is enabled.
+   */
   eModifierTypeFlag_SupportsMapping = (1 << 2),
   eModifierTypeFlag_SupportsEditmode = (1 << 3),
 
