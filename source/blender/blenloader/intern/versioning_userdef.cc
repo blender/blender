@@ -262,6 +262,18 @@ void blo_do_versions_userdef(UserDef *userdef)
     userdef->pad_rot_angle = 15.0f;
   }
 
+  /* If the userdef was created on a different platform, it may have an
+   * unsupported GPU backend selected.  If so, pick a supported default. */
+#ifdef __APPLE__
+  if (userdef->gpu_backend == GPU_BACKEND_OPENGL) {
+    userdef->gpu_backend = GPU_BACKEND_METAL;
+  }
+#else
+  if (userdef->gpu_backend == GPU_BACKEND_METAL) {
+    userdef->gpu_backend = GPU_BACKEND_OPENGL;
+  }
+#endif
+
   /* graph editor - unselected F-Curve visibility */
   if (userdef->fcu_inactive_alpha == 0) {
     userdef->fcu_inactive_alpha = 0.25f;
@@ -854,15 +866,6 @@ void blo_do_versions_userdef(UserDef *userdef)
     /* obj and ply python addons were removed. */
     BKE_addon_remove_safe(&userdef->addons, "io_mesh_ply");
     BKE_addon_remove_safe(&userdef->addons, "io_scene_obj");
-  }
-
-  if (!USER_VERSION_ATLEAST(400, 12)) {
-#ifdef __APPLE__
-    /* Drop OpenGL support on MAC devices as they don't support OpenGL 4.3. */
-    if (userdef->gpu_backend == GPU_BACKEND_OPENGL) {
-      userdef->gpu_backend = GPU_BACKEND_METAL;
-    }
-#endif
   }
 
   if (!USER_VERSION_ATLEAST(400, 15)) {
