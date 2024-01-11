@@ -422,6 +422,7 @@ void DeferredLayerBase::gbuffer_pass_sync(Instance &inst)
                                  {GPU_ATTACHEMENT_WRITE,
                                   GPU_ATTACHEMENT_WRITE,
                                   GPU_ATTACHEMENT_WRITE,
+                                  GPU_ATTACHEMENT_WRITE,
                                   GPU_ATTACHEMENT_WRITE});
   /* G-buffer. */
   gbuffer_ps_.bind_image(GBUF_NORMAL_SLOT, &inst.gbuffer.normal_img_tx);
@@ -518,6 +519,7 @@ void DeferredLayer::end_sync()
       sub.subpass_transition(GPU_ATTACHEMENT_WRITE, /* Needed for depth test. */
                              {GPU_ATTACHEMENT_IGNORE,
                               GPU_ATTACHEMENT_READ, /* Header. */
+                              GPU_ATTACHEMENT_IGNORE,
                               GPU_ATTACHEMENT_IGNORE,
                               GPU_ATTACHEMENT_IGNORE});
       sub.shader_set(sh);
