@@ -105,6 +105,22 @@ static const char *shortcut_get_operator_property(bContext *C, uiBut *but, IDPro
     }
   }
 
+  if (MenuType *mt = UI_but_menutype_get(but)) {
+    const IDPropertyTemplate val = {0};
+    IDProperty *prop = IDP_New(IDP_GROUP, &val, __func__);
+    IDP_AddToGroup(prop, IDP_NewString(mt->idname, "name"));
+    *r_prop = prop;
+    return "WM_OT_call_menu";
+  }
+
+  if (PanelType *pt = UI_but_paneltype_get(but)) {
+    const IDPropertyTemplate val = {0};
+    IDProperty *prop = IDP_New(IDP_GROUP, &val, __func__);
+    IDP_AddToGroup(prop, IDP_NewString(pt->idname, "name"));
+    *r_prop = prop;
+    return "WM_OT_call_panel";
+  }
+
   *r_prop = nullptr;
   return nullptr;
 }
