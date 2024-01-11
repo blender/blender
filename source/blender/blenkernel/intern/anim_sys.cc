@@ -3235,7 +3235,7 @@ static void animsys_create_action_track_strip(const AnimData *adt,
   /* Must set NLASTRIP_FLAG_USR_INFLUENCE, or else the default setting overrides, and influence
    * doesn't work.
    */
-  r_action_strip->flag |= NLASTRIP_FLAG_USR_INFLUENCE;
+  r_action_strip->flag |= NLASTRIP_FLAG_USR_INFLUENCE | NLASTRIP_FLAG_NO_TIME_MAP;
 
   const bool tweaking = (adt->flag & ADT_NLA_EDIT_ON) != 0;
   const bool soloing = (adt->flag & ADT_NLA_SOLO_TRACK) != 0;
