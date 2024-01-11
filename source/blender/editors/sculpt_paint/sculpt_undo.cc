@@ -655,19 +655,17 @@ static bool restore_mask(Object *ob, Node &unode, MutableSpan<bool> modified_ver
 
 static bool restore_face_sets(Object *ob, Node &unode, MutableSpan<bool> modified_face_set_faces)
 {
-  bke::SpanAttributeWriter<int> face_sets = face_set::ensure_face_sets_mesh(*ob);
-
-  bool modified = false;
   const Span<int> face_indices = unode.face_indices;
 
+  bke::SpanAttributeWriter<int> face_sets = face_set::ensure_face_sets_mesh(*ob);
+  bool modified = false;
   for (const int i : face_indices.index_range()) {
-    int face_index = face_indices[i];
-    if (unode.face_sets[i] != face_sets.span[face_index]) {
-      modified_face_set_faces[face_index] = true;
-      modified = true;
+    const int face = face_indices[i];
+    if (unode.face_sets[i] == face_sets.span[face]) {
+      continue;
     }
-
-    std::swap(unode.face_sets[i], face_sets.span[face_index]);
+    modified_face_set_faces[face] = true;
+    modified = true;
   }
   face_sets.finish();
   return modified;
