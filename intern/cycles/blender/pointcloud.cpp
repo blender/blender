@@ -18,7 +18,7 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_attribute_math.hh"
-#include "BKE_pointcloud.h"
+#include "BKE_pointcloud.hh"
 
 CCL_NAMESPACE_BEGIN
 

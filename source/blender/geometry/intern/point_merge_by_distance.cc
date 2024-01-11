@@ -11,7 +11,7 @@
 
 #include "BKE_attribute_math.hh"
 #include "BKE_geometry_set.hh"
-#include "BKE_pointcloud.h"
+#include "BKE_pointcloud.hh"
 
 #include "GEO_point_merge_by_distance.hh"
 #include "GEO_randomize.hh"

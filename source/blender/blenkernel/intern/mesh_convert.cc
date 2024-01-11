@@ -49,7 +49,7 @@
 /* -- */
 #include "BKE_object.hh"
 /* -- */
-#include "BKE_pointcloud.h"
+#include "BKE_pointcloud.hh"
 
 #include "BKE_curve_to_mesh.hh"
 
