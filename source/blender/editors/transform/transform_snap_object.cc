@@ -2265,38 +2265,38 @@ static eSnapMode snapCurve(SnapObjectContext *sctx,
           }
 
           /* Don't snap if handle is selected (moving),
-            * or if it is aligning to a moving handle. */
+           * or if it is aligning to a moving handle. */
           bool is_selected_h1 = (nu->bezt[u].f1 & SELECT) != 0;
           bool is_selected_h2 = (nu->bezt[u].f3 & SELECT) != 0;
           bool is_autoalign_h1 = (nu->bezt[u].h1 & HD_ALIGN) != 0;
           bool is_autoalign_h2 = (nu->bezt[u].h2 & HD_ALIGN) != 0;
           if (!skip_selected || !(is_selected_h1 || (is_autoalign_h1 && is_selected_h2))) {
             has_snap |= test_projected_vert_dist(&neasrest_precalc,
-                                                  clip_planes_local,
-                                                  clip_plane_len,
-                                                  is_persp,
-                                                  nu->bezt[u].vec[0],
-                                                  &dist_px_sq,
-                                                  r_loc);
+                                                 clip_planes_local,
+                                                 clip_plane_len,
+                                                 is_persp,
+                                                 nu->bezt[u].vec[0],
+                                                 &dist_px_sq,
+                                                 r_loc);
           }
 
           if (!skip_selected || !(is_selected_h2 || (is_autoalign_h2 && is_selected_h1))) {
             has_snap |= test_projected_vert_dist(&neasrest_precalc,
-                                                  clip_planes_local,
-                                                  clip_plane_len,
-                                                  is_persp,
-                                                  nu->bezt[u].vec[2],
-                                                  &dist_px_sq,
-                                                  r_loc);
+                                                 clip_planes_local,
+                                                 clip_plane_len,
+                                                 is_persp,
+                                                 nu->bezt[u].vec[2],
+                                                 &dist_px_sq,
+                                                 r_loc);
           }
         }
         has_snap |= test_projected_vert_dist(&neasrest_precalc,
-                                              clip_planes_local,
-                                              clip_plane_len,
-                                              is_persp,
-                                              nu->bezt[u].vec[1],
-                                              &dist_px_sq,
-                                              r_loc);
+                                             clip_planes_local,
+                                             clip_plane_len,
+                                             is_persp,
+                                             nu->bezt[u].vec[1],
+                                             &dist_px_sq,
+                                             r_loc);
       }
     }
     else if (nu->bp) {

@@ -449,7 +449,7 @@ bool MetalDevice::load_kernels(const uint _kernel_features)
     motion_blur = kernel_features & KERNEL_FEATURE_OBJECT_MOTION;
 
     /* Only request generic kernels if they aren't cached in memory. */
-	  refresh_source_and_kernels_md5(PSO_GENERIC);
+    refresh_source_and_kernels_md5(PSO_GENERIC);
     if (MetalDeviceKernels::should_load_kernels(this, PSO_GENERIC)) {
       /* If needed, load them asynchronously in order to responsively message progress to the user.
        */

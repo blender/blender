@@ -1666,8 +1666,7 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
       continue;
     }
     do {
-      customdata_weld(
-          &mesh.ldata, &result->ldata, group_buffer.data(), iter.group_len, loop_cur);
+      customdata_weld(&mesh.ldata, &result->ldata, group_buffer.data(), iter.group_len, loop_cur);
       dst_corner_verts[loop_cur] = vert_final_map[iter.v];
       dst_corner_edges[loop_cur] = edge_final_map[iter.e];
       loop_cur++;

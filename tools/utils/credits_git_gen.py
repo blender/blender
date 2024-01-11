@@ -103,6 +103,7 @@ commit_authors_overwrite = {
 # -----------------------------------------------------------------------------
 # Class for generating credits
 
+
 class CreditUser:
     __slots__ = (
         "commit_total",

@@ -682,34 +682,24 @@ static void rna_def_modifier_type_common(StructRNA *srna,
 
 static void rna_def_color_modifier(StructRNA *srna)
 {
-  rna_def_modifier_type_common(srna,
-                               rna_enum_linestyle_color_modifier_type_items,
-                               true,
-                               true);
+  rna_def_modifier_type_common(srna, rna_enum_linestyle_color_modifier_type_items, true, true);
 }
 
 static void rna_def_alpha_modifier(StructRNA *srna)
 {
-  rna_def_modifier_type_common(srna,
-                               rna_enum_linestyle_alpha_modifier_type_items,
-                               true,
-                               false);
+  rna_def_modifier_type_common(srna, rna_enum_linestyle_alpha_modifier_type_items, true, false);
 }
 
 static void rna_def_thickness_modifier(StructRNA *srna)
 {
-  rna_def_modifier_type_common(srna,
-                               rna_enum_linestyle_thickness_modifier_type_items,
-                               true,
-                               false);
+  rna_def_modifier_type_common(
+      srna, rna_enum_linestyle_thickness_modifier_type_items, true, false);
 }
 
 static void rna_def_geometry_modifier(StructRNA *srna)
 {
-  rna_def_modifier_type_common(srna,
-                               rna_enum_linestyle_geometry_modifier_type_items,
-                               false,
-                               false);
+  rna_def_modifier_type_common(
+      srna, rna_enum_linestyle_geometry_modifier_type_items, false, false);
 }
 
 static void rna_def_modifier_color_ramp_common(StructRNA *srna, int range)
