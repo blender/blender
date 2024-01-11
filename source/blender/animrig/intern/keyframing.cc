@@ -375,7 +375,7 @@ bool insert_keyframe_direct(ReportList *reports,
     PointerRNA tmp_ptr;
 
     if (RNA_path_resolve_property(&ptr, fcu->rna_path, &tmp_ptr, &prop) == false) {
-      const char *idname = (ptr.owner_id) ? ptr.owner_id->name : TIP_("<No ID pointer>");
+      const char *idname = (ptr.owner_id) ? ptr.owner_id->name : RPT_("<No ID pointer>");
 
       BKE_reportf(reports,
                   RPT_ERROR,
@@ -529,7 +529,7 @@ int insert_keyframe(Main *bmain,
         reports,
         RPT_ERROR,
         "Could not insert keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)",
-        (id) ? id->name : TIP_("<Missing ID block>"),
+        (id) ? id->name : RPT_("<Missing ID block>"),
         rna_path);
     return 0;
   }

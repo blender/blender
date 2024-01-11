@@ -1408,7 +1408,7 @@ class NodesModifierBakeParams : public nodes::GeoNodesBakeParams {
   {
     if (frame_cache.meta_path && frame_cache.state.items_by_id.is_empty()) {
       auto &read_error_info = behavior.emplace<sim_output::ReadError>();
-      read_error_info.message = TIP_("Can not load the baked data");
+      read_error_info.message = RPT_("Can not load the baked data");
       return true;
     }
     return false;
@@ -1949,7 +1949,7 @@ static void draw_output_attributes_panel(const bContext *C,
     }
   }
   if (!has_output_attribute) {
-    uiItemL(layout, TIP_("No group output attributes connected"), ICON_INFO);
+    uiItemL(layout, RPT_("No group output attributes connected"), ICON_INFO);
   }
 }
 
@@ -1972,7 +1972,7 @@ static void draw_internal_dependencies_panel(uiLayout *layout,
       tree_log->used_named_attributes;
 
   if (usage_by_attribute.is_empty()) {
-    uiItemL(layout, IFACE_("No named attributes used"), ICON_INFO);
+    uiItemL(layout, RPT_("No named attributes used"), ICON_INFO);
     return;
   }
 
@@ -2001,13 +2001,13 @@ static void draw_internal_dependencies_panel(uiLayout *layout,
     std::stringstream ss;
     Vector<std::string> usages;
     if ((usage & geo_log::NamedAttributeUsage::Read) != geo_log::NamedAttributeUsage::None) {
-      usages.append(TIP_("Read"));
+      usages.append(IFACE_("Read"));
     }
     if ((usage & geo_log::NamedAttributeUsage::Write) != geo_log::NamedAttributeUsage::None) {
-      usages.append(TIP_("Write"));
+      usages.append(IFACE_("Write"));
     }
     if ((usage & geo_log::NamedAttributeUsage::Remove) != geo_log::NamedAttributeUsage::None) {
-      usages.append(TIP_("Remove"));
+      usages.append(IFACE_("Remove"));
     }
     for (const int i : usages.index_range()) {
       ss << usages[i];
@@ -2070,12 +2070,12 @@ static void panel_draw(const bContext *C, Panel *panel)
   modifier_panel_end(layout, ptr);
 
   if (uiLayout *panel_layout = uiLayoutPanel(
-          C, layout, TIP_("Output Attributes"), ptr, "open_output_attributes_panel"))
+          C, layout, IFACE_("Output Attributes"), ptr, "open_output_attributes_panel"))
   {
     draw_output_attributes_panel(C, panel_layout, *nmd, ptr);
   }
   if (uiLayout *panel_layout = uiLayoutPanel(
-          C, layout, TIP_("Internal Dependencies"), ptr, "open_internal_dependencies_panel"))
+          C, layout, IFACE_("Internal Dependencies"), ptr, "open_internal_dependencies_panel"))
   {
     draw_internal_dependencies_panel(panel_layout, ptr, *nmd);
   }

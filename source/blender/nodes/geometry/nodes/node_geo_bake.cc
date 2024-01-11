@@ -467,9 +467,9 @@ struct BakeDrawContext {
 static std::string get_baked_string(const BakeDrawContext &ctx)
 {
   if (ctx.bake_still && ctx.baked_range->size() == 1) {
-    return fmt::format(TIP_("Baked Frame {}"), ctx.baked_range->first());
+    return fmt::format(RPT_("Baked Frame {}"), ctx.baked_range->first());
   }
-  return fmt::format(TIP_("Baked {} - {}"), ctx.baked_range->first(), ctx.baked_range->last());
+  return fmt::format(RPT_("Baked {} - {}"), ctx.baked_range->first(), ctx.baked_range->last());
 }
 
 static void draw_bake_button(uiLayout *layout, const BakeDrawContext &ctx)
@@ -480,7 +480,7 @@ static void draw_bake_button(uiLayout *layout, const BakeDrawContext &ctx)
     PointerRNA ptr;
     uiItemFullO(row,
                 "OBJECT_OT_geometry_node_bake_single",
-                TIP_("Bake"),
+                IFACE_("Bake"),
                 ICON_NONE,
                 nullptr,
                 WM_OP_INVOKE_DEFAULT,

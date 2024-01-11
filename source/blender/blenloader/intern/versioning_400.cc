@@ -393,14 +393,14 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
           if (ob->id.lib) {
             BLO_reportf_wrap(fd->reports,
                              RPT_INFO,
-                             TIP_("Proxy lost from object %s lib %s\n"),
+                             RPT_("Proxy lost from object %s lib %s\n"),
                              ob->id.name + 2,
                              ob->id.lib->filepath);
           }
           else {
             BLO_reportf_wrap(fd->reports,
                              RPT_INFO,
-                             TIP_("Proxy lost from object %s lib <NONE>\n"),
+                             RPT_("Proxy lost from object %s lib <NONE>\n"),
                              ob->id.name + 2);
           }
           fd->reports->count.missing_obproxies++;

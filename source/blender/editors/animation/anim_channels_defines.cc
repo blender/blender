@@ -5430,7 +5430,7 @@ static void draw_setting_widget(bAnimContext *ac,
        !BKE_id_is_editable(ac->bmain, ale->id)))
   {
     if (setting != ACHANNEL_SETTING_EXPAND) {
-      UI_but_disable(but, TIP_("Can't edit this property from a linked data-block"));
+      UI_but_disable(but, "Can't edit this property from a linked data-block");
     }
   }
 

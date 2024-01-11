@@ -224,7 +224,7 @@ static int open_exec(bContext *C, wmOperator *op)
                 RPT_ERROR,
                 "Cannot read '%s': %s",
                 filepath,
-                errno ? strerror(errno) : TIP_("unsupported movie clip format"));
+                errno ? strerror(errno) : RPT_("unsupported movie clip format"));
 
     return OPERATOR_CANCELLED;
   }

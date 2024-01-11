@@ -1543,7 +1543,7 @@ static void scene_blend_read_after_liblink(BlendLibReader *reader, ID *id)
     if (base_legacy->object == nullptr) {
       BLO_reportf_wrap(BLO_read_lib_reports(reader),
                        RPT_WARNING,
-                       TIP_("LIB: object lost from scene: '%s'"),
+                       RPT_("LIB: object lost from scene: '%s'"),
                        sce->id.name + 2);
       BLI_remlink(&sce->base, base_legacy);
       if (base_legacy == sce->basact) {

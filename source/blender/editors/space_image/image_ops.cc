@@ -1287,7 +1287,7 @@ static Image *image_open_single(Main *bmain,
                 RPT_ERROR,
                 "Cannot read '%s': %s",
                 range->filepath,
-                errno ? strerror(errno) : TIP_("unsupported image format"));
+                errno ? strerror(errno) : RPT_("unsupported image format"));
     return nullptr;
   }
 

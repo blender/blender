@@ -963,7 +963,7 @@ void WM_reportf(eReportType type, const char *format, ...)
 {
   va_list args;
 
-  format = TIP_(format);
+  format = RPT_(format);
   va_start(args, format);
   char *str = BLI_vsprintfN(format, args);
   WM_report(type, str);
@@ -2001,8 +2001,8 @@ void WM_operator_name_call_ptr_with_depends_on_cursor(bContext *C,
     char header_text[UI_MAX_DRAW_STR];
     SNPRINTF(header_text,
              "%s %s",
-             IFACE_("Input pending "),
-             (drawstr && drawstr[0]) ? drawstr : CTX_IFACE_(ot->translation_context, ot->name));
+             RPT_("Input pending "),
+             (drawstr && drawstr[0]) ? drawstr : CTX_RPT_(ot->translation_context, ot->name));
     if (area != nullptr) {
       ED_area_status_text(area, header_text);
     }

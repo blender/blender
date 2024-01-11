@@ -1542,7 +1542,7 @@ ID *WM_operator_drop_load_path(bContext *C, wmOperator *op, const short idcode)
                   "Cannot read %s '%s': %s",
                   BKE_idtype_idcode_to_name(idcode),
                   filepath,
-                  errno ? strerror(errno) : TIP_("unsupported format"));
+                  errno ? strerror(errno) : RPT_("unsupported format"));
       return nullptr;
     }
 

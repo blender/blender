@@ -939,7 +939,7 @@ static void ui_node_draw_input(uiLayout &layout,
   }
 
   if (dependency_loop) {
-    uiItemL(row, IFACE_("Dependency Loop"), ICON_ERROR);
+    uiItemL(row, RPT_("Dependency Loop"), ICON_ERROR);
     add_dummy_decorator = true;
   }
   else if (lnode) {

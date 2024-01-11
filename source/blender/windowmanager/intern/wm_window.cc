@@ -1983,13 +1983,13 @@ static uiBlock *block_create_opengl_usage_warning(bContext *C, ARegion *region, 
 
   /* Title and explanation text. */
   uiLayout *col = uiLayoutColumn(layout, false);
-  uiItemL_ex(col, TIP_("Python script uses OpenGL for drawing"), ICON_NONE, true, false);
-  uiItemL(col, TIP_("This may lead to unexpected behavior"), ICON_NONE);
+  uiItemL_ex(col, RPT_("Python script uses OpenGL for drawing"), ICON_NONE, true, false);
+  uiItemL(col, RPT_("This may lead to unexpected behavior"), ICON_NONE);
   uiItemL(col,
-          TIP_("One of the add-ons or scripts is using OpenGL and will not work correct on Metal"),
+          RPT_("One of the add-ons or scripts is using OpenGL and will not work correct on Metal"),
           ICON_NONE);
   uiItemL(col,
-          TIP_("Please contact the developer of the add-on to migrate to use 'gpu' module"),
+          RPT_("Please contact the developer of the add-on to migrate to use 'gpu' module"),
           ICON_NONE);
   if (G.opengl_deprecation_usage_filename) {
     char location[1024];
@@ -1997,7 +1997,7 @@ static uiBlock *block_create_opengl_usage_warning(bContext *C, ARegion *region, 
         location, "%s:%d", G.opengl_deprecation_usage_filename, G.opengl_deprecation_usage_lineno);
     uiItemL(col, location, ICON_NONE);
   }
-  uiItemL(col, TIP_("See system tab in preferences to switch to OpenGL backend"), ICON_NONE);
+  uiItemL(col, RPT_("See system tab in preferences to switch to OpenGL backend"), ICON_NONE);
 
   uiItemS(layout);
 
@@ -2024,11 +2024,10 @@ void wm_test_opengl_deprecation_warning(bContext *C)
   wmWindowManager *wm = CTX_wm_manager(C);
   wmWindow *win = static_cast<wmWindow *>((wm->winactive) ? wm->winactive : wm->windows.first);
 
-  BKE_report(
-      &wm->reports,
-      RPT_ERROR,
-      TIP_("One of the add-ons or scripts is using OpenGL and will not work correct on Metal. "
-           "Please contact the developer of the add-on to migrate to use 'gpu' module"));
+  BKE_report(&wm->reports,
+             RPT_ERROR,
+             "One of the add-ons or scripts is using OpenGL and will not work correct on Metal. "
+             "Please contact the developer of the add-on to migrate to use 'gpu' module");
 
   if (win) {
     wmWindow *prevwin = CTX_wm_window(C);

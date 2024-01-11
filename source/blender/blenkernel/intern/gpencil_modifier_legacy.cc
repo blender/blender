@@ -542,7 +542,7 @@ void BKE_gpencil_modifier_set_error(GpencilModifierData *md, const char *format,
 {
   char buffer[512];
   va_list ap;
-  const char *format_tip = TIP_(format);
+  const char *format_tip = RPT_(format);
 
   va_start(ap, format);
   vsnprintf(buffer, sizeof(buffer), format_tip, ap);

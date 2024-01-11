@@ -1336,7 +1336,7 @@ static void ui_item_menu_hold(bContext *C, ARegion *butregion, uiBut *but)
     UI_menutype_draw(C, mt, layout);
   }
   else {
-    uiItemL(layout, TIP_("Menu Missing:"), ICON_NONE);
+    uiItemL(layout, RPT_("Menu Missing:"), ICON_NONE);
     uiItemL(layout, menu_id, ICON_NONE);
   }
   UI_popup_menu_end(C, pup);

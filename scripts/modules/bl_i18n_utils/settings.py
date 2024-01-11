@@ -250,7 +250,8 @@ PYGETTEXT_KEYWORDS = (() +
 
     tuple(("{}\\((?:[^\"',]+,){{1,2}}\\s*" + _msg_re + r"\s*(?:\)|,)").format(it)
           for it in ("BKE_report", "BKE_reportf", "BKE_reports_prepend", "BKE_reports_prependf",
-                     "CTX_wm_operator_poll_msg_set", "WM_report", "WM_reportf")) +
+                     "CTX_wm_operator_poll_msg_set", "WM_report", "WM_reportf",
+                     "UI_but_disable")) +
 
     # bmesh operator errors
     tuple(("{}\\((?:[^\"',]+,){{3}}\\s*" + _msg_re + r"\s*\)").format(it)

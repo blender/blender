@@ -579,7 +579,7 @@ static bool node_composit_poll_rlayers(const bNodeType * /*ntype*/,
                                        const char **r_disabled_hint)
 {
   if (!STREQ(ntree->idname, "CompositorNodeTree")) {
-    *r_disabled_hint = TIP_("Not a compositor node tree");
+    *r_disabled_hint = RPT_("Not a compositor node tree");
     return false;
   }
 
@@ -596,7 +596,7 @@ static bool node_composit_poll_rlayers(const bNodeType * /*ntype*/,
   }
 
   if (scene == nullptr) {
-    *r_disabled_hint = TIP_(
+    *r_disabled_hint = RPT_(
         "The node tree must be the compositing node tree of any scene in the file");
     return false;
   }

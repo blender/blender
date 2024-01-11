@@ -2145,7 +2145,7 @@ static int outliner_orphans_purge_invoke(bContext *C, wmOperator *op, const wmEv
   }
 
   DynStr *dyn_str = BLI_dynstr_new();
-  BLI_dynstr_appendf(dyn_str, TIP_("Purging %d unused data-blocks ("), num_tagged[INDEX_ID_NULL]);
+  BLI_dynstr_appendf(dyn_str, RPT_("Purging %d unused data-blocks ("), num_tagged[INDEX_ID_NULL]);
   bool is_first = true;
   for (int i = 0; i < INDEX_ID_MAX - 2; i++) {
     if (num_tagged[i] != 0) {
@@ -2158,10 +2158,10 @@ static int outliner_orphans_purge_invoke(bContext *C, wmOperator *op, const wmEv
       BLI_dynstr_appendf(dyn_str,
                          "%d %s",
                          num_tagged[i],
-                         TIP_(BKE_idtype_idcode_to_name_plural(BKE_idtype_idcode_from_index(i))));
+                         RPT_(BKE_idtype_idcode_to_name_plural(BKE_idtype_idcode_from_index(i))));
     }
   }
-  BLI_dynstr_append(dyn_str, TIP_("). Click here to proceed..."));
+  BLI_dynstr_append(dyn_str, RPT_("). Click here to proceed..."));
 
   char *message = BLI_dynstr_get_cstring(dyn_str);
   int ret = WM_operator_confirm_message(C, op, message);

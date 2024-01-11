@@ -2599,7 +2599,7 @@ void uiTemplateGpencilModifiers(uiLayout * /*layout*/, bContext *C)
 
 /** \} */
 
-#define ERROR_LIBDATA_MESSAGE TIP_("Can't edit external library data")
+#define ERROR_LIBDATA_MESSAGE N_("Can't edit external library data")
 
 /* -------------------------------------------------------------------- */
 /** \name ShaderFx Template
@@ -2715,7 +2715,7 @@ static eAutoPropButsReturn template_operator_property_buts_draw_single(
   /* poll() on this operator may still fail,
    * at the moment there is no nice feedback when this happens just fails silently. */
   if (!WM_operator_repeat_check(C, op)) {
-    UI_block_lock_set(block, true, "Operator can't redo");
+    UI_block_lock_set(block, true, N_("Operator cannot redo"));
     return return_info;
   }
 
@@ -2974,7 +2974,7 @@ void uiTemplateOperatorRedoProperties(uiLayout *layout, const bContext *C)
 /** \name Constraint Header Template
  * \{ */
 
-#define ERROR_LIBDATA_MESSAGE TIP_("Can't edit external library data")
+#define ERROR_LIBDATA_MESSAGE N_("Can't edit external library data")
 
 static void constraint_active_func(bContext * /*C*/, void *ob_v, void *con_v)
 {
@@ -6537,9 +6537,9 @@ void uiTemplateInputStatus(uiLayout *layout, bContext *C)
     uiLayout *row = uiLayoutRow(col, true);
     uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_LEFT);
 
-    const char *msg = CTX_TIP_(BLT_I18NCONTEXT_OPERATOR_DEFAULT,
+    const char *msg = CTX_RPT_(BLT_I18NCONTEXT_OPERATOR_DEFAULT,
                                WM_window_cursor_keymap_status_get(win, i, 0));
-    const char *msg_drag = CTX_TIP_(BLT_I18NCONTEXT_OPERATOR_DEFAULT,
+    const char *msg_drag = CTX_RPT_(BLT_I18NCONTEXT_OPERATOR_DEFAULT,
                                     WM_window_cursor_keymap_status_get(win, i, 1));
 
     if (msg || (msg_drag == nullptr)) {
@@ -6638,7 +6638,7 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
   BKE_blender_version_blendfile_string_from_values(
       writer_ver_str, sizeof(writer_ver_str), bmain->versionfile, -1);
   SNPRINTF(compat_error_msg,
-           TIP_("File saved by newer Blender\n(%s), expect loss of data"),
+           RPT_("File saved by newer Blender\n(%s), expect loss of data"),
            writer_ver_str);
   but = uiDefIconBut(block,
                      UI_BTYPE_BUT,
@@ -6790,13 +6790,13 @@ bool uiTemplateEventFromKeymapItem(uiLayout *layout,
     for (int j = 0; j < ARRAY_SIZE(icon_mod) && icon_mod[j]; j++) {
       uiItemL(layout, "", icon_mod[j]);
     }
-    uiItemL(layout, CTX_TIP_(BLT_I18NCONTEXT_ID_WINDOWMANAGER, text), icon);
+    uiItemL(layout, CTX_RPT_(BLT_I18NCONTEXT_ID_WINDOWMANAGER, text), icon);
     ok = true;
   }
   else if (text_fallback) {
     const char *event_text = WM_key_event_string(kmi->type, true);
     uiItemL(layout, event_text, ICON_NONE);
-    uiItemL(layout, CTX_TIP_(BLT_I18NCONTEXT_ID_WINDOWMANAGER, text), ICON_NONE);
+    uiItemL(layout, CTX_RPT_(BLT_I18NCONTEXT_ID_WINDOWMANAGER, text), ICON_NONE);
     ok = true;
   }
   return ok;
@@ -6980,7 +6980,7 @@ void uiTemplateCacheFileProcedural(uiLayout *layout, const bContext *C, PointerR
 
   if (!is_alembic) {
     row = uiLayoutRow(layout, false);
-    uiItemL(row, TIP_("Only Alembic Procedurals supported"), ICON_INFO);
+    uiItemL(row, RPT_("Only Alembic Procedurals supported"), ICON_INFO);
   }
   else if (!engine_supports_procedural) {
     row = uiLayoutRow(layout, false);
@@ -6988,13 +6988,13 @@ void uiTemplateCacheFileProcedural(uiLayout *layout, const bContext *C, PointerR
     if (BKE_scene_uses_cycles(scene) && !BKE_scene_uses_cycles_experimental_features(scene)) {
       uiItemL(
           row,
-          TIP_(
+          RPT_(
               "The Cycles Alembic Procedural is only available with the experimental feature set"),
           ICON_INFO);
     }
     else {
       uiItemL(
-          row, TIP_("The active render engine does not have an Alembic Procedural"), ICON_INFO);
+          row, RPT_("The active render engine does not have an Alembic Procedural"), ICON_INFO);
     }
   }
 

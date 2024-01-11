@@ -556,7 +556,7 @@ static USDPrimReader *get_usd_reader(CacheReader *reader,
   pxr::UsdPrim iobject = usd_reader->prim();
 
   if (!iobject.IsValid()) {
-    *err_str = TIP_("Invalid object: verify object path");
+    *err_str = RPT_("Invalid object: verify object path");
     return nullptr;
   }
 

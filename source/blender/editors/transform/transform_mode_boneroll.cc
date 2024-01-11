@@ -51,10 +51,10 @@ static void applyBoneRoll(TransInfo *t)
 
     outputNumInput(&(t->num), c, &t->scene->unit);
 
-    SNPRINTF(str, TIP_("Roll: %s"), &c[0]);
+    SNPRINTF(str, RPT_("Roll: %s"), &c[0]);
   }
   else {
-    SNPRINTF(str, TIP_("Roll: %.2f"), RAD2DEGF(final));
+    SNPRINTF(str, RPT_("Roll: %.2f"), RAD2DEGF(final));
   }
 
   /* set roll values */

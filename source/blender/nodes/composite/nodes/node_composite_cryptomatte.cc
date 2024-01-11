@@ -319,12 +319,12 @@ static bool node_poll_cryptomatte(const bNodeType * /*ntype*/,
     }
 
     if (scene == nullptr) {
-      *r_disabled_hint = TIP_(
+      *r_disabled_hint = RPT_(
           "The node tree must be the compositing node tree of any scene in the file");
     }
     return scene != nullptr;
   }
-  *r_disabled_hint = TIP_("Not a compositor node tree");
+  *r_disabled_hint = RPT_("Not a compositor node tree");
   return false;
 }
 

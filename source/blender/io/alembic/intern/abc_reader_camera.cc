@@ -49,14 +49,14 @@ bool AbcCameraReader::accepts_object_type(
     const char **err_str) const
 {
   if (!Alembic::AbcGeom::ICamera::matches(alembic_header)) {
-    *err_str = TIP_(
+    *err_str = RPT_(
         "Object type mismatch, Alembic object path pointed to Camera when importing, but not any "
         "more");
     return false;
   }
 
   if (ob->type != OB_CAMERA) {
-    *err_str = TIP_("Object type mismatch, Alembic object path points to Camera");
+    *err_str = RPT_("Object type mismatch, Alembic object path points to Camera");
     return false;
   }
 

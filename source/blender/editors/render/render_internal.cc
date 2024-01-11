@@ -432,17 +432,17 @@ static void make_renderinfo_string(const RenderStats *rs,
 
   /* local view */
   if (rs->localview) {
-    ret_array[i++] = TIP_("3D Local View ");
+    ret_array[i++] = RPT_("3D Local View ");
     ret_array[i++] = info_sep;
   }
   else if (v3d_override) {
-    ret_array[i++] = TIP_("3D View ");
+    ret_array[i++] = RPT_("3D View ");
     ret_array[i++] = info_sep;
   }
 
   /* frame number */
   SNPRINTF(info_buffers.frame, "%d ", scene->r.cfra);
-  ret_array[i++] = TIP_("Frame:");
+  ret_array[i++] = RPT_("Frame:");
   ret_array[i++] = info_buffers.frame;
 
   /* Previous and elapsed time. */
@@ -464,7 +464,7 @@ static void make_renderinfo_string(const RenderStats *rs,
                                          PIL_check_seconds_timer() - rs->starttime);
   }
 
-  ret_array[i++] = TIP_("Time:");
+  ret_array[i++] = RPT_("Time:");
   ret_array[i++] = info_time;
   ret_array[i++] = info_space;
 
@@ -479,13 +479,13 @@ static void make_renderinfo_string(const RenderStats *rs,
     else {
       if (rs->mem_peak == 0.0f) {
         SNPRINTF(info_buffers.statistics,
-                 TIP_("Mem:%.2fM (Peak %.2fM)"),
+                 RPT_("Mem:%.2fM (Peak %.2fM)"),
                  megs_used_memory,
                  megs_peak_memory);
       }
       else {
         SNPRINTF(
-            info_buffers.statistics, TIP_("Mem:%.2fM, Peak: %.2fM"), rs->mem_used, rs->mem_peak);
+            info_buffers.statistics, RPT_("Mem:%.2fM, Peak: %.2fM"), rs->mem_used, rs->mem_peak);
       }
       info_statistics = info_buffers.statistics;
     }

@@ -2961,7 +2961,7 @@ void do_versions_after_linking_280(FileData *fd, Main *bmain)
       if (ob->type != OB_EMPTY && ob->instance_collection != nullptr) {
         BLO_reportf_wrap(fd->reports,
                          RPT_INFO,
-                         TIP_("Non-Empty object '%s' cannot duplicate collection '%s' "
+                         RPT_("Non-Empty object '%s' cannot duplicate collection '%s' "
                               "anymore in Blender 2.80 and later, removed instancing"),
                          ob->id.name + 2,
                          ob->instance_collection->id.name + 2);

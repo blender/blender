@@ -321,7 +321,7 @@ static bool poselib_blend_init_data(bContext *C, wmOperator *op, const wmEvent *
   /* check if valid poselib */
   Object *ob = get_poselib_object(C);
   if (ELEM(nullptr, ob, ob->pose, ob->data)) {
-    BKE_report(op->reports, RPT_ERROR, TIP_("Pose lib is only for armatures in pose mode"));
+    BKE_report(op->reports, RPT_ERROR, "Pose lib is only for armatures in pose mode");
     return false;
   }
 
@@ -500,10 +500,10 @@ static int poselib_blend_modal(bContext *C, wmOperator *op, const wmEvent *event
     ED_slider_status_string_get(pbd->slider, slider_string, sizeof(slider_string));
 
     if (pbd->state == POSE_BLEND_BLENDING) {
-      STRNCPY(tab_string, TIP_("[Tab] - Show original pose"));
+      STRNCPY(tab_string, RPT_("[Tab] - Show original pose"));
     }
     else {
-      STRNCPY(tab_string, TIP_("[Tab] - Show blended pose"));
+      STRNCPY(tab_string, RPT_("[Tab] - Show blended pose"));
     }
 
     SNPRINTF(status_string, "%s | %s | [Ctrl] - Flip Pose", tab_string, slider_string);

@@ -419,7 +419,7 @@ void BKE_modifier_set_error(const Object *ob, ModifierData *md, const char *_for
 {
   char buffer[512];
   va_list ap;
-  const char *format = TIP_(_format);
+  const char *format = RPT_(_format);
 
   va_start(ap, _format);
   vsnprintf(buffer, sizeof(buffer), format, ap);
@@ -446,7 +446,7 @@ void BKE_modifier_set_warning(const Object *ob, ModifierData *md, const char *_f
 {
   char buffer[512];
   va_list ap;
-  const char *format = TIP_(_format);
+  const char *format = RPT_(_format);
 
   va_start(ap, _format);
   vsnprintf(buffer, sizeof(buffer), format, ap);
@@ -1263,7 +1263,7 @@ void BKE_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb, Object 
       BLO_reportf_wrap(
           BLO_read_data_reports(reader),
           RPT_WARNING,
-          TIP_("Possible data loss when saving this file! %s modifier is deprecated (Object: %s)"),
+          RPT_("Possible data loss when saving this file! %s modifier is deprecated (Object: %s)"),
           md->name,
           ob->id.name + 2);
       md = modifier_replace_with_fluid(reader, ob, lb, md);
@@ -1273,7 +1273,7 @@ void BKE_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb, Object 
       BLO_reportf_wrap(
           BLO_read_data_reports(reader),
           RPT_WARNING,
-          TIP_("Possible data loss when saving this file! %s modifier is deprecated (Object: %s)"),
+          RPT_("Possible data loss when saving this file! %s modifier is deprecated (Object: %s)"),
           md->name,
           ob->id.name + 2);
       md = modifier_replace_with_fluid(reader, ob, lb, md);

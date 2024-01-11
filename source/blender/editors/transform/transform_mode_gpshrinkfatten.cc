@@ -51,10 +51,10 @@ static void applyGPShrinkFatten(TransInfo *t)
     char c[NUM_STR_REP_LEN];
 
     outputNumInput(&(t->num), c, &t->scene->unit);
-    SNPRINTF(str, TIP_("Shrink/Fatten: %s"), c);
+    SNPRINTF(str, RPT_("Shrink/Fatten: %s"), c);
   }
   else {
-    SNPRINTF(str, TIP_("Shrink/Fatten: %3f"), ratio);
+    SNPRINTF(str, RPT_("Shrink/Fatten: %3f"), ratio);
   }
 
   bool recalc = false;

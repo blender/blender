@@ -210,12 +210,12 @@ static void stats_background(void * /*arg*/, RenderStats *rs)
   BLI_mutex_lock(&mutex);
 
   fprintf(stdout,
-          TIP_("Fra:%d Mem:%.2fM (Peak %.2fM) "),
+          RPT_("Fra:%d Mem:%.2fM (Peak %.2fM) "),
           rs->cfra,
           megs_used_memory,
           megs_peak_memory);
 
-  fprintf(stdout, TIP_("| Time:%s | "), info_time_str);
+  fprintf(stdout, RPT_("| Time:%s | "), info_time_str);
 
   fprintf(stdout, "%s", rs->infostr);
 

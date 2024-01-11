@@ -3035,7 +3035,7 @@ char *ui_but_string_get_dynamic(uiBut *but, int *r_str_size)
  * Report a generic error prefix when evaluating a string with #BPY_run_string_as_number
  * as the Python error on its own doesn't provide enough context.
  */
-#define UI_NUMBER_EVAL_ERROR_PREFIX IFACE_("Error evaluating number, see Info editor for details")
+#define UI_NUMBER_EVAL_ERROR_PREFIX RPT_("Error evaluating number, see Info editor for details")
 
 static bool ui_number_from_string_units(
     bContext *C, const char *str, const int unit_type, const UnitSettings *unit, double *r_value)
@@ -4542,7 +4542,7 @@ static void ui_def_but_rna__panel_type(bContext *C, uiLayout *layout, void *but_
   }
   else {
     char msg[256];
-    SNPRINTF(msg, TIP_("Missing Panel: %s"), panel_type);
+    SNPRINTF(msg, RPT_("Missing Panel: %s"), panel_type);
     uiItemL(layout, msg, ICON_NONE);
   }
 }
@@ -4571,7 +4571,7 @@ static void ui_def_but_rna__menu_type(bContext *C, uiLayout *layout, void *but_p
   }
   else {
     char msg[256];
-    SNPRINTF(msg, TIP_("Missing Menu: %s"), menu_type);
+    SNPRINTF(msg, RPT_("Missing Menu: %s"), menu_type);
     uiItemL(layout, msg, ICON_NONE);
   }
 }

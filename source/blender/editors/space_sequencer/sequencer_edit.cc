@@ -643,10 +643,10 @@ static void sequencer_slip_update_header(Scene *scene, ScrArea *area, SlipData *
     if (hasNumInput(&data->num_input)) {
       char num_str[NUM_STR_REP_LEN];
       outputNumInput(&data->num_input, num_str, &scene->unit);
-      SNPRINTF(msg, TIP_("Slip offset: %s"), num_str);
+      SNPRINTF(msg, RPT_("Slip offset: %s"), num_str);
     }
     else {
-      SNPRINTF(msg, TIP_("Slip offset: %d"), offset);
+      SNPRINTF(msg, RPT_("Slip offset: %d"), offset);
     }
   }
 

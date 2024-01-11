@@ -198,14 +198,14 @@ void gpencil_modifier_panel_end(uiLayout *layout, PointerRNA *ptr)
   GpencilModifierData *md = static_cast<GpencilModifierData *>(ptr->data);
   if (md->error) {
     uiLayout *row = uiLayoutRow(layout, false);
-    uiItemL(row, IFACE_(md->error), ICON_ERROR);
+    uiItemL(row, RPT_(md->error), ICON_ERROR);
   }
 }
 
 /**
  * Gets RNA pointers for the active object and the panel's modifier data.
  */
-#define ERROR_LIBDATA_MESSAGE TIP_("External library data")
+#define ERROR_LIBDATA_MESSAGE N_("External library data")
 PointerRNA *gpencil_modifier_panel_get_property_pointers(Panel *panel, PointerRNA *r_ob_ptr)
 {
   PointerRNA *ptr = UI_panel_custom_data_get(panel);

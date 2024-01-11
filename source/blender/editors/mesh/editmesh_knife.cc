@@ -1113,7 +1113,7 @@ static void knife_update_header(bContext *C, wmOperator *op, KnifeTool_OpData *k
 
   SNPRINTF(
       header,
-      TIP_("%s: confirm, %s: cancel, %s: undo, "
+      RPT_("%s: confirm, %s: cancel, %s: undo, "
            "%s: start/define cut, %s: close cut, %s: new cut, "
            "%s: midpoint snap (%s), %s: ignore snap (%s), "
            "%s: angle constraint %.2f(%.2f) (%s%s%s%s), %s: cut through (%s), "

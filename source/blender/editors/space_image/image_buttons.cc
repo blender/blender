@@ -1039,7 +1039,7 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, bool color_ma
 
   if (imf->imtype == R_IMF_IMTYPE_CINEON) {
 #if 1
-    uiItemL(col, TIP_("Hard coded Non-Linear, Gamma:1.7"), ICON_NONE);
+    uiItemL(col, RPT_("Hard coded Non-Linear, Gamma:1.7"), ICON_NONE);
 #else
     uiItemR(col, imfptr, "use_cineon_log", UI_ITEM_NONE, nullptr, ICON_NONE);
     uiItemR(col, imfptr, "cineon_black", UI_ITEM_NONE, nullptr, ICON_NONE);
@@ -1195,40 +1195,40 @@ void uiTemplateImageInfo(uiLayout *layout, bContext *C, Image *ima, ImageUser *i
   uiLayoutSetAlignment(col, UI_LAYOUT_ALIGN_RIGHT);
 
   if (ibuf == nullptr) {
-    uiItemL(col, TIP_("Can't Load Image"), ICON_NONE);
+    uiItemL(col, RPT_("Can't Load Image"), ICON_NONE);
   }
   else {
     char str[MAX_IMAGE_INFO_LEN] = {0};
     const int len = MAX_IMAGE_INFO_LEN;
     int ofs = 0;
 
-    ofs += BLI_snprintf_rlen(str + ofs, len - ofs, TIP_("%d \u00D7 %d, "), ibuf->x, ibuf->y);
+    ofs += BLI_snprintf_rlen(str + ofs, len - ofs, RPT_("%d \u00D7 %d, "), ibuf->x, ibuf->y);
 
     if (ibuf->float_buffer.data) {
       if (ibuf->channels != 4) {
         ofs += BLI_snprintf_rlen(
-            str + ofs, len - ofs, TIP_("%d float channel(s)"), ibuf->channels);
+            str + ofs, len - ofs, RPT_("%d float channel(s)"), ibuf->channels);
       }
       else if (ibuf->planes == R_IMF_PLANES_RGBA) {
-        ofs += BLI_strncpy_rlen(str + ofs, TIP_(" RGBA float"), len - ofs);
+        ofs += BLI_strncpy_rlen(str + ofs, RPT_(" RGBA float"), len - ofs);
       }
       else {
-        ofs += BLI_strncpy_rlen(str + ofs, TIP_(" RGB float"), len - ofs);
+        ofs += BLI_strncpy_rlen(str + ofs, RPT_(" RGB float"), len - ofs);
       }
     }
     else {
       if (ibuf->planes == R_IMF_PLANES_RGBA) {
-        ofs += BLI_strncpy_rlen(str + ofs, TIP_(" RGBA byte"), len - ofs);
+        ofs += BLI_strncpy_rlen(str + ofs, RPT_(" RGBA byte"), len - ofs);
       }
       else {
-        ofs += BLI_strncpy_rlen(str + ofs, TIP_(" RGB byte"), len - ofs);
+        ofs += BLI_strncpy_rlen(str + ofs, RPT_(" RGB byte"), len - ofs);
       }
     }
 
     eGPUTextureFormat texture_format = IMB_gpu_get_texture_format(
         ibuf, ima->flag & IMA_HIGH_BITDEPTH, ibuf->planes >= 8);
     const char *texture_format_description = GPU_texture_format_name(texture_format);
-    ofs += BLI_snprintf_rlen(str + ofs, len - ofs, TIP_(",  %s"), texture_format_description);
+    ofs += BLI_snprintf_rlen(str + ofs, len - ofs, RPT_(",  %s"), texture_format_description);
 
     uiItemL(col, str, ICON_NONE);
   }
@@ -1250,16 +1250,16 @@ void uiTemplateImageInfo(uiLayout *layout, bContext *C, Image *ima, ImageUser *i
 
     if (duration > 0) {
       /* Movie duration */
-      SNPRINTF(str, TIP_("Frame %d / %d"), framenr, duration);
+      SNPRINTF(str, RPT_("Frame %d / %d"), framenr, duration);
     }
     else if (ima->source == IMA_SRC_SEQUENCE && ibuf) {
       /* Image sequence frame number + filename */
       const char *filename = BLI_path_basename(ibuf->filepath);
-      SNPRINTF(str, TIP_("Frame %d: %s"), framenr, filename);
+      SNPRINTF(str, RPT_("Frame %d: %s"), framenr, filename);
     }
     else {
       /* Frame number */
-      SNPRINTF(str, TIP_("Frame %d"), framenr);
+      SNPRINTF(str, RPT_("Frame %d"), framenr);
     }
 
     uiItemL(col, str, ICON_NONE);

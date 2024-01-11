@@ -95,7 +95,7 @@ void modifier_panel_end(uiLayout *layout, PointerRNA *ptr)
   ModifierData *md = static_cast<ModifierData *>(ptr->data);
   if (md->error) {
     uiLayout *row = uiLayoutRow(layout, false);
-    uiItemL(row, TIP_(md->error), ICON_ERROR);
+    uiItemL(row, RPT_(md->error), ICON_ERROR);
   }
 }
 
@@ -105,7 +105,7 @@ void modifier_panel_end(uiLayout *layout, PointerRNA *ptr)
  *
  * \note The modifier #PointerRNA is owned by the panel so we only need a pointer to it.
  */
-#define ERROR_LIBDATA_MESSAGE TIP_("External library data")
+#define ERROR_LIBDATA_MESSAGE N_("External library data")
 PointerRNA *modifier_panel_get_property_pointers(Panel *panel, PointerRNA *r_ob_ptr)
 {
   PointerRNA *ptr = UI_panel_custom_data_get(panel);
@@ -364,9 +364,9 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
                                     0.0,
                                     0.0,
                                     0.0,
-                                    TIP_("Apply on Spline"));
-      UI_but_disable(
-          but, TIP_("This modifier can only deform filled curve/surface, not the control points"));
+                                    RPT_("Apply on Spline"));
+      UI_but_disable(but,
+                     "This modifier can only deform filled curve/surface, not the control points");
       buttons_number++;
     }
     /* Some modifiers can work with pre-tessellated curves only. */
@@ -390,9 +390,9 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
                                     0.0,
                                     0.0,
                                     0.0,
-                                    TIP_("Apply on Spline"));
-      UI_but_disable(
-          but, TIP_("This modifier can only deform control points, not the filled curve/surface"));
+                                    RPT_("Apply on Spline"));
+      UI_but_disable(but,
+                     "This modifier can only deform control points, not the filled curve/surface");
       buttons_number++;
     }
     else if (mti->type != ModifierTypeType::Constructive) {

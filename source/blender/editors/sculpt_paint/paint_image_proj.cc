@@ -6405,10 +6405,10 @@ void ED_paint_data_warning(
   BKE_reportf(reports,
               RPT_WARNING,
               "Missing%s%s%s%s detected!",
-              !has_uvs ? TIP_(" UVs,") : "",
-              !has_mat ? TIP_(" Materials,") : "",
-              !has_tex ? TIP_(" Textures (or linked),") : "",
-              !has_stencil ? TIP_(" Stencil,") : "");
+              !has_uvs ? RPT_(" UVs,") : "",
+              !has_mat ? RPT_(" Materials,") : "",
+              !has_tex ? RPT_(" Textures (or linked),") : "",
+              !has_stencil ? RPT_(" Stencil,") : "");
 }
 
 bool ED_paint_proj_mesh_data_check(Scene *scene,

@@ -421,38 +421,38 @@ static void gpencil_primitive_status_indicators(bContext *C, tGPDprimitive *tgpi
   if (tgpi->type == GP_STROKE_LINE) {
     BLI_strncpy(
         msg_str,
-        TIP_("Line: ESC to cancel, LMB set origin, Enter/MMB to confirm, WHEEL/+- to "
+        RPT_("Line: ESC to cancel, LMB set origin, Enter/MMB to confirm, WHEEL/+- to "
              "adjust subdivision number, Shift to align, Alt to center, E: extrude, G: grab"),
         UI_MAX_DRAW_STR);
   }
   else if (tgpi->type == GP_STROKE_POLYLINE) {
     BLI_strncpy(msg_str,
-                TIP_("Polyline: ESC to cancel, LMB to set, Enter/MMB to confirm, WHEEL/+- to "
+                RPT_("Polyline: ESC to cancel, LMB to set, Enter/MMB to confirm, WHEEL/+- to "
                      "adjust subdivision number, Shift to align, G: grab"),
                 UI_MAX_DRAW_STR);
   }
   else if (tgpi->type == GP_STROKE_BOX) {
     BLI_strncpy(msg_str,
-                TIP_("Rectangle: ESC to cancel, LMB set origin, Enter/MMB to confirm, WHEEL/+- "
+                RPT_("Rectangle: ESC to cancel, LMB set origin, Enter/MMB to confirm, WHEEL/+- "
                      "to adjust subdivision number, Shift to square, Alt to center, G: grab"),
                 UI_MAX_DRAW_STR);
   }
   else if (tgpi->type == GP_STROKE_CIRCLE) {
     BLI_strncpy(msg_str,
-                TIP_("Circle: ESC to cancel, Enter/MMB to confirm, WHEEL/+- to adjust subdivision "
+                RPT_("Circle: ESC to cancel, Enter/MMB to confirm, WHEEL/+- to adjust subdivision "
                      "number, Shift to square, Alt to center, G: grab"),
                 UI_MAX_DRAW_STR);
   }
   else if (tgpi->type == GP_STROKE_ARC) {
     BLI_strncpy(
         msg_str,
-        TIP_("Arc: ESC to cancel, Enter/MMB to confirm, WHEEL/+- to adjust subdivision number, "
+        RPT_("Arc: ESC to cancel, Enter/MMB to confirm, WHEEL/+- to adjust subdivision number, "
              "Shift to square, Alt to center, M: Flip, E: extrude, G: grab"),
         UI_MAX_DRAW_STR);
   }
   else if (tgpi->type == GP_STROKE_CURVE) {
     BLI_strncpy(msg_str,
-                TIP_("Curve: ESC to cancel, Enter/MMB to confirm, WHEEL/+- to adjust subdivision "
+                RPT_("Curve: ESC to cancel, Enter/MMB to confirm, WHEEL/+- to adjust subdivision "
                      "number, Shift to square, Alt to center, E: extrude, G: grab"),
                 UI_MAX_DRAW_STR);
   }

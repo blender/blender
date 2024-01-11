@@ -714,13 +714,13 @@ static void sculpt_mesh_update_status_bar(bContext *C, wmOperator *op)
       op->type, (_id), true, UI_MAX_SHORTCUT_STR, &available_len, &p)
 
   SNPRINTF(header,
-           TIP_("%s: Confirm, %s: Cancel"),
+           RPT_("%s: Confirm, %s: Cancel"),
            WM_MODALKEY(FILTER_MESH_MODAL_CONFIRM),
            WM_MODALKEY(FILTER_MESH_MODAL_CANCEL));
 
 #undef WM_MODALKEY
 
-  ED_workspace_status_text(C, TIP_(header));
+  ED_workspace_status_text(C, RPT_(header));
 }
 
 static void sculpt_mesh_filter_apply(bContext *C, wmOperator *op)

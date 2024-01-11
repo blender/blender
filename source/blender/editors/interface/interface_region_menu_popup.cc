@@ -578,7 +578,7 @@ void UI_popup_menu_reports(bContext *C, ReportList *reports)
 
     if (pup == nullptr) {
       char title[UI_MAX_DRAW_STR];
-      SNPRINTF(title, "%s: %s", IFACE_("Report"), report->typestr);
+      SNPRINTF(title, "%s: %s", RPT_("Report"), report->typestr);
       /* popup_menu stuff does just what we need (but pass meaningful block name) */
       pup = UI_popup_menu_begin_ex(C, title, __func__, ICON_NONE);
       layout = UI_popup_menu_layout(pup);
@@ -627,10 +627,10 @@ static void ui_popup_menu_create_from_menutype(bContext *C,
   handle->can_refresh = true;
 
   if (bool(mt->flag & MenuTypeFlag::SearchOnKeyPress)) {
-    ED_workspace_status_text(C, TIP_("Type to search..."));
+    ED_workspace_status_text(C, RPT_("Type to search..."));
   }
   else if (mt->idname[0]) {
-    ED_workspace_status_text(C, TIP_("Press spacebar to search..."));
+    ED_workspace_status_text(C, RPT_("Press spacebar to search..."));
   }
 }
 

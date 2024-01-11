@@ -772,7 +772,7 @@ static AbcObjectReader *get_abc_reader(CacheReader *reader, Object *ob, const ch
   IObject iobject = abc_reader->iobject();
 
   if (!iobject.valid()) {
-    *err_str = TIP_("Invalid object: verify object path");
+    *err_str = RPT_("Invalid object: verify object path");
     return nullptr;
   }
 

@@ -406,7 +406,7 @@ static Image *rna_Main_images_load(Main *bmain,
                 RPT_ERROR,
                 "Cannot read '%s': %s",
                 filepath,
-                errno ? strerror(errno) : TIP_("unsupported image format"));
+                errno ? strerror(errno) : RPT_("unsupported image format"));
   }
 
   id_us_min((ID *)ima);
@@ -475,7 +475,7 @@ static VFont *rna_Main_fonts_load(Main *bmain,
                 RPT_ERROR,
                 "Cannot read '%s': %s",
                 filepath,
-                errno ? strerror(errno) : TIP_("unsupported font format"));
+                errno ? strerror(errno) : RPT_("unsupported font format"));
   }
 
   WM_main_add_notifier(NC_ID | NA_ADDED, nullptr);
@@ -600,7 +600,7 @@ static Text *rna_Main_texts_load(Main *bmain,
                 RPT_ERROR,
                 "Cannot read '%s': %s",
                 filepath,
-                errno ? strerror(errno) : TIP_("unable to load text"));
+                errno ? strerror(errno) : RPT_("unable to load text"));
   }
 
   WM_main_add_notifier(NC_ID | NA_ADDED, nullptr);
@@ -685,7 +685,7 @@ static MovieClip *rna_Main_movieclip_load(Main *bmain,
                 RPT_ERROR,
                 "Cannot read '%s': %s",
                 filepath,
-                errno ? strerror(errno) : TIP_("unable to load movie clip"));
+                errno ? strerror(errno) : RPT_("unable to load movie clip"));
   }
 
   id_us_min((ID *)clip);

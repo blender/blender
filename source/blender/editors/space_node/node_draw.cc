@@ -2554,7 +2554,7 @@ static NodeExtraInfoRow row_from_used_named_attribute(
 
   NodeExtraInfoRow row;
   row.text = std::to_string(attributes_num) +
-             (attributes_num == 1 ? TIP_(" Named Attribute") : TIP_(" Named Attributes"));
+             (attributes_num == 1 ? RPT_(" Named Attribute") : RPT_(" Named Attributes"));
   row.icon = ICON_SPREADSHEET;
   row.tooltip_fn = named_attribute_tooltip;
   row.tooltip_fn_arg = new NamedAttributeTooltipArg{usage_by_attribute_name};

@@ -9,7 +9,7 @@ from mathutils import (
     Vector,
     Matrix,
 )
-from bpy.app.translations import pgettext_tip as tip_
+from bpy.app.translations import pgettext_rpt as rpt_
 
 
 def CLIP_spaces_walk(context, all_screens, tarea, tspace, callback, *args):
@@ -197,7 +197,7 @@ class CLIP_OT_filter_tracks(Operator):
 
     def execute(self, context):
         num_tracks = self._filter_values(context, self.track_threshold)
-        self.report({'INFO'}, tip_("Identified %d problematic tracks") % num_tracks)
+        self.report({'INFO'}, rpt_("Identified %d problematic tracks") % num_tracks)
         return {'FINISHED'}
 
 

@@ -675,7 +675,7 @@ static void txt_write_file(Main *bmain, Text *text, ReportList *reports)
                 RPT_ERROR,
                 "Unable to save '%s': %s",
                 filepath,
-                errno ? strerror(errno) : TIP_("unknown error writing file"));
+                errno ? strerror(errno) : RPT_("unknown error writing file"));
     return;
   }
 
@@ -700,7 +700,7 @@ static void txt_write_file(Main *bmain, Text *text, ReportList *reports)
                 RPT_WARNING,
                 "Unable to stat '%s': %s",
                 filepath,
-                errno ? strerror(errno) : TIP_("unknown error statting file"));
+                errno ? strerror(errno) : RPT_("unknown error statting file"));
   }
 
   text->flags &= ~TXT_ISDIRTY;

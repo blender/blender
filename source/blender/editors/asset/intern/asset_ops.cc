@@ -363,8 +363,8 @@ static bool asset_clear_poll(bContext *C, const PointerRNAVec &ids)
   IDVecStats ctx_stats = asset_operation_get_id_vec_stats_from_ids(ids);
 
   if (!ctx_stats.has_asset) {
-    const char *msg_single = TIP_("Data-block is not marked as asset");
-    const char *msg_multiple = TIP_("No data-block selected that is marked as asset");
+    const char *msg_single = N_("Data-block is not marked as asset");
+    const char *msg_multiple = N_("No data-block selected that is marked as asset");
     CTX_wm_operator_poll_msg_set(C, ctx_stats.is_single ? msg_single : msg_multiple);
     return false;
   }

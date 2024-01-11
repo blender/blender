@@ -631,9 +631,9 @@ static void sample_color_update_header(SampleColorData *data, bContext *C)
 
   if (area) {
     SNPRINTF(msg,
-             TIP_("Sample color for %s"),
-             !data->sample_palette ? TIP_("Brush. Use Left Click to sample for palette instead") :
-                                     TIP_("Palette. Use Left Click to sample more colors"));
+             RPT_("Sample color for %s"),
+             !data->sample_palette ? RPT_("Brush. Use Left Click to sample for palette instead") :
+                                     RPT_("Palette. Use Left Click to sample more colors"));
     ED_workspace_status_text(C, msg);
   }
 }
