@@ -23,6 +23,18 @@
 
 namespace blender::gpu {
 
+static VkImageAspectFlags to_vk_image_aspect_single_bit(const VkImageAspectFlags format,
+                                                        bool stencil)
+{
+  switch (format) {
+    case VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT:
+      return (stencil) ? VK_IMAGE_ASPECT_STENCIL_BIT : VK_IMAGE_ASPECT_DEPTH_BIT;
+    default:
+      break;
+  }
+  return format;
+}
+
 VKTexture::~VKTexture()
 {
   if (vk_image_ != VK_NULL_HANDLE && allocation_ != VK_NULL_HANDLE) {
@@ -294,7 +306,8 @@ void VKTexture::update_sub(
   region.imageOffset.x = offset[0];
   region.imageOffset.y = offset[1];
   region.imageOffset.z = offset[2];
-  region.imageSubresource.aspectMask = to_vk_image_aspect_flag_bits(device_format_);
+  region.imageSubresource.aspectMask = to_vk_image_aspect_single_bit(
+      to_vk_image_aspect_flag_bits(device_format_), false);
   region.imageSubresource.mipLevel = mip;
   region.imageSubresource.layerCount = layers;
 
