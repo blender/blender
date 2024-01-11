@@ -2280,6 +2280,7 @@ float uiLayoutGetUnitsY(uiLayout *layout);
 eUIEmbossType uiLayoutGetEmboss(uiLayout *layout);
 bool uiLayoutGetPropSep(uiLayout *layout);
 bool uiLayoutGetPropDecorate(uiLayout *layout);
+Panel *uiLayoutGetRootPanel(uiLayout *layout);
 
 /* Layout create functions. */
 

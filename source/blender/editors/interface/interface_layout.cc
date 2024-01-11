@@ -5307,6 +5307,11 @@ void uiLayoutSetPropDecorate(uiLayout *layout, bool is_sep)
   SET_FLAG_FROM_TEST(layout->item.flag, is_sep, UI_ITEM_PROP_DECORATE);
 }
 
+Panel *uiLayoutGetRootPanel(uiLayout *layout)
+{
+  return layout->root->block->panel;
+}
+
 bool uiLayoutGetActive(uiLayout *layout)
 {
   return layout->active;

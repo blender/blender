@@ -2383,6 +2383,18 @@ static void rna_def_file_handler(BlenderRNA *brna)
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 }
 
+static void rna_def_layout_panel_state(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "LayoutPanelState", nullptr);
+
+  prop = RNA_def_property(srna, "is_open", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", LAYOUT_PANEL_STATE_FLAG_OPEN);
+  RNA_def_property_ui_text(prop, "Is Open", "");
+}
+
 void RNA_def_ui(BlenderRNA *brna)
 {
   rna_def_ui_layout(brna);
@@ -2392,6 +2404,7 @@ void RNA_def_ui(BlenderRNA *brna)
   rna_def_menu(brna);
   rna_def_asset_shelf(brna);
   rna_def_file_handler(brna);
+  rna_def_layout_panel_state(brna);
 }
 
 #endif /* RNA_RUNTIME */
