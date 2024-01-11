@@ -49,8 +49,11 @@ BoneCollection *ANIM_bonecoll_new(const char *name) ATTR_WARN_UNUSED_RESULT;
  * of a bArmature. Normally bone collections are owned (and thus managed) by the armature.
  *
  * \see ANIM_armature_bonecoll_remove
+ *
+ * \param do_id_user_count whether to update user counts for IDs referenced from IDProperties of
+ * the bone collection. Needs to be false when freeing a CoW copy, true otherwise.
  */
-void ANIM_bonecoll_free(BoneCollection *bcoll);
+void ANIM_bonecoll_free(BoneCollection *bcoll, bool do_id_user_count = true);
 
 /**
  * Recalculate the armature & bone runtime data.
