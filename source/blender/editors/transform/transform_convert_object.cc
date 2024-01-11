@@ -303,9 +303,7 @@ static void trans_object_base_deps_flag_prepare(const Scene *scene, ViewLayer *v
   }
 }
 
-static void set_trans_object_base_deps_flag_cb(ID *id,
-                                               eDepsObjectComponentType component,
-                                               void * /*user_data*/)
+static void set_trans_object_base_deps_flag_cb(ID *id, eDepsObjectComponentType component)
 {
   /* Here we only handle object IDs. */
   if (GS(id->name) != ID_OB) {
@@ -324,8 +322,7 @@ static void flush_trans_object_base_deps_flag(Depsgraph *depsgraph, Object *obje
                                      &object->id,
                                      DEG_OB_COMP_TRANSFORM,
                                      DEG_FOREACH_COMPONENT_IGNORE_TRANSFORM_SOLVERS,
-                                     set_trans_object_base_deps_flag_cb,
-                                     nullptr);
+                                     set_trans_object_base_deps_flag_cb);
 }
 
 static void trans_object_base_deps_flag_finish(const TransInfo *t,

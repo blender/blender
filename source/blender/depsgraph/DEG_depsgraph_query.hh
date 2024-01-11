@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "BLI_function_ref.hh"
 #include "BLI_iterator.h"
 #include "BLI_utildefines.h"
 
@@ -251,10 +252,9 @@ void DEG_iterator_ids_end(BLI_Iterator *iter);
 /** \name DEG traversal
  * \{ */
 
-using DEGForeachIDCallback = void (*)(ID *id, void *user_data);
-using DEGForeachIDComponentCallback = void (*)(ID *id,
-                                               eDepsObjectComponentType component,
-                                               void *user_data);
+using DEGForeachIDCallback = blender::FunctionRef<void(ID *id)>;
+using DEGForeachIDComponentCallback =
+    blender::FunctionRef<void(ID *id, eDepsObjectComponentType component)>;
 
 /**
  * \note Modifies runtime flags in depsgraph nodes,
@@ -262,12 +262,10 @@ using DEGForeachIDComponentCallback = void (*)(ID *id,
  */
 void DEG_foreach_ancestor_ID(const Depsgraph *depsgraph,
                              const ID *id,
-                             DEGForeachIDCallback callback,
-                             void *user_data);
+                             DEGForeachIDCallback callback);
 void DEG_foreach_dependent_ID(const Depsgraph *depsgraph,
                               const ID *id,
-                              DEGForeachIDCallback callback,
-                              void *user_data);
+                              DEGForeachIDCallback callback);
 
 /**
  * Starts traversal from given component of the given ID, invokes callback for every other
@@ -288,9 +286,8 @@ void DEG_foreach_dependent_ID_component(const Depsgraph *depsgraph,
                                         const ID *id,
                                         eDepsObjectComponentType source_component_type,
                                         int flags,
-                                        DEGForeachIDComponentCallback callback,
-                                        void *user_data);
+                                        DEGForeachIDComponentCallback callback);
 
-void DEG_foreach_ID(const Depsgraph *depsgraph, DEGForeachIDCallback callback, void *user_data);
+void DEG_foreach_ID(const Depsgraph *depsgraph, DEGForeachIDCallback callback);
 
 /** \} */
