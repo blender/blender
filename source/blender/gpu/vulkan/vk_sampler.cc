@@ -28,6 +28,12 @@ void VKSampler::create(const GPUSamplerState &sampler_state)
 
   VkSamplerCreateInfo sampler_info = {};
   sampler_info.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+  /* Extend */
+  sampler_info.addressModeU = to_vk_sampler_address_mode(sampler_state.extend_x);
+  sampler_info.addressModeV = sampler_info.addressModeW = to_vk_sampler_address_mode(
+      sampler_state.extend_yz);
+  sampler_info.minLod = 0;
+  sampler_info.maxLod = 1000;
 
   if (sampler_state.type == GPU_SAMPLER_STATE_TYPE_PARAMETERS) {
     /* Apply filtering. */
@@ -45,11 +51,6 @@ void VKSampler::create(const GPUSamplerState &sampler_state)
       sampler_info.anisotropyEnable = VK_TRUE;
       sampler_info.maxAnisotropy = U.anisotropic_filter;
     }
-
-    /* Extend */
-    sampler_info.addressModeU = to_vk_sampler_address_mode(sampler_state.extend_x);
-    sampler_info.addressModeV = sampler_info.addressModeW = to_vk_sampler_address_mode(
-        sampler_state.extend_yz);
   }
   else if (sampler_state.type == GPU_SAMPLER_STATE_TYPE_CUSTOM) {
     if (sampler_state.custom_type == GPU_SAMPLER_CUSTOM_ICON) {
@@ -64,8 +65,6 @@ void VKSampler::create(const GPUSamplerState &sampler_state)
       sampler_info.minFilter = VK_FILTER_LINEAR;
       sampler_info.compareEnable = VK_TRUE;
       sampler_info.compareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
-      sampler_info.minLod = -1000;
-      sampler_info.maxLod = 1000;
     }
   }
 
