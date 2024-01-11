@@ -227,7 +227,7 @@ void VKTexture::mip_range_set(int min, int max)
 }
 
 void VKTexture::read_sub(
-    int mip, eGPUDataFormat format, const int region[4], const IndexRange layers, void *r_data)
+    int mip, eGPUDataFormat format, const int region[6], const IndexRange layers, void *r_data)
 {
   VKContext &context = *VKContext::get();
   layout_ensure(context, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
@@ -235,7 +235,8 @@ void VKTexture::read_sub(
   /* Vulkan images cannot be directly mapped to host memory and requires a staging buffer. */
   VKBuffer staging_buffer;
 
-  size_t sample_len = (region[2] - region[0]) * (region[3] - region[1]) * layers.size();
+  size_t sample_len = (region[5] - region[2]) * (region[3] - region[0]) * (region[4] - region[1]) *
+                      layers.size();
   size_t device_memory_size = sample_len * to_bytesize(device_format_);
 
   staging_buffer.create(device_memory_size, GPU_USAGE_DYNAMIC, VK_BUFFER_USAGE_TRANSFER_DST_BIT);
@@ -243,10 +244,12 @@ void VKTexture::read_sub(
   VkBufferImageCopy buffer_image_copy = {};
   buffer_image_copy.imageOffset.x = region[0];
   buffer_image_copy.imageOffset.y = region[1];
-  buffer_image_copy.imageExtent.width = region[2];
-  buffer_image_copy.imageExtent.height = region[3];
-  buffer_image_copy.imageExtent.depth = 1;
-  buffer_image_copy.imageSubresource.aspectMask = to_vk_image_aspect_flag_bits(device_format_);
+  buffer_image_copy.imageOffset.z = region[2];
+  buffer_image_copy.imageExtent.width = region[3];
+  buffer_image_copy.imageExtent.height = region[4];
+  buffer_image_copy.imageExtent.depth = region[5];
+  buffer_image_copy.imageSubresource.aspectMask = to_vk_image_aspect_single_bit(
+      to_vk_image_aspect_flag_bits(device_format_), false);
   buffer_image_copy.imageSubresource.mipLevel = mip;
   buffer_image_copy.imageSubresource.baseArrayLayer = layers.start();
   buffer_image_copy.imageSubresource.layerCount = layers.size();
@@ -262,13 +265,30 @@ void VKTexture::read_sub(
 void *VKTexture::read(int mip, eGPUDataFormat format)
 {
   int mip_size[3] = {1, 1, 1};
+  VkImageType vk_image_type = to_vk_image_type(type_);
   mip_size_get(mip, mip_size);
+  switch (vk_image_type) {
+    case VK_IMAGE_TYPE_1D: {
+      mip_size[1] = 1;
+      mip_size[2] = 1;
+    } break;
+    case VK_IMAGE_TYPE_2D: {
+      mip_size[2] = 1;
+    } break;
+    case VK_IMAGE_TYPE_3D:
+    default:
+      break;
+  }
+
+  if (mip_size[2] == 0) {
+    mip_size[2] = 1;
+  }
   IndexRange layers = IndexRange(layer_offset_, vk_layer_count(1));
-  size_t sample_len = mip_size[0] * mip_size[1] * layers.size();
+  size_t sample_len = mip_size[0] * mip_size[1] * mip_size[2] * layers.size();
   size_t host_memory_size = sample_len * to_bytesize(format_, format);
 
   void *data = MEM_mallocN(host_memory_size, __func__);
-  int region[4] = {0, 0, mip_size[0], mip_size[1]};
+  int region[6] = {0, 0, 0, mip_size[0], mip_size[1], mip_size[2]};
   read_sub(mip, format, region, layers, data);
   return data;
 }
