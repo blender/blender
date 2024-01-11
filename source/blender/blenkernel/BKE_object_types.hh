@@ -90,10 +90,10 @@ struct ObjectRuntime {
   /**
    * Evaluated mesh cage in edit mode.
    *
-   * \note When it's `runtime->deformed_only` is true, the meshes vertex positions
-   * and other geometry arrays will be aligned the edit-mesh.
-   * Otherwise the #CD_ORIGINDEX custom-data should be used to map the cage geometry
-   * back to the original indices, see #eModifierTypeFlag_SupportsMapping.
+   * \note When the mesh's `runtime->deformed_only` is true, the meshes vertex positions
+   * and other geometry arrays will be aligned the edit-mesh. Otherwise the #CD_ORIGINDEX
+   * custom-data should be used to map the cage geometry back to the original indices, see
+   * #eModifierTypeFlag_SupportsMapping.
    */
   Mesh *editmesh_eval_cage = nullptr;
 

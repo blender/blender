@@ -75,7 +75,7 @@ static bool handle_range(const int curve_index,
 }
 
 /**
- * Calculates number of points in resulting curve denoted by #curve_index and sets it's
+ * Calculates number of points in resulting curve denoted by #curve_index and sets its
  * #curve_offsets value.
  */
 static void calc_curve_offset(const int curve_index,

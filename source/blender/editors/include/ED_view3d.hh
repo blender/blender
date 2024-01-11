@@ -652,7 +652,7 @@ bool ED_view3d_win_to_3d_on_plane_int(
  * \param region: The region (used for the window width and height).
  * \param xy_delta: 2D difference (in pixels) such as `event->mval[0] - other_x`.
  * \param zfac: The depth result typically calculated by #ED_view3d_calc_zfac
- * (see it's doc-string for details).
+ * (see its doc-string for details).
  * \param r_out: The resulting world-space delta.
  */
 void ED_view3d_win_to_delta(const ARegion *region,
@@ -936,7 +936,7 @@ ViewContext ED_view3d_viewcontext_init(bContext *C, Depsgraph *depsgraph);
  * Re-initialize `vc` with `obact` as if it's active object (with some differences).
  *
  * This is often used when operating on multiple objects in modes (edit, pose mode etc)
- * where the `vc` is passed in as an argument which then references it's object data.
+ * where the `vc` is passed in as an argument which then references its object data.
  *
  * \note members #ViewContext.obedit & #ViewContext.em are only initialized if they're already set,
  * by #ED_view3d_viewcontext_init in most cases.

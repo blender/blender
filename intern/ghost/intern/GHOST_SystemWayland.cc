@@ -1327,7 +1327,7 @@ struct GWL_Display {
 };
 
 /**
- * Free the #GWL_Display and it's related members.
+ * Free the #GWL_Display and its related members.
  *
  * \note This may run on a partially initialized struct,
  * so it can't be assumed all members are set.

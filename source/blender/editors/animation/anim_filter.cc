@@ -1108,7 +1108,7 @@ static bool skip_fcurve_selected_data(bDopeSheet *ads, FCurve *fcu, ID *owner_id
          * since data-paths that point to missing strips are not shown.
          * If this is an important difference, the nullptr case could perform a global lookup,
          * only returning `true` if the sequence strip exists elsewhere
-         * (ignoring it's selection state). */
+         * (ignoring its selection state). */
         if (seq == nullptr) {
           return true;
         }

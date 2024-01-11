@@ -560,7 +560,7 @@ typedef void (*StringPropertySearchVisitFunc)(void *visit_user_data,
 /**
  * \param C: context, may be NULL (in this case all available items should be shown).
  * \param ptr: RNA pointer.
- * \param prop: RNA property. This must have it's #StringPropertyRNA.search callback set,
+ * \param prop: RNA property. This must have its #StringPropertyRNA.search callback set,
  * to check this use `RNA_property_string_search_flag(prop) & PROP_STRING_SEARCH_SUPPORTED`.
  * \param edit_text: Optionally use the string being edited by the user as a basis
  * for the search results (auto-complete Python attributes for e.g.).
