@@ -646,6 +646,29 @@ static PyObject *app_translations_pgettext_tip(BlenderAppTranslations * /*self*/
   return _py_pgettext(args, kw, BLT_translate_do_tooltip);
 }
 
+PyDoc_STRVAR(
+    app_translations_pgettext_rpt_doc,
+    ".. method:: pgettext_rpt(msgid, msgctxt=None)\n"
+    "\n"
+    "   Try to translate the given msgid (with optional msgctxt), if reports' translation "
+    "is enabled.\n"
+    "\n"
+    "   .. note::\n"
+    "      See :func:`pgettext` notes.\n"
+    "\n"
+    "   :arg msgid: The string to translate.\n"
+    "   :type msgid: string\n"
+    "   :arg msgctxt: The translation context (defaults to BLT_I18NCONTEXT_DEFAULT).\n"
+    "   :type msgctxt: string or None\n"
+    "   :return: The translated string (or msgid if no translation was found).\n"
+    "\n");
+static PyObject *app_translations_pgettext_rpt(BlenderAppTranslations * /*self*/,
+                                               PyObject *args,
+                                               PyObject *kw)
+{
+  return _py_pgettext(args, kw, BLT_translate_do_report);
+}
+
 PyDoc_STRVAR(app_translations_pgettext_data_doc,
              ".. method:: pgettext_data(msgid, msgctxt=None)\n"
              "\n"
@@ -740,6 +763,10 @@ static PyMethodDef app_translations_methods[] = {
      (PyCFunction)app_translations_pgettext_tip,
      METH_VARARGS | METH_KEYWORDS | METH_STATIC,
      app_translations_pgettext_tip_doc},
+    {"pgettext_rpt",
+     (PyCFunction)app_translations_pgettext_rpt,
+     METH_VARARGS | METH_KEYWORDS | METH_STATIC,
+     app_translations_pgettext_rpt_doc},
     {"pgettext_data",
      (PyCFunction)app_translations_pgettext_data,
      METH_VARARGS | METH_KEYWORDS | METH_STATIC,

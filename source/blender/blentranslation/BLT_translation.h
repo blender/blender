@@ -19,14 +19,21 @@ extern "C" {
 bool BLT_is_default_context(const char *msgctxt);
 const char *BLT_pgettext(const char *msgctxt, const char *msgid);
 
-/* translation */
+/* Translation */
+/* - iface includes buttons in the user interface: short labels displayed in windows, panels,
+ * menus.
+ * - tooltips only include the popup tooltips when hovering a button.
+ * - report is for longer, additional information displayed in the UI, such as error messages.
+ * - new_dataname is the actual user-created data such as objects, meshes, etc. */
 bool BLT_translate(void);
 bool BLT_translate_iface(void);
 bool BLT_translate_tooltips(void);
+bool BLT_translate_reports(void);
 bool BLT_translate_new_dataname(void);
 const char *BLT_translate_do(const char *msgctxt, const char *msgid);
 const char *BLT_translate_do_iface(const char *msgctxt, const char *msgid);
 const char *BLT_translate_do_tooltip(const char *msgctxt, const char *msgid);
+const char *BLT_translate_do_report(const char *msgctxt, const char *msgid);
 const char *BLT_translate_do_new_dataname(const char *msgctxt, const char *msgid);
 
 /* The "translation-marker" macro. */
@@ -37,9 +44,11 @@ const char *BLT_translate_do_new_dataname(const char *msgctxt, const char *msgid
 /*#  define _(msgid) BLT_gettext(msgid) */
 #define IFACE_(msgid) BLT_translate_do_iface(NULL, msgid)
 #define TIP_(msgid) BLT_translate_do_tooltip(NULL, msgid)
+#define RPT_(msgid) BLT_translate_do_report(NULL, msgid)
 #define DATA_(msgid) BLT_translate_do_new_dataname(NULL, msgid)
 #define CTX_IFACE_(context, msgid) BLT_translate_do_iface(context, msgid)
 #define CTX_TIP_(context, msgid) BLT_translate_do_tooltip(context, msgid)
+#define CTX_RPT_(context, msgid) BLT_translate_do_report(context, msgid)
 #define CTX_DATA_(context, msgid) BLT_translate_do_new_dataname(context, msgid)
 
 /* Helper macro, when we want to define a same msgid for multiple msgctxt...

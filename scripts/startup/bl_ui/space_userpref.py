@@ -260,6 +260,7 @@ class USERPREF_PT_interface_translation(InterfacePanel, CenterAlignMixIn, Panel)
         col.active = (bpy.app.translations.locale != "en_US")
         col.prop(view, "use_translate_tooltips", text="Tooltips")
         col.prop(view, "use_translate_interface", text="Interface")
+        col.prop(view, "use_translate_reports", text="Reports")
         col.prop(view, "use_translate_new_dataname", text="New Data")
 
 

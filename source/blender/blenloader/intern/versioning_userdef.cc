@@ -494,8 +494,8 @@ void blo_do_versions_userdef(UserDef *userdef)
                        USER_FLAG_UNUSED_6 | USER_FLAG_UNUSED_7 | USER_FLAG_UNUSED_9 |
                        USER_DEVELOPER_UI);
     userdef->uiflag &= ~(USER_HEADER_BOTTOM);
-    userdef->transopts &= ~(USER_TR_UNUSED_2 | USER_TR_UNUSED_3 | USER_TR_UNUSED_4 |
-                            USER_TR_UNUSED_6 | USER_TR_UNUSED_7);
+    userdef->transopts &= ~(USER_TR_UNUSED_3 | USER_TR_UNUSED_4 | USER_TR_UNUSED_6 |
+                            USER_TR_UNUSED_7);
 
     userdef->uiflag |= USER_LOCK_CURSOR_ADJUST;
   }

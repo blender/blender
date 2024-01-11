@@ -330,10 +330,10 @@ static void rna_userdef_language_update(Main * /*bmain*/, Scene * /*scene*/, Poi
 
   const char *uilng = BLT_lang_get();
   if (STREQ(uilng, "en_US")) {
-    U.transopts &= ~(USER_TR_IFACE | USER_TR_TOOLTIPS | USER_TR_NEWDATANAME);
+    U.transopts &= ~(USER_TR_IFACE | USER_TR_TOOLTIPS | USER_TR_REPORTS | USER_TR_NEWDATANAME);
   }
   else {
-    U.transopts |= (USER_TR_IFACE | USER_TR_TOOLTIPS | USER_TR_NEWDATANAME);
+    U.transopts |= (USER_TR_IFACE | USER_TR_TOOLTIPS | USER_TR_REPORTS | USER_TR_NEWDATANAME);
   }
 
   USERDEF_TAG_DIRTY;
@@ -5194,6 +5194,12 @@ static void rna_def_userdef_view(BlenderRNA *brna)
       "Translate Interface",
       "Translate all labels in menus, buttons and panels "
       "(note that this might make it hard to follow tutorials or the manual)");
+  RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+  prop = RNA_def_property(srna, "use_translate_reports", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "transopts", USER_TR_REPORTS);
+  RNA_def_property_ui_text(
+      prop, "Translate Reports", "Translate additional information, such as error messages");
   RNA_def_property_update(prop, 0, "rna_userdef_update");
 
   prop = RNA_def_property(srna, "use_translate_new_dataname", PROP_BOOLEAN, PROP_NONE);

@@ -243,10 +243,10 @@ _ctxt_re = _ctxt_re_gen("")
 _msg_re = r"(?P<msg_raw>" + _str_whole_re.format(_="_msg") + r")"
 PYGETTEXT_KEYWORDS = (() +
     tuple((r"{}\(\s*" + _msg_re + r"\s*\)").format(it)
-          for it in ("IFACE_", "TIP_", "DATA_", "N_")) +
+          for it in ("IFACE_", "TIP_", "RPT_", "DATA_", "N_")) +
 
     tuple((r"{}\(\s*" + _ctxt_re + r"\s*,\s*" + _msg_re + r"\s*\)").format(it)
-          for it in ("CTX_IFACE_", "CTX_TIP_", "CTX_DATA_", "CTX_N_")) +
+          for it in ("CTX_IFACE_", "CTX_TIP_", "CTX_RPT_", "CTX_DATA_", "CTX_N_")) +
 
     tuple(("{}\\((?:[^\"',]+,){{1,2}}\\s*" + _msg_re + r"\s*(?:\)|,)").format(it)
           for it in ("BKE_report", "BKE_reportf", "BKE_reports_prepend", "BKE_reports_prependf",
