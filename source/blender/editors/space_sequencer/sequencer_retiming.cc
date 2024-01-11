@@ -536,8 +536,34 @@ void SEQUENCER_OT_retiming_transition_add(wmOperatorType *ot)
 static SeqRetimingKey *ensure_left_and_right_keys(const bContext *C, Sequence *seq)
 {
   Scene *scene = CTX_data_scene(C);
+  SEQ_retiming_data_ensure(seq);
   SEQ_retiming_add_key(scene, seq, left_fake_key_frame_get(C, seq));
   return SEQ_retiming_add_key(scene, seq, right_fake_key_frame_get(C, seq));
+}
+
+/* Return speed of existing segment or strip. Assume 1 element is selected. */
+static float strip_speed_get(bContext *C, const wmOperator * /* op */)
+{
+  /* Strip mode. */
+  if (!sequencer_retiming_mode_is_active(C)) {
+    blender::VectorSet<Sequence *> strips = selected_strips_from_context(C);
+    if (strips.size() == 1) {
+      Sequence *seq = strips[0];
+      SeqRetimingKey *key = ensure_left_and_right_keys(C, seq);
+      return SEQ_retiming_key_speed_get(seq, key);
+    }
+  }
+
+  Scene *scene = CTX_data_scene(C);
+  blender::Map selection = SEQ_retiming_selection_get(SEQ_editing_get(scene));
+  /* Retiming mode. */
+  if (selection.size() == 1) {
+    for (auto item : selection.items()) {
+      return SEQ_retiming_key_speed_get(item.value, item.key);
+    }
+  }
+
+  return 1.0f;
 }
 
 static int strip_speed_set_exec(bContext *C, const wmOperator *op)
@@ -546,7 +572,6 @@ static int strip_speed_set_exec(bContext *C, const wmOperator *op)
   blender::VectorSet<Sequence *> strips = selected_strips_from_context(C);
 
   for (Sequence *seq : strips) {
-    SEQ_retiming_data_ensure(seq);
     SeqRetimingKey *key = ensure_left_and_right_keys(C, seq);
 
     if (key == nullptr) {
@@ -611,8 +636,10 @@ static int sequencer_retiming_segment_speed_set_invoke(bContext *C,
                                                        const wmEvent *event)
 {
   if (!RNA_struct_property_is_set(op->ptr, "speed")) {
+    RNA_float_set(op->ptr, "speed", strip_speed_get(C, op) * 100.0f);
     return WM_operator_props_popup(C, op, event);
   }
+
   return sequencer_retiming_segment_speed_set_exec(C, op);
 }
 
