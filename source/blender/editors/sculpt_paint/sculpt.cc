@@ -5239,6 +5239,8 @@ void SCULPT_flush_update_step(bContext *C, SculptUpdateType update_flags)
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
   Mesh *mesh = static_cast<Mesh *>(ob->data);
 
+  const bool use_pbvh_draw = BKE_sculptsession_use_pbvh_draw(ob, rv3d);
+
   if (rv3d) {
     /* Mark for faster 3D viewport redraws. */
     rv3d->rflag |= RV3D_PAINTING;
@@ -5261,7 +5263,7 @@ void SCULPT_flush_update_step(bContext *C, SculptUpdateType update_flags)
 
   /* Only current viewport matters, slower update for all viewports will
    * be done in sculpt_flush_update_done. */
-  if (!BKE_sculptsession_use_pbvh_draw(ob, rv3d)) {
+  if (!use_pbvh_draw) {
     /* Slow update with full dependency graph update and all that comes with it.
      * Needed when there are modifiers or full shading in the 3D viewport. */
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
@@ -5298,13 +5300,21 @@ void SCULPT_flush_update_step(bContext *C, SculptUpdateType update_flags)
     if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
       /* Updating mesh positions without marking caches dirty is generally not good, but since
        * sculpt mode has special requirements and is expected to have sole ownership of the mesh it
-       * modifies, it's generally okay.
-       *
-       * Vertex and face normals are updated later in #bke::pbvh::update_normals. However, we
-       * update the mesh's bounds eagerly here since they are trivial to access from the PBVH.
-       * Updating the object's evaluated geometry bounding box is necessary because sculpt strokes
-       * don't cause an object reevaluation. */
-      mesh->tag_positions_changed_no_normals();
+       * modifies, it's generally okay. */
+      if (use_pbvh_draw) {
+        /* When drawing from PBVH is used, vertex and face normals are updated later in
+         * #bke::pbvh::update_normals. However, we update the mesh's bounds eagerly here since they
+         * are trivial to access from the PBVH. Updating the object's evaluated geometry bounding
+         * box is necessary because sculpt strokes don't cause an object reevaluation. */
+        mesh->tag_positions_changed_no_normals();
+      }
+      else {
+        /* Drawing happens from the modifier stack evaluation result.
+         * Tag both coordinates and normals as modified, as both needed for proper drawing and the
+         * modifier stack is not guaranteed to tag normals for update. */
+        mesh->tag_positions_changed();
+      }
+
       mesh->bounds_set_eager(BKE_pbvh_bounding_box(ob->sculpt->pbvh));
       if (ob->runtime->bounds_eval) {
         ob->runtime->bounds_eval = mesh->bounds_min_max();
