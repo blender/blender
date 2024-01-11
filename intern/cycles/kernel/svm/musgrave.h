@@ -472,7 +472,6 @@ ccl_device_noinline_cpu float noise_musgrave_hybrid_multi_fractal_3d(
   float value = 0.0f;
   float weight = 1.0f;
 
-
   for (int i = 0; (weight > 0.001f) && (i < float_to_int(octaves)); i++) {
     if (weight > 1.0f) {
       weight = 1.0f;
@@ -486,7 +485,7 @@ ccl_device_noinline_cpu float noise_musgrave_hybrid_multi_fractal_3d(
   }
 
   float rmd = octaves - floorf(octaves);
-  if ((rmd != 0.0f) && (weight > 0.001f)){
+  if ((rmd != 0.0f) && (weight > 0.001f)) {
     if (weight > 1.0f) {
       weight = 1.0f;
     }

@@ -1315,8 +1315,7 @@ static void id_override_library_create_hierarchy_process(bContext *C,
     }
     if (id_iter->override_library->hierarchy_root != nullptr &&
         !data.id_hierarchy_roots_uid.contains(
-            id_iter->override_library->hierarchy_root->session_uuid))
-    {
+            id_iter->override_library->hierarchy_root->session_uuid)) {
       continue;
     }
     if (data.selected_id_uid.contains(id_iter->override_library->reference->session_uuid) ||

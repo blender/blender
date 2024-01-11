@@ -54,6 +54,7 @@ def get_blender_git_root():
 
 # Setup for precompiled libraries and tests from svn.
 
+
 def get_effective_architecture(args):
     if args.architecture:
         return args.architecture
