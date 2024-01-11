@@ -199,11 +199,6 @@ ifndef DEPS_INSTALL_DIR
 	endif
 endif
 
-# Allow to use alternative binary (pypy3, etc)
-ifndef PYTHON
-	PYTHON:=python3
-endif
-
 # Set the LIBDIR, an empty string when not found.
 LIBDIR:=$(wildcard ../lib/${OS_NCASE}_${CPU})
 ifeq (, $(LIBDIR))
@@ -228,11 +223,13 @@ ifeq (, $(wildcard $(LIBDIR)/python/lib/python$(PY_LIB_VERSION)))
 	endif
 endif
 
-# For macOS python3 is not installed by default, so fallback to python binary
-# in libraries, or python 2 for running make update to get it.
-ifeq ($(OS_NCASE),darwin)
-	ifeq (, $(shell command -v $(PYTHON)))
-		PYTHON:=$(LIBDIR)/python/bin/python$(PY_LIB_VERSION)
+# Allow to use alternative binary (pypy3, etc)
+ifndef PYTHON
+	# If not overriden, first try using Python from LIBDIR.
+	PYTHON:=$(LIBDIR)/python/bin/python$(PY_LIB_VERSION)
+	ifeq (, $(PYTHON))
+		# If not available, use system python3 or python command.
+		PYTHON:=python3
 		ifeq (, $(shell command -v $(PYTHON)))
 			PYTHON:=python
 		endif
