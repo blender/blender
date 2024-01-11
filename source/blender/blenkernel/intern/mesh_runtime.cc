@@ -74,9 +74,9 @@ MeshRuntime::~MeshRuntime()
 static int reset_bits_and_count(MutableBitSpan bits, const Span<int> indices_to_reset)
 {
   int count = bits.size();
-  for (const int vert : indices_to_reset) {
-    if (bits[vert]) {
-      bits[vert].reset();
+  for (const int i : indices_to_reset) {
+    if (bits[i]) {
+      bits[i].reset();
       count--;
     }
   }
