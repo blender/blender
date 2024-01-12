@@ -215,6 +215,7 @@ class NODE_MT_geometry_node_GEO_GEOMETRY_OPERATIONS(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeDeleteGeometry")
         node_add_menu.add_node_type(layout, "GeometryNodeDuplicateElements")
         node_add_menu.add_node_type(layout, "GeometryNodeMergeByDistance")
+        node_add_menu.add_node_type(layout, "GeometryNodeSortElements")
         node_add_menu.add_node_type(layout, "GeometryNodeTransform")
         layout.separator()
         node_add_menu.add_node_type(layout, "GeometryNodeSeparateComponents")

@@ -936,29 +936,6 @@ void gather_attributes(const AttributeAccessor src_attributes,
   });
 }
 
-static bool indices_are_range(const Span<int> indices, const IndexRange range)
-{
-  if (indices.size() != range.size()) {
-    return false;
-  }
-  return threading::parallel_reduce(
-      range,
-      4096,
-      true,
-      [&](const IndexRange range, const bool init) {
-        if (!init) {
-          return false;
-        }
-        for (const int i : range) {
-          if (indices[i] != i) {
-            return false;
-          }
-        }
-        return true;
-      },
-      std::logical_and());
-}
-
 void gather_attributes(const AttributeAccessor src_attributes,
                        const AttrDomain domain,
                        const AnonymousAttributePropagationInfo &propagation_info,
@@ -966,7 +943,7 @@ void gather_attributes(const AttributeAccessor src_attributes,
                        const Span<int> indices,
                        MutableAttributeAccessor dst_attributes)
 {
-  if (indices_are_range(indices, IndexRange(src_attributes.domain_size(domain)))) {
+  if (array_utils::indices_are_range(indices, IndexRange(src_attributes.domain_size(domain)))) {
     copy_attributes(src_attributes, domain, propagation_info, skip, dst_attributes);
   }
   else {

@@ -27,6 +27,11 @@ namespace blender::bke {
 
 CurveComponent::CurveComponent() : GeometryComponent(Type::Curve) {}
 
+CurveComponent::CurveComponent(Curves *curve, GeometryOwnershipType ownership)
+    : GeometryComponent(Type::Curve), curves_(curve), ownership_(ownership)
+{
+}
+
 CurveComponent::~CurveComponent()
 {
   this->clear();

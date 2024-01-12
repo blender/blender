@@ -18,6 +18,11 @@ namespace blender::bke {
 
 PointCloudComponent::PointCloudComponent() : GeometryComponent(Type::PointCloud) {}
 
+PointCloudComponent::PointCloudComponent(PointCloud *pointcloud, GeometryOwnershipType ownership)
+    : GeometryComponent(Type::PointCloud), pointcloud_(pointcloud), ownership_(ownership)
+{
+}
+
 PointCloudComponent::~PointCloudComponent()
 {
   this->clear();
