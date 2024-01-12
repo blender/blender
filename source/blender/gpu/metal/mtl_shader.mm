@@ -181,7 +181,7 @@ void MTLShader::vertex_shader_from_glsl(MutableSpan<const char *> sources)
   shd_builder_->source_from_msl_ = false;
 
   /* Remove #version tag entry. */
-  sources[0] = "";
+  sources[SOURCES_INDEX_VERSION] = "";
 
   /* Consolidate GLSL vertex sources. */
   std::stringstream ss;
@@ -203,7 +203,7 @@ void MTLShader::fragment_shader_from_glsl(MutableSpan<const char *> sources)
   shd_builder_->source_from_msl_ = false;
 
   /* Remove #version tag entry. */
-  sources[0] = "";
+  sources[SOURCES_INDEX_VERSION] = "";
 
   /* Consolidate GLSL fragment sources. */
   std::stringstream ss;
@@ -231,7 +231,7 @@ void MTLShader::compute_shader_from_glsl(MutableSpan<const char *> sources)
   shd_builder_->source_from_msl_ = false;
 
   /* Remove #version tag entry. */
-  sources[0] = "";
+  sources[SOURCES_INDEX_VERSION] = "";
 
   /* Consolidate GLSL compute sources. */
   std::stringstream ss;
