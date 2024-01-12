@@ -372,25 +372,24 @@ void select_alternate(bke::CurvesGeometry &curves,
       return;
     }
 
-    for (const int index : points.index_range()) {
-      selection_typed[points[index]] = deselect_ends ? index % 2 : !(index % 2);
+    const int half_of_size = points.size() / 2;
+    const IndexRange selected = points.shift(deselect_ends ? 1 : 0);
+    const IndexRange deselected = points.shift(deselect_ends ? 0 : 1);
+    for (const int i : IndexRange(half_of_size)) {
+      const int index = i * 2;
+      selection_typed[selected[index]] = true;
+      selection_typed[deselected[index]] = false;
     }
 
-    if (cyclic[curve_i]) {
-      if (deselect_ends) {
-        selection_typed[points.last()] = false;
-      }
-      else {
-        selection_typed[points.last()] = true;
-        if (points.size() > 2) {
-          selection_typed[points.last() - 1] = false;
-        }
-      }
-    }
-    else {
-      if (deselect_ends) {
-        selection_typed[points.last()] = false;
-      }
+    selection_typed[points.first()] = !deselect_ends;
+    const bool end_parity_to_selected = bool(points.size() % 2);
+    const bool selected_end = cyclic[curve_i] || end_parity_to_selected;
+    selection_typed[points.last()] = !deselect_ends && selected_end;
+
+    /* Selected last one require to deselect pre-last one point which is not first. */
+    const IndexRange curve_body = points.drop_front(1).drop_back(1);
+    if (!deselect_ends && cyclic[curve_i] && !curve_body.is_empty()) {
+      selection_typed[curve_body.last()] = false;
     }
   });
 
