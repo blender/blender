@@ -492,9 +492,9 @@ static void grease_pencil_geom_batch_ensure(Object &object,
     const VArray<float> selection_float = *attributes.lookup_or_default<float>(
         ".selection", bke::AttrDomain::Point, true);
     const VArray<int8_t> start_caps = *attributes.lookup_or_default<int8_t>(
-        "start_cap", bke::AttrDomain::Curve, 0);
+        "start_cap", bke::AttrDomain::Curve, GP_STROKE_CAP_TYPE_ROUND);
     const VArray<int8_t> end_caps = *attributes.lookup_or_default<int8_t>(
-        "end_cap", bke::AttrDomain::Curve, 0);
+        "end_cap", bke::AttrDomain::Curve, GP_STROKE_CAP_TYPE_ROUND);
     const VArray<int> materials = *attributes.lookup_or_default<int>(
         "material_index", bke::AttrDomain::Curve, 0);
     const VArray<float> hardness = *attributes.lookup_or_default<float>(
