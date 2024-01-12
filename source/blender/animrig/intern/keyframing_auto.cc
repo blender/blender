@@ -304,6 +304,10 @@ bool autokeyframe_property(bContext *C,
     return changed;
   }
 
+  if (driven) {
+    return false;
+  }
+
   if (special) {
     /* NLA Strip property. */
     if (is_autokey_on(scene)) {
@@ -318,25 +322,6 @@ bool autokeyframe_property(bContext *C,
                                        eBezTriple_KeyframeType(ts->keyframe_type),
                                        nullptr,
                                        eInsertKeyFlags(0));
-      WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
-    }
-  }
-  else if (driven) {
-    /* Driver - Try to insert keyframe using the driver's input as the frame,
-     * making it easier to set up corrective drivers.
-     */
-    if (is_autokey_on(scene)) {
-      ReportList *reports = CTX_wm_reports(C);
-      ToolSettings *ts = scene->toolsettings;
-
-      changed = insert_keyframe_direct(reports,
-                                       *ptr,
-                                       prop,
-                                       fcu,
-                                       &anim_eval_context,
-                                       eBezTriple_KeyframeType(ts->keyframe_type),
-                                       nullptr,
-                                       INSERTKEY_DRIVER);
       WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
     }
   }
