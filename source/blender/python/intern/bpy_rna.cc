@@ -5718,7 +5718,7 @@ static PyObject *pyprop_array_foreach_getset(BPy_PropertyArrayRNA *self,
     return nullptr;
   }
 
-  size = pyrna_prop_array_length(self);
+  size = RNA_property_array_length(&self->ptr, self->prop);
   seq_size = PySequence_Size(seq);
 
   if (size != seq_size) {
