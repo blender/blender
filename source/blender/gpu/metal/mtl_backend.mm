@@ -178,7 +178,7 @@ void MTLBackend::platform_init(MTLContext *ctx)
   }
 
   eGPUDeviceType device = GPU_DEVICE_UNKNOWN;
-  eGPUOSType os = GPU_OS_ANY;
+  eGPUOSType os = GPU_OS_MAC;
   eGPUDriverType driver = GPU_DRIVER_ANY;
   eGPUSupportLevel support_level = GPU_SUPPORT_LEVEL_SUPPORTED;
 
@@ -193,19 +193,9 @@ void MTLBackend::platform_init(MTLContext *ctx)
   if (G.debug & G_DEBUG_GPU) {
     printf("METAL API - DETECTED GPU: %s\n", vendor);
   }
-  GPUArchitectureType architecture_type = (mtl_device.hasUnifiedMemory) ? GPU_ARCHITECTURE_TBDR :
-                                                                          GPU_ARCHITECTURE_IMR;
 
   /* macOS is the only supported platform, but check to ensure we are not building with Metal
    * enablement on another platform. */
-#ifdef _WIN32
-  os = GPU_OS_WIN;
-#elif defined(__APPLE__)
-  os = GPU_OS_MAC;
-#else
-  os = GPU_OS_UNIX;
-#endif
-
   BLI_assert_msg(os == GPU_OS_MAC, "Platform must be macOS");
 
   /* Determine Vendor from name. */
@@ -240,6 +230,11 @@ void MTLBackend::platform_init(MTLContext *ctx)
     printf("Vendor: %s\n", vendor);
     printf("Renderer: %s\n", renderer);
   }
+
+  GPUArchitectureType architecture_type = (mtl_device.hasUnifiedMemory &&
+                                           device == GPU_DEVICE_APPLE) ?
+                                              GPU_ARCHITECTURE_TBDR :
+                                              GPU_ARCHITECTURE_IMR;
 
   GPG.init(device,
            os,
