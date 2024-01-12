@@ -1925,51 +1925,41 @@ static ImBuf *do_solid_color(const SeqRenderData *context,
                              ImBuf *ibuf2,
                              ImBuf *ibuf3)
 {
+  using namespace blender;
   ImBuf *out = prepare_effect_imbufs(context, ibuf1, ibuf2, ibuf3);
 
   SolidColorVars *cv = (SolidColorVars *)seq->effectdata;
 
-  int x = out->x;
-  int y = out->y;
+  threading::parallel_for(IndexRange(out->y), 64, [&](const IndexRange y_range) {
+    if (out->byte_buffer.data) {
+      /* Byte image. */
+      uchar color[4];
+      rgb_float_to_uchar(color, cv->col);
+      color[3] = 255;
 
-  if (out->byte_buffer.data) {
-    uchar color[4];
-    color[0] = cv->col[0] * 255;
-    color[1] = cv->col[1] * 255;
-    color[2] = cv->col[2] * 255;
-    color[3] = 255;
-
-    uchar *rect = out->byte_buffer.data;
-
-    for (int i = 0; i < y; i++) {
-      for (int j = 0; j < x; j++) {
-        rect[0] = color[0];
-        rect[1] = color[1];
-        rect[2] = color[2];
-        rect[3] = color[3];
-        rect += 4;
+      uchar *dst = out->byte_buffer.data + y_range.first() * out->x * 4;
+      uchar *dst_end = dst + y_range.size() * out->x * 4;
+      while (dst < dst_end) {
+        memcpy(dst, color, sizeof(color));
+        dst += 4;
       }
     }
-  }
-  else if (out->float_buffer.data) {
-    float color[4];
-    color[0] = cv->col[0];
-    color[1] = cv->col[1];
-    color[2] = cv->col[2];
-    color[3] = 255;
+    else {
+      /* Float image. */
+      float color[4];
+      color[0] = cv->col[0];
+      color[1] = cv->col[1];
+      color[2] = cv->col[2];
+      color[3] = 1.0f;
 
-    float *rect_float = out->float_buffer.data;
-
-    for (int i = 0; i < y; i++) {
-      for (int j = 0; j < x; j++) {
-        rect_float[0] = color[0];
-        rect_float[1] = color[1];
-        rect_float[2] = color[2];
-        rect_float[3] = color[3];
-        rect_float += 4;
+      float *dst = out->float_buffer.data + y_range.first() * out->x * 4;
+      float *dst_end = dst + y_range.size() * out->x * 4;
+      while (dst < dst_end) {
+        memcpy(dst, color, sizeof(color));
+        dst += 4;
       }
     }
-  }
+  });
 
   out->planes = R_IMF_PLANES_RGB;
 
