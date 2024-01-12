@@ -30,7 +30,9 @@ class GPENCIL_MT_material_context_menu(Menu):
 
             layout.separator()
 
-            layout.operator("grease_pencil.material_copy_to_object", text="Copy Material to Selected").only_active = True
+            layout.operator(
+                "grease_pencil.material_copy_to_object",
+                text="Copy Material to Selected").only_active = True
             layout.operator("grease_pencil.material_copy_to_object",
                             text="Copy All Materials to Selected").only_active = False
 
