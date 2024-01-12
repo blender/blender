@@ -15,6 +15,7 @@
 #include "BLI_listbase.h"
 
 #include "BKE_action.h"
+#include "BKE_mesh_types.hh"
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
 
@@ -161,6 +162,15 @@ void ObjectRuntimeBackup::restore_modifier_runtime_data(Object *object)
     const ModifierTypeInfo *modifier_type_info = BKE_modifier_get_info(backup.type);
     BLI_assert(modifier_type_info != nullptr);
     modifier_type_info->free_runtime_data(backup.runtime);
+
+    if (backup.type == eModifierType_Subsurf) {
+      if (object->type == OB_MESH) {
+        Mesh *mesh = (Mesh *)object->data;
+        if (mesh->runtime->subsurf_runtime_data == backup.runtime) {
+          mesh->runtime->subsurf_runtime_data = nullptr;
+        }
+      }
+    }
   }
 }
 
