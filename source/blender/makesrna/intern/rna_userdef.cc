@@ -446,6 +446,40 @@ static void rna_userdef_script_directory_remove(ReportList *reports, PointerRNA 
   USERDEF_TAG_DIRTY;
 }
 
+static bUserAssetLibrary *rna_userdef_asset_library_new(const char *name, const char *directory)
+{
+  bUserAssetLibrary *new_library = BKE_preferences_asset_library_add(
+      &U, name ? name : "", directory ? directory : "");
+
+  /* Trigger refresh for the Asset Browser. */
+  WM_main_add_notifier(NC_SPACE | ND_SPACE_ASSET_PARAMS, nullptr);
+
+  USERDEF_TAG_DIRTY;
+  return new_library;
+}
+
+static void rna_userdef_asset_library_remove(ReportList *reports, PointerRNA *ptr)
+{
+  bUserAssetLibrary *library = static_cast<bUserAssetLibrary *>(ptr->data);
+
+  if (BLI_findindex(&U.asset_libraries, library) == -1) {
+    BKE_report(reports, RPT_ERROR, "Asset Library not found");
+    return;
+  }
+
+  BKE_preferences_asset_library_remove(&U, library);
+
+  /* Update active library index to be in range. */
+  const int count_remaining = BLI_listbase_count(&U.asset_libraries);
+  CLAMP(U.active_asset_library, 0, count_remaining - 1);
+
+  /* Trigger refresh for the Asset Browser. */
+  WM_main_add_notifier(NC_SPACE | ND_SPACE_ASSET_PARAMS, nullptr);
+
+  RNA_POINTER_INVALIDATE(ptr);
+  USERDEF_TAG_DIRTY;
+}
+
 static bUserExtensionRepo *rna_userdef_extension_repo_new(const char *name,
                                                           const char *module,
                                                           const char *directory,
@@ -6641,6 +6675,34 @@ static void rna_def_userdef_script_directory_collection(BlenderRNA *brna, Proper
   RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, ParameterFlag(0));
 }
 
+static void rna_def_userdef_asset_library_collection(BlenderRNA *brna, PropertyRNA *cprop)
+{
+  StructRNA *srna;
+  FunctionRNA *func;
+  PropertyRNA *parm;
+
+  RNA_def_property_srna(cprop, "AssetLibraryCollection");
+  srna = RNA_def_struct(brna, "AssetLibraryCollection", nullptr);
+  RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
+  RNA_def_struct_ui_text(srna, "User Asset Libraries", "Collection of user asset libraries");
+
+  func = RNA_def_function(srna, "new", "rna_userdef_asset_library_new");
+  RNA_def_function_flag(func, FUNC_NO_SELF);
+  RNA_def_function_ui_description(func, "Add a new Asset Library");
+  RNA_def_string(func, "name", nullptr, sizeof(bUserAssetLibrary::name), "Name", "");
+  RNA_def_string(func, "directory", nullptr, sizeof(bUserAssetLibrary::dirpath), "Directory", "");
+  /* return type */
+  parm = RNA_def_pointer(func, "library", "UserAssetLibrary", "", "Newly added asset library");
+  RNA_def_function_return(func, parm);
+
+  func = RNA_def_function(srna, "remove", "rna_userdef_asset_library_remove");
+  RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_REPORTS);
+  RNA_def_function_ui_description(func, "Remove an Asset Library");
+  parm = RNA_def_pointer(func, "library", "UserAssetLibrary", "", "");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+  RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, ParameterFlag(0));
+}
+
 static void rna_def_userdef_extension_repos_collection(BlenderRNA *brna, PropertyRNA *cprop)
 {
   StructRNA *srna;
@@ -6882,6 +6944,7 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
   prop = RNA_def_property(srna, "asset_libraries", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "UserAssetLibrary");
   RNA_def_property_ui_text(prop, "Asset Libraries", "");
+  rna_def_userdef_asset_library_collection(brna, prop);
 
   prop = RNA_def_property(srna, "active_asset_library", PROP_INT, PROP_NONE);
   RNA_def_property_ui_text(prop,
