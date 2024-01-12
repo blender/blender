@@ -13,6 +13,7 @@
 
 #include "BLI_hash.h"
 #include "BLI_index_range.hh"
+#include "BLI_math_base.hh"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
@@ -115,15 +116,8 @@ void cache_init(bContext *C,
     BKE_pbvh_ensure_node_loops(ss->pbvh);
   }
 
-  const float center[3] = {0.0f};
-  SculptSearchSphereData search_data{};
-  search_data.original = true;
-  search_data.center = center;
-  search_data.radius_squared = FLT_MAX;
-  search_data.ignore_fully_ineffective = true;
-
   ss->filter_cache->nodes = bke::pbvh::search_gather(
-      pbvh, [&](PBVHNode &node) { return SCULPT_search_sphere(&node, &search_data); });
+      pbvh, [&](PBVHNode &node) { return !node_fully_masked_or_hidden(node); });
 
   for (PBVHNode *node : ss->filter_cache->nodes) {
     BKE_pbvh_node_mark_normals_update(node);
@@ -177,14 +171,10 @@ void cache_init(bContext *C,
       radius = paint_calc_object_space_radius(&vc, co, float(ups->size) * area_normal_radius);
     }
 
-    SculptSearchSphereData search_data2{};
-    search_data2.original = true;
-    search_data2.center = co;
-    search_data2.radius_squared = radius * radius;
-    search_data2.ignore_fully_ineffective = true;
-
-    nodes = bke::pbvh::search_gather(
-        pbvh, [&](PBVHNode &node) { return SCULPT_search_sphere(&node, &search_data2); });
+    const float radius_sq = math::square(radius);
+    nodes = bke::pbvh::search_gather(pbvh, [&](PBVHNode &node) {
+      return !node_fully_masked_or_hidden(node) && node_in_sphere(node, co, radius_sq, true);
+    });
 
     if (BKE_paint_brush(&sd->paint) &&
         SCULPT_pbvh_calc_area_normal(brush, ob, nodes, ss->filter_cache->initial_normal))

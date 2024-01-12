@@ -79,31 +79,25 @@ Vector<PBVHNode *> brush_affected_nodes_gather(SculptSession *ss, Brush *brush)
 
   switch (brush->cloth_simulation_area_type) {
     case BRUSH_CLOTH_SIMULATION_AREA_LOCAL: {
-      SculptSearchSphereData data{};
-      data.ss = ss;
-      data.radius_squared = square_f(ss->cache->initial_radius * (1.0 + brush->cloth_sim_limit));
-      data.original = false;
-      data.ignore_fully_ineffective = false;
-      data.center = ss->cache->initial_location;
-      return bke::pbvh::search_gather(
-          ss->pbvh, [&](PBVHNode &node) { return SCULPT_search_sphere(&node, &data); });
+      const float radius_squared = math::square(ss->cache->initial_radius *
+                                                (1.0 + brush->cloth_sim_limit));
+      return bke::pbvh::search_gather(ss->pbvh, [&](PBVHNode &node) {
+        return node_in_sphere(node, ss->cache->initial_location, radius_squared, false);
+      });
     }
     case BRUSH_CLOTH_SIMULATION_AREA_GLOBAL:
       return bke::pbvh::search_gather(ss->pbvh, {});
     case BRUSH_CLOTH_SIMULATION_AREA_DYNAMIC: {
-      SculptSearchSphereData data{};
-      data.ss = ss;
-      data.radius_squared = square_f(ss->cache->radius * (1.0 + brush->cloth_sim_limit));
-      data.original = false;
-      data.ignore_fully_ineffective = false;
-      data.center = ss->cache->location;
-      return bke::pbvh::search_gather(
-          ss->pbvh, [&](PBVHNode &node) { return SCULPT_search_sphere(&node, &data); });
+      const float radius_squared = math::square(ss->cache->radius *
+                                                (1.0 + brush->cloth_sim_limit));
+      return bke::pbvh::search_gather(ss->pbvh, [&](PBVHNode &node) {
+        return node_in_sphere(node, ss->cache->location, radius_squared, false);
+      });
     }
   }
 
   BLI_assert_unreachable();
-  return Vector<PBVHNode *>();
+  return {};
 }
 
 bool is_cloth_deform_brush(const Brush *brush)

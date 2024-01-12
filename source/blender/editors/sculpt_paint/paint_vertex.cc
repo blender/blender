@@ -282,14 +282,9 @@ Vector<PBVHNode *> pbvh_gather_generic(Object *ob, VPaint *wp, Sculpt *sd, Brush
 
   /* Build a list of all nodes that are potentially within the brush's area of influence */
   if (brush->falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) {
-    SculptSearchSphereData data = {nullptr};
-    data.ss = ss;
-    data.sd = sd;
-    data.radius_squared = ss->cache->radius_squared;
-    data.original = true;
-
-    nodes = blender::bke::pbvh::search_gather(
-        ss->pbvh, [&](PBVHNode &node) { return SCULPT_search_sphere(&node, &data); });
+    nodes = bke::pbvh::search_gather(ss->pbvh, [&](PBVHNode &node) {
+      return node_in_sphere(node, ss->cache->location, ss->cache->radius_squared, true);
+    });
 
     if (use_normal) {
       SCULPT_pbvh_calc_area_normal(brush, ob, nodes, ss->cache->sculpt_normal_symm);
@@ -299,18 +294,12 @@ Vector<PBVHNode *> pbvh_gather_generic(Object *ob, VPaint *wp, Sculpt *sd, Brush
     }
   }
   else {
-    DistRayAABB_Precalc dist_ray_to_aabb_precalc;
-    dist_squared_ray_to_aabb_v3_precalc(
-        &dist_ray_to_aabb_precalc, ss->cache->location, ss->cache->view_normal);
-    SculptSearchCircleData data = {nullptr};
-    data.ss = ss;
-    data.sd = sd;
-    data.radius_squared = ss->cache->radius_squared;
-    data.original = true;
-    data.dist_ray_to_aabb_precalc = &dist_ray_to_aabb_precalc;
-
-    nodes = blender::bke::pbvh::search_gather(
-        ss->pbvh, [&](PBVHNode &node) { return SCULPT_search_circle(&node, &data); });
+    const DistRayAABB_Precalc ray_dist_precalc = dist_squared_ray_to_aabb_v3_precalc(
+        ss->cache->location, ss->cache->view_normal);
+    nodes = bke::pbvh::search_gather(ss->pbvh, [&](PBVHNode &node) {
+      return node_in_cylinder(
+          ray_dist_precalc, node, ss->cache->location, ss->cache->radius_squared, true);
+    });
 
     if (use_normal) {
       copy_v3_v3(ss->cache->sculpt_normal_symm, ss->cache->view_normal);

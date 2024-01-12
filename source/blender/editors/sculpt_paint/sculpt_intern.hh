@@ -269,25 +269,6 @@ struct SculptBrushTest {
 
 using SculptBrushTestFn = bool (*)(SculptBrushTest *test, const float co[3]);
 
-struct SculptSearchSphereData {
-  Sculpt *sd;
-  SculptSession *ss;
-  float radius_squared;
-  const float *center;
-  bool original;
-  /* This ignores fully masked and fully hidden nodes. */
-  bool ignore_fully_ineffective;
-};
-
-struct SculptSearchCircleData {
-  Sculpt *sd;
-  SculptSession *ss;
-  float radius_squared;
-  bool original;
-  bool ignore_fully_ineffective;
-  DistRayAABB_Precalc *dist_ray_to_aabb_precalc;
-};
-
 /* Sculpt Filters */
 enum SculptFilterOrientation {
   SCULPT_FILTER_ORIENTATION_LOCAL = 0,
@@ -1106,14 +1087,18 @@ bool SCULPT_brush_test_cube(SculptBrushTest *test,
                             const float roundness,
                             const float tip_scale_x);
 bool SCULPT_brush_test_circle_sq(SculptBrushTest *test, const float co[3]);
-/**
- * Test AABB against sphere.
- */
-bool SCULPT_search_sphere(PBVHNode *node, SculptSearchSphereData *data);
-/**
- * 2D projection (distance to line).
- */
-bool SCULPT_search_circle(PBVHNode *node, SculptSearchCircleData *data);
+
+namespace blender::ed::sculpt_paint {
+
+bool node_fully_masked_or_hidden(const PBVHNode &node);
+bool node_in_sphere(const PBVHNode &node, const float3 &location, float radius_sq, bool original);
+bool node_in_cylinder(const DistRayAABB_Precalc &dist_ray_precalc,
+                      const PBVHNode &node,
+                      const float3 &location,
+                      float radius_sq,
+                      bool original);
+
+}
 
 void SCULPT_combine_transform_proxies(Sculpt *sd, Object *ob);
 
