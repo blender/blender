@@ -502,7 +502,11 @@ static void scene_foreach_toolsettings_id_pointer_process(
       ID *id_old_new = id_old != nullptr ? BLO_read_get_new_id_address_from_session_uuid(
                                                reader, id_old->session_uuid) :
                                            nullptr;
-      if (!ELEM(id_old_new, id_old, nullptr)) {
+      /* The new address may be the same as the old one, in which case there is nothing to do. */
+      if (id_old_new == id_old) {
+        break;
+      }
+      if (id_old_new != nullptr) {
         BLI_assert(id_old == id_old_new->orig_id);
         *id_old_p = id_old_new;
         if (cb_flag & IDWALK_CB_USER) {
@@ -518,7 +522,7 @@ static void scene_foreach_toolsettings_id_pointer_process(
        * There is a nasty twist here though: a previous call to 'undo_preserve' on the Scene ID may
        * have modified it, even though the undo step detected it as unmodified. In such case, the
        * value of `*id_p` may end up also pointing to an invalid (no more in newly read Main) ID,
-       * se it also needs to be checked from its `session_uuid`. */
+       * so it also needs to be checked from its `session_uuid`. */
       ID *id = *id_p;
       ID *id_new = id != nullptr ?
                        BLO_read_get_new_id_address_from_session_uuid(reader, id->session_uuid) :
