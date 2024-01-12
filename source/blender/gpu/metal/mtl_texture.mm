@@ -2352,7 +2352,8 @@ void gpu::MTLTexture::ensure_baked()
         }
       }
       else {
-        MTL_LOG_WARNING("GPU_TEXTURE_USAGE_MEMORYLESS is not available on macOS versions prior to 11.0");
+        MTL_LOG_WARNING(
+            "GPU_TEXTURE_USAGE_MEMORYLESS is not available on macOS versions prior to 11.0");
       }
     }
 
