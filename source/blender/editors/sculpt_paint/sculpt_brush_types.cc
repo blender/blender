@@ -172,10 +172,10 @@ static void calc_sculpt_plane(
     flip_v3(r_area_co, ss->cache->mirror_symmetry_pass);
 
     /* For area normal. */
-    mul_m4_v3(ss->cache->symm_rot_mat, r_area_no);
+    mul_m4_v3(ss->cache->symm_rot_mat.ptr(), r_area_no);
 
     /* For flatten center. */
-    mul_m4_v3(ss->cache->symm_rot_mat, r_area_co);
+    mul_m4_v3(ss->cache->symm_rot_mat.ptr(), r_area_co);
 
     /* Shift the plane for the current tile. */
     add_v3_v3(r_area_co, ss->cache->plane_offset);

@@ -10,6 +10,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
+#include <iostream>
 
 #include "MEM_guardedalloc.h"
 
@@ -1471,24 +1472,26 @@ bool SCULPT_get_redraw_rect(ARegion *region, RegionView3D *rv3d, Object *ob, rct
 
 void SCULPT_brush_test_init(SculptSession *ss, SculptBrushTest *test)
 {
+  using namespace blender;
   RegionView3D *rv3d = ss->cache ? ss->cache->vc->rv3d : ss->rv3d;
   View3D *v3d = ss->cache ? ss->cache->vc->v3d : ss->v3d;
 
   test->radius_squared = ss->cache ? ss->cache->radius_squared :
                                      ss->cursor_radius * ss->cursor_radius;
-  test->radius = sqrtf(test->radius_squared);
+  test->radius = std::sqrt(test->radius_squared);
 
   if (ss->cache) {
-    copy_v3_v3(test->location, ss->cache->location);
+    test->location = ss->cache->location;
     test->mirror_symmetry_pass = ss->cache->mirror_symmetry_pass;
     test->radial_symmetry_pass = ss->cache->radial_symmetry_pass;
-    copy_m4_m4(test->symm_rot_mat_inv, ss->cache->symm_rot_mat_inv);
+    test->symm_rot_mat_inv = ss->cache->symm_rot_mat_inv;
   }
   else {
-    copy_v3_v3(test->location, ss->cursor_location);
+    test->location = ss->cursor_location;
     test->mirror_symmetry_pass = ePaintSymmetryFlags(0);
     test->radial_symmetry_pass = 0;
-    unit_m4(test->symm_rot_mat_inv);
+
+    test->symm_rot_mat_inv = float4x4::identity();
   }
 
   /* Just for initialize. */
@@ -1515,7 +1518,7 @@ BLI_INLINE bool sculpt_brush_test_clipping(const SculptBrushTest *test, const fl
   float symm_co[3];
   flip_v3_v3(symm_co, co, test->mirror_symmetry_pass);
   if (test->radial_symmetry_pass) {
-    mul_m4_v3(test->symm_rot_mat_inv, symm_co);
+    mul_m4_v3(test->symm_rot_mat_inv.ptr(), symm_co);
   }
   return ED_view3d_clipping_test(rv3d, symm_co, true);
 }
@@ -1614,16 +1617,9 @@ SculptBrushTestFn SCULPT_brush_test_init_with_falloff_shape(SculptSession *ss,
     sculpt_brush_test_sq_fn = SCULPT_brush_test_sphere_sq;
   }
   else {
-    float view_normal[3];
+    BLI_assert(falloff_shape == PAINT_FALLOFF_SHAPE_TUBE);
+    const float3 view_normal = ss->cache ? ss->cache->view_normal : ss->filter_cache->view_normal;
 
-    if (ss->cache) {
-      copy_v3_v3(view_normal, ss->cache->view_normal);
-    }
-    else {
-      copy_v3_v3(view_normal, ss->filter_cache->view_normal);
-    }
-
-    /* PAINT_FALLOFF_SHAPE_TUBE */
     plane_from_point_normal_v3(test->plane_view, test->location, view_normal);
     sculpt_brush_test_sq_fn = SCULPT_brush_test_circle_sq;
   }
@@ -1636,25 +1632,26 @@ const float *SCULPT_brush_frontface_normal_from_falloff_shape(SculptSession *ss,
   if (falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) {
     return ss->cache->sculpt_normal_symm;
   }
-  /* PAINT_FALLOFF_SHAPE_TUBE */
+  BLI_assert(falloff_shape == PAINT_FALLOFF_SHAPE_TUBE);
   return ss->cache->view_normal;
 }
 
 static float frontface(const Brush *br,
-                       const float sculpt_normal[3],
-                       const float no[3],
-                       const float fno[3])
+                       const float3 &sculpt_normal,
+                       const float3 &no,
+                       const float3 &fno)
 {
+  using namespace blender;
   if (!(br->flag & BRUSH_FRONTFACE)) {
     return 1.0f;
   }
 
   float dot;
   if (no) {
-    dot = dot_v3v3(no, sculpt_normal);
+    dot = math::dot(no, sculpt_normal);
   }
   else {
-    dot = dot_v3v3(fno, sculpt_normal);
+    dot = math::dot(fno, sculpt_normal);
   }
   return dot > 0.0f ? dot : 0.0f;
 }
@@ -1784,6 +1781,7 @@ static void calc_area_normal_and_center_task(Object *ob,
                                              AreaNormalCenterData *anctd,
                                              bool &r_any_vertex_sampled)
 {
+  using namespace blender;
   using namespace blender::ed::sculpt_paint;
   SculptSession *ss = ob->sculpt;
 
@@ -1804,7 +1802,7 @@ static void calc_area_normal_and_center_task(Object *ob,
 
   /* Update the test radius to sample the normal using the normal radius of the brush. */
   if (brush->ob_mode == OB_MODE_SCULPT) {
-    float test_radius = sqrtf(normal_test.radius_squared);
+    float test_radius = std::sqrt(normal_test.radius_squared);
     test_radius *= brush->normal_radius_factor;
     normal_test.radius = test_radius;
     normal_test.radius_squared = test_radius * test_radius;
@@ -1815,7 +1813,7 @@ static void calc_area_normal_and_center_task(Object *ob,
       ss, &area_test, brush->falloff_shape);
 
   if (brush->ob_mode == OB_MODE_SCULPT) {
-    float test_radius = sqrtf(area_test.radius_squared);
+    float test_radius = std::sqrt(area_test.radius_squared);
     /* Layer brush produces artifacts with normal and area radius */
     /* Enable area radius control only on Scrape for now */
     if (ELEM(brush->sculpt_tool, SCULPT_TOOL_SCRAPE, SCULPT_TOOL_FILL) &&
@@ -1859,16 +1857,16 @@ static void calc_area_normal_and_center_task(Object *ob,
         continue;
       }
 
-      float no[3];
+      float3 no;
       int flip_index;
 
       normal_tri_v3(no, UNPACK3(co_tri));
 
-      flip_index = (dot_v3v3(ss->cache->view_normal, no) <= 0.0f);
+      flip_index = (math::dot(ss->cache->view_normal, no) <= 0.0f);
       if (use_area_cos && area_test_r) {
         /* Weight the coordinates towards the center. */
-        float p = 1.0f - (sqrtf(area_test.dist) / area_test.radius);
-        const float afactor = clamp_f(3.0f * p * p - 2.0f * p * p * p, 0.0f, 1.0f);
+        float p = 1.0f - (std::sqrt(area_test.dist) / area_test.radius);
+        const float afactor = std::clamp(3.0f * p * p - 2.0f * p * p * p, 0.0f, 1.0f);
 
         float disp[3];
         sub_v3_v3v3(disp, co, area_test.location);
@@ -1880,8 +1878,8 @@ static void calc_area_normal_and_center_task(Object *ob,
       }
       if (use_area_nos && normal_test_r) {
         /* Weight the normals towards the center. */
-        float p = 1.0f - (sqrtf(normal_test.dist) / normal_test.radius);
-        const float nfactor = clamp_f(3.0f * p * p - 2.0f * p * p * p, 0.0f, 1.0f);
+        float p = 1.0f - (std::sqrt(normal_test.dist) / normal_test.radius);
+        const float nfactor = std::clamp(3.0f * p * p - 2.0f * p * p * p, 0.0f, 1.0f);
         mul_v3_fl(no, nfactor);
 
         add_v3_v3(anctd->area_nos[flip_index], no);
@@ -2343,7 +2341,7 @@ static void sculpt_apply_texture(const SculptSession *ss,
      * position in order to project it. This insures that the
      * brush texture will be oriented correctly. */
     if (cache->radial_symmetry_pass) {
-      mul_m4_v3(cache->symm_rot_mat_inv, point);
+      mul_m4_v3(cache->symm_rot_mat_inv.ptr(), point);
     }
     flip_v3_v3(symm_point, point, cache->mirror_symmetry_pass);
 
@@ -2353,7 +2351,7 @@ static void sculpt_apply_texture(const SculptSession *ss,
       /* Similar to fixed mode, but projects from brush angle
        * rather than view direction. */
 
-      mul_m4_v3(cache->brush_local_mat, symm_point);
+      mul_m4_v3(cache->brush_local_mat.ptr(), symm_point);
 
       float x = symm_point[0];
       float y = symm_point[1];
@@ -2469,11 +2467,11 @@ void SCULPT_calc_vertex_displacement(SculptSession *ss,
   }
 
   /* Transform vector to object space */
-  mul_mat3_m4_v3(ss->cache->brush_local_mat_inv, rgba);
+  mul_mat3_m4_v3(ss->cache->brush_local_mat_inv.ptr(), rgba);
 
   /* Handle symmetry */
   if (ss->cache->radial_symmetry_pass) {
-    mul_m4_v3(ss->cache->symm_rot_mat, rgba);
+    mul_m4_v3(ss->cache->symm_rot_mat.ptr(), rgba);
   }
   flip_v3_v3(r_offset, rgba, ss->cache->mirror_symmetry_pass);
 }
@@ -2531,12 +2529,12 @@ void SCULPT_clip(Sculpt *sd, SculptSession *ss, float co[3], const float val[3])
     float co_clip[3];
     if (ss->cache && (ss->cache->flag & (CLIP_X << i))) {
       /* Take possible mirror object into account. */
-      mul_v3_m4v3(co_clip, ss->cache->clip_mirror_mtx, co);
+      mul_v3_m4v3(co_clip, ss->cache->clip_mirror_mtx.ptr(), co);
 
       if (fabsf(co_clip[i]) <= ss->cache->clip_tolerance[i]) {
         co_clip[i] = 0.0f;
         float imtx[4][4];
-        invert_m4_m4(imtx, ss->cache->clip_mirror_mtx);
+        invert_m4_m4(imtx, ss->cache->clip_mirror_mtx.ptr());
         mul_m4_v3(imtx, co_clip);
         do_clip = true;
       }
@@ -2668,7 +2666,7 @@ static void update_sculpt_normal(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
   else {
     copy_v3_v3(cache->sculpt_normal_symm, cache->sculpt_normal);
     flip_v3(cache->sculpt_normal_symm, cache->mirror_symmetry_pass);
-    mul_m4_v3(cache->symm_rot_mat, cache->sculpt_normal_symm);
+    mul_m4_v3(cache->symm_rot_mat.ptr(), cache->sculpt_normal_symm);
   }
 }
 
@@ -2790,7 +2788,8 @@ static void update_brush_local_mat(Sculpt *sd, Object *ob)
   if (cache->mirror_symmetry_pass == 0 && cache->radial_symmetry_pass == 0) {
     const Brush *brush = BKE_paint_brush(&sd->paint);
     const MTex *mask_tex = BKE_brush_mask_texture_get(brush, OB_MODE_SCULPT);
-    calc_brush_local_mat(mask_tex->rot, ob, cache->brush_local_mat, cache->brush_local_mat_inv);
+    calc_brush_local_mat(
+        mask_tex->rot, ob, cache->brush_local_mat.ptr(), cache->brush_local_mat_inv.ptr());
   }
 }
 
@@ -3033,10 +3032,10 @@ void SCULPT_calc_brush_plane(
     flip_v3(r_area_co, ss->cache->mirror_symmetry_pass);
 
     /* For area normal. */
-    mul_m4_v3(ss->cache->symm_rot_mat, r_area_no);
+    mul_m4_v3(ss->cache->symm_rot_mat.ptr(), r_area_no);
 
     /* For flatten center. */
-    mul_m4_v3(ss->cache->symm_rot_mat, r_area_co);
+    mul_m4_v3(ss->cache->symm_rot_mat.ptr(), r_area_co);
 
     /* Shift the plane for the current tile. */
     add_v3_v3(r_area_co, ss->cache->plane_offset);
@@ -3754,6 +3753,7 @@ void SCULPT_cache_calc_brushdata_symm(blender::ed::sculpt_paint::StrokeCache *ca
                                       const char axis,
                                       const float angle)
 {
+  using namespace blender;
   flip_v3_v3(cache->location, cache->true_location, symm);
   flip_v3_v3(cache->last_location, cache->true_last_location, symm);
   flip_v3_v3(cache->grab_delta_symmetry, cache->grab_delta, symm);
@@ -3777,22 +3777,22 @@ void SCULPT_cache_calc_brushdata_symm(blender::ed::sculpt_paint::StrokeCache *ca
   }
 #endif
 
-  unit_m4(cache->symm_rot_mat);
-  unit_m4(cache->symm_rot_mat_inv);
+  cache->symm_rot_mat = float4x4::identity();
+  cache->symm_rot_mat_inv = float4x4::identity();
   zero_v3(cache->plane_offset);
 
   /* Expects XYZ. */
   if (axis) {
-    rotate_m4(cache->symm_rot_mat, axis, angle);
-    rotate_m4(cache->symm_rot_mat_inv, axis, -angle);
+    rotate_m4(cache->symm_rot_mat.ptr(), axis, angle);
+    rotate_m4(cache->symm_rot_mat_inv.ptr(), axis, -angle);
   }
 
-  mul_m4_v3(cache->symm_rot_mat, cache->location);
-  mul_m4_v3(cache->symm_rot_mat, cache->grab_delta_symmetry);
+  mul_m4_v3(cache->symm_rot_mat.ptr(), cache->location);
+  mul_m4_v3(cache->symm_rot_mat.ptr(), cache->grab_delta_symmetry);
 
   if (cache->supports_gravity) {
     flip_v3_v3(cache->gravity_direction, cache->true_gravity_direction, symm);
-    mul_m4_v3(cache->symm_rot_mat, cache->gravity_direction);
+    mul_m4_v3(cache->symm_rot_mat.ptr(), cache->gravity_direction);
   }
 
   if (cache->is_rake_rotation_valid) {
@@ -4065,7 +4065,8 @@ void SCULPT_cache_free(blender::ed::sculpt_paint::StrokeCache *cache)
 /* Initialize mirror modifier clipping. */
 static void sculpt_init_mirror_clipping(Object *ob, SculptSession *ss)
 {
-  unit_m4(ss->cache->clip_mirror_mtx);
+  using namespace blender;
+  ss->cache->clip_mirror_mtx = float4x4::identity();
 
   LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
     if (!(md->type == eModifierType_Mirror && (md->mode & eModifierMode_Realtime))) {
@@ -4093,7 +4094,7 @@ static void sculpt_init_mirror_clipping(Object *ob, SculptSession *ss)
       if (mmd->mirror_ob) {
         float imtx_mirror_ob[4][4];
         invert_m4_m4(imtx_mirror_ob, mmd->mirror_ob->object_to_world);
-        mul_m4_m4m4(ss->cache->clip_mirror_mtx, imtx_mirror_ob, ob->object_to_world);
+        mul_m4_m4m4(ss->cache->clip_mirror_mtx.ptr(), imtx_mirror_ob, ob->object_to_world);
       }
     }
   }
