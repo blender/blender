@@ -71,10 +71,10 @@ bool text_do_suggest_select(SpaceText *st, ARegion *region, const int mval[2])
 
   text_update_character_width(st);
 
-  x = TXT_BODY_LEFT(st) + (st->runtime.cwidth_px * (st->text->curc - st->left));
+  x = TXT_BODY_LEFT(st) + (st->runtime->cwidth_px * (st->text->curc - st->left));
   y = region->winy - lheight * l - 2;
 
-  w = SUGG_LIST_WIDTH * st->runtime.cwidth_px + U.widget_unit;
+  w = SUGG_LIST_WIDTH * st->runtime->cwidth_px + U.widget_unit;
   h = SUGG_LIST_SIZE * lheight + 0.4f * U.widget_unit;
 
   if (mval[0] < x || x + w < mval[0] || mval[1] < y - h || y < mval[1]) {

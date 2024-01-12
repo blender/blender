@@ -15,6 +15,10 @@ struct UndoStep;
 struct UndoType;
 struct bContext;
 
+/* `text_draw.cc` */
+
+int ED_text_visible_lines_get(const SpaceText *st);
+
 bool ED_text_activate_in_screen(bContext *C, Text *text);
 
 /**
@@ -30,7 +34,7 @@ bool ED_text_region_location_from_cursor(SpaceText *st,
                                          const int cursor_co[2],
                                          int r_pixel_co[2]);
 
-/* text_undo.cc */
+/* `text_undo.cc` */
 
 /** Export for ED_undo_sys. */
 void ED_text_undosys_type(UndoType *ut);

@@ -206,7 +206,7 @@ static char *buf_tabs_to_spaces(const char *in_buf, const int tab_size, int *r_o
 BLI_INLINE int text_pixel_x_to_column(SpaceText *st, const int x)
 {
   /* Add half the char width so mouse cursor selection is in between letters. */
-  return (x + (st->runtime.cwidth_px / 2)) / st->runtime.cwidth_px;
+  return (x + (st->runtime->cwidth_px / 2)) / st->runtime->cwidth_px;
 }
 
 static void text_select_update_primary_clipboard(const Text *text)
@@ -351,8 +351,8 @@ static int text_new_exec(bContext *C, wmOperator * /*op*/)
     st->text = text;
     st->left = 0;
     st->top = 0;
-    st->runtime.scroll_ofs_px[0] = 0;
-    st->runtime.scroll_ofs_px[1] = 0;
+    st->runtime->scroll_ofs_px[0] = 0;
+    st->runtime->scroll_ofs_px[1] = 0;
     text_drawcache_tag_update(st, true);
   }
 
@@ -432,8 +432,8 @@ static int text_open_exec(bContext *C, wmOperator *op)
     st->text = text;
     st->left = 0;
     st->top = 0;
-    st->runtime.scroll_ofs_px[0] = 0;
-    st->runtime.scroll_ofs_px[1] = 0;
+    st->runtime->scroll_ofs_px[0] = 0;
+    st->runtime->scroll_ofs_px[1] = 0;
   }
 
   text_drawcache_tag_update(st, true);
@@ -2332,7 +2332,7 @@ static int text_move_cursor(bContext *C, int type, bool select)
 
     case PREV_PAGE:
       if (st) {
-        cursor_skip(st, region, st->text, -st->runtime.viewlines, select);
+        cursor_skip(st, region, st->text, -st->runtime->viewlines, select);
       }
       else {
         cursor_skip(nullptr, nullptr, text, -10, select);
@@ -2341,7 +2341,7 @@ static int text_move_cursor(bContext *C, int type, bool select)
 
     case NEXT_PAGE:
       if (st) {
-        cursor_skip(st, region, st->text, st->runtime.viewlines, select);
+        cursor_skip(st, region, st->text, st->runtime->viewlines, select);
       }
       else {
         cursor_skip(nullptr, nullptr, text, 10, select);
@@ -2640,7 +2640,7 @@ static void txt_screen_clamp(SpaceText *st, ARegion *region)
   else {
     int last;
     last = text_get_total_lines(st, region);
-    last = last - (st->runtime.viewlines / 2);
+    last = last - (st->runtime->viewlines / 2);
     if (last > 0 && st->top > last) {
       st->top = last;
     }
@@ -2688,9 +2688,9 @@ static void text_scroll_state_init(TextScroll *tsc, SpaceText *st, ARegion *regi
 
   tsc->state.ofs_max[0] = INT_MAX;
   tsc->state.ofs_max[1] = max_ii(0,
-                                 text_get_total_lines(st, region) - (st->runtime.viewlines / 2));
+                                 text_get_total_lines(st, region) - (st->runtime->viewlines / 2));
 
-  tsc->state.size_px[0] = st->runtime.cwidth_px;
+  tsc->state.size_px[0] = st->runtime->cwidth_px;
   tsc->state.size_px[1] = TXT_LINE_HEIGHT(st);
 }
 
@@ -2744,7 +2744,7 @@ static void text_scroll_apply(bContext *C, wmOperator *op, const wmEvent *event)
     tsc->ofs_delta_px[1] += tsc->mval_delta[1];
   }
   else {
-    tsc->ofs_delta_px[1] -= (tsc->mval_delta[1] * st->runtime.scroll_px_per_line) *
+    tsc->ofs_delta_px[1] -= (tsc->mval_delta[1] * st->runtime->scroll_px_per_line) *
                             tsc->state.size_px[1];
   }
 
@@ -2794,13 +2794,13 @@ static void text_scroll_apply(bContext *C, wmOperator *op, const wmEvent *event)
   if (scroll_ofs_new[0] != st->left || scroll_ofs_new[1] != st->top ||
       /* Horizontal sub-pixel offset currently isn't used. */
       /* scroll_ofs_px_new[0] != st->scroll_ofs_px[0] || */
-      scroll_ofs_px_new[1] != st->runtime.scroll_ofs_px[1])
+      scroll_ofs_px_new[1] != st->runtime->scroll_ofs_px[1])
   {
 
     st->left = scroll_ofs_new[0];
     st->top = scroll_ofs_new[1];
-    st->runtime.scroll_ofs_px[0] = scroll_ofs_px_new[0];
-    st->runtime.scroll_ofs_px[1] = scroll_ofs_px_new[1];
+    st->runtime->scroll_ofs_px[0] = scroll_ofs_px_new[0];
+    st->runtime->scroll_ofs_px[1] = scroll_ofs_px_new[1];
     ED_area_tag_redraw(CTX_wm_area(C));
   }
 
@@ -2815,12 +2815,12 @@ static void scroll_exit(bContext *C, wmOperator *op)
 
   st->flags &= ~ST_SCROLL_SELECT;
 
-  if (st->runtime.scroll_ofs_px[1] > tsc->state.size_px[1] / 2) {
+  if (st->runtime->scroll_ofs_px[1] > tsc->state.size_px[1] / 2) {
     st->top += 1;
   }
 
-  st->runtime.scroll_ofs_px[0] = 0;
-  st->runtime.scroll_ofs_px[1] = 0;
+  st->runtime->scroll_ofs_px[0] = 0;
+  st->runtime->scroll_ofs_px[1] = 0;
   ED_area_tag_redraw(CTX_wm_area(C));
 
   MEM_freeN(op->customdata);
@@ -2845,7 +2845,7 @@ static int text_scroll_modal(bContext *C, wmOperator *op, const wmEvent *event)
         if (ELEM(tsc->zone, SCROLLHANDLE_MIN_OUTSIDE, SCROLLHANDLE_MAX_OUTSIDE)) {
           txt_screen_skip(st,
                           region,
-                          st->runtime.viewlines *
+                          st->runtime->viewlines *
                               (tsc->zone == SCROLLHANDLE_MIN_OUTSIDE ? 1 : -1));
 
           ED_area_tag_redraw(CTX_wm_area(C));
@@ -2889,8 +2889,8 @@ static int text_scroll_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
     copy_v2_v2_int(tsc->mval_prev, event->xy);
     /* Sensitivity of scroll set to 4pix per line/char */
-    tsc->mval_delta[0] = (event->xy[0] - event->prev_xy[0]) * st->runtime.cwidth_px / 4;
-    tsc->mval_delta[1] = (event->xy[1] - event->prev_xy[1]) * st->runtime.lheight_px / 4;
+    tsc->mval_delta[0] = (event->xy[0] - event->prev_xy[0]) * st->runtime->cwidth_px / 4;
+    tsc->mval_delta[1] = (event->xy[1] - event->prev_xy[1]) * st->runtime->lheight_px / 4;
     tsc->is_first = false;
     tsc->is_scrollbar = false;
     text_scroll_apply(C, op, event);
@@ -2965,17 +2965,17 @@ static int text_scroll_bar_invoke(bContext *C, wmOperator *op, const wmEvent *ev
   }
 
   /* verify we are in the right zone */
-  if (mval[0] > st->runtime.scroll_region_handle.xmin &&
-      mval[0] < st->runtime.scroll_region_handle.xmax)
+  if (mval[0] > st->runtime->scroll_region_handle.xmin &&
+      mval[0] < st->runtime->scroll_region_handle.xmax)
   {
-    if (mval[1] >= st->runtime.scroll_region_handle.ymin &&
-        mval[1] <= st->runtime.scroll_region_handle.ymax)
+    if (mval[1] >= st->runtime->scroll_region_handle.ymin &&
+        mval[1] <= st->runtime->scroll_region_handle.ymax)
     {
       /* mouse inside scroll handle */
       zone = SCROLLHANDLE_BAR;
     }
     else if (mval[1] > TXT_SCROLL_SPACE && mval[1] < region->winy - TXT_SCROLL_SPACE) {
-      if (mval[1] < st->runtime.scroll_region_handle.ymin) {
+      if (mval[1] < st->runtime->scroll_region_handle.ymin) {
         zone = SCROLLHANDLE_MIN_OUTSIDE;
       }
       else {
@@ -3000,8 +3000,8 @@ static int text_scroll_bar_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 
   /* jump scroll, works in v2d but needs to be added here too :S */
   if (event->type == MIDDLEMOUSE) {
-    tsc->mval_prev[0] = region->winrct.xmin + BLI_rcti_cent_x(&st->runtime.scroll_region_handle);
-    tsc->mval_prev[1] = region->winrct.ymin + BLI_rcti_cent_y(&st->runtime.scroll_region_handle);
+    tsc->mval_prev[0] = region->winrct.xmin + BLI_rcti_cent_x(&st->runtime->scroll_region_handle);
+    tsc->mval_prev[1] = region->winrct.ymin + BLI_rcti_cent_y(&st->runtime->scroll_region_handle);
 
     tsc->is_first = false;
     tsc->zone = SCROLLHANDLE_BAR;
@@ -3374,7 +3374,7 @@ static int text_selection_set_invoke(bContext *C, wmOperator *op, const wmEvent 
   SpaceText *st = CTX_wm_space_text(C);
   SetSelection *ssel;
 
-  if (event->mval[0] >= st->runtime.scroll_region_handle.xmin) {
+  if (event->mval[0] >= st->runtime->scroll_region_handle.xmin) {
     return OPERATOR_PASS_THROUGH;
   }
 
@@ -3455,7 +3455,7 @@ static int text_cursor_set_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 {
   SpaceText *st = CTX_wm_space_text(C);
 
-  if (event->mval[0] >= st->runtime.scroll_region_handle.xmin) {
+  if (event->mval[0] >= st->runtime->scroll_region_handle.xmin) {
     return OPERATOR_PASS_THROUGH;
   }
 
@@ -3505,7 +3505,7 @@ static int text_line_number_invoke(bContext *C, wmOperator * /*op*/, const wmEve
   }
 
   if (!(mval[0] > 2 &&
-        mval[0] < (TXT_NUMCOL_WIDTH(st) + (TXT_BODY_LPAD * st->runtime.cwidth_px)) &&
+        mval[0] < (TXT_NUMCOL_WIDTH(st) + (TXT_BODY_LPAD * st->runtime->cwidth_px)) &&
         mval[1] > 2 && mval[1] < region->winy - 2))
   {
     return OPERATOR_PASS_THROUGH;

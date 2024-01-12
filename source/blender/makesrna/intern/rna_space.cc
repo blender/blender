@@ -1957,6 +1957,12 @@ static void rna_SpaceTextEditor_updateEdited(Main * /*bmain*/, Scene * /*scene*/
   }
 }
 
+static int rna_SpaceTextEditor_visible_lines_get(PointerRNA *ptr)
+{
+  const SpaceText *st = static_cast<SpaceText *>(ptr->data);
+  return ED_text_visible_lines_get(st);
+}
+
 /* Space Properties */
 
 /* NOTE: this function exists only to avoid id reference-counting. */
@@ -6158,7 +6164,7 @@ static void rna_def_space_text(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "visible_lines", PROP_INT, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_property_int_sdna(prop, nullptr, "runtime.viewlines");
+  RNA_def_property_int_funcs(prop, "rna_SpaceTextEditor_visible_lines_get", nullptr, nullptr);
   RNA_def_property_ui_text(
       prop, "Visible Lines", "Amount of lines that can be visible in current editor");
 
