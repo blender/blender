@@ -664,6 +664,7 @@ static bool restore_face_sets(Object *ob, Node &unode, MutableSpan<bool> modifie
     if (unode.face_sets[i] == face_sets.span[face]) {
       continue;
     }
+    std::swap(unode.face_sets[i], face_sets.span[face]);
     modified_face_set_faces[face] = true;
     modified = true;
   }
