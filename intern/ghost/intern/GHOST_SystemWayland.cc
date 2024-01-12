@@ -2086,6 +2086,13 @@ static int memfd_create_sealed(const char *name)
 #endif /* !HAVE_MEMFD_CREATE */
 }
 
+#if defined(WITH_GHOST_WAYLAND_LIBDECOR) && defined(WITH_VULKAN_BACKEND)
+int memfd_create_sealed_for_vulkan_hack(const char *name)
+{
+  return memfd_create_sealed(name);
+}
+#endif
+
 enum {
   GWL_IOR_READ = 1 << 0,
   GWL_IOR_WRITE = 1 << 1,
