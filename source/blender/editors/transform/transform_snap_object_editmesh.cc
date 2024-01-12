@@ -110,7 +110,7 @@ static SnapCache_EditMesh *snap_object_data_editmesh_get(SnapObjectContext *sctx
   bool init = false;
 
   if (std::unique_ptr<SnapObjectContext::SnapCache> *em_cache_p = sctx->editmesh_caches.lookup_ptr(
-          em))
+          ob_eval->runtime->data_orig))
   {
     em_cache = static_cast<SnapCache_EditMesh *>(em_cache_p->get());
     bool is_dirty = false;
@@ -157,7 +157,7 @@ static SnapCache_EditMesh *snap_object_data_editmesh_get(SnapObjectContext *sctx
   else if (create) {
     std::unique_ptr<SnapCache_EditMesh> em_cache_ptr = std::make_unique<SnapCache_EditMesh>();
     em_cache = em_cache_ptr.get();
-    sctx->editmesh_caches.add_new(em, std::move(em_cache_ptr));
+    sctx->editmesh_caches.add_new(ob_eval->runtime->data_orig, std::move(em_cache_ptr));
     init = true;
   }
 
