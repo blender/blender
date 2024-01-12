@@ -1815,7 +1815,7 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
 
       /* Generate a new pose brush preview from the current cursor location. */
       ss->pose_ik_chain_preview = pose::ik_chain_init(
-          pcontext->sd, pcontext->vc.obact, ss, brush, pcontext->location, pcontext->radius);
+          pcontext->vc.obact, ss, brush, pcontext->location, pcontext->radius);
     }
 
     /* Draw the pose brush rotation origins. */

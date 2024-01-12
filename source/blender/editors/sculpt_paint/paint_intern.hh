@@ -544,7 +544,7 @@ void init_stroke(Depsgraph *depsgraph, Object *ob);
 void init_session_data(const ToolSettings *ts, Object *ob);
 void init_session(Depsgraph *depsgraph, Scene *scene, Object *ob, eObjectMode object_mode);
 
-Vector<PBVHNode *> pbvh_gather_generic(Object *ob, VPaint *wp, Sculpt *sd, Brush *brush);
+Vector<PBVHNode *> pbvh_gather_generic(Object *ob, VPaint *wp, Brush *brush);
 
 void mode_enter_generic(
     Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob, const eObjectMode mode_flag);

@@ -271,8 +271,7 @@ float *distances_create(Object *ob, GSet *initial_verts, const float limit_radiu
   return nullptr;
 }
 
-float *distances_create_from_vert_and_symm(Sculpt *sd,
-                                           Object *ob,
+float *distances_create_from_vert_and_symm(Object *ob,
                                            const PBVHVertRef vertex,
                                            const float limit_radius)
 {
@@ -290,7 +289,7 @@ float *distances_create_from_vert_and_symm(Sculpt *sd,
       else {
         float location[3];
         flip_v3_v3(location, SCULPT_vertex_co_get(ss, vertex), ePaintSymmetryFlags(i));
-        v = SCULPT_nearest_vertex_get(sd, ob, location, FLT_MAX, false);
+        v = SCULPT_nearest_vertex_get(ob, location, FLT_MAX, false);
       }
       if (v.i != PBVH_REF_NONE) {
         BLI_gset_add(initial_verts, POINTER_FROM_INT(BKE_pbvh_vertex_to_index(ss->pbvh, v)));

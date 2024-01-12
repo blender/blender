@@ -937,7 +937,7 @@ blender::MutableSpan<blender::float3> SCULPT_mesh_deformed_positions_get(SculptS
 
 #define FAKE_NEIGHBOR_NONE -1
 
-void SCULPT_fake_neighbors_ensure(Sculpt *sd, Object *ob, float max_dist);
+void SCULPT_fake_neighbors_ensure(Object *ob, float max_dist);
 void SCULPT_fake_neighbors_enable(Object *ob);
 void SCULPT_fake_neighbors_disable(Object *ob);
 void SCULPT_fake_neighbors_free(Object *ob);
@@ -1042,8 +1042,10 @@ void SCULPT_calc_area_center(Sculpt *sd,
                              blender::Span<PBVHNode *> nodes,
                              float r_area_co[3]);
 
-PBVHVertRef SCULPT_nearest_vertex_get(
-    Sculpt *sd, Object *ob, const float co[3], float max_distance, bool use_original);
+PBVHVertRef SCULPT_nearest_vertex_get(Object *ob,
+                                      const float co[3],
+                                      float max_distance,
+                                      bool use_original);
 
 int SCULPT_plane_point_side(const float co[3], const float plane[4]);
 int SCULPT_plane_trim(const blender::ed::sculpt_paint::StrokeCache *cache,
@@ -1094,7 +1096,6 @@ bool node_fully_masked_or_hidden(const PBVHNode &node);
 bool node_in_sphere(const PBVHNode &node, const float3 &location, float radius_sq, bool original);
 bool node_in_cylinder(const DistRayAABB_Precalc &dist_ray_precalc,
                       const PBVHNode &node,
-                      const float3 &location,
                       float radius_sq,
                       bool original);
 
@@ -1177,13 +1178,9 @@ void SCULPT_tilt_effective_normal_get(const SculptSession *ss, const Brush *brus
 namespace blender::ed::sculpt_paint::flood_fill {
 
 void init_fill(SculptSession *ss, SculptFloodFill *flood);
-void add_active(Sculpt *sd, Object *ob, SculptSession *ss, SculptFloodFill *flood, float radius);
-void add_initial_with_symmetry(Sculpt *sd,
-                               Object *ob,
-                               SculptSession *ss,
-                               SculptFloodFill *flood,
-                               PBVHVertRef vertex,
-                               float radius);
+void add_active(Object *ob, SculptSession *ss, SculptFloodFill *flood, float radius);
+void add_initial_with_symmetry(
+    Object *ob, SculptSession *ss, SculptFloodFill *flood, PBVHVertRef vertex, float radius);
 void add_initial(SculptFloodFill *flood, PBVHVertRef vertex);
 void add_and_skip_initial(SculptFloodFill *flood, PBVHVertRef vertex);
 void execute(SculptSession *ss,
@@ -1317,10 +1314,7 @@ namespace blender::ed::sculpt_paint::geodesic {
  * fallback to euclidean distances to one of the initial vertices in the set.
  */
 float *distances_create(Object *ob, GSet *initial_verts, float limit_radius);
-float *distances_create_from_vert_and_symm(Sculpt *sd,
-                                           Object *ob,
-                                           PBVHVertRef vertex,
-                                           float limit_radius);
+float *distances_create_from_vert_and_symm(Object *ob, PBVHVertRef vertex, float limit_radius);
 
 }
 
@@ -1733,21 +1727,16 @@ void do_pose_brush(Sculpt *sd, Object *ob, blender::Span<PBVHNode *> nodes);
  * \param r_pose_origin: Must be a valid pointer.
  * \param r_pose_factor: Optional, when set to NULL it won't be calculated.
  */
-void calc_pose_data(Sculpt *sd,
-                    Object *ob,
+void calc_pose_data(Object *ob,
                     SculptSession *ss,
                     float initial_location[3],
                     float radius,
                     float pose_offset,
                     float *r_pose_origin,
                     float *r_pose_factor);
-void pose_brush_init(Sculpt *sd, Object *ob, SculptSession *ss, Brush *br);
-SculptPoseIKChain *ik_chain_init(Sculpt *sd,
-                                 Object *ob,
-                                 SculptSession *ss,
-                                 Brush *br,
-                                 const float initial_location[3],
-                                 float radius);
+void pose_brush_init(Object *ob, SculptSession *ss, Brush *br);
+SculptPoseIKChain *ik_chain_init(
+    Object *ob, SculptSession *ss, Brush *br, const float initial_location[3], float radius);
 void ik_chain_free(SculptPoseIKChain *ik_chain);
 
 }
