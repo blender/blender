@@ -5831,6 +5831,7 @@ class VIEW3D_MT_edit_greasepencil_stroke(Menu):
 
         layout.separator()
 
+        layout.menu("VIEW3D_MT_grease_pencil_assign_material")
         layout.operator("grease_pencil.set_active_material")
 
         layout.separator()
@@ -8139,6 +8140,27 @@ class VIEW3D_MT_greasepencil_material_active(Menu):
                 layout.operator("grease_pencil.set_material", text=mat.name, icon_value=icon).slot = mat.name
 
 
+class VIEW3D_MT_grease_pencil_assign_material(Menu):
+    bl_label = "Assign Material"
+
+    def draw(self, context):
+        layout = self.layout
+        ob = context.active_object
+        mat_active = ob.active_material
+
+        if len(ob.material_slots) == 0:
+            row = layout.row()
+            row.label(text="No Materials")
+            row.enabled = False
+            return
+
+        for slot in ob.material_slots:
+            mat = slot.material
+            if mat:
+                layout.operator("grease_pencil.stroke_material_set", text=mat.name,
+                                icon='LAYER_ACTIVE' if mat == mat_active else 'BLANK1').material = mat.name
+
+
 class VIEW3D_MT_greasepencil_edit_context_menu(Menu):
     bl_label = ""
 
@@ -8195,6 +8217,11 @@ class VIEW3D_MT_greasepencil_edit_context_menu(Menu):
             # Deform Operators
             col.operator("grease_pencil.stroke_smooth", text="Smooth Points")
             col.operator("transform.transform", text="Radius").mode = 'CURVE_SHRINKFATTEN'
+
+            col.separator()
+
+            col.menu("VIEW3D_MT_grease_pencil_assign_material")
+            col.operator("grease_pencil.set_active_material", text="Set as Active Material")
 
             col.separator()
 
@@ -8894,6 +8921,7 @@ classes = (
     VIEW3D_MT_gpencil_autoweights,
     VIEW3D_MT_gpencil_edit_context_menu,
     VIEW3D_MT_greasepencil_edit_context_menu,
+    VIEW3D_MT_grease_pencil_assign_material,
     VIEW3D_MT_edit_greasepencil,
     VIEW3D_MT_edit_greasepencil_delete,
     VIEW3D_MT_edit_greasepencil_stroke,
