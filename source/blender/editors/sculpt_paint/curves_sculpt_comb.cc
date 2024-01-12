@@ -91,8 +91,6 @@ struct CombOperationExecutor {
   float brush_radius_factor_;
   float brush_strength_;
 
-  eBrushFalloffShape falloff_shape_;
-
   Object *curves_ob_orig_ = nullptr;
   Curves *curves_id_orig_ = nullptr;
   CurvesGeometry *curves_orig_ = nullptr;
@@ -128,7 +126,7 @@ struct CombOperationExecutor {
     brush_radius_factor_ = brush_radius_factor(*brush_, stroke_extension);
     brush_strength_ = brush_strength_get(*ctx_.scene, *brush_, stroke_extension);
 
-    falloff_shape_ = static_cast<eBrushFalloffShape>(brush_->falloff_shape);
+    const eBrushFalloffShape falloff_shape = eBrushFalloffShape(brush_->falloff_shape);
 
     transforms_ = CurvesSurfaceTransforms(*curves_ob_orig_, curves_id_orig_->surface);
 
@@ -141,7 +139,7 @@ struct CombOperationExecutor {
     brush_pos_diff_re_ = brush_pos_re_ - brush_pos_prev_re_;
 
     if (stroke_extension.is_first) {
-      if (falloff_shape_ == PAINT_FALLOFF_SHAPE_SPHERE) {
+      if (falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) {
         this->initialize_spherical_brush_reference_point();
       }
       self_->constraint_solver_.initialize(
@@ -163,10 +161,10 @@ struct CombOperationExecutor {
 
     Array<bool> changed_curves(curves_orig_->curves_num(), false);
 
-    if (falloff_shape_ == PAINT_FALLOFF_SHAPE_TUBE) {
+    if (falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
       this->comb_projected_with_symmetry(changed_curves);
     }
-    else if (falloff_shape_ == PAINT_FALLOFF_SHAPE_SPHERE) {
+    else if (falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) {
       this->comb_spherical_with_symmetry(changed_curves);
     }
     else {

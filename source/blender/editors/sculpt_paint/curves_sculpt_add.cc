@@ -154,8 +154,7 @@ struct AddOperationExecutor {
     brush_pos_re_ = stroke_extension.mouse_position;
 
     use_front_face_ = brush_->flag & BRUSH_FRONTFACE;
-    const eBrushFalloffShape falloff_shape = static_cast<eBrushFalloffShape>(
-        brush_->falloff_shape);
+    const eBrushFalloffShape falloff_shape = eBrushFalloffShape(brush_->falloff_shape);
     add_amount_ = std::max(0, brush_settings_->add_amount);
 
     if (add_amount_ == 0) {

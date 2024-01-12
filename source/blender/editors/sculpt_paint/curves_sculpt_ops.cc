@@ -115,7 +115,7 @@ float brush_strength_get(const Scene &scene,
 static std::unique_ptr<CurvesSculptStrokeOperation> start_brush_operation(
     bContext &C, wmOperator &op, const StrokeExtension &stroke_start)
 {
-  const BrushStrokeMode mode = static_cast<BrushStrokeMode>(RNA_enum_get(op.ptr, "mode"));
+  const BrushStrokeMode mode = BrushStrokeMode(RNA_enum_get(op.ptr, "mode"));
 
   const Scene &scene = *CTX_data_scene(&C);
   const CurvesSculpt &curves_sculpt = *scene.toolsettings->curves_sculpt;
