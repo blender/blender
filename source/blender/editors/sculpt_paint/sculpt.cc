@@ -2032,16 +2032,15 @@ void SCULPT_calc_area_center(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes, flo
   }
 }
 
-void SCULPT_calc_area_normal(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes, float r_area_no[3])
+std::optional<float3> SCULPT_calc_area_normal(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
 {
   const Brush *brush = BKE_paint_brush(&sd->paint);
-  SCULPT_pbvh_calc_area_normal(brush, ob, nodes, r_area_no);
+  return SCULPT_pbvh_calc_area_normal(brush, ob, nodes);
 }
 
-bool SCULPT_pbvh_calc_area_normal(const Brush *brush,
-                                  Object *ob,
-                                  Span<PBVHNode *> nodes,
-                                  float r_area_no[3])
+std::optional<float3> SCULPT_pbvh_calc_area_normal(const Brush *brush,
+                                                   Object *ob,
+                                                   Span<PBVHNode *> nodes)
 {
   using namespace blender;
   using namespace blender::ed::sculpt_paint;
@@ -2063,14 +2062,18 @@ bool SCULPT_pbvh_calc_area_normal(const Brush *brush,
       },
       calc_area_normal_and_center_reduce);
 
-  /* For area normal. */
-  for (int i = 0; i < ARRAY_SIZE(anctd.area_nos); i++) {
-    if (normalize_v3_v3(r_area_no, anctd.area_nos[i]) != 0.0f) {
-      break;
-    }
+  if (!any_vertex_sampled) {
+    return std::nullopt;
   }
 
-  return any_vertex_sampled;
+  /* For area normal. */
+  float3 result;
+  for (int i = 0; i < ARRAY_SIZE(anctd.area_nos); i++) {
+    if (normalize_v3_v3(result, anctd.area_nos[i]) != 0.0f) {
+      return result;
+    }
+  }
+  return std::nullopt;
 }
 
 void SCULPT_calc_area_normal_and_center(
@@ -2621,35 +2624,24 @@ static Vector<PBVHNode *> sculpt_pbvh_gather_texpaint(Object *ob,
 }
 
 /* Calculate primary direction of movement for many brushes. */
-static void calc_sculpt_normal(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes, float r_area_no[3])
+static float3 calc_sculpt_normal(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
 {
   const Brush *brush = BKE_paint_brush(&sd->paint);
   const SculptSession *ss = ob->sculpt;
-
   switch (brush->sculpt_plane) {
-    case SCULPT_DISP_DIR_VIEW:
-      copy_v3_v3(r_area_no, ss->cache->true_view_normal);
-      break;
-
-    case SCULPT_DISP_DIR_X:
-      ARRAY_SET_ITEMS(r_area_no, 1.0f, 0.0f, 0.0f);
-      break;
-
-    case SCULPT_DISP_DIR_Y:
-      ARRAY_SET_ITEMS(r_area_no, 0.0f, 1.0f, 0.0f);
-      break;
-
-    case SCULPT_DISP_DIR_Z:
-      ARRAY_SET_ITEMS(r_area_no, 0.0f, 0.0f, 1.0f);
-      break;
-
     case SCULPT_DISP_DIR_AREA:
-      SCULPT_calc_area_normal(sd, ob, nodes, r_area_no);
-      break;
-
-    default:
-      break;
+      return SCULPT_calc_area_normal(sd, ob, nodes).value_or(float3(0));
+    case SCULPT_DISP_DIR_VIEW:
+      return ss->cache->true_view_normal;
+    case SCULPT_DISP_DIR_X:
+      return float3(1, 0, 0);
+    case SCULPT_DISP_DIR_Y:
+      return float3(0, 1, 0);
+    case SCULPT_DISP_DIR_Z:
+      return float3(0, 0, 1);
   }
+  BLI_assert_unreachable();
+  return {};
 }
 
 static void update_sculpt_normal(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
@@ -2666,7 +2658,7 @@ static void update_sculpt_normal(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
   if (cache->mirror_symmetry_pass == 0 && cache->radial_symmetry_pass == 0 &&
       (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(cache) || update_normal))
   {
-    calc_sculpt_normal(sd, ob, nodes, cache->sculpt_normal);
+    cache->sculpt_normal = calc_sculpt_normal(sd, ob, nodes);
     if (brush->falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
       project_plane_v3_v3v3(cache->sculpt_normal, cache->sculpt_normal, cache->view_normal);
       normalize_v3(cache->sculpt_normal);
@@ -4886,8 +4878,7 @@ bool SCULPT_cursor_geometry_info_update(bContext *C,
   Object *ob;
   SculptSession *ss;
   const Brush *brush = BKE_paint_brush(BKE_paint_get_active_from_context(C));
-  float ray_start[3], ray_end[3], ray_normal[3], depth, face_normal[3], sampled_normal[3],
-      mat[3][3];
+  float ray_start[3], ray_end[3], ray_normal[3], depth, face_normal[3], mat[3][3];
   float viewDir[3] = {0.0f, 0.0f, 1.0f};
   bool original = false;
 
@@ -5000,9 +4991,10 @@ bool SCULPT_cursor_geometry_info_update(bContext *C,
   }
 
   /* Calculate the sampled normal. */
-  if (SCULPT_pbvh_calc_area_normal(brush, ob, nodes, sampled_normal)) {
-    copy_v3_v3(out->normal, sampled_normal);
-    copy_v3_v3(ss->cursor_sampled_normal, sampled_normal);
+  if (const std::optional<float3> sampled_normal = SCULPT_pbvh_calc_area_normal(brush, ob, nodes))
+  {
+    copy_v3_v3(out->normal, *sampled_normal);
+    copy_v3_v3(ss->cursor_sampled_normal, *sampled_normal);
   }
   else {
     /* Use face normal when there are no vertices to sample inside the cursor radius. */

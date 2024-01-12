@@ -1024,10 +1024,9 @@ void SCULPT_calc_brush_plane(Sculpt *sd,
                              float r_area_no[3],
                              float r_area_co[3]);
 
-void SCULPT_calc_area_normal(Sculpt *sd,
-                             Object *ob,
-                             blender::Span<PBVHNode *> nodes,
-                             float r_area_no[3]);
+std::optional<blender::float3> SCULPT_calc_area_normal(Sculpt *sd,
+                                                       Object *ob,
+                                                       blender::Span<PBVHNode *> nodes);
 /**
  * This calculates flatten center and area normal together,
  * amortizing the memory bandwidth and loop overhead to calculate both at the same time.
@@ -1545,10 +1544,9 @@ void relax_vertex(SculptSession *ss,
 /**
  * Expose 'calc_area_normal' externally (just for vertex paint).
  */
-bool SCULPT_pbvh_calc_area_normal(const Brush *brush,
-                                  Object *ob,
-                                  blender::Span<PBVHNode *> nodes,
-                                  float r_area_no[3]);
+std::optional<blender::float3> SCULPT_pbvh_calc_area_normal(const Brush *brush,
+                                                            Object *ob,
+                                                            blender::Span<PBVHNode *> nodes);
 
 /**
  * Flip all the edit-data across the axis/axes specified by \a symm.

@@ -176,13 +176,13 @@ void cache_init(bContext *C,
       return !node_fully_masked_or_hidden(node) && node_in_sphere(node, co, radius_sq, true);
     });
 
-    if (BKE_paint_brush(&sd->paint) &&
-        SCULPT_pbvh_calc_area_normal(brush, ob, nodes, ss->filter_cache->initial_normal))
-    {
-      copy_v3_v3(ss->last_normal, ss->filter_cache->initial_normal);
+    const std::optional<float3> area_normal = SCULPT_pbvh_calc_area_normal(brush, ob, nodes);
+    if (BKE_paint_brush(&sd->paint) && area_normal) {
+      ss->filter_cache->initial_normal = *area_normal;
+      ss->last_normal = ss->filter_cache->initial_normal;
     }
     else {
-      copy_v3_v3(ss->filter_cache->initial_normal, ss->last_normal);
+      ss->filter_cache->initial_normal = ss->last_normal;
     }
 
     /* Update last stroke location */

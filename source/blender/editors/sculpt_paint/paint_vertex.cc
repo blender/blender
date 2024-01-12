@@ -286,12 +286,9 @@ Vector<PBVHNode *> pbvh_gather_generic(Object *ob, VPaint *wp, Brush *brush)
       return node_in_sphere(node, ss->cache->location, ss->cache->radius_squared, true);
     });
 
-    if (use_normal) {
-      SCULPT_pbvh_calc_area_normal(brush, ob, nodes, ss->cache->sculpt_normal_symm);
-    }
-    else {
-      zero_v3(ss->cache->sculpt_normal_symm);
-    }
+    ss->cache->sculpt_normal_symm =
+        use_normal ? SCULPT_pbvh_calc_area_normal(brush, ob, nodes).value_or(float3(0)) :
+                     float3(0);
   }
   else {
     const DistRayAABB_Precalc ray_dist_precalc = dist_squared_ray_to_aabb_v3_precalc(
@@ -300,12 +297,7 @@ Vector<PBVHNode *> pbvh_gather_generic(Object *ob, VPaint *wp, Brush *brush)
       return node_in_cylinder(ray_dist_precalc, node, ss->cache->radius_squared, true);
     });
 
-    if (use_normal) {
-      copy_v3_v3(ss->cache->sculpt_normal_symm, ss->cache->view_normal);
-    }
-    else {
-      zero_v3(ss->cache->sculpt_normal_symm);
-    }
+    ss->cache->sculpt_normal_symm = use_normal ? ss->cache->view_normal : float3(0);
   }
   return nodes;
 }

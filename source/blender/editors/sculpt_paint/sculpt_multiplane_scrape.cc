@@ -198,11 +198,11 @@ void SCULPT_do_multiplane_scrape_brush(Sculpt *sd, Object *ob, blender::Span<PBV
   const float displace = -radius * offset;
 
   /* The sculpt-plane normal (whatever its set to) */
-  float area_no_sp[3];
+  float3 area_no_sp;
 
   /* Geometry normal. */
-  float area_no[3];
-  float area_co[3];
+  float3 area_no;
+  float3 area_co;
 
   float temp[3];
   float mat[4][4];
@@ -210,10 +210,10 @@ void SCULPT_do_multiplane_scrape_brush(Sculpt *sd, Object *ob, blender::Span<PBV
   SCULPT_calc_brush_plane(sd, ob, nodes, area_no_sp, area_co);
 
   if (brush->sculpt_plane != SCULPT_DISP_DIR_AREA || (brush->flag & BRUSH_ORIGINAL_NORMAL)) {
-    SCULPT_calc_area_normal(sd, ob, nodes, area_no);
+    area_no = SCULPT_calc_area_normal(sd, ob, nodes).value_or(float3(0));
   }
   else {
-    copy_v3_v3(area_no, area_no_sp);
+    area_no = area_no_sp;
   }
 
   /* Delay the first daub because grab delta is not setup. */
