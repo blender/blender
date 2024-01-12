@@ -263,6 +263,9 @@ class MTLShader : public Shader {
   void *push_constant_data_ = nullptr;
   bool push_constant_modified_ = false;
 
+  /** Special definition for Max TotalThreadsPerThreadgroup tuning. */
+  uint maxTotalThreadsPerThreadgroup_Tuning_ = 0;
+
  public:
   MTLShader(MTLContext *ctx, const char *name);
   MTLShader(MTLContext *ctx,

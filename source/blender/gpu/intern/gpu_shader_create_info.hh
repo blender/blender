@@ -640,6 +640,11 @@ struct ShaderCreateInfo {
   eGPUShaderTFBType tf_type_ = GPU_SHADER_TFB_NONE;
   Vector<const char *> tf_names_;
 
+  /* Api-specific parameters. */
+#ifdef WITH_METAL_BACKEND
+  ushort mtl_max_threads_per_threadgroup_ = 0;
+#endif
+
  public:
   ShaderCreateInfo(const char *name) : name_(name){};
   ~ShaderCreateInfo(){};
@@ -1029,6 +1034,26 @@ struct ShaderCreateInfo {
     tf_names_.append(name);
     return *(Self *)this;
   }
+  /** \} */
+
+  /* -------------------------------------------------------------------- */
+  /** \name API-specific parameters.
+   * Optional parameters exposed by specific backends to enable additional features and performance
+   * tuning.
+   * NOTE: These functions can be exposed as a pass-through on unsupported configurations.
+   * \{ */
+
+  /* \name mtl_max_total_threads_per_threadgroup
+   * \a  max_total_threads_per_threadgroup - Provides compiler hint for maximum threadgroup size up
+   * front. Maximum value is 1024. */
+  Self &mtl_max_total_threads_per_threadgroup(ushort max_total_threads_per_threadgroup)
+  {
+#ifdef WITH_METAL_BACKEND
+    mtl_max_threads_per_threadgroup_ = max_total_threads_per_threadgroup;
+#endif
+    return *(Self *)this;
+  }
+
   /** \} */
 
   /* -------------------------------------------------------------------- */
