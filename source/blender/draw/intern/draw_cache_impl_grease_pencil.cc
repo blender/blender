@@ -497,6 +497,8 @@ static void grease_pencil_geom_batch_ensure(Object &object,
         "end_cap", bke::AttrDomain::Curve, 0);
     const VArray<int> materials = *attributes.lookup_or_default<int>(
         "material_index", bke::AttrDomain::Curve, 0);
+    const VArray<float> hardness = *attributes.lookup_or_default<float>(
+        "hardness", bke::AttrDomain::Curve, 1.0f);
     const Span<uint3> triangles = info.drawing.triangles();
     const Span<int> verts_start_offsets = verts_start_offsets_per_visible_drawing[drawing_i];
     const Span<int> tris_start_offsets = tris_start_offsets_per_visible_drawing[drawing_i];
@@ -520,8 +522,8 @@ static void grease_pencil_geom_batch_ensure(Object &object,
       s_vert.stroke_id = verts_range.first();
       s_vert.mat = materials[curve_i] % GPENCIL_MATERIAL_BUFFER_LEN;
 
-      /* TODO: Populate rotation, aspect and hardness. */
-      s_vert.packed_asp_hard_rot = pack_rotation_aspect_hardness(0.0f, 1.0f, 1.0f);
+      /* TODO: Populate rotation and aspect. */
+      s_vert.packed_asp_hard_rot = pack_rotation_aspect_hardness(0.0f, 1.0f, hardness[curve_i]);
       /* TODO: Populate stroke UVs. */
       s_vert.u_stroke = 0;
       /* TODO: Populate fill UVs. */
