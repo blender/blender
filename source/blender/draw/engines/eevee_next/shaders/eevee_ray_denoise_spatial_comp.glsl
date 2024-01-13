@@ -79,10 +79,6 @@ void main()
     return;
   }
 
-#ifndef GPU_METAL
-  /* TODO(fclem): Support specialization on OpenGL and Vulkan. */
-  int closure_index = uniform_buf.raytrace.closure_index;
-#endif
   /* Clear neighbor tiles that will not be processed. */
   /* TODO(fclem): Optimize this. We don't need to clear the whole ring. */
   for (int x = -1; x <= 1; x++) {

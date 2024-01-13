@@ -37,10 +37,6 @@ void main()
   ivec2 texel_fullres = texel * uniform_buf.raytrace.resolution_scale +
                         uniform_buf.raytrace.resolution_bias;
 
-#ifndef GPU_METAL
-  /* TODO(fclem): Support specialization on OpenGL and VULKAN. */
-  int closure_index = uniform_buf.raytrace.closure_index;
-#endif
 
   uint gbuf_header = texelFetch(gbuf_header_tx, texel_fullres, 0).r;
   GBufferReader gbuf = gbuffer_read_header_closure_types(gbuf_header);
@@ -76,11 +72,6 @@ void main()
   ray_view.direction = transform_direction(drw_view.viewmat, ray.direction);
   /* Extend the ray to cover the whole view. */
   ray_view.max_time = 1000.0;
-
-#ifndef GPU_METAL
-  /* TODO(fclem): Support specialization on OpenGL and VULKAN. */
-  bool trace_refraction = uniform_buf.raytrace.trace_refraction;
-#endif
 
   ScreenTraceHitData hit;
   hit.valid = false;

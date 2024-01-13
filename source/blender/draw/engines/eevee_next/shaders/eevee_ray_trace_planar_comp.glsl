@@ -35,11 +35,6 @@ void main()
   ivec2 texel_fullres = texel * uniform_buf.raytrace.resolution_scale +
                         uniform_buf.raytrace.resolution_bias;
 
-#ifndef GPU_METAL
-  /* TODO(fclem): Support specialization on OpenGL and VULKAN. */
-  int closure_index = uniform_buf.raytrace.closure_index;
-#endif
-
   uint gbuf_header = texelFetch(gbuf_header_tx, texel_fullres, 0).r;
   GBufferReader gbuf = gbuffer_read_header_closure_types(gbuf_header);
   ClosureType closure_type = gbuffer_closure_get(gbuf, closure_index).type;

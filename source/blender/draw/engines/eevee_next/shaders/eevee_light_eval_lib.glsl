@@ -59,8 +59,7 @@ void light_shadow_single(uint l_idx,
     return;
   }
 
-  /* TODO(fclem): Enable for OpenGL and Vulkan once they fully support specialization constants. */
-#if defined(SPECIALIZED_SHADOW_PARAMS) && defined(GPU_METAL)
+#if defined(SPECIALIZED_SHADOW_PARAMS)
   int ray_count = shadow_ray_count;
   int ray_step_count = shadow_ray_step_count;
 #else
@@ -139,8 +138,7 @@ void light_eval_single(uint l_idx,
 {
   LightData light = light_buf[l_idx];
 
-  /* TODO(fclem): Enable for OpenGL and Vulkan once they fully support specialization constants. */
-#if defined(SPECIALIZED_SHADOW_PARAMS) && defined(GPU_METAL)
+#if defined(SPECIALIZED_SHADOW_PARAMS)
   int ray_count = shadow_ray_count;
   int ray_step_count = shadow_ray_step_count;
 #else

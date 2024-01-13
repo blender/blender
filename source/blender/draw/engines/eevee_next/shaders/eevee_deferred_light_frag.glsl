@@ -105,10 +105,6 @@ void main()
     output_renderpass_value(uniform_buf.render_pass.shadow_id, average(shadows));
   }
 
-  /* TODO(fclem): Enable for OpenGL and Vulkan once they fully support specialization constants. */
-#ifndef GPU_METAL
-  bool use_lightprobe_eval = uniform_buf.pipeline.use_combined_lightprobe_eval;
-#endif
   if (use_lightprobe_eval) {
     LightProbeSample samp = lightprobe_load(P, Ng, V);
 

@@ -60,11 +60,6 @@ void main()
     vec3 closure_light = load_radiance_direct(texel, i);
     ClosureUndetermined cl = gbuffer_closure_get(gbuf, i);
 
-    /* TODO(fclem): Enable for OpenGL and VULKAN once they fully support specialization constants.
-     */
-#ifndef GPU_METAL
-    bool use_combined_lightprobe_eval = uniform_buf.pipeline.use_combined_lightprobe_eval;
-#endif
     if (!use_combined_lightprobe_eval) {
       vec3 closure_indirect = load_radiance_indirect(texel, i);
       if (cl.type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID) {
