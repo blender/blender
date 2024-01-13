@@ -1050,6 +1050,8 @@ struct ShaderCreateInfo {
   {
 #ifdef WITH_METAL_BACKEND
     mtl_max_threads_per_threadgroup_ = max_total_threads_per_threadgroup;
+#else
+    UNUSED_VARS(max_total_threads_per_threadgroup);
 #endif
     return *(Self *)this;
   }
