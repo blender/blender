@@ -173,6 +173,9 @@ void ReflectionProbeModule::init()
   }
 
   {
+    const RaytraceEEVEE &options = instance_.scene->eevee.ray_tracing_options;
+    float probe_brightness_clamp = (options.sample_clamp > 0.0) ? options.sample_clamp : 1e20;
+
     PassSimple &pass = remap_ps_;
     pass.init();
     pass.shader_set(instance_.shaders.static_shader_get(REFLECTION_PROBE_REMAP));
@@ -183,6 +186,7 @@ void ReflectionProbeModule::init()
     pass.push_constant("write_coord_packed", reinterpret_cast<int4 *>(&probe_write_coord_));
     pass.push_constant("world_coord_packed", reinterpret_cast<int4 *>(&world_sampling_coord_));
     pass.push_constant("mip_level", &probe_mip_level_);
+    pass.push_constant("probe_brightness_clamp", probe_brightness_clamp);
     pass.dispatch(&dispatch_probe_pack_);
   }
 

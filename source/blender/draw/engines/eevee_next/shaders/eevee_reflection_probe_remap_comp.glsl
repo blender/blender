@@ -5,6 +5,7 @@
 /* Shader to convert cube-map to octahedral projection. */
 
 #pragma BLENDER_REQUIRE(eevee_octahedron_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_colorspace_lib.glsl)
 
 ReflectionProbeCoordinate reinterpret_as_atlas_coord(ivec4 packed_coord)
 {
@@ -60,18 +61,20 @@ void main()
   vec2 wrapped_uv = mirror_repeat_uv(sampling_uv);
   /* Direction in world space. */
   vec3 direction = octahedral_uv_to_direction(wrapped_uv);
-  vec4 col = textureLod(cubemap_tx, direction, float(mip_level));
+  vec4 radiance_and_transmittance = textureLod(cubemap_tx, direction, float(mip_level));
+  vec3 radiance = radiance_and_transmittance.xyz;
 
-  /* Convert transmittance to transparency. */
-  col.a = 1.0 - col.a;
+  float opacity = 1.0 - radiance_and_transmittance.a;
 
   /* Composite world into reflection probes. */
   bool is_world = all(equal(write_coord_packed, world_coord_packed));
-  if (!is_world && col.a != 1.0) {
+  if (!is_world && opacity != 1.0) {
     vec2 world_uv = wrapped_uv * world_coord.scale + world_coord.offset;
-    vec4 world_col = textureLod(atlas_tx, vec3(world_uv, world_coord.layer), 0.0);
-    col.rgb = mix(world_col.rgb, col.rgb, col.a);
+    vec4 world_radiance = textureLod(atlas_tx, vec3(world_uv, world_coord.layer), 0.0);
+    radiance.rgb = mix(world_radiance.rgb, radiance.rgb, opacity);
   }
 
-  imageStore(atlas_img, ivec3(texel, write_coord.layer), col);
+  radiance = colorspace_brightness_clamp_max(radiance, probe_brightness_clamp);
+
+  imageStore(atlas_img, ivec3(texel, write_coord.layer), vec4(radiance, 1.0));
 }
