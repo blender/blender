@@ -825,8 +825,10 @@ void IrradianceBake::surfels_create(const Object &probe_object)
   capture_info_buf_.capture_indirect = capture_indirect_;
   capture_info_buf_.capture_emission = capture_emission_;
 
-  ReflectionProbeAtlasCoordinate atlas_coord = inst_.reflection_probes.world_atlas_coord_get();
-  capture_info_buf_.world_atlas_coord = *reinterpret_cast<int4 *>(&atlas_coord);
+  ReflectionProbeModule &reflections = inst_.reflection_probes;
+  ReflectionProbeAtlasCoordinate atlas_coord = reflections.world_atlas_coord_get();
+  ReflectionProbeCoordinate coord = atlas_coord.as_sampling_coord(reflections.atlas_extent());
+  capture_info_buf_.world_atlas_coord = coord;
 
   dispatch_per_grid_sample_ = math::divide_ceil(grid_resolution, int3(IRRADIANCE_GRID_GROUP_SIZE));
   capture_info_buf_.irradiance_grid_size = grid_resolution;

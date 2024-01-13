@@ -28,7 +28,68 @@ struct ReflectionProbeUpdateInfo;
 /** \name Reflection Probe
  * \{ */
 
+struct ReflectionProbeAtlasCoordinate {
+  /** On which layer of the texture array is this reflection probe stored. */
+  int layer = -1;
+  /**
+   * Subdivision of the layer. 0 = no subdivision and resolution would be
+   * ReflectionProbeModule::MAX_RESOLUTION.
+   */
+  int layer_subdivision = -1;
+  /**
+   * Which area of the subdivided layer is the reflection probe located.
+   *
+   * A layer has (2^layer_subdivision)^2 areas.
+   */
+  int area_index = -1;
+
+  /* Return the area extent in pixel. */
+  int area_extent(int atlas_extent) const
+  {
+    return atlas_extent >> layer_subdivision;
+  }
+
+  /* Coordinate of the area in [0..area_count_per_dimension[ range. */
+  int2 area_location() const
+  {
+    const int area_count_per_dimension = 1 << layer_subdivision;
+    return int2(area_index % area_count_per_dimension, area_index / area_count_per_dimension);
+  }
+
+  /* Coordinate of the bottom left corner of the area in [0..atlas_extent[ range. */
+  int2 area_offset(int atlas_extent) const
+  {
+    return area_location() * area_extent(atlas_extent);
+  }
+
+  ReflectionProbeCoordinate as_sampling_coord(int atlas_extent) const
+  {
+    const int area_count_per_dimension = 1 << layer_subdivision;
+    const float area_scale = 1.0f / area_count_per_dimension;
+    const float2 area_location = float2(this->area_location());
+
+    float texel_size = 1.0f / atlas_extent;
+    float border_size = REFLECTION_PROBE_BORDER_SIZE * texel_size;
+
+    ReflectionProbeCoordinate coord;
+    coord.offset = (border_size + 0.5f * texel_size + area_location) * area_scale;
+    coord.scale = (1.0f - 2.0f * border_size) * area_scale;
+    coord.layer = layer;
+    return coord;
+  }
+
+  ReflectionProbeWriteCoordinate as_write_coord(int atlas_extent, int mip_lvl) const
+  {
+    ReflectionProbeWriteCoordinate coord;
+    coord.extent = atlas_extent >> (layer_subdivision + mip_lvl);
+    coord.offset = (area_location() * coord.extent) >> mip_lvl;
+    coord.layer = layer;
+    return coord;
+  }
+};
+
 struct ReflectionProbe : ReflectionProbeData {
+ public:
   enum class Type {
     WORLD,
     PROBE,
@@ -57,19 +118,19 @@ struct ReflectionProbe : ReflectionProbeData {
   bool viewport_display;
   float viewport_display_size;
 
-  ReflectionProbe()
-  {
-    this->atlas_coord.layer_subdivision = -1;
-    this->atlas_coord.layer = -1;
-    this->atlas_coord.area_index = -1;
-  }
+  ReflectionProbeAtlasCoordinate atlas_coord;
 
-  void recalc_lod_factors(int atlas_resolution)
+  void prepare_for_upload(int atlas_extent)
   {
-    const float probe_resolution = atlas_resolution >> atlas_coord.layer_subdivision;
+    /* Compute LOD factor. */
+    const int probe_resolution = atlas_coord.area_extent(atlas_extent);
     const float bias = 0.0;
-    const float lod_factor = bias + 0.5 * log(float(square_i(probe_resolution))) / log(2.0);
+    const float lod_factor = bias + 0.5 * log2f(square_i(probe_resolution));
     this->lod_factor = lod_factor;
+
+    /* Compute sampling offset and scale. */
+    static_cast<ReflectionProbeData *>(this)->atlas_coord = atlas_coord.as_sampling_coord(
+        atlas_extent);
   }
 };
 
@@ -97,10 +158,11 @@ class ReflectionProbeModule {
   ReflectionProbeDataBuf data_buf_;
   ReflectionProbes probes_;
 
-  ReflectionProbe world_probe_data;
-
   /** Probes texture stored in octahedral mapping. */
   Texture probes_tx_ = {"Probes"};
+  /* Reference to a specific mip map layer of a texture. */
+  GPUTexture *atlas_dst_mip_tx_ = nullptr;
+  GPUTexture *atlas_src_mip_tx_ = nullptr;
 
   PassSimple remap_ps_ = {"Probe.CubemapToOctahedral"};
   PassSimple update_irradiance_ps_ = {"Probe.UpdateIrradiance"};
@@ -116,11 +178,15 @@ class ReflectionProbeModule {
    */
   Texture cubemap_tx_ = {"Probe.Cubemap"};
   /** Index of the probe being updated. */
-  int reflection_probe_index_ = 0;
+  int probe_index_ = 0;
+  /** Mip level being sampled for remapping. */
+  int probe_mip_level_ = 0;
   /** Updated Probe coordinates in the atlas. */
-  ReflectionProbeAtlasCoordinate reflection_probe_coord_;
+  ReflectionProbeCoordinate probe_sampling_coord_;
+  ReflectionProbeWriteCoordinate probe_write_coord_;
   /** World coordinates in the atlas. */
-  ReflectionProbeAtlasCoordinate world_probe_coord_;
+  ReflectionProbeCoordinate world_sampling_coord_;
+  ReflectionProbeWriteCoordinate world_write_coord_;
   /** Number of the probe to process in the select phase. */
   int reflection_probe_count_ = 0;
 
@@ -157,6 +223,11 @@ class ReflectionProbeModule {
   void set_view(View &view);
 
   void debug_print() const;
+
+  int atlas_extent() const
+  {
+    return probes_tx_.width();
+  }
 
   ReflectionProbeAtlasCoordinate world_atlas_coord_get() const;
 
