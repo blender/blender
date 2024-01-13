@@ -93,7 +93,7 @@ float lightprobe_roughness_to_cube_sh_mix_fac(float roughness)
 float lightprobe_roughness_to_lod(float roughness)
 {
   /* Temporary. Do something better. */
-  return sqrt(roughness) * 11.0;
+  return sqrt(roughness) * REFLECTION_PROBE_MIPMAP_LEVELS;
 }
 
 vec3 lightprobe_eval(LightProbeSample samp, ClosureDiffuse cl, vec3 P, vec3 V)

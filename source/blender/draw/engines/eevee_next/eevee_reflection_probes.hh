@@ -64,16 +64,34 @@ struct ReflectionProbeAtlasCoordinate {
 
   ReflectionProbeCoordinate as_sampling_coord(int atlas_extent) const
   {
-    const int area_count_per_dimension = 1 << layer_subdivision;
-    const float area_scale = 1.0f / area_count_per_dimension;
-    const float2 area_location = float2(this->area_location());
-
-    float texel_size = 1.0f / atlas_extent;
-    float border_size = REFLECTION_PROBE_BORDER_SIZE * texel_size;
-
+    /**
+     * We want to cover the last mip exactly at the pixel center to reduce padding texels and
+     * interpolation artifacts.
+     * This is a diagram of a 2px^2 map with `c` being the texels corners and `x` the pixels
+     * centers.
+     *
+     * c-------c-------c
+     * |       |       |
+     * |   x   |   x   | <
+     * |       |       |  |
+     * c-------c-------c  | sampling area
+     * |       |       |  |
+     * |   x   |   x   | <
+     * |       |       |
+     * c-------c-------c
+     *     ^-------^
+     *       sampling area
+     */
+    /* First level only need half a pixel of padding around the sampling area. */
+    const int mip_max_lvl_padding = 1;
+    const int mip_min_lvl_padding = mip_max_lvl_padding << REFLECTION_PROBE_MIPMAP_LEVELS;
+    /* Extent and offset in mip 0 texels. */
+    const int sampling_area_extent = area_extent(atlas_extent) - mip_min_lvl_padding;
+    const int2 sampling_area_offset = area_offset(atlas_extent) + mip_min_lvl_padding / 2;
+    /* Convert to atlas UVs. */
     ReflectionProbeCoordinate coord;
-    coord.offset = (border_size + 0.5f * texel_size + area_location) * area_scale;
-    coord.scale = (1.0f - 2.0f * border_size) * area_scale;
+    coord.scale = sampling_area_extent / float(atlas_extent);
+    coord.offset = float2(sampling_area_offset) / float(atlas_extent);
     coord.layer = layer;
     return coord;
   }
@@ -160,9 +178,6 @@ class ReflectionProbeModule {
 
   /** Probes texture stored in octahedral mapping. */
   Texture probes_tx_ = {"Probes"};
-  /* Reference to a specific mip map layer of a texture. */
-  GPUTexture *atlas_dst_mip_tx_ = nullptr;
-  GPUTexture *atlas_src_mip_tx_ = nullptr;
 
   PassSimple remap_ps_ = {"Probe.CubemapToOctahedral"};
   PassSimple update_irradiance_ps_ = {"Probe.UpdateIrradiance"};
@@ -186,7 +201,6 @@ class ReflectionProbeModule {
   ReflectionProbeWriteCoordinate probe_write_coord_;
   /** World coordinates in the atlas. */
   ReflectionProbeCoordinate world_sampling_coord_;
-  ReflectionProbeWriteCoordinate world_write_coord_;
   /** Number of the probe to process in the select phase. */
   int reflection_probe_count_ = 0;
 

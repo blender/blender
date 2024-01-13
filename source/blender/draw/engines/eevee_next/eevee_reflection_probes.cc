@@ -167,7 +167,7 @@ void ReflectionProbeModule::init()
                                1,
                                GPU_TEXTURE_USAGE_SHADER_WRITE | GPU_TEXTURE_USAGE_SHADER_READ,
                                nullptr,
-                               9999);
+                               REFLECTION_PROBE_MIPMAP_LEVELS);
     GPU_texture_mipmap_mode(probes_tx_, true, true);
     probes_tx_.clear(float4(0.0f));
   }
@@ -177,11 +177,11 @@ void ReflectionProbeModule::init()
     pass.init();
     pass.shader_set(instance_.shaders.static_shader_get(REFLECTION_PROBE_REMAP));
     pass.bind_texture("cubemap_tx", &cubemap_tx_);
-    pass.bind_image("atlas_dst_mip_img", &atlas_dst_mip_tx_);
-    pass.bind_image("atlas_src_mip_img", &atlas_src_mip_tx_);
+    pass.bind_texture("atlas_tx", &probes_tx_);
+    pass.bind_image("atlas_img", &probes_tx_);
     pass.push_constant("probe_coord_packed", reinterpret_cast<int4 *>(&probe_sampling_coord_));
     pass.push_constant("write_coord_packed", reinterpret_cast<int4 *>(&probe_write_coord_));
-    pass.push_constant("world_coord_packed", reinterpret_cast<int4 *>(&world_write_coord_));
+    pass.push_constant("world_coord_packed", reinterpret_cast<int4 *>(&world_sampling_coord_));
     pass.push_constant("mip_level", &probe_mip_level_);
     pass.dispatch(&dispatch_probe_pack_);
   }
@@ -468,20 +468,12 @@ std::optional<ReflectionProbeUpdateInfo> ReflectionProbeModule::update_info_pop(
 void ReflectionProbeModule::remap_to_octahedral_projection(
     const ReflectionProbeAtlasCoordinate &atlas_coord)
 {
-  ReflectionProbe &world_probe = probes_.lookup(world_object_key_);
-
-  int world_layer_subdivision = world_probe.atlas_coord.layer_subdivision;
   int resolution = max_resolution_ >> atlas_coord.layer_subdivision;
   /* Update shader parameters that change per dispatch. */
   probe_sampling_coord_ = atlas_coord.as_sampling_coord(atlas_extent());
   probe_write_coord_ = atlas_coord.as_write_coord(atlas_extent(), 0);
   probe_mip_level_ = atlas_coord.layer_subdivision;
-  world_write_coord_ = world_probe.atlas_coord.as_write_coord(atlas_extent(), probe_mip_level_);
   dispatch_probe_pack_ = int3(int2(ceil_division(resolution, REFLECTION_PROBE_GROUP_SIZE)), 1);
-
-  probes_tx_.ensure_mip_views();
-  atlas_dst_mip_tx_ = probes_tx_.mip_view(0);
-  atlas_src_mip_tx_ = probes_tx_.mip_view(probe_mip_level_ - world_layer_subdivision);
 
   instance_.manager->submit(remap_ps_);
 }
