@@ -277,7 +277,7 @@ bool MTLShader::finalize(const shader::ShaderCreateInfo *info)
   }
 
   /** Extract desired custom parameters from CreateInfo. */
-  /* Tuning paramters for compute kernels. */
+  /* Tuning parameters for compute kernels. */
   if (is_compute) {
     int threadgroup_tuning_param = info->mtl_max_threads_per_threadgroup_;
     if (threadgroup_tuning_param > 0) {
@@ -1541,7 +1541,7 @@ MTLComputePipelineStateInstance *MTLShader::bake_compute_pipeline_state(MTLConte
     /* If PSO has compiled but max theoretical threads-per-threadgroup is lower than required
      * dispatch size, recompile with increased limit. NOTE: This will result in a performance drop,
      * ideally the source shader should be modified to reduce local register pressure, or, local
-     * workgroup size should be reduced.
+     * work-group size should be reduced.
      * Similarly, the custom tuning parameter "mtl_max_total_threads_per_threadgroup" can be
      * specified to a sufficiently large value to avoid this.  */
     if (pso) {

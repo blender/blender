@@ -1014,7 +1014,7 @@ BLI_STATIC_ASSERT_ALIGN(ShadowSceneData, 16)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Lightprobe Sphere
+/** \name Light-probe Sphere
  * \{ */
 
 struct ReflectionProbeLowFreqLight {
@@ -1399,7 +1399,7 @@ static inline float3 burley_eval(float3 d, float r)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Lightprobe Planar Data
+/** \name Light-probe Planar Data
  * \{ */
 
 struct ProbePlanarData {

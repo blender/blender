@@ -182,7 +182,7 @@ static void collection_free_data(ID *id)
   BLI_freelistN(&collection->children);
   BLI_freelistN(&collection->runtime.parents);
 
-  /* No need for depsgraph taging here, since the data is being deleted. */
+  /* No need for depsgraph tagging here, since the data is being deleted. */
   collection_object_cache_free(nullptr, collection, LIB_ID_CREATE_NO_DEG_TAG, 0);
 }
 
@@ -844,15 +844,15 @@ static void collection_object_cache_free(const Main *bmain,
   BLI_freelistN(&collection->runtime.object_cache);
   BLI_freelistN(&collection->runtime.object_cache_instanced);
 
-  /* Although it may seem abusive to call depsgraph updates from this util function, it is called
-   * from any codepath modifying the collections hierarchy and/or their objects. Including the
-   * reversed-hierarchy walked by #collection_object_cache_free_parent_recursive.
+  /* Although it may seem abusive to call depsgraph updates from this utility function,
+   * it is called from any code-path modifying the collections hierarchy and/or their objects.
+   * Including the reversed-hierarchy walked by #collection_object_cache_free_parent_recursive.
    *
    * Plus, the main reason to tag the hierarchy of parents for deg update is because their object
    * caches are being freed.
    *
-   * Having this code here avoids the need for another util tagging function processing the parent
-   * hierarchy as well. */
+   * Having this code here avoids the need for another utility tagging function processing the
+   * parent hierarchy as well. */
   if (id_recalc_flag && (id_create_flag & (LIB_ID_CREATE_NO_MAIN | LIB_ID_CREATE_NO_DEG_TAG)) == 0)
   {
     BLI_assert(bmain != nullptr);
