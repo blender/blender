@@ -1363,10 +1363,10 @@ static void edge_slide_apply_elem(const TransDataEdgeSlideVert *sv,
   }
   else {
     /**
-     * Implementation note, even mode ignores the starting positions and uses
+     * NOTE(@ideasman42): Implementation note, even mode ignores the starting positions and uses
      * only the a/b verts, this could be changed/improved so the distance is
      * still met but the verts are moved along their original path (which may not be straight),
-     * however how it works now is OK and matches 2.4x - Campbell
+     * however how it works now is OK and matches 2.4x.
      *
      * \note `len_v3v3(curr_sv->dir_side[0], curr_sv->dir_side[1])`
      * is the same as the distance between the original vert locations,

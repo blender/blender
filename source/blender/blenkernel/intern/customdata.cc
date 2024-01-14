@@ -152,10 +152,8 @@ struct LayerTypeInfo {
    *    (there should be (sub element count)^2 weights per element)
    * count gives the number of elements in sources
    *
-   * \note in some cases \a dest pointer is in \a sources
-   *       so all functions have to take this into account and delay
-   *       applying changes while reading from sources.
-   *       See bug #32395 - Campbell.
+   * \note in some cases `dest` pointer is in `sources` so all functions have to take this
+   * into account and delay applying changes while reading from sources. See #32395.
    */
   cd_interp interp;
 

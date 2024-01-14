@@ -81,7 +81,7 @@ BLI_INLINE void bm_vert_calc_normals_accum_loop(const BMLoop *l_iter,
 
 static void bm_vert_calc_normals_impl(BMVert *v)
 {
-  /* Note on redundant unit-length edge-vector calculation:
+  /* NOTE(@ideasman42): Regarding redundant unit-length edge-vector calculation:
    *
    * This functions calculates unit-length edge-vector for every loop edge
    * in practice this means 2x `sqrt` calls per face-corner connected to each vertex.
@@ -106,7 +106,7 @@ static void bm_vert_calc_normals_impl(BMVert *v)
    *
    * In conclusion, the cost of caching & looking up edge-vectors both globally or per-vertex
    * doesn't save enough time to make it worthwhile.
-   * - Campbell. */
+   */
 
   float *v_no = v->no;
   zero_v3(v_no);

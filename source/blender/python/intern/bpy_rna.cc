@@ -8949,13 +8949,13 @@ void pyrna_free_types()
 /**
  * \warning memory leak!
  *
- * There is currently a bug where moving the registration of a Python class does
+ * NOTE(@ideasman42): There is currently a bug where moving the registration of a Python class does
  * not properly manage reference-counts from the Python class. As the `srna` owns
  * the Python class this should not be so tricky, but changing the references as
  * you'd expect when changing ownership crashes blender on exit so I had to comment out
  * the #Py_DECREF. This is not so bad because the leak only happens when re-registering
  * (continuously running `SCRIPT_OT_reload`).
- * - Should still be fixed - Campbell
+ * This should still be fixed.
  */
 PyDoc_STRVAR(pyrna_register_class_doc,
              ".. function:: register_class(cls)\n"

@@ -506,11 +506,11 @@ static bool rna_Armature_collections_override_apply(Main *bmain,
        * handled below this switch. */
       break;
     case LIBOVERRIDE_OP_REPLACE:
-      /* These are stored by Blender when overridable properties are changed on the root
-       * collections, However, these are *also* created on the `armature.collections_all` property,
-       * which is actually where these per-collection overrides are handled. This doesn't seem to
-       * be proper behavior, but I (Sybren) also don't want to spam the console about this as this
-       * is not something a user could fix. */
+      /* NOTE(@sybren): These are stored by Blender when overridable properties are changed on the
+       * root collections, However, these are *also* created on the `armature.collections_all`
+       * property, which is actually where these per-collection overrides are handled.
+       * This doesn't seem to be proper behavior, but I also don't want to spam the console about
+       * this as this is not something a user could fix. */
       return false;
     default:
       /* Any other operation is simply not supported, and also not expected to exist. */

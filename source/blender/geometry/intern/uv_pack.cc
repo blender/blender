@@ -31,7 +31,7 @@
 
 namespace blender::geometry {
 
-/* Store information about an island's placement such as translation, rotation and reflection. */
+/** Store information about an island's placement such as translation, rotation and reflection. */
 class UVPhi {
  public:
   UVPhi();

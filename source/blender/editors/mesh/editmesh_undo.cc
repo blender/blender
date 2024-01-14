@@ -110,14 +110,17 @@ struct UndoMesh {
   int selectmode;
   char uv_selectmode;
 
-  /** \note
-   * This isn't a perfect solution, if you edit keys and change shapes this works well
-   * (fixing #32442), but editing shape keys, going into object mode, removing or changing their
-   * order, then go back into editmode and undo will give issues - where the old index will be
-   * out of sync with the new object index.
+  /**
+   * The active shape key associated with this mesh.
+   *
+   * NOTE(@ideasman42): This isn't a perfect solution, if you edit keys and change shapes this
+   * works well (fixing #32442), but editing shape keys, going into object mode, removing or
+   * changing their order, then go back into edit-mode and undo will give issues - where the old
+   * index will be out of sync with the new object index.
    *
    * There are a few ways this could be made to work but for now its a known limitation with mixing
-   * object and editmode operations - Campbell. */
+   * object and edit-mode operations.
+   */
   int shapenr;
 
 #ifdef USE_ARRAY_STORE

@@ -969,15 +969,14 @@ uiButStore *UI_butstore_create(uiBlock *block)
 
 void UI_butstore_free(uiBlock *block, uiButStore *bs_handle)
 {
-  /* Workaround for button store being moved into new block,
+  /* NOTE(@ideasman42): Workaround for button store being moved into new block,
    * which then can't use the previous buttons state
-   * ('ui_but_update_from_old_block' fails to find a match),
+   * (#ui_but_update_from_old_block fails to find a match),
    * keeping the active button in the old block holding a reference
    * to the button-state in the new block: see #49034.
    *
    * Ideally we would manage moving the 'uiButStore', keeping a correct state.
-   * All things considered this is the most straightforward fix - Campbell.
-   */
+   * All things considered this is the most straightforward fix. */
   if (block != bs_handle->block && bs_handle->block != nullptr) {
     block = bs_handle->block;
   }
