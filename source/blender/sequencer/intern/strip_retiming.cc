@@ -328,46 +328,34 @@ SeqRetimingKey *SEQ_retiming_add_key(const Scene *scene, Sequence *seq, const in
   return added_key;
 }
 
-void SEQ_retiming_offset_transition_key(const Scene *scene,
-                                        const Sequence *seq,
-                                        SeqRetimingKey *key,
-                                        const int offset)
+void SEQ_retiming_transition_key_frame_set(const Scene * /*scene */,
+                                           const Sequence *seq,
+                                           SeqRetimingKey *key,
+                                           const int timeline_frame)
 {
-  SeqRetimingKey *key_start, *key_end;
-  int corrected_offset;
-
-  if (SEQ_retiming_key_is_transition_type(key)) {
-    key_start = key;
-    key_end = key + 1;
-    corrected_offset = offset;
-  }
-  else {
-    key_start = key - 1;
-    key_end = key;
-    corrected_offset = -1 * offset;
-  }
-
-  /* Prevent transition keys crossing each other. */
-  const float start_frame = SEQ_retiming_key_timeline_frame_get(scene, seq, key_start);
-  const float end_frame = SEQ_retiming_key_timeline_frame_get(scene, seq, key_end);
-  int xmax = ((start_frame + end_frame) / 2) - 1;
-  int max_offset = xmax - start_frame;
-  corrected_offset = min_ii(corrected_offset, max_offset);
-  /* Prevent mirrored movement crossing any key. */
-  SeqRetimingKey *prev_segment_end = key_start - 1, *next_segment_start = key_end + 1;
-  const int offset_min_left = SEQ_retiming_key_timeline_frame_get(scene, seq, prev_segment_end) +
-                              1 - start_frame;
-  const int offset_min_right =
-      end_frame - SEQ_retiming_key_timeline_frame_get(scene, seq, next_segment_start) - 1;
-  corrected_offset = max_iii(corrected_offset, offset_min_left, offset_min_right);
-
+  SeqRetimingKey *key_start = SEQ_retiming_transition_start_get(key);
+  SeqRetimingKey *key_end = key_start + 1;
+  const int start_frame_index = key_start->strip_frame_index;
+  const int midpoint = key_start->original_strip_frame_index;
+  const int new_frame_index = timeline_frame - SEQ_time_start_frame_get(seq);
+  int new_midpoint_offset = new_frame_index - midpoint;
   const float prev_segment_step = seq_retiming_segment_step_get(key_start - 1);
   const float next_segment_step = seq_retiming_segment_step_get(key_end);
 
-  key_start->strip_frame_index += corrected_offset;
-  key_start->retiming_factor += corrected_offset * prev_segment_step;
-  key_end->strip_frame_index -= corrected_offset;
-  key_end->retiming_factor -= corrected_offset * next_segment_step;
+  /* Prevent keys crossing eachother. */
+  SeqRetimingKey *prev_segment_end = key_start - 1, *next_segment_start = key_end + 1;
+  const int offset_max_left = midpoint - prev_segment_end->strip_frame_index - 1;
+  const int offset_max_right = next_segment_start->strip_frame_index - midpoint - 1;
+  new_midpoint_offset = abs(new_midpoint_offset);
+  new_midpoint_offset = min_iii(new_midpoint_offset, offset_max_left, offset_max_right);
+  new_midpoint_offset = max_ii(new_midpoint_offset, 1);
+
+  key_start->strip_frame_index = midpoint - new_midpoint_offset;
+  key_end->strip_frame_index = midpoint + new_midpoint_offset;
+
+  const int offset = key_start->strip_frame_index - start_frame_index;
+  key_start->retiming_factor += offset * prev_segment_step;
+  key_end->retiming_factor -= offset * next_segment_step;
 }
 
 static void seq_retiming_cleanup_freeze_frame(SeqRetimingKey *key)
