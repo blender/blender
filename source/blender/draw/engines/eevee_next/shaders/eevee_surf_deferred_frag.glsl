@@ -83,7 +83,7 @@ void main()
 
   /* ----- GBuffer output ----- */
 
-  GBufferDataUndetermined gbuf_data;
+  GBufferData gbuf_data;
   gbuf_data.diffuse = g_diffuse_data;
   gbuf_data.translucent = g_translucent_data;
   gbuf_data.reflection = g_reflection_data;

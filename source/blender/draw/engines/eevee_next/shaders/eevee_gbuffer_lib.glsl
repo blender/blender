@@ -21,23 +21,7 @@
 #define GBUFFER_NORMAL_MAX GBUFFER_LAYER_MAX
 #define GBUFFER_DATA_MAX (GBUFFER_LAYER_MAX * 2)
 
-/* Structure used as input and output of the packing & read functions. */
 struct GBufferData {
-  /* Only valid (or null) if `has_diffuse`, `has_reflection` or `has_refraction` is true. */
-  /* TODO(fclem): This should eventually become ClosureUndetermined. */
-  ClosureDiffuse diffuse;
-  ClosureTranslucent translucent;
-  ClosureReflection reflection;
-  ClosureRefraction refraction;
-  /* Additional object information if any closure needs it. */
-  float thickness;
-  uint object_id;
-  /* First world normal stored in the gbuffer. Only valid if `has_any_surface` is true. */
-  vec3 surface_N;
-};
-
-/* TODO(fclem): This should replace GBufferData. */
-struct GBufferDataUndetermined {
   ClosureUndetermined diffuse;
   ClosureUndetermined translucent;
   ClosureUndetermined reflection;
@@ -648,7 +632,7 @@ void gbuffer_closure_metal_clear_coat_load(inout GBufferReader gbuf,
  *
  * \{ */
 
-GBufferWriter gbuffer_pack(GBufferDataUndetermined data_in)
+GBufferWriter gbuffer_pack(GBufferData data_in)
 {
   GBufferWriter gbuf;
   gbuf.header = 0u;

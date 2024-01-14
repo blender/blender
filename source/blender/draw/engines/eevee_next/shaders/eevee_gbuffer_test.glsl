@@ -12,9 +12,9 @@
 
 #define TEST(a, b) if (true)
 
-GBufferDataUndetermined gbuffer_new()
+GBufferData gbuffer_new()
 {
-  GBufferDataUndetermined data;
+  GBufferData data;
   data.diffuse.weight = 0.0;
   data.translucent.weight = 0.0;
   data.reflection.weight = 0.0;
@@ -27,7 +27,7 @@ GBufferDataUndetermined gbuffer_new()
 
 void main()
 {
-  GBufferDataUndetermined data_in;
+  GBufferData data_in;
   GBufferReader data_out;
   samplerGBufferHeader header_tx = 0;
   samplerGBufferClosure closure_tx = 0;
