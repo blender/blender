@@ -209,6 +209,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   std::atomic<bool> has_reorder = false;
   std::atomic<bool> has_unsupported = false;
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
+    GeometryComponentEditData::remember_deformed_positions_if_necessary(geometry_set);
     for (const auto [type, domains] : geometry::components_supported_reordering().items()) {
       const bke::GeometryComponent *src_component = geometry_set.get_component(type);
       if (src_component == nullptr || src_component->is_empty()) {
