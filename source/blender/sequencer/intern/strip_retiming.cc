@@ -527,7 +527,7 @@ SeqRetimingKey *SEQ_retiming_add_freeze_frame(const Scene *scene,
 
   /* Tag previous key as freeze frame key. This is only a convenient way to prevent creating
    * speed transitions. When freeze frame is deleted, this flag should be cleared. */
-  return new_key;
+  return new_key + 1;
 }
 
 SeqRetimingKey *SEQ_retiming_add_transition(const Scene *scene,
@@ -567,7 +567,7 @@ SeqRetimingKey *SEQ_retiming_add_transition(const Scene *scene,
   transition_in->original_retiming_factor = orig_retiming_factor;
 
   seq_retiming_remove_key_ex(seq, seq->retiming_keys + orig_key_index + 1);
-  return seq->retiming_keys + orig_key_index;
+  return seq->retiming_keys + orig_key_index + 1;
 }
 
 float SEQ_retiming_key_speed_get(const Sequence *seq, const SeqRetimingKey *key)

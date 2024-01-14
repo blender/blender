@@ -340,6 +340,9 @@ static bool freeze_frame_add_new_for_seq(const bContext *C,
     return false;
   }
 
+  ED_sequencer_deselect_all(scene);
+  SEQ_retiming_selection_append(freeze);
+
   SEQ_relations_invalidate_cache_raw(scene, seq);
   return true;
 }
@@ -380,8 +383,7 @@ static int sequencer_retiming_freeze_frame_add_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   bool success = false;
 
-  const float fps = scene->r.frs_sec / scene->r.frs_sec_base;
-  int duration = 4 * fps;
+  int duration = 1;
 
   if (RNA_property_is_set(op->ptr, RNA_struct_find_property(op->ptr, "duration"))) {
     duration = RNA_int_get(op->ptr, "duration");
@@ -458,6 +460,9 @@ static bool transition_add_new_for_seq(const bContext *C,
     return false;
   }
 
+  ED_sequencer_deselect_all(scene);
+  SEQ_retiming_selection_append(transition);
+
   SEQ_relations_invalidate_cache_raw(scene, seq);
   return true;
 }
@@ -481,8 +486,7 @@ static int sequencer_retiming_transition_add_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   bool success = false;
 
-  const float fps = scene->r.frs_sec / scene->r.frs_sec_base;
-  int duration = 4 * fps;
+  int duration = 1;
 
   if (RNA_property_is_set(op->ptr, RNA_struct_find_property(op->ptr, "duration"))) {
     duration = RNA_int_get(op->ptr, "duration");
