@@ -686,7 +686,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
 
     if (tselem->type == TSE_SOME_ID) {
       BKE_main_namemap_remove_name(bmain, tselem->id, oldname);
-      BLI_libblock_ensure_unique_name(bmain, tselem->id->name);
+      BLI_libblock_ensure_unique_name(bmain, tselem->id);
 
       WM_msg_publish_rna_prop(mbus, tselem->id, tselem->id, ID, name);
 
@@ -754,7 +754,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
         case TSE_NLA_ACTION: {
           bAction *act = (bAction *)tselem->id;
           BKE_main_namemap_remove_name(bmain, &act->id, oldname);
-          BLI_libblock_ensure_unique_name(bmain, act->id.name);
+          BLI_libblock_ensure_unique_name(bmain, &act->id);
           WM_msg_publish_rna_prop(mbus, &act->id, &act->id, ID, name);
           DEG_id_tag_update(tselem->id, ID_RECALC_COPY_ON_WRITE);
           break;
@@ -876,7 +876,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           /* The ID is a #Collection, not a #LayerCollection */
           Collection *collection = (Collection *)tselem->id;
           BKE_main_namemap_remove_name(bmain, &collection->id, oldname);
-          BLI_libblock_ensure_unique_name(bmain, collection->id.name);
+          BLI_libblock_ensure_unique_name(bmain, &collection->id);
           WM_msg_publish_rna_prop(mbus, &collection->id, &collection->id, ID, name);
           WM_event_add_notifier(C, NC_ID | NA_RENAME, nullptr);
           DEG_id_tag_update(tselem->id, ID_RECALC_COPY_ON_WRITE);

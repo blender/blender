@@ -207,7 +207,7 @@ void BKE_libblock_rename(struct Main *bmain, struct ID *id, const char *name) AT
  * Use after setting the ID's name
  * When name exists: call 'new_id'
  */
-void BLI_libblock_ensure_unique_name(struct Main *bmain, const char *name) ATTR_NONNULL();
+void BLI_libblock_ensure_unique_name(struct Main *bmain, ID *id) ATTR_NONNULL();
 
 struct ID *BKE_libblock_find_name(struct Main *bmain,
                                   short type,
