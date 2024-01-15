@@ -2017,7 +2017,7 @@ void BKE_libblock_ensure_unique_name(Main *bmain, ID *id)
     return;
   }
 
-    /* BKE_id_new_name_validate also takes care of sorting. */
+  /* BKE_id_new_name_validate also takes care of sorting. */
   if (!ID_IS_LINKED(id) && BKE_id_new_name_validate(bmain, lb, id, nullptr, false)) {
     bmain->is_memfile_undo_written = false;
   }
