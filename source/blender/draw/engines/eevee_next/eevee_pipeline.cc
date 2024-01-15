@@ -1393,14 +1393,17 @@ void PlanarProbePipeline::render(View &view,
   /* Update for lighting pass. */
   inst_.hiz_buffer.update();
 
-  GPU_framebuffer_bind_ex(gbuffer_fb,
-                          {
-                              {GPU_LOADACTION_LOAD, GPU_STOREACTION_STORE},          /* Depth */
-                              {GPU_LOADACTION_CLEAR, GPU_STOREACTION_STORE, {0.0f}}, /* Combined */
-                              {GPU_LOADACTION_CLEAR, GPU_STOREACTION_STORE, {0}}, /* GBuf Header */
-                              {GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_STORE}, /* GBuf Closure */
-                              {GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_STORE}, /* GBuf Color */
-                          });
+  GPU_framebuffer_bind_ex(
+      gbuffer_fb,
+      {
+          {GPU_LOADACTION_LOAD, GPU_STOREACTION_STORE},          /* Depth */
+          {GPU_LOADACTION_CLEAR, GPU_STOREACTION_STORE, {0.0f}}, /* Combined */
+          {GPU_LOADACTION_CLEAR, GPU_STOREACTION_STORE, {0}},    /* GBuf Header */
+          {GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_STORE},     /* GBuf Normal*/
+          {GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_STORE},     /* GBuf Closure */
+          {GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_STORE},     /* GBuf Closure 2*/
+      });
+
   inst_.manager->submit(gbuffer_ps_, view);
 
   GPU_framebuffer_bind(combined_fb);
