@@ -45,7 +45,7 @@ namespace gpu {
  */
 struct GLSource {
   std::string source;
-  StringRefNull source_ref;
+  const char *source_ref;
 
   GLSource() = default;
   GLSource(const char *other_source);

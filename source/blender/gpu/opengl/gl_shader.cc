@@ -1459,11 +1459,11 @@ GLSource::GLSource(const char *other)
 {
   if (!gpu_shader_dependency_get_filename_from_source_string(other).is_empty()) {
     source = "";
-    source_ref = StringRefNull(other);
+    source_ref = other;
   }
   else {
     source = other;
-    source_ref = StringRefNull(source);
+    source_ref = nullptr;
   }
 }
 
@@ -1490,7 +1490,12 @@ Vector<const char *> GLSources::sources_get() const
   result.reserve(size());
 
   for (const GLSource &source : *this) {
-    result.append(source.source_ref.c_str());
+    if (source.source_ref) {
+      result.append(source.source_ref);
+    }
+    else {
+      result.append(source.source.c_str());
+    }
   }
   return result;
 }
