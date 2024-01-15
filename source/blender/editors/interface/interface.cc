@@ -6839,8 +6839,11 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
         }
       }
     }
+    /* NOTE: Menus will already have their shortcuts displayed.
+     * Pie menus are an exception as they already have a shortcut on display
+     * however this is only used within the context of the pie menu. */
     else if (type == BUT_GET_OP_KEYMAP) {
-      if (!ui_block_is_menu(but->block)) {
+      if (!(ui_block_is_menu(but->block) && !ui_block_is_pie_menu(but->block))) {
         char buf[128];
         if (ui_but_event_operator_string(C, but, buf, sizeof(buf))) {
           tmp = BLI_strdup(buf);
