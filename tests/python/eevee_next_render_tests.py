@@ -46,7 +46,8 @@ def setup():
     for ob in scene.objects:
         if ob.name != 'Plane' and ob.type != 'LIGHT':
             ob.hide_probe_volume = True
-            ob.hide_probe_cubemap = True
+            ob.hide_probe_sphere = True
+            ob.hide_probe_plane = True
 
     bpy.ops.scene.light_cache_bake()
 
