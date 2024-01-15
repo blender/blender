@@ -243,6 +243,16 @@ static void init_alpha_over_or_under(Sequence *seq)
   seq->seq1 = seq2;
 }
 
+static bool alpha_opaque(uchar alpha)
+{
+  return alpha == 255;
+}
+
+static bool alpha_opaque(float alpha)
+{
+  return alpha >= 1.0f;
+}
+
 /* dst = src1 over src2 (alpha from src1) */
 template<typename T>
 static void do_alphaover_effect(
@@ -253,23 +263,25 @@ static void do_alphaover_effect(
     return;
   }
 
-  for (int y = 0; y < height; y++) {
-    for (int x = 0; x < width; x++) {
+  for (int pixel_idx = 0; pixel_idx < width * height; pixel_idx++) {
+    if (src1[3] <= 0.0f) {
+      /* Alpha of zero. No color addition will happen as the colors are premultipled. */
+      memcpy(dst, src2, sizeof(T) * 4);
+    }
+    else if (fac == 1.0f && alpha_opaque(src1[3])) {
+      /* No change to src1 as fac == 1 and fully opaque. */
+      memcpy(dst, src1, sizeof(T) * 4);
+    }
+    else {
       float4 col1 = load_premul_pixel(src1);
       float mfac = 1.0f - fac * col1.w;
-
-      if (mfac <= 0.0f) {
-        memcpy(dst, src1, sizeof(T) * 4);
-      }
-      else {
-        float4 col2 = load_premul_pixel(src2);
-        float4 col = fac * col1 + mfac * col2;
-        store_premul_pixel(col, dst);
-      }
-      src1 += 4;
-      src2 += 4;
-      dst += 4;
+      float4 col2 = load_premul_pixel(src2);
+      float4 col = fac * col1 + mfac * col2;
+      store_premul_pixel(col, dst);
     }
+    src1 += 4;
+    src2 += 4;
+    dst += 4;
   }
 }
 
@@ -318,25 +330,23 @@ static void do_alphaunder_effect(
     return;
   }
 
-  for (int y = 0; y < height; y++) {
-    for (int x = 0; x < width; x++) {
-      float4 col2 = load_premul_pixel(src2);
-      if (col2.w <= 0.0f) {
-        memcpy(dst, src1, sizeof(T) * 4);
-      }
-      else if (col2.w >= 1.0f || fac <= 0.0f) {
-        memcpy(dst, src2, sizeof(T) * 4);
-      }
-      else {
-        float mfac = fac * (1.0f - col2.w);
-        float4 col1 = load_premul_pixel(src1);
-        float4 col = mfac * col1 + col2;
-        store_premul_pixel(col, dst);
-      }
-      src1 += 4;
-      src2 += 4;
-      dst += 4;
+  for (int pixel_idx = 0; pixel_idx < width * height; pixel_idx++) {
+    if (src2[3] <= 0.0f) {
+      memcpy(dst, src1, sizeof(T) * 4);
     }
+    else if (alpha_opaque(src2[3]) || fac <= 0.0f) {
+      memcpy(dst, src2, sizeof(T) * 4);
+    }
+    else {
+      float4 col2 = load_premul_pixel(src2);
+      float mfac = fac * (1.0f - col2.w);
+      float4 col1 = load_premul_pixel(src1);
+      float4 col = mfac * col1 + col2;
+      store_premul_pixel(col, dst);
+    }
+    src1 += 4;
+    src2 += 4;
+    dst += 4;
   }
 }
 
