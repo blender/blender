@@ -1616,12 +1616,12 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
 
     bool changed = false;
     if (ob->type == OB_MESH) {
-      bke::mesh_smooth_set(*static_cast<Mesh *>(ob->data), use_smooth || use_smooth_by_angle);
-      if (use_smooth || use_smooth_by_angle) {
-        if (use_smooth_by_angle) {
-          const float angle = RNA_float_get(op->ptr, "angle");
-          bke::mesh_sharp_edges_set_from_angle(*static_cast<Mesh *>(ob->data), angle);
-        }
+      Mesh &mesh = *static_cast<Mesh *>(ob->data);
+      const bool keep_sharp_edges = RNA_boolean_get(op->ptr, "keep_sharp_edges");
+      bke::mesh_smooth_set(mesh, use_smooth || use_smooth_by_angle, keep_sharp_edges);
+      if (use_smooth_by_angle) {
+        const float angle = RNA_float_get(op->ptr, "angle");
+        bke::mesh_sharp_edges_set_from_angle(mesh, angle, keep_sharp_edges);
       }
       BKE_mesh_batch_cache_dirty_tag(static_cast<Mesh *>(ob->data), BKE_MESH_BATCH_DIRTY_ALL);
       changed = true;
@@ -1671,7 +1671,7 @@ void OBJECT_OT_shade_flat(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Shade Flat";
-  ot->description = "Render and display faces uniform, using Face Normals";
+  ot->description = "Render and display faces uniform, using face normals";
   ot->idname = "OBJECT_OT_shade_flat";
 
   /* api callbacks */
@@ -1680,13 +1680,19 @@ void OBJECT_OT_shade_flat(wmOperatorType *ot)
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_boolean(ot->srna,
+                  "keep_sharp_edges",
+                  true,
+                  "Keep Sharp Edges",
+                  "Don't remove sharp edges, which are redundant with faces shaded smooth");
 }
 
 void OBJECT_OT_shade_smooth(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Shade Smooth";
-  ot->description = "Render and display faces smooth, using interpolated Vertex Normals";
+  ot->description = "Render and display faces smooth, using interpolated vertex normals";
   ot->idname = "OBJECT_OT_shade_smooth";
 
   /* api callbacks */
@@ -1695,6 +1701,12 @@ void OBJECT_OT_shade_smooth(wmOperatorType *ot)
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_boolean(ot->srna,
+                  "keep_sharp_edges",
+                  true,
+                  "Keep Sharp Edges",
+                  "Don't remove sharp edges. Tagged edges will remain sharp");
 }
 
 void OBJECT_OT_shade_smooth_by_angle(wmOperatorType *ot)
@@ -1714,6 +1726,12 @@ void OBJECT_OT_shade_smooth_by_angle(wmOperatorType *ot)
   RNA_def_property_float_default(prop, DEG2RADF(30.0f));
   RNA_def_property_ui_text(
       prop, "Angle", "Maximum angle between face normals that will be considered as smooth");
+
+  RNA_def_boolean(ot->srna,
+                  "keep_sharp_edges",
+                  true,
+                  "Keep Sharp Edges",
+                  "Only add sharp edges instead of clearing existing tags first");
 }
 
 /** \} */

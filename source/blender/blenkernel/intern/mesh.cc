@@ -1128,33 +1128,33 @@ void BKE_mesh_material_remap(Mesh *mesh, const uint *remap, uint remap_len)
 
 namespace blender::bke {
 
-void mesh_smooth_set(Mesh &mesh, const bool use_smooth)
+void mesh_smooth_set(Mesh &mesh, const bool use_smooth, const bool keep_sharp_edges)
 {
   MutableAttributeAccessor attributes = mesh.attributes_for_write();
-  if (use_smooth) {
+  if (!keep_sharp_edges) {
     attributes.remove("sharp_edge");
-    attributes.remove("sharp_face");
   }
-  else {
-    attributes.remove("sharp_edge");
-    SpanAttributeWriter<bool> sharp_faces = attributes.lookup_or_add_for_write_only_span<bool>(
-        "sharp_face", AttrDomain::Face);
-    sharp_faces.span.fill(true);
-    sharp_faces.finish();
+  attributes.remove("sharp_face");
+  if (!use_smooth) {
+    attributes.add<bool>("sharp_face",
+                         AttrDomain::Face,
+                         AttributeInitVArray(VArray<bool>::ForSingle(true, mesh.faces_num)));
   }
 }
 
-void mesh_sharp_edges_set_from_angle(Mesh &mesh, const float angle)
+void mesh_sharp_edges_set_from_angle(Mesh &mesh, const float angle, const bool keep_sharp_edges)
 {
   MutableAttributeAccessor attributes = mesh.attributes_for_write();
   if (angle >= M_PI) {
-    attributes.remove("sharp_edge");
-    attributes.remove("sharp_face");
+    mesh_smooth_set(mesh, true, keep_sharp_edges);
     return;
   }
   if (angle == 0.0f) {
-    mesh_smooth_set(mesh, false);
+    mesh_smooth_set(mesh, false, keep_sharp_edges);
     return;
+  }
+  if (!keep_sharp_edges) {
+    attributes.remove("sharp_edge");
   }
   SpanAttributeWriter<bool> sharp_edges = attributes.lookup_or_add_for_write_span<bool>(
       "sharp_edge", AttrDomain::Edge);
