@@ -560,7 +560,7 @@ class ARMATURE_OT_collection_solo_visibility(Operator):
                 return {'CANCELLED'}
 
         # Hide everything first.
-        for bcoll in arm.collections.all:
+        for bcoll in arm.collections_all:
             bcoll.is_visible = False
 
         # Show the named bone collection and all its ancestors.
@@ -583,7 +583,7 @@ class ARMATURE_OT_collection_show_all(Operator):
 
     def execute(self, context):
         arm = context.object.data
-        for bcoll in arm.collections.all:
+        for bcoll in arm.collections_all:
             bcoll.is_visible = True
         return {'FINISHED'}
 

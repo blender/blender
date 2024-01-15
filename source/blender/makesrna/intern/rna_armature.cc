@@ -2381,7 +2381,7 @@ static void rna_def_bonecollection(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Index",
-      "Index of this bone collection in the armature.collections.all array. Note that finding "
+      "Index of this bone collection in the armature.collections_all array. Note that finding "
       "this index requires a scan of all the bone collections, so do access this with care");
 
   prop = RNA_def_property(srna, "child_number", PROP_INT, PROP_NONE);
