@@ -536,16 +536,17 @@ static void sequencer_preprocess_transform_crop(
   sequencer_image_crop_init(seq, in, crop_scale_factor, &source_crop);
 
   const StripTransform *transform = seq->strip->transform;
-  eIMBInterpolationFilterMode filter;
+  eIMBInterpolationFilterMode filter = IMB_FILTER_NEAREST;
   int num_subsamples = 1;
   switch (transform->filter) {
     case SEQ_TRANSFORM_FILTER_NEAREST:
       filter = IMB_FILTER_NEAREST;
-      num_subsamples = 1;
       break;
     case SEQ_TRANSFORM_FILTER_BILINEAR:
       filter = IMB_FILTER_BILINEAR;
-      num_subsamples = 1;
+      break;
+    case SEQ_TRANSFORM_FILTER_BICUBIC:
+      filter = IMB_FILTER_BICUBIC;
       break;
     case SEQ_TRANSFORM_FILTER_NEAREST_3x3:
       filter = IMB_FILTER_NEAREST;

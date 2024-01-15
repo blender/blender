@@ -10,7 +10,7 @@
 #include <type_traits>
 
 #include "BLI_math_color_blend.h"
-#include "BLI_math_interp.h"
+#include "BLI_math_interp.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_vector.h"
 #include "BLI_rect.h"
@@ -311,8 +311,8 @@ class Sampler {
     }
     /* BLI_bilinear_interpolation functions use `floor(uv)` and `floor(uv)+1`
      * texels. For proper mapping between pixel and texel spaces, need to
-     * subtract 0.5. */
-    if constexpr (Filter == IMB_FILTER_BILINEAR) {
+     * subtract 0.5. Same for bicubic. */
+    if constexpr (Filter == IMB_FILTER_BILINEAR || Filter == IMB_FILTER_BICUBIC) {
       u -= 0.5f;
       v -= 0.5f;
     }
@@ -349,6 +349,16 @@ class Sampler {
     }
     else if constexpr (Filter == IMB_FILTER_NEAREST && std::is_same_v<StorageType, float>) {
       sample_nearest_float(source, u, v, r_sample);
+    }
+    else if constexpr (Filter == IMB_FILTER_BICUBIC && std::is_same_v<StorageType, float>) {
+      BLI_bicubic_interpolation_fl(
+          source->float_buffer.data, r_sample.data(), source->x, source->y, NumChannels, u, v);
+    }
+    else if constexpr (Filter == IMB_FILTER_BICUBIC && std::is_same_v<StorageType, uchar> &&
+                       NumChannels == 4)
+    {
+      BLI_bicubic_interpolation_char(
+          source->byte_buffer.data, r_sample.data(), source->x, source->y, u, v);
     }
     else {
       /* Unsupported sampler. */
@@ -678,8 +688,11 @@ void IMB_transform(const ImBuf *src,
   if (filter == IMB_FILTER_NEAREST) {
     transform_threaded<IMB_FILTER_NEAREST>(&user_data, mode);
   }
-  else {
+  else if (filter == IMB_FILTER_BILINEAR) {
     transform_threaded<IMB_FILTER_BILINEAR>(&user_data, mode);
+  }
+  else if (filter == IMB_FILTER_BICUBIC) {
+    transform_threaded<IMB_FILTER_BICUBIC>(&user_data, mode);
   }
 }
 }

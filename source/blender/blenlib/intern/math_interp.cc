@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2012 Blender Authors
+/* SPDX-FileCopyrightText: 2024 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -10,143 +10,151 @@
 #include <string.h>
 
 #include "BLI_math_base.h"
-#include "BLI_math_interp.h"
+#include "BLI_math_interp.hh"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector_types.hh"
 #include "BLI_simd.h"
 #include "BLI_strict_flags.h"
 
-#if BLI_HAVE_SSE2 && defined(__SSE4_1__)
-#  include <smmintrin.h> /* _mm_floor_ps */
-#endif
-
-/**************************************************************************
- *                            INTERPOLATIONS
- *
- * Reference and docs:
- * http://wiki.blender.org/index.php/User:Damiles#Interpolations_Algorithms
- ***************************************************************************/
-
-/* BICUBIC Interpolation functions
- * More info: http://wiki.blender.org/index.php/User:Damiles#Bicubic_pixel_interpolation
- * function assumes out to be zero'ed, only does RGBA */
-
-static float P(float k)
+/* Cubic B-Spline coefficients. f is offset from texel center in pixel space.
+ * This is Mitchell-Netravali filter with B=1, C=0 parameters. */
+static blender::float4 cubic_bspline_coefficients(float f)
 {
-  float p1, p2, p3, p4;
-  p1 = max_ff(k + 2.0f, 0.0f);
-  p2 = max_ff(k + 1.0f, 0.0f);
-  p3 = max_ff(k, 0.0f);
-  p4 = max_ff(k - 1.0f, 0.0f);
-  return (float)(1.0f / 6.0f) *
-         (p1 * p1 * p1 - 4.0f * p2 * p2 * p2 + 6.0f * p3 * p3 * p3 - 4.0f * p4 * p4 * p4);
+  float f2 = f * f;
+  float f3 = f2 * f;
+
+  float w3 = f3 / 6.0f;
+  float w0 = -w3 + f2 * 0.5f - f * 0.5f + 1.0f / 6.0f;
+  float w1 = f3 * 0.5f - f2 * 1.0f + 2.0f / 3.0f;
+  float w2 = 1.0f - w0 - w1 - w3;
+  return blender::float4(w0, w1, w2, w3);
 }
 
-#if 0
-/* older, slower function, works the same as above */
-static float P(float k)
-{
-  return (float)(1.0f / 6.0f) *
-         (pow(MAX2(k + 2.0f, 0), 3.0f) - 4.0f * pow(MAX2(k + 1.0f, 0), 3.0f) +
-          6.0f * pow(MAX2(k, 0), 3.0f) - 4.0f * pow(MAX2(k - 1.0f, 0), 3.0f));
-}
-#endif
+#if BLI_HAVE_SSE2
+#  if defined(__SSE4_1__)
+#    include <smmintrin.h> /* _mm_floor_ps */
+#  endif
 
-static void vector_from_float(const float *data, float vector[4], int components)
+BLI_INLINE __m128 floor_simd(__m128 v)
 {
-  if (components == 1) {
-    vector[0] = data[0];
-  }
-  else if (components == 3) {
-    copy_v3_v3(vector, data);
-  }
-  else {
-    copy_v4_v4(vector, data);
-  }
+#  if defined(__SSE4_1__) || defined(__ARM_NEON) && defined(WITH_SSE2NEON)
+  /* If we're on SSE4 or ARM NEON, just use the simple floor() way. */
+  __m128 v_floor = _mm_floor_ps(v);
+#  else
+  /* The hard way: truncate, for negative inputs this will round towards zero.
+   * Then compare with input, and subtract 1 for the inputs that were
+   * negative. */
+  __m128 v_trunc = _mm_cvtepi32_ps(_mm_cvttps_epi32(v));
+  __m128 v_neg = _mm_cmplt_ps(v, v_trunc);
+  __m128 v_floor = _mm_sub_ps(v_trunc, _mm_and_ps(v_neg, _mm_set1_ps(1.0f)));
+#  endif
+  return v_floor;
 }
 
-static void vector_from_byte(const uchar *data, float vector[4], int components)
+BLI_INLINE void bicubic_interpolation_uchar_simd(
+    const uchar *src_buffer, uchar *output, int width, int height, float u, float v)
 {
-  if (components == 1) {
-    vector[0] = data[0];
-  }
-  else if (components == 3) {
-    vector[0] = data[0];
-    vector[1] = data[1];
-    vector[2] = data[2];
-  }
-  else {
-    vector[0] = data[0];
-    vector[1] = data[1];
-    vector[2] = data[2];
-    vector[3] = data[3];
-  }
-}
+  __m128 uv = _mm_set_ps(0, 0, v, u);
+  __m128 uv_floor = floor_simd(uv);
+  __m128i i_uv = _mm_cvttps_epi32(uv_floor);
 
-/* BICUBIC INTERPOLATION */
-BLI_INLINE void bicubic_interpolation(const uchar *byte_buffer,
-                                      const float *float_buffer,
-                                      uchar *byte_output,
-                                      float *float_output,
-                                      int width,
-                                      int height,
-                                      int components,
-                                      float u,
-                                      float v)
-{
-  int i, j, n, m, x1, y1;
-  float a, b, w, wx, wy[4], out[4];
-
-  /* sample area entirely outside image? */
-  if (ceil(u) < 0 || floor(u) > width - 1 || ceil(v) < 0 || floor(v) > height - 1) {
-    if (float_output) {
-      copy_vn_fl(float_output, components, 0.0f);
-    }
-    if (byte_output) {
-      copy_vn_uchar(byte_output, components, 0);
-    }
+  /* Sample area entirely outside image?
+   * We check if any of (iu+1, iv+1, width, height) < (0, 0, iu+1, iv+1). */
+  __m128i i_uv_1 = _mm_add_epi32(i_uv, _mm_set_epi32(0, 0, 1, 1));
+  __m128i cmp_a = _mm_or_si128(i_uv_1, _mm_set_epi32(height, width, 0, 0));
+  __m128i cmp_b = _mm_shuffle_epi32(i_uv_1, _MM_SHUFFLE(1, 0, 3, 2));
+  __m128i invalid = _mm_cmplt_epi32(cmp_a, cmp_b);
+  if (_mm_movemask_ps(_mm_castsi128_ps(invalid)) != 0) {
+    memset(output, 0, 4);
     return;
   }
 
-  i = (int)floor(u);
-  j = (int)floor(v);
-  a = u - (float)i;
-  b = v - (float)j;
+  __m128 frac_uv = _mm_sub_ps(uv, uv_floor);
 
-  zero_v4(out);
+  /* Calculate pixel weights. */
+  blender::float4 wx = cubic_bspline_coefficients(_mm_cvtss_f32(frac_uv));
+  blender::float4 wy = cubic_bspline_coefficients(
+      _mm_cvtss_f32(_mm_shuffle_ps(frac_uv, frac_uv, 1)));
 
-  /* Optimized and not so easy to read */
+  /* Read 4x4 source pixels and blend them. */
+  __m128 out = _mm_setzero_ps();
+  int iu = _mm_cvtsi128_si32(i_uv);
+  int iv = _mm_cvtsi128_si32(_mm_shuffle_epi32(i_uv, 1));
 
-  /* avoid calling multiple times */
-  wy[0] = P(b - (-1));
-  wy[1] = P(b - 0);
-  wy[2] = P(b - 1);
-  wy[3] = P(b - 2);
+  for (int n = 0; n < 4; n++) {
+    int y1 = iv + n - 1;
+    CLAMP(y1, 0, height - 1);
+    for (int m = 0; m < 4; m++) {
 
-  for (n = -1; n <= 2; n++) {
-    x1 = i + n;
-    CLAMP(x1, 0, width - 1);
-    wx = P((float)n - a);
-    for (m = -1; m <= 2; m++) {
-      float data[4];
+      int x1 = iu + m - 1;
+      CLAMP(x1, 0, width - 1);
+      float w = wx[m] * wy[n];
 
-      y1 = j + m;
-      CLAMP(y1, 0, height - 1);
-      /* Normally we could do this:
-       * `w = P(n-a) * P(b-m);`
-       * except that would call `P()` 16 times per pixel therefor `pow()` 64 times,
-       * better pre-calculate these. */
-      w = wx * wy[m + 1];
+      const uchar *data = src_buffer + (width * y1 + x1) * 4;
+      /* Load 4 bytes and expand into 4-lane SIMD. */
+      __m128i sample_i = _mm_castps_si128(_mm_load_ss((const float *)data));
+      sample_i = _mm_unpacklo_epi8(sample_i, _mm_setzero_si128());
+      sample_i = _mm_unpacklo_epi16(sample_i, _mm_setzero_si128());
 
-      if (float_output) {
-        const float *float_data = float_buffer + width * y1 * components + components * x1;
+      /* Accumulate into out with weight. */
+      out = _mm_add_ps(out, _mm_mul_ps(_mm_cvtepi32_ps(sample_i), _mm_set1_ps(w)));
+    }
+  }
 
-        vector_from_float(float_data, data, components);
-      }
-      else {
-        const uchar *byte_data = byte_buffer + width * y1 * components + components * x1;
+  /* Pack and write to destination: pack to 16 bit signed, then to 8 bit
+   * unsigned, then write resulting 32-bit value. */
+  out = _mm_add_ps(out, _mm_set1_ps(0.5f));
+  __m128i rgba32 = _mm_cvttps_epi32(out);
+  __m128i rgba16 = _mm_packs_epi32(rgba32, _mm_setzero_si128());
+  __m128i rgba8 = _mm_packus_epi16(rgba16, _mm_setzero_si128());
+  _mm_store_ss((float *)output, _mm_castsi128_ps(rgba8));
+}
+#endif /* BLI_HAVE_SSE2 */
 
-        vector_from_byte(byte_data, data, components);
-      }
+template<typename T>
+static void bicubic_interpolation(
+    const T *src_buffer, T *output, int width, int height, int components, float u, float v)
+{
+  using namespace blender;
+
+#if BLI_HAVE_SSE2
+  if constexpr (std::is_same_v<T, uchar>) {
+    if (components == 4) {
+      bicubic_interpolation_uchar_simd(src_buffer, output, width, height, u, v);
+      return;
+    }
+  }
+#endif
+
+  int iu = (int)floor(u);
+  int iv = (int)floor(v);
+
+  /* Sample area entirely outside image? */
+  if (iu + 1 < 0 || iu > width - 1 || iv + 1 < 0 || iv > height - 1) {
+    memset(output, 0, size_t(components) * sizeof(T));
+    return;
+  }
+
+  float frac_u = u - (float)iu;
+  float frac_v = v - (float)iv;
+
+  float4 out{0.0f};
+
+  /* Calculate pixel weights. */
+  float4 wx = cubic_bspline_coefficients(frac_u);
+  float4 wy = cubic_bspline_coefficients(frac_v);
+
+  /* Read 4x4 source pixels and blend them. */
+  for (int n = 0; n < 4; n++) {
+    int y1 = iv + n - 1;
+    CLAMP(y1, 0, height - 1);
+    for (int m = 0; m < 4; m++) {
+
+      int x1 = iu + m - 1;
+      CLAMP(x1, 0, width - 1);
+      float w = wx[m] * wy[n];
+
+      const T *data = src_buffer + (width * y1 + x1) * components;
 
       if (components == 1) {
         out[0] += data[0] * w;
@@ -165,72 +173,32 @@ BLI_INLINE void bicubic_interpolation(const uchar *byte_buffer,
     }
   }
 
-  /* Done with optimized part */
-
-#if 0
-  /* older, slower function, works the same as above */
-  for (n = -1; n <= 2; n++) {
-    for (m = -1; m <= 2; m++) {
-      x1 = i + n;
-      y1 = j + m;
-      if (x1 > 0 && x1 < width && y1 > 0 && y1 < height) {
-        float data[4];
-
-        if (float_output) {
-          const float *float_data = float_buffer + width * y1 * components + components * x1;
-
-          vector_from_float(float_data, data, components);
-        }
-        else {
-          const uchar *byte_data = byte_buffer + width * y1 * components + components * x1;
-
-          vector_from_byte(byte_data, data, components);
-        }
-
-        if (components == 1) {
-          out[0] += data[0] * P(n - a) * P(b - m);
-        }
-        else if (components == 3) {
-          out[0] += data[0] * P(n - a) * P(b - m);
-          out[1] += data[1] * P(n - a) * P(b - m);
-          out[2] += data[2] * P(n - a) * P(b - m);
-        }
-        else {
-          out[0] += data[0] * P(n - a) * P(b - m);
-          out[1] += data[1] * P(n - a) * P(b - m);
-          out[2] += data[2] * P(n - a) * P(b - m);
-          out[3] += data[3] * P(n - a) * P(b - m);
-        }
-      }
-    }
-  }
-#endif
-
-  if (float_output) {
+  /* Write result. */
+  if constexpr (std::is_same_v<T, float>) {
     if (components == 1) {
-      float_output[0] = out[0];
+      output[0] = out[0];
     }
     else if (components == 3) {
-      copy_v3_v3(float_output, out);
+      copy_v3_v3(output, out);
     }
     else {
-      copy_v4_v4(float_output, out);
+      copy_v4_v4(output, out);
     }
   }
   else {
     if (components == 1) {
-      byte_output[0] = (uchar)(out[0] + 0.5f);
+      output[0] = (uchar)(out[0] + 0.5f);
     }
     else if (components == 3) {
-      byte_output[0] = (uchar)(out[0] + 0.5f);
-      byte_output[1] = (uchar)(out[1] + 0.5f);
-      byte_output[2] = (uchar)(out[2] + 0.5f);
+      output[0] = (uchar)(out[0] + 0.5f);
+      output[1] = (uchar)(out[1] + 0.5f);
+      output[2] = (uchar)(out[2] + 0.5f);
     }
     else {
-      byte_output[0] = (uchar)(out[0] + 0.5f);
-      byte_output[1] = (uchar)(out[1] + 0.5f);
-      byte_output[2] = (uchar)(out[2] + 0.5f);
-      byte_output[3] = (uchar)(out[3] + 0.5f);
+      output[0] = (uchar)(out[0] + 0.5f);
+      output[1] = (uchar)(out[1] + 0.5f);
+      output[2] = (uchar)(out[2] + 0.5f);
+      output[3] = (uchar)(out[3] + 0.5f);
     }
   }
 }
@@ -238,13 +206,13 @@ BLI_INLINE void bicubic_interpolation(const uchar *byte_buffer,
 void BLI_bicubic_interpolation_fl(
     const float *buffer, float *output, int width, int height, int components, float u, float v)
 {
-  bicubic_interpolation(NULL, buffer, NULL, output, width, height, components, u, v);
+  bicubic_interpolation<float>(buffer, output, width, height, components, u, v);
 }
 
 void BLI_bicubic_interpolation_char(
     const uchar *buffer, uchar *output, int width, int height, float u, float v)
 {
-  bicubic_interpolation(buffer, NULL, output, NULL, width, height, 4, u, v);
+  bicubic_interpolation<uchar>(buffer, output, width, height, 4, u, v);
 }
 
 /* BILINEAR INTERPOLATION */
@@ -381,18 +349,7 @@ void BLI_bilinear_interpolation_char(
    * later making sure that the result is set to zero for that sample. */
 
   __m128 uvuv = _mm_set_ps(v, u, v, u);
-
-#  if defined(__SSE4_1__) || defined(__ARM_NEON) && defined(WITH_SSE2NEON)
-  /* If we're on SSE4 or ARM NEON, just use the simple floor() way. */
-  __m128 uvuv_floor = _mm_floor_ps(uvuv);
-#  else
-  /* The hard way: truncate, for negative inputs this will round towards zero.
-   * Then compare with input UV, and subtract 1 for the inputs that were
-   * negative. */
-  __m128 uv_trunc = _mm_cvtepi32_ps(_mm_cvttps_epi32(uvuv));
-  __m128 uv_neg = _mm_cmplt_ps(uvuv, uv_trunc);
-  __m128 uvuv_floor = _mm_sub_ps(uv_trunc, _mm_and_ps(uv_neg, _mm_set1_ps(1.0f)));
-#  endif
+  __m128 uvuv_floor = floor_simd(uvuv);
 
   /* x1, y1, x2, y2 */
   __m128i xy12 = _mm_add_epi32(_mm_cvttps_epi32(uvuv_floor), _mm_set_epi32(1, 1, 0, 0));

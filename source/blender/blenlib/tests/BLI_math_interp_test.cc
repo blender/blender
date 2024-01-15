@@ -1,10 +1,13 @@
-/* SPDX-FileCopyrightText: 2023 Blender Authors
+/* SPDX-FileCopyrightText: 2024 Blender Authors
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include "testing/testing.h"
 
-#include "BLI_math_interp.h"
+#include "BLI_color.hh"
+#include "BLI_math_interp.hh"
+
+using namespace blender;
 
 static constexpr int image_width = 3;
 static constexpr int image_height = 3;
@@ -95,4 +98,65 @@ TEST(math_interp, BilinearCharFullyOutsideImage)
   EXPECT_EQ_ARRAY(exp, res, 4);
   BLI_bilinear_interpolation_char(image_char[0][0], res, image_width, image_height, 0, 500.0f);
   EXPECT_EQ_ARRAY(exp, res, 4);
+}
+
+TEST(math_interp, BicubicCharExactSamples)
+{
+  ColorTheme4b res;
+  ColorTheme4b exp1 = {69, 90, 116, 172};
+  BLI_bicubic_interpolation_char(image_char[0][0], res, image_width, image_height, 1.0f, 2.0f);
+  EXPECT_EQ(exp1, res);
+  ColorTheme4b exp2 = {218, 163, 115, 66};
+  BLI_bicubic_interpolation_char(image_char[0][0], res, image_width, image_height, 2.0f, 0.0f);
+  EXPECT_EQ(exp2, res);
+}
+
+TEST(math_interp, BicubicCharSamples)
+{
+  ColorTheme4b res;
+  ColorTheme4b exp1 = {142, 136, 131, 128};
+  BLI_bicubic_interpolation_char(image_char[0][0], res, image_width, image_height, 1.25f, 0.625f);
+  EXPECT_EQ(exp1, res);
+  ColorTheme4b exp2 = {202, 177, 154, 132};
+  BLI_bicubic_interpolation_char(image_char[0][0], res, image_width, image_height, 1.4f, 0.1f);
+  EXPECT_EQ(exp2, res);
+}
+
+TEST(math_interp, BicubicCharPartiallyOutsideImage)
+{
+  ColorTheme4b res;
+  ColorTheme4b exp1 = {2, 4, 6, 8};
+  BLI_bicubic_interpolation_char(image_char[0][0], res, image_width, image_height, -0.5f, 2.0f);
+  EXPECT_EQ(exp1, res);
+  ColorTheme4b exp2 = {85, 107, 135, 195};
+  BLI_bicubic_interpolation_char(image_char[0][0], res, image_width, image_height, 1.25f, 2.9f);
+  EXPECT_EQ(exp2, res);
+  ColorTheme4b exp3 = {225, 161, 105, 49};
+  BLI_bicubic_interpolation_char(image_char[0][0], res, image_width, image_height, 2.2f, -0.1f);
+  EXPECT_EQ(exp3, res);
+}
+
+TEST(math_interp, BicubicCharFullyOutsideImage)
+{
+  ColorTheme4b res;
+  ColorTheme4b exp = {0, 0, 0, 0};
+  /* Out of range on U */
+  BLI_bicubic_interpolation_char(image_char[0][0], res, image_width, image_height, -1.5f, 0);
+  EXPECT_EQ(exp, res);
+  BLI_bicubic_interpolation_char(image_char[0][0], res, image_width, image_height, -1.1f, 0);
+  EXPECT_EQ(exp, res);
+  BLI_bicubic_interpolation_char(image_char[0][0], res, image_width, image_height, 3, 0);
+  EXPECT_EQ(exp, res);
+  BLI_bicubic_interpolation_char(image_char[0][0], res, image_width, image_height, 5, 0);
+  EXPECT_EQ(exp, res);
+
+  /* Out of range on V */
+  BLI_bicubic_interpolation_char(image_char[0][0], res, image_width, image_height, 0, -3.2f);
+  EXPECT_EQ(exp, res);
+  BLI_bicubic_interpolation_char(image_char[0][0], res, image_width, image_height, 0, -1.5f);
+  EXPECT_EQ(exp, res);
+  BLI_bicubic_interpolation_char(image_char[0][0], res, image_width, image_height, 0, 3.1f);
+  EXPECT_EQ(exp, res);
+  BLI_bicubic_interpolation_char(image_char[0][0], res, image_width, image_height, 0, 500.0f);
+  EXPECT_EQ(exp, res);
 }

@@ -46,6 +46,16 @@ static ImBuf *transform_2x_smaller(eIMBInterpolationFilterMode filter, int subsa
   return dst;
 }
 
+static ImBuf *transform_fractional_larger(eIMBInterpolationFilterMode filter, int subsamples)
+{
+  ImBuf *src = create_6x2_test_image();
+  ImBuf *dst = IMB_allocImBuf(9, 7, 32, IB_rect);
+  float4x4 matrix = math::from_scale<float4x4>(float4(6.0f / 9.0f, 2.0f / 7.0f, 1.0f, 1.0f));
+  IMB_transform(src, dst, IMB_TRANSFORM_MODE_REGULAR, filter, subsamples, matrix.ptr(), nullptr);
+  IMB_freeImBuf(src);
+  return dst;
+}
+
 TEST(imbuf_transform, nearest_2x_smaller)
 {
   ImBuf *res = transform_2x_smaller(IMB_FILTER_NEAREST, 1);
@@ -73,6 +83,29 @@ TEST(imbuf_transform, bilinear_2x_smaller)
   EXPECT_EQ(got[0], ColorTheme4b(191, 128, 64, 255));
   EXPECT_EQ(got[1], ColorTheme4b(133, 55, 31, 16));
   EXPECT_EQ(got[2], ColorTheme4b(55, 50, 48, 254));
+  IMB_freeImBuf(res);
+}
+
+TEST(imbuf_transform, bicubic_2x_smaller)
+{
+  ImBuf *res = transform_2x_smaller(IMB_FILTER_BICUBIC, 1);
+  const ColorTheme4b *got = reinterpret_cast<ColorTheme4b *>(res->byte_buffer.data);
+  EXPECT_EQ(got[0], ColorTheme4b(189, 126, 62, 250));
+  EXPECT_EQ(got[1], ColorTheme4b(134, 57, 33, 26));
+  EXPECT_EQ(got[2], ColorTheme4b(56, 49, 48, 249));
+  IMB_freeImBuf(res);
+}
+
+TEST(imbuf_transform, bicubic_fractional_larger)
+{
+  ImBuf *res = transform_fractional_larger(IMB_FILTER_BICUBIC, 1);
+  const ColorTheme4b *got = reinterpret_cast<ColorTheme4b *>(res->byte_buffer.data);
+  EXPECT_EQ(got[0 + 0 * res->x], ColorTheme4b(35, 11, 1, 255));
+  EXPECT_EQ(got[1 + 0 * res->x], ColorTheme4b(131, 12, 6, 250));
+  EXPECT_EQ(got[7 + 0 * res->x], ColorTheme4b(54, 93, 19, 249));
+  EXPECT_EQ(got[2 + 2 * res->x], ColorTheme4b(206, 70, 56, 192));
+  EXPECT_EQ(got[3 + 2 * res->x], ColorTheme4b(165, 60, 42, 78));
+  EXPECT_EQ(got[8 + 6 * res->x], ColorTheme4b(57, 1, 90, 252));
   IMB_freeImBuf(res);
 }
 

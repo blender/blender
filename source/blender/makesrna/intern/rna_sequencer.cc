@@ -1709,6 +1709,7 @@ static void rna_def_strip_crop(BlenderRNA *brna)
 static const EnumPropertyItem transform_filter_items[] = {
     {SEQ_TRANSFORM_FILTER_NEAREST, "NEAREST", 0, "Nearest", ""},
     {SEQ_TRANSFORM_FILTER_BILINEAR, "BILINEAR", 0, "Bilinear", ""},
+    {SEQ_TRANSFORM_FILTER_BICUBIC, "BICUBIC", 0, "Bicubic", ""},
     {SEQ_TRANSFORM_FILTER_NEAREST_3x3,
      "SUBSAMPLING_3x3",
      0,
