@@ -280,7 +280,7 @@ void drawSnapping(TransInfo *t)
         rv3d, source_loc, target_loc, t->tsnap.source_type, t->tsnap.target_type, col, activeCol);
 
     /* Draw normal if needed. */
-    if (usingSnappingNormal(t) && validSnappingNormal(t) && target_loc) {
+    if (target_loc && usingSnappingNormal(t) && validSnappingNormal(t)) {
       uint pos = GPU_vertformat_attr_add(
           immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 
