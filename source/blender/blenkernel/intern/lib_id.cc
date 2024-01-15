@@ -2008,7 +2008,7 @@ void BKE_library_make_local(Main *bmain,
 #endif
 }
 
-void BLI_libblock_ensure_unique_name(Main *bmain, ID *id)
+void BKE_libblock_ensure_unique_name(Main *bmain, ID *id)
 {
   ListBase *lb;
 
