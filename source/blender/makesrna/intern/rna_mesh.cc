@@ -705,11 +705,11 @@ static void rna_MeshLoopTriangle_normal_get(PointerRNA *ptr, float *values)
 static void rna_MeshLoopTriangle_split_normals_get(PointerRNA *ptr, float *values)
 {
   Mesh *mesh = rna_mesh(ptr);
-  const blender::Span<blender::float3> loop_normals = mesh->corner_normals();
+  const blender::Span<blender::float3> corner_normals = mesh->corner_normals();
   const blender::int3 tri = *(const blender::int3 *)ptr->data;
-  copy_v3_v3(values + 0, loop_normals[tri[0]]);
-  copy_v3_v3(values + 3, loop_normals[tri[1]]);
-  copy_v3_v3(values + 6, loop_normals[tri[2]]);
+  copy_v3_v3(values + 0, corner_normals[tri[0]]);
+  copy_v3_v3(values + 3, corner_normals[tri[1]]);
+  copy_v3_v3(values + 6, corner_normals[tri[2]]);
 }
 
 static float rna_MeshLoopTriangle_area_get(PointerRNA *ptr)

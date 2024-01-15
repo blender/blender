@@ -260,9 +260,9 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
     result = multires_as_mesh(mmd, ctx, mesh, subdiv);
 
     if (use_clnors) {
-      float(*lnors)[3] = static_cast<float(*)[3]>(
+      float(*corner_normals)[3] = static_cast<float(*)[3]>(
           CustomData_get_layer_for_write(&result->corner_data, CD_NORMAL, result->corners_num));
-      BKE_mesh_set_custom_normals(result, lnors);
+      BKE_mesh_set_custom_normals(result, corner_normals);
       CustomData_free_layers(&result->corner_data, CD_NORMAL, result->corners_num);
     }
     // BKE_subdiv_stats_print(&subdiv->stats);

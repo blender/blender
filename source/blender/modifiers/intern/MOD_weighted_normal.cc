@@ -214,13 +214,13 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
                                   face_strength != nullptr;
   const bool has_vgroup = dvert != nullptr;
 
-  blender::Array<blender::float3> loop_normals;
+  blender::Array<blender::float3> corner_normals;
 
   Array<WeightedNormalDataAggregateItem> items_data;
   if (keep_sharp) {
     /* This will give us loop normal spaces,
-     * we do not actually care about computed loop_normals for now... */
-    loop_normals.reinitialize(corner_verts.size());
+     * we do not actually care about computed corner_normals for now... */
+    corner_normals.reinitialize(corner_verts.size());
     bke::mesh::normals_calc_corners(positions,
                                     edges,
                                     faces,
@@ -233,7 +233,7 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
                                     wn_data->sharp_faces,
                                     has_clnors ? clnors.data() : nullptr,
                                     &lnors_spacearr,
-                                    loop_normals);
+                                    corner_normals);
 
     WeightedNormalDataAggregateItem start_item{};
     start_item.curr_strength = FACE_STRENGTH_WEAK;
@@ -295,14 +295,14 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
 
   if (keep_sharp) {
     /* Set loop normals for normal computed for each lnor space (smooth fan).
-     * Note that loop_normals is already populated with clnors
+     * Note that corner_normals is already populated with clnors
      * (before this modifier is applied, at start of this function),
      * so no need to recompute them here. */
     for (int corner = 0; corner < corner_verts.size(); corner++) {
       const int space_index = lnors_spacearr.corner_space_indices[corner];
       WeightedNormalDataAggregateItem *item_data = &items_data[space_index];
       if (!is_zero_v3(item_data->normal)) {
-        copy_v3_v3(loop_normals[corner], item_data->normal);
+        copy_v3_v3(corner_normals[corner], item_data->normal);
       }
     }
 
@@ -315,7 +315,7 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
                                                   face_normals,
                                                   wn_data->sharp_faces,
                                                   wn_data->sharp_edges,
-                                                  loop_normals,
+                                                  corner_normals,
                                                   clnors);
   }
   else {
@@ -348,7 +348,7 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
                                                                clnors);
     }
     else {
-      loop_normals.reinitialize(corner_verts.size());
+      corner_normals.reinitialize(corner_verts.size());
       blender::bke::mesh::normals_calc_corners(positions,
                                                edges,
                                                faces,
@@ -361,12 +361,12 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
                                                wn_data->sharp_faces,
                                                has_clnors ? clnors.data() : nullptr,
                                                nullptr,
-                                               loop_normals);
+                                               corner_normals);
 
       for (int corner = 0; corner < corner_verts.size(); corner++) {
         const int item_index = corner_verts[corner];
         if (!is_zero_v3(items_data[item_index].normal)) {
-          copy_v3_v3(loop_normals[corner], items_data[item_index].normal);
+          copy_v3_v3(corner_normals[corner], items_data[item_index].normal);
         }
       }
       blender::bke::mesh::normals_corner_custom_set(positions,
@@ -378,7 +378,7 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
                                                     face_normals,
                                                     wn_data->sharp_faces,
                                                     wn_data->sharp_edges,
-                                                    loop_normals,
+                                                    corner_normals,
                                                     clnors);
     }
   }

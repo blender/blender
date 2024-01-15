@@ -372,7 +372,7 @@ void MeshFromGeometry::create_normals(Mesh *mesh)
     return;
   }
 
-  float(*loop_normals)[3] = static_cast<float(*)[3]>(
+  float(*corner_normals)[3] = static_cast<float(*)[3]>(
       MEM_malloc_arrayN(mesh_geometry_.total_loops_, sizeof(float[3]), __func__));
   int tot_loop_idx = 0;
   for (const PolyElem &curr_face : mesh_geometry_.face_elements_) {
@@ -383,12 +383,12 @@ void MeshFromGeometry::create_normals(Mesh *mesh)
       if (n_index >= 0 && n_index < global_vertices_.vert_normals.size()) {
         normal = global_vertices_.vert_normals[n_index];
       }
-      copy_v3_v3(loop_normals[tot_loop_idx], normal);
+      copy_v3_v3(corner_normals[tot_loop_idx], normal);
       tot_loop_idx++;
     }
   }
-  BKE_mesh_set_custom_normals(mesh, loop_normals);
-  MEM_freeN(loop_normals);
+  BKE_mesh_set_custom_normals(mesh, corner_normals);
+  MEM_freeN(corner_normals);
 }
 
 void MeshFromGeometry::create_colors(Mesh *mesh)

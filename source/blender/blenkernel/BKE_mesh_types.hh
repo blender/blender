@@ -170,9 +170,9 @@ struct MeshRuntime {
 
   /** Lazily computed vertex normals (#Mesh::vert_normals()). */
   SharedCache<Vector<float3>> vert_normals_cache;
-  /** Lazily computed face normals (#Mesh::vert_normals()). */
+  /** Lazily computed face normals (#Mesh::face_normals()). */
   SharedCache<Vector<float3>> face_normals_cache;
-  /** Lazily computed face corner normals (#Mesh::vert_normals()). */
+  /** Lazily computed face corner normals (#Mesh::corner_normals()). */
   SharedCache<Vector<float3>> corner_normals_cache;
 
   /**

@@ -219,7 +219,7 @@ static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
                                          Object *ob,
                                          Mesh *mesh,
                                          blender::MutableSpan<blender::short2> clnors,
-                                         blender::MutableSpan<blender::float3> loop_normals,
+                                         blender::MutableSpan<blender::float3> corner_normals,
                                          const short mix_mode,
                                          const float mix_factor,
                                          const float mix_limit,
@@ -307,7 +307,7 @@ static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
     }
   }
 
-  if (!loop_normals.is_empty()) {
+  if (!corner_normals.is_empty()) {
     mix_normals(mix_factor,
                 dvert,
                 defgrp_index,
@@ -316,7 +316,7 @@ static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
                 mix_mode,
                 vert_positions.size(),
                 corner_verts,
-                loop_normals.data(),
+                corner_normals.data(),
                 nos.data());
   }
 
@@ -346,7 +346,7 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
                                               Object *ob,
                                               Mesh *mesh,
                                               blender::MutableSpan<blender::short2> clnors,
-                                              blender::MutableSpan<blender::float3> loop_normals,
+                                              blender::MutableSpan<blender::float3> corner_normals,
                                               const short mix_mode,
                                               const float mix_factor,
                                               const float mix_limit,
@@ -413,7 +413,7 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
     MEM_freeN(cos);
   }
 
-  if (!loop_normals.is_empty()) {
+  if (!corner_normals.is_empty()) {
     mix_normals(mix_factor,
                 dvert,
                 defgrp_index,
@@ -422,7 +422,7 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
                 mix_mode,
                 positions.size(),
                 corner_verts,
-                loop_normals.data(),
+                corner_normals.data(),
                 nos.data());
   }
 
@@ -500,7 +500,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
   int defgrp_index;
   const MDeformVert *dvert;
 
-  blender::Array<blender::float3> loop_normals;
+  blender::Array<blender::float3> corner_normals;
 
   CustomData *ldata = &result->corner_data;
 
@@ -513,7 +513,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
   if (use_current_clnors) {
     clnors = static_cast<blender::short2 *>(
         CustomData_get_layer_for_write(ldata, CD_CUSTOMLOOPNORMAL, corner_verts.size()));
-    loop_normals.reinitialize(corner_verts.size());
+    corner_normals.reinitialize(corner_verts.size());
     const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", bke::AttrDomain::Face);
     blender::bke::mesh::normals_calc_corners(positions,
                                              edges,
@@ -527,7 +527,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
                                              sharp_faces,
                                              clnors,
                                              nullptr,
-                                             loop_normals);
+                                             corner_normals);
   }
 
   if (clnors == nullptr) {
@@ -543,7 +543,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
                                  ob,
                                  result,
                                  {clnors, result->corners_num},
-                                 loop_normals,
+                                 corner_normals,
                                  enmd->mix_mode,
                                  enmd->mix_factor,
                                  enmd->mix_limit,
@@ -563,7 +563,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
                                       ob,
                                       result,
                                       {clnors, result->corners_num},
-                                      loop_normals,
+                                      corner_normals,
                                       enmd->mix_mode,
                                       enmd->mix_factor,
                                       enmd->mix_limit,
