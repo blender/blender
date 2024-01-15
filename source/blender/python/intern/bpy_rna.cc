@@ -5718,6 +5718,8 @@ static PyObject *pyprop_array_foreach_getset(BPy_PropertyArrayRNA *self,
     return nullptr;
   }
 
+  /* NOTE: in this case it's important to use the flat-array size and *not* the result of
+   * `len()`, which uses #pyrna_prop_array_length, see !116457 for details. */
   size = RNA_property_array_length(&self->ptr, self->prop);
   seq_size = PySequence_Size(seq);
 
