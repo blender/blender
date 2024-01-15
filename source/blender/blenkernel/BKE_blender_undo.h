@@ -7,7 +7,7 @@
  * \ingroup bke
  */
 
-#include "BKE_undo_system.h"
+#include "BKE_undo_system.hh"
 
 #ifdef __cplusplus
 extern "C" {

@@ -20,7 +20,7 @@
 #include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_screen.hh"
-#include "BKE_undo_system.h"
+#include "BKE_undo_system.hh"
 
 #include "ED_screen.hh"
 #include "ED_space_api.hh"

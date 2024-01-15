@@ -63,7 +63,7 @@ const EnumPropertyItem rna_enum_window_cursor_items[] = {
 #ifdef RNA_RUNTIME
 
 #  include "BKE_context.hh"
-#  include "BKE_undo_system.h"
+#  include "BKE_undo_system.hh"
 
 #  include "WM_types.hh"
 

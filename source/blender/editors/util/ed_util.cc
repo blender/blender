@@ -30,7 +30,7 @@
 #include "BKE_packedFile.h"
 #include "BKE_paint.hh"
 #include "BKE_screen.hh"
-#include "BKE_undo_system.h"
+#include "BKE_undo_system.hh"
 
 #include "DEG_depsgraph.hh"
 

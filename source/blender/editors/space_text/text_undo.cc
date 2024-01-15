@@ -24,7 +24,7 @@
 #include "BKE_main.hh"
 #include "BKE_report.h"
 #include "BKE_text.h"
-#include "BKE_undo_system.h"
+#include "BKE_undo_system.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

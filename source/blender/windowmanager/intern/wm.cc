@@ -50,7 +50,7 @@
 #  include "wm_xr.hh"
 #endif
 
-#include "BKE_undo_system.h"
+#include "BKE_undo_system.hh"
 #include "ED_screen.hh"
 
 #ifdef WITH_PYTHON

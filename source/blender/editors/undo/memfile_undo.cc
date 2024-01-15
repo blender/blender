@@ -5,7 +5,7 @@
 /** \file
  * \ingroup edundo
  *
- * Wrapper between 'ED_undo.hh' and 'BKE_undo_system.h' API's.
+ * Wrapper between 'ED_undo.hh' and 'BKE_undo_system.hh' API's.
  */
 
 #include "BLI_sys_types.h"
@@ -29,7 +29,7 @@
 #include "BKE_node.hh"
 #include "BKE_preview_image.hh"
 #include "BKE_scene.h"
-#include "BKE_undo_system.h"
+#include "BKE_undo_system.hh"
 
 #include "../depsgraph/DEG_depsgraph.hh"
 
