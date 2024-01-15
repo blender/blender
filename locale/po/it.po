@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'd13edee3e0cc')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'acbb91b192da')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-08 11:04:23\n"
+"POT-Creation-Date: 2024-01-15 10:52:30\n"
 "PO-Revision-Date: 2023-12-17 02:53+0000\n"
 "Last-Translator: Jad Musallam <rubber.444332@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -29821,6 +29821,19 @@ msgid "Duplicate"
 msgstr "Duplica"
 
 
+msgid "Extrude selected control point(s)"
+msgstr "Estrude il punto(i) di controllo selezionato(i)"
+
+
+msgctxt "Operator"
+msgid "Extrude Curve and Move"
+msgstr "Estrudi Curva e Muovi"
+
+
+msgid "Extrude curve and move result"
+msgstr "Estrude la curva e la muove"
+
+
 msgid "(De)select all control points"
 msgstr "(De)seleziona tutti i rapporti"
 
@@ -29931,10 +29944,6 @@ msgid "Duplicate Curve"
 msgstr "Duplica Curva"
 
 
-msgid "Extrude selected control point(s)"
-msgstr "Estrude il punto(i) di controllo selezionato(i)"
-
-
 msgid "Init"
 msgstr "Inizializza"
 
@@ -29965,15 +29974,6 @@ msgstr "Scivola Spigolo"
 
 msgid "Sequence Slide"
 msgstr "Scorri Sequenza"
-
-
-msgctxt "Operator"
-msgid "Extrude Curve and Move"
-msgstr "Estrudi Curva e Muovi"
-
-
-msgid "Extrude curve and move result"
-msgstr "Estrude la curva e la muove"
 
 
 msgctxt "Operator"
@@ -44587,10 +44587,6 @@ msgid "Helpers"
 msgstr "Assistenti"
 
 
-msgid "Viscosity"
-msgstr "Viscosità"
-
-
 msgid "Indirect Lighting"
 msgstr "Illuminazione Indiretta"
 
@@ -48772,6 +48768,10 @@ msgstr "Raggio Interazione"
 
 msgid "Fluid interaction radius"
 msgstr "Raggio di interazione del fluido"
+
+
+msgid "Viscosity"
+msgstr "Viscosità"
 
 
 msgid "Linear viscosity"
@@ -59533,6 +59533,14 @@ msgid "Driver:"
 msgstr "Guidatore:"
 
 
+msgid "Invalid variable name, click here for details"
+msgstr "Nome variabile non valido, clicca qui per i dettagli"
+
+
+msgid "Delete target variable"
+msgstr "Cancella variabile obiettivo"
+
+
 msgid "F-Curve only has F-Modifiers"
 msgstr "La Curva-F ha solo Modificatori-F"
 
@@ -59563,14 +59571,6 @@ msgstr "ERRORE: Canale/i obiettivo non valido/i"
 
 msgid "ERROR: Driver is useless without any inputs"
 msgstr "ERRORE: la Guida è inutile senza alcun ingresso"
-
-
-msgid "Invalid variable name, click here for details"
-msgstr "Nome variabile non valido, clicca qui per i dettagli"
-
-
-msgid "Delete target variable"
-msgstr "Cancella variabile obiettivo"
 
 
 msgctxt "Operator"
@@ -61562,12 +61562,12 @@ msgid "Don't Save"
 msgstr "Non Salvare"
 
 
-msgid "unable to open the file"
-msgstr "impossibile aprire il file"
-
-
 msgid "File Not Found"
 msgstr "File Non Trovato"
+
+
+msgid "unable to open the file"
+msgstr "impossibile aprire il file"
 
 
 msgid "Save changes before closing?"

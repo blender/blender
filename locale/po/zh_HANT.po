@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'd13edee3e0cc')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'acbb91b192da')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-08 11:04:23\n"
-"PO-Revision-Date: 2024-01-06 21:56+0000\n"
-"Last-Translator: Cheng-Chia Tseng <pswo10680@gmail.com>\n"
+"POT-Creation-Date: 2024-01-15 10:52:30\n"
+"PO-Revision-Date: 2024-01-10 17:11+0000\n"
+"Last-Translator: 楊 景貴 <issacsopp@gmail.com>\n"
 "Language-Team: Chinese (Traditional) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
 "Language: zh_HANT\n"
 "MIME-Version: 1.0\n"
@@ -29323,6 +29323,19 @@ msgid "Duplicate"
 msgstr "製作複本"
 
 
+msgid "Extrude selected control point(s)"
+msgstr "擠出所選控制點"
+
+
+msgctxt "Operator"
+msgid "Extrude Curve and Move"
+msgstr "擠出曲線並移動"
+
+
+msgid "Extrude curve and move result"
+msgstr "擠出曲線並移動結果"
+
+
 msgid "(De)select all control points"
 msgstr "(取消)全選控制點"
 
@@ -29430,10 +29443,6 @@ msgid "Duplicate Curve"
 msgstr "製作曲線複本"
 
 
-msgid "Extrude selected control point(s)"
-msgstr "擠出所選控制點"
-
-
 msgid "Init"
 msgstr "初"
 
@@ -29464,15 +29473,6 @@ msgstr "邊線滑動"
 
 msgid "Sequence Slide"
 msgstr "序段滑動"
-
-
-msgctxt "Operator"
-msgid "Extrude Curve and Move"
-msgstr "擠出曲線並移動"
-
-
-msgid "Extrude curve and move result"
-msgstr "擠出曲線並移動結果"
 
 
 msgctxt "Operator"
@@ -40655,7 +40655,7 @@ msgstr "收縮/擴充"
 
 msgctxt "Operator"
 msgid "Skin Resize"
-msgstr "太陽重設大小"
+msgstr "皮膚數值大小重設"
 
 
 msgid "Scale selected vertices' skin radii"
@@ -43780,10 +43780,6 @@ msgstr "診斷"
 
 msgid "Helpers"
 msgstr "輔助器"
-
-
-msgid "Viscosity"
-msgstr "黏滯度"
 
 
 msgid "Indirect Lighting"
@@ -47577,6 +47573,10 @@ msgstr "互動半徑"
 
 msgid "Fluid interaction radius"
 msgstr "流體互動半徑"
+
+
+msgid "Viscosity"
+msgstr "黏滯度"
 
 
 msgid "Linear viscosity"
@@ -58046,6 +58046,14 @@ msgid "Driven Property:"
 msgstr "被驅動屬性:"
 
 
+msgid "Invalid variable name, click here for details"
+msgstr "無效的變數名稱，請點按此處取得詳細資料"
+
+
+msgid "Delete target variable"
+msgstr "刪除目標變數"
+
+
 msgid "F-Curve only has F-Modifiers"
 msgstr "F 曲線僅有 F 修改器"
 
@@ -58092,14 +58100,6 @@ msgstr "提示：為程序性動畫改用 F 曲線"
 
 msgid "F-Modifiers can generate curves for those too"
 msgstr "F 修改器也可以為其生成曲線"
-
-
-msgid "Invalid variable name, click here for details"
-msgstr "無效的變數名稱，請點按此處取得詳細資料"
-
-
-msgid "Delete target variable"
-msgstr "刪除目標變數"
 
 
 msgctxt "Operator"
@@ -58171,12 +58171,12 @@ msgid "Missing %s%s%s component(s) of euler rotation for ID='%s' and RNA-Path='%
 msgstr "ID='%s' 與 RNA-Path='%s' 的尤拉旋轉遺失 %s%s%s 部份"
 
 
-msgid "Decimate Keyframes"
-msgstr "削減鍵幀"
-
-
 msgid "Decimate F-Curves by specifying how much they can deviate from the original curve"
 msgstr "利用指定偏離原始曲線的程度來削減函數曲線"
+
+
+msgid "Decimate Keyframes"
+msgstr "削減鍵幀"
 
 
 msgid "Select Slot"
@@ -58367,10 +58367,6 @@ msgid "Disconnect"
 msgstr "斷開連接"
 
 
-msgid "Dependency Loop"
-msgstr "依賴迴圈"
-
-
 msgid "Add node to input"
 msgstr "添加節點到輸入"
 
@@ -58381,6 +58377,10 @@ msgstr "移除連接至該輸入的節點"
 
 msgid "Disconnect nodes connected to the input"
 msgstr "斷開連接至該輸入的節點"
+
+
+msgid "Dependency Loop"
+msgstr "依賴迴圈"
 
 
 msgid "Use view layer for rendering"
@@ -60230,12 +60230,12 @@ msgid "Rim"
 msgstr "邊框"
 
 
-msgid "Input pending "
-msgstr "等候輸入 "
-
-
 msgid "Blender File View"
 msgstr "Blender 檔案檢視"
+
+
+msgid "Input pending "
+msgstr "等候輸入 "
 
 
 msgid "Missing 'window' in context"
@@ -60254,6 +60254,18 @@ msgid "Don't Save"
 msgstr "不要儲存"
 
 
+msgid "Reload file with execution of Python scripts enabled"
+msgstr "重新載入檔案並啟用 Python 命令稿執行"
+
+
+msgid "Enable scripts"
+msgstr "啟用命令稿"
+
+
+msgid "Continue using file without Python scripts"
+msgstr "繼續使用檔案而不用 Python 命令稿"
+
+
 msgid "unable to open the file"
 msgstr "無法開啟檔案"
 
@@ -60268,18 +60280,6 @@ msgstr "這可能導致預期外的行為"
 
 msgid "Permanently allow execution of scripts"
 msgstr "永遠允許執行命令稿"
-
-
-msgid "Reload file with execution of Python scripts enabled"
-msgstr "重新載入檔案並啟用 Python 命令稿執行"
-
-
-msgid "Enable scripts"
-msgstr "啟用命令稿"
-
-
-msgid "Continue using file without Python scripts"
-msgstr "繼續使用檔案而不用 Python 命令稿"
 
 
 msgid "Save changes before closing?"

@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'd13edee3e0cc')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'acbb91b192da')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2024-01-08 11:04:23\n"
-"PO-Revision-Date: 2024-01-01 05:55+0000\n"
+"POT-Creation-Date: 2024-01-15 10:52:30\n"
+"PO-Revision-Date: 2024-01-09 20:07+0000\n"
 "Last-Translator: Duarte Ramos <duarte.framos@gmail.com>\n"
 "Language-Team: Portuguese <https://translate.blender.org/projects/blender-ui/ui/pt/>\n"
 "Language: pt\n"
@@ -3940,6 +3940,14 @@ msgid "Bones assigned to this bone collection. In armature edit mode this will a
 msgstr "Ossos adicionados a esta colecção de ossos. No modo de edição de armação retorna sempre uma lista vazia, uma vez que a associação a colecções só é sincronizada quando sair do modo de edição"
 
 
+msgid "Child Number"
+msgstr "Número de Descendente"
+
+
+msgid "Index of this collection into its parent's list of children. Note that finding this index requires a scan of all the bone collections, so do access this with care"
+msgstr "Índice desta colecção na lista de filhos do ascendente. Tenha em atenção que encontrar este índice requer varrer todas as colecções de ossos, aceda com precaução"
+
+
 msgid "Index"
 msgstr "Índice"
 
@@ -3966,6 +3974,14 @@ msgstr "Visíveis"
 
 msgid "Bones in this collection will be visible in pose/object mode"
 msgstr "Ossos nesta colecção serão visíveis em modo de pose/objecto"
+
+
+msgid "Ancestors Effectively Visible"
+msgstr "Ascendentes Efectivamente Visíveis"
+
+
+msgid "True when all of the ancestors of this bone collection are marked as visible; always True for root bone collections"
+msgstr "Verdadeiro quando todos os ascendentes desta colecção de ossos estão marcados como visíveis; sempre Verdade para a coleccções de ossos raiz"
 
 
 msgid "Unique within the Armature"
@@ -14819,10 +14835,6 @@ msgstr "Criar sistema de partículas rastreadoras"
 
 msgid "Use Viscosity"
 msgstr "Usar Viscosidade"
-
-
-msgid "Enable fluid viscosity settings"
-msgstr "Activar definições de viscosidade de fluído"
 
 
 msgid "Display Type"
@@ -37366,6 +37378,19 @@ msgid "Duplicate"
 msgstr "Duplicar"
 
 
+msgid "Extrude selected control point(s)"
+msgstr "Executa uma extrusão dos pontos de controlo selecionados."
+
+
+msgctxt "Operator"
+msgid "Extrude Curve and Move"
+msgstr "Executar extrusão da curva e mover"
+
+
+msgid "Extrude curve and move result"
+msgstr "Executa uma extrusão na terminação da curva e permite mover o resultado."
+
+
 msgid "(De)select all control points"
 msgstr "(De)seleciona todos os pontos de controlo."
 
@@ -37471,10 +37496,6 @@ msgid "Duplicate Curve"
 msgstr "Duplicar curva"
 
 
-msgid "Extrude selected control point(s)"
-msgstr "Executa uma extrusão dos pontos de controlo selecionados."
-
-
 msgid "Init"
 msgstr "Iniciar"
 
@@ -37505,15 +37526,6 @@ msgstr "Deslizar arestas"
 
 msgid "Sequence Slide"
 msgstr "Deslizar sequência"
-
-
-msgctxt "Operator"
-msgid "Extrude Curve and Move"
-msgstr "Executar extrusão da curva e mover"
-
-
-msgid "Extrude curve and move result"
-msgstr "Executa uma extrusão na terminação da curva e permite mover o resultado."
 
 
 msgctxt "Operator"
@@ -53595,10 +53607,6 @@ msgid "Self Collision"
 msgstr "Colisões consigo"
 
 
-msgid "Viscosity"
-msgstr "Viscosidade"
-
-
 msgid "Indirect Lighting"
 msgstr "Iluminação indireta"
 
@@ -58077,6 +58085,10 @@ msgstr "Raio de interação"
 
 msgid "Fluid interaction radius"
 msgstr "O raio para a interação dos fluidos."
+
+
+msgid "Viscosity"
+msgstr "Viscosidade"
 
 
 msgid "Linear viscosity"
@@ -69452,6 +69464,14 @@ msgid "Update Dependencies"
 msgstr "Atualizar dependências"
 
 
+msgid "Invalid variable name, click here for details"
+msgstr "Nome de variável inválido, clique aqui para mais detalhes."
+
+
+msgid "Delete target variable"
+msgstr "Apaga a variável do alvo."
+
+
 msgid "F-Curve only has F-Modifiers"
 msgstr "Curva-f somente possui modificadores-f"
 
@@ -69498,14 +69518,6 @@ msgstr "DICA: Tente usar as curvas-f para a animação procedural ao invés dess
 
 msgid "F-Modifiers can generate curves for those too"
 msgstr "Os modificadores-f podem gerar curvas também para estes."
-
-
-msgid "Invalid variable name, click here for details"
-msgstr "Nome de variável inválido, clique aqui para mais detalhes."
-
-
-msgid "Delete target variable"
-msgstr "Apaga a variável do alvo."
 
 
 msgctxt "Operator"

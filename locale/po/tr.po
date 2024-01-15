@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'd13edee3e0cc')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'acbb91b192da')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-08 11:04:23\n"
+"POT-Creation-Date: 2024-01-15 10:52:30\n"
 "PO-Revision-Date: 2023-11-15 02:54+0000\n"
 "Last-Translator: bitigchi <bitigchi@me.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -6523,10 +6523,6 @@ msgid "Save this data-block even if it has no users"
 msgstr "Kullanıcısı olmasa bile bu veri blokunu kaydet"
 
 
-msgid "Bone Collections"
-msgstr "Kemik Koleksiyonları"
-
-
 msgid "Box"
 msgstr "Kutu"
 
@@ -7544,6 +7540,10 @@ msgstr "Doku"
 
 msgid "Bone Collection Specials"
 msgstr "Kemik Koleksiyonu Özel Seçimleri"
+
+
+msgid "Bone Collections"
+msgstr "Kemik Koleksiyonları"
 
 
 msgid "Show/Hide"

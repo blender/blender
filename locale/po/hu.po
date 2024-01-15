@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'd13edee3e0cc')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'acbb91b192da')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-08 11:04:23\n"
-"PO-Revision-Date: 2024-01-07 19:13+0000\n"
+"POT-Creation-Date: 2024-01-15 10:52:30\n"
+"PO-Revision-Date: 2024-01-11 03:55+0000\n"
 "Last-Translator: Répási Dávid <hu.repasidavid@protonmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
 "Language: hu\n"
@@ -18,7 +18,7 @@ msgstr ""
 
 
 msgid "Valid"
-msgstr "Helyes"
+msgstr "Érvényes"
 
 
 msgid "Name"
@@ -163,6 +163,10 @@ msgstr "Színek"
 
 msgid "Lock"
 msgstr "Lezárás"
+
+
+msgid "Action group is muted"
+msgstr "Akció csoport némítva"
 
 
 msgid "Select"
@@ -425,12 +429,21 @@ msgid "Author"
 msgstr "Szerző"
 
 
+msgid "Copyright"
+msgstr "Copyright"
+
+
 msgid "Description"
 msgstr "Leírás"
 
 
 msgid "Full Path"
 msgstr "Teljes elérési útvonal"
+
+
+msgctxt "ID"
+msgid "Data-block Type"
+msgstr "Adatblokk típus"
 
 
 msgctxt "ID"
@@ -489,6 +502,76 @@ msgstr "Zsírkréta v3"
 
 
 msgctxt "ID"
+msgid "Image"
+msgstr "Kép"
+
+
+msgctxt "ID"
+msgid "Key"
+msgstr "Kulcs"
+
+
+msgctxt "ID"
+msgid "Lattice"
+msgstr "Rács"
+
+
+msgctxt "ID"
+msgid "Library"
+msgstr "Könyvtár"
+
+
+msgctxt "ID"
+msgid "Line Style"
+msgstr "Vonalstílus"
+
+
+msgctxt "ID"
+msgid "Mask"
+msgstr "Maszk"
+
+
+msgctxt "ID"
+msgid "Material"
+msgstr "Anyag"
+
+
+msgctxt "ID"
+msgid "Mesh"
+msgstr "Térháló"
+
+
+msgctxt "ID"
+msgid "Object"
+msgstr "Objektum"
+
+
+msgctxt "ID"
+msgid "Paint Curve"
+msgstr "Festésgörbe"
+
+
+msgctxt "ID"
+msgid "Palette"
+msgstr "Paletta"
+
+
+msgctxt "ID"
+msgid "Particle"
+msgstr "Részecske"
+
+
+msgctxt "ID"
+msgid "Point Cloud"
+msgstr "Pontfelhő"
+
+
+msgctxt "ID"
+msgid "Scene"
+msgstr "Jelenet"
+
+
+msgctxt "ID"
 msgid "Screen"
 msgstr "Képernyő"
 
@@ -524,6 +607,11 @@ msgstr "Ablakkezelő"
 
 
 msgctxt "ID"
+msgid "Workspace"
+msgstr "Munkaterület"
+
+
+msgctxt "ID"
 msgid "World"
 msgstr "Világ"
 
@@ -540,12 +628,44 @@ msgid "Custom"
 msgstr "Egyéni"
 
 
+msgid "Show Names"
+msgstr "Nevek megjelenítése"
+
+
+msgid "Data Type"
+msgstr "Adattípus"
+
+
+msgid "Type of data stored in attribute"
+msgstr "Az attribútumban tárolt adat típusa"
+
+
+msgid "Float"
+msgstr "Lebegőpont"
+
+
+msgid "Floating-point value"
+msgstr "Lebegőpontos szám"
+
+
 msgid "Integer"
 msgstr "Egész szám"
 
 
+msgid "32-bit integer"
+msgstr "32 bites egész szám"
+
+
 msgid "Vector"
 msgstr "Vektor"
+
+
+msgid "3D vector with floating-point values"
+msgstr "3D vektor lebegőpontos számokkal"
+
+
+msgid "RGBA color with 32-bit floating-point values"
+msgstr "RGBA szín 32 bites lebegőpontos számokkal"
 
 
 msgid "Text string"
@@ -1087,6 +1207,10 @@ msgstr "Telítettség"
 
 msgid "Active Layer"
 msgstr "Aktív réteg"
+
+
+msgid "Keep material assigned to brush"
+msgstr "Az ecsethez rendelt anyag megtartása"
 
 
 msgid "Outline"
@@ -2866,6 +2990,10 @@ msgid "Segments"
 msgstr "Szegmensek"
 
 
+msgid "Aligned Free Handles"
+msgstr "Igazított szabad markolatok"
+
+
 msgid "Material Index"
 msgstr "Anyag index"
 
@@ -4120,6 +4248,10 @@ msgid "Constant Offset"
 msgstr "Állandó eltolás"
 
 
+msgid "Inverse Materials"
+msgstr "Inverz anyag"
+
+
 msgid "Use the location and rotation of another object to determine the distance and rotational change between arrayed items"
 msgstr "Egy másik objektum elhelyezkedésének, forgatásának és méretezésének használata a távolságbeli, a forgatásbeli és méretezésbeli változások meghatározásához a sorozat elemei között"
 
@@ -4251,6 +4383,14 @@ msgstr "Zsírkréta réteg, amelyhez hozzárendeli a generált vonásokat"
 
 msgid "Grease Pencil material assigned to the generated strokes"
 msgstr "A generált vonásokhoz hozzárendelt zsírkréta anyag"
+
+
+msgid "Use Material"
+msgstr "Anyag használata"
+
+
+msgid "Use Material Mask"
+msgstr "Anyagmaszk használata"
 
 
 msgid "Mirror Modifier"
@@ -5988,6 +6128,10 @@ msgid "Octaves"
 msgstr "Oktávok"
 
 
+msgid "Grids"
+msgstr "Rácsok"
+
+
 msgid "Window manager data-block defining open windows and other user interface data"
 msgstr "Ablakkezelő adatblokk, amely nyitott ablakokat és egyéb felhasználói felületadatokat határoz meg"
 
@@ -6030,6 +6174,10 @@ msgstr "Zsírkréta csúcspont festés"
 
 msgid "Mist"
 msgstr "Köd"
+
+
+msgid "ID Materials"
+msgstr "ID anyagok"
 
 
 msgid "Operation"
@@ -6484,6 +6632,10 @@ msgstr "Aktív objektum"
 
 msgid "Selected Objects"
 msgstr "Kijelölt objektumok"
+
+
+msgid "Is Open"
+msgstr "Nyitva"
 
 
 msgid "Modifier Name"
@@ -9424,6 +9576,10 @@ msgid "To"
 msgstr "Eddig"
 
 
+msgid "Use Material layer"
+msgstr "Anyagréteg használata"
+
+
 msgid "RGB Curves"
 msgstr "RGB Görbék"
 
@@ -9528,6 +9684,14 @@ msgid "Z Up"
 msgstr "Z fel"
 
 
+msgid "Set Material"
+msgstr "Anyag beállítása"
+
+
+msgid "Set Material Index"
+msgstr "Anyagindex beállítása"
+
+
 msgid "Selection"
 msgstr "Kijelölés"
 
@@ -9602,10 +9766,6 @@ msgstr "A megjelenítés átalakításának engedélyezés bájt kép mentéseko
 
 msgid "Tooltip"
 msgstr "Helyi súgó"
-
-
-msgid "Is Open"
-msgstr "Nyitva"
 
 
 msgid "Object Constraints"
@@ -10613,6 +10773,16 @@ msgstr "Böngészés a linkelhető Zsírkréta adatok között"
 
 
 msgctxt "Operator"
+msgid "Isolate Material"
+msgstr "Anyag izolálása"
+
+
+msgctxt "Operator"
+msgid "Set Material"
+msgstr "Anyag beállítása"
+
+
+msgctxt "Operator"
 msgid "Show All Layers"
 msgstr "Minden réteg látható"
 
@@ -10624,6 +10794,14 @@ msgstr "Az első kiválasztása"
 
 msgid "Both"
 msgstr "Mindkettő"
+
+
+msgid "Keep Material"
+msgstr "Anyag megtartása"
+
+
+msgid "New Material"
+msgstr "Új anyag"
 
 
 msgctxt "Operator"
@@ -10919,6 +11097,15 @@ msgid "Add new mask layer for masking"
 msgstr "Új maszk réteg hozzáadása, maszkoláshoz"
 
 
+msgctxt "Operator"
+msgid "New Material"
+msgstr "Új anyag"
+
+
+msgid "Add a new material"
+msgstr "Új anyag hozzáadása"
+
+
 msgid "Interpolation method"
 msgstr "Interpoláció módja"
 
@@ -11041,6 +11228,11 @@ msgstr "Sáv(ok) duplikálása"
 msgctxt "Operator"
 msgid "Swap Strips"
 msgstr "Sávok megcserélése"
+
+
+msgctxt "Operator"
+msgid "Add Material"
+msgstr "Anyag hozzáadása"
 
 
 msgctxt "Operator"
@@ -11223,6 +11415,11 @@ msgstr "Térháló összekötése a rendszerrel a laplace deformáció módosít
 
 msgid "Link Materials"
 msgstr "Anyagok linkelése"
+
+
+msgctxt "Operator"
+msgid "Move Material"
+msgstr "Anyag mozgatása"
 
 
 msgctxt "Operator"
@@ -12238,6 +12435,10 @@ msgid "Reload Scripts"
 msgstr "Szkriptek újratöltése"
 
 
+msgid "Partial"
+msgstr "Részleges"
+
+
 msgctxt "Operator"
 msgid "Sculpt"
 msgstr "Szobor"
@@ -13199,6 +13400,10 @@ msgstr "STL importálása"
 
 msgid "Textures Directory"
 msgstr "Textúra könyvtár"
+
+
+msgid "Set Material Blend"
+msgstr "Anyagkeverés beállítása"
 
 
 msgid "Tile X"
@@ -15816,6 +16021,11 @@ msgstr "Orientáció:"
 
 
 msgctxt "Operator"
+msgid "Add Material Variant"
+msgstr "Anyagvariáns hozzáadása"
+
+
+msgctxt "Operator"
 msgid "Area"
 msgstr "Síkfény"
 
@@ -15889,6 +16099,10 @@ msgid "3D View"
 msgstr "3D Nézet"
 
 
+msgid "Fur Material"
+msgstr "Szőr anyag"
+
+
 msgid "Active object is not a mesh"
 msgstr "Az aktív objektum nem mesh"
 
@@ -15918,6 +16132,10 @@ msgstr "Melléklés..."
 msgctxt "Operator"
 msgid "Manual"
 msgstr "Kézikönyv"
+
+
+msgid "Object(s)"
+msgstr "Objektum(ok)"
 
 
 msgid "Material(s)"
@@ -16533,6 +16751,10 @@ msgid "Sub Level"
 msgstr "Alszintek"
 
 
+msgid "Link Materials To"
+msgstr "Anyagok linkelése ehhez"
+
+
 msgid "Eraser Radius"
 msgstr "Radír sugara"
 
@@ -16930,12 +17152,20 @@ msgid "Mball"
 msgstr "Mgömb"
 
 
+msgid "objects"
+msgstr "objektumok"
+
+
 msgid "ParticleSystem"
 msgstr "Részecskerendszer"
 
 
 msgid "Warning"
 msgstr "Figyelmeztetés"
+
+
+msgid "UV/Image"
+msgstr "UV/Kép"
 
 
 msgid "No active bone set"
@@ -17597,6 +17827,10 @@ msgid "No valid action to add"
 msgstr "Nincs hozzáadható érvényes akció"
 
 
+msgid "Could not add material"
+msgstr "Nem sikerült hozzáadni az anyagot"
+
+
 msgid "Geometry:"
 msgstr "Geometria:"
 
@@ -17795,6 +18029,14 @@ msgid "Prefilter:"
 msgstr "Előszűrő:"
 
 
+msgid "Image 1"
+msgstr "Kép 1"
+
+
+msgid "Image 2"
+msgstr "Kép 2"
+
+
 msgid "File Subpath:"
 msgstr "Fájl alútvonala:"
 
@@ -17805,6 +18047,14 @@ msgstr "Formátum:"
 
 msgid "Speed:"
 msgstr "Sebesség:"
+
+
+msgid "Mesh 1"
+msgstr "Térháló 1"
+
+
+msgid "Mesh 2"
+msgstr "Térháló 2"
 
 
 msgid "Reset Children"
