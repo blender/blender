@@ -3701,6 +3701,17 @@ static void fluid_modifier_processDomain(FluidModifierData *fmd,
   const char *relbase = BKE_modifier_path_relbase_from_global(ob);
   BLI_path_abs(fds->cache_directory, relbase);
 
+  /* If 'outdated', reset the cache here. */
+  if (is_startframe && mode == FLUID_DOMAIN_CACHE_REPLAY) {
+    PTCacheID pid;
+    BKE_ptcache_id_from_smoke(&pid, ob, fmd);
+    if (pid.cache->flag & PTCACHE_OUTDATED) {
+      BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
+      BKE_fluid_cache_free_all(fds, ob);
+      fluid_modifier_reset_ex(fmd, false);
+    }
+  }
+
   /* Ensure that all flags are up to date before doing any baking and/or cache reading. */
   objs = BKE_collision_objects_create(
       depsgraph, ob, fds->fluid_group, &numobj, eModifierType_Fluid);
@@ -3713,17 +3724,6 @@ static void fluid_modifier_processDomain(FluidModifierData *fmd,
   update_obstacleflags(fds, objs, numobj);
   if (objs) {
     MEM_freeN(objs);
-  }
-
-  /* If 'outdated', reset the cache here. */
-  if (is_startframe && mode == FLUID_DOMAIN_CACHE_REPLAY) {
-    PTCacheID pid;
-    BKE_ptcache_id_from_smoke(&pid, ob, fmd);
-    if (pid.cache->flag & PTCACHE_OUTDATED) {
-      BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
-      BKE_fluid_cache_free_all(fds, ob);
-      fluid_modifier_reset_ex(fmd, false);
-    }
   }
 
   /* Fluid domain init must not fail in order to continue modifier evaluation. */
