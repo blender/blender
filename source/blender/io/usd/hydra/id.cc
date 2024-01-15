@@ -4,7 +4,7 @@
 
 #include "id.h"
 
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 
 namespace blender::io::hydra {
 

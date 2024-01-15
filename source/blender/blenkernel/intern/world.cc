@@ -26,7 +26,7 @@
 #include "BKE_anim_data.h"
 #include "BKE_icons.h"
 #include "BKE_idtype.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_lib_query.h"
 #include "BKE_main.hh"
 #include "BKE_node.h"
@@ -81,7 +81,7 @@ static void world_init_data(ID *id)
  *
  * WARNING! This function will not handle ID user count!
  *
- * \param flag: Copying options (see BKE_lib_id.h's LIB_ID_COPY_... flags for more).
+ * \param flag: Copying options (see BKE_lib_id.hh's LIB_ID_COPY_... flags for more).
  */
 static void world_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int flag)
 {

@@ -32,7 +32,7 @@
 #include "BKE_cryptomatte.hh"
 #include "BKE_global.h"
 #include "BKE_image.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_library.hh"
 #include "BKE_main.hh"
 

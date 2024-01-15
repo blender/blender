@@ -44,7 +44,7 @@
 #include "BKE_curve.hh"
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_lib_query.h"
 #include "BKE_main.hh"
 #include "BKE_object.hh"
@@ -96,7 +96,7 @@ static void armature_init_data(ID *id)
  * Note: this function's use case is narrow in scope, intended only for use in
  * `armature_copy_data()` below.  You probably don't want to use this otherwise.
  *
- * \param lib_id_flag: Copying options (see BKE_lib_id.h's LIB_ID_COPY_... flags for more).
+ * \param lib_id_flag: Copying options (see BKE_lib_id.hh's LIB_ID_COPY_... flags for more).
  */
 static void copy_bone_collection(bArmature *armature_dst,
                                  BoneCollection *&bcoll_dst,
@@ -125,7 +125,7 @@ static void copy_bone_collection(bArmature *armature_dst,
  *
  * WARNING! This function will not handle ID user count!
  *
- * \param flag: Copying options (see BKE_lib_id.h's LIB_ID_COPY_... flags for more).
+ * \param flag: Copying options (see BKE_lib_id.hh's LIB_ID_COPY_... flags for more).
  */
 static void armature_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, const int flag)
 {

@@ -4,7 +4,7 @@
 
 #include "COM_MaskOperation.h"
 
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_mask.h"
 
 namespace blender::compositor {

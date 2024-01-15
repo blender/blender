@@ -8,7 +8,7 @@
 #include "usd_reader_xform.h"
 
 #include "BKE_constraint.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_library.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"

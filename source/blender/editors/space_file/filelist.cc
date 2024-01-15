@@ -54,7 +54,7 @@
 #include "BKE_global.h"
 #include "BKE_icons.h"
 #include "BKE_idtype.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_main_idmap.hh"
 #include "BKE_preferences.h"

@@ -43,7 +43,7 @@
 #include "BKE_idtype.h"
 #include "BKE_lattice.hh"
 #include "BKE_layer.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_mball.h"
 #include "BKE_mesh.hh"

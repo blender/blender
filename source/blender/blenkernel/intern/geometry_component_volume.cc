@@ -5,7 +5,7 @@
 #include "DNA_volume_types.h"
 
 #include "BKE_geometry_set.hh"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_volume.hh"
 
 namespace blender::bke {

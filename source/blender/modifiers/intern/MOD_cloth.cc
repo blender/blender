@@ -31,7 +31,7 @@
 #include "BKE_effect.h"
 #include "BKE_global.h"
 #include "BKE_key.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_lib_query.h"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"

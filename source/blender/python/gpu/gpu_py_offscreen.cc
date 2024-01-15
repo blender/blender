@@ -18,7 +18,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_global.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_scene.h"
 
 #include "DNA_scene_types.h"

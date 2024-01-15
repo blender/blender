@@ -25,7 +25,7 @@
 
 #include "BKE_animsys.h"
 #include "BKE_idprop.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_lib_override.hh"
 
 #include "ANIM_armature_iter.hh"

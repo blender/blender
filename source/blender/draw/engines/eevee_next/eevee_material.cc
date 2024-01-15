@@ -8,7 +8,7 @@
 
 #include "DNA_material_types.h"
 
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_material.h"
 #include "BKE_node.hh"
 #include "NOD_shader.h"

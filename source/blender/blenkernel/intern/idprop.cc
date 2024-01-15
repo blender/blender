@@ -24,7 +24,7 @@
 
 #include "BKE_global.h"
 #include "BKE_idprop.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 
 #include "CLG_log.h"
 

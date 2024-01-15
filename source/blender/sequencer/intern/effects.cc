@@ -34,7 +34,7 @@
 #include "DNA_vfont_types.h"
 
 #include "BKE_fcurve.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 
 #include "IMB_colormanagement.h"
