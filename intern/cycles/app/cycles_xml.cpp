@@ -46,8 +46,9 @@ struct XMLReadState : public XMLReader {
   Shader *shader;    /* Current shader. */
   string base;       /* Base path to current file. */
   float dicing_rate; /* Current dicing rate. */
+  Object *object;    /* Current object. */
 
-  XMLReadState() : scene(NULL), smooth(false), shader(NULL), dicing_rate(1.0f)
+  XMLReadState() : scene(NULL), smooth(false), shader(NULL), dicing_rate(1.0f), object(NULL)
   {
     tfm = transform_identity();
   }
@@ -405,25 +406,33 @@ static void xml_read_background(XMLReadState &state, xml_node node)
 
 /* Mesh */
 
-static Mesh *xml_add_mesh(Scene *scene, const Transform &tfm)
+static Mesh *xml_add_mesh(Scene *scene, const Transform &tfm, Object *object)
 {
-  /* create mesh */
-  Mesh *mesh = new Mesh();
-  scene->geometry.push_back(mesh);
+  if (object && object->get_geometry()->is_mesh()) {
+    /* Use existing object and mesh */
+    object->set_tfm(tfm);
+    Geometry *geometry = object->get_geometry();
+    return static_cast<Mesh *>(geometry);
+  }
+  else {
+    /* Create mesh */
+    Mesh *mesh = new Mesh();
+    scene->geometry.push_back(mesh);
 
-  /* Create object. */
-  Object *object = new Object();
-  object->set_geometry(mesh);
-  object->set_tfm(tfm);
-  scene->objects.push_back(object);
+    /* Create object. */
+    Object *object = new Object();
+    object->set_geometry(mesh);
+    object->set_tfm(tfm);
+    scene->objects.push_back(object);
 
-  return mesh;
+    return mesh;
+  }
 }
 
 static void xml_read_mesh(const XMLReadState &state, xml_node node)
 {
   /* add mesh */
-  Mesh *mesh = xml_add_mesh(state.scene, state.tfm);
+  Mesh *mesh = xml_add_mesh(state.scene, state.tfm, state.object);
   array<Node *> used_shaders = mesh->get_used_shaders();
   used_shaders.push_back_slow(state.shader);
   mesh->set_used_shaders(used_shaders);
@@ -683,7 +692,7 @@ static void xml_read_transform(xml_node node, Transform &tfm)
 
 static void xml_read_state(XMLReadState &state, xml_node node)
 {
-  /* read shader */
+  /* Read shader */
   string shadername;
 
   if (xml_read_string(&shadername, node, "shader")) {
@@ -702,6 +711,25 @@ static void xml_read_state(XMLReadState &state, xml_node node)
     }
   }
 
+  /* Read object */
+  string objectname;
+
+  if (xml_read_string(&objectname, node, "object")) {
+    bool found = false;
+
+    foreach (Object *object, state.scene->objects) {
+      if (object->name == objectname) {
+        state.object = object;
+        found = true;
+        break;
+      }
+    }
+
+    if (!found) {
+      fprintf(stderr, "Unknown object \"%s\".\n", objectname.c_str());
+    }
+  }
+
   xml_read_float(&state.dicing_rate, node, "dicing_rate");
 
   /* read smooth/flat */
@@ -711,6 +739,26 @@ static void xml_read_state(XMLReadState &state, xml_node node)
   else if (xml_equal_string(node, "interpolation", "flat")) {
     state.smooth = false;
   }
+}
+
+/* Object */
+
+static void xml_read_object(XMLReadState &state, xml_node node)
+{
+  Scene *scene = state.scene;
+
+  /* create mesh */
+  Mesh *mesh = new Mesh();
+  scene->geometry.push_back(mesh);
+
+  /* create object */
+  Object *object = new Object();
+  object->set_geometry(mesh);
+  object->set_tfm(state.tfm);
+
+  xml_read_node(state, object, node);
+
+  scene->objects.push_back(object);
 }
 
 /* Scene */
@@ -759,6 +807,12 @@ static void xml_read_scene(XMLReadState &state, xml_node scene_node)
       if (xml_read_string(&src, node, "src")) {
         xml_read_include(state, src);
       }
+    }
+    else if (string_iequals(node.name(), "object")) {
+      XMLReadState substate = state;
+
+      xml_read_object(substate, node);
+      xml_read_scene(substate, node);
     }
 #ifdef WITH_ALEMBIC
     else if (string_iequals(node.name(), "alembic")) {
