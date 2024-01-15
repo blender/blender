@@ -1908,6 +1908,16 @@ blender::Span<blender::bke::greasepencil::TreeNode *> GreasePencil::nodes_for_wr
   return this->root_group().nodes_for_write();
 }
 
+std::optional<int> GreasePencil::get_layer_index(
+    const blender::bke::greasepencil::Layer &layer) const
+{
+  const int index = this->layers().first_index_try(&layer);
+  if (index == -1) {
+    return {};
+  }
+  return index;
+}
+
 const blender::bke::greasepencil::Layer *GreasePencil::get_active_layer() const
 {
   if (this->active_layer == nullptr) {
@@ -2174,7 +2184,7 @@ blender::IndexMask GreasePencil::layer_selection_by_name(const blender::StringRe
   }
 
   if (node->is_layer()) {
-    const int64_t index = this->layers().first_index(&node->as_layer());
+    const int index = *this->get_layer_index(node->as_layer());
     return blender::IndexMask::from_indices(Span{index}, memory);
   }
   else if (node->is_group()) {
