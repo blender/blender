@@ -30,12 +30,13 @@ void draw_text_main(SpaceText *st, ARegion *region);
 
 void text_update_line_edited(TextLine *line);
 void text_update_edited(Text *text);
-void text_update_character_width(SpaceText *st);
+
+void space_text_update_character_width(SpaceText *st);
 /**
  * Takes an area instead of a region, use for listeners.
  */
-void text_scroll_to_cursor__area(SpaceText *st, ScrArea *area, bool center);
-void text_update_cursor_moved(bContext *C);
+void space_text_scroll_to_cursor_with_area(SpaceText *st, ScrArea *area, bool center);
+void space_text_update_cursor_moved(bContext *C);
 
 /* Padding around line numbers in character widths. */
 #define TXT_NUMCOL_PAD 1.0f
@@ -64,28 +65,39 @@ void text_update_cursor_moved(bContext *C);
 
 #define TOOL_SUGG_LIST 0x01
 
-int wrap_width(const SpaceText *st, ARegion *region);
+int space_text_wrap_width(const SpaceText *st, const ARegion *region);
 /**
  * Sets (offl, offc) for transforming (line, curs) to its wrapped position.
  */
-void wrap_offset(
-    const SpaceText *st, ARegion *region, TextLine *linein, int cursin, int *offl, int *offc);
+void space_text_wrap_offset(const SpaceText *st,
+                            const ARegion *region,
+                            TextLine *linein,
+                            int cursin,
+                            int *offl,
+                            int *offc);
 /**
  * cursin - mem, offc - view.
  */
-void wrap_offset_in_line(
-    const SpaceText *st, ARegion *region, TextLine *linein, int cursin, int *offl, int *offc);
-int text_get_char_pos(const SpaceText *st, const char *line, int cur);
+void space_text_wrap_offset_in_line(const SpaceText *st,
+                                    const ARegion *region,
+                                    TextLine *linein,
+                                    int cursin,
+                                    int *offl,
+                                    int *offc);
+int space_text_get_char_pos(const SpaceText *st, const char *line, int cur);
 
-void text_drawcache_tag_update(SpaceText *st, bool full);
-void text_free_caches(SpaceText *st);
+void space_text_drawcache_tag_update(SpaceText *st, bool full);
+void space_text_free_caches(SpaceText *st);
 
-bool text_do_suggest_select(SpaceText *st, ARegion *region, const int mval[2]);
+bool space_text_do_suggest_select(SpaceText *st, const ARegion *region, const int mval[2]);
 void text_pop_suggest_list();
 
-int text_get_visible_lines(const SpaceText *st, ARegion *region, const char *str);
-int text_get_span_wrap(const SpaceText *st, ARegion *region, TextLine *from, TextLine *to);
-int text_get_total_lines(SpaceText *st, ARegion *region);
+int space_text_get_visible_lines(const SpaceText *st, const ARegion *region, const char *str);
+int space_text_get_span_wrap(const SpaceText *st,
+                             const ARegion *region,
+                             TextLine *from,
+                             TextLine *to);
+int space_text_get_total_lines(SpaceText *st, const ARegion *region);
 
 /* `text_ops.cc` */
 

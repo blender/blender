@@ -1938,7 +1938,7 @@ static void rna_SpaceTextEditor_text_set(PointerRNA *ptr,
   if (area) {
     ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
     if (region) {
-      ED_text_scroll_to_cursor(st, region, true);
+      ED_space_text_scroll_to_cursor(st, region, true);
     }
   }
 }
@@ -1960,7 +1960,7 @@ static void rna_SpaceTextEditor_updateEdited(Main * /*bmain*/, Scene * /*scene*/
 static int rna_SpaceTextEditor_visible_lines_get(PointerRNA *ptr)
 {
   const SpaceText *st = static_cast<SpaceText *>(ptr->data);
-  return ED_text_visible_lines_get(st);
+  return ED_space_text_visible_lines_get(st);
 }
 
 /* Space Properties */

@@ -91,7 +91,7 @@ static SpaceLink *text_create(const ScrArea * /*area*/, const Scene * /*scene*/)
 static void text_free(SpaceLink *sl)
 {
   SpaceText *stext = (SpaceText *)sl;
-  text_free_caches(stext);
+  space_text_free_caches(stext);
   MEM_delete(stext->runtime);
   stext->text = nullptr;
 }
@@ -135,7 +135,7 @@ static void text_listener(const wmSpaceTypeListenerParams *params)
       switch (wmn->action) {
         case NA_EDITED:
           if (st->text) {
-            text_drawcache_tag_update(st, true);
+            space_text_drawcache_tag_update(st, true);
             text_update_edited(st->text);
           }
 

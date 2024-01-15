@@ -207,8 +207,8 @@ static void text_undosys_step_decode(
     /* Not essential, always show text being undo where possible. */
     st->text = text;
   }
-  text_update_cursor_moved(C);
-  text_drawcache_tag_update(st, true);
+  space_text_update_cursor_moved(C);
+  space_text_drawcache_tag_update(st, true);
   WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
 }
 

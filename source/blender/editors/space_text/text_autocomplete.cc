@@ -37,7 +37,7 @@
 /** \name Public API
  * \{ */
 
-bool text_do_suggest_select(SpaceText *st, ARegion *region, const int mval[2])
+bool space_text_do_suggest_select(SpaceText *st, const ARegion *region, const int mval[2])
 {
   const int lheight = TXT_LINE_HEIGHT(st);
   SuggItem *item, *first, *last /* , *sel */ /* UNUSED */;
@@ -69,7 +69,7 @@ bool text_do_suggest_select(SpaceText *st, ARegion *region, const int mval[2])
     return false;
   }
 
-  text_update_character_width(st);
+  space_text_update_character_width(st);
 
   x = TXT_BODY_LEFT(st) + (st->runtime->cwidth_px * (st->text->curc - st->left));
   y = region->winy - lheight * l - 2;
@@ -333,7 +333,7 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
 
   switch (event->type) {
     case MOUSEMOVE: {
-      if (text_do_suggest_select(st, region, event->mval)) {
+      if (space_text_do_suggest_select(st, region, event->mval)) {
         draw = 1;
       }
       swallow = 1;
@@ -341,7 +341,7 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
     }
     case LEFTMOUSE:
       if (event->val == KM_PRESS) {
-        if (text_do_suggest_select(st, region, event->mval)) {
+        if (space_text_do_suggest_select(st, region, event->mval)) {
           if (tools & TOOL_SUGG_LIST) {
             ED_text_undo_push_init(C);
             confirm_suggestion(st->text);
