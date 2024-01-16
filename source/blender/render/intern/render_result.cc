@@ -167,6 +167,21 @@ void render_result_views_shallowdelete(RenderResult *rr)
 /** \name New
  * \{ */
 
+static int get_num_planes_for_pass_ibuf(const RenderPass &render_pass)
+{
+  switch (render_pass.channels) {
+    case 1:
+      return R_IMF_PLANES_BW;
+    case 3:
+      return R_IMF_PLANES_RGB;
+    case 4:
+      return R_IMF_PLANES_RGBA;
+  }
+
+  /* Fallback to a commonly used default value of planes for odd-ball number of channel. */
+  return R_IMF_PLANES_RGBA;
+}
+
 static void render_layer_allocate_pass(RenderResult *rr, RenderPass *rp)
 {
   if (rp->ibuf && rp->ibuf->float_buffer.data) {
@@ -179,7 +194,7 @@ static void render_layer_allocate_pass(RenderResult *rr, RenderPass *rp)
   const size_t rectsize = size_t(rr->rectx) * rr->recty * rp->channels;
   float *buffer_data = MEM_cnew_array<float>(rectsize, rp->name);
 
-  rp->ibuf = IMB_allocImBuf(rr->rectx, rr->recty, 32, 0);
+  rp->ibuf = IMB_allocImBuf(rr->rectx, rr->recty, get_num_planes_for_pass_ibuf(*rp), 0);
   rp->ibuf->channels = rp->channels;
   IMB_assign_float_buffer(rp->ibuf, buffer_data, IB_TAKE_OWNERSHIP);
 
@@ -1302,7 +1317,8 @@ RenderResult *RE_DuplicateRenderResult(RenderResult *rr)
 ImBuf *RE_RenderPassEnsureImBuf(RenderPass *render_pass)
 {
   if (!render_pass->ibuf) {
-    render_pass->ibuf = IMB_allocImBuf(render_pass->rectx, render_pass->recty, 32, 0);
+    render_pass->ibuf = IMB_allocImBuf(
+        render_pass->rectx, render_pass->recty, get_num_planes_for_pass_ibuf(*render_pass), 0);
     render_pass->ibuf->channels = render_pass->channels;
   }
 
