@@ -1636,24 +1636,13 @@ const float *SCULPT_brush_frontface_normal_from_falloff_shape(SculptSession *ss,
   return ss->cache->view_normal;
 }
 
-static float frontface(const Brush *br,
-                       const float3 &sculpt_normal,
-                       const float3 &no,
-                       const float3 &fno)
+static float frontface(const Brush &brush, const float3 &view_normal, const float3 &normal)
 {
   using namespace blender;
-  if (!(br->flag & BRUSH_FRONTFACE)) {
+  if (!(brush.flag & BRUSH_FRONTFACE)) {
     return 1.0f;
   }
-
-  float dot;
-  if (no) {
-    dot = math::dot(no, sculpt_normal);
-  }
-  else {
-    dot = math::dot(fno, sculpt_normal);
-  }
-  return dot > 0.0f ? dot : 0.0f;
+  return std::max(math::dot(normal, view_normal), 0.0f);
 }
 
 #if 0
@@ -2400,7 +2389,7 @@ float SCULPT_brush_strength_factor(
 
   /* Falloff curve. */
   avg *= BKE_brush_curve_strength(brush, final_len, cache->radius);
-  avg *= frontface(brush, cache->view_normal, vno, fno);
+  avg *= frontface(*brush, cache->view_normal, vno ? vno : fno);
 
   /* Paint mask. */
   avg *= 1.0f - mask;
@@ -2435,7 +2424,7 @@ void SCULPT_brush_strength_color(
 
   /* Falloff curve. */
   const float falloff = BKE_brush_curve_strength(brush, final_len, cache->radius) *
-                        frontface(brush, cache->view_normal, vno, fno);
+                        frontface(*brush, cache->view_normal, vno ? vno : fno);
 
   /* Paint mask. */
   const float paint_mask = 1.0f - mask;
