@@ -298,7 +298,6 @@ static bool menu_items_to_ui_button(MenuSearch_Item *item, uiBut *but)
     }
 
     but->icon = item->icon;
-    but->str = but->strdata;
   }
 
   return changed;

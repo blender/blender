@@ -71,7 +71,7 @@ int ui_but_menu_step(uiBut *but, int direction)
                                   direction);
   }
 
-  printf("%s: cannot cycle button '%s'\n", __func__, but->str);
+  printf("%s: cannot cycle button '%s'\n", __func__, but->str.c_str());
   return 0;
 }
 
@@ -124,7 +124,7 @@ static uiBut *ui_popup_menu_memory__internal(uiBlock *block, uiBut *but)
 
   if (but) {
     /* set */
-    mem[hash_mod] = ui_popup_string_hash(but->str, but->flag & UI_BUT_HAS_SEP_CHAR);
+    mem[hash_mod] = ui_popup_string_hash(but->str.c_str(), but->flag & UI_BUT_HAS_SEP_CHAR);
     return nullptr;
   }
 
@@ -136,7 +136,8 @@ static uiBut *ui_popup_menu_memory__internal(uiBlock *block, uiBut *but)
     if (ELEM(but_iter->type, UI_BTYPE_LABEL, UI_BTYPE_SEPR, UI_BTYPE_SEPR_LINE)) {
       continue;
     }
-    if (mem[hash_mod] == ui_popup_string_hash(but_iter->str, but_iter->flag & UI_BUT_HAS_SEP_CHAR))
+    if (mem[hash_mod] ==
+        ui_popup_string_hash(but_iter->str.c_str(), but_iter->flag & UI_BUT_HAS_SEP_CHAR))
     {
       return but_iter;
     }
