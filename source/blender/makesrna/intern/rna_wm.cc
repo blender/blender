@@ -1185,6 +1185,13 @@ static StructRNA *rna_wmKeyConfigPref_register(Main *bmain,
   /* check if we have registered this keyconf-prefs type before, and remove it */
   kpt_rt = BKE_keyconfig_pref_type_find(dummy_kpt.idname, true);
   if (kpt_rt) {
+    BKE_reportf(reports,
+                RPT_INFO,
+                "%s '%s', bl_idname '%s' has been registered before, unregistering previous",
+                error_prefix,
+                identifier,
+                dummy_kpt.idname);
+
     StructRNA *srna = kpt_rt->rna_ext.srna;
     if (!(srna && rna_wmKeyConfigPref_unregister(bmain, srna))) {
       BKE_reportf(reports,
@@ -1530,6 +1537,13 @@ static StructRNA *rna_Operator_register(Main *bmain,
   {
     wmOperatorType *ot = WM_operatortype_find(dummy_ot.idname, true);
     if (ot) {
+      BKE_reportf(reports,
+                  RPT_INFO,
+                  "%s '%s', bl_idname '%s' has been registered before, unregistering previous",
+                  error_prefix,
+                  identifier,
+                  dummy_ot.idname);
+
       StructRNA *srna = ot->rna_ext.srna;
       if (!(srna && rna_Operator_unregister(bmain, srna))) {
         BKE_reportf(reports,
@@ -1700,6 +1714,13 @@ static StructRNA *rna_MacroOperator_register(Main *bmain,
   {
     wmOperatorType *ot = WM_operatortype_find(dummy_ot.idname, true);
     if (ot) {
+      BKE_reportf(reports,
+                  RPT_INFO,
+                  "%s '%s', bl_idname '%s' has been registered before, unregistering previous",
+                  error_prefix,
+                  identifier,
+                  dummy_ot.idname);
+
       StructRNA *srna = ot->rna_ext.srna;
       if (!(srna && rna_Operator_unregister(bmain, srna))) {
         BKE_reportf(reports,

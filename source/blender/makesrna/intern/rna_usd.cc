@@ -82,6 +82,13 @@ static StructRNA *rna_USDHook_register(Main *bmain,
   /* check if we have registered this hook before, and remove it */
   hook = USD_find_hook_name(dummy_hook.idname);
   if (hook) {
+    BKE_reportf(reports,
+                RPT_INFO,
+                "%s '%s', bl_idname '%s' has been registered before, unregistering previous",
+                error_prefix,
+                identifier,
+                dummy_hook.idname);
+
     StructRNA *srna = hook->rna_ext.srna;
     if (!rna_USDHook_unregister(bmain, srna)) {
       BKE_reportf(reports,

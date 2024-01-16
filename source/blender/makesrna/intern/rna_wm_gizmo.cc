@@ -460,6 +460,13 @@ static StructRNA *rna_Gizmo_register(Main *bmain,
   {
     const wmGizmoType *gzt = WM_gizmotype_find(dummy_gt.idname, true);
     if (gzt) {
+      BKE_reportf(reports,
+                  RPT_INFO,
+                  "%s '%s', bl_idname '%s' has been registered before, unregistering previous",
+                  error_prefix,
+                  identifier,
+                  dummy_gt.idname);
+
       StructRNA *srna = gzt->rna_ext.srna;
       if (!(srna && rna_Gizmo_unregister(bmain, srna))) {
         BKE_reportf(reports,

@@ -315,6 +315,12 @@ static StructRNA *rna_Panel_register(Main *bmain,
       PanelType *pt_next = pt->next;
       StructRNA *srna = pt->rna_ext.srna;
       if (srna) {
+        BKE_reportf(reports,
+                    RPT_INFO,
+                    "%s '%s', bl_idname '%s' has been registered before, unregistering previous",
+                    error_prefix,
+                    identifier,
+                    dummy_pt.idname);
         if (!rna_Panel_unregister(bmain, srna)) {
           BKE_reportf(reports,
                       RPT_ERROR,
@@ -721,6 +727,13 @@ static StructRNA *rna_UIList_register(Main *bmain,
   /* Check if we have registered this UI-list type before, and remove it. */
   ult = WM_uilisttype_find(dummy_ult.idname, true);
   if (ult) {
+    BKE_reportf(reports,
+                RPT_INFO,
+                "%s '%s', bl_idname '%s' has been registered before, unregistering previous",
+                error_prefix,
+                identifier,
+                dummy_ult.idname);
+
     StructRNA *srna = ult->rna_ext.srna;
     if (!(srna && rna_UIList_unregister(bmain, srna))) {
       BKE_reportf(reports,
@@ -852,6 +865,13 @@ static StructRNA *rna_Header_register(Main *bmain,
   ht = static_cast<HeaderType *>(
       BLI_findstring(&art->headertypes, dummy_ht.idname, offsetof(HeaderType, idname)));
   if (ht) {
+    BKE_reportf(reports,
+                RPT_INFO,
+                "%s '%s', bl_idname '%s' has been registered before, unregistering previous",
+                error_prefix,
+                identifier,
+                dummy_ht.idname);
+
     StructRNA *srna = ht->rna_ext.srna;
     if (!(srna && rna_Header_unregister(bmain, srna))) {
       BKE_reportf(reports,
@@ -1002,6 +1022,13 @@ static StructRNA *rna_Menu_register(Main *bmain,
   /* check if we have registered this menu type before, and remove it */
   mt = WM_menutype_find(dummy_mt.idname, true);
   if (mt) {
+    BKE_reportf(reports,
+                RPT_INFO,
+                "%s '%s', bl_idname '%s' has been registered before, unregistering previous",
+                error_prefix,
+                identifier,
+                dummy_mt.idname);
+
     StructRNA *srna = mt->rna_ext.srna;
     if (!(srna && rna_Menu_unregister(bmain, srna))) {
       BKE_reportf(reports,
@@ -1207,6 +1234,12 @@ static StructRNA *rna_AssetShelf_register(Main *bmain,
   LISTBASE_FOREACH (AssetShelfType *, iter_shelf_type, &space_type->asset_shelf_types) {
     if (STREQ(iter_shelf_type->idname, dummy_shelf_type.idname)) {
       if (iter_shelf_type->rna_ext.srna) {
+        BKE_reportf(reports,
+                    RPT_INFO,
+                    "Registering asset shelf class: '%s' has been registered before, "
+                    "unregistering previous",
+                    dummy_shelf_type.idname);
+
         rna_AssetShelf_unregister(bmain, iter_shelf_type->rna_ext.srna);
       }
       break;
