@@ -4,7 +4,7 @@
 
 #include "usd_reader_instance.h"
 
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_object.hh"
 
 #include "DNA_collection_types.h"

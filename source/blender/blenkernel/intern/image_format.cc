@@ -306,14 +306,8 @@ char BKE_imtype_from_arg(const char *imtype_arg)
   if (STREQ(imtype_arg, "IRIS")) {
     return R_IMF_IMTYPE_IRIS;
   }
-  if (STREQ(imtype_arg, "DDS")) {
-    return R_IMF_IMTYPE_DDS;
-  }
   if (STREQ(imtype_arg, "JPEG")) {
     return R_IMF_IMTYPE_JPEG90;
-  }
-  if (STREQ(imtype_arg, "IRIZ")) {
-    return R_IMF_IMTYPE_IRIZ;
   }
   if (STREQ(imtype_arg, "RAWTGA")) {
     return R_IMF_IMTYPE_RAWTGA;
@@ -350,9 +344,11 @@ char BKE_imtype_from_arg(const char *imtype_arg)
     return R_IMF_IMTYPE_MULTILAYER;
   }
 #endif
+#ifdef WITH_FFMPEG
   if (STREQ(imtype_arg, "FFMPEG")) {
     return R_IMF_IMTYPE_FFMPEG;
   }
+#endif
 #ifdef WITH_CINEON
   if (STREQ(imtype_arg, "CINEON")) {
     return R_IMF_IMTYPE_CINEON;

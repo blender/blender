@@ -469,7 +469,7 @@ vec2 normalize_and_get_length(vec2 vector, out float out_length)
     out_length = sqrt(out_length);
     return vector / out_length;
   }
-  /* Either the vector is small or one of it's values contained `nan`. */
+  /* Either the vector is small or one of its values contained `nan`. */
   out_length = 0.0;
   return vec2(0.0);
 }
@@ -481,7 +481,7 @@ vec3 normalize_and_get_length(vec3 vector, out float out_length)
     out_length = sqrt(out_length);
     return vector / out_length;
   }
-  /* Either the vector is small or one of it's values contained `nan`. */
+  /* Either the vector is small or one of its values contained `nan`. */
   out_length = 0.0;
   return vec3(0.0);
 }
@@ -493,7 +493,7 @@ vec4 normalize_and_get_length(vec4 vector, out float out_length)
     out_length = sqrt(out_length);
     return vector / out_length;
   }
-  /* Either the vector is small or one of it's values contained `nan`. */
+  /* Either the vector is small or one of its values contained `nan`. */
   out_length = 0.0;
   return vec4(0.0);
 }
@@ -506,7 +506,7 @@ vec2 safe_normalize_and_get_length(vec2 vector, out float out_length)
     out_length = sqrt(out_length);
     return vector / out_length;
   }
-  /* Either the vector is small or one of it's values contained `nan`. */
+  /* Either the vector is small or one of its values contained `nan`. */
   out_length = 0.0;
   return vec2(1.0, 0.0);
 }
@@ -518,7 +518,7 @@ vec3 safe_normalize_and_get_length(vec3 vector, out float out_length)
     out_length = sqrt(out_length);
     return vector / out_length;
   }
-  /* Either the vector is small or one of it's values contained `nan`. */
+  /* Either the vector is small or one of its values contained `nan`. */
   out_length = 0.0;
   return vec3(1.0, 0.0, 0.0);
 }
@@ -530,7 +530,7 @@ vec4 safe_normalize_and_get_length(vec4 vector, out float out_length)
     out_length = sqrt(out_length);
     return vector / out_length;
   }
-  /* Either the vector is small or one of it's values contained `nan`. */
+  /* Either the vector is small or one of its values contained `nan`. */
   out_length = 0.0;
   return vec4(1.0, 0.0, 0.0, 0.0);
 }

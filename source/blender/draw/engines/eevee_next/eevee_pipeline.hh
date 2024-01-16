@@ -14,7 +14,7 @@
 
 #include "BLI_math_bits.h"
 
-#include "DRW_render.h"
+#include "DRW_render.hh"
 #include "draw_shader_shared.h"
 
 #include "eevee_lut.hh"
@@ -186,6 +186,8 @@ struct DeferredLayerBase {
 
   /* Closures bits from the materials in this pass. */
   eClosureBits closure_bits_ = CLOSURE_NONE;
+  /* Maximum closure count considering all material in this pass. */
+  int closure_count_ = 0;
 
   /* Return the amount of gbuffer layer needed. */
   int closure_layer_count() const
@@ -242,18 +244,9 @@ class DeferredLayer : DeferredLayerBase {
   TextureFromPool direct_radiance_txs_[3] = {
       {"direct_radiance_1"}, {"direct_radiance_2"}, {"direct_radiance_3"}};
   Texture dummy_black_tx = {"dummy_black_tx"};
-  /* Reference to ray-tracing result. */
-  GPUTexture *indirect_diffuse_tx_ = nullptr;
-  GPUTexture *indirect_reflect_tx_ = nullptr;
-  GPUTexture *indirect_refract_tx_ = nullptr;
+  /* Reference to ray-tracing results. */
+  GPUTexture *indirect_radiance_txs_[3] = {nullptr};
 
-  /* Parameters for the light evaluation pass. */
-  int closure_tile_size_shift_ = 0;
-  /* Tile buffers for different lighting complexity levels. */
-  struct {
-    DrawIndirectBuf draw_buf_ = {"DrawIndirectBuf"};
-    ClosureTileBuf tile_buf_ = {"ClosureTileBuf"};
-  } closure_bufs_[3];
   /**
    * Tile texture containing several bool per tile indicating presence of feature.
    * It is used to select specialized shader for each tile.

@@ -44,7 +44,7 @@
 #include "BKE_curve.hh"
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_lib_query.h"
 #include "BKE_main.hh"
 #include "BKE_object.hh"
@@ -95,16 +95,19 @@ static void armature_init_data(ID *id)
  *
  * Note: this function's use case is narrow in scope, intended only for use in
  * `armature_copy_data()` below.  You probably don't want to use this otherwise.
+ *
+ * \param lib_id_flag: Copying options (see BKE_lib_id.hh's LIB_ID_COPY_... flags for more).
  */
 static void copy_bone_collection(bArmature *armature_dst,
                                  BoneCollection *&bcoll_dst,
-                                 const BoneCollection *bcoll_src)
+                                 const BoneCollection *bcoll_src,
+                                 const int lib_id_flag)
 {
   bcoll_dst = static_cast<BoneCollection *>(MEM_dupallocN(bcoll_src));
 
   /* ID properties. */
   if (bcoll_dst->prop) {
-    bcoll_dst->prop = IDP_CopyProperty(bcoll_dst->prop);
+    bcoll_dst->prop = IDP_CopyProperty_ex(bcoll_dst->prop, lib_id_flag);
   }
 
   /* Bone references. */
@@ -122,7 +125,7 @@ static void copy_bone_collection(bArmature *armature_dst,
  *
  * WARNING! This function will not handle ID user count!
  *
- * \param flag: Copying options (see BKE_lib_id.h's LIB_ID_COPY_... flags for more).
+ * \param flag: Copying options (see BKE_lib_id.hh's LIB_ID_COPY_... flags for more).
  */
 static void armature_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, const int flag)
 {
@@ -169,8 +172,10 @@ static void armature_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, c
         MEM_dupallocN(armature_src->collection_array));
     armature_dst->collection_array_num = armature_src->collection_array_num;
     for (int i = 0; i < armature_src->collection_array_num; i++) {
-      copy_bone_collection(
-          armature_dst, armature_dst->collection_array[i], armature_src->collection_array[i]);
+      copy_bone_collection(armature_dst,
+                           armature_dst->collection_array[i],
+                           armature_src->collection_array[i],
+                           flag);
     }
   }
   else {
@@ -193,7 +198,7 @@ static void armature_free_data(ID *id)
   if (armature->collection_array) {
     for (BoneCollection *bcoll : armature->collections_span()) {
       BLI_freelistN(&bcoll->bones);
-      ANIM_bonecoll_free(bcoll);
+      ANIM_bonecoll_free(bcoll, false);
     }
     MEM_freeN(armature->collection_array);
   }
@@ -3133,7 +3138,11 @@ bPoseChannel *BKE_armature_splineik_solver_find_root(bPoseChannel *pchan,
   return rootchan;
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
+/** \name implementations of DNA struct C++ methods.
+ * \{ */
 
 blender::Span<const BoneCollection *> bArmature::collections_span() const
 {
@@ -3143,6 +3152,39 @@ blender::Span<const BoneCollection *> bArmature::collections_span() const
 blender::Span<BoneCollection *> bArmature::collections_span()
 {
   return blender::Span(collection_array, collection_array_num);
+}
+
+blender::Span<const BoneCollection *> bArmature::collections_roots() const
+{
+  return blender::Span(collection_array, collection_root_count);
+}
+blender::Span<BoneCollection *> bArmature::collections_roots()
+{
+  return blender::Span(collection_array, collection_root_count);
+}
+
+blender::Span<const BoneCollection *> bArmature::collection_children(
+    const BoneCollection *parent) const
+{
+  return blender::Span(&collection_array[parent->child_index], parent->child_count);
+}
+
+blender::Span<BoneCollection *> bArmature::collection_children(BoneCollection *parent)
+{
+  return blender::Span(&collection_array[parent->child_index], parent->child_count);
+}
+
+bool BoneCollection::is_visible() const
+{
+  return this->flags & BONE_COLLECTION_VISIBLE;
+}
+bool BoneCollection::is_visible_ancestors() const
+{
+  return this->flags & BONE_COLLECTION_ANCESTORS_VISIBLE;
+}
+bool BoneCollection::is_visible_effectively() const
+{
+  return this->is_visible() && this->is_visible_ancestors();
 }
 
 /** \} */

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'98c6bded9844')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'acbb91b192da')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-02 10:08:43\n"
+"POT-Creation-Date: 2024-01-15 10:52:30\n"
 "PO-Revision-Date: 2016-04-23 22:41+0300\n"
 "Last-Translator: Yousef Harfoush <bat3a@msn.com>\n"
 "Language-Team: Yousef Harfoush, Amine Moussaoui <bat3a@msn.com>\n"
@@ -1913,6 +1913,10 @@ msgstr "ﻊﻳﻮﻄﺘﻟﺍ ﻞﺜﻣ ,ﻲﺒﺴﻨﻟﺍ ﻝﻮﺤﺘﻟﺍ �
 
 msgid "Bones"
 msgstr "ﻡﺎﻈﻌﻟﺍ"
+
+
+msgid "Index"
+msgstr "ﺮﺷﺆﻤﻟﺍ"
 
 
 msgid "Visible"
@@ -4978,10 +4982,6 @@ msgstr "ﺢﻄﺳ"
 
 msgid "View"
 msgstr "ﺮﻈﻨﻣ"
-
-
-msgid "Index"
-msgstr "ﺮﺷﺆﻤﻟﺍ"
 
 
 msgid "Segments"
@@ -22551,6 +22551,19 @@ msgid "Reset Original Length"
 msgstr "ﻲﻠﺻﻻ﻿ﺍ ﻝﻮﻄﻟﺍ ﻂﺒﺿ ﺪﻋﺍ"
 
 
+msgid "Extrude selected control point(s)"
+msgstr "ﺓﺭﺎﺘﺨﻤﻟﺍ ﻢﻜﺤﺘﻟﺍ ﻂﻘﻧ ﻖﺜﺑﺍ"
+
+
+msgctxt "Operator"
+msgid "Extrude Curve and Move"
+msgstr "ﻙﺮّﺣ ﻭ ﻰﻨﺤﻨﻤﻟﺍ ﻖﺜﺑﺍ"
+
+
+msgid "Extrude curve and move result"
+msgstr "ﺔﺠﻴﺘﻨﻟﺍ ﻙﺮّﺣ ﻭ ﻰﻨﺤﻨﻤﻟﺍ ﺭﺮﻛ"
+
+
 msgid "(De)select all control points"
 msgstr "ﻢﻜﺤﺘﻟﺍ ﻁﺎﻘﻧ ﻞﻛ ﺮﺘﺨﺗ ﻻ﻿/ﺮﺘﺧﺍ"
 
@@ -22620,10 +22633,6 @@ msgid "Duplicate curve and move"
 msgstr "ﻙﺮّﺣ ﻭ ﻰﻨﺤﻨﻤﻟﺍ ﺭﺮﻛ"
 
 
-msgid "Extrude selected control point(s)"
-msgstr "ﺓﺭﺎﺘﺨﻤﻟﺍ ﻢﻜﺤﺘﻟﺍ ﻂﻘﻧ ﻖﺜﺑﺍ"
-
-
 msgid "Skin Resize"
 msgstr "ﺓﺮﺸﻘﻟﺍ ﻢﺠّﺣ"
 
@@ -22634,15 +22643,6 @@ msgstr "ءﺎﻨﺤﻧﻻ﻿ﺍ"
 
 msgid "Shrink/Fatten"
 msgstr "ﻦﻤّﺳ/ﺺﻠّﻗ"
-
-
-msgctxt "Operator"
-msgid "Extrude Curve and Move"
-msgstr "ﻙﺮّﺣ ﻭ ﻰﻨﺤﻨﻤﻟﺍ ﻖﺜﺑﺍ"
-
-
-msgid "Extrude curve and move result"
-msgstr "ﺔﺠﻴﺘﻨﻟﺍ ﻙﺮّﺣ ﻭ ﻰﻨﺤﻨﻤﻟﺍ ﺭﺮﻛ"
 
 
 msgctxt "Operator"
@@ -29996,10 +29996,6 @@ msgid "Self Collision"
 msgstr "ﻲﺗﺍﺬﻟﺍ ﻞﻋﺎﻔﺘﻟﺍ"
 
 
-msgid "Viscosity"
-msgstr "ﺔﺟﻭﺰﻠﻟﺍ"
-
-
 msgid "Indirect Lighting"
 msgstr "ﺓﺮﺷﺎﺒﻣ ﺮﻴﻏ ﺓءﺎﺿﺇ"
 
@@ -33096,6 +33092,10 @@ msgstr "ﻞﻋﺎﻔﺘﻟﺍ ﻉﺎﻌﺷ"
 
 msgid "Fluid interaction radius"
 msgstr "ﻞﺋﺎﺴﻟﺍ ﻞﻋﺎﻔﺗ ﻉﺎﻌﺷ"
+
+
+msgid "Viscosity"
+msgstr "ﺔﺟﻭﺰﻠﻟﺍ"
 
 
 msgid "Linear viscosity"
@@ -38360,6 +38360,10 @@ msgid "Browse ID data to be linked"
 msgstr "ﺔﻄﺒﺗﺮﻣ ﻥﻮﻜﺘﻟ ﻑﺮﻌﻤﻟﺍ ﺕﺎﻧﺎﻴﺑ ﺢﻔﺼﺗ"
 
 
+msgid "Modified"
+msgstr "ﻝﺪّﻌﻣ"
+
+
 msgctxt "Object"
 msgid "New"
 msgstr "ﺪﻳﺪﺟ"
@@ -38964,6 +38968,10 @@ msgid "Update Dependencies"
 msgstr "ﺕﺎﻳﺩﺎﻤﺘﻋﻻ﻿ﺍ ﺙﺪﺣ"
 
 
+msgid "Delete target variable"
+msgstr "ﻑﺪﻬﻟﺍ ﺮﻴﻐﺘﻣ ﻑﺬﺣﺍ"
+
+
 msgid "F-Curve only has F-Modifiers"
 msgstr "ﺔﻴﻧﺎﻴﺑ ﺕﺍﺮﻴﻐﻣ ﻂﻘﻓ ﻪﻳﺪﻟ ﻲﻧﺎﻴﺒﻟﺍ ﻰﻨﺤﻨﻤﻟﺍ"
 
@@ -38986,10 +38994,6 @@ msgstr "ﺢﻴﺤﺻ ﺮﻴﻏ ﻥﻮﺜﻳﺎﺑ ﺮﻴﺒﻌﺗ :ﺄﻄﺧ"
 
 msgid "ERROR: Invalid target channel(s)"
 msgstr "ﺔﺤﻴﺤﺻ ﺮﻴﻏ ﻑﺪﻬﻟﺍ ﺓﺎﻨﻗ :ﺄﻄﺧ"
-
-
-msgid "Delete target variable"
-msgstr "ﻑﺪﻬﻟﺍ ﺮﻴﻐﺘﻣ ﻑﺬﺣﺍ"
 
 
 msgid "No selected F-Curves to add keyframes to"
@@ -39760,10 +39764,6 @@ msgstr "ﺭﺪﻨﻠﺑ ﻒﻠﻣ ﺮﻬﻇﺃ"
 
 msgid "unable to open the file"
 msgstr "ﻒﻠﻤﻟﺍ ﺢﺘﻓ ﻰﻠﻋ ﺭﺩﺎﻗ ﺮﻴﻏ"
-
-
-msgid "Modified"
-msgstr "ﻝﺪّﻌﻣ"
 
 
 msgid "Context window not set"

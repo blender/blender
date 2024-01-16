@@ -250,7 +250,7 @@ void GHOST_ImeWin32::GetCaret(HIMC imm_context, LPARAM lparam, ImeComposition *c
 {
   /**
    * This operation is optional and language-dependent because the caret
-   * style is depended on the language, e.g.:
+   * style is dependent on the language, e.g.:
    *   * Korean IMEs: the caret is a blinking block,
    *     (It contains only one hangul character);
    *   * Chinese IMEs: the caret is a blinking line,

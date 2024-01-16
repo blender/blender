@@ -16,7 +16,7 @@
 #include "BKE_animsys.h"
 #include "BKE_context.hh"
 #include "BKE_layer.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_object.hh"
 #include "BKE_pointcache.h"
@@ -303,9 +303,7 @@ static void trans_object_base_deps_flag_prepare(const Scene *scene, ViewLayer *v
   }
 }
 
-static void set_trans_object_base_deps_flag_cb(ID *id,
-                                               eDepsObjectComponentType component,
-                                               void * /*user_data*/)
+static void set_trans_object_base_deps_flag_cb(ID *id, eDepsObjectComponentType component)
 {
   /* Here we only handle object IDs. */
   if (GS(id->name) != ID_OB) {
@@ -324,8 +322,7 @@ static void flush_trans_object_base_deps_flag(Depsgraph *depsgraph, Object *obje
                                      &object->id,
                                      DEG_OB_COMP_TRANSFORM,
                                      DEG_FOREACH_COMPONENT_IGNORE_TRANSFORM_SOLVERS,
-                                     set_trans_object_base_deps_flag_cb,
-                                     nullptr);
+                                     set_trans_object_base_deps_flag_cb);
 }
 
 static void trans_object_base_deps_flag_finish(const TransInfo *t,
@@ -553,8 +550,8 @@ static void createTransObject(bContext *C, TransInfo *t)
         td->flag |= TD_SKIP;
       }
       else if (BKE_object_is_in_editmode(ob)) {
-        /* The object could have edit-mode data from another view-layer,
-         * it's such a corner-case it can be skipped for now - Campbell. */
+        /* NOTE(@ideasman42): The object could have edit-mode data from another view-layer,
+         * it's such a corner-case it can be skipped for now. */
         td->flag |= TD_SKIP;
       }
     }
@@ -705,7 +702,8 @@ static void createTransObject(bContext *C, TransInfo *t)
         Base *base_parent = BKE_view_layer_base_find(view_layer, ob->parent);
         if (base_parent) {
           if (BASE_XFORM_INDIRECT(base_parent) ||
-              BLI_gset_haskey(objects_in_transdata, ob->parent)) {
+              BLI_gset_haskey(objects_in_transdata, ob->parent))
+          {
             ED_object_xform_skip_child_container_item_ensure(
                 tdo->xcs, ob, nullptr, XFORM_OB_SKIP_CHILD_PARENT_IS_XFORM);
             base->flag_legacy |= BA_TRANSFORM_LOCKED_IN_PLACE;

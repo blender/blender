@@ -179,6 +179,7 @@ set(SRC
   nodes/node_geo_set_spline_resolution.cc
   nodes/node_geo_simulation_input.cc
   nodes/node_geo_simulation_output.cc
+  nodes/node_geo_sort_elements.cc
   nodes/node_geo_split_to_instances.cc
   nodes/node_geo_store_named_attribute.cc
   nodes/node_geo_store_named_grid.cc
@@ -285,10 +286,7 @@ list(APPEND LIB
 blender_add_lib(bf_nodes_geometry "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 target_link_libraries(bf_nodes_geometry_generated bf_nodes_geometry)
 
-if(WITH_UNITY_BUILD)
-  set_target_properties(bf_nodes_geometry PROPERTIES UNITY_BUILD ON)
-  set_target_properties(bf_nodes_geometry PROPERTIES UNITY_BUILD_BATCH_SIZE 10)
-endif()
+blender_set_target_unity_build(bf_nodes_geometry 10)
 
 # RNA_prototypes.h
 add_dependencies(bf_nodes_geometry bf_rna)

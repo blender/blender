@@ -62,7 +62,7 @@
 #include "BKE_idprop.hh"
 #include "BKE_idtype.h"
 #include "BKE_image_format.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_lib_query.h"
 #include "BKE_main.hh"
 #include "BKE_node.hh"
@@ -226,7 +226,8 @@ static void ntree_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, cons
         std::make_unique<AnonymousAttributeInferencingResult>(
             *ntree_src->runtime->anonymous_attribute_inferencing);
     for (FieldSource &field_source :
-         dst_runtime.anonymous_attribute_inferencing->all_field_sources) {
+         dst_runtime.anonymous_attribute_inferencing->all_field_sources)
+    {
       if (auto *socket_field_source = std::get_if<SocketFieldSource>(&field_source.data)) {
         socket_field_source->socket = socket_map.lookup(socket_field_source->socket);
       }
@@ -475,6 +476,7 @@ static void write_node_socket_interface(BlendWriter *writer, const bNodeSocket *
 static bNodeSocket *make_socket(bNodeTree *ntree,
                                 const eNodeSocketInOut in_out,
                                 const StringRef idname,
+
                                 const StringRef name,
                                 const StringRef identifier)
 {
@@ -500,6 +502,59 @@ static bNodeSocket *make_socket(bNodeTree *ntree,
   return sock;
 }
 
+/* Include the subtype suffix for old socket idnames. */
+static StringRef get_legacy_socket_subtype_idname(StringRef idname, const void *socket_data)
+{
+  if (idname == "NodeSocketFloat") {
+    const bNodeSocketValueFloat &float_data = *static_cast<const bNodeSocketValueFloat *>(
+        socket_data);
+    switch (float_data.subtype) {
+      case PROP_UNSIGNED:
+        return "NodeSocketFloatUnsigned";
+      case PROP_PERCENTAGE:
+        return "NodeSocketFloatPercentage";
+      case PROP_FACTOR:
+        return "NodeSocketFloatFactor";
+      case PROP_ANGLE:
+        return "NodeSocketFloatAngle";
+      case PROP_TIME:
+        return "NodeSocketFloatTime";
+      case PROP_TIME_ABSOLUTE:
+        return "NodeSocketFloatTimeAbsolute";
+      case PROP_DISTANCE:
+        return "NodeSocketFloatDistance";
+    }
+  }
+  if (idname == "NodeSocketInt") {
+    const bNodeSocketValueInt &int_data = *static_cast<const bNodeSocketValueInt *>(socket_data);
+    switch (int_data.subtype) {
+      case PROP_UNSIGNED:
+        return "NodeSocketIntUnsigned";
+      case PROP_PERCENTAGE:
+        return "NodeSocketIntPercentage";
+      case PROP_FACTOR:
+        return "NodeSocketIntFactor";
+    }
+  }
+  if (idname == "NodeSocketVector") {
+    const bNodeSocketValueVector &vector_data = *static_cast<const bNodeSocketValueVector *>(
+        socket_data);
+    switch (vector_data.subtype) {
+      case PROP_TRANSLATION:
+        return "NodeSocketVectorTranslation";
+      case PROP_DIRECTION:
+        return "NodeSocketVectorDirection";
+      case PROP_VELOCITY:
+        return "NodeSocketVectorVelocity";
+      case PROP_ACCELERATION:
+        return "NodeSocketVectorAcceleration";
+      case PROP_EULER:
+        return "NodeSocketVectorEuler";
+    }
+  }
+  return idname;
+}
+
 /**
  * Socket interface reconstruction for forward compatibility.
  * To enable previous Blender versions to read the new interface DNA data,
@@ -515,7 +570,11 @@ static void construct_interface_as_legacy_sockets(bNodeTree *ntree)
   auto make_legacy_socket = [&](const bNodeTreeInterfaceSocket &socket,
                                 eNodeSocketInOut in_out) -> bNodeSocket * {
     bNodeSocket *iosock = make_socket(
-        ntree, in_out, socket.socket_type, socket.name ? socket.name : "", socket.identifier);
+        ntree,
+        in_out,
+        get_legacy_socket_subtype_idname(socket.socket_type, socket.socket_data),
+        socket.name ? socket.name : "",
+        socket.identifier);
     if (!iosock) {
       return nullptr;
     }
@@ -1304,6 +1363,29 @@ static void ntree_set_typeinfo(bNodeTree *ntree, bNodeTreeType *typeinfo)
   BKE_ntree_update_tag_all(ntree);
 }
 
+/* Build a set of built-in node types to check for known types. */
+static blender::Set<int> get_known_node_types_set()
+{
+  blender::Set<int> result;
+  NODE_TYPES_BEGIN (ntype) {
+    result.add(ntype->type);
+  }
+  NODE_TYPES_END;
+  return result;
+}
+
+static bool can_read_node_type(const int type)
+{
+  /* Can always read custom node types. */
+  if (type == NODE_CUSTOM) {
+    return true;
+  }
+
+  /* Check known built-in types. */
+  static blender::Set<int> known_types = get_known_node_types_set();
+  return known_types.contains(type);
+}
+
 static void node_set_typeinfo(const bContext *C,
                               bNodeTree *ntree,
                               bNode *node,
@@ -1311,6 +1393,19 @@ static void node_set_typeinfo(const bContext *C,
 {
   /* for nodes saved in older versions storage can get lost, make undefined then */
   if (node->flag & NODE_INIT) {
+    /* If the integer type is unknown then this is a node from a newer Blender version.
+     * These cannot be read reliably so replace the idname with an undefined type. This keeps links
+     * and socket names but discards storage and other type-specific data.
+     */
+    if (!can_read_node_type(node->type)) {
+      node->type = NODE_CUSTOM;
+      /* This type name is arbitrary, it just has to be unique enough to not match a future node
+       * idname. Includes the old type identifier for debugging purposes. */
+      const std::string old_idname = node->idname;
+      BLI_snprintf(node->idname, sizeof(node->idname), "Undefined[%s]", old_idname.c_str());
+      typeinfo = nullptr;
+    }
+
     if (typeinfo && typeinfo->storagename[0] && !node->storage) {
       typeinfo = nullptr;
     }
@@ -2723,7 +2818,8 @@ bNodeLink *nodeAddLink(
 
   bNodeLink *link = nullptr;
   if (eNodeSocketInOut(fromsock->in_out) == SOCK_OUT &&
-      eNodeSocketInOut(tosock->in_out) == SOCK_IN) {
+      eNodeSocketInOut(tosock->in_out) == SOCK_IN)
+  {
     link = MEM_cnew<bNodeLink>("link");
     if (ntree) {
       BLI_addtail(&ntree->links, link);
@@ -2857,7 +2953,8 @@ void nodeInternalRelink(bNodeTree *ntree, bNode *node)
       /* remove the link that would be the same as the relinked one */
       LISTBASE_FOREACH_MUTABLE (bNodeLink *, link_to_compare, &ntree->links) {
         if (link_to_compare->fromsock == fromlink->fromsock &&
-            link_to_compare->tosock == link->tosock) {
+            link_to_compare->tosock == link->tosock)
+        {
           blender::bke::adjust_multi_input_indices_after_removed_link(
               ntree, link_to_compare->tosock, link_to_compare->multi_input_socket_index);
           duplicate_links_to_remove.append_non_duplicates(link_to_compare);

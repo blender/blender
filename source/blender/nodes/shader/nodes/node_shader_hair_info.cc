@@ -32,7 +32,7 @@ static int node_shader_gpu_hair_info(GPUMaterial *mat,
 NODE_SHADER_MATERIALX_BEGIN
 #ifdef WITH_MATERIALX
 {
-  /* NOTE: This node doesn't have an implementation in MaterialX.*/
+  /* NOTE: This node doesn't have an implementation in MaterialX. */
   return get_output_default(socket_out_->name, NodeItem::Type::Any);
 }
 #endif

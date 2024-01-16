@@ -106,7 +106,7 @@ struct DerivedMesh {
    * *{vert/edge/face}_r (must point to a buffer large enough)
    */
   void (*copyVertArray)(DerivedMesh *dm, float (*r_positions)[3]);
-  void (*copyEdgeArray)(DerivedMesh *dm, struct vec2i *r_edge);
+  void (*copyEdgeArray)(DerivedMesh *dm, vec2i *r_edge);
   void (*copyCornerVertArray)(DerivedMesh *dm, int *r_corner_verts);
   void (*copyCornerEdgeArray)(DerivedMesh *dm, int *r_corner_edges);
   void (*copyPolyArray)(DerivedMesh *dm, int *r_face_offsets);
@@ -123,9 +123,9 @@ struct DerivedMesh {
   /** Optional grid access for subsurf */
   int (*getNumGrids)(DerivedMesh *dm);
   int (*getGridSize)(DerivedMesh *dm);
-  struct CCGElem **(*getGridData)(DerivedMesh *dm);
+  CCGElem **(*getGridData)(DerivedMesh *dm);
   int *(*getGridOffset)(DerivedMesh *dm);
-  void (*getGridKey)(DerivedMesh *dm, struct CCGKey *key);
+  void (*getGridKey)(DerivedMesh *dm, CCGKey *key);
   unsigned int **(*getGridHidden)(DerivedMesh *dm);
 
   /* Direct Access Operations

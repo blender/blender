@@ -37,7 +37,7 @@
 #include "BKE_context.hh"
 #include "BKE_deform.h"
 #include "BKE_editmesh.hh"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
 #include "BKE_object.hh"
@@ -49,7 +49,7 @@
 
 #include "WM_api.hh"
 #include "WM_message.hh"
-#include "WM_toolsystem.h"
+#include "WM_toolsystem.hh"
 #include "WM_types.hh"
 
 #include "ED_image.hh"
@@ -949,7 +949,8 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
    * vgroups affect deform bones */
   wpd->lock_flags = BKE_object_defgroup_lock_flags_get(ob, wpd->defbase_tot);
   if (ts->auto_normalize || ts->multipaint || wpd->lock_flags != nullptr ||
-      ts->wpaint_lock_relative) {
+      ts->wpaint_lock_relative)
+  {
     wpd->vgroup_validmap = BKE_object_defgroup_validmap_get(ob, wpd->defbase_tot);
   }
 
@@ -1399,7 +1400,8 @@ static WPaintAverageAccum do_wpaint_brush_calc_average_weight(Object *ob,
     const float angle_cos = (use_normal && vd.no) ? dot_v3v3(sculpt_normal_frontface, vd.no) :
                                                     1.0f;
     if (angle_cos <= 0.0f ||
-        BKE_brush_curve_strength(brush, sqrtf(test.dist), cache->radius) <= 0.0f) {
+        BKE_brush_curve_strength(brush, sqrtf(test.dist), cache->radius) <= 0.0f)
+    {
       continue;
     }
 
@@ -1685,7 +1687,6 @@ void PAINT_OT_weight_paint_toggle(wmOperatorType *ot)
 static void wpaint_do_paint(bContext *C,
                             Object *ob,
                             VPaint *wp,
-                            Sculpt *sd,
                             WPaintData *wpd,
                             WeightPaintInfo *wpi,
                             Mesh *mesh,
@@ -1699,7 +1700,7 @@ static void wpaint_do_paint(bContext *C,
   ss->cache->radial_symmetry_pass = i;
   SCULPT_cache_calc_brushdata_symm(ss->cache, symm, axis, angle);
 
-  Vector<PBVHNode *> nodes = vwpaint::pbvh_gather_generic(ob, wp, sd, brush);
+  Vector<PBVHNode *> nodes = vwpaint::pbvh_gather_generic(ob, wp, brush);
 
   wpaint_paint_leaves(C, ob, wp, wpd, wpi, mesh, nodes);
 }
@@ -1707,7 +1708,6 @@ static void wpaint_do_paint(bContext *C,
 static void wpaint_do_radial_symmetry(bContext *C,
                                       Object *ob,
                                       VPaint *wp,
-                                      Sculpt *sd,
                                       WPaintData *wpd,
                                       WeightPaintInfo *wpi,
                                       Mesh *mesh,
@@ -1717,14 +1717,14 @@ static void wpaint_do_radial_symmetry(bContext *C,
 {
   for (int i = 1; i < wp->radial_symm[axis - 'X']; i++) {
     const float angle = (2.0 * M_PI) * i / wp->radial_symm[axis - 'X'];
-    wpaint_do_paint(C, ob, wp, sd, wpd, wpi, mesh, brush, symm, axis, i, angle);
+    wpaint_do_paint(C, ob, wp, wpd, wpi, mesh, brush, symm, axis, i, angle);
   }
 }
 
 /* near duplicate of: sculpt.cc's,
  * 'do_symmetrical_brush_actions' and 'vpaint_do_symmetrical_brush_actions'. */
 static void wpaint_do_symmetrical_brush_actions(
-    bContext *C, Object *ob, VPaint *wp, Sculpt *sd, WPaintData *wpd, WeightPaintInfo *wpi)
+    bContext *C, Object *ob, VPaint *wp, WPaintData *wpd, WeightPaintInfo *wpi)
 {
   Brush *brush = BKE_paint_brush(&wp->paint);
   Mesh *mesh = (Mesh *)ob->data;
@@ -1735,10 +1735,10 @@ static void wpaint_do_symmetrical_brush_actions(
 
   /* initial stroke */
   cache->mirror_symmetry_pass = ePaintSymmetryFlags(0);
-  wpaint_do_paint(C, ob, wp, sd, wpd, wpi, mesh, brush, ePaintSymmetryFlags(0), 'X', 0, 0);
-  wpaint_do_radial_symmetry(C, ob, wp, sd, wpd, wpi, mesh, brush, ePaintSymmetryFlags(0), 'X');
-  wpaint_do_radial_symmetry(C, ob, wp, sd, wpd, wpi, mesh, brush, ePaintSymmetryFlags(0), 'Y');
-  wpaint_do_radial_symmetry(C, ob, wp, sd, wpd, wpi, mesh, brush, ePaintSymmetryFlags(0), 'Z');
+  wpaint_do_paint(C, ob, wp, wpd, wpi, mesh, brush, ePaintSymmetryFlags(0), 'X', 0, 0);
+  wpaint_do_radial_symmetry(C, ob, wp, wpd, wpi, mesh, brush, ePaintSymmetryFlags(0), 'X');
+  wpaint_do_radial_symmetry(C, ob, wp, wpd, wpi, mesh, brush, ePaintSymmetryFlags(0), 'Y');
+  wpaint_do_radial_symmetry(C, ob, wp, wpd, wpi, mesh, brush, ePaintSymmetryFlags(0), 'Z');
 
   cache->symmetry = symm;
 
@@ -1759,16 +1759,16 @@ static void wpaint_do_symmetrical_brush_actions(
       SCULPT_cache_calc_brushdata_symm(cache, symm, 0, 0);
 
       if (i & (1 << 0)) {
-        wpaint_do_paint(C, ob, wp, sd, wpd, wpi, mesh, brush, symm, 'X', 0, 0);
-        wpaint_do_radial_symmetry(C, ob, wp, sd, wpd, wpi, mesh, brush, symm, 'X');
+        wpaint_do_paint(C, ob, wp, wpd, wpi, mesh, brush, symm, 'X', 0, 0);
+        wpaint_do_radial_symmetry(C, ob, wp, wpd, wpi, mesh, brush, symm, 'X');
       }
       if (i & (1 << 1)) {
-        wpaint_do_paint(C, ob, wp, sd, wpd, wpi, mesh, brush, symm, 'Y', 0, 0);
-        wpaint_do_radial_symmetry(C, ob, wp, sd, wpd, wpi, mesh, brush, symm, 'Y');
+        wpaint_do_paint(C, ob, wp, wpd, wpi, mesh, brush, symm, 'Y', 0, 0);
+        wpaint_do_radial_symmetry(C, ob, wp, wpd, wpi, mesh, brush, symm, 'Y');
       }
       if (i & (1 << 2)) {
-        wpaint_do_paint(C, ob, wp, sd, wpd, wpi, mesh, brush, symm, 'Z', 0, 0);
-        wpaint_do_radial_symmetry(C, ob, wp, sd, wpd, wpi, mesh, brush, symm, 'Z');
+        wpaint_do_paint(C, ob, wp, wpd, wpi, mesh, brush, symm, 'Z', 0, 0);
+        wpaint_do_radial_symmetry(C, ob, wp, wpd, wpi, mesh, brush, symm, 'Z');
       }
     }
   }
@@ -1790,7 +1790,6 @@ static void wpaint_stroke_update_step(bContext *C,
   Object *ob = CTX_data_active_object(C);
 
   SculptSession *ss = ob->sculpt;
-  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 
   vwpaint::update_cache_variants(C, wp, ob, itemptr);
 
@@ -1847,7 +1846,7 @@ static void wpaint_stroke_update_step(bContext *C,
     precompute_weight_values(ob, brush, wpd, &wpi, mesh);
   }
 
-  wpaint_do_symmetrical_brush_actions(C, ob, wp, sd, wpd, &wpi);
+  wpaint_do_symmetrical_brush_actions(C, ob, wp, wpd, &wpi);
 
   swap_m4m4(vc->rv3d->persmat, mat);
 

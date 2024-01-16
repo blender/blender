@@ -28,7 +28,7 @@
 #include "BKE_customdata.hh"
 #include "BKE_global.h"
 #include "BKE_layer.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.hh"
@@ -1067,7 +1067,8 @@ static void remove_particle_systems_from_object(Object *ob_to)
     if (ELEM(md->type,
              eModifierType_ParticleSystem,
              eModifierType_DynamicPaint,
-             eModifierType_Fluid)) {
+             eModifierType_Fluid))
+    {
       BLI_remlink(&ob_to->modifiers, md);
       BKE_modifier_free(md);
     }

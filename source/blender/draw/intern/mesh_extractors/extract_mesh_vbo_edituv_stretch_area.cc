@@ -175,7 +175,6 @@ constexpr MeshExtract create_extractor_edituv_stretch_area()
 
 /** \} */
 
-}  // namespace blender::draw
+const MeshExtract extract_edituv_stretch_area = create_extractor_edituv_stretch_area();
 
-const MeshExtract extract_edituv_stretch_area =
-    blender::draw::create_extractor_edituv_stretch_area();
+}  // namespace blender::draw

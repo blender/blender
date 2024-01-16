@@ -19,7 +19,7 @@
 
 #include "WM_api.hh"
 #include "WM_types.hh"
-#include "wm_event_system.h"
+#include "wm_event_system.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"

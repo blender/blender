@@ -806,7 +806,7 @@ struct EraseOperationExecutor {
 
     if (self.active_layer_only) {
       /* Erase only on the drawing at the current frame of the active layer. */
-      const Layer *active_layer = grease_pencil.get_active_layer();
+      const Layer &active_layer = *grease_pencil.get_active_layer();
       Drawing *drawing = grease_pencil.get_editable_drawing_at(active_layer, scene->r.cfra);
 
       if (drawing == nullptr) {
@@ -814,7 +814,7 @@ struct EraseOperationExecutor {
       }
 
       execute_eraser_on_drawing(
-          active_layer->drawing_index_at(scene->r.cfra), scene->r.cfra, *drawing);
+          active_layer.drawing_index_at(scene->r.cfra), scene->r.cfra, *drawing);
     }
     else {
       /* Erase on all editable drawings. */

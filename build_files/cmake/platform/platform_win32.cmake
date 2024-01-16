@@ -555,11 +555,15 @@ endif()
 
 set(_PYTHON_VERSION "3.11")
 string(REPLACE "." "" _PYTHON_VERSION_NO_DOTS ${_PYTHON_VERSION})
-if(NOT EXISTS ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS})
-  set(_PYTHON_VERSION "3.10")
-  string(REPLACE "." "" _PYTHON_VERSION_NO_DOTS ${_PYTHON_VERSION})
+
+# Enable for a short time when bumping to the next Python version.
+if(FALSE)
   if(NOT EXISTS ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS})
-    message(FATAL_ERROR "Missing python libraries! Neither 3.11 nor 3.10 are found in ${LIBDIR}/python")
+    set(_PYTHON_VERSION "3.12")
+    string(REPLACE "." "" _PYTHON_VERSION_NO_DOTS ${_PYTHON_VERSION})
+    if(NOT EXISTS ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS})
+      message(FATAL_ERROR "Missing python libraries! Neither 3.12 nor 3.11 are found in ${LIBDIR}/python")
+    endif()
   endif()
 endif()
 

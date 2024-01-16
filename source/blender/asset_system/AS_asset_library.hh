@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <functional>
 #include <memory>
 
 #include "AS_asset_catalog.hh"

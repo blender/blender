@@ -786,12 +786,9 @@ template<typename T> class VMutableArray;
  * construct the virtual array first and then move it into the vector.
  */
 namespace varray_tag {
-struct span {
-};
-struct single_ref {
-};
-struct single {
-};
+struct span {};
+struct single_ref {};
+struct single {};
 }  // namespace varray_tag
 
 /**
@@ -948,7 +945,7 @@ template<typename T> class VMutableArray : public VArrayCommon<T> {
   }
 
   /** Convert to a #VArray by moving. */
-  operator VArray<T>() &&noexcept
+  operator VArray<T>() && noexcept
   {
     VArray<T> varray;
     varray.move_from(std::move(*this));

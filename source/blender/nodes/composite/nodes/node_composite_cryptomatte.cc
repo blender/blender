@@ -32,7 +32,7 @@
 #include "BKE_cryptomatte.hh"
 #include "BKE_global.h"
 #include "BKE_image.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_library.hh"
 #include "BKE_main.hh"
 
@@ -319,12 +319,12 @@ static bool node_poll_cryptomatte(const bNodeType * /*ntype*/,
     }
 
     if (scene == nullptr) {
-      *r_disabled_hint = TIP_(
+      *r_disabled_hint = RPT_(
           "The node tree must be the compositing node tree of any scene in the file");
     }
     return scene != nullptr;
   }
-  *r_disabled_hint = TIP_("Not a compositor node tree");
+  *r_disabled_hint = RPT_("Not a compositor node tree");
   return false;
 }
 
@@ -528,7 +528,8 @@ class CryptoMatteOperation : public NodeOperation {
          * unnamed, that is, in the case of mono rendering, in which case we just return the first
          * view. */
         if (!context().get_view_name().is_empty() &&
-            context().get_view_name() != render_pass->view) {
+            context().get_view_name() != render_pass->view)
+        {
           continue;
         }
 

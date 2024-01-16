@@ -38,7 +38,8 @@ class Background {
       background_type = BG_CHECKER;
     }
     else if (state.v3d->shading.background_type == V3D_SHADING_BACKGROUND_WORLD &&
-             state.scene->world) {
+             state.scene->world)
+    {
       background_type = BG_SOLID;
       /* TODO(fclem): this is a scene referred linear color. we should convert
        * it to display linear here. */

@@ -508,7 +508,8 @@ IndexMask IndexMask::from_indices(const Span<T> indices, IndexMaskMemory &memory
     return {};
   }
   if (const std::optional<IndexRange> range = unique_sorted_indices::non_empty_as_range_try(
-          indices)) {
+          indices))
+  {
     /* Fast case when the indices encode a single range. */
     return *range;
   }
@@ -743,7 +744,9 @@ std::optional<RawMaskIterator> IndexMask::find(const int64_t query_index) const
   if (local_segment[index_in_segment] != local_query_index) {
     return std::nullopt;
   }
-  return RawMaskIterator{segment_i, int16_t(index_in_segment)};
+  const int64_t actual_index_in_segment = index_in_segment +
+                                          (segment_i == 0 ? begin_index_in_segment_ : 0);
+  return RawMaskIterator{segment_i, int16_t(actual_index_in_segment)};
 }
 
 bool IndexMask::contains(const int64_t query_index) const

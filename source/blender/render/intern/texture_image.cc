@@ -26,7 +26,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math_color.h"
-#include "BLI_math_interp.h"
+#include "BLI_math_interp.hh"
 #include "BLI_math_vector.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"

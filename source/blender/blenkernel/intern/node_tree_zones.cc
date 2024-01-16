@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <iostream>
+
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_zones.hh"
@@ -154,7 +156,8 @@ static bool update_zone_per_node(const Span<const bNode *> all_nodes,
         return;
       }
       for (bNodeTreeZone *iter_zone = zone->parent_zone; iter_zone;
-           iter_zone = iter_zone->parent_zone) {
+           iter_zone = iter_zone->parent_zone)
+      {
         if (iter_zone == parent_zone) {
           /* This zone is nested in the parent zone, so it becomes the new parent of the node. */
           parent_zone = zone;
@@ -193,6 +196,9 @@ static void update_zone_border_links(const bNodeTree &tree, bNodeTreeZones &tree
       continue;
     }
     if (link->is_muted()) {
+      continue;
+    }
+    if (bke::nodeIsDanglingReroute(&tree, link->fromnode)) {
       continue;
     }
     bNodeTreeZone *from_zone = const_cast<bNodeTreeZone *>(
@@ -347,6 +353,7 @@ static std::unique_ptr<bNodeTreeZones> discover_tree_zones(const bNodeTree &tree
 
   update_zone_border_links(tree, *tree_zones);
 
+  // std::cout << *tree_zones << std::endl;
   return tree_zones;
 }
 
@@ -516,6 +523,39 @@ const bNodeZoneType *zone_type_by_node_type(const int node_type)
     }
   }
   return nullptr;
+}
+
+std::ostream &operator<<(std::ostream &stream, const bNodeTreeZones &zones)
+{
+  for (const std::unique_ptr<bNodeTreeZone> &zone : zones.zones) {
+    stream << *zone;
+    if (zones.zones.last().get() != zone.get()) {
+      stream << "\n";
+    }
+  }
+  return stream;
+}
+
+std::ostream &operator<<(std::ostream &stream, const bNodeTreeZone &zone)
+{
+  stream << zone.index << ": Parent index: ";
+  if (zone.parent_zone != nullptr) {
+    stream << zone.parent_zone->index;
+  }
+  else {
+    stream << "*";
+  }
+
+  stream << "; Input: " << (zone.input_node ? zone.input_node->name : "null");
+  stream << ", Output: " << (zone.output_node ? zone.output_node->name : "null");
+
+  stream << "; Border Links: {\n";
+  for (const bNodeLink *border_link : zone.border_links) {
+    stream << "  " << border_link->fromnode->name << ": " << border_link->fromsock->name << " -> ";
+    stream << border_link->tonode->name << ": " << border_link->tosock->name << ";\n";
+  }
+  stream << "}.";
+  return stream;
 }
 
 }  // namespace blender::bke

@@ -325,6 +325,13 @@ static StructRNA *rna_KeyingSetInfo_register(Main *bmain,
   /* check if we have registered this info before, and remove it */
   ksi = ANIM_keyingset_info_find_name(dummy_ksi.idname);
   if (ksi) {
+    BKE_reportf(reports,
+                RPT_INFO,
+                "%s '%s', bl_idname '%s' has been registered before, unregistering previous",
+                error_prefix,
+                identifier,
+                dummy_ksi.idname);
+
     StructRNA *srna = ksi->rna_ext.srna;
     if (!(srna && rna_KeyingSetInfo_unregister(bmain, srna))) {
       BKE_reportf(reports,
@@ -452,7 +459,8 @@ static void rna_KeyingSet_name_set(PointerRNA *ptr, const char *value)
            * conflicts
            */
           for (agrp = static_cast<bActionGroup *>(adt->action->groups.first); agrp;
-               agrp = agrp->next) {
+               agrp = agrp->next)
+          {
             if (STREQ(ks->name, agrp->name)) {
               /* there should only be one of these in the action, so can stop... */
               STRNCPY(agrp->name, value);

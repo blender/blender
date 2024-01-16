@@ -941,7 +941,10 @@ void ShadowModule::end_sync()
   /* Allocate new tile-maps and fill shadow data of the lights. */
   tilemap_pool.tilemaps_data.clear();
   for (Light &light : inst_.lights.light_map_.values()) {
-    if (light.directional != nullptr) {
+    if (enabled_ == false) {
+      light.tilemap_index = LIGHT_NO_SHADOW;
+    }
+    else if (light.directional != nullptr) {
       light.directional->end_sync(light, inst_.camera, lod_bias_);
     }
     else if (light.punctual != nullptr) {
@@ -1265,6 +1268,11 @@ float ShadowModule::tilemap_pixel_radius()
 
 void ShadowModule::set_view(View &view, GPUTexture *depth_tx)
 {
+  if (enabled_ == false) {
+    /* All lights have been tagged to have no shadow. */
+    return;
+  }
+
   GPUFrameBuffer *prev_fb = GPU_framebuffer_active_get();
 
   src_depth_tx_ = depth_tx;
@@ -1292,7 +1300,7 @@ void ShadowModule::set_view(View &view, GPUTexture *depth_tx)
     render_fb_.ensure(fb_size);
   }
   else if (shadow_technique == ShadowTechnique::TILE_COPY) {
-    /* Create memoryless depth attachment for on-tile surface depth accumulation.*/
+    /* Create memoryless depth attachment for on-tile surface depth accumulation. */
     shadow_depth_fb_tx_.ensure_2d_array(GPU_DEPTH_COMPONENT32F, fb_size, fb_layers, usage);
     shadow_depth_accum_tx_.ensure_2d_array(GPU_R32F, fb_size, fb_layers, usage);
     render_fb_.ensure(GPU_ATTACHMENT_TEXTURE(shadow_depth_fb_tx_),
@@ -1319,7 +1327,7 @@ void ShadowModule::set_view(View &view, GPUTexture *depth_tx)
       statistics_buf_.current().async_flush_to_host();
 
       /* Isolate shadow update into own command buffer.
-       * If parameter buffer exceeds limits, then other work will not be impacted.  */
+       * If parameter buffer exceeds limits, then other work will not be impacted. */
       bool use_flush = (shadow_technique == ShadowTechnique::TILE_COPY) &&
                        (GPU_backend_get_type() == GPU_BACKEND_METAL);
 

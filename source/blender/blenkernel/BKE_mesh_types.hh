@@ -84,13 +84,11 @@ struct LooseGeomCache {
 /**
  * Cache of a mesh's loose edges, accessed with #Mesh::loose_edges(). *
  */
-struct LooseEdgeCache : public LooseGeomCache {
-};
+struct LooseEdgeCache : public LooseGeomCache {};
 /**
  * Cache of a mesh's loose vertices or vertices not used by faces.
  */
-struct LooseVertCache : public LooseGeomCache {
-};
+struct LooseVertCache : public LooseGeomCache {};
 
 struct MeshRuntime {
   /* Evaluated mesh for objects which do not have effective modifiers.
@@ -172,9 +170,9 @@ struct MeshRuntime {
 
   /** Lazily computed vertex normals (#Mesh::vert_normals()). */
   SharedCache<Vector<float3>> vert_normals_cache;
-  /** Lazily computed face normals (#Mesh::vert_normals()). */
+  /** Lazily computed face normals (#Mesh::face_normals()). */
   SharedCache<Vector<float3>> face_normals_cache;
-  /** Lazily computed face corner normals (#Mesh::vert_normals()). */
+  /** Lazily computed face corner normals (#Mesh::corner_normals()). */
   SharedCache<Vector<float3>> corner_normals_cache;
 
   /**

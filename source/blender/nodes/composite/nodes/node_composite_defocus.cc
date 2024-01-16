@@ -137,8 +137,8 @@ class DefocusOperation : public NodeOperation {
 
     radius.bind_as_texture(shader, "radius_tx");
 
-    bokeh_kernel.bind_as_texture(shader, "weights_tx");
     GPU_texture_filter_mode(bokeh_kernel.texture(), true);
+    bokeh_kernel.bind_as_texture(shader, "weights_tx");
 
     const Domain domain = compute_domain();
     output.allocate_texture(domain);
@@ -256,7 +256,7 @@ class DefocusOperation : public NodeOperation {
   }
 
   /* Computes the distance in meters to the image of the focus point across a lens of the specified
-   * focal length. This computes Vp in equation (7) of the paper:
+   * focal length. This computes `Vp` in equation (7) of the paper:
    *
    *   Potmesil, Michael, and Indranil Chakravarty. "A lens and aperture camera model for synthetic
    *   image generation." ACM SIGGRAPH Computer Graphics 15.3 (1981): 297-305. */

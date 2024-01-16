@@ -1014,6 +1014,83 @@ BLI_STATIC_ASSERT_ALIGN(ShadowSceneData, 16)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Light-probe Sphere
+ * \{ */
+
+struct ReflectionProbeLowFreqLight {
+  packed_float3 direction;
+  float ambient;
+};
+BLI_STATIC_ASSERT_ALIGN(ReflectionProbeLowFreqLight, 16)
+
+enum LightProbeShape : uint32_t {
+  SHAPE_ELIPSOID = 0u,
+  SHAPE_CUBOID = 1u,
+};
+
+struct ReflectionProbeCoordinate {
+  /* Offset in UV space to the start of the sampling space of the octahedron map. */
+  float2 offset;
+  /* Scaling of the squared UV space of the octahedron map. */
+  float scale;
+  /* Layer of the atlas where the octahedron map is stored. */
+  float layer;
+};
+BLI_STATIC_ASSERT_ALIGN(ReflectionProbeCoordinate, 16)
+
+struct ReflectionProbeWriteCoordinate {
+  /* Offset in pixel space to the start of the writing space of the octahedron map.
+   * Note that the writing space is not the same as the sampling space as we have borders. */
+  int2 offset;
+  /* Size of the area in pixel that is covered by this probe mip-map. */
+  int extent;
+  /* Layer of the atlas where the octahedron map is stored. */
+  int layer;
+};
+BLI_STATIC_ASSERT_ALIGN(ReflectionProbeWriteCoordinate, 16)
+
+/** Mapping data to locate a reflection probe in texture. */
+struct ReflectionProbeData {
+  /** Transform to probe local position with non-uniform scaling. */
+  float3x4 world_to_probe_transposed;
+
+  packed_float3 location;
+  float _pad2;
+
+  /** Shape of the parallax projection. */
+  LightProbeShape parallax_shape;
+  LightProbeShape influence_shape;
+  float parallax_distance;
+  /** Influence factor based on the distance to the parallax shape. */
+  float influence_scale;
+  float influence_bias;
+  /** LOD factor for mipmap selection. */
+  float lod_factor;
+  float _pad0;
+  float _pad1;
+
+  ReflectionProbeCoordinate atlas_coord;
+
+  /**
+   * Irradiance at the probe location encoded as spherical harmonics.
+   * Only contain the average luminance. Used for cube-map normalization.
+   */
+  ReflectionProbeLowFreqLight low_freq_light;
+};
+BLI_STATIC_ASSERT_ALIGN(ReflectionProbeData, 16)
+
+/** Viewport Display Pass. */
+struct ReflectionProbeDisplayData {
+  int probe_index;
+  float display_size;
+  float _pad0;
+  float _pad1;
+};
+BLI_STATIC_ASSERT_ALIGN(ReflectionProbeDisplayData, 16)
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Irradiance Cache
  * \{ */
 
@@ -1105,8 +1182,7 @@ struct CaptureInfoData {
   bool1 capture_emission;
   int _pad0;
   /* World light probe atlas coordinate. */
-  /* TODO(fclem): Remove this silly aliasing. */
-  int4 world_atlas_coord;
+  ReflectionProbeCoordinate world_atlas_coord;
 };
 BLI_STATIC_ASSERT_ALIGN(CaptureInfoData, 16)
 
@@ -1206,7 +1282,7 @@ enum GBufferMode : uint32_t {
   GBUF_REFRACTION_COLORLESS = 13u,
 
   /** Special configurations. Packs multiple closures into less layer. */
-  /* TODO(fclem): This is isn't currently working due to monolitic nature of the evaluation. */
+  /* TODO(@fclem): This is isn't currently working due to monolithic nature of the evaluation. */
   GBUF_METAL_CLEARCOAT = 15u,
 
   /** IMPORTANT: Needs to be less than 16 for correct packing in g-buffer header. */
@@ -1235,10 +1311,11 @@ struct RayTraceData {
   float roughness_mask_bias;
   /** If set to true will bypass spatial denoising. */
   bool1 skip_denoise;
+  /** If set to false will bypass tracing for refractive closures. */
+  bool1 trace_refraction;
   /** Closure being ray-traced. */
-  eClosureBits closure_active;
   int closure_index;
-  int _pad1;
+  int _pad0;
 };
 BLI_STATIC_ASSERT_ALIGN(RayTraceData, 16)
 
@@ -1322,76 +1399,8 @@ static inline float3 burley_eval(float3 d, float r)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Reflection Probes
+/** \name Light-probe Planar Data
  * \{ */
-
-struct ReflectionProbeLowFreqLight {
-  packed_float3 direction;
-  float ambient;
-};
-BLI_STATIC_ASSERT_ALIGN(ReflectionProbeLowFreqLight, 16)
-
-enum LightProbeShape : uint32_t {
-  SHAPE_ELIPSOID = 0u,
-  SHAPE_CUBOID = 1u,
-};
-
-struct ReflectionProbeAtlasCoordinate {
-  /** On which layer of the texture array is this reflection probe stored. */
-  int layer;
-  /**
-   * Subdivision of the layer. 0 = no subdivision and resolution would be
-   * ReflectionProbeModule::MAX_RESOLUTION.
-   */
-  int layer_subdivision;
-  /**
-   * Which area of the subdivided layer is the reflection probe located.
-   *
-   * A layer has (2^layer_subdivision)^2 areas.
-   */
-  int area_index;
-  int _pad1;
-};
-BLI_STATIC_ASSERT_ALIGN(ReflectionProbeAtlasCoordinate, 16)
-
-/** Mapping data to locate a reflection probe in texture. */
-struct ReflectionProbeData {
-  /** Transform to probe local position with non-uniform scaling. */
-  float3x4 world_to_probe_transposed;
-
-  packed_float3 location;
-  float _pad2;
-
-  /** Shape of the parallax projection. */
-  LightProbeShape parallax_shape;
-  LightProbeShape influence_shape;
-  float parallax_distance;
-  /** Influence factor based on the distance to the parallax shape. */
-  float influence_scale;
-  float influence_bias;
-  /** LOD factor for mipmap selection. */
-  float lod_factor;
-  float _pad0;
-  float _pad1;
-
-  ReflectionProbeAtlasCoordinate atlas_coord;
-
-  /**
-   * Irradiance at the probe location encoded as spherical harmonics.
-   * Only contain the average luminance. Used for cube-map normalization.
-   */
-  ReflectionProbeLowFreqLight low_freq_light;
-};
-BLI_STATIC_ASSERT_ALIGN(ReflectionProbeData, 16)
-
-/** Viewport Display Pass. */
-struct ReflectionProbeDisplayData {
-  int probe_index;
-  float display_size;
-  float _pad0;
-  float _pad1;
-};
-BLI_STATIC_ASSERT_ALIGN(ReflectionProbeDisplayData, 16)
 
 struct ProbePlanarData {
   /** Matrices used to render the planar capture. */
@@ -1423,6 +1432,7 @@ struct ProbePlanarDisplayData {
 BLI_STATIC_ASSERT_ALIGN(ProbePlanarDisplayData, 16)
 
 /** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Pipeline Data
  * \{ */
@@ -1436,6 +1446,7 @@ struct PipelineInfoData {
 BLI_STATIC_ASSERT_ALIGN(PipelineInfoData, 16)
 
 /** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Uniform Data
  * \{ */

@@ -21,7 +21,7 @@
 #include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_idprop.h"
 #include "BKE_layer.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
@@ -41,7 +41,7 @@
 #include "ED_object.hh"
 #include "ED_screen.hh"
 
-#include "DRW_engine.h"
+#include "DRW_engine.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"

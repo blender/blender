@@ -55,7 +55,7 @@
 #include "BKE_icons.h"
 #include "BKE_idtype.h"
 #include "BKE_image.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_lib_query.h"
 #include "BKE_main.hh"
 #include "BKE_material.h"
@@ -823,6 +823,33 @@ void BKE_id_material_eval_ensure_default_slot(ID *id)
   }
 }
 
+int BKE_object_material_index_get(Object *ob, Material *ma)
+{
+  short *totcol = BKE_object_material_len_p(ob);
+  Material *read_ma = nullptr;
+  for (short i = 0; i < *totcol; i++) {
+    read_ma = BKE_object_material_get(ob, i + 1);
+    if (ma == read_ma) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+int BKE_object_material_ensure(Main *bmain, Object *ob, Material *material)
+{
+  if (!material) {
+    return -1;
+  }
+  int index = BKE_object_material_index_get(ob, material);
+  if (index < 0) {
+    BKE_object_material_slot_add(bmain, ob);
+    BKE_object_material_assign(bmain, ob, material, ob->totcol, BKE_MAT_ASSIGN_USERPREF);
+    return ob->totcol - 1;
+  }
+  return index;
+}
+
 Material *BKE_gpencil_material(Object *ob, short act)
 {
   Material *ma = BKE_object_material_get(ob, act);
@@ -927,7 +954,8 @@ void BKE_objects_materials_test_all(Main *bmain, ID *id)
   BKE_main_lock(bmain);
   int processed_objects = 0;
   for (ob = static_cast<Object *>(bmain->objects.first); ob;
-       ob = static_cast<Object *>(ob->id.next)) {
+       ob = static_cast<Object *>(ob->id.next))
+  {
     if (ob->data == id) {
       BKE_object_material_resize(bmain, ob, *totcol, false);
       processed_objects++;

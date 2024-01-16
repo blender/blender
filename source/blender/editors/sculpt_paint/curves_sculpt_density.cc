@@ -160,8 +160,7 @@ struct DensityAddOperationExecutor {
     brush_radius_re_ = brush_radius_get(*ctx_.scene, *brush_, stroke_extension);
     brush_pos_re_ = stroke_extension.mouse_position;
 
-    const eBrushFalloffShape falloff_shape = static_cast<eBrushFalloffShape>(
-        brush_->falloff_shape);
+    const eBrushFalloffShape falloff_shape = eBrushFalloffShape(brush_->falloff_shape);
 
     Vector<float3> new_positions_cu;
     Vector<float2> new_uvs;
@@ -565,8 +564,7 @@ struct DensitySubtractOperationExecutor {
     curve_selection_ = curves::retrieve_selected_curves(*curves_id_, selected_curve_memory_);
 
     transforms_ = CurvesSurfaceTransforms(*object_, curves_id_->surface);
-    const eBrushFalloffShape falloff_shape = static_cast<eBrushFalloffShape>(
-        brush_->falloff_shape);
+    const eBrushFalloffShape falloff_shape = eBrushFalloffShape(brush_->falloff_shape);
 
     if (stroke_extension.is_first) {
       const bke::crazyspace::GeometryDeformation deformation =
@@ -802,7 +800,7 @@ static bool use_add_density_mode(const BrushStrokeMode brush_mode,
   const ARegion &region = *CTX_wm_region(&C);
   const View3D &v3d = *CTX_wm_view3d(&C);
 
-  const eBrushCurvesSculptDensityMode density_mode = static_cast<eBrushCurvesSculptDensityMode>(
+  const eBrushCurvesSculptDensityMode density_mode = eBrushCurvesSculptDensityMode(
       brush.curves_sculpt_settings->density_mode);
   const bool use_invert = brush_mode == BRUSH_STROKE_INVERT;
 

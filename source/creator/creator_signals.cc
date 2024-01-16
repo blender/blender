@@ -57,7 +57,7 @@
 
 // #define USE_WRITE_CRASH_BLEND
 #  ifdef USE_WRITE_CRASH_BLEND
-#    include "BKE_undo_system.h"
+#    include "BKE_undo_system.hh"
 #    include "BLO_undofile.hh"
 #  endif
 

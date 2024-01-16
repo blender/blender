@@ -150,21 +150,21 @@ typedef void *(*BMIter__step_cb)(void *);
 /* Iterator Structure */
 /* NOTE: some of these vars are not used,
  * so they have been commented to save stack space since this struct is used all over */
-typedef struct BMIter {
+struct BMIter {
   /* keep union first */
   union {
-    struct BMIter__elem_of_mesh elem_of_mesh;
+    BMIter__elem_of_mesh elem_of_mesh;
 
-    struct BMIter__edge_of_vert edge_of_vert;
-    struct BMIter__face_of_vert face_of_vert;
-    struct BMIter__loop_of_vert loop_of_vert;
-    struct BMIter__loop_of_edge loop_of_edge;
-    struct BMIter__loop_of_loop loop_of_loop;
-    struct BMIter__face_of_edge face_of_edge;
-    struct BMIter__vert_of_edge vert_of_edge;
-    struct BMIter__vert_of_face vert_of_face;
-    struct BMIter__edge_of_face edge_of_face;
-    struct BMIter__loop_of_face loop_of_face;
+    BMIter__edge_of_vert edge_of_vert;
+    BMIter__face_of_vert face_of_vert;
+    BMIter__loop_of_vert loop_of_vert;
+    BMIter__loop_of_edge loop_of_edge;
+    BMIter__loop_of_loop loop_of_loop;
+    BMIter__face_of_edge face_of_edge;
+    BMIter__vert_of_edge vert_of_edge;
+    BMIter__vert_of_face vert_of_face;
+    BMIter__edge_of_face edge_of_face;
+    BMIter__loop_of_face loop_of_face;
   } data;
 
   BMIter__begin_cb begin;
@@ -172,7 +172,7 @@ typedef struct BMIter {
 
   int count; /* NOTE: only some iterators set this, don't rely on it. */
   char itype;
-} BMIter;
+};
 
 /**
  * \note Use #BM_vert_at_index / #BM_edge_at_index / #BM_face_at_index for mesh arrays.

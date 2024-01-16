@@ -101,7 +101,8 @@ void NodeTransform::accept(SceneVisitor &v)
 
   v.visitNodeTransformBefore(*this);
   for (vector<Node *>::iterator node = _Children.begin(), end = _Children.end(); node != end;
-       ++node) {
+       ++node)
+  {
     (*node)->accept(v);
   }
   v.visitNodeTransformAfter(*this);

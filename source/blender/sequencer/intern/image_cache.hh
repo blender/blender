@@ -13,16 +13,17 @@
 struct ImBuf;
 struct Main;
 struct Scene;
+struct SeqCache;
 struct SeqRenderData;
 struct Sequence;
 
 struct SeqCacheKey {
-  struct SeqCache *cache_owner;
+  SeqCache *cache_owner;
   void *userkey;
-  struct SeqCacheKey *link_prev; /* Used for linking intermediate items to final frame. */
-  struct SeqCacheKey *link_next; /* Used for linking intermediate items to final frame. */
-  struct Sequence *seq;
-  struct SeqRenderData context;
+  SeqCacheKey *link_prev; /* Used for linking intermediate items to final frame. */
+  SeqCacheKey *link_next; /* Used for linking intermediate items to final frame. */
+  Sequence *seq;
+  SeqRenderData context;
   float frame_index;    /* Usually same as timeline_frame. Mapped to media for RAW entries. */
   float timeline_frame; /* Only for reference - used for freeing when cache is full. */
   float cost;           /* In short: render time(s) divided by playback frame duration(s) */

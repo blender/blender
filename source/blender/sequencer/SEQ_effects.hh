@@ -33,7 +33,7 @@ struct SeqEffectHandle {
 
   /* number of input strips needed
    * (called directly after construction) */
-  int (*num_inputs)(void);
+  int (*num_inputs)();
 
   /* load is called first time after readblenfile in
    * get_sequence_effect automatically */

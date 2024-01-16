@@ -31,7 +31,7 @@
 
 #include "UI_resources.hh"
 
-#include "DRW_engine.h"
+#include "DRW_engine.hh"
 
 #include "view3d_intern.h" /* bad level include */
 

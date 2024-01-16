@@ -37,7 +37,7 @@ enum eSubdivFVarLinearInterpolation {
 };
 
 struct SubdivSettings {
-  /* Simple subdivision corresponds to "Simple" option in the interface. When it's enabled the
+  /* Simple subdivision corresponds to "Simple" option in the interface. When it's enabled, the
    * subdivided mesh is not "smoothed": new vertices are added uniformly on the existing surface.
    *
    * On an OpenSubdiv implementation level this translates to a subdivision scheme:

@@ -54,6 +54,7 @@ vec3 coordinate_incoming(vec3 P);
 
 /* Single BSDFs. */
 Closure closure_eval(ClosureDiffuse diffuse);
+Closure closure_eval(ClosureSubsurface diffuse);
 Closure closure_eval(ClosureTranslucent translucent);
 Closure closure_eval(ClosureReflection reflection);
 Closure closure_eval(ClosureRefraction refraction);
@@ -66,7 +67,7 @@ Closure closure_eval(ClosureHair hair);
 /* Glass BSDF. */
 Closure closure_eval(ClosureReflection reflection, ClosureRefraction refraction);
 /* Dielectric BSDF. */
-Closure closure_eval(ClosureDiffuse diffuse, ClosureReflection reflection);
+Closure closure_eval(ClosureSubsurface diffuse, ClosureReflection reflection);
 /* Coat BSDF. */
 Closure closure_eval(ClosureReflection reflection, ClosureReflection coat);
 /* Volume BSDF. */
@@ -74,9 +75,11 @@ Closure closure_eval(ClosureVolumeScatter volume_scatter,
                      ClosureVolumeAbsorption volume_absorption,
                      ClosureEmission emission);
 /* Specular BSDF. */
-Closure closure_eval(ClosureDiffuse diffuse, ClosureReflection reflection, ClosureReflection coat);
+Closure closure_eval(ClosureSubsurface diffuse,
+                     ClosureReflection reflection,
+                     ClosureReflection coat);
 /* Principled BSDF. */
-Closure closure_eval(ClosureDiffuse diffuse,
+Closure closure_eval(ClosureSubsurface diffuse,
                      ClosureReflection reflection,
                      ClosureReflection coat,
                      ClosureRefraction refraction);

@@ -513,7 +513,8 @@ void BM_mesh_decimate_dissolve_ex(BMesh *bm,
               do {
                 const int j = BM_elem_index_get(l_cycle_iter->v);
                 if (j != -1 && vheap_table[j] &&
-                    (BLI_heap_node_value(vheap_table[j]) == COST_INVALID)) {
+                    (BLI_heap_node_value(vheap_table[j]) == COST_INVALID))
+                {
                   const float cost = bm_vert_edge_face_angle(
                       l_cycle_iter->v, delimit, &delimit_data);
                   BLI_heap_node_value_update(vheap, vheap_table[j], cost);

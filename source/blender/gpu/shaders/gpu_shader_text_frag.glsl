@@ -4,7 +4,7 @@
 
 #pragma BLENDER_REQUIRE(gpu_shader_colorspace_lib.glsl)
 
-//#define GPU_NEAREST
+// #define GPU_NEAREST
 #define sample_glyph_offset(texel, ofs) \
   texture_1D_custom_bilinear_filter(texCoord_interp + ofs * texel)
 

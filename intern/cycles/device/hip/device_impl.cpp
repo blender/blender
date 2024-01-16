@@ -116,6 +116,9 @@ HIPDevice::HIPDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler)
   hipDeviceGetAttribute(&minor, hipDeviceAttributeComputeCapabilityMinor, hipDevId);
   hipDevArchitecture = major * 100 + minor * 10;
 
+  /* Get hip runtime Version needed for memory types. */
+  hip_assert(hipRuntimeGetVersion(&hipRuntimeVersion));
+
   /* Pop context set by hipCtxCreate. */
   hipCtxPopCurrent(NULL);
 }
@@ -745,9 +748,9 @@ void HIPDevice::tex_alloc(device_texture &mem)
 
     HIP_MEMCPY3D param;
     memset(&param, 0, sizeof(HIP_MEMCPY3D));
-    param.dstMemoryType = hipMemoryTypeArray;
+    param.dstMemoryType = get_memory_type(hipMemoryTypeArray);
     param.dstArray = array_3d;
-    param.srcMemoryType = hipMemoryTypeHost;
+    param.srcMemoryType = get_memory_type(hipMemoryTypeHost);
     param.srcHost = mem.host_pointer;
     param.srcPitch = src_pitch;
     param.WidthInBytes = param.srcPitch;
@@ -777,10 +780,10 @@ void HIPDevice::tex_alloc(device_texture &mem)
 
     hip_Memcpy2D param;
     memset(&param, 0, sizeof(param));
-    param.dstMemoryType = hipMemoryTypeDevice;
+    param.dstMemoryType = get_memory_type(hipMemoryTypeDevice);
     param.dstDevice = mem.device_pointer;
     param.dstPitch = dst_pitch;
-    param.srcMemoryType = hipMemoryTypeHost;
+    param.srcMemoryType = get_memory_type(hipMemoryTypeHost);
     param.srcHost = mem.host_pointer;
     param.srcPitch = src_pitch;
     param.WidthInBytes = param.srcPitch;
@@ -956,6 +959,11 @@ int HIPDevice::get_device_default_attribute(hipDeviceAttribute_t attribute, int 
     return default_value;
   }
   return value;
+}
+
+hipMemoryType HIPDevice::get_memory_type(hipMemoryType mem_type)
+{
+  return get_hip_memory_type(mem_type, hipRuntimeVersion);
 }
 
 CCL_NAMESPACE_END

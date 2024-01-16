@@ -34,6 +34,7 @@ set(SRC
   intern/points_to_volume.cc
   intern/randomize.cc
   intern/realize_instances.cc
+  intern/reorder.cc
   intern/resample_curves.cc
   intern/reverse_uv_sampler.cc
   intern/set_curve_type.cc
@@ -61,6 +62,7 @@ set(SRC
   GEO_points_to_volume.hh
   GEO_randomize.hh
   GEO_realize_instances.hh
+  GEO_reorder.hh
   GEO_resample_curves.hh
   GEO_reverse_uv_sampler.hh
   GEO_set_curve_type.hh

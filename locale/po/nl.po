@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'98c6bded9844')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'acbb91b192da')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-02 10:08:43\n"
+"POT-Creation-Date: 2024-01-15 10:52:30\n"
 "PO-Revision-Date: 2023-12-21 01:55+0000\n"
 "Last-Translator: Lisa <blendergirl@tutanota.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -830,6 +830,10 @@ msgid "Bones"
 msgstr "Botten"
 
 
+msgid "Index"
+msgstr "Index"
+
+
 msgid "Visible"
 msgstr "Zichtbaar"
 
@@ -1197,10 +1201,6 @@ msgstr "Vlak"
 
 msgid "View"
 msgstr "Weergave"
-
-
-msgid "Index"
-msgstr "Index"
 
 
 msgid "Segments"
@@ -8991,6 +8991,14 @@ msgid "Choose Screen layout"
 msgstr "Kies Scherm indeling"
 
 
+msgid "Today"
+msgstr "Vandaag"
+
+
+msgid "Yesterday"
+msgstr "Gisteren"
+
+
 msgctxt "Object"
 msgid "New"
 msgstr "Nieuw"
@@ -9287,14 +9295,6 @@ msgid "Active Keyframe"
 msgstr "Actieve Sleutelframe"
 
 
-msgid "Today"
-msgstr "Vandaag"
-
-
-msgid "Yesterday"
-msgstr "Gisteren"
-
-
 msgid "File does not exist"
 msgstr "Bestand bestaat niet"
 
@@ -9548,12 +9548,12 @@ msgid "Don't Save"
 msgstr "Niet Opslaan"
 
 
-msgid "unable to open the file"
-msgstr "kan het bestand niet openen"
-
-
 msgid "File Not Found"
 msgstr "Bestand Niet Gevonden"
+
+
+msgid "unable to open the file"
+msgstr "kan het bestand niet openen"
 
 
 msgid "This may lead to unexpected behavior"

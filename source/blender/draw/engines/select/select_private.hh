@@ -10,7 +10,7 @@
 
 #define USE_CAGE_OCCLUSION
 
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 /* GPUViewport.storage
  * Is freed every time the viewport engine changes. */

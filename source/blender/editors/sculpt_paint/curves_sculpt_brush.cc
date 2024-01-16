@@ -403,34 +403,32 @@ CurvesSculptCommonContext::CurvesSculptCommonContext(const bContext &C)
 
 void report_empty_original_surface(ReportList *reports)
 {
-  BKE_report(reports, RPT_WARNING, TIP_("Original surface mesh is empty"));
+  BKE_report(reports, RPT_WARNING, "Original surface mesh is empty");
 }
 
 void report_empty_evaluated_surface(ReportList *reports)
 {
-  BKE_report(reports, RPT_WARNING, TIP_("Evaluated surface mesh is empty"));
+  BKE_report(reports, RPT_WARNING, "Evaluated surface mesh is empty");
 }
 
 void report_missing_surface(ReportList *reports)
 {
-  BKE_report(reports, RPT_WARNING, TIP_("Missing surface mesh"));
+  BKE_report(reports, RPT_WARNING, "Missing surface mesh");
 }
 
 void report_missing_uv_map_on_original_surface(ReportList *reports)
 {
-  BKE_report(
-      reports, RPT_WARNING, TIP_("Missing UV map for attaching curves on original surface"));
+  BKE_report(reports, RPT_WARNING, "Missing UV map for attaching curves on original surface");
 }
 
 void report_missing_uv_map_on_evaluated_surface(ReportList *reports)
 {
-  BKE_report(
-      reports, RPT_WARNING, TIP_("Missing UV map for attaching curves on evaluated surface"));
+  BKE_report(reports, RPT_WARNING, "Missing UV map for attaching curves on evaluated surface");
 }
 
 void report_invalid_uv_map(ReportList *reports)
 {
-  BKE_report(reports, RPT_WARNING, TIP_("Invalid UV map: UV islands must not overlap"));
+  BKE_report(reports, RPT_WARNING, "Invalid UV map: UV islands must not overlap");
 }
 
 void CurvesConstraintSolver::initialize(const bke::CurvesGeometry &curves,

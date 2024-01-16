@@ -27,7 +27,7 @@
 #include "BKE_context.hh"
 #include "BKE_deform.h"
 #include "BKE_editmesh.hh"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_screen.hh"
@@ -610,7 +610,8 @@ static void correctivesmooth_modifier_do(ModifierData *md,
   }
 
   if ((csmd->rest_source == MOD_CORRECTIVESMOOTH_RESTSOURCE_BIND) &&
-      (csmd->bind_coords == nullptr)) {
+      (csmd->bind_coords == nullptr))
+  {
     BKE_modifier_set_error(ob, md, "Bind data required");
     goto error;
   }

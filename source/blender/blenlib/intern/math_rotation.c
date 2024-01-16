@@ -21,6 +21,14 @@
 #  define QUAT_EPSILON 0.0001
 #endif
 
+/**
+ * The threshold for using a zeroed 3rd (typically Z) value when calculating the euler.
+ * NOTE(@ideasman42): A reasonable range for this value is (0.0002 .. 0.00002).
+ * This was previously `16 * FLT_EPSILON` however it caused imprecision at times,
+ * see examples from: #116880.
+ */
+#define EULER_HYPOT_EPSILON 0.0000375
+
 void unit_axis_angle(float axis[3], float *angle)
 {
   axis[0] = 0.0f;
@@ -1392,8 +1400,7 @@ static void mat3_normalized_to_eul2(const float mat[3][3], float eul1[3], float 
 
   BLI_ASSERT_UNIT_M3(mat);
 
-  if (cy > 16.0f * FLT_EPSILON) {
-
+  if (cy > (float)EULER_HYPOT_EPSILON) {
     eul1[0] = atan2f(mat[1][2], mat[2][2]);
     eul1[1] = atan2f(-mat[0][2], cy);
     eul1[2] = atan2f(mat[0][1], mat[0][0]);
@@ -1727,7 +1734,7 @@ static void mat3_normalized_to_eulo2(const float mat[3][3],
 
   cy = hypotf(mat[i][i], mat[i][j]);
 
-  if (cy > 16.0f * FLT_EPSILON) {
+  if (cy > (float)EULER_HYPOT_EPSILON) {
     eul1[i] = atan2f(mat[j][k], mat[k][k]);
     eul1[j] = atan2f(-mat[i][k], cy);
     eul1[k] = atan2f(mat[i][j], mat[i][i]);

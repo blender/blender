@@ -61,6 +61,10 @@ ccl_device_inline float atomic_compare_and_swap_float(volatile float *dest,
 ccl_device_inline float atomic_add_and_fetch_float(volatile ccl_global float *_source,
                                                    const float operand)
 {
+#    if __METAL_VERSION__ >= 300
+  return atomic_fetch_add_explicit(
+      (ccl_global atomic_float *)_source, operand, memory_order_relaxed);
+#    else
   volatile ccl_global atomic_int *source = (ccl_global atomic_int *)_source;
   union {
     int int_value;
@@ -76,6 +80,7 @@ ccl_device_inline float atomic_add_and_fetch_float(volatile ccl_global float *_s
                                                   memory_order_relaxed));
 
   return new_value.float_value;
+#    endif
 }
 
 template<class T> ccl_device_inline uint32_t atomic_fetch_and_add_uint32(device T *p, int x)
@@ -132,6 +137,15 @@ ccl_device_inline float atomic_compare_and_swap_float(volatile ccl_global float 
                                                       const float old_val,
                                                       const float new_val)
 {
+#    if __METAL_VERSION__ >= 300
+  float prev_value = old_val;
+  atomic_compare_exchange_weak_explicit((ccl_global atomic_float *)dest,
+                                        &prev_value,
+                                        new_val,
+                                        memory_order_relaxed,
+                                        memory_order_relaxed);
+  return prev_value;
+#    else
   int prev_value;
   prev_value = __float_as_int(old_val);
   atomic_compare_exchange_weak_explicit((ccl_global atomic_int *)dest,
@@ -140,6 +154,7 @@ ccl_device_inline float atomic_compare_and_swap_float(volatile ccl_global float 
                                         memory_order_relaxed,
                                         memory_order_relaxed);
   return __int_as_float(prev_value);
+#    endif
 }
 
 #    define atomic_store(p, x) atomic_store_explicit(p, x, memory_order_relaxed)

@@ -621,7 +621,8 @@ static void panels_collapse_all(ARegion *region, const Panel *from_panel)
     if (pt && from_pt && !(pt->flag & PANEL_TYPE_NO_HEADER)) {
       if (!pt->context[0] || !from_pt->context[0] || STREQ(pt->context, from_pt->context)) {
         if ((panel->flag & PNL_PIN) || !category || !pt->category[0] ||
-            STREQ(pt->category, category)) {
+            STREQ(pt->category, category))
+        {
           panel->flag |= PNL_CLOSED;
         }
       }
@@ -2004,6 +2005,7 @@ static void ui_panel_drag_collapse(const bContext *C,
             const_cast<bContext *>(C),
             &header.open_owner_ptr,
             RNA_struct_find_property(&header.open_owner_ptr, header.open_prop_name.c_str()));
+        ED_region_tag_redraw(region);
       }
     }
 
@@ -2108,6 +2110,7 @@ static void ui_handle_layout_panel_header(
       const_cast<bContext *>(C),
       &header->open_owner_ptr,
       RNA_struct_find_property(&header->open_owner_ptr, header->open_prop_name.c_str()));
+  ED_region_tag_redraw(CTX_wm_region(C));
 
   if (event_type == LEFTMOUSE) {
     ui_panel_drag_collapse_handler_add(C, is_open);
@@ -2267,7 +2270,8 @@ static void ui_panel_category_active_set(ARegion *region, const char *idname, bo
     while ((pc_act = pc_act_next)) {
       pc_act_next = pc_act->next;
       if (!BLI_findstring(
-              &region->type->paneltypes, pc_act->idname, offsetof(PanelType, category))) {
+              &region->type->paneltypes, pc_act->idname, offsetof(PanelType, category)))
+      {
         BLI_remlink(lb, pc_act);
         MEM_freeN(pc_act);
       }
@@ -2471,7 +2475,8 @@ int ui_handler_panel_region(bContext *C,
       /* The panel collapse / expand key "A" is special as it takes priority over
        * active button handling. */
       if (event->type == EVT_AKEY &&
-          ((event->modifier & (KM_SHIFT | KM_CTRL | KM_ALT | KM_OSKEY)) == 0)) {
+          ((event->modifier & (KM_SHIFT | KM_CTRL | KM_ALT | KM_OSKEY)) == 0))
+      {
         retval = WM_UI_HANDLER_BREAK;
         ui_handle_panel_header(
             C, block, mx, event->type, event->modifier & KM_CTRL, event->modifier & KM_SHIFT);

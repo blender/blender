@@ -651,7 +651,8 @@ void FEdgeXDetector::postProcessSuggestiveContourFace(WXFace *iFace)
 
     // For each vertex, iterate on its adjacent faces.
     for (WVertex::face_iterator fit = v->faces_begin(), fitend = v->faces_end(); fit != fitend;
-         ++fit) {
+         ++fit)
+    {
       wxf = dynamic_cast<WXFace *>(*fit);
       if (!wxf->getOppositeEdge(v, opposite_edge)) {
         continue;

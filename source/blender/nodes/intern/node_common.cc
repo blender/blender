@@ -110,13 +110,13 @@ bool nodeGroupPoll(const bNodeTree *nodetree,
 
   if (nodetree == grouptree) {
     if (r_disabled_hint) {
-      *r_disabled_hint = TIP_("Nesting a node group inside of itself is not allowed");
+      *r_disabled_hint = RPT_("Nesting a node group inside of itself is not allowed");
     }
     return false;
   }
   if (nodetree->type != grouptree->type) {
     if (r_disabled_hint) {
-      *r_disabled_hint = TIP_("Node group has different type");
+      *r_disabled_hint = RPT_("Node group has different type");
     }
     return false;
   }
@@ -624,7 +624,8 @@ bool blender::bke::node_is_connected_to_output(const bNodeTree *ntree, const bNo
     for (const bNodeSocket *socket : next_node->output_sockets()) {
       for (const bNodeLink *link : socket->directly_linked_links()) {
         if (link->tonode->typeinfo->nclass == NODE_CLASS_OUTPUT &&
-            link->tonode->flag & NODE_DO_OUTPUT) {
+            link->tonode->flag & NODE_DO_OUTPUT)
+        {
           return true;
         }
         nodes_to_check.push(link->tonode);

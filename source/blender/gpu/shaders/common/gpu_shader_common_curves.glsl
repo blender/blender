@@ -208,8 +208,8 @@ void curves_vector(vec3 vector,
                    vec3 end_slopes,
                    out vec3 result)
 {
-  /* Evaluate each component on its curve map. The componenets are first normalized into the [0, 1]
-   * range. */
+  /* Evaluate each component on its curve map.
+   * The components are first normalized into the [0, 1] range. */
   vec3 parameters = (vector - range_minimums) * range_dividers;
   vec3 coordinates = compute_curve_map_coordinates(parameters);
   result.x = texture(curve_map, vec2(coordinates.x, layer)).x;

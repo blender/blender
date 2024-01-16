@@ -139,7 +139,8 @@ Vector<SculptBatch> sculpt_batches_get(const Object *ob, SculptBatchFeature feat
   if (features & SCULPT_BATCH_VERTEX_COLOR) {
     if (const char *name = mesh->active_color_attribute) {
       if (const std::optional<bke::AttributeMetaData> meta_data = attributes.lookup_meta_data(
-              name)) {
+              name))
+      {
         attrs.append(pbvh::GenericRequest{name, meta_data->data_type, meta_data->domain});
       }
     }

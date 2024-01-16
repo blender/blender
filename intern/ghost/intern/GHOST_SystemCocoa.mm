@@ -2047,7 +2047,8 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
                                      false));
       }
       if ((modifiers & NSEventModifierFlagControl) !=
-          (m_modifierMask & NSEventModifierFlagControl)) {
+          (m_modifierMask & NSEventModifierFlagControl))
+      {
         pushEvent(new GHOST_EventKey(
             [event timestamp] * 1000,
             (modifiers & NSEventModifierFlagControl) ? GHOST_kEventKeyDown : GHOST_kEventKeyUp,
@@ -2065,7 +2066,8 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
             false));
       }
       if ((modifiers & NSEventModifierFlagCommand) !=
-          (m_modifierMask & NSEventModifierFlagCommand)) {
+          (m_modifierMask & NSEventModifierFlagCommand))
+      {
         pushEvent(new GHOST_EventKey(
             [event timestamp] * 1000,
             (modifiers & NSEventModifierFlagCommand) ? GHOST_kEventKeyDown : GHOST_kEventKeyUp,

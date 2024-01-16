@@ -211,7 +211,8 @@ static void annotation_draw_stroke_buffer(bGPdata *gps,
   if (totpoints > 1) {
     /* Draw ending arrow stroke. */
     if ((sflag & GP_STROKE_USE_ARROW_END) &&
-        (runtime.arrow_end_style != GP_STROKE_ARROWSTYLE_NONE)) {
+        (runtime.arrow_end_style != GP_STROKE_ARROWSTYLE_NONE))
+    {
       float end[2];
       copy_v2_v2(end, points[1].m_xy);
       annotation_draw_stroke_arrow_buffer(pos, end, runtime.arrow_end, runtime.arrow_end_style);
@@ -703,7 +704,8 @@ static void annotation_draw_data_layers(
      * that is being edited. (Stroke buffer is currently stored in gp-data)
      */
     if (ED_gpencil_session_active() && (gpl->flag & GP_LAYER_ACTIVE) &&
-        (gpf->flag & GP_FRAME_PAINT)) {
+        (gpf->flag & GP_FRAME_PAINT))
+    {
       /* Buffer stroke needs to be drawn with a different line-style
        * to help differentiate them from normal strokes.
        *

@@ -7,9 +7,9 @@
 #include "BKE_curves.hh"
 #include "BKE_customdata.hh"
 #include "BKE_instances.hh"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
-#include "BKE_pointcloud.h"
+#include "BKE_pointcloud.hh"
 
 #include "BLI_endian_defines.h"
 #include "BLI_endian_switch.h"
@@ -1032,7 +1032,8 @@ static std::unique_ptr<BakeItem> deserialize_bake_item(const DictionaryValue &io
       return std::make_unique<StringBakeItem>(io_string.value());
     }
     else if (const io::serialize::DictionaryValue *io_string =
-                 io_data->get()->as_dictionary_value()) {
+                 io_data->get()->as_dictionary_value())
+    {
       const std::optional<int64_t> size = io_string->lookup_int("size");
       if (!size) {
         return {};

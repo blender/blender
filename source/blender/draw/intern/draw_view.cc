@@ -12,7 +12,7 @@
 #include "GPU_debug.h"
 
 #include "draw_debug.hh"
-#include "draw_shader.h"
+#include "draw_shader.hh"
 #include "draw_view.hh"
 
 namespace blender::draw {

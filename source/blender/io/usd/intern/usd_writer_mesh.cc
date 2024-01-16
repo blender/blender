@@ -30,8 +30,12 @@
 #include "BKE_customdata.hh"
 #include "BKE_deform.h"
 #include "BKE_key.h"
+<<<<<<< HEAD
 #include "BKE_lib_id.h"
 #include "BKE_library.hh"
+=======
+#include "BKE_lib_id.hh"
+>>>>>>> main
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
@@ -659,7 +663,8 @@ void USDGenericMeshWriter::write_mesh(HierarchyContext &context,
    * unless a subdiv modifier is used, in which case normals are computed,
    * not stored with the mesh. */
   if (usd_export_context_.export_params.export_normals &&
-      subdiv_scheme == pxr::UsdGeomTokens->none) {
+      subdiv_scheme == pxr::UsdGeomTokens->none)
+  {
     write_normals(mesh, usd_mesh);
   }
 

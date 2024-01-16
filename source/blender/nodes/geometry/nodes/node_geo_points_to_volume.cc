@@ -14,7 +14,7 @@
 
 #include "GEO_points_to_volume.hh"
 
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_volume.hh"
 
 #include "NOD_rna_define.hh"

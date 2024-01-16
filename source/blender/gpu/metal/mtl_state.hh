@@ -24,7 +24,7 @@ class MTLContext;
 /**
  * State manager keeping track of the draw state and applying it before drawing.
  * Metal Implementation.
- **/
+ */
 class MTLStateManager : public StateManager {
 
  private:

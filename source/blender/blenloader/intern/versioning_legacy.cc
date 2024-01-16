@@ -237,7 +237,8 @@ static void idproperties_fix_groups_lengths_recurse(IDProperty *prop)
   int i;
 
   for (loop = static_cast<IDProperty *>(prop->data.group.first), i = 0; loop;
-       loop = loop->next, i++) {
+       loop = loop->next, i++)
+  {
     if (loop->type == IDP_GROUP) {
       idproperties_fix_groups_lengths_recurse(loop);
     }
@@ -1248,7 +1249,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
     /* softbody init new vars */
     for (ob = static_cast<Object *>(bmain->objects.first); ob;
-         ob = static_cast<Object *>(ob->id.next)) {
+         ob = static_cast<Object *>(ob->id.next))
+    {
       if (ob->soft) {
         if (ob->soft->defgoal == 0.0f) {
           ob->soft->defgoal = 0.7f;
@@ -1282,7 +1284,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
       }
     }
     for (ob = static_cast<Object *>(bmain->objects.first); ob;
-         ob = static_cast<Object *>(ob->id.next)) {
+         ob = static_cast<Object *>(ob->id.next))
+    {
       if (ob->parent) {
         Object *parent = static_cast<Object *>(
             blo_do_versions_newlibadr(fd, &ob->id, ID_IS_LINKED(ob), ob->parent));
@@ -1390,7 +1393,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     }
 
     for (ob = static_cast<Object *>(bmain->objects.first); ob;
-         ob = static_cast<Object *>(ob->id.next)) {
+         ob = static_cast<Object *>(ob->id.next))
+    {
       PartEff *paf;
 
       LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
@@ -1407,7 +1411,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
           ModifierData *md = static_cast<ModifierData *>(ob->modifiers.first);
 
           while (md && BKE_modifier_get_info(ModifierType(md->type))->type ==
-                           ModifierTypeType::OnlyDeform) {
+                           ModifierTypeType::OnlyDeform)
+          {
             md = md->next;
           }
 
@@ -1478,7 +1483,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     }
 
     for (key = static_cast<Key *>(bmain->shapekeys.first); key;
-         key = static_cast<Key *>(key->id.next)) {
+         key = static_cast<Key *>(key->id.next))
+    {
       int index = 1;
 
       LISTBASE_FOREACH (KeyBlock *, kb, &key->block) {
@@ -1506,7 +1512,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
     /* deformflag is local in modifier now */
     for (ob = static_cast<Object *>(bmain->objects.first); ob;
-         ob = static_cast<Object *>(ob->id.next)) {
+         ob = static_cast<Object *>(ob->id.next))
+    {
       LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
         if (md->type == eModifierType_Armature) {
           ArmatureModifierData *amd = (ArmatureModifierData *)md;
@@ -1608,7 +1615,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
     /* for empty drawsize and drawtype */
     for (ob = static_cast<Object *>(bmain->objects.first); ob;
-         ob = static_cast<Object *>(ob->id.next)) {
+         ob = static_cast<Object *>(ob->id.next))
+    {
       if (ob->empty_drawsize == 0.0f) {
         ob->empty_drawtype = OB_ARROWS;
         ob->empty_drawsize = 1.0;
@@ -1690,7 +1698,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
     /* add default radius values to old curve points */
     for (cu = static_cast<Curve *>(bmain->curves.first); cu;
-         cu = static_cast<Curve *>(cu->id.next)) {
+         cu = static_cast<Curve *>(cu->id.next))
+    {
       LISTBASE_FOREACH (Nurb *, nu, &cu->nurb) {
         if (nu->bezt) {
           for (bezt = nu->bezt, a = 0; a < nu->pntsu; a++, bezt++) {
@@ -1710,7 +1719,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     }
 
     for (ob = static_cast<Object *>(bmain->objects.first); ob;
-         ob = static_cast<Object *>(ob->id.next)) {
+         ob = static_cast<Object *>(ob->id.next))
+    {
       ListBase *list;
       list = &ob->constraints;
 
@@ -1822,7 +1832,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
         }
       }
       for (tex = static_cast<Tex *>(bmain->textures.first); tex;
-           tex = static_cast<Tex *>(tex->id.next)) {
+           tex = static_cast<Tex *>(tex->id.next))
+      {
         enum {
           TEX_ANIMCYCLIC = (1 << 6),
           TEX_ANIM5 = (1 << 7),
@@ -1961,7 +1972,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
         ((bmain->versionfile < 245) || (bmain->versionfile == 245 && bmain->subversionfile == 0)))
     {
       for (ob = static_cast<Object *>(bmain->objects.first); ob;
-           ob = static_cast<Object *>(ob->id.next)) {
+           ob = static_cast<Object *>(ob->id.next))
+      {
         ListBase *list;
         list = &ob->constraints;
 
@@ -2036,7 +2048,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
     /* add point caches */
     for (ob = static_cast<Object *>(bmain->objects.first); ob;
-         ob = static_cast<Object *>(ob->id.next)) {
+         ob = static_cast<Object *>(ob->id.next))
+    {
       if (ob->soft && !ob->soft->pointcache) {
         ob->soft->pointcache = BKE_ptcache_add(&ob->soft->ptcaches);
       }
@@ -2044,7 +2057,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
       LISTBASE_FOREACH (ParticleSystem *, psys, &ob->particlesystem) {
         if (psys->pointcache) {
           if (psys->pointcache->flag & PTCACHE_BAKED &&
-              (psys->pointcache->flag & PTCACHE_DISK_CACHE) == 0) {
+              (psys->pointcache->flag & PTCACHE_DISK_CACHE) == 0)
+          {
             printf("Old memory cache isn't supported for particles, so re-bake the simulation!\n");
             psys->pointcache->flag &= ~PTCACHE_BAKED;
           }
@@ -2111,7 +2125,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     }
 
     for (tex = static_cast<Tex *>(bmain->textures.first); tex;
-         tex = static_cast<Tex *>(tex->id.next)) {
+         tex = static_cast<Tex *>(tex->id.next))
+    {
       if (tex->iuser.flag & IMA_OLD_PREMUL) {
         tex->iuser.flag &= ~IMA_OLD_PREMUL;
       }
@@ -2147,7 +2162,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     }
 
     for (ob = static_cast<Object *>(bmain->objects.first); ob;
-         ob = static_cast<Object *>(ob->id.next)) {
+         ob = static_cast<Object *>(ob->id.next))
+    {
       LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
         if (md->type == eModifierType_Armature) {
           ((ArmatureModifierData *)md)->deformflag |= ARM_DEF_B_BONE_REST;
@@ -2184,7 +2200,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     Object *ob;
 
     for (ob = static_cast<Object *>(bmain->objects.first); ob;
-         ob = static_cast<Object *>(ob->id.next)) {
+         ob = static_cast<Object *>(ob->id.next))
+    {
       if (ob->pose) {
         LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
           do_version_constraints_245(&pchan->constraints);
@@ -2216,7 +2233,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     PartEff *paf = nullptr;
 
     for (ob = static_cast<Object *>(bmain->objects.first); ob;
-         ob = static_cast<Object *>(ob->id.next)) {
+         ob = static_cast<Object *>(ob->id.next))
+    {
       if (ob->soft && ob->soft->keys) {
         SoftBody *sb = ob->soft;
         int k;
@@ -2383,7 +2401,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
     /* dupliface scale */
     for (ob = static_cast<Object *>(bmain->objects.first); ob;
-         ob = static_cast<Object *>(ob->id.next)) {
+         ob = static_cast<Object *>(ob->id.next))
+    {
       ob->instance_faces_scale = 1.0f;
     }
   }
@@ -2393,7 +2412,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
     /* NLA-strips - scale. */
     for (ob = static_cast<Object *>(bmain->objects.first); ob;
-         ob = static_cast<Object *>(ob->id.next)) {
+         ob = static_cast<Object *>(ob->id.next))
+    {
       LISTBASE_FOREACH (bActionStrip *, strip, &ob->nlastrips) {
         float length, actlength, repeat;
 
@@ -2468,7 +2488,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     Object *ob;
 
     for (ob = static_cast<Object *>(bmain->objects.first); ob;
-         ob = static_cast<Object *>(ob->id.next)) {
+         ob = static_cast<Object *>(ob->id.next))
+    {
       if (ob->fluidsimSettings) {
         FluidsimModifierData *fluidmd = (FluidsimModifierData *)BKE_modifier_new(
             eModifierType_Fluidsim);
@@ -2490,7 +2511,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 246, 1)) {
     Object *ob;
     for (ob = static_cast<Object *>(bmain->objects.first); ob;
-         ob = static_cast<Object *>(ob->id.next)) {
+         ob = static_cast<Object *>(ob->id.next))
+    {
       if (ob->pd && (ob->pd->forcefield == PFIELD_WIND)) {
         ob->pd->f_noise = 0.0f;
       }
@@ -2502,7 +2524,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     Curve *cu;
 
     for (cu = static_cast<Curve *>(bmain->curves.first); cu;
-         cu = static_cast<Curve *>(cu->id.next)) {
+         cu = static_cast<Curve *>(cu->id.next))
+    {
       LISTBASE_FOREACH (Nurb *, nu, &cu->nurb) {
         nu->radius_interp = 3;
 
@@ -2567,7 +2590,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
   if (bmain->versionfile < 249 && bmain->subversionfile < 1) {
     Object *ob;
     for (ob = static_cast<Object *>(bmain->objects.first); ob;
-         ob = static_cast<Object *>(ob->id.next)) {
+         ob = static_cast<Object *>(ob->id.next))
+    {
       if (ob->pd) {
         ob->pd->seed = (uint(ceil(PIL_check_seconds_timer())) + 1) % 128;
       }

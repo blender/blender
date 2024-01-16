@@ -80,7 +80,8 @@ static int FrsMaterial_init(BPy_FrsMaterial *self, PyObject *args, PyObject *kwd
   int priority;
 
   if (PyArg_ParseTupleAndKeywords(
-          args, kwds, "|O!", (char **)kwlist_1, &FrsMaterial_Type, &brother)) {
+          args, kwds, "|O!", (char **)kwlist_1, &FrsMaterial_Type, &brother))
+  {
     if (!brother) {
       self->m = new FrsMaterial();
     }

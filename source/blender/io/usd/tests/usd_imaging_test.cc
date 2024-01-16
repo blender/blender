@@ -9,8 +9,7 @@
 
 namespace blender::io::usd {
 
-class USDImagingTest : public testing::Test {
-};
+class USDImagingTest : public testing::Test {};
 
 TEST_F(USDImagingTest, CapsuleAdapterTest)
 {

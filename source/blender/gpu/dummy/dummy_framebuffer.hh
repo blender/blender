@@ -26,7 +26,7 @@ class DummyFrameBuffer : public FrameBuffer {
              uint /*clear_stencil*/) override
   {
   }
-  void clear_multi(const float (*/*clear_color*/)[4]) override {}
+  void clear_multi(const float (* /*clear_color*/)[4]) override {}
   void clear_attachment(GPUAttachmentType /*type*/,
                         eGPUDataFormat /*data_format*/,
                         const void * /*clear_value*/) override
@@ -35,8 +35,8 @@ class DummyFrameBuffer : public FrameBuffer {
 
   void attachment_set_loadstore_op(GPUAttachmentType /*type*/, GPULoadStore /*ls*/) override {}
 
-  void subpass_transition(const GPUAttachmentState /*depth_attachment_state*/,
-                          Span<GPUAttachmentState> /*color_attachment_states*/) override{};
+  void subpass_transition_impl(const GPUAttachmentState /*depth_attachment_state*/,
+                               Span<GPUAttachmentState> /*color_attachment_states*/) override{};
 
   void read(eGPUFrameBufferBits /*planes*/,
             eGPUDataFormat /*format*/,

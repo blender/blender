@@ -2576,6 +2576,25 @@ static void rna_ViewLayer_remove(
   }
 }
 
+static void rna_ViewLayer_move(
+    ID *id, Scene * /*sce*/, Main *bmain, ReportList *reports, int from, int to)
+{
+  if (from == to) {
+    return;
+  }
+
+  Scene *scene = (Scene *)id;
+
+  if (!BLI_listbase_move_index(&scene->view_layers, from, to)) {
+    BKE_reportf(reports, RPT_ERROR, "Could not move layer from index '%d' to '%d'", from, to);
+    return;
+  }
+
+  DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
+  DEG_relations_tag_update(bmain);
+  WM_main_add_notifier(NC_SCENE | ND_LAYER, nullptr);
+}
+
 void rna_ViewLayer_active_aov_index_range(
     PointerRNA *ptr, int *min, int *max, int * /*softmin*/, int * /*softmax*/)
 {
@@ -3813,7 +3832,7 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, nullptr, "autokey_mode", AUTOKEY_ON);
   RNA_def_property_ui_text(
       prop, "Auto Keying", "Automatic keyframe insertion for Objects, Bones and Masks");
-  RNA_def_property_ui_icon(prop, ICON_REC, 0);
+  RNA_def_property_ui_icon(prop, ICON_RECORD_OFF, 1);
 
   prop = RNA_def_property(srna, "auto_keying_mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_bitflag_sdna(prop, nullptr, "autokey_mode");
@@ -5736,6 +5755,15 @@ static void rna_def_view_layers(BlenderRNA *brna, PropertyRNA *cprop)
   parm = RNA_def_pointer(func, "layer", "ViewLayer", "", "View layer to remove");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
   RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, ParameterFlag(0));
+
+  func = RNA_def_function(srna, "move", "rna_ViewLayer_move");
+  RNA_def_function_ui_description(func, "Move a view layer");
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN | FUNC_USE_REPORTS);
+  parm = RNA_def_int(
+      func, "from_index", -1, INT_MIN, INT_MAX, "From Index", "Index to move", 0, 10000);
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  parm = RNA_def_int(func, "to_index", -1, INT_MIN, INT_MAX, "To Index", "Target index", 0, 10000);
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 }
 
 /* Render Views - MultiView */

@@ -166,7 +166,7 @@ class CurvesGeometry : public ::CurvesGeometry {
   /**
    * Mutable access to curve types. Call #tag_topology_changed and #update_curve_types after
    * changing any type. Consider using the other methods to change types below.
-   * */
+   */
   MutableSpan<int8_t> curve_types_for_write();
   /** Set all curve types to the value and call #update_curve_types. */
   void fill_curve_types(CurveType type);

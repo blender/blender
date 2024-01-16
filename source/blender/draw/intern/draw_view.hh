@@ -18,7 +18,7 @@
  */
 
 #include "DRW_gpu_wrapper.hh"
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include "draw_shader_shared.h"
 
@@ -86,7 +86,7 @@ class View {
    * Update culling data using a compute shader.
    * This is to be used if the matrices were updated externally
    * on the GPU (not using the `sync()` method).
-   **/
+   */
   void compute_procedural_bounds();
 
   bool is_persp(int view_id = 0) const

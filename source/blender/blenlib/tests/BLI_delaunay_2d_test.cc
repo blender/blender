@@ -45,7 +45,7 @@ template<typename T> CDT_input<T> fill_input_from_string(const char *spec)
   if (nverts == 0) {
     return CDT_input<T>();
   }
-  Array<vec2<T>> verts(nverts);
+  Array<VecBase<T, 2>> verts(nverts);
   Array<std::pair<int, int>> edges(nedges);
   Array<Vector<int>> faces(nfaces);
   int i = 0;
@@ -55,7 +55,7 @@ template<typename T> CDT_input<T> fill_input_from_string(const char *spec)
     iss >> dp0 >> dp1;
     T p0(dp0);
     T p1(dp1);
-    verts[i] = vec2<T>(p0, p1);
+    verts[i] = VecBase<T, 2>(p0, p1);
     i++;
   }
   i = 0;
@@ -264,7 +264,7 @@ static bool draw_append = false; /* Will be set to true after first call. */
 
 template<typename T>
 void graph_draw(const std::string &label,
-                const Array<vec2<T>> &verts,
+                const Array<VecBase<T, 2>> &verts,
                 const Array<std::pair<int, int>> &edges,
                 const Array<Vector<int>> &faces)
 {
@@ -286,9 +286,9 @@ void graph_draw(const std::string &label,
   if (verts.is_empty()) {
     return;
   }
-  vec2<double> vmin(1e10, 1e10);
-  vec2<double> vmax(-1e10, -1e10);
-  for (const vec2<T> &v : verts) {
+  double2 vmin(1e10, 1e10);
+  double2 vmax(-1e10, -1e10);
+  for (const VecBase<T, 2> &v : verts) {
     for (int i = 0; i < 2; ++i) {
       double dvi = math_to_double(v[i]);
       if (dvi < vmin[i]) {
@@ -341,15 +341,15 @@ void graph_draw(const std::string &label,
   for (const Vector<int> &fverts : faces) {
     f << "<polygon fill=\"azure\" stroke=\"none\"\n  points=\"";
     for (int vi : fverts) {
-      const vec2<T> &co = verts[vi];
+      const VecBase<T, 2> &co = verts[vi];
       f << SX(co[0]) << "," << SY(co[1]) << " ";
     }
     f << "\"\n  />\n";
   }
 
   for (const std::pair<int, int> &e : edges) {
-    const vec2<T> &uco = verts[e.first];
-    const vec2<T> &vco = verts[e.second];
+    const VecBase<T, 2> &uco = verts[e.first];
+    const VecBase<T, 2> &vco = verts[e.second];
     int strokew = thin_line;
     f << R"(<line fill="none" stroke="black" stroke-width=")" << strokew << "\" x1=\""
       << SX(uco[0]) << "\" y1=\"" << SY(uco[1]) << "\" x2=\"" << SX(vco[0]) << "\" y2=\""
@@ -364,7 +364,7 @@ void graph_draw(const std::string &label,
   }
 
   int i = 0;
-  for (const vec2<T> &vco : verts) {
+  for (const VecBase<T, 2> &vco : verts) {
     f << R"(<circle fill="black" cx=")" << SX(vco[0]) << "\" cy=\"" << SY(vco[1]) << "\" r=\""
       << vert_radius << "\">\n";
     f << "  <title>[" << i << "]" << vco << "</title>\n";
@@ -384,18 +384,18 @@ void graph_draw(const std::string &label,
 /* Should tests draw their output to an html file? */
 constexpr bool DO_DRAW = false;
 
-template<typename T> void expect_coord_near(const vec2<T> &testco, const vec2<T> &refco);
+template<typename T>
+void expect_coord_near(const VecBase<T, 2> &testco, const VecBase<T, 2> &refco);
 
 #ifdef WITH_GMP
-template<>
-void expect_coord_near<mpq_class>(const vec2<mpq_class> &testco, const vec2<mpq_class> &refco)
+template<> void expect_coord_near<mpq_class>(const mpq2 &testco, const mpq2 &refco)
 {
   EXPECT_EQ(testco[0], refco[0]);
   EXPECT_EQ(testco[0], refco[0]);
 }
 #endif
 
-template<> void expect_coord_near<double>(const vec2<double> &testco, const vec2<double> &refco)
+template<> void expect_coord_near<double>(const double2 &testco, const double2 &refco)
 {
   EXPECT_NEAR(testco[0], refco[0], 1e-5);
   EXPECT_NEAR(testco[1], refco[1], 1e-5);
@@ -428,7 +428,7 @@ template<typename T> void onept_test()
   EXPECT_EQ(out.edge.size(), 0);
   EXPECT_EQ(out.face.size(), 0);
   if (out.vert.size() >= 1) {
-    expect_coord_near<T>(out.vert[0], vec2<T>(0, 0));
+    expect_coord_near<T>(out.vert[0], VecBase<T, 2>(0, 0));
   }
 }
 
@@ -450,8 +450,8 @@ template<typename T> void twopt_test()
   EXPECT_NE(v1_out, -1);
   EXPECT_NE(v0_out, v1_out);
   if (out.vert.size() >= 1) {
-    expect_coord_near<T>(out.vert[v0_out], vec2<T>(0.0, -0.75));
-    expect_coord_near<T>(out.vert[v1_out], vec2<T>(0.0, 0.75));
+    expect_coord_near<T>(out.vert[v0_out], VecBase<T, 2>(0.0, -0.75));
+    expect_coord_near<T>(out.vert[v1_out], VecBase<T, 2>(0.0, 0.75));
   }
   int e0_out = get_output_edge_index(out, v0_out, v1_out);
   EXPECT_EQ(e0_out, 0);
@@ -787,7 +787,7 @@ template<typename T> void crosssegs_test()
     }
     EXPECT_NE(v_intersect, -1);
     if (v_intersect != -1) {
-      expect_coord_near<T>(out.vert[v_intersect], vec2<T>(0, 0));
+      expect_coord_near<T>(out.vert[v_intersect], VecBase<T, 2>(0, 0));
     }
   }
   if (DO_DRAW) {
@@ -1156,8 +1156,8 @@ template<typename T> void overlapfaces_test()
       v_int1 = 13;
       v_int2 = 12;
     }
-    expect_coord_near<T>(out.vert[v_int1], vec2<T>(1, 0.5));
-    expect_coord_near<T>(out.vert[v_int2], vec2<T>(0.5, 1));
+    expect_coord_near<T>(out.vert[v_int1], VecBase<T, 2>(1, 0.5));
+    expect_coord_near<T>(out.vert[v_int2], VecBase<T, 2>(0.5, 1));
     EXPECT_EQ(out.vert_orig[v_int1].size(), 0);
     EXPECT_EQ(out.vert_orig[v_int2].size(), 0);
     int f0_out = get_output_tri_index(out, v_out[1], v_int1, v_out[4]);
@@ -1785,7 +1785,7 @@ void text_test(
   constexpr int narcs = 4;
   int b_npts = b_before_arcs_in.vert.size() + narcs * arc_points_num;
   constexpr int b_nfaces = 3;
-  Array<vec2<T>> b_vert(b_npts);
+  Array<VecBase<T, 2>> b_vert(b_npts);
   Array<Vector<int>> b_face(b_nfaces);
   std::copy(b_before_arcs_in.vert.begin(), b_before_arcs_in.vert.end(), b_vert.begin());
   std::copy(b_before_arcs_in.face.begin(), b_before_arcs_in.face.end(), b_face.begin());
@@ -1819,16 +1819,16 @@ void text_test(
         default:
           BLI_assert(false);
       }
-      vec2<T> start_co = b_vert[arc_origin_vert];
-      vec2<T> end_co = b_vert[arc_terminal_vert];
-      vec2<T> center_co = 0.5 * (start_co + end_co);
+      VecBase<T, 2> start_co = b_vert[arc_origin_vert];
+      VecBase<T, 2> end_co = b_vert[arc_terminal_vert];
+      VecBase<T, 2> center_co = 0.5 * (start_co + end_co);
       BLI_assert(start_co[0] == end_co[0]);
       double radius = abs(math_to_double<T>(end_co[1] - center_co[1]));
       double angle_delta = M_PI / (arc_points_num + 1);
       int start_vert = b_before_arcs_in.vert.size() + arc * arc_points_num;
       Vector<int> &face = b_face[(arc <= 1) ? 0 : arc - 1];
       for (int i = 0; i < arc_points_num; ++i) {
-        vec2<T> delta;
+        VecBase<T, 2> delta;
         float ang = ccw ? (-M_PI_2 + (i + 1) * angle_delta) : (M_PI_2 - (i + 1) * angle_delta);
         delta[0] = T(radius * cos(ang));
         delta[1] = T(radius * sin(ang));
@@ -1848,7 +1848,7 @@ void text_test(
     in.face = b_face;
   }
   else {
-    in.vert = Array<vec2<T>>(tot_instances * b_vert.size());
+    in.vert = Array<VecBase<T, 2>>(tot_instances * b_vert.size());
     in.face = Array<Vector<int>>(tot_instances * b_face.size());
     T cur_x = T(0);
     T cur_y = T(0);
@@ -1857,7 +1857,7 @@ void text_test(
     int instance = 0;
     for (int line = 0; line < lines_num; ++line) {
       for (int let = 0; let < lets_per_line_num; ++let) {
-        vec2<T> co_offset(cur_x, cur_y);
+        VecBase<T, 2> co_offset(cur_x, cur_y);
         int in_v_offset = instance * b_vert.size();
         for (int v = 0; v < b_vert.size(); ++v) {
           in.vert[in_v_offset + v] = b_vert[v] + co_offset;
@@ -2102,7 +2102,7 @@ void rand_delaunay_test(int test_kind,
       }
 
       CDT_input<T> in;
-      in.vert = Array<vec2<T>>(npts);
+      in.vert = Array<VecBase<T, 2>>(npts);
       if (nedges > 0) {
         in.edge = Array<std::pair<int, int>>(nedges);
       }

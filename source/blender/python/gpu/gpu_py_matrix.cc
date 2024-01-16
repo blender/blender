@@ -420,7 +420,7 @@ static PyObject *pygpu_matrix_reset(PyObject * /*self*/)
 PyDoc_STRVAR(pygpu_matrix_load_identity_doc,
              ".. function:: load_identity()\n"
              "\n"
-             "   Empty stack and set to identity.\n");
+             "   Load an identity matrix into the stack.\n");
 static PyObject *pygpu_matrix_load_identity(PyObject * /*self*/)
 {
   GPU_matrix_identity_set();

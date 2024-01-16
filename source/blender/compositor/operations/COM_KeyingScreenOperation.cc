@@ -144,7 +144,7 @@ Array<KeyingScreenOperation::MarkerPoint> *KeyingScreenOperation::compute_marker
   return marker_points;
 }
 
-void *KeyingScreenOperation::initialize_tile_data(rcti * /* rect*/)
+void *KeyingScreenOperation::initialize_tile_data(rcti * /*rect*/)
 {
   if (movie_clip_ == nullptr) {
     return nullptr;

@@ -260,9 +260,9 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
     result = multires_as_mesh(mmd, ctx, mesh, subdiv);
 
     if (use_clnors) {
-      float(*lnors)[3] = static_cast<float(*)[3]>(
+      float(*corner_normals)[3] = static_cast<float(*)[3]>(
           CustomData_get_layer_for_write(&result->corner_data, CD_NORMAL, result->corners_num));
-      BKE_mesh_set_custom_normals(result, lnors);
+      BKE_mesh_set_custom_normals(result, corner_normals);
       CustomData_free_layers(&result->corner_data, CD_NORMAL, result->corners_num);
     }
     // BKE_subdiv_stats_print(&subdiv->stats);
@@ -329,7 +329,7 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   const bool is_sculpt_mode = CTX_data_active_object(C)->mode & OB_MODE_SCULPT;
   uiBlock *block = uiLayoutGetBlock(panel->layout);
-  UI_block_lock_set(block, !is_sculpt_mode, IFACE_("Sculpt Base Mesh"));
+  UI_block_lock_set(block, !is_sculpt_mode, N_("Sculpt Base Mesh"));
   uiItemR(col, ptr, "use_sculpt_base_mesh", UI_ITEM_NONE, IFACE_("Sculpt Base Mesh"), ICON_NONE);
   UI_block_lock_clear(block);
 

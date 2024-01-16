@@ -6,7 +6,7 @@
  * \ingroup draw
  */
 
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include "gpencil_engine.h"
 

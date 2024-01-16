@@ -20,7 +20,7 @@ struct BMeshCalcTessellation_Params {
 
 void BM_mesh_calc_tessellation_ex(BMesh *bm,
                                   BMLoop *(*looptris)[3],
-                                  const struct BMeshCalcTessellation_Params *params);
+                                  const BMeshCalcTessellation_Params *params);
 void BM_mesh_calc_tessellation(BMesh *bm, BMLoop *(*looptris)[3]);
 
 /**
@@ -30,8 +30,8 @@ void BM_mesh_calc_tessellation_beauty(BMesh *bm, BMLoop *(*looptris)[3]);
 
 void BM_mesh_calc_tessellation_with_partial_ex(BMesh *bm,
                                                BMLoop *(*looptris)[3],
-                                               const struct BMPartialUpdate *bmpinfo,
-                                               const struct BMeshCalcTessellation_Params *params);
+                                               const BMPartialUpdate *bmpinfo,
+                                               const BMeshCalcTessellation_Params *params);
 void BM_mesh_calc_tessellation_with_partial(BMesh *bm,
                                             BMLoop *(*looptris)[3],
-                                            const struct BMPartialUpdate *bmpinfo);
+                                            const BMPartialUpdate *bmpinfo);

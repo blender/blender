@@ -26,14 +26,14 @@
 #include "BKE_editmesh.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_layer.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_object.hh"
-#include "BKE_pointcloud.h"
+#include "BKE_pointcloud.hh"
 #include "BKE_report.h"
 #include "BKE_screen.hh"
 
@@ -948,7 +948,8 @@ static bool unassigned_local_poll(const bContext &C)
       continue;
     }
     if (!group->geometry_node_asset_traits ||
-        (group->geometry_node_asset_traits->flag & flag) != flag) {
+        (group->geometry_node_asset_traits->flag & flag) != flag)
+    {
       continue;
     }
     return true;
@@ -992,7 +993,8 @@ static void catalog_assets_draw_unassigned(const bContext *C, Menu *menu)
       continue;
     }
     if (!group->geometry_node_asset_traits ||
-        (group->geometry_node_asset_traits->flag & flag) != flag) {
+        (group->geometry_node_asset_traits->flag & flag) != flag)
+    {
       continue;
     }
 

@@ -16,7 +16,7 @@ from bpy.props import (
 )
 from bpy.app.translations import (
     contexts as i18n_contexts,
-    pgettext_iface as iface_
+    pgettext_rpt as rpt_
 )
 
 from math import pi
@@ -1602,50 +1602,62 @@ class CyclesPreferences(bpy.types.AddonPreferences):
 
         if not found_device:
             col = box.column(align=True)
-            col.label(text="No compatible GPUs found for Cycles", icon='INFO')
+            col.label(text=rpt_("No compatible GPUs found for Cycles"), icon='INFO', translate=False)
 
             if device_type == 'CUDA':
                 compute_capability = "3.0"
-                col.label(text=iface_("Requires NVIDIA GPU with compute capability %s") % compute_capability,
+                col.label(text=rpt_("Requires NVIDIA GPU with compute capability %s") % compute_capability,
                           icon='BLANK1', translate=False)
             elif device_type == 'OPTIX':
                 compute_capability = "5.0"
                 driver_version = "470"
-                col.label(text=iface_("Requires NVIDIA GPU with compute capability %s") % compute_capability,
+                col.label(text=rpt_("Requires NVIDIA GPU with compute capability %s") % compute_capability,
                           icon='BLANK1', translate=False)
-                col.label(text=iface_("and NVIDIA driver version %s or newer") % driver_version,
+                col.label(text=rpt_("and NVIDIA driver version %s or newer") % driver_version,
                           icon='BLANK1', translate=False)
             elif device_type == 'HIP':
                 import sys
                 if sys.platform[:3] == "win":
                     driver_version = "21.Q4"
-                    col.label(text="Requires AMD GPU with Vega or RDNA architecture", icon='BLANK1')
-                    col.label(text=iface_("and AMD Radeon Pro %s driver or newer") % driver_version,
+                    col.label(
+                        text=rpt_("Requires AMD GPU with Vega or RDNA architecture"),
+                        icon='BLANK1',
+                        translate=False)
+                    col.label(text=rpt_("and AMD Radeon Pro %s driver or newer") % driver_version,
                               icon='BLANK1', translate=False)
                 elif sys.platform.startswith("linux"):
                     driver_version = "22.10"
-                    col.label(text="Requires AMD GPU with Vega or RDNA architecture", icon='BLANK1')
-                    col.label(text=iface_("and AMD driver version %s or newer") % driver_version, icon='BLANK1',
+                    col.label(
+                        text=rpt_("Requires AMD GPU with Vega or RDNA architecture"),
+                        icon='BLANK1',
+                        translate=False)
+                    col.label(text=rpt_("and AMD driver version %s or newer") % driver_version, icon='BLANK1',
                               translate=False)
             elif device_type == 'ONEAPI':
                 import sys
                 if sys.platform.startswith("win"):
                     driver_version = "XX.X.101.4824"
-                    col.label(text="Requires Intel GPU with Xe-HPG architecture", icon='BLANK1')
-                    col.label(text=iface_("and Windows driver version %s or newer") % driver_version,
+                    col.label(text=rpt_("Requires Intel GPU with Xe-HPG architecture"), icon='BLANK1', translate=False)
+                    col.label(text=rpt_("and Windows driver version %s or newer") % driver_version,
                               icon='BLANK1', translate=False)
                 elif sys.platform.startswith("linux"):
                     driver_version = "XX.XX.25812.14"
-                    col.label(text="Requires Intel GPU with Xe-HPG architecture and", icon='BLANK1')
-                    col.label(text="  - intel-level-zero-gpu or intel-compute-runtime version", icon='BLANK1')
-                    col.label(text=iface_("    %s or newer") % driver_version, icon='BLANK1', translate=False)
-                    col.label(text="  - oneAPI Level-Zero Loader", icon='BLANK1')
+                    col.label(
+                        text=rpt_("Requires Intel GPU with Xe-HPG architecture and"),
+                        icon='BLANK1',
+                        translate=False)
+                    col.label(
+                        text=rpt_("  - intel-level-zero-gpu or intel-compute-runtime version"),
+                        icon='BLANK1',
+                        translate=False)
+                    col.label(text=rpt_("    %s or newer") % driver_version, icon='BLANK1', translate=False)
+                    col.label(text=rpt_("  - oneAPI Level-Zero Loader"), icon='BLANK1', translate=False)
             elif device_type == 'METAL':
                 silicon_mac_version = "12.2"
                 amd_mac_version = "12.3"
-                col.label(text=iface_("Requires Apple Silicon with macOS %s or newer") % silicon_mac_version,
+                col.label(text=rpt_("Requires Apple Silicon with macOS %s or newer") % silicon_mac_version,
                           icon='BLANK1', translate=False)
-                col.label(text=iface_("or AMD with macOS %s or newer") % amd_mac_version, icon='BLANK1',
+                col.label(text=rpt_("or AMD with macOS %s or newer") % amd_mac_version, icon='BLANK1',
                           translate=False)
             return
 

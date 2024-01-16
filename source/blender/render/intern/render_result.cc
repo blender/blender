@@ -785,7 +785,8 @@ void render_result_merge(RenderResult *rr, RenderResult *rrpart)
           continue;
         }
         if (rpass->ibuf->float_buffer.data == nullptr ||
-            rpassp->ibuf->float_buffer.data == nullptr) {
+            rpassp->ibuf->float_buffer.data == nullptr)
+        {
           continue;
         }
         /* Render-result have all passes, render-part only the active view's passes. */

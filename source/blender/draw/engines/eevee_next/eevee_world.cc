@@ -6,7 +6,7 @@
  * \ingroup eevee
  */
 
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_node.hh"
 #include "BKE_world.h"
 #include "DEG_depsgraph_query.hh"

@@ -50,13 +50,14 @@ NODE_SHADER_MATERIALX_BEGIN
 #ifdef WITH_MATERIALX
 {
   /* TODO: This node doesn't have an implementation in MaterialX 1.38.6.
-   * It's added in MaterialX 1.38.8. Uncomment this code after switching to 1.38.8.
-   *
-   * NodeItem temperature = get_input_value("Temperature", NodeItem::Type::Float);
+   * It's added in MaterialX 1.38.8. Uncomment this code after switching to 1.38.8. */
+#  if 0
+  NodeItem temperature = get_input_value("Temperature", NodeItem::Type::Float);
 
-   * NodeItem res = create_node("blackbody", NodeItem::Type::Color3);
-   * res.set_input("temperature", temperature);
-   * return res; */
+  NodeItem res = create_node("blackbody", NodeItem::Type::Color3);
+  res.set_input("temperature", temperature);
+  return res;
+#  endif
   NodeItem res = empty();
   return res;
 }

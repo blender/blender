@@ -45,7 +45,8 @@ class VKCommandBuffers : public NonCopyable, NonMovable {
   VKFrameBuffer *framebuffer_ = nullptr;
   bool framebuffer_bound_ = false;
 
-  /* TODO: General command buffer should not be used, but is added to help during the transition.*/
+  /* TODO: General command buffer should not be used, but is added to help during the transition.
+   */
   VKCommandBuffer buffers_[(int)Type::Max];
   VKSubmissionID submission_id_;
 

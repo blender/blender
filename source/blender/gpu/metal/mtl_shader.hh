@@ -102,7 +102,7 @@ struct MTLRenderPipelineStateInstance {
 /* Common compute pipeline state. */
 struct MTLComputePipelineStateCommon {
 
-  /* Threadgroup information is common for all PSO variants.*/
+  /* Thread-group information is common for all PSO variants. */
   int threadgroup_x_len = 1;
   int threadgroup_y_len = 1;
   int threadgroup_z_len = 1;
@@ -163,7 +163,7 @@ struct MTLShaderBuilder {
  * - set MSL source.
  * - set Vertex/Fragment function names.
  * - Create and populate #MTLShaderInterface.
- **/
+ */
 class MTLShader : public Shader {
   friend shader::ShaderCreateInfo;
   friend shader::StageInterfaceInfo;
@@ -263,6 +263,9 @@ class MTLShader : public Shader {
   void *push_constant_data_ = nullptr;
   bool push_constant_modified_ = false;
 
+  /** Special definition for Max TotalThreadsPerThreadgroup tuning. */
+  uint maxTotalThreadsPerThreadgroup_Tuning_ = 0;
+
  public:
   MTLShader(MTLContext *ctx, const char *name);
   MTLShader(MTLContext *ctx,
@@ -273,6 +276,8 @@ class MTLShader : public Shader {
             NSString *vertex_function_name_,
             NSString *fragment_function_name_);
   ~MTLShader();
+
+  void init(const shader::ShaderCreateInfo & /*info*/) override {}
 
   /* Assign GLSL source. */
   void vertex_shader_from_glsl(MutableSpan<const char *> sources) override;

@@ -1023,11 +1023,12 @@ static bool move_to_collection_poll(bContext *C)
 /**
  * Encode the parameters into an integer, and return as void*.
  *
- * This makes it possible to use these values and pass them directly as 'custom data' pointer to
- * `uiItemMenuF()`. This makes it possible to give every menu a unique bone collection index for
- * which it should show the child collections, without having to allocate memory or use static
- * variables. See `move_to_collection_invoke()` in `object_edit.cc` for the alternative that I
- * (Sybren) wanted to avoid. */
+ * NOTE(@sybren): This makes it possible to use these values and pass them directly as
+ * 'custom data' pointer to `uiItemMenuF()`. This makes it possible to give every menu a unique
+ * bone collection index for which it should show the child collections, without having to allocate
+ * memory or use static variables.  See `move_to_collection_invoke()` in `object_edit.cc`
+ * for the alternative that I wanted to avoid.
+ */
 static void *menu_custom_data_encode(const int bcoll_index, const bool is_move_operation)
 {
   /* Add 1 to the index, so that it's never negative (it can be -1 to indicate 'all roots'). */
@@ -1084,8 +1085,8 @@ static void menu_add_item_for_move_assign_unassign(uiLayout *layout,
 /**
  * Add menu items to the layout, for a set of bone collections.
  *
- * \param menu_custom_data contains two values, encoded as void* to match the signature required by
- * `uiItemMenuF`. It contains the parent bone collection index (either -1 to show all roots, or
+ * \param menu_custom_data: Contains two values, encoded as void* to match the signature required
+ * by `uiItemMenuF`. It contains the parent bone collection index (either -1 to show all roots, or
  * another value to show the children of that collection), as well as a boolean that indicates
  * whether the menu is created for the "move to collection" or "assign to collection" operator.
  *
@@ -1132,7 +1133,7 @@ static void move_to_collection_menu_create(bContext *C, uiLayout *layout, void *
   }
 
   /* Loop over the children. There should be at least one, otherwise this parent
-   * bone collection wouldn't have been drawn as a menu.*/
+   * bone collection wouldn't have been drawn as a menu. */
   for (int index = child_index; index < child_index + child_count; index++) {
     const BoneCollection *bcoll = arm->collection_array[index];
 

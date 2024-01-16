@@ -23,7 +23,7 @@
 #include "BKE_action.h"
 #include "BKE_armature.hh"
 #include "BKE_camera.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_object.hh"
 #include "BKE_report.h"
@@ -638,7 +638,8 @@ static int background_image_remove_exec(bContext *C, wmOperator *op)
 
   if (bgpic_rem) {
     if (ID_IS_OVERRIDE_LIBRARY(cam) &&
-        (bgpic_rem->flag & CAM_BGIMG_FLAG_OVERRIDE_LIBRARY_LOCAL) == 0) {
+        (bgpic_rem->flag & CAM_BGIMG_FLAG_OVERRIDE_LIBRARY_LOCAL) == 0)
+    {
       BKE_reportf(op->reports,
                   RPT_WARNING,
                   "Cannot remove background image %d from camera '%s', as it is from the linked "

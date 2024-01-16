@@ -36,7 +36,7 @@ void FullFrameExecutionModel::execute(ExecutionSystem &exec_system)
 {
   const bNodeTree *node_tree = this->context_.get_bnodetree();
   node_tree->runtime->stats_draw(node_tree->runtime->sdh,
-                                 TIP_("Compositing | Initializing execution"));
+                                 RPT_("Compositing | Initializing execution"));
 
   DebugInfo::graphviz(&exec_system, "compositor_prior_rendering");
 
@@ -194,7 +194,8 @@ void FullFrameExecutionModel::determine_areas_to_render(NodeOperation *output_op
     NodeOperation *operation = pair.first;
     const rcti &render_area = pair.second;
     if (BLI_rcti_is_empty(&render_area) ||
-        active_buffers_.is_area_registered(operation, render_area)) {
+        active_buffers_.is_area_registered(operation, render_area))
+    {
       continue;
     }
 
@@ -280,7 +281,7 @@ void FullFrameExecutionModel::update_progress_bar()
 
     char buf[128];
     SNPRINTF(buf,
-             TIP_("Compositing | Operation %i-%li"),
+             RPT_("Compositing | Operation %i-%li"),
              num_operations_finished_ + 1,
              operations_.size());
     tree->runtime->stats_draw(tree->runtime->sdh, buf);

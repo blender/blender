@@ -89,7 +89,7 @@ void clear_tree(VolumeGridData &grid);
 
 /**
  * Makes sure that the volume grid is loaded afterwards. This is necessary to call this for
- * correctness, because the grid will be loaded on demand anyway. Sometimes it may be benefitial
+ * correctness, because the grid will be loaded on demand anyway. Sometimes it may be beneficial
  * for performance to load the grid eagerly though.
  */
 void load(const VolumeGridData &grid);

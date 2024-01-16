@@ -46,7 +46,7 @@
 #include "BKE_displist.h"
 #include "BKE_idtype.h"
 #include "BKE_key.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_lib_query.h"
 #include "BKE_main.hh"
 #include "BKE_object.hh"
@@ -4256,7 +4256,8 @@ void BKE_nurbList_handles_set(ListBase *editnurb,
           while (a--) {
             const short flag = BKE_nurb_bezt_handle_test_calc_flag(bezt, SELECT, handle_mode);
             if (((flag & (1 << 0)) && bezt->h1 != HD_FREE) ||
-                ((flag & (1 << 2)) && bezt->h2 != HD_FREE)) {
+                ((flag & (1 << 2)) && bezt->h2 != HD_FREE))
+            {
               h_new = HD_AUTO;
               break;
             }
@@ -4760,16 +4761,16 @@ bool BKE_nurb_valid_message(const int pnts,
         message_dst[0] = 0;
         return false;
       }
-      msg_template = TIP_("At least two points required");
+      msg_template = RPT_("At least two points required");
       break;
     case NURBSValidationStatus::MorePointsThanOrderRequired:
-      msg_template = TIP_("Must have more control points than Order");
+      msg_template = RPT_("Must have more control points than Order");
       break;
     case NURBSValidationStatus::MoreRowsForBezierRequired:
-      msg_template = TIP_("%d more %s row(s) needed for Bezier");
+      msg_template = RPT_("%d more %s row(s) needed for Bezier");
       break;
     case NURBSValidationStatus::MorePointsForBezierRequired:
-      msg_template = TIP_("%d more point(s) needed for Bezier");
+      msg_template = RPT_("%d more point(s) needed for Bezier");
       break;
   }
 
@@ -4879,7 +4880,8 @@ bool BKE_nurb_type_convert(Nurb *nu,
       bp = nu->bp;
       while (a--) {
         if ((type == CU_POLY && bezt->h1 == HD_VECT && bezt->h2 == HD_VECT) ||
-            (use_handles == false)) {
+            (use_handles == false))
+        {
           /* vector handle becomes one poly vertex */
           copy_v3_v3(bp->vec, bezt->vec[1]);
           bp->vec[3] = 1.0;

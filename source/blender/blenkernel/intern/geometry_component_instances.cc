@@ -32,6 +32,11 @@ namespace blender::bke {
 
 InstancesComponent::InstancesComponent() : GeometryComponent(Type::Instance) {}
 
+InstancesComponent::InstancesComponent(Instances *instances, GeometryOwnershipType ownership)
+    : GeometryComponent(Type::Instance), instances_(instances), ownership_(ownership)
+{
+}
+
 InstancesComponent::~InstancesComponent()
 {
   this->clear();

@@ -401,7 +401,8 @@ static bool do_weight_paint_normalize(MDeformVert *dvert,
     for (int i = dvert->totweight; i != 0; i--, dw++) {
       if (dw->def_nr < defbase_tot && vgroup_bone_deformed[dw->def_nr]) {
         if ((vgroup_locked[dw->def_nr] == false) &&
-            !(lock_active_vgroup && active_vgroup == dw->def_nr)) {
+            !(lock_active_vgroup && active_vgroup == dw->def_nr))
+        {
           dw->weight = 0.0f;
         }
       }
@@ -417,7 +418,8 @@ static bool do_weight_paint_normalize(MDeformVert *dvert,
       if (dw->def_nr < defbase_tot && vgroup_bone_deformed[dw->def_nr] && dw->weight > FLT_EPSILON)
       {
         if ((vgroup_locked[dw->def_nr] == false) &&
-            !(lock_active_vgroup && active_vgroup == dw->def_nr)) {
+            !(lock_active_vgroup && active_vgroup == dw->def_nr))
+        {
           dw->weight *= fac;
           CLAMP(dw->weight, 0.0f, 1.0f);
         }
@@ -433,7 +435,8 @@ static bool do_weight_paint_normalize(MDeformVert *dvert,
       if (dw->def_nr < defbase_tot && vgroup_bone_deformed[dw->def_nr] && dw->weight > FLT_EPSILON)
       {
         if ((vgroup_locked[dw->def_nr] == false) &&
-            !(lock_active_vgroup && active_vgroup == dw->def_nr)) {
+            !(lock_active_vgroup && active_vgroup == dw->def_nr))
+        {
           dw->weight = fac;
         }
       }
@@ -713,17 +716,17 @@ static void gpencil_weightpaint_brush_header_set(bContext *C, tGP_BrushWeightpai
 {
   switch (gso->brush->gpencil_weight_tool) {
     case GPWEIGHT_TOOL_DRAW:
-      ED_workspace_status_text(C, TIP_("GPencil Weight Paint: LMB to paint | RMB/Escape to Exit"));
+      ED_workspace_status_text(C, RPT_("GPencil Weight Paint: LMB to paint | RMB/Escape to Exit"));
       break;
     case GPWEIGHT_TOOL_BLUR:
-      ED_workspace_status_text(C, TIP_("GPencil Weight Blur: LMB to blur | RMB/Escape to Exit"));
+      ED_workspace_status_text(C, RPT_("GPencil Weight Blur: LMB to blur | RMB/Escape to Exit"));
       break;
     case GPWEIGHT_TOOL_AVERAGE:
       ED_workspace_status_text(
-          C, TIP_("GPencil Weight Average: LMB to set average | RMB/Escape to Exit"));
+          C, RPT_("GPencil Weight Average: LMB to set average | RMB/Escape to Exit"));
       break;
     case GPWEIGHT_TOOL_SMEAR:
-      ED_workspace_status_text(C, TIP_("GPencil Weight Smear: LMB to smear | RMB/Escape to Exit"));
+      ED_workspace_status_text(C, RPT_("GPencil Weight Smear: LMB to smear | RMB/Escape to Exit"));
       break;
   }
 }

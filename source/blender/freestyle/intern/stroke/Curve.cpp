@@ -559,7 +559,8 @@ Curve::~Curve()
 {
   if (!_Vertices.empty()) {
     for (vertex_container::iterator it = _Vertices.begin(), itend = _Vertices.end(); it != itend;
-         ++it) {
+         ++it)
+    {
       delete (*it);
     }
     _Vertices.clear();

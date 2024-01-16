@@ -1323,7 +1323,7 @@ typedef enum eUserpref_Anim_Flags {
 typedef enum eUserpref_Translation_Flags {
   USER_TR_TOOLTIPS = (1 << 0),
   USER_TR_IFACE = (1 << 1),
-  USER_TR_UNUSED_2 = (1 << 2),            /* cleared */
+  USER_TR_REPORTS = (1 << 2),
   USER_TR_UNUSED_3 = (1 << 3),            /* cleared */
   USER_TR_UNUSED_4 = (1 << 4),            /* cleared */
   USER_DOTRANSLATE_DEPRECATED = (1 << 5), /* Deprecated in 2.83. */

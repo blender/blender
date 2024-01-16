@@ -385,8 +385,8 @@ void MTLStorageBuf::read(void *data)
     this->init();
   }
 
-  /* Device-only storage buffers cannot be read directly and require staging. This path should only
-  be used for unit testing. */
+  /* Device-only storage buffers cannot be read directly and require staging.
+   * This path should only be used for unit testing. */
   bool device_only = (usage_ == GPU_USAGE_DEVICE_ONLY);
   if (device_only) {
     /** Read storage buffer contents via staging buffer. */

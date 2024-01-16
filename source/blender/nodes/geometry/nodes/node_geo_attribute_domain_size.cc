@@ -132,7 +132,8 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
     case GeometryComponent::Type::GreasePencil: {
       if (const GreasePencilComponent *component =
-              geometry_set.get_component<GreasePencilComponent>()) {
+              geometry_set.get_component<GreasePencilComponent>())
+      {
         const AttributeAccessor attributes = *component->attributes();
         params.set_output("Layer Count", attributes.domain_size(AttrDomain::Layer));
       }

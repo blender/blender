@@ -533,7 +533,7 @@ TEST_F(ply_exporter_ply_data_test, CubesVertexAttrs)
   PlyData plyData = load_ply_data_from_blendfile(
       "io_tests/blend_geometry/cubes_vertex_attrs.blend", params);
   EXPECT_EQ(plyData.vertices.size(), 28);
-  EXPECT_EQ(plyData.vertex_custom_attr.size(), 11); /* Float 1 + Color 4 + ByteColor 4 + Int2D 2*/
+  EXPECT_EQ(plyData.vertex_custom_attr.size(), 11); /* Float 1 + Color 4 + ByteColor 4 + Int2D 2 */
   EXPECT_EQ(plyData.vertex_custom_attr[0].data.size(), 28);
 }
 

@@ -10,7 +10,7 @@
 #include "BKE_action.h"
 #include "BKE_anim_data.h"
 #include "BKE_fcurve.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "DEG_depsgraph.hh"

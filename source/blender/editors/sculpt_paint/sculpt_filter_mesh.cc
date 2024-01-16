@@ -13,6 +13,7 @@
 
 #include "BLI_hash.h"
 #include "BLI_index_range.hh"
+#include "BLI_math_base.hh"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
@@ -115,15 +116,8 @@ void cache_init(bContext *C,
     BKE_pbvh_ensure_node_loops(ss->pbvh);
   }
 
-  const float center[3] = {0.0f};
-  SculptSearchSphereData search_data{};
-  search_data.original = true;
-  search_data.center = center;
-  search_data.radius_squared = FLT_MAX;
-  search_data.ignore_fully_ineffective = true;
-
   ss->filter_cache->nodes = bke::pbvh::search_gather(
-      pbvh, [&](PBVHNode &node) { return SCULPT_search_sphere(&node, &search_data); });
+      pbvh, [&](PBVHNode &node) { return !node_fully_masked_or_hidden(node); });
 
   for (PBVHNode *node : ss->filter_cache->nodes) {
     BKE_pbvh_node_mark_normals_update(node);
@@ -177,22 +171,18 @@ void cache_init(bContext *C,
       radius = paint_calc_object_space_radius(&vc, co, float(ups->size) * area_normal_radius);
     }
 
-    SculptSearchSphereData search_data2{};
-    search_data2.original = true;
-    search_data2.center = co;
-    search_data2.radius_squared = radius * radius;
-    search_data2.ignore_fully_ineffective = true;
+    const float radius_sq = math::square(radius);
+    nodes = bke::pbvh::search_gather(pbvh, [&](PBVHNode &node) {
+      return !node_fully_masked_or_hidden(node) && node_in_sphere(node, co, radius_sq, true);
+    });
 
-    nodes = bke::pbvh::search_gather(
-        pbvh, [&](PBVHNode &node) { return SCULPT_search_sphere(&node, &search_data2); });
-
-    if (BKE_paint_brush(&sd->paint) &&
-        SCULPT_pbvh_calc_area_normal(brush, ob, nodes, ss->filter_cache->initial_normal))
-    {
-      copy_v3_v3(ss->last_normal, ss->filter_cache->initial_normal);
+    const std::optional<float3> area_normal = SCULPT_pbvh_calc_area_normal(brush, ob, nodes);
+    if (BKE_paint_brush(&sd->paint) && area_normal) {
+      ss->filter_cache->initial_normal = *area_normal;
+      ss->last_normal = ss->filter_cache->initial_normal;
     }
     else {
-      copy_v3_v3(ss->filter_cache->initial_normal, ss->last_normal);
+      ss->filter_cache->initial_normal = ss->last_normal;
     }
 
     /* Update last stroke location */
@@ -529,9 +519,6 @@ static void mesh_filter_task(Object *ob,
       add_v3_v3v3(final_pos, orig_co, disp);
     }
     copy_v3_v3(vd.co, final_pos);
-    if (vd.is_mesh) {
-      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
-    }
   }
   BKE_pbvh_vertex_iter_end;
 
@@ -717,13 +704,13 @@ static void sculpt_mesh_update_status_bar(bContext *C, wmOperator *op)
       op->type, (_id), true, UI_MAX_SHORTCUT_STR, &available_len, &p)
 
   SNPRINTF(header,
-           TIP_("%s: Confirm, %s: Cancel"),
+           RPT_("%s: Confirm, %s: Cancel"),
            WM_MODALKEY(FILTER_MESH_MODAL_CONFIRM),
            WM_MODALKEY(FILTER_MESH_MODAL_CANCEL));
 
 #undef WM_MODALKEY
 
-  ED_workspace_status_text(C, TIP_(header));
+  ED_workspace_status_text(C, RPT_(header));
 }
 
 static void sculpt_mesh_filter_apply(bContext *C, wmOperator *op)

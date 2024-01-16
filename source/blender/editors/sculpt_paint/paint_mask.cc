@@ -32,7 +32,7 @@
 #include "BKE_brush.hh"
 #include "BKE_ccg.h"
 #include "BKE_context.hh"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
 #include "BKE_multires.hh"
 #include "BKE_paint.hh"
@@ -615,11 +615,11 @@ struct SculptGestureContext {
   int tot_gesture_points;
 
   /* View parameters. */
-  float true_view_normal[3];
-  float view_normal[3];
+  float3 true_view_normal;
+  float3 view_normal;
 
-  float true_view_origin[3];
-  float view_origin[3];
+  float3 true_view_origin;
+  float3 view_origin;
 
   float true_clip_planes[4][4];
   float clip_planes[4][4];
@@ -629,8 +629,8 @@ struct SculptGestureContext {
   /* World space view origin and normal are not affected by object symmetry when doing symmetry
    * passes, so there is no separate variables with the `true_` prefix to store their original
    * values without symmetry modifications. */
-  float world_space_view_origin[3];
-  float world_space_view_normal[3];
+  float3 world_space_view_origin;
+  float3 world_space_view_normal;
 
   /* Lasso Gesture. */
   LassoGestureData lasso;
@@ -1930,9 +1930,6 @@ static void project_line_gesture_apply_task(SculptGestureContext *sgcontext, PBV
       continue;
     }
     add_v3_v3(vd.co, disp);
-    if (vd.is_mesh) {
-      BKE_pbvh_vert_tag_update_normal(sgcontext->ss->pbvh, vd.vertex);
-    }
     any_updated = true;
   }
   BKE_pbvh_vertex_iter_end;

@@ -27,8 +27,6 @@ void node_bsdf_hair(vec4 color,
   hair_data.weight = weight;
   hair_data.color = color.rgb;
   hair_data.N = g_data.N;
-  hair_data.sss_radius = vec3(0.0);
-  hair_data.sss_id = 0u;
 #endif
   result = closure_eval(hair_data);
 }
@@ -68,8 +66,6 @@ void node_bsdf_hair_principled(vec4 color,
   hair_data.weight = weight;
   hair_data.color = color.rgb;
   hair_data.N = g_data.N;
-  hair_data.sss_radius = vec3(0.0);
-  hair_data.sss_id = 0u;
 #endif
   result = closure_eval(hair_data);
 }

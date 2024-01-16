@@ -1125,7 +1125,8 @@ void ViewMapBuilder::CullViewEdges(ViewMap *ioViewMap,
   ViewMap::viewedges_container::iterator ve, veend;
 
   for (ve = ioViewMap->ViewEdges().begin(), veend = ioViewMap->ViewEdges().end(); ve != veend;
-       ve++) {
+       ve++)
+  {
     // Overview:
     //    Search for a visible feature edge
     //    If none: mark view edge as non-displayable
@@ -1229,7 +1230,8 @@ void ViewMapBuilder::CullViewEdges(ViewMap *ioViewMap,
   if (extensiveFEdgeSearch) {
     // For each view edge,
     for (ve = ioViewMap->ViewEdges().begin(), veend = ioViewMap->ViewEdges().end(); ve != veend;
-         ve++) {
+         ve++)
+    {
       if (!(*ve)->isInImage()) {
         continue;
       }
@@ -1974,7 +1976,8 @@ void ViewMapBuilder::FindOccludee(FEdge *fe,
       }
       else {
         if (GeomUtils::COINCIDENT ==
-            GeomUtils::intersectRayPlane(origin, edgeDir, normal, d, t, epsilon)) {
+            GeomUtils::intersectRayPlane(origin, edgeDir, normal, d, t, epsilon))
+        {
           continue;
         }
       }
@@ -2201,7 +2204,8 @@ int ViewMapBuilder::ComputeRayCastingVisibility(FEdge *fe,
       // first let us compute the plane equation.
 
       if (GeomUtils::COINCIDENT ==
-          GeomUtils::intersectRayPlane(origin, edgeDir, normal, d, t, epsilon)) {
+          GeomUtils::intersectRayPlane(origin, edgeDir, normal, d, t, epsilon))
+      {
 #if LOGGING
         if (_global.debug & G_DEBUG_FREESTYLE) {
           cout << "\t\tRejecting occluder for target coincidence." << endl;

@@ -8,7 +8,6 @@
 
 #include "DNA_windowmanager_types.h"
 
-#include <map>
 #include <pxr/usd/usd/prim.h>
 #include <pxr/usd/usdGeom/xformCache.h>
 #include <pxr/usd/usdSkel/bindingAPI.h>
@@ -100,7 +99,7 @@ using ObjExportMap = Map<const Object *, pxr::SdfPath>;
  * \param stage: The stage
  * \param armature_export_map: Map armature objects to USD skeletons
  * \param skinned_mesh_export_map: Map mesh objects to USD skinned meshes
- * \param shape_key_export_map: Map mesh objects with shape keye to USD meshes
+ * \param shape_key_export_map: Map mesh objects with shape-key to USD meshes
  *                              with blend shape targets
  * \param depsgraph: The dependency graph in which objects were evaluated
  */
@@ -129,7 +128,7 @@ void skinned_mesh_export_chaser(pxr::UsdStageRefPtr stage,
  * Complete the export process for shape keys.
  *
  * \param stage: The stage
- * \param shape_key_export_map: Map mesh objects with shape keye to USD meshes
+ * \param shape_key_export_map: Map mesh objects with shape-key to USD meshes
  *                              with blend shape targets
  */
 void shape_key_export_chaser(pxr::UsdStageRefPtr stage,

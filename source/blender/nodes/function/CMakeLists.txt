@@ -72,7 +72,4 @@ list(APPEND LIB
 blender_add_lib(bf_nodes_function "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 target_link_libraries(bf_nodes_functions_generated bf_nodes_function)
 
-if(WITH_UNITY_BUILD)
-  set_target_properties(bf_nodes_function PROPERTIES UNITY_BUILD ON)
-  set_target_properties(bf_nodes_function PROPERTIES UNITY_BUILD_BATCH_SIZE 10)
-endif()
+blender_set_target_unity_build(bf_nodes_function 10)

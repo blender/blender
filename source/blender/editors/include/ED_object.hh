@@ -453,7 +453,7 @@ void ED_object_posemode_set_for_weight_paint(bContext *C,
  * Return the index of an object in a mode (typically edit/pose mode).
  *
  * Useful for operators with multi-mode editing to be able to redo an action on an object
- * by it's index which (unlike pointers) the operator can store for redo.
+ * by its index which (unlike pointers) the operator can store for redo.
  *
  * The indices aren't intended to be useful from Python scripts,
  * although they are not prevented from passing them in, this is mainly to enable redo.

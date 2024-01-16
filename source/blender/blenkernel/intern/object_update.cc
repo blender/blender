@@ -47,7 +47,7 @@
 #include "BKE_object_types.hh"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
-#include "BKE_pointcloud.h"
+#include "BKE_pointcloud.hh"
 #include "BKE_scene.h"
 #include "BKE_volume.hh"
 

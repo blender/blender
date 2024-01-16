@@ -22,7 +22,7 @@
 #include "BKE_context.hh"
 #include "BKE_deform.h"
 #include "BKE_editmesh.hh"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_modifier.hh"
@@ -234,7 +234,8 @@ static void init_laplacian_matrix(LaplacianSystem *sys)
     idv2 = sys->edges[i][1];
     /* if is boundary, apply scale-dependent umbrella operator only with neighbors in boundary */
     if (sys->ne_ed_num[idv1] != sys->ne_fa_num[idv1] &&
-        sys->ne_ed_num[idv2] != sys->ne_fa_num[idv2]) {
+        sys->ne_ed_num[idv2] != sys->ne_fa_num[idv2])
+    {
       sys->vlengths[idv1] += sys->eweights[i];
       sys->vlengths[idv2] += sys->eweights[i];
     }

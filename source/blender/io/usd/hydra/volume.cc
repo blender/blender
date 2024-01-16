@@ -37,7 +37,7 @@ void VolumeData::init()
   filepath_ = BKE_volume_grids_frame_filepath(volume);
   ID_LOGN(1, "%s", filepath_.c_str());
 
-  if (volume->runtime.grids) {
+  if (volume->runtime->grids) {
     const int num_grids = BKE_volume_num_grids(volume);
     if (num_grids) {
       for (const int i : IndexRange(num_grids)) {

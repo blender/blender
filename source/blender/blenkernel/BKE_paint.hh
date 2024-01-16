@@ -504,17 +504,17 @@ struct SculptSession {
 
   /* Mesh connectivity maps. */
   /* Vertices to adjacent polys. */
-  blender::GroupedSpan<int> pmap;
+  blender::GroupedSpan<int> vert_to_face_map;
 
   /* Edges to adjacent faces. */
   blender::Array<int> edge_to_face_offsets;
   blender::Array<int> edge_to_face_indices;
-  blender::GroupedSpan<int> epmap;
+  blender::GroupedSpan<int> edge_to_face_map;
 
   /* Vertices to adjacent edges. */
   blender::Array<int> vert_to_edge_offsets;
   blender::Array<int> vert_to_edge_indices;
-  blender::GroupedSpan<int> vemap;
+  blender::GroupedSpan<int> vert_to_edge_map;
 
   /* Mesh Face Sets */
   /* Total number of faces of the base mesh. */

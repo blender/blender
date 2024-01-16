@@ -1,8 +1,8 @@
 # Example of a group that edits a single property
 # using the predefined gizmo arrow.
 #
-# Usage: Select a light in the 3D view and drag the arrow at it's rear
-# to change it's energy value.
+# Usage: Select a light in the 3D view and drag the arrow at its rear
+# to change its energy value.
 #
 import bpy
 from bpy.types import (

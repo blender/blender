@@ -863,7 +863,8 @@ void ui_popup_block_free(bContext *C, uiPopupBlockHandle *handle)
   if (region != nullptr) {
     LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
       if (block->handle && (block->flag & UI_BLOCK_POPOVER) &&
-          (block->flag & UI_BLOCK_KEEP_OPEN) == 0) {
+          (block->flag & UI_BLOCK_KEEP_OPEN) == 0)
+      {
         uiPopupBlockHandle *menu = block->handle;
         menu->menuretval = UI_RETURN_OK;
       }

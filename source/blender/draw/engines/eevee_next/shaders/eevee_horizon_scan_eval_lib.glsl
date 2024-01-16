@@ -22,18 +22,11 @@
 #pragma BLENDER_REQUIRE(eevee_bxdf_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_spherical_harmonics_lib.glsl)
 
-#ifdef RAYTRACE_DIFFUSE
-#  define HORIZON_DIFFUSE
-#endif
-#ifdef RAYTRACE_REFLECT
-#  define HORIZON_REFLECT
-#endif
-#ifdef RAYTRACE_REFRACT
-#  define HORIZON_REFRACT
-#endif
 #if defined(MAT_DEFERRED) || defined(MAT_FORWARD)
 /* Enable AO node computation for material shaders. */
 #  define HORIZON_OCCLUSION
+#else
+#  define HORIZON_CLOSURE
 #endif
 
 vec3 horizon_scan_sample_radiance(vec2 uv)
@@ -71,20 +64,10 @@ struct HorizonScanContext {
   HorizonScanContextCommon occlusion_common;
   vec4 occlusion_result;
 #endif
-#ifdef HORIZON_DIFFUSE
-  ClosureDiffuse diffuse;
-  HorizonScanContextCommon diffuse_common;
-  vec4 diffuse_result;
-#endif
-#ifdef HORIZON_REFLECT
-  ClosureReflection reflection;
-  HorizonScanContextCommon reflection_common;
-  vec4 reflection_result;
-#endif
-#ifdef HORIZON_REFRACT
-  ClosureRefraction refraction;
-  HorizonScanContextCommon refraction_common;
-  vec4 refraction_result;
+#ifdef HORIZON_CLOSURE
+  ClosureUndetermined closure;
+  HorizonScanContextCommon closure_common;
+  vec4 closure_result;
 #endif
 };
 
@@ -94,17 +77,9 @@ void horizon_scan_context_accumulation_reset(inout HorizonScanContext context)
   context.occlusion_common.light_accum = vec4(0.0);
   context.occlusion_common.weight_accum = 0.0;
 #endif
-#ifdef HORIZON_DIFFUSE
-  context.diffuse_common.light_accum = vec4(0.0);
-  context.diffuse_common.weight_accum = 0.0;
-#endif
-#ifdef HORIZON_REFLECT
-  context.reflection_common.light_accum = vec4(0.0);
-  context.reflection_common.weight_accum = 0.0;
-#endif
-#ifdef HORIZON_REFRACT
-  context.refraction_common.light_accum = vec4(0.0);
-  context.refraction_common.weight_accum = 0.0;
+#ifdef HORIZON_CLOSURE
+  context.closure_common.light_accum = vec4(0.0);
+  context.closure_common.weight_accum = 0.0;
 #endif
 }
 
@@ -123,14 +98,8 @@ void horizon_scan_context_slice_start(inout HorizonScanContext context, vec3 vV,
 #ifdef HORIZON_OCCLUSION
   horizon_scan_context_slice_start(context.occlusion_common, context.occlusion.N, vV, vT, vB);
 #endif
-#ifdef HORIZON_DIFFUSE
-  horizon_scan_context_slice_start(context.diffuse_common, context.diffuse.N, vV, vT, vB);
-#endif
-#ifdef HORIZON_REFLECT
-  horizon_scan_context_slice_start(context.reflection_common, context.reflection.N, vV, vT, vB);
-#endif
-#ifdef HORIZON_REFRACT
-  horizon_scan_context_slice_start(context.refraction_common, context.refraction.N, vV, vT, vB);
+#ifdef HORIZON_CLOSURE
+  horizon_scan_context_slice_start(context.closure_common, context.closure.N, vV, vT, vB);
 #endif
 }
 
@@ -150,21 +119,6 @@ void horizon_scan_context_sample_finish(inout HorizonScanContextCommon context,
   context.bitmask |= sample_bitmask;
 }
 
-float bxdf_eval(ClosureDiffuse closure, vec3 L, vec3 V)
-{
-  return bsdf_lambert(closure.N, L);
-}
-
-float bxdf_eval(ClosureReflection closure, vec3 L, vec3 V)
-{
-  return bsdf_ggx(closure.N, L, V, closure.roughness);
-}
-
-float bxdf_eval(ClosureRefraction closure, vec3 L, vec3 V)
-{
-  return btdf_ggx(closure.N, L, V, closure.roughness, closure.ior);
-}
-
 void horizon_scan_context_sample_finish(
     inout HorizonScanContext ctx, vec3 L, vec3 V, vec2 sample_uv, vec2 theta, float bias)
 {
@@ -180,18 +134,9 @@ void horizon_scan_context_sample_finish(
 #ifdef HORIZON_OCCLUSION
   horizon_scan_context_sample_finish(ctx.occlusion_common, sample_radiance, 1.0, theta, bias);
 #endif
-#ifdef HORIZON_DIFFUSE
-  weight *= bxdf_eval(ctx.diffuse, L, V);
-  horizon_scan_context_sample_finish(ctx.diffuse_common, sample_radiance, weight, theta, bias);
-#endif
-#ifdef HORIZON_REFLECT
-  weight *= bxdf_eval(ctx.reflection, L, V);
-  horizon_scan_context_sample_finish(ctx.reflection_common, sample_radiance, weight, theta, bias);
-#endif
-#ifdef HORIZON_REFRACT
-  /* TODO(fclem): Broken: Black. */
-  weight *= bxdf_eval(ctx.refraction, L, V);
-  horizon_scan_context_sample_finish(ctx.refraction_common, sample_radiance, weight, theta, bias);
+#ifdef HORIZON_CLOSURE
+  weight *= bsdf_lambert(ctx.closure.N, L);
+  horizon_scan_context_sample_finish(ctx.closure_common, sample_radiance, weight, theta, bias);
 #endif
 }
 
@@ -214,14 +159,8 @@ void horizon_scan_context_slice_finish(inout HorizonScanContext context)
   context.occlusion_common.light_accum += vec4(occlusion) * context.occlusion_common.N_length;
   context.occlusion_common.weight_accum += context.occlusion_common.N_length;
 #endif
-#ifdef HORIZON_DIFFUSE
-  horizon_scan_context_slice_finish(context.diffuse_common);
-#endif
-#ifdef HORIZON_REFLECT
-  horizon_scan_context_slice_finish(context.reflection_common);
-#endif
-#ifdef HORIZON_REFRACT
-  horizon_scan_context_slice_finish(context.refraction_common);
+#ifdef HORIZON_CLOSURE
+  horizon_scan_context_slice_finish(context.closure_common);
 #endif
 }
 
@@ -235,14 +174,8 @@ void horizon_scan_context_accumulation_finish(inout HorizonScanContext context)
 #ifdef HORIZON_OCCLUSION
   horizon_scan_context_accumulation_finish(context.occlusion_common, context.occlusion_result);
 #endif
-#ifdef HORIZON_DIFFUSE
-  horizon_scan_context_accumulation_finish(context.diffuse_common, context.diffuse_result);
-#endif
-#ifdef HORIZON_REFLECT
-  horizon_scan_context_accumulation_finish(context.reflection_common, context.reflection_result);
-#endif
-#ifdef HORIZON_REFRACT
-  horizon_scan_context_accumulation_finish(context.refraction_common, context.refraction_result);
+#ifdef HORIZON_CLOSURE
+  horizon_scan_context_accumulation_finish(context.closure_common, context.closure_result);
 #endif
 }
 

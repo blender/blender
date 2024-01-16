@@ -616,7 +616,8 @@ static void ui_searchbox_region_draw_fn(const bContext *C, ARegion *region)
 
         /* widget itself */
         if ((search_sep_len == 0) ||
-            !(name_sep_test = strstr(data->items.names[a], data->sep_string))) {
+            !(name_sep_test = strstr(data->items.names[a], data->sep_string)))
+        {
           if (!icon && data->items.has_icon) {
             /* If there is any icon item, make sure all items line up. */
             icon = ICON_BLANK1;

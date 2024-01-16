@@ -7,7 +7,7 @@
  */
 
 #include "BKE_idtype.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_main_namemap.hh"
 
@@ -30,7 +30,7 @@
 
 static CLG_LogRef LOG = {"bke.main_namemap"};
 
-//#define DEBUG_PRINT_MEMORY_USAGE
+// #define DEBUG_PRINT_MEMORY_USAGE
 
 using namespace blender;
 

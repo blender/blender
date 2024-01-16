@@ -74,7 +74,8 @@ static PyObject *Operators_select(BPy_Operators * /*self*/, PyObject *args, PyOb
   PyObject *obj = nullptr;
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "O!", (char **)kwlist, &UnaryPredicate1D_Type, &obj)) {
+          args, kwds, "O!", (char **)kwlist, &UnaryPredicate1D_Type, &obj))
+  {
     return nullptr;
   }
   if (!((BPy_UnaryPredicate1D *)obj)->up1D) {
@@ -484,7 +485,8 @@ static PyObject *Operators_sort(BPy_Operators * /*self*/, PyObject *args, PyObje
   PyObject *obj = nullptr;
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "O!", (char **)kwlist, &BinaryPredicate1D_Type, &obj)) {
+          args, kwds, "O!", (char **)kwlist, &BinaryPredicate1D_Type, &obj))
+  {
     return nullptr;
   }
   if (!((BPy_BinaryPredicate1D *)obj)->bp1D) {

@@ -295,21 +295,21 @@ static void sequencer_thumbnail_start_job_if_necessary(
 
   /* Job start requested, but over area which has been processed. Unless `thumbnail_is_missing` is
    * true, ignore this request as all images are in view. */
-  if (v2d->cur.xmax == sseq->runtime.last_thumbnail_area.xmax &&
-      v2d->cur.ymax == sseq->runtime.last_thumbnail_area.ymax && !thumbnail_is_missing)
+  if (v2d->cur.xmax == sseq->runtime->last_thumbnail_area.xmax &&
+      v2d->cur.ymax == sseq->runtime->last_thumbnail_area.ymax && !thumbnail_is_missing)
   {
     return;
   }
 
   /* Stop the job first as view has changed. Pointless to continue old job. */
-  if (v2d->cur.xmax != sseq->runtime.last_thumbnail_area.xmax ||
-      v2d->cur.ymax != sseq->runtime.last_thumbnail_area.ymax)
+  if (v2d->cur.xmax != sseq->runtime->last_thumbnail_area.xmax ||
+      v2d->cur.ymax != sseq->runtime->last_thumbnail_area.ymax)
   {
     WM_jobs_stop(CTX_wm_manager(C), nullptr, thumbnail_start_job);
   }
 
   sequencer_thumbnail_init_job(C, v2d, ed, thumb_height);
-  sseq->runtime.last_thumbnail_area = v2d->cur;
+  sseq->runtime->last_thumbnail_area = v2d->cur;
 }
 
 void last_displayed_thumbnails_list_free(void *val)
@@ -320,15 +320,15 @@ void last_displayed_thumbnails_list_free(void *val)
 static GSet *last_displayed_thumbnails_list_ensure(const bContext *C, Sequence *seq)
 {
   SpaceSeq *sseq = CTX_wm_space_seq(C);
-  if (sseq->runtime.last_displayed_thumbnails == nullptr) {
-    sseq->runtime.last_displayed_thumbnails = BLI_ghash_ptr_new(__func__);
+  if (sseq->runtime->last_displayed_thumbnails == nullptr) {
+    sseq->runtime->last_displayed_thumbnails = BLI_ghash_ptr_new(__func__);
   }
 
   GSet *displayed_thumbnails = static_cast<GSet *>(
-      BLI_ghash_lookup(sseq->runtime.last_displayed_thumbnails, seq));
+      BLI_ghash_lookup(sseq->runtime->last_displayed_thumbnails, seq));
   if (displayed_thumbnails == nullptr) {
     displayed_thumbnails = BLI_gset_int_new(__func__);
-    BLI_ghash_insert(sseq->runtime.last_displayed_thumbnails, seq, displayed_thumbnails);
+    BLI_ghash_insert(sseq->runtime->last_displayed_thumbnails, seq, displayed_thumbnails);
   }
 
   return displayed_thumbnails;

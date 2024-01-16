@@ -133,7 +133,8 @@ void USDLightReader::read_object_data(Main *bmain, const double motionSampleTime
       pxr::UsdAttribute treatAsPoint_attr = sphere_light.GetTreatAsPointAttr();
       bool treatAsPoint;
       if (treatAsPoint_attr && treatAsPoint_attr.Get(&treatAsPoint, motionSampleTime) &&
-          treatAsPoint) {
+          treatAsPoint)
+      {
         blight->radius = 0.0f;
       }
       else {

@@ -18,7 +18,7 @@
 #include "draw_debug.h"
 #include "draw_debug.hh"
 #include "draw_manager.h"
-#include "draw_shader.h"
+#include "draw_shader.hh"
 #include "draw_shader_shared.h"
 
 #include <iomanip>
@@ -28,7 +28,7 @@
 #  define DRAW_DEBUG
 #else
 /* Uncomment to forcibly enable debug draw in release mode. */
-//#define DRAW_DEBUG
+// #define DRAW_DEBUG
 #endif
 
 namespace blender::draw {

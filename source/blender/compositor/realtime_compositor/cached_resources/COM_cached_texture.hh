@@ -27,10 +27,10 @@ class Context;
 class CachedTextureKey {
  public:
   int2 size;
-  float2 offset;
-  float2 scale;
+  float3 offset;
+  float3 scale;
 
-  CachedTextureKey(int2 size, float2 offset, float2 scale);
+  CachedTextureKey(int2 size, float3 offset, float3 scale);
 
   uint64_t hash() const;
 };
@@ -52,8 +52,8 @@ class CachedTexture : public CachedResource {
                 Tex *texture,
                 bool use_color_management,
                 int2 size,
-                float2 offset,
-                float2 scale);
+                float3 offset,
+                float3 scale);
 
   ~CachedTexture();
 
@@ -82,8 +82,8 @@ class CachedTextureContainer : CachedResourceContainer {
                      Tex *texture,
                      bool use_color_management,
                      int2 size,
-                     float2 offset,
-                     float2 scale);
+                     float3 offset,
+                     float3 scale);
 };
 
 }  // namespace blender::realtime_compositor

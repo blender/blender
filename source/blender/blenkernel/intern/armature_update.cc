@@ -93,7 +93,8 @@ static void splineik_init_tree_from_pchan(Scene * /*scene*/,
   /* Find the root bone and the chain of bones from the root to the tip.
    * NOTE: this assumes that the bones are connected, but that may not be true... */
   for (pchan = pchan_tip; pchan && (segcount < ik_data->chainlen);
-       pchan = pchan->parent, segcount++) {
+       pchan = pchan->parent, segcount++)
+  {
     /* Store this segment in the chain. */
     pchan_chain[segcount] = pchan;
 

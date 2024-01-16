@@ -36,7 +36,7 @@
 #include "WM_types.hh"
 
 #include "wm.hh"
-#include "wm_event_system.h"
+#include "wm_event_system.hh"
 
 #define UNDOCUMENTED_OPERATOR_TIP N_("(undocumented operator)")
 
@@ -428,7 +428,8 @@ static int wm_macro_modal(bContext *C, wmOperator *op, const wmEvent *event)
           const rcti *wrap_region = nullptr;
 
           if ((op->opm->flag & OP_IS_MODAL_GRAB_CURSOR) ||
-              (op->opm->type->flag & OPTYPE_GRAB_CURSOR_XY)) {
+              (op->opm->type->flag & OPTYPE_GRAB_CURSOR_XY))
+          {
             wrap = WM_CURSOR_WRAP_XY;
           }
           else if (op->opm->type->flag & OPTYPE_GRAB_CURSOR_X) {

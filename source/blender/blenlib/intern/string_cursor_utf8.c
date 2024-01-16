@@ -208,7 +208,8 @@ void BLI_str_cursor_step_utf8(const char *str,
             break;
           }
           if ((jump != STRCUR_JUMP_ALL) &&
-              (delim_type != cursor_delim_type_utf8(str, str_maxlen, *pos))) {
+              (delim_type != cursor_delim_type_utf8(str, str_maxlen, *pos)))
+          {
             break;
           }
         }
@@ -237,7 +238,8 @@ void BLI_str_cursor_step_utf8(const char *str,
         const int pos_prev = *pos;
         if (BLI_str_cursor_step_prev_utf8(str, str_maxlen, pos)) {
           if ((jump != STRCUR_JUMP_ALL) &&
-              (delim_type != cursor_delim_type_utf8(str, str_maxlen, *pos))) {
+              (delim_type != cursor_delim_type_utf8(str, str_maxlen, *pos)))
+          {
             /* left only: compensate for index/change in direction */
             if ((pos_orig - *pos) >= 1) {
               *pos = pos_prev;
@@ -317,7 +319,8 @@ void BLI_str_cursor_step_utf32(const char32_t *str,
       while (*pos < str_maxlen) {
         if (BLI_str_cursor_step_next_utf32(str, str_maxlen, pos)) {
           if ((jump != STRCUR_JUMP_ALL) &&
-              (delim_type != cursor_delim_type_unicode((uint)str[*pos]))) {
+              (delim_type != cursor_delim_type_unicode((uint)str[*pos])))
+          {
             break;
           }
         }
@@ -346,7 +349,8 @@ void BLI_str_cursor_step_utf32(const char32_t *str,
         const int pos_prev = *pos;
         if (BLI_str_cursor_step_prev_utf32(str, str_maxlen, pos)) {
           if ((jump != STRCUR_JUMP_ALL) &&
-              (delim_type != cursor_delim_type_unicode((uint)str[*pos]))) {
+              (delim_type != cursor_delim_type_unicode((uint)str[*pos])))
+          {
             /* left only: compensate for index/change in direction */
             if ((pos_orig - *pos) >= 1) {
               *pos = pos_prev;

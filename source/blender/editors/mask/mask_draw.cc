@@ -125,14 +125,14 @@ static void draw_single_handle(const MaskLayer *mask_layer,
 
   switch (handle_type) {
     case HD_FREE:
-      immUniformThemeColor(TH_HANDLE_FREE);
+      immUniformThemeColor3(TH_HANDLE_FREE);
       break;
     case HD_AUTO:
-      immUniformThemeColor(TH_HANDLE_AUTO);
+      immUniformThemeColor3(TH_HANDLE_AUTO);
       break;
     case HD_ALIGN:
     case HD_ALIGN_DOUBLESIDE:
-      immUniformThemeColor(TH_HANDLE_ALIGN);
+      immUniformThemeColor3(TH_HANDLE_ALIGN);
       break;
   }
 

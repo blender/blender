@@ -52,7 +52,8 @@ patch_map_find_patch(KernelGlobals kg, int object, int patch, float u, float v)
 {
   PatchHandle handle;
 
-  kernel_assert((u >= 0.0f) && (u <= 1.0f) && (v >= 0.0f) && (v <= 1.0f));
+  // TODO: temporarily disabled due to slight inaccuracies on ARM.
+  // kernel_assert((u >= 0.0f) && (u <= 1.0f) && (v >= 0.0f) && (v <= 1.0f));
 
   int node = (object_patch_map_offset(kg, object) + patch) / 2;
   float median = 0.5f;

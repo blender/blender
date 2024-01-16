@@ -610,7 +610,7 @@ void VKShader::build_shader_module(MutableSpan<const char *> sources,
                       shaderc_compute_shader),
                  "Only forced ShaderC shader kinds are supported.");
   const VKDevice &device = VKBackend::get().device_get();
-  sources[0] = device.glsl_patch_get();
+  sources[SOURCES_INDEX_VERSION] = device.glsl_patch_get();
   Vector<uint32_t> spirv_module = compile_glsl_to_spirv(sources, stage);
   build_shader_module(spirv_module, r_shader_module);
 }
@@ -1015,9 +1015,10 @@ std::string VKShader::resources_declare(const shader::ShaderCreateInfo &info) co
         ss << "const bool " << sc.name << "=" << (sc.default_value.u ? "true" : "false") << ";\n";
         break;
       case Type::FLOAT:
-        /* Use uint representation to allow exact same bit pattern even if NaN. */
-        ss << "const float " << sc.name << "= uintBitsToFloat("
-           << std::to_string(sc.default_value.u) << "u);\n";
+        /* Use uint representation to allow exact same bit pattern even if NaN. uintBitsToFloat
+         * isn't supported during global const initialization.  */
+        ss << "#define " << sc.name << " uintBitsToFloat(" << std::to_string(sc.default_value.u)
+           << "u)\n";
         break;
       default:
         BLI_assert_unreachable();
@@ -1086,7 +1087,8 @@ std::string VKShader::vertex_interface_declare(const shader::ShaderCreateInfo &i
     ss << "layout(location=" << (location++) << ") out int gpu_Layer;\n ";
   }
   if (workarounds.shader_output_viewport_index &&
-      bool(info.builtins_ & BuiltinBits::VIEWPORT_INDEX)) {
+      bool(info.builtins_ & BuiltinBits::VIEWPORT_INDEX))
+  {
     ss << "layout(location=" << (location++) << ") out int gpu_ViewportIndex;\n";
   }
   if (bool(info.builtins_ & BuiltinBits::BARYCENTRIC_COORD)) {
@@ -1132,7 +1134,8 @@ std::string VKShader::fragment_interface_declare(const shader::ShaderCreateInfo 
     ss << "#define gpu_Layer gl_Layer\n";
   }
   if (workarounds.shader_output_viewport_index &&
-      bool(info.builtins_ & BuiltinBits::VIEWPORT_INDEX)) {
+      bool(info.builtins_ & BuiltinBits::VIEWPORT_INDEX))
+  {
     ss << "#define gpu_ViewportIndex gl_ViewportIndex\n";
   }
 

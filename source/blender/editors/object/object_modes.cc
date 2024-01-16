@@ -52,7 +52,7 @@
 #include "ED_undo.hh"
 #include "ED_view3d.hh"
 
-#include "WM_toolsystem.h"
+#include "WM_toolsystem.hh"
 
 #include "ED_object.hh" /* own include */
 #include "object_intern.h"

@@ -11,7 +11,7 @@
 #include "BLI_function_ref.hh"
 
 #include "DRW_gpu_wrapper.hh"
-#include "DRW_render.h"
+#include "DRW_render.hh"
 #include "UI_resources.hh"
 #include "draw_manager.hh"
 #include "draw_pass.hh"

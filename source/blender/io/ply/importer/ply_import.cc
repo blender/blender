@@ -7,7 +7,7 @@
  */
 
 #include "BKE_layer.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
 #include "BKE_report.h"
@@ -147,7 +147,8 @@ const char *read_header(PlyReadBuffer &file, PlyHeader &r_header)
       break;
     }
     else if (line.is_empty() || (line.first() >= '0' && line.first() <= '9') ||
-             line.first() == '-') {
+             line.first() == '-')
+    {
       /* A value was found before we broke out of the loop. No end_header. */
       return "No end_header.";
     }

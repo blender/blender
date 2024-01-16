@@ -236,7 +236,8 @@ static void testbuffer_list_data_randomize(ListBase *lb, uint random_seed)
 static void testbuffer_list_store_populate(BArrayStore *bs, ListBase *lb)
 {
   for (TestBuffer *tb = (TestBuffer *)lb->first, *tb_prev = nullptr; tb;
-       tb_prev = tb, tb = tb->next) {
+       tb_prev = tb, tb = tb->next)
+  {
     tb->state = BLI_array_store_state_add(
         bs, tb->data, tb->data_len, (tb_prev ? tb_prev->state : nullptr));
   }

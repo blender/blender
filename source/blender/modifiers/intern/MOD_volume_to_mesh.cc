@@ -139,7 +139,8 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
     return create_empty_mesh(input_mesh);
   }
   if (vmmd->resolution_mode == VOLUME_TO_MESH_RESOLUTION_MODE_VOXEL_SIZE &&
-      vmmd->voxel_size == 0.0f) {
+      vmmd->voxel_size == 0.0f)
+  {
     return create_empty_mesh(input_mesh);
   }
   if (vmmd->resolution_mode == VOLUME_TO_MESH_RESOLUTION_MODE_VOXEL_AMOUNT &&
@@ -157,8 +158,8 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
     return create_empty_mesh(input_mesh);
   }
 
-  const blender::bke::VolumeTreeAccessToken access_token = volume_grid->tree_access_token();
-  const openvdb::GridBase &local_grid = volume_grid->grid(access_token);
+  blender::bke::VolumeTreeAccessToken tree_token;
+  const openvdb::GridBase &local_grid = volume_grid->grid(tree_token);
 
   openvdb::math::Transform::Ptr transform = local_grid.transform().copy();
   transform->postMult(openvdb::Mat4d((float *)vmmd->object->object_to_world));

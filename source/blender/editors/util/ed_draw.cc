@@ -483,29 +483,29 @@ void ED_slider_status_string_get(const tSlider *slider,
 
   if (slider->allow_overshoot_lower || slider->allow_overshoot_upper) {
     if (slider->overshoot) {
-      STRNCPY(overshoot_str, TIP_("[E] - Disable overshoot"));
+      STRNCPY(overshoot_str, RPT_("[E] - Disable overshoot"));
     }
     else {
-      STRNCPY(overshoot_str, TIP_("[E] - Enable overshoot"));
+      STRNCPY(overshoot_str, RPT_("[E] - Enable overshoot"));
     }
   }
   else {
-    STRNCPY(overshoot_str, TIP_("Overshoot disabled"));
+    STRNCPY(overshoot_str, RPT_("Overshoot disabled"));
   }
 
   if (slider->precision) {
-    STRNCPY(precision_str, TIP_("[Shift] - Precision active"));
+    STRNCPY(precision_str, RPT_("[Shift] - Precision active"));
   }
   else {
-    STRNCPY(precision_str, TIP_("Shift - Hold for precision"));
+    STRNCPY(precision_str, RPT_("Shift - Hold for precision"));
   }
 
   if (slider->allow_increments) {
     if (slider->increments) {
-      STRNCPY(increments_str, TIP_(" | [Ctrl] - Increments active"));
+      STRNCPY(increments_str, RPT_(" | [Ctrl] - Increments active"));
     }
     else {
-      STRNCPY(increments_str, TIP_(" | Ctrl - Hold for 10% increments"));
+      STRNCPY(increments_str, RPT_(" | Ctrl - Hold for 10% increments"));
     }
   }
   else {

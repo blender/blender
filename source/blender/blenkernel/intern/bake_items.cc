@@ -6,9 +6,9 @@
 #include "BKE_bake_items_serialize.hh"
 #include "BKE_curves.hh"
 #include "BKE_instances.hh"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
-#include "BKE_pointcloud.h"
+#include "BKE_pointcloud.hh"
 
 #include "BLI_endian_defines.h"
 #include "BLI_endian_switch.h"

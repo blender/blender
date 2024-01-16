@@ -13,7 +13,7 @@
 
 #include "draw_command.hh"
 #include "draw_pass.hh"
-#include "draw_shader.h"
+#include "draw_shader.hh"
 #include "draw_view.hh"
 
 #include <bitset>

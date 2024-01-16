@@ -16,7 +16,7 @@
  */
 
 #include "BKE_object.hh"
-#include "DRW_render.h"
+#include "DRW_render.hh"
 #include "GPU_compute.h"
 
 #include "workbench_private.hh"

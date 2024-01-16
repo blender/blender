@@ -805,7 +805,8 @@ static int edbm_rip_invoke__vert(bContext *C, const wmEvent *event, Object *obed
         } while ((l_iter = l_iter->radial_next) != l_first);
       }
       else {
-        /* looks like there are no split edges, we could just return/report-error? - Campbell */
+        /* NOTE(@ideasman42): It looks like there are no split edges,
+         * we could just return/report-error? */
       }
     }
 

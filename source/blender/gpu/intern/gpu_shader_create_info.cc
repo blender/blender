@@ -133,6 +133,14 @@ void ShaderCreateInfo::finalize()
     pass_resources_.extend_non_duplicates(info.pass_resources_);
     typedef_sources_.extend_non_duplicates(info.typedef_sources_);
 
+    /* API-specific parameters.
+     * We will only copy API-specific parameters if they are otherwise unassigned. */
+#ifdef WITH_METAL_BACKEND
+    if (mtl_max_threads_per_threadgroup_ == 0) {
+      mtl_max_threads_per_threadgroup_ = info.mtl_max_threads_per_threadgroup_;
+    }
+#endif
+
     if (info.early_fragment_test_) {
       early_fragment_test_ = true;
     }

@@ -19,7 +19,7 @@
 
 #include "WM_api.hh"
 #include "WM_message.hh"
-#include "WM_toolsystem.h"
+#include "WM_toolsystem.hh"
 
 #include "ED_curves.hh"
 #include "ED_curves_sculpt.hh"
@@ -115,7 +115,7 @@ float brush_strength_get(const Scene &scene,
 static std::unique_ptr<CurvesSculptStrokeOperation> start_brush_operation(
     bContext &C, wmOperator &op, const StrokeExtension &stroke_start)
 {
-  const BrushStrokeMode mode = static_cast<BrushStrokeMode>(RNA_enum_get(op.ptr, "mode"));
+  const BrushStrokeMode mode = BrushStrokeMode(RNA_enum_get(op.ptr, "mode"));
 
   const Scene &scene = *CTX_data_scene(&C);
   const CurvesSculpt &curves_sculpt = *scene.toolsettings->curves_sculpt;
@@ -440,18 +440,6 @@ static int select_random_exec(bContext *C, wmOperator *op)
       default:
         BLI_assert_unreachable();
         break;
-    }
-    const bool was_any_selected = std::any_of(
-        selection.begin(), selection.end(), [](const float v) { return v > 0.0f; });
-    if (was_any_selected) {
-      for (float &v : selection) {
-        v *= rng.get_float();
-      }
-    }
-    else {
-      for (float &v : selection) {
-        v = rng.get_float();
-      }
     }
 
     attribute.finish();

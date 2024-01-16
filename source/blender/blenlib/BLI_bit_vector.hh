@@ -37,8 +37,6 @@
  * - `BLI_bitmap` should only be used in C code that can not use `blender::BitVector`.
  */
 
-#include <cstring>
-
 #include "BLI_allocator.hh"
 #include "BLI_bit_span.hh"
 #include "BLI_span.hh"

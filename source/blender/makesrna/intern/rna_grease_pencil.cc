@@ -301,6 +301,22 @@ static void rna_def_grease_pencil_data(BlenderRNA *brna)
   /* Animation Data */
   rna_def_animdata_common(srna);
 
+  /* Materials */
+  prop = RNA_def_property(srna, "materials", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_collection_sdna(prop, nullptr, "material_array", "material_array_num");
+  RNA_def_property_struct_type(prop, "Material");
+  RNA_def_property_ui_text(prop, "Materials", "");
+  RNA_def_property_srna(prop, "IDMaterials"); /* see rna_ID.cc */
+  RNA_def_property_collection_funcs(prop,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    "rna_IDMaterials_assign_int");
+
   /* Layers */
   prop = RNA_def_property(srna, "layers", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "GreasePencilLayer");

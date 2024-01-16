@@ -158,11 +158,18 @@ class ARMATURE_MT_collection_tree_context_menu(Menu):
         layout = self.layout
         arm = context.armature
 
-        props = layout.operator(
+        active_bcoll_is_locked = arm.collections.active and not arm.collections.active.is_editable
+
+        # The poll function doesn't have access to the parent index property, so
+        # it cannot disable this operator depending on whether the parent is
+        # editable or not. That means this menu has to do the disabling for it.
+        sub = layout.column()
+        sub.enabled = not active_bcoll_is_locked
+        props = sub.operator(
             "armature.collection_add", text="Add Child Collection"
         )
         props.parent_index = arm.collections.active_index
-        layout.operator("armature.collection_remove")
+        sub.operator("armature.collection_remove")
 
         layout.separator()
 
@@ -171,8 +178,13 @@ class ARMATURE_MT_collection_tree_context_menu(Menu):
 
         layout.separator()
 
-        layout.operator("armature.collection_assign", text="Assign Selected Bones")
-        layout.operator("armature.collection_unassign", text="Remove Selected Bones")
+        # These operators can be used to assign to a named collection as well, and
+        # don't necessarily always use the active bone collection. That means that
+        # they have the same limitation as described above.
+        sub = layout.column()
+        sub.enabled = not active_bcoll_is_locked
+        sub.operator("armature.collection_assign", text="Assign Selected Bones")
+        sub.operator("armature.collection_unassign", text="Remove Selected Bones")
 
         layout.separator()
 

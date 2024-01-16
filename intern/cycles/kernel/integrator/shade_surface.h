@@ -495,12 +495,13 @@ ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
     INTEGRATOR_STATE_WRITE(state, path, mis_origin_n) = sc->N;
     INTEGRATOR_STATE_WRITE(state, path, min_ray_pdf) = fminf(
         unguided_bsdf_pdf, INTEGRATOR_STATE(state, path, min_ray_pdf));
-  }
+
 #ifdef __LIGHT_LINKING__
-  if (kernel_data.kernel_features & KERNEL_FEATURE_LIGHT_LINKING) {
-    INTEGRATOR_STATE_WRITE(state, path, mis_ray_object) = sd->object;
-  }
+    if (kernel_data.kernel_features & KERNEL_FEATURE_LIGHT_LINKING) {
+      INTEGRATOR_STATE_WRITE(state, path, mis_ray_object) = sd->object;
+    }
 #endif
+  }
 
   path_state_next(kg, state, label, sd->flag);
 
@@ -560,7 +561,8 @@ ccl_device_forceinline void integrate_surface_ao(KernelGlobals kg,
   const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
 
   if (!(kernel_data.kernel_features & KERNEL_FEATURE_AO_ADDITIVE) &&
-      !(path_flag & PATH_RAY_CAMERA)) {
+      !(path_flag & PATH_RAY_CAMERA))
+  {
     return;
   }
 

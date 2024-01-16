@@ -101,11 +101,9 @@ struct ShaderGlobals {
   int backfacing;
 };
 
-struct OSLNoiseOptions {
-};
+struct OSLNoiseOptions {};
 
-struct OSLTextureOptions {
-};
+struct OSLTextureOptions {};
 
 #define OSL_TEXTURE_HANDLE_TYPE_IES ((uintptr_t)0x2 << 30)
 #define OSL_TEXTURE_HANDLE_TYPE_SVM ((uintptr_t)0x1 << 30)

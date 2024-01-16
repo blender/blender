@@ -8,7 +8,7 @@
  * Eevee's indirect lighting cache.
  */
 
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include "BKE_global.h"
 
@@ -62,13 +62,13 @@
       (IRRADIANCE_MAX_POOL_SIZE / IRRADIANCE_SAMPLE_SIZE_Y)
 
 /* TODO: should be replace by a more elegant alternative. */
-extern "C" void DRW_gpu_context_enable(void);
-extern "C" void DRW_gpu_context_disable(void);
+void DRW_gpu_context_enable(void);
+void DRW_gpu_context_disable(void);
 
-extern "C" void DRW_system_gpu_render_context_enable(void *re_system_gpu_context);
-extern "C" void DRW_system_gpu_render_context_disable(void *re_system_gpu_context);
-extern "C" void DRW_blender_gpu_render_context_enable(void *re_blender_gpu_context);
-extern "C" void DRW_blender_gpu_render_context_disable(void *re_blender_gpu_context);
+void DRW_system_gpu_render_context_enable(void *re_system_gpu_context);
+void DRW_system_gpu_render_context_disable(void *re_system_gpu_context);
+void DRW_blender_gpu_render_context_enable(void *re_blender_gpu_context);
+void DRW_blender_gpu_render_context_disable(void *re_blender_gpu_context);
 
 struct EEVEE_LightBake {
   Depsgraph *depsgraph;
@@ -225,31 +225,31 @@ void EEVEE_lightcache_info_update(SceneEEVEE *eevee)
   if (lcache != nullptr) {
     if (!eevee_lightcache_version_check(lcache)) {
       BLI_strncpy(eevee->light_cache_info,
-                  TIP_("Incompatible Light cache version, please bake again"),
+                  N_("Incompatible Light cache version, please bake again"),
                   sizeof(eevee->light_cache_info));
       return;
     }
 
     if (lcache->cube_tx.tex_size[2] > GPU_max_texture_layers()) {
       STRNCPY(eevee->light_cache_info,
-              TIP_("Error: Light cache is too big for the GPU to be loaded"));
+              N_("Error: Light cache is too big for the GPU to be loaded"));
       return;
     }
 
     if (lcache->flag & LIGHTCACHE_INVALID) {
       STRNCPY(eevee->light_cache_info,
-              TIP_("Error: Light cache dimensions not supported by the GPU"));
+              N_("Error: Light cache dimensions not supported by the GPU"));
       return;
     }
 
     if (lcache->flag & LIGHTCACHE_BAKING) {
-      STRNCPY(eevee->light_cache_info, TIP_("Baking light cache"));
+      STRNCPY(eevee->light_cache_info, N_("Baking light cache"));
       return;
     }
 
     if (!eevee_lightcache_can_be_saved(lcache)) {
       STRNCPY(eevee->light_cache_info,
-              TIP_("Error: LightCache is too large and will not be saved to disk"));
+              N_("Error: LightCache is too large and will not be saved to disk"));
       return;
     }
 
@@ -258,14 +258,16 @@ void EEVEE_lightcache_info_update(SceneEEVEE *eevee)
 
     int irr_samples = eevee_lightcache_irradiance_sample_count(lcache);
 
+    /* This message needs to be translated here instead of the UI code, otherwise it would already
+     * be formatted and translation would not work. */
     SNPRINTF(eevee->light_cache_info,
-             TIP_("%d Ref. Cubemaps, %d Irr. Samples (%s in memory)"),
+             RPT_("%d Ref. Cubemaps, %d Irr. Samples (%s in memory)"),
              lcache->cube_len - 1,
              irr_samples,
              formatted_mem);
   }
   else {
-    STRNCPY(eevee->light_cache_info, TIP_("No light cache in this scene"));
+    STRNCPY(eevee->light_cache_info, N_("No light cache in this scene"));
   }
 }
 
@@ -926,6 +928,7 @@ static void eevee_lightbake_delete_resources(EEVEE_LightBake *lbake)
 /* Cache as in draw cache not light cache. */
 static void eevee_lightbake_cache_create(EEVEE_Data *vedata, EEVEE_LightBake *lbake)
 {
+  using namespace blender::draw;
   EEVEE_TextureList *txl = vedata->txl;
   EEVEE_StorageList *stl = vedata->stl;
   EEVEE_FramebufferList *fbl = vedata->fbl;
@@ -1473,7 +1476,8 @@ void EEVEE_lightbake_job(void *custom_data, wmJobWorkerStatus *worker_status)
         lbake->grid_sample_len = prb->grid_resolution_x * prb->grid_resolution_y *
                                  prb->grid_resolution_z;
         for (lbake->grid_sample = 0; lbake->grid_sample < lbake->grid_sample_len;
-             ++lbake->grid_sample) {
+             ++lbake->grid_sample)
+        {
           lightbake_do_sample(lbake, eevee_lightbake_render_grid_sample);
         }
       }

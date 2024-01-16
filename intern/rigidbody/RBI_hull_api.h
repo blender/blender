@@ -15,7 +15,7 @@ extern "C" {
 
 typedef struct plConvexHull__ {
   int unused;
-} * plConvexHull;
+} *plConvexHull;
 
 plConvexHull plConvexHullCompute(float (*coords)[3], int count);
 void plConvexHullDelete(plConvexHull hull);

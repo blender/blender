@@ -758,7 +758,7 @@ GVMutableArray::operator GVArray() const &
   return varray;
 }
 
-GVMutableArray::operator GVArray() &&noexcept
+GVMutableArray::operator GVArray() && noexcept
 {
   GVArray varray;
   varray.move_from(std::move(*this));

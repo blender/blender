@@ -38,7 +38,7 @@
 #include "BKE_displist.h"
 #include "BKE_idtype.h"
 #include "BKE_lattice.hh"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_lib_query.h"
 #include "BKE_main.hh"
 #include "BKE_modifier.hh"
@@ -417,7 +417,8 @@ void outside_lattice(Lattice *lt)
 
         for (u = 0; u < lt->pntsu; u++, bp++) {
           if (u == 0 || v == 0 || w == 0 || u == lt->pntsu - 1 || v == lt->pntsv - 1 ||
-              w == lt->pntsw - 1) {
+              w == lt->pntsw - 1)
+          {
             /* pass */
           }
           else {

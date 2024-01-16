@@ -46,6 +46,7 @@
 #include <pxr/usd/usdGeom/cylinder.h>
 #include <pxr/usd/usdGeom/sphere.h>
 
+<<<<<<< HEAD
 #include <iostream>
 
 #include "BKE_lib_id.h"
@@ -53,11 +54,14 @@
 #include "BKE_modifier.hh"
 #include "BKE_report.h"
 
+=======
+#include "BLI_map.hh"
+>>>>>>> main
 #include "BLI_sort.hh"
 #include "BLI_string.h"
 
 #include "BKE_collection.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_modifier.hh"
 #include "BKE_report.h"
 
@@ -94,7 +98,7 @@ static Collection *create_collection(Main *bmain, Collection *parent, const char
  */
 static void set_instance_collection(
     USDInstanceReader *instance_reader,
-    const std::map<pxr::SdfPath, Collection *> &proto_collection_map)
+    const blender::Map<pxr::SdfPath, Collection *> &proto_collection_map)
 {
   if (!instance_reader) {
     return;
@@ -102,10 +106,9 @@ static void set_instance_collection(
 
   pxr::SdfPath proto_path = instance_reader->proto_path();
 
-  std::map<pxr::SdfPath, Collection *>::const_iterator it = proto_collection_map.find(proto_path);
-
-  if (it != proto_collection_map.end()) {
-    instance_reader->set_instance_collection(it->second);
+  Collection *collection = proto_collection_map.lookup_default(proto_path, nullptr);
+  if (collection != nullptr) {
+    instance_reader->set_instance_collection(collection);
   }
   else {
     CLOG_WARN(
@@ -323,8 +326,12 @@ bool USDStageReader::merge_with_parent(USDPrimReader *reader) const
 
   /* Don't merge Xform, Scope or undefined prims. */
   if (xform_reader->prim().IsA<pxr::UsdGeomXform>() ||
+<<<<<<< HEAD
       xform_reader->prim().IsA<pxr::UsdGeomScope>() ||
       xform_reader->prim().GetPrimTypeInfo() == pxr::UsdPrimTypeInfo::GetEmptyPrimType())
+=======
+      xform_reader->prim().IsA<pxr::UsdGeomScope>())
+>>>>>>> main
   {
     return false;
   }
@@ -342,8 +349,12 @@ bool USDStageReader::merge_with_parent(USDPrimReader *reader) const
 
 USDPrimReader *USDStageReader::collect_readers(Main *bmain,
                                                const pxr::UsdPrim &prim,
+<<<<<<< HEAD
                                                pxr::UsdGeomXformCache *xf_cache,
                                                std::vector<USDPrimReader *> &r_readers)
+=======
+                                               blender::Vector<USDPrimReader *> &r_readers)
+>>>>>>> main
 {
   if (prim.IsA<pxr::UsdGeomImageable>()) {
     pxr::UsdGeomImageable imageable(prim);
@@ -375,11 +386,16 @@ USDPrimReader *USDStageReader::collect_readers(Main *bmain,
 
   pxr::UsdPrimSiblingRange children = prim.GetFilteredChildren(filter_predicate);
 
-  std::vector<USDPrimReader *> child_readers;
+  blender::Vector<USDPrimReader *> child_readers;
 
   for (const auto &childPrim : children) {
+<<<<<<< HEAD
     if (USDPrimReader *child_reader = collect_readers(bmain, childPrim, xf_cache, r_readers)) {
       child_readers.push_back(child_reader);
+=======
+    if (USDPrimReader *child_reader = collect_readers(bmain, childPrim, r_readers)) {
+      child_readers.append(child_reader);
+>>>>>>> main
     }
   }
 
@@ -401,7 +417,12 @@ USDPrimReader *USDStageReader::collect_readers(Main *bmain,
 
   /* Check if we can merge an Xform with its child prim. */
   if (child_readers.size() == 1) {
+<<<<<<< HEAD
     USDPrimReader *child_reader = child_readers.front();
+=======
+
+    USDPrimReader *child_reader = child_readers.first();
+>>>>>>> main
 
     if (merge_with_parent(child_reader)) {
       return child_reader;
@@ -415,7 +436,7 @@ USDPrimReader *USDStageReader::collect_readers(Main *bmain,
   if (prim.IsA<pxr::UsdShadeMaterial>()) {
     /* Record material path for later processing, if needed,
      * e.g., when importing all materials. */
-    material_paths_.push_back(prim.GetPath().GetAsString());
+    material_paths_.append(prim.GetPath().GetAsString());
 
     /* We don't create readers for materials, so return early. */
     return nullptr;
@@ -427,7 +448,7 @@ USDPrimReader *USDStageReader::collect_readers(Main *bmain,
     return nullptr;
   }
 
-  r_readers.push_back(reader);
+  r_readers.append(reader);
   reader->incref();
 
   /* Set each child reader's parent. */
@@ -457,15 +478,22 @@ void USDStageReader::collect_readers(Main *bmain)
   collect_readers(bmain, root, &xf_cache, readers_);
 
   if (params_.support_scene_instancing) {
-    /* Collect the scenegraph instance prototypes. */
+    /* Collect the scene-graph instance prototypes. */
     std::vector<pxr::UsdPrim> protos = stage_->GetPrototypes();
 
     for (const pxr::UsdPrim &proto_prim : protos) {
+<<<<<<< HEAD
       std::vector<USDPrimReader *> proto_readers;
       collect_readers(bmain, proto_prim, &xf_cache, proto_readers);
       proto_readers_.insert(std::make_pair(proto_prim.GetPath(), proto_readers));
+=======
+      blender::Vector<USDPrimReader *> proto_readers;
+      collect_readers(bmain, proto_prim, proto_readers);
+      proto_readers_.add(proto_prim.GetPath(), proto_readers);
+
+>>>>>>> main
       for (USDPrimReader *reader : proto_readers) {
-        readers_.push_back(reader);
+        readers_.append(reader);
         reader->incref();
       }
     }
@@ -477,10 +505,10 @@ void USDStageReader::process_armature_modifiers() const
   /* Iterate over the skeleton readers to create the
    * armature object map, which maps a USD skeleton prim
    * path to the corresponding armature object. */
-  std::map<std::string, Object *> usd_path_to_armature;
+  blender::Map<std::string, Object *> usd_path_to_armature;
   for (const USDPrimReader *reader : readers_) {
     if (dynamic_cast<const USDSkeletonReader *>(reader) && reader->object()) {
-      usd_path_to_armature.insert(std::make_pair(reader->prim_path(), reader->object()));
+      usd_path_to_armature.add(reader->prim_path(), reader->object());
     }
   }
 
@@ -503,15 +531,15 @@ void USDStageReader::process_armature_modifiers() const
 
     /* Assign the armature based on the bound USD skeleton path of the skinned mesh. */
     std::string skel_path = mesh_reader->get_skeleton_path();
-    std::map<std::string, Object *>::const_iterator it = usd_path_to_armature.find(skel_path);
-    if (it == usd_path_to_armature.end()) {
+    Object *object = usd_path_to_armature.lookup_default(skel_path, nullptr);
+    if (object == nullptr) {
       BKE_reportf(reports(),
                   RPT_WARNING,
                   "%s: Couldn't find armature object corresponding to USD skeleton %s",
                   __func__,
                   skel_path.c_str());
     }
-    amd->object = it->second;
+    amd->object = object;
   }
 }
 
@@ -520,7 +548,7 @@ void USDStageReader::import_all_materials(Main *bmain)
   BLI_assert(valid());
 
   /* Build the material name map if it's not built yet. */
-  if (settings_.mat_name_to_mat.empty()) {
+  if (settings_.mat_name_to_mat.is_empty()) {
     build_material_map(bmain, &settings_.mat_name_to_mat);
   }
 
@@ -546,13 +574,14 @@ void USDStageReader::import_all_materials(Main *bmain)
     BLI_assert_msg(new_mtl, "Failed to create material");
 
     const std::string mtl_name = pxr::TfMakeValidIdentifier(new_mtl->id.name + 2);
-    settings_.mat_name_to_mat[mtl_name] = new_mtl;
+    settings_.mat_name_to_mat.lookup_or_add_default(mtl_name) = new_mtl;
 
     if (params_.mtl_name_collision_mode == USD_MTL_NAME_COLLISION_MAKE_UNIQUE) {
       /* Record the unique name of the Blender material we created for the USD material
        * with the given path, so we don't import the material again when assigning
        * materials to objects elsewhere in the code. */
-      settings_.usd_path_to_mat_name[prim.GetPath().GetAsString()] = mtl_name;
+      settings_.usd_path_to_mat_name.lookup_or_add_default(
+          prim.GetPath().GetAsString()) = mtl_name;
     }
   }
 }
@@ -561,18 +590,12 @@ void USDStageReader::fake_users_for_unused_materials()
 {
   /* Iterate over the imported materials and set a fake user for any unused
    * materials. */
-  for (const std::pair<const std::string, std::string> &path_mat_pair :
-       settings_.usd_path_to_mat_name)
-  {
-
-    std::map<std::string, Material *>::iterator mat_it = settings_.mat_name_to_mat.find(
-        path_mat_pair.second);
-
-    if (mat_it == settings_.mat_name_to_mat.end()) {
+  for (const auto path_mat_pair : settings_.usd_path_to_mat_name.items()) {
+    Material *mat = settings_.mat_name_to_mat.lookup_default(path_mat_pair.value, nullptr);
+    if (mat == nullptr) {
       continue;
     }
 
-    Material *mat = mat_it->second;
     if (mat->id.us == 0) {
       id_fake_user_set(&mat->id);
     }
@@ -598,9 +621,9 @@ void USDStageReader::clear_readers()
 
 void USDStageReader::clear_proto_readers()
 {
-  for (auto &pair : proto_readers_) {
+  for (const auto item : proto_readers_.items()) {
 
-    for (USDPrimReader *reader : pair.second) {
+    for (USDPrimReader *reader : item.value) {
 
       if (!reader) {
         continue;
@@ -629,7 +652,7 @@ void USDStageReader::sort_readers()
 
 void USDStageReader::create_proto_collections(Main *bmain, Collection *parent_collection)
 {
-  if (proto_readers_.empty()) {
+  if (proto_readers_.is_empty()) {
     return;
   }
 
@@ -643,12 +666,12 @@ void USDStageReader::create_proto_collections(Main *bmain, Collection *parent_co
     }
   }
 
-  std::map<pxr::SdfPath, Collection *> proto_collection_map;
+  blender::Map<pxr::SdfPath, Collection *> proto_collection_map;
 
-  for (const auto &pair : proto_readers_) {
+  for (const pxr::SdfPath &path : proto_readers_.keys()) {
     Collection *proto_collection = create_collection(bmain, all_protos_collection, "proto");
 
-    proto_collection_map.insert(std::make_pair(pair.first, proto_collection));
+    proto_collection_map.add(path, proto_collection);
   }
 
   /* Set the instance collections on the readers, including the prototype
@@ -661,30 +684,23 @@ void USDStageReader::create_proto_collections(Main *bmain, Collection *parent_co
   }
 
   /* Add the prototype objects to the collections. */
-  for (const auto &pair : proto_readers_) {
-
-    std::map<pxr::SdfPath, Collection *>::const_iterator it = proto_collection_map.find(
-        pair.first);
-
-    if (it == proto_collection_map.end()) {
-      std::cerr << "WARNING: Couldn't find collection when adding objects for prototype "
-                << pair.first << std::endl;
+  for (const auto &item : proto_readers_.items()) {
+    Collection *collection = proto_collection_map.lookup_default(item.key, nullptr);
+    if (collection == nullptr) {
       CLOG_WARN(&LOG,
                 "Couldn't find collection when adding objects for prototype %s",
-                pair.first.GetAsString().c_str());
+                item.key.GetAsString().c_str());
       continue;
     }
 
-    for (USDPrimReader *reader : pair.second) {
+    for (USDPrimReader *reader : item.value) {
       Object *ob = reader->object();
 
       if (!ob) {
         continue;
       }
 
-      Collection *coll = it->second;
-
-      BKE_collection_object_add(bmain, coll, ob);
+      BKE_collection_object_add(bmain, collection, ob);
     }
   }
 }

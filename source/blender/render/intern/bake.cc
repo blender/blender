@@ -61,7 +61,7 @@
 #include "BKE_bvhutils.hh"
 #include "BKE_customdata.hh"
 #include "BKE_image.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
 #include "BKE_mesh_tangent.hh"

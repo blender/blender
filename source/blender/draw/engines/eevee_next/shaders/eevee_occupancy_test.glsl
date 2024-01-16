@@ -63,7 +63,7 @@ void main()
     entry = occupancy_or(entry, occupancy_bit_from_depth(1.0 / 32.0, 32));
     /* Second entry at the same depth. Should not change anything. */
     entry = occupancy_or(entry, occupancy_bit_from_depth(1.1 / 32.0, 32));
-    /* Exit 2 bits later.*/
+    /* Exit 2 bits later. */
     exit = occupancy_or(exit, occupancy_bit_from_depth(3.0 / 32.0, 32));
     /* Second exit. Should not change anything. */
     exit = occupancy_or(exit, occupancy_bit_from_depth(5.0 / 32.0, 32));

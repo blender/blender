@@ -16,7 +16,7 @@
 #include "BLI_map.hh"
 #include "DEG_depsgraph_query.hh"
 #include "DNA_object_types.h"
-#include "DRW_render.h"
+#include "DRW_render.hh"
 #include "GPU_material.h"
 
 #include "eevee_shader_shared.hh"
@@ -145,11 +145,9 @@ struct ObjectHandle : BaseHandle {
   ObjectKey object_key;
 };
 
-struct WorldHandle : public BaseHandle {
-};
+struct WorldHandle : public BaseHandle {};
 
-struct SceneHandle : public BaseHandle {
-};
+struct SceneHandle : public BaseHandle {};
 
 class SyncModule {
  private:

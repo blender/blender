@@ -80,6 +80,7 @@ bool curves_poll(bContext *C);
 
 void CURVES_OT_attribute_set(wmOperatorType *ot);
 void CURVES_OT_draw(wmOperatorType *ot);
+void CURVES_OT_extrude(wmOperatorType *ot);
 
 /** \} */
 
@@ -143,6 +144,7 @@ IndexMask random_mask(const bke::CurvesGeometry &curves,
 
 void fill_selection_false(GMutableSpan span);
 void fill_selection_true(GMutableSpan span);
+void fill_selection(GMutableSpan selection, bool value);
 void fill_selection_false(GMutableSpan selection, const IndexMask &mask);
 void fill_selection_true(GMutableSpan selection, const IndexMask &mask);
 

@@ -207,7 +207,8 @@ static bool nearest_world_mesh(SnapObjectContext *sctx,
   BVHTreeNearest nearest{};
   nearest.dist_sq = sctx->ret.dist_nearest_sq;
   if (nearest_world_tree(
-          sctx, treedata.tree, treedata.nearest_callback, obmat, &treedata, &nearest)) {
+          sctx, treedata.tree, treedata.nearest_callback, obmat, &treedata, &nearest))
+  {
     SnapData::register_result(sctx, ob_eval, &me_eval->id, obmat, &nearest);
     return true;
   }

@@ -703,28 +703,32 @@ const char *BKE_appdir_folder_id_user_notest(const int folder_id, const char *su
   switch (folder_id) {
     case BLENDER_USER_DATAFILES:
       if (get_path_environment_ex(
-              path, sizeof(path), subfolder, "BLENDER_USER_DATAFILES", check_is_dir)) {
+              path, sizeof(path), subfolder, "BLENDER_USER_DATAFILES", check_is_dir))
+      {
         break;
       }
       get_path_user_ex(path, sizeof(path), "datafiles", subfolder, version, check_is_dir);
       break;
     case BLENDER_USER_CONFIG:
       if (get_path_environment_ex(
-              path, sizeof(path), subfolder, "BLENDER_USER_CONFIG", check_is_dir)) {
+              path, sizeof(path), subfolder, "BLENDER_USER_CONFIG", check_is_dir))
+      {
         break;
       }
       get_path_user_ex(path, sizeof(path), "config", subfolder, version, check_is_dir);
       break;
     case BLENDER_USER_AUTOSAVE:
       if (get_path_environment_ex(
-              path, sizeof(path), subfolder, "BLENDER_USER_AUTOSAVE", check_is_dir)) {
+              path, sizeof(path), subfolder, "BLENDER_USER_AUTOSAVE", check_is_dir))
+      {
         break;
       }
       get_path_user_ex(path, sizeof(path), "autosave", subfolder, version, check_is_dir);
       break;
     case BLENDER_USER_SCRIPTS:
       if (get_path_environment_ex(
-              path, sizeof(path), subfolder, "BLENDER_USER_SCRIPTS", check_is_dir)) {
+              path, sizeof(path), subfolder, "BLENDER_USER_SCRIPTS", check_is_dir))
+      {
         break;
       }
       get_path_user_ex(path, sizeof(path), "scripts", subfolder, version, check_is_dir);
@@ -1053,7 +1057,8 @@ bool BKE_appdir_app_template_has_userpref(const char *app_template)
 
   char app_template_path[FILE_MAX];
   if (!BKE_appdir_app_template_id_search(
-          app_template, app_template_path, sizeof(app_template_path))) {
+          app_template, app_template_path, sizeof(app_template_path)))
+  {
     return false;
   }
 

@@ -991,6 +991,13 @@ static StructRNA *rna_NodeTree_register(Main *bmain,
   /* check if we have registered this tree type before, and remove it */
   nt = ntreeTypeFind(dummy_nt.idname);
   if (nt) {
+    BKE_reportf(reports,
+                RPT_INFO,
+                "Registering node tree class: '%s', bl_idname '%s' has been registered before, "
+                "unregistering previous",
+                identifier,
+                dummy_nt.idname);
+
     /* NOTE: unlike most types `nt->rna_ext.srna` doesn't need to be checked for nullptr. */
     if (!rna_NodeTree_unregister(bmain, nt->rna_ext.srna)) {
       BKE_reportf(reports,
@@ -1662,6 +1669,13 @@ static bNodeType *rna_Node_register_base(Main *bmain,
                   dummy_nt.idname);
       return nullptr;
     }
+
+    BKE_reportf(reports,
+                RPT_INFO,
+                "Registering node class: '%s', bl_idname '%s' has been registered before, "
+                "unregistering previous",
+                identifier,
+                dummy_nt.idname);
 
     /* NOTE: unlike most types `nt->rna_ext.srna` doesn't need to be checked for nullptr. */
     if (!rna_Node_unregister(bmain, nt->rna_ext.srna)) {

@@ -18,19 +18,34 @@ void main()
 
   GBufferReader gbuf = gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, texel);
 
-  if (gbuf.header == 0u) {
+  if (gbuf.closure_count == 0) {
     discard;
     return;
   }
 
-  float shade = saturate(drw_normal_world_to_view(gbuf.data.surface_N).z);
+  float shade = saturate(drw_normal_world_to_view(gbuf.surface_N).z);
 
-  uvec4 closure_types = (uvec4(gbuf.header) >> uvec4(0u, 4u, 8u, 12u)) & 15u;
+  uint header = texelFetch(gbuf_header_tx, texel, 0).x;
+  uvec4 closure_types = (uvec4(header) >> uvec4(0u, 4u, 8u, 12u)) & 15u;
   float storage_cost = reduce_add(vec4(not(equal(closure_types, uvec4(0u)))));
-  float eval_cost = reduce_add(vec4(equal(closure_types, uvec4(GBUF_REFLECTION)))) * 1.0 +
-                    reduce_add(vec4(equal(closure_types, uvec4(GBUF_REFRACTION)))) * 1.0 +
-                    reduce_add(vec4(equal(closure_types, uvec4(GBUF_DIFFUSE)))) * 1.0 +
-                    reduce_add(vec4(equal(closure_types, uvec4(GBUF_SUBSURFACE)))) * 1.0;
+
+  float eval_cost = 0.0;
+  for (int i = 0; i < GBUFFER_LAYER_MAX && i < gbuf.closure_count; i++) {
+    switch (gbuffer_closure_get(gbuf, i).type) {
+      case CLOSURE_BSDF_DIFFUSE_ID:
+      case CLOSURE_BSDF_TRANSLUCENT_ID:
+      case CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID:
+      case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
+        eval_cost += 1.0;
+        break;
+      case CLOSURE_BSSRDF_BURLEY_ID:
+        eval_cost += 2.0;
+        break;
+      case CLOSURE_NONE_ID:
+        /* TODO(fclem): Assert. */
+        break;
+    }
+  }
 
   switch (eDebugMode(debug_mode)) {
     default:

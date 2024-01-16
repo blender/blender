@@ -13,6 +13,8 @@
 #include <cstddef> /* `offsetof()` */
 #include <cstring>
 
+#include <fmt/format.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_object_types.h"
@@ -466,7 +468,7 @@ void ui_block_bounds_calc(uiBlock *block)
 
   /* hardcoded exception... but that one is annoying with larger safety */
   uiBut *bt = static_cast<uiBut *>(block->buttons.first);
-  const int xof = ((bt && STRPREFIX(bt->str, "ERROR")) ? 10 : 40) * UI_SCALE_FAC;
+  const int xof = ((bt && STRPREFIX(bt->str.c_str(), "ERROR")) ? 10 : 40) * UI_SCALE_FAC;
 
   block->safety.xmin = block->rect.xmin - xof;
   block->safety.ymin = block->rect.ymin - xof;
@@ -918,22 +920,7 @@ static void ui_but_update_old_active_from_new(uiBut *oldbut, uiBut *but)
 
   /* move/copy string from the new button to the old */
   /* needed for alt+mouse wheel over enums */
-  if (but->str != but->strdata) {
-    if (oldbut->str != oldbut->strdata) {
-      std::swap(but->str, oldbut->str);
-    }
-    else {
-      oldbut->str = but->str;
-      but->str = but->strdata;
-    }
-  }
-  else {
-    if (oldbut->str != oldbut->strdata) {
-      MEM_freeN(oldbut->str);
-      oldbut->str = oldbut->strdata;
-    }
-    STRNCPY(oldbut->strdata, but->strdata);
-  }
+  std::swap(but->str, oldbut->str);
 
   if (but->dragpoin) {
     std::swap(but->dragpoin, oldbut->dragpoin);
@@ -1161,11 +1148,11 @@ static void ui_menu_block_set_keyaccels(uiBlock *block)
         continue;
       }
 
-      if (but->str == nullptr || but->str[0] == '\0') {
+      if (but->str.empty()) {
         continue;
       }
 
-      const char *str_pt = but->str;
+      const char *str_pt = but->str.c_str();
       uchar menu_key;
       do {
         menu_key = tolower(*str_pt);
@@ -1214,9 +1201,9 @@ static void ui_menu_block_set_keyaccels(uiBlock *block)
 void ui_but_add_shortcut(uiBut *but, const char *shortcut_str, const bool do_strip)
 {
   if (do_strip && (but->flag & UI_BUT_HAS_SEP_CHAR)) {
-    char *cpoin = strrchr(but->str, UI_SEP_CHAR);
-    if (cpoin) {
-      *cpoin = '\0';
+    const size_t sep_index = but->str.find_first_of(UI_SEP_CHAR);
+    if (sep_index != std::string::npos) {
+      but->str = but->str.substr(0, sep_index);
     }
     but->flag &= ~UI_BUT_HAS_SEP_CHAR;
   }
@@ -1226,16 +1213,7 @@ void ui_but_add_shortcut(uiBut *but, const char *shortcut_str, const bool do_str
     return;
   }
 
-  char *butstr_orig;
-  if (but->str != but->strdata) {
-    butstr_orig = but->str; /* free after using as source buffer */
-  }
-  else {
-    butstr_orig = BLI_strdup(but->str);
-  }
-  SNPRINTF(but->strdata, "%s" UI_SEP_CHAR_S "%s", butstr_orig, shortcut_str);
-  MEM_freeN(butstr_orig);
-  but->str = but->strdata;
+  but->str = fmt::format("{}" UI_SEP_CHAR_S "{}", but->str, shortcut_str);
   but->flag |= UI_BUT_HAS_SEP_CHAR;
   ui_but_update(but);
 }
@@ -1383,8 +1361,8 @@ static bool ui_but_event_property_operator_string(const bContext *C,
 {
   /* Context toggle operator names to check. */
 
-  /* This function could use a refactor to generalize button type to operator relationship
-   * as well as which operators use properties. - Campbell */
+  /* NOTE(@ideasman42): This function could use a refactor to generalize button type to operator
+   * relationship as well as which operators use properties. */
   const char *ctx_toggle_opnames[] = {
       "WM_OT_context_toggle",
       "WM_OT_context_toggle_enum",
@@ -2472,7 +2450,8 @@ bool ui_but_is_bool(const uiBut *but)
   }
 
   if ((but->rnaprop && RNA_property_type(but->rnaprop) == PROP_ENUM) &&
-      (but->type == UI_BTYPE_ROW)) {
+      (but->type == UI_BTYPE_ROW))
+  {
     return true;
   }
 
@@ -3034,7 +3013,7 @@ char *ui_but_string_get_dynamic(uiBut *but, int *r_str_size)
  * Report a generic error prefix when evaluating a string with #BPY_run_string_as_number
  * as the Python error on its own doesn't provide enough context.
  */
-#define UI_NUMBER_EVAL_ERROR_PREFIX IFACE_("Error evaluating number, see Info editor for details")
+#define UI_NUMBER_EVAL_ERROR_PREFIX RPT_("Error evaluating number, see Info editor for details")
 
 static bool ui_number_from_string_units(
     bContext *C, const char *str, const int unit_type, const UnitSettings *unit, double *r_value)
@@ -3137,27 +3116,7 @@ bool ui_but_string_eval_number(bContext *C, const uiBut *but, const char *str, d
 static void ui_but_string_set_internal(uiBut *but, const char *str, size_t str_len)
 {
   BLI_assert(str_len == strlen(str));
-  BLI_assert(but->str == nullptr);
-  str_len += 1;
-
-  if (str_len > UI_MAX_NAME_STR) {
-    but->str = static_cast<char *>(MEM_mallocN(str_len, "ui_def_but str"));
-  }
-  else {
-    but->str = but->strdata;
-  }
-  memcpy(but->str, str, str_len);
-}
-
-static void ui_but_string_free_internal(uiBut *but)
-{
-  if (but->str) {
-    if (but->str != but->strdata) {
-      MEM_freeN(but->str);
-    }
-    /* must call 'ui_but_string_set_internal' after */
-    but->str = nullptr;
-  }
+  but->str = std::string(str, str_len);
 }
 
 bool ui_but_string_set(bContext *C, uiBut *but, const char *str)
@@ -3508,9 +3467,6 @@ static void ui_but_free(const bContext *C, uiBut *but)
       }
     }
   }
-  if (but->str && but->str != but->strdata) {
-    MEM_freeN(but->str);
-  }
 
   if ((but->type == UI_BTYPE_IMAGE) && but->poin) {
     IMB_freeImBuf((ImBuf *)but->poin);
@@ -3735,7 +3691,7 @@ void UI_block_set_search_only(uiBlock *block, bool search_only)
 static void ui_but_build_drawstr_float(uiBut *but, double value)
 {
   size_t slen = 0;
-  STR_CONCAT(but->drawstr, slen, but->str);
+  STR_CONCAT(but->drawstr, slen, but->str.c_str());
 
   PropertySubType subtype = PROP_NONE;
   if (but->rnaprop) {
@@ -3783,7 +3739,7 @@ static void ui_but_build_drawstr_float(uiBut *but, double value)
 static void ui_but_build_drawstr_int(uiBut *but, int value)
 {
   size_t slen = 0;
-  STR_CONCAT(but->drawstr, slen, but->str);
+  STR_CONCAT(but->drawstr, slen, but->str.c_str());
 
   PropertySubType subtype = PROP_NONE;
   if (but->rnaprop) {
@@ -3877,13 +3833,13 @@ static void ui_but_update_ex(uiBut *but, const bool validate)
                     &item))
             {
               const size_t slen = strlen(item.name);
-              ui_but_string_free_internal(but);
+              but->str.clear();
               ui_but_string_set_internal(but, item.name, slen);
               but->icon = item.icon;
             }
           }
         }
-        STRNCPY(but->drawstr, but->str);
+        STRNCPY(but->drawstr, but->str.c_str());
       }
       break;
 
@@ -3905,10 +3861,10 @@ static void ui_but_update_ex(uiBut *but, const bool validate)
       if (ui_but_is_float(but)) {
         UI_GET_BUT_VALUE_INIT(but, value);
         const int prec = ui_but_calc_float_precision(but, value);
-        SNPRINTF(but->drawstr, "%s%.*f", but->str, prec, value);
+        SNPRINTF(but->drawstr, "%s%.*f", but->str.c_str(), prec, value);
       }
       else {
-        STRNCPY(but->drawstr, but->str);
+        STRNCPY(but->drawstr, but->str.c_str());
       }
 
       break;
@@ -3919,7 +3875,7 @@ static void ui_but_update_ex(uiBut *but, const bool validate)
         char str[UI_MAX_DRAW_STR];
 
         ui_but_string_get(but, str, UI_MAX_DRAW_STR);
-        SNPRINTF(but->drawstr, "%s%s", but->str, str);
+        SNPRINTF(but->drawstr, "%s%s", but->str.c_str(), str);
       }
       break;
 
@@ -3932,7 +3888,7 @@ static void ui_but_update_ex(uiBut *but, const bool validate)
         UI_GET_BUT_VALUE_INIT(but, value);
         str = WM_key_event_string(short(value), false);
       }
-      SNPRINTF(but->drawstr, "%s%s", but->str, str);
+      SNPRINTF(but->drawstr, "%s%s", but->str.c_str(), str);
       break;
     }
     case UI_BTYPE_HOTKEY_EVENT:
@@ -3953,7 +3909,7 @@ static void ui_but_update_ex(uiBut *but, const bool validate)
         }
       }
       else {
-        STRNCPY_UTF8(but->drawstr, but->str);
+        STRNCPY_UTF8(but->drawstr, but->str.c_str());
       }
 
       break;
@@ -3962,7 +3918,7 @@ static void ui_but_update_ex(uiBut *but, const bool validate)
     case UI_BTYPE_HSVCIRCLE:
       break;
     default:
-      STRNCPY(but->drawstr, but->str);
+      STRNCPY(but->drawstr, but->str.c_str());
       break;
   }
 
@@ -4081,7 +4037,6 @@ uiBut *ui_but_change_type(uiBut *but, eButType new_type)
 
   const uiBut *old_but_ptr = but;
   /* Button may have pointer to a member within itself, this will have to be updated. */
-  const bool has_str_ptr_to_self = but->str == but->strdata;
   const bool has_poin_ptr_to_self = but->poin == (char *)but;
 
   /* Copy construct button with the new type. */
@@ -4089,9 +4044,6 @@ uiBut *ui_but_change_type(uiBut *but, eButType new_type)
   *but = *old_but_ptr;
   /* We didn't mean to override this :) */
   but->type = new_type;
-  if (has_str_ptr_to_self) {
-    but->str = but->strdata;
-  }
   if (has_poin_ptr_to_self) {
     but->poin = (char *)but;
   }
@@ -4200,18 +4152,16 @@ static uiBut *ui_def_but(uiBlock *block,
   but->pos = -1; /* cursor invisible */
 
   if (ELEM(but->type, UI_BTYPE_NUM, UI_BTYPE_NUM_SLIDER)) { /* add a space to name */
-    /* slen remains unchanged from previous assignment, ensure this stays true */
     if (slen > 0 && slen < UI_MAX_NAME_STR - 2) {
-      if (but->str[slen - 1] != ' ') {
-        but->str[slen] = ' ';
-        but->str[slen + 1] = 0;
+      if (but->str[but->str.size() - 1] != ' ') {
+        but->str += ' ';
       }
     }
   }
 
   if (block->flag & UI_BLOCK_RADIAL) {
     but->drawflag |= UI_BUT_TEXT_LEFT;
-    if (but->str && but->str[0]) {
+    if (!but->str.empty()) {
       but->drawflag |= UI_BUT_ICON_LEFT;
     }
   }
@@ -4295,7 +4245,7 @@ void ui_def_but_icon(uiBut *but, const int icon, const int flag)
   but->icon = icon;
   but->flag |= flag;
 
-  if (but->str && but->str[0]) {
+  if (!but->str.empty()) {
     but->drawflag |= UI_BUT_ICON_LEFT;
   }
 }
@@ -4541,7 +4491,7 @@ static void ui_def_but_rna__panel_type(bContext *C, uiLayout *layout, void *but_
   }
   else {
     char msg[256];
-    SNPRINTF(msg, TIP_("Missing Panel: %s"), panel_type);
+    SNPRINTF(msg, RPT_("Missing Panel: %s"), panel_type);
     uiItemL(layout, msg, ICON_NONE);
   }
 }
@@ -4570,7 +4520,7 @@ static void ui_def_but_rna__menu_type(bContext *C, uiLayout *layout, void *but_p
   }
   else {
     char msg[256];
-    SNPRINTF(msg, TIP_("Missing Menu: %s"), menu_type);
+    SNPRINTF(msg, RPT_("Missing Menu: %s"), menu_type);
     uiItemL(layout, msg, ICON_NONE);
   }
 }
@@ -6627,28 +6577,24 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
   va_start(args, but);
   while ((si = (uiStringInfo *)va_arg(args, void *))) {
     uiStringInfoType type = si->type;
-    char *tmp = nullptr;
+    std::string tmp;
 
     if (type == BUT_GET_TIP_LABEL) {
       if (but->tip_label_func) {
-        const std::string tooltip_label = but->tip_label_func(but);
-        tmp = BLI_strdupn(tooltip_label.c_str(), tooltip_label.size());
+        tmp = but->tip_label_func(but);
       }
     }
 
     if (type == BUT_GET_LABEL) {
-      if (but->str && but->str[0]) {
-        const char *str_sep;
-        size_t str_len;
-
-        if ((but->flag & UI_BUT_HAS_SEP_CHAR) && (str_sep = strrchr(but->str, UI_SEP_CHAR))) {
-          str_len = (str_sep - but->str);
+      if (!but->str.empty()) {
+        size_t str_len = but->str.size();
+        if (but->flag & UI_BUT_HAS_SEP_CHAR) {
+          const size_t sep_index = but->str.find_first_of(UI_SEP_CHAR);
+          if (sep_index != std::string::npos) {
+            str_len = sep_index;
+          }
         }
-        else {
-          str_len = strlen(but->str);
-        }
-
-        tmp = BLI_strdupn(but->str, str_len);
+        tmp = but->str.substr(0, str_len);
       }
       else {
         type = BUT_GET_RNA_LABEL; /* Fail-safe solution... */
@@ -6733,7 +6679,7 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
           }
         }
 
-        if (tmp == nullptr) {
+        if (tmp.empty()) {
           wmOperatorType *ot = UI_but_operatortype_get_from_enum_menu(but, nullptr);
           if (ot) {
             if (type == BUT_GET_RNA_LABEL) {
@@ -6745,7 +6691,7 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
           }
         }
 
-        if (tmp == nullptr) {
+        if (tmp.empty()) {
           PanelType *pt = UI_but_paneltype_get(but);
           if (pt) {
             if (type == BUT_GET_RNA_LABEL) {
@@ -6838,8 +6784,11 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
         }
       }
     }
+    /* NOTE: Menus will already have their shortcuts displayed.
+     * Pie menus are an exception as they already have a shortcut on display
+     * however this is only used within the context of the pie menu. */
     else if (type == BUT_GET_OP_KEYMAP) {
-      if (!ui_block_is_menu(but->block)) {
+      if (!(ui_block_is_menu(but->block) && !ui_block_is_pie_menu(but->block))) {
         char buf[128];
         if (ui_but_event_operator_string(C, but, buf, sizeof(buf))) {
           tmp = BLI_strdup(buf);
@@ -6847,14 +6796,15 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
       }
     }
     else if (type == BUT_GET_PROP_KEYMAP) {
-      /* for properties that are bound to one of the context cycle, etc. keys... */
-      char buf[128];
-      if (ui_but_event_property_operator_string(C, but, buf, sizeof(buf))) {
-        tmp = BLI_strdup(buf);
+      if (!(ui_block_is_menu(but->block) && !ui_block_is_pie_menu(but->block))) {
+        char buf[128];
+        if (ui_but_event_property_operator_string(C, but, buf, sizeof(buf))) {
+          tmp = BLI_strdup(buf);
+        }
       }
     }
 
-    si->strinfo = tmp;
+    si->strinfo = BLI_strdupn(tmp.c_str(), tmp.size());
   }
   va_end(args);
 

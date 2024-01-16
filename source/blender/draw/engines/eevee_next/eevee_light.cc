@@ -354,6 +354,7 @@ void LightModule::end_sync()
     /* Default to 32 as this is likely to be the maximum
      * tile size used by hardware or compute shading. */
     uint tile_size = 16;
+    bool tile_size_valid = false;
     do {
       tile_size *= 2;
       tiles_extent = math::divide_ceil(render_extent, int2(tile_size));
@@ -362,8 +363,9 @@ void LightModule::end_sync()
         continue;
       }
       total_word_count_ = tile_count * word_per_tile;
+      tile_size_valid = true;
 
-    } while (total_word_count_ > max_word_count_threshold);
+    } while (total_word_count_ > max_word_count_threshold || !tile_size_valid);
     /* Keep aligned with storage buffer requirements. */
     total_word_count_ = ceil_to_multiple_u(total_word_count_, 32);
 

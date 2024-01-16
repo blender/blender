@@ -9,7 +9,7 @@
 #include <cmath>
 
 #include "BLI_math_color.h"
-#include "BLI_math_interp.h"
+#include "BLI_math_interp.hh"
 #include "BLI_utildefines.h"
 #include "MEM_guardedalloc.h"
 

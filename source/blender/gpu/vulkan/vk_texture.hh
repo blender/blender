@@ -73,7 +73,7 @@ class VKTexture : public Texture, public VKBindableResource {
   void mip_range_set(int min, int max) override;
   void *read(int mip, eGPUDataFormat format) override;
   void read_sub(
-      int mip, eGPUDataFormat format, const int area[4], IndexRange layers, void *r_data);
+      int mip, eGPUDataFormat format, const int area[6], IndexRange layers, void *r_data);
   void update_sub(
       int mip, int offset[3], int extent[3], eGPUDataFormat format, const void *data) override;
   void update_sub(int offset[3],

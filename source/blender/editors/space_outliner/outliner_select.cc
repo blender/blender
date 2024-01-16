@@ -33,7 +33,7 @@
 #include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_grease_pencil.hh"
 #include "BKE_layer.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
@@ -412,7 +412,8 @@ static void tree_element_material_activate(bContext *C,
   /* NOTE: `ob->matbits` can be nullptr when a local object points to a library mesh. */
   BKE_view_layer_synced_ensure(scene, view_layer);
   if (ob == nullptr || ob != BKE_view_layer_active_object_get(view_layer) ||
-      ob->matbits == nullptr) {
+      ob->matbits == nullptr)
+  {
     return; /* just paranoia */
   }
 
@@ -1075,7 +1076,8 @@ static eOLDrawState tree_element_active_material_get(const Scene *scene,
   /* NOTE: `ob->matbits` can be nullptr when a local object points to a library mesh. */
   BKE_view_layer_synced_ensure(scene, view_layer);
   if (ob == nullptr || ob != BKE_view_layer_active_object_get(view_layer) ||
-      ob->matbits == nullptr) {
+      ob->matbits == nullptr)
+  {
     return OL_DRAWSEL_NONE; /* just paranoia */
   }
 

@@ -241,7 +241,8 @@ static void box_select_nla_strips(bAnimContext *ac, rcti rect, short mode, short
         /* only select strips if they fall within the required ranges (if applicable) */
         LISTBASE_FOREACH (NlaStrip *, strip, &nlt->strips) {
           if ((mode == NLA_BOXSEL_CHANNELS) ||
-              BKE_nlastrip_within_bounds(strip, rectf.xmin, rectf.xmax)) {
+              BKE_nlastrip_within_bounds(strip, rectf.xmin, rectf.xmax))
+          {
             /* set selection */
             ACHANNEL_SET_FLAG(strip, selectmode, NLASTRIP_FLAG_SELECT);
 

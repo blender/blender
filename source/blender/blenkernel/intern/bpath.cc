@@ -58,7 +58,7 @@
 
 #include "BKE_idtype.h"
 #include "BKE_image.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_library.hh"
 #include "BKE_main.hh"
 #include "BKE_node.h"
@@ -96,7 +96,8 @@ void BKE_bpath_foreach_path_id(BPathForeachPathData *bpath_data, ID *id)
   }
 
   if (id->library_weak_reference != nullptr &&
-      (flag & BKE_BPATH_TRAVERSE_SKIP_WEAK_REFERENCES) == 0) {
+      (flag & BKE_BPATH_TRAVERSE_SKIP_WEAK_REFERENCES) == 0)
+  {
     BKE_bpath_foreach_path_fixed_process(bpath_data,
                                          id->library_weak_reference->library_filepath,
                                          sizeof(id->library_weak_reference->library_filepath));
@@ -182,7 +183,8 @@ bool BKE_bpath_foreach_path_dirfile_fixed_process(BPathForeachPathData *bpath_da
   }
 
   if (bpath_data->callback_function(
-          bpath_data, path_dst, sizeof(path_dst), (const char *)path_src)) {
+          bpath_data, path_dst, sizeof(path_dst), (const char *)path_src))
+  {
     BLI_path_split_dir_file(path_dst, path_dir, path_dir_maxncpy, path_file, path_file_maxncpy);
     bpath_data->is_path_modified = true;
     return true;

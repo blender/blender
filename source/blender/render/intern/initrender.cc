@@ -17,6 +17,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
+#include "BLI_math_base.h"
 #include "BLI_math_matrix.h"
 #include "BLI_utildefines.h"
 

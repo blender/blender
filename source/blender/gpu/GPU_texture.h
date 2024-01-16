@@ -540,7 +540,7 @@ typedef enum eGPUTextureUsage {
   /* Whether a texture is used as an attachment in a frame-buffer. */
   GPU_TEXTURE_USAGE_ATTACHMENT = (1 << 2),
   /* Whether a texture is used to create a texture view utilizing a different texture format to the
-   * source textures format. This includes the use of stencil views.  */
+   * source textures format. This includes the use of stencil views. */
   GPU_TEXTURE_USAGE_FORMAT_VIEW = (1 << 3),
   /* Whether the texture needs to be read from by the CPU. */
   GPU_TEXTURE_USAGE_HOST_READ = (1 << 4),

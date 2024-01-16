@@ -5,7 +5,7 @@
 /** \file
  * \ingroup draw_engine
  */
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include "draw_cache_impl.hh"
 #include "draw_manager_text.hh"
@@ -120,10 +120,10 @@ void OVERLAY_edit_uv_init(OVERLAY_Data *vedata)
   const bool show_modified_uvs = sima->flag & SI_DRAWSHADOW;
   const bool is_tiled_image = image && (image->source == IMA_SRC_TILED);
   const bool do_edges_only = (ts->uv_flag & UV_SYNC_SELECTION) ?
-                                  /* NOTE: Ignore #SCE_SELECT_EDGE because a single selected edge
-                                   * on the mesh may cause single UV vertices to be selected. */
-                                  false :
-                                  (ts->uv_selectmode == UV_SELECT_EDGE);
+                                 /* NOTE: Ignore #SCE_SELECT_EDGE because a single selected edge
+                                  * on the mesh may cause single UV vertices to be selected. */
+                                 false :
+                                 (ts->uv_selectmode == UV_SELECT_EDGE);
   const bool do_faces = ((sima->flag & SI_NO_DRAWFACES) == 0);
   const bool do_face_dots = (ts->uv_flag & UV_SYNC_SELECTION) ?
                                 (ts->selectmode & SCE_SELECT_FACE) != 0 :
@@ -181,13 +181,14 @@ void OVERLAY_edit_uv_init(OVERLAY_Data *vedata)
 
 void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
 {
+  using namespace blender::draw;
   OVERLAY_StorageList *stl = vedata->stl;
   OVERLAY_PassList *psl = vedata->psl;
   OVERLAY_PrivateData *pd = stl->pd;
 
   const DRWContextState *draw_ctx = DRW_context_state_get();
   SpaceImage *sima = (SpaceImage *)draw_ctx->space_data;
-  Image *image = sima->image;
+  ::Image *image = sima->image;
   const Scene *scene = draw_ctx->scene;
   ToolSettings *ts = scene->toolsettings;
 
@@ -350,7 +351,7 @@ void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
 
   if (pd->edit_uv.do_stencil_overlay) {
     const Brush *brush = BKE_paint_brush(&ts->imapaint.paint);
-    Image *stencil_image = brush->clone.image;
+    ::Image *stencil_image = brush->clone.image;
     ImBuf *stencil_ibuf = BKE_image_acquire_ibuf(
         stencil_image, nullptr, &pd->edit_uv.stencil_lock);
 
@@ -435,6 +436,7 @@ void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
 
 static void overlay_edit_uv_cache_populate(OVERLAY_Data *vedata, Object *ob)
 {
+  using namespace blender::draw;
   if (!(DRW_object_visibility_in_active_context(ob) & OB_VISIBLE_SELF)) {
     return;
   }

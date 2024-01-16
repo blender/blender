@@ -32,45 +32,56 @@ def extend(obj, EXTEND_MODE, use_uv_selection):
         return STATUS_ERR_NOT_SELECTED  # Active face is not selected.
     if len(f_act.verts) != 4:
         return STATUS_ERR_NOT_QUAD  # Active face is not a quad
-    if not bm.loops.layers.uv:
+    uv_act = bm.loops.layers.uv.active  # Always use the active UV layer.
+    if uv_act is None:
         return STATUS_ERR_MISSING_UV_LAYER  # Object's mesh doesn't have any UV layers.
 
-    uv_act = bm.loops.layers.uv.active  # Always use the active UV layer.
-
-    # Construct a set of selected quads.
-    faces = {f for f in bm.faces if len(f.verts) == 4 and f.select}
     if use_uv_selection:
-        # Filter `faces` to extract only UV selected quads.
-        faces = {f for f in faces if is_face_uv_selected(f, uv_act, False)}
+        faces = [
+            f for f in bm.faces
+            if f.select and len(f.verts) == 4 and is_face_uv_selected(f, uv_act, False)
+        ]
+    else:
+        faces = [
+            f for f in bm.faces
+            if f.select and len(f.verts) == 4
+        ]
 
     if not faces:
         return STATUS_ERR_NO_FACES_SELECTED
 
-    def walk_face():
-        from collections import deque
+    # Our own local walker.
 
+    def walk_face_init(faces, f_act):
+        # First tag all faces True (so we don't UV-map them).
         for f in bm.faces:
-            f.tag = f not in faces
+            f.tag = True
+        # Then tag faces argument False.
+        for f in faces:
+            f.tag = False
+        # Tag the active face True since we begin there.
+        f_act.tag = True
 
-        faces_deque = deque()
-        faces_deque.append(f_act)
-        f_act.tag = True  # Queued.
+    def walk_face(f):
+        # All faces in this list must be tagged.
+        f.tag = True
+        faces_a = [f]
+        faces_b = []
 
-        while faces_deque:  # Breadth first search.
-            f = faces_deque.popleft()
-            for l in f.loops:
-                l_edge = l.edge
-                if l_edge.seam:
-                    continue  # Don't walk across seams.
-                if not l_edge.is_manifold:
-                    continue  # Don't walk across non-manifold.
-                l_other = l.link_loop_radial_next  # Manifold implies uniqueness.
-                f_other = l_other.face
-                if f_other.tag:
-                    continue  # Either queued, visited, not selected, or not quad.
-                yield (f, l, f_other)
-                faces_deque.append(f_other)
-                f_other.tag = True  # Queued.
+        while faces_a:
+            for f in faces_a:
+                for l in f.loops:
+                    l_edge = l.edge
+                    if (l_edge.is_manifold is True) and (l_edge.seam is False):
+                        l_other = l.link_loop_radial_next
+                        f_other = l_other.face
+                        if not f_other.tag:
+                            yield (f, l, f_other)
+                            f_other.tag = True
+                            faces_b.append(f_other)
+            # Swap.
+            faces_a, faces_b = faces_b, faces_a
+            faces_b.clear()
 
     def walk_edgeloop(l):
         """
@@ -95,22 +106,13 @@ def extend(obj, EXTEND_MODE, use_uv_selection):
             else:
                 break
 
-    uv_updates = []
-
-    def record_and_assign_uv(dest, source):
-        from mathutils import Vector
-
-        if dest[uv_act].uv == source:
-            return  # Already placed correctly, probably a nearby quad.
-        dest_uv_copy = Vector(dest[uv_act].uv)  # Make a copy to prevent aliasing.
-        uv_updates.append([dest.vert, dest_uv_copy, source])  # Record changes.
-        dest[uv_act].uv = source  # Assign updated UV.
-
-    def extrapolate_uv(fac, l_a_outer, l_a_inner, l_b_outer, l_b_inner):
-        l_a_inner_uv = l_a_inner[uv_act].uv
-        l_a_outer_uv = l_a_outer[uv_act].uv
-        record_and_assign_uv(l_b_inner, l_a_inner_uv)
-        record_and_assign_uv(l_b_outer, l_a_inner_uv * (1 + fac) - l_a_outer_uv * fac)
+    def extrapolate_uv(
+            fac,
+            l_a_outer, l_a_inner,
+            l_b_outer, l_b_inner,
+    ):
+        l_b_inner[:] = l_a_inner
+        l_b_outer[:] = l_a_inner + ((l_a_inner - l_a_outer) * fac)
 
     def apply_uv(_f_prev, l_prev, _f_next):
         l_a = [None, None, None, None]
@@ -149,6 +151,9 @@ def extend(obj, EXTEND_MODE, use_uv_selection):
             l_b[2] = l_b[1].link_loop_next
             l_b[3] = l_b[2].link_loop_next
 
+        l_a_uv = [l[uv_act].uv for l in l_a]
+        l_b_uv = [l[uv_act].uv for l in l_b]
+
         if EXTEND_MODE == 'LENGTH_AVERAGE':
             d1 = edge_lengths[l_a[1].edge.index][0]
             d2 = edge_lengths[l_b[2].edge.index][0]
@@ -169,8 +174,13 @@ def extend(obj, EXTEND_MODE, use_uv_selection):
         else:
             fac = 1.0
 
-        extrapolate_uv(fac, l_a[3], l_a[0], l_b[3], l_b[0])
-        extrapolate_uv(fac, l_a[2], l_a[1], l_b[2], l_b[1])
+        extrapolate_uv(fac,
+                       l_a_uv[3], l_a_uv[0],
+                       l_b_uv[3], l_b_uv[0])
+
+        extrapolate_uv(fac,
+                       l_a_uv[2], l_a_uv[1],
+                       l_b_uv[2], l_b_uv[1])
 
     # -------------------------------------------
     # Calculate average length per loop if needed.
@@ -202,16 +212,12 @@ def extend(obj, EXTEND_MODE, use_uv_selection):
 
                     edge_length_store[0] = edge_length_accum / edge_length_total
 
-    for f_triple in walk_face():
-        apply_uv(*f_triple)
+    # done with average length
+    # ------------------------
 
-    # Propagate UV changes across boundary of selection.
-    for (v, original_uv, source) in uv_updates:
-        # Visit all loops associated with our vertex.
-        for loop in v.link_loops:
-            # If the loop's UV matches the original, assign the new UV.
-            if loop[uv_act].uv == original_uv:
-                loop[uv_act].uv = source
+    walk_face_init(faces, f_act)
+    for f_triple in walk_face(f_act):
+        apply_uv(*f_triple)
 
     bmesh.update_edit_mesh(me, loop_triangles=False)
     return STATUS_OK

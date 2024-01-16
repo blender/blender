@@ -211,7 +211,7 @@ static void do_draw_face_sets_brush_faces(Object *ob,
       BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
         auto_mask::node_update(automask_data, vd);
 
-        for (const int face_i : ss->pmap[vd.index]) {
+        for (const int face_i : ss->vert_to_face_map[vd.index]) {
           const IndexRange face = ss->faces[face_i];
 
           const float3 poly_center = bke::mesh::face_center_calc(positions,
@@ -438,9 +438,6 @@ static void do_relax_face_sets_brush_task(Object *ob,
                                                                 &automask_data);
 
     smooth::relax_vertex(ss, &vd, fade * bstrength, relax_face_sets, vd.co);
-    if (vd.is_mesh) {
-      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
-    }
   }
   BKE_pbvh_vertex_iter_end;
 }
@@ -716,8 +713,8 @@ static void sculpt_face_sets_init_flood_fill(Object *ob, const FaceSetsFloodFill
   const OffsetIndices faces = mesh->faces();
   const Span<int> corner_edges = mesh->corner_edges();
 
-  if (ss->epmap.is_empty()) {
-    ss->epmap = bke::mesh::build_edge_to_face_map(
+  if (ss->edge_to_face_map.is_empty()) {
+    ss->edge_to_face_map = bke::mesh::build_edge_to_face_map(
         faces, corner_edges, edges.size(), ss->edge_to_face_offsets, ss->edge_to_face_indices);
   }
 
@@ -738,7 +735,7 @@ static void sculpt_face_sets_init_flood_fill(Object *ob, const FaceSetsFloodFill
       queue.pop();
 
       for (const int edge_i : corner_edges.slice(faces[face_i])) {
-        for (const int neighbor_i : ss->epmap[edge_i]) {
+        for (const int neighbor_i : ss->edge_to_face_map[edge_i]) {
           if (neighbor_i == face_i) {
             continue;
           }
@@ -1228,7 +1225,7 @@ static void sculpt_face_set_grow_shrink(Object &object,
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
-  const GroupedSpan<int> vert_to_face_map = ss.pmap;
+  const GroupedSpan<int> vert_to_face_map = ss.vert_to_face_map;
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan<bool> hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
   Array<int> prev_face_sets = duplicate_face_sets(mesh);
@@ -1388,7 +1385,6 @@ static void sculpt_face_set_edit_fair_face_set(Object *ob,
   for (int i = 0; i < totvert; i++) {
     if (fair_verts[i]) {
       interp_v3_v3v3(positions[i], orig_positions[i], positions[i], strength);
-      BKE_pbvh_vert_tag_update_normal(ss->pbvh, BKE_pbvh_index_to_vertex(ss->pbvh, i));
     }
   }
 }

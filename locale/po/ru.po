@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'98c6bded9844')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'acbb91b192da')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-02 10:08:43\n"
+"POT-Creation-Date: 2024-01-15 10:52:30\n"
 "PO-Revision-Date: 2023-12-11 03:52+0000\n"
 "Last-Translator: Lockal <lockalsash@gmail.com>\n"
 "Language-Team: Russian <https://translate.blender.org/projects/blender-ui/ui/ru/>\n"
@@ -3923,6 +3923,10 @@ msgstr "Кости"
 
 msgid "Bones assigned to this bone collection. In armature edit mode this will always return an empty list of bones, as the bone collection memberships are only synchronized when exiting edit mode"
 msgstr "Кости, назначенные этой коллекции костей. В режиме редактирования скелета всегда будет возвращаться пустой список костей, так как состав коллекции костей синхронизируется только при выходе из режима редактирования"
+
+
+msgid "Index"
+msgstr "Индекс"
 
 
 msgid "Is Editable"
@@ -9074,10 +9078,6 @@ msgid "Use the start of the stroke for the depth"
 msgstr "Использовать начало штрихов для глубины"
 
 
-msgid "Index"
-msgstr "Индекс"
-
-
 msgid "Profile Path editor used to build a profile path"
 msgstr "Редактор профильных кривых, используемый для построения профильных кривых"
 
@@ -14059,10 +14059,6 @@ msgstr "Создать систему частиц трекеров"
 
 msgid "Use Viscosity"
 msgstr "Использовать вязкость"
-
-
-msgid "Enable fluid viscosity settings"
-msgstr "Включить настройки вязкости жидкости"
 
 
 msgid "Display Type"
@@ -43245,6 +43241,19 @@ msgid "Duplicate"
 msgstr "Дублировать"
 
 
+msgid "Extrude selected control point(s)"
+msgstr "Экструдировать выделенную контрольную точку(и)"
+
+
+msgctxt "Operator"
+msgid "Extrude Curve and Move"
+msgstr "Экструдировать кривую и переместить"
+
+
+msgid "Extrude curve and move result"
+msgstr "Экструдировать кривую и переместить результат"
+
+
 msgid "(De)select all control points"
 msgstr "Установить/снять выделение со всех контрольных точек"
 
@@ -43363,10 +43372,6 @@ msgid "Duplicate Curve"
 msgstr "Дублировать кривую"
 
 
-msgid "Extrude selected control point(s)"
-msgstr "Экструдировать выделенную контрольную точку(и)"
-
-
 msgid "Init"
 msgstr "Начать"
 
@@ -43437,15 +43442,6 @@ msgstr "Сдвинуть ребро"
 
 msgid "Sequence Slide"
 msgstr "Сдвинуть секвенцию"
-
-
-msgctxt "Operator"
-msgid "Extrude Curve and Move"
-msgstr "Экструдировать кривую и переместить"
-
-
-msgid "Extrude curve and move result"
-msgstr "Экструдировать кривую и переместить результат"
 
 
 msgctxt "Operator"
@@ -64845,10 +64841,6 @@ msgid "Helpers"
 msgstr "Помощники"
 
 
-msgid "Viscosity"
-msgstr "Вязкость"
-
-
 msgid "Freestyle Line Style SVG Export"
 msgstr "SVG-экспорт стиля линий Freestyle"
 
@@ -71174,6 +71166,10 @@ msgstr "Радиус взаимодействия"
 
 msgid "Fluid interaction radius"
 msgstr "Радиус взаимодействия жидкости"
+
+
+msgid "Viscosity"
+msgstr "Вязкость"
 
 
 msgid "Linear viscosity"
@@ -78280,14 +78276,6 @@ msgstr "3D-вращение"
 
 msgid "3D View Overlay Settings"
 msgstr "Настройки наложений 3D-вида"
-
-
-msgid "Backwire Opacity"
-msgstr "Прозрачность сетки"
-
-
-msgid "Opacity when rendering transparent wires"
-msgstr "Прозрачность прорисовки сеток"
 
 
 msgid "Fade layer opacity for Grease Pencil layers except the active one"
@@ -86085,12 +86073,12 @@ msgid "Basic"
 msgstr "Базовый"
 
 
-msgid "Baking light cache"
-msgstr "Запечь кэш освещения"
-
-
 msgid "%d Ref. Cubemaps, %d Irr. Samples (%s in memory)"
 msgstr "%d Кубич.карт отражения, %d семплов освещённости (%s в памяти)"
+
+
+msgid "Baking light cache"
+msgstr "Запечь кэш освещения"
 
 
 msgid "No light cache in this scene"
@@ -87244,10 +87232,6 @@ msgid "Anim Player"
 msgstr "Остановить"
 
 
-msgid "Can't edit external library data"
-msgstr "Правка данных из внешних библиотек невозможна"
-
-
 msgid "Reset operator defaults"
 msgstr "Сбросить настройки оператора к настройкам по умолчанию"
 
@@ -87414,6 +87398,22 @@ msgstr "Выбор связываемого зонда освещения"
 
 msgid "Browse ID data to be linked"
 msgstr "Выбор связываемых данных идентификаторов"
+
+
+msgid "Can't edit external library data"
+msgstr "Правка данных из внешних библиотек невозможна"
+
+
+msgid "Today"
+msgstr "Сегодня"
+
+
+msgid "Yesterday"
+msgstr "Вчера"
+
+
+msgid "Modified"
+msgstr "С изменениями"
 
 
 msgctxt "Object"
@@ -87603,6 +87603,10 @@ msgstr "Группы материалов"
 
 msgid "Smooth Groups"
 msgstr "Группы сглаживания"
+
+
+msgid "Rigging"
+msgstr "Риггинг"
 
 
 msgid "Mesh Data"
@@ -89393,14 +89397,6 @@ msgid "Some data failed to reconstruct (see console for details)"
 msgstr "Невозможно восстановить некоторые данные (дополнительная информация приведена в консоли)"
 
 
-msgid "Today"
-msgstr "Сегодня"
-
-
-msgid "Yesterday"
-msgstr "Вчера"
-
-
 msgid "File path"
 msgstr "Путь к файлу"
 
@@ -89525,6 +89521,22 @@ msgid "Show in Drivers Editor"
 msgstr "Показать в редакторе драйверов"
 
 
+msgid "Add a Driver Variable to keep track of an input used by the driver"
+msgstr "Добавить переменную драйвера для слежения за входным значением, используемым драйвером"
+
+
+msgid "Invalid variable name, click here for details"
+msgstr "Неправильное имя переменной; нажмите здесь, чтобы узнать больше"
+
+
+msgid "Delete target variable"
+msgstr "Удалить целевую переменную"
+
+
+msgid "Force updates of dependencies - Only use this if drivers are not updating correctly"
+msgstr "Принудительно обновить зависимости (используйте только если драйверы не обновляются корректно)"
+
+
 msgid "F-Curve only has F-Modifiers"
 msgstr "F-кривая описана только F-модификаторами"
 
@@ -89579,22 +89591,6 @@ msgstr "Совет: для процедурной анимации лучше п
 
 msgid "F-Modifiers can generate curves for those too"
 msgstr "Эти кривые также могут быть сгенерированы F-модификаторами"
-
-
-msgid "Add a Driver Variable to keep track of an input used by the driver"
-msgstr "Добавить переменную драйвера для слежения за входным значением, используемым драйвером"
-
-
-msgid "Invalid variable name, click here for details"
-msgstr "Неправильное имя переменной; нажмите здесь, чтобы узнать больше"
-
-
-msgid "Delete target variable"
-msgstr "Удалить целевую переменную"
-
-
-msgid "Force updates of dependencies - Only use this if drivers are not updating correctly"
-msgstr "Принудительно обновить зависимости (используйте только если драйверы не обновляются корректно)"
 
 
 msgid "Driven Property"
@@ -92422,12 +92418,20 @@ msgid "Don't Save"
 msgstr "Не сохранять"
 
 
+msgid "Reload file with execution of Python scripts enabled"
+msgstr "Перезагрузить файл с разрешением выполнить скрипты Python"
+
+
+msgid "Enable scripts"
+msgstr "Включить скрипты"
+
+
+msgid "Continue using file without Python scripts"
+msgstr "Продолжить работу с файлом без скриптов Python"
+
+
 msgid "unable to open the file"
 msgstr "не удалось открыть файл"
-
-
-msgid "Modified"
-msgstr "С изменениями"
 
 
 msgid "For security reasons, automatic execution of Python scripts in this file was disabled:"
@@ -92440,18 +92444,6 @@ msgstr "Это может привести к неожиданным резул�
 
 msgid "Permanently allow execution of scripts"
 msgstr "Всегда разрешать выполнение скриптов"
-
-
-msgid "Reload file with execution of Python scripts enabled"
-msgstr "Перезагрузить файл с разрешением выполнить скрипты Python"
-
-
-msgid "Enable scripts"
-msgstr "Включить скрипты"
-
-
-msgid "Continue using file without Python scripts"
-msgstr "Продолжить работу с файлом без скриптов Python"
 
 
 msgid "Save changes before closing?"
@@ -92815,10 +92807,6 @@ msgstr "Добавление мешей"
 
 msgid "Import-Export"
 msgstr "Импорт/экспорт"
-
-
-msgid "Rigging"
-msgstr "Риггинг"
 
 
 msgid "Video Tools"

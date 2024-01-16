@@ -98,12 +98,12 @@ static float *geodesic_mesh_create(Object *ob, GSet *initial_verts, const float 
   float *dists = static_cast<float *>(MEM_malloc_arrayN(totvert, sizeof(float), __func__));
   BitVector<> edge_tag(totedge);
 
-  if (ss->epmap.is_empty()) {
-    ss->epmap = bke::mesh::build_edge_to_face_map(
+  if (ss->edge_to_face_map.is_empty()) {
+    ss->edge_to_face_map = bke::mesh::build_edge_to_face_map(
         faces, corner_edges, edges.size(), ss->edge_to_face_offsets, ss->edge_to_face_indices);
   }
-  if (ss->vemap.is_empty()) {
-    ss->vemap = bke::mesh::build_vert_to_edge_map(
+  if (ss->vert_to_edge_map.is_empty()) {
+    ss->vert_to_edge_map = bke::mesh::build_vert_to_edge_map(
         edges, mesh->verts_num, ss->vert_to_edge_offsets, ss->vert_to_edge_indices);
   }
 
@@ -174,36 +174,32 @@ static float *geodesic_mesh_create(Object *ob, GSet *initial_verts, const float 
             vert_positions, v2, v1, SCULPT_GEODESIC_VERTEX_NONE, dists, initial_verts);
       }
 
-      if (ss->epmap[e].size() != 0) {
-        for (int face_map_index = 0; face_map_index < ss->epmap[e].size(); face_map_index++) {
-          const int face = ss->epmap[e][face_map_index];
-          if (!hide_poly.is_empty() && hide_poly[face]) {
+      for (const int face : ss->edge_to_face_map[e]) {
+        if (!hide_poly.is_empty() && hide_poly[face]) {
+          continue;
+        }
+        for (const int v_other : corner_verts.slice(faces[face])) {
+          if (ELEM(v_other, v1, v2)) {
             continue;
           }
-          for (const int v_other : corner_verts.slice(faces[face])) {
-            if (ELEM(v_other, v1, v2)) {
-              continue;
-            }
-            if (sculpt_geodesic_mesh_test_dist_add(
-                    vert_positions, v_other, v1, v2, dists, initial_verts)) {
-              for (int edge_map_index = 0; edge_map_index < ss->vemap[v_other].size();
-                   edge_map_index++) {
-                const int e_other = ss->vemap[v_other][edge_map_index];
-                int ev_other;
-                if (edges[e_other][0] == v_other) {
-                  ev_other = edges[e_other][1];
-                }
-                else {
-                  ev_other = edges[e_other][0];
-                }
+          if (sculpt_geodesic_mesh_test_dist_add(
+                  vert_positions, v_other, v1, v2, dists, initial_verts))
+          {
+            for (const int e_other : ss->vert_to_edge_map[v_other]) {
+              int ev_other;
+              if (edges[e_other][0] == v_other) {
+                ev_other = edges[e_other][1];
+              }
+              else {
+                ev_other = edges[e_other][0];
+              }
 
-                if (e_other != e && !edge_tag[e_other] &&
-                    (ss->epmap[e_other].is_empty() || dists[ev_other] != FLT_MAX))
-                {
-                  if (affected_vert[v_other] || affected_vert[ev_other]) {
-                    edge_tag[e_other].set();
-                    BLI_LINKSTACK_PUSH(queue_next, POINTER_FROM_INT(e_other));
-                  }
+              if (e_other != e && !edge_tag[e_other] &&
+                  (ss->edge_to_face_map[e_other].is_empty() || dists[ev_other] != FLT_MAX))
+              {
+                if (affected_vert[v_other] || affected_vert[ev_other]) {
+                  edge_tag[e_other].set();
+                  BLI_LINKSTACK_PUSH(queue_next, POINTER_FROM_INT(e_other));
                 }
               }
             }
@@ -275,8 +271,7 @@ float *distances_create(Object *ob, GSet *initial_verts, const float limit_radiu
   return nullptr;
 }
 
-float *distances_create_from_vert_and_symm(Sculpt *sd,
-                                           Object *ob,
+float *distances_create_from_vert_and_symm(Object *ob,
                                            const PBVHVertRef vertex,
                                            const float limit_radius)
 {
@@ -294,7 +289,7 @@ float *distances_create_from_vert_and_symm(Sculpt *sd,
       else {
         float location[3];
         flip_v3_v3(location, SCULPT_vertex_co_get(ss, vertex), ePaintSymmetryFlags(i));
-        v = SCULPT_nearest_vertex_get(sd, ob, location, FLT_MAX, false);
+        v = SCULPT_nearest_vertex_get(ob, location, FLT_MAX, false);
       }
       if (v.i != PBVH_REF_NONE) {
         BLI_gset_add(initial_verts, POINTER_FROM_INT(BKE_pbvh_vertex_to_index(ss->pbvh, v)));

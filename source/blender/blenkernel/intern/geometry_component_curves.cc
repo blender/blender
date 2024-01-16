@@ -13,7 +13,7 @@
 #include "BKE_deform.h"
 #include "BKE_geometry_fields.hh"
 #include "BKE_geometry_set.hh"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 
 #include "FN_multi_function_builder.hh"
 
@@ -26,6 +26,11 @@ namespace blender::bke {
  * \{ */
 
 CurveComponent::CurveComponent() : GeometryComponent(Type::Curve) {}
+
+CurveComponent::CurveComponent(Curves *curve, GeometryOwnershipType ownership)
+    : GeometryComponent(Type::Curve), curves_(curve), ownership_(ownership)
+{
+}
 
 CurveComponent::~CurveComponent()
 {
@@ -402,7 +407,8 @@ class CurvesVertexGroupsAttributeProvider final : public DynamicAttributesProvid
     int index;
     bDeformGroup *group;
     if (!BKE_defgroup_listbase_name_find(
-            &curves->vertex_group_names, name.c_str(), &index, &group)) {
+            &curves->vertex_group_names, name.c_str(), &index, &group))
+    {
       return false;
     }
     BLI_remlink(&curves->vertex_group_names, group);

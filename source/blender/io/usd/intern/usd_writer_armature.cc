@@ -31,9 +31,11 @@ namespace usdtokens {
 static const pxr::TfToken Anim("Anim", pxr::TfToken::Immortal);
 }  // namespace usdtokens
 
-/* Get the pose matrix for the given channe.  The matrix is computed
- * relative to its parent, if a parent exists.  The returned matrix
- * corresponds to the USD joint-local transform. */
+/**
+ * Get the pose matrix for the given channel.
+ * The matrix is computed relative to its parent, if a parent exists.
+ * The returned matrix corresponds to the USD joint-local transform.
+ */
 static pxr::GfMatrix4d parent_relative_pose_mat(const bPoseChannel *pchan)
 {
   /* Note that the float matrix will be returned as GfMatrix4d, because

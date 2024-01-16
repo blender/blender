@@ -6,7 +6,7 @@
  * \ingroup draw_engine
  */
 
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include "draw_color_management.h" /* TODO: remove dependency. */
 
@@ -183,11 +183,11 @@ static void eevee_cache_finish(void *vedata)
   }
 
   if (g_data->queued_shaders_count > 0) {
-    SNPRINTF(ved->info, TIP_("Compiling Shaders (%d remaining)"), g_data->queued_shaders_count);
+    SNPRINTF(ved->info, RPT_("Compiling Shaders (%d remaining)"), g_data->queued_shaders_count);
   }
   else if (g_data->queued_optimise_shaders_count > 0) {
     SNPRINTF(ved->info,
-             TIP_("Optimizing Shaders (%d remaining)"),
+             RPT_("Optimizing Shaders (%d remaining)"),
              g_data->queued_optimise_shaders_count);
   }
 }

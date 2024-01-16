@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'98c6bded9844')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'acbb91b192da')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-02 10:08:43\n"
+"POT-Creation-Date: 2024-01-15 10:52:30\n"
 "PO-Revision-Date: 2017-08-26 11:13+0200\n"
 "Last-Translator: Mikołaj Juda <mikolaj.juda@gmail.com>\n"
 "Language: pl\n"
@@ -1788,6 +1788,10 @@ msgstr "Transformacje względne"
 
 msgid "Object children will use relative transform, like deform"
 msgstr "Obiekty potomne będą używać transformacji względnych, takich jak deformacje"
+
+
+msgid "Index"
+msgstr "Indeks"
 
 
 msgid "Visible"
@@ -4569,10 +4573,6 @@ msgstr "Głębia"
 
 msgid "Plane"
 msgstr "Płaszczyzna"
-
-
-msgid "Index"
-msgstr "Indeks"
 
 
 msgid "Scene"
@@ -7927,6 +7927,10 @@ msgid "Can't overwrite export file"
 msgstr "Nie mogę nadpisać pliku do eksportu"
 
 
+msgid "Rigging"
+msgstr "Rigowanie"
+
+
 msgctxt "Mesh"
 msgid "Plane"
 msgstr "Prostokąt"
@@ -9258,6 +9262,10 @@ msgid "Update Dependencies"
 msgstr "Odśwież Zależności"
 
 
+msgid "Delete target variable"
+msgstr "Usuń docelową zmienną"
+
+
 msgid "F-Curve only has F-Modifiers"
 msgstr "Krzywa F ma tylko modyfikatory F"
 
@@ -9304,10 +9312,6 @@ msgstr "PODPOWIEDŹ: Użyj w zamian krzywych F dla animacji proceduralnych"
 
 msgid "F-Modifiers can generate curves for those too"
 msgstr "Modyfikatory-F mogą również tworzyć krzywe dla tych"
-
-
-msgid "Delete target variable"
-msgstr "Usuń docelową zmienną"
 
 
 msgid "<No ID>"
@@ -11107,10 +11111,6 @@ msgstr "Dodaj Siatkę"
 
 msgid "Import-Export"
 msgstr "Import-Eksport"
-
-
-msgid "Rigging"
-msgstr "Rigowanie"
 
 
 msgid "English (English)"

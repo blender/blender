@@ -361,7 +361,8 @@ MetalKernelPipeline *ShaderCache::get_best_pipeline(DeviceKernel kernel, const M
       thread_scoped_lock lock(cache_mutex);
       for (auto &candidate : pipelines[kernel]) {
         if (candidate->loaded &&
-            candidate->kernels_md5 == device->kernels_md5[candidate->pso_type]) {
+            candidate->kernels_md5 == device->kernels_md5[candidate->pso_type])
+        {
           /* Replace existing match if candidate is more specialized. */
           if (!best_match || candidate->pso_type > best_match->pso_type) {
             best_match = candidate.get();
@@ -795,7 +796,8 @@ void MetalKernelPipeline::compile()
     if (ShaderCache::running) {
       if (creating_new_archive || recreate_archive) {
         if (![archive serializeToURL:[NSURL fileURLWithPath:@(metalbin_path.c_str())]
-                               error:&error]) {
+                               error:&error])
+        {
           metal_printf("Failed to save binary archive to %s, error:\n%s\n",
                        metalbin_path.c_str(),
                        [[error localizedDescription] UTF8String]);

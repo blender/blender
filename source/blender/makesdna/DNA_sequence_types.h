@@ -545,18 +545,8 @@ typedef struct SoundEqualizerModifierData {
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Scopes
+/** \name Flags & Types
  * \{ */
-
-typedef struct SequencerScopes {
-  struct ImBuf *reference_ibuf;
-
-  struct ImBuf *zebra_ibuf;
-  struct ImBuf *waveform_ibuf;
-  struct ImBuf *sep_waveform_ibuf;
-  struct ImBuf *vector_ibuf;
-  struct ImBuf *histogram_ibuf;
-} SequencerScopes;
 
 #define MAXSEQ 128
 
@@ -582,12 +572,6 @@ enum {
   SEQ_SPEED_UNUSED_3 = 1 << 2, /* cleared */
   SEQ_SPEED_USE_INTERPOLATION = 1 << 3,
 };
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Flags & Types
- * \{ */
 
 #define SEQ_NAME_MAXSTR 64
 
@@ -855,6 +839,7 @@ enum {
   SEQ_TRANSFORM_FILTER_NEAREST = 0,
   SEQ_TRANSFORM_FILTER_BILINEAR = 1,
   SEQ_TRANSFORM_FILTER_NEAREST_3x3 = 2,
+  SEQ_TRANSFORM_FILTER_BICUBIC = 3,
 };
 
 typedef enum eSeqChannelFlag {

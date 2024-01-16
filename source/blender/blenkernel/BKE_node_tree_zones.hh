@@ -8,6 +8,8 @@
  * \ingroup bke
  */
 
+#include <iosfwd>
+
 #include "DNA_node_types.h"
 
 #include "BLI_vector.hh"
@@ -33,11 +35,17 @@ class bNodeTreeZone {
   Vector<bNodeTreeZone *> child_zones;
   /** Direct children nodes excluding nodes that belong to child zones. */
   Vector<const bNode *> child_nodes;
-  /** Links that enter the zone through the zone border. */
+  /**
+   * Links that enter the zone through the zone border and carry information. This excludes muted
+   * and unavailable links as well as links that are dangling because they are only connected to a
+   * reroute.
+   */
   Vector<const bNodeLink *> border_links;
 
   bool contains_node_recursively(const bNode &node) const;
   bool contains_zone_recursively(const bNodeTreeZone &other_zone) const;
+
+  friend std::ostream &operator<<(std::ostream &stream, const bNodeTreeZone &zone);
 };
 
 class bNodeTreeZones {
@@ -68,6 +76,8 @@ class bNodeTreeZones {
    * nested zone. For nodes that are at the root level, the returned list is empty.
    */
   Vector<const bNodeTreeZone *> get_zone_stack_for_node(const int32_t node_id) const;
+
+  friend std::ostream &operator<<(std::ostream &stream, const bNodeTreeZones &zones);
 };
 
 const bNodeTreeZones *get_tree_zones(const bNodeTree &tree);

@@ -2459,7 +2459,8 @@ static IMesh extract_from_in_output_volume_diffs(const IMesh &tm_subdivided,
     bool adjacent_zero_volume_cell = cell_above.zero_volume() || cell_below.zero_volume();
     any_zero_volume_cell |= adjacent_zero_volume_cell;
     if (cell_above.in_output_volume() ^ cell_below.in_output_volume() &&
-        !adjacent_zero_volume_cell) {
+        !adjacent_zero_volume_cell)
+    {
       bool flip = cell_above.in_output_volume();
       if (dbg_level > 0) {
         std::cout << "need tri " << t << " flip=" << flip << "\n";

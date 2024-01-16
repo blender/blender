@@ -6,8 +6,8 @@
  * \ingroup draw
  */
 
-#include "DRW_engine.h"
-#include "DRW_render.h"
+#include "DRW_engine.hh"
+#include "DRW_render.hh"
 
 #include "ED_gpencil_legacy.hh"
 #include "ED_view3d.hh"
@@ -17,7 +17,7 @@
 
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_object.hh"
 
 #include "BLI_hash.h"

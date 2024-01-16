@@ -120,7 +120,7 @@ void outputNumInput(NumInput *n, char *str, UnitSettings *unit_settings)
 #endif
 
         if (n->val_flag[i] & NUM_INVALID) {
-          STRNCPY(val, TIP_("Invalid"));
+          STRNCPY(val, RPT_("Invalid"));
         }
         else {
           BKE_unit_value_as_string_adaptive(val,
@@ -589,7 +589,7 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
       ReportList *reports = CTX_wm_reports(C);
       printf("%s\n", error);
       BKE_report(reports, RPT_ERROR, error);
-      BKE_report(reports, RPT_ERROR, IFACE_("Numeric input evaluation"));
+      BKE_report(reports, RPT_ERROR, "Numeric input evaluation");
       MEM_freeN(error);
     }
 

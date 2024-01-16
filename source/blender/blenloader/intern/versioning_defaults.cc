@@ -51,7 +51,7 @@
 #include "BKE_gpencil_legacy.h"
 #include "BKE_idprop.h"
 #include "BKE_layer.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_main_namemap.hh"
 #include "BKE_material.h"
@@ -223,7 +223,8 @@ static void blo_update_defaults_screen(bScreen *screen,
       LISTBASE_FOREACH (ARegion *, region, regionbase) {
         if (region->regiontype == RGN_TYPE_TOOL_HEADER) {
           if (((sl->spacetype == SPACE_IMAGE) && hide_image_tool_header) ||
-              sl->spacetype == SPACE_SEQ) {
+              sl->spacetype == SPACE_SEQ)
+          {
             region->flag |= RGN_FLAG_HIDDEN;
           }
           else {
@@ -359,7 +360,8 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
   /* Correct default startup UVs. */
   Mesh *mesh = static_cast<Mesh *>(BLI_findstring(&bmain->meshes, "Cube", offsetof(ID, name) + 2));
   if (mesh && (mesh->corners_num == 24) &&
-      CustomData_has_layer(&mesh->corner_data, CD_PROP_FLOAT2)) {
+      CustomData_has_layer(&mesh->corner_data, CD_PROP_FLOAT2))
+  {
     const float uv_values[24][2] = {
         {0.625, 0.50}, {0.875, 0.50}, {0.875, 0.75}, {0.625, 0.75}, {0.375, 0.75}, {0.625, 0.75},
         {0.625, 1.00}, {0.375, 1.00}, {0.375, 0.00}, {0.625, 0.00}, {0.625, 0.25}, {0.375, 0.25},
@@ -529,7 +531,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
           if (!STREQ(screen->id.name + 2, workspace->id.name + 2)) {
             BKE_main_namemap_remove_name(bmain, &screen->id, screen->id.name + 2);
             BLI_strncpy(screen->id.name + 2, workspace->id.name + 2, sizeof(screen->id.name) - 2);
-            BLI_libblock_ensure_unique_name(bmain, screen->id.name);
+            BKE_libblock_ensure_unique_name(bmain, &screen->id);
           }
         }
 

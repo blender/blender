@@ -105,6 +105,7 @@ def autopep8_ensure_version(autopep8_format_cmd_argument: str) -> Optional[Tuple
             continue
         AUTOPEP8_FORMAT_CMD = autopep8_format_cmd
         break
+    version_str = None
     if version_output is not None:
         version_str = next(iter(v for v in version_output.split() if v[0].isdigit()), None)
     if version_str is not None:
@@ -175,6 +176,11 @@ def main() -> None:
     version = autopep8_ensure_version(args.autopep8_command)
     if version is None:
         print("Unable to detect 'autopep8 --version'")
+        print(
+            "You may want to install autopep8-%d.%d, "
+            "or use the precompiled libs repository." %
+            (VERSION_MAX_RECOMMENDED[0], VERSION_MAX_RECOMMENDED[1]),
+        )
         sys.exit(1)
     if version < VERSION_MIN:
         print("Version of autopep8 is too old:", version, "<", VERSION_MIN)

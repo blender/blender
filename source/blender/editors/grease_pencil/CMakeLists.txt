@@ -12,6 +12,7 @@ set(INC
   ../../makesrna
   ../../windowmanager
   ../../../../extern/curve_fit_nd
+  ../../geometry
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )

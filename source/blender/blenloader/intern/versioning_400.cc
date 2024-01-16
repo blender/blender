@@ -183,7 +183,7 @@ static void version_bonelayers_to_bonecollections(Main *bmain)
       layermask_collection.append(std::make_pair(layer_mask, bcoll));
 
       if ((arm->layer & layer_mask) == 0) {
-        ANIM_bonecoll_hide(bcoll);
+        ANIM_bonecoll_hide(arm, bcoll);
       }
     }
 
@@ -223,7 +223,7 @@ static void version_bonegroups_to_bonecollections(Main *bmain)
        * groups did not have any impact on this. To retain the behavior, that
        * hiding all layers a bone is on hides the bone, the
        * bone-group-collections should be created hidden. */
-      ANIM_bonecoll_hide(bcoll);
+      ANIM_bonecoll_hide(arm, bcoll);
     }
 
     /* Assign the bones to their bone group based collection. */
@@ -393,14 +393,14 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
           if (ob->id.lib) {
             BLO_reportf_wrap(fd->reports,
                              RPT_INFO,
-                             TIP_("Proxy lost from object %s lib %s\n"),
+                             RPT_("Proxy lost from object %s lib %s\n"),
                              ob->id.name + 2,
                              ob->id.lib->filepath);
           }
           else {
             BLO_reportf_wrap(fd->reports,
                              RPT_INFO,
-                             TIP_("Proxy lost from object %s lib <NONE>\n"),
+                             RPT_("Proxy lost from object %s lib <NONE>\n"),
                              ob->id.name + 2);
           }
           fd->reports->count.missing_obproxies++;
@@ -449,18 +449,11 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
   }
 
   /**
-   * Versioning code until next subversion bump goes here.
-   *
-   * \note Be sure to check when bumping the version:
-   * - #blo_do_versions_400 in this file.
-   * - `versioning_userdef.cc`, #blo_do_versions_userdef
-   * - `versioning_userdef.cc`, #do_versions_theme
+   * Always bump subversion in BKE_blender_version.h when adding versioning
+   * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.
    *
    * \note Keep this message at the bottom of the function.
    */
-  {
-    /* Keep this block, even when empty. */
-  }
 }
 
 static void version_mesh_legacy_to_struct_of_array_format(Mesh &mesh)
@@ -550,7 +543,8 @@ static void version_mesh_crease_generic(Main &bmain)
       LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
         if (STR_ELEM(node->idname,
                      "GeometryNodeStoreNamedAttribute",
-                     "GeometryNodeInputNamedAttribute")) {
+                     "GeometryNodeInputNamedAttribute"))
+        {
           bNodeSocket *socket = nodeFindSocket(node, SOCK_IN, "Name");
           if (STREQ(socket->default_value_typed<bNodeSocketValueString>()->value, "crease")) {
             STRNCPY(socket->default_value_typed<bNodeSocketValueString>()->value, "crease_edge");
@@ -982,7 +976,8 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
     else {
       if (*detail < 1.0f) {
         if ((noise_type != SHD_NOISE_RIDGED_MULTIFRACTAL) &&
-            (noise_type != SHD_NOISE_HETERO_TERRAIN)) {
+            (noise_type != SHD_NOISE_HETERO_TERRAIN))
+        {
           /* Add Multiply Math node behind Fac output. */
 
           bNode *mul_node = nodeAddStaticNode(nullptr, ntree, SH_NODE_MATH);
@@ -1391,6 +1386,36 @@ static void version_geometry_nodes_use_rotation_socket(bNodeTree &ntree)
     }
   }
 }
+
+/* Find the base socket name for an idname that may include a subtype. */
+static blender::StringRef legacy_socket_idname_to_socket_type(blender::StringRef idname)
+{
+  using string_pair = std::pair<const char *, const char *>;
+  static const string_pair subtypes_map[] = {{"NodeSocketFloatUnsigned", "NodeSocketFloat"},
+                                             {"NodeSocketFloatPercentage", "NodeSocketFloat"},
+                                             {"NodeSocketFloatFactor", "NodeSocketFloat"},
+                                             {"NodeSocketFloatAngle", "NodeSocketFloat"},
+                                             {"NodeSocketFloatTime", "NodeSocketFloat"},
+                                             {"NodeSocketFloatTimeAbsolute", "NodeSocketFloat"},
+                                             {"NodeSocketFloatDistance", "NodeSocketFloat"},
+                                             {"NodeSocketIntUnsigned", "NodeSocketInt"},
+                                             {"NodeSocketIntPercentage", "NodeSocketInt"},
+                                             {"NodeSocketIntFactor", "NodeSocketInt"},
+                                             {"NodeSocketVectorTranslation", "NodeSocketVector"},
+                                             {"NodeSocketVectorDirection", "NodeSocketVector"},
+                                             {"NodeSocketVectorVelocity", "NodeSocketVector"},
+                                             {"NodeSocketVectorAcceleration", "NodeSocketVector"},
+                                             {"NodeSocketVectorEuler", "NodeSocketVector"},
+                                             {"NodeSocketVectorXYZ", "NodeSocketVector"}};
+  for (const string_pair &pair : subtypes_map) {
+    if (pair.first == idname) {
+      return pair.second;
+    }
+  }
+  /* Unchanged socket idname. */
+  return idname;
+}
+
 static bNodeTreeInterfaceItem *legacy_socket_move_to_interface(bNodeSocket &legacy_socket,
                                                                const eNodeSocketInOut in_out)
 {
@@ -1401,7 +1426,10 @@ static bNodeTreeInterfaceItem *legacy_socket_move_to_interface(bNodeSocket &lega
   new_socket->name = BLI_strdup(legacy_socket.name);
   new_socket->identifier = BLI_strdup(legacy_socket.identifier);
   new_socket->description = BLI_strdup(legacy_socket.description);
-  new_socket->socket_type = BLI_strdup(legacy_socket.idname);
+  /* If the socket idname includes a subtype (e.g. "NodeSocketFloatFactor") this will convert it to
+   * the base type name ("NodeSocketFloat"). */
+  new_socket->socket_type = BLI_strdup(
+      legacy_socket_idname_to_socket_type(legacy_socket.idname).data());
   new_socket->flag = (in_out == SOCK_IN ? NODE_INTERFACE_SOCKET_INPUT :
                                           NODE_INTERFACE_SOCKET_OUTPUT);
   SET_FLAG_FROM_TEST(
@@ -1447,6 +1475,28 @@ static void versioning_convert_node_tree_socket_lists_to_interface(bNodeTree *nt
     tree_interface.root_panel.items_array[num_outputs + index] = legacy_socket_move_to_interface(
         *socket, SOCK_IN);
   }
+}
+
+/**
+ * Original node tree interface conversion in did not convert socket idnames with subtype suffixes
+ * to correct socket base types (see #versioning_convert_node_tree_socket_lists_to_interface).
+ */
+static void versioning_fix_socket_subtype_idnames(bNodeTree *ntree)
+{
+  bNodeTreeInterface &tree_interface = ntree->tree_interface;
+
+  tree_interface.foreach_item([](bNodeTreeInterfaceItem &item) -> bool {
+    if (item.item_type == NODE_INTERFACE_SOCKET) {
+      bNodeTreeInterfaceSocket &socket = reinterpret_cast<bNodeTreeInterfaceSocket &>(item);
+      blender::StringRef corrected_socket_type = legacy_socket_idname_to_socket_type(
+          socket.socket_type);
+      if (socket.socket_type != corrected_socket_type) {
+        MEM_freeN(socket.socket_type);
+        socket.socket_type = BLI_strdup(corrected_socket_type.data());
+      }
+    }
+    return true;
+  });
 }
 
 /* Convert coat inputs on the Principled BSDF. */
@@ -2192,7 +2242,8 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
 
               RegionAssetShelf *shelf_data = static_cast<RegionAssetShelf *>(region->regiondata);
               if (shelf_data && shelf_data->active_shelf &&
-                  (shelf_data->active_shelf->preferred_row_count == 0)) {
+                  (shelf_data->active_shelf->preferred_row_count == 0))
+              {
                 shelf_data->active_shelf->preferred_row_count = 1;
               }
             }
@@ -2208,7 +2259,8 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
         if (item.item_type == NODE_INTERFACE_SOCKET) {
           bNodeTreeInterfaceSocket &socket = reinterpret_cast<bNodeTreeInterfaceSocket &>(item);
           if ((socket.flag & NODE_INTERFACE_SOCKET_INPUT) &&
-              (socket.flag & NODE_INTERFACE_SOCKET_OUTPUT)) {
+              (socket.flag & NODE_INTERFACE_SOCKET_OUTPUT))
+          {
             sockets_to_split.append(&socket);
           }
         }
@@ -2555,21 +2607,10 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
-  /**
-   * Versioning code until next subversion bump goes here.
-   *
-   * \note Be sure to check when bumping the version:
-   * - #do_versions_after_linking_400 in this file.
-   * - `versioning_userdef.cc`, #blo_do_versions_userdef
-   * - `versioning_userdef.cc`, #do_versions_theme
-   *
-   * \note Keep this message at the bottom of the function.
-   */
-  {
-    /* Keep this block, even when empty. */
-
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 401, 10)) {
     if (!DNA_struct_member_exists(
-            fd->filesdna, "SceneEEVEE", "RaytraceEEVEE", "ray_tracing_options")) {
+            fd->filesdna, "SceneEEVEE", "RaytraceEEVEE", "ray_tracing_options"))
+    {
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         scene->eevee.ray_tracing_options.flag = RAYTRACE_EEVEE_USE_DENOISE;
         scene->eevee.ray_tracing_options.denoise_stages = RAYTRACE_EEVEE_DENOISE_SPATIAL |
@@ -2590,6 +2631,21 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
   }
+
+  if (MAIN_VERSION_FILE_ATLEAST(bmain, 400, 20) && !MAIN_VERSION_FILE_ATLEAST(bmain, 401, 11)) {
+    /* Convert old socket lists into new interface items. */
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      versioning_fix_socket_subtype_idnames(ntree);
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  /**
+   * Always bump subversion in BKE_blender_version.h when adding versioning
+   * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.
+   *
+   * \note Keep this message at the bottom of the function.
+   */
 
   /* Always run this versioning; meshes are written with the legacy format which always needs to
    * be converted to the new format on file load. Can be moved to a subversion check in a larger

@@ -34,6 +34,7 @@
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_sdna_types.h"
+#include "DNA_sequence_types.h"
 #include "DNA_space_types.h"
 #include "DNA_text_types.h"
 #include "DNA_view3d_types.h"
@@ -2824,10 +2825,12 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     if (!DNA_struct_member_exists(
-            fd->filesdna, "MovieTrackingPlaneTrack", "float", "image_opacity")) {
+            fd->filesdna, "MovieTrackingPlaneTrack", "float", "image_opacity"))
+    {
       LISTBASE_FOREACH (MovieClip *, clip, &bmain->movieclips) {
         LISTBASE_FOREACH (
-            MovieTrackingPlaneTrack *, plane_track, &clip->tracking.plane_tracks_legacy) {
+            MovieTrackingPlaneTrack *, plane_track, &clip->tracking.plane_tracks_legacy)
+        {
           plane_track->image_opacity = 1.0f;
         }
       }

@@ -132,7 +132,7 @@ void immRecti_complete(int x1, int y1, int x2, int y2, const float color[4])
 
 void imm_cpack(uint x)
 {
-  immUniformColor3ub(((x)&0xFF), (((x) >> 8) & 0xFF), (((x) >> 16) & 0xFF));
+  immUniformColor3ub(((x) & 0xFF), (((x) >> 8) & 0xFF), (((x) >> 16) & 0xFF));
 }
 
 static void imm_draw_circle(GPUPrimType prim_type,

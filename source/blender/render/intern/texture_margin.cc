@@ -147,8 +147,8 @@ class TextureMarginMap {
  */
 #define PackDijkstraPixel(dist, dir) (0x80000000 + ((dist) << 4) + (dir))
 #define DijkstraPixelGetDistance(dp) (((dp) ^ 0x80000000) >> 4)
-#define DijkstraPixelGetDirection(dp) ((dp)&0xF)
-#define IsDijkstraPixel(dp) ((dp)&0x80000000)
+#define DijkstraPixelGetDirection(dp) ((dp) & 0xF)
+#define IsDijkstraPixel(dp) ((dp) & 0x80000000)
 #define DijkstraPixelIsUnset(dp) ((dp) == 0xFFFFFFFF)
 
   /**
@@ -297,7 +297,7 @@ class TextureMarginMap {
 
   void build_tables()
   {
-    loop_to_face_map_ = blender::bke::mesh::build_loop_to_face_map(faces_);
+    loop_to_face_map_ = blender::bke::mesh::build_corner_to_face_map(faces_);
 
     loop_adjacency_map_.resize(corner_edges_.size(), -1);
 

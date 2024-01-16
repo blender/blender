@@ -232,6 +232,7 @@ class GHOST_DeviceVK {
     device_features.logicOp = VK_TRUE;
     device_features.imageCubeArray = VK_TRUE;
     device_features.multiViewport = VK_TRUE;
+    device_features.shaderClipDistance = VK_TRUE;
 #endif
     device_features.drawIndirectFirstInstance = VK_TRUE;
     device_features.fragmentStoresAndAtomics = VK_TRUE;

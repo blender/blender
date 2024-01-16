@@ -154,12 +154,12 @@ static void extract_edit_data_iter_face_mesh(const MeshRenderData &mr,
 {
   EditLoopData *vbo_data = *(EditLoopData **)_data;
 
-  for (const int ml_index : mr.faces[face_index]) {
-    EditLoopData *data = vbo_data + ml_index;
+  for (const int corner : mr.faces[face_index]) {
+    EditLoopData *data = vbo_data + corner;
     memset(data, 0x0, sizeof(*data));
     BMFace *efa = bm_original_face_get(mr, face_index);
-    BMVert *eve = bm_original_vert_get(mr, mr.corner_verts[ml_index]);
-    BMEdge *eed = bm_original_edge_get(mr, mr.corner_edges[ml_index]);
+    BMVert *eve = bm_original_vert_get(mr, mr.corner_verts[corner]);
+    BMEdge *eed = bm_original_edge_get(mr, mr.corner_edges[corner]);
     if (efa) {
       mesh_render_data_face_flag(mr, efa, {-1, -1, -1, -1}, data);
     }
@@ -313,7 +313,7 @@ static void extract_edit_data_loose_geom_subdiv(const DRWSubdivCache &subdiv_cac
     return;
   }
 
-  blender::Span<DRWSubdivLooseEdge> loose_edges = draw_subdiv_cache_get_loose_edges(subdiv_cache);
+  Span<DRWSubdivLooseEdge> loose_edges = draw_subdiv_cache_get_loose_edges(subdiv_cache);
 
   EditLoopData *vbo_data = *(EditLoopData **)_data;
   int loose_edge_i = 0;
@@ -325,17 +325,22 @@ static void extract_edit_data_loose_geom_subdiv(const DRWSubdivCache &subdiv_cac
     const int edge_index = loose_edge.coarse_edge_index;
     BMEdge *eed = mr.e_origindex ? bm_original_edge_get(mr, edge_index) :
                                    BM_edge_at_index(mr.bm, edge_index);
-    mesh_render_data_edge_flag(mr, eed, &data[0]);
-    data[1] = data[0];
+    if (eed) {
+      mesh_render_data_edge_flag(mr, eed, &data[0]);
+      data[1] = data[0];
 
-    const DRWSubdivLooseVertex &v1 = loose_geom.verts[loose_edge.loose_subdiv_v1_index];
-    const DRWSubdivLooseVertex &v2 = loose_geom.verts[loose_edge.loose_subdiv_v2_index];
+      const DRWSubdivLooseVertex &v1 = loose_geom.verts[loose_edge.loose_subdiv_v1_index];
+      const DRWSubdivLooseVertex &v2 = loose_geom.verts[loose_edge.loose_subdiv_v2_index];
 
-    if (v1.coarse_vertex_index != -1u) {
-      mesh_render_data_vert_flag(mr, eed->v1, &data[0]);
+      if (v1.coarse_vertex_index != -1u) {
+        mesh_render_data_vert_flag(mr, eed->v1, &data[0]);
+      }
+      if (v2.coarse_vertex_index != -1u) {
+        mesh_render_data_vert_flag(mr, eed->v2, &data[1]);
+      }
     }
-    if (v2.coarse_vertex_index != -1u) {
-      mesh_render_data_vert_flag(mr, eed->v2, &data[1]);
+    else {
+      memset(&data[1], 0, sizeof(EditLoopData));
     }
   }
 }
@@ -363,6 +368,6 @@ constexpr MeshExtract create_extractor_edit_data()
 
 /** \} */
 
-}  // namespace blender::draw
+const MeshExtract extract_edit_data = create_extractor_edit_data();
 
-const MeshExtract extract_edit_data = blender::draw::create_extractor_edit_data();
+}  // namespace blender::draw

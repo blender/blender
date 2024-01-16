@@ -11,9 +11,10 @@
 #pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_codegen_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_gbuffer_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_closure_lib.glsl)
 
-shared uint tile_contains_ray_tracing[3];
-shared uint tile_contains_horizon_scan[3];
+shared uint tile_contains_ray_tracing[GBUFFER_LAYER_MAX];
+shared uint tile_contains_horizon_scan[GBUFFER_LAYER_MAX];
 
 /* Returns a blend factor between different tracing method. */
 float ray_roughness_factor(RayTraceData raytrace, float roughness)
@@ -25,7 +26,7 @@ void main()
 {
   if (gl_LocalInvocationIndex == 0u) {
     /* Init shared variables. */
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < GBUFFER_LAYER_MAX; i++) {
       tile_contains_ray_tracing[i] = 0;
       tile_contains_horizon_scan[i] = 0;
     }
@@ -40,26 +41,13 @@ void main()
   if (valid_texel) {
     GBufferReader gbuf = gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, texel);
 
-    /* TODO(fclem): Arbitrary closure stack. */
-    for (int i = 0; i < 3; i++) {
-      float ray_roughness_fac;
-
-      if (i == 0 && gbuf.has_diffuse) {
-        /* Diffuse. */
-        ray_roughness_fac = ray_roughness_factor(uniform_buf.raytrace, 1.0);
+    for (int i = 0; i < GBUFFER_LAYER_MAX; i++) {
+      ClosureUndetermined cl = gbuffer_closure_get(gbuf, i);
+      if (cl.type == CLOSURE_NONE_ID) {
+        break;
       }
-      else if (i == 1 && gbuf.has_reflection) {
-        /* Reflection. */
-        ray_roughness_fac = ray_roughness_factor(uniform_buf.raytrace,
-                                                 gbuf.data.reflection.roughness);
-      }
-      else if (i == 2 && gbuf.has_refraction) {
-        /* Refraction. */
-        ray_roughness_fac = 0.0; /* TODO(fclem): Apparent roughness. For now, always raytrace. */
-      }
-      else {
-        continue;
-      }
+      float roughness = closure_apparent_roughness_get(cl);
+      float ray_roughness_fac = ray_roughness_factor(uniform_buf.raytrace, roughness);
 
       /* We don't care about race condition here. */
       if (ray_roughness_fac > 0.0) {
@@ -77,7 +65,7 @@ void main()
     ivec2 denoise_tile_co = ivec2(gl_WorkGroupID.xy);
     ivec2 tracing_tile_co = denoise_tile_co / uniform_buf.raytrace.resolution_scale;
 
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < GBUFFER_LAYER_MAX; i++) {
       if (tile_contains_ray_tracing[i] > 0) {
         imageStore(tile_raytrace_denoise_img, ivec3(denoise_tile_co, i), uvec4(1));
         imageStore(tile_raytrace_tracing_img, ivec3(tracing_tile_co, i), uvec4(1));

@@ -34,7 +34,7 @@
 
 #include "BKE_anim_data.h"
 #include "BKE_image.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_lib_query.h"
 #include "BKE_main.hh"
 #include "BKE_mask.h"
@@ -43,7 +43,7 @@
 
 #include "DEG_depsgraph_build.hh"
 
-#include "DRW_engine.h"
+#include "DRW_engine.hh"
 
 #include "BLO_read_write.hh"
 

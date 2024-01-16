@@ -172,10 +172,10 @@ static void calc_sculpt_plane(
     flip_v3(r_area_co, ss->cache->mirror_symmetry_pass);
 
     /* For area normal. */
-    mul_m4_v3(ss->cache->symm_rot_mat, r_area_no);
+    mul_m4_v3(ss->cache->symm_rot_mat.ptr(), r_area_no);
 
     /* For flatten center. */
-    mul_m4_v3(ss->cache->symm_rot_mat, r_area_co);
+    mul_m4_v3(ss->cache->symm_rot_mat.ptr(), r_area_co);
 
     /* Shift the plane for the current tile. */
     add_v3_v3(r_area_co, ss->cache->plane_offset);
@@ -297,10 +297,6 @@ static void do_draw_brush_task(Object *ob, const Brush *brush, const float *offs
                                                 &automask_data);
       mul_v3_v3fl(proxy[vd.i], offset, fade);
     }
-
-    if (vd.is_mesh) {
-      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
-    }
   }
   BKE_pbvh_vertex_iter_end;
 }
@@ -388,10 +384,6 @@ static void do_fill_brush_task(
                                                                 &automask_data);
 
     mul_v3_v3fl(proxy[vd.i], val, fade);
-
-    if (vd.is_mesh) {
-      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
-    }
   }
   BKE_pbvh_vertex_iter_end;
 }
@@ -479,10 +471,6 @@ static void do_scrape_brush_task(
                                                                 &automask_data);
 
     mul_v3_v3fl(proxy[vd.i], val, fade);
-
-    if (vd.is_mesh) {
-      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
-    }
   }
   BKE_pbvh_vertex_iter_end;
 }
@@ -593,10 +581,6 @@ static void do_clay_thumb_brush_task(Object *ob,
                                                                 &automask_data);
 
     mul_v3_v3fl(proxy[vd.i], val, fade);
-
-    if (vd.is_mesh) {
-      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
-    }
   }
   BKE_pbvh_vertex_iter_end;
 }
@@ -616,27 +600,22 @@ void SCULPT_do_clay_thumb_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
 
-  const float radius = ss->cache->radius;
-  const float offset = SCULPT_brush_plane_offset_get(sd, ss);
-  const float displace = radius * (0.25f + offset);
-
   /* Sampled geometry normal and area center. */
-  float area_no_sp[3];
-  float area_no[3];
-  float area_co[3];
+  float3 area_no_sp;
+  float3 area_no;
+  float3 area_co_tmp;
 
-  float temp[3];
   float mat[4][4];
   float scale[4][4];
   float tmat[4][4];
 
-  SCULPT_calc_brush_plane(sd, ob, nodes, area_no_sp, area_co);
+  SCULPT_calc_brush_plane(sd, ob, nodes, area_no_sp, area_co_tmp);
 
   if (brush->sculpt_plane != SCULPT_DISP_DIR_AREA || (brush->flag & BRUSH_ORIGINAL_NORMAL)) {
-    SCULPT_calc_area_normal(sd, ob, nodes, area_no);
+    area_no = SCULPT_calc_area_normal(sd, ob, nodes).value_or(float3(0));
   }
   else {
-    copy_v3_v3(area_no, area_no_sp);
+    area_no = area_no_sp;
   }
 
   /* Delay the first daub because grab delta is not setup. */
@@ -655,12 +634,6 @@ void SCULPT_do_clay_thumb_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
   if (is_zero_v3(ss->cache->grab_delta_symmetry)) {
     return;
   }
-
-  /* Displace the brush planes. */
-  copy_v3_v3(area_co, ss->cache->location);
-  mul_v3_v3v3(temp, area_no_sp, ss->cache->scale);
-  mul_v3_fl(temp, displace);
-  add_v3_v3(area_co, temp);
 
   /* Initialize brush local-space matrix. */
   cross_v3_v3v3(mat[0], area_no, ss->cache->grab_delta_symmetry);
@@ -683,7 +656,8 @@ void SCULPT_do_clay_thumb_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
 
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (const int i : range) {
-      do_clay_thumb_brush_task(ob, brush, mat, area_no_sp, area_co, clay_strength, nodes[i]);
+      do_clay_thumb_brush_task(
+          ob, brush, mat, area_no_sp, ss->cache->location, clay_strength, nodes[i]);
     }
   });
 }
@@ -739,10 +713,6 @@ static void do_flatten_brush_task(
                                                                   &automask_data);
 
       mul_v3_v3fl(proxy[vd.i], val, fade);
-
-      if (vd.is_mesh) {
-        BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
-      }
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -877,10 +847,6 @@ static void do_clay_brush_task(
                                                                 &automask_data);
 
     mul_v3_v3fl(proxy[vd.i], val, fade);
-
-    if (vd.is_mesh) {
-      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
-    }
   }
   BKE_pbvh_vertex_iter_end;
 }
@@ -994,10 +960,6 @@ static void do_clay_strips_brush_task(Object *ob,
                                                                 &automask_data);
 
     mul_v3_v3fl(proxy[vd.i], val, fade);
-
-    if (vd.is_mesh) {
-      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
-    }
   }
   BKE_pbvh_vertex_iter_end;
 }
@@ -1014,11 +976,11 @@ void SCULPT_do_clay_strips_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
   const float displace = radius * (0.18f + offset);
 
   /* The sculpt-plane normal (whatever its set to). */
-  float area_no_sp[3];
+  float3 area_no_sp;
 
   /* Geometry normal */
-  float area_no[3];
-  float area_co[3];
+  float3 area_no;
+  float3 area_co;
 
   float temp[3];
   float mat[4][4];
@@ -1029,10 +991,10 @@ void SCULPT_do_clay_strips_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
   SCULPT_tilt_apply_to_normal(area_no_sp, ss->cache, brush->tilt_strength_factor);
 
   if (brush->sculpt_plane != SCULPT_DISP_DIR_AREA || (brush->flag & BRUSH_ORIGINAL_NORMAL)) {
-    SCULPT_calc_area_normal(sd, ob, nodes, area_no);
+    area_no = SCULPT_calc_area_normal(sd, ob, nodes).value_or(float3(0));
   }
   else {
-    copy_v3_v3(area_no, area_no_sp);
+    area_no = area_no_sp;
   }
 
   if (is_zero_v3(ss->cache->grab_delta_symmetry)) {
@@ -1184,10 +1146,6 @@ static void do_snake_hook_brush_task(Object *ob,
                 auto_mask::factor_get(ss->cache->automasking, ss, vd.vertex, &automask_data));
       copy_v3_v3(proxy[vd.i], disp);
     }
-
-    if (vd.is_mesh) {
-      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
-    }
   }
   BKE_pbvh_vertex_iter_end;
 }
@@ -1263,10 +1221,6 @@ static void do_thumb_brush_task(Object *ob, const Brush *brush, const float *con
                                                                 &automask_data);
 
     mul_v3_v3fl(proxy[vd.i], cono, fade);
-
-    if (vd.is_mesh) {
-      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
-    }
   }
   BKE_pbvh_vertex_iter_end;
 }
@@ -1336,10 +1290,6 @@ static void do_rotate_brush_task(Object *ob, const Brush *brush, const float ang
     mul_v3_m3v3(proxy[vd.i], rot, vec);
     add_v3_v3(proxy[vd.i], ss->cache->location);
     sub_v3_v3(proxy[vd.i], orig_data.co);
-
-    if (vd.is_mesh) {
-      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
-    }
   }
   BKE_pbvh_vertex_iter_end;
 }
@@ -1444,10 +1394,6 @@ static void do_layer_brush_task(Object *ob, Sculpt *sd, const Brush *brush, PBVH
     add_v3_v3v3(final_co, vd.co, vdisp);
 
     SCULPT_clip(sd, ss, vd.co, final_co);
-
-    if (vd.is_mesh) {
-      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
-    }
   }
   BKE_pbvh_vertex_iter_end;
 }
@@ -1513,10 +1459,6 @@ static void do_inflate_brush_task(Object *ob, const Brush *brush, PBVHNode *node
 
     mul_v3_fl(val, fade * ss->cache->radius);
     mul_v3_v3v3(proxy[vd.i], val, ss->cache->scale);
-
-    if (vd.is_mesh) {
-      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
-    }
   }
   BKE_pbvh_vertex_iter_end;
 }
@@ -1567,10 +1509,6 @@ static void do_nudge_brush_task(Object *ob, const Brush *brush, const float *con
                                                                 &automask_data);
 
     mul_v3_v3fl(proxy[vd.i], cono, fade);
-
-    if (vd.is_mesh) {
-      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
-    }
   }
   BKE_pbvh_vertex_iter_end;
 }
@@ -1658,10 +1596,6 @@ static void do_crease_brush_task(Object *ob,
     mul_v3_v3fl(val2, offset, fade);
 
     add_v3_v3v3(proxy[vd.i], val1, val2);
-
-    if (vd.is_mesh) {
-      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
-    }
   }
   BKE_pbvh_vertex_iter_end;
 }
@@ -1771,10 +1705,6 @@ static void do_pinch_brush_task(Object *ob,
       project_plane_v3_v3v3(disp_center, disp_center, ss->cache->view_normal);
     }
     mul_v3_v3fl(proxy[vd.i], disp_center, fade);
-
-    if (vd.is_mesh) {
-      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
-    }
   }
   BKE_pbvh_vertex_iter_end;
 }
@@ -1877,10 +1807,6 @@ static void do_grab_brush_task(Object *ob,
     }
 
     mul_v3_v3fl(proxy[vd.i], grab_delta, fade);
-
-    if (vd.is_mesh) {
-      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
-    }
   }
   BKE_pbvh_vertex_iter_end;
 }
@@ -1979,10 +1905,6 @@ static void do_elastic_deform_brush_task(Object *ob,
               auto_mask::factor_get(ss->cache->automasking, ss, vd.vertex, &automask_data));
 
     copy_v3_v3(proxy[vd.i], final_disp);
-
-    if (vd.is_mesh) {
-      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
-    }
   }
   BKE_pbvh_vertex_iter_end;
 }
@@ -2054,10 +1976,6 @@ static void do_draw_sharp_brush_task(Object *ob,
                                                     &automask_data);
 
     mul_v3_v3fl(proxy[vd.i], offset, fade);
-
-    if (vd.is_mesh) {
-      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
-    }
   }
   BKE_pbvh_vertex_iter_end;
 }
@@ -2161,10 +2079,6 @@ static void do_topology_slide_task(Object *ob, const Brush *brush, PBVHNode *nod
     SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
 
     mul_v3_v3fl(proxy[vd.i], final_disp, fade);
-
-    if (vd.is_mesh) {
-      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
-    }
   }
   BKE_pbvh_vertex_iter_end;
 }
@@ -2298,9 +2212,6 @@ static void do_topology_relax_task(Object *ob, const Brush *brush, PBVHNode *nod
                                                     &automask_data);
 
     smooth::relax_vertex(ss, &vd, fade * bstrength, false, vd.co);
-    if (vd.is_mesh) {
-      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
-    }
   }
   BKE_pbvh_vertex_iter_end;
 }
@@ -2380,10 +2291,6 @@ static void do_displacement_eraser_brush_task(Object *ob, const Brush *brush, PB
     SCULPT_vertex_limit_surface_get(ss, vd.vertex, limit_co);
     sub_v3_v3v3(disp, limit_co, vd.co);
     mul_v3_v3fl(proxy[vd.i], disp, fade);
-
-    if (vd.is_mesh) {
-      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
-    }
   }
   BKE_pbvh_vertex_iter_end;
 }
@@ -2489,10 +2396,6 @@ static void do_displacement_smear_brush_task(Object *ob, const Brush *brush, PBV
     float new_co[3];
     add_v3_v3v3(new_co, ss->cache->limit_surface_co[vd.index], interp_limit_surface_disp);
     interp_v3_v3v3(vd.co, vd.co, new_co, fade);
-
-    if (vd.is_mesh) {
-      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
-    }
   }
   BKE_pbvh_vertex_iter_end;
 }
@@ -2608,10 +2511,6 @@ static void do_topology_rake_bmesh_task(
     madd_v3_v3v3fl(val, vd.co, val, fade);
 
     SCULPT_clip(sd, ss, vd.co, val);
-
-    if (vd.is_mesh) {
-      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
-    }
   }
   BKE_pbvh_vertex_iter_end;
 }

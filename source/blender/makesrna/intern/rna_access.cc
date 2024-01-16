@@ -41,6 +41,8 @@
 #include "BKE_node.hh"
 #include "BKE_report.h"
 
+#include "CLG_log.h"
+
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
 
@@ -60,6 +62,8 @@
 #include "rna_internal.h"
 
 const PointerRNA PointerRNA_NULL = {nullptr};
+
+static CLG_LogRef LOG = {"rna.access"};
 
 /* Init/Exit */
 
@@ -777,6 +781,86 @@ PropertyRNA *RNA_struct_find_property(PointerRNA *ptr, const char *identifier)
     }
   }
 
+  return nullptr;
+}
+
+static const char *rna_property_type_identifier(PropertyType prop_type)
+{
+  switch (prop_type) {
+    case PROP_BOOLEAN:
+      return RNA_struct_identifier(&RNA_BoolProperty);
+    case PROP_INT:
+      return RNA_struct_identifier(&RNA_IntProperty);
+    case PROP_FLOAT:
+      return RNA_struct_identifier(&RNA_FloatProperty);
+    case PROP_STRING:
+      return RNA_struct_identifier(&RNA_StringProperty);
+    case PROP_ENUM:
+      return RNA_struct_identifier(&RNA_EnumProperty);
+    case PROP_POINTER:
+      return RNA_struct_identifier(&RNA_PointerProperty);
+    case PROP_COLLECTION:
+      return RNA_struct_identifier(&RNA_CollectionProperty);
+    default:
+      return RNA_struct_identifier(&RNA_Property);
+  }
+}
+
+PropertyRNA *RNA_struct_find_property_check(PointerRNA &props,
+                                            const char *name,
+                                            const PropertyType property_type_check)
+{
+  PropertyRNA *prop = RNA_struct_find_property(&props, name);
+  if (!prop) {
+    return nullptr;
+  }
+  const PropertyType prop_type = RNA_property_type(prop);
+  if (prop_type == property_type_check) {
+    return prop;
+  }
+  CLOG_WARN(&LOG,
+            "'%s : %s()' expected, got '%s : %s()'",
+            name,
+            rna_property_type_identifier(property_type_check),
+            name,
+            rna_property_type_identifier(prop_type));
+  return nullptr;
+}
+
+PropertyRNA *RNA_struct_find_collection_property_check(PointerRNA &props,
+                                                       const char *name,
+                                                       const StructRNA *struct_type_check)
+{
+  PropertyRNA *prop = RNA_struct_find_property(&props, name);
+  if (!prop) {
+    return nullptr;
+  }
+
+  const PropertyType prop_type = RNA_property_type(prop);
+  const StructRNA *prop_struct_type = RNA_property_pointer_type(&props, prop);
+  if (prop_type == PROP_COLLECTION && prop_struct_type == struct_type_check) {
+    return prop;
+  }
+
+  if (prop_type != PROP_COLLECTION) {
+    CLOG_WARN(&LOG,
+              "'%s : %s(type = %s)' expected, got '%s : %s()'",
+              name,
+              rna_property_type_identifier(PROP_COLLECTION),
+              RNA_struct_identifier(struct_type_check),
+              name,
+              rna_property_type_identifier(prop_type));
+    return nullptr;
+  }
+
+  CLOG_WARN(&LOG,
+            "'%s : %s(type = %s)' expected, got '%s : %s(type = %s)'.",
+            name,
+            rna_property_type_identifier(PROP_COLLECTION),
+            RNA_struct_identifier(struct_type_check),
+            name,
+            rna_property_type_identifier(PROP_COLLECTION),
+            RNA_struct_identifier(prop_struct_type));
   return nullptr;
 }
 
@@ -4502,8 +4586,17 @@ int RNA_property_collection_raw_array(
       case PROP_RAW_CHAR: \
         var = (dtype)((char *)raw.array)[a]; \
         break; \
+      case PROP_RAW_INT8: \
+        var = (dtype)((int8_t *)raw.array)[a]; \
+        break; \
+      case PROP_RAW_UINT8: \
+        var = (dtype)((uint8_t *)raw.array)[a]; \
+        break; \
       case PROP_RAW_SHORT: \
         var = (dtype)((short *)raw.array)[a]; \
+        break; \
+      case PROP_RAW_UINT16: \
+        var = (dtype)((uint16_t *)raw.array)[a]; \
         break; \
       case PROP_RAW_INT: \
         var = (dtype)((int *)raw.array)[a]; \
@@ -4517,6 +4610,12 @@ int RNA_property_collection_raw_array(
       case PROP_RAW_DOUBLE: \
         var = (dtype)((double *)raw.array)[a]; \
         break; \
+      case PROP_RAW_INT64: \
+        var = (dtype)((int64_t *)raw.array)[a]; \
+        break; \
+      case PROP_RAW_UINT64: \
+        var = (dtype)((uint64_t *)raw.array)[a]; \
+        break; \
       default: \
         var = (dtype)0; \
     } \
@@ -4529,8 +4628,17 @@ int RNA_property_collection_raw_array(
       case PROP_RAW_CHAR: \
         ((char *)raw.array)[a] = char(var); \
         break; \
+      case PROP_RAW_INT8: \
+        ((int8_t *)raw.array)[a] = int8_t(var); \
+        break; \
+      case PROP_RAW_UINT8: \
+        ((uint8_t *)raw.array)[a] = uint8_t(var); \
+        break; \
       case PROP_RAW_SHORT: \
         ((short *)raw.array)[a] = short(var); \
+        break; \
+      case PROP_RAW_UINT16: \
+        ((uint16_t *)raw.array)[a] = uint16_t(var); \
         break; \
       case PROP_RAW_INT: \
         ((int *)raw.array)[a] = int(var); \
@@ -4544,19 +4652,31 @@ int RNA_property_collection_raw_array(
       case PROP_RAW_DOUBLE: \
         ((double *)raw.array)[a] = double(var); \
         break; \
+      case PROP_RAW_INT64: \
+        ((int64_t *)raw.array)[a] = int64_t(var); \
+        break; \
+      case PROP_RAW_UINT64: \
+        ((uint64_t *)raw.array)[a] = uint64_t(var); \
+        break; \
       default: \
         break; \
     } \
   } \
   (void)0
 
-int RNA_raw_type_sizeof(RawPropertyType type)
+size_t RNA_raw_type_sizeof(RawPropertyType type)
 {
   switch (type) {
     case PROP_RAW_CHAR:
       return sizeof(char);
+    case PROP_RAW_INT8:
+      return sizeof(int8_t);
+    case PROP_RAW_UINT8:
+      return sizeof(uint8_t);
     case PROP_RAW_SHORT:
       return sizeof(short);
+    case PROP_RAW_UINT16:
+      return sizeof(uint16_t);
     case PROP_RAW_INT:
       return sizeof(int);
     case PROP_RAW_BOOLEAN:
@@ -4565,6 +4685,10 @@ int RNA_raw_type_sizeof(RawPropertyType type)
       return sizeof(float);
     case PROP_RAW_DOUBLE:
       return sizeof(double);
+    case PROP_RAW_INT64:
+      return sizeof(int64_t);
+    case PROP_RAW_UINT64:
+      return sizeof(uint64_t);
     default:
       return 0;
   }
@@ -4649,20 +4773,31 @@ static int rna_raw_access(ReportList *reports,
       if (out.type == in.type) {
         void *inp = in.array;
         void *outp = out.array;
-        int a, size;
+        size_t size;
 
         size = RNA_raw_type_sizeof(out.type) * arraylen;
 
-        for (a = 0; a < out.len; a++) {
+        if (size == out.stride) {
+          /* The property is stored contiguously so the entire array can be copied at once. */
           if (set) {
-            memcpy(outp, inp, size);
+            memcpy(outp, inp, size * out.len);
           }
           else {
-            memcpy(inp, outp, size);
+            memcpy(inp, outp, size * out.len);
           }
+        }
+        else {
+          for (int a = 0; a < out.len; a++) {
+            if (set) {
+              memcpy(outp, inp, size);
+            }
+            else {
+              memcpy(inp, outp, size);
+            }
 
-          inp = (char *)inp + size;
-          outp = (char *)outp + out.stride;
+            inp = (char *)inp + size;
+            outp = (char *)outp + out.stride;
+          }
         }
 
         return 1;

@@ -17,7 +17,7 @@
 
 #include "BKE_cachefile.h"
 #include "BKE_context.hh"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_report.h"
 

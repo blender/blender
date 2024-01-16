@@ -13,12 +13,15 @@ struct GPUUniformBuf;
 struct GPUVertBuf;
 struct GPUVertFormat;
 struct Mesh;
-struct MeshBatchCache;
-struct MeshBufferCache;
-struct MeshRenderData;
 struct Object;
 struct Subdiv;
 struct ToolSettings;
+
+namespace blender::draw {
+
+struct MeshBatchCache;
+struct MeshBufferCache;
+struct MeshRenderData;
 
 /* -------------------------------------------------------------------- */
 /** \name DRWPatchMap
@@ -94,7 +97,7 @@ struct DRWSubdivLooseGeom {
  * This holds the various buffers used to evaluate and render subdivision through OpenGL.
  * \{ */
 
-typedef struct DRWSubdivCache {
+struct DRWSubdivCache {
   Mesh *mesh;
   BMesh *bm;
   Subdiv *subdiv;
@@ -181,7 +184,7 @@ typedef struct DRWSubdivCache {
   /* Extra flags, passed to the UBO. */
   bool is_edit_mode;
   bool use_hide;
-} DRWSubdivCache;
+};
 
 /* Only frees the data of the cache, caller is responsible to free the cache itself if necessary.
  */
@@ -294,8 +297,10 @@ void draw_subdiv_build_edituv_stretch_angle_buffer(const DRWSubdivCache &cache,
 GPUVertFormat *draw_subdiv_get_pos_nor_format();
 
 /* Helper to access the loose edges. */
-blender::Span<DRWSubdivLooseEdge> draw_subdiv_cache_get_loose_edges(const DRWSubdivCache &cache);
+Span<DRWSubdivLooseEdge> draw_subdiv_cache_get_loose_edges(const DRWSubdivCache &cache);
 
 /* Helper to access only the loose vertices, i.e. not the ones attached to loose edges. To access
  * loose vertices of loose edges #draw_subdiv_cache_get_loose_edges should be used. */
-blender::Span<DRWSubdivLooseVertex> draw_subdiv_cache_get_loose_verts(const DRWSubdivCache &cache);
+Span<DRWSubdivLooseVertex> draw_subdiv_cache_get_loose_verts(const DRWSubdivCache &cache);
+
+}  // namespace blender::draw

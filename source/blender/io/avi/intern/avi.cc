@@ -70,7 +70,7 @@ uint GET_TCC(FILE *fp)
 
 char *fcc_to_char(uint fcc)
 {
-  DEBUG_FCC[0] = (fcc)&127;
+  DEBUG_FCC[0] = (fcc) & 127;
   DEBUG_FCC[1] = (fcc >> 8) & 127;
   DEBUG_FCC[2] = (fcc >> 16) & 127;
   DEBUG_FCC[3] = (fcc >> 24) & 127;
@@ -80,7 +80,7 @@ char *fcc_to_char(uint fcc)
 
 char *tcc_to_char(uint tcc)
 {
-  DEBUG_FCC[0] = (tcc)&127;
+  DEBUG_FCC[0] = (tcc) & 127;
   DEBUG_FCC[1] = (tcc >> 8) & 127;
   DEBUG_FCC[2] = 0;
   DEBUG_FCC[3] = 0;
@@ -643,7 +643,8 @@ void *AVI_read_frame(AviMovie *movie, AviFormat format, int frame, int stream)
 
     while (cur_frame < frame && i < movie->index_entries) {
       if (fcc_is_data(movie->entries[i].ChunkId) &&
-          fcc_get_stream(movie->entries[i].ChunkId) == stream) {
+          fcc_get_stream(movie->entries[i].ChunkId) == stream)
+      {
         if ((cur_frame == frame - 1) && (movie->entries[i].Size == 0)) {
           rewind = 1;
           frame = frame - 1;

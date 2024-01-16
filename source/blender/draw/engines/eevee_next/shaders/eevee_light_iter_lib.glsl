@@ -30,7 +30,12 @@ int culling_z_to_zbin(float scale, float bias, float z)
  * or
  * - Vulkan 1.1
  */
-#if 1
+#ifdef GPU_METAL
+#  define subgroupMin(a) simd_min(a)
+#  define subgroupMax(a) simd_max(a)
+#  define subgroupOr(a) simd_or(a)
+#  define subgroupBroadcastFirst(a) simd_broadcast_first(a)
+#else
 #  define subgroupMin(a) a
 #  define subgroupMax(a) a
 #  define subgroupOr(a) a

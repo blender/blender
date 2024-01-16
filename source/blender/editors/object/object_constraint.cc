@@ -500,7 +500,8 @@ static void test_constraint(
       if (ELEM(con->type,
                CONSTRAINT_TYPE_FOLLOWPATH,
                CONSTRAINT_TYPE_CLAMPTO,
-               CONSTRAINT_TYPE_SPLINEIK)) {
+               CONSTRAINT_TYPE_SPLINEIK))
+      {
         if (ct->tar) {
           /* The object type check is only needed here in case we have a placeholder
            * object assigned (because the library containing the curve is missing).
@@ -2292,7 +2293,8 @@ static bool get_new_constraint_target(
           break;
         }
         if (((!only_curve) || (ob->type == OB_CURVES_LEGACY)) &&
-            ((!only_mesh) || (ob->type == OB_MESH))) {
+            ((!only_mesh) || (ob->type == OB_MESH)))
+        {
           /* set target */
           *tar_ob = ob;
           found = true;

@@ -9,7 +9,7 @@
 
 namespace blender::compositor {
 
-//#define COM_DEFOCUS_SEARCH
+// #define COM_DEFOCUS_SEARCH
 
 class VariableSizeBokehBlurOperation : public MultiThreadedOperation, public QualityStepHelper {
  private:

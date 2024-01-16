@@ -867,7 +867,8 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   GeometryComponentEditData::remember_deformed_positions_if_necessary(guide_curves_geometry);
   if (const auto *curve_edit_data =
-          guide_curves_geometry.get_component<GeometryComponentEditData>()) {
+          guide_curves_geometry.get_component<GeometryComponentEditData>())
+  {
     new_curves.add(*curve_edit_data);
   }
 

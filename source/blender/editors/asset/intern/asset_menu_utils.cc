@@ -71,7 +71,6 @@ static const asset_system::AssetRepresentation *get_local_asset_from_relative_id
   AssetLibraryReference library_ref{};
   library_ref.type = ASSET_LIBRARY_LOCAL;
   ED_assetlist_storage_fetch(&library_ref, &C);
-  ED_assetlist_ensure_previews_job(&library_ref, &C);
 
   const asset_system::AssetRepresentation *matching_asset = nullptr;
   ED_assetlist_iterate(library_ref, [&](asset_system::AssetRepresentation &asset) {
@@ -104,7 +103,6 @@ static const asset_system::AssetRepresentation *find_asset_from_weak_ref(
 
   const AssetLibraryReference library_ref = asset_system::all_library_reference();
   ED_assetlist_storage_fetch(&library_ref, &C);
-  ED_assetlist_ensure_previews_job(&library_ref, &C);
   asset_system::AssetLibrary *all_library = ED_assetlist_library_get_once_available(
       asset_system::all_library_reference());
   if (!all_library) {

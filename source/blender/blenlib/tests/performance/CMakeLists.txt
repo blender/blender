@@ -18,4 +18,4 @@ set(LIB
   PRIVATE bf::intern::atomic
 )
 
-blender_add_performancetest_executable(BLI_ghash_performance "BLI_ghash_performance_test.cc" "${INC}" "${INC_SYS}" "${LIB}")
+blender_add_test_performance_executable(BLI_ghash_performance "BLI_ghash_performance_test.cc" "${INC}" "${INC_SYS}" "${LIB}")

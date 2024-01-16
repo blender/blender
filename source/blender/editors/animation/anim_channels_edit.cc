@@ -36,7 +36,7 @@
 #include "BKE_gpencil_legacy.h"
 #include "BKE_grease_pencil.hh"
 #include "BKE_layer.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_mask.h"
 #include "BKE_nla.h"
 #include "BKE_scene.h"
@@ -3507,7 +3507,8 @@ static int click_select_channel_group(bAnimContext *ac,
 
     /* only select channels in group and group itself */
     for (fcu = static_cast<FCurve *>(agrp->channels.first); fcu && fcu->grp == agrp;
-         fcu = fcu->next) {
+         fcu = fcu->next)
+    {
       fcu->flag |= FCURVE_SELECTED;
     }
     agrp->flag |= AGRP_SELECTED;

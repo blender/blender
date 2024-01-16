@@ -8,7 +8,7 @@
  * Draw engine to draw the Image/UV editor
  */
 
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include <memory>
 #include <optional>

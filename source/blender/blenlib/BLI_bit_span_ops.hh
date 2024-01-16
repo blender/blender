@@ -5,6 +5,7 @@
 #pragma once
 
 #include "BLI_bit_span.hh"
+#include "BLI_math_bits.h"
 
 namespace blender::bits {
 

@@ -9,7 +9,7 @@
 #include "BKE_attribute.hh"
 #include "BKE_curves.h"
 
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include "ED_view3d.hh"
 
@@ -67,6 +67,7 @@ void OVERLAY_edit_curves_cache_init(OVERLAY_Data *vedata)
 
 static void overlay_edit_curves_add_ob_to_pass(OVERLAY_PrivateData *pd, Object *ob, bool in_front)
 {
+  using namespace blender::draw;
   Curves *curves = static_cast<Curves *>(ob->data);
 
   if (pd->edit_curves.do_points) {

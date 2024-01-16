@@ -47,7 +47,7 @@
 #include "BKE_idtype.h"
 #include "BKE_image.h"
 #include "BKE_key.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_lib_query.h"
 #include "BKE_material.h"
 #include "BKE_node.hh"
@@ -60,7 +60,7 @@
 
 #include "RE_texture.h"
 
-#include "DRW_engine.h"
+#include "DRW_engine.hh"
 
 #include "BLO_read_write.hh"
 

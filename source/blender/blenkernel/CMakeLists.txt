@@ -418,7 +418,7 @@ set(SRC
   BKE_keyconfig.h
   BKE_lattice.hh
   BKE_layer.h
-  BKE_lib_id.h
+  BKE_lib_id.hh
   BKE_lib_override.hh
   BKE_lib_query.h
   BKE_lib_remap.hh
@@ -475,7 +475,7 @@ set(SRC
   BKE_pbvh_api.hh
   BKE_pbvh_pixels.hh
   BKE_pointcache.h
-  BKE_pointcloud.h
+  BKE_pointcloud.hh
   BKE_pose_backup.h
   BKE_preferences.h
   BKE_preview_image.hh
@@ -504,7 +504,7 @@ set(SRC
   BKE_texture.h
   BKE_tracking.h
   BKE_type_conversions.hh
-  BKE_undo_system.h
+  BKE_undo_system.hh
   BKE_unit.hh
   BKE_vfont.hh
   BKE_vfontdata.hh
@@ -863,9 +863,9 @@ if(WITH_GTESTS)
   set(TEST_INC
     ../editors/include
   )
-  include(GTestTesting)
-  blender_add_test_lib(bf_blenkernel_tests "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB}")
-
-  # RNA_prototypes.h
-  add_dependencies(bf_blenkernel_tests bf_rna)
+  set(TEST_LIB
+    ${LIB}
+    bf_rna  # RNA_prototypes.h
+  )
+  blender_add_test_suite_lib(blenkernel "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${TEST_LIB}")
 endif()

@@ -757,7 +757,8 @@ static PyObject *pygpu_shader_info_sampler(BPyGPUShaderCreateInfo *self, PyObjec
   const char *name;
 
   if (!PyArg_ParseTuple(
-          args, "iO&s:sampler", &slot, PyC_ParseStringEnum, &pygpu_samplertype, &name)) {
+          args, "iO&s:sampler", &slot, PyC_ParseStringEnum, &pygpu_samplertype, &name))
+  {
     return nullptr;
   }
 

@@ -122,9 +122,9 @@ bool vertex_paint_poll_ignore_tool(bContext *C);
  */
 bool vertex_paint_mode_poll(bContext *C);
 
-typedef void (*VPaintTransform_Callback)(const float col[3],
-                                         const void *user_data,
-                                         float r_col[3]);
+using VPaintTransform_Callback = void (*)(const float col[3],
+                                          const void *user_data,
+                                          float r_col[3]);
 
 void PAINT_OT_weight_paint_toggle(wmOperatorType *ot);
 void PAINT_OT_weight_paint(wmOperatorType *ot);
@@ -544,7 +544,7 @@ void init_stroke(Depsgraph *depsgraph, Object *ob);
 void init_session_data(const ToolSettings *ts, Object *ob);
 void init_session(Depsgraph *depsgraph, Scene *scene, Object *ob, eObjectMode object_mode);
 
-Vector<PBVHNode *> pbvh_gather_generic(Object *ob, VPaint *wp, Sculpt *sd, Brush *brush);
+Vector<PBVHNode *> pbvh_gather_generic(Object *ob, VPaint *wp, Brush *brush);
 
 void mode_enter_generic(
     Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob, const eObjectMode mode_flag);

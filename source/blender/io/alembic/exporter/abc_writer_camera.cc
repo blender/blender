@@ -10,6 +10,7 @@
 #include "abc_hierarchy_iterator.h"
 
 #include "BKE_camera.h"
+#include "BKE_scene.h"
 
 #include "BLI_assert.h"
 
@@ -44,6 +45,16 @@ void ABCCameraWriter::create_alembic_objects(const HierarchyContext * /*context*
       abc_custom_data_container_, "stereoDistance", timesample_index_);
   abc_eye_separation_ = OFloatProperty(
       abc_custom_data_container_, "eyeSeparation", timesample_index_);
+
+  /* Export scene render resolution on cameras as userProperties, for other software (e.g.
+   * Houdini). */
+  OFloatProperty render_resx(abc_custom_data_container_, "resx");
+  OFloatProperty render_resy(abc_custom_data_container_, "resy");
+  Scene *scene = DEG_get_evaluated_scene(args_.depsgraph);
+  int width, height;
+  BKE_render_resolution(&scene->r, false, &width, &height);
+  render_resx.set(float(width));
+  render_resy.set(float(height));
 }
 
 Alembic::Abc::OObject ABCCameraWriter::get_alembic_object() const

@@ -7,11 +7,12 @@
 #include <pxr/base/vt/array.h>
 #include <pxr/imaging/hd/sceneDelegate.h>
 
-#include "DNA_curves_types.h"
-
 #include "BLI_set.hh"
 
 #include "BKE_duplilist.h"
+
+#include "DNA_curves_types.h"
+#include "DNA_particle_types.h"
 
 #include "material.h"
 #include "object.h"
@@ -19,7 +20,7 @@
 namespace blender::io::hydra {
 
 class CurvesData : public ObjectData {
- private:
+ protected:
   pxr::VtIntArray curve_vertex_counts_;
   pxr::VtVec3fArray vertices_;
   pxr::VtVec2fArray uvs_;
@@ -46,10 +47,29 @@ class CurvesData : public ObjectData {
 
  protected:
   void write_materials() override;
+  virtual void write_curves();
+};
 
+class HairData : public CurvesData {
  private:
-  void write_curves(const Curves *curves_id);
-  void write_uv_maps(const Curves *curves_id);
+  ParticleSystem *particle_system_;
+
+ public:
+  HairData(HydraSceneDelegate *scene_delegate,
+           const Object *object,
+           pxr::SdfPath const &prim_id,
+           ParticleSystem *particle_system);
+
+  static bool is_supported(const ParticleSystem *particle_system);
+  static bool is_visible(HydraSceneDelegate *scene_delegate,
+                         Object *object,
+                         ParticleSystem *particle_system);
+
+  void update() override;
+
+ protected:
+  void write_transform() override;
+  void write_curves() override;
 };
 
 }  // namespace blender::io::hydra

@@ -33,7 +33,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_idtype.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_nla.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -129,7 +129,7 @@ void update_autoflags_fcurve(FCurve *fcu, bContext *C, ReportList *reports, Poin
   /* try to get property we should be affecting */
   if (RNA_path_resolve_property(ptr, fcu->rna_path, &tmp_ptr, &prop) == false) {
     /* property not found... */
-    const char *idname = (ptr->owner_id) ? ptr->owner_id->name : TIP_("<No ID pointer>");
+    const char *idname = (ptr->owner_id) ? ptr->owner_id->name : RPT_("<No ID pointer>");
 
     BKE_reportf(reports,
                 RPT_ERROR,

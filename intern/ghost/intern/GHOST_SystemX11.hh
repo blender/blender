@@ -348,10 +348,8 @@ class GHOST_SystemX11 : public GHOST_System {
   /** The vector of windows that need to be updated. */
   std::vector<GHOST_WindowX11 *> m_dirty_windows;
 
-  /** Start time at initialization. */
+  /** Start time at initialization (using `CLOCK_MONOTONIC`). */
   uint64_t m_start_time;
-  /** Start time at initialization (using  `CLOCK_MONOTONIC`). */
-  uint64_t m_start_time_monotonic;
 
   /** A vector of keyboard key masks. */
   char m_keyboard_vector[32];

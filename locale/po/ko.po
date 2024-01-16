@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'98c6bded9844')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'acbb91b192da')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-02 10:08:43\n"
+"POT-Creation-Date: 2024-01-15 10:52:30\n"
 "PO-Revision-Date: 2023-11-14 19:14+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -2975,6 +2975,10 @@ msgstr "상대적인 변환을 사용하는 오브젝트 자식들, 변형과 �
 
 msgid "Bones"
 msgstr "본"
+
+
+msgid "Index"
+msgstr "인덱스"
 
 
 msgid "Visible"
@@ -7412,10 +7416,6 @@ msgstr "첫 번째 만"
 
 msgid "Use the start of the stroke for the depth"
 msgstr "깊이에 대해 스트로크의 시작을 사용"
-
-
-msgid "Index"
-msgstr "인덱스"
 
 
 msgid "Profile Path editor used to build a profile path"
@@ -38327,6 +38327,19 @@ msgid "Duplicate"
 msgstr "복제"
 
 
+msgid "Extrude selected control point(s)"
+msgstr "선택된 컨트롤 포인트(들)을 돌출"
+
+
+msgctxt "Operator"
+msgid "Extrude Curve and Move"
+msgstr "커브를 돌출하고 이동"
+
+
+msgid "Extrude curve and move result"
+msgstr "커브를 돌출하고 결과를 이동합니다"
+
+
 msgid "(De)select all control points"
 msgstr "모든 컨트롤 포인트를 선택(취소)"
 
@@ -38441,10 +38454,6 @@ msgid "Duplicate Curve"
 msgstr "커브를 복제"
 
 
-msgid "Extrude selected control point(s)"
-msgstr "선택된 컨트롤 포인트(들)을 돌출"
-
-
 msgid "Init"
 msgstr "Init"
 
@@ -38499,15 +38508,6 @@ msgstr "에지 슬라이드"
 
 msgid "Sequence Slide"
 msgstr "시퀀스 슬라이드"
-
-
-msgctxt "Operator"
-msgid "Extrude Curve and Move"
-msgstr "커브를 돌출하고 이동"
-
-
-msgid "Extrude curve and move result"
-msgstr "커브를 돌출하고 결과를 이동합니다"
 
 
 msgctxt "Operator"
@@ -59601,10 +59601,6 @@ msgid "Helpers"
 msgstr "도우미"
 
 
-msgid "Viscosity"
-msgstr "점도"
-
-
 msgid "Freestyle Line Style SVG Export"
 msgstr "프리스타일 라인 스타일 SVG 내보내기"
 
@@ -65857,6 +65853,10 @@ msgstr "상호작용 반경"
 
 msgid "Fluid interaction radius"
 msgstr "유체 상호작용 반경"
+
+
+msgid "Viscosity"
+msgstr "점도"
 
 
 msgid "Linear viscosity"
@@ -72852,14 +72852,6 @@ msgstr "3D 회전"
 
 msgid "3D View Overlay Settings"
 msgstr "3D뷰 오버레이 설정"
-
-
-msgid "Backwire Opacity"
-msgstr "백와이어 불투명도"
-
-
-msgid "Opacity when rendering transparent wires"
-msgstr "투명한 와이어를 렌더링 할 때의 불투명도"
 
 
 msgid "Fade layer opacity for Grease Pencil layers except the active one"
@@ -79907,12 +79899,12 @@ msgid "Basic"
 msgstr "기본"
 
 
-msgid "Baking light cache"
-msgstr "라이트 캐시를 배이킹"
-
-
 msgid "%d Ref. Cubemaps, %d Irr. Samples (%s in memory)"
 msgstr "%d Ref. 큐브맵, %d Irr. 샘플 (메모리에있는%s)"
+
+
+msgid "Baking light cache"
+msgstr "라이트 캐시를 배이킹"
 
 
 msgid "No light cache in this scene"
@@ -81028,10 +81020,6 @@ msgid "Anim Player"
 msgstr "Anim 플레이어"
 
 
-msgid "Can't edit external library data"
-msgstr "외부 라이브러리 데이터를 편집 할 수 없습니다"
-
-
 msgid "Reset operator defaults"
 msgstr "작업자 기본 값을 재설정"
 
@@ -81208,6 +81196,22 @@ msgid "Browse ID data to be linked"
 msgstr "연결할 ID 데이터를 찾아보기"
 
 
+msgid "Can't edit external library data"
+msgstr "외부 라이브러리 데이터를 편집 할 수 없습니다"
+
+
+msgid "Today"
+msgstr "오늘"
+
+
+msgid "Yesterday"
+msgstr "어제"
+
+
+msgid "Modified"
+msgstr "수정됨"
+
+
 msgctxt "Object"
 msgid "New"
 msgstr "새로운"
@@ -81352,6 +81356,10 @@ msgstr "매테리얼 그룹"
 
 msgid "Smooth Groups"
 msgstr "스무스 그룹"
+
+
+msgid "Rigging"
+msgstr "리깅"
 
 
 msgctxt "Mesh"
@@ -83087,14 +83095,6 @@ msgid "Some data failed to reconstruct (see console for details)"
 msgstr "일부 데이터를 재구성하지 못했습니다 (자세한 내용은 콘솔 참조)"
 
 
-msgid "Today"
-msgstr "오늘"
-
-
-msgid "Yesterday"
-msgstr "어제"
-
-
 msgid "File path"
 msgstr "파일 경로"
 
@@ -83183,6 +83183,22 @@ msgid "Show in Drivers Editor"
 msgstr "드라이버 에디터에 표시"
 
 
+msgid "Add a Driver Variable to keep track of an input used by the driver"
+msgstr "드라이버 변수를 추가하여 드라이버가 사용하는 입력을 추적"
+
+
+msgid "Invalid variable name, click here for details"
+msgstr "잘못된 변수 이름, 자세한 내용은 여기를 클릭"
+
+
+msgid "Delete target variable"
+msgstr "대상 변수를 삭제"
+
+
+msgid "Force updates of dependencies - Only use this if drivers are not updating correctly"
+msgstr "종속성 강제 업데이트 - 드라이버가 올바르게 업데이트되지 않는 경우에만 사용하십시오"
+
+
 msgid "F-Curve only has F-Modifiers"
 msgstr "F-커브는 F-모디파이어 만 있음"
 
@@ -83237,22 +83253,6 @@ msgstr "팁: 절차 애니메이션 대신 F-커브를 사용"
 
 msgid "F-Modifiers can generate curves for those too"
 msgstr "F- 모디파이어는 그것들에 대해서도 커브를 생성할 수 있습니다"
-
-
-msgid "Add a Driver Variable to keep track of an input used by the driver"
-msgstr "드라이버 변수를 추가하여 드라이버가 사용하는 입력을 추적"
-
-
-msgid "Invalid variable name, click here for details"
-msgstr "잘못된 변수 이름, 자세한 내용은 여기를 클릭"
-
-
-msgid "Delete target variable"
-msgstr "대상 변수를 삭제"
-
-
-msgid "Force updates of dependencies - Only use this if drivers are not updating correctly"
-msgstr "종속성 강제 업데이트 - 드라이버가 올바르게 업데이트되지 않는 경우에만 사용하십시오"
 
 
 msgid "Driven Property"
@@ -85864,12 +85864,20 @@ msgid "Don't Save"
 msgstr "저장하지 않음"
 
 
+msgid "Reload file with execution of Python scripts enabled"
+msgstr "Python 스크립트 실행으로 파일 새로 고침 가능"
+
+
+msgid "Enable scripts"
+msgstr "스크립트를 사용"
+
+
+msgid "Continue using file without Python scripts"
+msgstr "Python 스크립트없이 파일 사용을 계속하기"
+
+
 msgid "unable to open the file"
 msgstr "파일을 열 수 없음"
-
-
-msgid "Modified"
-msgstr "수정됨"
 
 
 msgid "For security reasons, automatic execution of Python scripts in this file was disabled:"
@@ -85882,18 +85890,6 @@ msgstr "이로 인해 예기치 않은 동작이 발생할 수 있습니다"
 
 msgid "Permanently allow execution of scripts"
 msgstr "스크립트 실행을 영구적으로 허용"
-
-
-msgid "Reload file with execution of Python scripts enabled"
-msgstr "Python 스크립트 실행으로 파일 새로 고침 가능"
-
-
-msgid "Enable scripts"
-msgstr "스크립트를 사용"
-
-
-msgid "Continue using file without Python scripts"
-msgstr "Python 스크립트없이 파일 사용을 계속하기"
 
 
 msgid "Unable to create user config path"
@@ -86142,10 +86138,6 @@ msgstr "메쉬를 추가"
 
 msgid "Import-Export"
 msgstr "가져오기-내보내기"
-
-
-msgid "Rigging"
-msgstr "리깅"
 
 
 msgid "Video Tools"

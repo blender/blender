@@ -43,8 +43,8 @@ struct TimeSourceNode;
 
 /* Dependency Graph object */
 struct Depsgraph {
-  typedef Vector<OperationNode *> OperationNodes;
-  typedef Vector<IDNode *> IDDepsNodes;
+  using OperationNodes = Vector<OperationNode *>;
+  using IDDepsNodes = Vector<IDNode *>;
 
   Depsgraph(Main *bmain, Scene *scene, ViewLayer *view_layer, eEvaluationMode mode);
   ~Depsgraph();

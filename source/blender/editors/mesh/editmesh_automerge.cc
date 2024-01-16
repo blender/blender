@@ -19,7 +19,7 @@
 
 #include "tools/bmesh_intersect_edges.hh"
 
-//#define DEBUG_TIME
+// #define DEBUG_TIME
 #ifdef DEBUG_TIME
 #  include "PIL_time.h"
 #endif

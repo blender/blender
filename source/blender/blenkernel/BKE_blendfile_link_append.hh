@@ -13,8 +13,8 @@ struct Library;
 struct LibraryLink_Params;
 struct ReportList;
 
-typedef struct BlendfileLinkAppendContext BlendfileLinkAppendContext;
-typedef struct BlendfileLinkAppendContextItem BlendfileLinkAppendContextItem;
+struct BlendfileLinkAppendContext;
+struct BlendfileLinkAppendContextItem;
 
 /**
  * Allocate and initialize a new context to link/append data-blocks.
@@ -136,10 +136,10 @@ enum eBlendfileLinkAppendForeachItemFlag {
  *
  * \return `true` if iteration should continue, `false` otherwise.
  */
-typedef bool (*BKE_BlendfileLinkAppendContexteItemFunction)(
-    BlendfileLinkAppendContext *lapp_context,
-    BlendfileLinkAppendContextItem *item,
-    void *userdata);
+using BKE_BlendfileLinkAppendContexteItemFunction =
+    bool (*)(BlendfileLinkAppendContext *lapp_context,
+             BlendfileLinkAppendContextItem *item,
+             void *userdata);
 /**
  * Iterate over all (or a subset) of the items listed in given #BlendfileLinkAppendContext,
  * and call the `callback_function` on them.

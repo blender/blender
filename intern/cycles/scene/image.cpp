@@ -620,7 +620,8 @@ bool ImageManager::file_load_image(Image *img, int texture_limit)
   }
 
   if (img->metadata.colorspace != u_colorspace_raw &&
-      img->metadata.colorspace != u_colorspace_srgb) {
+      img->metadata.colorspace != u_colorspace_srgb)
+  {
     /* Convert to scene linear. */
     ColorSpaceManager::to_scene_linear(
         img->metadata.colorspace, pixels, num_pixels, is_rgba, img->metadata.compress_as_srgb);
@@ -635,7 +636,8 @@ bool ImageManager::file_load_image(Image *img, int texture_limit)
       for (size_t i = 0; i < num_pixels; i += 4) {
         StorageType *pixel = &pixels[i * 4];
         if (!isfinite(pixel[0]) || !isfinite(pixel[1]) || !isfinite(pixel[2]) ||
-            !isfinite(pixel[3])) {
+            !isfinite(pixel[3]))
+        {
           pixel[0] = 0;
           pixel[1] = 0;
           pixel[2] = 0;

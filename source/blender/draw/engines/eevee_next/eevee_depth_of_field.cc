@@ -17,7 +17,7 @@
  * There are some difference with our actual implementation that prioritize quality.
  */
 
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include "BKE_camera.h"
 #include "DNA_camera_types.h"

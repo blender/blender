@@ -878,7 +878,7 @@ static bool loop_uv_match(BMLoop *loop,
  * \param visited: A set of edges to prevent recursing down the same edge multiple times.
  * \param cd_loop_uv_offset: The UV layer.
  * \return true if there are edges that fan between them that are seam-free.
- * */
+ */
 static bool seam_connected_recursive(BMEdge *edge,
                                      const float luv_anchor[2],
                                      const float luv_fan[2],
@@ -1942,7 +1942,8 @@ void EDBM_project_snap_verts(
     if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
       float mval[2], co_proj[3];
       if (ED_view3d_project_float_object(region, eve->co, mval, V3D_PROJ_TEST_NOP) ==
-          V3D_PROJ_RET_OK) {
+          V3D_PROJ_RET_OK)
+      {
         SnapObjectParams params{};
         params.snap_target_select = target_op;
         params.edit_mode_type = SNAP_GEOM_FINAL;

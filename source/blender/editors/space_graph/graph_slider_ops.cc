@@ -127,7 +127,7 @@ static void common_draw_status_header(bContext *C, tGraphSliderOp *gso, const ch
 
   ED_slider_status_string_get(gso->slider, slider_string, UI_MAX_DRAW_STR);
 
-  STRNCPY(mode_str, TIP_(operator_name));
+  STRNCPY(mode_str, RPT_(operator_name));
 
   if (hasNumInput(&gso->num)) {
     char str_ofs[NUM_STR_REP_LEN];
@@ -267,7 +267,8 @@ static void graph_slider_exit(bContext *C, wmOperator *op)
   ED_slider_destroy(C, gso->slider);
 
   for (link = static_cast<LinkData *>(gso->bezt_arr_list.first); link != nullptr;
-       link = link->next) {
+       link = link->next)
+  {
     tBeztCopyData *copy = static_cast<tBeztCopyData *>(link->data);
     MEM_freeN(copy->bezt);
     MEM_freeN(link->data);
@@ -450,7 +451,7 @@ static void decimate_draw_status(bContext *C, tGraphSliderOp *gso)
 
   ED_slider_status_string_get(gso->slider, slider_string, UI_MAX_DRAW_STR);
 
-  STRNCPY(mode_str, TIP_("Decimate Keyframes"));
+  STRNCPY(mode_str, RPT_("Decimate Keyframes"));
 
   if (hasNumInput(&gso->num)) {
     char str_ofs[NUM_STR_REP_LEN];
@@ -1450,7 +1451,7 @@ static void shear_draw_status_header(bContext *C, tGraphSliderOp *gso)
   char slider_string[UI_MAX_DRAW_STR];
   ED_slider_status_string_get(gso->slider, slider_string, UI_MAX_DRAW_STR);
 
-  STRNCPY(mode_str, TIP_("Shear Keys"));
+  STRNCPY(mode_str, RPT_("Shear Keys"));
 
   if (hasNumInput(&gso->num)) {
     char str_ofs[NUM_STR_REP_LEN];
@@ -2286,8 +2287,8 @@ void GRAPH_OT_push_pull(wmOperatorType *ot)
  * \{ */
 
 static const EnumPropertyItem scale_anchor_items[] = {
-    {int(FCurveSegmentAnchor::LEFT), "LEFT", 0, "From Left", "foo"},
-    {int(FCurveSegmentAnchor::RIGHT), "RIGHT", 0, "From Right", "foo"},
+    {int(FCurveSegmentAnchor::LEFT), "LEFT", 0, "From Left", ""},
+    {int(FCurveSegmentAnchor::RIGHT), "RIGHT", 0, "From Right", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -2337,7 +2338,7 @@ static void scale_from_neighbor_draw_status_header(bContext *C, wmOperator *op)
       break;
   }
 
-  STRNCPY(mode_str, TIP_("Scale from Neighbor Keys"));
+  STRNCPY(mode_str, RPT_("Scale from Neighbor Keys"));
 
   if (hasNumInput(&gso->num)) {
     char str_ofs[NUM_STR_REP_LEN];
@@ -2364,7 +2365,7 @@ static void scale_from_neighbor_modal_update(bContext *C, wmOperator *op)
   const float factor = slider_factor_get_and_remember(op);
   const FCurveSegmentAnchor anchor = FCurveSegmentAnchor(RNA_enum_get(op->ptr, "anchor"));
   scale_from_neighbor_graph_keys(&gso->ac, factor, anchor);
-  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
 }
 
 static int scale_from_neighbor_modal(bContext *C, wmOperator *op, const wmEvent *event)
@@ -2428,7 +2429,7 @@ static int scale_from_neighbor_exec(bContext *C, wmOperator *op)
   scale_from_neighbor_graph_keys(&ac, factor, anchor);
 
   /* Set notifier that keyframes have changed. */
-  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
 
   return OPERATOR_FINISHED;
 }

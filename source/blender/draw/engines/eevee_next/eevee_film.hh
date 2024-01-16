@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include "eevee_shader_shared.hh"
 

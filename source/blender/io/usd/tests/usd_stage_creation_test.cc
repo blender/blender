@@ -15,8 +15,7 @@
 
 namespace blender::io::usd {
 
-class USDStageCreationTest : public testing::Test {
-};
+class USDStageCreationTest : public testing::Test {};
 
 TEST_F(USDStageCreationTest, JSONFileLoadingTest)
 {

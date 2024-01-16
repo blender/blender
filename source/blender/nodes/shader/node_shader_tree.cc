@@ -29,7 +29,7 @@
 #include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_layer.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_linestyle.h"
 #include "BKE_material.h"
 #include "BKE_node.hh"
@@ -158,8 +158,13 @@ static bool shader_validate_link(eNodeSocketDatatype from, eNodeSocketDatatype t
 static bool shader_node_tree_socket_type_valid(bNodeTreeType * /*ntreetype*/,
                                                bNodeSocketType *socket_type)
 {
-  return blender::bke::nodeIsStaticSocketType(socket_type) &&
-         ELEM(socket_type->type, SOCK_FLOAT, SOCK_VECTOR, SOCK_RGBA, SOCK_SHADER);
+  return blender::bke::nodeIsStaticSocketType(socket_type) && ELEM(socket_type->type,
+                                                                   SOCK_FLOAT,
+                                                                   SOCK_INT,
+                                                                   SOCK_BOOLEAN,
+                                                                   SOCK_VECTOR,
+                                                                   SOCK_RGBA,
+                                                                   SOCK_SHADER);
 }
 
 bNodeTreeType *ntreeType_Shader;
@@ -567,7 +572,8 @@ static bool ntree_branch_count_and_tag_nodes(bNode *fromnode, bNode *tonode, voi
     iter->node_count++;
   }
   if (tonode->runtime->tmp_flag == -1 &&
-      (iter->node_filter == nullptr || iter->node_filter(tonode))) {
+      (iter->node_filter == nullptr || iter->node_filter(tonode)))
+  {
     tonode->runtime->tmp_flag = iter->node_count;
     iter->node_count++;
   }

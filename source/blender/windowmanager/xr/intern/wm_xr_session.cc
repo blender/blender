@@ -26,7 +26,7 @@
 #include "DNA_camera_types.h"
 #include "DNA_space_types.h"
 
-#include "DRW_engine.h"
+#include "DRW_engine.hh"
 
 #include "ED_screen.hh"
 #include "ED_space_api.hh"
@@ -43,10 +43,10 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "wm_event_system.h"
+#include "wm_event_system.hh"
 #include "wm_surface.hh"
 #include "wm_window.hh"
-#include "wm_xr_intern.h"
+#include "wm_xr_intern.hh"
 
 static wmSurface *g_xr_surface = nullptr;
 static CLG_LogRef LOG = {"wm.xr"};
@@ -1158,7 +1158,8 @@ static void wm_xr_session_events_dispatch(wmXrData *xr,
                                                  action->active_modal_path));
 
         if ((val != KM_NOTHING) &&
-            (!modal || (is_active_modal_action && is_active_modal_subaction))) {
+            (!modal || (is_active_modal_action && is_active_modal_subaction)))
+        {
           const GHOST_XrPose *aim_pose = wm_xr_session_controller_aim_pose_find(
               session_state, action->subaction_paths[subaction_idx]);
           const GHOST_XrPose *aim_pose_other = nullptr;

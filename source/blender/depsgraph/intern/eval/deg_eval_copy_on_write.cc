@@ -31,7 +31,7 @@
 #include "BKE_gpencil_update_cache_legacy.h"
 #include "BKE_idprop.h"
 #include "BKE_layer.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_object_types.hh"
 #include "BKE_scene.h"
 
@@ -53,7 +53,7 @@
 #include "DNA_sequence_types.h"
 #include "DNA_sound_types.h"
 
-#include "DRW_engine.h"
+#include "DRW_engine.hh"
 
 #ifdef NESTED_ID_NASTY_WORKAROUND
 #  include "DNA_curve_types.h"

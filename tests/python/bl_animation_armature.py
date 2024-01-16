@@ -62,6 +62,7 @@ class BoneCollectionTest(unittest.TestCase):
     def test_bone_collection_api(self):
         # Just to keep the rest of the code shorter.
         bcolls = self.arm.collections
+        bcolls_all = self.arm.collections_all
 
         self.assertEqual([], list(bcolls), "By default an Armature should have no collections")
 
@@ -84,10 +85,10 @@ class BoneCollectionTest(unittest.TestCase):
         self.assertEqual(root1, r1_child1.parent)
 
         # Check the array order.
-        self.assertEqual([root1, root2, r1_child1, r1_child1_001, r2_child1, r2_child2], list(bcolls.all))
+        self.assertEqual([root1, root2, r1_child1, r1_child1_001, r2_child1, r2_child2], list(bcolls_all))
 
         # Move root2 to become the child of r1_child1.
-        self.assertEqual(5, root2.move_to_parent(r1_child1))
+        root2.parent = r1_child1
 
         # Check the hierarchy.
         self.assertEqual([root1], list(bcolls), 'armature.collections should reflect only the roots')
@@ -97,10 +98,11 @@ class BoneCollectionTest(unittest.TestCase):
         self.assertEqual(r1_child1, root2.parent)
 
         # Check the array order.
-        self.assertEqual([root1, r1_child1, r1_child1_001, r2_child1, r2_child2, root2], list(bcolls.all))
+        self.assertEqual([root1, r1_child1, r1_child1_001, r2_child1, r2_child2, root2], list(bcolls_all))
 
         # Move root2 between r1_child1 and r1_child1_001.
-        self.assertEqual(2, root2.move_to_parent(root1, to_child_num=1))
+        root2.parent = root1
+        root2.child_number = 1
 
         # Check the hierarchy.
         self.assertEqual([root1], list(bcolls), 'armature.collections should reflect only the roots')
@@ -109,7 +111,38 @@ class BoneCollectionTest(unittest.TestCase):
         self.assertEqual([r2_child1, r2_child2], list(root2.children), 'root2.children should have its children')
 
         # Check the array order.
-        self.assertEqual([root1, r1_child1, root2, r1_child1_001, r2_child1, r2_child2], list(bcolls.all))
+        self.assertEqual([root1, r1_child1, root2, r1_child1_001, r2_child1, r2_child2], list(bcolls_all))
+
+    def test_parent_property(self):
+        # Just to keep the rest of the code shorter.
+        bcolls = self.arm.collections
+
+        self.assertEqual([], list(bcolls), "By default an Armature should have no collections")
+
+        # Build a hierarchy.
+        root1 = bcolls.new('root1')
+        r1_child1 = bcolls.new('r1_child1', parent=root1)
+        r1_child2 = bcolls.new('r1_child2', parent=root1)
+        root2 = bcolls.new('root2')
+        r2_child1 = bcolls.new('r2_child1', parent=root2)
+        r2_child2 = bcolls.new('r2_child2', parent=root2)
+
+        # Check getting the parent.
+        self.assertEqual(root1, r1_child1.parent)
+        self.assertEqual(root1, r1_child2.parent)
+        self.assertEqual(root2, r2_child1.parent)
+        self.assertEqual(root2, r2_child2.parent)
+
+        # Move r1_child1 to be a child of root2 by assigning the parent.
+        r1_child1.parent = root2
+        self.assertEqual(root2, r1_child1.parent)
+
+        # Check the sibling order.
+        self.assertEqual([r2_child1, r2_child2, r1_child1], list(root2.children))
+
+        # Make r1_child1 a root.
+        r1_child1.parent = None
+        self.assertIsNone(r1_child1.parent)
 
     def test_bone_collection_bones(self):
         # Build a hierarchy on the armature.
@@ -178,15 +211,15 @@ class BoneCollectionTest(unittest.TestCase):
         self.assertEqual({'FINISHED'}, bpy.ops.object.join())
 
         # Check the custom properties.
-        bcolls = self.arm.collections
-        self.assertEqual(0.2, bcolls.all['root']['float'])
-        self.assertEqual('main_string', bcolls.all['child1']['string'])
-        self.assertEqual({'agent': 47}, bcolls.all['child2']['dict'].to_dict())
+        bcolls_all = self.arm.collections_all
+        self.assertEqual(0.2, bcolls_all['root']['float'])
+        self.assertEqual('main_string', bcolls_all['child1']['string'])
+        self.assertEqual({'agent': 47}, bcolls_all['child2']['dict'].to_dict())
         self.assertNotIn(
             'strange',
-            bcolls.all['child1'],
+            bcolls_all['child1'],
             'Bone collections that already existed in the active armature are not expected to be updated')
-        self.assertEqual({'agent': 327}, bcolls.all['child3']['dict'].to_dict())
+        self.assertEqual({'agent': 327}, bcolls_all['child3']['dict'].to_dict())
 
 
 def main():
@@ -198,7 +231,7 @@ def main():
         # Avoid passing all of Blender's arguments to unittest.main()
         argv = [sys.argv[0]]
 
-    unittest.main(argv=argv, exit=False)
+    unittest.main(argv=argv)
 
 
 if __name__ == "__main__":

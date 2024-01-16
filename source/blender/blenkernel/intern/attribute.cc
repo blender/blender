@@ -32,7 +32,7 @@
 #include "BKE_editmesh.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_mesh.hh"
-#include "BKE_pointcloud.h"
+#include "BKE_pointcloud.hh"
 #include "BKE_report.h"
 
 #include "RNA_access.hh"
@@ -819,7 +819,8 @@ int BKE_id_attribute_to_index(const ID *id,
     for (int i = 0; i < customdata->totlayer; i++) {
       const CustomDataLayer *layer_iter = customdata->layers + i;
       if (!(layer_mask & CD_TYPE_AS_MASK(layer_iter->type)) ||
-          (layer_iter->flag & CD_FLAG_TEMPORARY)) {
+          (layer_iter->flag & CD_FLAG_TEMPORARY))
+      {
         continue;
       }
 

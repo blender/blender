@@ -22,8 +22,7 @@ namespace blender::fn::multi_function {
 
 class Context;
 
-class ContextBuilder {
-};
+class ContextBuilder {};
 
 class Context {
  public:

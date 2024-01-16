@@ -50,6 +50,7 @@ struct GPUCapabilities {
   bool transform_feedback_support = false;
   bool hdr_viewport_support = false;
   bool texture_view_support = true;
+  bool stencil_export_support = false;
 
   /* OpenGL related workarounds. */
   bool mip_render_workaround = false;

@@ -275,7 +275,7 @@ static StructRNA *rna_NodeTreeInterfaceSocket_register(Main * /*bmain*/,
     nodeRegisterSocketType(st);
   }
 
-  st->free_self = (void (*)(bNodeSocketType * stype)) MEM_freeN;
+  st->free_self = (void (*)(bNodeSocketType *stype))MEM_freeN;
 
   /* if RNA type is already registered, unregister first */
   if (st->ext_interface.srna) {
@@ -689,7 +689,8 @@ static const EnumPropertyItem *rna_subtype_filter_itemf(const blender::Set<int> 
   EnumPropertyItem *items = nullptr;
   int items_count = 0;
   for (const EnumPropertyItem *item = rna_enum_property_subtype_items; item->name != nullptr;
-       item++) {
+       item++)
+  {
     if (subtypes.contains(item->value)) {
       RNA_enum_item_add(&items, &items_count, item);
     }

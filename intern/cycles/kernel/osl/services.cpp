@@ -712,7 +712,8 @@ static bool set_attribute_int(int i, TypeDesc type, bool derivatives, void *val)
 static bool set_attribute_string(ustring str, TypeDesc type, bool derivatives, void *val)
 {
   if (type.basetype == TypeDesc::STRING && type.aggregate == TypeDesc::SCALAR &&
-      type.arraylen == 0) {
+      type.arraylen == 0)
+  {
     ustring *sval = (ustring *)val;
     sval[0] = str;
 

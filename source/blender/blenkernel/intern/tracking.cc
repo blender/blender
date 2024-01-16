@@ -40,7 +40,7 @@
 
 #include "BKE_fcurve.h"
 #include "BKE_layer.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_movieclip.h"
 #include "BKE_object.hh"
 #include "BKE_scene.h"
@@ -2527,7 +2527,7 @@ void BKE_tracking_max_distortion_delta_across_bound(MovieTracking *tracking,
 {
   float pos[2], warped_pos[2];
   const int coord_delta = 5;
-  void (*apply_distortion)(MovieTracking * tracking,
+  void (*apply_distortion)(MovieTracking *tracking,
                            int image_width,
                            int image_height,
                            const float pos[2],

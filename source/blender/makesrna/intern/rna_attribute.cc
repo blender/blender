@@ -258,7 +258,8 @@ const EnumPropertyItem *rna_enum_attribute_domain_itemf(ID *id,
       continue;
     }
     if (id_type == ID_CV &&
-        !ELEM(domain_item->value, int(AttrDomain::Point), int(AttrDomain::Curve))) {
+        !ELEM(domain_item->value, int(AttrDomain::Point), int(AttrDomain::Curve)))
+    {
       continue;
     }
     if (id_type == ID_ME && ELEM(domain_item->value, int(AttrDomain::Curve))) {
@@ -1012,7 +1013,7 @@ static void rna_def_attribute_bool(BlenderRNA *brna)
   RNA_def_struct_sdna(srna, "MBoolProperty");
   RNA_def_struct_ui_text(srna, "Bool Attribute Value", "Bool value in geometry attribute");
   prop = RNA_def_property(srna, "value", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "b", 0x01);
+  RNA_def_property_boolean_sdna(prop, nullptr, "b", 0);
 }
 
 static void rna_def_attribute_int8(BlenderRNA *brna)

@@ -18,8 +18,8 @@
 #include "BKE_node.hh"
 #include "BKE_scene.h"
 
-#include "DRW_engine.h"
-#include "DRW_render.h"
+#include "DRW_engine.hh"
+#include "DRW_render.hh"
 
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"

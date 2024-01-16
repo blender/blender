@@ -15,7 +15,7 @@
 #include "BKE_action.h"
 #include "BKE_constraint.h"
 #include "BKE_key.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_material.h"
 

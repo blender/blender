@@ -718,7 +718,8 @@ void mball_foreachScreenElem(ViewContext *vc,
   LISTBASE_FOREACH (MetaElem *, ml, mb->editelems) {
     float screen_co[2];
     if (ED_view3d_project_float_object(vc->region, &ml->x, screen_co, clip_flag) ==
-        V3D_PROJ_RET_OK) {
+        V3D_PROJ_RET_OK)
+    {
       func(user_data, ml, screen_co);
     }
   }

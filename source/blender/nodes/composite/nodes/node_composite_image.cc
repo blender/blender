@@ -17,7 +17,7 @@
 #include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_image.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_scene.h"
 
@@ -565,7 +565,8 @@ static void node_composit_init_rlayers(const bContext *C, PointerRNA *ptr)
   id_us_plus(node->id);
 
   for (bNodeSocket *sock = (bNodeSocket *)node->outputs.first; sock;
-       sock = sock->next, sock_index++) {
+       sock = sock->next, sock_index++)
+  {
     NodeImageLayer *sockdata = MEM_cnew<NodeImageLayer>(__func__);
     sock->storage = sockdata;
 
@@ -578,7 +579,7 @@ static bool node_composit_poll_rlayers(const bNodeType * /*ntype*/,
                                        const char **r_disabled_hint)
 {
   if (!STREQ(ntree->idname, "CompositorNodeTree")) {
-    *r_disabled_hint = TIP_("Not a compositor node tree");
+    *r_disabled_hint = RPT_("Not a compositor node tree");
     return false;
   }
 
@@ -595,7 +596,7 @@ static bool node_composit_poll_rlayers(const bNodeType * /*ntype*/,
   }
 
   if (scene == nullptr) {
-    *r_disabled_hint = TIP_(
+    *r_disabled_hint = RPT_(
         "The node tree must be the compositing node tree of any scene in the file");
     return false;
   }

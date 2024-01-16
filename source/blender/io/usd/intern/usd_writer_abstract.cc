@@ -2,21 +2,19 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #include "usd_writer_abstract.h"
-#include "usd_hierarchy_iterator.h"
 #include "usd_writer_material.h"
 
 #include <pxr/base/tf/stringUtils.h>
 #include <pxr/usd/kind/registry.h>
 #include <pxr/usd/usd/modelAPI.h>
 #include <pxr/usd/usdGeom/bboxCache.h>
+#include <pxr/usd/usdGeom/scope.h>
 
 #include "BKE_customdata.hh"
 #include "BKE_report.h"
 
 #include "BLI_assert.h"
 #include "DNA_mesh_types.h"
-
-#include "WM_api.hh"
 
 /* TfToken objects are not cheap to construct, so we do it once. */
 namespace usdtokens {
@@ -246,8 +244,14 @@ pxr::UsdShadeMaterial USDAbstractWriter::ensure_usd_material(const HierarchyCont
 
   /* Construct the material. */
   pxr::TfToken material_name(pxr::TfMakeValidIdentifier(material->id.name + 2));
+<<<<<<< HEAD
   pxr::SdfPath usd_path = get_material_library_path(context).AppendChild(material_name);
 
+=======
+  pxr::SdfPath usd_path = pxr::UsdGeomScope::Define(stage, get_material_library_path())
+                              .GetPath()
+                              .AppendChild(material_name);
+>>>>>>> main
   pxr::UsdShadeMaterial usd_material = pxr::UsdShadeMaterial::Get(stage, usd_path);
   if (usd_material) {
     return usd_material;

@@ -269,7 +269,7 @@ static void stitch_preview_delete(StitchPreviewer *stitch_preview)
 /* This function updates the header of the UV editor when the stitch tool updates its settings */
 static void stitch_update_header(StitchStateContainer *ssc, bContext *C)
 {
-  const char *str = TIP_(
+  const char *str = RPT_(
       "Mode(TAB) %s, "
       "(S)nap %s, "
       "(M)idpoints %s, "
@@ -283,7 +283,7 @@ static void stitch_update_header(StitchStateContainer *ssc, bContext *C)
   if (area) {
     SNPRINTF(msg,
              str,
-             ssc->mode == STITCH_VERT ? TIP_("Vertex") : TIP_("Edge"),
+             ssc->mode == STITCH_VERT ? RPT_("Vertex") : RPT_("Edge"),
              WM_bool_as_string(ssc->snap_islands),
              WM_bool_as_string(ssc->midpoints),
              ssc->limit_dist,
@@ -830,7 +830,8 @@ static void stitch_validate_uv_stitchability(const int cd_loop_uv_offset,
       }
       if (stitch_check_uvs_state_stitchable(cd_loop_uv_offset, element, element_iter, ssc)) {
         if ((element_iter->island == ssc->static_island) ||
-            (element->island == ssc->static_island)) {
+            (element->island == ssc->static_island))
+        {
           element->flag |= STITCH_STITCHABLE;
           preview->num_stitchable++;
           stitch_setup_face_preview_for_uv_group(
@@ -931,7 +932,8 @@ static void stitch_propagate_uv_final_position(Scene *scene,
 
       /* end of calculations, keep only the selection flag */
       if ((!ssc->snap_islands) ||
-          ((!ssc->midpoints) && (element_iter->island == ssc->static_island))) {
+          ((!ssc->midpoints) && (element_iter->island == ssc->static_island)))
+      {
         element_iter->flag &= STITCH_SELECTED;
       }
 

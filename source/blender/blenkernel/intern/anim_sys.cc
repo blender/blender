@@ -41,7 +41,7 @@
 #include "BKE_context.hh"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_lib_query.h"
 #include "BKE_main.hh"
 #include "BKE_material.h"
@@ -604,7 +604,8 @@ static int animsys_quaternion_evaluate_fcurves(PathResolvedRNA quat_rna,
 
   int fcurve_offset = 0;
   for (; fcurve_offset < 4 && quat_curve_fcu;
-       ++fcurve_offset, quat_curve_fcu = quat_curve_fcu->next) {
+       ++fcurve_offset, quat_curve_fcu = quat_curve_fcu->next)
+  {
     if (!STREQ(quat_curve_fcu->rna_path, first_fcurve->rna_path)) {
       /* This should never happen when the quaternion is fully keyed. Some
        * people do use half-keyed quaternions, though, so better to check. */
@@ -3234,7 +3235,7 @@ static void animsys_create_action_track_strip(const AnimData *adt,
   /* Must set NLASTRIP_FLAG_USR_INFLUENCE, or else the default setting overrides, and influence
    * doesn't work.
    */
-  r_action_strip->flag |= NLASTRIP_FLAG_USR_INFLUENCE;
+  r_action_strip->flag |= NLASTRIP_FLAG_USR_INFLUENCE | NLASTRIP_FLAG_NO_TIME_MAP;
 
   const bool tweaking = (adt->flag & ADT_NLA_EDIT_ON) != 0;
   const bool soloing = (adt->flag & ADT_NLA_SOLO_TRACK) != 0;

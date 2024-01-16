@@ -10,11 +10,11 @@
  * \ingroup bli
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <wchar.h>
-#include <wctype.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <cwchar>
+#include <cwctype>
 #include <wcwidth.h>
 
 #include "BLI_utildefines.h"

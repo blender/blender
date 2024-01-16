@@ -38,7 +38,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_icons.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_mask.h"
 #include "BKE_object.hh"
@@ -4702,7 +4702,7 @@ static void screen_animation_region_tag_redraw(
   ED_region_tag_redraw(region);
 }
 
-//#define PROFILE_AUDIO_SYNCH
+// #define PROFILE_AUDIO_SYNCH
 
 static int screen_animation_step_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *event)
 {

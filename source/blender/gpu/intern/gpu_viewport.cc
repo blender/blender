@@ -27,7 +27,7 @@
 #include "GPU_uniform_buffer.h"
 #include "GPU_viewport.h"
 
-#include "DRW_engine.h"
+#include "DRW_engine.hh"
 
 #include "MEM_guardedalloc.h"
 

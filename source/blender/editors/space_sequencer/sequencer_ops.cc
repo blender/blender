@@ -146,4 +146,19 @@ void ED_operatormacros_sequencer()
 
   WM_operatortype_macro_define(ot, "SEQUENCER_OT_duplicate");
   WM_operatortype_macro_define(ot, "TRANSFORM_OT_seq_slide");
+
+  ot = WM_operatortype_append_macro("SEQUENCER_OT_retiming_add_freeze_frame_slide",
+                                    "Add Freeze Frame And Slide",
+                                    "Add freeze frame and move it",
+                                    OPTYPE_UNDO | OPTYPE_REGISTER);
+  WM_operatortype_macro_define(ot, "SEQUENCER_OT_retiming_freeze_frame_add");
+  WM_operatortype_macro_define(ot, "TRANSFORM_OT_seq_slide");
+
+  ot = WM_operatortype_append_macro(
+      "SEQUENCER_OT_retiming_add_transition_slide",
+      "Add Speed Transition And Slide",
+      "Add smooth transition between 2 retimed segments and change its duration",
+      OPTYPE_UNDO | OPTYPE_REGISTER);
+  WM_operatortype_macro_define(ot, "SEQUENCER_OT_retiming_transition_add");
+  WM_operatortype_macro_define(ot, "TRANSFORM_OT_seq_slide");
 }

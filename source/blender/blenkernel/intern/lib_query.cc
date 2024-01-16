@@ -18,7 +18,7 @@
 #include "BKE_anim_data.h"
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_lib_query.h"
 #include "BKE_main.hh"
 #include "BKE_node.h"
@@ -851,7 +851,8 @@ void BKE_lib_query_unused_ids_tag(Main *bmain,
   BKE_main_relations_create(bmain, 0);
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
     if (lib_query_unused_ids_tag_recurse(
-            bmain, tag, do_local_ids, do_linked_ids, id, r_num_tagged)) {
+            bmain, tag, do_local_ids, do_linked_ids, id, r_num_tagged))
+    {
       /* This root processed ID is part of one or more dependency loops.
        *
        * If it was not tagged, and its matching relations entry is not marked as processed, it

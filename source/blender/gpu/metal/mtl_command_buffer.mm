@@ -582,12 +582,19 @@ bool MTLCommandBufferManager::insert_memory_barrier(eGPUBarrier barrier_bits,
   if (@available(macOS 10.14, *)) {
 
     /* Apple Silicon does not support memory barriers for RenderCommandEncoder's.
-     * We do not currently need these due to implicit API guarantees.
-     * NOTE(Metal): MTLFence/MTLEvent may be required to synchronize work if
-     * untracked resources are ever used. */
-    if ([context_.device hasUnifiedMemory] &&
-        (active_command_encoder_type_ != MTL_COMPUTE_COMMAND_ENCODER))
-    {
+     * We do not currently need these due to implicit API guarantees. However, render->render
+     * resource dependencies are only evaluated at RenderCommandEncoder boundaries due to work
+     * execution on TBDR architecture.
+     *
+     * NOTE: Render barriers are therefore inherently expensive. Where possible, opt for local
+     * synchronization using raster order groups, or, prefer compute to avoid subsequent passes
+     * re-loading pass attachments which are not needed. */
+    const bool is_tile_based_arch = (GPU_platform_architecture() == GPU_ARCHITECTURE_TBDR);
+    if (is_tile_based_arch && (active_command_encoder_type_ != MTL_COMPUTE_COMMAND_ENCODER)) {
+      if (active_command_encoder_type_ == MTL_RENDER_COMMAND_ENCODER) {
+        end_active_command_encoder();
+        return true;
+      }
       return false;
     }
 
@@ -622,7 +629,8 @@ bool MTLCommandBufferManager::insert_memory_barrier(eGPUBarrier barrier_bits,
           MTLRenderStages before_stage_flags = 0;
           MTLRenderStages after_stage_flags = 0;
           if (before_stages & GPU_BARRIER_STAGE_VERTEX &&
-              !(before_stages & GPU_BARRIER_STAGE_FRAGMENT)) {
+              !(before_stages & GPU_BARRIER_STAGE_FRAGMENT))
+          {
             before_stage_flags = before_stage_flags | MTLRenderStageVertex;
           }
           if (before_stages & GPU_BARRIER_STAGE_FRAGMENT) {
@@ -1086,4 +1094,4 @@ void MTLComputeState::bind_pso(id<MTLComputePipelineState> pso)
 
 /** \} */
 
-}  // blender::gpu
+}  // namespace blender::gpu

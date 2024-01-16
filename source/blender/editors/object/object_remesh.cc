@@ -28,7 +28,7 @@
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
 #include "BKE_global.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mirror.hh"
@@ -64,7 +64,7 @@
 
 #include "WM_api.hh"
 #include "WM_message.hh"
-#include "WM_toolsystem.h"
+#include "WM_toolsystem.hh"
 #include "WM_types.hh"
 
 #include "UI_interface.hh"
@@ -592,7 +592,7 @@ static int voxel_size_edit_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 
   ED_region_tag_redraw(region);
 
-  const char *status_str = TIP_(
+  const char *status_str = RPT_(
       "Move the mouse to change the voxel size. CTRL: Relative Scale, SHIFT: Precision Mode, "
       "ENTER/LMB: Confirm Size, ESC/RMB: Cancel");
   ED_workspace_status_text(C, status_str);

@@ -46,7 +46,7 @@
 
 #include "GPU_batch.h"
 
-#include "DRW_engine.h"
+#include "DRW_engine.hh"
 #include "DRW_pbvh.hh"
 
 #include "attribute_convert.hh"
@@ -682,7 +682,8 @@ struct PBVHBatches {
         case CustomRequest::Mask: {
           float *data = static_cast<float *>(GPU_vertbuf_get_data(&vert_buf));
           if (const VArray<float> mask = *attributes.lookup<float>(".sculpt_mask",
-                                                                   bke::AttrDomain::Point)) {
+                                                                   bke::AttrDomain::Point))
+          {
             const VArraySpan<float> mask_span(mask);
             const Span<int> corner_verts = args.corner_verts;
             const Span<int3> corner_tris = args.corner_tris;

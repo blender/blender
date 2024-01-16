@@ -25,7 +25,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "DRW_engine.h"
+#include "DRW_engine.hh"
 
 #include "DEG_depsgraph.hh"
 

@@ -47,7 +47,7 @@
 #include "DNA_view3d_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "DRW_engine.h"
+#include "DRW_engine.hh"
 #include "DRW_select_buffer.hh"
 
 #include "ED_gpencil_legacy.hh"
@@ -1623,6 +1623,7 @@ static void view3d_update_viewer_path(const bContext *C)
 
 void view3d_main_region_draw(const bContext *C, ARegion *region)
 {
+  using namespace blender::draw;
   Main *bmain = CTX_data_main(C);
   View3D *v3d = CTX_wm_view3d(C);
 
@@ -1688,6 +1689,7 @@ void ED_view3d_draw_offscreen(Depsgraph *depsgraph,
                               GPUOffScreen *ofs,
                               GPUViewport *viewport)
 {
+  using namespace blender::draw;
   RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
   RenderEngineType *engine_type = ED_view3d_engine_type(scene, drawtype);
 
@@ -2177,16 +2179,11 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Depsgraph *depsgraph,
 
 static bool view3d_clipping_test(const float co[3], const float clip[6][4])
 {
-  if (plane_point_side_v3(clip[0], co) > 0.0f) {
-    if (plane_point_side_v3(clip[1], co) > 0.0f) {
-      if (plane_point_side_v3(clip[2], co) > 0.0f) {
-        if (plane_point_side_v3(clip[3], co) > 0.0f) {
-          return false;
-        }
-      }
-    }
+  if (plane_point_side_v3(clip[0], co) > 0.0f && plane_point_side_v3(clip[1], co) > 0.0f &&
+      plane_point_side_v3(clip[2], co) > 0.0f && plane_point_side_v3(clip[3], co) > 0.0f)
+  {
+    return false;
   }
-
   return true;
 }
 
@@ -2227,7 +2224,8 @@ static void validate_object_select_id(Depsgraph *depsgraph,
   }
   /* texture paint mode sampling */
   else if (obact_eval && (obact_eval->mode & OB_MODE_TEXTURE_PAINT) &&
-           (v3d->shading.type > OB_WIRE)) {
+           (v3d->shading.type > OB_WIRE))
+  {
     /* do nothing */
   }
   else if ((obact_eval && (obact_eval->mode & OB_MODE_PARTICLE_EDIT)) && !XRAY_ENABLED(v3d)) {

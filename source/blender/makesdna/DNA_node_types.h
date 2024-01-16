@@ -731,7 +731,7 @@ typedef struct bNodeTree {
   const bNode *find_nested_node(int32_t nested_node_id) const;
 
   /**
-   * Update a run-time cache for the node tree based on it's current state. This makes many methods
+   * Update a run-time cache for the node tree based on its current state. This makes many methods
    * available which allow efficient lookup for topology information (like neighboring sockets).
    */
   void ensure_topology_cache() const;
@@ -786,7 +786,7 @@ typedef struct bNodeTree {
   const blender::bke::bNodeTreeZones *zones() const;
 
   /**
-   * Update a run-time cache for the node tree interface based on it's current state.
+   * Update a run-time cache for the node tree interface based on its current state.
    * This should be done before accessing interface item spans below.
    */
   void ensure_interface_cache() const;

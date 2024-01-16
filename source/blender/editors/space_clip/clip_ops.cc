@@ -34,7 +34,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_global.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_movieclip.h"
 #include "BKE_report.h"
@@ -224,7 +224,7 @@ static int open_exec(bContext *C, wmOperator *op)
                 RPT_ERROR,
                 "Cannot read '%s': %s",
                 filepath,
-                errno ? strerror(errno) : TIP_("unsupported movie clip format"));
+                errno ? strerror(errno) : RPT_("unsupported movie clip format"));
 
     return OPERATOR_CANCELLED;
   }

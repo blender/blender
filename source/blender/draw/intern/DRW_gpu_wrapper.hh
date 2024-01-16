@@ -57,7 +57,7 @@
  *   Simple wrapper to #GPUFramebuffer that can be moved.
  */
 
-#include "DRW_render.h"
+#include "DRW_render.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -1158,8 +1158,7 @@ class TextureRef : public Texture {
  * Dummy type to bind texture as image.
  * It is just a GPUTexture in disguise.
  */
-class Image {
-};
+class Image {};
 
 static inline Image *as_image(GPUTexture *tex)
 {

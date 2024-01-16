@@ -36,12 +36,12 @@ typedef unsigned char uchar;
     typedef struct name##__ { \
       int unused; \
       MEM_CXX_CLASS_ALLOC_FUNCS(#name) \
-    } * name
+    } *name
 #else
 #  define GHOST_DECLARE_HANDLE(name) \
     typedef struct name##__ { \
       int unused; \
-    } * name
+    } *name
 #endif
 
 /**

@@ -32,7 +32,7 @@
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_image.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_paint.hh"
@@ -159,7 +159,7 @@ struct tGPDfill {
   int fill_simplylvl;
   /** boundary limits drawing mode */
   int fill_draw_mode;
-  /** types of extensions **/
+  /** Types of extensions. */
   int fill_extend_mode;
   /* scaling factor */
   float fill_factor;
@@ -248,7 +248,8 @@ static void gpencil_delete_temp_stroke_extension(tGPDfill *tgpf, const bool all_
       LISTBASE_FOREACH_MUTABLE (bGPDstroke *, gps, &gpf->strokes) {
         /* free stroke */
         if ((gps->flag & GP_STROKE_NOFILL) &&
-            (gps->flag & GP_STROKE_TAG || gps->flag & GP_STROKE_HELP)) {
+            (gps->flag & GP_STROKE_TAG || gps->flag & GP_STROKE_HELP))
+        {
           BLI_remlink(&gpf->strokes, gps);
           BKE_gpencil_free_stroke(gps);
         }
@@ -2259,7 +2260,8 @@ static void gpencil_stroke_from_buffer(tGPDfill *tgpf)
 
   /* if axis locked, reproject to plane locked */
   if ((tgpf->lock_axis > GP_LOCKAXIS_VIEW) &&
-      ((ts->gpencil_v3d_align & GP_PROJECT_DEPTH_VIEW) == 0)) {
+      ((ts->gpencil_v3d_align & GP_PROJECT_DEPTH_VIEW) == 0))
+  {
     float origin[3];
     ED_gpencil_drawing_reference_get(tgpf->scene, tgpf->ob, ts->gpencil_v3d_align, origin);
     ED_gpencil_project_stroke_to_plane(
@@ -2296,11 +2298,11 @@ static void gpencil_fill_status_indicators(tGPDfill *tgpf)
 
   char status_str[UI_MAX_DRAW_STR];
   SNPRINTF(status_str,
-           TIP_("Fill: ESC/RMB cancel, LMB Fill, Shift Draw on Back, MMB Adjust Extend, S: "
+           RPT_("Fill: ESC/RMB cancel, LMB Fill, Shift Draw on Back, MMB Adjust Extend, S: "
                 "Switch Mode, D: "
                 "Stroke Collision | %s %s (%.3f)"),
-           (is_extend) ? TIP_("Extend") : TIP_("Radius"),
-           (is_extend && use_stroke_collide) ? TIP_("Stroke: ON") : TIP_("Stroke: OFF"),
+           (is_extend) ? RPT_("Extend") : RPT_("Radius"),
+           (is_extend && use_stroke_collide) ? RPT_("Stroke: ON") : RPT_("Stroke: OFF"),
            tgpf->fill_extend_fac);
 
   ED_workspace_status_text(tgpf->C, status_str);

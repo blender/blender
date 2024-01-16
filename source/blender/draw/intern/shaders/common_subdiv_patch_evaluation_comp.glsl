@@ -47,7 +47,7 @@ layout(std430, binding = 7) buffer patchParam_buffer
   OsdPatchParam patchParamBuffer[];
 };
 
-  /* Output buffer(s). */
+/* Output buffer(s). */
 
 #if defined(FVAR_EVALUATION)
 layout(std430, binding = 8) writeonly buffer outputFVarData

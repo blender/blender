@@ -1802,7 +1802,7 @@ static ListBase /*tEulerFilter*/ euler_filter_group_channels(
       BKE_reportf(reports,
                   RPT_WARNING,
                   "Euler Rotation F-Curve has invalid index (ID='%s', Path='%s', Index=%d)",
-                  (ale->id) ? ale->id->name : TIP_("<No ID>"),
+                  (ale->id) ? ale->id->name : RPT_("<No ID>"),
                   fcu->rna_path,
                   fcu->array_index);
       continue;
@@ -2279,7 +2279,8 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
       continue;
     }
     if ((next && closest_fcu_frame < closest_frame) ||
-        (!next && closest_fcu_frame > closest_frame)) {
+        (!next && closest_fcu_frame > closest_frame))
+    {
       closest_frame = closest_fcu_frame;
       found = true;
     }

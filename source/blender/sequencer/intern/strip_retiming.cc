@@ -123,6 +123,7 @@ void SEQ_retiming_data_clear(Sequence *seq)
 {
   seq->retiming_keys = nullptr;
   seq->retiming_keys_num = 0;
+  seq->flag &= ~SEQ_SHOW_RETIMING;
 }
 
 bool SEQ_retiming_is_active(const Sequence *seq)
@@ -327,93 +328,113 @@ SeqRetimingKey *SEQ_retiming_add_key(const Scene *scene, Sequence *seq, const in
   return added_key;
 }
 
-void SEQ_retiming_offset_transition_key(const Scene *scene,
-                                        const Sequence *seq,
-                                        SeqRetimingKey *key,
-                                        const int offset)
+void SEQ_retiming_transition_key_frame_set(const Scene * /*scene */,
+                                           const Sequence *seq,
+                                           SeqRetimingKey *key,
+                                           const int timeline_frame)
 {
-  SeqRetimingKey *key_start, *key_end;
-  int corrected_offset;
-
-  if (SEQ_retiming_key_is_transition_type(key)) {
-    key_start = key;
-    key_end = key + 1;
-    corrected_offset = offset;
-  }
-  else {
-    key_start = key - 1;
-    key_end = key;
-    corrected_offset = -1 * offset;
-  }
-
-  /* Prevent transition keys crossing each other. */
-  const float start_frame = SEQ_retiming_key_timeline_frame_get(scene, seq, key_start);
-  const float end_frame = SEQ_retiming_key_timeline_frame_get(scene, seq, key_end);
-  int xmax = ((start_frame + end_frame) / 2) - 1;
-  int max_offset = xmax - start_frame;
-  corrected_offset = min_ii(corrected_offset, max_offset);
-  /* Prevent mirrored movement crossing any key. */
-  SeqRetimingKey *prev_segment_end = key_start - 1, *next_segment_start = key_end + 1;
-  const int offset_min_left = SEQ_retiming_key_timeline_frame_get(scene, seq, prev_segment_end) +
-                              1 - start_frame;
-  const int offset_min_right =
-      end_frame - SEQ_retiming_key_timeline_frame_get(scene, seq, next_segment_start) - 1;
-  corrected_offset = max_iii(corrected_offset, offset_min_left, offset_min_right);
-
+  SeqRetimingKey *key_start = SEQ_retiming_transition_start_get(key);
+  SeqRetimingKey *key_end = key_start + 1;
+  const int start_frame_index = key_start->strip_frame_index;
+  const int midpoint = key_start->original_strip_frame_index;
+  const int new_frame_index = timeline_frame - SEQ_time_start_frame_get(seq);
+  int new_midpoint_offset = new_frame_index - midpoint;
   const float prev_segment_step = seq_retiming_segment_step_get(key_start - 1);
   const float next_segment_step = seq_retiming_segment_step_get(key_end);
 
-  key_start->strip_frame_index += corrected_offset;
-  key_start->retiming_factor += corrected_offset * prev_segment_step;
-  key_end->strip_frame_index -= corrected_offset;
-  key_end->retiming_factor -= corrected_offset * next_segment_step;
+  /* Prevent keys crossing eachother. */
+  SeqRetimingKey *prev_segment_end = key_start - 1, *next_segment_start = key_end + 1;
+  const int offset_max_left = midpoint - prev_segment_end->strip_frame_index - 1;
+  const int offset_max_right = next_segment_start->strip_frame_index - midpoint - 1;
+  new_midpoint_offset = abs(new_midpoint_offset);
+  new_midpoint_offset = min_iii(new_midpoint_offset, offset_max_left, offset_max_right);
+  new_midpoint_offset = max_ii(new_midpoint_offset, 1);
+
+  key_start->strip_frame_index = midpoint - new_midpoint_offset;
+  key_end->strip_frame_index = midpoint + new_midpoint_offset;
+
+  const int offset = key_start->strip_frame_index - start_frame_index;
+  key_start->retiming_factor += offset * prev_segment_step;
+  key_end->retiming_factor -= offset * next_segment_step;
 }
 
-void SEQ_retiming_remove_multiple_keys(Sequence *seq, blender::Vector<SeqRetimingKey *> &keys)
+static void seq_retiming_cleanup_freeze_frame(SeqRetimingKey *key)
 {
-  if ((*keys.begin())->strip_frame_index == 0) {
-    keys.remove(0);
+  if ((key->flag & SEQ_FREEZE_FRAME_IN) != 0) {
+    SeqRetimingKey *next_key = key + 1;
+    key->flag &= ~SEQ_FREEZE_FRAME_IN;
+    next_key->flag &= ~SEQ_FREEZE_FRAME_OUT;
   }
-  if (SEQ_retiming_is_last_key(seq, *keys.end())) {
-    keys.remove(keys.size() - 1);
+  if ((key->flag & SEQ_FREEZE_FRAME_OUT) != 0) {
+    SeqRetimingKey *previous_key = key - 1;
+    key->flag &= ~SEQ_FREEZE_FRAME_OUT;
+    previous_key->flag &= ~SEQ_FREEZE_FRAME_IN;
   }
+}
+
+void SEQ_retiming_remove_multiple_keys(Sequence *seq,
+                                       blender::Vector<SeqRetimingKey *> &keys_to_remove)
+{
+  /* Transitions need special treatment, so separate these from `keys_to_remove`. */
+  blender::Vector<SeqRetimingKey *> transitions;
+
+  /* Cleanup freeze frames and extract transition keys. */
+  for (SeqRetimingKey *key : keys_to_remove) {
+    if (SEQ_retiming_key_is_freeze_frame(key)) {
+      seq_retiming_cleanup_freeze_frame(key);
+    }
+    if ((key->flag & SEQ_SPEED_TRANSITION_IN) != 0) {
+      transitions.append_non_duplicates(key);
+      transitions.append_non_duplicates(key + 1);
+    }
+    if ((key->flag & SEQ_SPEED_TRANSITION_OUT) != 0) {
+      transitions.append_non_duplicates(key);
+      transitions.append_non_duplicates(key - 1);
+    }
+  }
+
+  /* Sanitize keys to be removed. */
+  keys_to_remove.remove_if([&](SeqRetimingKey *key) {
+    return key->strip_frame_index == 0 || SEQ_retiming_is_last_key(seq, key) ||
+           SEQ_retiming_key_is_transition_type(key);
+  });
 
   const size_t keys_count = SEQ_retiming_keys_count(seq);
-  size_t new_keys_count = keys_count - keys.size();
-
+  size_t new_keys_count = keys_count - keys_to_remove.size() - transitions.size() / 2;
   SeqRetimingKey *new_keys = (SeqRetimingKey *)MEM_callocN(new_keys_count * sizeof(SeqRetimingKey),
                                                            __func__);
-  int next_index_to_copy_from = 0;
   int keys_copied = 0;
 
-  for (SeqRetimingKey *key : keys) {
-    const int key_index = key - seq->retiming_keys;
-    const int copy_num = key_index - next_index_to_copy_from;
-
-    memcpy(new_keys + keys_copied,
-           seq->retiming_keys + next_index_to_copy_from,
-           copy_num * sizeof(SeqRetimingKey));
-
-    keys_copied += copy_num;
-    next_index_to_copy_from = key_index + 1;
+  /* Copy keys to new array. */
+  for (SeqRetimingKey &key : SEQ_retiming_keys_get(seq)) {
+    /* Create key that was used to make transition in new array. */
+    if (transitions.contains(&key) && SEQ_retiming_key_is_transition_start(&key)) {
+      SeqRetimingKey *new_key = new_keys + keys_copied;
+      new_key->strip_frame_index = key.original_strip_frame_index;
+      new_key->retiming_factor = key.original_retiming_factor;
+      keys_copied++;
+      continue;
+    }
+    if (keys_to_remove.contains(&key) || transitions.contains(&key)) {
+      continue;
+    }
+    memcpy(new_keys + keys_copied, &key, sizeof(SeqRetimingKey));
+    keys_copied++;
   }
-
-  /* Copy remaining keys. */
-  const int copy_num = seq->retiming_keys_num - next_index_to_copy_from;
-
-  memcpy(new_keys + keys_copied,
-         seq->retiming_keys + next_index_to_copy_from,
-         copy_num * sizeof(SeqRetimingKey));
 
   MEM_freeN(seq->retiming_keys);
   seq->retiming_keys = new_keys;
-  seq->retiming_keys_num = keys_copied + copy_num;
+  seq->retiming_keys_num = new_keys_count;
 }
 
 static void seq_retiming_remove_key_ex(Sequence *seq, SeqRetimingKey *key)
 {
   if (key->strip_frame_index == 0 || SEQ_retiming_is_last_key(seq, key)) {
     return; /* First and last key can not be removed. */
+  }
+
+  if (SEQ_retiming_key_is_freeze_frame(key)) {
+    seq_retiming_cleanup_freeze_frame(key);
   }
 
   size_t keys_count = SEQ_retiming_keys_count(seq);
@@ -435,12 +456,17 @@ static SeqRetimingKey *seq_retiming_remove_transition(const Scene *scene,
                                                       Sequence *seq,
                                                       SeqRetimingKey *key)
 {
-  const int orig_frame_index = key->original_strip_frame_index;
-  const float orig_retiming_factor = key->original_retiming_factor;
+  SeqRetimingKey *transition_start = key;
+  if ((key->flag & SEQ_SPEED_TRANSITION_OUT) != 0) {
+    transition_start = key - 1;
+  }
+
+  const int orig_frame_index = transition_start->original_strip_frame_index;
+  const float orig_retiming_factor = transition_start->original_retiming_factor;
 
   /* Remove both keys defining transition. */
-  int key_index = SEQ_retiming_key_index_get(seq, key);
-  seq_retiming_remove_key_ex(seq, key);
+  int key_index = SEQ_retiming_key_index_get(seq, transition_start);
+  seq_retiming_remove_key_ex(seq, transition_start);
   seq_retiming_remove_key_ex(seq, seq->retiming_keys + key_index);
 
   /* Create original linear key. */
@@ -452,26 +478,10 @@ static SeqRetimingKey *seq_retiming_remove_transition(const Scene *scene,
 
 void SEQ_retiming_remove_key(const Scene *scene, Sequence *seq, SeqRetimingKey *key)
 {
-  SeqRetimingKey *previous_key = key - 1;
 
-  if ((key->flag & SEQ_SPEED_TRANSITION_IN) != 0) {
+  if (SEQ_retiming_key_is_transition_type(key)) {
     seq_retiming_remove_transition(scene, seq, key);
     return;
-  }
-
-  if ((key->flag & SEQ_SPEED_TRANSITION_OUT) != 0) {
-    seq_retiming_remove_transition(scene, seq, previous_key);
-    return;
-  }
-
-  if ((key->flag & SEQ_FREEZE_FRAME_IN) != 0) {
-    SeqRetimingKey *next_key = key - 1;
-    key->flag &= ~SEQ_FREEZE_FRAME_IN;
-    next_key->flag &= ~SEQ_FREEZE_FRAME_OUT;
-  }
-  if ((key->flag & SEQ_FREEZE_FRAME_OUT) != 0) {
-    key->flag &= ~SEQ_FREEZE_FRAME_OUT;
-    previous_key->flag &= ~SEQ_FREEZE_FRAME_IN;
   }
 
   seq_retiming_remove_key_ex(seq, key);
@@ -486,13 +496,13 @@ static int seq_retiming_clamp_create_offset(SeqRetimingKey *key, int offset)
   return min_iii(offset, prev_dist - 1, next_dist - 1);
 }
 
-/* First offset old key, then add new key to original place with same fac
-This is not great way to do things, but it's done in order to be able to freeze last key. */
 SeqRetimingKey *SEQ_retiming_add_freeze_frame(const Scene *scene,
                                               Sequence *seq,
                                               SeqRetimingKey *key,
                                               const int offset)
 {
+  /* First offset old key, then add new key to original place with same fac
+   * This is not great way to do things, but it's done in order to be able to freeze last key. */
   if (SEQ_retiming_key_is_transition_type(key)) {
     return nullptr;
   }
@@ -517,7 +527,7 @@ SeqRetimingKey *SEQ_retiming_add_freeze_frame(const Scene *scene,
 
   /* Tag previous key as freeze frame key. This is only a convenient way to prevent creating
    * speed transitions. When freeze frame is deleted, this flag should be cleared. */
-  return new_key;
+  return new_key + 1;
 }
 
 SeqRetimingKey *SEQ_retiming_add_transition(const Scene *scene,
@@ -530,7 +540,8 @@ SeqRetimingKey *SEQ_retiming_add_transition(const Scene *scene,
 
   SeqRetimingKey *prev_key = key - 1;
   if ((key->flag & SEQ_SPEED_TRANSITION_IN) != 0 ||
-      (prev_key->flag & SEQ_SPEED_TRANSITION_IN) != 0) {
+      (prev_key->flag & SEQ_SPEED_TRANSITION_IN) != 0)
+  {
     return nullptr;
   }
 
@@ -556,7 +567,7 @@ SeqRetimingKey *SEQ_retiming_add_transition(const Scene *scene,
   transition_in->original_retiming_factor = orig_retiming_factor;
 
   seq_retiming_remove_key_ex(seq, seq->retiming_keys + orig_key_index + 1);
-  return seq->retiming_keys + orig_key_index;
+  return seq->retiming_keys + orig_key_index + 1;
 }
 
 float SEQ_retiming_key_speed_get(const Sequence *seq, const SeqRetimingKey *key)

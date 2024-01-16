@@ -246,7 +246,7 @@ constexpr MeshExtract create_extractor_tris_single_mat()
 
 /** \} */
 
-}  // namespace blender::draw
+const MeshExtract extract_tris = create_extractor_tris();
+const MeshExtract extract_tris_single_mat = create_extractor_tris_single_mat();
 
-const MeshExtract extract_tris = blender::draw::create_extractor_tris();
-const MeshExtract extract_tris_single_mat = blender::draw::create_extractor_tris_single_mat();
+}  // namespace blender::draw

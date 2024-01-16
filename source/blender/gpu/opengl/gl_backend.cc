@@ -314,9 +314,9 @@ static void detect_workarounds()
     GLContext::framebuffer_fetch_support = false;
     GLContext::texture_barrier_support = false;
 
+#if 0
     /* Do not alter OpenGL 4.3 features.
      * These code paths should be removed. */
-    /*
     GCaps.shader_image_load_store_support = false;
     GLContext::base_instance_support = false;
     GLContext::copy_image_support = false;
@@ -327,7 +327,7 @@ static void detect_workarounds()
     GLContext::texture_gather_support = false;
     GLContext::texture_storage_support = false;
     GLContext::vertex_attrib_binding_support = false;
-    */
+#endif
 
     return;
   }
@@ -453,7 +453,8 @@ static void detect_workarounds()
   /* There is a bug on older Nvidia GPU where GL_ARB_texture_gather
    * is reported to be supported but yield a compile error (see #55802). */
   if (GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_ANY, GPU_DRIVER_ANY) &&
-      !(epoxy_gl_version() >= 40)) {
+      !(epoxy_gl_version() >= 40))
+  {
     GLContext::texture_gather_support = false;
   }
 
@@ -598,6 +599,7 @@ void GLBackend::capabilities_init()
   GCaps.transform_feedback_support = true;
   GCaps.texture_view_support = epoxy_gl_version() >= 43 ||
                                epoxy_has_gl_extension("GL_ARB_texture_view");
+  GCaps.stencil_export_support = epoxy_has_gl_extension("GL_ARB_shader_stencil_export");
 
   /* GL specific capabilities. */
   glGetIntegerv(GL_MAX_3D_TEXTURE_SIZE, &GCaps.max_texture_3d_size);

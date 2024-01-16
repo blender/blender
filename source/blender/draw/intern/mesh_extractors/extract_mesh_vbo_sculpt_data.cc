@@ -211,6 +211,6 @@ constexpr MeshExtract create_extractor_sculpt_data()
 
 /** \} */
 
-}  // namespace blender::draw
+const MeshExtract extract_sculpt_data = create_extractor_sculpt_data();
 
-const MeshExtract extract_sculpt_data = blender::draw::create_extractor_sculpt_data();
+}  // namespace blender::draw

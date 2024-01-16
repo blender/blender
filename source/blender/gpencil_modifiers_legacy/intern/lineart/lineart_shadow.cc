@@ -13,7 +13,7 @@
 
 #include "BKE_global.h"
 #include "BKE_gpencil_modifier_legacy.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_material.h"
 #include "BKE_object.hh"
 #include "BKE_scene.h"
@@ -759,7 +759,8 @@ static bool lineart_shadow_cast_onto_triangle(LineartData *ld,
      * the edge
      */
     if (!(pi && LRT_DOUBLE_CLOSE_ENOUGH(ratio[0], 1.0f) &&
-          LRT_DOUBLE_CLOSE_ENOUGH(ratio[1], 0.0f))) {
+          LRT_DOUBLE_CLOSE_ENOUGH(ratio[1], 0.0f)))
+    {
       trie[pi] = 1;
       pi++;
     }

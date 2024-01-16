@@ -19,7 +19,6 @@
 #include "DNA_movieclip_types.h" /* MovieClipUser */
 #include "DNA_node_types.h"      /* for bNodeInstanceKey */
 #include "DNA_outliner_types.h"  /* for TreeStoreElem */
-#include "DNA_sequence_types.h"  /* SequencerScopes */
 #include "DNA_vec_types.h"
 /* Hum ... Not really nice... but needed for spacebuts. */
 #include "DNA_view2d_types.h"
@@ -67,9 +66,21 @@ namespace blender::ed::outliner {
 struct SpaceOutliner_Runtime;
 }  // namespace blender::ed::outliner
 using SpaceOutliner_Runtime = blender::ed::outliner::SpaceOutliner_Runtime;
+
+namespace blender::ed::seq {
+struct SpaceSeq_Runtime;
+}  // namespace blender::ed::seq
+using SpaceSeq_Runtime = blender::ed::seq::SpaceSeq_Runtime;
+
+namespace blender::ed::text {
+struct SpaceText_Runtime;
+}  // namespace blender::ed::text
+using SpaceText_Runtime = blender::ed::text::SpaceText_Runtime;
 #else
 typedef struct SpaceNode_Runtime SpaceNode_Runtime;
 typedef struct SpaceOutliner_Runtime SpaceOutliner_Runtime;
+typedef struct SpaceSeq_Runtime SpaceSeq_Runtime;
+typedef struct SpaceText_Runtime SpaceText_Runtime;
 #endif
 
 /** Defined in `file_intern.hh`. */
@@ -631,15 +642,6 @@ typedef enum eSpaceSeq_SequencerTimelineOverlay_Flag {
   SEQ_TIMELINE_SHOW_GRID = (1 << 18),
 } eSpaceSeq_SequencerTimelineOverlay_Flag;
 
-typedef struct SpaceSeqRuntime {
-  /** Required for Thumbnail job start condition. */
-  struct rctf last_thumbnail_area;
-  /** Stores lists of most recently displayed thumbnails. */
-  struct GHash *last_displayed_thumbnails;
-  int rename_channel_index;
-  float timeline_clamp_custom_range;
-} SpaceSeqRuntime;
-
 /** Sequencer. */
 typedef struct SpaceSeq {
   SpaceLink *next, *prev;
@@ -678,8 +680,6 @@ typedef struct SpaceSeq {
   /** Grease-pencil data. */
   struct bGPdata *gpd;
 
-  /** Different scoped displayed in space. */
-  struct SequencerScopes scopes;
   struct SequencerPreviewOverlay preview_overlay;
   struct SequencerTimelineOverlay timeline_overlay;
 
@@ -687,7 +687,7 @@ typedef struct SpaceSeq {
   char multiview_eye;
   char _pad2[7];
 
-  SpaceSeqRuntime runtime;
+  SpaceSeq_Runtime *runtime;
 } SpaceSeq;
 
 /** #SpaceSeq.mainb */
@@ -1378,41 +1378,6 @@ enum {
 /** \name Text Editor
  * \{ */
 
-typedef struct SpaceText_Runtime {
-
-  /** Actual line height, scaled by DPI. */
-  int lheight_px;
-
-  /** Runtime computed, character width. */
-  int cwidth_px;
-
-  /** The handle of the scroll-bar which can be clicked and dragged. */
-  struct rcti scroll_region_handle;
-  /** The region for selected text to show in the scrolling area. */
-  struct rcti scroll_region_select;
-
-  /** Number of digits to show in the line numbers column (when enabled). */
-  int line_number_display_digits;
-
-  /** Number of lines this window can display (even when they aren't used). */
-  int viewlines;
-
-  /** Use for drawing scroll-bar & calculating scroll operator motion scaling. */
-  float scroll_px_per_line;
-
-  /**
-   * Run-time for scroll increments smaller than a line (smooth scroll).
-   * Values must be between zero and the line, column width: (cwidth, TXT_LINE_HEIGHT(st)).
-   */
-  int scroll_ofs_px[2];
-
-  char _pad1[4];
-
-  /** Cache for faster drawing. */
-  void *drawcache;
-
-} SpaceText_Runtime;
-
 /** Text Editor. */
 typedef struct SpaceText {
   SpaceLink *next, *prev;
@@ -1460,7 +1425,7 @@ typedef struct SpaceText {
   char _pad3[2];
 
   /** Keep last. */
-  SpaceText_Runtime runtime;
+  SpaceText_Runtime *runtime;
 } SpaceText;
 
 /** SpaceText flags (moved from DNA_text_types.h). */

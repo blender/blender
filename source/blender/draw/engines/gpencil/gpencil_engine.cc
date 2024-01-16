@@ -14,8 +14,8 @@
 
 #include "DNA_shader_fx_types.h"
 
-#include "DRW_engine.h"
-#include "DRW_render.h"
+#include "DRW_engine.hh"
+#include "DRW_render.hh"
 
 #include "ED_screen.hh"
 #include "ED_view3d.hh"

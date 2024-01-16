@@ -30,7 +30,7 @@
 #include "BKE_brush.hh"
 #include "BKE_context.hh"
 #include "BKE_image.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_paint.hh"
 #include "BKE_report.h"
@@ -40,7 +40,7 @@
 #include "ED_screen.hh"
 
 #include "WM_api.hh"
-#include "WM_toolsystem.h"
+#include "WM_toolsystem.hh"
 #include "WM_types.hh"
 
 #include "RNA_access.hh"
@@ -391,7 +391,8 @@ static int palette_color_add_exec(bContext *C, wmOperator * /*op*/)
              PAINT_MODE_TEXTURE_3D,
              PAINT_MODE_TEXTURE_2D,
              PAINT_MODE_VERTEX,
-             PAINT_MODE_SCULPT)) {
+             PAINT_MODE_SCULPT))
+    {
       copy_v3_v3(color->rgb, BKE_brush_color_get(scene, brush));
       color->value = 0.0;
     }

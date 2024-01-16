@@ -4,7 +4,7 @@
 
 #include "usd_reader_geom.h"
 
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
 
@@ -46,8 +46,25 @@ void USDGeomReader::apply_cache_file(CacheFile *cache_file)
 
 void USDGeomReader::add_cache_modifier()
 {
+<<<<<<< HEAD
   /* Defer creating modifiers until a cache file is provided. */
   needs_cachefile_ = true;
+=======
+  if (!settings_->get_cache_file) {
+    return;
+  }
+
+  ModifierData *md = BKE_modifier_new(eModifierType_MeshSequenceCache);
+  BLI_addtail(&object_->modifiers, md);
+
+  MeshSeqCacheModifierData *mcmd = reinterpret_cast<MeshSeqCacheModifierData *>(md);
+
+  mcmd->cache_file = settings_->get_cache_file();
+  id_us_plus(&mcmd->cache_file->id);
+  mcmd->read_flag = import_params_.mesh_read_flag;
+
+  STRNCPY(mcmd->object_path, prim_.GetPath().GetString().c_str());
+>>>>>>> main
 }
 
 void USDGeomReader::add_subdiv_modifier()

@@ -123,7 +123,7 @@ static int console_delete_editable_selection(SpaceConsole *sc)
   int del_end = sc->sel_end;
 
   if (del_end > cl->len) {
-    /* Adjust range to only editable portion.  */
+    /* Adjust range to only editable portion. */
     del_end = cl->len;
   }
 

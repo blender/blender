@@ -8,10 +8,10 @@
  */
 
 #ifdef WITH_FFMPEG
-#  include <stdio.h>
-#  include <string.h>
+#  include <cstdio>
+#  include <cstring>
 
-#  include <stdlib.h>
+#  include <cstdlib>
 
 #  include "MEM_guardedalloc.h"
 
@@ -32,7 +32,7 @@
 #  include "BKE_global.h"
 #  include "BKE_idprop.h"
 #  include "BKE_image.h"
-#  include "BKE_lib_id.h"
+#  include "BKE_lib_id.hh"
 #  include "BKE_main.hh"
 #  include "BKE_report.h"
 #  include "BKE_sound.h"
@@ -783,7 +783,8 @@ static AVStream *alloc_video_stream(FFMpegContext *context,
   if (c->time_base.num != 1) {
     AVRational new_time_base;
     if (av_reduce(
-            &new_time_base.num, &new_time_base.den, c->time_base.num, c->time_base.den, INT_MAX)) {
+            &new_time_base.num, &new_time_base.den, c->time_base.num, c->time_base.den, INT_MAX))
+    {
       /* Exact reduction was possible. Use the new value. */
       c->time_base = new_time_base;
     }

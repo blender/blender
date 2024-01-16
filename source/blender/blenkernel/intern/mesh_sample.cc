@@ -187,13 +187,14 @@ static void sample_nearest_weights(const Span<float3> vert_positions,
       }
     }
     const int3 &tri = corner_tris[tri_indices[i]];
-    bary_coords[i] = MIN3_PAIR(
+    const std::array<float, 3> distances{
         math::distance_squared(sample_positions[i], vert_positions[corner_verts[tri[0]]]),
         math::distance_squared(sample_positions[i], vert_positions[corner_verts[tri[1]]]),
         math::distance_squared(sample_positions[i], vert_positions[corner_verts[tri[2]]]),
-        float3(1, 0, 0),
-        float3(0, 1, 0),
-        float3(0, 0, 1));
+    };
+    const int index = std::min_element(distances.begin(), distances.end()) - distances.begin();
+    const std::array<float3, 3> weights{float3(1, 0, 0), float3(0, 1, 0), float3(0, 0, 1)};
+    bary_coords[i] = weights[index];
   });
 }
 

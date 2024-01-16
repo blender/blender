@@ -257,7 +257,7 @@ void DetectMORAVEC(const FloatImage& grayscale_image,
         histogram[s]--;
       }
       c[0] = score, histogram[score]++;
-    nonmax : {}  // Do nothing.
+    nonmax: {}  // Do nothing.
     }
   }
   int min = 255, total = 0;

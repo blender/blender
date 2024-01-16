@@ -30,7 +30,7 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_screen.hh"
-#include "BKE_undo_system.h"
+#include "BKE_undo_system.hh"
 #include "BKE_workspace.h"
 
 #include "BLO_blend_validate.hh"
@@ -44,7 +44,7 @@
 #include "ED_undo.hh"
 
 #include "WM_api.hh"
-#include "WM_toolsystem.h"
+#include "WM_toolsystem.hh"
 #include "WM_types.hh"
 
 #include "RNA_access.hh"
@@ -462,7 +462,8 @@ bool ED_undo_is_legacy_compatible_for_property(bContext *C, ID *id)
       }
       if (obact->mode & OB_MODE_EDIT) {
         if ((id == nullptr) || (obact->data == nullptr) ||
-            (GS(id->name) != GS(((ID *)obact->data)->name))) {
+            (GS(id->name) != GS(((ID *)obact->data)->name)))
+        {
           /* No undo push on id type mismatch in edit-mode. */
           CLOG_INFO(&LOG, 1, "skipping undo for edit-mode");
           return false;

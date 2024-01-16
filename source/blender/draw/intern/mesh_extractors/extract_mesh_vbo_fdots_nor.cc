@@ -175,7 +175,7 @@ constexpr MeshExtract create_extractor_fdots_nor_hq()
 
 /** \} */
 
-}  // namespace blender::draw
+const MeshExtract extract_fdots_nor = create_extractor_fdots_nor();
+const MeshExtract extract_fdots_nor_hq = create_extractor_fdots_nor_hq();
 
-const MeshExtract extract_fdots_nor = blender::draw::create_extractor_fdots_nor();
-const MeshExtract extract_fdots_nor_hq = blender::draw::create_extractor_fdots_nor_hq();
+}  // namespace blender::draw

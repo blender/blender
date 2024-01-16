@@ -333,7 +333,8 @@ static void dial_ghostarc_get_angles(const wmGizmo *gz,
   };
 
   if (!ED_view3d_win_to_3d_on_plane(
-          region, dial_plane, inter->init.mval, false, proj_mval_init_rel)) {
+          region, dial_plane, inter->init.mval, false, proj_mval_init_rel))
+  {
     return fail();
   }
   sub_v3_v3(proj_mval_init_rel, gz->matrix_basis[3]);

@@ -11,6 +11,7 @@ from bpy.types import (
 from bpy.app.translations import (
     contexts as i18n_contexts,
     pgettext_iface as iface_,
+    pgettext_rpt as rpt_,
 )
 from bl_ui.properties_grease_pencil_common import (
     AnnotationDataPanel,
@@ -945,9 +946,9 @@ class SEQUENCER_MT_strip_retiming(Menu):
         layout = self.layout
 
         layout.operator("sequencer.retiming_key_add")
-        layout.operator("sequencer.retiming_freeze_frame_add")
+        layout.operator("sequencer.retiming_add_freeze_frame_slide")
         col = layout.column()
-        col.operator("sequencer.retiming_transition_add")
+        col.operator("sequencer.retiming_add_transition_slide")
         col.enabled = is_retiming
 
         layout.separator()
@@ -1111,7 +1112,7 @@ class SEQUENCER_MT_retiming(Menu):
         layout.operator_context = 'INVOKE_REGION_WIN'
 
         layout.operator("sequencer.retiming_key_add")
-        layout.operator("sequencer.retiming_freeze_frame_add")
+        layout.operator("sequencer.retiming_add_freeze_frame_slide")
 
 
 class SEQUENCER_MT_context_menu(Menu):
@@ -1218,14 +1219,14 @@ class SEQUENCER_MT_context_menu(Menu):
         layout.operator_context = 'INVOKE_REGION_WIN'
 
         if context.scene.sequence_editor.selected_retiming_keys:
-            layout.operator("sequencer.retiming_freeze_frame_add")
-            layout.operator("sequencer.retiming_transition_add")
+            layout.operator("sequencer.retiming_add_freeze_frame_slide")
+            layout.operator("sequencer.retiming_add_transition_slide")
             layout.separator()
 
             layout.operator("sequencer.retiming_segment_speed_set")
             layout.separator()
 
-            layout.operator("sequencer.retiming_key_remove")
+            layout.operator("sequencer.delete", text="Delete Retiming Keys")
 
     def draw(self, context):
         ed = context.scene.sequence_editor
@@ -1905,7 +1906,7 @@ class SEQUENCER_PT_mask(SequencerButtonsPanel, Panel):
         if mask:
             sta = mask.frame_start
             end = mask.frame_end
-            layout.label(text=iface_("Original frame range: %d-%d (%d)") % (sta, end, end - sta + 1), translate=False)
+            layout.label(text=rpt_("Original frame range: %d-%d (%d)") % (sta, end, end - sta + 1), translate=False)
 
 
 class SEQUENCER_PT_time(SequencerButtonsPanel, Panel):

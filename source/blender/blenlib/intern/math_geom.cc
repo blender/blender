@@ -655,18 +655,19 @@ void aabb_get_near_far_from_plane(const float plane_no[3],
 /** \name dist_squared_to_ray_to_aabb and helpers
  * \{ */
 
-void dist_squared_ray_to_aabb_v3_precalc(DistRayAABB_Precalc *neasrest_precalc,
-                                         const float ray_origin[3],
-                                         const float ray_direction[3])
+DistRayAABB_Precalc dist_squared_ray_to_aabb_v3_precalc(const float ray_origin[3],
+                                                        const float ray_direction[3])
 {
-  copy_v3_v3(neasrest_precalc->ray_origin, ray_origin);
-  copy_v3_v3(neasrest_precalc->ray_direction, ray_direction);
+  DistRayAABB_Precalc nearest_precalc{};
+  copy_v3_v3(nearest_precalc.ray_origin, ray_origin);
+  copy_v3_v3(nearest_precalc.ray_direction, ray_direction);
 
   for (int i = 0; i < 3; i++) {
-    neasrest_precalc->ray_inv_dir[i] = (neasrest_precalc->ray_direction[i] != 0.0f) ?
-                                           (1.0f / neasrest_precalc->ray_direction[i]) :
-                                           FLT_MAX;
+    nearest_precalc.ray_inv_dir[i] = (nearest_precalc.ray_direction[i] != 0.0f) ?
+                                         (1.0f / nearest_precalc.ray_direction[i]) :
+                                         FLT_MAX;
   }
+  return nearest_precalc;
 }
 
 float dist_squared_ray_to_aabb_v3(const DistRayAABB_Precalc *data,
@@ -765,8 +766,7 @@ float dist_squared_ray_to_aabb_v3_simple(const float ray_origin[3],
                                          float r_point[3],
                                          float *r_depth)
 {
-  DistRayAABB_Precalc data;
-  dist_squared_ray_to_aabb_v3_precalc(&data, ray_origin, ray_direction);
+  const DistRayAABB_Precalc data = dist_squared_ray_to_aabb_v3_precalc(ray_origin, ray_direction);
   return dist_squared_ray_to_aabb_v3(&data, bb_min, bb_max, r_point, r_depth);
 }
 

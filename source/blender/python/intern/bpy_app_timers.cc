@@ -107,7 +107,8 @@ static PyObject *bpy_app_timers_register(PyObject * /*self*/, PyObject *args, Py
       nullptr,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(
-          args, kw, &_parser, &function, &first_interval, &persistent)) {
+          args, kw, &_parser, &function, &first_interval, &persistent))
+  {
     return nullptr;
   }
 

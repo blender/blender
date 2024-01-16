@@ -814,7 +814,8 @@ static void do_allEdgeDetection(uint t,
       }
       else {
         if (!limask[pix_nextCol] || !limask[pix_prevCol] || !limask[pix_nextRow] ||
-            !limask[pix_prevRow]) {
+            !limask[pix_prevRow])
+        {
           in_isz++;    /* Increment the inner boundary pixel count. */
           lres[a] = 4; /* Flag pixel as part of inner edge. */
         }

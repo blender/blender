@@ -2,6 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_math_base.hh"
+#include "BLI_math_vector.h"
+#include "BLI_math_vector.hh"
+#include "BLI_math_vector_types.hh"
+
 #include "MEM_guardedalloc.h"
 
 #include "COM_SunBeamsOperation.h"
@@ -17,331 +22,61 @@ SunBeamsOperation::SunBeamsOperation()
   flags_.complex = true;
 }
 
-void SunBeamsOperation::calc_rays_common_data()
-{
-  /* convert to pixels */
-  source_px_[0] = data_.source[0] * this->get_width();
-  source_px_[1] = data_.source[1] * this->get_height();
-  ray_length_px_ = data_.ray_length * std::max(this->get_width(), this->get_height());
-}
-
 void SunBeamsOperation::init_execution()
 {
-  calc_rays_common_data();
+  input_program_ = this->get_input_socket_reader(0);
 }
 
-/**
- * Defines a line accumulator for a specific sector,
- * given by the four matrix entries that rotate from buffer space into the sector
- *
- * (x,y) is used to designate buffer space coordinates
- * (u,v) is used to designate sector space coordinates
- *
- * For a target point (x,y) the sector should be chosen such that
- *   `u >= v >= 0`
- * This removes the need to handle all sorts of special cases.
- *
- * Template parameters:
- * \param fxu: buffer increment in x for sector `u + 1`.
- * \param fxv: buffer increment in x for sector `v + 1`.
- * \param fyu: buffer increment in y for sector `u + 1`.
- * \param fyv: buffer increment in y for sector `v + 1`.
- */
-template<int fxu, int fxv, int fyu, int fyv> struct BufferLineAccumulator {
+void SunBeamsOperation::execute_pixel(float output[4], int x, int y, void * /* data */)
+{
+  const float2 input_size = float2(input_program_->get_width(), input_program_->get_height());
+  const int max_steps = int(data_.ray_length * math::length(input_size));
+  const float2 source = float2(data_.source);
 
-  /* utility functions implementing the matrix transform to/from sector space */
+  const float2 texel = float2(x, y);
 
-  static inline void buffer_to_sector(const float source[2], float x, float y, float &u, float &v)
-  {
-    int x0 = int(source[0]);
-    int y0 = int(source[1]);
-    x -= float(x0);
-    y -= float(y0);
-    u = x * fxu + y * fyu;
-    v = x * fxv + y * fyv;
+  /* The number of steps is the distance in pixels from the source to the current texel. With
+   * at least a single step and at most the user specified maximum ray length, which is
+   * proportional to the diagonal pixel count. */
+  const float unbounded_steps = math::max(1.0f, math::distance(texel, source * input_size));
+  const int steps = math::min(max_steps, int(unbounded_steps));
+
+  /* We integrate from the current pixel to the source pixel, so compute the start coordinates
+   * and step vector in the direction to source. Notice that the step vector is still computed
+   * from the unbounded steps, such that the total integration length becomes limited by the
+   * bounded steps, and thus by the maximum ray length. */
+  const float2 coordinates = (texel + float2(0.5f)) / input_size;
+  const float2 vector_to_source = source - coordinates;
+  const float2 step_vector = vector_to_source / unbounded_steps;
+
+  float accumulated_weight = 0.0f;
+  float4 accumulated_color = float4(0.0f);
+  for (int i = 0; i <= steps; i++) {
+    float2 position = coordinates + i * step_vector;
+
+    /* We are already past the image boundaries, and any future steps are also past the image
+     * boundaries, so break. */
+    if (position.x < 0.0f || position.y < 0.0f || position.x > 1.0f || position.y > 1.0f) {
+      break;
+    }
+
+    const float2 coordinates = position * input_size;
+
+    float4 sample_color;
+    input_program_->read_sampled(
+        sample_color, coordinates.x, coordinates.y, PixelSampler::Bilinear);
+
+    /* Attenuate the contributions of pixels that are further away from the source using a
+     * quadratic falloff. Also weight by the alpha to give more significance to opaque pixels.
+     */
+    const float weight = (math::square(1.0f - i / float(steps))) * sample_color.w;
+
+    accumulated_weight += weight;
+    accumulated_color += sample_color * weight;
   }
 
-  static inline void sector_to_buffer(const float source[2], int u, int v, int &x, int &y)
-  {
-    int x0 = int(source[0]);
-    int y0 = int(source[1]);
-    x = x0 + u * fxu + v * fxv;
-    y = y0 + u * fyu + v * fyv;
-  }
-
-  /**
-   * Set up the initial buffer pointer and calculate necessary variables for looping.
-   *
-   * Note that sector space is centered around the "source" point while the loop starts
-   * at dist_min from the target pt. This way the loop can be canceled as soon as it runs
-   * out of the buffer rect, because no pixels further along the line can contribute.
-   *
-   * \param x, y: Start location in the buffer
-   * \param num: Total steps in the loop
-   * \param v, dv: Vertical offset in sector space, for line offset perpendicular to the loop axis
-   */
-  static float *init_buffer_iterator(MemoryBuffer *input,
-                                     const float source[2],
-                                     const float co[2],
-                                     float dist_min,
-                                     float dist_max,
-                                     int &x,
-                                     int &y,
-                                     int &num,
-                                     float &v,
-                                     float &dv,
-                                     float &falloff_factor)
-  {
-    float pu, pv;
-    buffer_to_sector(source, co[0], co[1], pu, pv);
-
-    /* line angle */
-    double tan_phi = pv / double(pu);
-    double dr = sqrt(tan_phi * tan_phi + 1.0);
-    double cos_phi = 1.0 / dr;
-
-    /* clamp u range to avoid influence of pixels "behind" the source */
-    float umin = max_ff(pu - cos_phi * dist_min, 0.0f);
-    float umax = max_ff(pu - cos_phi * dist_max, 0.0f);
-    v = umin * tan_phi;
-    dv = tan_phi;
-
-    int start = int(floorf(umax));
-    int end = int(ceilf(umin));
-    num = end - start;
-
-    sector_to_buffer(source, end, int(ceilf(v)), x, y);
-
-    falloff_factor = dist_max > dist_min ? dr / double(dist_max - dist_min) : 0.0f;
-
-    float *iter = input->get_buffer() + input->get_coords_offset(x, y);
-    return iter;
-  }
-
-  /**
-   * Perform the actual accumulation along a ray segment from source to pt.
-   * Only pixels within dist_min..dist_max contribute.
-   *
-   * The loop runs backwards(!) over the primary sector space axis u, i.e. increasing distance to
-   * pt. After each step it decrements v by dv < 1, adding a buffer shift when necessary.
-   */
-  static void eval(MemoryBuffer *input,
-                   float output[4],
-                   const float co[2],
-                   const float source[2],
-                   float dist_min,
-                   float dist_max)
-  {
-    const rcti &rect = input->get_rect();
-    int x, y, num;
-    float v, dv;
-    float falloff_factor;
-    float border[4];
-
-    zero_v4(output);
-
-    if (int(co[0] - source[0]) == 0 && int(co[1] - source[1]) == 0) {
-      copy_v4_v4(output, input->get_elem(source[0], source[1]));
-      return;
-    }
-
-    /* Initialize the iteration variables. */
-    float *buffer = init_buffer_iterator(
-        input, source, co, dist_min, dist_max, x, y, num, v, dv, falloff_factor);
-    zero_v3(border);
-    border[3] = 1.0f;
-
-    /* v_local keeps track of when to decrement v (see below) */
-    float v_local = v - floorf(v);
-
-    for (int i = 0; i < num; i++) {
-      float weight = 1.0f - float(i) * falloff_factor;
-      weight *= weight;
-
-      /* range check, use last valid color when running beyond the image border */
-      if (x >= rect.xmin && x < rect.xmax && y >= rect.ymin && y < rect.ymax) {
-        madd_v4_v4fl(output, buffer, buffer[3] * weight);
-        /* use as border color in case subsequent pixels are out of bounds */
-        copy_v4_v4(border, buffer);
-      }
-      else {
-        madd_v4_v4fl(output, border, border[3] * weight);
-      }
-
-      /* TODO: implement proper filtering here, see
-       * https://en.wikipedia.org/wiki/Lanczos_resampling
-       * https://en.wikipedia.org/wiki/Sinc_function
-       *
-       * using lanczos with x = distance from the line segment,
-       * normalized to a == 0.5f, could give a good result
-       *
-       * for now just divide equally at the end ...
-       */
-
-      /* decrement u */
-      x -= fxu;
-      y -= fyu;
-      buffer -= fxu * input->elem_stride + fyu * input->row_stride;
-
-      /* decrement v (in steps of dv < 1) */
-      v_local -= dv;
-      if (v_local < 0.0f) {
-        v_local += 1.0f;
-
-        x -= fxv;
-        y -= fyv;
-        buffer -= fxv * input->elem_stride + fyv * input->row_stride;
-      }
-    }
-
-    /* normalize */
-    if (num > 0) {
-      mul_v4_fl(output, 1.0f / float(num));
-    }
-  }
-};
-
-/**
- * Dispatch function which selects an appropriate accumulator based on the sector of the target
- * point, relative to the source.
- *
- * The BufferLineAccumulator defines the actual loop over the buffer, with an efficient inner loop
- * due to using compile time constants instead of a local matrix variable defining the sector
- * space.
- */
-static void accumulate_line(MemoryBuffer *input,
-                            float output[4],
-                            const float co[2],
-                            const float source[2],
-                            float dist_min,
-                            float dist_max)
-{
-  /* coordinates relative to source */
-  float pt_ofs[2] = {co[0] - source[0], co[1] - source[1]};
-
-  /* The source sectors are defined like so:
-   *
-   *   \ 3 | 2 /
-   *    \  |  /
-   *   4 \ | / 1
-   *      \|/
-   *  -----------
-   *      /|\
-   *   5 / | \ 8
-   *    /  |  \
-   *   / 6 | 7 \
-   *
-   * The template arguments encode the transformation into "sector space",
-   * by means of rotation/mirroring matrix elements.
-   */
-
-  if (fabsf(pt_ofs[1]) > fabsf(pt_ofs[0])) {
-    if (pt_ofs[0] > 0.0f) {
-      if (pt_ofs[1] > 0.0f) {
-        /* 2 */
-        BufferLineAccumulator<0, 1, 1, 0>::eval(input, output, co, source, dist_min, dist_max);
-      }
-      else {
-        /* 7 */
-        BufferLineAccumulator<0, 1, -1, 0>::eval(input, output, co, source, dist_min, dist_max);
-      }
-    }
-    else {
-      if (pt_ofs[1] > 0.0f) {
-        /* 3 */
-        BufferLineAccumulator<0, -1, 1, 0>::eval(input, output, co, source, dist_min, dist_max);
-      }
-      else {
-        /* 6 */
-        BufferLineAccumulator<0, -1, -1, 0>::eval(input, output, co, source, dist_min, dist_max);
-      }
-    }
-  }
-  else {
-    if (pt_ofs[0] > 0.0f) {
-      if (pt_ofs[1] > 0.0f) {
-        /* 1 */
-        BufferLineAccumulator<1, 0, 0, 1>::eval(input, output, co, source, dist_min, dist_max);
-      }
-      else {
-        /* 8 */
-        BufferLineAccumulator<1, 0, 0, -1>::eval(input, output, co, source, dist_min, dist_max);
-      }
-    }
-    else {
-      if (pt_ofs[1] > 0.0f) {
-        /* 4 */
-        BufferLineAccumulator<-1, 0, 0, 1>::eval(input, output, co, source, dist_min, dist_max);
-      }
-      else {
-        /* 5 */
-        BufferLineAccumulator<-1, 0, 0, -1>::eval(input, output, co, source, dist_min, dist_max);
-      }
-    }
-  }
-}
-
-void *SunBeamsOperation::initialize_tile_data(rcti * /*rect*/)
-{
-  void *buffer = get_input_operation(0)->initialize_tile_data(nullptr);
-  return buffer;
-}
-
-void SunBeamsOperation::execute_pixel(float output[4], int x, int y, void *data)
-{
-  const float co[2] = {float(x), float(y)};
-
-  accumulate_line((MemoryBuffer *)data, output, co, source_px_, 0.0f, ray_length_px_);
-}
-
-static void calc_ray_shift(rcti *rect, float x, float y, const float source[2], float ray_length)
-{
-  float co[2] = {float(x), float(y)};
-  float dir[2], dist;
-
-  /* move (x,y) vector toward the source by ray_length distance */
-  sub_v2_v2v2(dir, co, source);
-  dist = normalize_v2(dir);
-  mul_v2_fl(dir, min_ff(dist, ray_length));
-  sub_v2_v2(co, dir);
-
-  int ico[2] = {int(co[0]), int(co[1])};
-  BLI_rcti_do_minmax_v(rect, ico);
-}
-
-bool SunBeamsOperation::determine_depending_area_of_interest(rcti *input,
-                                                             ReadBufferOperation *read_operation,
-                                                             rcti *output)
-{
-  /* Enlarges the rect by moving each corner toward the source.
-   * This is the maximum distance that pixels can influence each other
-   * and gives a rect that contains all possible accumulated pixels.
-   */
-  rcti rect = *input;
-  calc_ray_shift(&rect, input->xmin, input->ymin, source_px_, ray_length_px_);
-  calc_ray_shift(&rect, input->xmin, input->ymax, source_px_, ray_length_px_);
-  calc_ray_shift(&rect, input->xmax, input->ymin, source_px_, ray_length_px_);
-  calc_ray_shift(&rect, input->xmax, input->ymax, source_px_, ray_length_px_);
-
-  return NodeOperation::determine_depending_area_of_interest(&rect, read_operation, output);
-}
-
-void SunBeamsOperation::get_area_of_interest(const int input_idx,
-                                             const rcti &output_area,
-                                             rcti &r_input_area)
-{
-  BLI_assert(input_idx == 0);
-  UNUSED_VARS(input_idx);
-  calc_rays_common_data();
-
-  r_input_area = output_area;
-  /* Enlarges the rect by moving each corner toward the source.
-   * This is the maximum distance that pixels can influence each other
-   * and gives a rect that contains all possible accumulated pixels. */
-  calc_ray_shift(&r_input_area, output_area.xmin, output_area.ymin, source_px_, ray_length_px_);
-  calc_ray_shift(&r_input_area, output_area.xmin, output_area.ymax, source_px_, ray_length_px_);
-  calc_ray_shift(&r_input_area, output_area.xmax, output_area.ymin, source_px_, ray_length_px_);
-  calc_ray_shift(&r_input_area, output_area.xmax, output_area.ymax, source_px_, ray_length_px_);
+  accumulated_color /= accumulated_weight != 0.0f ? accumulated_weight : 1.0f;
+  copy_v4_v4(output, accumulated_color);
 }
 
 void SunBeamsOperation::update_memory_buffer_partial(MemoryBuffer *output,
@@ -349,16 +84,63 @@ void SunBeamsOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                      Span<MemoryBuffer *> inputs)
 {
   MemoryBuffer *input = inputs[0];
-  float coords[2];
+
+  const float2 input_size = float2(input->get_width(), input->get_height());
+  const int max_steps = int(data_.ray_length * math::length(input_size));
+  const float2 source = float2(data_.source);
+
   for (int y = area.ymin; y < area.ymax; y++) {
-    coords[1] = y;
-    float *out_elem = output->get_elem(area.xmin, y);
     for (int x = area.xmin; x < area.xmax; x++) {
-      coords[0] = x;
-      accumulate_line(input, out_elem, coords, source_px_, 0.0f, ray_length_px_);
-      out_elem += output->elem_stride;
+      const float2 texel = float2(x, y);
+
+      /* The number of steps is the distance in pixels from the source to the current texel. With
+       * at least a single step and at most the user specified maximum ray length, which is
+       * proportional to the diagonal pixel count. */
+      const float unbounded_steps = math::max(1.0f, math::distance(texel, source * input_size));
+      const int steps = math::min(max_steps, int(unbounded_steps));
+
+      /* We integrate from the current pixel to the source pixel, so compute the start coordinates
+       * and step vector in the direction to source. Notice that the step vector is still computed
+       * from the unbounded steps, such that the total integration length becomes limited by the
+       * bounded steps, and thus by the maximum ray length. */
+      const float2 coordinates = (texel + float2(0.5f)) / input_size;
+      const float2 vector_to_source = source - coordinates;
+      const float2 step_vector = vector_to_source / unbounded_steps;
+
+      float accumulated_weight = 0.0f;
+      float4 accumulated_color = float4(0.0f);
+      for (int i = 0; i <= steps; i++) {
+        float2 position = coordinates + i * step_vector;
+
+        /* We are already past the image boundaries, and any future steps are also past the image
+         * boundaries, so break. */
+        if (position.x < 0.0f || position.y < 0.0f || position.x > 1.0f || position.y > 1.0f) {
+          break;
+        }
+
+        const float2 coordinates = position * input_size;
+
+        float4 sample_color;
+        input->read_elem_bilinear(coordinates.x, coordinates.y, sample_color);
+
+        /* Attenuate the contributions of pixels that are further away from the source using a
+         * quadratic falloff. Also weight by the alpha to give more significance to opaque pixels.
+         */
+        const float weight = (math::square(1.0f - i / float(steps))) * sample_color.w;
+
+        accumulated_weight += weight;
+        accumulated_color += sample_color * weight;
+      }
+
+      accumulated_color /= accumulated_weight != 0.0f ? accumulated_weight : 1.0f;
+      copy_v4_v4(output->get_elem(x, y), accumulated_color);
     }
   }
+}
+
+void SunBeamsOperation::deinit_execution()
+{
+  input_program_ = nullptr;
 }
 
 }  // namespace blender::compositor

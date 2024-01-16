@@ -185,12 +185,25 @@ typedef struct textureReference {
 
 typedef textureReference* hipTexRef;
 
+/**
+ * ROCm 6 and ROCm 5 memory types are different.
+ * For now, we include both in the enum and then use the get_hip_memory_type
+ * Function to convert. When removing ROCm 5 compatibility this can be simplified.
+*/
 typedef enum hipMemoryType {
-  hipMemoryTypeHost = 0x00,
-  hipMemoryTypeDevice = 0x01,
-  hipMemoryTypeArray = 0x02,
-  hipMemoryTypeUnified = 0x03,
+  hipMemoryTypeHost_v5 = 0x00,
+  hipMemoryTypeDevice_v5 = 0x01,
+  hipMemoryTypeArray_v5 = 0x02,
+  hipMemoryTypeUnified_v5 = 0x03,  
+  hipMemoryTypeUnregistered = 0,
+  hipMemoryTypeHost = 1,
+  hipMemoryTypeDevice = 2,
+  hipMemoryTypeManaged = 3,
+  hipMemoryTypeArray = 10,
+  hipMemoryTypeUnified = 11,
 } hipMemoryType;
+
+hipMemoryType get_hip_memory_type(hipMemoryType mem_type, int runtime_version);
 
 /**
  * Pointer attributes
@@ -316,7 +329,7 @@ typedef enum hipDeviceAttribute_t {
   hipDeviceAttributeConcurrentManagedAccess,          ///< Device can coherently access managed memory concurrently with the CPU
   hipDeviceAttributeCooperativeLaunch,                ///< Support cooperative launch
   hipDeviceAttributeCooperativeMultiDeviceLaunch,     ///< Support cooperative launch on multiple devices
-  hipDeviceAttributeDeviceOverlap,                    ///< Cuda only. Device can concurrently copy memory and execute a kernel.
+  hipDeviceAttributeDeviceOverlap,               ///< Cuda only. Device can concurrently copy memory and execute a kernel.  
                                                       ///< Deprecated. Use instead asyncEngineCount.
   hipDeviceAttributeDirectManagedMemAccessFromHost,   ///< Host can directly access managed memory on
                                                       ///< the device without migration
@@ -420,6 +433,7 @@ typedef enum hipDeviceAttribute_t {
                                                               ///< hipStreamWaitValue64() , '0' otherwise.
   hipDeviceAttributeAmdSpecificEnd = 19999,
   hipDeviceAttributeVendorSpecificBegin = 20000,
+  hipDeviceAttribute
   // Extended attributes for vendors
 } hipDeviceAttribute_t;
 
@@ -1160,6 +1174,7 @@ typedef const char* HIPAPI thipGetErrorString(hipError_t error);
 typedef hipError_t HIPAPI thipGetLastError(hipError_t error);
 typedef hipError_t HIPAPI thipInit(unsigned int Flags);
 typedef hipError_t HIPAPI thipDriverGetVersion(int* driverVersion);
+typedef hipError_t HIPAPI thipRuntimeGetVersion(int* runtimeVersion);
 typedef hipError_t HIPAPI thipGetDevice(int* device);
 typedef hipError_t HIPAPI thipGetDeviceCount(int* count);
 typedef hipError_t HIPAPI thipGetDeviceProperties(hipDeviceProp_t* props, int deviceId);
@@ -1310,6 +1325,7 @@ extern thipGetErrorString* hipGetErrorString;
 extern thipGetLastError* hipGetLastError;
 extern thipInit *hipInit;
 extern thipDriverGetVersion *hipDriverGetVersion;
+extern thipRuntimeGetVersion *hipRuntimeGetVersion;
 extern thipGetDevice *hipGetDevice;
 extern thipGetDeviceCount *hipGetDeviceCount;
 extern thipGetDeviceProperties *hipGetDeviceProperties;

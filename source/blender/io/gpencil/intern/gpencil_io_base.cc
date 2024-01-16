@@ -189,7 +189,8 @@ bool GpencilIO::gpencil_3D_point_to_screen_space(const float3 co, float2 &r_co)
   float2 screen_co;
   eV3DProjTest test = (eV3DProjTest)(V3D_PROJ_RET_OK);
   if (ED_view3d_project_float_global(params_.region, parent_co, screen_co, test) ==
-      V3D_PROJ_RET_OK) {
+      V3D_PROJ_RET_OK)
+  {
     if (!ELEM(V2D_IS_CLIPPED, screen_co[0], screen_co[1])) {
       r_co = screen_co;
       /* Invert X axis. */

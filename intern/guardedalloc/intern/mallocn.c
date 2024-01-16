@@ -21,7 +21,8 @@
 /* If JEMALLOC is used, it reads this global variable and enables background
  * threads to purge dirty pages. Otherwise we release memory too slowly or not
  * at all if the thread that did the allocation stays inactive. */
-const char *malloc_conf = "background_thread:true,dirty_decay_ms:4000";
+const char *malloc_conf =
+    "background_thread:true,dirty_decay_ms:4000,thp:always,metadata_thp:always";
 #endif
 
 /* NOTE: Keep in sync with MEM_use_lockfree_allocator(). */

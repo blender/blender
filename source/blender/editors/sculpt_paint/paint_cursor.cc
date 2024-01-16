@@ -584,7 +584,7 @@ static bool paint_draw_tex_overlay(UnifiedPaintSettings *ups,
 
       /* Brush rotation. */
       GPU_matrix_translate_2fv(center);
-      GPU_matrix_rotate_2d(-RAD2DEGF(primary ? ups->brush_rotation : ups->brush_rotation_sec));
+      GPU_matrix_rotate_2d(RAD2DEGF(primary ? ups->brush_rotation : ups->brush_rotation_sec));
       GPU_matrix_translate_2f(-center[0], -center[1]);
 
       /* Scale based on tablet pressure. */
@@ -1815,7 +1815,7 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
 
       /* Generate a new pose brush preview from the current cursor location. */
       ss->pose_ik_chain_preview = pose::ik_chain_init(
-          pcontext->sd, pcontext->vc.obact, ss, brush, pcontext->location, pcontext->radius);
+          pcontext->vc.obact, ss, brush, pcontext->location, pcontext->radius);
     }
 
     /* Draw the pose brush rotation origins. */

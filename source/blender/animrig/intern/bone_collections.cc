@@ -25,7 +25,7 @@
 
 #include "BKE_animsys.h"
 #include "BKE_idprop.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_lib_override.hh"
 
 #include "ANIM_armature_iter.hh"
@@ -44,10 +44,15 @@ namespace {
 
 /** Default flags for new bone collections. */
 constexpr eBoneCollection_Flag default_flags = BONE_COLLECTION_VISIBLE |
-                                               BONE_COLLECTION_SELECTABLE;
+                                               BONE_COLLECTION_SELECTABLE |
+                                               BONE_COLLECTION_ANCESTORS_VISIBLE;
 constexpr auto bonecoll_default_name = "Bones";
 
 }  // namespace
+
+static void ancestors_visible_update(bArmature *armature,
+                                     const BoneCollection *parent_bcoll,
+                                     BoneCollection *bcoll);
 
 BoneCollection *ANIM_bonecoll_new(const char *name)
 {
@@ -68,13 +73,13 @@ BoneCollection *ANIM_bonecoll_new(const char *name)
   return bcoll;
 }
 
-void ANIM_bonecoll_free(BoneCollection *bcoll)
+void ANIM_bonecoll_free(BoneCollection *bcoll, const bool do_id_user_count)
 {
   BLI_assert_msg(BLI_listbase_is_empty(&bcoll->bones),
                  "bone collection still has bones assigned to it, will cause dangling pointers in "
                  "bone runtime data");
   if (bcoll->prop) {
-    IDP_FreeProperty(bcoll->prop);
+    IDP_FreeProperty_ex(bcoll->prop, do_id_user_count);
   }
   MEM_delete(bcoll);
 }
@@ -97,6 +102,11 @@ void ANIM_armature_runtime_refresh(bArmature *armature)
 {
   ANIM_armature_runtime_free(armature);
   ANIM_armature_bonecoll_active_runtime_refresh(armature);
+
+  /* Make sure the BONE_COLLECTION_ANCESTORS_VISIBLE flags are set correctly. */
+  for (BoneCollection *bcoll : armature->collections_roots()) {
+    ancestors_visible_update(armature, nullptr, bcoll);
+  }
 
   /* Construct the bone-to-collections mapping. */
   for (BoneCollection *bcoll : armature->collections_span()) {
@@ -182,6 +192,8 @@ static void bonecoll_insert_as_root(bArmature *armature, BoneCollection *bcoll, 
 
   bonecoll_insert_at_index(armature, bcoll, at_index);
   armature->collection_root_count++;
+
+  ancestors_visible_update(armature, nullptr, bcoll);
 }
 
 static int bonecoll_insert_as_child(bArmature *armature,
@@ -200,6 +212,8 @@ static int bonecoll_insert_as_child(bArmature *armature,
   const int insert_at_index = parent->child_index + parent->child_count;
   bonecoll_insert_at_index(armature, bcoll, insert_at_index);
   parent->child_count++;
+
+  ancestors_visible_update(armature, parent, bcoll);
 
   return insert_at_index;
 }
@@ -223,6 +237,9 @@ BoneCollection *ANIM_armature_bonecoll_new(bArmature *armature,
   else {
     bonecoll_insert_as_child(armature, bcoll, parent_index);
   }
+
+  /* Restore the active bone collection pointer, as its index might have changed. */
+  ANIM_armature_bonecoll_active_set(armature, armature->runtime.active_collection);
 
   return bcoll;
 }
@@ -439,7 +456,7 @@ void ANIM_armature_bonecoll_active_runtime_refresh(struct bArmature *armature)
     index++;
   }
 
-  /* No bone collection with the name was found, so better to clear everything.*/
+  /* No bone collection with the name was found, so better to clear everything. */
   armature_bonecoll_active_clear(armature);
 }
 
@@ -597,6 +614,9 @@ void ANIM_armature_bonecoll_remove_from_index(bArmature *armature, int index)
 
   BoneCollection *bcoll = armature->collection_array[index];
 
+  /* Get the active bone collection index before the armature is manipulated. */
+  const int active_collection_index = armature->runtime.active_collection_index;
+
   /* The parent needs updating, so better to find it before this bone collection is removed. */
   int parent_bcoll_index = armature_bonecoll_find_parent_index(armature, index);
   BoneCollection *parent_bcoll = parent_bcoll_index >= 0 ?
@@ -653,7 +673,6 @@ void ANIM_armature_bonecoll_remove_from_index(bArmature *armature, int index)
   armature->collection_array[armature->collection_array_num] = nullptr;
 
   /* Update the active BoneCollection. */
-  const int active_collection_index = armature->runtime.active_collection_index;
   if (active_collection_index >= 0) {
     /* Default: select the next sibling.
      * If there is none: select the previous sibling.
@@ -667,7 +686,7 @@ void ANIM_armature_bonecoll_remove_from_index(bArmature *armature, int index)
              armature_bonecoll_is_child_of(
                  armature, parent_bcoll_index, active_collection_index - 1))
     {
-      /* The child preceeding active_collection_index is a sibling of the removed collection. */
+      /* The child preceding active_collection_index is a sibling of the removed collection. */
       ANIM_armature_bonecoll_active_index_set(armature, active_collection_index - 1);
     }
     else {
@@ -707,14 +726,70 @@ int ANIM_armature_bonecoll_get_index_by_name(bArmature *armature, const char *na
   return -1;
 }
 
-void ANIM_bonecoll_show(BoneCollection *bcoll)
+/** Clear #BONE_COLLECTION_ANCESTORS_VISIBLE on all descendants of this bone collection. */
+static void ancestors_visible_descendants_clear(bArmature *armature, BoneCollection *parent_bcoll)
 {
-  bcoll->flags |= BONE_COLLECTION_VISIBLE;
+  for (BoneCollection *bcoll : armature->collection_children(parent_bcoll)) {
+    bcoll->flags &= ~BONE_COLLECTION_ANCESTORS_VISIBLE;
+    ancestors_visible_descendants_clear(armature, bcoll);
+  }
 }
 
-void ANIM_bonecoll_hide(BoneCollection *bcoll)
+/** Set or clear #BONE_COLLECTION_ANCESTORS_VISIBLE on all descendants of this bone collection. */
+static void ancestors_visible_descendants_update(bArmature *armature, BoneCollection *parent_bcoll)
+{
+  if (!parent_bcoll->is_visible_effectively()) {
+    /* If this bone collection is not visible itself, or any of its ancestors are
+     * invisible, all descendants have an invisible ancestor. */
+    ancestors_visible_descendants_clear(armature, parent_bcoll);
+    return;
+  }
+
+  /* parent_bcoll is visible, and so are its ancestors. This means that all direct children have
+   * visible ancestors. The grandchildren depend on the children's visibility as well, hence the
+   * recursion. */
+  for (BoneCollection *bcoll : armature->collection_children(parent_bcoll)) {
+    bcoll->flags |= BONE_COLLECTION_ANCESTORS_VISIBLE;
+    ancestors_visible_descendants_update(armature, bcoll);
+  }
+}
+
+/** Set/clear BONE_COLLECTION_ANCESTORS_VISIBLE on this bone collection and all its descendants. */
+static void ancestors_visible_update(bArmature *armature,
+                                     const BoneCollection *parent_bcoll,
+                                     BoneCollection *bcoll)
+{
+  if (parent_bcoll == nullptr || parent_bcoll->is_visible_effectively()) {
+    bcoll->flags |= BONE_COLLECTION_ANCESTORS_VISIBLE;
+  }
+  else {
+    bcoll->flags &= ~BONE_COLLECTION_ANCESTORS_VISIBLE;
+  }
+  ancestors_visible_descendants_update(armature, bcoll);
+}
+
+void ANIM_bonecoll_show(bArmature *armature, BoneCollection *bcoll)
+{
+  bcoll->flags |= BONE_COLLECTION_VISIBLE;
+  ancestors_visible_descendants_update(armature, bcoll);
+}
+
+void ANIM_bonecoll_hide(bArmature *armature, BoneCollection *bcoll)
 {
   bcoll->flags &= ~BONE_COLLECTION_VISIBLE;
+  ancestors_visible_descendants_update(armature, bcoll);
+}
+
+void ANIM_armature_bonecoll_is_visible_set(bArmature *armature,
+                                           BoneCollection *bcoll,
+                                           const bool is_visible)
+{
+  if (is_visible) {
+    ANIM_bonecoll_show(armature, bcoll);
+  }
+  else {
+    ANIM_bonecoll_hide(armature, bcoll);
+  }
 }
 
 /* Store the bone's membership on the collection. */
@@ -859,7 +934,7 @@ static bool any_bone_collection_visible(const ListBase /*BoneCollectionRef*/ *co
 
   LISTBASE_FOREACH (const BoneCollectionReference *, bcoll_ref, collection_refs) {
     const BoneCollection *bcoll = bcoll_ref->bcoll;
-    if (bcoll->flags & BONE_COLLECTION_VISIBLE) {
+    if (bcoll->is_visible_effectively()) {
       return true;
     }
   }
@@ -869,7 +944,7 @@ static bool any_bone_collection_visible(const ListBase /*BoneCollectionRef*/ *co
 /* TODO: these two functions were originally implemented for armature layers, hence the armature
  * parameters. These should be removed at some point. */
 
-bool ANIM_bonecoll_is_visible(const bArmature * /*armature*/, const Bone *bone)
+bool ANIM_bone_in_visible_collection(const bArmature * /*armature*/, const Bone *bone)
 {
   return any_bone_collection_visible(&bone->runtime.collections);
 }
@@ -881,14 +956,14 @@ bool ANIM_bonecoll_is_visible_editbone(const bArmature * /*armature*/, const Edi
 void ANIM_armature_bonecoll_show_all(bArmature *armature)
 {
   for (BoneCollection *bcoll : armature->collections_span()) {
-    ANIM_bonecoll_show(bcoll);
+    ANIM_bonecoll_show(armature, bcoll);
   }
 }
 
 void ANIM_armature_bonecoll_hide_all(bArmature *armature)
 {
   for (BoneCollection *bcoll : armature->collections_span()) {
-    ANIM_bonecoll_hide(bcoll);
+    ANIM_bonecoll_hide(armature, bcoll);
   }
 }
 
@@ -934,7 +1009,7 @@ bool ANIM_armature_bonecoll_contains_active_bone(const struct bArmature *armatur
 
 void ANIM_armature_bonecoll_show_from_bone(bArmature *armature, const Bone *bone)
 {
-  if (ANIM_bonecoll_is_visible(armature, bone)) {
+  if (ANIM_bone_in_visible_collection(armature, bone)) {
     return;
   }
 
@@ -1005,6 +1080,55 @@ int armature_bonecoll_find_parent_index(const bArmature *armature, const int bco
   return -1;
 }
 
+int armature_bonecoll_child_number_find(const bArmature *armature, const ::BoneCollection *bcoll)
+{
+  const int bcoll_index = armature_bonecoll_find_index(armature, bcoll);
+  const int parent_index = armature_bonecoll_find_parent_index(armature, bcoll_index);
+  return bonecoll_child_number(armature, parent_index, bcoll_index);
+}
+
+int armature_bonecoll_child_number_set(bArmature *armature,
+                                       ::BoneCollection *bcoll,
+                                       int new_child_number)
+{
+  const int bcoll_index = armature_bonecoll_find_index(armature, bcoll);
+  const int parent_index = armature_bonecoll_find_parent_index(armature, bcoll_index);
+
+  BoneCollection fake_armature_parent = {};
+  fake_armature_parent.child_count = armature->collection_root_count;
+
+  BoneCollection *parent_bcoll;
+  if (parent_index < 0) {
+    parent_bcoll = &fake_armature_parent;
+  }
+  else {
+    parent_bcoll = armature->collection_array[parent_index];
+  }
+
+  /* Bounds checks. */
+  if (new_child_number >= parent_bcoll->child_count) {
+    return -1;
+  }
+  if (new_child_number < 0) {
+    new_child_number = parent_bcoll->child_count - 1;
+  }
+
+  /* Store the parent's child_index, as that might move if to_index is the first child
+   * (bonecolls_move_to_index() will keep it pointing at that first child). */
+  const int old_parent_child_index = parent_bcoll->child_index;
+  const int to_index = parent_bcoll->child_index + new_child_number;
+  internal::bonecolls_move_to_index(armature, bcoll_index, to_index);
+
+  parent_bcoll->child_index = old_parent_child_index;
+
+  /* Make sure that if this was the active bone collection, its index also changes. */
+  if (armature->runtime.active_collection_index == bcoll_index) {
+    ANIM_armature_bonecoll_active_index_set(armature, to_index);
+  }
+
+  return to_index;
+}
+
 bool armature_bonecoll_is_root(const bArmature *armature, const int bcoll_index)
 {
   BLI_assert(bcoll_index >= 0);
@@ -1031,11 +1155,15 @@ bool armature_bonecoll_is_child_of(const bArmature *armature,
          potential_child_index < upper_bound;
 }
 
-bool armature_bonecoll_is_decendent_of(const bArmature *armature,
-                                       const int potential_parent_index,
-                                       const int potential_decendent_index)
+bool armature_bonecoll_is_descendant_of(const bArmature *armature,
+                                        const int potential_parent_index,
+                                        const int potential_descendant_index)
 {
-  if (armature_bonecoll_is_child_of(armature, potential_parent_index, potential_decendent_index)) {
+  BLI_assert_msg(potential_descendant_index >= 0,
+                 "Potential descendant has to exist for this function call to make sense.");
+
+  if (armature_bonecoll_is_child_of(armature, potential_parent_index, potential_descendant_index))
+  {
     /* Found a direct child. */
     return true;
   }
@@ -1044,7 +1172,7 @@ bool armature_bonecoll_is_decendent_of(const bArmature *armature,
   const int upper_bound = potential_parent->child_index + potential_parent->child_count;
 
   for (int visit_index = potential_parent->child_index; visit_index < upper_bound; visit_index++) {
-    if (armature_bonecoll_is_decendent_of(armature, visit_index, potential_decendent_index)) {
+    if (armature_bonecoll_is_descendant_of(armature, visit_index, potential_descendant_index)) {
       return true;
     }
   }
@@ -1144,6 +1272,9 @@ int armature_bonecoll_move_to_parent(bArmature *armature,
   /* Copy the information from the 'fake' BoneCollection back to the armature. */
   armature->collection_root_count = armature_root.child_count;
   BLI_assert(armature_root.child_index == 0);
+
+  /* Since the parent changed, the effective visibility might change too. */
+  ancestors_visible_update(armature, to_parent, armature->collection_array[to_bcoll_index]);
 
   return to_bcoll_index;
 }
@@ -1257,6 +1388,15 @@ void bonecolls_rotate_block(bArmature *armature,
     if (start_index <= bcoll->child_index && bcoll->child_index < start_index + count) {
       bcoll->child_index += direction;
     }
+  }
+
+  /* Make sure the active bone collection index is moved as well. */
+  const int active_index = armature->runtime.active_collection_index;
+  if (active_index == move_from_index) {
+    armature->runtime.active_collection_index = move_to_index;
+  }
+  else if (start_index <= active_index && active_index < start_index + count) {
+    armature->runtime.active_collection_index += direction;
   }
 }
 

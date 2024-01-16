@@ -90,40 +90,44 @@ def get_device_type(context):
     return context.preferences.addons[__package__].preferences.compute_device_type
 
 
+def backend_has_active_gpu(context):
+    return context.preferences.addons[__package__].preferences.has_active_device()
+
+
 def use_cpu(context):
     cscene = context.scene.cycles
 
-    return (get_device_type(context) == 'NONE' or cscene.device == 'CPU')
+    return (get_device_type(context) == 'NONE' or cscene.device == 'CPU' or not backend_has_active_gpu(context))
 
 
 def use_metal(context):
     cscene = context.scene.cycles
 
-    return (get_device_type(context) == 'METAL' and cscene.device == 'GPU')
+    return (get_device_type(context) == 'METAL' and cscene.device == 'GPU' and backend_has_active_gpu(context))
 
 
 def use_cuda(context):
     cscene = context.scene.cycles
 
-    return (get_device_type(context) == 'CUDA' and cscene.device == 'GPU')
+    return (get_device_type(context) == 'CUDA' and cscene.device == 'GPU' and backend_has_active_gpu(context))
 
 
 def use_hip(context):
     cscene = context.scene.cycles
 
-    return (get_device_type(context) == 'HIP' and cscene.device == 'GPU')
+    return (get_device_type(context) == 'HIP' and cscene.device == 'GPU' and backend_has_active_gpu(context))
 
 
 def use_optix(context):
     cscene = context.scene.cycles
 
-    return (get_device_type(context) == 'OPTIX' and cscene.device == 'GPU')
+    return (get_device_type(context) == 'OPTIX' and cscene.device == 'GPU' and backend_has_active_gpu(context))
 
 
 def use_oneapi(context):
     cscene = context.scene.cycles
 
-    return (get_device_type(context) == 'ONEAPI' and cscene.device == 'GPU')
+    return (get_device_type(context) == 'ONEAPI' and cscene.device == 'GPU' and backend_has_active_gpu(context))
 
 
 def use_multi_device(context):
@@ -137,7 +141,7 @@ def show_device_active(context):
     cscene = context.scene.cycles
     if cscene.device != 'GPU':
         return True
-    return context.preferences.addons[__package__].preferences.has_active_device()
+    return backend_has_active_gpu(context)
 
 
 def get_effective_preview_denoiser(context):
@@ -2441,10 +2445,11 @@ def draw_device(self, context):
 
         from . import engine
         if engine.with_osl() and (
-                use_cpu(context) or
-                (use_optix(context) and (engine.osl_version()[1] >= 13 or engine.osl_version()[0] > 1))
-        ):
-            col.prop(cscene, "shading_system")
+            use_cpu(context) or (
+                use_optix(context) and (
+                engine.osl_version()[1] >= 13 or engine.osl_version()[0] > 1))):
+            osl_col = layout.column()
+            osl_col.prop(cscene, "shading_system")
 
 
 def draw_pause(self, context):

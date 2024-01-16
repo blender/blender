@@ -31,7 +31,7 @@
 #include "BKE_fluid.h"
 #include "BKE_global.h"
 #include "BKE_layer.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_modifier.hh"
 #include "BKE_pointcache.h"
 
@@ -1239,7 +1239,8 @@ static void compute_obstaclesemission(Scene *scene,
         /* Set scene time */
         /* Handle emission subframe */
         if ((subframe < subframes || time_per_frame + dt + FLT_EPSILON < frame_length) &&
-            !is_first_frame) {
+            !is_first_frame)
+        {
           scene->r.subframe = (time_per_frame + (subframe + 1.0f) * subframe_dt) / frame_length;
           scene->r.cfra = frame - 1;
         }
@@ -1422,7 +1423,8 @@ static void update_obstacles(Depsgraph *depsgraph,
             d_index = manta_get_index(dx, fds->res[0], dy, fds->res[1], dz);
             /* Make sure emission cell is inside the new domain boundary. */
             if (dx < 0 || dy < 0 || dz < 0 || dx >= fds->res[0] || dy >= fds->res[1] ||
-                dz >= fds->res[2]) {
+                dz >= fds->res[2])
+            {
               continue;
             }
 
@@ -2257,7 +2259,8 @@ static void adaptive_domain_adjust(
 
         /* skip if cell already belongs to new area */
         if (xn >= min[0] && xn <= max[0] && yn >= min[1] && yn <= max[1] && zn >= min[2] &&
-            zn <= max[2]) {
+            zn <= max[2])
+        {
           continue;
         }
 
@@ -2753,7 +2756,8 @@ static void compute_flowsemission(Scene *scene,
 
         /* Set scene time */
         if ((subframe < subframes || time_per_frame + dt + FLT_EPSILON < frame_length) &&
-            !is_first_frame) {
+            !is_first_frame)
+        {
           scene->r.subframe = (time_per_frame + (subframe + 1.0f) * subframe_dt) / frame_length;
           scene->r.cfra = frame - 1;
         }
@@ -2998,7 +3002,8 @@ static void update_flowsfluids(Depsgraph *depsgraph,
             d_index = manta_get_index(dx, fds->res[0], dy, fds->res[1], dz);
             /* Make sure emission cell is inside the new domain boundary. */
             if (dx < 0 || dy < 0 || dz < 0 || dx >= fds->res[0] || dy >= fds->res[1] ||
-                dz >= fds->res[2]) {
+                dz >= fds->res[2])
+            {
               continue;
             }
 
@@ -3716,6 +3721,17 @@ static void fluid_modifier_processDomain(FluidModifierData *fmd,
   const char *relbase = BKE_modifier_path_relbase_from_global(ob);
   BLI_path_abs(fds->cache_directory, relbase);
 
+  /* If 'outdated', reset the cache here. */
+  if (is_startframe && mode == FLUID_DOMAIN_CACHE_REPLAY) {
+    PTCacheID pid;
+    BKE_ptcache_id_from_smoke(&pid, ob, fmd);
+    if (pid.cache->flag & PTCACHE_OUTDATED) {
+      BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
+      BKE_fluid_cache_free_all(fds, ob);
+      fluid_modifier_reset_ex(fmd, false);
+    }
+  }
+
   /* Ensure that all flags are up to date before doing any baking and/or cache reading. */
   objs = BKE_collision_objects_create(
       depsgraph, ob, fds->fluid_group, &numobj, eModifierType_Fluid);
@@ -3728,17 +3744,6 @@ static void fluid_modifier_processDomain(FluidModifierData *fmd,
   update_obstacleflags(fds, objs, numobj);
   if (objs) {
     MEM_freeN(objs);
-  }
-
-  /* If 'outdated', reset the cache here. */
-  if (is_startframe && mode == FLUID_DOMAIN_CACHE_REPLAY) {
-    PTCacheID pid;
-    BKE_ptcache_id_from_smoke(&pid, ob, fmd);
-    if (pid.cache->flag & PTCACHE_OUTDATED) {
-      BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
-      BKE_fluid_cache_free_all(fds, ob);
-      fluid_modifier_reset_ex(fmd, false);
-    }
   }
 
   /* Fluid domain init must not fail in order to continue modifier evaluation. */
@@ -4111,7 +4116,8 @@ Mesh *BKE_fluid_modifier_do(
 
       /* Always update viewport in cache replay mode. */
       if (fds->cache_type == FLUID_DOMAIN_CACHE_REPLAY ||
-          fds->flags & FLUID_DOMAIN_USE_ADAPTIVE_DOMAIN) {
+          fds->flags & FLUID_DOMAIN_USE_ADAPTIVE_DOMAIN)
+      {
         needs_viewport_update = true;
       }
       /* In other cache modes, only update the viewport when no bake is going on. */

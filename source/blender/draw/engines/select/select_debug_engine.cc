@@ -11,10 +11,10 @@
 #include "DNA_ID.h"
 #include "DNA_vec_types.h"
 
-#include "DRW_engine.h"
+#include "DRW_engine.hh"
 #include "DRW_select_buffer.hh"
 
-#include "draw_cache.h"
+#include "draw_cache.hh"
 #include "draw_manager.h"
 
 #include "select_engine.hh"

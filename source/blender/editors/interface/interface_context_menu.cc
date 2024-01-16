@@ -108,6 +108,22 @@ static const char *shortcut_get_operator_property(bContext *C, uiBut *but, IDPro
     }
   }
 
+  if (MenuType *mt = UI_but_menutype_get(but)) {
+    const IDPropertyTemplate val = {0};
+    IDProperty *prop = IDP_New(IDP_GROUP, &val, __func__);
+    IDP_AddToGroup(prop, IDP_NewString(mt->idname, "name"));
+    *r_prop = prop;
+    return "WM_OT_call_menu";
+  }
+
+  if (PanelType *pt = UI_but_paneltype_get(but)) {
+    const IDPropertyTemplate val = {0};
+    IDProperty *prop = IDP_New(IDP_GROUP, &val, __func__);
+    IDP_AddToGroup(prop, IDP_NewString(pt->idname, "name"));
+    *r_prop = prop;
+    return "WM_OT_call_panel";
+  }
+
   *r_prop = nullptr;
   return nullptr;
 }
@@ -978,7 +994,8 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
                    true);
 
     if (ptr->owner_id && !is_whole_array &&
-        ELEM(type, PROP_BOOLEAN, PROP_INT, PROP_FLOAT, PROP_ENUM)) {
+        ELEM(type, PROP_BOOLEAN, PROP_INT, PROP_FLOAT, PROP_ENUM))
+    {
       uiItemO(layout,
               CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Copy as New Driver"),
               ICON_NONE,

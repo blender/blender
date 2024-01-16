@@ -26,7 +26,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_global.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_mask.h"
 #include "BKE_movieclip.h"
@@ -293,12 +293,14 @@ static void load_data_init_from_operator(SeqLoadData *load_data, bContext *C, wm
   }
 
   if ((prop = RNA_struct_find_property(op->ptr, "cache")) &&
-      RNA_property_boolean_get(op->ptr, prop)) {
+      RNA_property_boolean_get(op->ptr, prop))
+  {
     load_data->flags |= SEQ_LOAD_SOUND_CACHE;
   }
 
   if ((prop = RNA_struct_find_property(op->ptr, "mono")) &&
-      RNA_property_boolean_get(op->ptr, prop)) {
+      RNA_property_boolean_get(op->ptr, prop))
+  {
     load_data->flags |= SEQ_LOAD_SOUND_MONO;
   }
 

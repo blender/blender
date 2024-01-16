@@ -345,7 +345,8 @@ UVEdge *UVIsland::lookup(const UVEdge &edge)
   for (UVEdge *e : found_vertex->uv_edges) {
     UVVertex *other_vertex = e->get_other_uv_vertex(found_vertex->vertex);
     if (other_vertex->vertex == edge.vertices[1]->vertex &&
-        other_vertex->uv == edge.vertices[1]->uv) {
+        other_vertex->uv == edge.vertices[1]->uv)
+    {
       return e;
     }
   }

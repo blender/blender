@@ -188,9 +188,9 @@ static const CustomData *get_custom_data_for_domain(const BMesh &bm, bke::AttrDo
   }
 }
 
-static void extract_attr(const MeshRenderData &mr,
-                         const DRW_AttributeRequest &request,
-                         GPUVertBuf &vbo)
+static void extract_attribute(const MeshRenderData &mr,
+                              const DRW_AttributeRequest &request,
+                              GPUVertBuf &vbo)
 {
   if (mr.extract_type == MR_EXTRACT_BMESH) {
     const CustomData &custom_data = *get_custom_data_for_domain(*mr.bm, request.domain);
@@ -251,7 +251,7 @@ static void extract_attr_init(
   const DRW_AttributeRequest &request = cache.attr_used.requests[index];
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
   init_vbo_for_attribute(mr, vbo, request, false, uint32_t(mr.loop_len));
-  extract_attr(mr, request, *vbo);
+  extract_attribute(mr, request, *vbo);
 }
 
 static void extract_attr_init_subdiv(const DRWSubdivCache &subdiv_cache,
@@ -272,7 +272,7 @@ static void extract_attr_init_subdiv(const DRWSubdivCache &subdiv_cache,
   GPU_vertbuf_init_with_format_ex(src_data, &coarse_format, GPU_USAGE_STATIC);
   GPU_vertbuf_data_alloc(src_data, uint32_t(coarse_mesh->corners_num));
 
-  extract_attr(mr, request, *src_data);
+  extract_attribute(mr, request, *src_data);
 
   GPUVertBuf *dst_buffer = static_cast<GPUVertBuf *>(buffer);
   init_vbo_for_attribute(mr, dst_buffer, request, true, subdiv_cache.num_subdiv_loops);
@@ -375,11 +375,8 @@ constexpr MeshExtract create_extractor_attr_viewer()
 
 /** \} */
 
-}  // namespace blender::draw
-
 #define CREATE_EXTRACTOR_ATTR(index) \
-  blender::draw::create_extractor_attr<index>(blender::draw::extract_attr_init##index, \
-                                              blender::draw::extract_attr_init_subdiv##index)
+  create_extractor_attr<index>(extract_attr_init##index, extract_attr_init_subdiv##index)
 
 const MeshExtract extract_attr[GPU_MAX_ATTR] = {
     CREATE_EXTRACTOR_ATTR(0),
@@ -399,4 +396,6 @@ const MeshExtract extract_attr[GPU_MAX_ATTR] = {
     CREATE_EXTRACTOR_ATTR(14),
 };
 
-const MeshExtract extract_attr_viewer = blender::draw::create_extractor_attr_viewer();
+const MeshExtract extract_attr_viewer = create_extractor_attr_viewer();
+
+}  // namespace blender::draw

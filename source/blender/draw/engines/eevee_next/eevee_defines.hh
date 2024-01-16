@@ -36,7 +36,6 @@
 /* Number of additional pixels on the border of an octahedral map to reserve for fixing seams.
  * Border size requires depends on the max number of mipmap levels. */
 #define REFLECTION_PROBE_MIPMAP_LEVELS 5
-#define REFLECTION_PROBE_BORDER_SIZE float(1 << (REFLECTION_PROBE_MIPMAP_LEVELS - 1))
 #define REFLECTION_PROBE_SH_GROUP_SIZE 512
 #define REFLECTION_PROBE_SH_SAMPLES_PER_GROUP 64
 
@@ -234,3 +233,6 @@
 #define VELOCITY_GEO_PREV_BUF_SLOT 2
 #define VELOCITY_GEO_NEXT_BUF_SLOT 3
 #define VELOCITY_INDIRECTION_BUF_SLOT 4
+
+/* Treat closure as singular if the roughness is below this threshold. */
+#define BSDF_ROUGHNESS_THRESHOLD 2e-2

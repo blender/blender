@@ -10,7 +10,7 @@
 
 #include <list>
 #include <string>
-//#include <vector>
+// #include <vector>
 
 #include "COLLADASWExtraTechnique.h"
 #include "COLLADASWInputList.h"

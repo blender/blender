@@ -29,7 +29,7 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
@@ -402,63 +402,6 @@ static void *add_customdata_cb(Mesh *mesh, const char *name, int data_type)
   return cd_ptr;
 }
 
-static V3fArraySamplePtr get_velocity_prop(const ICompoundProperty &schema,
-                                           const ISampleSelector &selector,
-                                           const std::string &name)
-{
-  for (size_t i = 0; i < schema.getNumProperties(); i++) {
-    const PropertyHeader &header = schema.getPropertyHeader(i);
-
-    if (header.isCompound()) {
-      const ICompoundProperty &prop = ICompoundProperty(schema, header.getName());
-
-      if (has_property(prop, name)) {
-        /* Header cannot be null here, as its presence is checked via has_property, so it is safe
-         * to dereference. */
-        const PropertyHeader *header = prop.getPropertyHeader(name);
-        if (!IV3fArrayProperty::matches(*header)) {
-          continue;
-        }
-
-        const IV3fArrayProperty &velocity_prop = IV3fArrayProperty(prop, name, 0);
-        if (velocity_prop) {
-          return velocity_prop.getValue(selector);
-        }
-      }
-    }
-    else if (header.isArray()) {
-      if (header.getName() == name && IV3fArrayProperty::matches(header)) {
-        const IV3fArrayProperty &velocity_prop = IV3fArrayProperty(schema, name, 0);
-        return velocity_prop.getValue(selector);
-      }
-    }
-  }
-
-  return V3fArraySamplePtr();
-}
-
-static void read_velocity(const V3fArraySamplePtr &velocities,
-                          const CDStreamConfig &config,
-                          const float velocity_scale)
-{
-  const int num_velocity_vectors = int(velocities->size());
-  if (num_velocity_vectors != config.mesh->verts_num) {
-    /* Files containing videogrammetry data may be malformed and export velocity data on missing
-     * frames (most likely by copying the last valid data). */
-    return;
-  }
-
-  CustomDataLayer *velocity_layer = BKE_id_attribute_new(
-      &config.mesh->id, "velocity", CD_PROP_FLOAT3, bke::AttrDomain::Point, nullptr);
-  float(*velocity)[3] = (float(*)[3])velocity_layer->data;
-
-  for (int i = 0; i < num_velocity_vectors; i++) {
-    const Imath::V3f &vel_in = (*velocities)[i];
-    copy_zup_from_yup(velocity[i], vel_in.getValue());
-    mul_v3_fl(velocity[i], velocity_scale);
-  }
-}
-
 template<typename SampleType>
 static bool samples_have_same_topology(const SampleType &sample, const SampleType &ceil_sample)
 {
@@ -667,14 +610,14 @@ bool AbcMeshReader::accepts_object_type(
     const char **err_str) const
 {
   if (!Alembic::AbcGeom::IPolyMesh::matches(alembic_header)) {
-    *err_str = TIP_(
+    *err_str = RPT_(
         "Object type mismatch, Alembic object path pointed to PolyMesh when importing, but not "
         "any more");
     return false;
   }
 
   if (ob->type != OB_MESH) {
-    *err_str = TIP_("Object type mismatch, Alembic object path points to PolyMesh");
+    *err_str = RPT_("Object type mismatch, Alembic object path points to PolyMesh");
     return false;
   }
 
@@ -757,7 +700,7 @@ Mesh *AbcMeshReader::read_mesh(Mesh *existing_mesh,
   }
   catch (Alembic::Util::Exception &ex) {
     if (err_str != nullptr) {
-      *err_str = TIP_("Error reading mesh sample; more detail on the console");
+      *err_str = RPT_("Error reading mesh sample; more detail on the console");
     }
     printf("Alembic: error reading mesh sample for '%s/%s' at time %f: %s\n",
            m_iobject.getFullName().c_str(),
@@ -777,7 +720,7 @@ Mesh *AbcMeshReader::read_mesh(Mesh *existing_mesh,
   /* This is the same test as in poly_to_tri_count(). */
   if (poly_count > 0 && loop_count < poly_count * 2) {
     if (err_str != nullptr) {
-      *err_str = TIP_("Invalid mesh; more detail on the console");
+      *err_str = RPT_("Invalid mesh; more detail on the console");
     }
     printf("Alembic: invalid mesh sample for '%s/%s' at time %f, less than 2 loops per face\n",
            m_iobject.getFullName().c_str(),
@@ -810,7 +753,7 @@ Mesh *AbcMeshReader::read_mesh(Mesh *existing_mesh,
       settings.read_flag = MOD_MESHSEQ_READ_VERT;
 
       if (err_str) {
-        *err_str = TIP_(
+        *err_str = RPT_(
             "Topology has changed, perhaps by triangulating the mesh. Only vertices will be "
             "read!");
       }
@@ -1037,14 +980,14 @@ bool AbcSubDReader::accepts_object_type(
     const char **err_str) const
 {
   if (!Alembic::AbcGeom::ISubD::matches(alembic_header)) {
-    *err_str = TIP_(
+    *err_str = RPT_(
         "Object type mismatch, Alembic object path pointed to SubD when importing, but not any "
         "more");
     return false;
   }
 
   if (ob->type != OB_MESH) {
-    *err_str = TIP_("Object type mismatch, Alembic object path points to SubD");
+    *err_str = RPT_("Object type mismatch, Alembic object path points to SubD");
     return false;
   }
 
@@ -1102,7 +1045,7 @@ Mesh *AbcSubDReader::read_mesh(Mesh *existing_mesh,
   }
   catch (Alembic::Util::Exception &ex) {
     if (err_str != nullptr) {
-      *err_str = TIP_("Error reading mesh sample; more detail on the console");
+      *err_str = RPT_("Error reading mesh sample; more detail on the console");
     }
     printf("Alembic: error reading mesh sample for '%s/%s' at time %f: %s\n",
            m_iobject.getFullName().c_str(),
@@ -1139,7 +1082,7 @@ Mesh *AbcSubDReader::read_mesh(Mesh *existing_mesh,
       settings.read_flag = MOD_MESHSEQ_READ_VERT;
 
       if (err_str) {
-        *err_str = TIP_(
+        *err_str = RPT_(
             "Topology has changed, perhaps by triangulating the mesh. Only vertices will be "
             "read!");
       }

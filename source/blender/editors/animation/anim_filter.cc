@@ -1108,7 +1108,7 @@ static bool skip_fcurve_selected_data(bDopeSheet *ads, FCurve *fcu, ID *owner_id
          * since data-paths that point to missing strips are not shown.
          * If this is an important difference, the nullptr case could perform a global lookup,
          * only returning `true` if the sequence strip exists elsewhere
-         * (ignoring it's selection state). */
+         * (ignoring its selection state). */
         if (seq == nullptr) {
           return true;
         }
@@ -1126,7 +1126,8 @@ static bool skip_fcurve_selected_data(bDopeSheet *ads, FCurve *fcu, ID *owner_id
 
     /* Check for selected nodes. */
     if (fcu->rna_path &&
-        BLI_str_quoted_substr(fcu->rna_path, "nodes[", node_name, sizeof(node_name))) {
+        BLI_str_quoted_substr(fcu->rna_path, "nodes[", node_name, sizeof(node_name)))
+    {
       /* Get strip name, and check if this strip is selected. */
       node = nodeFindNodebyName(ntree, node_name);
 
@@ -1211,7 +1212,7 @@ static bool skip_fcurve_with_name(
  *
  * \return true if F-Curve has errors/is disabled
  */
-static bool fcurve_has_errors(const FCurve *fcu)
+static bool fcurve_has_errors(const FCurve *fcu, bDopeSheet *ads)
 {
   /* F-Curve disabled (path evaluation error). */
   if (fcu->flag & FCURVE_DISABLED) {
@@ -1235,6 +1236,12 @@ static bool fcurve_has_errors(const FCurve *fcu)
     LISTBASE_FOREACH (DriverVar *, dvar, &driver->variables) {
       DRIVER_TARGETS_USED_LOOPER_BEGIN (dvar) {
         if (dtar->flag & DTAR_FLAG_INVALID) {
+          return true;
+        }
+
+        if ((dtar->flag & DTAR_FLAG_FALLBACK_USED) &&
+            (ads->filterflag2 & ADS_FILTER_DRIVER_FALLBACK_AS_ERROR))
+        {
           return true;
         }
       }
@@ -1276,7 +1283,8 @@ static FCurve *animfilter_fcurve_next(bDopeSheet *ads,
     if (ads && owner_id) {
       if ((filter_mode & ANIMFILTER_TMP_IGNORE_ONLYSEL) == 0) {
         if ((ads->filterflag & ADS_FILTER_ONLYSEL) ||
-            (ads->filterflag & ADS_FILTER_INCL_HIDDEN) == 0) {
+            (ads->filterflag & ADS_FILTER_INCL_HIDDEN) == 0)
+        {
           if (skip_fcurve_selected_data(ads, fcu, owner_id, filter_mode)) {
             continue;
           }
@@ -1303,7 +1311,7 @@ static FCurve *animfilter_fcurve_next(bDopeSheet *ads,
             /* error-based filtering... */
             if ((ads) && (ads->filterflag & ADS_FILTER_ONLY_ERRORS)) {
               /* skip if no errors... */
-              if (fcurve_has_errors(fcu) == false) {
+              if (!fcurve_has_errors(fcu, ads)) {
                 continue;
               }
             }

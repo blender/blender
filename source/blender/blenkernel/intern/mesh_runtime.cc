@@ -20,7 +20,7 @@
 #include "BKE_bvhutils.hh"
 #include "BKE_customdata.hh"
 #include "BKE_editmesh_cache.hh"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
 #include "BKE_mesh_runtime.hh"
@@ -74,9 +74,9 @@ MeshRuntime::~MeshRuntime()
 static int reset_bits_and_count(MutableBitSpan bits, const Span<int> indices_to_reset)
 {
   int count = bits.size();
-  for (const int vert : indices_to_reset) {
-    if (bits[vert]) {
-      bits[vert].reset();
+  for (const int i : indices_to_reset) {
+    if (bits[i]) {
+      bits[i].reset();
       count--;
     }
   }
@@ -120,7 +120,7 @@ blender::Span<int> Mesh::corner_to_face_map() const
   using namespace blender;
   this->runtime->corner_to_face_map_cache.ensure([&](Array<int> &r_data) {
     const OffsetIndices faces = this->faces();
-    r_data = bke::mesh::build_loop_to_face_map(faces);
+    r_data = bke::mesh::build_corner_to_face_map(faces);
   });
   return this->runtime->corner_to_face_map_cache.data();
 }

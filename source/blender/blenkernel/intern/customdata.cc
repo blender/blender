@@ -152,10 +152,8 @@ struct LayerTypeInfo {
    *    (there should be (sub element count)^2 weights per element)
    * count gives the number of elements in sources
    *
-   * \note in some cases \a dest pointer is in \a sources
-   *       so all functions have to take this into account and delay
-   *       applying changes while reading from sources.
-   *       See bug #32395 - Campbell.
+   * \note in some cases `dest` pointer is in `sources` so all functions have to take this
+   * into account and delay applying changes while reading from sources. See #32395.
    */
   cd_interp interp;
 
@@ -367,7 +365,8 @@ static void layerCopyValue_normal(const void *source,
   if (ELEM(mixmode,
            CDT_MIX_NOMIX,
            CDT_MIX_REPLACE_ABOVE_THRESHOLD,
-           CDT_MIX_REPLACE_BELOW_THRESHOLD)) {
+           CDT_MIX_REPLACE_BELOW_THRESHOLD))
+  {
     /* Above/below threshold modes are not supported here, fallback to nomix (just in case). */
     copy_v3_v3(no_dst, no_src);
   }
@@ -813,7 +812,8 @@ static void layerCopyValue_mloopcol(const void *source,
   if (ELEM(mixmode,
            CDT_MIX_NOMIX,
            CDT_MIX_REPLACE_ABOVE_THRESHOLD,
-           CDT_MIX_REPLACE_BELOW_THRESHOLD)) {
+           CDT_MIX_REPLACE_BELOW_THRESHOLD))
+  {
     /* Modes that do a full copy or nothing. */
     if (ELEM(mixmode, CDT_MIX_REPLACE_ABOVE_THRESHOLD, CDT_MIX_REPLACE_BELOW_THRESHOLD)) {
       /* TODO: Check for a real valid way to get 'factor' value of our dest color? */
@@ -1244,7 +1244,8 @@ static void layerCopyValue_propcol(const void *source,
   if (ELEM(mixmode,
            CDT_MIX_NOMIX,
            CDT_MIX_REPLACE_ABOVE_THRESHOLD,
-           CDT_MIX_REPLACE_BELOW_THRESHOLD)) {
+           CDT_MIX_REPLACE_BELOW_THRESHOLD))
+  {
     /* Modes that do a full copy or nothing. */
     if (ELEM(mixmode, CDT_MIX_REPLACE_ABOVE_THRESHOLD, CDT_MIX_REPLACE_BELOW_THRESHOLD)) {
       /* TODO: Check for a real valid way to get 'factor' value of our dest color? */

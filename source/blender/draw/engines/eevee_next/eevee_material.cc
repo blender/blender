@@ -8,7 +8,7 @@
 
 #include "DNA_material_types.h"
 
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_material.h"
 #include "BKE_node.hh"
 #include "NOD_shader.h"
@@ -203,7 +203,7 @@ MaterialPass MaterialModule::material_pass_get(Object *ob,
 
   if (GPU_material_recalc_flag_get(matpass.gpumat)) {
     /* TODO(Miguel Pozo): This is broken, it consumes the flag,
-     * but GPUMats can be shared across viewports.*/
+     * but GPUMats can be shared across viewports. */
     inst_.sampling.reset();
   }
 

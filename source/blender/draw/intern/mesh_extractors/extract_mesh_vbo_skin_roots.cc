@@ -73,6 +73,6 @@ constexpr MeshExtract create_extractor_skin_roots()
 
 /** \} */
 
-}  // namespace blender::draw
+const MeshExtract extract_skin_roots = create_extractor_skin_roots();
 
-const MeshExtract extract_skin_roots = blender::draw::create_extractor_skin_roots();
+}  // namespace blender::draw

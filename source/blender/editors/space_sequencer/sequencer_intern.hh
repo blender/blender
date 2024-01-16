@@ -8,10 +8,13 @@
 
 #pragma once
 
+#include "BLI_utility_mixins.hh"
 #include "BLI_vector.hh"
 #include "BLI_vector_set.hh"
 #include "DNA_sequence_types.h"
 #include "RNA_access.hh"
+
+#include "sequencer_scopes.hh"
 
 /* Internal exports only. */
 
@@ -39,6 +42,24 @@ struct ListBase;
 
 #define DEFAULT_IMG_STRIP_LENGTH 25 /* XXX arbitrary but ok for now. */
 #define OVERLAP_ALPHA 180
+
+namespace blender::ed::seq {
+
+struct SpaceSeq_Runtime : public NonCopyable {
+  /** Required for Thumbnail job start condition. */
+  rctf last_thumbnail_area = {0, 0, 0, 0};
+  /** Stores lists of most recently displayed thumbnails. */
+  GHash *last_displayed_thumbnails = nullptr;
+  int rename_channel_index = 0;
+  float timeline_clamp_custom_range = 0;
+
+  blender::ed::seq::SeqScopes scopes;
+
+  SpaceSeq_Runtime() = default;
+  ~SpaceSeq_Runtime();
+};
+
+}  // namespace blender::ed::seq
 
 struct SeqChannelDrawContext {
   const bContext *C;
@@ -257,14 +278,6 @@ void sequencer_dropboxes();
 
 void sequencer_operatortypes();
 void sequencer_keymap(wmKeyConfig *keyconf);
-
-/* sequencer_scope.c */
-
-ImBuf *make_waveform_view_from_ibuf(ImBuf *ibuf);
-ImBuf *make_sep_waveform_view_from_ibuf(ImBuf *ibuf);
-ImBuf *make_vectorscope_view_from_ibuf(ImBuf *ibuf);
-ImBuf *make_zebra_view_from_ibuf(ImBuf *ibuf, float perc);
-ImBuf *make_histogram_view_from_ibuf(ImBuf *ibuf);
 
 /* `sequencer_buttons.cc` */
 

@@ -425,7 +425,7 @@ struct GWL_Cursor {
    * The size of the cursor (when looking up a cursor theme).
    * This must be scaled by the maximum output scale when passing to wl_cursor_theme_load.
    * See #update_cursor_scale.
-   * */
+   */
   int theme_size = 0;
   int custom_scale = 1;
 };
@@ -1327,7 +1327,7 @@ struct GWL_Display {
 };
 
 /**
- * Free the #GWL_Display and it's related members.
+ * Free the #GWL_Display and its related members.
  *
  * \note This may run on a partially initialized struct,
  * so it can't be assumed all members are set.
@@ -2086,6 +2086,13 @@ static int memfd_create_sealed(const char *name)
 #endif /* !HAVE_MEMFD_CREATE */
 }
 
+#if defined(WITH_GHOST_WAYLAND_LIBDECOR) && defined(WITH_VULKAN_BACKEND)
+int memfd_create_sealed_for_vulkan_hack(const char *name)
+{
+  return memfd_create_sealed(name);
+}
+#endif
+
 enum {
   GWL_IOR_READ = 1 << 0,
   GWL_IOR_WRITE = 1 << 1,
@@ -2345,6 +2352,9 @@ static char *read_file_as_buffer(const int fd, const bool nil_terminate, size_t 
       if (len_chunk <= 0) {
         if (UNLIKELY(len_chunk < 0)) {
           ok = false;
+        }
+        if (chunk == chunk_first) {
+          chunk_first = nullptr;
         }
         free(chunk);
         break;
@@ -4644,7 +4654,8 @@ static void keyboard_handle_keymap(void *data,
   if (seat->xkb.state_empty_with_shift) {
     seat->xkb_use_non_latin_workaround = true;
     for (xkb_keycode_t key_code = KEY_1 + EVDEV_OFFSET; key_code <= KEY_0 + EVDEV_OFFSET;
-         key_code++) {
+         key_code++)
+    {
       const xkb_keysym_t sym_test = xkb_state_key_get_one_sym(seat->xkb.state_empty_with_shift,
                                                               key_code);
       if (!(sym_test >= XKB_KEY_0 && sym_test <= XKB_KEY_9)) {
@@ -8534,7 +8545,8 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
       }
       else if (mode_current == GHOST_kGrabHide) {
         if ((init_grab_xy[0] != seat->grab_lock_xy[0]) ||
-            (init_grab_xy[1] != seat->grab_lock_xy[1])) {
+            (init_grab_xy[1] != seat->grab_lock_xy[1]))
+        {
           const wl_fixed_t xy_next[2] = {
               gwl_window_scale_wl_fixed_from(scale_params, wl_fixed_from_int(init_grab_xy[0])),
               gwl_window_scale_wl_fixed_from(scale_params, wl_fixed_from_int(init_grab_xy[1])),

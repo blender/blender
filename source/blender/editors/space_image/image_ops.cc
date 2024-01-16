@@ -41,7 +41,7 @@
 #include "BKE_image_format.h"
 #include "BKE_image_save.h"
 #include "BKE_layer.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_packedFile.h"
 #include "BKE_report.h"
@@ -1287,7 +1287,7 @@ static Image *image_open_single(Main *bmain,
                 RPT_ERROR,
                 "Cannot read '%s': %s",
                 range->filepath,
-                errno ? strerror(errno) : TIP_("unsupported image format"));
+                errno ? strerror(errno) : RPT_("unsupported image format"));
     return nullptr;
   }
 

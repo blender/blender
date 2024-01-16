@@ -136,7 +136,8 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *region, Scene *scene)
 
       /* check if visible */
       if (IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
-          IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax)) {
+          IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax))
+      {
         MovieTrackingTrack *track = channel->track;
         int i;
         bool sel = (track->flag & TRACK_DOPE_SEL) != 0;
@@ -226,7 +227,8 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *region, Scene *scene)
 
         /* check if visible */
         if (IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
-            IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax)) {
+            IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax))
+        {
           MovieTrackingTrack *track = channel->track;
           int i;
           bool sel = (track->flag & TRACK_DOPE_SEL) != 0;
@@ -320,7 +322,8 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *region)
 
     /* check if visible */
     if (IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
-        IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax)) {
+        IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax))
+    {
       MovieTrackingTrack *track = channel->track;
       float color[3];
       track_channel_color(track, nullptr, color);
@@ -349,7 +352,8 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *region)
 
     /* check if visible */
     if (IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
-        IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax)) {
+        IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax))
+    {
       MovieTrackingTrack *track = channel->track;
       bool sel = (track->flag & TRACK_DOPE_SEL) != 0;
 
@@ -379,7 +383,8 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *region)
 
     /* check if visible */
     if (IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
-        IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax)) {
+        IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax))
+    {
       MovieTrackingTrack *track = channel->track;
       const int icon = (track->flag & TRACK_LOCKED) ? ICON_LOCKED : ICON_UNLOCKED;
       PointerRNA ptr = RNA_pointer_create(&clip->id, &RNA_MovieTrackingTrack, track);

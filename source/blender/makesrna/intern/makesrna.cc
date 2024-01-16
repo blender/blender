@@ -1538,7 +1538,8 @@ static char *rna_def_property_length_func(
   else if (prop->type == PROP_COLLECTION) {
     if (!manualfunc) {
       if (prop->type == PROP_COLLECTION &&
-          (!(dp->dnalengthname || dp->dnalengthfixed) || !dp->dnaname)) {
+          (!(dp->dnalengthname || dp->dnalengthfixed) || !dp->dnaname))
+      {
         CLOG_ERROR(&LOG, "%s.%s has no valid dna info.", srna->identifier, prop->identifier);
         DefRNA.error = true;
         return nullptr;
@@ -1964,11 +1965,23 @@ static void rna_set_raw_property(PropertyDefRNA *dp, PropertyRNA *prop)
   }
 
   if (STREQ(dp->dnatype, "char")) {
-    prop->rawtype = PROP_RAW_CHAR;
+    prop->rawtype = prop->type == PROP_BOOLEAN ? PROP_RAW_BOOLEAN : PROP_RAW_CHAR;
+    prop->flag_internal |= PROP_INTERN_RAW_ACCESS;
+  }
+  else if (STREQ(dp->dnatype, "int8_t")) {
+    prop->rawtype = prop->type == PROP_BOOLEAN ? PROP_RAW_BOOLEAN : PROP_RAW_INT8;
+    prop->flag_internal |= PROP_INTERN_RAW_ACCESS;
+  }
+  else if (STREQ(dp->dnatype, "uchar")) {
+    prop->rawtype = prop->type == PROP_BOOLEAN ? PROP_RAW_BOOLEAN : PROP_RAW_UINT8;
     prop->flag_internal |= PROP_INTERN_RAW_ACCESS;
   }
   else if (STREQ(dp->dnatype, "short")) {
     prop->rawtype = PROP_RAW_SHORT;
+    prop->flag_internal |= PROP_INTERN_RAW_ACCESS;
+  }
+  else if (STREQ(dp->dnatype, "ushort")) {
+    prop->rawtype = PROP_RAW_UINT16;
     prop->flag_internal |= PROP_INTERN_RAW_ACCESS;
   }
   else if (STREQ(dp->dnatype, "int")) {
@@ -1981,6 +1994,14 @@ static void rna_set_raw_property(PropertyDefRNA *dp, PropertyRNA *prop)
   }
   else if (STREQ(dp->dnatype, "double")) {
     prop->rawtype = PROP_RAW_DOUBLE;
+    prop->flag_internal |= PROP_INTERN_RAW_ACCESS;
+  }
+  else if (STREQ(dp->dnatype, "int64_t")) {
+    prop->rawtype = PROP_RAW_INT64;
+    prop->flag_internal |= PROP_INTERN_RAW_ACCESS;
+  }
+  else if (STREQ(dp->dnatype, "uint64_t")) {
+    prop->rawtype = PROP_RAW_UINT64;
     prop->flag_internal |= PROP_INTERN_RAW_ACCESS;
   }
 }
@@ -4229,7 +4250,8 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
        * we'll probably have to revisit. :/ */
       StructRNA *type = rna_find_struct((const char *)pprop->type);
       if (type && (type->flag & STRUCT_ID) &&
-          !(prop->flag_internal & PROP_INTERN_PTR_OWNERSHIP_FORCED)) {
+          !(prop->flag_internal & PROP_INTERN_PTR_OWNERSHIP_FORCED))
+      {
         RNA_def_property_flag(prop, PROP_PTR_NO_OWNERSHIP);
       }
       break;
@@ -4241,7 +4263,8 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
        * we'll probably have to revisit. :/ */
       StructRNA *type = rna_find_struct((const char *)cprop->item_type);
       if (type && (type->flag & STRUCT_ID) &&
-          !(prop->flag_internal & PROP_INTERN_PTR_OWNERSHIP_FORCED)) {
+          !(prop->flag_internal & PROP_INTERN_PTR_OWNERSHIP_FORCED))
+      {
         RNA_def_property_flag(prop, PROP_PTR_NO_OWNERSHIP);
       }
       break;
@@ -4835,7 +4858,7 @@ static void rna_generate(BlenderRNA *brna, FILE *f, const char *filename, const 
   fprintf(f, "#include \"BLI_utildefines.h\"\n\n");
 
   fprintf(f, "#include \"BKE_context.hh\"\n");
-  fprintf(f, "#include \"BKE_lib_id.h\"\n");
+  fprintf(f, "#include \"BKE_lib_id.hh\"\n");
   fprintf(f, "#include \"BKE_main.hh\"\n");
   fprintf(f, "#include \"BKE_report.h\"\n");
 

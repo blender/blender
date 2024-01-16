@@ -226,12 +226,9 @@ void GLFrameBuffer::update_attachments()
   }
 }
 
-void GLFrameBuffer::subpass_transition(const GPUAttachmentState depth_attachment_state,
-                                       Span<GPUAttachmentState> color_attachment_states)
+void GLFrameBuffer::subpass_transition_impl(const GPUAttachmentState depth_attachment_state,
+                                            Span<GPUAttachmentState> color_attachment_states)
 {
-  /* NOTE: Depth is not supported as input attachment because the Metal API doesn't support it and
-   * because depth is not compatible with the framebuffer fetch implementation. */
-  BLI_assert(depth_attachment_state != GPU_ATTACHEMENT_READ);
   GPU_depth_mask(depth_attachment_state == GPU_ATTACHEMENT_WRITE);
 
   bool any_read = false;
@@ -276,7 +273,7 @@ void GLFrameBuffer::subpass_transition(const GPUAttachmentState depth_attachment
      * to unbind the textures and update the frame-buffer. This is a slow operation but that's all
      * we can do to emulate the sub-pass input. */
     /* TODO(@fclem): Could avoid the frame-buffer reconfiguration by creating multiple
-     * frame-buffers internally.  */
+     * frame-buffers internally. */
     for (int i : color_attachment_states.index_range()) {
       GPUAttachmentType type = GPU_FB_COLOR_ATTACHMENT0 + i;
 

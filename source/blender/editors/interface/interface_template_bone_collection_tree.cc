@@ -105,8 +105,8 @@ class BoneCollectionDropTarget : public TreeViewItemDropTarget {
       return false;
     }
 
-    /* Do not allow dropping onto its own decendants. */
-    if (armature_bonecoll_is_decendent_of(
+    /* Do not allow dropping onto its own descendants. */
+    if (armature_bonecoll_is_descendant_of(
             drag_arm_bcoll->armature, drag_arm_bcoll->bcoll_index, drop_bonecoll_.bcoll_index))
     {
       *r_disabled_hint = "Cannot drag a collection onto a descendent";
@@ -219,16 +219,14 @@ class BoneCollectionItem : public AbstractTreeViewItem {
       uiItemL(sub, "", icon);
     }
 
-    /* Visibility eyecon. */
+    /* Visibility eye icon. */
     {
-      const bool is_visible = bone_collection_.flags & BONE_COLLECTION_VISIBLE;
+      uiLayout *visibility_sub = uiLayoutRow(sub, true);
+      uiLayoutSetActive(visibility_sub, bone_collection_.is_visible_ancestors());
+
+      const int icon = bone_collection_.is_visible() ? ICON_HIDE_OFF : ICON_HIDE_ON;
       PointerRNA bcoll_ptr = rna_pointer();
-      uiItemR(sub,
-              &bcoll_ptr,
-              "is_visible",
-              UI_ITEM_R_ICON_ONLY,
-              "",
-              is_visible ? ICON_HIDE_OFF : ICON_HIDE_ON);
+      uiItemR(visibility_sub, &bcoll_ptr, "is_visible", UI_ITEM_R_ICON_ONLY, "", icon);
     }
   }
 
@@ -239,11 +237,6 @@ class BoneCollectionItem : public AbstractTreeViewItem {
       return;
     }
     UI_menutype_draw(&C, mt, &column);
-  }
-
-  bool supports_collapsing() const override
-  {
-    return true;
   }
 
   std::optional<bool> should_be_active() const override

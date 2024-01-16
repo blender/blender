@@ -714,7 +714,7 @@ static void drw_call_obinfos_init(DRWObjectInfos *ob_infos, const Object *ob)
   drw_call_calc_orco(ob, ob_infos->orcotexfac);
   /* Random float value. */
   uint random = (DST.dupli_source) ?
-                     DST.dupli_source->random_id :
+                    DST.dupli_source->random_id :
                      /* TODO(fclem): this is rather costly to do at runtime. Maybe we can
                       * put it in ob->runtime and make depsgraph ensure it is up to date. */
                      BLI_hash_int_2d(BLI_hash_string(ob->id.name + 2), 0);
@@ -1385,7 +1385,7 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd)
     DRW_debug_modelmat(scd->ob->object_to_world);
     BKE_pbvh_draw_debug_cb(
         pbvh,
-        (void (*)(PBVHNode * n, void *d, const float min[3], const float max[3], PBVHNodeFlags f))
+        (void (*)(PBVHNode *n, void *d, const float min[3], const float max[3], PBVHNodeFlags f))
             DRW_sculpt_debug_cb,
         &debug_node_nr);
   }
@@ -1426,7 +1426,8 @@ void DRW_shgroup_call_sculpt(DRWShadingGroup *shgroup,
   if (use_color) {
     if (const char *name = mesh->active_color_attribute) {
       if (const std::optional<bke::AttributeMetaData> meta_data = attributes.lookup_meta_data(
-              name)) {
+              name))
+      {
         attrs.append(pbvh::GenericRequest{name, meta_data->data_type, meta_data->domain});
       }
     }

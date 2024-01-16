@@ -26,6 +26,7 @@ set(SRC
   intern/curves_data.cc
   intern/curves_draw.cc
   intern/curves_edit.cc
+  intern/curves_extrude.cc
   intern/curves_masks.cc
   intern/curves_ops.cc
   intern/curves_selection.cc

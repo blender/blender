@@ -40,7 +40,7 @@ struct EditBone;
  *
  * \see #armature_bonecoll_new
  */
-struct BoneCollection *ANIM_bonecoll_new(const char *name) ATTR_WARN_UNUSED_RESULT;
+BoneCollection *ANIM_bonecoll_new(const char *name) ATTR_WARN_UNUSED_RESULT;
 
 /**
  * Free the bone collection.
@@ -49,26 +49,29 @@ struct BoneCollection *ANIM_bonecoll_new(const char *name) ATTR_WARN_UNUSED_RESU
  * of a bArmature. Normally bone collections are owned (and thus managed) by the armature.
  *
  * \see ANIM_armature_bonecoll_remove
+ *
+ * \param do_id_user_count whether to update user counts for IDs referenced from IDProperties of
+ * the bone collection. Needs to be false when freeing a CoW copy, true otherwise.
  */
-void ANIM_bonecoll_free(struct BoneCollection *bcoll);
+void ANIM_bonecoll_free(BoneCollection *bcoll, bool do_id_user_count = true);
 
 /**
  * Recalculate the armature & bone runtime data.
  *
  * TODO: move to BKE?
  */
-void ANIM_armature_runtime_refresh(struct bArmature *armature);
+void ANIM_armature_runtime_refresh(bArmature *armature);
 
 /**
  * Free armature & bone runtime data.
  * TODO: move to BKE?
  */
-void ANIM_armature_runtime_free(struct bArmature *armature);
+void ANIM_armature_runtime_free(bArmature *armature);
 
 /**
  * Add a new bone collection to the given armature.
  *
- * \param parent_index Index into the Armature's `collections_array`. -1 adds it
+ * \param parent_index: Index into the Armature's `collections_array`. -1 adds it
  * as a root (i.e. parentless) collection.
  *
  * The Armature owns the returned pointer.
@@ -99,7 +102,7 @@ void ANIM_armature_bonecoll_remove_from_index(bArmature *armature, const int ind
 /**
  * Remove a bone collection from the armature.
  */
-void ANIM_armature_bonecoll_remove(struct bArmature *armature, struct BoneCollection *bcoll);
+void ANIM_armature_bonecoll_remove(bArmature *armature, BoneCollection *bcoll);
 
 /**
  * Set the given bone collection as the active one.
@@ -109,15 +112,14 @@ void ANIM_armature_bonecoll_remove(struct bArmature *armature, struct BoneCollec
  * The bone collection MUST already be owned by this armature. If it is not,
  * this function will simply clear the active bone collection.
  */
-void ANIM_armature_bonecoll_active_set(struct bArmature *armature, struct BoneCollection *bcoll);
+void ANIM_armature_bonecoll_active_set(bArmature *armature, BoneCollection *bcoll);
 
 /**
  * Set the bone collection with the given index as the active one.
  *
  * Pass -1 to clear the active bone collection.
  */
-void ANIM_armature_bonecoll_active_index_set(struct bArmature *armature,
-                                             int bone_collection_index);
+void ANIM_armature_bonecoll_active_index_set(bArmature *armature, int bone_collection_index);
 
 /**
  * Set the bone collection with the given name as the active one.
@@ -125,7 +127,7 @@ void ANIM_armature_bonecoll_active_index_set(struct bArmature *armature,
  * Pass an empty name to clear the active bone collection. A non-existent name will also cause the
  * active bone collection to be cleared.
  */
-void ANIM_armature_bonecoll_active_name_set(struct bArmature *armature, const char *name);
+void ANIM_armature_bonecoll_active_name_set(bArmature *armature, const char *name);
 
 /**
  * Refresh the Armature runtime info about the active bone collection.
@@ -136,7 +138,7 @@ void ANIM_armature_bonecoll_active_name_set(struct bArmature *armature, const ch
  * collection. If that named collection cannot be found, the name will be
  * cleared.
  */
-void ANIM_armature_bonecoll_active_runtime_refresh(struct bArmature *armature);
+void ANIM_armature_bonecoll_active_runtime_refresh(bArmature *armature);
 
 /**
  * Determine whether the given bone collection is editable.
@@ -144,8 +146,7 @@ void ANIM_armature_bonecoll_active_runtime_refresh(struct bArmature *armature);
  * Bone collections are editable when they are local, so either on a local Armature or added to a
  * linked Armature via a library override in the local file.
  */
-bool ANIM_armature_bonecoll_is_editable(const struct bArmature *armature,
-                                        const struct BoneCollection *bcoll);
+bool ANIM_armature_bonecoll_is_editable(const bArmature *armature, const BoneCollection *bcoll);
 
 /**
  * Move the bone collection at from_index to its sibling at to_index.
@@ -196,26 +197,47 @@ int ANIM_armature_bonecoll_move_before_after_index(bArmature *armature,
  * \see blender::animrig::armature_bonecoll_move_to_parent() to move bone
  * collections between different parents.
  */
-bool ANIM_armature_bonecoll_move(struct bArmature *armature,
-                                 struct BoneCollection *bcoll,
-                                 int step);
+bool ANIM_armature_bonecoll_move(bArmature *armature, BoneCollection *bcoll, int step);
 
-struct BoneCollection *ANIM_armature_bonecoll_get_by_name(
-    struct bArmature *armature, const char *name) ATTR_WARN_UNUSED_RESULT;
+BoneCollection *ANIM_armature_bonecoll_get_by_name(bArmature *armature,
+                                                   const char *name) ATTR_WARN_UNUSED_RESULT;
 
 /** Scan the bone collections to find the one with the given name.
  *
  * \return the index of the bone collection, or -1 if not found.
  */
-int ANIM_armature_bonecoll_get_index_by_name(struct bArmature *armature,
+int ANIM_armature_bonecoll_get_index_by_name(bArmature *armature,
                                              const char *name) ATTR_WARN_UNUSED_RESULT;
 
-void ANIM_armature_bonecoll_name_set(struct bArmature *armature,
-                                     struct BoneCollection *bcoll,
-                                     const char *name);
+void ANIM_armature_bonecoll_name_set(bArmature *armature, BoneCollection *bcoll, const char *name);
 
-void ANIM_bonecoll_show(struct BoneCollection *bcoll);
-void ANIM_bonecoll_hide(struct BoneCollection *bcoll);
+/**
+ * Show this bone collection.
+ *
+ * This marks the bone collection as 'visible'. Whether it is effectively
+ * visible also depends on the visibility state of its ancestors. */
+void ANIM_bonecoll_show(bArmature *armature, BoneCollection *bcoll);
+
+/**
+ * Hide this bone collection.
+ *
+ * This marks the bone collection as 'hidden'. This also effectively hides its descendants,
+ * regardless of their visibility state. */
+void ANIM_bonecoll_hide(bArmature *armature, BoneCollection *bcoll);
+
+/**
+ * Show or hide this bone collection.
+ *
+ * Calling this with a hard-coded `is_visible` parameter is equivalent to
+ * calling the dedicated show/hide functions. Prefer the dedicated functions for
+ * clarity.
+ *
+ * \see ANIM_bonecoll_show
+ * \see ANIM_bonecoll_hide
+ */
+void ANIM_armature_bonecoll_is_visible_set(bArmature *armature,
+                                           BoneCollection *bcoll,
+                                           bool is_visible);
 
 /**
  * Assign the bone to the bone collection.
@@ -225,26 +247,23 @@ void ANIM_bonecoll_hide(struct BoneCollection *bcoll);
  * \return true if the bone was actually assigned, false if not (f.e. when it already was assigned
  * previously).
  */
-bool ANIM_armature_bonecoll_assign(struct BoneCollection *bcoll, struct Bone *bone);
-bool ANIM_armature_bonecoll_assign_editbone(struct BoneCollection *bcoll, struct EditBone *ebone);
-bool ANIM_armature_bonecoll_assign_and_move(struct BoneCollection *bcoll, struct Bone *bone);
-bool ANIM_armature_bonecoll_assign_and_move_editbone(struct BoneCollection *bcoll,
-                                                     struct EditBone *ebone);
-bool ANIM_armature_bonecoll_unassign(struct BoneCollection *bcoll, struct Bone *bone);
-bool ANIM_armature_bonecoll_unassign_editbone(struct BoneCollection *bcoll,
-                                              struct EditBone *ebone);
-void ANIM_armature_bonecoll_unassign_all(struct Bone *bone);
-void ANIM_armature_bonecoll_unassign_all_editbone(struct EditBone *ebone);
+bool ANIM_armature_bonecoll_assign(BoneCollection *bcoll, Bone *bone);
+bool ANIM_armature_bonecoll_assign_editbone(BoneCollection *bcoll, EditBone *ebone);
+bool ANIM_armature_bonecoll_assign_and_move(BoneCollection *bcoll, Bone *bone);
+bool ANIM_armature_bonecoll_assign_and_move_editbone(BoneCollection *bcoll, EditBone *ebone);
+bool ANIM_armature_bonecoll_unassign(BoneCollection *bcoll, Bone *bone);
+bool ANIM_armature_bonecoll_unassign_editbone(BoneCollection *bcoll, EditBone *ebone);
+void ANIM_armature_bonecoll_unassign_all(Bone *bone);
+void ANIM_armature_bonecoll_unassign_all_editbone(EditBone *ebone);
 
 /* Assign the edit bone to the armature's active collection. */
-void ANIM_armature_bonecoll_assign_active(const struct bArmature *armature,
-                                          struct EditBone *ebone);
+void ANIM_armature_bonecoll_assign_active(const bArmature *armature, EditBone *ebone);
 
 /**
  * Return whether the Armature's active bone is assigned to the given bone collection.
  */
-bool ANIM_armature_bonecoll_contains_active_bone(const struct bArmature *armature,
-                                                 const struct BoneCollection *bcoll);
+bool ANIM_armature_bonecoll_contains_active_bone(const bArmature *armature,
+                                                 const BoneCollection *bcoll);
 
 /**
  * Reconstruct the bone collection memberships, based on the bone runtime data.
@@ -252,7 +271,7 @@ bool ANIM_armature_bonecoll_contains_active_bone(const struct bArmature *armatur
  * This is needed to transition out of armature edit mode. That removes all bones, and
  * recreates them from the edit-bones.
  */
-void ANIM_armature_bonecoll_reconstruct(struct bArmature *armature);
+void ANIM_armature_bonecoll_reconstruct(bArmature *armature);
 
 /*
  * Armature/Bone Layer abstractions. These functions are intended as the sole
@@ -265,43 +284,38 @@ void ANIM_armature_bonecoll_reconstruct(struct bArmature *armature);
  */
 
 /** Return true when any of the bone's collections is visible. */
-bool ANIM_bonecoll_is_visible(const struct bArmature *armature, const struct Bone *bone);
+bool ANIM_bone_in_visible_collection(const bArmature *armature, const Bone *bone);
 
-inline bool ANIM_bone_is_visible(const struct bArmature *armature, const struct Bone *bone)
+inline bool ANIM_bone_is_visible(const bArmature *armature, const Bone *bone)
 {
   const bool bone_itself_visible = (bone->flag & (BONE_HIDDEN_P | BONE_HIDDEN_PG)) == 0;
-  return bone_itself_visible && ANIM_bonecoll_is_visible(armature, bone);
+  return bone_itself_visible && ANIM_bone_in_visible_collection(armature, bone);
 }
 
-bool ANIM_bonecoll_is_visible_editbone(const struct bArmature *armature,
-                                       const struct EditBone *ebone);
+bool ANIM_bonecoll_is_visible_editbone(const bArmature *armature, const EditBone *ebone);
 
-inline bool ANIM_bone_is_visible_editbone(const struct bArmature *armature,
-                                          const struct EditBone *ebone)
+inline bool ANIM_bone_is_visible_editbone(const bArmature *armature, const EditBone *ebone)
 {
   const bool bone_itself_visible = (ebone->flag & BONE_HIDDEN_A) == 0;
   return bone_itself_visible && ANIM_bonecoll_is_visible_editbone(armature, ebone);
 }
 
-inline bool ANIM_bonecoll_is_visible_pchan(const struct bArmature *armature,
-                                           const struct bPoseChannel *pchan)
+inline bool ANIM_bonecoll_is_visible_pchan(const bArmature *armature, const bPoseChannel *pchan)
 {
-  return ANIM_bonecoll_is_visible(armature, pchan->bone);
+  return ANIM_bone_in_visible_collection(armature, pchan->bone);
 }
 
-inline bool ANIM_bonecoll_is_visible_actbone(const struct bArmature *armature)
+inline bool ANIM_bonecoll_is_visible_actbone(const bArmature *armature)
 {
-  return ANIM_bonecoll_is_visible(armature, armature->act_bone);
+  return ANIM_bone_in_visible_collection(armature, armature->act_bone);
 }
 
-void ANIM_armature_bonecoll_show_all(struct bArmature *armature);
-void ANIM_armature_bonecoll_hide_all(struct bArmature *armature);
+void ANIM_armature_bonecoll_show_all(bArmature *armature);
+void ANIM_armature_bonecoll_hide_all(bArmature *armature);
 
-void ANIM_armature_bonecoll_show_from_bone(struct bArmature *armature, const struct Bone *bone);
-void ANIM_armature_bonecoll_show_from_ebone(struct bArmature *armature,
-                                            const struct EditBone *ebone);
-void ANIM_armature_bonecoll_show_from_pchan(struct bArmature *armature,
-                                            const struct bPoseChannel *pchan);
+void ANIM_armature_bonecoll_show_from_bone(bArmature *armature, const Bone *bone);
+void ANIM_armature_bonecoll_show_from_ebone(bArmature *armature, const EditBone *ebone);
+void ANIM_armature_bonecoll_show_from_pchan(bArmature *armature, const bPoseChannel *pchan);
 
 namespace blender::animrig {
 
@@ -316,29 +330,51 @@ int armature_bonecoll_find_index(const bArmature *armature, const ::BoneCollecti
  */
 int armature_bonecoll_find_parent_index(const bArmature *armature, int bcoll_index);
 
+/**
+ * Find the child number of this bone collection.
+ *
+ * This is the offset of this collection relative to the parent's first child.
+ * In other words, the first child has number 0, second child has number 1, etc.
+ *
+ * This requires a scan of the array, hence the function is called 'find' and not 'get'.
+ */
+int armature_bonecoll_child_number_find(const bArmature *armature, const ::BoneCollection *bcoll);
+
+/**
+ * Move this bone collection to a new child number.
+ *
+ * \return the new absolute index of the bone collection, or -1 if the new child number was not
+ * valid.
+ *
+ * \see armature_bonecoll_child_number_find
+ */
+int armature_bonecoll_child_number_set(bArmature *armature,
+                                       ::BoneCollection *bcoll,
+                                       int new_child_number);
+
 bool armature_bonecoll_is_root(const bArmature *armature, int bcoll_index);
 
 bool armature_bonecoll_is_child_of(const bArmature *armature,
                                    int potential_parent_index,
                                    int potential_child_index);
 
-bool armature_bonecoll_is_decendent_of(const bArmature *armature,
-                                       int potential_parent_index,
-                                       int potential_decendent_index);
+bool armature_bonecoll_is_descendant_of(const bArmature *armature,
+                                        int potential_parent_index,
+                                        int potential_descendant_index);
 
 bool bonecoll_has_children(const BoneCollection *bcoll);
 
 /**
  * Move a bone collection from one parent to another.
  *
- * \param from_bcoll_index index of the bone collection to move.
- * \param to_child_num gap index of where to insert the collection; 0 to make it
+ * \param from_bcoll_index: Index of the bone collection to move.
+ * \param to_child_num: Gap index of where to insert the collection; 0 to make it
  * the first child, and parent->child_count to make it the last child. -1 also
  * works as an indicator for the last child, as that makes it possible to call
  * this function without requiring the caller to find the BoneCollection* of the
  * parent.
- * \param from_parent_index index of its current parent (-1 if it is a root collection).
- * \param to_parent_index index of the new parent (-1 if it is to become a root collection).
+ * \param from_parent_index: Index of its current parent (-1 if it is a root collection).
+ * \param to_parent_index: Index of the new parent (-1 if it is to become a root collection).
  * \return the collection's new index in the collections_array.
  */
 int armature_bonecoll_move_to_parent(bArmature *armature,

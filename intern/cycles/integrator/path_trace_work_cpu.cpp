@@ -134,13 +134,15 @@ void PathTraceWorkCPU::render_samples_full_pipeline(KernelGlobalsCPU *kernel_glo
 
     if (has_bake) {
       if (!kernels_.integrator_init_from_bake(
-              kernel_globals, state, &sample_work_tile, render_buffer)) {
+              kernel_globals, state, &sample_work_tile, render_buffer))
+      {
         break;
       }
     }
     else {
       if (!kernels_.integrator_init_from_camera(
-              kernel_globals, state, &sample_work_tile, render_buffer)) {
+              kernel_globals, state, &sample_work_tile, render_buffer))
+      {
         break;
       }
     }

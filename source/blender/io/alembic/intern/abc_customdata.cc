@@ -18,8 +18,10 @@
 #include "DNA_meshdata_types.h"
 
 #include "BLI_math_base.h"
+#include "BLI_math_geom.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
 
@@ -501,6 +503,28 @@ static void read_custom_data_uvs(const ICompoundProperty &prop,
       config.mesh, prop_header.getName().c_str(), CD_PROP_FLOAT2);
 
   read_uvs(config, cd_data, uv_scope, sample.getVals(), uvs_indices);
+}
+
+void read_velocity(const V3fArraySamplePtr &velocities,
+                   const CDStreamConfig &config,
+                   const float velocity_scale)
+{
+  const int num_velocity_vectors = int(velocities->size());
+  if (num_velocity_vectors != config.mesh->verts_num) {
+    /* Files containing videogrammetry data may be malformed and export velocity data on missing
+     * frames (most likely by copying the last valid data). */
+    return;
+  }
+
+  CustomDataLayer *velocity_layer = BKE_id_attribute_new(
+      &config.mesh->id, "velocity", CD_PROP_FLOAT3, bke::AttrDomain::Point, nullptr);
+  float(*velocity)[3] = (float(*)[3])velocity_layer->data;
+
+  for (int i = 0; i < num_velocity_vectors; i++) {
+    const Imath::V3f &vel_in = (*velocities)[i];
+    copy_zup_from_yup(velocity[i], vel_in.getValue());
+    mul_v3_fl(velocity[i], velocity_scale);
+  }
 }
 
 void read_generated_coordinates(const ICompoundProperty &prop,

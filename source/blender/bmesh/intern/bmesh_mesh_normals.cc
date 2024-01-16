@@ -81,7 +81,7 @@ BLI_INLINE void bm_vert_calc_normals_accum_loop(const BMLoop *l_iter,
 
 static void bm_vert_calc_normals_impl(BMVert *v)
 {
-  /* Note on redundant unit-length edge-vector calculation:
+  /* NOTE(@ideasman42): Regarding redundant unit-length edge-vector calculation:
    *
    * This functions calculates unit-length edge-vector for every loop edge
    * in practice this means 2x `sqrt` calls per face-corner connected to each vertex.
@@ -106,7 +106,7 @@ static void bm_vert_calc_normals_impl(BMVert *v)
    *
    * In conclusion, the cost of caching & looking up edge-vectors both globally or per-vertex
    * doesn't save enough time to make it worthwhile.
-   * - Campbell. */
+   */
 
   float *v_no = v->no;
   zero_v3(v_no);
@@ -1062,7 +1062,7 @@ static void bm_mesh_loops_calc_normals_for_vert_without_clnors(
 }
 
 /**
- * BMesh version of bke::mesh::normals_calc_loop() in `mesh_evaluate.cc`
+ * BMesh version of bke::mesh::normals_calc_corners() in `mesh_evaluate.cc`
  * Will use first clnors_data array, and fallback to cd_loop_clnors_offset
  * (use nullptr and -1 to not use clnors).
  *
@@ -1413,7 +1413,7 @@ static bool bm_mesh_loops_split_lnor_fans(BMesh *bm,
       /* Notes:
        * * In case of mono-loop smooth fan, we have nothing to do.
        * * Loops in this linklist are ordered (in reversed order compared to how they were
-       *   discovered by bke::mesh::normals_calc_loop(), but this is not a problem).
+       *   discovered by bke::mesh::normals_calc_corners(), but this is not a problem).
        *   Which means if we find a mismatching clnor,
        *   we know all remaining loops will have to be in a new, different smooth fan/lnor space.
        * * In smooth fan case, we compare each clnor against a ref one,
@@ -1849,7 +1849,8 @@ void BM_lnorspace_rebuild(BMesh *bm, bool preserve_clnor)
     BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
       BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
         if (BM_ELEM_API_FLAG_TEST(l, BM_LNORSPACE_UPDATE) ||
-            bm->spacearr_dirty & BM_SPACEARR_DIRTY_ALL) {
+            bm->spacearr_dirty & BM_SPACEARR_DIRTY_ALL)
+        {
           short(*clnor)[2] = static_cast<short(*)[2]>(
               BM_ELEM_CD_GET_VOID_P(l, cd_loop_clnors_offset));
           int l_index = BM_elem_index_get(l);
@@ -1879,7 +1880,8 @@ void BM_lnorspace_rebuild(BMesh *bm, bool preserve_clnor)
   BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
     BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
       if (BM_ELEM_API_FLAG_TEST(l, BM_LNORSPACE_UPDATE) ||
-          bm->spacearr_dirty & BM_SPACEARR_DIRTY_ALL) {
+          bm->spacearr_dirty & BM_SPACEARR_DIRTY_ALL)
+      {
         if (preserve_clnor) {
           short(*clnor)[2] = static_cast<short(*)[2]>(
               BM_ELEM_CD_GET_VOID_P(l, cd_loop_clnors_offset));

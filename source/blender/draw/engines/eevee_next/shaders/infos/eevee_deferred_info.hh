@@ -14,19 +14,16 @@
 
 GPU_SHADER_CREATE_INFO(eevee_gbuffer_data)
     .define("GBUFFER_LOAD")
-    .sampler(8, ImageType::UINT_2D, "gbuf_header_tx")
-    .sampler(9, ImageType::FLOAT_2D_ARRAY, "gbuf_closure_tx")
-    .sampler(10, ImageType::FLOAT_2D_ARRAY, "gbuf_normal_tx");
+    .sampler(12, ImageType::UINT_2D, "gbuf_header_tx")
+    .sampler(13, ImageType::FLOAT_2D_ARRAY, "gbuf_closure_tx")
+    .sampler(14, ImageType::FLOAT_2D_ARRAY, "gbuf_normal_tx");
 
 GPU_SHADER_CREATE_INFO(eevee_deferred_tile_classify)
     .fragment_source("eevee_deferred_tile_classify_frag.glsl")
-    /* Early fragment test is needed to avoid processing background fragments. */
-    .early_fragment_test(true)
     .additional_info("eevee_shared", "draw_fullscreen")
     .subpass_in(1, Type::UINT, "in_gbuffer_header", DEFERRED_GBUFFER_ROG_ID)
     .typedef_source("draw_shader_shared.h")
-    .image(0, GPU_R8UI, Qualifier::WRITE, ImageType::UINT_2D_ARRAY, "tile_mask_img")
-    .push_constant(Type::INT, "closure_tile_size_shift")
+    .push_constant(Type::INT, "current_bit")
     .do_static_compilation(true);
 
 GPU_SHADER_CREATE_INFO(eevee_deferred_tile_compact)
@@ -105,9 +102,9 @@ GPU_SHADER_CREATE_INFO(eevee_deferred_combine)
     .sampler(2, ImageType::FLOAT_2D, "direct_radiance_1_tx")
     .sampler(3, ImageType::FLOAT_2D, "direct_radiance_2_tx")
     .sampler(4, ImageType::FLOAT_2D, "direct_radiance_3_tx")
-    .sampler(5, ImageType::FLOAT_2D, "indirect_diffuse_tx")
-    .sampler(6, ImageType::FLOAT_2D, "indirect_reflect_tx")
-    .sampler(7, ImageType::FLOAT_2D, "indirect_refract_tx")
+    .sampler(5, ImageType::FLOAT_2D, "indirect_radiance_1_tx")
+    .sampler(6, ImageType::FLOAT_2D, "indirect_radiance_2_tx")
+    .sampler(7, ImageType::FLOAT_2D, "indirect_radiance_3_tx")
     .fragment_out(0, Type::VEC4, "out_combined")
     .additional_info("eevee_shared",
                      "eevee_gbuffer_data",
@@ -127,6 +124,7 @@ GPU_SHADER_CREATE_INFO(eevee_deferred_capture_eval)
     /* Inputs. */
     .fragment_out(0, Type::VEC4, "out_radiance")
     .define("SHADOW_SUBSURFACE")
+    .define("LIGHT_CLOSURE_EVAL_COUNT", "2")
     .additional_info("eevee_shared",
                      "eevee_gbuffer_data",
                      "eevee_utility_texture",

@@ -19,7 +19,7 @@ class MTLStorageBuf;
 
 /**
  * Implementation of Uniform Buffers using Metal.
- **/
+ */
 class MTLUniformBuf : public UniformBuf {
   friend class MTLStorageBuf; /* For bind as SSBO resource access. */
 

@@ -18,8 +18,8 @@
 #include "draw_instance_data.h"
 #include "draw_manager.h"
 
-#include "DRW_engine.h"
-#include "DRW_render.h" /* For DRW_shgroup_get_instance_count() */
+#include "DRW_engine.hh"
+#include "DRW_render.hh" /* For DRW_shgroup_get_instance_count() */
 
 #include "GPU_material.h"
 

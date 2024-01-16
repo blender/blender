@@ -1406,7 +1406,7 @@ PointerRNA *UI_but_operator_ptr_get(uiBut *but);
 void UI_but_context_ptr_set(uiBlock *block, uiBut *but, const char *name, const PointerRNA *ptr);
 const PointerRNA *UI_but_context_ptr_get(const uiBut *but,
                                          const char *name,
-                                         const StructRNA *type CPP_ARG_DEFAULT(nullptr));
+                                         const StructRNA *type = nullptr);
 const bContextStore *UI_but_context_get(const uiBut *but);
 
 void UI_but_unit_type_set(uiBut *but, int unit_type);
@@ -1426,7 +1426,9 @@ enum uiStringInfoType {
   BUT_GET_TIP,
   BUT_GET_RNA_TIP,
   BUT_GET_RNAENUM_TIP,
+  /** Buttons assigned to an operator (common case). */
   BUT_GET_OP_KEYMAP,
+  /** Use for properties that are bound to one of the context cycle, etc. keys. */
   BUT_GET_PROP_KEYMAP,
 };
 
@@ -1788,15 +1790,15 @@ void UI_but_func_tooltip_set(uiBut *but, uiButToolTipFunc func, void *arg, uiFre
  */
 void UI_but_func_tooltip_label_set(uiBut *but, std::function<std::string(const uiBut *but)> func);
 
-typedef enum uiTooltipStyle {
+enum uiTooltipStyle {
   UI_TIP_STYLE_NORMAL = 0, /* Regular text. */
   UI_TIP_STYLE_HEADER,     /* Header text. */
   UI_TIP_STYLE_MONO,       /* Mono-spaced text. */
   UI_TIP_STYLE_IMAGE,      /* Image field. */
   UI_TIP_STYLE_SPACER,     /* Padding to separate sections. */
-} uiTooltipStyle;
+};
 
-typedef enum uiTooltipColorID {
+enum uiTooltipColorID {
   UI_TIP_LC_MAIN = 0, /* Color of primary text. */
   UI_TIP_LC_VALUE,    /* Color for the value of buttons (also shortcuts). */
   UI_TIP_LC_ACTIVE,   /* Color of titles of active enum values. */
@@ -1804,7 +1806,7 @@ typedef enum uiTooltipColorID {
   UI_TIP_LC_PYTHON,   /* Color of python snippets. */
   UI_TIP_LC_ALERT,    /* Warning text color, eg: why operator can't run. */
   UI_TIP_LC_MAX
-} uiTooltipColorID;
+};
 
 void UI_but_func_tooltip_custom_set(uiBut *but,
                                     uiButToolTipCustomFunc func,
@@ -1864,9 +1866,9 @@ PointerRNA *UI_but_extra_operator_icon_opptr_get(uiButExtraOpIcon *extra_icon);
  * Get the scaled size for a preview button (typically #UI_BTyPE_PREVIEW_TILE) based on \a
  * size_px plus padding.
  */
-int UI_preview_tile_size_x(const int size_px CPP_ARG_DEFAULT(96));
-int UI_preview_tile_size_y(const int size_px CPP_ARG_DEFAULT(96));
-int UI_preview_tile_size_y_no_label(const int size_px CPP_ARG_DEFAULT(96));
+int UI_preview_tile_size_x(const int size_px = 96);
+int UI_preview_tile_size_y(const int size_px = 96);
+int UI_preview_tile_size_y_no_label(const int size_px = 96);
 
 /* Autocomplete
  *
@@ -2280,6 +2282,7 @@ float uiLayoutGetUnitsY(uiLayout *layout);
 eUIEmbossType uiLayoutGetEmboss(uiLayout *layout);
 bool uiLayoutGetPropSep(uiLayout *layout);
 bool uiLayoutGetPropDecorate(uiLayout *layout);
+Panel *uiLayoutGetRootPanel(uiLayout *layout);
 
 /* Layout create functions. */
 
@@ -2293,9 +2296,9 @@ uiLayout *uiLayoutRow(uiLayout *layout, bool align);
  * property name pair. This gives the caller flexibility to decide who should own the open-state.
  *
  * \param C: The context is necessary because sometimes the panel may be forced to be open by the
- *   context even of the open-property is `false`. This can happen with e.g. property search.
- * \param layout: The `uiLayout` that should contain the subpanel. Only layouts that span the full
- *   width of the region are supported for now.
+ * context even of the open-property is `false`. This can happen with e.g. property search.
+ * \param layout: The `uiLayout` that should contain the sub-panel.
+ * Only layouts that span the full width of the region are supported for now.
  * \param name: Text that's shown in the panel header. It should already be translated.
  * \param open_prop_owner: Data that contains the open-property.
  * \param open_prop_name: Name of the open-property in `open_prop_owner`.
@@ -2711,6 +2714,10 @@ void uiTemplateGreasePencilLayerTree(uiLayout *layout, bContext *C);
 #endif
 
 void uiTemplateNodeTreeInterface(uiLayout *layout, PointerRNA *ptr);
+/**
+ * Draw all node buttons and socket default values with the same panel structure used by the node.
+ */
+void uiTemplateNodeInputs(uiLayout *layout, bContext *C, PointerRNA *ptr);
 
 /**
  * \return: A RNA pointer for the operator properties.
@@ -2880,10 +2887,10 @@ void uiItemPointerR(uiLayout *layout,
                     int icon);
 
 /**
-* Create a list of enum items.
-
+ * Create a list of enum items.
+ *
  * \param active: an optional item to highlight.
-*/
+ */
 void uiItemsFullEnumO(uiLayout *layout,
                       const char *opname,
                       const char *propname,

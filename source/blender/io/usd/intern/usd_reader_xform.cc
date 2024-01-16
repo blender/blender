@@ -8,7 +8,7 @@
 #include "usd_reader_xform.h"
 
 #include "BKE_constraint.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_library.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
@@ -51,7 +51,23 @@ void USDXformReader::read_object_data(Main * bmain, const double motionSampleTim
 
   read_matrix(transform_from_usd, motionSampleTime, settings_->scale, &is_constant);
 
+<<<<<<< HEAD
   needs_cachefile_ = !is_constant;
+=======
+  if (!is_constant && settings_->get_cache_file) {
+    bConstraint *con = BKE_constraint_add_for_object(
+        object_, nullptr, CONSTRAINT_TYPE_TRANSFORM_CACHE);
+    bTransformCacheConstraint *data = static_cast<bTransformCacheConstraint *>(con->data);
+
+    std::string prim_path = use_parent_xform_ ? prim_.GetParent().GetPath().GetAsString() :
+                                                prim_path_;
+
+    STRNCPY(data->object_path, prim_path.c_str());
+
+    data->cache_file = settings_->get_cache_file();
+    id_us_plus(&data->cache_file->id);
+  }
+>>>>>>> main
 
   BKE_object_apply_mat4(object_, transform_from_usd, true, false);
 }

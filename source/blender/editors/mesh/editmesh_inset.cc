@@ -71,7 +71,7 @@ static void edbm_inset_update_header(wmOperator *op, bContext *C)
 {
   InsetData *opdata = static_cast<InsetData *>(op->customdata);
 
-  const char *str = TIP_(
+  const char *str = RPT_(
       "Confirm: Enter/LClick, Cancel: (Esc/RClick), Thickness: %s, "
       "Depth (Ctrl to tweak): %s (%s), Outset (O): (%s), Boundary (B): (%s), Individual (I): "
       "(%s)");

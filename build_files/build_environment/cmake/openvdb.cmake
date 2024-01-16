@@ -47,7 +47,7 @@ set(OPENVDB_EXTRA_ARGS
   # -DLLVM_DIR=${LIBDIR}/llvm/lib/cmake/llvm
 )
 
-set(OPENVDB_PATCH 
+set(OPENVDB_PATCH
   ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/openvdb/src/openvdb < ${PATCH_DIR}/openvdb.diff &&
   ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/openvdb/src/openvdb < ${PATCH_DIR}/openvdb_1706.diff &&
   ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/openvdb/src/openvdb < ${PATCH_DIR}/openvdb_1733.diff

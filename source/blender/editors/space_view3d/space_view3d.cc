@@ -42,7 +42,7 @@
 #include "BKE_idprop.h"
 #include "BKE_lattice.hh"
 #include "BKE_layer.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_lib_query.h"
 #include "BKE_lib_remap.hh"
 #include "BKE_main.hh"
@@ -67,11 +67,11 @@
 
 #include "GPU_matrix.h"
 
-#include "DRW_engine.h"
+#include "DRW_engine.hh"
 
 #include "WM_api.hh"
 #include "WM_message.hh"
-#include "WM_toolsystem.h"
+#include "WM_toolsystem.hh"
 #include "WM_types.hh"
 
 #include "RE_engine.h"

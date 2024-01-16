@@ -32,9 +32,11 @@ class SpellChecker:
         "duplications",
         "effector",
         "equi",  # equi-angular, etc.
+        "eszett",  # German Eszett
         "et",  # et al.
         "fader",
         "globbing",
+        "guillemet",
         "gridded",
         "haptics",
         "hasn",  # hasn't
@@ -49,6 +51,7 @@ class SpellChecker:
         "kyrgyz",
         "latin",
         "merchantability",
+        "mille",  # Per Mille
         "mplayer",
         "ons",  # add-ons
         "pong",  # ping pong
@@ -193,6 +196,7 @@ class SpellChecker:
         "raytree",
         "readonly",
         "realtime",
+        "recompute", "recomputation",
         "reinject", "reinjected",
         "rekey",
         "relink",
@@ -233,6 +237,7 @@ class SpellChecker:
         "subsize",
         "substep", "substeps",
         "substring",
+        "supercompress", "supercompression",
         "targetless",
         "textbox", "textboxes",
         "tilemode",
@@ -451,6 +456,7 @@ class SpellChecker:
         "parametrization",
         "pheomelanin",
         "photoreceptor",
+        "picometer", "picometers",
         "poly",
         "polyline", "polylines",
         "probabilistically",
@@ -670,7 +676,7 @@ class SpellChecker:
         "ptcache",
         "dpaint",
 
-        # Algorithm/library names
+        # Algorithm/library/tools names
         "ashikhmin",  # Ashikhmin-Shirley
         "arsloe",  # Texel-Marsen-Arsloe
         "beckmann",
@@ -688,6 +694,7 @@ class SpellChecker:
         "devlin",
         "embree",
         "gmp",
+        "gltfpack",
         "hosek",
         "kutta",
         "kuwahara",

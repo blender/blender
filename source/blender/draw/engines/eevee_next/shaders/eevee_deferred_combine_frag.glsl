@@ -13,7 +13,6 @@
 
 vec3 load_radiance_direct(ivec2 texel, int i)
 {
-  /* TODO(fclem): Layered texture. */
   switch (i) {
     case 0:
       return texelFetch(direct_radiance_1_tx, texel, 0).rgb;
@@ -27,17 +26,15 @@ vec3 load_radiance_direct(ivec2 texel, int i)
   return vec3(0);
 }
 
-vec3 load_radiance_indirect(ivec2 texel, ClosureType closure_type)
+vec3 load_radiance_indirect(ivec2 texel, int i)
 {
-  /* TODO(fclem): Layered texture. */
-  switch (closure_type) {
-    case CLOSURE_BSSRDF_BURLEY_ID:
-    case CLOSURE_BSDF_DIFFUSE_ID:
-      return texelFetch(indirect_diffuse_tx, texel, 0).rgb;
-    case CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID:
-      return texelFetch(indirect_reflect_tx, texel, 0).rgb;
-    case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
-      return texelFetch(indirect_refract_tx, texel, 0).rgb;
+  switch (i) {
+    case 0:
+      return texelFetch(indirect_radiance_1_tx, texel, 0).rgb;
+    case 1:
+      return texelFetch(indirect_radiance_2_tx, texel, 0).rgb;
+    case 2:
+      return texelFetch(indirect_radiance_3_tx, texel, 0).rgb;
     default:
       return vec3(0);
   }
@@ -61,20 +58,23 @@ void main()
 
   for (int i = 0; i < GBUFFER_LAYER_MAX && i < gbuf.closure_count; i++) {
     vec3 closure_light = load_radiance_direct(texel, i);
+    ClosureUndetermined cl = gbuffer_closure_get(gbuf, i);
 
-    /* TODO(fclem): Enable for OpenGL and Vulkan once they fully support specialization constants.
-     */
-#ifndef GPU_METAL
-    bool use_combined_lightprobe_eval = uniform_buf.pipeline.use_combined_lightprobe_eval;
-#endif
     if (!use_combined_lightprobe_eval) {
-      closure_light += load_radiance_indirect(texel, gbuf.closures[i].type);
+      vec3 closure_indirect = load_radiance_indirect(texel, i);
+      if (cl.type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID) {
+        /* TODO(fclem): Add instead of replacing when we support correct refracted light. */
+        closure_light = closure_indirect;
+      }
+      else {
+        closure_light += closure_indirect;
+      }
     }
 
-    closure_light *= gbuf.closures[i].color;
+    closure_light *= cl.color;
     out_combined.rgb += closure_light;
 
-    switch (gbuf.closures[i].type) {
+    switch (cl.type) {
       case CLOSURE_BSDF_TRANSLUCENT_ID:
       case CLOSURE_BSSRDF_BURLEY_ID:
       case CLOSURE_BSDF_DIFFUSE_ID:

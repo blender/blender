@@ -13,7 +13,7 @@
 #include "BLI_timecode.h"
 #include "PIL_time.h"
 
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 
 #include "DEG_depsgraph_query.hh"
 

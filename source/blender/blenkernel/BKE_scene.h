@@ -124,7 +124,7 @@ void BKE_scene_set_background(struct Main *bmain, struct Scene *sce);
 struct Scene *BKE_scene_set_name(struct Main *bmain, const char *name);
 
 /**
- * \param flag: copying options (see BKE_lib_id.h's `LIB_ID_COPY_...` flags for more).
+ * \param flag: copying options (see BKE_lib_id.hh's `LIB_ID_COPY_...` flags for more).
  */
 struct ToolSettings *BKE_toolsettings_copy(struct ToolSettings *toolsettings, int flag);
 void BKE_toolsettings_free(struct ToolSettings *toolsettings);

@@ -16,7 +16,7 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_deform.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_lib_query.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mirror.hh"
@@ -244,7 +244,8 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
        */
       if (use_correct_order_on_merge) {
         if (UNLIKELY(len_squared_v3v3(positions[vert_index_prev], positions[vert_index]) <
-                     tolerance_sq)) {
+                     tolerance_sq))
+        {
           *vtmap_b = i;
           (*r_vert_merge_map_len)++;
 
@@ -261,7 +262,8 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
       }
       else {
         if (UNLIKELY(len_squared_v3v3(positions[vert_index_prev], positions[vert_index]) <
-                     tolerance_sq)) {
+                     tolerance_sq))
+        {
           *vtmap_a = src_verts_num + i;
           (*r_vert_merge_map_len)++;
 
@@ -394,7 +396,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
   if (ob->type == OB_MESH && CustomData_has_layer(&result->corner_data, CD_CUSTOMLOOPNORMAL) &&
       result->faces_num > 0)
   {
-    blender::Array<blender::float3> loop_normals(result_corner_verts.size());
+    blender::Array<blender::float3> corner_normals(result_corner_verts.size());
     blender::short2 *clnors = static_cast<blender::short2 *>(CustomData_get_layer_for_write(
         &result->corner_data, CD_CUSTOMLOOPNORMAL, result->corners_num));
     blender::bke::mesh::CornerNormalSpaceArray lnors_spacearr;
@@ -405,23 +407,23 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
     invert_m4_m4(mtx_nor, mtx);
     transpose_m4(mtx_nor);
 
-    /* calculate custom normals into loop_normals, then mirror first half into second half */
+    /* calculate custom normals into corner_normals, then mirror first half into second half */
     const bke::AttributeAccessor attributes = result->attributes();
     const VArraySpan sharp_edges = *attributes.lookup<bool>("sharp_edge", AttrDomain::Edge);
     const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", AttrDomain::Face);
-    blender::bke::mesh::normals_calc_loop(result->vert_positions(),
-                                          result_edges,
-                                          result_faces,
-                                          result_corner_verts,
-                                          result_corner_edges,
-                                          result->corner_to_face_map(),
-                                          result->vert_normals(),
-                                          result->face_normals(),
-                                          sharp_edges,
-                                          sharp_faces,
-                                          clnors,
-                                          &lnors_spacearr,
-                                          loop_normals);
+    blender::bke::mesh::normals_calc_corners(result->vert_positions(),
+                                             result_edges,
+                                             result_faces,
+                                             result_corner_verts,
+                                             result_corner_edges,
+                                             result->corner_to_face_map(),
+                                             result->vert_normals(),
+                                             result->face_normals(),
+                                             sharp_edges,
+                                             sharp_faces,
+                                             clnors,
+                                             &lnors_spacearr,
+                                             corner_normals);
 
     /* mirroring has to account for loops being reversed in faces in second half */
     for (const int i : src_faces.index_range()) {
@@ -434,12 +436,12 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
           mirrorj += result_faces[mirror_i].size() - (j - src_face.start());
         }
 
-        copy_v3_v3(loop_normals[mirrorj], loop_normals[j]);
-        mul_m4_v3(mtx_nor, loop_normals[mirrorj]);
+        copy_v3_v3(corner_normals[mirrorj], corner_normals[j]);
+        mul_m4_v3(mtx_nor, corner_normals[mirrorj]);
 
         const int space_index = lnors_spacearr.corner_space_indices[mirrorj];
-        clnors[mirrorj] = blender::bke::mesh::lnor_space_custom_normal_to_data(
-            lnors_spacearr.spaces[space_index], loop_normals[mirrorj]);
+        clnors[mirrorj] = blender::bke::mesh::corner_space_custom_normal_to_data(
+            lnors_spacearr.spaces[space_index], corner_normals[mirrorj]);
       }
     }
   }
@@ -454,7 +456,8 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
         for (int i = 0; i < src_verts_num; dvert++, i++) {
           /* merged vertices get both groups, others get flipped */
           if (use_correct_order_on_merge && do_vtargetmap &&
-              ((*r_vert_merge_map)[i + src_verts_num] != -1)) {
+              ((*r_vert_merge_map)[i + src_verts_num] != -1))
+          {
             BKE_defvert_flip_merged(dvert - src_verts_num, flip_map, flip_map_len);
           }
           else if (!use_correct_order_on_merge && do_vtargetmap && ((*r_vert_merge_map)[i] != -1))

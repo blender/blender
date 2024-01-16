@@ -51,10 +51,10 @@ ClosureType closure_type_get(ClosureRefraction cl)
   return CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID;
 }
 
-// ClosureType closure_type_get(ClosureSubsurface cl)
-// {
-//   return CLOSURE_BSSRDF_BURLEY_ID;
-// }
+ClosureType closure_type_get(ClosureSubsurface cl)
+{
+  return CLOSURE_BSSRDF_BURLEY_ID;
+}
 
 /**
  * Returns true if the closure is to be selected based on the input weight.
@@ -127,11 +127,15 @@ Closure closure_eval(ClosureDiffuse diffuse)
 {
   ClosureUndetermined cl;
   closure_base_copy(cl, diffuse);
-  /* TODO: Have dedicated ClosureSubsurface */
-  if (diffuse.sss_id != 0u) {
-    cl.type = CLOSURE_BSSRDF_BURLEY_ID;
-    cl.data.rgb = diffuse.sss_radius;
-  }
+  closure_select(g_diffuse_data, g_diffuse_rand, cl);
+  return Closure(0);
+}
+
+Closure closure_eval(ClosureSubsurface diffuse)
+{
+  ClosureUndetermined cl;
+  closure_base_copy(cl, diffuse);
+  cl.data.rgb = diffuse.sss_radius;
   closure_select(g_diffuse_data, g_diffuse_rand, cl);
   return Closure(0);
 }

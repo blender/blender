@@ -32,6 +32,14 @@ struct wmDrawBuffer;
 struct wmTimer;
 struct wmTooltipState;
 struct Panel_Runtime;
+#ifdef __cplusplus
+namespace blender::bke {
+struct FileHandlerType;
+}
+using FileHandlerTypeHandle = blender::bke::FileHandlerType;
+#else
+typedef struct FileHandlerTypeHandle FileHandlerTypeHandle;
+#endif
 
 /* TODO: Doing this is quite ugly :)
  * Once the top-bar is merged bScreen should be refactored to use ScrAreaMap. */
@@ -121,6 +129,19 @@ typedef struct ScrAreaMap {
   ListBase areabase;
 } ScrAreaMap;
 
+typedef struct LayoutPanelState {
+  struct LayoutPanelState *next, *prev;
+  /** Identifier of the panel. */
+  char *idname;
+  uint8_t flag;
+  char _pad[7];
+} LayoutPanelState;
+
+enum LayoutPanelStateFlag {
+  /** If set, the panel is currently open. Otherwise it is collapsed. */
+  LAYOUT_PANEL_STATE_FLAG_OPEN = (1 << 0),
+};
+
 /** The part from uiBlock that needs saved in file. */
 typedef struct Panel {
   struct Panel *next, *prev;
@@ -149,6 +170,12 @@ typedef struct Panel {
   void *activedata;
   /** Sub panels. */
   ListBase children;
+
+  /**
+   * List of #LayoutPanelState. This stores the open-close-state of layout-panels created with
+   * `layout.panel(...)` in Python. For more information on layout-panels, see `uiLayoutPanel`.
+   */
+  ListBase layout_panel_states;
 
   struct Panel_Runtime *runtime;
 } Panel;
@@ -826,5 +853,5 @@ ENUM_OPERATORS(AssetShelfSettings_DisplayFlag, ASSETSHELF_SHOW_NAMES);
 typedef struct FileHandler {
   DNA_DEFINE_CXX_METHODS(FileHandler)
   /** Runtime. */
-  struct FileHandlerType *type;
+  FileHandlerTypeHandle *type;
 } FileHandler;

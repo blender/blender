@@ -36,6 +36,7 @@ class AbcPointsReader final : public AbcObjectReader {
 
 void read_points_sample(const Alembic::AbcGeom::IPointsSchema &schema,
                         const Alembic::AbcGeom::ISampleSelector &selector,
-                        CDStreamConfig &config);
+                        CDStreamConfig &config,
+                        ImportSettings *settings);
 
 }  // namespace blender::io::alembic
