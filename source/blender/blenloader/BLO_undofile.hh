@@ -80,25 +80,25 @@ void BLO_memfile_chunk_add(MemFileWriteData *mem_data, const char *buf, size_t s
  */
 /* **************** support for memory-write, for undo buffers *************** */
 
-extern void BLO_memfile_free(MemFile *memfile);
+void BLO_memfile_free(MemFile *memfile);
 /**
  * Result is that 'first' is being freed.
  * To keep the #MemFile linked list of consistent, `first` is always first in list.
  */
-extern void BLO_memfile_merge(MemFile *first, MemFile *second);
+void BLO_memfile_merge(MemFile *first, MemFile *second);
 /**
  * Clear is_identical_future before adding next memfile.
  */
-extern void BLO_memfile_clear_future(MemFile *memfile);
+void BLO_memfile_clear_future(MemFile *memfile);
 
 /* Utilities. */
 
-extern Main *BLO_memfile_main_get(MemFile *memfile, Main *bmain, Scene **r_scene);
+Main *BLO_memfile_main_get(MemFile *memfile, Main *bmain, Scene **r_scene);
 /**
  * Saves .blend using undo buffer.
  *
  * \return success.
  */
-extern bool BLO_memfile_write_file(MemFile *memfile, const char *filepath);
+bool BLO_memfile_write_file(MemFile *memfile, const char *filepath);
 
 FileReader *BLO_memfile_new_filereader(MemFile *memfile, int undo_direction);
