@@ -6851,10 +6851,11 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
       }
     }
     else if (type == BUT_GET_PROP_KEYMAP) {
-      /* for properties that are bound to one of the context cycle, etc. keys... */
-      char buf[128];
-      if (ui_but_event_property_operator_string(C, but, buf, sizeof(buf))) {
-        tmp = BLI_strdup(buf);
+      if (!(ui_block_is_menu(but->block) && !ui_block_is_pie_menu(but->block))) {
+        char buf[128];
+        if (ui_but_event_property_operator_string(C, but, buf, sizeof(buf))) {
+          tmp = BLI_strdup(buf);
+        }
       }
     }
 

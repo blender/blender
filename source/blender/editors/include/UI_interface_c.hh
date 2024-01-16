@@ -1426,7 +1426,9 @@ enum uiStringInfoType {
   BUT_GET_TIP,
   BUT_GET_RNA_TIP,
   BUT_GET_RNAENUM_TIP,
+  /** Buttons assigned to an operator (common case). */
   BUT_GET_OP_KEYMAP,
+  /** Use for properties that are bound to one of the context cycle, etc. keys. */
   BUT_GET_PROP_KEYMAP,
 };
 
