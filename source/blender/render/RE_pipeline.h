@@ -502,6 +502,9 @@ RenderResult *RE_DuplicateRenderResult(RenderResult *rr);
 struct ImBuf *RE_RenderPassEnsureImBuf(RenderPass *render_pass);
 struct ImBuf *RE_RenderViewEnsureImBuf(const RenderResult *render_result, RenderView *render_view);
 
+/* Returns true if the pass is a color (as opposite of data) and needs to be color managed. */
+bool RE_RenderPassIsColor(const RenderPass *render_pass);
+
 #ifdef __cplusplus
 }
 #endif
