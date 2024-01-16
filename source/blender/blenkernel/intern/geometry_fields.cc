@@ -766,7 +766,8 @@ bool try_capture_field_on_geometry(GeometryComponent &component,
                                    const fn::Field<bool> &selection,
                                    const fn::GField &field)
 {
-  if (component.type() == GeometryComponent::Type::GreasePencil &&
+  const GeometryComponent::Type component_type = component.type();
+  if (component_type == GeometryComponent::Type::GreasePencil &&
       ELEM(domain, AttrDomain::Point, AttrDomain::Curve))
   {
     /* Capture the field on every layer individually. */
@@ -797,6 +798,10 @@ bool try_capture_field_on_geometry(GeometryComponent &component,
       }
     });
     return any_success;
+  }
+  if (component_type == GeometryComponent::Type::GreasePencil && domain != AttrDomain::Layer) {
+    /* The remaining code only handles the layer domain for grease pencil geometries. */
+    return false;
   }
 
   MutableAttributeAccessor attributes = *component.attributes_for_write();
