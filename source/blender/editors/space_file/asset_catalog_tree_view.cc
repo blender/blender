@@ -376,11 +376,11 @@ bool AssetCatalogDropTarget::can_drop(const wmDrag &drag, const char **r_disable
      * path and the catalog system will generate missing parents from the path). But it does
      * appear broken to users, so disabling entirely. */
     if (catalog_item_.catalog_path().is_contained_in(drag_catalog->path)) {
-      *r_disabled_hint = TIP_("Catalog cannot be dropped into itself");
+      *r_disabled_hint = RPT_("Catalog cannot be dropped into itself");
       return false;
     }
     if (catalog_item_.catalog_path() == drag_catalog->path.parent()) {
-      *r_disabled_hint = TIP_("Catalog is already placed inside this catalog");
+      *r_disabled_hint = RPT_("Catalog is already placed inside this catalog");
       return false;
     }
     return true;
@@ -521,7 +521,7 @@ bool AssetCatalogDropTarget::has_droppable_asset(const wmDrag &drag, const char 
     }
   }
 
-  *r_disabled_hint = TIP_("Only assets from this current file can be moved between catalogs");
+  *r_disabled_hint = RPT_("Only assets from this current file can be moved between catalogs");
   return false;
 }
 
@@ -529,7 +529,7 @@ bool AssetCatalogDropTarget::can_modify_catalogs(const ::AssetLibrary &library,
                                                  const char **r_disabled_hint)
 {
   if (ED_asset_catalogs_read_only(library)) {
-    *r_disabled_hint = TIP_("Catalogs cannot be edited in this asset library");
+    *r_disabled_hint = RPT_("Catalogs cannot be edited in this asset library");
     return false;
   }
   return true;
@@ -607,7 +607,7 @@ bool AssetCatalogTreeViewAllItem::DropTarget::can_drop(const wmDrag &drag,
 
   const AssetCatalog *drag_catalog = AssetCatalogDropTarget::get_drag_catalog(drag, library);
   if (drag_catalog->path.parent() == "") {
-    *r_disabled_hint = TIP_("Catalog is already placed at the highest level");
+    *r_disabled_hint = RPT_("Catalog is already placed at the highest level");
     return false;
   }
 

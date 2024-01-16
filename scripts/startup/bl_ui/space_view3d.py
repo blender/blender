@@ -24,7 +24,7 @@ from bl_ui.space_toolsystem_common import (
 )
 from bpy.app.translations import (
     pgettext_iface as iface_,
-    pgettext_tip as tip_,
+    pgettext_rpt as rpt_,
     contexts as i18n_contexts,
 )
 
@@ -2193,6 +2193,10 @@ class VIEW3D_MT_paint_grease_pencil(Menu):
 
         layout.menu("VIEW3D_MT_edit_greasepencil_showhide")
 
+        layout.separator()
+
+        layout.operator("paint.sample_color")
+
 
 class VIEW3D_MT_paint_gpencil(Menu):
     bl_label = "Paint"
@@ -2874,16 +2878,16 @@ class VIEW3D_MT_object_context_menu(Menu):
                 props.data_path_item = "data.lens"
                 props.input_scale = 0.1
                 if obj.data.lens_unit == 'MILLIMETERS':
-                    props.header_text = tip_("Camera Focal Length: %.1fmm")
+                    props.header_text = rpt_("Camera Focal Length: %.1fmm")
                 else:
-                    props.header_text = tip_("Camera Focal Length: %.1f\u00B0")
+                    props.header_text = rpt_("Camera Focal Length: %.1f\u00B0")
 
             else:
                 props = layout.operator("wm.context_modal_mouse", text="Camera Lens Scale")
                 props.data_path_iter = "selected_editable_objects"
                 props.data_path_item = "data.ortho_scale"
                 props.input_scale = 0.01
-                props.header_text = tip_("Camera Lens Scale: %.3f")
+                props.header_text = rpt_("Camera Lens Scale: %.3f")
 
             if not obj.data.dof.focus_object:
                 if view and view.camera == obj and view.region_3d.view_perspective == 'CAMERA':
@@ -2893,7 +2897,7 @@ class VIEW3D_MT_object_context_menu(Menu):
                     props.data_path_iter = "selected_editable_objects"
                     props.data_path_item = "data.dof.focus_distance"
                     props.input_scale = 0.02
-                    props.header_text = tip_("Focus Distance: %.3f")
+                    props.header_text = rpt_("Focus Distance: %.3f")
 
             layout.separator()
 
@@ -2904,13 +2908,13 @@ class VIEW3D_MT_object_context_menu(Menu):
             props.data_path_iter = "selected_editable_objects"
             props.data_path_item = "data.extrude"
             props.input_scale = 0.01
-            props.header_text = tip_("Extrude: %.3f")
+            props.header_text = rpt_("Extrude: %.3f")
 
             props = layout.operator("wm.context_modal_mouse", text="Adjust Offset")
             props.data_path_iter = "selected_editable_objects"
             props.data_path_item = "data.offset"
             props.input_scale = 0.01
-            props.header_text = tip_("Offset: %.3f")
+            props.header_text = rpt_("Offset: %.3f")
 
             layout.separator()
 
@@ -2921,7 +2925,7 @@ class VIEW3D_MT_object_context_menu(Menu):
             props.data_path_iter = "selected_editable_objects"
             props.data_path_item = "empty_display_size"
             props.input_scale = 0.01
-            props.header_text = tip_("Empty Display Size: %.3f")
+            props.header_text = rpt_("Empty Display Size: %.3f")
 
             layout.separator()
 
@@ -2939,36 +2943,36 @@ class VIEW3D_MT_object_context_menu(Menu):
             props.data_path_iter = "selected_editable_objects"
             props.data_path_item = "data.energy"
             props.input_scale = 1.0
-            props.header_text = tip_("Light Power: %.3f")
+            props.header_text = rpt_("Light Power: %.3f")
 
             if light.type == 'AREA':
                 if light.shape in {'RECTANGLE', 'ELLIPSE'}:
                     props = layout.operator("wm.context_modal_mouse", text="Adjust Area Light X Size")
                     props.data_path_iter = "selected_editable_objects"
                     props.data_path_item = "data.size"
-                    props.header_text = tip_("Light Size X: %.3f")
+                    props.header_text = rpt_("Light Size X: %.3f")
 
                     props = layout.operator("wm.context_modal_mouse", text="Adjust Area Light Y Size")
                     props.data_path_iter = "selected_editable_objects"
                     props.data_path_item = "data.size_y"
-                    props.header_text = tip_("Light Size Y: %.3f")
+                    props.header_text = rpt_("Light Size Y: %.3f")
                 else:
                     props = layout.operator("wm.context_modal_mouse", text="Adjust Area Light Size")
                     props.data_path_iter = "selected_editable_objects"
                     props.data_path_item = "data.size"
-                    props.header_text = tip_("Light Size: %.3f")
+                    props.header_text = rpt_("Light Size: %.3f")
 
             elif light.type in {'SPOT', 'POINT'}:
                 props = layout.operator("wm.context_modal_mouse", text="Adjust Light Radius")
                 props.data_path_iter = "selected_editable_objects"
                 props.data_path_item = "data.shadow_soft_size"
-                props.header_text = tip_("Light Radius: %.3f")
+                props.header_text = rpt_("Light Radius: %.3f")
 
             elif light.type == 'SUN':
                 props = layout.operator("wm.context_modal_mouse", text="Adjust Sun Light Angle")
                 props.data_path_iter = "selected_editable_objects"
                 props.data_path_item = "data.angle"
-                props.header_text = tip_("Light Angle: %.3f")
+                props.header_text = rpt_("Light Angle: %.3f")
 
             if light.type == 'SPOT':
                 layout.separator()
@@ -2977,13 +2981,13 @@ class VIEW3D_MT_object_context_menu(Menu):
                 props.data_path_iter = "selected_editable_objects"
                 props.data_path_item = "data.spot_size"
                 props.input_scale = 0.01
-                props.header_text = tip_("Spot Size: %.2f")
+                props.header_text = rpt_("Spot Size: %.2f")
 
                 props = layout.operator("wm.context_modal_mouse", text="Adjust Spot Light Blend")
                 props.data_path_iter = "selected_editable_objects"
                 props.data_path_item = "data.spot_blend"
                 props.input_scale = -0.01
-                props.header_text = tip_("Spot Blend: %.2f")
+                props.header_text = rpt_("Spot Blend: %.2f")
 
             layout.separator()
 
@@ -5834,10 +5838,13 @@ class VIEW3D_MT_edit_greasepencil_stroke(Menu):
 
     def draw(self, _context):
         layout = self.layout
+        layout.operator("grease_pencil.stroke_subdivide", text="Subdivide")
+        layout.operator("grease_pencil.stroke_subdivide_smooth", text="Subdivide and Smooth")
         layout.operator("grease_pencil.stroke_simplify", text="Simplify")
 
         layout.separator()
 
+        layout.menu("VIEW3D_MT_grease_pencil_assign_material")
         layout.operator("grease_pencil.set_active_material")
 
         layout.separator()
@@ -8146,6 +8153,27 @@ class VIEW3D_MT_greasepencil_material_active(Menu):
                 layout.operator("grease_pencil.set_material", text=mat.name, icon_value=icon).slot = mat.name
 
 
+class VIEW3D_MT_grease_pencil_assign_material(Menu):
+    bl_label = "Assign Material"
+
+    def draw(self, context):
+        layout = self.layout
+        ob = context.active_object
+        mat_active = ob.active_material
+
+        if len(ob.material_slots) == 0:
+            row = layout.row()
+            row.label(text="No Materials")
+            row.enabled = False
+            return
+
+        for slot in ob.material_slots:
+            mat = slot.material
+            if mat:
+                layout.operator("grease_pencil.stroke_material_set", text=mat.name,
+                                icon='LAYER_ACTIVE' if mat == mat_active else 'BLANK1').material = mat.name
+
+
 class VIEW3D_MT_greasepencil_edit_context_menu(Menu):
     bl_label = ""
 
@@ -8165,6 +8193,8 @@ class VIEW3D_MT_greasepencil_edit_context_menu(Menu):
             col.label(text="Point", icon='GP_SELECT_POINTS')
 
             # Main Strokes Operators
+            col.operator("grease_pencil.stroke_subdivide", text="Subdivide")
+            col.operator("grease_pencil.stroke_subdivide_smooth", text="Subdivide and Smooth")
             col.operator("grease_pencil.stroke_simplify", text="Simplify")
 
             col.separator()
@@ -8191,6 +8221,8 @@ class VIEW3D_MT_greasepencil_edit_context_menu(Menu):
             col.label(text="Stroke", icon='GP_SELECT_STROKES')
 
             # Main Strokes Operators
+            col.operator("grease_pencil.stroke_subdivide", text="Subdivide")
+            col.operator("grease_pencil.stroke_subdivide_smooth", text="Subdivide and Smooth")
             col.operator("grease_pencil.stroke_simplify", text="Simplify")
 
             col.separator()
@@ -8198,6 +8230,11 @@ class VIEW3D_MT_greasepencil_edit_context_menu(Menu):
             # Deform Operators
             col.operator("grease_pencil.stroke_smooth", text="Smooth Points")
             col.operator("transform.transform", text="Radius").mode = 'CURVE_SHRINKFATTEN'
+
+            col.separator()
+
+            col.menu("VIEW3D_MT_grease_pencil_assign_material")
+            col.operator("grease_pencil.set_active_material", text="Set as Active Material")
 
             col.separator()
 
@@ -8898,6 +8935,7 @@ classes = (
     VIEW3D_MT_gpencil_autoweights,
     VIEW3D_MT_gpencil_edit_context_menu,
     VIEW3D_MT_greasepencil_edit_context_menu,
+    VIEW3D_MT_grease_pencil_assign_material,
     VIEW3D_MT_edit_greasepencil,
     VIEW3D_MT_edit_greasepencil_delete,
     VIEW3D_MT_edit_greasepencil_stroke,

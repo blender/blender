@@ -610,7 +610,7 @@ void VKShader::build_shader_module(MutableSpan<const char *> sources,
                       shaderc_compute_shader),
                  "Only forced ShaderC shader kinds are supported.");
   const VKDevice &device = VKBackend::get().device_get();
-  sources[0] = device.glsl_patch_get();
+  sources[SOURCES_INDEX_VERSION] = device.glsl_patch_get();
   Vector<uint32_t> spirv_module = compile_glsl_to_spirv(sources, stage);
   build_shader_module(spirv_module, r_shader_module);
 }

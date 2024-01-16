@@ -281,11 +281,14 @@ static void rna_BoneCollection_parent_set(PointerRNA *ptr,
   const int from_parent_index = armature_bonecoll_find_parent_index(armature, from_bcoll_index);
   const int to_parent_index = armature_bonecoll_find_index(armature, to_parent);
 
-  if (to_parent_index == from_bcoll_index ||
-      armature_bonecoll_is_descendant_of(armature, from_bcoll_index, to_parent_index))
-  {
-    BKE_report(reports, RPT_ERROR, "Cannot make a bone collection a descendant of itself");
-    return;
+  if (to_parent_index >= 0) {
+    /* No need to check for parenthood cycles when the bone collection is turned into a root. */
+    if (to_parent_index == from_bcoll_index ||
+        armature_bonecoll_is_descendant_of(armature, from_bcoll_index, to_parent_index))
+    {
+      BKE_report(reports, RPT_ERROR, "Cannot make a bone collection a descendant of itself");
+      return;
+    }
   }
 
   armature_bonecoll_move_to_parent(
@@ -503,11 +506,11 @@ static bool rna_Armature_collections_override_apply(Main *bmain,
        * handled below this switch. */
       break;
     case LIBOVERRIDE_OP_REPLACE:
-      /* These are stored by Blender when overridable properties are changed on the root
-       * collections, However, these are *also* created on the `armature.collections_all` property,
-       * which is actually where these per-collection overrides are handled. This doesn't seem to
-       * be proper behaviour, but I (Sybren) also don't want to spam the console about this as this
-       * is not something a user could fix. */
+      /* NOTE(@sybren): These are stored by Blender when overridable properties are changed on the
+       * root collections, However, these are *also* created on the `armature.collections_all`
+       * property, which is actually where these per-collection overrides are handled.
+       * This doesn't seem to be proper behavior, but I also don't want to spam the console about
+       * this as this is not something a user could fix. */
       return false;
     default:
       /* Any other operation is simply not supported, and also not expected to exist. */
@@ -2378,7 +2381,7 @@ static void rna_def_bonecollection(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Index",
-      "Index of this bone collection in the armature.collections.all array. Note that finding "
+      "Index of this bone collection in the armature.collections_all array. Note that finding "
       "this index requires a scan of all the bone collections, so do access this with care");
 
   prop = RNA_def_property(srna, "child_number", PROP_INT, PROP_NONE);

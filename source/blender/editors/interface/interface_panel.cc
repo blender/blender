@@ -2005,6 +2005,7 @@ static void ui_panel_drag_collapse(const bContext *C,
             const_cast<bContext *>(C),
             &header.open_owner_ptr,
             RNA_struct_find_property(&header.open_owner_ptr, header.open_prop_name.c_str()));
+        ED_region_tag_redraw(region);
       }
     }
 
@@ -2109,6 +2110,7 @@ static void ui_handle_layout_panel_header(
       const_cast<bContext *>(C),
       &header->open_owner_ptr,
       RNA_struct_find_property(&header->open_owner_ptr, header->open_prop_name.c_str()));
+  ED_region_tag_redraw(CTX_wm_region(C));
 
   if (event_type == LEFTMOUSE) {
     ui_panel_drag_collapse_handler_add(C, is_open);

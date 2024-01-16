@@ -5,7 +5,7 @@
 import bpy
 from bpy.types import Operator
 from bpy.props import StringProperty
-from bpy.app.translations import pgettext_tip as tip_
+from bpy.app.translations import pgettext_rpt as rpt_
 
 
 class EditExternally(Operator):
@@ -55,7 +55,7 @@ class EditExternally(Operator):
 
         if not os.path.exists(filepath) or not os.path.isfile(filepath):
             self.report({'ERROR'},
-                        tip_("Image path %r not found, image may be packed or "
+                        rpt_("Image path %r not found, image may be packed or "
                              "unsaved") % filepath)
             return {'CANCELLED'}
 
@@ -182,7 +182,7 @@ class ProjectApply(Operator):
         image_name = ProjectEdit._proj_hack[0]  # TODO, deal with this nicer
         image = bpy.data.images.get((image_name, None))
         if image is None:
-            self.report({'ERROR'}, tip_("Could not find image '%s'") % image_name)
+            self.report({'ERROR'}, rpt_("Could not find image '%s'") % image_name)
             return {'CANCELLED'}
 
         image.reload()

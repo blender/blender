@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "DNA_ID.h"
+
 #include "BLI_array.hh"
 #include "BLI_sys_types.h" /* for bool and uint */
 
@@ -15,6 +17,7 @@ struct ARegion;
 struct Base;
 struct Depsgraph;
 struct Object;
+struct RegionView3D;
 struct View3D;
 struct rcti;
 

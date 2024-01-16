@@ -32,11 +32,6 @@ void main()
     return;
   }
 
-#ifndef GPU_METAL
-  /* TODO(fclem): Support specialization on OpenGL and Vulkan. */
-  int closure_index = uniform_buf.raytrace.closure_index;
-#endif
-
   /* True if this tile is shooting and tracing rays. */
   bool is_ray_tracing = imageLoad(tile_raytrace_tracing_img, ivec3(tile, closure_index)).r != 0;
   /* True if this tile is using horizon scan. */

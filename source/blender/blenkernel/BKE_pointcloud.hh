@@ -9,20 +9,13 @@
  * \brief General operations for point clouds.
  */
 
-#ifdef __cplusplus
-#  include <mutex>
+#include <mutex>
 
-#  include "BLI_bounds_types.hh"
-#  include "BLI_math_vector_types.hh"
-#  include "BLI_shared_cache.hh"
+#include "BLI_bounds_types.hh"
+#include "BLI_math_vector_types.hh"
+#include "BLI_shared_cache.hh"
 
-#  include "DNA_pointcloud_types.h"
-
-#endif
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "DNA_pointcloud_types.h"
 
 struct Depsgraph;
 struct Main;
@@ -34,7 +27,6 @@ struct Scene;
 extern const char *POINTCLOUD_ATTR_POSITION;
 extern const char *POINTCLOUD_ATTR_RADIUS;
 
-#ifdef __cplusplus
 namespace blender::bke {
 
 struct PointCloudRuntime {
@@ -49,8 +41,6 @@ struct PointCloudRuntime {
 };
 
 }  // namespace blender::bke
-
-#endif
 
 void *BKE_pointcloud_add(struct Main *bmain, const char *name);
 void *BKE_pointcloud_add_default(struct Main *bmain, const char *name);
@@ -79,7 +69,3 @@ void BKE_pointcloud_batch_cache_free(struct PointCloud *pointcloud);
 
 extern void (*BKE_pointcloud_batch_cache_dirty_tag_cb)(struct PointCloud *pointcloud, int mode);
 extern void (*BKE_pointcloud_batch_cache_free_cb)(struct PointCloud *pointcloud);
-
-#ifdef __cplusplus
-}
-#endif

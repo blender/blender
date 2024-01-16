@@ -2179,16 +2179,11 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Depsgraph *depsgraph,
 
 static bool view3d_clipping_test(const float co[3], const float clip[6][4])
 {
-  if (plane_point_side_v3(clip[0], co) > 0.0f) {
-    if (plane_point_side_v3(clip[1], co) > 0.0f) {
-      if (plane_point_side_v3(clip[2], co) > 0.0f) {
-        if (plane_point_side_v3(clip[3], co) > 0.0f) {
-          return false;
-        }
-      }
-    }
+  if (plane_point_side_v3(clip[0], co) > 0.0f && plane_point_side_v3(clip[1], co) > 0.0f &&
+      plane_point_side_v3(clip[2], co) > 0.0f && plane_point_side_v3(clip[3], co) > 0.0f)
+  {
+    return false;
   }
-
   return true;
 }
 

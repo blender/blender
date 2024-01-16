@@ -36,7 +36,7 @@ void FullFrameExecutionModel::execute(ExecutionSystem &exec_system)
 {
   const bNodeTree *node_tree = this->context_.get_bnodetree();
   node_tree->runtime->stats_draw(node_tree->runtime->sdh,
-                                 TIP_("Compositing | Initializing execution"));
+                                 RPT_("Compositing | Initializing execution"));
 
   DebugInfo::graphviz(&exec_system, "compositor_prior_rendering");
 
@@ -281,7 +281,7 @@ void FullFrameExecutionModel::update_progress_bar()
 
     char buf[128];
     SNPRINTF(buf,
-             TIP_("Compositing | Operation %i-%li"),
+             RPT_("Compositing | Operation %i-%li"),
              num_operations_finished_ + 1,
              operations_.size());
     tree->runtime->stats_draw(tree->runtime->sdh, buf);

@@ -181,7 +181,7 @@ void MTLShader::vertex_shader_from_glsl(MutableSpan<const char *> sources)
   shd_builder_->source_from_msl_ = false;
 
   /* Remove #version tag entry. */
-  sources[0] = "";
+  sources[SOURCES_INDEX_VERSION] = "";
 
   /* Consolidate GLSL vertex sources. */
   std::stringstream ss;
@@ -203,7 +203,7 @@ void MTLShader::fragment_shader_from_glsl(MutableSpan<const char *> sources)
   shd_builder_->source_from_msl_ = false;
 
   /* Remove #version tag entry. */
-  sources[0] = "";
+  sources[SOURCES_INDEX_VERSION] = "";
 
   /* Consolidate GLSL fragment sources. */
   std::stringstream ss;
@@ -231,7 +231,7 @@ void MTLShader::compute_shader_from_glsl(MutableSpan<const char *> sources)
   shd_builder_->source_from_msl_ = false;
 
   /* Remove #version tag entry. */
-  sources[0] = "";
+  sources[SOURCES_INDEX_VERSION] = "";
 
   /* Consolidate GLSL compute sources. */
   std::stringstream ss;
@@ -273,6 +273,15 @@ bool MTLShader::finalize(const shader::ShaderCreateInfo *info)
       delete shd_builder_;
       shd_builder_ = nullptr;
       return false;
+    }
+  }
+
+  /** Extract desired custom parameters from CreateInfo. */
+  /* Tuning parameters for compute kernels. */
+  if (is_compute) {
+    int threadgroup_tuning_param = info->mtl_max_threads_per_threadgroup_;
+    if (threadgroup_tuning_param > 0) {
+      maxTotalThreadsPerThreadgroup_Tuning_ = threadgroup_tuning_param;
     }
   }
 
@@ -1503,14 +1512,58 @@ MTLComputePipelineStateInstance *MTLShader::bake_compute_pipeline_state(MTLConte
     /* Compile PSO. */
     MTLComputePipelineDescriptor *desc = [[MTLComputePipelineDescriptor alloc] init];
     desc.label = [NSString stringWithUTF8String:this->name];
-    desc.maxTotalThreadsPerThreadgroup = 1024;
     desc.computeFunction = compute_function;
+
+    /** If Max Total threads per threadgroup tuning parameters are specified, compile with these.
+     * This enables the compiler to make informed decisions based on the upper bound of threads
+     * issued for a given compute call.
+     * This per-shader tuning can reduce the static register memory allocation by reducing the
+     * worst-case allocation and increasing thread occupancy.
+     *
+     * NOTE: This is only enabled on Apple M1 and M2 GPUs. Apple M3 GPUs feature dynamic caching
+     * which controls register allocation dynamically based on the runtime state.  */
+    const MTLCapabilities &capabilities = MTLBackend::get_capabilities();
+    if (ELEM(capabilities.gpu, APPLE_GPU_M1, APPLE_GPU_M2)) {
+      if (maxTotalThreadsPerThreadgroup_Tuning_ > 0) {
+        desc.maxTotalThreadsPerThreadgroup = this->maxTotalThreadsPerThreadgroup_Tuning_;
+        MTL_LOG_INFO("Using custom parameter for shader %s value %u\n",
+                     this->name,
+                     maxTotalThreadsPerThreadgroup_Tuning_);
+      }
+    }
 
     id<MTLComputePipelineState> pso = [ctx->device
         newComputePipelineStateWithDescriptor:desc
                                       options:MTLPipelineOptionNone
                                    reflection:nullptr
                                         error:&error];
+
+    /* If PSO has compiled but max theoretical threads-per-threadgroup is lower than required
+     * dispatch size, recompile with increased limit. NOTE: This will result in a performance drop,
+     * ideally the source shader should be modified to reduce local register pressure, or, local
+     * work-group size should be reduced.
+     * Similarly, the custom tuning parameter "mtl_max_total_threads_per_threadgroup" can be
+     * specified to a sufficiently large value to avoid this.  */
+    if (pso) {
+      uint num_required_threads_per_threadgroup = compute_pso_common_state_.threadgroup_x_len *
+                                                  compute_pso_common_state_.threadgroup_y_len *
+                                                  compute_pso_common_state_.threadgroup_z_len;
+      if (pso.maxTotalThreadsPerThreadgroup < num_required_threads_per_threadgroup) {
+        MTL_LOG_WARNING(
+            "Shader '%s' requires %u threads per threadgroup, but PSO limit is: %lu. Recompiling "
+            "with increased limit on descriptor.\n",
+            this->name,
+            num_required_threads_per_threadgroup,
+            (unsigned long)pso.maxTotalThreadsPerThreadgroup);
+        [pso release];
+        pso = nil;
+        desc.maxTotalThreadsPerThreadgroup = 1024;
+        pso = [ctx->device newComputePipelineStateWithDescriptor:desc
+                                                         options:MTLPipelineOptionNone
+                                                      reflection:nullptr
+                                                           error:&error];
+      }
+    }
 
     if (error) {
       NSLog(@"Failed to create PSO for compute shader: %s error %@\n", this->name, error);

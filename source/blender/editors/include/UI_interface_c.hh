@@ -1426,7 +1426,9 @@ enum uiStringInfoType {
   BUT_GET_TIP,
   BUT_GET_RNA_TIP,
   BUT_GET_RNAENUM_TIP,
+  /** Buttons assigned to an operator (common case). */
   BUT_GET_OP_KEYMAP,
+  /** Use for properties that are bound to one of the context cycle, etc. keys. */
   BUT_GET_PROP_KEYMAP,
 };
 
@@ -2280,6 +2282,7 @@ float uiLayoutGetUnitsY(uiLayout *layout);
 eUIEmbossType uiLayoutGetEmboss(uiLayout *layout);
 bool uiLayoutGetPropSep(uiLayout *layout);
 bool uiLayoutGetPropDecorate(uiLayout *layout);
+Panel *uiLayoutGetRootPanel(uiLayout *layout);
 
 /* Layout create functions. */
 

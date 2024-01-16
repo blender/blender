@@ -60,7 +60,7 @@
 #include "BKE_scene.h"
 #include "BKE_subdiv_ccg.hh"
 #include "BKE_subsurf.hh"
-#include "BKE_undo_system.h"
+#include "BKE_undo_system.hh"
 
 /* TODO(sergey): Ideally should be no direct call to such low level things. */
 #include "BKE_subdiv_eval.hh"
@@ -655,19 +655,18 @@ static bool restore_mask(Object *ob, Node &unode, MutableSpan<bool> modified_ver
 
 static bool restore_face_sets(Object *ob, Node &unode, MutableSpan<bool> modified_face_set_faces)
 {
-  bke::SpanAttributeWriter<int> face_sets = face_set::ensure_face_sets_mesh(*ob);
-
-  bool modified = false;
   const Span<int> face_indices = unode.face_indices;
 
+  bke::SpanAttributeWriter<int> face_sets = face_set::ensure_face_sets_mesh(*ob);
+  bool modified = false;
   for (const int i : face_indices.index_range()) {
-    int face_index = face_indices[i];
-    if (unode.face_sets[i] != face_sets.span[face_index]) {
-      modified_face_set_faces[face_index] = true;
-      modified = true;
+    const int face = face_indices[i];
+    if (unode.face_sets[i] == face_sets.span[face]) {
+      continue;
     }
-
-    std::swap(unode.face_sets[i], face_sets.span[face_index]);
+    std::swap(unode.face_sets[i], face_sets.span[face]);
+    modified_face_set_faces[face] = true;
+    modified = true;
   }
   face_sets.finish();
   return modified;
@@ -953,6 +952,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, UndoSculpt &usculpt)
 
     switch (unode->type) {
       case Type::Position:
+        modified_verts_position.resize(ss->totvert, false);
         if (restore_coords(C, ob, depsgraph, *unode, modified_verts_position)) {
           changed_position = true;
         }
@@ -1032,7 +1032,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, UndoSculpt &usculpt)
   data.changed_mask = changed_mask;
   data.pbvh = ss->pbvh;
   data.modified_grids = modified_grids;
-  data.modified_hidden_verts = modified_verts_position;
+  data.modified_position_verts = modified_verts_position;
   data.modified_hidden_verts = modified_verts_hide;
   data.modified_hidden_faces = modified_faces_hide;
   data.modified_mask_verts = modified_verts_mask;
@@ -1433,7 +1433,7 @@ static Node *geometry_push(Object *object, Type type)
 static void store_face_sets(const Mesh &mesh, Node &unode)
 {
   array_utils::gather(
-      *mesh.attributes().lookup_or_default<int>(".sculpt_face_set", bke::AttrDomain::Face, 0),
+      *mesh.attributes().lookup_or_default<int>(".sculpt_face_set", bke::AttrDomain::Face, 1),
       unode.face_indices.as_span(),
       unode.face_sets.as_mutable_span());
 }

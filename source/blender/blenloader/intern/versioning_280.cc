@@ -79,7 +79,7 @@
 #include "BKE_idprop.h"
 #include "BKE_key.h"
 #include "BKE_layer.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.hh"
@@ -2961,7 +2961,7 @@ void do_versions_after_linking_280(FileData *fd, Main *bmain)
       if (ob->type != OB_EMPTY && ob->instance_collection != nullptr) {
         BLO_reportf_wrap(fd->reports,
                          RPT_INFO,
-                         TIP_("Non-Empty object '%s' cannot duplicate collection '%s' "
+                         RPT_("Non-Empty object '%s' cannot duplicate collection '%s' "
                               "anymore in Blender 2.80 and later, removed instancing"),
                          ob->id.name + 2,
                          ob->instance_collection->id.name + 2);
@@ -2972,18 +2972,11 @@ void do_versions_after_linking_280(FileData *fd, Main *bmain)
   }
 
   /**
-   * Versioning code until next subversion bump goes here.
-   *
-   * \note Be sure to check when bumping the version:
-   * - #blo_do_versions_280 in this file.
-   * - `versioning_userdef.cc`, #blo_do_versions_userdef
-   * - `versioning_userdef.cc`, #do_versions_theme
+   * Always bump subversion in BKE_blender_version.h when adding versioning
+   * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.
    *
    * \note Keep this message at the bottom of the function.
    */
-  {
-    /* Keep this block, even when empty. */
-  }
 }
 
 /* NOTE: This version patch is intended for versions < 2.52.2,
@@ -6394,16 +6387,9 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   /**
-   * Versioning code until next subversion bump goes here.
-   *
-   * \note Be sure to check when bumping the version:
-   * - #do_versions_after_linking_280 in this file.
-   * - `versioning_userdef.cc`, #blo_do_versions_userdef
-   * - `versioning_userdef.cc`, #do_versions_theme
+   * Always bump subversion in BKE_blender_version.h when adding versioning
+   * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.
    *
    * \note Keep this message at the bottom of the function.
    */
-  {
-    /* Keep this block, even when empty. */
-  }
 }

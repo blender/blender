@@ -266,16 +266,16 @@ static int dyntopo_warning_popup(bContext *C, wmOperatorType *ot, enum WarnFlag 
   uiLayout *layout = UI_popup_menu_layout(pup);
 
   if (flag & (VDATA | EDATA | LDATA)) {
-    const char *msg_error = TIP_("Attribute Data Detected");
-    const char *msg = TIP_("Dyntopo will not preserve colors, UVs, or other attributes");
+    const char *msg_error = RPT_("Attribute Data Detected");
+    const char *msg = RPT_("Dyntopo will not preserve colors, UVs, or other attributes");
     uiItemL(layout, msg_error, ICON_INFO);
     uiItemL(layout, msg, ICON_NONE);
     uiItemS(layout);
   }
 
   if (flag & MODIFIER) {
-    const char *msg_error = TIP_("Generative Modifiers Detected!");
-    const char *msg = TIP_(
+    const char *msg_error = RPT_("Generative Modifiers Detected!");
+    const char *msg = RPT_(
         "Keeping the modifiers will increase polycount when returning to object mode");
 
     uiItemL(layout, msg_error, ICON_INFO);

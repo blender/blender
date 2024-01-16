@@ -33,7 +33,7 @@
 #include "BKE_action.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_lib_query.h"
 #include "BKE_main.hh"
 #include "BKE_nla.h"

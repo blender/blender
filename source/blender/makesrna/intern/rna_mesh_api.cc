@@ -109,7 +109,7 @@ static void rna_Mesh_normals_split_custom_set(Mesh *mesh,
                                               const float *normals,
                                               int normals_num)
 {
-  float(*loop_normals)[3] = (float(*)[3])normals;
+  float(*corner_normals)[3] = (float(*)[3])normals;
   const int numloops = mesh->corners_num;
   if (normals_num != numloops * 3) {
     BKE_reportf(reports,
@@ -120,7 +120,7 @@ static void rna_Mesh_normals_split_custom_set(Mesh *mesh,
     return;
   }
 
-  BKE_mesh_set_custom_normals(mesh, loop_normals);
+  BKE_mesh_set_custom_normals(mesh, corner_normals);
 
   DEG_id_tag_update(&mesh->id, 0);
 }

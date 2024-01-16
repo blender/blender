@@ -401,13 +401,13 @@ class ShaderNodeGroupInterfaceTest(AbstractNodeGroupInterfaceTest, NodeGroupInte
         self.do_test_sockets_in_out("NodeSocketFloat")
 
     def test_all_socket_types(self):
-        self.do_test_invalid_socket_type("NodeSocketBool")
+        self.do_test_socket_type("NodeSocketBool")
         self.do_test_invalid_socket_type("NodeSocketCollection")
         self.do_test_socket_type("NodeSocketColor")
         self.do_test_socket_type("NodeSocketFloat")
         self.do_test_invalid_socket_type("NodeSocketGeometry")
         self.do_test_invalid_socket_type("NodeSocketImage")
-        self.do_test_invalid_socket_type("NodeSocketInt")
+        self.do_test_socket_type("NodeSocketInt")
         self.do_test_invalid_socket_type("NodeSocketMaterial")
         self.do_test_invalid_socket_type("NodeSocketObject")
         self.do_test_invalid_socket_type("NodeSocketRotation")

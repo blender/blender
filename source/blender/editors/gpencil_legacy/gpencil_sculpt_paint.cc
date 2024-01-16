@@ -1138,7 +1138,7 @@ static void gpencil_sculpt_brush_header_set(bContext *C, tGP_BrushEditData *gso)
   char str[UI_MAX_DRAW_STR] = "";
 
   SNPRINTF(str,
-           TIP_("GPencil Sculpt: %s Stroke  | LMB to paint | RMB/Escape to Exit"
+           RPT_("GPencil Sculpt: %s Stroke  | LMB to paint | RMB/Escape to Exit"
                 " | Ctrl to Invert Action | Wheel Up/Down for Size "
                 " | Shift-Wheel Up/Down for Strength"),
            brush->id.name + 2);

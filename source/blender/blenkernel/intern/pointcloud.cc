@@ -29,7 +29,7 @@
 #include "BKE_geometry_set.hh"
 #include "BKE_global.h"
 #include "BKE_idtype.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_lib_query.h"
 #include "BKE_lib_remap.hh"
 #include "BKE_main.hh"
@@ -37,7 +37,7 @@
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
-#include "BKE_pointcloud.h"
+#include "BKE_pointcloud.hh"
 
 #include "BLT_translation.h"
 

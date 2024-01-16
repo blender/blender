@@ -87,6 +87,7 @@ static Set<StringRef> get_builtin_menus(const int tree_type)
               "Curve/Operations",
               "Curve/Primitives",
               "Curve/Topology",
+              "Instances",
               "Mesh",
               "Mesh/Read",
               "Mesh/Sample",

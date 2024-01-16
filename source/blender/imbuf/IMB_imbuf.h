@@ -358,6 +358,7 @@ ENUM_OPERATORS(IMB_Proxy_Size, IMB_PROXY_100);
 typedef enum eIMBInterpolationFilterMode {
   IMB_FILTER_NEAREST,
   IMB_FILTER_BILINEAR,
+  IMB_FILTER_BICUBIC,
 } eIMBInterpolationFilterMode;
 
 /**

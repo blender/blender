@@ -36,7 +36,7 @@
 #include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_main.hh"
-#include "BKE_undo_system.h"
+#include "BKE_undo_system.hh"
 
 #include "BLO_readfile.h"
 #include "BLO_undofile.hh"

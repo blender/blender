@@ -924,8 +924,7 @@ void do_boundary_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
     else {
       float location[3];
       flip_v3_v3(location, SCULPT_active_vertex_co_get(ss), symm_area);
-      initial_vertex = SCULPT_nearest_vertex_get(
-          sd, ob, location, ss->cache->radius_squared, false);
+      initial_vertex = SCULPT_nearest_vertex_get(ob, location, ss->cache->radius_squared, false);
     }
 
     ss->cache->boundaries[symm_area] = data_init(

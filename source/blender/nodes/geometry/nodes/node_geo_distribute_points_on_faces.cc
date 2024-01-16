@@ -18,7 +18,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
 #include "BKE_mesh_sample.hh"
-#include "BKE_pointcloud.h"
+#include "BKE_pointcloud.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"

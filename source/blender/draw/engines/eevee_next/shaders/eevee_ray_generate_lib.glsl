@@ -6,13 +6,13 @@
  * Ray generation routines for each BSDF types.
  */
 
-#pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_codegen_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_math_matrix_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_bxdf_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_ray_types_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_codegen_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_math_matrix_lib.glsl)
 
 struct BsdfSample {
   vec3 direction;
@@ -30,8 +30,7 @@ bool is_singular_ray(float roughness)
 /* Returns view-space ray. */
 BsdfSample ray_generate_direction(vec2 noise, ClosureUndetermined cl, vec3 V)
 {
-  vec2 noise_offset = sampling_rng_2D_get(SAMPLING_RAYTRACE_U);
-  vec3 random_point_on_cylinder = sample_cylinder(fract(noise_offset + noise));
+  vec3 random_point_on_cylinder = sample_cylinder(noise);
   /* Bias the rays so we never get really high energy rays almost parallel to the surface. */
   random_point_on_cylinder.x = random_point_on_cylinder.x * (1.0 - RAY_BIAS) + RAY_BIAS;
 

@@ -16,7 +16,7 @@
 #include "BKE_geometry_set.hh"
 #include "BKE_instances.hh"
 #include "BKE_mesh.hh"
-#include "BKE_pointcloud.h"
+#include "BKE_pointcloud.hh"
 
 #include "DRW_render.hh"
 

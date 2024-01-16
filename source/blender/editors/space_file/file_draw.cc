@@ -1451,7 +1451,7 @@ static void file_draw_invalid_asset_library_hint(const bContext *C,
   int sy = v2d->tot.ymax;
 
   {
-    const char *message = TIP_("Path to asset library does not exist:");
+    const char *message = RPT_("Path to asset library does not exist:");
     file_draw_string_multiline(sx, sy, message, width, line_height, text_col, nullptr, &sy);
 
     sy -= line_height;
@@ -1464,7 +1464,7 @@ static void file_draw_invalid_asset_library_hint(const bContext *C,
   {
     UI_icon_draw(sx, sy - UI_UNIT_Y, ICON_INFO);
 
-    const char *suggestion = TIP_(
+    const char *suggestion = RPT_(
         "Asset Libraries are local directories that can contain .blend files with assets inside.\n"
         "Manage Asset Libraries from the File Paths section in Preferences");
     file_draw_string_multiline(
@@ -1508,7 +1508,7 @@ static void file_draw_invalid_library_hint(const bContext * /*C*/,
   int sy = v2d->tot.ymax;
 
   {
-    const char *message = TIP_("Unreadable Blender library file:");
+    const char *message = RPT_("Unreadable Blender library file:");
     file_draw_string_multiline(sx, sy, message, width, line_height, text_col, nullptr, &sy);
 
     sy -= line_height;
@@ -1532,7 +1532,7 @@ static void file_draw_invalid_library_hint(const bContext * /*C*/,
 
     file_draw_string_multiline(sx + UI_UNIT_X,
                                sy,
-                               TIP_(report->message),
+                               RPT_(report->message),
                                width - UI_UNIT_X,
                                line_height,
                                text_col,

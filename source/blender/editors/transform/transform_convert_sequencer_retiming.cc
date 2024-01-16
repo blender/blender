@@ -107,22 +107,6 @@ static void createTransSeqRetimingData(bContext * /*C*/, TransInfo *t)
   }
 }
 
-static void seq_resize_speed_transition(const Scene *scene,
-                                        const Sequence *seq,
-                                        SeqRetimingKey *key,
-                                        const float loc)
-{
-  SeqRetimingKey *key_start = SEQ_retiming_transition_start_get(key);
-  float offset;
-  if (key == key_start) {
-    offset = loc - SEQ_retiming_key_timeline_frame_get(scene, seq, key);
-  }
-  else {
-    offset = SEQ_retiming_key_timeline_frame_get(scene, seq, key) - loc;
-  }
-  SEQ_retiming_offset_transition_key(scene, seq, key_start, offset);
-}
-
 static void recalcData_sequencer_retiming(TransInfo *t)
 {
   const TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
@@ -142,7 +126,7 @@ static void recalcData_sequencer_retiming(TransInfo *t)
     if (SEQ_retiming_key_is_transition_type(key) &&
         !SEQ_retiming_selection_has_whole_transition(SEQ_editing_get(t->scene), key))
     {
-      seq_resize_speed_transition(t->scene, seq, key, td2d->loc[0]);
+      SEQ_retiming_transition_key_frame_set(t->scene, seq, key, round_fl_to_int(td2d->loc[0]));
     }
     else {
       SEQ_retiming_key_timeline_frame_set(t->scene, seq, key, td2d->loc[0]);

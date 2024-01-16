@@ -418,7 +418,7 @@ set(SRC
   BKE_keyconfig.h
   BKE_lattice.hh
   BKE_layer.h
-  BKE_lib_id.h
+  BKE_lib_id.hh
   BKE_lib_override.hh
   BKE_lib_query.h
   BKE_lib_remap.hh
@@ -475,7 +475,7 @@ set(SRC
   BKE_pbvh_api.hh
   BKE_pbvh_pixels.hh
   BKE_pointcache.h
-  BKE_pointcloud.h
+  BKE_pointcloud.hh
   BKE_pose_backup.h
   BKE_preferences.h
   BKE_preview_image.hh
@@ -504,7 +504,7 @@ set(SRC
   BKE_texture.h
   BKE_tracking.h
   BKE_type_conversions.hh
-  BKE_undo_system.h
+  BKE_undo_system.hh
   BKE_unit.hh
   BKE_vfont.hh
   BKE_vfontdata.hh

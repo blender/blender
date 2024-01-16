@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'd13edee3e0cc')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'acbb91b192da')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-08 11:04:23\n"
-"PO-Revision-Date: 2024-01-06 06:15+0000\n"
+"POT-Creation-Date: 2024-01-15 10:52:30\n"
+"PO-Revision-Date: 2024-01-10 17:10+0000\n"
 "Last-Translator: Peter Simonsson <peter@simonsson.com>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
 "Language: sv\n"
@@ -351,6 +351,10 @@ msgid "All Action Keyframes"
 msgstr "Samtliga action-nycklar"
 
 
+msgid "Show Keyframe Numbers"
+msgstr "Visa keyframe-nummer"
+
+
 msgid "Around Frame"
 msgstr "Omkring bildruta"
 
@@ -409,6 +413,10 @@ msgstr "Videoredigeringsverktyg"
 
 msgid "Movie Clip Editor"
 msgstr "Redigerare för filmklipp"
+
+
+msgid "Adjust timing of keyframes"
+msgstr "Justera timing av keyframes"
 
 
 msgid "Graph Editor"
@@ -2209,6 +2217,14 @@ msgid "Stereo"
 msgstr "Stereoskopisk"
 
 
+msgid "Left"
+msgstr "Vänster"
+
+
+msgid "Right"
+msgstr "Höger"
+
+
 msgid "Center"
 msgstr "Mitten"
 
@@ -2823,7 +2839,7 @@ msgstr "Grupp"
 
 
 msgid "Keyframes"
-msgstr "Animationsnycklar"
+msgstr "Keyframes"
 
 
 msgid "FFmpeg related settings for the scene"
@@ -3421,7 +3437,15 @@ msgstr "Använd"
 
 
 msgid "Keyframe Type"
-msgstr "Nyckeltyp"
+msgstr "Keyframe-typ"
+
+
+msgid "Type of keyframe"
+msgstr "Typ av keyframe"
+
+
+msgid "Keyframe"
+msgstr "Keyframe"
 
 
 msgid "Blend Mode"
@@ -3462,6 +3486,10 @@ msgstr "Använd i 3D-vy"
 
 msgid "Window"
 msgstr "Fönster"
+
+
+msgid "Offset keyframes"
+msgstr "Förskjut keyframes"
 
 
 msgid "Build"
@@ -3869,6 +3897,10 @@ msgid "Globally disable in viewports"
 msgstr "Inaktivera globalt i vyer"
 
 
+msgid "Extrude"
+msgstr "Extrudera"
+
+
 msgid "Path"
 msgstr "Bana"
 
@@ -3935,6 +3967,10 @@ msgstr "Nodträd för nodbaserade shaders"
 
 msgid "Layers"
 msgstr "Lager"
+
+
+msgid "Only selected keyframes"
+msgstr "Endast markerade keyframes"
 
 
 msgid "Alpha Mode"
@@ -5092,6 +5128,14 @@ msgid "Linear"
 msgstr "Linjär"
 
 
+msgid "Type of keyframe (for visual purposes only)"
+msgstr "Typ av keyframe (endast för visuella syften)"
+
+
+msgid "Insert Keyframes - Visual"
+msgstr "Infoga keyframes - visuell"
+
+
 msgid "Available"
 msgstr "Tillgänglig"
 
@@ -5504,6 +5548,18 @@ msgstr "Rigid kropp"
 
 msgid "Clone Layer"
 msgstr "Klona lager"
+
+
+msgid "Align View"
+msgstr "Justera vy"
+
+
+msgid "Align View to Active"
+msgstr "Justera vy till aktiv"
+
+
+msgid "Local View"
+msgstr "Lokal vy"
 
 
 msgid "Lightgroup Sync"
@@ -7833,8 +7889,36 @@ msgid "Filter Python"
 msgstr "Filtrera Python"
 
 
+msgctxt "Operator"
+msgid "Extrude to Cursor"
+msgstr "Extrudera till markör"
+
+
 msgid "Move"
 msgstr "Flytta"
+
+
+msgctxt "Operator"
+msgid "Extrude"
+msgstr "Extrudera"
+
+
+msgid "Create new bones from the selected joints"
+msgstr "Skapa nya ben från de markerade lederna"
+
+
+msgctxt "Operator"
+msgid "Hide Selected"
+msgstr "Dölj markerad"
+
+
+msgctxt "Operator"
+msgid "Move to Collection"
+msgstr "Flytta till samling"
+
+
+msgid "Move bones to a collection"
+msgstr "Flytta ben till en samling"
 
 
 msgid "Toggle selection status of all bones"
@@ -7844,6 +7928,11 @@ msgstr "Växla markeringsstatus för alla ben"
 msgctxt "Operator"
 msgid "Select Hierarchy"
 msgstr "Markera hierarki"
+
+
+msgctxt "Operator"
+msgid "Separate Bones"
+msgstr "Separera ben"
 
 
 msgctxt "Operator"
@@ -7921,8 +8010,52 @@ msgstr "Baklänges"
 
 
 msgctxt "Operator"
+msgid "Set Origin"
+msgstr "Ange ursprung"
+
+
+msgctxt "Operator"
+msgid "Center View to Cursor"
+msgstr "Centrera vy till markör"
+
+
+msgid "Center the view so that the cursor is in the middle of the view"
+msgstr "Centrera vyn så att markören är i mitten av vyn"
+
+
+msgctxt "Operator"
+msgid "Pan View"
+msgstr "Panorera vy"
+
+
+msgid "Pan the view"
+msgstr "Panorera vyn"
+
+
+msgid "View all selected elements"
+msgstr "Visa alla markerade element"
+
+
+msgctxt "Operator"
 msgid "Zoom In"
 msgstr "Zooma In"
+
+
+msgid "Zoom in the view"
+msgstr "Zooma in vyn"
+
+
+msgid "Cursor location in screen coordinates"
+msgstr "Markörposition i skärmkoordinater"
+
+
+msgctxt "Operator"
+msgid "Zoom Out"
+msgstr "Zooma ut"
+
+
+msgid "Zoom out the view"
+msgstr "Zooma ut vyn"
 
 
 msgctxt "Operator"
@@ -7930,13 +8063,141 @@ msgid "Add Cloth Preset"
 msgstr "Lägg till tygförinställning"
 
 
+msgctxt "Operator"
+msgid "Create New Collection"
+msgstr "Skapa ny samling"
+
+
+msgid "Create an object collection from selected objects"
+msgstr "Skapa en objektsamling från markerade objekt"
+
+
+msgid "Name of the new collection"
+msgstr "Namn på den nya samlingen"
+
+
+msgctxt "Operator"
+msgid "Add Selected to Active Collection"
+msgstr "Lägg till markerade i aktiv samling"
+
+
+msgid "Add the object to an object collection that contains the active object"
+msgstr "Lägg till objektet i en objektsamling som innehåller det aktiva objektet"
+
+
+msgid "The collection to add other selected objects to"
+msgstr "Samlingen att lägga till övriga markerade objekt i"
+
+
+msgctxt "Operator"
+msgid "Remove from Collection"
+msgstr "Ta bort från samling"
+
+
+msgid "Remove selected objects from a collection"
+msgstr "Ta bort markerade objekten från en samling"
+
+
+msgid "The collection to remove this object from"
+msgstr "Samlingen att ta bort detta objekt från"
+
+
+msgctxt "Operator"
+msgid "Remove Selected from Active Collection"
+msgstr "Ta bort markerad från aktiv samling"
+
+
+msgid "Remove the object from an object collection that contains the active object"
+msgstr "Ta bort objektet från en objektsamling som innehåller det aktiva objektet"
+
+
+msgid "The collection to remove other selected objects from"
+msgstr "Samlingen att ta bort övriga markerade objekt från"
+
+
+msgctxt "Operator"
+msgid "Remove from All Collections"
+msgstr "Ta bort från alla samlingar"
+
+
+msgid "Remove selected objects from all collections"
+msgstr "Ta bort markerade objekt från alla samlingar"
+
+
+msgid "History"
+msgstr "Historik"
+
+
+msgid "Clear the command history"
+msgstr "Töm kommandohistoriken"
+
+
+msgctxt "Operator"
+msgid "Clear Line"
+msgstr "Rensa rad"
+
+
+msgid "Clear the line and store in history"
+msgstr "Rensa raden och lagra i historik"
+
+
+msgctxt "Operator"
+msgid "Copy to Clipboard"
+msgstr "Kopiera till urklipp"
+
+
+msgid "Copy selected text to clipboard"
+msgstr "Kopiera markerad text till urklippet"
+
+
 msgid "Delete Selection"
 msgstr "Ta bort markering"
+
+
+msgid "Whether to delete the selection after copying"
+msgstr "Huruvida markeringen ska tas bort efter kopiering"
+
+
+msgctxt "Operator"
+msgid "Copy to Clipboard (as Script)"
+msgstr "Kopiera till urklipp (som skript)"
+
+
+msgid "Copy the console contents for use in a script"
+msgstr "Kopiera konsolens innehåll för användning i ett skript"
 
 
 msgctxt "Operator"
 msgid "Delete"
 msgstr "Radera"
+
+
+msgid "Delete text by cursor position"
+msgstr "Ta bort text vid markörens position"
+
+
+msgid "Which part of the text to delete"
+msgstr "Vilken del av texten att ta bort"
+
+
+msgid "Next Character"
+msgstr "Nästa tecken"
+
+
+msgid "Previous Character"
+msgstr "Föregående tecken"
+
+
+msgid "Next Word"
+msgstr "Nästa ord"
+
+
+msgid "Previous Word"
+msgstr "Föregående ord"
+
+
+msgid "Add 4 spaces at line beginning"
+msgstr "Lägg till 4 mellanslag i radens början"
 
 
 msgctxt "Operator"
@@ -7947,6 +8208,49 @@ msgstr "Infoga"
 msgctxt "Python console"
 msgid "Language"
 msgstr "Språk"
+
+
+msgctxt "Operator"
+msgid "Move Cursor"
+msgstr "Flytta markör"
+
+
+msgid "Move cursor position"
+msgstr "Flytta markörens position"
+
+
+msgid "Line Begin"
+msgstr "Rad början"
+
+
+msgid "Line End"
+msgstr "Rad slut"
+
+
+msgctxt "Operator"
+msgid "Paste from Clipboard"
+msgstr "Klistra in från urklippet"
+
+
+msgid "Paste text from clipboard"
+msgstr "Klistra in text från urklippet"
+
+
+msgid "Select all the text"
+msgstr "Markera all text"
+
+
+msgctxt "Operator"
+msgid "Select Word"
+msgstr "Markera ord"
+
+
+msgid "Select word at cursor position"
+msgstr "Markera ord vid markörens position"
+
+
+msgid "Delete 4 spaces from line beginning"
+msgstr "Ta bort 4 mellanslag från radens början"
 
 
 msgid "Duplicate"
@@ -7977,6 +8281,49 @@ msgstr "Krymp/sväll"
 
 msgid "Toggle Free/Align"
 msgstr "Växla fri/upprätad"
+
+
+msgid "Align the new object to the view"
+msgstr "Justera det nya objektet till vyn"
+
+
+msgctxt "Operator"
+msgid "Select Next"
+msgstr "Markera nästa"
+
+
+msgid "Select control points following already selected ones along the curves"
+msgstr "Markera kontrollpunkter som följer de redan markerade längs kurvorna"
+
+
+msgid "Number of selected elements in the repetitive sequence"
+msgstr "Antal markerade element i den repeterande sekvensen"
+
+
+msgid "Offset from the starting point"
+msgstr "Förskjut från startpunkten"
+
+
+msgid "Deselected"
+msgstr "Avmarkerade"
+
+
+msgid "Number of deselected elements in the repetitive sequence"
+msgstr "Antal avmarkerade element i den repeterande sekvensen"
+
+
+msgctxt "Operator"
+msgid "Select Previous"
+msgstr "Markera föregående"
+
+
+msgid "Select control points preceding already selected ones along the curves"
+msgstr "Markera kontrollpunkter som föregår de redan markerade längs kurvorna"
+
+
+msgctxt "Operator"
+msgid "Separate"
+msgstr "Separera"
 
 
 msgctxt "Operator"
@@ -9309,6 +9656,28 @@ msgid "Select all sharp enough edges"
 msgstr "Markera alla kanter som är skarpa nog"
 
 
+msgid "Extrude selection"
+msgstr "Extrudera markering"
+
+
+msgctxt "Operator"
+msgid "Extrude Only Edges"
+msgstr "Extrudera endast kanter"
+
+
+msgid "Extrude individual edges only"
+msgstr "Extrudera endast individuella kanter"
+
+
+msgctxt "Operator"
+msgid "Extrude Individual Faces"
+msgstr "Extrudera individuella ytor"
+
+
+msgid "Extrude individual faces only"
+msgstr "Extrudera endast individuella ytor"
+
+
 msgctxt "Operator"
 msgid "Fill"
 msgstr "Fyll"
@@ -9780,7 +10149,7 @@ msgstr "Applicera skala"
 
 msgctxt "Operator"
 msgid "Duplicate Linked"
-msgstr "Duplicera länkade"
+msgstr "Duplicera länkad"
 
 
 msgctxt "Operator"
@@ -10261,6 +10630,10 @@ msgstr "Ta bort ljuscache"
 
 msgid "All Light Probes"
 msgstr "Alla ljussonder"
+
+
+msgid "Link objects to a collection"
+msgstr "Länka objekt till en samling"
 
 
 msgid "Move objects to a new collection"
@@ -11397,8 +11770,22 @@ msgid "Copy Objects"
 msgstr "Kopiera objekt"
 
 
+msgctxt "Operator"
+msgid "Local View"
+msgstr "Lokal vy"
+
+
 msgid "Toggle display of selected object(s) separately and centered in view"
 msgstr "Visa/göm markerade objekt separat, och centrerat i vyn"
+
+
+msgctxt "Operator"
+msgid "Remove from Local View"
+msgstr "Ta bort från lokal vy"
+
+
+msgid "Move selected objects out of local view"
+msgstr "Flytta markerade objekt ut från lokal vy"
 
 
 msgctxt "Operator"
@@ -11719,10 +12106,6 @@ msgstr "Gränskrock"
 
 msgid "Self Collision"
 msgstr "Självkrock"
-
-
-msgid "Viscosity"
-msgstr "Viskositet"
 
 
 msgid "Shadows"
@@ -13047,6 +13430,10 @@ msgid "Settings for particle fluids physics"
 msgstr "Fysikinställningar för partikelvätskor"
 
 
+msgid "Viscosity"
+msgstr "Viskositet"
+
+
 msgid "Scopes for statistical view of an image"
 msgstr "Instrument för statistisk analys av bilder"
 
@@ -14101,6 +14488,11 @@ msgstr "Nollställ"
 
 
 msgctxt "Operator"
+msgid "Hide Unselected"
+msgstr "Dölj omarkerade"
+
+
+msgctxt "Operator"
 msgid "All"
 msgstr "Alla"
 
@@ -14854,8 +15246,33 @@ msgstr "Spegla Y"
 
 
 msgctxt "Operator"
+msgid "Horizontal Split"
+msgstr "Dela horisontellt"
+
+
+msgctxt "Operator"
+msgid "Vertical Split"
+msgstr "Dela vertikalt"
+
+
+msgctxt "Operator"
 msgid "Sound"
 msgstr "Ljud"
+
+
+msgctxt "Operator"
+msgid "Selected Objects"
+msgstr "Markerade objekt"
+
+
+msgctxt "Operator"
+msgid "Move Up"
+msgstr "Flytta upp"
+
+
+msgctxt "Operator"
+msgid "Move Down"
+msgstr "Flytta ner"
 
 
 msgctxt "Operator"
@@ -15347,6 +15764,11 @@ msgstr "Spara kopia..."
 
 
 msgctxt "Operator"
+msgid "General"
+msgstr "Generell"
+
+
+msgctxt "Operator"
 msgid "SVG as Grease Pencil"
 msgstr "SVG som Grease Pencil"
 
@@ -15799,6 +16221,266 @@ msgstr "Golv"
 msgctxt "Operator"
 msgid "Armature"
 msgstr "Armatur"
+
+
+msgctxt "Operator"
+msgid "Copy Vector"
+msgstr "Kopiera vektor"
+
+
+msgctxt "Operator"
+msgid "Paste Vector"
+msgstr "Klistra in vektor"
+
+
+msgctxt "Operator"
+msgid "Reset Vectors"
+msgstr "Återställ vektorer"
+
+
+msgctxt "Operator"
+msgid "Delete Segment"
+msgstr "Ta bort segment"
+
+
+msgctxt "Operator"
+msgid "Delete Point"
+msgstr "Ta bort punkt"
+
+
+msgctxt "Operator"
+msgid "Copyright ©"
+msgstr "Upphovsrätt ©"
+
+
+msgctxt "Operator"
+msgid "Registered Trademark ®"
+msgstr "Registrerat varumärke ®"
+
+
+msgctxt "Operator"
+msgid "Degree °"
+msgstr "Grader °"
+
+
+msgctxt "Operator"
+msgid "Multiplication ×"
+msgstr "Multiplikation ×"
+
+
+msgctxt "Operator"
+msgid "Circle •"
+msgstr "Cirkel •"
+
+
+msgctxt "Operator"
+msgid "Superscript ¹"
+msgstr "Upphöjd ¹"
+
+
+msgctxt "Operator"
+msgid "Superscript ²"
+msgstr "Upphöjd ²"
+
+
+msgctxt "Operator"
+msgid "Superscript ³"
+msgstr "Upphöjd ³"
+
+
+msgctxt "Operator"
+msgid "Per Mille ‰"
+msgstr "Promille ‰"
+
+
+msgctxt "Operator"
+msgid "Euro €"
+msgstr "Euro €"
+
+
+msgctxt "Operator"
+msgid "Pound £"
+msgstr "Pund £"
+
+
+msgctxt "Operator"
+msgid "Decrease Kerning"
+msgstr "Minska spärrning"
+
+
+msgctxt "Operator"
+msgid "Increase Kerning"
+msgstr "Öka spärrning"
+
+
+msgctxt "Operator"
+msgid "Reset Kerning"
+msgstr "Återställ spärrning"
+
+
+msgctxt "Operator"
+msgid "Previous Character"
+msgstr "Föregående tecken"
+
+
+msgctxt "Operator"
+msgid "Next Character"
+msgstr "Nästa tecken"
+
+
+msgctxt "Operator"
+msgid "To Uppercase"
+msgstr "Till versaler"
+
+
+msgctxt "Operator"
+msgid "To Lowercase"
+msgstr "Till gemener"
+
+
+msgctxt "Operator"
+msgid "Toggle Bold"
+msgstr "Växla fetstil"
+
+
+msgctxt "Operator"
+msgid "Toggle Italic"
+msgstr "Växla kursiv"
+
+
+msgctxt "Operator"
+msgid "Toggle Underline"
+msgstr "Växla understruken"
+
+
+msgctxt "Operator"
+msgid "Toggle Small Caps"
+msgstr "Växla kapitäler"
+
+
+msgctxt "Operator"
+msgid "With Empty Groups"
+msgstr "Med tomma grupper"
+
+
+msgctxt "Operator"
+msgid "With Automatic Weights"
+msgstr "Med automatiska vikter"
+
+
+msgctxt "Operator"
+msgid "Normalize Thickness"
+msgstr "Normalisera tjocklek"
+
+
+msgctxt "Operator"
+msgid "Normalize Opacity"
+msgstr "Normalisera opacitet"
+
+
+msgctxt "Operator"
+msgid "Insert Blank Keyframe (All Layers)"
+msgstr "Lägg in tom keyframe (alla lager)"
+
+
+msgctxt "Operator"
+msgid "Duplicate Active Keyframe (All Layers)"
+msgstr "Duplicera aktiv keyframe (alla lager)"
+
+
+msgctxt "Operator"
+msgid "Hide Active Layer"
+msgstr "Dölj aktivt lager"
+
+
+msgctxt "Operator"
+msgid "Hide Inactive Layers"
+msgstr "Dölj inaktiva lager"
+
+
+msgid "To 3D Cursor"
+msgstr "Till 3D-markör"
+
+
+msgid "Compositor not supported on this platform"
+msgstr "Bildsammansättning stöds inte på denna plattform"
+
+
+msgid "Fade Inactive Geometry"
+msgstr "Tona ut inaktiv geometri"
+
+
+msgid "Marker Names"
+msgstr "Markörnamn"
+
+
+msgid "Developer"
+msgstr "Utvecklare"
+
+
+msgid "Fade Geometry"
+msgstr "Tona ut geometri"
+
+
+msgid "Reference Point"
+msgstr "Referenspunkt"
+
+
+msgid "Mirror Points"
+msgstr "Spegla punkter"
+
+
+msgctxt "Operator"
+msgid "Set Active Camera"
+msgstr "Ange aktiv kamera"
+
+
+msgctxt "Operator"
+msgid "Gradient (Linear)"
+msgstr "Övertoning (linjär)"
+
+
+msgctxt "Operator"
+msgid "Gradient (Radial)"
+msgstr "Övertoning (radiell)"
+
+
+msgctxt "Operator"
+msgid "New Face from Edges"
+msgstr "Ny yta från kanter"
+
+
+msgctxt "Operator"
+msgid "Delete Edges"
+msgstr "Ta bort kanter"
+
+
+msgctxt "Operator"
+msgid "Bridge Faces"
+msgstr "Överbrygga ytor"
+
+
+msgctxt "Operator"
+msgid "Delete Faces"
+msgstr "Ta bort ytor"
+
+
+msgid "Scaling"
+msgstr "Skalning"
+
+
+msgctxt "Operator"
+msgid "Scale Radius"
+msgstr "Skala radie"
+
+
+msgctxt "Operator"
+msgid "Adjust Light Power"
+msgstr "Justera ljusstyrka"
+
+
+msgid "Light Power: %.3f"
+msgstr "Ljusstyrka: %.3f"
 
 
 msgid "Layer:"
@@ -16559,6 +17241,10 @@ msgid "This file was saved by a newer version of Blender (%s)"
 msgstr "Denna fil har sparats av en nyare version av Blender (%s)"
 
 
+msgid "Save changes before closing?"
+msgstr "Spara ändringar före stängning?"
+
+
 msgid "Startup file saved"
 msgstr "Uppstartsfil sparad"
 
@@ -16576,6 +17262,11 @@ msgstr "(osparad)"
 
 
 msgctxt "WorkSpace"
+msgid "2D Animation"
+msgstr "2D-animation"
+
+
+msgctxt "WorkSpace"
 msgid "Animation"
 msgstr "Animation"
 
@@ -16588,6 +17279,11 @@ msgstr "Bildsammansättning"
 msgctxt "WorkSpace"
 msgid "Geometry Nodes"
 msgstr "Geometrinoder"
+
+
+msgctxt "WorkSpace"
+msgid "Layout"
+msgstr "Layout"
 
 
 msgctxt "WorkSpace"

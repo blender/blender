@@ -8,7 +8,7 @@ from rna_prop_ui import PropertyPanel
 
 from bpy.app.translations import (
     pgettext_iface as iface_,
-    pgettext_tip as tip_,
+    pgettext_tip as rpt_,
 )
 
 
@@ -581,7 +581,7 @@ def draw_attribute_warnings(context, layout):
     if not colliding_names:
         return
 
-    layout.label(text=tip_("Name collisions: ") + ", ".join(set(colliding_names)),
+    layout.label(text=rpt_("Name collisions: ") + ", ".join(set(colliding_names)),
                  icon='ERROR', translate=False)
 
 

@@ -1206,7 +1206,7 @@ typedef struct IdAdtTemplate {
   AnimData *adt;
 } IdAdtTemplate;
 
-/* From: `DNA_object_types.h`, see it's doc-string there. */
+/* From: `DNA_object_types.h`, see its doc-string there. */
 #define SELECT 1
 
 /* ************************************************ */

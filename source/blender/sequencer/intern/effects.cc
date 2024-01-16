@@ -34,7 +34,7 @@
 #include "DNA_vfont_types.h"
 
 #include "BKE_fcurve.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 
 #include "IMB_colormanagement.h"
@@ -243,6 +243,16 @@ static void init_alpha_over_or_under(Sequence *seq)
   seq->seq1 = seq2;
 }
 
+static bool alpha_opaque(uchar alpha)
+{
+  return alpha == 255;
+}
+
+static bool alpha_opaque(float alpha)
+{
+  return alpha >= 1.0f;
+}
+
 /* dst = src1 over src2 (alpha from src1) */
 template<typename T>
 static void do_alphaover_effect(
@@ -253,23 +263,25 @@ static void do_alphaover_effect(
     return;
   }
 
-  for (int y = 0; y < height; y++) {
-    for (int x = 0; x < width; x++) {
+  for (int pixel_idx = 0; pixel_idx < width * height; pixel_idx++) {
+    if (src1[3] <= 0.0f) {
+      /* Alpha of zero. No color addition will happen as the colors are premultipled. */
+      memcpy(dst, src2, sizeof(T) * 4);
+    }
+    else if (fac == 1.0f && alpha_opaque(src1[3])) {
+      /* No change to src1 as fac == 1 and fully opaque. */
+      memcpy(dst, src1, sizeof(T) * 4);
+    }
+    else {
       float4 col1 = load_premul_pixel(src1);
       float mfac = 1.0f - fac * col1.w;
-
-      if (mfac <= 0.0f) {
-        memcpy(dst, src1, sizeof(T) * 4);
-      }
-      else {
-        float4 col2 = load_premul_pixel(src2);
-        float4 col = fac * col1 + mfac * col2;
-        store_premul_pixel(col, dst);
-      }
-      src1 += 4;
-      src2 += 4;
-      dst += 4;
+      float4 col2 = load_premul_pixel(src2);
+      float4 col = fac * col1 + mfac * col2;
+      store_premul_pixel(col, dst);
     }
+    src1 += 4;
+    src2 += 4;
+    dst += 4;
   }
 }
 
@@ -318,25 +330,23 @@ static void do_alphaunder_effect(
     return;
   }
 
-  for (int y = 0; y < height; y++) {
-    for (int x = 0; x < width; x++) {
-      float4 col2 = load_premul_pixel(src2);
-      if (col2.w <= 0.0f) {
-        memcpy(dst, src1, sizeof(T) * 4);
-      }
-      else if (col2.w >= 1.0f || fac <= 0.0f) {
-        memcpy(dst, src2, sizeof(T) * 4);
-      }
-      else {
-        float mfac = fac * (1.0f - col2.w);
-        float4 col1 = load_premul_pixel(src1);
-        float4 col = mfac * col1 + col2;
-        store_premul_pixel(col, dst);
-      }
-      src1 += 4;
-      src2 += 4;
-      dst += 4;
+  for (int pixel_idx = 0; pixel_idx < width * height; pixel_idx++) {
+    if (src2[3] <= 0.0f) {
+      memcpy(dst, src1, sizeof(T) * 4);
     }
+    else if (alpha_opaque(src2[3]) || fac <= 0.0f) {
+      memcpy(dst, src2, sizeof(T) * 4);
+    }
+    else {
+      float4 col2 = load_premul_pixel(src2);
+      float mfac = fac * (1.0f - col2.w);
+      float4 col1 = load_premul_pixel(src1);
+      float4 col = mfac * col1 + col2;
+      store_premul_pixel(col, dst);
+    }
+    src1 += 4;
+    src2 += 4;
+    dst += 4;
   }
 }
 
@@ -1925,51 +1935,41 @@ static ImBuf *do_solid_color(const SeqRenderData *context,
                              ImBuf *ibuf2,
                              ImBuf *ibuf3)
 {
+  using namespace blender;
   ImBuf *out = prepare_effect_imbufs(context, ibuf1, ibuf2, ibuf3);
 
   SolidColorVars *cv = (SolidColorVars *)seq->effectdata;
 
-  int x = out->x;
-  int y = out->y;
+  threading::parallel_for(IndexRange(out->y), 64, [&](const IndexRange y_range) {
+    if (out->byte_buffer.data) {
+      /* Byte image. */
+      uchar color[4];
+      rgb_float_to_uchar(color, cv->col);
+      color[3] = 255;
 
-  if (out->byte_buffer.data) {
-    uchar color[4];
-    color[0] = cv->col[0] * 255;
-    color[1] = cv->col[1] * 255;
-    color[2] = cv->col[2] * 255;
-    color[3] = 255;
-
-    uchar *rect = out->byte_buffer.data;
-
-    for (int i = 0; i < y; i++) {
-      for (int j = 0; j < x; j++) {
-        rect[0] = color[0];
-        rect[1] = color[1];
-        rect[2] = color[2];
-        rect[3] = color[3];
-        rect += 4;
+      uchar *dst = out->byte_buffer.data + y_range.first() * out->x * 4;
+      uchar *dst_end = dst + y_range.size() * out->x * 4;
+      while (dst < dst_end) {
+        memcpy(dst, color, sizeof(color));
+        dst += 4;
       }
     }
-  }
-  else if (out->float_buffer.data) {
-    float color[4];
-    color[0] = cv->col[0];
-    color[1] = cv->col[1];
-    color[2] = cv->col[2];
-    color[3] = 255;
+    else {
+      /* Float image. */
+      float color[4];
+      color[0] = cv->col[0];
+      color[1] = cv->col[1];
+      color[2] = cv->col[2];
+      color[3] = 1.0f;
 
-    float *rect_float = out->float_buffer.data;
-
-    for (int i = 0; i < y; i++) {
-      for (int j = 0; j < x; j++) {
-        rect_float[0] = color[0];
-        rect_float[1] = color[1];
-        rect_float[2] = color[2];
-        rect_float[3] = color[3];
-        rect_float += 4;
+      float *dst = out->float_buffer.data + y_range.first() * out->x * 4;
+      float *dst_end = dst + y_range.size() * out->x * 4;
+      while (dst < dst_end) {
+        memcpy(dst, color, sizeof(color));
+        dst += 4;
       }
     }
-  }
+  });
 
   out->planes = R_IMF_PLANES_RGB;
 

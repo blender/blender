@@ -102,7 +102,7 @@ struct MeshRenderData {
   bke::MeshNormalDomain normals_domain;
   Span<float3> vert_normals;
   Span<float3> face_normals;
-  Span<float3> loop_normals;
+  Span<float3> corner_normals;
 
   VArraySpan<bool> hide_vert;
   VArraySpan<bool> hide_edge;

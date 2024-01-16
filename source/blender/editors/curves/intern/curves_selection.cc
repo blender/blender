@@ -128,6 +128,16 @@ void fill_selection_true(GMutableSpan selection)
   }
 }
 
+void fill_selection(GMutableSpan selection, bool value)
+{
+  if (selection.type().is<bool>()) {
+    selection.typed<bool>().fill(value);
+  }
+  else if (selection.type().is<float>()) {
+    selection.typed<float>().fill(value ? 1.0f : 0.0f);
+  }
+}
+
 void fill_selection_false(GMutableSpan selection, const IndexMask &mask)
 {
   if (selection.type().is<bool>()) {
@@ -173,7 +183,7 @@ static bool contains(const VArray<bool> &varray,
           for (const int64_t segment_i : IndexRange(sliced_mask.segments_num())) {
             const IndexMaskSegment segment = sliced_mask.segment(segment_i);
             for (const int i : segment) {
-              if (span[i]) {
+              if (span[i] == value) {
                 return true;
               }
             }
@@ -191,13 +201,15 @@ static bool contains(const VArray<bool> &varray,
           return init;
         }
         constexpr int64_t MaxChunkSize = 512;
-        for (int64_t start = range.start(); start < range.last(); start += MaxChunkSize) {
-          const int64_t end = std::min<int64_t>(start + MaxChunkSize, range.last());
+        const int64_t slice_end = range.one_after_last();
+        for (int64_t start = range.start(); start < slice_end; start += MaxChunkSize) {
+          const int64_t end = std::min<int64_t>(start + MaxChunkSize, slice_end);
           const int64_t size = end - start;
           const IndexMask sliced_mask = indices_to_check.slice(start, size);
           std::array<bool, MaxChunkSize> values;
+          auto values_end = values.begin() + size;
           varray.materialize_compressed(sliced_mask, values);
-          if (std::find(values.begin(), values.end(), true) != values.end()) {
+          if (std::find(values.begin(), values_end, value) != values_end) {
             return true;
           }
         }
@@ -360,25 +372,24 @@ void select_alternate(bke::CurvesGeometry &curves,
       return;
     }
 
-    for (const int index : points.index_range()) {
-      selection_typed[points[index]] = deselect_ends ? index % 2 : !(index % 2);
+    const int half_of_size = points.size() / 2;
+    const IndexRange selected = points.shift(deselect_ends ? 1 : 0);
+    const IndexRange deselected = points.shift(deselect_ends ? 0 : 1);
+    for (const int i : IndexRange(half_of_size)) {
+      const int index = i * 2;
+      selection_typed[selected[index]] = true;
+      selection_typed[deselected[index]] = false;
     }
 
-    if (cyclic[curve_i]) {
-      if (deselect_ends) {
-        selection_typed[points.last()] = false;
-      }
-      else {
-        selection_typed[points.last()] = true;
-        if (points.size() > 2) {
-          selection_typed[points.last() - 1] = false;
-        }
-      }
-    }
-    else {
-      if (deselect_ends) {
-        selection_typed[points.last()] = false;
-      }
+    selection_typed[points.first()] = !deselect_ends;
+    const bool end_parity_to_selected = bool(points.size() % 2);
+    const bool selected_end = cyclic[curve_i] || end_parity_to_selected;
+    selection_typed[points.last()] = !deselect_ends && selected_end;
+
+    /* Selected last one require to deselect pre-last one point which is not first. */
+    const IndexRange curve_body = points.drop_front(1).drop_back(1);
+    if (!deselect_ends && cyclic[curve_i] && !curve_body.is_empty()) {
+      selection_typed[curve_body.last()] = false;
     }
   });
 

@@ -919,25 +919,25 @@ struct wmTimer {
   bool sleep;
 };
 
-enum wmWarningSize {
+enum wmConfirmSize {
   WM_WARNING_SIZE_SMALL = 0,
   WM_WARNING_SIZE_LARGE,
 };
 
-enum wmWarningPosition {
+enum wmConfirmPosition {
   WM_WARNING_POSITION_MOUSE = 0,
   WM_WARNING_POSITION_CENTER,
 };
 
-struct wmWarningDetails {
+struct wmConfirmDetails {
   char title[1024];
   char message[1024];
   char message2[1024];
   char confirm_button[256];
   char cancel_button[256];
   int icon;
-  wmWarningSize size;
-  wmWarningPosition position;
+  wmConfirmSize size;
+  wmConfirmPosition position;
   bool confirm_default;
   bool cancel_default;
   bool mouse_move_quit;
@@ -1074,7 +1074,7 @@ struct wmOperatorType {
   /**
    * If using WM_operator_confirm the following can override all parts of the dialog.
    */
-  void (*warning)(bContext *C, wmOperator *, wmWarningDetails *warning);
+  void (*confirm)(bContext *C, wmOperator *, wmConfirmDetails *details);
 
   /** RNA for properties */
   StructRNA *srna;

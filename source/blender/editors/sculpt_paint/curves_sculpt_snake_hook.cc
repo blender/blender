@@ -80,8 +80,6 @@ struct SnakeHookOperatorExecutor {
   float brush_radius_factor_;
   float brush_strength_;
 
-  eBrushFalloffShape falloff_shape_;
-
   Object *object_ = nullptr;
   Curves *curves_id_ = nullptr;
   CurvesGeometry *curves_ = nullptr;
@@ -114,7 +112,7 @@ struct SnakeHookOperatorExecutor {
     brush_radius_factor_ = brush_radius_factor(*brush_, stroke_extension);
     brush_strength_ = brush_strength_get(*ctx_.scene, *brush_, stroke_extension);
 
-    falloff_shape_ = static_cast<eBrushFalloffShape>(brush_->falloff_shape);
+    const eBrushFalloffShape falloff_shape = eBrushFalloffShape(brush_->falloff_shape);
 
     curves_id_ = static_cast<Curves *>(object_->data);
     curves_ = &curves_id_->geometry.wrap();
@@ -133,7 +131,7 @@ struct SnakeHookOperatorExecutor {
     brush_pos_diff_re_ = brush_pos_re_ - brush_pos_prev_re_;
 
     if (stroke_extension.is_first) {
-      if (falloff_shape_ == PAINT_FALLOFF_SHAPE_SPHERE) {
+      if (falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) {
         std::optional<CurvesBrush3D> brush_3d = sample_curves_3d_brush(*ctx_.depsgraph,
                                                                        *ctx_.region,
                                                                        *ctx_.v3d,
@@ -148,10 +146,10 @@ struct SnakeHookOperatorExecutor {
       return;
     }
 
-    if (falloff_shape_ == PAINT_FALLOFF_SHAPE_SPHERE) {
+    if (falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) {
       this->spherical_snake_hook_with_symmetry();
     }
-    else if (falloff_shape_ == PAINT_FALLOFF_SHAPE_TUBE) {
+    else if (falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
       this->projected_snake_hook_with_symmetry();
     }
     else {

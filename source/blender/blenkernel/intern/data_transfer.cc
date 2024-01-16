@@ -379,17 +379,17 @@ static void data_transfer_dtdata_type_postprocess(Mesh *me_dst,
         "sharp_edge", bke::AttrDomain::Edge);
     const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", bke::AttrDomain::Face);
     /* Note loop_nors_dst contains our custom normals as transferred from source... */
-    blender::bke::mesh::normals_loop_custom_set(me_dst->vert_positions(),
-                                                me_dst->edges(),
-                                                me_dst->faces(),
-                                                me_dst->corner_verts(),
-                                                me_dst->corner_edges(),
-                                                me_dst->vert_normals(),
-                                                me_dst->face_normals(),
-                                                sharp_faces,
-                                                sharp_edges.span,
-                                                {loop_nors_dst, me_dst->corners_num},
-                                                {custom_nors_dst, me_dst->corners_num});
+    blender::bke::mesh::normals_corner_custom_set(me_dst->vert_positions(),
+                                                  me_dst->edges(),
+                                                  me_dst->faces(),
+                                                  me_dst->corner_verts(),
+                                                  me_dst->corner_edges(),
+                                                  me_dst->vert_normals(),
+                                                  me_dst->face_normals(),
+                                                  sharp_faces,
+                                                  sharp_edges.span,
+                                                  {loop_nors_dst, me_dst->corners_num},
+                                                  {custom_nors_dst, me_dst->corners_num});
     sharp_edges.finish();
     CustomData_free_layers(ldata_dst, CD_NORMAL, me_dst->corners_num);
   }

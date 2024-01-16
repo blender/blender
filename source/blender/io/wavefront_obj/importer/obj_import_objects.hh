@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 
 #include "BLI_map.hh"
 #include "BLI_math_base.hh"

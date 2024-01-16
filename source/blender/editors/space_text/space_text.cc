@@ -16,7 +16,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_global.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_lib_query.h"
 #include "BKE_lib_remap.hh"
 #include "BKE_screen.hh"
@@ -55,6 +55,8 @@ static SpaceLink *text_create(const ScrArea * /*area*/, const Scene * /*scene*/)
   stext->showsyntax = true;
   stext->showlinenrs = true;
 
+  stext->runtime = MEM_new<SpaceText_Runtime>(__func__);
+
   /* header */
   region = static_cast<ARegion *>(MEM_callocN(sizeof(ARegion), "header for text"));
 
@@ -89,9 +91,9 @@ static SpaceLink *text_create(const ScrArea * /*area*/, const Scene * /*scene*/)
 static void text_free(SpaceLink *sl)
 {
   SpaceText *stext = (SpaceText *)sl;
-
+  space_text_free_caches(stext);
+  MEM_delete(stext->runtime);
   stext->text = nullptr;
-  text_free_caches(stext);
 }
 
 /* spacetype; init callback */
@@ -101,9 +103,8 @@ static SpaceLink *text_duplicate(SpaceLink *sl)
 {
   SpaceText *stextn = static_cast<SpaceText *>(MEM_dupallocN(sl));
 
-  /* clear or remove stuff from old */
-
-  stextn->runtime.drawcache = nullptr; /* space need its own cache */
+  /* Add its own runtime data. */
+  stextn->runtime = MEM_new<SpaceText_Runtime>(__func__);
 
   return (SpaceLink *)stextn;
 }
@@ -134,7 +135,7 @@ static void text_listener(const wmSpaceTypeListenerParams *params)
       switch (wmn->action) {
         case NA_EDITED:
           if (st->text) {
-            text_drawcache_tag_update(st, true);
+            space_text_drawcache_tag_update(st, true);
             text_update_edited(st->text);
           }
 
@@ -290,9 +291,9 @@ static void text_cursor(wmWindow *win, ScrArea *area, ARegion *region)
   SpaceText *st = static_cast<SpaceText *>(area->spacedata.first);
   int wmcursor = WM_CURSOR_TEXT_EDIT;
 
-  if (st->text && BLI_rcti_isect_pt(&st->runtime.scroll_region_handle,
+  if (st->text && BLI_rcti_isect_pt(&st->runtime->scroll_region_handle,
                                     win->eventstate->xy[0] - region->winrct.xmin,
-                                    st->runtime.scroll_region_handle.ymin))
+                                    st->runtime->scroll_region_handle.ymin))
   {
     wmcursor = WM_CURSOR_DEFAULT;
   }
@@ -394,7 +395,7 @@ static void text_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
 static void text_space_blend_read_data(BlendDataReader * /*reader*/, SpaceLink *sl)
 {
   SpaceText *st = (SpaceText *)sl;
-  memset(&st->runtime, 0x0, sizeof(st->runtime));
+  st->runtime = MEM_new<SpaceText_Runtime>(__func__);
 }
 
 static void text_space_blend_write(BlendWriter *writer, SpaceLink *sl)

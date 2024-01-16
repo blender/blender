@@ -52,6 +52,7 @@
 #include "UI_interface.hh"
 #include "UI_view2d.hh"
 
+#include "ED_grease_pencil.hh"
 #include "ED_image.hh"
 #include "ED_object.hh"
 #include "ED_paint.hh"
@@ -630,9 +631,9 @@ static void sample_color_update_header(SampleColorData *data, bContext *C)
 
   if (area) {
     SNPRINTF(msg,
-             TIP_("Sample color for %s"),
-             !data->sample_palette ? TIP_("Brush. Use Left Click to sample for palette instead") :
-                                     TIP_("Palette. Use Left Click to sample more colors"));
+             RPT_("Sample color for %s"),
+             !data->sample_palette ? RPT_("Brush. Use Left Click to sample for palette instead") :
+                                     RPT_("Palette. Use Left Click to sample more colors"));
     ED_workspace_status_text(C, msg);
   }
 }
@@ -761,7 +762,8 @@ static int sample_color_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
 static bool sample_color_poll(bContext *C)
 {
-  return (image_paint_poll_ignore_tool(C) || vertex_paint_poll_ignore_tool(C));
+  return (image_paint_poll_ignore_tool(C) || vertex_paint_poll_ignore_tool(C) ||
+          blender::ed::greasepencil::grease_pencil_painting_poll(C));
 }
 
 void PAINT_OT_sample_color(wmOperatorType *ot)

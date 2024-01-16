@@ -363,7 +363,7 @@ bool Instance::do_planar_probe_sync() const
 /**
  * Conceptually renders one sample per pixel.
  * Everything based on random sampling should be done here (i.e: DRWViews jitter)
- **/
+ */
 void Instance::render_sample()
 {
   if (sampling.finished_viewport()) {

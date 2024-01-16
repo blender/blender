@@ -19,7 +19,7 @@
 #include "IMB_imbuf_types.h"
 
 #include "BKE_image.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 
 #include "DNA_ID.h"
 #include "DNA_image_types.h"

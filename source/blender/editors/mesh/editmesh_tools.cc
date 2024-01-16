@@ -39,7 +39,7 @@
 #include "BKE_editmesh.hh"
 #include "BKE_key.h"
 #include "BKE_layer.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
@@ -8501,7 +8501,7 @@ static void point_normals_update_header(bContext *C, wmOperator *op)
       op->type, (_id), true, UI_MAX_SHORTCUT_STR, &available_len, &p)
 
   SNPRINTF(header,
-           TIP_("%s: confirm, %s: cancel, "
+           RPT_("%s: confirm, %s: cancel, "
                 "%s: point to mouse (%s), %s: point to Pivot, "
                 "%s: point to object origin, %s: reset normals, "
                 "%s: set & point to 3D cursor, %s: select & point to mesh item, "

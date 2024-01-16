@@ -878,7 +878,7 @@ static bool loop_uv_match(BMLoop *loop,
  * \param visited: A set of edges to prevent recursing down the same edge multiple times.
  * \param cd_loop_uv_offset: The UV layer.
  * \return true if there are edges that fan between them that are seam-free.
- * */
+ */
 static bool seam_connected_recursive(BMEdge *edge,
                                      const float luv_anchor[2],
                                      const float luv_fan[2],

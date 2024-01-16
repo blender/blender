@@ -1336,7 +1336,7 @@ static void ui_item_menu_hold(bContext *C, ARegion *butregion, uiBut *but)
     UI_menutype_draw(C, mt, layout);
   }
   else {
-    uiItemL(layout, TIP_("Menu Missing:"), ICON_NONE);
+    uiItemL(layout, RPT_("Menu Missing:"), ICON_NONE);
     uiItemL(layout, menu_id, ICON_NONE);
   }
   UI_popup_menu_end(C, pup);
@@ -5307,6 +5307,11 @@ void uiLayoutSetPropDecorate(uiLayout *layout, bool is_sep)
   SET_FLAG_FROM_TEST(layout->item.flag, is_sep, UI_ITEM_PROP_DECORATE);
 }
 
+Panel *uiLayoutGetRootPanel(uiLayout *layout)
+{
+  return layout->root->block->panel;
+}
+
 bool uiLayoutGetActive(uiLayout *layout)
 {
   return layout->active;
@@ -5426,29 +5431,30 @@ static bool button_matches_search_filter(uiBut *but, const char *search_filter)
     if (but->type == UI_BTYPE_MENU) {
       PointerRNA *ptr = &but->rnapoin;
       PropertyRNA *enum_prop = but->rnaprop;
-
       int items_len;
       const EnumPropertyItem *items_array = nullptr;
       bool free;
       RNA_property_enum_items_gettexted(nullptr, ptr, enum_prop, &items_array, &items_len, &free);
-      BLI_SCOPED_DEFER([&] {
-        if (free) {
-          MEM_freeN((EnumPropertyItem *)items_array);
-        }
-      });
-
       if (items_array == nullptr) {
         return false;
       }
 
+      bool found = false;
       for (int i = 0; i < items_len; i++) {
         /* Check for nullptr name field which enums use for separators. */
         if (items_array[i].name == nullptr) {
           continue;
         }
         if (BLI_strcasestr(items_array[i].name, search_filter)) {
-          return true;
+          found = true;
+          break;
         }
+      }
+      if (free) {
+        MEM_freeN((EnumPropertyItem *)items_array);
+      }
+      if (found) {
+        return true;
       }
     }
   }

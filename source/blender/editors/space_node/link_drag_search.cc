@@ -11,7 +11,7 @@
 #include "BKE_asset.hh"
 #include "BKE_context.hh"
 #include "BKE_idprop.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.hh"
 #include "BKE_screen.hh"
@@ -239,7 +239,6 @@ static void gather_search_link_ops_for_asset_library(const bContext &C,
   filter_settings.id_types = FILTER_ID_NT;
 
   ED_assetlist_storage_fetch(&library_ref, &C);
-  ED_assetlist_ensure_previews_job(&library_ref, &C);
   ED_assetlist_iterate(library_ref, [&](asset_system::AssetRepresentation &asset) {
     if (!ED_asset_filter_matches_asset(&filter_settings, asset)) {
       return true;

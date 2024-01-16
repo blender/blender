@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'd13edee3e0cc')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'acbb91b192da')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-08 11:04:23\n"
-"PO-Revision-Date: 2024-01-07 04:55+0000\n"
+"POT-Creation-Date: 2024-01-15 10:52:30\n"
+"PO-Revision-Date: 2024-01-09 06:40+0000\n"
 "Last-Translator: Damien Picard <dam.pic@free.fr>\n"
 "Language-Team: French <https://translate.blender.org/projects/blender-ui/ui/fr/>\n"
 "Language: fr\n"
@@ -3937,6 +3937,14 @@ msgid "Bones assigned to this bone collection. In armature edit mode this will a
 msgstr "Os assignés à cette collection d’os. En mode édition d’armature, retourne toujours une liste d’os vide, car les appartenances à une collection d’os ne sont synchronisées qu’en sortie du mode édition"
 
 
+msgid "Child Number"
+msgstr "Numéro de l’enfant"
+
+
+msgid "Index of this collection into its parent's list of children. Note that finding this index requires a scan of all the bone collections, so do access this with care"
+msgstr "Indice de cette collection dans la liste d’enfants de sa parente. Note : pour trouver cet indice il faut parcourir toutes les collections d’os, y accéder avec précaution"
+
+
 msgid "Index"
 msgstr "Indice"
 
@@ -3965,8 +3973,28 @@ msgid "Bones in this collection will be visible in pose/object mode"
 msgstr "Les os dans cette collection seront visibles en mode pose/objet"
 
 
+msgid "Ancestors Effectively Visible"
+msgstr "Ancêtres effectivement visibles"
+
+
+msgid "True when all of the ancestors of this bone collection are marked as visible; always True for root bone collections"
+msgstr "Vrai quand toutes les ancêtres de cette collection d’os sont marqués comme visibles ; toujours Vrai pour les collections d’os racines"
+
+
+msgid "Effective Visibility"
+msgstr "Visibilité effective"
+
+
+msgid "Whether this bone collection is effectively visible in the viewport. This is True when this bone collection and all of its ancestors are visible"
+msgstr "Cette collection d’os est-elle réellement visible dans la vue 3D. Vrai quand cette collection d’os et tous ses ancêtres sont visibles"
+
+
 msgid "Unique within the Armature"
 msgstr "Unique au sein de cette armature"
+
+
+msgid "Parent bone collection. Note that accessing this requires a scan of all the bone collections to find the parent"
+msgstr "Collection d’os parente. Note : pour accéder à cette propriété, il faut parcourir toutes les collections d’os pour trouver le parent"
 
 
 msgid "Bone Collection Memberships"
@@ -4007,14 +4035,6 @@ msgstr "Nom de la collection active"
 
 msgid "The name of the Armature's active bone collection; empty when there is no active collection"
 msgstr "Le nom de la collection d’os active de l’armature ; vide s’il n’y a aucune collection active"
-
-
-msgid "Root Bone Collections"
-msgstr "Collections racines d’os"
-
-
-msgid "List of the top-level bone collections in the hierarchy"
-msgstr "Liste de collections d’os au premier niveau de la hiérarchie"
 
 
 msgid "Theme color or custom color of a bone"
@@ -14832,10 +14852,6 @@ msgid "Use Viscosity"
 msgstr "Utiliser la viscosité"
 
 
-msgid "Enable fluid viscosity settings"
-msgstr "Activer les réglages de viscosité du fluide"
-
-
 msgid "Display Type"
 msgstr "Type d’affichage"
 
@@ -19738,10 +19754,6 @@ msgstr "Position des axes"
 
 msgid "The position for the axes on the bone. Increasing the value moves it closer to the tip; decreasing moves it closer to the root"
 msgstr "Position des axes sur l’os. Augmenter cette valeur pour les rapprocher de la pointe ; la diminuer pour les rapprocher de la racine"
-
-
-msgid "Bone Collections"
-msgstr "Collections d’os"
 
 
 msgid "Octahedral"
@@ -33931,6 +33943,10 @@ msgid "All the selected objects of this layer"
 msgstr "Tous les objets sélectionnés dans ce calque"
 
 
+msgid "Is Open"
+msgstr "Est ouvert"
+
+
 msgid "Read-only external reference to a linked data-block and its library file"
 msgstr "Référence externe en lecture seule à un bloc de données lié et à son fichier bibliothèque"
 
@@ -35324,6 +35340,10 @@ msgstr "Menu d’éditeur contenant des boutons"
 
 msgid "Bone Collection Specials"
 msgstr "Opérations de collections d’os"
+
+
+msgid "Bone Collections"
+msgstr "Collections d’os"
 
 
 msgid "Asset"
@@ -50132,10 +50152,6 @@ msgid "Nodes Modifier Panel"
 msgstr "Panneau de modificateur Nœuds"
 
 
-msgid "Is Open"
-msgstr "Est ouvert"
-
-
 msgid "Whether the panel is expanded or closed"
 msgstr "Le panneau est-il déplié ou fermé"
 
@@ -51897,10 +51913,6 @@ msgid "Solo Visibility"
 msgstr "Cacher les autres"
 
 
-msgid "Hide all other bone collections and show the active one"
-msgstr "Cacher toutes les autres collections d’os et n’afficher que l’active"
-
-
 msgctxt "Operator"
 msgid "Remove Selected from Bone collections"
 msgstr "Retirer la sélection des collections d’os"
@@ -53521,6 +53533,10 @@ msgid "Enable Multi-View"
 msgstr "Activer multivues"
 
 
+msgid "Automatically determine sort method for files"
+msgstr "Déterminer automatiquement la méthode de tri pour les fichiers"
+
+
 msgctxt "Operator"
 msgid "Paste Tracks"
 msgstr "Coller les pistes"
@@ -54678,6 +54694,19 @@ msgid "Duplicate"
 msgstr "Dupliquer"
 
 
+msgid "Extrude selected control point(s)"
+msgstr "Extruder les points de contrôle sélectionnés"
+
+
+msgctxt "Operator"
+msgid "Extrude Curve and Move"
+msgstr "Extruder la courbe et déplacer"
+
+
+msgid "Extrude curve and move result"
+msgstr "Extruder la courbe et déplacer le résultat"
+
+
 msgctxt "Operator"
 msgid "Curve Sculpt Mode Toggle"
 msgstr "(Dés)activer le mode de sculpture de courbe"
@@ -54897,10 +54926,6 @@ msgid "Duplicate Curve"
 msgstr "Dupliquer la courbe"
 
 
-msgid "Extrude selected control point(s)"
-msgstr "Extruder les points de contrôle sélectionnés"
-
-
 msgid "Init"
 msgstr "Initialiser"
 
@@ -54987,15 +55012,6 @@ msgstr "Glisser la séquence"
 
 msgid "Grease Pencil Opacity"
 msgstr "Opacité du Grease Pencil"
-
-
-msgctxt "Operator"
-msgid "Extrude Curve and Move"
-msgstr "Extruder la courbe et déplacer"
-
-
-msgid "Extrude curve and move result"
-msgstr "Extruder la courbe et déplacer le résultat"
 
 
 msgctxt "Operator"
@@ -74503,6 +74519,10 @@ msgid "Add Raytracing Preset"
 msgstr "Ajouter un préréglage de lancer de rayon"
 
 
+msgid "Add or remove an EEVEE ray-tracing preset"
+msgstr "Ajouter ou supprimer un préréglage de lancer de rayon pour EEVEE"
+
+
 msgctxt "Operator"
 msgid "Viewport Render"
 msgstr "Rendre la vue 3D"
@@ -77541,12 +77561,16 @@ msgid "Set render size and aspect from active sequence"
 msgstr "Définir les taille et proportions du rendu d’après la séquence active"
 
 
-msgctxt "Operator"
-msgid "Add Freeze Frame"
+msgid "Add freeze frame"
 msgstr "Ajouter un arrêt sur image"
 
 
-msgid "Add freeze frame"
+msgid "Add smooth transition between 2 retimed segments"
+msgstr "Ajouter une transition douce entre deux segments reminutés"
+
+
+msgctxt "Operator"
+msgid "Add Freeze Frame"
 msgstr "Ajouter un arrêt sur image"
 
 
@@ -77613,10 +77637,6 @@ msgstr "Afficher les clés de reminutage des bandes sélectionnées"
 msgctxt "Operator"
 msgid "Add Speed Transition"
 msgstr "Ajouter une transition de vitesse"
-
-
-msgid "Add smooth transition between 2 retimed segments"
-msgstr "Ajouter une transition douce entre deux segments reminutés"
 
 
 msgid "Use mouse to sample color in current frame"
@@ -80589,20 +80609,20 @@ msgid "Rotation Method"
 msgstr "Méthode de rotation"
 
 
-msgid "Axis-aligned"
-msgstr "Alignés sur l’axe"
-
-
-msgid "Rotated to a minimal rectangle, either vertical or horizontal"
-msgstr "Tournés vers un rectangle minimal, vertical ou horizontal"
+msgid "Any angle is allowed for rotation"
+msgstr "Tous les angles de rotation sont permis"
 
 
 msgid "Only 90 degree rotations are allowed"
 msgstr "Seules les rotations à 90 degrés sont permises"
 
 
-msgid "Any angle is allowed for rotation"
-msgstr "Tous les angles de rotation sont permis"
+msgid "Axis-aligned"
+msgstr "Alignés sur l’axe"
+
+
+msgid "Rotated to a minimal rectangle, either vertical or horizontal"
+msgstr "Tournés vers un rectangle minimal, vertical ou horizontal"
 
 
 msgid "Scale islands to fill unit square"
@@ -82464,6 +82484,15 @@ msgstr "Garder ouvert"
 
 
 msgctxt "Operator"
+msgid "Clear Recent Files List"
+msgstr "Nettoyer la liste des fichiers récents"
+
+
+msgid "Clear the Recent Files List"
+msgstr "Nettoyer la liste des fichiers récents"
+
+
+msgctxt "Operator"
 msgid "Export COLLADA"
 msgstr "Exporter COLLADA"
 
@@ -83186,6 +83215,15 @@ msgstr "Voir le manuel en ligne dans le navigateur web, en fonction du contexte 
 msgctxt "Operator"
 msgid "Handle dropped .blend file"
 msgstr "Traiter le fichier .blend glissé-déposé"
+
+
+msgctxt "Operator"
+msgid "Drop to Import File"
+msgstr "Déposer pour importer le fichier"
+
+
+msgid "Operator that allows file handlers to receive file drops"
+msgstr "Opérateur permettant aux gestionnaires de fichiers de recevoir les fichiers déposés"
 
 
 msgctxt "Operator"
@@ -84103,6 +84141,10 @@ msgid "Load factory default startup file and preferences. To make changes perman
 msgstr "Charger le fichier de démarrage et les préférences d’usine par défaut. Pour rendre les changements permanents, utiliser « Enregistrer le fichier de démarrage » et « Enregistrer les préférences »"
 
 
+msgid "After loading, remove everything except scenes, windows, and workspaces. This makes it possible to load the startup file with its scene configuration and window layout intact, but no objects, materials, animations, ..."
+msgstr "Après le chargement, tout supprimer sauf les scènes, fenêtres, et espaces de travail. Permet de charger le fichier de démarrage avec la configuration de scène et la disposition de fenêtre intactes, mais sans objets, matériaux, animations, etc"
+
+
 msgid "Factory Startup App-Template Only"
 msgstr "Patron d’application des réglages d’usine uniquement"
 
@@ -84144,6 +84186,10 @@ msgstr "Charger les réglages d’interface utilisateur depuis le fichier .blend
 
 msgid "Factory Startup"
 msgstr "Démarrage d’usine"
+
+
+msgid "Load the default ('factory startup') blend file. This is independent of the normal start-up file that the user can save"
+msgstr "Charger le fichier blend par défaut (« démarrage d’usine »). Ce fichier est indépendant du fichier de démarrage ordinaire que l’utilisateur peut enregistrer"
 
 
 msgctxt "Operator"
@@ -84630,6 +84676,10 @@ msgid "Export all frames in the render frame range, rather than only the current
 msgstr "Exporter toutes les frames dans l’intervalle de rendu, plutôt que seulement la frame actuelle"
 
 
+msgid "Export armatures and meshes with armature modifiers as USD skeletons and skinned meshes"
+msgstr "Exporter les armatures et maillages ayant des modificateurs Armature en tant que squelettes USD et maillages liés"
+
+
 msgid "Export hair particle systems as USD curves"
 msgstr "Exporter les systèmes de particules de poils comme courbes USD"
 
@@ -84644,6 +84694,10 @@ msgstr "Inclure les attributs de couleur des maillages dans l’export"
 
 msgid "Include normals of exported meshes in the export"
 msgstr "Inclure les normales des maillages exportés dans l’export"
+
+
+msgid "Export shape keys as USD blend shapes"
+msgstr "Exporter les clés de forme en tant que blend shapes USD"
 
 
 msgid "Subdivision Scheme"
@@ -84696,6 +84750,10 @@ msgstr "Vers USD Preview Surface"
 
 msgid "Generate an approximate USD Preview Surface shader representation of a Principled BSDF node network"
 msgstr "Générer une représentation de shader approximative « USD Preview Surface » d’une arborescence de nœuds avec BSDF guidée"
+
+
+msgid "Only export deform bones and their parents"
+msgstr "N’exporter que les os déformants et leurs parents"
 
 
 msgid "Overwrite Textures"
@@ -86709,10 +86767,6 @@ msgstr "Diagnostiques"
 
 msgid "Helpers"
 msgstr "Facilitateurs"
-
-
-msgid "Viscosity"
-msgstr "Viscosité"
 
 
 msgid "Show options for the properties editor"
@@ -95720,6 +95774,10 @@ msgstr "Rayon d’interaction"
 
 msgid "Fluid interaction radius"
 msgstr "Rayon d’interaction du fluide"
+
+
+msgid "Viscosity"
+msgstr "Viscosité"
 
 
 msgid "Linear viscosity"
@@ -110564,16 +110622,28 @@ msgid "Requires NVIDIA GPU with compute capability %s"
 msgstr "Nécessite un GPU NVIDIA avec capacité de calcul %s"
 
 
-msgid "Requires AMD GPU with Vega or RDNA architecture"
-msgstr "Nécessite un GPU AMD avec architecture Vega ou RDNA"
-
-
 msgid "and NVIDIA driver version %s or newer"
 msgstr "et pilote NVIDIA en version %s ou plus"
 
 
+msgid "Requires AMD GPU with Vega or RDNA architecture"
+msgstr "Nécessite un GPU AMD avec architecture Vega ou RDNA"
+
+
+msgid "and AMD Radeon Pro %s driver or newer"
+msgstr "et pilote AMD Radeon Pro en version %s ou plus"
+
+
 msgid "Requires Intel GPU with Xe-HPG architecture"
 msgstr "Nécessite un GPU Intel avec architecture Xe-HPG"
+
+
+msgid "and AMD driver version %s or newer"
+msgstr "et pilote AMD en version %s ou plus"
+
+
+msgid "and Windows driver version %s or newer"
+msgstr "et pilote Windows en version %s ou plus"
 
 
 msgid "Requires Intel GPU with Xe-HPG architecture and"
@@ -110586,18 +110656,6 @@ msgstr "  - intel-level-zero-gpu ou intel-compute-runtime version"
 
 msgid "  - oneAPI Level-Zero Loader"
 msgstr "  - chargeur oneAPI Level-Zero"
-
-
-msgid "and AMD Radeon Pro %s driver or newer"
-msgstr "et pilote AMD Radeon Pro en version %s ou plus"
-
-
-msgid "and AMD driver version %s or newer"
-msgstr "et pilote AMD en version %s ou plus"
-
-
-msgid "and Windows driver version %s or newer"
-msgstr "et pilote Windows en version %s ou plus"
 
 
 msgid "Requires Apple Silicon with macOS %s or newer"
@@ -121132,10 +121190,6 @@ msgid "Shapekey %s has an invalid 'from' pointer (%p), it will be deleted"
 msgstr "La clé de forme %s a un pointeur 'from' invalide (%p), elle va être supprimée"
 
 
-msgid "The file was saved by a newer version, open it with Blender %s or later"
-msgstr "Le fichier a été enregistré avec une version plus récente, l’ouvrir avec Blender %s ou plus"
-
-
 msgid "insufficient content"
 msgstr "contenu insuffisant"
 
@@ -121186,6 +121240,10 @@ msgstr "Impossible d’ouvrir le fichier blend <mémoire>"
 
 msgid "Critical blend-file corruption: Conflicts and/or otherwise invalid data-blocks names (see console for details)"
 msgstr "Corruption critique du fichier blend : conflits et/ou noms de blocs de données invalides (voir les détails dans la console)"
+
+
+msgid "The file was saved by a newer version, open it with Blender %s or later"
+msgstr "Le fichier a été enregistré avec une version plus récente, l’ouvrir avec Blender %s ou plus"
 
 
 msgid "Failed to read blend file '%s': %s"
@@ -121380,6 +121438,10 @@ msgid "EEVEE (Legacy)"
 msgstr "EEVEE (obsolète)"
 
 
+msgid "%d Ref. Cubemaps, %d Irr. Samples (%s in memory)"
+msgstr "%d cubemaps de réf., %d échantillons d’irr. (%s en mémoire)"
+
+
 msgid "Incompatible Light cache version, please bake again"
 msgstr "Version de cache d’éclairage incompatible, veuillez précalculer à nouveau"
 
@@ -121398,10 +121460,6 @@ msgstr "Précalcul du cache d’éclairage"
 
 msgid "Error: LightCache is too large and will not be saved to disk"
 msgstr "Erreur : le cache d’éclairage est trop gros et ne sera pas enregistré sur le disque"
-
-
-msgid "%d Ref. Cubemaps, %d Irr. Samples (%s in memory)"
-msgstr "%d cubemaps de réf., %d échantillons d’irr. (%s en mémoire)"
 
 
 msgid "No light cache in this scene"
@@ -121970,16 +122028,16 @@ msgid "Cannot pose libdata"
 msgstr "Impossible de poser des données de bibliothèque"
 
 
-msgid "Pose lib is only for armatures in pose mode"
-msgstr "La bibliothèque de poses est réservée aux armatures en mode pose"
-
-
 msgid "[Tab] - Show original pose"
 msgstr "[Tab] - afficher la pose originale"
 
 
 msgid "[Tab] - Show blended pose"
 msgstr "[Tab] - afficher la pose mélangée"
+
+
+msgid "Pose lib is only for armatures in pose mode"
+msgstr "La bibliothèque de poses est réservée aux armatures en mode pose"
 
 
 msgid "Internal pose library error, canceling operator"
@@ -122106,16 +122164,16 @@ msgid "No asset found at path \"%s\""
 msgstr "Aucun asset trouvé au chemin « %s »"
 
 
+msgid "Delete all asset metadata, turning the selected asset data-blocks back into normal data-blocks, and set Fake User to ensure the data-blocks will still be saved"
+msgstr "Effacer toutes les métadonnées des assets et les reconvertir en blocs de données normaux. L’utilisateur factice y sera défini pour s’assurer que les blocs de données soient toujours sauvegardés"
+
+
 msgid "Data-block is not marked as asset"
 msgstr "Le bloc de données n’est pas marqué comme étant un asset"
 
 
 msgid "No data-block selected that is marked as asset"
 msgstr "Aucun bloc de données sélectionné n’est marqué comme étant un asset"
-
-
-msgid "Delete all asset metadata, turning the selected asset data-blocks back into normal data-blocks, and set Fake User to ensure the data-blocks will still be saved"
-msgstr "Effacer toutes les métadonnées des assets et les reconvertir en blocs de données normaux. L’utilisateur factice y sera défini pour s’assurer que les blocs de données soient toujours sauvegardés"
 
 
 msgid "Selected data-blocks are already assets (or do not support use as assets)"
@@ -122182,12 +122240,12 @@ msgid "No changes to be saved"
 msgstr "Aucune modification à enregistrer"
 
 
-msgid "No applicable assets found"
-msgstr "Aucun asset applicable trouvé"
-
-
 msgid "Toggle catalog visibility in the asset shelf"
 msgstr "(Dés)activer la visibilité du catalogue dans l’étagère d’assets"
+
+
+msgid "No applicable assets found"
+msgstr "Aucun asset applicable trouvé"
 
 
 msgid "Catalog Selector"
@@ -122795,27 +122853,27 @@ msgstr "Aucun outil de peinture actif pour le Grease Pencil"
 
 
 msgid "Line: ESC to cancel, LMB set origin, Enter/MMB to confirm, WHEEL/+- to adjust subdivision number, Shift to align, Alt to center, E: extrude, G: grab"
-msgstr "Ligne : Échap : annuler, ClicG : placer l’origine, Entrée/ClicM : confirmer, Molette/+- : ajuster nombre subdivs, Maj : aligner, Alt : centrer, E : extruder, G : déplacer"
+msgstr "Ligne : Échap : annuler, ClicG : placer l’origine, Entrée/ClicM : confirmer, Molette/+- : ajuster nombre subdivs, Maj : aligner, Alt : centrer, E : extruder, G : déplacer"
 
 
 msgid "Polyline: ESC to cancel, LMB to set, Enter/MMB to confirm, WHEEL/+- to adjust subdivision number, Shift to align, G: grab"
-msgstr "Polyligne : Échap : annuler, ClicG : placer, Entrée/ClicM : confirmer, Molette/+- : ajuster nombre subdivs, Maj : aligner, G : déplacer"
+msgstr "Polyligne : Échap : annuler, ClicG : placer, Entrée/ClicM : confirmer, Molette/+- : ajuster nombre subdivs, Maj : aligner, G : déplacer"
 
 
 msgid "Rectangle: ESC to cancel, LMB set origin, Enter/MMB to confirm, WHEEL/+- to adjust subdivision number, Shift to square, Alt to center, G: grab"
-msgstr "Rectangle : Échap : annuler, ClicG : placer origine, Entrée/ClicM : confirmer, Molette/+- : ajuster nombre subdivs, Maj : carré, Alt : centrer, G : déplacer"
+msgstr "Rectangle : Échap : annuler, ClicG : placer origine, Entrée/ClicM : confirmer, Molette/+- : ajuster nombre subdivs, Maj : carré, Alt : centrer, G : déplacer"
 
 
 msgid "Circle: ESC to cancel, Enter/MMB to confirm, WHEEL/+- to adjust subdivision number, Shift to square, Alt to center, G: grab"
-msgstr "Cercle : Échap : annuler, ClicG : placer origine, Entrée/ClicM : confirmer, Molette/+- : ajuster nombre subdivs, Maj : carré, Alt : centrer, G : déplacer"
+msgstr "Cercle : Échap : annuler, ClicG : placer origine, Entrée/ClicM : confirmer, Molette/+- : ajuster nombre subdivs, Maj : carré, Alt : centrer, G : déplacer"
 
 
 msgid "Arc: ESC to cancel, Enter/MMB to confirm, WHEEL/+- to adjust subdivision number, Shift to square, Alt to center, M: Flip, E: extrude, G: grab"
-msgstr "Arc : Échap : annuler, ClicG : placer origine, Entrée/ClicM : confirmer, Molette/+- : ajuster nombre subdivs, Maj : carré, Alt : centrer, M : inverser, E : extruder, G : déplacer"
+msgstr "Arc : Échap : annuler, ClicG : placer origine, Entrée/ClicM : confirmer, Molette/+- : ajuster nombre subdivs, Maj : carré, Alt : centrer, M : inverser, E : extruder, G : déplacer"
 
 
 msgid "Curve: ESC to cancel, Enter/MMB to confirm, WHEEL/+- to adjust subdivision number, Shift to square, Alt to center, E: extrude, G: grab"
-msgstr "Courbe : Échap : annuler, Entrée/ClicM : confirmer, Molette/+- : ajuster nombre subdivs, Maj : carré, Alt : centrer, E : extruder, G : déplacer"
+msgstr "Courbe : Échap : annuler, Entrée/ClicM : confirmer, Molette/+- : ajuster nombre subdivs, Maj : carré, Alt : centrer, E : extruder, G : déplacer"
 
 
 msgid "Primitives can only be added in Draw or Edit modes"
@@ -122906,12 +122964,12 @@ msgid "LMB: Stroke - Shift: Fill - Shift+Ctrl: Stroke + Fill"
 msgstr "ClicG : trait | Maj : remplissage | Maj+Ctrl : trait + remplissage"
 
 
-msgid "Error evaluating number, see Info editor for details"
-msgstr "Erreur lors de l’évaluation du nombre, voir l’éditeur infos pour plus de détails"
-
-
 msgid "Press a key"
 msgstr "Appuyer sur une touche"
+
+
+msgid "Error evaluating number, see Info editor for details"
+msgstr "Erreur lors de l’évaluation du nombre, voir l’éditeur infos pour plus de détails"
 
 
 msgid "Missing Panel: %s"
@@ -123157,12 +123215,12 @@ msgid "Failed to find '%s'"
 msgstr "« %s » introuvable"
 
 
-msgid "Menu Missing:"
-msgstr "Menu manquant :"
-
-
 msgid "Animate property"
 msgstr "Animer la propriété"
+
+
+msgid "Menu Missing:"
+msgstr "Menu manquant :"
 
 
 msgid "Active button is not from a script, cannot edit source"
@@ -123561,10 +123619,6 @@ msgid "Unlink data-block (Shift + Click to set users to zero, data will then not
 msgstr "Dé-lier le bloc de données (Maj + Clic pour définir à zéro les utilisateurs, les données ne seront alors pas enregistrées)"
 
 
-msgid "Can't edit external library data"
-msgstr "Impossible d’éditer les données de bibliothèque externe"
-
-
 msgid "Reset operator defaults"
 msgstr "Réinitialiser l’opérateur aux valeurs par défaut"
 
@@ -123787,6 +123841,10 @@ msgstr "Parcourir les données Grease Pencil v3 à lier"
 
 msgid "Browse ID data to be linked"
 msgstr "Parcourir les données ID à lier"
+
+
+msgid "Can't edit external library data"
+msgstr "Impossible d’éditer les données de bibliothèque externe"
 
 
 msgid "Today"
@@ -124042,6 +124100,10 @@ msgstr "Erreur durant l’export (voir la console)"
 
 msgid "Parsing errors in Document (see Blender Console)"
 msgstr "Erreurs d’analyse syntaxique dans le document (voir console Blender)"
+
+
+msgid "Multiple file handlers can be used, drop to pick which to use"
+msgstr "Plusieurs gestionnaires de fichiers peuvent être utilisés, déposer pour choisir lequel utiliser"
 
 
 msgid "Export Options"
@@ -126620,16 +126682,16 @@ msgid "Show texture in texture tab"
 msgstr "Afficher la texture dans l’onglet des textures"
 
 
+msgid "Fields"
+msgstr "Entrelacement"
+
+
 msgid "No (unpinned) Properties Editor found to display texture in"
 msgstr "Aucun éditeur de propriétés non-épinglé trouvé, dans lequel afficher la texture"
 
 
 msgid "No texture user found"
 msgstr "Aucun utilisateur de la texture trouvé"
-
-
-msgid "Fields"
-msgstr "Entrelacement"
 
 
 msgid "File Path:"
@@ -126840,14 +126902,6 @@ msgid "Delete Catalog"
 msgstr "Supprimer le catalogue"
 
 
-msgid "Catalog cannot be dropped into itself"
-msgstr "Le catalogue ne peut être déplacé dans lui-même"
-
-
-msgid "Catalog is already placed inside this catalog"
-msgstr "Le catalogue est déjà dans ce catalogue"
-
-
 msgid "Move catalog {} into {}"
 msgstr "Déplacer le catalogue {} dans {}"
 
@@ -126860,18 +126914,6 @@ msgid "Move asset to catalog"
 msgstr "Déplacer l’asset vers le catalogue"
 
 
-msgid "Only assets from this current file can be moved between catalogs"
-msgstr "Seuls les assets de ce fichier peuvent être déplacés d’un catalogue à l’autre"
-
-
-msgid "Catalogs cannot be edited in this asset library"
-msgstr "Les catalogues ne peuvent pas être édités dans cette bibliothèque d’assets"
-
-
-msgid "Catalog is already placed at the highest level"
-msgstr "Le catalogue est déjà au plus haut niveau"
-
-
 msgid "Move catalog {} to the top level of the tree"
 msgstr "Déplacer le catalogue {} vers le premier niveau de l’arborescence"
 
@@ -126882,6 +126924,26 @@ msgstr "Sortir les assets de tout catalogue"
 
 msgid "Move asset out of any catalog"
 msgstr "Sortir l’asset de tout catalogue"
+
+
+msgid "Catalog cannot be dropped into itself"
+msgstr "Le catalogue ne peut être déplacé dans lui-même"
+
+
+msgid "Catalog is already placed inside this catalog"
+msgstr "Le catalogue est déjà dans ce catalogue"
+
+
+msgid "Only assets from this current file can be moved between catalogs"
+msgstr "Seuls les assets de ce fichier peuvent être déplacés d’un catalogue à l’autre"
+
+
+msgid "Catalogs cannot be edited in this asset library"
+msgstr "Les catalogues ne peuvent pas être édités dans cette bibliothèque d’assets"
+
+
+msgid "Catalog is already placed at the highest level"
+msgstr "Le catalogue est déjà au plus haut niveau"
 
 
 msgid "No results match the search filter"
@@ -126910,6 +126972,30 @@ msgstr ""
 
 msgid "Unreadable Blender library file:"
 msgstr "Fichier bibliothèque Blender illisible :"
+
+
+msgid "Link target"
+msgstr "Cible du lien"
+
+
+msgid "This file is offline"
+msgstr "Ce fichier est hors-ligne"
+
+
+msgid "This file is read-only"
+msgstr "Ce fichier est en lecture seule"
+
+
+msgid "This is a restricted system file"
+msgstr "Fichier système restreint d’accès"
+
+
+msgid "seconds"
+msgstr "secondes"
+
+
+msgid "bytes"
+msgstr "octets"
 
 
 msgid "Could not rename: %s"
@@ -127076,6 +127162,26 @@ msgid "Show in Drivers Editor"
 msgstr "Afficher dans l’éditeur de contrôleurs"
 
 
+msgid "Let the driver determine this property's value"
+msgstr "Laisser le contrôleur déterminer la valeur de cette propriété"
+
+
+msgid "Add a Driver Variable to keep track of an input used by the driver"
+msgstr "Ajouter une variable de contrôleur pour surveiller une entrée utilisée par le contrôleur"
+
+
+msgid "Invalid variable name, click here for details"
+msgstr "Nom de variable invalide, cliquer ici pour plus de détails"
+
+
+msgid "Delete target variable"
+msgstr "Supprimer la variable cible"
+
+
+msgid "Force updates of dependencies - Only use this if drivers are not updating correctly"
+msgstr "Forcer la mise à jour des dépendances – à n’utiliser que si les contrôleurs ne sont pas correctement mis à jour"
+
+
 msgid "F-Curve only has F-Modifiers"
 msgstr "La F-courbe n’a que des F-modificateurs"
 
@@ -127120,10 +127226,6 @@ msgid "It cannot be a reserved keyword in Python"
 msgstr "Ne peut être un mot-clé réservé en Python"
 
 
-msgid "Let the driver determine this property's value"
-msgstr "Laisser le contrôleur déterminer la valeur de cette propriété"
-
-
 msgid "ERROR: Invalid Python expression"
 msgstr "ERREUR : Expression python non valide"
 
@@ -127162,22 +127264,6 @@ msgstr "ASTUCE : Utiliser plutôt les F-courbes pour une animation procédurale
 
 msgid "F-Modifiers can generate curves for those too"
 msgstr "Elles peuvent aussi être générées avec des F-Modificateurs, ceci dit"
-
-
-msgid "Add a Driver Variable to keep track of an input used by the driver"
-msgstr "Ajouter une variable de contrôleur pour surveiller une entrée utilisée par le contrôleur"
-
-
-msgid "Invalid variable name, click here for details"
-msgstr "Nom de variable invalide, cliquer ici pour plus de détails"
-
-
-msgid "Delete target variable"
-msgstr "Supprimer la variable cible"
-
-
-msgid "Force updates of dependencies - Only use this if drivers are not updating correctly"
-msgstr "Forcer la mise à jour des dépendances – à n’utiliser que si les contrôleurs ne sont pas correctement mis à jour"
 
 
 msgid "Driven Property"
@@ -127289,12 +127375,12 @@ msgid "Deleted %u drivers"
 msgstr "%u contrôleurs supprimés"
 
 
-msgid "Decimate Keyframes"
-msgstr "Supprimer les images clés"
-
-
 msgid "Decimate F-Curves by specifying how much they can deviate from the original curve"
 msgstr "Décimer les F-courbes en spécifiant de combien elles peuvent dévier de leur courbe originale"
+
+
+msgid "Decimate Keyframes"
+msgstr "Supprimer les images clés"
 
 
 msgid "Shear Keys"
@@ -127501,10 +127587,6 @@ msgid "Cannot set absolute paths with an unsaved blend file"
 msgstr "Impossible de définir les chemins absolus dans un fichier .blend non-enregistré"
 
 
-msgid "Joints"
-msgstr "Articulations"
-
-
 msgid "(Key) "
 msgstr "(Clé) "
 
@@ -127559,6 +127641,10 @@ msgstr "VRAM: %.1f/%.1f Gio"
 
 msgid "VRAM: %.1f GiB Free"
 msgstr "VRAM: %.1f Gio libres"
+
+
+msgid "Joints"
+msgstr "Articulations"
 
 
 msgid "Sync Length"
@@ -127906,7 +127992,7 @@ msgstr "Accès attribut nommé :"
 
 
 msgid "  • \"{}\": "
-msgstr "  • « {} » : "
+msgstr "  • « {} » : "
 
 
 msgid "read"
@@ -127925,16 +128011,16 @@ msgid "Attributes with these names used within the group may conflict with exist
 msgstr "Les attributs dont ces noms sont utilisés dans le groupe peuvent entrer en conflit avec des attributs existants"
 
 
+msgid "The execution time from the node tree's latest evaluation. For frame and group nodes, the time for all sub-nodes"
+msgstr "Durée de la dernière exécution de l’arborescence de nœuds. Pour les nœuds cadres et groupes, la durée pour tous les sous-nœuds"
+
+
 msgid " Named Attribute"
 msgstr " attribut nommé"
 
 
 msgid " Named Attributes"
 msgstr " attributs nommés"
-
-
-msgid "The execution time from the node tree's latest evaluation. For frame and group nodes, the time for all sub-nodes"
-msgstr "Durée de la dernière exécution de l’arborescence de nœuds. Pour les nœuds cadres et groupes, la durée pour tous les sous-nœuds"
 
 
 msgid "Text not used by any node, no update done"
@@ -127981,10 +128067,6 @@ msgid "Disconnect"
 msgstr "Déconnecter"
 
 
-msgid "Dependency Loop"
-msgstr "Boucle de dépendances"
-
-
 msgid "Add node to input"
 msgstr "Ajouter un nœud à l’entrée"
 
@@ -127995,6 +128077,10 @@ msgstr "Supprimer les nœuds connectés à l’entrée"
 
 msgid "Disconnect nodes connected to the input"
 msgstr "Déconnecter les nœuds connectés à l’entrée"
+
+
+msgid "Dependency Loop"
+msgstr "Boucle de dépendances"
 
 
 msgid "More than one collection is selected"
@@ -128237,16 +128323,16 @@ msgstr ""
 "* Ctrl pour ajouter au mode actuel"
 
 
-msgid "Can't edit library or non-editable override data"
-msgstr "Impossible d’éditer des données liées depuis une bibliothèque, ou avec une redéfinition non-éditable"
-
-
 msgid "Library path '%s' does not exist, correct this before saving"
 msgstr "Le chemin de bibliothèque « %s » n’existe pas, corriger avant d’enregistrer"
 
 
 msgid "Library path '%s' is now valid, please reload the library"
 msgstr "Le chemin de bibliothèque « %s » est maintenant valide, veuillez recharger la bibliothèque"
+
+
+msgid "Can't edit library or non-editable override data"
+msgstr "Impossible d’éditer des données liées depuis une bibliothèque, ou avec une redéfinition non-éditable"
 
 
 msgid "Purging %d unused data-blocks ("
@@ -130357,6 +130443,10 @@ msgid "%s: Error creating deform group data for mesh %s"
 msgstr "%s : Erreur à la création des données de groupe de déformation pour le maillage %s"
 
 
+msgid "%s: Couldn't find a common Xform ancestor for skinned prim %s and skeleton %s to convert to a USD SkelRoot. This can be addressed by setting a root primitive in the export options"
+msgstr "%s : Impossible de trouver un ancêtre commun Xform pour la prim liée %s et le squelette %s à convertir en SkelRoot USD. Peut être résolu en choisissant une primitive racine dans les options d’export"
+
+
 msgid "USD Export: no bounds could be computed for %s"
 msgstr "Export USD : la boîte englobante n’a pas pu être calculée pour %s"
 
@@ -130595,6 +130685,10 @@ msgstr "Contexte invalide pour l’ensemble de clés"
 
 msgid "Incomplete built-in keying set, appears to be missing type info"
 msgstr "Ensemble de clés intégré incomplet, les infos de type semblent absentes"
+
+
+msgid "Cannot make a bone collection a descendant of itself"
+msgstr "Impossible de faire descendre une collection d’os d’elle-même"
 
 
 msgid "Armature '%s' not in edit mode, cannot add an editbone"
@@ -132130,8 +132224,12 @@ msgid "Disabled, built without OpenSubdiv"
 msgstr "Désactivé, compilé sans OpenSubdiv"
 
 
-msgid "No named attributes used"
-msgstr "Aucun attribut nommé utilisé"
+msgid "Output Attributes"
+msgstr "Attributs de sortie"
+
+
+msgid "Internal Dependencies"
+msgstr "Dépendances internes"
 
 
 msgid "Can not load the baked data"
@@ -132142,12 +132240,8 @@ msgid "No group output attributes connected"
 msgstr "Aucun attribut connecté à la sortie de groupe"
 
 
-msgid "Output Attributes"
-msgstr "Attributs de sortie"
-
-
-msgid "Internal Dependencies"
-msgstr "Dépendances internes"
+msgid "No named attributes used"
+msgstr "Aucun attribut nommé utilisé"
 
 
 msgid "Missing property for input socket \"%s\""
@@ -132369,14 +132463,6 @@ msgid "Target vertices changed from %u to %u"
 msgstr "Les sommets cibles ont changé de %u à %u"
 
 
-msgid "This modifier can only deform filled curve/surface, not the control points"
-msgstr "Ce modificateur ne peut que déformer les surfaces ou courbes remplies, pas les points de contrôle"
-
-
-msgid "This modifier can only deform control points, not the filled curve/surface"
-msgstr "Ce modificateur ne peut que déformer les points de contrôle, pas les surfaces ou courbes remplies"
-
-
 msgctxt "Operator"
 msgid "Apply as Shape Key"
 msgstr "Appliquer comme clé de forme"
@@ -132385,6 +132471,14 @@ msgstr "Appliquer comme clé de forme"
 msgctxt "Operator"
 msgid "Save as Shape Key"
 msgstr "Enregistrer comme clé de forme"
+
+
+msgid "This modifier can only deform filled curve/surface, not the control points"
+msgstr "Ce modificateur ne peut que déformer les surfaces ou courbes remplies, pas les points de contrôle"
+
+
+msgid "This modifier can only deform control points, not the filled curve/surface"
+msgstr "Ce modificateur ne peut que déformer les points de contrôle, pas les surfaces ou courbes remplies"
 
 
 msgid "UVProject"
@@ -132539,16 +132633,16 @@ msgid "Bokeh Type:"
 msgstr "Type de bokeh :"
 
 
+msgid "Prefilter:"
+msgstr "Préfiltrage :"
+
+
 msgid "Disabled, built without OpenImageDenoise"
 msgstr "Désactivé, compilé sans OpenImageDenoise"
 
 
 msgid "Disabled, CPU with SSE4.1 is required"
 msgstr "Désactivé un CPU avec SSE4.1 est requis"
-
-
-msgid "Prefilter:"
-msgstr "Préfiltrage :"
 
 
 msgid "Image 1"
@@ -135178,12 +135272,12 @@ msgid "Region could not be drawn!"
 msgstr "La région n’a pas pu être affichée !"
 
 
-msgid "Input pending "
-msgstr "En attente d’entrée pour "
-
-
 msgid "Blender File View"
 msgstr "Vue fichiers — Blender"
+
+
+msgid "Input pending "
+msgstr "En attente d’entrée pour "
 
 
 msgid "Missing 'window' in context"
@@ -135192,6 +135286,14 @@ msgstr "« window » manque au contexte"
 
 msgid "Trusted Source [Untrusted Path]"
 msgstr "Source de confiance [chemin non-fiable]"
+
+
+msgid "Remove all items from the Recent Files list"
+msgstr "Supprimer tous les élément de la liste des fichiers récents"
+
+
+msgid "Remove All"
+msgstr "Tout supprimer"
 
 
 msgid "Allow Execution"
@@ -135206,28 +135308,12 @@ msgid "Don't Save"
 msgstr "Ne pas enregistrer"
 
 
-msgid "unable to open the file"
-msgstr "impossible d’ouvrir le fichier"
-
-
 msgid "File Not Found"
 msgstr "Fichier introuvable"
 
 
 msgid "Save the current file in the desired location but do not make the saved file active"
 msgstr "Enregistrer le fichier actuel à l’emplacement désiré, sans rendre le fichier enregistré actif"
-
-
-msgid "For security reasons, automatic execution of Python scripts in this file was disabled:"
-msgstr "Pour des raisons de sécurité, l’exécution automatique des scripts Python dans ce fichier a été désactivée :"
-
-
-msgid "This may lead to unexpected behavior"
-msgstr "Cela peut conduire à des comportements inopinés"
-
-
-msgid "Permanently allow execution of scripts"
-msgstr "Toujours autoriser l’exécution des scripts"
 
 
 msgid "Reload file with execution of Python scripts enabled"
@@ -135240,6 +135326,22 @@ msgstr "Activer les scripts"
 
 msgid "Continue using file without Python scripts"
 msgstr "Continuer à utiliser le fichier sans les scripts Python"
+
+
+msgid "unable to open the file"
+msgstr "impossible d’ouvrir le fichier"
+
+
+msgid "For security reasons, automatic execution of Python scripts in this file was disabled:"
+msgstr "Pour des raisons de sécurité, l’exécution automatique des scripts Python dans ce fichier a été désactivée :"
+
+
+msgid "This may lead to unexpected behavior"
+msgstr "Cela peut conduire à des comportements inopinés"
+
+
+msgid "Permanently allow execution of scripts"
+msgstr "Toujours autoriser l’exécution des scripts"
 
 
 msgid "This file was saved by a newer version of Blender (%s)"
@@ -135604,12 +135706,12 @@ msgid "See system tab in preferences to switch to OpenGL backend"
 msgstr "Voir l’onglet Système des préférences pour choisir le dorsal OpenGL"
 
 
-msgid "One of the add-ons or scripts is using OpenGL and will not work correct on Metal. Please contact the developer of the add-on to migrate to use 'gpu' module"
-msgstr "Un des add-ons ou scripts utilise OpenGL et ne marchera pas bien avec Metal. Veuillez contacter le développeur de l’add-on pour faire une migration vers le module « gpu »"
-
-
 msgid "Failed to create window"
 msgstr "Impossible de créer la fenêtre"
+
+
+msgid "One of the add-ons or scripts is using OpenGL and will not work correct on Metal. Please contact the developer of the add-on to migrate to use 'gpu' module"
+msgstr "Un des add-ons ou scripts utilise OpenGL et ne marchera pas bien avec Metal. Veuillez contacter le développeur de l’add-on pour faire une migration vers le module « gpu »"
 
 
 msgid "1 inch"

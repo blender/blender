@@ -10,6 +10,7 @@ from bl_ui.space_view3d import (
     VIEW3D_PT_shading_options,
 )
 from bl_ui.utils import PresetPanel
+from bpy.app.translations import pgettext_rpt as rpt_
 
 
 class RenderButtonsPanel:
@@ -829,7 +830,7 @@ class RENDER_PT_eevee_indirect_lighting(RenderButtonsPanel, Panel):
 
         cache_info = scene.eevee.gi_cache_info
         if cache_info:
-            col.label(text=cache_info)
+            col.label(text=rpt_(cache_info), translate=False)
 
         col.prop(props, "gi_auto_bake")
 

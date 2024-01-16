@@ -131,7 +131,7 @@ enum {
   /**
    * YAFRAY: light shadow-buffer flag, soft-light.
    * Since it is used with LOCAL light, can't use LA_SHAD.
-   * */
+   */
   // LA_YF_SOFT = 1 << 14, /* Deprecated. */
   // LA_LAYER_SHADOW = 1 << 15, /* Deprecated. */
   // LA_SHAD_TEX = 1 << 16, /* Deprecated. */

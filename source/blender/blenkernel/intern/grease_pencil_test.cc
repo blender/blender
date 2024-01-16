@@ -10,7 +10,7 @@
 #include "BKE_customdata.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_idtype.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 
 using namespace blender::bke::greasepencil;

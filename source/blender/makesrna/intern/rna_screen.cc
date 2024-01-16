@@ -109,7 +109,7 @@ static int rna_region_alignment_get(PointerRNA *ptr)
 static bool rna_Screen_fullscreen_get(PointerRNA *ptr)
 {
   bScreen *screen = (bScreen *)ptr->data;
-  return (screen->state == SCREENMAXIMIZED);
+  return (screen->state == SCREENMAXIMIZED || screen->state == SCREENFULL);
 }
 
 static int rna_Area_type_get(PointerRNA *ptr)

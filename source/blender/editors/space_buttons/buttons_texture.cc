@@ -698,9 +698,9 @@ void uiTemplateTextureShow(uiLayout *layout, const bContext *C, PointerRNA *ptr,
                   user_found ? user->ptr.data : nullptr,
                   user_found ? user->prop : nullptr);
   if (ct == nullptr) {
-    UI_but_disable(but, TIP_("No (unpinned) Properties Editor found to display texture in"));
+    UI_but_disable(but, "No (unpinned) Properties Editor found to display texture in");
   }
   else if (!user_found) {
-    UI_but_disable(but, TIP_("No texture user found"));
+    UI_but_disable(but, "No texture user found");
   }
 }

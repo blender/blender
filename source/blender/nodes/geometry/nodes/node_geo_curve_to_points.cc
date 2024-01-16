@@ -12,7 +12,7 @@
 #include "BKE_customdata.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_instances.hh"
-#include "BKE_pointcloud.h"
+#include "BKE_pointcloud.hh"
 
 #include "GEO_resample_curves.hh"
 

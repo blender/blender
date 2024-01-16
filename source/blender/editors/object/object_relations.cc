@@ -59,7 +59,7 @@
 #include "BKE_idtype.h"
 #include "BKE_lattice.hh"
 #include "BKE_layer.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_lib_override.hh"
 #include "BKE_lib_query.h"
 #include "BKE_lib_remap.hh"
@@ -75,7 +75,7 @@
 #include "BKE_node_tree_interface.hh"
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
-#include "BKE_pointcloud.h"
+#include "BKE_pointcloud.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_speaker.h"
@@ -1797,7 +1797,7 @@ static Collection *single_object_users_collection(Main *bmain,
        * state currently. With current code, that would lead to a memory leak - because of
        * reasons. It would be a useless loss of computing anyway, since caller has to fully
        * refresh view-layers/collections caching at the end. */
-      BKE_collection_child_add_no_sync(collection, collection_child_new);
+      BKE_collection_child_add_no_sync(bmain, collection, collection_child_new);
       BLI_remlink(&collection->children, child);
       MEM_freeN(child);
       if (child == orig_child_last) {

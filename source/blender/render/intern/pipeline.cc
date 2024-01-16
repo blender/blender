@@ -50,7 +50,7 @@
 #include "BKE_image_format.h"
 #include "BKE_image_save.h"
 #include "BKE_layer.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_lib_remap.hh"
 #include "BKE_main.hh"
 #include "BKE_mask.h"
@@ -210,12 +210,12 @@ static void stats_background(void * /*arg*/, RenderStats *rs)
   BLI_mutex_lock(&mutex);
 
   fprintf(stdout,
-          TIP_("Fra:%d Mem:%.2fM (Peak %.2fM) "),
+          RPT_("Fra:%d Mem:%.2fM (Peak %.2fM) "),
           rs->cfra,
           megs_used_memory,
           megs_peak_memory);
 
-  fprintf(stdout, TIP_("| Time:%s | "), info_time_str);
+  fprintf(stdout, RPT_("| Time:%s | "), info_time_str);
 
   fprintf(stdout, "%s", rs->infostr);
 

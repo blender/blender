@@ -110,13 +110,13 @@ bool nodeGroupPoll(const bNodeTree *nodetree,
 
   if (nodetree == grouptree) {
     if (r_disabled_hint) {
-      *r_disabled_hint = TIP_("Nesting a node group inside of itself is not allowed");
+      *r_disabled_hint = RPT_("Nesting a node group inside of itself is not allowed");
     }
     return false;
   }
   if (nodetree->type != grouptree->type) {
     if (r_disabled_hint) {
-      *r_disabled_hint = TIP_("Node group has different type");
+      *r_disabled_hint = RPT_("Node group has different type");
     }
     return false;
   }

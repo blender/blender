@@ -351,7 +351,7 @@ struct PlayAnimPict {
 /**
  * Various globals relating to playback.
  * \note Avoid adding members here where possible,
- * prefer #PlayState or one of it's members where possible.
+ * prefer #PlayState or one of its members where possible.
  */
 static struct {
   bool from_disk;

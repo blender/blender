@@ -780,6 +780,33 @@ static uiLayout *rna_uiLayoutColumnWithHeading(
   return uiLayoutColumnWithHeading(layout, align, heading);
 }
 
+struct uiLayout *rna_uiLayoutPanelProp(uiLayout *layout,
+                                       bContext *C,
+                                       PointerRNA *data,
+                                       const char *property,
+                                       const char *text,
+                                       const char *text_ctxt,
+                                       const bool translate)
+{
+  text = rna_translate_ui_text(text, text_ctxt, nullptr, nullptr, translate);
+  return uiLayoutPanel(C, layout, text, data, property);
+}
+
+struct uiLayout *rna_uiLayoutPanel(uiLayout *layout,
+                                   bContext *C,
+                                   const char *idname,
+                                   const char *text,
+                                   const char *text_ctxt,
+                                   const bool translate,
+                                   const bool default_closed)
+{
+  text = RNA_translate_ui_text(text, text_ctxt, nullptr, nullptr, translate);
+  Panel *panel = uiLayoutGetRootPanel(layout);
+  LayoutPanelState *state = BKE_panel_layout_panel_state_ensure(panel, idname, default_closed);
+  PointerRNA state_ptr = RNA_pointer_create(nullptr, &RNA_LayoutPanelState, state);
+  return uiLayoutPanel(C, layout, text, &state_ptr, "is_open");
+}
+
 static void rna_uiLayout_template_node_asset_menu_items(uiLayout *layout,
                                                         bContext *C,
                                                         const char *catalog_path)
@@ -1047,6 +1074,53 @@ void RNA_api_ui_layout(StructRNA *srna)
       "in a column");
   RNA_def_boolean(func, "align", false, "", "Align buttons to each other");
   api_ui_item_common_heading(func);
+
+  func = RNA_def_function(srna, "panel", "rna_uiLayoutPanel");
+  RNA_def_function_ui_description(func,
+                                  "Creates a collapsable panel. Whether it is open or closed is "
+                                  "stored in the region using the given idname");
+  RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+  parm = RNA_def_string(func, "idname", nullptr, 0, "", "Identifier of the panel");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
+  api_ui_item_common_text(func);
+  RNA_def_boolean(func,
+                  "default_closed",
+                  false,
+                  "Open by Default",
+                  "When true, the panel will be open the first time it is shown");
+  parm = RNA_def_pointer(func,
+                         "layout",
+                         "UILayout",
+                         "",
+                         "Sub-layout to put items in. Will be none is the panel is collapsed");
+  RNA_def_function_return(func, parm);
+
+  func = RNA_def_function(srna, "panel_prop", "rna_uiLayoutPanelProp");
+  RNA_def_function_ui_description(
+      func,
+      "Similar to `.panel(...)` but instead of storing whether it is open or closed in the "
+      "region, it is stored in the provided boolean property. This should be used when multiple "
+      "instances of the same panel can exist. For example one for every item in a collection "
+      "property or list");
+  RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+  parm = RNA_def_pointer(
+      func, "data", "AnyType", "", "Data from which to take the open-state property");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+  parm = RNA_def_string(
+      func,
+      "property",
+      nullptr,
+      0,
+      "",
+      "Identifier of the boolean property that determines whether the panel is open or closed");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  api_ui_item_common_text(func);
+  parm = RNA_def_pointer(func,
+                         "layout",
+                         "UILayout",
+                         "",
+                         "Sub-layout to put items in. Will be none is the panel is collapsed");
+  RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "column_flow", "uiLayoutColumnFlow");
   RNA_def_int(func, "columns", 0, 0, INT_MAX, "", "Number of columns, 0 is automatic", 0, INT_MAX);

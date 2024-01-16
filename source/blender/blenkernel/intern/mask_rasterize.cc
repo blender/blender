@@ -46,8 +46,6 @@
  * This is getting a bit complicated with the addition of unfilled splines and end capping -
  * If large changes are needed here we would be better off using an iterable
  * BLI_mempool for triangles and converting to a contiguous array afterwards.
- *
- * - Campbell
  */
 
 #include <algorithm> /* For `min/max`. */

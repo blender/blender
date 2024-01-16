@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'd13edee3e0cc')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'acbb91b192da')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2024-01-08 11:04:23\n"
+"POT-Creation-Date: 2024-01-15 10:52:30\n"
 "PO-Revision-Date: 2023-12-06 06:42+0000\n"
 "Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -33874,6 +33874,19 @@ msgid "Duplicate"
 msgstr "Duplicar"
 
 
+msgid "Extrude selected control point(s)"
+msgstr "Executa uma extrusão dos pontos de controle selecionados."
+
+
+msgctxt "Operator"
+msgid "Extrude Curve and Move"
+msgstr "Executar extrusão da curva e mover"
+
+
+msgid "Extrude curve and move result"
+msgstr "Executa uma extrusão na terminação da curva e permite mover o resultado."
+
+
 msgid "(De)select all control points"
 msgstr "(De)seleciona todos os pontos de controle."
 
@@ -33988,10 +34001,6 @@ msgid "Duplicate Curve"
 msgstr "Duplicar curva"
 
 
-msgid "Extrude selected control point(s)"
-msgstr "Executa uma extrusão dos pontos de controle selecionados."
-
-
 msgid "Init"
 msgstr "Iniciar"
 
@@ -34034,15 +34043,6 @@ msgstr "Deslizar arestas"
 
 msgid "Sequence Slide"
 msgstr "Deslizar sequência"
-
-
-msgctxt "Operator"
-msgid "Extrude Curve and Move"
-msgstr "Executar extrusão da curva e mover"
-
-
-msgid "Extrude curve and move result"
-msgstr "Executa uma extrusão na terminação da curva e permite mover o resultado."
 
 
 msgctxt "Operator"
@@ -52729,10 +52729,6 @@ msgid "Helpers"
 msgstr "Assistentes"
 
 
-msgid "Viscosity"
-msgstr "Viscosidade"
-
-
 msgid "Bloom"
 msgstr "Reluzir"
 
@@ -58123,6 +58119,10 @@ msgstr "Raio de interação"
 
 msgid "Fluid interaction radius"
 msgstr "O raio para a interação dos fluidos."
+
+
+msgid "Viscosity"
+msgstr "Viscosidade"
 
 
 msgid "Linear viscosity"
@@ -71710,6 +71710,14 @@ msgid "Update Dependencies"
 msgstr "Atualizar dependências"
 
 
+msgid "Invalid variable name, click here for details"
+msgstr "Nome de variável inválido, clique aqui para mais detalhes."
+
+
+msgid "Delete target variable"
+msgstr "Apaga a variável do alvo."
+
+
 msgid "F-Curve only has F-Modifiers"
 msgstr "Curva-f somente possui modificadores-f"
 
@@ -71756,14 +71764,6 @@ msgstr "DICA: Tente usar as curvas-f para a animação procedural ao invés dess
 
 msgid "F-Modifiers can generate curves for those too"
 msgstr "Os modificadores-f podem gerar curvas também para estes."
-
-
-msgid "Invalid variable name, click here for details"
-msgstr "Nome de variável inválido, clique aqui para mais detalhes."
-
-
-msgid "Delete target variable"
-msgstr "Apaga a variável do alvo."
 
 
 msgctxt "Operator"
@@ -74048,12 +74048,12 @@ msgid "Don't Save"
 msgstr "Não Salvar"
 
 
-msgid "unable to open the file"
-msgstr "não foi possível abrir o arquivo"
-
-
 msgid "File Not Found"
 msgstr "Arquivo Não Encontrado"
+
+
+msgid "unable to open the file"
+msgstr "não foi possível abrir o arquivo"
 
 
 msgid "Save changes before closing?"

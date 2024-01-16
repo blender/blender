@@ -26,7 +26,8 @@ void node_subsurface_scattering(vec4 color,
 
 #ifdef GPU_SHADER_EEVEE_LEGACY_DEFINES
   if (do_sss == 0.0) {
-    sss_data.sss_radius = vec3(-1);
+    /* Flag as disabled. */
+    sss_data.sss_radius.b = -1.0;
   }
 #endif
   result = closure_eval(sss_data);

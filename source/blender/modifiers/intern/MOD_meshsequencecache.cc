@@ -51,7 +51,7 @@
 
 #if defined(WITH_USD) || defined(WITH_ALEMBIC)
 #  include "BKE_global.h"
-#  include "BKE_lib_id.h"
+#  include "BKE_lib_id.hh"
 #endif
 
 #ifdef WITH_ALEMBIC

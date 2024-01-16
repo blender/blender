@@ -100,7 +100,7 @@
 #include "BKE_key.h"
 #include "BKE_lattice.hh"
 #include "BKE_layer.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_lib_query.h"
 #include "BKE_lib_remap.hh"
 #include "BKE_light.h"
@@ -119,7 +119,7 @@
 #include "BKE_paint.hh"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
-#include "BKE_pointcloud.h"
+#include "BKE_pointcloud.hh"
 #include "BKE_pose_backup.h"
 #include "BKE_preview_image.hh"
 #include "BKE_rigidbody.h"
@@ -915,12 +915,12 @@ static void object_blend_read_after_liblink(BlendLibReader *reader, ID *id)
     if (ob->id.lib) {
       BLO_reportf_wrap(reports,
                        RPT_INFO,
-                       TIP_("Can't find object data of %s lib %s"),
+                       RPT_("Can't find object data of %s lib %s"),
                        ob->id.name + 2,
                        ob->id.lib->filepath);
     }
     else {
-      BLO_reportf_wrap(reports, RPT_INFO, TIP_("Object %s lost data"), ob->id.name + 2);
+      BLO_reportf_wrap(reports, RPT_INFO, RPT_("Object %s lost data"), ob->id.name + 2);
     }
     reports->count.missing_obdata++;
   }

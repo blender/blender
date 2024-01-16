@@ -67,14 +67,14 @@ bool AbcNurbsReader::accepts_object_type(
     const char **err_str) const
 {
   if (!Alembic::AbcGeom::INuPatch::matches(alembic_header)) {
-    *err_str = TIP_(
+    *err_str = RPT_(
         "Object type mismatch, Alembic object path pointed to NURBS when importing, but not any "
         "more");
     return false;
   }
 
   if (ob->type != OB_CURVES_LEGACY) {
-    *err_str = TIP_("Object type mismatch, Alembic object path points to NURBS");
+    *err_str = RPT_("Object type mismatch, Alembic object path points to NURBS");
     return false;
   }
 

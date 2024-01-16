@@ -672,7 +672,7 @@ typedef enum eBConstraint_Flags {
   /* Expansion for old box constraint layouts. Just for versioning. */
   CONSTRAINT_EXPAND_DEPRECATED = (1 << 0),
 #endif
-  /* pre-check for illegal object name or bone name */
+  /* Constraint is disabled because it is considered invalid. `is_valid` in RNA. */
   CONSTRAINT_DISABLE = (1 << 2),
   /* to indicate which Ipo should be shown, maybe for 3d access later too */
   CONSTRAINT_ACTIVE = (1 << 4),
@@ -680,7 +680,7 @@ typedef enum eBConstraint_Flags {
   CONSTRAINT_SPACEONCE = (1 << 6),
   /* influence ipo is on constraint itself, not in action channel */
   CONSTRAINT_OWN_IPO = (1 << 7),
-  /* indicates that constraint is temporarily disabled (only used in GE) */
+  /* Constraint is disabled by the user or the animation system (eye icon in the interface). */
   CONSTRAINT_OFF = (1 << 9),
   /* use bbone curve shape when calculating headtail values (also used by dependency graph!) */
   CONSTRAINT_BBONE_SHAPE = (1 << 10),

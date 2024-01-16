@@ -1221,7 +1221,7 @@ static void update_normals_faces(PBVH &pbvh, Span<PBVHNode *> nodes, Mesh &mesh)
    *
    * Those boundary face and vertex indices are deduplicated with #VectorSet in order to avoid
    * duplicate work recalculation for the same vertex, and to make parallel storage for vertices
-   * during reclculation thread-safe. */
+   * during recalculation thread-safe. */
   const Span<float3> positions = pbvh.vert_positions;
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
@@ -1732,7 +1732,7 @@ void BKE_pbvh_node_mark_redraw(PBVHNode *node)
 
 void BKE_pbvh_node_mark_normals_update(PBVHNode *node)
 {
-  node->flag |= PBVH_UpdateNormals;
+  node->flag |= PBVH_UpdateNormals | PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw;
 }
 
 void BKE_pbvh_node_fully_hidden_set(PBVHNode *node, int fully_hidden)
@@ -2368,16 +2368,13 @@ void clip_ray_ortho(
 
 /* -------------------------------------------------------------------- */
 
-struct FindNearestRayData {
-  DistRayAABB_Precalc dist_ray_to_aabb_precalc;
-  bool original;
-};
-
-static bool nearest_to_ray_aabb_dist_sq(PBVHNode *node, FindNearestRayData *rcd)
+static bool nearest_to_ray_aabb_dist_sq(PBVHNode *node,
+                                        const DistRayAABB_Precalc &dist_ray_to_aabb_precalc,
+                                        const bool original)
 {
   const float *bb_min, *bb_max;
 
-  if (rcd->original) {
+  if (original) {
     /* BKE_pbvh_node_get_original_BB */
     bb_min = node->orig_vb.min;
     bb_max = node->orig_vb.max;
@@ -2390,7 +2387,7 @@ static bool nearest_to_ray_aabb_dist_sq(PBVHNode *node, FindNearestRayData *rcd)
 
   float co_dummy[3], depth;
   node->tmin = dist_squared_ray_to_aabb_v3(
-      &rcd->dist_ray_to_aabb_precalc, bb_min, bb_max, co_dummy, &depth);
+      &dist_ray_to_aabb_precalc, bb_min, bb_max, co_dummy, &depth);
   /* Ideally we would skip distances outside the range. */
   return depth > 0.0f;
 }
@@ -2399,15 +2396,17 @@ void find_nearest_to_ray(PBVH *pbvh,
                          const FunctionRef<void(PBVHNode &node, float *tmin)> fn,
                          const float ray_start[3],
                          const float ray_normal[3],
-                         bool original)
+                         const bool original)
 {
-  FindNearestRayData ncd;
-
-  dist_squared_ray_to_aabb_v3_precalc(&ncd.dist_ray_to_aabb_precalc, ray_start, ray_normal);
-  ncd.original = original;
+  const DistRayAABB_Precalc ray_dist_precalc = dist_squared_ray_to_aabb_v3_precalc(ray_start,
+                                                                                   ray_normal);
 
   search_callback_occluded(
-      pbvh, [&](PBVHNode &node) { return nearest_to_ray_aabb_dist_sq(&node, &ncd); }, fn);
+      pbvh,
+      [&](PBVHNode &node) {
+        return nearest_to_ray_aabb_dist_sq(&node, ray_dist_precalc, original);
+      },
+      fn);
 }
 
 static bool pbvh_faces_node_nearest_to_ray(PBVH *pbvh,

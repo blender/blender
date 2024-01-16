@@ -35,7 +35,7 @@
 #include "BKE_gpencil_legacy.h"
 #include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_lattice.hh"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_lib_query.h"
 #include "BKE_material.h"
 #include "BKE_modifier.hh"
@@ -542,7 +542,7 @@ void BKE_gpencil_modifier_set_error(GpencilModifierData *md, const char *format,
 {
   char buffer[512];
   va_list ap;
-  const char *format_tip = TIP_(format);
+  const char *format_tip = RPT_(format);
 
   va_start(ap, format);
   vsnprintf(buffer, sizeof(buffer), format_tip, ap);

@@ -253,7 +253,7 @@ template<typename MatT> [[nodiscard]] MatT orthogonalize(const MatT &mat, const 
 
 /**
  * Construct a transformation that is pivoted around the given origin point. So for instance,
- * from_origin_transform<MatT>(from_rotation(M_PI_2), float2(0.0f, 2.0f))
+ * from_origin_transform<MatT>(from_rotation(numbers::pi * 0.5), float2(0.0f, 2.0f))
  * will construct a transformation representing a 90 degree rotation around the point (0, 2).
  */
 template<typename MatT, typename VectorT>
@@ -985,10 +985,10 @@ MatBase<T, NumCol, NumRow> from_rotation(const QuaternionBase<T> &rotation)
 {
   using MatT = MatBase<T, NumCol, NumRow>;
   using DoublePrecision = typename TypeTraits<T>::DoublePrecision;
-  const DoublePrecision q0 = M_SQRT2 * DoublePrecision(rotation.w);
-  const DoublePrecision q1 = M_SQRT2 * DoublePrecision(rotation.x);
-  const DoublePrecision q2 = M_SQRT2 * DoublePrecision(rotation.y);
-  const DoublePrecision q3 = M_SQRT2 * DoublePrecision(rotation.z);
+  const DoublePrecision q0 = numbers::sqrt2 * DoublePrecision(rotation.w);
+  const DoublePrecision q1 = numbers::sqrt2 * DoublePrecision(rotation.x);
+  const DoublePrecision q2 = numbers::sqrt2 * DoublePrecision(rotation.y);
+  const DoublePrecision q3 = numbers::sqrt2 * DoublePrecision(rotation.z);
 
   const DoublePrecision qda = q0 * q1;
   const DoublePrecision qdb = q0 * q2;

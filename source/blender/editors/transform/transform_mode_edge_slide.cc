@@ -1363,10 +1363,10 @@ static void edge_slide_apply_elem(const TransDataEdgeSlideVert *sv,
   }
   else {
     /**
-     * Implementation note, even mode ignores the starting positions and uses
+     * NOTE(@ideasman42): Implementation note, even mode ignores the starting positions and uses
      * only the a/b verts, this could be changed/improved so the distance is
      * still met but the verts are moved along their original path (which may not be straight),
-     * however how it works now is OK and matches 2.4x - Campbell
+     * however how it works now is OK and matches 2.4x.
      *
      * \note `len_v3v3(curr_sv->dir_side[0], curr_sv->dir_side[1])`
      * is the same as the distance between the original vert locations,
@@ -1453,7 +1453,7 @@ static void applyEdgeSlide(TransInfo *t)
   t->values_final[0] = final;
 
   /* header string */
-  ofs += BLI_strncpy_rlen(str + ofs, TIP_("Edge Slide: "), sizeof(str) - ofs);
+  ofs += BLI_strncpy_rlen(str + ofs, RPT_("Edge Slide: "), sizeof(str) - ofs);
   if (hasNumInput(&t->num)) {
     char c[NUM_STR_REP_LEN];
     outputNumInput(&(t->num), c, &t->scene->unit);
@@ -1463,13 +1463,13 @@ static void applyEdgeSlide(TransInfo *t)
     ofs += BLI_snprintf_rlen(str + ofs, sizeof(str) - ofs, "%.4f ", final);
   }
   ofs += BLI_snprintf_rlen(
-      str + ofs, sizeof(str) - ofs, TIP_("(E)ven: %s, "), WM_bool_as_string(use_even));
+      str + ofs, sizeof(str) - ofs, RPT_("(E)ven: %s, "), WM_bool_as_string(use_even));
   if (use_even) {
     ofs += BLI_snprintf_rlen(
-        str + ofs, sizeof(str) - ofs, TIP_("(F)lipped: %s, "), WM_bool_as_string(flipped));
+        str + ofs, sizeof(str) - ofs, RPT_("(F)lipped: %s, "), WM_bool_as_string(flipped));
   }
   ofs += BLI_snprintf_rlen(
-      str + ofs, sizeof(str) - ofs, TIP_("Alt or (C)lamp: %s"), WM_bool_as_string(is_clamp));
+      str + ofs, sizeof(str) - ofs, RPT_("Alt or (C)lamp: %s"), WM_bool_as_string(is_clamp));
   /* done with header string */
 
   /* do stuff here */

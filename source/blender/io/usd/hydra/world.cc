@@ -72,10 +72,10 @@ void WorldData::init()
       if (!input_socket) {
         return;
       }
-      bNodeLink const *link = input_socket->directly_linked_links()[0];
       if (input_socket->directly_linked_links().is_empty()) {
         return;
       }
+      bNodeLink const *link = input_socket->directly_linked_links()[0];
 
       bNode *input_node = link->fromnode;
       if (input_node->type != SH_NODE_BACKGROUND) {

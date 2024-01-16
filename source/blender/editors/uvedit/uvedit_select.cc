@@ -3112,10 +3112,10 @@ void UV_OT_select_linked_pick(wmOperatorType *ot)
  * \{ */
 
 /**
- * \note This is based on similar use case to #MESH_OT_split(), which has a similar effect
- * but in this case they are not joined to begin with (only having the behavior of being joined)
- * so its best to call this #uv_select_split() instead of just split(), but assigned to the same
- * key as #MESH_OT_split - Campbell.
+ * NOTE(@ideasman42): This is based on similar use case to #MESH_OT_split(),
+ * which has a similar effect but in this case they are not joined to begin with
+ * (only having the behavior of being joined) so its best to call this #uv_select_split()
+ * instead of just split(), but assigned to the same key as #MESH_OT_split.
  */
 static int uv_select_split_exec(bContext *C, wmOperator *op)
 {

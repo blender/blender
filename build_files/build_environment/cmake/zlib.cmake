@@ -24,7 +24,7 @@ if(WIN32)
       COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/zlib/include/ ${HARVEST_TARGET}/zlib/include/
       COMMAND ${CMAKE_COMMAND} -E rm -f ${LIBDIR}/zlib/bin/zlib.dll
       COMMAND ${CMAKE_COMMAND} -E rm -f ${LIBDIR}/zlib/lib/zlib.lib
-	    COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/zlib/lib/zlibstatic${LIBEXT} ${LIBDIR}/zlib/lib/zlib${LIBEXT}
+      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/zlib/lib/zlibstatic${LIBEXT} ${LIBDIR}/zlib/lib/zlib${LIBEXT}
       DEPENDEES install
     )
   endif()

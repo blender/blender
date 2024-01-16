@@ -17,7 +17,7 @@
 #include "DNA_ID.h"
 #include "DNA_anim_types.h"
 
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 
 #include "DEG_depsgraph.hh"
 

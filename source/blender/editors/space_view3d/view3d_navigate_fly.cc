@@ -27,7 +27,7 @@
 #include "BLI_rect.h"
 
 #include "BKE_context.hh"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_report.h"
 
 #include "BLT_translation.h"

@@ -9,6 +9,15 @@
 #pragma BLENDER_REQUIRE(eevee_octahedron_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
 
+ReflectionProbeCoordinate reinterpret_as_atlas_coord(ivec4 packed_coord)
+{
+  ReflectionProbeCoordinate unpacked;
+  unpacked.offset = intBitsToFloat(packed_coord.xy);
+  unpacked.scale = intBitsToFloat(packed_coord.z);
+  unpacked.layer = intBitsToFloat(packed_coord.w);
+  return unpacked;
+}
+
 void atlas_store(vec4 sh_coefficient, ivec2 atlas_coord, int layer)
 {
   for (int x = 0; x < IRRADIANCE_GRID_BRICK_SIZE; x++) {
@@ -33,11 +42,8 @@ void main()
   cooef.L1.M0 = vec4(0.0);
   cooef.L1.Mp1 = vec4(0.0);
 
-  ReflectionProbeAtlasCoordinate atlas_coord = reinterpret_as_atlas_coord(world_coord_packed);
-  const int subdivision_64 = 5;
-  float layer_mipmap = clamp(
-      subdivision_64 - atlas_coord.layer_subdivision, 0, REFLECTION_PROBE_MIPMAP_LEVELS);
-
+  ReflectionProbeCoordinate atlas_coord = reinterpret_as_atlas_coord(world_coord_packed);
+  float layer_mipmap = 5;
   /* Perform multiple sample. */
   uint store_index = gl_LocalInvocationID.x;
   float total_samples = float(gl_WorkGroupSize.x * REFLECTION_PROBE_SH_SAMPLES_PER_GROUP);

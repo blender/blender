@@ -50,7 +50,7 @@
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
 #include "BKE_key.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_lib_override.hh"
 #include "BKE_lib_query.h"
 #include "BKE_lib_remap.hh"
@@ -1633,6 +1633,9 @@ bool BKE_id_new_name_validate(
   }
 
   result = BKE_main_namemap_get_name(bmain, id, name, false);
+  if (!result && !STREQ(id->name + 2, name)) {
+    result = true;
+  }
 
   BLI_strncpy(id->name + 2, name, sizeof(id->name) - 2);
   id_sort_by_name(lb, id, nullptr);
@@ -2005,21 +2008,17 @@ void BKE_library_make_local(Main *bmain,
 #endif
 }
 
-void BLI_libblock_ensure_unique_name(Main *bmain, const char *name)
+void BKE_libblock_ensure_unique_name(Main *bmain, ID *id)
 {
   ListBase *lb;
-  ID *idtest;
 
-  lb = which_libbase(bmain, GS(name));
+  lb = which_libbase(bmain, GS(id->name));
   if (lb == nullptr) {
     return;
   }
 
-  /* search for id */
-  idtest = static_cast<ID *>(BLI_findstring(lb, name + 2, offsetof(ID, name) + 2));
-  if (idtest != nullptr && !ID_IS_LINKED(idtest)) {
-    /* BKE_id_new_name_validate also takes care of sorting. */
-    BKE_id_new_name_validate(bmain, lb, idtest, nullptr, false);
+  /* BKE_id_new_name_validate also takes care of sorting. */
+  if (!ID_IS_LINKED(id) && BKE_id_new_name_validate(bmain, lb, id, nullptr, false)) {
     bmain->is_memfile_undo_written = false;
   }
 }

@@ -127,25 +127,67 @@ void FrameBuffer::attachment_remove(GPUAttachmentType type)
   dirty_attachments_ = true;
 }
 
+void FrameBuffer::subpass_transition(const GPUAttachmentState depth_attachment_state,
+                                     Span<GPUAttachmentState> color_attachment_states)
+{
+  /* NOTE: Depth is not supported as input attachment because the Metal API doesn't support it and
+   * because depth is not compatible with the framebuffer fetch implementation. */
+  BLI_assert(depth_attachment_state != GPU_ATTACHEMENT_READ);
+
+  if (!attachments_[GPU_FB_DEPTH_ATTACHMENT].tex &&
+      !attachments_[GPU_FB_DEPTH_STENCIL_ATTACHMENT].tex)
+  {
+    BLI_assert(depth_attachment_state == GPU_ATTACHEMENT_IGNORE);
+  }
+
+  BLI_assert(color_attachment_states.size() <= GPU_FB_MAX_COLOR_ATTACHMENT);
+  for (int i : IndexRange(GPU_FB_MAX_COLOR_ATTACHMENT)) {
+    GPUAttachmentType type = GPU_FB_COLOR_ATTACHMENT0 + i;
+    if (this->attachments_[type].tex) {
+      BLI_assert(i < color_attachment_states.size());
+    }
+    else {
+      BLI_assert(i >= color_attachment_states.size() ||
+                 color_attachment_states[i] == GPU_ATTACHEMENT_IGNORE);
+    }
+  }
+
+  subpass_transition_impl(depth_attachment_state, color_attachment_states);
+}
+
 void FrameBuffer::load_store_config_array(const GPULoadStore *load_store_actions, uint actions_len)
 {
   /* Follows attachment structure of GPU_framebuffer_config_array/GPU_framebuffer_ensure_config */
   const GPULoadStore &depth_action = load_store_actions[0];
   Span<GPULoadStore> color_attachment_actions(load_store_actions + 1, actions_len - 1);
+  BLI_assert(color_attachment_actions.size() <= GPU_FB_MAX_COLOR_ATTACHMENT);
+
+  if (!attachments_[GPU_FB_DEPTH_ATTACHMENT].tex &&
+      !attachments_[GPU_FB_DEPTH_STENCIL_ATTACHMENT].tex)
+  {
+    BLI_assert(depth_action.load_action == GPU_LOADACTION_DONT_CARE &&
+               depth_action.store_action == GPU_STOREACTION_DONT_CARE);
+  }
 
   if (this->attachments_[GPU_FB_DEPTH_STENCIL_ATTACHMENT].tex) {
     this->attachment_set_loadstore_op(GPU_FB_DEPTH_STENCIL_ATTACHMENT, depth_action);
   }
+
   if (this->attachments_[GPU_FB_DEPTH_ATTACHMENT].tex) {
     this->attachment_set_loadstore_op(GPU_FB_DEPTH_ATTACHMENT, depth_action);
   }
 
-  GPUAttachmentType type = GPU_FB_COLOR_ATTACHMENT0;
-  for (const GPULoadStore &action : color_attachment_actions) {
+  for (int i : IndexRange(GPU_FB_MAX_COLOR_ATTACHMENT)) {
+    GPUAttachmentType type = GPU_FB_COLOR_ATTACHMENT0 + i;
     if (this->attachments_[type].tex) {
-      this->attachment_set_loadstore_op(type, action);
+      BLI_assert(i < color_attachment_actions.size());
+      this->attachment_set_loadstore_op(type, color_attachment_actions[i]);
     }
-    ++type;
+    else {
+      BLI_assert(i >= color_attachment_actions.size() ||
+                 (color_attachment_actions[i].load_action == GPU_LOADACTION_DONT_CARE &&
+                  color_attachment_actions[i].store_action == GPU_STOREACTION_DONT_CARE));
+    }
   }
 }
 

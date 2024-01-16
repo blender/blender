@@ -477,7 +477,7 @@ static int loopcut_init(bContext *C, wmOperator *op, const wmEvent *event)
   if (is_interactive) {
     ED_workspace_status_text(
         C,
-        TIP_("Select a ring to be cut, use mouse-wheel or page-up/down for number of cuts, "
+        RPT_("Select a ring to be cut, use mouse-wheel or page-up/down for number of cuts, "
              "hold Alt for smooth"));
     return OPERATOR_RUNNING_MODAL;
   }
@@ -699,7 +699,7 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
       BLI_snprintf(str_rep + NUM_STR_REP_LEN, NUM_STR_REP_LEN, "%.2f", smoothness);
     }
     SNPRINTF(
-        buf, TIP_("Number of Cuts: %s, Smooth: %s (Alt)"), str_rep, str_rep + NUM_STR_REP_LEN);
+        buf, RPT_("Number of Cuts: %s, Smooth: %s (Alt)"), str_rep, str_rep + NUM_STR_REP_LEN);
     ED_workspace_status_text(C, buf);
   }
 

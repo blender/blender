@@ -16,7 +16,7 @@
 #include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_layer.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_library.hh"
 #include "BKE_main.hh"
 #include "BKE_node.hh"
@@ -183,6 +183,8 @@ struct ImportJobData {
   bool was_canceled;
   bool import_ok;
   timeit::TimePoint start_time;
+
+  CacheFile *cache_file;
 };
 
 static void report_job_duration(const ImportJobData *data)
@@ -203,6 +205,7 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
   data->was_canceled = false;
   data->archive = nullptr;
   data->start_time = timeit::Clock::now();
+  data->cache_file = nullptr;
 
   data->params.worker_status = worker_status;
 
@@ -227,19 +230,26 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
 
   BLI_path_abs(data->filepath, BKE_main_blendfile_path_from_global());
 
-  CacheFile *cache_file = static_cast<CacheFile *>(
-      BKE_cachefile_add(data->bmain, BLI_path_basename(data->filepath)));
+  /* Callback function to lazily create a cache file when converting
+   * time varying data. */
+  auto get_cache_file = [data]() {
+    if (!data->cache_file) {
+      data->cache_file = static_cast<CacheFile *>(
+          BKE_cachefile_add(data->bmain, BLI_path_basename(data->filepath)));
 
-  /* Decrement the ID ref-count because it is going to be incremented for each
-   * modifier and constraint that it will be attached to, so since currently
-   * it is not used by anyone, its use count will off by one. */
-  id_us_min(&cache_file->id);
+      /* Decrement the ID ref-count because it is going to be incremented for each
+       * modifier and constraint that it will be attached to, so since currently
+       * it is not used by anyone, its use count will off by one. */
+      id_us_min(&data->cache_file->id);
 
-  cache_file->is_sequence = data->params.is_sequence;
-  cache_file->scale = data->params.scale;
-  STRNCPY(cache_file->filepath, data->filepath);
+      data->cache_file->is_sequence = data->params.is_sequence;
+      data->cache_file->scale = data->params.scale;
+      STRNCPY(data->cache_file->filepath, data->filepath);
+    }
+    return data->cache_file;
+  };
 
-  data->settings.cache_file = cache_file;
+  data->settings.get_cache_file = get_cache_file;
 
   *data->do_update = true;
   *data->progress = 0.05f;
@@ -546,7 +556,7 @@ static USDPrimReader *get_usd_reader(CacheReader *reader,
   pxr::UsdPrim iobject = usd_reader->prim();
 
   if (!iobject.IsValid()) {
-    *err_str = TIP_("Invalid object: verify object path");
+    *err_str = RPT_("Invalid object: verify object path");
     return nullptr;
   }
 

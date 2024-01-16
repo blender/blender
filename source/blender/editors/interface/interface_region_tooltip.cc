@@ -264,13 +264,13 @@ static void ui_tooltip_region_draw_cb(const bContext * /*C*/, ARegion *region)
 
       bbox.ymax -= field->image_size[1];
 
-      GPU_blend(GPU_BLEND_ALPHA_PREMULT);
-
       /* Draw checker pattern behind the image in case is has transparency. */
       imm_draw_box_checker_2d(float(bbox.xmin),
                               float(bbox.ymax),
                               float(bbox.xmin + field->image_size[0]),
                               float(bbox.ymax + field->image_size[1]));
+
+      GPU_blend(GPU_BLEND_ALPHA_PREMULT);
 
       IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_3D_IMAGE_COLOR);
       immDrawPixelsTexScaledFullSize(&state,
@@ -307,6 +307,8 @@ static void ui_tooltip_region_draw_cb(const bContext * /*C*/, ARegion *region)
                            float(bbox.xmin + field->image_size[0]),
                            float(bbox.ymax + field->image_size[1]));
       immUnbindProgram();
+
+      GPU_blend(GPU_BLEND_NONE);
     }
     else if (field->format.style == UI_TIP_STYLE_SPACER) {
       bbox.ymax -= data->lineh * UI_TIP_SPACER;
@@ -1203,6 +1205,21 @@ static uiTooltipData *ui_tooltip_data_from_gizmo(bContext *C, wmGizmo *gz)
   return data;
 }
 
+static uiTooltipData *ui_tooltip_data_from_custom_func(bContext *C, uiBut *but)
+{
+  /* Create tooltip data. */
+  uiTooltipData *data = MEM_cnew<uiTooltipData>(__func__);
+
+  /* Create fields from custom callback. */
+  but->tip_custom_func(C, data, but->tip_arg);
+
+  if (data->fields_len == 0) {
+    MEM_freeN(data);
+    return nullptr;
+  }
+  return data;
+}
+
 static ARegion *ui_tooltip_create_with_data(bContext *C,
                                             uiTooltipData *data,
                                             const float init_position[2],
@@ -1474,8 +1491,7 @@ ARegion *UI_tooltip_create_from_button_or_extra_icon(
   uiTooltipData *data = nullptr;
 
   if (but->tip_custom_func) {
-    data = (uiTooltipData *)MEM_callocN(sizeof(uiTooltipData), "uiTooltipData");
-    but->tip_custom_func(C, data, but->tip_arg);
+    data = ui_tooltip_data_from_custom_func(C, but);
   }
 
   if (data == nullptr) {

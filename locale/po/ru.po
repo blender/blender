@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'd13edee3e0cc')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'acbb91b192da')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-08 11:04:23\n"
+"POT-Creation-Date: 2024-01-15 10:52:30\n"
 "PO-Revision-Date: 2023-12-11 03:52+0000\n"
 "Last-Translator: Lockal <lockalsash@gmail.com>\n"
 "Language-Team: Russian <https://translate.blender.org/projects/blender-ui/ui/ru/>\n"
@@ -14059,10 +14059,6 @@ msgstr "Создать систему частиц трекеров"
 
 msgid "Use Viscosity"
 msgstr "Использовать вязкость"
-
-
-msgid "Enable fluid viscosity settings"
-msgstr "Включить настройки вязкости жидкости"
 
 
 msgid "Display Type"
@@ -43245,6 +43241,19 @@ msgid "Duplicate"
 msgstr "Дублировать"
 
 
+msgid "Extrude selected control point(s)"
+msgstr "Экструдировать выделенную контрольную точку(и)"
+
+
+msgctxt "Operator"
+msgid "Extrude Curve and Move"
+msgstr "Экструдировать кривую и переместить"
+
+
+msgid "Extrude curve and move result"
+msgstr "Экструдировать кривую и переместить результат"
+
+
 msgid "(De)select all control points"
 msgstr "Установить/снять выделение со всех контрольных точек"
 
@@ -43363,10 +43372,6 @@ msgid "Duplicate Curve"
 msgstr "Дублировать кривую"
 
 
-msgid "Extrude selected control point(s)"
-msgstr "Экструдировать выделенную контрольную точку(и)"
-
-
 msgid "Init"
 msgstr "Начать"
 
@@ -43437,15 +43442,6 @@ msgstr "Сдвинуть ребро"
 
 msgid "Sequence Slide"
 msgstr "Сдвинуть секвенцию"
-
-
-msgctxt "Operator"
-msgid "Extrude Curve and Move"
-msgstr "Экструдировать кривую и переместить"
-
-
-msgid "Extrude curve and move result"
-msgstr "Экструдировать кривую и переместить результат"
 
 
 msgctxt "Operator"
@@ -64845,10 +64841,6 @@ msgid "Helpers"
 msgstr "Помощники"
 
 
-msgid "Viscosity"
-msgstr "Вязкость"
-
-
 msgid "Freestyle Line Style SVG Export"
 msgstr "SVG-экспорт стиля линий Freestyle"
 
@@ -71174,6 +71166,10 @@ msgstr "Радиус взаимодействия"
 
 msgid "Fluid interaction radius"
 msgstr "Радиус взаимодействия жидкости"
+
+
+msgid "Viscosity"
+msgstr "Вязкость"
 
 
 msgid "Linear viscosity"
@@ -86077,12 +86073,12 @@ msgid "Basic"
 msgstr "Базовый"
 
 
-msgid "Baking light cache"
-msgstr "Запечь кэш освещения"
-
-
 msgid "%d Ref. Cubemaps, %d Irr. Samples (%s in memory)"
 msgstr "%d Кубич.карт отражения, %d семплов освещённости (%s в памяти)"
+
+
+msgid "Baking light cache"
+msgstr "Запечь кэш освещения"
 
 
 msgid "No light cache in this scene"
@@ -87236,10 +87232,6 @@ msgid "Anim Player"
 msgstr "Остановить"
 
 
-msgid "Can't edit external library data"
-msgstr "Правка данных из внешних библиотек невозможна"
-
-
 msgid "Reset operator defaults"
 msgstr "Сбросить настройки оператора к настройкам по умолчанию"
 
@@ -87406,6 +87398,10 @@ msgstr "Выбор связываемого зонда освещения"
 
 msgid "Browse ID data to be linked"
 msgstr "Выбор связываемых данных идентификаторов"
+
+
+msgid "Can't edit external library data"
+msgstr "Правка данных из внешних библиотек невозможна"
 
 
 msgid "Today"
@@ -89525,6 +89521,22 @@ msgid "Show in Drivers Editor"
 msgstr "Показать в редакторе драйверов"
 
 
+msgid "Add a Driver Variable to keep track of an input used by the driver"
+msgstr "Добавить переменную драйвера для слежения за входным значением, используемым драйвером"
+
+
+msgid "Invalid variable name, click here for details"
+msgstr "Неправильное имя переменной; нажмите здесь, чтобы узнать больше"
+
+
+msgid "Delete target variable"
+msgstr "Удалить целевую переменную"
+
+
+msgid "Force updates of dependencies - Only use this if drivers are not updating correctly"
+msgstr "Принудительно обновить зависимости (используйте только если драйверы не обновляются корректно)"
+
+
 msgid "F-Curve only has F-Modifiers"
 msgstr "F-кривая описана только F-модификаторами"
 
@@ -89579,22 +89591,6 @@ msgstr "Совет: для процедурной анимации лучше п
 
 msgid "F-Modifiers can generate curves for those too"
 msgstr "Эти кривые также могут быть сгенерированы F-модификаторами"
-
-
-msgid "Add a Driver Variable to keep track of an input used by the driver"
-msgstr "Добавить переменную драйвера для слежения за входным значением, используемым драйвером"
-
-
-msgid "Invalid variable name, click here for details"
-msgstr "Неправильное имя переменной; нажмите здесь, чтобы узнать больше"
-
-
-msgid "Delete target variable"
-msgstr "Удалить целевую переменную"
-
-
-msgid "Force updates of dependencies - Only use this if drivers are not updating correctly"
-msgstr "Принудительно обновить зависимости (используйте только если драйверы не обновляются корректно)"
 
 
 msgid "Driven Property"
@@ -92422,6 +92418,18 @@ msgid "Don't Save"
 msgstr "Не сохранять"
 
 
+msgid "Reload file with execution of Python scripts enabled"
+msgstr "Перезагрузить файл с разрешением выполнить скрипты Python"
+
+
+msgid "Enable scripts"
+msgstr "Включить скрипты"
+
+
+msgid "Continue using file without Python scripts"
+msgstr "Продолжить работу с файлом без скриптов Python"
+
+
 msgid "unable to open the file"
 msgstr "не удалось открыть файл"
 
@@ -92436,18 +92444,6 @@ msgstr "Это может привести к неожиданным резул�
 
 msgid "Permanently allow execution of scripts"
 msgstr "Всегда разрешать выполнение скриптов"
-
-
-msgid "Reload file with execution of Python scripts enabled"
-msgstr "Перезагрузить файл с разрешением выполнить скрипты Python"
-
-
-msgid "Enable scripts"
-msgstr "Включить скрипты"
-
-
-msgid "Continue using file without Python scripts"
-msgstr "Продолжить работу с файлом без скриптов Python"
 
 
 msgid "Save changes before closing?"

@@ -162,9 +162,9 @@ static GVolumeGrid get_cached_grid(const StringRef file_path,
     const GVolumeGrid main_grid = get_grid_from_file(file_path, grid_name, 0);
     const VolumeGridType grid_type = main_grid->grid_type();
     const float resolution_factor = 1.0f / (1 << simplify_level);
-    const VolumeTreeAccessToken access_token = main_grid->tree_access_token();
+    VolumeTreeAccessToken tree_token;
     return BKE_volume_grid_create_with_changed_resolution(
-        grid_type, main_grid->grid(access_token), resolution_factor);
+        grid_type, main_grid->grid(tree_token), resolution_factor);
   };
   /* This allows the returned grid to already contain meta-data and transforms, even if the tree is
    * not loaded yet. */

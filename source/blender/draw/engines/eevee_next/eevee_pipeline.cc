@@ -422,6 +422,7 @@ void DeferredLayerBase::gbuffer_pass_sync(Instance &inst)
                                  {GPU_ATTACHEMENT_WRITE,
                                   GPU_ATTACHEMENT_WRITE,
                                   GPU_ATTACHEMENT_WRITE,
+                                  GPU_ATTACHEMENT_WRITE,
                                   GPU_ATTACHEMENT_WRITE});
   /* G-buffer. */
   gbuffer_ps_.bind_image(GBUF_NORMAL_SLOT, &inst.gbuffer.normal_img_tx);
@@ -519,16 +520,17 @@ void DeferredLayer::end_sync()
                              {GPU_ATTACHEMENT_IGNORE,
                               GPU_ATTACHEMENT_READ, /* Header. */
                               GPU_ATTACHEMENT_IGNORE,
+                              GPU_ATTACHEMENT_IGNORE,
                               GPU_ATTACHEMENT_IGNORE});
       sub.shader_set(sh);
       sub.state_set(DRW_STATE_WRITE_STENCIL | DRW_STATE_STENCIL_ALWAYS);
       if (GPU_stencil_export_support()) {
-        /* The shader sets the stencil directly in one fullscreen pass. */
+        /* The shader sets the stencil directly in one full-screen pass. */
         sub.state_stencil(0xFFu, /* Set by shader */ 0x0u, 0xFFu);
         sub.draw_procedural(GPU_PRIM_TRIS, 1, 3);
       }
       else {
-        /* The shader cannot set the stencil directly. So we do one fullscreen pass for each
+        /* The shader cannot set the stencil directly. So we do one full-screen pass for each
          * stencil bit we need to set and accumulate the result. */
         for (size_t i = 0; i <= log2_ceil(closure_count_); i++) {
           int stencil_value = 1 << i;
@@ -714,8 +716,8 @@ void DeferredLayer::render(View &main_view,
   }
   else {
     if (!GPU_stencil_export_support()) {
-      /* Clearing custom load-store framebuffers is invalid,
-       * clear the stencil as a regular framebuffer first. */
+      /* Clearing custom load-store frame-buffers is invalid,
+       * clear the stencil as a regular frame-buffer first. */
       GPU_framebuffer_bind(gbuffer_fb);
       GPU_framebuffer_clear_stencil(gbuffer_fb, 0x0u);
     }
@@ -1391,14 +1393,17 @@ void PlanarProbePipeline::render(View &view,
   /* Update for lighting pass. */
   inst_.hiz_buffer.update();
 
-  GPU_framebuffer_bind_ex(gbuffer_fb,
-                          {
-                              {GPU_LOADACTION_LOAD, GPU_STOREACTION_STORE},          /* Depth */
-                              {GPU_LOADACTION_CLEAR, GPU_STOREACTION_STORE, {0.0f}}, /* Combined */
-                              {GPU_LOADACTION_CLEAR, GPU_STOREACTION_STORE, {0}}, /* GBuf Header */
-                              {GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_STORE}, /* GBuf Closure */
-                              {GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_STORE}, /* GBuf Color */
-                          });
+  GPU_framebuffer_bind_ex(
+      gbuffer_fb,
+      {
+          {GPU_LOADACTION_LOAD, GPU_STOREACTION_STORE},          /* Depth */
+          {GPU_LOADACTION_CLEAR, GPU_STOREACTION_STORE, {0.0f}}, /* Combined */
+          {GPU_LOADACTION_CLEAR, GPU_STOREACTION_STORE, {0}},    /* GBuf Header */
+          {GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_STORE},     /* GBuf Normal*/
+          {GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_STORE},     /* GBuf Closure */
+          {GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_STORE},     /* GBuf Closure 2*/
+      });
+
   inst_.manager->submit(gbuffer_ps_, view);
 
   GPU_framebuffer_bind(combined_fb);

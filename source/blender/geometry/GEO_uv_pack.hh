@@ -33,6 +33,10 @@ enum eUVPackIsland_RotationMethod {
   ED_UVPACK_ROTATION_NONE = 0,
   /** Rotated to a minimal rectangle, either vertical or horizontal. */
   ED_UVPACK_ROTATION_AXIS_ALIGNED,
+  /** Align along X axis (wide islands). */
+  ED_UVPACK_ROTATION_AXIS_ALIGNED_X,
+  /** Align along Y axis (tall islands). */
+  ED_UVPACK_ROTATION_AXIS_ALIGNED_Y,
   /** Only 90 degree rotations are allowed. */
   ED_UVPACK_ROTATION_CARDINAL,
   /** Any angle. */
@@ -146,7 +150,12 @@ class PackIsland {
 
   void place_(float scale, UVPhi phi);
   void finalize_geometry_(const UVPackIsland_Params &params, MemArena *arena, Heap *heap);
-
+  /**
+   * Check that rotation is allowed before packing,
+   * where the island may rotated to a desired orientation but not as part of packing.
+   * Needed for X/Y axis alignment to be supported.
+   */
+  bool can_rotate_before_pack_(const UVPackIsland_Params &params) const;
   bool can_rotate_(const UVPackIsland_Params &params) const;
   bool can_scale_(const UVPackIsland_Params &params) const;
   bool can_translate_(const UVPackIsland_Params &params) const;

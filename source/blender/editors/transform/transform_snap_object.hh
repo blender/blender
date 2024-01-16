@@ -23,7 +23,7 @@ struct SnapObjectContext {
   struct SnapCache {
     virtual ~SnapCache(){};
   };
-  blender::Map<const BMEditMesh *, std::unique_ptr<SnapCache>> editmesh_caches;
+  blender::Map<const ID *, std::unique_ptr<SnapCache>> editmesh_caches;
 
   /* Filter data, returns true to check this value */
   struct {

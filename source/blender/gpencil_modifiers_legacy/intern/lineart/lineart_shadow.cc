@@ -13,7 +13,7 @@
 
 #include "BKE_global.h"
 #include "BKE_gpencil_modifier_legacy.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_material.h"
 #include "BKE_object.hh"
 #include "BKE_scene.h"

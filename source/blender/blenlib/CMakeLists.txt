@@ -104,7 +104,7 @@ set(SRC
   intern/math_color_inline.c
   intern/math_geom.cc
   intern/math_geom_inline.c
-  intern/math_interp.c
+  intern/math_interp.cc
   intern/math_matrix.c
   intern/math_matrix.cc
   intern/math_rotation.c
@@ -287,11 +287,12 @@ set(SRC
   BLI_math_euler_types.hh
   BLI_math_geom.h
   BLI_math_inline.h
-  BLI_math_interp.h
+  BLI_math_interp.hh
   BLI_math_matrix.h
   BLI_math_matrix.hh
   BLI_math_matrix_types.hh
   BLI_math_mpq.hh
+  BLI_math_numbers.hh
   BLI_math_quaternion.hh
   BLI_math_quaternion_types.hh
   BLI_math_rotation.h

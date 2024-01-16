@@ -4,7 +4,7 @@
 
 #include "DNA_mesh_types.h"
 
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 

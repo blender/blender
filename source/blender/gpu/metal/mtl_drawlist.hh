@@ -23,7 +23,7 @@ namespace blender::gpu {
 
 /**
  * Implementation of Multi Draw Indirect using OpenGL.
- **/
+ */
 class MTLDrawList : public DrawList {
 
  private:

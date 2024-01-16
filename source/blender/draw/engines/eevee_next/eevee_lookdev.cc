@@ -7,7 +7,7 @@
  */
 
 #include "BKE_image.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_node.hh"
 #include "BKE_studiolight.h"
 

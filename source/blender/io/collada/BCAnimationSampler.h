@@ -9,7 +9,7 @@
 #include "collada_utils.h"
 
 #include "BKE_action.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 
 #include "BLI_math_rotation.h"
 

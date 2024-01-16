@@ -14,7 +14,7 @@
 
 #include "GPU_texture.h"
 
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_mask.h"
 
 #include "DNA_ID.h"

@@ -32,7 +32,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_idprop.h"
 #include "BKE_layer.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_library.hh"
 #include "BKE_main.hh"
 

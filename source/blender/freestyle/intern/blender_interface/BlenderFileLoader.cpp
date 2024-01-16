@@ -428,7 +428,7 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *mesh, int id)
   blender::bke::mesh::corner_tris_calc(
       vert_positions, mesh_polys, corner_verts, {corner_tris, tottri});
   const blender::Span<int> tri_faces = mesh->corner_tri_faces();
-  const blender::Span<blender::float3> lnors = mesh->corner_normals();
+  const blender::Span<blender::float3> corner_normals = mesh->corner_normals();
 
   // Get other mesh data
   const FreestyleEdge *fed = (const FreestyleEdge *)CustomData_get_layer(&mesh->edge_data,
@@ -546,9 +546,9 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *mesh, int id)
     v3[2] += _z_offset;
 
     if (_smooth && (!sharp_faces[poly_i])) {
-      copy_v3_v3(n1, lnors[tri[0]]);
-      copy_v3_v3(n2, lnors[tri[1]]);
-      copy_v3_v3(n3, lnors[tri[2]]);
+      copy_v3_v3(n1, corner_normals[tri[0]]);
+      copy_v3_v3(n2, corner_normals[tri[1]]);
+      copy_v3_v3(n3, corner_normals[tri[2]]);
 
       mul_mat3_m4_v3(nmat, n1);
       mul_mat3_m4_v3(nmat, n2);

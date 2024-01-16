@@ -42,8 +42,8 @@ static void extract_lnor_iter_face_bm(const MeshRenderData &mr,
   l_iter = l_first = BM_FACE_FIRST_LOOP(f);
   do {
     const int l_index = BM_elem_index_get(l_iter);
-    if (!mr.loop_normals.is_empty()) {
-      (*(GPUPackedNormal **)data)[l_index] = GPU_normal_convert_i10_v3(mr.loop_normals[l_index]);
+    if (!mr.corner_normals.is_empty()) {
+      (*(GPUPackedNormal **)data)[l_index] = GPU_normal_convert_i10_v3(mr.corner_normals[l_index]);
     }
     else {
       if (BM_elem_flag_test(f, BM_ELEM_SMOOTH)) {
@@ -65,8 +65,8 @@ static void extract_lnor_iter_face_mesh(const MeshRenderData &mr, const int face
   for (const int corner : mr.faces[face_index]) {
     const int vert = mr.corner_verts[corner];
     GPUPackedNormal *lnor_data = &(*(GPUPackedNormal **)data)[corner];
-    if (!mr.loop_normals.is_empty()) {
-      *lnor_data = GPU_normal_convert_i10_v3(mr.loop_normals[corner]);
+    if (!mr.corner_normals.is_empty()) {
+      *lnor_data = GPU_normal_convert_i10_v3(mr.corner_normals[corner]);
     }
     else if (mr.normals_domain == bke::MeshNormalDomain::Face ||
              (!mr.sharp_faces.is_empty() && mr.sharp_faces[face_index]))
@@ -165,8 +165,8 @@ static void extract_lnor_hq_iter_face_bm(const MeshRenderData &mr,
   l_iter = l_first = BM_FACE_FIRST_LOOP(f);
   do {
     const int l_index = BM_elem_index_get(l_iter);
-    if (!mr.loop_normals.is_empty()) {
-      normal_float_to_short_v3(&(*(gpuHQNor **)data)[l_index].x, mr.loop_normals[l_index]);
+    if (!mr.corner_normals.is_empty()) {
+      normal_float_to_short_v3(&(*(gpuHQNor **)data)[l_index].x, mr.corner_normals[l_index]);
     }
     else {
       if (BM_elem_flag_test(f, BM_ELEM_SMOOTH)) {
@@ -188,8 +188,8 @@ static void extract_lnor_hq_iter_face_mesh(const MeshRenderData &mr,
   for (const int corner : mr.faces[face_index]) {
     const int vert = mr.corner_verts[corner];
     gpuHQNor *lnor_data = &(*(gpuHQNor **)data)[corner];
-    if (!mr.loop_normals.is_empty()) {
-      normal_float_to_short_v3(&lnor_data->x, mr.loop_normals[corner]);
+    if (!mr.corner_normals.is_empty()) {
+      normal_float_to_short_v3(&lnor_data->x, mr.corner_normals[corner]);
     }
     else if (mr.normals_domain == bke::MeshNormalDomain::Face ||
              (!mr.sharp_faces.is_empty() && mr.sharp_faces[face_index]))

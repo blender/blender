@@ -21,7 +21,7 @@
 
 #include "BKE_bvhutils.hh"
 #include "BKE_context.hh"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
 #include "BKE_screen.hh"
 
@@ -184,7 +184,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  uiItemL(layout, TIP_("Settings are inside the Physics tab"), ICON_NONE);
+  uiItemL(layout, RPT_("Settings are inside the Physics tab"), ICON_NONE);
 
   modifier_panel_end(layout, ptr);
 }

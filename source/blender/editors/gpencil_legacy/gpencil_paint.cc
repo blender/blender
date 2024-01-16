@@ -2615,20 +2615,20 @@ static void gpencil_draw_status_indicators(bContext *C, tGPsdata *p)
         case GP_PAINTMODE_ERASER: {
           ED_workspace_status_text(
               C,
-              TIP_("Grease Pencil Erase Session: Hold and drag LMB or RMB to erase | "
+              RPT_("Grease Pencil Erase Session: Hold and drag LMB or RMB to erase | "
                    "ESC/Enter to end  (or click outside this area)"));
           break;
         }
         case GP_PAINTMODE_DRAW_STRAIGHT: {
           ED_workspace_status_text(C,
-                                   TIP_("Grease Pencil Line Session: Hold and drag LMB to draw | "
+                                   RPT_("Grease Pencil Line Session: Hold and drag LMB to draw | "
                                         "ESC/Enter to end  (or click outside this area)"));
           break;
         }
         case GP_PAINTMODE_SET_CP: {
           ED_workspace_status_text(
               C,
-              TIP_("Grease Pencil Guides: LMB click and release to place reference point | "
+              RPT_("Grease Pencil Guides: LMB click and release to place reference point | "
                    "Esc/RMB to cancel"));
           break;
         }
@@ -2637,19 +2637,19 @@ static void gpencil_draw_status_indicators(bContext *C, tGPsdata *p)
           if (guide->use_guide) {
             ED_workspace_status_text(
                 C,
-                TIP_("Grease Pencil Freehand Session: Hold and drag LMB to draw | "
+                RPT_("Grease Pencil Freehand Session: Hold and drag LMB to draw | "
                      "M key to flip guide | O key to move reference point"));
           }
           else {
             ED_workspace_status_text(
-                C, TIP_("Grease Pencil Freehand Session: Hold and drag LMB to draw"));
+                C, RPT_("Grease Pencil Freehand Session: Hold and drag LMB to draw"));
           }
           break;
         }
         default: /* unhandled future cases */
         {
           ED_workspace_status_text(
-              C, TIP_("Grease Pencil Session: ESC/Enter to end (or click outside this area)"));
+              C, RPT_("Grease Pencil Session: ESC/Enter to end (or click outside this area)"));
           break;
         }
       }

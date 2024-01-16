@@ -37,6 +37,8 @@ if not issue:
         issue = "#88449"
     elif version.startswith("3.3."):
         issue = "#100749"
+    elif version.startswith("3.6."):
+        issue = "#109399"
     else:
         raise ValueError("Specify --issue or update script to include issue number for this version")
 

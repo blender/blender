@@ -43,7 +43,7 @@
 #include "BLI_string.h"
 
 #include "BKE_collection.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_modifier.hh"
 #include "BKE_report.h"
 

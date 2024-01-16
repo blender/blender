@@ -1383,8 +1383,8 @@ static bool ui_but_event_property_operator_string(const bContext *C,
 {
   /* Context toggle operator names to check. */
 
-  /* This function could use a refactor to generalize button type to operator relationship
-   * as well as which operators use properties. - Campbell */
+  /* NOTE(@ideasman42): This function could use a refactor to generalize button type to operator
+   * relationship as well as which operators use properties. */
   const char *ctx_toggle_opnames[] = {
       "WM_OT_context_toggle",
       "WM_OT_context_toggle_enum",
@@ -3035,7 +3035,7 @@ char *ui_but_string_get_dynamic(uiBut *but, int *r_str_size)
  * Report a generic error prefix when evaluating a string with #BPY_run_string_as_number
  * as the Python error on its own doesn't provide enough context.
  */
-#define UI_NUMBER_EVAL_ERROR_PREFIX IFACE_("Error evaluating number, see Info editor for details")
+#define UI_NUMBER_EVAL_ERROR_PREFIX RPT_("Error evaluating number, see Info editor for details")
 
 static bool ui_number_from_string_units(
     bContext *C, const char *str, const int unit_type, const UnitSettings *unit, double *r_value)
@@ -4542,7 +4542,7 @@ static void ui_def_but_rna__panel_type(bContext *C, uiLayout *layout, void *but_
   }
   else {
     char msg[256];
-    SNPRINTF(msg, TIP_("Missing Panel: %s"), panel_type);
+    SNPRINTF(msg, RPT_("Missing Panel: %s"), panel_type);
     uiItemL(layout, msg, ICON_NONE);
   }
 }
@@ -4571,7 +4571,7 @@ static void ui_def_but_rna__menu_type(bContext *C, uiLayout *layout, void *but_p
   }
   else {
     char msg[256];
-    SNPRINTF(msg, TIP_("Missing Menu: %s"), menu_type);
+    SNPRINTF(msg, RPT_("Missing Menu: %s"), menu_type);
     uiItemL(layout, msg, ICON_NONE);
   }
 }
@@ -6839,8 +6839,11 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
         }
       }
     }
+    /* NOTE: Menus will already have their shortcuts displayed.
+     * Pie menus are an exception as they already have a shortcut on display
+     * however this is only used within the context of the pie menu. */
     else if (type == BUT_GET_OP_KEYMAP) {
-      if (!ui_block_is_menu(but->block)) {
+      if (!(ui_block_is_menu(but->block) && !ui_block_is_pie_menu(but->block))) {
         char buf[128];
         if (ui_but_event_operator_string(C, but, buf, sizeof(buf))) {
           tmp = BLI_strdup(buf);
@@ -6848,10 +6851,11 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
       }
     }
     else if (type == BUT_GET_PROP_KEYMAP) {
-      /* for properties that are bound to one of the context cycle, etc. keys... */
-      char buf[128];
-      if (ui_but_event_property_operator_string(C, but, buf, sizeof(buf))) {
-        tmp = BLI_strdup(buf);
+      if (!(ui_block_is_menu(but->block) && !ui_block_is_pie_menu(but->block))) {
+        char buf[128];
+        if (ui_but_event_property_operator_string(C, but, buf, sizeof(buf))) {
+          tmp = BLI_strdup(buf);
+        }
       }
     }
 

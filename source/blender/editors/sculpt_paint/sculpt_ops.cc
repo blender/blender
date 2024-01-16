@@ -370,10 +370,10 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
 
     const char *message_unsupported = nullptr;
     if (mesh->corners_num != mesh->faces_num * 3) {
-      message_unsupported = TIP_("non-triangle face");
+      message_unsupported = RPT_("non-triangle face");
     }
     else if (mmd != nullptr) {
-      message_unsupported = TIP_("multi-res modifier");
+      message_unsupported = RPT_("multi-res modifier");
     }
     else {
       dyntopo::WarnFlag flag = dyntopo::check_attribute_warning(scene, ob);
@@ -381,16 +381,16 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
         /* pass */
       }
       else if (flag & dyntopo::VDATA) {
-        message_unsupported = TIP_("vertex data");
+        message_unsupported = RPT_("vertex data");
       }
       else if (flag & dyntopo::EDATA) {
-        message_unsupported = TIP_("edge data");
+        message_unsupported = RPT_("edge data");
       }
       else if (flag & dyntopo::LDATA) {
-        message_unsupported = TIP_("face data");
+        message_unsupported = RPT_("face data");
       }
       else if (flag & dyntopo::MODIFIER) {
-        message_unsupported = TIP_("constructive modifier");
+        message_unsupported = RPT_("constructive modifier");
       }
       else {
         BLI_assert(0);

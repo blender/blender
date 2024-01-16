@@ -23,7 +23,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_context.hh"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_interface.hh"
@@ -939,7 +939,7 @@ static void ui_node_draw_input(uiLayout &layout,
   }
 
   if (dependency_loop) {
-    uiItemL(row, IFACE_("Dependency Loop"), ICON_ERROR);
+    uiItemL(row, RPT_("Dependency Loop"), ICON_ERROR);
     add_dummy_decorator = true;
   }
   else if (lnode) {

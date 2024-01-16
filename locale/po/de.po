@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'd13edee3e0cc')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'acbb91b192da')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-08 11:04:23\n"
+"POT-Creation-Date: 2024-01-15 10:52:30\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Martin Reininger <martinreininger@gmx.net>\n"
 "Language-Team: German translation team\n"
@@ -29137,6 +29137,19 @@ msgid "Duplicate"
 msgstr "Duplizieren"
 
 
+msgid "Extrude selected control point(s)"
+msgstr "Ausgewählte Kontrollpunkte extrudieren"
+
+
+msgctxt "Operator"
+msgid "Extrude Curve and Move"
+msgstr "Kurve extrudieren und bewegen"
+
+
+msgid "Extrude curve and move result"
+msgstr "Kurve extrudieren und Ergebnis bewegen"
+
+
 msgid "(De)select all control points"
 msgstr "Kontrollpunkte aus-/abwählen"
 
@@ -29230,10 +29243,6 @@ msgid "Duplicate Curve"
 msgstr "Kurve duplizieren"
 
 
-msgid "Extrude selected control point(s)"
-msgstr "Ausgewählte Kontrollpunkte extrudieren"
-
-
 msgid "Init"
 msgstr "Initialisieren"
 
@@ -29312,15 +29321,6 @@ msgstr "Kante schieben"
 
 msgid "Grease Pencil Opacity"
 msgstr "Wachsstiftdeckkraft"
-
-
-msgctxt "Operator"
-msgid "Extrude Curve and Move"
-msgstr "Kurve extrudieren und bewegen"
-
-
-msgid "Extrude curve and move result"
-msgstr "Kurve extrudieren und Ergebnis bewegen"
 
 
 msgctxt "Operator"
@@ -42728,10 +42728,6 @@ msgid "Helpers"
 msgstr "Helfer"
 
 
-msgid "Viscosity"
-msgstr "Zähigkeit"
-
-
 msgid "Indirect Lighting"
 msgstr "Indirekte Beleuchtung"
 
@@ -47360,6 +47356,10 @@ msgstr "Deaktiviert Rigid Body beim Start der Simulation"
 
 msgid "Simulation will be evaluated"
 msgstr "Simulation wird ausgewertet"
+
+
+msgid "Viscosity"
+msgstr "Zähigkeit"
 
 
 msgid "Plasticity"
@@ -59645,10 +59645,6 @@ msgid "Direct linked library data-block, click to make local, Shift + Click to c
 msgstr "Direkter verknüpfter Bibliotheksdatenblock, klicken um lokal zu machen, Umschalt + Klicken, um eine Bibliotheksüberschreibung zu erstellen"
 
 
-msgid "Can't edit external library data"
-msgstr "Externe Bibliotheksdaten können nicht bearbeiten werden"
-
-
 msgid "Delete the active position"
 msgstr "Aktive Position entfernen"
 
@@ -59815,6 +59811,10 @@ msgstr "Durchsuche Volumendaten zum Verknüpfen"
 
 msgid "Browse ID data to be linked"
 msgstr "Zu verknüpfende ID-Daten durchsuchen"
+
+
+msgid "Can't edit external library data"
+msgstr "Externe Bibliotheksdaten können nicht bearbeiten werden"
 
 
 msgid "Today"
@@ -61220,6 +61220,10 @@ msgid "Driven Property:"
 msgstr "Steuerungs Einstellungen:"
 
 
+msgid "Delete target variable"
+msgstr "Zielvariable löschen"
+
+
 msgid "F-Curve only has F-Modifiers"
 msgstr "F-Kurve die nur F-Modifikatoren haben"
 
@@ -61246,10 +61250,6 @@ msgstr "FEHLER: ein oder mehrere ungültige Zielkanäle"
 
 msgid "ERROR: Driver is useless without any inputs"
 msgstr "FEHLER: Treiber ist nutzlos ohne Eingabemöglichkeit"
-
-
-msgid "Delete target variable"
-msgstr "Zielvariable löschen"
 
 
 msgid "Driven Property"
@@ -61404,16 +61404,16 @@ msgid "Cannot set absolute paths with an unsaved blend file"
 msgstr "Absolute Pfade können nicht bei einer ungespeicherten blend-Datei gesetzt werden"
 
 
-msgid "Joints"
-msgstr "Gelenke"
-
-
 msgid " | Objects:%s/%s"
 msgstr " | Objekte:%s/%s"
 
 
 msgid "Memory: %s"
 msgstr "Arbeitsspeicher: %s"
+
+
+msgid "Joints"
+msgstr "Gelenke"
 
 
 msgid "Sync Length"
@@ -62523,12 +62523,12 @@ msgid "Save External..."
 msgstr "Speichern Extern..."
 
 
-msgid "No named attributes used"
-msgstr "Keine benannten Attribute verwendet"
-
-
 msgid "Internal Dependencies"
 msgstr "Interne Abhängigkeiten"
+
+
+msgid "No named attributes used"
+msgstr "Keine benannten Attribute verwendet"
 
 
 msgid "Delete Bake"
@@ -63351,12 +63351,12 @@ msgid "Wave Effect"
 msgstr "Welleneffekt"
 
 
-msgid "Input pending "
-msgstr "Eingabe ausstehend "
-
-
 msgid "Blender File View"
 msgstr "Blender-Dateibetrachter"
+
+
+msgid "Input pending "
+msgstr "Eingabe ausstehend "
 
 
 msgid "Missing 'window' in context"
@@ -63375,24 +63375,8 @@ msgid "Don't Save"
 msgstr "Nicht speichern"
 
 
-msgid "unable to open the file"
-msgstr "Datei kann nicht geöffnet werden"
-
-
 msgid "File Not Found"
 msgstr "Datei nicht gefunden"
-
-
-msgid "For security reasons, automatic execution of Python scripts in this file was disabled:"
-msgstr "Zur Sicherheit wird die automatische Ausführung der Python Skripte in dieser Datei deaktiviert:"
-
-
-msgid "This may lead to unexpected behavior"
-msgstr "Dies kann zu unerwartetem Verhalten führen"
-
-
-msgid "Permanently allow execution of scripts"
-msgstr "Skripte ausführen immer erlauben"
 
 
 msgid "Reload file with execution of Python scripts enabled"
@@ -63405,6 +63389,22 @@ msgstr "Skripte aktivieren"
 
 msgid "Continue using file without Python scripts"
 msgstr "Datei ohne Python-Skripte weiter verwenden"
+
+
+msgid "unable to open the file"
+msgstr "Datei kann nicht geöffnet werden"
+
+
+msgid "For security reasons, automatic execution of Python scripts in this file was disabled:"
+msgstr "Zur Sicherheit wird die automatische Ausführung der Python Skripte in dieser Datei deaktiviert:"
+
+
+msgid "This may lead to unexpected behavior"
+msgstr "Dies kann zu unerwartetem Verhalten führen"
+
+
+msgid "Permanently allow execution of scripts"
+msgstr "Skripte ausführen immer erlauben"
 
 
 msgid "Save changes before closing?"

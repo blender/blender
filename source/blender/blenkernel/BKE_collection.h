@@ -218,8 +218,16 @@ bool BKE_collection_object_cyclic_check(struct Main *bmain,
 
 struct ListBase BKE_collection_object_cache_get(struct Collection *collection);
 ListBase BKE_collection_object_cache_instanced_get(struct Collection *collection);
-/** Free the object cache of given `collection` and all of its ancestors (recursively). */
-void BKE_collection_object_cache_free(struct Collection *collection);
+/** Free the object cache of given `collection` and all of its ancestors (recursively).
+ *
+ * \param bmain: The Main database owning the collection. May be `nullptr`, only used if doing
+ * depsgraph tagging.
+ * \param id_create_flag: Flags controlling ID creation, used here to enable or
+ * not depsgraph tagging of affected IDs (e.g. #LIB_ID_CREATE_NO_DEG_TAG would prevent depsgraph
+ * tagging). */
+void BKE_collection_object_cache_free(const struct Main *bmain,
+                                      struct Collection *collection,
+                                      const int id_create_flag);
 /**
  * Free the object cache of all collections in given `bmain`, including master collections of
  * scenes.
@@ -261,7 +269,9 @@ bool BKE_collection_child_add(struct Main *bmain,
                               struct Collection *parent,
                               struct Collection *child);
 
-bool BKE_collection_child_add_no_sync(struct Collection *parent, struct Collection *child);
+bool BKE_collection_child_add_no_sync(struct Main *bmain,
+                                      struct Collection *parent,
+                                      struct Collection *child);
 
 bool BKE_collection_child_remove(struct Main *bmain,
                                  struct Collection *parent,

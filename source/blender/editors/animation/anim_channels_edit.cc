@@ -36,7 +36,7 @@
 #include "BKE_gpencil_legacy.h"
 #include "BKE_grease_pencil.hh"
 #include "BKE_layer.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_mask.h"
 #include "BKE_nla.h"
 #include "BKE_scene.h"

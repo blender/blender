@@ -30,9 +30,9 @@
 #include "BLO_readfile.h"
 #include "BLO_undofile.hh"
 
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
-#include "BKE_undo_system.h"
+#include "BKE_undo_system.hh"
 
 /* keep last */
 #include "BLI_strict_flags.h"

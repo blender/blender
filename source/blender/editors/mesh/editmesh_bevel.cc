@@ -170,7 +170,7 @@ static void edbm_bevel_update_status_text(bContext *C, wmOperator *op)
       C, op->ptr, prop, RNA_property_enum_get(op->ptr, prop), &affect_str);
 
   SNPRINTF(status_text,
-           TIP_("%s: Confirm, "
+           RPT_("%s: Confirm, "
                 "%s: Cancel, "
                 "%s: Width Type (%s), "
                 "%s: Width (%s), "

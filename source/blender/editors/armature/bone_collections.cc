@@ -1085,8 +1085,8 @@ static void menu_add_item_for_move_assign_unassign(uiLayout *layout,
 /**
  * Add menu items to the layout, for a set of bone collections.
  *
- * \param menu_custom_data contains two values, encoded as void* to match the signature required by
- * `uiItemMenuF`. It contains the parent bone collection index (either -1 to show all roots, or
+ * \param menu_custom_data: Contains two values, encoded as void* to match the signature required
+ * by `uiItemMenuF`. It contains the parent bone collection index (either -1 to show all roots, or
  * another value to show the children of that collection), as well as a boolean that indicates
  * whether the menu is created for the "move to collection" or "assign to collection" operator.
  *

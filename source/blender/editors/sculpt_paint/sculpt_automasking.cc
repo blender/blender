@@ -642,7 +642,7 @@ static void SCULPT_topology_automasking_init(Sculpt *sd, Object *ob)
   SculptFloodFill flood;
   flood_fill::init_fill(ss, &flood);
   const float radius = ss->cache ? ss->cache->radius : FLT_MAX;
-  flood_fill::add_active(sd, ob, ss, &flood, radius);
+  flood_fill::add_active(ob, ss, &flood, radius);
 
   AutomaskFloodFillData fdata = {0};
 

@@ -4424,16 +4424,34 @@ static PyObject *pyrna_struct_getattro(BPy_StructRNA *self, PyObject *pyname)
           case CTX_DATA_TYPE_PROPERTY: {
             if (newprop != nullptr) {
               /* Create pointer to parent ID, and path from ID to property. */
-              PointerRNA idptr = RNA_id_pointer_create(newptr.owner_id);
-              char *path_str = RNA_path_from_ID_to_property(&newptr, newprop);
+              PointerRNA idptr;
 
-              ret = PyTuple_New(3);
-              PyTuple_SET_ITEMS(ret,
-                                pyrna_struct_CreatePyObject(&idptr),
-                                PyUnicode_FromString(path_str),
-                                PyLong_FromLong(newindex));
+              PointerRNA *base_ptr;
+              char *path_str;
 
-              MEM_freeN(path_str);
+              if (newptr.owner_id) {
+                idptr = RNA_id_pointer_create(newptr.owner_id);
+                path_str = RNA_path_from_ID_to_property(&idptr, newprop);
+                base_ptr = &idptr;
+              }
+              else {
+                path_str = RNA_path_from_ptr_to_property_index(&newptr, newprop, 0, -1);
+                base_ptr = &newptr;
+              }
+
+              if (path_str) {
+                ret = PyTuple_New(3);
+                PyTuple_SET_ITEMS(ret,
+                                  pyrna_struct_CreatePyObject(base_ptr),
+                                  PyUnicode_FromString(path_str),
+                                  PyLong_FromLong(newindex));
+
+                MEM_freeN(path_str);
+              }
+              else {
+                ret = Py_None;
+                Py_INCREF(ret);
+              }
             }
             else {
               ret = Py_None;
@@ -5286,7 +5304,7 @@ static int foreach_parse_args(BPy_PropertyRNA *self,
                               const char **r_attr,
                               PyObject **r_seq,
                               int *r_tot,
-                              int *r_size,
+                              size_t *r_size,
                               RawPropertyType *r_raw_type,
                               int *r_attr_tot,
                               bool *r_attr_signed)
@@ -5390,13 +5408,16 @@ static bool foreach_compat_buffer(RawPropertyType raw_type, int attr_signed, con
   const char f = format ? *format : 'B'; /* B is assumed when not set */
 
   switch (raw_type) {
-    case PROP_RAW_CHAR:
+    case PROP_RAW_INT8:
       if (attr_signed) {
         return (f == 'b') ? true : false;
       }
       else {
         return (f == 'B') ? true : false;
       }
+    case PROP_RAW_CHAR:
+    case PROP_RAW_UINT8:
+      return (f == 'B') ? true : false;
     case PROP_RAW_SHORT:
       if (attr_signed) {
         return (f == 'h') ? true : false;
@@ -5404,6 +5425,8 @@ static bool foreach_compat_buffer(RawPropertyType raw_type, int attr_signed, con
       else {
         return (f == 'H') ? true : false;
       }
+    case PROP_RAW_UINT16:
+      return (f == 'H') ? true : false;
     case PROP_RAW_INT:
       if (attr_signed) {
         return (f == 'i') ? true : false;
@@ -5417,6 +5440,15 @@ static bool foreach_compat_buffer(RawPropertyType raw_type, int attr_signed, con
       return (f == 'f') ? true : false;
     case PROP_RAW_DOUBLE:
       return (f == 'd') ? true : false;
+    case PROP_RAW_INT64:
+      if (attr_signed) {
+        return (f == 'q') ? true : false;
+      }
+      else {
+        return (f == 'Q') ? true : false;
+      }
+    case PROP_RAW_UINT64:
+      return (f == 'Q') ? true : false;
     case PROP_RAW_UNSET:
       return false;
   }
@@ -5434,7 +5466,8 @@ static PyObject *foreach_getset(BPy_PropertyRNA *self, PyObject *args, int set)
   /* Get/set both take the same args currently. */
   const char *attr;
   PyObject *seq;
-  int tot, size, attr_tot;
+  int tot, attr_tot;
+  size_t size;
   bool attr_signed;
   RawPropertyType raw_type;
 
@@ -5487,22 +5520,37 @@ static PyObject *foreach_getset(BPy_PropertyRNA *self, PyObject *args, int set)
         item = PySequence_GetItem(seq, i);
         switch (raw_type) {
           case PROP_RAW_CHAR:
-            ((char *)array)[i] = char(PyLong_AsLong(item));
+            ((char *)array)[i] = char(PyC_Long_AsU8(item));
+            break;
+          case PROP_RAW_INT8:
+            ((int8_t *)array)[i] = PyC_Long_AsI8(item);
+            break;
+          case PROP_RAW_UINT8:
+            ((uint8_t *)array)[i] = PyC_Long_AsU8(item);
             break;
           case PROP_RAW_SHORT:
-            ((short *)array)[i] = short(PyLong_AsLong(item));
+            ((short *)array)[i] = short(PyC_Long_AsI16(item));
+            break;
+          case PROP_RAW_UINT16:
+            ((uint16_t *)array)[i] = PyC_Long_AsU16(item);
             break;
           case PROP_RAW_INT:
-            ((int *)array)[i] = int(PyLong_AsLong(item));
+            ((int *)array)[i] = int(PyC_Long_AsI32(item));
             break;
           case PROP_RAW_BOOLEAN:
-            ((bool *)array)[i] = int(PyLong_AsLong(item)) != 0;
+            ((bool *)array)[i] = bool(PyC_Long_AsBool(item));
             break;
           case PROP_RAW_FLOAT:
             ((float *)array)[i] = float(PyFloat_AsDouble(item));
             break;
           case PROP_RAW_DOUBLE:
             ((double *)array)[i] = double(PyFloat_AsDouble(item));
+            break;
+          case PROP_RAW_INT64:
+            ((int64_t *)array)[i] = PyC_Long_AsI64(item);
+            break;
+          case PROP_RAW_UINT64:
+            ((uint64_t *)array)[i] = PyC_Long_AsU64(item);
             break;
           case PROP_RAW_UNSET:
             /* Should never happen. */
@@ -5558,8 +5606,17 @@ static PyObject *foreach_getset(BPy_PropertyRNA *self, PyObject *args, int set)
           case PROP_RAW_CHAR:
             item = PyLong_FromLong(long(((char *)array)[i]));
             break;
+          case PROP_RAW_INT8:
+            item = PyLong_FromLong(long(((int8_t *)array)[i]));
+            break;
+          case PROP_RAW_UINT8:
+            item = PyLong_FromLong(long(((uint8_t *)array)[i]));
+            break;
           case PROP_RAW_SHORT:
             item = PyLong_FromLong(long(((short *)array)[i]));
+            break;
+          case PROP_RAW_UINT16:
+            item = PyLong_FromLong(long(((uint16_t *)array)[i]));
             break;
           case PROP_RAW_INT:
             item = PyLong_FromLong(long(((int *)array)[i]));
@@ -5572,6 +5629,12 @@ static PyObject *foreach_getset(BPy_PropertyRNA *self, PyObject *args, int set)
             break;
           case PROP_RAW_BOOLEAN:
             item = PyBool_FromLong(long(((bool *)array)[i]));
+            break;
+          case PROP_RAW_INT64:
+            item = PyLong_FromLongLong(((int64_t *)array)[i]);
+            break;
+          case PROP_RAW_UINT64:
+            item = PyLong_FromUnsignedLongLong(((uint64_t *)array)[i]);
             break;
           default: /* PROP_RAW_UNSET */
             /* Should never happen. */
@@ -5656,7 +5719,9 @@ static PyObject *pyprop_array_foreach_getset(BPy_PropertyArrayRNA *self,
     return nullptr;
   }
 
-  size = pyrna_prop_array_length(self);
+  /* NOTE: in this case it's important to use the flat-array size and *not* the result of
+   * `len()`, which uses #pyrna_prop_array_length, see !116457 for details. */
+  size = RNA_property_array_length(&self->ptr, self->prop);
   seq_size = PySequence_Size(seq);
 
   if (size != seq_size) {
@@ -8887,13 +8952,13 @@ void pyrna_free_types()
 /**
  * \warning memory leak!
  *
- * There is currently a bug where moving the registration of a Python class does
+ * NOTE(@ideasman42): There is currently a bug where moving the registration of a Python class does
  * not properly manage reference-counts from the Python class. As the `srna` owns
  * the Python class this should not be so tricky, but changing the references as
  * you'd expect when changing ownership crashes blender on exit so I had to comment out
  * the #Py_DECREF. This is not so bad because the leak only happens when re-registering
  * (continuously running `SCRIPT_OT_reload`).
- * - Should still be fixed - Campbell
+ * This should still be fixed.
  */
 PyDoc_STRVAR(pyrna_register_class_doc,
              ".. function:: register_class(cls)\n"

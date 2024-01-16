@@ -31,7 +31,7 @@
 
 #include "BKE_displist.h"
 #include "BKE_global.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_mball_tessellate.h" /* own include */
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"

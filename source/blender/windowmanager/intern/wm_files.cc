@@ -72,7 +72,7 @@
 #include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_lib_override.hh"
 #include "BKE_lib_remap.hh"
 #include "BKE_main.hh"
@@ -82,7 +82,7 @@
 #include "BKE_scene.h"
 #include "BKE_screen.hh"
 #include "BKE_sound.h"
-#include "BKE_undo_system.h"
+#include "BKE_undo_system.hh"
 #include "BKE_workspace.h"
 
 #include "BLO_undofile.hh" /* to save from an undo memfile */
@@ -1090,7 +1090,7 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
                 RPT_ERROR,
                 "Cannot read file \"%s\": %s",
                 filepath,
-                errno ? strerror(errno) : TIP_("unable to open the file"));
+                errno ? strerror(errno) : RPT_("unable to open the file"));
   }
   else if (retval == BKE_READ_EXOTIC_FAIL_FORMAT) {
     BKE_reportf(reports, RPT_ERROR, "File format is not supported in file \"%s\"", filepath);
@@ -3621,15 +3621,15 @@ void WM_OT_save_mainfile(wmOperatorType *ot)
 /** \name Clear Recent Files List Operator
  * \{ */
 
-static void wm_clear_recent_files_warning(bContext * /*C*/,
+static void wm_clear_recent_files_confirm(bContext * /*C*/,
                                           wmOperator * /*op*/,
-                                          wmWarningDetails *warning)
+                                          wmConfirmDetails *confirm)
 {
-  STRNCPY(warning->message, IFACE_("Remove all items from the Recent Files list"));
-  STRNCPY(warning->confirm_button, IFACE_("Remove All"));
-  warning->position = WM_WARNING_POSITION_CENTER;
-  warning->size = WM_WARNING_SIZE_LARGE;
-  warning->cancel_default = true;
+  STRNCPY(confirm->message, IFACE_("Remove all items from the recent files list"));
+  STRNCPY(confirm->confirm_button, IFACE_("Remove All"));
+  confirm->position = WM_WARNING_POSITION_CENTER;
+  confirm->size = WM_WARNING_SIZE_LARGE;
+  confirm->cancel_default = true;
 }
 
 static int wm_clear_recent_files_exec(bContext * /*C*/, wmOperator * /*op*/)
@@ -3644,11 +3644,11 @@ void WM_OT_clear_recent_files(wmOperatorType *ot)
 {
   ot->name = "Clear Recent Files List";
   ot->idname = "WM_OT_clear_recent_files";
-  ot->description = "Clear the Recent Files List";
+  ot->description = "Clear the recent files list";
 
   ot->invoke = WM_operator_confirm;
   ot->exec = wm_clear_recent_files_exec;
-  ot->warning = wm_clear_recent_files_warning;
+  ot->confirm = wm_clear_recent_files_confirm;
 }
 
 /** \} */
@@ -3717,13 +3717,13 @@ static uiBlock *block_create_autorun_warning(bContext *C, ARegion *region, void 
   /* Title and explanation text. */
   uiLayout *col = uiLayoutColumn(layout, true);
   uiItemL_ex(col,
-             TIP_("For security reasons, automatic execution of Python scripts "
+             RPT_("For security reasons, automatic execution of Python scripts "
                   "in this file was disabled:"),
              ICON_NONE,
              true,
              false);
   uiItemL_ex(col, G.autoexec_fail, ICON_NONE, false, true);
-  uiItemL(col, TIP_("This may lead to unexpected behavior"), ICON_NONE);
+  uiItemL(col, RPT_("This may lead to unexpected behavior"), ICON_NONE);
 
   uiItemS(layout);
 
@@ -3732,7 +3732,7 @@ static uiBlock *block_create_autorun_warning(bContext *C, ARegion *region, void 
           &pref_ptr,
           "use_scripts_auto_execute",
           UI_ITEM_NONE,
-          TIP_("Permanently allow execution of scripts"),
+          RPT_("Permanently allow execution of scripts"),
           ICON_NONE);
 
   uiItemS_ex(layout, 3.0f);
@@ -3930,10 +3930,10 @@ static void file_forwardcompat_detailed_info_show(uiLayout *parent_layout, Main 
   char message_line1[256];
   char message_line2[256];
   SNPRINTF(message_line1,
-           TIP_("This file was saved by a newer version of Blender (%s)"),
+           RPT_("This file was saved by a newer version of Blender (%s)"),
            writer_ver_str);
   SNPRINTF(message_line2,
-           TIP_("Saving it with this Blender (%s) may cause loss of data"),
+           RPT_("Saving it with this Blender (%s) may cause loss of data"),
            current_ver_str);
   uiItemL(layout, message_line1, ICON_NONE);
   uiItemL(layout, message_line2, ICON_NONE);
@@ -4058,7 +4058,7 @@ static uiBlock *block_create_save_file_forwardcompat_dialog(bContext *C,
 
   /* Title. */
   uiItemL_ex(
-      layout, TIP_("Overwrite file with an older Blender version?"), ICON_NONE, true, false);
+      layout, RPT_("Overwrite file with an older Blender version?"), ICON_NONE, true, false);
 
   /* Filename. */
   const char *blendfile_path = BKE_main_blendfile_path(CTX_data_main(C));
@@ -4288,7 +4288,7 @@ static uiBlock *block_create__close_file_dialog(bContext *C, ARegion *region, vo
   const bool has_forwardcompat_issues = bmain->has_forward_compatibility_issues;
 
   /* Title. */
-  uiItemL_ex(layout, TIP_("Save changes before closing?"), ICON_NONE, true, false);
+  uiItemL_ex(layout, RPT_("Save changes before closing?"), ICON_NONE, true, false);
 
   /* Filename. */
   const char *blendfile_path = BKE_main_blendfile_path(CTX_data_main(C));

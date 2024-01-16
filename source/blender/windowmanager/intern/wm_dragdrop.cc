@@ -31,7 +31,7 @@
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_screen.hh"
 

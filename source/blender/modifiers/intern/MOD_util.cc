@@ -27,7 +27,7 @@
 #include "BKE_editmesh.hh"
 #include "BKE_image.h"
 #include "BKE_lattice.hh"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_object.hh"

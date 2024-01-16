@@ -1207,7 +1207,7 @@ static size_t rna_ParticleTarget_name_get_impl(PointerRNA *ptr,
     }
   }
 
-  return BLI_strncpy_rlen(value, TIP_("Invalid target!"), value_maxncpy);
+  return BLI_strncpy_rlen(value, RPT_("Invalid target!"), value_maxncpy);
 }
 
 static void rna_ParticleTarget_name_get(PointerRNA *ptr, char *value)

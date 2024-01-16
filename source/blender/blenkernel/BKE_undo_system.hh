@@ -7,34 +7,32 @@
  * \ingroup bke
  */
 
+#include "BLI_utildefines.h"
 #include "DNA_ID.h"
 #include "DNA_listBase.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct Main;
 struct UndoStep;
+struct UndoType;
 struct bContext;
 
-/* ID's */
+/* IDs */
 struct Main;
 struct Mesh;
 struct Object;
 struct Scene;
 struct Text;
 
-typedef struct UndoRefID {
+struct UndoRefID {
   struct ID *ptr;
   char name[MAX_ID_NAME];
-} UndoRefID;
+};
 /* UndoRefID_Mesh & friends. */
 #define UNDO_REF_ID_TYPE(ptr_ty) \
-  typedef struct UndoRefID_##ptr_ty { \
+  struct UndoRefID_##ptr_ty { \
     struct ptr_ty *ptr; \
     char name[MAX_ID_NAME]; \
-  } UndoRefID_##ptr_ty
+  }
 UNDO_REF_ID_TYPE(Mesh);
 UNDO_REF_ID_TYPE(Object);
 UNDO_REF_ID_TYPE(Scene);
@@ -42,14 +40,14 @@ UNDO_REF_ID_TYPE(Text);
 UNDO_REF_ID_TYPE(Image);
 UNDO_REF_ID_TYPE(PaintCurve);
 
-typedef struct UndoStack {
+struct UndoStack {
   ListBase steps;
-  struct UndoStep *step_active;
+  UndoStep *step_active;
   /**
    * The last memfile state read, used so we can be sure the names from the
    * library state matches the state an undo step was written in.
    */
-  struct UndoStep *step_active_memfile;
+  UndoStep *step_active_memfile;
 
   /**
    * Some undo systems require begin/end, see: #UndoType.step_encode_init
@@ -57,19 +55,19 @@ typedef struct UndoStack {
    * \note This is not included in the 'steps' list.
    * That is done once end is called.
    */
-  struct UndoStep *step_init;
+  UndoStep *step_init;
 
   /**
    * Keep track of nested group begin/end calls,
    * within which all but the last undo-step is marked for skipping.
    */
   int group_level;
-} UndoStack;
+};
 
-typedef struct UndoStep {
-  struct UndoStep *next, *prev;
+struct UndoStep {
+  UndoStep *next, *prev;
   char name[64];
-  const struct UndoType *type;
+  const UndoType *type;
   /** Size in bytes of all data in step (not including the step). */
   size_t data_size;
   /** Users should never see this step (only use for internal consistency). */
@@ -82,25 +80,25 @@ typedef struct UndoStep {
   /** For use by undo systems that accumulate changes (mesh-sculpt & image-painting). */
   bool is_applied;
   /* Over alloc 'type->struct_size'. */
-} UndoStep;
+};
 
-typedef enum eUndoStepDir {
+enum eUndoStepDir {
   STEP_REDO = 1,
   STEP_UNDO = -1,
   STEP_INVALID = 0,
-} eUndoStepDir;
+};
 
-typedef enum eUndoPushReturn {
+enum eUndoPushReturn {
   UNDO_PUSH_RET_FAILURE = 0,
   UNDO_PUSH_RET_SUCCESS = (1 << 0),
   UNDO_PUSH_RET_OVERRIDE_CHANGED = (1 << 1),
-} eUndoPushReturn;
+};
 ENUM_OPERATORS(eUndoPushReturn, UNDO_PUSH_RET_OVERRIDE_CHANGED)
 
-typedef void (*UndoTypeForEachIDRefFn)(void *user_data, struct UndoRefID *id_ref);
+using UndoTypeForEachIDRefFn = void (*)(void *user_data, struct UndoRefID *id_ref);
 
-typedef struct UndoType {
-  struct UndoType *next, *prev;
+struct UndoType {
+  UndoType *next, *prev;
   /** Only for debugging. */
   const char *name;
 
@@ -142,10 +140,10 @@ typedef struct UndoType {
    * The size of the undo struct 'inherited' from #UndoStep for that specific type. Used for
    * generic allocation in BKE's `undo_system.cc`. */
   size_t step_size;
-} UndoType;
+};
 
 /** #UndoType.flag bitflags. */
-typedef enum eUndoTypeFlags {
+enum eUndoTypeFlags {
   /**
    * This undo type `encode` callback needs a valid context, it will fail otherwise.
    * \note Callback is still supposed to properly deal with a NULL context pointer.
@@ -158,7 +156,7 @@ typedef enum eUndoTypeFlags {
    * This is typically used for undo systems that store both before/after states.
    */
   UNDOTYPE_FLAG_DECODE_ACTIVE_STEP = 1 << 1,
-} eUndoTypeFlags;
+};
 
 /* -------------------------------------------------------------------- */
 /** \name Public Undo Types
@@ -177,15 +175,15 @@ extern const UndoType *BKE_UNDOSYS_TYPE_TEXT;
 
 #define BKE_UNDOSYS_TYPE_IS_MEMFILE_SKIP(ty) ELEM(ty, BKE_UNDOSYS_TYPE_IMAGE)
 
-UndoStack *BKE_undosys_stack_create(void);
+UndoStack *BKE_undosys_stack_create();
 void BKE_undosys_stack_destroy(UndoStack *ustack);
 void BKE_undosys_stack_clear(UndoStack *ustack);
 void BKE_undosys_stack_clear_active(UndoStack *ustack);
 /* name optional */
 bool BKE_undosys_stack_has_undo(const UndoStack *ustack, const char *name);
-void BKE_undosys_stack_init_from_main(UndoStack *ustack, struct Main *bmain);
+void BKE_undosys_stack_init_from_main(UndoStack *ustack, Main *bmain);
 /* called after 'BKE_undosys_stack_init_from_main' */
-void BKE_undosys_stack_init_from_context(UndoStack *ustack, struct bContext *C);
+void BKE_undosys_stack_init_from_context(UndoStack *ustack, bContext *C);
 UndoStep *BKE_undosys_stack_active_with_type(UndoStack *ustack, const UndoType *ut);
 UndoStep *BKE_undosys_stack_init_or_active_with_type(UndoStack *ustack, const UndoType *ut);
 /**
@@ -203,19 +201,19 @@ void BKE_undosys_stack_group_end(UndoStack *ustack);
  * Only some UndoType's require init.
  */
 UndoStep *BKE_undosys_step_push_init_with_type(UndoStack *ustack,
-                                               struct bContext *C,
+                                               bContext *C,
                                                const char *name,
                                                const UndoType *ut);
-UndoStep *BKE_undosys_step_push_init(UndoStack *ustack, struct bContext *C, const char *name);
+UndoStep *BKE_undosys_step_push_init(UndoStack *ustack, bContext *C, const char *name);
 
 /**
  * \param C: Can be NULL from some callers if their encoding function doesn't need it
  */
 eUndoPushReturn BKE_undosys_step_push_with_type(UndoStack *ustack,
-                                                struct bContext *C,
+                                                bContext *C,
                                                 const char *name,
                                                 const UndoType *ut);
-eUndoPushReturn BKE_undosys_step_push(UndoStack *ustack, struct bContext *C, const char *name);
+eUndoPushReturn BKE_undosys_step_push(UndoStack *ustack, bContext *C, const char *name);
 
 UndoStep *BKE_undosys_step_find_by_name_with_type(UndoStack *ustack,
                                                   const char *name,
@@ -248,20 +246,17 @@ eUndoStepDir BKE_undosys_step_calc_direction(const UndoStack *ustack,
  * it is assumed to match the current state, and will be used as basis for the undo/redo process
  * (i.e. all steps in-between `us_reference` and `us_target` will be processed).
  */
-bool BKE_undosys_step_load_data_ex(UndoStack *ustack,
-                                   struct bContext *C,
-                                   UndoStep *us_target,
-                                   UndoStep *us_reference,
-                                   bool use_skip);
+bool BKE_undosys_step_load_data_ex(
+    UndoStack *ustack, bContext *C, UndoStep *us_target, UndoStep *us_reference, bool use_skip);
 /**
  * Undo/Redo until the given `us_target` step becomes the active (currently loaded) one.
  */
-bool BKE_undosys_step_load_data(UndoStack *ustack, struct bContext *C, UndoStep *us_target);
+bool BKE_undosys_step_load_data(UndoStack *ustack, bContext *C, UndoStep *us_target);
 /**
  * Undo/Redo until the step matching given `index` in the undo stack becomes the active
  * (currently loaded) one.
  */
-void BKE_undosys_step_load_from_index(UndoStack *ustack, struct bContext *C, int index);
+void BKE_undosys_step_load_from_index(UndoStack *ustack, bContext *C, int index);
 
 /**
  * Undo until `us_target` step becomes the active (currently loaded) one.
@@ -275,7 +270,7 @@ void BKE_undosys_step_load_from_index(UndoStack *ustack, struct bContext *C, int
  * (if the given one has to be skipped).
  */
 bool BKE_undosys_step_undo_with_data_ex(UndoStack *ustack,
-                                        struct bContext *C,
+                                        bContext *C,
                                         UndoStep *us,
                                         bool use_skip);
 /**
@@ -283,11 +278,11 @@ bool BKE_undosys_step_undo_with_data_ex(UndoStack *ustack,
  *
  * \note See #BKE_undosys_step_undo_with_data_ex for details.
  */
-bool BKE_undosys_step_undo_with_data(UndoStack *ustack, struct bContext *C, UndoStep *us_target);
+bool BKE_undosys_step_undo_with_data(UndoStack *ustack, bContext *C, UndoStep *us_target);
 /**
  * Undo one step from current active (currently loaded) one.
  */
-bool BKE_undosys_step_undo(UndoStack *ustack, struct bContext *C);
+bool BKE_undosys_step_undo(UndoStack *ustack, bContext *C);
 
 /**
  * Redo until `us_target` step becomes the active (currently loaded) one.
@@ -301,7 +296,7 @@ bool BKE_undosys_step_undo(UndoStack *ustack, struct bContext *C);
  * (if the given one has to be skipped).
  */
 bool BKE_undosys_step_redo_with_data_ex(UndoStack *ustack,
-                                        struct bContext *C,
+                                        bContext *C,
                                         UndoStep *us,
                                         bool use_skip);
 /**
@@ -309,11 +304,11 @@ bool BKE_undosys_step_redo_with_data_ex(UndoStack *ustack,
  *
  * \note See #BKE_undosys_step_redo_with_data_ex for details.
  */
-bool BKE_undosys_step_redo_with_data(UndoStack *ustack, struct bContext *C, UndoStep *us_target);
+bool BKE_undosys_step_redo_with_data(UndoStack *ustack, bContext *C, UndoStep *us_target);
 /**
  * Redo one step from current active one.
  */
-bool BKE_undosys_step_redo(UndoStack *ustack, struct bContext *C);
+bool BKE_undosys_step_redo(UndoStack *ustack, bContext *C);
 
 /**
  * Useful when we want to diff against previous undo data but can't be sure the types match.
@@ -330,7 +325,7 @@ UndoStep *BKE_undosys_step_same_type_prev(UndoStep *us);
  * Similar to #WM_operatortype_append
  */
 UndoType *BKE_undosys_type_append(void (*undosys_fn)(UndoType *));
-void BKE_undosys_type_free_all(void);
+void BKE_undosys_type_free_all();
 
 /* ID Accessor. */
 
@@ -341,7 +336,3 @@ void BKE_undosys_foreach_ID_ref(UndoStack *ustack,
 #endif
 
 void BKE_undosys_print(UndoStack *ustack);
-
-#ifdef __cplusplus
-}
-#endif

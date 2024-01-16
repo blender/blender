@@ -46,7 +46,7 @@
 #include "BKE_displist.h"
 #include "BKE_idtype.h"
 #include "BKE_key.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_lib_query.h"
 #include "BKE_main.hh"
 #include "BKE_object.hh"
@@ -4761,16 +4761,16 @@ bool BKE_nurb_valid_message(const int pnts,
         message_dst[0] = 0;
         return false;
       }
-      msg_template = TIP_("At least two points required");
+      msg_template = RPT_("At least two points required");
       break;
     case NURBSValidationStatus::MorePointsThanOrderRequired:
-      msg_template = TIP_("Must have more control points than Order");
+      msg_template = RPT_("Must have more control points than Order");
       break;
     case NURBSValidationStatus::MoreRowsForBezierRequired:
-      msg_template = TIP_("%d more %s row(s) needed for Bezier");
+      msg_template = RPT_("%d more %s row(s) needed for Bezier");
       break;
     case NURBSValidationStatus::MorePointsForBezierRequired:
-      msg_template = TIP_("%d more point(s) needed for Bezier");
+      msg_template = RPT_("%d more point(s) needed for Bezier");
       break;
   }
 

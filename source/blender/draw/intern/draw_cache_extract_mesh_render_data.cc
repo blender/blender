@@ -490,7 +490,7 @@ void mesh_render_data_update_normals(MeshRenderData &mr, const eMRDataType data_
          mr.normals_domain == bke::MeshNormalDomain::Corner) ||
         (data_flag & MR_DATA_TAN_LOOP_NOR))
     {
-      mr.loop_normals = mr.mesh->corner_normals();
+      mr.corner_normals = mr.mesh->corner_normals();
     }
   }
   else {
@@ -525,7 +525,7 @@ void mesh_render_data_update_normals(MeshRenderData &mr, const eMRDataType data_
                                 nullptr,
                                 clnors_offset,
                                 false);
-      mr.loop_normals = mr.bm_loop_normals;
+      mr.corner_normals = mr.bm_loop_normals;
     }
   }
 }

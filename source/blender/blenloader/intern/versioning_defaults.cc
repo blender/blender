@@ -51,7 +51,7 @@
 #include "BKE_gpencil_legacy.h"
 #include "BKE_idprop.h"
 #include "BKE_layer.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_main_namemap.hh"
 #include "BKE_material.h"
@@ -531,7 +531,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
           if (!STREQ(screen->id.name + 2, workspace->id.name + 2)) {
             BKE_main_namemap_remove_name(bmain, &screen->id, screen->id.name + 2);
             BLI_strncpy(screen->id.name + 2, workspace->id.name + 2, sizeof(screen->id.name) - 2);
-            BLI_libblock_ensure_unique_name(bmain, screen->id.name);
+            BKE_libblock_ensure_unique_name(bmain, &screen->id);
           }
         }
 

@@ -35,7 +35,7 @@
 #include "BKE_displist.h"
 #include "BKE_geometry_set.hh"
 #include "BKE_key.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_mball.h"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"

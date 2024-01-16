@@ -24,7 +24,7 @@
 #include "undo_intern.hh"
 
 /* Keep last */
-#include "BKE_undo_system.h"
+#include "BKE_undo_system.hh"
 
 void ED_undosys_type_init()
 {

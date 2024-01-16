@@ -425,7 +425,7 @@ struct GWL_Cursor {
    * The size of the cursor (when looking up a cursor theme).
    * This must be scaled by the maximum output scale when passing to wl_cursor_theme_load.
    * See #update_cursor_scale.
-   * */
+   */
   int theme_size = 0;
   int custom_scale = 1;
 };
@@ -1327,7 +1327,7 @@ struct GWL_Display {
 };
 
 /**
- * Free the #GWL_Display and it's related members.
+ * Free the #GWL_Display and its related members.
  *
  * \note This may run on a partially initialized struct,
  * so it can't be assumed all members are set.
@@ -2085,6 +2085,13 @@ static int memfd_create_sealed(const char *name)
   return fd;
 #endif /* !HAVE_MEMFD_CREATE */
 }
+
+#if defined(WITH_GHOST_WAYLAND_LIBDECOR) && defined(WITH_VULKAN_BACKEND)
+int memfd_create_sealed_for_vulkan_hack(const char *name)
+{
+  return memfd_create_sealed(name);
+}
+#endif
 
 enum {
   GWL_IOR_READ = 1 << 0,

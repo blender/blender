@@ -312,23 +312,21 @@ static bool is_opcode_secure(const int opcode)
       return true;
 
   switch (opcode) {
-#  if PY_VERSION_HEX >= 0x030b0000 /* Python 3.11 & newer. */
-
     OK_OP(CACHE)
     OK_OP(POP_TOP)
     OK_OP(PUSH_NULL)
     OK_OP(NOP)
-#    if PY_VERSION_HEX < 0x030c0000
+#  if PY_VERSION_HEX < 0x030c0000
     OK_OP(UNARY_POSITIVE)
-#    endif
+#  endif
     OK_OP(UNARY_NEGATIVE)
     OK_OP(UNARY_NOT)
     OK_OP(UNARY_INVERT)
     OK_OP(BINARY_SUBSCR)
     OK_OP(GET_LEN)
-#    if PY_VERSION_HEX < 0x030c0000
+#  if PY_VERSION_HEX < 0x030c0000
     OK_OP(LIST_TO_TUPLE)
-#    endif
+#  endif
     OK_OP(RETURN_VALUE)
     OK_OP(SWAP)
     OK_OP(BUILD_TUPLE)
@@ -337,12 +335,12 @@ static bool is_opcode_secure(const int opcode)
     OK_OP(BUILD_MAP)
     OK_OP(COMPARE_OP)
     OK_OP(JUMP_FORWARD)
-#    if PY_VERSION_HEX < 0x030c0000
+#  if PY_VERSION_HEX < 0x030c0000
     OK_OP(JUMP_IF_FALSE_OR_POP)
     OK_OP(JUMP_IF_TRUE_OR_POP)
     OK_OP(POP_JUMP_FORWARD_IF_FALSE)
     OK_OP(POP_JUMP_FORWARD_IF_TRUE)
-#    endif
+#  endif
     OK_OP(LOAD_GLOBAL)
     OK_OP(IS_OP)
     OK_OP(CONTAINS_OP)
@@ -350,10 +348,10 @@ static bool is_opcode_secure(const int opcode)
     OK_OP(LOAD_FAST)
     OK_OP(STORE_FAST)
     OK_OP(DELETE_FAST)
-#    if PY_VERSION_HEX < 0x030c0000
+#  if PY_VERSION_HEX < 0x030c0000
     OK_OP(POP_JUMP_FORWARD_IF_NOT_NONE)
     OK_OP(POP_JUMP_FORWARD_IF_NONE)
-#    endif
+#  endif
     OK_OP(BUILD_SLICE)
     OK_OP(LOAD_DEREF)
     OK_OP(STORE_DEREF)
@@ -362,17 +360,17 @@ static bool is_opcode_secure(const int opcode)
     OK_OP(SET_UPDATE)
 /* NOTE(@ideasman42): Don't enable dict manipulation, unless we can prove there is not way it
  * can be used to manipulate the name-space (potentially allowing malicious code). */
-#    if 0
+#  if 0
     OK_OP(DICT_MERGE)
     OK_OP(DICT_UPDATE)
-#    endif
+#  endif
 
-#    if PY_VERSION_HEX < 0x030c0000
+#  if PY_VERSION_HEX < 0x030c0000
     OK_OP(POP_JUMP_BACKWARD_IF_NOT_NONE)
     OK_OP(POP_JUMP_BACKWARD_IF_NONE)
     OK_OP(POP_JUMP_BACKWARD_IF_FALSE)
     OK_OP(POP_JUMP_BACKWARD_IF_TRUE)
-#    endif
+#  endif
 
     /* Special cases. */
     OK_OP(LOAD_CONST) /* Ok because constants are accepted. */
@@ -380,91 +378,9 @@ static bool is_opcode_secure(const int opcode)
     OK_OP(CALL)       /* Ok, because we check its "name" before calling. */
     OK_OP(KW_NAMES)   /* Ok, because it's used for calling functions with keyword arguments. */
 
-#    if PY_VERSION_HEX < 0x030c0000
+#  if PY_VERSION_HEX < 0x030c0000
     OK_OP(PRECALL) /* Ok, because it's used for calling. */
-#    endif
-
-#  else /* Python 3.10 and older. */
-
-    OK_OP(POP_TOP)
-    OK_OP(ROT_TWO)
-    OK_OP(ROT_THREE)
-    OK_OP(DUP_TOP)
-    OK_OP(DUP_TOP_TWO)
-    OK_OP(ROT_FOUR)
-    OK_OP(NOP)
-    OK_OP(UNARY_POSITIVE)
-    OK_OP(UNARY_NEGATIVE)
-    OK_OP(UNARY_NOT)
-    OK_OP(UNARY_INVERT)
-    OK_OP(BINARY_MATRIX_MULTIPLY)
-    OK_OP(INPLACE_MATRIX_MULTIPLY)
-    OK_OP(BINARY_POWER)
-    OK_OP(BINARY_MULTIPLY)
-    OK_OP(BINARY_MODULO)
-    OK_OP(BINARY_ADD)
-    OK_OP(BINARY_SUBTRACT)
-    OK_OP(BINARY_SUBSCR)
-    OK_OP(BINARY_FLOOR_DIVIDE)
-    OK_OP(BINARY_TRUE_DIVIDE)
-    OK_OP(INPLACE_FLOOR_DIVIDE)
-    OK_OP(INPLACE_TRUE_DIVIDE)
-    OK_OP(GET_LEN)
-    OK_OP(INPLACE_ADD)
-    OK_OP(INPLACE_SUBTRACT)
-    OK_OP(INPLACE_MULTIPLY)
-    OK_OP(INPLACE_MODULO)
-    OK_OP(BINARY_LSHIFT)
-    OK_OP(BINARY_RSHIFT)
-    OK_OP(BINARY_AND)
-    OK_OP(BINARY_XOR)
-    OK_OP(BINARY_OR)
-    OK_OP(INPLACE_POWER)
-    OK_OP(INPLACE_LSHIFT)
-    OK_OP(INPLACE_RSHIFT)
-    OK_OP(INPLACE_AND)
-    OK_OP(INPLACE_XOR)
-    OK_OP(INPLACE_OR)
-    OK_OP(LIST_TO_TUPLE)
-    OK_OP(RETURN_VALUE)
-    OK_OP(ROT_N)
-    OK_OP(BUILD_TUPLE)
-    OK_OP(BUILD_LIST)
-    OK_OP(BUILD_SET)
-    OK_OP(BUILD_MAP)
-    OK_OP(COMPARE_OP)
-    OK_OP(JUMP_FORWARD)
-    OK_OP(JUMP_IF_FALSE_OR_POP)
-    OK_OP(JUMP_IF_TRUE_OR_POP)
-    OK_OP(JUMP_ABSOLUTE)
-    OK_OP(POP_JUMP_IF_FALSE)
-    OK_OP(POP_JUMP_IF_TRUE)
-    OK_OP(LOAD_GLOBAL)
-    OK_OP(IS_OP)
-    OK_OP(CONTAINS_OP)
-    OK_OP(LOAD_FAST)
-    OK_OP(STORE_FAST)
-    OK_OP(DELETE_FAST)
-    OK_OP(BUILD_SLICE)
-    OK_OP(LOAD_DEREF)
-    OK_OP(STORE_DEREF)
-    OK_OP(LIST_EXTEND)
-    OK_OP(SET_UPDATE)
-/* NOTE(@ideasman42): Don't enable dict manipulation, unless we can prove there is not way it
- * can be used to manipulate the name-space (potentially allowing malicious code). */
-#    if 0
-    OK_OP(DICT_MERGE)
-    OK_OP(DICT_UPDATE)
-#    endif
-
-    /* Special cases. */
-    OK_OP(LOAD_CONST)    /* Ok because constants are accepted. */
-    OK_OP(LOAD_NAME)     /* Ok, because `PyCodeObject.names` is checked. */
-    OK_OP(CALL_FUNCTION) /* Ok, because we check its "name" before calling. */
-    OK_OP(CALL_FUNCTION_KW)
-    OK_OP(CALL_FUNCTION_EX)
-
-#  endif /* Python 3.10 and older. */
+#  endif
   }
 
 #  undef OK_OP
@@ -511,16 +427,12 @@ bool BPY_driver_secure_bytecode_test_ex(PyObject *expr_code,
 
     PyObject *co_code;
 
-#  if PY_VERSION_HEX >= 0x030b0000 /* Python 3.11 & newer. */
     co_code = PyCode_GetCode(py_code);
     if (UNLIKELY(!co_code)) {
       PyErr_Print();
       PyErr_Clear();
       return false;
     }
-#  else
-    co_code = py_code->co_code;
-#  endif
 
     PyBytes_AsStringAndSize(co_code, (char **)&codestr, &code_len);
     code_len /= sizeof(*codestr);
@@ -542,9 +454,7 @@ bool BPY_driver_secure_bytecode_test_ex(PyObject *expr_code,
       }
     }
 
-#  if PY_VERSION_HEX >= 0x030b0000 /* Python 3.11 & newer. */
     Py_DECREF(co_code);
-#  endif
     if (!ok) {
       return false;
     }

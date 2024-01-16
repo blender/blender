@@ -32,7 +32,7 @@
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_lib_query.h"
 #include "BKE_main.hh"
 #include "BKE_report.h"
@@ -50,7 +50,7 @@
 #  include "wm_xr.hh"
 #endif
 
-#include "BKE_undo_system.h"
+#include "BKE_undo_system.hh"
 #include "ED_screen.hh"
 
 #ifdef WITH_PYTHON

@@ -105,12 +105,7 @@ void main()
     output_renderpass_value(uniform_buf.render_pass.shadow_id, average(shadows));
   }
 
-  /* TODO(fclem): Enable for OpenGL and Vulkan once they fully support specialization constants. */
-#ifndef GPU_METAL
-  bool use_lightprobe_eval = uniform_buf.pipeline.use_combined_lightprobe_eval;
-#endif
   if (use_lightprobe_eval) {
-    vec2 noise_probe = interlieved_gradient_noise(gl_FragCoord.xy, vec2(0, 1), vec2(0.0));
     LightProbeSample samp = lightprobe_load(P, Ng, V);
 
     for (int i = 0; i < LIGHT_CLOSURE_EVAL_COUNT && i < gbuf.closure_count; i++) {
@@ -118,23 +113,19 @@ void main()
       switch (cl.type) {
         case CLOSURE_BSDF_TRANSLUCENT_ID:
           /* TODO: Support in ray tracing first. Otherwise we have a discrepancy. */
-          stack.cl[i].light_shadowed += lightprobe_eval(
-              samp, to_closure_translucent(cl), P, V, noise_probe);
+          stack.cl[i].light_shadowed += lightprobe_eval(samp, to_closure_translucent(cl), P, V);
           break;
         case CLOSURE_BSSRDF_BURLEY_ID:
           /* TODO: Support translucency in ray tracing first. Otherwise we have a discrepancy. */
         case CLOSURE_BSDF_DIFFUSE_ID:
-          stack.cl[i].light_shadowed += lightprobe_eval(
-              samp, to_closure_diffuse(cl), P, V, noise_probe);
+          stack.cl[i].light_shadowed += lightprobe_eval(samp, to_closure_diffuse(cl), P, V);
           break;
         case CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID:
-          stack.cl[i].light_shadowed += lightprobe_eval(
-              samp, to_closure_reflection(cl), P, V, noise_probe);
+          stack.cl[i].light_shadowed += lightprobe_eval(samp, to_closure_reflection(cl), P, V);
           break;
         case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
           /* TODO(fclem): Add instead of replacing when we support correct refracted light. */
-          stack.cl[i].light_shadowed = lightprobe_eval(
-              samp, to_closure_refraction(cl), P, V, noise_probe);
+          stack.cl[i].light_shadowed = lightprobe_eval(samp, to_closure_refraction(cl), P, V);
           break;
         case CLOSURE_NONE_ID:
           /* TODO(fclem): Assert. */

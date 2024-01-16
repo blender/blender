@@ -14,7 +14,7 @@
 #pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_math_matrix_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_spherical_harmonics_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_lightprobe_eval_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_lightprobe_volume_eval_lib.glsl)
 
 void atlas_store(vec4 sh_coefficient, ivec2 atlas_coord, int layer)
 {

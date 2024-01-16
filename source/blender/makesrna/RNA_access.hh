@@ -480,7 +480,7 @@ int RNA_property_collection_raw_set(ReportList *reports,
                                     void *array,
                                     RawPropertyType type,
                                     int len);
-int RNA_raw_type_sizeof(RawPropertyType type);
+size_t RNA_raw_type_sizeof(RawPropertyType type);
 RawPropertyType RNA_property_raw_type(PropertyRNA *prop);
 
 /* to create ID property groups */

@@ -5,8 +5,8 @@
 #include "DNA_pointcloud_types.h"
 
 #include "BKE_geometry_set.hh"
-#include "BKE_lib_id.h"
-#include "BKE_pointcloud.h"
+#include "BKE_lib_id.hh"
+#include "BKE_pointcloud.hh"
 
 #include "attribute_access_intern.hh"
 
@@ -17,6 +17,11 @@ namespace blender::bke {
  * \{ */
 
 PointCloudComponent::PointCloudComponent() : GeometryComponent(Type::PointCloud) {}
+
+PointCloudComponent::PointCloudComponent(PointCloud *pointcloud, GeometryOwnershipType ownership)
+    : GeometryComponent(Type::PointCloud), pointcloud_(pointcloud), ownership_(ownership)
+{
+}
 
 PointCloudComponent::~PointCloudComponent()
 {

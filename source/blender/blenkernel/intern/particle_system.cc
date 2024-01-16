@@ -49,7 +49,7 @@
 #include "BKE_colortools.hh"
 #include "BKE_customdata.hh"
 #include "BKE_effect.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_lib_query.h"
 #include "BKE_mesh_legacy_convert.hh"
 #include "BKE_mesh_runtime.hh"
