@@ -6605,7 +6605,7 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
         tmp = but->tip_func(C, but->tip_arg, but->tip);
       }
       else if (but->tip && but->tip[0]) {
-        tmp = BLI_strdup(but->tip);
+        tmp = but->tip;
       }
       else {
         type = BUT_GET_RNA_TIP; /* Fail-safe solution... */
@@ -6614,49 +6614,49 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
 
     if (type == BUT_GET_RNAPROP_IDENTIFIER) {
       if (but->rnaprop) {
-        tmp = BLI_strdup(RNA_property_identifier(but->rnaprop));
+        tmp = RNA_property_identifier(but->rnaprop);
       }
     }
     else if (type == BUT_GET_RNASTRUCT_IDENTIFIER) {
       if (but->rnaprop && but->rnapoin.data) {
-        tmp = BLI_strdup(RNA_struct_identifier(but->rnapoin.type));
+        tmp = RNA_struct_identifier(but->rnapoin.type);
       }
       else if (but->optype) {
-        tmp = BLI_strdup(but->optype->idname);
+        tmp = but->optype->idname;
       }
       else if (ELEM(but->type, UI_BTYPE_MENU, UI_BTYPE_PULLDOWN)) {
         MenuType *mt = UI_but_menutype_get(but);
         if (mt) {
-          tmp = BLI_strdup(mt->idname);
+          tmp = mt->idname;
         }
       }
       else if (but->type == UI_BTYPE_POPOVER) {
         PanelType *pt = UI_but_paneltype_get(but);
         if (pt) {
-          tmp = BLI_strdup(pt->idname);
+          tmp = pt->idname;
         }
       }
     }
     else if (ELEM(type, BUT_GET_RNA_LABEL, BUT_GET_RNA_TIP)) {
       if (but->rnaprop) {
         if (type == BUT_GET_RNA_LABEL) {
-          tmp = BLI_strdup(RNA_property_ui_name(but->rnaprop));
+          tmp = RNA_property_ui_name(but->rnaprop);
         }
         else {
           const char *t = RNA_property_ui_description(but->rnaprop);
           if (t && t[0]) {
-            tmp = BLI_strdup(t);
+            tmp = t;
           }
         }
       }
       else if (but->optype) {
         if (type == BUT_GET_RNA_LABEL) {
-          tmp = BLI_strdup(WM_operatortype_name(but->optype, opptr).c_str());
+          tmp = WM_operatortype_name(but->optype, opptr).c_str();
         }
         else {
           const bContextStore *previous_ctx = CTX_store_get(C);
           CTX_store_set(C, but->context);
-          tmp = BLI_strdup(WM_operatortype_description(C, but->optype, opptr).c_str());
+          tmp = WM_operatortype_description(C, but->optype, opptr).c_str();
           CTX_store_set(C, previous_ctx);
         }
       }
@@ -6665,14 +6665,14 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
           MenuType *mt = UI_but_menutype_get(but);
           if (mt) {
             if (type == BUT_GET_RNA_LABEL) {
-              tmp = BLI_strdup(CTX_TIP_(mt->translation_context, mt->label));
+              tmp = CTX_TIP_(mt->translation_context, mt->label);
             }
             else {
               /* Not all menus are from Python. */
               if (mt->rna_ext.srna) {
                 const char *t = RNA_struct_ui_description(mt->rna_ext.srna);
                 if (t && t[0]) {
-                  tmp = BLI_strdup(t);
+                  tmp = t;
                 }
               }
             }
@@ -6683,10 +6683,10 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
           wmOperatorType *ot = UI_but_operatortype_get_from_enum_menu(but, nullptr);
           if (ot) {
             if (type == BUT_GET_RNA_LABEL) {
-              tmp = BLI_strdup(WM_operatortype_name(ot, nullptr).c_str());
+              tmp = WM_operatortype_name(ot, nullptr).c_str();
             }
             else {
-              tmp = BLI_strdup(WM_operatortype_description(C, ot, nullptr).c_str());
+              tmp = WM_operatortype_description(C, ot, nullptr).c_str();
             }
           }
         }
@@ -6695,7 +6695,7 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
           PanelType *pt = UI_but_paneltype_get(but);
           if (pt) {
             if (type == BUT_GET_RNA_LABEL) {
-              tmp = BLI_strdup(CTX_TIP_(pt->translation_context, pt->label));
+              tmp = CTX_TIP_(pt->translation_context, pt->label);
             }
             else {
               /* Not all panels are from Python. */
@@ -6724,7 +6724,7 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
       if (BLT_is_default_context(_tmp)) {
         _tmp = BLT_I18NCONTEXT_DEFAULT_BPYRNA;
       }
-      tmp = BLI_strdup(_tmp);
+      tmp = _tmp;
     }
     else if (ELEM(type, BUT_GET_RNAENUM_IDENTIFIER, BUT_GET_RNAENUM_LABEL, BUT_GET_RNAENUM_TIP)) {
       PointerRNA *ptr = nullptr;
@@ -6773,13 +6773,13 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
         }
         if (item && item->identifier) {
           if (type == BUT_GET_RNAENUM_IDENTIFIER) {
-            tmp = BLI_strdup(item->identifier);
+            tmp = item->identifier;
           }
           else if (type == BUT_GET_RNAENUM_LABEL) {
-            tmp = BLI_strdup(item->name);
+            tmp = item->name;
           }
           else if (item->description && item->description[0]) {
-            tmp = BLI_strdup(item->description);
+            tmp = item->description;
           }
         }
       }
@@ -6791,7 +6791,7 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
       if (!(ui_block_is_menu(but->block) && !ui_block_is_pie_menu(but->block))) {
         char buf[128];
         if (ui_but_event_operator_string(C, but, buf, sizeof(buf))) {
-          tmp = BLI_strdup(buf);
+          tmp = buf;
         }
       }
     }
@@ -6799,7 +6799,7 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
       if (!(ui_block_is_menu(but->block) && !ui_block_is_pie_menu(but->block))) {
         char buf[128];
         if (ui_but_event_property_operator_string(C, but, buf, sizeof(buf))) {
-          tmp = BLI_strdup(buf);
+          tmp = buf;
         }
       }
     }
@@ -6823,19 +6823,19 @@ void UI_but_extra_icon_string_info_get(bContext *C, uiButExtraOpIcon *extra_icon
 
   va_start(args, extra_icon);
   while ((si = (uiStringInfo *)va_arg(args, void *))) {
-    char *tmp = nullptr;
+    std::string tmp;
 
     switch (si->type) {
       case BUT_GET_LABEL:
-        tmp = BLI_strdup(WM_operatortype_name(optype, opptr).c_str());
+        tmp = WM_operatortype_name(optype, opptr);
         break;
       case BUT_GET_TIP:
-        tmp = BLI_strdup(WM_operatortype_description(C, optype, opptr).c_str());
+        tmp = WM_operatortype_description(C, optype, opptr);
         break;
       case BUT_GET_OP_KEYMAP: {
         char buf[128];
         if (ui_but_extra_icon_event_operator_string(C, extra_icon, buf, sizeof(buf))) {
-          tmp = BLI_strdup(buf);
+          tmp = buf;
         }
         break;
       }
@@ -6845,7 +6845,7 @@ void UI_but_extra_icon_string_info_get(bContext *C, uiButExtraOpIcon *extra_icon
         break;
     }
 
-    si->strinfo = tmp;
+    si->strinfo = BLI_strdupn(tmp.c_str(), tmp.size());
   }
   va_end(args);
 }
