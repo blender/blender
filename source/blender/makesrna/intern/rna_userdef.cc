@@ -1059,6 +1059,13 @@ static StructRNA *rna_AddonPref_register(Main *bmain,
   /* Check if we have registered this add-on preference type before, and remove it. */
   apt = BKE_addon_pref_type_find(dummy_addon.module, true);
   if (apt) {
+    BKE_reportf(reports,
+                RPT_INFO,
+                "%s '%s', bl_idname '%s' has been registered before, unregistering previous",
+                error_prefix,
+                identifier,
+                dummy_apt.idname);
+
     StructRNA *srna = apt->rna_ext.srna;
     if (!(srna && rna_AddonPref_unregister(bmain, srna))) {
       BKE_reportf(reports,
