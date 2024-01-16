@@ -180,7 +180,7 @@ uiPieMenu *UI_pie_menu_begin(bContext *C, const char *title, int icon, const wmE
     }
     /* do not align left */
     but->drawflag &= ~UI_BUT_TEXT_LEFT;
-    pie->block_radial->pie_data.title = but->str;
+    pie->block_radial->pie_data.title = but->str.c_str();
     pie->block_radial->pie_data.icon = icon;
   }
 

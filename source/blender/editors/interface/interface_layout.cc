@@ -2536,7 +2536,7 @@ void uiItemFullR(uiLayout *layout,
 
   /* ensure text isn't added to icon_only buttons */
   if (but && icon_only) {
-    BLI_assert(but->str[0] == '\0');
+    BLI_assert(but->str.empty());
   }
 }
 
@@ -2863,7 +2863,7 @@ uiBut *ui_but_add_search(uiBut *but,
     if (RNA_property_type(prop) == PROP_ENUM) {
       /* XXX, this will have a menu string,
        * but in this case we just want the text */
-      but->str[0] = 0;
+      but->str.clear();
     }
 
     UI_but_func_search_set_results_are_suggestions(but, results_are_suggestions);
@@ -3602,7 +3602,7 @@ static int menu_item_enum_opname_menu_active(bContext *C, uiBut *but, MenuItemLe
   WM_operator_properties_sanitize(&ptr, false);
   PropertyRNA *prop = RNA_struct_find_property(&ptr, lvl->propname);
   RNA_property_enum_items_gettexted(C, &ptr, prop, &item_array, &totitem, &free);
-  int active = RNA_enum_from_name(item_array, but->str);
+  int active = RNA_enum_from_name(item_array, but->str.c_str());
   if (free) {
     MEM_freeN((void *)item_array);
   }
@@ -5405,7 +5405,7 @@ static bool block_search_panel_label_matches(const uiBlock *block, const char *s
 static bool button_matches_search_filter(uiBut *but, const char *search_filter)
 {
   /* Do the shorter checks first for better performance in case there is a match. */
-  if (BLI_strcasestr(but->str, search_filter)) {
+  if (BLI_strcasestr(but->str.c_str(), search_filter)) {
     return true;
   }
 
@@ -5891,7 +5891,7 @@ void ui_layout_add_but(uiLayout *layout, uiBut *but)
   ui_item_size((uiItem *)bitem, &w, &h);
   /* XXX uiBut hasn't scaled yet
    * we can flag the button as not expandable, depending on its size */
-  if (w <= 2 * UI_UNIT_X && (!but->str || but->str[0] == '\0')) {
+  if (w <= 2 * UI_UNIT_X && but->str.empty()) {
     bitem->item.flag |= UI_ITEM_FIXED_SIZE;
   }
 
@@ -6166,7 +6166,7 @@ static bool ui_layout_has_panel_label(const uiLayout *layout, const PanelType *p
     if (subitem->type == ITEM_BUTTON) {
       uiButtonItem *bitem = (uiButtonItem *)subitem;
       if (!(bitem->but->flag & UI_HIDDEN) &&
-          STREQ(bitem->but->str, CTX_IFACE_(pt->translation_context, pt->label)))
+          STREQ(bitem->but->str.c_str(), CTX_IFACE_(pt->translation_context, pt->label)))
       {
         return true;
       }
