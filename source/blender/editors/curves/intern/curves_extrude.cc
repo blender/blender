@@ -17,7 +17,7 @@ namespace blender::ed::curves {
 
 /**
  * Merges copy intervals at curve endings to minimize number of copy operations.
- * For example above intervals [0, 3, 4, 4, 4] became [0, 4, 4].
+ * For example given in function 'extrude_curves' intervals [0, 3, 4, 4, 4] became [0, 4, 4].
  * Leading to only two copy operations.
  */
 static Span<int> compress_intervals(const Span<IndexRange> curve_interval_ranges,
@@ -263,7 +263,8 @@ static void extrude_curves(Curves &curves_id)
   Array<IndexRange> curve_interval_ranges(curves_num);
 
   /* Per curve boolean indicating if first interval in a curve is selected.
-   * Other can be calculated as in a curve two adjacent intervals can have same selection state. */
+   * Other can be calculated as in a curve two adjacent intervals can not have same selection
+   * state. */
   Array<bool> is_first_selected(curves_num);
 
   calc_curves_extrusion(extruded_points,
@@ -276,7 +277,11 @@ static void extrude_curves(Curves &curves_id)
   new_curves.resize(new_offsets.last(), new_curves.curves_num());
 
   const bke::AttributeAccessor src_attributes = curves.attributes();
-  const GVArraySpan src_selection = *src_attributes.lookup(".selection", bke::AttrDomain::Point);
+  GVArray src_selection_array = *src_attributes.lookup(".selection", bke::AttrDomain::Point);
+  if (!src_selection_array) {
+    src_selection_array = VArray<bool>::ForSingle(true, curves.points_num());
+  }
+  const GVArraySpan src_selection = src_selection_array;
   const CPPType &src_selection_type = src_selection.type();
   bke::GSpanAttributeWriter dst_selection = ensure_selection_attribute(
       new_curves,
