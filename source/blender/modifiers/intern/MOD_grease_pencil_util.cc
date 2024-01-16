@@ -148,11 +148,13 @@ void draw_vertex_group_settings(const bContext * /*C*/, uiLayout *layout, Pointe
 {
   PointerRNA ob_ptr = RNA_pointer_create(ptr->owner_id, &RNA_Object, ptr->owner_id);
   bool has_vertex_group = RNA_string_length(ptr, "vertex_group_name") != 0;
-  uiLayout *row, *sub;
+  uiLayout *row, *col, *sub;
 
   uiLayoutSetPropSep(layout, true);
 
-  row = uiLayoutRow(layout, true);
+  col = uiLayoutColumn(layout, true);
+  row = uiLayoutRow(col, true);
+  uiLayoutSetPropDecorate(row, false);
   uiItemPointerR(row, ptr, "vertex_group_name", &ob_ptr, "vertex_groups", nullptr, ICON_NONE);
   sub = uiLayoutRow(row, true);
   uiLayoutSetActive(sub, has_vertex_group);
@@ -163,12 +165,14 @@ void draw_vertex_group_settings(const bContext * /*C*/, uiLayout *layout, Pointe
 void draw_custom_curve_settings(const bContext * /*C*/, uiLayout *layout, PointerRNA *ptr)
 {
   bool use_custom_curve = RNA_boolean_get(ptr, "use_custom_curve");
+  uiLayout *row;
 
   uiLayoutSetPropSep(layout, true);
-
-  uiItemR(layout, ptr, "use_custom_curve", UI_ITEM_NONE, nullptr, ICON_NONE);
+  row = uiLayoutRow(layout, true);
+  uiLayoutSetPropDecorate(row, false);
+  uiItemR(row, ptr, "use_custom_curve", UI_ITEM_NONE, "Custom Curve", ICON_NONE);
   if (use_custom_curve) {
-    uiTemplateCurveMapping(layout, ptr, "custom_curve", 0, false, false, false, false);
+    uiTemplateCurveMapping(row, ptr, "custom_curve", 0, false, false, false, false);
   }
 }
 
