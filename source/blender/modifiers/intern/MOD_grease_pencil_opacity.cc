@@ -304,7 +304,7 @@ static void blend_read(BlendDataReader *reader, ModifierData *md)
 
 ModifierTypeInfo modifierType_GreasePencilOpacity = {
     /*idname*/ "GreasePencilOpacity",
-    /*name*/ N_("GreasePencilOpacity"),
+    /*name*/ N_("Opacity"),
     /*struct_name*/ "GreasePencilOpacityModifierData",
     /*struct_size*/ sizeof(GreasePencilOpacityModifierData),
     /*srna*/ &RNA_GreasePencilOpacityModifier,
