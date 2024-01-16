@@ -25,7 +25,6 @@
 #include "DNA_listBase.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_ghash.h"
 
 #include "BLO_readfile.h"
 #include "BLO_undofile.hh"
@@ -54,13 +53,12 @@ void BLO_memfile_merge(MemFile *first, MemFile *second)
 {
   /* We use this mapping to store the memory buffers from second memfile chunks which are not owned
    * by it (i.e. shared with some previous memory steps). */
-  GHash *buffer_to_second_memchunk = BLI_ghash_new(
-      BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, __func__);
+  blender::Map<const char *, MemFileChunk *> buffer_to_second_memchunk;
 
   /* First, detect all memchunks in second memfile that are not owned by it. */
   LISTBASE_FOREACH (MemFileChunk *, sc, &second->chunks) {
     if (sc->is_identical) {
-      BLI_ghash_insert(buffer_to_second_memchunk, (void *)sc->buf, sc);
+      buffer_to_second_memchunk.add(sc->buf, sc);
     }
   }
 
@@ -68,9 +66,7 @@ void BLO_memfile_merge(MemFile *first, MemFile *second)
    * it is also used by the second memfile, transfer the ownership. */
   LISTBASE_FOREACH (MemFileChunk *, fc, &first->chunks) {
     if (!fc->is_identical) {
-      MemFileChunk *sc = static_cast<MemFileChunk *>(
-          BLI_ghash_lookup(buffer_to_second_memchunk, fc->buf));
-      if (sc != nullptr) {
+      if (MemFileChunk *sc = buffer_to_second_memchunk.lookup_default(fc->buf, nullptr)) {
         BLI_assert(sc->is_identical);
         sc->is_identical = false;
         fc->is_identical = true;
@@ -80,8 +76,6 @@ void BLO_memfile_merge(MemFile *first, MemFile *second)
        * it. */
     }
   }
-
-  BLI_ghash_free(buffer_to_second_memchunk, nullptr, nullptr);
 
   BLO_memfile_free(first);
 }
@@ -109,22 +103,11 @@ void BLO_memfile_write_init(MemFileWriteData *mem_data,
    * current Main data-base broke the order matching with the memchunks from previous step.
    */
   if (reference_memfile != nullptr) {
-    mem_data->id_session_uuid_mapping = BLI_ghash_new(
-        BLI_ghashutil_inthash_p_simple, BLI_ghashutil_intcmp, __func__);
     uint current_session_uuid = MAIN_ID_SESSION_UUID_UNSET;
     LISTBASE_FOREACH (MemFileChunk *, mem_chunk, &reference_memfile->chunks) {
       if (!ELEM(mem_chunk->id_session_uuid, MAIN_ID_SESSION_UUID_UNSET, current_session_uuid)) {
         current_session_uuid = mem_chunk->id_session_uuid;
-        void **entry;
-        if (!BLI_ghash_ensure_p(mem_data->id_session_uuid_mapping,
-                                POINTER_FROM_UINT(current_session_uuid),
-                                &entry))
-        {
-          *entry = mem_chunk;
-        }
-        else {
-          BLI_assert_unreachable();
-        }
+        mem_data->id_session_uuid_mapping.add_new(current_session_uuid, mem_chunk);
       }
     }
   }
@@ -132,9 +115,7 @@ void BLO_memfile_write_init(MemFileWriteData *mem_data,
 
 void BLO_memfile_write_finalize(MemFileWriteData *mem_data)
 {
-  if (mem_data->id_session_uuid_mapping != nullptr) {
-    BLI_ghash_free(mem_data->id_session_uuid_mapping, nullptr, nullptr);
-  }
+  mem_data->id_session_uuid_mapping.clear_and_shrink();
 }
 
 void BLO_memfile_chunk_add(MemFileWriteData *mem_data, const char *buf, size_t size)

@@ -435,7 +435,7 @@ struct BlendWriter {
 
 static WriteData *writedata_new(WriteWrap *ww)
 {
-  WriteData *wd = static_cast<WriteData *>(MEM_callocN(sizeof(*wd), "writedata"));
+  WriteData *wd = MEM_new<WriteData>(__func__);
 
   wd->sdna = DNA_sdna_current_get();
 
@@ -487,7 +487,7 @@ static void writedata_free(WriteData *wd)
   if (wd->buffer.buf) {
     MEM_freeN(wd->buffer.buf);
   }
-  MEM_freeN(wd);
+  MEM_delete(wd);
 }
 
 /** \} */
@@ -620,14 +620,13 @@ static void mywrite_id_begin(WriteData *wd, ID *id)
     MemFileChunk *prev_memchunk = curr_memchunk != nullptr ?
                                       static_cast<MemFileChunk *>(curr_memchunk->prev) :
                                       nullptr;
-    if (wd->mem.id_session_uuid_mapping != nullptr &&
-        (curr_memchunk == nullptr || curr_memchunk->id_session_uuid != id->session_uuid ||
+    if ((curr_memchunk == nullptr || curr_memchunk->id_session_uuid != id->session_uuid ||
          (prev_memchunk != nullptr &&
           (prev_memchunk->id_session_uuid == curr_memchunk->id_session_uuid))))
     {
-      void *ref = BLI_ghash_lookup(wd->mem.id_session_uuid_mapping,
-                                   POINTER_FROM_UINT(id->session_uuid));
-      if (ref != nullptr) {
+      if (MemFileChunk *ref = wd->mem.id_session_uuid_mapping.lookup_default(id->session_uuid,
+                                                                             nullptr))
+      {
         wd->mem.reference_current_chunk = static_cast<MemFileChunk *>(ref);
       }
       /* Else, no existing memchunk found, i.e. this is supposed to be a new ID. */
