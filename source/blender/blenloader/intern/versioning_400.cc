@@ -1386,6 +1386,36 @@ static void version_geometry_nodes_use_rotation_socket(bNodeTree &ntree)
     }
   }
 }
+
+/* Find the base socket name for an idname that may include a subtype. */
+static blender::StringRef legacy_socket_idname_to_socket_type(blender::StringRef idname)
+{
+  using string_pair = std::pair<const char *, const char *>;
+  static const string_pair subtypes_map[] = {{"NodeSocketFloatUnsigned", "NodeSocketFloat"},
+                                             {"NodeSocketFloatPercentage", "NodeSocketFloat"},
+                                             {"NodeSocketFloatFactor", "NodeSocketFloat"},
+                                             {"NodeSocketFloatAngle", "NodeSocketFloat"},
+                                             {"NodeSocketFloatTime", "NodeSocketFloat"},
+                                             {"NodeSocketFloatTimeAbsolute", "NodeSocketFloat"},
+                                             {"NodeSocketFloatDistance", "NodeSocketFloat"},
+                                             {"NodeSocketIntUnsigned", "NodeSocketInt"},
+                                             {"NodeSocketIntPercentage", "NodeSocketInt"},
+                                             {"NodeSocketIntFactor", "NodeSocketInt"},
+                                             {"NodeSocketVectorTranslation", "NodeSocketVector"},
+                                             {"NodeSocketVectorDirection", "NodeSocketVector"},
+                                             {"NodeSocketVectorVelocity", "NodeSocketVector"},
+                                             {"NodeSocketVectorAcceleration", "NodeSocketVector"},
+                                             {"NodeSocketVectorEuler", "NodeSocketVector"},
+                                             {"NodeSocketVectorXYZ", "NodeSocketVector"}};
+  for (const string_pair &pair : subtypes_map) {
+    if (pair.first == idname) {
+      return pair.second;
+    }
+  }
+  /* Unchanged socket idname. */
+  return idname;
+}
+
 static bNodeTreeInterfaceItem *legacy_socket_move_to_interface(bNodeSocket &legacy_socket,
                                                                const eNodeSocketInOut in_out)
 {
@@ -1396,7 +1426,10 @@ static bNodeTreeInterfaceItem *legacy_socket_move_to_interface(bNodeSocket &lega
   new_socket->name = BLI_strdup(legacy_socket.name);
   new_socket->identifier = BLI_strdup(legacy_socket.identifier);
   new_socket->description = BLI_strdup(legacy_socket.description);
-  new_socket->socket_type = BLI_strdup(legacy_socket.idname);
+  /* If the socket idname includes a subtype (e.g. "NodeSocketFloatFactor") this will convert it to
+   * the base type name ("NodeSocketFloat"). */
+  new_socket->socket_type = BLI_strdup(
+      legacy_socket_idname_to_socket_type(legacy_socket.idname).data());
   new_socket->flag = (in_out == SOCK_IN ? NODE_INTERFACE_SOCKET_INPUT :
                                           NODE_INTERFACE_SOCKET_OUTPUT);
   SET_FLAG_FROM_TEST(
@@ -1442,6 +1475,28 @@ static void versioning_convert_node_tree_socket_lists_to_interface(bNodeTree *nt
     tree_interface.root_panel.items_array[num_outputs + index] = legacy_socket_move_to_interface(
         *socket, SOCK_IN);
   }
+}
+
+/**
+ * Original node tree interface conversion in did not convert socket idnames with subtype suffixes
+ * to correct socket base types (see #versioning_convert_node_tree_socket_lists_to_interface).
+ */
+static void versioning_fix_socket_subtype_idnames(bNodeTree *ntree)
+{
+  bNodeTreeInterface &tree_interface = ntree->tree_interface;
+
+  tree_interface.foreach_item([](bNodeTreeInterfaceItem &item) -> bool {
+    if (item.item_type == NODE_INTERFACE_SOCKET) {
+      bNodeTreeInterfaceSocket &socket = reinterpret_cast<bNodeTreeInterfaceSocket &>(item);
+      blender::StringRef corrected_socket_type = legacy_socket_idname_to_socket_type(
+          socket.socket_type);
+      if (socket.socket_type != corrected_socket_type) {
+        MEM_freeN(socket.socket_type);
+        socket.socket_type = BLI_strdup(corrected_socket_type.data());
+      }
+    }
+    return true;
+  });
 }
 
 /* Convert coat inputs on the Principled BSDF. */
@@ -2575,6 +2630,14 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
         versioning_nodes_dynamic_sockets_2(*ntree);
       }
     }
+  }
+
+  if (MAIN_VERSION_FILE_ATLEAST(bmain, 400, 20) && !MAIN_VERSION_FILE_ATLEAST(bmain, 401, 11)) {
+    /* Convert old socket lists into new interface items. */
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      versioning_fix_socket_subtype_idnames(ntree);
+    }
+    FOREACH_NODETREE_END;
   }
 
   /**
