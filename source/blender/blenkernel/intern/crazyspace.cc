@@ -692,7 +692,7 @@ GeometryDeformation get_evaluated_grease_pencil_drawing_deformation(const Object
   {
     if (const GreasePencil *grease_pencil_eval = grease_pencil_component_eval->get()) {
       Span<const bke::greasepencil::Layer *> layers_eval = grease_pencil_eval->layers();
-      if (layers_eval.size() != layers_orig.size()) {
+      if (layers_eval.size() == layers_orig.size()) {
         const bke::greasepencil::Layer *layer_eval = layers_eval[layer_index];
         const int drawing_index_eval = layer_eval->drawing_index_at(frame);
         if (drawing_index_eval != -1) {
