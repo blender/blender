@@ -551,6 +551,9 @@ def canonical_author_map() -> Dict[str, str]:
         "Pratik Borhade <pratikborhade302@gmail.com>": (
             "Pratik Borhade <PratikPB2123>",
         ),
+        "Rajesh Malviya <rajveer0malviya@gmail.com>": (
+            "rajveermalviya <rajveer0malviya@gmail.com>",
+        ),
         "Ray Molenkamp <github@lazydodo.com>": (
             "Lazydodo <github@lazydodo.com>",
             "Ray Molenkamp <LazyDodo>",
@@ -722,9 +725,6 @@ def canonical_author_map() -> Dict[str, str]:
         ),
         "ok_what <ip1149a@gmail.com>": (
             "ok what <ok_what>",
-        ),
-        "rajveermalviya <rajveer0malviya@gmail.com>": (
-            "Rajesh Advani <rajeshja>",
         ),
     }
 
