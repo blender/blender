@@ -6,6 +6,7 @@
 
 #include "BLI_color.hh"
 #include "BLI_math_matrix.hh"
+#include "BLI_math_quaternion_types.hh"
 #include "IMB_imbuf.h"
 
 namespace blender::imbuf::tests {
@@ -106,6 +107,39 @@ TEST(imbuf_transform, bicubic_fractional_larger)
   EXPECT_EQ(got[2 + 2 * res->x], ColorTheme4b(206, 70, 56, 192));
   EXPECT_EQ(got[3 + 2 * res->x], ColorTheme4b(165, 60, 42, 78));
   EXPECT_EQ(got[8 + 6 * res->x], ColorTheme4b(57, 1, 90, 252));
+  IMB_freeImBuf(res);
+}
+
+TEST(imbuf_transform, nearest_very_large_scale)
+{
+  /* Create 511x1 black image, with three middle pixels being red/green/blue. */
+  ImBuf *src = IMB_allocImBuf(511, 1, 32, IB_rect);
+  ColorTheme4b col_r = ColorTheme4b(255, 0, 0, 255);
+  ColorTheme4b col_g = ColorTheme4b(0, 255, 0, 255);
+  ColorTheme4b col_b = ColorTheme4b(0, 0, 255, 255);
+  ColorTheme4b col_0 = ColorTheme4b(0, 0, 0, 0);
+  ColorTheme4b *src_col = reinterpret_cast<ColorTheme4b *>(src->byte_buffer.data);
+  src_col[254] = col_r;
+  src_col[255] = col_g;
+  src_col[256] = col_b;
+
+  /* Create 3841x1 image, and scale the input image so that the three middle
+   * pixels cover almost all of it, except the rightmost pixel. */
+  ImBuf *res = IMB_allocImBuf(3841, 1, 32, IB_rect);
+  float4x4 matrix = math::from_loc_rot_scale<float4x4>(
+      float3(254, 0, 0), math::Quaternion::identity(), float3(3.0f / 3840.0f, 1, 1));
+  IMB_transform(
+      src, res, IMB_TRANSFORM_MODE_REGULAR, IMB_FILTER_NEAREST, 1, matrix.ptr(), nullptr);
+
+  /* Check result: leftmost red, middle green, two rightmost pixels blue and black.
+   * If the transform code internally does not have enough precision while stepping
+   * through the scanline, the rightmost side will not come out correctly. */
+  const ColorTheme4b *got = reinterpret_cast<ColorTheme4b *>(res->byte_buffer.data);
+  EXPECT_EQ(got[0], col_r);
+  EXPECT_EQ(got[res->x / 2], col_g);
+  EXPECT_EQ(got[res->x - 2], col_b);
+  EXPECT_EQ(got[res->x - 1], col_0);
+  IMB_freeImBuf(src);
   IMB_freeImBuf(res);
 }
 
