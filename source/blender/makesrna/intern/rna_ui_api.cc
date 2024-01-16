@@ -782,6 +782,7 @@ static uiLayout *rna_uiLayoutColumnWithHeading(
 
 struct uiLayout *rna_uiLayoutPanelProp(uiLayout *layout,
                                        bContext *C,
+                                       ReportList *reports,
                                        PointerRNA *data,
                                        const char *property,
                                        const char *text,
@@ -789,11 +790,17 @@ struct uiLayout *rna_uiLayoutPanelProp(uiLayout *layout,
                                        const bool translate)
 {
   text = rna_translate_ui_text(text, text_ctxt, nullptr, nullptr, translate);
+  Panel *panel = uiLayoutGetRootPanel(layout);
+  if (panel == nullptr) {
+    BKE_reportf(reports, RPT_ERROR, "Layout panels can not be used in this context");
+    return nullptr;
+  }
   return uiLayoutPanel(C, layout, text, data, property);
 }
 
 struct uiLayout *rna_uiLayoutPanel(uiLayout *layout,
                                    bContext *C,
+                                   ReportList *reports,
                                    const char *idname,
                                    const char *text,
                                    const char *text_ctxt,
@@ -802,6 +809,10 @@ struct uiLayout *rna_uiLayoutPanel(uiLayout *layout,
 {
   text = RNA_translate_ui_text(text, text_ctxt, nullptr, nullptr, translate);
   Panel *panel = uiLayoutGetRootPanel(layout);
+  if (panel == nullptr) {
+    BKE_reportf(reports, RPT_ERROR, "Layout panels can not be used in this context");
+    return nullptr;
+  }
   LayoutPanelState *state = BKE_panel_layout_panel_state_ensure(panel, idname, default_closed);
   PointerRNA state_ptr = RNA_pointer_create(nullptr, &RNA_LayoutPanelState, state);
   return uiLayoutPanel(C, layout, text, &state_ptr, "is_open");
@@ -1079,7 +1090,7 @@ void RNA_api_ui_layout(StructRNA *srna)
   RNA_def_function_ui_description(func,
                                   "Creates a collapsable panel. Whether it is open or closed is "
                                   "stored in the region using the given idname");
-  RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+  RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
   parm = RNA_def_string(func, "idname", nullptr, 0, "", "Identifier of the panel");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   api_ui_item_common_text(func);
@@ -1102,7 +1113,7 @@ void RNA_api_ui_layout(StructRNA *srna)
       "region, it is stored in the provided boolean property. This should be used when multiple "
       "instances of the same panel can exist. For example one for every item in a collection "
       "property or list");
-  RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+  RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
   parm = RNA_def_pointer(
       func, "data", "AnyType", "", "Data from which to take the open-state property");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
