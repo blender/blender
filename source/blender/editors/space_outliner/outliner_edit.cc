@@ -413,7 +413,7 @@ static int outliner_item_rename_invoke(bContext *C, wmOperator *op, const wmEven
   TreeElement *te = use_active ? outliner_item_rename_find_active(space_outliner, op->reports) :
                                  outliner_item_rename_find_hovered(space_outliner, region, event);
   if (!te) {
-    return OPERATOR_CANCELLED;
+    return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }
 
   /* Force element into view. */
