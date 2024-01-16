@@ -32,8 +32,7 @@ def get_tests_base_dir(blender_git_dir: pathlib.Path) -> pathlib.Path:
 def use_revision_columns(config: api.TestConfig) -> bool:
     return (
         config.benchmark_type == "comparison" and
-        len(config.queue.entries) > 0 and
-        not config.queue.has_multiple_revisions_to_build
+        len(config.queue.entries) > 0
     )
 
 
@@ -135,13 +134,17 @@ def run_entry(env: api.TestEnvironment,
     if len(entry.executable):
         env.set_blender_executable(pathlib.Path(entry.executable), environment)
     else:
-        env.checkout(git_hash)
-        executable_ok = env.build()
+        if config.benchmark_type == "comparison":
+            install_dir = config.builds_dir / revision
+        else:
+            install_dir = env.install_dir
+        executable_ok = env.build(git_hash, install_dir)
+
         if not executable_ok:
             entry.status = 'failed'
             entry.error_msg = 'Failed to build'
         else:
-            env.set_blender_executable(env.blender_executable, environment)
+            env.set_blender_executable(install_dir, environment)
 
     # Run test and update output and status.
     if executable_ok:
