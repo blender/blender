@@ -2205,6 +2205,12 @@ void RNA_api_ui_layout(StructRNA *srna)
                          "Node Tree Interface",
                          "Interface of a node tree to display");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+
+  func = RNA_def_function(srna, "template_node_inputs", "uiTemplateNodeInputs");
+  RNA_def_function_ui_description(func, "Show a node settings and input socket values");
+  RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+  parm = RNA_def_pointer(func, "node", "Node", "Node", "Display inputs of this node");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
 }
 
 #endif

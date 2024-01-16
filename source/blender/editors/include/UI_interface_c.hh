@@ -2714,6 +2714,10 @@ void uiTemplateGreasePencilLayerTree(uiLayout *layout, bContext *C);
 #endif
 
 void uiTemplateNodeTreeInterface(uiLayout *layout, PointerRNA *ptr);
+/**
+ * Draw all node buttons and socket default values with the same panel structure used by the node.
+ */
+void uiTemplateNodeInputs(uiLayout *layout, bContext *C, PointerRNA *ptr);
 
 /**
  * \return: A RNA pointer for the operator properties.
