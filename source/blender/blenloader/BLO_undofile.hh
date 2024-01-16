@@ -11,8 +11,8 @@
 
 #include "BLI_filereader.h"
 #include "BLI_listbase.h"
+#include "BLI_map.hh"
 
-struct GHash;
 struct Main;
 struct Scene;
 
@@ -45,7 +45,7 @@ struct MemFileWriteData {
   MemFileChunk *reference_current_chunk;
 
   /** Maps an ID session uuid to its first reference MemFileChunk, if existing. */
-  GHash *id_session_uuid_mapping;
+  blender::Map<uint, MemFileChunk *> id_session_uuid_mapping;
 };
 
 struct MemFileUndoData {
