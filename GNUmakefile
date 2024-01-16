@@ -230,7 +230,7 @@ endif
 ifndef PYTHON
 	# If not overriden, first try using Python from LIBDIR.
 	PYTHON:=$(LIBDIR)/python/bin/python$(PY_LIB_VERSION)
-	ifeq (, $(PYTHON))
+	ifeq (, $(wildcard $(PYTHON)))
 		# If not available, use system python3 or python command.
 		PYTHON:=python3
 		ifeq (, $(shell command -v $(PYTHON)))
