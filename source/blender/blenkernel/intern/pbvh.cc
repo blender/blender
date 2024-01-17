@@ -1732,7 +1732,7 @@ void BKE_pbvh_node_mark_redraw(PBVHNode *node)
 
 void BKE_pbvh_node_mark_normals_update(PBVHNode *node)
 {
-  node->flag |= PBVH_UpdateNormals | PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw;
+  node->flag |= PBVH_UpdateNormals | PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw | PBVH_UpdateBB;
 }
 
 void BKE_pbvh_node_fully_hidden_set(PBVHNode *node, int fully_hidden)

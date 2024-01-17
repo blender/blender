@@ -999,7 +999,6 @@ static bNodeTreeInterfaceSocket *make_socket(const int uid,
                                              const StringRef socket_type,
                                              const NodeTreeInterfaceSocketFlag flag)
 {
-  BLI_assert(!name.is_empty());
   BLI_assert(!socket_type.is_empty());
 
   const char *idname = socket_types::try_get_supported_socket_type(socket_type);

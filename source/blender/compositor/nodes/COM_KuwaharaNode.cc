@@ -25,6 +25,7 @@ void KuwaharaNode::convert_to_operations(NodeConverter &converter,
   switch (data->variation) {
     case CMP_NODE_KUWAHARA_CLASSIC: {
       KuwaharaClassicOperation *kuwahara_classic = new KuwaharaClassicOperation();
+      kuwahara_classic->set_data(data);
       converter.add_operation(kuwahara_classic);
       converter.map_input_socket(get_input_socket(0), kuwahara_classic->get_input_socket(0));
       converter.map_input_socket(get_input_socket(1), kuwahara_classic->get_input_socket(1));

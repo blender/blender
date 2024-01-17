@@ -293,6 +293,7 @@ Drawing::Drawing(const Drawing &other)
   this->runtime = MEM_new<bke::greasepencil::DrawingRuntime>(__func__);
 
   this->runtime->triangles_cache = other.runtime->triangles_cache;
+  this->runtime->curve_plane_normals_cache = other.runtime->curve_plane_normals_cache;
 }
 
 Drawing::~Drawing()
@@ -357,6 +358,51 @@ Span<uint3> Drawing::triangles() const
   return this->runtime->triangles_cache.data().as_span();
 }
 
+Span<float3> Drawing::curve_plane_normals() const
+{
+  this->runtime->curve_plane_normals_cache.ensure([&](Vector<float3> &r_data) {
+    const CurvesGeometry &curves = this->strokes();
+    const Span<float3> positions = curves.positions();
+    const OffsetIndices<int> points_by_curve = curves.points_by_curve();
+
+    r_data.reinitialize(curves.curves_num());
+    threading::parallel_for(curves.curves_range(), 512, [&](const IndexRange range) {
+      for (const int curve_i : range) {
+        const IndexRange points = points_by_curve[curve_i];
+        if (points.size() < 2) {
+          r_data[curve_i] = float3(1.0f, 0.0f, 0.0f);
+          continue;
+        }
+
+        /* Calculate normal using Newell's method. */
+        float3 normal(0.0f);
+        float3 prev_point = positions[points.last()];
+        for (const int point_i : points) {
+          const float3 curr_point = positions[point_i];
+          add_newell_cross_v3_v3v3(normal, prev_point, curr_point);
+          prev_point = curr_point;
+        }
+
+        float length;
+        normal = math::normalize_and_get_length(normal, length);
+        /* Check for degenerate case where the points are on a line. */
+        if (math::is_zero(length)) {
+          for (const int point_i : points.drop_back(1)) {
+            float3 segment_vec = math::normalize(positions[point_i] - positions[point_i + 1]);
+            if (math::length_squared(segment_vec) != 0.0f) {
+              normal = float3(segment_vec.y, -segment_vec.x, 0.0f);
+              break;
+            }
+          }
+        }
+
+        r_data[curve_i] = normal;
+      }
+    });
+  });
+  return this->runtime->curve_plane_normals_cache.data().as_span();
+}
+
 const bke::CurvesGeometry &Drawing::strokes() const
 {
   return this->geometry.wrap();
@@ -409,6 +455,7 @@ void Drawing::tag_positions_changed()
 {
   this->strokes_for_write().tag_positions_changed();
   this->runtime->triangles_cache.tag_dirty();
+  this->runtime->curve_plane_normals_cache.tag_dirty();
 }
 
 void Drawing::tag_topology_changed()
