@@ -134,26 +134,6 @@ static float wrap_uv(float value, int size)
   return x;
 }
 
-template<typename T, int NumChannels>
-static void add_subsample(const T *src, T *dst, int sample_number)
-{
-  BLI_STATIC_ASSERT((is_same_any_v<T, uchar, float>), "Only uchar and float channels supported.");
-
-  float factor = 1.0 / (sample_number + 1);
-  if constexpr (std::is_same_v<T, uchar>) {
-    BLI_STATIC_ASSERT(NumChannels == 4, "Pixels using uchar requires to have 4 channels.");
-    blend_color_interpolate_byte(dst, dst, src, factor);
-  }
-  else if constexpr (std::is_same_v<T, float> && NumChannels == 4) {
-    blend_color_interpolate_float(dst, dst, src, factor);
-  }
-  else if constexpr (std::is_same_v<T, float>) {
-    for (int i : IndexRange(NumChannels)) {
-      dst[i] = dst[i] * (1.0f - factor) + src[i] * factor;
-    }
-  }
-}
-
 template<int NumChannels>
 static void sample_nearest_float(const ImBuf *source, float u, float v, float *r_sample)
 {
@@ -235,39 +215,48 @@ static void sample_image(const ImBuf *source, float u, float v, T *r_sample)
   }
 }
 
-template<typename T, int SrcChannels> static void store_sample(const T *sample, T *dst)
+static void add_subsample(const float src[4], float dst[4])
 {
-  if constexpr (std::is_same_v<T, uchar>) {
-    BLI_STATIC_ASSERT(SrcChannels == 4, "Unsigned chars always have 4 channels.");
-    copy_v4_v4_uchar(dst, sample);
-  }
-  else if constexpr (std::is_same_v<T, float> && SrcChannels == 4) {
-    copy_v4_v4(dst, sample);
-  }
-  else if constexpr (std::is_same_v<T, float> && SrcChannels == 3) {
-    copy_v4_fl4(dst, sample[0], sample[1], sample[2], 1.0f);
-  }
-  else if constexpr (std::is_same_v<T, float> && SrcChannels == 2) {
-    copy_v4_fl4(dst, sample[0], sample[1], 0.0f, 1.0f);
-  }
-  else if constexpr (std::is_same_v<T, float> && SrcChannels == 1) {
-    /* Note: single channel sample is stored as grayscale. */
-    copy_v4_fl4(dst, sample[0], sample[0], sample[0], 1.0f);
-  }
-  else {
-    BLI_assert_unreachable();
-  }
+  add_v4_v4(dst, src);
 }
 
-template<typename T, int SrcChannels>
-static void mix_and_store_sample(const T *sample, T *dst, const float mix_factor)
+static void add_subsample(const uchar src[4], float dst[4])
 {
-  if constexpr (std::is_same_v<T, uchar>) {
-    BLI_STATIC_ASSERT(SrcChannels == 4, "Unsigned chars always have 4 channels.");
-    blend_color_interpolate_byte(dst, dst, sample, mix_factor);
+  float premul[4];
+  straight_uchar_to_premul_float(premul, src);
+  add_v4_v4(dst, premul);
+}
+
+static void store_premul_float_sample(const float sample[4], float dst[4])
+{
+  copy_v4_v4(dst, sample);
+}
+
+static void store_premul_float_sample(const float sample[4], uchar dst[4])
+{
+  premul_float_to_straight_uchar(dst, sample);
+}
+
+template<int SrcChannels> static void store_sample(const uchar *sample, uchar *dst)
+{
+  BLI_STATIC_ASSERT(SrcChannels == 4, "Unsigned chars always have 4 channels.");
+  copy_v4_v4_uchar(dst, sample);
+}
+
+template<int SrcChannels> static void store_sample(const float *sample, float *dst)
+{
+  if constexpr (SrcChannels == 4) {
+    copy_v4_v4(dst, sample);
   }
-  else if constexpr (std::is_same_v<T, float> && SrcChannels == 4) {
-    blend_color_interpolate_float(dst, dst, sample, mix_factor);
+  else if constexpr (SrcChannels == 3) {
+    copy_v4_fl4(dst, sample[0], sample[1], sample[2], 1.0f);
+  }
+  else if constexpr (SrcChannels == 2) {
+    copy_v4_fl4(dst, sample[0], sample[1], 0.0f, 1.0f);
+  }
+  else if constexpr (SrcChannels == 1) {
+    /* Note: single channel sample is stored as grayscale. */
+    copy_v4_fl4(dst, sample[0], sample[0], sample[0], 1.0f);
   }
   else {
     BLI_assert_unreachable();
@@ -286,29 +275,29 @@ static void process_scanlines(const TransformContext &ctx, IndexRange y_range)
   float2 uv_start = ctx.start_uv + ctx.add_x * 0.5f + ctx.add_y * 0.5f;
 
   if (ctx.subsampling_deltas.size() > 1) {
-    /* Multiple samples per pixel. */
+    /* Multiple samples per pixel: accumulate them premultiplied,
+     * divide by sample count and write out (un-premultiplying if writing out
+     * to byte image). */
+    const float inv_count = 1.0f / ctx.subsampling_deltas.size();
     for (int yi : y_range) {
       T *output = init_pixel_pointer<T>(ctx.dst, ctx.dst_region_x_range.first(), yi);
       float2 uv_row = uv_start + yi * ctx.add_y;
       for (int xi : ctx.dst_region_x_range) {
         float2 uv = uv_row + xi * ctx.add_x;
-        T sample[4] = {};
-        int num_subsamples_added = 0;
+        float sample[4] = {};
 
         for (const float2 &delta_uv : ctx.subsampling_deltas) {
           const float2 sub_uv = uv + delta_uv;
           if (!CropSource || !should_discard(ctx, sub_uv)) {
             T sub_sample[4];
             sample_image<Filter, T, SrcChannels, WrapUV>(ctx.src, sub_uv.x, sub_uv.y, sub_sample);
-            add_subsample<T, SrcChannels>(sub_sample, sample, num_subsamples_added);
-            num_subsamples_added += 1;
+            add_subsample(sub_sample, sample);
           }
         }
 
-        if (num_subsamples_added != 0) {
-          const float mix_weight = float(num_subsamples_added) / ctx.subsampling_deltas.size();
-          mix_and_store_sample<T, SrcChannels>(sample, output, mix_weight);
-        }
+        mul_v4_v4fl(sample, sample, inv_count);
+        store_premul_float_sample(sample, output);
+
         output += 4;
       }
     }
@@ -323,7 +312,7 @@ static void process_scanlines(const TransformContext &ctx, IndexRange y_range)
         if (!CropSource || !should_discard(ctx, uv)) {
           T sample[4];
           sample_image<Filter, T, SrcChannels, WrapUV>(ctx.src, uv.x, uv.y, sample);
-          store_sample<T, SrcChannels>(sample, output);
+          store_sample<SrcChannels>(sample, output);
         }
         output += 4;
       }
