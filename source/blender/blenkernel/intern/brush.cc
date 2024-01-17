@@ -6,6 +6,8 @@
  * \ingroup bke
  */
 
+#include <memory>
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_brush_types.h"
@@ -24,12 +26,14 @@
 
 #include "BLT_translation.h"
 
+#include "BKE_asset.hh"
 #include "BKE_blendfile_link_append.hh"
 #include "BKE_bpath.h"
 #include "BKE_brush.hh"
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_gpencil_legacy.h"
+#include "BKE_idprop.hh"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.h"
@@ -382,6 +386,39 @@ static void brush_blend_read_after_liblink(BlendLibReader * /*reader*/, ID *id)
   }
 }
 
+static void brush_asset_metadata_ensure(void *asset_ptr, AssetMetaData *asset_data)
+{
+  using namespace blender;
+  using namespace blender::bke;
+
+  Brush *brush = reinterpret_cast<Brush *>(asset_ptr);
+  BLI_assert(GS(brush->id.name) == ID_BR);
+
+  static const Array<std::pair<const char *, int>> mode_map = {
+      {"use_paint_sculpt", OB_MODE_SCULPT},
+      {"use_paint_uv_sculpt", OB_MODE_EDIT},
+      {"use_paint_vertex", OB_MODE_VERTEX_PAINT},
+      {"use_paint_weight", OB_MODE_WEIGHT_PAINT},
+      {"use_paint_image", OB_MODE_TEXTURE_PAINT},
+      {"use_paint_grease_pencil", OB_MODE_PAINT_GPENCIL_LEGACY},
+      {"use_vertex_grease_pencil", OB_MODE_VERTEX_GPENCIL_LEGACY},
+      {"use_paint_sculpt_curves", OB_MODE_SCULPT_CURVES}};
+
+  for (const auto &mode_mapping : mode_map) {
+    /* Only add bools for supported modes. */
+    if (!(brush->ob_mode & mode_mapping.second)) {
+      continue;
+    }
+    auto mode_property = idprop::create_bool(mode_mapping.first, true);
+    BKE_asset_metadata_idprop_ensure(asset_data, mode_property.release());
+  }
+}
+
+static AssetTypeInfo AssetType_BR = {
+    /*pre_save_fn*/ brush_asset_metadata_ensure,
+    /*on_mark_asset_fn*/ brush_asset_metadata_ensure,
+};
+
 IDTypeInfo IDType_ID_BR = {
     /*id_code*/ ID_BR,
     /*id_filter*/ FILTER_ID_BR,
@@ -391,7 +428,7 @@ IDTypeInfo IDType_ID_BR = {
     /*name_plural*/ N_("brushes"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_BRUSH,
     /*flags*/ IDTYPE_FLAGS_NO_ANIMDATA | IDTYPE_FLAGS_NO_MEMFILE_UNDO,
-    /*asset_type_info*/ nullptr,
+    /*asset_type_info*/ &AssetType_BR,
 
     /*init_data*/ brush_init_data,
     /*copy_data*/ brush_copy_data,
