@@ -68,25 +68,6 @@ void USDXformReader::read_object_data(Main * bmain, const double motionSampleTim
   BKE_object_apply_mat4(object_, transform_from_usd, true, false);
 }
 
-void USDXformReader::apply_cache_file(CacheFile *cache_file)
-{
-  if (!(cache_file && needs_cachefile_ && object_)) {
-    return;
-  }
-
-  bConstraint *con = BKE_constraint_add_for_object(
-      object_, nullptr, CONSTRAINT_TYPE_TRANSFORM_CACHE);
-  bTransformCacheConstraint *data = static_cast<bTransformCacheConstraint *>(con->data);
-
-  std::string prim_path = use_parent_xform_ ? prim_.GetParent().GetPath().GetAsString() :
-                                              prim_path_;
-
-  STRNCPY(data->object_path, prim_path.c_str());
-
-  data->cache_file = cache_file;
-  id_us_plus(&cache_file->id);
-}
-
 void USDXformReader::read_matrix(float r_mat[4][4] /* local matrix */,
                                  const float time,
                                  const float scale,

@@ -274,50 +274,6 @@ static void main_thread_lock_release(ImportJobData *data)
   }
 }
 
-static CacheFile *create_cache_file(const ImportJobData *data)
-{
-  if (!data) {
-    return nullptr;
-  }
-
-  CacheFile *cache_file = static_cast<CacheFile *>(
-      BKE_cachefile_add(data->bmain, BLI_path_basename(data->filepath)));
-
-  /* Decrement the ID ref-count because it is going to be incremented for each
-   * modifier and constraint that it will be attached to, so since currently
-   * it is not used by anyone, its use count will off by one. */
-  id_us_min(&cache_file->id);
-
-  cache_file->is_sequence = data->params.is_sequence;
-  cache_file->scale = data->params.scale;
-  STRNCPY(cache_file->filepath, data->filepath);
-
-  cache_file->scale = data->settings.scale;
-
-  return cache_file;
-}
-
-/* Apply the given cache file to the given reader, if needed.  Will create a cache file
- * and return it in the r_cache_file out prameter, if needed. */
-static void apply_cache_file(USDPrimReader *reader,
-                             const ImportJobData *data,
-                             CacheFile **r_cache_file)
-{
-  if (!(reader && reader->needs_cachefile())) {
-    return;
-  }
-
-  if (!(data && r_cache_file)) {
-    return;
-  }
-
-  if (*r_cache_file == nullptr) {
-    *r_cache_file = create_cache_file(data);
-  }
-
-  reader->apply_cache_file(*r_cache_file);
-}
-
 static void report_job_duration(const ImportJobData *data)
 {
   timeit::Nanoseconds duration = timeit::Clock::now() - data->start_time;
@@ -458,14 +414,7 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
   const float size = float(archive->readers().size());
   size_t i = 0;
 
-  /* Read data, set prenting and create a cache file, if needed. */
-
-  /* We defer creating a cache file until we know that we need
-   * one. This is not only more efficient, but also avoids
-   * the problem where we can't overwrite the USD the
-   * cachefile is referencing because it has a pointer to the
-   * open stage for the lifetime of the scene. */
-  CacheFile *cache_file = nullptr;
+  /* Read data and set parenting. */
 
   /* Sort readers by name: when creating a lot of objects in Blender,
    * it is much faster if the order is sorted by name. */
@@ -507,8 +456,6 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
     Object *ob = reader->object();
 
     reader->read_object_data(data->bmain, 0.0);
-
-    apply_cache_file(reader, data, &cache_file);
 
     USDPrimReader *parent = reader->parent();
 

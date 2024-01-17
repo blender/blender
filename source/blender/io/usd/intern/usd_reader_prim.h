@@ -109,12 +109,6 @@ class USDPrimReader {
 
   virtual void read_object_data(Main *bmain, double motionSampleTime);
 
-  virtual bool needs_cachefile()
-  {
-    return false;
-  }
-  virtual void apply_cache_file(CacheFile * /* cache_file */) {}
-
   Object *object() const;
   void object(Object *ob);
 

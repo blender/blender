@@ -20,30 +20,6 @@
 
 namespace blender::io::usd {
 
-void USDGeomReader::apply_cache_file(CacheFile *cache_file)
-{
-  if (!cache_file) {
-    return;
-  }
-
-  if (needs_cachefile_ && object_) {
-    ModifierData *md = BKE_modifier_new(eModifierType_MeshSequenceCache);
-    BLI_addtail(&object_->modifiers, md);
-
-    MeshSeqCacheModifierData *mcmd = reinterpret_cast<MeshSeqCacheModifierData *>(md);
-
-    mcmd->cache_file = cache_file;
-    id_us_plus(&mcmd->cache_file->id);
-    mcmd->read_flag = import_params_.mesh_read_flag;
-
-    BLI_strncpy(mcmd->object_path, prim_.GetPath().GetString().c_str(), FILE_MAX);
-  }
-
-  if (USDXformReader::needs_cachefile()) {
-    USDXformReader::apply_cache_file(cache_file);
-  }
-}
-
 void USDGeomReader::add_cache_modifier()
 {
   if (!settings_->get_cache_file) {

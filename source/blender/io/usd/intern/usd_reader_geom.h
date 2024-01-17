@@ -11,14 +11,12 @@ struct Mesh;
 namespace blender::io::usd {
 
 class USDGeomReader : public USDXformReader {
- private:
-  bool needs_cachefile_;
 
  public:
   USDGeomReader(const pxr::UsdPrim &prim,
                 const USDImportParams &import_params,
                 const ImportSettings &settings)
-      : USDXformReader(prim, import_params, settings), needs_cachefile_(false)
+      : USDXformReader(prim, import_params, settings)
   {
   }
 
@@ -30,12 +28,6 @@ class USDGeomReader : public USDXformReader {
   {
     return true;
   }
-
-  bool needs_cachefile() override
-  {
-    return needs_cachefile_ || USDXformReader::needs_cachefile();
-  }
-  void apply_cache_file(CacheFile *cache_file) override;
 
   void add_cache_modifier();
   void add_subdiv_modifier();
