@@ -121,7 +121,7 @@ void AssetView::build_items()
     const bool show_names = (shelf_.settings.display_flag & ASSETSHELF_SHOW_NAMES);
 
     const StringRef identifier = asset->get_identifier().library_relative_identifier();
-    const int preview_id = [this, &asset_handle]() -> int {
+    const int preview_id = [&]() -> int {
       if (ED_assetlist_asset_image_is_loading(&library_ref_, &asset_handle)) {
         return ICON_TEMP;
       }
