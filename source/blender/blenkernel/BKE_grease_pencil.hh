@@ -50,6 +50,11 @@ class DrawingRuntime {
   mutable SharedCache<Vector<uint3>> triangles_cache;
 
   /**
+   * Normal vector cache for every stroke. Computed using Newell's method.
+   */
+  mutable SharedCache<Vector<float3>> curve_plane_normals_cache;
+
+  /**
    * Number of users for this drawing. The users are the frames in the Grease Pencil layers.
    * Different frames can refer to the same drawing, so we need to make sure we count these users
    * and remove a drawing if it has zero users.
@@ -69,6 +74,10 @@ class Drawing : public ::GreasePencilDrawing {
    * The triangles for all the fills in the geometry.
    */
   Span<uint3> triangles() const;
+  /**
+   * Normal vectors for a plane that fits the stroke.
+   */
+  Span<float3> curve_plane_normals() const;
   void tag_positions_changed();
   void tag_topology_changed();
 
