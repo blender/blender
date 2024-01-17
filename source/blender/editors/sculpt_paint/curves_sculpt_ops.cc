@@ -1195,7 +1195,7 @@ static void SCULPT_CURVES_OT_brush_asset_select(wmOperatorType *ot)
   ot->poll = CURVES_SCULPT_mode_poll;
 
   ot->prop = RNA_def_string(
-      ot->srna, "name", nullptr, MAX_NAME, "Brush Name", "name of the brush asset to select");
+      ot->srna, "name", nullptr, MAX_NAME, "Brush Name", "Name of the brush asset to select");
 }
 
 }  // namespace blender::ed::sculpt_paint
