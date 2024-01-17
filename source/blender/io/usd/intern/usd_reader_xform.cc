@@ -51,9 +51,6 @@ void USDXformReader::read_object_data(Main * bmain, const double motionSampleTim
 
   read_matrix(transform_from_usd, motionSampleTime, settings_->scale, &is_constant);
 
-<<<<<<< HEAD
-  needs_cachefile_ = !is_constant;
-=======
   if (!is_constant && settings_->get_cache_file) {
     bConstraint *con = BKE_constraint_add_for_object(
         object_, nullptr, CONSTRAINT_TYPE_TRANSFORM_CACHE);
@@ -67,7 +64,6 @@ void USDXformReader::read_object_data(Main * bmain, const double motionSampleTim
     data->cache_file = settings_->get_cache_file();
     id_us_plus(&data->cache_file->id);
   }
->>>>>>> main
 
   BKE_object_apply_mat4(object_, transform_from_usd, true, false);
 }

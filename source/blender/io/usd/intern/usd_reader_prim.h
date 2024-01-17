@@ -44,11 +44,8 @@ struct ImportSettings {
 
   bool validate_meshes;
 
-<<<<<<< HEAD
-=======
   std::function<CacheFile *()> get_cache_file;
 
->>>>>>> main
   /* Map a USD material prim path to a Blender material name.
    * This map is updated by readers during stage traversal.
    * This field is mutable because it is used to keep track
@@ -77,10 +74,7 @@ struct ImportSettings {
         sequence_offset(0),
         read_flag(0),
         validate_meshes(false),
-<<<<<<< HEAD
-=======
         get_cache_file(nullptr),
->>>>>>> main
         stage_meters_per_unit(1.0),
         skip_prefix(pxr::SdfPath{})
   {

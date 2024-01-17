@@ -89,26 +89,11 @@ set(SRC
   intern/usd_capi_export.cc
   intern/usd_capi_import.cc
   intern/usd_hierarchy_iterator.cc
-<<<<<<< HEAD
   intern/usd_light_convert.cc
   intern/usd_lux_api_wrapper.cc
   intern/usd_modifier_disabler.cc
   intern/usd_skel_convert.cc
   intern/usd_skel_root_utils.cc
-=======
-  intern/usd_hook.cc
-  intern/usd_writer_abstract.cc
-  intern/usd_writer_armature.cc
-  intern/usd_writer_camera.cc
-  intern/usd_writer_curves.cc
-  intern/usd_writer_hair.cc
-  intern/usd_writer_light.cc
-  intern/usd_writer_material.cc
-  intern/usd_writer_mesh.cc
-  intern/usd_writer_metaball.cc
-  intern/usd_writer_transform.cc
-  intern/usd_writer_volume.cc
->>>>>>> main
 
   intern/usd_reader_camera.cc
   intern/usd_reader_curve.cc
@@ -150,26 +135,11 @@ set(SRC
   intern/usd_exporter_context.h
   intern/usd_hash_types.h
   intern/usd_hierarchy_iterator.h
-<<<<<<< HEAD
   intern/usd_light_convert.h
   intern/usd_lux_api_wrapper.h
   intern/usd_modifier_disabler.h
   intern/usd_skel_convert.h
   intern/usd_skel_root_utils.h
-=======
-  intern/usd_hook.h
-  intern/usd_writer_abstract.h
-  intern/usd_writer_armature.h
-  intern/usd_writer_camera.h
-  intern/usd_writer_curves.h
-  intern/usd_writer_hair.h
-  intern/usd_writer_light.h
-  intern/usd_writer_material.h
-  intern/usd_writer_mesh.h
-  intern/usd_writer_metaball.h
-  intern/usd_writer_transform.h
-  intern/usd_writer_volume.h
->>>>>>> main
 
   intern/usd_reader_camera.h
   intern/usd_reader_curve.h

@@ -46,10 +46,6 @@ void USDGeomReader::apply_cache_file(CacheFile *cache_file)
 
 void USDGeomReader::add_cache_modifier()
 {
-<<<<<<< HEAD
-  /* Defer creating modifiers until a cache file is provided. */
-  needs_cachefile_ = true;
-=======
   if (!settings_->get_cache_file) {
     return;
   }
@@ -64,7 +60,6 @@ void USDGeomReader::add_cache_modifier()
   mcmd->read_flag = import_params_.mesh_read_flag;
 
   STRNCPY(mcmd->object_path, prim_.GetPath().GetString().c_str());
->>>>>>> main
 }
 
 void USDGeomReader::add_subdiv_modifier()

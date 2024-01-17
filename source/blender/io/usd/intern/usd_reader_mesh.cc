@@ -18,18 +18,13 @@
 #include "BKE_object.hh"
 #include "BKE_report.h"
 
+#include "BLI_hash.hh"
 #include "BLI_map.hh"
 #include "BLI_math_color.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
 #include "BLI_string.h"
 
-<<<<<<< HEAD
-#include "BLI_hash.hh"
-#include "usd_hash_types.h"
-
-=======
->>>>>>> main
 #include "DNA_customdata_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
@@ -1071,12 +1066,7 @@ void USDMeshReader::assign_facesets_to_material_indices(double motionSampleTime,
     }
   }
 
-<<<<<<< HEAD
-  if (r_mat_map->empty()) {
-=======
   if (r_mat_map->is_empty()) {
-
->>>>>>> main
     pxr::UsdShadeMaterial mtl = utils::compute_bound_material(prim_);
     if (mtl) {
       pxr::SdfPath mtl_path = mtl.GetPath();

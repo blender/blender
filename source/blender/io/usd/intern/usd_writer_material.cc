@@ -364,23 +364,6 @@ static void create_usd_viewport_material(const USDExporterContext &usd_export_co
 /* Return USD Preview Surface input map singleton. */
 static const InputSpecMap &preview_surface_input_map()
 {
-<<<<<<< HEAD
-  static InputSpecMap input_map = {
-      {"Base Color", {usdtokens::diffuse_color, pxr::SdfValueTypeNames->Color3f, true}},
-      {"Emission Color", {usdtokens::emissive_color, pxr::SdfValueTypeNames->Color3f, true}},
-      {"Color", {usdtokens::diffuse_color, pxr::SdfValueTypeNames->Color3f, true}},
-      {"Roughness", {usdtokens::roughness, pxr::SdfValueTypeNames->Float, true}},
-      {"Metallic", {usdtokens::metallic, pxr::SdfValueTypeNames->Float, true}},
-      {"Specular IOR Level", {usdtokens::specular, pxr::SdfValueTypeNames->Float, true}},
-      {"Alpha", {usdtokens::opacity, pxr::SdfValueTypeNames->Float, true}},
-      {"IOR", {usdtokens::ior, pxr::SdfValueTypeNames->Float, true}},
-      /* Note that for the Normal input set_default_value is false. */
-      {"Normal", {usdtokens::normal, pxr::SdfValueTypeNames->Float3, false}},
-      {"Coat Weight", {usdtokens::clearcoat, pxr::SdfValueTypeNames->Float, true}},
-      {"Coat Roughness", {usdtokens::clearcoatRoughness, pxr::SdfValueTypeNames->Float, true}},
-      {"Emission", {usdtokens::emissiveColor, pxr::SdfValueTypeNames->Color3f, true}},
-  };
-=======
   static const InputSpecMap input_map = []() {
     InputSpecMap map;
     map.add_new("Base Color", {usdtokens::diffuse_color, pxr::SdfValueTypeNames->Color3f, true});
@@ -400,7 +383,6 @@ static const InputSpecMap &preview_surface_input_map()
                 {usdtokens::clearcoatRoughness, pxr::SdfValueTypeNames->Float, true});
     return map;
   }();
->>>>>>> main
 
   return input_map;
 }

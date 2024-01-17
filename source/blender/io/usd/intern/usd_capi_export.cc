@@ -46,7 +46,7 @@
 #include "BKE_image.h"
 #include "BKE_image_format.h"
 #include "BKE_image_save.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"

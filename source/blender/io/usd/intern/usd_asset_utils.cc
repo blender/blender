@@ -17,6 +17,9 @@
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 
+#include "WM_api.hh"
+#include "WM_types.hh"
+
 #include <string_view>
 
 static const char UDIM_PATTERN[] = "<UDIM>";

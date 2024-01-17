@@ -46,17 +46,9 @@
 #include <pxr/usd/usdGeom/cylinder.h>
 #include <pxr/usd/usdGeom/sphere.h>
 
-<<<<<<< HEAD
 #include <iostream>
 
-#include "BKE_lib_id.h"
-
-#include "BKE_modifier.hh"
-#include "BKE_report.h"
-
-=======
 #include "BLI_map.hh"
->>>>>>> main
 #include "BLI_sort.hh"
 #include "BLI_string.h"
 
@@ -326,12 +318,8 @@ bool USDStageReader::merge_with_parent(USDPrimReader *reader) const
 
   /* Don't merge Xform, Scope or undefined prims. */
   if (xform_reader->prim().IsA<pxr::UsdGeomXform>() ||
-<<<<<<< HEAD
       xform_reader->prim().IsA<pxr::UsdGeomScope>() ||
       xform_reader->prim().GetPrimTypeInfo() == pxr::UsdPrimTypeInfo::GetEmptyPrimType())
-=======
-      xform_reader->prim().IsA<pxr::UsdGeomScope>())
->>>>>>> main
   {
     return false;
   }
@@ -349,12 +337,8 @@ bool USDStageReader::merge_with_parent(USDPrimReader *reader) const
 
 USDPrimReader *USDStageReader::collect_readers(Main *bmain,
                                                const pxr::UsdPrim &prim,
-<<<<<<< HEAD
                                                pxr::UsdGeomXformCache *xf_cache,
-                                               std::vector<USDPrimReader *> &r_readers)
-=======
                                                blender::Vector<USDPrimReader *> &r_readers)
->>>>>>> main
 {
   if (prim.IsA<pxr::UsdGeomImageable>()) {
     pxr::UsdGeomImageable imageable(prim);
@@ -389,19 +373,14 @@ USDPrimReader *USDStageReader::collect_readers(Main *bmain,
   blender::Vector<USDPrimReader *> child_readers;
 
   for (const auto &childPrim : children) {
-<<<<<<< HEAD
     if (USDPrimReader *child_reader = collect_readers(bmain, childPrim, xf_cache, r_readers)) {
-      child_readers.push_back(child_reader);
-=======
-    if (USDPrimReader *child_reader = collect_readers(bmain, childPrim, r_readers)) {
       child_readers.append(child_reader);
->>>>>>> main
     }
   }
 
   /* We prune the current prim if it's a Scope
    * and we didn't convert any of its children. */
-  if (child_readers.empty() && prim.IsA<pxr::UsdGeomScope>() &&
+  if (child_readers.is_empty() && prim.IsA<pxr::UsdGeomScope>() &&
       !(params_.support_scene_instancing && prim.IsInstance()))
   {
     return nullptr;
@@ -417,13 +396,7 @@ USDPrimReader *USDStageReader::collect_readers(Main *bmain,
 
   /* Check if we can merge an Xform with its child prim. */
   if (child_readers.size() == 1) {
-<<<<<<< HEAD
-    USDPrimReader *child_reader = child_readers.front();
-=======
-
     USDPrimReader *child_reader = child_readers.first();
->>>>>>> main
-
     if (merge_with_parent(child_reader)) {
       return child_reader;
     }
@@ -482,16 +455,10 @@ void USDStageReader::collect_readers(Main *bmain)
     std::vector<pxr::UsdPrim> protos = stage_->GetPrototypes();
 
     for (const pxr::UsdPrim &proto_prim : protos) {
-<<<<<<< HEAD
-      std::vector<USDPrimReader *> proto_readers;
-      collect_readers(bmain, proto_prim, &xf_cache, proto_readers);
-      proto_readers_.insert(std::make_pair(proto_prim.GetPath(), proto_readers));
-=======
       blender::Vector<USDPrimReader *> proto_readers;
-      collect_readers(bmain, proto_prim, proto_readers);
+      collect_readers(bmain, proto_prim, &xf_cache, proto_readers);
       proto_readers_.add(proto_prim.GetPath(), proto_readers);
 
->>>>>>> main
       for (USDPrimReader *reader : proto_readers) {
         readers_.append(reader);
         reader->incref();

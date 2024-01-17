@@ -160,85 +160,6 @@ static void set_instance_collection(
   }
 }
 
-/* Create instance collections for the USD instance readers. */
-static void create_proto_collections(Main *bmain,
-                                     ViewLayer *view_layer,
-                                     Collection *parent_collection,
-                                     const ProtoReaderMap &proto_readers,
-                                     const std::vector<USDPrimReader *> &readers)
-{
-  Collection *all_protos_collection = create_collection(bmain, parent_collection, "prototypes");
-
-  if (all_protos_collection) {
-    all_protos_collection->flag |= COLLECTION_HIDE_VIEWPORT;
-    all_protos_collection->flag |= COLLECTION_HIDE_RENDER;
-  }
-
-  std::map<pxr::SdfPath, Collection *> proto_collection_map;
-
-  for (const auto &pair : proto_readers) {
-
-    std::string proto_collection_name = pair.first.GetString();
-
-    // TODO(makowalski): Is it acceptable to have slashes in the collection names? Or should we
-    // replace them with another character, like an underscore, as in the following?
-    // std::replace(proto_collection_name.begin(), proto_collection_name.end(), '/', '_');
-
-    Collection *proto_collection = create_collection(
-        bmain, all_protos_collection, proto_collection_name.c_str());
-
-    proto_collection_map.insert(std::make_pair(pair.first, proto_collection));
-  }
-
-  // Set the instance collections on the readers, including the prototype
-  // readers, as instancing may be recursive.
-
-  for (const auto &pair : proto_readers) {
-    for (USDPrimReader *reader : pair.second) {
-      if (USDInstanceReader *instance_reader = dynamic_cast<USDInstanceReader *>(reader)) {
-        set_instance_collection(instance_reader, proto_collection_map);
-      }
-    }
-  }
-
-  for (USDPrimReader *reader : readers) {
-    if (USDInstanceReader *instance_reader = dynamic_cast<USDInstanceReader *>(reader)) {
-      set_instance_collection(instance_reader, proto_collection_map);
-    }
-  }
-
-  // Add the prototype objects to the collections.
-  for (const auto &pair : proto_readers) {
-
-    std::map<pxr::SdfPath, Collection *>::const_iterator it = proto_collection_map.find(
-        pair.first);
-
-    if (it == proto_collection_map.end()) {
-      std::cerr << "WARNING: Couldn't find collection when adding objects for prototype "
-                << pair.first << std::endl;
-      continue;
-    }
-
-    for (USDPrimReader *reader : pair.second) {
-      Object *ob = reader->object();
-
-      if (!ob) {
-        continue;
-      }
-
-      Collection *coll = it->second;
-
-      BKE_collection_object_add(bmain, coll, ob);
-
-      DEG_id_tag_update(&coll->id, ID_RECALC_COPY_ON_WRITE);
-      DEG_id_tag_update_ex(bmain,
-                           &ob->id,
-                           ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION |
-                               ID_RECALC_BASE_FLAGS);
-    }
-  }
-}
-
 /* Update the given import settings with the global rotation matrix to orient
  * imported objects with Z-up, if necessary */
 static void convert_to_z_up(pxr::UsdStageRefPtr stage, ImportSettings *r_settings)
@@ -334,11 +255,9 @@ struct ImportJobData {
   bool import_ok;
   timeit::TimePoint start_time;
 
-<<<<<<< HEAD
   wmJob *wm_job;
-=======
+
   CacheFile *cache_file;
->>>>>>> main
 };
 
 static void main_thread_lock_acquire(ImportJobData *data)
@@ -440,10 +359,7 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
         data->view_layer, import_collection);
   }
 
-<<<<<<< HEAD
   USD_path_abs(data->filepath, BKE_main_blendfile_path_from_global(), true);
-=======
-  BLI_path_abs(data->filepath, BKE_main_blendfile_path_from_global());
 
   /* Callback function to lazily create a cache file when converting
    * time varying data. */
@@ -465,7 +381,6 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
   };
 
   data->settings.get_cache_file = get_cache_file;
->>>>>>> main
 
   *data->do_update = true;
   *data->progress = 0.05f;

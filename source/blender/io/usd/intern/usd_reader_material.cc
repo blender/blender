@@ -1163,7 +1163,6 @@ void USDMaterialReader::convert_usd_primvar_reader_float2(const pxr::UsdShadeSha
   link_nodes(ntree, uv_map, "UV", dest_node, dest_socket_name);
 }
 
-<<<<<<< HEAD
 void USDMaterialReader::pack_imported_textures(Material *material,
                                                bool delete_temp_textures_dir) const
 {
@@ -1198,10 +1197,7 @@ void USDMaterialReader::pack_imported_textures(Material *material,
   }
 }
 
-void build_material_map(const Main *bmain, std::map<std::string, Material *> *r_mat_map)
-=======
 void build_material_map(const Main *bmain, blender::Map<std::string, Material *> *r_mat_map)
->>>>>>> main
 {
   BLI_assert_msg(r_mat_map, "...");
 

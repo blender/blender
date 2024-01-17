@@ -126,12 +126,8 @@ class USDStageReader {
  private:
   USDPrimReader *collect_readers(Main *bmain,
                                  const pxr::UsdPrim &prim,
-<<<<<<< HEAD
                                  pxr::UsdGeomXformCache *xf_cache,
-                                 std::vector<USDPrimReader *> &r_readers);
-=======
                                  blender::Vector<USDPrimReader *> &r_readers);
->>>>>>> main
 
   /**
    * Returns true if the given prim should be included in the

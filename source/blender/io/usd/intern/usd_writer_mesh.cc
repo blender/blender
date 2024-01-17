@@ -30,12 +30,8 @@
 #include "BKE_customdata.hh"
 #include "BKE_deform.h"
 #include "BKE_key.h"
-<<<<<<< HEAD
-#include "BKE_lib_id.h"
-#include "BKE_library.hh"
-=======
 #include "BKE_lib_id.hh"
->>>>>>> main
+#include "BKE_library.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
