@@ -609,8 +609,9 @@ void BLI_ewa_filter(const int width,
                     void *userdata,
                     float result[4])
 {
-  /* scaling dxt/dyt by full resolution can cause overflow because of huge A/B/C and esp. F values,
-   * scaling by aspect ratio alone does the opposite, so try something in between instead... */
+  /* Scaling `dxt` / `dyt` by full resolution can cause overflow because of huge A/B/C and esp.
+   * F values, scaling by aspect ratio alone does the opposite, so try something in between
+   * instead. */
   const float ff2 = (float)width, ff = sqrtf(ff2), q = (float)height / ff;
   const float Ux = du[0] * ff, Vx = du[1] * q, Uy = dv[0] * ff, Vy = dv[1] * q;
   float A = Vx * Vx + Vy * Vy;
@@ -620,7 +621,7 @@ void BLI_ewa_filter(const int width,
   float a, b, th, ecc, a2, b2, ue, ve, U0, V0, DDQ, U, ac1, ac2, BU, d;
   int u, v, u1, u2, v1, v2;
 
-  /* The so-called 'high' quality ewa method simply adds a constant of 1 to both A & C,
+  /* The so-called 'high' quality EWA method simply adds a constant of 1 to both A & C,
    * so the ellipse always covers at least some texels. But since the filter is now always larger,
    * it also means that everywhere else it's also more blurry then ideally should be the case.
    * So instead here the ellipse radii are modified instead whenever either is too low.

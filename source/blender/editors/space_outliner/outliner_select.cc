@@ -1640,7 +1640,7 @@ static bool do_outliner_range_select_recursive(ListBase *lb,
     /* Don't look inside closed elements, unless we're forcing the recursion all the way down. */
     if (!(tselem->flag & TSE_CLOSED) || recurse) {
       /* If this tree element is a collection, then it sets
-       * the precedent for inclusion of its subobjects. */
+       * the precedent for inclusion of its sub-objects. */
       Collection *child_collection = in_collection;
       if (tselem->type == TSE_LAYER_COLLECTION) {
         child_collection = static_cast<LayerCollection *>(te->directdata)->collection;
@@ -1815,7 +1815,7 @@ static int outliner_item_do_activate_from_cursor(bContext *C,
       bool select = !extend || !(activate_tselem->flag & TSE_ACTIVE) ||
                     !(activate_tselem->flag & TSE_SELECTED);
 
-      /* If we're CTRL+double-clicking and the element is aleady
+      /* If we're CTRL+double-clicking and the element is already
        * selected, skip the activation and go straight to deselection. */
       if (extend && recurse && activate_tselem->flag & TSE_SELECTED) {
         select = false;

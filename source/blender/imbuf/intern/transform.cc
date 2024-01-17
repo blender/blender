@@ -275,8 +275,8 @@ static void process_scanlines(const TransformContext &ctx, IndexRange y_range)
   float2 uv_start = ctx.start_uv + ctx.add_x * 0.5f + ctx.add_y * 0.5f;
 
   if (ctx.subsampling_deltas.size() > 1) {
-    /* Multiple samples per pixel: accumulate them premultiplied,
-     * divide by sample count and write out (un-premultiplying if writing out
+    /* Multiple samples per pixel: accumulate them pre-multiplied,
+     * divide by sample count and write out (un-pre-multiplying if writing out
      * to byte image). */
     const float inv_count = 1.0f / ctx.subsampling_deltas.size();
     for (int yi : y_range) {

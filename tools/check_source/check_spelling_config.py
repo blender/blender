@@ -130,6 +130,7 @@ dict_custom = {
     "dihedral",
     "dimensionality",
     "directionality",
+    "disambiguates",
     "discoverability",
     "discretization",
     "discretized",

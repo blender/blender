@@ -27,7 +27,7 @@ void gaussian_blur_1D(const GSpan src,
                       GMutableSpan dst);
 
 /**
- * Smoothes the \a attribute_data using a 1D gaussian blur.
+ * Smooths the \a attribute_data using a 1D gaussian blur.
  */
 void smooth_curve_attribute(const IndexMask &curves_to_smooth,
                             const OffsetIndices<int> points_by_curve,
