@@ -845,6 +845,12 @@ static uiTooltipData *ui_tooltip_data_from_button_or_extra_icon(bContext *C,
   /* create tooltip data */
   uiTooltipData *data = MEM_cnew<uiTooltipData>(__func__);
 
+  /* Menus already show shortcuts, don't show them in the tool-tips. */
+  if (ui_block_is_menu(but->block) && !ui_block_is_pie_menu(but->block)) {
+    op_keymap.type = BUT_GET_NOP;
+    prop_keymap.type = BUT_GET_NOP;
+  }
+
   if (extra_icon) {
     if (is_label) {
       UI_but_extra_icon_string_info_get(
