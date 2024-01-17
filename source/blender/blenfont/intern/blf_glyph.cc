@@ -1322,7 +1322,7 @@ GlyphBLF *blf_glyph_ensure(FontBLF *font, GlyphCacheBLF *gc, const uint charcode
 #ifdef BLF_SUBPIXEL_AA
 GlyphBLF *blf_glyph_ensure_subpixel(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, int32_t pen_x)
 {
-  if (!(font->flags & BLF_RENDER_SUBPIXELAA) || (font->flags & BLF_MONOCHROME)) {
+  if (!(font->flags & BLF_RENDER_SUBPIXELAA)) {
     /* Not if we are in mono mode (aliased) or the feature is turned off. */
     return g;
   }
