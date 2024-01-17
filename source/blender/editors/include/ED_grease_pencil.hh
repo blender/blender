@@ -152,8 +152,6 @@ bool has_any_frame_selected(const bke::greasepencil::Layer &layer);
 void create_keyframe_edit_data_selected_frames_list(KeyframeEditData *ked,
                                                     const bke::greasepencil::Layer &layer);
 
-float brush_radius_world_space(bContext &C, int x, int y);
-
 bool active_grease_pencil_poll(bContext *C);
 bool editable_grease_pencil_poll(bContext *C);
 bool editable_grease_pencil_point_selection_poll(bContext *C);
