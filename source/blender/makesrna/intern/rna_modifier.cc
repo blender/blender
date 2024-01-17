@@ -7332,7 +7332,9 @@ static void rna_def_modifier_nodes(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, nullptr);
 
   rna_def_modifier_panel_open_prop(srna, "open_output_attributes_panel", 0);
-  rna_def_modifier_panel_open_prop(srna, "open_internal_dependencies_panel", 1);
+  rna_def_modifier_panel_open_prop(srna, "open_manage_panel", 1);
+  rna_def_modifier_panel_open_prop(srna, "open_bake_panel", 2);
+  rna_def_modifier_panel_open_prop(srna, "open_named_attributes_panel", 3);
 
   RNA_define_lib_overridable(false);
 }
