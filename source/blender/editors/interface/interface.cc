@@ -6577,7 +6577,7 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
   va_start(args, but);
   while ((si = (uiStringInfo *)va_arg(args, void *))) {
     uiStringInfoType type = si->type;
-    std::string tmp;
+    std::optional<std::string> tmp;
 
     if (type == BUT_GET_TIP_LABEL) {
       if (but->tip_label_func) {
@@ -6679,7 +6679,7 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
           }
         }
 
-        if (tmp.empty()) {
+        if (!tmp) {
           wmOperatorType *ot = UI_but_operatortype_get_from_enum_menu(but, nullptr);
           if (ot) {
             if (type == BUT_GET_RNA_LABEL) {
@@ -6691,7 +6691,7 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
           }
         }
 
-        if (tmp.empty()) {
+        if (!tmp) {
           PanelType *pt = UI_but_paneltype_get(but);
           if (pt) {
             if (type == BUT_GET_RNA_LABEL) {
@@ -6804,7 +6804,7 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
       }
     }
 
-    si->strinfo = BLI_strdupn(tmp.c_str(), tmp.size());
+    si->strinfo = tmp ? BLI_strdupn(tmp->c_str(), tmp->size()) : nullptr;
   }
   va_end(args);
 
