@@ -248,7 +248,6 @@ static void extrude_curves(Curves &curves_id)
   const int curves_num = curves.curves_num();
   const int curve_intervals_size = extruded_points.size() * 2 + curves_num * 2;
 
-  new_curves.resize(0, curves_num);
   MutableSpan<int> new_offsets = new_curves.offsets_for_write();
 
   /* Buffer for intervals of all curves. Beginning and end of a curve can be determined only by
