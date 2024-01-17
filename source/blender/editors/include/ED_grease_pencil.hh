@@ -204,14 +204,6 @@ void create_blank(Main &bmain, Object &object, int frame_number);
 void create_stroke(Main &bmain, Object &object, float4x4 matrix, int frame_number);
 void create_suzanne(Main &bmain, Object &object, float4x4 matrix, int frame_number);
 
-void gaussian_blur_1D(const GSpan src,
-                      int64_t iterations,
-                      float influence,
-                      bool smooth_ends,
-                      bool keep_shape,
-                      bool is_cyclic,
-                      GMutableSpan dst);
-
 int64_t ramer_douglas_peucker_simplify(IndexRange range,
                                        float epsilon,
                                        FunctionRef<float(int64_t, int64_t, int64_t)> dist_function,
