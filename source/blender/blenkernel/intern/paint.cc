@@ -673,48 +673,50 @@ void BKE_paint_brush_set(Paint *p, Brush *br)
   }
 }
 
-static void paint_brush_asset_update(Paint *p,
-                                     Brush *br,
+static void paint_brush_asset_update(Paint &paint,
+                                     Brush *brush,
                                      AssetWeakReference *brush_asset_reference)
 {
-  if (p->brush_asset_reference != nullptr) {
-    BKE_asset_weak_reference_free(&p->brush_asset_reference);
+  if (paint.brush_asset_reference != nullptr) {
+    BKE_asset_weak_reference_free(&paint.brush_asset_reference);
   }
 
-  if (br == nullptr || br != p->brush || !ID_IS_OVERRIDE_LIBRARY_REAL(p->brush) ||
-      !(ID_IS_ASSET(p->brush) || ID_IS_ASSET(p->brush->id.override_library->reference)))
+  if (brush == nullptr || brush != paint.brush || !ID_IS_OVERRIDE_LIBRARY_REAL(paint.brush) ||
+      !(ID_IS_ASSET(paint.brush) || ID_IS_ASSET(paint.brush->id.override_library->reference)))
   {
     BKE_asset_weak_reference_free(&brush_asset_reference);
     return;
   }
 
-  p->brush_asset_reference = brush_asset_reference;
+  paint.brush_asset_reference = brush_asset_reference;
 }
 
-void BKE_paint_brush_asset_set(Paint *p, Brush *br, AssetWeakReference *weak_asset_reference)
+void BKE_paint_brush_asset_set(Paint *paint,
+                               Brush *brush,
+                               AssetWeakReference *weak_asset_reference)
 {
-  BKE_paint_brush_set(p, br);
-  paint_brush_asset_update(p, br, weak_asset_reference);
+  BKE_paint_brush_set(paint, brush);
+  paint_brush_asset_update(*paint, brush, weak_asset_reference);
 }
 
-void BKE_paint_brush_asset_restore(Main *bmain, Paint *p)
+void BKE_paint_brush_asset_restore(Main *bmain, Paint *paint)
 {
-  if (p->brush != nullptr) {
+  if (paint->brush != nullptr) {
     return;
   }
 
-  if (p->brush_asset_reference == nullptr) {
+  if (paint->brush_asset_reference == nullptr) {
     return;
   }
 
-  AssetWeakReference *brush_asset_reference = p->brush_asset_reference;
-  p->brush_asset_reference = nullptr;
+  AssetWeakReference *brush_asset_reference = paint->brush_asset_reference;
+  paint->brush_asset_reference = nullptr;
 
   Brush *brush_asset = BKE_brush_asset_runtime_ensure(bmain, brush_asset_reference);
 
-  /* Will either re-assign the brush_asset_reference to `p`, or free it if loading a brush ID from
-   * it failed. */
-  BKE_paint_brush_asset_set(p, brush_asset, brush_asset_reference);
+  /* Will either re-assign the brush_asset_reference to `paint`, or free it if loading a brush ID
+   * from it failed. */
+  BKE_paint_brush_asset_set(paint, brush_asset, brush_asset_reference);
 }
 
 void BKE_paint_runtime_init(const ToolSettings *ts, Paint *paint)
