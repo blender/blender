@@ -7197,6 +7197,14 @@ static void rna_def_modifier_nodes_bake(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, bake_mode_items);
   RNA_def_property_ui_text(prop, "Bake Mode", "");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "bake_id", PROP_INT, PROP_NONE);
+  RNA_def_property_ui_text(prop,
+                           "Bake ID",
+                           "Identifier for this bake which remains unchanged even when the bake "
+                           "node is renamed, grouped or ungrouped");
+  RNA_def_property_int_sdna(prop, nullptr, "id");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 }
 
 static void rna_def_modifier_nodes_bakes(BlenderRNA *brna)
