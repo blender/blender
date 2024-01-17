@@ -65,6 +65,10 @@
 #include "tree/tree_element_rna.hh"
 #include "tree/tree_iterator.hh"
 
+#include "wm_window.hh"
+
+#include <fmt/format.h>
+
 using namespace blender::ed::outliner;
 
 namespace blender::ed::outliner {
@@ -2140,7 +2144,7 @@ static int outliner_orphans_purge_invoke(bContext *C, wmOperator *op, const wmEv
   RNA_int_set(op->ptr, "num_deleted", num_tagged[INDEX_ID_NULL]);
 
   if (num_tagged[INDEX_ID_NULL] == 0) {
-    BKE_report(op->reports, RPT_INFO, "No orphaned data-blocks to purge");
+    BKE_report(op->reports, RPT_INFO, "No unused data-blocks to purge");
     return OPERATOR_CANCELLED;
   }
 
@@ -2188,7 +2192,7 @@ static int outliner_orphans_purge_exec(bContext *C, wmOperator *op)
         bmain, LIB_TAG_DOIT, do_local_ids, do_linked_ids, do_recursive_cleanup, num_tagged);
 
     if (num_tagged[INDEX_ID_NULL] == 0) {
-      BKE_report(op->reports, RPT_INFO, "No orphaned data-blocks to purge");
+      BKE_report(op->reports, RPT_INFO, "No unused data-blocks to purge");
       return OPERATOR_CANCELLED;
     }
   }
@@ -2219,7 +2223,7 @@ void OUTLINER_OT_orphans_purge(wmOperatorType *ot)
   /* identifiers */
   ot->idname = "OUTLINER_OT_orphans_purge";
   ot->name = "Purge All";
-  ot->description = "Clear all orphaned data-blocks without any users from the file";
+  ot->description = "Remove all unused data-blocks without any users from the file";
 
   /* callbacks */
   ot->invoke = outliner_orphans_purge_invoke;
@@ -2248,8 +2252,265 @@ void OUTLINER_OT_orphans_purge(wmOperatorType *ot)
                   "do_recursive",
                   false,
                   "Recursive Delete",
-                  "Recursively check for indirectly unused data-blocks, ensuring that no orphaned "
+                  "Recursively check for indirectly unused data-blocks, ensuring that no unused "
                   "data-blocks remain after execution");
+}
+
+static void wm_block_orphans_cancel(bContext *C, void *arg_block, void * /*arg_data*/)
+{
+  UI_popup_block_close(C, CTX_wm_window(C), (uiBlock *)arg_block);
+}
+
+static void wm_block_orphans_cancel_button(uiBlock *block)
+{
+  uiBut *but = uiDefIconTextBut(
+      block, UI_BTYPE_BUT, 0, 0, IFACE_("Cancel"), 0, 0, 0, UI_UNIT_Y, 0, 0, 0, 0, 0, "");
+  UI_but_func_set(but, wm_block_orphans_cancel, block, nullptr);
+  UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
+  UI_but_flag_enable(but, UI_BUT_ACTIVE_DEFAULT);
+}
+
+struct OrphansPurgeData {
+  wmOperator *op = nullptr;
+  char local = true;
+  char linked = false;
+  char recursive = false;
+};
+
+static void wm_block_orphans_purge(bContext *C, void *arg_block, void *arg_data)
+{
+  OrphansPurgeData *purge_data = (OrphansPurgeData *)arg_data;
+  wmOperator *op = purge_data->op;
+  Main *bmain = CTX_data_main(C);
+  int num_tagged[INDEX_ID_MAX] = {0};
+
+  /* Tag all IDs to delete. */
+  BKE_lib_query_unused_ids_tag(bmain,
+                               LIB_TAG_DOIT,
+                               purge_data->local,
+                               purge_data->linked,
+                               purge_data->recursive,
+                               num_tagged);
+
+  if (num_tagged[INDEX_ID_NULL] == 0) {
+    BKE_report(op->reports, RPT_INFO, "No unused data to remove");
+  }
+  else {
+    BKE_id_multi_tagged_delete(bmain);
+    BKE_reportf(op->reports, RPT_INFO, "Deleted %d data block(s)", num_tagged[INDEX_ID_NULL]);
+    DEG_relations_tag_update(bmain);
+    WM_event_add_notifier(C, NC_ID | NA_REMOVED, nullptr);
+    /* Force full redraw of the UI. */
+    WM_main_add_notifier(NC_WINDOW, nullptr);
+  }
+
+  UI_popup_block_close(C, CTX_wm_window(C), (uiBlock *)arg_block);
+}
+
+static void wm_block_orphans_purge_button(uiBlock *block, OrphansPurgeData *purge_data)
+{
+  uiBut *but = uiDefIconTextBut(
+      block, UI_BTYPE_BUT, 0, 0, IFACE_("Delete"), 0, 0, 0, UI_UNIT_Y, 0, 0, 0, 0, 0, "");
+  UI_but_func_set(but, wm_block_orphans_purge, block, purge_data);
+  UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
+}
+
+static std::string orphan_desc(const bContext *C, const bool local, bool linked, bool recursive)
+{
+  Main *bmain = CTX_data_main(C);
+  int num_tagged[INDEX_ID_MAX] = {0};
+  std::string desc;
+
+  BKE_lib_query_unused_ids_tag(bmain, LIB_TAG_DOIT, local, linked, recursive, num_tagged);
+
+  bool is_first = true;
+  for (int i = 0; i < INDEX_ID_MAX - 2; i++) {
+    if (num_tagged[i] != 0) {
+      desc += fmt::format(
+          "{}{} {}",
+          (is_first) ? "" : ", ",
+          num_tagged[i],
+          (num_tagged[i] > 1) ?
+              TIP_(BKE_idtype_idcode_to_name_plural(BKE_idtype_idcode_from_index(i))) :
+              TIP_(BKE_idtype_idcode_to_name(BKE_idtype_idcode_from_index(i))));
+      is_first = false;
+    }
+  }
+
+  if (desc.empty()) {
+    desc = "Nothing";
+  }
+
+  return desc;
+}
+
+static uiBlock *wm_block_create_orphans_cleanup(bContext *C, ARegion *region, void *arg)
+{
+  OrphansPurgeData *purge_data = static_cast<OrphansPurgeData *>(arg);
+  uiBlock *block = UI_block_begin(C, region, "orphans_remove_popup", UI_EMBOSS);
+  UI_block_flag_enable(
+      block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_LOOP | UI_BLOCK_NO_WIN_CLIP | UI_BLOCK_NUMSELECT);
+  UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
+
+  uiLayout *layout = uiItemsAlertBox(block, 40, ALERT_ICON_WARNING);
+
+  /* Title. */
+  uiItemL_ex(layout, TIP_("Purge Unused Data From This File"), 0, true, false);
+
+  uiItemS(layout);
+
+  std::string desc = "Local data: " + orphan_desc(C, true, false, false);
+
+  uiDefButBitC(block,
+               UI_BTYPE_CHECKBOX,
+               1,
+               0,
+               desc.c_str(),
+               0,
+               0,
+               0,
+               UI_UNIT_Y,
+               &purge_data->local,
+               0,
+               0,
+               0,
+               0,
+               "Delete unused local data");
+
+  desc = "Linked data: " + orphan_desc(C, false, true, false);
+
+  uiDefButBitC(block,
+               UI_BTYPE_CHECKBOX,
+               1,
+               0,
+               desc.c_str(),
+               0,
+               0,
+               0,
+               UI_UNIT_Y,
+               &purge_data->linked,
+               0,
+               0,
+               0,
+               0,
+               "Delete unused linked data");
+
+  uiDefButBitC(
+      block,
+      UI_BTYPE_CHECKBOX,
+      1,
+      0,
+      "Include indirect data",
+      0,
+      0,
+      0,
+      UI_UNIT_Y,
+      &purge_data->recursive,
+      0,
+      0,
+      0,
+      0,
+      "Recursively check for indirectly unused data, ensuring that no unused data remains");
+
+  uiItemS_ex(layout, 2.0f);
+
+  /* Buttons. */
+#ifdef _WIN32
+  const bool windows_layout = true;
+#else
+  const bool windows_layout = false;
+#endif
+
+  uiLayout *split = uiLayoutSplit(layout, 0.0f, true);
+  uiLayoutSetScaleY(split, 1.2f);
+
+  if (windows_layout) {
+    /* Windows standard layout. */
+    uiLayoutColumn(split, false);
+    wm_block_orphans_purge_button(block, purge_data);
+    uiLayoutColumn(split, false);
+    wm_block_orphans_cancel_button(block);
+  }
+  else {
+    /* Non-Windows layout (macOS and Linux). */
+    uiLayoutColumn(split, false);
+    wm_block_orphans_cancel_button(block);
+    uiLayoutColumn(split, false);
+    wm_block_orphans_purge_button(block, purge_data);
+  }
+
+  UI_block_bounds_set_centered(block, 14 * UI_SCALE_FAC);
+  return block;
+}
+
+static int outliner_orphans_cleanup_exec(bContext *C, wmOperator *op)
+{
+  OrphansPurgeData *purge_data = MEM_new<OrphansPurgeData>(__func__);
+  purge_data->op = op;
+  UI_popup_block_invoke(C, wm_block_create_orphans_cleanup, purge_data, MEM_freeN);
+  return OPERATOR_FINISHED;
+}
+
+void OUTLINER_OT_orphans_cleanup(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->idname = "OUTLINER_OT_orphans_cleanup";
+  ot->name = "Purge Unused Data...";
+  ot->description = "Remove unused data from this file";
+
+  /* callbacks */
+  ot->exec = outliner_orphans_cleanup_exec;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+static int outliner_orphans_manage_exec(bContext *C, wmOperator * /*op*/)
+{
+  int width = 800;
+  int height = 500;
+  if (wm_get_screensize(&width, &height)) {
+    width /= 2;
+    height /= 2;
+  }
+
+  const rcti window_rect = {
+      /*xmin*/ 0,
+      /*xmax*/ width,
+      /*ymin*/ 0,
+      /*ymax*/ height,
+  };
+
+  if (WM_window_open(C,
+                     IFACE_("Manage Unused Data"),
+                     &window_rect,
+                     SPACE_OUTLINER,
+                     false,
+                     false,
+                     true,
+                     WIN_ALIGN_PARENT_CENTER,
+                     nullptr,
+                     nullptr) != nullptr)
+  {
+    SpaceOutliner *soutline = (SpaceOutliner *)CTX_wm_area(C)->spacedata.first;
+    soutline->outlinevis = SO_ID_ORPHANS;
+    return OPERATOR_FINISHED;
+  }
+  return OPERATOR_CANCELLED;
+}
+
+void OUTLINER_OT_orphans_manage(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->idname = "OUTLINER_OT_orphans_manage";
+  ot->name = "Manage Unused Data...";
+  ot->description = "Open a window to manage unused data";
+
+  /* callbacks */
+  ot->exec = outliner_orphans_manage_exec;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER;
 }
 
 /** \} */

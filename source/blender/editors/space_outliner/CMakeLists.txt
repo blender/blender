@@ -12,6 +12,7 @@ set(INC
   ../../makesrna
   ../../sequencer
   ../../windowmanager
+  ../../../../extern/fmtlib/include
 
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -137,6 +138,7 @@ set(LIB
   bf_editor_undo
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
+  extern_fmtlib
 )
 
 
