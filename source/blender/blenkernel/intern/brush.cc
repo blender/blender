@@ -526,11 +526,10 @@ Brush *BKE_brush_asset_runtime_ensure(Main *bmain, const AssetWeakReference *bru
   BKE_blendfile_link_append_context_item_library_index_enable(lapp_context, lapp_item, 0);
 
   BKE_blendfile_link(lapp_context, nullptr);
-  BKE_blendfile_override(
-      lapp_context,
-      static_cast<eBKELibLinkOverride>(BKE_LIBLINK_OVERRIDE_USE_EXISTING_LIBOVERRIDES |
-                                       BKE_LIBLINK_OVERRIDE_CREATE_RUNTIME),
-      nullptr);
+  BKE_blendfile_override(lapp_context,
+                         eBKELibLinkOverride(BKE_LIBLINK_OVERRIDE_USE_EXISTING_LIBOVERRIDES |
+                                             BKE_LIBLINK_OVERRIDE_CREATE_RUNTIME),
+                         nullptr);
 
   Brush *liboverride_brush = reinterpret_cast<Brush *>(
       BKE_blendfile_link_append_context_item_liboverrideid_get(lapp_context, lapp_item));
