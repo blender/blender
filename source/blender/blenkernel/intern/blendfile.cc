@@ -396,17 +396,18 @@ static int reuse_bmain_data_dependencies_process_cb(LibraryIDLinkCallbackData *c
   return IDWALK_RET_NOP;
 }
 
-/* Selectively 'import' data from old BMain into new BMain, provided it does not conflict with data
- * already present in the new BMain (name-wise and library-wise).
+/**
+ * Selectively 'import' data from old Main into new Main, provided it does not conflict with data
+ * already present in the new Main (name-wise and library-wise).
  *
- * Dependencies from moved over old data are also imported into the new BMain, (unless, in case of
- * linked data, a matching linked ID is already available in new BMain).
+ * Dependencies from moved over old data are also imported into the new Main, (unless, in case of
+ * linked data, a matching linked ID is already available in new Main).
  *
  * When a conflict is found, usages of the conflicted ID by the old data are stored in the
- * `remapper` of `ReuseOldBMainData` to be remapped to the matching data in the new BMain later.
+ * `remapper` of `ReuseOldBMainData` to be remapped to the matching data in the new Main later.
  *
- * NOTE: This function will never remove any original new data from the new BMain, it only moves
- * (some of) the old data to the new BMain.
+ * NOTE: This function will never remove any original new data from the new Main, it only moves
+ * (some of) the old data to the new Main.
  */
 static void reuse_old_bmain_data_for_blendfile(ReuseOldBMainData *reuse_data, const short id_code)
 {
@@ -430,7 +431,8 @@ static void reuse_old_bmain_data_for_blendfile(ReuseOldBMainData *reuse_data, co
      * an asset repository, and its assets should be accessed through the asset system by other
      * files. */
     if (!ID_IS_LINKED(old_id_iter) && !ID_IS_OVERRIDE_LIBRARY(old_id_iter) &&
-        ID_IS_ASSET(old_id_iter)) {
+        ID_IS_ASSET(old_id_iter))
+    {
       continue;
     }
 
