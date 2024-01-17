@@ -1091,7 +1091,7 @@ class VIEW3D_AST_brush_asset_shelf(bpy.types.AssetShelf):
 
     @classmethod
     def asset_poll(cls, asset):
-        return asset.id_type == 'BRUSH'
+        return asset.id_type == 'BRUSH' and asset.metadata.get("use_paint_sculpt_curves", False)
 
 
 class VIEW3D_MT_editor_menus(Menu):
