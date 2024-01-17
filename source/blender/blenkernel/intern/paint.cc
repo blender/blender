@@ -704,6 +704,7 @@ bool BKE_paint_brush_asset_set(Paint *paint,
 
   BKE_paint_brush_set(paint, brush);
   paint_brush_asset_update(*paint, brush, weak_asset_reference);
+  return true;
 }
 
 void BKE_paint_brush_asset_restore(Main *bmain, Paint *paint)
