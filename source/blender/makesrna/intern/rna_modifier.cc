@@ -1713,6 +1713,39 @@ static IDProperty **rna_NodesModifier_properties(PointerRNA *ptr)
   return &settings->properties;
 }
 
+static const NodesModifierData *find_nodes_modifier_by_bake(const Object &object,
+                                                            const NodesModifierBake &bake)
+{
+  LISTBASE_FOREACH (const ModifierData *, md, &object.modifiers) {
+    if (md->type != eModifierType_Nodes) {
+      continue;
+    }
+    const NodesModifierData *nmd = reinterpret_cast<const NodesModifierData *>(md);
+    const blender::Span<NodesModifierBake> bakes{nmd->bakes, nmd->bakes_num};
+    if (bakes.contains_ptr(&bake)) {
+      return nmd;
+    }
+  }
+  return nullptr;
+}
+
+static PointerRNA rna_NodesModifierBake_node_get(PointerRNA *ptr)
+{
+  const Object *ob = reinterpret_cast<Object *>(ptr->owner_id);
+  const NodesModifierBake *bake = static_cast<NodesModifierBake *>(ptr->data);
+  const NodesModifierData *nmd = find_nodes_modifier_by_bake(*ob, *bake);
+  if (!nmd->node_group) {
+    return PointerRNA_NULL;
+  }
+  const bNodeTree *tree;
+  const bNode *node = nmd->node_group->find_nested_node(bake->id, &tree);
+  if (!node) {
+    return PointerRNA_NULL;
+  }
+  BLI_assert(tree != nullptr);
+  return RNA_pointer_create(const_cast<ID *>(&tree->id), &RNA_Node, const_cast<bNode *>(node));
+}
+
 bool rna_GreasePencilModifier_material_poll(PointerRNA *ptr, PointerRNA value)
 {
   Object *ob = reinterpret_cast<Object *>(ptr->owner_id);
@@ -7205,6 +7238,16 @@ static void rna_def_modifier_nodes_bake(BlenderRNA *brna)
                            "node is renamed, grouped or ungrouped");
   RNA_def_property_int_sdna(prop, nullptr, "id");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+  prop = RNA_def_property(srna, "node", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "Node");
+  RNA_def_property_ui_text(prop,
+                           "Node",
+                           "Bake node or simulation output node that corresponds to this bake. "
+                           "This node may be deeply nested in the modifier node group. It can be "
+                           "none in some cases like missing linked data blocks");
+  RNA_def_property_pointer_funcs(
+      prop, "rna_NodesModifierBake_node_get", nullptr, nullptr, nullptr);
 }
 
 static void rna_def_modifier_nodes_bakes(BlenderRNA *brna)
