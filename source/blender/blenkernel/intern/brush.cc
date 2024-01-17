@@ -402,7 +402,8 @@ static void brush_asset_metadata_ensure(void *asset_ptr, AssetMetaData *asset_da
       {"use_paint_image", OB_MODE_TEXTURE_PAINT},
       {"use_paint_grease_pencil", OB_MODE_PAINT_GPENCIL_LEGACY},
       {"use_vertex_grease_pencil", OB_MODE_VERTEX_GPENCIL_LEGACY},
-      {"use_paint_sculpt_curves", OB_MODE_SCULPT_CURVES}};
+      {"use_paint_sculpt_curves", OB_MODE_SCULPT_CURVES},
+  };
 
   for (const auto &mode_mapping : mode_map) {
     /* Only add bools for supported modes. */

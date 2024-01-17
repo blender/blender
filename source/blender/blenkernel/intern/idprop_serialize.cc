@@ -765,7 +765,7 @@ class IDPUnknownSerializer : public IDPropertySerializer {
 
 /* Serializers are constructed statically to remove construction/destruction. */
 static constexpr IDPStringSerializer IDP_SERIALIZER_STRING;
-static constexpr IDPIntSerializer IDP_SERIALIZER_BOOL;
+static constexpr IDPBoolSerializer IDP_SERIALIZER_BOOL;
 static constexpr IDPIntSerializer IDP_SERIALIZER_INT;
 static constexpr IDPFloatSerializer IDP_SERIALIZER_FLOAT;
 static constexpr IDPDoubleSerializer IDP_SERIALIZER_DOUBLE;
