@@ -237,35 +237,8 @@ class TOPBAR_MT_file_cleanup(Menu):
     def draw(self, _context):
         layout = self.layout
         layout.separator()
-
-        props = layout.operator("outliner.orphans_purge", text="Unused Data-Blocks")
-        props.do_local_ids = True
-        props.do_linked_ids = True
-        props.do_recursive = False
-        props = layout.operator("outliner.orphans_purge", text="Recursive Unused Data-Blocks")
-        props.do_local_ids = True
-        props.do_linked_ids = True
-        props.do_recursive = True
-
-        layout.separator()
-        props = layout.operator("outliner.orphans_purge", text="Unused Linked Data-Blocks")
-        props.do_local_ids = False
-        props.do_linked_ids = True
-        props.do_recursive = False
-        props = layout.operator("outliner.orphans_purge", text="Recursive Unused Linked Data-Blocks")
-        props.do_local_ids = False
-        props.do_linked_ids = True
-        props.do_recursive = True
-
-        layout.separator()
-        props = layout.operator("outliner.orphans_purge", text="Unused Local Data-Blocks")
-        props.do_local_ids = True
-        props.do_linked_ids = False
-        props.do_recursive = False
-        props = layout.operator("outliner.orphans_purge", text="Recursive Unused Local Data-Blocks")
-        props.do_local_ids = True
-        props.do_linked_ids = False
-        props.do_recursive = True
+        layout.operator("outliner.orphans_cleanup")
+        layout.operator("outliner.orphans_manage")
 
 
 class TOPBAR_MT_file(Menu):
