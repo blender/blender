@@ -818,8 +818,11 @@ static blender::float3 paint_init_pivot_mesh(Object *ob)
 static blender::float3 paint_init_pivot_curves(Object *ob)
 {
   const Curves &curves = *static_cast<const Curves *>(ob->data);
-  const blender::Bounds<blender::float3> bounds = *curves.geometry.wrap().bounds_min_max();
-  return blender::math::midpoint(bounds.min, bounds.max);
+  const std::optional<blender::Bounds<blender::float3>> bounds = curves.geometry.wrap().bounds_min_max();
+  if (bounds.has_value()) {
+    return blender::math::midpoint(bounds->min, bounds->max);
+  }
+  return blender::float3(0);
 }
 
 static blender::float3 paint_init_pivot_grease_pencil(Object *ob, const int frame)
