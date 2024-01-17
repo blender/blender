@@ -207,7 +207,7 @@ void BKE_paint_brush_set(Paint *paint, Brush *br);
  * Set the active brush of given paint struct, and store the weak asset reference to it.
  * \note Takes ownership of the given `weak_asset_reference`.
  */
-void BKE_paint_brush_asset_set(Paint *paint,
+bool BKE_paint_brush_asset_set(Paint *paint,
                                Brush *brush,
                                AssetWeakReference *weak_asset_reference);
 

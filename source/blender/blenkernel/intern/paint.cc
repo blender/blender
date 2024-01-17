@@ -691,10 +691,17 @@ static void paint_brush_asset_update(Paint &paint,
   paint.brush_asset_reference = brush_asset_reference;
 }
 
-void BKE_paint_brush_asset_set(Paint *paint,
+bool BKE_paint_brush_asset_set(Paint *paint,
                                Brush *brush,
                                AssetWeakReference *weak_asset_reference)
 {
+  /* Should not happen for users if brush assets are properly filtered by mode, but still protect
+   * against it in case of invalid API usage. */
+  if (paint->runtime.ob_mode != brush->ob_mode) {
+    BKE_asset_weak_reference_free(&weak_asset_reference);
+    return false;
+  }
+
   BKE_paint_brush_set(paint, brush);
   paint_brush_asset_update(*paint, brush, weak_asset_reference);
 }
