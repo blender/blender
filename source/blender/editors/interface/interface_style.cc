@@ -460,8 +460,10 @@ void uiStyleInit()
     if (U.text_render & USER_TEXT_DISABLE_AA) {
       flag_enable |= BLF_MONOCHROME;
     }
-    if (U.text_render & USER_TEXT_RENDER_SUBPIXELAA) {
-      flag_enable |= BLF_RENDER_SUBPIXELAA;
+    else {
+      if (U.text_render & USER_TEXT_RENDER_SUBPIXELAA) {
+        flag_enable |= BLF_RENDER_SUBPIXELAA;
+      }
     }
 
     LISTBASE_FOREACH (uiFont *, font, &U.uifonts) {
