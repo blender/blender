@@ -2123,14 +2123,14 @@ static int rna_Scene_transform_orientation_slots_length(PointerRNA * /*ptr*/)
 static bool rna_Scene_use_audio_get(PointerRNA *ptr)
 {
   Scene *scene = (Scene *)ptr->data;
-  return (scene->audio.flag & AUDIO_MUTE) != 0;
+  return (scene->audio.flag & AUDIO_MUTE) == 0;
 }
 
 static void rna_Scene_use_audio_set(PointerRNA *ptr, bool value)
 {
   Scene *scene = (Scene *)ptr->data;
 
-  if (value) {
+  if (!value) {
     scene->audio.flag |= AUDIO_MUTE;
   }
   else {
@@ -8671,7 +8671,7 @@ void RNA_def_scene(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_audio", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(prop, "rna_Scene_use_audio_get", "rna_Scene_use_audio_set");
   RNA_def_property_ui_text(
-      prop, "Audio Muted", "Play back of audio from Sequence Editor will be muted");
+      prop, "Play Audio", "Play back of audio from Sequence Editor, otherwise mute audio");
   RNA_def_property_update(prop, NC_SCENE, "rna_Scene_use_audio_update");
 
 #  if 0 /* XXX: Is this actually needed? */
