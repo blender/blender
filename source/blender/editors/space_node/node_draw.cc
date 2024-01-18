@@ -289,6 +289,9 @@ static bool compare_node_depth(const bNode *a, const bNode *b)
 void tree_draw_order_update(bNodeTree &ntree)
 {
   Array<bNode *> sort_nodes = ntree.all_nodes();
+  std::sort(sort_nodes.begin(), sort_nodes.end(), [](bNode *a, bNode *b) {
+    return a->ui_order < b->ui_order;
+  });
   std::stable_sort(sort_nodes.begin(), sort_nodes.end(), compare_node_depth);
   for (const int i : sort_nodes.index_range()) {
     sort_nodes[i]->ui_order = i;
