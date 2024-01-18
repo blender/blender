@@ -202,6 +202,8 @@ const char *operationCodeAsString(OperationCode opcode)
     /* instancing. */
     case OperationCode::INSTANCER:
       return "INSTANCER";
+    case OperationCode::INSTANCE:
+      return "INSTANCE";
   }
   BLI_assert_msg(0, "Unhandled operation code, should never happen.");
   return "UNKNOWN";

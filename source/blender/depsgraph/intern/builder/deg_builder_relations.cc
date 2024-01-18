@@ -690,17 +690,9 @@ void DepsgraphRelationBuilder::build_collection(LayerCollection *from_layer_coll
     const ComponentKey object_hierarchy_key{&object->id, NodeType::HIERARCHY};
     add_relation(collection_hierarchy_key, object_hierarchy_key, "Collection -> Object hierarchy");
 
-    /* The geometry of a collection depends on the positions of the elements in it. */
-    const OperationKey object_transform_key{
-        &object->id, NodeType::TRANSFORM, OperationCode::TRANSFORM_FINAL};
-    add_relation(object_transform_key, collection_geometry_key, "Collection Geometry");
-
-    /* Only create geometry relations to child objects, if they have a geometry component. */
-    const OperationKey object_geometry_key{
-        &object->id, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL};
-    if (find_node(object_geometry_key) != nullptr) {
-      add_relation(object_geometry_key, collection_geometry_key, "Collection Geometry");
-    }
+    const OperationKey object_instance_key{
+        &object->id, NodeType::INSTANCING, OperationCode::INSTANCE};
+    add_relation(object_instance_key, collection_geometry_key, "Collection Geometry");
 
     /* An instance is part of the geometry of the collection. */
     if (object->type == OB_EMPTY) {
@@ -757,6 +749,10 @@ void DepsgraphRelationBuilder::build_object(Object *object)
     /* Local -> parent. */
     add_relation(local_transform_key, parent_transform_key, "ObLocal -> ObParent");
   }
+
+  add_relation(ComponentKey(&object->id, NodeType::TRANSFORM),
+               OperationKey{&object->id, NodeType::INSTANCING, OperationCode::INSTANCE},
+               "Transform -> Instance");
 
   /* Modifiers. */
   build_object_modifiers(object);
@@ -1266,12 +1262,9 @@ void DepsgraphRelationBuilder::build_object_instance_collection(Object *object)
     add_relation(dupli_transform_key, object_transform_final_key, "Dupligroup");
 
     /* Hook to special component, to ensure proper visibility/evaluation optimizations. */
-    add_relation(dupli_transform_key, instancer_key, "Dupligroup");
-    const NodeType dupli_geometry_component_type = geometry_tag_to_component(&ob->id);
-    if (dupli_geometry_component_type != NodeType::UNDEFINED) {
-      ComponentKey dupli_geometry_component_key(&ob->id, dupli_geometry_component_type);
-      add_relation(dupli_geometry_component_key, instancer_key, "Dupligroup");
-    }
+    add_relation(OperationKey(&ob->id, NodeType::INSTANCING, OperationCode::INSTANCE),
+                 instancer_key,
+                 "Instance -> Instancer");
   }
   FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_END;
 }
@@ -2489,6 +2482,10 @@ void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
    * evaluated prior to Scene's CoW is ready. */
   OperationKey scene_key(&scene_->id, NodeType::PARAMETERS, OperationCode::SCENE_EVAL);
   add_relation(scene_key, obdata_ubereval_key, "CoW Relation", RELATION_FLAG_NO_FLUSH);
+  /* Relation to the instance, so that instancer can use geometry of this object. */
+  add_relation(ComponentKey(&object->id, NodeType::GEOMETRY),
+               OperationKey(&object->id, NodeType::INSTANCING, OperationCode::INSTANCE),
+               "Transform -> Instance");
   /* Grease Pencil Modifiers. */
   if (object->greasepencil_modifiers.first != nullptr) {
     ModifierUpdateDepsgraphContext ctx = {};

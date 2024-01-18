@@ -836,10 +836,14 @@ void DepsgraphNodeBuilder::build_object(int base_index,
   /* Object instancing. */
   if (object->instance_collection != nullptr) {
     build_object_instance_collection(object, is_visible);
-    OperationNode *op_node = add_operation_node(
+
+    OperationNode *instancer_node = add_operation_node(
         &object->id, NodeType::INSTANCING, OperationCode::INSTANCER);
-    op_node->flag |= OperationFlag::DEPSOP_FLAG_PINNED;
+    instancer_node->flag |= OperationFlag::DEPSOP_FLAG_PINNED;
   }
+  OperationNode *instance_node = add_operation_node(
+      &object->id, NodeType::INSTANCING, OperationCode::INSTANCE);
+  instance_node->flag |= OperationFlag::DEPSOP_FLAG_PINNED;
 
   build_object_light_linking(object);
 

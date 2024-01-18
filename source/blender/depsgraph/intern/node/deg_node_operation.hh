@@ -202,6 +202,9 @@ enum class OperationCode {
 
   /* Operation on an instancer object. Relations from instanced objects go here. */
   INSTANCER,
+
+  /* Operation on an object which is being instanced. */
+  INSTANCE,
 };
 const char *operationCodeAsString(OperationCode opcode);
 
