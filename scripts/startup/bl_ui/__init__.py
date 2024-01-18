@@ -104,6 +104,13 @@ _modules_loaded = [_namespace[name] for name in _modules]
 del _namespace
 
 
+# Bypass the caching mechanism in the "Format" panel to make sure it is properly translated on language update.
+@bpy.app.handlers.persistent
+def translation_update(_):
+    from .properties_output import RENDER_PT_format
+    RENDER_PT_format._frame_rate_args_prev = None
+
+
 def register():
     from bpy.utils import register_class
     for mod in _modules_loaded:
@@ -166,6 +173,8 @@ def register():
     )
     del items
 
+    bpy.app.handlers.translation_update_post.append(translation_update)
+
     # done...
 
 
@@ -175,6 +184,11 @@ def unregister():
         for cls in reversed(mod.classes):
             if cls.is_registered:
                 unregister_class(cls)
+
+    try:
+        bpy.app.handlers.translation_update_post.remove(translation_update)
+    except ValueError:
+        pass
 
 # Define a default UIList, when a list does not need any custom drawing...
 # Keep in sync with its #defined name in UI_interface.hh
