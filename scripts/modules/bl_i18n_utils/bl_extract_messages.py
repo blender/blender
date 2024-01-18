@@ -1012,7 +1012,8 @@ def dump_messages(do_messages, do_checks, settings):
     bl_ver = "Blender " + bpy.app.version_string
     bl_hash = bpy.app.build_hash
     bl_time = time.strptime(f"{bpy.app.build_date.decode()} {bpy.app.build_time.decode()} UTC", "%Y-%m-%d %H:%M:%S %Z")
-    pot = utils.I18nMessages.gen_empty_messages(settings.PARSER_TEMPLATE_ID, bl_ver, bl_hash, bl_time, settings=settings)
+    pot = utils.I18nMessages.gen_empty_messages(
+        settings.PARSER_TEMPLATE_ID, bl_ver, bl_hash, bl_time, settings=settings)
     msgs = pot.msgs
 
     # Enable all wanted addons.
@@ -1115,7 +1116,8 @@ def dump_addon_messages(module_name, do_checks, settings):
     pot = utils.I18nMessages.gen_empty_messages(settings.PARSER_TEMPLATE_ID, ver, rev, curr_time, settings=settings)
     msgs = pot.msgs
 
-    minus_pot = utils.I18nMessages.gen_empty_messages(settings.PARSER_TEMPLATE_ID, ver, rev, curr_time, settings=settings)
+    minus_pot = utils.I18nMessages.gen_empty_messages(
+        settings.PARSER_TEMPLATE_ID, ver, rev, curr_time, settings=settings)
     minus_msgs = minus_pot.msgs
 
     check_ctxt = _gen_check_ctxt(settings) if do_checks else None
