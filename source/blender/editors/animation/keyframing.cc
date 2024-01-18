@@ -939,7 +939,7 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
           C, &ptr, prop, index, nullptr, nullptr, &driven, &special);
 
       if (fcu && driven) {
-        const float driver_frame = blender::animrig::remap_driver_frame(
+        const float driver_frame = blender::animrig::evaluate_driver_from_rna_pointer(
             &anim_eval_context, &ptr, prop, fcu);
         AnimationEvalContext remapped_context = BKE_animsys_eval_context_construct(
             CTX_data_depsgraph_pointer(C), driver_frame);

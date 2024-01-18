@@ -14,10 +14,10 @@
 
 namespace blender::animrig {
 
-float remap_driver_frame(const AnimationEvalContext *anim_eval_context,
-                         PointerRNA *ptr,
-                         PropertyRNA *prop,
-                         const FCurve *fcu)
+float evaluate_driver_from_rna_pointer(const AnimationEvalContext *anim_eval_context,
+                                       PointerRNA *ptr,
+                                       PropertyRNA *prop,
+                                       const FCurve *fcu)
 {
   PathResolvedRNA anim_rna;
   if (!RNA_path_resolved_create(ptr, prop, fcu->array_index, &anim_rna)) {
