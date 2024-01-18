@@ -1275,6 +1275,15 @@ void DepsgraphRelationBuilder::build_object_shading(Object *object)
 
   const OperationKey shading_key(&object->id, NodeType::SHADING, OperationCode::SHADING);
   add_relation(shading_key, shading_done_key, "Shading -> Done");
+
+  /* Hook up shading component to the instance, so that if the object is instanced by a visible
+   * object the shading component is ensured to be evaluated.
+   * Don't to flushing to avoid re-evaluation of geometry when the object is used as part of a
+   * collection used as a boolean modifier operand. */
+  add_relation(shading_done_key,
+               OperationKey(&object->id, NodeType::INSTANCING, OperationCode::INSTANCE),
+               "Light Linking -> Instance",
+               RELATION_FLAG_NO_FLUSH);
 }
 
 void DepsgraphRelationBuilder::build_object_light_linking(Object *emitter)
