@@ -967,6 +967,12 @@ static int rna_lang_enum_properties_get_no_international(PointerRNA * /*ptr*/)
 static void rna_Addon_module_set(PointerRNA *ptr, const char *value)
 {
   bAddon *addon = (bAddon *)ptr->data;
+
+  /* The module may be empty (for newly created data), skip the preferences search.
+   * Note that changing existing add-ons module isn't a common operation.
+   * Support this to allow for an extension repositories module to change at run-time. */
+  bAddonPrefType *apt = addon->module[0] ? BKE_addon_pref_type_find(addon->module, true) : nullptr;
+
   size_t module_len = STRNCPY_UTF8_RLEN(addon->module, value);
 
   /* Reserve half of `bAddon::module` for a package component.
@@ -990,6 +996,11 @@ static void rna_Addon_module_set(PointerRNA *ptr, const char *value)
       submodule_beg[submodule_len_limit] = '\0';
       BLI_str_utf8_invalid_strip(submodule_beg, submodule_len_limit);
     }
+  }
+
+  if (apt) {
+    /* Keep the associated preferences. */
+    STRNCPY(apt->idname, addon->module);
   }
 }
 
