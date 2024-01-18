@@ -5273,6 +5273,7 @@ class VIEW3D_MT_edit_font(Menu):
 
         layout.separator()
 
+        layout.operator("FONT_OT_text_insert_unicode")
         layout.menu("VIEW3D_MT_edit_font_chars")
 
         layout.separator()
