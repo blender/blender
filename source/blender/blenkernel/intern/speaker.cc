@@ -18,7 +18,7 @@
 #include "BKE_anim_data.h"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.hh"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 #include "BKE_main.hh"
 #include "BKE_speaker.h"
 

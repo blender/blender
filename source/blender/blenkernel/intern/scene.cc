@@ -73,7 +73,7 @@
 #include "BKE_image_format.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.hh"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 #include "BKE_lib_remap.hh"
 #include "BKE_linestyle.h"
 #include "BKE_main.hh"

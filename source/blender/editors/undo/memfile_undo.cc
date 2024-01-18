@@ -24,7 +24,7 @@
 #include "BKE_blender_undo.h"
 #include "BKE_context.hh"
 #include "BKE_lib_id.hh"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 #include "BKE_main.hh"
 #include "BKE_node.hh"
 #include "BKE_preview_image.hh"

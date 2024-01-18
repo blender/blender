@@ -18,7 +18,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_lib_override.hh"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 #include "BKE_main.hh"
 
 #include "../outliner_intern.hh"

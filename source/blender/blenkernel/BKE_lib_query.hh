@@ -21,10 +21,6 @@
 
 #include "BLI_sys_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct ID;
 struct IDProperty;
 struct Main;
@@ -119,23 +115,23 @@ enum {
   IDWALK_RET_STOP_RECURSION = 1 << 1,
 };
 
-typedef struct LibraryIDLinkCallbackData {
+struct LibraryIDLinkCallbackData {
   void *user_data;
   /** Main database used to call `BKE_library_foreach_ID_link()`. */
-  struct Main *bmain;
+  Main *bmain;
   /**
    * 'Real' ID, the one that might be in bmain, only differs from self_id when the later is an
    * embedded one.
    */
-  struct ID *owner_id;
+  ID *owner_id;
   /**
    * ID from which the current ID pointer is being processed. It may be an embedded ID like master
    * collection or root node tree.
    */
-  struct ID *self_id;
-  struct ID **id_pointer;
+  ID *self_id;
+  ID **id_pointer;
   int cb_flag;
-} LibraryIDLinkCallbackData;
+};
 
 /**
  * Call a callback for each ID link which the given ID uses.
@@ -211,12 +207,10 @@ typedef struct LibraryForeachIDData LibraryForeachIDData;
  * Check whether current iteration over ID usages should be stopped or not.
  * \return true if the iteration should be stopped, false otherwise.
  */
-bool BKE_lib_query_foreachid_iter_stop(const struct LibraryForeachIDData *data);
-void BKE_lib_query_foreachid_process(struct LibraryForeachIDData *data,
-                                     struct ID **id_pp,
-                                     int cb_flag);
-int BKE_lib_query_foreachid_process_flags_get(const struct LibraryForeachIDData *data);
-int BKE_lib_query_foreachid_process_callback_flag_override(struct LibraryForeachIDData *data,
+bool BKE_lib_query_foreachid_iter_stop(const LibraryForeachIDData *data);
+void BKE_lib_query_foreachid_process(LibraryForeachIDData *data, ID **id_pp, int cb_flag);
+int BKE_lib_query_foreachid_process_flags_get(const LibraryForeachIDData *data);
+int BKE_lib_query_foreachid_process_callback_flag_override(LibraryForeachIDData *data,
                                                            int cb_flag,
                                                            bool do_replace);
 
@@ -268,18 +262,18 @@ int BKE_lib_query_foreachid_process_callback_flag_override(struct LibraryForeach
  * Those require specific care, since they are technically sub-data of their owner, yet in some
  * cases they still behave as regular IDs.
  */
-void BKE_library_foreach_ID_embedded(struct LibraryForeachIDData *data, struct ID **id_pp);
-void BKE_lib_query_idpropertiesForeachIDLink_callback(struct IDProperty *id_prop, void *user_data);
+void BKE_library_foreach_ID_embedded(LibraryForeachIDData *data, ID **id_pp);
+void BKE_lib_query_idpropertiesForeachIDLink_callback(IDProperty *id_prop, void *user_data);
 
 /**
  * Loop over all of the ID's this data-block links to.
  */
 void BKE_library_foreach_ID_link(
-    struct Main *bmain, struct ID *id, LibraryIDLinkCallback callback, void *user_data, int flag);
+    Main *bmain, ID *id, LibraryIDLinkCallback callback, void *user_data, int flag);
 /**
  * Re-usable function, use when replacing ID's.
  */
-void BKE_library_update_ID_link_user(struct ID *id_dst, struct ID *id_src, int cb_flag);
+void BKE_library_update_ID_link_user(ID *id_dst, ID *id_src, int cb_flag);
 
 /**
  * Return the number of times given \a id_user uses/references \a id_used.
@@ -291,7 +285,7 @@ void BKE_library_update_ID_link_user(struct ID *id_dst, struct ID *id_src, int c
  * \param id_used: the ID which is supposed to be used (referenced) by \a id_user.
  * \return the number of direct usages/references of \a id_used by \a id_user.
  */
-int BKE_library_ID_use_ID(struct ID *id_user, struct ID *id_used);
+int BKE_library_ID_use_ID(ID *id_user, ID *id_used);
 
 /**
  * Say whether given \a owner_id may use (in any way) a data-block of \a id_type_used.
@@ -299,26 +293,26 @@ int BKE_library_ID_use_ID(struct ID *id_user, struct ID *id_used);
  * This is a 'simplified' abstract version of #BKE_library_foreach_ID_link() above,
  * quite useful to reduce useless iterations in some cases.
  */
-bool BKE_library_id_can_use_idtype(struct ID *owner_id, short id_type_used);
+bool BKE_library_id_can_use_idtype(ID *owner_id, short id_type_used);
 
 /**
  * Given the owner_id return the type of id_types it can use as a filter_id.
  */
-uint64_t BKE_library_id_can_use_filter_id(const struct ID *owner_id, const bool include_ui);
+uint64_t BKE_library_id_can_use_filter_id(const ID *owner_id, const bool include_ui);
 
 /**
  * Check whether given ID is used locally (i.e. by another non-linked ID).
  */
-bool BKE_library_ID_is_locally_used(struct Main *bmain, void *idv);
+bool BKE_library_ID_is_locally_used(Main *bmain, void *idv);
 /**
  * Check whether given ID is used indirectly (i.e. by another linked ID).
  */
-bool BKE_library_ID_is_indirectly_used(struct Main *bmain, void *idv);
+bool BKE_library_ID_is_indirectly_used(Main *bmain, void *idv);
 /**
  * Combine #BKE_library_ID_is_locally_used() and #BKE_library_ID_is_indirectly_used()
  * in a single call.
  */
-void BKE_library_ID_test_usages(struct Main *bmain,
+void BKE_library_ID_test_usages(Main *bmain,
                                 void *idv,
                                 bool *r_is_used_local,
                                 bool *r_is_used_linked);
@@ -338,7 +332,7 @@ void BKE_library_ID_test_usages(struct Main *bmain,
  * Number of tagged-as-unused IDs is then set for each type, and as total in
  * #INDEX_ID_NULL item.
  */
-void BKE_lib_query_unused_ids_tag(struct Main *bmain,
+void BKE_lib_query_unused_ids_tag(Main *bmain,
                                   int tag,
                                   bool do_local_ids,
                                   bool do_linked_ids,
@@ -354,7 +348,7 @@ void BKE_lib_query_unused_ids_tag(struct Main *bmain,
  * \param do_init_tag: if \a true, all linked data are checked, if \a false,
  * only linked data-blocks already tagged with #LIB_TAG_DOIT are checked.
  */
-void BKE_library_unused_linked_data_set_tag(struct Main *bmain, bool do_init_tag);
+void BKE_library_unused_linked_data_set_tag(Main *bmain, bool do_init_tag);
 /**
  * Untag linked data blocks used by other untagged linked data-blocks.
  * Used to detect data-blocks that we can forcefully make local
@@ -363,8 +357,4 @@ void BKE_library_unused_linked_data_set_tag(struct Main *bmain, bool do_init_tag
  * after this function has ran caller knows data-blocks still tagged can directly be made local,
  * since they are only used by other data-blocks that will also be made fully local.
  */
-void BKE_library_indirectly_used_data_tag_clear(struct Main *bmain);
-
-#ifdef __cplusplus
-}
-#endif
+void BKE_library_indirectly_used_data_tag_clear(Main *bmain);

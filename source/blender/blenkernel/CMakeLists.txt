@@ -420,7 +420,7 @@ set(SRC
   BKE_layer.h
   BKE_lib_id.hh
   BKE_lib_override.hh
-  BKE_lib_query.h
+  BKE_lib_query.hh
   BKE_lib_remap.hh
   BKE_library.hh
   BKE_light.h

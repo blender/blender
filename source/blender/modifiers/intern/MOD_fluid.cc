@@ -26,7 +26,7 @@
 #include "BKE_context.hh"
 #include "BKE_fluid.h"
 #include "BKE_layer.h"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 #include "BKE_modifier.hh"
 #include "BKE_screen.hh"
 

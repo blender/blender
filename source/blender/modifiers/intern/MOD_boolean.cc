@@ -31,7 +31,7 @@
 #include "BKE_context.hh"
 #include "BKE_global.h" /* only to check G.debug */
 #include "BKE_lib_id.hh"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_boolean_convert.hh"

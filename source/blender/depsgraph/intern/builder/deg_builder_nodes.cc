@@ -73,7 +73,7 @@
 #include "BKE_lattice.hh"
 #include "BKE_layer.h"
 #include "BKE_lib_id.hh"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 #include "BKE_light.h"
 #include "BKE_mask.h"
 #include "BKE_material.h"
