@@ -10,6 +10,7 @@
 #include "RNA_access.hh"
 #include "RNA_enum_types.hh"
 
+#include "BKE_mesh.hh"
 #include "BKE_type_conversions.hh"
 
 #include "NOD_rna_define.hh"
@@ -134,10 +135,14 @@ static void node_geo_exec(GeoNodeExecParams params)
       {
         if (geometry_set.has(type)) {
           GeometryComponent &component = geometry_set.get_component_for_write(type);
-          if (!bke::try_capture_field_on_geometry(component, name, domain, selection, field)) {
-            if (component.attribute_domain_size(domain) != 0) {
-              failure.store(true);
+          if (bke::try_capture_field_on_geometry(component, name, domain, selection, field)) {
+            if (component.type() == GeometryComponent::Type::Mesh) {
+              Mesh &mesh = *geometry_set.get_mesh_for_write();
+              bke::mesh_ensure_default_color_attribute_on_add(mesh, name, domain, data_type);
             }
+          }
+          else if (component.attribute_domain_size(domain) != 0) {
+            failure.store(true);
           }
         }
       }

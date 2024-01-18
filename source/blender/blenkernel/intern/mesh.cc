@@ -645,6 +645,25 @@ MutableSpan<MDeformVert> Mesh::deform_verts_for_write()
 
 namespace blender::bke {
 
+void mesh_ensure_default_color_attribute_on_add(Mesh &mesh,
+                                                const AttributeIDRef &id,
+                                                AttrDomain domain,
+                                                eCustomDataType data_type)
+{
+  if (id.is_anonymous()) {
+    return;
+  }
+  if (!(CD_TYPE_AS_MASK(data_type) & CD_MASK_COLOR_ALL) ||
+      !(ATTR_DOMAIN_AS_MASK(domain) & ATTR_DOMAIN_MASK_COLOR))
+  {
+    return;
+  }
+  if (mesh.default_color_attribute) {
+    return;
+  }
+  mesh.default_color_attribute = BLI_strdupn(id.name().data(), id.name().size());
+}
+
 static void mesh_ensure_cdlayers_primary(Mesh &mesh)
 {
   MutableAttributeAccessor attributes = mesh.attributes_for_write();
