@@ -877,6 +877,10 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
 
   undo::push_end(ob);
 
+  for (PBVHNode *node : nodes) {
+    BKE_pbvh_node_mark_redraw(node);
+  }
+
   SCULPT_tag_update_overlays(C);
 
   return OPERATOR_FINISHED;
