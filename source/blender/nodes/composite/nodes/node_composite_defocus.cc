@@ -275,10 +275,15 @@ class DefocusOperation : public NodeOperation {
     return camera ? math::max(1e-6f, camera->lens / 1000.0f) : 50.0f / 1000.0f;
   }
 
-  /* Computes the distance to the point that is completely in focus. */
+  /* Computes the distance to the point that is completely in focus. Default to 10 meters for null
+   * camera. */
   float compute_focus_distance()
   {
-    return BKE_camera_object_dof_distance(get_camera_object());
+    const Object *camera_object = get_camera_object();
+    if (!camera_object) {
+      return 10.0f;
+    }
+    return BKE_camera_object_dof_distance(camera_object);
   }
 
   /* Computes the number of pixels per meter of the sensor size. This is essentially the resolution
