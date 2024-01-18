@@ -1179,6 +1179,10 @@ void DepsgraphNodeBuilder::build_object_shading(Object *object)
       NodeType::SHADING,
       OperationCode::SHADING,
       [object_cow](::Depsgraph *depsgraph) { BKE_object_eval_shading(depsgraph, object_cow); });
+
+  OperationNode *done_node = add_operation_node(
+      &object->id, NodeType::SHADING, OperationCode::SHADING_DONE);
+  done_node->set_as_exit();
 }
 
 void DepsgraphNodeBuilder::build_animdata(ID *id)

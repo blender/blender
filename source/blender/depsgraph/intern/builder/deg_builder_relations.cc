@@ -831,6 +831,8 @@ void DepsgraphRelationBuilder::build_object(Object *object)
 
   build_object_instance_collection(object);
   build_object_pointcache(object);
+
+  build_object_shading(object);
   build_object_light_linking(object);
 
   /* Synchronization back to original object. */
@@ -1274,14 +1276,24 @@ void DepsgraphRelationBuilder::build_object_instance_collection(Object *object)
   FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_END;
 }
 
+void DepsgraphRelationBuilder::build_object_shading(Object *object)
+{
+  const OperationKey shading_done_key(&object->id, NodeType::SHADING, OperationCode::SHADING_DONE);
+
+  const OperationKey shading_key(&object->id, NodeType::SHADING, OperationCode::SHADING);
+  add_relation(shading_key, shading_done_key, "Shading -> Done");
+}
+
 void DepsgraphRelationBuilder::build_object_light_linking(Object *emitter)
 {
   const ComponentKey hierarchy_key(&emitter->id, NodeType::HIERARCHY);
-
+  const OperationKey shading_done_key(
+      &emitter->id, NodeType::SHADING, OperationCode::SHADING_DONE);
   const OperationKey light_linking_key(
       &emitter->id, NodeType::SHADING, OperationCode::LIGHT_LINKING_UPDATE);
 
   add_relation(hierarchy_key, light_linking_key, "Light Linking From Layer");
+  add_relation(light_linking_key, shading_done_key, "Light Linking -> Shading Done");
 
   if (emitter->light_linking) {
     LightLinking &light_linking = *emitter->light_linking;

@@ -168,6 +168,8 @@ const char *operationCodeAsString(OperationCode opcode)
     /* Shading. */
     case OperationCode::SHADING:
       return "SHADING";
+    case OperationCode::SHADING_DONE:
+      return "SHADING_DONE";
     case OperationCode::MATERIAL_UPDATE:
       return "MATERIAL_UPDATE";
     case OperationCode::LIGHT_UPDATE:

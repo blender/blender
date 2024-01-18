@@ -163,6 +163,7 @@ enum class OperationCode {
 
   /* Shading. ------------------------------------------------------------- */
   SHADING,
+  SHADING_DONE,
   MATERIAL_UPDATE,
   LIGHT_UPDATE,
   WORLD_UPDATE,
