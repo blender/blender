@@ -203,7 +203,7 @@ const EnumPropertyItem rna_enum_object_modifier_type_items[] = {
      "Convert faces into thickened edges"},
     {eModifierType_GreasePencilSubdiv,
      "GREASEPENCIL_SUBDIV",
-     ICON_GREASEPENCIL,
+     ICON_MOD_SUBSURF,
      "Subdivide strokes",
      "Grease Pencil subdivide modifier"},
 

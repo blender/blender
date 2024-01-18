@@ -20,8 +20,6 @@
 
 #include "BLO_read_write.hh"
 
-#include "DEG_depsgraph_query.hh"
-
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
@@ -143,11 +141,9 @@ static void modify_fill_color(const GreasePencilOpacityModifierData &omd,
   /* Fill color opacity per stroke. */
   bke::SpanAttributeWriter<float> fill_opacities = attributes.lookup_or_add_for_write_span<float>(
       "fill_opacity", bke::AttrDomain::Curve);
-  VArray<float> vgroup_weights = attributes
-                                     .lookup_or_default<float>(omd.influence.vertex_group_name,
-                                                               bke::AttrDomain::Point,
-                                                               1.0f)
-                                     .varray;
+  const StringRef vgroup_name = omd.influence.vertex_group_name;
+  const VArray<float> vgroup_weights =
+      attributes.lookup_or_default<float>(vgroup_name, bke::AttrDomain::Point, 1.0f).varray;
 
   curves_mask.foreach_index(GrainSize(512), [&](int64_t curve_i) {
     if (use_vgroup_opacity) {
@@ -188,10 +184,10 @@ static void modify_curves(ModifierData *md,
                           const ModifierEvalContext *ctx,
                           bke::CurvesGeometry &curves)
 {
-  auto *omd = reinterpret_cast<GreasePencilOpacityModifierData *>(md);
+  const auto *omd = reinterpret_cast<GreasePencilOpacityModifierData *>(md);
 
   IndexMaskMemory mask_memory;
-  IndexMask curves_mask = modifier::greasepencil::get_filtered_stroke_mask(
+  const IndexMask curves_mask = modifier::greasepencil::get_filtered_stroke_mask(
       ctx->object, curves, omd->influence, mask_memory);
 
   switch (omd->color_mode) {
@@ -215,9 +211,7 @@ static void modify_geometry_set(ModifierData *md,
                                 const ModifierEvalContext *ctx,
                                 bke::GeometrySet *geometry_set)
 {
-  auto *omd = reinterpret_cast<GreasePencilOpacityModifierData *>(md);
-  const Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
-  const int frame = scene->r.cfra;
+  const auto *omd = reinterpret_cast<GreasePencilOpacityModifierData *>(md);
 
   GreasePencil *grease_pencil = geometry_set->get_grease_pencil_for_write();
   if (grease_pencil == nullptr) {
@@ -225,9 +219,10 @@ static void modify_geometry_set(ModifierData *md,
   }
 
   IndexMaskMemory mask_memory;
-  IndexMask layer_mask = modifier::greasepencil::get_filtered_layer_mask(
+  const IndexMask layer_mask = modifier::greasepencil::get_filtered_layer_mask(
       *grease_pencil, omd->influence, mask_memory);
-  Vector<Drawing *> drawings = modifier::greasepencil::get_drawings_for_write(
+  const int frame = grease_pencil->runtime->eval_frame;
+  const Vector<Drawing *> drawings = modifier::greasepencil::get_drawings_for_write(
       *grease_pencil, layer_mask, frame);
   threading::parallel_for_each(
       drawings, [&](Drawing *drawing) { modify_curves(md, ctx, drawing->strokes_for_write()); });
@@ -309,9 +304,8 @@ ModifierTypeInfo modifierType_GreasePencilOpacity = {
     /*srna*/ &RNA_GreasePencilOpacityModifier,
     /*type*/ ModifierTypeType::Nonconstructive,
     /*flags*/
-    static_cast<ModifierTypeFlag>(
-        eModifierTypeFlag_AcceptsGreasePencil | eModifierTypeFlag_SupportsEditmode |
-        eModifierTypeFlag_EnableInEditmode | eModifierTypeFlag_SupportsMapping),
+    eModifierTypeFlag_AcceptsGreasePencil | eModifierTypeFlag_SupportsEditmode |
+        eModifierTypeFlag_EnableInEditmode | eModifierTypeFlag_SupportsMapping,
     /*icon*/ ICON_MOD_OPACITY,
 
     /*copy_data*/ blender::copy_data,
