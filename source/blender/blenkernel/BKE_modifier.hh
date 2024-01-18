@@ -122,7 +122,7 @@ enum ModifierTypeFlag {
   /** Accepts #GreasePencil data input. */
   eModifierTypeFlag_AcceptsGreasePencil = (1 << 12),
 };
-ENUM_OPERATORS(ModifierTypeFlag, eModifierTypeFlag_AcceptsBMesh)
+ENUM_OPERATORS(ModifierTypeFlag, eModifierTypeFlag_AcceptsGreasePencil)
 
 using IDWalkFunc = void (*)(void *user_data, Object *ob, ID **idpoin, int cb_flag);
 using TexWalkFunc = void (*)(void *user_data, Object *ob, ModifierData *md, const char *propname);
