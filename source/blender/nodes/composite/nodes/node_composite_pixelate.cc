@@ -10,6 +10,9 @@
 
 #include "COM_node_operation.hh"
 
+#include "UI_interface.hh"
+#include "UI_resources.hh"
+
 #include "node_composite_util.hh"
 
 /* **************** Pixelate ******************** */
@@ -20,6 +23,16 @@ static void cmp_node_pixelate_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>("Color");
   b.add_output<decl::Color>("Color");
+}
+
+static void node_composit_init_pixelate(bNodeTree * /*ntree*/, bNode *node)
+{
+  node->custom1 = 1;
+}
+
+static void node_composit_buts_pixelate(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "pixel_size", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
 }
 
 using namespace blender::realtime_compositor;
@@ -78,6 +91,8 @@ void register_node_type_cmp_pixelate()
 
   cmp_node_type_base(&ntype, CMP_NODE_PIXELATE, "Pixelate", NODE_CLASS_OP_FILTER);
   ntype.declare = file_ns::cmp_node_pixelate_declare;
+  ntype.draw_buttons = file_ns::node_composit_buts_pixelate;
+  ntype.initfunc = file_ns::node_composit_init_pixelate;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
   nodeRegisterType(&ntype);
