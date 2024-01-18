@@ -4481,18 +4481,14 @@ static void ui_def_but_rna__menu(bContext *C, uiLayout *layout, void *but_p)
   }
 }
 
-static void ui_def_but_rna__panel_type(bContext *C, uiLayout *layout, void *but_p)
+static void ui_def_but_rna__panel_type(bContext *C, uiLayout *layout, void *arg)
 {
-  uiBut *but = static_cast<uiBut *>(but_p);
-  const char *panel_type = static_cast<const char *>(but->func_argN);
-  PanelType *pt = WM_paneltype_find(panel_type, true);
-  if (pt) {
-    ui_item_paneltype_func(C, layout, pt);
+  PanelType *panel_type = static_cast<PanelType *>(arg);
+  if (panel_type) {
+    ui_item_paneltype_func(C, layout, panel_type);
   }
   else {
-    char msg[256];
-    SNPRINTF(msg, RPT_("Missing Panel: %s"), panel_type);
-    uiItemL(layout, msg, ICON_NONE);
+    uiItemL(layout, RPT_("Missing Panel"), ICON_NONE);
   }
 }
 
