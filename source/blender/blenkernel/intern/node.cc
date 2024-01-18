@@ -49,7 +49,7 @@
 #include "BLI_vector_set.hh"
 #include "BLT_translation.h"
 
-#include "IMB_imbuf.h"
+#include "IMB_imbuf.hh"
 
 #include "BKE_anim_data.h"
 #include "BKE_animsys.h"

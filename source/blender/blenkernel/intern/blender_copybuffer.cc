@@ -21,8 +21,8 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
-#include "IMB_imbuf.h"
-#include "IMB_moviecache.h"
+#include "IMB_imbuf.hh"
+#include "IMB_moviecache.hh"
 
 #include "BKE_blender_copybuffer.h" /* own include */
 #include "BKE_blendfile.hh"
@@ -40,7 +40,7 @@
 #include "BLO_readfile.h"
 #include "BLO_writefile.hh"
 
-#include "IMB_colormanagement.h"
+#include "IMB_colormanagement.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Copy/Paste `.blend`, partial saves.

@@ -27,7 +27,7 @@
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
 
-#include "IMB_colormanagement.h"
+#include "IMB_colormanagement.hh"
 
 #include "BKE_addon.h"
 #include "BKE_appdir.h"

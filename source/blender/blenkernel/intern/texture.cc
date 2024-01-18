@@ -36,7 +36,7 @@
 #include "DNA_object_types.h"
 #include "DNA_particle_types.h"
 
-#include "IMB_imbuf.h"
+#include "IMB_imbuf.hh"
 
 #include "BKE_main.hh"
 

@@ -56,9 +56,8 @@
 #include "ED_view3d.hh"
 #include "ED_view3d_offscreen.hh"
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "RE_pipeline.h"
 

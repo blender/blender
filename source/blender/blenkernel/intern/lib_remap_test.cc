@@ -26,7 +26,7 @@
 #include "BKE_object.hh"
 #include "BKE_scene.h"
 
-#include "IMB_imbuf.h"
+#include "IMB_imbuf.hh"
 
 #include "ED_node.hh"
 

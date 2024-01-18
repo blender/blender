@@ -17,8 +17,8 @@
 #include "BKE_main.hh"
 #include "BKE_packedFile.h"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "hydra_scene_delegate.h"
 

@@ -14,7 +14,7 @@
 #include "ED_paint.hh"
 #include "ED_view3d.hh"
 #include "GPU_capabilities.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf_types.hh"
 
 #include "draw_common.hh"
 #include "draw_sculpt.hh"

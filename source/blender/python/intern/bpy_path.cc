@@ -16,7 +16,7 @@
 
 #include "../generic/py_capi_utils.h"
 
-/* #include "IMB_imbuf_types.h" */
+/* #include "IMB_imbuf_types.hh" */
 extern "C" const char *imb_ext_image[];
 extern "C" const char *imb_ext_movie[];
 extern "C" const char *imb_ext_audio[];

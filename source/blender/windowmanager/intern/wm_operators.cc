@@ -71,7 +71,7 @@
 #include "GPU_matrix.h"
 #include "GPU_state.h"
 
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf_types.hh"
 
 #include "ED_fileselect.hh"
 #include "ED_gpencil_legacy.hh"

@@ -100,8 +100,8 @@
 
 #include "NOD_shader.h"
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf.h"
+#include "IMB_colormanagement.hh"
+#include "IMB_imbuf.hh"
 
 #include "DEG_depsgraph.hh"
 

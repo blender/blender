@@ -12,8 +12,8 @@
 #include "BKE_image_partial_update.hh"
 #include "BKE_main.hh"
 
-#include "IMB_imbuf.h"
-#include "IMB_moviecache.h"
+#include "IMB_imbuf.hh"
+#include "IMB_moviecache.hh"
 
 #include "DNA_image_types.h"
 

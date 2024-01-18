@@ -20,7 +20,7 @@
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 
-#include "IMB_colormanagement.h"
+#include "IMB_colormanagement.hh"
 
 #include "DEG_depsgraph.hh"
 

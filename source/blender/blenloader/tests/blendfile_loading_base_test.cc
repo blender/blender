@@ -33,7 +33,7 @@
 #include "DNA_genfile.h" /* for DNA_sdna_current_init() */
 #include "DNA_windowmanager_types.h"
 
-#include "IMB_imbuf.h"
+#include "IMB_imbuf.hh"
 
 #include "ED_datafiles.h"
 

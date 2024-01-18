@@ -33,7 +33,7 @@
 
 #include "DEG_depsgraph.hh"
 
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf_types.hh"
 
 #include "ED_image.hh"
 #include "ED_mask.hh"

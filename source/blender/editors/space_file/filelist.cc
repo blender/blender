@@ -68,9 +68,9 @@
 #include "ED_fileselect.hh"
 #include "ED_screen.hh"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
-#include "IMB_thumbs.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
+#include "IMB_thumbs.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

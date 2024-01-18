@@ -28,8 +28,8 @@
 #include "utf_winfunc.hh"
 #include "utfconv.hh"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "GHOST_DisplayManagerWin32.hh"
 #include "GHOST_EventButton.hh"

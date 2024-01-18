@@ -36,9 +36,9 @@
 #include "BKE_preview_image.hh"
 #include "BKE_texture.h"
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_colormanagement.hh"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "RE_texture.h" /* RE_texture_evaluate */
 

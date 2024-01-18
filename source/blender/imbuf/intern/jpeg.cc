@@ -21,18 +21,16 @@
 
 #include "DNA_ID.h" /* ID property definitions. */
 
-#include "IMB_filetype.h"
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
-#include "IMB_metadata.h"
-#include "imbuf.h"
+#include "IMB_colormanagement.hh"
+#include "IMB_filetype.hh"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
+#include "IMB_metadata.hh"
+#include "imbuf.hh"
 
 #include <cstring>
 #include <jerror.h>
 #include <jpeglib.h>
-
-#include "IMB_colormanagement.h"
-#include "IMB_colormanagement_intern.h"
 
 /* the types are from the jpeg lib */
 static void jpeg_error(j_common_ptr cinfo) ATTR_NORETURN;

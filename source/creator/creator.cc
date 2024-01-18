@@ -57,7 +57,7 @@
 
 #include "DEG_depsgraph.hh"
 
-#include "IMB_imbuf.h" /* For #IMB_init. */
+#include "IMB_imbuf.hh" /* For #IMB_init. */
 
 #include "RE_engine.h"
 #include "RE_texture.h"

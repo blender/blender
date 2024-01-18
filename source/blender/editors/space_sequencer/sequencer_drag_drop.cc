@@ -33,8 +33,8 @@
 #include "ED_screen.hh"
 #include "ED_transform.hh"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

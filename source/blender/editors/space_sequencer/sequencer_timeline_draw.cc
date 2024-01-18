@@ -26,8 +26,7 @@
 #include "BKE_scene.h"
 #include "BKE_sound.h"
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf.h"
+#include "IMB_imbuf.hh"
 
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"

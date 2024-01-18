@@ -5,8 +5,8 @@
 #include "COM_PreviewOperation.h"
 
 #include "BKE_node.hh"
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf.h"
+#include "IMB_colormanagement.hh"
+#include "IMB_imbuf.hh"
 
 namespace blender::compositor {
 

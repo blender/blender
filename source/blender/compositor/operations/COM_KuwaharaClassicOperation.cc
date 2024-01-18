@@ -6,8 +6,6 @@
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 
-#include "IMB_colormanagement.h"
-
 #include "COM_KuwaharaClassicOperation.h"
 #include "COM_SummedAreaTableOperation.h"
 

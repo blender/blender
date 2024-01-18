@@ -15,7 +15,7 @@
 #include "BKE_node_runtime.hh"
 #include "BKE_report.h"
 
-#include "IMB_colormanagement.h"
+#include "IMB_colormanagement.hh"
 
 #include "BLI_fileops.h"
 #include "BLI_linklist.h"

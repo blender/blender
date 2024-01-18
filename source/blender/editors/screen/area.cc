@@ -49,8 +49,8 @@
 
 #include "BLF_api.h"
 
-#include "IMB_imbuf_types.h"
-#include "IMB_metadata.h"
+#include "IMB_imbuf_types.hh"
+#include "IMB_metadata.hh"
 
 #include "UI_interface.hh"
 #include "UI_interface_icons.hh"

@@ -49,7 +49,7 @@
 
 #include "GHOST_C-api.h"
 
-#include "IMB_colormanagement.h"
+#include "IMB_colormanagement.hh"
 
 #include "ED_screen.hh"
 #include "ED_undo.hh"

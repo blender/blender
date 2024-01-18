@@ -59,8 +59,8 @@
 #include "RE_engine.h"
 #include "RE_pipeline.h"
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_colormanagement.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"

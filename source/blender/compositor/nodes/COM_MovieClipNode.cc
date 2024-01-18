@@ -11,7 +11,7 @@
 
 #include "DNA_movieclip_types.h"
 
-#include "IMB_imbuf.h"
+#include "IMB_imbuf.hh"
 
 namespace blender::compositor {
 

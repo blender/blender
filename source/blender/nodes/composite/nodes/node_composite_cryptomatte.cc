@@ -21,7 +21,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf_types.hh"
 
 #include "GPU_shader.h"
 #include "GPU_texture.h"

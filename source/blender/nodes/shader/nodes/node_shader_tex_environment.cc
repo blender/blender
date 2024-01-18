@@ -9,7 +9,7 @@
 #include "BKE_node_runtime.hh"
 #include "BKE_texture.h"
 
-#include "IMB_colormanagement.h"
+#include "IMB_colormanagement.hh"
 
 #include "DEG_depsgraph_query.hh"
 

@@ -18,9 +18,9 @@
 #include "DNA_image_types.h"
 #include "DNA_userdef_types.h"
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_colormanagement.hh"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "BKE_global.h"
 #include "BKE_image.h"

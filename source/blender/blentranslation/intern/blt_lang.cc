@@ -27,7 +27,7 @@
 
 #include "BKE_appdir.h"
 
-#include "IMB_thumbs.h"
+#include "IMB_thumbs.hh"
 
 #include "DNA_userdef_types.h"
 

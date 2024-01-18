@@ -51,15 +51,15 @@
 #  include "AVI_avi.h"
 #endif
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
-#include "IMB_colormanagement.h"
-#include "IMB_colormanagement_intern.h"
+#include "IMB_colormanagement.hh"
+#include "IMB_colormanagement_intern.hh"
 
-#include "IMB_anim.h"
-#include "IMB_indexer.h"
-#include "IMB_metadata.h"
+#include "IMB_anim.hh"
+#include "IMB_indexer.hh"
+#include "IMB_metadata.hh"
 
 #ifdef WITH_FFMPEG
 #  include "BKE_global.h" /* ENDIAN_ORDER */

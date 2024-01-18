@@ -18,8 +18,8 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "MEM_guardedalloc.h"
 

@@ -23,7 +23,7 @@
 
 #include "ED_view3d.hh"
 
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf_types.hh"
 
 #include "overlay_private.hh"
 

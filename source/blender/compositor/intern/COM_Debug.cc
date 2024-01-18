@@ -9,8 +9,8 @@
 #include "BLI_string.h"
 
 #include "BKE_appdir.h"
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "COM_ExecutionGroup.h"
 #include "COM_ReadBufferOperation.h"

@@ -46,7 +46,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf_types.hh"
 
 #ifdef __cplusplus
 extern "C" {

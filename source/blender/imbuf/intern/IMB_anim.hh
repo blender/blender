@@ -32,16 +32,16 @@
 #  include <dirent.h>
 #endif
 
-#include "imbuf.h"
+#include "imbuf.hh"
 
 #ifdef WITH_AVI
 #  include "AVI_avi.h"
 #endif
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
-#include "IMB_allocimbuf.h"
+#include "IMB_allocimbuf.hh"
 
 #ifdef WITH_FFMPEG
 extern "C" {

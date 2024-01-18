@@ -40,8 +40,8 @@
 #include "WM_api.hh"
 #include "wm_cursors.hh"
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_colormanagement.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "ED_grease_pencil.hh"
 #include "ED_image.hh"

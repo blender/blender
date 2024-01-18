@@ -39,8 +39,8 @@
 #include "RE_texture.h"
 #include "RE_texture_margin.h"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 using MPassKnownData = void (*)(blender::Span<blender::float3> vert_positions,
                                 blender::Span<blender::float3> vert_normals,

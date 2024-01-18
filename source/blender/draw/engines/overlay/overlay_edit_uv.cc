@@ -27,7 +27,7 @@
 
 #include "ED_image.hh"
 
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf_types.hh"
 
 #include "GPU_batch.h"
 

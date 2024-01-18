@@ -92,8 +92,8 @@ const EnumPropertyItem rna_enum_bake_pass_type_items[] = {
 
 #  include "GPU_capabilities.h"
 #  include "GPU_shader.h"
-#  include "IMB_colormanagement.h"
-#  include "IMB_imbuf_types.h"
+#  include "IMB_colormanagement.hh"
+#  include "IMB_imbuf_types.hh"
 
 #  include "DEG_depsgraph_query.hh"
 

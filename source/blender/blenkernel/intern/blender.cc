@@ -18,8 +18,8 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "IMB_imbuf.h"
-#include "IMB_moviecache.h"
+#include "IMB_imbuf.hh"
+#include "IMB_moviecache.hh"
 
 #include "BKE_addon.h"
 #include "BKE_blender.h" /* own include */

@@ -22,7 +22,7 @@
 
 #include "GPU_context.h"
 
-#include "IMB_imbuf.h"
+#include "IMB_imbuf.hh"
 
 #include "eevee_private.h"
 

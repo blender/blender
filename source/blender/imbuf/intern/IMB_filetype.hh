@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "IMB_imbuf.h"
+#include "IMB_imbuf.hh"
 
 #ifdef __cplusplus
 extern "C" {

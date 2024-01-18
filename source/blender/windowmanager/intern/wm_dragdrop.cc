@@ -47,7 +47,7 @@
 #include "GPU_state.h"
 #include "GPU_viewport.h"
 
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf_types.hh"
 
 #include "UI_interface.hh"
 #include "UI_interface_icons.hh"

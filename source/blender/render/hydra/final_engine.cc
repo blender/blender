@@ -17,7 +17,7 @@
 
 #include "DEG_depsgraph_query.hh"
 
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf_types.hh"
 
 #include "RE_engine.h"
 

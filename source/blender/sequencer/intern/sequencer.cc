@@ -28,8 +28,7 @@
 
 #include "DEG_depsgraph.hh"
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf.h"
+#include "IMB_imbuf.hh"
 
 #include "SEQ_channels.hh"
 #include "SEQ_edit.hh"

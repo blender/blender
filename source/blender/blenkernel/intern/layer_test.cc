@@ -13,7 +13,7 @@
 
 #include "RE_engine.h"
 
-#include "IMB_imbuf.h"
+#include "IMB_imbuf.hh"
 
 #include "CLG_log.h"
 

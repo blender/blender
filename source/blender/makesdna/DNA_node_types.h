@@ -1034,7 +1034,7 @@ typedef struct NodeImageLayer {
   /** Index in the `image->layers->passes` lists. */
   int pass_index DNA_DEPRECATED;
   /* render pass name */
-  /** Amount defined in IMB_openexr.h. */
+  /** Amount defined in IMB_openexr.hh. */
   char pass_name[64];
 } NodeImageLayer;
 

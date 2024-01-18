@@ -90,10 +90,10 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
-#include "IMB_metadata.h"
-#include "IMB_thumbs.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
+#include "IMB_metadata.hh"
+#include "IMB_thumbs.hh"
 
 #include "ED_asset.hh"
 #include "ED_datafiles.h"

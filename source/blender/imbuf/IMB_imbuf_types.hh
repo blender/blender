@@ -172,7 +172,7 @@ typedef enum ImBufOwnership {
 
 /* Different storage specialization.
  *
- * NOTE: Avoid direct assignments and allocations, use the buffer utilities from the IMB_imbuf.h
+ * NOTE: Avoid direct assignments and allocations, use the buffer utilities from the IMB_imbuf.hh
  * instead.
  *
  * Accessing the data pointer directly is fine and is an expected way of accessing it. */

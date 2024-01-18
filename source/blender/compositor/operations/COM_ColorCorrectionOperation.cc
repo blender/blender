@@ -4,7 +4,7 @@
 
 #include "COM_ColorCorrectionOperation.h"
 
-#include "IMB_colormanagement.h"
+#include "IMB_colormanagement.hh"
 
 namespace blender::compositor {
 

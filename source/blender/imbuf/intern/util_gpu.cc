@@ -6,7 +6,7 @@
  * \ingroup imbuf
  */
 
-#include "imbuf.h"
+#include "imbuf.hh"
 
 #include "BLI_utildefines.h"
 #include "MEM_guardedalloc.h"
@@ -17,9 +17,9 @@
 #include "GPU_state.h"
 #include "GPU_texture.h"
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_colormanagement.hh"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 /* gpu ibuf utils */
 

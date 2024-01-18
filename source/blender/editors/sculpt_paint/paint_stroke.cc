@@ -39,7 +39,7 @@
 #include "ED_screen.hh"
 #include "ED_view3d.hh"
 
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf_types.hh"
 
 #include "paint_intern.hh"
 #include "sculpt_intern.hh"

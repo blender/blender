@@ -17,8 +17,8 @@
 #  include <io.h>
 #endif
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "DNA_image_types.h"
 #include "DNA_scene_types.h"

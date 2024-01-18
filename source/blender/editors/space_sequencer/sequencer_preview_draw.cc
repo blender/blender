@@ -15,7 +15,7 @@
 #include "BLI_math_rotation.h"
 #include "BLI_utildefines.h"
 
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf_types.hh"
 
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -25,8 +25,8 @@
 #include "BKE_global.h"
 #include "BKE_scene.h"
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf.h"
+#include "IMB_colormanagement.hh"
+#include "IMB_imbuf.hh"
 
 #include "GPU_framebuffer.h"
 #include "GPU_immediate.h"

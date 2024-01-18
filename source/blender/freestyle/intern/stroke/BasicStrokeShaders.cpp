@@ -27,8 +27,8 @@
 
 #include "BLI_sys_types.h"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 namespace Freestyle::StrokeShaders {
 

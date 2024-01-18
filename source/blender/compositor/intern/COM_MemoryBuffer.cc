@@ -6,8 +6,8 @@
 
 #include "COM_MemoryProxy.h"
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_colormanagement.hh"
+#include "IMB_imbuf_types.hh"
 
 #define ASSERT_BUFFER_CONTAINS_AREA(buf, area) \
   BLI_assert(BLI_rcti_inside_rcti(&(buf)->get_rect(), &(area)))

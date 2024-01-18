@@ -23,7 +23,7 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "IMB_imbuf.h"
+#include "IMB_imbuf.hh"
 
 #include "SEQ_iterator.hh"
 #include "SEQ_prefetch.hh"

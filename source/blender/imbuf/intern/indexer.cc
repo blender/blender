@@ -25,10 +25,10 @@
 #  include "BLI_winstuff.h"
 #endif
 
-#include "IMB_anim.h"
-#include "IMB_imbuf.h"
-#include "IMB_indexer.h"
-#include "imbuf.h"
+#include "IMB_anim.hh"
+#include "IMB_imbuf.hh"
+#include "IMB_indexer.hh"
+#include "imbuf.hh"
 
 #ifdef WITH_AVI
 #  include "AVI_avi.h"

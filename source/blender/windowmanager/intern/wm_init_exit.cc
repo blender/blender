@@ -63,7 +63,7 @@
 #include "RE_engine.h"
 #include "RE_pipeline.h" /* RE_ free stuff */
 
-#include "IMB_thumbs.h"
+#include "IMB_thumbs.hh"
 
 #ifdef WITH_PYTHON
 #  include "BPY_extern.h"

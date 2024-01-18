@@ -12,7 +12,7 @@
 #  include <io.h>
 #endif
 
-#include "IMB_anim.h"
+#include "IMB_anim.hh"
 #include <stdio.h>
 #include <stdlib.h>
 /*

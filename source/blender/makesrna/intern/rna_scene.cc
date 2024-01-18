@@ -23,11 +23,12 @@
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf_types.hh"
 
 #include "BLI_listbase.h"
+#include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
 #include "BLI_string_utf8_symbols.h"
 
 #include "BLT_translation.h"

@@ -48,7 +48,7 @@
 #  include "GPU_context.h"
 
 #  ifdef WITH_FFMPEG
-#    include "IMB_imbuf.h"
+#    include "IMB_imbuf.hh"
 #  endif
 
 #  ifdef WITH_PYTHON

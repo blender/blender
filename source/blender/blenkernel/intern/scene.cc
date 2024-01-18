@@ -110,8 +110,8 @@
 
 #include "engines/eevee/eevee_lightcache.h"
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf.h"
+#include "IMB_colormanagement.hh"
+#include "IMB_imbuf.hh"
 
 #include "DRW_engine.hh"
 

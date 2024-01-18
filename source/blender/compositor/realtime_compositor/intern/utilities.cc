@@ -11,8 +11,8 @@
 #include "BLI_task.hh"
 #include "BLI_utildefines.h"
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf.h"
+#include "IMB_colormanagement.hh"
+#include "IMB_imbuf.hh"
 
 #include "DNA_node_types.h"
 

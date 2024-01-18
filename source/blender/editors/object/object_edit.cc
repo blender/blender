@@ -37,7 +37,7 @@
 #include "DNA_vfont_types.h"
 #include "DNA_workspace_types.h"
 
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf_types.hh"
 
 #include "BKE_anim_visualization.h"
 #include "BKE_armature.hh"

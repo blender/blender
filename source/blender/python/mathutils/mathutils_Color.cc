@@ -16,7 +16,7 @@
 #include "../generic/python_utildefines.h"
 
 #ifndef MATH_STANDALONE
-#  include "IMB_colormanagement.h"
+#  include "IMB_colormanagement.hh"
 #endif
 
 #ifndef MATH_STANDALONE

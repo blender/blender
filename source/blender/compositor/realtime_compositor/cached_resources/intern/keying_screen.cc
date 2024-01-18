@@ -13,7 +13,7 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_vector.hh"
 
-#include "IMB_imbuf.h"
+#include "IMB_imbuf.hh"
 
 #include "DNA_defaults.h"
 #include "DNA_movieclip_types.h"

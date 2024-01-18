@@ -43,7 +43,7 @@
 
 #include "DEG_depsgraph.hh"
 
-#include "IMB_colormanagement.h"
+#include "IMB_colormanagement.hh"
 
 #include "WM_api.hh"
 #include "WM_message.hh"

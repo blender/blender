@@ -56,7 +56,7 @@
 #include "UI_string_search.hh"
 #include "UI_view2d.hh"
 
-#include "IMB_imbuf.h"
+#include "IMB_imbuf.hh"
 
 #include "WM_api.hh"
 #include "WM_message.hh"
@@ -72,7 +72,7 @@
 #include "ED_numinput.hh"
 #include "ED_screen.hh"
 
-#include "IMB_colormanagement.h"
+#include "IMB_colormanagement.hh"
 
 #include "DEG_depsgraph_query.hh"
 

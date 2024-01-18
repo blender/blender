@@ -6,7 +6,7 @@
 
 #include "COM_ExecutionSystem.h"
 
-#include "IMB_colormanagement.h"
+#include "IMB_colormanagement.hh"
 
 namespace blender::compositor {
 

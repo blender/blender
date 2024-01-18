@@ -13,7 +13,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "IMB_imbuf.h"
+#include "IMB_imbuf.hh"
 
 #include "AVI_avi.h"
 #include "avi_rgb32.h"

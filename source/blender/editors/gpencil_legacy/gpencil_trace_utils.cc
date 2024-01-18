@@ -26,8 +26,8 @@
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "gpencil_trace.h"
 

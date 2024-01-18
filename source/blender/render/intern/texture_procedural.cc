@@ -24,8 +24,8 @@
 #include "DNA_object_types.h"
 #include "DNA_texture_types.h"
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_colormanagement.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "BKE_colorband.hh"
 #include "BKE_image.h"

@@ -37,10 +37,10 @@
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
-#include "IMB_metadata.h"
+#include "IMB_colormanagement.hh"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
+#include "IMB_metadata.hh"
 
 #include "BLI_math_color_blend.h"
 

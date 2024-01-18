@@ -28,7 +28,7 @@
 #include "BKE_animsys.h"
 #include "BKE_sound.h"
 
-#include "IMB_metadata.h"
+#include "IMB_metadata.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -121,7 +121,7 @@ const EnumPropertyItem rna_enum_strip_color_items[] = {
 #  include "DEG_depsgraph.hh"
 #  include "DEG_depsgraph_build.hh"
 
-#  include "IMB_imbuf.h"
+#  include "IMB_imbuf.hh"
 
 #  include "SEQ_edit.hh"
 

@@ -18,8 +18,8 @@
 #  include "BLI_hash.h"
 #endif
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf.h"
+#include "IMB_colormanagement.hh"
+#include "IMB_imbuf.hh"
 
 #include "BKE_brush.hh"
 #include "BKE_image_wrappers.hh"

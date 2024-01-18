@@ -61,7 +61,7 @@
 #include "UI_interface_icons.hh"
 #include "UI_resources.hh"
 
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf_types.hh"
 
 #include "gpencil_intern.h"
 

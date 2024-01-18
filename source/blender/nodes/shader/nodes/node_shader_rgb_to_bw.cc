@@ -6,8 +6,6 @@
  * \ingroup shdnodes
  */
 
-#include "IMB_colormanagement.h"
-
 #include "node_shader_util.hh"
 
 namespace blender::nodes::node_shader_rgb_to_bw_cc {

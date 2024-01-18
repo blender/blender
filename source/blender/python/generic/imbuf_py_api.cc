@@ -21,8 +21,8 @@
 
 #include "imbuf_py_api.h" /* own include */
 
-#include "../../imbuf/IMB_imbuf.h"
-#include "../../imbuf/IMB_imbuf_types.h"
+#include "../../imbuf/IMB_imbuf.hh"
+#include "../../imbuf/IMB_imbuf_types.hh"
 
 /* File IO */
 #include "BLI_fileops.h"

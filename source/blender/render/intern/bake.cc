@@ -67,8 +67,8 @@
 #include "BKE_mesh_tangent.hh"
 #include "BKE_node.hh"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "RE_bake.h"
 #include "RE_texture_margin.h"

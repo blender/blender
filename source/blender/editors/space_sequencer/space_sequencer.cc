@@ -49,7 +49,7 @@
 
 #include "BLO_read_write.hh"
 
-#include "IMB_imbuf.h"
+#include "IMB_imbuf.hh"
 
 /* Only for cursor drawing. */
 #include "DRW_engine.hh"

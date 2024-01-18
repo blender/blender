@@ -49,7 +49,7 @@
 #include "BKE_scene.h"
 #include "BKE_type_conversions.hh"
 
-#include "IMB_imbuf.h"
+#include "IMB_imbuf.hh"
 
 #include "DEG_depsgraph.hh"
 
