@@ -124,9 +124,9 @@ enum class NodeType {
   /* Batch Cache Component.
    * TODO(dfelinto/sergey): rename to make it more generic. */
   BATCH_CACHE,
-  /* Duplication system. Used to force duplicated objects visible when
-   * when duplicator is visible. */
-  DUPLI,
+  /* Instancing system.
+   * Used to control visibility flags of dependencies. */
+  INSTANCING,
   /* Synchronization back to original datablock. */
   SYNCHRONIZATION,
   /* Node tree output component. */

@@ -833,11 +833,11 @@ void DepsgraphNodeBuilder::build_object(int base_index,
     build_texture(object->pd->tex);
   }
 
-  /* Object dupligroup. */
+  /* Object instancing. */
   if (object->instance_collection != nullptr) {
     build_object_instance_collection(object, is_visible);
     OperationNode *op_node = add_operation_node(
-        &object->id, NodeType::DUPLI, OperationCode::DUPLI);
+        &object->id, NodeType::INSTANCING, OperationCode::INSTANCER);
     op_node->flag |= OperationFlag::DEPSOP_FLAG_PINNED;
   }
 

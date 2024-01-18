@@ -199,9 +199,9 @@ const char *operationCodeAsString(OperationCode opcode)
     /* Sequencer. */
     case OperationCode::SEQUENCES_EVAL:
       return "SEQUENCES_EVAL";
-    /* instancing/duplication. */
-    case OperationCode::DUPLI:
-      return "DUPLI";
+    /* instancing. */
+    case OperationCode::INSTANCER:
+      return "INSTANCER";
   }
   BLI_assert_msg(0, "Unhandled operation code, should never happen.");
   return "UNKNOWN";

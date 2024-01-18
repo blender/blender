@@ -407,7 +407,7 @@ static void deg_debug_graphviz_node(DotExportContext &ctx,
     case NodeType::OBJECT_FROM_LAYER:
     case NodeType::HIERARCHY:
     case NodeType::BATCH_CACHE:
-    case NodeType::DUPLI:
+    case NodeType::INSTANCING:
     case NodeType::SYNCHRONIZATION:
     case NodeType::AUDIO:
     case NodeType::ARMATURE:

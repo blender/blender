@@ -1259,18 +1259,18 @@ void DepsgraphRelationBuilder::build_object_instance_collection(Object *object)
 
   const OperationKey object_transform_final_key(
       &object->id, NodeType::TRANSFORM, OperationCode::TRANSFORM_FINAL);
-  const ComponentKey duplicator_key(&object->id, NodeType::DUPLI);
+  const OperationKey instancer_key(&object->id, NodeType::INSTANCING, OperationCode::INSTANCER);
 
   FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_BEGIN (instance_collection, ob, graph_->mode) {
     const ComponentKey dupli_transform_key(&ob->id, NodeType::TRANSFORM);
     add_relation(dupli_transform_key, object_transform_final_key, "Dupligroup");
 
     /* Hook to special component, to ensure proper visibility/evaluation optimizations. */
-    add_relation(dupli_transform_key, duplicator_key, "Dupligroup");
+    add_relation(dupli_transform_key, instancer_key, "Dupligroup");
     const NodeType dupli_geometry_component_type = geometry_tag_to_component(&ob->id);
     if (dupli_geometry_component_type != NodeType::UNDEFINED) {
       ComponentKey dupli_geometry_component_key(&ob->id, dupli_geometry_component_type);
-      add_relation(dupli_geometry_component_key, duplicator_key, "Dupligroup");
+      add_relation(dupli_geometry_component_key, instancer_key, "Dupligroup");
     }
   }
   FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_END;

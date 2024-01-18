@@ -198,8 +198,10 @@ enum class OperationCode {
 
   SEQUENCES_EVAL,
 
-  /* Duplication/instancing system. --------------------------------------- */
-  DUPLI,
+  /* instancing system. --------------------------------------------------- */
+
+  /* Operation on an instancer object. Relations from instanced objects go here. */
+  INSTANCER,
 };
 const char *operationCodeAsString(OperationCode opcode);
 
