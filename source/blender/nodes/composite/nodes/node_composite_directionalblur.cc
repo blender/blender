@@ -117,7 +117,7 @@ class DirectionalBlurOperation : public NodeOperation {
     const float2x2 rotation = math::from_rotation<float2x2>(
         math::AngleRadian(-node_storage(bnode()).angle));
     const float2 translation = rotation * float2(-translation_amount / get_iterations(), 0.0f);
-    return translation / input_size;
+    return translation;
   }
 
   /* Get the amount of rotation that will be applied on each iteration. */
@@ -135,7 +135,8 @@ class DirectionalBlurOperation : public NodeOperation {
 
   float2 get_origin()
   {
-    return float2(node_storage(bnode()).center_x, node_storage(bnode()).center_y);
+    const float2 input_size = float2(get_input("Image").domain().size);
+    return float2(node_storage(bnode()).center_x, node_storage(bnode()).center_y) * input_size;
   }
 
   /* The actual number of iterations is 2 to the power of the user supplied iterations. The power
