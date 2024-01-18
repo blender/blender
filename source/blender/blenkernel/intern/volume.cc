@@ -203,8 +203,7 @@ static void volume_foreach_cache(ID *id,
   Volume *volume = (Volume *)id;
   IDCacheKey key = {
       /*id_session_uuid*/ id->session_uuid,
-      /* This is just some identifier and does not have to be an actual offset. */
-      /*offset_in_ID*/ 1,
+      /*identifier*/ 1,
   };
 
   function_callback(id, &key, (void **)&volume->runtime->grids, 0, user_data);

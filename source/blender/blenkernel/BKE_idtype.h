@@ -55,7 +55,7 @@ typedef struct IDCacheKey {
   unsigned int id_session_uuid;
   /* Value uniquely identifying the cache within its ID.
    * Typically the offset of its member in the data-block struct, but can be anything. */
-  size_t offset_in_ID;
+  size_t identifier;
 } IDCacheKey;
 
 uint BKE_idtype_cache_key_hash(const void *key_v);

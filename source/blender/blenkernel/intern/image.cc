@@ -237,12 +237,12 @@ static void image_foreach_cache(ID *id,
   Image *image = (Image *)id;
   IDCacheKey key;
   key.id_session_uuid = id->session_uuid;
-  key.offset_in_ID = offsetof(Image, cache);
+  key.identifier = offsetof(Image, cache);
   function_callback(id, &key, (void **)&image->cache, 0, user_data);
 
-  key.offset_in_ID = offsetof(Image, anims.first);
+  key.identifier = offsetof(Image, anims.first);
   function_callback(id, &key, (void **)&image->anims.first, 0, user_data);
-  key.offset_in_ID = offsetof(Image, anims.last);
+  key.identifier = offsetof(Image, anims.last);
   function_callback(id, &key, (void **)&image->anims.last, 0, user_data);
 
   auto gputexture_offset = [image](int target, int eye) {
@@ -258,16 +258,16 @@ static void image_foreach_cache(ID *id,
       if (texture == nullptr) {
         continue;
       }
-      key.offset_in_ID = gputexture_offset(a, eye);
+      key.identifier = gputexture_offset(a, eye);
       function_callback(id, &key, (void **)&image->gputexture[a][eye], 0, user_data);
     }
   }
 
-  key.offset_in_ID = offsetof(Image, rr);
+  key.identifier = offsetof(Image, rr);
   function_callback(id, &key, (void **)&image->rr, 0, user_data);
 
   LISTBASE_FOREACH (RenderSlot *, slot, &image->renderslots) {
-    key.offset_in_ID = size_t(BLI_ghashutil_strhash_p(slot->name));
+    key.identifier = size_t(BLI_ghashutil_strhash_p(slot->name));
     function_callback(id, &key, (void **)&slot->render, 0, user_data);
   }
 }

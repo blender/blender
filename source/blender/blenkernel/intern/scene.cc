@@ -966,7 +966,7 @@ static void scene_foreach_cache(ID *id,
   Scene *scene = (Scene *)id;
   IDCacheKey key{};
   key.id_session_uuid = id->session_uuid;
-  key.offset_in_ID = offsetof(Scene, eevee.light_cache_data);
+  key.identifier = offsetof(Scene, eevee.light_cache_data);
 
   function_callback(id,
                     &key,
