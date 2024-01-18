@@ -43,7 +43,9 @@ static void createTransLatticeVerts(bContext * /*C*/, TransInfo *t)
     const bool is_prop_connected = (t->flag & T_PROP_CONNECTED) != 0;
 
     /* Avoid editing locked shapes. */
-    if (t->mode != TFM_DUMMY && ED_object_edit_report_if_shape_key_is_locked(tc->obedit, t->reports)) {
+    if (t->mode != TFM_DUMMY &&
+        ED_object_edit_report_if_shape_key_is_locked(tc->obedit, t->reports))
+    {
       continue;
     }
 

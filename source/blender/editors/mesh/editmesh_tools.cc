@@ -3820,7 +3820,7 @@ static int edbm_shape_propagate_to_all_exec(bContext *C, wmOperator *op)
 
   if (tot_selected_verts_objects == 0) {
     if (!tot_locked) {
-        BKE_report(op->reports, RPT_ERROR, "No selected vertex");
+      BKE_report(op->reports, RPT_ERROR, "No selected vertex");
     }
     return OPERATOR_CANCELLED;
   }

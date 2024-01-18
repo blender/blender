@@ -89,7 +89,9 @@ static void createTransCurveVerts(bContext * /*C*/, TransInfo *t)
     int count_pt = 0, countsel_pt = 0;
 
     /* Avoid editing locked shapes. */
-    if (t->mode != TFM_DUMMY && ED_object_edit_report_if_shape_key_is_locked(tc->obedit, t->reports)) {
+    if (t->mode != TFM_DUMMY &&
+        ED_object_edit_report_if_shape_key_is_locked(tc->obedit, t->reports))
+    {
       continue;
     }
 
