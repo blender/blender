@@ -6,7 +6,7 @@
 # XXX: This script is meant to be used from inside Blender!
 #      You should not directly use this script, rather use update_msg.py!
 
-import datetime
+import time
 import os
 import re
 import sys
@@ -1011,10 +1011,8 @@ def dump_addon_bl_info(msgs, reports, module, settings):
 def dump_messages(do_messages, do_checks, settings):
     bl_ver = "Blender " + bpy.app.version_string
     bl_hash = bpy.app.build_hash
-    bl_date = datetime.datetime.strptime(bpy.app.build_date.decode() + "T" + bpy.app.build_time.decode(),
-                                         "%Y-%m-%dT%H:%M:%S")
-    pot = utils.I18nMessages.gen_empty_messages(settings.PARSER_TEMPLATE_ID, bl_ver, bl_hash, bl_date, bl_date.year,
-                                                settings=settings)
+    bl_time = time.strptime(f"{bpy.app.build_date.decode()} {bpy.app.build_time.decode()} UTC", "%Y-%m-%d %H:%M:%S %Z")
+    pot = utils.I18nMessages.gen_empty_messages(settings.PARSER_TEMPLATE_ID, bl_ver, bl_hash, bl_time, settings=settings)
     msgs = pot.msgs
 
     # Enable all wanted addons.
@@ -1113,13 +1111,11 @@ def dump_addon_messages(module_name, do_checks, settings):
     addon_info = addon_utils.module_bl_info(addon)
     ver = addon_info["name"] + " " + ".".join(str(v) for v in addon_info["version"])
     rev = 0
-    date = datetime.datetime.now()
-    pot = utils.I18nMessages.gen_empty_messages(settings.PARSER_TEMPLATE_ID, ver, rev, date, date.year,
-                                                settings=settings)
+    curr_time = time.gmtime()
+    pot = utils.I18nMessages.gen_empty_messages(settings.PARSER_TEMPLATE_ID, ver, rev, curr_time, settings=settings)
     msgs = pot.msgs
 
-    minus_pot = utils.I18nMessages.gen_empty_messages(settings.PARSER_TEMPLATE_ID, ver, rev, date, date.year,
-                                                      settings=settings)
+    minus_pot = utils.I18nMessages.gen_empty_messages(settings.PARSER_TEMPLATE_ID, ver, rev, curr_time, settings=settings)
     minus_msgs = minus_pot.msgs
 
     check_ctxt = _gen_check_ctxt(settings) if do_checks else None
