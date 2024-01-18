@@ -394,15 +394,15 @@ static void brush_asset_metadata_ensure(void *asset_ptr, AssetMetaData *asset_da
   Brush *brush = reinterpret_cast<Brush *>(asset_ptr);
   BLI_assert(GS(brush->id.name) == ID_BR);
 
-  static const Array<std::pair<const char *, int>> mode_map = {
-      {"use_paint_sculpt", OB_MODE_SCULPT},
-      {"use_paint_uv_sculpt", OB_MODE_EDIT},
-      {"use_paint_vertex", OB_MODE_VERTEX_PAINT},
-      {"use_paint_weight", OB_MODE_WEIGHT_PAINT},
-      {"use_paint_image", OB_MODE_TEXTURE_PAINT},
-      {"use_paint_grease_pencil", OB_MODE_PAINT_GPENCIL_LEGACY},
-      {"use_vertex_grease_pencil", OB_MODE_VERTEX_GPENCIL_LEGACY},
-      {"use_paint_sculpt_curves", OB_MODE_SCULPT_CURVES},
+  constexpr std::array mode_map{
+      std::pair{"use_paint_sculpt", OB_MODE_SCULPT},
+      std::pair{"use_paint_uv_sculpt", OB_MODE_EDIT},
+      std::pair{"use_paint_vertex", OB_MODE_VERTEX_PAINT},
+      std::pair{"use_paint_weight", OB_MODE_WEIGHT_PAINT},
+      std::pair{"use_paint_image", OB_MODE_TEXTURE_PAINT},
+      std::pair{"use_paint_grease_pencil", OB_MODE_PAINT_GPENCIL_LEGACY},
+      std::pair{"use_vertex_grease_pencil", OB_MODE_VERTEX_GPENCIL_LEGACY},
+      std::pair{"use_paint_sculpt_curves", OB_MODE_SCULPT_CURVES},
   };
 
   for (const auto &mode_mapping : mode_map) {
@@ -550,7 +550,7 @@ Brush *BKE_brush_asset_runtime_ensure(Main *bmain, const AssetWeakReference *bru
     return local_brush_asset;
   }
 
-  LibraryLink_Params lapp_parameters = {nullptr};
+  LibraryLink_Params lapp_parameters{};
   lapp_parameters.bmain = bmain;
   BlendfileLinkAppendContext *lapp_context = BKE_blendfile_link_append_context_new(
       &lapp_parameters);
