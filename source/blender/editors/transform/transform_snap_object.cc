@@ -700,7 +700,7 @@ bool nearest_world_tree(SnapObjectContext *sctx,
     vec = float3(nearest.co) - curr_co;
   }
 
-  float original_distance = math::length(math::transform_direction(obmat, vec));
+  float original_distance = math::length_squared(math::transform_direction(obmat, vec));
   if (r_nearest->dist_sq <= original_distance) {
     return false;
   }
@@ -727,7 +727,7 @@ bool nearest_world_tree(SnapObjectContext *sctx,
      * When multiple steps are tested, we cannot depend on the distance calculated for
      * `nearest.dist_sq`, as it reduces with each step. */
     vec = co - curr_co;
-    r_nearest->dist_sq = math::length(math::transform_direction(obmat, vec));
+    r_nearest->dist_sq = math::length_squared(math::transform_direction(obmat, vec));
   }
   return true;
 }
