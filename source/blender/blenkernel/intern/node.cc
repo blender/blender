@@ -2529,6 +2529,7 @@ bNode *nodeAddNode(const bContext *C, bNodeTree *ntree, const char *idname)
   node->runtime = MEM_new<bNodeRuntime>(__func__);
   BLI_addtail(&ntree->nodes, node);
   nodeUniqueID(ntree, node);
+  node->ui_order = ntree->all_nodes().size();
 
   STRNCPY(node->idname, idname);
   blender::bke::node_set_typeinfo(C, ntree, node, nodeTypeFind(idname));
