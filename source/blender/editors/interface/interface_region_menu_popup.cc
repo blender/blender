@@ -18,6 +18,7 @@
 #include "DNA_userdef_types.h"
 
 #include "BLI_ghash.h"
+#include "BLI_hash.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_rect.h"
@@ -120,7 +121,7 @@ static uiBut *ui_popup_menu_memory__internal(uiBlock *block, uiBut *but)
 
   if (but) {
     /* set */
-    mem[hash_mod] = ui_popup_string_hash(but->str.c_str(), but->flag & UI_BUT_HAS_SEP_CHAR);
+    mem[hash_mod] = ui_popup_string_hash(but->str, but->flag & UI_BUT_HAS_SEP_CHAR);
     return nullptr;
   }
 
@@ -132,8 +133,7 @@ static uiBut *ui_popup_menu_memory__internal(uiBlock *block, uiBut *but)
     if (ELEM(but_iter->type, UI_BTYPE_LABEL, UI_BTYPE_SEPR, UI_BTYPE_SEPR_LINE)) {
       continue;
     }
-    if (mem[hash_mod] ==
-        ui_popup_string_hash(but_iter->str.c_str(), but_iter->flag & UI_BUT_HAS_SEP_CHAR))
+    if (mem[hash_mod] == ui_popup_string_hash(but_iter->str, but_iter->flag & UI_BUT_HAS_SEP_CHAR))
     {
       return but_iter;
     }
