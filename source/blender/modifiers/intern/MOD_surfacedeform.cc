@@ -1745,4 +1745,5 @@ ModifierTypeInfo modifierType_SurfaceDeform = {
     /*panel_register*/ panel_register,
     /*blend_write*/ blend_write,
     /*blend_read*/ blend_read,
+    /*foreach_cache*/ nullptr,
 };

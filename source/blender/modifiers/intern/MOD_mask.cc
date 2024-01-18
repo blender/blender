@@ -830,4 +830,5 @@ ModifierTypeInfo modifierType_Mask = {
     /*panel_register*/ panel_register,
     /*blend_write*/ nullptr,
     /*blend_read*/ nullptr,
+    /*foreach_cache*/ nullptr,
 };

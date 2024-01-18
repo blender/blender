@@ -2294,4 +2294,5 @@ ModifierTypeInfo modifierType_Nodes = {
     /*panel_register*/ blender::panel_register,
     /*blend_write*/ blender::blend_write,
     /*blend_read*/ blender::blend_read,
+    /*foreach_cache*/ nullptr,
 };

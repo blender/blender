@@ -7,6 +7,7 @@
  * \ingroup bke
  */
 #include "BLI_compiler_attrs.h"
+#include "BLI_function_ref.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_span.hh"
 
@@ -33,6 +34,7 @@ struct ModifierData;
 struct Object;
 struct Scene;
 struct StructRNA;
+struct IDCacheKey;
 
 enum class ModifierTypeType {
   /* Should not be used, only for None modifier type */
@@ -381,6 +383,14 @@ struct ModifierTypeInfo {
    * not been written (e.g. runtime data) can be reset.
    */
   void (*blend_read)(BlendDataReader *reader, ModifierData *md);
+
+  /**
+   * Iterate over all cache pointers of given modifier. Also see #IDTypeInfo::foreach_cache.
+   */
+  void (*foreach_cache)(
+      Object *object,
+      ModifierData *md,
+      blender::FunctionRef<void(const IDCacheKey &cache_key, void **cache_p, uint flags)> fn);
 };
 
 /* Used to set a modifier's panel type. */
