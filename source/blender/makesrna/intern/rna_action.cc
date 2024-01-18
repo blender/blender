@@ -23,6 +23,7 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
+#include "RNA_path.hh"
 
 #include "rna_internal.h"
 
@@ -37,6 +38,7 @@
 #  include "DEG_depsgraph.hh"
 
 #  include "ANIM_action.hh"
+#  include "ED_anim_api.hh"
 
 #  include "WM_api.hh"
 
@@ -348,6 +350,44 @@ bool rna_Action_actedit_assign_poll(PointerRNA *ptr, PointerRNA value)
   return 0;
 }
 
+/* All FCurves need to be validated when the "show_only_errors" button is enabled. */
+static void rna_Action_show_errors_update(bContext *C, PointerRNA * /*ptr*/)
+{
+  bAnimContext ac;
+
+  /* Get editor data. */
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
+    return;
+  }
+
+  if (!(ac.ads->filterflag & ADS_FILTER_ONLY_ERRORS)) {
+    return;
+  }
+
+  /* Need to take off the flag before filtering, else the filter code would skip the FCurves, which
+   * have not yet been validated. */
+  ac.ads->filterflag &= ~ADS_FILTER_ONLY_ERRORS;
+  ListBase anim_data = {nullptr, nullptr};
+  const eAnimFilter_Flags filter = ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FCURVESONLY;
+  ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, eAnimCont_Types(ac.datatype));
+
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+    FCurve *fcu = (FCurve *)ale->key_data;
+    PointerRNA ptr;
+    PropertyRNA *prop;
+    PointerRNA id_ptr = RNA_id_pointer_create(ale->id);
+    if (RNA_path_resolve_property(&id_ptr, fcu->rna_path, &ptr, &prop)) {
+      fcu->flag &= ~FCURVE_DISABLED;
+    }
+    else {
+      fcu->flag |= FCURVE_DISABLED;
+    }
+  }
+
+  ANIM_animdata_freelist(&anim_data);
+  ac.ads->filterflag |= ADS_FILTER_ONLY_ERRORS;
+}
+
 static char *rna_DopeSheet_path(const PointerRNA * /*ptr*/)
 {
   return BLI_strdup("dopesheet");
@@ -420,7 +460,9 @@ static void rna_def_dopesheet(BlenderRNA *brna)
                            "Only Show Errors",
                            "Only include F-Curves and drivers that are disabled or have errors");
   RNA_def_property_ui_icon(prop, ICON_ERROR, 0);
-  RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, nullptr);
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_update(
+      prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, "rna_Action_show_errors_update");
 
   /* Object Collection Filtering Settings */
   prop = RNA_def_property(srna, "filter_collection", PROP_POINTER, PROP_NONE);
